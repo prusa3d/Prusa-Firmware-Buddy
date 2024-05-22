@@ -27,6 +27,10 @@
 #include "../gcode.h"
 #include "../../module/motion.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M211: Enable, Disable, and/or Report software endstops
  *
@@ -42,5 +46,7 @@ void GcodeSuite::M211() {
   print_xyz(l_soft_min, PSTR(MSG_SOFT_MIN), PSTR(" "));
   print_xyz(l_soft_max, PSTR(MSG_SOFT_MAX));
 }
+
+/** @}*/
 
 #endif

@@ -1,0 +1,42 @@
+{
+    "tests":
+    [
+        {
+            "switch": "on",
+            "name": "Valid GCODE Autohome",
+            "request":
+            {
+                "header":
+                {
+                    "method": "POST",
+                    "uri": "/api/g-code",
+                    "token": "01234567899876543210"
+                }
+            ,
+                "body":
+                {
+                    "command": "G28"
+                }
+            }
+        }
+    ,
+        {
+            "switch": "off",
+            "name": "Invalid GCODE",
+            "request":
+            {
+                "header":
+                {
+                    "method": "POST",
+                    "uri": "/api/g-code",
+                    "token": "01234567899876543210"
+                }
+            ,
+                "body":
+                {
+                    "command": "G"
+                }
+            }
+        }
+    ]
+}

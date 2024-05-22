@@ -1,4 +1,4 @@
-//screen_printing.hpp
+// screen_printing.hpp
 #pragma once
 #include "status_footer.hpp"
 #include "window_header.hpp"
@@ -7,11 +7,19 @@
 #include "window_term.hpp"
 #include "window_print_progress.hpp"
 #include "ScreenPrintingModel.hpp"
+#include "print_progress.hpp"
+#include "print_time_module.hpp"
+#include <guiconfig/guiconfig.h>
+#include <option/development_items.h>
+#include <option/developer_mode.h>
 #include <array>
+#include <window_progress.hpp>
+#include "screen_printing_end_result.hpp"
 
 enum class printing_state_t : uint8_t {
     INITIAL,
     PRINTING,
+    ABSORBING_HEAT,
     PAUSING,
     PAUSED,
     RESUMING,
@@ -19,52 +27,95 @@ enum class printing_state_t : uint8_t {
     REHEATING,
     REHEATING_DONE,
     MBL_FAILED,
+    STOPPED,
     PRINTED,
-    COUNT //setting this state == forced update
+    COUNT // setting this state == forced update
 };
 
-enum class item_id_t {
-    settings,
-    pause,
-    pausing,
-    stop,
-    resume,
-    resuming,
-    reheating,
-    reprint,
-    home,
-    count
-};
-
-constexpr static const size_t POPUP_MSG_DUR_MS = 5000;
-constexpr static const size_t MAX_END_TIMESTAMP_SIZE = 14 + 12 + 5; // "dd.mm.yyyy at hh:mm:ss" + safty measures for 3digit where 2 digits should be
-constexpr static const size_t MAX_TIMEDUR_STR_SIZE = 9;
+inline constexpr size_t POPUP_MSG_DUR_MS = 5000;
 
 class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
-    static constexpr const char *caption = N_("PRINTING");
+    static constexpr const char *caption = N_("PRINTING ...");
+
+#if defined(USE_ILI9488)
+    PrintProgress print_progress;
+
+    /**
+     * @brief Starts showing end result 'state'
+     *
+     */
+    void start_showing_end_result();
+    /**
+     * @brief Stops showing end result 'state'
+     *
+     */
+    void stop_showing_end_result();
+
+    /**
+     * @brief Hides all fields related to end result
+     *
+     */
+    void hide_end_result_fields();
+
+    bool showing_end_result { false }; // whether currently showing end result 'state'
+    bool shown_end_result { false }; // whether end result has ever been shown
+    bool mmu_maintenance_checked { false }; // Did we check for MMU maintenance
+
+    window_icon_t arrow_left;
+
+    WindowProgressCircles rotating_circles;
+#endif
 
     window_roll_text_t w_filename;
     WindowPrintProgress w_progress;
     WindowNumbPrintProgress w_progress_txt;
+#if defined(USE_ST7789)
     window_text_t w_time_label;
     window_text_t w_time_value;
+#endif // USE_ST7789
     window_text_t w_etime_label;
     window_text_t w_etime_value;
 
-    uint32_t last_print_duration;
-    uint32_t last_time_to_end;
+    /**
+     * @brief Shows fields related to time (eg remaining time label + value)
+     *
+     */
+    void show_time_information();
+    /**
+     * @brief Hides fields related to time (eg remaining time label + value)
+     *
+     */
+    void hide_time_information();
 
-    std::array<char, MAX_TIMEDUR_STR_SIZE> text_time_dur;
-    std::array<char, MAX_END_TIMESTAMP_SIZE> text_etime;
-    //std::array<char, 15> label_etime;  // "Remaining" or "Print will end" // nope, if you have only 2 static const strings, you can swap pointers
-    string_view_utf8 label_etime;      // not sure if we really must keep this in memory
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
     uint32_t message_timer;
     bool stop_pressed;
     bool waiting_for_abort; /// flag specific for stop pressed when MBL is performed
     printing_state_t state__readonly__use_change_print_state;
 
+    float last_e_axis_position;
     const Rect16 popup_rect;
+
+#if defined(USE_ST7789)
+    PrintTime print_time;
+    PT_t time_end_format;
+#else
+    EndResultBody::DateBufferT w_etime_value_buffer;
+    EndResultBody end_result_body;
+
+    enum class CurrentlyShowing {
+        remaining_time, // time until end of print
+        end_time, // 'date' of end of print
+        time_to_change, // m600 / m601
+        time_since_start, // real printing time since start
+        _count,
+    };
+
+    static constexpr size_t rotation_time_s { 4 }; // time how often there should be a change between what's currently shown
+
+    CurrentlyShowing currently_showing { CurrentlyShowing::remaining_time }; // what item is currently shown
+    uint32_t last_update_time_s { 0 }; // helper needed to properly rotate
+#endif
 
 public:
     screen_printing_data_t();
@@ -74,20 +125,16 @@ protected:
 
 private:
     void invalidate_print_state();
-    void disable_tune_button();
-    void enable_tune_button();
-    void update_remaining_time(uint32_t sec, uint16_t print_speed); // must use uint32_t instead time_t, because of validity check
-    void update_end_timestamp(time_t now_sec, uint16_t print_speed);
+    void updateTimes();
+
+#if defined(USE_ST7789)
     void update_print_duration(time_t rawtime);
+#endif // USE_ST7789
     void screen_printing_reprint();
-    void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, window_text_t *lbl);
-    void enable_button(window_icon_t *p_button);
-    void disable_button(window_icon_t *p_button);
     void set_pause_icon_and_label();
     void set_tune_icon_and_label();
     void set_stop_icon_and_label();
     void change_print_state();
-    void change_etime();
 
     virtual void stopAction() override;
     virtual void pauseAction() override;

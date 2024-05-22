@@ -38,7 +38,7 @@ class PrintArea {
       constexpr rect_t(xy_pos_t a, xy_pos_t b) : a(a), b(b) {}
 
       constexpr static rect_t max() {
-        return rect_t(std::numeric_limits<float>::min(), std::numeric_limits<float>::min(),
+        return rect_t(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest(),
                       std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
       }
 
@@ -83,6 +83,11 @@ class PrintArea {
           r.b.y = r.a.y;
         return r;
       }
+
+      /// Return area of the rectangle
+      float area() const {
+        return (b.x - a.x) * (b.y - a.y);
+      }
     };
 
     /// Return current bounding rect. Returns the whole bed by default.
@@ -92,7 +97,7 @@ class PrintArea {
     static void set_bounding_rect(rect_t bounding_rect);
 
     /// Set current bounding rect to max rect.
-    static void reset_bounding_rect(){set_bounding_rect(rect_t::max());}
+    static void reset_bounding_rect();
 
   private:
 

@@ -1,4 +1,4 @@
-/* 
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2020 Jerzy Kasenberg
@@ -24,7 +24,7 @@
  * This file is part of the TinyUSB stack.
  */
 
-#include "bsp/board.h"
+#include "bsp/board_api.h"
 #include <hal/hal_gpio.h>
 #include <mcu/mcu.h>
 
@@ -36,7 +36,7 @@ void USB_IRQHandler(void)
   tud_int_handler(0);
 }
 
-#if TUSB_OPT_DEVICE_ENABLED
+#if CFG_TUD_ENABLED
 // DA146xx driver function that must be called whenever VBUS changes
 extern void tusb_vbus_changed(bool present);
 
@@ -85,7 +85,7 @@ void board_init(void)
   // 1ms tick timer
   SysTick_Config(SystemCoreClock / 1000);
 
-#if TUSB_OPT_DEVICE_ENABLED
+#if CFG_TUD_ENABLED
   // Setup interrupt for both connect and disconnect
   CRG_TOP->VBUS_IRQ_MASK_REG = CRG_TOP_VBUS_IRQ_MASK_REG_VBUS_IRQ_EN_FALL_Msk |
                                CRG_TOP_VBUS_IRQ_MASK_REG_VBUS_IRQ_EN_RISE_Msk;

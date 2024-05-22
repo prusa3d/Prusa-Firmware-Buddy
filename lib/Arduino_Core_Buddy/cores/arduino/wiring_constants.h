@@ -70,8 +70,8 @@ enum BitOrder {
 #define LOW  0x0
 #define HIGH 0x1
 
-#define DEFAULT  1
-#define EXTERNAL 0
+// #define DEFAULT  1
+// #define EXTERNAL 0
 
 #define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
 
@@ -91,7 +91,7 @@ enum BitOrder {
 #define bitWrite(value, bit, bitvalue) (bitvalue ? bitSet(value, bit) : bitClear(value, bit))
 
 #define bit(b) (1UL << (b))
-//macro added for compatibility
+// macro added for compatibility
 #ifndef _BV
     #define _BV(bit) (1 << (bit))
 #endif

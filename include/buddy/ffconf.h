@@ -1,3 +1,4 @@
+#pragma once
 /*---------------------------------------------------------------------------/
 /  FatFs Functional Configurations
 /---------------------------------------------------------------------------*/
@@ -33,7 +34,7 @@
 #define FF_USE_FASTSEEK 1
 /* This option switches fast seek function. (0:Disable or 1:Enable) */
 
-#define FF_USE_EXPAND 0
+#define FF_USE_EXPAND 1
 /* This option switches f_expand function. (0:Disable or 1:Enable) */
 
 #define FF_USE_CHMOD 0
@@ -121,7 +122,7 @@
 /  memory for the working buffer, memory management functions, ff_memalloc() and
 /  ff_memfree() exemplified in ffsystem.c, need to be added to the project. */
 
-#define FF_LFN_UNICODE 0
+#define FF_LFN_UNICODE 2
 /* This option switches the character encoding on the API when LFN is enabled.
 /
 /   0: ANSI/OEM in current CP (TCHAR = char)
@@ -133,7 +134,7 @@
 /  When LFN is not enabled, this option has no effect. */
 
 #define FF_LFN_BUF 255
-#define FF_SFN_BUF 12
+#define FF_SFN_BUF 34
 /* This set of options defines size of file name members in the FILINFO structure
 /  which is used to read out directory items. These values should be suffcient for
 /  the file names to read. The maximum possible length of the read file name depends
@@ -249,7 +250,7 @@
 
 #include "cmsis_os.h" // O/S definitions
 #define FF_FS_REENTRANT 1
-#define FF_FS_TIMEOUT   1000
+#define FF_FS_TIMEOUT   portMAX_DELAY
 #define FF_SYNC_t       osSemaphoreId
 /* The option FF_FS_REENTRANT switches the re-entrancy (thread safe) of the FatFs
 /  module itself. Note that regardless of this option, file access to different

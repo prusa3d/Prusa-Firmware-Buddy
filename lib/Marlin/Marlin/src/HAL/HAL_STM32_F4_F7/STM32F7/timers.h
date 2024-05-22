@@ -60,9 +60,9 @@
 
 // TODO change this
 
-extern void TC5_Handler();
+extern void TC6_Handler();
 extern void TC7_Handler();
-#define HAL_STEP_TIMER_ISR()  void TC5_Handler()
+#define HAL_STEP_TIMER_ISR()  void TC6_Handler()
 #define HAL_TEMP_TIMER_ISR()  void TC7_Handler()
 
 // ------------------------

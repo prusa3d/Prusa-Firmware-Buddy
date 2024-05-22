@@ -11,6 +11,7 @@ using namespace handler;
 using http::Status;
 using json::Event;
 using json::Type;
+using std::nullopt;
 using std::string_view;
 
 namespace {
@@ -50,7 +51,7 @@ Step JobCommand::step(std::string_view input, bool terminated_by_client, uint8_t
     if (content_length > buffer_used) {
         // Still waiting for more data.
         if (terminated_by_client) {
-            return Step { to_read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Truncated request") };
+            return Step { to_read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Truncated request") };
         } else {
             return Step { to_read, 0, Continue() };
         }
@@ -63,7 +64,7 @@ StatusPage JobCommand::process() {
     Command pause_command = Command::ErrUnknownCommand;
     Command top_command = Command::ErrUnknownCommand;
 
-    const auto parse_result = parse_command(reinterpret_cast<const char *>(buffer.data()), buffer_used, [&](const Event &event) {
+    const auto parse_result = parse_command(reinterpret_cast<char *>(buffer.data()), buffer_used, [&](const Event &event) {
         if (event.depth != 1 || event.type != Type::String) {
             return;
         }
@@ -88,9 +89,9 @@ StatusPage JobCommand::process() {
 
     switch (parse_result) {
     case JsonParseResult::ErrMem:
-        return StatusPage(Status::PayloadTooLarge, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "Too many JSON tokens");
+        return StatusPage(Status::PayloadTooLarge, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "Too many JSON tokens");
     case JsonParseResult::ErrReq:
-        return StatusPage(Status::BadRequest, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "Couldn't parse JSON");
+        return StatusPage(Status::BadRequest, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "Couldn't parse JSON");
     case JsonParseResult::Ok:
         break;
     }
@@ -129,8 +130,8 @@ StatusPage JobCommand::process() {
         }
     default:
         assert(0);
-        return StatusPage(Status::InternalServerError, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "Invalid command");
+        return StatusPage(Status::InternalServerError, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "Invalid command");
     }
 }
 
-}
+} // namespace nhttp::printer

@@ -40,7 +40,7 @@ class Rect16 {
     static Rect16 merge(const Rect16 *rectangles, size_t count);
 
 public:
-    //some structs to work with operators
+    // some structs to work with operators
     struct X_t {
         constexpr X_t(int16_t x = 0)
             : x(x) {}
@@ -435,9 +435,9 @@ public:
     /// @return Return true if the rectangle is empty
     constexpr bool IsEmpty() const { return !(width_ && height_); }
 
-    //experimental features, not tested
-    //TODO define meaningfull operations like X_t-X_t = W_t, X_t+W_t = X_t, X_t-W_t = X_t ...
-    //TODO should not W_t be signed?
+    // experimental features, not tested
+    // TODO define meaningfull operations like X_t-X_t = W_t, X_t+W_t = X_t, X_t-W_t = X_t ...
+    // TODO should not W_t be signed?
     constexpr Rect16 &operator+=(X_t val) {
         top_left_.x += val.x;
         return *this;
@@ -449,6 +449,9 @@ public:
     constexpr Rect16 &operator=(X_t val) {
         top_left_.x = val.x;
         return *this;
+    }
+    constexpr void set(X_t val) {
+        top_left_.x = val.x;
     }
     friend constexpr Rect16 operator+(Rect16 lhs, X_t rhs) {
         lhs += rhs;
@@ -471,6 +474,9 @@ public:
         top_left_.y = val.y;
         return *this;
     }
+    constexpr void set(Y_t val) {
+        top_left_.y = val.y;
+    }
     friend constexpr Rect16 operator+(Rect16 lhs, Y_t rhs) {
         lhs += rhs;
         return lhs;
@@ -491,6 +497,9 @@ public:
     constexpr Rect16 &operator=(W_t val) {
         width_ = val.w;
         return *this;
+    }
+    constexpr void set(W_t val) {
+        width_ = val.w;
     }
     friend constexpr Rect16 operator+(Rect16 lhs, W_t rhs) {
         lhs += rhs;
@@ -513,6 +522,9 @@ public:
         height_ = val.h;
         return *this;
     }
+    constexpr void set(H_t val) {
+        height_ = val.h;
+    }
     friend constexpr Rect16 operator+(Rect16 lhs, H_t rhs) {
         lhs += rhs;
         return lhs;
@@ -534,6 +546,9 @@ public:
         top_left_ = val;
         return *this;
     }
+    constexpr void set(point_i16_t val) {
+        top_left_ = val;
+    }
     friend constexpr Rect16 operator+(Rect16 lhs, point_i16_t rhs) {
         lhs += rhs;
         return lhs;
@@ -550,7 +565,18 @@ public:
     ///          different value
     /// @param[in] padding Given padding structure that specify additional pixels
     template <class T>
-    void AddPadding(const padding_t<T>);
+    constexpr void AddPadding(const padding_t<T>);
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Add padding to given rectangle
+    /// @param[in] rc Given rectangle
+    /// @param[in] padding Given padding structure that specify deducted pixels
+    /// @return Return rectangle containing padding
+    template <class T>
+    static constexpr Rect16 AddPadding(Rect16 rc, const padding_t<T> padding) {
+        rc.AddPadding(padding);
+        return rc;
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Subtract pixels from given direction
@@ -559,7 +585,18 @@ public:
     ///          returns different value
     /// @param[in] padding Given padding structure that specify deducted pixels
     template <class T>
-    void CutPadding(const padding_t<T>);
+    constexpr void CutPadding(const padding_t<T>);
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// @brief Subtract padding from given rectangle
+    /// @param[in] rc Given rectangle
+    /// @param[in] padding Given padding structure that specify deducted pixels
+    /// @return Return cut rectangle
+    template <class T>
+    static constexpr Rect16 CutPadding(Rect16 rc, const padding_t<T> padding) {
+        rc.CutPadding(padding);
+        return rc;
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Static method determines the rectangle structure that represents
@@ -579,7 +616,7 @@ public:
     /// @param[in] rectangles passed by parameter pack
     /// @return Return a rectangle that represents the union of all rectangles
     template <class... E>
-    static Rect16 Merge_ParamPack(E &&... e) {
+    static Rect16 Merge_ParamPack(E &&...e) {
         const size_t SZ = sizeof...(E);
         std::array<Rect16, SZ> arr = { { std::forward<E>(e)... } };
         return Merge(arr);
@@ -632,7 +669,7 @@ public:
     /// @param[in] count number of splits
     /// @param[in] spacing width of spaces between rectangle's splits (optional = 0)
     /// @param[in] text_width[] width of texts (optional = nullptr)
-    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t text_width[] = nullptr) const;
+    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, const uint8_t text_width[] = nullptr) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Horizontal split with dynamic spaces from parent Rect16
@@ -679,7 +716,7 @@ public:
     /// @param[in] count number of splits
     /// @param[in] spacing with of spaces between rectangle's splits (optional = 0)
     /// @param[in] text_width[] text_width of wanted splits (optional = nullptr)
-    void VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t text_width[] = nullptr) const;
+    void VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, const uint8_t text_width[] = nullptr) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Line operation substracts subtrahend
@@ -710,8 +747,9 @@ private:
 /// @param[in] rhs Rectangle to compare
 /// @return Return true when the rectangle perfectly match, false otherwise
 constexpr bool operator==(Rect16 const &lhs, Rect16 const &rhs) {
-    if (lhs.IsEmpty() && rhs.IsEmpty()) //empty rects are equal
+    if (lhs.IsEmpty() && rhs.IsEmpty()) { // empty rects are equal
         return true;
+    }
     return lhs.TopLeft() == rhs.TopLeft()
         && lhs.Width() == rhs.Width()
         && lhs.Height() == rhs.Height();
@@ -730,7 +768,7 @@ constexpr bool operator!=(Rect16 const &lhs, Rect16 const &rhs) {
 /// template definitions
 
 template <class T>
-void Rect16::AddPadding(const padding_t<T> p) {
+void constexpr Rect16::AddPadding(const padding_t<T> p) {
     top_left_.x = top_left_.x - p.left;
     top_left_.y = top_left_.y - p.top;
     width_ += (p.left + p.right);
@@ -738,7 +776,7 @@ void Rect16::AddPadding(const padding_t<T> p) {
 }
 
 template <class T>
-void Rect16::CutPadding(const padding_t<T> p) {
+void constexpr Rect16::CutPadding(const padding_t<T> p) {
     if ((p.left + p.right) >= width_
         || (p.top + p.bottom) >= height_) {
         width_ = height_ = 0;

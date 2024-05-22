@@ -6,15 +6,35 @@
 
 #include "selftest_result_fans.hpp"
 #include "i18n.h"
-#include "resource.h"
+#include "img_resources.hpp"
 
-ResultFans::ResultFans(TestResult_t hb_fan, TestResult_t print_fan)
+ResultFans::ResultFans()
     : SelfTestGroup(_("Fans check"))
-    , heatbreak(_("Extruder fan"), IDR_PNG_fan_16x16, hb_fan)
-    , print(_("Print fan"), IDR_PNG_turbine_16x16, print_fan) {
+    , heatbreak(_("Hotend fan"), &img::fan_16x16, TestResult_Unknown)
+    , print(_("Print fan"), &img::turbine_16x16, TestResult_Unknown)
+#if not PRINTER_IS_PRUSA_MINI
+    , fans_switched(_("Checking for switched fans"), nullptr, TestResult_Unknown)
+#endif
+{
     Add(heatbreak);
     Add(print);
-    if (hb_fan == TestResult_t::Failed || print_fan == TestResult_t::Failed) {
-        failed = true;
-    }
+#if not PRINTER_IS_PRUSA_MINI
+    Add(fans_switched);
+#endif
+
+    failed = false;
+}
+
+void ResultFans::SetState(TestResult hb_fan, TestResult print_fan, [[maybe_unused]] TestResult fans_swtchd) {
+    heatbreak.SetState(hb_fan);
+    print.SetState(print_fan);
+#if not PRINTER_IS_PRUSA_MINI
+    fans_switched.SetState(fans_swtchd);
+#endif
+
+    failed = (hb_fan == TestResult_Failed || print_fan == TestResult_Failed
+#if not PRINTER_IS_PRUSA_MINI
+        || fans_swtchd == TestResult_Failed
+#endif
+    );
 }

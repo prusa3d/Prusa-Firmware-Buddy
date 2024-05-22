@@ -28,6 +28,10 @@
 #include "../../../feature/tmc_util.h"
 #include "../../../module/stepper/indirection.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M906: Set motor current in milliamps.
  *
@@ -151,5 +155,7 @@ void GcodeSuite::M906() {
     #endif
   }
 }
+
+/** @}*/
 
 #endif // HAS_TRINAMIC

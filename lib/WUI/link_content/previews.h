@@ -11,4 +11,4 @@ public:
 
 extern const Previews previews;
 
-}
+} // namespace nhttp::link_content

@@ -7,73 +7,56 @@
 
 #pragma once
 
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
+#include "marlin_server_extended_fsm_data.hpp"
 #include "selftest_sub_state.hpp"
 #include <limits>
-struct SelftestFan_t {
-    uint8_t progress;
-    SelftestSubtestState_t state;
+#include "inc/MarlinConfig.h"
 
-    constexpr SelftestFan_t(uint8_t prog = 0, SelftestSubtestState_t st = SelftestSubtestState_t::undef)
-        : progress(prog)
-        , state(st) {}
+#include <span>
 
-    constexpr bool operator==(const SelftestFan_t &other) const {
-        return (progress == other.progress) && (state == other.state);
+struct SelftestFanHotendResult {
+    uint8_t progress { 0 };
+    SelftestSubtestState_t print_fan_state { SelftestSubtestState_t::undef };
+    SelftestSubtestState_t heatbreak_fan_state { SelftestSubtestState_t::undef };
+    SelftestSubtestState_t fans_switched_state { SelftestSubtestState_t::undef };
+
+    constexpr bool operator==(SelftestFanHotendResult const &other) const {
+        return progress == other.progress && print_fan_state == other.print_fan_state && heatbreak_fan_state == other.heatbreak_fan_state && fans_switched_state == other.fans_switched_state;
     }
 
-    constexpr bool operator!=(const SelftestFan_t &other) const {
+    constexpr bool operator!=(const SelftestFanHotendResult &other) const {
         return !((*this) == other);
     }
+
     void Pass() {
-        state = SelftestSubtestState_t::ok;
         progress = 100;
     }
     void Fail() {
-        state = SelftestSubtestState_t::not_good;
         progress = 100;
     }
     void Abort() {} // currently not needed
 };
 
-struct SelftestFans_t {
-    uint8_t print_fan_progress;
-    uint8_t heatbreak_fan_progress;
-    uint8_t tot_progress;
-    SelftestSubtestState_t print_fan_state;
-    SelftestSubtestState_t heatbreak_fan_state;
+struct SelftestFansResult : public FSMExtendedData {
+    uint8_t progress { 0 };
+    std::array<SelftestFanHotendResult, HOTENDS> hotend_results;
 
-    constexpr SelftestFans_t(SelftestFan_t print = SelftestFan_t(), SelftestFan_t heatbreak = SelftestFan_t())
-        : print_fan_progress(print.progress)
-        , heatbreak_fan_progress(heatbreak.progress)
-        , tot_progress(std::min(print_fan_progress, heatbreak_fan_progress))
-        , print_fan_state(print.state)
-        , heatbreak_fan_state(heatbreak.state) {}
+    constexpr SelftestFansResult() {}
 
-    constexpr SelftestFans_t(fsm::PhaseData new_data)
-        : SelftestFans_t() {
-        Deserialize(new_data);
+    SelftestFansResult(const std::span<SelftestFanHotendResult> &results) {
+        progress = std::numeric_limits<decltype(progress)>::max();
+        for (size_t i = 0; i < results.size(); ++i) {
+            hotend_results[i] = results[i];
+            progress = std::min(progress, results[i].progress);
+        }
     }
 
-    constexpr fsm::PhaseData Serialize() const {
-        fsm::PhaseData ret = { { print_fan_progress, heatbreak_fan_progress, tot_progress,
-            uint8_t(uint8_t(print_fan_state) | (uint8_t(heatbreak_fan_state) << 2)) } };
-        return ret;
+    constexpr bool operator==(SelftestFansResult const &other) const {
+        return hotend_results == other.hotend_results;
     }
 
-    constexpr void Deserialize(fsm::PhaseData new_data) {
-        print_fan_progress = new_data[0];
-        heatbreak_fan_progress = new_data[1];
-        tot_progress = new_data[2];
-        print_fan_state = SelftestSubtestState_t(new_data[3] & 0x03);
-        heatbreak_fan_state = SelftestSubtestState_t((new_data[3] >> 2) & 0x03);
-    }
-
-    constexpr bool operator==(const SelftestFans_t &other) const {
-        return (print_fan_progress == other.print_fan_progress) && (heatbreak_fan_progress == other.heatbreak_fan_progress) && (tot_progress == other.tot_progress) && (print_fan_state == other.print_fan_state) && (heatbreak_fan_state == other.heatbreak_fan_state);
-    }
-
-    constexpr bool operator!=(const SelftestFans_t &other) const {
+    constexpr bool operator!=(const SelftestFansResult &other) const {
         return !((*this) == other);
     }
 };

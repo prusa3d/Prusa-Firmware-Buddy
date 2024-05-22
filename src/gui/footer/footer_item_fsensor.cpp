@@ -1,52 +1,69 @@
 /**
  * @file footer_item_fsensor.cpp
- * @author Radek Vana
- * @date 2021-12-12
  */
 
 #include "footer_item_fsensor.hpp"
-#include "filament_sensor_api.hpp"
-#include "resource.h"
+#include "filament_sensors_handler.hpp"
+#include "img_resources.hpp"
+#include "i18n.h"
 #include <algorithm>
 #include <cmath>
 
 FooterItemFSensor::FooterItemFSensor(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, IDR_PNG_filament_sensor_17x16, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::filament_sensor_17x16, static_makeView, static_readValue) {
+}
+
+FooterItemFSensorSide::FooterItemFSensorSide(window_t *parent)
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::side_filament_sensor_17x16, static_makeView, static_readValue) {
 }
 
 int FooterItemFSensor::static_readValue() {
-    return int(FSensors_instance().GetPrinter());
+    if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::current_extruder)) {
+        return static_cast<int>(sensor->get_state());
+    }
+    return no_tool_value;
 }
 
-//TODO FIXME last character is not shown, I do not know why, added space as workaround
+int FooterItemFSensorSide::static_readValue() {
+    if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::current_side)) {
+        return static_cast<int>(sensor->get_state());
+    }
+    return no_tool_value;
+}
+
+// TODO FIXME last character is not shown, I do not know why, added space as workaround
 string_view_utf8 FooterItemFSensor::static_makeView(int value) {
-    fsensor_t state = fsensor_t(value);
+    // Show --- if no tool is picked
+    if (value == no_tool_value) {
+        return string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>(no_tool_str));
+    }
+
+    FilamentSensorState state = FilamentSensorState(value);
     const char *txt = N_("N/A ");
 
     switch (state) {
-    case fsensor_t::HasFilament:
+    case FilamentSensorState::HasFilament:
         txt = N_("ON ");
         break;
-    case fsensor_t::NoFilament:
+    case FilamentSensorState::NoFilament:
         txt = N_("OFF ");
         break;
-    case fsensor_t::Disabled:
+    case FilamentSensorState::Disabled:
         txt = N_("DIS ");
         break;
 #ifdef _DEBUG
-    case fsensor_t::NotInitialized:
+    case FilamentSensorState::NotInitialized:
         txt = N_("NINIT ");
         break;
-    case fsensor_t::NotCalibrated:
+    case FilamentSensorState::NotCalibrated:
         txt = N_("NCAL ");
         break;
-    case fsensor_t::NotConnected:
+    case FilamentSensorState::NotConnected:
         txt = N_("NC ");
         break;
-#else  //!DEBUG
+#endif //_DEBUG
     default:
         break;
-#endif //_DEBUG
     }
 
     return string_view_utf8(_(txt));

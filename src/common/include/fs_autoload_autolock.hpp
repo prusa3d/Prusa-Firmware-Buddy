@@ -1,6 +1,6 @@
 #pragma once
 
-#include "filament_sensor_api.hpp"
+#include "filament_sensors_handler.hpp"
 
 // ctor lock autoload and dtor unlocks autoload
 class FS_AutoloadAutolock {

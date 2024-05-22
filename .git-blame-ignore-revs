@@ -1,0 +1,20 @@
+# This file contains SHA's of commits that are of no value for git blame
+# Please also add the commit message with the SHA for clarity.
+
+79dc0fed7d3b8bd1a15e1f72bcae400be1ca8e41 # Add spaces to comments (clang-format)
+ceb06f9952021f0716737d89aeee34da3d5adc79 # Reformat everything with newer clang-format
+3ff934005184f6090644e52c97ef3b608c700058 # Enable FixNamespaceComments in clang format
+85b4fcf2c9a3517e67f6d1b5d3e8711a71033dbf # XL: Rename kennel to dock
+a5f74b76a49ed2ce5a5c1627b749bbcd4a1d3303 # Migrate old eeprom to new config store
+3c3dddc42804ab292fc571a0238adc4f7a2ae4c0 # Make marlin server state an enum class
+521242f2032019065a82edb2195126612e6e284d # Make marlin_server message an enum class
+1daf8c3e0eebc03c4b251e96773ae683cc4fac6d # Marlin server namespace: simple changes
+19cfd202e65341df81a546af1e8956fb91d605ac # Marlin server namespace: simplify naming
+179611403a7261d2e9b58785f4922f9399de3dfe # Convert marlin_server.h to hpp
+54692f0d28cf4cfc007c6b4567193cdc7cfde4cb # Wrap marlin client in marlin_client namespace
+aa7bb070e259fb73fba4d8f4ea46abc24abbced9 # Rename marlin_client members
+2933bc5568ce0a1fd05e9221c1d8629a5a157329 # xl: Rename Dwarf::set_led() to Dwarf::set_cheese_led()
+87bb1927f87520ce063069a178291295183e1597 # Set ClangFormat AlignTrailingComments: Kind: Never
+bd27a08249dd1dc9919b547f4ca757258c779271 # Unify footer naming style with our dev guidelines
+26025874ae0798b467aa5426dc46e02ef94d8e64 # Apply clang-format InsertBraces
+95a5c28643f164c6cbc8bf4d7150aee42b571c89 # Partial reformat of hwio pins

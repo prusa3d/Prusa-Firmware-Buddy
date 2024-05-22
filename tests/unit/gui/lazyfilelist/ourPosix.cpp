@@ -9,7 +9,8 @@ size_t strlcpy(char *, const char *, size_t);
 
 void MakeLFNSFN(dirent *fno, const char *lfn, size_t fileindex) {
     if (strlen(lfn) >= 13) {
-        uint8_t charsWritten = snprintf(fno->d_name, sizeof(fno->d_name), "%-.6s~%02u.GCO", lfn, (unsigned)fileindex);
+        int charsWritten = snprintf(fno->d_name, sizeof(fno->d_name), "%-.6s~%02u.GCO", lfn, (unsigned)fileindex);
+        charsWritten = std::min<int>(charsWritten, sizeof(fno->d_name) - 1);
         strlcpy(fno->d_name + charsWritten + 1, lfn, sizeof(fno->d_name) - charsWritten - 1);
         fno->lfn = fno->d_name + charsWritten + 1;
     } else {

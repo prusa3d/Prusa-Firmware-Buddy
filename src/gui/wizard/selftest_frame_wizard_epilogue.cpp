@@ -4,15 +4,11 @@
 
 #include "selftest_frame_wizard_epilogue.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
-#include "resource.h"
+#include <guiconfig/wizard_config.hpp>
+#include "img_resources.hpp"
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
 static constexpr size_t margin_texts = 0;
-static constexpr Align_t align_text_icon = Align_t::LeftTop();
-#else
-    #error "Unknown PRINTER_TYPE!"
-#endif
+static constexpr Align_t align_text_icon = Align_t::CenterTop();
 
 static constexpr Rect16 getTextRect() {
     Rect16 ret = GuiDefaults::RectScreenNoHeader;
@@ -41,7 +37,7 @@ static constexpr Rect16 getTextIconRect() {
 SelftestFrameWizardEpilogue::SelftestFrameWizardEpilogue(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
 
-    , icon(this, getIconRect(), iconName)
+    , icon(this, getIconRect(), &img::pepa_92x140)
     , text_icon(this, getTextIconRect(), is_multiline::yes) {
 
     icon.SetAlignment(Align_t::CenterTop());
@@ -53,7 +49,7 @@ SelftestFrameWizardEpilogue::SelftestFrameWizardEpilogue(window_t *parent, Phase
 void SelftestFrameWizardEpilogue::change() {
     const char *txt_icon = nullptr;
 
-    //texts
+    // texts
     switch (phase_current) {
     case PhasesSelftest::WizardEpilogue_ok:
         txt_icon = N_("Happy printing!");

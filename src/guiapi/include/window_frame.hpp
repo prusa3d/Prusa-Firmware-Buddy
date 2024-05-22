@@ -2,26 +2,26 @@
 
 #pragma once
 
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "window.hpp"
 #include "window_filter.hpp"
 
 class window_frame_t : public AddSuperWindow<window_t> {
-    window_t *captured_normal_window; //might need to move it in window frame after menu refactoring
-
     // stored rect to print in draw method (exept when enetire screen is invalid)
     // hiding, or unregistration of window sets it
     Rect16 invalid_area;
 
+    CompactRAMPointer<window_t> captured_normal_window; // might need to move it in window frame after menu refactoring
+
 protected:
-    window_t *first_normal;
-    window_t *last_normal;
+    CompactRAMPointer<window_t> first_normal;
+    CompactRAMPointer<window_t> last_normal;
 
     window_t *getFirstNormal() const;
     window_t *getLastNormal() const;
 
-    void registerAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast);
-    void unregisterAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast);
+    void registerAnySubWin(window_t &win, CompactRAMPointer<window_t> &pFirst, CompactRAMPointer<window_t> &pLast);
+    void unregisterAnySubWin(window_t &win, CompactRAMPointer<window_t> &pFirst, CompactRAMPointer<window_t> &pLast);
 
     void colorConflictBackgroundToRed(window_t &win);
     void clearAllHiddenBehindDialogFlags();
@@ -31,7 +31,7 @@ protected:
 public:
     bool HasDialogOrPopup();
 
-    window_frame_t(window_t *parent = nullptr, Rect16 rect = GuiDefaults::RectScreen, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_serial_t serial = is_closed_on_serial_t::yes);
+    window_frame_t(window_t *parent = nullptr, Rect16 rect = GuiDefaults::RectScreen, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_printing_t close_on_printing = is_closed_on_printing_t::yes);
     window_frame_t(window_t *parent, Rect16 rect, positioning sub_win_pos);
     virtual ~window_frame_t() override;
     window_t *GetNextSubWin(window_t *win) const;
@@ -78,8 +78,7 @@ protected:
 
     window_t *getCapturedNormalWin() const;
 
-    virtual void setRedLayout() override;
-    virtual void setBlackLayout() override;
+    virtual void set_layout(ColorLayout lt) override;
 
 public:
     bool IsChildCaptured() const;
@@ -87,6 +86,6 @@ public:
     void ReleaseCaptureOfNormalWindow();
     virtual window_t *GetCapturedWindow() override;
 
-    using mem_fnc = void (window_t::*)(); //TODO parmeter pack template
+    using mem_fnc = void (window_t::*)(); // TODO parmeter pack template
     void RecursiveCall(mem_fnc fnc);
 };

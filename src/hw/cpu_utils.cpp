@@ -63,9 +63,19 @@ static_assert(calculation_period_us_divided == (calculation_period_ticks * perce
 static volatile int cpu_usage_percent = 0;
 static uint32_t cpu_idle_time_us_divided = 0;
 
+static void (*watchdog_function)() = nullptr; ///< Pointer used as an idle task watchdog
+
+void osSetIdleTaskWatchdog(void (*function)()) {
+    watchdog_function = function;
+}
+
 extern "C" void vApplicationIdleHook() {
-    DELAY_US_PRECISE(probe_workunit_us);
+    delay_us_precise<probe_workunit_us>();
     cpu_idle_time_us_divided += probe_workunit_us_divided;
+
+    if (watchdog_function != nullptr) {
+        watchdog_function();
+    }
 }
 
 extern "C" void vApplicationTickHook(void) {

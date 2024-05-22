@@ -19,17 +19,17 @@
 
 #pragma once
 
-//#include "variant.h"
-//#include "spi_com.h"
-//#include "wiring_constants.h"
-//#include "wiring_time.h"
-//#include "wiring_digital.h"
+// #include "variant.h"
+// #include "spi_com.h"
+// #include "wiring_constants.h"
+// #include "wiring_time.h"
+// #include "wiring_digital.h"
 #include "wiring.h"
 #include "variant.h"
-//#include "HardwareSerial.h"
-//#include "binary.h"
+// #include "HardwareSerial.h"
+// #include "binary.h"
 
-//typedef uint8_t byte;
+// typedef uint8_t byte;
 
 #ifdef __cplusplus
 extern "C" {

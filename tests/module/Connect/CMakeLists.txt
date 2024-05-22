@@ -6,12 +6,12 @@ add_executable(${TARGET})
 
 target_sources(
   ${TARGET}
-  PRIVATE main.cpp
-          ${CMAKE_SOURCE_DIR}/src/Connect/connect.cpp
+  PRIVATE ${CMAKE_SOURCE_DIR}/src/Connect/connect.cpp
           ${CMAKE_SOURCE_DIR}/src/Connect/httpc.cpp
-          ${CMAKE_SOURCE_DIR}/src/Connect/socket.cpp
           ${CMAKE_SOURCE_DIR}/src/Connect/httpc_data.cpp
           ${CMAKE_SOURCE_DIR}/src/Connect/os_porting.cpp
+          ${CMAKE_SOURCE_DIR}/src/Connect/socket.cpp
+          main.cpp
           mock/core_interface.cpp
   )
 

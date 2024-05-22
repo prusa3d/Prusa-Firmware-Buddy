@@ -6,24 +6,23 @@
 #include "client_response.hpp"
 #include "marlin_server.hpp"
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
+#include "selftest_axis.h"
+#include <option/has_selftest.h>
 
-#if ENABLED(CRASH_RECOVERY)
-static bool axis_length_ok(AxisEnum axis, float length) {
-    // const int axis_len[2] = { X_MAX_POS - X_MIN_POS, Y_MAX_POS - Y_MIN_POS };
-    // const int gap = axis == X_AXIS ? X_END_GAP : Y_END_GAP;
-
+#if ENABLED(AXIS_MEASURE)
+static bool axis_length_ok([[maybe_unused]] AxisEnum axis, [[maybe_unused]] float length) {
+    #if HAS_SELFTEST()
     switch (axis) {
     case X_AXIS:
-        // FIXME:
-        return false;
+        return ((length <= selftest::Config_XAxis.length_max) && (length >= selftest::Config_XAxis.length_min));
     case Y_AXIS:
-        // FIXME:
-        return false;
-        // return axis_len[axis] < marlin_server.axis_length.pos[axis]
-        //     && marlin_server.axis_length.pos[axis] <= axis_len[axis] + gap;
+        return ((length <= selftest::Config_YAxis.length_max) && (length >= selftest::Config_YAxis.length_min));
     default:;
     }
     return false;
+    #else
+    return true;
+    #endif // HAS_SELFTEST
 }
 
 static SelftestSubtestState_t axis_length_ok_fsm(AxisEnum axis, float length) {
@@ -31,14 +30,30 @@ static SelftestSubtestState_t axis_length_ok_fsm(AxisEnum axis, float length) {
 }
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
+/**
+ * G163: Measure length of axis
+ *
+ * ## Parameters
+ *
+ * - `X` - Measure the length on X axis
+ * - `Y` - Measure the length on Y axis
+ * - `S` - [int] Set sensitivity
+ * - `P` - [int] Set measurement period.
+ */
+
 void PrusaGcodeSuite::G163() {
-#if ENABLED(CRASH_RECOVERY)
+#if ENABLED(AXIS_MEASURE)
     Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
-    fsm_change(ClientFSM::CrashRecovery, PhasesCrashRecovery::check_X, cr_fsm.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::check_X, cr_fsm.Serialize());
     bool do_x = parser.seen('X');
     bool do_y = parser.seen('Y');
-    if (!do_x && !do_y)
+    if (!do_x && !do_y) {
         return;
+    }
 
     Measure_axis ma(do_x, do_y, { true, true });
     if (parser.seen('S')) {
@@ -59,7 +74,7 @@ void PrusaGcodeSuite::G163() {
             ma.loop();
         }
         cr_fsm.set(axis_length_ok_fsm(X_AXIS, ma.length().x), SelftestSubtestState_t::running);
-        fsm_change(ClientFSM::CrashRecovery, PhasesCrashRecovery::check_Y, cr_fsm.Serialize());
+        FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::check_Y, cr_fsm.Serialize());
     }
 
     while (ma.state() != Measure_axis::FINISH) {
@@ -67,13 +82,17 @@ void PrusaGcodeSuite::G163() {
         ma.loop(); /// loop must be after idle so the length is processed here sooner than in marlin_server
     }
 
-    if (do_x)
+    if (do_x) {
         SERIAL_ECHOLNPAIR("X length: ", ma.length().x);
-    if (do_y)
+    }
+    if (do_y) {
         SERIAL_ECHOLNPAIR("Y length: ", ma.length().y);
+    }
 
-    set_length(ma.length());
+    marlin_server::set_axes_length(ma.length());
     cr_fsm.set(axis_length_ok_fsm(X_AXIS, ma.length().x), axis_length_ok_fsm(Y_AXIS, ma.length().y));
-    fsm_change(ClientFSM::CrashRecovery, PhasesCrashRecovery::check_Y, cr_fsm.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::check_Y, cr_fsm.Serialize());
 #endif
 }
+
+/** @}*/

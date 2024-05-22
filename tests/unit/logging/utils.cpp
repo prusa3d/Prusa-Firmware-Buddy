@@ -20,7 +20,7 @@ ScopeGuard with_log_platform_timestamp_get(std::optional<std::function<log_times
     });
 }
 
-extern "C" int log_platform_task_id_get() {
+int log_platform_task_id_get() {
     if (_log_platform_task_id_get.has_value()) {
         return _log_platform_task_id_get.value()();
     } else {
@@ -28,19 +28,20 @@ extern "C" int log_platform_task_id_get() {
     }
 }
 
-extern "C" log_timestamp_t log_platform_timestamp_get() {
+log_timestamp_t log_platform_timestamp_get() {
     if (_log_platform_timestamp_get.has_value()) {
         return _log_platform_timestamp_get.value()();
     } else {
-        return 0;
+        return { 0, 0 };
     }
 }
 
 static std::optional<std::function<void(log_destination_t *destination, log_event_t *event)>> log_event_func = std::nullopt;
 
 static void custom_log_event(log_destination_t *destination, log_event_t *event) {
-    if (log_event_func.has_value())
+    if (log_event_func.has_value()) {
         log_event_func.value()(destination, event);
+    }
 }
 
 log_destination_t in_memory_log = {

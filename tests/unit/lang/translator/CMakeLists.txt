@@ -1,8 +1,10 @@
 # First, create a target converting .po files to txt files easily parseable by tests
+file(GLOB_RECURSE POFILES ${CMAKE_SOURCE_DIR}/src/lang/po/*/*.po)
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/keys.txt"
-  COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/lang.py" "dump-pofiles"
-          "${CMAKE_SOURCE_DIR}/src/lang/po" "${CMAKE_CURRENT_BINARY_DIR}"
+  COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/translations_and_fonts/lang.py"
+          "dump-pofiles" "${CMAKE_SOURCE_DIR}/src/lang/po" "${CMAKE_CURRENT_BINARY_DIR}"
+  DEPENDS ${POFILES}
   COMMENT "Generating text files out of .po files."
   VERBATIM
   )
@@ -14,7 +16,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/lang/translator.cpp
   ${CMAKE_SOURCE_DIR}/src/lang/translation_provider_CPUFLASH.cpp
   ${CMAKE_SOURCE_DIR}/src/lang/translation_provider_FILE.cpp
-  ${CMAKE_SOURCE_DIR}/src/lang/unaccent.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/test_main.cpp
   ${CMAKE_SOURCE_DIR}/src/lang/gettext_string_hash.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/providerCPUFLASH.cpp
@@ -22,6 +23,7 @@ add_executable(
   # we need to add mo file generation to test files
   ${CMAKE_CURRENT_SOURCE_DIR}/providerFILE.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/provider.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fnt-indices.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   )
 

@@ -29,75 +29,75 @@ EndBSPDependencies */
 #include "usbh_msc.h"
 
 /** @addtogroup USBH_LIB
-* @{
-*/
+  * @{
+  */
 
 /** @addtogroup USBH_CLASS
-* @{
-*/
+  * @{
+  */
 
 /** @addtogroup USBH_MSC_CLASS
-* @{
-*/
+  * @{
+  */
 
 /** @defgroup USBH_MSC_BOT
-* @brief    This file includes the mass storage related functions
-* @{
-*/
+  * @brief    This file includes the mass storage related functions
+  * @{
+  */
 
 
 /** @defgroup USBH_MSC_BOT_Private_TypesDefinitions
-* @{
-*/
+  * @{
+  */
 /**
-* @}
-*/
+  * @}
+  */
 
 /** @defgroup USBH_MSC_BOT_Private_Defines
-* @{
-*/
+  * @{
+  */
 /**
-* @}
-*/
+  * @}
+  */
 
 /** @defgroup USBH_MSC_BOT_Private_Macros
-* @{
-*/
+  * @{
+  */
 /**
-* @}
-*/
+  * @}
+  */
 
 
 /** @defgroup USBH_MSC_BOT_Private_Variables
-* @{
-*/
+  * @{
+  */
 
 /**
-* @}
-*/
+  * @}
+  */
 
 
 /** @defgroup USBH_MSC_BOT_Private_FunctionPrototypes
-* @{
-*/
+  * @{
+  */
 static USBH_StatusTypeDef USBH_MSC_BOT_Abort(USBH_HandleTypeDef *phost, uint8_t lun, uint8_t dir);
 static BOT_CSWStatusTypeDef USBH_MSC_DecodeCSW(USBH_HandleTypeDef *phost);
 /**
-* @}
-*/
+  * @}
+  */
 
 
 /** @defgroup USBH_MSC_BOT_Exported_Variables
-* @{
-*/
+  * @{
+  */
 /**
-* @}
-*/
+  * @}
+  */
 
 
 /** @defgroup USBH_MSC_BOT_Private_Functions
-* @{
-*/
+  * @{
+  */
 
 /**
   * @brief  USBH_MSC_BOT_REQ_Reset
@@ -116,7 +116,7 @@ USBH_StatusTypeDef USBH_MSC_BOT_REQ_Reset(USBH_HandleTypeDef *phost)
   phost->Control.setup.b.wIndex.w = 0U;
   phost->Control.setup.b.wLength.w = 0U;
 
-  return USBH_CtlReq(phost, 0U, 0U);
+  return USBH_CtlReq(phost, NULL, 0U);
 }
 
 /**
@@ -160,7 +160,12 @@ USBH_StatusTypeDef USBH_MSC_BOT_Init(USBH_HandleTypeDef *phost)
   return USBH_OK;
 }
 
-
+uint32_t calc_transfer_length(uint32_t length) {
+    uint32_t packets = (length + 63) / 64;
+    packets = MAX(packets, 1);
+    packets = MIN(packets, 16);
+    return packets * 64;
+}
 
 /**
   * @brief  USBH_MSC_BOT_Process
@@ -177,16 +182,14 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
   USBH_URBStateTypeDef URB_Status = USBH_URB_IDLE;
   MSC_HandleTypeDef *MSC_Handle = (MSC_HandleTypeDef *) phost->pActiveClass->pData;
   uint8_t toggle = 0U;
-  static uint32_t nakc;
 
   switch (MSC_Handle->hbot.state)
   {
     case BOT_SEND_CBW:
       MSC_Handle->hbot.cbw.field.LUN = lun;
       MSC_Handle->hbot.state = BOT_SEND_CBW_WAIT;
-      USBH_BulkSendData(phost, MSC_Handle->hbot.cbw.data,
-                        BOT_CBW_LENGTH, MSC_Handle->OutPipe, 1U);
-      nakc = 0;
+      (void)USBH_BulkSendData(phost, MSC_Handle->hbot.cbw.data,
+                              BOT_CBW_LENGTH, MSC_Handle->OutPipe, 1U);
 
       break;
 
@@ -217,12 +220,14 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
           MSC_Handle->hbot.state = BOT_RECEIVE_CSW;
         }
 
+#if (USBH_USE_URB_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
         phost->os_msg = (uint32_t)USBH_URB_EVENT;
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       }
@@ -231,12 +236,14 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
         /* Re-send CBW */
         MSC_Handle->hbot.state = BOT_SEND_CBW;
 
+#if (USBH_USE_URB_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
         phost->os_msg = (uint32_t)USBH_URB_EVENT;
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       }
@@ -246,12 +253,14 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
         {
           MSC_Handle->hbot.state  = BOT_ERROR_OUT;
 
+#if (USBH_USE_URB_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
           phost->os_msg = (uint32_t)USBH_URB_EVENT;
 #if (osCMSIS < 0x20000U)
           (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
         }
@@ -260,8 +269,8 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
 
     case BOT_DATA_IN:
       /* Send first packet */
-      USBH_BulkReceiveData(phost, MSC_Handle->hbot.pbuf,
-                           MSC_Handle->InEpSize, MSC_Handle->InPipe);
+      (void)USBH_BulkReceiveData(phost, MSC_Handle->hbot.pbuf,
+                                  calc_transfer_length(MSC_Handle->hbot.cbw.field.DataTransferLength), MSC_Handle->InPipe);
 
       MSC_Handle->hbot.state = BOT_DATA_IN_WAIT;
 
@@ -274,10 +283,11 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
       if (URB_Status == USBH_URB_DONE)
       {
         /* Adjust Data pointer and data length */
-        if (MSC_Handle->hbot.cbw.field.DataTransferLength > MSC_Handle->InEpSize)
+        uint32_t transfer_length = calc_transfer_length(MSC_Handle->hbot.cbw.field.DataTransferLength);
+        if (MSC_Handle->hbot.cbw.field.DataTransferLength > transfer_length)
         {
-          MSC_Handle->hbot.pbuf += MSC_Handle->InEpSize;
-          MSC_Handle->hbot.cbw.field.DataTransferLength -= MSC_Handle->InEpSize;
+          MSC_Handle->hbot.pbuf += transfer_length;
+          MSC_Handle->hbot.cbw.field.DataTransferLength -= transfer_length;
         }
         else
         {
@@ -288,20 +298,22 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
         if (MSC_Handle->hbot.cbw.field.DataTransferLength > 0U)
         {
           /* Send next packet */
-          USBH_BulkReceiveData(phost, MSC_Handle->hbot.pbuf,
-                               MSC_Handle->InEpSize, MSC_Handle->InPipe);
+          (void)USBH_BulkReceiveData(phost, MSC_Handle->hbot.pbuf,
+                                     calc_transfer_length(MSC_Handle->hbot.cbw.field.DataTransferLength), MSC_Handle->InPipe);
         }
         else
         {
           /* If value was 0, and successful transfer, then change the state */
           MSC_Handle->hbot.state  = BOT_RECEIVE_CSW;
 
+#if (USBH_USE_URB_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
           phost->os_msg = (uint32_t)USBH_URB_EVENT;
 #if (osCMSIS < 0x20000U)
           (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+          (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
         }
@@ -318,12 +330,14 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
         The host shall clear the Bulk-In pipe.
         4. The host shall attempt to receive a CSW.*/
 
+#if (USBH_USE_URB_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
         phost->os_msg = (uint32_t)USBH_URB_EVENT;
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       }
@@ -334,9 +348,8 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
 
     case BOT_DATA_OUT:
 
-      USBH_BulkSendData(phost, MSC_Handle->hbot.pbuf,
-                        MSC_Handle->OutEpSize, MSC_Handle->OutPipe, 1U);
-
+      (void)USBH_BulkSendData(phost, MSC_Handle->hbot.pbuf,
+                              USBH_MSC_TRANSFER_SIZE, MSC_Handle->OutPipe, 1U);
       MSC_Handle->hbot.state  = BOT_DATA_OUT_WAIT;
       break;
 
@@ -346,10 +359,10 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
       if (URB_Status == USBH_URB_DONE)
       {
         /* Adjust Data pointer and data length */
-        if (MSC_Handle->hbot.cbw.field.DataTransferLength > MSC_Handle->OutEpSize)
+        if (MSC_Handle->hbot.cbw.field.DataTransferLength > USBH_MSC_TRANSFER_SIZE)
         {
-          MSC_Handle->hbot.pbuf += MSC_Handle->OutEpSize;
-          MSC_Handle->hbot.cbw.field.DataTransferLength -= MSC_Handle->OutEpSize;
+          MSC_Handle->hbot.pbuf += USBH_MSC_TRANSFER_SIZE;
+          MSC_Handle->hbot.cbw.field.DataTransferLength -= USBH_MSC_TRANSFER_SIZE;
         }
         else
         {
@@ -359,8 +372,8 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
         /* More Data To be Sent */
         if (MSC_Handle->hbot.cbw.field.DataTransferLength > 0U)
         {
-          USBH_BulkSendData(phost, MSC_Handle->hbot.pbuf,
-                            MSC_Handle->OutEpSize, MSC_Handle->OutPipe, 1U);
+          (void)USBH_BulkSendData(phost, MSC_Handle->hbot.pbuf,
+                                  USBH_MSC_TRANSFER_SIZE, MSC_Handle->OutPipe, 1U);
         }
         else
         {
@@ -368,31 +381,31 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
           MSC_Handle->hbot.state  = BOT_RECEIVE_CSW;
         }
 
+#if (USBH_USE_URB_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
         phost->os_msg = (uint32_t)USBH_URB_EVENT;
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       }
 
       else if (URB_Status == USBH_URB_NOTREADY)
       {
-        nakc++;
-        if ((nakc % 1000) == 0) {
-          USBH_UsrLog("USB drive slow (NAKc: %u)", nakc);
-        }
         /* Resend same data */
         MSC_Handle->hbot.state  = BOT_DATA_OUT;
 
+#if (USBH_USE_URB_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
         phost->os_msg = (uint32_t)USBH_URB_EVENT;
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       }
@@ -408,12 +421,14 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
         4. The host shall attempt to receive a CSW.
         */
 
+#if (USBH_USE_URB_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
         phost->os_msg = (uint32_t)USBH_URB_EVENT;
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       }
@@ -424,8 +439,8 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
 
     case BOT_RECEIVE_CSW:
 
-      USBH_BulkReceiveData(phost, MSC_Handle->hbot.csw.data,
-                           BOT_CSW_LENGTH, MSC_Handle->InPipe);
+      (void)USBH_BulkReceiveData(phost, MSC_Handle->hbot.csw.data,
+                                 BOT_CSW_LENGTH, MSC_Handle->InPipe);
 
       MSC_Handle->hbot.state  = BOT_RECEIVE_CSW_WAIT;
       break;
@@ -450,12 +465,14 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
           status = USBH_FAIL;
         }
 
+#if (USBH_USE_URB_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
         phost->os_msg = (uint32_t)USBH_URB_EVENT;
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       }
@@ -463,12 +480,14 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
       {
         MSC_Handle->hbot.state  = BOT_ERROR_IN;
 
+#if (USBH_USE_URB_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
         phost->os_msg = (uint32_t)USBH_URB_EVENT;
 #if (osCMSIS < 0x20000U)
         (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
-        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, NULL);
+        (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       }
@@ -501,8 +520,8 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
       {
 
         toggle = USBH_LL_GetToggle(phost, MSC_Handle->OutPipe);
-        USBH_LL_SetToggle(phost, MSC_Handle->OutPipe, 1U - toggle);
-        USBH_LL_SetToggle(phost, MSC_Handle->InPipe, 0U);
+        (void)USBH_LL_SetToggle(phost, MSC_Handle->OutPipe, 1U - toggle);
+        (void)USBH_LL_SetToggle(phost, MSC_Handle->InPipe, 0U);
         MSC_Handle->hbot.state = BOT_ERROR_IN;
       }
       else
@@ -681,23 +700,23 @@ static BOT_CSWStatusTypeDef USBH_MSC_DecodeCSW(USBH_HandleTypeDef *phost)
 
 
 /**
-* @}
-*/
+  * @}
+  */
 
 /**
-* @}
-*/
+  * @}
+  */
 
 /**
-* @}
-*/
+  * @}
+  */
 
 /**
-* @}
-*/
+  * @}
+  */
 
 /**
-* @}
-*/
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

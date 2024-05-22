@@ -1,0 +1,47 @@
+
+== `cx_multimap.hpp`
+
+`cx_multimap` implements a constexpr-capable multimap with a compile-time
+capacity. The multimap is unordered. As well as a key-capacity, each key has a
+limited number of values that can be associated with it (the value-capacity).
+
+[source,cpp]
+----
+template <typename Key,
+          typename Value,
+          std::size_t KeyN,
+          std::size_t ValueN = KeyN>
+class cx_multimap;
+----
+
+The `cx_multimap` interface:
+[source,cpp]
+----
+template <typename K, typename V, std::size_t KN, std::size_t VN>
+auto f(stdx::cx_map<K, V, KN, VN> m) {
+    // here we can:
+    std::size_t sz = m.size(); // ask for m's size
+    constexpr std::size_t cap = m.capacity(); // ask for m's capacity (same as KN)
+    bool is_empty = m.empty(); // ask whether a cx_multimap is empty
+    m.clear() // clear a cx_multimap
+
+    m.insert(K{}); // make sure a key exists
+    m.insert(K{}, V{}); // associate a value with a key
+    m.put(K{}); // same as insert
+    m.put(K{}, V{}); // same as insert
+
+    auto& v = m.get(K{}); // v is a cx_set<V, VN>
+    bool c1 = m.contains(K{});
+    bool c2 = m.contains(K{}, V{});
+    m.erase(K{});
+    m.erase(K{}, V{});
+
+    // and use iterators:
+    // begin and end
+    // cbegin and cend
+    // (therefore also range-for loops)
+};
+----
+
+NOTE: `capacity` is always available as `constexpr`, even though `m` above is a
+function parameter and therefore not `constexpr`.

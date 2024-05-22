@@ -1,0 +1,7 @@
+
+== `bit.hpp`
+
+https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/bit.hpp[`bit.hpp`]
+provides an implementation that mirrors
+https://en.cppreference.com/w/cpp/header/bit[`<bit>`], but is
+`constexpr` in C++17. It is mostly based on intrinsics.

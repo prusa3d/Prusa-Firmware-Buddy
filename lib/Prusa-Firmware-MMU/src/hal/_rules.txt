@@ -1,0 +1,7 @@
+Use a class whenever you need to store some context data along with the functions manipulating the HW peripherals.
+A typical scenario is the UART which uses some RX and TX buffers.
+
+Use a simple C-style otherwise, but it is advised to wrap the interface into a namespace as proposed in existing header files.
+
+`__attribute__((always_inline)) inline` was necessary for most functions because the generated code wasn't efficient enough otherwise.
+It will be interesting when the STM32 hal will have to be included as well. Hopefully it won't be a nightmare :P

@@ -38,12 +38,15 @@ bool Stopwatch::stop() {
     Stopwatch::debug(PSTR("stop"));
   #endif
 
-  if (isRunning() || isPaused()) {
+  const bool running = isRunning();
+  if (isPaused() || running) {
     #if ENABLED(EXTENSIBLE_UI)
       ExtUI::onPrintTimerStopped();
     #endif
     state = STOPPED;
-    stopTimestamp = millis();
+    if (running) {
+        stopTimestamp = millis();
+    }
     return true;
   }
   else return false;

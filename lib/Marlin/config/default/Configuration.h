@@ -786,6 +786,8 @@
  */
 #if DISABLED(CLASSIC_JERK)
   #define JUNCTION_DEVIATION_MM 0.013 // (mm) Distance from real junction edge
+  #define JD_SMALL_SEGMENT_HANDLING // Handle small segments (< 1 mm) with large junction angles (> 135°) based on a local curvature estimate, instead of just the junction angle.
+  //#define JD_DEBUG_OUTPUT           // Output junction_cos_theta and vmax_junction_sqr to serial
 #endif
 
 /**

@@ -5,12 +5,11 @@
 
 // macros defining tick timer
 // must be 32bit timer !!!
-#if MCU_IS_STM32F4
+#if MCU_IS_STM32F4()
     #define TICK_TIMER            TIM5
     #define TICK_TIMER_CLK_ENABLE __HAL_RCC_TIM5_CLK_ENABLE
     #define TICK_TIMER_IRQ        TIM5_IRQn
     #define TICK_TIMER_IRQHandler TIM5_IRQHandler
-    #define TICK_TIMER_Prior      0
     #define TICK_TIMER_IS_32BIT   1
 #else
     // TODO, not supported yet
@@ -18,7 +17,6 @@
     #define TICK_TIMER_CLK_ENABLE __HAL_RCC_TIM3_CLK_ENABLE
     #define TICK_TIMER_IRQ        TIM3_IRQn
     #define TICK_TIMER_IRQHandler TIM3_IRQHandler
-    #define TICK_TIMER_Prior      0
     #define TICK_TIMER_IS_32BIT   0
 #endif
 

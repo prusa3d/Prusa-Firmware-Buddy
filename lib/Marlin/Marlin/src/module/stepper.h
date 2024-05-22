@@ -227,6 +227,7 @@ class Stepper {
 
   public:
 
+#if 0
     #if HAS_EXTRA_ENDSTOPS || ENABLED(Z_STEPPER_AUTO_ALIGN)
       static bool separate_multi_axis;
     #endif
@@ -240,15 +241,13 @@ class Stepper {
     #endif
 
     static bool independent_XY_stepping_enabled;
+#endif
   private:
-
-    static block_t* current_block;          // A pointer to the block currently being traced
 
     static uint8_t last_direction_bits,     // The next stepping-bits to be output
                    axis_did_move;           // Last Movement in the given direction is not null, as computed when the last movement was fetched from planner
 
-    static bool abort_current_block;        // Signals to the stepper that current block should be aborted
-
+#if 0
     // Last-moved extruder, as set when the last movement was fetched from planner
     #if EXTRUDERS < 2
       static constexpr uint8_t last_moved_extruder = 0;
@@ -324,6 +323,7 @@ class Stepper {
     #if DISABLED(S_CURVE_ACCELERATION)
       static uint32_t acc_step_rate; // needed for deceleration start point
     #endif
+#endif
 
     //
     // Exact steps at which an endstop was triggered
@@ -333,8 +333,10 @@ class Stepper {
     //
     // Positions of stepper motors, in step units
     //
-    static xyze_long_t count_position;
-    static xyze_long_t count_position_from_startup;
+    static xyze_long_t count_position;              // Current position (relative to home origin)
+    static xyze_long_t count_position_from_startup; // Current position (absolute)
+    static xyze_long_t count_position_last_block;   // Position (relative to home origin) at the end
+                                                    // of the last block
 
     //
     // Current direction of stepper motors (+1 or -1)
@@ -365,6 +367,7 @@ class Stepper {
       return awake;
     }
 
+#if 0
     // The ISR scheduler
     static void isr();
 
@@ -401,33 +404,22 @@ class Stepper {
       // The Linear advance stepper ISR
       static uint32_t advance_isr();
     #endif
-
-    // Check if the given block is busy or not - Must not be called from ISR contexts
-    static bool is_block_busy(const block_t* const block);
+#endif
 
     // Get the position of a stepper, in steps
     static int32_t position(const AxisEnum axis);
     static int32_t position_from_startup(const AxisEnum axis);
-    
+
     // Report the positions of the steppers, in steps
     static void report_positions();
-
-    // Quickly stop all steppers
-    FORCE_INLINE static void quick_stop() {
-      const bool was_enabled = suspend();
-      if (current_block) {
-        abort_current_block = true;
-        isr();
-      }
-      if (was_enabled) wake_up();
-    }
 
     // Force any planned move to start immediately
     static inline void start_moving() {
       if (planner.movesplanned()) {
         suspend();
         planner.delay_before_delivering = 0;
-        if (!current_block) isr(); // zero-wait
+        // TODO: implement this for PreciseStepping
+        //if (!current_block) isr(); // zero-wait
         wake_up();
       }
     }
@@ -438,6 +430,7 @@ class Stepper {
     // The last movement direction was not null on the specified axis. Note that motor direction is not necessarily the same.
     FORCE_INLINE static bool axis_is_moving(const AxisEnum axis) { return TEST(axis_did_move, axis); }
 
+#if 0
     // The extruder associated to the last movement
     FORCE_INLINE static uint8_t movement_extruder() {
       return (0
@@ -446,6 +439,7 @@ class Stepper {
         #endif
       );
     }
+#endif
 
     // Handle a triggered endstop
     static void endstop_triggered(const AxisEnum axis);
@@ -458,7 +452,7 @@ class Stepper {
       static void digipot_current(const uint8_t driver, const int16_t current);
     #endif
 
-    #if HAS_MICROSTEPS || HAS_DRIVER(TMC2130)
+    #if HAS_MICROSTEPS || HAS_DRIVER(TMC2130) || HAS_DRIVER(TMC2209)
       static void microstep_ms(const uint8_t driver, const int8_t ms1, const int8_t ms2, const int8_t ms3);
       static void microstep_mode(const uint8_t driver, const uint8_t stepping);
       static void microstep_readings();
@@ -520,9 +514,6 @@ class Stepper {
     // Set direction bits for all steppers
     static void set_directions();
 
-    // Return processed block (call within ISR context)
-    static const block_t* block() { return current_block; }
-
     // Return ratio of completed steps of current block (call within ISR context)
     static float segment_progress();
 
@@ -531,12 +522,39 @@ class Stepper {
       static uint16_t get_LA_steps() { return LA_current_adv_steps; }
     #endif
 
+    static long get_axis_steps(const AxisEnum a) {
+      return count_position[a];
+    }
+
+    static long get_axis_steps_from_startup(const AxisEnum a) {
+      return count_position_from_startup[a];
+    }
+
+    static void set_axis_steps(const AxisEnum a, long steps_made) {
+      count_position[a] = steps_made;
+    }
+
+    static void set_axis_steps_from_startup(const AxisEnum a, long steps_made) {
+      count_position_from_startup[a] = steps_made;
+    }
+
+    static void report_axis_movement(AxisEnum a, float speed) {
+      uint8_t axis_mask = 1 << a;
+      axis_did_move |= axis_mask;
+
+      if (speed > 0)
+        last_direction_bits |= axis_mask;
+      else
+        last_direction_bits &= ~axis_mask;
+    }
+
 private:
 
     // Set the current position in steps
     static void _set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
     FORCE_INLINE static void _set_position(const abce_long_t &spos) { _set_position(spos.a, spos.b, spos.c, spos.e); }
 
+#if 0
     FORCE_INLINE static uint32_t calc_timer_interval(uint32_t step_rate, uint8_t scale, uint8_t* loops) {
       uint32_t timer;
 
@@ -629,7 +647,9 @@ private:
     #if HAS_MICROSTEPS
       static void microstep_init();
     #endif
+#endif
 
+    friend class PreciseStepping;
 };
 
 extern Stepper stepper;

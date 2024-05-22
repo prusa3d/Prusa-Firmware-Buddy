@@ -1,0 +1,19 @@
+{
+    "cmake.configureOnOpen": true,
+    "ccls.misc.compilationDatabaseDirectory": "build-vscode",
+    "ccls.index.multiVersion": 1,
+    "ccls.clang.extraArgs": [
+        "-fno-ms-compatibility",
+        "-nostdinc",
+        "-nostdinc++",
+        "-isystem${workspaceFolder}/.dependencies/avr-gcc-7.3.0/avr/include",
+        "-isystem${workspaceFolder}/.dependencies/avr-gcc-7.3.0/avr/include/avr",
+        "-isystem${workspaceFolder}/.dependencies/avr-gcc-7.3.0/avr/include/compat",
+        "-isystem${workspaceFolder}/.dependencies/avr-gcc-7.3.0/avr/include/sys",
+        "-isystem${workspaceFolder}/.dependencies/avr-gcc-7.3.0/avr/include/util",
+    ],
+    "cmake.buildDirectory": "${workspaceFolder}/build-vscode/${buildKit}",
+    "cmake.cmakePath": "${workspaceFolder}/.dependencies/cmake-3.22.5/bin/cmake",
+    "cmake.generator": "Ninja",
+    "files.insertFinalNewline": true,
+}

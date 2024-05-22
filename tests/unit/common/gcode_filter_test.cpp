@@ -6,7 +6,7 @@
 
 #include "catch2/catch.hpp"
 
-#include "common/gcode_filter.hpp"
+#include "common/gcode/gcode_filter.hpp"
 
 #define MAX_CMD_SIZE  96
 #define LOOP_MAX_READ 50
@@ -74,7 +74,7 @@ TEST_CASE("gcode-filter", "") {
         CHECK(loop_read <= LOOP_MAX_READ);
         if (loop_read == LOOP_MAX_READ) {
             CHECK(state == GCodeFilter::State::Timeout);
-            CHECK(gcode == NULL);
+            CHECK(gcode == nullptr);
             previous_processed_chars = processed_chars;
             loop_read = 0;
             continue;
@@ -84,7 +84,7 @@ TEST_CASE("gcode-filter", "") {
         loop_read = 0;
 
         // Check the gcode
-        REQUIRE(gcode != NULL);
+        REQUIRE(gcode != nullptr);
         REQUIRE(gcode_index < expected_gcode.size());
         CHECK_THAT(gcode, Equals(expected_gcode[gcode_index++]));
 

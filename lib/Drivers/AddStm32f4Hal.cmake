@@ -6,7 +6,7 @@ add_library(
   STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c
   STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c
   STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c
-  STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_eth.c
+  STM32F4xx_HAL_Driver/Src/Legacy/stm32f4xx_hal_eth.c
   STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c
   STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c
   STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c
@@ -33,6 +33,7 @@ add_library(
   )
 
 target_include_directories(HAL PUBLIC STM32F4xx_HAL_Driver/Inc)
+target_include_directories(HAL PUBLIC STM32F4xx_HAL_Driver/Inc/Legacy)
 target_link_libraries(HAL PUBLIC CMSIS STM32F4_HAL_Config)
 
 add_library(STM32F4::HAL ALIAS HAL)

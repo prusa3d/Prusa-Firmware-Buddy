@@ -34,6 +34,7 @@ GCodeQueue queue;
 #include "../module/planner.h"
 #include "../module/temperature.h"
 #include "../Marlin.h"
+#include "serial_printing.hpp"
 
 #if ENABLED(PRINTER_EVENT_LEDS)
   #include "../feature/leds/printer_event_leds.h"
@@ -69,8 +70,9 @@ uint8_t GCodeQueue::length = 0,  // Count of commands in the queue
 
 char GCodeQueue::command_buffer[BUFSIZE][MAX_CMD_SIZE];
 
-uint32_t GCodeQueue::sdpos = -1;
+uint32_t GCodeQueue::sdpos = GCodeQueue::SDPOS_INVALID;
 uint32_t GCodeQueue::sdpos_buffer[BUFSIZE];
+bool GCodeQueue::pause_serial_commands = false;
 
 /*
  * The port that the command was received on
@@ -166,7 +168,7 @@ bool GCodeQueue::enqueue_one(const char* cmd, bool echo/*=true*/) {
   //SERIAL_ECHO(cmd);
   //SERIAL_ECHOPGM("\") \n");
 
-  if (*cmd == 0 || *cmd == '\n' || *cmd == '\r') return true;
+  if (*cmd == 0 || *cmd == '\n' || *cmd == '\r' || *cmd == ';') return true;
 
   if (_enqueue(cmd)) {
     if (echo) {
@@ -456,6 +458,9 @@ void GCodeQueue::get_serial_commands() {
           last_command_time = ms;
         #endif
 
+        // notify serial printing about command
+        SerialPrinting::serial_command_hook(command);
+
         // Add the command to the queue
         _enqueue(serial_line_buffer[i], true
           #if NUM_SERIAL > 1
@@ -607,7 +612,8 @@ void GCodeQueue::get_serial_commands() {
  */
 void GCodeQueue::get_available_commands() {
 
-  get_serial_commands();
+  if (!pause_serial_commands)
+    get_serial_commands();
 
   #if ENABLED(SDSUPPORT)
     get_sdcard_commands();

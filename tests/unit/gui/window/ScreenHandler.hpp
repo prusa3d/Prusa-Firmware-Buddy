@@ -1,4 +1,4 @@
-//ScreenHandler.hpp
+// ScreenHandler.hpp
 #include "screen.hpp"
 #pragma once
 
@@ -14,10 +14,6 @@ public:
         return &ret;
     }
     void Close() {}
-
-    bool ConsumeClose() {
-        return false;
-    }
 
     screen_t *Get() const {
         return frame;

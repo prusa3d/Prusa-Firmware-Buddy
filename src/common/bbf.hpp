@@ -28,4 +28,4 @@ inline TLVType hash_for_image(TLVType tlv_entry) {
     return static_cast<TLVType>(static_cast<uint8_t>(tlv_entry) + 3);
 }
 
-};
+}; // namespace buddy::bbf

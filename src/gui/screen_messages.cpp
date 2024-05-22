@@ -6,7 +6,7 @@
  */
 
 #include "screen_messages.hpp"
-#include "marlin_server.h"
+#include "marlin_server.hpp"
 #include "ScreenHandler.hpp"
 #include <stdlib.h>
 #include <stdint.h>
@@ -24,15 +24,22 @@ screen_messages_data_t::screen_messages_data_t()
 }
 
 void screen_messages_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::CLICK) {
+    switch (event) {
+
+    case GUI_event_t::CLICK:
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT:
         Screens::Access()->Close();
-    } else {
+        return;
+
+    default:
         SuperWindowEvent(sender, event, param);
+        break;
     }
 
     CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH>::Elem elem;
 
-    //must be last window_frame_t could validate term
+    // must be last window_frame_t could validate term
     while (MsgCircleBuffer().ConsumeFirst(elem)) {
         term.Printf("%s\n", (const char *)elem);
     }

@@ -51,11 +51,11 @@ const Transition transitions[] = {
 
 const State states[] = {
     /* trans IDX, enter, leave, path IDX, has path, path nocase */
-    /* 0 */ { 0, false, false, 0, true, false },   // Start
-    /* 1 */ { 4, true, false, 0, false, false },   // After Hello (implicit + 1 for path); terminal (also for others
-    /* 2 */ { 4, false, false, 0, false, false },  // After some X|x|Z
-    /* 3 */ { 7, true, false, 0, false, false },   // The accepting ':', terminal
-    /* 4 */ { 7, false, false, 0, false, false },  // The .*
+    /* 0 */ { 0, false, false, 0, true, false }, // Start
+    /* 1 */ { 4, true, false, 0, false, false }, // After Hello (implicit + 1 for path); terminal (also for others
+    /* 2 */ { 4, false, false, 0, false, false }, // After some X|x|Z
+    /* 3 */ { 7, true, false, 0, false, false }, // The accepting ':', terminal
+    /* 4 */ { 7, false, false, 0, false, false }, // The .*
     /* -- */ { 9, false, false, 0, false, false }, // Sentinel state to terminate previous transitions
 };
 
@@ -72,7 +72,7 @@ enum NamedStates {
 
 const Automaton test_automaton(paths, transitions, states);
 
-}
+} // namespace
 
 TEST_CASE("Raw Hello") {
     TestExecution ex(test_automaton);

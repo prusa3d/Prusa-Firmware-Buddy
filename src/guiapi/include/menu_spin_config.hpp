@@ -15,14 +15,31 @@ struct SpinCnf {
     static const SpinConfigInt printfan;
     static const SpinConfigInt feedrate;
     static const SpinConfigInt flowfact;
-    static const SpinConfigInt timezone_range;
+    static const SpinConfigInt timezone;
     static const SpinConfigInt volume_range;
     static const SpinConfigInt sensor_range;
     static const SpinConfigInt footer_center_N_range;
-    static const SpinConfigInt axis_z_max_range;                            // maximum Z range - to change current range
+    static const SpinConfigInt axis_z_max_range; // maximum Z range - to change current range
     static const std::array<SpinConfigInt, MenuVars::AXIS_CNT> axis_ranges; // current Z range
     static const SpinConfigInt steps_per_unit;
     static const SpinConfigInt microstep_exponential; // 2^0 - 2^8 .. 1, 2, 4, .. , 128, 256
+    static const SpinConfigInt microstep_exponential_with_0;
     static const SpinConfigInt rms_current;
     static const SpinConfigInt two_digits_uint;
+    static const SpinConfigInt crash_sensitivity;
+    static const SpinConfigInt crash_max_period;
+
+    // private repo
+    static const SpinConfigInt fs_range;
+    static const SpinConfigInt loadcell_range;
+    static const SpinConfigInt print_progress;
+    static const SpinConfigInt int_num;
+
+#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+    static const SpinConfigInt correction_range;
+#endif
+    static const SpinConfigFlt nozzle_diameter;
+#if XL_ENCLOSURE_SUPPORT()
+    static const SpinConfigInt enclosure_fan;
+#endif
 };

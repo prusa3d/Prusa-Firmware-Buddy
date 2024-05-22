@@ -1,0 +1,187 @@
+///@mainpage Prusa Multi Material Unit for the MKS3 and MK4
+///@section intro_sec Introduction
+///
+/// This is the new firmware for the Multi Material Unit (MMU).
+///
+///@subsection Motivation
+///
+/// The key motivation for developing a new firmware structure were as follows:
+/// - adding a possibility of reporting the MMU's state even during running commands - the architecture of the original MM-control-01 project
+///   didn't allow to achieve this requirement
+/// - while being able to report the internal state of the MMU, the printer should be able to describe the error states clearly on its LCD without
+///   leaving the user to rely on some blinking LEDs
+/// - modular design prepared for possible future upgrades
+///
+///@section project_sec Project structure
+///
+/// - cmake
+/// - lib
+/// - src
+/// - tests
+/// - utils
+///
+///@section architecture_sec Firmware architecture
+///
+/// The whole firmware is composed of simple state machines which run all at once - it is a kind of simple cooperative multi-tasking
+/// while not eating up any significant resources by deploying generic task switching solutions like RTOS or similar.
+/// The general rule is to avoid waiting inside these state machines, no state machine is allowed to block execution of others.
+/// That implies making separate waiting states which only check for some condition to be true before proceeding further.
+///
+/// The firmware is separated into 4 layers:
+/// - HAL is responsible for talking to the physical hardware, in our case an AVR processor and its peripherals, TMC2130 stepper drivers, shift registers etc.
+/// - modules are the components abstracted of the real hardware and/or connection. A typical example are the buttons, LEDs, Idler, Selector etc.
+/// - logic layer is the application logic - this layer provides the sequences and logical relations between modules thus forming the behavior of the MMU.
+/// - main is the top layer, it is responsible for initialization of the whole firmware and performing the main loop, where the stepping of all the automata is located.
+///
+/// The whole architecture becomes obvious from the following picture:
+///
+///@dot
+///digraph architecture {
+///    node [shape=record, fontname=Helvetica, fontsize=10];
+///    subgraph cluster_main { label="main"
+///         main [ URL="main.cpp"];
+///     }
+///    subgraph cluster_logic { label="logic"
+///         logic [ URL="\ref logic"];
+///     }
+///
+///    subgraph cluster_modules { label="modules"
+///         buttons [ URL="\ref modules::buttons"];
+///         debouncer [ URL="\ref modules::debounce"];
+///         finda [ URL="\ref modules::finda"];
+///         fsensor [ URL="\ref modules::fsensor"];
+///         globals [ URL="\ref modules::globals"];
+///         idler [ URL="\ref modules::idler"];
+///         leds [ URL="\ref modules::leds"];
+///         selector [ URL="\ref modules::selector"];
+///         motion [ URL="\ref modules::motion"];
+///         permanent_storage [ URL="\ref modules::permanent_storage"];
+///         protocol [ URL="\ref modules::protocol"];
+///         timebase [ URL="\ref modules::time"];
+///     }
+///    subgraph cluster_hal { label="hal"
+///         adc [ URL="\ref hal::adc"];
+///         cpu [ URL="\ref hal::cpu"];
+///         eeprom [ URL="\ref hal::eeprom"];
+///         gpio [ URL="\ref hal::gpio"];
+///         shr16 [ URL="\ref hal::shr16"];
+///         spi [ URL="\ref hal::spi"];
+///         timers [ URL="\ref hal::timers"];
+///         tmc2130 [ URL="\ref hal::tmc2130"];
+///         usart [ URL="\ref hal::usart"];
+///         watchdog [ URL="\ref hal::watchdog"];
+///     }
+///    main -> logic [ arrowhead="open" ];
+///
+///    logic -> buttons [ arrowhead="open" ];
+///    logic -> finda [ arrowhead="open" ];
+///    logic -> fsensor [ arrowhead="open" ];
+///    logic -> globals [ arrowhead="open" ];
+///    logic -> idler [ arrowhead="open" ];
+///    logic -> leds [ arrowhead="open" ];
+///    logic -> motion [ arrowhead="open" ];
+///    logic -> permanent_storage [ arrowhead="open" ];
+///    logic -> protocol [ arrowhead="open" ];
+///    logic -> selector [ arrowhead="open" ];
+///    logic -> timebase [ arrowhead="open" ];
+///
+///    selector -> motion [ arrowhead="open" ];
+///    idler -> motion [ arrowhead="open" ];
+///    buttons -> debouncer [ arrowhead="open" ];
+///    finda -> debouncer [ arrowhead="open" ];
+///    fsensor -> debouncer [ arrowhead="open" ];
+///
+///    buttons -> adc [ arrowhead="open" ];
+///    finda -> adc [ arrowhead="open" ];
+///    fsensor [ arrowhead="open" ];
+///    globals -> permanent_storage [ arrowhead="open" ];
+///    leds -> shr16 [ arrowhead="open" ];
+///    motion -> tmc2130 [ arrowhead="open" ];
+///    permanent_storage -> eeprom [ arrowhead="open" ];
+///    protocol -> usart [ arrowhead="open" ];
+///    timebase -> timers [ arrowhead="open" ];
+///}
+///@enddot
+///
+/// Sidenote: due to avr-gcc 5.4 limitations we cannot use proper Singleton patterns but have to rely on global variables of each state machine.
+///
+///@section protocol_sec Protocol description
+///
+/// The communication protocol between the printer and the MMU has only been extended to minimize the influence on existing MMU interface implementation.
+/// However, the backwards compatibility has not been kept and at least some changes are necessary.
+/// The good news is that the Slicer's MMU code is fully backwards compatible.
+///
+///
+///@section errors_sec Error sources and handling
+///
+/// There are several different types/sources of errors in the MMU:
+/// - runtime sensors
+/// - algorithmic errors
+/// - hardware component failures
+///
+/// For a list of currently supported error states please see error_codes.h .
+///
+///@subsection runtime_ssec Runtime sensors
+///
+/// Errors like this are abnormal operational states resulting from the fact, that some of the sensors didn't report an expected state.
+/// E.g. FINDA didn't trigger or the printer didn't send a trigger command from its filament sensor.
+/// These failures cannot be predicted and can be only resolved partially by the MMU.
+///
+/// The logic layer state machines check for these failures and act upon:
+/// - Cut filament: detects FINDA_DIDNT_SWITCH_OFF, FINDA_DIDNT_SWITCH_ON
+/// - Eject filament: detects FINDA_DIDNT_SWITCH_OFF, FINDA_DIDNT_SWITCH_ON
+/// - Load filament: detects FINDA_DIDNT_SWITCH_ON, FSENSOR_DIDNT_SWITCH_ON
+/// - Tool change: detects FINDA_DIDNT_SWITCH_OFF/FINDA_DIDNT_SWITCH_ON, FSENSOR_DIDNT_SWITCH_OFF/FSENSOR_DIDNT_SWITCH_ON
+/// - Load filament: detects FINDA_DIDNT_SWITCH_OFF, FSENSOR_DIDNT_SWITCH_OFF
+///
+///@subsection algorithmic_ssec Algorithmic errors
+///
+/// This kind of errors represents unhandled states of state machines - which should not happen ;)
+/// or at least the ocurrance can be mitigated by careful testing of the firmware code base.
+/// Logic layer state machines check their internal state and if they by chance get into an unhandled state,
+/// they switch into an error state INTERNAL.
+///
+///@subsection hardware_ssec Hardware failures
+///
+/// This kind of errors is extremely hard to tackle in full scale.
+/// Basically any HW component can fail (including the HW chips on the mainboard) and we only have limited knowledge about such situations.
+/// So under hardware failures we consider only stuff which can be detected by any means
+/// - mostly CPU peripherals, especially the TMC2130 drivers, which are capable of some degree of error reporting.
+///
+///@subsection errorrep_ssec Error reporting
+///
+/// There are basically 2 ways of reporting an error to the user
+/// - via USART communication with the printer - implies the communication works - the preferred way
+/// - LEDs blinking - implies the shift registers work and the LEDs work as well - backup way
+///
+/// The USART communication can report errors of the currently running command (see response to Q0).
+///
+/// LEDs' blinking is to be defined yet, the previous firmware used elaborate blinking schemes to report all kinds of errors which most users were unable to decipher/act upon.
+///
+///
+///@section tests_sec Tests and quality assurance
+///
+///@subsection unit_sec Unit tests
+///
+/// The firmware architecture was designed with unit testing in mind, thus each firmware layer has only the least amount of necessary dependencies to surrounding code.
+/// This approach greatly simplified the definition of unit testing procedures with only a small amount stubs necessary.
+///
+/// Each firmware layer has its own subdirectory, the directory tree follows the firmware structure
+///
+/// The usage of stubs at each layer
+///
+///@subsection integration_sec Integration tests
+///
+///@section power_up Powering up the board
+///
+/// Upon startup, the board tries to initialize all the necessary peripherals.
+/// The progress of initialization is visualized by individual LEDs turning green.
+/// That includes:
+/// - LED 4: shift register - however if the shift register doesn't work we really can't signalize anything, only internal variables will be accessible if the UART works.
+/// - LED 3: USART - if both shift register and the UART are dead, we are sitting ducks :(
+/// - LED 2: SPI
+/// - LED 1: TMC2130 - this may actually report some error
+/// - LED 0: ADC
+///
+/// Ideally, the board has all the green LEDs on after startup - that signalizes all the peripherals started correctly.
+///

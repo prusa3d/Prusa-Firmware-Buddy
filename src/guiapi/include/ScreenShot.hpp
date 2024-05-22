@@ -12,11 +12,19 @@
 /**
  * Takes screenshot and saves it to USB flash disk.
  *
- * @retval true - all operations were completed successfuly
- *
+ * @retval true  - all operations were completed successfully
  * @retval false - any of file's opening/writing/closing returned unexpected error
  */
 bool TakeAScreenshot();
+
+/**
+ * @brief Takes screenshot and saves it to specified location
+ *
+ * @param file_name - location + name + suffix == "/usb/screenshot.bmp"
+ * @return true     - all operations were completed successfully
+ * @return false    - any of file's opening/writing/closing returned unexpected error
+ */
+bool TakeAScreenshotAs(const char *file_name);
 
 struct Pixel {
 
@@ -26,4 +34,5 @@ struct Pixel {
 
     Pixel(const uint8_t data[3]);
     void SwapBlueAndRed();
+    void ShiftColorsUp(int bits);
 };

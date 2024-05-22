@@ -1,5 +1,6 @@
 // INI file handler (ini_handler.h)
-#pragma once
+#ifndef INI_HANDLER_H
+#define INI_HANDLER_H
 
 #include <stdint.h>
 #include "ini.h"
@@ -13,3 +14,4 @@ uint8_t ini_load_file(ini_handler handler, void *user_struct);
 #ifdef __cplusplus
 } // extern "C"
 #endif //__cplusplus
+#endif // INI_HANDLER_H

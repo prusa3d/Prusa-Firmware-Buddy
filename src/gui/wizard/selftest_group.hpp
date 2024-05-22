@@ -15,7 +15,7 @@ class SelfTestGroup {
     SelfTestGroup *next;
     SelfTestViewItem *first;
 
-    //every test has name folowed by separator
+    // every test has name folowed by separator
     SelfTestViewText name;
     SelfTestViewSeparator separator;
 
@@ -28,6 +28,13 @@ public:
 
     void Draw(Rect16 rc, int dontdraw_first_n_px) const;
     void Add(SelfTestViewItem &item);
+
+    /**
+     * @brief Remove an item from the group.
+     * @param item remove this
+     */
+    void Remove(SelfTestViewItem &item);
+
     SelfTestGroup *GetNext() const { return next; }
     void SetNext(SelfTestGroup *nxt) { next = nxt; }
     bool Failed() const { return failed; }

@@ -27,6 +27,10 @@
 #include "../gcode.h"
 #include "../../module/temperature.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M302: Allow cold extrudes, or set the minimum extrude temperature
  *
@@ -59,5 +63,7 @@ void GcodeSuite::M302() {
     SERIAL_ECHOLNPAIR("abled (min temp ", thermalManager.extrude_min_temp, "C)");
   }
 }
+
+/** @}*/
 
 #endif // PREVENT_COLD_EXTRUSION

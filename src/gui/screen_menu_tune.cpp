@@ -1,52 +1,65 @@
-// screen_menu_tune.cpp
+/**
+ * @file screen_menu_tune.cpp
+ */
 
-#include "gui.hpp"
-#include "screen_menu.hpp"
-#include "screen_menus.hpp"
-#include "marlin_client.h"
-#include "MItem_print.hpp"
-#include "MItem_tools.hpp"
-#include "MItem_menus.hpp"
+#include "screen_menu_tune.hpp"
+#include "marlin_client.hpp"
+#include "marlin_server.hpp"
+#include "utility_extensions.hpp"
+#include <option/has_mmu2.h>
+#if XL_ENCLOSURE_SUPPORT()
+    #include "xl_enclosure.hpp"
+#endif
 
-/*****************************************************************************/
-//parent alias
-using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_LIVE_ADJUST_Z, MI_M600, MI_SPEED, MI_NOZZLE,
-    MI_HEATBED, MI_PRINTFAN, MI_FLOWFACT, MI_FILAMENT_SENSOR, MI_SOUND_MODE, MI_SOUND_VOLUME, MI_FAN_CHECK, MI_NETWORK, MI_TIMEZONE, MI_VERSION_INFO,
-#ifdef _DEBUG
-    MI_TEST,
-#endif                       //_DEBUG
-    /* MI_FOOTER_SETTINGS,*/ //currently experimental, but we want it in future
-    MI_MESSAGES>;
+ScreenMenuTune::ScreenMenuTune()
+    : ScreenMenuTune__(_(label)) {
+    ScreenMenuTune__::ClrMenuTimeoutClose();
 
-class ScreenMenuTune : public Screen {
-public:
-    constexpr static const char *label = N_("TUNE");
-    ScreenMenuTune()
-        : Screen(_(label)) {
-        Screen::ClrMenuTimeoutClose();
-        //todo test if needed
-        //marlin_update_vars(MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
+#if HAS_MMU2()
+    // Do not allow disabling filament sensor
+    if (config_store().mmu2_enabled.get()) {
+        Item<MI_FILAMENT_SENSOR>().hide();
     }
-
-protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-};
+#endif
+}
 
 void ScreenMenuTune::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::LOOP:
-        if (marlin_all_axes_homed() && marlin_all_axes_known() && (marlin_command() != MARLIN_CMD_G28) && (marlin_command() != MARLIN_CMD_G29) && (marlin_command() != MARLIN_CMD_M109) && (marlin_command() != MARLIN_CMD_M190)) {
+        if (marlin_server::all_axes_homed()
+            && marlin_server::all_axes_known()
+            && (marlin_client::get_command() != marlin_server::Cmd::G28)
+            && (marlin_client::get_command() != marlin_server::Cmd::G29)
+            && (marlin_client::get_command() != marlin_server::Cmd::M109)
+            && (marlin_client::get_command() != marlin_server::Cmd::M190)) {
             Item<MI_M600>().Enable();
         } else {
             Item<MI_M600>().Disable();
         }
+
+#if XL_ENCLOSURE_SUPPORT()
+        /* Once is Enclosure enabled in menu with ON/OFF switch (MI_ENCLOSURE_ENABLED), it tests the fan and if it passes, Enclosure is declared Active */
+        /* If the test passes, MI_ENCLOSURE_ENABLE is swapped with MI_ENCLOSURE and enclosure settings can be accessed */
+        /* This hides enclosure settings for Users without enclosure */
+
+        if (xl_enclosure.isActive() && Item<MI_ENCLOSURE>().IsHidden()) {
+            SwapVisibility<MI_ENCLOSURE, MI_ENCLOSURE_ENABLE>();
+        } else if (!xl_enclosure.isActive() && Item<MI_ENCLOSURE_ENABLE>().IsHidden()) {
+            SwapVisibility<MI_ENCLOSURE_ENABLE, MI_ENCLOSURE>();
+        }
+#endif
+
+#if ENABLED(CANCEL_OBJECTS)
+        // Enable cancel object menu
+        if (marlin_vars()->cancel_object_count > 0) {
+            Item<MI_CO_CANCEL_OBJECT>().Enable();
+        } else {
+            Item<MI_CO_CANCEL_OBJECT>().Disable();
+        }
+#endif /* ENABLED(CANCEL_OBJECTS) */
         break;
     default:
         break;
     }
     SuperWindowEvent(sender, event, param);
-}
-
-ScreenFactory::UniquePtr GetScreenMenuTune() {
-    return ScreenFactory::Screen<ScreenMenuTune>();
 }

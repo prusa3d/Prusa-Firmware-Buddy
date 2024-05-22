@@ -2,11 +2,16 @@
 #include <segmented_json_macros.h>
 
 #include <catch2/catch.hpp>
+#include <deque>
 #include <string>
 #include <string_view>
+#include <cstring>
 
+using std::deque;
+using std::make_tuple;
 using std::string;
 using std::string_view;
+using std::tuple;
 
 using namespace json;
 
@@ -53,9 +58,56 @@ protected:
     }
 };
 
-const constexpr char *const EXPECTED = "{\"hello\":true,\"world\":\"stuff\\\"escaped\",\"sub-something\":{\"answer\":42},\"list\":[{\"value\":0},{\"value\":1},{\"value\":2},{\"value\":3}]}";
+class SmallerJson final : public ChunkRenderer {
+private:
+    deque<string> parts;
 
-}
+public:
+    SmallerJson() {
+        parts.push_back("\"");
+        parts.push_back("hello world");
+        parts.push_back("\"");
+    }
+
+    virtual tuple<JsonResult, size_t> render(uint8_t *buffer, size_t len) {
+        const size_t chunk_len = parts[0].size();
+        if (chunk_len > len) {
+            return make_tuple(JsonResult::Incomplete, 0);
+        } else {
+            // Implementation note. This is suboptimal in the way that this
+            // might produce more packets/top-level chunks than necessary,
+            // because the JSON_CHUNK does _not_ cycle until. It just tries to
+            // call it once every time.
+            //
+            // This is fine for a test, it makes it simpler, but don't just
+            // blindly copy-paste this bad practice into a production code
+            // O:-).
+            memcpy(buffer, parts[0].data(), chunk_len);
+            parts.pop_front();
+            return make_tuple(parts.size() > 0 ? JsonResult::Incomplete : JsonResult::Complete, chunk_len);
+        }
+    }
+};
+
+class BiggerJson final : public LowLevelJsonRenderer {
+private:
+    SmallerJson inner;
+
+protected:
+    virtual JsonResult content(size_t resume_point, JsonOutput &output) override {
+        JSON_START;
+        JSON_OBJ_START;
+        // The chunk does not contain the field name, we need to provide it separately.
+        JSON_FIELD_CHUNK("hello", inner);
+        JSON_OBJ_END;
+        JSON_END;
+    }
+};
+
+const constexpr char *const EXPECTED = "{\"hello\":true,\"world\":\"stuff\\\"escaped\",\"sub-something\":{\"answer\":42},\"list\":[{\"value\":0},{\"value\":1},{\"value\":2},{\"value\":3}]}";
+const constexpr char *const EXPECTED_WITH_INNER = "{\"hello\":\"hello world\"}";
+
+} // namespace
 
 TEST_CASE("Json Big Buffer - no split") {
     TestJsonRenderer renderer;
@@ -101,6 +153,26 @@ TEST_CASE("Json split buffer") {
     REQUIRE(response == EXPECTED);
 }
 
+TEST_CASE("Json with inner renderer") {
+    BiggerJson renderer;
+
+    string response;
+
+    auto result = JsonResult::Incomplete;
+    constexpr size_t len = 100;
+
+    while (result != JsonResult::Complete) {
+        uint8_t buffer[len];
+        const auto [result_partial, written] = renderer.render(buffer, len);
+        REQUIRE(written <= len);
+        REQUIRE(written > 0);
+        response += string_view(reinterpret_cast<char *>(buffer), written);
+        result = result_partial;
+    }
+
+    REQUIRE(response == EXPECTED_WITH_INNER);
+}
+
 // Here we will fit the first write with {. But the second one won't fit at
 // all, even with a fresh new empty buffer, so it detects that it can't fit.
 TEST_CASE("Json buffer too small") {
@@ -113,4 +185,35 @@ TEST_CASE("Json buffer too small") {
     const auto [result2, written2] = renderer.render(buffer, 2);
     REQUIRE(result2 == JsonResult::BufferTooSmall);
     REQUIRE(written2 == 0);
+}
+
+using ComposedRender = VariantRenderer<EmptyRenderer, TestJsonRenderer, BiggerJson>;
+
+TEST_CASE("Composed JSON - empty") {
+    ComposedRender renderer;
+
+    uint8_t buffer[2];
+    const auto [result, written] = renderer.render(buffer, 2);
+    REQUIRE(result == JsonResult::Complete);
+    REQUIRE(written == 0);
+}
+
+TEST_CASE("Composed JSON - with content") {
+    ComposedRender renderer { TestJsonRenderer() };
+
+    uint8_t buffer[1024];
+    const auto [result, written] = renderer.render(buffer, sizeof buffer);
+    REQUIRE(result == JsonResult::Complete);
+    REQUIRE(string_view(reinterpret_cast<const char *>(buffer), written) == EXPECTED);
+}
+
+TEST_CASE("Seq Renderer") {
+    PairRenderer<TestJsonRenderer, TestJsonRenderer> renderer { TestJsonRenderer(), TestJsonRenderer() };
+
+    uint8_t buffer[2048];
+    const auto [result, written] = renderer.render(buffer, sizeof buffer);
+    REQUIRE(result == JsonResult::Complete);
+    string exp = EXPECTED;
+    exp += EXPECTED;
+    REQUIRE(string_view(reinterpret_cast<const char *>(buffer), written) == exp);
 }

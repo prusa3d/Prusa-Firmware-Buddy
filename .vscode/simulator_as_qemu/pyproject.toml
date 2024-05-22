@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simulator_as_qemu"
+description = "Wrapper around utils/simulator to make it runnable as an executable."
+authors = [{name = "Alan Dragomirecký", email = "alan@dragomirecky.com"}]
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = []
+version = "0.1.0"
+
+[project.scripts]
+simulator_as_qemu = "simulator_as_qemu:main"

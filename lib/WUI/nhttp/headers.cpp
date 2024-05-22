@@ -17,22 +17,20 @@ namespace nhttp {
 
 namespace {
 
-    const char *const authenticate_hdrs[] = {
-        "WWW-Authenticate: ApiKey realm=\"Printer API\"\r\n",
-        nullptr,
-    };
-
     const constexpr StatusText texts[] = {
         { Status::UnknownStatus, "???" },
         { Status::Ok, "OK" },
         { Status::Created, "Created" },
+        { Status::Accepted, "Accepted" },
         { Status::NoContent, "No Content" },
+        { Status::PartialContent, "Partial Content" },
         { Status::NotModified, "Not Modified" },
         { Status::BadRequest, "Bad Request" },
         { Status::Forbidden, "Forbidden" },
-        { Status::Unauthorized, "Unauthorized", authenticate_hdrs },
+        { Status::Unauthorized, "Unauthorized" },
         { Status::NotFound, "Not Found" },
         { Status::MethodNotAllowed, "Method Not Allowed" },
+        { Status::RequestTimeout, "Request Timeout" },
         { Status::Conflict, "Conflict" },
         { Status::LengthRequired, "Length Required" },
         { Status::UnsupportedMediaType, "Unsupported Media Type" },
@@ -40,15 +38,17 @@ namespace {
         { Status::PayloadTooLarge, "Payload Too Large" },
         { Status::UriTooLong, "URI Too Long" },
         { Status::UnprocessableEntity, "Unprocessable Entity" },
+        { Status::TooManyRequests, "Too Many Requests" },
         { Status::RequestHeaderFieldsTooLarge, "Request Header Fields Too Large" },
-        { Status::InternalServerError, "Infernal Server Error" },
+        { Status::InternalServerError, "Internal Server Error" },
         { Status::NotImplemented, "Not Implemented" },
         { Status::ServiceTemporarilyUnavailable, "Service Temporarily Unavailable" },
+        { Status::GatewayTimeout, "Gateway Timeout" },
         { Status::InsufficientStorage, "Insufficient Storage" },
     };
 
     constexpr const size_t content_buffer_len = 128;
-}
+} // namespace
 
 const StatusText &StatusText::find(Status status) {
     for (const StatusText *t = texts; t < (texts + sizeof(texts) / sizeof(*texts)); t++) {
@@ -156,4 +156,4 @@ uint32_t compute_etag(const struct stat &stat) {
     return result;
 }
 
-}
+} // namespace nhttp

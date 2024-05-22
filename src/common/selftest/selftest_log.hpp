@@ -31,29 +31,25 @@ public:
     void ForceNextLog() { last_log = std::nullopt; }
 };
 
-#define LogInfo(...)     _log_event(LOG_SEVERITY_INFO, log_component_find("Selftest"), __VA_ARGS__);
-#define LogDebug(...)    _log_event(LOG_SEVERITY_DEBUG, log_component_find("Selftest"), __VA_ARGS__);
-#define LogWarning(...)  _log_event(LOG_SEVERITY_WARNING, log_component_find("Selftest"), __VA_ARGS__);
-#define LogError(...)    _log_event(LOG_SEVERITY_ERROR, log_component_find("Selftest"), __VA_ARGS__);
-#define LogCritical(...) _log_event(LOG_SEVERITY_CRITICAL, log_component_find("Selftest"), __VA_ARGS__);
-
 /**
  * @brief Info log which will be skipped if delay requirements are not met
  * first parameter must be LogTimer object
  */
-#define LogInfoTimed(LOG, ...)                                                          \
-    {                                                                                   \
-        if (LOG.CanLog())                                                               \
-            _log_event(LOG_SEVERITY_INFO, log_component_find("Selftest"), __VA_ARGS__); \
+#define LogInfoTimed(LOG, ...)               \
+    {                                        \
+        if (LOG.CanLog()) {                  \
+            log_info(Selftest, __VA_ARGS__); \
+        }                                    \
     }
 
 /**
  * @brief Debug log which will be skipped if delay requirements are not met
  * first parameter must be LogTimer object
  */
-#define LogDebugTimed(LOG, ...)                                                          \
-    {                                                                                    \
-        if (LOG.CanLog())                                                                \
-            _log_event(LOG_SEVERITY_DEBUG, log_component_find("Selftest"), __VA_ARGS__); \
+#define LogDebugTimed(LOG, ...)               \
+    {                                         \
+        if (LOG.CanLog()) {                   \
+            log_debug(Selftest, __VA_ARGS__); \
+        }                                     \
     }
-}
+} // namespace selftest

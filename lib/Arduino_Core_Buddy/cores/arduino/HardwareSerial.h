@@ -1,4 +1,4 @@
-//HardwareSerial.h - Buddy/STM32
+// HardwareSerial.h - Buddy/STM32
 #ifndef _HARDWARESERIAL_H
 #define _HARDWARESERIAL_H
 
@@ -21,5 +21,6 @@ public:
 };
 
 extern HardwareSerial Serial3;
+extern HardwareSerial SerialUART3;
 
 #endif //_HARDWARESERIAL_H

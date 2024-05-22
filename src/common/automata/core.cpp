@@ -33,7 +33,7 @@ SpecialCheck specials[] = {
     digit,
 };
 
-}
+} // namespace
 
 namespace automata {
 
@@ -136,4 +136,4 @@ std::tuple<ExecutionControl, size_t> Execution::consume(std::string_view data) {
     return std::make_tuple(ExecutionControl::Continue, consumed);
 }
 
-}
+} // namespace automata

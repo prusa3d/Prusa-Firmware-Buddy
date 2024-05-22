@@ -11,7 +11,7 @@ using namespace http;
 
 namespace nhttp::handler {
 
-SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, bool json_errors, uint32_t if_none_match, const char *const *extra_hdrs)
+SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool can_keep_alive, [[maybe_unused]] bool json_errors, uint32_t if_none_match, const char *const *extra_hdrs)
     : file(file)
     , content_type(content_type)
     , can_keep_alive(can_keep_alive)
@@ -43,7 +43,7 @@ void SendFile::disable_caching() {
 Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size) {
     if (etag_matches) {
         // Note: json_errors are not enabled, because NotModified has no content anyway.
-        return Step { 0, 0, StatusPage(Status::NotModified, (connection_handling != ConnectionHandling::Close) ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, false) };
+        return Step { 0, 0, StatusPage(Status::NotModified, (connection_handling != ConnectionHandling::Close) ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, false, etag) };
     }
 
     if (!buffer) {
@@ -63,8 +63,8 @@ Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size)
     }
 
     NextInstruction instruction = Continue();
-    written += render_chunk(connection_handling, buffer + written, buffer_size - written, [&](uint8_t *buffer, size_t buffer_size) -> std::optional<size_t> {
-        size_t read = fread(buffer, 1, buffer_size, file.get());
+    written += render_chunk(connection_handling, buffer + written, buffer_size - written, [&](uint8_t *buffer_, size_t buffer_size_) -> std::optional<size_t> {
+        size_t read = fread(buffer_, 1, buffer_size_, file.get());
         if (read == 0) {
             if (ferror(file.get())) {
                 /*
@@ -91,4 +91,4 @@ Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size)
     return Step { 0, written, std::move(instruction) };
 }
 
-}
+} // namespace nhttp::handler

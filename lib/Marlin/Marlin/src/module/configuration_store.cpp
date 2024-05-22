@@ -59,7 +59,7 @@
 #endif
 
 #if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
-    #include "eeprom_function_api.h"
+    #include "config_store/store_c_api.h"
 #endif // USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 
 #if EITHER(EEPROM_SETTINGS, SD_FIRMWARE_UPDATE)
@@ -381,7 +381,7 @@ void MarlinSettings::postprocess() {
   xyze_pos_t oldpos = current_position;
 
   // steps per s2 needs to be updated to agree with units per s2
-  planner.reset_acceleration_rates();
+  planner.refresh_acceleration_rates();
 
   // Make sure delta kinematics are updated before refreshing the
   // planner position so the stepper counts will be set correctly.
@@ -426,7 +426,7 @@ void MarlinSettings::postprocess() {
     planner.recalculate_max_e_jerk();
   #endif
 
-  // Refresh mm_per_step with the reciprocal of axis_steps_per_mm
+  // Refresh mm_per_step, mm_per_half_step and mm_per_mstep with the reciprocal of axis_steps_per_mm and axis_msteps_per_mm
   // and init stepper.count[], planner.position[] with current_position
   planner.refresh_positioning();
 
@@ -1325,6 +1325,7 @@ void MarlinSettings::postprocess() {
           const bool in = (i < esteppers + XYZ);
           planner.settings.max_acceleration_mm_per_s2[i] = in ? tmp1[i] : pgm_read_dword(&_DMA[ALIM(i, _DMA)]);
           planner.settings.axis_steps_per_mm[i]          = in ? tmp2[i] : get_steps_per_unit(i);
+          planner.settings.axis_msteps_per_mm[i]         = (in ? tmp2[i] : get_steps_per_unit(i)) * PLANNER_STEPS_MULTIPLIER;
           planner.settings.max_feedrate_mm_s[i]          = in ? tmp3[i] : pgm_read_float(&_DMF[ALIM(i, _DMF)]);
         }
 
@@ -2222,18 +2223,21 @@ void MarlinSettings::postprocess() {
  * Resets motion parameters only (speed, accel., etc.)
  */
 void MarlinSettings::reset_motion() {
+  auto s = planner.user_settings;
+
   LOOP_XYZE_N(i) {
-    planner.settings.max_acceleration_mm_per_s2[i] = pgm_read_dword(&_DMA[ALIM(i, _DMA)]);
-    planner.settings.axis_steps_per_mm[i]          = get_steps_per_unit(i);
-    planner.settings.max_feedrate_mm_s[i]          = pgm_read_float(&_DMF[ALIM(i, _DMF)]);
+    s.max_acceleration_mm_per_s2[i] = pgm_read_dword(&_DMA[ALIM(i, _DMA)]);
+    s.axis_steps_per_mm[i]          = get_steps_per_unit(i);
+    s.axis_msteps_per_mm[i]         = get_steps_per_unit(i) * PLANNER_STEPS_MULTIPLIER;
+    s.max_feedrate_mm_s[i]          = pgm_read_float(&_DMF[ALIM(i, _DMF)]);
   }
 
-  planner.settings.min_segment_time_us = DEFAULT_MINSEGMENTTIME;
-  planner.settings.acceleration = DEFAULT_ACCELERATION;
-  planner.settings.retract_acceleration = DEFAULT_RETRACT_ACCELERATION;
-  planner.settings.travel_acceleration = DEFAULT_TRAVEL_ACCELERATION;
-  planner.settings.min_feedrate_mm_s = feedRate_t(DEFAULT_MINIMUMFEEDRATE);
-  planner.settings.min_travel_feedrate_mm_s = feedRate_t(DEFAULT_MINTRAVELFEEDRATE);
+  s.min_segment_time_us = DEFAULT_MINSEGMENTTIME;
+  s.acceleration = DEFAULT_ACCELERATION;
+  s.retract_acceleration = DEFAULT_RETRACT_ACCELERATION;
+  s.travel_acceleration = DEFAULT_TRAVEL_ACCELERATION;
+  s.min_feedrate_mm_s = feedRate_t(DEFAULT_MINIMUMFEEDRATE);
+  s.min_travel_feedrate_mm_s = feedRate_t(DEFAULT_MINTRAVELFEEDRATE);
 
   #if HAS_CLASSIC_JERK
     #ifndef DEFAULT_XJERK
@@ -2245,15 +2249,17 @@ void MarlinSettings::reset_motion() {
     #ifndef DEFAULT_ZJERK
       #define DEFAULT_ZJERK 0
     #endif
-    planner.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
+    s.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
     #if HAS_CLASSIC_E_JERK
-      planner.max_jerk.e = DEFAULT_EJERK;
+      s.max_jerk.e = DEFAULT_EJERK;
     #endif
   #endif
 
   #if DISABLED(CLASSIC_JERK)
     planner.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
   #endif
+
+  planner.apply_settings(s);
 }
 
 /**
@@ -2460,6 +2466,14 @@ void MarlinSettings::reset() {
     thermalManager.temp_bed.pid.Kp = DEFAULT_bedKp;
     thermalManager.temp_bed.pid.Ki = scalePID_i(DEFAULT_bedKi);
     thermalManager.temp_bed.pid.Kd = scalePID_d(DEFAULT_bedKd);
+  #endif
+
+  #if ENABLED(PIDTEMPHEATBREAK)
+    HOTEND_LOOP() {
+      thermalManager.temp_heatbreak[e].pid.Kp = DEFAULT_heatbreakKp;
+      thermalManager.temp_heatbreak[e].pid.Ki = scalePID_i(DEFAULT_heatbreakKi);
+      thermalManager.temp_heatbreak[e].pid.Kd = scalePID_d(DEFAULT_heatbreakKd);
+    }
   #endif
 
   //
@@ -2783,11 +2797,11 @@ void MarlinSettings::reset() {
         , " J", LINEAR_UNIT(planner.junction_deviation_mm)
       #endif
       #if HAS_CLASSIC_JERK
-        , " X", LINEAR_UNIT(planner.max_jerk.x)
-        , " Y", LINEAR_UNIT(planner.max_jerk.y)
-        , " Z", LINEAR_UNIT(planner.max_jerk.z)
+        , " X", LINEAR_UNIT(planner.settings.max_jerk.x)
+        , " Y", LINEAR_UNIT(planner.settings.max_jerk.y)
+        , " Z", LINEAR_UNIT(planner.settings.max_jerk.z)
         #if HAS_CLASSIC_E_JERK
-          , " E", LINEAR_UNIT(planner.max_jerk.e)
+          , " E", LINEAR_UNIT(planner.settings.max_jerk.e)
         #endif
       #endif
     );

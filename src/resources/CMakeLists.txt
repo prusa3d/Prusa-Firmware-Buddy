@@ -1,3 +1,4 @@
+include(QoiGenerator.cmake)
 #
 # Common Functions
 #
@@ -37,7 +38,9 @@ function(add_header_with_revision revision_name image_name)
     )
 
   # set dependency on the main target
-  add_custom_target(resources-header-${revision_name} DEPENDS "${header_hash_file}")
+  add_custom_target(
+    resources-header-${revision_name} DEPENDS "${header_hash_file}" qoi_generated_files
+    )
   add_dependencies(firmware resources-header-${revision_name})
 endfunction()
 
@@ -45,31 +48,86 @@ endfunction()
 # General
 #
 
-target_sources(firmware PUBLIC bootstrap.cpp revision.cpp hash.cpp)
+target_sources(firmware PUBLIC bootstrap.cpp hash.cpp revision.cpp)
 target_include_directories(firmware PUBLIC "${resources_include_dir}")
 
 #
 # Standard Resources Image
 #
 
-add_lfs_image(resources-image BLOCK_SIZE 256 BLOCK_COUNT 3000)
+if(PRINTER STREQUAL "MINI")
+  # Some revisions of mini has 1MB flash, so limit resource size to remaining size
+  add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 205)
+else()
+  add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 512)
+endif()
 
 # /esp directory
-add_resource("esp/uart_wifi.bin" "/esp/uart_wifi.bin")
-add_resource("esp/bootloader.bin" "/esp/bootloader.bin")
-add_resource("esp/partition-table.bin" "/esp/partition-table.bin")
+if(PRINTER STREQUAL "XL")
+  add_resource("esp32/uart_wifi.bin" "/esp32/uart_wifi.bin")
+  add_resource("esp32/bootloader.bin" "/esp32/bootloader.bin")
+  add_resource("esp32/partition-table.bin" "/esp32/partition-table.bin")
+else()
+  add_resource("esp/uart_wifi.bin" "/esp/uart_wifi.bin")
+  add_resource("esp/bootloader.bin" "/esp/bootloader.bin")
+  add_resource("esp/partition-table.bin" "/esp/partition-table.bin")
+endif()
+
+if(PUPPY_FLASH_FW)
+  if(HAS_DWARF)
+    add_resource("${DWARF_BINARY_PATH}" "/puppies/fw-dwarf.bin")
+  endif()
+  add_resource("${MODULARBED_BINARY_PATH}" "/puppies/fw-modularbed.bin")
+endif()
 
 # /web directory
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.df502520e9e3bde5ca95.js" "/web/main.df502520e9e3bde5ca95.js")
-add_gzip_resource("web/main.9e77009f16d13991de13.css" "/web/main.9e77009f16d13991de13.css")
+add_gzip_resource("web/main.3fd7d8a85463914cd803.js" "/web/main.3fd7d8a85463914cd803.js")
+add_gzip_resource("web/main.71c989a4a290e5c10892.css" "/web/main.71c989a4a290e5c10892.css")
 
-# /png directory
-add_resource("png/pepa_64px.png" "/png/pepa_64px.png")
-add_resource("png/pepa_140px.png" "/png/pepa_140px.png")
-add_resource("png/pepa_original_140px.png" "/png/pepa_original_140px.png")
-add_resource("png/png_serial_printing.png" "/pnt/png_serial_printing.png")
+# add languages
+if(${TRANSLATIONS_IN_EXTFLASH})
+  foreach(LANG ${LANGUAGES_AVAILABLE})
+    if(${ENABLE_TRANSLATION_${LANG}})
+      string(TOLOWER ${LANG} LANG)
+      add_resource(
+        "${CMAKE_SOURCE_DIR}/src/lang/po/${LANG}/Prusa-Firmware-Buddy_${LANG}.mo"
+        "/lang/${LANG}.mo"
+        )
+    endif()
+  endforeach()
+endif()
+
+# non-packed images, set the list of images to process
+set(NONPACKED_PNG_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/resources")
+
+# convert non-packed PNG->QOI, do all of them, even though not all will be used
+set(NONPACKED_PNGS
+    "pre_bootstrap_pngs/marlin_logo_79x61.png" "pre_bootstrap_pngs/prusa_mini_splash_207x47.png"
+    "pre_bootstrap_pngs/prusa_ix_splash_158x52.png" "pre_bootstrap_pngs/prusa_xl_splash_172x52.png"
+    )
+
+foreach(NONPACKED_PNG ${NONPACKED_PNGS})
+  get_filename_component(NONPACKED_NAME ${NONPACKED_PNG} NAME_WE)
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${NONPACKED_NAME}.qoi
+    DEPENDS ${NONPACKED_PNG}
+    COMMAND
+      "${Python3_EXECUTABLE}" "${qoi_generator_py}" "${NONPACKED_PNG_SOURCE_DIR}/${NONPACKED_PNG}"
+      "${CMAKE_CURRENT_BINARY_DIR}/nonpacked.res"
+      "${CMAKE_CURRENT_BINARY_DIR}/${NONPACKED_NAME}.qoi"
+    )
+endforeach()
+
+add_resource("${CMAKE_CURRENT_BINARY_DIR}/marlin_logo_79x61.qoi" "marlin_logo_79x61.qoi")
+if(PRINTER STREQUAL "MINI")
+  add_resource("${CMAKE_CURRENT_BINARY_DIR}/prusa_mini_splash_207x47.qoi" "printer_logo.qoi")
+endif()
+
+# Quite OK images
+add_resource("${qoi_data_file}" "qoi.data")
+
 # generate header with hash
 add_header_with_revision(standard resources-image)
 
@@ -78,7 +136,7 @@ add_header_with_revision(standard resources-image)
 #
 if(BOOTLOADER_UPDATE)
 
-  add_lfs_image(resources-bootloader-image BLOCK_SIZE 256 BLOCK_COUNT 1000)
+  add_lfs_image(resources-bootloader-image BLOCK_SIZE 4096 BLOCK_COUNT 64)
 
   get_dependency_directory("bootloader-${BOOTLOADER_VARIANT}" bootloader_dir)
   get_dependency_version("bootloader-${BOOTLOADER_VARIANT}" bootloader_version_str)
@@ -102,4 +160,52 @@ if(BOOTLOADER_UPDATE)
     required_bootloader_version.hpp.in "${resources_include_dir}/bootloader/required_version.hpp"
     )
 
+endif()
+
+# MMU Firmware resource
+if(HAS_MMU2)
+  # Returns directory with a single MMU hex FW - version set in bootstrap.py
+  get_dependency_directory("firmware-mmu" mmu_fw_dir)
+  get_dependency_version("firmware-mmu" mmu_fw_version)
+
+  file(GLOB mmu_fw_hex_file "${mmu_fw_dir}/*.hex")
+  if(NOT EXISTS "${mmu_fw_hex_file}")
+    message(
+      FATAL_ERROR
+        "Failed to locate MMU FW in .dependencies. You probably need to rerun bootstrap.py"
+      )
+  endif()
+
+  set(mmu_fw_file_base "${CMAKE_CURRENT_BINARY_DIR}/mmu_fw_${mmu_fw_version}")
+  set(mmu_fw_adj_hex_file "${mmu_fw_file_base}.hex")
+  set(mmu_fw_bin_file "${mmu_fw_file_base}.bin")
+
+  # We need to adjust the hex file and strip the comments and empty lines, otherwise the objcopy
+  # will not get it
+  add_custom_command(
+    OUTPUT "${mmu_fw_adj_hex_file}"
+    COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/mmu_ihex_cleanup.py"
+            "${mmu_fw_hex_file}" "${mmu_fw_adj_hex_file}"
+    VERBATIM
+    )
+
+  add_custom_command(
+    OUTPUT "${mmu_fw_bin_file}"
+    COMMAND "${RECOMMENDED_TOOLCHAIN_BINUTILS}/arm-none-eabi-objcopy" -I ihex -O binary
+            "${mmu_fw_adj_hex_file}" "${mmu_fw_bin_file}"
+    DEPENDS "${mmu_fw_adj_hex_file}"
+    )
+
+  # Parse the FW version - used in the configure_file call
+  string(REGEX MATCH "([0-9]+)\.([0-9]+)\.([0-9]+)" result "${mmu_fw_version}")
+  if(NOT result)
+    message(FATAL_ERROR "Failed to parse MMU FW version ${mmu_fw_version}")
+  endif()
+
+  # generate header file with MMU FW version
+  configure_file(
+    mmu_fw_attached_version.hpp.in "${resources_include_dir}/mmu2/mmu_fw_attached_version.hpp"
+    )
+
+  add_resource("${mmu_fw_bin_file}" "/mmu/fw.bin")
 endif()

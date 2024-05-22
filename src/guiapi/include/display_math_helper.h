@@ -1,5 +1,7 @@
-//display_math_helper.h
-//basic mathematical operations for display
+/**
+ * @file display_math_helper.h
+ * @brief basic mathematical operations for display
+ */
 #pragma once
 
 #include <inttypes.h>
@@ -10,14 +12,16 @@ extern "C" {
 
 __attribute__((used)) inline uint16_t swap_ui16(uint16_t val) {
     return __builtin_bswap16(val);
-    //return (val >> 8) | ((val & 0xff) << 8);
+    // return (val >> 8) | ((val & 0xff) << 8);
 }
 
 __attribute__((used)) inline uint32_t color_rgb(const uint8_t r, const uint8_t g, const uint8_t b) {
+    // saved in bgr format, because ARM is little endian and when it is saved to memory it will be in rgb order
     return r | ((uint32_t)g << 8) | ((uint32_t)b << 16);
 }
 
 __attribute__((used)) inline uint32_t color_alpha(const uint32_t clr0, const uint32_t clr1, const uint8_t alpha) {
+    // when color is saved in uint32_t it is in bgr format, because ARM uses little endian
     const uint8_t r0 = clr0 & 0xff;
     const uint8_t g0 = (clr0 >> 8) & 0xff;
     const uint8_t b0 = (clr0 >> 16) & 0xff;
@@ -36,9 +40,9 @@ __attribute__((used)) inline void rop_rgb888_invert(uint8_t *ppx888) {
     ppx888[2] = 255 - ppx888[2];
 }
 
-const uint8_t SWAPBW_TOLERANCE = 64;
+static const uint8_t SWAPBW_TOLERANCE = 64;
 
-__attribute__((used)) inline void
+__attribute__((used)) static inline void
 rop_rgb888_swapbw(uint8_t *ppx888) {
     const uint8_t r = ppx888[0];
     const uint8_t g = ppx888[1];
@@ -54,7 +58,7 @@ rop_rgb888_swapbw(uint8_t *ppx888) {
     }
 }
 
-__attribute__((used)) inline void rop_rgb888_disabled(uint8_t *ppx888) {
+__attribute__((used)) static inline void rop_rgb888_disabled(uint8_t *ppx888) {
     const uint8_t r = ppx888[0];
     const uint8_t g = ppx888[1];
     const uint8_t b = ppx888[2];
@@ -68,7 +72,14 @@ __attribute__((used)) inline void rop_rgb888_disabled(uint8_t *ppx888) {
     }
 }
 
-__attribute__((used)) inline void rop_rgb8888_swapbw(uint8_t *ppx) {
+__attribute__((used)) static inline void rop_rgb888_desaturate(uint8_t *ppx888) {
+    const uint8_t avg = (ppx888[0] + ppx888[1] + ppx888[2]) / 3;
+    ppx888[0] = avg;
+    ppx888[1] = avg;
+    ppx888[2] = avg;
+}
+
+__attribute__((used)) static inline void rop_rgb8888_swapbw(uint8_t *ppx) {
     const uint8_t r = ppx[0];
     const uint8_t g = ppx[1];
     const uint8_t b = ppx[2];

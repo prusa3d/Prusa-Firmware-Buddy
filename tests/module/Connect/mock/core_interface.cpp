@@ -31,16 +31,17 @@ core_interface::core_interface() {
 }
 
 std::optional<Error> core_interface::get_printer_info(printer_info_t *printer_info) {
-    if (NULL == printer_info)
+    if (NULL == printer_info) {
         return Error::ERROR;
+    }
 
     snprintf(printer_info->firmware_version, FW_VER_BUFR_LEN, "%s", "4.1.0-CONN+0000");
 
     printer_info->printer_type = 2;
-    constexpr char serial_number[] = "FAKE2345X234XC12345";
+    constexpr char serial_number[] = "CZPX2345X234XC12345";
     strlcpy(printer_info->serial_number, serial_number, SER_NUM_BUFR_LEN);
 
-    memcpy(printer_info->fingerprint, "???", FINGERPRINT_SIZE);
+    memcpy(printer_info->fingerprint, "FB34DF45FB34DF45", FINGERPRINT_SIZE);
     printer_info->fingerprint[FINGERPRINT_SIZE] = 0;
 
     printer_info->appendix = false;

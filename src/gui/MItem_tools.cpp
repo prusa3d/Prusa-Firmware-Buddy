@@ -1,90 +1,155 @@
 #include "MItem_tools.hpp"
-#include "dump.h"
-#include "eeprom.h"
-#include "eeprom_loadsave.h"
-#include "marlin_client.h"
+#include "img_resources.hpp"
+#include "marlin_client.hpp"
+#include "marlin_server.hpp"
 #include "gui.hpp"
+#include "media.hpp"
+#include "time_helper.hpp"
 #include "sys.h"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_calib_z.hpp"
 #include "window_file_list.hpp"
 #include "sound.hpp"
 #include "wui_api.h"
+#include "printers.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "bsod.h"
-#include "filament_sensor_api.hpp"
+#include "filament_sensors_handler.hpp"
 #include "liveadjust_z.hpp"
-#include "DialogHandler.hpp"
 #include "filament_sensor.hpp"
 #include "main.h"
 #include "Pin.hpp"
 #include "hwio_pindef.h"
+#include "config.h"
 #include "menu_spin_config.hpp"
+#include "time_tools.hpp"
 #include "footer_eeprom.hpp"
-#include <time.h>
+#include "version.h"
+#include "../../common/PersistentStorage.h"
 #include "sys.h"
 #include "w25x.h"
+#include <bootloader/bootloader.hpp>
+#include "config_features.h"
+#include <config_store/store_instance.hpp>
+#include "connect/marlin_printer.hpp"
+#include <crash_dump/dump.hpp>
+#include <feature/prusa/e-stall_detector.h>
+#include <option/bootloader.h>
+#include <option/filament_sensor.h>
+#include <option/has_phase_stepping.h>
+#include <option/has_side_fsensor.h>
+#include <option/has_coldpull.h>
+#include <RAII.hpp>
+#include <st25dv64k.h>
+#include <time.h>
+
+namespace {
+void MsgBoxNonBlockInfo(string_view_utf8 txt) {
+    constexpr static const char *title = N_("Information");
+    MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), &img::info_16x16);
+    gui::TickLoop();
+    gui_loop();
+}
+
+constexpr const char *homing_text_info = N_("Printer may vibrate and be noisier during homing.");
+constexpr const char *printer_busy_text = N_("Printer is busy. Please try repeating the action later.");
+
+} // namespace
+
+bool gui_check_space_in_gcode_queue_with_msg() {
+    if (marlin_vars()->gqueue <= MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET) {
+        return true;
+    }
+
+    MsgBoxWarning(_(printer_busy_text), Responses_Ok);
+    return false;
+}
+
+bool gui_try_gcode_with_msg(const char *gcode) {
+    switch (marlin_client::gcode_try(gcode)) {
+
+    case marlin_client::GcodeTryResult::Submitted:
+        return true;
+
+    case marlin_client::GcodeTryResult::QueueFull:
+        MsgBoxWarning(_(printer_busy_text), Responses_Ok);
+        return false;
+
+    case marlin_client::GcodeTryResult::GcodeTooLong:
+        bsod("Gcode too long");
+    }
+
+    return false;
+}
 
 /**********************************************************************************************/
-//MI_FILAMENT_SENSOR
-bool MI_FILAMENT_SENSOR::init_index() const {
-    fsensor_t fs = FSensors_instance().GetPrinter();
-    return fs == fsensor_t::Disabled ? 0 : 1;
+// MI_FILAMENT_SENSOR
+MI_FILAMENT_SENSOR::MI_FILAMENT_SENSOR()
+    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    update();
+}
+
+void MI_FILAMENT_SENSOR::update() {
+    SetIndex(config_store().fsensor_enabled.get());
 }
 
 void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
-    if (old_index) {
-        FSensors_instance().Disable();
-    } else {
-        FSensors_instance().Enable();
+    // Enabling/disabling FS can generate gcodes (I'm looking at you, MMU!).
+    // Fail the action if there's no space in the queue.
+    if (!gui_check_space_in_gcode_queue_with_msg()) {
+        // SetIndex doesn't call OnChange
+        SetIndex(old_index);
+        return;
+    }
 
-        // wait until it is processed
-        // no guiloop here !!! - it could cause show of unwanted error message
-        while (FSensors_instance().IsPrinter_processing_request()) {
-            osDelay(0); // switch to other thread
-        }
+    auto &fss = FSensors_instance();
+    fss.set_enabled_global(index);
 
-        fsensor_t state;
-        // wait until it is initialized
-        while ((state = FSensors_instance().GetPrinter()) == fsensor_t::NotInitialized) {
-            osDelay(0); // switch to other thread
-        }
+    if (index && !fss.gui_wait_for_init_with_msg()) {
+        FSensors_instance().set_enabled_global(false);
+        SetIndex(old_index);
+    }
 
-        switch (state) {
-        case fsensor_t::NotInitialized: //can't be we just checked it
-            break;
-        case fsensor_t::Disabled: // should not be
-            MsgBoxError(_("Sensor logic error, printer filament sensor disabled."), Responses_Ok);
-            index = old_index;
-            break;
-        case fsensor_t::NotCalibrated:
-            MsgBoxWarning(_("Filament sensor not ready: perform calibration first. It is accessible from menu \"Calibrate\"."), Responses_Ok);
-            index = old_index;
-            FSensors_instance().Disable();
-            break;
-        case fsensor_t::HasFilament:
-        case fsensor_t::NoFilament:
-            break; // success
-        case fsensor_t::NotConnected:
-            MsgBoxError(_("Filament sensor not connected, check wiring."), Responses_Ok);
-            index = old_index;
-            FSensors_instance().Disable();
-            break;
-        }
+    // Signal to the parent to check for changed
+    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, nullptr);
+}
 
-        // wait until filament sensor command is processed (if any)
-        // no guiloop here !!! - it could cause show of unwanted error message
-        while (FSensors_instance().IsPrinter_processing_request()) {
-            osDelay(0); // switch to other thread
-        }
+/*****************************************************************************/
+// MI_STUCK_FILAMENT_DETECTION
+/*****************************************************************************/
+bool MI_STUCK_FILAMENT_DETECTION::init_index() const {
+    return config_store().stuck_filament_detection.get();
+}
+
+void MI_STUCK_FILAMENT_DETECTION::OnChange(size_t old_index) {
+    if (!gui_try_gcode_with_msg(value() ? "M591 S1 P" : "M591 S0 P")) {
+        set_value(old_index, false);
     }
 }
 
 /*****************************************************************************/
-//MI_LIVE_ADJUST_Z
+// MI_STEALTH_MODE
+/*****************************************************************************/
+MI_STEALTH_MODE::MI_STEALTH_MODE()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().stealth_mode.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_STEALTH_MODE::OnChange(size_t old_index) {
+    if (!gui_try_gcode_with_msg(value() ? "M9150" : "M9140")) {
+        set_value(old_index, false);
+    }
+}
+
+/*****************************************************************************/
+// MI_LIVE_ADJUST_Z
 MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes,
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
+        is_hidden_t::no
+#else
+        is_hidden_t::dev
+#endif
+    ) {
 }
 
 void MI_LIVE_ADJUST_Z::click(IWindowMenu & /*window_menu*/) {
@@ -92,71 +157,118 @@ void MI_LIVE_ADJUST_Z::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_AUTO_HOME
+// MI_AUTO_HOME
 MI_AUTO_HOME::MI_AUTO_HOME()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
-    marlin_event_clr(MARLIN_EVT_CommandBegin);
-    marlin_gcode("G28");
-    while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
-        marlin_client_loop();
+    marlin_client::event_clr(marlin_server::Event::CommandBegin);
+    marlin_client::gcode("G28");
+    while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
+        marlin_client::loop();
+    }
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, _(homing_text_info));
+}
+
+/*****************************************************************************/
+// MI_MESH_BED
+MI_MESH_BED::MI_MESH_BED()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
+    if (!marlin_server::all_axes_homed()) {
+        marlin_client::event_clr(marlin_server::Event::CommandBegin);
+        marlin_client::gcode("G28");
+        while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
+            marlin_client::loop();
+        }
+        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, _(homing_text_info));
+    }
+    marlin_client::event_clr(marlin_server::Event::CommandBegin);
+    marlin_client::gcode("G29");
+    while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
+        marlin_client::loop();
+    }
     gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 }
 
 /*****************************************************************************/
-//MI_MESH_BED
-MI_MESH_BED::MI_MESH_BED()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+// MI_CALIB_Z
+
+MI_CALIB_Z::MI_CALIB_Z()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
-    Response response = Response::No;
-    do {
-        //home if we repeat MBL, nozzle may be in different position than expected
-        if (!marlin_all_axes_homed() || response == Response::Yes) {
-            marlin_event_clr(MARLIN_EVT_CommandBegin);
-            marlin_gcode("G28");
-            while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
-                marlin_client_loop();
-            gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
-        }
-        response = Response::No;
-        marlin_event_clr(MARLIN_EVT_CommandBegin);
-        marlin_gcode("G29");
-        while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
-            marlin_client_loop();
-        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
-
-        if (marlin_error(MARLIN_ERR_ProbingFailed)) {
-            marlin_error_clr(MARLIN_ERR_ProbingFailed);
-            response = MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo);
-        }
-    } while (response != Response::No);
+void MI_CALIB_Z::click(IWindowMenu & /*window_menu*/) {
+    gui_dlg_calib_z();
 }
 
 /*****************************************************************************/
-//MI_DISABLE_STEP
+// MI_DISABLE_STEP
 MI_DISABLE_STEP::MI_DISABLE_STEP()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
-    marlin_gcode("M18");
+#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK3_5)
+    marlin_client::gcode("M18 X Y E");
+#else
+    marlin_client::gcode("M18");
+#endif
 }
 
 /*****************************************************************************/
-//MI_FACTORY_DEFAULTS
-MI_FACTORY_DEFAULTS::MI_FACTORY_DEFAULTS()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+
+namespace {
+void do_factory_reset(bool wipe_fw) {
+    auto msg = MsgBoxBase(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, wipe_fw ? _("Erasing everything,\nit will take some time...") : _("Erasing configuration,\nit will take some time..."));
+    msg.Draw(); // Non-blocking info
+    static constexpr uint32_t empty = 0xffffffff;
+    for (uint16_t address = 0; address <= (8096 - 4); address += 4) {
+        st25dv64k_user_write_bytes(address, &empty, sizeof(empty));
+    }
+    if (wipe_fw) {
+        w25x_chip_erase();
+#if BOOTLOADER()
+        // Invalidate firmware by erasing part of it
+        if (!buddy::bootloader::fw_invalidate()) {
+            bsod("Error invalidating firmware");
+        }
+        // Never gets here
+#endif /*BOOTLOADER()*/
+    }
+    MsgBoxInfo(_("Reset complete. The system will now restart."), Responses_Ok);
+    sys_reset();
+}
+} // anonymous namespace
+
+MI_FACTORY_SOFT_RESET::MI_FACTORY_SOFT_RESET()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_FACTORY_DEFAULTS::click(IWindowMenu & /*window_menu*/) {
-    if (MsgBoxWarning(_("This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"), Responses_YesNo, 1) == Response::Yes) {
-        eeprom_defaults();
-        MsgBoxInfo(_("Factory defaults loaded. The system will now restart."), Responses_Ok);
-        sys_reset();
+void MI_FACTORY_SOFT_RESET::click(IWindowMenu & /*window_menu*/) {
+    if (MsgBoxWarning(_("This operation cannot be undone. Current user configuration and passwords will be lost!\nDo you want to reset the printer to factory defaults?"), Responses_YesNo, 1) == Response::Yes) {
+        do_factory_reset(false);
+    }
+}
+
+MI_FACTORY_HARD_RESET::MI_FACTORY_HARD_RESET()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_FACTORY_HARD_RESET::click(IWindowMenu & /*window_menu*/) {
+    static constexpr char fmt2Translate[] = N_("This operation cannot be undone. Current configuration will be lost!\nYou will need a USB drive with this firmware (%s_firmware_%s.bbf file) to start the printer again.\nDo you really want to continue?");
+    char buff[sizeof(fmt2Translate) + 20]; // expecting xx.xx.xx for version (8) + max 5 for for PRINTER_MODEL + some reserve
+    {
+        char translated_fmt[sizeof(buff)];
+        _(fmt2Translate).copyToRAM(translated_fmt, sizeof(translated_fmt));
+        snprintf(buff, sizeof(buff), translated_fmt, PRINTER_MODEL, project_version);
+    }
+
+    if (MsgBoxWarning(_(buff), Responses_YesNo, 1) == Response::Yes) {
+        do_factory_reset(true);
     }
 }
 
@@ -164,7 +276,7 @@ void MI_FACTORY_DEFAULTS::click(IWindowMenu & /*window_menu*/) {
 // MI_ENTER_DFU
 #ifdef BUDDY_ENABLE_DFU_ENTRY
 MI_ENTER_DFU::MI_ENTER_DFU()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_ENTER_DFU::click(IWindowMenu &) {
@@ -173,182 +285,85 @@ void MI_ENTER_DFU::click(IWindowMenu &) {
 #endif
 
 /*****************************************************************************/
-//MI_SAVE_DUMP
+// MI_SAVE_DUMP
 MI_SAVE_DUMP::MI_SAVE_DUMP()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
-    constexpr static const char *title = N_("Information");
-    MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), IDR_PNG_info_16px);
-    gui::TickLoop();
-    gui_loop();
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
     MsgBoxNonBlockInfo(_("A crash dump is being saved."));
-    if (dump_save_to_usb("/usb/dump.bin"))
+    if (!crash_dump::dump_is_valid()) {
+        MsgBoxInfo(_("No crash dump to save."), Responses_Ok);
+    } else if (crash_dump::save_dump_to_usb("/usb/dump.bin")) {
         MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
-    else
+    } else {
         MsgBoxError(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
+    }
 }
 
 /*****************************************************************************/
-//MI_XFLASH_DELETE
-MI_XFLASH_DELETE::MI_XFLASH_DELETE()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_XFLASH_DELETE::click(IWindowMenu & /*window_menu*/) {
-    w25x_chip_erase();
-}
-
-/*****************************************************************************/
-//MI_XFLASH_RESET
+// MI_XFLASH_RESET
 MI_XFLASH_RESET::MI_XFLASH_RESET()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
-    dump_in_xflash_reset();
+    crash_dump::dump_reset();
 }
 
 /*****************************************************************************/
-//MI_HF_TEST_0
-MI_HF_TEST_0::MI_HF_TEST_0()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_HF_TEST_0::click(IWindowMenu & /*window_menu*/) {
-    dump_hardfault_test_0();
-}
-
-/*****************************************************************************/
-//MI_HF_TEST_1
-MI_HF_TEST_1::MI_HF_TEST_1()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_HF_TEST_1::click(IWindowMenu & /*window_menu*/) {
-    dump_hardfault_test_1();
-}
-
-/*****************************************************************************/
-//MI_EE_LOAD_400
-MI_EE_LOAD_400::MI_EE_LOAD_400()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_LOAD_400::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.0-final+1965.bin");
-    sys_reset();
-}
-
-/*****************************************************************************/
-//MI_EE_LOAD_401
-MI_EE_LOAD_401::MI_EE_LOAD_401()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_LOAD_401::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.1-final+1974.bin");
-    sys_reset();
-}
-
-/*****************************************************************************/
-//MI_EE_LOAD_402
-MI_EE_LOAD_402::MI_EE_LOAD_402()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_LOAD_402::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.2-final+1977.bin");
-    sys_reset();
-}
-
-/*****************************************************************************/
-//MI_EE_LOAD_403RC1
-MI_EE_LOAD_403RC1::MI_EE_LOAD_403RC1()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_LOAD_403RC1::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.3-RC1+246.bin");
-    sys_reset();
-}
-
-/*****************************************************************************/
-//MI_EE_LOAD_403
-MI_EE_LOAD_403::MI_EE_LOAD_403()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_LOAD_403::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.3-final+258.bin");
-    sys_reset();
-}
-
-/*****************************************************************************/
-//MI_EE_LOAD
-MI_EE_LOAD::MI_EE_LOAD()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_LOAD::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("/usb/eeprom.bin");
-    sys_reset();
-}
-
-/*****************************************************************************/
-//MI_EE_SAVE
-MI_EE_SAVE::MI_EE_SAVE()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_SAVE::click(IWindowMenu & /*window_menu*/) {
-    eeprom_save_bin_to_usb("/usb/eeprom.bin");
-}
-
-/*****************************************************************************/
-//MI_EE_SAVEXML
+// MI_EE_SAVEXML
 MI_EE_SAVEXML::MI_EE_SAVEXML()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
-    eeprom_save_xml_to_usb("/usb/eeprom.xml");
+    // eeprom_save_xml_to_usb("/usb/eeprom.xml"); // TODO(ConfigStore): Not yet migrated
 }
 
 /*****************************************************************************/
-//MI_M600
+// MI_EE_CLEAR
+MI_EE_CLEAR::MI_EE_CLEAR()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+}
+
+void MI_EE_CLEAR::click(IWindowMenu & /*window_menu*/) {
+    static constexpr uint32_t empty = 0xffffffff;
+    for (uint16_t address = 0; address <= (8096 - 4); address += 4) {
+        st25dv64k_user_write_bytes(address, &empty, sizeof(empty));
+    }
+}
+
+/*****************************************************************************/
+// MI_M600
 MI_M600::MI_M600()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_M600::click(IWindowMenu & /*window_menu*/) {
-    marlin_gcode_push_front("M600");
+    marlin_client::gcode_push_front("M600");
 }
 
 /*****************************************************************************/
-//MI_TIMEOUT
+// MI_TIMEOUT
 MI_TIMEOUT::MI_TIMEOUT()
-    : WI_SWITCH_OFF_ON_t(Screens::Access()->GetMenuTimeout() ? 1 : 0, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_ICON_SWITCH_OFF_ON_t(Screens::Access()->GetMenuTimeout() ? 1 : 0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEOUT::OnChange(size_t old_index) {
     if (!old_index) {
         Screens::Access()->EnableMenuTimeout();
     } else {
         Screens::Access()->DisableMenuTimeout();
     }
-    eeprom_set_bool(EEVAR_MENU_TIMEOUT, uint8_t(Screens::Access()->GetMenuTimeout()));
+    config_store().menu_timeout.set(static_cast<uint8_t>(Screens::Access()->GetMenuTimeout()));
 }
 
 /*****************************************************************************/
-//MI_SOUND_MODE
+// MI_SOUND_MODE
 size_t MI_SOUND_MODE::init_index() const {
     eSOUND_MODE sound_mode = Sound_GetMode();
-    return (size_t)(sound_mode > eSOUND_MODE::ASSIST ? eSOUND_MODE::DEFAULT_SOUND : sound_mode);
+    return (size_t)(sound_mode > eSOUND_MODE::_last ? eSOUND_MODE::_default_sound : sound_mode);
 }
 MI_SOUND_MODE::MI_SOUND_MODE()
-    : WI_SWITCH_t<MI_SOUND_MODE_COUNT>(init_index(), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no,
+    : WI_SWITCH_t<MI_SOUND_MODE_COUNT>(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no,
         _(str_Once), _(str_Loud), _(str_Silent), _(str_Assist)
 #ifdef _DEBUG
                                                      ,
@@ -362,9 +377,9 @@ void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
 }
 
 /*****************************************************************************/
-//MI_SOUND_TYPE
+// MI_SOUND_TYPE
 MI_SOUND_TYPE::MI_SOUND_TYPE()
-    : WI_SWITCH_t<8>(0, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no,
+    : WI_SWITCH_t<8>(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no,
         _(str_ButtonEcho), _(str_StandardPrompt), _(str_StandardAlert), _(str_CriticalAlert),
         _(str_EncoderMove), _(str_BlindAlert), _(str_Start), _(str_SingleBeep)) {}
 void MI_SOUND_TYPE::OnChange(size_t old_index) {
@@ -374,97 +389,274 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
         // this is a debug-only menu item, intentionally not translated
         static const uint8_t msg[] = "Continual beeps test\n press button to stop";
         MsgBoxInfo(string_view_utf8::MakeCPUFLASH(msg), Responses_Ok);
+        Sound_Stop();
     } else {
         Sound_Play(st);
     }
 }
 
 /*****************************************************************************/
-//MI_SOUND_VOLUME
+// MI_SOUND_VOLUME
 MI_SOUND_VOLUME::MI_SOUND_VOLUME()
-    : WiSpinInt(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpinInt(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_SOUND_VOLUME::OnClick() {
     Sound_SetVolume(GetVal());
 }
 
 /*****************************************************************************/
-//MI_SORT_FILES
+// MI_SORT_FILES
 MI_SORT_FILES::MI_SORT_FILES()
-    : WI_SWITCH_t<2>(eeprom_get_ui8(EEVAR_FILE_SORT), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
+    : WI_SWITCH_t<2>(config_store().file_sort.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
 void MI_SORT_FILES::OnChange(size_t old_index) {
     if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
-        eeprom_set_ui8(EEVAR_FILE_SORT, (uint8_t)WF_SORT_BY_NAME);
-        screen_filebrowser_sort = WF_SORT_BY_NAME;
+        GuiFileSort::Set(WF_SORT_BY_NAME);
     } else if (old_index == WF_SORT_BY_NAME) { // was sorted by name, set by time
-        eeprom_set_ui8(EEVAR_FILE_SORT, (uint8_t)WF_SORT_BY_TIME);
-        screen_filebrowser_sort = WF_SORT_BY_TIME;
+        GuiFileSort::Set(WF_SORT_BY_TIME);
     }
 }
 
 /*****************************************************************************/
-//MI_TIMEZONE
+// MI_TIMEZONE
 MI_TIMEZONE::MI_TIMEZONE()
-    : WiSpinInt(eeprom_get_i8(EEVAR_TIMEZONE), SpinCnf::timezone_range, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpinInt(config_store().timezone.get(), SpinCnf::timezone, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = GetVal();
-    eeprom_set_i8(EEVAR_TIMEZONE, timezone);
+    config_store().timezone.set(timezone);
 }
 
-MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
-    : WI_SWITCH_0_1_NA_t(get_state(), _(label), IDR_NULL, is_enabled_t::no, is_hidden_t::no) {
+/*****************************************************************************/
+// MI_TIMEZONE_MIN
+MI_TIMEZONE_MIN::MI_TIMEZONE_MIN()
+    : WI_SWITCH_t<3>(static_cast<uint8_t>(config_store().timezone_minutes.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_0min), _(str_30min), _(str_45min)) {}
+
+void MI_TIMEZONE_MIN::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().timezone_minutes.set(static_cast<time_tools::TimezoneOffsetMinutes>(index));
 }
 
-MI_FILAMENT_SENSOR_STATE::state_t MI_FILAMENT_SENSOR_STATE::get_state() {
-    fsensor_t fs = FSensors_instance().GetPrinter();
-    switch (fs) {
-    case fsensor_t::HasFilament:
-        return state_t::high;
-    case fsensor_t::NoFilament:
-        return state_t::low;
-    default:;
+/*****************************************************************************/
+// MI_TIMEZONE_SUMMER
+MI_TIMEZONE_SUMMER::MI_TIMEZONE_SUMMER()
+    : WI_ICON_SWITCH_OFF_ON_t(static_cast<uint8_t>(config_store().timezone_summer.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_TIMEZONE_SUMMER::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().timezone_summer.set(static_cast<time_tools::TimezoneOffsetSummerTime>(index));
+}
+
+/*****************************************************************************/
+// MI_TIME_FORMAT
+MI_TIME_FORMAT::MI_TIME_FORMAT()
+    : WI_SWITCH_t<2>(static_cast<uint8_t>(config_store().time_format.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
+
+void MI_TIME_FORMAT::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().time_format.set(static_cast<time_tools::TimeFormat>(index));
+}
+
+/*****************************************************************************/
+// MI_TIME_NOW
+MI_TIME_NOW::MI_TIME_NOW()
+    : WI_SWITCH_t<1>(0, _(label), nullptr, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeRAM((const uint8_t *)time_tools::get_time())) {
+}
+
+/*****************************************************************************/
+// IMI_FS_SPAN
+IMI_FS_SPAN::IMI_FS_SPAN([[maybe_unused]] bool is_side_, size_t index_, const char *label)
+    : WiSpinInt(
+#if HAS_SIDE_FSENSOR()
+        is_side_ ? config_store().get_side_fs_value_span(index_) :
+#endif
+                 config_store().get_extruder_fs_value_span(index_),
+        SpinCnf::fs_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
+#if HAS_SIDE_FSENSOR()
+    , is_side(is_side_)
+#endif
+    , index(index_) {
+}
+
+void IMI_FS_SPAN::OnClick() {
+#if HAS_SIDE_FSENSOR()
+    if (is_side) {
+        config_store().set_side_fs_value_span(index, GetVal());
+    } else
+#endif
+    {
+        config_store().set_extruder_fs_value_span(index, GetVal());
     }
-    return state_t::unknown;
-}
-
-void MI_FILAMENT_SENSOR_STATE::Loop() {
-    SetIndex((size_t)get_state());
-}
-
-MI_MINDA::MI_MINDA()
-    : WI_SWITCH_0_1_NA_t(get_state(), _(label), IDR_NULL, is_enabled_t::no, is_hidden_t::no) {
-}
-
-MI_MINDA::state_t MI_MINDA::get_state() {
-    return (buddy::hw::zMin.read() == buddy::hw::Pin::State::low) ? state_t::low : state_t::high;
-}
-
-void MI_MINDA::Loop() {
-    SetIndex((size_t)get_state());
 }
 
 /*****************************************************************************/
-//MI_FAN_CHECK
+// IMI_FS_REF
+// in case we don't want to allow modification just change is_enabled_t to yes
+IMI_FS_REF::IMI_FS_REF([[maybe_unused]] bool is_side_, size_t index_, const char *label)
+    : WiSpinInt(
+#if HAS_SIDE_FSENSOR()
+        is_side_ ? config_store().get_side_fs_ref_nins_value(index_) :
+#endif
+                 config_store().get_extruder_fs_ref_nins_value(index_),
+        SpinCnf::int_num, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
+#if HAS_SIDE_FSENSOR()
+    , is_side(is_side_)
+#endif
+    , index(index_) {
+}
+
+void IMI_FS_REF::OnClick() {
+#if HAS_SIDE_FSENSOR()
+    if (is_side) {
+        config_store().set_side_fs_ref_nins_value(index, GetVal());
+    } else
+#endif
+    {
+        config_store().set_extruder_fs_ref_nins_value(index, GetVal());
+    }
+}
+
+/*****************************************************************************/
+// MI_FAN_CHECK
 MI_FAN_CHECK::MI_FAN_CHECK()
-    : WI_SWITCH_OFF_ON_t(marlin_get_bool(MARLIN_VAR_FAN_CHECK_ENABLED), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars()->fan_check_enabled), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
 void MI_FAN_CHECK::OnChange(size_t old_index) {
-    marlin_set_bool(MARLIN_VAR_FAN_CHECK_ENABLED, !old_index);
-    eeprom_set_bool(EEVAR_FAN_CHECK_ENABLED, marlin_get_bool(MARLIN_VAR_FAN_CHECK_ENABLED));
+    marlin_client::set_fan_check(!old_index);
+    config_store().fan_check_enabled.set(static_cast<bool>(marlin_vars()->fan_check_enabled));
+}
+
+MI_INFO_FW::MI_INFO_FW()
+    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_INFO_FW::click([[maybe_unused]] IWindowMenu &window_menu) {
+    // If we have development tools shown, click will print whole fw version string in info messagebox
+    if constexpr (GuiDefaults::ShowDevelopmentTools) {
+        MsgBoxInfo(string_view_utf8::MakeRAM((const uint8_t *)project_version_full), Responses_Ok);
+    }
+}
+
+MI_INFO_BOOTLOADER::MI_INFO_BOOTLOADER()
+    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+MI_INFO_MMU::MI_INFO_MMU()
+    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::yes) {
+}
+
+MI_INFO_BOARD::MI_INFO_BOARD()
+    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+MI_INFO_SERIAL_NUM::MI_INFO_SERIAL_NUM()
+    : WiInfo<28>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 /*****************************************************************************/
-//MI_FS_AUTOLOAD
-is_hidden_t hide_autoload_item() {
-    return FSensors_instance().Get() == fsensor_t::Disabled ? is_hidden_t::yes : is_hidden_t::no;
+// MI_FS_AUTOLOAD
+static is_hidden_t get_autoload_hide_state() {
+    // Autoloading option doesn't make sense with filament sensors disabled
+    if (!config_store().fsensor_enabled.get()) {
+        return is_hidden_t::yes;
+    }
+
+#if HAS_MMU2()
+    // Do not show autoload option with MMU rework enabled - BFW-4290
+    if (config_store().is_mmu_rework.get()) {
+        return is_hidden_t::yes;
+    }
+#endif
+
+    return is_hidden_t::no;
 }
 
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
-    : WI_SWITCH_OFF_ON_t(marlin_get_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED), _(label), IDR_NULL, is_enabled_t::yes, hide_autoload_item()) {}
+    : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars()->fs_autoload_enabled), _(label), nullptr, is_enabled_t::yes, get_autoload_hide_state()) {}
+
 void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
-    marlin_set_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED, !old_index);
-    eeprom_set_bool(EEVAR_FS_AUTOLOAD_ENABLED, marlin_get_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED));
+    marlin_client::set_fs_autoload(!old_index);
+    config_store().fs_autoload_enabled.set(static_cast<bool>(marlin_vars()->fs_autoload_enabled));
 }
-MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
-    : WI_FORMATABLE_LABEL_t<float>(label, id_icon, enabled, hidden, initVal, [&](char *buffer) {
+
+/*****************************************************************************/
+// MI_PRINT_PROGRESS_TIME
+MI_PRINT_PROGRESS_TIME::MI_PRINT_PROGRESS_TIME()
+    : WiSpinInt(config_store().print_progress_time.get(),
+        SpinCnf::print_progress, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+void MI_PRINT_PROGRESS_TIME::OnClick() {
+    config_store().print_progress_time.set(GetVal());
+}
+
+/*****************************************************************************/
+// MI_INFO_BED_TEMP
+MI_INFO_BED_TEMP::MI_INFO_BED_TEMP()
+    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+/*****************************************************************************/
+// MI_INFO_FILL_SENSOR
+MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(string_view_utf8 label)
+    : WI_FORMATABLE_LABEL_t<std::pair<SensorData::Value, SensorData::Value>>(
+        label, nullptr, is_enabled_t::yes, is_hidden_t::no, { {}, {} }, [&](char *buffer) {
+            if (value.second.is_valid() || value.first.is_valid()) {
+
+                static constexpr char disconnected[] = N_("disconnected / %ld");
+                static constexpr char notCalibrated[] = N_("uncalibrated / %ld"); // not calibrated would be too long
+                static constexpr char inserted[] = N_(" INS / %7ld");
+                static constexpr char notInserted[] = N_("NINS / %7ld");
+                static constexpr char disabled[] = N_("disabled / %ld");
+                static constexpr char notInitialized[] = N_("uninitialized / %ld");
+
+                char fmt[GuiDefaults::infoDefaultLen] = { '\0' }; // max len of extension
+                switch ((FilamentSensorState)value.first.get_int()) {
+                case FilamentSensorState::NotInitialized:
+                    _(notInitialized).copyToRAM(fmt, sizeof(fmt));
+                    break;
+                case FilamentSensorState::NotConnected:
+                    _(disconnected).copyToRAM(fmt, sizeof(fmt));
+                    break;
+                case FilamentSensorState::Disabled:
+                    _(disabled).copyToRAM(fmt, sizeof(fmt));
+                    break;
+                case FilamentSensorState::NotCalibrated:
+                    _(notCalibrated).copyToRAM(fmt, sizeof(fmt));
+                    break;
+                case FilamentSensorState::HasFilament:
+                    _(inserted).copyToRAM(fmt, sizeof(fmt));
+                    break;
+                case FilamentSensorState::NoFilament:
+                    _(notInserted).copyToRAM(fmt, sizeof(fmt));
+                    break;
+                }
+                snprintf(buffer, GuiDefaults::infoDefaultLen, fmt, value.second.get_int());
+            } else {
+                if (value.first.is_valid() || value.second.is_valid()) {
+                    strlcpy(buffer, NA, GuiDefaults::infoDefaultLen);
+                } else {
+                    strlcpy(buffer, NI, GuiDefaults::infoDefaultLen);
+                }
+            }
+        }) {}
+
+/*****************************************************************************/
+// MI_INFO_PRINTER_FILL_SENSOR
+MI_INFO_PRINTER_FILL_SENSOR::MI_INFO_PRINTER_FILL_SENSOR()
+    : MI_INFO_FILL_SENSOR(_(label)) {}
+
+/*****************************************************************************/
+// MI_INFO_SIDE_FILL_SENSOR
+MI_INFO_SIDE_FILL_SENSOR::MI_INFO_SIDE_FILL_SENSOR()
+    : MI_INFO_FILL_SENSOR(_(label)) {}
+
+/*****************************************************************************/
+// MI_INFO_PRINT_FAN
+
+MI_INFO_PRINT_FAN::MI_INFO_PRINT_FAN()
+    : WI_FAN_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+MI_INFO_HBR_FAN::MI_INFO_HBR_FAN()
+    : WI_FAN_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
+    : WI_FORMATABLE_LABEL_t<float>(label, icon, enabled, hidden, initVal, [&](char *buffer) {
         float value_m = value / 1000; // change the unit from mm to m
         if (value_m > 999) {
             snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f km", (double)(value_m / 1000));
@@ -475,47 +667,199 @@ MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, ResourceId id_icon, i
 }
 
 MI_ODOMETER_DIST_X::MI_ODOMETER_DIST_X()
-    : MI_ODOMETER_DIST(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, -1) {
+    : MI_ODOMETER_DIST(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
 MI_ODOMETER_DIST_Y::MI_ODOMETER_DIST_Y()
-    : MI_ODOMETER_DIST(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, -1) {
+    : MI_ODOMETER_DIST(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
 MI_ODOMETER_DIST_Z::MI_ODOMETER_DIST_Z()
-    : MI_ODOMETER_DIST(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, -1) {
+    : MI_ODOMETER_DIST(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
+
 MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
-    : MI_ODOMETER_DIST(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, -1) {
+    : MI_ODOMETER_DIST(_(generic_label), nullptr, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
+
+MI_ODOMETER_MMU_CHANGES::MI_ODOMETER_MMU_CHANGES()
+    : WI_FORMATABLE_LABEL_t<uint32_t>(
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {},
+        [&](char *buffer) {
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%lu", value);
+        }) {
+}
+
 MI_ODOMETER_TIME::MI_ODOMETER_TIME()
-    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
-        time_t time = (time_t)value;
-        constexpr static uint32_t secPerDay = 24 * 60 * 60;
-        const struct tm *timeinfo = localtime(&time);
-        if (timeinfo->tm_yday) {
-            //days are recalculated, because timeinfo shows number of days in year and we want more days than 365
-            uint16_t days = value / secPerDay;
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%ud %uh", days, timeinfo->tm_hour);
-        } else if (timeinfo->tm_hour) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
-        } else if (timeinfo->tm_min) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
-        } else {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%is", timeinfo->tm_sec);
-        }
-    }) {
+    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
+        format_duration(std::span { buffer, GuiDefaults::infoDefaultLen }, value);
+    }) {}
+
+MI_INFO_HEATER_VOLTAGE::MI_INFO_HEATER_VOLTAGE()
+    : WI_FORMATABLE_LABEL_t<SensorData::Value>(
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f V", (double)value.get_float());
+            }
+        }) {
+}
+
+MI_INFO_INPUT_VOLTAGE::MI_INFO_INPUT_VOLTAGE()
+    : WI_FORMATABLE_LABEL_t<SensorData::Value>(
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f V", (double)value.get_float());
+            }
+        }) {
+}
+
+MI_INFO_5V_VOLTAGE::MI_INFO_5V_VOLTAGE()
+    : WI_FORMATABLE_LABEL_t<SensorData::Value>(
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f V", (double)value.get_float());
+            }
+        }) {
+}
+
+MI_INFO_HEATER_CURRENT::MI_INFO_HEATER_CURRENT()
+    : WI_FORMATABLE_LABEL_t<SensorData::Value>(
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f A", (double)value.get_float());
+            }
+        }) {
+}
+
+MI_INFO_INPUT_CURRENT::MI_INFO_INPUT_CURRENT()
+    : WI_FORMATABLE_LABEL_t<SensorData::Value>(
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f A", (double)value.get_float());
+            }
+        }) {
+}
+
+MI_INFO_MMU_CURRENT::MI_INFO_MMU_CURRENT()
+    : WI_FORMATABLE_LABEL_t<SensorData::Value>(
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f A", (double)value.get_float());
+            }
+        }) {
+}
+
+MI_INFO_SPLITTER_5V_CURRENT::MI_INFO_SPLITTER_5V_CURRENT()
+    : WI_FORMATABLE_LABEL_t<SensorData::Value>(
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.2f A", (double)value.get_float());
+            }
+        }) {
+}
+
+MI_INFO_SANDWICH_5V_CURRENT::MI_INFO_SANDWICH_5V_CURRENT()
+    : WI_FORMATABLE_LABEL_t<SensorData::Value>(
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.2f A", (double)value.get_float());
+            }
+        }) {
+}
+
+MI_INFO_BUDDY_5V_CURRENT::MI_INFO_BUDDY_5V_CURRENT()
+    : WI_FORMATABLE_LABEL_t<SensorData::Value>(
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.2f A", (double)value.get_float());
+            }
+        }) {
+}
+
+MI_INFO_BOARD_TEMP::MI_INFO_BOARD_TEMP()
+    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+MI_INFO_MCU_TEMP::MI_INFO_MCU_TEMP()
+    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 MI_FOOTER_RESET::MI_FOOTER_RESET()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_FOOTER_RESET::click(IWindowMenu &window_menu) {
+void MI_FOOTER_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     // simple reset of footer eeprom would be better
     // but footer does not have reload method
     FooterItemHeater::ResetDrawMode();
-    FooterLine::SetCenterN(footer::DefaultCenterNAndFewer);
+    FooterLine::SetCenterN(footer::default_center_n_and_fewer);
 
-    footer::eeprom::Store(footer::DefaultItems);
-    //send event for all footers
-    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::count_));
+    for (size_t i = 0; i < FOOTER_ITEMS_PER_LINE__; ++i) {
+        config_store().set_footer_setting(i, footer::default_items[i]);
+    }
+    // send event for all footers
+    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::encode_item_for_event(footer::Item::none));
+
+    // close this menu, because it is no longer valid and needs to be redrawn
+    Screens::Access()->Close();
 }
+
+MI_HEATUP_BED::MI_HEATUP_BED()
+    : WI_SWITCH_t<2>(config_store().heatup_bed.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(nozzle), _(nozzle_bed)) {
+}
+void MI_HEATUP_BED::OnChange(size_t old_index) {
+    config_store().heatup_bed.set(!old_index);
+}
+
+MI_SET_READY::MI_SET_READY()
+    : IWindowMenuItem(_(label), &img::print_16x16, connect_client::MarlinPrinter::is_printer_ready() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
+    if (connect_client::MarlinPrinter::set_printer_ready(true)) {
+        Disable();
+    }
+}
+
+#if HAS_PHASE_STEPPING()
+MI_PHASE_STEPPING::MI_PHASE_STEPPING()
+    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    bool phstep_enabled = config_store().phase_stepping_enabled_x.get() || config_store().phase_stepping_enabled_y.get();
+    set_value(phstep_enabled, false);
+}
+
+void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
+    if (event_in_progress) {
+        return;
+    }
+
+    if (index && (config_store().selftest_result_phase_stepping.get() != TestResult_Passed)) {
+        AutoRestore ar(event_in_progress, true);
+        MsgBoxWarning(_("Phase stepping not ready: perform calibration first."), Responses_Ok);
+        set_value(old_index, false);
+        return;
+    }
+
+    if (index) {
+        marlin_server::enqueue_gcode("M970 X Y"); // turn phase stepping on
+    } else {
+        marlin_server::enqueue_gcode("M971 X Y"); // turn phase stepping off
+    }
+
+    // we need to wait until the action actually takes place so that when returning
+    // to the menu (if any) the new state is already reflected
+    gui_dlg_wait([&]() {
+        if (index == config_store().phase_stepping_enabled_x.get()) {
+            Screens::Access()->Close();
+        }
+    });
+}
+#endif
+
+#if HAS_COLDPULL()
+MI_COLD_PULL::MI_COLD_PULL()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_COLD_PULL::click([[maybe_unused]] IWindowMenu &window_menu) {
+    marlin_client::gcode("M1702");
+}
+#endif

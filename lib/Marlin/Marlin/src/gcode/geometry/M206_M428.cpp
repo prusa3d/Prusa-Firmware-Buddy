@@ -29,6 +29,10 @@
 #include "../../lcd/ultralcd.h"
 #include "../../libs/buzzer.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M206: Set Additional Homing Offset (X Y Z). SCARA aliases T=X, P=Y
  *
@@ -82,5 +86,7 @@ void GcodeSuite::M428() {
   BUZZ(100, 659);
   BUZZ(100, 698);
 }
+
+/** @}*/
 
 #endif // HAS_M206_COMMAND

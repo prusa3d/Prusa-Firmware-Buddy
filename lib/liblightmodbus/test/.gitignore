@@ -1,0 +1,8 @@
+old
+*.txt
+tester
+main-test
+sanitizer-test
+coverage-test
+*san-test
+tester.json.cpp

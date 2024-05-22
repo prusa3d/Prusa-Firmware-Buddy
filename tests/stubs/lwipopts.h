@@ -60,6 +60,8 @@ extern "C" {
 #define MEMP_MEM_MALLOC     1
 #define LWIP_MPU_COMPATIBLE 1
 
+#define LWIP_DONT_PROVIDE_BYTEORDER_FUNCTIONS
+
 #ifdef __cplusplus
 }
 #endif

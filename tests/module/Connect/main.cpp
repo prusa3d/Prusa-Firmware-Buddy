@@ -18,7 +18,7 @@ int main() {
         class connect connect_client;
         connect_client.run();
     } catch (const std::exception &) // Consider using a custom exception type for intentional
-    {                                // throws. A good idea might be a `return_exception`.
+    { // throws. A good idea might be a `return_exception`.
         return EXIT_FAILURE;
     }
     return 0;

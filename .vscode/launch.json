@@ -2,19 +2,32 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch STLink & Buddy",
+            "name": "Launch Buddy",
             "cwd": "${workspaceRoot}",
             "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
-            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
-            "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_buddy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
+            "openOCDPreConfigLaunchCommands": [
+                "set bbf_over_debugger_path ./build-vscode-buddy/firmware.bbf"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/20_board_buddy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
             "toolchainPrefix": "arm-none-eabi",
-            "device": "STM32F429VI",
+            "device": "STM32F427ZI",
+            // swd file is disabled, it is known to cause issues in some cases. Enable it if you need to see register view.
+            //"svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32F427.svd",
             "rtos": "FreeRTOS",
-            "runToEntryPoint": "startup_task",
-            "preRestartCommands": ["si"],
+            "breakAfterReset": false,
+            "preLaunchTask": "Backup current ELF",
+            "liveWatch": {
+                "enabled": true,
+            },
             "rttConfig": {
                 "enabled": true,
                 "address": "auto",
@@ -33,18 +46,30 @@
             }
         },
         {
-            "name": "Attach to STLink & Buddy",
+            "name": "Attach to Buddy",
             "cwd": "${workspaceRoot}",
             "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "attach",
             "type": "cortex-debug",
             "servertype": "openocd",
-            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
-            "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_buddy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
+            "openOCDPreConfigLaunchCommands": [
+                "set bbf_over_debugger_path ./build-vscode-buddy/firmware.bbf"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/20_board_buddy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
             "toolchainPrefix": "arm-none-eabi",
-            "device": "STM32F429VI",
+            "device": "STM32F427ZI",
+            // swd file is disabled, it is known to cause issues in some cases. Enable it if you need to see register view.
+            //"svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32F427.svd",
             "rtos": "FreeRTOS",
-            "preRestartCommands": ["si"],
+            "liveWatch": {
+                "enabled": true,
+            },
             "rttConfig": {
                 "enabled": true,
                 "address": "auto",
@@ -61,6 +86,166 @@
                     }
                 ]
             }
+        },
+        {
+            "name": "Launch Dwarf",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode-dwarf/firmware",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
+            "openOCDPreConfigLaunchCommands": [
+                "set PUPPY_TYPE dwarf"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
+            "toolchainPrefix": "arm-none-eabi",
+            "device": "STM32G07",
+            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32G07x.svd",
+            "rtos": "FreeRTOS",
+            "presentation": {
+                "group": "XL Puppies",
+            },
+            "preLaunchTask": "Wait 1", // this is needed when starting all puppies at once, because there is some issue when all of them start at once
+            "rttConfig": {
+                "enabled": true,
+                "address": "auto",
+                "searchSize": 16,
+                "searchId": "SEGGER RTT",
+                "clearSearch": true,
+                "polling_interval": 10,
+                "decoders": [
+                    {
+                        "label": "Logging",
+                        "port": 0,
+                        "noprompt": true,
+                        "type": "console"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Attach to Dwarf",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode-dwarf/firmware",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
+            "openOCDPreConfigLaunchCommands": [
+                "set PUPPY_TYPE dwarf"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
+            "toolchainPrefix": "arm-none-eabi",
+            "device": "STM32G07",
+            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32G07x.svd",
+            "rtos": "FreeRTOS",
+            "rttConfig": {
+                "enabled": true,
+                "address": "auto",
+                "searchSize": 16,
+                "searchId": "SEGGER RTT",
+                "clearSearch": true,
+                "polling_interval": 10,
+                "decoders": [
+                    {
+                        "label": "Logging",
+                        "port": 0,
+                        "noprompt": true,
+                        "type": "console"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Launch ModularBed",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode-modularbed/firmware",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
+            "openOCDPreConfigLaunchCommands": [
+                "set PUPPY_TYPE modularbed"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
+            "toolchainPrefix": "arm-none-eabi",
+            "device": "STM32G07",
+            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32G07x.svd",
+            "rtos": "FreeRTOS",
+            "presentation": {
+                "group": "XL Puppies",
+            },
+            "preLaunchTask": "Wait 2", // this is needed when starting all puppies at once, because there is some issue when all of them start at once
+        },
+        {
+            "name": "Attach to ModularBed",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode-modularbed/firmware",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
+            "openOCDPreConfigLaunchCommands": [
+                "set PUPPY_TYPE modularbed"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
+            "toolchainPrefix": "arm-none-eabi",
+            "device": "STM32G07",
+            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32G07x.svd",
+            "rtos": "FreeRTOS",
+        },
+        {
+            "name": "Launch Simulator",
+            "type": "cortex-debug",
+            "servertype": "qemu",
+            "serverpath": "${workspaceRoot}/.venv/bin/simulator_as_qemu",
+            "windows": {
+                "serverpath": "${workspaceRoot}/.venv/Scripts/simulator_as_qemu"
+            },
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
+            "request": "launch",
+        },
+        {
+            "name": "Launch Simulator Scripted",
+            // This is the same as "Launch Simulator", but it also opens TCP port to control hardware
+            // Use 'telnet localhost 50001' immediatelly after launching this
+            // List of available commands is at https://github.com/vintagepc/MINI404/wiki/Scripting-Mk4-027
+            "type": "cortex-debug",
+            "servertype": "qemu",
+            "serverpath": "${workspaceRoot}/.venv/bin/simulator_as_qemu",
+            "serverArgs": [
+                "--scripted"
+            ],
+            "windows": {
+                "serverpath": "${workspaceRoot}/.venv/Scripts/simulator_as_qemu"
+            },
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
+            "request": "launch",
         },
         {
             "name": "GDB (QEMU)",
@@ -70,8 +255,31 @@
             "target": ":1234",
             "remote": true,
             "cwd": "${workspaceRoot}",
-            "gdbpath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/arm-none-eabi-gdb",
+            "gdbpath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin/arm-none-eabi-gdb",
             "autorun": []
+        },
+        {
+            "name": "Unit-tests debug",
+            "type": "gdb",
+            "request": "launch",
+            "gdbpath": "gdb",
+            // Note: replace this with whatever test you want to debug:
+            "target": "${workspaceRoot}/build_tests/tests/unit/common/your_unitest_executable_goes_here",
+            "cwd": "${workspaceRoot}/build_tests/tests/unit/common/your_unitest_executable_goes_here",
+        },
+    ],
+    "compounds": [
+        {
+            "name": "XL - ALL",
+            "configurations": [
+                "Launch Buddy",
+                "Launch Dwarf",
+                "Launch ModularBed"
+            ],
+            "presentation": {
+                "group": "XL Puppies",
+            },
+            "preLaunchTask": ""
         }
     ]
 }

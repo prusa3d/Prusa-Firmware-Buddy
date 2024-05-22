@@ -4,10 +4,16 @@
 #include "M70X.hpp"
 #include "fs_event_autolock.hpp"
 #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../../lib/Marlin/Marlin/src/feature/prusa/e-stall_detector.h"
 #include "pause_stubbed.hpp"
 #include "pause_settings.hpp"
+#include <option/has_human_interactions.h>
 
 using namespace filament_gcodes;
+
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
  * M701: Load filament
@@ -25,11 +31,13 @@ using namespace filament_gcodes;
  *              - W1  - preheat with cool down option
  *              - W2  - preheat with return option
  *              - W3  - preheat with cool down and return options
+ *  O<value>    - Color number corresponding to filament::Colour, RGB order
+ *  R           - resume print if paused
  *
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
-    filament_t filament_to_be_loaded = filament_t::NONE;
+    auto filament_to_be_loaded = filament::Type::NONE;
     const char *text_begin = 0;
     if (parser.seen('S')) {
         text_begin = strchr(parser.string_arg, '"');
@@ -37,12 +45,17 @@ void GcodeSuite::M701() {
             ++text_begin; // move pointer from '"' to first letter
             const char *text_end = strchr(text_begin, '"');
             if (text_end) {
-                filament_t filament = Filaments::FindByName(text_begin, text_end - text_begin);
-                if (filament != filament_t::NONE) {
+                auto filament = filament::get_type(text_begin, text_end - text_begin);
+                if (filament != filament::Type::NONE) {
                     filament_to_be_loaded = filament;
                 }
             }
         }
+    }
+
+    std::optional<filament::Colour> color_to_be_loaded = { std::nullopt };
+    if (parser.seen('O')) {
+        color_to_be_loaded = filament::Colour::from_int(parser.longval('O'));
     }
     const bool isL = (parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin));
     const std::optional<float> fast_load_length = isL ? std::optional<float>(::abs(parser.value_axis_units(E_AXIS))) : std::nullopt;
@@ -50,18 +63,24 @@ void GcodeSuite::M701() {
     const uint8_t preheat = parser.byteval('W', 255);
 
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
-    if (target_extruder < 0)
+    if (target_extruder < 0) {
         return;
+    }
 
-    //TODO colision with "PLA" string
+    // TODO colision with "PLA" string
     const float mmu_slot = parser.intval('P', -1);
 
     std::optional<RetAndCool_t> op_preheat = std::nullopt;
     if (preheat <= uint8_t(RetAndCool_t::last_)) {
         op_preheat = RetAndCool_t(preheat);
     }
+    const ResumePrint_t resume_print = static_cast<ResumePrint_t>(parser.seen('R'));
 
-    M701_no_parser(filament_to_be_loaded, fast_load_length, min_Z_pos, op_preheat, target_extruder, mmu_slot);
+    M701_no_parser(filament_to_be_loaded, fast_load_length, min_Z_pos, op_preheat, target_extruder, mmu_slot, color_to_be_loaded, resume_print);
+
+#if !HAS_HUMAN_INTERACTIONS()
+    FSensors_instance().ClrM600Sent(); // reset filament sensor M600 sent flag
+#endif
 }
 
 /**
@@ -89,8 +108,9 @@ void GcodeSuite::M702() {
     const bool ask_unloaded = parser.seen('I');
 
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
-    if (target_extruder < 0)
+    if (target_extruder < 0) {
         return;
+    }
 
     std::optional<RetAndCool_t> op_preheat = std::nullopt;
     if (preheat <= uint8_t(RetAndCool_t::last_)) {
@@ -99,3 +119,4 @@ void GcodeSuite::M702() {
 
     M702_no_parser(unload_len, min_Z_pos, op_preheat, target_extruder, ask_unloaded);
 }
+/** @}*/

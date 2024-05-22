@@ -3,21 +3,22 @@
 #include "gui_invalidate.hpp"
 #include "sound.hpp"
 #include "display.h"
+#include "marlin_client.hpp"
 
-window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
+window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_printing_t close_on_print)
     : AddSuperWindow<window_t>(parent, rect, type)
     , captured_normal_window(nullptr)
     , first_normal(nullptr)
     , last_normal(nullptr) {
 
     flags.timeout_close = timeout;
-    flags.serial_close = serial;
+    flags.print_close = close_on_print;
 
     Enable();
 }
 
 window_frame_t::window_frame_t(window_t *parent, Rect16 rect, positioning sub_win_pos)
-    : window_frame_t(parent, rect, win_type_t::normal, is_closed_on_timeout_t::yes, is_closed_on_serial_t::yes) {
+    : window_frame_t(parent, rect, win_type_t::normal, is_closed_on_timeout_t::yes, is_closed_on_printing_t::yes) {
     flags.has_relative_subwins = sub_win_pos == positioning::relative;
 }
 
@@ -37,12 +38,13 @@ window_frame_t::~window_frame_t() {
 void window_frame_t::SetMenuTimeoutClose() { flags.timeout_close = is_closed_on_timeout_t::yes; }
 void window_frame_t::ClrMenuTimeoutClose() { flags.timeout_close = is_closed_on_timeout_t::no; }
 
-void window_frame_t::SetOnSerialClose() { flags.serial_close = is_closed_on_serial_t::yes; }
-void window_frame_t::ClrOnSerialClose() { flags.serial_close = is_closed_on_serial_t::no; }
+void window_frame_t::SetOnSerialClose() { flags.print_close = is_closed_on_printing_t::yes; }
+void window_frame_t::ClrOnSerialClose() { flags.print_close = is_closed_on_printing_t::no; }
 
 window_t *window_frame_t::findFirst(window_t *begin, window_t *end, const WinFilter &filter) const {
-    if (!begin)
+    if (!begin) {
         return end;
+    }
     window_t *parent = begin->GetParent();
     if ((parent == nullptr) || (end && (end->GetParent() != parent))) {
         return end;
@@ -57,7 +59,7 @@ window_t *window_frame_t::findFirst(window_t *begin, window_t *end, const WinFil
 }
 
 window_t *window_frame_t::findLast(window_t *begin, window_t *end, const WinFilter &filter) const {
-    //no need to check parrent or null, findFirst does that
+    // no need to check parrent or null, findFirst does that
     window_t *ret = end;
     window_t *temp = begin;
     while (((temp = findFirst(temp, end, filter)) != nullptr) && (temp != end)) {
@@ -67,20 +69,21 @@ window_t *window_frame_t::findLast(window_t *begin, window_t *end, const WinFilt
     return ret;
 }
 
-//register sub win
-//structure: popups - than normal windows - than dialogs - than strong dialogs
+// register sub win
+// structure: popups - than normal windows - than dialogs - than strong dialogs
 bool window_frame_t::registerSubWin(window_t &win) {
     // only normal windows can be registered
     // screen_t handles advanced window registration
-    if (win.GetType() != win_type_t::normal)
+    if (win.GetType() != win_type_t::normal) {
         return false;
+    }
 
     registerAnySubWin(win, first_normal, last_normal);
 
     return true;
 }
 
-void window_frame_t::registerAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast) {
+void window_frame_t::registerAnySubWin(window_t &win, CompactRAMPointer<window_t> &pFirst, CompactRAMPointer<window_t> &pLast) {
     if ((!pFirst) || (!pLast)) {
         pFirst = pLast = &win;
     } else {
@@ -94,8 +97,8 @@ void window_frame_t::registerAnySubWin(window_t &win, window_t *&pFirst, window_
 }
 
 void window_frame_t::colorConflictBackgroundToRed(window_t &win) {
-    //in debug windows with intersection are painted with red background
-    // check of win_type_t::normal is needed, because other registration methods can recall this one
+    // in debug windows with intersection are painted with red background
+    //  check of win_type_t::normal is needed, because other registration methods can recall this one
     if (win.GetType() == win_type_t::normal) {
 
         window_t *pWin = first_normal;
@@ -121,15 +124,17 @@ bool window_frame_t::HasDialogOrPopup() {
     return findFirst(first_normal, nullptr, filter) != nullptr;
 }
 
-//unregister sub win
+// unregister sub win
 void window_frame_t::unregisterSubWin(window_t &win) {
-    if (win.GetType() == win_type_t::normal)
+    if (win.GetType() == win_type_t::normal) {
         unregisterAnySubWin(win, first_normal, last_normal);
+    }
 }
 
-void window_frame_t::unregisterAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast) {
-    if ((!pFirst) || (!pLast))
+void window_frame_t::unregisterAnySubWin(window_t &win, CompactRAMPointer<window_t> &pFirst, CompactRAMPointer<window_t> &pLast) {
+    if ((!pFirst) || (!pLast)) {
         return;
+    }
 
     Rect16 inv_rect = win.GetRect();
     bool clr_begin_end = (&win == pFirst && pFirst == pLast);
@@ -137,8 +142,9 @@ void window_frame_t::unregisterAnySubWin(window_t &win, window_t *&pFirst, windo
     window_t *prev = GetPrevSubWin(&win);
     if (prev) {
         prev->SetNext(win.GetNext());
-        if (pLast == &win)
+        if (pLast == &win) {
             pLast = prev;
+        }
     }
 
     if (pFirst == &win) {
@@ -172,8 +178,9 @@ window_t *window_frame_t::getLastNormal() const {
 }
 
 void window_frame_t::draw() {
-    if (!IsVisible())
+    if (!IsVisible()) {
         return;
+    }
     bool setChildrenInvalid = false;
 
     if (IsInvalid()) {
@@ -189,7 +196,7 @@ void window_frame_t::draw() {
     window_t *ptr = first_normal;
     while (ptr) {
         if (setChildrenInvalid) {
-            //if hidden window has no intersection with other windows, it must be drawn (back color)
+            // if hidden window has no intersection with other windows, it must be drawn (back color)
             if (ptr->IsVisible() || !GetFirstEnabledSubWin(ptr->GetRect())) {
                 ptr->Invalidate();
             } else {
@@ -208,22 +215,49 @@ void window_frame_t::draw() {
     invalid_area = Rect16(); // clear invalid_area
 }
 
-void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
     intptr_t dif = (intptr_t)param;
     window_t *pWin = GetFocusedWindow();
-    if (!pWin || !pWin->IsChildOf(this))
+    if (!pWin || !pWin->IsChildOf(this)) {
         pWin = nullptr;
+    }
 
     switch (event) {
+
     case GUI_event_t::CLICK:
         if (pWin) {
             pWin->WindowEvent(this, GUI_event_t::CLICK, nullptr);
-            //pWin->SetCapture(); //item must do this - only some of them
+            // pWin->SetCapture(); //item must do this - only some of them
         } else {
-            //todo should not I resend event to super?
+            // todo should not I resend event to super?
         }
 
         break;
+
+    case GUI_event_t::TOUCH_CLICK:
+        if (pWin) { // check if a window has focus, to not give it if it does not
+            pWin = GetFirstEnabledSubWin();
+            event_conversion_union un;
+            un.pvoid = param;
+            while (pWin) {
+                Rect16 rc = pWin->get_rect_for_touch();
+                if (rc.Contain(un.point)) {
+                    break; // found it
+                }
+                pWin = GetNextEnabledSubWin(pWin);
+            }
+        }
+        if (pWin) {
+            pWin->SetFocus();
+            if (pWin->IsFocused()) {
+                // sending click if sitting of focus failed can be harmful
+                // DialogTimed resends capture events if it is not active
+                // this generates unwanted click on focused window
+                pWin->WindowEvent(this, GUI_event_t::CLICK, nullptr);
+            }
+        }
+        break;
+
     case GUI_event_t::ENC_DN:
         while (pWin && dif--) {
             window_t *const pPrev = GetPrevEnabledSubWin(pWin);
@@ -239,14 +273,16 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sende
             pWin->SetFocus();
         }
         break;
+
     case GUI_event_t::ENC_UP:
         while (pWin && dif--) {
             window_t *const pNext = GetNextEnabledSubWin(pWin);
-            if (!pNext) {
+
+            if (pNext && pNext->IsVisible()) {
+                Sound_Play(eSOUND_TYPE::EncoderMove);
+            } else {
                 Sound_Play(eSOUND_TYPE::BlindAlert);
                 break;
-            } else {
-                Sound_Play(eSOUND_TYPE::EncoderMove);
             }
             pWin = pNext;
         }
@@ -254,23 +290,28 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sende
             pWin->SetFocus();
         }
         break;
+
     case GUI_event_t::CAPT_0:
         break;
+
     case GUI_event_t::CAPT_1:
         if (pWin && pWin->GetParent() != this) {
             pWin = first_normal;
-            if (pWin && !pWin->IsEnabled())
+            if (pWin && !pWin->IsEnabled()) {
                 pWin = pWin->GetNextEnabled();
-            if (pWin)
+            }
+            if (pWin) {
                 pWin->SetFocus();
+            }
         }
         break;
+
     default:
         break;
     }
 }
 
-//resend event to all children
+// resend event to all children
 void window_frame_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
     window_t *ptr = first_normal;
     while (ptr) {
@@ -280,7 +321,7 @@ void window_frame_t::screenEvent(window_t *sender, GUI_event_t event, void *para
     WindowEvent(this, event, param);
 }
 
-//resend invalidation to all children
+// resend invalidation to all children
 void window_frame_t::invalidate(Rect16 invalidation_rect) {
     window_t *ptr = first_normal;
     while (ptr) {
@@ -294,13 +335,14 @@ void window_frame_t::invalidate(Rect16 invalidation_rect) {
     }
 }
 
-//resend validate to all children
+// resend validate to all children
 void window_frame_t::validate(Rect16 validation_rect) {
     window_t *ptr = first_normal;
     while (ptr) {
         ptr->Validate(validation_rect);
         ptr = ptr->GetNext();
     }
+    invalid_area = Rect16();
 }
 
 bool window_frame_t::IsChildFocused() {
@@ -308,19 +350,23 @@ bool window_frame_t::IsChildFocused() {
 }
 
 window_t *window_frame_t::GetNextSubWin(window_t *win) const {
-    if (!win)
+    if (!win) {
         return nullptr;
-    if (win->GetParent() != this)
+    }
+    if (win->GetParent() != this) {
         return nullptr;
+    }
 
     return win->GetNext();
 }
 
 window_t *window_frame_t::GetPrevSubWin(window_t *win) const {
-    if (!win)
+    if (!win) {
         return nullptr;
-    if (win->GetParent() != this)
+    }
+    if (win->GetParent() != this) {
         return nullptr;
+    }
     window_t *tmpWin = first_normal;
     while (tmpWin && GetNextSubWin(tmpWin) != win) {
         tmpWin = GetNextSubWin(tmpWin);
@@ -329,10 +375,12 @@ window_t *window_frame_t::GetPrevSubWin(window_t *win) const {
 }
 
 window_t *window_frame_t::GetNextEnabledSubWin(window_t *win) const {
-    if (!win)
+    if (!win) {
         return nullptr;
-    if (win->GetParent() != this)
+    }
+    if (win->GetParent() != this) {
         return nullptr;
+    }
     return win->GetNextEnabled();
 }
 
@@ -345,20 +393,24 @@ window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win) const {
 }
 
 window_t *window_frame_t::GetFirstEnabledSubWin() const {
-    if (!first_normal)
+    if (!first_normal) {
         return nullptr;
-    if (first_normal->IsEnabled())
+    }
+    if (first_normal->IsEnabled()) {
         return first_normal;
+    }
     return GetNextEnabledSubWin(first_normal);
 }
 
 window_t *window_frame_t::GetNextSubWin(window_t *win, Rect16 intersection_rect) const {
-    if (!win)
+    if (!win) {
         return nullptr;
-    if (win->GetParent() != this)
+    }
+    if (win->GetParent() != this) {
         return nullptr;
+    }
 
-    //endless loop is safe here, last_normal window points to nullptr
+    // endless loop is safe here, last_normal window points to nullptr
     while (true) {
         win = win->GetNext();
         if (!win || win->GetRect().HasIntersection(intersection_rect)) {
@@ -368,10 +420,12 @@ window_t *window_frame_t::GetNextSubWin(window_t *win, Rect16 intersection_rect)
 }
 
 window_t *window_frame_t::GetPrevSubWin(window_t *win, Rect16 intersection_rect) const {
-    if (!win)
+    if (!win) {
         return nullptr;
-    if (win->GetParent() != this)
+    }
+    if (win->GetParent() != this) {
         return nullptr;
+    }
     window_t *tmpWin = first_normal;
     while (tmpWin && GetNextSubWin(tmpWin, intersection_rect) != win) {
         tmpWin = GetNextSubWin(tmpWin, intersection_rect);
@@ -380,12 +434,14 @@ window_t *window_frame_t::GetPrevSubWin(window_t *win, Rect16 intersection_rect)
 }
 
 window_t *window_frame_t::GetNextEnabledSubWin(window_t *win, Rect16 intersection_rect) const {
-    if (!win)
+    if (!win) {
         return nullptr;
-    if (win->GetParent() != this)
+    }
+    if (win->GetParent() != this) {
         return nullptr;
+    }
 
-    //endless loop is safe here, last_normal window points to nullptr
+    // endless loop is safe here, last_normal window points to nullptr
     while (true) {
         win = win->GetNextEnabled();
         if (!win || win->GetRect().HasIntersection(intersection_rect)) {
@@ -403,28 +459,33 @@ window_t *window_frame_t::GetPrevEnabledSubWin(window_t *win, Rect16 intersectio
 }
 
 window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const {
-    if (!first_normal)
+    if (!first_normal) {
         return nullptr;
-    if (first_normal->IsEnabled() && first_normal->GetRect().HasIntersection(intersection_rect))
+    }
+    if (first_normal->IsEnabled() && first_normal->GetRect().HasIntersection(intersection_rect)) {
         return first_normal;
+    }
     return GetNextEnabledSubWin(first_normal, intersection_rect);
 }
 
 Rect16 window_frame_t::GenerateRect(ShiftDir_t direction, size_ui16_t sz, uint16_t distance) {
-    if (!last_normal)
+    if (!last_normal) {
         return Rect16();
+    }
     return Rect16(last_normal->GetRect(), direction, sz, distance);
 }
 
 Rect16 window_frame_t::GenerateRect(Rect16::Width_t width, uint16_t distance) {
-    if (!last_normal)
+    if (!last_normal) {
         return Rect16();
+    }
     return Rect16(last_normal->GetRect(), width, distance);
 }
 
 Rect16 window_frame_t::GenerateRect(Rect16::Height_t height, uint16_t distance) {
-    if (!last_normal)
+    if (!last_normal) {
         return Rect16();
+    }
     return Rect16(last_normal->GetRect(), height, distance);
 }
 
@@ -447,18 +508,19 @@ window_t *window_frame_t::getCapturedNormalWin() const {
 }
 
 bool window_frame_t::IsChildCaptured() const {
-    return captured_normal_window != nullptr;
+    return captured_normal_window;
 }
 
 bool window_frame_t::CaptureNormalWindow(window_t &win) {
-    if (win.GetParent() != this || win.GetType() != win_type_t::normal)
+    if (win.GetParent() != this || win.GetType() != win_type_t::normal) {
         return false;
+    }
     window_t *last_captured = getCapturedNormalWin();
     if (last_captured) {
-        last_captured->WindowEvent(this, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
+        last_captured->WindowEvent(this, GUI_event_t::CAPT_0, 0); // will not resend event to anyone
     }
     captured_normal_window = &win;
-    win.WindowEvent(this, GUI_event_t::CAPT_1, 0); //will not resend event to anyone
+    win.WindowEvent(this, GUI_event_t::CAPT_1, 0); // will not resend event to anyone
     gui_invalidate();
 
     return true;
@@ -466,7 +528,7 @@ bool window_frame_t::CaptureNormalWindow(window_t &win) {
 
 void window_frame_t::ReleaseCaptureOfNormalWindow() {
     if (captured_normal_window) {
-        captured_normal_window->WindowEvent(this, GUI_event_t::CAPT_0, 0); //will not resend event to anyone
+        captured_normal_window->WindowEvent(this, GUI_event_t::CAPT_0, 0); // will not resend event to anyone
     }
     captured_normal_window = nullptr;
     gui_invalidate();
@@ -475,9 +537,9 @@ void window_frame_t::ReleaseCaptureOfNormalWindow() {
 window_t *window_frame_t::GetCapturedWindow() {
     window_t *ret = window_t::GetCapturedWindow(); // this, if it can be captured or nullptr
 
-    //rewrite ret value with valid captured subwin
-    //cannot use IsCapturable or IsVisible, because it use hidden_behind_dialog flag
-    //but it might be popup. At this point we are sure no dialog has capture, so we check only visible flag
+    // rewrite ret value with valid captured subwin
+    // cannot use IsCapturable or IsVisible, because it use hidden_behind_dialog flag
+    // but it might be popup. At this point we are sure no dialog has capture, so we check only visible flag
     if (getCapturedNormalWin() && getCapturedNormalWin()->HasVisibleFlag()) {
         ret = getCapturedNormalWin()->GetCapturedWindow();
     }
@@ -487,19 +549,29 @@ window_t *window_frame_t::GetCapturedWindow() {
 
 void window_frame_t::RecursiveCall(mem_fnc fnc) {
     window_t *pWin = first_normal;
-    if (!last_normal)
+    if (!last_normal) {
         return;
+    }
     while (pWin && pWin != GetNextSubWin(last_normal)) {
         std::invoke(fnc, *pWin);
         pWin = GetNextSubWin(pWin);
     }
 }
 
-void window_frame_t::setRedLayout() {
-    super::setRedLayout();
-    RecursiveCall(&window_t::SetRedLayout); // SetRedLayout is non virtual one
-}
-void window_frame_t::setBlackLayout() {
-    super::setBlackLayout();
-    RecursiveCall(&window_t::SetBlackLayout); // SetBlackLayout is non virtual one
+void window_frame_t::set_layout(ColorLayout lt) {
+    super::set_layout(lt);
+    switch (lt) {
+
+    case ColorLayout::red:
+        RecursiveCall(&window_t::SetRedLayout);
+        break;
+
+    case ColorLayout::black:
+        RecursiveCall(&window_t::SetBlackLayout);
+        break;
+
+    case ColorLayout::blue:
+        RecursiveCall(&window_t::SetBlueLayout);
+        break;
+    }
 }

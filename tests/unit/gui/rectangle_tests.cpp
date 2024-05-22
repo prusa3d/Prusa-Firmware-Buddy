@@ -205,7 +205,7 @@ TEST_CASE("rectangle construc", "[rectangle]") {
             std::make_tuple<Rect16, ShiftDir_t, Rect16>({ 10, 10, 30, 30 }, ShiftDir_t::Bottom, { 10, 40, 30, 30 }),
             std::make_tuple<Rect16, ShiftDir_t, Rect16>({ 10, -40, 30, 30 }, ShiftDir_t::Bottom, { 10, -10, 30, 30 }));
 
-        //internally use CalculateShift
+        // internally use CalculateShift
         Rect16 res { r, dir };
 
         CHECK(res.Width() == expected.Width());
@@ -282,10 +282,10 @@ TEST_CASE("rectangle Contain point and IsEmpty", "[rectangle]") {
         std::make_tuple<Rect16, bool>({ 10, 10, 10, 0 }, true),
         std::make_tuple<Rect16, bool>({ 10, 10, 0, 0 }, true));
 
-    //first must make sure IsEmptyWorks
+    // first must make sure IsEmptyWorks
     CHECK(r.IsEmpty() == empty);
 
-    //empty does not contain anything
+    // empty does not contain anything
     CHECK_FALSE(r.Contain(r.TopLeft()) == r.IsEmpty());
     CHECK_FALSE(r.Contain(r.BottomRight()) == r.IsEmpty());
     CHECK_FALSE(r.Contain(r.EndPoint()));
@@ -352,7 +352,7 @@ TEST_CASE("rectangles is subrectangle", "[rectangle]") {
 TEST_CASE("rectangle point arithmetic", "[rectangle]") {
     SECTION("operator=") {
         point_i16_t point = GENERATE(point_i16_t({ 0, 0 }), point_i16_t({ 10, 10 }), point_i16_t({ -2, 8 }), point_i16_t({ -33, 0 }));
-        Rect16 r = GENERATE( //this operation does not have meaning on empty rect -  must not be empty
+        Rect16 r = GENERATE( // this operation does not have meaning on empty rect -  must not be empty
             Rect16({ 0, 0, 1, 1 }),
             Rect16({ 10, 10, 5, 8 }),
             Rect16({ -2, 0, 3, 2 }));
@@ -361,7 +361,7 @@ TEST_CASE("rectangle point arithmetic", "[rectangle]") {
     }
 
     SECTION("operator+") {
-        //it use internally +=
+        // it use internally +=
         Rect16 r;
         point_i16_t point, expected;
         std::tie(r, point, expected) = GENERATE(
@@ -373,7 +373,7 @@ TEST_CASE("rectangle point arithmetic", "[rectangle]") {
     }
 
     SECTION("operator-") {
-        //it use internally -=
+        // it use internally -=
         Rect16 r;
         point_i16_t point, expected;
         std::tie(r, point, expected) = GENERATE(
@@ -385,7 +385,7 @@ TEST_CASE("rectangle point arithmetic", "[rectangle]") {
     }
 
     SECTION("operators == and !=") {
-        //it use internally -=
+        // it use internally -=
         Rect16 r0, r1;
         bool equal;
 
@@ -396,35 +396,35 @@ TEST_CASE("rectangle point arithmetic", "[rectangle]") {
             std::make_tuple<Rect16, Rect16, bool>({ -5, 20, 30, 30 }, { -5, 20, 30, 30 }, true),
             std::make_tuple<Rect16, Rect16, bool>({ -6, -1, 30, 30 }, { -6, -1, 30, 30 }, true),
 
-            //x is wrong
+            // x is wrong
             std::make_tuple<Rect16, Rect16, bool>({ 1, 0, 0, 0 }, { 0, 0, 0, 0 }, true), // all empty rectangles are equal
             std::make_tuple<Rect16, Rect16, bool>({ 22, 0, 30, 30 }, { 0, 0, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ 89, 20, 30, 30 }, { 0, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { -5, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -4, -1, 30, 30 }, { -6, -1, 30, 30 }, false),
 
-            //y is wrong
+            // y is wrong
             std::make_tuple<Rect16, Rect16, bool>({ 0, -20, 0, 0 }, { 0, 0, 0, 0 }, true), // all empty rectangles are equal
             std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 30 }, { 0, 0, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 30, 30 }, { 0, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -5, 0, 30, 30 }, { -5, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -6, -21, 30, 30 }, { -6, -1, 30, 30 }, false),
 
-            //w is wrong
+            // w is wrong
             std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 10, 0 }, { 0, 0, 0, 0 }, true), // all empty rectangles are equal
             std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 0, 30 }, { 0, 0, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 10, 30 }, { 0, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -5, 20, 300, 30 }, { -5, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -6, -1, 0, 30 }, { -6, -1, 30, 30 }, false),
 
-            //h is wrong
+            // h is wrong
             std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 0, 110 }, { 0, 0, 0, 0 }, true), // all empty rectangles are equal
             std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 30, 0 }, { 0, 0, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ 0, 20, 30, 3 }, { 0, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -5, 20, 30, 322 }, { -5, 20, 30, 30 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ -6, -1, 30, 1 }, { -6, -1, 30, 30 }, false),
 
-            //multiple wrong values
+            // multiple wrong values
             std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 3, 0 }, { 0, 0, 0, 1 }, true), // all empty rectangles are equal
             std::make_tuple<Rect16, Rect16, bool>({ 1, 1, 1, 1 }, { 0, 0, 0, 0 }, false),
             std::make_tuple<Rect16, Rect16, bool>({ 0, 0, 3, 6 }, { 0, 0, 0, 0 }, false),
@@ -479,20 +479,20 @@ TEST_CASE("rectangle Transform", "[rectangle]") {
     SECTION("not empty") {
         Rect16 r, target, expected;
         std::tie(r, target, expected) = GENERATE(
-            std::make_tuple<Rect16, Rect16, Rect16>({ 0, 0, 30, 30 }, { 2, 3, 100, 100 }, { 2, 3, 30, 30 }),      //fits
-            std::make_tuple<Rect16, Rect16, Rect16>({ 0, 2, 80, 40 }, { 1, 2, 5, 5 }, { 1, 4, 5, 3 }),            //does not fit
-            std::make_tuple<Rect16, Rect16, Rect16>({ 5, 20, 20, 1 }, { 20, -3, 6, 200 }, { 25, 17, 1, 1 }),      //width does not fit
-            std::make_tuple<Rect16, Rect16, Rect16>({ 10, 1, 100, 3 }, { -100, 3, 1000, 2 }, { -90, 4, 100, 1 }), //height does not fit
-            //rect with negative coords is cut
-            //data for X, Y is made by SwapXY
-            std::make_tuple<Rect16, Rect16, Rect16>({ -1, 0, 30, 30 }, { 2, 3, 100, 100 }, { 2, 3, 29, 30 }), //negative x
-            std::make_tuple<Rect16, Rect16, Rect16>({ -1, 8, 30, 30 }, { 2, 3, 10, 100 }, { 2, 11, 10, 30 }), //negative x, does not fit into target
-            std::make_tuple<Rect16, Rect16, Rect16>({ -22, 4, 30, 30 }, { 2, 3, 10, 100 }, { 2, 7, 8, 30 }),  //negative x, would not fit into target, but fits after negative coord cut
-            std::make_tuple<Rect16, Rect16, Rect16>({ -22, 2, 30, 30 }, { 2, 3, 1, 100 }, { 2, 5, 1, 30 }),   //negative x, would not fit into target, and still does not fit even after negative coord cut
-            //both X and Y negative
+            std::make_tuple<Rect16, Rect16, Rect16>({ 0, 0, 30, 30 }, { 2, 3, 100, 100 }, { 2, 3, 30, 30 }), // fits
+            std::make_tuple<Rect16, Rect16, Rect16>({ 0, 2, 80, 40 }, { 1, 2, 5, 5 }, { 1, 4, 5, 3 }), // does not fit
+            std::make_tuple<Rect16, Rect16, Rect16>({ 5, 20, 20, 1 }, { 20, -3, 6, 200 }, { 25, 17, 1, 1 }), // width does not fit
+            std::make_tuple<Rect16, Rect16, Rect16>({ 10, 1, 100, 3 }, { -100, 3, 1000, 2 }, { -90, 4, 100, 1 }), // height does not fit
+            // rect with negative coords is cut
+            // data for X, Y is made by SwapXY
+            std::make_tuple<Rect16, Rect16, Rect16>({ -1, 0, 30, 30 }, { 2, 3, 100, 100 }, { 2, 3, 29, 30 }), // negative x
+            std::make_tuple<Rect16, Rect16, Rect16>({ -1, 8, 30, 30 }, { 2, 3, 10, 100 }, { 2, 11, 10, 30 }), // negative x, does not fit into target
+            std::make_tuple<Rect16, Rect16, Rect16>({ -22, 4, 30, 30 }, { 2, 3, 10, 100 }, { 2, 7, 8, 30 }), // negative x, would not fit into target, but fits after negative coord cut
+            std::make_tuple<Rect16, Rect16, Rect16>({ -22, 2, 30, 30 }, { 2, 3, 1, 100 }, { 2, 5, 1, 30 }), // negative x, would not fit into target, and still does not fit even after negative coord cut
+            // both X and Y negative
             std::make_tuple<Rect16, Rect16, Rect16>({ -1, -1, 10, 6 }, { 2, 3, 100, 100 }, { 2, 3, 9, 5 }),
-            std::make_tuple<Rect16, Rect16, Rect16>({ -1, -4, 20, 7 }, { 2, 3, 10, 100 }, { 2, 3, 10, 3 }), //X does not fit into target
-            std::make_tuple<Rect16, Rect16, Rect16>({ -22, -2, 30, 8 }, { 2, 3, 10, 100 }, { 2, 3, 8, 6 })  //X would not fit into target, but fits after negative coord cut
+            std::make_tuple<Rect16, Rect16, Rect16>({ -1, -4, 20, 7 }, { 2, 3, 10, 100 }, { 2, 3, 10, 3 }), // X does not fit into target
+            std::make_tuple<Rect16, Rect16, Rect16>({ -22, -2, 30, 8 }, { 2, 3, 10, 100 }, { 2, 3, 8, 6 }) // X would not fit into target, but fits after negative coord cut
         );
 
         Rect16 r_sw = r;
@@ -512,7 +512,7 @@ TEST_CASE("rectangle Transform", "[rectangle]") {
 
 TEST_CASE("rectangle union", "[rectangle]") {
     SECTION("single rectangle") {
-        //it also tests operators + and += since Union use them
+        // it also tests operators + and += since Union use them
         Rect16 l, r, expected;
         std::tie(l, r, expected) = GENERATE(
             std::make_tuple<Rect16, Rect16, Rect16>({ 0, 0, 20, 20 }, { 20, 20, 40, 40 }, { 0, 0, 60, 60 }),
@@ -566,11 +566,11 @@ TEST_CASE("rectangle Align", "[rectangle]") {
 
         std::tie(toBeAligned, alignRC, align) = std::make_tuple<Rect16, Rect16, Align_t>(
             Rect16(
-                GENERATE(point_i16_t({ 0, 0 }), point_i16_t({ -10, 30 }), point_i16_t({ 110, 0 })) //some X Y coords
+                GENERATE(point_i16_t({ 0, 0 }), point_i16_t({ -10, 30 }), point_i16_t({ 110, 0 })) // some X Y coords
                 ,
                 sz),
             Rect16(
-                GENERATE(point_i16_t({ 0, 0 }), point_i16_t({ 10, -30 }), point_i16_t({ 333, 222 })) //some X Y coords
+                GENERATE(point_i16_t({ 0, 0 }), point_i16_t({ 10, -30 }), point_i16_t({ 333, 222 })) // some X Y coords
                 ,
                 sz),
             Align_t(
@@ -584,11 +584,11 @@ TEST_CASE("rectangle Align", "[rectangle]") {
 
     SECTION("normal use") {
         std::tie(toBeAligned, alignRC, align, expected_point) = GENERATE(
-            std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 0, 0, 0, 0 }, { 0, 0, 0, 0 }, Align_t(Align_t::vertical::top, Align_t::horizontal::left), { 0, 0 }), //zero aligned via zero aligns to zero
+            std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 0, 0, 0, 0 }, { 0, 0, 0, 0 }, Align_t(Align_t::vertical::top, Align_t::horizontal::left), { 0, 0 }), // zero aligned via zero aligns to zero
             std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 0, 0, 10, 20 }, { 3, 5, 100, 100 }, Align_t(Align_t::vertical::top, Align_t::horizontal::left), { 3, 5 }),
             std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 666, 0, 10, 20 }, { 0, 0, 100, 100 }, Align_t(Align_t::vertical::top, Align_t::horizontal::left), { 0, 0 }),
             std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 0, 666, 3, 5 }, { 1, -1, 5, 9 }, Align_t(Align_t::vertical::center, Align_t::horizontal::center), { 2, 1 }),
-            std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 0, 0, 100, 20 }, { 0, 0, 10, 10 }, Align_t(Align_t::vertical::top, Align_t::horizontal::left), { 0, 0 }), //does not fit .. should not matter for top left
+            std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 0, 0, 100, 20 }, { 0, 0, 10, 10 }, Align_t(Align_t::vertical::top, Align_t::horizontal::left), { 0, 0 }), // does not fit .. should not matter for top left
             std::make_tuple<Rect16, Rect16, Align_t, point_i16_t>({ 666, 0, 30, 20 }, { 0, 0, 10, 10 }, Align_t(Align_t::vertical::bottom, Align_t::horizontal::right), { -20, -10 }));
 
         sz = toBeAligned.Size();
@@ -724,17 +724,17 @@ TEST_CASE("rectangle split", "[rectangle]") {
         Rect16 splits[4];
         Rect16 spaces[4];
 
-        //TESTING
-        // r = Rect16({0, 0}, 120, 100);
-        // count = 4;
-        // spacing = 10;
-        // ratio = {1, 2, 2, 1};
+        // TESTING
+        //  r = Rect16({0, 0}, 120, 100);
+        //  count = 4;
+        //  spacing = 10;
+        //  ratio = {1, 2, 2, 1};
         //
-        // r.HorizontalSplit(splits, spaces, count, spacing, ratio.data());
+        //  r.HorizontalSplit(splits, spaces, count, spacing, ratio.data());
         //
-        // CHECK(spaces[0].TopLeft().x == 15);
-        // CHECK(spaces[1].TopLeft().x == 55);
-        // CHECK(spaces[2].TopLeft().x == 95);
+        //  CHECK(spaces[0].TopLeft().x == 15);
+        //  CHECK(spaces[1].TopLeft().x == 55);
+        //  CHECK(spaces[2].TopLeft().x == 95);
 
         std::tie(r, count, spacing, ratio, expSplits, expSpaces) = GENERATE(
             std::make_tuple<Rect16, size_t, uint16_t, Ratio, Sequence, Sequence>(
@@ -754,7 +754,7 @@ TEST_CASE("rectangle split", "[rectangle]") {
         static constexpr size_t max_count = 4;
         static constexpr size_t h = 10;
 
-        std::vector<Rect16> expSplits; //expected
+        std::vector<Rect16> expSplits; // expected
         std::array<Rect16, max_count> splits;
         std::vector<Rect16::Width_t> widths;
 
@@ -763,13 +763,13 @@ TEST_CASE("rectangle split", "[rectangle]") {
                 { 0, 0, 100, h }, { 1, 2 }, { { { 0, 0, 1, h }, { 98, 0, 2, h } } }),
             std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
                 { 0, 0, 7, h }, { 1, 1, 1, 1 }, { { { 0, 0, 1, h }, { 2, 0, 1, h }, { 4, 0, 1, h }, { 6, 0, 1, h } } }),
-            //last does not fit
+            // last does not fit
             std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
                 { 0, 0, 12, h }, { 1, 2, 3, 40 }, { { { 0, 0, 1, h }, { 4, 0, 2, h }, { 9, 0, 3, h } } }),
-            //not exact space, last is bit further
+            // not exact space, last is bit further
             std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
                 { 0, 0, 8, h }, { 1, 1, 1, 1 }, { { { 0, 0, 1, h }, { 2, 0, 1, h }, { 4, 0, 1, h }, { 7, 0, 1, h } } }),
-            //only one fits
+            // only one fits
             std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
                 { 1, 2, 10, h }, { 5, 100, 1, 1 }, { { { 1, 2, 5, h } } }),
             // 2 border empty rects .. any empty rects are equal
@@ -777,7 +777,7 @@ TEST_CASE("rectangle split", "[rectangle]") {
                 { 1, 2, 14, h }, { 0, 2, 3, 0 }, { { { 0, 0, 0, 0 }, { 4, 2, 2, h }, { 9, 2, 3, h }, { 0, 0, 0, 0 } } }),
             std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
                 { 0, 2, 9, h }, { 0, 5, 0 }, { { { 0, 0, 0, 0 }, { 2, 2, 5, h }, { 0, 0, 0, 0 } } }),
-            //empty
+            // empty
             std::make_tuple<Rect16, std::vector<Rect16::Width_t>, std::vector<Rect16>>(
                 { 1, 0, 10, h }, { 50, 10, 1, 1 }, std::vector<Rect16>()));
 
@@ -833,8 +833,8 @@ TEST_CASE("rectangle split", "[rectangle]") {
 
 TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
     SECTION("empty") {
-        //y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 0, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result { 0, 1, 0, 1 };
 
@@ -844,8 +844,8 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
     }
 
     SECTION("normal cut") {
-        //y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 4, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result { 0, 1, 4, 1 };
 
@@ -855,8 +855,8 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
     }
 
     SECTION("cut till end") {
-        //y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 8, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result { 0, 1, 8, 1 };
 
@@ -866,8 +866,8 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
     }
 
     SECTION("cut behind end") {
-        //y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 12, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result { 0, 1, 12, 1 };
 
@@ -877,8 +877,8 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
     }
 
     SECTION("empty cut at end") {
-        //y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 16, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result = minuend;
 
@@ -888,8 +888,8 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
     }
 
     SECTION("empty cut behind end") {
-        //y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 32, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result = minuend;
 
@@ -899,8 +899,8 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
     }
 
     SECTION("empty cut in front begin") {
-        //y and h does not matter
-        Rect16 minuend { 8, 1, 16, 1 };   // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 8, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 0, 1, 8, 1 }; // the rect that is to be subtracted.
 
         Rect16 result = minuend.LeftSubrect(subtrahend);
@@ -911,8 +911,8 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
 
 TEST_CASE("rectangle RightSubrect", "[rectangle]") {
     SECTION("normal cut from begin") {
-        //y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 0, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result { 8, 1, 8, 1 };
 
@@ -922,8 +922,8 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
     }
 
     SECTION("normal cut middle") {
-        //y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 4, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result { 12, 1, 4, 1 };
 
@@ -933,8 +933,8 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
     }
 
     SECTION("cut till end") {
-        //y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 8, 1, 8, 1 }; // the rect that is to be subtracted.
 
         Rect16 result = minuend.RightSubrect(subtrahend);
@@ -943,8 +943,8 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
     }
 
     SECTION("cut behind end") {
-        //y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 12, 1, 8, 1 }; // the rect that is to be subtracted.
 
         Rect16 result = minuend.RightSubrect(subtrahend);
@@ -953,8 +953,8 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
     }
 
     SECTION("empty cut at end") {
-        //y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 16, 1, 8, 1 }; // the rect that is to be subtracted.
 
         Rect16 result = minuend.RightSubrect(subtrahend);
@@ -963,8 +963,8 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
     }
 
     SECTION("empty cut behind end") {
-        //y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 32, 1, 8, 1 }; // the rect that is to be subtracted.
 
         Rect16 result = minuend.RightSubrect(subtrahend);
@@ -973,8 +973,8 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
     }
 
     SECTION("not intersecting cut in front begin") {
-        //y and h does not matter
-        Rect16 minuend { 8, 1, 16, 1 };   // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 8, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 0, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result = { 8, 1, 16, 1 };
 
@@ -984,8 +984,8 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
     }
 
     SECTION("intersecting cut in front begin") {
-        //y and h does not matter
-        Rect16 minuend { 8, 1, 16, 1 };    // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 8, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 0, 1, 16, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result = { 16, 1, 8, 1 };
 
@@ -995,8 +995,8 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
     }
 
     SECTION("overlaping cut") {
-        //y and h does not matter
-        Rect16 minuend { 8, 1, 16, 1 };    // the rect that is to be subtracted from.
+        // y and h does not matter
+        Rect16 minuend { 8, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 0, 1, 32, 1 }; // the rect that is to be subtracted.
 
         Rect16 result = minuend.RightSubrect(subtrahend);

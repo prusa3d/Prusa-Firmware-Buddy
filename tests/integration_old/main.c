@@ -15,7 +15,7 @@ static void tap_netif_init(void *arg) {
     /* init network interfaces */
     ip4_addr_t ipaddr, netmask, gw;
 
-    IP4_ADDR(&gw, 10, 0, 0, 1);     // host IP address of TAP device
+    IP4_ADDR(&gw, 10, 0, 0, 1); // host IP address of TAP device
     IP4_ADDR(&ipaddr, 10, 0, 0, 2); // LwIP virtual program IP address
     IP4_ADDR(&netmask, 255, 255, 255, 0);
 
@@ -40,13 +40,13 @@ int main(int argc, char **argv) {
     tcpip_init(tap_netif_init, &init_sem);
 
     /* we have to wait for initialization to finish before
-	* calling update_adapter()! */
+     * calling update_adapter()! */
     sys_sem_wait(&init_sem);
     sys_sem_free(&init_sem);
 
     while (1) {
         /* poll the driver, get any outstanding frames, alloc memory for them, and
-		call netif->input, which is actually ip_input() */
+                call netif->input, which is actually ip_input() */
         sys_msleep(1);
         tapif_poll(&netif);
     }

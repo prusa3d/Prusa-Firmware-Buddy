@@ -1,12 +1,36 @@
-// G26.hpp
+/**
+ * @file G26.hpp
+ * @brief first layer calibration, must be run within selftest only
+ */
 
 #pragma once
 
 #include "../../lib/Marlin/Marlin/src/module/planner.h"
 
-class FirstLayer : public FSM_Holder {
+/**
+ * @brief ensures proper progress state in marlin_server
+ */
+class FirstLayerProgressLock {
+    static uint32_t isPrinting_;
+
+public:
+    FirstLayerProgressLock() {
+        ++isPrinting_;
+    }
+
+    ~FirstLayerProgressLock() {
+        --isPrinting_;
+    }
+
+    static bool isPrinting() {
+        return isPrinting_;
+    }
+};
+
+class FirstLayer : public FirstLayerProgressLock {
 private:
-    static bool isPrinting_; /// ensures proper progress state in marlin_server
+    static uint32_t finished_n_times;
+    static uint32_t started_n_times;
 
     uint16_t total_lines = 1;
     uint16_t current_line = 0;
@@ -15,16 +39,21 @@ private:
     void finish_printing();
 
 public:
-    FirstLayer()
-        : FSM_Holder(ClientFSM::FirstLayer, 0) { isPrinting_ = true; }
+    FirstLayer() {
+        ++started_n_times;
+    }
 
     ~FirstLayer() {
-        isPrinting_ = false;
+        ++finished_n_times;
         disable_all_steppers();
     }
 
-    static bool isPrinting() {
-        return isPrinting_;
+    static uint32_t HowManyTimesFinished() {
+        return finished_n_times;
+    }
+
+    static uint32_t HowManyTimesStarted() {
+        return started_n_times;
     }
 
     void wait_for_move() {

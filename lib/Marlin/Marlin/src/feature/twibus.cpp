@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -26,174 +26,225 @@
 
 #include "twibus.h"
 
-#include <Wire.h>
+FORCE_INLINE char hex_nybble(const uint8_t n) {
+  return (n & 0xF) + ((n & 0xF) < 10 ? '0' : 'A' - 10);
+}
+
+TWIBus twibus;
 
 TWIBus::TWIBus() {
-  #if I2C_SLAVE_ADDRESS == 0
-    Wire.begin();                  // No address joins the BUS as the master
-  #else
-    Wire.begin(I2C_SLAVE_ADDRESS); // Join the bus as a slave
-  #endif
   reset();
 }
 
 void TWIBus::reset() {
   buffer_s = 0;
   buffer[0] = 0x00;
+  read_buffer_available = 0;
+  read_buffer_pos = 0;
 }
 
-void TWIBus::address(const uint8_t adr) {
+bool TWIBus::read_buffer_has_byte() {
+  return read_buffer_pos < read_buffer_available;
+}
+
+uint8_t TWIBus::read_buffer_read_byte() {
+  if (!read_buffer_has_byte()) {
+    return 0;
+  }
+  return read_buffer[read_buffer_pos++];
+}
+
+bool TWIBus::address(const uint8_t adr) {
   if (!WITHIN(adr, 8, 127)) {
     SERIAL_ECHO_MSG("Bad I2C address (8-127)");
+    return false;
+  }
+
+  if (isRestrictedAddress(adr)) {
+    SERIAL_ECHO_MSG("Restricted I2C address.");
+    return false;
   }
 
   addr = adr;
 
-  #if ENABLED(DEBUG_TWIBUS)
-    debug(PSTR("address"), adr);
-  #endif
+  debug(F("address"), adr);
+  return true;
+}
+
+bool TWIBus::isRestrictedAddress(uint8_t addr) {
+  switch (addr) {
+    case 0x53:
+    case 0x57:
+      // EEPROM
+      return true;
+    case 0x22:
+    case 0x23:
+      // USBC
+      return true;
+     case 0x18:
+     case 0x19:
+     case 0x1A:
+     case 0x1B:
+     case 0x1C:
+     case 0x1D:
+     case 0x1E:
+     case 0x1F:
+      // IO Extender
+      return true;
+  }
+
+  return false;
 }
 
 void TWIBus::addbyte(const char c) {
   if (buffer_s >= COUNT(buffer)) return;
   buffer[buffer_s++] = c;
-  #if ENABLED(DEBUG_TWIBUS)
-    debug(PSTR("addbyte"), c);
-  #endif
+  debug(F("addbyte"), c);
 }
 
 void TWIBus::addbytes(char src[], uint8_t bytes) {
-  #if ENABLED(DEBUG_TWIBUS)
-    debug(PSTR("addbytes"), bytes);
-  #endif
+  debug(F("addbytes"), bytes);
   while (bytes--) addbyte(*src++);
 }
 
 void TWIBus::addstring(char str[]) {
-  #if ENABLED(DEBUG_TWIBUS)
-    debug(PSTR("addstring"), str);
-  #endif
+  debug(F("addstring"), str);
   while (char c = *str++) addbyte(c);
 }
 
 void TWIBus::send() {
-  #if ENABLED(DEBUG_TWIBUS)
-    debug(PSTR("send"), addr);
-  #endif
-
-  Wire.beginTransmission(I2C_ADDRESS(addr));
-  Wire.write(buffer, buffer_s);
-  Wire.endTransmission();
-
+  debug(F("send"), addr);
+  
+  i2c::Result ret = i2c::Transmit(I2C_HANDLE_FOR(gcode), addr << 1, buffer, buffer_s, 100);
   reset();
+
+  check_hal_response(ret);
 }
 
-// static
-void TWIBus::echoprefix(uint8_t bytes, const char prefix[], uint8_t adr) {
-  SERIAL_ECHO_START();
-  serialprintPGM(prefix);
-  SERIAL_ECHOPAIR(": from:", adr, " bytes:", bytes, " data:");
+bool TWIBus::check_hal_response(i2c::Result response) {
+  if (response == i2c::Result::ok) {
+    return true;
+  }
+
+  switch (response)
+  {
+  case i2c::Result::error:
+    SERIAL_ERROR_MSG("TWIBus::send failed with: ERROR");
+    break;
+  case i2c::Result::busy_after_retries:
+    SERIAL_ERROR_MSG("TWIBus::send failed with: BUSY");
+    break;
+  case i2c::Result::timeout:
+     SERIAL_ERROR_MSG("TWIBus::send failed with: TIMEOUT");
+    break;
+  default:
+    SERIAL_ERROR_MSG("TWIBus::send failed with: UNKNOWN");
+  }
+  return false;
 }
 
-// static
-void TWIBus::echodata(uint8_t bytes, const char prefix[], uint8_t adr) {
-  echoprefix(bytes, prefix, adr);
-  while (bytes-- && Wire.available()) SERIAL_CHAR(Wire.read());
-  SERIAL_EOL();
-}
+void TWIBus::echodata(uint8_t bytes, FSTR_P const pref, uint8_t adr, const uint8_t style/*=0*/) {
+  union TwoBytesToInt16 { uint8_t bytes[2]; int16_t integervalue; };
+  TwoBytesToInt16 ConversionUnion;
 
-void TWIBus::echobuffer(const char prefix[], uint8_t adr) {
-  echoprefix(buffer_s, prefix, adr);
-  for (uint8_t i = 0; i < buffer_s; i++) SERIAL_CHAR(buffer[i]);
+  while (bytes-- && read_buffer_has_byte()) {
+    int value = read_buffer_read_byte();
+    switch (style) {
+
+      // Style 1, HEX DUMP
+      case 1:
+        SERIAL_CHAR(hex_nybble((value & 0xF0) >> 4));
+        SERIAL_CHAR(hex_nybble(value & 0x0F));
+        if (bytes) SERIAL_CHAR(' ');
+        break;
+
+      // Style 2, signed two byte integer (int16)
+      case 2:
+        if (bytes == 1)
+          ConversionUnion.bytes[1] = (uint8_t)value;
+        else if (bytes == 0) {
+          ConversionUnion.bytes[0] = (uint8_t)value;
+          // Output value in base 10 (standard decimal)
+          SERIAL_ECHO(ConversionUnion.integervalue);
+        }
+        break;
+
+      // Style 3, unsigned byte, base 10 (uint8)
+      case 3:
+        SERIAL_ECHO(value);
+        if (bytes) SERIAL_CHAR(' ');
+        break;
+
+      // Default style (zero), raw serial output
+      default:
+        // This can cause issues with some serial consoles, Pronterface is an example where things go wrong
+        SERIAL_CHAR(value);
+        break;
+    }
+  }
+
   SERIAL_EOL();
 }
 
 bool TWIBus::request(const uint8_t bytes) {
   if (!addr) return false;
 
-  #if ENABLED(DEBUG_TWIBUS)
-    debug(PSTR("request"), bytes);
-  #endif
+  debug(F("request"), bytes);
 
-  // requestFrom() is a blocking function
-  if (Wire.requestFrom(addr, bytes) == 0) {
-    #if ENABLED(DEBUG_TWIBUS)
-      debug("request fail", addr);
-    #endif
+  if (bytes > TWIBUS_BUFFER_SIZE) {
+    SERIAL_ERROR_MSG("TWIBus::request Tried to read more than max buffer size.");
+
     return false;
   }
 
+  flush();
+
+  i2c::Result ret = i2c::Receive(I2C_HANDLE_FOR(gcode), addr << 1 | 0x1, read_buffer, bytes, 100);
+
+  if (!check_hal_response(ret)) {
+    return false;
+  }
+
+  read_buffer_available = bytes;
   return true;
 }
 
-void TWIBus::relay(const uint8_t bytes) {
-  #if ENABLED(DEBUG_TWIBUS)
-    debug(PSTR("relay"), bytes);
-  #endif
+void TWIBus::relay(const uint8_t bytes, const uint8_t style/*=0*/) {
+  debug(F("relay"), bytes);
 
   if (request(bytes))
-    echodata(bytes, PSTR("i2c-reply"), addr);
+    echodata(bytes, F("i2c-reply"), addr, style);
 }
 
 uint8_t TWIBus::capture(char *dst, const uint8_t bytes) {
   reset();
   uint8_t count = 0;
-  while (count < bytes && Wire.available())
-    dst[count++] = Wire.read();
+  while (count < bytes && read_buffer_has_byte())
+    dst[count++] = read_buffer_read_byte();
 
-  #if ENABLED(DEBUG_TWIBUS)
-    debug(PSTR("capture"), count);
-  #endif
+  debug(F("capture"), count);
 
   return count;
 }
 
-// static
 void TWIBus::flush() {
-  while (Wire.available()) Wire.read();
+  read_buffer_available = 0;
+  read_buffer_pos = 0;
 }
-
-#if I2C_SLAVE_ADDRESS > 0
-
-  void TWIBus::receive(uint8_t bytes) {
-    #if ENABLED(DEBUG_TWIBUS)
-      debug(PSTR("receive"), bytes);
-    #endif
-    echodata(bytes, PSTR("i2c-receive"), 0);
-  }
-
-  void TWIBus::reply(char str[]/*=nullptr*/) {
-    #if ENABLED(DEBUG_TWIBUS)
-      debug(PSTR("reply"), str);
-    #endif
-
-    if (str) {
-      reset();
-      addstring(str);
-    }
-
-    Wire.write(buffer, buffer_s);
-
-    reset();
-  }
-
-#endif
 
 #if ENABLED(DEBUG_TWIBUS)
 
   // static
-  void TWIBus::prefix(const char func[]) {
-    SERIAL_ECHOPGM("TWIBus::");
-    serialprintPGM(func);
-    SERIAL_ECHOPGM(": ");
+  void TWIBus::prefix(FSTR_P const func) {
+    SERIAL_ECHOPGM("TWIBus::", func, ": ");
   }
-  void TWIBus::debug(const char func[], uint32_t adr) {
+  void TWIBus::debug(FSTR_P const func, uint32_t adr) {
     if (DEBUGGING(INFO)) { prefix(func); SERIAL_ECHOLN(adr); }
   }
-  void TWIBus::debug(const char func[], char c) {
+  void TWIBus::debug(FSTR_P const func, char c) {
     if (DEBUGGING(INFO)) { prefix(func); SERIAL_ECHOLN(c); }
   }
-  void TWIBus::debug(const char func[], char str[]) {
+  void TWIBus::debug(FSTR_P const func, char str[]) {
     if (DEBUGGING(INFO)) { prefix(func); SERIAL_ECHOLN(str); }
   }
 

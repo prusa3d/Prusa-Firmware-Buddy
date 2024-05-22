@@ -9,7 +9,7 @@
 #include <array>
 #include <functional>
 #include "i_selftest_part.hpp"
-#include "marlin_server.hpp" // ClientResponseHandler
+#include "marlin_server.hpp"
 
 namespace selftest {
 
@@ -45,30 +45,29 @@ private:
     }
 
     virtual LoopResult invokeCurrentState() override {
-        //index was tested by parent
+        // index was tested by parent
         auto fn = arr[this->currentState()];
         return std::invoke(fn, instance);
     }
     virtual Response processButton() override {
         const auto phase_enum = GetFsmPhase();
-        const Response response = ClientResponseHandler::GetResponseFromPhase(phase_enum);
+        const Response response = marlin_server::get_response_from_phase(phase_enum);
         return response;
     }
-
-    virtual void pass() { refResult.Pass(); }
-    virtual void fail() { refResult.Fail(); }
-    virtual void abort() { refResult.Abort(); }
+    virtual void pass() override { refResult.Pass(); }
+    virtual void fail() override { refResult.Fail(); }
+    virtual void abort() override { refResult.Abort(); }
 
 public:
     // ctor needs to pass reference to result and last result
     // because i need to actualize result in place, where only non template IPartHandler is known
     template <class... E>
-    PartHandler(const CNF &cnf, EvaluationType &refResult, E &&... e)
+    PartHandler(const CNF &cnf, EvaluationType &refResult_, E &&...e)
         : IPartHandler(SZ, CNF::part_type)
-        , instance(*this, cnf, refResult)
+        , instance(*this, cnf, refResult_)
         , arr { std::forward<E>(e)... }
-        , refResult(refResult)
-        , fnc_state_changed([](T &) {})  // use empty lambda for state enter, so I don't need to check nullptr
+        , refResult(refResult_)
+        , fnc_state_changed([](T &) {}) // use empty lambda for state enter, so I don't need to check nullptr
         , fnc_state_remained([](T &) {}) // use empty lambda for state remain, so I don't need to check nullptr
     {
         // result can refer to static variable, need to reset its value
@@ -87,15 +86,15 @@ struct Factory {
     template <class T, class CNF, class... E>
     static auto Create(const CNF &cnf,
         typename CNF::type_evaluation &refResult,
-        E &&... e) {
+        E &&...e) {
         return PartHandler<T, CNF, sizeof...(E)>(cnf, refResult, std::forward<E>(e)...);
     }
     template <class T, class CNF, class... E>
     static constexpr auto *CreateDynamical(const CNF &cnf,
         typename CNF::type_evaluation &refResult,
-        E &&... e) {
+        E &&...e) {
         return new PartHandler<T, CNF, sizeof...(E)>(cnf, refResult, std::forward<E>(e)...);
     }
 };
 
-};
+}; // namespace selftest

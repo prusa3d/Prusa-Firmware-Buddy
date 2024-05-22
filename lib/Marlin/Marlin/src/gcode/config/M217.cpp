@@ -51,6 +51,10 @@ void M217_report(const bool eeprom=false) {
   SERIAL_EOL();
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M217 - Set SINGLENOZZLE toolchange parameters
  *
@@ -97,5 +101,7 @@ void GcodeSuite::M217() {
 
   if (!parser.seen(SPR_PARAM XY_PARAM "Z")) M217_report();
 }
+
+/** @}*/
 
 #endif // EXTRUDERS > 1

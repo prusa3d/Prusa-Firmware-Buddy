@@ -8,12 +8,18 @@
 #pragma once
 
 #include "selftest_group.hpp"
-#include "selftest_eeprom.hpp"
+#include "selftest_result_type.hpp"
+#include <printers.h>
 
 class ResultFans : public SelfTestGroup {
     SelfTestViewTextWithIconAndResult heatbreak;
     SelfTestViewTextWithIconAndResult print;
+#if not PRINTER_IS_PRUSA_MINI
+    SelfTestViewTextWithIconAndResult fans_switched;
+#endif
 
 public:
-    ResultFans(TestResult_t hb_fan, TestResult_t print_fan);
+    ResultFans();
+
+    void SetState(TestResult hb_fan, TestResult print_fan, TestResult fans_swtchd);
 };

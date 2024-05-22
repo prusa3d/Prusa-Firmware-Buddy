@@ -1,8 +1,6 @@
 #include "catch2/catch.hpp"
 
-#define STM32GENERIC
-
-#include "precise_homing.h"
+#include "homing_modus.hpp"
 
 using Catch::Matchers::Equals;
 

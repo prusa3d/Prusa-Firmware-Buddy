@@ -12,9 +12,10 @@
 
 #if defined(__cplusplus)
 extern "C" {
-#endif //defined(__cplusplus)
+#endif // defined(__cplusplus)
 
 void filesystem_init();
+void init_only_littlefs();
 
 static inline const char *process_path(const char *path, const char *dev_name) {
     unsigned int dev_name_len = strlen(dev_name);
@@ -24,6 +25,10 @@ static inline const char *process_path(const char *path, const char *dev_name) {
         device_path++;
     }
     if (strncmp(device_path, dev_name, dev_name_len) == 0) {
+        if (strlen(device_path) == dev_name_len) {
+            // Device name is the whole path, return root
+            return "/";
+        }
         // Skip device name
         return device_path + dev_name_len;
     }
@@ -32,5 +37,5 @@ static inline const char *process_path(const char *path, const char *dev_name) {
 }
 
 #if defined(__cplusplus)
-} //extern "C"
-#endif //defined(__cplusplus)
+} // extern "C"
+#endif // defined(__cplusplus)

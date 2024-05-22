@@ -4,11 +4,12 @@
 #include <stdio.h>
 #include <string.h>
 #include "gettext_string_hash.hpp"
+#include "translator.hpp"
 #include "file_raii.hpp"
 
 class FILETranslationProvider : public ITranslationProvider {
 
-    char m_Path[16];
+    char m_Path[128];
     mutable FILE *m_File = nullptr;
     mutable gettext_hash_table m_HashTable;
     mutable uint32_t m_TransTableOff;

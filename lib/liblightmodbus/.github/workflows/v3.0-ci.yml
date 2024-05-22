@@ -1,0 +1,220 @@
+name: v3.0 CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '10 21 * * 6'
+
+jobs:
+  build:
+    name: "Basic build test"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build basic test
+      run: make -C test/basic
+    - name: Run basic test
+      run: test/basic/basic
+
+  cmake-build:
+    name: "CMake build test"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Configure
+        run: cmake -S test/cmake -B test/cmake/build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build test/cmake/build
+      - name: Run basic test
+        run: test/cmake/build/main
+
+  avr-build:
+    name: "AVR build test"
+    runs-on: ubuntu-latest
+    container:
+      image: 'docker://lpodkalicki/avr-toolchain'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: "Check toolchain version"
+        run: |
+          avr-gcc --version
+          avr-size -v
+      - name: "Slave build"
+        run: make -C test/avr slave
+      - name: "Master build"
+        run: make -C test/avr master
+      - name: "Full build"
+        run: make -C test/avr full
+      - name: Build AVR slave example
+        run: make -C examples/avrslave
+
+  cpp-build:
+    name: "C++ build test"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Compile
+        run: make -C test/cpp
+
+  examples-build:
+    name: "Build examples"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build examples
+      run: make -C examples
+    - name: Run demo
+      run: ./examples/demo
+    - name: Build integration demo
+      run: make -C examples/integration
+    - name: Build user-defined functions example
+      run: make -C examples/userfun
+    - name: Run user-defined functions example
+      run: ./examples/userfun/userfun
+    - name: Build C++ example
+      run: make -C examples/cpp
+    - name: Run C++ example
+      run: ./examples/cpp/cppdemo
+    - name: Build the Linux master application
+      run: make -C examples/linuxmaster
+
+  main-test:
+    name: "Tests"
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build test suite
+      run: make -C test main-test
+    - name: Run test suite
+      run: test/main-test
+
+  address-sanitizer-test:
+    name: "Address sanitizer"
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build test suite (with AddressSan)
+      run: make -C test addrsan-test
+    - name: Run
+      run: test/addrsan-test
+
+  ub-sanitizer-test:
+    name: "UB sanitizer"
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build test suite (with UBSan)
+      run: make -C test ubsan-test
+    - name: Run
+      run: test/ubsan-test
+
+  coverage-test:
+    name: "Coverage testing"
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build test suite (with coverage testing)
+      run: make -C test coverage-test
+    - name: Run coverage test
+      run: test/coverage-test
+    - name: Install lcov
+      run: sudo apt-get install lcov
+    - name: Run lcov
+      run: lcov --directory . --exclude '*test*' --exclude '*debug*' --no-external --capture --output-file app.info
+    - name: Coveralls upload
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: "app.info"
+
+  compat-test:
+    name: "v2.0 slave compatibility test"
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build tests
+      run: make -C test/compat
+    - name: Generate random requests
+      run: ./test/compat/genrq 1000 > requests.txt
+    - name: Test v2 responses
+      run: ./test/compat/v2test < requests.txt > v2.txt
+    - name: Test v3 responses
+      run: ./test/compat/v3test < requests.txt > v3.txt
+    - name: Compare responses
+      run: cmp v2.txt v3.txt 
+
+  big-endian:
+    name: "Big-endian tests"
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get the qemu container
+      run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    - name: Run uname
+      run: uname -a
+    - name: Run tests on s390x/ubuntu
+      run: docker run --rm s390x/ubuntu bash -c "apt update && apt install -y gcc g++ make git && git clone https://github.com/jacajack/liblightmodbus.git && cd liblightmodbus && git checkout origin/master && make -C test && ./test/main-test"
+
+  docs-build:
+    name: "Build & deploy docs"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout (with submodules)
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Run Doxygen
+      uses: mattnotmitt/doxygen-action@v1
+      with:
+        working-directory: '.'
+        doxyfile-path: 'doc/doxygen.conf'
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        destination_dir: '.'
+        publish_dir: doc/html
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+
+  codeql:
+    name: "CodeQL analysis"
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['cpp']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: ${{ matrix.language }}
+      - name: Build CodeQL test
+        run: make -C test/codeql
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1

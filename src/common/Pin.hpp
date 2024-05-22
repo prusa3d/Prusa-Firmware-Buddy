@@ -21,7 +21,7 @@
  * @brief Declare all pins supplied in PIN_TABLE parameter
  * @par Usage:
  * @code
- * DECLARE_PINS(PIN_TABLE)
+ * PIN_TABLE(DECLARE_PINS)
  * @endcode
  */
 #define DECLARE_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) inline constexpr TYPE NAME(PORTPIN, PARAMETERS);
@@ -30,7 +30,7 @@
  * @brief Declare all pins supplied in VIRTUAL_PIN_TABLE parameter
  * @par Usage:
  * @code
- * DECLARE_VIRTUAL_PINS(VIRTUAL_PIN_TABLE)
+ * VIRTUAL_PIN_TABLE(DECLARE_VIRTUAL_PINS)
  * @endcode
  */
 #define DECLARE_VIRTUAL_PINS(TYPE, READ_FN, ISR_FN, NAME, PORTPIN, PARAMETERS) inline constexpr TYPE<READ_FN, ISR_FN> NAME(PARAMETERS);
@@ -43,16 +43,28 @@
  * @endcode
  */
 #define CONFIGURE_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) buddy::hw::NAME.configure();
+
 /**
  * @brief Generate array of physical location of all pins supplied in PIN_TABLE parameter
  * @par Usage:
  * @code
  * constexpr PinChecker pinsToCheck[] = {
- *   PINS_TO_CHECK(PIN_TABLE)
+ *   PIN_TABLE(PINS_TO_CHECK)
  * };
  * @endcode
  */
 #define PINS_TO_CHECK(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) { PORTPIN },
+
+/**
+ * @brief Generate array of physical location of all pins supplied in VIRTUAL_PIN_TABLE parameter
+ * @par Usage:
+ * @code
+ * constexpr PinChecker pinsToCheck[] = {
+ *   VIRTUAL_PIN_TABLE(VIRTUAL_PINS_TO_CHECK)
+ * };
+ * @endcode
+ */
+#define VIRTUAL_PINS_TO_CHECK(TYPE, READ_FN, ISR_FN, NAME, PORTPIN, PARAMETERS) { PORTPIN },
 /**@}*/
 
 namespace buddy::hw {
@@ -110,7 +122,7 @@ protected:
         : m_halPortBase(IoPortToHalBase(ioPort))
         , m_halPin(IoPinToHal(ioPin)) {}
 
-    GPIO_TypeDef *getHalPort() const {
+    __attribute__((always_inline)) inline GPIO_TypeDef *getHalPort() const {
         return reinterpret_cast<GPIO_TypeDef *>(m_halPortBase);
     }
 
@@ -204,18 +216,46 @@ public:
      *          Lowest sub-priority depends on how available priority bits are assigned between
      *          priority and sub-priority.
      */
-    constexpr InterruptPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, uint8_t preemptPriority, uint8_t subPriority)
+    constexpr InterruptPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, uint8_t preemptPriority, uint8_t subPriority, bool startEnabled = true)
         : InputPin(ioPort, ioPin, iMode, pull)
-        , m_priority { preemptPriority, subPriority } {}
+        , m_priority { preemptPriority, subPriority }
+        , m_startEnabled(startEnabled) {}
     void configure() const;
+
+    // IRQ handler for the interrupt
     IRQn_Type getIRQn() const;
 
-private:
+    // EXTI interrupt flag management
+    bool getIT() const { return __HAL_GPIO_EXTI_GET_IT(m_halPin) != RESET; }
+    void clearIT() const { __HAL_GPIO_EXTI_CLEAR_IT(m_halPin); }
+    void triggerIT() const { __HAL_GPIO_EXTI_GENERATE_SWIT(m_halPin); }
+
+    // NVIC interrupt management
+    bool isIRQEnabled() const { return NVIC_GetEnableIRQ(getIRQn()); }
+    void enableIRQ() const { HAL_NVIC_EnableIRQ(getIRQn()); }
+    void disableIRQ() const { HAL_NVIC_DisableIRQ(getIRQn()); }
+
+protected:
     struct Priority {
         uint8_t preemptPriority : 4;
         uint8_t subPriority : 4;
     };
     Priority m_priority;
+    bool m_startEnabled;
+};
+
+class InterruptPin_Inverted : public InterruptPin {
+public:
+    constexpr InterruptPin_Inverted(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, uint8_t preemptPriority, uint8_t subPriority)
+        : InterruptPin(ioPort, ioPin, iMode, pull, preemptPriority, subPriority) {}
+
+    State read() const {
+        if ((getHalPort()->IDR & m_halPin) != (uint32_t)GPIO_PIN_RESET) {
+            return State::low;
+        } else {
+            return State::high;
+        }
+    }
 };
 
 typedef Pin::State (*ReadFunction)();
@@ -249,11 +289,18 @@ enum class OSpeed : uint8_t {
 
 class OutputPin : protected Pin {
 public:
+    constexpr OutputPin(Pin pin, State initState, OMode oMode, OSpeed oSpeed)
+        : Pin(pin)
+        , m_initState(initState)
+        , m_mode(oMode)
+        , m_speed(oSpeed) {}
+
     constexpr OutputPin(IoPort ioPort, IoPin ioPin, State initState, OMode oMode, OSpeed oSpeed)
         : Pin(ioPort, ioPin)
         , m_initState(initState)
         , m_mode(oMode)
         , m_speed(oSpeed) {}
+
     /**
      * @brief  Read output pin.
      *
@@ -261,7 +308,7 @@ public:
      * @retval State::high
      * @retval State::low
      */
-    State read() {
+    State read() const {
         if ((getHalPort()->ODR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
             return State::high;
         } else {
@@ -275,6 +322,64 @@ public:
             getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
         }
     }
+
+    __attribute__((always_inline)) inline void toggle() const {
+        getHalPort()->ODR ^= m_halPin;
+    }
+
+    __attribute__((always_inline)) inline void set() const {
+        getHalPort()->BSRR = m_halPin;
+    }
+
+    __attribute__((always_inline)) inline void reset() const {
+        getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+    }
+
+    void configure() const;
+
+public:
+    State m_initState;
+    OMode m_mode;
+    OSpeed m_speed;
+};
+
+class OutputPin_Inverted : protected Pin {
+public:
+    constexpr OutputPin_Inverted(IoPort ioPort, IoPin ioPin, State initState, OMode oMode, OSpeed oSpeed)
+        : Pin(ioPort, ioPin)
+        , m_initState((State::low == initState) ? State::high : State::low)
+        , m_mode(oMode)
+        , m_speed(oSpeed) {}
+    /**
+     * @brief  Read output pin.
+     *
+     * Reads output data register. Can not work for alternate function pin.
+     * @retval State::high
+     * @retval State::low
+     */
+    State read() const {
+        if ((getHalPort()->ODR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
+            return State::low;
+        } else {
+            return State::high;
+        }
+    }
+    void write(State pinState) const {
+        if (pinState != State::low) {
+            getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+        } else {
+            getHalPort()->BSRR = m_halPin;
+        }
+    }
+
+    __attribute__((always_inline)) inline void set() const {
+        getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+    }
+
+    __attribute__((always_inline)) inline void reset() const {
+        getHalPort()->BSRR = m_halPin;
+    }
+
     void configure() const;
 
 public:
@@ -335,7 +440,7 @@ private:
 
 class DummyOutputPin : protected Pin {
 public:
-    constexpr DummyOutputPin(IoPort ioPort, IoPin ioPin, State initState, OMode oMode, OSpeed oSpeed)
+    constexpr DummyOutputPin(IoPort ioPort, IoPin ioPin, State initState, [[maybe_unused]] OMode oMode, [[maybe_unused]] OSpeed oSpeed)
         : Pin(ioPort, ioPin)
         , m_state(initState) {}
     /**
@@ -377,7 +482,10 @@ private:
 class OutputEnabler {
 public:
     OutputEnabler(const InputOutputPin &innputOutputPin, Pin::State pinState, OMode mode, OSpeed speed)
-        : m_innputOutputPin(innputOutputPin) {
+        : m_innputOutputPin(innputOutputPin)
+        , m_pinState { pinState }
+        , m_mode { mode }
+        , m_speed { speed } {
         innputOutputPin.enableOutput(pinState, mode, speed);
     }
     ~OutputEnabler() {
@@ -387,8 +495,15 @@ public:
         m_innputOutputPin.write(pinState);
     }
 
+    OutputPin pin() {
+        return { m_innputOutputPin, m_pinState, m_mode, m_speed };
+    }
+
 private:
     const InputOutputPin &m_innputOutputPin;
+    Pin::State m_pinState;
+    OMode m_mode;
+    OSpeed m_speed;
 };
 
 } // namespace buddy::hw

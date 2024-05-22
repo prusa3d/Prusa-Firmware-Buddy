@@ -7,40 +7,90 @@
 
 #include "selftest_frame_result.hpp"
 #include "ScreenHandler.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_result_type.hpp"
-#include "selftest_eeprom.hpp"
 #include "marlin_client.hpp"
 #include "client_response.hpp"
 
 static constexpr size_t view_msg_gap = 10;
 static constexpr size_t msg_bottom_gap = 6;
-static Rect16::Height_t msg_height() { return 2 * GuiDefaults::Font->h; }
+static Rect16::Height_t msg_height() { return (GuiDefaults::ScreenWidth > 240 ? 2 : 3) * height(GuiDefaults::DefaultFont); } // cannot be constexpr, because of font
 static Rect16::Height_t view_height() { return WizardDefaults::Y_space - msg_height() - view_msg_gap - msg_bottom_gap; }
 
 SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrame>(parent, ph, data)
-    , view(this, { WizardDefaults::col_0, WizardDefaults::row_0, WizardDefaults::X_space, view_height() })
-    , msg(this, this->GenerateRect(msg_height(), view_msg_gap), is_multiline::yes)
+    , msg(this, { WizardDefaults::col_0, WizardDefaults::row_0, WizardDefaults::X_space, msg_height() }, is_multiline::yes)
+    , view(this, this->GenerateRect(view_height(), view_msg_gap))
     , bar(this)
+    , eth(false)
+    , wifi(true) {
 
-    , fans(SelftestResult_t(data).heatBreakFan, SelftestResult_t(data).printFan)
-    , axis(SelftestResult_t(data).xaxis, SelftestResult_t(data).yaxis, SelftestResult_t(data).zaxis)
-    , heaters(SelftestResult_t(data).nozzle, SelftestResult_t(data).bed)
-    , eth(SelftestResult_t(data).eth)
-    , wifi(SelftestResult_t(data).wifi) {
+    SelftestResult eeres;
 
-    if (SelftestResult_t(data).Passed()) {
-        msg.SetText(_("Selftest passed.\nCheck summary for more information."));
-    } else if (SelftestResult_t(data).Passed()) {
-        msg.SetText(_("Selftest failed.\nPlease check summary for failed checks."));
-    } else
-        msg.SetText(_("Some tests did not run or were skipped. Check summary for more information."));
+    FsmSelftestResult fsm_data(data);
+    if (fsm_data.is_test_selftest()) {
+        // Fake some results to test selftest result screen
+        auto get_state = [fsm_data](int n) {
+            return static_cast<TestResult>((fsm_data.test_selftest_code() >> ((n & 0x3) * 2)) & 0x03);
+        };
+        HOTEND_LOOP() {
+            eeres.tools[e].printFan = get_state(e);
+            eeres.tools[e].heatBreakFan = get_state(e + 1);
 
-    //TODO automatic
+#if not PRINTER_IS_PRUSA_MINI
+            eeres.tools[e].fansSwitched = get_state(e + 2);
+#endif
+            eeres.tools[e].nozzle = get_state(e + 3);
+            eeres.tools[e].fsensor = get_state(e + 4);
+            eeres.tools[e].loadcell = get_state(e + 5);
+            eeres.tools[e].sideFsensor = get_state(e + 6);
+        }
+        eeres.xaxis = get_state(0);
+        eeres.yaxis = get_state(1);
+        eeres.zaxis = get_state(2);
+        eeres.bed = get_state(3);
+        eeres.eth = static_cast<TestResultNet>(get_state(4));
+        eeres.wifi = static_cast<TestResultNet>(get_state(5));
+    } else {
+        eeres = config_store().selftest_result.get(); // Read test result directly from EEPROM
+    }
+
+#if HAS_TOOLCHANGER()
+    // XL should use snake instead of this
+    msg.SetText(_("This screen shows only 1st tool!\nXL should use snake!"));
+#else
+    if (SelftestResult_Passed_All(eeres)) {
+        msg.SetText(_("Selftest OK!\nDetails below, use knob to scroll"));
+    } else if (SelftestResult_Failed(eeres)) {
+        msg.SetText(_("Selftest failed!\nDetails below, use knob to scroll"));
+    } else {
+        msg.SetText(_("Selftest incomplete!\nDetails below, use knob to scroll"));
+    }
+#endif /*HAS_TOOLCHANGER()*/
+
+    // Set results
+    fans.SetState(eeres.tools[0].heatBreakFan, eeres.tools[0].printFan, eeres.tools[0].fansSwitched);
+#if HAS_LOADCELL()
+    loadcell.SetState(eeres.tools[0].loadcell);
+#endif /*HAS_LOADCELL()*/
+    heaters.SetState(eeres.tools[0].nozzle, eeres.bed);
+#if FILAMENT_SENSOR_IS_ADC()
+    fsensor.SetState(eeres.tools[0].fsensor);
+#endif /*FILAMENT_SENSOR_IS_ADC()*/
+    axis.SetState(eeres.xaxis, eeres.yaxis, eeres.zaxis);
+    eth.SetState(eeres.eth);
+    wifi.SetState(eeres.wifi);
+
+    // Add all
     view.Add(fans);
     view.Add(axis);
+#if HAS_LOADCELL()
+    view.Add(loadcell);
+#endif /*HAS_LOADCELL()*/
     view.Add(heaters);
+#if FILAMENT_SENSOR_IS_ADC()
+    view.Add(fsensor);
+#endif /*FILAMENT_SENSOR_IS_ADC()*/
     view.Add(eth);
     view.Add(wifi);
 
@@ -53,7 +103,7 @@ SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fs
 void SelftestFrameResult::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK:
-        marlin_FSM_response(phase_current, ClientResponses::GetResponses(phase_current)[0]);
+        marlin_client::FSM_response(phase_current, ClientResponses::GetResponses(phase_current)[0]);
         break;
     case GUI_event_t::ENC_DN:
         height_draw_offset = std::max(height_draw_offset - pixels_per_knob_move, 0);

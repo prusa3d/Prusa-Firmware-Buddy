@@ -27,8 +27,19 @@
 #include "../../gcode.h"
 #include "../../../feature/tmc_util.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M122: Debug TMC drivers
+ *
+ * ## Parameters
+ *
+ * - `X` - Debug X axis TMC driver
+ * - `Y` - Debug Y axis TMC driver
+ * - `Z` - Debug Z axis TMC driver
+ * - `E` - Debug E axis TMC driver
  */
 void GcodeSuite::M122() {
   xyze_bool_t print_axis = { false, false, false, false };
@@ -52,5 +63,7 @@ void GcodeSuite::M122() {
 
   test_tmc_connection(print_axis.x, print_axis.y, print_axis.z, print_axis.e);
 }
+
+/** @}*/
 
 #endif // HAS_TRINAMIC

@@ -52,6 +52,8 @@ public:
     Print()
         : write_error(0) {}
 
+    virtual ~Print() = default;
+
     int getWriteError() {
         return write_error;
     }

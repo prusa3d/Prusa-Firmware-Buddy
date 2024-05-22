@@ -15,6 +15,10 @@
 #include <stdint.h>
 #include <limits>
 
+// Ensure functions are kept optimized also in debug builds to keep timing consistent
+#pragma GCC push_options
+#pragma GCC optimize("O3")
+
 #define FORCE_INLINE __attribute__((always_inline)) inline
 
 #if defined(__arm__) || defined(__thumb__)
@@ -41,9 +45,9 @@ FORCE_INLINE static void timing_delay_4cycles(uint32_t cy) { // +1 cycle
         " subs %[cnt],#1\n\t" //
         EXTRA_NOP_CYCLES
         " bne 1b\n\t"
-        : [ cnt ] "+r"(cy) // output: +r means input+output
-        :                  // input:
-        : "cc"             // clobbers:
+        : [cnt] "+r"(cy) // output: +r means input+output
+        : // input:
+        : "cc" // clobbers:
     );
     #undef EXTRA_NOP_CYCLES
 }
@@ -67,10 +71,13 @@ FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
             switch (x) {
             case 4:
                 nop();
+                [[fallthrough]];
             case 3:
                 nop();
+                [[fallthrough]];
             case 2:
                 nop();
+                [[fallthrough]];
             case 1:
                 nop();
             }
@@ -79,17 +86,21 @@ FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
             switch (rem) {
             case 3:
                 nop();
+                [[fallthrough]];
             case 2:
                 nop();
+                [[fallthrough]];
             case 1:
                 nop();
             }
-            if ((x = (x - 1) / (MAXNOPS)))
+            if ((x = (x - 1) / (MAXNOPS))) {
                 timing_delay_4cycles(x); // if need more then 4 nop loop is more optimal
+            }
         }
     #undef MAXNOPS
-    } else if ((x >>= 2))
+    } else if ((x >>= 2)) {
         timing_delay_4cycles(x);
+    }
     #undef nop
 }
 
@@ -128,15 +139,16 @@ FORCE_INLINE constexpr uint32_t timing_microseconds_to_cycles(uint32_t us) {
  *
  * @param ns time in nanoseconds (compile time constant)
  */
-#define DELAY_NS_PRECISE(ns)                                                                           \
-    do {                                                                                               \
-        static_assert((ns) < (std::numeric_limits<uint64_t>::max() / (SYSTEM_CORE_CLOCK / 1000000UL)), \
-            "ns out of range");                                                                        \
-        static_assert(timing_nanoseconds_to_cycles(ns) <= std::numeric_limits<uint32_t>::max(),        \
-            "ns out of range");                                                                        \
-        constexpr uint32_t cycles = timing_nanoseconds_to_cycles(ns);                                  \
-        timing_delay_cycles(cycles);                                                                   \
-    } while (0)
+
+template <uint64_t ns>
+FORCE_INLINE static constexpr void delay_ns_precise() {
+    static_assert(ns < (std::numeric_limits<uint64_t>::max() / (SYSTEM_CORE_CLOCK / 1000000UL)),
+        "ns out of range");
+    static_assert(timing_nanoseconds_to_cycles(ns) <= std::numeric_limits<uint32_t>::max(),
+        "ns out of range");
+    constexpr uint32_t cycles = timing_nanoseconds_to_cycles(ns);
+    timing_delay_cycles(cycles);
+}
 
 /**
  * @brief Delay microseconds
@@ -148,7 +160,10 @@ FORCE_INLINE constexpr uint32_t timing_microseconds_to_cycles(uint32_t us) {
  *
  * @param us time in microseconds (compile time constant)
  */
-#define DELAY_US_PRECISE(us) DELAY_NS_PRECISE(us * 1000ULL)
+template <uint64_t us>
+FORCE_INLINE static constexpr void delay_us_precise() {
+    delay_ns_precise<us * 1000ULL>();
+}
 
 /**
  * @brief Delay microseconds
@@ -162,8 +177,8 @@ FORCE_INLINE constexpr uint32_t timing_microseconds_to_cycles(uint32_t us) {
  * Correct timing is guaranteed after SystemClock_Config() call if
  * caller can not be interrupted.
  *
- * Use DELAY_MS_PRECISE if dealing with compile time constant delay
- * to get range check for free.
+ * Use delay_us_precise<>()/delay_ns_precise<>() if dealing with compile
+ * time constant delay to get range check for free.
  *
  * @param us time in microseconds
  * Maximum range depends on CPU clock. For 168 Mhz it is 25 565 us.
@@ -171,3 +186,5 @@ FORCE_INLINE constexpr uint32_t timing_microseconds_to_cycles(uint32_t us) {
 FORCE_INLINE void delay_us_precise(uint32_t us) {
     timing_delay_cycles(timing_microseconds_to_cycles(us));
 }
+
+#pragma GCC pop_options

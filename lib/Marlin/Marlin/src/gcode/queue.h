@@ -27,6 +27,7 @@
  */
 
 #include "../inc/MarlinConfig.h"
+#include <limits>
 
 class GCodeQueue {
 public:
@@ -53,8 +54,13 @@ public:
 
   static char command_buffer[BUFSIZE][MAX_CMD_SIZE];
 
+  static constexpr uint32_t SDPOS_INVALID = std::numeric_limits<uint32_t>::max(); // When sdpos doesn't have valid value
+
   static uint32_t sdpos;                 // Position in file for the latest instruction
   static uint32_t sdpos_buffer[BUFSIZE]; // Ring buffer of positions (synced with command_buffer)
+
+  /// True pauses processing of serial commands.
+  static bool pause_serial_commands;
 
   // Return the file position of the _current_ instruction
   static uint32_t get_current_sdpos() {

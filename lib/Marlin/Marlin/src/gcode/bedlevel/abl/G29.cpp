@@ -165,7 +165,8 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__MBL_END() {}
  *
  */
 G29_TYPE GcodeSuite::G29() {
-    MINDA_BROKEN_CABLE_DETECTION__MBL_BEGIN();
+  MINDA_BROKEN_CABLE_DETECTION__MBL_BEGIN();
+
   #if EITHER(DEBUG_LEVELING_FEATURE, PROBE_MANUALLY)
     const bool seenQ = parser.seen('Q');
   #else

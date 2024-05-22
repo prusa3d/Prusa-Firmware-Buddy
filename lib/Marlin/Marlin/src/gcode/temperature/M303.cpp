@@ -22,10 +22,14 @@
 
 #include "../../inc/MarlinConfig.h"
 
-#if HAS_PID_HEATING
+#if HAS_PID_HEATING && ENABLED(PID_AUTOTUNE)
 
 #include "../gcode.h"
 #include "../../module/temperature.h"
+
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
  * M303: PID relay autotune
@@ -62,5 +66,7 @@ void GcodeSuite::M303() {
 
   thermalManager.PID_autotune(temp, e, c, u);
 }
+
+/** @}*/
 
 #endif // HAS_PID_HEATING

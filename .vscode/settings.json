@@ -1,23 +1,15 @@
 {
     "cmake.configureOnOpen": true,
-    "ccls.misc.showInactiveRegions": true,
-    "ccls.index.multiVersion": 1,
     "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
-    "ccls.clang.extraArgs": [
-        "-fno-ms-compatibility",
-        "-nostdinc",
-        "-nostdinc++",
-        "-target",
-        "thumbv7m-none-eabi",
-        "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/../arm-none-eabi/include/newlib-nano",
-        "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include/c++/10.3.1",
-        "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include/c++/10.3.1/arm-none-eabi",
-        "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include/c++/10.3.1/backward",
-        "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/../lib/gcc/arm-none-eabi/10.3.1/include",
-        "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/../lib/gcc/arm-none-eabi/10.3.1/include-fixed",
-        "-isystem${workspaceFolder}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include"
-    ],
-    "cmake.cmakePath": "${workspaceFolder}/.dependencies/cmake-3.22.5/bin/cmake",
+    "cmake.cmakePath": "${workspaceFolder}/.dependencies/cmake-3.28.3/bin/cmake",
     "cmake.generator": "Ninja",
-    "files.insertFinalNewline": true
+    "files.insertFinalNewline": true,
+    "files.associations": {
+        "xlocale": "cpp"
+    },
+    "task.allowAutomaticTasks": "on",
+    "clangd.arguments": [
+        "--query-driver=**/.dependencies/gcc-arm-none-eabi-*/*/arm-none-eabi-g*",
+        "--header-insertion=never"
+    ]
 }

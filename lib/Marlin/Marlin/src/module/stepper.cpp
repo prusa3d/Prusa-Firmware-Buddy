@@ -137,13 +137,10 @@ Stepper stepper; // Singleton
 
 // private:
 
-block_t* Stepper::current_block; // (= nullptr) A pointer to the block currently being traced
-
 uint8_t Stepper::last_direction_bits, // = 0
         Stepper::axis_did_move; // = 0
 
-bool Stepper::abort_current_block;
-
+#if 0
 #if DISABLED(MIXING_EXTRUDER) && EXTRUDERS > 1
   uint8_t Stepper::last_moved_extruder = 0xFF;
 #endif
@@ -226,9 +223,12 @@ int32_t Stepper::ticks_nominal = -1;
   uint32_t Stepper::acc_step_rate; // needed for deceleration start point
 #endif
 
+#endif
+
 xyz_long_t Stepper::endstops_trigsteps;
 xyze_long_t Stepper::count_position{0};
 xyze_long_t Stepper::count_position_from_startup{0};
+xyze_long_t Stepper::count_position_last_block{0};
 xyze_int8_t Stepper::count_direction{0};
 
 #define DUAL_ENDSTOP_APPLY_STEP(A,V)                                                                                        \
@@ -441,11 +441,28 @@ void Stepper::set_directions() {
 
 // Return ratio of completed steps of current block (call within ISR context)
 float Stepper::segment_progress() {
-  if (!step_event_count) return 0.f;
-  float count = step_event_count;
-  float done = step_events_completed;
-  return done / count;
+  const block_t *current_block = planner.get_current_processed_block();
+  if (!current_block || !current_block->mstep_event_count) return NAN;
+
+  abce_ulong_t planned_msteps = current_block->msteps;
+  xyze_long_t done_msteps = (count_position - count_position_last_block) * PLANNER_STEPS_MULTIPLIER;
+
+  float planned;
+  float done;
+
+  if (planned_msteps.a || planned_msteps.b || planned_msteps.c) {
+    // explicitly ignore extruder
+    planned = (float)(planned_msteps.a + planned_msteps.b + planned_msteps.c);
+    done = (float)(abs(done_msteps.a) + abs(done_msteps.b) + abs(done_msteps.c));
+  } else {
+    planned = (float)(current_block->mstep_event_count);
+    done = (float)(abs(done_msteps.a) + abs(done_msteps.b) + abs(done_msteps.c) + abs(done_msteps.e));
+  }
+
+  return done / planned;
 }
+
+#if 0
 
 #if ENABLED(S_CURVE_ACCELERATION)
   /**
@@ -515,9 +532,9 @@ float Stepper::segment_progress() {
    * The trapezoid generator state contains the following information, that we will use to create and evaluate
    * the Bézier curve:
    *
-   *  blk->step_event_count [TS] = The total count of steps for this movement. (=distance)
-   *  blk->initial_rate     [VI] = The initial steps per second (=velocity)
-   *  blk->final_rate       [VF] = The ending steps per second  (=velocity)
+   *  blk->mstep_event_count [TS] = The total count of mini-steps for this movement. (=distance)
+   *  blk->initial_rate      [VI] = The initial steps per second (=velocity)
+   *  blk->final_rate        [VF] = The ending steps per second  (=velocity)
    *  and the count of events completed (step_events_completed) [CS] (=distance until now)
    *
    *  Note the abbreviations we use in the following formulae are between []s
@@ -1265,6 +1282,7 @@ HAL_STEP_TIMER_ISR() {
 
   HAL_timer_isr_epilogue(STEP_TIMER_NUM);
 }
+#endif
 
 #ifdef CPU_32_BIT
   #define STEP_MULTIPLY(A,B) MultiU32X24toH32(A, B)
@@ -1272,6 +1290,7 @@ HAL_STEP_TIMER_ISR() {
   #define STEP_MULTIPLY(A,B) MultiU24X32toH16(A, B)
 #endif
 
+#if 0
 void Stepper::isr() {
   #ifndef __AVR__
     // Disable interrupts, to avoid ISR preemption while we reprogram the period
@@ -1413,8 +1432,12 @@ void Stepper::isr() {
   ENABLE_ISRS();
 }
 
+#endif
+
 #define _APPLY_STEP(AXIS) AXIS ##_APPLY_STEP
 #define _INVERT_STEP_PIN(AXIS) INVERT_## AXIS ##_STEP_PIN
+
+#if 0
 
 void Stepper::slow_axis_pulse_phase_isr() {
 
@@ -1799,7 +1822,7 @@ uint32_t Stepper::stepper_block_phase_isr(uint32_t &slow_axis_interval, bool &sl
 
       #if IS_CORE
         // Define conditions for checking endstops
-        #define S_(N) current_block->steps[CORE_AXIS_##N]
+        #define S_(N) current_block->msteps[CORE_AXIS_##N]
         #define D_(N) TEST(current_block->direction_bits, CORE_AXIS_##N)
       #endif
 
@@ -1818,7 +1841,7 @@ uint32_t Stepper::stepper_block_phase_isr(uint32_t &slow_axis_interval, bool &sl
         #endif
         #define X_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) X_CMP D_(2)) )
       #else
-        #define X_MOVE_TEST !!current_block->steps.a
+        #define X_MOVE_TEST !!current_block->msteps.a
       #endif
 
       #if CORE_IS_XY || CORE_IS_YZ
@@ -1836,7 +1859,7 @@ uint32_t Stepper::stepper_block_phase_isr(uint32_t &slow_axis_interval, bool &sl
         #endif
         #define Y_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) Y_CMP D_(2)) )
       #else
-        #define Y_MOVE_TEST !!current_block->steps.b
+        #define Y_MOVE_TEST !!current_block->msteps.b
       #endif
 
       #if CORE_IS_XZ || CORE_IS_YZ
@@ -1854,17 +1877,17 @@ uint32_t Stepper::stepper_block_phase_isr(uint32_t &slow_axis_interval, bool &sl
         #endif
         #define Z_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) Z_CMP D_(2)) )
       #else
-        #define Z_MOVE_TEST !!current_block->steps.c
+        #define Z_MOVE_TEST !!current_block->msteps.c
       #endif
 
       uint8_t axis_bits = 0;
       if (X_MOVE_TEST) SBI(axis_bits, A_AXIS);
       if (Y_MOVE_TEST) SBI(axis_bits, B_AXIS);
       if (Z_MOVE_TEST) SBI(axis_bits, C_AXIS);
-      if (!!current_block->steps.e) SBI(axis_bits, E_AXIS);
-      //if (!!current_block->steps.a) SBI(axis_bits, X_HEAD);
-      //if (!!current_block->steps.b) SBI(axis_bits, Y_HEAD);
-      //if (!!current_block->steps.c) SBI(axis_bits, Z_HEAD);
+      if (!!current_block->msteps.e) SBI(axis_bits, E_AXIS);
+      //if (!!current_block->msteps.a) SBI(axis_bits, X_HEAD);
+      //if (!!current_block->msteps.b) SBI(axis_bits, Y_HEAD);
+      //if (!!current_block->msteps.c) SBI(axis_bits, Z_HEAD);
       axis_did_move = axis_bits;
 
       // No acceleration / deceleration time elapsed so far
@@ -1884,19 +1907,19 @@ uint32_t Stepper::stepper_block_phase_isr(uint32_t &slow_axis_interval, bool &sl
       #endif
 
       // Based on the oversampling factor, do the calculations
-      step_event_count = current_block->step_event_count << oversampling;
+      step_event_count = current_block->mstep_event_count << oversampling;
 
       // Initialize Bresenham delta errors to 1/2
       delta_error = -int32_t(step_event_count);
 
       // Calculate Bresenham dividends and divisors
-      advance_dividend = current_block->steps << 1;
+      advance_dividend = current_block->msteps << 1;
       advance_divisor = step_event_count << 1;
 
       // No step events completed so far
       step_events_completed = 0;
 
-      slow_axis_steps_to_do = X_is_slow_axis() ? current_block->steps.x : current_block->steps.y;
+      slow_axis_steps_to_do = X_is_slow_axis() ? current_block->msteps.x : current_block->msteps.y;
 
       // Compute the acceleration and deceleration points
       accelerate_until = current_block->accelerate_until << oversampling;
@@ -1957,7 +1980,7 @@ uint32_t Stepper::stepper_block_phase_isr(uint32_t &slow_axis_interval, bool &sl
         // If delayed Z enable, enable it now. This option will severely interfere with
         // timing between pulses when chaining motion between blocks, and it could lead
         // to lost steps in both X and Y axis, so avoid using it unless strictly necessary!!
-        if (current_block->steps.z) enable_Z();
+        if (current_block->msteps.z) enable_Z();
       #endif
 
       // Mark the time_nominal as not calculated yet
@@ -2108,6 +2131,8 @@ bool Stepper::is_block_busy(const block_t* const block) {
   return block == vnew;
 }
 
+#endif
+
 void Stepper::init() {
 
   #if MB(ALLIGATOR)
@@ -2225,8 +2250,7 @@ void Stepper::init() {
 
   #define AXIS_INIT(AXIS, PIN) \
     _STEP_INIT(AXIS); \
-    _WRITE_STEP(AXIS, _INVERT_STEP_PIN(PIN)); \
-    _DISABLE(AXIS)
+    _WRITE_STEP(AXIS, _INVERT_STEP_PIN(PIN))
 
   #define E_AXIS_INIT(NUM) AXIS_INIT(E## NUM, E)
 
@@ -2237,6 +2261,11 @@ void Stepper::init() {
       X2_STEP_WRITE(INVERT_X_STEP_PIN);
     #endif
     AXIS_INIT(X, X);
+    #if ENABLED(XY_LINKED_ENABLE)
+    _DISABLE(XY);
+    #else
+    _DISABLE(X);
+    #endif
   #endif
 
   #if HAS_Y_STEP
@@ -2245,6 +2274,11 @@ void Stepper::init() {
       Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
     #endif
     AXIS_INIT(Y, Y);
+    #if ENABLED(XY_LINKED_ENABLE)
+    _DISABLE(XY);
+    #else
+    _DISABLE(Y);
+    #endif
   #endif
 
   #if HAS_Z_STEP
@@ -2257,6 +2291,7 @@ void Stepper::init() {
       Z3_STEP_WRITE(INVERT_Z_STEP_PIN);
     #endif
     AXIS_INIT(Z, Z);
+    _DISABLE(Z);
   #endif
 
   #if E_STEPPERS > 0 && HAS_E0_STEP
@@ -2371,7 +2406,7 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
   );
 
   // Discard the rest of the move if there is a current block
-  quick_stop();
+  PreciseStepping::quick_stop();
 
   if (was_enabled) wake_up();
 }
@@ -3085,8 +3120,8 @@ void Stepper::report_positions() {
   }
 
 #endif // HAS_MICROSTEPS
-#if HAS_DRIVER(TMC2130)
-#include "eeprom_function_api.h"
+#if HAS_DRIVER(TMC2130) || HAS_DRIVER(TMC2209)
+#include "config_store/store_c_api.h"
 void Stepper::microstep_mode(const uint8_t driver, const uint8_t stepping){
     switch(driver){
       case 0:
@@ -3212,4 +3247,4 @@ SERIAL_ECHOPGM(msg);
 SERIAL_ECHOPGM(msg);
 #endif
 }
-#endif //HAS_DRIVER(TMC2130)
+#endif // HAS_DRIVER(TMC2130) || HAS_DRIVER(TMC2209)

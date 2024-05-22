@@ -3,19 +3,16 @@
 #include "gui.hpp"
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#include "window_menu.hpp"
+#include "window_menu_adv.hpp"
 #include "WinMenuContainer.hpp"
 #include "WindowMenuItems.hpp"
 #include <stdint.h>
-#include "resource.h"
 #include "screen.hpp"
 #include <new>
 
-//parent to not repeat code in templates
+// parent to not repeat code in templates
 class IScreenMenu : public AddSuperWindow<screen_t> {
 protected:
-    constexpr static const char *no_labelS = "MISSING";
-    static string_view_utf8 no_label;
     window_header_t header;
     window_menu_t menu;
     StatusFooter footer;
@@ -30,18 +27,21 @@ public:
 template <EFooter FOOTER, class... T>
 class ScreenMenu : public AddSuperWindow<IScreenMenu> {
 protected:
-    //std::array<window_t*,sizeof...(T)> pElements;//todo menu item is not a window
+    // std::array<window_t*,sizeof...(T)> pElements;//todo menu item is not a window
     WinMenuContainer<T...> container;
 
 public:
-    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr);
+    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr)
+        : AddSuperWindow<IScreenMenu>(parent, label, FOOTER) {
+        menu.BindContainer(container);
+    }
 
-    //compile time access by index
+    // compile time access by index
     template <std::size_t I>
     decltype(auto) Item() {
         return std::get<I>(container.menu_items);
     }
-    //compile time access by type
+    // compile time access by type
     template <class TYPE>
     decltype(auto) Item() {
         return std::get<TYPE>(container.menu_items);
@@ -60,7 +60,7 @@ public:
         }
     }
 
-    //cannot hide focused item
+    // cannot hide focused item
     template <class ITEM>
     bool Hide() {
         return menu.Hide(Item<ITEM>());
@@ -70,11 +70,10 @@ public:
     void Show() {
         menu.Show(Item<ITEM>());
     }
-    //ShowDevOnly intentionally not supported, can be set only in ctor
-};
 
-template <EFooter FOOTER, class... T>
-ScreenMenu<FOOTER, T...>::ScreenMenu(string_view_utf8 label, window_t *parent)
-    : AddSuperWindow<IScreenMenu>(parent, label, FOOTER) {
-    menu.SetContainer(container);
-}
+    template <class ITEM1, class ITEM2>
+    bool SwapVisibility() {
+        return menu.SwapVisibility(Item<ITEM1>(), Item<ITEM2>());
+    }
+    // ShowDevOnly intentionally not supported, can be set only in ctor
+};

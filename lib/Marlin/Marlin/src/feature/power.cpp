@@ -92,10 +92,10 @@ bool Power::is_power_needed() {
       #endif // E_STEPPERS
   ) return true;
 
-  HOTEND_LOOP() if (thermalManager.degTargetHotend(e) > 0) return true;
+  HOTEND_LOOP() if (thermalManager.degTargetHotend(e) > 0 || thermalManager.temp_hotend[e].soft_pwm_amount > 0) return true;
 
   #if HAS_HEATED_BED
-    if (thermalManager.degTargetBed() > 0) return true;
+    if (thermalManager.degTargetBed() > 0 || thermalManager.temp_bed.soft_pwm_amount > 0) return true;
   #endif
 
   #if HOTENDS && AUTO_POWER_E_TEMP
@@ -125,11 +125,6 @@ void Power::power_on() {
   lastPowerOn = millis();
   if (!powersupply_on) {
     PSU_PIN_ON();
-
-    #if HAS_TRINAMIC
-      delay(100); // Wait for power to settle
-      restore_stepper_drivers();
-    #endif
   }
 }
 

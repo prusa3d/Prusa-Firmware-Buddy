@@ -23,12 +23,6 @@ struct StatusText {
     http::Status status;
     /// Text acompanied for the status.
     const char *text;
-    /**
-     * \brief Recommended extra headers for that status.
-     *
-     * Most have an empty list.
-     */
-    const char *const *extra_hdrs = nullptr;
 
     /**
      * \brief Performs a lookup of the text.
@@ -71,4 +65,4 @@ http::ContentType guess_content_by_ext(const char *fname);
  */
 uint32_t compute_etag(const struct stat &stat);
 
-}
+} // namespace nhttp

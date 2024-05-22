@@ -18,7 +18,6 @@ namespace {
  * An automaton that accepts everything until a comma.
  */
 const Automaton until_comma(test::until_comma::paths, test::until_comma::transitions, test::until_comma::states);
-
 /**
  * Selection of HTTP method.
  */
@@ -27,7 +26,7 @@ const Automaton method(test::http_method::paths, test::http_method::transitions,
 const Automaton req_line(test::http_req::paths, test::http_req::transitions, test::http_req::states);
 const Automaton http_request(test::http::paths, test::http::transitions, test::http::states);
 
-}
+} // namespace
 
 TEST_CASE("Until comma") {
     TestExecution ex(until_comma);
@@ -229,10 +228,79 @@ TEST_CASE("Accept json") {
     REQUIRE_FALSE(ex.contains_enter(Names::ConnectionClose));
 }
 
+TEST_CASE("Encryption Mode CTR") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET / HTTP/1.1\r\nContent-Encryption-Mode: AES-CTR\r\n\r\n");
+    REQUIRE(ex.contains_enter(Names::ContentEncryptionModeCTR));
+    REQUIRE_FALSE(ex.contains_enter(Names::ContentEncryptionModeCBC));
+}
+
+TEST_CASE("Encryption Mode CBC") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET / HTTP/1.1\r\nContent-Encryption-Mode: AES-CBC\r\n\r\n");
+    REQUIRE(ex.contains_enter(Names::ContentEncryptionModeCBC));
+    REQUIRE_FALSE(ex.contains_enter(Names::ContentEncryptionModeCTR));
+}
+
 TEST_CASE("No connection") {
     using test::http::Names;
     TestExecution ex(http_request);
     ex.consume("GET / HTTP/1.1\r\n\r\n");
     REQUIRE_FALSE(ex.contains_enter(Names::ConnectionKeepAlive));
     REQUIRE_FALSE(ex.contains_enter(Names::ConnectionClose));
+}
+
+TEST_CASE("Print after upload") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET / HTTP/1.1\r\nPrint-After-Upload: true\r\n\r\n");
+    REQUIRE(ex.contains_enter(Names::PrintAfterUpload));
+}
+
+TEST_CASE("Print after upload CaSe") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET / HTTP/1.1\r\nPrint-After-Upload: TruE\r\n\r\n");
+    REQUIRE(ex.contains_enter(Names::PrintAfterUpload));
+}
+
+TEST_CASE("Print after upload numeric") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET / HTTP/1.1\r\nPrint-After-Upload: 1\r\n\r\n");
+    REQUIRE(ex.contains_enter(Names::PrintAfterUploadNumeric));
+}
+
+TEST_CASE("No print after upload") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET / HTTP/1.1\r\nPrint-After-Upload: false\r\n\r\n");
+    REQUIRE_FALSE(ex.contains_enter(Names::PrintAfterUpload));
+    REQUIRE_FALSE(ex.contains_enter(Names::PrintAfterUploadNumeric));
+}
+
+TEST_CASE("Digest auth whole") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET /api/version HTTP/1.1\r\nAuthorization: Digest username=\"user\", realm=\"Printer API\", nonce=\"dcd98b7102dd2f0e\", uri=\"/api/version\", response=\"684d849df474f295771de997e7412ea4\"\r\n\r\n");
+    REQUIRE(ex.collect_entered(Names::Nonce) == "dcd98b7102dd2f0e");
+    REQUIRE(ex.collect_entered(Names::Response) == "684d849df474f295771de997e7412ea4");
+}
+
+TEST_CASE("Digest auth with algorithm") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET /api/version HTTP/1.1\r\nAuthorization: Digest username=\"user\", realm=\"Printer API\", nonce=\"dcd98b7102dd2f0e\", uri=\"/api/version\", algorithm=MD5, response=\"684d849df474f295771de997e7412ea4\"\r\n\r\n");
+    REQUIRE(ex.collect_entered(Names::Nonce) == "dcd98b7102dd2f0e");
+    REQUIRE(ex.collect_entered(Names::Response) == "684d849df474f295771de997e7412ea4");
+}
+
+TEST_CASE("Digest auth without quotes") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET /api/version HTTP/1.1\r\nAuthorization: Digest username=\"user\", realm=\"Printer API\", nonce=dcd98b7102dd2f0e, uri=\"/api/version\", response=684d849df474f295771de997e7412ea4\r\n\r\n");
+    REQUIRE(ex.collect_entered(Names::NonceUnquoted) == "dcd98b7102dd2f0e");
+    REQUIRE(ex.collect_entered(Names::ResponseUnquoted) == "684d849df474f295771de997e7412ea4");
 }

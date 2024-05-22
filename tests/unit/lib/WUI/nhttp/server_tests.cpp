@@ -21,6 +21,7 @@
 #include <nhttp/headers.h>
 #include <lwip/altcp.h>
 #include <lwip/priv/altcp_priv.h>
+#include "time_mock.h"
 
 #include <catch2/catch.hpp>
 #include <memory>
@@ -199,11 +200,11 @@ public:
         }
 
         if (strcmp(filename, "/secret.html") == 0) {
-            if (parser.authenticated()) {
+            if (auto unauthorized_status = parser.authenticated_status(); unauthorized_status.has_value()) {
+                return std::visit([](auto unauth_status) -> ConnectionState { return std::move(unauth_status); }, *unauthorized_status);
+            } else {
                 static const char *extra_hdrs[] = { "Fake: YesOfCourse\r\n", nullptr };
                 return SendStaticMemory("<html><body><h1>Don't tell anyone!</h1>", guess_content_by_ext(filename), parser.can_keep_alive(), extra_hdrs);
-            } else {
-                return StatusPage(Status::Unauthorized, parser.status_page_handling(), false);
             }
         }
 
@@ -223,13 +224,13 @@ private:
         infos.push_back(conn->info);
         return conn;
     }
-    string api_key;
+    string password;
 
 public:
     MockServerDefs(vector<shared_ptr<ConnInfo>> &conn_infos)
         : infos(conn_infos) {}
     virtual const Selector *const *selectors() const override { return selectors_array; }
-    virtual const char *get_api_key() const override { return api_key.c_str(); }
+    virtual const char *get_password() const override { return password.c_str(); }
     virtual altcp_pcb *listener_alloc() const override {
         auto conn = new_conn();
         return altcp_listen(conn);
@@ -241,6 +242,8 @@ private:
     vector<shared_ptr<ConnInfo>> infos;
     MockServerDefs server_defs;
     Server server;
+    unique_ptr<char[]> nonconst_data;
+    pbuf buffer;
 
 public:
     MockServer()
@@ -278,10 +281,9 @@ public:
         // Strictly speaking, this is incorrect as the recipient may decide to
         // hold onto the buffer after we are done here (by incrementing the ref
         // count). For this test know it currently doesn't happen.
-        pbuf buffer;
         memset(&buffer, 0, sizeof buffer);
         // Un-constify the thing...
-        unique_ptr<char[]> nonconst_data(new char[data.size() + 1]);
+        nonconst_data.reset(new char[data.size() + 1]);
         strcpy(nonconst_data.get(), data.c_str());
         buffer.payload = nonconst_data.get();
         buffer.len = data.size();
@@ -311,8 +313,8 @@ public:
         return result;
     }
 
-    void set_api_key(string key) {
-        server_defs.api_key = std::move(key);
+    void set_password(string key) {
+        server_defs.password = std::move(key);
     }
 };
 
@@ -328,15 +330,30 @@ void check_index(const string &response) {
     REQUIRE(response.find("\r\n\r\n<h1>Hello world</h1>") != string::npos);
 }
 
-void check_unauth(const string &response) {
+void check_unauth_api_key(const string &response, const string &connection_handling) {
     INFO("Response: " + response);
     REQUIRE(response.find("HTTP/1.1 401 Unauthorized\r\n") == 0);
     REQUIRE(response.find("Content-Type: text/plain") != string::npos);
+    REQUIRE(response.find("Connection: " + connection_handling) != string::npos);
     REQUIRE(response.find("WWW-Authenticate: ApiKey") != string::npos);
     REQUIRE(response.find("\r\n\r\n401: Unauthorized") != string::npos);
 }
 
+void check_unauth_digest(const string &response, const string &nonce, const string &stale, const string &connection_handling) {
+    INFO("Response: " + response);
+    REQUIRE(response.find("HTTP/1.1 401 Unauthorized\r\n") == 0);
+    REQUIRE(response.find("Content-Type: text/plain") != string::npos);
+    REQUIRE(response.find("Connection: " + connection_handling) != string::npos);
+    REQUIRE(response.find("WWW-Authenticate: Digest realm=\"Printer API\", nonce=\"" + nonce + "\", stale=" + stale) != string::npos);
+    REQUIRE(response.find("\r\n\r\n401: Unauthorized") != string::npos);
 }
+
+string digest_auth_header(string method, string username, string nonce, string uri, string response) {
+    string header = method + " " + uri + " HTTP/1.1\r\nAuthorization: Digest username=\"" + username + "\", realm=\"Printer API\", nonce=\"" + nonce + "\", uri=\"" + uri + "\", response=\"" + response + "\"\r\n\r\n";
+    return header;
+}
+
+} // namespace
 
 TEST_CASE("Get index") {
     MockServer server;
@@ -375,13 +392,39 @@ TEST_CASE("Not found") {
     const auto response = server.recv_all(client_conn);
     INFO("Response: " + response);
     REQUIRE(response.find("HTTP/1.1 404 Not Found\r\n") == 0);
+    REQUIRE(response.find("Connection: keep-alive") != string::npos);
     REQUIRE(response.find("Content-Type: text/plain") != string::npos);
     REQUIRE(response.find("\r\n\r\n404: Not Found") != string::npos);
 }
 
-TEST_CASE("Authenticated") {
+// for methods other than GET, HEAD and DELETE, in case of
+// errors that occur before the body is read,
+// we want to close the connection even if keep-alive
+// in fear of a body we don't understand
+TEST_CASE("Not found error close") {
     MockServer server;
-    server.set_api_key("SECRET");
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    SECTION("POST") {
+        server.send(client_conn, "POST /not-here HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
+    }
+
+    SECTION("PUT") {
+        server.send(client_conn, "PUT /not-here HTTP/1.1\r\nContent-Length: 44\r\nConnection: keep-alive\r\n\r\nSome dummy body, whatever somehow something.");
+    }
+
+    const auto response = server.recv_all(client_conn);
+    INFO("Response: " + response);
+    REQUIRE(response.find("HTTP/1.1 404 Not Found\r\n") == 0);
+    REQUIRE(response.find("Connection: close") != string::npos);
+    REQUIRE(response.find("Content-Type: text/plain") != string::npos);
+    REQUIRE(response.find("\r\n\r\n404: Not Found") != string::npos);
+}
+
+TEST_CASE("Authenticated ApiKey") {
+    MockServer server;
+    server.set_password("SECRET");
 
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);
@@ -393,16 +436,12 @@ TEST_CASE("Authenticated") {
     REQUIRE(response.find("\r\n\r\n<html>") != string::npos);
 }
 
-TEST_CASE("Not authenticated") {
+TEST_CASE("Not authenticated ApiKey") {
     MockServer server;
-    server.set_api_key("SECRET");
+    server.set_password("SECRET");
 
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);
-
-    SECTION("No key") {
-        server.send(client_conn, "GET /secret.html HTTP/1.1\r\n\r\n");
-    }
 
     SECTION("Empty key") {
         server.send(client_conn, "GET /secret.html HTTP/1.1\r\nX-Api-Key: \r\n\r\n");
@@ -425,7 +464,28 @@ TEST_CASE("Not authenticated") {
     }
 
     const auto response = server.recv_all(client_conn);
-    check_unauth(response);
+    // Note: connection should be kept alive, beacause it is save to do with GET
+    check_unauth_api_key(response, "keep-alive");
+}
+
+TEST_CASE("Not authenticated ApiKey error close") {
+    MockServer server;
+    server.set_password("SECRET");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    SECTION("POST") {
+        server.send(client_conn, "POST /secret.html HTTP/1.1\r\nX-Api-Key: Password!\r\n\r\n");
+    }
+
+    SECTION("PUT") {
+        server.send(client_conn, "PUT /secret.html HTTP/1.1\r\nX-Api-Key: Password!\r\nContent-Length: 44\r\n\r\nSome dummy body, whatever somehow something.");
+    }
+
+    const auto response = server.recv_all(client_conn);
+    // Note: connection should be closed, so we don't try to parse the body as another request
+    check_unauth_api_key(response, "close");
 }
 
 // If the server doesn't have an API key set, no combination of
@@ -437,10 +497,6 @@ TEST_CASE("No Api Key configured") {
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);
 
-    SECTION("No key") {
-        server.send(client_conn, "GET /secret.html HTTP/1.1\r\n\r\n");
-    }
-
     SECTION("Empty key") {
         server.send(client_conn, "GET /secret.html HTTP/1.1\r\nX-Api-Key: \r\n\r\n");
     }
@@ -450,9 +506,122 @@ TEST_CASE("No Api Key configured") {
     }
 
     const auto response = server.recv_all(client_conn);
-    check_unauth(response);
+    check_unauth_api_key(response, "keep-alive");
 }
 
+TEST_CASE("Authenticated Digest") {
+    MockServer server;
+    server.set_password("password");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    string request = digest_auth_header("GET", "maker", "aaaaaaaa00000000", "/secret.html", "0cbf0ac5ca4c879c35a3b91430214a47");
+    INFO(request);
+    server.send(client_conn, request);
+    const auto response = server.recv_all(client_conn);
+    INFO("Response: " + response);
+    REQUIRE(response.find("HTTP/1.1 200 OK\r\n") == 0);
+    REQUIRE(response.find("Content-Type: text/html") != string::npos);
+    REQUIRE(response.find("\r\n\r\n<html>") != string::npos);
+}
+
+TEST_CASE("Not authenticated Digest") {
+    MockServer server;
+    server.set_password("password");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    SECTION("No authentication") {
+        server.send(client_conn, "GET /secret.html HTTP/1.1\r\n\r\n");
+    }
+
+    SECTION("Invalid nonce") {
+        string request = digest_auth_header("GET", "maker", "not a valid nonce", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+        server.send(client_conn, request);
+    }
+
+    SECTION("Nonce too long") {
+        string request = digest_auth_header("GET", "invaliduser", "aaaaaaaa00000000aaaaaaa", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+        server.send(client_conn, request);
+    }
+
+    SECTION("Wrong user") {
+        string request = digest_auth_header("GET", "invaliduser", "aaaaaaaa00000000", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+        server.send(client_conn, request);
+    }
+
+    const auto response = server.recv_all(client_conn);
+    // Note: connection should be kept alive, beacause it is save to do with GET
+    check_unauth_digest(response, "aaaaaaaa00000000", "false", "keep-alive");
+}
+
+TEST_CASE("Digest stale nonce") {
+    MockServer server;
+    server.set_password("password");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    SECTION("Real stale nonce") {
+        set_time(0x00000fff);
+        string request = digest_auth_header("GET", "maker", "aaaaaaaa00000000", "/secret.html", "0cbf0ac5ca4c879c35a3b91430214a47");
+        server.send(client_conn, request);
+    }
+
+    // This happens when the printer reboots and regenerates the random part of nonce.
+    // In this case, we don't want to bother the client with unnecessary login prompting
+    // so we say its stale.
+    SECTION("Wrong nonce, correct user and password") {
+        string request = digest_auth_header("GET", "maker", "dcd98b7102dd2f0e", "/secret.html", "285b9c363d25d31c5867bca2bd4121af");
+        server.send(client_conn, request);
+    }
+
+    const auto response = server.recv_all(client_conn);
+    // Note: connection should be kept alive, beacause it is save to do with GET
+    check_unauth_digest(response, "aaaaaaaa00000fff", "true", "keep-alive");
+}
+
+// should resolve to stale=false, because client should not retry with different nonce
+// without prompting the user for new auth info
+TEST_CASE("Stale nonce and wrong auth") {
+    MockServer server;
+    server.set_password("password");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    set_time(0x00000fff);
+    string request = digest_auth_header("GET", "invaliduser", "aaaaaaaa00000000", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+    server.send(client_conn, request);
+
+    const auto response = server.recv_all(client_conn);
+    // Note: connection should be kept alive, beacause it is save to do with GET
+    check_unauth_digest(response, "aaaaaaaa00000fff", "false", "keep-alive");
+}
+
+TEST_CASE("Not authenticated digest error close") {
+    MockServer server;
+    server.set_password("SECRET");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    SECTION("POST") {
+        string request = digest_auth_header("POST", "invaliduser", "aaaaaaaa00000000", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+        server.send(client_conn, request);
+    }
+
+    SECTION("PUT") {
+        string request = "PUT /secret.html HTTP/1.1\r\nContent-Length: 44\r\nAuthorization: Digest username=\"invaliduser\", realm=\"Printer API\", nonce=\"aaaaaaaa00000000\", uri=\"/secret.html\", response=\"1dd8be56e6996b274258d7412e671e5f\"\r\n\r\nSome dummy body, whatever somehow something.";
+        server.send(client_conn, request);
+    }
+
+    const auto response = server.recv_all(client_conn);
+    // Note: connection should be closed, so we don't try to parse the body as another request
+    check_unauth_digest(response, "aaaaaaaa00000000", "false", "close");
+}
 /*
  * TODO: Further test ideas (non-exhaustive)
  *

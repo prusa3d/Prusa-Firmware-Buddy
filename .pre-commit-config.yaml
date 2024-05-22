@@ -1,11 +1,10 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
-- repo: https://github.com/dragomirecky/cmake-format-pre-commit-hook
-  rev: 'v0.6.0'
+- repo: https://github.com/cheshirekow/cmake-format-precommit
+  rev: v0.6.13
   hooks:
-    - id: cmake-format  # cmake formatter
-      files: (^|/)(CMakeLists.*|.*\.cmake|.*\.cmake.in)$
+    - id: cmake-format
 - repo: https://github.com/pre-commit/mirrors-yapf
   rev: 'v0.27.0'
   hooks:
@@ -15,10 +14,16 @@ repos:
     - id: clang-format
       name: clang-format
       description: This hook automatically checks and reformats changed files using clang-format formatter.
-      entry: './.dependencies/clang-format-9.0.0-noext/clang-format'
+      entry: './.dependencies/clang-format-16-83817c2f/clang-format'
       language: script
       files: \.(h\+\+|h|hh|hxx|hpp|cuh|c|cc|cpp|cu|c\+\+|cxx|tpp|txx)$
       args: ['-i', '-style=file']
+    - id: generate-log-components-overview
+      name: log-components-doc-generate
+      description: This hook generate an overview of currently defined Log Components.
+      entry: python utils/logging/generate_overview.py
+      language: python
+      language_version: python3
     - id: generate-cmake-presets
       name: generate-cmake-presets
       description: This hook generates CMakePresets.json file based on utils/presets/presets.json
@@ -33,6 +38,12 @@ repos:
       entry: python utils/logging/generate_overview.py
       language: python
       language_version: python3
+    - id: python3-requirements
+      name: python3-requirements
+      description: Check if requirements.txt matches the buildsystem.
+      entry: 'utils/check-requirements.py'
+      language: script
+      files: requirements\.txt$
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: 'v2.4.0'
   hooks:
@@ -42,26 +53,40 @@ repos:
     - id: mixed-line-ending
 exclude: |
   (?x)(
-    ^tests/unit/lang/translator/(keys|cs|es|fr|de|pl|it)\.txt$|
-    ^lib/printf|
-    ^lib/inih/|
-    ^lib/Marlin/|
-    ^lib/Prusa-Error-Codes/|
-    ^lib/TMCStepper/|
-    ^lib/Middlewares/Third_Party/LwIP/|
-    ^lib/jsmn/|
-    ^lib/ESP/serial-flasher/|
-    ^lib/ESP/lwesp/|
-    ^lib/ESP/prusa/src/serial-flasher/serial_comm.c|
-    ^lib/ESP/prusa/include/sockets/lwesp_netbuf.h|
-    ^lib/ESP/prusa/include/sockets/lwesp_sockets.h|
-    ^lib/ESP/prusa/include/sockets/lwesp_sockets_priv.h|
-    ^lib/ESP/prusa/src/sockets/lwesp_netbuf.c|
-    ^lib/ESP/prusa/src/sockets/lwesp_sockets.c|
     ^lib/Catch2/|
-    ^lib/libsysbase/|
-    ^lib/Segger|
-    ^lib/tinyusb|
+    ^lib/CrashCatcher/|
+    ^lib/Drivers/|
+    ^lib/ESP/prusa/src/serial-flasher/serial_comm.c|
+    ^lib/ESP/serial-flasher/|
+    ^lib/Marlin/(?!
+        Marlin/src(/gcode)?/feature/prusa/|
+        Marlin/src(/gcode)?/feature/input_shaper/|
+        Marlin/src(/gcode)?/feature/pressure_advance/|
+        Marlin/src(/gcode)?/feature/precise_stepping/|
+        Marlin/src(/gcode)?/feature/phase_stepping/|
+        Marlin/src/module/prusa/|
+        Marlin/src/gcode/calibrate/M958.cpp
+      )|
+    ^lib/Middlewares/Third_Party/FatFs/|
+    ^lib/Middlewares/Third_Party/FreeRTOS/|
+    ^lib/Middlewares/Third_Party/LwIP/|
     ^lib/Middlewares/Third_Party/littlefs/|
-    ^lib/Middlewares/Third_Party/mbedtls/
+    ^lib/Middlewares/Third_Party/mbedtls/|
+    ^lib/Prusa-Error-Codes/|
+    ^lib/Prusa-Firmware-MMU/|
+    ^lib/QR/|
+    ^lib/Segger|
+    ^lib/TMCStepper/|
+    ^lib/cpp-std-extensions/|
+    ^lib/heatshrink/|
+    ^lib/inih/|
+    ^lib/jsmn/|
+    ^lib/libbgcode/|
+    ^lib/liblightmodbus/|
+    ^lib/libsysbase/|
+    ^lib/printf|
+    ^lib/tinyusb/|
+    ^tests/stubs/FreeRTOS|
+    ^tests/unit/common/gcode/.*\.gcode$|
+    ^tests/unit/lang/translator/(keys|cs|es|fr|de|pl|it)\.txt$
   )

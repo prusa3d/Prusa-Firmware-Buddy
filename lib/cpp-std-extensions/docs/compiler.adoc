@@ -1,0 +1,12 @@
+
+== `compiler.hpp`
+
+https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/compiler.hpp[`compiler.hpp`]
+provides macros for decorating declarations, which resolve either to keywords or
+to compiler-specific attributes:
+
+* https://en.cppreference.com/w/cpp/language/constinit[`CONSTINIT`]
+* https://en.cppreference.com/w/cpp/language/consteval[`CONSTEVAL`]
+* https://clang.llvm.org/docs/AttributeReference.html#always-inline-force-inline[`ALWAYS_INLINE`]
+* https://clang.llvm.org/docs/AttributeReference.html#noinline[`NEVER_INLINE`]
+* https://clang.llvm.org/docs/AttributeReference.html#musttail[`MUSTTAIL`]

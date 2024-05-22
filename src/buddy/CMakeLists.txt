@@ -1,39 +1,31 @@
-target_sources(
-  firmware
-  PRIVATE fatfs.c
-          filesystem.c
-          filesystem_fatfs.c
-          filesystem_littlefs.c
-          filesystem_littlefs_internal.c
-          filesystem_littlefs_bbf.cpp
-          filesystem_root.c
-          libsysbase_syscalls.c
-          littlefs_bbf.cpp
-          littlefs_internal.c
-          logging.c
-          lwip.c
-          main.c
-          main.cpp
-          timing_sys.c
-          usb_device.c
-          usb_device_cdc.cpp
-          usb_device_msc.c
-          usb_host.c
-          usbh_conf.c
-          usbh_diskio.c
-  )
-
-set_property(
-  SOURCE main.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS FILAMENT_SENSOR=$<BOOL:${FILAMENT_SENSOR}>
-  )
-
-set_property(
-  SOURCE src/main.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
-  )
+if(BOARD MATCHES "XL_DEV_KIT_XLB")
+  target_sources(firmware PRIVATE timing_sys.cpp usb_device.cpp usb_device_cdc.cpp)
+else()
+  target_sources(
+    firmware
+    PRIVATE fatfs.cpp
+            filesystem.cpp
+            filesystem_fatfs.cpp
+            filesystem_littlefs.cpp
+            filesystem_littlefs_bbf.cpp
+            filesystem_littlefs_internal.cpp
+            filesystem_root.cpp
+            filesystem_semihosting.cpp
+            libsysbase_syscalls.cpp
+            littlefs_bbf.cpp
+            littlefs_internal.cpp
+            logging.cpp
+            lwip.cpp
+            main.cpp
+            timing_sys.cpp
+            usb_device.cpp
+            usb_device_cdc.cpp
+            usb_device_msc.cpp
+            usb_host.cpp
+            usbh_conf.cpp
+            usbh_diskio.cpp
+    )
+endif()
 
 set_property(
   SOURCE src/main.cpp

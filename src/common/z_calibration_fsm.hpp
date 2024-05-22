@@ -16,7 +16,7 @@
  *
  * Derived Finite state machine class for smooth progress of Z calibration
  */
-class Z_Calib_FSM : public Notifier_POS_Z {
+class Z_Calib_FSM : public marlin_server::FSM_notifier {
 public:
     /**
      * Constructor
@@ -38,6 +38,7 @@ public:
 
     /** Disables HW endstops - for aligning both Z axes to on the same Z position */
     void Disable_Stallguard();
+    virtual fsm::PhaseData serialize(uint8_t progress) override;
 
 private:
     bool sw_endstop_state; //<! store variable for SW endstop state

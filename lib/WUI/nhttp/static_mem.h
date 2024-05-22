@@ -38,4 +38,4 @@ public:
     bool want_read() const { return false; }
 };
 
-}
+} // namespace nhttp::handler

@@ -5,28 +5,33 @@
 #include "gui.hpp"
 #include "gui_time.hpp" //gui::GetTick
 #include "ScreenHandler.hpp"
+#include "sound.hpp"
 #include "IDialog.hpp"
 #include "Jogwheel.hpp"
 #include "ScreenShot.hpp"
 #include "gui_media_events.hpp"
 #include "gui_invalidate.hpp"
 #include "knob_event.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "sw_timer.hpp"
+#include "log.h"
+#if XL_ENCLOSURE_SUPPORT()
+    #include "leds/side_strip.hpp"
+#endif
 
-static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
+#include <option/has_touch.h>
+
+#if HAS_TOUCH()
+    #include <hw/touchscreen/touchscreen.hpp>
+#endif
+
+#include <config_store/store_instance.hpp>
+#include <guiconfig/guiconfig.h>
+
+LOG_COMPONENT_REF(GUI);
+LOG_COMPONENT_REF(Touch);
 
 static bool gui_invalid = false;
-
-#ifdef GUI_USE_RTOS
-osThreadId gui_task_handle = 0;
-#endif //GUI_USE_RTOS
-
-font_t *GuiDefaults::Font = nullptr;
-font_t *GuiDefaults::FontBig = nullptr;
-font_t *GuiDefaults::FontMenuItems = nullptr;
-font_t *GuiDefaults::FontMenuSpecial = nullptr;
-font_t *GuiDefaults::FooterFont = nullptr;
 
 constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;
@@ -46,8 +51,71 @@ static Sw_Timer<uint32_t> gui_redraw_timer(GUI_DELAY_REDRAW);
 
 void gui_init(void) {
     display::Init();
-    gui_task_handle = osThreadGetId();
+
+// select jogwheel type by measured 'reset delay'
+// original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
+// new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
+#ifdef USE_ST7789
+    // run-time jogwheel type detection decides which type of jogwheel device has (each type has different encoder behaviour)
+    jogwheel.SetJogwheelType(st7789v_reset_delay);
+#else /* ! USE_ST7789 */
+    jogwheel.SetJogwheelType(0);
+#endif
 }
+
+void gui_handle_jogwheel() {
+    BtnState_t btn_ev;
+    bool is_btn = jogwheel.ConsumeButtonEvent(btn_ev);
+    int32_t encoder_diff = jogwheel.ConsumeEncoderDiff();
+
+    if (encoder_diff != 0 || is_btn) {
+        gui::knob::EventEncoder(encoder_diff);
+
+        if (is_btn) {
+            gui::knob::EventClick(btn_ev);
+        }
+    }
+}
+
+#if HAS_TOUCH()
+void gui_handle_touch() {
+    if (!touchscreen.is_enabled()) {
+        return;
+    }
+
+    const auto touch_event = touchscreen.get_event();
+    if (!touch_event) {
+        return;
+    }
+
+    // we clicked on something, does not really matter on what we clicked
+    // we must notify serve to so it knows user is doing something and resets menu timeout, heater timeout ...
+    Screens::Access()->ResetTimeout();
+
+    if (touch_event.type == GUI_event_t::TOUCH_CLICK) {
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        marlin_client::notify_server_about_knob_click();
+    }
+
+    event_conversion_union event_data {
+        .point = {
+            .x = touch_event.pos_x,
+            .y = touch_event.pos_y,
+        }
+    };
+
+    // Determine if we should propagate the event only to the captured window or globally as a screen event
+    const bool propagate_as_screen_event = (touch_event.type != GUI_event_t::TOUCH_CLICK);
+
+    if (propagate_as_screen_event) {
+        Screens::Access()->ScreenEvent(nullptr, touch_event.type, event_data.pvoid);
+    }
+
+    else if (window_t *captured_window = Screens::Access()->Get()->GetCapturedWindow(); captured_window && captured_window->get_rect_for_touch().Contain(event_data.point)) {
+        captured_window->WindowEvent(captured_window, touch_event.type, event_data.pvoid);
+    }
+}
+#endif
 
 void gui_redraw(void) {
     uint32_t now = ticks_ms();
@@ -66,38 +134,41 @@ void gui_redraw(void) {
     }
 }
 
-//at least one window is invalid
+// at least one window is invalid
 void gui_invalidate(void) {
     gui_invalid = true;
 }
 
-#ifdef GUI_WINDOW_SUPPORT
-
 static uint8_t guiloop_nesting = 0;
 uint8_t gui_get_nesting(void) { return guiloop_nesting; }
 
-void gui_loop_cb() {
-    marlin_client_loop();
-    GuiMediaEventsHandler::Tick();
+void gui_bare_loop() {
+    ++guiloop_nesting;
+
+    gui_handle_jogwheel();
+
+    gui_timers_cycle();
+    gui_redraw();
+
+    if (gui_loop_timer.RestartIfIsOver(gui::GetTick())) {
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
+    }
+
+    --guiloop_nesting;
 }
 
 void gui_loop(void) {
     ++guiloop_nesting;
 
-    #ifdef GUI_JOGWHEEL_SUPPORT
-    BtnState_t btn_ev;
-    bool is_btn = jogwheel.ConsumeButtonEvent(btn_ev);
-    int32_t encoder_diff = jogwheel.ConsumeEncoderDiff();
+#if XL_ENCLOSURE_SUPPORT()
+    // Update XL enclosure fan pwm, it is connected to the same PWM generator as the side LEDs
+    leds::side_strip.Update();
+#endif
+    gui_handle_jogwheel();
 
-    if (encoder_diff != 0 || is_btn) {
-        gui_loop_cb();
-        gui::knob::EventEncoder(encoder_diff);
-
-        if (is_btn) {
-            gui::knob::EventClick(btn_ev);
-        }
-    }
-    #endif //GUI_JOGWHEEL_SUPPORT
+#if HAS_TOUCH()
+    gui_handle_touch();
+#endif
 
     MediaState_t media_state = MediaState_t::unknown;
     if (GuiMediaEventsHandler::ConsumeSent(media_state)) {
@@ -114,11 +185,10 @@ void gui_loop(void) {
 
     gui_timers_cycle();
     gui_redraw();
-    gui_loop_cb();
+    marlin_client::loop();
+    GuiMediaEventsHandler::Tick();
     if (gui_loop_timer.RestartIfIsOver(gui::GetTick())) {
         Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
     }
     --guiloop_nesting;
 }
-
-#endif //GUI_WINDOW_SUPPORT

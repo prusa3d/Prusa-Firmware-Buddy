@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:abcminiuser/lufa.git
+	branch = LUFA-210130
+	commit = fa2cc3e1c3abab7c971506bd86ca4e28ecc7d288
+	parent = ee3d0ce7ea4bbc57e989155d883107418b14eadd
+	method = merge
+	cmdver = 0.4.3

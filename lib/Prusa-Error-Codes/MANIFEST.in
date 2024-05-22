@@ -1,1 +1,4 @@
 include prusaerrors/sl1/errors.yaml
+include prusaerrors/mmu/errors.yaml
+include prusaerrors/buddy/errors.yaml
+

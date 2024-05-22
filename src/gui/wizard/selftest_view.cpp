@@ -42,16 +42,18 @@ SelfTestGroup *SelfTestView::getLastPassed() const {
 }
 
 SelfTestGroup *SelfTestView::getFirst() const {
-    if (first_failed)
+    if (first_failed) {
         return first_failed;
+    }
     return first_passed;
 }
 
 SelfTestGroup *SelfTestView::getNext(const SelfTestGroup &currnet) const {
     bool failed = currnet.Failed();
     SelfTestGroup *ret = currnet.GetNext();
-    if (ret)
+    if (ret) {
         return ret;
+    }
 
     return failed ? first_passed : nullptr;
 }
@@ -116,8 +118,9 @@ void SelfTestView::unconditionalDraw() {
             continue;
         }
 
-        if (shift < 0)
+        if (shift < 0) {
             shift = 0;
+        }
         h = h - shift; // part of item is shifted away from visible rectangle
 
         // clear background
@@ -141,11 +144,13 @@ void SelfTestView::unconditionalDraw() {
 }
 
 void SelfTestView::SetDrawOffset(Rect16::Height_t offset) {
-    if (height_of_all_items == 0)
+    if (height_of_all_items == 0) {
         return;
+    }
     offset = (offset >= height_of_all_items) ? Rect16::Height_t(height_of_all_items - 1) : offset;
-    if (offset == height_draw_offset)
+    if (offset == height_draw_offset) {
         return; // do not invalidate
+    }
     height_draw_offset = offset;
     Invalidate();
 }

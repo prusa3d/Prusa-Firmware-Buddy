@@ -1,6 +1,6 @@
 #include "catch2/catch.hpp"
 
-//#include "string_view_utf8.hpp"
+// #include "string_view_utf8.hpp"
 #include "translator.hpp"
 #include "translation_provider_CPUFLASH.hpp"
 #include <iostream>
@@ -110,14 +110,15 @@ bool FillHashClass(string_hash_table<HASH, buckets, maxStrings> &sh, const char 
 
     {
         ifstream f(fname);
-        if (!f.is_open())
+        if (!f.is_open()) {
             return false;
+        }
         uint16_t index = 0;
         do {
             string s;
             getline(f, s);
             PreprocessRawLineStrings(s);
-            if (!s.empty()) {            // beware of empty strings
+            if (!s.empty()) { // beware of empty strings
                 rawStrings.push_back(s); // make a copy of the string
                 workStrings.emplace_back(String(SHTable::Hash((const unsigned char *)s.c_str()), s, index));
                 REQUIRE(rawStrings.back() == s);

@@ -9,8 +9,8 @@ project(
 add_library(flasher INTERFACE)
 
 target_sources(
-  flasher INTERFACE serial-flasher/src/esp_loader.c serial-flasher/src/esp_targets.c
-                    prusa/src/serial-flasher/serial_comm.c prusa/src/serial-flasher/buddy_port.c
+  flasher INTERFACE prusa/src/serial-flasher/buddy_port.c prusa/src/serial-flasher/serial_comm.c
+                    serial-flasher/src/esp_loader.c serial-flasher/src/esp_targets.c
   )
 
 target_include_directories(

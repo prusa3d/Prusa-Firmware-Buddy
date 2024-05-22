@@ -4,10 +4,11 @@
 
 #include "pause_settings.hpp"
 #include "config_features.h"
-#include "eeprom_function_api.h"
+#include "config_store/store_c_api.h"
 #include "../../../lib/Marlin/Marlin/src/core/types.h"
 #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
+#include <option/has_mmu2.h>
 
 // cannot be class member (externed in marlin)
 fil_change_settings_t fc_settings[EXTRUDERS];
@@ -20,12 +21,17 @@ Settings::Settings()
     , fast_load_length(GetDefaultFastLoadLength())
     , purge_length(GetDefaultPurgeLength())
     , retract(GetDefaultRetractLength())
-    , park_z_feedrate(HOMING_FEEDRATE_INVERTED_Z)
+    , park_z_feedrate(MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z))
     , park_pos { NAN, NAN, NAN }
     , resume_pos { NAN, NAN, NAN, NAN }
     , target_extruder(0)
     , can_stop(true)
-    , do_stop(false) {
+    , do_stop(false)
+#if HAS_MMU2()
+    , extruder_mmu_rework(config_store().is_mmu_rework.get())
+#endif
+//
+{
 }
 
 float Settings::GetDefaultFastLoadLength() {
@@ -49,7 +55,7 @@ float Settings::GetDefaultRetractLength() {
 }
 
 float Settings::GetDefaultParkZFeedrate() {
-    return HOMING_FEEDRATE_INVERTED_Z;
+    return MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z);
 }
 
 void Settings::SetUnloadLength(const std::optional<float> &len) {
@@ -73,7 +79,7 @@ void Settings::SetRetractLength(const std::optional<float> &len) {
 }
 
 void Settings::SetParkZFeedrate(const std::optional<float> &feedrate) {
-    if (feedrate.has_value() && std::abs(feedrate.value()) < HOMING_FEEDRATE_INVERTED_Z) {
+    if (feedrate.has_value() && std::abs(feedrate.value()) < MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z)) {
         park_z_feedrate = std::abs(feedrate.value());
     } else {
         park_z_feedrate = GetDefaultParkZFeedrate();

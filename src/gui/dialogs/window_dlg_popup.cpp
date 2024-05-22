@@ -20,11 +20,19 @@ window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt)
 
 void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) {
     static window_dlg_popup_t dlg(rect, txt);
+
+    // hide the dialog if shown already (it is static)
+    if (dlg.GetParent()) {
+        dlg.GetParent()->UnregisterSubWin(dlg);
+        dlg.SetParent(nullptr);
+    }
+
     dlg.open_time = gui::GetTick();
     dlg.ttl = time;
     dlg.text.SetText(txt);
     dlg.text.Invalidate(); // invalidation is needed here because we are using the same static array for the text and text will invalidate only when the memory address is different
     dlg.SetRect(rect);
+
     if (!dlg.GetParent()) {
         window_t *parent = Screens::Access()->Get();
         if (parent) {
@@ -34,12 +42,13 @@ void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) 
 }
 
 void window_dlg_popup_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    const uint32_t openned = gui::GetTick() - open_time;
-    if (event == GUI_event_t::LOOP && openned > ttl) { //todo use timer
+    const uint32_t opened = gui::GetTick() - open_time;
+    if (event == GUI_event_t::LOOP && opened > ttl) { // todo use timer
         if (GetParent()) {
             GetParent()->UnregisterSubWin(*this);
-            //frame will set parrent to null
+            // frame will set parrent to null
         }
-    } else
+    } else {
         SuperWindowEvent(sender, event, param);
+    }
 }

@@ -10,6 +10,7 @@ from simulator import Printer, MachineType
 from ..extra.timeout import timeoutable
 
 logger = logging.getLogger(__name__)
+ocr_reader = Reader(['en'], verbose=False)
 
 
 async def take_screenshot(printer: Printer) -> Image.Image:
@@ -17,7 +18,6 @@ async def take_screenshot(printer: Printer) -> Image.Image:
 
 
 async def read(printer: Printer):
-    ocr_reader = Reader(['en'])
     screenshot = await take_screenshot(printer)
     screenshot_io = io.BytesIO()
     screenshot.save(screenshot_io, format='PNG')
@@ -35,11 +35,20 @@ async def read(printer: Printer):
 
 
 @timeoutable
-async def wait_for_text(printer: Printer, text):
+async def wait_for_text(printer: Printer, text: str):
+    """ Wait for the text to appear on screen.
+    Text is compared lower case because the OCR won't know c/C apart."""
     while True:
         text_on_screen = await read(printer)
-        if text in text_on_screen:
+        if text.lower() in text_on_screen.lower():
             return text_on_screen
+        await asyncio.sleep(1)
+
+
+async def is_on_homescreen(printer: Printer):
+    text = await read(printer)
+    fragments = 'preheat', 'settings'
+    return all(fragment in text.lower() for fragment in fragments)
 
 
 async def is_booting(printer: Printer):
@@ -47,7 +56,8 @@ async def is_booting(printer: Printer):
     if not text.strip():
         # the simulator might start with an empty/black
         return True
-    if printer.machine == MachineType.MINI and text.strip():
-        # after the black screen, we might catch MINI's loading screen
-        return 'loadin' in text.lower()
+    if printer.machine == MachineType.MK4 and text.strip():
+        # after the black screen, we might catch the loading screen
+        fragments = 'loadin', 'looking for bbf', 'preparing', 'copying', 'installing'
+        return any(fragment in text.lower() for fragment in fragments)
     return False

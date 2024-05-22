@@ -6,21 +6,27 @@
 #pragma once
 #include <cstdint>
 #include "client_response.hpp"
-#include "fanctl.h"
+#include "fanctl.hpp"
 #include "selftest_fans_type.hpp"
 
 namespace selftest {
-//using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
-struct FanConfig_t {
-    using type_evaluation = SelftestFan_t;
-    static constexpr SelftestParts part_type = SelftestParts::Fans;
-    const char *partname;
-    CFanCtl &fanctl;
-    int pwm_start;
-    int pwm_step;
-    const uint16_t *rpm_min_table;
-    const uint16_t *rpm_max_table;
-    size_t steps;
+
+struct FanConfig {
+    uint16_t rpm_min;
+    uint16_t rpm_max;
 };
 
+constexpr selftest::FanConfig benevolent_fan_config = { .rpm_min = 10, .rpm_max = 10000 };
+
+struct SelftestFansConfig {
+    using type_evaluation = SelftestFanHotendResult;
+
+    static constexpr SelftestParts part_type = SelftestParts::Fans;
+
+    uint8_t tool_nr { 0 };
+
+    FanConfig print_fan;
+    FanConfig heatbreak_fan;
 };
+
+} // namespace selftest

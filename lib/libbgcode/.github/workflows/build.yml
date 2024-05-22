@@ -1,0 +1,256 @@
+name: Build
+
+on: [push, pull_request, workflow_dispatch]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build-linux:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Hashing dependency CMake files
+      id: dep_cmake_hash
+      run: echo "dep_cmake_hash=${{ hashFiles('./deps/**') }}" >> $GITHUB_OUTPUT
+
+    - name: Create Build Environment
+      # Some projects don't allow in-source building, so create a separate build directory
+      # We'll use this as our working directory for all subsequent commands
+      run: |
+        cmake -E make_directory ${{github.workspace}}/build
+        cmake -E make_directory ${{github.workspace}}/build/dist
+        cmake -E make_directory ${{github.workspace}}/deps/build
+        cmake -E make_directory ${{github.workspace}}/example/build_fp
+        cmake -E make_directory ${{github.workspace}}/example/build_subd
+
+    - uses: actions/cache@v3
+      name: Getting dependency cache
+      id: cache
+      with:
+        path: ${{github.workspace}}/deps/build/destdir
+        key: ${{ runner.os }}-${{ matrix.arch }}-build-deps-${{ steps.dep_cmake_hash.outputs.dep_cmake_hash }}
+
+    - name: Build dependencies
+      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      shell: bash
+      working-directory: ${{github.workspace}}/deps/build
+      run: |
+        cmake .. 
+        cmake --build . 
+
+    - name: Configure CMake
+      # Use a bash shell so we can use the same syntax for environment variable
+      # access regardless of the host operating system
+      shell: bash
+      working-directory: ${{github.workspace}}/build
+      # Note the current convention is to use the -S and -B options here to specify source 
+      # and build directories, but this is only available with CMake 3.13 and higher.  
+      # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH=${{github.workspace}}/deps/build/destdir/usr/local -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/build/dist -DCATCH_EXTRA_ARGS="--reporter;junit;--out=result-junit-linux.xml"
+    
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      # Execute the build.  You can specify a specific target with "--target <NAME>"
+      run: cmake --build . --config $BUILD_TYPE --target install
+      
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      # Execute tests defined by the CMake configuration.  
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest
+
+    - name: Build example (using find_package)
+      working-directory: ${{github.workspace}}/example/build_fp
+      shell: bash
+      run: |
+        cmake .. -DCMAKE_PREFIX_PATH="${{github.workspace}}/build/dist;${{github.workspace}}/deps/build/destdir/usr/local"
+        cmake --build .
+
+    - name: Build example (using add_subdirectory)
+      working-directory: ${{github.workspace}}/example/build_subd
+      shell: bash
+      run: |
+        cmake .. -DBGCODE_AS_SUBPROJECT=ON -DLibBGCode_BUILD_TESTS=OFF -DCMAKE_PREFIX_PATH=${{github.workspace}}/deps/build/destdir/usr/local
+        cmake --build .
+
+    - uses: actions/upload-artifact@v3  # upload test results
+      if: success() || failure()        # run this step even if previous step failed
+      with:
+        name: test-results
+        path: ${{github.workspace}}/build/**/result-junit-linux.xml
+      
+  build-msvc:
+    runs-on: windows-2019
+
+    strategy:
+      matrix:
+        arch: [x64]
+
+    steps:
+    - uses: actions/checkout@v3
+      name: Checking out
+
+    - uses: ilammy/msvc-dev-cmd@v1
+      name: Configuring build environment
+      with: 
+        arch: ${{ matrix.arch }}
+
+    - name: Hashing dependency CMake files
+      id: dep_cmake_hash
+      run: echo "dep_cmake_hash=${{ hashFiles('./deps/**') }}" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    - name: Create Build Environment
+      # Some projects don't allow in-source building, so create a separate build directory
+      # We'll use this as our working directory for all subsequent commands
+      run: |
+        cmake -E make_directory ${{github.workspace}}\build
+        cmake -E make_directory ${{github.workspace}}\build\dist
+        cmake -E make_directory ${{github.workspace}}\deps\build
+        cmake -E make_directory ${{github.workspace}}\example\build_fp
+        cmake -E make_directory ${{github.workspace}}\example\build_subd
+
+    - uses: actions/cache@v3
+      name: Getting dependency cache
+      id: cache
+      with:
+        path: ${{github.workspace}}\deps\build\destdir
+        key: ${{ runner.os }}-${{ matrix.arch }}-build-deps-${{ steps.dep_cmake_hash.outputs.dep_cmake_hash }}
+
+    - name: Build dependencies
+      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      working-directory: ${{github.workspace}}\deps\build
+      run: |
+        cmake .. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release
+        cmake --build . 
+        cmake .. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Debug
+        cmake --build . 
+
+    - name: Configure CMake
+      # Use a bash shell so we can use the same syntax for environment variable
+      # access regardless of the host operating system
+      working-directory: ${{github.workspace}}\build
+      # Note the current convention is to use the -S and -B options here to specify source 
+      # and build directories, but this is only available with CMake 3.13 and higher.  
+      # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
+      run: cmake .. -DCMAKE_PREFIX_PATH=${{github.workspace}}\deps\build\destdir\usr\local -DCMAKE_INSTALL_PREFIX=${{github.workspace}}\build\dist -DCATCH_EXTRA_ARGS="--reporter;junit;--out=result-junit-msvc.xml"
+    
+    - name: Build
+      working-directory: ${{github.workspace}}\build
+      # Execute the build.  You can specify a specific target with "--target <NAME>"
+      run: cmake --build . --config $Env:BUILD_TYPE --target install
+      
+    - name: Test
+      working-directory: ${{github.workspace}}\build
+      # Execute tests defined by the CMake configuration.  
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest
+
+    - name: Build example (using find_package)
+      working-directory: ${{github.workspace}}\example\build_fp
+      run: |
+        cmake .. -DCMAKE_PREFIX_PATH="${{github.workspace}}\build\dist;${{github.workspace}}\deps\build\destdir\usr\local"
+        cmake --build . --config Release
+
+    - name: Build example (using add_subdirectory)
+      working-directory: ${{github.workspace}}\example\build_subd
+      run: |
+        cmake .. -DBGCODE_AS_SUBPROJECT=ON -DLibBGCode_BUILD_TESTS=OFF -DCMAKE_PREFIX_PATH=${{github.workspace}}\deps\build\destdir\usr\local
+        cmake --build . --config Release
+
+    - uses: actions/upload-artifact@v3  # upload test results
+      if: success() || failure()        # run this step even if previous step failed
+      with:
+        name: test-results-msvc
+        path: ${{github.workspace}}\build\**\result-junit-msvc.xml
+
+  build-mac:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Hashing dependency CMake files
+      id: dep_cmake_hash
+      run: echo "dep_cmake_hash=${{ hashFiles('./deps/**') }}" >> $GITHUB_OUTPUT
+
+    - name: Create Build Environment
+      # Some projects don't allow in-source building, so create a separate build directory
+      # We'll use this as our working directory for all subsequent commands
+      run: |
+        cmake -E make_directory ${{github.workspace}}/build
+        cmake -E make_directory ${{github.workspace}}/build/dist
+        cmake -E make_directory ${{github.workspace}}/deps/build
+        cmake -E make_directory ${{github.workspace}}/example/build_fp
+        cmake -E make_directory ${{github.workspace}}/example/build_subd
+
+    - uses: actions/cache@v3
+      name: Getting dependency cache
+      id: cache
+      with:
+        path: ${{github.workspace}}/deps/build/destdir
+        key: ${{ runner.os }}-${{ matrix.arch }}-build-deps-${{ steps.dep_cmake_hash.outputs.dep_cmake_hash }}
+
+    - name: Build dependencies
+      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      shell: bash
+      working-directory: ${{github.workspace}}/deps/build
+      run: |
+        cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.12
+        cmake --build . 
+
+    - name: Configure CMake
+      # Use a bash shell so we can use the same syntax for environment variable
+      # access regardless of the host operating system
+      shell: bash
+      working-directory: ${{github.workspace}}/build
+      # Note the current convention is to use the -S and -B options here to specify source 
+      # and build directories, but this is only available with CMake 3.13 and higher.  
+      # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_DEPLOYMENT_TARGET=10.12 -DCMAKE_PREFIX_PATH=${{github.workspace}}/deps/build/destdir/usr/local -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/build/dist -DCATCH_EXTRA_ARGS="--reporter;junit;--out=result-junit-mac.xml"
+    
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      # Execute the build.  You can specify a specific target with "--target <NAME>"
+      run: cmake --build . --config $BUILD_TYPE --target install
+      
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      # Execute tests defined by the CMake configuration.  
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest
+
+    - name: Build example (using find_package)
+      working-directory: ${{github.workspace}}/example/build_fp
+      shell: bash
+      run: |
+        cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.12 -DCMAKE_PREFIX_PATH="${{github.workspace}}/build/dist;${{github.workspace}}/deps/build/destdir/usr/local"
+        cmake --build .
+
+    - name: Build example (using add_subdirectory)
+      working-directory: ${{github.workspace}}/example/build_subd
+      shell: bash
+      run: |
+        cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.12 -DBGCODE_AS_SUBPROJECT=ON -DLibBGCode_BUILD_TESTS=OFF -DCMAKE_PREFIX_PATH=${{github.workspace}}/deps/build/destdir/usr/local
+        cmake --build .
+
+    - uses: actions/upload-artifact@v3  # upload test results
+      if: success() || failure()        # run this step even if previous step failed
+      with:
+        name: test-results
+        path: ${{github.workspace}}/build/**/result-junit-mac.xml

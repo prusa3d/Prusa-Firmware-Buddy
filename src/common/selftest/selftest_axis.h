@@ -9,18 +9,32 @@
 
 namespace selftest {
 
+inline constexpr char axis_to_letter(uint32_t axis) {
+    switch (axis) {
+    case X_AXIS:
+        return 'X';
+    case Y_AXIS:
+        return 'Y';
+    case Z_AXIS:
+        return 'Z';
+    }
+    return ' ';
+}
+
 class CSelftestPart_Axis {
     IPartHandler &state_machine;
     const AxisConfig_t &config;
     SelftestSingleAxis_t &rResult;
-    uint32_t time_progress_start;
-    uint32_t time_progress_estimated_end;
-    uint8_t m_Step;
-    uint32_t m_StartPos_usteps;
-    uint16_t m_SGCount;
-    uint32_t m_SGSum;
+    void *m_pSGOrig_cb = nullptr;
+    uint32_t time_progress_start = 0;
+    uint32_t time_progress_estimated_end = 0;
+    uint32_t m_StartPos_usteps = 0;
+    uint32_t m_SGSum = 0;
+    uint16_t m_SGCount = 0;
+    uint8_t m_Step = 0;
     uint8_t m_SGOrig_mask;
-    void *m_pSGOrig_cb;
+    bool homed = false;
+    bool coils_ok = false; // Initially false, set to true when any coil check passes
     static CSelftestPart_Axis *m_pSGAxis;
 
     void sg_sample(uint16_t sg);
@@ -35,18 +49,51 @@ class CSelftestPart_Axis {
     LogTimer log;
     int getDir() { return (m_Step % 2) ? -config.movement_dir : config.movement_dir; }
 
+    enum class Motor { stp_400,
+        stp_200 };
+    static void motor_switch(Motor steps);
+
 public:
     using Config = AxisConfig_t;
+
+    static constexpr float EXTRA_LEN_MM = 10; // How far to move behind expected axis end
 
     CSelftestPart_Axis(IPartHandler &state_machine, const AxisConfig_t &config,
         SelftestSingleAxis_t &result);
     ~CSelftestPart_Axis();
 
-    LoopResult stateWaitHome();
+    // states for 200/400 step switching algorithm
+    LoopResult stateSwitchTo400step();
+    LoopResult stateCycleMark0() { return LoopResult::MarkLoop0; }
+    LoopResult stateActivateHomingReporter();
+    LoopResult stateHomeXY(); ///< Enqueue homing
+    LoopResult stateWaitHomingReporter(); ///< Alternative state to stateWaitHome, in case reporter is used
+    LoopResult stateEvaluateHomingXY();
+    LoopResult stateCycleMark1() { return LoopResult::MarkLoop1; }
+    LoopResult stateSwitchTo200stepAndRetry();
+
+    LoopResult stateHomeZ(); ///< Enqueue homing and toolchange
+    LoopResult stateWaitHome(); ///< Wait for homing and toolchange to finish
+    LoopResult stateEnableZProbe();
+
     LoopResult stateInitProgressTimeCalculation();
-    LoopResult stateCycleMark() { return LoopResult::MarkLoop; }
+    LoopResult stateCycleMark2() { return LoopResult::MarkLoop2; }
     LoopResult stateMove();
-    LoopResult stateMoveWaitFinish();
+    LoopResult stateMoveFinishCycle();
+    LoopResult stateMoveFinishCycleWithMotorSwitch();
+    LoopResult stateParkAxis();
+    LoopResult state_verify_coils(); ///< Report error when coils were never seen ok
+
+private:
+    /**
+     * \brief Check stepper coils for open/short circuit
+     * Needs to be called relatively during move to cope with false error detection.
+     * A single passing check sets coils_ok to true.
+     */
+    void check_coils();
 };
 
-};
+extern const AxisConfig_t Config_XAxis;
+extern const AxisConfig_t Config_YAxis;
+
+}; // namespace selftest

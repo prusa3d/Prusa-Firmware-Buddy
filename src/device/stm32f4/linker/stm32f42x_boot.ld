@@ -50,6 +50,8 @@ MEMORY
   CCMRAM (rw)     : ORIGIN = 0x10000000, LENGTH = 64K
 }
 
+EXTERN (_scanf_float) /* Require proper _scanf_float rather than a stub */
+
 /* Define output sections */
 SECTIONS
 {
@@ -87,13 +89,6 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
-  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH
-  .ARM : {
-    __exidx_start = .;
-    *(.ARM.exidx*)
-    __exidx_end = .;
-  } >FLASH
-
   .preinit_array     :
   {
     PROVIDE_HIDDEN (__preinit_array_start = .);
@@ -119,7 +114,7 @@ SECTIONS
  /* this section is filled with zeros on each application start */
   .boot_fw_data_exchange 0x20000000 :
   {
-  	_sboot_fw_data_exchange = .;  /* global symbol at start */
+    _sboot_fw_data_exchange = .;  /* global symbol at start */
     KEEP (*(.boot_fw_data_exchange))
     . = ALIGN(4); /* allignment is important as 4 bytes are written to zero at once in startup code*/
     _eboot_fw_data_exchange = .;  /* global symbol at the end */
@@ -138,8 +133,14 @@ SECTIONS
     KEEP(*(.data.log_components))
     PROVIDE_HIDDEN (__end_log_components = .);
 
+    PROVIDE_HIDDEN (__start_metric_definitions = .);
+    KEEP(*(.data.metric_definitions))
+    PROVIDE_HIDDEN (__end_metric_definitions = .);
+
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
+    *(.RamFunc)        /* .RamFunc sections */
+    *(.RamFunc*)       /* .RamFunc* sections */
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
@@ -153,16 +154,17 @@ SECTIONS
   * If initialized variables will be placed in this section,
   * the startup code needs to be modified to copy the init-values.
   */
-  .ccmram :
+  .ccmram (NOLOAD) :
   {
     . = ALIGN(4);
     _sccmram = .;       /* create a global symbol at ccmram start */
+    *(.ccmram_beginning)
     *(.ccmram)
     *(.ccmram*)
 
     . = ALIGN(4);
     _eccmram = .;       /* create a global symbol at ccmram end */
-  } >CCMRAM AT> FLASH
+  } >CCMRAM
 
   /* Uninitialized data section */
   . = ALIGN(4);
@@ -204,9 +206,11 @@ SECTIONS
   /* Remove information from the standard libraries */
   /DISCARD/ :
   {
-    libc.a ( * )
-    libm.a ( * )
-    libgcc.a ( * )
+    libc.a:* ( * )
+    libm.a:* ( * )
+    libgcc.a:* ( * )
+    *(.ARM.exidx*)
+    *(.ARM.extab* .gnu.linkonce.armextab.*)
   }
 
   .ARM.attributes 0 : { *(.ARM.attributes) }

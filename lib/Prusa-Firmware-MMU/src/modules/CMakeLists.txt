@@ -1,0 +1,24 @@
+target_sources(
+  firmware
+  PRIVATE crc.cpp
+          buttons.cpp
+          debouncer.cpp
+          finda.cpp
+          fsensor.cpp
+          globals.cpp
+          idler.cpp
+          leds.cpp
+          motion.cpp
+          movable_base.cpp
+          permanent_storage.cpp
+          protocol.cpp
+          pulley.cpp
+          pulse_gen.cpp
+          selector.cpp
+          serial.cpp
+          speed_table.cpp
+          timebase.cpp
+          usb_cdc.cpp
+          user_input.cpp
+          voltage.cpp
+  )

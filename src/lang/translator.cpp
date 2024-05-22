@@ -8,12 +8,14 @@ string_view_utf8 gettext(const char *src) {
 namespace {
 // register the emptyProvider as "translator" for EN language ... i.e. return the source string intact
 ProviderRegistrator prEN("en", EmptyTranslationProvider::Instance());
-}
+} // namespace
 
 // this explicit initialization of currentProvider is here to make sure the pointer is always initialized
 // even if there were no registered languages at all
 Translations::Translations()
     : currentProvider(EmptyTranslationProvider::Instance()) {
+    // this is a safety precaution - initialize the array with valid pointers even if the cells are empty
+    translations.fill(TranRec({ currentProvider, 0U }));
 }
 
 bool Translations::RegisterProvider(uint16_t langCode, const ITranslationProvider *provider) {

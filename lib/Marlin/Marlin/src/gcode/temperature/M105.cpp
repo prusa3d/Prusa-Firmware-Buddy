@@ -23,6 +23,10 @@
 #include "../gcode.h"
 #include "../../module/temperature.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M105: Read hot end and bed temperature
  */
@@ -49,3 +53,5 @@ void GcodeSuite::M105() {
 
   #endif
 }
+
+/** @}*/

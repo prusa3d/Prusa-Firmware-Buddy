@@ -1,9 +1,22 @@
 get_filename_component(PROJECT_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
 get_filename_component(PROJECT_ROOT_DIR "${PROJECT_CMAKE_DIR}" DIRECTORY)
 
-find_package(Python3 COMPONENTS Interpreter)
-if(NOT Python3_FOUND)
-  message(FATAL_ERROR "Python3 not found.")
+# cache BUDDY_NO_VIRTUALENV across builds
+set(BUDDY_NO_VIRTUALENV
+    $<BOOL:$ENV{BUDDY_NO_VIRTUALENV}>
+    CACHE BOOL "Disable python virtualenv management"
+    )
+if(NOT Python3_EXECUTABLE)
+  if(NOT ${BUDDY_NO_VIRTUALENV})
+    set(Python3_ROOT_DIR "${CMAKE_SOURCE_DIR}/.venv")
+    set(Python3_FIND_VIRTUALENV "ONLY")
+  endif()
+  find_package(Python3 COMPONENTS Interpreter)
+  if(NOT Python3_FOUND)
+    message(FATAL_ERROR "Python3 not found.")
+  else()
+    message(STATUS "Python3: ${Python3_EXECUTABLE}")
+  endif()
 endif()
 
 function(get_recommended_gcc_version var)
@@ -64,17 +77,20 @@ function(get_dependency_version dependency var)
 endfunction()
 
 function(objcopy target format suffix)
+  set(bin_filename "${CMAKE_CURRENT_BINARY_DIR}/${target}${suffix}")
   add_custom_command(
-    TARGET ${target} POST_BUILD
-    COMMAND "${CMAKE_OBJCOPY}" -O ${format} -S "$<TARGET_FILE:${target}>"
-            "${CMAKE_CURRENT_BINARY_DIR}/${target}${suffix}"
+    TARGET ${target}
+    POST_BUILD
+    COMMAND "${CMAKE_OBJCOPY}" -O ${format} -S "$<TARGET_FILE:${target}>" "${bin_filename}"
     COMMENT "Generating ${format} from ${target}..."
+    BYPRODUCTS "${bin_filename}"
     )
 endfunction()
 
 function(report_size target)
   add_custom_command(
-    TARGET ${target} POST_BUILD
+    TARGET ${target}
+    POST_BUILD
     COMMAND echo "" # visually separate the output
     COMMAND "${CMAKE_SIZE_UTIL}" -B "$<TARGET_FILE:${target}>"
     USES_TERMINAL
@@ -83,7 +99,16 @@ endfunction()
 
 function(pack_firmware target)
   # parse arguments
-  set(one_value_args FW_VERSION BUILD_NUMBER PRINTER_TYPE SIGNING_KEY BBF_VERSION OUTPUT_PATH)
+  set(one_value_args
+      FW_VERSION
+      BUILD_NUMBER
+      PRINTER_TYPE
+      PRINTER_VERSION
+      PRINTER_SUBVERSION
+      SIGNING_KEY
+      BBF_VERSION
+      OUTPUT_PATH
+      )
   set(multi_value_args RESOURCE_IMAGES RESOURCE_IMAGE_NAMES)
   cmake_parse_arguments(ARG "" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
@@ -125,12 +150,13 @@ function(pack_firmware target)
       lfs_image_generate_hash_bin_file(${resources_image} "${content_hash_file}")
 
       list(
-        APPEND resources_opts
-               "--tlv"
-               "${resources_image_name}:$<TARGET_PROPERTY:${resources_image},LFS_IMAGE_LOCATION>"
-               "${resources_image_name}_BLOCK_SIZE:${block_size_file}"
-               "${resources_image_name}_BLOCK_COUNT:${block_count_file}"
-               "${resources_image_name}_HASH:${content_hash_file}"
+        APPEND
+        resources_opts
+        "--tlv"
+        "${resources_image_name}:$<TARGET_PROPERTY:${resources_image},LFS_IMAGE_LOCATION>"
+        "${resources_image_name}_BLOCK_SIZE:${block_size_file}"
+        "${resources_image_name}_BLOCK_COUNT:${block_count_file}"
+        "${resources_image_name}_HASH:${content_hash_file}"
         )
 
       add_custom_target(
@@ -150,20 +176,19 @@ function(pack_firmware target)
   endif()
 
   add_custom_command(
-    TARGET ${target} POST_BUILD
+    TARGET ${target}
+    POST_BUILD
     # generate .bin file
-    COMMAND
-      "${CMAKE_OBJCOPY}" -O binary -S "$<TARGET_FILE:${target}>" "${bin_firmware_path}"
-
-
-      # visually separate the output
+    COMMAND "${CMAKE_OBJCOPY}" -O binary -S "$<TARGET_FILE:${target}>" "${bin_firmware_path}"
+            # visually separate the output
     COMMAND echo ""
             # generate .bbf file
     COMMAND
       "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/pack_fw.py" --version="${ARG_FW_VERSION}"
-      --printer-type "${ARG_PRINTER_TYPE}" --printer-version "1" --build-number
-      "${ARG_BUILD_NUMBER}" ${sign_opts} ${resources_opts} ${bbf_version_opts} ${output_path_opts}
-      -- "${bin_firmware_path}"
+      --printer-type "${ARG_PRINTER_TYPE}" --printer-version "${ARG_PRINTER_VERSION}"
+      --printer-subversion "${ARG_PRINTER_SUBVERSION}" --build-number "${ARG_BUILD_NUMBER}"
+      ${sign_opts} ${resources_opts} ${bbf_version_opts} ${output_path_opts} --
+      "${bin_firmware_path}"
     )
 endfunction()
 
@@ -174,7 +199,8 @@ function(create_dfu)
   cmake_parse_arguments(CREATE_DFU "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
   add_custom_command(
-    TARGET "${CREATE_DFU_TARGET}" POST_BUILD
+    TARGET "${CREATE_DFU_TARGET}"
+    POST_BUILD
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/dfu.py" create ${CREATE_DFU_INPUT}
             "${CREATE_DFU_OUTPUT}"
     )

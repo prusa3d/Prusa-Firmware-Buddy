@@ -37,6 +37,16 @@
  */
 #define CONFIGURATION_ADV_H_VERSION 020000
 
+/**
+ * Cancel Objects
+ *
+ * Implement M486 to allow Marlin to skip objects
+ */
+#define CANCEL_OBJECTS
+#ifdef CANCEL_OBJECTS
+  #define CANCEL_OBJECTS_REPORTING // Emit the current object as a status message
+#endif
+
 // @section temperature
 
 //===========================================================================
@@ -314,7 +324,7 @@
 #define E4_AUTO_FAN_PIN -1
 #define E5_AUTO_FAN_PIN -1
 #define CHAMBER_AUTO_FAN_PIN -1
-#define EXTRUDER_AUTO_FAN_TEMPERATURE 50
+#define EXTRUDER_AUTO_FAN_TEMPERATURE 45
 #define EXTRUDER_AUTO_FAN_SPEED 255 // 255 == full speed
 
 /**
@@ -479,21 +489,16 @@
 //kill command after probing fails
 //#define HALT_ON_PROBING_ERROR
 //after enabling HOMING_MAX_ATTEMPTS, homing can fail
-#define HOMING_MAX_ATTEMPTS 2
-#ifdef HOMING_MAX_ATTEMPTS
-    // ranges in mm - allowed distance between homing probes for XYZ axes
-    constexpr float axis_home_min_diff[] = {-0.2, -0.2, -0.1};
-    constexpr float axis_home_max_diff[] = { 0.2,  0.2,  0.1};
-    constexpr float axis_home_invert_min_diff = -1;
-    constexpr float axis_home_invert_max_diff = 1;
-#endif// HOMING_MAX_ATTEMPTS
+#define HOMING_MAX_ATTEMPTS 10
 
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
 #define X_HOME_BUMP_MM 0
 #define Y_HOME_BUMP_MM 0
 #define Z_HOME_BUMP_MM 2
 #define HOMING_BUMP_DIVISOR \
-    { 2, 2, 4 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
+    { 1, 1, 4 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
+#define HOMING_BUMP_DIVISOR_MAX HOMING_BUMP_DIVISOR
+#define HOMING_BUMP_DIVISOR_MIN HOMING_BUMP_DIVISOR
 //#define QUICK_HOME                     // If homing includes X and Y, do a diagonal move initially
 
 // When G28 is called, this option will make Y home before X
@@ -1077,7 +1082,7 @@
  * See http://marlinfw.org/docs/features/lin_advance.html for full instructions.
  * Mention @Sebastianv650 on GitHub to alert the author of any issues.
  */
-#define LIN_ADVANCE
+//#define LIN_ADVANCE
 #if ENABLED(LIN_ADVANCE)
     #define LIN_ADVANCE_K 0 // Unit: mm compression per 1mm/s extruder speed
 //#define LA_DEBUG          // If enabled, this will generate debug information output over USB.
@@ -1087,10 +1092,10 @@
 
 #if EITHER(MESH_BED_LEVELING, AUTO_BED_LEVELING_UBL)
 // Override the mesh area if the automatic (max) area is too large
-#define MESH_MIN_X MESH_INSET
-#define MESH_MIN_Y MESH_INSET
-#define MESH_MAX_X X_BED_SIZE - (MESH_INSET) - 29
-#define MESH_MAX_Y Y_BED_SIZE - (MESH_INSET) - 3
+#define MESH_MIN_X (-41)
+#define MESH_MIN_Y (-48)
+#define MESH_MAX_X (X_BED_SIZE + 15)
+#define MESH_MAX_Y (Y_BED_SIZE + 46)
 #endif
 
 /**
@@ -1116,16 +1121,33 @@
 //
 // G2/G3 Arc Support
 //
-#define ARC_SUPPORT // Disable this feature to save ~3226 bytes
+#define ARC_SUPPORT                      // Requires ~3226 bytes
 #if ENABLED(ARC_SUPPORT)
-    #define MM_PER_ARC_SEGMENT 1 // Length of each arc segment
-    #define N_ARC_CORRECTION 25 // Number of intertpolated segments between corrections
-//#define ARC_P_CIRCLES         // Enable the 'P' parameter to specify complete circles
-//#define CNC_WORKSPACE_PLANES  // Allow G2/G3 to operate in XY, ZX, or YZ planes
+  #define MIN_ARC_SEGMENT_MM        0.1  // (mm) Minimum length of each arc segment
+  #define MAX_ARC_SEGMENT_MM        2.0  // (mm) Maximum length of each arc segment
+  #define MIN_ARC_SEGMENTS_PER_SEC 50    // Use the feedrate to choose the segment length
+  #define MAX_ARC_DEVIATION         0.02 // Maximum deviation from ideal arc due to segmentation
+  #define N_ARC_CORRECTION         25    // Number of interpolated segments between corrections
+  //#define ARC_P_CIRCLES                // Enable the 'P' parameter to specify complete circles
+  //#define SF_ARC_FIX                   // Enable only if using SkeinForge with "Arc Point" fillet procedure
 #endif
 
-// Support for G5 with XYZE destination and IJPQ offsets. Requires ~2666 bytes.
-//#define BEZIER_CURVE_SUPPORT
+// G5 Bézier Curve Support with XYZE destination and IJPQ offsets
+//#define BEZIER_CURVE_SUPPORT        // Requires ~2666 bytes
+
+#if EITHER(ARC_SUPPORT, BEZIER_CURVE_SUPPORT)
+  //#define CNC_WORKSPACE_PLANES      // Allow G2/G3/G5 to operate in XY, ZX, or YZ planes
+#endif
+
+/**
+ * Direct Stepping
+ *
+ * Comparable to the method used by Klipper, G6 direct stepping significantly
+ * reduces motion calculations, increases top printing speeds, and results in
+ * less step aliasing by calculating all motions in advance.
+ * Preparing your G-code: https://github.com/colinrgodsey/step-daemon
+ */
+//#define DIRECT_STEPPING
 
 /**
  * G38 Probe Target
@@ -1197,11 +1219,11 @@
 
 // The number of linear motions that can be in the plan at any give time.
 // THE BLOCK_BUFFER_SIZE NEEDS TO BE A POWER OF 2 (e.g. 8, 16, 32) because shifts and ors are used to do the ring-buffering.
-#if ENABLED(SDSUPPORT)
-    #define BLOCK_BUFFER_SIZE 16 // SD,LCD,Buttons take more memory, block buffer needs to be smaller
-#else
-    #define BLOCK_BUFFER_SIZE 16 // maximize block buffer
-#endif
+#define BLOCK_BUFFER_SIZE 32
+
+#define MOVE_SEGMENT_QUEUE_SIZE (2 * BLOCK_BUFFER_SIZE)
+#define STEP_EVENT_QUEUE_SIZE   1024
+#define ADVANCED_STEP_GENERATORS 1
 
 // @section serial
 
@@ -1348,22 +1370,25 @@
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
     #define FILAMENT_UNLOAD_RAMMING_SEQUENCE \
         { \
-            { 1, 100 }, \
-            { 1, 300 }, \
-            { 3, 800 }, \
-            { 2, 1200 }, \
-            { 2, 2200 }, \
-            { 2, 2600 }, \
-            { -2, 2200 }, \
-            { -20, 3000 }, \
-            { -30, 4000 }, \
+            { 20, 1500 }, \
+            { -50, 2700 }, \
+            { -5, 50 }, \
+            { -50, 1500 }, \
+        }
+    // TODO remove after mmu is not mandatory for the build
+    #define FILAMENT_MMU2_RAMMING_SEQUENCE \
+       { \
+            { 7, 1500 / 60.F}, \
+            { -50, 2700 / 60.F}, \
+            { -5, 50 / 60.F}, \
+            { -50, 1500 / 60.F}, \
         }
     #define PAUSE_PARK_RETRACT_FEEDRATE 66 // (mm/s) Initial retract feedrate.
-    #define PAUSE_PARK_RETRACT_LENGTH 2 // (mm) Initial retract.
+    #define PAUSE_PARK_RETRACT_LENGTH 5 // (mm) Initial retract.
 // This short retract is done immediately, before parking the nozzle.
     #define FILAMENT_CHANGE_UNLOAD_FEEDRATE 80 // (mm/s) Unload filament feedrate. This can be pretty fast.
     #define FILAMENT_CHANGE_UNLOAD_ACCEL 1250 // (mm/s^2) Lower acceleration may allow a faster feedrate.
-    #define FILAMENT_CHANGE_UNLOAD_LENGTH 420 // (mm) The length of filament for a complete unload.
+    #define FILAMENT_CHANGE_UNLOAD_LENGTH 400 // (mm) The length of filament for a complete unload.
 //   For Bowden, the full length of the tube and nozzle.
 //   For direct drive, the full length of the nozzle.
 //   Set to 0 for manual unloading.
@@ -1697,6 +1722,53 @@
     #define E4_HYBRID_THRESHOLD 30
     #define E5_HYBRID_THRESHOLD 30
 
+    /**
+     * Provides crash detection during printing and proper crash recovery.
+     * Sensorless homing must be turned on and sensitivities set accordingly.
+     */
+//    #define CRASH_RECOVERY
+    #ifdef CRASH_RECOVERY
+        #define CRASH_STALL_GUARD { 50, 40 }  // internal value representing sensitivity
+        #define CRASH_MAX_PERIOD { 381, 381 } // (steps per tick) - reciprocal value of minimal speed
+        #define CRASH_FILTER (false)          // Stallguard filtering for crash detection
+        #define CRASH_TIMER 45                // seconds before counter reset
+        #define CRASH_COUNTER_MAX 3           // max crashes with automatic recovery
+    #endif
+
+    /**
+     * Measure and check axis length on repeated crashes
+     */
+//    #define AXIS_MEASURE
+    #ifdef AXIS_MEASURE
+        #define AXIS_MEASURE_STALL_GUARD 1
+        #define AXIS_MEASURE_CRASH_PERIOD 210
+    #endif
+
+/**
+ * Recovery from power failure. This is a distinct implementation from
+ * POWER_LOSS_RECOVERY specific to Prusa printers.
+ */
+//#define POWER_PANIC
+
+#ifdef POWER_PANIC
+    #define POWER_PANIC_Z_LIFT_CYCLES 4 // 4xFullStep cycles = ~0.64mm
+    #define POWER_PANIC_MAX_BED_DIFF 10 // Maximum bed temperature (C) difference for auto-recovery
+
+    // seconds to wait on hold before auto-restarting during short power failures
+    #define POWER_PANIC_HOLD_RST_MS 5000
+
+    // TODO: Suboptimal values
+    #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
+    #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
+
+    #define POWER_PANIC_Z_CURRENT 350 // (mA) RMS current _after_ alignment
+    #define POWER_PANIC_Z_FEEDRATE 50 // (mm/s, running at default current)
+
+    #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
+#endif
+
+//#define REBOOT_RESTORE_Z
+
 /**
    * TMC2130, TMC2160, TMC2660, TMC5130, and TMC5160 only
    * Use StallGuard2 to sense an obstacle and trigger an endstop.
@@ -1712,7 +1784,7 @@
    *
    * Stall threshold defines maximal period between steps to trigger a stallguard
    */
-//#define SENSORLESS_HOMING // TMC2130 only
+#define SENSORLESS_HOMING // TMC2130 only
 
 /**
    * Use StallGuard2 to probe the bed with the nozzle.
@@ -1724,15 +1796,15 @@
 
     #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
         #if X_DRIVER_TYPE == TMC2209
-            #define X_STALL_SENSITIVITY 8
+            #define X_STALL_SENSITIVITY 130
         #endif
 
         #if Y_DRIVER_TYPE == TMC2209
-            #define Y_STALL_SENSITIVITY 8
+            #define Y_STALL_SENSITIVITY 130
         #endif
 
         #if Z_DRIVER_TYPE == TMC2209
-            // #define Z_STALL_SENSITIVITY 8
+            #define Z_STALL_SENSITIVITY 100
         #endif
 
         #define STALL_THRESHOLD_TMC2130 0xFFFFF
@@ -1940,7 +2012,7 @@
 
 // @section i2cbus
 
-//#define EXPERIMENTAL_I2CBUS
+#define EXPERIMENTAL_I2CBUS
 #define I2C_SLAVE_ADDRESS 0 // Set a value from 8 to 127 to act as a slave
 
 // @section extras
@@ -2412,3 +2484,14 @@
  * M999 reset MCU. Prusa STM32 platform specific
  */
 #define M999_MCU_RESET
+
+/**
+ * M862.x support for print checking Q commands (P are always supported)
+ */
+#define PRINT_CHECKING_Q_CMDS
+
+
+/**
+ * Enable PID autotune
+ **/
+//#define PID_AUTOTUNE

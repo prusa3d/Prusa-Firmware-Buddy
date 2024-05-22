@@ -1,37 +1,36 @@
 /**
- * @file WindowMenuSensor.hpp
- * @author Vitezslav Machacek
+ * @file WindowItemFormatableLabel.hpp
  * @brief Derived from WI_LABEL/IWindowMenuItem
- * @date 2021-6-9
  */
 
 #pragma once
-#include "WindowMenuLabel.hpp"
-#include "resource.h"
+#include "i_window_menu_item.hpp"
 #include <functional>
 
-class WI_LAMBDA_LABEL_t : public AddSuper<WI_LABEL_t> {
+class WI_LAMBDA_LABEL_t : public IWindowMenuItem {
 protected:
-    static constexpr font_t *&InfoFont = GuiDefaults::FontMenuSpecial;
+    static constexpr Font InfoFont = GuiDefaults::FontMenuSpecial;
     static constexpr uint16_t icon_width = 16;
 
     const std::function<void(char *)> printAs;
+
+protected:
     constexpr static const char *NA = N_("N/A");
     constexpr static const char *NI = N_("Not initialized");
 
-    void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override {
+    void printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const override {
         char text[GuiDefaults::infoDefaultLen];
         string_view_utf8 stringView;
         printAs(text);
         stringView = string_view_utf8::MakeRAM((uint8_t *)text);
         render_text_align(extension_rect, stringView, InfoFont, color_back,
-            (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPadding, Align_t::RightCenter());
+            (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter(), false);
     }
-    virtual void click(IWindowMenu &window_menu) override {}
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {}
 
 public:
-    WI_LAMBDA_LABEL_t(string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, std::function<void(char *)> printAs)
-        : AddSuper<WI_LABEL_t>(label, id_icon ? icon_width : GuiDefaults::infoDefaultLen * InfoFont->w, id_icon, enabled, hidden)
+    WI_LAMBDA_LABEL_t(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, std::function<void(char *)> printAs)
+        : IWindowMenuItem(label, icon ? icon_width : GuiDefaults::infoDefaultLen * width(InfoFont), icon, enabled, hidden)
         , printAs(printAs) {}
 };
 
@@ -43,11 +42,11 @@ protected:
     ValueType value;
     ValueType oldVal;
 
-    virtual void click(IWindowMenu &window_menu) {}
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
 
 public:
-    WI_FORMATABLE_LABEL_t(string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, std::function<void(char *)> printAs)
-        : WI_LAMBDA_LABEL_t(label, id_icon, enabled, hidden, printAs)
+    WI_FORMATABLE_LABEL_t(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, std::function<void(char *)> printAs)
+        : WI_LAMBDA_LABEL_t(label, icon, enabled, hidden, printAs)
         , value(initVal)
         , oldVal(initVal) {
     }

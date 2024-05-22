@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,14 +16,18 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 #pragma once
 
 #include "../core/macros.h"
-
+#include "i2c.hpp"
 #include <Wire.h>
+
+#ifndef I2C_ADDRESS
+  #define I2C_ADDRESS(A) uint8_t(A)
+#endif
 
 // Print debug messages with M111 S2 (Uses 236 bytes of PROGMEM)
 //#define DEBUG_TWIBUS
@@ -46,9 +50,8 @@ typedef void (*twiRequestFunc_t)();
  * for the host to interpret.
  *
  *  For more information see
- *    - http://marlinfw.org/docs/gcode/M260.html
- *    - http://marlinfw.org/docs/gcode/M261.html
- *
+ *    - https://marlinfw.org/docs/gcode/M260.html
+ *    - https://marlinfw.org/docs/gcode/M261.html
  */
 class TWIBus {
   private:
@@ -62,8 +65,33 @@ class TWIBus {
      * @brief Internal buffer
      * @details A fixed buffer. TWI commands can be no longer than this.
      */
-    char buffer[TWIBUS_BUFFER_SIZE];
+    uint8_t buffer[TWIBUS_BUFFER_SIZE];
 
+    /**
+     * @brief Number of bytes available on read buffer
+     * @description Number of bytes in the read buffer
+     */
+    uint8_t read_buffer_available = 0;
+
+    /**
+     * @brief Next position to be read from read buffer
+     * @description Next position to be read from read buffer
+     */
+    uint8_t read_buffer_pos = 0;
+
+    /**
+     * @brief Internal read buffer
+     * @details A fixed read buffer.
+     */
+    uint8_t read_buffer[TWIBUS_BUFFER_SIZE];
+
+    bool read_buffer_has_byte();
+
+    uint8_t read_buffer_read_byte();
+
+    bool check_hal_response(i2c::Result response);
+
+    bool isRestrictedAddress(const uint8_t addr);
 
   public:
     /**
@@ -123,16 +151,9 @@ class TWIBus {
      * @details The target slave address for sending the full packet
      *
      * @param adr 7-bit integer address
+     * @return status of the request: true=success, false=fail
      */
-    void address(const uint8_t adr);
-
-    /**
-     * @brief Prefix for echo to serial
-     * @details Echo a label, length, address, and "data:"
-     *
-     * @param bytes the number of bytes to request
-     */
-    static void echoprefix(uint8_t bytes, const char prefix[], uint8_t adr);
+    bool address(const uint8_t adr);
 
     /**
      * @brief Echo data on the bus to serial
@@ -140,17 +161,9 @@ class TWIBus {
      *          to serial in a parser-friendly format.
      *
      * @param bytes the number of bytes to request
+     * @param style Output format for the bytes, 0 = Raw byte [default], 1 = Hex characters, 2 = uint16_t
      */
-    static void echodata(uint8_t bytes, const char prefix[], uint8_t adr);
-
-    /**
-     * @brief Echo data in the buffer to serial
-     * @details Echo the entire buffer to serial
-     *          to serial in a parser-friendly format.
-     *
-     * @param bytes the number of bytes to request
-     */
-    void echobuffer(const char prefix[], uint8_t adr);
+    void echodata(uint8_t bytes, FSTR_P const prefix, uint8_t adr, const uint8_t style=0);
 
     /**
      * @brief Request data from the slave device and wait.
@@ -176,63 +189,33 @@ class TWIBus {
      * @brief Flush the i2c bus.
      * @details Get all bytes on the bus and throw them away.
      */
-    static void flush();
+    void flush();
 
     /**
      * @brief Request data from the slave device, echo to serial.
      * @details Request a number of bytes from a slave device and output
      *          the returned data to serial in a parser-friendly format.
+     * @style Output format for the bytes, 0 = raw byte [default], 1 = Hex characters, 2 = uint16_t
      *
      * @param bytes the number of bytes to request
      */
-    void relay(const uint8_t bytes);
-
-    #if I2C_SLAVE_ADDRESS > 0
-
-      /**
-       * @brief Register a slave receive handler
-       * @details Set a handler to receive data addressed to us
-       *
-       * @param handler A function to handle receiving bytes
-       */
-      inline void onReceive(const twiReceiveFunc_t handler) { Wire.onReceive(handler); }
-
-      /**
-       * @brief Register a slave request handler
-       * @details Set a handler to send data requested from us
-       *
-       * @param handler A function to handle receiving bytes
-       */
-      inline void onRequest(const twiRequestFunc_t handler) { Wire.onRequest(handler); }
-
-      /**
-       * @brief Default handler to receive
-       * @details Receive bytes sent to our slave address
-       *          and simply echo them to serial.
-       */
-      void receive(uint8_t bytes);
-
-      /**
-       * @brief Send a reply to the bus
-       * @details Send the buffer and clear it.
-       *          If a string is passed, write it into the buffer first.
-       */
-      void reply(char str[]=nullptr);
-      inline void reply(const char str[]) { reply((char*)str); }
-
-    #endif
+    void relay(const uint8_t bytes, const uint8_t style=0);
 
     #if ENABLED(DEBUG_TWIBUS)
-
       /**
        * @brief Prints a debug message
        * @details Prints a simple debug message "TWIBus::function: value"
        */
-      static void prefix(const char func[]);
-      static void debug(const char func[], uint32_t adr);
-      static void debug(const char func[], char c);
-      static void debug(const char func[], char adr[]);
-      static inline void debug(const char func[], uint8_t v) { debug(func, (uint32_t)v); }
-
+      static void prefix(FSTR_P const func);
+      static void debug(FSTR_P const func, uint32_t adr);
+      static void debug(FSTR_P const func, char c);
+      static void debug(FSTR_P const func, char adr[]);
+    #else
+      static void debug(FSTR_P const, uint32_t) {}
+      static void debug(FSTR_P const, char) {}
+      static void debug(FSTR_P const, char[]) {}
     #endif
+    static void debug(FSTR_P const func, uint8_t v) { debug(func, (uint32_t)v); }
 };
+
+extern TWIBus twibus;

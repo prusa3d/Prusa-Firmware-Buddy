@@ -4,7 +4,7 @@
 
 offset        size         content  
 0x00000000    0x00020000   RAM (0x20000000..0x2001ffff)  
-0x00020000    0x00010000   CCRAM (0x10000000..0x1000ffff)  
+0x00020000    0x00010000   CCMRAM (0x10000000..0x1000ffff)  
 0x00030000    0x00008000   System + OTP (0x1fff0000..0x1fff8000)  
 0x00038000    0x00100000   Flash (0x08000000..0x080fffff)  
 planned, not implemented
@@ -12,7 +12,7 @@ planned, not implemented
 0x00138800    0x00000800   EEPROM1 (0x0000..0x0800) current eeprom  
 0x00139000  
 
-##registers - CCRAM (0x1000ff00-0x1000ffff)
+##registers - CCMRAM (0x1000ff00-0x1000ffff)
 offset  size   content  
 0x00    0x60   general registers  
 0x60    0x8c   SCB  

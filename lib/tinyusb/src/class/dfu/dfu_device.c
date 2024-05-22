@@ -26,7 +26,7 @@
 
 #include "tusb_option.h"
 
-#if (TUSB_OPT_DEVICE_ENABLED && CFG_TUD_DFU)
+#if (CFG_TUD_ENABLED && CFG_TUD_DFU)
 
 #include "device/usbd.h"
 #include "device/usbd_pvt.h"
@@ -36,6 +36,13 @@
 //--------------------------------------------------------------------+
 // MACRO CONSTANT TYPEDEF
 //--------------------------------------------------------------------+
+
+// Level where CFG_TUSB_DEBUG must be at least for this driver is logged
+#ifndef CFG_TUD_DFU_LOG_LEVEL
+  #define CFG_TUD_DFU_LOG_LEVEL   CFG_TUD_LOG_LEVEL
+#endif
+
+#define TU_LOG_DRV(...)   TU_LOG(CFG_TUD_DFU_LOG_LEVEL, __VA_ARGS__)
 
 //--------------------------------------------------------------------+
 // INTERNAL OBJECT & FUNCTION DECLARATION
@@ -56,7 +63,7 @@ typedef struct
 } dfu_state_ctx_t;
 
 // Only a single dfu state is allowed
-CFG_TUSB_MEM_SECTION static dfu_state_ctx_t _dfu_ctx;
+CFG_TUD_MEM_SECTION tu_static dfu_state_ctx_t _dfu_ctx;
 
 static void reset_state(void)
 {
@@ -74,7 +81,7 @@ static bool process_manifest_get_status(uint8_t rhport, uint8_t stage, tusb_cont
 //--------------------------------------------------------------------+
 #if CFG_TUSB_DEBUG >= 2
 
-static tu_lookup_entry_t const _dfu_request_lookup[] =
+tu_static tu_lookup_entry_t const _dfu_request_lookup[] =
 {
   { .key = DFU_REQUEST_DETACH         , .data = "DETACH"    },
   { .key = DFU_REQUEST_DNLOAD         , .data = "DNLOAD"    },
@@ -85,13 +92,13 @@ static tu_lookup_entry_t const _dfu_request_lookup[] =
   { .key = DFU_REQUEST_ABORT          , .data = "ABORT"     },
 };
 
-static tu_lookup_table_t const _dfu_request_table =
+tu_static tu_lookup_table_t const _dfu_request_table =
 {
   .count = TU_ARRAY_SIZE(_dfu_request_lookup),
   .items = _dfu_request_lookup
 };
 
-static tu_lookup_entry_t const _dfu_state_lookup[] =
+tu_static tu_lookup_entry_t const _dfu_state_lookup[] =
 {
   { .key = APP_IDLE                   , .data = "APP_IDLE"                },
   { .key = APP_DETACH                 , .data = "APP_DETACH"              },
@@ -106,13 +113,13 @@ static tu_lookup_entry_t const _dfu_state_lookup[] =
   { .key = DFU_ERROR                  , .data = "ERROR"               },
 };
 
-static tu_lookup_table_t const _dfu_state_table =
+tu_static tu_lookup_table_t const _dfu_state_table =
 {
   .count = TU_ARRAY_SIZE(_dfu_state_lookup),
   .items = _dfu_state_lookup
 };
 
-static tu_lookup_entry_t const _dfu_status_lookup[] =
+tu_static tu_lookup_entry_t const _dfu_status_lookup[] =
 {
   { .key = DFU_STATUS_OK               , .data = "OK"              },
   { .key = DFU_STATUS_ERR_TARGET       , .data = "errTARGET"       },
@@ -132,7 +139,7 @@ static tu_lookup_entry_t const _dfu_status_lookup[] =
   { .key = DFU_STATUS_ERR_STALLEDPKT   , .data = "errSTALLEDPKT"   },
 };
 
-static tu_lookup_table_t const _dfu_status_table =
+tu_static tu_lookup_table_t const _dfu_status_table =
 {
   .count = TU_ARRAY_SIZE(_dfu_status_lookup),
   .items = _dfu_status_lookup
@@ -167,6 +174,8 @@ uint16_t dfu_moded_open(uint8_t rhport, tusb_desc_interface_t const * itf_desc, 
   uint8_t alt_count = 0;
 
   uint16_t drv_len = 0;
+  TU_VERIFY(itf_desc->bInterfaceSubClass == TUD_DFU_APP_SUBCLASS && itf_desc->bInterfaceProtocol == DFU_PROTOCOL_DFU, 0);
+
   while(itf_desc->bInterfaceSubClass == TUD_DFU_APP_SUBCLASS && itf_desc->bInterfaceProtocol == DFU_PROTOCOL_DFU)
   {
     TU_ASSERT(max_len > drv_len, 0);
@@ -203,7 +212,7 @@ bool dfu_moded_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_reque
 {
   TU_VERIFY(request->bmRequestType_bit.recipient == TUSB_REQ_RCPT_INTERFACE);
 
-  TU_LOG2("  DFU State  : %s, Status: %s\r\n", tu_lookup_find(&_dfu_state_table, _dfu_ctx.state), tu_lookup_find(&_dfu_status_table, _dfu_ctx.status));
+  TU_LOG_DRV("  DFU State  : %s, Status: %s\r\n", tu_lookup_find(&_dfu_state_table, _dfu_ctx.state), tu_lookup_find(&_dfu_status_table, _dfu_ctx.status));
 
   if ( request->bmRequestType_bit.type == TUSB_REQ_TYPE_STANDARD )
   {
@@ -233,7 +242,7 @@ bool dfu_moded_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_reque
   }
   else if ( request->bmRequestType_bit.type == TUSB_REQ_TYPE_CLASS )
   {
-    TU_LOG2("  DFU Request: %s\r\n", tu_lookup_find(&_dfu_request_table, request->bRequest));
+    TU_LOG_DRV("  DFU Request: %s\r\n", tu_lookup_find(&_dfu_request_table, request->bRequest));
 
     // Class request
     switch ( request->bRequest )

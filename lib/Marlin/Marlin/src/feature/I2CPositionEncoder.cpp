@@ -429,6 +429,7 @@ void I2CPositionEncoder::calibrate_steps_mm(const uint8_t iter) {
 
     //Save new value
     planner.settings.axis_steps_per_mm[encoderAxis] = new_steps_mm;
+    planner.settings.axis_msteps_per_mm[encoderAxis] = new_steps_mm * PLANNER_STEPS_MULTIPLIER;
 
     if (iter > 1) {
       total += new_steps_mm;

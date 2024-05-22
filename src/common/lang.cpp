@@ -26,9 +26,11 @@ static const size_t LANG_ITEMS = sizeof(lang_list) / sizeof(lang_list[0]);
 
 /// inner function (language-table item finding)
 static const lang_t *get_lang_item(lang_code_t lang_code) {
-    for (uint32_t i = 1; i < LANG_ITEMS; i++) // ie. skip first item in language-table
-        if (lang_code == lang_list[i].lang_code)
+    for (uint32_t i = 1; i < LANG_ITEMS; i++) { // ie. skip first item in language-table
+        if (lang_code == lang_list[i].lang_code) {
             return (&lang_list[i]);
+        }
+    }
     return (&lang_list[0]);
 }
 

@@ -4,16 +4,36 @@
 
 #include "selftest_frame_wizard_prologue.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
-#include "resource.h"
+#include <guiconfig/wizard_config.hpp>
+#include "img_resources.hpp"
 #include "printers.h"
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
+#if PRINTER_IS_PRUSA_MINI
 static constexpr size_t margin_texts = 0;
-static constexpr Align_t align_text_icon = Align_t::LeftTop();
+static constexpr Align_t align_text_icon = Align_t::CenterTop();
 static const char *txt_prologue = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
+#elif PRINTER_IS_PRUSA_MK4
+static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
+static constexpr Align_t align_text_icon = Align_t::CenterTop();
+static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa MK4 printer.\n"
+                                     "I would like to guide you\nthrough the setup process.");
+#elif PRINTER_IS_PRUSA_iX
+static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
+static constexpr Align_t align_text_icon = Align_t::CenterTop();
+static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa iX printer.\n"
+                                     "I would like to guide you\nthrough the setup process.");
+#elif PRINTER_IS_PRUSA_MK3_5
+static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
+static constexpr Align_t align_text_icon = Align_t::CenterTop();
+static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa MK3.5 printer.\n"
+                                     "I would like to guide you\nthrough the setup process.");
+#elif PRINTER_IS_PRUSA_XL
+static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
+static constexpr Align_t align_text_icon = Align_t::CenterTop();
+static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa XL printer.\n"
+                                     "I would like to guide you\nthrough the setup process.");
 #else
-    #error "Unknown PRINTER_TYPE!"
+    #error "Unknown printer type"
 #endif
 
 static constexpr Rect16 getTextRect() {
@@ -43,7 +63,7 @@ static constexpr Rect16 getTextIconRect() {
 SelftestFrameWizardPrologue::SelftestFrameWizardPrologue(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
 
-    , icon(this, getIconRect(), iconName)
+    , icon(this, getIconRect(), &img::pepa_92x140)
     , text_icon(this, getTextIconRect(), is_multiline::yes)
     , text_full_frame(this, getTextRect(), is_multiline::yes) {
 
@@ -59,20 +79,11 @@ void SelftestFrameWizardPrologue::change() {
     const char *txt_icon = nullptr;
     bool show_icon = false; // hand ok hand with checkmark
 
-    //texts
+    // texts
     switch (phase_current) {
     case PhasesSelftest::WizardPrologue_ask_run:
+    case PhasesSelftest::WizardPrologue_ask_run_dev:
         txt_icon = txt_prologue;
-
-        if constexpr (!GuiDefaults::ShowDevelopmentTools) {
-            //original responses
-            const PhaseResponses &rResp = ClientResponses::GetResponses(PhasesSelftest::WizardPrologue_ask_run);
-            //convert to radio button responses and mask out Ignore button
-            //local variable is ok, RadioButton makes a copy
-            RadioButton::Responses_t resp = { { rResp[0], rResp[1], Response::_none, Response::_none } };
-
-            radio.Change(resp);
-        }
         show_icon = true;
         break;
     case PhasesSelftest::WizardPrologue_info:

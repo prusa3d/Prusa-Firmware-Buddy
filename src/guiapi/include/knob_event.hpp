@@ -8,12 +8,12 @@
 namespace gui::knob {
 using action_cb = bool (*)();
 using screen_action_cb = void (*)();
-void RegisterHeldRightAction(action_cb cb);              // action performed by captured window
-void RegisterHeldLeftAction(action_cb cb);               // action performed by captured window
+void RegisterHeldRightAction(action_cb cb); // action performed by captured window
+void RegisterHeldLeftAction(action_cb cb); // action performed by captured window
 void RegisterLongPressScreenAction(screen_action_cb cb); // action performed by current screen
 
-action_cb GetHeldRightAction();              // action performed by captured window
-action_cb GetHeldLeftAction();               // action performed by captured window
+action_cb GetHeldRightAction(); // action performed by captured window
+action_cb GetHeldLeftAction(); // action performed by captured window
 screen_action_cb GetLongPressScreenAction(); // action performed by current screen
 
 bool HeldRightAction();
@@ -22,4 +22,4 @@ void LongPressScreenAction();
 
 bool EventEncoder(int diff);
 bool EventClick(BtnState_t state);
-}
+} // namespace gui::knob

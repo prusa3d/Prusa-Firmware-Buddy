@@ -1,0 +1,6 @@
+FUTURE TESTS IDEAS:
+
+admin valid: 		'{"connect_ip":"10.24.230.10","connect_key":"01234567890123456789","connect_name":"P3D"}'
+admin not valid ip: 	'{"connect_ip":"1000.24.230.10","connect_key":"11234567890123456789","connect_name":"PRUSA3D"}'
+admin longer str: 	'{"connect_ip":"10.24.230.10","connect_key":"11114567890123456789123456","connect_name":"PRUSA3D01234567890123456789"}'
+multiple gcodes:	'{"command":"G1 X50 Y100", "command":"G1 X100 Y50", "command":"G1 X60 Y90", "command":"G1 X100 Y50", "command":"G1 X70 Y80"}'

@@ -10,8 +10,9 @@ using namespace std;
 unichar UniChar(const char *ss) {
     const uint8_t *s = reinterpret_cast<const uint8_t *>(ss);
     unichar ord = *s++;
-    if (!UTF8_IS_NONASCII(ord))
+    if (!UTF8_IS_NONASCII(ord)) {
         return ord;
+    }
     ord &= 0x7F;
     for (unichar mask = 0x40; ord & mask; mask >>= 1) {
         ord &= ~mask;
@@ -121,7 +122,7 @@ TEST_CASE("string_view_utf8::CreateFromCPUFLASH test", "[string_view_utf8]") {
 TEST_CASE("string_view_utf8::CreateFromFILE test", "[string_view_utf8]") {
     static const char fname[] = "zluty_kun.bin";
     FILE *f = fopen(fname, "rb"); // beware! the file must end with \0!
-    REQUIRE(f);                   // without it it makes no sense to continue this test
+    REQUIRE(f); // without it it makes no sense to continue this test
 
     string_view_utf8 sf = string_view_utf8::MakeFILE(f, 0);
     // and now the fun begins - the string view shall return utf8 characters (deliberately typed into the file)

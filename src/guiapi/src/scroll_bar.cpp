@@ -24,14 +24,15 @@ void ScrollBar::SetHeightToScroll(Rect16::Height_t height) {
 
 void ScrollBar::SetScrollOffset(Rect16::Height_t offset_) {
     offset_ = (offset_ >= scroll_height) ? scroll_height : offset_;
-    if (offset == offset_)
+    if (offset == offset_) {
         return; // do not invalidate
+    }
     offset = offset_;
     Invalidate();
 }
 
 void ScrollBar::unconditionalDraw() {
-    super::unconditionalDraw(); //draw background
+    super::unconditionalDraw(); // draw background
     Rect16 rc = GetRect();
     Rect16::Height_t h = rc.Height();
     if (h >= scroll_height) {

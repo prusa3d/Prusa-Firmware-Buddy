@@ -11,11 +11,12 @@
 #include <automata/core.h>
 
 #include <cstdlib>
+#include <cstdint>
 
 namespace nhttp {
 class ServerDefs;
 class Server;
-}
+} // namespace nhttp
 
 namespace nhttp::handler {
 
@@ -43,7 +44,7 @@ namespace nhttp::handler {
  * available as simple variables, but there are also few methods to interpret
  * the parsed values.
  */
-class RequestParser final : public automata::Execution {
+class RequestParser : public automata::Execution {
 private:
     const Server *server;
     const char *api_key = nullptr;
@@ -89,14 +90,37 @@ private:
 public:
     bool accepts_json : 1;
 
+    bool print_after_upload : 1;
+    bool overwrite_file : 1;
+    bool create_folder : 1;
+
 private:
-    std::variant<std::monostate, uint8_t, bool> auth_status;
+    struct DigestAuthParams {
+        uint64_t recieved_response[2] {};
+        uint64_t recieved_nonce {};
+    };
+    using ApiKeyAuthParams = std::variant<std::monostate, uint8_t, bool>;
+    std::variant<DigestAuthParams, ApiKeyAuthParams> auth_status;
+
+    // first half of the nonce, randomly generated on
+    // first use.
+    static uint32_t nonce_random;
+    bool nonce_valid(uint64_t nonce_to_check) const;
+    uint64_t new_nonce() const;
+    bool check_digest_auth(uint64_t nonce_to_use) const;
+
+    std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> authenticated_status(const ApiKeyAuthParams &params) const;
+    std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> authenticated_status(const DigestAuthParams &params) const;
+
+    uint8_t boundary_size = 0;
+
+protected:
+    // Note: protected for testing purposes
 
     // TODO: Eventually get rid of stringy URLs and replace by enums/tokens as much as possible
     // Note: The same buffer is also reused for boundary, that lives just behind it.
     http::Url url = {};
     uint8_t url_size = 0;
-    uint8_t boundary_size = 0;
 
 public:
     /*************   This part makes it a valid Handler and is used by the Server ***********/
@@ -119,10 +143,11 @@ public:
     bool can_keep_alive() const;
     // Status page close handling for the current can_keep_alive.
     StatusPage::CloseHandling status_page_handling() const;
+
     /**
      * \brief Is the request authenticated by a valid api key?
      */
-    bool authenticated() const;
+    std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> authenticated_status() const;
 
     bool uri_filename(char *buffer, size_t buffer_len) const;
     std::string_view uri() const { return std::string_view(url.begin(), url_size); }
@@ -131,4 +156,4 @@ public:
     std::string_view boundary() const { return std::string_view(url.begin() + url_size, boundary_size); }
 };
 
-}
+} // namespace nhttp::handler

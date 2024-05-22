@@ -1,4 +1,0 @@
-#pragma once
-#include <feature/macros.h>
-
-#define ${FEATURE_NAME} ${FEATURE_ENABLED}

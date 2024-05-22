@@ -2,8 +2,8 @@ add_executable(connect-dev-tests)
 
 target_sources(
   connect-dev-tests
-  PRIVATE dev-tests.cpp ${CMAKE_SOURCE_DIR}/src/Connect/socket.cpp
-          ${CMAKE_SOURCE_DIR}/src/Connect/httpc.cpp ${CMAKE_SOURCE_DIR}/src/Connect/os_porting.cpp
+  PRIVATE ${CMAKE_SOURCE_DIR}/src/Connect/httpc.cpp ${CMAKE_SOURCE_DIR}/src/Connect/os_porting.cpp
+          ${CMAKE_SOURCE_DIR}/src/Connect/socket.cpp dev-tests.cpp
   )
 
 target_compile_options(connect-dev-tests PRIVATE -g -pthread -O0)

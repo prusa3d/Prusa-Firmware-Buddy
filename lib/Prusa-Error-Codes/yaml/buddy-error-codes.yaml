@@ -1,0 +1,1028 @@
+---
+# Error codes list for Original Prusa MINI printer
+# GitHub repo https://github.com/prusa3d/Prusa-Error-Codes
+# Printer code
+# MINI           12xxx
+# Error categories
+# MECHANICAL     xx1xx   # Mechanical failures, engines XYZ, tower
+# TEMPERATURE    xx2xx   # Temperature measurement, thermistors, heating
+# ELECTRICAL     xx3xx   # Electrical, MINDA, FINDA, Motion Controller, …
+# CONNECTIVITY   xx4xx   # Connectivity - Wi - Fi, LAN, Prusa Connect Cloud
+# SYSTEM         xx5xx   # System - BSOD, ...
+# BOOTLOADER     xx6xx   #
+# WARNINGS       xx7xx   # Category-less warnings
+# CONNECT        xx8xx   # Remote Dialogs for Connect (unlike xx4xx which includes things like "Can't register to Connect")
+
+Errors:
+  - code: "XX101"
+    printers: [MK4, iX]
+    title: "STUCK FILAMENT DETECTED"
+    text: "The filament seems to be stuck, please unload it from nextruder and load it again."
+    action: [Unload]
+    id: "STUCK_FILAMENT_DETECTED"
+    approved: true
+
+  - code: "XX101"
+    printers: [XL]
+    title: "TOOLCHANGER ERROR"
+    text: "Check all tools if they are properly parked or picked."
+    id: "TOOLCHANGER"
+    approved: true
+
+  - code: "XX102"
+    printers: [XL]
+    title: "PRECISE REFINEMENT FAILED"
+    text: "Consider adjusting belt tension."
+    id: "PRECISE_REFINEMENT_FAILED"
+    approved: false
+
+  - code: "XX103"
+    printers: [XL]
+    title: "DOCK POSITION OUT OF BOUNDS"
+    text: "Dock %d position differs too much from expected values."
+    id: "DOCK_POSITION_OUT_OF_BOUNDS"
+    approved: false
+
+  - code: "XX104"
+    printers: [XL]
+    title: "TOOL OFFSET OUT OF BOUNDS"
+    text: "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
+    id: "TOOL_OFFSET_OUT_OF_BOUNDS"
+    approved: false
+
+  - code: "XX105"
+    printers: [XL]
+    title: "XY PROBE UNSTABLE"
+    text: "XY probing failed due to the low measurement stability."
+    id: "XY_PROBE_UNSTABLE"
+    approved: false
+
+  - code: "XX106"
+    printers: [XL]
+    title: "XY POSITION INVALID"
+    text: "Probed XY position is %.3f mm from expected. This is more than allowed difference of %.3f mm."
+    id: "XY_POSITION_INVALID"
+    approved: false
+
+  - code: "XX107"
+    printers: [XL]
+    title: "PIN NOT REACHED"
+    text: "Calibration pin has not been reached. Please check the pin installation."
+    id: "PIN_NOT_REACHED"
+    approved: false
+
+  - code: "XX108"
+    printers: [XL]
+    title: "STUCK FILAMENT DETECTED"
+    text: "The filament seems to be stuck, please unload it from nextruder and load it again."
+    action: [Unload]
+    id: "STUCK_FILAMENT_DETECTED"
+    approved: true
+
+  # TEMPERATURE    xx2xx
+
+  - code: "XX201"
+    printers: [MINI, MK4, iX, MK3.5]
+    title: "PREHEAT ERROR"
+    text: "Check the heatbed heater & thermistor wiring for possible damage."
+    id: "BED_PREHEAT_ERROR"
+    approved: true
+
+  - code: "XX202"
+    printers: [MINI, MK4, iX, MK3.5]
+    title: "PREHEAT ERROR"
+    text: "Check the print head heater & thermistor wiring for possible damage."
+    id: "HOTEND_PREHEAT_ERROR"
+    approved: true
+
+  - code: "XX202"
+    printers: [XL]
+    title: "EXTRUDER PREHEAT ERROR"
+    text: "Check the heater and thermistor wiring for potential damage."
+    id: "HOTEND_PREHEAT_ERROR"
+    approved: true
+
+  - code: "XX203"
+    title: "THERMAL RUNAWAY"
+    text: "Check the heatbed thermistor wiring for possible damage."
+    id: "BED_THERMAL_RUNAWAY"
+    approved: true
+
+  - code: "XX204"
+    printers: [MINI, MK4, iX, MK3.5]
+    title: "THERMAL RUNAWAY"
+    text: "Check the print head thermistor wiring for possible damage."
+    id: "HOTEND_THERMAL_RUNAWAY"
+    approved: true
+
+  - code: "XX204"
+    printers: [XL]
+    title: "EXTRUDER THERMAL RUNAWAY"
+    text: "Check the thermistor wiring for potential damage."
+    id: "HOTEND_THERMAL_RUNAWAY"
+    approved: true
+
+  - code: "XX205"
+    printers: [MINI, MK4, iX, MK3.5]
+    title: "MAXTEMP ERROR"
+    text: "Check the heatbed thermistor wiring for possible damage."
+    id: "BED_MAXTEMP_ERROR"
+    approved: true
+
+  - code: "XX206"
+    printers: [MINI, MK4, iX, MK3.5]
+    title: "MAXTEMP ERROR"
+    text: "Check the print head thermistor wiring for possible damage."
+    id: "HOTEND_MAXTEMP_ERROR"
+    approved: true
+
+  - code: "XX206"
+    printers: [XL]
+    title: "EXTRUDER MAXTEMP ERROR"
+    text: "Check the thermistor wiring for potential damage."
+    id: "HOTEND_MAXTEMP_ERROR"
+    approved: true
+
+  - code: "XX207"
+    printers: [MINI, MK4, iX, MK3.5]
+    title: "MINTEMP ERROR"
+    text: "Check the heatbed thermistor wiring for possible damage."
+    id: "BED_MINTEMP_ERROR"
+    approved: true
+
+  - code: "XX208"
+    printers: [MINI, MK4, iX, MK3.5]
+    title: "MINTEMP ERROR"
+    text: "Check the print head thermistor wiring for possible damage."
+    id: "HOTEND_MINTEMP_ERROR"
+    approved: true
+
+  - code: "XX208"
+    printers: [XL]
+    title: "EXTRUDER MINTEMP ERROR"
+    text: "Check the thermistor wiring for potential damage."
+    id: "HOTEND_MINTEMP_ERROR"
+    approved: true
+
+  - code: "XX209"
+    title: "TEMP NOT MATCHING"
+    text: "Measured temperature is not matching expected value. Check the thermistor is in contact with heatbed. In case of damage, replace it."
+    id: "BED_TEMP_NOT_MATCHING"
+    approved: true
+
+  - code: "XX210"
+    printers: [MINI, MK4, iX, MK3.5]
+    title: "TEMP NOT MATCHING"
+    text: "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
+    id: "HOTEND_TEMP_NOT_MATCHING"
+    approved: true
+
+  - code: "XX210"
+    printers: [XL]
+    title: "EXTRUDER TEMP NOT MATCHING"
+    text: "Measured temperature is not matching expected value. Check if the thermistor is in contact with the heaterblock. In case of damage, replace it."
+    id: "HOTEND_TEMP_NOT_MATCHING"
+    approved: true
+
+  - code: "XX211"
+    title: "HEATBREAK MINTEMP ERROR"
+    text: "Check the heatbreak thermistor wiring for possible damage."
+    id: "HEATBREAK_MINTEMP_ERR"
+    approved: true
+
+  - code: "XX212"
+    title: "HEATBREAK MAXTEMP ERROR"
+    text: "Check the heatbreak thermistor wiring for possible damage."
+    id: "HEATBREAK_MAXTEMP_ERR"
+    approved: true
+
+  - code: "XX213"
+    title: "MCU MAXTEMP ERROR"
+    text: "MCU in %s is overheated."
+    id: "MCU_MAXTEMP_ERR"
+    approved: false
+
+  - code: "XX250"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Heatbed tile no. %d:\nDamaged tile or wiring.\nFollow online guide to diagnose."
+    id: "MB_HEATER_DISCONNECTED"
+    approved: false
+
+  - code: "XX251"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Heatbed tile no. %d:\nDamaged tile or wiring.\nFollow online guide to diagnose."
+    id: "MB_HEATER_SHORT"
+    approved: false
+
+  - code: "XX252"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Heatbed tile no. %d: \nTemperature measurement error; thermistor may be faulty."
+    id: "MB_MINTEMP_ERR"
+    approved: false
+
+  - code: "XX253"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Heatbed tile no. %d: \nTemperature measurement error; thermistor may be faulty."
+    id: "MB_MAXTEMP_ERR"
+    approved: false
+
+  - code: "XX254"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Heatbed tile no. %d: \nUnexpected temperature drop detected."
+    id: "MB_DROP_TEMP"
+    approved: false
+
+  - code: "XX255"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Heatbed tile no. %d:\n Unexpected temperature peak detected."
+    id: "MB_PEAK_TEMP"
+    approved: false
+
+  - code: "XX256"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Heatbed tile no. %d:\nPreheat error."
+    id: "MB_PREHEAT_ERR"
+    approved: false
+
+  - code: "XX257"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Heatbed tile no. %d:\nTest heating error."
+    id: "MB_TEST_HEATING_ERR"
+    approved: false
+
+  - code: "XX258"
+    printers: [iX]
+    title: "MODULAR BED ERROR"
+    text: "Heatbed connector no. %d:\nNothing should be connected here."
+    id: "MB_HEATER_CONNECTED"
+    approved: false
+
+  # ELECTRICAL     xx3xx
+
+  - code: "XX301"
+    printers: [MINI]
+    title: "HOMING ERROR Z"
+    text: "SuperPINDA sensor is probably broken or disconnected, could not home Z-axis properly."
+    id: "HOMING_ERROR_Z"
+    approved: true
+
+  - code: "XX301"
+    printers: [MK4, iX]
+    title: "HOMING ERROR Z"
+    text: "Failed to home the extruder in Z-axis, make sure the loadcell is working."
+    id: "HOMING_ERROR_Z"
+    approved: true
+
+  - code: "XX301"
+    printers: [XL]
+    title: "HOMING ERROR Z"
+    text: "Failed to home the Z-axis, make sure the loadcell is working."
+    id: "HOMING_ERROR_Z"
+    approved: true
+
+  - code: "XX301"
+    printers: [MK3.5]
+    title: "HOMING ERROR Z"
+    text: "Failed to home the extruder in Z-axis."
+    id: "HOMING_ERROR_Z"
+    approved: true
+
+  - code: "XX302"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Overcurrent detected."
+    id: "MB_OVERCURRENT"
+    approved: false
+
+  - code: "XX303"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Unexpected invalid current."
+    id: "MB_INVALID_CURRENT"
+    approved: false
+
+  - code: "XX304"
+    printers: [MINI, MK4, iX, MK3.5]
+    title: "HOMING ERROR X"
+    text: "Failed to home the extruder in X-axis, make sure there is no obstacle on X-axis."
+    id: "HOMING_ERROR_X"
+    approved: true
+
+  - code: "XX304"
+    printers: [XL]
+    title: "HOMING ERROR X"
+    text: "Failed to home the X-axis, make sure there is no obstacle on X-axis or Y-axis."
+    id: "HOMING_ERROR_X"
+    approved: true
+
+  - code: "XX305"
+    printers: [MINI, MK4, MK3.5]
+    title: "HOMING ERROR Y"
+    text: "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
+    id: "HOMING_ERROR_Y"
+    approved: true
+
+  - code: "XX305"
+    printers: [iX]
+    title: "HOMING ERROR Y"
+    text: "Failed to home the extruder in Y-axis, make sure there is no obstacle on Y-axis."
+    id: "HOMING_ERROR_Y"
+    approved: true
+
+  - code: "XX305"
+    printers: [XL]
+    title: "HOMING ERROR Y"
+    text: "Failed to home the Y-axis, make sure there is no obstacle on X-axis or Y-axis."
+    id: "HOMING_ERROR_Y"
+    approved: true
+
+  - code: "XX306"
+    title: "USB PORT OVERCURRENT"
+    text: "Overcurrent detected on USB port."
+    id: "USB_HOST_OVERCURRENT"
+    approved: true
+
+  - code: "XX307"
+    title: "USB DEVICE OVERCURRENT"
+    text: "Overcurrent detected on the connected USB device, disconnect it."
+    id: "USB_DEVICE_OVERCURRENT"
+    approved: true
+
+  - code: "XX308"
+    printers: [MINI, MK4, iX, MK3.5]
+    title: "NOZZLE HEATER OVERCURRENT"
+    text: "Overcurrent detected on nozzle heater."
+    id: "NOZZLE_OVERCURRENT"
+    approved: true
+
+  - code: "XX309"
+    printers: [MINI]
+    title: "HEATBED PORT OVERCURRENT"
+    text: "Overcurrent detected on heatbed port, disconnect the device."
+    id: "INPUT_OVERCURRENT"
+    approved: true
+
+  - code: "XX309"
+    printers: [MK4, MK3.5, iX]
+    title: "HEATBED PORT OVERCURRENT"
+    text: "Overcurrent detected on xBuddy heatbed port, disconnect the device."
+    id: "INPUT_OVERCURRENT"
+    approved: true
+
+  - code: "XX310"
+    title: "MMU OVERCURRENT"
+    text: "Overcurrent detected on the MMU port, disconnect the device."
+    id: "MMU_OVERCURRENT"
+    approved: true
+
+  - code: "XX311"
+    title: "I2C SEND FAILED"
+    text: "HAL detected an I2C error when sending data via I2C."
+    id: "I2C_TX_ERROR"
+    approved: true
+
+  - code: "XX312"
+    title: "I2C SEND BUSY"
+    text: "HAL detected an I2C busy state when sending data via I2C."
+    id: "I2C_TX_BUSY"
+    approved: true
+
+  - code: "XX313"
+    title: "I2C SEND TIMEOUT"
+    text: "HAL detected an I2C timeout when sending data via I2C."
+    id: "I2C_TX_TIMEOUT"
+    approved: true
+
+  - code: "XX314"
+    title: "I2C SEND UNDEFINED"
+    text: "HAL detected an I2C undefined error when sending data via I2C."
+    id: "I2C_TX_UNDEFINED"
+    approved: true
+
+  - code: "XX315"
+    title: "I2C RECEIVE FAILED"
+    text: "HAL detected an I2C error when receiving data via I2C."
+    id: "I2C_RX_ERROR"
+    approved: true
+
+  - code: "XX316"
+    title: "I2C RECEIVE BUSY"
+    text: "HAL detected an I2C busy state when receiving data via I2C."
+    id: "I2C_RX_BUSY"
+    approved: true
+
+  - code: "XX317"
+    title: "I2C RECEIVE TIMEOUT"
+    text: "HAL detected an I2C timeout when receiving data via I2C."
+    id: "I2C_RX_TIMEOUT"
+    approved: true
+
+  - code: "XX318"
+    title: "I2C RECEIVE UNDEFINED"
+    text: "HAL detected an I2C undefined error when receiving data via I2C."
+    id: "I2C_RX_UNDEFINED"
+    approved: true
+
+  - code: "XX319"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Power failure"
+    id: "MB_FAULT"
+    
+  - code: "XX320"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Power panic"
+    id: "MB_PANIC"
+    approved: true
+
+  - code: "XX321"
+    printers: [MK4, iX, XL, MK3.5]
+    title: "POWER PANIC"
+    text: "Power panic detected on startup. Check power panic cable."
+    id: "ACF_AT_INIT"
+    approved: false
+
+  - code: "XX322"
+    printers: [XL]
+    title: "HOTEND HEATER OVERCURRENT"
+    text: "%s Check hotend heater and control electronics for possible damage"
+    id: "HEATER_HOTEND_OVERCURRENT"
+    approved: false
+
+  - code: "XX401"
+    title: "CONNECT REGISTRATION FAILED"
+    text: "Registration to Prusa Connect failed due to:"
+    id: "CONNECT_REGISTRATION_FAILED"
+    approved: true
+
+  - code: "XX501"
+    printers: [iX, XL]
+    title: "MODULAR BED ERROR"
+    text: "Heatbed tile no. %d:\nUnknown error: %d"
+    id: "MB_UNKNOWN_ERR"
+    approved: true
+
+  - code: "XX502"
+    printers: [XL]
+    title: "DWARF ERROR"
+    text: "Dwarf board encountered the following problem: \n%s"
+    id: "DWARF_UNKNOWN_ERR"
+    approved: false
+
+  - code: "XX503"
+    printers: [XL]
+    title: "DWARF ERROR"
+    text: "Dwarf board %d fault: %s"
+    id: "DWARF_MARLIN_ERR"
+    
+  - code: "XX504"
+    title: "ESP ERROR"
+    text: "Reading ESP firmware failed."
+    id: "ESP_FW_READ"
+    approved: true
+
+  - code: "XX505"
+    title: "ESP ERROR"
+    text: "ESP detected command error."
+    id: "ESP_COMMAND_ERR"
+    approved: true
+
+  - code: "XX506"
+    title: "ESP ERROR"
+    text: "ESP detected unknown error."
+    id: "ESP_UNKNOWN_ERR"
+    approved: true
+
+  - code: "XX507"
+    title: "OUT OF MEMORY"
+    text: "Dynamic allocation failed - out of memory. Reset the printer."
+    id: "MALLOC_ERROR"
+    approved: true
+
+  - code: "XX508"
+    title: "PNG BUFFER FULL"
+    text: "Allocation of dynamic buffer for PNG failed - out of memory."
+    id: "PNG_MALLOC_ERROR"
+    approved: true
+
+  - code: "XX510"
+    title: "EMERGENCY STOP"
+    text: "Emergency stop invoked by G-code (M112)."
+    id: "EMERGENCY_STOP"
+    approved: true
+
+  - code: "XX511"
+    printers: [iX, XL]
+    title: "PUPPY ERROR"
+    text: "Address assignment error"
+    id: "PUPPY_ADDR_ASSIGN_ERR"
+    approved: false
+
+  - code: "XX512"
+    printers: [iX, XL]
+    title: "PUPPY ERROR"
+    text: "Unassigned puppy found"
+    id: "PUPPY_NO_ADDR"
+    approved: false
+
+  - code: "XX513"
+    printers: [iX, XL]
+    title: "PUPPY ERROR"
+    text: "Puppy discovery error. No puppy found"
+    id: "PUPPY_DISCOVER_ERR"
+    approved: false
+
+  - code: "XX514"
+    printers: [iX, XL]
+    title: "PUPPY ERROR"
+    text: "Puppy %s not responding"
+    id: "PUPPY_NOT_RESPONDING"
+    approved: false
+
+  - code: "XX515"
+    printers: [iX, XL]
+    title: "PUPPY ERROR"
+    text: "Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
+    id: "PUPPY_INCOMPATIBLE_BOOTLODER"
+    approved: false
+
+  - code: "XX516"
+    printers: [iX, XL]
+    title: "PUPPY ERROR"
+    text: "Unknown puppy type"
+    id: "PUPPY_UNKNOWN_TYPE"
+    approved: false
+
+  - code: "XX517"
+    printers: [iX, XL]
+    title: "PUPPY ERROR"
+    text: "Unable to start puppy application"
+    id: "PUPPY_START_APP_ERR"
+    approved: false
+
+  - code: "XX518"
+    printers: [iX, XL]
+    title: "PUPPY ERROR"
+    text: "Puppy %s firmware not found"
+    id: "PUPPY_FW_NOT_FOUND"
+    approved: false
+
+  - code: "XX519"
+    printers: [iX, XL]
+    title: "PUPPY ERROR"
+    text: "Puppy %s flash writing failed"
+    id: "PUPPY_WRITE_FLASH_ERR"
+    approved: false
+
+  - code: "XX520"
+    printers: [iX, XL]
+    title: "PUPPY ERROR"
+    text: "Puppy %s firmware fingerprint mismatch"
+    id: "PUPPY_FINGERPRINT_MISMATCH"
+    approved: false
+
+  - code: "XX521"
+    printers: [iX, XL]
+    title: "PUPPY ERROR"
+    text: "Waiting for fingerprint timed out"
+    id: "PUPPY_FINGERPRINT_TIMEOUT"
+    approved: false
+
+  - code: "XX522"
+    printers: [iX, XL]
+    title: "PUPPY ERROR"
+    text: "Waiting for puppies to start timed out"
+    id: "PUPPY_RUN_TIMEOUT"
+    approved: false
+
+  - code: "XX523"
+    printers: [MK4, iX, XL, MK3.5]
+    title: "LOADCELL NOT CALIBRATED"
+    text: "Loadcell calibration is incomplete. Restart the printer and callibrate loadcell."
+    id: "LOADCELL_INCOMPLETE_CONFIGURATION_ERROR"
+    approved: true
+
+  - code: "XX524"
+    printers: [MK4, iX, XL]
+    title: "LOADCELL TARE ERROR"
+    text: "There was an error requesting the tare for loadcell."
+    id: "LOADCELL_TARE_ALREADY_REQUESTED"
+    approved: true
+
+  - code: "XX525"
+    printers: [MK4, iX, XL]
+    title: "LOADCELL TARE FAILED"
+    text: "Setting the tare failed. Check the loadcell wiring and connection."
+    id: "LOADCELL_TARE_FAILED"
+    approved: true
+
+  - code: "XX526"
+    printers: [MK4, iX, XL]
+    title: "LOADCELL MEASURE FAILED"
+    text: "Loadcell measured an inifinite or undefined load value."
+    id: "LOADCELL_INFINITE_LOAD"
+    approved: true
+
+  - code: "XX527"
+    printers: [MK4, iX, XL]
+    title: "LOADCELL BAD CONFIGURATION"
+    text: "The loadcell configuration is incorrect."
+    id: "LOADCELL_BAD_CONFIGURATION"
+    approved: true
+
+  - code: "XX528"
+    printers: [MK4, iX, XL]
+    title: "LOADCELL TIMEOUT"
+    text: "There was a timeout while waiting for measurement sample, please repeat the action."
+    id: "LOADCELL_TIMEOUT"
+    approved: true
+
+  - code: "XX529"
+    printers: [MK4, iX, XL, MK3.5]
+    title: "LED MEMORY ERROR"
+    text: "Memory allocation failed for scheduled LED animation"
+    id: "LED_ANIMATION_BAD_SPACE_MANAGEMENT"
+    approved: true
+
+  - code: "XX530"
+    title: "MARLIN REQUEST TIMEOUT"
+    text: "Marlin client could not send message to Marlin server and timeout was reached."
+    id: "MARLIN_CLIENT_SERVER_REQUEST_TIMEOUT"
+    approved: true
+
+  - code: "XX531"
+    title: "BBF ALLOCATION FAILED"
+    text: "Space allocation for firmware BBF file failed. Repeat the action or try another USB drive."
+    id: "BBF_ALLOCATION_FAILED"
+    approved: true
+
+  - code: "XX532"
+    title: "BBF INITIALIZATION FAILED"
+    text: "BBF initialization failed, repeat the action or try another USB drive."
+    id: "BBF_INIT_FAILED"
+    approved: true
+
+  - code: "XX533"
+    title: "ESP NOT CONNECTED"
+    text: "ESP doesn't seem to be connected."
+    id: "ESP_NOT_CONNECTED"
+    approved: false
+
+  - code: "XX601"
+    title: ""
+    text: "This error code is not found\nin our database.\nContact the support."
+    id: "UNKNOWN_ERROR_CODE"
+    approved: true
+
+  - code: "XX602"
+    title: "USB FLASH DRIVE NOT CONNECTED"
+    text: "USB drive not\nconnected! Please\ninsert a USB drive\nwith a valid\nfirmware file."
+    id: "USB_NOT_CONNECTED"
+    approved: true
+
+  - code: "XX603"
+    title: "INVALID FW SIZE ON USB FLASH DRIVE"
+    text: "Firmware file has\ninvalid size!\nCheck the file\non the USB drive\nand try again."
+    id: "INVALID_FW_SIZE_ON_USB"
+    approved: true
+
+  - code: "XX604"
+    title: "NO FW ON USB FLASH DRIVE"
+    text: "Firmware file\nmissing in the USB\nflash!"
+    id: "NO_FW_ON_USB"
+    approved: true
+
+  - code: "XX605"
+    title: "FLASH ERASE ERROR"
+    text: "Error erasing\n flash! Restart\nthe printer and\ntry again."
+    id: "FLASH_ERASE_ERROR"
+    approved: true
+
+  - code: "XX606"
+    title: "IMPOSTER! FAKE SIGNATURE"
+    text: "Firmware signature\nverification failed!\nOnly official\nsigned firmware can\nbe flashed."
+    id: "SIGNATURE_VERIFICATION_FAILED"
+    approved: true
+
+  - code: "XX607"
+    title: "HASH VERIFICATION FAILED"
+    text: "Firmware hash\nverification failed!\nFirmware file is\ndamaged. Try\ndownloading and\ncopying it onto the\nUSB drive again."
+    id: "HASH_VERIFICATION_FAILED"
+    approved: true
+
+  - code: "XX608"
+    title: "FW IN INTERNAL FLASH CORRUPTED"
+    text: "Firmware in the\ninternal flash\ncorrupted! Please\nreflash the\nfirmware."
+    id: "FW_IN_INTERNAL_FLASH_CORRUPTED"
+    approved: true
+
+  - code: "XX609"
+    printers: [MINI]
+    title: ""
+    text: "Firmware and hardware\nversions do not\nmatch. Make sure\nyou have the right\nfirmware file for\nyour printer."
+    id: "HW_VERSION_ERR"
+    approved: true
+
+  - code: "XX609"
+    printers: [MK4, iX, XL, MK3.5]
+    title: ""
+    text: "Firmware and hardware versions do\nnot match. Make sure you have\nthe right firmware file for\nyour printer."
+    id: "HW_VERSION_ERR"
+    approved: true
+
+  - code: "XX610"
+    title: "UNSUPPORTED PRINTER MODEL"
+    text: "Firmware/printer\ntypes do not match.\nMake sure you have\nthe right firmware\nfile for your\nprinter model."
+    id: "UNSUPPORTED_PRINTER_TYPE"
+    approved: true
+
+  - code: "XX611"
+    title: "UNSUPPORTED BUDDY FW"
+    text: "Firmware/printer\nversions do not\nmatch! You are\ntrying to flash\nFW meant for other\nrevision of the\nBuddy board."
+    id: "UNSUPPORTED_PRINTER_VERSION"
+    approved: true
+
+  - code: "XX612"
+    title: "FIRMWARE MISSING"
+    text: "No firmware found\nin the internal\nflash! Please\nflash firmware\nfirst!"
+    id: "NO_FW_IN_INTERNAL_FLASH"
+    approved: true
+
+  - code: "XX613"
+    title: "USB FLASH ERROR"
+    text: "File system error!\nTry a different USB\ndrive or format the\ndrive with FAT32\nfilesystem (all \ndata will be lost)!"
+    id: "FILE_SYSTEM_ERROR"
+    approved: true
+
+  - code: "XX614"
+    title: "UNSUPPORTED FIRMWARE BBF FILE"
+    text: "USB flash drive contains\nunsupported firmware BBF file."
+    id: "UNSUPPORTED_BBF_VERSION"
+    approved: true
+
+  - code: "XX701"
+    printers: [MK4]
+    title: "Firmware Update Required"
+    text: "Insert the bundled USB drive, restart the printer and click the knob once during the boot. This will install the MK3.5 firmware."
+    id: "DIFFERENT_FW_REQUIRED"
+    approved: true
+
+  - code: "XX701"
+    printers: [MK3.5]
+    title: "Firmware Update Required"
+    text: "Insert the bundled USB drive, restart the printer and click the knob once during the boot. This will install the MK4/MK3.9 firmware."
+    id: "DIFFERENT_FW_REQUIRED"
+    approved: true
+
+  - code: "XX702"
+    printers: [MK4]
+    title: "Cold Pull"
+    text: "Welcome to the Cold Pull wizard. Prepare a 30cm piece of PLA filament and follow the instructions. For more details, visit:"
+    id: "COLD_PULL_INTRO"
+    approved: true
+
+  - code: "XX801"
+    title: "Warning"
+    text: "Please complete Calibrations & Tests before using the printer."
+    id: "PRINT_PREVIEW_UNFINISHED_SELFTEST"
+    type: "CONNECT"
+
+  - code: "XX802"
+    printers: [MINI]
+    title: "Warning"
+    text: "New FW available"
+    id: "PRINT_PREVIEW_NEW_FW"
+    type: "CONNECT"
+
+  - code: "XX802"
+    printers: [MK4, XL, MK3.5, iX]
+    title: "Warning"
+    text: "New firmware available"
+    id: "PRINT_PREVIEW_NEW_FW"
+    type: "CONNECT"
+
+  - code: "XX803"
+    title: "Warning"
+    text: "The G-code isn't fully compatible"
+    id: "PRINT_PREVIEW_WRONG_PRINTER"
+    type: "CONNECT"
+
+  - code: "XX804"
+    title: "Warning"
+    text: "Filament not detected. Load filament now?\nSelect NO to cancel the print.\nSelect DISABLE FS to disable the filament sensor and continue print."
+    id: "PRINT_PREVIEW_NO_FILAMENT"
+    type: "CONNECT"
+
+  - code: "XX805"
+    printers: [MINI]
+    title: "Warning"
+    text: "This G-code was set up for another filament type."
+    id: "PRINT_PREVIEW_WRONG_FILAMENT"
+    type: "CONNECT"
+
+  - code: "XX805"
+    printers: [MK4, XL, MK3.5, iX]
+    title: "Warning"
+    text: "A filament specified in the G-code is either not loaded or wrong type."
+    id: "PRINT_PREVIEW_WRONG_FILAMENT"
+    type: "CONNECT"
+    
+  - code: "XX806"
+    printers: [MK4, MK3.5]
+    title: "Warning"
+    text: "Filament detected. Unload filament now? Select NO to start the print with the currently loaded filament."
+    id: "PRINT_PREVIEW_MMU_FILAMENT_INSERTED"
+    type: "CONNECT"
+    
+  - code: "XX807"
+    title: "File error"
+      #TODO what about this one? It is dynamically generated.
+    text: "File error"
+    id: "PRINT_PREVIEW_FILE_ERROR"
+    type: "CONNECT"
+
+  - code: "XX808"
+    title: ""
+    text: "The heatbed cooled down during the power outage, printed object might have detached. Inspect it before continuing."
+    id: "POWER_PANIC_COLD_BED"
+    type: "CONNECT"
+
+  - code: "XX809"
+    title: ""
+    text: "Length of an axis is too long.\nMotor current is too low, probably.\nRetry check, pause or resume the print?"
+    id: "CRASH_RECOVERY_AXIS_LONG"
+    type: "CONNECT"
+
+  - code: "XX810"
+    title: ""
+    text: "Length of an axis is too short.\nThere's an obstacle or bearing issue.\nRetry check, pause or resume the print?"
+    id: "CRASH_RECOVERY_AXIS_SHORT"
+    type: "CONNECT"
+
+  - code: "XX811"
+    title: ""
+    text: "Repeated collision has been detected.\nDo you want to resume or pause the print?"
+    id: "CRASH_RECOVERY_REPEATED_CRASH"
+    type: "CONNECT"
+
+  - code: "XX812"
+    title: ""
+    text: "Unable to home the printer.\nDo you want to try again?"
+    id: "CRASH_RECOVERY_HOME_FAIL"
+    type: "CONNECT"
+    
+  - code: "XX813"
+    printers: [XL]
+    title: ""
+    text: "Toolchanger problem has been detected.\nPark all tools to docks\nand leave the carriage free."
+    id: "CRASH_RECOVERY_TOOL_PICKUP"
+    type: "CONNECT"
+
+  - code: "XX814"
+    printers: [MK4, XL, MK3.5]
+    title: "Tool mapping"
+    text: "Changes of mapping available only in the Printer UI. Select Print to start the print with defaults."
+    id: "PRINT_PREVIEW_TOOLS_MAPPING"
+    type: "CONNECT"
+    
+  - code: "XX815"
+    printers: [MK4, MK3.5]
+    title: ""
+    text: "Waiting for user input"
+    id: "MMU_LOAD_UNLOAD_ERROR"
+    type: "CONNECT"
+    
+  - code: "XX816"
+    title: ""
+    text: "Print fan not spinning. Check it for possible debris, then inspect the wiring."
+    id: "PRINT_FAN_ERROR"
+    type: "CONNECT"
+
+  - code: "XX817"
+    title: ""
+    text: "Heating disabled due to 30 minutes of inactivity."
+    id: "HEATERS_TIMEOUT"
+    type: "CONNECT"
+
+  - code: "XX818"
+    title: ""
+    text: "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
+    id: "HOTEND_TEMP_DISCREPANCY"
+    type: "CONNECT"
+
+  - code: "XX819"
+    title: ""
+    text: "Heating disabled due to 30 minutes of inactivity."
+    id: "NOZZLE_TIMEOUT"
+    type: "CONNECT"
+
+  - code: "XX820"
+    title: ""
+    text: "Steppers disabled due to inactivity."
+    id: "STEPPERS_TIMEOUT"
+    type: "CONNECT"
+
+  - code: "XX821"
+    title: ""
+    text: "USB drive or file error, the print is now paused. Reconnect the drive."
+    id: "USB_FLASH_DISK_ERROR"
+    type: "CONNECT"
+
+  - code: "XX822"
+    title: ""
+    text: "Heatbreak thermistor is disconnected. Inspect the wiring."
+    id: "HEATBREAK_THERMISTOR_FAIL"
+    type: "CONNECT"
+
+  - code: "XX823"
+    printers: [XL, MK3.5]
+    title: ""
+    text: "Nozzle doesn't seem to have round cross section. Make sure it is clean and perpendicular to the bed."
+    id: "NOZZLE_DOES_NOT_HAVE_ROUND_SECTION"
+    type: "CONNECT"
+
+  - code: "XX824"
+    title: ""
+    text: "G-Code transfer running too slow. Check your network for issues or use different USB drive. Press Continue to resume printing."
+    id: "NOT_DOWNLOADED"
+    type: "CONNECT"
+
+  - code: "XX825"
+    title: ""
+    text: "MCU in Buddy is overheated. Any higher will result in fatal error."
+    id: "BUDDY_MCU_MAX_TEMP"
+    type: "CONNECT"
+
+  - code: "XX826"
+    printers: [XL]
+    title: ""
+    text: "MCU in Dwarf is overheated. Any higher will result in fatal error."
+    id: "DWARF_MCU_MAX_TEMP"
+    type: "CONNECT"
+
+  - code: "XX827"
+    printers: [iX, XL]
+    title: ""
+    text: "MCU in Modular Bed is overheated. Any higher will result in fatal error."
+    id: "MOD_BED_MCU_MAX_TEMP"
+    type: "CONNECT"
+    
+  - code: "XX828"
+    title: ""
+    text: "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
+    id: "HOTEND_FAN_ERROR"
+    type: "CONNECT"
+
+  - code: "XX829"
+    title: "Filament runout"
+    text: "Filament runout during print, please insert new one."
+    id: "FILAMENT_RUNOUT"
+    type: "CONNECT"
+
+  - code: "XX830"
+    printers: [XL]
+    title: ""
+    text: "Enclosure fan not spinning. Check it for possible debris, then inspect the wiring."
+    id: "ENCLOSURE_FAN_ERROR"
+    type: "CONNECT"
+
+  - code: "XX831"
+    printers: [XL]
+    title: ""
+    text: "The HEPA filter is nearing the end of its life span (100 hours of printing time remaining). We recommend purchasing a new one. Visit prusa.io/xl-filter for more information."
+    id: "ENCLOSURE_FILTER_EXPIRATION_WARNING"
+    type: "CONNECT"
+
+  - code: "XX832"
+    printers: [XL]
+    title: ""
+    text: "The HEPA filter has expired. Change the HEPA filter before your next print. Visit prusa.io/xl-filter for more information."
+    id: "ENCLOSURE_FILTER_EXPIRATION"
+    type: "CONNECT"
+  - code: "XX833"
+    printers: [iX, MK4, MK3.5, MINI, XL]
+    title: ""
+    text: "Bed leveling failed. Try again?"
+    id: "PROBING_FAILED"
+    type: "CONNECT"
+  - code: "XX834"
+    printers: [iX, MK4, MK3.5, XL]
+    title: ""
+    text: "Nozzle cleaning failed."
+    id: "NOZZLE_CLEANING_FAILED"
+    type: "CONNECT"
+  - code: "XX835"
+    printers: [iX, MK4, MK3.5, MINI, XL]
+    title: ""
+    text: "Waiting for the user. Press \"Resume\" once the printer is ready."
+    id: "QUICK_PAUSE"
+    type: "CONNECT"

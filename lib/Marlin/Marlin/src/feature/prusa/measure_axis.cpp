@@ -11,21 +11,24 @@
  */
 
 #include "measure_axis.h"
-#include "../../module/stepper.h"
-#include "../../module/endstops.h"
+#if ENABLED(AXIS_MEASURE)
 
-#define _CAN_HOME(A) \
-    ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0))
-#if X_SPI_SENSORLESS
-    #define CAN_HOME_X true
-#else
-    #define CAN_HOME_X _CAN_HOME(X)
-#endif
-#if Y_SPI_SENSORLESS
-    #define CAN_HOME_Y true
-#else
-    #define CAN_HOME_Y _CAN_HOME(Y)
-#endif
+    #include "crash_recovery.hpp"
+    #include "../../module/stepper.h"
+    #include "../../module/endstops.h"
+
+    #define _CAN_HOME(A) \
+        ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0))
+    #if X_SPI_SENSORLESS
+        #define CAN_HOME_X true
+    #else
+        #define CAN_HOME_X _CAN_HOME(X)
+    #endif
+    #if Y_SPI_SENSORLESS
+        #define CAN_HOME_Y true
+    #else
+        #define CAN_HOME_Y _CAN_HOME(Y)
+    #endif
 
 Measure_axis::Measure_axis(bool measure_x, bool measure_y, xy_bool_t invert_dir, feedRate_t fr_mm_s,
     float raise_z, bool no_modifiers, bool default_acceleration, bool default_current)
@@ -42,8 +45,9 @@ Measure_axis::Measure_axis(bool measure_x, bool measure_y, xy_bool_t invert_dir,
         return;
     }
 
-    if (raise_z < 0)
+    if (raise_z < 0) {
         raise_z = Z_HOMING_HEIGHT;
+    }
 
     if (fr_mm_s <= 0) {
         fr.x = homing_feedrate(X_AXIS);
@@ -53,17 +57,18 @@ Measure_axis::Measure_axis(bool measure_x, bool measure_y, xy_bool_t invert_dir,
 
 // TODO: use this for quick_home in Marlin (de-duplicate code)
 void Measure_axis::quick_home_start() {
-#if ENABLED(QUICK_HOME)
+    #if ENABLED(QUICK_HOME)
     // Pretend the current position is 0,0
     current_position.set(0.0, 0.0);
     sync_plan_position();
 
     int axis_home_dir[2];
     axis_home_dir[X_AXIS] = (
-    #if ENABLED(DUAL_X_CARRIAGE)
+        #if ENABLED(DUAL_X_CARRIAGE)
         axis == X_AXIS ? x_home_dir(active_extruder) :
-    #endif
-                       invert_dir.x ? (-home_dir(X_AXIS)) : home_dir(X_AXIS));
+        #endif
+            invert_dir.x ? (-home_dir(X_AXIS))
+                         : home_dir(X_AXIS));
 
     axis_home_dir[Y_AXIS] = invert_dir.y ? (-home_dir(X_AXIS)) : home_dir(X_AXIS);
 
@@ -76,144 +81,151 @@ void Measure_axis::quick_home_start() {
     const float mly = 1.5f * (length_r_less_than_speed_r ? (max_length(Y_AXIS)) : (max_length(X_AXIS) * speed_ratio_inv));
     const float fr_mm_s = SQRT(sq(homing_feedrate(X_AXIS)) + sq(homing_feedrate(Y_AXIS)));
 
-    #if ENABLED(SENSORLESS_HOMING)
+        #if ENABLED(SENSORLESS_HOMING)
     stealth_states = {
         tmc_enable_stallguard(stepperX),
         tmc_enable_stallguard(stepperY),
         false,
         false
-        #if AXIS_HAS_STALLGUARD(X2)
+            #if AXIS_HAS_STALLGUARD(X2)
             || tmc_enable_stallguard(stepperX2)
-        #endif
+            #endif
             ,
         false
-        #if AXIS_HAS_STALLGUARD(Y2)
+            #if AXIS_HAS_STALLGUARD(Y2)
             || tmc_enable_stallguard(stepperY2)
-        #endif
+            #endif
     };
 
     sensorless_enable(X_AXIS);
     sensorless_enable(Y_AXIS);
-    #endif
+        #endif
 
     plan_park_move_to(mlx * axis_home_dir[X_AXIS], mly * axis_home_dir[Y_AXIS], current_position.z, fr_mm_s, homing_feedrate(Z_AXIS));
-#endif
+    #endif
 }
 
 void Measure_axis::quick_home_finish() {
-#if ENABLED(QUICK_HOME)
+    #if ENABLED(QUICK_HOME)
     endstops.validate_homing_move();
     current_position.set(0.0, 0.0);
     sync_plan_position();
-    #if ENABLED(SENSORLESS_HOMING)
+        #if ENABLED(SENSORLESS_HOMING)
     LOOP_XY(axis)
     end_sensorless_homing_per_axis(AxisEnum(axis), stealth_states);
+        #endif
     #endif
-#endif
 }
 
 void Measure_axis::sensorless_enable(AxisEnum axis) {
-// Disable stealthChop if used. Enable diag1 pin on driver.
-#if ENABLED(SENSORLESS_HOMING)
+    // Disable stealthChop if used. Enable diag1 pin on driver.
+    #if ENABLED(SENSORLESS_HOMING)
     stealth_states = start_sensorless_homing_per_axis(axis);
     switch (axis) {
     default:
         break;
-    #if X_SENSORLESS
+        #if X_SENSORLESS
     case X_AXIS:
-        if (sensitivity.has_value())
+        if (sensitivity.has_value()) {
             stepperX.stall_sensitivity(sensitivity.value().x);
-        if (max_period.has_value())
+        }
+        if (max_period.has_value()) {
             stepperX.stall_max_period(max_period.value().x);
+        }
         break;
-    #endif
-    #if Y_SENSORLESS
+        #endif
+        #if Y_SENSORLESS
     case Y_AXIS:
-        if (sensitivity.has_value())
+        if (sensitivity.has_value()) {
             stepperY.stall_sensitivity(sensitivity.value().y);
-        if (max_period.has_value())
+        }
+        if (max_period.has_value()) {
             stepperX.stall_max_period(max_period.value().y);
+        }
         break;
-    #endif
+        #endif
     }
-#endif // ENABLED(SENSORLESS_HOMING)
+    #endif // ENABLED(SENSORLESS_HOMING)
 }
 
 void Measure_axis::sensorless_disable(AxisEnum axis) {
-// Re-enable stealthChop if used. Disable diag1 pin on driver.
-#if ENABLED(SENSORLESS_HOMING)
+    // Re-enable stealthChop if used. Disable diag1 pin on driver.
+    #if ENABLED(SENSORLESS_HOMING)
     end_sensorless_homing_per_axis(axis, stealth_states);
-#endif // ENABLED(SENSORLESS_HOMING)
+    #endif // ENABLED(SENSORLESS_HOMING)
 }
 
 void Measure_axis::home_back(AxisEnum axis) {
-#if ENABLED(MOVE_BACK_BEFORE_HOMING)
+    #if ENABLED(MOVE_BACK_BEFORE_HOMING)
 
     // TODO: don't reset positions
     current_position.pos[axis] = 0;
     sync_plan_position();
     const int axis_home_dir = (
-    #if ENABLED(DUAL_X_CARRIAGE)
+        #if ENABLED(DUAL_X_CARRIAGE)
         axis == X_AXIS ? x_home_dir(active_extruder) :
-    #endif
-                       invert_dir[axis] ? (-home_dir(axis)) : home_dir(axis));
+        #endif
+            invert_dir[axis] ? (-home_dir(axis))
+                             : home_dir(axis));
 
-    abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+    abce_pos_t target;
+    planner.get_axis_position_mm(target);
     target[axis] = 0;
     planner.set_machine_position_mm(target);
     float dist = (axis_home_dir > 0) ? -MOVE_BACK_BEFORE_HOMING_DISTANCE : MOVE_BACK_BEFORE_HOMING_DISTANCE;
     target[axis] = dist;
 
-    #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+        #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
     const xyze_float_t delta_mm_cart { 0 };
-    #endif
+        #endif
 
     // Set delta/cartesian axes directly
     planner.buffer_segment(target
-    #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+        #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
         ,
         delta_mm_cart
-    #endif
+        #endif
         ,
         fr[axis], active_extruder);
-#endif
+    #endif
 }
 
 void Measure_axis::home_start(AxisEnum axis, bool invert) {
     /// FIXME: duplicit code
     const int axis_home_dir = (
-#if ENABLED(DUAL_X_CARRIAGE)
+    #if ENABLED(DUAL_X_CARRIAGE)
         axis == X_AXIS ? x_home_dir(active_extruder) :
-#endif
-                       invert_dir[axis] ^ invert ? (-home_dir(axis)) : home_dir(axis));
+    #endif
+            invert_dir[axis] ^ invert ? (-home_dir(axis))
+                                      : home_dir(axis));
     float distance = 1.5f * max_length(axis) * axis_home_dir;
 
-#if IS_SCARA
+    #if IS_SCARA
     // Tell the planner the axis is at 0
     current_position[axis] = 0;
     sync_plan_position();
     current_position[axis] = distance;
     line_to_current_position(fr[axis]);
-#else
+    #else
     abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
     target[axis] = 0;
     planner.set_machine_position_mm(target);
     target[axis] = distance;
 
-    #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+        #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
     const xyze_float_t delta_mm_cart { 0 };
-    #endif
+        #endif
 
     // Set delta/cartesian axes directly
     planner.buffer_segment(target
-    #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+        #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
         ,
         delta_mm_cart
-    #endif
+        #endif
         ,
         fr[axis], active_extruder);
 
-#endif
+    #endif
 }
 
 void Measure_axis::home_finish(AxisEnum axis) {
@@ -225,9 +237,9 @@ void Measure_axis::save_length(AxisEnum axis) {
 }
 
 void Measure_axis::finish() {
-#if ENABLED(CRASH_RECOVERY)
+    #if ENABLED(CRASH_RECOVERY)
     crash_s.activate();
-#endif
+    #endif
     sync_plan_position();
     restore_current_if(default_current, current);
     endstops.not_homing();
@@ -300,13 +312,14 @@ void Measure_axis::state_finish() {
         mp = reset_acceleration_if(default_acceleration);
         endstops.enable(true); //< Enable endstops for homing moves
         current = reset_current_if(default_current);
-#if ENABLED(CRASH_RECOVERY)
+    #if ENABLED(CRASH_RECOVERY)
         crash_s.deactivate();
-#endif
+    #endif
         break;
     case QUICK_HOME_XY:
-        if (do_x && do_y)
+        if (do_x && do_y) {
             quick_home_finish();
+        }
         break;
     case MEASURE_X:
         save_length(X_AXIS);
@@ -332,8 +345,11 @@ void Measure_axis::loop() {
     case FINISH:
         break;
     default:
-        if (!Planner::busy())
+        if (!Planner::busy()) {
             state_next();
+        }
         break;
     }
 }
+
+#endif

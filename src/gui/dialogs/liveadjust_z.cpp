@@ -1,30 +1,26 @@
 // liveadjustz.cpp
 
 #include "liveadjust_z.hpp"
-#include "resource.h"
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
-#include "GuiDefaults.hpp"
-#include "marlin_client.h"
+#include <guiconfig/GuiDefaults.hpp>
+#include "marlin_client.hpp"
 #include "display_helper.h"
 #include "SteelSheets.hpp"
+#include "img_resources.hpp"
 
 #include "config_features.h"
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    #include "gui_config_mini.h"
-#else
-    #error "Unknown PRINTER_TYPE."
-#endif
+#include "gui_config_printer.hpp"
+#include <guiconfig/guiconfig.h>
 
 /*****************************************************************************/
-//WindowScale
+// WindowScale
 
 WindowScale::WindowScale(window_t *parent, point_i16_t pt)
     : AddSuperWindow<window_frame_t>(parent, Rect16(pt, 10, 100))
-    , scaleNum0(parent, getNumRect(pt), 0)
-    , scaleNum1(parent, getNumRect(pt), -1)
-    , scaleNum2(parent, getNumRect(pt), -2) {
-    scaleNum0.SetFormat("% .0f");
+    , scaleNum0(parent, getNumRect(pt), z_offset_max, "% f")
+    , scaleNum1(parent, getNumRect(pt), (z_offset_max + z_offset_min) / 2, "% f")
+    , scaleNum2(parent, getNumRect(pt), z_offset_min, "% f") {
 
     scaleNum0 -= Rect16::Top_t(8);
     scaleNum1 += Rect16::Top_t((Height() / 2) - 8);
@@ -35,10 +31,11 @@ Rect16 WindowScale::getNumRect(point_i16_t pt) const {
     return Rect16(pt.x - 30, pt.y, 30, 20);
 }
 
-void WindowScale::SetMark(float percent) {
-    if (!mark_old_y)
+void WindowScale::SetMark(float relative) {
+    if (!mark_old_y) {
         mark_old_y = mark_new_y;
-    mark_new_y = Height() * std::clamp(percent, 0.f, 100.f);
+    }
+    mark_new_y = Height() * std::clamp(relative, 0.f, 1.f);
     if (mark_old_y != mark_new_y) {
         Invalidate();
     } else {
@@ -55,8 +52,9 @@ void WindowScale::horizLine(uint16_t width_pad, uint16_t height, color_t color) 
 
 void WindowScale::unconditionalDraw() {
     /// redraw old mark line
-    if (mark_old_y)
+    if (mark_old_y) {
         horizLine(0, *mark_old_y, COLOR_BLACK);
+    }
     mark_old_y = std::nullopt;
     /// vertical line of scale
     display::DrawLine(point_ui16(Left() + 5, Top()), point_ui16(Left() + 5, Top() + Height()), COLOR_WHITE);
@@ -70,7 +68,7 @@ void WindowScale::unconditionalDraw() {
     horizLine(0, mark_new_y, COLOR_ORANGE);
 }
 /*****************************************************************************/
-//WindowLiveAdjustZ
+// WindowLiveAdjustZ
 
 WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreenBody)
@@ -80,24 +78,21 @@ WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
     SetRect(number.GetRect().Union(arrows.GetRect()));
     /// using window_numb to store float value of z_offset
     /// we have to set format and bigger font
-    number.SetFont(GuiDefaults::FontBig);
+    number.set_font(GuiDefaults::FontBig);
     number.SetFormat("% .3f");
 }
 
 void WindowLiveAdjustZ::Save() {
     /// store new z offset value into a marlin_vars & EEPROM
-    if (!SteelSheets::SetZOffset(number.GetValue())) {
-        // could be during print, better not cause BSOD, just freeze in debug
-        assert(0 /* Z offset write failed */);
-    }
+    SteelSheets::SetZOffset(number.GetValue());
 }
 
 void WindowLiveAdjustZ::Change(int dif) {
     float old = number.GetValue();
-    float z_offset = number.value;
+    float z_offset = number.GetValue();
 
     z_offset += (float)dif * z_offset_step;
-    z_offset = dif >= 0 ? std::max(z_offset, old) : std::min(z_offset, old); //check overflow/underflow
+    z_offset = dif >= 0 ? std::max(z_offset, old) : std::min(z_offset, old); // check overflow/underflow
     z_offset = std::min(z_offset, z_offset_max);
     z_offset = std::max(z_offset, z_offset_min);
 
@@ -105,29 +100,33 @@ void WindowLiveAdjustZ::Change(int dif) {
     float baby_step = z_offset - old;
     if (baby_step != 0.0F) {
         number.SetValue(z_offset);
-        marlin_do_babysteps_Z(baby_step);
+        marlin_client::do_babysteps_Z(baby_step);
     }
 }
 
 void WindowLiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
+
     case GUI_event_t::ENC_UP:
         Change(1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         arrows.SetState(WindowArrows::State_t::up);
         break;
+
     case GUI_event_t::ENC_DN:
         Change(-1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         arrows.SetState(WindowArrows::State_t::down);
         break;
+
     default:
         SuperWindowEvent(sender, event, param);
+        break;
     }
 }
 
 /*****************************************************************************/
-//WindowLiveAdjustZ_withText
+// WindowLiveAdjustZ_withText
 
 WindowLiveAdjustZ_withText::WindowLiveAdjustZ_withText(window_t *parent, point_i16_t pt, size_t width)
     : AddSuperWindow<WindowLiveAdjustZ>(parent, pt)
@@ -151,12 +150,14 @@ bool WindowLiveAdjustZ_withText::IsActive() {
 
 void WindowLiveAdjustZ_withText::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
+
     case GUI_event_t::ENC_UP:
     case GUI_event_t::ENC_DN:
         if (IsActive()) {
-            return; //discard event
+            return; // discard event
         }
         break;
+
     default:
         break;
     }
@@ -164,16 +165,25 @@ void WindowLiveAdjustZ_withText::windowEvent(EventLock /*has private ctor*/, win
 }
 
 /*****************************************************************************/
-//LiveAdjustZ
-
+// LiveAdjustZ
 static constexpr const padding_ui8_t textPadding = { 10, 5, 0, 0 };
+static constexpr const Rect16 nozzleRect = Rect16((display::GetW() / 2) - 24, 120, 48, 48);
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+static constexpr const Rect16 textRect = Rect16(0, 32, display::GetW(), 4 * 30);
+static constexpr const point_i16_t adjuster_pt = point_i16_t(75, 205);
+static constexpr const point_i16_t scale_pt = point_i16_t(45, 125);
+#elif defined(USE_ILI9488)
+static constexpr const Rect16 textRect = Rect16(20, 40, display::GetW() - 40, 3 * 30);
+static constexpr const point_i16_t adjuster_pt = point_i16_t(210, 205);
+static constexpr const point_i16_t scale_pt = point_i16_t(180, 125);
+#endif
 
 LiveAdjustZ::LiveAdjustZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
-    , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
-    , nozzle_icon(this, getNozzleRect(), IDR_PNG_nozzle_shape_48px)
-    , adjuster(this, { 75, 215 })
-    , scale(this, { 45, 125 }) {
+    , text(this, textRect, is_multiline::yes, is_closed_on_click_t::no)
+    , nozzle_icon(this, nozzleRect, &img::nozzle_shape_48x48)
+    , adjuster(this, adjuster_pt)
+    , scale(this, scale_pt) {
 
     /// using window_t 1bit flag
     flags.close_on_click = is_closed_on_click_t::yes;
@@ -186,24 +196,15 @@ LiveAdjustZ::LiveAdjustZ()
     moveNozzle();
 }
 
-const Rect16 LiveAdjustZ::getTextRect() {
-    // make space for 4 rows of text rendered with the default GUI font
-    return Rect16(0, 32, 240, 4 * GuiDefaults::Font->h + textPadding.bottom + textPadding.top);
-}
-
-const Rect16 LiveAdjustZ::getNozzleRect() {
-    return Rect16(120 - 24, 120, 48, 48);
-}
-
 void LiveAdjustZ::moveNozzle() {
     uint16_t old_top = nozzle_icon.Top();
-    Rect16 moved_rect = getNozzleRect();                // starting position - 0%
-    float percent = adjuster.GetValue() / z_offset_min; // z_offset value in percent
+    Rect16 moved_rect = nozzleRect; // starting position - 0%
+    float relative = (z_offset_max - adjuster.GetValue()) / (z_offset_max - z_offset_min); // relative z_offset value
 
-    // set move percent for a scale line indicator
-    scale.SetMark(percent);
+    // set move for a scale line indicator
+    scale.SetMark(relative);
 
-    moved_rect += Rect16::Top_t(int(40 * percent)); // how much will nozzle move
+    moved_rect += Rect16::Top_t(int(40 * relative)); // how much will nozzle move
     nozzle_icon.SetRect(moved_rect);
     if (old_top != nozzle_icon.Top()) {
         nozzle_icon.Invalidate();
@@ -212,12 +213,14 @@ void LiveAdjustZ::moveNozzle() {
 
 void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
+
     case GUI_event_t::ENC_UP:
     case GUI_event_t::ENC_DN:
         adjuster.WindowEvent(sender, event, param);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         moveNozzle();
         break;
+
     case GUI_event_t::CLICK:
         /// has set is_closed_on_click_t
         /// destructor of WindowLiveAdjustZ stores new z offset value into a marlin_vars & EEPROM
@@ -225,9 +228,18 @@ void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         /// GUI_event_t::CLICK could bubble into window_t::windowEvent and close dialog
         /// so CLICK could be left unhandled here
         /// but there is a problem with focus !!!parrent window of this dialog has it!!!
-        if (flags.close_on_click == is_closed_on_click_t::yes)
+        if (flags.close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();
+        }
         break;
+
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT: {
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        Screens::Access()->Close();
+        return;
+    }
+
     default:
         SuperWindowEvent(sender, event, param);
     }
@@ -236,5 +248,5 @@ void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
 /// static
 void LiveAdjustZ::Show() {
     LiveAdjustZ liveadjust;
-    liveadjust.MakeBlocking();
+    Screens::Access()->gui_loop_until_dialog_closed();
 }

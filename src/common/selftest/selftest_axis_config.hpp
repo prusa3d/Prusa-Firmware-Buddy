@@ -11,7 +11,8 @@
 #include "selftest_axis_type.hpp"
 
 namespace selftest {
-//using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
+// using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
+// TODO: If axis would be AxisEnum the code would be much less error prone at cost of extra shift operation in value access
 struct AxisConfig_t {
     using type_evaluation = SelftestSingleAxis_t;
     static constexpr SelftestParts part_type = SelftestParts::Axis;
@@ -24,6 +25,8 @@ struct AxisConfig_t {
     uint32_t axis; // AxisEnum
     uint32_t steps;
     int32_t movement_dir; // not motor dir, has values 1/-1. TODO FIXME -1 does not work
+    bool park; ///< If true, park the axis after the test
+    float park_pos; ///< Position to park the axis [mm]
 };
 
-};
+}; // namespace selftest

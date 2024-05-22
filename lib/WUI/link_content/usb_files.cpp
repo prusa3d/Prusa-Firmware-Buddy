@@ -1,5 +1,6 @@
 #include "usb_files.h"
 #include "../nhttp/headers.h"
+#include <str_utils.hpp>
 
 // Why does FILE_PATH_BUFFER_LEN lives in *gui*!?
 #include "../../src/gui/file_list_defs.h"
@@ -23,13 +24,13 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
     }
 
     // Content of the USB drive is only for authenticated, don't ever try anything without it.
-    if (!parser.authenticated()) {
-        return StatusPage(Status::Unauthorized, parser.status_page_handling(), parser.accepts_json);
+    if (auto unauthorized_status = parser.authenticated_status(); unauthorized_status.has_value()) {
+        return std::visit([](auto unauth_status) -> ConnectionState { return unauth_status; }, *unauthorized_status);
     }
 
     char fname[FILE_PATH_BUFFER_LEN];
     if (!parser.uri_filename(fname, sizeof(fname))) {
-        return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json, "This doesn't look like file name");
+        return StatusPage(Status::NotFound, parser, "This doesn't look like file name");
     }
 
     if (parser.method == Method::Get) {
@@ -52,15 +53,15 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
              * is not super useful anyway.
              */
             step.disable_caching();
-            return std::move(step);
+            return step;
         }
 
-        return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+        return StatusPage(Status::NotFound, parser);
     } else {
-        return StatusPage(Status::MethodNotAllowed, parser.status_page_handling(), parser.accepts_json);
+        return StatusPage(Status::MethodNotAllowed, parser);
     }
 }
 
 const UsbFiles usb_files;
 
-}
+} // namespace nhttp::link_content

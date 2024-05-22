@@ -39,8 +39,8 @@ readBytesBetween( pre_string, terminator, buffer, length)
 // The rules set out here are used until either the first valid character is found
 // or a time out occurs due to lack of input.
 enum LookaheadMode {
-    SKIP_ALL,       // All invalid characters are ignored.
-    SKIP_NONE,      // Nothing is skipped, and the stream is not touched unless the first waiting character is valid.
+    SKIP_ALL, // All invalid characters are ignored.
+    SKIP_NONE, // Nothing is skipped, and the stream is not touched unless the first waiting character is valid.
     SKIP_WHITESPACE // Only tabs, spaces, line feeds & carriage returns are skipped.
 };
 
@@ -48,10 +48,10 @@ enum LookaheadMode {
 
 class Stream : public Print {
 protected:
-    unsigned long _timeout;                                         // number of milliseconds to wait for the next char before aborting timed read
-    unsigned long _startMillis;                                     // used for timeout measurement
-    int timedRead();                                                // private method to read stream with timeout
-    int timedPeek();                                                // private method to peek stream with timeout
+    unsigned long _timeout; // number of milliseconds to wait for the next char before aborting timed read
+    unsigned long _startMillis; // used for timeout measurement
+    int timedRead(); // private method to read stream with timeout
+    int timedPeek(); // private method to peek stream with timeout
     int peekNextDigit(LookaheadMode lookahead, bool detectDecimal); // returns the next numeric digit in the stream or -1 if timeout
 
 public:
@@ -138,8 +138,8 @@ protected:
 
     struct MultiTarget {
         const char *str; // string you're searching for
-        size_t len;      // length of string you're searching for
-        size_t index;    // index used by the search routine.
+        size_t len; // length of string you're searching for
+        size_t index; // index used by the search routine.
     };
 
     // This allows you to search for an arbitrary number of strings.

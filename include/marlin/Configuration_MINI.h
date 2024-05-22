@@ -42,7 +42,7 @@
 #define USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
-    #include "eeprom_function_api.h"
+    #include "config_store/store_c_api.h"
 #endif
 //===========================================================================
 //============================= Getting Started =============================
@@ -391,12 +391,13 @@
 // Above this temperature the heater will be switched off.
 // This can protect components from overheating, but NOT from shorts and failures.
 // (Use MINTEMP for thermistor short/failure protection.)
-#define HEATER_0_MAXTEMP 290 + 15
+#define HEATER_0_MAXTEMP 295
 #define HEATER_1_MAXTEMP 275
 #define HEATER_2_MAXTEMP 275
 #define HEATER_3_MAXTEMP 275
 #define HEATER_4_MAXTEMP 275
 #define HEATER_5_MAXTEMP 275
+#define HEATER_MAXTEMP_SAFETY_MARGIN 15
 // Beware: this is the absolute temperature limit.
 // The MINI cannot normally reach 110C.
 // Thus all usage in the UI must be lowered by 10C to offer a valid temperature limit.
@@ -530,7 +531,7 @@
 
 #define THERMAL_PROTECTION_HOTENDS // Enable thermal protection for all extruders
 #define THERMAL_PROTECTION_BED // Enable thermal protection for the heated bed
-#define THERMAL_PROTECTION_CHAMBER // Enable thermal protection for the heated chamber
+//#define THERMAL_PROTECTION_CHAMBER // Enable thermal protection for the heated chamber
 
 //===========================================================================
 //============================= Mechanical Settings =========================
@@ -686,6 +687,12 @@
 #define DEFAULT_MAX_FEEDRATE \
     { 180, 180, 12, 80 }
 
+/// HW limits of feed rate
+#define HWLIMIT_NORMAL_MAX_FEEDRATE \
+    { 400, 400, 12, 80 }
+#define HWLIMIT_STEALTH_MAX_FEEDRATE \
+    { 180, 180, 12, 80 }
+
 /**
  * Default Max Acceleration (change/s) change = mm/s
  * (Maximum start speed for accelerated moves)
@@ -694,6 +701,12 @@
  */
 #define DEFAULT_MAX_ACCELERATION \
     { 1250, 1250, 400, 4000 }
+
+/// HW limits of max acceleration
+#define HWLIMIT_NORMAL_MAX_ACCELERATION \
+    { 4000, 4000, 400, 5000 }
+#define HWLIMIT_STEALTH_MAX_ACCELERATION \
+    { 2500, 2500, 400, 5000 }
 
 /**
  * Default Acceleration (change/s) change = mm/s
@@ -705,7 +718,15 @@
  */
 #define DEFAULT_ACCELERATION 1250 // X, Y, Z and E acceleration for printing moves
 #define DEFAULT_RETRACT_ACCELERATION 1250 // E acceleration for retracts
-#define DEFAULT_TRAVEL_ACCELERATION 250 // X, Y, Z acceleration for travel (non printing) moves
+#define DEFAULT_TRAVEL_ACCELERATION 1250 // X, Y, Z acceleration for travel (non printing) moves
+
+/// HW limits of Acceleration
+#define HWLIMIT_NORMAL_ACCELERATION 4000
+#define HWLIMIT_STEALTH_ACCELERATION 2500
+#define HWLIMIT_NORMAL_RETRACT_ACCELERATION 1250
+#define HWLIMIT_STEALTH_RETRACT_ACCELERATION 1250
+#define HWLIMIT_NORMAL_TRAVEL_ACCELERATION 4000
+#define HWLIMIT_STEALTH_TRAVEL_ACCELERATION 2500
 
 //
 // Use Junction Deviation instead of traditional Jerk Limiting
@@ -713,6 +734,8 @@
 #define CLASSIC_JERK
 #if DISABLED(CLASSIC_JERK)
     #define JUNCTION_DEVIATION_MM 0.02 // (mm) Distance from real junction edge
+    //#define JD_SMALL_SEGMENT_HANDLING // Handle small segments (< 1 mm) with large junction angles (> 135°) based on a local curvature estimate, instead of just the junction angle.
+    //#define JD_DEBUG_OUTPUT           // Output junction_cos_theta and vmax_junction_sqr to serial
 #endif
 
 /**
@@ -730,6 +753,10 @@
 #endif
 
 #define DEFAULT_EJERK 10 // May be used by Linear Advance
+
+/// HW limits of Jerk
+#define HWLIMIT_NORMAL_JERK { 8, 8, 2, 10 }
+#define HWLIMIT_STEALTH_JERK { 8, 8, 2, 10 }
 
 /**
  * S-Curve Acceleration
@@ -869,10 +896,19 @@
 // Feedrate (mm/m) for the "accurate" probe of each point
 #define Z_PROBE_SPEED_SLOW (Z_PROBE_SPEED_FAST / 3)
 
+// [ms] delay before first Z probe for taring
+#define Z_FIRST_PROBE_DELAY 0
+
 // The number of probes to perform at each point.
 //   Set to 2 for a fast/slow probe, using the second probe result.
 //   Set to 3 or more for slow probes, averaging the results.
 #define MULTIPLE_PROBING 2
+
+// Extra probing  for loadcell to remove out of bounds measured values caused by external non interesting things
+#define EXTRA_PROBING 1
+#define EXTRA_PROBING_TOL 0.1 // If the measured Z value is larger than this value, remove it and remeasure
+#define EXTRA_PROBING_RAIL 1.2 // Maximum value of Z measurement
+#define EXTRA_PROBING_MAXFAIL 5 // Maximum allowed number of failed probing measurements
 
 /**
  * Z probes require clearance when deploying, stowing, and moving between
@@ -888,6 +924,7 @@
  * Example: `M851 Z-5` with a CLEARANCE of 4  =>  9mm from bed to nozzle.
  *     But: `M851 Z+1` with a CLEARANCE of 2  =>  2mm from bed to nozzle.
  */
+#define Z_CLEARANCE_BEFORE_PROBING 5 // Z Clearance before first MBL probe
 #define Z_CLEARANCE_DEPLOY_PROBE 0 // Z Clearance for Deploy/Stow
 #define Z_CLEARANCE_BETWEEN_PROBES 1 // Z Clearance between probe points
 #define Z_CLEARANCE_MULTI_PROBE 0.5 // Z Clearance between multiple probes
@@ -1019,6 +1056,20 @@
 #define Z_END_GAP 10
 
 /**
+ * Calibrates X, Y homing positions and uses
+ * the reference to provide repeatable homing position.
+ */
+//#define PRECISE_HOMING
+
+/**
+ * Number of precise homing tries
+ *
+ * Three times more tries are used when recovering from crash
+ * or power panic.
+ */
+#define PRECISE_HOMING_TRIES 15
+
+/**
  * Software Endstops
  *
  * - Prevent moves outside the set machine bounds.
@@ -1119,8 +1170,8 @@
  */
 //#define AUTO_BED_LEVELING_3POINT
 //#define AUTO_BED_LEVELING_LINEAR
-#define AUTO_BED_LEVELING_BILINEAR
-//#define AUTO_BED_LEVELING_UBL
+//#define AUTO_BED_LEVELING_BILINEAR
+#define AUTO_BED_LEVELING_UBL
 //#define MESH_BED_LEVELING
 
 /**
@@ -1203,15 +1254,20 @@
 
 //#define MESH_EDIT_GFX_OVERLAY   // Display a graphics overlay while editing the mesh
 
-    #define MESH_INSET 0 // Set Mesh bounds as an inset region of the bed
-    #define GRID_MAX_POINTS_X 5 // Don't use more than 15 points per axis, implementation limited.
-    #define GRID_MAX_POINTS_Y GRID_MAX_POINTS_X
+    #define GRID_BORDER 1 // border we are never gonna probe, only border of size 1 is currently supported
+    #define GRID_MAJOR_STEP 1 // the offset between major points
+    #define GRID_MAJOR_POINTS_X 4 // number of major probes on the X axis
+    #define GRID_MAJOR_POINTS_Y 4 // number of major probes on the Y axis
+    #define GRID_MAX_POINTS_X 6
+    #define GRID_MAX_POINTS_Y 6
+    //#define GRID_MAX_POINTS_X (GRID_BORDER * 2 + GRID_MAJOR_POINTS_X + ((GRID_MAJOR_POINTS_X - 1) * (GRID_MAJOR_STEP - 1))) // full resolution of the grid (X axis)
+    //#define GRID_MAX_POINTS_Y (GRID_BORDER * 2 + GRID_MAJOR_POINTS_Y + ((GRID_MAJOR_POINTS_Y - 1) * (GRID_MAJOR_STEP - 1))) // full resolution of the grid (X axis)
 
     #define UBL_MESH_EDIT_MOVES_Z // Sophisticated users prefer no movement of nozzle
     #define UBL_SAVE_ACTIVE_ON_M500 // Save the currently active mesh in the current slot on M500
 
-//#define UBL_Z_RAISE_WHEN_OFF_MESH 2.5 // When the nozzle is off the mesh, this value is used
-// as the Z-Height correction value.
+    //#define UBL_Z_RAISE_WHEN_OFF_MESH 2.5 // When the nozzle is off the mesh, this value is used
+    // as the Z-Height correction value.
 
 #elif ENABLED(MESH_BED_LEVELING)
 
@@ -1301,6 +1357,9 @@
 
 // Validate that endstops are triggered on homing moves
 //#define VALIDATE_HOMING_ENDSTOPS
+
+// Set STALTHCHOP on XY before homing
+#define XY_HOMING_STEALTCHCHOP
 
 // @section calibrate
 
@@ -1436,6 +1495,8 @@
 #if ENABLED(NOZZLE_PARK_FEATURE)
     #define Z_AXIS_LOAD_POS  40
     #define Z_AXIS_UNLOAD_POS 20
+    #define Y_AXIS_LOAD_POS    (std::numeric_limits<float>::quiet_NaN())
+    #define Y_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
     // homing to this pos makes PTFE tube last longer
     #define X_AXIS_LOAD_POS  ((X_MAX_POS) / 4)
     #define X_AXIS_UNLOAD_POS  ((X_MAX_POS) / 4)

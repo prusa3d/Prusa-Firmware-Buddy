@@ -5,8 +5,16 @@
 #include <cstdio>
 #include <cstdarg>
 #include <cinttypes>
+#include <cstring>
+
+using std::make_tuple;
 
 namespace json {
+
+JsonResult JsonOutput::suspend(size_t resume_point) {
+    this->resume_point = resume_point;
+    return written_something ? JsonResult::Incomplete : JsonResult::BufferTooSmall;
+}
 
 JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
     va_list params;
@@ -25,8 +33,29 @@ JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
         written_something = true;
         return JsonResult::Complete;
     } else {
-        this->resume_point = resume_point;
-        return written_something ? JsonResult::Incomplete : JsonResult::BufferTooSmall;
+        return suspend(resume_point);
+    }
+}
+
+JsonResult JsonOutput::output_str_chunk(size_t resume_point, const char *str, size_t size) {
+    size_t needed = jsonify_str_buffer_len(str, size) ?: size;
+
+    if (needed <= buffer_size) {
+        if (needed == size) {
+            // No escaping happening
+            memcpy(buffer, str, size);
+        } else {
+            jsonify_str_len(str, size, reinterpret_cast<char *>(buffer));
+            // The above stores a terminating \0 (and includes it in the needed
+            // size), so "erase" that one.
+            needed--;
+        }
+        buffer += needed;
+        buffer_size -= needed;
+        written_something = true;
+        return JsonResult::Complete;
+    } else {
+        return suspend(resume_point);
     }
 }
 
@@ -42,11 +71,26 @@ JsonResult JsonOutput::output_field_str_format(size_t resume_point, const char *
     // First, discover how much space we need for the formatted string.
     char first_buffer[1];
     // +1 for \0
-    const size_t needed = vsnprintf(first_buffer, 1, format, params1) + 1;
+    size_t needed = vsnprintf(first_buffer, 1, format, params1) + 1;
     va_end(params1);
 
+    if (needed > buffer_size) {
+        // This won't fit. We want to reuse the output mechanism to handle all
+        // the nuances of not fitting in the correct way, but we want to cap
+        // the on-stack size to something sane (because the input could, in
+        // theory, be huge and we could risk overflow).
+        //
+        // Therefore, if we are _sure_ we won't fit, we shrink it to something
+        // that still won't fit, but not too much.
+        needed = buffer_size + 1;
+    }
+
     // Now, get the buffer of the right size and format it.
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvla" // TODO: person who knows a reasonable buffer size should refactor this code to not use variable length array
     char buffer[needed];
+#pragma GCC diagnostic pop
     vsnprintf(buffer, needed, format, params2);
     va_end(params2);
 
@@ -73,13 +117,30 @@ JsonResult JsonOutput::output_field_arr(size_t resume_point, const char *name) {
     return output(resume_point, "\"%s\":[", name);
 }
 
+JsonResult JsonOutput::output_chunk(size_t resume_point, ChunkRenderer &renderer) {
+    const auto [result, written] = renderer.render(buffer, buffer_size);
+    assert(written <= buffer_size);
+    buffer += written;
+    buffer_size -= written;
+    if (written > 0) {
+        written_something = true;
+    }
+    if (result != JsonResult::Complete) {
+        this->resume_point = resume_point;
+    }
+    return result;
+}
+
+std::tuple<JsonResult, size_t> EmptyRenderer::render(uint8_t *, size_t) {
+    return make_tuple(JsonResult::Complete, 0);
+}
+
 std::tuple<JsonResult, size_t> LowLevelJsonRenderer::render(uint8_t *buffer, size_t buffer_size) {
     size_t buffer_size_rest = buffer_size;
     JsonOutput output(buffer, buffer_size_rest, resume_point);
     const auto result = content(resume_point, output);
     assert(buffer_size_rest <= buffer_size);
     size_t written = (result == JsonResult::Abort) ? 0 : buffer_size - buffer_size_rest;
-    return std::make_tuple(result, written);
+    return make_tuple(result, written);
 }
-
-}
+} // namespace json

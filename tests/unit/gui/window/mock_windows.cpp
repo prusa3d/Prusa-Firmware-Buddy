@@ -6,10 +6,9 @@
 
 #include "mock_windows.hpp"
 #include "ScreenHandler.hpp"
-#include "resource.h"
 
 void MockScreen::ParrentCheck() const {
-    //check parrent
+    // check parrent
     REQUIRE(w_first.GetParent() == this);
     REQUIRE(w_last.GetParent() == this);
     REQUIRE(w0.GetParent() == this);
@@ -18,8 +17,8 @@ void MockScreen::ParrentCheck() const {
     REQUIRE(w3.GetParent() == this);
 }
 
-void MockScreen::LinkedListCheck(size_t popup_cnt, size_t dialog_cnt, size_t strong_dialog_cnt) const {
-    //check linked list
+void MockScreen::LinkedListCheck(size_t popup_cnt, size_t dialog_cnt) const {
+    // check linked list
     REQUIRE(getFirstNormal() == &(w_first));
     REQUIRE(getLastNormal() == &(w_last));
     REQUIRE(getFirstNormal()->GetNext() == &(w0));
@@ -31,17 +30,16 @@ void MockScreen::LinkedListCheck(size_t popup_cnt, size_t dialog_cnt, size_t str
     window_t *pLast = getLastNormal();
 
     checkPtrRange(pLast, dialog_cnt, GetFirstDialog(), GetLastDialog());
-    checkPtrRange(pLast, strong_dialog_cnt, GetFirstStrongDialog(), GetLastStrongDialog());
     checkPtrRange(pLast, popup_cnt, GetFirstPopUp(), GetLastPopUp());
 
     REQUIRE(pLast->GetNext() == nullptr);
 }
 
-void MockScreen::BasicCheck(size_t popup_cnt, size_t dialog_cnt, size_t strong_dialog_cnt) const {
-    //check parrent
+void MockScreen::BasicCheck(size_t popup_cnt, size_t dialog_cnt) const {
+    // check parrent
     ParrentCheck();
 
-    //check IsHiddenBehindDialog()
+    // check IsHiddenBehindDialog()
     REQUIRE_FALSE(w_first.IsHiddenBehindDialog());
     REQUIRE_FALSE(w_last.IsHiddenBehindDialog());
     REQUIRE_FALSE(w0.IsHiddenBehindDialog());
@@ -49,8 +47,8 @@ void MockScreen::BasicCheck(size_t popup_cnt, size_t dialog_cnt, size_t strong_d
     REQUIRE_FALSE(w2.IsHiddenBehindDialog());
     REQUIRE_FALSE(w3.IsHiddenBehindDialog());
 
-    //check linked list
-    LinkedListCheck(popup_cnt, dialog_cnt, strong_dialog_cnt);
+    // check linked list
+    LinkedListCheck(popup_cnt, dialog_cnt);
 }
 
 Rect16 MockScreen::GetInvalidationRect() const {
@@ -60,7 +58,7 @@ Rect16 MockScreen::GetInvalidationRect() const {
 void MockScreen::checkPtrRange(window_t *&iter, size_t cnt, window_t *first, window_t *last) const {
     REQUIRE_FALSE(iter == nullptr);
     if (cnt) {
-        //not empty list
+        // not empty list
         REQUIRE_FALSE(first == nullptr);
         REQUIRE_FALSE(last == nullptr);
         REQUIRE(iter->GetNext() == first);
@@ -70,54 +68,8 @@ void MockScreen::checkPtrRange(window_t *&iter, size_t cnt, window_t *first, win
         }
         REQUIRE(iter == last);
     } else {
-        //empty list
+        // empty list
         REQUIRE(first == nullptr);
         REQUIRE(last == nullptr);
     }
-}
-
-window_dlg_strong_warning_t::window_dlg_strong_warning_t()
-    : AddSuperWindow<IDialog>(GuiDefaults::RectScreen, IDialog::IsStrong::yes) {
-}
-
-void window_dlg_strong_warning_t::setIcon(ResourceId resId) {
-}
-
-void window_dlg_strong_warning_t::show(string_view_utf8 txt) {
-    if (!GetParent()) {
-        window_t *parent = Screens::Access()->Get();
-        if (parent) {
-            parent->RegisterSubWin(*this);
-        }
-    }
-}
-
-void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (!GetParent())
-        return;
-    if (event == GUI_event_t::CLICK) { //todo use timer
-        GetParent()->UnregisterSubWin(*this);
-    } else {
-        SuperWindowEvent(sender, event, param);
-    }
-}
-
-void window_dlg_strong_warning_t::ShowHotendFan() {
-    static window_dlg_strong_warning_t dlg;
-    dlg.show(string_view_utf8::MakeNULLSTR());
-}
-
-void window_dlg_strong_warning_t::ShowPrintFan() {
-    static window_dlg_strong_warning_t dlg;
-    dlg.show(string_view_utf8::MakeNULLSTR());
-}
-
-void window_dlg_strong_warning_t::ShowHeaterTimeout() {
-    static window_dlg_strong_warning_t dlg;
-    dlg.show(string_view_utf8::MakeNULLSTR());
-}
-
-void window_dlg_strong_warning_t::ShowUSBFlashDisk() {
-    static window_dlg_strong_warning_t dlg;
-    dlg.show(string_view_utf8::MakeNULLSTR());
 }

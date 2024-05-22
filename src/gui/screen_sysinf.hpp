@@ -1,4 +1,4 @@
-//screen_sysinf.hpp
+// screen_sysinf.hpp
 #pragma once
 #include "gui.hpp"
 #include "window_text.hpp"

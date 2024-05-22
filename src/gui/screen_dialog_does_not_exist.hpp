@@ -7,7 +7,7 @@
 #pragma once
 
 #include "screen.hpp"
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include "window_text.hpp"
 
 class ScreenDoesNotExist : public AddSuperWindow<screen_t> {
@@ -25,5 +25,5 @@ public:
     ScreenDialogDoesNotExist();
     virtual ~ScreenDialogDoesNotExist() override;
     static ScreenDialogDoesNotExist *GetInstance();
-    constexpr bool Change(fsm::BaseData data) { return false; }
+    constexpr bool Change([[maybe_unused]] fsm::BaseData data) { return false; }
 };

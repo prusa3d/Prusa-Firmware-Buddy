@@ -1,24 +1,19 @@
-/**
- * @file filament.hpp
- * @author Radek Vana
- * @brief
- * @date 2021-01-20
- */
-
 #pragma once
 #include <stdio.h>
 #include "general_response.hpp"
+#include "printers.h"
+#include <cstring>
 
-struct Filament {
-    const char *name;
-    const char *long_name;
+namespace filament {
+
+struct Description {
     uint16_t nozzle;
     uint16_t nozzle_preheat;
     uint16_t heatbed;
     Response response;
 };
 
-enum class filament_t {
+enum class Type : uint8_t {
     NONE = 0,
     PLA,
     PETG,
@@ -29,33 +24,97 @@ enum class filament_t {
     HIPS,
     PP,
     FLEX,
-    _last = FLEX
+    PA,
+    _last = PA
 };
 
-class Filaments {
-    static filament_t filament_to_load;
-    static filament_t filament_last_preheat;
-
-    static filament_t &get_ref();
-
-public:
-    using Array = const Filament[size_t(filament_t::_last) + 1];
-
-    static constexpr filament_t Default = filament_t::PLA;
-    static constexpr float ColdNozzle = 50.f;
-    static constexpr float ColdBed = 45.f;
-
-    static filament_t Find(Response resp);
-    static filament_t FindByName(const char *s, size_t len);
-
-    static const Filament &Get(filament_t filament);
-    static const Filament &Current();
-    static const filament_t CurrentIndex();
-    static void Set(filament_t filament);
-
-    static filament_t GetToBeLoaded();
-    static void SetToBeLoaded(filament_t filament);
-
-    static filament_t GetLastPreheated();
-    static void SetLastPreheated(filament_t filament);
+struct ColorIndex {
+    const char *name;
+    uint32_t color;
 };
+
+enum class ColorName : uint32_t {
+    NONE = 0,
+    BLACK,
+    BLUE,
+    GREEN,
+    BROWN,
+    PURPLE,
+    GRAY,
+    TERRACOTTA,
+    SILVER,
+    GOLD,
+    RED,
+    PINK,
+    ORANGE,
+    TRANSPARENT,
+    YELLOW,
+    WHITE,
+    _last = WHITE
+};
+
+const ColorIndex colortable[size_t(filament::ColorName::_last) + 1] = {
+    { "NONE", 0 },
+    { "BLACK", 0x000000 },
+    { "BLUE", 0x0000FF },
+    { "GREEN", 0x00FF00 },
+    { "BROWN", 0x800000 },
+    { "PURPLE", 0x800080 },
+    { "GRAY", 0x999999 },
+    { "TERRACOTTA", 0xB87F6A },
+    { "SILVER", 0xC0C0C0 },
+    { "GOLD", 0xD4AF37 },
+    { "RED", 0xFF0000 },
+    { "PINK", 0xFF007F },
+    { "ORANGE", 0xFF8000 },
+    { "TRANSPARENT", 0xF0F0F0 },
+    { "YELLOW", 0xFFFF00 },
+    { "WHITE", 0xFFFFFF }
+};
+
+constexpr Type default_type = Type::PLA;
+constexpr float cold_nozzle = 50.f;
+constexpr float cold_bed = 45.f;
+
+Type get_type(Response resp);
+Type get_type(const char *name, size_t name_len);
+
+const Description &get_description(Type type);
+const char *get_name(Type type);
+
+Type get_type_to_load();
+void set_type_to_load(Type filament);
+
+// TODO: unify with the one in gcode_info
+struct Colour {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+
+    int to_int() const {
+        return red << 16 | green << 8 | blue;
+    }
+
+    static Colour from_string(char *name) {
+        // first name is not valid ("---")
+        size_t name_len = strlen(name);
+        for (size_t i = size_t(ColorName::NONE) + 1; i <= size_t(ColorName::_last); ++i) {
+            if ((strlen(colortable[i].name) == name_len) && (!strncmp(name, colortable[i].name, name_len))) {
+                return from_int(colortable[i].color);
+            }
+        }
+        return from_int(atoi(name));
+    }
+
+    static Colour from_int(int value) {
+        return Colour {
+            .red = static_cast<uint8_t>((value >> 16) & 0xFF),
+            .green = static_cast<uint8_t>((value >> 8) & 0xFF),
+            .blue = static_cast<uint8_t>(value & 0xFF),
+        };
+    }
+};
+
+std::optional<Colour> get_color_to_load();
+void set_color_to_load(std::optional<Colour> color);
+}; // namespace filament

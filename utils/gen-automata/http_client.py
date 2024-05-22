@@ -1,11 +1,17 @@
-from http import connection_header, content_type, read_header_value, response
+from http import connection_header, content_type, read_header_value, response, content_encryption_mode_header, upgrade_header, ws_protocol_header
 
 if __name__ == "__main__":
     want_headers = {
         'Content-Length': read_header_value('ContentLength'),
         'Content-Type': content_type(),
         'Command-Id': read_header_value('CommandId'),
+        'Code': read_header_value('Code'),
         'Connection': connection_header(),
+        'Upgrade': upgrade_header(),
+        'Sec-WebSocket-Protocol': ws_protocol_header(),
+        'Token': read_header_value('Token'),
+        'Sec-WebSocket-Accept': read_header_value('WebSocketAccept'),
+        'Content-Encryption-Mode': content_encryption_mode_header(),
     }
     http, final = response(want_headers)
     compiled = http.compile("con::parser::response")

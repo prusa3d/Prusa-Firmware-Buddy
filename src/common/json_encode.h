@@ -33,6 +33,22 @@ extern "C" {
 #endif
 
 /**
+ * \brief de-escapes json string in place
+ *
+ * De-escaping never makes the string longer, so doing it in place
+ * is ok. If used on part of the string, it will shift only size chars
+ * and the rest will be unchanged.
+ * e.g. unescape_json_i("string\\\"bla\\t1234", 17) -> "string\"bla\t123434"
+ *
+ * \param in the input string to de-escape
+ * \param size number of chars to consoder for de-escaping
+ *
+ * \return the new size after de-escaping
+ */
+
+size_t unescape_json_i(char *in, size_t size);
+
+/**
  * \brief Returns a string representing a boolean value
  *
  * This returns a constant string representation of the boolean value, suitable
@@ -112,10 +128,13 @@ void jsonify_str_len(const char *input, size_t input_len, char *output);
  * printf("%s", whatever_escaped);
  * ```
  */
-#define JSONIFY_STR(NAME)                               \
-    const size_t NAME##_len = jsonify_str_buffer(NAME); \
-    char NAME##_buffer[NAME##_len];                     \
-    const char *NAME##_escaped = NAME##_len ? (jsonify_str(NAME, NAME##_buffer), NAME##_buffer) : NAME
+#define JSONIFY_STR(NAME)                                                                               \
+    _Pragma("GCC diagnostic push");                                                                     \
+    _Pragma("GCC diagnostic ignored \"-Wvla\"");                                                        \
+    const size_t NAME##_len = jsonify_str_buffer(NAME);                                                 \
+    char NAME##_buffer[NAME##_len];                                                                     \
+    const char *NAME##_escaped = NAME##_len ? (jsonify_str(NAME, NAME##_buffer), NAME##_buffer) : NAME; \
+    _Pragma("GCC diagnostic pop");
 
 #ifdef __cplusplus
 }

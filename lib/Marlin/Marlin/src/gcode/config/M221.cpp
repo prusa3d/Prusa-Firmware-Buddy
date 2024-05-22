@@ -25,8 +25,16 @@
 
 #if EXTRUDERS
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M221: Set extrusion percentage (M221 T0 S95)
+ * 
+ * ## Parameters
+ *
+ * - `S` - [percentage] Flow percentage
  */
 void GcodeSuite::M221() {
 
@@ -34,7 +42,13 @@ void GcodeSuite::M221() {
   if (target_extruder < 0) return;
 
   if (parser.seenval('S')) {
-    planner.flow_percentage[target_extruder] = parser.value_int();
+    int flow_percentage = parser.value_int();
+    #if ENABLED(GCODE_COMPATIBILITY_MK3)
+      if (gcode.compatibility_mode == GcodeSuite::CompatibilityMode::MK3) {
+        flow_percentage = (float)flow_percentage / 0.95;
+      }
+    #endif
+    planner.flow_percentage[target_extruder] = flow_percentage;
     planner.refresh_e_factor(target_extruder);
   }
   else {
@@ -46,5 +60,7 @@ void GcodeSuite::M221() {
     SERIAL_EOL();
   }
 }
+
+/** @}*/
 
 #endif // EXTRUDERS

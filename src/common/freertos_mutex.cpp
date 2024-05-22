@@ -1,21 +1,45 @@
-#include "freertos_mutex.hpp"
-#include "rtos_api.hpp"
+#include <common/freertos_mutex.hpp>
+
 #include "semphr.h"
 
-// uncomment this to get buffer size as compile time error message
-// char (*__give_me_buffere_size)[sizeof( StaticSemaphore_t )] = 1;
-// use that size in header as buffer_size
+namespace freertos {
 
-static_assert(FreeRTOS_Mutex::buffer_size == sizeof(StaticSemaphore_t), "wrong mutex buffer size");
+Mutex::Mutex() noexcept {
+    SemaphoreHandle_t semaphore = xSemaphoreCreateMutexStatic(&xSemaphoreData);
+    // We are creating static FreeRTOS object here, supplying our own buffer
+    // to be used by FreeRTOS. FreeRTOS constructs an object in that memory
+    // and gives back a handle, which in current version is just a pointer
+    // to the same buffer we provided. If this ever changes, we will have to
+    // store the handle separately, but right now we can just use the pointer
+    // to the buffer instead of the handle and save 4 bytes per instance.
+    configASSERT(semaphore == &xSemaphoreData);
+}
 
-void FreeRTOS_Mutex::unlock() { xSemaphoreGive(xSemaphore); }
-bool FreeRTOS_Mutex::try_lock() { return xSemaphoreTake(xSemaphore, 0) == pdTRUE; }
-void FreeRTOS_Mutex::lock() { xSemaphoreTake(xSemaphore, portMAX_DELAY); }
-FreeRTOS_Mutex::FreeRTOS_Mutex() noexcept //ctor should be constexpr, but cannot due C code
-    : xSemaphore(xSemaphoreCreateMutexStatic(reinterpret_cast<StaticQueue_t *>(xMutexBuffer))) {
-    configASSERT(xSemaphore); // The pxMutexBuffer was not NULL, so it is expected that the handle will not be NULL.
-};
-void buddy::lock(std::unique_lock<FreeRTOS_Mutex> &l1, std::unique_lock<FreeRTOS_Mutex> &l2) {
+Mutex::~Mutex() {
+    // Empty here. But we need that one for tests.
+}
+
+void Mutex::unlock() {
+    SemaphoreHandle_t semaphore = &xSemaphoreData;
+    BaseType_t result = xSemaphoreGive(semaphore);
+    configASSERT(result == pdTRUE);
+}
+
+bool Mutex::try_lock() {
+    SemaphoreHandle_t semaphore = &xSemaphoreData;
+    BaseType_t result = xSemaphoreTake(semaphore, 0);
+    return result == pdTRUE;
+}
+
+void Mutex::lock() {
+    SemaphoreHandle_t semaphore = &xSemaphoreData;
+    BaseType_t result = xSemaphoreTake(semaphore, portMAX_DELAY);
+    configASSERT(result == pdTRUE);
+}
+
+} // namespace freertos
+
+void buddy::lock(std::unique_lock<freertos::Mutex> &l1, std::unique_lock<freertos::Mutex> &l2) {
     if (&l1 < &l2) {
         l1.lock();
         l2.lock();

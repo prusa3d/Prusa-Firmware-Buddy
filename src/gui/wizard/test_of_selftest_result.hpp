@@ -11,25 +11,18 @@
 #include "screen.hpp"
 #include "window_header.hpp"
 #include "selftest_result_type.hpp"
+#include <option/filament_sensor.h>
 
-class TestResult : public AddSuperWindow<screen_t> {
+class TestResultScreen : public AddSuperWindow<screen_t> {
 private:
     window_header_t header;
     SelftestFrameResult result;
 
     static constexpr fsm::PhaseData somethingToShow() {
-        SelftestResult_t res;
-        res.printFan = TestResult_t::Passed;
-        res.heatBreakFan = TestResult_t::Passed;
-        res.xaxis = TestResult_t::Passed;
-        res.yaxis = TestResult_t::Passed;
-        res.zaxis = TestResult_t::Failed;
-        res.nozzle = TestResult_t::Failed;
-        res.bed = TestResult_t::Failed;
-        return res.Serialize();
+        return FsmSelftestResult(0x1c).Serialize();
     }
 
 public:
-    TestResult();
+    TestResultScreen();
     void Change(fsm::BaseData data);
 };

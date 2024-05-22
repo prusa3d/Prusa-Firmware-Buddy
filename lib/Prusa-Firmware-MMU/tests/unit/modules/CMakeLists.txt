@@ -1,0 +1,8 @@
+add_subdirectory(buttons)
+add_subdirectory(leds)
+add_subdirectory(protocol)
+add_subdirectory(speed_table)
+add_subdirectory(pulse_gen)
+add_subdirectory(motion)
+add_subdirectory(timebase)
+add_subdirectory(user_input)

@@ -1,110 +1,92 @@
-/*
- * filament.cpp
- */
-
-#include "eeprom.h"
 #include "assert.h"
 #include "filament.hpp"
-#include <cstring>
 #include "i18n.h"
 #include "client_response_texts.hpp"
+#include "../../include/printers.h"
+#include <Marlin/src/inc/MarlinConfigPre.h>
 
-// only function used in filament.h
-const char *get_selected_filament_name() {
-    return Filaments::Current().name;
-}
+#include <cstring>
+#include <option/has_loadcell.h>
 
-// clang-format off
-// to keep the texts aligned for easier checking of their alignment on the LCD
-static constexpr const char *pla_str =   "PLA      215/ 60";
-static constexpr const char *pet_g_str = "PETG     230/ 85";
-static constexpr const char *asa_str =   "ASA      260/100";
-static constexpr const char *pc_str =    "PC       275/100";
-static constexpr const char *pvb_str =   "PVB      215/ 75";
-static constexpr const char *abs_str =   "ABS      255/100";
-static constexpr const char *hips_str =  "HIPS     220/100";
-static constexpr const char *pp_str =    "PP       240/100";
-static constexpr const char *flex_str =  "FLEX     240/ 50";
+// These temperatures correspond to slicer defaults for MBL.
+constexpr uint16_t PC_NOZZLE_PREHEAT = HAS_LOADCELL() ? 170 : 275 - 25;
+constexpr uint16_t FLEX_NOZZLE_PREHEAT = HAS_LOADCELL() ? 170 : 210;
 
-const Filaments::Array filaments = {
-    { "---", BtnResponse::GetText(Response::Cooldown),   0,    0,   0, Response::Cooldown }, // Cooldown sets long text instead short, not a bug
-    { BtnResponse::GetText(Response::PLA), pla_str,     215, 170,  60, Response::PLA },
-    { BtnResponse::GetText(Response::PETG), pet_g_str,  230, 170,  85, Response::PETG },
-    { BtnResponse::GetText(Response::ASA), asa_str,     260, 170, 100, Response::ASA },
-    { BtnResponse::GetText(Response::PC), pc_str,       275, 170, 100, Response::PC },
-    { BtnResponse::GetText(Response::PVB), pvb_str,     215, 170,  75, Response::PVB },
-    { BtnResponse::GetText(Response::ABS), abs_str,     255, 170, 100, Response::ABS },
-    { BtnResponse::GetText(Response::HIPS), hips_str,   220, 170, 100, Response::HIPS },
-    { BtnResponse::GetText(Response::PP), pp_str,       240, 170, 100, Response::PP },
-    { BtnResponse::GetText(Response::FLEX), flex_str,   240, 170,  50, Response::FLEX },
+// MINI has slightly lower max nozzle temperature but it is still OK for polyamid
+constexpr uint16_t PA_NOZZLE = PRINTER_IS_PRUSA_MINI ? 280 : 285;
+
+constexpr filament::Description filaments[size_t(filament::Type::_last) + 1] = {
+    { 0, 0, 0, Response::Cooldown },
+    { 215, 170, 60, Response::PLA },
+    { 230, 170, 85, Response::PETG },
+    { 260, 170, 100, Response::ASA },
+    { 275, PC_NOZZLE_PREHEAT, 100, Response::PC },
+    { 215, 170, 75, Response::PVB },
+    { 255, 170, 100, Response::ABS },
+    { 220, 170, 100, Response::HIPS },
+    { 240, 170, 100, Response::PP },
+    { PA_NOZZLE, 170, 100, Response::PA },
+    { 240, FLEX_NOZZLE_PREHEAT, 50, Response::FLEX },
 };
-// clang-format on
 
-static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament_t::_last) + 1, "Filament count error.");
+static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament::Type::_last) + 1, "Filament count error.");
 
-filament_t Filaments::filament_last_preheat = filament_t::NONE;
-filament_t Filaments::filament_to_load = Filaments::Default; //todo remove this variable after pause refactoring
-
-filament_t Filaments::GetToBeLoaded() {
-    return filament_to_load;
+constexpr bool temperatures_are_within_spec(filament::Description filament) {
+    return (filament.nozzle <= HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN)
+        && (filament.nozzle_preheat <= HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN)
+        && (filament.heatbed <= BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN);
 }
 
-void Filaments::SetToBeLoaded(filament_t filament) {
-    filament_to_load = filament;
-}
+static_assert(std::ranges::all_of(filaments, temperatures_are_within_spec));
 
-//first call will initialize variable from flash, similar behavior to Meyers singleton
-filament_t &Filaments::get_ref() {
-    static filament_t filament_selected = filament_t(eeprom_get_ui8(EEVAR_FILAMENT_TYPE));
-    if (size_t(filament_selected) > size_t(filament_t::_last)) {
-        filament_selected = filament_t::NONE;
-    }
-    return filament_selected;
-}
-
-// first name is not valid ("---")
-filament_t Filaments::FindByName(const char *s, size_t len) {
-    for (size_t i = size_t(filament_t::NONE) + 1; i <= size_t(filament_t::_last); ++i) {
-        if ((strlen(filaments[i].name) == len) && (!strncmp(s, filaments[i].name, len))) {
-            return static_cast<filament_t>(i);
+filament::Type filament::get_type(const char *name, size_t name_len) {
+    // first name is not valid ("---")
+    for (size_t i = size_t(filament::Type::NONE) + 1; i <= size_t(filament::Type::_last); ++i) {
+        const char *filament_name = get_response_text(filaments[i].response);
+        if ((strlen(filament_name) == name_len) && (!strncmp(name, filament_name, name_len))) {
+            return static_cast<filament::Type>(i);
         }
     }
-    return filament_t::NONE;
+    return filament::Type::NONE;
 }
 
-filament_t Filaments::Find(Response resp) {
-    for (size_t i = size_t(filament_t::NONE); i <= size_t(filament_t::_last); ++i) {
+filament::Type filament::get_type(Response resp) {
+    for (size_t i = size_t(filament::Type::NONE); i <= size_t(filament::Type::_last); ++i) {
         if (filaments[i].response == resp) {
-            return static_cast<filament_t>(i);
+            return static_cast<filament::Type>(i);
         }
     }
-    return filament_t::NONE;
+    return filament::Type::NONE;
 }
 
-const Filament &Filaments::Get(filament_t filament) {
+const filament::Description &filament::get_description(filament::Type filament) {
     return filaments[size_t(filament)];
 }
 
-const Filament &Filaments::Current() {
-    return Get(CurrentIndex());
-}
-
-const filament_t Filaments::CurrentIndex() {
-    return get_ref();
-}
-
-void Filaments::Set(filament_t filament) {
-    assert(filament <= filament_t::_last);
-    if (filament == get_ref()) {
-        return;
+const char *filament::get_name(Type type) {
+    if (type == Type::NONE) {
+        return "---";
     }
-    get_ref() = filament;
-    eeprom_set_ui8(EEVAR_FILAMENT_TYPE, size_t(filament));
+    const Description &description = get_description(type);
+    return get_response_text(description.response);
 }
 
-filament_t Filaments::GetLastPreheated() {
-    return filament_last_preheat;
+static filament::Type filament_to_load = filament::Type::NONE;
+
+filament::Type filament::get_type_to_load() {
+    return filament_to_load;
 }
-void Filaments::SetLastPreheated(filament_t filament) {
-    filament_last_preheat = filament;
+
+void filament::set_type_to_load(filament::Type filament) {
+    filament_to_load = filament;
+}
+
+static std::optional<filament::Colour> color_to_load { std::nullopt };
+
+std::optional<filament::Colour> filament::get_color_to_load() {
+    return color_to_load;
+}
+
+void filament::set_color_to_load(std::optional<filament::Colour> color) {
+    color_to_load = color;
 }

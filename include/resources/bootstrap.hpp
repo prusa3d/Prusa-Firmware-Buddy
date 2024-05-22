@@ -18,4 +18,4 @@ using ProgressHook = std::function<void(int percent_done, BootstrapStage stage)>
 
 bool bootstrap(const Revision &revision, ProgressHook progress_hook);
 
-};
+}; // namespace buddy::resources

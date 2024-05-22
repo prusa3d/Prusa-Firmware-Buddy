@@ -28,8 +28,18 @@
 #include "../../feature/bedlevel/bedlevel.h"
 #include "../../module/probe.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M851: Set the nozzle-to-probe offsets in current units
+ *
+ * ## Parameters
+ *
+ * - `X` - [float] Set offset on X axis
+ * - `Y` - [float] Set offset on Y axis
+ * - `Z` - [float] Set offset on Z axis
  */
 void GcodeSuite::M851() {
 
@@ -76,5 +86,7 @@ void GcodeSuite::M851() {
   // Save the new offsets
   if (ok) probe_offset = offs;
 }
+
+/** @}*/
 
 #endif // HAS_BED_PROBE

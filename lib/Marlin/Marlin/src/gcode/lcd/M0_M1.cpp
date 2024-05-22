@@ -45,6 +45,10 @@
   #include "../../feature/host_actions.h"
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M0: Unconditional stop - Wait for user button press on LCD
  * M1: Conditional stop   - Wait for user button press on LCD
@@ -121,5 +125,7 @@ void GcodeSuite::M0_M1() {
 
   wait_for_user = false;
 }
+
+/** @}*/
 
 #endif // HAS_RESUME_CONTINUE

@@ -1,19 +1,17 @@
 /**
  * @file mock_display.hpp
- * @author Radek Vana
  * @brief class for display emulation
  *  all methods are static, because I need to pass them by function pointers
- * @date 2021-01-11
  */
 
-//mock_display.hpp
+// mock_display.hpp
 #pragma once
 #include "guitypes.hpp"
 #include <inttypes.h>
 #include <memory>
 #include <array>
 
-//interface
+// interface
 class IMockDisplay {
 public:
     virtual uint16_t Cols() = 0;
@@ -29,7 +27,7 @@ public:
     virtual ~IMockDisplay() = default;
 };
 
-//template for different display sizes
+// template for different display sizes
 template <uint16_t COLS, uint16_t ROWS, uint16_t BUFF_ROWS>
 class TMockDisplay : public IMockDisplay {
 public:
@@ -79,6 +77,13 @@ public:
     static uint16_t BuffRows();
     static void init();
     static void done() {}
+    static void set_backlight(uint8_t bck) {}
+
+    static bool is_reset_required() {
+        return false;
+    }
+
+    static void Reset() {}
 
     static IMockDisplay &Instance();
     static void Bind(IMockDisplay &disp);

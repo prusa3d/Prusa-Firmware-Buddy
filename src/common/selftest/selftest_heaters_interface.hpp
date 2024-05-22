@@ -8,15 +8,17 @@
  */
 #pragma once
 #include "selftest_heater_config.hpp"
+#include "selftest_hotend_specify_config.hpp"
+#include "selftest_hotend_specify_type.hpp"
+#include <span>
 
-class CFanCtl;
 class IPartHandler;
-class FSM_Holder;
 
 namespace selftest {
 
-void phaseHeaters_noz_ena(IPartHandler *&pNozzle, const HeaterConfig_t &config_nozzle);
+void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const std::span<const HeaterConfig_t> config_nozzle);
 void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed);
-bool phaseHeaters(IPartHandler *&pNozzle, IPartHandler *&pBed);
-
-};
+bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **pBed);
+bool phase_hotend_specify(IPartHandler *&machine, const HotendSpecifyConfig &config);
+bool get_retry_heater();
+}; // namespace selftest

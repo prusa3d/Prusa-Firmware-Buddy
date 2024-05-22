@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-//#define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
+// #define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch2/catch.hpp"
 
 using Catch::Matchers::Equals;
@@ -19,15 +19,17 @@ static const std::uint16_t n511 = 511;
 /// Replaces all occurrences of @find with @replace
 void replace(char *str, char find, char replace) {
     while (str[0] != 0) {
-        if (str[0] == find)
+        if (str[0] == find) {
             str[0] = replace;
+        }
         str++;
     }
 }
 
 char replaceChar(char c, char find, char replace) {
-    if (c == ' ')
+    if (c == ' ') {
         return replace;
+    }
     return c;
 }
 
@@ -331,9 +333,28 @@ TEST_CASE("String to multi-line", "[str2multiline]") {
     }
 }
 
+struct test_buffer {
+    using buffer_type = std::array<uint32_t, 32>;
+    using value_type = buffer_type::value_type;
+
+    test_buffer() {}
+
+    buffer_type::value_type &operator[](size_t index) {
+        CHECK(index < buffer.size());
+        return buffer[index];
+    };
+
+    size_t size() const {
+        CHECK(buffer.size() == 32);
+        return buffer.size();
+    };
+
+private:
+    buffer_type buffer;
+};
+
 TEST_CASE("multi-line", "[text_wrap]") {
     SECTION("all EN texts") {
-        using stack_buffer = std::array<memory_source::value_type, 32>;
 
         std::string origin, expected;
         size_t lines;
@@ -454,19 +475,32 @@ TEST_CASE("multi-line", "[text_wrap]") {
             std::make_tuple<std::string, size_t, std::string>(
                 "Check the print head heater & thermistor wiring for\xA0possible damage.", 4, "Check the print head\nheater & thermistor\nwiring for possible\ndamage."),
             std::make_tuple<std::string, size_t, std::string>(
-                "Now, let's calibrate\nthe distance between\nthe tip of the \nnozzle and the print\nsheet.", 5, "Now, let's calibrate\nthe distance between\nthe tip of the \nnozzle and the print\nsheet."));
+                "Now, let's calibrate\nthe distance between\nthe tip of the \nnozzle and the print\nsheet.", 5, "Now, let's calibrate\nthe distance between\nthe tip of the \nnozzle and the print\nsheet."),
+            std::make_tuple<std::string, size_t, std::string>(
+                "LoooooOoOoOOoOoOooooOOoOoOoOOng word", 2, "LoooooOoOoOOoOoOooooOOoOoOoOOng\nword"),
+            std::make_tuple<std::string, size_t, std::string>(
+                "LoooooOoOoOOoOoOooooOOoOoOoOOong word", 2, "LoooooOoOoOOoOoOooooOOoOoOoOOong\nword"),
+            std::make_tuple<std::string, size_t, std::string>(
+                "LoooooOoOoOOoOoOooooOOoOoOoOOoOng word", 2, "LoooooOoOoOOoOoOooooOOoOoOoOOoOng\nword"),
+            std::make_tuple<std::string, size_t, std::string>(
+                "VeryLongWordThatHasMoreThan32Characters SlightlyShorterWord VeryLongWordThatHasMoreThan32Characters Test Test\nTest VeryLongWordThatHasMoreThan32Characters\nVeryLongWordThatHasMoreThan32Characters Test",
+                8,
+                "VeryLongWordThatHasMoreThan32Characters\nSlightlyShorterWord\nVeryLongWordThatHasMoreThan32Characters\nTest Test\nTest\nVeryLongWordThatHasMoreThan32Characters\nVeryLongWordThatHasMoreThan32Characters\nTest") //,
+
+        );
 
         memory_source mem(origin);
         monospace font;
-        text_wrapper<stack_buffer, const monospace *> w(240, &font);
+        text_wrapper<test_buffer, const monospace *> w(240, &font);
         size_t n = 1, index = 0;
         char str[n511], c;
 
         while ((c = w.character(mem)) != '\0') {
             // str[index++] = replaceChar(c, ' ', '_');
             str[index++] = c;
-            if (c == '\n')
+            if (c == '\n') {
                 ++n;
+            }
         }
         str[index] = '\0';
         CHECK(n == lines);
@@ -474,7 +508,6 @@ TEST_CASE("multi-line", "[text_wrap]") {
     }
 
     SECTION("BFW-1149.3") {
-        using stack_buffer = std::array<memory_source::value_type, 32>;
 
         memory_source mem(
             "The status bar is at "
@@ -487,12 +520,13 @@ TEST_CASE("multi-line", "[text_wrap]") {
             "- Z-axis height\n"
             "- Selected filament");
         monospace font;
-        text_wrapper<stack_buffer, const monospace *> w(240, &font);
+        text_wrapper<test_buffer, const monospace *> w(240, &font);
         char str[n255], c;
         size_t index = 0;
 
-        while ((c = w.character(mem)) != '\0')
+        while ((c = w.character(mem)) != '\0') {
             str[index++] = c;
+        }
         str[index] = '\0';
         CHECK_THAT(str, Equals("The status bar is at\n"
                                "the bottom of the\n"
@@ -506,7 +540,7 @@ TEST_CASE("multi-line", "[text_wrap]") {
     }
 
     SECTION("BFW-1149.4") {
-        using stack_buffer = std::array<memory_source::value_type, 32>;
+        using test_buffer = std::array<memory_source::value_type, 32>;
         memory_source mem(
             "Nel prossimo passo, "
             "usa la manopola per "
@@ -521,12 +555,13 @@ TEST_CASE("multi-line", "[text_wrap]") {
             "immagini sul "
             "manuale per rifer.");
         monospace font;
-        text_wrapper<stack_buffer, const monospace *> w(240, &font);
+        text_wrapper<test_buffer, const monospace *> w(240, &font);
         char str[n255], c;
         size_t index = 0;
 
-        while ((c = w.character(mem)) != '\0')
+        while ((c = w.character(mem)) != '\0') {
             str[index++] = c;
+        }
         str[index] = '\0';
 
         CHECK_THAT(str, Equals("Nel prossimo passo,\n"
@@ -544,17 +579,18 @@ TEST_CASE("multi-line", "[text_wrap]") {
     }
 
     SECTION("BFW-1390") {
-        using stack_buffer = std::array<memory_source::value_type, 32>;
+        using test_buffer = std::array<memory_source::value_type, 32>;
         memory_source mem("Was filament unload successful?");
         monospace font;
-        text_wrapper<stack_buffer, const monospace *> w(231, &font);
+        text_wrapper<test_buffer, const monospace *> w(231, &font);
         char str[n255], c;
         size_t index = 0;
 
         while ((c = w.character(mem)) != '\0') {
             /// replace spaces with underscore to visualise spaces
-            if (c == ' ')
+            if (c == ' ') {
                 c = '_';
+            }
             str[index++] = c;
         }
         str[index] = '\0';
@@ -587,19 +623,110 @@ size_t to_unichar(const char *ss, std::vector<unichar> *out) {
 
 TEST_CASE("multi-line UTF-8", "[str2multiline][text_wrap]") {
     SECTION("BFW-1149.5") {
-        using stack_buffer = std::array<unichar, 32>;
+        using test_buffer = std::array<unichar, 32>;
 
         const std::uint8_t utf8str[] = "příliš žluťoučký kůň úpěl ďábelské ódy : PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY";
         string_view_utf8 sf = string_view_utf8::MakeCPUFLASH(utf8str);
         monospace font;
-        text_wrapper<stack_buffer, const monospace *> w(240, &font);
+        text_wrapper<test_buffer, const monospace *> w(240, &font);
         unichar c;
         std::vector<unichar> str(n255), expected(n255);
         size_t index = 0;
         to_unichar("příliš žluťoučký kůň\núpěl ďábelské ódy :\nPŘÍLIŠ ŽLUŤOUČKÝ KŮŇ\nÚPĚL ĎÁBELSKÉ ÓDY", &expected);
-        while ((c = w.character(sf)) != '\0')
+        while ((c = w.character(sf)) != '\0') {
             str[index++] = c;
+        }
         str[index] = '\0';
         CHECK_THAT(str, Equals(expected));
+    }
+}
+
+TEST_CASE("StringBuilder", "[strbuilder]") {
+    SECTION("empty init") {
+        ArrayStringBuilder<64> b;
+        CHECK(b.is_ok());
+        CHECK(b.char_count() == 0);
+        CHECK_THAT(b.str_nocheck(), Equals(""));
+    }
+
+    SECTION("basic appends") {
+        ArrayStringBuilder<64> b;
+
+        b.append_string("test");
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("test"));
+
+        b.append_string(" test2");
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("test test2"));
+
+        b.append_char('X');
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("test test2X"));
+
+        char *ptr = b.alloc_chars(2);
+        CHECK(ptr);
+        *ptr++ = 'Y';
+        *ptr++ = 'Z';
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("test test2XYZ"));
+
+        b.append_printf(" %s %i %g", "haha", 3, 5.0f);
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("test test2XYZ haha 3 5"));
+    }
+
+    SECTION("exact fill") {
+        ArrayStringBuilder<8> b;
+
+        b.append_string("x7chars"); // Should exactly fit the buffer (incl. term \0)
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("x7chars"));
+
+        b.append_string("whatever");
+        CHECK(!b.is_ok());
+        CHECK(b.is_problem());
+        CHECK_THAT(b.str_nocheck(), Equals("x7chars"));
+    }
+
+    SECTION("overfill") {
+        std::vector<int> overfill_order(3); // N of cmds for permutating
+        std::iota(overfill_order.begin(), overfill_order.end(), 0);
+
+        do {
+            ArrayStringBuilder<8> b;
+            b.append_string("abc");
+            CHECK(b.is_ok());
+            CHECK_THAT(b.str_nocheck(), Equals("abc"));
+
+            for (const int cmd : overfill_order) {
+                switch (cmd) {
+
+                case 0:
+                    b.append_string("this does not fit");
+                    break;
+
+                case 1: {
+                    auto ptr = b.alloc_chars(8);
+                    CHECK(!ptr);
+                    break;
+                }
+
+                case 2:
+                    b.append_printf("s %s", "something really long");
+                    break;
+                }
+
+                CHECK(b.is_problem());
+                CHECK_THAT(b.str_nocheck(), Equals("abc"));
+                CHECK(b.char_count() == 3);
+            }
+
+            {
+                auto ptr = b.alloc_chars(1); // Allocing something after problem should still not work
+                CHECK(!ptr);
+            }
+
+        } while (std::next_permutation(overfill_order.begin(), overfill_order.end()));
     }
 }

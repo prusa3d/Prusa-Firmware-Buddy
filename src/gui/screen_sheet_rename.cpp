@@ -1,7 +1,10 @@
 #include "screen_sheet_rename.hpp"
 #include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 #include "log.h"
 #include "SteelSheets.hpp"
+
+LOG_COMPONENT_REF(GUI);
 
 static void onclick_ok();
 static void onclick_cancel();
@@ -27,9 +30,10 @@ screen_sheet_rename_t::screen_sheet_rename_t()
 }
 
 void onclick_ok() {
-    ///TODO: store count changed characters
-    ///uint32_t cnt = sheet_rename(
-    log_info(GUI, "Rename Cnt: %d\n", SteelSheets::RenameSheet(screen_sheet_rename_t::index_, "anything", MAX_SHEET_NAME_LENGTH));
+    /// TODO: store count changed characters
+    /// uint32_t cnt = sheet_rename(
+    unsigned sheet = SteelSheets::RenameSheet(screen_sheet_rename_t::index_, "anything", MAX_SHEET_NAME_LENGTH);
+    log_info(GUI, "Rename Cnt: %u\n", sheet);
     Screens::Access()->Close();
 }
 

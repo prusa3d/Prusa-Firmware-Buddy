@@ -133,11 +133,14 @@ void GCodeParser::parse(char *p) {
     #endif
   #endif
 
-  // Bail if the letter is not G, M, or T
+  // Bail if the letter is not G, M, T or P
   // (or a valid parameter for the current motion mode)
   switch (letter) {
 
-    case 'G': case 'M': case 'T':
+    case 'G': case 'M': case 'T': case 'P':
+#if ENABLED(REDIRECT_GCODE_SUPPORT)
+    case 'R':
+#endif
 
       // Skip spaces to get the numeric part
       while (*p == ' ') p++;
@@ -227,9 +230,14 @@ void GCodeParser::parse(char *p) {
     #if ENABLED(EXPECTED_PRINTER_CHECK)
       case 16:
     #endif
-    case 23: case 28: case 30: case 117: case 118: case 928: string_arg = p; return;
+    case 23: case 28: case 30: case 117: case 118: case 973: case 928: string_arg = p; return;
     default: break;
   }
+  #if ENABLED(REDIRECT_GCODE_SUPPORT)
+    if (letter == 'R') {
+      string_arg = p; return;
+    }
+  #endif //ENABLED(REDIRECT_GCODE_SUPPORT)
 
   #if ENABLED(DEBUG_GCODE_PARSER)
     const bool debug = codenum == 800;

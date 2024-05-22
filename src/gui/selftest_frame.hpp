@@ -6,10 +6,12 @@
  */
 #pragma once
 #include "window_frame.hpp"
-#include "fsm_base_types.hpp"
-#include "DialogRadioButton.hpp"
-#include "wizard_config.hpp"
+#include <common/fsm_base_types.hpp>
+#include "radio_button.hpp"
+#include "radio_button_fsm.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "window_text.hpp"
+#include "window_wizard_icon.hpp"
 
 /**
  * @brief parents of all tests
@@ -23,7 +25,7 @@ protected:
     fsm::PhaseData data_previous;
 
     virtual void change() {};
-    virtual void pre_change() {}; //something to do before change
+    virtual void pre_change() {}; // something to do before change
 
 public:
     SelftestFrame(window_t *parent, PhasesSelftest ph, fsm::PhaseData data);
@@ -35,11 +37,10 @@ public:
  */
 class SelftestFrameWithRadio : public AddSuperWindow<SelftestFrame> {
 protected:
-    RadioButton radio;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param);
-    virtual void pre_change() override; //update radio button
+    RadioButtonFsm<PhasesSelftest> radio;
+    virtual void pre_change() override; // update radio button
 public:
-    SelftestFrameWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data);
+    SelftestFrameWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, size_t lines_of_footer = 0);
 };
 
 /**
@@ -50,6 +51,7 @@ class SelftestFrameNamed : public AddSuperWindow<SelftestFrame> {
 
 public:
     SelftestFrameNamed(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name);
+    void SetName(string_view_utf8 txt);
 };
 
 /**
@@ -57,9 +59,8 @@ public:
  */
 class SelftestFrameNamedWithRadio : public AddSuperWindow<SelftestFrameNamed> {
 protected:
-    RadioButton radio;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param);
-    virtual void pre_change() override; //update radio button
+    RadioButtonFsm<PhasesSelftest> radio;
+    virtual void pre_change() override; // update radio button
 public:
-    SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name);
+    SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name, size_t lines_of_footer = 0);
 };

@@ -21,6 +21,9 @@
  */
 #pragma once
 
+#include <option/has_remote_accelerometer.h>
+#include <option/has_toolchanger.h>
+
 /**
  * SanityCheck.h
  *
@@ -81,8 +84,10 @@
   #error "SDSLOW deprecated. Set SPI_SPEED to SPI_HALF_SPEED instead."
 #elif defined(SDEXTRASLOW)
   #error "SDEXTRASLOW deprecated. Set SPI_SPEED to SPI_QUARTER_SPEED instead."
-#elif defined(FILAMENT_SENSOR)
-  #error "FILAMENT_SENSOR is now FILAMENT_WIDTH_SENSOR. Please update your configuration."
+// Disable this check in the Buddy Project, as we use FILAMENT_SENSOR macro for something else and
+// it is ok for it to be defined.
+//#elif defined(FILAMENT_SENSOR)
+//  #error "FILAMENT_SENSOR is now FILAMENT_WIDTH_SENSOR. Please update your configuration."
 #elif defined(ENDSTOPPULLUP_FIL_RUNOUT)
   #error "ENDSTOPPULLUP_FIL_RUNOUT is now FIL_RUNOUT_PULLUP. Please update your configuration."
 #elif defined(DISABLE_MAX_ENDSTOPS) || defined(DISABLE_MIN_ENDSTOPS)
@@ -970,6 +975,10 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #endif
 #endif
 
+#if HAS_REMOTE_ACCELEROMETER() && !HAS_TOOLCHANGER()
+  #error "REMOTE_ACCELEROMETER requires PRUSA_TOOLCHANGER"
+#endif
+
 /**
  * Part-Cooling Fan Multiplexer requirements
  */
@@ -1237,8 +1246,8 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 
   #if IS_SCARA
     #error "AUTO_BED_LEVELING_UBL does not yet support SCARA printers."
-  #elif !WITHIN(GRID_MAX_POINTS_X, 3, 23) || !WITHIN(GRID_MAX_POINTS_Y, 3, 23)
-    #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 23."
+  #elif !WITHIN(GRID_MAX_POINTS_X, 3, 36) || !WITHIN(GRID_MAX_POINTS_Y, 3, 36)
+    #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 36."
   #elif !defined(RESTORE_LEVELING_AFTER_G28)
     #error "AUTO_BED_LEVELING_UBL used to enable RESTORE_LEVELING_AFTER_G28. To keep this behavior enable RESTORE_LEVELING_AFTER_G28. Otherwise define it as 'false'."
   #endif
@@ -1466,9 +1475,11 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #error "TEMP_SENSOR_BED 1000 requires BED_PULLUP_RESISTOR_OHMS, BED_RESISTANCE_25C_OHMS and BED_BETA in Configuration_adv.h."
 #elif ENABLED(HEATER_CHAMBER_USER_THERMISTOR) && !(defined(CHAMBER_PULLUP_RESISTOR_OHMS) && defined(CHAMBER_RESISTANCE_25C_OHMS) && defined(CHAMBER_BETA))
   #error "TEMP_SENSOR_CHAMBER 1000 requires CHAMBER_PULLUP_RESISTOR_OHMS, CHAMBER_RESISTANCE_25C_OHMS and CHAMBER_BETA in Configuration_adv.h."
+#elif ENABLED(HEATBREAK_USER_THERMISTOR) && !(defined(HEATBREAK_PULLUP_RESISTOR_OHMS) && defined(HEATBREAK_RESISTANCE_25C_OHMS) && defined(HEATBREAK_BETA))
+  #error "TEMP_SENSOR_HEATBREAK 1000 requires HEATBREAK_PULLUP_RESISTOR_OHMS, HEATBREAK_RESISTANCE_25C_OHMS and HEATBREAK_BETA in Configuration_adv.h."
 #elif ENABLED(BOARD_USER_THERMISTOR) && !(defined(BOARD_PULLUP_RESISTOR_OHMS) && defined(BOARD_RESISTANCE_25C_OHMS) && defined(BOARD_BETA))
   #error "TEMP_SENSOR_BOARD 2000 requires BOARD_PULLUP_RESISTOR_OHMS, BOARD_RESISTANCE_25C_OHMS and BOARD_BETA in Configuration_adv.h."
-#endif 
+#endif
 
 /**
  * Test Heater, Temp Sensor, and Extruder Pins; Sensor Type must also be set.
@@ -1477,9 +1488,9 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #error "HEATER_0_PIN not defined for this board."
 #elif !ANY_PIN(TEMP_0, MAX6675_SS)
   #error "TEMP_0_PIN not defined for this board."
-#elif ((defined(__AVR_ATmega644P__) || defined(__AVR_ATmega1284P__)) && !PIN_EXISTS(E0_STEP, E0_DIR))
+#elif ((defined(__AVR_ATmega644P__) || defined(__AVR_ATmega1284P__)) && !PINS_EXIST(E0_STEP, E0_DIR))
   #error "E0_STEP_PIN or E0_DIR_PIN not defined for this board."
-#elif ( !(defined(__AVR_ATmega644P__) || defined(__AVR_ATmega1284P__)) && (!PIN_EXISTS(E0_STEP, E0_DIR) || !HAS_E0_ENABLE))
+#elif ( !(defined(__AVR_ATmega644P__) || defined(__AVR_ATmega1284P__)) && (!PINS_EXIST(E0_STEP, E0_DIR) || !HAS_E0_ENABLE))
   #error "E0_STEP_PIN, E0_DIR_PIN, or E0_ENABLE_PIN not defined for this board."
 #elif EXTRUDERS && TEMP_SENSOR_0 == 0
   #error "TEMP_SENSOR_0 is required with any extruders."
@@ -1615,27 +1626,27 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
  */
 #if DISABLED(MK2_MULTIPLEXER) // MK2_MULTIPLEXER uses E0 stepper only
   #if E_STEPPERS
-    #if !(PIN_EXISTS(E0_STEP, E0_DIR) && HAS_E0_ENABLE)
+    #if !(PINS_EXIST(E0_STEP, E0_DIR) && HAS_E0_ENABLE)
       #error "E0_STEP_PIN, E0_DIR_PIN, or E0_ENABLE_PIN not defined for this board."
     #endif
     #if E_STEPPERS > 1
-      #if !(PIN_EXISTS(E1_STEP, E1_DIR) && HAS_E1_ENABLE)
+      #if !(PINS_EXIST(E1_STEP, E1_DIR) && HAS_E1_ENABLE)
         #error "E1_STEP_PIN, E1_DIR_PIN, or E1_ENABLE_PIN not defined for this board."
       #endif
       #if E_STEPPERS > 2
-        #if !(PIN_EXISTS(E2_STEP, E2_DIR) && HAS_E2_ENABLE)
+        #if !(PINS_EXIST(E2_STEP, E2_DIR) && HAS_E2_ENABLE)
           #error "E2_STEP_PIN, E2_DIR_PIN, or E2_ENABLE_PIN not defined for this board."
         #endif
         #if E_STEPPERS > 3
-          #if !(PIN_EXISTS(E3_STEP, E3_DIR) && HAS_E3_ENABLE)
+          #if !(PINS_EXIST(E3_STEP, E3_DIR) && HAS_E3_ENABLE)
             #error "E3_STEP_PIN, E3_DIR_PIN, or E3_ENABLE_PIN not defined for this board."
           #endif
           #if E_STEPPERS > 4
-            #if !(PIN_EXISTS(E4_STEP, E4_DIR) && HAS_E4_ENABLE)
+            #if !(PINS_EXIST(E4_STEP, E4_DIR) && HAS_E4_ENABLE)
               #error "E4_STEP_PIN, E4_DIR_PIN, or E4_ENABLE_PIN not defined for this board."
             #endif
             #if E_STEPPERS > 5
-              #if !(PIN_EXISTS(E5_STEP, E5_DIR) && HAS_E5_ENABLE)
+              #if !(PINS_EXIST(E5_STEP, E5_DIR) && HAS_E5_ENABLE)
                 #error "E5_STEP_PIN, E5_DIR_PIN, or E5_ENABLE_PIN not defined for this board."
               #endif
             #endif // E_STEPPERS > 5
@@ -1970,7 +1981,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 /**
  * Check existing RX/TX pins against enable TMC UART drivers.
  */
-#define INVALID_TMC_UART(ST) (AXIS_HAS_UART(ST) && !(defined(ST##_HARDWARE_SERIAL) || (PIN_EXISTS(ST##_SERIAL_RX, ST##_SERIAL_TX))))
+#define INVALID_TMC_UART(ST) (AXIS_HAS_UART(ST) && !(defined(ST##_HARDWARE_SERIAL) || (PINS_EXIST(ST##_SERIAL_RX, ST##_SERIAL_TX))))
 #if INVALID_TMC_UART(X)
   #error "TMC2208 or TMC2209 on X requires X_HARDWARE_SERIAL or X_SERIAL_(RX|TX)_PIN."
 #elif INVALID_TMC_UART(X2)
@@ -2346,6 +2357,10 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
   #error "POWER_PANIC requires CRASH_RECOVERY."
 #endif
 
+#if ENABLED(AXIS_MEASURE) && DISABLED(CRASH_RECOVERY)
+  #error "AXIS_MEASURE requires CRASH_RECOVERY."
+#endif
+
 #if ENABLED(Z_STEPPER_AUTO_ALIGN)
 
   #if !Z_MULTI_STEPPER_DRIVERS
@@ -2371,7 +2386,7 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
   #error "PRINTCOUNTER requires EEPROM_SETTINGS. Please update your Configuration."
 #endif
 
-#if ENABLED(USB_FLASH_DRIVE_SUPPORT) && !PIN_EXISTS(USB_CS, USB_INTR)
+#if ENABLED(USB_FLASH_DRIVE_SUPPORT) && !PINS_EXIST(USB_CS, USB_INTR)
   #error "USB_CS_PIN and USB_INTR_PIN are required for USB_FLASH_DRIVE_SUPPORT."
 #endif
 
@@ -2549,4 +2564,8 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
   #elif ENABLED(SHOW_REMAINING_TIME)
     #error "SHOW_REMAINING_TIME currently requires a Graphical LCD."
   #endif
+#endif
+
+#if ENABLED(GCODE_COMPATIBILITY_MK3) && ENABLED(GCODE_MOTION_MODES)
+    #error "GCODE_COMPATIBILITY_MK3 and GCODE_MOTION_MODES can't be enabled at the same time"
 #endif

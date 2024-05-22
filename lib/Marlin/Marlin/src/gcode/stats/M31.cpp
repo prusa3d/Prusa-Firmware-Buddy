@@ -26,6 +26,10 @@
 #include "../../libs/duration_t.h"
 #include "../../lcd/ultralcd.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M31: Get the time since the start of SD Print (or last M109)
  */
@@ -38,3 +42,5 @@ void GcodeSuite::M31() {
   SERIAL_ECHO_START();
   SERIAL_ECHOLNPAIR("Print time: ", buffer);
 }
+
+/** @}*/

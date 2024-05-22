@@ -1,12 +1,17 @@
 #pragma once
-#include "marlin_client.h"
-#include "eeprom.h"
+#include "marlin_client.hpp"
 #include <optional>
+
+#include "common/sheet.hpp"
+
+// #define Z_OFFSET_STEP     0.0025F//calculated
+#define Z_OFFSET_MIN -2.0F
+#define Z_OFFSET_MAX 2.0F
 
 class SteelSheets {
 public:
-    static constexpr float zOffsetMin = -2.0F;
-    static constexpr float zOffsetMax = 0.0F;
+    static constexpr float zOffsetMin = Z_OFFSET_MIN;
+    static constexpr float zOffsetMax = Z_OFFSET_MAX;
 
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Iterate across the profiles and switch to the next calibrated.
@@ -47,6 +52,7 @@ public:
     static uint32_t NumOfCalibrated();
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Determine the name of the current active print sheet profile.
+    /// !!! DOES NOT APPEND TRAILING '\0'
     ///
     /// @param[out] buffer Buffer to store the print sheet profile
     /// @param[in] length Size of the given buffer.
@@ -55,6 +61,7 @@ public:
     static uint32_t ActiveSheetName(char *buffer, uint32_t length);
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Determine the name of the given print sheet profile.
+    /// !!! DOES NOT APPEND TRAILING '\0'
     ///
     /// @param[in] index Index of the sheet profile
     /// @param[out] buffer Buffer to store the print sheet profile
@@ -76,8 +83,7 @@ public:
     ///
     /// Z offset is clamped between zOffsetMin and zOffsetMax and the unit is mm
     /// @param[in] offset  of the sheet
-    /// @return True when Z offset is set, False otherwise.
-    static bool SetZOffset(float offset);
+    static void SetZOffset(float offset);
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Gets offset of currently selected sheet.
     ///
@@ -91,6 +97,33 @@ public:
     /// @return Z offset of the sheet
     static float GetSheetOffset(uint32_t index);
 
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Gets the unclamped offset of currently selected sheet.
+    ///
+    /// @return Z offset of the sheet
+    static float GetUnclampedZOffet();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Get the unclamped Z offset of sheet with given index
+    ///
+    /// @param[in] index Index of the sheet profile
+    /// @return Z offset of the sheet
+    static float GetUnclampedSheetZOffet(uint32_t index);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Checks if current sheet is configured, if not tries to switch to configured one
+    ///
+    /// Mostly needed during printers startup to check if the printer wasn't reset
+    /// when configuring a new plate. That can cause that we endup with preselected
+    /// non-configured sheet and we need to fix that.
+    static void CheckIfCurrentValid();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Determine the index of active sheet
+    ///
+    /// @return active sheet index
+    static uint32_t GetActiveSheetIndex();
+
 private:
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Sets Z offset for sheet
@@ -98,17 +131,10 @@ private:
     /// Z offset is clamped between zOffsetMin and zOffsetMax
     /// @param[in] index Index of the sheet profile
     /// @param[in]  offset of the sheet
-    /// @return True when successful, false if not
-    static bool setSheetOffset(uint32_t index, float offset);
-
-    ///////////////////////////////////////////////////////////////////////////////
-    /// @brief Determine the index of active sheet
-    ///
-    /// @return active sheet index
-    static uint32_t activeSheetIndex();
+    static void setSheetOffset(uint32_t index, float offset);
 
     static Sheet getSheet(uint32_t index);
-    static bool setSheet(uint32_t index, Sheet sheet);
+    static void setSheet(uint32_t index, Sheet sheet);
 
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Updates probe Z offset variable in marlin

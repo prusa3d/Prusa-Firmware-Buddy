@@ -15,7 +15,7 @@ namespace {
         return access(fname, R_OK) == 0;
     }
 
-}
+} // namespace
 
 FileCommand::StartResult FileCommand::start() {
     if (!exists(filename)) {
@@ -32,11 +32,11 @@ FileCommand::StartResult FileCommand::start() {
         }
         return StartResult::NotFound;
     }
-    if (wui_start_print(filename)) {
+    if (wui_start_print(filename, true) == StartPrintResult::PrintStarted) {
         return StartResult::Started;
     } else {
         return StartResult::NotReady;
     }
 }
 
-}
+} // namespace nhttp::printer

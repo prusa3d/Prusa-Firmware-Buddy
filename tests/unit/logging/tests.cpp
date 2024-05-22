@@ -10,7 +10,7 @@ TEST_CASE("once defined, component can be discovered", "[logging]") {
 }
 
 TEST_CASE("searching for undefined component returns null", "[logging]") {
-    REQUIRE(log_component_find("undefined") == NULL);
+    REQUIRE(log_component_find("undefined") == nullptr);
 }
 
 TEST_CASE("in-memory destination captures an event", "[logging]") {
@@ -31,9 +31,14 @@ TEST_CASE("log event has proper properties", "[logging]") {
     }
 
     SECTION("timestamp") {
-        log_timestamp_t counter = 141;
+        log_timestamp_t counter = { 20, 141 };
         auto scope_guard = with_log_platform_timestamp_get([&]() {
-            return counter++;
+            auto copy = counter;
+            if (++counter.us >= 1000000) {
+                counter.us = 0;
+                counter.sec++;
+            }
+            return copy;
         });
 
         log_debug(comp_02, "141");
@@ -43,8 +48,10 @@ TEST_CASE("log event has proper properties", "[logging]") {
         auto log_142 = in_memory_log.logs.front();
         in_memory_log.logs.clear();
 
-        REQUIRE(log_141.timestamp == 141);
-        REQUIRE(log_142.timestamp == 142);
+        REQUIRE(log_141.timestamp.sec == 20);
+        REQUIRE(log_141.timestamp.us == 141);
+        REQUIRE(log_142.timestamp.sec == 20);
+        REQUIRE(log_142.timestamp.us == 142);
     }
 
     SECTION("task id") {

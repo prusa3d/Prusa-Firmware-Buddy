@@ -37,4 +37,4 @@ class UnknownRequest final : public Selector {
 
 const extern UnknownRequest unknown_request;
 
-}
+} // namespace nhttp::handler::selectors

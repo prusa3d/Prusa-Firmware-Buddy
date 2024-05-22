@@ -94,7 +94,7 @@ public:
     }
 };
 
-}
+} // namespace
 
 // This simply creates and destroyes the parsers and checks that nothing "happens"
 TEST_CASE("Unused") {

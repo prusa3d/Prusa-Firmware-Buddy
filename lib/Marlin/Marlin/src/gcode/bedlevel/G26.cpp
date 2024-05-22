@@ -62,7 +62,7 @@
 #define G26_ERR true
 
 #if ENABLED(ARC_SUPPORT)
-  void plan_arc(const xyze_pos_t &cart, const ab_float_t &offset, const uint8_t clockwise);
+  void plan_arc(const xyze_pos_t&, const ab_float_t&, const bool, const uint8_t);
 #endif
 
 /**
@@ -595,7 +595,7 @@ void GcodeSuite::G26() {
 
   if (parser.seenval('H')) {
     g26_hotend_temp = parser.value_celsius();
-    if (!WITHIN(g26_hotend_temp, 165, (HEATER_0_MAXTEMP - 15))) {
+    if (!WITHIN(g26_hotend_temp, 165, (HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN))) {
       SERIAL_ECHOLNPGM("?Specified nozzle temperature not plausible.");
       return;
     }
@@ -764,11 +764,10 @@ void GcodeSuite::G26() {
 
         recover_filament(destination);
 
-        const feedRate_t old_feedrate = feedrate_mm_s;
-        feedrate_mm_s = PLANNER_XY_FEEDRATE() * 0.1f;
-        plan_arc(endpoint, arc_offset, false);  // Draw a counter-clockwise arc
-        feedrate_mm_s = old_feedrate;
-        destination = current_position;
+        { REMEMBER(fr, feedrate_mm_s, PLANNER_XY_FEEDRATE() * 0.1f);
+          plan_arc(endpoint, arc_offset, false, 0);  // Draw a counter-clockwise arc
+          destination = current_position;
+        }
 
         #if HAS_LCD_MENU
           if (user_canceled()) goto LEAVE; // Check if the user wants to stop the Mesh Validation

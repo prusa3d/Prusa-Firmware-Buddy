@@ -14,7 +14,7 @@ enum class JsonParseResult {
 };
 
 template <class Callback>
-JsonParseResult parse_command(const char *buff, size_t size, Callback &&callback) {
+JsonParseResult parse_command(char *buff, size_t size, Callback &&callback) {
     // For technical reasons in its own function. This releases the used stack
     // before going to talk to marlin (which reportedly uses large stack too).
     jsmn_parser parser;
@@ -41,4 +41,4 @@ JsonParseResult parse_command(const char *buff, size_t size, Callback &&callback
     }
 }
 
-}
+} // namespace nhttp::printer

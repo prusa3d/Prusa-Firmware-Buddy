@@ -1,4 +1,4 @@
-//wirring_digital - Buddy/STM32
+// wirring_digital - Buddy/STM32
 #ifndef _WIRING_DIGITAL_H
 #define _WIRING_DIGITAL_H
 

@@ -18,13 +18,15 @@ int main() {
     char fingerprint[] = "kllkhlkhlhlhlhl";
     char token[] = "kkhkhkhkhk";
     ret = client.send_header(type, fingerprint, token, 156);
-    if (ret.has_value())
+    if (ret.has_value()) {
         std::cout << "error send header" << std::endl;
+    }
 
     type = REQUEST_TYPE::TELEMETRY;
     char fingerprint1[50] = "kllkhlkhlhlhlhl";
     char token1[50] = "kkhkhkhkhk";
     ret = client.send_header(type, fingerprint1, token1, 156);
-    if (ret.has_value())
+    if (ret.has_value()) {
         std::cout << "error send header" << std::endl;
+    }
 }

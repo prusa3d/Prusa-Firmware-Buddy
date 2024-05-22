@@ -11,6 +11,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include "stm32f4xx_hal.h"
+#include "printers.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -19,15 +20,37 @@ extern "C" {
 #define W25X_BLOCK_SIZE         4096
 #define W25X_BLOCK64_SIZE       0x10000
 #define W25X_DUMP_START_ADDRESS 0
-#define W25X_PP_START_ADDRESS   (127 * W25X_BLOCK_SIZE)
-#define W25X_FS_START_ADDRESS   (128 * W25X_BLOCK_SIZE)
+#if PRINTER_IS_PRUSA_MINI
+    // Some MINIes have 1MB flash, some have 8M
+    // 49 = 196KiB offset for crash dump
+    #define W25X_ERR_START_ADDRESS (49 * W25X_BLOCK_SIZE)
+    #define W25X_PP_START_ADDRESS  (50 * W25X_BLOCK_SIZE)
+    #define W25X_FS_START_ADDRESS  (51 * W25X_BLOCK_SIZE)
+#elif (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX)
+    // 8M = 2K of 4K blocks
+    // 65 = 260KiB offset for crash dump
+    #define W25X_ERR_START_ADDRESS (65 * W25X_BLOCK_SIZE)
+    #define W25X_PP_START_ADDRESS  (66 * W25X_BLOCK_SIZE)
+    #define W25X_FS_START_ADDRESS  (67 * W25X_BLOCK_SIZE)
+#elif PRINTER_IS_PRUSA_XL
+    // 8M = 2K of 4K blocks
+    // 65 = 260KiB offset for crash dump, which is the total RAM size
+    #define W25X_ERR_START_ADDRESS (65 * W25X_BLOCK_SIZE)
+    #define W25X_PP_START_ADDRESS  (66 * W25X_BLOCK_SIZE)
+    #define W25X_FS_START_ADDRESS  (68 * W25X_BLOCK_SIZE)
+#else
+    #error "Unknown PRINTER_TYPE!"
+#endif
 
 #if defined(__cplusplus)
 inline constexpr uint32_t w25x_block_size = W25X_BLOCK_SIZE;
 inline constexpr uint32_t w25x_block64_size = W25X_BLOCK64_SIZE;
 inline constexpr uint32_t w25x_dump_start_address = W25X_DUMP_START_ADDRESS;
+inline constexpr uint32_t w25x_error_start_adress = W25X_ERR_START_ADDRESS;
 inline constexpr uint32_t w25x_pp_start_address = W25X_PP_START_ADDRESS;
 inline constexpr uint32_t w25x_fs_start_address = W25X_FS_START_ADDRESS;
+inline constexpr size_t w25x_pp_size = w25x_fs_start_address - w25x_pp_start_address;
+inline constexpr uint32_t w25x_dump_size = w25x_error_start_adress - w25x_dump_start_address;
 #endif // defined(__cplusplus)
 
 /// Initialize the w25x module

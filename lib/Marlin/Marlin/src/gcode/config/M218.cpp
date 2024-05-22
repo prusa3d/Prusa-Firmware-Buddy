@@ -31,6 +31,10 @@
   #include "../../module/planner.h"
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M218 - set hotend offset (in linear units)
  *
@@ -67,5 +71,7 @@ void GcodeSuite::M218() {
       do_blocking_move_to_xy(current_position, planner.settings.max_feedrate_mm_s[X_AXIS]);
   #endif
 }
+
+/** @}*/
 
 #endif // HAS_HOTEND_OFFSET

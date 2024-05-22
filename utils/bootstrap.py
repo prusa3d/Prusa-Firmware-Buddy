@@ -16,13 +16,21 @@ import stat
 import subprocess
 import sys
 import tarfile
+import venv
 import zipfile
+import stat
+import platform
 from argparse import ArgumentParser
 from pathlib import Path
 from urllib.request import urlretrieve
 
+assert sys.version_info >= (3, 8), 'Python 3.8+ is required.'
+is_windows = platform.system() == 'Windows'
 project_root_dir = Path(__file__).resolve().parent.parent
 dependencies_dir = project_root_dir / '.dependencies'
+venv_dir = project_root_dir / '.venv'
+venv_bin_dir = venv_dir / 'bin' if not is_windows else venv_dir / 'Scripts'
+running_in_venv = Path(sys.prefix).resolve() == venv_dir.resolve()
 
 # All dependencies of this project.
 #
@@ -37,43 +45,77 @@ dependencies = {
         },
     },
     'cmake': {
-        'version': '3.22.5',
+        'version': '3.28.3',
         'url': {
-            'Linux': 'https://github.com/Kitware/CMake/releases/download/v3.22.5/cmake-3.22.5-linux-x86_64.tar.gz',
-            'Windows': 'https://github.com/Kitware/CMake/releases/download/v3.22.5/cmake-3.22.5-windows-x86_64.zip',
-            'Darwin': 'https://github.com/Kitware/CMake/releases/download/v3.22.5/cmake-3.22.5-macos-universal.tar.gz',
+            'Linux': 'https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-x86_64.tar.gz',
+            'Windows': 'https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-windows-x86_64.zip',
+            'Darwin': 'https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-macos-universal.tar.gz',
         },
     },
     'gcc-arm-none-eabi': {
-        'version': '10.3.1',
+        'version': '13.2.1',
         'url': {
-            'Linux': 'https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2',
-            'Windows': 'https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-win32.zip',
-            'Darwin': 'https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-mac.tar.bz2',
+            'Linux': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz',
+            'Windows': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-mingw-w64-i686-arm-none-eabi.zip',
+            'Darwin': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-darwin-x86_64-arm-none-eabi.tar.xzg',
         }
     },
     'clang-format': {
-        'version': '9.0.0-noext',
+        'version': '16-83817c2f',
         'url': {
-            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-9.0.0-linux.zip',
-            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-9.0.0-noext-win.zip',
-            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-9.0.0-darwin.zip',
+            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-16-83817c2f-linux.zip',
+            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-16-83817c2f-windows.zip',
+            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-16-83817c2f-macosx.zip',
         }
     },
     'bootloader-mini': {
-        'version': '2.0.2',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-v2.0.2-FF7C65BF-1853-43B3-869C-C846FA39AB75.zip',
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-2.3.4-7B64E593-7827-405D-B11A-0FEAED674B15.zip',
+    },
+    'bootloader-mk4': {
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.4-4D895B74-E8D2-434A-8CCA-ACF549079EC5.zip',
+    },
+    'bootloader-mk3.5': {
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.4-4D895B74-E8D2-434A-8CCA-ACF549079EC5.zip',
+    },
+    'bootloader-xl': {
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.3.4-B3918045-C68D-4978-BD7D-CD91F7927B2D.zip',
+    },
+    'bootloader-ix': {
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.3.4-6474070A-0C8B-4436-BFD2-A5C0F1864CC7.zip',
+    },
+    'firmware-mmu': {
+        'version': '3.0.3',
+        'files': [
+            # 'https://github.com/prusa3d/Prusa-Firmware-MMU/releases/download/v3.0.2/MMU2S_MMU3_FW3.0.2+878.hex',
+            # 3.0.3 published *privately* because it's just a very minor change
+            'https://download.danol.cz/MMU2S_MMU3_FW3.0.3+895.hex'
+        ],
     },
     'mini404': {
-        'version': '0.9.3',
+        'version': '0.9.10',
         'url': {
-            'Linux': 'https://github.com/vintagepc/MINI404/releases/download/v0.9.3/Mini404-v0.9.3-linux.tar.bz2',
-            'Windows': 'https://github.com/vintagepc/MINI404/releases/download/v0.9.3/Mini404-v0.9.3-w64.zip',
-            'Darwin': 'https://github.com/vintagepc/MINI404/releases/download/v0.9.3/Mini404-v0.9.3-macos.tar.bz2',
+            'Linux': 'https://github.com/vintagepc/MINI404/releases/download/v0.9.10/Mini404-v0.9.10-linux.tar.bz2',
+            'Windows': 'https://github.com/vintagepc/MINI404/releases/download/v0.9.10/Mini404-v0.9.10-w64.zip',
+            'Darwin': 'https://github.com/vintagepc/MINI404/releases/download/v0.9.10/Mini404-v0.9.10-macos.tar.bz2',
         }
     },
+    'cmsis-svd': {
+        'version': '0.4.9999',
+        'files': [
+            'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd/45a1e90afe488f01df94b3e0eb89a67c1a900a9a/data/STMicro/STM32F427.svd',
+            'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd/45a1e90afe488f01df94b3e0eb89a67c1a900a9a/data/STMicro/STM32G07x.svd',
+        ],
+    },
+    'CrashDebug': {
+        'version': 'ab03f8b6fb6e3445c62fe3fa5f3263d2945d74ff',
+        'url': 'https://github.com/prusa3d/CrashDebug/archive/ab03f8b6fb6e3445c62fe3fa5f3263d2945d74ff.zip',
+    },
 }
-pip_dependencies = ['ecdsa', 'polib', 'littlefs-python']
 # yapf: enable
 
 
@@ -146,10 +188,20 @@ def install_dependency(dependency):
     specs = dependencies[dependency]
     installation_directory = directory_for_dependency(dependency,
                                                       specs['version'])
-    url = specs['url']
-    if isinstance(url, dict):
-        url = url[platform.system()]
-    download_and_unzip(url=url, directory=installation_directory)
+    url = specs.get('url', None)
+    files = specs.get('files', None)
+    if url is not None:
+        if isinstance(url, dict):
+            url = url[platform.system()]
+        download_and_unzip(url=url, directory=installation_directory)
+    elif files is not None:
+        os.mkdir(installation_directory)
+        for file in files:
+            basename = file.split('/')[-1]
+            urlretrieve(file, installation_directory / basename)
+    else:
+        raise ('dependency is missing payload')
+
     fix_executable_permissions(dependency, installation_directory)
 
 
@@ -169,6 +221,73 @@ def get_dependency_version(dependency):
 def get_dependency_directory(dependency) -> Path:
     version = dependencies[dependency]['version']
     return Path(directory_for_dependency(dependency, version))
+
+
+def switch_to_venv_if_nedded():
+    if not running_in_venv and os.environ.get('BUDDY_NO_VIRTUALENV') != '1':
+        if not os.path.exists(".venv"):
+            print('Creating needed virtual environment in .venv')
+            os.system(sys.executable + ' -m venv .venv')
+        print('Switching to Buddy\'s virtual environment.', file=sys.stderr)
+        print(
+            'You can disable this by setting the BUDDY_NO_VIRTUALENV=1 env. variable.',
+            file=sys.stderr)
+        os.execv(str(venv_bin_dir / 'python'),
+                 [str(venv_bin_dir / 'python')] + sys.argv)
+
+
+def prepare_venv_if_needed():
+    if venv_dir.exists():
+        return
+    venv.create(venv_dir, with_pip=True, prompt='buddy')
+
+
+def pip_install(*args):
+    command = [
+        str(venv_bin_dir / 'python'), '-m', 'pip', 'install',
+        '--disable-pip-version-check', '--no-input', *args
+    ]
+    process = subprocess.Popen(command,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT,
+                               encoding='utf-8')
+    assert process.stdout is not None
+    for line in iter(process.stdout.readline, ''):
+        if line.lower().startswith('requirement already satisfied:'):
+            continue
+        if line.lower().startswith('looking in indexes'):
+            continue
+        print(line.rstrip(), file=sys.stderr)
+    process.communicate()
+    if process.returncode != 0:
+        sys.exit(process.returncode)
+
+
+def install_pip_packages():
+    requirements_path = project_root_dir / 'requirements.txt'
+    # find required pip and install it first
+    with open(requirements_path, 'r') as f:
+        for line in f:
+            if line.startswith('pip'):
+                pip_install(line.strip())
+                break
+        else:
+            raise RuntimeError('pip not found in requirements.txt')
+    # install everything else from requirements.txt
+    pip_install('-r', str(requirements_path))
+
+
+def bootstrap():
+    for dependency in dependencies:
+        if recommended_version_is_available(dependency):
+            continue
+        install_dependency(dependency)
+
+    prepare_venv_if_needed()
+    install_pip_packages()
+
+    # also, install openocd config meant for customization
+    install_openocd_config_template()
 
 
 def main() -> int:
@@ -200,24 +319,7 @@ def main() -> int:
             return 1
 
     # if no argument present, check and install dependencies
-    for dependency in dependencies:
-        if recommended_version_is_available(dependency):
-            continue
-        install_dependency(dependency)
-
-    # also, install pip packages
-    installed_pip_packages = get_installed_pip_packages()
-    for package in pip_dependencies:
-        is_installed = any(installed[0] == package
-                           for installed in installed_pip_packages)
-        if is_installed:
-            continue
-        print('Installing Python package %s' % package)
-        run(sys.executable, '-m', 'pip', 'install', package,
-            '--disable-pip-version-check')
-
-    # also, install openocd config meant for customization
-    install_openocd_config_template()
+    bootstrap()
 
     return 0
 

@@ -27,7 +27,7 @@ class SelfTestView : public AddSuperWindow<window_t> {
     void addPassed(SelfTestGroup &passed);
     Rect16 calculateRect(int shift, Rect16::Height_t px_drawn) const;
 
-    static constexpr Rect16::Height_t test_gap = 10; //gap between tests
+    static constexpr Rect16::Height_t test_gap = 10; // gap between tests
 public:
     SelfTestView(window_t *parrent, Rect16 rc);
     void Add(SelfTestGroup &group);

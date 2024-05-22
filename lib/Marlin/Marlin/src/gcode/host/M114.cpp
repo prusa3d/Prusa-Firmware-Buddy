@@ -178,6 +178,10 @@
 
 #endif // M114_DETAIL
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M114: Report current position to host
  */
@@ -193,3 +197,5 @@ void GcodeSuite::M114() {
   planner.synchronize();
   report_current_position();
 }
+
+/** @}*/

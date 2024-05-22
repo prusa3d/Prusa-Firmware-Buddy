@@ -1,4 +1,4 @@
-/* 
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Ha Thach (tinyusb.org)
@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bsp/board.h"
+#include "bsp/board_api.h"
 #include "tusb.h"
 
 //--------------------------------------------------------------------+
@@ -49,9 +49,14 @@ int main(void)
   board_init();
 
   printf("TinyUSB Host HID Controller Example\r\n");
-  printf("Note: Events only displayed for explictly supported controllers\r\n");
+  printf("Note: Events only displayed for explicit supported controllers\r\n");
 
-  tusb_init();
+  // init host stack on configured roothub port
+  tuh_init(BOARD_TUH_RHPORT);
+
+  if (board_init_after_tusb) {
+    board_init_after_tusb();
+  }
 
   while (1)
   {
@@ -67,8 +72,6 @@ int main(void)
     hid_app_task();
 #endif
   }
-
-  return 0;
 }
 
 //--------------------------------------------------------------------+

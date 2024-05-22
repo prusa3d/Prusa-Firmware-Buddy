@@ -10,7 +10,7 @@ using std::string;
 
 namespace {
 
-const constexpr char *const JSON = "{\"hello\": [1, 2, 3], \"world\":{\"nested\": nil}, \"other\":\"stuff\"}";
+static char JSON[] = "{\"hello\": [1, 2, 3], \"other\":\"stuff\", \"escaped_filename\":\"stupid\\\\_\\\"filename\\t\", \"escaped_object\":{\"name\":\"weird\\\\\\f_chars\\n\"}, \"world\":{\"nested\": nil}}";
 
 const constexpr size_t MAX_TOKENS = 60;
 
@@ -20,13 +20,17 @@ const constexpr Event expected_events[] = {
     Event { 2, Type::Primitive, nullopt, "2" },
     Event { 2, Type::Primitive, nullopt, "3" },
     Event { 1, Type::Pop, nullopt, nullopt },
+    Event { 1, Type::String, "other", "stuff" },
+    Event { 1, Type::String, "escaped_filename", "stupid\\_\"filename\t" },
+    Event { 1, Type::Object, "escaped_object", nullopt },
+    Event { 2, Type::String, "name", "weird\\\f_chars\n" },
+    Event { 1, Type::Pop, nullopt, nullopt },
     Event { 1, Type::Object, "world", nullopt },
     Event { 2, Type::Primitive, "nested", "nil" },
     Event { 1, Type::Pop, nullopt, nullopt },
-    Event { 1, Type::String, "other", "stuff" },
 };
 
-}
+} // namespace
 
 TEST_CASE("Json structural traversal") {
     jsmn_parser parser;

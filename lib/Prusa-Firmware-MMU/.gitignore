@@ -1,0 +1,15 @@
+.vs
+/build*
+.cproject
+.project
+.settings
+.dependencies
+.DS_Store
+/CMakeLists.txt.user
+.ccls-cache
+.idea
+compile_commands.json
+/.vscode/*.peripherals.state.json
+/.vscode/*.registers.state.json
+Makefile
+/doc/html/

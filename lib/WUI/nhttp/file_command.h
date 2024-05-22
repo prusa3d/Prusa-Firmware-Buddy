@@ -57,4 +57,4 @@ public:
     handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);
 };
 
-}
+} // namespace nhttp::printer

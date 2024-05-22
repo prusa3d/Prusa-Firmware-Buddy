@@ -3,11 +3,12 @@
  */
 
 #include "PersistentStorage.h"
-#include "eeprom.h"
 #include "crc32.h"
 #include "st25dv64k.h"
 #include <stdint.h>
 #include <stddef.h>
+#include <array>
+#include <config_store/backend_instance.hpp>
 
 namespace {
 
@@ -26,7 +27,7 @@ struct Data {
     uint8_t reserved_for_future_use[8];
     HomeSample homeSamples[axisCount][PersistentStorage::homeSamplesCount];
 };
-static_assert(sizeof(Data) < EEPROM_ADDRESS, "Data collides with space used by eeprom.h");
+static_assert(sizeof(Data) < config_store_ns::start_address, "Data collides with space used by config_store");
 
 const Data *data = reinterpret_cast<Data *>(0x0);
 
@@ -36,7 +37,7 @@ struct IndexRun {
     bool error;
 };
 
-} //end anonymous namespace
+} // end anonymous namespace
 
 static decltype(HomeSample::crc8) calcCrc(HomeSample homeSample) {
     return crc32_calc(reinterpret_cast<uint8_t *>(&homeSample), (sizeof(homeSample) - sizeof(homeSample.crc8)));
@@ -55,30 +56,34 @@ static void readHomeSamples(HomeSample (&homeSamples)[PersistentStorage::homeSam
 }
 
 static IndexRun getNextHomeSampleIndexRun(uint_fast8_t axis) {
-    if (axis >= axisCount)
+    if (axis >= axisCount) {
         return { 0, 0, true };
+    }
 
     HomeSample homeSamplesRead[PersistentStorage::homeSamplesCount];
     readHomeSamples(homeSamplesRead, axis);
 
     /// return first invalid sample, assume run 0.
     for (uint_fast8_t i = 0; i < PersistentStorage::homeSamplesCount; ++i) {
-        if (!isValid(homeSamplesRead[i]))
+        if (!isValid(homeSamplesRead[i])) {
             return { i, 0, false };
+        }
     }
 
     /// return position to rewrite - first sample of previous run
     if (0 == homeSamplesRead[0].run) { // run 0. already started
         for (uint_fast8_t i = 1; i < PersistentStorage::homeSamplesCount; ++i) {
-            if (1 == homeSamplesRead[i].run)
-                return { i, 0, false }; //return position of first sample from previous run
+            if (1 == homeSamplesRead[i].run) {
+                return { i, 0, false }; // return position of first sample from previous run
+            }
         }
         // run 0. finished, start 1. run
         return { 0, 1, false };
     } else { // run 1. already started
         for (uint_fast8_t i = 1; i < PersistentStorage::homeSamplesCount; ++i) {
-            if (0 == homeSamplesRead[i].run)
-                return { i, 1, false }; //return position of first sample from previous run
+            if (0 == homeSamplesRead[i].run) {
+                return { i, 1, false }; // return position of first sample from previous run
+            }
         }
         // run 1. finished, start 0. run
         return { 0, 0, false };
@@ -87,8 +92,9 @@ static IndexRun getNextHomeSampleIndexRun(uint_fast8_t axis) {
 
 void PersistentStorage::pushHomeSample(uint16_t mscnt, uint8_t board_temp, uint8_t axis) {
     const IndexRun indexRun = getNextHomeSampleIndexRun(axis);
-    if (indexRun.error)
+    if (indexRun.error) {
         return;
+    }
 
     HomeSample homeSample;
     homeSample.run = indexRun.run;
@@ -115,9 +121,20 @@ bool PersistentStorage::isCalibratedHome(uint16_t (&mscnt)[homeSamplesCount], ui
     return isCalibrated;
 }
 
+template <size_t N>
+static constexpr std::array<uint8_t, N> generate_eeprom_erase_data() {
+    std::array<uint8_t, N> ret;
+    ret.fill(0xFF);
+    return ret;
+}
+
+void PersistentStorage::erase_axis(uint8_t axis) {
+    static constexpr auto empty_arr = generate_eeprom_erase_data<sizeof(Data::homeSamples[0])>();
+
+    st25dv64k_user_unverified_write_bytes(reinterpret_cast<uint32_t>(&(data->homeSamples[axis])), empty_arr.begin(), empty_arr.size());
+}
+
 void PersistentStorage::erase() {
-    constexpr uint32_t empty = 0xffffffff;
-    for (uint16_t address = 0; address <= (EEPROM_ADDRESS - 4); address += 4) {
-        st25dv64k_user_write_bytes(address, &empty, sizeof(empty));
-    }
+    erase_axis(0);
+    erase_axis(1);
 }

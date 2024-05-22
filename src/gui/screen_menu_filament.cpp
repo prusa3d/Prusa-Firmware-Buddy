@@ -1,36 +1,30 @@
-// screen_menu_filament.cpp
+/**
+ * @file screen_menu_filament.cpp
+ */
 
-#include "gui.hpp"
-#include "screen_menus.hpp"
-#include "screen_menu.hpp"
-#include "WindowMenuItems.hpp"
+#include "screen_menu_filament.hpp"
 #include "filament.hpp"
-#include "filament_sensor_api.hpp"
-#include "i18n.h"
-#include "MItem_filament.hpp"
+#include "filament_sensors_handler.hpp"
+
+#include "img_resources.hpp"
+
+#include <option/has_toolchanger.h>
+#if HAS_TOOLCHANGER()
+    #include <window_tool_action_box.hpp>
+#endif
 
 enum {
     F_EEPROM = 0x01, // filament is known
-    F_SENSED = 0x02  // filament is not in sensor
+    F_SENSED = 0x02 // filament is not in sensor
 };
 
-using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
-
-class ScreenMenuFilament : public Screen {
-public:
-    constexpr static const char *label = N_("FILAMENT");
-    ScreenMenuFilament()
-        : Screen(_(label)) {
-        Screen::ClrMenuTimeoutClose(); // don't close on menu timeout
-        deactivate_item();
-    }
-
-protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-
-private:
-    void deactivate_item();
-};
+ScreenMenuFilament::ScreenMenuFilament()
+    : ScreenMenuFilament__(_(label)) {
+#if (!PRINTER_IS_PRUSA_MINI)
+    header.SetIcon(&img::spool_white_16x16);
+#endif // PRINTER_IS_PRUSA_MINI
+    deactivate_item();
+}
 
 void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     // This check is periodically executed even when it's hidden under filament dialogs.
@@ -41,8 +35,12 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
     if (event == GUI_event_t::CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
-            item->Do();               //do action (load filament ...)
-            header.SetText(_(label)); //restore label
+            auto menu_index = menu.GetIndex();
+
+            item->Do(); // do action (load filament ...)
+
+            menu.SetIndex(menu_index.value_or(0)); // restore menu index
+            header.SetText(_(label)); // restore label
         }
         return;
     }
@@ -51,7 +49,7 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
 }
 
 /*****************************************************************************/
-//non-static method definition
+// non-static method definition
 
 /*
  * +---------+--------++------------+--------+--------+-------+--------------------------------------------------------+
@@ -64,28 +62,6 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
  * +---------+--------++------------+--------+--------+-------+--------------------------------------------------------+
  */
 void ScreenMenuFilament::deactivate_item() {
-
-    uint8_t filament = 0;
-    filament |= Filaments::CurrentIndex() != filament_t::NONE ? F_EEPROM : 0;
-    filament |= FSensors_instance().HasFilament() ? F_SENSED : 0;
-    switch (filament) {
-    case 0:        //filament not loaded
-    case F_SENSED: //user pushed filament into sensor, but it is not loaded
-        DisableItem<MI_CHANGE>();
-        DisableItem<MI_PURGE>();
-        break;
-    case F_EEPROM: //filament loaded but just runout
-        EnableItem<MI_CHANGE>();
-        DisableItem<MI_PURGE>();
-        break;
-    case F_SENSED | F_EEPROM: //filament loaded
-    default:
-        EnableItem<MI_CHANGE>();
-        EnableItem<MI_PURGE>();
-        break;
-    }
-}
-
-ScreenFactory::UniquePtr GetScreenMenuFilament() {
-    return ScreenFactory::Screen<ScreenMenuFilament>();
+    Item<MI_CHANGE>().UpdateEnableState();
+    Item<MI_PURGE>().UpdateEnableState();
 }

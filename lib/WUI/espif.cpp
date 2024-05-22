@@ -1,20 +1,30 @@
 #include "espif.h"
 
 #include <algorithm>
+#include <bit>
 #include <cstring>
 #include <cstdint>
 #include <atomic>
 #include <cassert>
+#include <cinttypes>
 #include <timing.h>
+#include <mutex>
 
 #include <FreeRTOS.h>
+#include <common/freertos_mutex.hpp>
 #include <task.h>
 #include <semphr.h>
+#include <ccm_thread.hpp>
+#include <bsod.h>
+#include <lwip/netifapi.h>
 
 #include "main.h"
+#include "../metric.h"
+#include "pbuf_rx.h"
 #include "wui.h"
-
-#include "stm32f4xx_hal_rng.h"
+#include <tasks.hpp>
+#include <option/has_embedded_esp32.h>
+#include <random.h>
 
 extern "C" {
 #include "stm32_port.h"
@@ -29,13 +39,11 @@ extern "C" {
 #include <lwip/sys.h>
 
 #include "log.h"
+#include <Marlin/src/inc/MarlinConfigPre.h>
 
 LOG_COMPONENT_DEF(ESPIF, LOG_SEVERITY_INFO);
 
-// TODO: C++20:
-// #include <bit>
-// static_assert(std::endian::native == std::endian::little, "STM<->ESP protocol assumes all involved CPUs are little endian.");
-static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "STM<->ESP protocol assumes all involved CPUs are little endian.");
+static_assert(std::endian::native == std::endian::little, "STM<->ESP protocol assumes all involved CPUs are little endian.");
 static_assert(ETHARP_HWADDR_LEN == 6);
 
 /*
@@ -72,6 +80,8 @@ static_assert(ETHARP_HWADDR_LEN == 6);
  *
  */
 
+#define ESP_UART_HANDLE UART_HANDLE_FOR(esp)
+
 enum ESPIFOperatingMode {
     ESPIF_UNINITIALIZED_MODE,
     ESPIF_WAIT_INIT,
@@ -82,38 +92,53 @@ enum ESPIFOperatingMode {
 };
 
 enum MessageType {
-    MSG_DEVINFO = 0,
-    MSG_LINK = 1,
-    MSG_GETLINK = 2,
-    MSG_CLIENTCONFIG = 3,
-    MSG_PACKET = 4,
-    MSG_INTRON = 5,
+    MSG_DEVINFO_V2 = 0,
+    MSG_CLIENTCONFIG_V2 = 6,
+    MSG_PACKET_V2 = 7,
 };
 
-static const uint32_t SUPPORTED_FW_VERSION = 4;
+#if PRINTER_IS_PRUSA_XL
+// ESP32 FW version
+static constexpr uint8_t SUPPORTED_FW_VERSION = 10;
+#else
+// ESP8266 FW version
+static constexpr uint8_t SUPPORTED_FW_VERSION = 11;
+#endif
 
 // NIC state
-static std::atomic<uint16_t> fw_version;
+static std::atomic<uint8_t> fw_version;
 static std::atomic<ESPIFOperatingMode> esp_operating_mode = ESPIF_UNINITIALIZED_MODE;
 static std::atomic<bool> associated = false;
-static std::atomic<TaskHandle_t> init_task_handle;
 static std::atomic<netif *> active_esp_netif;
 // 10 seconds (20 health-check loops spaced 500ms from each other)
 static std::atomic<uint8_t> init_countdown = 20;
 static std::atomic<bool> seen_intron = false;
+static std::atomic<bool> seen_rx_packet = false;
 
 // UART
 static const uint32_t NIC_UART_BAUDRATE = 4600000;
 static const uint32_t FLASH_UART_BAUDRATE = 115200;
-static const uint32_t CHARACTER_TIMEOUT_MS = 10;
 static std::atomic<bool> esp_detected;
 // Have we seen the ESP alive at least once?
 // (so we never ever report it as not there or no firmware or whatever).
 static std::atomic<bool> esp_was_ok = false;
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 static size_t old_dma_pos = 0;
-SemaphoreHandle_t uart_write_mutex = NULL;
-static uint8_t intron[8] = { 'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05' };
+static freertos::Mutex uart_write_mutex;
+static bool espif_initialized = false;
+static bool uart_has_recovered_from_error = false;
+// Note: We never transmit more than one message so we might as well allocate statically.
+static struct __attribute__((packed)) {
+    uint8_t intron[8];
+    uint8_t type;
+    uint8_t byte; // interpretation depends on particular type
+    uint16_t size;
+} tx_message = {
+    .intron = { 'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05' },
+    .type = 0,
+    .byte = 0,
+    .size = 0,
+};
 
 static void uart_input(uint8_t *data, size_t size, struct netif *netif);
 
@@ -123,9 +148,9 @@ void espif_receive_data(UART_HandleTypeDef *huart) {
 }
 
 static void hard_reset_device() {
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_RESET);
     osDelay(100);
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_SET);
     esp_detected = false;
 }
 
@@ -136,12 +161,13 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
         if (HAL_UART_Init(huart) != HAL_OK) {
             Error_Handler();
         }
+        assert(can_be_used_by_dma(dma_buffer_rx));
         if (HAL_UART_Receive_DMA(huart, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
             Error_Handler();
         }
         old_dma_pos = 0;
         __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
-        log_error(ESPIF, "Recovered from UART error");
+        uart_has_recovered_from_error = true;
         esp_detected = true;
     }
 }
@@ -162,52 +188,169 @@ static bool is_running(ESPIFOperatingMode mode) {
     return false;
 }
 
-/**
- * \brief           Send data to ESP device
- * \param[in]       data: Pointer to data to send
- * \param[in]       len: Number of bytes to send
- * \return          Operation result, ERR_OK if succeeded
- */
-static err_t espif_transmit_data(const void *data, size_t len, bool pauses = false) {
-    if (!is_running(esp_operating_mode)) {
-        return ERR_USE;
+static TaskHandle_t espif_task = nullptr;
+static SemaphoreHandle_t tx_semaphore = nullptr;
+static HAL_StatusTypeDef tx_result;
+static bool tx_waiting = false;
+static pbuf *tx_pbuf = nullptr; // only valid when tx_waiting == true
+
+void espif_tx_callback() {
+    // This is an interrupt handler for UART transmit completion. We want
+    // to keep it short, delegate to `espif_task`, waking it up if possible.
+    // Note that we can't simply `assert(espif_task)` because transmit may
+    // happen even before `espif_task` is created.
+    if (espif_task != nullptr) {
+        BaseType_t higher_priority_task_woken = pdFALSE;
+        vTaskNotifyGiveFromISR(espif_task, &higher_priority_task_woken);
+        portYIELD_FROM_ISR(higher_priority_task_woken);
     }
+}
 
-    const size_t chunk = 128;
+static void espif_task_step() {
+    // block indefinitely until ISR wakes us...
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    // ...woken up, do something
 
-    for (size_t i = 0; i * chunk < len; i++) {
-        // FIXME: Big transfers sometimes need pauses in them so the ESP side
-        // doesn't miss parts. These numbers (128 and 150) were discovered by a
-        // trial-error approach.
-        //
-        // For some reason, for the big packets one need to insert the pause at
-        // the _beginning_ of the transfer too!
-        if (pauses) {
-            delay_us(150);
-        }
-        size_t l = std::min(chunk, len - i * chunk);
-        int ret = HAL_UART_Transmit(&huart6, (uint8_t *)data + i * chunk, l, l * CHARACTER_TIMEOUT_MS);
-        if (ret == HAL_OK) {
+    // Note that we can't simply `assert(tx_waiting)` because transmit may
+    // be initiated by code outside of the espif module.
+    if (tx_waiting) {
+        if (tx_pbuf) {
+            if constexpr (!option::has_embedded_esp32) {
+                // Predictive flow control - delay for ESP to load big enough buffer into UART driver
+                // This is hotfix for ESP8266 not supplying buffers fast enough
+                // Possibly, this slows down upload a little bit, but it is still faster than handling corruption.
+                osDelay(1);
+            }
+
+            uint8_t *data = (uint8_t *)tx_pbuf->payload;
+            size_t size = tx_pbuf->len;
+            assert(can_be_used_by_dma(data));
+            tx_pbuf = tx_pbuf->next;
+            tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, data, size);
+            if (tx_result != HAL_OK) {
+                log_error(ESPIF, "HAL_UART_Transmit_DMA() failed: %d", tx_result);
+                tx_waiting = false;
+                xSemaphoreGive(tx_semaphore);
+            }
         } else {
-            log_error(ESPIF, "UART TX fail: %d", ret);
-            return ERR_TIMEOUT;
+            tx_waiting = false;
+            xSemaphoreGive(tx_semaphore);
         }
     }
-    return ERR_OK;
+}
+
+static void espif_task_run(void const *) {
+    for (;;) {
+        espif_task_step();
+    }
+}
+
+void espif_task_create() {
+    assert(tx_semaphore == nullptr && espif_task == nullptr);
+
+    tx_semaphore = xSemaphoreCreateBinary();
+    if (tx_semaphore == nullptr) {
+        bsod("espif_task_create (semaphore)");
+    }
+
+    osThreadCCMDef(esp_task, espif_task_run, TASK_PRIORITY_ESP, 0, 128);
+    espif_task = osThreadCreate(osThread(esp_task), nullptr);
+    if (espif_task == nullptr) {
+        bsod("espif_task_create (task)");
+    }
+}
+
+static void espif_tx_update_metrics(uint32_t len) {
+    METRIC_DEF(metric_esp_out, "esp_out", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
+    static uint32_t bytes_sent = 0;
+    bytes_sent += len;
+    metric_record_custom(&metric_esp_out, " sent=%" PRIu32 "i", bytes_sent);
+}
+
+[[nodiscard]] static err_t espif_tx_raw(uint8_t message_type, uint8_t message_byte, pbuf *p) {
+    std::lock_guard lock { uart_write_mutex };
+
+    const uint16_t size = p ? p->tot_len : 0;
+    espif_tx_update_metrics(sizeof(tx_message) + size);
+    tx_message.type = message_type;
+    tx_message.byte = message_byte;
+    tx_message.size = htons(size);
+
+    assert(!tx_waiting);
+    taskENTER_CRITICAL();
+    tx_waiting = true;
+    tx_pbuf = p;
+    assert(can_be_used_by_dma(&tx_message));
+    HAL_StatusTypeDef tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, (uint8_t *)&tx_message, sizeof(tx_message));
+    if (tx_result == HAL_OK) {
+        taskEXIT_CRITICAL();
+        xSemaphoreTake(tx_semaphore, portMAX_DELAY);
+    } else {
+        tx_waiting = false;
+        taskEXIT_CRITICAL();
+        log_error(ESPIF, "HAL_UART_Transmit_DMA() failed: %d", tx_result);
+    }
+    return tx_result;
+}
+
+// Note: Use this if you are absolutely sure that `buffer` is large enough to accomodate `data`.
+[[nodiscard]] static FORCE_INLINE uint8_t *buffer_append_unsafe(uint8_t *buffer, const uint8_t *data, size_t size) {
+    memcpy(buffer, data, size);
+    return buffer + size;
+}
+
+[[nodiscard]] static err_t espif_tx_msg_clientconfig_v2(const char *ssid, const char *pass) {
+    // Generate new intron
+    uint8_t new_intron[8];
+    for (uint i = 0; i < 2; i++) {
+        new_intron[i] = tx_message.intron[i];
+    }
+    for (uint i = 2; i < sizeof(tx_message.intron); i++) {
+        new_intron[i] = rand_u();
+    }
+
+    const uint8_t ssid_len = strlen(ssid);
+    const uint8_t pass_len = strlen(pass);
+    const uint16_t length = sizeof(new_intron) + sizeof(ssid_len) + ssid_len + sizeof(pass_len) + pass_len;
+
+    pbuf *p = pbuf_alloc(PBUF_RAW, length, PBUF_RAM);
+    if (!p) {
+        return ERR_MEM;
+    }
+    {
+        assert(p->tot_len == length);
+        uint8_t *buffer = (uint8_t *)p->payload;
+        buffer = buffer_append_unsafe(buffer, new_intron, sizeof(new_intron));
+        buffer = buffer_append_unsafe(buffer, &ssid_len, sizeof(ssid_len));
+        buffer = buffer_append_unsafe(buffer, (uint8_t *)ssid, ssid_len);
+        buffer = buffer_append_unsafe(buffer, &pass_len, sizeof(pass_len));
+        buffer = buffer_append_unsafe(buffer, (uint8_t *)pass, pass_len);
+        assert(buffer == (uint8_t *)p->payload + length);
+    }
+
+    err_t err = espif_tx_raw(MSG_CLIENTCONFIG_V2, 0, p);
+    memcpy(tx_message.intron, new_intron, sizeof(tx_message.intron));
+    pbuf_free(p);
+    return err;
+}
+
+[[nodiscard]] static err_t espif_tx_msg_packet(pbuf *p) {
+    constexpr uint8_t up = 1;
+    return espif_tx_raw(MSG_PACKET_V2, up, p);
 }
 
 static err_t espif_reconfigure_uart(const uint32_t baudrate) {
-    log_info(ESPIF, "Reconfiguring UART for %d baud", baudrate);
-    huart6.Init.BaudRate = baudrate;
-    int hal_uart_res = HAL_UART_Init(&huart6);
+    ESP_UART_HANDLE.Init.BaudRate = baudrate;
+    int hal_uart_res = HAL_UART_Init(&ESP_UART_HANDLE);
     if (hal_uart_res != HAL_OK) {
-        log_error(ESPIF, "ESP LL: HAL_UART_Init failed with: %d", hal_uart_res);
+        log_error(ESPIF, "HAL_UART_Init() failed: %d", hal_uart_res);
         return ERR_IF;
     }
 
-    int hal_dma_res = HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
+    assert(can_be_used_by_dma(dma_buffer_rx));
+    int hal_dma_res = HAL_UART_Receive_DMA(&ESP_UART_HANDLE, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
     if (hal_dma_res != HAL_OK) {
-        log_error(ESPIF, "ESP LL: HAL_UART_Receive_DMA failed with: %d", hal_dma_res);
+        log_error(ESPIF, "HAL_UART_Receive_DMA() failed: %d", hal_dma_res);
         return ERR_IF;
     }
 
@@ -218,7 +361,8 @@ void espif_input_once(struct netif *netif) {
     /* Read data */
     size_t pos = 0;
 
-    uint32_t dma_bytes_left = __HAL_DMA_GET_COUNTER(huart6.hdmarx); // no. of bytes left for buffer full
+    /* Read data */
+    uint32_t dma_bytes_left = __HAL_DMA_GET_COUNTER(ESP_UART_HANDLE.hdmarx); // no. of bytes left for buffer full
     pos = sizeof(dma_buffer_rx) - dma_bytes_left;
     if (pos != old_dma_pos && is_running(esp_operating_mode)) {
         if (pos > old_dma_pos) {
@@ -236,8 +380,6 @@ void espif_input_once(struct netif *netif) {
     }
 }
 
-static void generate_intron();
-
 static void process_mac(uint8_t *data, struct netif *netif) {
     log_info(ESPIF, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", data[0], data[1], data[2], data[3], data[4], data[5]);
     netif->hwaddr_len = ETHARP_HWADDR_LEN;
@@ -245,14 +387,13 @@ static void process_mac(uint8_t *data, struct netif *netif) {
 
     ESPIFOperatingMode old = ESPIF_WAIT_INIT;
     if (esp_operating_mode.compare_exchange_strong(old, ESPIF_NEED_AP)) {
-        uint16_t version = fw_version.load();
+        const uint8_t version = fw_version.load();
         if (version != SUPPORTED_FW_VERSION) {
-            log_error(ESPIF, "ESP detected, FW not supported: %d != %d", version, SUPPORTED_FW_VERSION);
+            log_warning(ESPIF, "Firmware version mismatch: %u != %u",
+                version, static_cast<unsigned>(SUPPORTED_FW_VERSION));
             esp_operating_mode = ESPIF_WRONG_FW;
             return;
         }
-        log_info(ESPIF, "ESP up and running");
-        generate_intron();
         esp_operating_mode = ESPIF_NEED_AP;
         esp_was_ok = true;
     }
@@ -266,61 +407,59 @@ static void process_link_change(bool link_up, struct netif *netif) {
     assert(netif != nullptr);
     if (link_up) {
         if (!associated.exchange(true)) {
-            netif_set_link_up(netif);
+            netifapi_netif_set_link_up(netif);
             log_info(ESPIF, "Link went up");
         }
     } else {
         if (associated.exchange(false)) {
             log_info(ESPIF, "Link went down");
-            netif_set_link_down(netif);
+            netifapi_netif_set_link_down(netif);
         }
     }
 }
 
 static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
-    log_debug(ESPIF, "Received ESP data len: %d", size);
     esp_detected = true;
+
+    // record metrics
+    METRIC_DEF(metric_esp_in, "esp_in", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
+    static uint32_t bytes_received = 0;
+    bytes_received += size;
+    metric_record_custom(&metric_esp_in, " recv=%" PRIu32 "i", bytes_received);
 
     static enum ProtocolState {
         Intron,
-        MessageType,
-        Packet,
-        PacketLen,
+        HeaderByte0,
+        HeaderByte1,
+        HeaderByte2,
+        HeaderByte3,
         PacketData,
         PacketDataThrowaway,
-        Link,
-        DevInfo,
-        FWVersion,
         MACData,
     } state
         = Intron;
 
     static uint intron_read = 0;
-    static uint fw_version_read = 0;
+
+    static uint8_t message_type = MSG_CLIENTCONFIG_V2; // might as well initialize to something invalid
+
     static uint mac_read = 0; // Amount of MAC bytes already read
     static uint8_t mac_data[ETHARP_HWADDR_LEN];
 
-    static uint32_t rx_len = 0;  // Length of RX packet
-    static uint rx_len_read = 0; // Amount of rx_len bytes already read
+    static uint16_t rx_len = 0; // Length of RX packet
 
-    static struct pbuf *rx_buff = NULL;     // First RX pbuf for current packet (chain head)
+    static struct pbuf *rx_buff = NULL; // First RX pbuf for current packet (chain head)
     static struct pbuf *rx_buff_cur = NULL; // Current pbuf for data receive (part of rx_buff chain)
-    static uint32_t rx_read = 0;            // Amount of bytes already read into rx_buff_cur
+    static uint32_t rx_read = 0; // Amount of bytes already read into rx_buff_cur
 
     const uint8_t *end = &data[size];
     for (uint8_t *c = &data[0]; c < end;) {
-        if (size < 200) {
-            log_debug(ESPIF, "Processing data at %02x = %c", *c, *c);
-        }
-
         switch (state) {
         case Intron:
-            if (*c++ == intron[intron_read]) {
+            if (*c++ == tx_message.intron[intron_read]) {
                 intron_read++;
-                log_debug(ESPIF, "Intron at %d", intron_read);
-                if (intron_read >= sizeof(intron)) {
-                    log_debug(ESPIF, "Intron detected");
-                    state = MessageType;
+                if (intron_read >= sizeof(tx_message.intron)) {
+                    state = HeaderByte0;
                     intron_read = 0;
                     seen_intron = true;
                 }
@@ -330,86 +469,81 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
 
             break;
 
-        case MessageType:
-            switch (*c) {
-            case MSG_DEVINFO:
-                log_debug(ESPIF, "Incomming devinfo message");
-                state = DevInfo;
-                break;
-            case MSG_LINK:
-                log_debug(ESPIF, "Incomming linkstatus message");
-                state = Link;
-                break;
-            case MSG_PACKET:
-                log_debug(ESPIF, "Incomming packet message");
-                state = Packet;
+        case HeaderByte0:
+            message_type = *c++;
+            switch (message_type) {
+            case MSG_DEVINFO_V2:
+            case MSG_PACKET_V2:
+                state = HeaderByte1;
                 break;
             default:
-                log_error(ESPIF, "Unknown message type %d", *c);
+                log_warning(ESPIF, "Unknown message type: %d", message_type);
                 state = Intron;
             }
-            c++;
             break;
 
-        case Link:
-            process_link_change(*c++, netif);
-            state = Intron;
-            break;
-
-        case DevInfo:
-            state = FWVersion;
-            fw_version.store(0);
-            fw_version_read = 0;
-            break;
-
-        case FWVersion: {
-            uint16_t version_part = 0;
-            ((uint8_t *)&version_part)[fw_version_read++] = *c++;
-            uint16_t new_version = fw_version.fetch_or(version_part) | version_part;
-
-            if (fw_version_read == sizeof version_part) {
-                log_debug(ESPIF, "ESP FW version: %d", new_version);
-                (void)new_version; // Avoid warning in case log_debug is disabled in compilation
-                mac_read = 0;
-                state = MACData;
+        case HeaderByte1:
+            switch (message_type) {
+            case MSG_DEVINFO_V2:
+                fw_version.store(*c++);
+                if (fw_version < 10) {
+                    process_mac(mac_data, netif);
+                    state = Intron;
+                } else {
+                    state = HeaderByte2;
+                }
+                break;
+            case MSG_PACKET_V2:
+                process_link_change(*c++, netif);
+                state = HeaderByte2;
+                break;
+            default:
+                assert(false && "internal inconsistency");
+                state = Intron;
             }
             break;
-        }
 
         case MACData:
             while (c < end && mac_read < sizeof(mac_data)) {
-                log_debug(ESPIF, "Read MAC byte at %d: %02x", mac_read, *c);
                 mac_data[mac_read++] = *c++;
             }
             if (mac_read == sizeof(mac_data)) {
                 process_mac(mac_data, netif);
+                mac_read = 0;
                 state = Intron;
             }
             break;
 
-        case Packet:
-            rx_len_read = 0;
-            state = PacketLen;
+        case HeaderByte2:
+            rx_len = (*c++) << 8;
+            state = HeaderByte3;
             break;
 
-        case PacketLen:
-            if (rx_len_read < sizeof(rx_len)) {
-                ((uint8_t *)&rx_len)[rx_len_read++] = *c++;
-            } else {
-                log_debug(ESPIF, "Reading packet size: %d", rx_len);
-#if ETH_PAD_SIZE
-                rx_len += ETH_PAD_SIZE; /* allow room for Ethernet padding */
-#endif
-                rx_buff = pbuf_alloc(PBUF_RAW, rx_len, PBUF_POOL);
+        case HeaderByte3:
+            rx_len = rx_len | (*c++);
+            switch (message_type) {
+            case MSG_DEVINFO_V2:
+                state = MACData;
+                break;
+            case MSG_PACKET_V2:
+                if (rx_len == 0) {
+                    state = Intron;
+                    break;
+                }
+                rx_buff = pbuf_alloc_rx(rx_len);
                 if (rx_buff) {
                     rx_buff_cur = rx_buff;
                     rx_read = 0;
                     state = PacketData;
                 } else {
-                    log_error(ESPIF, "Dropping packet due to out of RAM");
+                    log_warning(ESPIF, "pbuf_alloc_rx() failed, dropping packet");
                     rx_read = 0;
                     state = PacketDataThrowaway;
                 }
+                break;
+            default:
+                assert(false && "internal inconsistency");
+                state = Intron;
             }
             break;
 
@@ -428,14 +562,13 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
 
             // Filled all pbufs in a packet (current set to next = NULL)
             if (!rx_buff_cur) {
-                log_debug(ESPIF, "Read packet size: %d", rx_len);
                 if (netif->input(rx_buff, netif) != ERR_OK) {
-                    log_error(ESPIF, "ethernetif_input: IP input error");
+                    log_warning(ESPIF, "tcpip_input() failed, dropping packet");
                     pbuf_free(rx_buff);
                     state = Intron;
                     break;
                 }
-                log_debug(ESPIF, "Input packet processed ok");
+                seen_rx_packet = true;
                 state = Intron;
             }
         } break;
@@ -444,40 +577,10 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
             c += to_read;
             rx_read += to_read;
             if (rx_read == rx_len) {
-                log_debug(ESPIF, "Dropped %d packet data", rx_len);
                 state = Intron;
             }
         }
     }
-    log_debug(ESPIF, "Processed %d from UART", size);
-}
-
-/**
- * @brief Send intron
- *
- * Send intron sequence to ESP
- *
- * To improve security ESPIF generates random intron.
- */
-static void generate_intron() {
-    xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
-
-    // Send message header using old intro to ESP
-    espif_transmit_data(intron, sizeof(intron));
-    uint8_t msg_type = MSG_INTRON;
-
-    // Generate new intron
-    for (uint i = 2; i < sizeof(intron); i++) {
-        intron[i] = HAL_RNG_GetRandomNumber(&hrng);
-    }
-
-    log_info(ESPIF, "New intron: %.*s", 8, intron);
-
-    // Send new intron data
-    espif_transmit_data(&msg_type, 1);
-    espif_transmit_data(intron, sizeof(intron));
-
-    xSemaphoreGive(uart_write_mutex);
 }
 
 /**
@@ -486,58 +589,41 @@ static void generate_intron() {
  * @param netif Output NETIF handle
  * @param p buffer (chain) to send
  */
-static err_t low_level_output(struct netif *netif, struct pbuf *p) {
+static err_t low_level_output([[maybe_unused]] struct netif *netif, struct pbuf *p) {
     if (!is_running(esp_operating_mode)) {
         log_error(ESPIF, "Cannot send packet, not in running mode.");
         return ERR_IF;
     }
 
-    const uint32_t len = p->tot_len;
-    log_debug(ESPIF, "Low level output packet size: %d", len);
-
-    xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
-    espif_transmit_data(intron, sizeof(intron));
-    uint8_t msg_type = MSG_PACKET;
-    espif_transmit_data(&msg_type, 1);
-    espif_transmit_data(&len, sizeof(len));
-    while (p != NULL) {
-        if (espif_transmit_data(p->payload, p->len, p->len > 128) != ERR_OK) {
-            log_error(ESPIF, "Low level output packet failed");
-            xSemaphoreGive(uart_write_mutex);
-            return ERR_IF;
-        }
-        p = p->next;
+    if (espif_tx_msg_packet(p) != ERR_OK) {
+        log_error(ESPIF, "espif_tx_msg_packet() failed");
+        return ERR_IF;
     }
-
-    xSemaphoreGive(uart_write_mutex);
     return ERR_OK;
 }
 
 static void force_down() {
     struct netif *iface = active_esp_netif; // Atomic load
-    assert(iface != nullptr);               // Already initialized
+    assert(iface != nullptr); // Already initialized
     process_link_change(false, iface);
 }
 
-static void reset() {
-    // Reset our expectation of the intron, the ESP will forget the
-    // auto-generated one.
-    xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
-    for (uint i = 2; i < sizeof(intron); i++) {
-        intron[i] = i - 2;
+static void reset_intron() {
+    std::lock_guard lock { uart_write_mutex };
+    for (uint i = 2; i < sizeof(tx_message.intron); i++) {
+        tx_message.intron[i] = i - 2;
     }
-    xSemaphoreGive(uart_write_mutex);
-
-    force_down();
-
-    // Capture this task handle to manage wakeup from input thread
-    init_task_handle = xTaskGetCurrentTaskHandle();
-
-    // Reset device to receive MAC address
-    log_debug(ESPIF, "Resetting ESP and wait for device info reponse");
-    hard_reset_device();
-    esp_operating_mode = ESPIF_WAIT_INIT;
 }
+
+void espif_init_hw() {
+    if (espif_initialized) {
+        bsod("espif_init_hw() called twice");
+    }
+
+    espif_reconfigure_uart(NIC_UART_BAUDRATE);
+    esp_operating_mode = ESPIF_WAIT_INIT;
+    espif_initialized = true;
+};
 
 /**
  * @brief Initalize ESPIF network interface
@@ -548,25 +634,18 @@ static void reset() {
  * @return err_t Possible error encountered during initialization
  */
 err_t espif_init(struct netif *netif) {
-    log_info(ESPIF, "LwIP init");
-    if (uart_write_mutex) {
-        log_error(ESPIF, "Already initialized !!!");
-        assert(0);
-        return ERR_ALREADY;
-    }
+#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
+    // This is temporary, remove once everyone has compatible hardware.
+    // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
+
+    #if HAS_EMBEDDED_ESP32()
+    TaskDeps::wait(TaskDeps::Tasks::espif);
+    #endif
+#endif
 
     struct netif *previous = active_esp_netif.exchange(netif);
     assert(previous == nullptr);
     (void)previous; // Avoid warnings in release
-
-    espif_reconfigure_uart(NIC_UART_BAUDRATE);
-    esp_operating_mode = ESPIF_WAIT_INIT;
-
-    // Create mutex to protect UART writes
-    uart_write_mutex = xSemaphoreCreateMutex();
-    if (!uart_write_mutex) {
-        return ERR_IF;
-    }
 
     // Initialize lwip netif
     netif->name[0] = 'w';
@@ -583,11 +662,12 @@ err_t espif_init(struct netif *netif) {
     netif->mtu = 1500;
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
 
-    reset();
+    reset_intron();
+    esp_operating_mode = ESPIF_WAIT_INIT;
     return ERR_OK;
 }
 
-err_t espif_flash_initialize() {
+void espif_flash_initialize(const bool take_down_interfaces) {
     // NOTE: There is no extra synchronization with reader thread. This assumes
     // it is not a problem if reader thread reads some garbage until it notices
     // operating mode change.
@@ -595,26 +675,29 @@ err_t espif_flash_initialize() {
     // all the time the ESP is being flashed might block LwIP thread and prevent
     // ethernet from being serviced. Still, all the writers must have finished -
     // this holds the lock and new writers will fail as mode is set to flashing.
-    xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
-    esp_operating_mode = ESPIF_FLASHING_MODE;
-    espif_reconfigure_uart(FLASH_UART_BAUDRATE);
-    loader_stm32_config_t loader_config = {
-        .huart = &huart6,
-        .port_io0 = GPIOE,
-        .pin_num_io0 = GPIO_PIN_6,
-        .port_rst = GPIOC,
-        .pin_num_rst = GPIO_PIN_13,
-    };
-    loader_port_stm32_init(&loader_config);
-    xSemaphoreGive(uart_write_mutex);
-    force_down();
-    return ERR_OK;
+    {
+        std::lock_guard lock { uart_write_mutex };
+        esp_operating_mode = ESPIF_FLASHING_MODE;
+        espif_reconfigure_uart(FLASH_UART_BAUDRATE);
+        loader_stm32_config_t loader_config = {
+            .huart = &ESP_UART_HANDLE,
+            .port_io0 = ESP_GPIO0_GPIO_Port,
+            .pin_num_io0 = ESP_GPIO0_Pin,
+            .port_rst = ESP_RST_GPIO_Port,
+            .pin_num_rst = ESP_RST_Pin,
+        };
+        loader_port_stm32_init(&loader_config);
+    }
+    if (take_down_interfaces) {
+        force_down();
+    }
 }
 
 void espif_flash_deinitialize() {
     espif_reconfigure_uart(NIC_UART_BAUDRATE);
-    esp_operating_mode = ESPIF_RUNNING_MODE;
-    reset();
+    reset_intron();
+    hard_reset_device(); // Reset device to receive MAC address
+    esp_operating_mode = ESPIF_WAIT_INIT;
 }
 
 /**
@@ -633,19 +716,7 @@ err_t espif_join_ap(const char *ssid, const char *pass) {
     log_info(ESPIF, "Joining AP %s:*(%d)", ssid, strlen(pass));
     esp_operating_mode = ESPIF_RUNNING_MODE;
 
-    xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
-    espif_transmit_data(intron, sizeof(intron));
-    uint8_t msg_type = MSG_CLIENTCONFIG;
-    espif_transmit_data(&msg_type, sizeof(msg_type));
-    uint8_t ssid_len = strlen(ssid);
-    uint8_t pass_len = strlen(pass);
-    espif_transmit_data(&ssid_len, sizeof(ssid_len));
-    espif_transmit_data(ssid, ssid_len);
-    espif_transmit_data(&pass_len, sizeof(pass_len));
-    espif_transmit_data(pass, pass_len);
-    xSemaphoreGive(uart_write_mutex);
-
-    return ERR_OK;
+    return espif_tx_msg_clientconfig_v2(ssid, pass);
 }
 
 bool espif_tick() {
@@ -657,15 +728,18 @@ bool espif_tick() {
         init_countdown.store(current_init - 1);
     }
 
+    if (uart_has_recovered_from_error) {
+        log_warning(ESPIF, "Recovered from UART error");
+        uart_has_recovered_from_error = false;
+    }
+
     if (espif_link()) {
-        xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
         const bool was_alive = seen_intron.exchange(false);
-        // Poke the ESP somewhat to see if it's still alive and provoke it to
-        // do some activity during next round.
-        espif_transmit_data(intron, sizeof(intron));
-        uint8_t msg_type = MSG_GETLINK;
-        espif_transmit_data(&msg_type, sizeof(msg_type));
-        xSemaphoreGive(uart_write_mutex);
+        if (!seen_rx_packet.exchange(false) && is_running(esp_operating_mode)) {
+            // Poke the ESP somewhat to see if it's still alive and provoke it to
+            // do some activity during next round.
+            std::ignore = espif_tx_msg_packet(nullptr);
+        }
         return was_alive;
     }
 
@@ -680,7 +754,10 @@ void espif_reset() {
     // Don't touch it in case we are flashing right now. If so, it'll get reset
     // when done.
     if (esp_operating_mode != ESPIF_FLASHING_MODE) {
-        reset();
+        reset_intron();
+        force_down();
+        hard_reset_device(); // Reset device to receive MAC address
+        esp_operating_mode = ESPIF_WAIT_INIT;
     }
 }
 
@@ -733,7 +810,6 @@ EspLinkState esp_link_state() {
         return EspLinkState::Init;
     case ESPIF_NEED_AP:
         return EspLinkState::NoAp;
-        return EspLinkState::Down;
     case ESPIF_RUNNING_MODE: {
         if (espif_link()) {
             if (seen_intron) {
@@ -742,7 +818,7 @@ EspLinkState esp_link_state() {
                 return EspLinkState::Silent;
             }
         } else {
-            return EspLinkState::Down;
+            return EspLinkState::NoAp;
         }
     }
     }

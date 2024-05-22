@@ -4,7 +4,10 @@
 #include "log.h"
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
+#include <ccm_thread.hpp>
 #include "stm32f4xx_hal.h"
+
+LOG_COMPONENT_REF(W25X);
 
 /// The SPI used by this module
 static SPI_HandleTypeDef *spi_handle;
@@ -51,8 +54,9 @@ enum {
 
 extern "C" bool w25x_communication_init(bool init_event_group) {
     // check SPI handle has been assigned using w25x_spi_assign
-    if (spi_handle == NULL)
+    if (spi_handle == NULL) {
         return false;
+    }
 
     // clear error
     current_error = 0;
@@ -60,16 +64,18 @@ extern "C" bool w25x_communication_init(bool init_event_group) {
     // create an eventgroup for ISR DMA events
     if (init_event_group && event_group == NULL) {
         event_group = xEventGroupCreate();
-        if (event_group == NULL)
+        if (event_group == NULL) {
             return false;
+        }
     }
 
     return true;
 }
 
 extern "C" bool w25x_communication_abort() {
-    if (spi_handle == NULL)
+    if (spi_handle == NULL) {
         return false;
+    }
 
     (void)HAL_SPI_Abort(spi_handle);
     return true;
@@ -82,8 +88,9 @@ int w25x_fetch_error() {
 }
 
 extern "C" void w25x_receive(uint8_t *buffer, uint32_t len) {
-    if (!no_error())
+    if (!no_error()) {
         return;
+    }
 
     if (len > 1 && dma_is_available()) {
         if (memory_supports_dma_transfer(buffer)) {
@@ -157,6 +164,7 @@ static int receive_dma(uint8_t *buffer, uint32_t len) {
     xEventGroupClearBits(event_group, EVENT_RX_COMPLETE);
 
     // initiate DMA transfer
+    assert(can_be_used_by_dma(buffer));
     HAL_StatusTypeDef status = HAL_SPI_Receive_DMA(spi_handle, buffer, len);
     if (status != HAL_OK) {
         return hal_status_to_error(status);
@@ -182,6 +190,7 @@ static int send_dma(const uint8_t *buffer, uint32_t len) {
     xEventGroupClearBits(event_group, EVENT_TX_COMPLETE);
 
     // initiate DMA transfer
+    assert(can_be_used_by_dma(buffer));
     HAL_StatusTypeDef status = HAL_SPI_Transmit_DMA(spi_handle, (uint8_t *)buffer, len);
     if (status != HAL_OK) {
         log_error(W25X, "DMA write error %u", status);
@@ -205,8 +214,9 @@ static int send_dma(const uint8_t *buffer, uint32_t len) {
 }
 
 static void set_events_from_isr(EventBits_t events) {
-    if (event_group == NULL)
+    if (event_group == NULL) {
         return;
+    }
     BaseType_t higherPriorityTaskWoken = pdFALSE;
     BaseType_t result = xEventGroupSetBitsFromISR(event_group, events, &higherPriorityTaskWoken);
     if (result != pdFAIL) {

@@ -1,4 +1,4 @@
-//window.cpp
+// window.cpp
 
 #include "window.hpp"
 #include "gui_invalidate.hpp"
@@ -6,7 +6,7 @@
 #include "ScreenHandler.hpp"
 #include "gui_timer.h"
 #include "display.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "knob_event.hpp"
 
 bool window_t::IsVisible() const { return flags.visible && !flags.hidden_behind_dialog; }
@@ -17,38 +17,53 @@ bool window_t::IsInvalid() const { return flags.invalid; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::HasTimer() const { return flags.timer; }
 win_type_t window_t::GetType() const { return win_type_t(flags.type); }
-bool window_t::IsDialog() const { return GetType() == win_type_t::dialog || GetType() == win_type_t::strong_dialog; }
+bool window_t::IsDialog() const { return GetType() == win_type_t::dialog; }
 bool window_t::ClosedOnTimeout() const { return flags.timeout_close == is_closed_on_timeout_t::yes; }
-bool window_t::ClosedOnSerialPrint() const { return flags.serial_close == is_closed_on_serial_t::yes; }
+bool window_t::ClosedOnPrint() const { return flags.print_close == is_closed_on_printing_t::yes; }
 bool window_t::HasEnforcedCapture() const { return flags.enforce_capture_when_not_visible; }
 bool window_t::IsCapturable() const { return IsVisible() || HasEnforcedCapture(); }
 bool window_t::HasIcon() const { return flags.has_icon; }
 
 void window_t::SetHasIcon() {
-    if (flags.has_icon)
+    if (flags.has_icon) {
         return;
+    }
     flags.has_icon = true;
     Invalidate();
 }
 void window_t::ClrHasIcon() {
-    if (!flags.has_icon)
+    if (!flags.has_icon) {
         return;
+    }
     flags.has_icon = false;
     Invalidate();
 }
 
 void window_t::SetRedLayout() {
-    setRedLayout();
+    set_layout(ColorLayout::red);
 }
 void window_t::SetBlackLayout() {
-    setBlackLayout();
+    set_layout(ColorLayout::black);
+}
+void window_t::SetBlueLayout() {
+    set_layout(ColorLayout::blue);
 }
 
-void window_t::setRedLayout() {
-    SetBackColor(COLOR_RED_ALERT);
-}
-void window_t::setBlackLayout() {
-    SetBackColor(COLOR_BLACK);
+void window_t::set_layout(ColorLayout set) {
+    switch (set) {
+
+    case ColorLayout::red:
+        SetBackColor(COLOR_RED_ALERT);
+        break;
+
+    case ColorLayout::black:
+        SetBackColor(COLOR_BLACK);
+        break;
+
+    case ColorLayout::blue:
+        SetBackColor(COLOR_NAVY);
+        break;
+    }
 }
 
 void window_t::Validate(Rect16 validation_rect) {
@@ -62,21 +77,21 @@ void window_t::Validate(Rect16 validation_rect) {
 void window_t::Invalidate(Rect16 invalidation_rect) {
     // FIXME: invalidation if invalidation_rect is empty is dangerous
     if (invalidation_rect.IsEmpty() || rect.HasIntersection(invalidation_rect)) {
-        //TODO why is not here flags.invalid = true;
-        //it likely has some reason, but should be commented!!!
+        // TODO why is not here flags.invalid = true;
+        // it likely has some reason, but should be commented!!!
         invalidate(invalidation_rect);
         gui_invalidate();
     }
 }
 
-//frame will invalidate children
-void window_t::invalidate(Rect16 validation_rect) {
+// frame will invalidate children
+void window_t::invalidate([[maybe_unused]] Rect16 validation_rect) {
     flags.invalid = true;
     flags.invalid_background = true;
 }
 
-//frame will validate children
-void window_t::validate(Rect16 validation_rect) {
+// frame will validate children
+void window_t::validate([[maybe_unused]] Rect16 validation_rect) {
 }
 
 void window_t::ValidateBackground() {
@@ -110,56 +125,52 @@ void window_t::DisableLongHoldScreenAction() { flags.has_long_hold_screen_action
 void window_t::EnableLongHoldScreenAction() { flags.has_long_hold_screen_action = true; };
 
 void window_t::SetFocus() {
-    if (!flags.visible || !flags.enabled) // IsVisible() is not used -> window behind the dialog can be set by this
+    if (!flags.visible || !flags.enabled) { // IsVisible() is not used -> window behind the dialog can be set by this
         return;
-    if (focused_ptr == this)
+    }
+    if (focused_ptr == this) {
         return;
+    }
 
     if (focused_ptr) {
         focused_ptr->Invalidate();
-        focused_ptr->WindowEvent(focused_ptr, GUI_event_t::FOCUS0, 0); //will not resend event to anyone
+        focused_ptr->WindowEvent(focused_ptr, GUI_event_t::FOCUS0, 0); // will not resend event to anyone
     }
     focused_ptr = this;
     Invalidate();
-    WindowEvent(this, GUI_event_t::FOCUS1, 0); //will not resend event to anyone
+    WindowEvent(this, GUI_event_t::FOCUS1, 0); // will not resend event to anyone
     gui_invalidate();
 }
 
-void window_t::Show() {
-    if (!flags.visible) {
-        flags.visible = true;
-        //cannot invalidate when is hidden by dialog - could flicker
-        if (!flags.hidden_behind_dialog)
-            Invalidate();
-
-        notifyVisibilityChange();
+void window_t::set_visible(bool set) {
+    if (flags.visible == set) {
+        return;
     }
-}
 
-void window_t::Hide() {
-    if (flags.visible) {
-        flags.visible = false;
-        //cannot invalidate when is hidden by dialog - could flicker
-        if (!flags.hidden_behind_dialog)
-            Invalidate();
+    flags.visible = set;
 
-        notifyVisibilityChange();
+    // cannot invalidate when is hidden by dialog - could flicker
+    if (!flags.hidden_behind_dialog) {
+        Invalidate();
     }
+
+    notifyVisibilityChange();
 }
 
 void window_t::notifyVisibilityChange() {
-    if (GetParent())
+    if (GetParent()) {
         GetParent()->ChildVisibilityChanged(*this);
+    }
 }
 
-//do nothing screen/frame will do something ...
-void window_t::ChildVisibilityChanged(window_t &child) {
+// do nothing screen/frame will do something ...
+void window_t::ChildVisibilityChanged([[maybe_unused]] window_t &child) {
 }
 
 void window_t::ShowAfterDialog() {
     if (flags.hidden_behind_dialog) {
         flags.hidden_behind_dialog = false;
-        //must invalidate even when is not visible
+        // must invalidate even when is not visible
         Invalidate();
     }
 }
@@ -167,29 +178,21 @@ void window_t::ShowAfterDialog() {
 void window_t::HideBehindDialog() {
     if (!flags.hidden_behind_dialog) {
         flags.hidden_behind_dialog = true;
-        //must invalidate - only part of window can be behind dialog
+        // must invalidate - only part of window can be behind dialog
         Invalidate();
 
-        //Validate would work with 1 dialog
-        //cannot risk it
+        // Validate would work with 1 dialog
+        // cannot risk it
     }
 }
 
-bool window_t::IsShadowed() const {
-    return flags.shadow == true;
-}
+void window_t::set_shadow(bool set) {
+    if (flags.shadow == set) {
+        return;
+    }
 
-void window_t::Shadow() {
-    if (!flags.shadow) {
-        flags.shadow = true;
-        Invalidate();
-    }
-}
-void window_t::Unshadow() {
-    if (flags.shadow) {
-        flags.shadow = false;
-        Invalidate();
-    }
+    flags.shadow = set;
+    Invalidate();
 }
 
 color_t window_t::GetBackColor() const {
@@ -216,9 +219,8 @@ void window_t::SetBackColor(const color_scheme &clr) {
 }
 
 window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
-    : parent(parent)
-    , next(nullptr)
-    , rect(rect)
+    : rect(rect)
+    , parent(parent)
     , flags(0)
     , color_back(GuiDefaults::ColorBack) {
     flags.type = uint8_t(type);
@@ -226,21 +228,24 @@ window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_
     close == is_closed_on_click_t::yes ? Enable() : Disable();
     flags.visible = true; // do not call show, it needs parent to be registered
     Invalidate();
-    if (parent)
+    if (parent) {
         parent->RegisterSubWin(*this);
+    }
 }
 
 window_t::~window_t() {
     gui_timers_delete_by_window(this);
-    if (GetFocusedWindow() == this)
+    if (GetFocusedWindow() == this) {
         focused_ptr = nullptr;
+    }
 
     // if this window has captured, than it will be passed automaticaly to previous one
     // because last window in screen has it, no code needed
 
-    //win_type_t::normal must be unregistered so ~window_frame_t can has functional linked list
-    if (GetParent())
+    // win_type_t::normal must be unregistered so ~window_frame_t can has functional linked list
+    if (GetParent()) {
         GetParent()->UnregisterSubWin(*this);
+    }
 
     Screens::Access()->ResetTimeout();
 }
@@ -270,7 +275,7 @@ void window_t::SetRectWithoutTransformation(Rect16 rc) {
     rect = rc;
 }
 
-//TransformRect calls GetRect which calls TransformRect on parrent level ...
+// TransformRect calls GetRect which calls TransformRect on parrent level ...
 Rect16 window_t::TransformRect(Rect16 rc) const {
     Rect16 this_rect = GetRect();
     if (flags.has_relative_subwins) {
@@ -295,6 +300,11 @@ void window_t::Resize(Rect16::Height_t height) {
 
 void window_t::Resize(Rect16::Width_t width) {
     SetRectWithoutTransformation(GetRectWithoutTransformation() = width);
+}
+
+Rect16 window_t::get_rect_for_touch() const {
+    // Default implementation - same as rect
+    return GetRect();
 }
 
 void window_t::SetNext(window_t *nxt) {
@@ -322,8 +332,9 @@ window_t *window_t::GetPrev() const {
 */
 
 window_t *window_t::GetNextEnabled() const {
-    if (next)
-        return (next->IsEnabled()) ? next : next->GetNextEnabled();
+    if (next) {
+        return (next->IsEnabled()) ? next.ptr() : next->GetNextEnabled();
+    }
     return nullptr;
 }
 
@@ -344,8 +355,9 @@ window_t *window_t::GetParent() const {
 bool window_t::IsChildOf(window_t *win) const {
     window_t *par = GetParent();
     while (par) {
-        if (par == win)
+        if (par == win) {
             return true;
+        }
 
         par = par->GetParent();
     }
@@ -365,14 +377,16 @@ void window_t::draw() {
     }
 }
 
-//window does not support subwindow elements, but window_frame does
+// window does not support subwindow elements, but window_frame does
 bool window_t::RegisterSubWin(window_t &win) {
-    //window must fit inside frame
-    if (!GetRect().Contain(win.GetRect())) //could speed this up, but prefer smaller codesize
+    // window must fit inside frame
+    if (!GetRect().Contain(win.GetRect())) { // could speed this up, but prefer smaller codesize
         return false;
-    //parrent has relative subwins, child must have them too
-    if (flags.has_relative_subwins)
+    }
+    // parrent has relative subwins, child must have them too
+    if (flags.has_relative_subwins) {
         win.SetRelativeSubwins();
+    }
 
     Screens::Access()->ResetTimeout();
 
@@ -380,37 +394,51 @@ bool window_t::RegisterSubWin(window_t &win) {
 }
 
 void window_t::UnregisterSubWin(window_t &win) {
-    if (win.GetParent() != this)
+    if (win.GetParent() != this) {
         return;
+    }
     addInvalidationRect(win.GetRect());
     unregisterSubWin(win);
     Screens::Access()->ResetTimeout();
 }
 
-bool window_t::registerSubWin(window_t &win) {
+bool window_t::registerSubWin([[maybe_unused]] window_t &win) {
     return false;
 }
 
-void window_t::unregisterSubWin(window_t &win) {
+void window_t::unregisterSubWin([[maybe_unused]] window_t &win) {
 }
 
-//cannot add rect, it is stored in frame, so must incalidate entire window
-void window_t::addInvalidationRect(Rect16 rc) {
+// cannot add rect, it is stored in frame, so must incalidate entire window
+void window_t::addInvalidationRect([[maybe_unused]] Rect16 rc) {
     if (!rect.IsEmpty()) {
         Invalidate();
     }
 }
 
 void window_t::unconditionalDraw() {
-    display::FillRect(GetRect(), GetBackColor());
+    if (flags.has_round_corners) {
+        color_t parent_back_color = GetParent() ? GetParent()->GetBackColor() : GetBackColor();
+        display::DrawRoundedRect(GetRect(), parent_back_color, GetBackColor(), GuiDefaults::DefaultCornerRadius, MIC_ALL_CORNERS);
+    } else {
+        display::FillRect(GetRect(), GetBackColor());
+    }
 }
 
-void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *const param) {
+    if (GUI_event_is_input_event(event)) {
+        last_gui_input_event = event;
+    }
+
     static constexpr const char txt[] = "WindowEvent via public";
     windowEvent(EventLock(txt, sender, event), sender, event, param);
 }
 
-void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *const param) {
+    if (GUI_event_is_input_event(event)) {
+        last_gui_input_event = event;
+    }
+
     static constexpr const char txt[] = "ScreenEvent via public";
     if (event == GUI_event_t::HELD_RELEASED && flags.has_long_hold_screen_action) {
         gui::knob::LongPressScreenAction();
@@ -420,16 +448,16 @@ void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
     }
 }
 
-//frame does something else - resend to all children
-// MUST BE PRIVATE
-// call nonvirtual ScreenEvent instead (contains debug output)
-void window_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
+// frame does something else - resend to all children
+//  MUST BE PRIVATE
+//  call nonvirtual ScreenEvent instead (contains debug output)
+void window_t::screenEvent(window_t *sender, GUI_event_t event, void *const param) {
     WindowEvent(sender, event, param);
 }
 
 // MUST BE PRIVATE
 // call nonvirtual WindowEvent instead (contains debug output)
-void window_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void window_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *const param) {
     if (event == GUI_event_t::CLICK && parent) {
         if (flags.close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();
@@ -449,7 +477,7 @@ void window_t::Shift(ShiftDir_t direction, uint16_t distance) {
 }
 
 /*****************************************************************************/
-//static
+// static
 
 window_t *window_t::focused_ptr = nullptr;
 
@@ -462,11 +490,11 @@ void window_t::ResetFocusedWindow() {
 }
 
 /*****************************************************************************/
-//capture
+// capture
 bool window_t::IsCaptured() const { return Screens::Access()->Get()->GetCapturedWindow() == this; }
 
 /*****************************************************************************/
-//window_aligned_t
+// window_aligned_t
 
 window_aligned_t::window_aligned_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
     : AddSuperWindow<window_t>(parent, rect, type, close) {
@@ -474,7 +502,7 @@ window_aligned_t::window_aligned_t(window_t *parent, Rect16 rect, win_type_t typ
 }
 
 Align_t window_aligned_t::GetAlignment() const {
-    return (Align_t &)(flags.align_data); //retype to Align_t reference, to avoid using private ctor
+    return (Align_t &)(flags.align_data); // retype to Align_t reference, to avoid using private ctor
 }
 
 void window_aligned_t::SetAlignment(Align_t alignment) {

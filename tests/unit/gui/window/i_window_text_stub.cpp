@@ -29,11 +29,6 @@ void IWindowText::SetTextColor(const color_scheme &clr) {
     pTextColorScheme = &clr; // rewrite even when value is same, because address might be different
 }
 
-void IWindowText::SetFont(font_t *val) {
-    font = val;
-    Invalidate();
-}
-
 void IWindowText::SetPadding(padding_ui8_t padd) {
     if (padding != padd) {
         padding = padd;
@@ -44,6 +39,6 @@ void IWindowText::SetPadding(padding_ui8_t padd) {
 IWindowText::IWindowText(window_t *parent, Rect16 rect, is_closed_on_click_t close)
     : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
     , color_text(GuiDefaults::ColorText)
-    , font(nullptr)
+    , font(Font::normal)
     , padding({ 2, 2, 2, 2 }) {
 }

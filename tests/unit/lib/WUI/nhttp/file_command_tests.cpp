@@ -17,4 +17,4 @@ FileCommand::StartResult FileCommand::start() {
     return StartResult::Started;
 }
 
-}
+} // namespace nhttp::printer

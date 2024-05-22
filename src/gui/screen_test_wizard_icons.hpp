@@ -1,9 +1,8 @@
-//screen_test_wizard_icons.hpp
+// screen_test_wizard_icons.hpp
 #pragma once
 #include "gui.hpp"
 #include "window_text.hpp"
 #include "window_icon.hpp"
-#include "window_temp_graph.hpp"
 #include "screen.hpp"
 
 struct screen_test_wizard_icons : public AddSuperWindow<screen_t> {
@@ -15,9 +14,6 @@ struct screen_test_wizard_icons : public AddSuperWindow<screen_t> {
     window_text_t txt_ip0;
     window_text_t txt_ip1;
     window_text_t txt_hourglass;
-    window_text_t txt_autohome;
-    window_text_t txt_search;
-    window_text_t txt_measure;
 
     window_icon_t ico_na;
     window_icon_t ico_ok;
@@ -25,9 +21,6 @@ struct screen_test_wizard_icons : public AddSuperWindow<screen_t> {
     window_icon_t ico_ip0;
     window_icon_t ico_ip1;
     window_icon_t ico_hourglass;
-    window_icon_t ico_autohome;
-    window_icon_t ico_search;
-    window_icon_t ico_measure;
 
 public:
     screen_test_wizard_icons();

@@ -190,7 +190,7 @@ namespace ExtUI {
   #endif
 
   extruder_t getActiveTool();
-  void setActiveTool(const extruder_t, bool no_move);
+  void setActiveTool(const extruder_t);
 
   #if ENABLED(BABYSTEPPING)
     int16_t mmToWholeSteps(const float mm, const axis_t axis);

@@ -5,7 +5,7 @@
  */
 
 #include "selftest_view_item_separator.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 
 constexpr Rect16::Height_t line_height = WizardDefaults::progress_h;
 constexpr Rect16::Height_t top_padding = 2;

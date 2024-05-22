@@ -1,6 +1,5 @@
 #pragma once
 
-#include "stm32f4xx_hal.h"
 #include "lwip/netif.h"
 
 #ifdef __cplusplus
@@ -13,13 +12,23 @@ extern "C" {
 /// @param[in] device UART device
 void espif_receive_data(UART_HandleTypeDef *);
 
+void espif_tx_callback();
+void espif_task_create();
+
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Initialize ESP for flash write
-err_t espif_flash_initialize();
+/// @param [in] take_down_interfaces Deinitialize network interfaces,
+///             set to false when run before networking is started.
+void espif_flash_initialize(const bool take_down_interfaces);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Return to normal omode
 void espif_flash_deinitialize();
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Initialize hw access
+/// , shared mutex, uart config and state used by normal and flash mode.
+void espif_init_hw();
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Initialize ESPIF (part of LwIP netif setup)
@@ -97,8 +106,6 @@ enum class EspLinkState {
     NoAp,
     /// Up and running.
     Up,
-    /// Connected to AP, but not brought up (missing IP?)
-    Down,
     /// No communication from ESP for a while.
     ///
     /// Broken UART? ESP crashed?

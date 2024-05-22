@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h> //NULL
+#include <timing.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,7 +19,7 @@ extern "C" {
 /// Quick start
 /// 1. Define your metrics (or use an existing one)
 ///
-///    static metric_t val_xyz = METRIC("val_xyz", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
+///    METRIC_DEF(val_xyz, "val_xyz", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
 ///
 ///     - The first parameter - "val_xyz" - is the metric's name. Keep it as short as possible!
 ///     - The second parameter defines the type of recorded points (values) of this metric.
@@ -36,8 +37,8 @@ extern "C" {
 ///    TODO: complete those instructions
 ///
 
-#define METRIC_HANDLER_ENABLE_ALL  (0xffffffff)
-#define METRIC_HANDLER_DISABLE_ALL (0x00000000)
+#define METRIC_HANDLER_ENABLE_ALL  (0xff)
+#define METRIC_HANDLER_DISABLE_ALL (0x00)
 
 typedef enum {
     METRIC_VALUE_EVENT = 0x00, // no value, just an event
@@ -49,16 +50,16 @@ typedef enum {
 
 /// A metric definition.
 ///
-/// Use the METRIC(...) macro to define a metric.
+/// Use the METRIC_DEF(...) macro to define a metric.
 typedef struct metric_s {
     /// The name of the metric.
     ///
     /// Keep this short and informative.
     /// It is the unique identifier for the metric.
-    const char *name;
+    const char *const name;
 
-    /// The type of the values associated with this metric.
-    metric_value_type_t type;
+    /// Internal. Use at your own risk.
+    uint32_t _last_update_timestamp;
 
     /// Allows throttling of the recorded values.
     ///
@@ -66,7 +67,10 @@ typedef struct metric_s {
     /// of this metric are not going to be sent faster then
     /// at 20 Hz.
     /// When set to zero, no throttling is going to be performed.
-    uint32_t min_interval_ms;
+    uint16_t min_interval_ms;
+
+    /// The type of the values associated with this metric.
+    const metric_value_type_t type : 8;
 
     /// Specifies, which handlers are going to receive points for this metric.
     ///
@@ -75,36 +79,34 @@ typedef struct metric_s {
     ///
     /// Set to METRIC_HANDLER_ENABLE_ALL or METRIC_HANDLER_DISABLE_ALL to enable/disable
     /// this metric globally.
-    uint32_t enabled_handlers;
+    uint8_t enabled_handlers;
 
-    /// Next known metric.
-    ///
-    /// After a metric has been advertised, it is added to a linked list,
-    /// where the first metric can be retrieved using metric_get_linked_list
-    struct metric_s *next;
-
-    /// Internal. Use at your own risk.
-    uint32_t _last_update_timestamp;
-
-    /// Internal. Use at your own risk.
-    ///
-    /// Whether this metric was advertised to all handlers.
-    bool _registered;
 } metric_t;
 
+#if __APPLE__
+    #define _METRIC_DEF_ATTRS __attribute__((used, section("__DATA,metric_definitions")))
+#elif !defined(__arm__)
+    #define _METRIC_DEF_ATTRS __attribute__((used, section("metric_definitions")))
+#else
+    #define _METRIC_DEF_ATTRS __attribute__((used, section(".data.metric_definitions")))
+#endif
+
 /// To be used for metric_t structure initialization.
-#define METRIC(name, type, min_interval_ms, enabled_handlers) \
-    { name, type, min_interval_ms, enabled_handlers, NULL, 0, false }
+#define METRIC_DEF(var, name, type, min_interval_ms, enabled_handlers) static metric_t var _METRIC_DEF_ATTRS = { name, 0, min_interval_ms, type, enabled_handlers }
 
 /// Represents a single recorded value.
 ///
 /// Do not create this manually. It is created automatically
 /// by metric_record_* functions and passed to handlers.
+///
+/// This is an internal short-lived object with the purpose of transfering
+/// a recording of a metric from one task to another.
 typedef struct {
     /// The metric for which the value was recorded.
     metric_t *metric;
 
-    /// Timestamp of the metric in us
+    /// Timestamp of the metric in us.
+    /// Oveflows and we are fine with it. Measures the interval between metric transfers only.
     uint32_t timestamp;
 
     /// Is it an error message?
@@ -140,12 +142,6 @@ typedef struct {
     /// Human-friendly name of the handler.
     const char *name;
 
-    /// The function to be called with each newly discovered metric.
-    ///
-    /// The handler can decide, whether it wants to receive points
-    /// for this metric and adjust `metric.enabled_handlers` appropriately.
-    void (*on_metric_registered_fn)(metric_t *metric);
-
     /// The function to be called for every recorded point.
     ///
     /// It is not called if the handler is not enabled (metric_t.enabled_handlers).
@@ -157,38 +153,76 @@ typedef struct {
 /// Starts a new lightweight task processing all the recorded metrics.
 void metric_system_init(metric_handler_t *handlers[]);
 
-/// Register a metric
-void metric_register(metric_t *metric);
-
 /// Record a float (metric.type has to be METRIC_VALUE_FLOAT)
-void metric_record_float(metric_t *metric, float value);
+#define metric_record_float(metric, value) metric_record_float_at_time(metric, ticks_us(), value)
+
+/// Record a float with given timestamp (metric.type has to be METRIC_VALUE_FLOAT)
+void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float value);
 
 /// Record an integer (metric.type has to be METRIC_VALUE_INTEGER)
-void metric_record_integer(metric_t *metric, int value);
+#define metric_record_integer(metric, value) metric_record_integer_at_time(metric, ticks_us(), value)
+
+/// Record an integer with given timestamp (metric.type has to be METRIC_VALUE_INTEGER)
+void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int value);
 
 /// Record a string (metric.type has to be METRIC_VALUE_STRING)
-void metric_record_string(metric_t *metric, const char *fmt, ...);
+///
+/// The string is automatically truncated to the length of metric_point_t.value_str buffer size.
+#define metric_record_string(metric, fmt, ...) metric_record_string_at_time(metric, ticks_us(), fmt, ##__VA_ARGS__)
+
+/// Record a string with given timestamp (metric.type has to be METRIC_VALUE_STRING)
+///
+/// The string is automatically truncated to the length of metric_point_t.value_str buffer size.
+void __attribute__((format(__printf__, 3, 4)))
+metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
 
 /// Record an event (metric.type has to be METRIC_VALUE_EVENT)
-void metric_record_event(metric_t *metric);
+#define metric_record_event(metric) metric_record_event_at_time(metric, ticks_us())
+
+/// Record an event with given timestamp (metric.type has to be METRIC_VALUE_EVENT)
+void metric_record_event_at_time(metric_t *metric, uint32_t timestamp);
 
 /// Record a custom event (metric.type has to be METRIC_VALUE_CUSTOM)
-void metric_record_custom(metric_t *metric, const char *fmt, ...);
+///
+/// This is a lower-level function. Improper use can lead to terible things.
+/// And nobody wants that, so use only if you know what you are doing.
+///
+/// A metric error (datapoint with error=<message>) is recorded in case the resulting
+/// string does not fit the internal buffers.
+#define metric_record_custom(metric, fmt, ...) metric_record_custom_at_time(metric, ticks_us(), fmt, ##__VA_ARGS__)
+
+/// Record a custom event with given timestamp (metric.type has to be METRIC_VALUE_CUSTOM)
+///
+/// This is a lower-level function. Improper use can lead to terible things.
+/// And nobody wants that, so use only if you know what you are doing.
+///
+/// A metric error (datapoint with error=<message>) is recorded in case the resulting
+/// string does not fit the internal buffers.
+void __attribute__((format(__printf__, 3, 4)))
+metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
 
 /// Records an error for a given metric.
-void metric_record_error(metric_t *metric, const char *fmt, ...);
-
-/// Get a linked-list of metrics (you can get the next one from metric->next)
-metric_t *metric_get_linked_list();
+void __attribute__((format(__printf__, 2, 3)))
+metric_record_error(metric_t *metric, const char *fmt, ...);
 
 /// Return null-terminated list of handlers
 metric_handler_t **metric_get_handlers();
+
+/// Returns pointer to the first metric defintion
+metric_t *metric_get_iterator_begin();
+
+/// Returns pointer BEHIND the last metric defintion
+metric_t *metric_get_iterator_end();
 
 /// Enable metric for given handler
 void metric_enable_for_handler(metric_t *metric, metric_handler_t *handler);
 
 /// Disable metric for given handler
 void metric_disable_for_handler(metric_t *metric, metric_handler_t *handler);
+
+/// returns true, when metric min_interval_ms already passed and new record can be created
+/// note: useful if obtaining record value takes significant time
+bool metric_record_is_due(metric_t *metric);
 
 #ifdef __cplusplus
 }

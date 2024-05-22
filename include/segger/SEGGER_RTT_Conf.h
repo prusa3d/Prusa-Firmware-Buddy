@@ -62,24 +62,24 @@ Revision: $Rev: 21386 $
     #endif
 
     /*********************************************************************
-*
-*       Defines, configurable
-*
-**********************************************************************
-*/
+     *
+     *       Defines, configurable
+     *
+     **********************************************************************
+     */
 
     //
     // Take in and set to correct values for Cortex-A systems with CPU cache
     //
-    //#define SEGGER_RTT_CPU_CACHE_LINE_SIZE            (32)          // Largest cache line size (in bytes) in the current system
-    //#define SEGGER_RTT_UNCACHED_OFF                   (0xFB000000)  // Address alias where RTT CB and buffers can be accessed uncached
+    // #define SEGGER_RTT_CPU_CACHE_LINE_SIZE            (32)          // Largest cache line size (in bytes) in the current system
+    // #define SEGGER_RTT_UNCACHED_OFF                   (0xFB000000)  // Address alias where RTT CB and buffers can be accessed uncached
     //
     // Most common case:
     // Up-channel 0: RTT
     // Up-channel 1: SystemView
     //
     #ifndef SEGGER_RTT_MAX_NUM_UP_BUFFERS
-        #define SEGGER_RTT_MAX_NUM_UP_BUFFERS (3) // Max. number of up-buffers (T->H) available on this target    (Default: 3)
+        #define SEGGER_RTT_MAX_NUM_UP_BUFFERS (2) // Max. number of up-buffers (T->H) available on this target    (Default: 3)
     #endif
     //
     // Most common case:
@@ -87,7 +87,7 @@ Revision: $Rev: 21386 $
     // Down-channel 1: SystemView
     //
     #ifndef SEGGER_RTT_MAX_NUM_DOWN_BUFFERS
-        #define SEGGER_RTT_MAX_NUM_DOWN_BUFFERS (3) // Max. number of down-buffers (H->T) available on this target  (Default: 3)
+        #define SEGGER_RTT_MAX_NUM_DOWN_BUFFERS (2) // Max. number of down-buffers (H->T) available on this target  (Default: 3)
     #endif
 
     #ifndef BUFFER_SIZE_UP
@@ -107,26 +107,26 @@ Revision: $Rev: 21386 $
     #endif
 
     /*********************************************************************
-*
-*       RTT memcpy configuration
-*
-*       memcpy() is good for large amounts of data,
-*       but the overhead is big for small amounts, which are usually stored via RTT.
-*       With SEGGER_RTT_MEMCPY_USE_BYTELOOP a simple byte loop can be used instead.
-*
-*       SEGGER_RTT_MEMCPY() can be used to replace standard memcpy() in RTT functions.
-*       This is may be required with memory access restrictions,
-*       such as on Cortex-A devices with MMU.
-*/
+     *
+     *       RTT memcpy configuration
+     *
+     *       memcpy() is good for large amounts of data,
+     *       but the overhead is big for small amounts, which are usually stored via RTT.
+     *       With SEGGER_RTT_MEMCPY_USE_BYTELOOP a simple byte loop can be used instead.
+     *
+     *       SEGGER_RTT_MEMCPY() can be used to replace standard memcpy() in RTT functions.
+     *       This is may be required with memory access restrictions,
+     *       such as on Cortex-A devices with MMU.
+     */
     #ifndef SEGGER_RTT_MEMCPY_USE_BYTELOOP
         #define SEGGER_RTT_MEMCPY_USE_BYTELOOP 0 // 0: Use memcpy/SEGGER_RTT_MEMCPY, 1: Use a simple byte-loop
     #endif
     //
     // Example definition of SEGGER_RTT_MEMCPY to external memcpy with GCC toolchains and Cortex-A targets
     //
-    //#if ((defined __SES_ARM) || (defined __CROSSWORKS_ARM) || (defined __GNUC__)) && (defined (__ARM_ARCH_7A__))
+    // #if ((defined __SES_ARM) || (defined __CROSSWORKS_ARM) || (defined __GNUC__)) && (defined (__ARM_ARCH_7A__))
     //  #define SEGGER_RTT_MEMCPY(pDest, pSrc, NumBytes)      SEGGER_memcpy((pDest), (pSrc), (NumBytes))
-    //#endif
+    // #endif
 
     //
     // Target is not allowed to perform other RTT operations while string still has not been stored completely.
@@ -143,14 +143,19 @@ Revision: $Rev: 21386 $
     // or define SEGGER_RTT_LOCK() to completely disable interrupts.
     //
     #ifndef SEGGER_RTT_MAX_INTERRUPT_PRIORITY
-        #define SEGGER_RTT_MAX_INTERRUPT_PRIORITY (0x20) // Interrupt priority to lock on SEGGER_RTT_LOCK on Cortex-M3/4 (Default: 0x20)
+        #include <device/mcu.h>
+        #if MCU_IS_STM32F4()
+            #define SEGGER_RTT_MAX_INTERRUPT_PRIORITY (5 << (8 - 4)) // Interrupt priority to lock on SEGGER_RTT_LOCK on Cortex-M3/4 (Default: 0x20)
+        #elif MCU_IS_STM32G0()
+            #define SEGGER_RTT_MAX_INTERRUPT_PRIORITY (0) // Interrupt priority to lock on SEGGER_RTT_LOCK on Cortex-M3/4 (Default: 0x20)
+        #endif
     #endif
 
     /*********************************************************************
-*
-*       RTT lock configuration for SEGGER Embedded Studio,
-*       Rowley CrossStudio and GCC
-*/
+     *
+     *       RTT lock configuration for SEGGER Embedded Studio,
+     *       Rowley CrossStudio and GCC
+     */
     #if ((defined(__SES_ARM) || defined(__SES_RISCV) || defined(__CROSSWORKS_ARM) || defined(__GNUC__) || defined(__clang__)) && !defined(__CC_ARM) && !defined(WIN32))
         #if (defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_8M_BASE__))
             #define SEGGER_RTT_LOCK()                             \
@@ -239,9 +244,9 @@ Revision: $Rev: 21386 $
     #endif
 
     /*********************************************************************
-*
-*       RTT lock configuration for IAR EWARM
-*/
+     *
+     *       RTT lock configuration for IAR EWARM
+     */
     #ifdef __ICCARM__
         #if (defined(__ARM6M__) && (__CORE__ == __ARM6M__)) || (defined(__ARM8M_BASELINE__) && (__CORE__ == __ARM8M_BASELINE__))
             #define SEGGER_RTT_LOCK()                         \
@@ -293,9 +298,9 @@ Revision: $Rev: 21386 $
     #endif
 
     /*********************************************************************
-*
-*       RTT lock configuration for IAR RX
-*/
+     *
+     *       RTT lock configuration for IAR RX
+     */
     #ifdef __ICCRX__
         #define SEGGER_RTT_LOCK()                                 \
             {                                                     \
@@ -309,9 +314,9 @@ Revision: $Rev: 21386 $
     #endif
 
     /*********************************************************************
-*
-*       RTT lock configuration for IAR RL78
-*/
+     *
+     *       RTT lock configuration for IAR RL78
+     */
     #ifdef __ICCRL78__
         #define SEGGER_RTT_LOCK()                                 \
             {                                                     \
@@ -325,9 +330,9 @@ Revision: $Rev: 21386 $
     #endif
 
     /*********************************************************************
-*
-*       RTT lock configuration for KEIL ARM
-*/
+     *
+     *       RTT lock configuration for KEIL ARM
+     */
     #ifdef __CC_ARM
         #if (defined __TARGET_ARCH_6S_M)
             #define SEGGER_RTT_LOCK()                                             \
@@ -362,9 +367,9 @@ Revision: $Rev: 21386 $
     #endif
 
     /*********************************************************************
-*
-*       RTT lock configuration for TI ARM
-*/
+     *
+     *       RTT lock configuration for TI ARM
+     */
     #ifdef __TI_ARM__
         #if defined(__TI_ARM_V6M0__)
             #define SEGGER_RTT_LOCK()                         \
@@ -392,9 +397,9 @@ Revision: $Rev: 21386 $
     #endif
 
     /*********************************************************************
-*
-*       RTT lock configuration for CCRX
-*/
+     *
+     *       RTT lock configuration for CCRX
+     */
     #ifdef __RX
         #include <machine.h>
         #define SEGGER_RTT_LOCK()                              \
@@ -409,10 +414,10 @@ Revision: $Rev: 21386 $
     #endif
 
     /*********************************************************************
-*
-*       RTT lock configuration for embOS Simulation on Windows
-*       (Can also be used for generic RTT locking with embOS)
-*/
+     *
+     *       RTT lock configuration for embOS Simulation on Windows
+     *       (Can also be used for generic RTT locking with embOS)
+     */
     #if defined(WIN32) || defined(SEGGER_RTT_LOCK_EMBOS)
 
 void OS_SIM_EnterCriticalSection(void);
@@ -428,9 +433,9 @@ void OS_SIM_LeaveCriticalSection(void);
     #endif
 
     /*********************************************************************
-*
-*       RTT lock configuration fallback
-*/
+     *
+     *       RTT lock configuration fallback
+     */
     #ifndef SEGGER_RTT_LOCK
         #define SEGGER_RTT_LOCK() // Lock RTT (nestable)   (i.e. disable interrupts)
     #endif

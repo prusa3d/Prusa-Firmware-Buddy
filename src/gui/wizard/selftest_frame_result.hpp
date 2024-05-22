@@ -12,26 +12,34 @@
 #include "selftest_view_item_text.hpp"
 #include "selftest_result_fans.hpp"
 #include "selftest_result_axis.hpp"
+#include "selftest_result_loadcell.hpp"
 #include "selftest_result_heaters.hpp"
 #include "selftest_result_eth.hpp"
-#include "selftest_result_wifi.hpp"
+#include "selftest_result_fsensor.hpp"
 #include "scroll_bar.hpp"
 #include "window_text.hpp"
+#include "device/board.h"
 
 class SelftestFrameResult : public AddSuperWindow<SelftestFrame> {
-    SelfTestView view;
     window_text_t msg;
-    ScrollBar bar;
+    SelfTestView view;
+    ScrollBar bar; // TODO it does not show, partially unimplemented???
 
-    //used int to be able to do std::min/max
+    // used int to be able to do std::min/max
     Rect16::Height_t height_draw_offset;
     Rect16::Height_t virtual_view_height;
 
     ResultFans fans;
     ResultAxis axis;
+#if HAS_LOADCELL()
+    ResultLoadcell loadcell;
+#endif
+#if FILAMENT_SENSOR_IS_ADC()
+    ResultFSensor fsensor;
+#endif
     ResultHeaters heaters;
     ResultEth eth;
-    ResultWifi wifi;
+    ResultEth wifi;
 
     static constexpr int pixels_per_knob_move = 32;
 

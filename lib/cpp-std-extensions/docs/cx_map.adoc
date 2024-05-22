@@ -1,0 +1,47 @@
+
+== `cx_map.hpp`
+
+`cx_map` implements a constexpr-capable map with a compile-time capacity. The
+map is unordered.
+
+[source,cpp]
+----
+template <typename Key,
+          typename Value,
+          std::size_t N>
+class cx_map;
+----
+
+The `cx_map` interface:
+[source,cpp]
+----
+template <typename K, typename V, std::size_t N>
+auto f(stdx::cx_map<K, V, N> m) {
+    // here we can:
+    std::size_t sz = m.size(); // ask for m's size
+    constexpr std::size_t cap = m.capacity(); // ask for m's capacity (same as N)
+    bool is_empty = m.empty(); // ask whether a cx_map is empty
+    bool is_full = m.full(); // ask whether a cx_map is full
+    m.clear() // clear a cx_map
+
+    // we can use some of the usual functions
+    m.insert_or_assign(K{}, V{});
+    m.put(K{}, V{}); // same as insert_or_assign
+    V& v = m.get(K{});
+    bool c = m.contains(K{});
+    m.erase(K{});
+
+    // and use iterators:
+    // begin and end
+    // cbegin and cend
+    // (therefore also range-for loops)
+
+    // we can also pop an arbitrary element
+    auto [k, v] = m.pop_back();
+};
+----
+
+`insert_or_assign` returns `true` if a value was inserted, `false` if it was assigned.
+
+NOTE: `capacity` is always available as `constexpr`, even though `m` above is a
+function parameter and therefore not `constexpr`.

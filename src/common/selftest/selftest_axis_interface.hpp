@@ -13,9 +13,16 @@
 class IPartHandler;
 
 namespace selftest {
-static constexpr size_t axis_count = 3;
-extern SelftestSingleAxis_t staticResults[axis_count];
+inline constexpr size_t axis_count = 3;
 
-bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis);
+enum class Separate { no,
+    yes };
 
-};
+enum class Detect200StepMotors { no,
+    yes };
+/**
+ * @param separate set true to show progress for each axis separately, gives config_axis.axis to GUI
+ */
+bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate separate = Separate::no, Detect200StepMotors detect_200_step = Detect200StepMotors::no);
+
+}; // namespace selftest

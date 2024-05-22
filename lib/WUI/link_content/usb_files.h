@@ -11,4 +11,4 @@ public:
 
 extern const UsbFiles usb_files;
 
-}
+} // namespace nhttp::link_content

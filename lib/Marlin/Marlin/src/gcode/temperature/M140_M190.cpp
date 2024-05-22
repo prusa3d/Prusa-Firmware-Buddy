@@ -39,8 +39,16 @@
 
 #include "../../Marlin.h" // for wait_for_heatup and idle()
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M140: Set bed temperature
+ *
+ * ## Parameters
+ *
+ * - `S` - [degree Celsius] Temperature to be set
  */
 void GcodeSuite::M140() {
   if (DEBUGGING(DRYRUN)) return;
@@ -68,5 +76,7 @@ void GcodeSuite::M190() {
 
   thermalManager.wait_for_bed(no_wait_for_cooling);
 }
+
+/** @}*/
 
 #endif // HAS_HEATED_BED

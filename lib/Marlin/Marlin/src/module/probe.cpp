@@ -37,7 +37,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__POST_XYMOVE() {}
 
 #include "probe.h"
 
-#ifdef EXTRA_PROBING_DBG 
+#ifdef EXTRA_PROBING_DBG
   #include "dbg.h"
 #endif
 
@@ -70,6 +70,10 @@ xyz_pos_t probe_offset; // Initialized by settings.load()
   #include "../feature/bltouch.h"
 #endif
 
+#if ENABLED(NOZZLE_LOAD_CELL)
+  #include "loadcell.hpp"
+#endif
+
 #if ENABLED(HOST_PROMPT_SUPPORT)
   #include "../feature/host_actions.h" // for PROMPT_USER_CONTINUE
 #endif
@@ -93,6 +97,8 @@ xyz_pos_t probe_offset; // Initialized by settings.load()
 
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
 #include "../core/debug_out.h"
+
+#include "metric.h"
 
 #if ENABLED(Z_PROBE_SLED)
 
@@ -272,6 +278,9 @@ inline void do_probe_raise(const float z_raise) {
 
   float z_dest = z_raise;
   if (probe_offset.z < 0) z_dest -= probe_offset.z;
+  #if HAS_HOTEND_OFFSET
+  z_dest -= hotend_currently_applied_offset.z;
+  #endif
 
   NOMORE(z_dest, Z_MAX_POS);
 
@@ -315,6 +324,13 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
     );
 
   #endif // PAUSE_BEFORE_DEPLOY_STOW
+
+  #if ENABLED(NOZZLE_LOAD_CELL)
+    if (deploy) {
+      // Disable E axis for probing to reduce noise on sensor
+      disable_e_steppers();
+    }
+  #endif /*ENABLED(NOZZLE_LOAD_CELL)*/
 
   #if ENABLED(SOLENOID_PROBE)
 
@@ -377,8 +393,13 @@ bool set_probe_deployed(const bool deploy) {
     constexpr float unknown_condition = true;
   #endif
 
+  #if DISABLED(NOZZLE_LOAD_CELL)
     if (deploy_stow_condition && unknown_condition)
       do_probe_raise(_MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_CLEARANCE_DEPLOY_PROBE));
+  #else
+    UNUSED(deploy_stow_condition);
+    UNUSED(unknown_condition);
+  #endif
 
   #if EITHER(Z_PROBE_SLED, Z_PROBE_ALLEN_KEY)
     if (axis_unhomed_error(
@@ -427,16 +448,23 @@ bool set_probe_deployed(const bool deploy) {
   #endif
 
   do_blocking_move_to(old_xy);
-  endstops.enable_z_probe(deploy);
+  #if DISABLED(NOZZLE_LOAD_CELL)
+    endstops.enable_z_probe(deploy);
+  #endif
+
   return false;
 }
 
 #ifdef Z_AFTER_PROBING
   // After probing move to a preferred Z position
   void move_z_after_probing() {
-    if (current_position.z != Z_AFTER_PROBING) {
-      do_blocking_move_to_z(Z_AFTER_PROBING);
-      current_position.z = Z_AFTER_PROBING;
+    float pos = Z_AFTER_PROBING;
+    #if HAS_HOTEND_OFFSET
+      pos -= hotend_currently_applied_offset.z;
+    #endif
+    if (current_position.z != pos) {
+      do_blocking_move_to_z(pos);
+      current_position.z = pos;
     }
   }
 #endif
@@ -485,8 +513,16 @@ static bool do_probe_move(const float z, const feedRate_t fr_mm_s) {
     probing_pause(true);
   #endif
 
+  #if ENABLED(NOZZLE_LOAD_CELL)
+    endstops.enable_z_probe(true);
+  #endif
+
   // Move down until the probe is triggered
   do_blocking_move_to_z(z, fr_mm_s);
+
+  #if ENABLED(NOZZLE_LOAD_CELL)
+    endstops.enable_z_probe(false);
+  #endif
 
   // Check to see if the probe was triggered
   const bool probe_triggered =
@@ -537,26 +573,76 @@ static bool do_probe_move(const float z, const feedRate_t fr_mm_s) {
   return !probe_triggered;
 }
 
+// those metrics are intentionally not static, as it is expected that they might be referenced
+// from outside this file for early registration
+METRIC_DEF(metric_probe_z, "probe_z", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_probe_z_diff, "probe_z_diff", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+
+#if ENABLED(NOZZLE_LOAD_CELL)
+static xy_pos_t offset_for_probe_try(int try_idx) {
+  const float distance = 2.0;
+  float radius = 0;
+  int idx_offset = 0;
+
+  do {
+    float perimeter = 2 * radius * M_PI;
+    int tries_within_perimeter = static_cast<int>(perimeter / distance) + 1;
+    if (try_idx < idx_offset + tries_within_perimeter) {
+      int try_within_perimeter = try_idx - idx_offset;
+      float goniom_dist = (static_cast<float>(try_within_perimeter) / static_cast<float>(tries_within_perimeter)) * 2 * M_PI;
+      return {std::cos(goniom_dist) * radius, std::sin(goniom_dist) * radius};
+    } else {
+      idx_offset += tries_within_perimeter;
+      radius += distance;
+    }
+  } while (true);
+}
+#endif
+
+#if ENABLED(NOZZLE_LOAD_CELL)
+  static float loadcell_retare_for_analysis() {
+    loadcell.WaitBarrier(); // Sync samples before tare
+    loadcell.analysis.Reset(); // Reset window to include the tare samples
+    return loadcell.Tare();
+  }
+#endif
+
 /**
  * @brief Probe at the current XY (possibly more than once) to find the bed Z.
  *
  * @details Used by probe_at_point to get the bed Z height at the current XY.
  *          Leaves current_position.z at the height where the probe triggered.
  *
+ * @param expected_trigger_z do not probe lower than expected_trigger_z + Z_PROBE_LOW_POINT [mm]
+ * @param single_only
+ * @param[out] endstop_triggered
+ *  - true endstop was triggered earlier than expected_trigger_z was reached
+ *  - false endstop was not reached
+ *
  * @return The Z position of the bed at the current XY or NAN on error.
  */
-static float run_z_probe(bool single_only=false) {
+float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_triggered) {
   if (DEBUGGING(LEVELING)) DEBUG_POS(">>> run_z_probe", current_position);
 
   // Stop the probe before it goes too low to prevent damage.
   // If Z isn't known then probe to -10mm.
-  const float z_probe_low_point = TEST(axis_known_position, Z_AXIS) ? -probe_offset.z + Z_PROBE_LOW_POINT : -10.0;
+  float z_probe_low_point = expected_trigger_z + Z_PROBE_LOW_POINT;
+  if (endstop_triggered)
+    *endstop_triggered = true;
+
+  #if ENABLED(NOZZLE_LOAD_CELL)
+    auto H = loadcell.CreateLoadAboveErrEnforcer();
+    auto reference_tare = loadcell_retare_for_analysis(); ///< Use this value as reference for following tares
+    const auto max_tare_offset = std::abs(loadcell.GetThreshold()); ///< Maximal valid offset from reference_tare
+  #endif
 
   // Double-probing does a fast probe followed by a slow probe
   #if TOTAL_PROBING == 2
 
     // Do a first probe at the fast speed
     if (do_probe_move(z_probe_low_point, MMM_TO_MMS(Z_PROBE_SPEED_FAST))) {
+      if(endstop_triggered)
+        *endstop_triggered = false;
       if (planner.draining())
         return NAN;
 
@@ -581,34 +667,68 @@ static float run_z_probe(bool single_only=false) {
 
     // If the nozzle is well over the travel height then
     // move down quickly before doing the slow probe
-    const float z = Z_CLEARANCE_DEPLOY_PROBE + 5.0 + (probe_offset.z < 0 ? -probe_offset.z : 0);
+    const float z = expected_trigger_z + Z_CLEARANCE_DEPLOY_PROBE + 5.0 + (probe_offset.z < 0 ? -probe_offset.z : 0) - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z);
     if (current_position.z > z) {
       // Probe down fast. If the probe never triggered, raise for probe clearance
-      if (!do_probe_move(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST)))
+      if (!do_probe_move(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST))) {
         do_blocking_move_to_z(current_position.z + Z_CLEARANCE_BETWEEN_PROBES, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+        #if ENABLED(NOZZLE_LOAD_CELL)
+          reference_tare = loadcell_retare_for_analysis();
+        #endif
+      }
     }
   #endif
 
   #ifdef EXTRA_PROBING
     float probes[TOTAL_PROBING];
+  #elif ENABLED(NOZZLE_LOAD_CELL)
+    xy_pos_t center_pos = current_position;
+    int probe_idx = 0;
+    bool success = false;
+    float last_probe_z = NAN;
   #endif
 
-  #if TOTAL_PROBING > 2
+  #if TOTAL_PROBING > 2 && DISABLED(NOZZLE_LOAD_CELL)
     float probes_total = 0;
   #endif
 
   #if TOTAL_PROBING > 2
-    for (
-      #if EXTRA_PROBING
-        uint8_t p = 0; p < TOTAL_PROBING; p++
-      #else
-        uint8_t p = TOTAL_PROBING; p--;
-      #endif
-    )
+    for (uint8_t p = 0; p < TOTAL_PROBING; p++)
   #endif
     {
+      idle(false); // Avoid watchdog reset in case of no move while probing
+      #if ENABLED(NOZZLE_LOAD_CELL)
+        auto center_offset = offset_for_probe_try(probe_idx++);
+        do_blocking_move_to_xy(center_pos + center_offset, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+
+        if (p) {
+          // sync and re-tare the loadcell
+          auto offset = loadcell_retare_for_analysis() - reference_tare;
+
+          SERIAL_ECHO_START();
+          SERIAL_ECHOLNPAIR_F("Re-tared with offset ", offset);
+
+          // If tare value is suspicious, lift very high and try tare again
+          if (std::abs(offset) > max_tare_offset) {
+            do_blocking_move_to_z(current_position.z + Z_AFTER_PROBING, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+            reference_tare = loadcell_retare_for_analysis();
+
+            SERIAL_ECHO_START();
+            SERIAL_ECHOLNPAIR_F("Lifted and took new reference tare ", reference_tare);
+          }
+        }
+
+        SERIAL_ECHO_START();
+        SERIAL_ECHOLNPAIR_F("Starting probe at ", center_pos);
+
+        METRIC_DEF(probe_start, "probe_start", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
+        metric_record_event(&probe_start);
+      #endif
+
       // Probe downward slowly to find the bed
       if (do_probe_move(z_probe_low_point, MMM_TO_MMS(Z_PROBE_SPEED_SLOW))) {
+        if(endstop_triggered)
+          *endstop_triggered = false;
         if (planner.draining())
           return NAN;
 
@@ -622,12 +742,21 @@ static float run_z_probe(bool single_only=false) {
         return NAN;
       }
 
+      #if ENABLED(NOZZLE_LOAD_CELL)
+        // Return slowly back
+        float move_back = 0.09f;
+        do_blocking_move_to_z(current_position.z + move_back, MMM_TO_MMS(Z_PROBE_SPEED_BACK_MOVE));
+        uint32_t move_back_end = micros();
+      #endif
 
       #if ENABLED(MEASURE_BACKLASH_WHEN_PROBING)
         backlash.measure_with_probe();
       #endif
 
+      #if DISABLED(NOZZLE_LOAD_CELL)
         const float z = current_position.z;
+      #endif
+
 
       #if EXTRA_PROBING
         // Insert Z measurement into probes[]. Keep it sorted ascending.
@@ -638,26 +767,47 @@ static float run_z_probe(bool single_only=false) {
             break;                                                    // Only one to insert. Done!
           }
         }
+      #elif ENABLED(NOZZLE_LOAD_CELL)
+        // wait until the analysis' window fully includes the move-back period
+        uint32_t window_end = move_back_end + static_cast<uint32_t>((loadcell.analysis.analysisLookahead + loadcell.analysis.loadDelay) * 1000000.f);
+        loadcell.WaitBarrier(window_end);
+
+        METRIC_DEF(analysis_result, "probe_analysis", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+        auto result = loadcell.analysis.Analyse();
+
+        if (result.isGood) {
+          success = true;
+          last_probe_z = result.zCoordinate;
+          metric_record_custom(&analysis_result, " ok=%i,desc=\"all-good\"", true);
+          SERIAL_ECHO_MSG("Probe classified as clean and OK");
+          break;
+        } else {
+          metric_record_custom(&analysis_result, " ok=%i,desc=\"%s\"", false, result.description);
+          SERIAL_ECHO_START();
+          SERIAL_ECHOPAIR("Probe classified as NOK (", result.description);
+          SERIAL_ECHOLN(")");
+        }
       #elif TOTAL_PROBING > 2
         probes_total += z;
       #else
         UNUSED(z);
       #endif
 
+      if (single_only)
+        break;
 
       #if TOTAL_PROBING > 2
-        if (single_only)
-                break;
         // Small Z raise after all but the last probe
-        if (p
-          #if EXTRA_PROBING
-            < TOTAL_PROBING - 1
-          #endif
-        ) do_blocking_move_to_z(current_position.z + Z_CLEARANCE_MULTI_PROBE, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+        if (p < TOTAL_PROBING - 1)
+          do_blocking_move_to_z(current_position.z + Z_CLEARANCE_MULTI_PROBE, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
       #endif
     }
 
-  #if TOTAL_PROBING > 2
+  #if ENABLED(NOZZLE_LOAD_CELL)
+
+    const float measured_z = success ? last_probe_z : NAN;
+
+  #elif TOTAL_PROBING > 2
 
     #if EXTRA_PROBING
       // Take the center value (or average the two middle values) as the median
@@ -700,6 +850,106 @@ static float run_z_probe(bool single_only=false) {
   return measured_z;
 }
 
+
+#if ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
+
+/**
+ * @brief Probe within a given rectangle in order to cleanup loadcell-based probe.
+ */
+void cleanup_probe(const xy_pos_t &rect_min, const xy_pos_t &rect_max) {
+  float radius = 1.0f;
+  bool probe_deployed = false;
+  const int required_clean_cnt = 3;
+  int consecutive_clean_cnt = 0;
+
+  // Enable loadcell high precision across the entire sequence to prime the noise filters
+  auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
+
+  // set acceleration to known value
+  auto saved_acceleration = planner.user_settings.travel_acceleration;
+  {
+    auto s = planner.user_settings;
+    s.travel_acceleration = PROBE_CLEANUP_TRAVEL_ACCELERATION;
+    planner.apply_settings(s);
+  }
+
+  bool should_continue = true;
+  for (float y = rect_min.y + radius; (y + radius) <= rect_max.y && should_continue; y += 2 * radius) {
+    for (float x = rect_max.x - radius; (x - radius) >= rect_min.x && should_continue; x -= 2 * radius) {
+      // move above the probe point
+      xyz_pos_t pos = { x, y, static_cast<float>(PROBE_CLEANUP_CLEARANCE - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z))};
+      do_blocking_move_to(pos);
+        LCD_MESSAGEPGM_P("Nozzle cleaning");
+
+      if(probe_deployed == false) {
+        // first attempt: deploy probe
+        if (DEPLOY_PROBE()) {
+          SERIAL_ECHOLNPGM("failed to deploy probe");
+          should_continue = false;
+          break;
+        }
+
+        // dampen the system after the move
+        safe_delay(Z_FIRST_PROBE_DELAY);
+      }
+      probe_deployed = true;
+
+      // probe
+      float result = run_z_probe(0, /*single_only=*/true);
+      if (planner.draining()) {
+        should_continue = false;
+        break;
+      }
+      if (!std::isnan(result)) {
+        consecutive_clean_cnt += 1;
+      } else {
+        consecutive_clean_cnt = 0;
+      }
+
+      // exit in case the probe was successfull
+      if (consecutive_clean_cnt >= required_clean_cnt) {
+        should_continue = false;
+        break;
+      }
+    }
+  }
+
+  // restore acceleration
+  {
+    auto s = planner.user_settings;
+    s.travel_acceleration = saved_acceleration;
+    planner.apply_settings(s);
+  }
+
+  if (probe_deployed) {
+    STOW_PROBE();
+  }
+  if (consecutive_clean_cnt < required_clean_cnt) {
+    LCD_MESSAGEPGM_P(MSG_ERR_NOZZLE_CLEANING_FAILED);
+  }
+}
+#endif
+
+
+/**
+ * @brief Probe down from current position, repeat probing untill we have one successfull
+ *
+ * May return NAN if after TOTAL_PROBING no probe was successfull
+ */
+float probe_here(float expected_trigger_z)
+{
+  float res = NAN;
+  DEPLOY_PROBE();
+  for(int i=0; i <= TOTAL_PROBING; i++){
+    res = run_z_probe(expected_trigger_z, true) + probe_offset.z + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z);
+    if (!std::isnan(res))
+      break;
+  }
+  STOW_PROBE();
+
+  return res;
+}
+
 /**
  * - Move to the given XY
  * - Deploy the probe, if not already deployed
@@ -737,6 +987,10 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
     #endif
     return NAN; // The given position is in terms of the nozzle
   }
+  #if HAS_HOTEND_OFFSET
+  // now offset the probing possition by nozzle offset, to probe where nozzle actually is in desired position
+  npos -= hotend_currently_applied_offset;
+  #endif
 
   npos.z =
     #if ENABLED(DELTA)
@@ -755,11 +1009,28 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
   do_blocking_move_to(npos, MMM_TO_MMS(XY_PROBE_SPEED));
   MINDA_BROKEN_CABLE_DETECTION__POST_XYMOVE();
 
+  #if ENABLED(NOZZLE_LOAD_CELL)
+    // HighPrecision needs to be enabled with some time margin to prime the filters.
+    // If it hasn't been already we're being called in single-probe mode, enable it temporarily.
+    bool enableHighPrecision = !loadcell.IsHighPrecisionEnabled();
+    if (enableHighPrecision) SERIAL_ECHO_MSG("probe: enabling high-precision in single-probe mode");
+    auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell, enableHighPrecision);
+  #endif
+
   float measured_z = NAN;
   if (!DEPLOY_PROBE()) {
-    measured_z = run_z_probe() + probe_offset.z;
+    measured_z = run_z_probe(0);
+    const float move_away_from = std::isnan(measured_z) ? current_position.z : measured_z;
 
-    const float move_away_from = std::isnan(measured_z) ? current_position.z : (measured_z - probe_offset.z);
+    measured_z += probe_offset.z;
+
+    #if HAS_HOTEND_OFFSET
+    #if DISABLED(PRUSA_TOOLCHANGER)
+      #error not implemented
+    #endif
+    // measured Z is in probe's logical coordinate space, shift it to printers native coordinate space
+    measured_z += hotend_currently_applied_offset.z;
+    #endif
 
     const bool big_raise = raise_after == PROBE_PT_BIG_RAISE;
     if (big_raise || raise_after == PROBE_PT_RAISE) {
@@ -772,6 +1043,12 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
     SERIAL_ECHOPAIR_F("Bed X: ", LOGICAL_X_POSITION(rx), 3);
     SERIAL_ECHOPAIR_F(" Y: ", LOGICAL_Y_POSITION(ry), 3);
     SERIAL_ECHOLNPAIR_F(" Z: ", measured_z, 3);
+  }
+
+  {
+      int logical_x = LOGICAL_X_POSITION(rx);
+      int logical_y = LOGICAL_Y_POSITION(ry);
+      metric_record_custom(&metric_probe_z, " x=%i,y=%i,v=%.3f", logical_x, logical_y, (double)measured_z);
   }
 
   feedrate_mm_s = old_feedrate_mm_s;
@@ -806,3 +1083,22 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
 #endif // HAS_Z_SERVO_PROBE
 
 #endif // HAS_BED_PROBE
+
+#if HAS_LEVELING && (HAS_BED_PROBE || ENABLED(PROBE_MANUALLY))
+ float probe_min_x() {
+    return (X_MIN_POS) + probe_offset.x + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.x);
+  }
+  float probe_max_x() {
+    return (X_MAX_POS) + probe_offset.x + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.x);
+  }
+  float probe_min_y() {
+    return (Y_MIN_POS) + probe_offset.y + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.y);
+  }
+  float probe_max_y() {
+    #ifdef PROBE_MAX_Y
+      return (PROBE_MAX_Y) + probe_offset.y + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.y);
+    #else
+      return (Y_MAX_POS) + probe_offset.y + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.y);
+    #endif
+  }
+#endif

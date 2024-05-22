@@ -2,6 +2,7 @@
 #include "catch2/catch.hpp"
 #include "provider.h"
 #include "translation_provider_FILE.hpp"
+#include "fnt-indices.hpp"
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
@@ -13,9 +14,7 @@ bool CompareStringViews(string_view_utf8 s, string_view_utf8 s2, set<unichar> &n
         i++;
         if (c > 128) {
             nonAsciiChars.insert(c); // just stats how many non-ASCII UTF-8 characters do we have for now
-            const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
-
-            if (cASCII.key == 0xffff) {
+            if (!NonASCIICharKnown(c)) {
                 // this string wants a new non-ascii character - force fail the whole test immediately
                 // When this happens, one must either add the character into unaccent.cpp, if the character is meaningfull
                 // Or kick the translator person to stop copying BS formatting characters from MS Word into Phraseapp
@@ -24,7 +23,6 @@ bool CompareStringViews(string_view_utf8 s, string_view_utf8 s2, set<unichar> &n
                 s2.rewind();
                 s2.copyToRAM(tmp, 1024);
                 INFO("Language=" << langCode << " : string='" << tmp << "': needs an unknown non-ASCII character ord=0x" << std::hex << c);
-                REQUIRE(cASCII.key != 0xffff);
                 return false;
             }
         }
@@ -77,6 +75,9 @@ bool CheckAllTheStrings(const deque<string> &rawStringKeys, const deque<string> 
         UNSCOPED_INFO("fin is " << v.second);
         UNSCOPED_INFO("res is " << outString);
         // now compare - that means iterating over both string views and making sure both return the same utf8 characters
+        // If it fails at this spot with garbage in the outString - one of the reasons may be that
+        // we need to increase CPUFLASH memory dedicated to the raw texts in
+        // tests/unit/lang/translator/providerCPUFLASH.cpp: constexpr size_t maxUtf8Raw = 100000;
         CHECK(CompareStringViews(s, s2, nonAsciiChars, langCode));
     });
 
@@ -97,7 +98,7 @@ bool LoadTranslatedStringsFile(const char *fname, deque<string> *st) {
         string s;
         getline(f, s);
         PreprocessRawLineStrings(s);
-        if (!s.empty()) {              // beware of empty strings
+        if (!s.empty()) { // beware of empty strings
             st->emplace_back(move(s)); // make a copy of the string
         }
     } while (f.good());

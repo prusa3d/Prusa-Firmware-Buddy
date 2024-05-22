@@ -2,39 +2,61 @@ add_library(WUI INTERFACE)
 
 target_sources(
   WUI
-  INTERFACE wui.cpp
-            netdev.c
-            wui_api.cpp
-            nhttp/multipart_parser.c
-            nhttp/upload_state.cpp
-            ethernetif.c
+  INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
             espif.cpp
-            sntp/sntp_client.c
-            sntp/sntp.c
+            ethernetif.c
+            ethernetif.cpp
             http_lifetime.cpp
+            link_content/basic_gets.cpp
+            link_content/previews.cpp
+            link_content/prusa_api_helpers.cpp
+            link_content/prusa_link_api_octo.cpp
+            link_content/prusa_link_api_v1.cpp
+            link_content/static_file.cpp
+            link_content/usb_files.cpp
+            netdev.c
             nhttp/common_selectors.cpp
-            nhttp/file_info.cpp
             nhttp/file_command.cpp
             nhttp/file_command_marlin.cpp
-            nhttp/gcode_upload.cpp
+            nhttp/file_info.cpp
             nhttp/gcode_preview.cpp
+            nhttp/gcode_upload.cpp
             nhttp/handler.cpp
             nhttp/headers.cpp
             nhttp/job_command.cpp
             nhttp/job_command_marlin.cpp
+            nhttp/multipart_parser.c
             nhttp/req_parser.cpp
             nhttp/send_file.cpp
+            nhttp/send_json.cpp
             nhttp/server.cpp
-            nhttp/stateless_json.cpp
+            nhttp/splice.cpp
             nhttp/static_mem.cpp
             nhttp/status_page.cpp
-            link_content/basic_gets.cpp
-            link_content/prusa_link_api.cpp
-            link_content/static_file.cpp
-            link_content/usb_files.cpp
-            link_content/previews.cpp
-            ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
+            nhttp/status_renderer.cpp
+            nhttp/transfer_renderer.cpp
+            nhttp/upload_state.cpp
+            pbuf_rx.c
+            sntp/sntp.c
+            sntp/sntp_client.c
+            wui.cpp
+            wui_api.cpp
   )
+
+if(MDNS)
+  target_sources(WUI INTERFACE mdns/mdns.c mdns/mdns_domain.c mdns/mdns_out.c)
+endif()
+
+if(HAS_EMBEDDED_ESP32)
+  target_sources(WUI INTERFACE esp_flash.cpp)
+endif()
+
+if(NETWORKING_BENCHMARK_ENABLED)
+  target_sources(
+    WUI INTERFACE nhttp/networking_benchmark.cpp nhttp/networking_benchmark_selector.cpp
+    )
+  target_compile_definitions(WUI INTERFACE NETWORKING_BENCHMARK_ENABLED)
+endif()
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 

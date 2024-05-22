@@ -117,7 +117,7 @@ extern "C" {
 #ifdef TINYDIR_USE_READDIR_R
 
     /* readdir_r is a POSIX-only function, and may not be available under various
- * environments/settings, e.g. MinGW. Use readdir fallback */
+     * environments/settings, e.g. MinGW. Use readdir fallback */
     #if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _BSD_SOURCE || _SVID_SOURCE || _POSIX_SOURCE
         #define _TINYDIR_HAS_READDIR_R
     #endif
@@ -302,15 +302,18 @@ int tinydir_open(tinydir_dir *dir, const _tinydir_char_t *path) {
     #else
     /* allocate dirent buffer for readdir_r */
     size = _tinydir_dirent_buf_size(dir->_d); /* conversion to int */
-    if (size == -1)
+    if (size == -1) {
         return -1;
+    }
     dir->_ep = (struct _tinydir_dirent *)_TINYDIR_MALLOC(size);
-    if (dir->_ep == NULL)
+    if (dir->_ep == NULL) {
         return -1;
+    }
 
     error = readdir_r(dir->_d, dir->_ep, &dir->_e);
-    if (error != 0)
+    if (error != 0) {
         return -1;
+    }
     #endif
     if (dir->_e == NULL) {
         dir->has_next = 0;
@@ -362,7 +365,7 @@ int tinydir_open_sorted(tinydir_dir *dir, const _tinydir_char_t *path) {
         }
 
         /* Just in case the number of files has changed between the first and
-		second reads, terminate without writing into unallocated memory */
+                second reads, terminate without writing into unallocated memory */
         if (dir->n_files == n_files) {
             break;
         }
@@ -614,10 +617,12 @@ int tinydir_file_open(tinydir_file *file, const _tinydir_char_t *path) {
 
     /* _splitpath_s not work fine with only filename and widechar support */
     #ifdef _UNICODE
-    if (drive_buf[0] == L'\xFEFE')
+    if (drive_buf[0] == L'\xFEFE') {
         drive_buf[0] = '\0';
-    if (dir_name_buf[0] == L'\xFEFE')
+    }
+    if (dir_name_buf[0] == L'\xFEFE') {
         dir_name_buf[0] = '\0';
+    }
     #endif
 
     if (errno) {
@@ -625,7 +630,7 @@ int tinydir_file_open(tinydir_file *file, const _tinydir_char_t *path) {
         return -1;
     }
     /* Emulate the behavior of dirname by returning "." for dir name if it's
-	empty */
+        empty */
     if (drive_buf[0] == '\0' && dir_name_buf[0] == '\0') {
         _tinydir_strcpy(dir_name_buf, TINYDIR_STRING("."));
     }
@@ -697,12 +702,12 @@ The following authored by Ben Hutchings <ben@decadent.org.uk>
 from https://womble.decadent.org.uk/readdir_r-advisory.html
 */
 /* Calculate the required buffer size (in bytes) for directory      *
-* entries read from the given directory handle.  Return -1 if this  *
-* this cannot be done.                                              *
-*                                                                   *
-* This code does not trust values of NAME_MAX that are less than    *
-* 255, since some systems (including at least HP-UX) incorrectly    *
-* define it to be a smaller value.                                  */
+ * entries read from the given directory handle.  Return -1 if this  *
+ * this cannot be done.                                              *
+ *                                                                   *
+ * This code does not trust values of NAME_MAX that are less than    *
+ * 255, since some systems (including at least HP-UX) incorrectly    *
+ * define it to be a smaller value.                                  */
 _TINYDIR_FUNC
 size_t _tinydir_dirent_buf_size(_TINYDIR_DIR *dirp) {
     long name_max;

@@ -1,5 +1,6 @@
 // window_numb.cpp
 #include "window_numb.hpp"
+#include "time_helper.hpp"
 #include "gui.hpp"
 #include <ctime>
 
@@ -12,16 +13,18 @@ static_assert(sizeof(uint32_t) == sizeof(float), "size of uint32 does not match 
 void window_numb_t::unconditionalDraw() {
     color_t clr_back = GetBackColor();
     color_t clr_text = GetTextColor();
-    //TODO remove this if statement (its body too)
+    // TODO remove this if statement (its body too)
     if (!(flags.color_scheme_background || flags.color_scheme_foreground)) {
         clr_back = (IsFocused()) ? GetTextColor() : GetBackColor();
         clr_text = (IsFocused()) ? GetBackColor() : GetTextColor();
-        if (IsShadowed())
+        if (IsShadowed()) {
             clr_text = COLOR_GRAY;
+        }
     }
 
-    if (IsCaptured()) //capture color could be part of color scheme, but currently it is used only here
+    if (IsCaptured()) { // capture color could be part of color scheme, but currently it is used only here
         clr_text = COLOR_ORANGE;
+    }
 
     char text[WINDOW_NUMB_MAX_TEXT];
     switch (printAs) {
@@ -42,7 +45,7 @@ void window_numb_t::unconditionalDraw() {
     render_text_align(GetRect(),
         // this MakeRAM is safe - render_text finishes its work and the local string text[] is then no longer needed
         string_view_utf8::MakeRAM((const uint8_t *)text),
-        font,
+        get_font(),
         clr_back,
         clr_text,
         padding,
@@ -63,12 +66,12 @@ void window_numb_t::setValue(float val) {
     value = val;
 }
 
-window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value, const char *frmt, font_t *font)
+window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value, const char *frmt, Font font)
     : AddSuperWindow<IWindowText>(parent, rect)
     , value(value)
     , format(frmt == nullptr ? "%.0f" : frmt) {
     PrintAsFloat();
-    SetFont(font);
+    set_font(font);
 }
 
 void window_numb_t::PrintAsFloat() {
@@ -88,16 +91,7 @@ bool window_numb_t::IsPrintingAsInt() const {
 void window_numb_t::PrintAsTime() {
     printAs = printType::asTime;
 }
+
 void window_numb_t::PrintTime(char *buffer) {
-    time_t time = (time_t)value;
-    const struct tm *timeinfo = localtime(&time);
-    if (timeinfo->tm_yday) {
-        snprintf(buffer, WINDOW_NUMB_MAX_TEXT, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
-    } else if (timeinfo->tm_hour) {
-        snprintf(buffer, WINDOW_NUMB_MAX_TEXT, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
-    } else if (timeinfo->tm_min) {
-        snprintf(buffer, WINDOW_NUMB_MAX_TEXT, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
-    } else {
-        snprintf(buffer, WINDOW_NUMB_MAX_TEXT, "%is", timeinfo->tm_sec);
-    }
+    format_duration(std::span<char> { buffer, WINDOW_NUMB_MAX_TEXT }, value);
 }

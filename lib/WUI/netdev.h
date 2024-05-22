@@ -27,6 +27,7 @@
 typedef enum {
     NETDEV_UNLINKED,
     NETDEV_NETIF_DOWN,
+    NETDEV_NETIF_NOADDR,
     NETDEV_NETIF_UP
 } netdev_status_t;
 
@@ -78,33 +79,27 @@ void netdev_set_dhcp(uint32_t);
 void netdev_set_static(uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
+/// @brief Set device enabled
+///
+/// @param[in] netdev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+/// @param[in] enabled Whenever the device is enabled
+void netdev_set_enabled(const uint32_t netdev_id, const bool enabled);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Get device enabled
+///
+/// @param[in] netdev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+bool netdev_is_enabled(const uint32_t netdev_id);
+
+////////////////////////////////////////////////////////////////////////////
 /// @brief Return device id which is currently active for communication
 ///
 /// @return network device id
 uint32_t netdev_get_active_id();
-
-/**
- * \brief Get the currently used (primary) printer IP address.
- *
- * This provides the IPv4 address the printer currently uses, if any. In case
- * the printer has multiple IPs (once we have support for having multiple
- * interfaces up or having multiple IPs on a single interface), this shall
- * provide the „default“ one ‒ the one the printer would use for outgoing
- * requests.
- *
- * This may fail in case there's no IPv4 address used by the printer. Such
- * thing can (or will be able to) happen for reasons including:
- * - No interface is up.
- * - An interface is up, but hasn't yet receved an IP address from DHCP.
- * - We currently live in an IPv6-only network.
- *
- * Note: Yes, we are currently missing the IPv6 equivalent. Sorry, we are not
- * there yet.
- *
- * \param [out] dest - an 4-element array to put the IP into, in network order.
- * \return If any address was filled in (false in case it failed).
- */
-bool netdev_get_current_ipv4(uint8_t *dest);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Set network device for communication
@@ -113,15 +108,6 @@ bool netdev_get_current_ipv4(uint8_t *dest);
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
 void netdev_set_active_id(uint32_t);
-
-////////////////////////////////////////////////////////////////////////////
-/// @brief Set the the given network device state if is plugged or unplugged
-///
-/// @param[in] dev_id device ID. One of
-///             - #NETDEV_ETH_ID
-///             - #NETDEV_ESP_ID
-/// @return 0
-uint32_t netdev_check_link(uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Retrive status of the given network device
@@ -159,6 +145,11 @@ void netdev_get_hostname(uint32_t, char *buffer, size_t buffer_len);
 ///             - #NETDEV_ESP_ID
 /// @param[out] ipv4_configuration Structure to store IPv4 configuration
 void netdev_get_ipv4_addresses(uint32_t, lan_t *);
+
+/// Load ini file to both runtime and eeprom configuration.
+///
+/// @return If it was successful.
+bool netdev_load_ini_to_eeprom();
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Retrive MAC address

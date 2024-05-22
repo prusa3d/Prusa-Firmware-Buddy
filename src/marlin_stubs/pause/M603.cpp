@@ -33,6 +33,10 @@
         #include "../../../lib/Marlin/Marlin/src/module/tool_change.h"
     #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M603: Configure filament change
  *
@@ -44,8 +48,9 @@
 void GcodeSuite::M603() {
 
     const int8_t target_extruder = get_target_extruder_from_command();
-    if (target_extruder < 0)
+    if (target_extruder < 0) {
         return;
+    }
 
     // Unload length
     if (parser.seen('U')) {
@@ -63,5 +68,7 @@ void GcodeSuite::M603() {
     #endif
     }
 }
+
+/** @}*/
 
 #endif // ADVANCED_PAUSE_FEATURE

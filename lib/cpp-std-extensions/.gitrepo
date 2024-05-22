@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/intel/cpp-std-extensions.git
+	branch = main
+	commit = 4de880e1ddc7443db51122e0810fd378a753c74a
+	parent = be403c66695331f531c203b765f21392866bc01a
+	method = merge
+	cmdver = 0.4.3

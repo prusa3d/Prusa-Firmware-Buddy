@@ -1,4 +1,4 @@
-/* 
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Ha Thach (tinyusb.org)
@@ -26,7 +26,7 @@
 
 #include "tusb_option.h"
 
-#if TUSB_OPT_DEVICE_ENABLED && \
+#if CFG_TUD_ENABLED && \
     (CFG_TUSB_MCU == OPT_MCU_LPC175X_6X || CFG_TUSB_MCU == OPT_MCU_LPC177X_8X || CFG_TUSB_MCU == OPT_MCU_LPC40XX)
 
 #include "device/dcd.h"
@@ -92,7 +92,7 @@ typedef struct
 
 } dcd_data_t;
 
-CFG_TUSB_MEM_SECTION TU_ATTR_ALIGNED(128) static dcd_data_t _dcd;
+CFG_TUD_MEM_SECTION TU_ATTR_ALIGNED(128) static dcd_data_t _dcd;
 
 
 //--------------------------------------------------------------------+
@@ -226,6 +226,14 @@ void dcd_disconnect(uint8_t rhport)
 {
   (void) rhport;
   sie_write(SIE_CMDCODE_DEVICE_STATUS, 1, 0);
+}
+
+void dcd_sof_enable(uint8_t rhport, bool en)
+{
+  (void) rhport;
+  (void) en;
+
+  // TODO implement later
 }
 
 //--------------------------------------------------------------------+

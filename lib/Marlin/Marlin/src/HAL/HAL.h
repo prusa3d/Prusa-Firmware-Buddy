@@ -25,6 +25,11 @@
 
 #include HAL_PATH(.,HAL.h)
 
+// Needed for AVR sprintf_P PROGMEM extension
+#ifndef S_FMT
+  #define S_FMT "%s"
+#endif
+
 inline void watchdog_refresh() {
   #if ENABLED(USE_WATCHDOG)
     HAL_watchdog_refresh();

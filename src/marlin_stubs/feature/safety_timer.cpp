@@ -28,15 +28,15 @@ void SafetyTimer::ReInit() {
 
 void SafetyTimer::SetInterval(millis_t ms) {
     interval = ms;
-    last_reset = ms;
+    last_reset = millis();
 }
 
 SafetyTimer::expired_t SafetyTimer::Loop() {
     millis_t now = millis();
-    uint32_t move_dif = marlin_server_get_user_move_count() - knob_moves;
-    uint32_t click_dif = marlin_server_get_user_click_count() - knob_clicks;
-    knob_moves = marlin_server_get_user_move_count();
-    knob_clicks = marlin_server_get_user_click_count();
+    uint32_t move_dif = marlin_server::get_user_move_count() - knob_moves;
+    uint32_t click_dif = marlin_server::get_user_click_count() - knob_clicks;
+    knob_moves = marlin_server::get_user_move_count();
+    knob_clicks = marlin_server::get_user_click_count();
 
     // auto restores temp only on click (ignore move),
     // it is also restored by Pause on any phase change
@@ -53,21 +53,23 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     }
 
     if (!ELAPSED(now, last_reset + interval)) {
-        //timer is counting, but did not reach last_reset yet
+        // timer is counting, but did not reach last_reset yet
         return expired_t::no;
     }
 
-    //timer is expired
+    // timer is expired
     if (pBoundPause) {
-        pBoundPause->NotifyExpiredFromSafetyTimer(thermalManager.degTargetHotend(0), thermalManager.degTargetBed());
+        pBoundPause->NotifyExpiredFromSafetyTimer();
         if (printingIsPaused()) {
             thermalManager.disable_hotend();
-            set_warning(WarningType::NozzleTimeout);
+            marlin_server::set_warning(WarningType::NozzleTimeout);
         } else {
             thermalManager.disable_all_heaters();
-            set_warning(WarningType::HeatersTimeout);
+            marlin_server::set_warning(WarningType::HeatersTimeout);
         }
-        marlin_server_set_temp_to_display(0);
+        HOTEND_LOOP() {
+            marlin_server::set_temp_to_display(0, e);
+        }
         return expired_t::yes;
     }
     if (printingIsPaused()) {
@@ -81,14 +83,16 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     } else {
         // disable nozzle and bed
         thermalManager.disable_all_heaters();
-        marlin_server_set_temp_to_display(0);
-        set_warning(WarningType::HeatersTimeout);
+        HOTEND_LOOP() {
+            marlin_server::set_temp_to_display(0, e);
+        }
+        marlin_server::set_warning(WarningType::HeatersTimeout);
     }
 
     return expired_t::yes;
 }
 
-//marlin compatibility function
+// marlin compatibility function
 void safety_timer_set_interval(millis_t ms) {
     SafetyTimer::Instance().SetInterval(ms);
 }
