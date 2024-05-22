@@ -5,9 +5,11 @@
 #include "screen_help_fw_update.hpp"
 #include "ScreenHandler.hpp"
 #include "sound.hpp"
+#include <str_utils.hpp>
 #include <config_store/store_instance.hpp>
 #include <guiconfig/guiconfig.h>
 #include <img_resources.hpp>
+#include <common/help_urls.hpp>
 
 inline constexpr PhaseResponses Responses_Back = { Response::Back, Response::_none, Response::_none, Response::_none };
 
@@ -46,39 +48,6 @@ static constexpr const char *txt_descr = N_("Download the firmware (.bbf) file t
 static constexpr const char *txt_descr2 = N_("Insert the drive into the printer and turn it on or restart it. Confirm the installation.");
 #endif
 
-#if PRINTER_IS_PRUSA_MK4
-static const char *get_txt_qr() {
-    return config_store().xy_motors_400_step.get() ? "prusa.io/mk4-firmware" : "prusa.io/mk3.9-firmware";
-}
-static const char *get_txt_help() {
-    return config_store().xy_motors_400_step.get() ? N_("To learn more including firmware downgrade, please visit:\nprusa.io/mk4-firmware")
-                                                   : N_("To learn more including firmware downgrade, please visit:\nprusa.io/mk3.9-firmware");
-}
-#endif
-#if PRINTER_IS_PRUSA_MK3_5
-static constexpr const char *get_txt_qr() {
-    return "prusa.io/mk3.5-firmware";
-}
-static constexpr const char *get_txt_help() {
-    return N_("To learn more including firmware downgrade, please visit:\nprusa.io/mk3.5-firmware");
-}
-#endif
-#if PRINTER_IS_PRUSA_XL
-static constexpr const char *get_txt_qr() {
-    return "prusa.io/xl-firmware";
-}
-static constexpr const char *get_txt_help() {
-    return N_("To learn more including firmware downgrade, please visit:\nprusa.io/xl-firmware");
-}
-#endif
-#if PRINTER_IS_PRUSA_MINI
-static constexpr const char *get_txt_qr() {
-    return "prusa.io/mini-firmware";
-}
-static constexpr const char *get_txt_help() {
-    return N_("To learn more including firmware downgrade, please visit: prusa.io/mini-firmware");
-}
-#endif
 static constexpr const char *txt_header = N_("How to update firmware?");
 
 ScreenHelpFWUpdate::ScreenHelpFWUpdate()
@@ -103,13 +72,19 @@ ScreenHelpFWUpdate::ScreenHelpFWUpdate()
     header.SetIcon(&img::info_16x16);
     header.SetText(_(txt_header));
 
-    qr.SetText(get_txt_qr());
+    StringBuilder(qr_link_text).append_printf("prusa.io/%s-firmware", get_printer_help_url());
+    qr.SetText(qr_link_text.data());
 
     description.SetAlignment(Align_t::LeftTop());
     description.SetText(_(txt_descr));
 
     help.SetAlignment(Align_t::LeftTop());
-    help.SetText(_(get_txt_help()));
+    {
+        StringBuilder sb(help_text);
+        sb.append_string_view(_("To learn more including firmware downgrade, please visit:\n"));
+        sb.append_string(qr_link_text.data());
+        help.SetText(string_view_utf8::MakeRAM(help_text.data()));
+    }
 }
 
 void ScreenHelpFWUpdate::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {

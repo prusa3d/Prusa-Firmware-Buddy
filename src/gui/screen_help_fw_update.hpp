@@ -21,6 +21,9 @@ class ScreenHelpFWUpdate : public screen_t {
     window_qr_t qr;
     RadioButton radio;
 
+    std::array<char, 128> help_text;
+    std::array<char, 32> qr_link_text;
+
 public:
     ScreenHelpFWUpdate();
 

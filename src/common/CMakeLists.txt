@@ -22,6 +22,7 @@ if(BOARD MATCHES ".*BUDDY")
             general_response.cpp
             hardware_serial.cpp
             heap.cpp
+            help_urls.cpp
             homing_reporter.cpp
             hwio_pindef_check.cpp
             i2c.cpp
