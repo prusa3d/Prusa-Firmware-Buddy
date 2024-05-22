@@ -120,6 +120,12 @@
   #include "../feature/tmc_util.h"
 #endif
 
+#include <option/has_phase_stepping.h>
+#if HAS_PHASE_STEPPING()
+  #include <option/has_burst_stepping.h>
+  void M970_report(bool eeprom);
+#endif
+
 #pragma pack(push, 1) // No padding between variables
 
 typedef struct { uint16_t X, Y, Z, X2, Y2, Z2, Z3, E0, E1, E2, E3, E4, E5; } tmc_stepper_current_t;
@@ -3449,6 +3455,17 @@ void MarlinSettings::reset() {
           , " D", LINEAR_UNIT(runout.runout_distance())
         #endif
       );
+    #endif
+
+    #if HAS_PHASE_STEPPING()
+      #if HAS_BURST_STEPPING()
+        CONFIG_ECHO_HEADING("Phase stepping (burst):");
+      #else
+        CONFIG_ECHO_HEADING("Phase stepping:");
+      #endif
+      CONFIG_ECHO_START();
+      SERIAL_ECHO("  ");
+      M970_report(true);
     #endif
   }
 

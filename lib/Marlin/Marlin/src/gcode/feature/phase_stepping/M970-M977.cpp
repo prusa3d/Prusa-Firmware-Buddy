@@ -33,8 +33,33 @@ static bool is_one_of(char c, std::string_view sv) {
     return false;
 }
 
+void M970_report(bool eeprom = false) {
+    SERIAL_ECHO("M970");
+    for (auto [axis, letter] : SUPPORTED_AXES) {
+        SERIAL_ECHOPAIR(" ", letter);
+        bool state = eeprom ? config_store().get_phase_stepping_enabled(axis)
+                            : phase_stepping::is_enabled(axis);
+        SERIAL_ECHO(state ? "1" : "0");
+    }
+    SERIAL_ECHOLN();
+}
+
+static void report_state() {
+#if HAS_BURST_STEPPING()
+    SERIAL_ECHO("phstep (burst)");
+#else
+    SERIAL_ECHO("phstep");
+#endif
+    if (phase_stepping::any_axis_active()) {
+        SERIAL_ECHOLN(": active");
+    } else {
+        SERIAL_ECHOLN(": disabled");
+    }
+    M970_report();
+}
+
 /**
- * @brief Enable phase stepping for axis
+ * @brief Set/enable phase stepping for axis
  *
  * - valid axes X, Y
  */
@@ -44,9 +69,11 @@ void GcodeSuite::M970() {
         if (!parser.seen(letter)) {
             continue;
         }
-        phase_stepping::enable(axis, true);
-        config_store().set_phase_stepping_enabled(axis, true);
+        bool enabled = parser.value_bool();
+        phase_stepping::enable(axis, enabled);
+        config_store().set_phase_stepping_enabled(axis, enabled);
     }
+    report_state();
 }
 
 /**
@@ -63,6 +90,7 @@ void GcodeSuite::M971() {
         phase_stepping::enable(axis, false);
         config_store().set_phase_stepping_enabled(axis, false);
     }
+    report_state();
 }
 
 /**
