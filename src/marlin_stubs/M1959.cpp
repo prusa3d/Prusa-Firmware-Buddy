@@ -114,6 +114,9 @@ struct Context {
     FrequencyRangeSpectrum spectrum_y;
     input_shaper::AxisConfig axis_config_x;
     input_shaper::AxisConfig axis_config_y;
+#if HAS_PHASE_STEPPING()
+    phase_stepping::StateRestorer phstep_restorer;
+#endif
 
     bool is_accelerometer_ok() const {
         return accelerometer && accelerometer->get_error() == PrusaAccelerometer::Error::none;
@@ -180,6 +183,11 @@ static PhasesInputShaperCalibration parking(Context &context) {
     // Easier access to cables + more consistent measurement
     const xyz_pos_t pos = { X_BED_SIZE / 2, Y_BED_SIZE / 2, Z_SIZE / 2 };
     plan_park_move_to_xyz(pos, HOMING_FEEDRATE_XY, HOMING_FEEDRATE_Z);
+
+#if HAS_PHASE_STEPPING()
+    // Ensure phase stepping is disabled throughout the calibration as we manipulate steps directly
+    context.phstep_restorer.set_state(false);
+#endif
 
     // Carry on the changes
     planner.synchronize();
@@ -421,6 +429,15 @@ static PhasesInputShaperCalibration results(Context &context) {
     bsod(__FUNCTION__);
 }
 
+static PhasesInputShaperCalibration finish(Context &context) {
+#if HAS_PHASE_STEPPING()
+    context.phstep_restorer.release();
+#else
+    UNUSED(context);
+#endif
+    return PhasesInputShaperCalibration::finish;
+}
+
 static PhasesInputShaperCalibration get_next_phase(Context &context, const PhasesInputShaperCalibration phase) {
     switch (phase) {
     case PhasesInputShaperCalibration::info:
@@ -446,7 +463,7 @@ static PhasesInputShaperCalibration get_next_phase(Context &context, const Phase
     case PhasesInputShaperCalibration::results:
         return results(context);
     case PhasesInputShaperCalibration::finish:
-        return PhasesInputShaperCalibration::finish;
+        return finish(context);
     }
     std::terminate();
 }

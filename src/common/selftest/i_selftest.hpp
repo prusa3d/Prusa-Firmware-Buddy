@@ -35,7 +35,7 @@ protected:
 
     uint32_t m_Time;
 #if HAS_PHASE_STEPPING()
-    std::optional<phase_stepping::EnsureDisabled> ph_disabler { std::nullopt };
+    phase_stepping::StateRestorer phstep_restorer;
 #endif
 };
 

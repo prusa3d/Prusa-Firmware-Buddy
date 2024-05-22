@@ -290,51 +290,47 @@ public:
 };
 
 /**
- * RAII guard for temporary disabling/enabling phase stepping with planner synchronization.
+ * RAII guard for temporary setting phase stepping state with planner synchronization.
  **/
-template <bool ENABLED>
-class EnsureState {
-    bool released = false;
+class StateRestorer {
+    bool released = true;
     bool any_axis_change = false;
     std::array<bool, opts::SUPPORTED_AXIS_COUNT> _prev_active = {};
 
 public:
-    EnsureState() {
+    StateRestorer() {}
+    StateRestorer(bool new_state) {
+        set_state(new_state);
+    }
+
+    StateRestorer(const StateRestorer &) = delete;
+    StateRestorer &operator=(const StateRestorer &) = delete;
+    StateRestorer(StateRestorer &&) = delete;
+
+    ~StateRestorer() {
+        release();
+    }
+
+    void set_state(bool new_state) {
         assert_initialized();
 
-        any_axis_change = std::ranges::any_of(axis_states, [](const auto &state) -> bool {
-            return state->active != ENABLED;
+        any_axis_change = std::ranges::any_of(axis_states, [&](const auto &state) -> bool {
+            return state->active != new_state;
         });
 
         if (any_axis_change) {
             synchronize();
 
             for (std::size_t i = 0; i != axis_states.size(); i++) {
-                _prev_active[i] = axis_states[i]->active;
-                phase_stepping::enable(AxisEnum(i), ENABLED);
+                if (released) {
+                    // save original state on first change
+                    _prev_active[i] = axis_states[i]->active;
+                }
+                phase_stepping::enable(AxisEnum(i), new_state);
             }
+
+            released = false;
         }
-    }
-
-    EnsureState(const EnsureState &) = delete;
-    EnsureState(EnsureState &&other) {
-        *this = std::move(other);
-    };
-    EnsureState &operator=(const EnsureState &) = delete;
-    EnsureState &operator=(EnsureState &&other) {
-        released = other.released;
-        any_axis_change = other.any_axis_change;
-        _prev_active = other._prev_active;
-
-        // Invalidate the previous object so it doesn't reset the settings
-        other.released = true;
-        other.any_axis_change = false;
-
-        return *this;
-    };
-
-    ~EnsureState() {
-        release();
     }
 
     void release() {
@@ -351,8 +347,18 @@ public:
     }
 };
 
-using EnsureEnabled = EnsureState<true>;
-using EnsureDisabled = EnsureState<false>;
+class EnsureEnabled : public StateRestorer {
+public:
+    EnsureEnabled()
+        : StateRestorer(true) {}
+};
+
+class EnsureDisabled : public StateRestorer {
+public:
+    EnsureDisabled()
+        : StateRestorer(false) {}
+};
+
 using EnsureSuitableForHoming = std::conditional_t<
     option::has_burst_stepping,
     EnsureNoChange, EnsureDisabled>;
