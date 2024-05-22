@@ -30,21 +30,21 @@ public:
     MI_ENCLOSURE_TEMP();
 };
 
-class MI_ENCLOSURE_ALWAYS_ON : public WI_ICON_SWITCH_OFF_ON_t {
+class MI_ENCLOSURE_PRINT_FILTRATION : public WI_ICON_SWITCH_OFF_ON_t {
     static constexpr const char *const label = N_("Print Filtration");
 
 public:
-    MI_ENCLOSURE_ALWAYS_ON();
+    MI_ENCLOSURE_PRINT_FILTRATION();
 
 protected:
     void OnChange(size_t old_index);
 };
 
-class MI_ENCLOSURE_POST_PRINT : public WI_ICON_SWITCH_OFF_ON_t {
+class MI_ENCLOSURE_POST_PRINT_FILTRATION : public WI_ICON_SWITCH_OFF_ON_t {
     static constexpr const char *const label = N_("Post Print Filtration");
 
 public:
-    MI_ENCLOSURE_POST_PRINT();
+    MI_ENCLOSURE_POST_PRINT_FILTRATION();
 
 protected:
     void OnChange(size_t old_index);

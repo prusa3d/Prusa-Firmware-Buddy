@@ -79,19 +79,19 @@ void Enclosure::setEnabled(bool enable) {
     }
 }
 
-void Enclosure::setAlwaysOn(bool enable) {
+void Enclosure::setPrintFiltration(bool enable) {
     if (enable) {
-        setPersistentFlg(PERSISTENT::ALWAYS_ON);
+        setPersistentFlg(PERSISTENT::PRINT_FILTRATION);
     } else {
-        clrPersistentFlg(PERSISTENT::ALWAYS_ON);
+        clrPersistentFlg(PERSISTENT::PRINT_FILTRATION);
     }
 }
 
-void Enclosure::setPostPrint(bool enable) {
+void Enclosure::setPostPrintFiltration(bool enable) {
     if (enable) {
-        setPersistentFlg(PERSISTENT::POST_PRINT);
+        setPersistentFlg(PERSISTENT::POST_PRINT_FILTRATION);
     } else {
-        clrPersistentFlg(PERSISTENT::POST_PRINT);
+        clrPersistentFlg(PERSISTENT::POST_PRINT_FILTRATION);
     }
 }
 
@@ -244,8 +244,8 @@ std::optional<WarningType> Enclosure::checkPrintState(marlin_server::State print
                 clrRuntimeFlg(RUNTIME::TEMP_VALID);
             }
             clrRuntimeFlg(RUNTIME::PRINTING);
-            if (isPostPrintEnabled() && isPostPrintFiltrationNeeded()) {
-                setRuntimeFlg(RUNTIME::ACTIVE_POST_PRINT);
+            if (isPostPrintFiltrationEnabled() && isPostPrintFiltrationNeeded()) {
+                setRuntimeFlg(RUNTIME::ACTIVE_POST_PRINT_FILTRATION);
                 print_end_sec = curr_sec;
             }
             print_start_sec = 0;
@@ -271,7 +271,7 @@ uint8_t Enclosure::getPwmFromMode() const {
             return FANCTLENCLOSURE_PWM_MAX;
         }
 
-        if ((isAlwaysOnEnabled() && isPrinting()) || (isPostPrintEnabled() && isPostPrintActive())) {
+        if ((isPrintFiltrationEnabled() && isPrinting()) || (isPostPrintFiltrationEnabled() && isPostPrintFiltrationActive())) {
             return (FANCTLENCLOSURE_PWM_MAX * user_rpm) / 100;
         }
 
@@ -298,7 +298,7 @@ std::optional<WarningType> Enclosure::loop(int32_t MCU_modular_bed_temp, int16_t
     // Deactivated enclosure
     if (!isEnabled() && active_mode != EnclosureMode::Idle) {
         active_mode = EnclosureMode::Idle;
-        clrRuntimeFlg(RUNTIME::ACTIVE_COOLING | RUNTIME::ACTIVE_POST_PRINT | RUNTIME::TEMP_VALID);
+        clrRuntimeFlg(RUNTIME::ACTIVE_COOLING | RUNTIME::ACTIVE_POST_PRINT_FILTRATION | RUNTIME::TEMP_VALID);
     }
 
     switch (active_mode) {
@@ -319,7 +319,7 @@ std::optional<WarningType> Enclosure::loop(int32_t MCU_modular_bed_temp, int16_t
 
         if (testFanTacho()) {
             clrPersistentFlg(PERSISTENT::ENABLED);
-            clrRuntimeFlg(RUNTIME::ACTIVE_COOLING | RUNTIME::ACTIVE_POST_PRINT | RUNTIME::TEMP_VALID);
+            clrRuntimeFlg(RUNTIME::ACTIVE_COOLING | RUNTIME::ACTIVE_POST_PRINT_FILTRATION | RUNTIME::TEMP_VALID);
             warning_opt = { WarningType::EnclosureFanError };
             break;
         }
@@ -329,20 +329,20 @@ std::optional<WarningType> Enclosure::loop(int32_t MCU_modular_bed_temp, int16_t
             updateTempValidationTimer(curr_sec);
         }
 
-        // MCU Cooling has a priority and cannot be overriden by Always On / Post Print / Users manual RPM change
+        // MCU Cooling has a priority and cannot be overriden by Print Filtration / Post Print Filtration / Users manual RPM change
         if (!isCooling() && MCU_modular_bed_temp >= fan_start_temp_treshold) {
             setRuntimeFlg(RUNTIME::ACTIVE_COOLING);
         } else if (isCooling() && MCU_modular_bed_temp < fan_stop_temp_treshold) {
             clrRuntimeFlg(RUNTIME::ACTIVE_COOLING);
         }
 
-        if (isCooling() || (isAlwaysOnEnabled() && isPrinting())) {
+        if (isCooling() || (isPrintFiltrationEnabled() && isPrinting())) {
             break;
         }
 
-        if (isPostPrintEnabled() && isPostPrintActive()) {
+        if (isPostPrintFiltrationEnabled() && isPostPrintFiltrationActive()) {
             if (print_end_sec == 0 || updatePostPrintFiltrationTimer(curr_sec)) {
-                clrRuntimeFlg(RUNTIME::ACTIVE_POST_PRINT | RUNTIME::TEMP_VALID);
+                clrRuntimeFlg(RUNTIME::ACTIVE_POST_PRINT_FILTRATION | RUNTIME::TEMP_VALID);
             }
         }
 
@@ -355,6 +355,7 @@ std::optional<WarningType> Enclosure::loop(int32_t MCU_modular_bed_temp, int16_t
 
     if (!isActive() || fan_pwm == 0) {
         last_timer_update_sec = curr_sec;
+        return warning_opt;
     }
 
     // Check timer every minute of active fan - longer period because it writes to EEPROM
