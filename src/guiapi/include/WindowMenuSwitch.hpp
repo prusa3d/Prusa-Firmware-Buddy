@@ -26,7 +26,7 @@ protected:
 
 public:
     // !!! Call changeExtentionWidth() after the items are initialized in the child
-    IWiSwitch(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden);
+    IWiSwitch(string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
 
     void SetIndex(size_t idx);
 
