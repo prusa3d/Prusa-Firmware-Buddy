@@ -150,29 +150,29 @@ namespace {
                     JSON_FIELD_INT("fan_print", params.slots[0].print_fan_rpm) JSON_COMMA;
                     JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
                 }
-            }
 
 #if HAS_MMU2() || HAS_TOOLCHANGER()
-            if (params.mmu_enabled || option::has_toolchanger) {
-                JSON_FIELD_OBJ("slot");
-                    state.iter = 0;
-                    while (state.iter < params.number_of_slots) {
-                        JSON_CUSTOM("\"%zu\":{", state.iter + 1);
-                            JSON_FIELD_STR("material", params.slots[state.iter].material) JSON_COMMA;
-                            JSON_FIELD_FFIXED("temp", params.slots[state.iter].temp_nozzle, 1) JSON_COMMA;
-                            JSON_FIELD_FFIXED("fan_hotend", params.slots[state.iter].heatbreak_fan_rpm, 1) JSON_COMMA;
-                            JSON_FIELD_FFIXED("fan_print", params.slots[state.iter].print_fan_rpm, 1);
-                        JSON_OBJ_END JSON_COMMA;
-                        state.iter++;
-                    }
-                    if (params.mmu_enabled) {
-                        JSON_FIELD_INT("state", params.progress_code) JSON_COMMA;
-                        JSON_FIELD_STR_FORMAT("command", "%c", params.command_code) JSON_COMMA;
-                    }
-                    JSON_FIELD_INT("active", params.active_slot);
-                JSON_OBJ_END JSON_COMMA;
-            }
+                if (params.mmu_enabled || option::has_toolchanger) {
+                    JSON_FIELD_OBJ("slot");
+                        state.iter = 0;
+                        while (state.iter < params.number_of_slots) {
+                            JSON_CUSTOM("\"%zu\":{", state.iter + 1);
+                                JSON_FIELD_STR("material", params.slots[state.iter].material) JSON_COMMA;
+                                JSON_FIELD_FFIXED("temp", params.slots[state.iter].temp_nozzle, 1) JSON_COMMA;
+                                JSON_FIELD_FFIXED("fan_hotend", params.slots[state.iter].heatbreak_fan_rpm, 1) JSON_COMMA;
+                                JSON_FIELD_FFIXED("fan_print", params.slots[state.iter].print_fan_rpm, 1);
+                            JSON_OBJ_END JSON_COMMA;
+                            state.iter++;
+                        }
+                        if (params.mmu_enabled) {
+                            JSON_FIELD_INT("state", params.progress_code) JSON_COMMA;
+                            JSON_FIELD_STR_FORMAT("command", "%c", params.command_code) JSON_COMMA;
+                        }
+                        JSON_FIELD_INT("active", params.active_slot);
+                    JSON_OBJ_END JSON_COMMA;
+                }
 #endif
+            }
             if (state.background_command_id.has_value()) {
                 JSON_FIELD_INT("command_id", *state.background_command_id) JSON_COMMA;
             }

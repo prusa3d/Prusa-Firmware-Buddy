@@ -51,10 +51,10 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
     }
 
     for (size_t i = 0; i < number_of_slots; i++) {
-        if (slots[i].material != nullptr) {
-            crc.add(slots[i].material);
-        }
-        crc.add(int(slots[i].temp_nozzle))
+        // Using the pointer value, not the pointed-to string (because they are
+        // in-code constants)... therefore, nullptr is also a valid value.
+        crc.add(slots[i].material)
+            .add(int(slots[i].temp_nozzle))
             // The RPM values are in thousands and fluctuating a bit, we don't want
             // that to trigger the send too often, only when it actually really
             // changes.
@@ -63,6 +63,7 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
     }
 
     return crc
+        .add(active_slot)
         .add(int(pos[Printer::Z_AXIS_POS]))
         .add(print_speed)
         .add(flow_factor)
