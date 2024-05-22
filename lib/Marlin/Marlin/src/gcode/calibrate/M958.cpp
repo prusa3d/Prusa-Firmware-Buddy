@@ -610,29 +610,29 @@ static AxisEnum get_logical_axis(const uint16_t axis_flag) {
 }
 
 static bool is_ok(PrusaAccelerometer::Error error) {
-        switch (error) {
-        case PrusaAccelerometer::Error::none:
-            return true;
-        case PrusaAccelerometer::Error::communication:
-            SERIAL_ERROR_MSG("accelerometer communication");
-            break;
-        case PrusaAccelerometer::Error::no_active_tool:
-            SERIAL_ERROR_MSG("no active tool");
-            break;
-        case PrusaAccelerometer::Error::busy:
-            SERIAL_ERROR_MSG("busy");
-            break;
-    #if HAS_PUPPIES()
-        case PrusaAccelerometer::Error::corrupted_transmission_error:
-        case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
-    #endif
-        case PrusaAccelerometer::Error::corrupted_sample_overrun:
-        case PrusaAccelerometer::Error::corrupted_buddy_overflow:
-            SERIAL_ERROR_MSG("corrupted");
-            break;
-        }
-        return false;
+    switch (error) {
+    case PrusaAccelerometer::Error::none:
+        return true;
+    case PrusaAccelerometer::Error::communication:
+        SERIAL_ERROR_MSG("accelerometer communication");
+        break;
+    case PrusaAccelerometer::Error::no_active_tool:
+        SERIAL_ERROR_MSG("no active tool");
+        break;
+    case PrusaAccelerometer::Error::busy:
+        SERIAL_ERROR_MSG("busy");
+        break;
+#if HAS_PUPPIES()
+    case PrusaAccelerometer::Error::corrupted_transmission_error:
+    case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
+#endif
+    case PrusaAccelerometer::Error::corrupted_sample_overrun:
+    case PrusaAccelerometer::Error::corrupted_buddy_overflow:
+        SERIAL_ERROR_MSG("corrupted");
+        break;
     }
+    return false;
+}
 
 /** \addtogroup G-Codes
  * @{
@@ -688,7 +688,7 @@ void GcodeSuite::M958() {
         return;
     }
     const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, calibrate_accelerometer);
-    if(isnan(accelerometer_sample_period)) {
+    if (isnan(accelerometer_sample_period)) {
         return;
     }
     serial_echo_header(klipper_mode);
@@ -720,7 +720,7 @@ static void naive_zv_tune(StepEventFlag_t axis_flag, float start_frequency, floa
         return;
     }
     const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true);
-    if(isnan(accelerometer_sample_period)) {
+    if (isnan(accelerometer_sample_period)) {
         return;
     }
     const bool klipper_mode = false;
@@ -1032,7 +1032,7 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
         return;
     }
     const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true);
-    if(isnan(accelerometer_sample_period)){
+    if (isnan(accelerometer_sample_period)) {
         return;
     }
     const bool klipper_mode = true;
