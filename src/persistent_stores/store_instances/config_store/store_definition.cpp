@@ -15,13 +15,21 @@ static_assert(journal::has_unique_items<config_store_ns::CurrentStore>(), "Just 
 #endif
 
 void CurrentStore::perform_config_check() {
-    [[maybe_unused]] const auto init_result = config_store_init_result();
+    /// Whether this is the first run of the printer after assembly/factory reset
+    [[maybe_unused]] const bool is_first_run = (config_store_init_result() == InitResult::cold_start);
 
 #if HAS_TOUCH()
     // We cannot just change the default value of touch_enabled for backwards compatiblity reasons
     // So instead we just enable touch by default for new printers (and after fw reset)
-    if (init_result == InitResult::cold_start) {
+    if (is_first_run) {
         touch_enabled.set(true);
+    }
+#endif
+
+#if PRINTER_IS_PRUSA_MK4
+    // We cannot change a default value of a config store item for backwards compatibility reasons
+    if (is_first_run) {
+        extended_printer_type.set(ExtendedPrinterType::mk4s);
     }
 #endif
 }

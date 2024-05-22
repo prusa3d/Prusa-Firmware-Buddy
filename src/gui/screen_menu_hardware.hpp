@@ -17,6 +17,7 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_modularbed.h>
 #include <option/has_phase_stepping.h>
+#include <common/extended_printer_type.hpp>
 #include "MItem_basic_selftest.hpp"
 #include "printers.h"
 
@@ -49,6 +50,9 @@ protected:
 
 using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_RETURN,
+#if HAS_EXTENDED_PRINTER_TYPE()
+    MI_EXTENDED_PRINTER_TYPE,
+#endif
     MI_NOZZLE_DIAMETER,
     MI_HARDWARE_G_CODE_CHECKS
 #if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX

@@ -5,6 +5,7 @@
 #include <config_store/store_instance.hpp>
 #include <option/has_side_fsensor.h>
 #include <option/has_toolchanger.h>
+#include <common/extended_printer_type.hpp>
 
 enum class HWCheckType {
     nozzle,
@@ -179,3 +180,19 @@ protected:
     virtual void OnChange(size_t old_index) override;
 };
 #endif /*HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()*/
+
+#if HAS_EXTENDED_PRINTER_TYPE()
+class MI_EXTENDED_PRINTER_TYPE : public WiStoreEnumSwitch<&config_store_ns::CurrentStore::extended_printer_type> {
+public:
+    MI_EXTENDED_PRINTER_TYPE()
+        : WiStoreEnumSwitch(_("Printer Type"), extended_printer_type_names) {}
+};
+
+#else
+class MI_EXTENDED_PRINTER_TYPE : public IWiInfo {
+public:
+    MI_EXTENDED_PRINTER_TYPE()
+        : IWiInfo(_("Printer Type"), strlen(PRINTER_MODEL), string_view_utf8::MakeCPUFLASH(PRINTER_MODEL)) {}
+};
+
+#endif

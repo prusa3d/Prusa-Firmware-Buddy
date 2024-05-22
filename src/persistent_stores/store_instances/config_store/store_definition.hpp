@@ -31,6 +31,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_selftest.h>
 #include <option/has_phase_stepping.h>
+#include <common/extended_printer_type.hpp>
 
 #if HAS_SHEET_PROFILES()
     #include <common/sheet.hpp>
@@ -460,6 +461,10 @@ struct CurrentStore
     StoreItem<int8_t, 0, journal::hash("Right Bed Correction")> right_bed_correction;
     StoreItem<int8_t, 0, journal::hash("Front Bed Correction")> front_bed_correction;
     StoreItem<int8_t, 0, journal::hash("Rear Bed Correction")> rear_bed_correction;
+#endif
+
+#if HAS_EXTENDED_PRINTER_TYPE()
+    StoreItem<ExtendedPrinterType, static_cast<ExtendedPrinterType>(0), journal::hash("Extended Printer Type")> extended_printer_type;
 #endif
 };
 
