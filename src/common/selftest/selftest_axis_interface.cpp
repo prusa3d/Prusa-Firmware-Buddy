@@ -65,16 +65,11 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
             if (detect_200_step_motors == Detect200StepMotors::yes) {
                 // clang-format off
         m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis, staticResults[config_axis.axis],
-            &CSelftestPart_Axis::stateSwitchTo400step,
 
-            &CSelftestPart_Axis::stateCycleMark0,
             &CSelftestPart_Axis::stateActivateHomingReporter,
             &CSelftestPart_Axis::stateHomeXY,
             &CSelftestPart_Axis::stateWaitHomingReporter,
             &CSelftestPart_Axis::stateEvaluateHomingXY,
-
-            &CSelftestPart_Axis::stateCycleMark1,
-            &CSelftestPart_Axis::stateSwitchTo200stepAndRetry,
             &CSelftestPart_Axis::stateInitProgressTimeCalculation,
 
             &CSelftestPart_Axis::stateCycleMark2,

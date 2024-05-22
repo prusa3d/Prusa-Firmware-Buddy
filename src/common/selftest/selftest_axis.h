@@ -62,15 +62,10 @@ public:
         SelftestSingleAxis_t &result);
     ~CSelftestPart_Axis();
 
-    // states for 200/400 step switching algorithm
-    LoopResult stateSwitchTo400step();
-    LoopResult stateCycleMark0() { return LoopResult::MarkLoop0; }
     LoopResult stateActivateHomingReporter();
     LoopResult stateHomeXY(); ///< Enqueue homing
     LoopResult stateWaitHomingReporter(); ///< Alternative state to stateWaitHome, in case reporter is used
     LoopResult stateEvaluateHomingXY();
-    LoopResult stateCycleMark1() { return LoopResult::MarkLoop1; }
-    LoopResult stateSwitchTo200stepAndRetry();
 
     LoopResult stateHomeZ(); ///< Enqueue homing and toolchange
     LoopResult stateWaitHome(); ///< Wait for homing and toolchange to finish

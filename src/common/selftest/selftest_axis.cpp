@@ -161,65 +161,6 @@ void CSelftestPart_Axis::sg_sampling_disable() {
 
 CSelftestPart_Axis *CSelftestPart_Axis::m_pSGAxis = nullptr;
 
-LoopResult CSelftestPart_Axis::stateSwitchTo400step() {
-    if (config_store().xy_motors_400_step.get()) {
-        log_info(Selftest, "%s have 400step", config.partname);
-        return LoopResult::RunNext;
-    }
-
-    log_info(Selftest, "%s change to 400step", config.partname);
-
-    motor_switch(Motor::stp_400);
-
-    return LoopResult::RunNext;
-}
-
-LoopResult CSelftestPart_Axis::stateSwitchTo200stepAndRetry() {
-    if (homed) {
-        return LoopResult::RunNext;
-    }
-
-    if (!config_store().xy_motors_400_step.get()) {
-        // we already have 200 step, this means calibration failed on both 200 and 400 step
-        // switch setting of motors to default
-        motor_switch(config_store().xy_motors_400_step.default_val ? Motor::stp_400 : Motor::stp_200);
-        return LoopResult::Fail;
-    }
-
-    log_info(Selftest, "%s change to 200step", config.partname);
-
-    motor_switch(Motor::stp_200);
-
-    return LoopResult::GoToMark0;
-}
-
-void CSelftestPart_Axis::motor_switch(Motor steps) {
-    config_store().xy_motors_400_step.set(steps == Motor::stp_400);
-
-    // TODO change FSM .. make user know
-    PersistentStorage::erase();
-
-    {
-        auto &store = config_store();
-        auto transaction = store.get_backend().transaction_guard();
-        store.homing_sens_x.set(store.homing_sens_x.default_val);
-        store.homing_sens_y.set(store.homing_sens_y.default_val);
-        store.homing_bump_divisor_x.set(store.homing_bump_divisor_x.default_val);
-        store.homing_bump_divisor_y.set(store.homing_bump_divisor_y.default_val);
-    }
-
-    queue.enqueue_one_now("M914 X Y"); // Reset XY homing sensitivity
-
-    static constexpr size_t buffer_size { 50 }; // enough space to have the gcode + two numbers of max 11 digits
-    char gcode_curr[buffer_size]; // note +1 for terminating null byte
-    snprintf(gcode_curr, buffer_size, "M906 X%u Y%u", get_rms_current_ma_x(), get_rms_current_ma_y()); // XY motor currents
-    queue.enqueue_one_now(gcode_curr);
-
-    char gcode_microstep[buffer_size]; // note +1 for terminating null byte
-    snprintf(gcode_microstep, buffer_size, "M350 X%u Y%u", get_microsteps_x(), get_microsteps_y()); // XY motor microsteps
-    queue.enqueue_one_now(gcode_microstep);
-}
-
 LoopResult CSelftestPart_Axis::stateActivateHomingReporter() {
     HomingReporter::enable();
     return LoopResult::RunNext;
