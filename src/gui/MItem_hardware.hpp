@@ -146,9 +146,7 @@ public:
 class MI_NOZZLE_TYPE final : public WiStoreEnumSwitch<&config_store_ns::CurrentStore::nozzle_type> {
 public:
     MI_NOZZLE_TYPE()
-        : WiStoreEnumSwitch(_("Nozzle Type"), nozzle_type_names) {
-        set_is_hidden(is_hidden_t::dev);
-    }
+        : WiStoreEnumSwitch(_("Nozzle Type"), nozzle_type_names) {}
 };
 
 class MI_HOTEND_TYPE : public WiStoreEnumSwitch<&config_store_ns::CurrentStore::hotend_type> {

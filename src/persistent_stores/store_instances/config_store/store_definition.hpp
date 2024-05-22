@@ -421,7 +421,7 @@ struct CurrentStore
 
     // Nozzle Sock has is here for backwards compatibility (should be binary compatible)
     StoreItem<HotendType, defaults::hotend_type, journal::hash("Nozzle Sock")> hotend_type;
-    StoreItem<NozzleType, defaults::nozzle_type, journal::hash("Nozzle Type")> nozzle_type;
+    StoreItem<NozzleType, NozzleType::Normal, journal::hash("Nozzle Type")> nozzle_type;
 
     StoreItem<restore_z::Position, restore_z::default_position, journal::hash("Restore Z Coordinate After Boot")> restore_z_after_boot;
 

@@ -38,6 +38,7 @@ void CurrentStore::perform_config_check() {
     // We cannot change a default value of a config store item for backwards compatibility reasons
     if (is_first_run) {
         extended_printer_type.set(ExtendedPrinterType::mk4s);
+        nozzle_type.set(NozzleType::HighFlow);
     }
 #endif
 }
