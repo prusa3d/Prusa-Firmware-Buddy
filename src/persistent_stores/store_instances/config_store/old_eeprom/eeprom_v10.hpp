@@ -90,12 +90,12 @@ constexpr vars_body_t body_defaults = {
     default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f), // AXIS_STEPS_PER_UNIT_Y
     default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f), // AXIS_STEPS_PER_UNIT_Z
     default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f), // AXIS_STEPS_PER_UNIT_E0
-    0, // AXIS_MICROSTEPS_X - currently depends on config_store().xy_motors_400_step
-    0, // AXIS_MICROSTEPS_Y - currently depends on config_store().xy_motors_400_step
+    0, // AXIS_MICROSTEPS_X - use default vlaues
+    0, // AXIS_MICROSTEPS_Y - use default vlaues
     Z_MICROSTEPS, // AXIS_MICROSTEPS_Z
     E0_MICROSTEPS, // AXIS_MICROSTEPS_E0
-    0, // AXIS_RMS_CURRENT_MA_X - currently depends on config_store().xy_motors_400_step
-    0, // AXIS_RMS_CURRENT_MA_Y - currently depends on config_store().xy_motors_400_step
+    0, // AXIS_RMS_CURRENT_MA_X - use default vlaues
+    0, // AXIS_RMS_CURRENT_MA_Y - use default vlaues
     Z_CURRENT, // AXIS_RMS_CURRENT_MA_Z
     E0_CURRENT, // AXIS_RMS_CURRENT_MA_E0
 #ifdef DEFAULT_Z_MAX_POS

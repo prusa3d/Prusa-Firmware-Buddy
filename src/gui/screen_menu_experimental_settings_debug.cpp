@@ -87,8 +87,7 @@ void ScreenMenuExperimentalSettings::windowEvent(window_t *sender, GUI_event_t e
         Invalidate();
         break;
     case ClickCommand::Reset_currents:
-        // 0 is valid for X and Y axis
-        // it means default dependent on config_store().xy_motors_400_step
+        // 0 is valid for X and Y axis, means to use default values
         Item<MI_CURRENT_X>().SetVal(config_store().axis_rms_current_ma_X_.default_val);
         Item<MI_CURRENT_Y>().SetVal(config_store().axis_rms_current_ma_Y_.default_val);
         Item<MI_CURRENT_Z>().SetVal(config_store().axis_rms_current_ma_Z_.default_val);

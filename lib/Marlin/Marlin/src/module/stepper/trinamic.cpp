@@ -143,7 +143,7 @@ enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
     pwmconf.pwm_freq = 0b01; // f_pwm = 2/683 f_clk
 
 #if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
-    const bool motors_400_step = config_store().xy_motors_400_step.get();
+    const bool motors_400_step = get_has_400step_xy_motors();
 #else
     constexpr bool motors_400_step = false;
 #endif

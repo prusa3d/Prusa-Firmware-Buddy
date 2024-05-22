@@ -20,6 +20,7 @@ float get_steps_per_unit_x();
 float get_steps_per_unit_y();
 float get_steps_per_unit_z();
 float get_steps_per_unit_e();
+bool get_has_400step_xy_motors();
 uint16_t get_default_microsteps_x();
 uint16_t get_default_microsteps_y();
 uint16_t get_default_microsteps_z();

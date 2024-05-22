@@ -237,12 +237,20 @@ bool is_microstep_value_valid(uint16_t microsteps) {
     return bs.count() == 1; // 1,2,4,8...
 }
 
+bool get_has_400step_xy_motors() {
+#if PRINTER_IS_PRUSA_MK4
+    return extended_printer_type_has_400step_motors[config_store().extended_printer_type.get()];
+#else
+    return false;
+#endif
+}
+
 ///@return default microstep value depending on motor type config
 extern "C" uint16_t get_default_microsteps_x() {
 #ifdef X_MICROSTEPS
     return X_MICROSTEPS;
 #else
-    return config_store().xy_motors_400_step.get() ? X_400_STEP_MICROSTEPS : X_200_STEP_MICROSTEPS;
+    return get_has_400step_xy_motors() ? X_400_STEP_MICROSTEPS : X_200_STEP_MICROSTEPS;
 #endif
 }
 
@@ -251,7 +259,7 @@ extern "C" uint16_t get_default_microsteps_y() {
 #ifdef Y_MICROSTEPS
     return Y_MICROSTEPS;
 #else
-    return config_store().xy_motors_400_step.get() ? Y_400_STEP_MICROSTEPS : Y_200_STEP_MICROSTEPS;
+    return get_has_400step_xy_motors() ? Y_400_STEP_MICROSTEPS : Y_200_STEP_MICROSTEPS;
 #endif
 }
 
@@ -307,14 +315,14 @@ extern "C" uint16_t get_default_rms_current_ma_x() {
 #ifdef X_CURRENT
     return X_CURRENT;
 #else
-    return config_store().xy_motors_400_step.get() ? X_400_STEP_CURRENT : X_200_STEP_CURRENT;
+    return get_has_400step_xy_motors() ? X_400_STEP_CURRENT : X_200_STEP_CURRENT;
 #endif
 }
 extern "C" uint16_t get_default_rms_current_ma_y() {
 #ifdef Y_CURRENT
     return Y_CURRENT;
 #else
-    return config_store().xy_motors_400_step.get() ? Y_400_STEP_CURRENT : Y_200_STEP_CURRENT;
+    return get_has_400step_xy_motors() ? Y_400_STEP_CURRENT : Y_200_STEP_CURRENT;
 #endif
 }
 extern "C" uint16_t get_default_rms_current_ma_z() {

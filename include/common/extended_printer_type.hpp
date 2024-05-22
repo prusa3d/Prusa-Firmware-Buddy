@@ -25,6 +25,12 @@ static constexpr EnumArray<ExtendedPrinterType, const char *, extended_printer_t
     { ExtendedPrinterType::mk3_9, N_("Mk3.9") },
 };
 
+static constexpr EnumArray<ExtendedPrinterType, bool, extended_printer_type_count> extended_printer_type_has_400step_motors {
+    { ExtendedPrinterType::mk4, true },
+    { ExtendedPrinterType::mk4s, true },
+    { ExtendedPrinterType::mk3_9, false },
+};
+
 #else
     #define HAS_EXTENDED_PRINTER_TYPE() 0
 

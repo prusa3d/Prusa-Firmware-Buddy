@@ -402,12 +402,12 @@ struct CurrentStore
     StoreItem<float, defaults::axis_steps_per_unit_y, journal::hash("Axis Steps Per Unit Y")> axis_steps_per_unit_y;
     StoreItem<float, defaults::axis_steps_per_unit_z, journal::hash("Axis Steps Per Unit Z")> axis_steps_per_unit_z;
     StoreItem<float, defaults::axis_steps_per_unit_e0, journal::hash("Axis Steps Per Unit E0")> axis_steps_per_unit_e0;
-    StoreItem<uint16_t, 0, journal::hash("Axis Microsteps X")> axis_microsteps_X_; // 0 - depends on xy_motors_400_step, !=0 - user value independent on xy_motors_400_step
-    StoreItem<uint16_t, 0, journal::hash("Axis Microsteps Y")> axis_microsteps_Y_; // 0 - depends on xy_motors_400_step, !=0 - user value independent on xy_motors_400_step
+    StoreItem<uint16_t, 0, journal::hash("Axis Microsteps X")> axis_microsteps_X_; // 0 - default value, !=0 - user value
+    StoreItem<uint16_t, 0, journal::hash("Axis Microsteps Y")> axis_microsteps_Y_; // 0 - default value, !=0 - user value
     StoreItem<uint16_t, defaults::axis_microsteps_Z_, journal::hash("Axis Microsteps Z")> axis_microsteps_Z_;
     StoreItem<uint16_t, defaults::axis_microsteps_E0_, journal::hash("Axis Microsteps E0")> axis_microsteps_E0_;
-    StoreItem<uint16_t, 0, journal::hash("Axis RMS Current MA X")> axis_rms_current_ma_X_; // 0 - depends on xy_motors_400_step, !=0 - user value independent on xy_motors_400_step
-    StoreItem<uint16_t, 0, journal::hash("Axis RMS Current MA Y")> axis_rms_current_ma_Y_; // 0 - depends on xy_motors_400_step, !=0 - user value independent on xy_motors_400_step
+    StoreItem<uint16_t, 0, journal::hash("Axis RMS Current MA X")> axis_rms_current_ma_X_; // 0 - default value, !=0 - user value
+    StoreItem<uint16_t, 0, journal::hash("Axis RMS Current MA Y")> axis_rms_current_ma_Y_; // 0 - default value, !=0 - user value
     StoreItem<uint16_t, defaults::axis_rms_current_ma_Z_, journal::hash("Axis RMS Current MA Z")> axis_rms_current_ma_Z_;
     StoreItem<uint16_t, defaults::axis_rms_current_ma_E0_, journal::hash("Axis RMS Current MA E0")> axis_rms_current_ma_E0_;
     StoreItem<float, defaults::axis_z_max_pos_mm, journal::hash("Axis Z Max Pos MM")> axis_z_max_pos_mm;

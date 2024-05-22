@@ -28,7 +28,7 @@ struct AxisMotorParams {
 static std::array<AxisMotorParams, phase_stepping::opts::SUPPORTED_AXIS_COUNT> axis_motor_params;
 
 void phase_stepping::initialize_axis_motor_params() {
-    int xy_steps_per_rev = config_store().xy_motors_400_step.get() ? 400 : 200;
+    int xy_steps_per_rev = get_has_400step_xy_motors() ? 400 : 200;
 
     axis_motor_params[0] = AxisMotorParams::make_for_motor(xy_steps_per_rev, get_steps_per_unit_x(), get_microsteps_x());
     axis_motor_params[1] = AxisMotorParams::make_for_motor(xy_steps_per_rev, get_steps_per_unit_y(), get_microsteps_y());
