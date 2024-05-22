@@ -226,11 +226,20 @@ usb_device_log(const char *fmt, ...) {
 // Invoked when received GET DEVICE DESCRIPTOR
 // Application returns pointer to the descriptor
 uint8_t const *tud_descriptor_device_cb(void) {
-    if (!config_store().xy_motors_400_step.get()) {
+#if PRINTER_IS_PRUSA_MK4
+    switch (config_store().extended_printer_type.get()) {
+
+    case ExtendedPrinterType::mk3_9:
         desc_device.idProduct = 0x0015; // MK3.9 PID == 21 == 0x0015
-    } else {
-        desc_device.idProduct = 0x000D; // MK4 PID == 13 == 0x000D
+        break;
+
+    case ExtendedPrinterType::mk4:
+    case ExtendedPrinterType::mk4s:
+        // Leave the default PID
+        break;
     }
+#endif
+
     return (uint8_t const *)&desc_device;
 }
 
@@ -289,8 +298,17 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, [[maybe_unused]] uint16_
 
         const char *str = string_desc_arr[index];
 #if PRINTER_IS_PRUSA_MK4
-        if (!config_store().xy_motors_400_step.get()) {
-            str = USBD_PRODUCT_STRING_MK39;
+        if (index == 2) {
+            switch (config_store().extended_printer_type.get()) {
+
+            case ExtendedPrinterType::mk4:
+            case ExtendedPrinterType::mk4s:
+                break;
+
+            case ExtendedPrinterType::mk3_9:
+                str = USBD_PRODUCT_STRING_MK39;
+                break;
+            }
         }
 #endif
 

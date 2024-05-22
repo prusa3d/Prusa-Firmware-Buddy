@@ -4,25 +4,27 @@
 #include <config_store/store_instance.hpp>
 
 float axis_home_min_diff(uint8_t axis_num) {
-    switch (axis_num) {
-    case 0:
-    case 1:
-        return config_store().xy_motors_400_step.get() ? axis_home_min_diff_xy_mk4 : axis_home_min_diff_xy_mk3_9;
-    case 2:
+    if (axis_num == Z_AXIS) {
         return axis_home_min_diff_z;
+
+    } else if (config_store().extended_printer_type.get() == ExtendedPrinterType::mk3_9) {
+        return axis_home_min_diff_xy_mk3_9;
+
+    } else {
+        return axis_home_min_diff_xy_mk4;
     }
-    return NAN;
 }
 
 float axis_home_max_diff(uint8_t axis_num) {
-    switch (axis_num) {
-    case 0:
-    case 1:
-        return config_store().xy_motors_400_step.get() ? axis_home_max_diff_xy_mk4 : axis_home_max_diff_xy_mk3_9;
-    case 2:
+    if (axis_num == Z_AXIS) {
         return axis_home_max_diff_z;
+
+    } else if (config_store().extended_printer_type.get() == ExtendedPrinterType::mk3_9) {
+        return axis_home_max_diff_xy_mk3_9;
+
+    } else {
+        return axis_home_max_diff_xy_mk4;
     }
-    return NAN;
 }
 
 uint32_t get_homing_stall_threshold(AxisEnum axis_id) {
