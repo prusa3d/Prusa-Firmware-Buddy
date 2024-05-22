@@ -49,20 +49,20 @@ MI_ENCLOSURE_TEMP::MI_ENCLOSURE_TEMP()
     }) {
 }
 
-MI_ENCLOSURE_ALWAYS_ON::MI_ENCLOSURE_ALWAYS_ON()
-    : WI_ICON_SWITCH_OFF_ON_t(xl_enclosure.isAlwaysOnEnabled(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+MI_ENCLOSURE_PRINT_FILTRATION::MI_ENCLOSURE_PRINT_FILTRATION()
+    : WI_ICON_SWITCH_OFF_ON_t(xl_enclosure.isPrintFiltrationEnabled(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_ENCLOSURE_ALWAYS_ON::OnChange([[maybe_unused]] size_t old_index) {
-    xl_enclosure.setAlwaysOn(value());
+void MI_ENCLOSURE_PRINT_FILTRATION::OnChange([[maybe_unused]] size_t old_index) {
+    xl_enclosure.setPrintFiltration(value());
 }
 
-MI_ENCLOSURE_POST_PRINT::MI_ENCLOSURE_POST_PRINT()
-    : WI_ICON_SWITCH_OFF_ON_t(xl_enclosure.isPostPrintEnabled(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+MI_ENCLOSURE_POST_PRINT_FILTRATION::MI_ENCLOSURE_POST_PRINT_FILTRATION()
+    : WI_ICON_SWITCH_OFF_ON_t(xl_enclosure.isPostPrintFiltrationEnabled(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_ENCLOSURE_POST_PRINT::OnChange([[maybe_unused]] size_t old_index) {
-    xl_enclosure.setPostPrint(value());
+void MI_ENCLOSURE_POST_PRINT_FILTRATION::OnChange([[maybe_unused]] size_t old_index) {
+    xl_enclosure.setPostPrintFiltration(value());
 }
 
 MI_ENCLOSURE_FILTER_COUNTER::MI_ENCLOSURE_FILTER_COUNTER()
@@ -86,7 +86,7 @@ MI_ENCLOSURE_POST_PRINT_DURATION::MI_ENCLOSURE_POST_PRINT_DURATION()
 }
 
 void MI_ENCLOSURE_POST_PRINT_DURATION::OnClick() {
-    xl_enclosure.setPostPrintDuration(GetVal());
+    xl_enclosure.setPostPrintFiltrationDuration(GetVal());
 }
 
 MI_ENCLOSURE_MANUAL_SETTINGS::MI_ENCLOSURE_MANUAL_SETTINGS()

@@ -22,10 +22,10 @@
 
 /** @class Enclosure for XL
  * Handling timers for GUI, timers for filtration and filter expiration.
- * There are 2 modes:  MCU cooling (enabled) & enclosure chamber filtration (always_on)
+ * There are 2 modes:  MCU cooling (enabled) & enclosure chamber filtration (print filtration)
  * MCU cooling has a priority and is activated on temperatures over 85*C and deactivated after cooldown under 70*C
- * If always_on filtration is enabled, enclosure fan is activated the whole print.
- * After print ends, fan is ventilation for another 0-10 minutes based on printed material.
+ * If print filtration is enabled, enclosure fan is activated the whole print.
+ * After print ends, fan is ventilation for another 1-10 minutes based on printed material.
  *
  * The HEPA filter has 600h lifespan. After that reminder for 5 days can be activated. Warning is issued 100h before end of its life with the link to eshop.
  */
@@ -48,8 +48,8 @@ public:
     int getEnclosureTemperature();
 
     void setEnabled(bool enable); // enable enclosure
-    void setAlwaysOn(bool enable); /** Fan is spinning with manual rpm (80% power on default) for the whole print */
-    void setPostPrint(bool enable); /** Base on the used materials - fan will filter out the enclosure after the print */
+    void setPrintFiltration(bool enable); /** Fan is spinning with manual rpm (80% power on default) for the whole print */
+    void setPostPrintFiltration(bool enable); /** Base on the used materials - fan will filter out the enclosure after the print */
 
     /**
      *  Set RPM percentage defined by user in Manual Settings. This value applies on AlwaysOn & PostPrint modes
@@ -62,7 +62,7 @@ public:
     /**
      *  Set post print filtration duration in Manual Settings.
      */
-    void setPostPrintDuration(uint8_t value) {
+    void setPostPrintFiltrationDuration(uint8_t value) {
         post_print_duration_sec = value * 60 /* stored in minutes */;
         config_store().xl_enclosure_post_print_duration.set(value);
     }
@@ -90,8 +90,8 @@ public:
 
     // FLAG GETTER FUNCTION
     inline bool isEnabled() const { return persistent_flags & PERSISTENT::ENABLED; }
-    inline bool isAlwaysOnEnabled() const { return persistent_flags & PERSISTENT::ALWAYS_ON; }
-    inline bool isPostPrintEnabled() const { return persistent_flags & PERSISTENT::POST_PRINT; }
+    inline bool isPrintFiltrationEnabled() const { return persistent_flags & PERSISTENT::PRINT_FILTRATION; }
+    inline bool isPostPrintFiltrationEnabled() const { return persistent_flags & PERSISTENT::POST_PRINT_FILTRATION; }
     inline bool isWarningShown() const { return persistent_flags & PERSISTENT::WARNING_SHOWN; }
     inline bool isExpirationShown() const { return persistent_flags & PERSISTENT::EXPIRATION_SHOWN; }
     inline bool isReminderSet() const { return persistent_flags & PERSISTENT::REMINDER_5DAYS; }
@@ -100,22 +100,22 @@ public:
 
     inline bool isPrinting() const { return runtime_flags & RUNTIME::PRINTING; }
     inline bool isCooling() const { return runtime_flags & RUNTIME::ACTIVE_COOLING; }
-    inline bool isPostPrintActive() const { return runtime_flags & RUNTIME::ACTIVE_POST_PRINT; }
+    inline bool isPostPrintFiltrationActive() const { return runtime_flags & RUNTIME::ACTIVE_POST_PRINT_FILTRATION; }
     inline bool isTemperatureValid() const { return runtime_flags & RUNTIME::TEMP_VALID; }
 
     struct PERSISTENT {
         static constexpr uint8_t ENABLED = 0x01;
-        static constexpr uint8_t ALWAYS_ON = 0x02;
+        static constexpr uint8_t PRINT_FILTRATION = 0x02;
         static constexpr uint8_t WARNING_SHOWN = 0x04;
         static constexpr uint8_t EXPIRATION_SHOWN = 0x08;
-        static constexpr uint8_t POST_PRINT = 0x10;
+        static constexpr uint8_t POST_PRINT_FILTRATION = 0x10;
         static constexpr uint8_t REMINDER_5DAYS = 0x20;
     };
 
     struct RUNTIME {
         static constexpr uint8_t PRINTING = 0x01;
         static constexpr uint8_t ACTIVE_COOLING = 0x02;
-        static constexpr uint8_t ACTIVE_POST_PRINT = 0x04;
+        static constexpr uint8_t ACTIVE_POST_PRINT_FILTRATION = 0x04;
         static constexpr uint8_t TEMP_VALID = 0x08;
     };
 

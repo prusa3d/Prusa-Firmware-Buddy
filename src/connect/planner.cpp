@@ -825,10 +825,10 @@ void Planner::command(const Command &command, const SetValue &params) {
         xl_enclosure.setEnabled(params.bool_value);
         break;
     case connect_client::PropertyName::EnclosurePrintingFiltration:
-        xl_enclosure.setAlwaysOn(params.bool_value);
+        xl_enclosure.setPrintFiltration(params.bool_value);
         break;
     case connect_client::PropertyName::EnclosurePostPrint:
-        xl_enclosure.setPostPrint(params.bool_value);
+        xl_enclosure.setPostPrintFiltration(params.bool_value);
         break;
     case connect_client::PropertyName::EnclosurePostPrintFiltrationTime:
         // we recieve it in seconds, but this function expects minutes
@@ -836,7 +836,7 @@ void Planner::command(const Command &command, const SetValue &params) {
         if (params.int_value % 60 != 0) {
             err = "Value should be whole minutes";
         } else if (minutes >= 1 && minutes <= 10) {
-            xl_enclosure.setPostPrintDuration(minutes);
+            xl_enclosure.setPostPrintFiltrationDuration(minutes);
         } else {
             err = "Value out of range";
         }
