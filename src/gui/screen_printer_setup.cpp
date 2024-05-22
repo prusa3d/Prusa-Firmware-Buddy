@@ -16,7 +16,7 @@ MI_DONE::MI_DONE()
 }
 
 void MI_DONE::click(IWindowMenu &) {
-    // TODO mark HW configured?
+    config_store().printer_setup_done.set(true);
     Screens::Access()->Close();
 }
 

@@ -44,6 +44,11 @@
     #include <module/prusa/toolchanger.h>
 #endif
 
+#include <option/has_printer_setup_screen.h>
+#if HAS_PRINTER_SETUP_SCREEN()
+    #include <gui/screen_printer_setup.hpp>
+#endif
+
 #if HAS_MINI_DISPLAY()
     #define SPLASHSCREEN_PROGRESSBAR_X 16
     #define SPLASHSCREEN_PROGRESSBAR_Y 148
@@ -136,22 +141,24 @@ screen_splash_data_t::screen_splash_data_t()
     const bool run_lang = !LangEEPROM::getInstance().IsValid();
 #endif
     const screen_node screens[] {
+
 #if HAS_TRANSLATIONS()
-        { run_lang ? ScreenFactory::Screen<ScreenMenuLanguagesNoRet> : nullptr }, // lang
+        { run_lang ? ScreenFactory::Screen<ScreenMenuLanguagesNoRet> : nullptr },
 #endif
+
 #if HAS_TOUCH()
-            { touchscreen.is_enabled() && !touchscreen.is_hw_ok() ? ScreenFactory::Screen<ScreenTouchError> : nullptr }, // touch error will show after language
+            { touchscreen.is_enabled() && !touchscreen.is_hw_ok() ? ScreenFactory::Screen<ScreenTouchError> : nullptr },
 #endif // HAS_TOUCH
+
+#if HAS_PRINTER_SETUP_SCREEN()
+            { config_store().printer_setup_done.get() ? nullptr : ScreenFactory::Screen<ScreenPrinterSetup> },
+#endif
 
 #if HAS_SELFTEST()
     #if HAS_SELFTEST_SNAKE()
-            {
-                run_wizard ? screen_node(ScreenFactory::Screen<ScreenMenuSTSWizard>) : screen_node()
-            } // xl wizard
+            { run_wizard ? screen_node(ScreenFactory::Screen<ScreenMenuSTSWizard>) : screen_node() } // xl wizard
     #else
-            {
-                run_wizard ? screen_node(ScreenFactory::Screen<ScreenSelftest>, stmWizard) : screen_node()
-            } // wizard
+            { run_wizard ? screen_node(ScreenFactory::Screen<ScreenSelftest>, stmWizard) : screen_node() } // wizard
     #endif
 #else
         {
