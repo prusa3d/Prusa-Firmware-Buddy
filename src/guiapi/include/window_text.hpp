@@ -31,7 +31,7 @@ class WindowButton : public window_text_t {
 
 public:
     WindowButton() = default;
-    WindowButton(window_t *parent, Rect16 rect, ButtonCallback cb, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR()); // default action is close screen
+    WindowButton(window_t *parent, Rect16 rect, ButtonCallback cb = nullptr, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR()); // default action is close screen
 
 public:
     ButtonCallback callback;
