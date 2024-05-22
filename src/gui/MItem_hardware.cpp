@@ -47,37 +47,6 @@ void MI_HARDWARE_G_CODE_CHECKS::click(IWindowMenu &) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuHardwareChecks>);
 }
 
-// MI_NOZZLE_TYPE
-MI_NOZZLE_TYPE::MI_NOZZLE_TYPE()
-    : IWiSwitch(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-
-    SetIndex(ftrstd::to_underlying(config_store().nozzle_type.get()));
-
-    // Items are initialized now, update extension width
-    changeExtentionWidth();
-};
-
-void MI_NOZZLE_TYPE::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().nozzle_type.set(static_cast<NozzleType>(index));
-}
-
-// MI_HOTEND_TYPE
-MI_HOTEND_TYPE::MI_HOTEND_TYPE()
-    : IWiSwitch(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) //
-{
-    // Determine current index
-    if (auto he = std::find(supported_hotend_types.begin(), supported_hotend_types.end(), config_store().hotend_type.get()); he != supported_hotend_types.end()) {
-        SetIndex(he - supported_hotend_types.begin());
-    }
-
-    // Items are initialized now, update extension width
-    changeExtentionWidth();
-}
-
-void MI_HOTEND_TYPE::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().hotend_type.set(supported_hotend_types[index]);
-}
-
 // MI_NOZZLE_SOCK
 MI_NOZZLE_SOCK::MI_NOZZLE_SOCK()
     : WI_ICON_SWITCH_OFF_ON_t(config_store().hotend_type.get() == HotendType::stock_with_sock, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};

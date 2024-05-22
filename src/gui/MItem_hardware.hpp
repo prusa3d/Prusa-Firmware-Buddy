@@ -1,6 +1,7 @@
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
+#include <window_menu_enum_switch.hpp>
 #include <config_store/store_instance.hpp>
 #include <option/has_side_fsensor.h>
 #include <option/has_toolchanger.h>
@@ -141,38 +142,18 @@ public:
         : MI_HARDWARE_CHECK_t(_(label)) {}
 };
 
-class MI_NOZZLE_TYPE final : public IWiSwitch {
-    static constexpr const char *const label = N_("Nozzle Type");
-
+class MI_NOZZLE_TYPE final : public WiStoreEnumSwitch<&config_store_ns::CurrentStore::nozzle_type> {
 public:
-    MI_NOZZLE_TYPE();
-
-protected:
-    virtual void OnChange(size_t old_index) override;
-
-    inline size_t item_count() const final {
-        return nozzle_type_names.size();
-    }
-    inline string_view_utf8 current_item_text() const final {
-        return _(nozzle_type_names[index]);
+    MI_NOZZLE_TYPE()
+        : WiStoreEnumSwitch(_("Nozzle Type"), nozzle_type_names) {
+        set_is_hidden(is_hidden_t::dev);
     }
 };
 
-class MI_HOTEND_TYPE : public IWiSwitch {
-    static constexpr const char *const label = N_("Hotend Type");
-
+class MI_HOTEND_TYPE : public WiStoreEnumSwitch<&config_store_ns::CurrentStore::hotend_type> {
 public:
-    MI_HOTEND_TYPE();
-
-    size_t item_count() const final {
-        return supported_hotend_types.size();
-    }
-    string_view_utf8 current_item_text() const final {
-        return _(hotend_type_names[supported_hotend_types[index]]);
-    }
-
-protected:
-    virtual void OnChange(size_t old_index) override;
+    MI_HOTEND_TYPE()
+        : WiStoreEnumSwitch(_("Hotend Type"), hotend_type_names, hotend_type_supported) {}
 };
 
 class MI_NOZZLE_SOCK : public WI_ICON_SWITCH_OFF_ON_t {

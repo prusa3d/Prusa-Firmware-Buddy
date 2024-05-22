@@ -35,21 +35,8 @@ static constexpr EnumArray<HotendType, bool, HotendType::_cnt> hotend_type_suppo
     { HotendType::e3d_revo, PRINTER_IS_PRUSA_MK3_5 },
 };
 
-/// std::array<HotendType> - list of hotend types supported for this printer
-static constexpr auto supported_hotend_types = [] {
-    constexpr auto cnt = std::count(hotend_type_supported.begin(), hotend_type_supported.end(), true);
-    std::array<HotendType, cnt> r;
-    size_t j = 0;
-    for (size_t i = 0; i < hotend_type_count; i++) {
-        if (hotend_type_supported[i]) {
-            r[j++] = static_cast<HotendType>(i);
-        }
-    }
-    return r;
-}();
-
 /// Whether only the "stock" and "sock" options are supported
 /// This affects some texts and dialogs:
 /// true -> "Do you have nozzle sock installed?"
 /// false -> "What hotend do you have?"
-static constexpr bool hotend_type_only_sock = (supported_hotend_types.size() == 2 && hotend_type_supported[HotendType::stock] && hotend_type_supported[HotendType::stock_with_sock]);
+static constexpr bool hotend_type_only_sock = (std::count(hotend_type_supported.begin(), hotend_type_supported.end(), true) == 2 && hotend_type_supported[HotendType::stock] && hotend_type_supported[HotendType::stock_with_sock]);
