@@ -53,6 +53,7 @@ protected:
 };
 
 /// IWiSwitch implementation with fixed number of fixed items, stored in a buffer
+/// TODO: Most of the usage can be shifted to a nicer WiEnumSwitch
 template <size_t SZ>
 class WI_SWITCH_t : public IWiSwitch {
 
