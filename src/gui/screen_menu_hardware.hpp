@@ -34,20 +34,6 @@
     #include "MItem_mmu.hpp"
 #endif
 
-class MI_MK4_MK39 : public WI_SWITCH_t<2> {
-    static constexpr const char *const label = "Current Printer Type";
-    constexpr static const char *const str_mk4 = "MK4";
-    constexpr static const char *const str_mk39 = "MK3.9";
-
-    static bool is_mk4();
-
-public:
-    MI_MK4_MK39();
-
-protected:
-    virtual void OnChange(size_t old_index) override;
-};
-
 using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_RETURN,
 #if HAS_EXTENDED_PRINTER_TYPE()
@@ -112,10 +98,6 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_FS_REF<3, false>, MI_FS_REF<3, true>,
     MI_FS_REF<4, false>, MI_FS_REF<4, true>,
     MI_FS_REF<5, false>, MI_FS_REF<5, true>
-#endif
-#if PRINTER_IS_PRUSA_MK4
-    ,
-    MI_MK4_MK39
 #endif
 #if HAS_MMU2()
     ,

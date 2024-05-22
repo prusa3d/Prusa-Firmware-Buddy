@@ -186,6 +186,9 @@ class MI_EXTENDED_PRINTER_TYPE : public WiStoreEnumSwitch<&config_store_ns::Curr
 public:
     MI_EXTENDED_PRINTER_TYPE()
         : WiStoreEnumSwitch(_("Printer Type"), extended_printer_type_names) {}
+
+protected:
+    void OnChange(size_t diff) override;
 };
 
 #else

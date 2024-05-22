@@ -3,6 +3,7 @@
 #include "WindowMenuSpin.hpp"
 #include <option/has_toolchanger.h>
 #include <option/has_side_fsensor.h>
+#include <PersistentStorage.h>
 
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -76,3 +77,34 @@ void MI_SIDE_FSENSOR_REMAP::OnChange([[maybe_unused]] size_t old_index) {
     }
 }
 #endif /*HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()*/
+
+#if HAS_EXTENDED_PRINTER_TYPE()
+void MI_EXTENDED_PRINTER_TYPE::OnChange(size_t old_index) {
+    WiStoreEnumSwitch::OnChange(old_index);
+
+    // Reset motor configuration if the printer types have different motors
+    if (extended_printer_type_has_400step_motors[old_index] != extended_printer_type_has_400step_motors[index]) {
+        // This code is copied over from MI_MK4_MK39
+        // This line looks absolutely terrible, I agree. It apparently just clears homing data.
+        PersistentStorage::erase();
+
+        {
+            auto &store = config_store();
+            auto transaction = store.get_backend().transaction_guard();
+            store.homing_sens_x.set(store.homing_sens_x.default_val);
+            store.homing_sens_y.set(store.homing_sens_y.default_val);
+            store.homing_bump_divisor_x.set(store.homing_bump_divisor_x.default_val);
+            store.homing_bump_divisor_y.set(store.homing_bump_divisor_y.default_val);
+        }
+
+        // Reset XY homing sensitivity
+        marlin_client::gcode("M914 X Y");
+
+        // XY motor currents
+        marlin_client::gcode_printf("M906 X%u Y%u", get_rms_current_ma_x(), get_rms_current_ma_y());
+
+        // XY motor microsteps
+        marlin_client::gcode_printf("M350 X%u Y%u", get_microsteps_x(), get_microsteps_y());
+    }
+}
+#endif
