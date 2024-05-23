@@ -4,6 +4,7 @@
 #include <Marlin/src/feature/input_shaper/input_shaper_config.hpp>
 #include <Marlin/src/feature/input_shaper/input_shaper.hpp>
 #include "WindowMenuItems.hpp"
+#include <window_menu_enum_switch.hpp>
 
 enum class InputShaperMenuItemChildClickParam {
     request_gui_update,
@@ -30,7 +31,7 @@ protected:
     void OnChange(size_t old_index) override;
 };
 
-class MI_IS_X_TYPE : public WI_SWITCH_t<6> {
+class MI_IS_X_TYPE : public WiEnumSwitch {
     static constexpr const char *const label = N_("X-axis Filter");
 
 public:
@@ -40,7 +41,7 @@ protected:
     void OnChange(size_t old_index) override;
 };
 
-class MI_IS_Y_TYPE : public WI_SWITCH_t<6> {
+class MI_IS_Y_TYPE : public WiEnumSwitch {
     static constexpr const char *const label = N_("Y-axis Filter");
 
 public:
