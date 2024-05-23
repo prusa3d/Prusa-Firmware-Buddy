@@ -6,6 +6,7 @@
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
 #include <option/has_config_store_wo_backend.h>
+#include <option/has_touch.h>
 
 namespace config_store_ns {
 #if not HAS_CONFIG_STORE_WO_BACKEND()
@@ -15,6 +16,14 @@ static_assert(journal::has_unique_items<config_store_ns::CurrentStore>(), "Just 
 
 void CurrentStore::perform_config_check() {
     [[maybe_unused]] const auto init_result = config_store_init_result();
+
+#if HAS_TOUCH()
+    // We cannot just change the default value of touch_enabled for backwards compatiblity reasons
+    // So instead we just enable touch by default for new printers (and after fw reset)
+    if (init_result == InitResult::cold_start) {
+        touch_enabled.set(true);
+    }
+#endif
 }
 
 footer::Item CurrentStore::get_footer_setting([[maybe_unused]] uint8_t index) {
