@@ -39,6 +39,7 @@ void CurrentStore::perform_config_check() {
     if (is_first_run) {
         extended_printer_type.set(ExtendedPrinterType::mk4s);
         nozzle_type.set(NozzleType::HighFlow);
+        hotend_type.set(HotendType::stock_with_sock);
     }
 #endif
 }
