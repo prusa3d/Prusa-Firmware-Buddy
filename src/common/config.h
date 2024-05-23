@@ -14,15 +14,17 @@ enum {
 
 // default string used as LAN hostname
 #if PRINTER_IS_PRUSA_MK4
-    #define LAN_HOSTNAME_DEF "PrusaMK4"
+    #define LAN_HOSTNAME_DEF "prusa-mk4"
 #elif PRINTER_IS_PRUSA_MK3_5
-    #define LAN_HOSTNAME_DEF "PrusaMK4"
+    #define LAN_HOSTNAME_DEF "prusa-mk3-5"
 #elif PRINTER_IS_PRUSA_XL
-    #define LAN_HOSTNAME_DEF "PrusaXL"
+    #define LAN_HOSTNAME_DEF "prusa-xl"
 #elif PRINTER_IS_PRUSA_iX
-    #define LAN_HOSTNAME_DEF "Prusa_iX"
+    #define LAN_HOSTNAME_DEF "prusa-ix"
+#elif PRINTER_IS_PRUSA_MINI
+    #define LAN_HOSTNAME_DEF "prusa-mini"
 #else
-    #define LAN_HOSTNAME_DEF "PrusaMINI"
+    #error Unsupported printer
 #endif
 
 #if defined(_DEBUG)
