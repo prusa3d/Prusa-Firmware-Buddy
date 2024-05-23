@@ -3,21 +3,31 @@ import argparse
 import hashlib
 import os
 
+# Max number of bytes that should be flashed at once
+MAX_SEND_SIZE = 0x10000
+
 
 def write_part(out, basedir, spec):
     basename, address = spec.split(':')
-    filename = basedir + basename
-    size = os.path.getsize(filename)
-    raw_md5 = hashlib.md5(open(filename, 'rb').read()).hexdigest()
-    raw_md5_pairs = [raw_md5[i:i + 2] for i in range(0, len(raw_md5), 2)]
-    md5 = '{' + ', '.join(f"'\\x{p}'" for p in raw_md5_pairs) + '}'
+    address = int(address, 16)
+    filename = os.path.join(basedir, basename)
+    filesize = os.path.getsize(filename)
+    bytes_processed = 0
+    with open(filename, 'rb') as file:
+        while bytes_processed < filesize:
+            file_bytes = file.read(MAX_SEND_SIZE)
+            chunk_size = len(file_bytes)
+            md5 = hashlib.md5(file_bytes).digest()
+            md5 = '{' + ', '.join([f'0x{p:02x}' for p in md5]) + '}'
 
-    out.write('{\n')
-    out.write(f'    .filename = "/internal/res/esp/{basename}",\n')
-    out.write(f'    .address = {address},\n')
-    out.write(f'    .size = {size},\n')
-    out.write(f'    .md5 = {md5},\n')
-    out.write('},\n')
+            out.write('{\n')
+            out.write(f'    .filename = "/internal/res/esp/{basename}",\n')
+            out.write(f'    .address = 0x{address + bytes_processed:x},\n')
+            out.write(f'    .size = 0x{chunk_size:x},\n')
+            out.write(f'    .offset = 0x{bytes_processed:x},\n')
+            out.write(f'    .md5 = {md5},\n')
+            out.write('},\n')
+            bytes_processed += chunk_size
 
 
 def write_parts(out, basedir, name, specs):

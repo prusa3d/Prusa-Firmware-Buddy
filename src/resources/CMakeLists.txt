@@ -64,7 +64,6 @@ endif()
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_ESP_FLASH_TASK)
   set(ESP_PARTS ${CMAKE_CURRENT_BINARY_DIR}/include/esp_parts.gen)
-  add_custom_target(esp-parts DEPENDS ${ESP_PARTS})
   if(${PRINTER} IN_LIST PRINTERS_WITH_EMBEDDED_ESP32)
     add_resource("esp32/uart_wifi.bin" "/esp/uart_wifi.bin")
     add_resource("esp32/bootloader.bin" "/esp/bootloader.bin")
@@ -76,6 +75,7 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_ESP_FLASH_TASK)
         ${CMAKE_CURRENT_SOURCE_DIR}/esp32/ --flash partition-table.bin:0x08000 --flash
         bootloader.bin:0x01000 --flash uart_wifi.bin:0x10000
       DEPENDS esp32/uart_wifi.bin esp32/bootloader.bin esp32/partition-table.bin
+              ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py
       )
   else()
     add_resource("esp8266/uart_wifi.bin" "/esp/uart_wifi.bin")
@@ -92,8 +92,10 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_ESP_FLASH_TASK)
         --memory stub_data.bin:0x3fff01b4
       DEPENDS esp8266/uart_wifi.bin esp8266/bootloader.bin esp8266/partition-table.bin
               esp8266/stub_text.bin esp8266/stub_data.bin
+              ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py
       )
   endif()
+  add_custom_target(esp-parts DEPENDS ${ESP_PARTS})
 endif()
 
 if(PUPPY_FLASH_FW)

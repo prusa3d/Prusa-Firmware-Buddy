@@ -22,6 +22,7 @@ struct Part {
     const char *filename;
     uintptr_t address;
     size_t size;
+    size_t offset;
     uint8_t md5[16];
 };
 
@@ -66,13 +67,18 @@ static Result generic_upload(const Part &part, generic_start_function start, gen
         return Result::filesystem_error;
     }
 
+    if (fseek(file.get(), part.offset, SEEK_SET)) {
+        return Result::filesystem_error;
+    }
+
     if (start(part.address, part.size, sizeof(buffer)) != ESP_LOADER_SUCCESS) {
         return Result::protocol_error;
     }
 
-    while (!feof(file.get())) {
+    size_t read_total = 0;
+
+    while (read_total < part.size) {
         const size_t read_bytes = fread(buffer, 1, sizeof(buffer), file.get());
-        progress_hook.report_progress(read_bytes);
 
         if (ferror(file.get())) {
             return Result::filesystem_error;
@@ -81,6 +87,9 @@ static Result generic_upload(const Part &part, generic_start_function start, gen
         if (write(buffer, read_bytes) != ESP_LOADER_SUCCESS) {
             return Result::protocol_error;
         }
+
+        progress_hook.report_progress(read_bytes);
+        read_total += read_bytes;
     }
 
     return Result::success;
