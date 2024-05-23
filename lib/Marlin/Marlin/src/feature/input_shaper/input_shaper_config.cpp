@@ -18,14 +18,14 @@ void set_config_for_m74(const AxisEnum axis, const std::optional<AxisConfig> &ne
     // Only set the value if it was not set before.
     // Older slicer versions issued both M593 and M74 which caused M74 to adjust already adjusted value.
     // This gets reset after the boot and after the print is done.
-    if (!config_for_m74.axis[axis]) {
+    if (!next_config || !config_for_m74.axis[axis]) {
         config_for_m74.axis[axis] = next_config;
     }
 }
 
 void set_config_for_m74(const std::optional<WeightAdjustConfig> &next_config) {
     // This function complements set_config_for_m74 for setting axis config
-    if (!config_for_m74.weight_adjust_y) {
+    if (!next_config || !config_for_m74.weight_adjust_y) {
         config_for_m74.weight_adjust_y = next_config;
     }
 }
