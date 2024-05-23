@@ -171,8 +171,7 @@ void save_net_params(netif_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_
                                    : store.wifi_ip4_gateway.set(ethconfig->lan.gw_ip4.addr);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
-        netdev_id == NETDEV_ETH_ID ? store.lan_hostname.set(ethconfig->hostname)
-                                   : store.wifi_hostname.set(ethconfig->hostname);
+        store.hostname.set(ethconfig->hostname);
     }
 
     if (ap != NULL) {
@@ -202,7 +201,6 @@ void load_net_params(netif_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_
         ethconfig->dns2_ip4.addr = store.lan_ip4_dns2.get();
         ethconfig->lan.msk_ip4.addr = store.lan_ip4_mask.get();
         ethconfig->lan.gw_ip4.addr = store.lan_ip4_gateway.get();
-        strlcpy(ethconfig->hostname, store.lan_hostname.get_c_str(), HOSTNAME_LEN + 1);
     } else {
         ethconfig->lan.flag = store.wifi_flag.get() & ~RESERVED_MASK;
         ethconfig->lan.addr_ip4.addr = store.wifi_ip4_addr.get();
@@ -210,8 +208,9 @@ void load_net_params(netif_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_
         ethconfig->dns2_ip4.addr = store.wifi_ip4_dns2.get();
         ethconfig->lan.msk_ip4.addr = store.wifi_ip4_mask.get();
         ethconfig->lan.gw_ip4.addr = store.wifi_ip4_gateway.get();
-        strlcpy(ethconfig->hostname, store.wifi_hostname.get_c_str(), HOSTNAME_LEN + 1);
     }
+
+    strlcpy(ethconfig->hostname, store.hostname.get_c_str(), HOSTNAME_LEN + 1);
 
     if (ap != NULL) {
         assert(netdev_id == NETDEV_ESP_ID);

@@ -163,5 +163,21 @@ namespace migrations {
         backend.save_migration_item(journal::hash("Extended Printer Type"), has_400_motors ? ExtendedPrinterType::mk4 : ExtendedPrinterType::mk3_9);
     }
 #endif
+
+    void hostname(journal::Backend &backend) {
+        // See selftest_result_pre_23 (above) for in-depth commentary
+        using NewItem = decltype(CurrentStore::hostname);
+        NewItem::value_type hostname;
+
+        auto callback = [&](journal::Backend::ItemHeader header, std::array<uint8_t, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
+            // Copy either hostname that's not empty
+            if ((header.id == decltype(DeprecatedStore::wifi_hostname)::hashed_id || header.id == decltype(DeprecatedStore::lan_hostname)::hashed_id) && strnlen(reinterpret_cast<const char *>(buffer.data()), sizeof(hostname)) != 0) {
+                memcpy(&hostname, buffer.data(), header.len);
+            }
+        };
+        backend.read_items_for_migrations(callback);
+
+        backend.save_migration_item(NewItem::hashed_id, hostname);
+    }
 } // namespace migrations
 } // namespace config_store_ns

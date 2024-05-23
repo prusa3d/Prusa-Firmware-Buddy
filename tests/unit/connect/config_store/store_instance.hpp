@@ -16,8 +16,7 @@ struct ConfigStore {
         }
     };
 
-    HostName wifi_hostname;
-    HostName lan_hostname;
+    HostName hostname;
 };
 
 ConfigStore &config_store();

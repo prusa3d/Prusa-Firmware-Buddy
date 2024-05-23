@@ -243,10 +243,9 @@ namespace {
             return "Hostname too long";
         }
 
-        if (strcmp(config_store().wifi_hostname.get_c_str(), new_hostname) != 0 || strcmp(config_store().lan_hostname.get_c_str(), new_hostname) != 0) {
+        if (strcmp(config_store().hostname.get_c_str(), new_hostname) != 0) {
             log_info(connect, "Changing hostname to: %s", new_hostname);
-            config_store().wifi_hostname.set(new_hostname);
-            config_store().lan_hostname.set(new_hostname);
+            config_store().hostname.set(new_hostname);
             notify_reconfigure();
         }
         return nullptr;

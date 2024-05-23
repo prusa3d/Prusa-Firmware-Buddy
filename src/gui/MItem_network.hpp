@@ -80,7 +80,7 @@ class MI_HOSTNAME : public WiInfo<HAS_MINI_DISPLAY() ? 16 : config_store_ns::lan
     constexpr static const char *const label = N_("Hostname");
 
 public:
-    MI_HOSTNAME(NetDeviceID device_id = {});
+    MI_HOSTNAME();
 
     void update();
 

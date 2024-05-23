@@ -90,7 +90,6 @@ struct CurrentStore
     StoreItem<uint32_t, 0, journal::hash("LAN IP4 Gateway")> lan_ip4_gateway; // X.X.X.X address encoded
     StoreItem<uint32_t, 0, journal::hash("LAN IP4 DNS1")> lan_ip4_dns1; // X.X.X.X address encoded
     StoreItem<uint32_t, 0, journal::hash("LAN IP4 DNS2")> lan_ip4_dns2; // X.X.X.X address encoded
-    StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("LAN Hostname")> lan_hostname;
 
     StoreItem<int8_t, defaults::lan_timezone, journal::hash("LAN Timezone")> timezone; // hour difference from UTC
     StoreItem<time_tools::TimezoneOffsetMinutes, defaults::timezone_minutes, journal::hash("Timezone Minutes")> timezone_minutes; // minutes offset for hour difference from UTC
@@ -104,9 +103,11 @@ struct CurrentStore
     StoreItem<uint32_t, 0, journal::hash("WIFI IP4 Gateway")> wifi_ip4_gateway; // X.X.X.X address encoded
     StoreItem<uint32_t, 0, journal::hash("WIFI IP4 DNS1")> wifi_ip4_dns1; // X.X.X.X address encoded
     StoreItem<uint32_t, 0, journal::hash("WIFI IP4 DNS2")> wifi_ip4_dns2; // X.X.X.X address encoded
-    StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("WIFI Hostname")> wifi_hostname;
     StoreItem<std::array<char, wifi_max_ssid_len + 1>, defaults::wifi_ap_ssid, journal::hash("WIFI AP SSID")> wifi_ap_ssid;
     StoreItem<std::array<char, wifi_max_passwd_len + 1>, defaults::wifi_ap_password, journal::hash("WIFI AP Password")> wifi_ap_password;
+
+    // General network settings
+    StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("Hostname")> hostname;
 
     StoreItem<eSOUND_MODE, defaults::sound_mode, journal::hash("Sound Mode")> sound_mode;
     StoreItem<uint8_t, defaults::sound_volume, journal::hash("Sound Volume")> sound_volume;
@@ -516,6 +517,10 @@ struct DeprecatedStore
     /// This was used everywhere as determining if the printer is MK3.9 (== false) :/
     // All other printers seem to have it true
     StoreItem<bool, true, journal::hash("400 step motors on X and Y axis")> xy_motors_400_step;
+
+    // Unified WIFI and LAN hostnames - BFW-5523
+    StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("LAN Hostname")> lan_hostname;
+    StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("WIFI Hostname")> wifi_hostname;
 };
 
 } // namespace config_store_ns

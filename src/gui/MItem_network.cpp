@@ -4,7 +4,7 @@
 #include <espif.h>
 #include <dns.h>
 #include "wui_api.h"
-#include "netdev.h"
+#include <netdev.h>
 #include "ScreenHandler.hpp"
 #include "marlin_client.hpp"
 #include <dialog_text_input.hpp>
@@ -124,19 +124,13 @@ void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
     netdev_set_active_id(this->index);
 }
 
-MI_HOSTNAME::MI_HOSTNAME(NetDeviceID device_id)
-    : WiInfo(_(label))
-    , device_id(device_id) //
-{
+MI_HOSTNAME::MI_HOSTNAME()
+    : WiInfo(_(label)) {
     update();
 }
 
 void MI_HOSTNAME::update() {
-    if (device_id() == NETDEV_ESP_ID) {
-        ChangeInformation(config_store().wifi_hostname.get_c_str());
-    } else {
-        ChangeInformation(config_store().lan_hostname.get_c_str());
-    }
+    ChangeInformation(config_store().hostname.get().data());
 }
 
 MI_NET_IP::MI_NET_IP(NetDeviceID device_id)

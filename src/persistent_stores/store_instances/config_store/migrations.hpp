@@ -39,6 +39,10 @@ namespace deprecated_ids {
         journal::hash("400 step motors on X and Y axis"),
     };
 #endif
+    inline constexpr uint16_t hostname[] {
+        decltype(DeprecatedStore::lan_hostname)::hashed_id,
+        decltype(DeprecatedStore::wifi_hostname)::hashed_id,
+    };
 } // namespace deprecated_ids
 
 namespace migrations {
@@ -56,6 +60,8 @@ namespace migrations {
 #if PRINTER_IS_PRUSA_MK4
     void extended_printer_type(journal::Backend &backend);
 #endif
+
+    void hostname(journal::Backend &backend);
 } // namespace migrations
 
 /**
@@ -76,8 +82,10 @@ inline constexpr journal::Backend::MigrationFunction migration_functions[] {
         { migrations::footer_setting_v2, deprecated_ids::footer_setting_v2 },
 
 #if PRINTER_IS_PRUSA_MK4
-        { migrations::extended_printer_type, { deprecated_ids::extended_printer_type } },
+        { migrations::extended_printer_type, deprecated_ids::extended_printer_type },
 #endif
+
+        { migrations::hostname, deprecated_ids::hostname },
 };
 
 // Span of migration versions to simplify passing it around
