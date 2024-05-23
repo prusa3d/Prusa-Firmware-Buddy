@@ -20,9 +20,9 @@ enum class ExtendedPrinterType : uint8_t {
 static constexpr uint8_t extended_printer_type_count = ftrstd::to_underlying(ExtendedPrinterType::_last) + 1;
 
 static constexpr EnumArray<ExtendedPrinterType, const char *, extended_printer_type_count> extended_printer_type_names {
-    { ExtendedPrinterType::mk4, N_("Mk4") },
-    { ExtendedPrinterType::mk4s, N_("Mk4S") },
-    { ExtendedPrinterType::mk3_9, N_("Mk3.9") },
+    { ExtendedPrinterType::mk4, N_("MK4") },
+    { ExtendedPrinterType::mk4s, N_("MK4S") },
+    { ExtendedPrinterType::mk3_9, N_("MK3.9") },
 };
 
 static constexpr EnumArray<ExtendedPrinterType, bool, extended_printer_type_count> extended_printer_type_has_400step_motors {
