@@ -84,8 +84,8 @@ public:
 
     void update();
 
-public:
-    const NetDeviceID device_id;
+protected:
+    void click(IWindowMenu &menu) override;
 };
 static_assert(UpdatableMenuItem<MI_HOSTNAME>);
 

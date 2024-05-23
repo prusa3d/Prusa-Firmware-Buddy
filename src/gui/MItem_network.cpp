@@ -9,6 +9,7 @@
 #include "marlin_client.hpp"
 #include <dialog_text_input.hpp>
 #include <wui.h>
+#include <str_utils.hpp>
 
 namespace {
 bool is_device_connected(netdev_status_t status) {
@@ -131,6 +132,44 @@ MI_HOSTNAME::MI_HOSTNAME()
 
 void MI_HOSTNAME::update() {
     ChangeInformation(config_store().hostname.get().data());
+}
+
+void MI_HOSTNAME::click(IWindowMenu &) {
+    std::array<char, config_store_ns::lan_hostname_max_len + 1> hostname = config_store().hostname.get();
+
+    for (bool hostname_is_valid = false; !hostname_is_valid;) {
+        if (!DialogTextInput::exec(_("Hostname"), hostname)) {
+            return;
+        }
+
+        hostname_is_valid = [&] {
+            const auto len = strlen(hostname.data());
+            if (len == 0) {
+                return false;
+            }
+
+            if (hostname[0] == '-') {
+                return false;
+            }
+
+            for (char *chp = hostname.data(); *chp; chp++) {
+                const char ch = *chp;
+                if (!isalnum(ch) && ch != '-') {
+                    return false;
+                }
+            }
+
+            return true;
+        }();
+
+        if (!hostname_is_valid) {
+            MsgBoxError(_("Hostname is not valid. Following conditions must apply:\n- Not empty\n- Contains only characters 'a-z A-Z 0-9 -'\n- Not starting with '-'"), Responses_Ok);
+        }
+    }
+
+    config_store().hostname.set(hostname);
+    update();
+    notify_reconfigure();
 }
 
 MI_NET_IP::MI_NET_IP(NetDeviceID device_id)
