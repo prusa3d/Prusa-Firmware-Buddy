@@ -616,117 +616,115 @@ class ClientResponses {
         return r;
     }();
 
-    static constexpr PhaseResponses SelftestResponses[] = {
-        {}, // _none
-
-        { Response::Continue, Response::Cancel }, // WizardPrologue_ask_run
-        { Response::Continue, Response::Cancel
+    static constexpr EnumArray<PhasesSelftest, PhaseResponses, CountPhases<PhasesSelftest>()> SelftestResponses {
+        { PhasesSelftest::_none, {} },
+            { PhasesSelftest::WizardPrologue_ask_run, { Response::Continue, Response::Cancel } },
+            { PhasesSelftest::WizardPrologue_ask_run_dev, { Response::Continue, Response::Cancel
 #if not PRINTER_IS_PRUSA_MINI
-            ,
-            Response::Ignore
+                                                              ,
+                                                              Response::Ignore
 #endif
-        }, // WizardPrologue_ask_run_dev
-        { Response::Continue, Response::Cancel }, // WizardPrologue_info
-        { Response::Continue, Response::Cancel }, // WizardPrologue_info_detailed
+                                                          } },
+            { PhasesSelftest::WizardPrologue_info, { Response::Continue, Response::Cancel } },
+            { PhasesSelftest::WizardPrologue_info_detailed, { Response::Continue, Response::Cancel } },
 
-        {}, // Fans
+            { PhasesSelftest::Fans, {} },
 
 #if PRINTER_IS_PRUSA_MK3_5
-        { Response::Yes, Response::No }, // Fans_manual
+            { PhasesSelftest::Fans_manual, { Response::Yes, Response::No } },
 #endif
 
-        {}, // Fans_second
+            { PhasesSelftest::Fans_second, {} },
 
-        {}, // Loadcell_prepare
-        {}, // Loadcell_move_away
-        {}, // Loadcell_tool_select
-        { Response::Abort }, // Loadcell_cooldown
+            { PhasesSelftest::Loadcell_prepare, {} },
+            { PhasesSelftest::Loadcell_move_away, {} },
+            { PhasesSelftest::Loadcell_tool_select, {} },
+            { PhasesSelftest::Loadcell_cooldown, { Response::Abort } },
 
-        { Response::Continue, Response::Abort }, // Loadcell_user_tap_ask_abort
-        {}, // Loadcell_user_tap_countdown
-        {}, // Loadcell_user_tap_check
-        {}, // Loadcell_user_tap_ok
-        {}, // Loadcell_fail
+            { PhasesSelftest::Loadcell_user_tap_ask_abort, { Response::Continue, Response::Abort } },
+            { PhasesSelftest::Loadcell_user_tap_countdown, {} },
+            { PhasesSelftest::Loadcell_user_tap_check, {} },
+            { PhasesSelftest::Loadcell_user_tap_ok, {} },
+            { PhasesSelftest::Loadcell_fail, {} },
 
-        {}, // NozzleDiameter_prepare = _first_NozzleDiameter,
-        { Response::NozzleDiameter_04, Response::NozzleDiameter_06 }, // NozzleDiameter_ask_user_for_type,
-        {}, // NozzleDiameter_set_default_nozzle_type,
+            { PhasesSelftest::NozzleDiameter_prepare, {} },
+            { PhasesSelftest::NozzleDiameter_ask_user_for_type, { Response::NozzleDiameter_04, Response::NozzleDiameter_06 } },
+            { PhasesSelftest::NozzleDiameter_save_selected_value, {} },
 
-        { Response::Continue, Response::Unload, Response::Abort }, // FSensor_ask_unload
-        {}, // FSensor_wait_tool_pick
-        { Response::Yes, Response::No }, // FSensor_unload_confirm
-        {}, // FSensor_calibrate
-        { Response::Abort_invalidate_test }, // FSensor_insertion_wait
-        { Response::Continue, Response::Abort_invalidate_test }, // FSensor_insertion_ok
-        { Response::Abort_invalidate_test }, // FSensor_insertion_calibrate
-        { Response::Abort_invalidate_test }, // Fsensor_enforce_remove
-        {}, // FSensor_done
-        {}, // FSensor_fail
+            { PhasesSelftest::FSensor_ask_unload, { Response::Continue, Response::Unload, Response::Abort } },
+            { PhasesSelftest::FSensor_wait_tool_pick, {} },
+            { PhasesSelftest::FSensor_unload_confirm, { Response::Yes, Response::No } },
+            { PhasesSelftest::FSensor_calibrate, {} },
+            { PhasesSelftest::FSensor_insertion_wait, { Response::Abort_invalidate_test } },
+            { PhasesSelftest::FSensor_insertion_ok, { Response::Continue, Response::Abort_invalidate_test } },
+            { PhasesSelftest::FSensor_insertion_calibrate, { Response::Abort_invalidate_test } },
+            { PhasesSelftest::Fsensor_enforce_remove, { Response::Abort_invalidate_test } },
+            { PhasesSelftest::FSensor_done, {} },
+            { PhasesSelftest::FSensor_fail, {} },
 
-        { Response::Continue, Response::Skip }, // GearsCalib_filament_check
-        { Response::Unload, Response::Abort }, // GearsCalib_filament_loaded_ask_unload
-        { Response::Continue, Response::Unload, Response::Abort }, // GearsCalib_filament_unknown_ask_unload
-        { Response::Continue, Response::Skip }, // GearsCalib_release_screws
-        {}, // GearsCalib_alignment
-        { Response::Continue }, // GearsCalib_tighten
-        { Response::Continue }, // GearsCalib_done
+            { PhasesSelftest::GearsCalib_filament_check, { Response::Continue, Response::Skip } },
+            { PhasesSelftest::GearsCalib_filament_loaded_ask_unload, { Response::Unload, Response::Abort } },
+            { PhasesSelftest::GearsCalib_filament_unknown_ask_unload, { Response::Continue, Response::Unload, Response::Abort } },
+            { PhasesSelftest::GearsCalib_release_screws, { Response::Continue, Response::Skip } },
+            { PhasesSelftest::GearsCalib_alignment, {} },
+            { PhasesSelftest::GearsCalib_tighten, { Response::Continue } },
+            { PhasesSelftest::GearsCalib_done, { Response::Continue } },
 
-        {}, // CalibZ
+            { PhasesSelftest::CalibZ, {} },
 
-        {}, // Axis
+            { PhasesSelftest::Axis, {} },
 
-        {}, // Heaters
-        { Response::Ok }, // HeatersDisabledDialog
+            { PhasesSelftest::Heaters, {} },
+            { PhasesSelftest::HeatersDisabledDialog, { Response::Ok } },
 
-        { Response::Adjust, Response::Skip }, // SpecifyHotend
-        SpecifyHotend_type_responses, // SpecifyHotend_type
-        { Response::NozzleType_Normal, Response::NozzleType_HighFlow }, // SpecifyHotend_nozzle_type
-        { Response::Yes, Response::No }, // SpecifyHotend_retry
+            { PhasesSelftest::SpecifyHotend, { Response::Adjust, Response::Skip } },
+            { PhasesSelftest::SpecifyHotend_type, SpecifyHotend_type_responses },
+            { PhasesSelftest::SpecifyHotend_nozzle_type, { Response::NozzleType_Normal, Response::NozzleType_HighFlow } },
+            { PhasesSelftest::SpecifyHotend_retry, { Response::Yes, Response::No } },
 
-        {}, // FirstLayer_mbl
-        {}, // FirstLayer_print
+            { PhasesSelftest::FirstLayer_mbl, {} },
+            { PhasesSelftest::FirstLayer_print, {} },
 
-        { Response::Next, Response::Unload }, // FirstLayer_filament_known_and_not_unsensed = _first_FirstLayerQuestions
-        { Response::Next, Response::Load, Response::Unload }, // FirstLayer_filament_not_known_or_unsensed
-        { Response::Next }, // FirstLayer_calib
-        { Response::Yes, Response::No }, // FirstLayer_use_val
-        { Response::Next }, // FirstLayer_start_print
-        { Response::Yes, Response::No }, // FirstLayer_reprint
-        { Response::Next }, // FirstLayer_clean_sheet
-        { Response::Next }, // FirstLayer_failed
+            { PhasesSelftest::FirstLayer_filament_known_and_not_unsensed, { Response::Next, Response::Unload } },
+            { PhasesSelftest::FirstLayer_filament_not_known_or_unsensed, { Response::Next, Response::Load, Response::Unload } },
+            { PhasesSelftest::FirstLayer_calib, { Response::Next } },
+            { PhasesSelftest::FirstLayer_use_val, { Response::Yes, Response::No } },
+            { PhasesSelftest::FirstLayer_start_print, { Response::Next } },
+            { PhasesSelftest::FirstLayer_reprint, { Response::Yes, Response::No } },
+            { PhasesSelftest::FirstLayer_clean_sheet, { Response::Next } },
+            { PhasesSelftest::FirstLayer_failed, { Response::Next } },
 
-        { Response::Continue, Response::Abort }, // Dock_needs_calibartion
-        {}, // Dock_move_away
-        { Response::Continue, Response::Abort }, // Dock_wait_user_park1
-        { Response::Continue, Response::Abort }, // Dock_wait_user_park2
-        { Response::Continue, Response::Abort }, // Dock_wait_user_park3
-        { Response::Continue, Response::Abort }, // Dock_wait_user_remove_pins
-        { Response::Continue, Response::Abort }, // Dock_wait_user_loosen_pillar
-        { Response::Continue, Response::Abort }, // Dock_wait_user_lock_tool
-        { Response::Continue, Response::Abort }, // Dock_wait_user_tighten_top_screw
-        { Response::Abort }, // Dock_measure
-        { Response::Continue, Response::Abort }, // Dock_wait_user_tighten_bottom_screw
-        { Response::Continue, Response::Abort }, // Dock_wait_user_install_pins
-        { Response::Abort }, // Dock_selftest_park_test
-        {}, // Dock_selftest_failed
-        { Response::Continue }, // Dock_calibration_success
+            { PhasesSelftest::Dock_needs_calibration, { Response::Continue, Response::Abort } },
+            { PhasesSelftest::Dock_move_away, {} },
+            { PhasesSelftest::Dock_wait_user_park1, { Response::Continue, Response::Abort } },
+            { PhasesSelftest::Dock_wait_user_park2, { Response::Continue, Response::Abort } },
+            { PhasesSelftest::Dock_wait_user_park3, { Response::Continue, Response::Abort } },
+            { PhasesSelftest::Dock_wait_user_remove_pins, { Response::Continue, Response::Abort } },
+            { PhasesSelftest::Dock_wait_user_loosen_pillar, { Response::Continue, Response::Abort } },
+            { PhasesSelftest::Dock_wait_user_lock_tool, { Response::Continue, Response::Abort } },
+            { PhasesSelftest::Dock_wait_user_tighten_top_screw, { Response::Continue, Response::Abort } },
+            { PhasesSelftest::Dock_measure, { Response::Abort } },
+            { PhasesSelftest::Dock_wait_user_tighten_bottom_screw, { Response::Continue, Response::Abort } },
+            { PhasesSelftest::Dock_wait_user_install_pins, { Response::Continue, Response::Abort } },
+            { PhasesSelftest::Dock_selftest_park_test, { Response::Abort } },
+            { PhasesSelftest::Dock_selftest_failed, {} },
+            { PhasesSelftest::Dock_calibration_success, { Response::Continue } },
 
-        { Response::Continue, Response::Abort }, // ToolOffsets_wait_user_confirm_start
-        { Response::Heatup, Response::Continue }, // ToolOffsets_wait_user_clean_nozzle_cold
-        { Response::Cooldown, Response::Continue }, // ToolOffsets_wait_user_clean_nozzle_hot
-        { Response::Continue }, // ToolOffsets_wait_user_install_sheet
-        {}, // ToolOffsets_pin_install_prepare
-        { Response::Continue }, // ToolOffsets_wait_user_install_pin
-        {}, // ToolOffsets_wait_stable_temp
-        {}, // ToolOffsets_wait_calibrate
-        {}, // ToolOffsets_state_final_park
-        { Response::Continue }, // ToolOffsets_wait_user_remove_pin
-        { Response::Next }, // Result
+            { PhasesSelftest::ToolOffsets_wait_user_confirm_start, { Response::Continue, Response::Abort } },
+            { PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_cold, { Response::Heatup, Response::Continue } },
+            { PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_hot, { Response::Cooldown, Response::Continue } },
+            { PhasesSelftest::ToolOffsets_wait_user_install_sheet, { Response::Continue } },
+            { PhasesSelftest::ToolOffsets_pin_install_prepare, {} },
+            { PhasesSelftest::ToolOffsets_wait_user_install_pin, { Response::Continue } },
+            { PhasesSelftest::ToolOffsets_wait_stable_temp, {} },
+            { PhasesSelftest::ToolOffsets_wait_calibrate, {} },
+            { PhasesSelftest::ToolOffsets_wait_move_away, {} },
+            { PhasesSelftest::ToolOffsets_wait_user_remove_pin, { Response::Continue } },
+            { PhasesSelftest::Result, { Response::Next } },
 
-        { Response::Continue }, // WizardEpilogue_ok
-        { Response::Continue }, // WizardEpilogue_nok
+            { PhasesSelftest::WizardEpilogue_ok, { Response::Continue } },
+            { PhasesSelftest::WizardEpilogue_nok, { Response::Continue } },
     };
-    static_assert(std::size(ClientResponses::SelftestResponses) == CountPhases<PhasesSelftest>());
 
     static constexpr EnumArray<PhaseNetworkSetup, PhaseResponses, PhaseNetworkSetup::_cnt> network_setup_responses {
         { PhaseNetworkSetup::init, {} },
