@@ -792,6 +792,8 @@ extern "C" void startup_task(void const *) {
     st25dv64k_init(); // init NFC+eeprom chip
 
     init_config_store();
+    config_store().perform_config_check();
+
     taskEXIT_CRITICAL();
 
 // must do this before timer 1, timer 1 interrupt calls Configuration

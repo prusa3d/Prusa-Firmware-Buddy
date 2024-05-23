@@ -53,6 +53,10 @@ struct CurrentStore
     : public journal::CurrentStoreConfig<journal::Backend, backend>
 #endif
 {
+    /// Performs a check on the configuration
+    /// This is an opportunity to check for invalid config combinations and such
+    void perform_config_check();
+
     // wizard flags
     StoreItem<bool, true, journal::hash("Run Selftest")> run_selftest;
     StoreItem<bool, true, journal::hash("Run XYZ Calibration")> run_xyz_calib;

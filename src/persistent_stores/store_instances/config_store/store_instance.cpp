@@ -57,7 +57,3 @@ void init_config_store() {
     }
 #endif
 }
-
-void init_stores() {
-    init_config_store();
-}

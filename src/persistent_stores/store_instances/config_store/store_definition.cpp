@@ -13,6 +13,10 @@ static_assert((sizeof(CurrentStore) + (aggregate_arity<CurrentStore>::size() - 1
 static_assert(journal::has_unique_items<config_store_ns::CurrentStore>(), "Just added items are causing collisions with reserved backend IDs");
 #endif
 
+void CurrentStore::perform_config_check() {
+    [[maybe_unused]] const auto init_result = config_store_init_result();
+}
+
 footer::Item CurrentStore::get_footer_setting([[maybe_unused]] uint8_t index) {
     switch (index) {
     case 0:
