@@ -18,6 +18,8 @@ LOG_COMPONENT_REF(Buddy);
 
 namespace buddy_esp_serial_flasher {
 
+constexpr size_t REFLASH_MAX_TRIES = 5;
+
 struct Part {
     const char *filename;
     uintptr_t address;
@@ -45,17 +47,19 @@ class BootstrapProgressHook final : public ProgressHookInterface {
 private:
     size_t total;
     size_t current;
+    bool retry;
 
 public:
-    BootstrapProgressHook(size_t total)
+    BootstrapProgressHook(size_t total, bool retry)
         : total { total }
-        , current { 0 } {
+        , current { 0 }
+        , retry { retry } {
         TaskDeps::wait(TaskDeps::make(TaskDeps::Dependency::resources_ready));
         report_progress(0);
     }
     void report_progress(size_t increment) final {
         current += increment;
-        gui_bootstrap_screen_set_state(100 * current / total, "Flashing ESP");
+        gui_bootstrap_screen_set_state(100 * current / total, retry ? "[ESP] Reflashing broken sectors" : "Flashing ESP");
     }
 };
 
@@ -221,7 +225,13 @@ static Result verify_all_flash_parts(FlashPartsResults &results) {
 
 Result flash() {
     esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
-    if (esp_loader_connect(&config) != ESP_LOADER_SUCCESS) {
+    int tries = REFLASH_MAX_TRIES;
+    while (tries > 0 && esp_loader_connect(&config) != ESP_LOADER_SUCCESS) {
+        --tries;
+        // TODO: try to reset the esp
+        taskYIELD();
+    }
+    if (tries == 0) {
         return Result::not_connected;
     }
 
@@ -230,7 +240,8 @@ Result flash() {
         return result;
     }
 
-    if (!all_parts_success(results)) {
+    tries = REFLASH_MAX_TRIES;
+    while (tries > 0 && !all_parts_success(results)) {
         size_t total = 0;
         foreach_flash_parts(results, [&](Result &result, const Part &part) {
             if (result != Result::success) {
@@ -244,7 +255,7 @@ Result flash() {
         }
 
         // Flash everything that needs to be flashed
-        BootstrapProgressHook progress_hook { total };
+        BootstrapProgressHook progress_hook { total, tries != REFLASH_MAX_TRIES };
         foreach_flash_parts(results, [&](Result &result, const Part &part) {
             if (result != Result::success) {
                 result = flash_upload(part, progress_hook);
@@ -260,9 +271,11 @@ Result flash() {
         if (const Result result = verify_all_flash_parts(results); result != Result::success) {
             return result;
         }
-        if (!all_parts_success(results)) {
-            return Result::checksum_mismatch;
-        }
+        --tries;
+    }
+
+    if (tries == 0 && !all_parts_success(results)) {
+        return Result::protocol_error;
     }
 
     if (loader_port_change_transmission_rate(NIC_UART_BAUDRATE) != ESP_LOADER_SUCCESS) {
