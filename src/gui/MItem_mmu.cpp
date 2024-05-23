@@ -15,11 +15,7 @@
 
 #include <config_store/store_instance.hpp>
 #include <feature/prusa/MMU2/mmu2_mk4.h>
-
-#include <option/has_printer_setup_screen.h>
-#if HAS_PRINTER_SETUP_SCREEN()
-    #include <gui/screen_printer_setup.hpp>
-#endif
+#include <gui/screen_printer_setup.hpp>
 
 /**********************************************************************************************/
 // MI_MMU_LOAD_FILAMENT

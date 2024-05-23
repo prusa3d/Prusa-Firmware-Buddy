@@ -79,6 +79,7 @@ target_sources(
           screen_messages.cpp
           screen_network_setup.cpp
           screen_print_preview.cpp
+          screen_printer_setup.cpp
           screen_printing.cpp
           screen_printing_end_result.cpp
           screen_prusa_link.cpp
@@ -158,10 +159,6 @@ endif()
 
 if(HAS_SHEET_PROFILES)
   target_sources(firmware PRIVATE MItem_steel_sheets.cpp screen_menu_steel_sheets.cpp)
-endif()
-
-if(HAS_PRINTER_SETUP_SCREEN)
-  target_sources(firmware PRIVATE screen_printer_setup.cpp)
 endif()
 
 if(HAS_MMU2)

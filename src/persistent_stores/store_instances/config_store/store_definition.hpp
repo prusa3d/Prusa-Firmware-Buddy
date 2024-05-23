@@ -32,7 +32,6 @@
 #include <option/has_selftest.h>
 #include <option/has_phase_stepping.h>
 #include <common/extended_printer_type.hpp>
-#include <option/has_printer_setup_screen.h>
 
 #if HAS_SHEET_PROFILES()
     #include <common/sheet.hpp>
@@ -64,10 +63,8 @@ struct CurrentStore
     StoreItem<bool, true, journal::hash("Run XYZ Calibration")> run_xyz_calib;
     StoreItem<bool, true, journal::hash("Run First Layer")> run_first_layer;
 
-#if HAS_PRINTER_SETUP_SCREEN()
     /// If false, a ScreenPrinterSetup will appear on printer boot
     StoreItem<bool, false, journal::hash("Printer setup done")> printer_setup_done;
-#endif
 
     /// Global filament sensor enable
     StoreItem<bool, defaults::fsensor_enabled, journal::hash("FSensor Enabled V2")> fsensor_enabled;

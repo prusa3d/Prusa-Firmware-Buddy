@@ -19,6 +19,7 @@
 #include <option/bootloader.h>
 #include <option/developer_mode.h>
 #include <option/has_translations.h>
+#include <gui/screen_printer_setup.hpp>
 
 #if HAS_SELFTEST()
     #include "printer_selftest.hpp"
@@ -42,11 +43,6 @@
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
-#endif
-
-#include <option/has_printer_setup_screen.h>
-#if HAS_PRINTER_SETUP_SCREEN()
-    #include <gui/screen_printer_setup.hpp>
 #endif
 
 #if HAS_MINI_DISPLAY()
@@ -150,9 +146,7 @@ screen_splash_data_t::screen_splash_data_t()
             { touchscreen.is_enabled() && !touchscreen.is_hw_ok() ? ScreenFactory::Screen<ScreenTouchError> : nullptr },
 #endif // HAS_TOUCH
 
-#if HAS_PRINTER_SETUP_SCREEN()
             { config_store().printer_setup_done.get() ? nullptr : ScreenFactory::Screen<ScreenPrinterSetup> },
-#endif
 
 #if HAS_SELFTEST()
     #if HAS_SELFTEST_SNAKE()

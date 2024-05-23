@@ -129,3 +129,4 @@ space_44x33.png
 ok_44x33.png
 backspace_44x33.png
 clear_44x33.png
+ok_16x16.png
