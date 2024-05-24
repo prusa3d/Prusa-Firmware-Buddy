@@ -7,13 +7,15 @@
 #include <selftest_types.hpp>
 #include <RAII.hpp>
 #include <option/has_toolchanger.h>
+#include <screen_printer_setup.hpp>
+
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif
 
 using namespace SelftestSnake;
 
-namespace {
+namespace screen_menu_selftest_snake_private {
 
 constexpr const char *text_put_sheet_on_bed = N_("Before you continue, make sure the print sheet is installed on the heatbed.");
 
@@ -123,23 +125,6 @@ struct SnakeConfig {
 
 SnakeConfig snake_config {};
 
-const char *snake_gcode(Action action) {
-    switch (action) {
-#if HAS_PHASE_STEPPING()
-    case Action::PhaseSteppingCalibration:
-        return "M1977";
-#endif
-#if HAS_INPUT_SHAPER_CALIBRATION()
-    case Action::InputShaperCalibration:
-        return "M1959";
-#endif
-    case Action::Network:
-        return "M1703 A";
-    default:
-        return nullptr;
-    }
-}
-
 void do_snake(Action action, Tool tool = Tool::_first) {
     if (!are_previous_completed(action) && !snake_config.in_progress) {
         if (MsgBoxQuestion(_("Previous Calibrations & Tests are not all done. Continue anyway?"), Responses_YesNo, 1) == Response::No) {
@@ -150,10 +135,40 @@ void do_snake(Action action, Tool tool = Tool::_first) {
 
     // Note: "gcode" tests are handled separately, partly because
     //       there are not enough bits in the selftest mask.
-    if (const char *gcode = snake_gcode(action)) {
-        marlin_client::gcode(gcode);
-        snake_config.next(action, tool);
-        return;
+    {
+        bool has_test_special_handling = true;
+
+        switch (action) {
+
+#if HAS_PHASE_STEPPING()
+        case Action::PhaseSteppingCalibration:
+            marlin_client::gcode("M1977");
+            break;
+#endif
+
+#if HAS_INPUT_SHAPER_CALIBRATION()
+        case Action::InputShaperCalibration:
+            marlin_client::gcode("M1959");
+            break;
+#endif
+
+        case Action::PrinterSetup:
+            Screens::Access()->Open<ScreenPrinterSetup>();
+            break;
+
+        case Action::Network:
+            marlin_client::gcode("M1703 A");
+            break;
+
+        default:
+            has_test_special_handling = false;
+            break;
+        }
+
+        if (has_test_special_handling) {
+            snake_config.next(action, tool);
+            return;
+        }
     }
 
     if (has_submenu(action)) {
@@ -253,7 +268,8 @@ constexpr IWindowMenuItem::ColorScheme not_yet_ready_scheme {
         .unfocused { is_inverted::no, has_swapped_bw::no, is_shadowed::no, is_desaturated::no } }
 };
 
-} // unnamed namespace
+} // namespace screen_menu_selftest_snake_private
+using namespace screen_menu_selftest_snake_private;
 
 // returns the parameter, filled
 char *I_MI_STS::get_filled_menu_item_label(Action action) {
