@@ -119,10 +119,13 @@ struct Context {
 #endif
 
     bool is_accelerometer_ok() const {
-        return accelerometer && accelerometer->get_error() == PrusaAccelerometer::Error::none;
+        assert(accelerometer);
+        return accelerometer->get_error() == PrusaAccelerometer::Error::none;
     }
 
     void ensure_accelerometer_ok() {
+        assert(accelerometer);
+        accelerometer->clear();
         // Maybe redscreen would be better. Maybe retry would be better.
         // Let's see how this behaves in testing department and fix accordingly.
         if (!is_accelerometer_ok()) {
