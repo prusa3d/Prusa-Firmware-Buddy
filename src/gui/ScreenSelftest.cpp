@@ -10,6 +10,8 @@
 #include "marlin_client.hpp"
 #include <option/has_selftest_snake.h>
 
+#include "selftest_frame_revise_printer_setup.hpp"
+
 ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
@@ -69,6 +71,9 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
     case SelftestParts::WizardEpilogue_ok:
     case SelftestParts::WizardEpilogue_nok:
         return creator<SelftestFrameWizardEpilogue>;
+
+    case SelftestParts::RevisePrinterSetup:
+        return creator<SelftestFrameRevisePrinterSetup>;
 
     case SelftestParts::_none:
         break;
@@ -136,6 +141,7 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     case SelftestParts::SpecifyHotend:
     case SelftestParts::CalibZ:
     case SelftestParts::Result:
+    case SelftestParts::RevisePrinterSetup:
 #if BOARD_IS_XLBUDDY
     case SelftestParts::Dock:
     case SelftestParts::ToolOffsets:
@@ -148,6 +154,7 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
         return _(en_wizard_ok);
     case SelftestParts::WizardEpilogue_nok:
         return _(en_wizard_nok);
+
     case SelftestParts::_none:
         break;
     }
@@ -175,6 +182,7 @@ const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:
     case SelftestParts::Result:
+    case SelftestParts::RevisePrinterSetup:
 #if BOARD_IS_XLBUDDY
     case SelftestParts::Dock:
     case SelftestParts::ToolOffsets:

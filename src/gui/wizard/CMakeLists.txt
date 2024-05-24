@@ -9,6 +9,7 @@ target_sources(
           selftest_frame_firstlayer_questions.cpp
           selftest_frame_hotend_specify.cpp
           selftest_frame_result.cpp
+          selftest_frame_revise_printer_setup.cpp
           selftest_frame_temp.cpp
           selftest_frame_wizard_epilogue.cpp
           selftest_frame_wizard_prologue.cpp

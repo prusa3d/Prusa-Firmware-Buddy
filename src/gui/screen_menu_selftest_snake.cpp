@@ -15,7 +15,7 @@
 
 using namespace SelftestSnake;
 
-namespace screen_menu_selftest_snake_private {
+namespace {
 
 constexpr const char *text_put_sheet_on_bed = N_("Before you continue, make sure the print sheet is installed on the heatbed.");
 
@@ -268,8 +268,7 @@ constexpr IWindowMenuItem::ColorScheme not_yet_ready_scheme {
         .unfocused { is_inverted::no, has_swapped_bw::no, is_shadowed::no, is_desaturated::no } }
 };
 
-} // namespace screen_menu_selftest_snake_private
-using namespace screen_menu_selftest_snake_private;
+} // namespace
 
 // returns the parameter, filled
 char *I_MI_STS::get_filled_menu_item_label(Action action) {

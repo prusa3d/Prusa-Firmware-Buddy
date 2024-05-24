@@ -310,7 +310,13 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     WizardEpilogue_nok = _first_WizardEpilogue_nok, // nok is before result
     _last_WizardEpilogue_nok = WizardEpilogue_nok,
 
-    _last = _last_WizardEpilogue_nok
+    _first_RevisePrinterStatus,
+    RevisePrinterStatus_ask_revise = _first_RevisePrinterStatus, ///< Notifies that a selftest part failed and asks if the user wants to revise the setup
+    RevisePrinterStatus_revise, ///< ScreenPrinterSetup being shown, user revising the printer setup
+    RevisePrinterStatus_ask_retry, ///< After revision, ask the user to retry the selftest
+    _last_RevisePrinterStatus = RevisePrinterStatus_ask_retry,
+
+    _last = _last_RevisePrinterStatus,
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesSelftest) { return ClientFSM::Selftest; }
 #endif
@@ -714,6 +720,10 @@ class ClientResponses {
 
             { PhasesSelftest::WizardEpilogue_ok, { Response::Continue } },
             { PhasesSelftest::WizardEpilogue_nok, { Response::Continue } },
+
+            { PhasesSelftest::RevisePrinterStatus_ask_revise, { Response::Adjust, Response::Skip } },
+            { PhasesSelftest::RevisePrinterStatus_revise, { Response::Done } },
+            { PhasesSelftest::RevisePrinterStatus_ask_retry, { Response::Yes, Response::No } },
     };
 
     static constexpr EnumArray<PhaseNetworkSetup, PhaseResponses, PhaseNetworkSetup::_cnt> network_setup_responses {
@@ -931,6 +941,7 @@ enum class SelftestParts {
     Dock,
     ToolOffsets,
 #endif
+    RevisePrinterSetup,
     _none, // cannot be created, must have same index as _count
     _count = _none
 };
@@ -977,6 +988,10 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
         return PhasesSelftest::_first_WizardEpilogue_ok;
     case SelftestParts::WizardEpilogue_nok:
         return PhasesSelftest::_first_WizardEpilogue_nok;
+
+    case SelftestParts::RevisePrinterSetup:
+        return PhasesSelftest::_first_RevisePrinterStatus;
+
     case SelftestParts::_none:
         break;
     }
@@ -1025,6 +1040,10 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
         return PhasesSelftest::_last_WizardEpilogue_ok;
     case SelftestParts::WizardEpilogue_nok:
         return PhasesSelftest::_last_WizardEpilogue_nok;
+
+    case SelftestParts::RevisePrinterSetup:
+        return PhasesSelftest::_last_RevisePrinterStatus;
+
     case SelftestParts::_none:
         break;
     }
@@ -1100,8 +1119,12 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
     if (SelftestPartContainsPhase(SelftestParts::Dock, ph)) {
         return SelftestParts::Dock;
     }
-
 #endif
+
+    if (SelftestPartContainsPhase(SelftestParts::RevisePrinterSetup, ph)) {
+        return SelftestParts::RevisePrinterSetup;
+    }
+
     return SelftestParts::_none;
 };
 

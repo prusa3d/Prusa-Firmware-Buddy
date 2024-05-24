@@ -18,6 +18,11 @@ MI_DONE::MI_DONE()
 
 void MI_DONE::click(IWindowMenu &) {
     config_store().printer_setup_done.set(true);
+
+    // If the screen was open as a part of RevisePrinterStatus selftest part, goes to the next part
+    // Otherwise, this is ignored
+    marlin_client::FSM_response(PhasesSelftest::RevisePrinterStatus_revise, Response::Done);
+
     Screens::Access()->Close();
 }
 
