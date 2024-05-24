@@ -244,13 +244,6 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     HeatersDisabledDialog,
     _last_Heaters = HeatersDisabledDialog,
 
-    _first_SpecifyHotend,
-    SpecifyHotend = _first_SpecifyHotend,
-    SpecifyHotend_type,
-    SpecifyHotend_nozzle_type,
-    SpecifyHotend_retry,
-    _last_SpecifyHotend = SpecifyHotend_retry,
-
     _first_FirstLayer,
     FirstLayer_mbl = _first_FirstLayer,
     FirstLayer_print,
@@ -587,35 +580,6 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 
-    static constexpr PhaseResponses SpecifyHotend_type_responses = [] {
-        // Only HotendType::stock && HotendType::stock_and_sock available ->
-        // "Do you have sock installed" question is shown
-        if (hotend_type_only_sock) {
-            return PhaseResponses { Response::Yes, Response::No };
-        }
-
-        // Otherwise, "what hotend type" question is shown
-        // This is a bit ugly, shouldn't be done via a dialog
-        // Please remove all the added Response::XX items that were introduced when creating this
-
-        // Revisit this when new hotends are added
-        static_assert(hotend_type_count == 3);
-
-        PhaseResponses r = {
-            Response::HotendType_Stock
-        };
-
-        uint8_t i = 1;
-        if (hotend_type_supported[size_t(HotendType::stock_with_sock)]) {
-            r[i++] = Response::HotendType_StockWithSock;
-        }
-        if (hotend_type_supported[size_t(HotendType::e3d_revo)]) {
-            r[i++] = Response::HotendType_E3DRevo;
-        }
-
-        return r;
-    }();
-
     static constexpr EnumArray<PhasesSelftest, PhaseResponses, CountPhases<PhasesSelftest>()> SelftestResponses {
         { PhasesSelftest::_none, {} },
             { PhasesSelftest::WizardPrologue_ask_run, { Response::Continue, Response::Cancel } },
@@ -672,11 +636,6 @@ class ClientResponses {
 
             { PhasesSelftest::Heaters, {} },
             { PhasesSelftest::HeatersDisabledDialog, { Response::Ok } },
-
-            { PhasesSelftest::SpecifyHotend, { Response::Adjust, Response::Skip } },
-            { PhasesSelftest::SpecifyHotend_type, SpecifyHotend_type_responses },
-            { PhasesSelftest::SpecifyHotend_nozzle_type, { Response::NozzleType_Normal, Response::NozzleType_HighFlow } },
-            { PhasesSelftest::SpecifyHotend_retry, { Response::Yes, Response::No } },
 
             { PhasesSelftest::FirstLayer_mbl, {} },
             { PhasesSelftest::FirstLayer_print, {} },
@@ -925,7 +884,6 @@ enum class SelftestParts {
 #endif
     CalibZ,
     Heaters,
-    SpecifyHotend,
 #if FILAMENT_SENSOR_IS_ADC()
     FSensor,
 #endif
@@ -970,8 +928,6 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
         return PhasesSelftest::_first_CalibZ;
     case SelftestParts::Heaters:
         return PhasesSelftest::_first_Heaters;
-    case SelftestParts::SpecifyHotend:
-        return PhasesSelftest::_first_SpecifyHotend;
     case SelftestParts::FirstLayer:
         return PhasesSelftest::_first_FirstLayer;
     case SelftestParts::FirstLayerQuestions:
@@ -1022,8 +978,6 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
         return PhasesSelftest::_last_CalibZ;
     case SelftestParts::Heaters:
         return PhasesSelftest::_last_Heaters;
-    case SelftestParts::SpecifyHotend:
-        return PhasesSelftest::_last_SpecifyHotend;
     case SelftestParts::FirstLayer:
         return PhasesSelftest::_last_FirstLayer;
     case SelftestParts::FirstLayerQuestions:
@@ -1093,10 +1047,6 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 
     if (SelftestPartContainsPhase(SelftestParts::Heaters, ph)) {
         return SelftestParts::Heaters;
-    }
-
-    if (SelftestPartContainsPhase(SelftestParts::SpecifyHotend, ph)) {
-        return SelftestParts::SpecifyHotend;
     }
 
     if (SelftestPartContainsPhase(SelftestParts::CalibZ, ph)) {

@@ -9,7 +9,6 @@
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include <option/has_selftest_snake.h>
-
 #include "selftest_frame_revise_printer_setup.hpp"
 
 ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
@@ -48,13 +47,6 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
 
     case SelftestParts::Heaters:
         return creator<ScreenSelftestTemp>;
-
-    case SelftestParts::SpecifyHotend:
-#if PRINTER_IS_PRUSA_MINI
-        break;
-#else
-        return creator<SelftestFrameHotendSpecify>;
-#endif
 
     case SelftestParts::CalibZ:
         return creator<SelftestFrameCalibZ>;
@@ -138,7 +130,6 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     case SelftestParts::GearsCalib:
 #endif
     case SelftestParts::Heaters:
-    case SelftestParts::SpecifyHotend:
     case SelftestParts::CalibZ:
     case SelftestParts::Result:
     case SelftestParts::RevisePrinterSetup:
@@ -177,7 +168,6 @@ const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     case SelftestParts::GearsCalib:
 #endif
     case SelftestParts::Heaters:
-    case SelftestParts::SpecifyHotend:
     case SelftestParts::CalibZ:
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:

@@ -24,11 +24,7 @@ if(HAS_LOADCELL)
 endif()
 
 if(PRINTER STREQUAL "MK4")
-  target_sources(firmware PRIVATE selftest_gears.cpp selftest_hotend_specify.cpp)
-endif()
-
-if(PRINTER STREQUAL "MK3.5")
-  target_sources(firmware PRIVATE selftest_hotend_specify.cpp)
+  target_sources(firmware PRIVATE selftest_gears.cpp)
 endif()
 
 if(HAS_ADVANCED_POWER)

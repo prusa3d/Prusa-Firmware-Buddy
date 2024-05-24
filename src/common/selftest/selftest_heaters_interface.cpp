@@ -5,7 +5,6 @@
  */
 #include "selftest_heaters_interface.hpp"
 #include "selftest_heater.h"
-#include "selftest_hotend_specify.hpp"
 #include "../../Marlin/src/module/temperature.h"
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
@@ -220,47 +219,6 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
 
     resultHeaters.tested_parts = 0; // reset tested parts so they can be set next time again
     return false; // finished
-}
-
-SelftestHotendSpecifyType hotend_result;
-bool retry_heater = false;
-bool get_retry_heater() { return retry_heater; }
-
-bool phase_hotend_specify(IPartHandler *&machine, const HotendSpecifyConfig &config) {
-    if (!machine) {
-        machine = Factory::CreateDynamical<selftest::CSelftestPart_HotendSpecify>(
-            config,
-            hotend_result,
-            &CSelftestPart_HotendSpecify::stateStart,
-            &CSelftestPart_HotendSpecify::stateAskAdjust,
-            &CSelftestPart_HotendSpecify::stateAskHotendInit,
-            &CSelftestPart_HotendSpecify::stateAskHotend,
-#if NOZZLE_TYPE_SUPPORT()
-            &CSelftestPart_HotendSpecify::stateAskNozzleInit,
-            &CSelftestPart_HotendSpecifyx::stateAskNozzle,
-#endif
-            &CSelftestPart_HotendSpecify::stateAskRetryInit,
-            &CSelftestPart_HotendSpecify::stateAskRetry);
-    }
-    bool in_progress = machine->Loop();
-    marlin_server::fsm_change(IPartHandler::GetFsmPhase(), hotend_result.Serialize());
-
-    if (in_progress) {
-        return true;
-    }
-
-    retry_heater = machine->GetResult() != TestResult_Skipped;
-
-    {
-        auto &store = config_store();
-        auto transaction = store.get_backend().transaction_guard();
-        store.hotend_type.set(hotend_result.hotend_type);
-        store.nozzle_type.set(hotend_result.nozzle_type);
-    }
-
-    delete machine;
-    machine = nullptr;
-    return false;
 }
 
 } // namespace selftest
