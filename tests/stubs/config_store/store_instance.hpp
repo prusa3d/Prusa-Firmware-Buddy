@@ -17,6 +17,17 @@ struct ConfigStore {
     };
 
     HostName hostname;
+
+    struct BoolTrue {
+        bool get() const {
+            return true;
+        }
+    };
+
+    BoolTrue verify_gcode;
 };
 
-ConfigStore &config_store();
+inline ConfigStore &config_store() {
+    static ConfigStore store;
+    return store;
+}

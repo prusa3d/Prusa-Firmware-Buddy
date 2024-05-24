@@ -265,6 +265,8 @@ struct CurrentStore
     StoreItem<uint16_t, 0, journal::hash("MMU2 general fails")> mmu2_fails;
     StoreItem<uint16_t, 0, journal::hash("MMU2 total general fails")> mmu2_total_fails;
 #endif
+    // Should we verify gcode (CRC & similar)?
+    StoreItem<bool, true, journal::hash("Verify Gcode")> verify_gcode;
 
     StoreItem<bool, true, journal::hash("Run LEDs")> run_leds;
     StoreItem<bool, false, journal::hash("Heat Entire Bed")> heat_entire_bed;

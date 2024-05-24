@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <ranges>
 #include <type_traits>
+#include <config_store/store_instance.hpp>
 
 using bgcode::core::BlockHeader;
 using bgcode::core::EBlockType;
@@ -168,10 +169,11 @@ IGcodeReader::Result_t PrusaPackGcodeReader::stream_gcode_start(uint32_t offset)
     stream_mode_ = StreamMode::none;
 
     auto file = this->file.get();
+    const bool verify = config_store().verify_gcode.get();
 
     if (offset == 0) {
         // get first gcode block
-        auto res = iterate_blocks(true, [](BlockHeader &block_header) {
+        auto res = iterate_blocks(verify, [](BlockHeader &block_header) {
             // check if correct type, if so, return this block
             if ((bgcode::core::EBlockType)block_header.type == bgcode::core::EBlockType::GCode) {
                 return IterateResult_t::Return;
@@ -211,7 +213,7 @@ IGcodeReader::Result_t PrusaPackGcodeReader::stream_gcode_start(uint32_t offset)
             return Result_t::RESULT_ERROR;
         }
 
-        if (auto res = read_block_header(start_block, /*check_crc=*/true); res != Result_t::RESULT_OK) {
+        if (auto res = read_block_header(start_block, /*check_crc=*/verify); res != Result_t::RESULT_OK) {
             return res;
         }
 
@@ -248,6 +250,7 @@ IGcodeReader::Result_t PrusaPackGcodeReader::stream_gcode_start(uint32_t offset)
 
 IGcodeReader::Result_t PrusaPackGcodeReader::switch_to_next_block() {
     auto file = this->file.get();
+    const bool verify = config_store().verify_gcode.get();
 
     // go to next block
     if (bgcode::core::skip_block(*file, file_header, stream.current_block_header) != bgcode::core::EResult::Success) {
@@ -256,7 +259,7 @@ IGcodeReader::Result_t PrusaPackGcodeReader::switch_to_next_block() {
 
     // read next block
     BlockHeader new_block;
-    if (auto res = read_block_header(new_block, /*check_crc=*/true); res != Result_t::RESULT_OK) {
+    if (auto res = read_block_header(new_block, /*check_crc=*/verify); res != Result_t::RESULT_OK) {
         return res;
     }
 

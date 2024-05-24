@@ -513,3 +513,11 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 #endif
+
+class MI_GCODE_VERIFY : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Verify GCode");
+
+public:
+    MI_GCODE_VERIFY();
+    virtual void OnChange(size_t old_index) override;
+};

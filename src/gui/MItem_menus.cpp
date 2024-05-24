@@ -656,3 +656,11 @@ void MI_BED_LEVEL_CORRECTION::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuBedLevelCorrection>);
 }
 #endif
+
+MI_GCODE_VERIFY::MI_GCODE_VERIFY()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().verify_gcode.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_GCODE_VERIFY::OnChange([[maybe_unused]] size_t old_index) {
+    bool newState = !config_store().verify_gcode.get();
+    config_store().verify_gcode.set(newState);
+}
