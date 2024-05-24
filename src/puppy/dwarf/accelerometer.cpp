@@ -171,7 +171,7 @@ void dwarf::accelerometer::irq() {
     lis2dh12_status_get(&dev_ctx, &status);
 
     // Get sample and store sample
-    uint32_t now = ticks_us();
+    const uint32_t now = ticks_us();
     if (first_sample_timestamp == 0) {
         first_sample_timestamp = now;
         samples_extracted = 0;
