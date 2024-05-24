@@ -96,25 +96,11 @@ void configure_interrupt() {
 }
 
 void enable_sampling() {
-    constexpr lis2dh12_ctrl_reg1_t ctrl_reg1 {
-        .xen = 1, // enable x axis
-        .yen = 1, // enable y axis
-        .zen = 1, // enable z axis
-        .lpen = 0, // disable low power mode
-        .odr = 0x9, // enable output
-    };
-    write_reg(dev_ctx.handle, LIS2DH12_CTRL_REG1, (const uint8_t *)&ctrl_reg1, 1);
+    lis2dh12_data_rate_set(&dev_ctx, LIS2DH12_ODR_5kHz376_LP_1kHz344_NM_HP);
 }
 
 void disable_sampling() {
-    constexpr lis2dh12_ctrl_reg1_t ctrl_reg1 {
-        .xen = 1, // enable x axis
-        .yen = 1, // enable y axis
-        .zen = 1, // enable z axis
-        .lpen = 0, // disable low power mode
-        .odr = 0x0, // disable output
-    };
-    write_reg(dev_ctx.handle, LIS2DH12_CTRL_REG1, (const uint8_t *)&ctrl_reg1, 1);
+    lis2dh12_data_rate_set(&dev_ctx, LIS2DH12_POWER_DOWN);
 }
 
 void throwaway_sample() {
