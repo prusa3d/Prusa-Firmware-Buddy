@@ -23,7 +23,6 @@
 #include "selftest_frame_result.hpp"
 #include "selftest_frame_wizard_prologue.hpp"
 #include "selftest_frame_wizard_epilogue.hpp"
-#include "selftest_frame_nozzle_diameter.hpp"
 #include "selftest_frame_dock.hpp"
 #include "selftest_frame_tool_offsets.hpp"
 #include "selftest_invalid_state.hpp"
@@ -31,7 +30,7 @@
 #include "printer_selftest.hpp" // SelftestMask_t
 
 class ScreenSelftest : public screen_t {
-    using mem_space = std::aligned_union<0, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, SelftestFrameFSensor, SelftestFrameGearsCalib, SelftestFrameLoadcell, ScreenSelftestTemp, SelftestFrameCalibZ, SelftestFrameFirstLayerQuestions, SelftestFrameResult, SelftestFrameNozzleDiameter
+    using mem_space = std::aligned_union<0, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, SelftestFrameFSensor, SelftestFrameGearsCalib, SelftestFrameLoadcell, ScreenSelftestTemp, SelftestFrameCalibZ, SelftestFrameFirstLayerQuestions, SelftestFrameResult
 #if BOARD_IS_BUDDY
         ,
         SelftestFrameFirstLayer

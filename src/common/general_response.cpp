@@ -36,8 +36,6 @@ constexpr std::pair<Response, const char *> response_str[] = {
     R(Next),
     R(No),
     R(NotNow),
-    R(NozzleDiameter_04),
-    R(NozzleDiameter_06),
     R(Ok),
     R(Pause),
     R(PC),

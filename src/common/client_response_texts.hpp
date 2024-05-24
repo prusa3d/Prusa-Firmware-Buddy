@@ -70,10 +70,6 @@ inline constexpr const char *get_response_text(Response response) {
         return N_("NO");
     case Response::NotNow:
         return N_("NOT NOW");
-    case Response::NozzleDiameter_04:
-        return "0.40 mm";
-    case Response::NozzleDiameter_06:
-        return "0.60 mm";
     case Response::Ok:
         return N_("OK");
     case Response::Pause:

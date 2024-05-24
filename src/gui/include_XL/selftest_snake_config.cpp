@@ -77,8 +77,6 @@ TestResult get_test_result(Action action, Tool tool) {
         } else {
             return evaluate_results(sr.tools[ftrstd::to_underlying(tool)].fsensor);
         }
-    case Action::NozzleDiameter:
-        return evaluate_results(config_store().selftest_result_nozzle_diameter.get());
     case Action::PhaseSteppingCalibration:
         return evaluate_results(config_store().selftest_result_phase_stepping.get());
     case Action::InputShaperCalibration:
@@ -139,8 +137,6 @@ uint64_t get_test_mask(Action action) {
         return stmDocks;
     case Action::ToolOffsetsCalibration:
         return stmToolOffsets;
-    case Action::NozzleDiameter:
-        return stmNozzleDiameter;
     case Action::PhaseSteppingCalibration:
     case Action::InputShaperCalibration:
         bsod("get_test_mask");

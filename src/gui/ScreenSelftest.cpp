@@ -26,11 +26,6 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
         return creator<SelftestFrameLoadcell>;
 #endif
 
-#if PRINTER_IS_PRUSA_XL
-    case SelftestParts::NozzleDiameter:
-        return creator<SelftestFrameNozzleDiameter>;
-#endif
-
 #if FILAMENT_SENSOR_IS_ADC()
     case SelftestParts::FSensor:
         return creator<SelftestFrameFSensor>;
@@ -131,9 +126,6 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
 #if HAS_LOADCELL()
     case SelftestParts::Loadcell:
 #endif
-#if PRINTER_IS_PRUSA_XL
-    case SelftestParts::NozzleDiameter:
-#endif
 #if FILAMENT_SENSOR_IS_ADC()
     case SelftestParts::FSensor:
 #endif
@@ -176,9 +168,6 @@ const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
 #endif
 #if PRINTER_IS_PRUSA_MK4
     case SelftestParts::GearsCalib:
-#endif
-#if PRINTER_IS_PRUSA_XL
-    case SelftestParts::NozzleDiameter:
 #endif
     case SelftestParts::Heaters:
     case SelftestParts::SpecifyHotend:

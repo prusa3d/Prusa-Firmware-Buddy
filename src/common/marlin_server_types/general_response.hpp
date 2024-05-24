@@ -42,8 +42,6 @@ enum class Response : uint8_t {
     Next,
     No,
     NotNow,
-    NozzleDiameter_04,
-    NozzleDiameter_06,
     Ok,
     Pause,
     PC,

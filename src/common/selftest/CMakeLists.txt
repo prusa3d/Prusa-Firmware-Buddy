@@ -30,12 +30,6 @@ if(PRINTER STREQUAL "MK3.5")
   target_sources(firmware PRIVATE selftest_hotend_specify.cpp)
 endif()
 
-if(PRINTER STREQUAL "XL")
-  target_sources(
-    firmware PRIVATE selftest_nozzle_diameter.cpp selftest_nozzle_diameter_interface.cpp
-    )
-endif()
-
 if(HAS_ADVANCED_POWER)
   target_sources(firmware PRIVATE power_check.cpp power_check_both.cpp)
 else()

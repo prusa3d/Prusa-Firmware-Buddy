@@ -378,10 +378,6 @@ struct CurrentStore
 #endif
 
 #if PRINTER_IS_PRUSA_XL
-    StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Selftest Result - Nozzle Diameter")> selftest_result_nozzle_diameter;
-#endif
-
-#if PRINTER_IS_PRUSA_XL
     StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Test Result Phase Stepping")> selftest_result_phase_stepping;
 #endif
 
@@ -526,6 +522,10 @@ struct DeprecatedStore
     // Unified WIFI and LAN hostnames - BFW-5523
     StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("LAN Hostname")> lan_hostname;
     StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("WIFI Hostname")> wifi_hostname;
+
+#if PRINTER_IS_PRUSA_XL
+    StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Selftest Result - Nozzle Diameter")> selftest_result_nozzle_diameter;
+#endif
 };
 
 } // namespace config_store_ns

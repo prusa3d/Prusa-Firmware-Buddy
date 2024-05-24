@@ -448,7 +448,6 @@ bool CSelftest::Abort() {
         abort_part(&pNozzle);
     }
     abort_part(&pBed);
-    abort_part(&pHotendSpecify);
     for (auto &loadcell : m_pLoadcell) {
         abort_part(&loadcell);
     }

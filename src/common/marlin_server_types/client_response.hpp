@@ -208,12 +208,6 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     Loadcell_fail,
     _last_Loadcell = Loadcell_fail,
 
-    _first_NozzleDiameter,
-    NozzleDiameter_prepare = _first_NozzleDiameter,
-    NozzleDiameter_ask_user_for_type,
-    NozzleDiameter_save_selected_value,
-    _last_NozzleDiameter = NozzleDiameter_save_selected_value,
-
     _first_FSensor,
     FSensor_ask_unload = _first_FSensor,
     FSensor_wait_tool_pick,
@@ -647,10 +641,6 @@ class ClientResponses {
             { PhasesSelftest::Loadcell_user_tap_ok, {} },
             { PhasesSelftest::Loadcell_fail, {} },
 
-            { PhasesSelftest::NozzleDiameter_prepare, {} },
-            { PhasesSelftest::NozzleDiameter_ask_user_for_type, { Response::NozzleDiameter_04, Response::NozzleDiameter_06 } },
-            { PhasesSelftest::NozzleDiameter_save_selected_value, {} },
-
             { PhasesSelftest::FSensor_ask_unload, { Response::Continue, Response::Unload, Response::Abort } },
             { PhasesSelftest::FSensor_wait_tool_pick, {} },
             { PhasesSelftest::FSensor_unload_confirm, { Response::Yes, Response::No } },
@@ -923,9 +913,6 @@ enum class SelftestParts {
 #if HAS_LOADCELL()
     Loadcell,
 #endif
-#if PRINTER_IS_PRUSA_XL
-    NozzleDiameter,
-#endif
     CalibZ,
     Heaters,
     SpecifyHotend,
@@ -959,10 +946,6 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
 #if HAS_LOADCELL()
     case SelftestParts::Loadcell:
         return PhasesSelftest::_first_Loadcell;
-#endif
-#if PRINTER_IS_PRUSA_XL
-    case SelftestParts::NozzleDiameter:
-        return PhasesSelftest::_first_NozzleDiameter;
 #endif
 #if FILAMENT_SENSOR_IS_ADC()
     case SelftestParts::FSensor:
@@ -1011,10 +994,6 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
 #if HAS_LOADCELL()
     case SelftestParts::Loadcell:
         return PhasesSelftest::_last_Loadcell;
-#endif
-#if PRINTER_IS_PRUSA_XL
-    case SelftestParts::NozzleDiameter:
-        return PhasesSelftest::_last_NozzleDiameter;
 #endif
 #if FILAMENT_SENSOR_IS_ADC()
     case SelftestParts::FSensor:
@@ -1076,12 +1055,6 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 #if HAS_LOADCELL()
     if (SelftestPartContainsPhase(SelftestParts::Loadcell, ph)) {
         return SelftestParts::Loadcell;
-    }
-#endif
-
-#if PRINTER_IS_PRUSA_XL
-    if (SelftestPartContainsPhase(SelftestParts::NozzleDiameter, ph)) {
-        return SelftestParts::NozzleDiameter;
     }
 #endif
 
