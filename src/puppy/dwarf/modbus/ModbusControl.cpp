@@ -180,7 +180,7 @@ void ProcessModbusMessages() {
             loadcell::loadcell_set_enable(msg->m_Value);
             break;
         }
-        case ((uint16_t)ModbusRegisters::SystemCoil::accelerometer_enable): {
+        case ftrstd::to_underlying(ModbusRegisters::SystemCoil::accelerometer_enable): {
             if (msg->m_Value) {
                 dwarf::accelerometer::enable();
             } else {
