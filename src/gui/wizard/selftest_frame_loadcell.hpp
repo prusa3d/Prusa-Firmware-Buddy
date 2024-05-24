@@ -26,8 +26,8 @@ class SelftestFrameLoadcell : public SelftestFrameNamedWithRadio {
     window_icon_t icon_hand;
     window_text_t text_phase;
 
-    window_text_t text_prebig;
     WindowBlinkingText text_big; // BIG, possibly blinking number
+    char txt_big_buffer[8] = {};
 
     window_text_t text_result; // in middle of screen
 

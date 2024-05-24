@@ -28,8 +28,6 @@ static constexpr Rect16 ChangeableRect = { col_texts, top_of_changeable_area, Wi
 
 static constexpr const char *en_text_loadcell_test = N_("Loadcell Test");
 
-static char txt_big_buffer[8] = {};
-
 // hand icon is 154x100
 static constexpr int16_t hand_w = 154;
 static constexpr int16_t hand_h = 100;
@@ -46,7 +44,6 @@ SelftestFrameLoadcell::SelftestFrameLoadcell(window_t *parent, PhasesSelftest ph
     , progress(this, WizardDefaults::row_1)
     , icon_hand(this, &img::hand_with_nozzle1_154x100, hand_pos)
     , text_phase(this, Rect16(col_texts, row_2, WizardDefaults::X_space, txt_h * 3), is_multiline::yes)
-    , text_prebig(this, Rect16(col_texts, row_4, display::GetW() - col_texts, txt_h), is_multiline::no)
     , text_big(this, Rect16(0, row_6, hand_pos.x, txt_big_h))
     , text_result(this, ChangeableRect, is_multiline::no) {
     text_result.SetAlignment(Align_t::Center());
@@ -62,7 +59,6 @@ void SelftestFrameLoadcell::change() {
 
     const char *txt_phase = nullptr; // text_phase
     const char *txt_result = nullptr; // text_result
-    const char *txt_prebig = nullptr; // text_prebig
     string_view_utf8 txt_big; // text_big
     bool txt_big_blink = false; // text_big
     const img::Resource *icon_id = nullptr; // icon_hand
@@ -86,13 +82,12 @@ void SelftestFrameLoadcell::change() {
 
         int16_t temperature = dt.temperature; // Make a local copy
         if ((temperature < 0) || (temperature > 999)) {
-            snprintf(txt_big_buffer, std::size(txt_big_buffer), "-\xC2\xB0\x43"); // Degree Celsius
+            snprintf(txt_big_buffer, std::size(txt_big_buffer), "- \xC2\xB0\x43"); // Degree Celsius
         } else {
-            snprintf(txt_big_buffer, std::size(txt_big_buffer), "%u\xC2\xB0\x43", static_cast<unsigned int>(temperature));
+            snprintf(txt_big_buffer, std::size(txt_big_buffer), "%u \xC2\xB0\x43", static_cast<unsigned int>(temperature));
         }
         txt_big = string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(txt_big_buffer));
         txt_big_blink = true;
-        txt_prebig = N_("Nozzle temperature");
 
         break;
     }
@@ -103,16 +98,16 @@ void SelftestFrameLoadcell::change() {
     case PhasesSelftest::Loadcell_user_tap_countdown:
         icon_id = &img::hand_with_nozzle1_154x100;
 
-        snprintf(txt_big_buffer, std::size(txt_big_buffer), "%us", static_cast<unsigned int>(std::clamp<uint8_t>(dt.countdown, 0, 5)));
+        snprintf(txt_big_buffer, std::size(txt_big_buffer), "%u s", static_cast<unsigned int>(std::clamp<uint8_t>(dt.countdown, 0, 5)));
         txt_big = string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(txt_big_buffer));
-        txt_prebig = N_("Tap the nozzle on beep");
+        txt_phase = N_("Tap the nozzle on beep");
 
         break;
     case PhasesSelftest::Loadcell_user_tap_check:
         icon_id = &img::hand_with_nozzle4_154x100;
 
         txt_big = _("NOW");
-        txt_prebig = N_("Tap the nozzle");
+        txt_phase = N_("Tap the nozzle");
 
         break;
     case PhasesSelftest::Loadcell_user_tap_ok:
@@ -137,13 +132,6 @@ void SelftestFrameLoadcell::change() {
         icon_hand.SetRes(icon_id);
     } else {
         icon_hand.Hide();
-    }
-
-    if (txt_prebig) {
-        text_prebig.Show();
-        text_prebig.SetText(_(txt_prebig));
-    } else {
-        text_prebig.Hide();
     }
 
     if (!txt_big.isNULLSTR()) {
