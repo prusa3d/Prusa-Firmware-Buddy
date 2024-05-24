@@ -14,8 +14,9 @@ public:
 
 public:
     /// \param items Array of names of the individual items (non-translated)
+    /// \param translate_items Whether the items should be translated or displayed verbatim
     /// \param items_enabled Optional bool array storing whether individual items are enabled. Disabled items are skipped.
-    WiEnumSwitch(const string_view_utf8 &label, const Items &items, const ItemsEnabled &items_enabled = std::nullopt, const img::Resource *icon = nullptr);
+    WiEnumSwitch(const string_view_utf8 &label, const Items &items, bool translate_items, const ItemsEnabled &items_enabled = std::nullopt, const img::Resource *icon = nullptr);
 
 public:
     size_t item_count() const final {
@@ -23,7 +24,8 @@ public:
     }
 
     string_view_utf8 current_item_text() const final {
-        return _(items_[index]);
+        const char *str = items_[std::min(index, items_.size() - 1)];
+        return translate_items_ ? _(str) : string_view_utf8::MakeRAM(str);
     }
 
 protected:
@@ -32,6 +34,7 @@ protected:
 private:
     Items items_;
     ItemsEnabled items_enabled_;
+    bool translate_items_ = false;
 };
 
 /// Subclass of \p WiEnumSwitch that is directly linked to an enum store item
@@ -43,8 +46,8 @@ public:
     using Enum = std::remove_cvref_t<decltype(config_store().*item_ptr_)>::value_type;
 
 public:
-    WiStoreEnumSwitch(const string_view_utf8 &label, const Items &items, const ItemsEnabled &items_enabled = std::nullopt, const img::Resource *icon = nullptr)
-        : WiEnumSwitch(label, items, items_enabled, icon) {
+    WiStoreEnumSwitch(const string_view_utf8 &label, const Items &items, bool translate_items, const ItemsEnabled &items_enabled = std::nullopt, const img::Resource *icon = nullptr)
+        : WiEnumSwitch(label, items, translate_items, items_enabled, icon) {
         this->SetIndex(ftrstd::to_underlying((config_store().*item_ptr_).get()));
     }
 

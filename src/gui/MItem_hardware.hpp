@@ -146,13 +146,13 @@ public:
 class MI_NOZZLE_TYPE final : public WiStoreEnumSwitch<&config_store_ns::CurrentStore::nozzle_type> {
 public:
     MI_NOZZLE_TYPE()
-        : WiStoreEnumSwitch(_("Nozzle Type"), nozzle_type_names) {}
+        : WiStoreEnumSwitch(_("Nozzle Type"), nozzle_type_names, true) {}
 };
 
 class MI_HOTEND_TYPE : public WiStoreEnumSwitch<&config_store_ns::CurrentStore::hotend_type> {
 public:
     MI_HOTEND_TYPE()
-        : WiStoreEnumSwitch(_("Hotend Type"), hotend_type_names, hotend_type_supported) {}
+        : WiStoreEnumSwitch(_("Hotend Type"), hotend_type_names, true, hotend_type_supported) {}
 };
 
 class MI_NOZZLE_SOCK : public WI_ICON_SWITCH_OFF_ON_t {
@@ -183,7 +183,7 @@ protected:
 class MI_EXTENDED_PRINTER_TYPE : public WiStoreEnumSwitch<&config_store_ns::CurrentStore::extended_printer_type> {
 public:
     MI_EXTENDED_PRINTER_TYPE()
-        : WiStoreEnumSwitch(_("Printer Type"), extended_printer_type_names) {}
+        : WiStoreEnumSwitch(_("Printer Type"), extended_printer_type_names, true) {}
 
 protected:
     void OnChange(size_t diff) override;
