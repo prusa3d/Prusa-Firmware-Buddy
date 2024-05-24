@@ -26,6 +26,12 @@ typedef enum {
     stsZAxis, // could not be first, printer can't home at front edges without steelsheet on
     stsMoveZup,
     stsWait_axes,
+
+    /// Mk3.9 has 200step XY motors, Mk4/S has 400step ones.
+    /// If the axis test fails, it might be because the user set the wrong printer type.
+    /// Let the user revise the printer setup
+    stsReviseSetupAfterAxes,
+
     stsHeaters_noz_ena,
     stsHeaters_bed_ena,
     stsHeaters,
@@ -53,8 +59,8 @@ enum SelftestMask_t : uint32_t {
     stmLoadcell = to_one_hot(stsLoadcell),
     stmWait_loadcell = to_one_hot(stsWait_loadcell),
     stmZcalib = to_one_hot(stsZcalib),
-    stmXAxis = to_one_hot(stsXAxis),
-    stmYAxis = to_one_hot(stsYAxis),
+    stmXAxis = to_one_hot(stsXAxis) | to_one_hot(stsReviseSetupAfterAxes),
+    stmYAxis = to_one_hot(stsYAxis) | to_one_hot(stsReviseSetupAfterAxes),
     stmZAxis = to_one_hot(stsZAxis),
     stmMoveZup = to_one_hot(stsMoveZup),
     stmXYAxis = stmXAxis | stmYAxis,

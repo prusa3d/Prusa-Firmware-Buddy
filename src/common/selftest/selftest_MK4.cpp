@@ -29,6 +29,7 @@
 #include "selftest_fsensor_config.hpp"
 #include "selftest_gears_config.hpp"
 #include "selftest_gears.hpp"
+#include "selftest_revise_printer_setup.hpp"
 #include "calibration_z.hpp"
 #include "fanctl.hpp"
 #include "timing.h"
@@ -346,6 +347,27 @@ void CSelftest::Loop() {
             return;
         }
         break;
+
+    case stsReviseSetupAfterAxes:
+        // Offer setup revision only if both axes failed.
+        // The HW config can switch between 400step and 200step motors.
+        // If this setting is the cause, it wouldn't make sense that only one test failed.
+        if (m_result.xaxis == TestResult_Failed && m_result.yaxis == TestResult_Failed) {
+            switch (phase_revise_printer_setup()) {
+
+            case RevisePrinterSetupResult::running:
+                return;
+
+            case RevisePrinterSetupResult::do_not_retry:
+                break;
+
+            case RevisePrinterSetupResult::retry:
+                m_State = stsXAxis;
+                return;
+            }
+        }
+        break;
+
     case stsHeaters_noz_ena:
         selftest::phaseHeaters_noz_ena(pNozzles, Config_HeaterNozzle);
         break;
@@ -358,6 +380,7 @@ void CSelftest::Loop() {
             return;
         }
         break;
+
     case stsWait_heaters:
         if (phaseWait()) {
             return;
