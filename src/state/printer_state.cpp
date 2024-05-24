@@ -22,7 +22,10 @@ namespace {
         case State::PrintPreviewQuestions:
             // Should never happen, we catch this before with FSM states,
             // so that we can distinquish between various questions.
-            return DeviceState::Unknown;
+            // Nevertheless it has been seen to happen in connect somehow,
+            // so make it Attention, so it in that rate occurrence still
+            // kind of make sense.
+            return DeviceState::Attention;
         case State::PowerPanic_AwaitingResume:
         case State::CrashRecovery_Axis_NOK:
         case State::CrashRecovery_Repeated_Crash:
