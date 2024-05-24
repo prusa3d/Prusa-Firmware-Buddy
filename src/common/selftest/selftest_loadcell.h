@@ -28,6 +28,7 @@ class CSelftestPart_Loadcell {
     bool need_cooling;
     LogTimer log;
     LogTimer log_fast;
+    std::optional<Loadcell::HighPrecisionEnabler> loadcell_high_precision_enabler;
 
 public:
     CSelftestPart_Loadcell(IPartHandler &state_machine, const LoadcellConfig_t &config,
