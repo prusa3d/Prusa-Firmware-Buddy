@@ -89,7 +89,21 @@ void check_device_id() {
     }
 }
 
-void configure_interrupt() {
+void init() {
+    // restore all defaults
+    lis2dh12_boot_set(&dev_ctx, 1);
+    osDelay(25);
+    lis2dh12_boot_set(&dev_ctx, 0);
+    osDelay(5);
+
+    // switch between FIFO and Bypass to reset the accelerometer
+    lis2dh12_fifo_mode_set(&dev_ctx, LIS2DH12_FIFO_MODE);
+    lis2dh12_fifo_mode_set(&dev_ctx, LIS2DH12_BYPASS_MODE);
+
+    // low-power mode off, high resolution mode off
+    lis2dh12_operating_mode_set(&dev_ctx, LIS2DH12_NM_10bit);
+
+    // enable interrupt when axis data are ready
     lis2dh12_ctrl_reg3_t reg3 {};
     reg3.i1_zyxda = true;
     lis2dh12_pin_int1_config_set(&dev_ctx, &reg3);
@@ -113,10 +127,11 @@ void throwaway_sample() {
 void dwarf::accelerometer::enable() {
     switch (state) {
     case State::uninitialized:
+        init();
         check_device_id();
-        configure_interrupt();
         [[fallthrough]];
     case State::disabled:
+        throwaway_sample();
         clear();
         enable_sampling();
         state = State::enabled;
