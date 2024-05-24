@@ -25,6 +25,15 @@ protected:
     void click(IWindowMenu &menu) override;
 };
 
+class MI_NOZZLE_DIAMETER_HELP : public IWindowMenuItem {
+
+public:
+    MI_NOZZLE_DIAMETER_HELP();
+
+protected:
+    void click(IWindowMenu &menu) override;
+};
+
 class ScreenPrinterSetup : public screen_t {
 
 public:
@@ -38,6 +47,9 @@ private:
     WinMenuContainer<
         MI_EXTENDED_PRINTER_TYPE, //< Show always, for non-extended models, there is a non-changeable WiInfo
         MI_NOZZLE_DIAMETER,
+#if PRINTER_IS_PRUSA_XL
+        MI_NOZZLE_DIAMETER_HELP,
+#endif
 #if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
         MI_NOZZLE_TYPE,
 #endif

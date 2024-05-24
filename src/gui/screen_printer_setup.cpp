@@ -20,6 +20,18 @@ void MI_DONE::click(IWindowMenu &) {
     Screens::Access()->Close();
 }
 
+MI_NOZZLE_DIAMETER_HELP::MI_NOZZLE_DIAMETER_HELP()
+    : IWindowMenuItem(_("What nozzle diameter do I have?"), &img::question_16x16) {
+}
+
+void MI_NOZZLE_DIAMETER_HELP::click(IWindowMenu &) {
+    MsgBoxInfo(_("You can determine the nozzle diameter by counting the markings (dots) on the nozzle:\n"
+                 "  0.40 mm nozzle: 3 dots\n"
+                 "  0.60 mm nozzle: 4 dots\n\n"
+                 "For more information, visit prusa.io/nozzle-types"),
+        Responses_Ok);
+}
+
 ScreenPrinterSetup::ScreenPrinterSetup()
     : header(this, _("PRINTER SETUP"))
     , prompt(this, prompt_rect, is_multiline::yes, is_closed_on_click_t::no, _("Confirm your printer setup"))
