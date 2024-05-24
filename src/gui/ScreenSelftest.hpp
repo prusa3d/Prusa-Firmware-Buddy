@@ -40,34 +40,13 @@ class ScreenSelftest : public screen_t {
 
     mem_space all_tests;
 
-    // safer than make_static_unique_ptr, checks storage size
-    template <class T, class... Args>
-    static_unique_ptr<SelftestFrame> makePtr(Args &&...args) {
-        static_assert(sizeof(T) <= sizeof(all_tests), "Error selftest part does not fit");
-        return make_static_unique_ptr<T>(&all_tests, std::forward<Args>(args)...);
+    template <typename T>
+    static static_unique_ptr<SelftestFrame> creator(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+        static_assert(sizeof(T) <= sizeof(rThs.all_tests), "Error selftest part does not fit");
+        return make_static_unique_ptr<T>(&rThs.all_tests, &rThs, phase, data);
     }
 
     using fnc = static_unique_ptr<SelftestFrame> (*)(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data); // function pointer definition
-
-    // define factory methods for all dialogs here
-    static static_unique_ptr<SelftestFrame> creator_prologue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_axis(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_fans(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_fsensor(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_gears_calib(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_loadcell(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_temp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_specify_hot_end(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_calib_z(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_firstlayer(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_firstlayer_questions(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_result(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_epilogue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_dock(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_tool_offsets(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_nozzle_diameter(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-
     fnc Get(SelftestParts part); // returns factory method
 
     static_unique_ptr<SelftestFrame> ptr;
