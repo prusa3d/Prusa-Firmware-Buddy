@@ -24,6 +24,7 @@
 #include "selftest_netstatus_interface.hpp"
 #include "selftest_axis_config.hpp"
 #include "selftest_heater_config.hpp"
+#include "selftest_revise_printer_setup.hpp"
 #include "calibration_z.hpp"
 #include "fanctl.hpp"
 #include "timing.h"
@@ -57,8 +58,6 @@ static constexpr SelftestFansConfig fans_configs[] = {
         .heatbreak_fan = benevolent_fan_config,
     }
 };
-
-static constexpr HotendSpecifyConfig hotend_config = { .partname = "Hotend" };
 
 // reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = {
@@ -169,7 +168,6 @@ CSelftest::CSelftest()
     , pYAxis(nullptr)
     , pZAxis(nullptr)
     , pBed(nullptr)
-    , pHotendSpecify(nullptr)
     , pFirstLayer(nullptr) {
 }
 
@@ -323,17 +321,24 @@ void CSelftest::Loop() {
             return;
         }
         break;
-    case stsHotendSpecify:
+
+    case stsReviseSetupAfterHeaters:
         if (m_result.tools[0].nozzle == TestResult_Failed) {
-            if (phase_hotend_specify(pHotendSpecify, hotend_config)) {
+            switch (phase_revise_printer_setup()) {
+
+            case RevisePrinterSetupResult::running:
                 return;
-            }
-            if (get_retry_heater()) {
+
+            case RevisePrinterSetupResult::do_not_retry:
+                break;
+
+            case RevisePrinterSetupResult::retry:
                 m_State = stsHeaters_noz_ena;
                 return;
             }
         }
         break;
+
     case stsSelftestStop:
         restoreAfterSelftest();
         break;

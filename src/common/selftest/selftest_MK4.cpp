@@ -211,16 +211,13 @@ static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensorMMU = 
 
 static constexpr SelftestGearsConfig gears_config = { .feedrate = 8 };
 
-static constexpr HotendSpecifyConfig hotend_config = { .partname = "Hotend" };
-
 CSelftest::CSelftest()
     : m_State(stsIdle)
     , m_Mask(stmNone)
     , pXAxis(nullptr)
     , pYAxis(nullptr)
     , pZAxis(nullptr)
-    , pBed(nullptr)
-    , pHotendSpecify(nullptr) {
+    , pBed(nullptr) {
 }
 
 bool CSelftest::IsInProgress() const {
@@ -386,17 +383,24 @@ void CSelftest::Loop() {
             return;
         }
         break;
-    case stsHotendSpecify:
+
+    case stsReviseSetupAfterHeaters:
         if (m_result.tools[0].nozzle == TestResult_Failed) {
-            if (phase_hotend_specify(pHotendSpecify, hotend_config)) {
+            switch (phase_revise_printer_setup()) {
+
+            case RevisePrinterSetupResult::running:
                 return;
-            }
-            if (get_retry_heater()) {
+
+            case RevisePrinterSetupResult::do_not_retry:
+                break;
+
+            case RevisePrinterSetupResult::retry:
                 m_State = stsHeaters_noz_ena;
                 return;
             }
         }
         break;
+
     case stsFSensor_calibration:
         if (selftest::phaseFSensor(ToolMask::AllTools, pFSensor, Config_FSensor)) {
             return;

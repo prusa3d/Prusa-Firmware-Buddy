@@ -36,7 +36,11 @@ typedef enum {
     stsHeaters_bed_ena,
     stsHeaters,
     stsWait_heaters,
-    stsHotendSpecify,
+
+    /// If the heating test fails, it might be because the user set the wrong nozzle/hotend type
+    /// Let the user revise the printer setup
+    stsReviseSetupAfterHeaters,
+
     stsGears,
     stsFSensor_calibration,
     stsFSensor_flip_mmu_at_the_end,
@@ -67,7 +71,7 @@ enum SelftestMask_t : uint32_t {
     stmXYAxisWithMotorDetection = to_one_hot(stsXAxisWithMotorDetection) | stmYAxis,
     stmXYZAxis = stmXAxis | stmYAxis | stmZAxis,
     stmWait_axes = to_one_hot(stsWait_axes),
-    stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena) | to_one_hot(stsHotendSpecify),
+    stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena) | to_one_hot(stsReviseSetupAfterHeaters),
     stmHeaters_bed = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_bed_ena),
     stmHeaters = stmHeaters_bed | stmHeaters_noz,
     stmWait_heaters = to_one_hot(stsWait_heaters),
