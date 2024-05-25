@@ -683,6 +683,11 @@ Errors:
     id: "ESP_NOT_CONNECTED"
     approved: false
 
+  - code: "XX534"
+    title: "Gcode Corruption"
+    text: "Gcode on the USB drive is corrupt. Fix manually before resuming."
+    id: "GCODE_CORRUPTION"
+
   - code: "XX601"
     title: ""
     text: "This error code is not found\nin our database.\nContact the support."
