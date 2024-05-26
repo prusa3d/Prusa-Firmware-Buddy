@@ -101,18 +101,20 @@ namespace {
                 JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
             }
 
-            //Note: the zero slot always has the values for printers without
-            //MMU or toolchanger, maybe eventually we should send one slot
-            //in hte same structure even for those printers, but left here for now.
+            // This info is duplicated in the slots structure if we have
+            // MMU/toolchanger. Eventually, it would be gread to deduplicate in
+            // some way (eg. send the slots structure only), but for that we
+            // need to coordinate with Connect, as these are probably
+            // "essential" fields right now.
             if (telemetry.mode == SendTelemetry::Mode::Full) {
-                JSON_FIELD_FFIXED("temp_nozzle", params.slots[0].temp_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("temp_nozzle", params.slots[params.preferred_slot()].temp_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
                 JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
                 JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
-                if (params.slots[0].material != nullptr) {
-                    JSON_FIELD_STR("material", params.slots[0].material) JSON_COMMA;
+                if (params.slots[params.preferred_slot()].material != nullptr) {
+                    JSON_FIELD_STR_G(params.slots[params.preferred_slot()].material != nullptr, "material", params.slots[params.preferred_slot()].material) JSON_COMMA;
                 }
 #if XL_ENCLOSURE_SUPPORT()
                 if (params.enclosure_info.present) {
@@ -130,28 +132,36 @@ namespace {
                 }
                 JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
                 if (params.has_job) {
-                    JSON_FIELD_INT("fan_extruder", params.slots[0].heatbreak_fan_rpm) JSON_COMMA;
-                    JSON_FIELD_INT("fan_print", params.slots[0].print_fan_rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_extruder", params.slots[params.preferred_slot()].heatbreak_fan_rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_print", params.slots[params.preferred_slot()].print_fan_rpm) JSON_COMMA;
                     JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
                 }
 
 #if HAS_MMU2() || HAS_TOOLCHANGER()
-                if (params.mmu_enabled || option::has_toolchanger) {
+                // Skip if we have single-tool XL or mk4 without MMU/with MMU disabled.
+                if (params.enabled_tool_cnt() > 1) {
                     JSON_FIELD_OBJ("slot");
                         state.iter = 0;
-                        while (state.iter < params.number_of_slots) {
-                            JSON_CUSTOM("\"%zu\":{", state.iter + 1);
-                                JSON_FIELD_STR("material", params.slots[state.iter].material) JSON_COMMA;
-                                JSON_FIELD_FFIXED("temp", params.slots[state.iter].temp_nozzle, 1) JSON_COMMA;
-                                JSON_FIELD_FFIXED("fan_hotend", params.slots[state.iter].heatbreak_fan_rpm, 1) JSON_COMMA;
-                                JSON_FIELD_FFIXED("fan_print", params.slots[state.iter].print_fan_rpm, 1);
-                            JSON_OBJ_END JSON_COMMA;
+                        while (state.iter < params.slots.size()) {
+                            // Note: XL can have multiple slots, but not consequitive, therefore the trick with a mask.
+                            if (params.slot_mask & (1 << state.iter)) {
+                                JSON_CUSTOM("\"%zu\":{", state.iter + 1);
+                                    JSON_FIELD_STR("material", params.slots[state.iter].material) JSON_COMMA;
+                                    JSON_FIELD_FFIXED("temp", params.slots[state.iter].temp_nozzle, 1) JSON_COMMA;
+                                    JSON_FIELD_FFIXED("fan_hotend", params.slots[state.iter].heatbreak_fan_rpm, 1) JSON_COMMA;
+                                    JSON_FIELD_FFIXED("fan_print", params.slots[state.iter].print_fan_rpm, 1);
+                                JSON_OBJ_END JSON_COMMA;
+                            }
                             state.iter++;
                         }
-                        if (params.mmu_enabled) {
-                            JSON_FIELD_INT("state", params.progress_code) JSON_COMMA;
-                            JSON_FIELD_STR_FORMAT("command", "%c", params.command_code) JSON_COMMA;
-                        }
+#if HAS_MMU2()
+                        // If we are in here (enabled_tool_cnt() > 0), it can
+                        // be either because we have MMU _enabled_ - therefore,
+                        // we send the info, or because we have a toolchanger
+                        // (in which case it's not MMU and we don't send it).
+                        JSON_FIELD_INT("state", params.progress_code) JSON_COMMA;
+                        JSON_FIELD_STR_FORMAT("command", "%c", params.command_code) JSON_COMMA;
+#endif
                         JSON_FIELD_INT("active", params.active_slot);
                     JSON_OBJ_END JSON_COMMA;
                 }
@@ -305,11 +315,11 @@ namespace {
 #endif
 #if HAS_MMU2()
                     JSON_FIELD_OBJ("mmu");
-                        JSON_FIELD_BOOL("enabled", params.mmu_enabled) JSON_COMMA;
+                        JSON_FIELD_BOOL("enabled", params.enabled_tool_cnt() > 1) JSON_COMMA;
                         JSON_FIELD_STR_FORMAT("version", "%d.%d.%d", params.mmu_version.major, params.mmu_version.minor, params.mmu_version.build);
                     JSON_OBJ_END JSON_COMMA;
 #endif
-                    JSON_FIELD_INT("slots", params.number_of_slots);
+                    JSON_FIELD_INT("slots", params.enabled_tool_cnt());
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::JobInfo) {
                 JSON_FIELD_OBJ("data");

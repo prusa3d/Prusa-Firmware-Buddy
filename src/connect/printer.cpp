@@ -50,16 +50,18 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
             .add(int(pos[Printer::Y_AXIS_POS]));
     }
 
-    for (size_t i = 0; i < number_of_slots; i++) {
-        // Using the pointer value, not the pointed-to string (because they are
-        // in-code constants)... therefore, nullptr is also a valid value.
-        crc.add(slots[i].material)
-            .add(int(slots[i].temp_nozzle))
-            // The RPM values are in thousands and fluctuating a bit, we don't want
-            // that to trigger the send too often, only when it actually really
-            // changes.
-            .add(slots[i].print_fan_rpm / 500)
-            .add(slots[i].heatbreak_fan_rpm / 500);
+    for (size_t i = 0; i < slots.size(); i++) {
+        if (slot_mask & (1 << i)) {
+            // Using the pointer value, not the pointed-to string (because they are
+            // in-code constants)... therefore, nullptr is also a valid value.
+            crc.add(slots[i].material)
+                .add(int(slots[i].temp_nozzle))
+                // The RPM values are in thousands and fluctuating a bit, we don't want
+                // that to trigger the send too often, only when it actually really
+                // changes.
+                .add(slots[i].print_fan_rpm / 500)
+                .add(slots[i].heatbreak_fan_rpm / 500);
+        }
     }
 
     return crc
@@ -164,6 +166,21 @@ const char *Printer::Params::job_lfn() const {
         return paths->name();
     } else {
         return nullptr;
+    }
+}
+
+uint8_t Printer::Params::preferred_slot() const {
+    if (active_slot > 0) {
+        // There's a slot active, use that one
+        // (on XL, they can theoretically have different diameters)
+        // Active slot is 1-based index.
+        return active_slot - 1;
+    } else {
+        // If none is active, pick the first one that is enabled
+        // (which doesn't have to be 0, technically speaking).
+        //
+        // That nicely corresponds to number of zeroes at the end of the mask O:-)
+        return std::countr_zero(slot_mask);
     }
 }
 

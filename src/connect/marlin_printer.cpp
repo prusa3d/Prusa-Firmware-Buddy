@@ -144,26 +144,36 @@ namespace {
 #if HAS_MMU2()
         params.progress_code = MMU2::Fsm::Instance().reporter.GetProgressCode();
         params.command_code = MMU2::Fsm::Instance().reporter.GetCommandInProgress();
-        params.mmu_enabled = config_store().mmu2_enabled.get() && marlin_vars()->mmu2_state == ftrstd::to_underlying(MMU2::xState::Active);
+        const bool mmu_enabled = config_store().mmu2_enabled.get() && marlin_vars()->mmu2_state == ftrstd::to_underlying(MMU2::xState::Active);
+        params.slot_mask = mmu_enabled ? 0b00011111 : 1;
         params.mmu_version = MMU2::mmu2.GetMMUFWVersion();
         // Note: 0 means no active tool, indexing from 1
         params.active_slot = MMU2::mmu2.get_current_tool() == MMU2::FILAMENT_UNKNOWN ? 0 : MMU2::mmu2.get_current_tool() + 1;
 #elif HAS_TOOLCHANGER()
         params.active_slot = prusa_toolchanger.is_any_tool_active() ? prusa_toolchanger.get_active_tool_nr() + 1 : 0;
-#endif
-        params.number_of_slots = get_num_of_enabled_tools();
-        for (size_t i = 0; i < params.number_of_slots; i++) {
-            params.slots[i].material = filament::get_name(config_store().get_filament_type(i));
-
-#if HAS_TOOLCHANGER()
-            auto &hotend = marlin_vars()->hotend(i);
+        // For XL, it is possible to have "holes" in the enabled tools.
+        // Therefore, we need to enable all slots and skip particular ones, not
+        // do 1..n.
+        params.slot_mask = prusa_toolchanger.get_enabled_mask();
 #else
-            // only one hotend in any other situation
-            auto &hotend = marlin_vars()->active_hotend();
+        // Anything else - all slots (usually 1) are enabled.
+        // 1 << NUMBER_OF_SLOTS -> 1000 (as many zeroes as NUMBER_OF_SLOTS)
+        // 1000 - 1 -> 0111 (turn the trailing zeroes to ones)
+        params.slot_mask = (1 << Printer::NUMBER_OF_SLOTS) - 1;
 #endif
-            params.slots[i].temp_nozzle = hotend.temp_nozzle;
-            params.slots[i].print_fan_rpm = hotend.print_fan_rpm;
-            params.slots[i].heatbreak_fan_rpm = hotend.heatbreak_fan_rpm;
+        for (size_t i = 0; i < params.slots.size(); i++) {
+            if (params.slot_mask & (1 << i)) {
+#if HAS_TOOLCHANGER()
+                auto &hotend = marlin_vars()->hotend(i);
+#else
+                // only one hotend in any other situation
+                auto &hotend = marlin_vars()->active_hotend();
+#endif
+                params.slots[i].material = filament::get_name(config_store().get_filament_type(i));
+                params.slots[i].temp_nozzle = hotend.temp_nozzle;
+                params.slots[i].print_fan_rpm = hotend.print_fan_rpm;
+                params.slots[i].heatbreak_fan_rpm = hotend.heatbreak_fan_rpm;
+            }
         }
     }
 } // namespace
@@ -207,7 +217,7 @@ Printer::Params MarlinPrinter::params() const {
     params.time_to_pause = marlin_vars()->time_to_pause;
     params.progress_percent = marlin_vars()->sd_percent_done;
     params.filament_used = Odometer_s::instance().get_extruded_all();
-    params.nozzle_diameter = config_store().get_nozzle_diameter(0);
+    params.nozzle_diameter = config_store().get_nozzle_diameter(params.preferred_slot());
     params.has_usb = marlin_vars()->media_inserted;
 
     struct statvfs fsbuf = {};

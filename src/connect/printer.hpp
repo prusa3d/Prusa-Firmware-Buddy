@@ -93,11 +93,17 @@ public:
 #endif
         uint32_t progress_code = 0;
         char command_code = 0;
-        size_t number_of_slots = 0;
+        // Which slots are available/enabled (bitfielt)
+        // 0b00000001 for "ordinary" printers
+        // 0b00011111 for MMU enabled
+        // Something arbitrary for XL, depending on its heads available (note that they don't have to be "continuous")
+        uint8_t slot_mask = 1;
+        static_assert(8 * sizeof slot_mask >= NUMBER_OF_SLOTS);
         // Note: the 1 is used as default Slot
         // in case neither MMU nor toolchanger is present
+        // 0 means "no tool active" (possible with MMU or toolchanger)
+        // A 1-based index.
         uint8_t active_slot = 1;
-        bool mmu_enabled = false;
         float temp_bed = 0;
         float target_nozzle = 0;
         float target_bed = 0;
@@ -130,6 +136,11 @@ public:
 
         uint32_t telemetry_fingerprint(bool include_xy_axes) const;
         uint32_t state_fingerprint() const;
+        uint8_t enabled_tool_cnt() const {
+            return std::popcount(slot_mask);
+        }
+        // Either the active slot, if any, or the first available slot if no slot is active.
+        uint8_t preferred_slot() const;
     };
 
     struct Config {
