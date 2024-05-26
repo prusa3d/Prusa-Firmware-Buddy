@@ -159,7 +159,7 @@ void GcodeSuite::M109() {
 
   if (set_temp) {
     marlin_server::set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
-    (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling, parser.seen('F'));
+    (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling, parser.seen('C'));
   }
 }
 
