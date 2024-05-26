@@ -19,7 +19,7 @@ inline Printer::Params params_idle() {
     params.state = printer_state::DeviceState::Idle;
     params.nozzle_diameter = 0.4;
     params.version = { 2, 3, 0 };
-    params.number_of_slots = 1;
+    params.slot_mask = 1;
     strlcpy(params.hostname, "some_hostname", sizeof(params.hostname));
 
     return params;
@@ -34,7 +34,7 @@ inline Printer::Params params_dialog() {
     params.state = printer_state::StateWithDialog(printer_state::DeviceState::Attention, ErrCode::ERR_UNDEF, 42, yes_no);
     params.nozzle_diameter = 0.4;
     params.version = { 2, 3, 0 };
-    params.number_of_slots = 1;
+    params.slot_mask = 1;
 
     return params;
 }
