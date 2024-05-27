@@ -62,3 +62,6 @@ This does not apply to 3rd party code in our repository.
 - Variables (local, class, etc), class-level constants, `enum class` items, methods and namespaces are in `snake_case`.
 - File names are in `snake_case.cpp` (even if the only thing the file contains is a class named in `PascalCase`).
 - Types never end with a `'_t'`.
+
+### Code Style: Coding Conventions
+- (recommendation) Prefer using anonymous namespaces instead of `static` cpp members.
