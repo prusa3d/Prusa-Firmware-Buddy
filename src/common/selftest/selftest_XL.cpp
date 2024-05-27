@@ -389,11 +389,31 @@ void CSelftest::Loop() {
             return;
         }
         break;
+
     case stsWait_heaters:
         if (phaseWait()) {
             return;
         }
         break;
+
+    case stsReviseSetupAfterHeaters:
+        if (m_result.bed == TestResult_Failed) {
+            marlin_server::fsm_change(PhasesSelftest::Heaters_AskBedSheetAfterFail, {});
+            switch (marlin_server::get_response_from_phase(PhasesSelftest::Heaters_AskBedSheetAfterFail)) {
+
+            case Response::Retry:
+                m_State = stsHeaters_noz_ena;
+                return;
+
+            case Response::Ok:
+                break;
+
+            default:
+                return;
+            }
+        }
+        break;
+
     case stsFSensor_calibration:
         if ((ret = selftest::phaseFSensor(tool_mask, pFSensor, Config_FSensor))) {
             return;

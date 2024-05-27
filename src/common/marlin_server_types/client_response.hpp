@@ -242,7 +242,8 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     _first_Heaters,
     Heaters = _first_Heaters,
     HeatersDisabledDialog,
-    _last_Heaters = HeatersDisabledDialog,
+    Heaters_AskBedSheetAfterFail, ///< After bed heater selftest failed, this state prompts the user if he didn't forget to put on the print sheet
+    _last_Heaters = Heaters_AskBedSheetAfterFail,
 
     _first_FirstLayer,
     FirstLayer_mbl = _first_FirstLayer,
@@ -636,6 +637,7 @@ class ClientResponses {
 
             { PhasesSelftest::Heaters, {} },
             { PhasesSelftest::HeatersDisabledDialog, { Response::Ok } },
+            { PhasesSelftest::Heaters_AskBedSheetAfterFail, { Response::Ok, Response::Retry } },
 
             { PhasesSelftest::FirstLayer_mbl, {} },
             { PhasesSelftest::FirstLayer_print, {} },

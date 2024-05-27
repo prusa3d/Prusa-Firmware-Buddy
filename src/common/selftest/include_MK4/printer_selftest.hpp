@@ -72,7 +72,7 @@ enum SelftestMask_t : uint32_t {
     stmXYZAxis = stmXAxis | stmYAxis | stmZAxis,
     stmWait_axes = to_one_hot(stsWait_axes),
     stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena) | to_one_hot(stsReviseSetupAfterHeaters),
-    stmHeaters_bed = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_bed_ena),
+    stmHeaters_bed = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_bed_ena) | to_one_hot(stsReviseSetupAfterHeaters),
     stmHeaters = stmHeaters_bed | stmHeaters_noz,
     stmWait_heaters = to_one_hot(stsWait_heaters),
     stmFSensor = to_one_hot(stsFSensor_calibration),

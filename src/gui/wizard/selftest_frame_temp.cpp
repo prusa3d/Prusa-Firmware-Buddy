@@ -126,7 +126,7 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
     , text_heatbreak(&test_frame, heatbreak_text_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_heatbreak))
 #endif
     , text_info(&test_frame, info_text_rect, is_multiline::yes)
-    , text_dialog(this, GetRect() + Rect16::X_t(WizardDefaults::MarginLeft) + Rect16::Y_t(GuiDefaults::FramePadding) - Rect16::H_t(80) - Rect16::W_t(2 * WizardDefaults::MarginLeft), is_multiline::yes, is_closed_on_click_t::no, _(en_text_dialog_noz_disabled))
+    , text_dialog(this, GetRect() + Rect16::X_t(WizardDefaults::MarginLeft) + Rect16::Y_t(GuiDefaults::FramePadding) - Rect16::H_t(80) - Rect16::W_t(2 * WizardDefaults::MarginLeft), is_multiline::yes, is_closed_on_click_t::no, {})
     // results
     , hotend_results(make_hotend_result_array(std::make_index_sequence<HOTENDS>())) {
 
@@ -248,6 +248,15 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
 
 void ScreenSelftestTemp::change() {
     switch (phase_current) {
+
+    case PhasesSelftest::Heaters_AskBedSheetAfterFail: {
+        test_frame.Hide();
+        text_dialog.Show();
+        text_dialog.SetText(_("Bed heater selftest failed.\n\nIf you forgot to put the steel sheet on the heatbed, put it on and then press Retry."));
+        radio.Show();
+        break;
+    }
+
     case PhasesSelftest::HeatersDisabledDialog:
 #if HAS_TOOLCHANGER()
         if (prusa_toolchanger.get_num_enabled_tools() > 1) {
@@ -257,9 +266,11 @@ void ScreenSelftestTemp::change() {
         {
             test_frame.Hide();
             text_dialog.Show();
+            text_dialog.SetText(_(en_text_dialog_noz_disabled));
             radio.Show();
             break;
         }
+
     case PhasesSelftest::Heaters: {
         text_dialog.Hide();
         test_frame.Show();
