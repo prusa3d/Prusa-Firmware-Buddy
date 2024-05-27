@@ -111,9 +111,6 @@ static Result flash_upload(const Part &part, ProgressHookInterface &progress_hoo
     if (const Result result = generic_upload(part, esp_loader_flash_start, esp_loader_flash_write, progress_hook); result != Result::success) {
         return result;
     }
-    if (esp_loader_flash_finish(false) != ESP_LOADER_SUCCESS) {
-        return Result::protocol_error;
-    }
     return Result::success;
 }
 
@@ -168,14 +165,11 @@ static Result run_stub() {
 }
 
 static Result run_rom() {
-#if HAS_EMBEDDED_ESP32()
-    // embedded ESP32 did not go into stub so there is no need to restart
-#else
+    // Esp32 doesn't require reset after flashing, but we should reset anyway to prevent connection problems over uart
     esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
     if (esp_loader_connect(&config) != ESP_LOADER_SUCCESS) {
         return Result::not_connected;
     }
-#endif
     return Result::success;
 }
 
@@ -271,6 +265,13 @@ Result flash() {
                 result = flash_upload(part, progress_hook);
             }
         });
+
+        if (auto response = esp_loader_flash_finish(false); response != ESP_LOADER_SUCCESS) {
+            log_warning(Buddy, "flash finish (noreboot) failed with %d", response);
+            if (response = esp_loader_flash_finish(true); response != ESP_LOADER_SUCCESS) {
+                log_warning(Buddy, "flash finish (reboot) failed with %d", response);
+            }
+        }
 
         // For some reason we need to run ROM again in order to upload stub and verify (wtf?)
         if (const Result result = run_rom(); result != Result::success) {
