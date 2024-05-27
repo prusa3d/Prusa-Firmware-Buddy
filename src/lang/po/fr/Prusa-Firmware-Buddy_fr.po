@@ -77,7 +77,7 @@ msgstr "Tension 5V"
 #: src/common/client_response_texts.hpp:14
 #: src/common/client_response_texts.hpp:16
 msgid "ABORT"
-msgstr "STOPPER"
+msgstr "ABANDONNER"
 
 #: src/gui/screen_printing.cpp:602
 msgid "ABORTING ..."
@@ -90,7 +90,7 @@ msgstr "Acquisition du code d'enregistrement, veuillez patienter..."
 #. window_menu
 #: src/gui/MItem_tools.cpp:294
 msgid "A crash dump is being saved."
-msgstr "Un dump sur crash est en cours d'enregistrement."
+msgstr "Une copie de la mémoire vive est en cours d'enregistrement."
 
 #: src/gui/MItem_tools.cpp:298
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
@@ -136,7 +136,7 @@ msgstr ""
 
 #: src/gui/wizard/selftest_frame_dock.cpp:209
 msgid "Aligning tool"
-msgstr "Toutes les buses"
+msgstr "Outil d'alignement"
 
 #: src/gui/wizard/selftest_frame_dock.hpp:44
 msgid ""
@@ -301,7 +301,7 @@ msgid ""
 "check your wiring and repeat the test."
 msgstr ""
 "D'après le test, il semble que les connecteurs des ventilateurs soient "
-"commutés. Vérifiez votre câblage et répétez le test."
+"inversés. Vérifiez votre câblage et répétez le test."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:274
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:337
@@ -1628,7 +1628,7 @@ msgstr "Quitter"
 
 #: src/gui/screen_sysinf.cpp:90
 msgid "EXIT"
-msgstr "SORTIR"
+msgstr "QUITTER"
 
 #. for MK3.5 we call this option simply "Extruder"
 #: src/gui/MItem_mmu.hpp:271
@@ -4996,7 +4996,7 @@ msgstr "IMPRESSION ..."
 #. in header because it's used by screen_printing as well
 #: src/gui/screen_printing_end_result.hpp:30
 msgid "Printing time"
-msgstr "Temps d'impression"
+msgstr "Temps impression"
 
 #: src/gui/MItem_tools.hpp:567
 msgid "Print Progress Screen"
@@ -5029,7 +5029,7 @@ msgstr "Temps d'Impression"
 
 #: src/gui/print_time_module.hpp:27
 msgid "Print will end"
-msgstr "L'impression va s'arrêter"
+msgstr "Fin prévue à"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:44
 #, c-format
@@ -7368,7 +7368,7 @@ msgstr "ATTENTION TMC TROP CHAUD"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:56
 msgid "Was filament unload successful?"
-msgstr "Le filament a-t-il été bien chargé ?"
+msgstr "Le filament a-t-il été bien déchargé ?"
 
 #. abbreviated Wednesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:49
