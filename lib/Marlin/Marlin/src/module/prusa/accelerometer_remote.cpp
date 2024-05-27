@@ -87,9 +87,8 @@ void PrusaAccelerometer::clear() {
     // todo wait for for so many samples that it is assured
     // that even if all buffers were full we went through
     // all samples
-    Acceleration acceleration;
-    while (get_sample(acceleration))
-        ;
+    std::lock_guard lock(s_buffer_mutex);
+    m_sample_buffer.clear();
     m_error = Error::none;
 }
 int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
