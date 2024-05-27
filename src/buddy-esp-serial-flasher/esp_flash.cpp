@@ -54,7 +54,6 @@ public:
         : total { total }
         , current { 0 }
         , retry { retry } {
-        TaskDeps::wait(TaskDeps::make(TaskDeps::Dependency::resources_ready));
         report_progress(0);
     }
     void report_progress(size_t increment) final {
@@ -224,6 +223,11 @@ static Result verify_all_flash_parts(FlashPartsResults &results) {
 }
 
 Result flash() {
+#if !HAS_EMBEDDED_ESP32()
+    // With ESP8266 we need to wait for resources early to be able to flush the stub
+    // TODO: Add more resources flags for esp and do a more granular dependency check
+    TaskDeps::wait(TaskDeps::make(TaskDeps::Dependency::resources_ready));
+#endif
     esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
     int tries = REFLASH_MAX_TRIES;
     while (tries > 0 && esp_loader_connect(&config) != ESP_LOADER_SUCCESS) {
@@ -253,6 +257,12 @@ Result flash() {
         if (const Result result = run_rom(); result != Result::success) {
             return result;
         }
+
+#if HAS_EMBEDDED_ESP32()
+        // ESP32 doesn't need the stub so we can wait for resources here.
+        // This makes the verification happend during the Install phase so we don't need to wait at the end for it
+        TaskDeps::wait(TaskDeps::make(TaskDeps::Dependency::resources_ready));
+#endif
 
         // Flash everything that needs to be flashed
         BootstrapProgressHook progress_hook { total, tries != REFLASH_MAX_TRIES };
