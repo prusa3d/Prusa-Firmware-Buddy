@@ -5,16 +5,24 @@
 #include "fonts.hpp"
 #include "config.h"
 #include <guiconfig/guiconfig.h>
+#include <option/enable_translation_jp.h>
+
 #if HAS_MINI_DISPLAY()
-    #include "res/cc/font_regular_7x13.hpp" //Font::small
-    #include "res/cc/font_regular_11x18.hpp" //Font::normal
-    #include "res/cc/font_regular_9x16.hpp" //Font::special
+    #if ENABLE_TRANSLATION_JP()
+        #include "res/cc/font_regular_7x13_full.hpp" //Font::small
+        #include "res/cc/font_regular_11x18_full.hpp" //Font::normal
+        #include "res/cc/font_regular_9x16_full.hpp" //Font::special
+    #else
+        #include "res/cc/font_regular_7x13_standard.hpp" //Font::small
+        #include "res/cc/font_regular_11x18_standard.hpp" //Font::normal
+        #include "res/cc/font_regular_9x16_standard.hpp" //Font::special
+    #endif
 #endif
 #if HAS_LARGE_DISPLAY()
-    #include "res/cc/font_regular_9x16.hpp" //Font::small
-    #include "res/cc/font_bold_11x19.hpp" //Font::normal
-    #include "res/cc/font_bold_13x22.hpp" //Font::big
-    #include "res/cc/font_bold_30x53.hpp" //Font::large
+    #include "res/cc/font_regular_9x16_full.hpp" //Font::small
+    #include "res/cc/font_bold_11x19_full.hpp" //Font::normal
+    #include "res/cc/font_bold_13x22_full.hpp" //Font::big
+    #include "res/cc/font_bold_30x53_digits.hpp" //Font::large
 #endif
 
 typedef struct _resource_entry_t {

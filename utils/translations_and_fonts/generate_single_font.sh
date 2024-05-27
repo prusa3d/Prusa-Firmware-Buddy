@@ -6,7 +6,7 @@ type=$3
 charset_option=$4
 
 png_dst=src/gui/res/fnt_png/
-dst_name=font_${type}_${w}x${h}
+dst_name=font_${type}_${w}x${h}_${charset_option}
 
 # Generate required characters for every font charset_option
 python3 utils/translations_and_fonts/lang.py generate-required-chars src/lang/po .
