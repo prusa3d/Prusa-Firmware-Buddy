@@ -7,6 +7,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_config_store_wo_backend.h>
 #include <option/has_touch.h>
+#include <sys.h>
 
 namespace config_store_ns {
 #if not HAS_CONFIG_STORE_WO_BACKEND()
@@ -40,6 +41,13 @@ void CurrentStore::perform_config_check() {
         hotend_type.set(HotendType::stock_with_sock);
     }
 #endif
+
+    // BFW-5486
+    // Auto-update is now enablablable only in develeoper mode
+    // There were some issues with people leaving this option on, then upgrading and having problems turning it off
+    if constexpr (!option::development_items) {
+        sys_fw_update_disable();
+    }
 }
 
 footer::Item CurrentStore::get_footer_setting([[maybe_unused]] uint8_t index) {
