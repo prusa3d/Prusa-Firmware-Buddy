@@ -1997,15 +1997,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -2068,15 +2064,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -2139,15 +2131,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -2210,15 +2198,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",

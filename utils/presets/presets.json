@@ -97,9 +97,8 @@
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
-                "BOARD": "<default>",
-                "BOARD_VERSION": "<default>",
-                "PRESET_COMPILE_OPTIONS": "",
+                "BOARD": "BUDDY",
+                "BOARD_VERSION": "1.0.0",
                 "DEVELOPMENT_ITEMS_ENABLED": true,
                 "TRANSLATIONS_LIST": "jp"
             }
