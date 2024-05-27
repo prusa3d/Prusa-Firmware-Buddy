@@ -3,13 +3,14 @@
 #include <ScreenHandler.hpp>
 #include <img_resources.hpp>
 
-namespace screen_printer_setup_private {
+using namespace screen_printer_setup_private;
+
+namespace {
 
 constexpr Rect16 prompt_rect = Rect16::fromLTWH(0, GuiDefaults::HeaderHeight, GuiDefaults::ScreenWidth, 32);
 constexpr Rect16 menu_rect = Rect16::fromLTRB(0, prompt_rect.Bottom() + 4, prompt_rect.Right(), GuiDefaults::ScreenHeight);
 
-}; // namespace screen_printer_setup_private
-using namespace screen_printer_setup_private;
+}; // namespace
 
 MI_DONE::MI_DONE()
     : IWindowMenuItem(_("Done"), &img::ok_16x16) {
