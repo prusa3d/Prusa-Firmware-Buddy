@@ -6,6 +6,9 @@
 #include <stdint.h>
 #include <config_store/store_instance.hpp>
 #include <logging/log_dest_syslog.hpp>
+#include <client_fsm_types.h>
+#include <client_response.hpp>
+#include <marlin_server.hpp>
 
 /** \addtogroup G-Codes
  * @{
@@ -114,7 +117,10 @@ void PrusaGcodeSuite::M334() {
         }
     }
 
-    // TODO prompt the user to allow the metrics change
+    // Prompt the user if he wants to allow the metrics change
+    if (!metrics_config_change_prompt()) {
+        return;
+    }
 
     // Store the new settings in the config store
     {
@@ -129,6 +135,18 @@ void PrusaGcodeSuite::M334() {
     // Let the new settings take effect
     metrics_reconfigure();
     logging::syslog_reconfigure();
+}
+
+bool PrusaGcodeSuite::metrics_config_change_prompt() {
+    marlin_server::set_warning(WarningType::MetricsConfigChangePrompt, PhasesWarning::MetricsConfigChangePrompt);
+
+    Response r;
+    while ((r = marlin_server::get_response_from_phase(PhasesWarning::MetricsConfigChangePrompt)) == Response::_none) {
+        idle(true);
+    }
+
+    marlin_server::fsm_destroy(ClientFSM::Warning);
+    return r == Response::Yes;
 }
 
 /** @}*/

@@ -373,6 +373,10 @@ enum class PhasesWarning : PhaseUnderlyingType {
 #endif
 
     ProbingFailed,
+
+    /// Shown when the M334 is attempting to change metrics configuration, prompting the user to confirm the change (security reasons)
+    MetricsConfigChangePrompt,
+
     NozzleCleaningFailed,
     _last = NozzleCleaningFailed,
 };
@@ -747,6 +751,7 @@ class ClientResponses {
             { PhasesWarning::EnclosureFilterExpiration, { Response::Ignore, Response::Postpone5Days, Response::Done } },
 #endif
             { PhasesWarning::ProbingFailed, { Response::Yes, Response::No } },
+            { PhasesWarning::MetricsConfigChangePrompt, { Response::Yes, Response::No } },
             { PhasesWarning::NozzleCleaningFailed, { Response::Retry, Response::Abort } },
     };
 

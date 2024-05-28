@@ -1,6 +1,7 @@
 #include <gcode/gcode.h>
 
 #include "M340.h"
+#include "M330.h"
 #include <logging/log_dest_syslog.hpp>
 #include <stdint.h>
 #include <config_store/store_instance.hpp>
@@ -36,6 +37,16 @@ void PrusaGcodeSuite::M340() {
     if (read != 2) {
         SERIAL_ECHO_START();
         SERIAL_ECHOLN("does not match '<address> <port>' pattern");
+        return;
+    }
+
+    // Nothing changed -> don't do anything
+    if (strcmp(host.data(), config_store().metrics_host.get().data()) == 0 && port == config_store().syslog_port.get()) {
+        return;
+    }
+
+    // Prompt the user if he wants to allow the metrics change
+    if (!metrics_config_change_prompt()) {
         return;
     }
 

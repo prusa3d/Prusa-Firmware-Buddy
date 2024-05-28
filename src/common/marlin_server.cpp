@@ -367,7 +367,6 @@ namespace {
     }
 
     void clear_warnings() {
-
         if (fsm_states.is_active(ClientFSM::Warning)) {
             fsm_destroy(ClientFSM::Warning);
         }
@@ -379,6 +378,12 @@ namespace {
         }
 
         const auto phase = static_cast<PhasesWarning>(phase_opt->GetPhase());
+
+        if (phase == PhasesWarning::MetricsConfigChangePrompt) {
+            // Handled in M334, do not consume the response.
+            return;
+        }
+
         const auto response = get_response_from_phase(phase);
         if (response == Response::_none) {
             return;
@@ -414,6 +419,10 @@ namespace {
                 print_abort();
             }
             break;
+
+        case PhasesWarning::MetricsConfigChangePrompt:
+            // This should be unreachable
+            std::terminate();
         }
     }
 } // end anonymous namespace
