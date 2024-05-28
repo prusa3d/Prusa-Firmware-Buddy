@@ -716,6 +716,7 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
 
 void GcodeMetaRenderer::reset_buffer() {
     gcode_line_buffer.line = GcodeBuffer::String();
+    parsed.reset();
 }
 
 JsonResult GcodeMetaRenderer::out_str_chunk(JsonOutput &output, const GcodeBuffer::String &str) {
@@ -778,13 +779,15 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
             // that would look like a fragile assumption, so basing it off the real
             // "problem").
             const bool full_size = gcode_line_buffer.line.len() == gcode_line_buffer.buffer.size();
-            GcodeBuffer::String::parsed_metadata_t parsed = gcode_line_buffer.line.parse_metadata(!full_size);
-            if (parsed.first.begin == nullptr || parsed.second.begin == nullptr) {
+            if (!parsed.has_value()) {
+                parsed = gcode_line_buffer.line.parse_metadata(!full_size);
+            }
+            if (parsed->first.begin == nullptr || parsed->second.begin == nullptr) {
                 reset_buffer(); // reset buffer to fetch another line
                 continue;
             }
 
-            auto filter = meta_filter(parsed.first.c_str());
+            auto filter = meta_filter(parsed->first.c_str());
 
             // Too large headers are only handled and allowed for strings, others
             // aren't expected to exceed 80 chars.
@@ -811,20 +814,20 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
                 break;
             case MetaFilter::String:
                 // Only the name of the field and starting "
-                result = output.output(0, "\"%s\":\"", parsed.first.c_str());
+                result = output.output(0, "\"%s\":\"", parsed->first.c_str());
                 if (result == JsonResult::Complete) {
                     // Will adjust the str_continuation as needed.
-                    result = out_str_chunk(output, parsed.second);
+                    result = out_str_chunk(output, parsed->second);
                 }
                 break;
 
             case MetaFilter::Float: {
                 char *end = nullptr;
-                double v = strtod(parsed.second.c_str(), &end);
+                double v = strtod(parsed->second.c_str(), &end);
                 if (end != nullptr && *end != '\0') {
                     // unable to parse, skip this
                 } else {
-                    result = output.output_field_float_fixed(0, parsed.first.c_str(), v, 2);
+                    result = output.output_field_float_fixed(0, parsed->first.c_str(), v, 2);
                 }
                 break;
             }
@@ -832,15 +835,15 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
             case MetaFilter::Int:
             case MetaFilter::Bool: {
                 char *end = nullptr;
-                long v = strtol(parsed.second.c_str(), &end, 10);
+                long v = strtol(parsed->second.c_str(), &end, 10);
                 if (end != nullptr && *end != '\0') {
                     // Not really an int there. Skip this line.
                 } else {
                     if (filter == MetaFilter::Int) {
-                        result = output.output_field_int(0, parsed.first.c_str(), v);
+                        result = output.output_field_int(0, parsed->first.c_str(), v);
                     } else {
                         // The gcode encodes bools as 0/1, JSON has True and False.
-                        result = output.output_field_bool(0, parsed.first.c_str(), v);
+                        result = output.output_field_bool(0, parsed->first.c_str(), v);
                     }
                 }
                 break;

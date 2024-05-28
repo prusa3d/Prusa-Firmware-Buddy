@@ -28,6 +28,7 @@ public:
 
 class GcodeMetaRenderer final : public json::ChunkRenderer {
 private:
+    std::optional<GcodeBuffer::String::parsed_metadata_t> parsed;
     IGcodeReader *gcode;
     GcodeBuffer gcode_line_buffer;
     bool first_run = true;
