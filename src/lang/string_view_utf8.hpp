@@ -145,6 +145,11 @@ public:
         , s(0xff) {}
     ~string_view_utf8() = default;
 
+    /// @returns one uint8_t from the input data
+    uint8_t getbyte() {
+        return getbyte(attrs);
+    }
+
     /// @returns one UTF-8 character from the input data
     /// and advances internal pointers (in derived classes) to the next one
     unichar getUtf8Char() {
