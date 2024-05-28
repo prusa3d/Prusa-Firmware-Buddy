@@ -61,6 +61,16 @@ Action get_previous_action(Action action) {
     return _get_valid_action(static_cast<Action>(ftrstd::to_underlying(action) - 1), -1);
 }
 
+bool any_completed() {
+    for (Action action = get_first_action(); action != get_last_action(); action = get_next_action(action)) {
+        if (get_test_result(action, Tool::_all_tools) == TestResult_Passed) {
+            return true;
+        }
+    }
+    // checking last action separately to avoid running out of enum
+    return get_test_result(get_last_action(), Tool::_all_tools) == TestResult_Passed;
+}
+
 bool are_previous_completed(Action action) {
     if (action == get_first_action()) {
         return true;
@@ -205,7 +215,8 @@ void continue_snake() {
     }
 
     if (snake_config.state == SnakeConfig::State::first // ran only one action so far
-        && (snake_config.last_action != get_first_action() || get_test_result(get_next_action(get_first_action()), Tool::_all_tools) == TestResult_Passed)) {
+        && (snake_config.last_action != get_first_action() || any_completed())) {
+        // if the first test was run and no other has Passed yet, run full wizard; Otherwise ask
 
         Response resp = Response::Stop;
         if (is_multitool() && has_submenu(snake_config.last_action) && snake_config.last_tool != get_last_enabled_tool()) {
