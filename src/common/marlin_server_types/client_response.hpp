@@ -735,13 +735,12 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::QuickPauseResponses) == CountPhases<PhasesQuickPause>());
 
-    static constexpr PhaseResponses WarningResponses[] = {
-        { Response::Continue }, // Warning
-        { Response::Ignore, Response::Postpone5Days, Response::Done }, // Enclosure filter expiration
-        { Response::Yes, Response::No }, // ProbingFailed
-        { Response::Retry, Response::Abort }, // NozzleCleaningFailed
+    static constexpr EnumArray<PhasesWarning, PhaseResponses, CountPhases<PhasesWarning>()> WarningResponses {
+        { PhasesWarning::Warning, { Response::Continue } },
+        { PhasesWarning::EnclosureFilterExpiration, { Response::Ignore, Response::Postpone5Days, Response::Done } },
+        { PhasesWarning::ProbingFailed, { Response::Yes, Response::No } },
+        { PhasesWarning::NozzleCleaningFailed, { Response::Retry, Response::Abort } },
     };
-    static_assert(std::size(ClientResponses::WarningResponses) == CountPhases<PhasesWarning>());
 
 #if HAS_COLDPULL()
     static constexpr PhaseResponses ColdPullResponses[] = {
