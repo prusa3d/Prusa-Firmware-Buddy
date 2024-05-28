@@ -12,20 +12,20 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_METRICS_PORT : public WiInfo<6> {
+class MI_METRICS_PORT : public WiSpin {
 public:
     MI_METRICS_PORT();
 
 protected:
-    virtual void click(IWindowMenu &window_menu) override;
+    virtual void OnClick() override;
 };
 
-class MI_SYSLOG_PORT : public WiInfo<6> {
+class MI_SYSLOG_PORT : public WiSpin {
 public:
     MI_SYSLOG_PORT();
 
 protected:
-    virtual void click(IWindowMenu &window_menu) override;
+    virtual void OnClick() override;
 };
 
 class MI_METRICS_INFO_LABEL : public IWindowMenuItem {

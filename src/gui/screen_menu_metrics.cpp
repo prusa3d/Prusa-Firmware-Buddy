@@ -8,6 +8,8 @@
 #include <config_store/store_instance.hpp>
 #include <logging/log_dest_syslog.hpp>
 #include <guiconfig/guiconfig.h>
+#include <numeric_input_config_common.hpp>
+#include <dialog_text_input.hpp>
 
 LOG_COMPONENT_REF(GUI);
 
@@ -17,21 +19,32 @@ MI_METRICS_HOST::MI_METRICS_HOST()
 }
 
 void MI_METRICS_HOST::click(IWindowMenu &) {
-    // TODO ability to change host
+    auto host = config_store().metrics_host.get();
+
+    if (!DialogTextInput::exec(GetLabel(), host)) {
+        return;
+    }
+
+    ChangeInformation(host.data());
+    config_store().metrics_host.set(host);
+    metrics_reconfigure();
+    logging::syslog_reconfigure();
 }
 
 MI_METRICS_PORT::MI_METRICS_PORT()
-    : WiInfo(config_store().metrics_port.get(), _("Metrics Port")) {}
+    : WiSpin(config_store().metrics_port.get(), numeric_input_config::network_port, _("Metrics Port")) {}
 
-void MI_METRICS_PORT::click(IWindowMenu &) {
-    // TODO ability to change port
+void MI_METRICS_PORT::OnClick() {
+    config_store().metrics_port.set(value());
+    metrics_reconfigure();
 }
 
 MI_SYSLOG_PORT::MI_SYSLOG_PORT()
-    : WiInfo(config_store().syslog_port.get(), _("Syslog Port")) {}
+    : WiSpin(config_store().syslog_port.get(), numeric_input_config::network_port, _("Syslog Port")) {}
 
-void MI_SYSLOG_PORT::click(IWindowMenu &) {
-    // TODO ability to change port
+void MI_SYSLOG_PORT::OnClick() {
+    config_store().syslog_port.set(value());
+    logging::syslog_reconfigure();
 }
 
 // Info message
