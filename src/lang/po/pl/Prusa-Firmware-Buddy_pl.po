@@ -2739,6 +2739,10 @@ msgstr "GRZANIE"
 msgid "HEPA Filter Check"
 msgstr "Kontrola filtra HEPA"
 
+#: src/gui/MItem_enclosure.hpp:55
+msgid "EXPIRED"
+msgstr "PRZETERMINOWANY"
+
 #: src/gui/MItem_crash.hpp:55
 msgid "High"
 msgstr "Wysoka"

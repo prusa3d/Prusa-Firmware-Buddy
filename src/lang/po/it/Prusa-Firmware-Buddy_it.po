@@ -2759,6 +2759,10 @@ msgstr "RISCALDA"
 msgid "HEPA Filter Check"
 msgstr "Controllo Filtro HEPA"
 
+#: src/gui/MItem_enclosure.hpp:55
+msgid "EXPIRED"
+msgstr "SCADUTO"
+
 #: src/gui/MItem_crash.hpp:55
 msgid "High"
 msgstr "Alto"

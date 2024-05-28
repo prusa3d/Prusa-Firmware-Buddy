@@ -2796,6 +2796,10 @@ msgstr "ヒートアップ"
 msgid "HEPA Filter Check"
 msgstr "HEPAフィルターチェック"
 
+#: src/gui/MItem_enclosure.hpp:55
+msgid "EXPIRED"
+msgstr "エクスパイアド"
+
 #: src/gui/MItem_crash.hpp:55
 msgid "High"
 msgstr "ハイ"

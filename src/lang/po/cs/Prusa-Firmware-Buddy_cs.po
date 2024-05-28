@@ -2703,6 +2703,10 @@ msgstr "ZAHŘÍVÁNÍ"
 msgid "HEPA Filter Check"
 msgstr "Kontrola HEPA filtru"
 
+#: src/gui/MItem_enclosure.hpp:55
+msgid "EXPIRED"
+msgstr "VYPRŠEL"
+
 #: src/gui/MItem_crash.hpp:55
 msgid "High"
 msgstr "Vysoký"

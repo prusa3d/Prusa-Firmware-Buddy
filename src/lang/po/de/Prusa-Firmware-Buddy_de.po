@@ -2781,6 +2781,10 @@ msgstr "AUFHEIZEN"
 msgid "HEPA Filter Check"
 msgstr "HEPA Filter Check"
 
+#: src/gui/MItem_enclosure.hpp:55
+msgid "EXPIRED"
+msgstr "ABGELAUFEN"
+
 #: src/gui/MItem_crash.hpp:55
 msgid "High"
 msgstr "Hoch"

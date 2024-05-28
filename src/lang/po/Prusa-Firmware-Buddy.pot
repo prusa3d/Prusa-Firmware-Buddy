@@ -2388,6 +2388,10 @@ msgstr ""
 msgid "HEPA Filter Check"
 msgstr ""
 
+#: src/gui/MItem_enclosure.hpp:55
+msgid "EXPIRED"
+msgstr ""
+
 #. regular home screen
 #: src/gui/screen_home.cpp:192
 msgid "HOME"

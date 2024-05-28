@@ -2722,6 +2722,10 @@ msgstr "CHAUFFAGE"
 msgid "HEPA Filter Check"
 msgstr "Vérification du filtre HEPA"
 
+#: src/gui/MItem_enclosure.hpp:55
+msgid "EXPIRED"
+msgstr "EXPIRÉ"
+
 #: src/gui/MItem_crash.hpp:55
 msgid "High"
 msgstr "Élevé"
