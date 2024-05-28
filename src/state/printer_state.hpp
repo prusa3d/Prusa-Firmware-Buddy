@@ -5,6 +5,8 @@
 
 #include <optional>
 
+#include <common/marlin_server_types/client_fsm_types.h>
+
 enum class Response : uint8_t;
 
 namespace printer_state {
@@ -83,6 +85,8 @@ struct StateWithDialog {
         return dialog.has_value() ? dialog->buttons : nullptr;
     }
 };
+
+ErrCode warning_type_to_error_code(WarningType wtype);
 
 DeviceState get_state(bool ready = false);
 StateWithDialog get_state_with_dialog(bool ready = false);
