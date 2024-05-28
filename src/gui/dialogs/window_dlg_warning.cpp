@@ -1,6 +1,7 @@
 #include "window_dlg_warning.hpp"
 
 #include <common/fsm_base_types.hpp>
+#include <state/printer_state.hpp>
 
 static constexpr int16_t iconSize = 48;
 
@@ -17,15 +18,62 @@ static constexpr Rect16 textRect = Rect16(side_padding + iconSize + 15, top_padd
 static constexpr Rect16 iconRect = Rect16(side_padding, top_padding, iconSize, iconSize);
 #endif
 
+const img::Resource *warning_dialog_icon(WarningType warning_type) {
+    static constexpr EnumArray<WarningType, const img::Resource *, static_cast<int>(WarningType::_last) + 1> data {
+        { WarningType::HotendFanError, &img::fan_error_48x48 },
+            { WarningType::PrintFanError, &img::fan_error_48x48 },
+            { WarningType::HeatersTimeout, &img::exposure_times_48x48 },
+            { WarningType::HotendTempDiscrepancy, nullptr },
+            { WarningType::NozzleTimeout, &img::exposure_times_48x48 },
+#if _DEBUG
+            { WarningType::SteppersTimeout, &img::exposure_times_48x48 },
+#endif
+            { WarningType::USBFlashDiskError, &img::usb_error_48x48 },
+#if ENABLED(POWER_PANIC)
+            { WarningType::HeatbedColdAfterPP, nullptr },
+#endif
+            { WarningType::HeatBreakThermistorFail, nullptr }, // TODO need icon for heatbreak thermistor disconnect
+#if ENABLED(CALIBRATION_GCODE)
+            { WarningType::NozzleDoesNotHaveRoundSection, &img::nozzle_34x32 },
+#endif
+            { WarningType::BuddyMCUMaxTemp, &img::warning_48x48 },
+#if HAS_DWARF()
+            { WarningType::DwarfMCUMaxTemp, &img::warning_48x48 },
+#endif /* HAS_DWARF() */
+#if HAS_MODULARBED()
+            { WarningType::ModBedMCUMaxTemp, &img::warning_48x48 },
+#endif /* HAS_MODULARBED() */
+#if HAS_BED_PROBE
+            { WarningType::ProbingFailed, nullptr },
+#endif
+#if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
+            { WarningType::NozzleCleaningFailed, nullptr },
+#endif
+#if XL_ENCLOSURE_SUPPORT()
+            { WarningType::EnclosureFilterExpirWarning, &img::warning_48x48 },
+            { WarningType::EnclosureFilterExpiration, &img::warning_48x48 },
+            { WarningType::EnclosureFanError, &img::warning_48x48 },
+#endif /* XLBUDDY BOARD */
+            { WarningType::NotDownloaded, HAS_LARGE_DISPLAY() ? &img::no_stream_48x48 : nullptr }, // Long text, does not fit on the mini display with the icon
+            { WarningType::GcodeCorruption, &img::warning_48x48 },
+    };
+    return data[warning_type];
+}
+
 DialogWarning::DialogWarning(fsm::BaseData data)
     : IDialogMarlin(GuiDefaults::RectScreenBody)
     , icon(this, iconRect, &img::warning_48x48)
-    , text(this, textRect, is_multiline::yes, is_closed_on_click_t::yes, _(find_error(icon_code[get_type(data)].code).err_text))
+    , text(this, textRect, is_multiline::yes, is_closed_on_click_t::yes, {})
     , button(this, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), GetEnumFromPhaseIndex<PhasesWarning>(data.GetPhase())) {
     CaptureNormalWindow(button);
 
-    if (icon_code[get_type(data)].icon) {
-        icon.SetRes(icon_code[get_type(data)].icon);
+    const auto warning_type = static_cast<WarningType>(*data.GetData().data());
+    const auto error_code = printer_state::warning_type_to_error_code(warning_type);
+    const ErrDesc &error_desc = find_error(error_code);
+    text.SetText(_(error_desc.err_text));
+
+    if (auto icon_res = warning_dialog_icon(warning_type)) {
+        icon.SetRes(icon_res);
     }
 #if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
     // Lack of space on ST7789 -> long text warnings does not have icon
@@ -34,67 +82,4 @@ DialogWarning::DialogWarning(fsm::BaseData data)
         text.SetRect(textRectNoIcon);
     }
 #endif
-}
-
-DialogWarning::types DialogWarning::get_type(fsm::BaseData data) {
-    WarningType wtype = static_cast<WarningType>(*data.GetData().data());
-    switch (wtype) {
-    case WarningType::HotendFanError:
-        return HotendFan;
-    case WarningType::PrintFanError:
-        return PrintFan;
-    case WarningType::HotendTempDiscrepancy:
-        return HotendTempDiscrepancy;
-    case WarningType::HeatersTimeout:
-    case WarningType::NozzleTimeout:
-        return HeatersTimeout;
-#if _DEBUG
-    case WarningType::SteppersTimeout:
-        return SteppersTimeout;
-#endif
-    case WarningType::USBFlashDiskError:
-        return USBFlashDisk;
-    case WarningType::HeatBreakThermistorFail:
-        return HBThermistorFail;
-#if ENABLED(POWER_PANIC)
-    case WarningType::HeatbedColdAfterPP:
-        return HeatbedColdAfterPP;
-#endif
-#if ENABLED(CALIBRATION_GCODE)
-    case WarningType::NozzleDoesNotHaveRoundSection:
-        return NozzleDoesNotHaveRoundSection;
-#endif
-    case WarningType::NotDownloaded:
-        return NotDownloaded;
-    case WarningType::BuddyMCUMaxTemp:
-        return BuddyMCUMaxTemp;
-#if HAS_DWARF()
-    case WarningType::DwarfMCUMaxTemp:
-        return DwarfMCUMaxTemp;
-#endif /* HAS_DWARF() */
-#if HAS_MODULARBED()
-    case WarningType::ModBedMCUMaxTemp:
-        return ModBedMCUMaxTemp;
-#endif /* HAS_MODULARBED() */
-#if XL_ENCLOSURE_SUPPORT()
-    case WarningType::EnclosureFilterExpirWarning:
-        return EnclosureFilterExpirWarning;
-    case WarningType::EnclosureFilterExpiration:
-        return EnclosureFilterExpiration;
-    case WarningType::EnclosureFanError:
-        return EnclosureFanError;
-#endif /* XL_ENCLOSURE_SUPPORT */
-#if HAS_BED_PROBE
-    case WarningType::ProbingFailed:
-        return ProbingFailed;
-#endif
-#if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
-    case WarningType::NozzleCleaningFailed:
-        return NozzleCleaningFailed;
-#endif
-    case WarningType::GcodeCorruption:
-        return GcodeCorruption;
-    }
-    assert(false);
-    return count_;
 }
