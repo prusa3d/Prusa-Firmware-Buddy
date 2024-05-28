@@ -10,29 +10,48 @@
 #include "screen.hpp"
 #include <new>
 
-// parent to not repeat code in templates
-class IScreenMenu : public screen_t {
-protected:
-    window_header_t header;
-    window_menu_t menu;
-    StatusFooter footer;
+template <typename Menu>
+class ScreenMenuBase : public screen_t {
 
 public:
-    IScreenMenu(window_t *parent, string_view_utf8 label, EFooter FOOTER);
+    virtual void InitState(screen_init_variant var) override {
+        if (auto pos = var.GetMenuPosition()) {
+            menu.menu.restore_state(*pos);
+        }
+    }
+    virtual screen_init_variant GetCurrentState() const override {
+        screen_init_variant ret;
+        ret.SetMenuPosition(menu.menu.get_restore_state());
+        return ret;
+    }
 
-    virtual void InitState(screen_init_variant var) override;
-    virtual screen_init_variant GetCurrentState() const override;
+protected:
+    ScreenMenuBase(window_t *parent, string_view_utf8 label, EFooter show_footer)
+        : screen_t(parent, parent != nullptr ? win_type_t::dialog : win_type_t::normal)
+        , header(this)
+        , menu(this, show_footer == EFooter::On ? GuiDefaults::RectScreenBody : GuiDefaults::RectScreenNoHeader)
+        , footer(this) //
+    {
+        header.SetText(label);
+        footer.set_visible(show_footer == EFooter::On);
+        CaptureNormalWindow(menu); // set capture to list
+    }
+
+protected:
+    window_header_t header;
+    WindowExtendedMenu<Menu> menu;
+    StatusFooter footer;
 };
 
 template <EFooter FOOTER, class... T>
-class ScreenMenu : public IScreenMenu {
+class ScreenMenu : public ScreenMenuBase<WindowMenu> {
 protected:
     // std::array<window_t*,sizeof...(T)> pElements;//todo menu item is not a window
     WinMenuContainer<T...> container;
 
 public:
     ScreenMenu(string_view_utf8 label, window_t *parent = nullptr)
-        : IScreenMenu(parent, label, FOOTER) {
+        : ScreenMenuBase(parent, label, FOOTER) {
         menu.menu.BindContainer(container);
     }
 
