@@ -51,9 +51,6 @@ public:
 
     std::optional<int> item_index(const IWindowMenuItem *item) const final;
 
-    void InitState(screen_init_variant::menu_t var);
-    screen_init_variant::menu_t GetCurrentState() const;
-
     bool SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1);
 
 protected:

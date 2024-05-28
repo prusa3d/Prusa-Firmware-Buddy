@@ -19,11 +19,11 @@ void IScreenMenu::InitState(screen_init_variant var) {
     if (!var.GetMenuPosition()) {
         return;
     }
-    menu.menu.InitState(*(var.GetMenuPosition()));
+    menu.menu.restore_state(*(var.GetMenuPosition()));
 }
 
 screen_init_variant IScreenMenu::GetCurrentState() const {
     screen_init_variant ret;
-    ret.SetMenuPosition(menu.menu.GetCurrentState());
+    ret.SetMenuPosition(menu.menu.get_restore_state());
     return ret;
 }

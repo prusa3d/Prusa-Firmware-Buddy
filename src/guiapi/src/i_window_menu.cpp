@@ -186,6 +186,19 @@ std::optional<int> IWindowMenu::index_to_slot(std::optional<int> index) const {
     return slot;
 }
 
+screen_init_variant::menu_t IWindowMenu::get_restore_state() const {
+    return {
+        .persistent_focused_index = static_cast<uint8_t>(item_index_to_persistent_index(focused_item_index()).value_or(-1)),
+        .persistent_scroll_offset = static_cast<uint8_t>(item_index_to_persistent_index(scroll_offset()).value_or(0)),
+    };
+}
+
+void IWindowMenu::restore_state(screen_init_variant::menu_t state) {
+    move_focus_to_index(persistent_index_to_item_index(state.persistent_focused_index));
+    set_scroll_offset(persistent_index_to_item_index(state.persistent_scroll_offset).value_or(0));
+    ensure_item_on_screen(focused_item_index());
+}
+
 /**
  * @brief menu behaves similar to frame
  * but redraw of background will not redraw area under items to avoid flickering

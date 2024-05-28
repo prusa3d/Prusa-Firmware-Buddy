@@ -7,7 +7,8 @@
 
 #include <stdint.h>
 
-#include "window.hpp"
+#include <window.hpp>
+#include <screen_init_variant.hpp>
 
 class IWindowMenuItem;
 
@@ -125,6 +126,13 @@ public:
     virtual std::optional<int> persistent_index_to_item_index(std::optional<int> persistent_index) const {
         return persistent_index;
     }
+
+public:
+    /// \returns the menu current state; the menu can be restored to this state later using \p restore_state
+    screen_init_variant::menu_t get_restore_state() const;
+
+    /// Restores menu to the previously saved state (specifically focused item and scroll offset)
+    void restore_state(screen_init_variant::menu_t state);
 
 protected:
     IWindowMenu(window_t *parent, Rect16 rect);
