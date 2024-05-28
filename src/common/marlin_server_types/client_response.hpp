@@ -366,8 +366,12 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesQuickPause) { return Clie
 enum class PhasesWarning : PhaseUnderlyingType {
     // Generic warning with a Continue button, just for dismissing it.
     Warning,
-    // These have some actual buttons that need to be handled.
+
+// These have some actual buttons that need to be handled.
+#if XL_ENCLOSURE_SUPPORT()
     EnclosureFilterExpiration,
+#endif
+
     ProbingFailed,
     NozzleCleaningFailed,
     _last = NozzleCleaningFailed,
@@ -737,9 +741,11 @@ class ClientResponses {
 
     static constexpr EnumArray<PhasesWarning, PhaseResponses, CountPhases<PhasesWarning>()> WarningResponses {
         { PhasesWarning::Warning, { Response::Continue } },
-        { PhasesWarning::EnclosureFilterExpiration, { Response::Ignore, Response::Postpone5Days, Response::Done } },
-        { PhasesWarning::ProbingFailed, { Response::Yes, Response::No } },
-        { PhasesWarning::NozzleCleaningFailed, { Response::Retry, Response::Abort } },
+#if XL_ENCLOSURE_SUPPORT()
+            { PhasesWarning::EnclosureFilterExpiration, { Response::Ignore, Response::Postpone5Days, Response::Done } },
+#endif
+            { PhasesWarning::ProbingFailed, { Response::Yes, Response::No } },
+            { PhasesWarning::NozzleCleaningFailed, { Response::Retry, Response::Abort } },
     };
 
 #if HAS_COLDPULL()

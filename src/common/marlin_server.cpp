@@ -373,31 +373,47 @@ namespace {
         }
     }
     void handle_warnings() {
-        // Is the cheking for existence of the FSM at all the levels the right way, or should we have some flag
-        // (like SelftestInstance().IsInProgress()) and do it based on that??
-        if (fsm_states.is_active(ClientFSM::Warning)) {
-            if (get_response_from_phase(PhasesWarning::Warning) != Response::_none) {
-                fsm_destroy(ClientFSM::Warning);
-            } else if (auto response = get_response_from_phase(PhasesWarning::EnclosureFilterExpiration); response != Response::_none) {
-                fsm_destroy(ClientFSM::Warning);
+        const auto phase_opt = fsm_states[ClientFSM::Warning];
+        if (!phase_opt.has_value()) {
+            return;
+        }
+
+        const auto phase = static_cast<PhasesWarning>(phase_opt->GetPhase());
+        const auto response = get_response_from_phase(phase);
+        if (response == Response::_none) {
+            return;
+        }
+
+        // Destroy the FSM in any case
+        fsm_destroy(ClientFSM::Warning);
+
+        switch (phase) {
+
+        case PhasesWarning::Warning:
+            // Just destroying is enough
+            break;
+
 #if XL_ENCLOSURE_SUPPORT()
-                xl_enclosure.setUpReminder(response);
+        case PhasesWarning::EnclosureFilterExpiration:
+            xl_enclosure.setUpReminder(response);
+            break;
 #endif
-            } else if (auto resp = get_response_from_phase(PhasesWarning::ProbingFailed); resp != Response::_none) {
-                fsm_destroy(ClientFSM::Warning);
-                if (resp == Response::Yes) {
-                    print_resume();
-                } else {
-                    print_abort();
-                }
-            } else if (auto resp = get_response_from_phase(PhasesWarning::NozzleCleaningFailed); resp != Response::_none) {
-                fsm_destroy(ClientFSM::Warning);
-                if (resp == Response::Retry) {
-                    print_resume();
-                } else {
-                    print_abort();
-                }
+
+        case PhasesWarning::ProbingFailed:
+            if (response == Response::Yes) {
+                print_resume();
+            } else {
+                print_abort();
             }
+            break;
+
+        case PhasesWarning::NozzleCleaningFailed:
+            if (response == Response::Retry) {
+                print_resume();
+            } else {
+                print_abort();
+            }
+            break;
         }
     }
 } // end anonymous namespace
