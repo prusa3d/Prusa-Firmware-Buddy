@@ -62,6 +62,7 @@ target_sources(
           screen_menu_input_shaper.cpp
           screen_menu_lang_and_time.cpp
           screen_menu_metrics.cpp
+          screen_menu_metrics_list.cpp
           screen_menu_move.cpp
           screen_menu_move_utils.cpp
           screen_menu_network.cpp

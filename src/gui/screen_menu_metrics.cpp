@@ -10,6 +10,7 @@
 #include <guiconfig/guiconfig.h>
 #include <numeric_input_config_common.hpp>
 #include <dialog_text_input.hpp>
+#include <screen_menu_metrics_list.hpp>
 
 LOG_COMPONENT_REF(GUI);
 
@@ -62,6 +63,14 @@ void MI_METRICS_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
     config_store().enable_metrics.set(index);
     logging::syslog_reconfigure();
     metrics_reconfigure();
+}
+
+MI_METRICS_LIST::MI_METRICS_LIST()
+    : IWindowMenuItem(_("Metrics List"), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+
+void MI_METRICS_LIST::click(IWindowMenu &) {
+    Screens::Access()->Open<ScreenMenuMetricsList>();
 }
 
 ScreenMenuMetricsSettings::ScreenMenuMetricsSettings()

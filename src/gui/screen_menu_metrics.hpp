@@ -46,7 +46,15 @@ protected:
     virtual void OnChange(size_t old_index) override;
 };
 
-class ScreenMenuMetricsSettings : public ScreenMenu<EFooter::Off, MI_RETURN, MI_METRICS_INFO_LABEL, MI_METRICS_ENABLE, MI_METRICS_HOST, MI_METRICS_PORT, MI_SYSLOG_PORT, WMI_NET<MI_MAC_ADDR, NETDEV_ETH_ID>> {
+class MI_METRICS_LIST : public IWindowMenuItem {
+public:
+    MI_METRICS_LIST();
+
+protected:
+    virtual void click(IWindowMenu &) override;
+};
+
+class ScreenMenuMetricsSettings : public ScreenMenu<EFooter::Off, MI_RETURN, MI_METRICS_INFO_LABEL, MI_METRICS_ENABLE, MI_METRICS_HOST, MI_METRICS_PORT, MI_SYSLOG_PORT, WMI_NET<MI_MAC_ADDR, NETDEV_ETH_ID>, MI_METRICS_LIST> {
 public:
     ScreenMenuMetricsSettings();
 };
