@@ -464,10 +464,12 @@ Errors:
     id: "CONNECT_REGISTRATION_FAILED"
     approved: true
 
-  - code: "XX402"
-    title: "NEW WIFI CREDENTIALS"
-    text: "Detected new Wi-Fi credentials. Do you accept them?"
-    id: "NEW_WIFI_CREDENTIALS"
+  # XX4402 NEW_WIFI_CREDENTIALS deprecated
+  
+  - code: "XX403"
+    title: "G-CODE METRICS CONFIG CHANGE"
+    text: "Gcode is trying to change metrics configuration.\n\nAllow the changes?"
+    id: "GCODE_METRICS_CONFIG_CHANGE"
     approved: false
 
   - code: "XX501"
@@ -778,6 +780,12 @@ Errors:
     title: "UNSUPPORTED FIRMWARE BBF FILE"
     text: "USB flash drive contains\nunsupported firmware BBF file."
     id: "UNSUPPORTED_BBF_VERSION"
+    approved: true
+
+  - code: "XX615"
+    title: "EXTRUDER NOT DETECTED"
+    text: "Unable to verify the extruder type, check the wiring and connectors."
+    id: "BT_EXTRUDER_NOT_DETECTED"
     approved: true
 
   - code: "XX701"
