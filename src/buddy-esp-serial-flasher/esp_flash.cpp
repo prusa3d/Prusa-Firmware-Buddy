@@ -13,6 +13,8 @@ extern "C" {
 #include <option/has_gui.h>
 #include <unique_file_ptr.hpp>
 #include <tasks.hpp>
+#include <charconv>
+#include <array>
 
 LOG_COMPONENT_REF(Buddy);
 
@@ -118,18 +120,20 @@ static Result verify_checksum(const Part &part) {
     log_info(Buddy, "verify %s", part.filename);
 
     // Obtain ESP region MD5 checksum
-    uint8_t checksum_string[32];
-    if (esp_loader_md5_region(part.address, part.size, checksum_string) != ESP_LOADER_SUCCESS) {
+    std::array<char, 32> checksum_string;
+    if (const auto result = esp_loader_md5_region(part.address, part.size, std::bit_cast<uint8_t *>(checksum_string.data())); result != ESP_LOADER_SUCCESS) {
         return Result::protocol_error;
     }
     // Convert hex string to MD5 data
-    uint8_t checksum[16];
+    std::array<uint8_t, 16> checksum;
     for (uint8_t i = 0; i < 16; ++i) {
-        char byte[3] = { checksum_string[2 * i], checksum_string[2 * i + 1], 0 };
-        checksum[i] = strtoul(byte, NULL, 16);
+        const auto result = std::from_chars(checksum_string.data() + 2 * i, checksum_string.data() + 2 * i + 2, checksum.at(i), 16);
+        if (result.ec != std::errc {}) {
+            return Result::hal_error;
+        }
     }
 
-    if (memcmp(part.md5, checksum, sizeof(checksum)) != 0) {
+    if (memcmp(part.md5, checksum.data(), checksum.size()) != 0) {
         return Result::checksum_mismatch;
     }
     return Result::success;
