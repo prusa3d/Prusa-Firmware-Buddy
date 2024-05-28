@@ -155,11 +155,10 @@ struct CurrentStore
     StoreItem<bool, false, journal::hash("Connect Enabled")> connect_enabled;
 
     // Metrics
-    StoreItem<MetricsAllow, defaults::metrics_allow, journal::hash("Metrics Allow")> metrics_allow; ///< Metrics are allowed to be enabled
-    StoreItem<std::array<char, metrics_host_size + 1>, defaults::metrics_host, journal::hash("Metrics Host")> metrics_host; ///< Host used to allow and init metrics
-    StoreItem<uint16_t, defaults::metrics_port, journal::hash("Metrics Port")> metrics_port; ///< Port used to allow and init metrics
-    StoreItem<uint16_t, defaults::syslog_port, journal::hash("Log Port")> syslog_port; ///< Port used to allow and init log (uses metrics_host)
-    StoreItem<bool, defaults::metrics_init, journal::hash("Metrics Init")> metrics_init; ///< Init metrics host after start
+    StoreItem<bool, defaults::enable_metrics, journal::hash("Metrics Init")> enable_metrics;
+    StoreItem<std::array<char, metrics_host_size + 1>, defaults::metrics_host, journal::hash("Metrics Host")> metrics_host;
+    StoreItem<uint16_t, 8514, journal::hash("Metrics Port")> metrics_port; ///< Port used to allow and init metrics
+    StoreItem<uint16_t, 13514, journal::hash("Log Port")> syslog_port; ///< Port used to allow and init log (uses metrics_host)
 
     StoreItem<uint16_t, 0, journal::hash("Job ID")> job_id; // print job id incremented at every print start
 
@@ -531,6 +530,8 @@ struct DeprecatedStore
 #if PRINTER_IS_PRUSA_XL
     StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Selftest Result - Nozzle Diameter")> selftest_result_nozzle_diameter;
 #endif
+
+    StoreItem<uint8_t, 0, journal::hash("Metrics Allow")> metrics_allow; ///< Metrics are allowed to be enabled
 };
 
 } // namespace config_store_ns

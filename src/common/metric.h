@@ -216,6 +216,8 @@ metric_t *metric_get_iterator_begin();
 /// Returns pointer BEHIND the last metric defintion
 metric_t *metric_get_iterator_end();
 
+bool is_metric_enabled_for_handler(const metric_t *metric, const metric_handler_t *handler);
+
 /// Enable metric for given handler
 void metric_enable_for_handler(metric_t *metric, const metric_handler_t *handler);
 

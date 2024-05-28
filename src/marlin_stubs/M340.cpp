@@ -4,6 +4,7 @@
 #include <logging/log_dest_syslog.hpp>
 #include <stdint.h>
 #include <config_store/store_instance.hpp>
+#include <metric_handlers.h>
 
 /** \addtogroup G-Codes
  * @{
@@ -20,34 +21,31 @@
 
 void PrusaGcodeSuite::M340() {
     // Syslog has to be allowed in settings
-    const MetricsAllow metrics_allow = config_store().metrics_allow.get();
-    if (metrics_allow != MetricsAllow::One && metrics_allow != MetricsAllow::All) {
+    if (config_store().enable_metrics.get()) {
         SERIAL_ERROR_MSG("Syslog is not allowed!");
         return;
     }
 
-    char ipaddr[config_store_ns::metrics_host_size + 1];
-    char format[10]; ///< Format string for sscanf that cannot do string size from parameter
-    snprintf(format, std::size(format), "%%%us %%i", std::size(ipaddr) - 1);
+    decltype(config_store().metrics_host)::value_type host;
     int port;
-    int read = sscanf(parser.string_arg, format, ipaddr, &port);
-    if (read == 2) {
-        // Only one host allowed
-        if (metrics_allow == MetricsAllow::One) {
-            if (strcmp(ipaddr, config_store().metrics_host.get_c_str()) != 0
-                || port != config_store().syslog_port.get()) {
-                SERIAL_ERROR_MSG("This is not the one host and port allowed!");
-                return;
-            }
-        }
-        logging::syslog_configure(ipaddr, port);
+
+    // If metrics_host_size changes, we gotta change the scan format
+    static_assert(config_store_ns::metrics_host_size == 20);
+    const auto read = sscanf(parser.string_arg, "%20s %i", host.data(), &port);
+
+    if (read != 2) {
         SERIAL_ECHO_START();
-        SERIAL_ECHOLN("Syslog configured successfully");
-    } else {
-        logging::syslog_configure("", 0);
-        SERIAL_ECHO_START();
-        SERIAL_ECHOLN("does not match '<address> <port>' pattern; disabling syslog");
+        SERIAL_ECHOLN("does not match '<address> <port>' pattern");
+        return;
     }
+
+    config_store().metrics_host.set(host);
+    config_store().syslog_port.set(port);
+    metrics_reconfigure();
+    logging::syslog_reconfigure();
+
+    SERIAL_ECHO_START();
+    SERIAL_ECHOLN("Syslog configured successfully");
 }
 
 /** @}*/

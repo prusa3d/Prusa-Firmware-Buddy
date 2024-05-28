@@ -43,14 +43,14 @@ void buffer_output(char character, void *arg) {
     }
 }
 
-void syslog_initialize() {
-    // Init host and port from eeprom
-    const MetricsAllow metrics_allow = config_store().metrics_allow.get();
-    if ((metrics_allow == MetricsAllow::One || metrics_allow == MetricsAllow::All)
-        && config_store().metrics_init.get()) {
-        const char *host = config_store().metrics_host.get_c_str();
-        const uint16_t port = config_store().syslog_port.get();
-        syslog_configure(host, port);
+void syslog_reconfigure() {
+    if (config_store().enable_metrics.get()) {
+        const auto host = config_store().metrics_host.get();
+        const auto port = config_store().syslog_port.get();
+        syslog_transport.reopen(host.data(), port);
+
+    } else {
+        syslog_transport.reopen(nullptr, 0);
     }
 }
 
@@ -80,18 +80,6 @@ void syslog_log_event(FormattedEvent *event) {
     syslog_format_event(event, buffer_output, &buffer_state);
 
     syslog_transport.send(buffer, buffer_state.used);
-}
-
-const char *syslog_get_host() {
-    return syslog_transport.get_remote_host();
-}
-
-uint16_t syslog_get_port() {
-    return syslog_transport.get_remote_port();
-}
-
-void syslog_configure(const char *ip, uint16_t port) {
-    syslog_transport.reopen(ip, port);
 }
 
 } // namespace logging

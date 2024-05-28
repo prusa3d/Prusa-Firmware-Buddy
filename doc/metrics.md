@@ -42,16 +42,14 @@ in real-time while your algorithm runs on a real printer.
 
 Let you configure your metrics at runtime.
 
-- **M330**` <handler>` -- Select `handler` for configuration (`SYSLOG` is selected by default)
-    - Example: `M330 SYSLOG`
-- **M331**` <metric>` -- Enable `metric` for the currently selected `handler`.
+- **M331**` <metric>` -- Enable `metric`.
     - Example: `M331 pos_z`
-- **M332**` <metric>` -- Disable `metric` for the currently selected `handler`.
+- **M332**` <metric>` -- Disable `metric`.
     - Example: `M332 pos_z`
-- **M333** -- List all metrics and whether they are enabled for the currently selected `handler`.
-- **M334** -- Handler-specific configuration
-    - SYSLOG: `M334 <ip address> <port>`
-        - Configures the syslog handler to send all the enabled metrics to the given IP address and port.
+- **M333** -- List all metrics and whether they are enabled.
+- **M334**` [ip address] [metrics port] [log port]` -- Enable metrics and configure them to be sent to the given target
+    * All parameters are optional. Not providing a parameter causes the given setting not be changed.
+    * If no parameters are provided, the gcode disables the metrics.
 
 
 ### Custom Metrics

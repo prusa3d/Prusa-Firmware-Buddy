@@ -129,17 +129,13 @@ namespace defaults {
     // Defaults for metrics
 #if DEVELOPMENT_ITEMS()
     // Development build has metrics allowed
-    inline constexpr MetricsAllow metrics_allow { MetricsAllow::All };
     inline constexpr std::array<char, metrics_host_size + 1> metrics_host { "matrix.prusa.vc" };
-    inline constexpr bool metrics_init { true };
+    inline constexpr bool enable_metrics { true };
 #else /*DEVELOPMENT_ITEMS()*/
     // Production build need user to intentionally allow them
-    inline constexpr MetricsAllow metrics_allow { MetricsAllow::None };
     inline constexpr std::array<char, metrics_host_size + 1> metrics_host { "" };
-    inline constexpr bool metrics_init { false };
+    inline constexpr bool enable_metrics { false };
 #endif /*DEVELOPMENT_ITEMS()*/
-    inline constexpr uint16_t metrics_port { 8514 };
-    inline constexpr uint16_t syslog_port { 13514 };
 
     inline constexpr bool crash_enabled {
 #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_XL)

@@ -18,16 +18,6 @@ enum class HWCheckSeverity : uint8_t {
     Abort = 2
 };
 
-/**
- * @brief Allow metrics.
- * @note You can add, but never reorder items.
- */
-enum class MetricsAllow : uint8_t {
-    None = 0, ///< Metrics are not allowed
-    One = 1, ///< Metrics can be enabled only to one selected host
-    All = 2, ///< Metrics can be enabled to any host
-};
-
 namespace config_store_ns {
 // place for constants relevant to config_store
 inline constexpr size_t sheets_num { 8 };

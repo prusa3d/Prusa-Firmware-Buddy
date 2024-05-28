@@ -88,14 +88,14 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
 // Note: This is not required to be in CCMRAM and can be moved to regular RAM if needed.
 static __attribute__((section(".ccmram"))) SyslogTransport syslog_transport;
 
-void metric_handlers_init() {
-    // Init syslog handler address and port from eeprom
-    const MetricsAllow metrics_allow = config_store().metrics_allow.get();
-    if ((metrics_allow == MetricsAllow::One || metrics_allow == MetricsAllow::All)
-        && config_store().metrics_init.get()) {
-        const char *host = config_store().metrics_host.get_c_str();
-        const uint16_t port = config_store().metrics_port.get();
-        metric_handler_syslog_configure(host, port);
+void metrics_reconfigure() {
+    if (config_store().enable_metrics.get()) {
+        const auto host = config_store().metrics_host.get();
+        const auto port = config_store().metrics_port.get();
+        syslog_transport.reopen(host.data(), port);
+
+    } else {
+        syslog_transport.reopen(nullptr, 0);
     }
 }
 
@@ -159,18 +159,6 @@ static void syslog_handler(metric_point_t *point) {
             assert(false && "point should always fit in a new buffer");
         }
     }
-}
-
-void metric_handler_syslog_configure(const char *ip, uint16_t port) {
-    syslog_transport.reopen(ip, port);
-}
-
-const char *metric_handler_syslog_get_host() {
-    return syslog_transport.get_remote_host();
-}
-
-uint16_t metric_handler_syslog_get_port() {
-    return syslog_transport.get_remote_port();
 }
 
 const metric_handler_t metric_handler_syslog = {

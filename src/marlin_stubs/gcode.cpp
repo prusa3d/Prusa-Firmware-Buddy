@@ -78,7 +78,8 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             PrusaGcodeSuite::M300();
             break;
         case 330:
-            PrusaGcodeSuite::M330();
+            // Metrics handler selection deprecated. We only really have one handler. Let's not pretend otherwise.
+            // BFW-5464
             break;
         case 331:
             PrusaGcodeSuite::M331();

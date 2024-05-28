@@ -79,8 +79,7 @@ static void metric_system_task_run(const void *) {
 
         for (auto handlers = metric_system_handlers; *handlers; handlers++) {
             const metric_handler_t *handler = *handlers;
-            bool handler_enabled = point->metric->enabled_handlers & (1 << handler->identifier);
-            if (handler_enabled) {
+            if (is_metric_enabled_for_handler(point->metric, handler)) {
                 handler->handle_fn(point);
             }
         }
@@ -210,6 +209,10 @@ void metric_record_error(metric_t *metric, const char *fmt, ...) {
     vsnprintf(recording->error_msg, sizeof(recording->error_msg), fmt, args);
     va_end(args);
     point_enqueue(recording);
+}
+
+bool is_metric_enabled_for_handler(const metric_t *metric, const metric_handler_t *handler) {
+    return metric->enabled_handlers & (1 << handler->identifier);
 }
 
 void metric_enable_for_handler(metric_t *metric, const metric_handler_t *handler) {

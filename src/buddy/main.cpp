@@ -525,8 +525,8 @@ extern "C" void main_cpp(void) {
 
     // There is no point in initializing syslog before networking is up
     TaskDeps::wait(TaskDeps::Tasks::syslog);
-    logging::syslog_initialize();
-    metric_handlers_init();
+    logging::syslog_reconfigure();
+    metrics_reconfigure();
 
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */

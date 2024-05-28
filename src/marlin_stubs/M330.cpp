@@ -5,37 +5,11 @@
 #include <metric_handlers.h>
 #include <stdint.h>
 #include <config_store/store_instance.hpp>
-
-static const metric_handler_t *selected_handler = &metric_handler_syslog;
+#include <logging/log_dest_syslog.hpp>
 
 /** \addtogroup G-Codes
  * @{
  */
-
-/**
- * M330: Select metrics handler
- *
- * ## Parameters
- *
- * - <handler> - Select `handler` for configuration (`SYSLOG` is selected by default)
- */
-
-void PrusaGcodeSuite::M330() {
-    bool handler_found = false;
-    for (auto handlers = metric_get_handlers(); *handlers; handlers++) {
-        const metric_handler_t *handler = *handlers;
-        if (strcmp(handler->name, parser.string_arg) == 0) {
-            selected_handler = handler;
-            handler_found = true;
-        }
-    }
-    if (handler_found) {
-        SERIAL_ECHO_START();
-        SERIAL_ECHOLNPAIR_F("Configuring handler ", parser.string_arg);
-    } else {
-        SERIAL_ERROR_MSG("Handler not found");
-    }
-}
 
 /**
  * M331: Enable metric
@@ -46,23 +20,13 @@ void PrusaGcodeSuite::M330() {
  */
 
 void PrusaGcodeSuite::M331() {
-    if (selected_handler == NULL) {
-        SERIAL_ECHO_MSG("handler not set");
-        return;
+    if (!config_store().enable_metrics.get()) {
+        SERIAL_ERROR_MSG("Warning: Metrics are not enabled");
     }
 
     for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         if (strcmp(metric->name, parser.string_arg) == 0) {
-            // Syslog handler has to be allowed in settings
-            if (selected_handler->identifier == METRIC_HANDLER_SYSLOG_ID) {
-                const MetricsAllow metrics_allow = config_store().metrics_allow.get();
-                if (metrics_allow != MetricsAllow::One && metrics_allow != MetricsAllow::All) {
-                    SERIAL_ERROR_MSG("Net metrics are not allowed!");
-                    return;
-                }
-            }
-
-            metric_enable_for_handler(metric, selected_handler);
+            metric_enable_for_handler(metric, &metric_handler_syslog);
             SERIAL_ECHO_START();
             SERIAL_ECHOLNPAIR_F("Metric enabled: ", parser.string_arg);
             return;
@@ -82,14 +46,13 @@ void PrusaGcodeSuite::M331() {
  */
 
 void PrusaGcodeSuite::M332() {
-    if (selected_handler == NULL) {
-        SERIAL_ERROR_MSG("Handler not set");
-        return;
+    if (!config_store().enable_metrics.get()) {
+        SERIAL_ERROR_MSG("Warning: Metrics are not enabled");
     }
 
     for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         if (strcmp(metric->name, parser.string_arg) == 0) {
-            metric_disable_for_handler(metric, selected_handler);
+            metric_disable_for_handler(metric, &metric_handler_syslog);
             SERIAL_ECHO_START();
             SERIAL_ECHOLNPAIR_F("Metric disabled: ", parser.string_arg);
             return;
@@ -105,63 +68,67 @@ void PrusaGcodeSuite::M332() {
  */
 
 void PrusaGcodeSuite::M333() {
-    if (selected_handler == NULL) {
-        SERIAL_ERROR_MSG("Handler not set");
-        return;
-    }
-
     for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
-        bool is_enabled = metric->enabled_handlers & (1 << selected_handler->identifier);
         SERIAL_ECHO_START();
         SERIAL_ECHOPGM(metric->name);
-        SERIAL_ECHOPGM(is_enabled ? " 1" : " 0");
+        SERIAL_ECHOPGM(is_metric_enabled_for_handler(metric, &metric_handler_syslog) ? " 1" : " 0");
         SERIAL_EOL();
     }
 }
 
 /**
- * M334: Handler-specific configuration
+ * M334: Metrics & syslog configuration
+ *
+ * Format: M334 (host) <metrics_port> <syslog_port>
+ * Ports are optional
+ * Also enables metrics.
+ *
+ * Empty M334 without anything disables metrics (but does not clear configuration)
  */
 
 void PrusaGcodeSuite::M334() {
-    if (selected_handler == NULL) {
-        SERIAL_ERROR_MSG("Handler not set");
-        return;
+    if (!config_store().enable_metrics.get()) {
+        SERIAL_ERROR_MSG("Warning: Metrics are not enabled");
     }
 
-    if (selected_handler->identifier == METRIC_HANDLER_SYSLOG_ID) {
-        // Syslog handler has to be allowed in settings
-        const MetricsAllow metrics_allow = config_store().metrics_allow.get();
-        if (metrics_allow != MetricsAllow::One && metrics_allow != MetricsAllow::All) {
-            SERIAL_ERROR_MSG("Syslog metrics are not allowed!");
+    auto host = config_store().metrics_host.get();
+    int metrics_port = config_store().metrics_port.get();
+    int syslog_port = config_store().syslog_port.get();
+
+    // If metrics_host_size changes, we gotta change the scan format
+    static_assert(config_store_ns::metrics_host_size == 20);
+    const auto scanned_fields = sscanf(parser.string_arg, "%20s %i %i", host.data(), &metrics_port, &syslog_port);
+    const bool enable_metrics = (scanned_fields > 0);
+
+    // Check if the gcode is trying to change the metrics configuration
+    {
+        bool changes_metrics_config = false;
+        changes_metrics_config |= (config_store().enable_metrics.get() != enable_metrics);
+        changes_metrics_config |= (strcmp(host.data(), config_store().metrics_host.get().data()) != 0);
+        changes_metrics_config |= (metrics_port != config_store().metrics_port.get());
+        changes_metrics_config |= (syslog_port != config_store().syslog_port.get());
+
+        // Nothing changed -> nothing needs to be done
+        if (!changes_metrics_config) {
             return;
         }
-
-        char ipaddr[config_store_ns::metrics_host_size + 1];
-        char format[10]; ///< Format string for sscanf that cannot do string size from parameter
-        snprintf(format, std::size(format), "%%%us %%i", std::size(ipaddr) - 1);
-        int port;
-        int read = sscanf(parser.string_arg, format, ipaddr, &port);
-        if (read == 2) {
-            // Only one host allowed
-            if (metrics_allow == MetricsAllow::One) {
-                if (strcmp(ipaddr, config_store().metrics_host.get_c_str()) != 0
-                    || port != config_store().metrics_port.get()) {
-                    SERIAL_ERROR_MSG("This is not the one host and port allowed!");
-                    return;
-                }
-            }
-            metric_handler_syslog_configure(ipaddr, port);
-            SERIAL_ECHO_START();
-            SERIAL_ECHOLN("Syslog handler configured successfully");
-        } else {
-            metric_handler_syslog_configure("", 0);
-            SERIAL_ECHO_START();
-            SERIAL_ECHOLN("does not match '<address> <port>' pattern; disabling syslog handler");
-        }
-    } else {
-        SERIAL_ERROR_MSG("Selected handler does not support configuration");
     }
+
+    // TODO prompt the user to allow the metrics change
+
+    // Store the new settings in the config store
+    {
+        auto &store = config_store();
+        auto transaction = store.get_backend().transaction_guard();
+        store.enable_metrics.set(enable_metrics);
+        store.metrics_host.set(host);
+        store.metrics_port.set(metrics_port);
+        store.syslog_port.set(syslog_port);
+    }
+
+    // Let the new settings take effect
+    metrics_reconfigure();
+    logging::syslog_reconfigure();
 }
 
 /** @}*/
