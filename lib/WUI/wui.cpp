@@ -328,6 +328,7 @@ private:
     }
 
     void reconfigure() {
+        log_info(Network, "Reconfigure");
         // Read some stuff from the eeprom.
 
         // Lock (even the desired config can be read from other threads, eg. the tcpip_thread from a callback :-(
@@ -484,6 +485,7 @@ private:
                 const uint32_t faulty_for = now - last_esp_ok;
 
                 if (faulty_for >= RESET_FAULTY_AFTER) {
+                    log_warning(Network, "ESP not responsive, resetting");
                     // It's not OK for a long time. Try resetting it if that helps.
                     espif_reset();
                     last_esp_ok = now;

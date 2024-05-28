@@ -368,6 +368,7 @@ static void espif_tx_update_metrics(uint32_t len) {
 
 [[nodiscard]] static err_t espif_tx_msg_clientconfig_v2(const char *ssid, const char *pass) {
     if (scan.is_running) {
+        log_error(ESPIF, "Client config while running scan");
         return ERR_IF;
     }
 
@@ -387,6 +388,7 @@ static void espif_tx_update_metrics(uint32_t len) {
 
     auto pbuf = pbuf_smart { pbuf_alloc(PBUF_RAW, length, PBUF_RAM) };
     if (!pbuf) {
+        log_error(ESPIF, "Low mem for client config");
         return ERR_MEM;
     }
 
@@ -405,6 +407,9 @@ static void espif_tx_update_metrics(uint32_t len) {
     if (err == ERR_OK) {
         std::lock_guard lock { uart_write_mutex };
         std::copy_n(new_intron.begin(), sizeof(tx_message.intron), tx_message.intron);
+        log_info(ESPIF, "Client config complete, have new intron");
+    } else {
+        log_error(ESPIF, "Client config failed: %d", static_cast<int>(err));
     }
 
     return err;
@@ -454,6 +459,11 @@ static void process_mac(uint8_t *data, struct netif *netif) {
         }
         esp_operating_mode = ESPIF_NEED_AP;
         esp_was_ok = true;
+        log_info(ESPIF, "Waiting for AP");
+    } else {
+        // FIXME: Actually, the ESP sends the MAC twice during it's lifetime.
+        // BFW-5609.
+        log_error(ESPIF, "ESP operating mode mismatch: %d", static_cast<int>(old));
     }
 }
 
@@ -797,12 +807,14 @@ static err_t low_level_output([[maybe_unused]] struct netif *netif, struct pbuf 
 }
 
 static void force_down() {
+    log_info(ESPIF, "Force down");
     struct netif *iface = active_esp_netif; // Atomic load
     assert(iface != nullptr); // Already initialized
     process_link_change(false, iface);
 }
 
 static void reset_intron() {
+    log_debug(ESPIF, "Reset intron");
     std::lock_guard lock { uart_write_mutex };
     for (uint i = 2; i < sizeof(tx_message.intron); i++) {
         tx_message.intron[i] = i - 2;
@@ -882,6 +894,7 @@ bool espif_tick() {
     if (espif_link()) {
         const bool was_alive = seen_intron.exchange(false);
         if (!seen_rx_packet.exchange(false) && is_running(esp_operating_mode)) {
+            log_debug(ESPIF, "Ping ESP");
             // Poke the ESP somewhat to see if it's still alive and provoke it to
             // do some activity during next round.
             std::ignore = espif_tx_msg_packet(nullptr);
@@ -898,8 +911,10 @@ bool espif_need_ap() {
 
 void espif_reset() {
     if (!can_recieve_data(esp_operating_mode)) {
+        log_error(ESPIF, "Can't reset ESP");
         return;
     }
+    log_info(ESPIF, "Reset ESP");
     // Don't touch it in case we are flashing right now. If so, it'll get reset
     // when done.
     reset_intron();
