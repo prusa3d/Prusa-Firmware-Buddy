@@ -194,6 +194,7 @@ public:
         return 1 + std::max<int>(ap_count_, 1);
     }
 
+protected:
     void setup_item(ItemVariant &variant, int index) final {
         if (index == 0) {
             variant.emplace<MI_SCAN_RETURN>();
@@ -228,7 +229,6 @@ public:
         }
     }
 
-protected:
     void windowEvent(window_t *sender, GUI_event_t event, void *param) {
         switch (event) {
 
