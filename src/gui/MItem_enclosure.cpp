@@ -5,6 +5,7 @@
 #include "xl_enclosure.hpp"
 #include "ScreenHandler.hpp"
 #include "screen_change_filter.hpp"
+#include <str_utils.hpp>
 
 /* Once is Enclosure enabled in menu with ON/OFF switch (MI_ENCLOSURE_ENABLED), it tests the fan and after that Enclosure is declared Active */
 /* If test was passed, MI_ENCLOSURE_ENABLE is swapped with MI_ENCLOSURE and enclosure settings can be accessed */
@@ -67,10 +68,16 @@ void MI_ENCLOSURE_POST_PRINT_FILTRATION::OnChange([[maybe_unused]] size_t old_in
 
 MI_ENCLOSURE_FILTER_COUNTER::MI_ENCLOSURE_FILTER_COUNTER()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-    static char time_info[10] = "--";
-    uint32_t hours = config_store().xl_enclosure_filter_timer.get() / 3600;
-    snprintf(time_info, sizeof(time_info), "%" PRIu32 " h", hours);
-    ChangeInformation(_(time_info));
+
+    ArrayStringBuilder<16> info_text_builder;
+
+    if (xl_enclosure.isExpirationShown()) {
+        info_text_builder.append_string_view(_(text_expired));
+    } else {
+        uint32_t hours = config_store().xl_enclosure_filter_timer.get() / 3600;
+        info_text_builder.append_printf("%" PRIu32 " h", hours);
+    }
+    ChangeInformation(info_text_builder.str());
 }
 
 MI_ENCLOSURE_FAN_SETTING::MI_ENCLOSURE_FAN_SETTING()

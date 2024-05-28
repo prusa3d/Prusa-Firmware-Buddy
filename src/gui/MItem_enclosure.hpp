@@ -52,6 +52,7 @@ protected:
 
 class MI_ENCLOSURE_FILTER_COUNTER : public WI_INFO_t {
     static constexpr const char *const label = N_("HEPA Filter Check");
+    static constexpr const char *const text_expired = N_("EXPIRED");
 
 public:
     MI_ENCLOSURE_FILTER_COUNTER();
