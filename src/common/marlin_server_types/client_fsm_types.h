@@ -119,7 +119,7 @@ enum class WarningType : uint32_t {
     #endif
     NotDownloaded,
     GcodeCorruption,
-    _last = NotDownloaded
+    _last = GcodeCorruption
 };
 
 using message_cb_t = void (*)(char *);
