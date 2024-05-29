@@ -33,6 +33,15 @@ constexpr size_t strlen_constexpr(const char *str) {
     return *str ? 1 + strlen_constexpr(str + 1) : 0;
 }
 
+/// String that can be passed as a template parameter (use "XX"_tstr)
+template <char... chars>
+struct TemplateString {
+    static constexpr inline const char str[] = { chars..., '\0' };
+};
+
+template <typename T, T... chars>
+constexpr TemplateString<chars...> operator""_tstr() { return {}; }
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 /// test c-string equality - for multiple tests against same string
