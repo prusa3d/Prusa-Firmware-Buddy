@@ -187,7 +187,7 @@ void GcodeSuite::M593() {
 
     if (parser.seen('T')) {
         const int t = parser.value_int();
-        if (WITHIN(t, 0, (int)input_shaper::Type::last)) {
+        if (WITHIN(t, static_cast<int>(input_shaper::Type::first), static_cast<int>(input_shaper::Type::last))) {
             params.axis.type = static_cast<input_shaper::Type>(t);
         } else {
             SERIAL_ECHO_MSG("?Invalid type of input shaper (T)");

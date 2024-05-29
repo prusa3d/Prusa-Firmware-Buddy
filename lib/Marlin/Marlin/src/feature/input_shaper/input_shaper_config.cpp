@@ -1,6 +1,6 @@
 #include "input_shaper_config.hpp"
 #include "input_shaper.hpp"
-
+#include <utility_extensions.hpp>
 #include <config_store/store_instance.hpp>
 
 #include "../../module/planner.h"
@@ -147,45 +147,19 @@ void set_axis_y_weight_adjust(std::optional<WeightAdjustConfig> wa_config) {
 }
 
 const char *to_string(Type type) {
-    switch (type) {
-    case Type::zv:
-        return "ZV";
-    case Type::zvd:
-        return "ZVD";
-    case Type::mzv:
-        return "MZV";
-    case Type::ei:
-        return "EI";
-    case Type::ei_2hump:
-        return "EI_2HUMP";
-    case Type::ei_3hump:
-        return "EI_3HUMP";
-    case Type::null:
-        return "null";
-    default:
-        break;
+    auto type_idx = ftrstd::to_underlying(type);
+    if (type_idx > ftrstd::to_underlying(Type::last)) {
+        return "Unknown";
     }
-    return "Unknown";
+    return filter_names[type_idx];
 }
 
-const char *to_short_string(input_shaper::Type type) {
-    switch (type) {
-    case input_shaper::Type::zv:
-        return "ZV";
-    case input_shaper::Type::zvd:
-        return "ZVD";
-    case input_shaper::Type::mzv:
-        return "MZV";
-    case input_shaper::Type::ei:
-        return "EI";
-    case input_shaper::Type::ei_2hump:
-        return "EI2";
-    case input_shaper::Type::ei_3hump:
-        return "EI3";
-    default:
-        break;
+const char *to_short_string(Type type) {
+    auto type_idx = ftrstd::to_underlying(type);
+    if (type_idx > ftrstd::to_underlying(Type::last)) {
+        return "UNK";
     }
-    return "UNK";
+    return filter_short_names[type_idx];
 }
 
 float clamp_frequency_to_safe_values(float frequency) {

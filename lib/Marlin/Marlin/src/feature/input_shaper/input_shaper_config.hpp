@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <optional>
 #include <printers.h>
+#include <utility_extensions.hpp>
+#include "enum_array.hpp"
 
 enum AxisEnum : uint8_t; // FWD declaration to avoid Marlin dependency in tests
 
@@ -13,16 +15,46 @@ enum class Type : uint8_t {
     // We no longer recommend ZV, EI_2HUMP & EI_3HUMP filter types with our automatic fitting
 
     first = 0,
-    first_recommended,
     zv = first,
-    zvd = first_recommended,
+    zvd,
     mzv,
     ei,
     ei_2hump,
     ei_3hump,
     null,
     last = null,
-    last_recommended = ei,
+    cnt
+};
+
+static constexpr EnumArray<Type, const char *, ftrstd::to_underlying(Type::cnt)> filter_names {
+    { Type::zv, "ZV" },
+    { Type::zvd, "ZVD" },
+    { Type::mzv, "MZV" },
+    { Type::ei, "EI" },
+    { Type::ei_2hump, "EI_2HUMP" },
+    { Type::ei_3hump, "EI_3HUMP" },
+    { Type::null, "Null" }
+
+};
+
+static constexpr EnumArray<Type, const char *, ftrstd::to_underlying(Type::cnt)> filter_short_names {
+    { Type::zv, "ZV" },
+    { Type::zvd, "ZVD" },
+    { Type::mzv, "MZV" },
+    { Type::ei, "EI" },
+    { Type::ei_2hump, "EI2" },
+    { Type::ei_3hump, "EI3" },
+    { Type::null, "NUL" }
+};
+
+static constexpr EnumArray<Type, bool, ftrstd::to_underlying(Type::cnt)> enabled_filters {
+    { Type::zv, false },
+    { Type::zvd, true },
+    { Type::mzv, true },
+    { Type::ei, true },
+    { Type::ei_2hump, false },
+    { Type::ei_3hump, false },
+    { Type::null, true }
 };
 
 static constexpr uint8_t low_freq_limit_hz = 35;

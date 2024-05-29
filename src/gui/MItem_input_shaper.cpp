@@ -30,24 +30,8 @@ void MI_IS_Y_ONOFF::OnChange(size_t) {
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, ftrstd::bit_cast<void *>(InputShaperMenuItemChildClickParam::request_gui_update));
 }
 
-WiEnumSwitch::Items type_items({ input_shaper::to_string(input_shaper::Type::zv),
-    input_shaper::to_string(input_shaper::Type::zvd),
-    input_shaper::to_string(input_shaper::Type::mzv),
-    input_shaper::to_string(input_shaper::Type::ei),
-    input_shaper::to_string(input_shaper::Type::ei_2hump),
-    input_shaper::to_string(input_shaper::Type::ei_3hump) });
-
-WiEnumSwitch::ItemsEnabled type_items_enabled({ {
-    false, // ZV
-    true, // ZVD
-    true, // MZV
-    true, // EI
-    false, // EI_2HUMP
-    false // EI_3HUMP
-} });
-
 MI_IS_X_TYPE::MI_IS_X_TYPE()
-    : WiEnumSwitch(/* index is set in ScreenMenuInputShaper::update_gui*/ _(label), type_items, false, type_items_enabled) {
+    : WiEnumSwitch(/* index is set in ScreenMenuInputShaper::update_gui*/ _(label), input_shaper::filter_names, false, input_shaper::enabled_filters) {
 }
 
 void MI_IS_X_TYPE::OnChange(size_t) {
@@ -60,7 +44,7 @@ void MI_IS_X_TYPE::OnChange(size_t) {
 }
 
 MI_IS_Y_TYPE::MI_IS_Y_TYPE()
-    : WiEnumSwitch(/* set in ScreenMenuInputShaper::update_gui*/ _(label), type_items, false, type_items_enabled) {
+    : WiEnumSwitch(/* set in ScreenMenuInputShaper::update_gui*/ _(label), input_shaper::filter_names, false, input_shaper::enabled_filters) {
 }
 
 void MI_IS_Y_TYPE::OnChange(size_t) {

@@ -158,6 +158,7 @@ input_shaper::Shaper input_shaper::get(const float damping_ratio, const float sh
         input_shaper::Shaper shaper(a, t, num_pulses);
         return shaper;
     }
+    case Type::cnt: // Fallback to null filter
     case Type::null: {
         constexpr int num_pulses = 1;
         float a[num_pulses] = { 1.f };

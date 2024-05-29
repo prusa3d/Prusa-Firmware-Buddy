@@ -21,6 +21,7 @@
 #include <numbers>
 #include <limits>
 #include <bit>
+#include <utility_extensions.hpp>
 
 #include <config_store/store_instance.hpp>
 
@@ -969,15 +970,20 @@ struct Best_score {
     input_shaper::Type type;
 };
 static input_shaper::AxisConfig find_best_shaper(FindBestShaperProgressHook &progress_hook, const Spectrum &psd, const Action final_action, input_shaper::AxisConfig default_config) {
-    static constexpr auto first_type = input_shaper::Type::first_recommended;
-    static_assert(first_type != input_shaper::Type::null, "ensure the first fit is not run with the null filter");
+    static constexpr auto first_enabled_filter_iterator = std::ranges::find_if(input_shaper::enabled_filters, [](bool el){ return el; });
+    static_assert(first_enabled_filter_iterator != input_shaper::enabled_filters.end(), "all input shaper filters are disabled");
+    
+    static constexpr int first_shaper_idx = std::distance(input_shaper::enabled_filters.begin(), first_enabled_filter_iterator);
+    static constexpr input_shaper::Type first_shaper_type = static_cast<input_shaper::Type>(first_shaper_idx);
+    static_assert(first_shaper_type != input_shaper::Type::null, "first enabled filter cannot be null");
+
     Best_score best_shaper = {
-        .result = fit_shaper(progress_hook, first_type, psd, final_action, default_config),
-        .type = first_type
+        .result = fit_shaper(progress_hook, first_shaper_type, psd, final_action, default_config),
+        .type = first_shaper_type
     };
 
-    for (input_shaper::Type shaper_type = first_type + 1; shaper_type <= input_shaper::Type::last_recommended; ++shaper_type) {
-        if (shaper_type == input_shaper::Type::null) {
+    for (input_shaper::Type shaper_type = first_shaper_type + 1; shaper_type <= input_shaper::Type::last; ++shaper_type) {
+        if (shaper_type == input_shaper::Type::null || !input_shaper::enabled_filters[ftrstd::to_underlying(shaper_type)]) {
             continue;
         }
 
