@@ -16,171 +16,70 @@
 #include <option/enable_translation_it.h>
 #include <option/enable_translation_pl.h>
 #include <option/enable_translation_jp.h>
+#include <str_utils.hpp>
+#include <img_resources.hpp>
 
 class MI_LangBase : public IWindowMenuItem {
 public:
-    MI_LangBase(const char *label, const img::Resource *icon, is_hidden_t hidden);
+    MI_LangBase(const char *label, const char *lang_code, const img::Resource *icon, is_hidden_t hidden);
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override;
-    virtual uint16_t LangCode() const = 0;
-
     virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const override;
+
+private:
+    const uint16_t lang_code;
 };
 
-class MI_ENGLISH : public MI_LangBase {
-    static constexpr const char *const label = "English";
-
+template <TemplateString name, TemplateString code, const img::Resource *icon, is_hidden_t hidden_ = is_hidden_t::no>
+class MI_LANG : public MI_LangBase {
 public:
-    MI_ENGLISH();
-
-protected:
-    virtual uint16_t LangCode() const override;
+    MI_LANG()
+        : MI_LangBase(name.str, code.str, icon, hidden_) {}
 };
 
-class MI_CZECH : public MI_LangBase {
-    // Beware UTF-8!
-    static constexpr const char *const label = "Čeština";
-
-public:
-    MI_CZECH();
-
-protected:
-    virtual uint16_t LangCode() const override;
-};
-
-class MI_GERMAN : public MI_LangBase {
-    static constexpr const char *const label = "Deutsch";
-
-public:
-    MI_GERMAN();
-
-protected:
-    virtual uint16_t LangCode() const override;
-};
-
-class MI_SPANISH : public MI_LangBase {
-    // Beware UTF-8!
-    static constexpr const char *const label = "Español";
-
-public:
-    MI_SPANISH();
-
-protected:
-    virtual uint16_t LangCode() const override;
-};
-
-class MI_FRENCH : public MI_LangBase {
-    // Beware UTF-8!
-    static constexpr const char *const label = "Français";
-
-public:
-    MI_FRENCH();
-
-protected:
-    virtual uint16_t LangCode() const override;
-};
-
-class MI_ITALIAN : public MI_LangBase {
-    static constexpr const char *const label = "Italiano";
-
-public:
-    MI_ITALIAN();
-
-protected:
-    virtual uint16_t LangCode() const override;
-};
-
-class MI_POLISH : public MI_LangBase {
-    static constexpr const char *const label = "Polski";
-
-public:
-    MI_POLISH();
-
-protected:
-    virtual uint16_t LangCode() const override;
-};
-
-class MI_JAPANESE : public MI_LangBase {
-    static constexpr const char *const label = "ニホンゴ";
-
-public:
-    MI_JAPANESE();
-
-protected:
-    virtual uint16_t LangCode() const override;
-};
-
-class MI_TEST_LANG : public MI_LangBase {
-    static constexpr const char *const label = "Test";
-
-public:
-    MI_TEST_LANG();
-
-protected:
-    virtual uint16_t LangCode() const override;
-};
-
-/*****************************************************************************/
-// parent alias
-using ScreenMenuLanguages__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH,
+using ScreenMenuLanguages__ = ScreenMenu<EFooter::Off,
+    MI_RETURN,
+    MI_LANG<"English"_tstr, "en"_tstr, &img::flag_en_16x11>
 #if ENABLE_TRANSLATION_CS()
-    MI_CZECH,
+    ,
+    MI_LANG<"Čeština"_tstr, "cs"_tstr, &img::flag_cs_16x11>
 #endif
 #if ENABLE_TRANSLATION_DE()
-    MI_GERMAN,
+    ,
+    MI_LANG<"Deutsch"_tstr, "de"_tstr, &img::flag_de_16x11>
 #endif
 #if ENABLE_TRANSLATION_ES()
-    MI_SPANISH,
+    ,
+    MI_LANG<"Español"_tstr, "es"_tstr, &img::flag_es_16x11>
 #endif
 #if ENABLE_TRANSLATION_FR()
-    MI_FRENCH,
+    ,
+    MI_LANG<"Français"_tstr, "fr"_tstr, &img::flag_fr_16x11>
 #endif
 #if ENABLE_TRANSLATION_IT()
-    MI_ITALIAN,
+    ,
+    MI_LANG<"Italiano"_tstr, "it"_tstr, &img::flag_it_16x11>
 #endif
 #if ENABLE_TRANSLATION_PL()
-    MI_POLISH,
+    ,
+    MI_LANG<"Polski"_tstr, "pl"_tstr, &img::flag_pl_16x11>
 #endif
 #if ENABLE_TRANSLATION_JP()
-    MI_JAPANESE,
+    ,
+    MI_LANG<"ニホンゴ"_tstr, "jp"_tstr, &img::flag_jp_16x11>
 #endif
-    MI_TEST_LANG>;
+#if DEVELOPMENT_ITEMS()
+    ,
+    MI_LANG<"Test"_tstr, "ts"_tstr, &img::flag_cs_16x11>
+#endif
+    >;
 
 class ScreenMenuLanguages : public ScreenMenuLanguages__ {
 public:
-    constexpr static const char *label = N_("LANGUAGES");
-    ScreenMenuLanguages();
-};
-
-/*****************************************************************************/
-// parent alias
-using ScreenMenuLanguagesNoReturn__ = ScreenMenu<EFooter::Off, MI_ENGLISH,
-#if ENABLE_TRANSLATION_CS()
-    MI_CZECH,
-#endif
-#if ENABLE_TRANSLATION_DE()
-    MI_GERMAN,
-#endif
-#if ENABLE_TRANSLATION_ES()
-    MI_SPANISH,
-#endif
-#if ENABLE_TRANSLATION_FR()
-    MI_FRENCH,
-#endif
-#if ENABLE_TRANSLATION_IT()
-    MI_ITALIAN,
-#endif
-#if ENABLE_TRANSLATION_PL()
-    MI_POLISH,
-#endif
-#if ENABLE_TRANSLATION_JP()
-    MI_JAPANESE,
-#endif
-    MI_TEST_LANG>;
-
-class ScreenMenuLanguagesNoRet : public ScreenMenuLanguagesNoReturn__ {
-public:
-    constexpr static const char *label = N_("SELECT LANGUAGE");
-    ScreenMenuLanguagesNoRet();
+    enum class Context {
+        standard,
+        initial_language_selection,
+    };
+    ScreenMenuLanguages(Context context = Context::standard);
 };

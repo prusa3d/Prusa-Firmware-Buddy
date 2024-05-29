@@ -85,7 +85,6 @@ class ScreenFactory {
         ScreenMenuInfo,
         ScreenMenuLangAndTime,
         ScreenMenuLanguages,
-        ScreenMenuLanguagesNoRet,
         ScreenMenuMove,
         ScreenMenuNetwork,
         ScreenMenuOdometer,

@@ -139,13 +139,10 @@ screen_splash_data_t::screen_splash_data_t()
     };
 #endif
 
-#if HAS_TRANSLATIONS()
-    const bool run_lang = !LangEEPROM::getInstance().IsValid();
-#endif
     const screen_node screens[] {
 
 #if HAS_TRANSLATIONS()
-        { run_lang ? ScreenFactory::Screen<ScreenMenuLanguagesNoRet> : nullptr },
+        { !LangEEPROM::getInstance().IsValid() ? ScreenFactory::Screen<ScreenMenuLanguages, ScreenMenuLanguages::Context::initial_language_selection> : nullptr },
 #endif
 
 #if HAS_TOUCH()
