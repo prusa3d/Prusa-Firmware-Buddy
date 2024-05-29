@@ -12,7 +12,6 @@
 
 MI_LangBase::MI_LangBase(const char *label, const img::Resource *icon, is_hidden_t hidden)
     : IWindowMenuItem(_(label), icon, is_enabled_t::yes, hidden) {
-    setLabelFont(GuiDefaults::FontMenuSpecial);
 }
 
 void MI_LangBase::click(IWindowMenu & /*window_menu*/) {
