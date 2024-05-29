@@ -221,28 +221,26 @@ static Result verify_all_flash_parts(FlashPartsResults &results) {
 }
 
 Result flash() {
+    esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
+#if HAS_EMBEDDED_ESP32()
+    config.trials = 40;
+#endif
+    if (esp_loader_connect(&config) != ESP_LOADER_SUCCESS) {
+        return Result::not_connected;
+    }
+
 #if !HAS_EMBEDDED_ESP32()
     // With ESP8266 we need to wait for resources early to be able to flush the stub
     // TODO: Add more resources flags for esp and do a more granular dependency check
     TaskDeps::wait(TaskDeps::make(TaskDeps::Dependency::resources_ready));
 #endif
-    esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
-    int tries = REFLASH_MAX_TRIES;
-    while (tries > 0 && esp_loader_connect(&config) != ESP_LOADER_SUCCESS) {
-        --tries;
-        // TODO: try to reset the esp
-        taskYIELD();
-    }
-    if (tries == 0) {
-        return Result::not_connected;
-    }
 
     FlashPartsResults results;
     if (const Result result = verify_all_flash_parts(results); result != Result::success) {
         return result;
     }
 
-    tries = REFLASH_MAX_TRIES;
+    int tries = REFLASH_MAX_TRIES;
     while (tries > 0 && !all_parts_success(results)) {
         size_t total = 0;
         foreach_flash_parts(results, [&](Result &result, const Part &part) {
