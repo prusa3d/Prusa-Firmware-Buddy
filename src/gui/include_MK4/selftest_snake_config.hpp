@@ -14,7 +14,6 @@ enum class Tool {
 
 // Order matters, snake and will be run in the same order, as well as menu items (with indices) will be
 enum class Action {
-    Network,
     Fans,
     XYCheck,
     ZAlign, // also known as z_calib
@@ -26,7 +25,7 @@ enum class Action {
     InputShaperCalibration,
     _count,
     _last = _count - 1,
-    _first = Network,
+    _first = Fans,
 };
 
 template <Action action>
@@ -77,7 +76,6 @@ struct MenuItemText {
 
 // could have been done with an array of texts directly, but there would be an order dependancy
 inline constexpr MenuItemText blank_item_texts[] {
-    { Action::Network, N_("%d Network") },
     { Action::Fans, N_("%d Fan Test") },
     { Action::ZAlign, N_("%d Z Alignment Calibration") },
     { Action::XYCheck, N_("%d XY Axis Test") },

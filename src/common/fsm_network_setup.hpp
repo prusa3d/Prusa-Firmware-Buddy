@@ -2,7 +2,6 @@
 
 #include <option/has_nfc.h>
 #include <wifi_credentials.hpp>
-#include <selftest_result.hpp>
 
 namespace network_wizard {
 
@@ -35,7 +34,5 @@ void network_selftest_wizard();
 /// Subpart of the wi-fi wizard, raised when receiving wi-fi credentials over NFC without prompt
 void network_nfc_wizard(const WifiCredentials &creds);
 #endif
-
-TestResult network_selftest_result();
 
 }; // namespace network_wizard

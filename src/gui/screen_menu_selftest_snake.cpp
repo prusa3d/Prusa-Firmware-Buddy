@@ -158,10 +158,6 @@ void do_snake(Action action, Tool tool = Tool::_first) {
             break;
 #endif
 
-        case Action::Network:
-            marlin_client::gcode("M1703 A");
-            break;
-
         default:
             has_test_special_handling = false;
             break;

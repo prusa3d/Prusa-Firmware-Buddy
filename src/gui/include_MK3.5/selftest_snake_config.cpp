@@ -1,11 +1,9 @@
 #include "selftest_snake_config.hpp"
-#include <espif.h>
 #include <selftest_types.hpp>
 #include <screen_menu_selftest_snake_result_parsing.hpp>
 #include <option/has_toolchanger.h>
 #include <config_store/store_instance.hpp>
 #include <common/SteelSheets.hpp>
-#include <fsm_network_setup.hpp>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif
@@ -15,10 +13,6 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
     SelftestResult sr = config_store().selftest_result.get();
 
     switch (action) {
-
-    case Action::Network:
-        return network_wizard::network_selftest_result();
-
     case Action::Fans:
         return merge_hotends_evaluations(
             [&](int8_t e) {
@@ -49,8 +43,6 @@ ToolMask get_tool_mask([[maybe_unused]] Tool tool) {
 
 uint64_t get_test_mask(Action action) {
     switch (action) {
-    case Action::Network:
-        std::terminate();
     case Action::Fans:
         return stmFans;
     case Action::XYCheck:
