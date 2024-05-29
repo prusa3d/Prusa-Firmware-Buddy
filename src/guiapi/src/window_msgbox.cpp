@@ -170,26 +170,6 @@ Rect16 MsgBoxIconned::getTextRect() {
 }
 
 /*****************************************************************************/
-// MsgBoxIconPepa
-MsgBoxIconPepa::MsgBoxIconPepa(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, const img::Resource *ic)
-    : MsgBoxIconned(rect, resp, def_btn, labels, txt, multiline, ic) {
-    icon.SetRect(getIconRect());
-    icon.SetAlignment(Align_t::CenterTop());
-
-    text.SetRect(getTextRect());
-    text.SetAlignment(Align_t::LeftBottom());
-}
-
-Rect16 MsgBoxIconPepa::getTextRect() {
-    return Rect16(60, GuiDefaults::HeaderHeight + 170, 380, 23); // This is reserved for one-lined text: "All tests finished successfully!"
-}
-
-Rect16 MsgBoxIconPepa::getIconRect() {
-    return Rect16(0, GuiDefaults::HeaderHeight, display::GetW(), 140);
-}
-
-/*****************************************************************************/
 // MsgBoxIconPepaCentered
 MsgBoxIconPepaCentered::MsgBoxIconPepaCentered(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, const img::Resource *ic)
@@ -290,7 +270,6 @@ enum class MsgBoxDialogClass {
     MsgBoxTitled,
     MsgBoxIconned,
     MsgBoxIconnedError,
-    MsgBoxIconPepa,
     MsgBoxIconPepaCentered,
     MsgBoxIS,
     MsgBoxISSpecial,
@@ -344,14 +323,6 @@ constexpr EnumArray<MsgBoxType, MsgBoxImplicitConfig, MsgBoxType::_count> msb_bo
     },
     {
         MsgBoxType::info,
-        MsgBoxImplicitConfig {
-            .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
-            .icon = big_layout ? &img::info_48x48 : &img::info_16x16,
-            .title = big_layout ? nullptr : N_("Information"),
-        },
-    },
-    {
-        MsgBoxType::pepa,
         MsgBoxImplicitConfig {
             .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
             .icon = big_layout ? &img::info_48x48 : &img::info_16x16,
@@ -414,9 +385,6 @@ Response MsgBoxBuilder::exec() const {
     case MsgBoxDialogClass::MsgBoxIconnedError:
         return box_f.operator()<MsgBoxIconnedError>(used_icon);
 
-    case MsgBoxDialogClass::MsgBoxIconPepa:
-        return box_f.operator()<MsgBoxIconPepa>(used_icon);
-
     case MsgBoxDialogClass::MsgBoxIconPepaCentered:
         return box_f.operator()<MsgBoxIconPepaCentered>(used_icon);
 
@@ -459,10 +427,6 @@ Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t 
 
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
     return msg_box(MsgBoxType::info, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
-}
-
-Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
-    return msg_box(MsgBoxType::pepa, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
 }
 
 Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {

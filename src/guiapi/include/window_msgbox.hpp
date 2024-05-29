@@ -136,18 +136,6 @@ protected:
 };
 
 /*****************************************************************************/
-// MsgBoxPepa
-class MsgBoxIconPepa : public MsgBoxIconned {
-public:
-    MsgBoxIconPepa(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline, const img::Resource *icon);
-
-protected:
-    Rect16 getTextRect();
-    Rect16 getIconRect();
-};
-
-/*****************************************************************************/
 // MsgBoxPepaCentered
 class MsgBoxIconPepaCentered : public MsgBoxIconned {
 public:
@@ -203,7 +191,6 @@ enum class MsgBoxType : uint8_t {
     question, ///< Has default icon & title
     warning, ///< Has default icon & title
     info, ///< Has default icon & title
-    pepa, ///< Has default icon
     pepa_centered, ///< Has default icon
     input_shaper_warning, ///< Has default icon
     _count,
@@ -258,6 +245,5 @@ Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp = Response
 Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
 Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
-Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
 Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
 Response MsgBoxISWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
