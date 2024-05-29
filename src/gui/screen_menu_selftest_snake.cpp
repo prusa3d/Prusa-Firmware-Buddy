@@ -403,32 +403,11 @@ void ScreenMenuSTSWizard::windowEvent(window_t *sender, GUI_event_t event, void 
         return;
     }
 
-    static constexpr const char *msg =
-#if PRINTER_IS_PRUSA_XL
-        N_("Hi, this is your\nOriginal Prusa XL printer.\n"
-           "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_MK4
-        N_("Hi, this is your\nOriginal Prusa MK4 printer.\n"
-           "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_MK3_5
-        N_("Hi, this is your\nOriginal Prusa MK3.5 printer.\n"
-           "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_MINI
-        N_("Hi, this is your\nOriginal Prusa MINI printer.\n"
-           "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_iX
-        N_("Hi, this is your\nOriginal Prusa iX printer.\n"
-           "I would like to guide you\nthrough the setup process.");
-#else
-        "";
-    #error unknown config
-#endif
-
     static bool ever_shown_wizard_box { false };
     if (!ever_shown_wizard_box) {
         ever_shown_wizard_box = true;
 
-        if (MsgBoxPepaCentered(_(msg), { Response::Continue, Response::Cancel }) != Response::Continue) {
+        if (MsgBoxPepaCentered(_("Run selftests and calibrations now?"), { Response::Yes, Response::No }) != Response::Yes) {
             Screens::Access()->Close();
             return;
         }
