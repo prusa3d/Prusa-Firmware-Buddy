@@ -39,20 +39,7 @@ void MI_NOZZLE_DIAMETER_HELP::click(IWindowMenu &) {
 }
 
 ScreenPrinterSetup::ScreenPrinterSetup()
-    : header(this, _("PRINTER SETUP"))
-    , prompt(this, prompt_rect, is_multiline::yes, is_closed_on_click_t::no, _("Confirm your printer setup"))
-    , menu(this, menu_rect) //
+    : ScreenMenu(_("PRINTER SETUP")) //
 {
     ClrMenuTimeoutClose(); // don't close on menu timeout
-
-    prompt.SetAlignment(Align_t::Center());
-    prompt.SetTextColor(COLOR_BLACK);
-    prompt.SetBackColor(COLOR_WHITE);
-
-#if HAS_MINI_DISPLAY()
-    prompt.set_font(Font::small);
-#endif
-
-    menu.menu.BindContainer(menu_container);
-    CaptureNormalWindow(menu);
 }
