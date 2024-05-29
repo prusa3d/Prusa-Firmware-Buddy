@@ -12,7 +12,7 @@
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
 #include "screen_menu_languages.hpp"
-#include "screen_touch_error.hpp"
+#include <pseudo_screen_callback.hpp>
 #include "bsod.h"
 #include <guiconfig/guiconfig.h>
 
@@ -132,6 +132,12 @@ screen_splash_data_t::screen_splash_data_t()
     };
     #endif
 #endif
+#if HAS_TOUCH()
+    constexpr auto touch_error_callback = +[] {
+        touchscreen.set_enabled(false);
+        MsgBoxWarning(_("Touch driver failed to initialize, touch functionality disabled"), Responses_Ok);
+    };
+#endif
 
 #if HAS_TRANSLATIONS()
     const bool run_lang = !LangEEPROM::getInstance().IsValid();
@@ -143,7 +149,7 @@ screen_splash_data_t::screen_splash_data_t()
 #endif
 
 #if HAS_TOUCH()
-            { touchscreen.is_enabled() && !touchscreen.is_hw_ok() ? ScreenFactory::Screen<ScreenTouchError> : nullptr },
+            { touchscreen.is_enabled() && !touchscreen.is_hw_ok() ? ScreenFactory::Screen<PseudoScreenCallback, touch_error_callback> : nullptr },
 #endif // HAS_TOUCH
 
             { config_store().printer_setup_done.get() ? nullptr : ScreenFactory::Screen<ScreenPrinterSetup> },

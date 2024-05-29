@@ -37,6 +37,7 @@ target_sources(
           MItem_print.cpp
           MItem_tools.cpp
           print_time_module.cpp
+          pseudo_screen_callback.cpp
           qoi_decoder.cpp
           screen_blue_error.cpp
           screen_bsod.cpp
@@ -115,9 +116,7 @@ else()
 endif()
 
 if(HAS_XLCD_TOUCH_DRIVER)
-  target_sources(
-    firmware PRIVATE MItem_touch.cpp screen_touch_error.cpp screen_touch_playground.cpp
-    )
+  target_sources(firmware PRIVATE MItem_touch.cpp screen_touch_playground.cpp)
 endif()
 
 if(HAS_TOOLCHANGER)

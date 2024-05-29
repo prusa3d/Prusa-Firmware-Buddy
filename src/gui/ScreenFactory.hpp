@@ -30,7 +30,6 @@
 #include "screen_menu_system.hpp"
 #include "screen_menu_statistics.hpp"
 #include "screen_menu_cancel_object.hpp"
-#include "screen_touch_error.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_menu_input_shaper.hpp"
 #include "screen_menu_enclosure.hpp"
@@ -98,7 +97,6 @@ class ScreenFactory {
 #endif
         ScreenMenuSystem,
         ScreenMenuTemperature,
-        ScreenTouchError,
         ScreenMenuTune,
         ScreenMenuUserInterface,
         ScreenMenuVersionInfo,
