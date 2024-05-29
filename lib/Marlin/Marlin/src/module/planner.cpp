@@ -99,6 +99,11 @@
   #include "../feature/prusa/crash_recovery.hpp"
 #endif
 
+#include <option/has_phase_stepping.h>
+#if HAS_PHASE_STEPPING()
+#include "../feature/phase_stepping/phase_stepping.hpp"
+#endif // HAS_PHASE_STEPPING()
+
 #include "configuration_store.h"
 
 constexpr const int32_t MIN_MSTEPS_PER_SEGMENT = MIN_STEPS_PER_SEGMENT * PLANNER_STEPS_MULTIPLIER;
@@ -1194,6 +1199,9 @@ void Planner::synchronize() {
   emptying_buffer = true;
   while (busy()) idle(true);
   emptying_buffer = emptying_buffer_orig;
+#if HAS_PHASE_STEPPING()
+  phase_stepping::check_state();
+#endif // HAS_PHASE_STEPPING()
 }
 
 /**

@@ -227,6 +227,16 @@ int logical_ustep(AxisEnum axis);
 void synchronize();
 
 /**
+ * Check phase stepping internal state
+ * NOTE: To be called while idle!
+ */
+    #ifndef _DEBUG
+static constexpr void check_state() {}
+    #else
+void check_state();
+    #endif
+
+/**
  * This array keeps axis state (and LUT tables) for each axis
  **/
 extern std::array<AxisState, opts::SUPPORTED_AXIS_COUNT> axis_states;

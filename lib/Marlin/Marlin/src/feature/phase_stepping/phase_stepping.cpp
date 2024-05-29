@@ -308,7 +308,31 @@ void phase_stepping::assert_disabled() {
     // This is explicitly kept non-inline to serve as a single trap point
     assert(!any_axis_enabled());
 }
-#endif
+
+void phase_stepping::check_state() {
+    if (!initialized) {
+        // this function can be called early during app_setup() as a side-effect of synchronize,
+        // before init() actually gets called.
+        return;
+    }
+
+    for (auto &state : axis_states) {
+        if (!state.enabled) {
+            continue;
+        }
+
+    #if HAS_BURST_STEPPING()
+        assert(!burst_stepping::busy());
+
+        // Ensure driver_phase is in sync with MSCNT
+        int mscnt = stepper_axis((AxisEnum)state.axis_index).MSCNT();
+        if (mscnt != state.driver_phase) {
+            bsod("desync:axis=%i,mscnt=%hu,phase=%i", state.axis_index, mscnt, state.driver_phase);
+        }
+    #endif
+    }
+}
+#endif // _DEBUG
 
 void phase_stepping::synchronize() {
     planner.synchronize();
