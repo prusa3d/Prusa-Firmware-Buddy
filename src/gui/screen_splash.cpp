@@ -80,20 +80,25 @@ screen_splash_data_t::screen_splash_data_t()
     snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Firmware %s", project_version_full);
     text_progress.SetText(string_view_utf8::MakeRAM((uint8_t *)text_progress_buffer));
     progress.SetProgressPercent(0);
-#if HAS_SELFTEST()
-    #if DEVELOPER_MODE()
+
+#if !HAS_SELFTEST()
+    // Nothing
+
+#elif DEVELOPER_MODE()
     const bool run_wizard = false;
-    #elif !HAS_SELFTEST_SNAKE()
-        #if PRINTER_IS_PRUSA_MK4
+
+#elif !HAS_SELFTEST_SNAKE()
+    #if PRINTER_IS_PRUSA_MK4
     const bool run_selftest = !SelftestResult_Passed_Mandatory(config_store().selftest_result.get());
-        #else
+    #else
     const bool run_selftest = config_store().run_selftest.get();
-        #endif
+    #endif
     const bool run_xyzcalib = config_store().run_xyz_calib.get();
     const bool run_firstlay = config_store().run_first_layer.get();
     const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
-    #else
-    const bool run_wizard {
+
+#else
+    const bool run_wizard =
         []() {
             SelftestResult sr = config_store().selftest_result.get();
 
@@ -104,34 +109,33 @@ screen_splash_data_t::screen_splash_data_t()
             };
 
             if (any_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed
-        #if PRINTER_IS_PRUSA_XL
+    #if PRINTER_IS_PRUSA_XL
                     ,
                     config_store().selftest_result_phase_stepping.get()
 
-        #endif
+    #endif
                         )) {
                 return false;
             }
             for (size_t e = 0; e < config_store_ns::max_tool_count; e++) {
-        #if HAS_TOOLCHANGER()
+    #if HAS_TOOLCHANGER()
                 if (!prusa_toolchanger.is_tool_enabled(e)) {
                     continue;
                 }
-        #endif
+    #endif
                 if (any_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan,
-        #if not PRINTER_IS_PRUSA_MINI
+    #if !PRINTER_IS_PRUSA_MINI
                         sr.tools[e].fansSwitched,
-        #endif
+    #endif
                         sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].dockoffset, sr.tools[e].tooloffset)) {
                     return false;
                 }
             }
 
             return true;
-        }()
-    };
-    #endif
+        }();
 #endif
+
 #if HAS_TOUCH()
     constexpr auto touch_error_callback = +[] {
         touchscreen.set_enabled(false);
@@ -140,26 +144,19 @@ screen_splash_data_t::screen_splash_data_t()
 #endif
 
     const screen_node screens[] {
-
 #if HAS_TRANSLATIONS()
         { !LangEEPROM::getInstance().IsValid() ? ScreenFactory::Screen<ScreenMenuLanguages, ScreenMenuLanguages::Context::initial_language_selection> : nullptr },
 #endif
-
 #if HAS_TOUCH()
             { touchscreen.is_enabled() && !touchscreen.is_hw_ok() ? ScreenFactory::Screen<PseudoScreenCallback, touch_error_callback> : nullptr },
 #endif // HAS_TOUCH
 
             { config_store().printer_setup_done.get() ? nullptr : ScreenFactory::Screen<ScreenPrinterSetup> },
-
-#if HAS_SELFTEST()
-    #if HAS_SELFTEST_SNAKE()
-            { run_wizard ? screen_node(ScreenFactory::Screen<ScreenMenuSTSWizard>) : screen_node() } // xl wizard
-    #else
-            { run_wizard ? screen_node(ScreenFactory::Screen<ScreenSelftest>, stmWizard) : screen_node() } // wizard
-    #endif
-#else
+#if HAS_SELFTEST_SNAKE()
+            { run_wizard ? ScreenFactory::Screen<ScreenMenuSTSWizard> : nullptr }
+#elif HAS_SELFTEST()
         {
-            screen_node()
+            run_wizard ? screen_node(ScreenFactory::Screen<ScreenSelftest>, stmWizard) : screen_node()
         }
 #endif
     };
