@@ -3,6 +3,7 @@
 #include "window_wizard_progress.hpp"
 #include <gui/frame_qr_layout.hpp>
 #include <img_resources.hpp>
+#include <str_utils.hpp>
 
 static ScreenInputShaperCalibration *instance = nullptr;
 
@@ -206,6 +207,59 @@ public:
     static constexpr const char *text_computing = N_("Computing best shaper...");
 };
 
+class FrameBadResults {
+private:
+    window_text_t text_above;
+    window_text_t text_below;
+
+    ArrayStringBuilder<150> str_build_x_axis;
+    ArrayStringBuilder<150> str_build_y_axis;
+
+    static constexpr const char *text_freq_low = N_("axis frequency is too low.\nPlease tighten the belt.");
+    static constexpr const char *text_freq_high = N_("axis frequency is too high.\nPlease check your HW setup.\nIf the problem prevails, contact the customer support.");
+    static constexpr const char *text_shaper_x = N_("Computed recommended shaper for X axis: ");
+    static constexpr const char *text_shaper_y = N_("Computed recommended shaper for Y axis: ");
+    static constexpr const char *type_freq_format = "%3s %3dHz";
+
+public:
+    FrameBadResults(window_t *parent)
+        : text_above(parent, Rect16(rect_frame.Left(), rect_frame.Top(), rect_frame.Width(), WizardDefaults::row_h * 4), is_multiline::yes, is_closed_on_click_t::no)
+        , text_below(parent, Rect16(rect_frame.Left(), rect_frame.Top() + WizardDefaults::row_h * 4, rect_frame.Width(), WizardDefaults::row_h * 4), is_multiline::yes, is_closed_on_click_t::no) {
+    }
+
+    void update(fsm::PhaseData data) {
+        const auto x_type = static_cast<input_shaper::Type>(data[0]);
+        const auto x_freq = data[1];
+        const auto y_type = static_cast<input_shaper::Type>(data[2]);
+        const auto y_freq = data[3];
+
+        str_build_x_axis.append_string("X ");
+
+        if (x_freq < input_shaper::low_freq_limit_hz) {
+            str_build_x_axis.append_string_view(_(text_freq_low));
+        } else if (x_freq > input_shaper::high_freq_limit_hz) {
+            str_build_x_axis.append_string_view(_(text_freq_high));
+        } else {
+            str_build_x_axis.append_string_view(_(text_shaper_x));
+            str_build_x_axis.append_printf(type_freq_format, to_short_string(x_type), x_freq);
+        }
+
+        str_build_y_axis.append_string("Y ");
+
+        if (y_freq < input_shaper::low_freq_limit_hz) {
+            str_build_y_axis.append_string_view(_(text_freq_low));
+        } else if (y_freq > input_shaper::high_freq_limit_hz) {
+            str_build_y_axis.append_string_view(_(text_freq_high));
+        } else {
+            str_build_y_axis.append_string_view(_(text_shaper_y));
+            str_build_y_axis.append_printf(type_freq_format, to_short_string(y_type), y_freq);
+        }
+
+        text_above.SetText(string_view_utf8::MakeRAM(str_build_x_axis.str()));
+        text_below.SetText(string_view_utf8::MakeRAM(str_build_y_axis.str()));
+    }
+};
+
 class FrameResults {
 private:
     window_text_t text;
@@ -251,6 +305,7 @@ using Frames = FrameDefinitionList<ScreenInputShaperCalibration::FrameStorage,
     FrameDefinition<PhasesInputShaperCalibration::measuring_y_axis, FrameMeasuringBed>,
     FrameDefinition<PhasesInputShaperCalibration::measurement_failed, FrameMeasurementFailed>,
     FrameDefinition<PhasesInputShaperCalibration::computing, FrameComputing>,
+    FrameDefinition<PhasesInputShaperCalibration::bad_results, FrameBadResults>,
     FrameDefinition<PhasesInputShaperCalibration::results, FrameResults>>;
 
 static PhasesInputShaperCalibration get_phase(const fsm::BaseData &fsm_base_data) {

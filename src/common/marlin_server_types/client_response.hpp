@@ -429,6 +429,7 @@ enum class PhasesInputShaperCalibration : PhaseUnderlyingType {
     measuring_y_axis,
     measurement_failed,
     computing,
+    bad_results,
     results,
     finish,
     _last = finish,
@@ -797,6 +798,7 @@ class ClientResponses {
         { Response::Abort }, // measuring_y_axis
         { Response::Retry, Response::Abort }, // measurement_failed
         { Response::Abort }, // computing
+        { Response::Ok }, // bad_results
         { Response::Yes, Response::No }, // results
         {}, // finish
     };

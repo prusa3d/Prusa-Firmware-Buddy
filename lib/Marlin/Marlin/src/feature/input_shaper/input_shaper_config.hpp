@@ -10,17 +10,23 @@ namespace input_shaper {
 
 enum class Type : uint8_t {
     // DO NOT CHANGE VALUES IN THIS ENUM WITHOUT CHANGING EEPROM CODE!
+    // We no longer recommend ZV, EI_2HUMP & EI_3HUMP filter types with our automatic fitting
 
     first = 0,
+    first_recommended,
     zv = first,
-    zvd,
+    zvd = first_recommended,
     mzv,
     ei,
     ei_2hump,
     ei_3hump,
     null,
-    last = null
+    last = null,
+    last_recommended = ei,
 };
+
+static constexpr uint8_t low_freq_limit_hz = 35;
+static constexpr uint8_t high_freq_limit_hz = 70;
 
 const char *to_string(Type type);
 const char *to_short_string(Type type);

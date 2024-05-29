@@ -969,14 +969,14 @@ struct Best_score {
     input_shaper::Type type;
 };
 static input_shaper::AxisConfig find_best_shaper(FindBestShaperProgressHook &progress_hook, const Spectrum &psd, const Action final_action, input_shaper::AxisConfig default_config) {
-    static constexpr auto first_type = input_shaper::Type::first;
+    static constexpr auto first_type = input_shaper::Type::first_recommended;
     static_assert(first_type != input_shaper::Type::null, "ensure the first fit is not run with the null filter");
     Best_score best_shaper = {
         .result = fit_shaper(progress_hook, first_type, psd, final_action, default_config),
         .type = first_type
     };
 
-    for (input_shaper::Type shaper_type = first_type + 1; shaper_type <= input_shaper::Type::last; ++shaper_type) {
+    for (input_shaper::Type shaper_type = first_type + 1; shaper_type <= input_shaper::Type::last_recommended; ++shaper_type) {
         if (shaper_type == input_shaper::Type::null) {
             continue;
         }

@@ -394,6 +394,15 @@ static PhasesInputShaperCalibration measurement_failed(Context &context) {
     bsod(__FUNCTION__);
 }
 
+static PhasesInputShaperCalibration check_result(Context &context) {
+    if (context.axis_config_x.frequency < input_shaper::low_freq_limit_hz || context.axis_config_x.frequency > input_shaper::high_freq_limit_hz
+        || context.axis_config_y.frequency < input_shaper::low_freq_limit_hz || context.axis_config_y.frequency > input_shaper::high_freq_limit_hz) {
+        return PhasesInputShaperCalibration::bad_results;
+    } else {
+        return PhasesInputShaperCalibration::results;
+    }
+}
+
 static PhasesInputShaperCalibration computing(Context &context) {
     FindBestShaperProgressHookFsm progress_hook;
     {
@@ -406,18 +415,21 @@ static PhasesInputShaperCalibration computing(Context &context) {
         progress_hook.set_axis(logicalAxis);
         context.axis_config_y = find_best_shaper(progress_hook, context.spectrum_y, input_shaper::axis_defaults[logicalAxis]);
     }
+
     return progress_hook.aborted() ? PhasesInputShaperCalibration::finish : PhasesInputShaperCalibration::results;
 }
 
 static PhasesInputShaperCalibration results(Context &context) {
+    const PhasesInputShaperCalibration result_phase = check_result(context); // results or bad_results - each has different texts & responses
+
     fsm::PhaseData data {
         static_cast<uint8_t>(context.axis_config_x.type),
         static_cast<uint8_t>(context.axis_config_x.frequency),
         static_cast<uint8_t>(context.axis_config_y.type),
         static_cast<uint8_t>(context.axis_config_y.frequency),
     };
-    marlin_server::fsm_change(PhasesInputShaperCalibration::results, data);
-    switch (wait_for_response(PhasesInputShaperCalibration::results)) {
+    marlin_server::fsm_change(result_phase, data); // PhasesInputShaperCalibration::results or PhasesInputShaperCalibration::bad_results
+    switch (wait_for_response(result_phase)) {
     case Response::Yes:
         config_store().input_shaper_axis_x_config.set(context.axis_config_x);
         input_shaper::set_axis_config(X_AXIS, context.axis_config_x);
@@ -425,6 +437,8 @@ static PhasesInputShaperCalibration results(Context &context) {
         input_shaper::set_axis_config(Y_AXIS, context.axis_config_y);
         return PhasesInputShaperCalibration::finish;
     case Response::No:
+        return PhasesInputShaperCalibration::finish;
+    case Response::Ok:
         return PhasesInputShaperCalibration::finish;
     default:
         break;
@@ -463,6 +477,7 @@ static PhasesInputShaperCalibration get_next_phase(Context &context, const Phase
         return measurement_failed(context);
     case PhasesInputShaperCalibration::computing:
         return computing(context);
+    case PhasesInputShaperCalibration::bad_results:
     case PhasesInputShaperCalibration::results:
         return results(context);
     case PhasesInputShaperCalibration::finish:
