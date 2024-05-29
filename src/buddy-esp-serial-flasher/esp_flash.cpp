@@ -65,7 +65,7 @@ public:
 };
 
 static Result generic_upload(const Part &part, generic_start_function start, generic_write_function write, ProgressHookInterface &progress_hook) {
-    uint8_t buffer[512];
+    uint8_t buffer[esp::flash::buffer_size];
 
     unique_file_ptr file { fopen(part.filename, "rb") };
     if (file.get() == nullptr) {
@@ -145,14 +145,14 @@ static Result run_stub() {
     // so we do nothing
 #else
     // Upload stub to memory
-    for (const Part &part : memory_parts) {
+    for (const Part &part : esp::flash::memory_parts) {
         if (const Result state = memory_upload(part); state != Result::success) {
             return state;
         }
     }
 
     // Jump to uploaded code
-    if (esp_loader_mem_finish(memory_entry) != ESP_LOADER_SUCCESS) {
+    if (esp_loader_mem_finish(esp::flash::memory_entry) != ESP_LOADER_SUCCESS) {
         return Result::protocol_error;
     }
 
@@ -193,7 +193,7 @@ change_baudrate() {
     return Result::success;
 }
 
-using FlashPartsResults = Result[sizeof(flash_parts) / sizeof(flash_parts[0])];
+using FlashPartsResults = Result[sizeof(esp::flash::flash_parts) / sizeof(esp::flash::flash_parts[0])];
 
 static bool all_parts_success(const FlashPartsResults &results) {
     return std::all_of(
@@ -204,7 +204,7 @@ static bool all_parts_success(const FlashPartsResults &results) {
 
 static void foreach_flash_parts(FlashPartsResults &results, auto callback) {
     size_t index = 0;
-    for (const Part &part : flash_parts) {
+    for (const Part &part : esp::flash::flash_parts) {
         callback(results[index++], part);
     }
 }
