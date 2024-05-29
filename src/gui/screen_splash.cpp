@@ -136,6 +136,29 @@ screen_splash_data_t::screen_splash_data_t()
         }();
 #endif
 
+    constexpr auto pepa_callback = +[] {
+        const char *txt =
+#if PRINTER_IS_PRUSA_XL
+            N_("Hi, this is your\nOriginal Prusa XL printer.\n"
+               "I would like to guide you\nthrough the setup process.");
+#elif PRINTER_IS_PRUSA_MK4
+            N_("Hi, this is your\nOriginal Prusa MK4 printer.\n"
+               "I would like to guide you\nthrough the setup process.");
+#elif PRINTER_IS_PRUSA_MK3_5
+            N_("Hi, this is your\nOriginal Prusa MK3.5 printer.\n"
+               "I would like to guide you\nthrough the setup process.");
+#elif PRINTER_IS_PRUSA_MINI
+            N_("Hi, this is your\nOriginal Prusa MINI printer.\n"
+               "I would like to guide you\nthrough the setup process.");
+#elif PRINTER_IS_PRUSA_iX
+            N_("Hi, this is your\nOriginal Prusa iX printer.\n"
+               "I would like to guide you\nthrough the setup process.");
+#else
+    #error unknown config
+#endif
+        MsgBoxPepaCentered(_(txt), Responses_Ok);
+    };
+
 #if HAS_TOUCH()
     constexpr auto touch_error_callback = +[] {
         touchscreen.set_enabled(false);
@@ -151,7 +174,9 @@ screen_splash_data_t::screen_splash_data_t()
             { touchscreen.is_enabled() && !touchscreen.is_hw_ok() ? ScreenFactory::Screen<PseudoScreenCallback, touch_error_callback> : nullptr },
 #endif // HAS_TOUCH
 
-            { config_store().printer_setup_done.get() ? nullptr : ScreenFactory::Screen<ScreenPrinterSetup> },
+            { !config_store().printer_setup_done.get() ? ScreenFactory::Screen<PseudoScreenCallback, pepa_callback> : nullptr },
+            { !config_store().printer_setup_done.get() ? ScreenFactory::Screen<ScreenPrinterSetup> : nullptr },
+
 #if HAS_SELFTEST_SNAKE()
             { run_wizard ? ScreenFactory::Screen<ScreenMenuSTSWizard> : nullptr }
 #elif HAS_SELFTEST()
@@ -165,7 +190,7 @@ screen_splash_data_t::screen_splash_data_t()
     // present none of the screens above if there is a powerpanic pending
     if (!power_panic::state_stored()) {
 #endif
-        Screens::Access()->PushBeforeCurrent(screens, screens + (sizeof(screens) / sizeof(screens[0])));
+        Screens::Access()->PushBeforeCurrent(screens, screens + std::size(screens));
 #if ENABLED(POWER_PANIC)
     }
 #endif
