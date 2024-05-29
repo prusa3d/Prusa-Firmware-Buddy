@@ -57,7 +57,6 @@ public:
     void PushBeforeCurrent(const ScreenFactory::Creator screen_creator);
     void PushBeforeCurrent(screen_node screen_creator);
     void PushBeforeCurrent(const screen_node *begin, const screen_node *end); // push in normal order, skips nullptr
-    void RPushBeforeCurrent(const screen_node *begin, const screen_node *end); // push in reversed order, skips nullptr
 
     void Close();
 
@@ -95,7 +94,6 @@ public:
 
     static void Init(screen_node screen_creator);
     static void Init(const screen_node *begin, const screen_node *end); // init in normal order, skips nullptr
-    static void RInit(const screen_node *begin, const screen_node *end); // init in reversed order, skips nullptr
 
     static Screens *Access();
 

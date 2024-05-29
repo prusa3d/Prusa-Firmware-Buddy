@@ -50,31 +50,6 @@ void Screens::Init(const screen_node *begin, const screen_node *end) {
     Access()->PushBeforeCurrent(node + 1, end); // node + 1 excludes node
 }
 
-void Screens::RInit(const screen_node *begin, const screen_node *end) {
-    if (size_t(end - begin) > MAX_SCREENS) {
-        return;
-    }
-    if (begin == end) {
-        return;
-    }
-
-    // initialize reverse iterators
-    r_iter r_begin(begin);
-    r_iter r_end(end);
-
-    // find last enabled creator
-    r_iter r_node = rfind_enabled_node(r_begin, r_end);
-    if (r_node == r_begin) {
-        return;
-    }
-
-    // have creator
-    Init(*r_node);
-
-    // Push rest of enabled creators on stack
-    Access()->RPushBeforeCurrent(begin, r_node.base());
-}
-
 void Screens::EnableMenuTimeout() {
     ResetTimeout();
     menu_timeout_enabled = true;
@@ -105,27 +80,6 @@ void Screens::PushBeforeCurrent(const screen_node *begin, const screen_node *end
             ++stack_iterator;
         }
     } while (r_node != r_begin);
-}
-
-// Push enabled creators on stack - in non reverted order
-// not a bug reverting method must use normal iterators
-void Screens::RPushBeforeCurrent(const screen_node *begin, const screen_node *end) {
-    if (size_t(end - begin) > MAX_SCREENS) {
-        return;
-    }
-    if (begin == end) {
-        return;
-    }
-
-    iter node = begin - 1; // point before begin, first call of "node + 1" will revert this
-
-    do {
-        node = find_enabled_node(node + 1, end);
-        if (node != end) {
-            (*stack_iterator) = *node;
-            ++stack_iterator;
-        }
-    } while (node != end);
 }
 
 Screens *Screens::Access() {
