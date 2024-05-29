@@ -19,9 +19,6 @@ TestResult get_test_result(Action action, Tool tool) {
 
     switch (action) {
 
-    case Action::PrinterSetup:
-        return config_store().printer_setup_done.get() ? TestResult::TestResult_Passed : TestResult::TestResult_Unknown;
-
     case Action::Network:
         return network_wizard::network_selftest_result();
 
@@ -114,7 +111,6 @@ ToolMask get_tool_mask(Tool tool) {
 
 uint64_t get_test_mask(Action action) {
     switch (action) {
-    case Action::PrinterSetup:
     case Action::Network:
         std::terminate();
     case Action::Fans:

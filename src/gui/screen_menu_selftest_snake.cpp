@@ -7,8 +7,6 @@
 #include <selftest_types.hpp>
 #include <RAII.hpp>
 #include <option/has_toolchanger.h>
-#include <screen_printer_setup.hpp>
-
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif
@@ -159,10 +157,6 @@ void do_snake(Action action, Tool tool = Tool::_first) {
             marlin_client::gcode("M1959");
             break;
 #endif
-
-        case Action::PrinterSetup:
-            Screens::Access()->Open<ScreenPrinterSetup>();
-            break;
 
         case Action::Network:
             marlin_client::gcode("M1703 A");
