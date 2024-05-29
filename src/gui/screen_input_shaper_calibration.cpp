@@ -126,7 +126,36 @@ public:
     explicit FrameConnectToBoard(window_t *parent)
         : FrameInstructions(parent, _(text_connect_to_board)) {}
 
-    static constexpr const char *text_connect_to_board = N_("Communication with the accelerometer failed. Connect the accelerometer cable to the buddy board.");
+    static constexpr const char *text_connect_to_board = N_(
+        "Accelerometer is not responding. "
+        "Turn off the printer and make sure the accelerometer cable is connected to the main board. "
+        "You can also abort the input shaper calibration and continue using the printer with default settings.");
+};
+
+class FrameWaitForExtruderTemperature final {
+    window_text_t text_above;
+    WindowBlinkingText text_below;
+    std::array<char, sizeof("NNN°C")> text_below_buffer;
+
+public:
+    explicit FrameWaitForExtruderTemperature(window_t *parent)
+        : text_above { parent, rect_frame_top, is_multiline::no, is_closed_on_click_t::no, _(text_wait_for_extruder_temperature) }
+        , text_below { parent, rect_frame_bottom } {
+        text_above.SetAlignment(Align_t::CenterTop());
+        text_below.SetAlignment(Align_t::CenterTop());
+        text_below.SetBlinkColor(COLOR_AZURE);
+    }
+
+    static constexpr const char *text_wait_for_extruder_temperature = N_(
+        "Waiting for nozzle to cool down");
+
+    void update(fsm::PhaseData data) {
+        const uint16_t current_temperature = (data[0] << 8) | data[1];
+
+        snprintf(text_below_buffer.data(), text_below_buffer.size(), "%3d°C", current_temperature);
+        text_below.SetText(string_view_utf8::MakeRAM(text_below_buffer.data()));
+        text_below.Invalidate();
+    }
 };
 
 class FrameAttachToExtruder final : public FrameInstructions {
@@ -134,7 +163,10 @@ public:
     explicit FrameAttachToExtruder(window_t *parent)
         : FrameInstructions(parent, _(text_attach_to_extruder)) {}
 
-    static constexpr const char *text_attach_to_extruder = N_("Firmly attach the accelerometer to the extruder. In the next step, extruder will start vibrating and acceleration will be measured.");
+    static constexpr const char *text_attach_to_extruder = N_(
+        "Firmly attach the accelerometer to the extruder "
+        "(remove silicone sock if necessary). "
+        "In the next step, extruder will start vibrating and resonance will be measured.");
 };
 
 class FrameCalibratingAccelerometer final {
@@ -161,7 +193,9 @@ public:
     explicit FrameAttachToBed(window_t *parent)
         : FrameInstructions(parent, _(text_attach_to_bed)) {}
 
-    static constexpr const char *text_attach_to_bed = N_("Firmly attach the accelerometer to the heatbed. In the next step, heatbed will start vibrating and acceleration will be measured.");
+    static constexpr const char *text_attach_to_bed = N_(
+        "Firmly attach the accelerometer to the heatbed. "
+        "In the next step, heatbed will start vibrating and resonance will be measured.");
 };
 
 class FrameMeasuringExtruder final : public FrameMeasurement {
@@ -298,6 +332,7 @@ using Frames = FrameDefinitionList<ScreenInputShaperCalibration::FrameStorage,
     FrameDefinition<PhasesInputShaperCalibration::info, FrameInfo>,
     FrameDefinition<PhasesInputShaperCalibration::parking, FrameParking>,
     FrameDefinition<PhasesInputShaperCalibration::connect_to_board, FrameConnectToBoard>,
+    FrameDefinition<PhasesInputShaperCalibration::wait_for_extruder_temperature, FrameWaitForExtruderTemperature>,
     FrameDefinition<PhasesInputShaperCalibration::attach_to_extruder, FrameAttachToExtruder>,
     FrameDefinition<PhasesInputShaperCalibration::calibrating_accelerometer, FrameCalibratingAccelerometer>,
     FrameDefinition<PhasesInputShaperCalibration::measuring_x_axis, FrameMeasuringExtruder>,

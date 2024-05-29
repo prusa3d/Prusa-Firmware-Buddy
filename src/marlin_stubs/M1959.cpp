@@ -1,10 +1,11 @@
 #include "M1959.hpp"
-#include "module/tool_change.h"
 
+#include <common/extended_printer_type.hpp>
 #include <common/marlin_server.hpp>
 #include <common/str_utils.hpp>
-#include <Marlin/src/gcode/gcode.h>
 #include <Marlin/src/gcode/calibrate/M958.hpp>
+#include <Marlin/src/gcode/gcode.h>
+#include <Marlin/src/module/tool_change.h>
 #include <option/development_items.h>
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_local_accelerometer.h>
@@ -118,6 +119,9 @@ struct Context {
     phase_stepping::StateRestorer phstep_restorer;
 #endif
 
+    Context()
+        : accelerometer { std::make_unique<PrusaAccelerometer>() } {}
+
     bool is_accelerometer_ok() const {
         assert(accelerometer);
         return accelerometer->get_error() == PrusaAccelerometer::Error::none;
@@ -134,29 +138,6 @@ struct Context {
     }
 };
 
-static PhasesInputShaperCalibration dispatch_accelerometer(Context &context) {
-    // Note: We need to explicitly destroy the accelerometer.
-    //       When assigning to std::unique_ptr it calls the destructor of the original
-    //       object _after_ the construction of the new object to provide
-    //       strong exception safety. This would setup the pin in the constructor
-    //       and then immediately revert it in the destructor which is not what we want.
-    context.accelerometer = nullptr;
-    context.accelerometer = std::make_unique<PrusaAccelerometer>();
-    if (context.is_accelerometer_ok()) {
-#if HAS_LOCAL_ACCELEROMETER()
-        return PhasesInputShaperCalibration::attach_to_extruder;
-#else
-        return PhasesInputShaperCalibration::calibrating_accelerometer;
-#endif
-    } else {
-#if HAS_LOCAL_ACCELEROMETER()
-        return PhasesInputShaperCalibration::connect_to_board;
-#else
-        bsod(__FUNCTION__);
-#endif
-    }
-}
-
 static PhasesInputShaperCalibration info(Context &) {
     switch (wait_for_response(PhasesInputShaperCalibration::info)) {
     case Response::Abort:
@@ -168,8 +149,21 @@ static PhasesInputShaperCalibration info(Context &) {
     }
 }
 
+// Note: This is only relevant for printers which HAS_LOCAL_ACCELEROMETER()
+//       which coincidentally only have one hotend.
+static constexpr uint8_t hotend = 0;
+static constexpr float safe_temperature = 50;
+
 static PhasesInputShaperCalibration parking(Context &context) {
     marlin_server::fsm_change(PhasesInputShaperCalibration::parking);
+
+#if HAS_LOCAL_ACCELEROMETER()
+    // Start cooling the hotend even before parking to save some time
+    Temperature::disable_hotend();
+    if (Temperature::degHotend(hotend) > safe_temperature) {
+        Temperature::set_fan_speed(hotend, 255);
+    }
+#endif
 
     // Home if not homed
     if (!all_axes_known()) {
@@ -183,29 +177,61 @@ static PhasesInputShaperCalibration parking(Context &context) {
     }
 #endif
 
-    // Easier access to cables + more consistent measurement
+    // Ensure consistent measurement
     const xyz_pos_t pos = { X_BED_SIZE / 2, Y_BED_SIZE / 2, Z_SIZE / 2 };
     plan_park_move_to_xyz(pos, HOMING_FEEDRATE_XY, HOMING_FEEDRATE_Z);
 
 #if HAS_PHASE_STEPPING()
     // Ensure phase stepping is disabled throughout the calibration as we manipulate steps directly
     context.phstep_restorer.set_state(false);
+#else
+    std::ignore = context;
 #endif
 
     // Carry on the changes
     planner.synchronize();
-    return dispatch_accelerometer(context);
+#if HAS_LOCAL_ACCELEROMETER()
+    return PhasesInputShaperCalibration::wait_for_extruder_temperature;
+#else
+    return PhasesInputShaperCalibration::calibrating_accelerometer;
+#endif
 }
 
-static PhasesInputShaperCalibration connect_to_board(Context &context) {
+static PhasesInputShaperCalibration connect_to_board(Context &) {
     marlin_server::fsm_change(PhasesInputShaperCalibration::connect_to_board);
     switch (wait_for_response(PhasesInputShaperCalibration::connect_to_board)) {
     case Response::Abort:
         return PhasesInputShaperCalibration::finish;
-    case Response::Retry:
-        return dispatch_accelerometer(context);
     default:
         break;
+    }
+    bsod(__FUNCTION__);
+}
+
+static PhasesInputShaperCalibration wait_for_extruder_temperature(Context &) {
+    for (;;) {
+        switch (marlin_server::get_response_from_phase(PhasesInputShaperCalibration::wait_for_extruder_temperature)) {
+        case Response::Abort:
+            return PhasesInputShaperCalibration::finish;
+        case Response::_none:
+            if (const float temperature = Temperature::degHotend(hotend); temperature > safe_temperature) {
+                const uint16_t uint16_temperature = temperature;
+                const fsm::PhaseData data = {
+                    static_cast<uint8_t>((uint16_temperature >> 8) & 0xff),
+                    static_cast<uint8_t>((uint16_temperature >> 0) & 0xff),
+                    0,
+                    0,
+                };
+                marlin_server::fsm_change(PhasesInputShaperCalibration::wait_for_extruder_temperature, data);
+                idle(true);
+            } else {
+                Temperature::zero_fan_speeds();
+                return PhasesInputShaperCalibration::attach_to_extruder;
+            }
+            break;
+        default:
+            bsod(__FUNCTION__);
+        }
     }
     bsod(__FUNCTION__);
 }
@@ -465,6 +491,8 @@ static PhasesInputShaperCalibration get_next_phase(Context &context, const Phase
         return connect_to_board(context);
     case PhasesInputShaperCalibration::calibrating_accelerometer:
         return calibrating_accelerometer(context);
+    case PhasesInputShaperCalibration::wait_for_extruder_temperature:
+        return wait_for_extruder_temperature(context);
     case PhasesInputShaperCalibration::attach_to_extruder:
         return attach_to_extruder(context);
     case PhasesInputShaperCalibration::measuring_x_axis:
@@ -486,15 +514,39 @@ static PhasesInputShaperCalibration get_next_phase(Context &context, const Phase
     std::terminate();
 }
 
-namespace PrusaGcodeSuite {
-
-void M1959() {
-    Context context;
-    PhasesInputShaperCalibration phase = PhasesInputShaperCalibration::info;
+static void M1959_internal(Context &context, PhasesInputShaperCalibration phase) {
     marlin_server::FSM_Holder holder { phase };
     do {
         phase = get_next_phase(context, phase);
     } while (phase != PhasesInputShaperCalibration::finish);
+}
+
+namespace PrusaGcodeSuite {
+
+void M1959() {
+    Context context;
+    if (context.is_accelerometer_ok()) {
+        // Just proceed to wizard if accelerometer is OK
+        M1959_internal(context, PhasesInputShaperCalibration::info);
+        return;
+    }
+
+#if HAS_EXTENDED_PRINTER_TYPE()
+    switch (config_store().extended_printer_type.get()) {
+    case ExtendedPrinterType::mk3_9:
+    case ExtendedPrinterType::mk4:
+        // Original Prusa MK3.9 and MK4 do not come with the accelerometer.
+        // It would be lame to show the screen asking users to connect it,
+        // so let's ignore the missing accelerometer and consider the calibration done.
+        return;
+    case ExtendedPrinterType::mk4s:
+        // Original Prusa MK4S comes with the accelerometer.
+        // Failure to communicate with it is most likely due to cable not being connected,
+        // so let's prompt the user to connect it.
+        M1959_internal(context, PhasesInputShaperCalibration::connect_to_board);
+        return;
+    }
+#endif
 }
 
 } // namespace PrusaGcodeSuite

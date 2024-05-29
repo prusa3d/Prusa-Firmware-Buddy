@@ -422,6 +422,7 @@ enum class PhasesInputShaperCalibration : PhaseUnderlyingType {
     info,
     parking,
     connect_to_board,
+    wait_for_extruder_temperature,
     attach_to_extruder,
     calibrating_accelerometer,
     measuring_x_axis,
@@ -790,7 +791,8 @@ class ClientResponses {
     static constexpr PhaseResponses InputShaperCalibrationResponses[] = {
         { Response::Continue, Response::Abort }, // info
         {}, // parking
-        { Response::Retry, Response::Abort }, // connect_to_board
+        { Response::Abort }, // connect_to_board
+        { Response::Abort }, // wait_for_extruder_temperature
         { Response::Continue, Response::Abort }, // attach_to_extruder
         { Response::Abort }, // calibrating_accelerometer,
         { Response::Abort }, // measuring_x_axis
