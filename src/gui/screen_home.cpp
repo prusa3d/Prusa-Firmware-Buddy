@@ -314,23 +314,6 @@ void screen_home_data_t::on_enter() {
             MsgBoxWarning(_("Touch disabled. This feature is work-in-progress and is going to be fully available in a future update."), Responses_Ok);
         }
     }
-
-    #if 0 /// disable the warning for now but let's keep it around as we might want to reenable it for the public release
-    static bool input_shaper_warning_shown = false;
-    if (!input_shaper_warning_shown) {
-        input_shaper_warning_shown = true;
-        MsgBoxISWarning(_(
-        #if HAS_MINI_DISPLAY()
-                            "This firmware is still\nin development.\n\n"
-                            "Do not leave the printer unattended.\n\n"
-        #else
-                            "This firmware is still in development and is for testing purposes only.\n\n"
-                            "Do not leave the printer unattended.\n\n"
-        #endif
-                            "More info at prusa.io/input-shaper"),
-            Responses_Ok, 0, GuiDefaults::RectScreen);
-    }
-    #endif
 #endif
 }
 namespace {

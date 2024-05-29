@@ -223,46 +223,6 @@ MsgBoxIconnedWait::MsgBoxIconnedWait(Rect16 rect, const PhaseResponses &resp, si
 }
 
 /*****************************************************************************/
-// MsgBoxIS
-MsgBoxIS::MsgBoxIS(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, const img::Resource *icon_res, is_closed_on_click_t close)
-    : MsgBoxBase(rect, resp, def_btn, labels, txt, multiline, close)
-    , icon(this, icon_res, {}, GuiDefaults::Padding)
-    , qr(this, {}, QR_ADDR) {
-    if (GuiDefaults::EnableDialogBigLayout) {
-        uint16_t w = rect.Width();
-        uint16_t h = rect.Height();
-
-        uint16_t icon_w = w / 10 * 2;
-        uint16_t text_w = w / 10 * 5;
-        uint16_t qr_w = w / 10 * 3 - 8;
-
-        icon.SetRect({ 3, 30, icon_w, icon_w });
-        text.SetRect({ int16_t(icon_w + 3), 0, text_w, h });
-        qr.SetRect({ int16_t(icon_w + text_w + 3), 50, qr_w, qr_w });
-
-        text.SetAlignment(Align_t::LeftCenter());
-    } else {
-        text.SetRect(getTextRect());
-        icon -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);
-        icon += Rect16::Left_t((Width() / 2) - (icon.Width() / 2)); // center icon
-    }
-}
-
-Rect16 MsgBoxIS::getTextRect() {
-    if (GuiDefaults::EnableDialogBigLayout) {
-        return GuiDefaults::MessageTextRect;
-    } else {
-        Rect16 text_rect = GetRect();
-        text_rect -= icon.Height();
-        text_rect -= GuiDefaults::GetButtonRect(GetRect()).Height();
-
-        text_rect += Rect16::Top_t(icon.Height());
-        return text_rect;
-    }
-}
-
-/*****************************************************************************/
 namespace {
 
 enum class MsgBoxDialogClass {
@@ -271,8 +231,6 @@ enum class MsgBoxDialogClass {
     MsgBoxIconned,
     MsgBoxIconnedError,
     MsgBoxIconPepaCentered,
-    MsgBoxIS,
-    MsgBoxISSpecial,
     _count,
 };
 
@@ -336,13 +294,6 @@ constexpr EnumArray<MsgBoxType, MsgBoxImplicitConfig, MsgBoxType::_count> msb_bo
             .icon = big_layout ? &img::pepa_92x140 : &img::pepa_42x64,
         },
     },
-    {
-        MsgBoxType::input_shaper_warning,
-        MsgBoxImplicitConfig {
-            .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIS : MsgBoxDialogClass::MsgBoxISSpecial,
-            .icon = big_layout ? &img::error_white_48x48 : nullptr,
-        },
-    },
 };
 
 } // namespace
@@ -361,12 +312,6 @@ Response MsgBoxBuilder::exec() const {
 
     const auto box_f = [&]<typename T, MsgBoxDialogClass CS = MsgBoxDialogClass::_count, typename... Args>(Args... args) {
         T msgbox(rect, responses, static_cast<size_t>(default_button), &labels, text, multiline, args...);
-
-        if constexpr (CS == MsgBoxDialogClass::MsgBoxISSpecial) {
-            msgbox.set_text_alignment(Align_t::Center());
-            msgbox.set_title_alignment(Align_t::Center());
-        }
-
         Screens::Access()->gui_loop_until_dialog_closed(loop_callback);
         return msgbox.GetResult();
     };
@@ -387,12 +332,6 @@ Response MsgBoxBuilder::exec() const {
 
     case MsgBoxDialogClass::MsgBoxIconPepaCentered:
         return box_f.operator()<MsgBoxIconPepaCentered>(used_icon);
-
-    case MsgBoxDialogClass::MsgBoxIS:
-        return box_f.operator()<MsgBoxIS>(used_icon);
-
-    case MsgBoxDialogClass::MsgBoxISSpecial:
-        return box_f.operator()<MsgBoxTitled, MsgBoxDialogClass::MsgBoxISSpecial>(used_title, used_icon, is_closed_on_click_t::yes, dense_t::yes);
 
     default:
         bsod("Invalid MsgBoxDialogClass");
@@ -431,8 +370,4 @@ Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def
 
 Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
     return msg_box(MsgBoxType::pepa_centered, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
-}
-
-Response MsgBoxISWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
-    return msg_box(MsgBoxType::input_shaper_warning, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
 }

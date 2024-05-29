@@ -162,28 +162,6 @@ public:
         string_view_utf8 txt, is_multiline multiline);
 };
 
-/*****************************************************************************/
-// MsgBoxIS
-class MsgBoxIS : public MsgBoxBase {
-
-public:
-    MsgBoxIS(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline, const img::Resource *icon_res,
-        is_closed_on_click_t close = is_closed_on_click_t::yes);
-
-protected:
-    window_icon_t icon;
-    window_qr_t qr;
-
-    // some methods to help with construction, so they can't be virtual
-    // some derived classes use them too, don't change visibility
-    Rect16 getIconRect();
-    Rect16 getTextRect();
-
-private:
-    static auto constexpr QR_ADDR = "https://prusa.io/input-shaper";
-};
-
 enum class MsgBoxType : uint8_t {
     standard,
     titled,
@@ -192,7 +170,6 @@ enum class MsgBoxType : uint8_t {
     warning, ///< Has default icon & title
     info, ///< Has default icon & title
     pepa_centered, ///< Has default icon
-    input_shaper_warning, ///< Has default icon
     _count,
 };
 
@@ -246,4 +223,3 @@ Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Respo
 Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
 Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
-Response MsgBoxISWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
