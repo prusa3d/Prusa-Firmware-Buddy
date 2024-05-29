@@ -121,7 +121,6 @@ void Touchscreen_GT911::perform_check() {
 
             set_enabled(false);
             consecutive_read_error_count_ = 0;
-            screen_home_data_t::SetTouchBrokenDuringRun();
             break;
         }
 

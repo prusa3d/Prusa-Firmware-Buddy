@@ -61,7 +61,6 @@
 bool __attribute__((weak)) netdev_is_enabled([[maybe_unused]] const uint32_t netdev_id) { return true; }
 
 bool screen_home_data_t::ever_been_opened = false;
-bool screen_home_data_t::touch_broken_during_run = false;
 
 #if HAS_MINI_DISPLAY()
     #define GEN_ICON_NAMES(ICON) \
@@ -306,14 +305,6 @@ void screen_home_data_t::on_enter() {
     #endif
 
     handle_crash_dump();
-
-    if (touch_broken_during_run) {
-        static bool already_shown = false;
-        if (!already_shown) {
-            already_shown = true;
-            MsgBoxWarning(_("Touch disabled. This feature is work-in-progress and is going to be fully available in a future update."), Responses_Ok);
-        }
-    }
 #endif
 }
 namespace {

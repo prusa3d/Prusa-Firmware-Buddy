@@ -26,7 +26,6 @@ private:
     static bool usbWasAlreadyInserted; // usb inserted at least once
     static bool ever_been_opened; // set by ctor
     static bool try_esp_flash; // we try this maximum once
-    static bool touch_broken_during_run;
 
     bool usbInserted;
     bool event_in_progress { false };
@@ -52,7 +51,6 @@ private:
 #endif
 
 public:
-    static void SetTouchBrokenDuringRun() { touch_broken_during_run = true; }
     static bool EverBeenOpened() { return ever_been_opened; }
     screen_home_data_t();
     virtual ~screen_home_data_t() override;
