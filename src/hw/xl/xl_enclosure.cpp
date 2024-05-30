@@ -135,7 +135,6 @@ void Enclosure::setUpReminder(Response response) {
 void Enclosure::updateTempValidationTimer(uint32_t curr_sec) {
     if (curr_sec - print_start_sec >= footer_temp_delay_sec) {
         setRuntimeFlg(RUNTIME::TEMP_VALID);
-        print_start_sec = 0;
     }
 }
 
@@ -216,6 +215,38 @@ static bool isBasicStartPrint(marlin_server::State previous_state) {
     return false;
 }
 
+static bool isPausing(marlin_server::State state) {
+    switch (state) {
+    case marlin_server::State::Pausing_Begin:
+    case marlin_server::State::Pausing_Failed_Code:
+    case marlin_server::State::Pausing_WaitIdle:
+    case marlin_server::State::Pausing_ParkHead:
+    case marlin_server::State::Paused:
+        return true;
+    default:
+        break;
+    }
+    return false;
+}
+
+static bool isResuming(marlin_server::State state) {
+    // Just to be sure, more state switches could take place between loop executions
+    if (isPausing(state)) {
+        return true;
+    }
+
+    switch (state) {
+    case marlin_server::State::Resuming_Begin:
+    case marlin_server::State::Resuming_Reheating:
+    case marlin_server::State::Resuming_UnparkHead_XY:
+    case marlin_server::State::Resuming_UnparkHead_ZE:
+        return true;
+    default:
+        break;
+    }
+    return false;
+}
+
 std::optional<WarningType> Enclosure::checkPrintState(marlin_server::State print_state, uint32_t curr_sec) {
 
     std::optional<WarningType> ret = std::nullopt;
@@ -224,7 +255,7 @@ std::optional<WarningType> Enclosure::checkPrintState(marlin_server::State print
             // PRINT STARTED - can be Start / Resume / Recovery
             setRuntimeFlg(RUNTIME::PRINTING);
             // Do not invalidate on Resume
-            if (previous_print_state < marlin_server::State::Resuming_Begin || previous_print_state > marlin_server::State::Resuming_UnparkHead_ZE) {
+            if (!isResuming(previous_print_state)) {
                 clrRuntimeFlg(RUNTIME::TEMP_VALID);
             }
             print_start_sec = curr_sec;
@@ -240,15 +271,15 @@ std::optional<WarningType> Enclosure::checkPrintState(marlin_server::State print
         if (isPrinting()) {
             // PRINT ENDED - can be Pause / Abort / Crash / Power Panic
             // Do not invalidate temperature on Pause
-            if (print_state < marlin_server::State::Pausing_Begin || print_state > marlin_server::State::Paused) {
+            if (!isPausing(print_state)) {
                 clrRuntimeFlg(RUNTIME::TEMP_VALID);
+                print_start_sec = 0;
             }
             clrRuntimeFlg(RUNTIME::PRINTING);
             if (isPostPrintFiltrationEnabled() && isPostPrintFiltrationNeeded()) {
                 setRuntimeFlg(RUNTIME::ACTIVE_POST_PRINT_FILTRATION);
                 print_end_sec = curr_sec;
             }
-            print_start_sec = 0;
         } else if (print_state == marlin_server::State::Aborted && isTemperatureValid()) {
             clrRuntimeFlg(RUNTIME::TEMP_VALID);
         }
