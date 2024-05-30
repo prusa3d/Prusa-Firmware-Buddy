@@ -1,6 +1,8 @@
 #include <fcntl.h>
 #include "ScreenShot.hpp"
 #include "display.h"
+#include <unique_file_ptr.hpp>
+#include <scope_guard.hpp>
 #include <inttypes.h>
 #include <dirent.h>
 #include <stdio.h>
@@ -102,39 +104,36 @@ bool TakeAScreenshot() {
 }
 
 bool TakeAScreenshotAs(const char *file_name) {
-    FILE *fd = fopen(file_name, "w");
-    if (fd == nullptr) {
+    // Delete the file if the ssshot taking fails
+    ScopeGuard delete_file_guard = [&] { unlink(file_name); };
+
+    const unique_file_ptr f(fopen(file_name, "w"));
+    if (!f) {
         return false;
     }
 
     const int header_size = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE;
-    bool success = fwrite(&bmp_header, 1, header_size, fd) == header_size;
-
-    if (success) {
-        for (int block = display::GetH() / buffer_rows - 1; block >= 0; block--) {
-            point_ui16_t start = point_ui16(0, block * buffer_rows);
-            point_ui16_t end = point_ui16(display::GetW() - 1, (block + 1) * buffer_rows - 1);
-            uint8_t *buffer = display::GetBlock(start, end); // this pointer is valid only until another display memory write is called
-            if (buffer == NULL) {
-                success = false;
-                break;
-            }
-            mirror_buffer(reinterpret_cast<Pixel *>(buffer + read_start_offset));
-            const int write_size = display::GetW() * buffer_rows * bytes_per_pixel;
-            if (fwrite(buffer + read_start_offset, 1, write_size, fd) != write_size) {
-                success = false;
-                break;
-            }
-        }
-    }
-
-    fclose(fd);
-
-    if (!success) {
-        unlink(file_name);
+    if (fwrite(&bmp_header, 1, header_size, f.get()) != header_size) {
         return false;
     }
 
+    for (int block = display::GetH() / buffer_rows - 1; block >= 0; block--) {
+        const point_ui16_t start = point_ui16(0, block * buffer_rows);
+        const point_ui16_t end = point_ui16(display::GetW() - 1, (block + 1) * buffer_rows - 1);
+        uint8_t *buffer = display::GetBlock(start, end); // this pointer is valid only until another display memory write is called
+        if (!buffer) {
+            return false;
+        }
+
+        mirror_buffer(reinterpret_cast<Pixel *>(buffer + read_start_offset));
+
+        const int write_size = display::GetW() * buffer_rows * bytes_per_pixel;
+        if (fwrite(buffer + read_start_offset, 1, write_size, f.get()) != write_size) {
+            return false;
+        }
+    }
+
+    delete_file_guard.disarm();
     return true;
 }
 
