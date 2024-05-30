@@ -72,7 +72,7 @@ def main():
     parser.add_argument('--flash', action='append')
     parser.add_argument('--memory', action='append')
     args = parser.parse_args()
-    assert args.max_chunk_size % args.write_buffer_size == 0, f"max-chunk-size{args.max_chunk_size} must be divisible by write-buffer-size{args.write_buffer_size} to prevent overlaping rewrites"
+    assert args.max_chunk_size % args.write_buffer_size == 0, f"max-chunk-size{args.max_chunk_size} must be divisible by write-buffer-size{args.write_buffer_size} to prevent overlaping rewrites with padding"
 
     with open(args.output, 'w') as out:
         out.write('namespace esp::flash {\n')
