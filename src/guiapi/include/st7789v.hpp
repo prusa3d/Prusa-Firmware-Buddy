@@ -10,6 +10,7 @@ enum {
     ST7789V_COLS = 240,
     ST7789V_ROWS = 320,
     ST7789V_BUFF_ROWS = 3,
+    ST7789V_BUFFER_SIZE = ST7789V_COLS * ST7789V_BUFF_ROWS * 2
 };
 
 inline uint16_t color_to_565(uint32_t clr) {

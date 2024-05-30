@@ -103,7 +103,7 @@ static const uint32_t ST7789V_SIG_SPI_TX = 0x08;
 
 static constexpr uint8_t ST7789V_MAX_COMMAND_READ_LENGHT = 4;
 
-uint8_t st7789v_buff[ST7789V_COLS * 2 * ST7789V_BUFF_ROWS]; // display buffer
+uint8_t st7789v_buff[ST7789V_BUFFER_SIZE]; // display buffer
 bool st7789v_buff_borrowed = false; ///< True if buffer is borrowed by someone else
 
 uint8_t *st7789v_borrow_buffer() {
