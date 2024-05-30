@@ -11,6 +11,7 @@
 class ScreenResetError : public screen_t {
     window_text_t fw_version_txt;
     bool sound_started;
+    std::array<char, 42> fw_version_str;
 
 public:
     ScreenResetError(const Rect16 &fw_version_rect);

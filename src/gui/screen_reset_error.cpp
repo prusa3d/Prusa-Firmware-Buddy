@@ -6,6 +6,7 @@
 #include "sound.hpp"
 #include "version.h"
 #include "support_utils.h"
+#include <str_utils.hpp>
 
 ScreenResetError::ScreenResetError(const Rect16 &fw_version_rect)
     : screen_t()
@@ -33,10 +34,8 @@ ScreenResetError::ScreenResetError(const Rect16 &fw_version_rect)
     }
 
     /// fw version full string [fw signed][appendix]
-    static const constexpr uint16_t fw_version_str_len = 42;
-    static char fw_version[fw_version_str_len];
-    snprintf(fw_version, sizeof(fw_version), "%s %s%s", project_version_full, signed_str, apendix_str);
-    fw_version_txt.SetText(_(fw_version));
+    StringBuilder(fw_version_str).append_printf("%s %s%s", project_version_full, signed_str, apendix_str);
+    fw_version_txt.SetText(string_view_utf8::MakeRAM(fw_version_str.data()));
 }
 
 void ScreenResetError::start_sound() {
