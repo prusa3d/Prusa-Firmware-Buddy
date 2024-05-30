@@ -5,7 +5,6 @@
 #include <string.h>
 #include "gettext_string_hash.hpp"
 #include "translator.hpp"
-#include "file_raii.hpp"
 
 class FILETranslationProvider : public ITranslationProvider {
 
