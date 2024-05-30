@@ -477,9 +477,22 @@ uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, u
     if (start_x > ST7789V_COLS || start_y > ST7789V_ROWS || end_x > ST7789V_COLS || end_y > ST7789V_ROWS) {
         return NULL;
     }
+
+    // ST7789 spec: Note1: The Command 3Ah should be set to 66h when reading pixel data from frame memory.
+    // In our case, it is 06h, because we're using serial interface
+    // The data readout is always in 3 bytes per pixel
+    st7789v_cmd_colmod(0x06);
+
     st7789v_cmd_caset(start_x, end_x);
     st7789v_cmd_raset(start_y, end_y);
-    st7789v_cmd_ramrd(st7789v_buff, ST7789V_COLS * 2 * ST7789V_BUFF_ROWS);
+
+    // Again, 3 bytes per pixel + 2 extra bytes because of some read offset
+    const auto read_bytes = (end_x - start_x + 1) * (end_y - start_y + 1) * 3 + 2;
+    assert(read_bytes <= sizeof(st7789v_buff));
+    st7789v_cmd_ramrd(st7789v_buff, read_bytes);
+
+    // Revert back
+    st7789v_cmd_colmod(ST7789V_DEF_COLMOD);
     return st7789v_buff;
 }
 
