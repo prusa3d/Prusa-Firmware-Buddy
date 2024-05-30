@@ -304,53 +304,73 @@ struct MsgBoxImplicitConfig {
 };
 
 constexpr bool big_layout = GuiDefaults::EnableDialogBigLayout;
-const MsgBoxImplicitConfig msb_box_implicit_configs[static_cast<int>(MsgBoxType::_count)] = {
-    MsgBoxImplicitConfig {
-        // MsgBoxType::standard
-        .dialog_class = MsgBoxDialogClass::MsgBoxBase,
+
+constexpr EnumArray<MsgBoxType, MsgBoxImplicitConfig, MsgBoxType::_count> msb_box_implicit_configs {
+    {
+        MsgBoxType::standard,
+        MsgBoxImplicitConfig {
+            .dialog_class = MsgBoxDialogClass::MsgBoxBase,
+        },
     },
-    MsgBoxImplicitConfig {
-        // MsgBoxType::titled
-        .dialog_class = MsgBoxDialogClass::MsgBoxTitled,
+    {
+        MsgBoxType::titled,
+        MsgBoxImplicitConfig {
+            .dialog_class = MsgBoxDialogClass::MsgBoxTitled,
+        },
     },
-    MsgBoxImplicitConfig {
-        // MsgBoxType::error
-        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconnedError : MsgBoxDialogClass::MsgBoxTitled,
-        .icon = big_layout ? &img::error_white_48x48 : &img::error_16x16,
-        .title = big_layout ? nullptr : N_("Error"),
+    {
+        MsgBoxType::error,
+        MsgBoxImplicitConfig {
+            .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconnedError : MsgBoxDialogClass::MsgBoxTitled,
+            .icon = big_layout ? &img::error_white_48x48 : &img::error_16x16,
+            .title = big_layout ? nullptr : N_("Error"),
+        },
     },
-    MsgBoxImplicitConfig {
-        // MsgBoxType::question
-        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
-        .icon = big_layout ? &img::question_48x48 : &img::question_16x16,
-        .title = big_layout ? nullptr : N_("Question"),
+    {
+        MsgBoxType::question,
+        MsgBoxImplicitConfig {
+            .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
+            .icon = big_layout ? &img::question_48x48 : &img::question_16x16,
+            .title = big_layout ? nullptr : N_("Question"),
+        },
     },
-    MsgBoxImplicitConfig {
-        // MsgBoxType::warning
-        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
-        .icon = big_layout ? &img::warning_48x48 : &img::warning_16x16,
-        .title = big_layout ? nullptr : N_("Warning"),
+    {
+        MsgBoxType::warning,
+        MsgBoxImplicitConfig {
+            .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
+            .icon = big_layout ? &img::warning_48x48 : &img::warning_16x16,
+            .title = big_layout ? nullptr : N_("Warning"),
+        },
     },
-    MsgBoxImplicitConfig {
-        // MsgBoxType::info
-        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
-        .icon = big_layout ? &img::info_48x48 : &img::info_16x16,
-        .title = big_layout ? nullptr : N_("Information"),
+    {
+        MsgBoxType::info,
+        MsgBoxImplicitConfig {
+            .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
+            .icon = big_layout ? &img::info_48x48 : &img::info_16x16,
+            .title = big_layout ? nullptr : N_("Information"),
+        },
     },
-    MsgBoxImplicitConfig {
-        // MsgBoxType::pepa
-        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconPepa : MsgBoxDialogClass::MsgBoxIconned,
-        .icon = big_layout ? &img::pepa_92x140 : &img::pepa_42x64,
+    {
+        MsgBoxType::pepa,
+        MsgBoxImplicitConfig {
+            .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
+            .icon = big_layout ? &img::info_48x48 : &img::info_16x16,
+            .title = big_layout ? nullptr : N_("Information"),
+        },
     },
-    MsgBoxImplicitConfig {
-        // MsgBoxType::pepa_centered
-        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconPepaCentered : MsgBoxDialogClass::MsgBoxIconPepaCentered,
-        .icon = big_layout ? &img::pepa_92x140 : &img::pepa_42x64,
+    {
+        MsgBoxType::pepa_centered,
+        MsgBoxImplicitConfig {
+            .dialog_class = MsgBoxDialogClass::MsgBoxIconPepaCentered,
+            .icon = big_layout ? &img::pepa_92x140 : &img::pepa_42x64,
+        },
     },
-    MsgBoxImplicitConfig {
-        // MsgBoxType::input_shaper_warning
-        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIS : MsgBoxDialogClass::MsgBoxISSpecial,
-        .icon = big_layout ? &img::error_white_48x48 : nullptr,
+    {
+        MsgBoxType::input_shaper_warning,
+        MsgBoxImplicitConfig {
+            .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIS : MsgBoxDialogClass::MsgBoxISSpecial,
+            .icon = big_layout ? &img::error_white_48x48 : nullptr,
+        },
     },
 };
 
