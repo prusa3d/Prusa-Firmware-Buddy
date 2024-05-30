@@ -53,6 +53,7 @@ esp_err_t mac_init(void);
 
 #define SCAN_MAX_STORED_SSIDS 64
 #define SSID_LEN 32
+#define BSSID_LEN 6
 
 // Hack: because we don't see the beacon on some networks (and it's quite
 // common), but don't want to be "flapping", we set the timeout for beacon
@@ -112,6 +113,8 @@ static bool beacon_quirk;
 static uint8_t probe_max_reties = 3;
 static atomic_bool probe_in_progress = false;
 static uint8_t probe_retry_count;
+static uint8_t latest_ssid[SSID_LEN];
+static uint8_t latest_bssid[BSSID_LEN];
 
 typedef enum {
     SCAN_TYPE_UNKNOWN,
@@ -250,20 +253,28 @@ static esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType
     return ESP_OK;
 }
 
+static void IRAM_ATTR cache_current_ap_info() {
+    wifi_ap_record_t ap_info;
+    if (esp_wifi_sta_get_ap_info(&ap_info) == ESP_OK) {
+        memcpy(latest_bssid, ap_info.bssid, BSSID_LEN);
+        memcpy(latest_ssid, ap_info.ssid, SSID_LEN);
+    }
+}
+
 static void probe_run();
 
 static void IRAM_ATTR probe_handler(wifi_ap_record_t* aps, int ap_count) {
     bool found = false;
 
-    wifi_ap_record_t ap_info;
-    ESP_ERROR_CHECK(esp_wifi_sta_get_ap_info(&ap_info));
-
+    if (associated) {
+        cache_current_ap_info();
+    }
     // Try to match BSSID first and if that fails go on and try SSID match . The BSSD check
     // should be sufficient, but there are APs that advertise mismatching BSSID in their
     // beacons and/or probe rensonse. That's the real culprit of the beacon timeout
     // disconnects and the primary motivation of this whole excercise.
     for (int i = 0; i < ap_count; ++i) {
-        if (0 == memcmp(ap_info.bssid, aps[i].bssid, 6)) {
+        if (latest_bssid != NULL && 0 == memcmp(latest_bssid, aps[i].bssid, BSSID_LEN)) {
             found = true;
             beacon_quirk = false;
             break;
@@ -271,8 +282,8 @@ static void IRAM_ATTR probe_handler(wifi_ap_record_t* aps, int ap_count) {
     }
     if (beacon_quirk && !found) {
         for (int i = 0; i < ap_count; ++i) {
-            if (ap_info.ssid[0] && aps[i].ssid[0]) {
-                if (0 == strncmp((char *)(ap_info.ssid), (char *)(aps[i].ssid), SSID_LEN)) {
+            if (latest_ssid != NULL && latest_ssid[0] && aps[i].ssid[0]) {
+                if (0 == strncmp((char *)(latest_ssid), (char *)(aps[i].ssid), SSID_LEN)) {
                     found = true;
                     break;
                 }
@@ -333,6 +344,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
         send_link_status(1);
         s_retry_num = 0;
         ESP_ERROR_CHECK(esp_wifi_set_inactive_time(ESP_IF_WIFI_STA, INACTIVE_BEACON_SECONDS));
+        cache_current_ap_info();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_SCAN_DONE) {
         scan.in_progress = false;
         const wifi_event_sta_scan_done_t *scan_data = (const wifi_event_sta_scan_done_t *)event_data;
@@ -811,6 +823,8 @@ void app_main() {
 
     scan.stored_ssids_count = SCAN_MAX_STORED_SSIDS;
     clear_stored_ssids();
+    memset(latest_ssid, 0, SSID_LEN);
+    memset(latest_bssid, 0, BSSID_LEN);
 
     ESP_LOGI(TAG, "Wifi init");
     esp_wifi_restore();
