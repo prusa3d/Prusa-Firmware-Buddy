@@ -10,6 +10,7 @@
 #include <shared_mutex>
 #include <utility_extensions.hpp>
 #include <bit>
+#include <FreeRTOS.h>
 
 LOG_COMPONENT_REF(USBHost);
 using Mutex = freertos::Mutex;
@@ -44,8 +45,12 @@ UsbhMscReadahead usbh_msc_readahead;
 #endif
 
 osThreadId USBH_MSC_WorkerTaskHandle;
+
 static constexpr size_t queue_length = 5;
+
 static QueueHandle_t request_queue;
+static StaticQueue_t queue;
+static uint8_t storage_area[queue_length * sizeof(UsbhMscRequest *)];
 
 void USBH_worker_notify(USBH_StatusTypeDef, void *semaphore, void *) {
     xSemaphoreGive(semaphore);
@@ -159,8 +164,6 @@ static void USBH_MSC_WorkerTask(void const *) {
 }
 
 static void USBH_StartMSCWorkerTask() {
-    static StaticQueue_t queue;
-    static uint8_t storage_area[queue_length * sizeof(UsbhMscRequest *)];
     request_queue = xQueueCreateStatic(queue_length, sizeof(UsbhMscRequest *), storage_area, &queue);
     configASSERT(request_queue);
     osThreadCCMDef(USBH_MSC_WorkerTask, USBH_MSC_WorkerTask, TASK_PRIORITY_USB_MSC_WORKER_HIGH, 0U, 512);

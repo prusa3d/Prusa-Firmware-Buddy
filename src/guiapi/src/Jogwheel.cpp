@@ -5,6 +5,7 @@
 #include "cmsis_os.h" //__disable_irq, __enabe_irq, HAL_GetTick
 #include "queue.h" // freertos queue
 #include "bsod.h"
+#include <FreeRTOS.h>
 
 using SpinMessage_t = int32_t;
 
@@ -12,14 +13,13 @@ using SpinMessage_t = int32_t;
 static constexpr size_t ButtonMessageQueueLength = 32;
 static constexpr size_t SpinMessageQueueLength = 32;
 
+static StaticQueue_t queue;
+static uint8_t storage_area[ButtonMessageQueueLength * sizeof(BtnState_t)];
+
 #if (configSUPPORT_STATIC_ALLOCATION == 1)
 
 void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
-    constexpr size_t item_sz = sizeof(BtnState_t);
-    constexpr size_t length = ButtonMessageQueueLength;
-    static StaticQueue_t queue;
-    static uint8_t storage_area[length * item_sz];
-    button_queue_handle = xQueueCreateStatic(length, item_sz, storage_area, &queue);
+    button_queue_handle = xQueueCreateStatic(ButtonMessageQueueLength, sizeof(BtnState_t), storage_area, &queue);
 }
 
 #else // (configSUPPORT_STATIC_ALLOCATION == 1 )

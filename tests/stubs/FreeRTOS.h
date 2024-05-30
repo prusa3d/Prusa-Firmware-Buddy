@@ -5,6 +5,8 @@
 // This is stub for unit tests
 typedef void *SemaphoreHandle_t;
 
+typedef void *StaticQueue_t;
+
 typedef uint32_t TickType_t;
 #define portMAX_DELAY UINT32_MAX
 
