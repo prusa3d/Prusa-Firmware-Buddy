@@ -10,32 +10,91 @@
 #include <guiconfig/GuiDefaults.hpp>
 #include <guiconfig/guiconfig.h>
 
-#ifdef USE_ST7789
-static const uint8_t bytes_per_pixel = 3;
-static const uint8_t buffer_rows = 10;
-static const uint8_t read_start_offset = 2;
-    #include "st7789v.hpp"
-#endif // USE_ST7789
-#ifdef USE_ILI9488
-static const uint8_t bytes_per_pixel = 3;
-static const uint8_t buffer_rows = ILI9488_BUFF_ROWS;
-static const uint8_t read_start_offset = 0;
+#if defined(USE_ILI9488)
     #include "ili9488.hpp"
-#endif // USE_ILI9488
+#elif defined(USE_ST7789)
+    #include "st7789v.hpp"
+#else
+    #error
+#endif
+
+namespace {
+
+#if defined(USE_ILI9488)
+
+// 3 bytes per pixel when reading
+using Pixel = uint8_t[3];
+
+constexpr uint8_t bytes_per_pixel = 3;
+constexpr uint8_t buffer_rows = ILI9488_BUFF_ROWS;
+constexpr uint8_t read_start_offset = 0;
+
+void transform_pixel(Pixel &pixel) {
+    // The display has 6 bits per color component, so we have to shift it left by two bits
+    pixel[0] <<= 2;
+    pixel[1] <<= 2;
+    pixel[2] <<= 2;
+}
+
+#elif defined(USE_ST7789)
+
+// 3 bytes per pixel when reading
+struct Pixel {
+    uint8_t a, b, c;
+};
+
+constexpr uint8_t bytes_per_pixel = 3;
+
+// For whatever reason, we need to skip two bytes read from the RAMRD command
+constexpr uint8_t read_start_offset = 2;
+
+// We cannot use ST7789V_BUFF_COLS, because that is assuming 2 bytes per pixel. But readouts is done in 3 bytes per pixel.
+constexpr uint8_t buffer_rows = (ST7789V_BUFFER_SIZE - read_start_offset) / (ST7789V_COLS * 3);
+
+void transform_pixel(Pixel &pixel) {
+    // The display has 6 bits per color component, so we have to shift it left by two bits
+    // Also do some order swapping
+    pixel = Pixel { static_cast<uint8_t>(pixel.c << 2), static_cast<uint8_t>(pixel.b << 2), static_cast<uint8_t>(pixel.a << 2) };
+}
+
+#else
+    #error
+#endif
+
+static_assert(sizeof(Pixel) == bytes_per_pixel);
+
+void transform_buffer(Pixel *buffer) {
+    // Y-axis mirror image - because BMP pixel format has base origin in left-bottom corner not in left-top like on displays
+    for (int row = 0; row < buffer_rows / 2; row++) {
+        const auto offset1 = row * display::GetW();
+        const auto offset2 = (buffer_rows - row - 1) * display::GetW();
+
+        for (int col = 0; col < display::GetW(); col++) {
+            std::swap(buffer[offset1 + col], buffer[offset2 + col]);
+        }
+    }
+
+    // Apply display-specific pixel data transformations
+    for (Pixel *p = buffer, *e = buffer + buffer_rows * display::GetW(); p != e; p++) {
+        transform_pixel(*p);
+    }
+}
 
 enum {
     BMP_FILE_HEADER_SIZE = 14,
     BMP_INFO_HEADER_SIZE = 40,
+    BMP_HEADER_SIZE = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE,
 
-    BMP_FILE_SIZE = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE + display::GetW() * display::GetH() * bytes_per_pixel,
+    BMP_IMAGE_DATA_SIZE = display::GetW() * display::GetH() * bytes_per_pixel,
+    BMP_FILE_SIZE = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE + BMP_IMAGE_DATA_SIZE,
     SCREENSHOT_FILE_NAME_MAX_LEN = 30,
     SCREENSHOT_FILE_NAME_BUFFER_LEN = SCREENSHOT_FILE_NAME_MAX_LEN + 3,
 };
 
-static const char screenshot_name[] = "/usb/screenshot";
-static const char screenshot_format[] = ".bmp";
+constexpr const char screenshot_name[] = "/usb/screenshot";
+constexpr const char screenshot_format[] = ".bmp";
 
-static const unsigned char bmp_header[] = {
+constexpr const uint8_t bmp_header[] = {
     'B', 'M', /// type "BM"                   [2B]
     (unsigned char)BMP_FILE_SIZE, /// image file size in bytes    [4B]
     (unsigned char)(BMP_FILE_SIZE >> 8),
@@ -65,31 +124,7 @@ static const unsigned char bmp_header[] = {
     0, 0, 0, 0, /// important color count       [4B]
 };
 
-static void mirror_buffer(Pixel *buffer) {
-    // Y-axis mirror image - because BMP pixel format has base origin in left-bottom corner not in left-top like on displays
-    // BMP headers have to know that we are using 2B / 3B pixels.
-    for (int row = 0; row < buffer_rows / 2; row++) {
-        for (int col = 0; col < display::GetW(); col++) {
-            const int i1 = row * display::GetW() + col;
-            const int i2 = (buffer_rows - row - 1) * display::GetW() + col;
-#ifdef USE_ST7789
-            // we need to swap the colors, because bmp is in BGR color format
-            buffer[i1].SwapBlueAndRed();
-            buffer[i2].SwapBlueAndRed();
-            std::swap(buffer[i1], buffer[i2]);
-#elif defined USE_ILI9488
-            Pixel swapper = buffer[i1];
-            buffer[i1] = buffer[i2]; // move 6 bit input to 8 bit scale
-            buffer[i2] = swapper;
-            buffer[i1].ShiftColorsUp(2); // move 6 bit input to 8 bit scale
-            buffer[i2].ShiftColorsUp(2);
-
-#else
-    #error "Unsupported display for screenshot."
-#endif
-        }
-    }
-}
+} // namespace
 
 bool TakeAScreenshot() {
     char file_name[SCREENSHOT_FILE_NAME_BUFFER_LEN];
@@ -125,7 +160,7 @@ bool TakeAScreenshotAs(const char *file_name) {
             return false;
         }
 
-        mirror_buffer(reinterpret_cast<Pixel *>(buffer + read_start_offset));
+        transform_buffer(reinterpret_cast<Pixel *>(buffer + read_start_offset));
 
         const int write_size = display::GetW() * buffer_rows * bytes_per_pixel;
         if (fwrite(buffer + read_start_offset, 1, write_size, f.get()) != write_size) {
@@ -135,18 +170,4 @@ bool TakeAScreenshotAs(const char *file_name) {
 
     delete_file_guard.disarm();
     return true;
-}
-
-Pixel::Pixel(const uint8_t *data) {
-    red = data[0];
-    green = data[1];
-    blue = data[2];
-}
-void Pixel::SwapBlueAndRed() {
-    std::swap(red, blue);
-}
-void Pixel::ShiftColorsUp(int bits) {
-    red <<= bits;
-    blue <<= bits;
-    green <<= bits;
 }
