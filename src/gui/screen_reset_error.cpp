@@ -21,19 +21,9 @@ ScreenResetError::ScreenResetError(const Rect16 &fw_version_rect)
 
     fw_version_txt.SetAlignment(GuiDefaults::EnableDialogBigLayout ? Align_t::LeftTop() : Align_t::CenterTop());
 
-    const char *signed_str = "";
-    if (signature_exist()) {
-        static const char signed_fw_str[] = "[S]";
-        signed_str = signed_fw_str;
-    }
-
-    const char *apendix_str = "";
-    if (appendix_exist()) {
-        static const char appendix_str[] = "[A]";
-        apendix_str = appendix_str;
-    }
-
-    /// fw version full string [fw signed][appendix]
+    /// (fw version full string) [fw signed][appendix]
+    const char *signed_str = signature_exist() ? "[S]" : "";
+    const char *apendix_str = appendix_exist() ? "[A]" : "";
     StringBuilder(fw_version_str).append_printf("%s %s%s", project_version_full, signed_str, apendix_str);
     fw_version_txt.SetText(string_view_utf8::MakeRAM(fw_version_str.data()));
 }
