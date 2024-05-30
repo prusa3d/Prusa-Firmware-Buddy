@@ -503,8 +503,8 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, struct header
         taskEXIT_CRITICAL();
         data += sizeof(tx_message.intron);
     }
+    uint8_t ssid_length = 0;
     {
-        uint8_t ssid_length;
         memcpy(&ssid_length, data, sizeof(ssid_length));
         data += sizeof(ssid_length);
         size_t memcpy_size = ssid_length < sizeof(wifi_config.sta.ssid)
@@ -512,8 +512,8 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, struct header
         memcpy(wifi_config.sta.ssid, data, memcpy_size);
         data += ssid_length;
     }
+    uint8_t password_length = 0;
     {
-        uint8_t password_length;
         memcpy(&password_length, data, sizeof(password_length));
         data += sizeof(password_length);
         size_t memcpy_size = password_length < sizeof(wifi_config.sta.password)
@@ -525,7 +525,7 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, struct header
     /* Setting a password implies station will connect to all security modes including WEP/WPA.
         * However these modes are deprecated and not advisable to be used. Incase your Access point
         * doesn't support WPA2, these mode can be enabled by commenting below line */
-    if (strlen((char *)wifi_config.sta.password)) {
+    if (password_length) {
         wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
     }
     wifi_config.sta.pmf_cfg.capable = 1;
