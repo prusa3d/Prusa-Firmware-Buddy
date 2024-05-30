@@ -94,34 +94,90 @@ enum {
 constexpr const char screenshot_name[] = "/usb/screenshot";
 constexpr const char screenshot_format[] = ".bmp";
 
-constexpr const uint8_t bmp_header[] = {
-    'B', 'M', /// type "BM"                   [2B]
-    (unsigned char)BMP_FILE_SIZE, /// image file size in bytes    [4B]
-    (unsigned char)(BMP_FILE_SIZE >> 8),
-    (unsigned char)(BMP_FILE_SIZE >> 16),
-    (unsigned char)(BMP_FILE_SIZE >> 24),
-    0, 0, 0, 0, /// reserved                    [4B]
-    (unsigned char)(BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE), 0, 0, 0, /// start of pixel array        [4B]
-    (unsigned char)BMP_INFO_HEADER_SIZE, 0, 0, 0, /// header size                 [4B]
-    (unsigned char)display::GetW(), /// image width                 [4B]
-    (unsigned char)(display::GetW() >> 8),
+constexpr const uint8_t bmp_header[BMP_HEADER_SIZE] {
+    // [2B] type "BM"
+    'B',
+    'M',
+
+    // [4B] image file size in bytes
+    static_cast<uint8_t>(BMP_FILE_SIZE),
+    static_cast<uint8_t>(BMP_FILE_SIZE >> 8),
+    static_cast<uint8_t>(BMP_FILE_SIZE >> 16),
+    static_cast<uint8_t>(BMP_FILE_SIZE >> 24),
+
+    // [4B] reserved
     0,
     0,
-    (unsigned char)display::GetH(), /// image height                [4B]
-    (unsigned char)(display::GetH() >> 8),
     0,
     0,
-    1, 0, /// number of color planes      [2B]
-    (unsigned char)(bytes_per_pixel * 8), 0, /// bits per pixel              [2B]
-    0, 0, 0, 0, /// compression                 [4B]
-    (unsigned char)(display::GetW() * display::GetH() * bytes_per_pixel), /// image size                  [4B]
-    (unsigned char)((display::GetW() * display::GetH() * bytes_per_pixel) >> 8),
-    (unsigned char)((display::GetW() * display::GetH() * bytes_per_pixel) >> 16),
+
+    // [4B] Offset from beginning of file to the beginning of the bitmap data
+    static_cast<uint8_t>(BMP_HEADER_SIZE),
     0,
-    0, 0, 0, 0, /// horizontal resolution       [4B]
-    0, 0, 0, 0, /// vertical resolution         [4B]
-    0, 0, 0, 0, /// colors in color table       [4B]
-    0, 0, 0, 0, /// important color count       [4B]
+    0,
+    0,
+
+    // [4B] Size of InfoHeader =40
+    static_cast<uint8_t>(BMP_INFO_HEADER_SIZE),
+    0,
+    0,
+    0,
+
+    // [4B] Horizontal width of bitmap in pixels
+    static_cast<uint8_t>(display::GetW()),
+    static_cast<uint8_t>(display::GetW() >> 8),
+    0,
+    0,
+
+    // [4B] Vertical height of bitmap in pixels
+    static_cast<uint8_t>(display::GetH()),
+    static_cast<uint8_t>(display::GetH() >> 8),
+    0,
+    0,
+
+    // [2B] Number of Planes (=1)
+    1,
+    0,
+
+    // [2B] Bits per Pixel
+    static_cast<uint8_t>(bytes_per_pixel * 8),
+    0,
+
+    // [4B] Type of Compression | 0 = BI_RGB   no compression
+    0,
+    0,
+    0,
+    0,
+
+    // [4B] (compressed) Size of Image
+    static_cast<uint8_t>(BMP_IMAGE_DATA_SIZE),
+    static_cast<uint8_t>(BMP_IMAGE_DATA_SIZE >> 8),
+    static_cast<uint8_t>(BMP_IMAGE_DATA_SIZE >> 16),
+    0,
+
+    // [4B] horizontal resolution: Pixels/meter
+    0,
+    0,
+    0,
+    0,
+
+    // [4B] vertical resolution: Pixels/meter
+    0,
+    0,
+    0,
+    0,
+
+    // [4B] Number of actually used colors.
+    0,
+    0,
+    0,
+    0,
+
+    // [4B] Number of important colors  0 = all
+    0,
+    0,
+    0,
+    0,
 };
 
 } // namespace
