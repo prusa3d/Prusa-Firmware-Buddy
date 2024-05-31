@@ -225,7 +225,7 @@ public:
         return static_cast<Async *>(arg)->connected();
     }
 
-    err_t received_resp(pbuf *data, size_t position) {
+    err_t received_resp(unique_ptr<pbuf, PbufDeleter> data, size_t position) {
         assert(phase == Phase::Headers);
         assert(holds_alternative<ResponseParser>(phase_payload));
         auto &resp = get<ResponseParser>(phase_payload);
@@ -262,7 +262,7 @@ public:
 #else
         tcp_pcb *c = conn;
         conn = nullptr;
-        httpd_instance()->inject_transfer(c, data, position, &get<Splice>(phase_payload), len);
+        httpd_instance()->inject_transfer(c, data.release(), position, &get<Splice>(phase_payload), len);
 #endif
 
         return ERR_OK;
@@ -310,7 +310,7 @@ public:
 
             if (parser.done) {
                 // Will free the passed pbuf (now or later when processed)
-                return received_resp(data.release(), position);
+                return received_resp(move(data), position);
             }
 
             current = current->next;
