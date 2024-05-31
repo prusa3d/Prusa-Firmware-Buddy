@@ -129,7 +129,11 @@ struct SnakeConfig {
     State state { State::reset };
 };
 
-SnakeConfig snake_config {};
+} // namespace
+
+static SnakeConfig snake_config {};
+
+namespace {
 
 void do_snake(Action action, Tool tool = Tool::_first) {
     if (!are_previous_completed(action) && !snake_config.in_progress) {
