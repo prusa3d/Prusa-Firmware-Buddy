@@ -17,6 +17,10 @@ static constexpr bool klipper_mode = true;
 static constexpr float acceleration_requested = 2.5f;
 static constexpr uint32_t cycles = 50;
 
+static void set_test_result(TestResult test_result) {
+    config_store().selftest_result_input_shaper_calibration.set(test_result);
+}
+
 static Response wait_for_response(const PhasesInputShaperCalibration phase) {
     for (;;) {
         const Response response = marlin_server::get_response_from_phase(phase);
@@ -461,10 +465,13 @@ static PhasesInputShaperCalibration results(Context &context) {
         input_shaper::set_axis_config(X_AXIS, context.axis_config_x);
         config_store().input_shaper_axis_y_config.set(context.axis_config_y);
         input_shaper::set_axis_config(Y_AXIS, context.axis_config_y);
+        set_test_result(TestResult_Passed);
         return PhasesInputShaperCalibration::finish;
     case Response::No:
+        set_test_result(TestResult_Skipped);
         return PhasesInputShaperCalibration::finish;
     case Response::Ok:
+        set_test_result(TestResult_Skipped);
         return PhasesInputShaperCalibration::finish;
     default:
         break;
@@ -538,6 +545,7 @@ void M1959() {
         // Original Prusa MK3.9 and MK4 do not come with the accelerometer.
         // It would be lame to show the screen asking users to connect it,
         // so let's ignore the missing accelerometer and consider the calibration done.
+        set_test_result(TestResult_Passed);
         return;
     case ExtendedPrinterType::mk4s:
         // Original Prusa MK4S comes with the accelerometer.
@@ -547,6 +555,8 @@ void M1959() {
         return;
     }
 #endif
+
+    set_test_result(TestResult_Skipped);
 }
 
 } // namespace PrusaGcodeSuite

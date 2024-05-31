@@ -27,6 +27,7 @@
 #include <option/has_loadcell.h>
 #include <option/has_sheet_profiles.h>
 #include <option/has_side_fsensor.h>
+#include <option/has_input_shaper_calibration.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
 #include <option/has_selftest.h>
@@ -465,6 +466,10 @@ struct CurrentStore
 
 #if HAS_EXTENDED_PRINTER_TYPE()
     StoreItem<ExtendedPrinterType, static_cast<ExtendedPrinterType>(0), journal::hash("Extended Printer Type")> extended_printer_type;
+#endif
+
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    StoreItem<TestResult, TestResult_Unknown, journal::hash("Input Shaper Calibration")> selftest_result_input_shaper_calibration;
 #endif
 };
 

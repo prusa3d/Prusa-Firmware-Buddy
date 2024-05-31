@@ -75,7 +75,7 @@ TestResult get_test_result(Action action, Tool tool) {
     case Action::PhaseSteppingCalibration:
         return evaluate_results(config_store().selftest_result_phase_stepping.get());
     case Action::InputShaperCalibration:
-        return TestResult_Passed; // Factory settings are always available
+        return evaluate_results(config_store().selftest_result_input_shaper_calibration.get());
     case Action::_count:
         break;
     }
