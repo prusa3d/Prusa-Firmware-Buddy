@@ -39,36 +39,17 @@ constexpr Rect16::Width_t label_w { 240 };
 #endif
 } // namespace
 
-void window_header_t::updateNetwork(uint32_t netdev_id) {
-    uint32_t netdev_status = netdev_get_status(netdev_id);
+void window_header_t::updateNetwork() {
+    const auto active_interface = netdev_get_active_id();
+    const auto interface_status = netdev_get_status(active_interface);
 
-    if (force_network || (netdev_id != active_netdev_id)) {
-        icon_network.SetRes(window_header_t::networkIcon(netdev_id));
-        active_netdev_id = netdev_id;
-    }
+    icon_network.SetRes((active_interface == NETDEV_ESP_ID) ? &img::wifi_16x16 : &img::lan_16x16);
 
-    if (active_netdev_id == NETDEV_NODEV_ID) {
-        if (icon_network.IsVisible()) {
-            icon_network.Hide();
-            Invalidate();
-        }
-    } else {
-        if (force_network || (netdev_status != NETDEV_UNLINKED && !icon_network.IsVisible())) {
-            icon_network.Show();
-        }
-        if (force_network || (active_netdev_status != netdev_status)) {
-            if (netdev_status == NETDEV_NETIF_UP) {
-                icon_network.Unshadow();
-            } else if (netdev_status == NETDEV_UNLINKED) {
-                icon_network.Hide();
-                Invalidate();
-            } else {
-                icon_network.Shadow();
-            }
-            active_netdev_status = netdev_status;
-        }
-    }
-    force_network = false;
+    // Not connected at all -> hide icon
+    icon_network.set_visible(interface_status != NETDEV_UNLINKED);
+
+    // Not fully connected -> make the icon gray
+    icon_network.set_shadow(interface_status != NETDEV_NETIF_UP);
 }
 
 void window_header_t::updateTransfer() {
@@ -202,7 +183,7 @@ void window_header_t::updateAllRects() {
 }
 
 void window_header_t::updateIcons() {
-    updateNetwork(netdev_get_active_id());
+    updateNetwork();
     updateTransfer();
     updateTime();
     update_bed_info();
@@ -220,15 +201,12 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     , time_val(this, first_rect_doesnt_matter, is_multiline::no)
 #endif /* !HAS_MINI_DISPLAY() */
     , icon_usb(this, first_rect_doesnt_matter, &img::usb_20x16)
-    , icon_network(this, first_rect_doesnt_matter, window_header_t::networkIcon(netdev_get_active_id()))
+    , icon_network(this, first_rect_doesnt_matter, nullptr)
     , transfer_val(this, first_rect_doesnt_matter, is_multiline::no)
     , icon_transfer(this, first_rect_doesnt_matter, &img::transfer_icon_16x16)
     , icon_stealth(this, first_rect_doesnt_matter, &img::stealth_20x16)
     , bed_text(this, first_rect_doesnt_matter, is_multiline::no)
     , bed_icon(this, first_rect_doesnt_matter, &img::heatbed_16x16)
-    , active_netdev_id(netdev_get_active_id())
-    , active_netdev_status(netdev_get_status(active_netdev_id))
-    , force_network(true)
 #if HAS_MINI_DISPLAY()
     , transfer_val_on(false)
 #else
@@ -317,20 +295,3 @@ void window_header_t::updateMedia(MediaState_t state) {
     icon_usb.set_visible(state != MediaState_t::removed);
     icon_usb.set_shadow(state != MediaState_t::inserted);
 };
-
-const img::Resource *window_header_t::networkIcon(uint32_t netdev_id) {
-    const img::Resource *res = nullptr;
-
-    switch (netdev_id) {
-    case NETDEV_ETH_ID:
-        res = &img::lan_16x16;
-        break;
-    case NETDEV_ESP_ID:
-        res = &img::wifi_16x16;
-        break;
-    default:
-        break;
-    }
-
-    return res;
-}
