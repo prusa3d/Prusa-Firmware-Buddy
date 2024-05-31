@@ -9,8 +9,8 @@ enum class WizardMode {
     /// Full wizard, opened from the network menu
     from_network_menu,
 
-    /// Full wizard, opened as part of selftest
-    from_selftest,
+    /// Full wizard, opened on the first run of the printer
+    initial_setup,
 
     /// Ini file autodetected, user asked to load it
     ini_load_only,
@@ -28,7 +28,7 @@ void network_setup_wizard();
 void network_ini_wizard();
 
 /// To be called from the marlin thread, this is basically a gcode
-void network_selftest_wizard();
+void network_initial_setup_wizard();
 
 #if HAS_NFC()
 /// Subpart of the wi-fi wizard, raised when receiving wi-fi credentials over NFC without prompt

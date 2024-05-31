@@ -167,6 +167,11 @@ screen_splash_data_t::screen_splash_data_t()
     };
 #endif
 
+    constexpr auto network_callback = +[] {
+        // Calls network_initial_setup_wizard
+        marlin_client::gcode("M1703 A");
+    };
+
     const screen_node screens[] {
 #if HAS_TRANSLATIONS()
         { !LangEEPROM::getInstance().IsValid() ? ScreenFactory::Screen<ScreenMenuLanguages, ScreenMenuLanguages::Context::initial_language_selection> : nullptr },
@@ -177,6 +182,7 @@ screen_splash_data_t::screen_splash_data_t()
 
             { !config_store().printer_setup_done.get() ? ScreenFactory::Screen<PseudoScreenCallback, pepa_callback> : nullptr },
             { !config_store().printer_setup_done.get() ? ScreenFactory::Screen<ScreenPrinterSetup> : nullptr },
+            { !config_store().printer_setup_done.get() ? ScreenFactory::Screen<PseudoScreenCallback, network_callback> : nullptr },
 
 #if HAS_SELFTEST_SNAKE()
             { run_wizard ? ScreenFactory::Screen<ScreenMenuSTSWizard> : nullptr }

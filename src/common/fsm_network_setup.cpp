@@ -29,8 +29,8 @@ public:
     FSMNetworkSetup()
         : fsm_(*this) {}
 
-    void setup_selftest() {
-        mode_ = WizardMode::from_selftest;
+    void setup_initial_setup() {
+        mode_ = WizardMode::initial_setup;
     }
 
     void setup_ini() {
@@ -90,7 +90,7 @@ private:
         if (active_interface != NETDEV_ESP_ID && netdev_get_status(active_interface) == NETDEV_NETIF_UP) {
             switch (mode_) {
 
-            case WizardMode::from_selftest:
+            case WizardMode::initial_setup:
                 return Phase::connected;
 
 #if HAS_NFC()
@@ -438,9 +438,9 @@ void network_ini_wizard() {
     fsm.run();
 }
 
-void network_selftest_wizard() {
+void network_initial_setup_wizard() {
     FSMNetworkSetup fsm;
-    fsm.setup_selftest();
+    fsm.setup_initial_setup();
     fsm.run();
 }
 

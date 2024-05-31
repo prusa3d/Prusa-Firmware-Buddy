@@ -111,7 +111,7 @@ public:
     void update(fsm::PhaseData data) {
         const WizardMode mode = static_cast<WizardMode>(data[0]);
         container.Item<MI_ACTION_RETURN>().set_is_hidden(mode != WizardMode::from_network_menu);
-        container.Item<MI_ACTION_SKIP>().set_is_hidden(mode != WizardMode::from_selftest);
+        container.Item<MI_ACTION_SKIP>().set_is_hidden(mode != WizardMode::initial_setup);
     }
 
 private:
