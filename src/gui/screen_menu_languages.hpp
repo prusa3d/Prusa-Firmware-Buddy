@@ -69,10 +69,6 @@ using ScreenMenuLanguages__ = ScreenMenu<EFooter::Off,
     ,
     MI_LANG<"ニホンゴ"_tstr, "jp"_tstr, &img::flag_jp_16x11>
 #endif
-#if DEVELOPMENT_ITEMS()
-    ,
-    MI_LANG<"Test"_tstr, "ts"_tstr, &img::flag_cs_16x11>
-#endif
     >;
 
 class ScreenMenuLanguages : public ScreenMenuLanguages__ {

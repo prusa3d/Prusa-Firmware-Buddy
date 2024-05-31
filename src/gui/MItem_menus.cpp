@@ -339,6 +339,21 @@ void MI_LANG_AND_TIME::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
+// MI_LANGUAGE
+
+#if HAS_TRANSLATIONS()
+
+MI_LANGUAGE::MI_LANGUAGE()
+    : IWindowMenuItem(_(label), &img::language_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+
+void MI_LANGUAGE::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuLanguages>);
+}
+
+#endif
+
+/*****************************************************************************/
 // MI_PRUSALINK
 MI_PRUSA_CONNECT::MI_PRUSA_CONNECT()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {

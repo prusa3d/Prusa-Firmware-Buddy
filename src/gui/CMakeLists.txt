@@ -110,9 +110,7 @@ if(HAS_SERIAL_PRINT)
 endif()
 
 if(TRANSLATIONS_ENABLED)
-  target_sources(firmware PRIVATE menu_items_languages.cpp screen_menu_languages.cpp)
-else()
-  target_sources(firmware PRIVATE menu_items_no_languages.cpp)
+  target_sources(firmware PRIVATE screen_menu_languages.cpp)
 endif()
 
 if(HAS_XLCD_TOUCH_DRIVER)

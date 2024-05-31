@@ -10,6 +10,7 @@
 #include <option/has_leds.h>
 #include <option/has_sheet_profiles.h>
 #include <option/developer_mode.h>
+#include <option/has_translations.h>
 #include <common/sheet.hpp>
 
 class MI_VERSION_INFO : public IWindowMenuItem {
@@ -273,6 +274,18 @@ public:
 protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
+
+#if HAS_TRANSLATIONS()
+class MI_LANGUAGE : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Language");
+
+public:
+    MI_LANGUAGE();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+#endif
 
 class MI_LOAD_SETTINGS : public IWindowMenuItem {
     constexpr static const char *const label = N_("Load Settings from File");
