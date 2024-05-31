@@ -223,10 +223,10 @@ static bool is_running(ESPIFOperatingMode mode) {
 static bool can_recieve_data(ESPIFOperatingMode mode) {
     switch (mode) {
     case ESPIF_UNINITIALIZED_MODE:
-    case ESPIF_FLASHING_ERROR_NOT_CONNECTED:
     case ESPIF_FLASHING_ERROR_OTHER:
     case ESPIF_WRONG_FW:
         return false;
+    case ESPIF_FLASHING_ERROR_NOT_CONNECTED:
     case ESPIF_WAIT_INIT:
     case ESPIF_NEED_AP:
     case ESPIF_RUNNING_MODE:
