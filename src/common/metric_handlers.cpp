@@ -89,8 +89,14 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
 static __attribute__((section(".ccmram"))) SyslogTransport syslog_transport;
 
 void metrics_reconfigure() {
+    const auto host = config_store().metrics_host.get();
+
+    // One symbol is not enough (for cases where people put in "-" or "x" or something there)
+    if (strlen(host.data()) < 2) {
+        config_store().enable_metrics.set(false);
+    }
+
     if (config_store().enable_metrics.get()) {
-        const auto host = config_store().metrics_host.get();
         const auto port = config_store().metrics_port.get();
         syslog_transport.reopen(host.data(), port);
 
