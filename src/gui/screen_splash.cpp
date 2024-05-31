@@ -142,7 +142,8 @@ screen_splash_data_t::screen_splash_data_t()
             N_("Hi, this is your\nOriginal Prusa XL printer.\n"
                "I would like to guide you\nthrough the setup process.");
 #elif PRINTER_IS_PRUSA_MK4
-            N_("Hi, this is your\nOriginal Prusa MK4 printer.\n"
+            // The MK4 is left out intentionally - it could be MK4, MK4S or MK3.9, we don't know yet
+            N_("Hi, this is your\nOriginal Prusa printer.\n"
                "I would like to guide you\nthrough the setup process.");
 #elif PRINTER_IS_PRUSA_MK3_5
             N_("Hi, this is your\nOriginal Prusa MK3.5 printer.\n"
