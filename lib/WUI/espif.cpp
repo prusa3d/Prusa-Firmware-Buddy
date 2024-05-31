@@ -523,7 +523,8 @@ bool espif::scan::is_running() { return ::scan.is_running.load(std::memory_order
     const auto err = espif_tx_raw(MSG_SCAN_STOP, 0, nullptr);
     if (err == ERR_OK) {
         ::scan.is_running.exchange(false);
-        esp_operating_mode.exchange(::scan.prescan_op_mode);
+        auto expected = ESPIF_SCANNING_MODE;
+        esp_operating_mode.compare_exchange_weak(expected, ::scan.prescan_op_mode);
     }
     return err;
 }
