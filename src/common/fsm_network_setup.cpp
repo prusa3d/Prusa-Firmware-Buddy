@@ -179,7 +179,7 @@ private:
         case Response::Back:
             return Phase::action_select;
 
-        case NetworkSetupResponse::connect:
+        case Response::Continue:
             // Continue -> user set up the new credentials into the config_store
             return Phase::connecting;
 
