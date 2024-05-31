@@ -328,7 +328,7 @@ enum class PhaseNetworkSetup : PhaseUnderlyingType {
 #endif
     connecting,
     connected,
-    esp_error,
+    no_interface_error,
     connection_error,
     help_qr, ///< Display as QR code to the help page
     finish,
@@ -713,7 +713,7 @@ class ClientResponses {
 #endif
             { PhaseNetworkSetup::connecting, { Response::Finish, Response::Cancel } },
             { PhaseNetworkSetup::connected, { Response::Ok } },
-            { PhaseNetworkSetup::esp_error, { Response::Ok, Response::Help, Response::Retry } },
+            { PhaseNetworkSetup::no_interface_error, { Response::Ok, Response::Help, Response::Retry } },
             { PhaseNetworkSetup::connection_error, { Response::Back, Response::Help, Response::Abort } },
             { PhaseNetworkSetup::help_qr, { Response::Back } },
             { PhaseNetworkSetup::finish, {} },

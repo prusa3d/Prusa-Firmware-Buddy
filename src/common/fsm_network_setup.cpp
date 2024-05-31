@@ -104,7 +104,7 @@ private:
 
         const auto esp_state = esp_fw_state();
         if (esp_state != EspFwState::Ok && esp_state != EspFwState::Scanning) {
-            return Phase::esp_error;
+            return Phase::no_interface_error;
         }
 
         return first_phase_;
@@ -397,7 +397,7 @@ private:
 #endif
             { Phase::connecting, { .loop_callback = &C::phase_connecting, .init_callback = &C::phase_connecting_init } },
             { Phase::connected, { &C::phase_connected } },
-            { Phase::esp_error, { &C::phase_esp_error } },
+            { Phase::no_interface_error, { &C::phase_esp_error } },
             { Phase::connection_error, { &C::phase_connecting_error } },
             { Phase::help_qr, { &C::phase_help_qr } },
             { Phase::finish, {} },

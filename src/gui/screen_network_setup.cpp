@@ -353,7 +353,7 @@ class FrameESPError : public FrameText {
 
 public:
     FrameESPError(window_t *parent)
-        : FrameText(parent, Phase::esp_error, _("ESP error"), _("The ESP Wi-Fi module is not working properly or missing.\n\nInsert the module, try restarting the printer or use the ethernet cable.")) {
+        : FrameText(parent, Phase::no_interface_error, _("No network interface"), _("The Wi-Fi module is not working properly or is missing.\n\nInsert the module, try restarting the printer, or use the ethernet cable.")) {
     }
 };
 
@@ -476,7 +476,7 @@ using Frames = FrameDefinitionList<ScreenNetworkSetup::FrameStorage,
     FrameDefinition<Phase::ask_delete_ini_file, FrameAskDeleteINIFile>,
     FrameDefinition<Phase::wait_for_ini_file, FrameWaitForINI>,
     FrameDefinition<Phase::connecting, FrameConnecting>,
-    FrameDefinition<Phase::esp_error, FrameESPError>,
+    FrameDefinition<Phase::no_interface_error, FrameESPError>,
     FrameDefinition<Phase::connection_error, FrameError>,
     FrameDefinition<Phase::help_qr, FrameHelpQR>,
     FrameDefinition<Phase::connected, FrameConnected> //
