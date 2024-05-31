@@ -163,6 +163,9 @@ void window_header_t::updateAllRects() {
     if (transfer_val_on) {
         maybe_update(transfer_val, transfer_val_w);
     }
+#if !HAS_MINI_DISPLAY()
+    maybe_update(icon_metrics, icon_metrics.resource()->w);
+#endif
     maybe_update(icon_transfer, icon_transfer.resource()->w);
     maybe_update(bed_text, bed_text_width);
     maybe_update(bed_icon, bed_icon.resource()->w);
@@ -188,6 +191,10 @@ void window_header_t::updateIcons() {
     updateTime();
     update_bed_info();
 
+#if !HAS_MINI_DISPLAY()
+    icon_metrics.set_visible(config_store().enable_metrics.get());
+#endif
+
     icon_stealth.set_visible(marlin_vars()->stealth_mode.get());
 
     updateAllRects();
@@ -199,6 +206,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     , label(this, first_rect_doesnt_matter, txt)
 #if !HAS_MINI_DISPLAY() // Time is not shown on ST7789
     , time_val(this, first_rect_doesnt_matter, is_multiline::no)
+    , icon_metrics(this, first_rect_doesnt_matter, &img::speed_16x16)
 #endif /* !HAS_MINI_DISPLAY() */
     , icon_usb(this, first_rect_doesnt_matter, &img::usb_20x16)
     , icon_network(this, first_rect_doesnt_matter, nullptr)
@@ -235,6 +243,8 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     time_val.SetAlignment(Align_t::RightCenter());
     time_tools::update_time();
     time_val.SetText(string_view_utf8::MakeRAM((const uint8_t *)time_tools::get_time()));
+
+    icon_metrics.SetAlignment(Align_t::LeftCenter());
 #endif /* !HAS_MINI_DISPLAY() */
 
     set_show_bed_info(false);

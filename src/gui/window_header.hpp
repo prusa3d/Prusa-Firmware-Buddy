@@ -12,9 +12,15 @@ struct window_header_t : public window_frame_t {
 
     window_icon_t icon_base;
     window_roll_text_t label;
-#if !HAS_MINI_DISPLAY() // Time is not shown on ST7789
+
+#if !HAS_MINI_DISPLAY()
+    // Time is not shown on ST7789
     window_text_t time_val;
-#endif /* !HAS_MINI_DISPLAY() */
+
+    // Metrics do not fit on the mini display
+    window_icon_t icon_metrics;
+#endif
+
     window_icon_t icon_usb;
     window_icon_t icon_network;
     window_text_t transfer_val;
