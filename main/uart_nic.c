@@ -274,6 +274,13 @@ static esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType
     return ESP_OK;
 }
 
+static esp_err_t IRAM_ATTR force_stop_wifi_scan() {
+    scan.in_progress = false;
+    scan.scan_type = SCAN_TYPE_UNKNOWN;
+    scan.incremental_scan_time = 0;
+    return esp_wifi_scan_stop();
+}
+
 static void IRAM_ATTR cache_current_ap_info() {
     wifi_ap_record_t ap_info;
     if (esp_wifi_sta_get_ap_info(&ap_info) == ESP_OK) {
@@ -530,6 +537,12 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, struct header
     }
     wifi_config.sta.pmf_cfg.capable = 1;
 
+    // If scan is in progress we need to stop it manually here to prevent reconnect to previous AP.
+    if (scan.in_progress) {
+        scan.should_reconnect = false;
+        force_stop_wifi_scan();
+    }
+
     wifi_running = false;
     esp_wifi_stop();
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
@@ -621,10 +634,9 @@ static void IRAM_ATTR handle_rx_msg_scan_start(uint8_t* data, struct header head
 
 static void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t* data, struct header header) {
     // Response is send automatically after scan is stopped
-    scan.in_progress = false;
-    scan.scan_type = SCAN_TYPE_UNKNOWN;
-    scan.incremental_scan_time = 0;
-    ESP_ERROR_CHECK(esp_wifi_scan_stop());
+    // Intentionally don't fail if the scan is no longer running
+    // (aka we connected to AP during scan)
+    force_stop_wifi_scan();
 }
 
 static void IRAM_ATTR handle_rx_msg_scan_get(uint8_t* data, struct header header) {
