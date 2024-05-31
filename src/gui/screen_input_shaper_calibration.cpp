@@ -251,9 +251,11 @@ private:
 
     static constexpr const char *text_freq_low = N_("axis frequency is too low.\nPlease tighten the belt.");
     static constexpr const char *text_freq_high = N_("axis frequency is too high.\nPlease check your HW setup.\nIf the problem prevails, contact the customer support.");
-    static constexpr const char *text_shaper_x = N_("Computed recommended shaper for X axis: ");
-    static constexpr const char *text_shaper_y = N_("Computed recommended shaper for Y axis: ");
+    static constexpr const char *text_shaper_x = N_("Recommended shaper frequency for X axis: ");
+    static constexpr const char *text_shaper_y = N_("Recommended shaper frequency for Y axis: ");
     static constexpr const char *type_freq_format = "%3s %3dHz";
+    static constexpr const char *text_x_axis = "X ";
+    static constexpr const char *text_y_axis = "Y ";
 
 public:
     FrameBadResults(window_t *parent)
@@ -267,22 +269,22 @@ public:
         const auto y_type = static_cast<input_shaper::Type>(data[2]);
         const auto y_freq = data[3];
 
-        str_build_x_axis.append_string("X ");
-
         if (x_freq < input_shaper::low_freq_limit_hz) {
+            str_build_x_axis.append_string(text_x_axis);
             str_build_x_axis.append_string_view(_(text_freq_low));
         } else if (x_freq > input_shaper::high_freq_limit_hz) {
+            str_build_x_axis.append_string(text_x_axis);
             str_build_x_axis.append_string_view(_(text_freq_high));
         } else {
             str_build_x_axis.append_string_view(_(text_shaper_x));
             str_build_x_axis.append_printf(type_freq_format, to_short_string(x_type), x_freq);
         }
 
-        str_build_y_axis.append_string("Y ");
-
         if (y_freq < input_shaper::low_freq_limit_hz) {
+            str_build_x_axis.append_string(text_y_axis);
             str_build_y_axis.append_string_view(_(text_freq_low));
         } else if (y_freq > input_shaper::high_freq_limit_hz) {
+            str_build_x_axis.append_string(text_y_axis);
             str_build_y_axis.append_string_view(_(text_freq_high));
         } else {
             str_build_y_axis.append_string_view(_(text_shaper_y));
