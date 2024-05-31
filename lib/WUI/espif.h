@@ -53,6 +53,8 @@ bool espif_link();
 
 void espif_input_once(struct netif *netif);
 
+void espif_reset_connection();
+
 /// Perform periodic works of the esp interface.
 ///
 /// Returns if there was any activity since last tick.

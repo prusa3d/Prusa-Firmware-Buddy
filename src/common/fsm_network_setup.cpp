@@ -284,7 +284,7 @@ private:
     }
 
     PhaseOpt phase_connecting(const Meta::LoopCallbackArgs &args) {
-        if (netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP) {
+        if (phase_action_done_ && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP) {
             return Phase::connected;
         }
 
@@ -293,7 +293,8 @@ private:
         // Notify the networking stack to reload the configuration
         // We do this after some delay, because it freezes the printer.
         // If we did this in the phase init, the screen would not be redrawn for some time.
-        if (phase_time_ms > 500 && !phase_action_done_) {
+        if (phase_time_ms > 700 && !phase_action_done_) {
+            espif_reset_connection();
             notify_reconfigure();
             phase_action_done_ = true;
         }

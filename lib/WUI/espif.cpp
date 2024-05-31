@@ -854,6 +854,11 @@ err_t espif_init(struct netif *netif) {
     return ERR_OK;
 }
 
+void espif_reset_connection() {
+    esp_operating_mode.exchange(ESPIF_NEED_AP);
+    process_link_change(false, active_esp_netif.load());
+}
+
 /**
  * @brief Ask ESP to join AP
  *

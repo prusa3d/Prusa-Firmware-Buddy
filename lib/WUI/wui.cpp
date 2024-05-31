@@ -436,7 +436,8 @@ private:
                 espif_input_once(&ifaces[NETDEV_ESP_ID].dev);
 
                 // Delayed init, after the ESP told us it is ready and gave us a MAC address.
-                if (iface_mode(ifaces[NETDEV_ESP_ID]) != Mode::Off && espif_need_ap()) {
+                // If we are reconfiguring don't send old connection information, wait for next loop and new ap info.
+                if (iface_mode(ifaces[NETDEV_ESP_ID]) != Mode::Off && espif_need_ap() && !(events & Reconfigure)) {
                     join_ap();
                     set_up(ifaces[NETDEV_ESP_ID].dev);
                 }
