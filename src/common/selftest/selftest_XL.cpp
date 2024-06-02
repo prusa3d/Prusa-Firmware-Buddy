@@ -60,8 +60,11 @@ static consteval SelftestFansConfig make_fan_config(uint8_t index) {
             ///@note Datasheet says 5900 +-10%, but that is without any fan shroud.
             ///  Blocked fan increases its RPMs over 7000.
             ///  With XL shroud the values can be 6200 - 6600 depending on fan shroud version.
+            ///  Altitude of installed printer impacts fan speed.  Users are seeing values
+            ///  closer to the 7000 rpm in certain circumstances.   Concern with self test should
+            ///  be a fan that isn't spinning fast enough, not a fan that is spinning rapidly.
             .rpm_min = 5300,
-            .rpm_max = 6799,
+            .rpm_max = 7000,
         },
         .heatbreak_fan = {
             .rpm_min = 6800,
