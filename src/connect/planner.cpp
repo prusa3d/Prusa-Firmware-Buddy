@@ -393,6 +393,7 @@ Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_read
         return *planned_event;
     }
 
+    printer.set_can_start_download(transfer_recovery != TransferRecoveryState::WaitingForUSB);
     if (info_changes.set_hash(printer.info_fingerprint())) {
         planned_event = Event {
             EventType::Info,

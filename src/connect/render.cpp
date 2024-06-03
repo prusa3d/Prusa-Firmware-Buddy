@@ -271,6 +271,7 @@ namespace {
                     JSON_FIELD_BOOL("appendix", info.appendix) JSON_COMMA;
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
                     JSON_FIELD_FFIXED("nozzle_diameter", params.nozzle_diameter, 2) JSON_COMMA;
+                    JSON_FIELD_BOOL("transfer_paused", !params.can_start_download) JSON_COMMA;
                     if (strlen(creds.pl_password) > 0) {
                         JSON_FIELD_STR("api_key", creds.pl_password) JSON_COMMA;
                     }
@@ -291,18 +292,18 @@ namespace {
                     }
                     JSON_ARR_END JSON_COMMA;
                     JSON_FIELD_OBJ("network_info");
-                    if (state.lan.has_value()) {
-                        JSON_MAC("lan_mac", state.lan->mac) JSON_COMMA;
-                        JSON_IP("lan_ipv4", state.lan->ip) JSON_COMMA;
-                    }
-                    if (state.wifi.has_value()) {
-                        if (strlen(creds.ssid) > 0) {
-                            JSON_FIELD_STR("wifi_ssid", creds.ssid) JSON_COMMA;
+                        if (state.lan.has_value()) {
+                            JSON_MAC("lan_mac", state.lan->mac) JSON_COMMA;
+                            JSON_IP("lan_ipv4", state.lan->ip) JSON_COMMA;
                         }
-                        JSON_MAC("wifi_mac", state.wifi->mac) JSON_COMMA;
-                        JSON_IP("wifi_ipv4", state.wifi->ip) JSON_COMMA;
-                    }
-                    JSON_FIELD_STR("hostname", creds.hostname);
+                        if (state.wifi.has_value()) {
+                            if (strlen(creds.ssid) > 0) {
+                                JSON_FIELD_STR("wifi_ssid", creds.ssid) JSON_COMMA;
+                            }
+                            JSON_MAC("wifi_mac", state.wifi->mac) JSON_COMMA;
+                            JSON_IP("wifi_ipv4", state.wifi->ip) JSON_COMMA;
+                        }
+                        JSON_FIELD_STR("hostname", creds.hostname);
                     JSON_OBJ_END JSON_COMMA;
 
 #if XL_ENCLOSURE_SUPPORT()

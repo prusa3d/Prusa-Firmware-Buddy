@@ -129,6 +129,7 @@ public:
         uint8_t progress_percent = 0;
         bool has_usb = false;
         bool has_job = false;
+        bool can_start_download = false;
         uint64_t usb_space_free = 0;
         PrinterVersion version = { 0, 0, 0 };
         printer_state::StateWithDialog state = printer_state::DeviceState::Unknown;
@@ -190,6 +191,7 @@ public:
 protected:
     PrinterInfo info;
     virtual Config load_config() = 0;
+    bool can_start_download = false;
 
 private:
     // For checking if config changed. We ignore the 1:2^32 possibility of collision.
@@ -222,6 +224,9 @@ public:
     };
     virtual GcodeResult submit_gcode(const char *gcode) = 0;
     virtual bool set_ready(bool ready) = 0;
+    void set_can_start_download(bool can) {
+        can_start_download = can;
+    }
     virtual bool is_printing() const = 0;
     // Is the printer in (hard) error?
     //
