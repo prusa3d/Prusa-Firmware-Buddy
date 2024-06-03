@@ -204,9 +204,7 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
                 if (*end)
                     *end = '\0';
 #endif
-                value = lskip(value);
-                rstrip(value);
-                unquote(value);
+                value = unquote(rstrip(lskip(value)));
 
                 /* Valid name[=:]value pair found, call handler */
                 strncpy0(prev_name, name, sizeof(prev_name));
