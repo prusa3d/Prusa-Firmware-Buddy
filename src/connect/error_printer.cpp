@@ -112,6 +112,9 @@ uint32_t ErrorPrinter::cancelable_fingerprint() const {
 }
 
 #if ENABLED(CANCEL_OBJECTS)
+void ErrorPrinter::cancel_object(uint8_t) {}
+void ErrorPrinter::uncancel_object(uint8_t) {}
+
 const char *ErrorPrinter::get_cancel_object_name(char *buffer, [[maybe_unused]] size_t size, size_t) const {
     assert(size > 0);
     *buffer = '\0';

@@ -163,6 +163,8 @@ private:
     void command(const Command &, const SendStateInfo &);
     void command(const Command &, const DialogAction &);
     void command(const Command &, const SetValue &);
+    void command(const Command &, const CancelObject &);
+    void command(const Command &, const UncancelObject &);
 
     void handle_transfer_result(const Command &command, transfers::Transfer::BeginResult result);
 

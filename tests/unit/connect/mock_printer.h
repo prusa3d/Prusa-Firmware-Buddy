@@ -114,7 +114,7 @@ public:
         abort();
     }
 
-    virtual const char *dialog_action(uint32_t dialog_id, Response response) {
+    virtual const char *dialog_action(uint32_t dialog_id, Response response) override {
         return nullptr;
     }
 };

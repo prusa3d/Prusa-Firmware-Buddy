@@ -73,6 +73,7 @@ namespace {
         ArgResponse = 1 << 7,
         ArgSetValue = 1 << 8,
         ArgFileId = 1 << 9,
+        ArgId = 1 << 10,
     };
 
     constexpr uint32_t NO_ARGS = 0;
@@ -172,6 +173,8 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             T("SEND_STATE_INFO", SendStateInfo, NO_ARGS)
             T("DIALOG_ACTION", DialogAction, ARGS_DIALOG_ACTION)
             T("SET_VALUE", SetValue, ArgSetValue)
+            T("CANCEL_OBJECT", CancelObject, ArgId)
+            T("UNCANCEL_OBJECT", UncancelObject, ArgId)
             T("START_INLINE_DOWNLOAD", StartInlineDownload, ARGS_INLINE_DOWN)
             T("START_ENCRYPTED_DOWNLOAD", StartEncryptedDownload, ARGS_ENC_DOWN) { // else is part of the previous T
                 return;
@@ -332,6 +335,9 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             HEX_ARG(iv, ArgIv)
         } else if (is_arg("dialog_id", Type::Primitive)) {
             INT_ARG(DialogAction, uint32_t, dialog_id, ArgDialogId)
+        } else if (is_arg("id", Type::Primitive)) {
+            INT_ARG(CancelObject, uint8_t, id, ArgId)
+            INT_ARG(UncancelObject, uint8_t, id, ArgId)
         }
     });
 

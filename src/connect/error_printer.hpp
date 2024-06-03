@@ -37,6 +37,8 @@ private:
     virtual void init_connect(const char *token) override;
     virtual uint32_t cancelable_fingerprint() const override;
 #if ENABLED(CANCEL_OBJECTS)
+    virtual void cancel_object(uint8_t) override;
+    virtual void uncancel_object(uint8_t) override;
     virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const override;
 #endif
     virtual void reset_printer() override;

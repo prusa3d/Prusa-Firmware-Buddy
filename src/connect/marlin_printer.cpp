@@ -263,6 +263,14 @@ uint32_t MarlinPrinter::cancelable_fingerprint() const {
 }
 
 #if ENABLED(CANCEL_OBJECTS)
+void MarlinPrinter::cancel_object(uint8_t id) {
+    marlin_client::cancel_object(id);
+}
+
+void MarlinPrinter::uncancel_object(uint8_t id) {
+    marlin_client::uncancel_object(id);
+}
+
 const char *MarlinPrinter::get_cancel_object_name(char *buffer, size_t size, size_t index) const {
     marlin_vars()->cancel_object_names[index].copy_to(buffer, size);
     return buffer;

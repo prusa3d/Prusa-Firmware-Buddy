@@ -167,3 +167,11 @@ TEST_CASE("Set value - hostname too long") {
 TEST_CASE("Set value - missing params") {
     command_test<BrokenCommand>("{\"command\":\"SET_VALUE\",\"kwargs\": {}}");
 }
+
+TEST_CASE("Cancel object") {
+    REQUIRE(command_test<CancelObject>("{\"command\":\"CANCEL_OBJECT\",\"kwargs\":{\"id\":3}}").id == 3);
+}
+
+TEST_CASE("Uncancel object") {
+    REQUIRE(command_test<UncancelObject>("{\"command\":\"UNCANCEL_OBJECT\",\"kwargs\":{\"id\":3}}").id == 3);
+}
