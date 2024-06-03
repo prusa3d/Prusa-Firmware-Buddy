@@ -1,4 +1,5 @@
 #include "screen_network_setup.hpp"
+#include "netdev.h"
 
 #include <espif.h>
 #include <window_menu_virtual.hpp>
@@ -325,13 +326,11 @@ public:
     }
 };
 
-class FrameConnecting : public FrameText {
-
+class FrameTextWithSSID : public FrameText {
 public:
-    FrameConnecting(window_t *parent)
-        : FrameText(parent, Phase::connecting, _("Connecting to:"), _("You can press 'Finish' to continue connecting on the background."))
+    FrameTextWithSSID(window_t *parent, Phase phase, const string_view_utf8 &txt_title, const string_view_utf8 &txt_info)
+        : FrameText(parent, phase, txt_title, txt_info)
         , ssid_text(parent, info.GetRect(), is_multiline::no) {
-
         const Rect16 r = ssid_text.GetRect();
         const auto ssid_text_height = 64;
 
@@ -344,9 +343,16 @@ public:
         ssid_text.SetAlignment(Align_t::CenterTop());
     }
 
-private:
+protected:
     window_text_t ssid_text;
     std::array<char, config_store_ns::wifi_max_ssid_len + 1> ssid_buffer;
+};
+
+class FrameConnecting : public FrameTextWithSSID {
+
+public:
+    FrameConnecting(window_t *parent)
+        : FrameTextWithSSID(parent, Phase::connecting, _("Connecting to:"), _("You can press 'Finish' to continue connecting on the background.")) {}
 };
 
 class FrameESPError : public FrameText {
@@ -365,12 +371,17 @@ public:
     }
 };
 
-class FrameConnected : public FrameText {
+class FrameConnected : public FrameTextWithSSID {
 
 public:
     FrameConnected(window_t *parent)
-        : FrameText(parent, Phase::connected, _("Connected"), _("Successfully connected to the internet!")) {
+        : FrameTextWithSSID(parent, Phase::connected, _("Successfully connected to:"), _("You can now fully use all network features of the printer.")) {
+        if (config_store().active_netdev.get() != NETDEV_ESP_ID) {
+            ssid_text.SetText(_("Ethernet"));
+        }
     }
+
+private:
 };
 
 class FrameWaitForINI : public FrameText {
