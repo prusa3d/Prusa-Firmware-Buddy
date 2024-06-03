@@ -194,7 +194,7 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_100_percent() {
     }
 
     // Create config specifically for alt fans presence of which cannot be done compile-time.
-    SelftestFansConfig alt_config { .print_fan = { .rpm_min = 3000, .rpm_max = 4500, ignore_min_overlap = 0 }, .heatbreak_fan = { .rpm_min = 7000, .rpm_max = 10000, .ignore_min_overlap = 0 } };
+    SelftestFansConfig alt_config { .print_fan = { .rpm_min = 3000, .rpm_max = 4500, .ignore_min_overlap = 0 }, .heatbreak_fan = { .rpm_min = 7000, .rpm_max = 10000, .ignore_min_overlap = 0 } };
 
     if (config_store().has_alt_fans.get()) {
         print_fan.evaluate(alt_config.print_fan, print_fan_rpm);
