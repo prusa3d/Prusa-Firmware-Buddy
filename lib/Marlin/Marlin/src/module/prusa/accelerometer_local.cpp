@@ -13,14 +13,23 @@ PrusaAccelerometer::PrusaAccelerometer()
     : accelerometer { buddy::hw::acellCs }
 #endif
     , m_fifo(accelerometer) {
-    m_error = Error::none;
-    if (IMU_SUCCESS != accelerometer.begin()) {
-        m_error = Error::communication;
-    }
-    accelerometer.fifoBegin();
+    set_enabled(true);
 }
 
-PrusaAccelerometer::~PrusaAccelerometer() {}
+PrusaAccelerometer::~PrusaAccelerometer() = default;
+
+void PrusaAccelerometer::set_enabled(bool enable) {
+    m_error = Error::none;
+    if (enable) {
+        clear();
+        if (IMU_SUCCESS != accelerometer.begin()) {
+            m_error = Error::communication;
+        }
+        accelerometer.fifoBegin();
+    } else {
+        accelerometer.end();
+    }
+}
 
 void PrusaAccelerometer::clear() {
     accelerometer.fifoClear();

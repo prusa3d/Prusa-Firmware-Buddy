@@ -32,15 +32,7 @@ PrusaAccelerometer::PrusaAccelerometer() {
         s_sample_buffer->clear();
     }
     if (enable_accelerometer) {
-        buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
-        if (!dwarf) {
-            m_error = Error::no_active_tool;
-            return;
-        }
-        if (!dwarf->set_accelerometer(true)) {
-            m_error = Error::communication;
-            return;
-        }
+        set_enabled(true);
     } else {
         m_error = Error::busy;
     }
@@ -60,27 +52,7 @@ PrusaAccelerometer::~PrusaAccelerometer() {
         }
     }
     if (disable_accelerometer) {
-        switch (m_error) {
-        case Error::none:
-        case Error::communication:
-        case Error::corrupted_buddy_overflow:
-        case Error::corrupted_dwarf_overflow:
-        case Error::corrupted_sample_overrun:
-        case Error::corrupted_transmission_error: {
-            buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
-            if (!dwarf) {
-                return;
-            }
-            if (!dwarf->set_accelerometer(false)) {
-                SERIAL_ERROR_MSG("Failed to disable accelerometer, communication error");
-            }
-            return;
-        }
-        case Error::no_active_tool:
-            return;
-        case Error::busy:
-            bsod("Unexpected");
-        }
+        set_enabled(false);
     }
 }
 void PrusaAccelerometer::clear() {
@@ -124,6 +96,43 @@ void PrusaAccelerometer::mark_corrupted(const Error error) {
 
 void PrusaAccelerometer::set_rate(float rate) {
     m_sampling_rate = rate;
+}
+
+void PrusaAccelerometer::set_enabled(bool enable) {
+    if (m_error == Error::busy) {
+        // not our accelerometer
+        bsod("Unexpected");
+    }
+
+    buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
+    if (!dwarf) {
+        m_error = Error::no_active_tool;
+        return;
+    }
+
+    if (enable) {
+        clear();
+        if (!dwarf->set_accelerometer(true)) {
+            m_error = Error::communication;
+        }
+    } else {
+        switch (m_error) {
+        case Error::none:
+        case Error::communication:
+        case Error::corrupted_buddy_overflow:
+        case Error::corrupted_dwarf_overflow:
+        case Error::corrupted_sample_overrun:
+        case Error::corrupted_transmission_error:
+            if (!dwarf->set_accelerometer(false)) {
+                SERIAL_ERROR_MSG("Failed to disable accelerometer, communication error");
+            }
+            break;
+        case Error::no_active_tool:
+        case Error::busy:
+            // noop, handled above
+            break;
+        }
+    }
 }
 
 PrusaAccelerometer::Error PrusaAccelerometer::m_error = Error::none;
