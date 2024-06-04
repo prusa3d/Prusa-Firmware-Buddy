@@ -133,7 +133,7 @@ struct Context {
 
     void ensure_accelerometer_ok() {
         assert(accelerometer);
-        accelerometer->clear();
+        accelerometer->set_enabled(true);
         // Maybe redscreen would be better. Maybe retry would be better.
         // Let's see how this behaves in testing department and fix accordingly.
         if (!is_accelerometer_ok()) {
@@ -533,6 +533,11 @@ namespace PrusaGcodeSuite {
 void M1959() {
     Context context;
     if (context.is_accelerometer_ok()) {
+#if HAS_REMOTE_ACCELEROMETER()
+        // Accelerometer data have the highest priority on modbus, so explicitly
+        // disable the accelerometer now, to allow loadcell data to flow. Needed for G28.
+        context.accelerometer->set_enabled(false);
+#endif
         // Just proceed to wizard if accelerometer is OK
         M1959_internal(context, PhasesInputShaperCalibration::info);
         return;
