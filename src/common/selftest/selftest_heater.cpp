@@ -257,7 +257,7 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
         const auto hotend_type = static_cast<size_t>(config_store().hotend_type.get());
         hw_diff += m_config.hotend_type_temp_offsets[hotend_type < static_cast<size_t>(HotendType::_cnt) ? hotend_type : 0];
 
-#if NOZZLE_TYPE_SUPPORT()
+#if HAS_NOZZLE_TYPE_SELFETST_SUPPORT()
         // Bounds check, there might be invalid value in the config_store
         const auto nozzle_type = static_cast<size_t>(config_store().nozzle_type.get());
         hw_diff += m_config.nozzle_type_temp_offsets[nozzle_type < static_cast<size_t>(NozzleType::_cnt) ? nozzle_type : 0];

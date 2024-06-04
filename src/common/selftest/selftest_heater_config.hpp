@@ -52,7 +52,7 @@ struct HeaterConfig_t {
 
     std::array<int8_t, static_cast<size_t>(HotendType::_cnt)> hotend_type_temp_offsets { 0 };
 
-#if NOZZLE_TYPE_SUPPORT()
+#if HAS_NOZZLE_TYPE_SELFETST_SUPPORT()
     std::array<int8_t, static_cast<size_t>(NozzleType::_cnt)> nozzle_type_temp_offsets { 0 };
 #endif
 };

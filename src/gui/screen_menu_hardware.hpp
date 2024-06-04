@@ -45,10 +45,8 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     ,
     MI_HOTEND_SOCK_OR_TYPE
 #endif
-#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
     ,
     MI_NOZZLE_TYPE
-#endif
 #if HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()
     ,
     MI_SIDE_FSENSOR_REMAP

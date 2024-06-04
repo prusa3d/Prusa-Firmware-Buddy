@@ -40,9 +40,7 @@ using ScreenBase = ScreenMenu<EFooter::Off,
 #if PRINTER_IS_PRUSA_XL
     MI_NOZZLE_DIAMETER_HELP,
 #endif
-#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
     MI_NOZZLE_TYPE,
-#endif
     MI_NOZZLE_SOCK,
 #if HAS_MMU2()
     MI_MMU_NEXTRUDER_REWORK,
