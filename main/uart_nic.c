@@ -238,7 +238,7 @@ static esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType
 
     scan.in_progress = true;
 
-    if (associated) {
+    if (associated && scan_type != SCAN_TYPE_PROBE) {
         // The wifi scan behaves differently when the esp is connected to the AP.
         // Intentionally disconnect when starting a scan.
         // The connection will be automatically reestablished after the scan.
