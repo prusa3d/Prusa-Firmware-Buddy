@@ -72,10 +72,12 @@ static USBH_StatusTypeDef USBH_exec(UsbhMscRequest::UsbhMscRequestOperation oper
     UsbhMscRequest *request_ptr = &request;
 
     if (xQueueSend(request_queue, &request_ptr, USBH_MSC_RW_MAX_DELAY) != pdPASS) {
+        vSemaphoreDelete(semaphore);
         return USBH_FAIL;
     }
 
     xSemaphoreTake(semaphore, portMAX_DELAY);
+    vSemaphoreDelete(semaphore);
 
     return request.result;
 }
