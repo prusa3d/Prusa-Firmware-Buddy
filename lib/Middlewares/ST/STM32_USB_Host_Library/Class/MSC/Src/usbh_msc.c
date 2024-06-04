@@ -808,8 +808,9 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
 
   if ((phost->device.is_connected == 0U) ||
       (phost->gState != HOST_CLASS) ||
-      (MSC_Handle->unit[lun].state != MSC_IDLE))
-  {
+      (MSC_Handle->unit[lun].state != MSC_IDLE) ||
+      (MSC_Handle->state != MSC_IDLE)
+  ) {
     return  USBH_FAIL;
   }
 
@@ -879,8 +880,9 @@ USBH_StatusTypeDef USBH_MSC_Write(USBH_HandleTypeDef *phost,
 
   if ((phost->device.is_connected == 0U) ||
       (phost->gState != HOST_CLASS) ||
-      (MSC_Handle->unit[lun].state != MSC_IDLE))
-  {
+      (MSC_Handle->unit[lun].state != MSC_IDLE) ||
+      (MSC_Handle->state != MSC_IDLE)
+  ) {
     return  USBH_FAIL;
   }
 
