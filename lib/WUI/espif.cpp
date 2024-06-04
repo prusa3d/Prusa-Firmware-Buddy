@@ -23,8 +23,8 @@
 
 #include <buddy/esp_uart_dma_buffer_rx.hpp>
 #include "data_exchange.hpp"
-#include "main.h"
 #include "pbuf_rx.h"
+#include "scope_guard.hpp"
 #include "wui.h"
 #include <tasks.hpp>
 #include <option/has_embedded_esp32.h>
@@ -120,7 +120,7 @@ static std::atomic<bool> esp_was_ok = false;
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 static size_t old_dma_pos = 0;
 static freertos::Mutex uart_write_mutex;
-static bool uart_has_recovered_from_error = false;
+static std::atomic<bool> uart_error_occured = false;
 // Note: We never transmit more than one message so we might as well allocate statically.
 static struct __attribute__((packed)) {
     uint8_t intron[8];
@@ -176,28 +176,8 @@ static void hard_reset_device() {
 static bool can_recieve_data(ESPIFOperatingMode mode);
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
-    if (huart->Instance != UART_INSTANCE_FOR(esp)) {
-        return;
-    }
-
-    if (!can_recieve_data(esp_operating_mode)) {
-        return;
-    }
-
-    if ((huart->ErrorCode & HAL_UART_ERROR_NE || huart->ErrorCode & HAL_UART_ERROR_FE)) {
-        __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);
-        HAL_UART_DeInit(huart);
-        if (HAL_UART_Init(huart) != HAL_OK) {
-            Error_Handler();
-        }
-        assert(can_be_used_by_dma(dma_buffer_rx));
-        if (HAL_UART_Receive_DMA(huart, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
-            Error_Handler();
-        }
-        old_dma_pos = 0;
-        __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
-        uart_has_recovered_from_error = true;
-        esp_detected = true;
+    if (huart == &UART_HANDLE_FOR(esp)) {
+        uart_error_occured = true;
     }
 }
 
@@ -422,6 +402,38 @@ static void espif_tx_update_metrics(uint32_t len) {
 
 void espif_input_once(struct netif *netif) {
     if (!can_recieve_data(esp_operating_mode)) {
+        return;
+    }
+
+    bool error = true;
+    uart_error_occured.compare_exchange_strong(error, false);
+    if (error) {
+        // FIXME: There is a burst of these errors after the ESP boots, because bootloader prints
+        //        on the serial line with different baudrate.
+        //        It could help to only start receiving after some time, but we do not
+        //        want to miss the initial packet from our ESP firmware.
+        //        It doesn't matter too much besides spamming the log, so this remains
+        //        to be fixed later...
+        log_warning(ESPIF, "Recovering from UART error");
+        UART_HandleTypeDef *huart = &UART_HANDLE_FOR(esp);
+
+        __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);
+        auto enable_idle_iterrupt = ScopeGuard { [&] { __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE); } };
+
+        HAL_UART_DeInit(huart);
+        if (const HAL_StatusTypeDef status = HAL_UART_Init(huart); status != HAL_OK) {
+            log_warning(ESPIF, "HAL_UART_Init() failed: %d", status);
+            uart_error_occured = true;
+            return;
+        }
+        assert(can_be_used_by_dma(dma_buffer_rx));
+        if (const HAL_StatusTypeDef status = HAL_UART_Receive_DMA(huart, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN); status != HAL_OK) {
+            log_warning(ESPIF, "HAL_UART_Receive_DMA() failed: %d", status);
+            uart_error_occured = true;
+            return;
+        }
+        old_dma_pos = 0;
+
         return;
     }
 
@@ -890,11 +902,6 @@ bool espif_tick() {
         // Nevertheless, we have only one thread that writes in there and it's
         // atomic to allow reading things at the same time.
         init_countdown.store(current_init - 1);
-    }
-
-    if (uart_has_recovered_from_error) {
-        log_warning(ESPIF, "Recovered from UART error");
-        uart_has_recovered_from_error = false;
     }
 
     if (espif_link()) {
