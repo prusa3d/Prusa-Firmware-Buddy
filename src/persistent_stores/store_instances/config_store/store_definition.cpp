@@ -25,22 +25,25 @@ void CurrentStore::perform_config_check() {
         printer_setup_done.set(true);
     }
 
-#if HAS_TOUCH()
-    // We cannot just change the default value of touch_enabled for backwards compatiblity reasons
-    // So instead we just enable touch by default for new printers (and after fw reset)
+    // We cannot change a default value of config store items for backwards compatibility reasons.
+    // So this is a place to instead set them to something for new installations
     if (is_first_run) {
+#if HAS_TOUCH()
         touch_enabled.set(true);
-    }
 #endif
 
 #if PRINTER_IS_PRUSA_MK4
-    // We cannot change a default value of a config store item for backwards compatibility reasons
-    if (is_first_run) {
         extended_printer_type.set(ExtendedPrinterType::mk4s);
         nozzle_type.set(NozzleType::HighFlow);
         hotend_type.set(HotendType::stock_with_sock);
-    }
+
+#elif PRINTER_IS_PRUSA_XL
+        // New XL printers have .4mm nozzles: BFW-5638
+        for (int i = 0; i < HOTENDS; i++) {
+            set_nozzle_diameter(i, 0.4f);
+        }
 #endif
+    }
 
     // BFW-5486
     // Auto-update is now enablablable only in develeoper mode
