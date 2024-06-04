@@ -13,7 +13,6 @@
 
 LOG_COMPONENT_REF(USBHost);
 USBH_HandleTypeDef hUsbHostHS;
-ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 
 namespace usbh_power_cycle {
 // USB communication problems may occur at the physical layer. (emc interference, etc.)
@@ -201,11 +200,8 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
     }
 
     switch (id) {
-    case HOST_USER_SELECT_CONFIGURATION:
-        break;
 
     case HOST_USER_DISCONNECTION:
-        Appli_state = APPLICATION_DISCONNECT;
 #ifdef USBH_MSC_READAHEAD
         usbh_msc_readahead.disable();
 #endif
@@ -215,7 +211,6 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
         break;
 
     case HOST_USER_CLASS_ACTIVE: {
-        Appli_state = APPLICATION_READY;
         FRESULT result = f_mount(&USBHFatFS, (TCHAR const *)USBHPath, 0);
         if (result == FR_OK) {
             if (one_click_print_timeout > 0 && ticks_ms() < one_click_print_timeout) {
@@ -231,9 +226,6 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
         }
         break;
     }
-    case HOST_USER_CONNECTION:
-        Appli_state = APPLICATION_START;
-        break;
 
     default:
         break;
