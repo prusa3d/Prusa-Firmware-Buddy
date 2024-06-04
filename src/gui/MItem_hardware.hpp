@@ -193,7 +193,7 @@ protected:
 class MI_EXTENDED_PRINTER_TYPE : public IWiInfo {
 public:
     MI_EXTENDED_PRINTER_TYPE()
-        : IWiInfo(string_view_utf8::MakeCPUFLASH(PRINTER_MODEL), strlen(PRINTER_MODEL), _("Printer Type")) {}
+        : IWiInfo(string_view_utf8::MakeCPUFLASH(PRINTER_MODEL), _("Printer Type")) {}
 };
 
 #endif

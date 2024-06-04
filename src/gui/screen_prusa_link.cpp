@@ -59,7 +59,7 @@ void MI_PL_PASSWORD_VALUE::update_explicit() {
 // MI_PL_USER
 // ----------------------------------------------------------------
 MI_PL_USER::MI_PL_USER()
-    : IWiInfo(string_view_utf8::MakeCPUFLASH(PRUSA_LINK_USERNAME), strlen_constexpr(PRUSA_LINK_USERNAME), _(label)) {
+    : IWiInfo(string_view_utf8::MakeCPUFLASH(PRUSA_LINK_USERNAME), _(label)) {
 }
 
 MI_PL_QRCODE::MI_PL_QRCODE()

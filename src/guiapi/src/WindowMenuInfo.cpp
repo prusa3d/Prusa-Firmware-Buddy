@@ -6,9 +6,31 @@
 
 #include "WindowMenuInfo.hpp"
 
-IWiInfo::IWiInfo(string_view_utf8 value, size_t max_characters, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, ExtensionLikeLabel extension_like_label)
-    : IWindowMenuItem(label, id_icon ? id_icon->w : calculate_extension_width(extension_like_label, max_characters), id_icon, enabled, hidden)
+IWiInfo::IWiInfo(string_view_utf8 value, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
+    : IWindowMenuItem(label, 0, id_icon, enabled, hidden)
     , value_(value) {
+    update_extension_width();
+}
+
+void IWiInfo::update_extension_width() {
+    uint16_t new_width;
+    if (id_icon) {
+        new_width = id_icon->w;
+    } else {
+        new_width = value_.computeNumUtf8Chars() * (has_extension_like_label == ExtensionLikeLabel::yes ? width(GuiDefaults::FontMenuItems) : width(font));
+    }
+
+    if (!GetLabel().isNULLSTR()) {
+        // Make sure there is enough space for at least a few characters of the label
+        // This is a bit of a heuristic, we don't know the menu item rect when calling this function
+        const uint16_t max_width = GuiDefaults::ScreenWidth - (icon_width + resource_font(getLabelFont())->w * 5 + GuiDefaults::MenuScrollbarWidth);
+        new_width = std::min<uint16_t>(new_width, max_width);
+    }
+
+    if (new_width != extension_width) {
+        extension_width = new_width;
+        Invalidate();
+    }
 }
 
 void IWiInfo::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
@@ -26,6 +48,7 @@ void IWiInfo::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t col
 void WiInfoString::set_value(string_view_utf8 set) {
     if (!value_.is_same_ref(set)) {
         value_ = set;
+        update_extension_width();
         InValidateExtension();
     }
 }

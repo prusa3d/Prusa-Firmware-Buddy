@@ -98,7 +98,7 @@ void MI_WIFI_STATUS_t::update() {
 // MI_WIFI_SSID
 // ===================================================
 MI_WIFI_SSID::MI_WIFI_SSID()
-    : WiInfoString(string_view_utf8::MakeRAM(config_store().wifi_ap_ssid.get_c_str()), HAS_MINI_DISPLAY() ? 16 : 24, _(label)) {
+    : WiInfoString(string_view_utf8::MakeRAM(config_store().wifi_ap_ssid.get_c_str()), _(label)) {
 }
 
 // ===================================================
