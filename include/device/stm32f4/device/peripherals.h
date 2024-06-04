@@ -389,15 +389,6 @@ void hw_tim14_init();
     _JOIN(hw_uart, uart_##peripheral, _init) \
     ()
 
-/// Get instance of given peripheral: I2C_INSTANCE_FOR(touch) -> I2C3
-#define I2C_INSTANCE_FOR(peripheral) _JOIN(I2C, i2c_##peripheral, )
-
-/// Get instance of given peripheral: SPI_INSTANCE_FOR(lcd) -> SPI3
-#define SPI_INSTANCE_FOR(peripheral) _JOIN(SPI, spi_##peripheral, )
-
-/// Get instance of given peripheral: UART_INSTANCE_FOR(esp) -> UART3
-#define UART_INSTANCE_FOR(peripheral) _JOIN(UART, uart_##peripheral, )
-
 #ifdef __cplusplus
 }
 #endif //__cplusplus
