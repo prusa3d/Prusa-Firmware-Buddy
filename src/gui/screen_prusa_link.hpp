@@ -8,6 +8,7 @@
 #include "WindowMenuItems.hpp"
 #include <config_store/constants.hpp>
 #include <guiconfig/guiconfig.h>
+#include <MItem_network.hpp>
 
 // ----------------------------------------------------------------
 // GUI Prusa Link Password regenerate
@@ -81,11 +82,14 @@ public:
     MI_PL_USER();
 };
 
-using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENERATE_PASSWORD, MI_PL_USER,
+using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_USER,
 #if HAS_MINI_DISPLAY()
     MI_PL_PASSWORD_LABEL,
 #endif
-    MI_PL_PASSWORD_VALUE>;
+    MI_PL_PASSWORD_VALUE,
+    MI_IP4_ADDR,
+    MI_HOSTNAME,
+    MI_PL_REGENERATE_PASSWORD>;
 
 class ScreenMenuPrusaLink : public screen_t {
     static constexpr Font canvas_font = Font::special;
