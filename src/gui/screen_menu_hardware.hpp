@@ -41,7 +41,7 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #endif
     MI_NOZZLE_DIAMETER,
     MI_HARDWARE_G_CODE_CHECKS
-#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX
+#if HAS_HOTEND_TYPE_SUPPORT()
     ,
     MI_HOTEND_SOCK_OR_TYPE
 #endif
