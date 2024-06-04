@@ -42,6 +42,8 @@ extern "C" {
 
 #define USBH_MSC_IO_TIMEOUT (25 * 1000)
 
+#define MAX_SUPPORTED_LUN 1
+
 /****************************************/
 /* #define for FS and HS identification */
 #define HOST_HS 0
