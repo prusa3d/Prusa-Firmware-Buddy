@@ -321,6 +321,7 @@ status_t LIS2DH::begin(void) {
 }
 
 void LIS2DH::end(void) {
+    std::ignore = beginCore();
     m_isInicialized = false;
 }
 
