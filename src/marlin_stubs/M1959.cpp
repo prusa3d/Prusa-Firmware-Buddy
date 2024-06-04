@@ -114,7 +114,7 @@ public:
 struct Context {
     // Note: ptr is needed because accelerometer does init and doesn't have reinit
     std::unique_ptr<PrusaAccelerometer> accelerometer;
-    float accelerometer_sample_period;
+    float accelerometer_sample_period { NAN };
     FrequencyRangeSpectrum spectrum_x;
     FrequencyRangeSpectrum spectrum_y;
     input_shaper::AxisConfig axis_config_x;
@@ -131,14 +131,10 @@ struct Context {
         return accelerometer->get_error() == PrusaAccelerometer::Error::none;
     }
 
-    void ensure_accelerometer_ok() {
+    bool setup_accelerometer() {
         assert(accelerometer);
         accelerometer->set_enabled(true);
-        // Maybe redscreen would be better. Maybe retry would be better.
-        // Let's see how this behaves in testing department and fix accordingly.
-        if (!is_accelerometer_ok()) {
-            bsod("ensure_accelerometer_ok");
-        }
+        return is_accelerometer_ok();
     }
 };
 
@@ -278,24 +274,31 @@ public:
 };
 
 static PhasesInputShaperCalibration calibrating_accelerometer(Context &context) {
-    context.ensure_accelerometer_ok();
+    if (!context.setup_accelerometer()) {
+        return PhasesInputShaperCalibration::measurement_failed;
+    }
+
     AccelerometerProgressHookFsm progress_hook;
     context.accelerometer_sample_period = get_accelerometer_sample_period(progress_hook, *context.accelerometer);
     if (isnan(context.accelerometer_sample_period)) {
-        bsod("Accelerometer calibration failed.");
+        return PhasesInputShaperCalibration::measurement_failed;
     }
     return progress_hook.aborted() ? PhasesInputShaperCalibration::finish : PhasesInputShaperCalibration::measuring_x_axis;
 }
 
-// helper; return true if aborted
-static bool measuring_axis(
+// helper
+static PhasesInputShaperCalibration measuring_axis(
     Context &context,
     const PhasesInputShaperCalibration phase,
+    const PhasesInputShaperCalibration next_phase,
     const AxisEnum logicalAxis,
     const StepEventFlag_t axis_flag,
     FrequencyRangeSpectrum &spectrum) {
+    assert(!isnan(context.accelerometer_sample_period));
+    if (!context.setup_accelerometer()) {
+        return PhasesInputShaperCalibration::measurement_failed;
+    }
 
-    context.ensure_accelerometer_ok();
     fsm::PhaseData data {
         static_cast<uint8_t>(frequency_range.start),
         static_cast<uint8_t>(frequency_range.end),
@@ -318,7 +321,7 @@ static bool measuring_axis(
     float frequency_requested = frequency_range.start;
     for (size_t i = 0; i < spectrum.size(); ++i) {
         if (was_abort_requested(phase)) {
-            return true;
+            return PhasesInputShaperCalibration::finish;
         }
         data[2] = static_cast<uint8_t>(frequency_requested);
         marlin_server::fsm_change(phase, data);
@@ -328,23 +331,27 @@ static bool measuring_axis(
         spectrum.samples[i] = frequencyGain3D.get_square();
         frequency_requested += frequency_range.increment;
     }
-    return false;
+    spectrum.dump(logicalAxis == X_AXIS ? 'x' : 'y');
+    if (spectrum.is_valid()) {
+        return next_phase;
+    } else {
+        return PhasesInputShaperCalibration::measurement_failed;
+    }
 }
 
 static PhasesInputShaperCalibration measuring_x_axis(Context &context) {
-    FrequencyRangeSpectrum &spectrum = context.spectrum_x;
-    if (measuring_axis(context, PhasesInputShaperCalibration::measuring_x_axis, X_AXIS, StepEventFlag::STEP_EVENT_FLAG_STEP_X, spectrum)) {
-        return PhasesInputShaperCalibration::finish;
-    }
-    spectrum.dump('x');
-    if (!spectrum.is_valid()) {
-        return PhasesInputShaperCalibration::measurement_failed;
-    }
 #if HAS_LOCAL_ACCELEROMETER()
-    return PhasesInputShaperCalibration::attach_to_bed;
+    constexpr auto next_phase = PhasesInputShaperCalibration::attach_to_bed;
 #else
-    return PhasesInputShaperCalibration::measuring_y_axis;
+    constexpr auto next_phase = PhasesInputShaperCalibration::measuring_y_axis;
 #endif
+    return measuring_axis(
+        context,
+        PhasesInputShaperCalibration::measuring_x_axis,
+        next_phase,
+        X_AXIS,
+        StepEventFlag::STEP_EVENT_FLAG_STEP_X,
+        context.spectrum_x);
 }
 
 static PhasesInputShaperCalibration attach_to_bed(Context &) {
@@ -354,7 +361,6 @@ static PhasesInputShaperCalibration attach_to_bed(Context &) {
         return PhasesInputShaperCalibration::finish;
     case Response::Continue:
         return PhasesInputShaperCalibration::measuring_y_axis;
-        ;
     default:
         break;
     }
@@ -362,15 +368,13 @@ static PhasesInputShaperCalibration attach_to_bed(Context &) {
 }
 
 static PhasesInputShaperCalibration measuring_y_axis(Context &context) {
-    FrequencyRangeSpectrum &spectrum = context.spectrum_y;
-    if (measuring_axis(context, PhasesInputShaperCalibration::measuring_y_axis, Y_AXIS, StepEventFlag::STEP_EVENT_FLAG_STEP_Y, spectrum)) {
-        return PhasesInputShaperCalibration::finish;
-    }
-    spectrum.dump('y');
-    if (!spectrum.is_valid()) {
-        return PhasesInputShaperCalibration::measurement_failed;
-    }
-    return PhasesInputShaperCalibration::computing;
+    return measuring_axis(
+        context,
+        PhasesInputShaperCalibration::measuring_y_axis,
+        PhasesInputShaperCalibration::computing,
+        Y_AXIS,
+        StepEventFlag::STEP_EVENT_FLAG_STEP_Y,
+        context.spectrum_y);
 }
 
 class FindBestShaperProgressHookFsm final : public FindBestShaperProgressHook {
@@ -409,6 +413,9 @@ static PhasesInputShaperCalibration measurement_failed(Context &context) {
     marlin_server::fsm_change(PhasesInputShaperCalibration::measurement_failed);
     switch (wait_for_response(PhasesInputShaperCalibration::measurement_failed)) {
     case Response::Retry:
+        if (isnan(context.accelerometer_sample_period)) {
+            return PhasesInputShaperCalibration::calibrating_accelerometer;
+        }
         if (!context.spectrum_x.is_valid()) {
             return PhasesInputShaperCalibration::measuring_x_axis;
         }
