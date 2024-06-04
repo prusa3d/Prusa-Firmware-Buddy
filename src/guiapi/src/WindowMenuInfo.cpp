@@ -17,7 +17,7 @@ void IWiInfo::update_extension_width() {
     if (id_icon) {
         new_width = id_icon->w;
     } else {
-        new_width = value_.computeNumUtf8Chars() * (has_extension_like_label == ExtensionLikeLabel::yes ? width(GuiDefaults::FontMenuItems) : width(font));
+        new_width = value_.computeNumUtf8Chars() * width(font);
     }
 
     if (!GetLabel().isNULLSTR()) {
@@ -34,15 +34,7 @@ void IWiInfo::update_extension_width() {
 }
 
 void IWiInfo::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
-    const auto info_str = value();
-
-    if (has_extension_like_label == ExtensionLikeLabel::yes) {
-        render_text_align(extension_rect, info_str, getLabelFont(), color_back, GetTextColor(),
-            { (uint8_t)0U, (uint8_t)0U, (uint8_t)0U, (uint8_t)0U }, Align_t::RightCenter());
-    } else {
-        render_text_align(extension_rect, info_str, font, color_back, IsFocused() ? COLOR_DARK_GRAY : COLOR_SILVER,
-            GuiDefaults::MenuPaddingSpecial, Align_t::RightCenter());
-    }
+    render_text_align(extension_rect, value(), font, color_back, IsFocused() ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingSpecial, Align_t::RightCenter());
 }
 
 void WiInfoString::set_value(string_view_utf8 set) {

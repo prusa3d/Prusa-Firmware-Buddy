@@ -23,7 +23,7 @@ class IWiInfo : public IWindowMenuItem {
     static constexpr Font font = GuiDefaults::FontMenuSpecial;
 
 public:
-    IWiInfo(string_view_utf8 value, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no);
+    IWiInfo(string_view_utf8 value, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
 
     inline string_view_utf8 value() const {
         return value_;
@@ -51,8 +51,8 @@ public:
 class WiInfoArray : public IWiInfo {
 
 public:
-    WiInfoArray(std::span<char> value_span, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no)
-        : IWiInfo({}, label, id_icon, enabled, hidden, extension_like_label)
+    WiInfoArray(std::span<char> value_span, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
+        : IWiInfo({}, label, id_icon, enabled, hidden)
         , value_span_(value_span) {}
 
 public:
@@ -77,8 +77,8 @@ template <size_t INFO_LEN>
 class WiInfo : public WiInfoArray {
 
 public:
-    WiInfo(string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no)
-        : WiInfoArray(value_array_, label, id_icon, enabled, hidden, extension_like_label) {}
+    WiInfo(string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
+        : WiInfoArray(value_array_, label, id_icon, enabled, hidden) {}
 
     WiInfo(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, const img::Resource *id_icon = nullptr)
         : WiInfo(label, id_icon, is_enabled_t::yes, hidden) {

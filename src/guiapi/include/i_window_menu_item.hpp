@@ -59,15 +59,6 @@ public:
         replaces_extends,
     };
 
-    /**
-     * @brief print extension the same way as label
-     * == bolder and whiter than normal extension
-     */
-    enum class ExtensionLikeLabel : bool {
-        no,
-        yes
-    };
-
     /// Minimum width of the item extension touch rect
     static constexpr int minimum_touch_extension_area_width = 96;
 
@@ -128,7 +119,6 @@ private:
     show_disabled_extension_t show_disabled_extension : 1 = show_disabled_extension_t::yes; // Hide disabled menu_items's extension
 
 protected:
-    ExtensionLikeLabel has_extension_like_label : 1 = ExtensionLikeLabel::no; // currently has meaning only for menu item info, but might have meaning for other types as well
     uint16_t extension_width : 10;
     /// Marks this menu item as returning.
     /// TOUCH_SWIPE_LEFT gesture tries to find an item with this flag in the menu and execute it.
