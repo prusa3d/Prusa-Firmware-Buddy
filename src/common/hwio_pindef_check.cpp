@@ -77,3 +77,7 @@ static constexpr bool is_valid_pin([[maybe_unused]] buddy::hw::IoPort ioPort, bu
 
 PIN_TABLE(PORTS_TO_VALIDATE)
 PIN_TABLE(PINS_TO_VALIDATE)
+#if defined(RUNTIME_PIN_TABLE)
+RUNTIME_PIN_TABLE(PORTS_TO_VALIDATE)
+RUNTIME_PIN_TABLE(PINS_TO_VALIDATE)
+#endif
