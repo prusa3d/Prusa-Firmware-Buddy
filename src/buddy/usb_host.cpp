@@ -132,6 +132,12 @@ void restart_timer_callback(TimerHandle_t) {
 
         // Turn the USB on
         recovery_phase = RecoveryPhase::power_on;
+
+        // Reinitialize the USB host low-level driver
+        // This seems to fix BFW-5333
+        USBH_LL_DeInit(&hUsbHostHS);
+        USBH_LL_Init(&hUsbHostHS);
+
         USBH_Start(&hUsbHostHS);
 
         // Give some time for the USB device to respond.
