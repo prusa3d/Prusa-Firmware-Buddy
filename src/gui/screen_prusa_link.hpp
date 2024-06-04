@@ -19,9 +19,6 @@ class MI_PL_REGENERATE_PASSWORD : public IWindowMenuItem {
 public:
     MI_PL_REGENERATE_PASSWORD();
 
-public:
-    enum EventMask { value = 1 << 18 };
-
 protected:
     virtual void click(IWindowMenu &) override;
 };
@@ -33,9 +30,6 @@ class MI_PL_ENABLED : public WI_ICON_SWITCH_OFF_ON_t {
 
 public:
     MI_PL_ENABLED();
-
-public:
-    enum EventMask { value = 1 << 19 };
 
 protected:
     virtual void OnChange(size_t old_index) override;
