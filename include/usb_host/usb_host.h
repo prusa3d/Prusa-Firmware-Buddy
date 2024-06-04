@@ -27,13 +27,6 @@ extern "C" {
 
 #include "usbh_def.h"
 
-typedef enum {
-    APPLICATION_IDLE = 0,
-    APPLICATION_START,
-    APPLICATION_READY,
-    APPLICATION_DISCONNECT
-} ApplicationTypeDef;
-
 void MX_USB_HOST_Init(void);
 
 bool device_connected_at_startup();
