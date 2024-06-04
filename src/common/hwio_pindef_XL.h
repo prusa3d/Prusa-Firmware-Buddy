@@ -142,24 +142,30 @@ inline Pin::State xyProbeReadFn();
     MACRO_FUNCTION(buddy::hw::InterruptPin, zDiag, BUDDY_PIN(Z_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA ISR_PRIORITY_ENDSTOP COMMA 0, endstop_ISR) \
     MACRO_FUNCTION(buddy::hw::OutputPin, xyEnable, BUDDY_PIN(X_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::OutputPin, zEnable, BUDDY_PIN(Z_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, zStep, BUDDY_PIN(Z_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, e0Step, BUDDY_PIN(E0_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, xDir, BUDDY_PIN(X_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, yDir, BUDDY_PIN(Y_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, zDir, BUDDY_PIN(Z_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, zStep, BUDDY_PIN(Z_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, e0Step, BUDDY_PIN(E0_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, xDir, BUDDY_PIN(X_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, yDir, BUDDY_PIN(Y_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, zDir, BUDDY_PIN(Z_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::InputOutputPin, touch_sig, buddy::hw::IoPort::C COMMA buddy::hw::IoPin::p8, IMode::input COMMA Pull::none, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::OutputPin, splitter5vEnable, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p14, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::OutputPin, AD2setA, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p12, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::OutputPin, AD2setB, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p6, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::OutputPin, espPower, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p4, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, pin_a0, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p0, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, pin_d7, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p7, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, pin_e9, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p9, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, pin_d5, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p5, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, pin_a3, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p3, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::OutputPin, GPIOReset, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::openDrain COMMA OSpeed::low, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::InputPin, fan1_tach0, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p5, IMode::input COMMA Pull::none, buddy::hw::noHandler)
+
+// These pins shall not be configured automatically. The intialization code shall determine what gets initialized based on board revision
+#define RUNTIME_PIN_TABLE(MACRO_FUNCTION) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, buzzer_pin_d5, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p5, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, buzzer_pin_a0, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p0, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, xStep_pin_a0, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p0, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, xStep_pin_d7, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p7, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, yStep_pin_a3, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p3, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, yStep_pin_d5, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p5, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, sideLed_LcdSelector_pin_e9, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p9, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)
+
 // clang-format on
 
 namespace buddy::hw {
@@ -169,9 +175,9 @@ extern TCA6408A io_expander2;
 
 // Following pins are connected differently depending on HW revision -> we'll determine where they are during runtime in hwio_configure_board_revision_changed_pins
 extern const OutputPin *Buzzer;
-extern const OutputPin *SideLed_LcdSelector;
 extern const OutputPin *XStep;
 extern const OutputPin *YStep;
+extern const OutputPin *SideLed_LcdSelector;
 
 } // namespace buddy::hw
 

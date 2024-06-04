@@ -71,9 +71,9 @@ enum {
 
 namespace buddy::hw {
 const OutputPin *Buzzer = nullptr;
-const OutputPin *SideLed_LcdSelector = nullptr;
 const OutputPin *XStep = nullptr;
 const OutputPin *YStep = nullptr;
+const OutputPin *SideLed_LcdSelector = nullptr;
 } // namespace buddy::hw
 
 // stores board bom ID from OTP for faster access
@@ -377,17 +377,21 @@ void buddy::hw::hwio_configure_board_revision_changed_pins() {
 
     // Different HW revisions have different pins connections, figure it out here
     if (board_bom_id >= 9 || board_bom_id == 4) {
-        Buzzer = &pin_a0;
-        XStep = &pin_d7;
-        YStep = &pin_d5;
+        Buzzer = &buzzer_pin_a0;
+        XStep = &xStep_pin_d7;
+        YStep = &yStep_pin_d5;
     } else {
-        Buzzer = &pin_d5;
-        XStep = &pin_a0;
-        YStep = &pin_a3;
+        Buzzer = &buzzer_pin_d5;
+        XStep = &xStep_pin_a0;
+        YStep = &yStep_pin_a3;
     }
+    Buzzer->configure();
+    XStep->configure();
+    YStep->configure();
 
     if (board_bom_id >= 9) {
-        SideLed_LcdSelector = &pin_e9;
+        SideLed_LcdSelector = &sideLed_LcdSelector_pin_e9;
+        SideLed_LcdSelector->configure();
     }
 }
 

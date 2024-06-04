@@ -524,6 +524,9 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
 
 namespace buddy::hw {
 PIN_TABLE(DECLARE_PINS)
+#if defined(RUNTIME_PIN_TABLE)
+RUNTIME_PIN_TABLE(DECLARE_PINS)
+#endif
 #if defined(EXTENDER_PIN_TABLE)
 EXTENDER_PIN_TABLE(DECLARE_PINS)
 #endif
