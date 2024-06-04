@@ -39,6 +39,7 @@ Distributed as-is; no warranty is given.
 #include "SPI.h"
 #include "hwio_pindef.h"
 #include "timing_precise.hpp"
+#include <common/scope_guard.hpp>
 #include <device/peripherals.h>
 #include <bit>
 #include "Marlin/src/core/serial.h"
@@ -87,6 +88,56 @@ using namespace buddy::hw;
 #define LIS2DH_TIME_WINDOW  0x3D
 #define LIS2DH_ACT_THS      0x3E
 #define LIS2DH_ACT_DUR      0x3F
+
+static constexpr uint32_t HAL_SPI_TIMEOUT = 5;
+
+[[nodiscard]] static status_t spi_transmit(uint8_t *data, size_t size) {
+    if (HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), data, size, HAL_SPI_TIMEOUT) == HAL_OK) {
+        return IMU_SUCCESS;
+    } else {
+        return IMU_GENERIC_ERROR;
+    }
+}
+
+[[nodiscard]] static status_t spi_receive(uint8_t *data, size_t size) {
+    if (HAL_SPI_Receive(&SPI_HANDLE_FOR(accelerometer), data, size, HAL_SPI_TIMEOUT) == HAL_OK) {
+        return IMU_SUCCESS;
+    } else {
+        return IMU_GENERIC_ERROR;
+    }
+}
+
+#define TRY_SPI_TRANSMIT(data, size)                                               \
+    if (const status_t status = spi_transmit(data, size); status != IMU_SUCCESS) { \
+        return status;                                                             \
+    }
+
+#define TRY_SPI_RECEIVE(data, size)                                               \
+    if (const status_t status = spi_receive(data, size); status != IMU_SUCCESS) { \
+        return status;                                                            \
+    }
+
+class ChipSelect {
+private:
+    const buddy::hw::OutputPin &pin;
+
+public:
+    ChipSelect(const buddy::hw::OutputPin &pin)
+        : pin { pin } {
+        // Ensure minimum deselect time from previous transfer.
+        // The chip might be deselected in ISR so the minimum delay is not
+        // in ISR but here.
+        delay_ns_precise<50>();
+        // take the chip select low to select the device:
+        pin.write(Pin::State::low);
+        delay_ns_precise<5>();
+    }
+    ~ChipSelect() {
+        // take the chip select high to de-select:
+        delay_ns_precise<20>();
+        pin.write(Pin::State::high);
+    }
+};
 
 //****************************************************************************//
 //
@@ -155,19 +206,13 @@ status_t LIS2DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
     uint8_t c = 0;
     uint8_t tempFFCounter = 0;
 
-    // Ensure minimum deselect time from previous transfer.
-    // The chip might be deselected in ISR so the minimum delay is not
-    // in ISR but here.
-    delay_ns_precise<50>();
-    // take the chip select low to select the device:
-    chip_select_pin.write(Pin::State::low);
-    delay_ns_precise<5>();
+    ChipSelect chip_select { chip_select_pin };
     // send the device the register you want to read:
     offset = offset | 0x80 | 0x40; // Ored with "read request" bit and "auto increment" bit
-    HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
+    TRY_SPI_TRANSMIT(&offset, 1);
     while (i < length) // slave may send less than requested
     {
-        HAL_SPI_Receive(&SPI_HANDLE_FOR(accelerometer), &c, 1, HAL_MAX_DELAY);
+        TRY_SPI_RECEIVE(&c, 1);
         if (c == 0xFF) {
             // May have problem
             tempFFCounter++;
@@ -180,9 +225,6 @@ status_t LIS2DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
         // Ok, we've recieved all ones, report
         returnError = IMU_ALL_ONES_WARNING;
     }
-    // take the chip select high to de-select:
-    delay_ns_precise<20>();
-    chip_select_pin.write(Pin::State::high);
 
     return returnError;
 }
@@ -201,20 +243,11 @@ status_t LIS2DHCore::readRegister(uint8_t *outputPointer, uint8_t offset) {
     uint8_t result;
     status_t returnError = IMU_SUCCESS;
 
-    // Ensure minimum deselect time from previous transfer.
-    // The chip might be deselected in ISR so the minimum delay is not
-    // in ISR but here.
-    delay_ns_precise<50>();
-    // take the chip select low to select the device:
-    chip_select_pin.write(Pin::State::low);
-    delay_ns_precise<5>();
+    ChipSelect chip_select { chip_select_pin };
     // send the device the register you want to read:
     offset = offset | 0x80; // Ored with "read request" bit
-    HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
-    HAL_SPI_Receive(&SPI_HANDLE_FOR(accelerometer), &result, 1, HAL_MAX_DELAY);
-    // take the chip select high to de-select:
-    delay_ns_precise<20>();
-    chip_select_pin.write(Pin::State::high);
+    TRY_SPI_TRANSMIT(&offset, 1);
+    TRY_SPI_RECEIVE(&result, 1);
 
     if (result == 0xFF) {
         // we've recieved all ones, report
@@ -253,20 +286,12 @@ status_t LIS2DHCore::readRegisterInt16(int16_t *outputPointer, uint8_t offset) {
 //    dataToWrite -- 8 bit data to write to register
 //
 //****************************************************************************//
-void LIS2DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
-    // Ensure minimum deselect time from previous transfer.
-    // The chip might be deselected in ISR so the minimum delay is not
-    // in ISR but here.
-    delay_ns_precise<50>();
-    // take the chip select low to select the device:
-    chip_select_pin.write(Pin::State::low);
-    delay_ns_precise<5>();
+status_t LIS2DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
+    ChipSelect chip_select { chip_select_pin };
     // send the device the register you want to read:
-    HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
-    HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &dataToWrite, 1, HAL_MAX_DELAY);
-    // take the chip select high to de-select:
-    delay_ns_precise<20>();
-    chip_select_pin.write(Pin::State::high);
+    TRY_SPI_TRANSMIT(&offset, 1);
+    TRY_SPI_TRANSMIT(&dataToWrite, 1);
+    return IMU_SUCCESS;
 }
 
 //****************************************************************************//
@@ -550,24 +575,28 @@ void LIS2DH::fifoBegin(void) {
     writeRegister(LIS2DH_CTRL_REG5, dataToWrite);
 }
 
-void LIS2DH::fifoClear(void) {
+status_t LIS2DH::fifoClear() {
     // Drain the fifo data and dump it
-    while ((fifoGetStatus() & 0x20) == 0) {
-        readRawAccelX();
-        readRawAccelY();
-        readRawAccelZ();
+    for (;;) {
+        uint8_t fifo_status;
+        const status_t status = fifoGetStatus(&fifo_status);
+        if (status == IMU_SUCCESS) {
+            if ((fifo_status & 0x20) == 0) {
+                readRawAccelX();
+                readRawAccelY();
+                readRawAccelZ();
+            } else {
+                return status;
+            }
+        } else {
+            return status;
+        }
     }
 }
 
-uint8_t LIS2DH::fifoGetStatus(void) {
+status_t LIS2DH::fifoGetStatus(uint8_t *tempReadByte) {
     // Return some data on the state of the fifo
-    uint8_t tempReadByte = 0;
-    readRegister(&tempReadByte, LIS2DH_FIFO_SRC_REG);
-#ifdef VERBOSE_SERIAL
-    Serial.print("LIS3DH_FIFO_SRC_REG: 0x");
-    Serial.println(tempReadByte, HEX);
-#endif
-    return tempReadByte;
+    return readRegister(tempReadByte, LIS2DH_FIFO_SRC_REG);
 }
 
 /**

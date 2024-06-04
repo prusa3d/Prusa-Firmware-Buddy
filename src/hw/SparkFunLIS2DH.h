@@ -71,7 +71,7 @@ protected:
     status_t readRegisterInt16(int16_t *, uint8_t offset);
 
     // Writes an 8-bit byte;
-    void writeRegister(uint8_t, uint8_t);
+    status_t writeRegister(uint8_t, uint8_t);
 
 private:
     // Communication stuff
@@ -137,8 +137,8 @@ public:
 
     // FIFO stuff
     void fifoBegin(void);
-    void fifoClear(void);
-    uint8_t fifoGetStatus(void);
+    status_t fifoClear();
+    status_t fifoGetStatus(uint8_t *);
 
     float calcAccel(int16_t);
 
