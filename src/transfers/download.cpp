@@ -6,6 +6,7 @@
     // Avoid deep transitive dependency hell in unit tests...
     #include <nhttp/server.h>
 #endif
+#include <common/pbuf_deleter.hpp>
 #include <nhttp/splice.h>
 #include <http_lifetime.h>
 #include <timing.h>
@@ -275,13 +276,6 @@ public:
             done(DownloadStep::FailedNetwork);
             return ERR_ABRT;
         }
-        // TODO: Unify with the one in server.h
-        class PbufDeleter {
-        public:
-            void operator()(pbuf *buff) {
-                pbuf_free(buff);
-            }
-        };
         unique_ptr<pbuf, PbufDeleter> data(data_raw);
         if (phase != Phase::Headers) {
             done(DownloadStep::Aborted);

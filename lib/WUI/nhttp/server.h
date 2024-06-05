@@ -7,6 +7,7 @@
 #include "handler.h"
 
 #include <automata/core.h>
+#include <common/pbuf_deleter.hpp>
 
 #include <lwip/altcp.h>
 #include <lwip/tcpip.h>
@@ -94,13 +95,6 @@ public:
  */
 class Server {
 private:
-    class PbufDeleter {
-    public:
-        void operator()(pbuf *buff) {
-            pbuf_free(buff);
-        }
-    };
-
     class ListenerDeleter {
     public:
         void operator()(altcp_pcb *conn) {
