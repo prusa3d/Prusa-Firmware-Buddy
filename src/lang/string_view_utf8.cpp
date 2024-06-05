@@ -30,19 +30,47 @@ string_view_utf8 string_view_utf8::substr(size_t pos) const {
 }
 
 size_t string_view_utf8::copyToRAM(char *dst, size_t max_size) const {
+    if (max_size == 0) {
+        return 0;
+    }
+    char *dst_start = dst;
     StringReaderUtf8 reader(*this);
-
-    size_t bytesCopied = 0;
     for (size_t i = 0; i < max_size; ++i) {
         *dst = reader.getbyte();
         if (*dst == 0) {
-            return bytesCopied;
+            return dst - dst_start;
         }
         ++dst;
-        ++bytesCopied;
     }
-    *dst = 0; // safety termination in case of reaching the end of the buffer
-    return bytesCopied;
+
+    --dst; // dst pointer is decremented to point at the last character of the buffer
+    // terminate string - cut the string in between characters (no leftover prefixes)
+    while (dst != dst_start && UTF8_IS_CONT(*dst)) {
+        dst--;
+    }
+
+    *dst = 0;
+    return dst - dst_start;
+}
+
+size_t string_view_utf8::copyBytesToRAM(char *dst, size_t buffer_size) const {
+    if (buffer_size == 0) {
+        return 0;
+    }
+    StringReaderUtf8 reader(*this);
+    char *dst_start = dst;
+    for (size_t i = 0; i < buffer_size; ++i) {
+        *dst = reader.getbyte();
+        if (*dst == 0) {
+            return dst - dst_start;
+        }
+        ++dst;
+    }
+
+    // Beware - no multibyte character check!
+    // dst pointer is decremented to point at the last character of the buffer
+    *(--dst) = 0; // safety termination in case of reaching the end of the buffer
+    return dst - dst_start;
 }
 
 unichar StringReaderUtf8::getUtf8Char() {

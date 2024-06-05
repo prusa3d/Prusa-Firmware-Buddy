@@ -202,18 +202,37 @@ TEST_CASE("string_view_utf8::Copy to RAM", "[string_view_utf8]") {
 
     const auto orig = string_view_utf8::MakeRAM((const uint8_t *)fmt2Translate);
     string_view_utf8 sf = orig;
-    sf.copyToRAM(fmt, 1);
+    size_t copied_bytes = sf.copyToRAM(fmt, 1);
+    REQUIRE_THAT(fmt, Equals(""));
+    REQUIRE(copied_bytes == 0);
+
+    sf = orig;
+    copied_bytes = sf.copyToRAM(fmt, 2);
     REQUIRE_THAT(fmt, Equals("N"));
+    REQUIRE(copied_bytes == 1);
 
     sf = orig;
-    sf.copyToRAM(fmt, 2);
-    REQUIRE_THAT(fmt, Equals("No"));
+    copied_bytes = sf.copyToRAM(fmt, 4);
+    REQUIRE_THAT(fmt, Equals("Noz"));
+    REQUIRE(copied_bytes == 3);
 
     sf = orig;
-    sf.copyToRAM(fmt, 4);
-    REQUIRE_THAT(fmt, Equals("Nozz"));
-
-    sf = orig;
-    sf.copyToRAM(fmt, sizeof(fmt));
+    copied_bytes = sf.copyToRAM(fmt, sizeof(fmt));
     REQUIRE_THAT(fmt, Equals(fmt2Translate));
+    REQUIRE(copied_bytes == sizeof(fmt2Translate) - 1);
+}
+
+TEST_CASE("string_view_utf8::CopyToRAM dst buffer too small + multibyte chars", "[string_view_utf8]") {
+    using Catch::Matchers::Equals;
+    char dst[44] = {};
+    static const char src[] = "%d インプットシェーパーキャリブレーション";
+    static const char ref[] = "%d インプットシェーパーキャリ";
+
+    static auto orig = string_view_utf8::MakeRAM((const uint8_t *)src);
+    size_t copied_bytes = orig.copyToRAM(dst, sizeof(dst));
+    REQUIRE_THAT(dst, Equals(ref));
+    REQUIRE(copied_bytes == sizeof(ref) - 1); // -1 because we don't count copying null at the end
+
+    copied_bytes = orig.copyBytesToRAM(dst, sizeof(dst));
+    REQUIRE(copied_bytes == sizeof(dst) - 1);
 }
