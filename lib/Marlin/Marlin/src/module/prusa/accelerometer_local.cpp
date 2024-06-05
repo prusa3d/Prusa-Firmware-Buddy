@@ -21,11 +21,12 @@ PrusaAccelerometer::~PrusaAccelerometer() = default;
 void PrusaAccelerometer::set_enabled(bool enable) {
     m_error = Error::none;
     if (enable) {
-        clear();
         if (IMU_SUCCESS != accelerometer.begin()) {
             m_error = Error::communication;
+        } else {
+            accelerometer.fifoClear();
+            accelerometer.fifoBegin();
         }
-        accelerometer.fifoBegin();
     } else {
         accelerometer.end();
     }
