@@ -12,7 +12,7 @@ static_assert(Action::_first != Action::_last, "Edge case not handled");
 
 class I_MI_STS : public IWindowMenuItem {
 public:
-    static constexpr size_t max_label_len { 44 }; ///< Buffer for label, needs to fit all languages
+    static constexpr size_t max_label_len { 66 }; ///< Buffer for label, needs to fit all languages
     I_MI_STS(Action action);
     void do_click(IWindowMenu &window_menu, Action action);
 
