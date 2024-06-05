@@ -477,7 +477,7 @@ private:
                 const bool was_alive = espif_tick();
 
                 // It's OK if the ESP is turned off on purpose or if it's up and running.
-                const bool esp_ok = (iface_mode(ifaces[NETDEV_ESP_ID]) == Mode::Off || ap.ssid[0] == '\0' || (espif_link() && was_alive));
+                const bool esp_ok = (iface_mode(ifaces[NETDEV_ESP_ID]) == Mode::Off || ap.ssid[0] == '\0' || (espif_link() && was_alive) || espif::scan::is_running());
 
                 if (esp_ok) {
                     last_esp_ok = now;
