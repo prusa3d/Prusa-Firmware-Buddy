@@ -252,7 +252,7 @@ void ScreenSelftestTemp::change() {
     case PhasesSelftest::Heaters_AskBedSheetAfterFail: {
         test_frame.Hide();
         text_dialog.Show();
-        text_dialog.SetText(_("Bed heater selftest failed.\n\nIf you forgot to put the steel sheet on the heatbed, put it on and then press Retry."));
+        text_dialog.SetText(_("Bed heater selftest failed.\n\nIf you forgot to put the steel sheet on the heatbed, place it on and press Retry."));
         radio.Show();
         break;
     }
