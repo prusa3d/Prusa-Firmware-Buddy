@@ -107,11 +107,7 @@ void buddy::metrics::RecordRuntimeStats() {
             log_error(Metrics, "Failed to record stack & runtime metrics. The task_statuses array might be too small.");
         } else {
             for (int idx = 0; idx < count; idx++) {
-                // Sanitize task name
                 const char *task_name = task_statuses[idx].pcTaskName;
-                if (strcmp(task_name, "Tmr Svc") == 0) {
-                    task_name = "TmrSvc";
-                }
 
                 // Report stack usage
                 const char *stack_base = (char *)task_statuses[idx].pxStackBase;

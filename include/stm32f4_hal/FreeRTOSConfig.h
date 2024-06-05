@@ -166,9 +166,10 @@ extern uint32_t SystemCoreClock;
  * priority to be high so that the events are delivered timely. Otherwise
  * high priority tasks might end up waiting for their events until low priority
  * tasks yield.*/
-#define configTIMER_TASK_PRIORITY    ((configMAX_PRIORITIES - 1) - 1)
-#define configTIMER_QUEUE_LENGTH     10
-#define configTIMER_TASK_STACK_DEPTH configMINIMAL_STACK_SIZE
+#define configTIMER_TASK_PRIORITY     ((configMAX_PRIORITIES - 1) - 1)
+#define configTIMER_QUEUE_LENGTH      10
+#define configTIMER_TASK_STACK_DEPTH  configMINIMAL_STACK_SIZE
+#define configTIMER_SERVICE_TASK_NAME "TmrSvc" // Must be without space because of metrics
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES           0
