@@ -167,7 +167,7 @@ namespace migrations {
     void hostname(journal::Backend &backend) {
         // See selftest_result_pre_23 (above) for in-depth commentary
         using NewItem = decltype(CurrentStore::hostname);
-        NewItem::value_type hostname;
+        NewItem::value_type hostname { 0 };
 
         auto callback = [&](journal::Backend::ItemHeader header, std::array<uint8_t, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
             // Copy either hostname that's not empty
@@ -177,7 +177,9 @@ namespace migrations {
         };
         backend.read_items_for_migrations(callback);
 
-        backend.save_migration_item(NewItem::hashed_id, hostname);
+        if (strlen(hostname.data()) > 0) {
+            backend.save_migration_item(NewItem::hashed_id, hostname);
+        }
     }
 } // namespace migrations
 } // namespace config_store_ns
