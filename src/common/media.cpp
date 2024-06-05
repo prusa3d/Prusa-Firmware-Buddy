@@ -203,13 +203,7 @@ void media_prefetch(const void *) {
             if (file_buff_pos == file_buff_level) { // file buffer depleted
                 prefetch_state = bb_state;
                 if (back_buff_level > 0 && bb_state != GCodeFilter::State::Timeout && bb_state != GCodeFilter::State::Error) { // swap to back buffer
-                    if (file_buff == prefetch_buff[0]) {
-                        file_buff = prefetch_buff[1];
-                        back_buff = prefetch_buff[0];
-                    } else {
-                        file_buff = prefetch_buff[0];
-                        back_buff = prefetch_buff[1];
-                    }
+                    std::swap(file_buff, back_buff);
                     file_buff_level = back_buff_level;
                     file_buff_pos = 0;
                     back_buff_level = 0;
