@@ -108,6 +108,7 @@ static uint32_t now_seconds() {
 static atomic_uint_least32_t last_inbound_seen = 0;
 static atomic_bool associated = false;
 static atomic_bool wifi_running = false;
+static atomic_bool connecting = false;
 
 static bool beacon_quirk;
 static uint8_t probe_max_reties = 3;
@@ -256,6 +257,17 @@ static esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType
         associated = false;
     }
 
+    if (connecting) {
+        esp_err_t err = esp_wifi_disconnect();
+        if (err != ESP_OK) {
+            ESP_LOGW(TAG, "Unable to disconnect from current wifi AP: %s", esp_err_to_name(err));
+        }
+        err = esp_wifi_deauth_sta(0); // 0 -> all
+        if (err != ESP_OK) {
+            ESP_LOGW(TAG, "Unable to deauthorize from wifi: %s", esp_err_to_name(err));
+        }
+    }
+
     xTaskCreate(&do_wifi_scan, "wifi_scan", 2048, NULL, tskIDLE_PRIORITY + 1, NULL);
     return ESP_OK;
 }
@@ -315,15 +327,34 @@ static void IRAM_ATTR probe_run() {
     start_wifi_scan(&probe_handler, SCAN_TYPE_PROBE);
 }
 
+static void IRAM_ATTR wifi_re_connect_task(void* args) {
+    if (!scan.in_progress) {
+        ESP_LOGI(TAG, "Connecting to AP");
+        esp_wifi_connect();
+    } else {
+        ESP_LOGW(TAG, "Unable to connect, scan is in progress. Will try to reconnect after the scan");
+        scan.should_reconnect = true;
+    }
+
+    vTaskDelete(NULL);
+}
+
+static void IRAM_ATTR start_wifi_connect_task() {
+    connecting = true;
+    xTaskCreate(wifi_re_connect_task, "wifi_connect_task", 2048, NULL, tskIDLE_PRIORITY, NULL);
+}
+
 static void IRAM_ATTR handle_disconnect_and_try_reconnect() {
     associated = false;
     send_link_status(0);
     if (s_retry_num < CONFIG_ESP_MAXIMUM_RETRY) {
-        esp_wifi_connect();
+        start_wifi_connect_task();
         s_retry_num++;
         ESP_LOGI(TAG, "retry to connect to the AP");
+    } else {
+        ESP_LOGI(TAG,"connect to the AP fail");
+        connecting = false;
     }
-    ESP_LOGI(TAG,"connect to the AP fail");
 }
 
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
@@ -334,17 +365,19 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             ESP_ERROR_CHECK(esp_wifi_set_protocol(ESP_IF_WIFI_STA, uart_nic_protocol));
             return;
         }
-        esp_wifi_connect();
+        start_wifi_connect_task();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
         if (scan.in_progress) {
             // We have intentionally disconnected from the wifi to make sure that the scan is not interupted by anything.
             // Lets handle the disconnection at the end of the scan.
             scan.should_reconnect = true;
+            connecting = false;
         } else {
             handle_disconnect_and_try_reconnect();
         }
 
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
+        connecting = false;
         last_inbound_seen = now_seconds();
         associated = true;
         beacon_quirk = true;
