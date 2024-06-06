@@ -417,6 +417,36 @@ public:
         }
     }
 
+    struct JobInfo {
+        enum class JobResult {
+            finished,
+            aborted,
+        };
+        uint16_t job_id;
+        JobResult result;
+    };
+
+    std::optional<JobInfo::JobResult> get_job_result(uint16_t job_id) {
+        auto guard = MarlinVarsLockGuard();
+        for (const auto &job : job_history) {
+            if (job.has_value() && job->job_id == job_id) {
+                return job->result;
+            }
+        }
+
+        return std::nullopt;
+    }
+
+    void add_job_result(uint16_t job_id, JobInfo::JobResult result) {
+        auto guard = MarlinVarsLockGuard();
+        if (job_history[1].has_value() && job_id == job_history[1]->job_id) {
+            assert(job_history[1]->result == result);
+            return;
+        }
+        job_history[0] = job_history[1];
+        job_history[1] = { job_id, result };
+    }
+
     /**
      * @brief Get the last fsm state
      *
@@ -452,6 +482,7 @@ private:
     osMutexId mutex_id; // Mutex ID
     std::atomic<osThreadId> current_mutex_owner; // current mutex owner -> to check for recursive locking
     std::array<Hotend, HOTENDS> hotends; // array of hotends (use hotend()/active_hotend() getter)
+    std::array<std::optional<JobInfo>, 2> job_history;
     fsm::States fsm_states;
 #if ENABLED(CANCEL_OBJECTS)
     uint64_t cancel_object_mask;

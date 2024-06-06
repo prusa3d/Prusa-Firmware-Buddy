@@ -63,6 +63,7 @@ public:
 #endif
     virtual void reset_printer() override;
     virtual const char *dialog_action(uint32_t dialog_id, Response response) override;
+    virtual std::optional<FinishedJobResult> get_prior_job_result(uint16_t job_id) const override;
 
     static bool load_cfg_from_ini();
 

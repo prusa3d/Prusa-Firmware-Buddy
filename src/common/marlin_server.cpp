@@ -667,7 +667,7 @@ static void cycle() {
     processing = 0;
 }
 
-void static finalize_print() {
+void static finalize_print(bool finished) {
 #if ENABLED(POWER_PANIC)
     power_panic::reset();
 #endif
@@ -702,6 +702,7 @@ void static finalize_print() {
     server.print_is_serial = false; // reset flag about serial print
 
     marlin_vars()->print_end_time = time(nullptr);
+    marlin_vars()->add_job_result(job_id, finished ? marlin_vars_t::JobInfo::JobResult::finished : marlin_vars_t::JobInfo::JobResult::aborted);
 }
 
 static const uint8_t MARLIN_IDLE_CNT_BUSY = 1;
@@ -961,7 +962,7 @@ void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_pre
     // handle preview / reprint
     if (server.print_state == State::Finished || server.print_state == State::Aborted) {
         // correctly end previous print
-        finalize_print();
+        finalize_print(server.print_state == State::Finished);
         if (fsm_states.is_active(ClientFSM::Printing)) {
             // exit from print screen, if opened
             fsm_destroy(ClientFSM::Printing);
@@ -1500,6 +1501,10 @@ static void _server_print_loop(void) {
 
         case PrintPreview::Result::Abort:
             new_state = did_not_start_print ? State::Idle : State::Finishing_WaitIdle;
+            if (did_not_start_print) {
+                // Saving the result for connect, we already send the job id to them at this point.
+                marlin_vars()->add_job_result(job_id, marlin_vars_t::JobInfo::JobResult::aborted);
+            }
             fsm_destroy(ClientFSM::PrintPreview);
             break;
 
@@ -1847,7 +1852,7 @@ static void _server_print_loop(void) {
             if (server.print_is_serial) {
                 fsm_destroy(ClientFSM::Serial_printing);
             }
-            finalize_print();
+            finalize_print(false);
         }
         break;
     case State::Aborting_Preview:
@@ -1905,17 +1910,17 @@ static void _server_print_loop(void) {
             if (server.print_is_serial) {
                 fsm_destroy(ClientFSM::Serial_printing);
             }
-            finalize_print();
+            finalize_print(true);
         }
         break;
     case State::Exit:
         // make the State::Exit state more resilient to repeated calls (e.g. USB drive pulled out prematurely at the end-of-print screen)
         if (fsm_states.is_active(ClientFSM::Printing)) {
-            finalize_print();
+            finalize_print(false);
             fsm_destroy(ClientFSM::Printing);
         }
         if (fsm_states.is_active(ClientFSM::Serial_printing)) {
-            finalize_print();
+            finalize_print(false);
         }
         server.print_state = State::Idle;
         break;

@@ -45,6 +45,16 @@ namespace connect_client {
 
 namespace {
 
+    const char *to_str(Printer::FinishedJobResult result) {
+        switch (result) {
+        case Printer::FinishedJobResult::FIN_OK:
+            return "FIN_OK";
+        case Printer::FinishedJobResult::FIN_STOPPED:
+            return "FIN_STOPPED";
+        }
+        return nullptr;
+    }
+
     std::optional<transfers::Monitor::Status> get_transfer_status(size_t resume_point, const RenderState &state) {
         if (state.transfer_id.has_value()) {
             // If we've seen a transfer info previously, allow using a stale one to continue there.
@@ -206,6 +216,7 @@ namespace {
 #if ENABLED(CANCEL_OBJECTS)
         char cancel_object_name[Printer::CANCEL_OBJECT_NAME_LEN];
 #endif
+        std::optional<Printer::FinishedJobResult> job_state;
 
         const char *reject_with = nullptr;
         Printer::NetCreds creds = {};
@@ -223,10 +234,14 @@ namespace {
         }
 
         if (event.type == EventType::JobInfo && (!params.has_job || event.job_id.value_or(params.job_id) != params.job_id)) {
-            // Can't send a job info when not printing, refuse instead.
-            //
-            // Can't provide historic/future jobs.
-            reject_with = params.has_job ? "Job ID doesn't match" : "No job in progress";
+            // We have a job history (with just the state) of two last jobs, if this is one of them, send it,
+            // otherwise reject.
+            if (event.job_id.has_value()) {
+                job_state = state.printer.get_prior_job_result(event.job_id.value());
+            }
+            if (job_state == nullopt) {
+                reject_with = params.has_job ? "Job ID doesn't match" : "No job in progress";
+            }
         }
 
         if (event.type == EventType::FileInfo && !state.has_stat && !state.file_extra.renderer.holds_alternative<DirRenderer>()) {
@@ -337,22 +352,31 @@ namespace {
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::JobInfo) {
                 JSON_FIELD_OBJ("data");
-                    // The JobInfo doesn't claim the buffer, so we get it to store the path.
-                    assert(params.job_path() != nullptr);
-                    if (state.has_stat) {
-                        JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
-                        JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
-                    }
-                    if (params.job_lfn() != nullptr) {
-                        JSON_FIELD_STR("display_name", params.job_lfn());
+                    if (job_state != nullopt) {
+                        JSON_FIELD_STR("state", to_str(job_state.value()));
                     } else {
-                        JSON_FIELD_STR("display_name", basename_b(params.job_path()));
+                        if (params.state.device_state == DeviceState::Printing) {
+                            JSON_FIELD_STR("state", "PRINTING") JSON_COMMA;
+                        } else {
+                            JSON_FIELD_STR("state", "PAUSED") JSON_COMMA;
+                        }
+                        // The JobInfo doesn't claim the buffer, so we get it to store the path.
+                        assert(params.job_path() != nullptr);
+                        if (state.has_stat) {
+                            JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
+                            JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
+                        }
+                        if (params.job_lfn() != nullptr) {
+                            JSON_FIELD_STR("display_name", params.job_lfn());
+                        } else {
+                            JSON_FIELD_STR("display_name", basename_b(params.job_path()));
+                        }
+                        JSON_COMMA;
+                        if (event.start_cmd_id.has_value()) {
+                            JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id) JSON_COMMA;
+                        }
+                        JSON_FIELD_STR("path", params.job_path());
                     }
-                    JSON_COMMA;
-                    if (event.start_cmd_id.has_value()) {
-                        JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id) JSON_COMMA;
-                    }
-                    JSON_FIELD_STR("path", params.job_path());
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::FileInfo) {
                 JSON_FIELD_OBJ("data");

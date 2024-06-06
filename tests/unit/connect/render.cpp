@@ -182,7 +182,7 @@ TEST_CASE("Render") {
         // clang-format off
         expected = "{"
             "\"job_id\":42,"
-            R"("data":{"display_name":"box.gcode","path":"/usb/box.gco"},)"
+            R"("data":{"state":"PRINTING","display_name":"box.gcode","path":"/usb/box.gco"},)"
             "\"state\":\"PRINTING\","
             "\"command_id\":11,"
             "\"event\":\"JOB_INFO\""
@@ -208,6 +208,41 @@ TEST_CASE("Render") {
         };
         params.emplace(params_printing());
         expected = rejected_event_printing;
+    }
+
+    SECTION("Even - job info - old job ID FINISHED") {
+        action = Event {
+            EventType::JobInfo,
+            11,
+            41,
+        };
+        params.emplace(params_printing());
+        // clang-format off
+        expected = "{"
+            "\"job_id\":42,"
+            R"("data":{"state":"FIN_OK"},)"
+            "\"state\":\"PRINTING\","
+            "\"command_id\":11,"
+            "\"event\":\"JOB_INFO\""
+        "}";
+        // clang-format on
+    }
+
+    SECTION("Even - job info - old job ID ABORTED") {
+        action = Event {
+            EventType::JobInfo,
+            11,
+            40,
+        };
+        params.emplace(params_idle());
+        // clang-format off
+        expected = "{"
+            R"("data":{"state":"FIN_STOPPED"},)"
+            "\"state\":\"IDLE\","
+            "\"command_id\":11,"
+            "\"event\":\"JOB_INFO\""
+        "}";
+        // clang-format on
     }
 
     SECTION("Event - info") {

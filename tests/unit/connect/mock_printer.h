@@ -88,6 +88,15 @@ public:
         return GcodeResult::Submitted;
     }
 
+    virtual std::optional<FinishedJobResult> get_prior_job_result(uint16_t job_id) const override {
+        if (job_id == 41) {
+            return FinishedJobResult::FIN_OK;
+        } else if (job_id == 40) {
+            return FinishedJobResult::FIN_STOPPED;
+        }
+        return std::nullopt;
+    }
+
     virtual bool set_ready(bool) override {
         return true;
     }

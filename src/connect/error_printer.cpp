@@ -130,6 +130,10 @@ const char *ErrorPrinter::dialog_action(uint32_t, Response) {
     return "Click not allowed.";
 }
 
+std::optional<ErrorPrinter::FinishedJobResult> ErrorPrinter::get_prior_job_result(uint16_t) const {
+    return nullopt;
+}
+
 void ErrorPrinter::reset_printer() {
     NVIC_SystemReset();
 }

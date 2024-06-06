@@ -524,4 +524,20 @@ const char *MarlinPrinter::dialog_action(uint32_t dialog_id, Response response) 
     return nullptr;
 }
 
+std::optional<MarlinPrinter::FinishedJobResult> MarlinPrinter::get_prior_job_result(uint16_t job_id) const {
+    auto result = marlin_vars()->get_job_result(job_id);
+    if (!result.has_value()) {
+        return nullopt;
+    }
+
+    switch (result.value()) {
+    case marlin_vars_t::JobInfo::JobResult::aborted:
+        return FinishedJobResult::FIN_STOPPED;
+    case marlin_vars_t::JobInfo::JobResult::finished:
+        return FinishedJobResult::FIN_OK;
+    }
+
+    return nullopt;
+}
+
 } // namespace connect_client
