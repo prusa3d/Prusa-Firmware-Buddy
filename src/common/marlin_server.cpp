@@ -557,6 +557,9 @@ void handle_nfc() {
 /// can do this since this will be only called at the end of the print or when aborting.
 /// So it shouldn't overwrite any important gcodes.
 void safely_unload_filament_from_nozzle_to_mmu() {
+    if (MMU2::WhereIsFilament() == MMU2::FilamentState::NOT_PRESENT) {
+        return; // no filament loaded, nothing to do
+    }
     const auto original_temp = thermalManager.degTargetHotend(active_extruder);
     enqueue_gcode("M702 W2");
     enqueue_gcode_printf("M104 S%i", original_temp);
