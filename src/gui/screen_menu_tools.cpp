@@ -137,12 +137,13 @@ ScreenMenuToolSetup::ScreenMenuToolSetup()
     : detail::ScreenMenuToolSetup(_(labels[displayed_tool])) {
 }
 
-I_MI_TOOL::I_MI_TOOL(const char *const label, int index)
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.getTool(index).is_enabled() ? is_hidden_t::no : is_hidden_t::yes, expands_t::yes) {
+I_MI_TOOL::I_MI_TOOL(uint8_t tool_index)
+    : IWindowMenuItem(_(tool_name(tool_index)), nullptr, is_enabled_t::yes, prusa_toolchanger.getTool(tool_index).is_enabled() ? is_hidden_t::no : is_hidden_t::yes, expands_t::yes)
+    , tool_index(tool_index) {
 }
 
-void I_MI_TOOL::do_click(int index) {
-    displayed_tool = index;
+void I_MI_TOOL::click(IWindowMenu &) {
+    displayed_tool = tool_index;
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuToolSetup>);
 }
 

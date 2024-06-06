@@ -119,42 +119,20 @@ public:
 class I_MI_TOOL : public IWindowMenuItem {
 
 public:
-    I_MI_TOOL(const char *const label, int index);
+    I_MI_TOOL(uint8_t tool_index);
 
 protected:
-    void do_click(int index);
+    void click(IWindowMenu &window_menu);
+
+private:
+    const uint8_t tool_index;
 };
 
 template <int N>
 class MI_TOOL : public I_MI_TOOL {
-    static consteval const char *get_name() {
-        switch (N) {
-        case 0:
-            return N_("Tool 1");
-        case 1:
-            return N_("Tool 2");
-        case 2:
-            return N_("Tool 3");
-        case 3:
-            return N_("Tool 4");
-        case 4:
-            return N_("Tool 5");
-        }
-        consteval_assert_false();
-        return "";
-    }
-
-    static constexpr const char *const label = get_name();
-
 public:
     MI_TOOL()
-        : I_MI_TOOL(label, N) {
-    }
-
-protected:
-    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {
-        do_click(N);
-    }
+        : I_MI_TOOL(N) {}
 };
 
 class MI_PARK_TOOL : public IWindowMenuItem {
