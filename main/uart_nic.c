@@ -36,7 +36,7 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 
-#include "uart0_driver.c"
+#include "uart0_driver.h"
 
 #include "esp_private/wifi.h"
 #include "esp_supplicant/esp_wpa.h"
