@@ -283,6 +283,11 @@ private:
         netdev_set_active_id(NETDEV_ESP_ID);
     }
 
+    void phase_connecting_reset_and_connect() {
+        espif_reset_connection();
+        notify_reconfigure();
+    }
+
     PhaseOpt phase_connecting(const Meta::LoopCallbackArgs &args) {
         if (phase_action_done_ && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP) {
             return Phase::connected;
@@ -294,8 +299,7 @@ private:
         // We do this after some delay, because it freezes the printer.
         // If we did this in the phase init, the screen would not be redrawn for some time.
         if (phase_time_ms > 700 && !phase_action_done_) {
-            espif_reset_connection();
-            notify_reconfigure();
+            phase_connecting_reset_and_connect();
             phase_action_done_ = true;
         }
 
@@ -308,9 +312,15 @@ private:
 
         case Response::Back:
         case Response::Cancel:
+            if (!phase_action_done_) {
+                phase_connecting_reset_and_connect();
+            }
             return cancel_target_phase_;
 
         case Response::Finish:
+            if (!phase_action_done_) {
+                phase_connecting_reset_and_connect();
+            }
             return Phase::finish;
 
         default:
