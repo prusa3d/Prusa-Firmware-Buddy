@@ -1,0 +1,74 @@
+name: Bug report
+description: File a bug report
+title: '[BUG] '
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you create a new bug report, please check if an issue with it already exists (either open or closed) by using the search bar on the issues page. If it does, comment there. Even if it's closed, we can reopen it based on your comment.
+  - type: input
+    id: printer_model
+    attributes:
+      label: Printer model
+      description: Enter the printer model(s) where you encountered the issue
+      placeholder: 'MK4, XL Single/Multi tool, Mini+, ...'
+    validations:
+      required: true
+  - type: input
+    id: firmware_version
+    attributes:
+      label: Firmware version
+      description: |
+        If you're using a custom firmware (not downloaded from Prusa), please note that!
+      placeholder: '6.0.0, 6.1.0-alpha, ...'
+    validations:
+      required: true
+  - type: input
+    id: optional_upgrades
+    attributes:
+      label: Upgrades and modifications
+      description: 'If your printer has upgrades or was modified, please note that!  If not, please write None or leave blank.'
+      placeholder: |
+        None, filament runout sensor (Mini), custom extruder/hotend (which), ...
+  - type: input
+    id: printing_from
+    attributes:
+      label: Printing from...
+      placeholder: 'USB drive, USB cable/Octoprint, PrusaLink, Prusa Connect, ...'
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: Write a concise description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce
+      description: |
+        If you are able to reproduce the issue - meaning that you can trigger it yourself by following certain steps - please describe the step-by-step process in as much detail as possible!
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected behavior
+      description: |
+        If the printer did something unexpected, or if the procedure is missing a step that would resolve the issue, please provide a step-by-step process of how it should behave.
+  - type: textarea
+    id: files
+    attributes:
+      label: Files
+      description: |
+        Provide at least one of these (ideally as many as you can) to help developers track down the bug.
+        *To upload files, compress them into a .zip file and drag them to the text area to upload.* Images and videos can be uploaded directly.
+
+        - **gcode** file
+        - **3mf project** which includes the model and printer settings
+        - **video** or **photos** of the issue happening
+
+        **Crash dump: Do not share the file publicly**, as the crash dump contains a raw snapshot of the printer's memory and may include unencrypted sensitive information.
+        Please send the crash dump file to Prusa by emailing it to reports@prusa3d.com and referencing this issue. Sharing this file is important and helps us investigate the bug.

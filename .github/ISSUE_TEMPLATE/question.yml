@@ -1,0 +1,16 @@
+name: Question
+description: Ask a firmware specific question
+title: '[QUESTION] '
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you create a new question, please check if an issue with it already exists (either open or closed) by using the search bar on the issues page.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+    validations:
+      required: true

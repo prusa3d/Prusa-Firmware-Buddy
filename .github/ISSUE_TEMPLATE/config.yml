@@ -1,0 +1,11 @@
+contact_links:
+  - name: Do you need Support?
+    url: https://help.prusa3d.com/article/customer-support_2287
+    about: If you are not sure whether what you are reporting is a bug, please contact our support team first. We are providing full 24/7 customer support.
+  - name: Knowledge Base
+    url: https://help.prusa3d.com/
+    about: We have a comprehensive help documentation that could be helpful for troubleshooting.
+  - name: Prusa Forum
+    url: https://forum.prusa3d.com/
+    about: Please get in touch on our Prusa Forum! (Not an official support channel)
+blank_issues_enabled: false
