@@ -62,7 +62,7 @@ optional<Printer::NetInfo> ErrorPrinter::net_info(Printer::Iface) const {
 }
 
 Printer::NetCreds ErrorPrinter::net_creds() const {
-    NetCreds creds = { "", "" };
+    NetCreds creds = { "", "", "" };
 
     return creds;
 }

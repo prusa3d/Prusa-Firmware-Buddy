@@ -227,7 +227,7 @@ TEST_CASE("Render") {
                 "\"fingerprint\":\"DEADBEEF\","
                 "\"nozzle_diameter\":0.40,"
                 "\"storages\":[],"
-                "\"network_info\":{\"hostname\":\"some_hostname\"},"
+                "\"network_info\":{\"hostname\":\"\"},"
                 "\"slots\":1"
             "},"
             "\"state\":\"IDLE\","

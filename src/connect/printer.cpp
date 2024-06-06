@@ -122,7 +122,7 @@ uint32_t Printer::info_fingerprint() const {
     return crc
         .add_str(creds.ssid)
         .add_str(creds.pl_password)
-        .add_str(parameters.hostname)
+        .add_str(creds.hostname)
         .add(parameters.has_usb)
         .add(parameters.nozzle_diameter)
         .add(parameters.version.type)

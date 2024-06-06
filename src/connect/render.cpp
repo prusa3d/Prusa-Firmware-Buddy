@@ -302,7 +302,7 @@ namespace {
                         JSON_MAC("wifi_mac", state.wifi->mac) JSON_COMMA;
                         JSON_IP("wifi_ipv4", state.wifi->ip) JSON_COMMA;
                     }
-                    JSON_FIELD_STR("hostname", params.hostname);
+                    JSON_FIELD_STR("hostname", creds.hostname);
                     JSON_OBJ_END JSON_COMMA;
 
 #if XL_ENCLOSURE_SUPPORT()

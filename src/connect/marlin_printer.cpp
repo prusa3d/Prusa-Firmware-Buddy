@@ -222,7 +222,6 @@ Printer::Params MarlinPrinter::params() const {
     params.filament_used = Odometer_s::instance().get_extruded_all();
     params.nozzle_diameter = config_store().get_nozzle_diameter(params.preferred_slot());
     params.has_usb = marlin_vars()->media_inserted;
-    netdev_get_hostname(netdev_get_active_id(), params.hostname, sizeof(params.hostname));
 
     struct statvfs fsbuf = {};
     if (params.has_usb && statvfs("/usb/", &fsbuf) == 0) {
@@ -328,6 +327,7 @@ Printer::NetCreds MarlinPrinter::net_creds() const {
     NetCreds result = {};
     strlcpy(result.pl_password, config_store().prusalink_password.get_c_str(), sizeof(result.pl_password));
     strlcpy(result.ssid, config_store().wifi_ap_ssid.get_c_str(), sizeof(result.ssid));
+    netdev_get_hostname(netdev_get_active_id(), result.hostname, sizeof(result.hostname));
     return result;
 }
 

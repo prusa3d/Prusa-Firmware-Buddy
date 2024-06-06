@@ -20,7 +20,6 @@ inline Printer::Params params_idle() {
     params.nozzle_diameter = 0.4;
     params.version = { 2, 3, 0 };
     params.slot_mask = 1;
-    strlcpy(params.hostname, "some_hostname", sizeof(params.hostname));
 
     return params;
 }
