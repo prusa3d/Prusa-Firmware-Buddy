@@ -13,17 +13,13 @@
     #endif /*HAS_SIDE_FSENSOR()*/
 #endif /*HAS_TOOLCHANGER()*/
 
-#if ENABLED(PRUSA_TOOLCHANGER)
-MI_NOZZLE_DIAMETER::MI_NOZZLE_DIAMETER(int tool_idx, is_hidden_t with_toolchanger)
-    : WiSpin(get_eeprom(tool_idx), nozzle_diameter_spin_config, _(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? with_toolchanger : is_hidden_t::no) //< Hide if toolchanger is enabled
-    , tool_idx(tool_idx) {
-}
-#else /*ENABLED(PRUSA_TOOLCHANGER)*/
 MI_NOZZLE_DIAMETER::MI_NOZZLE_DIAMETER(int tool_idx, [[maybe_unused]] is_hidden_t with_toolchanger)
-    : WiSpin(get_eeprom(tool_idx), nozzle_diameter_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no)
+    : WiSpin(get_eeprom(tool_idx), nozzle_diameter_spin_config, _(label))
     , tool_idx(tool_idx) {
+#if ENABLED(PRUSA_TOOLCHANGER)
+    set_is_hidden(prusa_toolchanger.is_toolchanger_enabled());
+#endif
 }
-#endif /*ENABLED(PRUSA_TOOLCHANGER)*/
 
 float MI_NOZZLE_DIAMETER::get_eeprom(int tool_idx) const {
     return config_store().get_nozzle_diameter(tool_idx);
