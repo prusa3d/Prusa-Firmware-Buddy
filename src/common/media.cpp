@@ -411,7 +411,7 @@ void media_print_resume(void) {
         return;
     }
 
-    std::lock_guard mutex_guard(prefetch_mutex_file_reader);
+    std::unique_lock mutex_guard(prefetch_mutex_file_reader);
     if (!media_print_file.is_open()) {
         // file was closed by media_print_pause, reopen
         media_print_file = AnyGcodeFormatReader { marlin_vars()->media_SFN_path.get_ptr() };
@@ -421,6 +421,8 @@ void media_print_resume(void) {
         if (media_print_file_reset_position()) {
             gcode_filter.reset();
             media_print_state = media_print_state_PRINTING;
+
+            mutex_guard.release();
             osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
         } else {
             marlin_server::set_warning(WarningType::USBFlashDiskError);
