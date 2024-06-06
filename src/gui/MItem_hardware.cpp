@@ -4,6 +4,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_side_fsensor.h>
 #include <PersistentStorage.h>
+#include <common/nozzle_diameter.hpp>
 
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -11,14 +12,6 @@
         #include <filament_sensors_handler_XL_remap.hpp>
     #endif /*HAS_SIDE_FSENSOR()*/
 #endif /*HAS_TOOLCHANGER()*/
-
-static constexpr NumericInputConfig nozzle_diameter_spin_config {
-    .min_value = 0.2,
-    .max_value = 1.2,
-    .step = 0.05,
-    .max_decimal_places = 2,
-    .unit = Unit::millimeter,
-};
 
 #if ENABLED(PRUSA_TOOLCHANGER)
 MI_NOZZLE_DIAMETER::MI_NOZZLE_DIAMETER(int tool_idx, is_hidden_t with_toolchanger)
