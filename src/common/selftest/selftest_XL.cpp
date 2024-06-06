@@ -397,6 +397,8 @@ void CSelftest::Loop() {
         break;
 
     case stsReviseSetupAfterHeaters:
+        m_result = config_store().selftest_result.get();
+
         if (m_result.bed == TestResult_Failed) {
             marlin_server::fsm_change(PhasesSelftest::Heaters_AskBedSheetAfterFail, {});
             switch (marlin_server::get_response_from_phase(PhasesSelftest::Heaters_AskBedSheetAfterFail)) {

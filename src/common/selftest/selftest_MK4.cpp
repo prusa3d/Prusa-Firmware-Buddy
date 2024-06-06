@@ -346,6 +346,8 @@ void CSelftest::Loop() {
         break;
 
     case stsReviseSetupAfterAxes:
+        m_result = config_store().selftest_result.get();
+
         // Offer setup revision only if both axes failed.
         // The HW config can switch between 400step and 200step motors.
         // If this setting is the cause, it wouldn't make sense that only one test failed.
@@ -385,6 +387,8 @@ void CSelftest::Loop() {
         break;
 
     case stsReviseSetupAfterHeaters:
+        m_result = config_store().selftest_result.get();
+
         if (m_result.bed == TestResult_Failed) {
             marlin_server::fsm_change(PhasesSelftest::Heaters_AskBedSheetAfterFail, {});
             switch (marlin_server::get_response_from_phase(PhasesSelftest::Heaters_AskBedSheetAfterFail)) {
