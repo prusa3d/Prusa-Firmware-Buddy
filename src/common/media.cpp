@@ -65,8 +65,8 @@ size_t back_buff_level = 0;
 uint32_t file_buff_pos;
 GCodeFilter::State prefetch_state;
 
-SemaphoreHandle_t prefetch_mutex_data_out = nullptr; ///< Mutex to switch buffers
-SemaphoreHandle_t prefetch_mutex_file_reader = nullptr; ///< Mutex to not close while another thread is using it
+freertos::Mutex prefetch_mutex_data_out; ///< Mutex to switch buffers
+freertos::Mutex prefetch_mutex_file_reader; ///< Mutex to not close while another thread is using it
 
 METRIC_DEF(metric_prefetched_bytes, "media_prefetched", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
@@ -128,12 +128,6 @@ media_state_t media_get_state(void) {
 }
 
 void media_prefetch(const void *) {
-    prefetch_mutex_data_out = xSemaphoreCreateMutex();
-    assert(prefetch_mutex_data_out);
-
-    prefetch_mutex_file_reader = xSemaphoreCreateMutex();
-    assert(prefetch_mutex_file_reader);
-
     TaskDeps::provide(TaskDeps::Dependency::media_prefetch_ready);
     for (;;) {
         char *back_buff = prefetch_buff[0];
@@ -166,14 +160,13 @@ void media_prefetch(const void *) {
         IGcodeReader::Result_t first_read_res;
         do {
             log_info(MarlinServer, "Media prefetch: Prefetching first %zu bytes at offset %" PRIu32, FILE_BUFF_SIZE, media_current_position);
-            xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
+            std::lock_guard mutex_guard(prefetch_mutex_file_reader);
             if (media_print_file.is_open()) {
                 back_buff_level = FILE_BUFF_SIZE;
                 first_read_res = media_print_file->stream_get_block(back_buff, back_buff_level);
             } else {
                 first_read_res = IGcodeReader::Result_t::RESULT_ERROR;
             }
-            xSemaphoreGive(prefetch_mutex_file_reader);
         } while (first_read_res == IGcodeReader::Result_t::RESULT_TIMEOUT);
 
         if ((first_read_res == IGcodeReader::Result_t::RESULT_OK || first_read_res == IGcodeReader::Result_t::RESULT_EOF) && back_buff_level > 0) { // read anything, or EOF happened
@@ -199,17 +192,19 @@ void media_prefetch(const void *) {
             bool rerun_loop = false; // by default, loop will run once and wait for signal
 
             // swap back and front buffer, if its possible
-            xSemaphoreTake(prefetch_mutex_data_out, portMAX_DELAY);
-            if (file_buff_pos == file_buff_level) { // file buffer depleted
-                prefetch_state = bb_state;
-                if (back_buff_level > 0 && bb_state != GCodeFilter::State::Timeout && bb_state != GCodeFilter::State::Error) { // swap to back buffer
-                    std::swap(file_buff, back_buff);
-                    file_buff_level = back_buff_level;
-                    file_buff_pos = 0;
-                    back_buff_level = 0;
+            {
+                std::lock_guard mutex_guard(prefetch_mutex_data_out);
+
+                if (file_buff_pos == file_buff_level) { // file buffer depleted
+                    prefetch_state = bb_state;
+                    if (back_buff_level > 0 && bb_state != GCodeFilter::State::Timeout && bb_state != GCodeFilter::State::Error) { // swap to back buffer
+                        std::swap(file_buff, back_buff);
+                        file_buff_level = back_buff_level;
+                        file_buff_pos = 0;
+                        back_buff_level = 0;
+                    }
                 }
             }
-            xSemaphoreGive(prefetch_mutex_data_out);
 
             const bool need_fetch = back_buff_level == 0 && (bb_state != GCodeFilter::State::Eof && bb_state != GCodeFilter::State::Error && bb_state != GCodeFilter::State::NotDownloaded);
             if (need_fetch) {
@@ -219,28 +214,30 @@ void media_prefetch(const void *) {
                 back_buff_level = FILE_BUFF_SIZE;
                 auto second_read_res = IGcodeReader::Result_t::RESULT_ERROR;
 
-                xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-                if (media_print_file.is_open()) {
-                    second_read_res = media_print_file->stream_get_block(back_buff, back_buff_level);
-                } else {
-                    second_read_res = IGcodeReader::Result_t::RESULT_ERROR;
-                }
+                {
+                    std::lock_guard mutex_guard(prefetch_mutex_file_reader);
 
-                if (second_read_res == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE) {
-                    // The reader thinks it is outside of the already
-                    // downloaded range. But we haven't updated our knowledge
-                    // about what's downloaded in a while, so update it now and
-                    // retry. If it still fails even after update, deal with it below.
-                    transfers::Transfer::Path path;
-                    marlin_vars()->media_SFN_path.execute_with([&](const char *value) {
-                        path = transfers::Transfer::Path(value);
-                    });
+                    if (media_print_file.is_open()) {
+                        second_read_res = media_print_file->stream_get_block(back_buff, back_buff_level);
+                    } else {
+                        second_read_res = IGcodeReader::Result_t::RESULT_ERROR;
+                    }
 
-                    media_print_file->update_validity(path);
-                    back_buff_level = FILE_BUFF_SIZE;
-                    second_read_res = media_print_file->stream_get_block(back_buff, back_buff_level);
+                    if (second_read_res == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE) {
+                        // The reader thinks it is outside of the already
+                        // downloaded range. But we haven't updated our knowledge
+                        // about what's downloaded in a while, so update it now and
+                        // retry. If it still fails even after update, deal with it below.
+                        transfers::Transfer::Path path;
+                        marlin_vars()->media_SFN_path.execute_with([&](const char *value) {
+                            path = transfers::Transfer::Path(value);
+                        });
+
+                        media_print_file->update_validity(path);
+                        back_buff_level = FILE_BUFF_SIZE;
+                        second_read_res = media_print_file->stream_get_block(back_buff, back_buff_level);
+                    }
                 }
-                xSemaphoreGive(prefetch_mutex_file_reader);
                 log_info(USBHost, "Media prefetch read done");
                 osThreadSetPriority(osThreadGetId(), TASK_PRIORITY_MEDIA_PREFETCH);
 
@@ -310,13 +307,11 @@ void media_print_start__prepare(const char *sfnFilePath) {
 }
 
 void media_print_start() {
-    assert(prefetch_mutex_file_reader);
-
     if (media_print_state != media_print_state_NONE) {
         return;
     }
 
-    xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
+    std::lock_guard mutex_guard(prefetch_mutex_file_reader);
     media_print_file = AnyGcodeFormatReader { marlin_vars()->media_SFN_path.get_ptr() };
     auto result = IGcodeReader::Result_t::RESULT_ERROR;
     if (media_print_file.is_open() && (result = media_print_file->stream_gcode_start()) == IGcodeReader::Result_t::RESULT_OK) {
@@ -334,7 +329,6 @@ void media_print_start() {
     } else {
         marlin_server::set_warning(WarningType::USBFlashDiskError);
     }
-    xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
 inline void close_file_no_lock() {
@@ -343,11 +337,8 @@ inline void close_file_no_lock() {
 }
 
 inline void close_file() {
-    assert(prefetch_mutex_file_reader);
-
-    xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
+    std::lock_guard mutex_guard(prefetch_mutex_file_reader);
     close_file_no_lock();
-    xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
 void media_print_stop(void) {
@@ -363,18 +354,15 @@ void media_print_stop(void) {
 }
 
 void media_print_quick_stop(uint32_t pos) {
-    assert(prefetch_mutex_file_reader);
-
     skip_gcode = false;
     media_print_state = media_print_state_PAUSED;
     media_reset_position = pos;
     queue.clear();
 
-    xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
+    std::lock_guard mutex_guard(prefetch_mutex_file_reader);
     if (media_print_file.is_open()) {
         media_stream_restore_info = media_print_file->get_restore_info();
     }
-    xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
 void media_print_quick_stop_powerpanic() {
@@ -419,13 +407,11 @@ static bool media_print_file_reset_position() {
 }
 
 void media_print_resume(void) {
-    assert(prefetch_mutex_file_reader);
-
     if ((media_print_state != media_print_state_PAUSED)) {
         return;
     }
 
-    xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
+    std::lock_guard mutex_guard(prefetch_mutex_file_reader);
     if (!media_print_file.is_open()) {
         // file was closed by media_print_pause, reopen
         media_print_file = AnyGcodeFormatReader { marlin_vars()->media_SFN_path.get_ptr() };
@@ -443,11 +429,11 @@ void media_print_resume(void) {
     } else {
         marlin_server::set_warning(WarningType::USBFlashDiskError);
     }
-    xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
 void media_print_reopen() {
-    xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
+    std::lock_guard mutex_guard(prefetch_mutex_file_reader);
+
     if (media_print_file.is_open()) {
         media_stream_restore_info = media_print_file->get_restore_info();
         media_print_file = AnyGcodeFormatReader {};
@@ -457,7 +443,6 @@ void media_print_reopen() {
             usbh_power_cycle::trigger_usb_failed_dialog = true;
         }
     }
-    xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
 media_print_state_t media_print_get_state(void) {
@@ -492,13 +477,12 @@ char getByte(GCodeFilter::State *state) {
     char byte;
     uint32_t level;
 
-    xSemaphoreTake(prefetch_mutex_data_out, portMAX_DELAY);
+    std::lock_guard mutex_guard(prefetch_mutex_data_out);
     if (file_buff_level - file_buff_pos > 0) {
         *state = GCodeFilter::State::Ok;
         media_current_position++;
         byte = file_buff[file_buff_pos++];
         level = file_buff_level - file_buff_pos;
-        xSemaphoreGive(prefetch_mutex_data_out);
         if (level == 0) {
             osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_FETCH);
         }
@@ -511,7 +495,6 @@ char getByte(GCodeFilter::State *state) {
     } else {
         *state = prefetch_state;
     }
-    xSemaphoreGive(prefetch_mutex_data_out);
     return '\0';
 }
 
