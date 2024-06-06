@@ -1,0 +1,29 @@
+name: Enhancement
+description: Suggest an improvement of the existing functionality
+title: '[ENHANCEMENT] '
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you create a new enhancement, please check if an issue with it already exists (either open or closed) by using the search bar on the issues page.
+  - type: input
+    id: printer_model
+    attributes:
+      label: Printer model
+      description: Enter the printer model(s) where you would like this enhancement
+      placeholder: 'MK4, XL Single/Multi tool, Mini+, ...'
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the enhancement
+      description: How would this enhancement improve your experience? Do you have a specific use case where this enhancemnet is especially needed?
+    validations:
+      required: true
+  - type: textarea
+    id: expected_functionality
+    attributes:
+      label: Expected functionality
+      description: |
+        Describe the way the enhancement would change existing functionality. You can also describe it in a step-by-step basis if applicable.
