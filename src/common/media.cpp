@@ -422,7 +422,7 @@ void media_print_resume(void) {
             gcode_filter.reset();
             media_print_state = media_print_state_PRINTING;
 
-            mutex_guard.release();
+            mutex_guard.unlock();
             osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
         } else {
             marlin_server::set_warning(WarningType::USBFlashDiskError);
