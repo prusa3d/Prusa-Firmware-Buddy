@@ -196,6 +196,10 @@ LoopResult CSelftestPart_Axis::stateWaitHomingReporter() {
 }
 
 LoopResult CSelftestPart_Axis::stateEvaluateHomingXY() {
+    if (axes_need_homing(_BV(config.axis))) {
+        return LoopResult::Fail;
+    }
+
     endstops.enable(true);
     return LoopResult::RunNext;
 }
