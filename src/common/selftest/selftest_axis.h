@@ -74,7 +74,6 @@ public:
     LoopResult stateCycleMark2() { return LoopResult::MarkLoop2; }
     LoopResult stateMove();
     LoopResult stateMoveFinishCycle();
-    LoopResult stateMoveFinishCycleWithMotorSwitch();
     LoopResult stateParkAxis();
     LoopResult state_verify_coils(); ///< Report error when coils were never seen ok
 

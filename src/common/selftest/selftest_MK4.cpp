@@ -250,12 +250,7 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const TestData 
 
     uint32_t full_test_check_mask = stmFans | stmXYZAxis | stmHeaters | stmLoadcell | stmFSensor;
     if ((full_test_check_mask & test_mask) == full_test_check_mask) {
-        m_Mask = (SelftestMask_t)(m_Mask | to_one_hot(stsXAxisWithMotorDetection));
-    }
-
-    // cannot have both stsXAxisWithMotorDetection and stsXAxis
-    if (m_Mask & to_one_hot(stsXAxisWithMotorDetection)) {
-        m_Mask = (SelftestMask_t)(m_Mask & ~to_one_hot(stsXAxis));
+        m_Mask = (SelftestMask_t)(m_Mask | to_one_hot(stsXAxis));
     }
 
     m_State = stsStart;
@@ -316,12 +311,6 @@ void CSelftest::Loop() {
         }
         break;
     }
-    case stsXAxisWithMotorDetection: {
-        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::no, Detect200StepMotors::yes)) {
-            return;
-        }
-        break;
-    }
     case stsYAxis: {
         if (selftest::phaseAxis(pYAxis, Config_YAxis, Separate::no)) {
             return;
@@ -347,11 +336,7 @@ void CSelftest::Loop() {
 
     case stsReviseSetupAfterAxes:
         m_result = config_store().selftest_result.get();
-
-        // Offer setup revision only if both axes failed.
-        // The HW config can switch between 400step and 200step motors.
-        // If this setting is the cause, it wouldn't make sense that only one test failed.
-        if (m_result.xaxis == TestResult_Failed && m_result.yaxis == TestResult_Failed) {
+        if (m_result.xaxis == TestResult_Failed || m_result.yaxis == TestResult_Failed) {
             switch (phase_revise_printer_setup()) {
 
             case RevisePrinterSetupResult::running:
