@@ -1126,11 +1126,7 @@ uint8_t axes_need_homing(uint8_t axis_bits/*=0x07*/) {
   #else
     #define HOMED_FLAGS axis_homed
   #endif
-  // Clear test bits that are homed
-  if (TEST(axis_bits, X_AXIS) && TEST(HOMED_FLAGS, X_AXIS)) CBI(axis_bits, X_AXIS);
-  if (TEST(axis_bits, Y_AXIS) && TEST(HOMED_FLAGS, Y_AXIS)) CBI(axis_bits, Y_AXIS);
-  if (TEST(axis_bits, Z_AXIS) && TEST(HOMED_FLAGS, Z_AXIS)) CBI(axis_bits, Z_AXIS);
-  return axis_bits;
+  return axis_bits & ~HOMED_FLAGS;
 }
 
 bool axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
