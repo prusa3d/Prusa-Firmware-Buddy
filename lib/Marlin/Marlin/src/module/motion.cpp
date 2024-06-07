@@ -1885,23 +1885,17 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
       // check whether we should try again
       if (++attempt >= HOMING_MAX_ATTEMPTS) {
         // not OK run out attempts
-        switch (axis) {
-        case X_AXIS:
-          if (!HomingReporter::block_red_screen()) {
-            homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_X); }, orig_crash);
-          }
-          return false;
-        case Y_AXIS:
-          if (!HomingReporter::block_red_screen()) {
-            homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Y); }, orig_crash);
-          }
-          return false;
-        default:
-          if (!HomingReporter::block_red_screen()) {
-            homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z); }, orig_crash, true);
-          }
-          return false;
+        if (!HomingReporter::block_red_screen()) {
+          static constexpr std::array error_codes {
+            ErrCode::ERR_ELECTRO_HOMING_ERROR_X,
+            ErrCode::ERR_ELECTRO_HOMING_ERROR_Y,
+            ErrCode::ERR_ELECTRO_HOMING_ERROR_Z
+          };
+
+          homing_failed([code = error_codes[std::min(static_cast<size_t>(axis), error_codes.size() - 1)]]() { fatal_error(code); }, orig_crash, axis == Z_AXIS);
         }
+
+        return false;
       }
 
       if((axis == X_AXIS || axis == Y_AXIS) && !invert_home_dir){
