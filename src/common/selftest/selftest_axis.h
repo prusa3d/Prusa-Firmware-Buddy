@@ -33,7 +33,6 @@ class CSelftestPart_Axis {
     uint16_t m_SGCount = 0;
     uint8_t m_Step = 0;
     uint8_t m_SGOrig_mask;
-    bool homed = false;
     bool coils_ok = false; // Initially false, set to true when any coil check passes
     static CSelftestPart_Axis *m_pSGAxis;
 
