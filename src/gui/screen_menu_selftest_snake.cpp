@@ -100,7 +100,6 @@ struct SnakeConfig {
         last_action = get_last_action();
         last_tool = Tool::_first;
         state = State::reset;
-        gcode_pending = false;
     }
 
     void next(Action action, Tool tool) {
@@ -119,7 +118,6 @@ struct SnakeConfig {
     Action last_action { Action::_last };
     Tool last_tool { Tool::_first };
     State state { State::reset };
-    bool gcode_pending { false };
 };
 
 } // namespace
@@ -161,7 +159,7 @@ void do_snake(Action action, Tool tool = Tool::_first) {
         }
 
         if (has_test_special_handling) {
-            snake_config.gcode_pending = true;
+            marlin_client::gcode("M118 nop"); // No operation gcode to fill the queue until selftest is done
             snake_config.next(action, tool);
             return;
         }
@@ -331,12 +329,8 @@ void I_MI_STS_SUBMENU::do_click([[maybe_unused]] IWindowMenu &window_menu, Tool 
 
 namespace SelftestSnake {
 void do_menu_event(window_t *receiver, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param, Action action, bool is_submenu) {
-    if (receiver->GetFirstDialog() || event != GUI_event_t::LOOP || !snake_config.in_progress || SelftestInstance().IsInProgress()) {
-        return;
-    }
-    if (snake_config.gcode_pending) {
-        // G-code selftests may take a few ticks to execute, do not continue snake while gcode is still in the queue
-        snake_config.gcode_pending = queue.has_commands_queued();
+    if (receiver->GetFirstDialog() || event != GUI_event_t::LOOP || !snake_config.in_progress || SelftestInstance().IsInProgress() || queue.has_commands_queued()) {
+        // G-code selftests may take a few ticks to execute, do not continue snake while gcode is still in the queue or in progress (no operation gcode is enqueued behind it)
         return;
     }
 
