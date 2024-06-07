@@ -196,11 +196,6 @@ LoopResult CSelftestPart_Axis::stateWaitHomingReporter() {
 }
 
 LoopResult CSelftestPart_Axis::stateEvaluateHomingXY() {
-    // TODO: Is it necessary to remember homed state?
-    // It can be checked later on. Motors will hold for another 2 minutes.
-    // The subsequent check seems immediate
-    homed = !axes_need_homing(_BV(config.axis));
-
     endstops.enable(true);
     return LoopResult::RunNext;
 }
@@ -256,7 +251,6 @@ LoopResult CSelftestPart_Axis::stateMoveFinishCycleWithMotorSwitch() {
     case LoopResult::RunNext:
         break;
     case LoopResult::Fail:
-        homed = false;
         return LoopResult::GoToMark1;
     default:
         return result;
