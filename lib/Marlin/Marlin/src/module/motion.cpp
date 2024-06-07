@@ -1885,6 +1885,8 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
       // check whether we should try again
       if (++attempt >= HOMING_MAX_ATTEMPTS) {
         // not OK run out attempts
+        set_axis_is_not_at_home(axis);
+        
         if (!HomingReporter::block_red_screen()) {
           static constexpr std::array error_codes {
             ErrCode::ERR_ELECTRO_HOMING_ERROR_X,
