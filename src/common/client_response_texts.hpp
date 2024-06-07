@@ -32,6 +32,26 @@ inline constexpr const char *get_response_text(Response response) {
         return N_("CONTINUE");
     case Response::Cooldown:
         return N_("COOLDOWN");
+#ifdef TEST
+    case Response::CUSTOM_1:
+        return config_store().custom_filament_name_1.get_c_str();
+    case Response::CUSTOM_2:
+        return config_store().custom_filament_name_2.get_c_str();
+    case Response::CUSTOM_3:
+        return config_store().custom_filament_name_3.get_c_str();
+    case Response::CUSTOM_4:
+        return config_store().custom_filament_name_4.get_c_str();
+#else
+    case Response::CUSTOM_1:
+        return "CUSTOM_1";
+    case Response::CUSTOM_2:
+        return "CUSTOM_2";
+    case Response::CUSTOM_3:
+        return "CUSTOM_3";
+    case Response::CUSTOM_4:
+        return "CUSTOM_4";
+#endif
+
     case Response::Disable:
         return N_("DISABLE");
     case Response::Done:

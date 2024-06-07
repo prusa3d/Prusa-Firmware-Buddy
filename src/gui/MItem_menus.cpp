@@ -1,5 +1,7 @@
 #include "MItem_menus.hpp"
 #include "ScreenHandler.hpp"
+#include "str_utils.hpp"
+#include "custom_filament_tools.hpp"
 #include <option/buddy_enable_connect.h>
 #if BUDDY_ENABLE_CONNECT()
     #include <connect/marlin_printer.hpp>
@@ -55,6 +57,7 @@
 #include "screen_menu_factory_reset.hpp"
 #include "screen_menu_error_test.hpp"
 #include "screen_menu_input_shaper.hpp"
+#include "screen_menu_custom_filament.hpp"
 
 #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
     #include <screen_menu_bed_level_correction.hpp>
@@ -411,16 +414,29 @@ MI_LOAD_SETTINGS::MI_LOAD_SETTINGS()
 }
 
 void MI_LOAD_SETTINGS::click(IWindowMenu & /*window_menu*/) {
-    // FIXME: Some error handling/reporting
-    // TODO: Loading other things than just network
-    if (netdev_load_ini_to_eeprom()) {
+
+    auto build_message = [](StringBuilder &msg_builder, string_view_utf8 name, bool ok) {
+        msg_builder.append_string_view(name);
+        msg_builder.append_string(": ");
+        msg_builder.append_string_view(ok ? _("Ok") : _("Failed"));
+        msg_builder.append_char('\n');
+    };
+    std::array<char, 150> msg;
+    StringBuilder msg_builder(msg);
+    msg_builder.append_string_view(_("\nLoading settings finished.\n\n"));
+
+    const bool network_settings_loaded = netdev_load_ini_to_eeprom();
+    if (network_settings_loaded) {
         notify_reconfigure();
     }
+    build_message(msg_builder, _("Network"), network_settings_loaded);
 
-// FIXME: Error handling
 #if BUDDY_ENABLE_CONNECT()
-    connect_client::MarlinPrinter::load_cfg_from_ini();
+    build_message(msg_builder, _("Connect"), connect_client::MarlinPrinter::load_cfg_from_ini());
 #endif
+    build_message(msg_builder, _("Custom Filament"), custom_filament_tools::load_cfg_from_ini());
+
+    MsgBoxInfo(string_view_utf8::MakeRAM((const uint8_t *)msg.data()), Responses_Ok);
 }
 
 /**********************************************************************************************/
@@ -676,3 +692,11 @@ void MI_BED_LEVEL_CORRECTION::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuBedLevelCorrection>);
 }
 #endif
+
+MI_CUSTOM_FILAMENT::MI_CUSTOM_FILAMENT()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+
+void MI_CUSTOM_FILAMENT::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuCustomFilament>);
+}

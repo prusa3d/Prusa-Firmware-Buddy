@@ -73,6 +73,13 @@ struct CurrentStore
     StoreItem<float, defaults::pid_bed_i, journal::hash("PID Bed I")> pid_bed_i;
     StoreItem<float, defaults::pid_bed_d, journal::hash("PID Bed D")> pid_bed_d;
 
+    // custom filament setting
+    StoreItem<std::array<std::array<int16_t, 3>, max_custom_filament_slots>, defaults::custom_filament_temps, journal::hash("Custom Filament Temps")> custom_filament_temps;
+    StoreItem<std::array<char, max_filament_name_size + 1>, defaults::custom_filament_name_1, journal::hash("Custom Filament Name 1")> custom_filament_name_1;
+    StoreItem<std::array<char, max_filament_name_size + 1>, defaults::custom_filament_name_1, journal::hash("Custom Filament Name 2")> custom_filament_name_2;
+    StoreItem<std::array<char, max_filament_name_size + 1>, defaults::custom_filament_name_1, journal::hash("Custom Filament Name 3")> custom_filament_name_3;
+    StoreItem<std::array<char, max_filament_name_size + 1>, defaults::custom_filament_name_1, journal::hash("Custom Filament Name 4")> custom_filament_name_4;
+
     // LAN settings
     // lan_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1
     StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("LAN Flag")> lan_flag;
