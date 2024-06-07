@@ -64,7 +64,7 @@ uint64_t get_test_mask(Action action) {
     case Action::Fans:
         return stmFans;
     case Action::XYCheck:
-        return stmXYAxisWithMotorDetection;
+        return stmXYAxis;
     case Action::ZCheck:
         return stmZAxis;
     case Action::Heaters:

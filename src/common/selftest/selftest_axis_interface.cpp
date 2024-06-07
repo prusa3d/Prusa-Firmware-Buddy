@@ -14,7 +14,7 @@
 
 namespace selftest {
 
-bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate separate, [[maybe_unused]] Detect200StepMotors detect_200_step_motors) {
+bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate separate) {
     static SelftestSingleAxis_t staticResults[axis_count];
 
     // validity check
@@ -58,37 +58,13 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
             &CSelftestPart_Axis::state_verify_coils);
             // clang-format on
             break;
+
         case 'X':
-#if PRINTER_IS_PRUSA_MK4
-            // We have MK4 and it is full selftest (not a stand alone axis test)
-            // in this case we need to run a test with motor detection
-            if (detect_200_step_motors == Detect200StepMotors::yes) {
-                // clang-format off
-        m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis, staticResults[config_axis.axis],
-
-            &CSelftestPart_Axis::stateActivateHomingReporter,
-            &CSelftestPart_Axis::stateHomeXY,
-            &CSelftestPart_Axis::stateWaitHomingReporter,
-            &CSelftestPart_Axis::stateEvaluateHomingXY,
-            &CSelftestPart_Axis::stateInitProgressTimeCalculation,
-
-            &CSelftestPart_Axis::stateCycleMark2,
-            &CSelftestPart_Axis::stateMove,
-            &CSelftestPart_Axis::stateMoveFinishCycleWithMotorSwitch,
-            &CSelftestPart_Axis::stateParkAxis,
-            &CSelftestPart_Axis::state_verify_coils);
-                // clang-format on
-                break;
-            }
-            [[fallthrough]]; // Detect200StepMotors::no
-                             // We have MK4 and it is a stand alone axis test
-                             // in this case we need to run the same type of test as Y axis have
-
-#endif // PRINTER_IS_PRUSA_MK4
         case 'Y':
             m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis, staticResults[config_axis.axis],
+                &CSelftestPart_Axis::stateActivateHomingReporter,
                 &CSelftestPart_Axis::stateHomeXY,
-                &CSelftestPart_Axis::stateWaitHome,
+                &CSelftestPart_Axis::stateWaitHomingReporter,
                 &CSelftestPart_Axis::stateEvaluateHomingXY,
                 &CSelftestPart_Axis::stateInitProgressTimeCalculation,
 
@@ -96,7 +72,10 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
                 &CSelftestPart_Axis::stateMove,
                 &CSelftestPart_Axis::stateMoveFinishCycle,
                 &CSelftestPart_Axis::stateParkAxis,
-                &CSelftestPart_Axis::state_verify_coils);
+                &CSelftestPart_Axis::state_verify_coils //
+            );
+
+            break;
         }
     }
 

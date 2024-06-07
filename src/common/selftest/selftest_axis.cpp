@@ -249,23 +249,6 @@ LoopResult CSelftestPart_Axis::stateMove() {
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_Axis::stateMoveFinishCycleWithMotorSwitch() {
-    LoopResult result = wait(getDir());
-    switch (result) {
-    case LoopResult::RunNext:
-        break;
-    case LoopResult::Fail:
-        return LoopResult::GoToMark1;
-    default:
-        return result;
-    }
-
-    if ((++m_Step) < config.steps) {
-        return LoopResult::GoToMark2;
-    }
-    return LoopResult::RunNext;
-}
-
 LoopResult CSelftestPart_Axis::stateMoveFinishCycle() {
     check_coils();
 
