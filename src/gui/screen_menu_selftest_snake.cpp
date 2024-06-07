@@ -7,6 +7,7 @@
 #include <selftest_types.hpp>
 #include <RAII.hpp>
 #include <option/has_toolchanger.h>
+#include "queue.h"
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif
@@ -99,6 +100,7 @@ struct SnakeConfig {
         last_action = get_last_action();
         last_tool = Tool::_first;
         state = State::reset;
+        gcode_pending = false;
     }
 
     void next(Action action, Tool tool) {
@@ -117,6 +119,7 @@ struct SnakeConfig {
     Action last_action { Action::_last };
     Tool last_tool { Tool::_first };
     State state { State::reset };
+    bool gcode_pending { false };
 };
 
 } // namespace
@@ -158,6 +161,7 @@ void do_snake(Action action, Tool tool = Tool::_first) {
         }
 
         if (has_test_special_handling) {
+            snake_config.gcode_pending = true;
             snake_config.next(action, tool);
             return;
         }
@@ -330,9 +334,13 @@ void do_menu_event(window_t *receiver, [[maybe_unused]] window_t *sender, GUI_ev
     if (receiver->GetFirstDialog() || event != GUI_event_t::LOOP || !snake_config.in_progress || SelftestInstance().IsInProgress()) {
         return;
     }
+    if (snake_config.gcode_pending) {
+        // G-code selftests may take a few ticks to execute, do not continue snake while gcode is still in the queue
+        snake_config.gcode_pending = queue.has_commands_queued();
+        return;
+    }
 
     // snake is in progress and previous selftest is done
-
     continue_snake();
 
     if (!snake_config.in_progress) { // force redraw of current snake menu
