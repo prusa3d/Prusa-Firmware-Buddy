@@ -75,7 +75,7 @@ struct AxisState {
     // will dequeue items from pending_targets and set it as the current_target. When the position
     // is reached the cycle repeats, until no more targets are present and current_target is reset.
     std::optional<MoveTarget> current_target; // Current target to move
-    CircularQueue<MoveTarget, 16> pending_targets; // 16 element queue of pre-processed elements
+    AtomicCircularQueue<MoveTarget, uint8_t, 16> pending_targets; // 16 element queue of pre-processed elements
     MoveTarget next_target; // Next planned target to move
 
     // current_target_end_time is used to ensure pending_targets is replenished from the move ISR

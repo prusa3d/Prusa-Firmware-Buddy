@@ -225,9 +225,7 @@ step_event_info_t phase_stepping::next_step_event_classic(
 
         // push the buffered target
         axis_state.next_target.target_pos = move_start_pos;
-        axis_state.active = false;
         axis_state.pending_targets.enqueue(axis_state.next_target);
-        axis_state.active = true;
 
         // buffer the next
         if (!is_ending_empty_move(*next_move)) {
@@ -277,9 +275,7 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
 
             // push the buffered target
             axis_state.next_target.target_pos = move_start_pos;
-            axis_state.active = false;
             axis_state.pending_targets.enqueue(axis_state.next_target);
-            axis_state.active = true;
 
             // buffer the next
             if (step_generator.is_state->nearest_next_change < MAX_PRINT_TIME) {
