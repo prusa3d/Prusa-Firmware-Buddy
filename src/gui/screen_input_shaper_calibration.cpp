@@ -281,7 +281,7 @@ public:
         }
 
         if (y_freq < input_shaper::low_freq_limit_hz) {
-            str_build_x_axis.append_string(text_y_axis);
+            str_build_y_axis.append_string(text_y_axis);
             str_build_y_axis.append_string_view(_(text_freq_low));
         } else if (y_freq > input_shaper::high_freq_limit_hz) {
             str_build_x_axis.append_string(text_y_axis);
