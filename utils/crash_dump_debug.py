@@ -56,7 +56,7 @@ if not os.path.isfile(args.gdb) and which(args.gdb) is None:
     exit(1)
 
 # setup command and launch debugger
-cmd = f'{args.gdb} {args.elf} -ex "set target-charset ASCII" -ex "target remote | {crash_debug_path} --elf {args.elf} --dump {args.dump}"'
+cmd = f'{args.gdb} {args.elf} -ex "set target-charset ASCII" -ex "target remote | \\"{crash_debug_path}\\" --elf \\"{args.elf}\\" --dump \\"{args.dump}\\""'
 cmd += f' -ex "source {project_root_dir}/utils/freertos-gdb-plugin/freertos-gdb-plugin.py"'
 print("Launching GDB with arguments:")
 print(cmd)
