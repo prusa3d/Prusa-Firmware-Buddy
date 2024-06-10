@@ -319,6 +319,22 @@ float get_move_axis_r(const move_t &move, const int axis) {
 #endif
 }
 
+#ifdef COREXY
+static bool classic_state_step_dir(classic_step_generator_t &state) {
+    float start_v = float(state.start_v);
+    float accel = float(state.accel);
+
+    if (start_v < 0.f || (start_v == 0.f && accel < 0.f)) {
+        return false;
+    } else if (start_v > 0.f || (start_v == 0.f && accel > 0.f)) {
+        return true;
+    } else {
+        assert(start_v == 0.f && state.accel == 0.f);
+        return state.step_dir;
+    }
+}
+#endif
+
 FORCE_INLINE void classic_step_generator_update(classic_step_generator_t &step_generator) {
     const uint8_t axis = step_generator.axis;
     const move_t &current_move = *step_generator.current_move;
@@ -343,7 +359,7 @@ FORCE_INLINE void classic_step_generator_update(classic_step_generator_t &step_g
     }
 
     if (axis == A_AXIS || axis == B_AXIS) {
-        step_generator.step_dir = step_generator.start_v >= 0.; // TODO @hejllukas: It can be done cheaply without the comparison of start_v.
+        step_generator.step_dir = classic_state_step_dir(step_generator);
     } else {
         step_generator.step_dir = get_move_step_dir(*step_generator.current_move, step_generator.axis);
     }
