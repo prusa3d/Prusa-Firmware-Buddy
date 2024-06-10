@@ -15,7 +15,7 @@
 #include <option/enable_translation_fr.h>
 #include <option/enable_translation_it.h>
 #include <option/enable_translation_pl.h>
-#include <option/enable_translation_jp.h>
+#include <option/enable_translation_ja.h>
 #include <str_utils.hpp>
 #include <img_resources.hpp>
 
@@ -65,9 +65,9 @@ using ScreenMenuLanguages__ = ScreenMenu<EFooter::Off,
     ,
     MI_LANG<"Polski"_tstr, "pl"_tstr, &img::flag_pl_16x11>
 #endif
-#if ENABLE_TRANSLATION_JP()
+#if ENABLE_TRANSLATION_JA()
     ,
-    MI_LANG<"ニホンゴ"_tstr, "jp"_tstr, &img::flag_jp_16x11>
+    MI_LANG<"ニホンゴ"_tstr, "ja"_tstr, &img::flag_ja_16x11>
 #endif
     >;
 

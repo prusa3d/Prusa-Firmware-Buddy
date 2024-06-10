@@ -9,7 +9,7 @@
 #include <option/enable_translation_es.h>
 #include <option/enable_translation_it.h>
 #include <option/enable_translation_pl.h>
-#include <option/enable_translation_jp.h>
+#include <option/enable_translation_ja.h>
 
 #if HAS_TRANSLATIONS()
     #include <option/translations_in_extflash.h>
@@ -154,23 +154,23 @@ ProviderRegistrator plReg("pl", &pl);
 } // namespace
         #endif
 
-        #if ENABLE_TRANSLATION_JP()
-struct StringTableJP {
+        #if ENABLE_TRANSLATION_JA()
+struct StringTableJA {
     static const uint32_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
-using CPUFLASHTranslationProviderJP = CPUFLASHTranslationProvider<StringTableJP>;
+using CPUFLASHTranslationProviderJA = CPUFLASHTranslationProvider<StringTableJA>;
 
-            // precomputed indices and strings for the JP language
-            #include "stringBegins.jp.hpp"
-            #include "utf8Raw.jp.hpp"
+            // precomputed indices and strings for the JA language
+            #include "stringBegins.ja.hpp"
+            #include "utf8Raw.ja.hpp"
 template <>
-const CPUFLASHTranslationProviderJP::RawData CPUFLASHTranslationProviderJP::rawData;
+const CPUFLASHTranslationProviderJA::RawData CPUFLASHTranslationProviderJA::rawData;
 
 namespace {
-static const CPUFLASHTranslationProviderJP jp;
-ProviderRegistrator jpReg("jp", &jp);
+static const CPUFLASHTranslationProviderJA ja;
+ProviderRegistrator jaReg("ja", &ja);
 
 } // namespace
         #endif
