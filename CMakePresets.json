@@ -1979,7 +1979,7 @@
             }
         },
         {
-            "name": "mini-en-jp_debug_boot",
+            "name": "mini-en-ja_debug_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -2009,7 +2009,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "jp"
+                    "value": "ja"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -2046,7 +2046,7 @@
             }
         },
         {
-            "name": "mini-en-jp_debug_noboot",
+            "name": "mini-en-ja_debug_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -2076,7 +2076,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "jp"
+                    "value": "ja"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -2113,7 +2113,7 @@
             }
         },
         {
-            "name": "mini-en-jp_release_boot",
+            "name": "mini-en-ja_release_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -2143,7 +2143,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "jp"
+                    "value": "ja"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -2180,7 +2180,7 @@
             }
         },
         {
-            "name": "mini-en-jp_release_noboot",
+            "name": "mini-en-ja_release_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -2210,7 +2210,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "jp"
+                    "value": "ja"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",

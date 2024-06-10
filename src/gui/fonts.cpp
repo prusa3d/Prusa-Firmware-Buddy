@@ -5,10 +5,10 @@
 #include "fonts.hpp"
 #include "config.h"
 #include <guiconfig/guiconfig.h>
-#include <option/enable_translation_jp.h>
+#include <option/enable_translation_ja.h>
 
 #ifdef USE_ST7789
-    #if ENABLE_TRANSLATION_JP()
+    #if ENABLE_TRANSLATION_JA()
         #include "res/cc/font_regular_7x13_full.hpp" //Font::small
         #include "res/cc/font_regular_11x18_full.hpp" //Font::normal
         #include "res/cc/font_regular_9x16_full.hpp" //Font::special

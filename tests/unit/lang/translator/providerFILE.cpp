@@ -16,7 +16,7 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     FILETranslationProvider providerFR("MO/fr.mo");
     FILETranslationProvider providerIT("MO/it.mo");
     FILETranslationProvider providerPL("MO/pl.mo");
-    // FILETranslationProvider providerPL("MO/jp.mo");
+    // FILETranslationProvider providerPL("MO/ja.mo");
 
     // load transtaled strings
     deque<string> csStrings, deStrings, esStrings, frStrings, itStrings, plStrings;
@@ -26,7 +26,7 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     REQUIRE(LoadTranslatedStringsFile("MO/fr.txt", &frStrings));
     REQUIRE(LoadTranslatedStringsFile("MO/it.txt", &itStrings));
     REQUIRE(LoadTranslatedStringsFile("MO/pl.txt", &plStrings));
-    // REQUIRE(LoadTranslatedStringsFile("MO/jp.txt", &jpStrings));
+    // REQUIRE(LoadTranslatedStringsFile("MO/ja.txt", &jaStrings));
 
     // need to have at least the same amount of translations like the keys (normally there will be an exact number of them)
     REQUIRE(stringKeys.size() <= csStrings.size());
@@ -35,7 +35,7 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     REQUIRE(stringKeys.size() <= frStrings.size());
     REQUIRE(stringKeys.size() <= itStrings.size());
     REQUIRE(stringKeys.size() <= plStrings.size());
-    // REQUIRE(stringKeys.size() <= jpStrings.size());
+    // REQUIRE(stringKeys.size() <= jaStrings.size());
 
     set<unichar> nonASCIICharacters;
     {
@@ -55,7 +55,7 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     REQUIRE(providerFR.EnsureFile());
     REQUIRE(providerIT.EnsureFile());
     REQUIRE(providerPL.EnsureFile());
-    // REQUIRE(providerJP.EnsureFile());
+    // REQUIRE(providerJA.EnsureFile());
 
     REQUIRE(CheckAllTheStrings(stringKeys, csStrings, providerCS, nonASCIICharacters, "cs"));
     REQUIRE(CheckAllTheStrings(stringKeys, deStrings, providerDE, nonASCIICharacters, "de"));
@@ -63,7 +63,7 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     REQUIRE(CheckAllTheStrings(stringKeys, frStrings, providerFR, nonASCIICharacters, "fr"));
     REQUIRE(CheckAllTheStrings(stringKeys, itStrings, providerIT, nonASCIICharacters, "it"));
     REQUIRE(CheckAllTheStrings(stringKeys, plStrings, providerPL, nonASCIICharacters, "pl"));
-    // REQUIRE(CheckAllTheStrings(stringKeys, jpStrings, providerJP, nonASCIICharacters, "jp"));
+    // REQUIRE(CheckAllTheStrings(stringKeys, jaStrings, providerJA, nonASCIICharacters, "ja"));
 
     CAPTURE(stringKeys.size());
 }

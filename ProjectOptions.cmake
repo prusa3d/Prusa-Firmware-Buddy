@@ -359,7 +359,7 @@ set(LANGUAGES_AVAILABLE
     ES
     FR
     IT
-    JP
+    JA
     PL
     )
 if("${TRANSLATIONS_LIST}" STREQUAL "<default>")

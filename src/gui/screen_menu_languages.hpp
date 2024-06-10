@@ -15,7 +15,9 @@
 #include <option/enable_translation_fr.h>
 #include <option/enable_translation_it.h>
 #include <option/enable_translation_pl.h>
-#include <option/enable_translation_jp.h>
+#include <option/enable_translation_ja.h>
+#include <str_utils.hpp>
+#include <img_resources.hpp>
 
 class MI_LangBase : public IWindowMenuItem {
 public:
@@ -142,7 +144,7 @@ using ScreenMenuLanguages__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH,
 #if ENABLE_TRANSLATION_PL()
     MI_POLISH,
 #endif
-#if ENABLE_TRANSLATION_JP()
+#if ENABLE_TRANSLATION_JA()
     MI_JAPANESE,
 #endif
     MI_TEST_LANG>;
@@ -174,7 +176,7 @@ using ScreenMenuLanguagesNoReturn__ = ScreenMenu<EFooter::Off, MI_ENGLISH,
 #if ENABLE_TRANSLATION_PL()
     MI_POLISH,
 #endif
-#if ENABLE_TRANSLATION_JP()
+#if ENABLE_TRANSLATION_JA()
     MI_JAPANESE,
 #endif
     MI_TEST_LANG>;

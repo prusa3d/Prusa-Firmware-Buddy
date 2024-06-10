@@ -7,7 +7,7 @@
 #include <option/enable_translation_fr.h>
 #include <option/enable_translation_it.h>
 #include <option/enable_translation_pl.h>
-#include <option/enable_translation_jp.h>
+#include <option/enable_translation_ja.h>
 
 extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
 
@@ -96,9 +96,9 @@ static const FILETranslationProvider pl("/internal/res/lang/pl.mo");
 ProviderRegistrator plReg("pl", &pl);
         #endif
 
-        #if ENABLE_TRANSLATION_JP()
-static const FILETranslationProvider jp("/internal/res/lang/jp.mo");
-ProviderRegistrator jpReg("jp", &jp);
+        #if ENABLE_TRANSLATION_JA()
+static const FILETranslationProvider ja("/internal/res/lang/ja.mo");
+ProviderRegistrator jaReg("ja", &ja);
         #endif
 } // namespace
     #endif

@@ -119,7 +119,7 @@ flag_es_16x11.png
 flag_fr_16x11.png
 flag_it_16x11.png
 flag_pl_16x11.png
-flag_jp_16x11.png
+flag_ja_16x11.png
 language_white_16x16.png
 ok_color_16x16.png
 na_color_16x16.png

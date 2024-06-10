@@ -92,15 +92,15 @@
             }
         },
         {
-            "name": "mini-en-jp",
-            "description": "Original Prusa MINI (EN & JP translation)",
+            "name": "mini-en-ja",
+            "description": "Original Prusa MINI (EN & JA translation)",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
                 "BOARD": "BUDDY",
                 "BOARD_VERSION": "1.0.0",
                 "DEVELOPMENT_ITEMS_ENABLED": true,
-                "TRANSLATIONS_LIST": "jp"
+                "TRANSLATIONS_LIST": "ja"
             }
         },
         {
