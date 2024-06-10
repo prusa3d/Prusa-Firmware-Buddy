@@ -346,6 +346,11 @@ void CSelftest::Loop() {
                 break;
 
             case RevisePrinterSetupResult::retry:
+                m_result.xaxis = TestResult_Unknown;
+                m_result.yaxis = TestResult_Unknown;
+                m_result.zaxis = TestResult_Unknown;
+                config_store().selftest_result.set(m_result);
+
                 m_State = stsXAxis;
                 return;
             }
