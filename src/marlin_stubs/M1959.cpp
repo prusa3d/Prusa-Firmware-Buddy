@@ -123,17 +123,14 @@ struct Context {
     phase_stepping::StateRestorer phstep_restorer;
 #endif
 
-    Context()
-        : accelerometer { std::make_unique<PrusaAccelerometer>() } {}
-
     bool is_accelerometer_ok() const {
         assert(accelerometer);
         return accelerometer->get_error() == PrusaAccelerometer::Error::none;
     }
 
     bool setup_accelerometer() {
-        assert(accelerometer);
-        accelerometer->set_enabled(true);
+        accelerometer.reset();
+        accelerometer = std::make_unique<PrusaAccelerometer>();
         return is_accelerometer_ok();
     }
 };
@@ -539,18 +536,19 @@ namespace PrusaGcodeSuite {
 
 void M1959() {
     Context context;
-    if (context.is_accelerometer_ok()) {
+
 #if HAS_REMOTE_ACCELEROMETER()
-        // Accelerometer data have the highest priority on modbus, so explicitly
-        // disable the accelerometer now, to allow loadcell data to flow. Needed for G28.
-        context.accelerometer->set_enabled(false);
-#endif
-        // Just proceed to wizard if accelerometer is OK
+    // On XL we can just start the wizard.
+    M1959_internal(context, PhasesInputShaperCalibration::info);
+    return;
+#else
+    // On MKx, we need to check the presence of the accelerometer first
+    if (context.setup_accelerometer()) {
         M1959_internal(context, PhasesInputShaperCalibration::info);
         return;
     }
 
-#if HAS_EXTENDED_PRINTER_TYPE()
+    #if HAS_EXTENDED_PRINTER_TYPE()
     switch (config_store().extended_printer_type.get()) {
     case ExtendedPrinterType::mk3_9:
     case ExtendedPrinterType::mk4:
@@ -566,6 +564,7 @@ void M1959() {
         M1959_internal(context, PhasesInputShaperCalibration::connect_to_board);
         return;
     }
+    #endif
 #endif
 
     set_test_result(TestResult_Skipped);
