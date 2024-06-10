@@ -39,7 +39,7 @@ class MI_ACTION_SKIP : public FSMMenuItem {
 
 public:
     MI_ACTION_SKIP()
-        : FSMMenuItem(Phase::action_select, Response::Back, _("Do not connect to a Wi-Fi")) {}
+        : FSMMenuItem(Phase::action_select, Response::Back, _("Do not connect to a Wi-Fi"), &img::cancel_16x16) {}
 };
 
 class MI_ACTION_HELP : public FSMMenuItem {

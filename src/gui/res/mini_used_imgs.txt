@@ -126,6 +126,7 @@ ok_color_16x16.png
 na_color_16x16.png
 nok_color_16x16.png
 cancel_44x33.png
+cancel_16x16.png
 space_44x33.png
 ok_44x33.png
 backspace_44x33.png
