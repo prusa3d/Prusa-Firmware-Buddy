@@ -1097,15 +1097,15 @@
 // min + 1 * (max - min) / 20 - offset = low_bound;
 // min + 19 * (max - min) / 20 - offset = high_bound;.
 // Highbounds:
-// Leftmost position for X is 225
-// Reartmost postition for Y is 204
+// Rightmost position for X is 220 (to ensure P.I.N.D.A. stays on the sheet)
+// Rearmost postition for Y is 204
 // Lowbounds:
-// Rightmost position for X is 0
+// Leftmost position for X is 0
 // Frontmost position for Y is -4 (defined elsewhere: Y_MIN_POS)
 
 #define MESH_MIN_X (10.5f)
 #define MESH_MIN_Y (-10.5f)
-#define MESH_MAX_X (X_BED_SIZE + MESH_MIN_X)
+#define MESH_MAX_X (X_BED_SIZE + MESH_MIN_X - 5)
 #define MESH_MAX_Y (Y_BED_SIZE - MESH_MIN_Y)
 #endif
 
