@@ -239,7 +239,7 @@ public:
      * @brief Check if file is ready for print. Updates \c is_printable and \c error_str.
      * @param file_reader gcode file reader, it cannot be accessed by other threads at the same time
      */
-    bool check_valid_for_print(AnyGcodeFormatReader &file_reader);
+    bool check_valid_for_print(IGcodeReader &reader);
 
     /**
      * @brief Check the printable flag.

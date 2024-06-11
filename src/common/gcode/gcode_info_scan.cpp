@@ -29,7 +29,7 @@ static void gcode_info_scan_callback(AsyncJobExecutionControl &control) {
     });
 
     // Wait for gcode to be valid
-    while (!gcode_info.check_valid_for_print(file_reader)) {
+    while (!gcode_info.check_valid_for_print(*file_reader.get())) {
         if (gcode_info.has_error()) {
             log_error(MarlinServer, "Media prefetch GCodeInfo: not valid: %s", gcode_info.error_str());
             return;
@@ -43,7 +43,7 @@ static void gcode_info_scan_callback(AsyncJobExecutionControl &control) {
     }
 
     log_info(MarlinServer, "Media prefetch GCodeInfo: loading");
-    gcode_info.load(*file_reader);
+    gcode_info.load(*file_reader.get());
 }
 
 namespace gcode_info_scan {

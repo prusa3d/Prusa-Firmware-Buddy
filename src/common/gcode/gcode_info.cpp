@@ -107,13 +107,13 @@ bool GCodeInfo::check_still_valid() {
     return !has_error();
 }
 
-bool GCodeInfo::check_valid_for_print(AnyGcodeFormatReader &file_reader) {
+bool GCodeInfo::check_valid_for_print(IGcodeReader &reader) {
     transfers::Transfer::Path path(GetGcodeFilepath());
-    file_reader->update_validity(path);
-    is_printable_ = file_reader->valid_for_print();
+    reader.update_validity(path);
+    is_printable_ = reader.valid_for_print();
 
-    if (file_reader->has_error()) {
-        error_str_ = file_reader->error_str();
+    if (reader.has_error()) {
+        error_str_ = reader.error_str();
     }
 
     return is_printable_;
