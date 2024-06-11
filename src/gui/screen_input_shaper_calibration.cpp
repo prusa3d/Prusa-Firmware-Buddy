@@ -219,7 +219,7 @@ private:
     window_text_t text_above;
     window_text_t text_below;
     window_wizard_progress_t progress;
-    std::array<char, sizeof("Axis X shaper XXX")> text_below_buffer; // TODO Add axis
+    std::array<char, sizeof("Axis X shaper XXX")> text_below_buffer;
 
 public:
     FrameComputing(window_t *parent)
@@ -284,7 +284,7 @@ public:
             str_build_y_axis.append_string(text_y_axis);
             str_build_y_axis.append_string_view(_(text_freq_low));
         } else if (y_freq > input_shaper::high_freq_limit_hz) {
-            str_build_x_axis.append_string(text_y_axis);
+            str_build_y_axis.append_string(text_y_axis);
             str_build_y_axis.append_string_view(_(text_freq_high));
         } else {
             str_build_y_axis.append_string_view(_(text_shaper_y));
