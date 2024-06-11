@@ -285,7 +285,7 @@ class FrameText {
 
 public:
     FrameText(window_t *parent, Phase phase, const string_view_utf8 &txt_title, const string_view_utf8 &txt_info)
-        : title(parent, {}, is_multiline::no, is_closed_on_click_t::no, txt_title)
+        : title(parent, {}, is_multiline::yes, is_closed_on_click_t::no, txt_title)
         , info(parent, {}, is_multiline::yes, is_closed_on_click_t::no, txt_info)
         , radio(parent, {}, phase) //
     {
