@@ -230,12 +230,6 @@ public:
     bool start_load(AnyGcodeFormatReader &file_reader);
 
     /**
-     * @brief End loading of gcode (close file).
-     * @param file_reader gcode file reader, it cannot be accessed by other threads at the same time
-     */
-    void end_load(AnyGcodeFormatReader &file_reader);
-
-    /**
      * @brief Checks if the file still exists and can be potentially printed.
      * Softer version of check_valid_for_print, performs more basic checks.
      * Does not set \c is_printable to true on success, you gotta \c check_valid_for_print for that.

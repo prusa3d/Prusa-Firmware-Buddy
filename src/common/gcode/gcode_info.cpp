@@ -113,10 +113,6 @@ bool GCodeInfo::start_load(AnyGcodeFormatReader &file_reader) {
     }
 }
 
-void GCodeInfo::end_load(AnyGcodeFormatReader &file_reader) {
-    file_reader = AnyGcodeFormatReader {};
-}
-
 bool GCodeInfo::check_still_valid() {
     if (!transfers::is_valid_file_or_transfer(GetGcodeFilepath())) {
         error_str_ = N_("File removed or transfer aborted");

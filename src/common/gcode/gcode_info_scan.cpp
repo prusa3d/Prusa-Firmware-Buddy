@@ -1,7 +1,6 @@
 #include "gcode_info_scan.hpp"
 
 #include "gcode_info.hpp"
-#include <scope_guard.hpp>
 #include <common/async_job/async_job.hpp>
 
 static AsyncJob gcode_scan_async_job;
@@ -16,10 +15,6 @@ static void gcode_info_scan_callback(AsyncJobExecutionControl &control) {
         log_error(MarlinServer, "Media prefetch GCodeInfo: fail to open");
         return;
     }
-
-    ScopeGuard exit_callback = [&] {
-        gcode_info.end_load(gcode_info_file);
-    };
 
     // Wait for gcode to be valid
     while (!gcode_info.check_valid_for_print(gcode_info_file)) {
