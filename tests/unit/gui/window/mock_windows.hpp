@@ -14,7 +14,7 @@
 #include "guitypes.hpp"
 
 struct MockFrame_VisibilityNotifycations : public window_frame_t {
-    window_t win;
+    BasicWindow win;
     uint32_t ChangedCounter;
     virtual void ChildVisibilityChanged(window_t &child) override {
         window_frame_t::ChildVisibilityChanged(child);
@@ -34,12 +34,12 @@ struct MockMsgBox : public IDialog {
 };
 
 struct MockScreen : public screen_t {
-    window_t w_first; // just so w0 is not first
-    window_t w0;
-    window_t w1;
-    window_t w2;
-    window_t w3;
-    window_t w_last; // just so w3 is not last
+    BasicWindow w_first; // just so w0 is not first
+    BasicWindow w0;
+    BasicWindow w1;
+    BasicWindow w2;
+    BasicWindow w3;
+    BasicWindow w_last; // just so w3 is not last
 
     MockScreen()
         : w_first(this, GuiDefaults::RectHeader) // header is not hidden behind dialog

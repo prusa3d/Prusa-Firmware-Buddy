@@ -81,7 +81,7 @@ static void TestRectDiffColor(Rect16 Minuend, Rect16 Subtrahend, color_t Minuend
 };
 
 static void TestRectDraw(Rect16 rect, color_t color) {
-    window_t win(nullptr, rect);
+    BasicWindow win(nullptr, rect);
     win.SetBackColor(color);
     win.Draw();
     TestRectColor(rect, color);
@@ -352,7 +352,7 @@ TEST_CASE("Visibility notifycation test, hidden win registration", "[window]") {
     MockScreen screen;
     screen.Draw(); // clear invalidation rect
 
-    window_t win(nullptr, rc);
+    BasicWindow win(nullptr, rc);
     win.Hide();
 
     screen.RegisterSubWin(win); // register hidden win

@@ -68,7 +68,7 @@ private:
     window_icon_t icon_phone;
     window_qr_t qr;
     window_text_t title;
-    window_t line;
+    BasicWindow line;
     window_text_t text_state;
     window_text_t text_attempt;
     window_text_t text_detail;

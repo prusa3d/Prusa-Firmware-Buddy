@@ -16,7 +16,7 @@ struct WinsCheckAxis {
     window_icon_t icon_nozzle_crash;
     window_icon_t icon_nozzle;
     window_text_t text_checking_axis;
-    window_t line;
+    BasicWindow line;
     window_text_t text_x_axis;
     WindowIcon_OkNg icon_x_axis;
     window_text_t text_y_axis;
@@ -29,7 +29,7 @@ struct WinsHome {
     window_text_t text_long;
     window_icon_t icon_nozzle_crash;
     window_icon_t icon_nozzle;
-    window_t line;
+    BasicWindow line;
     window_text_t text_home_axes;
     WindowIcon_OkNg icon_home_axes;
 
@@ -38,7 +38,7 @@ struct WinsHome {
 
 struct WinsAxisNok {
     window_text_t text_long;
-    window_t line;
+    BasicWindow line;
     window_text_t text_x_axis;
     WindowIcon_OkNg icon_x_axis;
     window_text_t text_y_axis;

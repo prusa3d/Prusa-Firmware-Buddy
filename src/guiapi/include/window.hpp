@@ -138,7 +138,6 @@ public:
 
     window_t() = default;
     window_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
-    ~window_t();
 
     bool RegisterSubWin(window_t &win);
     void UnregisterSubWin(window_t &win);
@@ -165,6 +164,9 @@ public:
     inline window_t *GetLastPopUp() const { return get_child_dialog(ChildDialogParam::last_popup); }
 
 protected:
+    // Make the destructor protected to prevent accidentally calling this through a base class now that it's non-virtual (for flash saving reasons - BFW-5031)
+    ~window_t();
+
     virtual void unconditionalDraw();
     virtual void draw();
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *const param);
@@ -191,6 +193,12 @@ public:
     virtual window_t *GetCapturedWindow();
     static window_t *GetFocusedWindow();
     static void ResetFocusedWindow();
+};
+
+/// Final variant of window_t, to get around the window_t protected destructor
+class BasicWindow final : public window_t {
+public:
+    using window_t::window_t;
 };
 
 /*****************************************************************************/

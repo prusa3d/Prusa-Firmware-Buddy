@@ -25,7 +25,7 @@ struct ScreenErrorQR : public ScreenResetError {
 #if HAS_LEDS()
     AnimatorLCD::AnimationGuard anim;
 #endif
-    window_t title_line;
+    BasicWindow title_line;
 
 public:
     ScreenErrorQR();

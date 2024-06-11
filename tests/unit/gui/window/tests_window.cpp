@@ -204,7 +204,7 @@ TEST_CASE("Window registration tests", "[window]") {
 }
 
 TEST_CASE("Capturable test, all combinations", "[window]") {
-    window_t win(nullptr, Rect16(20, 20, 10, 10));
+    BasicWindow win(nullptr, Rect16(20, 20, 10, 10));
 
     // default
     // 1 .. visible
@@ -288,7 +288,7 @@ TEST_CASE("Capturable test, all combinations", "[window]") {
 }
 
 TEST_CASE("DoNotEnforceCapture_ScopeLock", "[window]") {
-    window_t win(nullptr, Rect16(20, 20, 10, 10));
+    BasicWindow win(nullptr, Rect16(20, 20, 10, 10));
 
     SECTION("Disabled") {
         REQUIRE_FALSE(win.HasEnforcedCapture());
