@@ -449,10 +449,12 @@ step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advan
 
         next_step_event.time = elapsed_time;
         next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
-        next_step_event.flags |= step_generator_state.flags;
         next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_VALID;
         step_generator_state.current_distance[step_generator.axis] += (step_generator.pa_state->step_dir ? 1 : -1);
     }
+
+    // Always set the current axis active/direction flags
+    next_step_event.flags |= step_generator_state.flags;
 
     return next_step_event;
 }

@@ -435,10 +435,12 @@ step_event_info_t classic_step_generator_next_step_event(classic_step_generator_
         const double elapsed_time = step_time_d + step_generator.current_move->print_time;
         next_step_event.time = elapsed_time;
         next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
-        next_step_event.flags |= step_generator_state.flags;
         next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_VALID;
         step_generator_state.current_distance[step_generator.axis] += (step_generator.step_dir ? 1 : -1);
     }
+
+    // Always set the current axis active/direction flags
+    next_step_event.flags |= step_generator_state.flags;
 
     // When std::numeric_limits<double>::max() is returned, it means that for the current state of the move segment queue, there isn't any next step event for this axis.
     return next_step_event;
