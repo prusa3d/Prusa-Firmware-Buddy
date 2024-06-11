@@ -1326,7 +1326,7 @@ void PreciseStepping::step_generator_state_init(const move_t &move) {
         bsod("Max lookback time exceeds the length of the beginning empty move segment.");
     }
 
-    step_generator_state.flags = 0;
+    step_generator_state.flags = (StepEventFlag_t(Stepper::last_direction_bits) << STEP_EVENT_FLAG_DIR_SHIFT) & STEP_EVENT_FLAG_DIR_MASK;
     step_generator_state.previous_step_time = 0.;
     step_generator_state.previous_step_time_ticks = 0;
     step_generator_state.buffered_step.flags = 0;
