@@ -171,6 +171,6 @@ void window_file_list_t::setup_item(ItemVariant &variant, int index) {
         // This is ok - file list keeps the address of the item same & valid while the item is in the window
         const auto label = string_view_utf8::MakeRAM(entry.first);
         const auto icon = (entry.second == LDV::EntryType::DIR) ? &img::folder_full_16x16 : nullptr;
-        variant.emplace<IWindowMenuItem>(label, icon);
+        variant.emplace<WindowMenuItem>(label, icon);
     }
 }

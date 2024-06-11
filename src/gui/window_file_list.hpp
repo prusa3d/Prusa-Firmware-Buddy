@@ -38,13 +38,13 @@ public:
     static void Set(WF_Sort_t val);
 };
 
-class FL_LABEL : public IWindowMenuItem {
+class FL_LABEL final : public IWindowMenuItem {
 public:
     FL_LABEL(string_view_utf8 label, const img::Resource *icon)
         : IWindowMenuItem(label, icon, is_enabled_t::yes, is_hidden_t::no) {}
 };
 
-class window_file_list_t : public WindowMenuVirtual<IWindowMenuItem, MI_RETURN> {
+class window_file_list_t : public WindowMenuVirtual<WindowMenuItem, MI_RETURN> {
 
 public:
     static constexpr int max_max_items_on_screen = GuiDefaults::FileBrowserRect.Height() / item_height();

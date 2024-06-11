@@ -174,7 +174,7 @@ private:
     const bool needs_password_;
 };
 
-class WindowMenuWifiScan : public WindowMenuVirtual<MI_SCAN_RETURN, MI_WIFI, IWindowMenuItem> {
+class WindowMenuWifiScan : public WindowMenuVirtual<MI_SCAN_RETURN, MI_WIFI, WindowMenuItem> {
 
 public:
     WindowMenuWifiScan(window_t *parent, Rect16 rect)
@@ -204,7 +204,7 @@ protected:
 
         // No networks shown -> we're showing one empty item indicating that we're scanning instead
         if (ap_count_ == 0) {
-            variant.emplace<IWindowMenuItem>(TERN(HAS_LARGE_DISPLAY(), _("Scanning for networks..."), _("Scanning...")), nullptr, is_enabled_t::no);
+            variant.emplace<WindowMenuItem>(TERN(HAS_LARGE_DISPLAY(), _("Scanning for networks..."), _("Scanning...")), nullptr, is_enabled_t::no);
             return;
         }
 
