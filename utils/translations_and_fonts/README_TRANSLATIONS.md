@@ -20,10 +20,16 @@ sudo apt-get install libz
 1. When you define the string, use `N_()` macro to mark texts for translations. It does not do anything else with the string (`const char *` is returned from it).
 2. To translate, use `_()` macro. It receives `const char *` and it returns `string_view_utf8` which is used in every text-drawing function in GUI.
 
-# Automated scripts
+# Automation scripts
 1. Generate POT file:
 ```bash
 ./utils/translations_and_fonts/generate_pot.sh
+```
+2. Export new translations, delete unused strings, replace unsupported characters, generate MO files and integrate PO & MO files into the codebase
+```bash
+path_to_PO - path to ZIP file OR directory containing translated texts in separate PO files
+
+./utils/translations_and_fonts/new_translations.sh {path_to_PO}
 ```
 
 # HOW TO UPDATE TRANSLATIONS STEP BY STEP (overview)
@@ -34,8 +40,9 @@ sudo apt-get install libz
 5. Delete unused strings
 6. Replace unsupported characters
 7. Regenerate MO files
-8. Regenerate fonts with updated set of non-ascii characters
-9. Run unit tests and make sure they all passed
+8. Regenerate fonts with updated set of characters
+9. Check if fonts contain previously unknown unsupported character
+10. Run unit tests and make sure they all passed
 
 # HOW TO UPDATE TRANSLATIONS STEP BY STEP
 1. POT file contains all texts marked for translation. We use gettext to generate it. If you want to learn, how gettext works, [click here](https://www.labri.fr/perso/fleury/posts/programming/a-quick-gettext-tutorial.html).
@@ -102,7 +109,11 @@ msgfmt src/lang/po/XX/Prusa-Buddy-Firmware_XX.po -o src/lang/po/XX/Prusa-Buddy-F
 To safe space, our fonts have only set of characters, that are used in the translations. Fonts have to be regenerated because new translations could contain an unknown character.
 [tutorial](README_FONTS.md)
 
-9. Building and running unit tests
+9. Check if fonts contain previously unknown unsupported character. Go to `src/gui/res/fnt_png` and look for any "empty square" in the font - That is the symptom of unknown unsupported character.
+Remember the position in the font (row & column starting from 0) and look at the `src/guiapi/include/fnt-XXXX-indices` (XXXX is "full"/"standard"/"digits" based on the examined font). There you can find the unsupported character by row and column.
+Once you remove / replace those characters in PO files, you have to redo updating translations from step 5.
+
+10. Building and running unit tests
 ```bash
 mkdir -p build_tests
 cd build_tests
