@@ -135,21 +135,6 @@ bool GCodeInfo::check_valid_for_print(AnyGcodeFormatReader &file_reader) {
     return is_printable_;
 }
 
-bool GCodeInfo::verify_file(AnyGcodeFormatReader &file_reader) {
-    log_info(Buddy, "Starting file verify...");
-
-    // TODO: enable CRC verification, but now its disabled because it takes ages due to slow USB read and suboptimal implementation
-    // For now we're only doing quick verification
-    if (auto result = file_reader->verify_file(IGcodeReader::FileVerificationLevel::quick); !result) {
-        error_str_ = result.error_str;
-        log_info(Buddy, "File verify FAIL: %s", result.error_str);
-        return false;
-    }
-
-    log_info(Buddy, "File verify OK");
-    return true;
-}
-
 void GCodeInfo::load(AnyGcodeFormatReader &file_reader) {
 #if HAS_GUI()
     has_preview_thumbnail_ = hasThumbnail(*file_reader, GuiDefaults::PreviewThumbnailRect.Size());

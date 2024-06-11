@@ -244,13 +244,6 @@ public:
     bool check_valid_for_print(AnyGcodeFormatReader &file_reader);
 
     /**
-     * @brief Checks validity of the file (possibly CRC and such).
-     * Returns if the file is valid. Updates error_str if the file is not valid.
-     * @param file_reader gcode file reader, it cannot be accessed by other threads at the same time
-     */
-    bool verify_file(AnyGcodeFormatReader &file_reader);
-
-    /**
      * @brief Check the printable flag.
      *
      * To be used concurently to `check_valid_for_print`,
