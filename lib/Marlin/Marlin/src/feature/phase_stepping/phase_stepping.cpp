@@ -207,7 +207,7 @@ void phase_stepping::init_step_generator_input_shaping(
 
 step_event_info_t phase_stepping::next_step_event_classic(
     move_segment_step_generator_t &step_generator,
-    step_generator_state_t & /*step_generator_state*/) {
+    step_generator_state_t &step_generator_state) {
     AxisState &axis_state = *step_generator.phase_step_state;
 
     assert(axis_state.last_processed_move != nullptr);
@@ -235,7 +235,7 @@ step_event_info_t phase_stepping::next_step_event_classic(
             axis_state.current_print_time_ticks = next_print_time_ticks;
 
             const int32_t target_steps = pos_to_steps(AxisEnum(axis), axis_state.next_target.target_pos);
-            PreciseStepping::step_generator_state.current_distance[axis] = target_steps;
+            step_generator_state.current_distance[axis] = target_steps;
 
             next_step_event.flags |= STEP_EVENT_FLAG_KEEP_ALIVE;
             next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE;
@@ -252,12 +252,15 @@ step_event_info_t phase_stepping::next_step_event_classic(
         next_step_event.time = axis_state.last_processed_move->print_time + axis_state.last_processed_move->move_time;
     }
 
+    // Always set the current axis active/direction flags
+    next_step_event.flags |= step_generator_state.flags;
+
     return next_step_event;
 }
 
 step_event_info_t phase_stepping::next_step_event_input_shaping(
     input_shaper_step_generator_t &step_generator,
-    step_generator_state_t & /*step_generator_state*/) {
+    step_generator_state_t &step_generator_state) {
     AxisState &axis_state = *step_generator.phase_step_state;
 
     assert(step_generator.is_state != nullptr);
@@ -285,7 +288,7 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
                 axis_state.current_print_time_ticks = next_print_time_ticks;
 
                 const int32_t target_steps = pos_to_steps(AxisEnum(axis), axis_state.next_target.target_pos);
-                PreciseStepping::step_generator_state.current_distance[axis] = target_steps;
+                step_generator_state.current_distance[axis] = target_steps;
 
                 next_step_event.flags |= STEP_EVENT_FLAG_KEEP_ALIVE;
                 next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE;
@@ -294,6 +297,9 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
 
         PreciseStepping::move_segment_processed_handler();
     }
+
+    // Always set the current axis active/direction flags
+    next_step_event.flags |= step_generator_state.flags;
 
     return next_step_event;
 }
