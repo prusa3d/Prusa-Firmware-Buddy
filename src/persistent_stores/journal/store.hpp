@@ -27,6 +27,8 @@ struct CurrentStoreConfig {
     using Backend = BackendT;
     template <StoreItemDataC DataT, DataT default_val, typename BackendT::Id id>
     using StoreItem = JournalItem<DataT, default_val, backend, id>;
+    template <StoreItemDataC DataT, auto default_val, typename BackendT::Id id, uint8_t item_count>
+    using StoreItemArray = JournalItemArray<DataT, default_val, backend, id, item_count>;
 };
 
 template <BackendC BackendT>
@@ -78,8 +80,14 @@ public:
      */
     void load_item(uint16_t id, std::span<uint8_t> data) {
         visit_all_struct_fields(static_cast<Config &>(*this), [&]<typename Item>(Item &item) {
-            if (Item::hashed_id == id) {
-                item.init(data);
+            if constexpr (is_item_array_v<Item>) {
+                if (Item::hashed_id_first <= id && id <= Item::hashed_id_last) {
+                    item.init(id - Item::hashed_id_first, data);
+                }
+            } else {
+                if (Item::hashed_id == id) {
+                    item.init(data);
+                }
             }
         });
     }
