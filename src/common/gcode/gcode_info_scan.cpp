@@ -10,14 +10,17 @@ static std::atomic<gcode_info_scan::ScanStartResult> scan_start_result_ = gcode_
 LOG_COMPONENT_REF(MarlinServer);
 
 static void gcode_info_scan_callback(AsyncJobExecutionControl &control) {
-    AnyGcodeFormatReader gcode_info_file;
     auto &gcode_info = GCodeInfo::getInstance();
 
-    if (!gcode_info.start_load(gcode_info_file)) {
+    gcode_info.reset_info();
+
+    AnyGcodeFormatReader file_reader(gcode_info.GetGcodeFilepath());
+    if (!file_reader.is_open()) {
+        log_error(MarlinServer, "Media prefetch GCodeInfo: fail to open");
+        gcode_info.set_error(N_("Failed to open file"));
         control.with_synchronized([] {
             scan_start_result_ = gcode_info_scan::ScanStartResult::failed;
         });
-        log_error(MarlinServer, "Media prefetch GCodeInfo: fail to open");
         return;
     }
 
@@ -26,7 +29,7 @@ static void gcode_info_scan_callback(AsyncJobExecutionControl &control) {
     });
 
     // Wait for gcode to be valid
-    while (!gcode_info.check_valid_for_print(gcode_info_file)) {
+    while (!gcode_info.check_valid_for_print(file_reader)) {
         if (gcode_info.has_error()) {
             log_error(MarlinServer, "Media prefetch GCodeInfo: not valid: %s", gcode_info.error_str());
             return;
@@ -40,7 +43,7 @@ static void gcode_info_scan_callback(AsyncJobExecutionControl &control) {
     }
 
     log_info(MarlinServer, "Media prefetch GCodeInfo: loading");
-    gcode_info.load(gcode_info_file);
+    gcode_info.load(file_reader);
 }
 
 namespace gcode_info_scan {

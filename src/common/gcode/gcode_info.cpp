@@ -97,20 +97,6 @@ GCodeInfo::GCodeInfo()
 {
 }
 
-bool GCodeInfo::start_load(AnyGcodeFormatReader &file_reader) {
-    reset_info();
-
-    file_reader = AnyGcodeFormatReader { gcode_file_path.data() };
-    if (file_reader.is_open()) {
-        check_valid_for_print(file_reader); // This only updates is_valid, will change over the prefetch change
-        return true;
-
-    } else {
-        error_str_ = N_("Failed to open file");
-        return false;
-    }
-}
-
 bool GCodeInfo::check_still_valid() {
     if (!transfers::is_valid_file_or_transfer(GetGcodeFilepath())) {
         error_str_ = N_("File removed or transfer aborted");
