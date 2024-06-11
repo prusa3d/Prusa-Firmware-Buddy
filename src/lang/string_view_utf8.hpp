@@ -50,8 +50,6 @@ private:
     enum class EType : uint8_t {
         RAM,
         CPUFLASH,
-        SPIFLASH,
-        USBFLASH,
         FILE,
         NULLSTR,
     };
@@ -166,10 +164,6 @@ public:
             return cpuflash.utf8raw == other.cpuflash.utf8raw;
         case EType::FILE:
             return (file.f == other.file.f) && (file.offset == other.file.offset);
-        case EType::SPIFLASH:
-        case EType::USBFLASH:
-            assert(false); // ends program in debug
-            return false;
         case EType::NULLSTR: // all null strings are equal
             return true;
         }
