@@ -79,6 +79,8 @@ if(BOARD MATCHES ".*BUDDY")
             z_calibration_fsm.cpp
             Z_probe.cpp
     )
+  add_subdirectory(async_job)
+
   if(BOARD MATCHES "XLBUDDY")
     target_sources(firmware PRIVATE hwio_XLBuddy.cpp)
   else()
