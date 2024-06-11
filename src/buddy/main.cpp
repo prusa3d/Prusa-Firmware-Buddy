@@ -530,7 +530,7 @@ extern "C" void main_cpp(void) {
 
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */
-        osThreadCCMDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 600);
+        osThreadCCMDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 620);
         osThreadCreate(osThread(measurementTask), NULL);
     }
 }
