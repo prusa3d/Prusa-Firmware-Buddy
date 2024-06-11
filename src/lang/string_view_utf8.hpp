@@ -47,11 +47,6 @@ private:
         } file;
     };
 
-    /// cached length of string. Computed at various spots where not too costly.
-    /// Deliberately typed as signed int, because -1 means "not computed yet"
-    /// @@TODO implement into getUtf8Char somehow
-    mutable Length utf8Length = -1;
-
     enum class EType : uint8_t {
         RAM,
         CPUFLASH,

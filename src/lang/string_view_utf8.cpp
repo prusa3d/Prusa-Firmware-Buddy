@@ -1,17 +1,12 @@
 #include "string_view_utf8.hpp"
 
 string_view_utf8::Length string_view_utf8::computeNumUtf8Chars() const {
-    if (utf8Length >= 0) {
-        return utf8Length;
-    }
-
     Length r = 0;
     StringReaderUtf8 reader(*this);
     while (reader.getUtf8Char()) {
         ++r;
     }
 
-    utf8Length = r;
     return r;
 }
 
