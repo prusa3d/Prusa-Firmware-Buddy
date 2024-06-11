@@ -87,7 +87,7 @@ void GcodeSuite::M972() {
         if (!parser.seen(letter)) {
             continue;
         }
-        const phase_stepping::AxisState &axis_state = *phase_stepping::axis_states[axis];
+        const phase_stepping::AxisState &axis_state = phase_stepping::axis_states[axis];
         for (char dir : "FB"sv) {
             if (!parser.seen(letter)) {
                 continue;
@@ -162,7 +162,7 @@ void GcodeSuite::M973() {
     }
 
     AxisEnum axis = str_arg[0] == 'X' ? AxisEnum::X_AXIS : AxisEnum::Y_AXIS;
-    phase_stepping::AxisState &axis_state = *phase_stepping::axis_states[axis];
+    phase_stepping::AxisState &axis_state = phase_stepping::axis_states[axis];
     const bool forward_correction { str_arg[1] == 'F' };
     auto &lut = forward_correction
         ? axis_state.forward_current

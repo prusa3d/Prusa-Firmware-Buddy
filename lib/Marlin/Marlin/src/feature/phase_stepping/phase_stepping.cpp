@@ -32,10 +32,8 @@ using namespace phase_stepping::opts;
 using namespace buddy::hw;
 
 // Global definitions
-std::array<
-    std::unique_ptr<AxisState>,
-    SUPPORTED_AXIS_COUNT>
-    phase_stepping::axis_states = { { nullptr, nullptr } };
+std::array<AxisState, SUPPORTED_AXIS_COUNT> phase_stepping::axis_states = { X_AXIS, Y_AXIS };
+static bool initialized = false;
 
 // Module definitions
 #if !HAS_BURST_STEPPING()
@@ -91,11 +89,11 @@ float MoveTarget::target_position() const {
 
 void phase_stepping::init() {
     phase_stepping::initialize_axis_motor_params();
-    phase_stepping::axis_states[0].reset(new AxisState(AxisEnum::X_AXIS));
-    phase_stepping::axis_states[1].reset(new AxisState(AxisEnum::Y_AXIS));
+    initialized = true;
 }
 
 void phase_stepping::load() {
+    assert_initialized();
     load_from_persistent_storage(AxisEnum::X_AXIS);
     load_from_persistent_storage(AxisEnum::Y_AXIS);
 }
@@ -307,7 +305,7 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
 #ifdef _DEBUG
 void phase_stepping::assert_initialized() {
     // This is explicitly kept non-inline to serve as a single trap point
-    assert(initialized());
+    assert(initialized);
 }
 
 void phase_stepping::assert_disabled() {
@@ -321,9 +319,14 @@ void phase_stepping::synchronize() {
 }
 
 bool phase_stepping::processing() {
+    if (!initialized) {
+        // processing() can be called early during app_setup(), before init() actually gets called.
+        return false;
+    }
+
     // check for pending targets
     for (auto &state : axis_states) {
-        if (state && (!state->pending_targets.isEmpty() || state->current_target.has_value())) {
+        if (!state.pending_targets.isEmpty() || state.current_target.has_value()) {
             return true;
         }
     }
@@ -346,7 +349,7 @@ void phase_stepping::set_phase_origin(AxisEnum axis, float pos) {
     assert(axis < SUPPORTED_AXIS_COUNT);
     assert_initialized();
 
-    auto &axis_state = *axis_states[axis];
+    auto &axis_state = axis_states[axis];
     assert(axis_state.pending_targets.isEmpty() && !axis_state.current_target.has_value());
 
     bool was_active = axis_state.active;
@@ -365,7 +368,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
     auto &stepper = static_cast<TMC2130Stepper &>(stepper_axis(axis_num));
-    auto &axis_state = *axis_states[axis_num];
+    auto &axis_state = axis_states[axis_num];
     assert(!axis_state.enabled && !axis_state.active);
     assert(!axis_state.current_target.has_value() && axis_state.pending_targets.isEmpty());
 
@@ -429,7 +432,7 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
     auto &stepper = static_cast<TMC2130Stepper &>(stepper_axis(axis_num));
-    auto &axis_state = *axis_states[axis_num];
+    auto &axis_state = axis_states[axis_num];
 
     axis_state.active = false;
     auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis_num;
@@ -475,7 +478,7 @@ void phase_stepping::enable(AxisEnum axis_num, bool enable) {
     assert_initialized();
 
     auto &axis_state = axis_states[axis_num];
-    if (axis_state->enabled == enable) {
+    if (axis_state.enabled == enable) {
         return;
     }
     if (enable) {
@@ -489,15 +492,15 @@ void phase_stepping::enable(AxisEnum axis_num, bool enable) {
 
 void phase_stepping::clear_targets() {
     for (auto &axis_state : axis_states) {
-        bool was_active = axis_state->active;
-        axis_state->active = false;
+        bool was_active = axis_state.active;
+        axis_state.active = false;
 
-        axis_state->current_target.reset();
-        while (!axis_state->pending_targets.isEmpty()) {
-            axis_state->pending_targets.dequeue();
+        axis_state.current_target.reset();
+        while (!axis_state.pending_targets.isEmpty()) {
+            axis_state.pending_targets.dequeue();
         }
 
-        axis_state->active = was_active;
+        axis_state.active = was_active;
     }
 }
 
@@ -681,7 +684,7 @@ FORCE_OFAST void phase_stepping::handle_periodic_refresh() {
         if (!PreciseStepping::stopping()) {
             // ...and refresh all axes
             for (std::size_t i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
-                refresh_axis(*axis_states[i], now, old_tick);
+                refresh_axis(axis_states[i], now, old_tick);
             }
         }
     }
@@ -693,14 +696,14 @@ FORCE_OFAST void phase_stepping::handle_periodic_refresh() {
         if (axis_num_to_refresh == axis_states.size()) {
             axis_num_to_refresh = 0;
         }
-        refresh_axis(*axis_states[axis_num_to_refresh], now, old_tick);
+        refresh_axis(axis_states[axis_num_to_refresh], now, old_tick);
     }
 #endif
 }
 
 bool phase_stepping::any_axis_enabled() {
     return std::ranges::any_of(axis_states, [](const auto &state) -> bool {
-        return (state && state->enabled);
+        return (state.enabled);
     });
 }
 
@@ -709,7 +712,7 @@ int phase_stepping::logical_ustep(AxisEnum axis) {
     if (axis >= opts::SUPPORTED_AXIS_COUNT) {
         return mscnt;
     }
-    const AxisState &axis_state = *axis_states[axis];
+    const AxisState &axis_state = axis_states[axis];
     if (!axis_state.enabled) {
         return mscnt;
     }
@@ -778,19 +781,19 @@ void load_correction_from_file(CorrectedCurrentLut &lut, const char *file_path) 
 void save_to_persistent_storage(AxisEnum axis) {
     assert(axis < SUPPORTED_AXIS_COUNT);
     save_to_persistent_storage_without_enabling(axis);
-    config_store().set_phase_stepping_enabled(axis, axis_states[axis]->enabled);
+    config_store().set_phase_stepping_enabled(axis, axis_states[axis].enabled);
 }
 
 void save_to_persistent_storage_without_enabling(AxisEnum axis) {
     assert(axis < SUPPORTED_AXIS_COUNT);
-    save_correction_to_file(axis_states[axis]->forward_current, get_correction_file_path(axis, CorrectionType::forward));
-    save_correction_to_file(axis_states[axis]->backward_current, get_correction_file_path(axis, CorrectionType::backward));
+    save_correction_to_file(axis_states[axis].forward_current, get_correction_file_path(axis, CorrectionType::forward));
+    save_correction_to_file(axis_states[axis].backward_current, get_correction_file_path(axis, CorrectionType::backward));
 }
 
 void load_from_persistent_storage(AxisEnum axis) {
     assert(axis < SUPPORTED_AXIS_COUNT);
-    load_correction_from_file(axis_states[axis]->forward_current, get_correction_file_path(axis, CorrectionType::forward));
-    load_correction_from_file(axis_states[axis]->backward_current, get_correction_file_path(axis, CorrectionType::backward));
+    load_correction_from_file(axis_states[axis].forward_current, get_correction_file_path(axis, CorrectionType::forward));
+    load_correction_from_file(axis_states[axis].backward_current, get_correction_file_path(axis, CorrectionType::backward));
 
     phase_stepping::enable(axis, config_store().get_phase_stepping_enabled(axis));
 }

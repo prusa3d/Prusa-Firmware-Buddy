@@ -271,8 +271,8 @@ static void move_to_calibration_start(AxisEnum axis, const PrinterCalibrationCon
 }
 
 static void reset_compensation(AxisEnum axis) {
-    phase_stepping::axis_states[axis]->forward_current.clear();
-    phase_stepping::axis_states[axis]->backward_current.clear();
+    phase_stepping::axis_states[axis].forward_current.clear();
+    phase_stepping::axis_states[axis].backward_current.clear();
 }
 
 // Return a tuple <motor_period_count, relevant_samples_count> that gives a
@@ -299,7 +299,7 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
 
     Planner::synchronize();
 
-    phase_stepping::AxisState &axis_state = *phase_stepping::axis_states[axis];
+    phase_stepping::AxisState &axis_state = phase_stepping::axis_states[axis];
 
     // Find move target that corresponds to given number of revs
     auto [measurement_revs, vibration_delay] = sample_capture_revs(revs, speed);
@@ -435,7 +435,7 @@ class CalibrationPhaseExecutor {
         InterruptableGoldenSearch backward_search,
         int iterations,
         F apply_x) {
-        auto &axis_state = *phase_stepping::axis_states[_axis];
+        auto &axis_state = phase_stepping::axis_states[_axis];
 
         // Calibration is quite CPU-heavy, we gotta release the processor to do other stuff from time to time
         // Also GUI thread is waiting for marlin server acks, so we gotta do marlin idling
@@ -504,11 +504,11 @@ class CalibrationPhaseExecutor {
     }
 
     const SpectralItem &_get_fwd_item() const {
-        return axis_states[_axis]->forward_current.get_correction()[_phase_config.harmonic];
+        return axis_states[_axis].forward_current.get_correction()[_phase_config.harmonic];
     }
 
     const SpectralItem &_get_bwd_item() const {
-        return axis_states[_axis]->backward_current.get_correction()[_phase_config.harmonic];
+        return axis_states[_axis].backward_current.get_correction()[_phase_config.harmonic];
     }
 
 public:
@@ -614,8 +614,8 @@ phase_stepping::calibrate_axis(AxisEnum axis, CalibrateAxisHooks &hooks) {
     hooks.on_termination();
 
     r.emplace();
-    std::get<0>(*r) = phase_stepping::axis_states[axis]->forward_current.get_correction();
-    std::get<1>(*r) = phase_stepping::axis_states[axis]->backward_current.get_correction();
+    std::get<0>(*r) = phase_stepping::axis_states[axis].forward_current.get_correction();
+    std::get<1>(*r) = phase_stepping::axis_states[axis].backward_current.get_correction();
     return r;
 }
 

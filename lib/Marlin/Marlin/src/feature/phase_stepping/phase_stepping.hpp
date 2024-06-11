@@ -45,14 +45,15 @@ private:
 
 struct AxisState {
     AxisState(AxisEnum axis)
-        : axis_index(axis) {}
+        : axis_index(axis)
+        , enabled(false)
+        , active(false) {}
 
     const int axis_index;
-
-    CorrectedCurrentLut forward_current, backward_current;
-
     std::atomic<bool> enabled = false; // Axis enabled for this axis
     std::atomic<bool> active = false; // Phase stepping interrupt active
+
+    CorrectedCurrentLut forward_current, backward_current;
 
     bool inverted = false; // Inverted axis direction flag
     int zero_rotor_phase = 0; // Rotor phase for position 0
@@ -228,17 +229,7 @@ void synchronize();
 /**
  * This array keeps axis state (and LUT tables) for each axis
  **/
-extern std::array<
-    std::unique_ptr<AxisState>,
-    opts::SUPPORTED_AXIS_COUNT>
-    axis_states;
-
-/**
- * Check wether init() has been called
- */
-static inline bool initialized() {
-    return std::ranges::all_of(axis_states, [](const auto &state) { return state != nullptr; });
-}
+extern std::array<AxisState, opts::SUPPORTED_AXIS_COUNT> axis_states;
 
     /**
      * Ensure init() has been called
@@ -266,7 +257,7 @@ void assert_disabled();
 inline bool is_enabled(AxisEnum axis_num) {
     assert_initialized();
     if (axis_num < opts::SUPPORTED_AXIS_COUNT) {
-        return axis_states[axis_num]->enabled;
+        return axis_states[axis_num].enabled;
     }
     return false;
 }
@@ -316,7 +307,7 @@ public:
         assert_initialized();
 
         any_axis_change = std::ranges::any_of(axis_states, [&](const auto &state) -> bool {
-            return state->enabled != new_state;
+            return state.enabled != new_state;
         });
 
         if (any_axis_change) {
@@ -325,7 +316,7 @@ public:
             for (std::size_t i = 0; i != axis_states.size(); i++) {
                 if (released) {
                     // save original state on first change
-                    _prev_active[i] = axis_states[i]->enabled;
+                    _prev_active[i] = axis_states[i].enabled;
                 }
                 phase_stepping::enable(AxisEnum(i), new_state);
             }
