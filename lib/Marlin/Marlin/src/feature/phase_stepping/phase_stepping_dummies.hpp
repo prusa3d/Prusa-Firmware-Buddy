@@ -24,7 +24,7 @@ using EnsureEnabled = EnsureStateDummy;
 using EnsureDisabled = EnsureStateDummy;
 using EnsureSuitableForHoming = EnsureStateDummy;
 
-static constexpr bool any_axis_active() {
+static constexpr bool any_axis_enabled() {
     return false;
 }
 

@@ -281,7 +281,7 @@ void TMC2130Stepper::push() {
 #else
   const bool localConnection = true;
 #endif
-  assert(!phase_stepping::any_axis_active() || !localConnection);
+  assert(!phase_stepping::any_axis_enabled() || !localConnection);
 #endif
 
   GCONF(GCONF_register.sr);

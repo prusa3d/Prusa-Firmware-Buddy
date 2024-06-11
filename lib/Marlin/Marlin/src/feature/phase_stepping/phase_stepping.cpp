@@ -312,7 +312,7 @@ void phase_stepping::assert_initialized() {
 
 void phase_stepping::assert_disabled() {
     // This is explicitly kept non-inline to serve as a single trap point
-    assert(!any_axis_active());
+    assert(!any_axis_enabled());
 }
 #endif
 
@@ -366,7 +366,8 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
     auto &stepper = static_cast<TMC2130Stepper &>(stepper_axis(axis_num));
     auto &axis_state = *axis_states[axis_num];
-    assert(!axis_state.active && !axis_state.current_target.has_value() && axis_state.pending_targets.isEmpty());
+    assert(!axis_state.enabled && !axis_state.active);
+    assert(!axis_state.current_target.has_value() && axis_state.pending_targets.isEmpty());
 
     axis_state.last_position = 0;
     axis_state.direction = Stepper::last_axis_direction(axis_num);
@@ -413,6 +414,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     axis_state.initial_count_position_from_startup = Stepper::get_axis_steps_from_startup(axis_num) - initial_steps_made;
 
     axis_state.missed_tx_cnt = 0;
+    axis_state.enabled = true;
     axis_state.active = true;
 
     auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis_num;
@@ -461,7 +463,9 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     stepper.intpol(axis_state.had_interpolation);
     stepper.rms_current(stepper.rms_current(), axis_state.initial_hold_multiplier);
 
-    if (!any_axis_active()) {
+    // Disable and shutdown timer if we're the last axis
+    axis_state.enabled = false;
+    if (!any_axis_enabled()) {
         HAL_TIM_Base_Stop_IT(&TIM_HANDLE_FOR(phase_stepping));
     }
 }
@@ -471,7 +475,7 @@ void phase_stepping::enable(AxisEnum axis_num, bool enable) {
     assert_initialized();
 
     auto &axis_state = axis_states[axis_num];
-    if (axis_state->active == enable) {
+    if (axis_state->enabled == enable) {
         return;
     }
     if (enable) {
@@ -694,9 +698,9 @@ FORCE_OFAST void phase_stepping::handle_periodic_refresh() {
 #endif
 }
 
-bool phase_stepping::any_axis_active() {
+bool phase_stepping::any_axis_enabled() {
     return std::ranges::any_of(axis_states, [](const auto &state) -> bool {
-        return (state && state->active);
+        return (state && state->enabled);
     });
 }
 
@@ -706,7 +710,7 @@ int phase_stepping::logical_ustep(AxisEnum axis) {
         return mscnt;
     }
     const AxisState &axis_state = *axis_states[axis];
-    if (!axis_state.active) {
+    if (!axis_state.enabled) {
         return mscnt;
     }
 
@@ -774,7 +778,7 @@ void load_correction_from_file(CorrectedCurrentLut &lut, const char *file_path) 
 void save_to_persistent_storage(AxisEnum axis) {
     assert(axis < SUPPORTED_AXIS_COUNT);
     save_to_persistent_storage_without_enabling(axis);
-    config_store().set_phase_stepping_enabled(axis, axis_states[axis]->active);
+    config_store().set_phase_stepping_enabled(axis, axis_states[axis]->enabled);
 }
 
 void save_to_persistent_storage_without_enabling(AxisEnum axis) {

@@ -51,7 +51,8 @@ struct AxisState {
 
     CorrectedCurrentLut forward_current, backward_current;
 
-    std::atomic<bool> active = false;
+    std::atomic<bool> enabled = false; // Axis enabled for this axis
+    std::atomic<bool> active = false; // Phase stepping interrupt active
 
     bool inverted = false; // Inverted axis direction flag
     int zero_rotor_phase = 0; // Rotor phase for position 0
@@ -179,9 +180,9 @@ step_event_info_t next_step_event_input_shaping(
 void handle_periodic_refresh();
 
 /**
- * Return whether any of the axis is in phase stepping mode
+ * Return whether any axis is in phase stepping mode
  */
-bool any_axis_active();
+bool any_axis_enabled();
 
 /**
  * Given axis state and time in µs ticks from movement start, compute axis
@@ -265,7 +266,7 @@ void assert_disabled();
 inline bool is_enabled(AxisEnum axis_num) {
     assert_initialized();
     if (axis_num < opts::SUPPORTED_AXIS_COUNT) {
-        return axis_states[axis_num]->active;
+        return axis_states[axis_num]->enabled;
     }
     return false;
 }
@@ -315,7 +316,7 @@ public:
         assert_initialized();
 
         any_axis_change = std::ranges::any_of(axis_states, [&](const auto &state) -> bool {
-            return state->active != new_state;
+            return state->enabled != new_state;
         });
 
         if (any_axis_change) {
@@ -324,7 +325,7 @@ public:
             for (std::size_t i = 0; i != axis_states.size(); i++) {
                 if (released) {
                     // save original state on first change
-                    _prev_active[i] = axis_states[i]->active;
+                    _prev_active[i] = axis_states[i]->enabled;
                 }
                 phase_stepping::enable(AxisEnum(i), new_state);
             }

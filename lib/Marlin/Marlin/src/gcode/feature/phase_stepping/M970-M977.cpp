@@ -50,7 +50,7 @@ static void report_state() {
 #else
     SERIAL_ECHO("phstep");
 #endif
-    if (phase_stepping::any_axis_active()) {
+    if (phase_stepping::any_axis_enabled()) {
         SERIAL_ECHOLN(": active");
     } else {
         SERIAL_ECHOLN(": disabled");
