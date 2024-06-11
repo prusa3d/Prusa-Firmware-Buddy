@@ -1428,12 +1428,12 @@
 #define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
-    #define Z_SAFE_HOMING_X_POINT (120) // X point for Z homing when homing all axes (G28).
+    #define Z_SAFE_HOMING_X_POINT (130) // X point for Z homing when homing all axes (G28).
     #define Z_SAFE_HOMING_Y_POINT (245) // Y point for Z homing when homing all axes (G28).
 
     #define DETECT_PRINT_SHEET
     #if ENABLED(DETECT_PRINT_SHEET)
-        #define DETECT_PRINT_SHEET_X_POINT (110)
+        #define DETECT_PRINT_SHEET_X_POINT (130)
         #define DETECT_PRINT_SHEET_Y_POINT (280)
         #define DETECT_PRINT_SHEET_Z_POINT (-2)
         #define DETECT_PRINT_SHEET_Z_AFTER_FAILURE (165)
