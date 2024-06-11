@@ -102,13 +102,11 @@ bool GCodeInfo::start_load(AnyGcodeFormatReader &file_reader) {
 
     file_reader = AnyGcodeFormatReader { gcode_file_path.data() };
     if (file_reader.is_open()) {
-        start_load_result_ = StartLoadResult::Started;
         check_valid_for_print(file_reader); // This only updates is_valid, will change over the prefetch change
         return true;
 
     } else {
         error_str_ = N_("Failed to open file");
-        start_load_result_ = StartLoadResult::Failed;
         return false;
     }
 }
@@ -167,7 +165,6 @@ void GCodeInfo::reset_info() {
     valid_printer_settings = ValidPrinterSettings();
     per_extruder_info.fill({});
     printing_time[0] = 0;
-    start_load_result_ = StartLoadResult::None;
     error_str_ = {};
 }
 

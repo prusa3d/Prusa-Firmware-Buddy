@@ -5,6 +5,8 @@
 
 static AsyncJob gcode_scan_async_job;
 
+static std::atomic<gcode_info_scan::ScanStartResult> scan_start_result_ = gcode_info_scan::ScanStartResult::not_started;
+
 LOG_COMPONENT_REF(MarlinServer);
 
 static void gcode_info_scan_callback(AsyncJobExecutionControl &control) {
@@ -12,9 +14,16 @@ static void gcode_info_scan_callback(AsyncJobExecutionControl &control) {
     auto &gcode_info = GCodeInfo::getInstance();
 
     if (!gcode_info.start_load(gcode_info_file)) {
+        control.with_synchronized([] {
+            scan_start_result_ = gcode_info_scan::ScanStartResult::failed;
+        });
         log_error(MarlinServer, "Media prefetch GCodeInfo: fail to open");
         return;
     }
+
+    control.with_synchronized([] {
+        scan_start_result_ = gcode_info_scan::ScanStartResult::started;
+    });
 
     // Wait for gcode to be valid
     while (!gcode_info.check_valid_for_print(gcode_info_file)) {
@@ -36,7 +45,12 @@ static void gcode_info_scan_callback(AsyncJobExecutionControl &control) {
 
 namespace gcode_info_scan {
 
+ScanStartResult scan_start_result() {
+    return scan_start_result_.load();
+}
+
 void start_scan() {
+    scan_start_result_ = ScanStartResult::not_started;
     gcode_scan_async_job.issue(&gcode_info_scan_callback);
 }
 

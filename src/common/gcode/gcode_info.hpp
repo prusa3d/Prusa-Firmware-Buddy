@@ -47,11 +47,6 @@ inline constexpr const char *m109_wait_hotend_temp = "M109";
 /// Check code in PrintPreview::Loop for an example.
 class GCodeInfo {
 public:
-    enum class StartLoadResult {
-        None,
-        Started,
-        Failed
-    };
     static constexpr uint32_t gcode_level = GCODE_LEVEL;
 
 #if PRINTER_IS_PRUSA_MK4
@@ -143,7 +138,6 @@ private:
 
     // atomic flags to signal to other thread, the progress of gcode loading
     std::atomic<bool> is_loaded_ = false; ///< did the load() function finish?
-    std::atomic<StartLoadResult> start_load_result_ = {}; ///< None if nt started yet, Failed - opening gcode failed, Started - success
     std::atomic<bool> is_printable_ = false; ///< is it valid for print?, checked by gcode reader "valid_for_print" function
 
     std::atomic<const char *> error_str_ = nullptr; ///< If there is an error, this variable can be used to report the error string
@@ -250,14 +244,6 @@ public:
      * which does the real checking
      */
     bool can_be_printed() { return is_printable_; }
-
-    /**
-     * @brief Check the result of starting the load.
-     *
-     * To be used concurently to `start_load`,
-     * which does the starting.
-     */
-    StartLoadResult start_load_result() { return start_load_result_; }
 
     /**
      * @brief Sets up gcode file and sets up info member variables for print preview.

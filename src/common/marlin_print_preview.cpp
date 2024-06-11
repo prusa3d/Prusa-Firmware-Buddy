@@ -439,7 +439,7 @@ PrintPreview::Result PrintPreview::Loop() {
         break;
 
     case State::loading:
-        if (gcode_info.start_load_result() == GCodeInfo::StartLoadResult::None) {
+        if (gcode_info_scan::scan_start_result() == gcode_info_scan::ScanStartResult::not_started) {
             break;
         }
 
