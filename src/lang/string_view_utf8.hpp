@@ -33,27 +33,31 @@ class string_view_utf8 {
 public:
     using Length = int16_t;
 
+    enum class Type : uint8_t {
+        /// No string.
+        /// Both \p file and \p memory_ptr are null
+        null_string,
+
+        /// The string is stored in the memory (RAM/CPU FLASH)
+        /// \p file is null, \p memory_ptr contains the pointer
+        memory_string,
+
+        /// The strnig is stored in the file
+        /// \p file contains the file handle, \p file_offset contains the offset
+        file_string,
+    };
+
 private:
+    /// If the string view points to a file string, contains the file handle. Otherwise null.
+    FILE *file = nullptr;
+
     union {
-        /// interface for utf-8 strings stored in the CPU FLASH.
-        struct {
-            const uint8_t *utf8raw; ///< pointer to raw utf8 data
-        } cpuflash;
+        /// If file is null, this is a poitner to the memory
+        const uint8_t *memory_ptr = nullptr;
 
-        /// interface for utf-8 string stored in a FILE - used for validation of the whole translation infrastructure
-        struct {
-            ::FILE *f; ///< shared FILE pointer with other instances accessing the same file
-            uint32_t offset; ///< start offset in input file
-        } file;
+        /// If file is not null, this is used as an offset to the file
+        uint32_t file_offset;
     };
-
-    enum class EType : uint8_t {
-        RAM,
-        CPUFLASH,
-        FILE,
-        NULLSTR,
-    };
-    EType type = EType::NULLSTR;
 
 public:
     string_view_utf8() = default;
@@ -67,9 +71,21 @@ public:
 
     unichar getFirstUtf8Char() const;
 
+    constexpr inline Type type() const {
+        if (file) {
+            return Type::file_string;
+
+        } else if (memory_ptr) {
+            return Type::memory_string;
+
+        } else {
+            return Type::null_string;
+        }
+    }
+
     /// returns true if the string is of type NULLSTR - typically used as a replacement for nullptr or "" strings
     constexpr bool isNULLSTR() const {
-        return type == EType::NULLSTR;
+        return type() == Type::null_string;
     }
 
     /// Copy the string byte-by-byte into some RAM buffer for later processing, without multibyte cutting check
@@ -100,8 +116,7 @@ public:
     /// Construct string_view_utf8 to provide data from CPU FLASH
     static string_view_utf8 MakeCPUFLASH(const uint8_t *utf8raw) {
         string_view_utf8 s;
-        s.cpuflash.utf8raw = utf8raw;
-        s.type = EType::CPUFLASH;
+        s.memory_ptr = utf8raw;
         return s;
     }
 
@@ -113,8 +128,7 @@ public:
     /// basically the same as from CPU FLASH, only the string_view_utf8's type differs of course
     static string_view_utf8 MakeRAM(const uint8_t *utf8raw) {
         string_view_utf8 s;
-        s.cpuflash.utf8raw = utf8raw;
-        s.type = EType::RAM;
+        s.memory_ptr = utf8raw;
         return s;
     }
 
@@ -126,19 +140,16 @@ public:
     /// The FILE *f shall aready be positioned to the spot, where the string starts
     static string_view_utf8 MakeFILE(::FILE *f, uint32_t offset) {
         string_view_utf8 s;
-        s.file.f = f;
         if (f) {
-            s.file.offset = offset;
+            s.file = f;
+            s.file_offset = offset;
         }
-        s.type = EType::FILE;
         return s;
     }
 
     /// Construct an empty string_view_utf8 - behaves like a "" but is a special type NULL
     static string_view_utf8 MakeNULLSTR() {
-        string_view_utf8 s;
-        s.type = EType::NULLSTR;
-        return s;
+        return string_view_utf8();
     }
 
     string_view_utf8 &operator=(const string_view_utf8 &other) = default;
@@ -151,30 +162,14 @@ public:
 
     /// string view has the same resource
     bool is_same_ref(const string_view_utf8 &other) const {
-        if (type != other.type) {
-            return false; // type mismatch
-        }
-
-        switch (type) {
-        case EType::RAM:
-            // even though data on RAM can change, stringview never copies any data and therefore comparing pointers is enough
-            // => if pointer wasn't changed, data on the other end is the exact same data that is saved by stringview
-            // check MakeRAM; that should make everything clear
-        case EType::CPUFLASH:
-            return cpuflash.utf8raw == other.cpuflash.utf8raw;
-        case EType::FILE:
-            return (file.f == other.file.f) && (file.offset == other.file.offset);
-        case EType::NULLSTR: // all null strings are equal
-            return true;
-        }
-        return false; // somehow out of enum range
+        return (file == other.file) && (memory_ptr == other.memory_ptr);
     }
 };
 static_assert(std::is_trivially_copyable_v<string_view_utf8>);
 
 /// Class for reading the characters of a string_view_utf8
 class StringReaderUtf8 {
-    using EType = string_view_utf8::EType;
+    using Type = string_view_utf8::Type;
 
 public:
     /// \param view string to be read (reader makes a copy, it does not need to exist during the reader existence)

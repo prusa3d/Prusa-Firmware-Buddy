@@ -1,5 +1,7 @@
 #include "string_view_utf8.hpp"
 
+#include <exception>
+
 string_view_utf8::Length string_view_utf8::computeNumUtf8Chars() const {
     Length r = 0;
     StringReaderUtf8 reader(*this);
@@ -90,34 +92,37 @@ unichar StringReaderUtf8::getUtf8Char() {
 }
 
 uint8_t StringReaderUtf8::getbyte() {
-    switch (view_.type) {
+    switch (view_.type()) {
 
-    case EType::CPUFLASH:
-    case EType::RAM:
-        return *view_.cpuflash.utf8raw++; // beware - expecting, that the input string is null-terminated! No other checks are done
+    case Type::memory_string:
+        return *view_.memory_ptr++; // beware - expecting, that the input string is null-terminated! No other checks are done
 
-    case EType::FILE:
+    case Type::file_string:
         return FILE_getbyte();
 
-    default:
-        return 0;
+    case Type::null_string:
+        return '\0';
     }
+
+    // This should never happen
+    std::terminate();
 }
 
 uint8_t StringReaderUtf8::FILE_getbyte() {
-    if (!view_.file.f) {
+    if (!view_.file) {
         return '\0';
     }
+
     uint8_t c;
     // sync among multiple reads from the sameMO file
-    if (ftell(view_.file.f) != static_cast<long>(view_.file.offset)) {
-        if (fseek(view_.file.f, view_.file.offset, SEEK_SET) != 0) {
+    if (ftell(view_.file) != static_cast<long>(view_.file_offset)) {
+        if (fseek(view_.file, view_.file_offset, SEEK_SET) != 0) {
             return '\0';
         }
     }
 
-    view_.file.offset++;
-    if (fread(&c, 1, 1, view_.file.f) != 1) {
+    view_.file_offset++;
+    if (fread(&c, 1, 1, view_.file) != 1) {
         return '\0';
     }
     return c;
