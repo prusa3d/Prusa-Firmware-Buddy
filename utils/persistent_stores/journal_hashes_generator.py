@@ -49,12 +49,13 @@ def find_duplicates(tuples_list):
     num_count = {}  # Dictionary to store the count of each number
     duplicates = set()  # Set to store tuples with duplicate numbers
 
-    for string, num in tuples_list:
-        if num in num_count:
-            duplicates.add(num_count[num])
-            duplicates.add((string, num))
-        else:
-            num_count[num] = (string, num)
+    for string, num, hash_count in tuples_list:
+        for index in range(hash_count):
+            if (num + index) in num_count:
+                duplicates.add(num_count[(num + index)])
+                duplicates.add((string, (num + index)))
+            else:
+                num_count[(num + index)] = (string, (num + index))
 
     return duplicates
 
@@ -75,7 +76,7 @@ def main():
     definition_files = str(args.Definition).split(';')
 
     # Define a regular expression pattern to match the hash strings
-    regex = re.compile(r'journal::hash\("([^"]+)"\)')
+    regex = re.compile(r'journal::hash\(\s*"([^"]+)"\)(?:, (\d+))?')
 
     # Create a list to store the tuples
     hash_tuples = []
@@ -86,14 +87,14 @@ def main():
 
         # Find all matches using the regular expression pattern
         matches = regex.findall(content)
-
         # Calculate the SHA256 hash and perform bitwise AND with 0x3FFF for each match
-        for hash_string in matches:
+        for match in matches:
+            hash_string = match[0]
+            hash_range = 1 if match[1] == "" else int(match[1])
             hash_sha256 = hashlib.sha256(hash_string.encode()).hexdigest(
             )[:4]  # take only first 4 half-bytes
             hash_sha256_masked = int(hash_sha256, 16) & 0x3FFF
-            hash_tuples.append((hash_string, hash_sha256_masked))
-
+            hash_tuples.append((hash_string, hash_sha256_masked, hash_range))
         # TODO: Do conflict check only on per file basis, not like how it's done now only at the very end
 
     hash_tuples.sort(key=lambda x: x[0])
