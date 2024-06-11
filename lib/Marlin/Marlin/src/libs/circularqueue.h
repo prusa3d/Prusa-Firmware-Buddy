@@ -23,6 +23,7 @@
 
 #include <stdint.h>
 #include <limits>
+#include <atomic>
 
 /**
  * @brief   Circular Queue class
@@ -147,8 +148,8 @@ class AtomicCircularQueue {
      *          a circular queue such as the pointers and the buffer vector.
      */
     struct buffer_t {
-      index_t head;
-      index_t tail;
+      std::atomic<index_t> head;
+      std::atomic<index_t> tail;
       T queue[N];
     } buffer;
 
@@ -166,6 +167,8 @@ class AtomicCircularQueue {
       static_assert(!std::numeric_limits<index_t>::is_signed, "Buffer index has to be an unsigned type");
       static_assert(N < std::numeric_limits<index_t>::max(), "Buffer size bigger than the index can support");
       static_assert((N & (N - 1)) == 0, "The size of the queue has to be a power of 2");
+      static_assert(decltype(buffer_t::head)::is_always_lock_free, "index_t is not lock-free");
+      static_assert(decltype(buffer_t::tail)::is_always_lock_free, "index_t is not lock-free");
       buffer.head = buffer.tail = 0;
     }
 
