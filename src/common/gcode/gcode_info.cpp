@@ -119,16 +119,57 @@ bool GCodeInfo::check_valid_for_print(AnyGcodeFormatReader &file_reader) {
     return is_printable_;
 }
 
-void GCodeInfo::load(AnyGcodeFormatReader &file_reader) {
+void GCodeInfo::load(IGcodeReader &reader) {
 #if HAS_GUI()
-    has_preview_thumbnail_ = hasThumbnail(*file_reader, GuiDefaults::PreviewThumbnailRect.Size());
-    has_progress_thumbnail_ = hasThumbnail(*file_reader, GuiDefaults::ProgressThumbnailRect.Size());
+    has_preview_thumbnail_ = hasThumbnail(reader, GuiDefaults::PreviewThumbnailRect.Size());
+    has_progress_thumbnail_ = hasThumbnail(reader, GuiDefaults::ProgressThumbnailRect.Size());
     if (!has_progress_thumbnail_) {
-        has_progress_thumbnail_ = hasThumbnail(*file_reader, { GuiDefaults::OldSlicerProgressImgWidth, GuiDefaults::ProgressThumbnailRect.Height() });
+        has_progress_thumbnail_ = hasThumbnail(reader, { GuiDefaults::OldSlicerProgressImgWidth, GuiDefaults::ProgressThumbnailRect.Height() });
     }
 #endif
+
     // scan info G-codes and comments
-    PreviewInit(*file_reader);
+    valid_printer_settings = ValidPrinterSettings(); // reset to valid state
+    per_extruder_info = {}; // Reset extruder info
+#if EXTRUDERS > 1
+    filament_wipe_tower_g = std::nullopt;
+#endif
+
+    GcodeBuffer buffer;
+
+    // parse metadata
+    if (reader.stream_metadata_start()) {
+        while (true) {
+            auto res = reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard);
+
+            // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
+            assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
+            if (res != IGcodeReader::Result_t::RESULT_OK) {
+                break;
+            }
+
+            parse_comment(buffer.line);
+        }
+
+    } else {
+        log_error(Buddy, "Metadata in gcode not found");
+    }
+
+    // parse first few gcodes
+    if (reader.stream_gcode_start() == IGcodeReader::Result_t::RESULT_OK) {
+        uint32_t gcode_counter = 0;
+        while (true) {
+            // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
+            auto res = reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard);
+            assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
+            if (res != IGcodeReader::Result_t::RESULT_OK || gcode_counter >= search_first_x_gcodes) {
+                break;
+            }
+
+            parse_gcode(buffer.line, gcode_counter);
+        }
+    }
+
     is_loaded_ = true;
 }
 
@@ -547,49 +588,6 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
             filament_wipe_tower_g = temp;
         }
 #endif
-    }
-}
-
-void GCodeInfo::PreviewInit(IGcodeReader &reader) {
-    valid_printer_settings = ValidPrinterSettings(); // reset to valid state
-    per_extruder_info = {}; // Reset extruder info
-#if EXTRUDERS > 1
-    filament_wipe_tower_g = std::nullopt;
-#endif
-
-    GcodeBuffer buffer;
-
-    // parse metadata
-    if (reader.stream_metadata_start()) {
-        while (true) {
-            auto res = reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard);
-
-            // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
-            assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
-            if (res != IGcodeReader::Result_t::RESULT_OK) {
-                break;
-            }
-
-            parse_comment(buffer.line);
-        }
-
-    } else {
-        log_error(Buddy, "Metadata in gcode not found");
-    }
-
-    // parse first few gcodes
-    if (reader.stream_gcode_start() == IGcodeReader::Result_t::RESULT_OK) {
-        uint32_t gcode_counter = 0;
-        while (true) {
-            // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
-            auto res = reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard);
-            assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
-            if (res != IGcodeReader::Result_t::RESULT_OK || gcode_counter >= search_first_x_gcodes) {
-                break;
-            }
-
-            parse_gcode(buffer.line, gcode_counter);
-        }
     }
 }
 

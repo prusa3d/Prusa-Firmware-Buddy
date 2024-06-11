@@ -43,7 +43,7 @@ static void gcode_info_scan_callback(AsyncJobExecutionControl &control) {
     }
 
     log_info(MarlinServer, "Media prefetch GCodeInfo: loading");
-    gcode_info.load(file_reader);
+    gcode_info.load(*file_reader);
 }
 
 namespace gcode_info_scan {

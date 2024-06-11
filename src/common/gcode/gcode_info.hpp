@@ -252,9 +252,9 @@ public:
     /**
      * @brief Sets up gcode file and sets up info member variables for print preview.
      * @note start_load and end_load shall be called before&after
-     * @param file_reader gcode file reader, it cannot be accessed by other threads at the same time
+     * @param reader gcode file reader, it cannot be accessed by other threads at the same time
      */
-    void load(AnyGcodeFormatReader &file_reader);
+    void load(IGcodeReader &reader);
 
     /** Evaluates tool compatibility*/
     void EvaluateToolsValid();
@@ -264,13 +264,6 @@ public:
     uint32_t getPrinterModelCode() const;
 
 private:
-    /**
-     * @brief Parse G-code file for comments and info codes.
-     * This cannot be run from Marlin thread, because it takes too long for watchdog.
-     * @param[in] reader - gcode file reader reference
-     */
-    void PreviewInit(IGcodeReader &reader);
-
     /** Iterate over items separated by some delimeter character */
     std::optional<std::span<char>> iterate_items(std::span<char> &buffer, char separator);
 
