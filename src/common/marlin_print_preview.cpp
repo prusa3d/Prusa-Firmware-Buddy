@@ -33,6 +33,7 @@
 #include <module/prusa/tool_mapper.hpp>
 #include <module/prusa/spool_join.hpp>
 #include <mmu2_toolchanger_common.hpp>
+#include <common/gcode/gcode_info_scan.hpp>
 
 // would be nice to have option leave phase as it was
 // something like std::pair<enum {delete, leave, has_value },PhasesPrintPreview>
@@ -405,7 +406,7 @@ PrintPreview::Result PrintPreview::Loop() {
         return Result::Inactive;
 
     case State::init:
-        osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_INIT);
+        gcode_info_scan::start_scan();
 
         // Reset print progress to 0. Need to be at this point because Connect is already starting to snitch the info.
         oProgressData.mInit();
@@ -422,7 +423,7 @@ PrintPreview::Result PrintPreview::Loop() {
         switch (response) {
 
         case Response::Quit:
-            osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_STOP);
+            gcode_info_scan::cancel_scan();
             ChangeState(State::inactive);
             return Result::Abort;
 

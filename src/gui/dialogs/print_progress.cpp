@@ -14,6 +14,7 @@
 #include <media.hpp>
 #include <guiconfig/guiconfig.h>
 #include <MItem_tools.hpp>
+#include <common/gcode/gcode_info_scan.hpp>
 
 LOG_COMPONENT_REF(GUI);
 
@@ -121,8 +122,7 @@ PrintProgress::PrintProgress(window_t *parent)
 
 void PrintProgress::init_gcode_info() {
     if (!gcode_info.is_loaded()) {
-        // Signal media_prefetch to get gcode info
-        osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_INIT);
+        gcode_info_scan::start_scan();
     }
 }
 

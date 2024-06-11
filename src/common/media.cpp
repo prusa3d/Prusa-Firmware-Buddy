@@ -36,7 +36,6 @@ volatile media_error_t media_error = media_error_OK;
 
 std::atomic<media_print_state_t> media_print_state = media_print_state_NONE;
 AnyGcodeFormatReader media_print_file; ///< File used to print
-AnyGcodeFormatReader gcode_info_file; ///< File used to scan GcodeInfo
 uint32_t media_print_size_estimate = 0; ///< Estimated uncompressed G-code size in bytes
 uint32_t media_current_position = 0; // Current position in the file
 uint32_t media_gcode_position = 0; // Beginning of the current G-Code
@@ -70,57 +69,6 @@ freertos::Mutex prefetch_mutex_file_reader; ///< Mutex to not close while anothe
 
 METRIC_DEF(metric_prefetched_bytes, "media_prefetched", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
-/**
- * @brief Initialize GCodeInfo.
- * @param event signal that started this, will be updated while waiting for file to be downloaded
- * @param event nullptr if not waiting for file to be downloaded
- */
-void media_gcode_info_scan(osEvent *event = nullptr) {
-    auto &gcode_info = GCodeInfo::getInstance();
-
-    if (!gcode_info.start_load(gcode_info_file)) {
-        log_error(MarlinServer, "Media prefetch GCodeInfo: fail to open");
-        return;
-    }
-
-    const bool should_load_gcode = [&] {
-        // Wait for gcode to be valid
-        while (!gcode_info.check_valid_for_print(gcode_info_file)) {
-            if (gcode_info.has_error()) {
-                log_error(MarlinServer, "Media prefetch GCodeInfo: not valid: %s", gcode_info.error_str());
-                return false;
-            }
-
-            if (!event) {
-                // Do not wait for file to download
-                log_error(MarlinServer, "Media prefetch GCodeInfo: cannot wait");
-                return false;
-            } else {
-                // Check for signal to stop loading (for example Quit button during the Downloading screen)
-                *event = osSignalWait(PREFETCH_SIGNAL_GCODE_INFO_STOP, 500);
-                if (event->value.signals & PREFETCH_SIGNAL_GCODE_INFO_STOP) {
-                    log_info(MarlinServer, "Media prefetch GCodeInfo: stopped");
-                    return false;
-                }
-            }
-        }
-
-        // Verify the file CRC
-        if (!gcode_info.verify_file(gcode_info_file)) {
-            log_error(MarlinServer, "Media prefetch GCodeInfo: fail to verify: %s", gcode_info.error_str());
-            return false;
-        }
-
-        return true;
-    }();
-
-    if (should_load_gcode) {
-        log_info(MarlinServer, "Media prefetch GCodeInfo: loading");
-        gcode_info.load(gcode_info_file);
-    }
-
-    gcode_info.end_load(gcode_info_file);
-}
 } // namespace
 
 media_state_t media_get_state(void) {
@@ -139,11 +87,7 @@ void media_prefetch(const void *) {
 
         file_buff_level = file_buff_pos = 0;
 
-        event = osSignalWait(PREFETCH_SIGNAL_START | PREFETCH_SIGNAL_STOP | PREFETCH_SIGNAL_FETCH | PREFETCH_SIGNAL_GCODE_INFO_INIT | PREFETCH_SIGNAL_GCODE_INFO_STOP | PREFETCH_SIGNAL_CHECK, osWaitForever);
-
-        if (event.value.signals & PREFETCH_SIGNAL_GCODE_INFO_INIT) {
-            media_gcode_info_scan(&event);
-        }
+        event = osSignalWait(PREFETCH_SIGNAL_START | PREFETCH_SIGNAL_STOP | PREFETCH_SIGNAL_FETCH | PREFETCH_SIGNAL_CHECK, osWaitForever);
 
         if (event.value.signals & PREFETCH_SIGNAL_CHECK) {
             GCodeInfo::getInstance().check_still_valid();
@@ -265,9 +209,6 @@ void media_prefetch(const void *) {
 
             if (!rerun_loop) {
                 event = osSignalWait(PREFETCH_SIGNAL_FETCH | PREFETCH_SIGNAL_STOP, osWaitForever);
-                if (event.value.signals & PREFETCH_SIGNAL_GCODE_INFO_INIT) {
-                    media_gcode_info_scan();
-                }
                 if (event.value.signals & PREFETCH_SIGNAL_STOP) {
                     log_info(MarlinServer, "Media prefetch got STOP signal");
                     break;
