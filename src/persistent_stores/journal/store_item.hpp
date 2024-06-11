@@ -15,6 +15,9 @@ namespace journal {
 template <typename DataT>
 concept StoreItemDataC = std::equality_comparable<DataT> && std::default_initializable<DataT> && std::is_trivially_copyable_v<DataT>;
 
+template <typename DataT, typename T, uint8_t count>
+concept ItemArrayDefaultValC = std::same_as<std::array<DataT, count>, T> || std::same_as<DataT, T>;
+
 template <StoreItemDataC DataT, auto backend>
 struct JournalItemBase {
 protected:
@@ -157,6 +160,169 @@ public:
         Base::ram_dump(hashed_id, default_val);
     }
 };
+
+template <StoreItemDataC DataT, auto default_val, auto backend, uint16_t hashed_id, uint8_t item_count>
+    requires ItemArrayDefaultValC<DataT, decltype(default_val), item_count> && (item_count > 0)
+struct JournalItemArray {
+private:
+    using DefaultVal = decltype(default_val);
+    using ItemArray = std::array<DataT, item_count>;
+    ItemArray data_array;
+
+public:
+    using BackendT = std::remove_cvref_t<std::invoke_result_t<decltype(backend)>>;
+    using value_type = DataT;
+    static constexpr size_t data_size { sizeof(DataT) };
+    static_assert(journal::BackendC<BackendT>); // BackendT type needs to fulfill this concept. Can be moved to signature with newer clangd, causes too many errors now (constrained auto)
+    static_assert(data_size < BackendT::MAX_ITEM_SIZE, "Item is too large");
+
+    using DataArg = JournalItemBase<DataT, backend>::DataArg;
+
+    static constexpr uint16_t hashed_id_first { hashed_id };
+    static constexpr uint16_t hashed_id_last { hashed_id + item_count - 1 };
+
+    static constexpr DataT get_default_val(uint8_t index) {
+        if constexpr (is_std_array_v<DefaultVal>) {
+            return default_val[index];
+        } else {
+            return default_val;
+        }
+    }
+
+    constexpr JournalItemArray()
+        requires(sizeof(JournalItemArray) == sizeof(ItemArray)) // Current implementation of journal relies heavily on this
+    {
+        if constexpr (is_std_array_v<DefaultVal>) {
+            data_array = default_val;
+        } else {
+            data_array.fill(default_val);
+        }
+    }
+    JournalItemArray(const JournalItemArray &other) = delete;
+    JournalItemArray &operator=(const JournalItemArray &other) = delete;
+
+    /// Sets the config to the provided value \p in
+    /// \returns true if the set value was different from the previous one
+    void set(uint8_t index, DataArg in) {
+        if (index >= item_count) {
+            std::terminate();
+        }
+        if (data_array[index] == in) {
+            return;
+        }
+        auto l = backend().lock();
+
+        data_array[index] = in;
+        do_save(index);
+    }
+
+    void set_all(DataArg in) {
+        auto l = backend().lock();
+        for (size_t i = 0; i < item_count; i++) {
+            if (data_array[i] == in) {
+                continue;
+            }
+            data_array[i] = in;
+            do_save(i);
+        }
+    }
+
+    void set_all(ItemArray &in) {
+        auto l = backend().lock();
+        for (size_t i = 0; i < item_count; i++) {
+            if (data_array[i] == in[i]) {
+                continue;
+            }
+            data_array[i] = in[i];
+            do_save(i);
+        }
+    }
+    /// Sets the item to f(old_value).
+    /// This is done under the lock, so the operation is atomic
+    inline void transform(uint8_t index, std::invocable<DataArg> auto f) {
+        if (index >= item_count) {
+            std::terminate();
+        }
+        auto l = backend().lock();
+        const auto old_value = this->data_array[index];
+        const auto new_value = f(old_value);
+        if (new_value != old_value) {
+            this->data_array = new_value;
+            this->do_save(index);
+        }
+    }
+
+    /// Sets the item to f(old_value).
+    /// This is done under the lock, so the operation is atomic
+    inline void transform_all(std::invocable<DataArg> auto f) {
+        auto l = backend().lock();
+        for (uint8_t i = 0; i < item_count; i++) {
+            const auto old_value = this->data_array[i];
+            const auto new_value = f(old_value);
+            if (new_value != old_value) {
+                this->data_array = new_value;
+                this->do_save(i);
+            }
+        }
+    }
+
+    /// Sets the config item to its default value.
+    /// \returns the default value
+    inline void set_to_default(uint8_t index) {
+        set(index, get_default_val(index));
+    }
+
+    /// Sets the config item to its default value.
+    /// \returns the default value
+    inline void set_all_to_default() {
+        set_all(default_val);
+    }
+
+    DataT get(uint8_t index) {
+        if (index >= item_count) {
+            std::terminate();
+        }
+
+        if (xPortIsInsideInterrupt()) {
+            return data_array[index];
+        }
+
+        auto l = backend().lock();
+        return data_array[index];
+    }
+
+    void init(uint8_t index, const std::span<uint8_t> &raw_data) {
+        if ((raw_data.size() != sizeof(value_type)) || (index >= item_count)) {
+            std::terminate();
+        }
+
+        memcpy(&(data_array[index]), raw_data.data(), sizeof(value_type));
+    }
+
+    void ram_dump() {
+        for (uint8_t i = 0; i < item_count; i++) {
+            if (data_array[i] != get_default_val(i)) {
+                do_save(i);
+            }
+        }
+    }
+
+private:
+    void do_save(uint8_t index) {
+        if (index >= item_count) {
+            std::terminate();
+        }
+        backend().save(hashed_id_first + index, { reinterpret_cast<const uint8_t *>(&(data_array[index])), sizeof(DataT) });
+    }
+};
+
+template <typename>
+struct is_item_array : std::false_type {};
+template <typename DataT, auto default_val, auto backend, uint16_t hashed_id, uint8_t item_count>
+struct is_item_array<JournalItemArray<DataT, default_val, backend, hashed_id, item_count>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_item_array_v = is_item_array<T>::value;
 
 template <StoreItemDataC DataT, DataT DefaultVal, journal::BackendC BackendT, uint16_t HashedID>
 struct DeprecatedStoreItem {
