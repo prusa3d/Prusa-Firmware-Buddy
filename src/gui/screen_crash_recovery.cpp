@@ -325,11 +325,14 @@ void ScreenCrashRecovery::windowEvent(window_t * /*sender*/, GUI_event_t event, 
 
         case GUI_event_t::CLICK: {
             Response response = radio->Click();
-            PhasesCrashRecovery send_phase = current_phase;
+            auto send_phase = current_phase;
+            if (!send_phase.has_value()) {
+                break;
+            }
             if (send_phase == PhasesCrashRecovery::axis_short || send_phase == PhasesCrashRecovery::axis_long) {
                 send_phase = PhasesCrashRecovery::axis_NOK;
             }
-            marlin_client::FSM_response(send_phase, response);
+            marlin_client::FSM_response(*send_phase, response);
             break;
         }
 
@@ -354,7 +357,7 @@ void ScreenCrashRecovery::change_phase(PhasesCrashRecovery new_phase) {
 
     current_phase = new_phase;
 
-    switch (current_phase) {
+    switch (new_phase) {
 
     case PhasesCrashRecovery::check_X:
     case PhasesCrashRecovery::check_Y:
