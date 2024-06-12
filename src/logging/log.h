@@ -212,6 +212,8 @@ void log_destination_unregister(log_destination_t *destination);
     #define log_critical(component, fmt, ...)
 #endif
 
+void log_task_process_event(log_event_t *event);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus

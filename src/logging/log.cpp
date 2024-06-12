@@ -1,5 +1,7 @@
 #include "log.h"
+
 #include "log_platform.h"
+#include "log_task.hpp"
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
@@ -40,6 +42,8 @@ void log_destination_unregister(log_destination_t *destination) {
     }
 }
 
+static LogTask log_task;
+
 void _log_event(log_severity_t severity, const log_component_t *component, const char *fmt, ...) {
     if (severity < component->lowest_severity) {
         return;
@@ -52,14 +56,18 @@ void _log_event(log_severity_t severity, const log_component_t *component, const
     event.component = component;
     event.fmt = fmt;
 
+    va_list args;
+    va_start(args, fmt);
+    event.args = &args;
+    log_task.send(&event); // this will block until event.args are processed
+    va_end(args);
+}
+
+void log_task_process_event(log_event_t *event) {
     for (log_destination_t **destination_pp = &destinations_head; *destination_pp != NULL; destination_pp = &(*destination_pp)->next) {
         log_destination_t *destination = *destination_pp;
-        if (severity >= destination->lowest_severity) {
-            va_list args;
-            va_start(args, fmt);
-            event.args = &args;
-            destination->log_event_fn(destination, &event);
-            va_end(args);
+        if (event->severity >= destination->lowest_severity) {
+            destination->log_event_fn(destination, event);
         }
     }
 }

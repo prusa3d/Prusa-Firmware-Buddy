@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include "log.h"
+#include "log_task.hpp"
 
 static std::optional<std::function<int()>> _log_platform_task_id_get = std::nullopt;
 static std::optional<std::function<log_timestamp_t()>> _log_platform_timestamp_get = std::nullopt;
@@ -66,4 +67,11 @@ ScopedInMemoryLog::ScopedInMemoryLog() {
 ScopedInMemoryLog::~ScopedInMemoryLog() {
     log_destination_unregister(&in_memory_log);
     log_event_func = std::nullopt;
+}
+
+LogTask::LogTask() {}
+void LogTask::send(log_event_t *event) {
+    // Let's cheat a bit and skip queue.
+    // It is difficult to do properly inside test setting, because there is no FreeRTOS scheduler...
+    log_task_process_event(event);
 }
