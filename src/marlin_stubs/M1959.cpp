@@ -13,6 +13,17 @@
 
 static_assert(HAS_INPUT_SHAPER_CALIBRATION());
 
+LOG_COMPONENT_REF(Marlin);
+
+static void log_axis_config(const input_shaper::AxisConfig &axis_config, char axis) {
+    log_info(Marlin, "axis=%c type=%u frequency=%f damping_ratio=%f vibration_reduction=%f",
+        axis,
+        static_cast<int>(axis_config.type),
+        static_cast<double>(axis_config.frequency),
+        static_cast<double>(axis_config.damping_ratio),
+        static_cast<double>(axis_config.vibration_reduction));
+}
+
 static constexpr bool klipper_mode = true;
 static constexpr float acceleration_requested = 2.5f;
 static constexpr uint32_t cycles = 50;
@@ -443,11 +454,13 @@ static PhasesInputShaperCalibration computing(Context &context) {
         const AxisEnum logicalAxis = X_AXIS;
         progress_hook.set_axis(logicalAxis);
         context.axis_config_x = find_best_shaper(progress_hook, context.spectrum_x, input_shaper::axis_defaults[logicalAxis]);
+        log_axis_config(context.axis_config_x, 'x');
     }
     {
         const AxisEnum logicalAxis = Y_AXIS;
         progress_hook.set_axis(logicalAxis);
         context.axis_config_y = find_best_shaper(progress_hook, context.spectrum_y, input_shaper::axis_defaults[logicalAxis]);
+        log_axis_config(context.axis_config_y, 'y');
     }
 
     return progress_hook.aborted() ? PhasesInputShaperCalibration::finish : PhasesInputShaperCalibration::results;
