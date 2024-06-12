@@ -289,8 +289,19 @@ struct CurrentStore
     StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 5")> filament_type_5;
 #endif
 
+    StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Previous Type 0")> filament_prev_type_0;
+#if EXTRUDERS > 1 // for now only doing one ifdef for simplicity
+    StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Previous Type 1")> filament_prev_type_1;
+    StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Previous Type 2")> filament_prev_type_2;
+    StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Previous Type 3")> filament_prev_type_3;
+    StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Previous Type 4")> filament_prev_type_4;
+    StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Previous Type 5")> filament_prev_type_5;
+#endif
+
     filament::Type get_filament_type(uint8_t index);
     void set_filament_type(uint8_t index, filament::Type value);
+    filament::Type get_previous_filament_type(uint8_t index);
+    void set_previous_filament_type(uint8_t index, filament::Type value);
 
     StoreItem<bool, defaults::bool_false, journal::hash("Heatup Bed")> heatup_bed;
 
