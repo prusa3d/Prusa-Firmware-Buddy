@@ -5,13 +5,11 @@
 #include <atomic>
 #include "marlin_vars.hpp"
 
-#include "client_response.hpp"
-
+#include "encoded_fsm_response.hpp"
 #include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "marlin_events.h"
 #include "client_fsm_types.h"
 #include "marlin_server_extended_fsm_data.hpp"
-
 #include <stddef.h>
 
 #include <serial_printing.hpp>
@@ -211,15 +209,22 @@ bool can_stop_wait_for_heatup();
 void can_stop_wait_for_heatup(bool val);
 
 // internal function, do not use directly
-Response get_response_from_phase_internal(uint8_t, uint8_t);
+FSMResponseVariant get_response_variant_from_phase_internal(uint8_t, uint8_t);
+
+/// If the phase matches currently recorded response, return it and consume it.
+/// Otherwise, return std::monostate and do not consume it.
+template <class T>
+FSMResponseVariant get_response_variant_from_phase(T phase) {
+    return get_response_variant_from_phase_internal(
+        ftrstd::to_underlying(client_fsm_from_phase(phase)),
+        ftrstd::to_underlying(phase));
+}
 
 /// If the phase matches currently recorded response, return it and consume it.
 /// Otherwise, return Response::_none and do not consume it.
 template <class T>
 Response get_response_from_phase(T phase) {
-    return get_response_from_phase_internal(
-        ftrstd::to_underlying(client_fsm_from_phase(phase)),
-        ftrstd::to_underlying(phase));
+    return get_response_variant_from_phase(phase).template get_or<Response>(Response::_none);
 }
 
 // FSM_notifier

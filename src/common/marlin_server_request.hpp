@@ -7,7 +7,7 @@
 namespace marlin_server {
 
 /// marlin_client -> marlin_server request
-struct __attribute__((packed)) Request {
+struct Request {
     enum class Type : uint8_t {
         EventMask,
         Gcode,
@@ -36,14 +36,8 @@ struct __attribute__((packed)) Request {
         SetWarning
     };
 
-    /// if it is set to 1, then the marlin server sends an acknowledge (default)
-    /// in some cases (sending a request from svc task) waiting is prohibited and it is necessary not to request an acknowledgment
-    unsigned response_required : 1;
-    unsigned client_id : 7;
-    Type type;
-
     union {
-        uint64_t event_mask; // Type::EventMask
+        uint64_t event_mask = 0; // Type::EventMask
         struct {
             float position;
             float feedrate;
@@ -79,8 +73,13 @@ struct __attribute__((packed)) Request {
         } print_start; // Type::PrintStart
         WarningType warning_type;
     };
+
+    /// if it is set to 1, then the marlin server sends an acknowledge (default)
+    /// in some cases (sending a request from svc task) waiting is prohibited and it is necessary not to request an acknowledgment
+    unsigned response_required : 1;
+    unsigned client_id : 7;
+    Type type;
 };
-static_assert(std::is_trivial_v<Request>);
 
 using ServerQueue = freertos::Queue<Request, 1>;
 extern ServerQueue server_queue;

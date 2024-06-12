@@ -174,4 +174,9 @@ void FSM_response(T phase, Response response) {
     FSM_encoded_response(EncodedFSMResponse::encode(phase, response));
 }
 
+template <class T>
+void FSM_response_variant(T phase, FSMResponseVariant response) {
+    FSM_encoded_response(EncodedFSMResponse::encode(phase, response));
+}
+
 } // namespace marlin_client

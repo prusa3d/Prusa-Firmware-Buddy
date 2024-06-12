@@ -463,9 +463,9 @@ osThreadId server_task = 0; // task handle
 ServerQueue server_queue;
 
 constexpr EncodedFSMResponse empty_encoded_fsm_response = {
+    .response = {},
     .encoded_phase = 0xff,
     .encoded_fsm = 0xff,
-    .encoded_response = 0xff,
 };
 static EncodedFSMResponse server_side_encoded_fsm_response = empty_encoded_fsm_response;
 
@@ -3029,7 +3029,7 @@ void set_var_sd_percent_done(uint8_t value) {
     marlin_vars()->sd_percent_done = value;
 }
 
-Response get_response_from_phase_internal(uint8_t encoded_fsm, uint8_t encoded_phase) {
+FSMResponseVariant get_response_variant_from_phase_internal(uint8_t encoded_fsm, uint8_t encoded_phase) {
     // FIXME: Critical section is used to mimic original behaviour with std::atomic
     //        However, maybe we should instead require that the calling task
     //        is actually Marlin task. This is most probably the case,
@@ -3038,9 +3038,9 @@ Response get_response_from_phase_internal(uint8_t encoded_fsm, uint8_t encoded_p
     const EncodedFSMResponse value = server_side_encoded_fsm_response;
     if (encoded_fsm == value.encoded_fsm && encoded_phase == value.encoded_phase) {
         server_side_encoded_fsm_response = empty_encoded_fsm_response;
-        return Response(value.encoded_response);
+        return value.response;
     } else {
-        return Response::_none;
+        return {};
     }
 }
 
