@@ -407,11 +407,12 @@ static bool media_print_file_reset_position() {
 }
 
 void media_print_resume(void) {
+    std::unique_lock mutex_guard(prefetch_mutex_file_reader);
+
     if ((media_print_state != media_print_state_PAUSED)) {
         return;
     }
 
-    std::unique_lock mutex_guard(prefetch_mutex_file_reader);
     if (!media_print_file.is_open()) {
         // file was closed by media_print_pause, reopen
         media_print_file = AnyGcodeFormatReader { marlin_vars()->media_SFN_path.get_ptr() };
@@ -434,7 +435,13 @@ void media_print_resume(void) {
 }
 
 void media_print_reopen() {
-    std::lock_guard mutex_guard(prefetch_mutex_file_reader);
+    std::unique_lock mutex_guard(prefetch_mutex_file_reader);
+
+    if ((media_print_state == media_print_state_PAUSED)) {
+        mutex_guard.unlock();
+        media_print_resume();
+        return;
+    }
 
     if (media_print_file.is_open()) {
         media_stream_restore_info = media_print_file->get_restore_info();
