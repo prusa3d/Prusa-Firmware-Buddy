@@ -6,6 +6,8 @@
 #include "hw_configuration.hpp"
 #include "scope_guard.hpp"
 
+LOG_COMPONENT_REF(Touch);
+
 #define CONCAT_IMPL(a, b) a /**/##/**/ b
 #define CONCAT(a, b)      CONCAT_IMPL(a, b)
 

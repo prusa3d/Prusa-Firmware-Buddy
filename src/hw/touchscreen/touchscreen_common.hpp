@@ -7,8 +7,6 @@
 #include "guitypes.hpp"
 #include "display.h"
 
-extern log_component_t LOG_COMPONENT(Touch) _LOG_COMPONENT_ATTRS;
-
 /// Returns metric for logging touch events
 metric_t *metric_touch_event();
 
