@@ -322,7 +322,7 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                 return err_to_status(*error);
             }
 
-            if (auto error = websocket->send(WebSocket::Pong, false, data, fragment.len); error.has_value()) {
+            if (auto error = websocket->send(WebSocket::Pong, /*last=*/true, data, fragment.len); error.has_value()) {
                 conn_factory.invalidate();
                 return err_to_status(*error);
             }
