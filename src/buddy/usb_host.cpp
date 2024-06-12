@@ -75,30 +75,30 @@ void msc_active() {
     if (recovery_phase == RecoveryPhase::power_on) {
         xTimerStop(restart_timer, portMAX_DELAY);
         recovery_phase = RecoveryPhase::idle;
+    }
 
-        if (resume_print_on_recovery) {
-            resume_print_on_recovery = false;
+    if (resume_print_on_recovery) {
+        resume_print_on_recovery = false;
 
-            // lazy initialization of marlin_client
-            static bool marlin_client_initializated = false;
-            if (!marlin_client_initializated) {
-                marlin_client_initializated = true;
-                marlin_client::init();
-            }
-            switch (media_print_get_state()) {
+        // lazy initialization of marlin_client
+        static bool marlin_client_initializated = false;
+        if (!marlin_client_initializated) {
+            marlin_client_initializated = true;
+            marlin_client::init();
+        }
+        switch (media_print_get_state()) {
 
-            case media_print_state_NONE:
-                break;
+        case media_print_state_NONE:
+            break;
 
-            case media_print_state_PAUSED:
-                marlin_client::print_resume();
-                break;
+        case media_print_state_PAUSED:
+            marlin_client::print_resume();
+            break;
 
-            case media_print_state_PRINTING:
-                marlin_client::media_print_reopen();
-                trigger_usb_failed_dialog = true;
-                break;
-            }
+        case media_print_state_PRINTING:
+            marlin_client::media_print_reopen();
+            trigger_usb_failed_dialog = true;
+            break;
         }
     }
 }
