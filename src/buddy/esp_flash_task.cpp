@@ -20,9 +20,6 @@ static void flash_esp() {
     case Result::success:
         return espif_notify_flash_result(FlashResult::success);
     case Result::not_connected:
-#if HAS_EMBEDDED_ESP32()
-        fatal_error(ErrCode::ERR_SYSTEM_ESP_NOT_CONNECTED);
-#endif
         return espif_notify_flash_result(FlashResult::not_connected);
     case Result::protocol_error:
     case Result::filesystem_error:
