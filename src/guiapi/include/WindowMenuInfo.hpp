@@ -82,8 +82,9 @@ public:
 
     WiInfo(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, const img::Resource *id_icon = nullptr)
         : WiInfo(label, id_icon, is_enabled_t::yes, hidden) {
-        itoa(num_to_print, value_array_.data(), 10);
-        update_extension_width();
+        decltype(value_array_) buf;
+        itoa(num_to_print, buf.data(), 10);
+        ChangeInformation(buf.data());
     }
 
     using WiInfoArray::ChangeInformation;
