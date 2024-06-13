@@ -6,6 +6,7 @@
 #include <optional>
 
 #include <common/marlin_server_types/client_fsm_types.h>
+#include <common/marlin_server_types/marlin_server_state.h>
 
 enum class Response : uint8_t;
 
@@ -89,6 +90,7 @@ struct StateWithDialog {
 ErrCode warning_type_to_error_code(WarningType wtype);
 
 DeviceState get_state(bool ready = false);
+DeviceState get_print_state(marlin_server::State state, bool ready);
 StateWithDialog get_state_with_dialog(bool ready = false);
 
 bool remote_print_ready(bool preview_only);
