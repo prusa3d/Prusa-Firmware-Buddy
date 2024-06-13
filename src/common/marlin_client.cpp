@@ -55,7 +55,7 @@ uint8_t marlin_clients = 0; // number of connected clients
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
 
-static bool receive_and_process_client_message(marlin_client_t *client, TickType_t ticks_to_wait);
+static bool receive_and_process_client_message(marlin_client_t *client, size_t milliseconds_to_wait);
 static marlin_client_t *_client_ptr();
 
 //-----------------------------------------------------------------------------
@@ -121,7 +121,7 @@ static bool try_send(Request &request) {
     client->events &= ~(make_mask(Event::Acknowledge) | make_mask(Event::NotAcknowledge));
     server_queue.send(request);
     for (;;) {
-        receive_and_process_client_message(client, portMAX_DELAY);
+        receive_and_process_client_message(client, 1000);
         if (client->events & make_mask(Event::Acknowledge)) {
             client->events &= ~make_mask(Event::Acknowledge);
             return true;
@@ -476,10 +476,10 @@ bool is_idle() {
 // private functions
 
 // process message on client side (set flags, update vars etc.)
-static bool receive_and_process_client_message(marlin_client_t *client, TickType_t ticks_to_wait) {
+static bool receive_and_process_client_message(marlin_client_t *client, size_t milliseconds_to_wait) {
     ClientEvent client_event;
     ClientQueue &queue = marlin_client_queue[client->id];
-    if (!queue.receive(client_event, ticks_to_wait)) {
+    if (!queue.try_receive(client_event, milliseconds_to_wait)) {
         return false;
     }
 

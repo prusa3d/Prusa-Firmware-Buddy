@@ -1,32 +1,61 @@
 #pragma once
-#include "FreeRTOS.h"
-#include "queue.h"
+
+#include <cstddef>
+#include <cstdint>
+#include <type_traits>
 
 namespace freertos {
 
+// C++ wrapper for FreeRTOS queue.
+class QueueBase {
+public:
+    // We use erased storage in order to not pollute the scope with FreeRTOS internals.
+    // The actual size and alignment are statically asserted in implementation file.
+#ifdef UNITTESTS
+    using Storage = std::aligned_storage_t<168, 8>;
+#else
+    using Storage = std::aligned_storage_t<80, 4>;
+#endif
+
+private:
+    Storage queue_storage;
+
+protected:
+    QueueBase(size_t item_count, size_t item_size, uint8_t *item_storage);
+    ~QueueBase();
+    QueueBase(const QueueBase &) = delete;
+    QueueBase &operator=(const QueueBase &) = delete;
+    void send(const void *payload);
+    void receive(void *payload);
+    [[nodiscard]] bool try_send(const void *payload, size_t milliseconds_to_wait);
+    [[nodiscard]] bool try_receive(void *payload, size_t milliseconds_to_wait);
+};
+
+// C++ wrapper for FreeRTOS queue and its storage.
 template <class T, size_t N>
-struct Queue {
-    Queue() {
-        auto queue = xQueueCreateStatic(N, sizeof(T), storage, &static_queue);
-        // We are creating static FreeRTOS object here, supplying our own buffer
-        // to be used by FreeRTOS. FreeRTOS constructs an object in that memory
-        // and gives back a handle, which in current version is just a pointer
-        // to the same buffer we provided. If this ever changes, we will have to
-        // store the handle separately, but right now we can just use the pointer
-        // to the buffer instead of the handle and save 4 bytes per instance.
-        configASSERT(queue == this->queue());
+class Queue final : public QueueBase {
+public:
+    Queue()
+        : QueueBase(N, sizeof(T), item_storage) {}
+
+    void send(const T &payload) {
+        QueueBase::send(&payload);
     }
-    bool send(const T &payload, TickType_t ticks_to_wait = portMAX_DELAY) {
-        return xQueueSend(queue(), &payload, ticks_to_wait) == pdTRUE;
+
+    void receive(T &payload) {
+        QueueBase::receive(&payload);
     }
-    bool receive(T &payload, TickType_t ticks_to_wait = portMAX_DELAY) {
-        return xQueueReceive(queue(), &payload, ticks_to_wait) == pdTRUE;
+
+    [[nodiscard]] bool try_send(const T &payload, size_t milliseconds_to_wait) {
+        return QueueBase::try_send(&payload, milliseconds_to_wait);
+    }
+
+    [[nodiscard]] bool try_receive(T &payload, size_t milliseconds_to_wait) {
+        return QueueBase::try_receive(&payload, milliseconds_to_wait);
     }
 
 private:
-    QueueHandle_t queue() { return reinterpret_cast<QueueHandle_t>(&static_queue); };
-    StaticQueue_t static_queue;
-    uint8_t storage[N * sizeof(T)];
+    uint8_t item_storage[N * sizeof(T)];
 };
 
 } // namespace freertos

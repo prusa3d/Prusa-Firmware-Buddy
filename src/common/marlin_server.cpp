@@ -653,7 +653,7 @@ static void cycle() {
     prusa_toolchanger.loop(!printer_idle(), printer_paused());
 #endif /*HAS_TOOLCHANGER()*/
 
-    if (Request request; server_queue.receive(request, 0)) {
+    if (Request request; server_queue.try_receive(request, 0)) {
         _process_server_request(request);
     }
     // update gqueue (gcode queue)
@@ -2464,7 +2464,7 @@ static bool _send_message_event_to_client(int client_id, ClientQueue &queue) {
         .usr16 = 0,
         .message = message,
     };
-    if (queue.send(client_event, 0)) {
+    if (queue.try_send(client_event, 0)) {
         // message was sent, client will free it
         return true;
     } else {
@@ -2486,7 +2486,7 @@ static bool _send_notify_event_to_client(int client_id, ClientQueue &queue, Even
             .usr16 = usr16,
             .usr32 = usr32,
         };
-        return queue.send(client_message, 0);
+        return queue.try_send(client_message, 0);
     }
     }
 }

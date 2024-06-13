@@ -18,14 +18,14 @@ TEST_CASE("Freertos queue", "[freertos]") {
     SECTION("send/receive") {
         freertos::Queue<int, 10> queue;
         for (int i = 0; i < 10; ++i) {
-            REQUIRE(queue.send(i, 0));
+            REQUIRE(queue.try_send(i, 0));
         }
-        REQUIRE(!queue.send(10, 0));
+        REQUIRE(!queue.try_send(10, 0));
         int v;
         for (int i = 0; i < 10; ++i) {
-            REQUIRE(queue.receive(v, 0));
+            REQUIRE(queue.try_receive(v, 0));
             REQUIRE(v == i);
         }
-        REQUIRE(!queue.receive(v, 0));
+        REQUIRE(!queue.try_receive(v, 0));
     }
 }

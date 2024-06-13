@@ -577,7 +577,7 @@ uint8_t espif::scan::get_ap_count() {
         }
 
         // There can be some old data in the queue if we just didn't make the timeout
-        if (ScanData::ap_info_queue.receive(info, pdMS_TO_TICKS(ScanData::SYNC_EVENT_TIMEOUT)) && info.ap_index == index && info.ssid.data() == buffer.data()) {
+        if (ScanData::ap_info_queue.try_receive(info, ScanData::SYNC_EVENT_TIMEOUT) && info.ap_index == index && info.ssid.data() == buffer.data()) {
             last_error = ERR_OK;
             break;
         } else {

@@ -18,6 +18,7 @@ if(BOARD MATCHES ".*BUDDY")
             footer_eeprom.cpp
             freertos_binary_semaphore.cpp
             freertos_mutex.cpp
+            freertos_queue.cpp
             fsm_network_setup.cpp
             fsm_states.cpp
             general_response.cpp
