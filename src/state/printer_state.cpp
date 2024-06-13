@@ -16,85 +16,6 @@ using std::tuple;
 
 namespace printer_state {
 namespace {
-    DeviceState get_print_state(State state, bool ready) {
-        switch (state) {
-        case State::PrintPreviewQuestions:
-            // Should never happen, we catch this before with FSM states,
-            // so that we can distinquish between various questions.
-            return DeviceState::Unknown;
-        case State::PowerPanic_AwaitingResume:
-        case State::CrashRecovery_Axis_NOK:
-        case State::CrashRecovery_Repeated_Crash:
-        case State::CrashRecovery_HOMEFAIL:
-            return DeviceState::Attention;
-#if HAS_TOOLCHANGER()
-        case State::CrashRecovery_Tool_Pickup:
-            return DeviceState::Attention;
-#endif
-#if HAS_TOOLCHANGER() || HAS_MMU2()
-        case State::PrintPreviewToolsMapping:
-            return DeviceState::Attention;
-#endif
-        case State::Idle:
-        case State::WaitGui:
-        case State::PrintPreviewInit:
-        case State::PrintPreviewImage:
-        case State::PrintInit:
-        case State::Exit:
-            if (ready) {
-                return DeviceState::Ready;
-            } else {
-                return DeviceState::Idle;
-            }
-        case State::Printing:
-        case State::Aborting_Begin:
-        case State::Aborting_WaitIdle:
-        case State::Aborting_UnloadFilament:
-        case State::Aborting_ParkHead:
-        case State::Aborting_Preview:
-        case State::Finishing_WaitIdle:
-        case State::Finishing_UnloadFilament:
-        case State::Finishing_ParkHead:
-        case State::PrintPreviewConfirmed:
-        case State::SerialPrintInit:
-            return DeviceState::Printing;
-
-        case State::PowerPanic_acFault:
-        case State::PowerPanic_Resume:
-        case State::CrashRecovery_Begin:
-        case State::CrashRecovery_Retracting:
-        case State::CrashRecovery_Lifting:
-        case State::CrashRecovery_ToolchangePowerPanic:
-        case State::CrashRecovery_XY_Measure:
-        case State::CrashRecovery_XY_HOME:
-            return DeviceState::Busy;
-
-        case State::Pausing_Begin:
-        case State::Pausing_WaitIdle:
-        case State::Pausing_ParkHead:
-        case State::Paused:
-
-        case State::Resuming_Begin:
-        case State::Resuming_Reheating:
-        case State::Pausing_Failed_Code:
-        case State::Resuming_UnparkHead_XY:
-        case State::Resuming_UnparkHead_ZE:
-            return DeviceState::Paused;
-        case State::Finished:
-            if (ready) {
-                return DeviceState::Ready;
-            } else {
-                return DeviceState::Finished;
-            }
-        case State::Aborted:
-            if (ready) {
-                return DeviceState::Ready;
-            } else {
-                return DeviceState::Stopped;
-            }
-        }
-        return DeviceState::Unknown;
-    }
 
     // FIXME: these are also caught by the switch statement above, is there any
     // harm in having it in both places? Maybe couple more bytes of flash will
@@ -315,6 +236,86 @@ DeviceState get_state(bool ready) {
         break;
     }
     return get_print_state(state, ready);
+}
+
+DeviceState get_print_state(State state, bool ready) {
+    switch (state) {
+    case State::PrintPreviewQuestions:
+        // Should never happen, we catch this before with FSM states,
+        // so that we can distinquish between various questions.
+        return DeviceState::Unknown;
+    case State::PowerPanic_AwaitingResume:
+    case State::CrashRecovery_Axis_NOK:
+    case State::CrashRecovery_Repeated_Crash:
+    case State::CrashRecovery_HOMEFAIL:
+        return DeviceState::Attention;
+#if HAS_TOOLCHANGER()
+    case State::CrashRecovery_Tool_Pickup:
+        return DeviceState::Attention;
+#endif
+#if HAS_TOOLCHANGER() || HAS_MMU2()
+    case State::PrintPreviewToolsMapping:
+        return DeviceState::Attention;
+#endif
+    case State::Idle:
+    case State::WaitGui:
+    case State::PrintPreviewInit:
+    case State::PrintPreviewImage:
+    case State::PrintInit:
+    case State::Exit:
+        if (ready) {
+            return DeviceState::Ready;
+        } else {
+            return DeviceState::Idle;
+        }
+    case State::Printing:
+    case State::Aborting_Begin:
+    case State::Aborting_WaitIdle:
+    case State::Aborting_UnloadFilament:
+    case State::Aborting_ParkHead:
+    case State::Aborting_Preview:
+    case State::Finishing_WaitIdle:
+    case State::Finishing_UnloadFilament:
+    case State::Finishing_ParkHead:
+    case State::PrintPreviewConfirmed:
+    case State::SerialPrintInit:
+        return DeviceState::Printing;
+
+    case State::PowerPanic_acFault:
+    case State::PowerPanic_Resume:
+    case State::CrashRecovery_Begin:
+    case State::CrashRecovery_Retracting:
+    case State::CrashRecovery_Lifting:
+    case State::CrashRecovery_ToolchangePowerPanic:
+    case State::CrashRecovery_XY_Measure:
+    case State::CrashRecovery_XY_HOME:
+        return DeviceState::Busy;
+
+    case State::Pausing_Begin:
+    case State::Pausing_WaitIdle:
+    case State::Pausing_ParkHead:
+    case State::Paused:
+
+    case State::Resuming_Begin:
+    case State::Resuming_Reheating:
+    case State::Pausing_Failed_Code:
+    case State::Resuming_UnparkHead_XY:
+    case State::Resuming_UnparkHead_ZE:
+        return DeviceState::Paused;
+    case State::Finished:
+        if (ready) {
+            return DeviceState::Ready;
+        } else {
+            return DeviceState::Finished;
+        }
+    case State::Aborted:
+        if (ready) {
+            return DeviceState::Ready;
+        } else {
+            return DeviceState::Stopped;
+        }
+    }
+    return DeviceState::Unknown;
 }
 
 StateWithDialog get_state_with_dialog(bool ready) {
