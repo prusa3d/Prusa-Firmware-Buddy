@@ -386,7 +386,6 @@ static void IRAM_ATTR event_handler(void* arg, esp_event_base_t event_base, int3
         ESP_ERROR_CHECK(esp_wifi_get_protocol(ESP_IF_WIFI_STA, &current_protocol));
         if (current_protocol != uart_nic_protocol) {
             ESP_ERROR_CHECK(esp_wifi_set_protocol(ESP_IF_WIFI_STA, uart_nic_protocol));
-            return;
         }
         start_wifi_connect_task();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
