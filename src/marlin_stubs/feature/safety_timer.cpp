@@ -82,11 +82,32 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
         // set_warning(WarningType::NozzleTimeout);
     } else {
         // disable nozzle and bed
-        thermalManager.disable_all_heaters();
+
+        bool show_warning = false;
+
+#if PRINTER_IS_PRUSA_iX
+        // On iX, don't turn off the heatbed in Finished state. If the harvester
+        // wouldn't harvest the print and the bed would cool down, it'd cause
+        // the print to be detached and greatly increase the chance of
+        // harvesting failure.
+        if (marlin_vars()->print_state == marlin_server::State::Finished) {
+            HOTEND_LOOP() {
+                show_warning |= thermalManager.degTargetHotend(e) != 0;
+            }
+            thermalManager.disable_hotend();
+        } else
+#endif
+        {
+            show_warning = true;
+            thermalManager.disable_all_heaters();
+        }
+
         HOTEND_LOOP() {
             marlin_server::set_temp_to_display(0, e);
         }
-        marlin_server::set_warning(WarningType::HeatersTimeout);
+        if (show_warning) {
+            marlin_server::set_warning(WarningType::HeatersTimeout);
+        }
     }
 
     return expired_t::yes;
