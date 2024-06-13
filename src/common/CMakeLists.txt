@@ -16,6 +16,7 @@ if(BOARD MATCHES ".*BUDDY")
             filename_type.cpp
             filepath_operation.cpp
             footer_eeprom.cpp
+            freertos_binary_semaphore.cpp
             freertos_mutex.cpp
             fsm_network_setup.cpp
             fsm_states.cpp
