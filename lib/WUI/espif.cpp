@@ -568,7 +568,6 @@ uint8_t espif::scan::get_ap_count() {
     APInfo info {};
     while (tries >= 0) {
         --tries;
-        osDelay(1); // HACK: This delay fixes problems with reading the data from esp when sending request too quickly
         const auto err = espif_tx_raw(MSG_SCAN_AP_GET, index, nullptr);
 
         if (err != ERR_OK) {
