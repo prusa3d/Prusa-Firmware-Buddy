@@ -15,7 +15,7 @@ using ScreenMenuTemperature__ = ScreenMenu<
 #if HAS_TOOLCHANGER()
     MI_NOZZLE<1>, MI_NOZZLE<2>, MI_NOZZLE<3>, MI_NOZZLE<4>,
 #endif
-    MI_HEATBED, MI_PRINTFAN, MI_COOLDOWN>;
+    MI_HEATBED, MI_PRINTFAN, MI_AUTO_COOLDOWN, MI_COOLDOWN>;
 
 class ScreenMenuTemperature : public ScreenMenuTemperature__ {
 public:
