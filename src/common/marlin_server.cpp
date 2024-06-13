@@ -1162,7 +1162,7 @@ bool print_reheat_ready() {
     // check nozzles
     HOTEND_LOOP() {
         auto &extruder = marlin_vars()->hotend(e);
-        if (extruder.target_nozzle != server.resume.nozzle_temp[e] || extruder.temp_nozzle < (extruder.target_nozzle - TEMP_HYSTERESIS)) {
+        if (extruder.target_nozzle != server.resume.nozzle_temp[e] || (extruder.target_nozzle > 0 && extruder.temp_nozzle < (extruder.target_nozzle - TEMP_HYSTERESIS))) {
             return false;
         }
     }
