@@ -60,6 +60,7 @@ def cmd_create_font_png(charset_option: str, required_chars_path: Path,
     # Add space back in the set
     char_list.append(' ')
     char_list = sorted(char_list)
+    fail = False
 
     with Image.open(src_png_path.resolve()) as src_lat_png:
         with Image.open(src_png_jap_path.resolve()) as src_jap_png:
@@ -109,6 +110,13 @@ def cmd_create_font_png(charset_option: str, required_chars_path: Path,
                         srcY = char_int // chars_per_row
                         src_png = src_lat_png
 
+                    x_max, y_max = src_png.size
+                    if (srcY + 1) * char_height > y_max or char_int < 0:
+                        # Unsupported character
+                        logger.error("Unsupported character found: \"%c\"", ch)
+                        fail = True
+                        continue
+
                     char_crop = src_png.crop(
                         (srcX * char_width, srcY * char_height,
                          (srcX + 1) * char_width, (srcY + 1) * char_height))
@@ -131,6 +139,12 @@ def cmd_create_font_png(charset_option: str, required_chars_path: Path,
                         y += 1
 
                 file.write("};\n")
+
+            if fail:
+                logger.error(
+                    "Remove / Replace the unsupported characters in PO files, rerun \"new_translations.sh\" and regenerate fonts again"
+                )
+                return 1
 
             image = remove_red_dots(np.array(output_image, dtype=np.uint8))
             output_image = Image.fromarray(image, "RGB")

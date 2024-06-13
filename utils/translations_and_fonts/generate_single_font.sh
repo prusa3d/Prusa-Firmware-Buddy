@@ -41,19 +41,18 @@ python3 utils/translations_and_fonts/font.py src/gui/res/fnt_src/*${type}_${w}x$
 
 # Check the return value of font.py
 if [ $? -eq 0 ]; then
-    echo "font.py script executed successfully"
+    echo "font.py script executed successfully..."
 else
-    echo "font.py script failed"
+    echo "FAILED: Errors occured in \"font.py\" script"
     rm -rf full-chars.txt standard-chars.txt digits-chars.txt
     exit 1
 fi
-
 rm -rf full-chars.txt standard-chars.txt digits-chars.txt
 
 # Build png2font binary
 mkdir -p build_tests
 cd build_tests
-../.dependencies/cmake-3.28.3/bin/cmake -D CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=YES -D CMAKE_C_FLAGS="-O0 -ggdb3" -D CMAKE_CXX_FLAGS="-O0 -ggdb3 -std=c++20" -D CMAKE_BUILD_TYPE=Debug .. -G Ninja
+../.dependencies/cmake-3.28.3/bin/cmake -D CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=YES -D CMAKE_C_FLAGS="-O0 -ggdb3" -D CMAKE_CXX_FLAGS="-O0 -ggdb3 -std=c++20" -D CMAKE_BUILD_TYPE=Debug -D BOARD=XBUDDY .. -G Ninja
 ninja utils/translations_and_fonts/png2font/png2font
 cd ../
 
@@ -64,4 +63,4 @@ cd ../
 python3 utils/translations_and_fonts/bin2cc.py ${dst_name}.bin src/gui/res/cc/${dst_name}.hpp ${type} ${w} ${h} FontCharacterSet::${charset_option}
 rm -rf ${dst_name}.bin
 
-echo "${dst_name}.hpp generation completed."
+echo -e "\nSUCCEEDED: ${dst_name}.hpp generation completed\n"

@@ -234,10 +234,10 @@ def cmd_generate_required_chars(args):
         logger.error('no translations found')
         return 1
 
-    required_chars = set(
-        ch for translation in translations.values() for entry in translation
-        for ch in entry.msgstr
-        if ord(ch) > 127 and ord(ch) < 0x3000)  # without katakana
+    required_chars = set(ch for translation in translations.values()
+                         for entry in translation for ch in entry.msgstr
+                         if (ord(ch) > 127 and ord(ch) <= 0x30A0)
+                         or ord(ch) > 0x30FF)  # without katakana
 
     # All fonts have to have '?'
     required_chars.add('?')
