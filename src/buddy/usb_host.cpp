@@ -8,6 +8,7 @@
 #include "common/timing.h"
 
 #include <atomic>
+#include <state/printer_state.hpp>
 #include "usbh_async_diskio.hpp"
 #include "marlin_client.hpp"
 
@@ -107,7 +108,7 @@ void msc_active() {
 void restart_timer_callback(TimerHandle_t) {
     switch (recovery_phase) {
 
-    case RecoveryPhase::idle:
+    case RecoveryPhase::idle: {
         // If the phase is idle and the timer was called -> problem occured, start recovery process
         // This can either mean that the USB was disconnected,
         // or the communication had a problem (but the flash is still inserted and we need to recover)
@@ -116,12 +117,17 @@ void restart_timer_callback(TimerHandle_t) {
         recovery_phase = RecoveryPhase::power_off;
         USBH_Stop(&hUsbHostHS);
 
-        // We do an or, for the case that the USB flash disconnected and connected two times in a row
-        resume_print_on_recovery = resume_print_on_recovery.load() || (marlin_vars()->print_state != marlin_server::State::Paused);
+        const auto print_state = printer_state::get_print_state(marlin_vars()->print_state.get(), false);
+        const auto should_resume = (print_state == printer_state::DeviceState::Printing);
+
+        // Expected value is false, so we're basically doing an atomic or ehre
+        bool resume_print_expected = false;
+        resume_print_on_recovery.compare_exchange_strong(resume_print_expected, should_resume);
 
         // Call this timer again in 150 ms for the next phase
         xTimerChangePeriod(restart_timer, 150, portMAX_DELAY);
         break;
+    }
 
     case RecoveryPhase::power_off:
         // Prevent one click print from popping up when the drive initializes.
