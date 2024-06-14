@@ -21,6 +21,6 @@ RUN apt-get update && apt-get -y install \
         libusb-1.0.0-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN git clone -b v5.0.3 --recursive https://github.com/espressif/esp-idf.git
-RUN cd /esp-idf && ./install.sh
-RUN echo "source /esp-idf/export.sh" >> ~/.bashrc
+RUN git clone -b v5.2.2 --recursive  --recurse-submodules https://github.com/espressif/esp-idf.git && \
+    cd /esp-idf && ./install.sh && \
+    echo "source /esp-idf/export.sh" >> ~/.bashrc
