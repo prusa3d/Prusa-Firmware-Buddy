@@ -171,6 +171,15 @@ esp_err_t uart0_driver_install(TaskHandle_t uart0_rx_task_handle, TaskHandle_t u
     uart0.conf1.rx_tout_thrhd = (rx_timeout_thresh & 0x7f);
     uart0.conf1.rxfifo_full_thrhd = rxfifo_full_thresh;
     uart0.conf1.txfifo_empty_thrhd = txfifo_empty_thresh;
+
+    // uart_reset_rx_fifo
+    uart0.conf0.rxfifo_rst = 0x1;
+    uart0.conf0.rxfifo_rst = 0x0;
+
+    // uart_clear_intr_status
+    uart0.int_clr.val |= UART_INTR_MASK;
+    _xt_isr_unmask(0x1 << 0);
+
     portEXIT_CRITICAL();
 
     // Note: We plug into original ISR in order to keep UART_NUM_1 working.
