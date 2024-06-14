@@ -293,7 +293,7 @@ static void IRAM_ATTR probe_handler(wifi_ap_record_t* aps, int ap_count) {
     // beacons and/or probe rensonse. That's the real culprit of the beacon timeout
     // disconnects and the primary motivation of this whole excercise.
     for (int i = 0; i < ap_count; ++i) {
-        if (latest_bssid != NULL && 0 == memcmp(latest_bssid, aps[i].bssid, BSSID_LEN)) {
+        if (0 == memcmp(latest_bssid, aps[i].bssid, BSSID_LEN)) {
             found = true;
             beacon_quirk = false;
             break;
@@ -301,7 +301,7 @@ static void IRAM_ATTR probe_handler(wifi_ap_record_t* aps, int ap_count) {
     }
     if (beacon_quirk && !found) {
         for (int i = 0; i < ap_count; ++i) {
-            if (latest_ssid != NULL && latest_ssid[0] && aps[i].ssid[0]) {
+            if (latest_ssid[0] && aps[i].ssid[0]) {
                 if (0 == strncmp((char *)(latest_ssid), (char *)(aps[i].ssid), SSID_LEN)) {
                     found = true;
                     break;
