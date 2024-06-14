@@ -4,6 +4,7 @@
 #include "ccm_thread.hpp"
 #include "usb_host.h"
 
+#include <common/freertos_binary_semaphore.hpp>
 #include <common/freertos_mutex.hpp>
 #include <common/freertos_shared_mutex.hpp>
 #include <mutex>
@@ -53,7 +54,7 @@ static StaticQueue_t queue;
 static uint8_t storage_area[queue_length * sizeof(UsbhMscRequest *)];
 
 void USBH_worker_notify(USBH_StatusTypeDef, void *semaphore, void *) {
-    xSemaphoreGive(semaphore);
+    static_cast<freertos::BinarySemaphore *>(semaphore)->release();
 }
 
 // Queues the r/w request for processing (USBH_MSC_WorkerTask does it) and blocks until the end of processing is reported by the callback
@@ -61,8 +62,7 @@ void USBH_worker_notify(USBH_StatusTypeDef, void *semaphore, void *) {
 // their requests, they will be distributed fairly.
 static USBH_StatusTypeDef USBH_exec(UsbhMscRequest::UsbhMscRequestOperation operation,
     BYTE lun, BYTE *buff, DWORD sector, uint16_t count) {
-    StaticSemaphore_t semaphore_data;
-    SemaphoreHandle_t semaphore = xSemaphoreCreateBinaryStatic(&semaphore_data);
+    freertos::BinarySemaphore semaphore;
     UsbhMscRequest request {
         operation,
         lun,
@@ -71,18 +71,16 @@ static USBH_StatusTypeDef USBH_exec(UsbhMscRequest::UsbhMscRequestOperation oper
         buff,
         USBH_FAIL,
         USBH_worker_notify,
-        semaphore,
+        &semaphore,
         nullptr
     };
     UsbhMscRequest *request_ptr = &request;
 
     if (xQueueSend(request_queue, &request_ptr, USBH_MSC_RW_MAX_DELAY) != pdPASS) {
-        vSemaphoreDelete(semaphore);
         return USBH_FAIL;
     }
 
-    xSemaphoreTake(semaphore, portMAX_DELAY);
-    vSemaphoreDelete(semaphore);
+    semaphore.acquire();
 
     return request.result;
 }

@@ -1,6 +1,7 @@
 #include "ping_manager.hpp"
 #include "timing.h"
 
+#include <common/freertos_binary_semaphore.hpp>
 #include <common/tcpip_callback_nofail.hpp>
 #include <common/random.h>
 #include <common/pbuf_deleter.hpp>
@@ -128,30 +129,29 @@ void PingManager::set_host_inner(size_t slot, const char *host) {
 
 void PingManager::set_host(size_t slot, const char *host) {
     assert(slot < nslots);
-    StaticSemaphore_t sem_buff;
-    SemaphoreHandle_t sem = xSemaphoreCreateBinaryStatic(&sem_buff);
+    freertos::BinarySemaphore semaphore;
     struct SetHostData {
         PingManager *manager;
         const char *host;
         size_t slot;
-        SemaphoreHandle_t semaphore;
+        freertos::BinarySemaphore *semaphore;
     } data = {
         .manager = this,
         .host = host,
         .slot = slot,
-        .semaphore = sem,
+        .semaphore = &semaphore,
     };
 
     // Executed the body of the resolution in the tcpip thread
     tcpip_callback_nofail([](void *arg) {
         SetHostData *data = reinterpret_cast<SetHostData *>(arg);
         data->manager->set_host_inner(data->slot, data->host);
-        xSemaphoreGive(data->semaphore);
+        data->semaphore->release();
     },
         &data);
     // And wait for it to finish (so we can release the data and possibly the
     // host on caller side).
-    xSemaphoreTake(sem, portMAX_DELAY);
+    semaphore.acquire();
 }
 
 void PingManager::init() {
