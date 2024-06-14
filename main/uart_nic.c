@@ -58,7 +58,7 @@ esp_err_t mac_init(void);
 // inactivity to a ridiculously long time and handle the disconnect ourselves.
 //
 // It's not longer for the only reason the uint16_t doesn't hold as big numbers.
-static const uint16_t INACTIVE_BEACON_SECONDS = 3600 * 18;
+static const uint16_t INACTIVE_BEACON_SECONDS = 400;
 // This is the effective timeout. If we don't receive any packet for this long,
 // we consider the signal lost.
 //
