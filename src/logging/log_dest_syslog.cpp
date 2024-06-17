@@ -79,13 +79,6 @@ void syslog_log_event(log_destination_t *destination, log_event_t *event) {
         return;
     }
 
-    // prevent (infinite) recursion within the syslog
-    // handler (for example, the syslog_transport might try to log something)
-    if ((intptr_t)pvTaskGetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_SYSLOG_IDX) == 1) {
-        return;
-    }
-    vTaskSetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_SYSLOG_IDX, (void *)1);
-
     // prepare the message
     std::unique_lock lock { syslog_buffer_mutex };
     static char buffer[128];
@@ -97,8 +90,6 @@ void syslog_log_event(log_destination_t *destination, log_event_t *event) {
     destination->log_format_fn(event, buffer_output, &buffer_state);
 
     syslog_transport.send(buffer, buffer_state.used);
-
-    vTaskSetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_SYSLOG_IDX, (void *)0);
 }
 
 const char *syslog_get_host() {

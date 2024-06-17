@@ -142,9 +142,7 @@ extern uint32_t SystemCoreClock;
 
 // #define configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES 1
 
-#define configNUM_THREAD_LOCAL_STORAGE_POINTERS 2
-#define THREAD_LOCAL_STORAGE_SYSLOG_IDX         1
-#define THREAD_LOCAL_STORAGE_USB_LOGGING_IDX    2
+#define configNUM_THREAD_LOCAL_STORAGE_POINTERS 0
 
 #define configCHECK_FOR_STACK_OVERFLOW   2
 #define configUSE_TRACE_FACILITY         1
