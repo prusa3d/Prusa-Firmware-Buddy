@@ -434,10 +434,19 @@ void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, 
 
     // if application firmware fingerprint doesn't match, flash it
     if (!match) {
-        BootloaderProtocol::status_t result = flasher.write_flash(fw_size, [fw_size, &fw_file, puppy_type, this, percent_offset, percent_span](uint32_t offset, size_t size, uint8_t *out_data) -> bool {
+
+        const struct {
+            int percent_offset;
+            int percent_span;
+        } progress {
+            .percent_offset = percent_offset,
+            .percent_span = percent_span
+        };
+
+        BootloaderProtocol::status_t result = flasher.write_flash(fw_size, [fw_size, &fw_file, puppy_type, this, &progress](uint32_t offset, size_t size, uint8_t *out_data) -> bool {
             // update GUI progress bar
-            this->progressHook({ static_cast<int>(percent_offset + offset * percent_span / fw_size), FlashingStage::FLASHING, puppy_type });
-            log_info(Puppies, "Flashing puppy %s offset %ld/%ld", puppy_info[puppy_type].name, offset, fw_size);
+            this->progressHook({ static_cast<int>(progress.percent_offset + offset * progress.percent_span / fw_size), FlashingStage::FLASHING, puppy_type });
+            log_info(Puppies, "Flashing puppy %s offset %" PRIu32 "/%ld", puppy_info[puppy_type].name, offset, fw_size);
 
             // get data
             assert(offset + size <= static_cast<size_t>(fw_size));
