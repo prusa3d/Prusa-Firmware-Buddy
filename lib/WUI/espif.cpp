@@ -12,6 +12,7 @@
 #include <mutex>
 
 #include <FreeRTOS.h>
+#include <common/freertos_binary_semaphore.hpp>
 #include <common/freertos_mutex.hpp>
 #include <common/metric.h>
 #include <common/freertos_queue.hpp>
@@ -221,7 +222,7 @@ static bool can_recieve_data(ESPIFOperatingMode mode) {
 }
 
 static TaskHandle_t espif_task = nullptr;
-static SemaphoreHandle_t tx_semaphore = nullptr;
+static freertos::BinarySemaphore tx_semaphore;
 static HAL_StatusTypeDef tx_result;
 static bool tx_waiting = false;
 
@@ -277,11 +278,11 @@ static void espif_task_step() {
             if (tx_result != HAL_OK) {
                 log_error(ESPIF, "HAL_UART_Transmit_DMA() failed: %d", tx_result);
                 tx_waiting = false;
-                xSemaphoreGive(tx_semaphore);
+                tx_semaphore.release();
             }
         } else {
             tx_waiting = false;
-            xSemaphoreGive(tx_semaphore);
+            tx_semaphore.release();
         }
     }
 }
@@ -293,12 +294,7 @@ static void espif_task_run(void const *) {
 }
 
 void espif_task_create() {
-    assert(tx_semaphore == nullptr && espif_task == nullptr);
-
-    tx_semaphore = xSemaphoreCreateBinary();
-    if (tx_semaphore == nullptr) {
-        bsod("espif_task_create (semaphore)");
-    }
+    assert(espif_task == nullptr);
 
     osThreadCCMDef(esp_task, espif_task_run, TASK_PRIORITY_ESP, 0, 128);
     espif_task = osThreadCreate(osThread(esp_task), nullptr);
@@ -332,7 +328,7 @@ static void espif_tx_update_metrics(uint32_t len) {
     HAL_StatusTypeDef tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, (uint8_t *)&tx_message, sizeof(tx_message));
     if (tx_result == HAL_OK) {
         taskEXIT_CRITICAL();
-        xSemaphoreTake(tx_semaphore, portMAX_DELAY);
+        tx_semaphore.acquire();
     } else {
         tx_waiting = false;
         taskEXIT_CRITICAL();
