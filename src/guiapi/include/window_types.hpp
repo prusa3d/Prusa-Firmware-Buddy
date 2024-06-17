@@ -2,11 +2,11 @@
 #pragma once
 
 #include <inttypes.h>
-#include <functional>
+#include <inplace_function.hpp>
 
 class window_t;
 
-using ButtonCallback = std::function<void(window_t &button)>;
+using ButtonCallback = stdext::inplace_function<void(window_t &button)>;
 
 struct window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,

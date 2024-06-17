@@ -97,7 +97,7 @@ bool FilamentSensors::gui_wait_for_init_with_msg() {
     return true;
 }
 
-void FilamentSensors::for_all_sensors(const std::function<void(IFSensor &sensor, uint8_t index, bool is_side)> &f) {
+void FilamentSensors::for_all_sensors(const stdext::inplace_function<void(IFSensor &sensor, uint8_t index, bool is_side)> &f) {
     HOTEND_LOOP() {
         if (IFSensor *s = GetExtruderFSensor(e)) {
             f(*s, e, false);

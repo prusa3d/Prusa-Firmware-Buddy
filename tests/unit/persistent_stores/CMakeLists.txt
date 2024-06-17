@@ -30,6 +30,8 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/
   )
 
+target_link_libraries(eeprom_unit_tests SG14)
+
 add_catch_test(eeprom_unit_tests)
 
 include(${CMAKE_SOURCE_DIR}/src/persistent_stores/GenerateJournalHashes.cmake)

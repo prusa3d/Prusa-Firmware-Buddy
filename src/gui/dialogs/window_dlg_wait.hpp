@@ -11,6 +11,7 @@
 #include "string_view_utf8.hpp"
 #include "window_text.hpp"
 #include "window_icon.hpp"
+#include <inplace_function.hpp>
 
 class window_dlg_wait_t : public IDialog {
     window_text_t text;
@@ -28,4 +29,4 @@ public:
  *
  * It creates inner gui_loop cycle that keeps GUI running while waiting.
  */
-void gui_dlg_wait(std::function<void()> closing_callback, string_view_utf8 second_string = string_view_utf8::MakeNULLSTR());
+void gui_dlg_wait(stdext::inplace_function<void()> closing_callback, string_view_utf8 second_string = string_view_utf8::MakeNULLSTR());

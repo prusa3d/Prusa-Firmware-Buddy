@@ -10,6 +10,7 @@
 #include "window_qr.hpp"
 #include <guiconfig/guiconfig.h>
 #include <static_alocation_ptr.hpp>
+#include <inplace_function.hpp>
 
 /*****************************************************************************/
 // clang-format off
@@ -208,7 +209,7 @@ public:
 
 public:
     /// Callback that is called after every loop tick during the dialog blocking execution
-    std::function<void()> loop_callback = {};
+    stdext::inplace_function<void()> loop_callback = {};
 
 public:
     /// Blocking displays the msg box, returns the response

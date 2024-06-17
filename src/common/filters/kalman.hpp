@@ -1,11 +1,11 @@
 #pragma once
 
-#include <functional>
+#include <inplace_function.hpp>
 #include <cstdint>
 
 class KalmanFilter {
 public:
-    using predictor_t = std::function<double(double last_estimate, uint32_t now_us)>;
+    using predictor_t = stdext::inplace_function<double(double last_estimate, uint32_t now_us)>;
 
     KalmanFilter(
         const double error_estimate,

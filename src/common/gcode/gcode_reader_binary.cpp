@@ -79,7 +79,7 @@ IGcodeReader::Result_t PrusaPackGcodeReader::read_block_header(BlockHeader &bloc
     return Result_t::RESULT_OK;
 }
 
-std::variant<std::monostate, BlockHeader, PrusaPackGcodeReader::Result_t> PrusaPackGcodeReader::iterate_blocks(bool check_crc, std::function<IterateResult_t(BlockHeader &)> function) {
+std::variant<std::monostate, BlockHeader, PrusaPackGcodeReader::Result_t> PrusaPackGcodeReader::iterate_blocks(bool check_crc, stdext::inplace_function<IterateResult_t(BlockHeader &)> function) {
     if (auto res = read_and_check_header(); res != Result_t::RESULT_OK) {
         return res;
     }

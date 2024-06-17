@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <span>
-#include <functional>
+#include <exception>
 #include "concepts.hpp"
 #include "include/dwarf_errors.hpp"
 #include <common/array_extensions.hpp>

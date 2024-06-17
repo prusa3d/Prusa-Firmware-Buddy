@@ -54,7 +54,6 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/include
          ${CMAKE_BINARY_DIR}/include
          ${CMAKE_SOURCE_DIR}/src/common/utils
-         ${CMAKE_SOURCE_DIR}/src/common/utils
   )
 
 target_include_directories(
@@ -71,6 +70,18 @@ target_include_directories(
          ${CMAKE_BINARY_DIR}/include
          ${CMAKE_SOURCE_DIR}/include
   )
+
+target_link_libraries(window_tests SG14)
+
+target_link_libraries(layout_tests SG14)
+
+target_link_libraries(window_tests SG14)
+
+target_link_libraries(layout_tests SG14)
+
+target_link_libraries(window_tests SG14)
+
+target_link_libraries(layout_tests SG14)
 
 # tell build system about the test case
 add_catch_test(window_tests)

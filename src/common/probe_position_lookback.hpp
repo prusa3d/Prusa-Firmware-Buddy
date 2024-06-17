@@ -1,5 +1,6 @@
 #pragma once
 
+#include <inplace_function.hpp>
 #include <stdint.h>
 #include <stddef.h>
 #include <atomic>
@@ -12,7 +13,7 @@ class ProbePositionLookback {
 public:
     ProbePositionLookback();
 
-    float get_position_at(uint32_t time_us, std::function<float()> latest_z_position);
+    float get_position_at(uint32_t time_us, stdext::inplace_function<float()> latest_z_position);
 
     void update(float latest_z_position);
 

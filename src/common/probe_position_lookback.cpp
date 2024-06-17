@@ -26,7 +26,7 @@ void ProbePositionLookback::add_sample(uint32_t time, float position) {
     samples[newest_sample_pos].position = position;
 }
 
-float ProbePositionLookback::get_position_at(uint32_t time_us, std::function<float()> latest_z_position) {
+float ProbePositionLookback::get_position_at(uint32_t time_us, stdext::inplace_function<float()> latest_z_position) {
     // store position of last sample before proceeding (new sample might be added later from interrupt)
     size_t s1_pos = newest_sample_pos;
 

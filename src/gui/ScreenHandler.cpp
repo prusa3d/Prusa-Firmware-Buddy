@@ -328,7 +328,7 @@ void Screens::SetDisplayReinitialized() {
     display_reinitialized = true;
 }
 
-void Screens::gui_loop_until_dialog_closed(std::function<void()> callback) {
+void Screens::gui_loop_until_dialog_closed(stdext::inplace_function<void()> callback) {
     for (;;) {
         const bool dialog_closed = close || close_all;
         close = false; // Note: We reset close flag because it is reused for closing both dialogs and screens

@@ -22,7 +22,7 @@ description_line_t::description_line_t(window_frame_t *frame)
     , value(frame, Rect16(0, 0, 0, 0), is_multiline::no) {
 }
 
-void description_line_t::update(bool has_preview_thumbnail, size_t row, string_view_utf8 title_str, std::function<void(std::span<char> buffer)> make_value) {
+void description_line_t::update(bool has_preview_thumbnail, size_t row, string_view_utf8 title_str, stdext::inplace_function<void(std::span<char> buffer)> make_value) {
 #if HAS_MINI_DISPLAY()
     title.SetRect(Rect16(PADDING, calculate_y(has_preview_thumbnail, row), title_width(&title_str), LINE_HEIGHT));
     value.SetRect(Rect16(SCREEN_WIDTH - PADDING - value_width(&title_str), calculate_y(has_preview_thumbnail, row), value_width(&title_str), LINE_HEIGHT));
@@ -45,7 +45,7 @@ void description_line_t::update(bool has_preview_thumbnail, size_t row, string_v
     value.set_font(Font::small);
 }
 
-static std::span<char> delimited_items_per_extruder(std::span<char> buffer, char delimiter, std::function<int(int extruder, std::span<char> buffer)> echo_item) {
+static std::span<char> delimited_items_per_extruder(std::span<char> buffer, char delimiter, stdext::inplace_function<int(int extruder, std::span<char> buffer)> echo_item) {
     for (int e = 0; e < std::min(EXTRUDERS, 5) && buffer.size() > 1 /* always needs space for trailing \0 */; e++) {
         if (e != 0) {
             int printed = snprintf(buffer.data(), buffer.size(), "%c", delimiter);

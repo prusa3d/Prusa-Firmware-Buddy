@@ -1,6 +1,6 @@
 #pragma once
 #include "option/has_dwarf.h"
-#include <functional>
+#include <inplace_function.hpp>
 #include "puppies/BootloaderProtocol.hpp"
 #include "unique_file_ptr.hpp"
 #include <span>
@@ -34,7 +34,7 @@ public:
     };
 
     /// Callback to GUI for displaying process
-    using ProgressHook = std::function<void(Progress progress)>;
+    using ProgressHook = stdext::inplace_function<void(Progress progress)>;
 
     /// Minimal puppy bootloader version that works with this bootstrap
     static constexpr uint32_t MINIMAL_BOOTLOADER_VERSION = 294;

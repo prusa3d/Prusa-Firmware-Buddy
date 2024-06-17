@@ -1,6 +1,6 @@
 #pragma once
 #include <optional>
-#include <functional>
+#include <inplace_function.hpp>
 
 #include "resources/revision.hpp"
 
@@ -14,7 +14,7 @@ enum class BootstrapStage {
     CopyingFiles,
 };
 
-using ProgressHook = std::function<void(int percent_done, BootstrapStage stage)>;
+using ProgressHook = stdext::inplace_function<void(int percent_done, BootstrapStage stage)>;
 
 bool bootstrap(const Revision &revision, ProgressHook progress_hook);
 

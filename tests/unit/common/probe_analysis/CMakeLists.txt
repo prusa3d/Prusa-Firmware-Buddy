@@ -14,7 +14,10 @@ add_executable(
   )
 
 # define required search paths
-target_include_directories(probe_position_lookback PUBLIC . ${CMAKE_SOURCE_DIR}/src/common)
+target_include_directories(
+  probe_position_lookback PUBLIC . ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/include
+                                 ${CMAKE_SOURCE_DIR}/lib/SG14
+  )
 
 # tell build system about the test case
 add_catch_test(probe_position_lookback)

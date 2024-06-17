@@ -1,4 +1,6 @@
 #pragma once
+
+#include <inplace_function.hpp>
 #include <limits>
 #include <stdint.h>
 #include <functional>
@@ -46,5 +48,5 @@ uint8_t to_gcode_tool_custom(const ToolMapper &mapper, const SpoolJoin &joiner, 
  * @param physical_tool a tool anywhere in a chain
  * @param executable
  */
-void execute_on_whole_chain(uint8_t physical_tool, std::function<void(uint8_t)> executable);
+void execute_on_whole_chain(uint8_t physical_tool, stdext::inplace_function<void(uint8_t)> executable);
 } // namespace tools_mapping

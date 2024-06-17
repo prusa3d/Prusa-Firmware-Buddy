@@ -63,7 +63,7 @@ uint8_t to_gcode_tool_custom(const ToolMapper &mapper, const SpoolJoin &joiner, 
 }
 #endif
 
-void execute_on_whole_chain(uint8_t physical_tool, std::function<void(uint8_t)> executable) {
+void execute_on_whole_chain(uint8_t physical_tool, stdext::inplace_function<void(uint8_t)> executable) {
 #if ENABLED(PRUSA_SPOOL_JOIN)
     executable(spool_join.get_first_spool_1_from_chain(physical_tool));
 

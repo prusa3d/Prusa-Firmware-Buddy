@@ -638,7 +638,7 @@ target_include_directories(
   )
 
 target_link_libraries(
-  firmware PRIVATE BuddyHeaders Segger printf::printf CrashCatcher marlin_server_types
+  firmware PRIVATE BuddyHeaders Segger printf::printf CrashCatcher marlin_server_types SG14
   )
 
 if(BOARD MATCHES "BUDDY")

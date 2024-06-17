@@ -220,7 +220,7 @@ auto PrintPreview::check_tools_mapping_validity(const ToolMapper &mapper, const 
 
 #endif
 
-bool PrintPreview::check_extruder_need_filament_load(uint8_t physical_extruder, uint8_t no_gcode_value, std::function<uint8_t(uint8_t)> gcode_extruder_getter) {
+bool PrintPreview::check_extruder_need_filament_load(uint8_t physical_extruder, uint8_t no_gcode_value, stdext::inplace_function<uint8_t(uint8_t)> gcode_extruder_getter) {
     auto gcode_extruder = gcode_extruder_getter(physical_extruder);
     if (gcode_extruder == no_gcode_value) {
         return false; // if this physical_extruder is not printing, no need to check its filament
@@ -238,7 +238,7 @@ static bool check_extruder_need_filament_load_tools_mapping(uint8_t physical_ext
     return PrintPreview::check_extruder_need_filament_load(physical_extruder, tools_mapping::no_tool, tools_mapping::to_gcode_tool);
 }
 
-bool PrintPreview::check_correct_filament_type(uint8_t physical_extruder, uint8_t no_gcode_value, std::function<uint8_t(uint8_t)> gcode_extruder_getter) {
+bool PrintPreview::check_correct_filament_type(uint8_t physical_extruder, uint8_t no_gcode_value, stdext::inplace_function<uint8_t(uint8_t)> gcode_extruder_getter) {
     const auto gcode_extruder = gcode_extruder_getter(physical_extruder);
     if (gcode_extruder == no_gcode_value) {
         return true; // nothing to check, this extruder doesn't print anything

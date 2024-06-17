@@ -11,6 +11,8 @@ extern "C" {
 #include "heatshrink_decoder.h"
 }
 
+#include <inplace_function.hpp>
+
 /**
  * @brief Implementation of IGcodeReader for PrusaPack files
  */
@@ -78,7 +80,7 @@ private:
     // * monostate if the provided function returns End
     // * The block header if the function returns Return
     // * An error indication in case of error (including EOF)
-    std::variant<std::monostate, bgcode::core::BlockHeader, Result_t> iterate_blocks(bool check_crc, std::function<IterateResult_t(bgcode::core::BlockHeader &)> function);
+    std::variant<std::monostate, bgcode::core::BlockHeader, Result_t> iterate_blocks(bool check_crc, stdext::inplace_function<IterateResult_t(bgcode::core::BlockHeader &)> function);
 
     /// Pointer to function, that will get decompressed character from file, or data directly form file if not compressed
     stream_getc_type ptr_stream_getc_decompressed = nullptr;

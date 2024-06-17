@@ -6,8 +6,8 @@
 #include <common/http/httpc.hpp>
 #include <common/http/socket_connection_factory.hpp>
 #include <common/unique_file_ptr.hpp>
+#include <inplace_function.hpp>
 
-#include <functional>
 #include <variant>
 #include <memory>
 
@@ -81,7 +81,7 @@ public:
     /// It is expected that the size of the headers array might not be sufficient,
     /// in such case the function should return the number of headers it wishes to
     /// and it will be called again with a sufficiently large array.
-    using ExtraHeaders = std::function<size_t(size_t headers_size, http::HeaderOut *headers)>;
+    using ExtraHeaders = stdext::inplace_function<size_t(size_t headers_size, http::HeaderOut *headers)>;
 
     struct Request {
         struct Encrypted {

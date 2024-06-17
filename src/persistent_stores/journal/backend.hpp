@@ -1,4 +1,5 @@
 #pragma once
+#include <inplace_function.hpp>
 #include <stdint.h>
 #include "crc32.h"
 #include <stdlib.h>
@@ -126,7 +127,7 @@ public:
     static constexpr size_t END_ITEM_SIZE_WITH_CRC = ITEM_HEADER_SIZE + CRC_SIZE;
     static constexpr size_t BANK_HEADER_SIZE_WITH_CRC = BANK_HEADER_SIZE + CRC_SIZE;
 
-    using CallbackFunction = std::function<void(ItemHeader, std::array<uint8_t, MAX_ITEM_SIZE> &)>;
+    using CallbackFunction = stdext::inplace_function<void(ItemHeader, std::array<uint8_t, MAX_ITEM_SIZE> &)>;
 
     struct Transaction {
         enum class Type {
@@ -271,7 +272,7 @@ public:
 
     JournalState journal_state = JournalState::ValidStart;
 
-    std::function<void(void)> dump_callback;
+    stdext::inplace_function<void(void)> dump_callback;
     configuration_store::Storage &storage;
 
     freertos::Mutex mutex;

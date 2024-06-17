@@ -4,7 +4,6 @@
 #include <cstring>
 #include "buffered_serial.hpp"
 #include "puppies/PuppyBus.hpp"
-#include <functional>
 #include <assert.h>
 
 namespace buddy::puppies {
@@ -201,7 +200,7 @@ BootloaderProtocol::status_t BootloaderProtocol::get_fingerprint(fingerprint_t &
 }
 
 BootloaderProtocol::status_t BootloaderProtocol::write_flash(uint32_t len,
-    std::function<bool(uint32_t offset, size_t size, uint8_t *out_data)> get_data) {
+    stdext::inplace_function<bool(uint32_t offset, size_t size, uint8_t *out_data)> get_data) {
     assert(len <= MAX_FLASH_TOTAL_LENGTH);
     uint32_t offset = 0;
 

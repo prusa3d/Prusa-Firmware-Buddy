@@ -1,12 +1,12 @@
 #pragma once
-#include <functional>
+#include <inplace_function.hpp>
 #include <common/freertos_mutex.hpp>
 #include <span>
 #include <mutex>
 
 namespace journal {
-using UpdateFunction = std::function<void(uint16_t, std::span<uint8_t>)>;
-using DumpCallback = std::function<void(void)>;
+using UpdateFunction = stdext::inplace_function<void(uint16_t, std::span<uint8_t>)>;
+using DumpCallback = stdext::inplace_function<void(void)>;
 
 template <typename T>
 concept BackendC = requires(T &t, uint16_t id, std::span<uint8_t> data, const UpdateFunction &update_function, DumpCallback dump_callback, std::span<const typename T::MigrationFunction> migration_functions) {

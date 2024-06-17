@@ -2,7 +2,7 @@
 #include <inttypes.h>
 #include <tuple>
 #include <optional>
-#include <functional>
+#include <inplace_function.hpp>
 #include <option/bootloader_update.h>
 
 namespace buddy::bootloader {
@@ -38,7 +38,7 @@ enum class UpdateStage {
     Updating,
 };
 
-using ProgressHook = std::function<void(int percent_done, UpdateStage stage)>;
+using ProgressHook = stdext::inplace_function<void(int percent_done, UpdateStage stage)>;
 
 /// Update the bootloader (if needed together with preboot) on the MCU
 void update(ProgressHook progress);

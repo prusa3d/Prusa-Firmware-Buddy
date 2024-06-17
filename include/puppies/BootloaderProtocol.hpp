@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include <functional>
+#include <inplace_function.hpp>
 
 namespace buddy {
 namespace puppies {
@@ -175,7 +175,7 @@ namespace puppies {
          * @param get_data Callback that will be called to obtain data for flashing
          * @return status_t operation result
          */
-        status_t write_flash(uint32_t len, std::function<bool(uint32_t offset, size_t size, uint8_t *out_data)> get_data);
+        status_t write_flash(uint32_t len, stdext::inplace_function<bool(uint32_t offset, size_t size, uint8_t *out_data)> get_data);
 
         /**
          * @brief Start application

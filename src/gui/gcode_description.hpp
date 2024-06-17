@@ -4,6 +4,7 @@
 #include "gui.hpp"
 #include "gcode_info.hpp"
 #include <guiconfig/guiconfig.h>
+#include <inplace_function.hpp>
 
 #if HAS_MINI_DISPLAY()
 inline constexpr uint16_t SCREEN_WIDTH = display::GetW();
@@ -25,7 +26,7 @@ struct description_line_t {
     window_text_t value;
     char value_buffer[32];
     description_line_t(window_frame_t *frame);
-    void update(bool has_preview_thumbnail, size_t row, string_view_utf8 title_str, std::function<void(std::span<char> buffer)> make_value);
+    void update(bool has_preview_thumbnail, size_t row, string_view_utf8 title_str, stdext::inplace_function<void(std::span<char> buffer)> make_value);
     static size_t title_width(string_view_utf8 *title_str);
     static size_t value_width(string_view_utf8 *title_str);
 

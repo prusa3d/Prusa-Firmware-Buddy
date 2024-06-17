@@ -21,4 +21,6 @@ target_include_directories(
                    ${CMAKE_SOURCE_DIR}/src/common
   )
 
+target_link_libraries(time_sync SG14)
+
 add_catch_test(time_sync)
