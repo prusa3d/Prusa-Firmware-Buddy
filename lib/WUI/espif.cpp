@@ -798,6 +798,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
                 if (netif->input(rx_buff, netif) != ERR_OK) {
                     log_warning(ESPIF, "tcpip_input() failed, dropping packet");
                     pbuf_free(rx_buff);
+                    rx_buff = nullptr;
                     state = Intron;
                     break;
                 }
