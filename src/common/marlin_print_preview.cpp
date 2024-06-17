@@ -480,9 +480,12 @@ PrintPreview::Result PrintPreview::Loop() {
         }
 
         // Periodically kindly ask the prefetch thread to check if the file is still valid and update GCodeInfo::has_error
-        if (ticks_diff(curr_ms, last_still_valid_check_ms) > 1000) {
+        if (ticks_diff(curr_ms, last_still_valid_check_ms) > 1000 && !still_valid_check_job.is_active()) {
             last_still_valid_check_ms = curr_ms;
-            osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_CHECK);
+
+            still_valid_check_job.issue([](AsyncJobExecutionControl &) {
+                GCodeInfo::getInstance().check_still_valid();
+            });
         }
 
         // Still check for file validity - file could be downloaded enough for the info to show,

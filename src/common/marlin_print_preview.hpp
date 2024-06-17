@@ -11,6 +11,7 @@
 #include "gcode_info.hpp"
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
+#include <async_job/async_job.hpp>
 
 /**
  * @brief Parent class handling changes of state
@@ -148,6 +149,7 @@ public:
 private:
     uint32_t last_run = 0;
     uint32_t last_still_valid_check_ms = 0;
+    AsyncJob still_valid_check_job;
 
     marlin_server::PreviewSkipIfAble skip_if_able = marlin_server::PreviewSkipIfAble::no; ///< Whether to skip parts of preview when printing is started
 

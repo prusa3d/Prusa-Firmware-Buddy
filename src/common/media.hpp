@@ -7,7 +7,6 @@
 #define PREFETCH_SIGNAL_START 1
 #define PREFETCH_SIGNAL_STOP  2
 #define PREFETCH_SIGNAL_FETCH 4
-#define PREFETCH_SIGNAL_CHECK 32 ///< Re-checks that the file is still valid
 
 /// Determines how full should the gcode queue be kept when fetching from media
 /// You need at least one free slot for commands from serial (and UI)
