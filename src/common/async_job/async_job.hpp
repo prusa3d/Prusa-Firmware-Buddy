@@ -93,3 +93,46 @@ public:
     // Make issue public, this is as basic as it can get
     using AsyncJobBase::issue;
 };
+
+/// AsyncJob subclass with interface for returning a value
+template <typename Result_>
+class AsyncJobWithResult final : public AsyncJobBase {
+
+public:
+    using Result = Result_;
+    using Callback = std::function<void(AsyncJobExecutionControl &control, Result &result)>;
+
+public:
+    inline const Result &result() const {
+        assert(state() == State::finished);
+        return result_;
+    }
+
+    void issue(const Callback &callback, Executor &executor = Executor::default_instance()) {
+        // We cannot capture this in the lambda, because stdext::inplace_function wouldn't fit into stdext::inplace_function
+        callback_with_result_ = callback;
+
+        AsyncJobBase::issue([this](AsyncJobExecutionControl &control) {
+            Callback callback;
+
+            // Obtain the actual callback in a safe manner - we need to make sure the job handle exists while obtaining
+            if (!control.with_synchronized([&] { callback = this->callback_with_result_; })) {
+                return;
+            }
+
+            // Execute the actual function
+            Result result;
+            callback(control, result);
+
+            // Store the result, again in a safe manner
+            control.with_synchronized([&] {
+                this->result_ = result;
+            });
+        },
+            executor);
+    }
+
+private:
+    Callback callback_with_result_;
+    Result result_;
+};
