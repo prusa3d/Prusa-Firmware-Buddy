@@ -3,7 +3,7 @@ target_sources(
   )
 
 if(BOARD MATCHES ".*BUDDY")
-  target_sources(firmware PRIVATE log_dest_swo.cpp log_dest_syslog.cpp log_dest_usb.cpp)
+  target_sources(firmware PRIVATE log_dest_syslog.cpp log_dest_usb.cpp)
 endif()
 
 if(BOARD STREQUAL "DWARF" OR BOARD STREQUAL "XL_DEV_KIT_XLB")

@@ -4,7 +4,6 @@
 #include "usb_device.hpp"
 
 #include "log.h"
-#include "log_dest_swo.h"
 #include "log_dest_syslog.h"
 #include "log_dest_shared.h"
 #include "log_dest_rtt.h"
@@ -18,14 +17,6 @@ void logging_init() {
         .next = NULL,
     };
     log_destination_register(&log_destination_rtt);
-
-    static log_destination_t log_destination_swo = {
-        .name = "SWO",
-        .lowest_severity = LOG_SEVERITY_DEBUG,
-        .log_event_fn = swo_log_event,
-        .next = NULL,
-    };
-    log_destination_register(&log_destination_swo);
 
     static log_destination_t log_destination_syslog = {
         .name = "SYSLOG",

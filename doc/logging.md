@@ -46,7 +46,7 @@ When recorded, those events can be presented to the user in several ways. They c
     static log_destination_t custom_log_destination = {
         .name = "CUSTOM",
         .lowest_severity = LOG_SEVERITY_DEBUG,
-        .log_event_fn = swo_log_event,
+        .log_event_fn = log_event_custom,
         .next = NULL,
     };
     log_destination_register(&custom_log_destination);
