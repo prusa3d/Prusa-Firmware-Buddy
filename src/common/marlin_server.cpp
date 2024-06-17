@@ -451,7 +451,6 @@ static void fsm_destroy_and_create(ClientFSM old_type, ClientFSM new_type, fsm::
 
 osThreadId server_task = 0; // task handle
 ServerQueue server_queue;
-osSemaphoreId server_semaphore = 0; // semaphore handle
 
 constexpr EncodedFSMResponse empty_encoded_fsm_response = {
     .encoded_phase = 0xff,
@@ -495,8 +494,6 @@ static void settings_load();
 void init(void) {
     int i;
     server = server_t();
-    osSemaphoreDef(serverSema);
-    server_semaphore = osSemaphoreCreate(osSemaphore(serverSema), 1);
     server.flags = 0;
     for (i = 0; i < MARLIN_MAX_CLIENTS; i++) {
         server.notify_events[i] = make_mask(Event::Acknowledge); // by default only ack

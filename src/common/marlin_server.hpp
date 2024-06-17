@@ -31,8 +31,6 @@ constexpr uint16_t MARLIN_SFLG_STOPPED = 0x0020; // moves stopped until command 
 // server variable update interval [ms]
 constexpr uint8_t MARLIN_UPDATE_PERIOD = 100;
 
-extern osSemaphoreId server_semaphore; // semaphore handle
-
 //-----------------------------------------------------------------------------
 // server side functions (can be called from server thread only)
 

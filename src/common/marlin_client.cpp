@@ -5,6 +5,7 @@
 #include "marlin_events.h"
 #include "marlin_server.hpp"
 #include <cassert>
+#include <common/freertos_mutex.hpp>
 #include <stdio.h>
 #include <string.h>
 #include <cstdint>
@@ -61,11 +62,13 @@ static marlin_client_t *_client_ptr();
 //-----------------------------------------------------------------------------
 // client side public functions
 
+static freertos::Mutex mutex;
+
 void init() {
     int client_id;
     marlin_client_t *client = 0;
     TaskDeps::wait(TaskDeps::Tasks::marlin_client);
-    osSemaphoreWait(server_semaphore, osWaitForever);
+    std::unique_lock lock { mutex };
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
         if (marlin_client_task[client_id] == 0) {
             break;
@@ -81,7 +84,6 @@ void init() {
         client->message_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
-    osSemaphoreRelease(server_semaphore);
 }
 
 void loop() {
