@@ -35,13 +35,6 @@ void swo_log_event(log_destination_t *destination, log_event_t *event) {
         return;
     }
 
-    // send the log message
-    // (even if we didn't acquire the lock; we might break some logs in the console,
-    // but that seems like a better option than silently suppressing the logs)
-    if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING && !xPortIsInsideInterrupt()) {
-        std::unique_lock lock { swo_mutex };
-        swo_log_event_unlocked(destination, event);
-    } else {
-        swo_log_event_unlocked(destination, event);
-    }
+    std::unique_lock lock { swo_mutex };
+    swo_log_event_unlocked(destination, event);
 }

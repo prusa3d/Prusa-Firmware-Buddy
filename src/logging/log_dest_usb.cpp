@@ -1,6 +1,5 @@
 #include "log_dest_usb.h"
 #include "tusb.h"
-#include "FreeRTOS.h"
 #include "stm32f4xx.h"
 #include "usb_device.hpp"
 
@@ -26,11 +25,6 @@ void usb_log_event(log_destination_t *destination, log_event_t *event) {
 
     // check the CDC interface is being used by some terminal
     if (!tud_cdc_connected()) {
-        return;
-    }
-
-    // do not log from interrupts (the usb stack requires sync primitives of freertos)
-    if (xPortIsInsideInterrupt()) {
         return;
     }
 

@@ -28,13 +28,9 @@ static void rtt_log_event_unlocked(log_destination_t *destination, log_event_t *
 void rtt_log_event(log_destination_t *destination, log_event_t *event) {
     initialize_rtt_subsystem();
 
-    if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING && !xPortIsInsideInterrupt()) {
-        // Do not use std::unique_lock here because #include <mutex> pulls in
-        // a bunch of std::crap which breaks XL debug build due to FLASH inflation.
-        rtt_mutex.lock();
-        rtt_log_event_unlocked(destination, event);
-        rtt_mutex.unlock();
-    } else {
-        rtt_log_event_unlocked(destination, event);
-    }
+    // Do not use std::unique_lock here because #include <mutex> pulls in
+    // a bunch of std::crap which breaks XL debug build due to FLASH inflation.
+    rtt_mutex.lock();
+    rtt_log_event_unlocked(destination, event);
+    rtt_mutex.unlock();
 }

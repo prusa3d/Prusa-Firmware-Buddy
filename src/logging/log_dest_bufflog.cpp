@@ -46,9 +46,8 @@ static buffer_output_state_t buffer_state = {
 
 void bufflog_log_event(log_destination_t *destination, log_event_t *event) {
     // initialize the bufflog buffer if it is safe to do so
-    if (!initialized && !xPortIsInsideInterrupt() && xTaskGetSchedulerState() == taskSCHEDULER_RUNNING && !log_platform_is_low_on_resources()) {
+    if (!initialized) {
         bufflog_initialize();
-    } else if (!initialized) {
         return;
     }
 

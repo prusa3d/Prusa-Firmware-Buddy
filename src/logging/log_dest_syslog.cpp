@@ -1,4 +1,3 @@
-#include "FreeRTOS.h"
 #include "tcpip.h"
 #include "printf.h"
 
@@ -68,11 +67,6 @@ void syslog_format_event(log_event_t *event, void (*out_fn)(char character, void
 }
 
 void syslog_log_event(log_destination_t *destination, log_event_t *event) {
-    // do not use syslog in case we are running out of stack or we are within an ISR
-    if (xPortIsInsideInterrupt() || log_platform_is_low_on_resources()) {
-        return;
-    }
-
     // check that we are not logging from within the LwIP stack
     // as calling LwIP again "from the outside" would cause a deadlock
     if (lock_tcpip_core == 0 || osSemaphoreGetCount(lock_tcpip_core) == 0) {
