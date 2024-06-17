@@ -23,7 +23,7 @@ DialogQuickPause::DialogQuickPause(fsm::BaseData data)
         auto lock = MarlinVarsLockGuard();
         static char buff[FILE_NAME_BUFFER_LEN] = { 0 };
         marlin_vars()->media_LFN.copy_to(buff, FILE_NAME_BUFFER_LEN, lock);
-        gcode_name.SetText(_(buff));
+        gcode_name.SetText(string_view_utf8::MakeRAM(buff));
     }
 
     const char *msg;
