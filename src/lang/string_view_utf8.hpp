@@ -230,32 +230,6 @@ public:
         return dst - dst_start;
     }
 
-    /// Copy the string byte-by-byte into some RAM buffer for later processing, without multibyte cutting check
-    /// typically used to obtain a translated version of a format string for s(n)printf
-    /// @param dst target buffer to copy the bytes to
-    /// @param buffer_size size of dst in bytes
-    /// @returns number of bytes (not utf8 characters) copied not counting the terminating '\0'
-    /// Using sprintf to format some string is possible with translations, but it requires one more step than usually -
-    /// one must first fetch the translated format string into a RAM buffer and then feed the format string into standard sprintf
-    size_t copyBytesToRAM(char *dst, size_t buffer_size) {
-        if (buffer_size == 0) {
-            return 0;
-        }
-        char *dst_start = dst;
-        for (size_t i = 0; i < buffer_size; ++i) {
-            *dst = getbyte(attrs);
-            if (*dst == 0) {
-                return dst - dst_start;
-            }
-            ++dst;
-        }
-
-        // Beware - no multibyte character check!
-        // dst pointer is decremented to point at the last character of the buffer
-        *(--dst) = 0; // safety termination in case of reaching the end of the buffer
-        return dst - dst_start;
-    }
-
     /// Construct string_view_utf8 to provide data from CPU FLASH
     static string_view_utf8 MakeCPUFLASH(const uint8_t *utf8raw) {
         string_view_utf8 s;

@@ -229,7 +229,4 @@ TEST_CASE("string_view_utf8::CopyToRAM dst buffer too small + multibyte chars", 
     size_t copied_bytes = orig.copyToRAM(dst, sizeof(dst));
     REQUIRE_THAT(dst, Equals(ref));
     REQUIRE(copied_bytes == sizeof(ref) - 1); // -1 because we don't count copying null at the end
-
-    copied_bytes = orig.copyBytesToRAM(dst, sizeof(dst));
-    REQUIRE(copied_bytes == sizeof(dst) - 1);
 }
