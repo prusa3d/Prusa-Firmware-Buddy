@@ -81,8 +81,8 @@ void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
     marlin_client::test_start(stmFans);
 }
 
-// XL does not support all axis at once
-#if !PRINTER_IS_PRUSA_XL
+// CoreXY does not support all axis at once
+#if !PRINTER_IS_PRUSA_XL && !PRINTER_IS_PRUSA_iX
 /*****************************************************************************/
 // MI_TEST_XYZ
 MI_TEST_XYZ::MI_TEST_XYZ()
