@@ -93,7 +93,7 @@ void buddy::metrics::RecordRuntimeStats() {
         delta_totaltime = 10UL * TIM_BASE_CLK_MHZ * delta_totaltime;
 
         // Last runtime of all threads to get delta later
-        uint32_t last_runtime[20] = {};
+        uint32_t last_runtime[21] = {};
         for (size_t idx = 0; idx < std::size(task_statuses); idx++) {
             if ((task_statuses[idx].xTaskNumber > 0) && (task_statuses[idx].xTaskNumber <= std::size(last_runtime))) {
                 last_runtime[task_statuses[idx].xTaskNumber - 1] = task_statuses[idx].ulRunTimeCounter;
