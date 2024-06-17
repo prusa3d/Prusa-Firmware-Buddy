@@ -21,3 +21,11 @@ public:
 public:
     std::variant<std::monostate, PrusaPack> data;
 };
+
+/// Struct containing complete information for resuming streams
+struct GCodeReaderPosition {
+    GCodeReaderStreamRestoreInfo restore_info;
+
+    /// Position in the file, to be passed into stream_XX_start
+    uint32_t offset = 0;
+};
