@@ -18,10 +18,7 @@ void syslog_format_event(log_event_t *event, void (*out_fn)(char character, void
 /// The SYSLOG destination does not guarantee delivery of all events.
 /// Events from ISRs are not being delivered, syslog won't try to send an event if running low on stack,
 /// the UDP packet can be lost, etc.
-///
-/// The `destination` is expected to be configured to use the
-/// `syslog_format_event` message formatter.
-void syslog_log_event(log_destination_t *destination, log_event_t *event);
+void syslog_log_event(log_event_t *event);
 
 /**
  * @brief Configure syslog handler address and port.

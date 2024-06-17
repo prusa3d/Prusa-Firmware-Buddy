@@ -15,7 +15,6 @@ void logging_init() {
         .name = "RTT",
         .lowest_severity = LOG_SEVERITY_DEBUG,
         .log_event_fn = rtt_log_event,
-        .log_format_fn = log_format_simple,
         .next = NULL,
     };
     log_destination_register(&log_destination_rtt);
@@ -24,7 +23,6 @@ void logging_init() {
         .name = "SWO",
         .lowest_severity = LOG_SEVERITY_DEBUG,
         .log_event_fn = swo_log_event,
-        .log_format_fn = log_format_simple,
         .next = NULL,
     };
     log_destination_register(&log_destination_swo);
@@ -33,7 +31,6 @@ void logging_init() {
         .name = "SYSLOG",
         .lowest_severity = LOG_SEVERITY_INFO,
         .log_event_fn = syslog_log_event,
-        .log_format_fn = syslog_format_event,
         .next = NULL,
     };
     log_destination_register(&log_destination_syslog);
@@ -42,7 +39,6 @@ void logging_init() {
         .name = "USB",
         .lowest_severity = LOG_SEVERITY_DEBUG,
         .log_event_fn = usb_log_event,
-        .log_format_fn = log_format_simple,
         .next = NULL,
     };
     log_destination_register(&log_destination_usb);

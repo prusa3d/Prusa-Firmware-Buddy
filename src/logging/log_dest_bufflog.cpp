@@ -1,8 +1,9 @@
+#include "log_dest_bufflog.h"
+
 #include "cmsis_os.h"
 #include "FreeRTOS.h"
 #include "printf.h"
-
-#include "log_dest_bufflog.h"
+#include "log_dest_shared.h"
 #include "log_platform.h"
 #include "otp.hpp"
 
@@ -44,7 +45,7 @@ static buffer_output_state_t buffer_state = {
     .write = 0,
 };
 
-void bufflog_log_event(log_destination_t *destination, log_event_t *event) {
+void bufflog_log_event(log_event_t *event) {
     // initialize the bufflog buffer if it is safe to do so
     if (!initialized) {
         bufflog_initialize();
@@ -56,7 +57,7 @@ void bufflog_log_event(log_destination_t *destination, log_event_t *event) {
         return;
     }
 
-    destination->log_format_fn(event, buffer_output, &buffer_state);
+    log_format_simple(event, buffer_output, &buffer_state);
     buffer_output(BUFFLOG_TERMINATION_CHAR, &buffer_state);
 
     osMutexRelease(bufflog_buffer_lock_id);

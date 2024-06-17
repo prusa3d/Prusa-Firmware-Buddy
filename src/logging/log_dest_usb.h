@@ -6,7 +6,7 @@ extern "C" {
 #endif //__cplusplus
 
 /// Send the event via USB CDC
-void usb_log_event(log_destination_t *destination, log_event_t *event);
+void usb_log_event(log_event_t *event);
 
 void usb_log_enable();
 

@@ -15,10 +15,7 @@ void bufflog_initialize();
 ///
 /// The BuffLog destination does not guarantee delivery of all events.
 /// There is a limited buffer that can overflow. Messages might get logs on bus.
-///
-/// The `destination` is expected to be configured to use the
-/// `buffbus_log_event` message formatter.
-void bufflog_log_event(log_destination_t *destination, log_event_t *event);
+void bufflog_log_event(log_event_t *event);
 
 /// Pipukup data from buffer
 size_t bufflog_pickup(char *buffer, size_t buffer_size);

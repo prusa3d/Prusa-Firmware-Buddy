@@ -19,11 +19,11 @@ static void swo_put_char(char character, [[maybe_unused]] void *arg) {
     ITM->PORT[0U].u8 = (uint8_t)character;
 }
 
-void swo_log_event(log_destination_t *destination, log_event_t *event) {
+void swo_log_event(log_event_t *event) {
     if (!swo_is_enabled()) {
         return;
     }
-    destination->log_format_fn(event, swo_put_char, NULL);
+    log_format_simple(event, swo_put_char, NULL);
     swo_put_char('\r', NULL);
     swo_put_char('\n', NULL);
 }

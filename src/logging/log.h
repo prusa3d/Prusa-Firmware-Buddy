@@ -68,10 +68,8 @@ typedef struct log_destination_s {
     log_severity_t lowest_severity;
 
     /// The entrypoint for incoming log events
-    void (*log_event_fn)(struct log_destination_s *destination, log_event_t *event);
+    void (*log_event_fn)(log_event_t *event);
 
-    /// Formatting function the destination should when serializing log events
-    void (*log_format_fn)(log_event_t *event, void (*out_fn)(char character, void *arg), void *arg);
     struct log_destination_s *next;
 } log_destination_t;
 

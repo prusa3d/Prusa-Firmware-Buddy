@@ -37,11 +37,11 @@ log_timestamp_t log_platform_timestamp_get() {
     }
 }
 
-static std::optional<std::function<void(log_destination_t *destination, log_event_t *event)>> log_event_func = std::nullopt;
+static std::optional<std::function<void(log_event_t *event)>> log_event_func = std::nullopt;
 
-static void custom_log_event(log_destination_t *destination, log_event_t *event) {
+static void custom_log_event(log_event_t *event) {
     if (log_event_func.has_value()) {
-        log_event_func.value()(destination, event);
+        log_event_func.value()(event);
     }
 }
 
@@ -49,12 +49,11 @@ log_destination_t in_memory_log = {
     .name = "in-memory",
     .lowest_severity = LOG_SEVERITY_DEBUG,
     .log_event_fn = custom_log_event,
-    .log_format_fn = NULL,
     .next = NULL,
 };
 
 ScopedInMemoryLog::ScopedInMemoryLog() {
-    log_event_func = [&](log_destination_t *destination, log_event_t *evt) {
+    log_event_func = [&](log_event_t *evt) {
         char message_buffer[1024];
         vsnprintf(message_buffer, sizeof(message_buffer), evt->fmt, *evt->args);
         std::string message(message_buffer);

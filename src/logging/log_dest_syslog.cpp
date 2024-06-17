@@ -64,7 +64,7 @@ void syslog_format_event(log_event_t *event, void (*out_fn)(char character, void
     vfctprintf(out_fn, arg, event->fmt, *event->args);
 }
 
-void syslog_log_event(log_destination_t *destination, log_event_t *event) {
+void syslog_log_event(log_event_t *event) {
     // check that we are not logging from within the LwIP stack
     // as calling LwIP again "from the outside" would cause a deadlock
     if (lock_tcpip_core == 0 || osSemaphoreGetCount(lock_tcpip_core) == 0) {
@@ -78,7 +78,7 @@ void syslog_log_event(log_destination_t *destination, log_event_t *event) {
         .len = sizeof(buffer),
         .used = 0,
     };
-    destination->log_format_fn(event, buffer_output, &buffer_state);
+    syslog_format_event(event, buffer_output, &buffer_state);
 
     syslog_transport.send(buffer, buffer_state.used);
 }

@@ -67,7 +67,7 @@ void log_task_process_event(log_event_t *event) {
     for (log_destination_t **destination_pp = &destinations_head; *destination_pp != NULL; destination_pp = &(*destination_pp)->next) {
         log_destination_t *destination = *destination_pp;
         if (event->severity >= destination->lowest_severity) {
-            destination->log_event_fn(destination, event);
+            destination->log_event_fn(event);
         }
     }
 }

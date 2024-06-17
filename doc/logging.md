@@ -39,7 +39,7 @@ When recorded, those events can be presented to the user in several ways. They c
 
 ### Registration of a custom log destination
     ```C
-    static void log_event_custom(log_destination_t *destination, log_event_t *event) {
+    static void log_event_custom(log_event_t *event) {
         // ... log the event to, for example, a file
     }
 
@@ -47,7 +47,6 @@ When recorded, those events can be presented to the user in several ways. They c
         .name = "CUSTOM",
         .lowest_severity = LOG_SEVERITY_DEBUG,
         .log_event_fn = swo_log_event,
-        .log_format_fn = log_format_simple,
         .next = NULL,
     };
     log_destination_register(&custom_log_destination);

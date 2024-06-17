@@ -1,5 +1,6 @@
 #include "log_dest_rtt.h"
 
+#include "log_dest_shared.h"
 #include "SEGGER_RTT.h"
 
 static void rtt_put_char(char character, [[maybe_unused]] void *arg) {
@@ -14,9 +15,9 @@ static inline void initialize_rtt_subsystem() {
     }
 }
 
-void rtt_log_event(log_destination_t *destination, log_event_t *event) {
+void rtt_log_event(log_event_t *event) {
     initialize_rtt_subsystem();
-    destination->log_format_fn(event, rtt_put_char, NULL);
+    log_format_simple(event, rtt_put_char, NULL);
     rtt_put_char('\r', NULL);
     rtt_put_char('\n', NULL);
 }
