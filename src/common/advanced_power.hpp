@@ -9,6 +9,8 @@
     #include "puppies/Dwarf.hpp"
 #endif
 
+#include <option/has_modularbed.h>
+
 class AdvancedPower {
 public:
     AdvancedPower();
@@ -90,11 +92,6 @@ public:
         assert(index >= 0 && index < buddy::puppies::dwarfs.size());
         return buddy::puppies::dwarfs[index].get_heater_pwm();
     }
-
-    // Get bed heater current [A]
-    // Would be nice to have this inline, but it would drag a modbus includes.
-    float get_bed_current();
-
 #elif BOARD_IS_DWARF
     inline float GetDwarfNozzleCurrent() const {
         return ((RawValueToVoltage(AdcGet::heaterCurrent()) / CurrentSenseGain) / RSense);
@@ -103,6 +100,12 @@ public:
     inline float Get24VVoltage() const {
         return beforeVoltageDivider11(RawValueToVoltage(AdcGet::inputf24V()));
     }
+#endif
+
+#if HAS_MODULARBED()
+    // Get bed heater current [A]
+    // Would be nice to have this inline, but it would drag a modbus includes.
+    float get_bed_current();
 #endif
 
 #if HAS_MMU2()

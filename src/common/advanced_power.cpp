@@ -13,7 +13,7 @@
     #include "bsod.h"
 #endif
 
-#if BOARD_IS_XLBUDDY
+#if HAS_MODULARBED()
     #include <puppies/modular_bed.hpp>
 #endif
 
@@ -100,7 +100,7 @@ bool AdvancedPower::MMUOvercurentFaultDetected() const {
 }
 #endif
 
-#if BOARD_IS_XLBUDDY
+#if HAS_MODULARBED()
 float AdvancedPower::get_bed_current() {
     return buddy::puppies::modular_bed.get_heater_current();
 }

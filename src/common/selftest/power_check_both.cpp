@@ -24,25 +24,29 @@ using namespace selftest;
  */
 void PowerCheckBoth::Callback([[maybe_unused]] CSelftestPart_Heater &part) {
 
-#if (!PRINTER_IS_PRUSA_XL)
-    const float total_current_A = advancedpower.GetInputCurrent();
-    const float nozzle_current_A = advancedpower.GetHeaterCurrent();
-    const float nozzle_voltage_V = advancedpower.GetHeaterVoltage();
-    const float bed_voltage_V = advancedpower.GetBedVoltage();
-    const uint32_t nozzle_pwm = thermalManager.temp_hotend[0].soft_pwm_amount;
-
-    const float total_power_W = bed_voltage_V * total_current_A;
-    const float nozzle_power_W = nozzle_voltage_V * nozzle_current_A;
-    const float bed_power_W = total_power_W - nozzle_power_W;
-#else
+#if HAS_TOOLCHANGER() && HAS_MODULARBED()
     const float nozzle_current_A = advancedpower.get_nozzle_current(part.m_config.tool_nr);
     const float nozzle_voltage_V = advancedpower.get_nozzle_voltage(part.m_config.tool_nr);
     const uint32_t nozzle_pwm = advancedpower.get_nozzle_pwm(part.m_config.tool_nr);
     const float nozzle_power_W = nozzle_voltage_V * nozzle_current_A;
+#else
+    const float nozzle_current_A = advancedpower.GetHeaterCurrent();
+    const float nozzle_voltage_V = advancedpower.GetHeaterVoltage();
+    const uint32_t nozzle_pwm = thermalManager.temp_hotend[0].soft_pwm_amount;
+    const float nozzle_power_W = nozzle_voltage_V * nozzle_current_A;
+#endif
+
+#if HAS_MODULARBED()
     const float bed_voltage_V = 24; // Modular bed does not measure this
     const float bed_current_A = advancedpower.get_bed_current();
     const float bed_power_W = bed_current_A * bed_voltage_V;
     [[maybe_unused]] const float total_current_A = nozzle_current_A + bed_current_A;
+#else
+    const float bed_voltage_V = advancedpower.GetBedVoltage();
+    [[maybe_unused]] const float total_current_A = advancedpower.GetInputCurrent();
+    const float total_power_W = bed_voltage_V * total_current_A;
+    const float bed_power_W = total_power_W - nozzle_power_W;
+
 #endif
 
     const uint32_t bed_pwm = thermalManager.temp_bed.soft_pwm_amount;
