@@ -57,7 +57,17 @@ bool selftest_warning_selftest_finished() {
     }
 
     return true;
+#elif PRINTER_IS_PRUSA_iX
+    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
+        return false;
+    }
 
+    HOTEND_LOOP()
+    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].fansSwitched)) {
+        return false;
+    }
+
+    return true;
 #elif PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
     if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
         return false;
