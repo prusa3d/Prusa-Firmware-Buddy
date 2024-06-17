@@ -1,10 +1,10 @@
 #include "async_job.hpp"
 
-AsyncJob::~AsyncJob() {
+AsyncJobBase::~AsyncJobBase() {
     discard();
 }
 
-bool AsyncJob::is_active() const {
+bool AsyncJobBase::is_active() const {
     const auto state = state_.load();
 
     // The job instance can possibly be changed by some other thread only if it is in the queue or if it is currently being executed.
@@ -14,7 +14,7 @@ bool AsyncJob::is_active() const {
     return (state == State::queued) || (state == State::running);
 }
 
-void AsyncJob::issue(const Callback &callback, AsyncJobExecutor &executor) {
+void AsyncJobBase::issue(const Callback &callback, AsyncJobExecutor &executor) {
     // Discard previous job this instance was holding
     discard();
 
@@ -48,7 +48,7 @@ void AsyncJob::issue(const Callback &callback, AsyncJobExecutor &executor) {
     state_ = State::queued;
 }
 
-bool AsyncJob::try_cancel() {
+bool AsyncJobBase::try_cancel() {
     // If the task is not active, we don't have to synchronize and can just straight up fail.
     if (!is_active()) {
         return false;
@@ -66,7 +66,7 @@ bool AsyncJob::try_cancel() {
     return true;
 }
 
-void AsyncJob::discard() {
+void AsyncJobBase::discard() {
     // If the task is active, it can be potentially modified by the executor, and thus we need to synchronize the changes
     if (is_active()) {
         assert(executor);
@@ -100,7 +100,7 @@ void AsyncJob::discard() {
     executor = {};
 }
 
-void AsyncJob::unqueue_nolock() {
+void AsyncJobBase::unqueue_nolock() {
     assert(state_ == State::queued);
 
     auto &ex = executor->synchronized_data;

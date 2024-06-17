@@ -3,10 +3,10 @@
 #include <common/freertos_mutex.hpp>
 #include <common/freertos_binary_semaphore.hpp>
 
-class AsyncJob;
+class AsyncJobBase;
 
 class AsyncJobExecutor final {
-    friend class AsyncJob;
+    friend class AsyncJobBase;
     friend class AsyncJobExecutionControl;
 
 public:
@@ -24,10 +24,10 @@ private:
     /// Fields that should only be accessed with locked \p mutex
     struct {
         /// First job in the linked list (the one to be executed)
-        AsyncJob *first_job = nullptr;
+        AsyncJobBase *first_job = nullptr;
 
         /// Last job in the queue
-        AsyncJob *last_job = nullptr;
+        AsyncJobBase *last_job = nullptr;
 
         /// Marks that the AsyncJob instance for the currently running job was destroyed/discarded
         bool current_job_discarded = false;

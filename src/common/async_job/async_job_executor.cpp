@@ -26,14 +26,14 @@ AsyncJobExecutor &AsyncJobExecutor::default_instance() {
 }
 
 void AsyncJobExecutor::thread_routine() {
-    using State = AsyncJob::State;
-    using Callback = AsyncJob::Callback;
+    using State = AsyncJobBase::State;
+    using Callback = AsyncJobBase::Callback;
 
     while (true) {
         Callback callback;
 
         // This pointer is unsafe to access outside mutex locked areas
-        AsyncJob *job;
+        AsyncJobBase *job;
 
         // Pop a job from the list and obtain the callback
         {
