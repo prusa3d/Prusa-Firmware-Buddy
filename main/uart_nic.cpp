@@ -20,9 +20,10 @@
   SPDX-License-Identifier: GPL-3.0-or-later 
 */
 
-#include <string.h>
-#include <stdatomic.h>
-#include <stdbool.h>
+#include <cstdint>
+#include <cstring>
+#include <atomic>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -32,19 +33,26 @@
 #include "esp_netif.h"
 #include "esp_event.h"
 #include "esp_wifi.h"
+#include "esp_wifi_types.h"
 #include "esp_aio.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 
+#include "esp_private/wifi.h"
+extern "C" {
+    // including esp_supplicant/esp_wpa.h breaks c++ compilation,
+    // lets forward declare the needed function from that header
+    // to prevent compiler errors
+    esp_err_t esp_supplicant_init();
+}
+
 #include "uart0_driver.h"
 
-#include "esp_private/wifi.h"
-#include "esp_supplicant/esp_wpa.h"
-
-
 // Externals with no header
-int ieee80211_output_pbuf(esp_aio_t *aio);
-esp_err_t mac_init(void);
+extern "C" {
+    int ieee80211_output_pbuf(esp_aio_t *aio);
+    esp_err_t mac_init(void);
+}
 
 #define FW_VERSION 12
 
@@ -58,13 +66,13 @@ esp_err_t mac_init(void);
 // inactivity to a ridiculously long time and handle the disconnect ourselves.
 //
 // It's not longer for the only reason the uint16_t doesn't hold as big numbers.
-static const uint16_t INACTIVE_BEACON_SECONDS = 400;
+static constexpr uint16_t INACTIVE_BEACON_SECONDS = 400;
 // This is the effective timeout. If we don't receive any packet for this long,
 // we consider the signal lost.
 //
 // TODO: Shall we generate something to provoke getting some packets? Like ARP
 // pings to the AP?
-static const uint32_t INACTIVE_PACKET_SECONDS = 5;
+static constexpr uint32_t INACTIVE_PACKET_SECONDS = 5;
 
 // Note: Values 1..5 are deprecated and must not be used.
 #define MSG_DEVINFO_V2 0
@@ -142,14 +150,14 @@ static uint32_t IRAM_ATTR now_seconds() {
     return xTaskGetTickCount() / configTICK_RATE_HZ;
 }
 
-static atomic_uint_least32_t last_inbound_seen = 0;
-static atomic_bool associated = false;
-static atomic_bool wifi_running = false;
-static atomic_bool connecting = false;
+static std::atomic<uint_least32_t> last_inbound_seen{0};
+static std::atomic<bool> associated {false};
+static std::atomic<bool> wifi_running {false};
+static std::atomic<bool> connecting {false};
 
 static bool beacon_quirk;
 static uint8_t probe_max_reties = 3;
-static atomic_bool probe_in_progress = false;
+static std::atomic<bool> probe_in_progress {false};
 static uint8_t probe_retry_count;
 static uint8_t latest_ssid[SSID_LEN];
 static uint8_t latest_bssid[BSSID_LEN];
@@ -170,22 +178,14 @@ const ScanResult EMPTY_RESULT = {};
 typedef void (*wifi_scan_callback)(wifi_ap_record_t *, int);
 
 static struct {
-    ScanType scan_type;
-    wifi_scan_callback callback;
-    uint32_t incremental_scan_time;
-    ScanResult stored_ssids[SCAN_MAX_STORED_SSIDS];
-    uint8_t stored_ssids_count;
-    atomic_bool in_progress;
-    atomic_bool should_reconnect;
-} scan = {
-    .scan_type = SCAN_TYPE_UNKNOWN,
-    .callback = NULL,
-    .incremental_scan_time = 0,
-    .stored_ssids = {},
-    .stored_ssids_count = 0,
-    .in_progress = false,
-    .should_reconnect = false,
-};
+    ScanType scan_type = SCAN_TYPE_UNKNOWN;
+    wifi_scan_callback callback = nullptr;
+    uint32_t incremental_scan_time = 0;
+    ScanResult stored_ssids[SCAN_MAX_STORED_SSIDS] = {};
+    uint8_t stored_ssids_count = 0;
+    std::atomic<bool> in_progress {false};
+    std::atomic<bool> should_reconnect {false};
+} scan {};
 
 static void IRAM_ATTR send_link_status(uint8_t up) {
     struct uart0_tx_queue_item queue_item;
@@ -200,7 +200,7 @@ static void IRAM_ATTR send_link_status(uint8_t up) {
 }
 
 static void IRAM_ATTR do_wifi_scan(void * arg) {
-    wifi_scan_config_t config = {0};
+    wifi_scan_config_t config{};
 
     config.scan_type = WIFI_SCAN_TYPE_ACTIVE;
     switch (scan.scan_type) {
@@ -383,9 +383,9 @@ static void IRAM_ATTR handle_disconnect_and_try_reconnect() {
 static void IRAM_ATTR event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         uint8_t current_protocol;
-        ESP_ERROR_CHECK(esp_wifi_get_protocol(ESP_IF_WIFI_STA, &current_protocol));
+        ESP_ERROR_CHECK(esp_wifi_get_protocol(WIFI_IF_STA, &current_protocol));
         if (current_protocol != uart_nic_protocol) {
-            ESP_ERROR_CHECK(esp_wifi_set_protocol(ESP_IF_WIFI_STA, uart_nic_protocol));
+            ESP_ERROR_CHECK(esp_wifi_set_protocol(WIFI_IF_STA, uart_nic_protocol));
         }
         start_wifi_connect_task();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
@@ -404,7 +404,7 @@ static void IRAM_ATTR event_handler(void* arg, esp_event_base_t event_base, int3
         beacon_quirk = true;
         send_link_status(1);
         s_retry_num = 0;
-        ESP_ERROR_CHECK(esp_wifi_set_inactive_time(ESP_IF_WIFI_STA, INACTIVE_BEACON_SECONDS));
+        ESP_ERROR_CHECK(esp_wifi_set_inactive_time(WIFI_IF_STA, INACTIVE_BEACON_SECONDS));
         cache_current_ap_info();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_SCAN_DONE) {
         scan.in_progress = false;
@@ -444,7 +444,7 @@ static void IRAM_ATTR event_handler(void* arg, esp_event_base_t event_base, int3
 
 static int get_link_status();
 
-static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
+static esp_err_t IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
 
     // Seeing some traffic - we have signal :-)
     last_inbound_seen = now_seconds();
@@ -453,26 +453,27 @@ static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
     if ((((const char*)buffer)[5] & 0x01) == 0) {
         for (uint i = 0; i < 6; ++i) {
             if(((const char*)buffer)[i] != mac[i]) {
-                goto cleanup;
+                ESP_LOGI(TAG, "Incoming packet filtered out.");
+                free(buffer);
+                esp_wifi_internal_free_rx_buffer(eb);
+                return ESP_FAIL;
             }
         }
     }
 
-    struct uart0_tx_queue_item queue_item;
-    queue_item.header.type = MSG_PACKET_V2;
+    uart0_tx_queue_item queue_item;
+    queue_item.header.type = esp::MessageType::PACKET_V2;
     queue_item.header.up = get_link_status();
     queue_item.header.size = htons(len);
-    queue_item.data = buffer;
+    queue_item.data = (uint8_t *)buffer;
     queue_item.rx_buffer = eb;
     if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
         ESP_LOGE(TAG, "xQueueSendToBack failed (uart0tx)");
-    } else {
-        return ESP_OK;
+        free(buffer);
+        esp_wifi_internal_free_rx_buffer(eb);
+        return ESP_FAIL;
     }
-cleanup:
-    free(buffer);
-    esp_wifi_internal_free_rx_buffer(eb);
-    return ESP_FAIL;
+    return ESP_OK;
 }
 
 void IRAM_ATTR wifi_init_sta(void) {
@@ -527,7 +528,7 @@ static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t* data, struct header heade
     if (header.size == 0) {
         send_link_status(get_link_status());
     } else {
-        esp_wifi_internal_tx(ESP_IF_WIFI_STA, data, header.size);
+        esp_wifi_internal_tx(WIFI_IF_STA, data, header.size);
         free(data);
     }
 }
@@ -636,7 +637,7 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
         }
     }
 
-    struct uart0_tx_queue_item queue_item = {0};
+    struct uart0_tx_queue_item queue_item{};
     queue_item.header.type = MSG_SCAN_AP_CNT;
     queue_item.header.ap_count = scan.stored_ssids_count;
     if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
@@ -646,7 +647,7 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
 }
 
 static void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult* ap_info) {
-    struct uart0_tx_queue_item queue_item = {0};
+    struct uart0_tx_queue_item queue_item{};
     queue_item.header.type = MSG_SCAN_AP_GET;
     queue_item.header.ap_index = index;
     queue_item.header.size = htons(sizeof(*ap_info));
@@ -681,7 +682,7 @@ static void IRAM_ATTR handle_rx_msg_scan_get(uint8_t* data, struct header header
 
 static void IRAM_ATTR read_message() {
     wait_for_intron();
-    struct uart0_rx_queue_item queue_item = {0};
+    struct uart0_rx_queue_item queue_item{};
     uart0_rx_bytes((uint8_t*)&queue_item.header, sizeof(queue_item.header));
 
     switch (queue_item.header.type) {
@@ -715,7 +716,7 @@ static void IRAM_ATTR read_message() {
 
     queue_item.header.size = ntohs(queue_item.header.size);
     if (queue_item.header.size != 0 && queue_item.header.size <= 2000) {
-        queue_item.data = malloc(queue_item.header.size);
+        queue_item.data = (uint8_t *)malloc(queue_item.header.size);
         if (queue_item.data) {
             uart0_rx_bytes(queue_item.data, queue_item.header.size);
         } else {
@@ -808,7 +809,7 @@ static void IRAM_ATTR uart0_tx_task(void *arg) {
     }
 }
 
-void IRAM_ATTR app_main() {
+extern "C" void IRAM_ATTR app_main() {
     ESP_LOGI(TAG, "UART NIC");
 
 	esp_log_level_set("*", ESP_LOG_ERROR);

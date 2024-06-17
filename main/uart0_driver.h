@@ -2,8 +2,7 @@
 //
 // Copyright (C) 2023 Prusa Research a.s - www.prusa3d.com
 // SPDX-License-Identifier: GPL-3.0-or-later
-#ifndef UART0_DRIVER_INCLUDED
-#define UART0_DRIVER_INCLUDED
+#pragma once
 
 #include "esp_err.h"
 #include "freertos/FreeRTOS.h"
@@ -28,4 +27,3 @@ void uart0_rx_bytes(uint8_t *data, uint32_t size);
 // to ensure proper synchronization with `uart0_driver_install()`
 void uart0_tx_bytes(uint8_t *data, size_t size);
 
-#endif
