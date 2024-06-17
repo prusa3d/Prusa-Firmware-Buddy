@@ -46,7 +46,6 @@ static void custom_log_event(log_event_t *event) {
 }
 
 log_destination_t in_memory_log = {
-    .name = "in-memory",
     .lowest_severity = LOG_SEVERITY_DEBUG,
     .log_event_fn = custom_log_event,
     .next = NULL,

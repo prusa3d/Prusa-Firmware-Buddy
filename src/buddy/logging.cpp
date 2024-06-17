@@ -11,7 +11,6 @@
 
 void logging_init() {
     static log_destination_t log_destination_rtt = {
-        .name = "RTT",
         .lowest_severity = LOG_SEVERITY_DEBUG,
         .log_event_fn = rtt_log_event,
         .next = NULL,
@@ -19,7 +18,6 @@ void logging_init() {
     log_destination_register(&log_destination_rtt);
 
     static log_destination_t log_destination_syslog = {
-        .name = "SYSLOG",
         .lowest_severity = LOG_SEVERITY_INFO,
         .log_event_fn = syslog_log_event,
         .next = NULL,
@@ -27,7 +25,6 @@ void logging_init() {
     log_destination_register(&log_destination_syslog);
 
     static log_destination_t log_destination_usb = {
-        .name = "USB",
         .lowest_severity = LOG_SEVERITY_DEBUG,
         .log_event_fn = usb_log_event,
         .next = NULL,

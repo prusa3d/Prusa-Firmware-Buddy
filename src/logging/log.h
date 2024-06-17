@@ -61,9 +61,6 @@ typedef struct {
 /// Destination is a target to which recorded log events are sent
 /// (might be something like the terminal, file, syslog, etc)
 typedef struct log_destination_s {
-    /// Name of the destination
-    const char *name;
-
     /// Lowest log severity to be received by this destination
     log_severity_t lowest_severity;
 
@@ -84,9 +81,6 @@ log_component_t *log_component_find(const char *name);
 
 /// Register a new destination to send log events to
 void log_destination_register(log_destination_t *destination);
-
-/// Find a previously registered log destination
-log_destination_t *log_destination_find(const char *name);
 
 /// Unregister previously registered log destination from receiving log events
 void log_destination_unregister(log_destination_t *destination);

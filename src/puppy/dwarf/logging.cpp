@@ -7,7 +7,6 @@
 
 void dwarf::logging_init() {
     static log_destination_t log_destination_rtt = {
-        .name = "RTT",
         .lowest_severity = LOG_SEVERITY_DEBUG,
         .log_event_fn = rtt_log_event,
         .next = nullptr,
@@ -15,7 +14,6 @@ void dwarf::logging_init() {
     log_destination_register(&log_destination_rtt);
 
     static log_destination_t log_destination_bufflog = {
-        .name = "BUFFLOG",
         .lowest_severity = LOG_SEVERITY_INFO,
         .log_event_fn = bufflog_log_event,
         .next = nullptr,
