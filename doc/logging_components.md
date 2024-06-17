@@ -26,6 +26,7 @@ This file is generated automatically so don't edit it directly
 - Marlin: logging::Severity::info, src/common/marlin_log_component.cpp
 - MarlinClient: logging::Severity::info, src/common/marlin_client.cpp
 - MarlinServer: logging::Severity::info, src/common/marlin_server.cpp
+- MediaPrefetch: logging::Severity::debug, src/common/media_prefetch/media_prefetch.cpp
 - Metrics: logging::Severity::info, src/common/metric.cpp
 - Modbus: logging::Severity::info, src/puppies/PuppyModbus.cpp
 - ModbusControl: logging::Severity::info, src/puppy/dwarf/modbus/ModbusControl.cpp
