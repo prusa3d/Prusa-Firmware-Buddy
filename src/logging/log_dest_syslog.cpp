@@ -7,12 +7,10 @@
 #include "otp.hpp"
 #include <option/development_items.h>
 #include <config_store/store_instance.hpp>
-#include <common/freertos_mutex.hpp>
 
 #include <atomic>
 
 // Note: These are not required to be in CCMRAM and can be moved to regular RAM if needed.
-static __attribute__((section(".ccmram"))) freertos::Mutex syslog_buffer_mutex;
 static __attribute__((section(".ccmram"))) SyslogTransport syslog_transport;
 
 static int log_severity_to_syslog_severity(log_severity_t severity) {
@@ -74,7 +72,6 @@ void syslog_log_event(log_destination_t *destination, log_event_t *event) {
     }
 
     // prepare the message
-    std::unique_lock lock { syslog_buffer_mutex };
     static char buffer[128];
     buffer_output_state_t buffer_state = {
         .data = buffer,
