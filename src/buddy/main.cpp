@@ -12,7 +12,6 @@
 #include "usb_host.h"
 #include "buffered_serial.hpp"
 #include "bsod_gui.hpp"
-#include "media.hpp"
 #include <config_store/store_instance.hpp>
 #include "sys.h"
 #include <wdt.hpp>
@@ -107,7 +106,6 @@ LOG_COMPONENT_REF(Buddy);
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
 osThreadId connectTaskHandle;
-osThreadId prefetch_thread_id;
 
 #if HAS_GUI()
 static constexpr size_t displayTask_stacksz = 1024 + 512; // in words
@@ -487,9 +485,6 @@ extern "C" void main_cpp(void) {
         MMU2::mmu2.Start();
     }
 #endif
-
-    osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 1024);
-    prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
 
     osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1152);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);

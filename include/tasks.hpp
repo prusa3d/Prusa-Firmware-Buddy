@@ -26,7 +26,6 @@ enum class Dependency : size_t {
     default_task_ready,
     esp_flashed,
     networking_ready,
-    media_prefetch_ready,
     usb_and_temp_ready, ///< Check autoprint and powerpanic state
     gui_screen_ready,
     _count
@@ -49,9 +48,7 @@ namespace Tasks {
     inline constexpr dependency_t usb_device_start = make(Dependency::usb_device_ready);
 
     inline constexpr dependency_t default_start = make(
-        Dependency::media_prefetch_ready
 #if HAS_PUPPIES()
-        ,
         Dependency::puppies_ready
 #endif
     );

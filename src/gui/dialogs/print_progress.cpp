@@ -11,7 +11,6 @@
 #include "gcode_thumb_decoder.h"
 #include <config_store/store_instance.hpp>
 #include <img_resources.hpp>
-#include <media.hpp>
 #include <guiconfig/guiconfig.h>
 #include <MItem_tools.hpp>
 #include <common/gcode/gcode_info_scan.hpp>
