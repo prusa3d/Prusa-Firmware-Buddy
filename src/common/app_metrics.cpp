@@ -12,7 +12,6 @@
 #if HAS_ADVANCED_POWER()
     #include "advanced_power.hpp"
 #endif // HAS_ADVANCED_POWER()
-#include "media.hpp"
 #include "timing.h"
 #include <stdint.h>
 #include <device/board.h>
@@ -312,7 +311,7 @@ void buddy::metrics::RecordPowerStats() {
 
 void buddy::metrics::RecordPrintFilename() {
     METRIC_DEF(file_name, "print_filename", METRIC_VALUE_STRING, 5000, METRIC_HANDLER_ENABLE_ALL);
-    if (media_print_get_state() != media_print_state_t::media_print_state_NONE) {
+    if (marlin_vars()->print_state != marlin_server::State::Idle) {
         // The docstring for media_print_filename() advises against using this function; however, there is currently no replacement for it.
         metric_record_string(&file_name, "%s", marlin_vars()->media_LFN.get_ptr());
     } else {

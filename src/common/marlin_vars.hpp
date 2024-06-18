@@ -320,7 +320,15 @@ public:
 
     MarlinVariableString<FILE_PATH_BUFFER_LEN> media_SFN_path;
     MarlinVariableString<FILE_NAME_BUFFER_LEN> media_LFN;
-    MarlinVariable<marlin_server::State> print_state; // marlin_server.print_state
+
+    /// Position in the media (arbitrary IGcodeReader units)
+    MarlinVariable<uint32_t> media_position;
+
+    /// Estimate of the media size (arbitrary IGcodeReader units)
+    MarlinVariable<uint32_t> media_size_estimate;
+
+    /// marlin_server.print_state
+    MarlinVariable<marlin_server::State> print_state;
 
     /// Marlin variable for passing string data from the running gcode/FSM to the UI thread/whatever
     MarlinVariableString<64> generic_param_string;

@@ -2751,6 +2751,10 @@ static void _server_update_vars() {
 
     // print state is updated last, to make sure other related variables (like job_id, filenames) are already set when we start print
     marlin_vars()->print_state = static_cast<State>(server.print_state);
+
+    marlin_vars()->media_position = queue.get_current_sdpos();
+
+    marlin_vars()->media_size_estimate = media_print_get_size();
 }
 
 bool _process_server_valid_request(const Request &request, int client_id) {

@@ -55,4 +55,13 @@ enum class State {
     PowerPanic_AwaitingResume,
 };
 
+inline bool is_printing_state(State state) {
+    return (state == State::Printing);
+}
+
+inline bool is_abort_state(State st) {
+    const auto sti = static_cast<int>(st);
+    return sti >= static_cast<int>(State::Aborting_Begin) && sti <= static_cast<int>(State::Aborted);
+}
+
 } // namespace marlin_server

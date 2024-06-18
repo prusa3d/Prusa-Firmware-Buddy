@@ -94,15 +94,14 @@ void GcodeSuite::M27() {
     if (parser.seen('C')) {
         SERIAL_ECHOPGM("Current file: ");
         SERIAL_ECHOLN(marlin_vars()->media_SFN_path.get_ptr());
+
+    } else if (marlin_server::is_printing_state(marlin_vars()->print_state.get())) {
+        SERIAL_ECHOPGM(MSG_SD_PRINTING_BYTE);
+        SERIAL_ECHO(marlin_vars()->media_position.get());
+        SERIAL_CHAR('/');
+        SERIAL_ECHOLN(marlin_vars()->media_size_estimate.get());
     } else {
-        if (media_print_get_state() != media_print_state_NONE) {
-            SERIAL_ECHOPGM(MSG_SD_PRINTING_BYTE);
-            SERIAL_ECHO(media_print_get_position());
-            SERIAL_CHAR('/');
-            SERIAL_ECHOLN(media_print_get_size());
-        } else {
-            SERIAL_ECHOLNPGM(MSG_SD_NOT_PRINTING);
-        }
+        SERIAL_ECHOLNPGM(MSG_SD_NOT_PRINTING);
     }
 }
 
