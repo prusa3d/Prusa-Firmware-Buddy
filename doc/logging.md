@@ -39,7 +39,7 @@ When recorded, those events can be presented to the user in several ways. They c
 
 ### Registration of a custom log destination
     ```C
-    static void log_event_custom(logging::Event *event) {
+    static void log_event_custom(logging::FormattedEvent *event) {
         // ... log the event to, for example, a file
     }
 

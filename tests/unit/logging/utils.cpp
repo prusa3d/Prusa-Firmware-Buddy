@@ -41,9 +41,9 @@ Timestamp log_platform_timestamp_get() {
 
 } // namespace logging
 
-static std::optional<std::function<void(logging::Event *event)>> log_event_func = std::nullopt;
+static std::optional<std::function<void(logging::FormattedEvent *event)>> log_event_func = std::nullopt;
 
-static void custom_log_event(logging::Event *event) {
+static void custom_log_event(logging::FormattedEvent *event) {
     if (log_event_func.has_value()) {
         log_event_func.value()(event);
     }
@@ -56,10 +56,8 @@ logging::Destination in_memory_log = {
 };
 
 ScopedInMemoryLog::ScopedInMemoryLog() {
-    log_event_func = [&](logging::Event *evt) {
-        char message_buffer[1024];
-        vsnprintf(message_buffer, sizeof(message_buffer), evt->fmt, *evt->args);
-        std::string message(message_buffer);
+    log_event_func = [&](logging::FormattedEvent *evt) {
+        std::string message(evt->message);
         RecordedLog log { evt->timestamp, evt->severity, evt->task_id, evt->component, message };
         logs.push_back(log);
     };
@@ -77,7 +75,16 @@ Task::Task() {}
 void Task::send(Event *event) {
     // Let's cheat a bit and skip queue.
     // It is difficult to do properly inside test setting, because there is no FreeRTOS scheduler...
-    log_task_process_event(event);
+    std::array<char, 128> message;
+    vsnprintf(message.data(), message.size(), event->fmt, *event->args);
+    FormattedEvent formatted_event {
+        .timestamp = event->timestamp,
+        .task_id = event->task_id,
+        .component = event->component,
+        .severity = event->severity,
+        .message = message.data(),
+    };
+    log_task_process_event(&formatted_event);
 }
 
 } // namespace logging

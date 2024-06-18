@@ -44,7 +44,7 @@ static buffer_output_state_t buffer_state = {
     .write = 0,
 };
 
-void bufflog_log_event(Event *event) {
+void bufflog_log_event(FormattedEvent *event) {
     // initialize the bufflog buffer if it is safe to do so
     if (!initialized) {
         bufflog_initialize();

@@ -54,6 +54,23 @@ struct Event {
     va_list *args;
 };
 
+struct FormattedEvent {
+    /// Timestamp of when the event happened
+    Timestamp timestamp;
+
+    /// Id of the task which generated the event
+    TaskId task_id;
+
+    /// The component which generated the event
+    const Component *component;
+
+    /// Severity of the event
+    Severity severity;
+
+    /// The message of the event
+    const char *message;
+};
+
 /// Destination (sink) for log events
 ///
 /// Destination is a target to which recorded log events are sent
@@ -62,7 +79,7 @@ struct Destination {
     /// Lowest log severity to be received by this destination
     Severity lowest_severity;
 
-    using LogEventFunction = void(Event *event);
+    using LogEventFunction = void(FormattedEvent *event);
     /// The entrypoint for incoming log events
     LogEventFunction *log_event_fn;
 
@@ -198,6 +215,6 @@ void log_destination_unregister(Destination *destination);
     #define log_critical(component, fmt, ...)
 #endif
 
-void log_task_process_event(Event *event);
+void log_task_process_event(FormattedEvent *event);
 
 } // namespace logging

@@ -1,6 +1,8 @@
 #include <logging/log_task.hpp>
 
+#include <array>
 #include <cstdlib>
+#include <printf/printf.h>
 
 namespace logging {
 
@@ -24,8 +26,24 @@ void Task::run() {
     for (;;) {
         QueueItem item;
         queue.receive(item);
-        log_task_process_event(item.event);
-        item.semaphore->release();
+
+        // Format message as soon as possible to unblock semaphore holder.
+        // Also, formats the string only once.
+        // Also, saves stack by not requiring every task to have a buffer.
+        Event *event = item.event;
+        std::array<char, MESSAGE_MAX_SIZE> message;
+        vsnprintf(message.data(), message.size(), event->fmt, *event->args);
+        FormattedEvent formatted_event {
+            .timestamp = event->timestamp, // OK to copy value
+            .task_id = event->task_id, // OK to copy value
+            .component = event->component, // OK to copy const* to static variable
+            .severity = event->severity, // OK to copy value
+            .message = message.data(), // OK to copy const* to local variable of this task, we will be blocking before it goes out of scope
+        };
+        item.semaphore->release(); // unblock, we no longer need anything from the event
+
+        // Proceed with (potentially blocking) event processing.
+        log_task_process_event(&formatted_event);
     }
 }
 

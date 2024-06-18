@@ -68,7 +68,7 @@ void _log_event(Severity severity, const Component *component, const char *fmt, 
     log_task.send(&event);
 }
 
-void log_task_process_event(Event *event) {
+void log_task_process_event(FormattedEvent *event) {
     for (Destination **destination_pp = &destinations_head; *destination_pp != NULL; destination_pp = &(*destination_pp)->next) {
         Destination *destination = *destination_pp;
         if (event->severity >= destination->lowest_severity) {

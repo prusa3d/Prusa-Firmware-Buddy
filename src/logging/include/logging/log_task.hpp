@@ -17,7 +17,8 @@ private:
         freertos::BinarySemaphore *semaphore;
     };
     freertos::Queue<QueueItem, 4> queue;
-    static constexpr size_t STACK_SIZE = 320;
+    static constexpr size_t MESSAGE_MAX_SIZE = 128;
+    static constexpr size_t STACK_SIZE = MESSAGE_MAX_SIZE + 192;
     std::atomic<TaskHandle_t> task_handle;
     StaticTask_t task_buffer;
     StackType_t task_stack[STACK_SIZE];

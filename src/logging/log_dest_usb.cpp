@@ -21,7 +21,7 @@ static void usb_put_char(char character, [[maybe_unused]] void *arg) {
     tud_cdc_write_char(character);
 }
 
-void usb_log_event(Event *event) {
+void usb_log_event(FormattedEvent *event) {
     // check we are attached to a CDC interface
     if (!usb_logging_enabled) {
         return;

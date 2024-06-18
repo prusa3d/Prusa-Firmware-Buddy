@@ -21,16 +21,16 @@ static const char *log_severity_to_str(Severity severity) {
     }
 }
 
-void log_format_simple(Event *event, void (*out_fn)(char character, void *arg), void *arg) {
+void log_format_simple(FormattedEvent *event, void (*out_fn)(char character, void *arg), void *arg) {
     // Format:
     // 3.32s [INFO - GUI:4] log message
-    fctprintf(out_fn, arg, "%u.%03us [%s - %s:%i] ",
+    fctprintf(out_fn, arg, "%u.%03us [%s - %s:%i] %s",
         event->timestamp.sec,
         event->timestamp.us / 1000,
         log_severity_to_str(event->severity),
         event->component->name,
-        event->task_id);
-    vfctprintf(out_fn, arg, event->fmt, *event->args);
+        event->task_id,
+        event->message);
 }
 
 } // namespace logging

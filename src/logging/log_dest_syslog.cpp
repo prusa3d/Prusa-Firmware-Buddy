@@ -54,17 +54,16 @@ void syslog_initialize() {
     }
 }
 
-void syslog_format_event(Event *event, void (*out_fn)(char character, void *arg), void *arg) {
+void syslog_format_event(FormattedEvent *event, void (*out_fn)(char character, void *arg), void *arg) {
     const int facility = 1; // user level message
     int severity = log_severity_to_syslog_severity(event->severity);
     int priority = facility * 8 + severity;
     auto hostname = otp_get_mac_address_str();
     const char *appname = "buddy";
-    fctprintf(out_fn, arg, "<%i>1 - %s %s %s - - ", priority, hostname.data(), appname, event->component->name);
-    vfctprintf(out_fn, arg, event->fmt, *event->args);
+    fctprintf(out_fn, arg, "<%i>1 - %s %s %s - - %s", priority, hostname.data(), appname, event->component->name, event->message);
 }
 
-void syslog_log_event(Event *event) {
+void syslog_log_event(FormattedEvent *event) {
     // check that we are not logging from within the LwIP stack
     // as calling LwIP again "from the outside" would cause a deadlock
     if (lock_tcpip_core == 0 || osSemaphoreGetCount(lock_tcpip_core) == 0) {

@@ -5,7 +5,7 @@
 namespace logging {
 
 /// Send the event via USB CDC
-void usb_log_event(Event *event);
+void usb_log_event(FormattedEvent *event);
 
 void usb_log_enable();
 

@@ -17,7 +17,7 @@ static inline void initialize_rtt_subsystem() {
 
 namespace logging {
 
-void rtt_log_event(Event *event) {
+void rtt_log_event(FormattedEvent *event) {
     initialize_rtt_subsystem();
     log_format_simple(event, rtt_put_char, NULL);
     rtt_put_char('\r', NULL);
