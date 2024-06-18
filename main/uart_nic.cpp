@@ -581,7 +581,6 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, struct header
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start());
     wifi_running = true;
-    send_device_info();
 }
 
 static void IRAM_ATTR handle_rx_msg_unknown(uint8_t* data, struct header header) {
