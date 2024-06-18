@@ -25,6 +25,7 @@
 #include <usb_host.h>
 #include <st25dv64k.h>
 #include <usb_host.h>
+#include <lfn.h>
 #include <gcode/gcode_reader_restore_info.hpp>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
@@ -990,10 +991,34 @@ void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_pre
 #if HAS_TOOLCHANGER() || HAS_MMU2()
     case State::PrintPreviewToolsMapping:
 #endif
-        media_print_start__prepare(filename);
+    {
+        if (filename) {
+            // We need a copy of the sfn as well because get_LFN needs the address mutable :/
+            std::array<char, FILE_PATH_BUFFER_LEN> filepath_sfn;
+            strlcpy(filepath_sfn.data(), filename, filepath_sfn.size());
+
+            std::array<char, FILE_NAME_BUFFER_LEN> filename_lfn;
+            get_LFN(filename_lfn.data(), filename_lfn.size(), filepath_sfn.data());
+
+            // Update marlin vars
+            {
+                MarlinVarsLockGuard lock;
+
+                // update media_SFN_path
+                strlcpy(marlin_vars()->media_SFN_path.get_modifiable_ptr(lock), filepath_sfn.data(), marlin_vars()->media_SFN_path.max_length());
+
+                // set media_LFN
+                strlcpy(marlin_vars()->media_LFN.get_modifiable_ptr(lock), filename_lfn.data(), marlin_vars()->media_LFN.max_length());
+            }
+
+            // Update GCodeInfo
+            GCodeInfo::getInstance().set_gcode_file(filepath_sfn.data(), filename_lfn.data());
+        }
+
         server.print_state = State::WaitGui;
         PrintPreview::Instance().set_skip_if_able(skip_preview);
         break;
+    }
 
     default:
         break;

@@ -34,10 +34,6 @@ extern media_state_t media_get_state(void);
 extern osThreadId prefetch_thread_id;
 void media_prefetch(const void *);
 
-/// Copies the content of sfnFilePath into marlin_vars->media_SFN_path
-/// Updates marlin_vars->media_LFN as a side-effect by opening the marlin_vars->media_SFN_path and reading its LFN
-extern void media_print_start__prepare(const char *sfnFilePath);
-
 /// Start printing by issuing M23 into Marlin with a file path set by media_print_start__prepare
 extern void media_print_start();
 
