@@ -2337,6 +2337,10 @@ uint32_t media_position() {
     return media_print_get_position();
 }
 
+void set_media_position(uint32_t set) {
+    media_print_set_position(set);
+}
+
 void retract() {
     // server.motion_param.save_reset();  // TODO: currently disabled (see Crash_s::save_parameters())
 #if ENABLED(ADVANCED_PAUSE_FEATURE)

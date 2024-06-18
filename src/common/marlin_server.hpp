@@ -185,6 +185,7 @@ void set_stream_restore_info(const GCodeReaderStreamRestoreInfo &set);
 
 /// Returns media position of the currently executed gcode
 uint32_t media_position();
+void set_media_position(uint32_t set);
 
 void print_quick_stop_powerpanic();
 

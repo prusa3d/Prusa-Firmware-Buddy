@@ -2,7 +2,6 @@
 
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "marlin_server.hpp"
-#include "media.hpp"
 #include <usb_host.h>
 #include "marlin_vars.hpp"
 
@@ -79,7 +78,7 @@ void GcodeSuite::M25() {
  */
 void GcodeSuite::M26() {
     if (usb_host::is_media_inserted() && parser.seenval('S')) {
-        media_print_set_position(parser.value_ulong());
+        marlin_server::set_media_position(parser.value_ulong());
     }
 }
 
