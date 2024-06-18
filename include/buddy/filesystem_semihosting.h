@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+
 #if defined(__cplusplus)
 extern "C" {
 #endif // defined(__cplusplus)
