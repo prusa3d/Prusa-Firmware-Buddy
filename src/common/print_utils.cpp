@@ -5,13 +5,13 @@
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 #include "../lib/Marlin/Marlin/src/module/temperature.h"
 #include "marlin_client.hpp"
-#include "media.hpp"
 #include "marlin_server.hpp"
 #include "unique_file_ptr.hpp"
 #include "timing.h"
 #include "unistd.h"
 #include "str_utils.hpp"
 #include "tasks.hpp"
+#include <usb_host.h>
 #include <state/printer_state.hpp>
 #include <transfers/transfer.hpp>
 #include <feature/prusa/restore_z.h>
@@ -135,7 +135,7 @@ void print_utils_loop() {
 
     if (!TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && ticks_ms() >= current_time + rescan_delay) {
         current_time += rescan_delay;
-        if (media_get_state() == media_state_INSERTED && thermalManager.temperatures_ready()) {
+        if (usb_host::is_media_inserted() && thermalManager.temperatures_ready()) {
             run_once_after_boot();
             TaskDeps::provide(TaskDeps::Dependency::usb_and_temp_ready);
         } else if (current_time > max_rescan_time || !marlin_server::printer_idle()) {

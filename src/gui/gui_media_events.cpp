@@ -44,7 +44,7 @@ void GuiMediaEventsHandler::tick() {
 
     switch (actual_state) {
     case MediaState_t::inserted:
-        if (!device_connected_at_startup()) {
+        if (!usb_host::is_media_inserted_since_startup()) {
             one_click_printing = true;
         }
         state_sent = false;

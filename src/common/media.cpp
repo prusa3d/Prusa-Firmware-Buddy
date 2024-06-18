@@ -31,8 +31,6 @@ LOG_COMPONENT_REF(MarlinServer);
 
 char getByte(GCodeFilter::State *state);
 namespace {
-volatile media_state_t media_state = media_state_REMOVED;
-volatile media_error_t media_error = media_error_OK;
 
 std::atomic<media_print_state_t> media_print_state = media_print_state_NONE;
 AnyGcodeFormatReader media_print_file; ///< File used to print
@@ -70,10 +68,6 @@ freertos::Mutex prefetch_mutex_file_reader; ///< Mutex to not close while anothe
 METRIC_DEF(metric_prefetched_bytes, "media_prefetched", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
 } // namespace
-
-media_state_t media_get_state(void) {
-    return media_state;
-}
 
 void media_prefetch(const void *) {
     TaskDeps::provide(TaskDeps::Dependency::media_prefetch_ready);
@@ -524,24 +518,6 @@ void media_loop(void) {
     if (media_print_state == media_print_state_PRINTING && metric_record_is_due(&metric_prefetched_bytes)) {
         metric_record_integer(&metric_prefetched_bytes, media_get_bytes_prefetched());
     }
-}
-
-// callback from usb_host
-void media_set_removed(void) {
-    media_state = media_state_REMOVED;
-    media_error = media_error_OK;
-}
-
-// callback from usb_host
-void media_set_inserted(void) {
-    media_state = media_state_INSERTED;
-    media_error = media_error_OK;
-}
-
-// callback from usb_host
-void media_set_error(media_error_t error) {
-    media_error = error;
-    media_state = media_state_ERROR;
 }
 
 void media_reset_usbh_error() {

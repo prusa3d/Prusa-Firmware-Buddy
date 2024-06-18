@@ -16,6 +16,22 @@
 LOG_COMPONENT_REF(USBHost);
 USBH_HandleTypeDef hUsbHostHS;
 
+static std::atomic<bool> media_inserted = false;
+static std::atomic<bool> media_inserted_since_startup = false;
+static uint32_t media_on_startup_detection_timeout = 0;
+
+namespace usb_host {
+
+bool is_media_inserted() {
+    return media_inserted;
+}
+
+bool is_media_inserted_since_startup() {
+    return media_inserted_since_startup;
+}
+
+} // namespace usb_host
+
 namespace usbh_power_cycle {
 // USB communication problems may occur at the physical layer. (emc interference, etc.)
 // In the CPU, this will cause the HAL_HCD_Port Disabled callback or timeout in the io operation in the USBH_MSC_WorkerTask
@@ -185,9 +201,6 @@ bool block_one_click_print() {
 
 } // namespace usbh_power_cycle
 
-static uint32_t one_click_print_timeout { 0 };
-static std::atomic<bool> connected_at_startup { false };
-
 void MX_USB_HOST_Init(void) {
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET);
@@ -199,7 +212,7 @@ void MX_USB_HOST_Init(void) {
     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);
 #endif
     // A delay of 3000ms for detecting USB device (flash drive) was present at start
-    one_click_print_timeout = ticks_ms() + 3000;
+    media_on_startup_detection_timeout = ticks_ms() + 3000;
 
     usbh_power_cycle::init();
     if (USBH_Init(&hUsbHostHS, USBH_UserProcess, HOST_HS) != USBH_OK) {
@@ -215,8 +228,8 @@ void MX_USB_HOST_Init(void) {
 
 void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
     // don't detect device at startup when ticks_ms() overflows (every ~50 hours)
-    if (one_click_print_timeout > 0 && ticks_ms() >= one_click_print_timeout) {
-        one_click_print_timeout = 0;
+    if (media_on_startup_detection_timeout != 0 && ticks_ms() >= media_on_startup_detection_timeout) {
+        media_on_startup_detection_timeout = 0;
     }
 
     switch (id) {
@@ -225,33 +238,27 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
 #ifdef USBH_MSC_READAHEAD
         usbh_msc_readahead.disable();
 #endif
-        media_set_removed();
+        media_inserted = false;
+        media_inserted_since_startup = false;
         f_mount(0, (TCHAR const *)USBHPath, 1); // umount
-        connected_at_startup = false;
         break;
 
     case HOST_USER_CLASS_ACTIVE: {
         FRESULT result = f_mount(&USBHFatFS, (TCHAR const *)USBHPath, 0);
-        if (result == FR_OK) {
-            if (one_click_print_timeout > 0 && ticks_ms() < one_click_print_timeout) {
-                connected_at_startup = true;
-            }
-            media_set_inserted();
-#ifdef USBH_MSC_READAHEAD
-            usbh_msc_readahead.enable(USBHFatFS.pdrv);
-#endif
-            usbh_power_cycle::msc_active();
-        } else {
-            media_set_error(media_error_MOUNT);
+        if (result != FR_OK) {
+            break;
         }
+
+        media_inserted_since_startup = (media_on_startup_detection_timeout != 0);
+        media_inserted = true;
+#ifdef USBH_MSC_READAHEAD
+        usbh_msc_readahead.enable(USBHFatFS.pdrv);
+#endif
+        usbh_power_cycle::msc_active();
         break;
     }
 
     default:
         break;
     }
-}
-
-bool device_connected_at_startup() {
-    return connected_at_startup;
 }

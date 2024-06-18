@@ -72,11 +72,6 @@ extern float media_print_get_percent_done(void);
 
 extern void media_loop(void);
 
-// callbacks from usb_host
-extern void media_set_inserted(void);
-extern void media_set_removed(void);
-extern void media_set_error(media_error_t error);
-
 extern void media_reset_usbh_error();
 
 extern void media_set_restore_info(const GCodeReaderStreamRestoreInfo &info);

@@ -3,6 +3,7 @@
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "marlin_server.hpp"
 #include "media.hpp"
+#include <usb_host.h>
 #include "marlin_vars.hpp"
 
 /** \addtogroup G-Codes
@@ -77,7 +78,7 @@ void GcodeSuite::M25() {
  * - `S` - [value] Specific position
  */
 void GcodeSuite::M26() {
-    if ((media_get_state() == media_state_INSERTED) && parser.seenval('S')) {
+    if (usb_host::is_media_inserted() && parser.seenval('S')) {
         media_print_set_position(parser.value_ulong());
     }
 }

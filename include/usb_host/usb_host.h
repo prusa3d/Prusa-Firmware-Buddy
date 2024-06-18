@@ -3,6 +3,16 @@
 
 #ifdef __cplusplus
 
+namespace usb_host {
+
+/// \returns whether there is a USB drive inserted in the USB slot
+bool is_media_inserted();
+
+/// \returns whether there is a USB drive connected since startup
+bool is_media_inserted_since_startup();
+
+} // namespace usb_host
+
 namespace usbh_power_cycle {
 
 void init();
@@ -29,7 +39,6 @@ extern "C" {
 
 void MX_USB_HOST_Init(void);
 
-bool device_connected_at_startup();
 void USBH_UserProcess(USBH_HandleTypeDef *, uint8_t id);
 extern TimerHandle_t USBH_restart_timer;
 

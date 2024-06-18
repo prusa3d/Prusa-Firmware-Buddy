@@ -23,6 +23,7 @@
 #include <logging/log.hpp>
 #include <bsod_gui.hpp>
 #include <st25dv64k.h>
+#include <usb_host.h>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -2675,8 +2676,7 @@ static void _server_update_vars() {
 
     marlin_vars()->print_duration = print_job_timer.duration();
 
-    uint8_t media = media_get_state() == media_state_INSERTED ? 1 : 0;
-    if (marlin_vars()->media_inserted != media) {
+    if (const bool media = usb_host::is_media_inserted(); marlin_vars()->media_inserted != media) {
         marlin_vars()->media_inserted = media;
         _send_notify_event(marlin_vars()->media_inserted ? Event::MediaInserted : Event::MediaRemoved, 0, 0);
     }
