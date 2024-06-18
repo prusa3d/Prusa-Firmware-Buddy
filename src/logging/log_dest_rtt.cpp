@@ -1,6 +1,6 @@
-#include "log_dest_rtt.h"
+#include <logging/log_dest_rtt.hpp>
 
-#include "log_dest_shared.h"
+#include <logging/log_dest_shared.hpp>
 #include "SEGGER_RTT.h"
 
 static void rtt_put_char(char character, [[maybe_unused]] void *arg) {
@@ -15,9 +15,13 @@ static inline void initialize_rtt_subsystem() {
     }
 }
 
-void rtt_log_event(log_event_t *event) {
+namespace logging {
+
+void rtt_log_event(Event *event) {
     initialize_rtt_subsystem();
     log_format_simple(event, rtt_put_char, NULL);
     rtt_put_char('\r', NULL);
     rtt_put_char('\n', NULL);
 }
+
+} // namespace logging

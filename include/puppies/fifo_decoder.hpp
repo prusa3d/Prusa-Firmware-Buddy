@@ -4,7 +4,7 @@
 #include <cstring>
 #include <array>
 
-#include "log.h"
+#include <logging/log.hpp>
 #include "fifo_coder.hpp"
 
 namespace common::puppies::fifo {

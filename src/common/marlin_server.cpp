@@ -20,7 +20,7 @@
 #include "random.h"
 #include "timing.h"
 #include "cmsis_os.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include <bsod_gui.hpp>
 #include <st25dv64k.h>
 
@@ -139,7 +139,7 @@ using namespace ExtUI;
 
 using ClientQueue = marlin_client::ClientQueue;
 
-LOG_COMPONENT_DEF(MarlinServer, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(MarlinServer, logging::Severity::info);
 
 //-----------------------------------------------------------------------------
 // external variables from marlin_client

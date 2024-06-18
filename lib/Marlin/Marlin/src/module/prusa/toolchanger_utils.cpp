@@ -6,7 +6,7 @@
     #include "Marlin/src/module/stepper.h"
     #include "Marlin/src/feature/bedlevel/bedlevel.h"
     #include "Marlin.h"
-    #include "log.h"
+    #include <logging/log.hpp>
     #include "timing.h"
     #include <option/is_knoblet.h>
     #include <puppies/Dwarf.hpp>
@@ -17,7 +17,7 @@
 
     #include <config_store/store_instance.hpp>
 
-LOG_COMPONENT_DEF(PrusaToolChanger, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(PrusaToolChanger, logging::Severity::debug);
 
 using namespace buddy::puppies;
 

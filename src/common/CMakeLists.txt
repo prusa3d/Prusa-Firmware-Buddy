@@ -105,11 +105,13 @@ elseif(BOARD MATCHES "DWARF")
             random_sw.cpp
             safe_state.cpp
     )
+  target_link_libraries(firmware PRIVATE logging)
 elseif(BOARD MATCHES "MODULARBED")
   target_sources(
     firmware PRIVATE freertos_binary_semaphore.cpp freertos_mutex.cpp freertos_queue.cpp heap.cpp
                      otp.cpp
     )
+  target_link_libraries(firmware PRIVATE logging)
 elseif(BOARD MATCHES "XL_DEV_KIT_XLB")
   target_sources(
     firmware

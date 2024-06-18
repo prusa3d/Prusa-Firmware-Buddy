@@ -4,7 +4,7 @@
 #include <memory>
 #include <sys/stat.h>
 
-#include <log.h>
+#include <logging/log.hpp>
 #include <common/version.h>
 #include <common/bsod.h>
 #include <common/crc32.h>

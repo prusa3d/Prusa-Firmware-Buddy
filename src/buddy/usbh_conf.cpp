@@ -1,12 +1,12 @@
 #include "usbh_core.h"
 
 #include "main.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "device/board.h"
 #include "usbh_async_diskio.hpp"
 #include "usb_host.h"
 
-LOG_COMPONENT_DEF(USBHost, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(USBHost, logging::Severity::info);
 
 HCD_HandleTypeDef hhcd_USB_OTG_HS;
 

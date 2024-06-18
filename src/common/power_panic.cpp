@@ -43,7 +43,7 @@
 #include "../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
 #include "../lib/Marlin/Marlin/src/feature/pressure_advance/pressure_advance_config.hpp"
 
-#include "log.h"
+#include <logging/log.hpp>
 #include "w25x.h"
 #include "sound.hpp"
 #include "bsod.h"
@@ -81,7 +81,7 @@ extern osThreadId displayTaskHandle;
 
 namespace power_panic {
 
-LOG_COMPONENT_DEF(PowerPanic, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(PowerPanic, logging::Severity::info);
 
 osThreadId ac_fault_task;
 

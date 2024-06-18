@@ -11,7 +11,7 @@
 #include "timer_defaults.h"
 #include "PCA9557.hpp"
 #include "TCA6408A.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "timing_precise.hpp"
 #include "data_exchange.hpp"
 #include <option/has_puppies.h>

@@ -12,8 +12,6 @@ extern "C" {
 #include "stm32f4xx.h"
 #include "stm32f4xx_hal.h"
 
-#include "log.h"
-
 #define USBH_MAX_NUM_ENDPOINTS 2
 
 #define USBH_MAX_NUM_INTERFACES 2
@@ -71,9 +69,9 @@ extern "C" {
 #define USBH_memcpy memcpy
 
 /* DEBUG macros */
-#define USBH_UsrLog(...) log_info(USBHost, __VA_ARGS__)
-#define USBH_ErrLog(...) log_error(USBHost, __VA_ARGS__)
-#define USBH_DbgLog(...) log_debug(USBHost, __VA_ARGS__)
+void USBH_UsrLog(const char *fmt, ...);
+void USBH_ErrLog(const char *fmt, ...);
+void USBH_DbgLog(const char *fmt, ...);
 
 #ifdef __cplusplus
 }

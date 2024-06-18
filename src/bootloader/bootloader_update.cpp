@@ -1,4 +1,4 @@
-#include "log.h"
+#include <logging/log.hpp>
 #include "bsod.h"
 #include <cstdio>
 #include <cerrno>

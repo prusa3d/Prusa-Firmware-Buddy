@@ -1,7 +1,7 @@
 #include "main.h"
 #include "printers.h"
 #include <device/board.h>
-#include "log.h"
+#include <logging/log.hpp>
 #include "FreeRTOSConfig.h"
 #include <device/peripherals.h>
 #include "priorities_config.h"

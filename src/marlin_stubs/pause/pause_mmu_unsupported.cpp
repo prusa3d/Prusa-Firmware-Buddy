@@ -1,4 +1,4 @@
-#include <logging/log.h>
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(PRUSA_GCODE);
 

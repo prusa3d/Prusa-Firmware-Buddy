@@ -14,7 +14,7 @@
 #include "knob_event.hpp"
 #include "marlin_client.hpp"
 #include "sw_timer.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #if XL_ENCLOSURE_SUPPORT()
     #include "leds/side_strip.hpp"
 #endif

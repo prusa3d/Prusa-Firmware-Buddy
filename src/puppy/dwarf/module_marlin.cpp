@@ -9,7 +9,7 @@
 #include "wiring_analog.h"
 #include "wiring_digital.h"
 #include "Marlin/src/module/temperature.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "gpio.h"
 #include "timing.h"
 #include "modbus/ModbusInit.hpp" //for modbus::modbus_control

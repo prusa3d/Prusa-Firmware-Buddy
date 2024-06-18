@@ -1,5 +1,5 @@
 #include <bootloader/bootloader.hpp>
-#include <log.h>
+#include <logging/log.hpp>
 #include <sys.h>
 #include <data_exchange.hpp>
 #include <device/hal.h>
@@ -8,7 +8,7 @@
 
 using Version = buddy::bootloader::Version;
 
-LOG_COMPONENT_DEF(Bootloader, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(Bootloader, logging::Severity::info);
 
 Version buddy::bootloader::get_version() {
     Version *const bootloader_version = (Version *)0x0801FFFA;

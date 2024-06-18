@@ -8,7 +8,7 @@ extern "C" {
 #include <algorithm>
 #include <cstring>
 #include <gui/gui_bootstrap_screen.hpp>
-#include <log.h>
+#include <logging/log.hpp>
 #include <option/has_embedded_esp32.h>
 #include <option/has_gui.h>
 #include <unique_file_ptr.hpp>

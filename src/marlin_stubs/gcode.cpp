@@ -30,9 +30,9 @@
     #include "M1959.hpp"
 #endif
 
-#include "log.h"
+#include <logging/log.hpp>
 
-LOG_COMPONENT_DEF(PRUSA_GCODE, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(PRUSA_GCODE, logging::Severity::info);
 
 static void record_pre_gcode_metrics();
 

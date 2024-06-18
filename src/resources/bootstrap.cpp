@@ -9,7 +9,7 @@
 
 #include "bsod.h"
 #include "bbf.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "timing.h"
 #include "cmsis_os.h"
 #include "stm32f4xx.h"
@@ -22,7 +22,7 @@
 
 #include "fileutils.hpp"
 
-LOG_COMPONENT_DEF(Resources, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(Resources, logging::Severity::debug);
 using BootstrapStage = buddy::resources::BootstrapStage;
 
 struct ResourcesScanResult {

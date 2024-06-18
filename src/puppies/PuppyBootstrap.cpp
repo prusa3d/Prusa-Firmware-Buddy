@@ -8,7 +8,7 @@
 #include "assert.h"
 #include "hwio_pindef.h"
 #include "mbedtls/sha256.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "main.h"
 #include "tasks.hpp"
 #include "timing.h"

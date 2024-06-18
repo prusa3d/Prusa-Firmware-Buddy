@@ -2,7 +2,7 @@
 #include <unistd.h>
 
 #include "screen_print_preview.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "marlin_client.hpp"
 #include "filament_sensors_handler.hpp"
 #include <stdarg.h>

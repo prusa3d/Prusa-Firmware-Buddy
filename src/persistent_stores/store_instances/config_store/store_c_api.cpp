@@ -1,9 +1,9 @@
 #include "store_c_api.h"
 #include <bitset>
 #include <config_store/store_instance.hpp>
-#include <log.h>
+#include <logging/log.hpp>
 
-LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(EEPROM, logging::Severity::info);
 
 extern "C" float get_z_max_pos_mm() {
     float ret = 0.F;

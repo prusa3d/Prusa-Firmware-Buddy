@@ -6,5 +6,5 @@
     #define LOG_COMPONENT_DEF(...)
     #define LOG_COMPONENT_REF(...)
 #else
-    #include "log.h"
+    #include <logging/log.hpp>
 #endif

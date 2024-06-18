@@ -1,11 +1,11 @@
 #include <inttypes.h>
 #include "usb_device.hpp"
 #include "usbh_msc.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "littlefs_internal.h"
 #include <config_store/store_instance.hpp>
 
-LOG_COMPONENT_DEF(USBMSC, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(USBMSC, logging::Severity::debug);
 
 uint8_t tud_msc_get_maxlun_cb(void) {
     return 1;

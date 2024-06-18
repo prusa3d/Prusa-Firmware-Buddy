@@ -4,6 +4,7 @@
 #include <feature/prusa/e-stall_detector.h>
 #include <option/has_loadcell.h>
 #include <config_store/store_instance.hpp>
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(MarlinServer);
 

@@ -1,29 +1,29 @@
-#include "tcpip.h"
-#include "printf.h"
+#include <logging/log_dest_syslog.hpp>
 
-#include "log_dest_syslog.h"
-#include "log_platform.h"
-#include "syslog_transport.hpp"
-#include "otp.hpp"
-#include <option/development_items.h>
+#include "tcpip.h"
+#include <printf/printf.h>
+#include <syslog/syslog_transport.hpp>
+#include <common/otp.hpp>
 #include <config_store/store_instance.hpp>
 
 #include <atomic>
 
+namespace logging {
+
 // Note: These are not required to be in CCMRAM and can be moved to regular RAM if needed.
 static __attribute__((section(".ccmram"))) SyslogTransport syslog_transport;
 
-static int log_severity_to_syslog_severity(log_severity_t severity) {
+static int log_severity_to_syslog_severity(Severity severity) {
     switch (severity) {
-    case LOG_SEVERITY_DEBUG:
+    case logging::Severity::debug:
         return 7;
-    case LOG_SEVERITY_INFO:
+    case logging::Severity::info:
         return 6;
-    case LOG_SEVERITY_WARNING:
+    case logging::Severity::warning:
         return 4;
-    case LOG_SEVERITY_ERROR:
+    case logging::Severity::error:
         return 3;
-    case LOG_SEVERITY_CRITICAL:
+    case logging::Severity::critical:
     default:
         return 2;
     }
@@ -54,7 +54,7 @@ void syslog_initialize() {
     }
 }
 
-void syslog_format_event(log_event_t *event, void (*out_fn)(char character, void *arg), void *arg) {
+void syslog_format_event(Event *event, void (*out_fn)(char character, void *arg), void *arg) {
     const int facility = 1; // user level message
     int severity = log_severity_to_syslog_severity(event->severity);
     int priority = facility * 8 + severity;
@@ -64,7 +64,7 @@ void syslog_format_event(log_event_t *event, void (*out_fn)(char character, void
     vfctprintf(out_fn, arg, event->fmt, *event->args);
 }
 
-void syslog_log_event(log_event_t *event) {
+void syslog_log_event(Event *event) {
     // check that we are not logging from within the LwIP stack
     // as calling LwIP again "from the outside" would cause a deadlock
     if (lock_tcpip_core == 0 || osSemaphoreGetCount(lock_tcpip_core) == 0) {
@@ -94,3 +94,5 @@ uint16_t syslog_get_port() {
 void syslog_configure(const char *ip, uint16_t port) {
     syslog_transport.reopen(ip, port);
 }
+
+} // namespace logging

@@ -1,9 +1,9 @@
 #include "utils.hpp"
-#include "log.h"
-#include "log_task.hpp"
+#include <logging/log.hpp>
+#include <logging/log_task.hpp>
 
 static std::optional<std::function<int()>> _log_platform_task_id_get = std::nullopt;
-static std::optional<std::function<log_timestamp_t()>> _log_platform_timestamp_get = std::nullopt;
+static std::optional<std::function<logging::Timestamp()>> _log_platform_timestamp_get = std::nullopt;
 
 ScopeGuard with_log_platform_task_id_get(std::optional<std::function<int()>> func) {
     auto backup = _log_platform_task_id_get;
@@ -13,7 +13,7 @@ ScopeGuard with_log_platform_task_id_get(std::optional<std::function<int()>> fun
     });
 }
 
-ScopeGuard with_log_platform_timestamp_get(std::optional<std::function<log_timestamp_t()>> func) {
+ScopeGuard with_log_platform_timestamp_get(std::optional<std::function<logging::Timestamp()>> func) {
     auto backup = _log_platform_timestamp_get;
     _log_platform_timestamp_get = func;
     return ScopeGuard([backup]() {
@@ -21,7 +21,9 @@ ScopeGuard with_log_platform_timestamp_get(std::optional<std::function<log_times
     });
 }
 
-int log_platform_task_id_get() {
+namespace logging {
+
+TaskId log_platform_task_id_get() {
     if (_log_platform_task_id_get.has_value()) {
         return _log_platform_task_id_get.value()();
     } else {
@@ -29,7 +31,7 @@ int log_platform_task_id_get() {
     }
 }
 
-log_timestamp_t log_platform_timestamp_get() {
+Timestamp log_platform_timestamp_get() {
     if (_log_platform_timestamp_get.has_value()) {
         return _log_platform_timestamp_get.value()();
     } else {
@@ -37,22 +39,24 @@ log_timestamp_t log_platform_timestamp_get() {
     }
 }
 
-static std::optional<std::function<void(log_event_t *event)>> log_event_func = std::nullopt;
+} // namespace logging
 
-static void custom_log_event(log_event_t *event) {
+static std::optional<std::function<void(logging::Event *event)>> log_event_func = std::nullopt;
+
+static void custom_log_event(logging::Event *event) {
     if (log_event_func.has_value()) {
         log_event_func.value()(event);
     }
 }
 
-log_destination_t in_memory_log = {
-    .lowest_severity = LOG_SEVERITY_DEBUG,
+logging::Destination in_memory_log = {
+    .lowest_severity = logging::Severity::debug,
     .log_event_fn = custom_log_event,
     .next = NULL,
 };
 
 ScopedInMemoryLog::ScopedInMemoryLog() {
-    log_event_func = [&](log_event_t *evt) {
+    log_event_func = [&](logging::Event *evt) {
         char message_buffer[1024];
         vsnprintf(message_buffer, sizeof(message_buffer), evt->fmt, *evt->args);
         std::string message(message_buffer);
@@ -67,9 +71,13 @@ ScopedInMemoryLog::~ScopedInMemoryLog() {
     log_event_func = std::nullopt;
 }
 
-LogTask::LogTask() {}
-void LogTask::send(log_event_t *event) {
+namespace logging {
+
+Task::Task() {}
+void Task::send(Event *event) {
     // Let's cheat a bit and skip queue.
     // It is difficult to do properly inside test setting, because there is no FreeRTOS scheduler...
     log_task_process_event(event);
 }
+
+} // namespace logging

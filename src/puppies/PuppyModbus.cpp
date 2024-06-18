@@ -2,7 +2,7 @@
 
 #include "puppies/PuppyModbus.hpp"
 #include "puppies/PuppyBus.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "bsod.h"
 #include "cmsis_os.h"
 #include "timing.h"
@@ -12,7 +12,7 @@ namespace buddy::puppies {
 
 PuppyModbus puppyModbus;
 
-LOG_COMPONENT_DEF(Modbus, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(Modbus, logging::Severity::info);
 
 std::array<uint8_t, PuppyModbus::MODBUS_RECEIVE_BUFFER_SIZE> modbus_buffer;
 

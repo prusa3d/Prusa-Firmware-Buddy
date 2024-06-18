@@ -110,3 +110,6 @@ void lwip_platform_assert(const char *message, const char *file, int line) {
 
 void wui_lwip_assert_core_locked() {
 }
+
+void lwip_platform_log_error(const char *message) {
+}

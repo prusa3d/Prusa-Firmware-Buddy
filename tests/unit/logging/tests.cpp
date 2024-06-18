@@ -1,16 +1,16 @@
 #include "catch2/catch.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "utils.hpp"
 
-LOG_COMPONENT_DEF(comp_01, LOG_SEVERITY_DEBUG);
-LOG_COMPONENT_DEF(comp_02, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(comp_01, logging::Severity::debug);
+LOG_COMPONENT_DEF(comp_02, logging::Severity::debug);
 
 TEST_CASE("once defined, component can be discovered", "[logging]") {
-    REQUIRE(&__log_component_comp_01 == log_component_find("comp_01"));
+    REQUIRE(&__log_component_comp_01 == logging::log_component_find("comp_01"));
 }
 
 TEST_CASE("searching for undefined component returns null", "[logging]") {
-    REQUIRE(log_component_find("undefined") == nullptr);
+    REQUIRE(logging::log_component_find("undefined") == nullptr);
 }
 
 TEST_CASE("in-memory destination captures an event", "[logging]") {
@@ -27,11 +27,11 @@ TEST_CASE("log event has proper properties", "[logging]") {
         auto captured_log = in_memory_log.logs.front();
         in_memory_log.logs.pop_front();
         REQUIRE(captured_log.message == "test event");
-        REQUIRE(captured_log.severity == LOG_SEVERITY_DEBUG);
+        REQUIRE(captured_log.severity == logging::Severity::debug);
     }
 
     SECTION("timestamp") {
-        log_timestamp_t counter = { 20, 141 };
+        logging::Timestamp counter = { 20, 141 };
         auto scope_guard = with_log_platform_timestamp_get([&]() {
             auto copy = counter;
             if (++counter.us >= 1000000) {
@@ -55,7 +55,7 @@ TEST_CASE("log event has proper properties", "[logging]") {
     }
 
     SECTION("task id") {
-        log_task_id_t task_id = 1;
+        logging::TaskId task_id = 1;
         auto scope_guard = with_log_platform_task_id_get([&]() {
             return task_id++;
         });
@@ -79,13 +79,13 @@ TEST_CASE("log event has proper properties", "[logging]") {
     }
 }
 
-LOG_COMPONENT_DEF(comp_filter, LOG_SEVERITY_WARNING);
+LOG_COMPONENT_DEF(comp_filter, logging::Severity::warning);
 
 TEST_CASE("log destination filtering", "[logging]") {
     ScopedInMemoryLog in_memory_log;
 
-    for (int severity = LOG_SEVERITY_DEBUG; severity <= LOG_SEVERITY_CRITICAL; severity++) {
-        LOG_COMPONENT(comp_filter).lowest_severity = (log_severity_t)severity;
+    for (int severity = (int)logging::Severity::debug; severity <= (int)logging::Severity::critical; severity++) {
+        LOG_COMPONENT(comp_filter).lowest_severity = (logging::Severity)severity;
 
         log_debug(comp_filter, "debug");
         log_info(comp_filter, "info");
@@ -93,7 +93,7 @@ TEST_CASE("log destination filtering", "[logging]") {
         log_error(comp_filter, "error");
         log_critical(comp_filter, "critical");
 
-        REQUIRE(in_memory_log.logs.size() == size_t((LOG_SEVERITY_CRITICAL + LOG_SEVERITY_DEBUG) - severity));
+        REQUIRE(in_memory_log.logs.size() == size_t((int)logging::Severity::critical + (int)logging::Severity::debug - severity));
         in_memory_log.logs.clear();
     }
 }

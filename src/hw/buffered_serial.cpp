@@ -4,7 +4,7 @@
 #include <ccm_thread.hpp>
 #include <common/bsod.h>
 #include <common/timing.h>
-#include <logging/log.h>
+#include <logging/log.hpp>
 #include <string.h>
 
 #include "FreeRTOS.h"
@@ -116,7 +116,7 @@ int uartrxbuff_getchar(BufferedSerial::uartrxbuff_t *prxbuff) {
     return retval;
 }
 
-LOG_COMPONENT_DEF(BufferedSerial, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(BufferedSerial, logging::Severity::debug);
 
 BufferedSerial::BufferedSerial(
     UART_HandleTypeDef *uart, DMA_HandleTypeDef *rxDma, BufferedSerial::HalfDuplexSwitchCallback_t halfDuplexSwitchCallback,

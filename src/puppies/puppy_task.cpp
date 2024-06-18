@@ -4,7 +4,7 @@
 
 #include <iterator>
 #include "cmsis_os.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "main.h"
 #include "puppies/modular_bed.hpp"
 #include "puppies/Dwarf.hpp"
@@ -18,7 +18,7 @@
 #include "bsod.h"
 #include "gui_bootstrap_screen.hpp"
 
-LOG_COMPONENT_DEF(Puppies, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(Puppies, logging::Severity::debug);
 
 namespace buddy::puppies {
 

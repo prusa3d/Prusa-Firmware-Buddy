@@ -4,10 +4,10 @@
 #include <otp.hpp>
 #include <printers.h>
 #include <cstdio>
-#include <log.h>
+#include <logging/log.hpp>
 #include <cstring>
 
-LOG_COMPONENT_DEF(CrashDump, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(CrashDump, logging::Severity::info);
 
 namespace crash_dump {
 

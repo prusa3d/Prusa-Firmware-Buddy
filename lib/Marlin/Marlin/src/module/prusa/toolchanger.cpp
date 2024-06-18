@@ -7,7 +7,7 @@
     #include "Marlin/src/module/motion.h"
     #include "Marlin/src/feature/bedlevel/bedlevel.h"
     #include "Marlin/src/gcode/gcode.h"
-    #include "log.h"
+    #include <logging/log.hpp>
     #include "timing.h"
     #include "fanctl.hpp"
     #include <option/is_knoblet.h>

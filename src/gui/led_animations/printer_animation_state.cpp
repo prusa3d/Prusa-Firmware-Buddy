@@ -1,7 +1,7 @@
 #include "printer_animation_state.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 
-LOG_COMPONENT_DEF(Led, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(Led, logging::Severity::info);
 
 using namespace marlin_server;
 

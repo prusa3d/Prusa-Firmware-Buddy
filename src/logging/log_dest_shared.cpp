@@ -1,26 +1,27 @@
-#include <stdbool.h>
-#include "log_dest_shared.h"
+#include <logging/log_dest_shared.hpp>
 
-#include "printf.h"
+#include <printf/printf.h>
 
-static const char *log_severity_to_str(log_severity_t severity) {
+namespace logging {
+
+static const char *log_severity_to_str(Severity severity) {
     switch (severity) {
-    case LOG_SEVERITY_DEBUG:
+    case Severity::debug:
         return "DEBUG";
-    case LOG_SEVERITY_INFO:
+    case Severity::info:
         return "INFO ";
-    case LOG_SEVERITY_WARNING:
+    case Severity::warning:
         return "WARN ";
-    case LOG_SEVERITY_ERROR:
+    case Severity::error:
         return "ERROR";
-    case LOG_SEVERITY_CRITICAL:
+    case Severity::critical:
         return "CRITI";
     default:
         return "?????";
     }
 }
 
-void log_format_simple(log_event_t *event, void (*out_fn)(char character, void *arg), void *arg) {
+void log_format_simple(Event *event, void (*out_fn)(char character, void *arg), void *arg) {
     // Format:
     // 3.32s [INFO - GUI:4] log message
     fctprintf(out_fn, arg, "%u.%03us [%s - %s:%i] ",
@@ -31,3 +32,5 @@ void log_format_simple(log_event_t *event, void (*out_fn)(char character, void *
         event->task_id);
     vfctprintf(out_fn, arg, event->fmt, *event->args);
 }
+
+} // namespace logging

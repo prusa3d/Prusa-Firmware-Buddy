@@ -3,15 +3,17 @@
 #include <atomic>
 #include <common/freertos_binary_semaphore.hpp>
 #include <common/freertos_queue.hpp>
-#include <logging/log.h>
+#include <logging/log.hpp>
 
 #include <FreeRTOS.h>
 #include <task.h>
 
-class LogTask {
+namespace logging {
+
+class Task {
 private:
     struct QueueItem {
-        log_event_t *event;
+        Event *event;
         freertos::BinarySemaphore *semaphore;
     };
     freertos::Queue<QueueItem, 4> queue;
@@ -24,8 +26,10 @@ private:
 
 public:
     /// Start new FreeRTOS task responsible for processing logging queue.
-    LogTask();
+    Task();
 
     /// Put event into logging queue and block until it is processed.
-    void send(log_event_t *);
+    void send(Event *);
 };
+
+} // namespace logging

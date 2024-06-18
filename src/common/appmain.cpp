@@ -1,7 +1,7 @@
 #include "appmain.hpp"
 
 #include "app_metrics.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "cmsis_os.h"
 #include "config.h"
 #include "adc.hpp"
@@ -79,9 +79,9 @@ LOG_COMPONENT_REF(Marlin);
 #include <config_store/store_instance.hpp>
 #include <option/init_trinamic_from_marlin_only.h>
 
-LOG_COMPONENT_DEF(Buddy, LOG_SEVERITY_DEBUG);
-LOG_COMPONENT_DEF(Core, LOG_SEVERITY_INFO);
-LOG_COMPONENT_DEF(MMU2, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(Buddy, logging::Severity::debug);
+LOG_COMPONENT_DEF(Core, logging::Severity::info);
+LOG_COMPONENT_DEF(MMU2, logging::Severity::info);
 
 METRIC_DEF(metric_app_start, "app_start", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
 METRIC_DEF(metric_maintask_event, "maintask_loop", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_DISABLE_ALL);
@@ -91,7 +91,7 @@ void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
     while (size && (buffer[size - 1] == '\n' || buffer[size - 1] == '\r')) {
         size--;
     }
-    log_severity_t severity = LOG_SEVERITY_INFO;
+    logging::Severity severity = logging::Severity::info;
     bool MMU = false;
     if (size == 2 && memcmp("ok", buffer, 2) == 0) {
         // Do not log "ok" messages
@@ -106,12 +106,12 @@ void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
     } else if (size >= 11 && memcmp("Error:MMU2:", buffer, 11) == 0) { //@@TODO this is ugly and suboptimal
         buffer = buffer + 11;
         size -= 11;
-        severity = LOG_SEVERITY_ERROR;
+        severity = logging::Severity::error;
         MMU = true;
     } else if (size >= 6 && memcmp("Error:", buffer, 6) == 0) {
         buffer = buffer + 6;
         size -= 6;
-        severity = LOG_SEVERITY_ERROR;
+        severity = logging::Severity::error;
     }
     if (MMU) {
         log_event(severity, MMU2, "%.*s", size, buffer);

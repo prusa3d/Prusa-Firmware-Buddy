@@ -1,7 +1,7 @@
 #include <gcode/gcode.h>
 
 #include "M340.h"
-#include <log_dest_syslog.h>
+#include <logging/log_dest_syslog.hpp>
 #include <stdint.h>
 #include <config_store/store_instance.hpp>
 
@@ -40,11 +40,11 @@ void PrusaGcodeSuite::M340() {
                 return;
             }
         }
-        syslog_configure(ipaddr, port);
+        logging::syslog_configure(ipaddr, port);
         SERIAL_ECHO_START();
         SERIAL_ECHOLN("Syslog configured successfully");
     } else {
-        syslog_configure("", 0);
+        logging::syslog_configure("", 0);
         SERIAL_ECHO_START();
         SERIAL_ECHOLN("does not match '<address> <port>' pattern; disabling syslog");
     }

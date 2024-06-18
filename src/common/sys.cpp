@@ -5,7 +5,7 @@
 #include "stm32f4xx_hal.h"
 #include "st25dv64k.h"
 #include "main.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "disable_interrupts.h"
 #include "utility_extensions.hpp"
 #include <string.h>

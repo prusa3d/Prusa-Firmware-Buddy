@@ -1,6 +1,6 @@
 #include "puppies/modular_bed.hpp"
 #include "bsod.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "metric.h"
 #include "puppy/modularbed/PuppyConfig.hpp"
 #include "timing.h"
@@ -20,7 +20,7 @@
 
 namespace buddy::puppies {
 
-LOG_COMPONENT_DEF(ModularBed, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(ModularBed, logging::Severity::info);
 
 METRIC_DEF(metric_state, "bed_state", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
 METRIC_DEF(metric_currents, "bed_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);

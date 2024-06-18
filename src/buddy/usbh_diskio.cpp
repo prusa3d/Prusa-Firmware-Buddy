@@ -12,6 +12,7 @@
 #include <utility_extensions.hpp>
 #include <bit>
 #include <FreeRTOS.h>
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(USBHost);
 using Mutex = freertos::Mutex;

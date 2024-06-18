@@ -6,7 +6,7 @@
 #include <i18n.h>
 #include <metric_handlers.h>
 #include <config_store/store_instance.hpp>
-#include <log_dest_syslog.h>
+#include <logging/log_dest_syslog.hpp>
 #include <guiconfig/guiconfig.h>
 
 LOG_COMPONENT_REF(GUI);
@@ -19,16 +19,16 @@ static void check_disable() {
     if (metrics_allow == MetricsAllow::None) {
         // Nothing is allowed, disable all
         metric_handler_syslog_configure("", 0);
-        syslog_configure("", 0);
+        logging::syslog_configure("", 0);
     } else if (metrics_allow == MetricsAllow::One) {
         // Only one is allowed, disable other
         if (strcmp(metric_handler_syslog_get_host(), config_store().metrics_host.get_c_str()) != 0
             || metric_handler_syslog_get_port() != config_store().metrics_port.get()) {
             metric_handler_syslog_configure("", 0);
         }
-        if (strcmp(syslog_get_host(), config_store().metrics_host.get_c_str()) != 0
-            || syslog_get_port() != config_store().syslog_port.get()) {
-            syslog_configure("", 0);
+        if (strcmp(logging::syslog_get_host(), config_store().metrics_host.get_c_str()) != 0
+            || logging::syslog_get_port() != config_store().syslog_port.get()) {
+            logging::syslog_configure("", 0);
         }
     }
 }
@@ -118,7 +118,7 @@ void MI_METRICS_INIT::OnChange([[maybe_unused]] size_t old_index) {
     // Configure
     if (index) {
         metric_handler_syslog_configure(config_store().metrics_host.get_c_str(), config_store().metrics_port.get());
-        syslog_configure(config_store().metrics_host.get_c_str(), config_store().syslog_port.get());
+        logging::syslog_configure(config_store().metrics_host.get_c_str(), config_store().syslog_port.get());
     }
 }
 
@@ -154,8 +154,8 @@ void ScreenMenuMetricsSettings::refresh_current() {
     Item<MI_METRICS_CURRENT_M_HOST>().ChangeHost(metric_handler_syslog_get_host());
     Item<MI_METRICS_CURRENT_M_PORT>().ChangePort(metric_handler_syslog_get_port());
 
-    Item<MI_METRICS_CURRENT_L_HOST>().ChangeHost(syslog_get_host());
-    Item<MI_METRICS_CURRENT_L_PORT>().ChangePort(syslog_get_port());
+    Item<MI_METRICS_CURRENT_L_HOST>().ChangeHost(logging::syslog_get_host());
+    Item<MI_METRICS_CURRENT_L_PORT>().ChangePort(logging::syslog_get_port());
 }
 
 void ScreenMenuMetricsSettings::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
@@ -209,7 +209,7 @@ void ScreenMenuMetricsSettings::windowEvent([[maybe_unused]] window_t *sender, G
                     auto transaction = store.get_backend().transaction_guard();
                     store.metrics_host.set(metric_handler_syslog_get_host());
                     store.metrics_port.set(metric_handler_syslog_get_port());
-                    store.syslog_port.set(syslog_get_port());
+                    store.syslog_port.set(logging::syslog_get_port());
                 }
                 Item<MI_METRICS_CONF_HOST>().ChangeHost(store.metrics_host.get_c_str());
                 Item<MI_METRICS_CONF_PORT>().ChangePort(store.metrics_port.get());
@@ -231,13 +231,13 @@ void ScreenMenuMetricsSettings::windowEvent([[maybe_unused]] window_t *sender, G
             // Store log host
             if (MsgBoxQuestion(_(txt_host_ask), Responses_YesNo) == Response::Yes) {
                 // Use log host to store as metrics host (we remember only one host)
-                store.metrics_host.set(syslog_get_host());
+                store.metrics_host.set(logging::syslog_get_host());
                 Item<MI_METRICS_CONF_HOST>().ChangeHost(store.metrics_host.get_c_str());
             }
         } else if (param == reinterpret_cast<void *>(&Item<MI_METRICS_CURRENT_L_PORT>())) {
             // Store log port
             if (MsgBoxQuestion(_(txt_l_port_ask), Responses_YesNo) == Response::Yes) {
-                store.syslog_port.set(syslog_get_port());
+                store.syslog_port.set(logging::syslog_get_port());
                 Item<MI_METRICS_CONF_LOG_PORT>().ChangePort(store.syslog_port.get());
             }
         }

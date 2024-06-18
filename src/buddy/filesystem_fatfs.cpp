@@ -10,6 +10,7 @@
 #include <sys/syslimits.h>
 #include "filesystem.h"
 #include "filesystem_fatfs.h"
+#include <logging/log.hpp>
 
 // #define FATFS_FSTAT 1
 

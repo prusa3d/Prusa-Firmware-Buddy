@@ -8,9 +8,9 @@
 #include "libsysbase_syscalls.h"
 
 #include "stm32f4xx.h"
-#include "log.h"
+#include <logging/log.hpp>
 
-LOG_COMPONENT_DEF(FileSystem, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(FileSystem, logging::Severity::info);
 
 void filesystem_init() {
 #if !defined(_RETARGETABLE_LOCKING)

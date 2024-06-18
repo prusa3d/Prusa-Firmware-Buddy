@@ -25,7 +25,7 @@ using std::string_view;
 using std::tuple;
 using std::variant;
 
-LOG_COMPONENT_DEF(httpc, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(httpc, logging::Severity::debug);
 
 namespace http {
 

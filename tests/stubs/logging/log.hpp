@@ -12,4 +12,6 @@
 #define LOG_COMPONENT_DEF(name, severity)
 #define LOG_COMPONENT_REF(component)
 
-typedef int log_component_t;
+namespace logging {
+typedef int Component;
+}

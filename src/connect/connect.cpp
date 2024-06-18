@@ -10,7 +10,7 @@
 #include <http/httpc.hpp>
 #include <http/websocket.hpp>
 
-#include <log.h>
+#include <logging/log.hpp>
 
 #include <atomic>
 #include <cassert>
@@ -40,7 +40,7 @@ using std::string_view;
 using std::variant;
 using std::visit;
 
-LOG_COMPONENT_DEF(connect, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(connect, logging::Severity::info);
 
 namespace connect_client {
 

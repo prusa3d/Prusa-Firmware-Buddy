@@ -1,7 +1,7 @@
 #include "loadcell.hpp"
 #include "hx717.hpp"
 #include "timing.h" // for ticks_ms
-#include "log.h"
+#include <logging/log.hpp>
 #include <common/circular_buffer.hpp>
 #include "loadcell.hpp"
 #include "bsod.h"

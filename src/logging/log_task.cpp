@@ -1,11 +1,13 @@
-#include "log_task.hpp"
+#include <logging/log_task.hpp>
 
 #include <cstdlib>
 
-LogTask::LogTask()
+namespace logging {
+
+Task::Task()
     : task_handle { nullptr } {
     TaskHandle_t local_task_handle = xTaskCreateStatic(
-        +[](void *ctx) { static_cast<LogTask *>(ctx)->run(); },
+        +[](void *ctx) { static_cast<Task *>(ctx)->run(); },
         "log_task",
         STACK_SIZE,
         this,
@@ -17,7 +19,7 @@ LogTask::LogTask()
     }
 }
 
-void LogTask::run() {
+void Task::run() {
     task_handle.store(xTaskGetCurrentTaskHandle());
     for (;;) {
         QueueItem item;
@@ -27,7 +29,7 @@ void LogTask::run() {
     }
 }
 
-void LogTask::send(log_event_t *event) {
+void Task::send(Event *event) {
     if (xPortIsInsideInterrupt()) {
         // Note: We do not support logging from the interrupt handler.
         //       It is usually a bad idea anyway.
@@ -68,3 +70,5 @@ void LogTask::send(log_event_t *event) {
     // inside queue item alive.
     semaphore.acquire();
 }
+
+} // namespace logging

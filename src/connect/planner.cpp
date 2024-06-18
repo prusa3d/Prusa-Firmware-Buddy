@@ -3,7 +3,7 @@
 #include "printer.hpp"
 
 #include <filename_type.hpp>
-#include <log.h>
+#include <logging/log.hpp>
 #include <transfers/transfer.hpp>
 #include <option/websocket.h>
 #include <general_response.hpp>

@@ -15,7 +15,7 @@
 #include <tasks.hpp>
 
 #include "sntp_client.h"
-#include "log.h"
+#include <logging/log.hpp>
 
 #include <atomic>
 #include <array>
@@ -42,8 +42,8 @@
 #include <nhttp/server.h>
 #include <random.h>
 
-LOG_COMPONENT_DEF(WUI, LOG_SEVERITY_DEBUG);
-LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(WUI, logging::Severity::debug);
+LOG_COMPONENT_DEF(Network, logging::Severity::info);
 
 using std::unique_lock;
 

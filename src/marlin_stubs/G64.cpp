@@ -6,7 +6,7 @@
 #include "../../lib/Marlin/Marlin/src/module/stepper.h"
 #include <bsod_gui.hpp>
 #include <config_store/store_instance.hpp>
-#include <logging/log.h>
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(PRUSA_GCODE);
 

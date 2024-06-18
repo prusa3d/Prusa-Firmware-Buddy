@@ -12,7 +12,7 @@
 #include "config.h"
 #include "bsod.h"
 #include "ffconf.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "../lib/Marlin/Marlin/src/core/macros.h"
 #include <module/motion.h>
 #include "bsod.h"
@@ -30,7 +30,7 @@ using std::optional;
 
 namespace marlin_client {
 
-LOG_COMPONENT_DEF(MarlinClient, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(MarlinClient, logging::Severity::info);
 
 static constexpr uint8_t max_retries = 5;
 

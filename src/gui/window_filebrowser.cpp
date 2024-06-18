@@ -3,7 +3,7 @@
  */
 
 #include "window_filebrowser.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "sound.hpp"
 #include <transfers/transfer.hpp>
 #include <algorithm>

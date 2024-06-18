@@ -1,9 +1,8 @@
 #pragma once
-#include "log.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
+#include <logging/log.hpp>
+
+namespace logging {
 
 /// Initialize the Syslog handler
 void syslog_initialize();
@@ -11,14 +10,14 @@ void syslog_initialize();
 /// Format an event according to RFC5424
 ///
 /// https://tools.ietf.org/html/rfc5424
-void syslog_format_event(log_event_t *event, void (*out_fn)(char character, void *arg), void *arg);
+void syslog_format_event(Event *event, void (*out_fn)(char character, void *arg), void *arg);
 
 /// Log an event using Syslog
 ///
 /// The SYSLOG destination does not guarantee delivery of all events.
 /// Events from ISRs are not being delivered, syslog won't try to send an event if running low on stack,
 /// the UDP packet can be lost, etc.
-void syslog_log_event(log_event_t *event);
+void syslog_log_event(Event *event);
 
 /**
  * @brief Configure syslog handler address and port.
@@ -39,6 +38,4 @@ const char *syslog_get_host();
  */
 uint16_t syslog_get_port();
 
-#ifdef __cplusplus
-}
-#endif //__cplusplus
+} // namespace logging

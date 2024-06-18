@@ -5,6 +5,7 @@
 #if HAS_TOOLCHANGER()
     #include <Marlin/src/module/prusa/toolchanger.h>
 #endif
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(Selftest);
 

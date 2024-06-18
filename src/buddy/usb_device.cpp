@@ -3,7 +3,7 @@
 #include "tusb.h"
 #include "main.h"
 #include "usb_device.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "otp.hpp"
 #include "buddy/priorities_config.h"
 #include <ccm_thread.hpp>
@@ -12,7 +12,7 @@
 #include <timing.h>
 #include <atomic>
 
-LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(USBDevice, logging::Severity::info);
 
 #define stringify(a)  _stringify(a)
 #define _stringify(a) #a

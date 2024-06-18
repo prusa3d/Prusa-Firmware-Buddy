@@ -5,7 +5,7 @@
  */
 
 #include "inc/MarlinConfig.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include <type_traits>
 
 #include "power_panic.hpp"

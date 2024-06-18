@@ -5,10 +5,10 @@
 #include "puppies/fifo_decoder.hpp"
 
 #include "bsod.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "loadcell.hpp"
 #include "timing.h"
-#include "logging/log_dest_bufflog.h"
+#include <logging/log_dest_bufflog.hpp>
 #include <assert.h>
 #include "metric.h"
 #include "puppies/PuppyBootstrap.hpp"
@@ -25,12 +25,12 @@ using namespace common::puppies::fifo;
 
 namespace buddy::puppies {
 
-LOG_COMPONENT_DEF(Dwarf_1, LOG_SEVERITY_INFO);
-LOG_COMPONENT_DEF(Dwarf_2, LOG_SEVERITY_INFO);
-LOG_COMPONENT_DEF(Dwarf_3, LOG_SEVERITY_INFO);
-LOG_COMPONENT_DEF(Dwarf_4, LOG_SEVERITY_INFO);
-LOG_COMPONENT_DEF(Dwarf_5, LOG_SEVERITY_INFO);
-LOG_COMPONENT_DEF(Dwarf_6, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(Dwarf_1, logging::Severity::info);
+LOG_COMPONENT_DEF(Dwarf_2, logging::Severity::info);
+LOG_COMPONENT_DEF(Dwarf_3, logging::Severity::info);
+LOG_COMPONENT_DEF(Dwarf_4, logging::Severity::info);
+LOG_COMPONENT_DEF(Dwarf_5, logging::Severity::info);
+LOG_COMPONENT_DEF(Dwarf_6, logging::Severity::info);
 
 /// Shorthand macro to send log message to proper log component, depending on which dwarf instance its called on
 /// NOTE: has to ba called inside member funciton of Dwarf class
@@ -87,8 +87,8 @@ CommunicationStatus Dwarf::read_discrete_general_status() {
     // read general status discrete inputs
     CommunicationStatus status = bus.read(unit, DiscreteGeneralStatus, 250);
     if (status == CommunicationStatus::OK) {
-        DWARF_LOG(LOG_SEVERITY_DEBUG, "Is parked: %d", DiscreteGeneralStatus.value.is_parked);
-        DWARF_LOG(LOG_SEVERITY_DEBUG, "Is picked: %d", DiscreteGeneralStatus.value.is_picked);
+        DWARF_LOG(logging::Severity::debug, "Is parked: %d", DiscreteGeneralStatus.value.is_parked);
+        DWARF_LOG(logging::Severity::debug, "Is picked: %d", DiscreteGeneralStatus.value.is_picked);
     }
     return status;
 }
@@ -123,8 +123,8 @@ CommunicationStatus Dwarf::initial_scan() {
         return status;
     }
 
-    DWARF_LOG(LOG_SEVERITY_INFO, "HwBomId: %d", GeneralStatic.value.HwBomId);
-    DWARF_LOG(LOG_SEVERITY_INFO, "HwOtpTimestsamp: %" PRIu32, GeneralStatic.value.HwOtpTimestsamp);
+    DWARF_LOG(logging::Severity::info, "HwBomId: %d", GeneralStatic.value.HwBomId);
+    DWARF_LOG(logging::Severity::info, "HwOtpTimestsamp: %" PRIu32, GeneralStatic.value.HwOtpTimestsamp);
 
     serial_nr_t sn = {}; // Last byte has to be '\0'
     static constexpr uint16_t raw_datamatrix_regsize = ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_last)
@@ -136,7 +136,7 @@ CommunicationStatus Dwarf::initial_scan() {
         sn[i * 2] = GeneralStatic.value.HwDatamatrix[i] & 0xff;
         sn[i * 2 + 1] = GeneralStatic.value.HwDatamatrix[i] >> 8;
     }
-    DWARF_LOG(LOG_SEVERITY_INFO, "HwDatamatrix: %s", sn.data());
+    DWARF_LOG(logging::Severity::info, "HwDatamatrix: %s", sn.data());
 
     // read discrete general stats - contains data about picked/parked, and that is needed immediately upon init to pick correct tool
     status = read_discrete_general_status();
@@ -172,7 +172,7 @@ bool Dwarf::dispatch_log_event() {
 
     // Log event
     if (eot_pos) {
-        DWARF_LOG(LOG_SEVERITY_INFO, "%.*s", eot_pos, log_line_buffer.data());
+        DWARF_LOG(logging::Severity::info, "%.*s", eot_pos, log_line_buffer.data());
     }
 
     // Compact buffer
@@ -254,7 +254,7 @@ CommunicationStatus Dwarf::write_general() {
         return status;
     }
 
-    DWARF_LOG(LOG_SEVERITY_DEBUG, "Written GeneralWrite");
+    DWARF_LOG(logging::Severity::debug, "Written GeneralWrite");
     return status;
 }
 
@@ -264,7 +264,7 @@ CommunicationStatus Dwarf::write_tmc_enable() {
         return status;
     }
 
-    DWARF_LOG(LOG_SEVERITY_DEBUG, "Written TmcEnable");
+    DWARF_LOG(logging::Severity::debug, "Written TmcEnable");
     return status;
 }
 
@@ -274,14 +274,14 @@ uint32_t Dwarf::tmc_read(uint8_t addressByte) {
     TmcReadRequest.dirty = true;
     if (bus.write(unit, TmcReadRequest) != CommunicationStatus::ERROR) {
         if (bus.read(unit, TmcReadResponse) != CommunicationStatus::ERROR) {
-            DWARF_LOG(LOG_SEVERITY_DEBUG, "TMC on dwarf read (%d:%" PRIu32 ")",
+            DWARF_LOG(logging::Severity::debug, "TMC on dwarf read (%d:%" PRIu32 ")",
                 addressByte, TmcReadResponse.value.value);
             return TmcReadResponse.value.value;
         } else {
-            DWARF_LOG(LOG_SEVERITY_ERROR, "TMC read response FAIL");
+            DWARF_LOG(logging::Severity::error, "TMC read response FAIL");
         }
     } else {
-        DWARF_LOG(LOG_SEVERITY_ERROR, "TMC read request FAIL");
+        DWARF_LOG(logging::Severity::error, "TMC read request FAIL");
     }
     // todo: what to do in case of error?
     return 0;
@@ -293,10 +293,10 @@ void Dwarf::tmc_write(uint8_t addressByte, uint32_t config) {
     TmcWriteRequest.dirty = true;
 
     if (bus.write(unit, TmcWriteRequest) != CommunicationStatus::ERROR) {
-        DWARF_LOG(LOG_SEVERITY_DEBUG, "Write to TMC dwarf success (%d:%" PRIu32 ")",
+        DWARF_LOG(logging::Severity::debug, "Write to TMC dwarf success (%d:%" PRIu32 ")",
             addressByte, config);
     } else {
-        DWARF_LOG(LOG_SEVERITY_ERROR, "Write to TMC dwarf FAIL");
+        DWARF_LOG(logging::Severity::error, "Write to TMC dwarf FAIL");
     }
 }
 
@@ -310,7 +310,7 @@ void Dwarf::tmc_set_enable(bool state) {
     TmcEnable.dirty = true;
     auto result = write_tmc_enable();
     if (result != CommunicationStatus::OK) {
-        DWARF_LOG(LOG_SEVERITY_CRITICAL, "Enable pin write error");
+        DWARF_LOG(logging::Severity::critical, "Enable pin write error");
     }
 }
 
@@ -353,7 +353,7 @@ CommunicationStatus Dwarf::run_time_sync() {
     RequestTiming timing;
     CommunicationStatus status = bus.read(unit, TimeSync, 1000, &timing);
     if (status == CommunicationStatus::ERROR) {
-        DWARF_LOG(LOG_SEVERITY_ERROR, "Failed to read fault status register");
+        DWARF_LOG(logging::Severity::error, "Failed to read fault status register");
         return status;
     }
 
@@ -431,7 +431,7 @@ bool Dwarf::raw_set_accelerometer(bool enable) {
     return bus.write(unit, AccelerometerEnableCoil) == CommunicationStatus::OK;
 }
 
-constexpr log_component_t &Dwarf::get_log_component(uint8_t dwarf_nr) {
+constexpr logging::Component &Dwarf::get_log_component(uint8_t dwarf_nr) {
     switch (dwarf_nr) {
     case 1:
         return __log_component_Dwarf_1;
@@ -522,7 +522,7 @@ void Dwarf::handle_dwarf_fault() {
     assert(RegisterGeneralStatus.value.FaultStatus != dwarf_shared::errors::FaultStatusMask::NO_FAULT);
 
     const auto fault_int { ftrstd::to_underlying(RegisterGeneralStatus.value.FaultStatus) };
-    DWARF_LOG(LOG_SEVERITY_ERROR, "Fault status: %d", fault_int);
+    DWARF_LOG(logging::Severity::error, "Fault status: %d", fault_int);
 
     if (fault_int & ftrstd::to_underlying(dwarf_shared::errors::FaultStatusMask::MARLIN_KILLED)) {
         // read error string from dwarf
@@ -537,7 +537,7 @@ void Dwarf::handle_dwarf_fault() {
         // make sure strings are zero-terminated
         title_span.back() = 0;
         message_span.back() = 0;
-        DWARF_LOG(LOG_SEVERITY_ERROR, "Dwarf %d fault %s: %s", dwarf_nr, title_span.data(), message_span.data());
+        DWARF_LOG(logging::Severity::error, "Dwarf %d fault %s: %s", dwarf_nr, title_span.data(), message_span.data());
 
         // Prepare module string (insert dwarf number)
         char module[31] = { 0 };
@@ -563,8 +563,8 @@ uint16_t Dwarf::get_heatbreak_fan_pwr() {
 void Dwarf::decode_log(const LogData &data) {
     // If buffer cannot handle next read, clean it
     if (log_line_pos + data.size() > log_line_buffer.size()) {
-        DWARF_LOG(LOG_SEVERITY_WARNING, "Out of log buffer, logging incomplete data");
-        DWARF_LOG(LOG_SEVERITY_INFO, "%.*s", log_line_pos, log_line_buffer.data());
+        DWARF_LOG(logging::Severity::warning, "Out of log buffer, logging incomplete data");
+        DWARF_LOG(logging::Severity::info, "%.*s", log_line_pos, log_line_buffer.data());
         log_line_pos = 0;
     }
 

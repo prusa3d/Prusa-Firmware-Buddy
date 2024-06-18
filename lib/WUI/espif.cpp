@@ -36,9 +36,9 @@
 #include <lwip/etharp.h>
 #include <lwip/sys.h>
 
-#include "log.h"
+#include <logging/log.hpp>
 
-LOG_COMPONENT_DEF(ESPIF, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(ESPIF, logging::Severity::info);
 
 static_assert(std::endian::native == std::endian::little, "STM<->ESP protocol assumes all involved CPUs are little endian.");
 static_assert(ETHARP_HWADDR_LEN == 6);

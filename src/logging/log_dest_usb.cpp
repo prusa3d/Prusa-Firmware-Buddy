@@ -1,9 +1,11 @@
-#include "log_dest_usb.h"
+#include <logging/log_dest_usb.hpp>
 
-#include "log_dest_shared.h"
-#include "tusb.h"
-#include "stm32f4xx.h"
-#include "usb_device.hpp"
+#include <logging/log_dest_shared.hpp>
+#include <tusb.h>
+
+LOG_COMPONENT_REF(USBDevice);
+
+namespace logging {
 
 static bool usb_logging_enabled = false;
 
@@ -19,7 +21,7 @@ static void usb_put_char(char character, [[maybe_unused]] void *arg) {
     tud_cdc_write_char(character);
 }
 
-void usb_log_event(log_event_t *event) {
+void usb_log_event(Event *event) {
     // check we are attached to a CDC interface
     if (!usb_logging_enabled) {
         return;
@@ -39,3 +41,5 @@ void usb_log_event(log_event_t *event) {
     tud_cdc_write_str("\r\n");
     tud_cdc_write_flush();
 }
+
+} // namespace logging

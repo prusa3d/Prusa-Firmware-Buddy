@@ -1,6 +1,6 @@
 #pragma once
 #include <stdio.h>
-#include "general_response.hpp"
+#include "marlin_server_types/general_response.hpp"
 #include "printers.h"
 #include <cstring>
 

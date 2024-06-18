@@ -8,7 +8,7 @@
 #include <atomic>
 
 #include "filament_sensor_adc.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "metric.h"
 #include "algorithm_range.hpp"
 #include "filament_sensor_adc_eval.hpp"

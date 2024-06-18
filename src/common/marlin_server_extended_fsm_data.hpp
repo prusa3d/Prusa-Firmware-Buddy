@@ -1,7 +1,7 @@
 #pragma once
 
 #include <common/fsm_base_types.hpp>
-#include "log.h"
+#include <logging/log.hpp>
 #include "marlin_vars.hpp"
 #include <common/no_rtti_type_id.hpp>
 

@@ -18,6 +18,6 @@ add_library(
 target_include_directories(TMCStepper PUBLIC TMCStepper/src)
 
 target_link_libraries(TMCStepper PUBLIC Arduino::Core)
-target_link_libraries(TMCStepper PRIVATE Marlin) # for prusa toolchanger
+target_link_libraries(TMCStepper PRIVATE Marlin logging) # for prusa toolchanger
 
 add_library(Arduino::TMCStepper ALIAS TMCStepper)

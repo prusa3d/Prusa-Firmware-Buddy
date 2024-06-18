@@ -1,3 +1,3 @@
-#include <log.h>
+#include <logging/log.hpp>
 
-LOG_COMPONENT_DEF(transfers, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(transfers, logging::Severity::info);

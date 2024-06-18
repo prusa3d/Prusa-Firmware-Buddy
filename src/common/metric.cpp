@@ -1,7 +1,7 @@
 #include "metric.h"
 #include "cmsis_os.h"
 #include "timing.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -43,7 +43,7 @@ static bool metric_system_initialized = false;
 static uint16_t dropped_points_count = 0;
 
 // logging component
-LOG_COMPONENT_DEF(Metrics, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(Metrics, logging::Severity::info);
 
 // internal metrics
 METRIC_DEF(metric_dropped_points, "points_dropped", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);

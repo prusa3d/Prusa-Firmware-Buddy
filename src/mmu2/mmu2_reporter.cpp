@@ -1,5 +1,5 @@
 #include "mmu2_reporter.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(MMU2);
 

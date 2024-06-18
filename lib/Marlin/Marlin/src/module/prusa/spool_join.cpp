@@ -3,7 +3,7 @@
 #if PRINTER_IS_PRUSA_XL
     #include "Configuration_XL.h"
 #endif
-#include "log.h"
+#include <logging/log.hpp>
 #include "marlin_server.hpp"
 #include "module/motion.h"
 #include "module/prusa/tool_mapper.hpp"

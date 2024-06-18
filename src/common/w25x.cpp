@@ -1,7 +1,7 @@
 #include "w25x.h"
 #include "w25x_communication.h"
 #include "timing_precise.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
@@ -9,7 +9,7 @@
 #include "hwio_pindef.h"
 #include <stdlib.h>
 
-LOG_COMPONENT_DEF(W25X, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(W25X, logging::Severity::debug);
 
 namespace {
 

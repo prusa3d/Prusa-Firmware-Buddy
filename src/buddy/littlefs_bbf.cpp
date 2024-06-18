@@ -5,7 +5,7 @@
 #include <errno.h>
 
 #include "bbf.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "bsod.h"
 #include "bsod.h"
 

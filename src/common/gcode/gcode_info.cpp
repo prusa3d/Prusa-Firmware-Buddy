@@ -11,7 +11,7 @@
 #include <tools_mapping.hpp>
 #include <module/prusa/spool_join.hpp>
 #include "mutable_path.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include <option/has_mmu2.h>
 
 LOG_COMPONENT_REF(Buddy);

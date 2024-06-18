@@ -1,5 +1,5 @@
 #include "task_startup.h"
-#include "logging/log.h"
+#include <logging/log.hpp>
 #include "logging.hpp"
 #include "ModbusInit.hpp"
 #include "cmsis_os.h"
@@ -12,7 +12,7 @@
 #include <hal/HAL_MultiWatchdog.hpp>
 #include <cpu_utils.hpp>
 
-LOG_COMPONENT_DEF(Dwarf, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(Dwarf, logging::Severity::info);
 
 volatile bool dwarf_init_done = false;
 

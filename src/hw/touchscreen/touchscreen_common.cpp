@@ -1,12 +1,13 @@
 #include "touchscreen_common.hpp"
 #include "touchscreen.hpp"
 #include <option/has_side_leds.h>
+#include <logging/log.hpp>
 
 #if HAS_SIDE_LEDS()
     #include <leds/side_strip_control.hpp>
 #endif
 
-LOG_COMPONENT_DEF(Touch, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(Touch, logging::Severity::info);
 
 METRIC_DEF(metric_touch_event_, "touch_evt", METRIC_VALUE_STRING, 0, METRIC_HANDLER_ENABLE_ALL);
 METRIC_DEF(metric_touch_pos, "touch_pos", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);

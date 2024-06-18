@@ -1,7 +1,7 @@
 // window_event.cpp
 
 #include "window_event.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "gui_time.hpp"
 
 LOG_COMPONENT_REF(GUI);

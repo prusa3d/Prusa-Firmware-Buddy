@@ -10,7 +10,7 @@
 #include "bsod.h"
 #include <tasks.hpp>
 #include "window_msgbox.hpp"
-#include <log.h>
+#include <logging/log.hpp>
 #include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
@@ -24,7 +24,7 @@
     #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #endif
 
-LOG_COMPONENT_DEF(FSensor, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(FSensor, logging::Severity::info);
 
 using namespace MMU2;
 

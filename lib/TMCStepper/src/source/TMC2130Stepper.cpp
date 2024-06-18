@@ -1,7 +1,7 @@
 #include "TMCStepper.h"
 #include "TMC_MACROS.h"
 #include "SPI.h"
-#include "log.h"
+#include <logging/log.hpp>
 
 #include <option/has_puppies.h>
 #include <option/has_toolchanger.h>

@@ -4,7 +4,7 @@
 
 namespace common::puppies::fifo {
 
-LOG_COMPONENT_DEF(ModbusFIFODecoder, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(ModbusFIFODecoder, logging::Severity::info);
 
 Decoder::Decoder(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo, size_t len)
     : fifo(fifo)

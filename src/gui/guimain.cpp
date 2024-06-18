@@ -55,7 +55,7 @@
 #if HAS_LEDS()
     #include "led_animations/printer_animation_state.hpp"
 #endif
-#include "log.h"
+#include <logging/log.hpp>
 #include <printers.h>
 
 #include <option/has_selftest_snake.h>
@@ -77,8 +77,8 @@ using namespace buddy::hw;
 
 LOG_COMPONENT_REF(GUI);
 LOG_COMPONENT_REF(Buddy);
-LOG_COMPONENT_DEF(XLCD, LOG_SEVERITY_INFO);
-LOG_COMPONENT_DEF(LoveBoard, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(XLCD, logging::Severity::info);
+LOG_COMPONENT_DEF(LoveBoard, logging::Severity::info);
 
 marlin_vars_t *gui_marlin_vars = 0;
 

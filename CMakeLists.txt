@@ -201,10 +201,6 @@ elseif(MCU MATCHES "STM32G0")
   target_compile_definitions(BuddyHeaders INTERFACE STM32G0 STM32G0xx)
 endif()
 
-add_library(BuddyLogging INTERFACE)
-target_include_directories(BuddyLogging INTERFACE src/logging)
-target_link_libraries(BuddyHeaders INTERFACE BuddyLogging)
-
 #
 # Configure Arduino Core
 #
@@ -266,14 +262,14 @@ target_link_libraries(FreeRTOS_Config INTERFACE Segger BuddyHeaders)
 #
 
 add_library(LwIP_Config INTERFACE)
-target_link_libraries(LwIP_Config INTERFACE BuddyHeaders BuddyLogging)
+target_link_libraries(LwIP_Config INTERFACE BuddyHeaders logging)
 
 #
 # Configure FatFs
 #
 
 add_library(FatFs_Config INTERFACE)
-target_link_libraries(FatFs_Config INTERFACE BuddyHeaders BuddyLogging STM32::USBHost)
+target_link_libraries(FatFs_Config INTERFACE BuddyHeaders logging STM32::USBHost)
 
 #
 # Configure Marlin
@@ -627,14 +623,7 @@ if(GENERATE_DFU)
 endif()
 
 target_include_directories(
-  firmware
-  PRIVATE src/lang
-          src/hw
-          src/segger
-          src/logging
-          src/syslog
-          src/mmu2
-          include/mbedtls
+  firmware PRIVATE src/lang src/hw src/segger src/syslog src/mmu2 include/mbedtls
   )
 
 target_link_libraries(

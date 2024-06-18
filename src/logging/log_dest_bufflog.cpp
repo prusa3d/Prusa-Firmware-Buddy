@@ -1,13 +1,12 @@
-#include "log_dest_bufflog.h"
+#include <logging/log_dest_bufflog.hpp>
 
 #include "cmsis_os.h"
-#include "FreeRTOS.h"
-#include "printf.h"
-#include "log_dest_shared.h"
-#include "log_platform.h"
-#include "otp.hpp"
+#include <cstring>
+#include <logging/log_dest_shared.hpp>
 
 #define BUFFLOG_BUFFER_SIZE 256
+
+namespace logging {
 
 osMutexDef(bufflog_buffer_lock);
 osMutexId bufflog_buffer_lock_id;
@@ -45,7 +44,7 @@ static buffer_output_state_t buffer_state = {
     .write = 0,
 };
 
-void bufflog_log_event(log_event_t *event) {
+void bufflog_log_event(Event *event) {
     // initialize the bufflog buffer if it is safe to do so
     if (!initialized) {
         bufflog_initialize();
@@ -86,3 +85,5 @@ size_t bufflog_pickup(char *dest, size_t buffer_size) {
     osMutexRelease(bufflog_buffer_lock_id);
     return to_copy;
 }
+
+} // namespace logging

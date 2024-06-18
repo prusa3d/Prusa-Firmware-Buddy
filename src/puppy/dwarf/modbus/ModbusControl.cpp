@@ -1,7 +1,7 @@
 #include "ModbusControl.hpp"
 #include "ModbusRegisters.hpp"
 #include <cstring>
-#include "log.h"
+#include <logging/log.hpp>
 #include "Marlin/src/module/temperature.h"
 #include "Marlin/src/module/stepper/trinamic.h"
 #include "../loadcell.hpp"
@@ -18,7 +18,7 @@
 
 namespace dwarf::ModbusControl {
 
-LOG_COMPONENT_DEF(ModbusControl, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(ModbusControl, logging::Severity::info);
 
 struct ModbusMessage {
     uint16_t m_Address;

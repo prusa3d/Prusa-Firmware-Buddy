@@ -4,6 +4,7 @@
 #include <unique_file_ptr.hpp>
 #include <memory>
 #include <optional>
+#include <logging/log.hpp>
 
 using namespace buddy::resources;
 LOG_COMPONENT_REF(Resources);

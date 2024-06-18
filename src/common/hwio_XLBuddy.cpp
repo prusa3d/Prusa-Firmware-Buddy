@@ -33,7 +33,7 @@
 #include "Marlin/src/module/motion.h" // for active_extruder
 #include "puppies/modular_bed.hpp"
 #include "otp.hpp"
-#include "logging/log.h"
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(Buddy);
 

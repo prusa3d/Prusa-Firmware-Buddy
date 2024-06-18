@@ -17,7 +17,7 @@
 #include <state/printer_state.hpp>
 #include <option/has_human_interactions.h>
 
-#include <log.h>
+#include <logging/log.hpp>
 #include <type_traits>
 #include <variant>
 #include <optional>

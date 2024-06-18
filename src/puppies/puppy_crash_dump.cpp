@@ -1,6 +1,6 @@
 #include <puppies/puppy_crash_dump.hpp>
 #include <unique_file_ptr.hpp>
-#include <log.h>
+#include <logging/log.hpp>
 #include <sys/stat.h>
 #include <cstring>
 

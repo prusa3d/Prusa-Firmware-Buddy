@@ -1,7 +1,7 @@
 #include <inttypes.h>
 #include "app_metrics.h"
 #include "metric.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "version.h"
 #include "FreeRTOS.h"
 #include "cmsis_os.h"

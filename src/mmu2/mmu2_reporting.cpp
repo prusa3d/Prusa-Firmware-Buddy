@@ -10,7 +10,7 @@
 #include "mmu2_reporter.hpp"
 #include "fail_bucket.hpp"
 #include "pause_stubbed.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include <config_store/store_instance.hpp>
 #include <odometer.hpp>
 #include "gui/dialogs/DialogLoadUnload.hpp"

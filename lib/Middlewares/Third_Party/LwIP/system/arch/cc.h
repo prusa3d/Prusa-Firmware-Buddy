@@ -33,7 +33,6 @@
 #define __CC_H__
 
 #include "cpu.h"
-#include "log.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -107,7 +106,8 @@ typedef int sys_prot_t;
 #define LWIP_ERROR(message, expression, handler) \
     do {                                         \
         if (!(expression)) {                     \
-            log_error(Network, "%s", message);   \
+            extern void lwip_platform_log_error(const char*); \
+            lwip_platform_log_error(message); \
             handler;                             \
         }                                        \
     } while (0)

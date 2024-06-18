@@ -1,5 +1,5 @@
 #include "bbf.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 
 static const long bbf_firmware_size_offset = 96;
 static const long bbf_firmware_code_offset = 576;

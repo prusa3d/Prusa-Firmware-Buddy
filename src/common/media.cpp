@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "media.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "lfn.h"
 #include "ff.h"
 #include "usbh_core.h"

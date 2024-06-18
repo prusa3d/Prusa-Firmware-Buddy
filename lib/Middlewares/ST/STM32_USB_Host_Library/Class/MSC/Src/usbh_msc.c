@@ -850,7 +850,7 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
       return USBH_FAIL;
     }
     if (!filesystem_semihosting_active() && (uint32_t)(elapsed_sof + sof_counter_delta + 3) < elapsed_ticks) {
-      log_error(USBHost, "USB MSC operation read - missing SOF");
+      USBH_ErrLog("USB MSC operation read - missing SOF");
       MSC_Handle->state = MSC_IDLE;
       return USBH_FAIL;
     }
@@ -922,7 +922,7 @@ USBH_StatusTypeDef USBH_MSC_Write(USBH_HandleTypeDef *phost,
       return USBH_FAIL;
     }
     if(!filesystem_semihosting_active() && (uint32_t)elapsed_sof + sof_counter_delta + 3 < elapsed_ticks) {
-      log_error(USBHost, "USB MSC operation write - missing SOF");
+      USBH_ErrLog("USB MSC operation write - missing SOF");
       MSC_Handle->state = MSC_IDLE;
       return USBH_FAIL;
     }

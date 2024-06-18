@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
-#include "log.h"
+#include <logging/log.hpp>
 #include "metric_handlers.h"
 #include "stm32f4xx_hal.h"
 #include "timing.h"

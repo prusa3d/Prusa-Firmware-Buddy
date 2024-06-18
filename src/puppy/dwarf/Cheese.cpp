@@ -1,7 +1,7 @@
 #include "Cheese.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 
-LOG_COMPONENT_DEF(Cheese, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(Cheese, logging::Severity::info);
 
 bool Cheese::picked = false;
 bool Cheese::parked = true;

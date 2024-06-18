@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <memory>
 
-#include <log.h>
+#include <logging/log.hpp>
 
 #include <lwip/mem.h>
 

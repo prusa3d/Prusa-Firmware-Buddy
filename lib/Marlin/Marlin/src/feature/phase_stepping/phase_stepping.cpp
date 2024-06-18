@@ -20,12 +20,12 @@
 #include <TMCStepper.h>
 
 #include <Pin.hpp>
-#include <log.h>
+#include <logging/log.hpp>
 
 #include <cassert>
 #include <cmath>
 
-LOG_COMPONENT_DEF(PhaseStepping, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(PhaseStepping, logging::Severity::debug);
 
 using namespace phase_stepping;
 using namespace phase_stepping::opts;

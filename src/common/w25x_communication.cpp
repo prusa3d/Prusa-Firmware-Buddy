@@ -1,7 +1,7 @@
 #include "w25x_communication.h"
 #include "w25x.h"
 #include "string.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include <ccm_thread.hpp>

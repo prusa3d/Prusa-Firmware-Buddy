@@ -10,7 +10,7 @@
 #include "trigger_crash_dump.h"
 #include "safe_state.h"
 #include "bsod.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "buddy/priorities_config.h"
 
 LOG_COMPONENT_REF(Marlin);

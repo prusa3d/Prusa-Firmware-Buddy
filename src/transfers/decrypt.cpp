@@ -1,7 +1,7 @@
 #include "decrypt.hpp"
 
 #include <common/bsod.h>
-#include <logging/log.h>
+#include <logging/log.hpp>
 
 #include <type_traits>
 #include <cassert>

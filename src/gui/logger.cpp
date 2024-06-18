@@ -1,3 +1,3 @@
-#include "log.h"
+#include <logging/log.hpp>
 
-LOG_COMPONENT_DEF(GUI, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(GUI, logging::Severity::debug);

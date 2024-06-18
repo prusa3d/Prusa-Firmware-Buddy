@@ -24,7 +24,7 @@
 #include "module/motion.h"
 #include "module/tool_change.h"
 #include "marlin_stubs/PrusaGcodeSuite.hpp"
-#include <logging/log.h>
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(PRUSA_GCODE);
 

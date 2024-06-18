@@ -20,6 +20,7 @@
 
 #include <option/bootloader.h>
 #include <option/has_touch.h>
+#include <logging/log.hpp>
 
 #if HAS_TOUCH()
     #include <hw/touchscreen/touchscreen.hpp>

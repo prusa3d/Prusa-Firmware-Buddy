@@ -9,7 +9,7 @@
 #include <numeric>
 #include <limits>
 #include "timing.h"
-#include "log.h"
+#include <logging/log.hpp>
 #include "probe_position_lookback.hpp"
 #include "bsod.h"
 #include "config_features.h"
@@ -20,7 +20,7 @@
 #include "../Marlin/src/module/endstops.h"
 #include "feature/prusa/e-stall_detector.h"
 
-LOG_COMPONENT_DEF(Loadcell, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(Loadcell, logging::Severity::info);
 
 Loadcell loadcell;
 METRIC_DEF(metric_loadcell, "loadcell", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);

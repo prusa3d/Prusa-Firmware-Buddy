@@ -2,7 +2,7 @@
 
 namespace common::puppies::fifo {
 
-LOG_COMPONENT_DEF(ModbusFIFOEncoder, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(ModbusFIFOEncoder, logging::Severity::info);
 
 Encoder::Encoder(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo)
     : fifo(fifo)

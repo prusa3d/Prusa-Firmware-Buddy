@@ -1,6 +1,6 @@
 #include "ModbusFIFOHandlers.hpp"
 
-#include "logging/log_dest_bufflog.h"
+#include <logging/log_dest_bufflog.hpp>
 #include "puppies/fifo_encoder.hpp"
 #include "../loadcell.hpp"
 #include "accelerometer.hpp"
@@ -9,7 +9,7 @@
 
 using namespace common::puppies::fifo;
 
-LOG_COMPONENT_DEF(ModbusFIFOHandlers, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(ModbusFIFOHandlers, logging::Severity::debug);
 
 /**
  * @brief Holds number of sent accelerometer samples; used for rate-limiting of
@@ -112,7 +112,7 @@ size_t handle_encoded_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo) {
         if (encoder.can_encode<LogData>()) {
             LogData log_fragment;
             log_fragment.fill(0);
-            size_t num_log_bytes = bufflog_pickup(log_fragment.data(), log_fragment.size());
+            size_t num_log_bytes = logging::bufflog_pickup(log_fragment.data(), log_fragment.size());
             if (num_log_bytes) {
                 if (encoder.encode(log_fragment)) {
                     encoded = true;

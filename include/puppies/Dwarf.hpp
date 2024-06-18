@@ -391,7 +391,7 @@ private:
     uint8_t dwarf_nr;
 
     /// @brief Log component asociated with this dwarf
-    log_component_t &log_component;
+    logging::Component &log_component;
 
     /// @brief True means this tool is picked and active
     std::atomic<bool> selected;
@@ -414,7 +414,7 @@ private:
     CommunicationStatus pull_loadcell_fifo();
     bool dispatch_log_event();
     CommunicationStatus run_time_sync();
-    constexpr log_component_t &get_log_component(uint8_t dwarf_nr);
+    constexpr logging::Component &get_log_component(uint8_t dwarf_nr);
     CommunicationStatus read_discrete_general_status();
     CommunicationStatus read_general_status();
     void handle_dwarf_fault();

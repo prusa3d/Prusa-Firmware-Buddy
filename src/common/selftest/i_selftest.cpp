@@ -2,12 +2,12 @@
 
 #include "i_selftest.hpp"
 #include "feature/prusa/crash_recovery.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "marlin_server.hpp"
 #include <guiconfig/wizard_config.hpp>
 #include "filament_sensors_handler.hpp"
 
-LOG_COMPONENT_DEF(Selftest, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(Selftest, logging::Severity::debug);
 
 ISelftest::ISelftest()
     : m_Time(0) {

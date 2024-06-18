@@ -2,6 +2,7 @@
 
 #include "gcode_info.hpp"
 #include <common/async_job/async_job.hpp>
+#include <logging/log.hpp>
 
 static AsyncJob gcode_scan_async_job;
 

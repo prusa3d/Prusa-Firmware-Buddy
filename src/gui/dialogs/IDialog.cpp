@@ -1,7 +1,7 @@
 #include "IDialog.hpp"
 
 #include "ScreenHandler.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(GUI);
 

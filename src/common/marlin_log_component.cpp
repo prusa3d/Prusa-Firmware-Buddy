@@ -1,3 +1,3 @@
-#include <logging/log.h>
+#include <logging/log.hpp>
 
-LOG_COMPONENT_DEF(Marlin, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(Marlin, logging::Severity::info);

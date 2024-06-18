@@ -4,7 +4,7 @@
 #ifdef UNITTEST
 extern unsigned estall_suppressed_trigger_count;
 #else
-    #include "log.h"
+    #include <logging/log.hpp>
 
 LOG_COMPONENT_REF(MarlinServer);
 #endif

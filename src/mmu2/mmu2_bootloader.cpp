@@ -5,7 +5,7 @@
 
 #include <scope_guard.hpp>
 #include <timing.h>
-#include <log.h>
+#include <logging/log.hpp>
 #include <wiring_time.h>
 #include <mmu2/mmu_fw_attached_version.hpp>
 

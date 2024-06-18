@@ -4,7 +4,7 @@
 #include <buddy/filesystem_fatfs.h>
 #include <common/unique_file_ptr.hpp>
 #include <common/bsod.h>
-#include <logging/log.h>
+#include <logging/log.hpp>
 
 #include <algorithm>
 #include <sys/stat.h>

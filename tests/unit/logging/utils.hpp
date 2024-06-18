@@ -4,7 +4,7 @@
 #include <vector>
 #include <deque>
 #include <string>
-#include "log.h"
+#include <logging/log.hpp>
 
 class ScopeGuard {
 public:
@@ -36,10 +36,10 @@ private:
 };
 
 struct RecordedLog {
-    log_timestamp_t timestamp;
-    log_severity_t severity;
-    log_task_id_t task_id;
-    const log_component_t *component;
+    logging::Timestamp timestamp;
+    logging::Severity severity;
+    logging::TaskId task_id;
+    const logging::Component *component;
     std::string message;
 };
 
@@ -51,6 +51,6 @@ struct ScopedInMemoryLog {
     ~ScopedInMemoryLog();
 };
 
-ScopeGuard with_log_platform_task_id_get(std::optional<std::function<log_task_id_t()>> func);
-ScopeGuard with_log_platform_timestamp_get(std::optional<std::function<log_timestamp_t()>> func);
-extern log_destination_t in_memory_log;
+ScopeGuard with_log_platform_task_id_get(std::optional<std::function<logging::TaskId()>> func);
+ScopeGuard with_log_platform_timestamp_get(std::optional<std::function<logging::Timestamp()>> func);
+extern logging::Destination in_memory_log;

@@ -30,15 +30,13 @@
     #include "lwip/inet.h"
     #include "lwip/netdb.h"
 #endif
-#undef log_debug
-#define log_debug(...)
-#include <log.h>
+#include <logging/log.hpp>
 
 #include <memory>
 
 using std::unique_ptr;
 
-LOG_COMPONENT_DEF(socket, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(socket, logging::Severity::debug);
 
 namespace {
 

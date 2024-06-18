@@ -20,8 +20,8 @@
 #include <timing_precise.hpp>
 #include <timing.h>
 
-#include "log.h"
-LOG_COMPONENT_DEF(PreciseStepping, LOG_SEVERITY_DEBUG);
+#include <logging/log.hpp>
+LOG_COMPONENT_DEF(PreciseStepping, logging::Severity::debug);
 
 #if defined(ISR_DEADLINE_DEBUGGING) || defined(ISR_EVENT_DEBUGGING)
     #include <sound.hpp>

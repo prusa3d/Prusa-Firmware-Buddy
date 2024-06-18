@@ -2,7 +2,7 @@
 #include "phase_stepping.hpp"
 #include "calibration_config.hpp"
 
-#include <log.h>
+#include <logging/log.hpp>
 #include <module/planner.h>
 #include <module/motion.h>
 #include <gcode/gcode.h>

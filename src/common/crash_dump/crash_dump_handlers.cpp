@@ -2,7 +2,7 @@
 #include <w25x.h>
 #include <cstring>
 #include <device/board.h>
-#include <log.h>
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(CrashDump);
 

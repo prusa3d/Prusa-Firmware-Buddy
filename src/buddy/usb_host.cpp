@@ -11,6 +11,7 @@
 #include <state/printer_state.hpp>
 #include "usbh_async_diskio.hpp"
 #include "marlin_client.hpp"
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(USBHost);
 USBH_HandleTypeDef hUsbHostHS;

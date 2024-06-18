@@ -1,10 +1,9 @@
 #pragma once
-#include "log.h"
-#include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
+#include <logging/log.hpp>
+#include <cstddef>
+
+namespace logging {
 
 /// Initialize the buffered handler
 ///
@@ -15,7 +14,7 @@ void bufflog_initialize();
 ///
 /// The BuffLog destination does not guarantee delivery of all events.
 /// There is a limited buffer that can overflow. Messages might get logs on bus.
-void bufflog_log_event(log_event_t *event);
+void bufflog_log_event(Event *event);
 
 /// Pipukup data from buffer
 size_t bufflog_pickup(char *buffer, size_t buffer_size);
@@ -23,6 +22,4 @@ size_t bufflog_pickup(char *buffer, size_t buffer_size);
 /// Terminate event record with EOT
 #define BUFFLOG_TERMINATION_CHAR 4
 
-#ifdef __cplusplus
-}
-#endif //__cplusplus
+} // namespace logging

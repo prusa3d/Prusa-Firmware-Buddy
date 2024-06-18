@@ -10,7 +10,7 @@
 #include "ScreenHandler.hpp"
 #include "i18n.h"
 #include "gui_media_events.hpp"
-#include "log.h"
+#include <logging/log.hpp>
 #include "img_resources.hpp"
 #include <guiconfig/GuiDefaults.hpp>
 
