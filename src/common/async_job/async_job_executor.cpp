@@ -40,9 +40,7 @@ void AsyncJobExecutor::thread_routine() {
             std::unique_lock mutex_guard(mutex);
 
             if (!synchronized_data.first_job) {
-                mutex_guard.unlock();
-                nonempty_queue_semaphore.acquire();
-                continue;
+                empty_queue_condition.wait(mutex_guard);
             }
 
             job = synchronized_data.first_job;

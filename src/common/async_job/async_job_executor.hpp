@@ -2,6 +2,7 @@
 
 #include <common/freertos_mutex.hpp>
 #include <common/freertos_binary_semaphore.hpp>
+#include <common/freertos_wait_condition.hpp>
 
 class AsyncJobBase;
 
@@ -36,8 +37,8 @@ private:
 
     freertos::Mutex mutex;
 
-    /// Semaphore used for waiting for having at least one job in the queue
-    freertos::BinarySemaphore nonempty_queue_semaphore;
+    /// Wait condition for the executor, when the queue is empty
+    freertos::WaitCondition empty_queue_condition;
 
 private:
     osStaticThreadDef_t thread_def;

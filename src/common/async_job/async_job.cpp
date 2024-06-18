@@ -37,7 +37,7 @@ void AsyncJobBase::issue(const Callback &callback, AsyncJobExecutor &executor) {
             // The linked list was empty -> make this a first job and wake the executor
             assert(!ex.first_job);
             ex.first_job = this;
-            executor.nonempty_queue_semaphore.release();
+            executor.empty_queue_condition.notify_one();
         }
 
         ex.last_job = this;
