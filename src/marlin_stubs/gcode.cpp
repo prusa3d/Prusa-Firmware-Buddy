@@ -268,7 +268,7 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
 }
 
 static void record_pre_gcode_metrics() {
-    METRIC_DEF(gcode, "gcode", METRIC_VALUE_STRING, 0, METRIC_HANDLER_DISABLE_ALL);
+    METRIC_DEF(gcode, "gcode", METRIC_VALUE_STRING, 0, METRIC_HANDLER_ENABLE_ALL);
     metric_record_string(&gcode, "%s", parser.command_ptr);
 
 #if HAS_LOADCELL()
