@@ -20,6 +20,8 @@
     #error "You're trying to add marlin_server to Dwarf. Don't!"
 #endif /*BOARD_IS_DWARF*/
 
+class GCodeReaderStreamRestoreInfo;
+
 namespace marlin_server {
 
 // server flags
@@ -177,6 +179,14 @@ bool get_media_inserted();
 
 //
 void resuming_begin();
+
+const GCodeReaderStreamRestoreInfo &stream_restore_info();
+void set_stream_restore_info(const GCodeReaderStreamRestoreInfo &set);
+
+/// Returns media position of the currently executed gcode
+uint32_t media_position();
+
+void print_quick_stop_powerpanic();
 
 uint32_t get_user_click_count();
 

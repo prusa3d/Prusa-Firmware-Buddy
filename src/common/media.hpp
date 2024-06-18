@@ -75,4 +75,4 @@ extern void media_loop(void);
 extern void media_reset_usbh_error();
 
 extern void media_set_restore_info(const GCodeReaderStreamRestoreInfo &info);
-extern GCodeReaderStreamRestoreInfo media_get_restore_info();
+extern const GCodeReaderStreamRestoreInfo &media_get_restore_info();

@@ -528,6 +528,6 @@ void media_set_restore_info(const GCodeReaderStreamRestoreInfo &info) {
     media_stream_restore_info = info;
 }
 
-GCodeReaderStreamRestoreInfo media_get_restore_info() {
+const GCodeReaderStreamRestoreInfo &media_get_restore_info() {
     return media_stream_restore_info;
 }

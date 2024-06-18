@@ -13,7 +13,6 @@
 #endif /*HAS_TOOLCHANGER()*/
 
 #include "marlin_server.hpp"
-#include "media.hpp"
 
 #include "../lib/Marlin/Marlin/src/feature/prusa/crash_recovery.hpp"
 #include "../lib/Marlin/Marlin/src/module/endstops.h"
@@ -74,6 +73,7 @@
 #include "wdt.hpp"
 
 #include <usb_host/usbh_async_diskio.hpp>
+#include <gcode/gcode_reader_restore_info.hpp>
 
 // External thread handles required for suspension
 extern osThreadId defaultTaskHandle;
@@ -566,7 +566,7 @@ void resume_loop() {
 #if ENABLED(PRUSA_SPOOL_JOIN)
         spool_join.deserialize(state_buf.spool_join);
 #endif
-        media_set_restore_info(state_buf.gcode_stream_restore_info);
+        marlin_server::set_stream_restore_info(state_buf.gcode_stream_restore_info);
 
 #if HAS_TOOLCHANGER()
         if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL) { // Was in toolchange area
@@ -893,7 +893,7 @@ void panic_loop() {
 #if ENABLED(PRUSA_SPOOL_JOIN)
         spool_join.serialize(state_buf.spool_join);
 #endif
-        state_buf.gcode_stream_restore_info = media_get_restore_info();
+        state_buf.gcode_stream_restore_info = marlin_server::stream_restore_info();
 #if HAS_TOOLCHANGER()
         // Store tool that was last requested and where to return in case toolchange is ongoing
         state_buf.toolchanger.precrash_tool = prusa_toolchanger.get_precrash().tool_nr;
@@ -1060,7 +1060,7 @@ void ac_fault_isr() {
         if (state_buf.planner.was_paused) {
             // crash_current_position *is* current_position while the print is paused,
             // so abuse the slot for the restore position instead
-            state_buf.crash.sdpos = media_print_get_pause_position();
+            state_buf.crash.sdpos = marlin_server::media_position();
             state_buf.crash.crash_current_position = resume.pos;
         } else {
             state_buf.crash.sdpos = crash_s.sdpos;
@@ -1170,7 +1170,7 @@ void ac_fault_isr() {
 #endif
 
     // stop & disable endstops
-    media_print_quick_stop_powerpanic();
+    marlin_server::print_quick_stop_powerpanic();
     endstops.enable_globally(false);
 
     // will continue in the main loop

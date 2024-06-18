@@ -22,8 +22,10 @@
 #include "cmsis_os.h"
 #include <logging/log.hpp>
 #include <bsod_gui.hpp>
+#include <usb_host.h>
 #include <st25dv64k.h>
 #include <usb_host.h>
+#include <gcode/gcode_reader_restore_info.hpp>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -2317,7 +2319,22 @@ void resuming_begin(void) {
 #endif
         server.print_state = State::Resuming_Reheating;
     }
-    media_reset_usbh_error();
+}
+
+const GCodeReaderStreamRestoreInfo &stream_restore_info() {
+    return media_get_restore_info();
+}
+
+void set_stream_restore_info(const GCodeReaderStreamRestoreInfo &set) {
+    media_set_restore_info(set);
+}
+
+void print_quick_stop_powerpanic() {
+    media_print_quick_stop_powerpanic();
+}
+
+uint32_t media_position() {
+    return media_print_get_position();
 }
 
 void retract() {
