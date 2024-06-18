@@ -36,7 +36,12 @@ public:
         return { .data = stream_restore_info };
     }
     void set_restore_info(const StreamRestoreInfo &restore_info) override {
-        stream_restore_info = std::get<StreamRestoreInfo::PrusaPack>(restore_info.data);
+        // Don't crash if we provide empty restore info - that simply indicates that we don't have any
+        if (const auto *ri = std::get_if<StreamRestoreInfo::PrusaPack>(&restore_info.data)) {
+            stream_restore_info = *ri;
+        } else {
+            stream_restore_info = {};
+        }
     }
 
     virtual bool valid_for_print() override;
