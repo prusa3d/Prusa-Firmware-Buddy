@@ -139,6 +139,9 @@ void buddy::metrics::RecordMarlinVariables() {
     METRIC_DEF(is_printing, "is_printing", METRIC_VALUE_INTEGER, 5000, METRIC_HANDLER_ENABLE_ALL);
     metric_record_integer(&is_printing, printingIsActive() ? 1 : 0);
 
+    METRIC_DEF(sdpos, "sdpos", METRIC_VALUE_INTEGER, 500, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_integer(&sdpos, queue.get_current_sdpos());
+
 #if ENABLED(PRUSA_TOOLCHANGER)
     METRIC_DEF(active_extruder_metric, "active_extruder", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
     metric_record_integer(&active_extruder_metric, active_extruder);
