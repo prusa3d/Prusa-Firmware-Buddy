@@ -429,7 +429,19 @@ constexpr PrusaPackGcodeReader::ImgType thumbnail_format_to_type(bgcode::core::E
 
 bool PrusaPackGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint16_t expected_height, ImgType expected_type, bool allow_larger) {
 
-    auto res = iterate_blocks(false, [&](BlockHeader &block_header) {
+    const struct params {
+        uint16_t expected_width;
+        uint16_t expected_height;
+        ImgType expected_type;
+        bool allow_larger;
+    } params {
+        .expected_width = expected_width,
+        .expected_height = expected_height,
+        .expected_type = expected_type,
+        .allow_larger = allow_larger,
+    };
+
+    auto res = iterate_blocks(false, [this, &params](BlockHeader &block_header) {
         if ((EBlockType)block_header.type == EBlockType::GCode) {
             // if gcode block was found, we can end search, Thumbnail is supposed to be before gcode block
             return IterateResult_t::End;
@@ -449,13 +461,13 @@ bool PrusaPackGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint1
         }
 
         // format not valid
-        if (thumbnail_format_to_type(static_cast<bgcode::core::EThumbnailFormat>(thumb_header.format)) != expected_type) {
+        if (thumbnail_format_to_type(static_cast<bgcode::core::EThumbnailFormat>(thumb_header.format)) != params.expected_type) {
             return IterateResult_t::Continue;
         }
 
-        if (expected_height == thumb_header.height && expected_width == thumb_header.width) {
+        if (params.expected_height == thumb_header.height && params.expected_width == thumb_header.width) {
             return IterateResult_t::Return;
-        } else if (allow_larger && expected_height <= thumb_header.height && expected_width <= thumb_header.width) {
+        } else if (params.allow_larger && params.expected_height <= thumb_header.height && params.expected_width <= thumb_header.width) {
             return IterateResult_t::Return;
         } else {
             return IterateResult_t::Continue;
@@ -497,24 +509,27 @@ PrusaPackGcodeReader::Result_t PrusaPackGcodeReader::stream_get_block(char *out_
 uint32_t PrusaPackGcodeReader::get_gcode_stream_size_estimate() {
     auto file = this->file.get();
     long pos = ftell(file); // store file position, so we don't break any running streams
-    uint32_t blocks_read = 0;
-    uint32_t gcode_stream_size_compressed = 0;
-    uint32_t gcode_stream_size_uncompressed = 0;
-    uint32_t first_gcode_block_pos = 0;
+
+    struct {
+        uint32_t blocks_read = 0;
+        uint32_t gcode_stream_size_compressed = 0;
+        uint32_t gcode_stream_size_uncompressed = 0;
+        uint32_t first_gcode_block_pos = 0;
+    } stats;
 
     // estimate works as follows:
     // first NUM_BLOCKS_TO_ESTIMATE are read, compression ratio of those blocks is calculated. Assuming compression ratio is the same for rest of the file, we guess total gcode stream size
     static constexpr unsigned int NUM_BLOCKS_TO_ESTIMATE = 2;
-    iterate_blocks(false, [&](BlockHeader &block_header) {
+    iterate_blocks(false, [&file, &stats](BlockHeader &block_header) {
         if ((bgcode::core::EBlockType)block_header.type == bgcode::core::EBlockType::GCode) {
-            gcode_stream_size_uncompressed += block_header.uncompressed_size;
-            gcode_stream_size_compressed += ((bgcode::core::ECompressionType)block_header.compression == bgcode::core::ECompressionType::None) ? block_header.uncompressed_size : block_header.compressed_size;
-            ++blocks_read;
-            if (first_gcode_block_pos == 0) {
-                first_gcode_block_pos = ftell(file);
+            stats.gcode_stream_size_uncompressed += block_header.uncompressed_size;
+            stats.gcode_stream_size_compressed += ((bgcode::core::ECompressionType)block_header.compression == bgcode::core::ECompressionType::None) ? block_header.uncompressed_size : block_header.compressed_size;
+            ++stats.blocks_read;
+            if (stats.first_gcode_block_pos == 0) {
+                stats.first_gcode_block_pos = ftell(file);
             }
         }
-        if (blocks_read >= NUM_BLOCKS_TO_ESTIMATE) {
+        if (stats.blocks_read >= NUM_BLOCKS_TO_ESTIMATE) {
             // after reading NUM_BLOCKS_TO_ESTIMATE blocks, stop
             return IterateResult_t::End;
         }
@@ -522,8 +537,8 @@ uint32_t PrusaPackGcodeReader::get_gcode_stream_size_estimate() {
         return IterateResult_t::Continue;
     });
 
-    float compressionn_ratio = static_cast<float>(gcode_stream_size_compressed) / gcode_stream_size_uncompressed;
-    uint32_t compressed_gcode_stream = file_size - first_gcode_block_pos;
+    float compressionn_ratio = static_cast<float>(stats.gcode_stream_size_compressed) / stats.gcode_stream_size_uncompressed;
+    uint32_t compressed_gcode_stream = file_size - stats.first_gcode_block_pos;
     uint32_t uncompressed_file_size = compressed_gcode_stream / compressionn_ratio;
 
     [[maybe_unused]] auto seek_res = fseek(file, pos, SEEK_SET);

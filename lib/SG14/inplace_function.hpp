@@ -44,7 +44,7 @@ namespace stdext {
 
 namespace inplace_function_detail {
 
-static constexpr size_t InplaceFunctionDefaultCapacity = sizeof(void*) * 5;
+static constexpr size_t InplaceFunctionDefaultCapacity = sizeof(void*) * 2;
 
 #ifndef SG14_USE_STD_ALIGNED_STORAGE
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61458

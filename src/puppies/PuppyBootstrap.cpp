@@ -436,24 +436,30 @@ void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, 
     if (!match) {
 
         const struct {
+            unique_file_ptr &fw_file;
+            off_t fw_size;
             int percent_offset;
             int percent_span;
-        } progress {
+            PuppyType puppy_type;
+        } params {
+            .fw_file = fw_file,
+            .fw_size = fw_size,
             .percent_offset = percent_offset,
-            .percent_span = percent_span
+            .percent_span = percent_span,
+            .puppy_type = puppy_type,
         };
 
-        BootloaderProtocol::status_t result = flasher.write_flash(fw_size, [fw_size, &fw_file, puppy_type, this, &progress](uint32_t offset, size_t size, uint8_t *out_data) -> bool {
+        BootloaderProtocol::status_t result = flasher.write_flash(fw_size, [this, &params](uint32_t offset, size_t size, uint8_t *out_data) -> bool {
             // update GUI progress bar
-            this->progressHook({ static_cast<int>(progress.percent_offset + offset * progress.percent_span / fw_size), FlashingStage::FLASHING, puppy_type });
-            log_info(Puppies, "Flashing puppy %s offset %" PRIu32 "/%ld", puppy_info[puppy_type].name, offset, fw_size);
+            this->progressHook({ static_cast<int>(params.percent_offset + offset * params.percent_span / params.fw_size), FlashingStage::FLASHING, params.puppy_type });
+            log_info(Puppies, "Flashing puppy %s offset %" PRIu32 "/%ld", puppy_info[params.puppy_type].name, offset, params.fw_size);
 
             // get data
-            assert(offset + size <= static_cast<size_t>(fw_size));
-            int sret = fseek(fw_file.get(), offset, SEEK_SET);
+            assert(offset + size <= static_cast<size_t>(params.fw_size));
+            int sret = fseek(params.fw_file.get(), offset, SEEK_SET);
             assert(sret == 0);
             UNUSED(sret);
-            unsigned int ret = fread(out_data, sizeof(uint8_t), size, fw_file.get());
+            unsigned int ret = fread(out_data, sizeof(uint8_t), size, params.fw_file.get());
             assert(ret == size);
             UNUSED(ret);
 
