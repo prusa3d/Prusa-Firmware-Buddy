@@ -151,7 +151,7 @@ extern uint32_t SystemCoreClock;
 #define configUSE_MUTEXES                1
 #define configUSE_RECURSIVE_MUTEXES      1
 #define INCLUDE_xSemaphoreGetMutexHolder 1
-#define configQUEUE_REGISTRY_SIZE        8
+#define configQUEUE_REGISTRY_SIZE        0
 #if MCU_IS_STM32F4()
     #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 #else
