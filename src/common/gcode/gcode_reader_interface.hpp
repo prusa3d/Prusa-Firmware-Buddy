@@ -142,7 +142,7 @@ public:
     /**
      * @brief Load latest validity information from current transfer
      */
-    virtual void update_validity(transfers::Transfer::Path &filename) = 0;
+    virtual void update_validity(const char *filename) = 0;
 
     /// Returns whether the reader is in an (unrecoverable) error state
     virtual bool has_error() const = 0;
@@ -179,7 +179,7 @@ public:
         return (this->*ptr_stream_getc)(out);
     }
 
-    void update_validity(transfers::Transfer::Path &filename) override;
+    void update_validity(const char *filename) override;
 
     bool has_error() const override {
         return error_str_;

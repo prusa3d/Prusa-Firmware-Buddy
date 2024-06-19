@@ -65,7 +65,7 @@ AnyGcodeFormatReader::AnyGcodeFormatReader(const char *filename)
     }
 
     if (is_partial) {
-        get()->update_validity(path);
+        get()->update_validity(path.as_destination());
     }
 }
 

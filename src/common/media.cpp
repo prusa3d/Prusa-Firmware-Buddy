@@ -162,12 +162,12 @@ void media_prefetch(const void *) {
                         // downloaded range. But we haven't updated our knowledge
                         // about what's downloaded in a while, so update it now and
                         // retry. If it still fails even after update, deal with it below.
-                        transfers::Transfer::Path path;
+                        std::array<char, FILE_PATH_BUFFER_LEN> path;
                         marlin_vars()->media_SFN_path.execute_with([&](const char *value) {
-                            path = transfers::Transfer::Path(value);
+                            strlcpy(path.data(), value, path.size());
                         });
 
-                        media_print_file->update_validity(path);
+                        media_print_file->update_validity(path.data());
                         back_buff_level = FILE_BUFF_SIZE;
                         second_read_res = media_print_file->stream_get_block(back_buff, back_buff_level);
                     }

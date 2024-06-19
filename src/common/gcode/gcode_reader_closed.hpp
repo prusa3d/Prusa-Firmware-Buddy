@@ -38,7 +38,7 @@ class ClosedReader final : public IGcodeReader {
     bool valid_for_print() override {
         return false;
     }
-    void update_validity(transfers::Transfer::Path &) override {
+    void update_validity(const char *) override {
     }
     bool has_error() const override {
         return true;

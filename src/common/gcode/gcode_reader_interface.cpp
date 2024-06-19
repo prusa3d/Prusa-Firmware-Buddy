@@ -124,12 +124,12 @@ bool GcodeReaderCommon::range_valid(size_t start, size_t end) const {
     return inside(validity->valid_head) || inside(validity->valid_tail);
 }
 
-void GcodeReaderCommon::update_validity(transfers::Transfer::Path &filename) {
+void GcodeReaderCommon::update_validity(const char *filename) {
 #if !defined(UNITTESTS) // validity update is disabled for unit tests, because it drags in lots of dependencies
     using transfers::PartialFile;
     using transfers::Transfer;
 
-    const auto transfer_state = Transfer::load_state(filename.as_destination());
+    const auto transfer_state = Transfer::load_state(filename);
     const auto new_validity = std::visit(
         [this](const auto &arg) -> std::optional<PartialFile::State> {
             using T = std::decay_t<decltype(arg)>;

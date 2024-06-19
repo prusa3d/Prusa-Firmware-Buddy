@@ -108,8 +108,7 @@ bool GCodeInfo::check_still_valid() {
 }
 
 bool GCodeInfo::check_valid_for_print(IGcodeReader &reader) {
-    transfers::Transfer::Path path(GetGcodeFilepath());
-    reader.update_validity(path);
+    reader.update_validity(GetGcodeFilepath());
     is_printable_ = reader.valid_for_print();
 
     if (reader.has_error()) {
