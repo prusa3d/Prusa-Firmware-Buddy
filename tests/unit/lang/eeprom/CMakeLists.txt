@@ -30,7 +30,7 @@ target_include_directories(
 # define custom macros
 target_compile_definitions(language_eeprom_tests PUBLIC LANGEEPROM_UNITTEST)
 
-target_link_libraries(language_eeprom_tests SG14 freertos)
+target_link_libraries(language_eeprom_tests SG14 freertos_tests)
 
 # tell build system about the test case
 add_catch_test(language_eeprom_tests)

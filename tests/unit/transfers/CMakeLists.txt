@@ -34,6 +34,6 @@ add_definitions(-DDATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 
-target_link_libraries(transfers_tests SG14 freertos)
+target_link_libraries(transfers_tests SG14 freertos_tests)
 
 add_catch_test(transfers_tests)

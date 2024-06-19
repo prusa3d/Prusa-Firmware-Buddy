@@ -28,7 +28,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/SG14
   )
 
-target_link_libraries(gcode_reader_test mbedTLS bgcode_core freertos)
+target_link_libraries(gcode_reader_test mbedTLS bgcode_core freertos_tests)
 
 file(
   COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_plain.gcode

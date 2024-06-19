@@ -1,4 +1,4 @@
-add_library(freertos
+add_library(freertos_tests
   ${CMAKE_CURRENT_SOURCE_DIR}/freertos.c
   ${CMAKE_CURRENT_SOURCE_DIR}/Source/croutine.c
   ${CMAKE_CURRENT_SOURCE_DIR}/Source/event_groups.c
@@ -13,7 +13,7 @@ add_library(freertos
 )
 
 target_include_directories(
-  freertos
+  freertos_tests
   PUBLIC .
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/Source/include
@@ -21,5 +21,5 @@ target_include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/ThirdParty/GCC/Posix/utils
   )
 
-target_compile_options(freertos PUBLIC -fno-stack-protector)
+target_compile_options(freertos_tests PUBLIC -fno-stack-protector)
 

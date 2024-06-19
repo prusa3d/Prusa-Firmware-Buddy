@@ -16,4 +16,4 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/src/gui/led_animations ${CMAKE_SOURCE_DIR}/src/guiapi/include
          ${CMAKE_SOURCE_DIR}/src/gui/dialogs
   )
-target_link_libraries(leds_tests PRIVATE freertos)
+target_link_libraries(leds_tests PRIVATE freertos_tests)
