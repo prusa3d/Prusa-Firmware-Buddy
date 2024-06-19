@@ -108,6 +108,12 @@ osThreadId displayTaskHandle;
 osThreadId connectTaskHandle;
 osThreadId prefetch_thread_id;
 
+#if HAS_GUI()
+static constexpr size_t displayTask_stacksz = 1024 + 512; // in words
+static uint32_t __attribute__((section(".ccmram"))) displayTask_buffer[displayTask_stacksz];
+static StaticTask_t __attribute__((section(".ccmram"))) displayTask_control;
+#endif
+
 unsigned HAL_RCC_CSR = 0;
 int HAL_GPIO_Initialized = 0;
 int HAL_ADC_Initialized = 0;
@@ -434,7 +440,7 @@ extern "C" void main_cpp(void) {
     filesystem_init();
 
     if (option::has_gui) {
-        osThreadCCMDef(displayTask, StartDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 1024 + 512);
+        osThreadStaticDef(displayTask, StartDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, displayTask_stacksz, displayTask_buffer, &displayTask_control);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
     // wait for gui to init and render loading screen before starting flashing. We need to init bootstrap screen so we can send process percentage to it. Also it would look laggy without it.
@@ -729,7 +735,7 @@ void init_error_screen() {
 
         init_only_littlefs();
 
-        osThreadCCMDef(displayTask, StartErrorDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 1024 + 256);
+        osThreadStaticDef(displayTask, StartErrorDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, displayTask_stacksz, displayTask_buffer, &displayTask_control);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
 }
