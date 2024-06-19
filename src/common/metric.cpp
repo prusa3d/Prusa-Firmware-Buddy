@@ -8,6 +8,7 @@
 #include <ccm_thread.hpp>
 #include "priorities_config.h"
 #include <cstring>
+#include <atomic>
 
 extern metric_t __start_metric_definitions[]
 #if __APPLE__
@@ -39,8 +40,8 @@ static osMailQId metric_system_queue;
 
 // internal variables
 extern const metric_handler_t *const metric_system_handlers[]; ///< Defined in main.cpp
-static bool metric_system_initialized = false;
-static uint16_t dropped_points_count = 0;
+static std::atomic<bool> metric_system_initialized = false;
+static std::atomic<uint16_t> dropped_points_count = 0;
 
 // logging component
 LOG_COMPONENT_DEF(Metrics, logging::Severity::info);
@@ -85,7 +86,7 @@ static void metric_system_task_run(const void *) {
         }
 
         osMailFree(metric_system_queue, point);
-        metric_record_integer(&metric_dropped_points, dropped_points_count);
+        metric_record_integer(&metric_dropped_points, dropped_points_count.load(std::memory_order::relaxed));
     }
 }
 
@@ -122,7 +123,7 @@ static metric_point_t *point_check_and_prepare(metric_t *metric, uint32_t timest
 
     metric_point_t *point = (metric_point_t *)osMailAlloc(metric_system_queue, 0);
     if (!point) {
-        dropped_points_count += 1;
+        dropped_points_count.fetch_add(1, std::memory_order::relaxed);
         return NULL;
     }
 
@@ -138,7 +139,7 @@ static void point_enqueue(metric_point_t *recording) {
         update_min_interval(metric);
     } else {
         osMailFree(metric_system_queue, recording);
-        dropped_points_count += 1;
+        dropped_points_count.fetch_add(1, std::memory_order::relaxed);
     }
 }
 void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float value) {
