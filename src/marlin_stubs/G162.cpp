@@ -150,7 +150,7 @@ void PrusaGcodeSuite::G162() {
         phase_stepping::EnsureDisabled ps_disabler;
 #endif
         marlin_server::FSM_Holder holder { PhasesSelftest::CalibZ };
-        selftest::calib_Z(true);
+        selftest::calib_Z(PRINTER_IS_PRUSA_iX ? false : true);
     }
 }
 
