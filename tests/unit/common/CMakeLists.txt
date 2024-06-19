@@ -23,14 +23,6 @@ target_include_directories(
                          ${CMAKE_SOURCE_DIR}/src
   )
 
-add_executable(
-  gcode_filter_tests
-  ${CMAKE_CURRENT_SOURCE_DIR}/gcode_filter_test.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_filter.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_filter.hpp
-  )
-target_include_directories(gcode_filter_tests PUBLIC ${CMAKE_SOURCE_DIR}/src)
-
 add_executable(timing_tests timing_tests.cpp)
 target_compile_definitions(timing_tests PRIVATE MCU=STM32F407VG)
 target_include_directories(
@@ -113,7 +105,6 @@ target_include_directories(
 
 add_catch_test(support_utils_tests)
 add_catch_test(str_utils_tests)
-add_catch_test(gcode_filter_tests)
 add_catch_test(timing_tests)
 add_catch_test(circle_buffer_tests)
 add_catch_test(circular_buffer_tests)

@@ -2,7 +2,6 @@ target_include_directories(firmware PRIVATE .)
 target_sources(
   firmware
   PUBLIC gcode_buffer.cpp
-         gcode_filter.cpp
          gcode_info.cpp
          gcode_info_scan.cpp
          gcode_reader_any.cpp
