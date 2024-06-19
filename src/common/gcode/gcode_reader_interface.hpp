@@ -30,8 +30,9 @@ public:
         RESULT_ERROR,
         RESULT_OUT_OF_RANGE, // Outside of the validity range
         RESULT_CORRUPT, // Corruption / CRC mismatch / ...
+
+        _RESULT_LAST = RESULT_CORRUPT,
     };
-    static constexpr size_t result_t_cnt = 6;
 
     /// Expected image format
     enum class ImgType {

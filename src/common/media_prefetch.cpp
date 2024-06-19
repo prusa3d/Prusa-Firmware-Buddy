@@ -1,5 +1,7 @@
 #include "media_prefetch.hpp"
 
+#include <logging/log.hpp>
+
 namespace media_prefetch {
 
 enum class RecordType : uint8_t {
@@ -22,7 +24,7 @@ struct RecordHeader {
 
 using namespace media_prefetch;
 
-LOG_COMPONENT_DEF(MediaPrefetch, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(MediaPrefetch, logging::Severity::debug);
 
 // The code is not ready for two worker routines to be executed in parallel, which could happen in multi-worker executor.
 // So if this changes, we need to revise the code.
@@ -48,16 +50,13 @@ MediaPrefetchManager::Status MediaPrefetchManager::read_command(ReadResult &resu
 
         s.read_head.buffer_pos = shared_state.read_head.buffer_pos;
         s.read_tail.buffer_pos = shared_state.read_tail.buffer_pos;
-
-        // While we have the mutex locked, update some stats variables
-        s.buffer_occupancy = float((shared_state.read_tail.buffer_pos - shared_state.read_head.buffer_pos + buffer_size) % buffer_size) / buffer_size;
-        s.read_tail_status = shared_state.read_tail.status;
+        s.read_tail.status = shared_state.read_tail.status;
     }
 
     // If we're at the buffer end, return the appropriate error
     if (s.read_head.buffer_pos == s.read_tail.buffer_pos) {
-        assert(manager_state.read_tail_status != Status::ok);
-        return manager_state.read_tail_status;
+        assert(manager_state.read_tail.status != Status::ok);
+        return manager_state.read_tail.status;
     }
 
     auto &resume_pos = s.read_head.gcode_pos;
@@ -104,7 +103,11 @@ MediaPrefetchManager::Status MediaPrefetchManager::read_command(ReadResult &resu
     // Let the worker know that we've read stuff and it can reuse the memory
     {
         std::lock_guard mutex_guard(mutex);
+
+        assert(shared_state.commands_in_buffer > 0);
+
         shared_state.read_head.buffer_pos = s.read_head.buffer_pos;
+        shared_state.commands_in_buffer--;
     }
 
     result.resume_pos = resume_pos;
@@ -146,7 +149,7 @@ bool MediaPrefetchManager::check_buffer_empty() const {
 }
 
 void MediaPrefetchManager::issue_fetch(bool force) {
-    if (!force && buffer_occupancy() > 0.6f) {
+    if (!force && buffer_occupancy_percent() > 60) {
         return;
     }
 
@@ -159,10 +162,13 @@ void MediaPrefetchManager::issue_fetch(bool force) {
     worker_job.issue([this](AsyncJobExecutionControl &control) { fetch_routine(control); });
 }
 
+uint8_t MediaPrefetchManager::buffer_occupancy_percent() const {
+    std::lock_guard mutex_guard(mutex);
+    return static_cast<uint8_t>(((shared_state.read_tail.buffer_pos - shared_state.read_head.buffer_pos + buffer_size) % buffer_size * 100) / buffer_size);
+}
+
 void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
     auto &s = worker_state;
-
-    log_debug(MediaPrefetch, "Fetch start");
 
     // (Re)initialize the reader if necessary
     {
@@ -197,9 +203,17 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
             s.read_head.buffer_pos = shared_state.read_head.buffer_pos;
         }
 
+        log_debug(MediaPrefetch, "Fetch start '%s' from %" PRIu32, filepath.data(), s.gcode_reader_pos);
+        assert(strlen(filepath.data()) > 0);
+
         if (reader_needs_initialization) {
+            // First destroy, then create, to prevent having two readers at the same time
+            s.gcode_reader = {};
             s.gcode_reader = AnyGcodeFormatReader(filepath.data());
+
             if (!s.gcode_reader.is_open()) {
+                log_debug(MediaPrefetch, "Fetch open failed");
+
                 std::lock_guard mutex_guard(mutex);
 
                 if (control.is_discarded()) {
@@ -214,12 +228,16 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
             const auto stream_start_result = s.gcode_reader->stream_gcode_start(s.gcode_reader_pos);
 
             if (stream_start_result != IGcodeReader::Result_t::RESULT_OK) {
+                log_debug(MediaPrefetch, "Fetch start stream fail: %i", static_cast<int>(stream_start_result));
+
                 // Close the reader so that stream_gcode_start is attempted on the next fetch
                 s.gcode_reader = {};
 
                 fetch_report_error(control, stream_start_result);
                 return;
             }
+
+            log_debug(MediaPrefetch, "Fetch reader (re)opened");
 
             // Update file size estimate
             const auto file_size_estimate = s.gcode_reader->get_gcode_stream_size_estimate();
@@ -240,22 +258,23 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
         }
     }
 
+    const auto initial_gcode_pos = s.gcode_reader_pos;
+
     // Keep fetching until we run out of space
     while (true) {
         // If the command buffer contains a full command, flush it
         // If we failed, it means that there is not enough space in the buffer and we need to continue flushing in the next fetch
         if (s.command_buffer.flush_pending && !fetch_flush_command(control)) {
-            log_debug(MediaPrefetch, "Buffer full");
+            log_debug(MediaPrefetch, "Flush command stopped: %" PRIu16 " %" PRIu16, s.write_tail.buffer_pos, s.read_head.buffer_pos);
             break;
         }
 
-        // Read next command from the stream
-        while (!s.command_buffer.flush_pending) {
-            fetch_command(control);
+        if (!fetch_command(control)) {
+            break;
         }
     }
 
-    log_debug(MediaPrefetch, "Fetch finished");
+    log_debug(MediaPrefetch, "Fetch stop at %" PRIu32 ", fetched %" PRIu32, s.gcode_reader_pos, s.gcode_reader_pos - initial_gcode_pos);
 }
 
 bool MediaPrefetchManager::fetch_flush_command(AsyncJobExecutionControl &control) {
@@ -289,6 +308,10 @@ bool MediaPrefetchManager::fetch_flush_command(AsyncJobExecutionControl &control
     // TODO: Add compression: comment removing, space removing, special records for G1 and such
     {
         const auto command_len = strlen(s.command_buffer_data.data());
+
+        // We're using one byte to encode length, cannot go longer
+        assert(command_len < 256);
+
         if (!can_write_entry_raw(sizeof(RecordHeader) + sizeof(uint8_t) + command_len)) {
             return false;
         }
@@ -304,6 +327,8 @@ bool MediaPrefetchManager::fetch_flush_command(AsyncJobExecutionControl &control
             if (control.is_discarded()) {
                 return false;
             }
+
+            shared_state.commands_in_buffer++;
 
             // Only do this now that a gcode is the last record in the buffer.
             // The read_command function needs to be able to finish, once it starts reading
@@ -347,9 +372,14 @@ bool MediaPrefetchManager::fetch_command(AsyncJobExecutionControl &control) {
     }
 
     if (ch == '\n') {
+        // Empty line -> just reset the buffer and keep on reading
+        if (buf_pos == 0) {
+            s.command_buffer = {};
+            return true;
+        }
+
         if (buf_pos == s.command_buffer_data.size()) {
             // TODO: propagate overflow warning to the UI
-
             log_warning(MediaPrefetch, "Warning: gcode didn't fit in the command buffer, cropped");
             buf_pos--;
         }
@@ -357,7 +387,12 @@ bool MediaPrefetchManager::fetch_command(AsyncJobExecutionControl &control) {
         s.command_buffer_data[buf_pos] = '\0';
         s.command_buffer.flush_pending = true;
 
-    } else if (buf_pos < s.command_buffer_data.size()) {
+        // log_debug(MediaPrefetch, "Read command at %" PRIu32 ": %s", s.gcode_reader_pos, s.command_buffer_data.data());
+
+    } else if (ch == ';') {
+        s.command_buffer.reading_comment = true;
+
+    } else if (!s.command_buffer.reading_comment && buf_pos < s.command_buffer_data.size()) {
         // If we get a gcode that's longer than our buffer, we do best-effort: crop it and try to execute it anyway (but show a warning)
         s.command_buffer_data[buf_pos++] = ch;
     }
@@ -369,6 +404,7 @@ void MediaPrefetchManager::fetch_report_error(AsyncJobExecutionControl &control,
     using SR = IGcodeReader::Result_t;
 
     assert(error != SR::RESULT_OK);
+    log_debug(MediaPrefetch, "Read error: %i", static_cast<int>(error));
 
     // If the read errored, update the tail error status and wait for another fetch
     std::lock_guard mutex_guard(mutex);
@@ -379,7 +415,7 @@ void MediaPrefetchManager::fetch_report_error(AsyncJobExecutionControl &control,
         return;
     }
 
-    static constexpr EnumArray<SR, Status, IGcodeReader::result_t_cnt> status_map {
+    static constexpr EnumArray<SR, Status, static_cast<int>(SR::_RESULT_LAST) + 1> status_map {
         { SR::RESULT_OK, Status::end_of_buffer },
         { SR::RESULT_EOF, Status::end_of_file },
         { SR::RESULT_TIMEOUT, Status::end_of_buffer },
@@ -402,6 +438,15 @@ void MediaPrefetchManager::read_entry_raw(void *target, size_t bytes) {
 
     // If the reading would get out of the buffer bounds, wrap
     if (read_pos + bytes > buffer_size) {
+        // Check that the read_tail is not in the wrapped region
+        if (read_tail >= read_pos) {
+            bsod(prefetch_bsod_title);
+        }
+
+        const auto part_bytes = buffer_size - read_pos;
+        memcpy(target, &buffer[read_pos], part_bytes);
+        target = reinterpret_cast<uint8_t *>(target) + part_bytes;
+        bytes -= part_bytes;
         read_pos = 0;
     }
 
@@ -422,11 +467,13 @@ bool MediaPrefetchManager::can_write_entry_raw(size_t bytes) const {
 
     // If the writing would get out of the buffer bounds, wrap
     if (write_pos + bytes > buffer_size) {
-        // If the wrapping would result in crossing the stop_mark, we cannot do that
-        if (read_head > write_pos) {
+        // If the wrapping would result in crossing/reaching the stop_mark, we cannot do that
+        if (read_head > write_pos || read_head == 0) {
             return false;
         }
 
+        const auto part_bytes = buffer_size - write_pos;
+        bytes -= part_bytes;
         write_pos = 0;
     }
 
@@ -443,6 +490,10 @@ void MediaPrefetchManager::write_entry_raw(const void *data, size_t bytes) {
 
     // If the writing would get out of the buffer bounds, wrap
     if (write_pos + bytes > buffer_size) {
+        const auto part_bytes = buffer_size - write_pos;
+        memcpy(&buffer[write_pos], data, part_bytes);
+        data = reinterpret_cast<const uint8_t *>(data) + part_bytes;
+        bytes -= part_bytes;
         write_pos = 0;
     }
 

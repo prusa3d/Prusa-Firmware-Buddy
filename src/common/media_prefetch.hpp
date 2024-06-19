@@ -70,13 +70,11 @@ public:
     /// The prefetch can possibly recover from the error states by itself.
     /// !!! To be used only for early warnings, for all other purposes, check result of read() !!!
     inline Status worker_status() const {
-        return manager_state.read_tail_status;
+        return manager_state.read_tail.status;
     }
 
-    /// \returns how much full the fetch bufer is (0-1). Only approximate, for statistics/reporting purposes.
-    inline float buffer_occupancy() const {
-        return manager_state.buffer_occupancy;
-    }
+    /// \returns how much full the fetch bufer is [0-100]. Only approximate, for statistics/reporting purposes.
+    uint8_t buffer_occupancy_percent() const;
 
     /// \returns filepath the prefetch is currently set up to
     inline auto filepath() const {
@@ -89,12 +87,6 @@ public:
         return shared_state.file_size_estimate;
     }
 
-    /// \returns estimate of the print progress, in [0, 1]
-    inline float progress_estimate() const {
-        std::lock_guard mutex_guard(mutex);
-        return std::clamp<float>(static_cast<float>(manager_state.read_head.gcode_pos.offset) / shared_state.file_size_estimate, 0, 1);
-    }
-
 private:
     /// Routine that is executed on a worker thread
     void fetch_routine(AsyncJobExecutionControl &control);
@@ -104,7 +96,7 @@ private:
     bool fetch_flush_command(AsyncJobExecutionControl &control);
 
     /// Attempts to flush a command
-    /// Buffer is full -> exit, retry on next prefetch issue
+    /// \returns \p false if the execution of the fetch should stop
     bool fetch_command(AsyncJobExecutionControl &control);
 
     void fetch_report_error(AsyncJobExecutionControl &control, IGcodeReader::Result_t error);
@@ -150,7 +142,7 @@ private:
     /// - The rest is free to be used by the worker
     std::array<uint8_t, buffer_size> buffer;
 
-    /// Fields that can be accessed from both the manager and the worker. Accesses need to be behind \p sync_mutex.
+    /// Fields that can be accessed from both the manager and the worker. Accesses need to be behind \p mutex.
     struct {
         /// Read head - state of things just after the last gcode returned by \p read_command
         /// This is only written to by the manager, worker only reads it
@@ -183,6 +175,9 @@ private:
         /// If set to true, indicates that the worker should completely reset its state and try start fetching from \p read_tail
         bool worker_reset_pending = true;
 
+        /// Number of commands stored in the buffer
+        size_t commands_in_buffer = 0;
+
         /// A way to pass the filename to the worker in a managed way
         std::array<char, FILE_PATH_BUFFER_LEN> filepath = { '\0' };
 
@@ -197,21 +192,18 @@ private:
             GCodeReaderPosition gcode_pos;
 
             /// Local copy from \p shared_state. It is modified, then flushed at the end of read_command.
-            size_t buffer_pos;
+            size_t buffer_pos = 0;
 
         } read_head;
 
         struct {
             /// Local copy from \p shared_state. Read only.
-            size_t buffer_pos;
+            size_t buffer_pos = 0;
+
+            /// Local copy from \p shared_state. Read only.
+            Status status = Status::end_of_file;
 
         } read_tail;
-
-        /// Estimate of buffer occupancy
-        float buffer_occupancy = 0;
-
-        /// Copy of \p shared_state.read_tail.status, only for early warning reasons
-        Status read_tail_status;
 
     } manager_state;
 
@@ -220,7 +212,7 @@ private:
         AnyGcodeFormatReader gcode_reader;
 
         /// Current position in gcode_reader
-        uint32_t gcode_reader_pos;
+        uint32_t gcode_reader_pos = 0;
 
         /// Buffer for the command we are currently reading
         std::array<char, MAX_CMD_SIZE> command_buffer_data = { '\0' };
@@ -231,6 +223,9 @@ private:
 
             /// Indicates whether the command buffer is ready to be flushed in the main buffer
             bool flush_pending = false;
+
+            /// Indicates whether we're currently reading a comment
+            bool reading_comment = false;
 
         } command_buffer;
 
