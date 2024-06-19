@@ -1,6 +1,7 @@
 #include "download.hpp"
 #include "files.hpp"
 
+#include <common/freertos_binary_semaphore.hpp>
 #include <common/http/resp_parser.h>
 #include <common/tcpip_callback_nofail.hpp>
 #include <common/pbuf_deleter.hpp>
@@ -18,10 +19,6 @@
 #include <lwip/altcp.h>
 #include <lwip/altcp_tcp.h>
 #include <lwip/dns.h>
-
-// FreeRTOS.h must be included before semphr.h
-#include <FreeRTOS.h>
-#include <semphr.h>
 
 using automata::ExecutionControl;
 using http::ContentEncryptionMode;
@@ -85,7 +82,7 @@ public:
     /* === State variables (yes, we are a "state machine") === */
     Phase phase = Phase::NotStarted;
     bool delete_requested = false;
-    SemaphoreHandle_t delete_allowed;
+    freertos::BinarySemaphore delete_allowed;
     atomic<DownloadStep> last_status = DownloadStep::Continue;
     uint32_t request_started = 0; // Time when we started, to allow timing out
 
@@ -139,8 +136,7 @@ public:
     std::unique_ptr<Decryptor> decryptor;
 
     Async(const char *hostname, uint16_t port, const char *path, PartialFile::Ptr destination, std::unique_ptr<Decryptor> decryptor, uint32_t start_range, optional<uint32_t> end_range)
-        : delete_allowed(xSemaphoreCreateBinary())
-        , phase_payload(Request { {}, port, {}, start_range, end_range, {} })
+        : phase_payload(Request { {}, port, {}, start_range, end_range, {} })
         , destination(move(destination))
         , decryptor(move(decryptor)) {
         auto &request = get<Request>(phase_payload);
@@ -151,9 +147,7 @@ public:
     Async(Async &&oter) = delete;
     Async &operator=(const Async &other) = delete;
     Async &operator=(Async &&other) = delete;
-    ~Async() {
-        vSemaphoreDelete(delete_allowed);
-    }
+    ~Async() = default;
 
     void done(DownloadStep how) {
         if (phase != Phase::Done) {
@@ -167,7 +161,7 @@ public:
             phase = Phase::Done;
         }
         if (delete_requested) {
-            xSemaphoreGive(delete_allowed);
+            delete_allowed.release();
         }
     }
 
@@ -443,7 +437,7 @@ void Download::AsyncDeleter::operator()(Async *a) {
         // work before it can be deleted, so it's not left somewhere as a
         // callback or something like that.
         tcpip_callback_nofail(Async::request_delete_wrap, a);
-        xSemaphoreTake(a->delete_allowed, portMAX_DELAY);
+        a->delete_allowed.acquire();
         delete a;
     }
 }
