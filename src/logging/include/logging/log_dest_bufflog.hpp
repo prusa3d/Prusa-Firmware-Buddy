@@ -5,11 +5,6 @@
 
 namespace logging {
 
-/// Initialize the buffered handler
-///
-/// Has to be called from a running thread
-void bufflog_initialize();
-
 /// Log an event using BuffLog
 ///
 /// The BuffLog destination does not guarantee delivery of all events.
