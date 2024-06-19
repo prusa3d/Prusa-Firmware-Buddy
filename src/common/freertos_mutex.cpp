@@ -36,7 +36,9 @@ Mutex::Mutex() {
 }
 
 Mutex::~Mutex() {
+#if INCLUDE_xSemaphoreGetMutexHolder == 1
     assert(xSemaphoreGetMutexHolder(handle_cast(mutex_storage)) == nullptr);
+#endif
     vSemaphoreDelete(handle_cast(mutex_storage));
 }
 
