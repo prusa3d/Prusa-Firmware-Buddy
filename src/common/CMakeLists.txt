@@ -74,7 +74,6 @@ if(BOARD MATCHES ".*BUDDY")
             w25x_communication.cpp
             wdt.cpp
             z_calibration_fsm.cpp
-            Z_probe.cpp
     )
   add_subdirectory(async_job)
 
@@ -141,12 +140,7 @@ elseif(BOARD MATCHES "XL_DEV_KIT_XLB")
             version.cpp
             wdt.cpp
             z_calibration_fsm.cpp
-            Z_probe.cpp
     )
-endif()
-
-if(PRINTER STREQUAL "MINI")
-  target_sources(firmware PRIVATE minda_broken_cable_detection.cpp MindaRedscreen.cpp)
 endif()
 
 if(NOT BOARD STREQUAL "DWARF" AND NOT BOARD STREQUAL "MODULARBED")

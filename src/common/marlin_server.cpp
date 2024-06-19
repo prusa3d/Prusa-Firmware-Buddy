@@ -104,10 +104,6 @@
     #include "SteelSheets.hpp"
 #endif
 
-#ifdef MINDA_BROKEN_CABLE_DETECTION
-    #include "Z_probe.hpp" //get_Z_probe_endstop_hits
-#endif
-
 #if ENABLED(CRASH_RECOVERY)
     #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
     #include "crash_recovery_type.hpp"
@@ -579,22 +575,6 @@ void safely_unload_filament_from_nozzle_to_mmu() {
 }
 #endif
 
-#ifdef MINDA_BROKEN_CABLE_DETECTION
-static void print_Z_probe_cnt() {
-    if (DEBUGGING(INFO)) {
-        static uint32_t last = 0;
-        static uint32_t actual = 0;
-        actual = get_Z_probe_endstop_hits();
-        if (last != actual) {
-            last = actual;
-            serial_echopair_PGM("Z Endstop hit ", actual);
-            serialprintPGM(" times.");
-            SERIAL_EOL();
-        }
-    }
-}
-#endif
-
 void server_update_vars() {
     uint32_t tick = ticks_ms();
     if ((tick - server.last_update) > MARLIN_UPDATE_PERIOD) {
@@ -653,10 +633,6 @@ static void cycle() {
     FSM_notifier::SendNotification();
 
     print_fan_spd();
-
-#ifdef MINDA_BROKEN_CABLE_DETECTION
-    print_Z_probe_cnt();
-#endif
 
 #if HAS_TOOLCHANGER()
     // Check if tool didn't fall off

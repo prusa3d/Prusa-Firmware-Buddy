@@ -38,11 +38,6 @@
 
 #include "metric.h"
 
-#ifdef MINDA_BROKEN_CABLE_DETECTION
-#include "minda_broken_cable_detection.h"
-#else
-static inline void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0(){}
-#endif
 #include "homing_reporter.hpp"
 
 #if IS_SCARA
@@ -2024,8 +2019,6 @@ float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const fe
         return NAN; // Intermediate DEPLOY (in LOW SPEED MODE)
       }
     #endif
-
-    MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0();
 
     #if HOMING_Z_WITH_PROBE
     if (axis == Z_AXIS) {

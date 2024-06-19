@@ -23,16 +23,6 @@
 #include "../../inc/MarlinConfig.h"
 #include "module/motion.h"
 
-#ifdef MINDA_BROKEN_CABLE_DETECTION
-    #include "minda_broken_cable_detection.h"
-#else
-static inline void MINDA_BROKEN_CABLE_DETECTION__BEGIN() {}
-static inline void MINDA_BROKEN_CABLE_DETECTION__PRE_XYHOME() {}
-static inline void MINDA_BROKEN_CABLE_DETECTION__POST_XYHOME() {}
-static inline void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_1() {}
-static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
-#endif
-
 #include "../gcode.h"
 
 #include "bsod.h"
@@ -378,8 +368,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   HomingReporter reporter;
 
-  MINDA_BROKEN_CABLE_DETECTION__BEGIN();
-
 #if PRINTER_IS_PRUSA_iX
   // Avoid tool cleaner
   if (Y) { 
@@ -657,8 +645,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
       TERN_(BLTOUCH, bltouch.init());
     }
 
-    MINDA_BROKEN_CABLE_DETECTION__PRE_XYHOME();
-
     // Diagonal move first if both are homing
     TERN_(QUICK_HOME, if (!failed && doX && doY) quick_home_xy());
 
@@ -762,7 +748,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
       // Home Z last if homing towards the bed
       #if HAS_Z_AXIS && DISABLED(HOME_Z_FIRST)
         if (!failed && doZ) {
-          MINDA_BROKEN_CABLE_DETECTION__POST_XYHOME();
           #if EITHER(Z_MULTI_ENDSTOPS, Z_STEPPER_AUTO_ALIGN)
             stepper.set_all_z_lock(false);
             stepper.set_separate_multi_axis(false);
@@ -827,7 +812,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
           if (!failed) {
             move_z_after_probing();
-            MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_1();
           }
         }
       #endif
@@ -959,8 +943,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     SERIAL_ECHOLNPGM(STR_Z_MOVE_COMP);
 
   TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(old_grblstate));
-
-  MINDA_BROKEN_CABLE_DETECTION__END();
 
   return !failed;
 }

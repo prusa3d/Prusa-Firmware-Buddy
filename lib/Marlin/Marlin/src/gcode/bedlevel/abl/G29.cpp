@@ -26,13 +26,6 @@
 
 #include "../../../inc/MarlinConfig.h"
 
-#ifdef MINDA_BROKEN_CABLE_DETECTION
-    #include "minda_broken_cable_detection.h"
-#else
-static inline void MINDA_BROKEN_CABLE_DETECTION__MBL_BEGIN() {}
-static inline void MINDA_BROKEN_CABLE_DETECTION__MBL_END() {}
-#endif
-
 #if HAS_ABL_NOT_UBL
 
 #include "../../gcode.h"
@@ -165,8 +158,6 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__MBL_END() {}
  *
  */
 G29_TYPE GcodeSuite::G29() {
-  MINDA_BROKEN_CABLE_DETECTION__MBL_BEGIN();
-
   #if EITHER(DEBUG_LEVELING_FEATURE, PROBE_MANUALLY)
     const bool seenQ = parser.seen('Q');
   #else
@@ -987,7 +978,6 @@ G29_TYPE GcodeSuite::G29() {
   #endif
 
   report_current_position();
-  MINDA_BROKEN_CABLE_DETECTION__MBL_END();
   G29_RETURN(isnan(measured_z));
 }
 
