@@ -108,4 +108,6 @@ extern void vAssertCalled(const char *const pcFileName,
     if ((x) == 0)       \
     vAssertCalled(__FILE__, __LINE__)
 
+#define xPortIsInsideInterrupt() false
+
 #endif /* FREERTOS_CONFIG_H */

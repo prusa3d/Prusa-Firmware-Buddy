@@ -50,7 +50,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
-  ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/freertos_mutex.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/printer_type.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp
   # LwIP parts
@@ -102,7 +102,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/libbgcode/src/LibBGCode
           ${CMAKE_BINARY_DIR}/lib/libbgcode/src/
   )
-target_link_libraries(connect_tests mbedTLS bgcode_core SG14)
+target_link_libraries(connect_tests mbedTLS bgcode_core SG14 freertos)
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 
@@ -152,7 +152,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
-  ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/freertos_mutex.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/printer_type.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
@@ -211,7 +211,7 @@ target_include_directories(
   )
 add_dependencies(connect_planner_tests generate-httpc-automata-tests-connect)
 
-target_link_libraries(connect_planner_tests SG14)
+target_link_libraries(connect_planner_tests SG14 freertos)
 
 add_executable(
   connect_registration_tests
@@ -246,7 +246,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer_file_check.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
-  ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/freertos_mutex.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/printer_type.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp
@@ -299,7 +299,7 @@ target_include_directories(
           ${CMAKE_BINARY_DIR}/lib/libbgcode/src/
   )
 add_dependencies(connect_registration_tests generate-httpc-automata-tests-connect)
-target_link_libraries(connect_registration_tests SG14)
+target_link_libraries(connect_registration_tests SG14 freertos)
 
 add_catch_test(connect_tests)
 add_catch_test(connect_planner_tests)

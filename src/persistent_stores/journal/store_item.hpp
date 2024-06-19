@@ -6,6 +6,7 @@
 #include "include/dwarf_errors.hpp"
 #include <common/array_extensions.hpp>
 #include <common/freertos_mutex.hpp>
+#include "FreeRTOS.h"
 
 #pragma GCC push_options
 #pragma GCC optimize("Os")

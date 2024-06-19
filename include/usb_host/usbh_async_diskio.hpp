@@ -2,6 +2,7 @@
 
 #include <common/freertos_mutex.hpp>
 #include <atomic>
+#include <limits>
 
 #ifndef UNITTESTS
     #include "usbh_core.h"

@@ -14,7 +14,7 @@ target_include_directories(
 # define custom macros
 target_compile_definitions(jogwheel_tests PUBLIC WIZARD_UNITTEST)
 
-target_link_libraries(jogwheel_tests SG14)
+target_link_libraries(jogwheel_tests SG14 freertos)
 
 # tell build system about the test case
 add_catch_test(jogwheel_tests)

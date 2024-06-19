@@ -7,7 +7,7 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/led_animation_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/timing_dummy.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/leds_dummy.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/freertos_mutex.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/freertos_mutex.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/leds_eeprom_access.cpp
   )
 target_include_directories(
@@ -16,3 +16,4 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/src/gui/led_animations ${CMAKE_SOURCE_DIR}/src/guiapi/include
          ${CMAKE_SOURCE_DIR}/src/gui/dialogs
   )
+target_link_libraries(leds_tests PRIVATE freertos)

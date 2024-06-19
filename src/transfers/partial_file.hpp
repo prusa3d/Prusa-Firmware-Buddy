@@ -11,6 +11,10 @@
 #include <common/unique_file_ptr.hpp>
 #include <common/freertos_mutex.hpp>
 
+// FreeRTOS.h must be included before semphr.h
+#include <FreeRTOS.h>
+#include <semphr.h>
+
 namespace transfers {
 
 /// Partial File manages a FatFS file that can be read & written at the same time.

@@ -14,11 +14,14 @@
 
 #include <atomic>
 #include <cinttypes>
-#include <semphr.h>
 #include <lwip/tcpip.h>
 #include <lwip/altcp.h>
 #include <lwip/altcp_tcp.h>
 #include <lwip/dns.h>
+
+// FreeRTOS.h must be included before semphr.h
+#include <FreeRTOS.h>
+#include <semphr.h>
 
 using automata::ExecutionControl;
 using http::ContentEncryptionMode;

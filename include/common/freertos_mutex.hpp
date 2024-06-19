@@ -18,8 +18,7 @@
  */
 #pragma once
 
-#include <FreeRTOS.h>
-#include <semphr.h>
+#include <type_traits>
 // As tempting as that may be, do not #include <mutex> here because it pulls in
 // a bunch of std::crap which breaks XL debug build due to FLASH inflation.
 
@@ -27,6 +26,23 @@ namespace freertos {
 
 class Mutex {
 public:
+    // We use erased storage in order to not pollute the scope with FreeRTOS internals.
+    // The actual size and alignment are statically asserted in implementation file.
+#ifdef UNITTESTS
+    using Storage = std::aligned_storage_t<168, 8>;
+#else
+    using Storage = std::aligned_storage_t<80, 4>;
+#endif
+
+private:
+    Storage mutex_storage;
+
+public:
+    Mutex();
+    ~Mutex();
+    Mutex(const Mutex &) = delete;
+    Mutex &operator=(const Mutex &) = delete;
+
     /**
      * Releases the lock acquired by the current task.
      * The lock must have been acquired before.
@@ -43,13 +59,6 @@ public:
      * Blocks until a lock is acquired for the current task.
      */
     void lock();
-
-    Mutex() noexcept;
-    Mutex(const Mutex &) = delete;
-    ~Mutex();
-
-private:
-    StaticSemaphore_t xSemaphoreData;
 };
 
 } // namespace freertos
