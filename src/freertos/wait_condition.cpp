@@ -1,4 +1,4 @@
-#include <common/freertos_wait_condition.hpp>
+#include <freertos/wait_condition.hpp>
 
 using namespace freertos;
 

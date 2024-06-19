@@ -3,7 +3,7 @@
 #include <array>
 #include <algorithm>
 #include <string.h>
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 #include "cmath_ext.h"
 #include "ConstexprQuickSort.hpp"
 #include <device/board.h>

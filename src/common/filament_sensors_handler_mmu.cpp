@@ -10,7 +10,7 @@
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #include "marlin_client.hpp"
 #include "metric.h"
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 #include "filters/median_filter.hpp"
 #include <mutex>
 #include <config_store/store_instance.hpp>

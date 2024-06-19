@@ -5,7 +5,7 @@
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor_photoelectric.hpp"
 #include "marlin_client.hpp"
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 #include <mutex>
 
 // Meyer's singleton

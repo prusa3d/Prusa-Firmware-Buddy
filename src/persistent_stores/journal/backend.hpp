@@ -8,7 +8,7 @@
 #include "st25dv64k.h"
 #include <algorithm>
 #include "bsod.h"
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 #include <mutex>
 #include <variant>
 #include "store_item.hpp"

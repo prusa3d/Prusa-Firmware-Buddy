@@ -12,10 +12,10 @@
 #include <mutex>
 
 #include <FreeRTOS.h>
-#include <common/freertos_binary_semaphore.hpp>
-#include <common/freertos_mutex.hpp>
+#include <freertos/binary_semaphore.hpp>
+#include <freertos/mutex.hpp>
 #include <common/metric.h>
-#include <common/freertos_queue.hpp>
+#include <freertos/queue.hpp>
 #include <task.h>
 #include <semphr.h>
 #include <ccm_thread.hpp>

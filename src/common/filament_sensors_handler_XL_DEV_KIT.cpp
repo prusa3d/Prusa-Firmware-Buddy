@@ -8,7 +8,7 @@
 #include "filament_sensor_adc_eval.hpp"
 #include "filters/median_filter.hpp"
 #include "marlin_client.hpp"
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 #include <mutex>
 #include <puppies/Dwarf.hpp>
 #include "src/module/prusa/toolchanger.h"

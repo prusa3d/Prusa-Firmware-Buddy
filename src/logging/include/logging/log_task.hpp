@@ -1,8 +1,8 @@
 #pragma once
 
 #include <atomic>
-#include <common/freertos_binary_semaphore.hpp>
-#include <common/freertos_queue.hpp>
+#include <freertos/binary_semaphore.hpp>
+#include <freertos/queue.hpp>
 #include <logging/log.hpp>
 
 #include <FreeRTOS.h>

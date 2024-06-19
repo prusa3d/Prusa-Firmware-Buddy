@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 #include <config_store/constants.hpp>
 #include <sys/socket.h>
 

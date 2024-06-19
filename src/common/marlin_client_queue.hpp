@@ -1,7 +1,7 @@
 #pragma once
 
 #include <common/marlin_events.h>
-#include <common/freertos_queue.hpp>
+#include <freertos/queue.hpp>
 
 namespace marlin_client {
 

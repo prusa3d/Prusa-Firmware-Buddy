@@ -4,8 +4,8 @@
 #include "ccm_thread.hpp"
 #include "usb_host.h"
 
-#include <common/freertos_binary_semaphore.hpp>
-#include <common/freertos_mutex.hpp>
+#include <freertos/binary_semaphore.hpp>
+#include <freertos/mutex.hpp>
 #include <common/freertos_shared_mutex.hpp>
 #include <mutex>
 #include <shared_mutex>

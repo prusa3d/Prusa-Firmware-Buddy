@@ -1,4 +1,4 @@
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -8,10 +8,12 @@
 #include <semphr.h>
 
 // Do not check the concept on boards where #include <mutex> fills FLASH
-#include <device/board.h>
-#if !defined(BOARD_IS_MODULARBED) && !defined(BOARD_IS_DWARF)
-    #include <common/concepts.hpp>
+#ifndef UNITTESTS
+    #include <device/board.h>
+    #if !defined(BOARD_IS_MODULARBED) && !defined(BOARD_IS_DWARF)
+        #include <common/concepts.hpp>
 static_assert(concepts::Lockable<freertos::Mutex>);
+    #endif
 #endif
 
 namespace freertos {

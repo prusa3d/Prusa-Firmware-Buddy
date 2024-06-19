@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 #include "inc/MarlinConfig.h"
 #include <limits>
 #include <mutex>

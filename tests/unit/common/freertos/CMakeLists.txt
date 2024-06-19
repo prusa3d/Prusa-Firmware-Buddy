@@ -1,4 +1,4 @@
-add_executable(freertos_queue_test ${CMAKE_SOURCE_DIR}/src/common/freertos_queue.cpp queue.cpp)
+add_executable(freertos_queue_test queue.cpp)
 
 target_include_directories(
   freertos_queue_test PRIVATE . ${CMAKE_SOURCE_DIR}/tests/stubs/freertos

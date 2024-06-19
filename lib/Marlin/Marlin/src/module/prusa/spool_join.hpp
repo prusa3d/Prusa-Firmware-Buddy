@@ -1,7 +1,7 @@
 #pragma once
 
 #include "inc/MarlinConfig.h"
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 #include <array>
 #include <optional>
 #include <mutex>

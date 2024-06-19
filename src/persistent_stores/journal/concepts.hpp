@@ -1,6 +1,6 @@
 #pragma once
 #include <inplace_function.hpp>
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 #include <span>
 #include <mutex>
 

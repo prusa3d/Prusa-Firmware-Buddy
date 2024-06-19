@@ -16,10 +16,6 @@ if(BOARD MATCHES ".*BUDDY")
             filename_type.cpp
             filepath_operation.cpp
             footer_eeprom.cpp
-            freertos_binary_semaphore.cpp
-            freertos_mutex.cpp
-            freertos_queue.cpp
-            freertos_wait_condition.cpp
             fsm_network_setup.cpp
             fsm_states.cpp
             general_response.cpp
@@ -95,9 +91,6 @@ elseif(BOARD MATCHES "DWARF")
   target_sources(
     firmware
     PRIVATE adc.cpp
-            freertos_binary_semaphore.cpp
-            freertos_mutex.cpp
-            freertos_queue.cpp
             heap.cpp
             homing_reporter.cpp
             marlin_log_component.cpp
@@ -108,10 +101,7 @@ elseif(BOARD MATCHES "DWARF")
     )
   target_link_libraries(firmware PRIVATE logging)
 elseif(BOARD MATCHES "MODULARBED")
-  target_sources(
-    firmware PRIVATE freertos_binary_semaphore.cpp freertos_mutex.cpp freertos_queue.cpp heap.cpp
-                     otp.cpp
-    )
+  target_sources(firmware PRIVATE heap.cpp otp.cpp)
   target_link_libraries(firmware PRIVATE logging)
 elseif(BOARD MATCHES "XL_DEV_KIT_XLB")
   target_sources(
@@ -122,7 +112,6 @@ elseif(BOARD MATCHES "XL_DEV_KIT_XLB")
             crc32.cpp # todo: remove
             data_exchange.cpp
             ExtInterruptHandler.cpp
-            freertos_mutex.cpp
             fsm_states.cpp
             heap.cpp
             homing_reporter.cpp

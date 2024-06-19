@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 #include <atomic>
 #include <limits>
 

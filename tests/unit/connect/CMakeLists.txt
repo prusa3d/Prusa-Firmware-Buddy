@@ -50,8 +50,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
-  ${CMAKE_SOURCE_DIR}/src/common/freertos_binary_semaphore.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/freertos_mutex.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/printer_type.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp
   # LwIP parts
@@ -153,8 +151,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
-  ${CMAKE_SOURCE_DIR}/src/common/freertos_binary_semaphore.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/freertos_mutex.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/printer_type.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
@@ -248,8 +244,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer_file_check.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/freertos_binary_semaphore.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/freertos_mutex.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/printer_type.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp

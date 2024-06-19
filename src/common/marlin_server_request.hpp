@@ -1,7 +1,7 @@
 #pragma once
 
 #include <common/encoded_fsm_response.hpp>
-#include <common/freertos_queue.hpp>
+#include <freertos/queue.hpp>
 #include <common/marlin_events.h>
 
 namespace marlin_server {

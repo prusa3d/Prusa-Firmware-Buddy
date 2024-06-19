@@ -86,7 +86,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
-  ${CMAKE_SOURCE_DIR}/src/common/freertos_mutex.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )

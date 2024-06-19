@@ -1,4 +1,4 @@
-#include <common/freertos_binary_semaphore.hpp>
+#include <freertos/binary_semaphore.hpp>
 
 #include <cstdlib>
 

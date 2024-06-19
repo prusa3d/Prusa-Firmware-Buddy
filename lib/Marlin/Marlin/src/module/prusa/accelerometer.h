@@ -12,7 +12,7 @@ static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 #if HAS_LOCAL_ACCELEROMETER()
     #include "SparkFunLIS2DH.h"
 #elif HAS_REMOTE_ACCELEROMETER()
-    #include <common/freertos_mutex.hpp>
+    #include <freertos/mutex.hpp>
     #include <common/circular_buffer.hpp>
     #include <puppies/fifo_coder.hpp>
 #endif

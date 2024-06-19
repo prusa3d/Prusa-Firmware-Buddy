@@ -1,7 +1,7 @@
 #include "download.hpp"
 #include "files.hpp"
 
-#include <common/freertos_binary_semaphore.hpp>
+#include <freertos/binary_semaphore.hpp>
 #include <common/http/resp_parser.h>
 #include <common/tcpip_callback_nofail.hpp>
 #include <common/pbuf_deleter.hpp>

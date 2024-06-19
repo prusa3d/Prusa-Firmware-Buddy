@@ -7,7 +7,6 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/led_animation_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/timing_dummy.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/leds_dummy.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/freertos_mutex.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/leds_eeprom_access.cpp
   )
 target_include_directories(

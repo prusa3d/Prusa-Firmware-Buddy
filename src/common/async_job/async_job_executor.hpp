@@ -1,8 +1,8 @@
 #pragma once
 
-#include <common/freertos_mutex.hpp>
-#include <common/freertos_binary_semaphore.hpp>
-#include <common/freertos_wait_condition.hpp>
+#include <freertos/mutex.hpp>
+#include <freertos/binary_semaphore.hpp>
+#include <freertos/wait_condition.hpp>
 
 class AsyncJobBase;
 

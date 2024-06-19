@@ -5,7 +5,7 @@
 #include "marlin_events.h"
 #include "marlin_server.hpp"
 #include <cassert>
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 #include <stdio.h>
 #include <string.h>
 #include <cstdint>

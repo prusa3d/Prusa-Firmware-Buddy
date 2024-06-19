@@ -9,7 +9,7 @@
 #include "usbh_async_diskio.hpp"
 
 #include <common/unique_file_ptr.hpp>
-#include <common/freertos_mutex.hpp>
+#include <freertos/mutex.hpp>
 
 // FreeRTOS.h must be included before semphr.h
 #include <FreeRTOS.h>

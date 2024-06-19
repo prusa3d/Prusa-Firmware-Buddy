@@ -1,8 +1,8 @@
 #pragma once
 
-#include "freertos_binary_semaphore.hpp"
-
 #include <atomic>
+#include <freertos/binary_semaphore.hpp>
+#include <mutex>
 
 namespace freertos {
 

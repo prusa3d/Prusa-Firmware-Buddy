@@ -1,5 +1,6 @@
 #include "catch2/catch.hpp"
-#include "freertos_queue.hpp"
+
+#include <freertos/queue.hpp>
 
 TEST_CASE("Freertos queue", "[freertos]") {
     SECTION("no dynamic allocation") {

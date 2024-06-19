@@ -7,7 +7,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/persistent_stores/storage_drivers/eeprom_storage.cpp
   ../mock/bsod.cpp
   ../mock/timing_dummy.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/freertos_mutex.cpp
   ../mock/crc32_sw.cpp
   )
 

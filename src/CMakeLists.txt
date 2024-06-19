@@ -1,6 +1,7 @@
 target_include_directories(firmware PRIVATE .)
 
 add_subdirectory(device)
+add_subdirectory(freertos)
 add_subdirectory(segger)
 add_subdirectory(hw)
 add_subdirectory(logging)
@@ -73,3 +74,4 @@ elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
 endif()
 
 target_sources(firmware PRIVATE freertos.cpp)
+target_link_libraries(firmware PRIVATE freertos)

@@ -9,7 +9,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/gcode/meatpack.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/lib/heatshrink/heatshrink_decoder.c
-  ${CMAKE_SOURCE_DIR}/src/common/freertos_mutex.cpp
   gcode_reader.cpp
   missing_functions.c
   )

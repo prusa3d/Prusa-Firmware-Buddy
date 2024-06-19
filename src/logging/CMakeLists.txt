@@ -19,6 +19,7 @@ target_link_libraries(
   logging
   PRIVATE BuddyHeaders # pretty much everything
           FreeRTOS::FreeRTOS # pretty much everything
+          freertos
           Arduino::Core # config store 🤦
           SG14 # config store 🤦
           error_codes # config store 🤦

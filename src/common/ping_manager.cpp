@@ -1,7 +1,7 @@
 #include "ping_manager.hpp"
 #include "timing.h"
 
-#include <common/freertos_binary_semaphore.hpp>
+#include <freertos/binary_semaphore.hpp>
 #include <common/tcpip_callback_nofail.hpp>
 #include <common/random.h>
 #include <common/pbuf_deleter.hpp>
