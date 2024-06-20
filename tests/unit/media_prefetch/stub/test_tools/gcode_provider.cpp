@@ -17,8 +17,12 @@ void StubGcodeProviderMemory::add_line(const std::string &text) {
     data.push_back('\n');
 }
 
-void StubGcodeProviderMemory::add_result(GcodeReaderResult result) {
-    results.push({ data.size(), result });
+void StubGcodeProviderMemory::add_breakpoint(GcodeReaderResult result, uint32_t pos) {
+    if (pos == static_cast<uint32_t>(-1)) {
+        pos = data.size();
+    }
+
+    breakpoints.push({ pos, result });
 }
 
 GcodeReaderResult StubGcodeProviderMemory::stream_gcode_start(uint32_t offset) {
@@ -27,9 +31,9 @@ GcodeReaderResult StubGcodeProviderMemory::stream_gcode_start(uint32_t offset) {
 }
 
 GcodeReaderResult StubGcodeProviderMemory::stream_getc(char &ch) {
-    if (!results.empty() && results.front().first <= pos) {
-        const auto r = results.front().second;
-        results.pop();
+    if (!breakpoints.empty() && breakpoints.front().first <= pos) {
+        const auto r = breakpoints.front().second;
+        breakpoints.pop();
         return r;
     }
 

@@ -31,13 +31,17 @@ private:
 class StubGcodeProviderMemory final : public StubGcodeProviderBase {
 
 public:
-    void add_line(const std::string &text);
-
-    /// Makes the reader return the given result at the current position
-    void add_result(GcodeReaderResult result);
-
     bool has_read_all() const {
         return pos == data.size();
+    }
+
+    void add_line(const std::string &text);
+
+    /// Makes the reader return the given result at the given position
+    void add_breakpoint(GcodeReaderResult result, uint32_t pos = static_cast<uint32_t>(-1));
+
+    size_t breakpoint_count() const {
+        return breakpoints.size();
     }
 
 public:
@@ -47,6 +51,6 @@ public:
 
 private:
     std::string data;
-    std::queue<std::pair<size_t, GcodeReaderResult>> results;
+    std::queue<std::pair<size_t, GcodeReaderResult>> breakpoints;
     size_t pos = 0;
 };

@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 #include <cstring>
+#include <sstream>
 
 // We're naughty and want full access to MediaPrefetchManager
 #define private   public
@@ -32,7 +33,7 @@ TEST_CASE("media_prefetch::basic_test") {
         StubGcodeProviderMemory p;
         p.add_line("G0");
         p.add_line("G1");
-        p.add_result(R::RESULT_TIMEOUT);
+        p.add_breakpoint(R::RESULT_TIMEOUT);
 
         MediaPrefetchManager mp;
         mp.start(p.filename(), {});
@@ -187,15 +188,23 @@ TEST_CASE("media_prefetch::feed_test") {
     // Make sure that we feed enough commands, that shouldn't fit in the buffer
     constexpr size_t command_count = mp.buffer_size;
 
-    const auto command_str = [](int i) {
-        std::array<char, 96> r;
-        snprintf(r.data(), r.size(), "G%i", i);
-        return std::string(r.data());
+    const auto command_str = [](int i, bool for_writing = false) {
+        std::stringbuf buf;
+        std::ostream ss(&buf);
+
+        ss << "G" << i;
+
+        // Try to pass in a few comments at some places, the prefetch should ignore them out
+        if (for_writing && (i % 3 == 0)) {
+            ss << "; comment " << i;
+        }
+
+        return buf.str();
     };
 
     // Put the commands in the buffer
     for (size_t i = 0; i < command_count; i++) {
-        p.add_line(command_str(i));
+        p.add_line(command_str(i, true));
     }
 
     // Start the prefetch, fetch one buffer worth
@@ -208,35 +217,122 @@ TEST_CASE("media_prefetch::feed_test") {
         CHECK(mp.shared_state.read_tail.buffer_pos == old_read_tail);
     }
 
-    size_t command_i = 0;
-    size_t media_offset = 0;
-    RR r;
-    S status;
-    const auto read_whole_buffer = [&] {
-        while ((status = mp.read_command(r)) == S::ok) {
-            const std::string expected_command = command_str(command_i).data();
-            CHECK(std::string(r.gcode.data()) == expected_command);
-            CHECK(r.replay_pos.offset == media_offset);
-            CHECK(r.resume_pos.offset == media_offset + expected_command.size() + 1); // +1 for newline
+    std::vector<uint32_t> command_replay_positions;
 
-            command_i++;
-            media_offset = r.resume_pos.offset;
+    // Full buffer read tests
+    {
+        struct {
+            size_t command_i = 0;
+            size_t whole_buffer_count = 0;
+        } read_state;
+
+        RR r;
+        S status;
+
+        // Read the buffer whole, record command positions
+        {
+            size_t media_offset = 0;
+            const auto read_whole_buffer = [&] {
+                read_state.whole_buffer_count++;
+
+                while ((status = mp.read_command(r)) == S::ok) {
+                    const std::string expected_command = command_str(read_state.command_i).data();
+                    CHECK(std::string(r.gcode.data()) == expected_command);
+                    CHECK(r.replay_pos.offset == media_offset);
+                    CHECK(r.resume_pos.offset == media_offset + command_str(read_state.command_i, true).size() + 1); // +1 for newline
+
+                    read_state.command_i++;
+                    media_offset = r.resume_pos.offset;
+                    command_replay_positions.push_back(r.replay_pos.offset);
+                }
+            };
+
+            read_state = {};
+            read_whole_buffer();
+
+            // There should definitely be more commands to be fetched
+            CHECK(status == S::end_of_buffer);
+
+            // We definitely shouldn't have been able to fetch more commands that would fit in the buffer
+            // Assume each command needs to be encoded in at least 3 bytes
+            CHECK(read_state.command_i <= mp.buffer_size / 3);
+
+            // Fetch and check the rest of the file
+            while (status == S::end_of_buffer) {
+                mp.issue_fetch(true);
+                read_whole_buffer();
+            }
+
+            CHECK(status == S::end_of_file);
         }
-    };
-    read_whole_buffer();
 
-    // There should definitely be more commands to be fetched
-    CHECK(status == S::end_of_buffer);
+        const auto first_run_whole_buffer_count = read_state.whole_buffer_count;
+        const auto command_count = read_state.command_i;
 
-    // We definitely shouldn't have been able to fetch more commands that would fit in the buffer
-    // Assume each command needs to be encoded in at least 3 bytes
-    CHECK(command_i <= mp.buffer_size / 3);
+        const auto read_whole_buffer = [&] {
+            read_state.whole_buffer_count++;
 
-    // Fetch and check the rest of the file
-    while (status == S::end_of_buffer) {
-        mp.issue_fetch(true);
-        read_whole_buffer();
+            while ((status = mp.read_command(r)) == S::ok) {
+                const std::string expected_command = command_str(read_state.command_i).data();
+                REQUIRE(std::string(r.gcode.data()) == expected_command);
+                REQUIRE(command_replay_positions[read_state.command_i] == r.replay_pos.offset);
+                read_state.command_i++;
+            }
+        };
+
+        SECTION("Reread with stops") {
+            read_state = {};
+
+            p.add_breakpoint(R::RESULT_TIMEOUT, 1);
+            p.add_breakpoint(R::RESULT_TIMEOUT, 2);
+            p.add_breakpoint(R::RESULT_TIMEOUT, 16);
+            p.add_breakpoint(R::RESULT_TIMEOUT, 32);
+            p.add_breakpoint(R::RESULT_TIMEOUT, 64);
+            p.add_breakpoint(R::RESULT_TIMEOUT, 128);
+
+            const auto breakpoint_count = p.breakpoint_count();
+
+            // Restart the prefetch
+            mp.start(p.filename(), {});
+
+            do {
+                read_whole_buffer();
+                mp.issue_fetch(false);
+            } while (status == S::end_of_buffer);
+
+            CHECK(status == S::end_of_file);
+
+            // We should be able to read the buffer in the same number of whole reads, plus the breakpoints we've inserted
+            CHECK(read_state.whole_buffer_count == first_run_whole_buffer_count + breakpoint_count);
+        }
+
+        SECTION("Stream resumes") {
+            // Resume streams at various commands and check that all works well
+            const std::vector<size_t> restart_positions {
+                1,
+                2,
+                command_count / 4,
+                command_count / 3,
+                command_count / 2,
+                command_count - 2,
+                command_count - 1,
+            };
+
+            for (const auto restart_cmd_i : restart_positions) {
+                const auto resume_position = command_replay_positions[restart_cmd_i];
+                CAPTURE(restart_cmd_i, resume_position);
+
+                read_state = {};
+                read_state.command_i = restart_cmd_i;
+                mp.start(p.filename(), GCodeReaderPosition { {}, resume_position });
+
+                do {
+                    read_whole_buffer();
+                    mp.issue_fetch(false);
+                } while (status == S::end_of_buffer);
+
+                CHECK(status == S::end_of_file);
+            }
+        }
     }
-
-    CHECK(status == S::end_of_file);
 }
