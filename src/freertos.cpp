@@ -9,8 +9,8 @@ extern "C" void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffe
     // If the buffers to be provided to the Idle task are declared inside this
     // function then they must be declared static - otherwise they will be allocated on
     // the stack and so not exists after this function exits.
-    static StaticTask_t xIdleTaskTCB;
-    static StackType_t uxIdleTaskStack[configMINIMAL_STACK_SIZE];
+    static StaticTask_t __attribute__((section(".ccmram"))) xIdleTaskTCB;
+    static StackType_t __attribute__((section(".ccmram"))) uxIdleTaskStack[configMINIMAL_STACK_SIZE];
 
     // Pass out a pointer to the StaticTask_t structure in which the Idle task's
     // state will be stored.
@@ -35,8 +35,8 @@ extern "C" void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuf
     // If the buffers to be provided to the Timer task are declared inside this
     // function then they must be declared static - otherwise they will be allocated on
     // the stack and so not exists after this function exits.
-    static StaticTask_t xTimerTaskTCB;
-    static StackType_t uxTimerTaskStack[configTIMER_TASK_STACK_DEPTH];
+    static StaticTask_t __attribute__((section(".ccmram"))) xTimerTaskTCB;
+    static StackType_t __attribute__((section(".ccmram"))) uxTimerTaskStack[configTIMER_TASK_STACK_DEPTH];
 
     // Pass out a pointer to the StaticTask_t structure in which the Timer
     // task's state will be stored.
