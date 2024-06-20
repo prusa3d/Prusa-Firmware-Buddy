@@ -81,12 +81,14 @@ void Task::send(Event *event) {
         .event = event,
         .semaphore = &semaphore,
     };
-    // Block until we succesfully send the message. Should happen only when
-    // too many tasks are trying to log.
-    queue.send(item);
-    // Block until logging task wakes us. We need this to keep the pointers
-    // inside queue item alive.
-    semaphore.acquire();
+    // We can't afford to block here, it might lead to deadlock. Try waiting
+    // a bit and then just discard the message.
+    if (queue.try_send(item, 10)) {
+        // Block until logging task wakes us. We need this to keep the pointers
+        // inside queue item alive. The logging task only needs them for short
+        // time to format the message, which does neither log nor block.
+        semaphore.acquire();
+    }
 }
 
 } // namespace logging
