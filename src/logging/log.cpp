@@ -44,7 +44,8 @@ void log_destination_unregister(Destination *destination) {
     }
 }
 
-static Task log_task;
+// Note: While this may be in .ccmram on the f4, on the g0 it ends up in the COMMON section, which is equivalent to .bss in the linker script
+static Task __attribute__((section(".ccmram"))) log_task;
 
 void _log_event(Severity severity, const Component *component, const char *fmt, ...) {
     va_list args;
