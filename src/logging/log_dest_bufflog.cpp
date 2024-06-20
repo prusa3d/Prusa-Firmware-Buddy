@@ -4,9 +4,21 @@
 #include <cstring>
 #include <freertos/mutex.hpp>
 #include <logging/log_dest_shared.hpp>
-#include <mutex>
 
 #define BUFFLOG_BUFFER_SIZE 256
+
+// Can't use std::unique_lock from <mutex> because it pulls in a bunch of other
+// std::crap which fails debug build.
+template <class Mutex>
+class UniqueLock {
+private:
+    Mutex &mutex;
+
+public:
+    explicit UniqueLock(Mutex &mutex)
+        : mutex { mutex } { mutex.lock(); }
+    ~UniqueLock() { mutex.unlock(); }
+};
 
 namespace logging {
 
@@ -35,14 +47,14 @@ static buffer_output_state_t buffer_state = {
 };
 
 void bufflog_log_event(FormattedEvent *event) {
-    std::unique_lock lock { mutex };
+    UniqueLock lock { mutex };
 
     log_format_simple(event, buffer_output, &buffer_state);
     buffer_output(BUFFLOG_TERMINATION_CHAR, &buffer_state);
 }
 
 size_t bufflog_pickup(char *dest, size_t buffer_size) {
-    std::unique_lock lock { mutex };
+    UniqueLock lock { mutex };
 
     const size_t available = (buffer_state.write - buffer_state.read) % BUFFLOG_BUFFER_SIZE;
     const size_t to_copy = std::min(buffer_size, available);
