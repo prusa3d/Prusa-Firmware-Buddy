@@ -15,9 +15,9 @@ using S = MediaPrefetchManager::Status;
 using RR = MediaPrefetchManager::ReadResult;
 using R = GcodeReaderResult;
 
-bool read_gcode(MediaPrefetchManager &mp, const char *cmd) {
+bool read_gcode(MediaPrefetchManager &mp, const std::string &cmd) {
     MediaPrefetchManager::ReadResult c;
-    return (mp.read_command(c) == S::ok) && !strcmp(c.gcode.data(), cmd);
+    return (mp.read_command(c) == S::ok) && c.gcode.data() == cmd;
 }
 
 TEST_CASE("media_prefetch::basic_test") {
@@ -335,4 +335,30 @@ TEST_CASE("media_prefetch::feed_test") {
             }
         }
     }
+}
+
+TEST_CASE("media_prefetch::command_buffer_overflow_text") {
+    StubGcodeProviderMemory p;
+    MediaPrefetchManager mp;
+
+    const std::string long_gcode = "G28 And this is a very long gcode without a comment, it should get cropped eventually blah blah blah";
+    const std::string long_cropped_gcode = long_gcode.substr(0, MAX_CMD_SIZE - 1);
+
+    const std::string long_gcode_with_comment_removed = "M36 And this";
+    const std::string long_gcode_with_comment = long_gcode_with_comment_removed + "; And this is a comment that makes the gcode longer than the buffer blah blah blah";
+
+    const std::string short_gcode = "A111";
+
+    p.add_line(long_gcode);
+    p.add_line(long_gcode_with_comment);
+    p.add_line(short_gcode);
+
+    mp.start(p.filename(), {});
+
+    REQUIRE(read_gcode(mp, long_cropped_gcode));
+    REQUIRE(read_gcode(mp, long_gcode_with_comment_removed));
+    REQUIRE(read_gcode(mp, short_gcode));
+
+    RR r;
+    CHECK(mp.read_command(r) == S::end_of_file);
 }
