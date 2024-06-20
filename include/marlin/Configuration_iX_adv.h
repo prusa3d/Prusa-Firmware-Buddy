@@ -1783,12 +1783,27 @@
 //#define SENSORLESS_PROBING
 
     #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
-        #define X_STALL_SENSITIVITY 1
-        #define Y_STALL_SENSITIVITY 1
+        #define X_STALL_SENSITIVITY  0
+        #define Y_STALL_SENSITIVITY  0
         #define Z_STALL_SENSITIVITY  4
 
         #define STALL_THRESHOLD_TMC2130 0xFFFFF
         #define STALL_THRESHOLD_TMC2209 0xFFFFF
+    #endif
+
+    #ifdef IMPROVE_HOMING_RELIABILITY
+        #define XY_HOMING_ACCELERATION 1250
+        #define XY_HOMING_JERK 8
+        #define X_CURRENT_HOME X_CURRENT
+        #define Y_CURRENT_HOME Y_CURRENT
+        #ifdef PRECISE_HOMING_COREXY
+            #define XY_HOMING_HOLDING_CURRENT_A 900     // mA: holding current for motor A
+            #define XY_HOMING_ORIGIN_OFFSET -5.f        // mm: parallel distance from initial origin
+            #define XY_HOMING_ORIGIN_MAX_RETRIES 6      // count: maximum number of refinement attempts
+            #define XY_HOMING_ORIGIN_BUMPS_MAX_ERR 0.15 // mm: max error between acceptable probes
+            #define XY_HOMING_ORIGIN_SHIFT_X 5.f        // mm: post-refinement X origin shift
+            #define XY_HOMING_ORIGIN_SHIFT_Y 5.f        // mm: post-refinement Y origin shift
+        #endif
     #endif
 
     /**

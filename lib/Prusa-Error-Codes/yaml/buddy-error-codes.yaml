@@ -30,7 +30,7 @@ Errors:
     approved: true
 
   - code: "XX102"
-    printers: [XL]
+    printers: [iX, XL]
     title: "PRECISE REFINEMENT FAILED"
     text: "Consider adjusting belt tension."
     id: "PRECISE_REFINEMENT_FAILED"
