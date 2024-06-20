@@ -38,6 +38,18 @@ using ValidPart = transfers::PartialFile::ValidPart;
 using std::nullopt;
 using std::string_view;
 
+IGcodeReader::Result_t stream_get_block(IGcodeReader &reader, char *target, size_t &size) {
+    auto end = target + size;
+    while (target != end) {
+        const auto res = reader.stream_getc(*(target++));
+        if (res != IGcodeReader::Result_t::RESULT_OK) {
+            size -= (end - target);
+            return res;
+        }
+    }
+    return IGcodeReader::Result_t::RESULT_OK;
+};
+
 struct DummyReader : public GcodeReaderCommon {
     std::deque<char> data;
     Result_t final_result;
@@ -79,10 +91,6 @@ struct DummyReader : public GcodeReaderCommon {
 
     virtual Result_t stream_get_line(GcodeBuffer &buffer, Continuations continuations) {
         return stream_get_line_common(buffer, continuations);
-    }
-
-    virtual Result_t stream_get_block(char *, size_t &) override {
-        return Result_t::RESULT_ERROR;
     }
 
     Result_t dummy_getc(char &out) {
@@ -171,9 +179,9 @@ TEST_CASE("stream restore at offset", "[GcodeReader]") {
             REQUIRE(reader2->stream_gcode_start(offset) == IGcodeReader::Result_t::RESULT_OK);
 
             auto size1 = size;
-            auto res1 = reader1.stream_get_block(buffer1.get(), size1);
+            auto res1 = stream_get_block(reader1, buffer1.get(), size1);
             auto size2 = size;
-            auto res2 = reader2->stream_get_block(buffer2.get(), size2);
+            auto res2 = stream_get_block(*reader2, buffer2.get(), size2);
 
             REQUIRE(res1 == res2);
             REQUIRE(((res1 == IGcodeReader::Result_t::RESULT_EOF) || (res1 == IGcodeReader::Result_t::RESULT_OK)));
@@ -192,7 +200,7 @@ TEST_CASE("stream restore at offset", "[GcodeReader]") {
 
             offset += size;
             // read something from the buffer2, so that file position moves and we could see if stream_gcode_start doesn't return to correct position
-            reader2->stream_get_block(buffer2.get(), size);
+            stream_get_block(*reader2, buffer2.get(), size);
 
             restore_info = reader2->get_restore_info();
             has_restore_info = true;
@@ -519,7 +527,7 @@ TEST_CASE("Reader CRC: incorrect on another gcode") {
 
     while (result == IGcodeReader::Result_t::RESULT_OK) {
         size_t size = sizeof buffer;
-        result = reader.get()->stream_get_block(buffer, size);
+        result = stream_get_block(*reader, buffer, size);
     }
 
     // We finish by finding a corruption, not running until the very end.

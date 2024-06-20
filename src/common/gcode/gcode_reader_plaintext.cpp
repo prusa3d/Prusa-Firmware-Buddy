@@ -152,35 +152,6 @@ IGcodeReader::Result_t PlainGcodeReader::stream_getc_thumbnail_impl(char &out) {
     }
 }
 
-PlainGcodeReader::Result_t PlainGcodeReader::stream_get_block(char *out_data, size_t &size) {
-    if (stream_mode_ != StreamMode::gcode) {
-        size = 0;
-        return Result_t::RESULT_ERROR;
-    }
-
-    auto file = this->file.get();
-    long pos = ftell(file);
-    if (!range_valid(pos, pos + size)) {
-        size = 0;
-        return Result_t::RESULT_OUT_OF_RANGE;
-    }
-
-    size_t res = fread(out_data, 1, size, file);
-    if (res == size) {
-        size = res;
-        return Result_t::RESULT_OK;
-    } else if (feof(file)) {
-        size = res;
-        return Result_t::RESULT_EOF;
-    } else {
-        size = 0;
-        if (ferror(file) && errno == EAGAIN) {
-            return Result_t::RESULT_TIMEOUT;
-        }
-        return Result_t::RESULT_ERROR;
-    }
-}
-
 uint32_t PlainGcodeReader::get_gcode_stream_size_estimate() {
     return file_size;
 }

@@ -488,24 +488,6 @@ bool PrusaPackGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint1
     return true;
 }
 
-PrusaPackGcodeReader::Result_t PrusaPackGcodeReader::stream_get_block(char *out_data, size_t &size) {
-    if (stream_mode_ == StreamMode::none) {
-        size = 0;
-        return Result_t::RESULT_ERROR;
-    }
-
-    auto orig_size = size;
-    size = 0;
-    while (size != orig_size) {
-        auto res = stream_getc(*(out_data++));
-        if (res != IGcodeReader::Result_t::RESULT_OK) {
-            return res;
-        }
-        ++size;
-    }
-    return Result_t::RESULT_OK;
-}
-
 uint32_t PrusaPackGcodeReader::get_gcode_stream_size_estimate() {
     auto file = this->file.get();
     long pos = ftell(file); // store file position, so we don't break any running streams

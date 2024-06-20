@@ -93,13 +93,6 @@ public:
     virtual Result_t stream_get_line(GcodeBuffer &buffer, Continuations) = 0;
 
     /**
-     * @brief Get block of data with specified size.
-     * @param out_data buffer where data will be stored
-     * @param size input size to get, output size really gotten, must be set to 0 on error
-     */
-    virtual Result_t stream_get_block(char *out_data, size_t &size) = 0;
-
-    /**
      * @brief Get total size of gcode stream, but this will just return estimate, as with PrusaPack its expensive to get real size
      * @note Estimate is extrapolating compression ratio of first few block to entire file - so it  might be bad and used with that in mind.
      *

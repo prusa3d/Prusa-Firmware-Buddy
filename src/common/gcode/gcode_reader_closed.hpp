@@ -15,9 +15,6 @@ class ClosedReader final : public IGcodeReader {
     Result_t stream_get_line(GcodeBuffer &, Continuations) override {
         return Result_t::RESULT_ERROR;
     }
-    Result_t stream_get_block(char *, size_t &) override {
-        return Result_t::RESULT_ERROR;
-    }
     uint32_t get_gcode_stream_size_estimate() override {
         return 0;
     }
