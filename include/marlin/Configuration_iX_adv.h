@@ -1728,12 +1728,13 @@
  * Provides crash detection during printing and proper crash recovery.
  * Sensorless homing must be turned on and sensitivities set accordingly.
  */
-//#define CRASH_RECOVERY
+#define CRASH_RECOVERY
 #ifdef CRASH_RECOVERY
-    #define CRASH_STALL_GUARD 2 // internal value representing sensitivity
-    #define CRASH_PERIOD 210    // (steps per tick) - reciprocal value of minimal speed
-    #define CRASH_TIMER 45      // seconds before counter reset
-    #define CRASH_COUNTER_MAX 3 // max crashes with automatic recovery
+    #define CRASH_STALL_GUARD { 2, 2 } // internal value representing sensitivity
+    #define CRASH_MAX_PERIOD { STALL_THRESHOLD_TMC2130, STALL_THRESHOLD_TMC2130 }
+    #define CRASH_FILTER (false)       // Stallguard filtering for crash detection
+    #define CRASH_TIMER 45             // seconds before counter reset
+    #define CRASH_COUNTER_MAX 3        // max crashes with automatic recovery
 #endif
 
 /**
@@ -1787,8 +1788,8 @@
         #define Y_STALL_SENSITIVITY  0
         #define Z_STALL_SENSITIVITY  4
 
-        #define STALL_THRESHOLD_TMC2130 0xFFFFF
-        #define STALL_THRESHOLD_TMC2209 0xFFFFF
+        // TODO: this is just a ballpark value
+        #define STALL_THRESHOLD_TMC2130 400 // (steps per tick) - reciprocal value of minimal speed
     #endif
 
     #ifdef IMPROVE_HOMING_RELIABILITY
