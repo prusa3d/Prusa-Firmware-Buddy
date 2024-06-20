@@ -1,7 +1,6 @@
 #include <logging/log.hpp>
 
 #include <logging/log_platform.hpp>
-#include <logging/log_task.hpp>
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
@@ -44,29 +43,11 @@ void log_destination_unregister(Destination *destination) {
     }
 }
 
-// Note: While this may be in .ccmram on the f4, on the g0 it ends up in the COMMON section, which is equivalent to .bss in the linker script
-static Task __attribute__((section(".ccmram"))) log_task;
-
 void _log_event(Severity severity, const Component *component, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     _log_event(severity, component, fmt, &args);
     va_end(args);
-}
-
-void _log_event(Severity severity, const Component *component, const char *fmt, va_list *args) {
-    if (severity < component->lowest_severity) {
-        return;
-    }
-
-    logging::Event event {};
-    event.timestamp = log_platform_timestamp_get();
-    event.task_id = log_platform_task_id_get();
-    event.severity = severity;
-    event.component = component;
-    event.fmt = fmt;
-    event.args = args;
-    log_task.send(&event);
 }
 
 void log_task_process_event(FormattedEvent *event) {

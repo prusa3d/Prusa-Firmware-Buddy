@@ -68,23 +68,3 @@ ScopedInMemoryLog::~ScopedInMemoryLog() {
     log_destination_unregister(&in_memory_log);
     log_event_func = std::nullopt;
 }
-
-namespace logging {
-
-Task::Task() {}
-void Task::send(Event *event) {
-    // Let's cheat a bit and skip queue.
-    // It is difficult to do properly inside test setting, because there is no FreeRTOS scheduler...
-    std::array<char, 128> message;
-    vsnprintf(message.data(), message.size(), event->fmt, *event->args);
-    FormattedEvent formatted_event {
-        .timestamp = event->timestamp,
-        .task_id = event->task_id,
-        .component = event->component,
-        .severity = event->severity,
-        .message = message.data(),
-    };
-    log_task_process_event(&formatted_event);
-}
-
-} // namespace logging

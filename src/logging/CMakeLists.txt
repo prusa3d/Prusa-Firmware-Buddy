@@ -3,7 +3,7 @@ add_library(
   )
 
 if(BOARD MATCHES ".*BUDDY")
-  target_sources(logging PRIVATE log_dest_syslog.cpp log_dest_usb.cpp)
+  target_sources(logging PRIVATE log_buddy.cpp log_dest_syslog.cpp log_dest_usb.cpp)
   target_link_libraries(
     logging PRIVATE LwIP # log_dest_syslog.cpp
                     tinyusb::tinyusb # log_dest_usb.cpp
@@ -11,7 +11,7 @@ if(BOARD MATCHES ".*BUDDY")
 endif()
 
 if(BOARD STREQUAL "DWARF" OR BOARD STREQUAL "XL_DEV_KIT_XLB")
-  target_sources(logging PRIVATE log_dest_bufflog.cpp)
+  target_sources(logging PRIVATE log_dest_bufflog.cpp log_puppy.cpp)
 endif()
 
 # FIXME: One day, there will be proper modules instead of this

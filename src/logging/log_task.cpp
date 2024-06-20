@@ -1,8 +1,8 @@
 #include <logging/log_task.hpp>
 
 #include <array>
+#include <cstdio>
 #include <cstdlib>
-#include <printf/printf.h>
 
 namespace logging {
 
