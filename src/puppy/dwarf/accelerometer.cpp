@@ -1,4 +1,6 @@
 #include "accelerometer.hpp"
+
+#include <freertos/critical_section.hpp>
 #include "timing.h"
 #include <cstdint>
 #include <common/bsod.h>
@@ -28,9 +30,8 @@ enum class State : uint8_t {
 State state = State::uninitialized;
 
 void clear() {
-    taskENTER_CRITICAL();
+    freertos::CriticalSection critical_section;
     sample_buffer.clear();
-    taskEXIT_CRITICAL();
     overflown_count = 0;
     first_sample_timestamp = 0;
     last_sample_timestamp = 0;
@@ -190,19 +191,16 @@ void dwarf::accelerometer::irq() {
 }
 
 bool dwarf::accelerometer::accelerometer_get_sample(AccelerometerRecord &sample) {
-    taskENTER_CRITICAL();
+    freertos::CriticalSection critical_section;
     const bool ret = sample_buffer.try_get(sample);
-    taskEXIT_CRITICAL();
     // Mark all outgoing packets as corrupted when there is an overflow
     sample.buffer_overflow = overflown_count > 0;
     return ret;
 }
 
 size_t dwarf::accelerometer::get_num_samples() {
-    taskENTER_CRITICAL();
-    const size_t size = sample_buffer.size();
-    taskEXIT_CRITICAL();
-    return size;
+    freertos::CriticalSection critical_section;
+    return sample_buffer.size();
 }
 
 float dwarf::accelerometer::measured_sampling_rate() {

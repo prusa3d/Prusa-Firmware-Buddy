@@ -5,7 +5,6 @@
  */
 
 #include "filament_sensor.hpp"
-#include "rtos_api.hpp"
 #include "metric.h"
 
 void IFSensor::check_for_events() {

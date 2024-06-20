@@ -3,6 +3,7 @@
 #include "platform.h"
 #include <device/board.h>
 #include <device/peripherals.h>
+#include <freertos/critical_section.hpp>
 #include <guiconfig/guiconfig.h>
 #include "config_features.h"
 #include "cmsis_os.h"
@@ -794,13 +795,13 @@ extern "C" void startup_task(void const *) {
     eeprom_init_i2c();
 
     // init eeprom module itself
-    taskENTER_CRITICAL();
-    st25dv64k_init(); // init NFC+eeprom chip
+    {
+        freertos::CriticalSection critical_section;
+        st25dv64k_init(); // init NFC+eeprom chip
 
-    init_config_store();
-    config_store().perform_config_check();
-
-    taskEXIT_CRITICAL();
+        init_config_store();
+        config_store().perform_config_check();
+    }
 
 // must do this before timer 1, timer 1 interrupt calls Configuration
 // also must be before initializing global variables

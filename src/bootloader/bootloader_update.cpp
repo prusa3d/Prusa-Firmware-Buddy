@@ -8,6 +8,7 @@
 #include "crc32.h"
 #include "bsod.h"
 #include <string.h>
+#include <freertos/critical_section.hpp>
 #include "sys.h"
 #include <span>
 #include <random.h>
@@ -75,7 +76,7 @@ static bool calculate_file_crc(FILE *fp, uint32_t length, uint32_t &crc) {
 static bool flash_program(const uint8_t *flash_address, const uint8_t *data, size_t length) {
     bool success = true;
 
-    taskENTER_CRITICAL();
+    freertos::CriticalSection critical_section;
 
     while (length) {
         uint32_t program_type;
@@ -101,8 +102,6 @@ static bool flash_program(const uint8_t *flash_address, const uint8_t *data, siz
         length -= block_length;
         data += block_length;
     }
-
-    taskEXIT_CRITICAL();
 
     return success;
 }

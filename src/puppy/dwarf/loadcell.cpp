@@ -1,4 +1,6 @@
 #include "loadcell.hpp"
+
+#include <freertos/critical_section.hpp>
 #include "hx717.hpp"
 #include "timing.h" // for ticks_ms
 #include <logging/log.hpp>
@@ -84,10 +86,7 @@ bool filter(const LoadcellRecord &sample) {
 bool get_loadcell_sample(LoadcellRecord &sample) {
     // Consume samples until a good one is found
     for (;;) {
-        taskENTER_CRITICAL();
-        const bool got_sample = sample_buffer.try_get(sample);
-        taskEXIT_CRITICAL();
-        if (!got_sample) {
+        if (freertos::CriticalSection critical_section; !sample_buffer.try_get(sample)) {
             return false;
         }
         if (filter(sample)) {

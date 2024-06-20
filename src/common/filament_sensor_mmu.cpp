@@ -3,7 +3,6 @@
  */
 
 #include "filament_sensor_mmu.hpp"
-#include "rtos_api.hpp"
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 
 using namespace MMU2;

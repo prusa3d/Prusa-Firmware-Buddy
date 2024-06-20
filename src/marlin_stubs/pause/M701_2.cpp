@@ -17,9 +17,9 @@
 
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
+#include <freertos/critical_section.hpp>
 #include <functional> // std::invoke
 #include <cmath>
-#include "task.h" //critical sections
 #include "filament_sensors_handler.hpp"
 #include "config_store/store_c_api.h"
 #include "RAII.hpp"
@@ -170,10 +170,9 @@ namespace PreheatStatus {
 volatile static Result preheatResult = Result::DidNotFinish;
 
 Result ConsumeResult() {
-    taskENTER_CRITICAL();
+    freertos::CriticalSection critical_section;
     Result ret = preheatResult;
     preheatResult = Result::DidNotFinish;
-    taskEXIT_CRITICAL();
     return ret;
 }
 

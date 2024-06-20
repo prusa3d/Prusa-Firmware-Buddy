@@ -1,5 +1,6 @@
 #include "marlin_server.hpp"
 
+#include <freertos/critical_section.hpp>
 #include "marlin_client_queue.hpp"
 #include "marlin_server_request.hpp"
 #include <inttypes.h>
@@ -3033,14 +3034,12 @@ Response get_response_from_phase_internal(uint8_t encoded_fsm, uint8_t encoded_p
     //        However, maybe we should instead require that the calling task
     //        is actually Marlin task. This is most probably the case,
     //        but checking that is beyond the scope of this patch.
-    taskENTER_CRITICAL();
+    freertos::CriticalSection critical_section;
     const EncodedFSMResponse value = server_side_encoded_fsm_response;
     if (encoded_fsm == value.encoded_fsm && encoded_phase == value.encoded_phase) {
         server_side_encoded_fsm_response = empty_encoded_fsm_response;
-        taskEXIT_CRITICAL();
         return Response(value.encoded_response);
     } else {
-        taskEXIT_CRITICAL();
         return Response::_none;
     }
 }

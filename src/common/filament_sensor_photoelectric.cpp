@@ -15,7 +15,6 @@
 // Max Tau ~= 20*10^-12 * 50*10^3 = 1*10^-6 s ... about 1us
 
 #include "filament_sensor_photoelectric.hpp"
-#include "rtos_api.hpp"
 
 #include <device/board.h>
 

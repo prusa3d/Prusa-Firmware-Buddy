@@ -1,5 +1,5 @@
 #include "last_migration.hpp"
-#include <rtos_api.hpp>
+#include <freertos/critical_section.hpp>
 #include <journal/backend.hpp>
 #include <charconv>
 #include <version.h>
@@ -9,7 +9,7 @@
 
 namespace config_store_ns::old_eeprom {
 void eeprom_init_ram_mirror(eeprom_data &eeprom_ram_mirror) {
-    CriticalSection critical_section;
+    freertos::CriticalSection critical_section;
     st25dv64k_user_read_bytes(config_store_ns::start_address, (void *)&eeprom_ram_mirror, sizeof(eeprom_ram_mirror));
 }
 

@@ -13,7 +13,6 @@
 #include "algorithm_range.hpp"
 #include "filament_sensor_adc_eval.hpp"
 
-#include "rtos_api.hpp"
 #include <config_store/store_instance.hpp>
 #include <option/has_side_fsensor.h>
 

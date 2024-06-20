@@ -6,7 +6,6 @@
  */
 
 #include "filament_sensors_handler.hpp"
-#include "rtos_api.hpp"
 #include "bsod.h"
 #include <tasks.hpp>
 #include "window_msgbox.hpp"

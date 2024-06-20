@@ -10,6 +10,7 @@
 #include "bsod.h"
 #include "bbf.hpp"
 #include <logging/log.hpp>
+#include <freertos/critical_section.hpp>
 #include "timing.h"
 #include "cmsis_os.h"
 #include "stm32f4xx.h"
@@ -404,15 +405,17 @@ static FILE *open_bbf_over_debugger(Path &path_buffer, const buddy::resources::R
     const char *filepath = first_space + 1;
     log_warning(Resources, "BBF over debugger filename: %s", filepath);
 
-    // open the bbf file
-    // we have to keep this within the critical section, as
-    // setDefaultDevice does not work per-task and we need to make
-    // sure someone else does not set it to something different before
-    // we open the file
-    taskENTER_CRITICAL();
-    setDefaultDevice(FindDevice("/semihosting"));
-    FILE *bbf = fopen(filepath, "rb");
-    taskEXIT_CRITICAL();
+    FILE *bbf = nullptr;
+    {
+        // open the bbf file
+        // we have to keep this within the critical section, as
+        // setDefaultDevice does not work per-task and we need to make
+        // sure someone else does not set it to something different before
+        // we open the file
+        freertos::CriticalSection critical_section;
+        setDefaultDevice(FindDevice("/semihosting"));
+        bbf = fopen(filepath, "rb");
+    }
     if (bbf == nullptr) {
         return nullptr;
     }

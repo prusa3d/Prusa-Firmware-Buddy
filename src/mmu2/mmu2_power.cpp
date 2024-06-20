@@ -10,7 +10,7 @@
     #include "timing.h"
     #include "timing_precise.hpp"
     #include "disable_interrupts.h"
-    #include "rtos_api.hpp"
+    #include <freertos/critical_section.hpp>
     #include "hw_configuration.hpp"
 
 namespace MMU2 {
@@ -49,7 +49,7 @@ void power_on() {
     activate_reset();
 
     if (!config.can_power_up_mmu_without_pulses()) {
-        CriticalSection critical_section;
+        freertos::CriticalSection critical_section;
 
         for (uint32_t i = 0; i < us_total; i += (us_high + us_low)) {
             {

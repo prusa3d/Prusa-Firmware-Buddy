@@ -9,10 +9,8 @@
 
 #include "at21csxx.hpp"
 #include <string.h>
-#include "FreeRTOS.h"
-#include "task.h"
 #include <wdt.hpp>
-#include "rtos_api.hpp"
+#include <freertos/critical_section.hpp>
 #include "timing_precise.hpp"
 
 /*
@@ -199,7 +197,7 @@ int AT21CSxx::find_device() {
 int AT21CSxx::read(uint8_t data_addr) {
     int data;
     {
-        CriticalSection cs;
+        freertos::CriticalSection critical_section;
         int res = load_address(data_addr); // Load data address into Address Pointer.
         if (res < 0) {
             return res - 5;
@@ -227,7 +225,7 @@ int AT21CSxx::read(uint8_t data_addr) {
 int AT21CSxx::write(uint8_t data_addr, uint8_t data) {
 
     {
-        CriticalSection cs;
+        freertos::CriticalSection critical_section;
         int res = load_address(data_addr); // Load data address into Address Pointer.
         if (res < 0) {
             return res;
@@ -240,7 +238,7 @@ int AT21CSxx::write(uint8_t data_addr, uint8_t data) {
     }
     osDelay(5); // Wait for data to be saved to EEPROM. t_WR = 5ms
     {
-        CriticalSection cs;
+        freertos::CriticalSection critical_section;
         int test_data = read(data_addr);
         if (test_data != int(data)) {
             return -10;
