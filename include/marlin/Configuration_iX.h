@@ -809,6 +809,7 @@
 // Use Junction Deviation instead of traditional Jerk Limiting
 //
 //#define JUNCTION_DEVIATION
+#define CLASSIC_JERK
 #if DISABLED(CLASSIC_JERK)
     #define JUNCTION_DEVIATION_MM 0.02 // (mm) Distance from real junction edge
 #endif
@@ -1131,6 +1132,7 @@
 #define Y_MIN_POS -2
 #define Z_MIN_POS 0
 #define X_MAX_POS (X_MIN_POS + 288)
+#define Y_MAX_PRINT_POS (Y_BED_SIZE) // maximal print area Y position
 #define Y_MAX_POS (Y_MIN_POS + 309)
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     #define DEFAULT_Z_MAX_POS Z_SIZE

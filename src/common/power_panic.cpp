@@ -1034,6 +1034,9 @@ void ac_fault_isr() {
     power_panic_state = PPState::Triggered;
 
     // power off devices in order of power draw
+#if PRINTER_IS_PRUSA_iX
+    buddy::hw::modularBedReset.write(buddy::hw::Pin::State::high);
+#endif
     state_buf.orig_axis_known_position = axis_known_position;
     disable_XY();
     buddy::hw::hsUSBEnable.write(buddy::hw::Pin::State::high);

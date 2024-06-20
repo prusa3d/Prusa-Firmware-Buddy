@@ -1741,11 +1741,14 @@
  * Recovery from power failure. This is a distinct implementation from
  * POWER_LOSS_RECOVERY specific to Prusa printers.
  */
-//#define POWER_PANIC
+#define POWER_PANIC
 
 #ifdef POWER_PANIC
     #define POWER_PANIC_Z_LIFT_CYCLES 4 // 4xFullStep cycles = ~0.64mm
     #define POWER_PANIC_MAX_BED_DIFF 10 // Maximum bed temperature (C) difference for auto-recovery
+
+    // milliseconds to wait on hold before auto-restarting during short power failures
+    #define POWER_PANIC_HOLD_RST_MS 5000
 
     #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
     #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
