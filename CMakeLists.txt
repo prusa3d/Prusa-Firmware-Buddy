@@ -46,7 +46,7 @@ endif()
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
 set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 # enable all warnings (well, not all, but some)
 add_compile_options(-Wall -Wsign-compare)
