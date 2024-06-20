@@ -6,6 +6,7 @@
 #include "sound.hpp"
 #include "marlin_client.hpp"
 #include "ScreenHandler.hpp"
+#include <window_msgbox.hpp>
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include "module/prusa/toolchanger.h"

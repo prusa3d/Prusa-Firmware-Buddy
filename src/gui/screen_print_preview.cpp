@@ -57,10 +57,10 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
 #endif
 
     const auto makeMsgBox = [this](string_view_utf8 caption, string_view_utf8 text, const img::Resource &icon = img::warning_16x16) {
-        return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes, caption, &icon, is_closed_on_click_t::no);
+        return make_static_unique_ptr<MsgBoxTitled>(msgBoxMemSpace.data(), GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes, caption, &icon, is_closed_on_click_t::no);
     };
     const auto makeMsgBoxWait = [this](string_view_utf8 text) {
-        return make_static_unique_ptr<MsgBoxIconnedWait>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes);
+        return make_static_unique_ptr<MsgBoxIconnedWait>(msgBoxMemSpace.data(), GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes);
     };
 
     switch (phase) {

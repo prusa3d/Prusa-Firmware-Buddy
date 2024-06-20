@@ -53,11 +53,11 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
     using UniquePtrMapping = static_unique_ptr<ToolsMappingBody>;
     UniquePtrMapping tools_mapping;
 
-    using MsgBoxMemSpace = std::aligned_union<0, MsgBoxTitled, ToolsMappingBody>::type;
+    using MsgBoxMemSpace = std::array<uint8_t, std::max(sizeof(ToolsMappingBody), sizeof(MsgBoxTitled))>;
 #else
-    using MsgBoxMemSpace = std::aligned_union<0, MsgBoxTitled>::type;
+    using MsgBoxMemSpace = std::array<uint8_t, sizeof(MsgBoxTitled)>;
 #endif
-    MsgBoxMemSpace msgBoxMemSpace;
+    alignas(void *) MsgBoxMemSpace msgBoxMemSpace;
 
 public:
     ScreenPrintPreview();

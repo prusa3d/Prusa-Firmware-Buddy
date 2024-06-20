@@ -10,7 +10,8 @@
 
 #include <array>
 #include <gui/frame_qr_layout.hpp>
-
+#include <img_resources.hpp>
+#include <netdev.h>
 #include "wui_api.h"
 #include <config_store/store_instance.hpp>
 

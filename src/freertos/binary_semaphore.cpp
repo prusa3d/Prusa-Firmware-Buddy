@@ -8,15 +8,15 @@
 
 namespace freertos {
 
-// If these asserts start failing, go fix the Storage definition
-static_assert(sizeof(BinarySemaphore::Storage) == sizeof(StaticSemaphore_t));
-static_assert(alignof(BinarySemaphore::Storage) == alignof(StaticSemaphore_t));
-
 static SemaphoreHandle_t handle_cast(BinarySemaphore::Storage &semaphore_storage) {
-    return static_cast<SemaphoreHandle_t>(static_cast<void *>(&semaphore_storage));
+    return static_cast<SemaphoreHandle_t>(static_cast<void *>(semaphore_storage.data()));
 }
 
 BinarySemaphore::BinarySemaphore() {
+    // If these asserts start failing, go fix the Storage definition
+    static_assert(semaphore_storage_size == sizeof(StaticSemaphore_t));
+    static_assert(alignof(semaphore_storage) == alignof(StaticSemaphore_t));
+
     SemaphoreHandle_t semaphore = xSemaphoreCreateBinaryStatic(reinterpret_cast<StaticSemaphore_t *>(&semaphore_storage));
     // We are creating static FreeRTOS object here, supplying our own buffer
     // to be used by FreeRTOS. FreeRTOS constructs an object in that memory

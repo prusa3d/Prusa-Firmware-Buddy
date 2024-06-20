@@ -5,6 +5,7 @@
 #include <option/has_side_fsensor.h>
 #include <PersistentStorage.h>
 #include <common/nozzle_diameter.hpp>
+#include <screen_menu_hardware_checks.hpp>
 
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>

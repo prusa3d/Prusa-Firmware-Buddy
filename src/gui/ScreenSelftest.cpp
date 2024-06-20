@@ -9,7 +9,23 @@
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include <option/has_selftest_snake.h>
+
 #include "selftest_frame_revise_printer_setup.hpp"
+#include "selftest_frame_axis.hpp"
+#include "selftest_frame_fans.hpp"
+#include "selftest_frame_fsensor.hpp"
+#include "selftest_frame_gears_calib.hpp"
+#include "selftest_frame_loadcell.hpp"
+#include "selftest_frame_calib_z.hpp"
+#include "selftest_frame_temp.hpp"
+#include "selftest_frame_firstlayer.hpp"
+#include "selftest_frame_firstlayer_questions.hpp"
+#include "selftest_frame_result.hpp"
+#include "selftest_frame_wizard_prologue.hpp"
+#include "selftest_frame_wizard_epilogue.hpp"
+#include "selftest_frame_dock.hpp"
+#include "selftest_frame_tool_offsets.hpp"
+#include "selftest_invalid_state.hpp"
 
 ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
     switch (part) {

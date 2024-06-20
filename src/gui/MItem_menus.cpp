@@ -55,6 +55,8 @@
 #include "screen_menu_factory_reset.hpp"
 #include "screen_menu_error_test.hpp"
 #include "screen_menu_input_shaper.hpp"
+#include <screen_menu_languages.hpp>
+#include <screen_menu_info.hpp>
 
 #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
     #include <screen_menu_bed_level_correction.hpp>

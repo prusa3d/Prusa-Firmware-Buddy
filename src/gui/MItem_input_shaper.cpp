@@ -1,6 +1,8 @@
 #include "MItem_input_shaper.hpp"
 
 #include "ScreenHandler.hpp"
+#include <MItem_tools.hpp>
+#include <window_msgbox.hpp>
 
 MI_IS_X_ONOFF::MI_IS_X_ONOFF()
     : WI_ICON_SWITCH_OFF_ON_t(false /* set in ScreenMenuInputShaper::update_gui*/, _(label), nullptr, is_enabled_t::no, is_hidden_t::dev) {

@@ -6,6 +6,8 @@
 #include "ScreenHandler.hpp"
 #include "screen_change_filter.hpp"
 #include <str_utils.hpp>
+#include <screen_menu_enclosure.hpp>
+#include <window_dlg_wait.hpp>
 
 /* Once is Enclosure enabled in menu with ON/OFF switch (MI_ENCLOSURE_ENABLED), it tests the fan and after that Enclosure is declared Active */
 /* If test was passed, MI_ENCLOSURE_ENABLE is swapped with MI_ENCLOSURE and enclosure settings can be accessed */

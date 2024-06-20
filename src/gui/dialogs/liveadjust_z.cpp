@@ -11,6 +11,7 @@
 #include "config_features.h"
 #include "gui_config_printer.hpp"
 #include <guiconfig/guiconfig.h>
+#include <menu_vars.h>
 
 #if HAS_SHEET_PROFILES()
     #include "SteelSheets.hpp"

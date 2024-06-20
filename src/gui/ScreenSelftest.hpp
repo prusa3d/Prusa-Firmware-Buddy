@@ -1,47 +1,28 @@
-/**
- * @file ScreenSelftest.hpp
- * @author Radek Vana
- * @brief parent of all selftest screens
- * @date 2021-11-25
- */
 #pragma once
+
+#include <array>
+
 #include "gui.hpp"
 #include "screen.hpp"
 #include "window_header.hpp"
 #include "status_footer.hpp"
 #include <common/fsm_base_types.hpp>
-#include "selftest_frame_axis.hpp"
-#include "selftest_frame_fans.hpp"
-#include "selftest_frame_fsensor.hpp"
-#include "selftest_frame_gears_calib.hpp"
-#include "selftest_frame_loadcell.hpp"
-#include "selftest_frame_calib_z.hpp"
-#include "selftest_frame_temp.hpp"
-#include "selftest_frame_firstlayer.hpp"
-#include "selftest_frame_firstlayer_questions.hpp"
-#include "selftest_frame_result.hpp"
-#include "selftest_frame_wizard_prologue.hpp"
-#include "selftest_frame_wizard_epilogue.hpp"
-#include "selftest_frame_dock.hpp"
-#include "selftest_frame_tool_offsets.hpp"
-#include "selftest_invalid_state.hpp"
 #include "static_alocation_ptr.hpp"
 #include "printer_selftest.hpp" // SelftestMask_t
+#include <selftest_frame.hpp>
 
 class ScreenSelftest : public screen_t {
-    using mem_space = std::aligned_union<0, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, SelftestFrameFSensor, SelftestFrameGearsCalib, SelftestFrameLoadcell, ScreenSelftestTemp, SelftestFrameCalibZ, SelftestFrameFirstLayerQuestions, SelftestFrameResult
-#if BOARD_IS_BUDDY
-        ,
-        SelftestFrameFirstLayer
+#if PRINTER_IS_PRUSA_XL
+    static constexpr size_t storage_size = 2048;
+#else
+    static constexpr size_t storage_size = 1536;
 #endif
-        >::type;
-
-    mem_space all_tests;
+    alignas(void *) std::array<uint8_t, storage_size> storage;
 
     template <typename T>
     static static_unique_ptr<SelftestFrame> creator(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
-        static_assert(sizeof(T) <= sizeof(rThs.all_tests), "Error selftest part does not fit");
-        return make_static_unique_ptr<T>(&rThs.all_tests, &rThs, phase, data);
+        static_assert(sizeof(T) <= storage_size, "Error selftest part does not fit");
+        return make_static_unique_ptr<T>(rThs.storage.data(), &rThs, phase, data);
     }
 
     using fnc = static_unique_ptr<SelftestFrame> (*)(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data); // function pointer definition

@@ -5,6 +5,7 @@
 #include "WindowMenuSpin.hpp"
 #include "window_msgbox.hpp"
 #include "ScreenSelftest.hpp"
+#include <filament_sensors_handler.hpp>
 
 #include "screen_menu_mmu_preload_to_mmu.hpp"
 #include "screen_menu_mmu_load_test_filament.hpp"
@@ -16,6 +17,7 @@
 #include <config_store/store_instance.hpp>
 #include <feature/prusa/MMU2/mmu2_mk4.h>
 #include <gui/screen_printer_setup.hpp>
+#include <MItem_tools.hpp>
 
 /**********************************************************************************************/
 // MI_MMU_LOAD_FILAMENT

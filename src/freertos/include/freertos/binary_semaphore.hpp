@@ -1,6 +1,9 @@
 #pragma once
 
 #include <type_traits>
+#include <array>
+#include <cstdint>
+#include <stddef.h>
 
 namespace freertos {
 
@@ -10,13 +13,16 @@ public:
     // We use erased storage in order to not pollute the scope with FreeRTOS internals.
     // The actual size and alignment are statically asserted in implementation file.
 #ifdef UNITTESTS
-    using Storage = std::aligned_storage_t<168, 8>;
+    static constexpr size_t semaphore_storage_size = 168;
+    static constexpr size_t semaphore_storage_align = 8;
 #else
-    using Storage = std::aligned_storage_t<80, 4>;
+    static constexpr size_t semaphore_storage_size = 80;
+    static constexpr size_t semaphore_storage_align = 4;
 #endif
+    using Storage = std::array<uint8_t, semaphore_storage_size>;
 
 private:
-    Storage semaphore_storage;
+    alignas(semaphore_storage_align) Storage semaphore_storage;
 
 public:
     BinarySemaphore();

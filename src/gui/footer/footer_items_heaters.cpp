@@ -1,14 +1,9 @@
-/**
- * @file footer_items_heaters.cpp
- * @author Radek Vana
- * @date 2021-03-31
- */
-
 #include "footer_items_heaters.hpp"
 #include <guiconfig/GuiDefaults.hpp>
 #include <cmath>
 #include "ScreenHandler.hpp"
 #include "footer_eeprom.hpp"
+#include <footer_item_types.hpp>
 
 footer::ItemDrawType FooterItemHeater::GetDrawType() {
     return footer::eeprom::get_item_draw_type();

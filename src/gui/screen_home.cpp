@@ -45,6 +45,7 @@
 #include "screen_menu_settings.hpp"
 #include "screen_menu_filament.hpp"
 #include "screen_menu_control.hpp"
+#include <screen_menu_info.hpp>
 
 #if HAS_MMU2()
     #include "screen_menu_filament_mmu.hpp"

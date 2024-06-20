@@ -4,6 +4,7 @@
 #include <img_resources.hpp>
 #include <str_utils.hpp>
 #include <common/nozzle_diameter.hpp>
+#include <MItem_tools.hpp>
 
 using namespace screen_printer_setup_private;
 

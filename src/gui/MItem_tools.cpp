@@ -43,6 +43,8 @@
 #include <RAII.hpp>
 #include <st25dv64k.h>
 #include <time.h>
+#include <footer_items_heaters.hpp>
+#include <footer_line.hpp>
 
 namespace {
 void MsgBoxNonBlockInfo(string_view_utf8 txt) {

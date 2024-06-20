@@ -19,11 +19,11 @@ static_assert(concepts::Lockable<freertos::Mutex>);
 namespace freertos {
 
 // If these asserts start failing, go fix the Storage definition
-static_assert(sizeof(Mutex::Storage) == sizeof(StaticSemaphore_t));
-static_assert(alignof(Mutex::Storage) == alignof(StaticSemaphore_t));
+static_assert(Mutex::storage_size == sizeof(StaticSemaphore_t));
+static_assert(Mutex::storage_align == alignof(StaticSemaphore_t));
 
 static SemaphoreHandle_t handle_cast(Mutex::Storage &mutex_storage) {
-    return static_cast<SemaphoreHandle_t>(static_cast<void *>(&mutex_storage));
+    return static_cast<SemaphoreHandle_t>(static_cast<void *>(mutex_storage.data()));
 }
 
 Mutex::Mutex() {

@@ -19,6 +19,10 @@
 #pragma once
 
 #include <type_traits>
+#include <array>
+#include <stddef.h>
+#include <cstdint>
+
 // As tempting as that may be, do not #include <mutex> here because it pulls in
 // a bunch of std::crap which breaks XL debug build due to FLASH inflation.
 
@@ -26,16 +30,20 @@ namespace freertos {
 
 class Mutex {
 public:
-    // We use erased storage in order to not pollute the scope with FreeRTOS internals.
-    // The actual size and alignment are statically asserted in implementation file.
+// We use erased storage in order to not pollute the scope with FreeRTOS internals.
+// The actual size and alignment are statically asserted in implementation file.
 #ifdef UNITTESTS
-    using Storage = std::aligned_storage_t<168, 8>;
+    static constexpr size_t storage_size = 168;
+    static constexpr size_t storage_align = 8;
 #else
-    using Storage = std::aligned_storage_t<80, 4>;
+    static constexpr size_t storage_size = 80;
+    static constexpr size_t storage_align = 4;
 #endif
 
+    using Storage = std::array<uint8_t, storage_size>;
+
 private:
-    Storage mutex_storage;
+    alignas(storage_align) Storage mutex_storage;
 
 public:
     Mutex();

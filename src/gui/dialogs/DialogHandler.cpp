@@ -46,23 +46,13 @@ using SerialPrint = ScreenDialogDoesNotExist;
     #include "screen_input_shaper_calibration.hpp"
 #endif
 
-using mem_space = std::aligned_union_t<0, DialogQuickPause, DialogLoadUnload, DialogMenuPreheat, DialogWarning
-#if HAS_COLDPULL()
-    ,
-    ScreenColdPull
-#endif
-#if HAS_PHASE_STEPPING()
-    ,
-    ScreenPhaseStepping
-#endif
-    >;
-static mem_space all_dialogs;
+static std::array<uint8_t, 2560> mem_space;
 
 // safer than make_static_unique_ptr, checks storage size
 template <class T, class... Args>
 static static_unique_ptr<IDialogMarlin> make_dialog_ptr(Args &&...args) {
-    static_assert(sizeof(T) <= sizeof(all_dialogs), "Error dialog does not fit");
-    return make_static_unique_ptr<T>(&all_dialogs, std::forward<Args>(args)...);
+    static_assert(sizeof(T) <= mem_space.size(), "Error dialog does not fit");
+    return make_static_unique_ptr<T>(mem_space.data(), std::forward<Args>(args)...);
 }
 
 static void open_screen_if_not_opened(ScreenFactory::Creator c) {

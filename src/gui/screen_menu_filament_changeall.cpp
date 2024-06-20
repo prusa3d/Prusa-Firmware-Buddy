@@ -7,6 +7,7 @@
 #include "DialogHandler.hpp"
 #include <config_store/store_instance.hpp>
 #include "mmu2_toolchanger_common.hpp"
+#include <window_dlg_wait.hpp>
 
 I_MI_FilamentSelect::I_MI_FilamentSelect(const char *const label, int tool_n)
     : WI_LAMBDA_SPIN(_(label),

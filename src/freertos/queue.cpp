@@ -8,15 +8,15 @@
 
 namespace freertos {
 
-// If these asserts start failing, go fix the Storage definition.
-static_assert(sizeof(QueueBase::Storage) == sizeof(StaticQueue_t));
-static_assert(alignof(QueueBase::Storage) == alignof(StaticQueue_t));
-
 static QueueHandle_t handle_cast(QueueBase::Storage &queue_storage) {
-    return static_cast<QueueHandle_t>(static_cast<void *>(&queue_storage));
+    return static_cast<QueueHandle_t>(static_cast<void *>(queue_storage.data()));
 }
 
 QueueBase::QueueBase(size_t item_count, size_t item_size, uint8_t *item_storage) {
+    // If these asserts start failing, go fix the Storage definition.
+    static_assert(queue_storage_size == sizeof(StaticQueue_t));
+    static_assert(alignof(queue_storage) == alignof(StaticQueue_t));
+
     QueueHandle_t queue = xQueueCreateStatic(item_count, item_size, item_storage, reinterpret_cast<StaticQueue_t *>(&queue_storage));
     // We are creating static FreeRTOS object here, supplying our own buffer
     // to be used by FreeRTOS. FreeRTOS constructs an object in that memory

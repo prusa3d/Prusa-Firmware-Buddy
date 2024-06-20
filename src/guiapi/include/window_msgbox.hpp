@@ -41,7 +41,8 @@ protected:
     // template parameter <PhasesPrintPreview> is irrelevant - same size
     // in case it changes swap <PhasesPrintPreview> with the biggest type
     // it is checked in BindToFSM method
-    using RadioMemSpace = std::aligned_union<0, RadioButton, RadioButtonFsm<PhasesPrintPreview>>::type;
+    static constexpr size_t mem_space_size = sizeof(RadioButtonFsm<PhasesPrintPreview>);
+    using RadioMemSpace = std::array<uint8_t, mem_space_size>;
     RadioMemSpace radio_mem_space;
     static_unique_ptr<IRadioButton> pButtons;
     Response result; // return value
@@ -56,7 +57,8 @@ public:
 
     template <class FSM_PHASE>
     void BindToFSM(FSM_PHASE phase) {
-        static_assert(sizeof(RadioButtonFsm<FSM_PHASE>) <= sizeof(radio_mem_space), "RadioMemSpace is too small");
+        using T = RadioButtonFsm<FSM_PHASE>;
+        static_assert(sizeof(T) <= mem_space_size, "RadioMemSpace is too small");
 
         if (!pButtons) { // pButtons can never be null
             assert("unassigned msgbox");
@@ -71,7 +73,7 @@ public:
 
         // First reset, then create new class; we cannot afford constructing and then destructing because it's the same memory
         pButtons.reset();
-        pButtons = make_static_unique_ptr<RadioButtonFsm<FSM_PHASE>>(&radio_mem_space, this, rc, phase);
+        pButtons = make_static_unique_ptr<T>(radio_mem_space.data(), this, rc, phase);
 
         has_icon ? pButtons->SetHasIcon() : pButtons->ClrHasIcon();
         pButtons->SetBackColor(back);

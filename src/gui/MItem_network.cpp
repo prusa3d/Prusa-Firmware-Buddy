@@ -10,6 +10,7 @@
 #include <dialog_text_input.hpp>
 #include <wui.h>
 #include <str_utils.hpp>
+#include <window_msgbox.hpp>
 
 namespace {
 bool is_device_connected(netdev_status_t status) {

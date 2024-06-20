@@ -26,6 +26,7 @@
 #include "gcode_info.hpp"
 #include "language_eeprom.hpp"
 #include "screen_messages.hpp"
+#include <screen_splash.hpp>
 
 #include <option/has_side_leds.h>
 
