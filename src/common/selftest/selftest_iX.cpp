@@ -64,14 +64,16 @@ static constexpr SelftestFansConfig fans_configs[] = {
     },
 };
 
+static constexpr float homing_backoff[] = HOMING_BACKOFF_POST_MM;
+
 // reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = {
     .partname = "X-Axis",
-    .length = X_MAX_POS,
+    .length = X_MAX_LENGTH,
     .fr_table_fw = XYfr_table,
     .fr_table_bw = XYfr_table,
-    .length_min = X_MAX_POS,
-    .length_max = X_MAX_POS + X_END_GAP,
+    .length_min = X_MAX_LENGTH - homing_backoff[X_AXIS], // After homing, the printer backs off a little. Account for the distance in the measured axis length.
+    .length_max = X_MAX_LENGTH + X_END_GAP,
     .axis = X_AXIS,
     .steps = xy_fr_table_size,
     .movement_dir = -1,
@@ -81,11 +83,11 @@ const AxisConfig_t selftest::Config_XAxis = {
 
 const AxisConfig_t selftest::Config_YAxis = {
     .partname = "Y-Axis",
-    .length = Y_MAX_POS,
+    .length = Y_MAX_LENGTH,
     .fr_table_fw = XYfr_table,
     .fr_table_bw = XYfr_table,
-    .length_min = Y_MAX_POS,
-    .length_max = Y_MAX_POS + Y_END_GAP,
+    .length_min = Y_MAX_LENGTH - homing_backoff[Y_AXIS], // After homing, the printer backs off a little. Account for the distance in the measured axis length.
+    .length_max = Y_MAX_LENGTH + Y_END_GAP,
     .axis = Y_AXIS,
     .steps = xy_fr_table_size,
     .movement_dir = -1,

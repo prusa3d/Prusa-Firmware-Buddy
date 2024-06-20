@@ -1141,8 +1141,8 @@
 #define Z_HOME_GAP 0
 
 /// Space after allowed end of axis where axis should end
-#define X_END_GAP 10
-#define Y_END_GAP 10
+#define X_END_GAP 5
+#define Y_END_GAP 5
 #define Z_END_GAP 10
 
 // Refine homing XY offsets on COREXY
