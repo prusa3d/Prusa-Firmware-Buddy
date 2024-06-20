@@ -1,7 +1,12 @@
 #pragma once
 
+#include <stddef.h>
+#include <array>
+#include <mutex>
+
 #include <gcode/gcode_reader_any.hpp>
 #include <async_job/async_job.hpp>
+#include <freertos/mutex.hpp>
 
 /// Handles loading data from a gcode file, keeps it in the ring buffer, and provides the gcode further down to the pipeline
 class MediaPrefetchManager {
@@ -59,7 +64,7 @@ public:
 
     /// Issues prefetch if the buffer is running empty.
     /// If \param force is \p false, the fetch is issued only when the buffer is running empty
-    void issue_fetch(bool force = true);
+    void issue_fetch(bool force);
 
     /// \returns if the buffer is empty, but we're still fetching.
     /// This is equivalent to the situation where \p read_command returns \p Status::end_of_buffer (but this is only a check, not reading anything)
@@ -70,7 +75,8 @@ public:
     /// The prefetch can possibly recover from the error states by itself.
     /// !!! To be used only for early warnings, for all other purposes, check result of read() !!!
     inline Status worker_status() const {
-        return manager_state.read_tail.status;
+        std::lock_guard mutex_guard(mutex);
+        return shared_state.read_tail.status;
     }
 
     /// \returns how much full the fetch bufer is [0-100]. Only approximate, for statistics/reporting purposes.
@@ -102,14 +108,19 @@ private:
     void fetch_report_error(AsyncJobExecutionControl &control, IGcodeReader::Result_t error);
 
 private:
+    /// \returns where the read contains at least \n bytes bytes
+    bool can_read_entry_raw(size_t bytes) const;
+
     /// Reads one entry from the buffer.
     /// Follows the logic of \p write_entry writing.
     /// !!! Only to be done from the manager context
+    /// !!! Assumes the \p mutex to be locked
     void read_entry_raw(void *target, size_t bytes);
 
+    /// !!! Only to be done from the manager context
+    /// !!! Assumes the \p mutex to be locked
     template <typename T>
     void read_entry(T &target) {
-        ;
         static_assert(std::is_trivially_copyable_v<T>);
         read_entry_raw(&target, sizeof(T));
     }
@@ -191,19 +202,7 @@ private:
             /// This is the position to resume from if we would discard the entire prefetch buffer
             GCodeReaderPosition gcode_pos;
 
-            /// Local copy from \p shared_state. It is modified, then flushed at the end of read_command.
-            size_t buffer_pos = 0;
-
         } read_head;
-
-        struct {
-            /// Local copy from \p shared_state. Read only.
-            size_t buffer_pos = 0;
-
-            /// Local copy from \p shared_state. Read only.
-            Status status = Status::end_of_file;
-
-        } read_tail;
 
     } manager_state;
 

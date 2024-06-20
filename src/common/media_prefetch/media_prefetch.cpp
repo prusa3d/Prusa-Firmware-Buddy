@@ -1,6 +1,10 @@
 #include "media_prefetch.hpp"
 
+#include <string.h>
+#include <inttypes.h>
+
 #include <logging/log.hpp>
+#include <enum_array.hpp>
 
 namespace media_prefetch {
 
@@ -37,33 +41,29 @@ MediaPrefetchManager::MediaPrefetchManager() {
 }
 
 MediaPrefetchManager::~MediaPrefetchManager() {
-    // We're not ready for this, should never happen
-    std::terminate();
+#ifdef UNITTESTS
+    stop();
+#else
+    bsod(prefetch_bsod_title);
+#endif
 }
 
 MediaPrefetchManager::Status MediaPrefetchManager::read_command(ReadResult &result) {
-    auto &s = manager_state;
+    std::lock_guard mutex_guard(mutex);
 
-    // Get the readable region boundaires
-    {
-        std::lock_guard mutex_guard(mutex);
-
-        s.read_head.buffer_pos = shared_state.read_head.buffer_pos;
-        s.read_tail.buffer_pos = shared_state.read_tail.buffer_pos;
-        s.read_tail.status = shared_state.read_tail.status;
-    }
+    auto &s = shared_state;
 
     // If we're at the buffer end, return the appropriate error
     if (s.read_head.buffer_pos == s.read_tail.buffer_pos) {
-        assert(manager_state.read_tail.status != Status::ok);
-        return manager_state.read_tail.status;
+        assert(s.read_tail.status != Status::ok);
+        return s.read_tail.status;
     }
 
-    auto &resume_pos = s.read_head.gcode_pos;
+    auto &resume_pos = manager_state.read_head.gcode_pos;
     const GCodeReaderPosition replay_pos = resume_pos;
 
     // Read records from the buffer until a gcode record is read
-    // Worker should put the data in the buffer in such way that there
+    // Worker should put the data in the buffer in such way that when there is data available to read, it ends with a gcode record.
     while (true) {
         RecordHeader header;
         read_entry(header);
@@ -101,14 +101,8 @@ MediaPrefetchManager::Status MediaPrefetchManager::read_command(ReadResult &resu
     }
 
     // Let the worker know that we've read stuff and it can reuse the memory
-    {
-        std::lock_guard mutex_guard(mutex);
-
-        assert(shared_state.commands_in_buffer > 0);
-
-        shared_state.read_head.buffer_pos = s.read_head.buffer_pos;
-        shared_state.commands_in_buffer--;
-    }
+    assert(s.commands_in_buffer > 0);
+    s.commands_in_buffer--;
 
     result.resume_pos = resume_pos;
     result.replay_pos = replay_pos;
@@ -128,7 +122,7 @@ void MediaPrefetchManager::start(const char *filepath, const GCodeReaderPosition
     shared_state.read_tail.gcode_pos = position;
     shared_state.read_tail.status = Status::end_of_buffer;
 
-    issue_fetch();
+    issue_fetch(true);
 }
 
 void MediaPrefetchManager::stop() {
@@ -253,12 +247,11 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
             }
 
         } else {
-            transfers::Transfer::Path path(filepath.data());
-            s.gcode_reader->update_validity(path);
+            s.gcode_reader->update_validity(filepath.data());
         }
     }
 
-    const auto initial_gcode_pos = s.gcode_reader_pos;
+    [[maybe_unused]] const auto initial_gcode_pos = s.gcode_reader_pos;
 
     // Keep fetching until we run out of space
     while (true) {
@@ -432,53 +425,57 @@ void MediaPrefetchManager::fetch_report_error(AsyncJobExecutionControl &control,
     }
 }
 
+bool MediaPrefetchManager::can_read_entry_raw(size_t bytes) const {
+    assert(bytes < buffer_size);
+
+    const size_t read_pos = shared_state.read_head.buffer_pos;
+    const size_t read_tail = shared_state.read_tail.buffer_pos;
+    const size_t new_read_pos = (read_pos + bytes) % buffer_size;
+
+    // Check that we don't cross the read tail.
+    // If we wrapped around the buffer, we check for the opposite.
+    const bool does_wrap = (new_read_pos < read_pos);
+
+    // This is basically the only place where can_read_entry_raw differs from can_write_entry_raw
+    // And it's correct - for reading, we can catch up to the tail. But in writing, catching up would mean wrapping.
+    const bool does_cross_tail = ((read_pos <= read_tail) != (new_read_pos <= read_tail));
+
+    return (does_cross_tail == does_wrap);
+}
+
 void MediaPrefetchManager::read_entry_raw(void *target, size_t bytes) {
-    size_t &read_pos = manager_state.read_head.buffer_pos;
-    const auto read_tail = manager_state.read_tail.buffer_pos;
+    assert(bytes < buffer_size);
 
-    // If the reading would get out of the buffer bounds, wrap
-    if (read_pos + bytes > buffer_size) {
-        // Check that the read_tail is not in the wrapped region
-        if (read_tail >= read_pos) {
-            bsod(prefetch_bsod_title);
-        }
-
-        const auto part_bytes = buffer_size - read_pos;
-        memcpy(target, &buffer[read_pos], part_bytes);
-        target = reinterpret_cast<uint8_t *>(target) + part_bytes;
-        bytes -= part_bytes;
-        read_pos = 0;
-    }
-
-    // Check that we haven't got over read_data_end_pos - that should never happen
-    // read_entry should only be called when we know there is the right data
-    // We can catch up to the read_tail, but we cannot cross it
-    if ((read_pos <= read_tail) != (read_pos + bytes <= read_tail)) {
+    if (!can_read_entry_raw(bytes)) {
         bsod(prefetch_bsod_title);
     }
 
+    size_t &read_pos = shared_state.read_head.buffer_pos;
+
+    // Possibly split into two memcpy calls, if the data wraps around the buffer end
+    const auto nonwrapped_bytes = std::min(bytes, buffer_size - read_pos);
     memcpy(target, &buffer[read_pos], bytes);
-    read_pos += bytes;
+    memcpy(reinterpret_cast<uint8_t *>(target) + nonwrapped_bytes, &buffer[0], bytes - nonwrapped_bytes);
+
+    read_pos = (read_pos + bytes) % buffer_size;
 }
 
 bool MediaPrefetchManager::can_write_entry_raw(size_t bytes) const {
-    auto write_pos = worker_state.write_tail.buffer_pos;
-    const auto read_head = worker_state.read_head.buffer_pos;
+    assert(bytes < buffer_size);
 
-    // If the writing would get out of the buffer bounds, wrap
-    if (write_pos + bytes > buffer_size) {
-        // If the wrapping would result in crossing/reaching the stop_mark, we cannot do that
-        if (read_head > write_pos || read_head == 0) {
-            return false;
-        }
+    const size_t write_pos = worker_state.write_tail.buffer_pos;
+    const size_t new_write_pos = (write_pos + bytes) % buffer_size;
+    const size_t read_head = worker_state.read_head.buffer_pos;
 
-        const auto part_bytes = buffer_size - write_pos;
-        bytes -= part_bytes;
-        write_pos = 0;
-    }
+    // Check that we don't catch up the read head  - that would be interpreted as write_pos having no data.
+    // If we wrapped around the buffer, we check for the opposite.
+    const bool does_wrap = (new_write_pos < write_pos);
 
-    // We can not catch up to the read_head - that would be interpreted as write_pos having no data
-    return (write_pos < read_head) == (write_pos + bytes < read_head);
+    // This is basically the only place where can_read_entry_raw differs from can_write_entry_raw
+    // And it's correct - for reading, we can catch up to the tail. But in writing, catching up would mean wrapping.
+    const bool does_catch_up_read_head = ((write_pos < read_head) != (new_write_pos < read_head));
+
+    return (does_catch_up_read_head == does_wrap);
 }
 
 void MediaPrefetchManager::write_entry_raw(const void *data, size_t bytes) {
@@ -486,17 +483,12 @@ void MediaPrefetchManager::write_entry_raw(const void *data, size_t bytes) {
         bsod(prefetch_bsod_title);
     }
 
-    auto &write_pos = worker_state.write_tail.buffer_pos;
+    size_t &write_pos = worker_state.write_tail.buffer_pos;
 
-    // If the writing would get out of the buffer bounds, wrap
-    if (write_pos + bytes > buffer_size) {
-        const auto part_bytes = buffer_size - write_pos;
-        memcpy(&buffer[write_pos], data, part_bytes);
-        data = reinterpret_cast<const uint8_t *>(data) + part_bytes;
-        bytes -= part_bytes;
-        write_pos = 0;
-    }
+    // Possibly split into two memcpy calls, if the data wraps around the buffer end
+    const size_t nonwrapped_bytes = std::min(bytes, buffer_size - write_pos);
+    memcpy(&buffer[write_pos], data, nonwrapped_bytes);
+    memcpy(&buffer[0], reinterpret_cast<const uint8_t *>(data) + nonwrapped_bytes, bytes - nonwrapped_bytes);
 
-    memcpy(&buffer[write_pos], data, bytes);
-    write_pos += bytes;
+    write_pos = (write_pos + bytes) % buffer_size;
 }
