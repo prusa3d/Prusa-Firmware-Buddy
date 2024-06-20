@@ -119,6 +119,7 @@ void MediaPrefetchManager::start(const char *filepath, const GCodeReaderPosition
     strlcpy(shared_state.filepath.data(), filepath, shared_state.filepath.size());
 
     assert(shared_state.worker_reset_pending);
+    manager_state.read_head.gcode_pos = position;
     shared_state.read_tail.gcode_pos = position;
     shared_state.read_tail.status = Status::end_of_buffer;
 
