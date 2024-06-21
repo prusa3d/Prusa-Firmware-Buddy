@@ -2,9 +2,10 @@
 
 #pragma once
 
-#include <stdarg.h>
-#include <stdio.h>
+#include <cstdarg>
+#include <cstdio>
 #include <array>
+
 #include <catch2/catch.hpp>
 
 auto log(const char *fmt, ...) {
@@ -22,7 +23,5 @@ auto log(const char *fmt, ...) {
 #define log_debug(component, ...)   INFO(log(__VA_ARGS__).data())
 #define log_warning(component, ...) INFO(log(__VA_ARGS__).data())
 #define log_info(component, ...)    INFO(log(__VA_ARGS__).data())
-
-#include <catch2/catch.hpp>
 
 #define bsod(err) FAIL(err)

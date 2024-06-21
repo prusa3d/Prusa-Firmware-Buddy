@@ -14,7 +14,7 @@
 
 using S = MediaPrefetchManager::Status;
 using RR = MediaPrefetchManager::ReadResult;
-using R = GcodeReaderResult;
+using R = GCodeReaderResult;
 
 bool read_gcode(MediaPrefetchManager &mp, const std::string &cmd) {
     MediaPrefetchManager::ReadResult c;
@@ -38,6 +38,7 @@ TEST_CASE("media_prefetch::basic_test") {
 
         MediaPrefetchManager mp;
         mp.start(p.filename(), {});
+        mp.issue_fetch(false);
 
         REQUIRE(read_gcode(mp, "G0"));
         REQUIRE(read_gcode(mp, "G1"));
@@ -211,6 +212,7 @@ TEST_CASE("media_prefetch::feed_test") {
 
     // Start the prefetch, fetch one buffer worth
     mp.start(p.filename(), {});
+    mp.issue_fetch(false);
 
     // Consequent fetch should not do anything
     {
@@ -307,8 +309,8 @@ TEST_CASE("media_prefetch::feed_test") {
             mp.start(p.filename(), {});
 
             do {
-                read_whole_buffer();
                 mp.issue_fetch(false);
+                read_whole_buffer();
             } while (status == S::end_of_buffer);
 
             CHECK(status == S::end_of_file);
@@ -367,7 +369,10 @@ TEST_CASE("media_prefetch::feed_test") {
                 } while (--read_cnt && status == S::ok);
 
                 mp.issue_fetch(false);
-            } while (status == S::end_of_buffer);
+            } while (status == S::end_of_buffer || status == S::ok);
+
+            CHECK(status == S::end_of_file);
+            CHECK(read_state.command_i == command_count);
         }
 
         // Same as before, but we also discard the jobs in random intervals
@@ -406,6 +411,7 @@ TEST_CASE("media_prefetch::feed_test") {
             } while (status == S::end_of_buffer || status == S::ok);
 
             CHECK(status == S::end_of_file);
+            CHECK(read_state.command_i == command_count);
             CHECK(mp.worker_job.discard_check_count >= min_discard_count);
 
             // Sanity check that we have discarded anything at all
@@ -433,6 +439,7 @@ TEST_CASE("media_prefetch::command_buffer_overflow_text") {
     p.add_line(short_gcode);
 
     mp.start(p.filename(), {});
+    mp.issue_fetch(false);
 
     REQUIRE(read_gcode(mp, long_cropped_gcode));
     REQUIRE(read_gcode(mp, long_gcode_with_comment_removed));

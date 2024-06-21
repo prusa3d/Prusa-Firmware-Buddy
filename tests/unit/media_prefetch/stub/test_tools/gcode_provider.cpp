@@ -19,20 +19,16 @@ void StubGcodeProviderMemory::add_line(const std::string &text) {
     data.push_back('\n');
 }
 
-void StubGcodeProviderMemory::add_breakpoint(GcodeReaderResult result, uint32_t pos) {
-    if (pos == static_cast<uint32_t>(-1)) {
-        pos = data.size();
-    }
-
-    breakpoints.push({ pos, result });
+void StubGcodeProviderMemory::add_breakpoint(GCodeReaderResult result, std::optional<uint32_t> pos) {
+    breakpoints.push({ pos.value_or(data.size()), result });
 }
 
-GcodeReaderResult StubGcodeProviderMemory::stream_gcode_start(uint32_t offset) {
+GCodeReaderResult StubGcodeProviderMemory::stream_gcode_start(uint32_t offset) {
     pos = offset;
-    return GcodeReaderResult::RESULT_OK;
+    return GCodeReaderResult::RESULT_OK;
 }
 
-GcodeReaderResult StubGcodeProviderMemory::stream_getc(char &ch) {
+GCodeReaderResult StubGcodeProviderMemory::stream_getc(char &ch) {
     if (!breakpoints.empty() && breakpoints.front().first <= pos) {
         const auto r = breakpoints.front().second;
         breakpoints.pop();
@@ -40,9 +36,9 @@ GcodeReaderResult StubGcodeProviderMemory::stream_getc(char &ch) {
     }
 
     if (pos >= data.size()) {
-        return GcodeReaderResult::RESULT_EOF;
+        return GCodeReaderResult::RESULT_EOF;
     }
 
     ch = data[pos++];
-    return GcodeReaderResult::RESULT_OK;
+    return GCodeReaderResult::RESULT_OK;
 }

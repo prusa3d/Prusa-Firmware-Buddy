@@ -31,7 +31,7 @@ using IGcodeReader = AnyGcodeFormatReader;
 
 class AnyGcodeFormatReader {
 public:
-    using Result_t = GcodeReaderResult;
+    using Result_t = GCodeReaderResult;
 
     AnyGcodeFormatReader() = default;
     AnyGcodeFormatReader(const char *filename);

@@ -1,6 +1,7 @@
 add_executable(
   media_prefetch_tests
   ${CMAKE_SOURCE_DIR}/src/common/media_prefetch/media_prefetch.cpp
+  ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_CURRENT_SOURCE_DIR}/media_prefetch_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/stub/gcode/gcode_reader_any.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/stub/async_job/async_job.cpp
