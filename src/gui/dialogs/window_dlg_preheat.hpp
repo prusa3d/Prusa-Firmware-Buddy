@@ -19,7 +19,7 @@ namespace NsPreheat {
 inline constexpr size_t info_len = sizeof("999/999 "); // extra space at the end is intended
 class I_MI_Filament : public WiInfo<info_len> {
 public:
-    I_MI_Filament(string_view_utf8 name, unsigned t_noz, unsigned t_bed);
+    I_MI_Filament(const string_view_utf8 &name, unsigned t_noz, unsigned t_bed);
 
 protected:
     void click_at(filament::Type filament_index);

@@ -19,7 +19,7 @@ protected:
     virtual void tuneAction() = 0;
 
 public:
-    IScreenPrinting(string_view_utf8 caption);
+    IScreenPrinting(const string_view_utf8 &caption);
     ~IScreenPrinting();
     static IScreenPrinting *GetInstance();
     static void NotifyMarlinStart();

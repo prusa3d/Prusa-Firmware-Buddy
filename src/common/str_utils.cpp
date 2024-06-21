@@ -264,7 +264,7 @@ StringBuilder &StringBuilder::append_string(const char *str) {
     return *this;
 }
 
-StringBuilder &StringBuilder::append_string_view(string_view_utf8 str) {
+StringBuilder &StringBuilder::append_string_view(const string_view_utf8 &str) {
     StringReaderUtf8 reader(str);
 
     while (true) {

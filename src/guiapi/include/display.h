@@ -90,7 +90,7 @@ public:
     }
     /// Draws text on the display
     /// \param rc rectangle where text will be placed
-    static size_ui16_t DrawText(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg); }
+    static size_ui16_t DrawText(Rect16 rc, const string_view_utf8 &str, const font_t *pf, color_t clr_bg, color_t clr_fg) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg); }
 
     /**
      * @brief Borrow display buffer.

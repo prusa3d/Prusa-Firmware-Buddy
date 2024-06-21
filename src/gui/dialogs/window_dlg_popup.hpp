@@ -16,7 +16,7 @@ class window_dlg_popup_t : public window_frame_t {
     uint32_t open_time;
     uint32_t ttl; // time to live
 
-    window_dlg_popup_t(Rect16 rect, string_view_utf8 txt);
+    window_dlg_popup_t(Rect16 rect, const string_view_utf8 &txt);
     window_dlg_popup_t(const window_dlg_popup_t &) = delete;
 
 protected:
@@ -25,5 +25,5 @@ protected:
 public:
     // register dialog to actual screen
     // 1 screen should provide same rectangle, or it might draw incorrectly
-    static void Show(Rect16 rect, string_view_utf8 txt, uint32_t time = 1000);
+    static void Show(Rect16 rect, const string_view_utf8 &txt, uint32_t time = 1000);
 };

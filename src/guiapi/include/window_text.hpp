@@ -13,8 +13,8 @@ public:
     window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close = is_closed_on_click_t::no, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR());
 
 public:
-    string_view_utf8 GetText() const { return text; }
-    virtual void SetText(string_view_utf8 txt);
+    const string_view_utf8 &GetText() const { return text; }
+    virtual void SetText(const string_view_utf8 &txt);
 
     void set_is_multiline(bool set) {
         flags.multiline = set;
@@ -42,7 +42,7 @@ public:
     }
     void set_icon(const img::Resource *set);
 
-    virtual void SetText(string_view_utf8 txt) override;
+    virtual void SetText(const string_view_utf8 &txt) override;
 
 protected:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;

@@ -34,13 +34,13 @@ void window_roll_text_t::windowEvent(window_t *sender, GUI_event_t event, void *
     }
 }
 
-window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt, Align_t align)
+window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, const string_view_utf8 &txt, Align_t align)
     : window_text_t(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt) {
     this->SetAlignment(align);
     rollInit();
 }
 
-void window_roll_text_t::SetText(string_view_utf8 txt) {
+void window_roll_text_t::SetText(const string_view_utf8 &txt) {
     window_text_t::SetText(txt);
     rollInit();
 }

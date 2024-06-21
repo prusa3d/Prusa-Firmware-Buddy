@@ -2,7 +2,7 @@
 
 #include <guiconfig/guiconfig.h>
 
-MsgBoxInvalidPrinter::Message::Message(window_t *parent, string_view_utf8 text, HWCheckSeverity severity, bool valid)
+MsgBoxInvalidPrinter::Message::Message(window_t *parent, const string_view_utf8 &text, HWCheckSeverity severity, bool valid)
     : icon(parent, {}, (severity == HWCheckSeverity::Abort) ? &img::nok_16x16 : &img::warning_16x16)
     , text(parent, {}, is_multiline::yes, is_closed_on_click_t::no, text) {
     if (valid) {
@@ -11,7 +11,7 @@ MsgBoxInvalidPrinter::Message::Message(window_t *parent, string_view_utf8 text, 
     }
 }
 
-MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, string_view_utf8 tit, const img::Resource *title_icon)
+MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, const string_view_utf8 &tit, const img::Resource *title_icon)
     : MsgBoxTitled(rect, Responses_NONE, 0, nullptr, _(txt_wrong_printer_title), is_multiline::yes, tit, title_icon, is_closed_on_click_t::no)
     , valid_printer_settings(GCodeInfo::getInstance().get_valid_printer_settings())
     , messages { { { this, _(txt_wrong_tools), valid_printer_settings.wrong_tools.get_severity(), valid_printer_settings.wrong_tools.is_valid() },

@@ -36,7 +36,7 @@ void MI_TEST_DISABLED_RETURN::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Close();
 }
 
-WI_ICON_SWITCH_OFF_ON_t::WI_ICON_SWITCH_OFF_ON_t(bool value, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
+WI_ICON_SWITCH_OFF_ON_t::WI_ICON_SWITCH_OFF_ON_t(bool value, const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : IWindowMenuItem(label, 36, id_icon, enabled, hidden)
     , index(value_)
     , value_(value) //

@@ -184,7 +184,7 @@ void IRadioButton::draw_0_btn() {
 
 static constexpr auto ButtonFont = Font::big;
 
-static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, bool is_selected);
+static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, const string_view_utf8 &text, bool is_selected);
 
 // called internally, responses must exist
 void IRadioButton::draw_1_btn() {
@@ -260,7 +260,7 @@ void IRadioButton::EnableDrawingSelected() {
     disabled_drawing_selected = false;
 }
 
-static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, bool is_selected) {
+static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, const string_view_utf8 &text, bool is_selected) {
     color_t button_cl = is_selected ? back_color : COLOR_GRAY;
     color_t text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
     if (GuiDefaults::RadioButtonCornerRadius) {

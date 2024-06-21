@@ -8,7 +8,7 @@
 #include "guitypes.hpp"
 #include <guiconfig/GuiDefaults.hpp>
 
-FooterText::FooterText(window_t *parent, Rect16::Left_t left, string_view_utf8 txt)
+FooterText::FooterText(window_t *parent, Rect16::Left_t left, const string_view_utf8 &txt)
     : WindowBlinkingText(
         parent,
         [parent, left] {

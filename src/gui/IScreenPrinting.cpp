@@ -4,7 +4,7 @@
 #include "ScreenHandler.hpp"
 #include "img_resources.hpp"
 
-IScreenPrinting::IScreenPrinting(string_view_utf8 caption)
+IScreenPrinting::IScreenPrinting(const string_view_utf8 &caption)
     : screen_t()
     , header(this)
     , footer(this) {

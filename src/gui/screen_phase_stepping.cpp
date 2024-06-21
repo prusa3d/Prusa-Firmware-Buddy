@@ -33,7 +33,7 @@ namespace frame {
         window_text_t text;
 
     public:
-        CenteredText(window_t *parent, string_view_utf8 txt)
+        CenteredText(window_t *parent, const string_view_utf8 &txt)
             : text(parent, ScreenPhaseStepping::get_inner_frame_rect(), is_multiline::yes, is_closed_on_click_t::no, txt) {
             text.SetAlignment(Align_t::Center());
         }
@@ -106,7 +106,7 @@ namespace frame {
         };
 
     public:
-        CalibratingMotor(window_t *parent, string_view_utf8 txt)
+        CalibratingMotor(window_t *parent, const string_view_utf8 &txt)
             : text { parent, text_rect, is_multiline::yes, is_closed_on_click_t::no, _(txt_calibrating) }
             , title { parent, title_rect, is_multiline::no, is_closed_on_click_t::no, txt }
             , progress_bar { parent, progress_bar_rect, COLOR_ORANGE, COLOR_DARK_GRAY }

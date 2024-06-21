@@ -22,7 +22,7 @@ class MsgBoxInvalidPrinter : public MsgBoxTitled {
 #endif
 
     struct Message {
-        Message(window_t *parent, string_view_utf8 text, HWCheckSeverity severity, bool valid);
+        Message(window_t *parent, const string_view_utf8 &text, HWCheckSeverity severity, bool valid);
 
         window_icon_t icon;
         window_text_t text;
@@ -37,5 +37,5 @@ class MsgBoxInvalidPrinter : public MsgBoxTitled {
     window_text_t unsupported_features_text;
 
 public:
-    MsgBoxInvalidPrinter(Rect16 rect, string_view_utf8 tit, const img::Resource *title_icon_res);
+    MsgBoxInvalidPrinter(Rect16 rect, const string_view_utf8 &tit, const img::Resource *title_icon_res);
 };

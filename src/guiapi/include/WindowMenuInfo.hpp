@@ -23,9 +23,9 @@ class IWiInfo : public IWindowMenuItem {
     static constexpr Font font = GuiDefaults::FontMenuSpecial;
 
 public:
-    IWiInfo(string_view_utf8 value, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    IWiInfo(const string_view_utf8 &value, const string_view_utf8 &label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
 
-    inline string_view_utf8 value() const {
+    inline const string_view_utf8 &value() const {
         return value_;
     }
 
@@ -44,14 +44,14 @@ class WiInfoString : public IWiInfo {
 public:
     using IWiInfo::IWiInfo;
 
-    void set_value(string_view_utf8 set);
+    void set_value(const string_view_utf8 &set);
 };
 
 /// IWiInfo working over a non-rebindable mutable string buffer
 class WiInfoArray : public IWiInfo {
 
 public:
-    WiInfoArray(std::span<char> value_span, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
+    WiInfoArray(std::span<char> value_span, const string_view_utf8 &label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
         : IWiInfo({}, label, id_icon, enabled, hidden)
         , value_span_(value_span) {}
 
@@ -77,10 +77,10 @@ template <size_t INFO_LEN>
 class WiInfo : public WiInfoArray {
 
 public:
-    WiInfo(string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
+    WiInfo(const string_view_utf8 &label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
         : WiInfoArray(value_array_, label, id_icon, enabled, hidden) {}
 
-    WiInfo(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, const img::Resource *id_icon = nullptr)
+    WiInfo(uint32_t num_to_print, const string_view_utf8 &label, is_hidden_t hidden = is_hidden_t::no, const img::Resource *id_icon = nullptr)
         : WiInfo(label, id_icon, is_enabled_t::yes, hidden) {
         decltype(value_array_) buf;
         itoa(num_to_print, buf.data(), 10);
@@ -89,7 +89,7 @@ public:
 
     using WiInfoArray::ChangeInformation;
 
-    void ChangeInformation(string_view_utf8 str) {
+    void ChangeInformation(const string_view_utf8 &str) {
         decltype(value_array_) buf;
         str.copyToRAM(buf.data(), buf.size());
         ChangeInformation(buf.data());
@@ -105,9 +105,9 @@ protected:
 template <size_t INFO_LEN>
 class WiInfoDev : public WiInfo<INFO_LEN> {
 public:
-    WiInfoDev(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled = is_enabled_t::yes)
+    WiInfoDev(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled = is_enabled_t::yes)
         : WiInfo<INFO_LEN>(label, id_icon, enabled, is_hidden_t::dev) {}
-    WiInfoDev(uint32_t num_to_print, string_view_utf8 label, const img::Resource *id_icon = nullptr)
+    WiInfoDev(uint32_t num_to_print, const string_view_utf8 &label, const img::Resource *id_icon = nullptr)
         : WiInfo<INFO_LEN>(num_to_print, label, is_hidden_t::dev, id_icon) {}
 };
 

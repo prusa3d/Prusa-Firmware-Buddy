@@ -49,7 +49,7 @@ protected:
 
 public:
     MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline = is_multiline::yes, is_closed_on_click_t close = is_closed_on_click_t::yes);
+        const string_view_utf8 &txt, is_multiline multiline = is_multiline::yes, is_closed_on_click_t close = is_closed_on_click_t::yes);
 
     [[nodiscard]] inline Response GetResult() const {
         return result;
@@ -100,7 +100,7 @@ class MsgBoxIconned : public MsgBoxBase {
 
 public:
     MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline, const img::Resource *icon_res,
+        const string_view_utf8 &txt, is_multiline multiline, const img::Resource *icon_res,
         is_closed_on_click_t close = is_closed_on_click_t::yes);
 
 protected:
@@ -116,7 +116,7 @@ protected:
 class MsgBoxTitled : public MsgBoxIconned {
 public:
     MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const img::Resource *title_icon_res,
+        const string_view_utf8 &txt, is_multiline multiline, const string_view_utf8 &tit, const img::Resource *title_icon_res,
         is_closed_on_click_t close = is_closed_on_click_t::yes, dense_t dense = dense_t::no);
 
     void set_title_alignment(Align_t alignment);
@@ -144,7 +144,7 @@ protected:
 class MsgBoxIconPepaCentered : public MsgBoxIconned {
 public:
     MsgBoxIconPepaCentered(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline, const img::Resource *icon);
+        const string_view_utf8 &txt, is_multiline multiline, const img::Resource *icon);
 
 protected:
     Rect16 getTextRect();
@@ -156,14 +156,14 @@ protected:
 class MsgBoxIconnedError : public MsgBoxIconned {
 public:
     MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline, const img::Resource *icon);
+        const string_view_utf8 &txt, is_multiline multiline, const img::Resource *icon);
 };
 
 // MsgBoxWait
 class MsgBoxIconnedWait : public MsgBoxIconned {
 public:
     MsgBoxIconnedWait(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline);
+        const string_view_utf8 &txt, is_multiline multiline);
 };
 
 enum class MsgBoxType : uint8_t {
@@ -219,11 +219,11 @@ public:
     Response exec() const;
 };
 
-Response msg_box(MsgBoxType type, string_view_utf8 txt, const PhaseResponses &resp = Responses_Ok, MsgBoxDefaultButton default_button = MsgBoxDefaultButton::b0);
+Response msg_box(MsgBoxType type, const string_view_utf8 &txt, const PhaseResponses &resp = Responses_Ok, MsgBoxDefaultButton default_button = MsgBoxDefaultButton::b0);
 
-Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
-Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
-Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
-Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
-Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
-Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBox(const string_view_utf8 &txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxError(const string_view_utf8 &txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxQuestion(const string_view_utf8 &txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxWarning(const string_view_utf8 &txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxInfo(const string_view_utf8 &txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxPepaCentered(const string_view_utf8 &txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);

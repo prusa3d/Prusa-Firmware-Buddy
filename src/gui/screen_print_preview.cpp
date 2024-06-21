@@ -56,10 +56,10 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
     }
 #endif
 
-    const auto makeMsgBox = [this](string_view_utf8 caption, string_view_utf8 text, const img::Resource &icon = img::warning_16x16) {
+    const auto makeMsgBox = [this](const string_view_utf8 &caption, string_view_utf8 text, const img::Resource &icon = img::warning_16x16) {
         return make_msgbox<MsgBoxTitled>(GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes, caption, &icon, is_closed_on_click_t::no);
     };
-    const auto makeMsgBoxWait = [this](string_view_utf8 text) {
+    const auto makeMsgBoxWait = [this](const string_view_utf8 &text) {
         return make_msgbox<MsgBoxIconnedWait>(GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes);
     };
 

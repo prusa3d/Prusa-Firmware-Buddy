@@ -26,14 +26,14 @@ public:
         unknown
     };
 
-    WI_SWITCH_0_1_NA_t(state_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
+    WI_SWITCH_0_1_NA_t(state_t index, const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
         : WI_SWITCH_t(size_t(index), label, id_icon, enabled, hidden, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_0), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_1), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_NA)) {}
 };
 
 class WI_ICON_SWITCH_OFF_ON_t : public IWindowMenuItem {
 
 public:
-    WI_ICON_SWITCH_OFF_ON_t(bool value, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    WI_ICON_SWITCH_OFF_ON_t(bool value, const string_view_utf8 &label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
 
 public:
     void set_value(bool set, bool emit_change);

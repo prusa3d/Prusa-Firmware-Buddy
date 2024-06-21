@@ -6,7 +6,7 @@
 
 #include "selftest_group.hpp"
 
-SelfTestGroup::SelfTestGroup(string_view_utf8 txt)
+SelfTestGroup::SelfTestGroup(const string_view_utf8 &txt)
     : next(nullptr)
     , first(nullptr)
     , name(txt, is_multiline::no)

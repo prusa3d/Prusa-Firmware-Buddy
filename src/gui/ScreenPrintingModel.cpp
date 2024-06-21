@@ -27,7 +27,7 @@ constexpr const char *label_resources[] = {
 };
 } // namespace
 
-ScreenPrintingModel::ScreenPrintingModel(string_view_utf8 caption)
+ScreenPrintingModel::ScreenPrintingModel(const string_view_utf8 &caption)
     : IScreenPrinting(caption)
     , buttons {
         { this, GetButtonRect(0), &icon_resources[ftrstd::to_underlying(BtnRes::Settings)], [this](window_t &) { TuneAction(); } },

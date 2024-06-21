@@ -272,7 +272,7 @@ void screen_home_data_t::handle_crash_dump() {
                         " Send it to: reports@prusa3d.com"),
             Responses_YesNo)
         == Response::Yes) {
-        auto do_stage = [&](string_view_utf8 msg, std::invocable<const ::crash_dump::DumpHandler *> auto fp) {
+        auto do_stage = [&](const string_view_utf8 &msg, std::invocable<const ::crash_dump::DumpHandler *> auto fp) {
             MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, &img::info_58x58);
             box.Show();
             draw();

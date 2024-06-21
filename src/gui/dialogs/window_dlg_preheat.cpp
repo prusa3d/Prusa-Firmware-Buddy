@@ -19,7 +19,7 @@ constexpr static const char index_error[] = "Index error"; // intentionally not 
 
 /*****************************************************************************/
 // NsPreheat::I_MI_Filament
-NsPreheat::I_MI_Filament::I_MI_Filament(string_view_utf8 name, unsigned t_noz, unsigned t_bed)
+NsPreheat::I_MI_Filament::I_MI_Filament(const string_view_utf8 &name, unsigned t_noz, unsigned t_bed)
     : WiInfo<info_len>(name, nullptr, is_enabled_t::yes, is_hidden_t::no) {
     char buff[info_len];
     snprintf(buff, sizeof(buff), t_bed > 100 ? "%3u/%3u " : "%3u/%2u  ", t_noz, t_bed); // extra space(s) at the end are intended .. "260/100 " or  "215/60  "

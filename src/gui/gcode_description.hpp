@@ -26,9 +26,9 @@ struct description_line_t {
     window_text_t value;
     char value_buffer[32];
     description_line_t(window_frame_t *frame);
-    void update(bool has_preview_thumbnail, size_t row, string_view_utf8 title_str, stdext::inplace_function<void(std::span<char> buffer)> make_value);
-    static size_t title_width(string_view_utf8 *title_str);
-    static size_t value_width(string_view_utf8 *title_str);
+    void update(bool has_preview_thumbnail, size_t row, const string_view_utf8 &title_str, stdext::inplace_function<void(std::span<char> buffer)> make_value);
+    static size_t title_width(const string_view_utf8 &title_str);
+    static size_t value_width(const string_view_utf8 &title_str);
 
 private:
     static constexpr size_t calculate_y(bool has_preview_thumbnail, size_t row) {

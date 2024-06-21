@@ -11,7 +11,7 @@ protected:
     virtual void click(IWindowMenu & /*window_menu*/) override;
 
 public:
-    explicit MI_event_dispatcher(string_view_utf8 label)
+    explicit MI_event_dispatcher(const string_view_utf8 &label)
         : IWindowMenuItem(label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void Do() = 0;
 };

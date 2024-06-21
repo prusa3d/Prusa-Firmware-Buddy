@@ -12,7 +12,7 @@
     #include <dialog_numeric_input.hpp>
 #endif
 
-WiSpin::WiSpin(float value, const NumericInputConfig &config, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
+WiSpin::WiSpin(float value, const NumericInputConfig &config, const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : IWindowMenuItem(label, calculateExtensionWidth(config), id_icon, enabled, hidden)
     , config_(config)
     , value_(value) //

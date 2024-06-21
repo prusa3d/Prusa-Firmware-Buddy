@@ -6,7 +6,7 @@
 
 #include "WindowMenuInfo.hpp"
 
-IWiInfo::IWiInfo(string_view_utf8 value, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
+IWiInfo::IWiInfo(const string_view_utf8 &value, const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : IWindowMenuItem(label, 0, id_icon, enabled, hidden)
     , value_(value) {
     update_extension_width();
@@ -37,7 +37,7 @@ void IWiInfo::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t col
     render_text_align(extension_rect, value(), font, color_back, IsFocused() ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingSpecial, Align_t::RightCenter());
 }
 
-void WiInfoString::set_value(string_view_utf8 set) {
+void WiInfoString::set_value(const string_view_utf8 &set) {
     if (!value_.is_same_ref(set)) {
         value_ = set;
         update_extension_width();

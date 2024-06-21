@@ -91,7 +91,7 @@ void window_header_t::SetIcon(const img::Resource *res) {
     Invalidate();
 }
 
-void window_header_t::SetText(string_view_utf8 txt) {
+void window_header_t::SetText(const string_view_utf8 &txt) {
     label.SetText(txt);
     Invalidate();
 }
@@ -200,7 +200,7 @@ void window_header_t::updateIcons() {
     updateAllRects();
 }
 
-window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
+window_header_t::window_header_t(window_t *parent, const string_view_utf8 &txt)
     : window_frame_t(parent, GuiDefaults::RectHeader)
     , icon_base(this, Rect16(GuiDefaults::HeaderPadding.left, GuiDefaults::HeaderPadding.top, base_w, GuiDefaults::HeaderItemHeight), nullptr)
     , label(this, first_rect_doesnt_matter, txt)

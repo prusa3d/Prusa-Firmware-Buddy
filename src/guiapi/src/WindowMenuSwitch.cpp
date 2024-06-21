@@ -8,7 +8,7 @@
 
 /*****************************************************************************/
 // IWiSwitch
-IWiSwitch::IWiSwitch(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
+IWiSwitch::IWiSwitch(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : IWindowMenuItem(label, 0, id_icon, enabled, hidden) //
 {}
 

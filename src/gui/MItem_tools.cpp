@@ -47,7 +47,7 @@
 #include <footer_line.hpp>
 
 namespace {
-void MsgBoxNonBlockInfo(string_view_utf8 txt) {
+void MsgBoxNonBlockInfo(const string_view_utf8 &txt) {
     constexpr static const char *title = N_("Information");
     MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), &img::info_16x16);
     gui::TickLoop();
@@ -644,7 +644,7 @@ MI_INFO_BED_TEMP::MI_INFO_BED_TEMP()
 
 /*****************************************************************************/
 // MI_INFO_FILL_SENSOR
-MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(string_view_utf8 label)
+MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(const string_view_utf8 &label)
     : WI_FORMATABLE_LABEL_t<std::pair<SensorData::Value, SensorData::Value>>(
         label, nullptr, is_enabled_t::yes, is_hidden_t::no, { {}, {} }, [&](char *buffer) {
             if (value.second.is_valid() || value.first.is_valid()) {
@@ -708,7 +708,7 @@ MI_INFO_HBR_FAN::MI_INFO_HBR_FAN()
     : WI_FAN_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
+MI_ODOMETER_DIST::MI_ODOMETER_DIST(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
     : WI_FORMATABLE_LABEL_t<float>(label, icon, enabled, hidden, initVal, [&](char *buffer) {
         float value_m = value / 1000; // change the unit from mm to m
         if (value_m > 999) {

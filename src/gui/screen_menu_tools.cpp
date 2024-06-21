@@ -27,7 +27,7 @@ static constexpr NumericInputConfig POSITION_CONFIG {
     .unit = Unit::millimeter,
 };
 
-MI_POSITION::MI_POSITION(string_view_utf8 label, [[maybe_unused]] const img::Resource *id_icon, [[maybe_unused]] is_enabled_t enabled, [[maybe_unused]] is_hidden_t hidden, float initVal)
+MI_POSITION::MI_POSITION(const string_view_utf8 &label, [[maybe_unused]] const img::Resource *id_icon, [[maybe_unused]] is_enabled_t enabled, [[maybe_unused]] is_hidden_t hidden, float initVal)
     : WiSpin(initVal, POSITION_CONFIG, label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_POSITION::OnClick() {
@@ -77,7 +77,7 @@ static constexpr NumericInputConfig OFFSET_CONFIG_Z {
     .unit = Unit::millimeter,
 };
 
-MI_OFFSET::MI_OFFSET(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const NumericInputConfig &config)
+MI_OFFSET::MI_OFFSET(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const NumericInputConfig &config)
     : WiSpin(initVal, config, label, id_icon, enabled, hidden) {}
 
 MI_OFFSET_X::MI_OFFSET_X()

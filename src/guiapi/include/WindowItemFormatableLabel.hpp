@@ -28,7 +28,7 @@ protected:
     }
 
 public:
-    WI_LAMBDA_LABEL_t(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, stdext::inplace_function<void(char *)> printAs)
+    WI_LAMBDA_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, stdext::inplace_function<void(char *)> printAs)
         : IWindowMenuItem(label, icon ? icon_width : GuiDefaults::infoDefaultLen * width(InfoFont), icon, enabled, hidden)
         , printAs(printAs) {}
 };
@@ -44,7 +44,7 @@ protected:
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
 
 public:
-    WI_FORMATABLE_LABEL_t(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, stdext::inplace_function<void(char *)> printAs)
+    WI_FORMATABLE_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, stdext::inplace_function<void(char *)> printAs)
         : WI_LAMBDA_LABEL_t(label, icon, enabled, hidden, printAs)
         , value(initVal)
         , oldVal(initVal) {

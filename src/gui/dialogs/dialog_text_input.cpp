@@ -57,7 +57,7 @@ constexpr EnumArray<SpecialButton, std::variant<const char *, const img::Resourc
 
 } // namespace
 
-DialogTextInput::DialogTextInput(string_view_utf8 prompt, std::span<char> buffer)
+DialogTextInput::DialogTextInput(const string_view_utf8 &prompt, std::span<char> buffer)
     : buffer_(buffer) {
     ui.txt_prompt.SetText(prompt);
     setup_ui();
@@ -70,7 +70,7 @@ DialogTextInput::DialogTextInput(string_view_utf8 prompt, std::span<char> buffer
     ui.btn_matrix[0].SetFocus();
 }
 
-bool DialogTextInput::exec(string_view_utf8 prompt, std::span<char> buffer) {
+bool DialogTextInput::exec(const string_view_utf8 &prompt, std::span<char> buffer) {
     DialogTextInput dlg(prompt, buffer);
     Screens::Access()->gui_loop_until_dialog_closed();
     return !dlg.cancelled_;

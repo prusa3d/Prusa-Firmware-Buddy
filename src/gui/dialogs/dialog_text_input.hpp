@@ -27,10 +27,10 @@ public:
      *
      * The buffer can get changed even if the user pressed cancel!
      */
-    static bool exec(string_view_utf8 prompt, std::span<char> buffer);
+    static bool exec(const string_view_utf8 &prompt, std::span<char> buffer);
 
 protected:
-    DialogTextInput(string_view_utf8 prompt, std::span<char> buffer);
+    DialogTextInput(const string_view_utf8 &prompt, std::span<char> buffer);
 
 protected:
     void screenEvent(window_t *sender, GUI_event_t event, void *const param) final;

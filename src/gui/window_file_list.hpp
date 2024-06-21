@@ -40,7 +40,7 @@ public:
 
 class FL_LABEL final : public IWindowMenuItem {
 public:
-    FL_LABEL(string_view_utf8 label, const img::Resource *icon)
+    FL_LABEL(const string_view_utf8 &label, const img::Resource *icon)
         : IWindowMenuItem(label, icon, is_enabled_t::yes, is_hidden_t::no) {}
 };
 

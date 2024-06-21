@@ -8,7 +8,7 @@
 #include "window_dlg_popup.hpp"
 #include "ScreenHandler.hpp"
 
-window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt)
+window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, const string_view_utf8 &txt)
     : window_frame_t(Screens::Access()->Get(), rect, win_type_t::popup)
     , text(this, rect, is_multiline::yes, is_closed_on_click_t::no, txt)
     , open_time(0)
@@ -18,7 +18,7 @@ window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt)
     text.SetPadding({ 0, 2, 0, 2 });
 }
 
-void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) {
+void window_dlg_popup_t::Show(Rect16 rect, const string_view_utf8 &txt, uint32_t time) {
     static window_dlg_popup_t dlg(rect, txt);
 
     // hide the dialog if shown already (it is static)

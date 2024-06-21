@@ -19,7 +19,7 @@ class window_dlg_wait_t : public IDialog {
     window_icon_hourglass_t animation;
 
 public:
-    window_dlg_wait_t(Rect16 rect, string_view_utf8 second_string = string_view_utf8::MakeNULLSTR());
+    window_dlg_wait_t(Rect16 rect, const string_view_utf8 &second_string = string_view_utf8::MakeNULLSTR());
 };
 
 /*!*********************************************************************************************************************
@@ -29,4 +29,4 @@ public:
  *
  * It creates inner gui_loop cycle that keeps GUI running while waiting.
  */
-void gui_dlg_wait(stdext::inplace_function<void()> closing_callback, string_view_utf8 second_string = string_view_utf8::MakeNULLSTR());
+void gui_dlg_wait(stdext::inplace_function<void()> closing_callback, const string_view_utf8 &second_string = string_view_utf8::MakeNULLSTR());

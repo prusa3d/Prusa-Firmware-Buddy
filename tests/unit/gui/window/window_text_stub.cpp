@@ -1,7 +1,7 @@
 // window_text_stub.cpp
 #include "window_text.hpp"
 
-void window_text_t::SetText(string_view_utf8 txt) {
+void window_text_t::SetText(const string_view_utf8 &txt) {
     text = txt;
     Invalidate();
 }

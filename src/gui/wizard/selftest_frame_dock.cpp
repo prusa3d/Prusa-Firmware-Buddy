@@ -142,7 +142,7 @@ void SelftestFrameDock::set_remaining() {
     text_estimate.SetText(string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(remaining_buff.data())));
 }
 
-void SelftestFrameDock::set_warning_layout(string_view_utf8 txt) {
+void SelftestFrameDock::set_warning_layout(const string_view_utf8 &txt) {
     qr.Hide();
     text_link.Hide();
     text_info.Hide();
@@ -153,7 +153,7 @@ void SelftestFrameDock::set_warning_layout(string_view_utf8 txt) {
     text_warning.Show();
 }
 
-void SelftestFrameDock::set_info_layout(string_view_utf8 txt, const img::Resource *res) {
+void SelftestFrameDock::set_info_layout(const string_view_utf8 &txt, const img::Resource *res) {
     qr.Hide();
     text_link.Hide();
     text_warning.Hide();

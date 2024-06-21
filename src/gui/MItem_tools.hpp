@@ -539,7 +539,7 @@ public:
 
 class MI_INFO_FILL_SENSOR : public WI_FORMATABLE_LABEL_t<std::pair<SensorData::Value, SensorData::Value>> {
 public:
-    MI_INFO_FILL_SENSOR(string_view_utf8 label);
+    MI_INFO_FILL_SENSOR(const string_view_utf8 &label);
 };
 
 class MI_INFO_PRINTER_FILL_SENSOR : public MI_INFO_FILL_SENSOR {
@@ -599,7 +599,7 @@ protected:
 };
 class MI_ODOMETER_DIST : public WI_FORMATABLE_LABEL_t<float> {
 public:
-    MI_ODOMETER_DIST(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
+    MI_ODOMETER_DIST(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
 };
 
 class MI_ODOMETER_DIST_X : public MI_ODOMETER_DIST {

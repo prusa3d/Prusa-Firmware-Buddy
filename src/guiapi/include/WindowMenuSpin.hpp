@@ -25,7 +25,7 @@ public:
     static constexpr bool show_units = GuiDefaults::MenuSpinHasUnits;
 
 public:
-    WiSpin(float value, const NumericInputConfig &config, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    WiSpin(float value, const NumericInputConfig &config, const string_view_utf8 &label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
 
 public:
     inline float value() const {

@@ -20,7 +20,7 @@ void AdjustLayout(window_text_t &text, window_icon_t &icon) {
 
 /*****************************************************************************/
 // MsgBoxBase
-MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt,
+MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, const string_view_utf8 &txt,
     is_multiline multiline, is_closed_on_click_t close)
     : IDialog(rect)
     , text(this, getTextRect(), multiline, is_closed_on_click_t::no, txt)
@@ -78,7 +78,7 @@ static constexpr Font TitleFont = GuiDefaults::FontBig;
 /*****************************************************************************/
 // MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const img::Resource *title_icon, is_closed_on_click_t close, dense_t dense)
+    const string_view_utf8 &txt, is_multiline multiline, const string_view_utf8 &tit, const img::Resource *title_icon, is_closed_on_click_t close, dense_t dense)
     : MsgBoxIconned(rect, resp, def_btn, labels, txt, multiline, title_icon, close)
     , title(this, GetRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
     title.set_font(TitleFont);
@@ -137,7 +137,7 @@ Rect16 MsgBoxTitled::getIconRect() {
 /*****************************************************************************/
 // MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, const img::Resource *icon_res, is_closed_on_click_t close)
+    const string_view_utf8 &txt, is_multiline multiline, const img::Resource *icon_res, is_closed_on_click_t close)
     : MsgBoxBase(rect, resp, def_btn, labels, txt, multiline, close)
     , icon(this, icon_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
     text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
@@ -173,7 +173,7 @@ Rect16 MsgBoxIconned::getTextRect() {
 /*****************************************************************************/
 // MsgBoxIconPepaCentered
 MsgBoxIconPepaCentered::MsgBoxIconPepaCentered(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, const img::Resource *ic)
+    const string_view_utf8 &txt, is_multiline multiline, const img::Resource *ic)
     : MsgBoxIconned(rect, resp, def_btn, labels, txt, multiline, ic) {
     icon.SetRect(getIconRect());
     icon.SetAlignment(Align_t::CenterTop());
@@ -192,7 +192,7 @@ Rect16 MsgBoxIconPepaCentered::getIconRect() {
 
 /*****************************************************************************/
 // MsgBoxIconnedError
-MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline, const img::Resource *icon_res)
+MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, const string_view_utf8 &txt, is_multiline multiline, const img::Resource *icon_res)
     : MsgBoxIconned(rect, resp, def_btn, labels, txt, multiline, icon_res) {
     SetRoundCorners();
     text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
@@ -214,7 +214,7 @@ MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, 
 /*****************************************************************************/
 // MsgBoxIconnedWait
 MsgBoxIconnedWait::MsgBoxIconnedWait(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline)
+    const string_view_utf8 &txt, is_multiline multiline)
     : MsgBoxIconned(rect, resp, def_btn, labels, txt, multiline, &img::hourglass_26x39) {
     icon.SetRect(Rect16(0, GuiDefaults::HeaderHeight, display::GetW(), 140));
     icon.SetAlignment(Align_t::Center());
@@ -339,7 +339,7 @@ Response MsgBoxBuilder::exec() const {
     }
 }
 
-Response msg_box(MsgBoxType type, string_view_utf8 txt, const PhaseResponses &resp, MsgBoxDefaultButton default_button) {
+Response msg_box(MsgBoxType type, const string_view_utf8 &txt, const PhaseResponses &resp, MsgBoxDefaultButton default_button) {
     return MsgBoxBuilder {
         .type = type,
         .text = txt,
@@ -349,26 +349,26 @@ Response msg_box(MsgBoxType type, string_view_utf8 txt, const PhaseResponses &re
         .exec();
 }
 
-Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+Response MsgBox(const string_view_utf8 &txt, const PhaseResponses &resp, size_t def_btn) {
     return msg_box(MsgBoxType::standard, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
 }
 
-Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+Response MsgBoxError(const string_view_utf8 &txt, const PhaseResponses &resp, size_t def_btn) {
     return msg_box(MsgBoxType::error, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
 }
 
-Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+Response MsgBoxQuestion(const string_view_utf8 &txt, const PhaseResponses &resp, size_t def_btn) {
     return msg_box(MsgBoxType::question, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
 }
 
-Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+Response MsgBoxWarning(const string_view_utf8 &txt, const PhaseResponses &resp, size_t def_btn) {
     return msg_box(MsgBoxType::warning, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
 }
 
-Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+Response MsgBoxInfo(const string_view_utf8 &txt, const PhaseResponses &resp, size_t def_btn) {
     return msg_box(MsgBoxType::info, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
 }
 
-Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+Response MsgBoxPepaCentered(const string_view_utf8 &txt, const PhaseResponses &resp, size_t def_btn) {
     return msg_box(MsgBoxType::pepa_centered, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
 }

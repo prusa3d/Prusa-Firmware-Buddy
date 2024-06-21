@@ -8,7 +8,7 @@ private:
     static constexpr auto PWM_MAX { 255 };
 
 public:
-    WI_FAN_LABEL_t(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
+    WI_FAN_LABEL_t(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
         : WI_FORMATABLE_LABEL_t<std::pair<SensorData::Value, SensorData::Value>>(label, id_icon, enabled, hidden, { {}, {} }, [&](char *buffer) {
             if (value.first.is_valid() && value.second.is_valid()) {
                 const auto pwm = value.first.get_int();

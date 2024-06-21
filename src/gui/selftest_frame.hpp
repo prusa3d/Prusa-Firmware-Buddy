@@ -50,8 +50,8 @@ class SelftestFrameNamed : public SelftestFrame {
     window_text_t test_name;
 
 public:
-    SelftestFrameNamed(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name);
-    void SetName(string_view_utf8 txt);
+    SelftestFrameNamed(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, const string_view_utf8 &name);
+    void SetName(const string_view_utf8 &txt);
 };
 
 /**
@@ -62,5 +62,5 @@ protected:
     RadioButtonFsm<PhasesSelftest> radio;
     virtual void pre_change() override; // update radio button
 public:
-    SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name, size_t lines_of_footer = 0);
+    SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, const string_view_utf8 &name, size_t lines_of_footer = 0);
 };

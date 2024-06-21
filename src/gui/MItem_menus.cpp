@@ -375,7 +375,7 @@ MI_LOAD_SETTINGS::MI_LOAD_SETTINGS()
 }
 
 void MI_LOAD_SETTINGS::click(IWindowMenu & /*window_menu*/) {
-    auto build_message = [](StringBuilder &msg_builder, string_view_utf8 name, bool ok) {
+    auto build_message = [](StringBuilder &msg_builder, const string_view_utf8 &name, bool ok) {
         msg_builder.append_string_view(name);
         msg_builder.append_string(": ");
         msg_builder.append_string_view(ok ? _("Ok") : _("Failed"));

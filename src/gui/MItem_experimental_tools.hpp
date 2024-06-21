@@ -96,7 +96,7 @@ class WiSwitchDirection : public WI_SWITCH_t<2> {
     constexpr static const char *const str_wrong = "Wrong";
 
 public:
-    WiSwitchDirection(bool current_direction_negative, string_view_utf8 label_view);
+    WiSwitchDirection(bool current_direction_negative, const string_view_utf8 &label_view);
 };
 
 class MI_DIRECTION_X : public WiSwitchDirection {

@@ -50,10 +50,10 @@ struct window_header_t : public window_frame_t {
     void update_bed_info();
 
 public:
-    window_header_t(window_t *parent, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
+    window_header_t(window_t *parent, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR());
 
     void SetIcon(const img::Resource *res);
-    void SetText(string_view_utf8 txt);
+    void SetText(const string_view_utf8 &txt);
 
     void set_show_bed_info(bool set);
 

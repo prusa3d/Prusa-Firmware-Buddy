@@ -20,7 +20,7 @@
  * @param multiln   multiline flag
  * @param width     width to be able to measure height (number of lines) needed for multiline text
  */
-SelfTestViewText::SelfTestViewText(string_view_utf8 txt, is_multiline multiln, Rect16::Width_t width)
+SelfTestViewText::SelfTestViewText(const string_view_utf8 &txt, is_multiline multiln, Rect16::Width_t width)
     : SelfTestViewItem(CalculateHeight(txt, multiln, width == 0 ? Rect16::Width_t(GuiDefaults::ScreenWidth) : width))
     , text(txt)
     , multiline(multiln) {}
@@ -33,7 +33,7 @@ void SelfTestViewText::Draw(Rect16::Top_t top) const {
 static constexpr size_t text_pos_after_icon = WizardDefaults::col_after_icon - WizardDefaults::col_0;
 static constexpr Font font = GuiDefaults::DefaultFont;
 
-Rect16::Height_t SelfTestViewText::CalculateHeight(string_view_utf8 &txt, is_multiline multiln, Rect16::Width_t width) {
+Rect16::Height_t SelfTestViewText::CalculateHeight(const string_view_utf8 &txt, is_multiline multiln, Rect16::Width_t width) {
     if (multiln == is_multiline::no) {
         return ::height(font);
     }
@@ -64,7 +64,7 @@ void SelfTestViewText::render(Rect16 rc) const {
  * @param multiln   multiline flag
  * @param width     width to be able to measure height (number of lines) needed for multiline text
  */
-SelfTestViewTextWithIcon::SelfTestViewTextWithIcon(string_view_utf8 txt, const img::Resource *icon, is_multiline multiln, Rect16::Width_t width)
+SelfTestViewTextWithIcon::SelfTestViewTextWithIcon(const string_view_utf8 &txt, const img::Resource *icon, is_multiline multiln, Rect16::Width_t width)
     : SelfTestViewText(txt, multiln, width == 0 ? Rect16::Width_t(GuiDefaults::ScreenWidth) : Rect16::Width_t(width - text_pos_after_icon))
     , icon(icon) {}
 
@@ -92,7 +92,7 @@ static constexpr size_t status_icon_width = WizardDefaults::status_icon_w;
  * @param multiln   multiline flag
  * @param width     width to be able to measure height (number of lines) needed for multiline text
  */
-SelfTestViewTextWithIconAndResult::SelfTestViewTextWithIconAndResult(string_view_utf8 txt, const img::Resource *icon, TestResult result, is_multiline multiln, Rect16::Width_t width)
+SelfTestViewTextWithIconAndResult::SelfTestViewTextWithIconAndResult(const string_view_utf8 &txt, const img::Resource *icon, TestResult result, is_multiline multiln, Rect16::Width_t width)
     : SelfTestViewTextWithIcon(txt, icon, multiln, width == 0 ? Rect16::Width_t(GuiDefaults::ScreenWidth) : Rect16::Width_t(width - status_icon_width))
     , icon_result(ResultToIconId(result)) {}
 

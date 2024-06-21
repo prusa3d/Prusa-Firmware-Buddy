@@ -60,5 +60,5 @@ protected:
     void EnableButton(BtnSocket btn);
 
 public:
-    ScreenPrintingModel(string_view_utf8 caption);
+    ScreenPrintingModel(const string_view_utf8 &caption);
 };

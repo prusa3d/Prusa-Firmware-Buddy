@@ -26,7 +26,7 @@ public:
     }
 
 protected:
-    ScreenMenuBase(window_t *parent, string_view_utf8 label, EFooter show_footer)
+    ScreenMenuBase(window_t *parent, const string_view_utf8 &label, EFooter show_footer)
         : screen_t(parent, parent != nullptr ? win_type_t::dialog : win_type_t::normal)
         , header(this)
         , menu(this, show_footer == EFooter::On ? GuiDefaults::RectScreenBody : GuiDefaults::RectScreenNoHeader)
@@ -50,7 +50,7 @@ protected:
     WinMenuContainer<T...> container;
 
 public:
-    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr)
+    ScreenMenu(const string_view_utf8 &label, window_t *parent = nullptr)
         : ScreenMenuBase(parent, label, FOOTER) {
         menu.menu.BindContainer(container);
     }

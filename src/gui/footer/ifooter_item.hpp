@@ -23,7 +23,7 @@ public:
 
     static constexpr size_t item_h = GuiDefaults::FooterItemHeight;
     static constexpr size_t item_top = GuiDefaults::RectFooter.Top();
-    static Rect16::Width_t TextWidth(string_view_utf8 text);
+    static Rect16::Width_t TextWidth(const string_view_utf8 &text);
 
     IFooterItem(window_t *parent, Rect16::Width_t width);
     constexpr void ChangeUpdatePeriod(uint16_t ms) { update_period = ms; }
@@ -55,7 +55,7 @@ protected:
     FooterText text;
 
 public:
-    static Rect16::Width_t MeasureTextWidth(string_view_utf8 text);
+    static Rect16::Width_t MeasureTextWidth(const string_view_utf8 &text);
     IFooterIconText(window_t *parent, const img::Resource *icon, Rect16::W_t width); // icon width is calculated from resource
 };
 
@@ -79,7 +79,7 @@ protected:
 
     virtual changed_t updateValue() override;
     virtual resized_t updateState() override;
-    static Rect16::Width_t GetTotalWidth(Rect16::Width_t icon_w, string_view_utf8 view);
+    static Rect16::Width_t GetTotalWidth(Rect16::Width_t icon_w, const string_view_utf8 &view);
 
 public:
     FooterIconText_IntVal(window_t *parent, const img::Resource *icon, view_maker_cb view_maker, reader_cb value_reader);
@@ -101,7 +101,7 @@ protected:
 
     virtual changed_t updateValue() override;
     virtual resized_t updateState() override;
-    static Rect16::Width_t GetTotalWidth(Rect16::Width_t icon_w, string_view_utf8 view);
+    static Rect16::Width_t GetTotalWidth(Rect16::Width_t icon_w, const string_view_utf8 &view);
 
 public:
     FooterIconText_FloatVal(window_t *parent, const img::Resource *icon, view_maker_cb view_maker, reader_cb value_reader);

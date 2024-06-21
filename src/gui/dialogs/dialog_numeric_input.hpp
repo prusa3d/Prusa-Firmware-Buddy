@@ -45,12 +45,12 @@ public:
 public:
     /// Executes the numeric input dialog.
     /// \returns the entered number or \p nullopt if the dialog was cancelled
-    static Result exec(string_view_utf8 prompt, double initial_value, const Config &config);
+    static Result exec(const string_view_utf8 &prompt, double initial_value, const Config &config);
 
     inline Result result() const;
 
 protected:
-    DialogNumericInput(string_view_utf8 prompt, double initial_value, const Config &config);
+    DialogNumericInput(const string_view_utf8 &prompt, double initial_value, const Config &config);
 
 protected:
     void screenEvent(window_t *sender, GUI_event_t event, void *const param) override;

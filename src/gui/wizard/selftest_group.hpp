@@ -23,7 +23,7 @@ protected:
     bool failed;
 
 public:
-    SelfTestGroup(string_view_utf8 txt);
+    SelfTestGroup(const string_view_utf8 &txt);
     Rect16::Height_t GetHeight() const;
 
     void Draw(Rect16 rc, int dontdraw_first_n_px) const;

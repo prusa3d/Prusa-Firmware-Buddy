@@ -40,7 +40,7 @@ private:
     window_text_t text;
 
 protected:
-    FrameInstructions(window_t *parent, string_view_utf8 txt)
+    FrameInstructions(window_t *parent, const string_view_utf8 &txt)
         : text(parent, rect_frame, is_multiline::yes, is_closed_on_click_t::no, txt) {
     }
 
@@ -56,7 +56,7 @@ private:
     std::array<char, sizeof("255 Hz")> text_below_buffer;
 
 protected:
-    FrameMeasurement(window_t *parent, string_view_utf8 txt)
+    FrameMeasurement(window_t *parent, const string_view_utf8 &txt)
         : text_above(parent, rect_frame_top, is_multiline::no, is_closed_on_click_t::no, txt)
         , text_below(parent, rect_frame_bottom, is_multiline::no, is_closed_on_click_t::no)
         , progress(parent, progress_top) {

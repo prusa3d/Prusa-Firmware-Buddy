@@ -100,7 +100,7 @@ void MI_RESET_STEPS_PER_UNIT::click([[maybe_unused]] IWindowMenu &window_menu) {
 
 /*****************************************************************************/
 // WiSwitchDirection
-WiSwitchDirection::WiSwitchDirection(bool current_direction_wrong, string_view_utf8 label_view)
+WiSwitchDirection::WiSwitchDirection(bool current_direction_wrong, const string_view_utf8 &label_view)
     : WI_SWITCH_t<2>(current_direction_wrong, label_view, nullptr, is_enabled_t::yes, is_hidden_t::no,
         NOTRAN(str_prusa), NOTRAN(str_wrong)) {
 }

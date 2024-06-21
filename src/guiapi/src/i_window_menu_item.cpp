@@ -28,11 +28,11 @@ constexpr IWindowMenuItem::ColorScheme IWindowMenuItem::color_scheme_title = {
     },
 };
 
-IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands)
+IWindowMenuItem::IWindowMenuItem(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands)
     : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden) {
 }
 
-IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
+IWindowMenuItem::IWindowMenuItem(const string_view_utf8 &label, Rect16::Width_t extension_width_, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : label(label)
     , hidden((uint8_t)hidden)
     , enabled(enabled)
@@ -333,7 +333,7 @@ bool IWindowMenuItem::IsDevOnly() const {
     return hidden == (uint8_t)is_hidden_t::dev && GuiDefaults::ShowDevelopmentTools;
 }
 
-void IWindowMenuItem::SetLabel(string_view_utf8 text) {
+void IWindowMenuItem::SetLabel(const string_view_utf8 &text) {
     if (!label.is_same_ref(text)) {
         label = text;
         InValidateLabel();

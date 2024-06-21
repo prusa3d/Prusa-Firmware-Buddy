@@ -23,7 +23,7 @@ unichar UniChar(const char *ss) {
     return ord;
 }
 
-bool TheYellowHorse(string_view_utf8 sf) {
+bool TheYellowHorse(const string_view_utf8 &sf) {
     StringReaderUtf8 reader(sf);
     REQUIRE(reader.getUtf8Char() == UniChar("p"));
     REQUIRE(reader.getUtf8Char() == UniChar("ř"));
@@ -131,7 +131,7 @@ TEST_CASE("string_view_utf8::CreateFromFILE test", "[string_view_utf8]") {
     fclose(f);
 }
 
-bool Cooldown(string_view_utf8 sf) {
+bool Cooldown(const string_view_utf8 &sf) {
     StringReaderUtf8 reader(sf);
     REQUIRE(reader.getUtf8Char() == UniChar("O"));
     REQUIRE(reader.getUtf8Char() == UniChar("c"));
@@ -148,7 +148,7 @@ bool Cooldown(string_view_utf8 sf) {
 
 TEST_CASE("string_view_utf8::Cooldown test", "[string_view_utf8]") {
     static const uint8_t utf8str[] = "Ochlazení";
-    string_view_utf8 sf = string_view_utf8::MakeRAM(utf8str);
+    const string_view_utf8 &sf = string_view_utf8::MakeRAM(utf8str);
     REQUIRE(Cooldown(sf));
 }
 

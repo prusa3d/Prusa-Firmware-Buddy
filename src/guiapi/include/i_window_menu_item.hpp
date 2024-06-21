@@ -158,8 +158,8 @@ protected:
     ~IWindowMenuItem();
 
 public:
-    IWindowMenuItem(string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no);
-    IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    IWindowMenuItem(const string_view_utf8 &label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no);
+    IWindowMenuItem(const string_view_utf8 &label, Rect16::Width_t extension_width_, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
     IWindowMenuItem(const IWindowMenuItem &) = delete;
 
     bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
@@ -217,11 +217,11 @@ public:
         id_icon = id;
         InValidateIcon();
     }
-    void SetLabel(string_view_utf8 text);
+    void SetLabel(const string_view_utf8 &text);
     /// @returns the label translated via gettext
     /// Use this function when you want to get the actual translated text
     /// to be displayed to the user based on his language settings.
-    inline string_view_utf8 GetLabel() const { return label; }
+    inline const string_view_utf8 &GetLabel() const { return label; }
 
     void Print(Rect16 rect);
     void printRoundCorners(Rect16 rect, color_t front, color_t back) const;

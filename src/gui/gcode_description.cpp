@@ -3,11 +3,11 @@
 #include <guiconfig/guiconfig.h>
 #include <span>
 
-size_t description_line_t::title_width(string_view_utf8 *title_str) {
-    return title_str->computeNumUtf8Chars() * width(Font::small);
+size_t description_line_t::title_width(const string_view_utf8 &title_str) {
+    return title_str.computeNumUtf8Chars() * width(Font::small);
 }
 
-size_t description_line_t::value_width(string_view_utf8 *title_str) {
+size_t description_line_t::value_width(const string_view_utf8 &title_str) {
 #if HAS_MINI_DISPLAY()
     return SCREEN_WIDTH - PADDING * 2 - title_width(title_str) - 1;
 #endif
@@ -22,14 +22,14 @@ description_line_t::description_line_t(window_frame_t *frame)
     , value(frame, Rect16(0, 0, 0, 0), is_multiline::no) {
 }
 
-void description_line_t::update(bool has_preview_thumbnail, size_t row, string_view_utf8 title_str, stdext::inplace_function<void(std::span<char> buffer)> make_value) {
+void description_line_t::update(bool has_preview_thumbnail, size_t row, const string_view_utf8 &title_str, stdext::inplace_function<void(std::span<char> buffer)> make_value) {
 #if HAS_MINI_DISPLAY()
-    title.SetRect(Rect16(PADDING, calculate_y(has_preview_thumbnail, row), title_width(&title_str), LINE_HEIGHT));
-    value.SetRect(Rect16(SCREEN_WIDTH - PADDING - value_width(&title_str), calculate_y(has_preview_thumbnail, row), value_width(&title_str), LINE_HEIGHT));
+    title.SetRect(Rect16(PADDING, calculate_y(has_preview_thumbnail, row), title_width(title_str), LINE_HEIGHT));
+    value.SetRect(Rect16(SCREEN_WIDTH - PADDING - value_width(title_str), calculate_y(has_preview_thumbnail, row), value_width(title_str), LINE_HEIGHT));
 #endif
 #if HAS_LARGE_DISPLAY()
-    title.SetRect(Rect16(PADDING.left, calculate_y(has_preview_thumbnail, row), title_width(&title_str), LINE_HEIGHT));
-    value.SetRect(Rect16(PADDING.left + GuiDefaults::PreviewThumbnailRect.Width() - value_width(&title_str), calculate_y(has_preview_thumbnail, row), value_width(&title_str), LINE_HEIGHT));
+    title.SetRect(Rect16(PADDING.left, calculate_y(has_preview_thumbnail, row), title_width(title_str), LINE_HEIGHT));
+    value.SetRect(Rect16(PADDING.left + GuiDefaults::PreviewThumbnailRect.Width() - value_width(title_str), calculate_y(has_preview_thumbnail, row), value_width(title_str), LINE_HEIGHT));
 #endif
 
     title.SetText(title_str);

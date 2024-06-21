@@ -26,7 +26,7 @@ protected:
 
 public:
     // !!! Call changeExtentionWidth() after the items are initialized in the child
-    IWiSwitch(string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    IWiSwitch(const string_view_utf8 &label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
 
     void SetIndex(size_t idx);
 
@@ -59,7 +59,7 @@ class WI_SWITCH_t : public IWiSwitch {
 
 public:
     template <class... E>
-    WI_SWITCH_t(size_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
+    WI_SWITCH_t(size_t index, const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
         : IWiSwitch(label, id_icon, enabled, hidden)
         , items_ { std::forward<E>(e)... } //
     {

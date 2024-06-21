@@ -75,7 +75,7 @@ public:
         }
     }
 
-    ScreenMenuSensorInfo(string_view_utf8 label, window_t *parent = nullptr)
+    ScreenMenuSensorInfo(const string_view_utf8 &label, window_t *parent = nullptr)
         : internal::ScreenMenuSensorInfo(label, parent) {
         hide_fs_ref<5>(prusa_toolchanger.get_active_tool_nr());
     }

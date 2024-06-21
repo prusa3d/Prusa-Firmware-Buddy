@@ -47,18 +47,18 @@ void SelftestFrameWithRadio::pre_change() {
 
 /*****************************************************************************/
 // SelftestFrameNamed
-SelftestFrameNamed::SelftestFrameNamed(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name)
+SelftestFrameNamed::SelftestFrameNamed(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, const string_view_utf8 &name)
     : SelftestFrame(parent, ph, data)
     , test_name(this, WizardDefaults::RectSelftestName, is_multiline::no, is_closed_on_click_t::no, name) {
 }
-void SelftestFrameNamed::SetName(string_view_utf8 txt) {
+void SelftestFrameNamed::SetName(const string_view_utf8 &txt) {
     test_name.SetText(txt);
     test_name.Invalidate(); // force invalidate because we could be using the same buffer
 }
 
 /*****************************************************************************/
 // SelftestFrameNamedWithRadio
-SelftestFrameNamedWithRadio::SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name, size_t lines_of_footer)
+SelftestFrameNamedWithRadio::SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, const string_view_utf8 &name, size_t lines_of_footer)
     : SelftestFrameNamed(parent, ph, data, name)
     , radio(this, WizardDefaults::RectRadioButton(lines_of_footer), ph) {
     Enable();

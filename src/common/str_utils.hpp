@@ -395,7 +395,7 @@ public:
 
     StringBuilder &append_string(const char *str);
 
-    StringBuilder &append_string_view(string_view_utf8 str);
+    StringBuilder &append_string_view(const string_view_utf8 &str);
 
     /// Appends text to the builder, using vsnprintf under the hood.
     StringBuilder &__attribute__((format(__printf__, 2, 3)))

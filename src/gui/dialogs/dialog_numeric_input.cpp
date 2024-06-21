@@ -39,7 +39,7 @@ constexpr std::array<const char *, 10> number_texts {
 
 } // namespace
 
-DialogNumericInput::Result DialogNumericInput::exec(string_view_utf8 prompt, double initial_value, const Config &config) {
+DialogNumericInput::Result DialogNumericInput::exec(const string_view_utf8 &prompt, double initial_value, const Config &config) {
     DialogNumericInput dlg(prompt, initial_value, config);
     Screens::Access()->gui_loop_until_dialog_closed();
     return dlg.result();
@@ -57,7 +57,7 @@ DialogNumericInput::Result DialogNumericInput::result() const {
     return result_accum_.to_float();
 }
 
-DialogNumericInput::DialogNumericInput(string_view_utf8 prompt, double initial_value, const Config &config)
+DialogNumericInput::DialogNumericInput(const string_view_utf8 &prompt, double initial_value, const Config &config)
     : prompt_(prompt)
     , config_(config) {
 
