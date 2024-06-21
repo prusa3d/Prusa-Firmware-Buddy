@@ -11,9 +11,6 @@
     #include "nhttp/networking_benchmark_selector.h"
 #endif
 
-#include <FreeRTOS.h>
-#include <semphr.h>
-
 #include <cassert>
 #include <cstring>
 
