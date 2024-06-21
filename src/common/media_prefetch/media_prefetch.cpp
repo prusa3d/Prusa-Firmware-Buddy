@@ -1,7 +1,7 @@
 #include "media_prefetch.hpp"
 
-#include <string.h>
-#include <inttypes.h>
+#include <cstring>
+#include <cinttypes>
 
 #include <logging/log.hpp>
 #include <enum_array.hpp>
@@ -122,8 +122,6 @@ void MediaPrefetchManager::start(const char *filepath, const GCodeReaderPosition
     manager_state.read_head.gcode_pos = position;
     shared_state.read_tail.gcode_pos = position;
     shared_state.read_tail.status = Status::end_of_buffer;
-
-    issue_fetch(true);
 }
 
 void MediaPrefetchManager::stop() {
@@ -235,7 +233,7 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
             log_debug(MediaPrefetch, "Fetch reader (re)opened");
 
             // Update file size estimate
-            const auto file_size_estimate = s.gcode_reader->get_gcode_stream_size_estimate();
+            const auto stream_size_estimate = s.gcode_reader->get_gcode_stream_size_estimate();
 
             {
                 std::lock_guard mutex_guard(mutex);
@@ -244,7 +242,7 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
                     return;
                 }
 
-                shared_state.file_size_estimate = file_size_estimate;
+                shared_state.stream_size_estimate = stream_size_estimate;
             }
 
         } else {
@@ -299,7 +297,7 @@ bool MediaPrefetchManager::fetch_flush_command(AsyncJobExecutionControl &control
     }
 
     // Now flush the gcode itself in the form of plain gcode
-    // TODO: Add compression: comment removing, space removing, special records for G1 and such
+    // TODO: Add compression: space removing, special records for G1 and such
     {
         const auto command_len = strlen(s.command_buffer_data.data());
 
@@ -361,7 +359,7 @@ bool MediaPrefetchManager::fetch_command(AsyncJobExecutionControl &control) {
         return false;
 
     } else {
-        // We've fetched one byte, increase the offset in the file
+        // We've fetched one byte, increase the offset in the stream
         s.gcode_reader_pos++;
     }
 
@@ -380,8 +378,6 @@ bool MediaPrefetchManager::fetch_command(AsyncJobExecutionControl &control) {
 
         s.command_buffer_data[buf_pos] = '\0';
         s.command_buffer.flush_pending = true;
-
-        // log_debug(MediaPrefetch, "Read command at %" PRIu32 ": %s", s.gcode_reader_pos, s.command_buffer_data.data());
 
     } else if (ch == ';') {
         s.command_buffer.reading_comment = true;

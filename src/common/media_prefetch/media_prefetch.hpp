@@ -1,6 +1,7 @@
 #pragma once
 
-#include <stddef.h>
+#include <cstring>
+#include <cstddef>
 #include <array>
 #include <mutex>
 
@@ -88,9 +89,9 @@ public:
         return shared_state.filepath;
     }
 
-    inline auto file_size_estimate() const {
+    inline auto stream_size_estimate() const {
         std::lock_guard mutex_guard(mutex);
-        return shared_state.file_size_estimate;
+        return shared_state.stream_size_estimate;
     }
 
 private:
@@ -181,7 +182,7 @@ private:
 
         } read_tail;
 
-        size_t file_size_estimate = 0;
+        size_t stream_size_estimate = 0;
 
         /// If set to true, indicates that the worker should completely reset its state and try start fetching from \p read_tail
         bool worker_reset_pending = true;
