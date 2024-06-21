@@ -4,10 +4,12 @@
  */
 #pragma once
 
-#include <inttypes.h>
-#include <stdio.h>
-#include "selftest_part.hpp"
-#include "common/selftest/selftest_data.hpp"
+#include "selftest_data.hpp"
+#include "i_selftest_part.hpp"
+
+#if HAS_PHASE_STEPPING()
+    #include "src/feature/phase_stepping/phase_stepping.hpp"
+#endif
 
 #define SELFTEST_LOOP_PERIODE 50
 

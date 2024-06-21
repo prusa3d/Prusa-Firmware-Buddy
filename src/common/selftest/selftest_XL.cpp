@@ -36,6 +36,9 @@
 #include "selftest_result_type.hpp"
 #include <config_store/store_instance.hpp>
 #include "common/selftest/selftest_data.hpp"
+#include "i_selftest.hpp"
+#include "i_selftest_part.hpp"
+#include "selftest_result_type.hpp"
 
 using namespace selftest;
 
@@ -244,6 +247,44 @@ static constexpr std::array<const DockConfig_t, HOTENDS> Config_Docks = { { make
     make_dock_config(5) } };
 
 static constexpr ToolOffsetsConfig_t Config_ToolOffsets = {};
+
+// class representing whole self-test
+class CSelftest : public ISelftest {
+public:
+    CSelftest();
+
+public:
+    virtual bool IsInProgress() const override;
+    virtual bool IsAborted() const override;
+    virtual bool Start(const uint64_t test_mask, const selftest::TestData test_data) override; // parent has no clue about SelftestMask_t
+    virtual void Loop() override;
+    virtual bool Abort() override;
+
+protected:
+    void phaseSelftestStart();
+    void restoreAfterSelftest();
+    virtual void next() override;
+    void phaseShowResult();
+    void phaseDidSelftestPass();
+
+protected:
+    SelftestState_t m_State;
+    SelftestMask_t m_Mask;
+    ToolMask tool_mask = ToolMask::AllTools;
+    std::array<selftest::IPartHandler *, HOTENDS> pFans;
+    selftest::IPartHandler *pXAxis;
+    selftest::IPartHandler *pYAxis;
+    selftest::IPartHandler *pZAxis;
+    std::array<selftest::IPartHandler *, HOTENDS> pNozzles;
+    selftest::IPartHandler *pBed;
+    std::array<selftest::IPartHandler *, HOTENDS> m_pLoadcell;
+    std::array<selftest::IPartHandler *, HOTENDS> pDocks;
+    selftest::IPartHandler *pToolOffsets;
+    std::array<selftest::IPartHandler *, HOTENDS> pFSensor;
+    selftest::IPartHandler *pPhaseStepping;
+
+    SelftestResult m_result;
+};
 
 CSelftest::CSelftest()
     : m_State(stsIdle)

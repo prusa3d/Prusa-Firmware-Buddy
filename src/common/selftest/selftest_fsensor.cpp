@@ -5,7 +5,6 @@
  */
 
 #include "selftest_fsensor.h"
-#include <guiconfig/wizard_config.hpp>
 #include "marlin_server.hpp"
 #include "selftest_log.hpp"
 #include "i_selftest.hpp"

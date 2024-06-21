@@ -5,6 +5,7 @@
 #include "screen_home.hpp"
 #include "hw_configuration.hpp"
 #include "scope_guard.hpp"
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(Touch);
 

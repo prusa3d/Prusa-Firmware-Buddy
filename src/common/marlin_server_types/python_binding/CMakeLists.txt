@@ -29,6 +29,8 @@ execute_process(
 list(APPEND CMAKE_PREFIX_PATH "${NB_DIR}")
 find_package(nanobind CONFIG REQUIRED)
 
+message(STATUS "Using Python_INCLUDE_DIRS: ${Python_INCLUDE_DIRS}, nanobind dir: ${NB_DIR}")
+
 nanobind_build_library(nanobind-static)
 
 # nanobind_add_module(marlin_server_types_python_module_impl fsm_python_binding.cpp)
@@ -41,13 +43,16 @@ target_include_directories(
 target_link_libraries(marlin_server_types_python_module_impl PUBLIC marlin_server_types)
 target_link_libraries(
   marlin_server_types_python_module_impl PUBLIC $<COMPILE_ONLY:BuddyHeaders> $<COMPILE_ONLY:Marlin>
-                                                magic_enum nanobind-static
+                                                $<COMPILE_ONLY:firmware> magic_enum nanobind-static
   )
 
 set_target_properties(marlin_server_types_python_module_impl PROPERTIES LINKER_LANGUAGE CXX)
 nanobind_link_options(marlin_server_types_python_module_impl)
 nanobind_extension(marlin_server_types_python_module_impl)
 nanobind_set_visibility(marlin_server_types_python_module_impl)
+
+add_custom_target(marlin_server_types_python_module)
+add_dependencies(marlin_server_types_python_module marlin_server_types_python_module_impl)
 
 # Install directive for scikit-build-core, will populate python module "marlin_server_types" with
 # marlin_server_types_python_module_impl shared library

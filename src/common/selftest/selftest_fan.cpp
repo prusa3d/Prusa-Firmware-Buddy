@@ -2,7 +2,6 @@
 
 #include "selftest_fan.h"
 #include "common/conversions.hpp"
-#include <guiconfig/wizard_config.hpp>
 #include "fanctl.hpp"
 #include "config_features.h" //EXTRUDER_AUTO_FAN_TEMPERATURE
 #include "marlin_server.hpp" //marlin_server::get_temp_nozzle()

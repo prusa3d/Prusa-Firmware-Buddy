@@ -14,6 +14,8 @@
 #include <fsm_menu_item.hpp>
 #include <fsm_network_setup.hpp>
 #include <gui/frame_qr_layout.hpp>
+#include <logging/log.hpp>
+#include "timing.h"
 
 #if HAS_NFC()
     #include <nfc.hpp>

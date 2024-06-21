@@ -8,6 +8,7 @@
 #endif
 
 #include "img_resources.hpp"
+#include "marlin_server_extended_fsm_data.hpp"
 
 namespace {
 constexpr size_t icon_w = WizardDefaults::status_icon_w;

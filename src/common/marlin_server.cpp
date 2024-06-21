@@ -99,6 +99,7 @@
 
 #if HAS_SELFTEST()
     #include "printer_selftest.hpp"
+    #include "i_selftest.hpp"
 #endif
 
 #if HAS_SHEET_PROFILES()

@@ -31,6 +31,7 @@
 #include "selftest_result_type.hpp"
 #include "selftest_types.hpp"
 #include "SteelSheets.hpp"
+#include "i_selftest.hpp"
 
 using namespace selftest;
 
@@ -159,6 +160,42 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .heater_full_load_max_W = 220,
     .pwm_100percent_equivalent_value = 127,
     .min_pwm_to_measure = 26,
+};
+
+// class representing whole self-test
+class CSelftest : public ISelftest {
+public:
+    CSelftest();
+
+public:
+    virtual bool IsInProgress() const override;
+    virtual bool IsAborted() const override;
+    virtual bool Start(const uint64_t test_mask, const selftest::TestData test_data) override; // parent has no clue about SelftestMask_t
+    virtual void Loop() override;
+    virtual bool Abort() override;
+
+protected:
+    void phaseSelftestStart();
+    void restoreAfterSelftest();
+    virtual void next() override;
+    void phaseShowResult();
+    bool phaseWaitUser(PhasesSelftest phase);
+    void phaseDidSelftestPass();
+
+protected:
+    uint8_t previous_sheet_index {};
+    SelftestState_t m_State;
+    SelftestMask_t m_Mask;
+    std::array<selftest::IPartHandler *, HOTENDS> pFans;
+    selftest::IPartHandler *pXAxis;
+    selftest::IPartHandler *pYAxis;
+    selftest::IPartHandler *pZAxis;
+    std::array<selftest::IPartHandler *, HOTENDS> pNozzles;
+    selftest::IPartHandler *pBed;
+    selftest::IPartHandler *pHotendSpecify;
+    selftest::IPartHandler *pFirstLayer;
+
+    SelftestResult m_result;
 };
 
 CSelftest::CSelftest()

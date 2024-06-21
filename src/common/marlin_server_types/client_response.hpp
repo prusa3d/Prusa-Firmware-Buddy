@@ -178,26 +178,27 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesPrintPreview) { return Cl
 
 #if HAS_SELFTEST()
 // GUI phases of selftest/wizard
+// WARNING: make sure that _first_xx and _last_xx are defined after normal selftest phases. This enum is exported by magic_enum library, and it has
+// a limitation that only first item with same value is exported.
 enum class PhasesSelftest : PhaseUnderlyingType {
     _none,
 
-    _first_WizardPrologue,
-    WizardPrologue_ask_run = _first_WizardPrologue,
+    WizardPrologue_ask_run,
     WizardPrologue_ask_run_dev, // developer version has ignore button
     WizardPrologue_info,
     WizardPrologue_info_detailed,
+    _first_WizardPrologue = WizardPrologue_ask_run,
     _last_WizardPrologue = WizardPrologue_info_detailed,
 
-    _first_Fans,
-    Fans = _first_Fans,
+    Fans,
     #if PRINTER_IS_PRUSA_MK3_5
     Fans_manual,
     #endif
     Fans_second,
+    _first_Fans = Fans,
     _last_Fans = Fans_second,
 
-    _first_Loadcell,
-    Loadcell_prepare = _first_Loadcell,
+    Loadcell_prepare,
     Loadcell_move_away,
     Loadcell_tool_select,
     Loadcell_cooldown,
@@ -206,10 +207,10 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     Loadcell_user_tap_check,
     Loadcell_user_tap_ok,
     Loadcell_fail,
+    _first_Loadcell = Loadcell_prepare,
     _last_Loadcell = Loadcell_fail,
 
-    _first_FSensor,
-    FSensor_ask_unload = _first_FSensor,
+    FSensor_ask_unload,
     FSensor_wait_tool_pick,
     FSensor_unload_confirm,
     FSensor_calibrate,
@@ -219,39 +220,39 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     Fsensor_enforce_remove,
     FSensor_done,
     FSensor_fail,
+    _first_FSensor = FSensor_ask_unload,
     _last_FSensor = FSensor_fail,
 
-    _first_GearsCalib,
-    GearsCalib_filament_check = _first_GearsCalib,
+    GearsCalib_filament_check,
     GearsCalib_filament_loaded_ask_unload,
     GearsCalib_filament_unknown_ask_unload,
     GearsCalib_release_screws,
     GearsCalib_alignment,
     GearsCalib_tighten,
     GearsCalib_done,
+    _first_GearsCalib = GearsCalib_filament_check,
     _last_GearsCalib = GearsCalib_done,
 
-    _first_CalibZ,
-    CalibZ = _first_CalibZ,
+    CalibZ,
+    _first_CalibZ = CalibZ,
     _last_CalibZ = CalibZ,
 
-    _first_Axis,
-    Axis = _first_Axis,
+    Axis,
+    _first_Axis = Axis,
     _last_Axis = Axis,
 
-    _first_Heaters,
-    Heaters = _first_Heaters,
+    Heaters,
     HeatersDisabledDialog,
     Heaters_AskBedSheetAfterFail, ///< After bed heater selftest failed, this state prompts the user if he didn't forget to put on the print sheet
+    _first_Heaters = Heaters,
     _last_Heaters = Heaters_AskBedSheetAfterFail,
 
-    _first_FirstLayer,
-    FirstLayer_mbl = _first_FirstLayer,
+    FirstLayer_mbl,
     FirstLayer_print,
+    _first_FirstLayer = FirstLayer_mbl,
     _last_FirstLayer = FirstLayer_print,
 
-    _first_FirstLayerQuestions,
-    FirstLayer_filament_known_and_not_unsensed = _first_FirstLayerQuestions,
+    FirstLayer_filament_known_and_not_unsensed,
     FirstLayer_filament_not_known_or_unsensed,
     FirstLayer_calib,
     FirstLayer_use_val,
@@ -259,10 +260,10 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     FirstLayer_reprint,
     FirstLayer_clean_sheet,
     FirstLayer_failed,
+    _first_FirstLayerQuestions = FirstLayer_filament_known_and_not_unsensed,
     _last_FirstLayerQuestions = FirstLayer_failed,
 
-    _first_Dock,
-    Dock_needs_calibration = _first_Dock,
+    Dock_needs_calibration,
     Dock_move_away,
     Dock_wait_user_park1,
     Dock_wait_user_park2,
@@ -277,10 +278,10 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     Dock_selftest_park_test,
     Dock_selftest_failed,
     Dock_calibration_success,
+    _first_Dock = Dock_needs_calibration,
     _last_Dock = Dock_calibration_success,
 
-    _first_Tool_Offsets,
-    ToolOffsets_wait_user_confirm_start = _first_Tool_Offsets,
+    ToolOffsets_wait_user_confirm_start,
     ToolOffsets_wait_user_clean_nozzle_cold,
     ToolOffsets_wait_user_clean_nozzle_hot,
     ToolOffsets_wait_user_install_sheet,
@@ -290,24 +291,25 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     ToolOffsets_wait_calibrate,
     ToolOffsets_wait_move_away,
     ToolOffsets_wait_user_remove_pin,
+    _first_Tool_Offsets = ToolOffsets_wait_user_confirm_start,
     _last_Tool_Offsets = ToolOffsets_wait_user_remove_pin,
 
-    _first_Result,
-    Result = _first_Result,
+    Result,
+    _first_Result = Result,
     _last_Result = Result,
 
-    _first_WizardEpilogue_ok,
-    WizardEpilogue_ok = _first_WizardEpilogue_ok, // ok is after result
+    WizardEpilogue_ok, // ok is after result
+    _first_WizardEpilogue_ok = WizardEpilogue_ok,
     _last_WizardEpilogue_ok = WizardEpilogue_ok,
 
-    _first_WizardEpilogue_nok,
-    WizardEpilogue_nok = _first_WizardEpilogue_nok, // nok is before result
+    WizardEpilogue_nok, // nok is before result
+    _first_WizardEpilogue_nok = WizardEpilogue_nok,
     _last_WizardEpilogue_nok = WizardEpilogue_nok,
 
-    _first_RevisePrinterStatus,
-    RevisePrinterStatus_ask_revise = _first_RevisePrinterStatus, ///< Notifies that a selftest part failed and asks if the user wants to revise the setup
+    RevisePrinterStatus_ask_revise, ///< Notifies that a selftest part failed and asks if the user wants to revise the setup
     RevisePrinterStatus_revise, ///< ScreenPrinterSetup being shown, user revising the printer setup
     RevisePrinterStatus_ask_retry, ///< After revision, ask the user to retry the selftest
+    _first_RevisePrinterStatus = RevisePrinterStatus_ask_revise,
     _last_RevisePrinterStatus = RevisePrinterStatus_ask_retry,
 
     _last = _last_RevisePrinterStatus,

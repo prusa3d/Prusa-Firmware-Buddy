@@ -4,6 +4,7 @@
 #include <ScreenHandler.hpp>
 #include <scope_guard.hpp>
 #include <img_resources.hpp>
+#include "logging/log.hpp"
 
 LOG_COMPONENT_REF(GUI);
 

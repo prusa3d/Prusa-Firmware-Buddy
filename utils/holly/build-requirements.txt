@@ -1,6 +1,5 @@
 ecdsa~=0.18
 littlefs-python==0.8
-nanobind~=1.9
 pillow~=9.5
 pip~=23.0
 polib~=1.2

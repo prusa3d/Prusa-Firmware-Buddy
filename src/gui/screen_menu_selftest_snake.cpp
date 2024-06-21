@@ -8,9 +8,11 @@
 #include <RAII.hpp>
 #include <option/has_toolchanger.h>
 #include "queue.h"
+#include "Marlin/src/gcode/queue.h"
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif
+#include "selftest/i_selftest.hpp"
 
 using namespace SelftestSnake;
 

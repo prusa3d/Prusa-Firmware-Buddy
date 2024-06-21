@@ -5,9 +5,7 @@
  * @date 2021-10-14
  */
 #pragma once
-#include "selftest_result_type.hpp"
-#include <array>
-#include "selftest_sub_state.hpp"
+
 #include "selftest_loop_result.hpp"
 #include "client_response.hpp"
 #include <cstdint>

@@ -3,7 +3,7 @@
 #include "device/board.h"
 #include "option/has_loadcell.h"
 #include "option/filament_sensor.h"
-#include "inc/MarlinConfig.h"
+
 #include "config_features.h"
 #include "selftest_result.hpp"
 

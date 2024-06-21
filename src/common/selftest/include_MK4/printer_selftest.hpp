@@ -6,11 +6,6 @@
  */
 #pragma once
 
-#include "i_selftest.hpp"
-#include "selftest_part.hpp"
-#include "selftest_result_type.hpp"
-#include "config_features.h"
-
 typedef enum {
     stsIdle,
     stsStart,
@@ -79,40 +74,4 @@ enum SelftestMask_t : uint32_t {
     stmSelftestStart = to_one_hot(stsSelftestStart),
     stmSelftestStop = to_one_hot(stsSelftestStop),
     stmNet_status = to_one_hot(stsNet_status),
-};
-
-// class representing whole self-test
-class CSelftest : public ISelftest {
-public:
-    CSelftest();
-
-public:
-    virtual bool IsInProgress() const override;
-    virtual bool IsAborted() const override;
-    virtual bool Start(const uint64_t test_mask, const selftest::TestData test_data) override; // parent has no clue about SelftestMask_t
-    virtual void Loop() override;
-    virtual bool Abort() override;
-
-protected:
-    void phaseSelftestStart();
-    void restoreAfterSelftest();
-    virtual void next() override;
-    void phaseShowResult();
-    void phaseDidSelftestPass();
-
-protected:
-    SelftestState_t m_State;
-    SelftestMask_t m_Mask;
-    std::array<selftest::IPartHandler *, HOTENDS> pFans;
-    selftest::IPartHandler *pXAxis;
-    selftest::IPartHandler *pYAxis;
-    selftest::IPartHandler *pZAxis;
-    std::array<selftest::IPartHandler *, HOTENDS> pNozzles;
-    selftest::IPartHandler *pBed;
-    selftest::IPartHandler *pHotendSpecify;
-    std::array<selftest::IPartHandler *, HOTENDS> m_pLoadcell;
-    std::array<selftest::IPartHandler *, HOTENDS> pFSensor;
-    selftest::IPartHandler *pGearsCalib;
-
-    SelftestResult m_result;
 };

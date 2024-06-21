@@ -9,6 +9,7 @@
 #include "Marlin/src/module/temperature.h"
 #include "../../Marlin/src/module/stepper.h"
 #include <config_store/store_instance.hpp>
+#include "selftest_part.hpp"
 
 LOG_COMPONENT_REF(Selftest);
 

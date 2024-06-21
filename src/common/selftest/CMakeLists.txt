@@ -1,4 +1,4 @@
-target_include_directories(firmware PRIVATE include_${PRINTER})
+target_include_directories(Marlin_Config INTERFACE include_${PRINTER})
 
 target_sources(
   firmware
@@ -11,11 +11,14 @@ target_sources(
           selftest_fans_interface.cpp
           selftest_heater.cpp
           selftest_heaters_interface.cpp
-          selftest_netstatus_interface.cpp
           selftest_part.cpp
           selftest_revise_printer_setup.cpp
           selftest_tool_helper.cpp
   )
+
+if(CONNECT OR WUI)
+  target_sources(firmware PRIVATE selftest_netstatus_interface.cpp)
+endif()
 
 if(HAS_LOADCELL)
   target_sources(firmware PRIVATE selftest_loadcell.cpp selftest_loadcell_interface.cpp)

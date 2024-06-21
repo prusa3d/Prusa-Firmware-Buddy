@@ -32,6 +32,8 @@
 #endif
 
 #if ENABLED(POWER_PANIC)
+    #include "transfers/transfer.hpp"
+
 static bool file_exists(const char *filename) {
     if (unique_file_ptr(fopen(filename, "r"))) {
         return true;

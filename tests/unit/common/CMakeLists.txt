@@ -99,8 +99,9 @@ add_executable(
   )
 
 target_include_directories(
-  selftest_test_data_serialization_tests PUBLIC ${CMAKE_SOURCE_DIR}/src
-                                                ${CMAKE_SOURCE_DIR}/src/common/selftest/include_XL
+  selftest_test_data_serialization_tests
+  PUBLIC ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/common/selftest/include_XL
+         ${CMAKE_SOURCE_DIR}/src/common/marlin_server_types ${CMAKE_SOURCE_DIR}/tests/stubs
   )
 
 add_catch_test(support_utils_tests)

@@ -4,6 +4,7 @@
 #include <ScreenHandler.hpp>
 #include <sound.hpp>
 #include <img_resources.hpp>
+#include "timing.h"
 
 using namespace dialog_text_input;
 

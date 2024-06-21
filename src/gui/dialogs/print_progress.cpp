@@ -14,6 +14,7 @@
 #include <guiconfig/guiconfig.h>
 #include <MItem_tools.hpp>
 #include <common/gcode/gcode_info_scan.hpp>
+#include <logging/log.hpp>
 
 LOG_COMPONENT_REF(GUI);
 

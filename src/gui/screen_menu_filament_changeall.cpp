@@ -8,6 +8,8 @@
 #include <config_store/store_instance.hpp>
 #include "mmu2_toolchanger_common.hpp"
 #include <window_dlg_wait.hpp>
+#include "Marlin/src/gcode/queue.h"
+#include "Marlin/src/module/planner.h"
 
 I_MI_FilamentSelect::I_MI_FilamentSelect(const char *const label, int tool_n)
     : WI_LAMBDA_SPIN(_(label),

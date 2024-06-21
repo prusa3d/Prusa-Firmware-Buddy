@@ -1,7 +1,4 @@
 #include "selftest_dock.h"
-#include "selftest_log.hpp"
-#include "i_selftest.hpp"
-#include "marlin_client.hpp"
 #include <module/planner.h>
 #include <gcode/queue.h>
 #include <module/stepper.h>
@@ -9,6 +6,7 @@
 #include <module/tool_change.h>
 #include <module/prusa/homing_corexy.hpp>
 #include "bsod.h"
+#include "marlin_server.hpp"
 
 using buddy::puppies::Dwarf;
 using buddy::puppies::dwarfs;

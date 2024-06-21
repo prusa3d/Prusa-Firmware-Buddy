@@ -4,6 +4,7 @@
 #include "ScreenHandler.hpp"
 #include <option/has_touch.h>
 #include <device/peripherals.h>
+#include "logging/log.hpp"
 
 LOG_COMPONENT_REF(GUI);
 

@@ -9,11 +9,10 @@
 
 #include <common/fsm_base_types.hpp>
 #include "selftest_sub_state.hpp"
-#include "inc/MarlinConfig.h"
-#include "marlin_server_extended_fsm_data.hpp"
+#include "marlin_server_extended_fsm_types.hpp"
 #include <utility_extensions.hpp>
 
-struct SelftestHeater_t {
+struct __attribute__((packed)) SelftestHeater_t {
     uint8_t progress;
     bool heatbreak_error;
     SelftestSubtestState_t prep_state;
@@ -51,7 +50,7 @@ struct SelftestHeater_t {
     void Abort() {} // currently not needed
 };
 
-struct SelftestHeaters_t : public FSMExtendedData {
+struct __attribute__((packed)) SelftestHeaters_t : public FSMExtendedData {
 public:
     // class to be converted to one_hot coding
     enum class TestedParts : uint8_t {
@@ -59,7 +58,7 @@ public:
         bed = 2,
     };
 
-    std::array<SelftestHeater_t, HOTENDS> noz;
+    SelftestHeater_t noz[HOTENDS];
     SelftestHeater_t bed;
 
     std::underlying_type_t<TestedParts> tested_parts { 0 };
@@ -67,7 +66,7 @@ public:
     constexpr SelftestHeaters_t() {}
 
     bool operator==(SelftestHeaters_t const &other) const {
-        return noz == other.noz && bed == other.bed && tested_parts == other.tested_parts;
+        return std::equal(std::begin(noz), std::end(noz), std::begin(other.noz)) && bed == other.bed && tested_parts == other.tested_parts;
     }
 };
 

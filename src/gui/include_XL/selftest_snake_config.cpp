@@ -86,7 +86,7 @@ ToolMask get_tool_mask(Tool tool) {
 #if HAS_TOOLCHANGER()
     switch (tool) {
     case Tool::Tool1:
-        return ToolMask::ToolO;
+        return ToolMask::Tool0;
     case Tool::Tool2:
         return ToolMask::Tool1;
     case Tool::Tool3:

@@ -1,7 +1,6 @@
 // selftest_axis.cpp
 
 #include "selftest_axis.h"
-#include <guiconfig/wizard_config.hpp>
 #include "../../Marlin/src/module/planner.h"
 #include "../../Marlin/src/module/stepper.h"
 #include "../../Marlin/src/module/endstops.h"

@@ -36,6 +36,7 @@
 #include "selftest_types.hpp"
 #include <config_store/store_instance.hpp>
 #include <option/has_mmu2.h>
+#include "i_selftest.hpp"
 
 using namespace selftest;
 
@@ -199,6 +200,41 @@ static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensorMMU = 
     { .extruder_id = 0, .mmu_mode = true },
 } };
 #endif
+
+// class representing whole self-test
+class CSelftest : public ISelftest {
+public:
+    CSelftest();
+
+public:
+    virtual bool IsInProgress() const override;
+    virtual bool IsAborted() const override;
+    virtual bool Start(const uint64_t test_mask, const selftest::TestData test_data) override; // parent has no clue about SelftestMask_t
+    virtual void Loop() override;
+    virtual bool Abort() override;
+
+protected:
+    void phaseSelftestStart();
+    void restoreAfterSelftest();
+    virtual void next() override;
+    void phaseShowResult();
+    bool phaseWaitUser(PhasesSelftest phase);
+    void phaseDidSelftestPass();
+
+protected:
+    SelftestState_t m_State;
+    SelftestMask_t m_Mask;
+    std::array<selftest::IPartHandler *, HOTENDS> pFans;
+    selftest::IPartHandler *pXAxis;
+    selftest::IPartHandler *pYAxis;
+    selftest::IPartHandler *pZAxis;
+    std::array<selftest::IPartHandler *, HOTENDS> pNozzles;
+    selftest::IPartHandler *pBed;
+    std::array<selftest::IPartHandler *, HOTENDS> m_pLoadcell;
+    std::array<selftest::IPartHandler *, HOTENDS> pFSensor;
+
+    SelftestResult m_result;
+};
 
 CSelftest::CSelftest()
     : m_State(stsIdle)

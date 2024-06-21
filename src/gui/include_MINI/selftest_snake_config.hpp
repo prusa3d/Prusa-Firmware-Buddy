@@ -2,6 +2,7 @@
 #include "i18n.h"
 #include <utility_extensions.hpp>
 #include <printer_selftest.hpp>
+#include "selftest_types.hpp"
 
 namespace SelftestSnake {
 enum class Tool {

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["scikit-build-core >=0.4.3", "nanobind >=1.9"]
+requires = ["scikit-build-core >=0.4.3", "nanobind >= 2.0.0", "typing_extensions >= 4.9.0"]
 build-backend = "scikit_build_core.build"
 
 [project]
@@ -23,7 +23,7 @@ Homepage = "https://github.com/prusa3d/Prusa-Firmware-Buddy"
 cmake.version = ">=3.27"
 # Compile output for xl_release_boot, but, but override compiler settings.
 # Normally printer would be compiled with ARM compiler, but we need native system compiler for python libraries
-cmake.args = ["--preset=xl_release_boot", "-DCMAKE_TOOLCHAIN_FILE="]
+cmake.args = ["--preset=xl_release_boot", "-DCMAKE_TOOLCHAIN_FILE=", "-DUNITTESTS_ENABLE=OFF"]
 
 # Compile cmake in root of this repository, as we would normally compile printer firmware, just select target that compiles python library
 cmake.source-dir = "../../../../"
