@@ -2,4 +2,4 @@
 
 #include_next <cstring>
 
-size_t strlcpy(char *, const char *, size_t);
+extern "C" size_t strlcpy(char *, const char *, size_t);
