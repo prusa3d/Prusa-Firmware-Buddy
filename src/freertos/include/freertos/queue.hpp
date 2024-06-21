@@ -31,6 +31,7 @@ protected:
     QueueBase(const QueueBase &) = delete;
     QueueBase &operator=(const QueueBase &) = delete;
     void send(const void *payload);
+    bool send_from_isr(const void *payload);
     void receive(void *payload);
     [[nodiscard]] bool try_send(const void *payload, size_t milliseconds_to_wait);
     [[nodiscard]] bool try_receive(void *payload, size_t milliseconds_to_wait);
@@ -45,6 +46,12 @@ public:
 
     void send(const T &payload) {
         QueueBase::send(&payload);
+    }
+
+    /// Send item to queue from interrupt handler.
+    /// Return true if higher priority task has been woken.
+    bool send_from_isr(const T &payload) {
+        return QueueBase::send_from_isr(&payload);
     }
 
     void receive(T &payload) {

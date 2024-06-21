@@ -39,6 +39,12 @@ void QueueBase::send(const void *payload) {
     }
 }
 
+bool QueueBase::send_from_isr(const void *payload) {
+    BaseType_t higher_priority_task_woken = pdFALSE;
+    xQueueSendFromISR(handle_cast(queue_storage), payload, &higher_priority_task_woken);
+    return higher_priority_task_woken;
+}
+
 void QueueBase::receive(void *payload) {
     if (xQueueReceive(handle_cast(queue_storage), payload, portMAX_DELAY) != pdTRUE) {
         static_assert(INCLUDE_vTaskSuspend);
