@@ -10,10 +10,7 @@
 
 #include <common/unique_file_ptr.hpp>
 #include <freertos/mutex.hpp>
-
-// FreeRTOS.h must be included before semphr.h
-#include <FreeRTOS.h>
-#include <semphr.h>
+#include <freertos/counting_semaphore.hpp>
 
 namespace transfers {
 
@@ -136,7 +133,7 @@ private:
         // Protects the slots acquisition / mask
         freertos::Mutex mutex;
         // Represents the number of free slots (update of mask must be protected by this)
-        SemaphoreHandle_t semaphore;
+        freertos::CountingSemaphore semaphore;
 
         // Mask of acquired/free slots one bit per slot from least significant (1-acquired/unused, 0-free)
         uint32_t slot_mask;

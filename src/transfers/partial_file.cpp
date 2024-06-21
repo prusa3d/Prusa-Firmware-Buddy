@@ -398,7 +398,7 @@ void PartialFile::print_progress() {
 }
 
 PartialFile::SectorPool::SectorPool(UsbhMscRequest::LunNbr lun, UsbhMscRequestCallback callback, void *callback_param)
-    : semaphore(xSemaphoreCreateCounting(size, size))
+    : semaphore { size, size }
     , slot_mask(~0u << size) {
     for (unsigned i = 0; i < size; ++i) {
         pool[i] = {
@@ -420,12 +420,10 @@ PartialFile::SectorPool::~SectorPool() {
     for (unsigned i = 0; i < size; ++i) {
         delete[] pool[i].data;
     }
-    vSemaphoreDelete(semaphore);
 }
 
 UsbhMscRequest *PartialFile::SectorPool::acquire(bool block_waiting) {
-    auto result = xSemaphoreTake(semaphore, block_waiting ? USBH_MSC_RW_MAX_DELAY : 0);
-    if (result != pdPASS) {
+    if (!semaphore.try_acquire_for(block_waiting ? USBH_MSC_RW_MAX_DELAY_MS : 0)) {
         return nullptr;
     }
 
@@ -441,7 +439,7 @@ UsbhMscRequest *PartialFile::SectorPool::acquire(bool block_waiting) {
 void PartialFile::SectorPool::release(uint32_t slot) {
     mutex.lock();
     slot_mask &= ~(1 << slot);
-    xSemaphoreGive(semaphore);
+    semaphore.release();
     mutex.unlock();
 }
 
@@ -453,14 +451,19 @@ bool PartialFile::SectorPool::sync(uint32_t avoid, bool force) {
     uint32_t block = size - avoid;
     uint32_t acquired = 0; // How many were actually acquired (in case of timeouts, it can be less)
     for (uint32_t i = 0; i < block; i++) {
-        if (xSemaphoreTake(semaphore, force ? portMAX_DELAY : USBH_MSC_RW_MAX_DELAY) == pdPASS) {
+        if (force) {
+            semaphore.acquire();
             acquired++;
         } else {
-            break;
+            if (semaphore.try_acquire_for(USBH_MSC_RW_MAX_DELAY_MS)) {
+                acquired++;
+            } else {
+                break;
+            }
         }
     }
     for (uint32_t i = 0; i < acquired; i++) {
-        xSemaphoreGive(semaphore);
+        semaphore.release();
     }
 
     return block == acquired;

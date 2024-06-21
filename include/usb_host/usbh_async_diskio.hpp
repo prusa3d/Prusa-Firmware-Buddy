@@ -48,7 +48,8 @@ struct UsbhMscRequest {
 
 USBH_StatusTypeDef usbh_msc_submit_request(UsbhMscRequest *);
 
-#define USBH_MSC_RW_MAX_DELAY (10000 / portTICK_PERIOD_MS)
+#define USBH_MSC_RW_MAX_DELAY_MS (10000)
+#define USBH_MSC_RW_MAX_DELAY    (USBH_MSC_RW_MAX_DELAY_MS / portTICK_PERIOD_MS)
 
 #ifdef USBH_MSC_READAHEAD
 struct UsbhMscReadahead {
