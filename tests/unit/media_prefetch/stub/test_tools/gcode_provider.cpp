@@ -1,15 +1,17 @@
 #include "gcode_provider.hpp"
 
 #include <catch2/catch.hpp>
+#include <sstream>
+#include <numeric>
 
 StubGcodeProviderBase::StubGcodeProviderBase() {
-    // This is the only way how to pass this to anygcodereader
-    *reinterpret_cast<StubGcodeProviderBase **>(filename_.data()) = this;
-    filename_[sizeof(StubGcodeProviderBase *)] = '\0';
+    filename_ = (std::stringstream() << std::hex << std::bit_cast<uintptr_t>(this)).str();
 }
 
 StubGcodeProviderBase *StubGcodeProviderBase::from_filename(const char *filename) {
-    return *reinterpret_cast<StubGcodeProviderBase **>(const_cast<char *>(filename));
+    uintptr_t ptr;
+    std::stringstream(filename) >> std::hex >> ptr;
+    return std::bit_cast<StubGcodeProviderBase *>(ptr);
 }
 
 void StubGcodeProviderMemory::add_line(const std::string &text) {

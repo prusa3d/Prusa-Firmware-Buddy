@@ -3,12 +3,15 @@
 #pragma once
 
 #include <functional>
+#include <optional>
+
+class AsyncJob;
 
 class AsyncJobExecutionControl {
 public:
-    bool is_discarded() {
-        return false;
-    }
+    AsyncJob *job = nullptr;
+
+    bool is_discarded();
 };
 
 class AsyncJobExecutor {
@@ -29,8 +32,16 @@ public:
     void discard() {
     }
 
-    void issue(const std::function<void(AsyncJobExecutionControl &)> &f) {
-        AsyncJobExecutionControl ctrl;
-        f(ctrl);
+    void issue(const std::function<void(AsyncJobExecutionControl &)> &f);
+
+    bool was_discarded() {
+        return was_discarded_;
     }
+
+    // If set, marks the job as discarded after X checks
+    std::optional<int> discard_after;
+
+    bool was_discarded_ = false;
+
+    size_t discard_check_count = 0;
 };

@@ -16,7 +16,7 @@ public:
     static StubGcodeProviderBase *from_filename(const char *filename);
 
     const char *filename() {
-        return filename_.data();
+        return filename_.c_str();
     }
 
 public:
@@ -25,7 +25,7 @@ public:
     virtual GcodeReaderResult stream_getc(char &ch) = 0;
 
 private:
-    std::array<char, 10> filename_;
+    std::string filename_;
 };
 
 class StubGcodeProviderMemory final : public StubGcodeProviderBase {
