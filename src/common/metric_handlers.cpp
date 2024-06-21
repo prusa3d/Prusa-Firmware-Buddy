@@ -154,6 +154,8 @@ static void syslog_handler(metric_point_t *point) {
 
     // send the buffer if it's full or old enough
     if (buffer_full || buffer_becoming_old) {
+        // Allow blocking - that allows the transport _not_ to copy the big
+        // buffer and we run in our own thread.
         syslog_transport.send(buffer, buffer_used);
         buffer_used = 0;
         buffer_has_header = false;

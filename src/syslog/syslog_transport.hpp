@@ -1,56 +1,19 @@
 #pragma once
 
-#include <freertos/mutex.hpp>
 #include <config_store/constants.hpp>
 #include <sys/socket.h>
+#include <memory>
 
 #include <atomic>
 
+struct udp_pcb;
+
 struct SyslogTransport {
 private:
-    int sock = -1;
-    struct sockaddr_in addr;
-    freertos::Mutex mutex;
-    char remote_host[config_store_ns::connect_host_size + 1] = "";
-    uint16_t remote_port = 0;
-
-public:
-    /**
-     * Reconfigure the instance and reopen connection.
-     *
-     * Synchronized with other public methods via mutex.
-     * May block and may fail to reopen connection.
-     */
-    void reopen(const char *host, uint16_t port);
-
-    /**
-     * Send message.
-     *
-     * Synchronized with other public methods via mutex.
-     * May block and may fail to send message.
-     */
-    void send(const char *message, int message_len);
-
-    /**
-     * Return remote_host configured for this instance.
-     *
-     * Synchronized with other public methods via mutex.
-     */
-    const char *get_remote_host();
-
-    /**
-     * Return remote_port configured for this instance.
-     *
-     * Synchronized with other public methods via mutex.
-     */
-    uint16_t get_remote_port();
-
-    void dns_done_callback(const ip_addr_t *ip);
-    void dns_resolve();
-
-private:
-    void close_unlocked();
-    void open_unlocked();
+    struct UdpPcbDeleter {
+        void operator()(udp_pcb *);
+    };
+    std::unique_ptr<udp_pcb, UdpPcbDeleter> socket;
 
     enum class DnsState {
         None,
@@ -58,5 +21,33 @@ private:
         Progress,
     };
 
-    std::atomic<DnsState> dns_resolved = DnsState::None;
+    DnsState dns_resolved = DnsState::None;
+    ip_addr_t addr;
+    char remote_host[config_store_ns::connect_host_size + 1] = "";
+    uint16_t remote_port = 0;
+
+    std::atomic<bool> initialized = false;
+
+public:
+    SyslogTransport();
+    /**
+     * Reconfigure the instance and reopen connection.
+     *
+     * May block and may fail to reopen connection.
+     */
+    void reopen(const char *host, uint16_t port);
+
+    /**
+     * Send message.
+     *
+     * Doesn't block, but may lose messages (both on the network level
+     * and when there are not enough internal buffers).
+     */
+    void send(const char *message, int message_len);
+
+private:
+    void close();
+
+    void do_send(pbuf *message);
+    void dns_done_callback(const ip_addr_t *addr);
 };
