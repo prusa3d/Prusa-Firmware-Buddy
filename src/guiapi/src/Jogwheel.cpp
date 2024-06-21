@@ -2,38 +2,15 @@
 
 #include "Jogwheel.hpp"
 #include "hwio_pindef.h"
-#include "cmsis_os.h" //__disable_irq, __enabe_irq, HAL_GetTick
-#include "queue.h" // freertos queue
-#include "bsod.h"
-#include <FreeRTOS.h>
-
-using SpinMessage_t = int32_t;
-
-// rtos queues config
-static constexpr size_t ButtonMessageQueueLength = 32;
-static constexpr size_t SpinMessageQueueLength = 32;
-
-static StaticQueue_t queue;
-static uint8_t storage_area[ButtonMessageQueueLength * sizeof(BtnState_t)];
-
-#if (configSUPPORT_STATIC_ALLOCATION == 1)
-
-void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
-    button_queue_handle = xQueueCreateStatic(ButtonMessageQueueLength, sizeof(BtnState_t), storage_area, &queue);
-}
-
-#else // (configSUPPORT_STATIC_ALLOCATION == 1 )
-
-void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
-    button_queue_handle = xQueueCreate(ButtonMessageQueueLength, sizeof(BtnState_t));
-}
-
-#endif // (configSUPPORT_STATIC_ALLOCATION == 1 )
+#include <atomic>
+#include <cassert>
 
 using buddy::hw::jogWheelEN1;
 using buddy::hw::jogWheelEN2;
 using buddy::hw::jogWheelENC;
 using buddy::hw::Pin;
+
+static std::atomic<bool> initialized { false };
 
 // time constants
 static const constexpr uint16_t JG_HOLD_INTERVAL = 1000; // [ms] jogwheel min hold delay - if user holds for shorter time than this, it triggers normal click instead
@@ -56,7 +33,6 @@ enum : uint8_t {
 
 Jogwheel::Jogwheel()
     : speed_traps { 0, 0, 0, 0 }
-    , button_queue_handle(nullptr)
     , threadsafe_enc({ 0, 1, 0 })
     , tick_counter(0)
     , encoder(0)
@@ -67,6 +43,7 @@ Jogwheel::Jogwheel()
     , encoder_gear(1)
     , type1(true)
     , spin_accelerator(false) {
+    initialized = true;
 }
 
 int Jogwheel::GetJogwheelButtonPinState() {
@@ -90,17 +67,7 @@ uint8_t Jogwheel::ReadHwInputsFromISR() {
 }
 
 bool Jogwheel::ConsumeButtonEvent(BtnState_t &ev) {
-    // this can happen only once
-    // queue is initialized in a rtos thread (outside interrupt) on first attempt to read
-    if (button_queue_handle == nullptr) {
-        InitButtonMessageQueueInstance_NotFromISR();
-
-        if (button_queue_handle == nullptr) {
-            bsod("ButtonMessageQueue heap malloc error");
-        }
-    }
-
-    return (xQueueReceive(button_queue_handle, &ev, 0 /*0 == do not wait*/) == pdPASS);
+    return queue.try_receive(ev, 0);
 }
 
 int32_t Jogwheel::ConsumeEncoderDiff() {
@@ -184,17 +151,14 @@ bool Jogwheel::IsBtnPressed() {
 }
 
 void Jogwheel::ChangeStateFromISR(BtnState_t new_state) {
-    if (button_queue_handle == nullptr) {
-        return;
-    }
+    assert(initialized);
     btn_state = new_state;
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE; // xQueueSendFromISR require address of this
-    xQueueSendFromISR(button_queue_handle, &btn_state, &xHigherPriorityTaskWoken);
+    std::ignore = queue.send_from_isr(btn_state);
 }
 
 void Jogwheel::Update1msFromISR() {
-    // do nothing while queues are not initialized
-    if (button_queue_handle == nullptr) {
+    // When this ISR is run, static JogWheel instance might not have been initialized yet.
+    if (!initialized) {
         return;
     }
 

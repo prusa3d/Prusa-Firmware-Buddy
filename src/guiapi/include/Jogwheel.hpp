@@ -10,10 +10,7 @@
 
 #include <inttypes.h>
 #include "window_types.hpp" // BtnState_t
-
-// FreeRTOS.h must be included before queue.h
-#include "FreeRTOS.h"
-#include "queue.h"
+#include <freertos/queue.hpp>
 
 // old encoder (with new encoder 2 steps per 1 count) - Type2
 // new encoder (1 steps per 1 count) - Type1
@@ -83,24 +80,6 @@ private:
     static int32_t CalculateEncoderDiff(encoder_t enc);
 
     /**
-     * Initialize queue for button messages (button_queue_handle)
-     *
-     * cannot use Mayers singleton - first call in IRQ can cause deadlock
-     *
-     * could set nullptr, handled in ConsumeButtonEvent (bsod)
-     */
-    void InitButtonMessageQueueInstance_NotFromISR();
-
-    /**
-     * Initialize queue for button messages (spin_queue_handle)
-     *
-     * cannot use Mayers singleton - first call in IRQ can cause deadlock
-     *
-     * could set nullptr, handled in ConsumeEncoderDiff (bsod)
-     */
-    void InitSpinMessageQueueInstance_NotFromISR();
-
-    /**
      * Converts pin levels to signals variable
      *
      * pinENC - button input pin, pinEN1 and pinEN2 - encoder input pins.
@@ -151,7 +130,6 @@ private:
     // variables are set in interrupt
     // ordered by size, from biggest to smallest (most size-effective)
     uint32_t speed_traps[4]; //!< stores previous encoder's change timestamp
-    QueueHandle_t button_queue_handle; //!< pointer to message button queue, cannot use Mayers singleton - first call in IRQ can cause deadlock
     volatile encoder_t threadsafe_enc; //!< encoder data struct to be passed to rtos thread (outside interrupt)
     uint32_t tick_counter; //!< counting variable for encoder_gear system
     int32_t encoder; //!< jogwheel encoder
@@ -162,6 +140,7 @@ private:
     uint8_t encoder_gear; //!< multiple gears for jogwheel spinning
     bool type1; //!< jogwheel is type1 = true or type2 = false
     bool spin_accelerator; //!< turns up spin accelerator feature
+    freertos::Queue<BtnState_t, 32> queue;
 };
 
 extern Jogwheel jogwheel; // Jogwheel static instance

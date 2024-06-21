@@ -4,8 +4,6 @@
 #include "hwio_pindef.h"
 #include "gui_time.hpp" //  gui::GetTick
 
-extern "C" void _bsod(const char *fmt, const char *fine_name, int line_number, ...) {}
-
 namespace buddy::hw {
 jogPin jogWheelEN1;
 jogPin jogWheelEN2;
@@ -108,35 +106,7 @@ public:
 };
 
 TEST_CASE("Jogwheel tests", "[jogwheel]") {
-    BtnState_t ev;
     TestJogwheel j;
-
-    // without ConsumeButtonEvent there should be no click or encoder change
-    SECTION("uninitialized jogwheel test") {
-
-        j.SetEncoderPhase(phase_t::P0lo_P1lo);
-
-        REQUIRE(j.GetEncoder() == 0); // read at tick 0
-
-        j.SpinR(1, 2); // 2 ms  not filtered out
-        REQUIRE(j.GetEncoder() == 0); // not initialized by read, must return 0
-
-        jogWheelENC.state = Pin::State::high; // inverted
-        j.Update1msFromISR();
-
-        jogWheelENC.state = Pin::State::low; // inverted
-        j.Update1msFromISR();
-
-        jogWheelENC.state = Pin::State::high; // inverted
-        j.Update1msFromISR();
-
-        jogWheelENC.state = Pin::State::low; // inverted
-        j.Update1msFromISR();
-
-        REQUIRE_FALSE(j.ConsumeButtonEvent(ev)); // clicks before first read must be discarded
-    }
-
-    j.ConsumeButtonEvent(ev); // this call will initialize queue
 
     SECTION("encoder - noise filter") {
         j.SetEncoderPhase(phase_t::P0lo_P1lo);
