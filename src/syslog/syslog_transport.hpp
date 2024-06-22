@@ -13,7 +13,10 @@ private:
     struct UdpPcbDeleter {
         void operator()(udp_pcb *);
     };
-    std::unique_ptr<udp_pcb, UdpPcbDeleter> socket;
+    // The socket is used only for sending UDP packets out, not receiving
+    // anything. Therefore, we can dare to share a single socket between
+    // multiple instances.
+    static std::unique_ptr<udp_pcb, UdpPcbDeleter> socket;
 
     enum class DnsState {
         None,

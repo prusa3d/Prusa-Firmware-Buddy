@@ -132,7 +132,7 @@ extern "C" {
 #define MEMP_NUM_TCP_PCB 12
 #define SO_REUSE         1 // Allow SOF_REUSEADDR to do something useful.
 
-#define MEMP_NUM_UDP_PCB 6
+#define MEMP_NUM_UDP_PCB 5
 
 #define MEMP_NUM_TCPIP_MSG_INPKT TCPIP_MBOX_SIZE
 

@@ -55,6 +55,8 @@ void SyslogTransport::UdpPcbDeleter::operator()(udp_pcb *p) {
     udp_remove(p);
 }
 
+std::unique_ptr<udp_pcb, SyslogTransport::UdpPcbDeleter> SyslogTransport::socket;
+
 void SyslogTransport::reopen(const char *host, uint16_t port) {
     struct Msg {
         SyslogTransport *me;
@@ -181,13 +183,13 @@ void SyslogTransport::do_send(pbuf *message) {
     default:
         // Some other (unknown) error, better kill the PCB and start fresh next time.
         close();
+        socket.reset();
         break;
     }
 }
 
 void SyslogTransport::close() {
     dns_resolved = DnsState::None;
-    socket.release();
 }
 
 void SyslogTransport::dns_done_callback(const ip_addr_t *ip) {
