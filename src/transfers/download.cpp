@@ -528,6 +528,9 @@ bool Download::inline_chunk(const InlineChunk &chunk) {
             return false;
         }
         in->start += chunk.size;
+        if (in->start > in->end) {
+            in->destination->sync();
+        }
         return true;
     } else {
         return false;
