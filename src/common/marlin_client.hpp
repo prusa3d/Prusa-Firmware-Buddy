@@ -147,7 +147,8 @@ void print_pause();
 
 void print_resume();
 
-void media_print_reopen();
+/// Tries to resume the print if it is in a problematic state
+void try_recover_from_media_error();
 
 void park_head();
 

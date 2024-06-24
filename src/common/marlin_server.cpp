@@ -1222,6 +1222,10 @@ void print_resume(void) {
     }
 }
 
+void try_recover_from_media_error() {
+    media_print_reopen();
+}
+
 // Fast temperature recheck.
 // Does not check stability of the temperature.
 bool print_reheat_ready() {
@@ -2810,8 +2814,8 @@ bool _process_server_valid_request(const Request &request, int client_id) {
     case Request::Type::PrintResume:
         print_resume();
         return true;
-    case Request::Type::MediaPrintReopen:
-        media_print_reopen();
+    case Request::Type::TryRecoverFromMediaError:
+        try_recover_from_media_error();
         return true;
     case Request::Type::PrintExit:
         print_exit();

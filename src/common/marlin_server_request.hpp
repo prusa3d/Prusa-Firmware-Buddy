@@ -20,7 +20,7 @@ struct Request {
         PrintAbort,
         PrintPause,
         PrintResume,
-        MediaPrintReopen,
+        TryRecoverFromMediaError,
         PrintExit,
         Park,
         KnobMove,

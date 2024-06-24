@@ -114,7 +114,7 @@ void msc_active() {
             break;
 
         case media_print_state_PRINTING:
-            marlin_client::media_print_reopen();
+            marlin_client::try_recover_from_media_error();
             trigger_usb_failed_dialog = true;
             break;
         }
