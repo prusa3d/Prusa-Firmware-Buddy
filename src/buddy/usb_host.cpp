@@ -52,8 +52,7 @@ uint32_t block_one_click_print_until_ms = 0;
 
 enum class RecoveryPhase : uint_fast8_t {
     idle,
-    power_off,
-    power_on
+    power_off
 };
 
 std::atomic<RecoveryPhase> recovery_phase = RecoveryPhase::idle;
@@ -83,14 +82,6 @@ void port_disabled() {
 /// - that means after a USB flash drive is inserted (or re-initialized)
 /// called from USBH_Thread
 void msc_active() {
-    // If cycle_phase is PowerCyclePhase::power_on,
-    // this means that the flash was initialized within the power cycle recovery.
-    // So the flash was connected the whole time, we just had a hiccup or something.
-    if (recovery_phase == RecoveryPhase::power_on) {
-        xTimerStop(restart_timer, portMAX_DELAY);
-        recovery_phase = RecoveryPhase::idle;
-    }
-
     if (resume_print_on_recovery) {
         resume_print_on_recovery = false;
 
@@ -136,9 +127,6 @@ void restart_timer_callback(TimerHandle_t) {
         // If user disconnects and reconnects the drive, he can do it faster than that and we want the OCP to trigger.
         block_one_click_print_until_ms = ticks_ms() + 800;
 
-        // Turn the USB on
-        recovery_phase = RecoveryPhase::power_on;
-
         // Reinitialize the USB host low-level driver
         // This seems to fix BFW-5333
         USBH_LL_DeInit(&hUsbHostHS);
@@ -146,16 +134,10 @@ void restart_timer_callback(TimerHandle_t) {
 
         USBH_Start(&hUsbHostHS);
 
-        // Give some time for the USB device to respond.
-        // If the USB device initializes within this time frame,
-        // msc_active function gets triggered and the timer is stopped, so the power_on phase is not called.
-        xTimerChangePeriod(restart_timer, 5000, portMAX_DELAY);
-        break;
-
-    case RecoveryPhase::power_on:
-        // The power cycle finished, but the drive was not loaded within a given period
-        // -> report an error
+        // We're done here
         recovery_phase = RecoveryPhase::idle;
+        xTimerStop(restart_timer, portMAX_DELAY);
+
         break;
     }
 }
