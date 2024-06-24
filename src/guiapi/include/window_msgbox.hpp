@@ -43,7 +43,7 @@ protected:
     // it is checked in BindToFSM method
     static constexpr size_t mem_space_size = sizeof(RadioButtonFsm<PhasesPrintPreview>);
     using RadioMemSpace = std::array<uint8_t, mem_space_size>;
-    RadioMemSpace radio_mem_space;
+    alignas(std::max_align_t) RadioMemSpace radio_mem_space;
     static_unique_ptr<IRadioButton> pButtons;
     Response result; // return value
 

@@ -16,7 +16,7 @@ class ScreenFactory {
 #else
     using Storage = std::array<uint8_t, 4096>;
 #endif
-    static Storage storage;
+    alignas(std::max_align_t) static Storage storage;
 
 public:
     using UniquePtr = static_unique_ptr<screen_t>;

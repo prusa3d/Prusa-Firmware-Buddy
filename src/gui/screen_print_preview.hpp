@@ -57,7 +57,7 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
 #else
     using MsgBoxMemSpace = std::array<uint8_t, sizeof(MsgBoxTitled)>;
 #endif
-    alignas(void *) MsgBoxMemSpace msgBoxMemSpace;
+    alignas(std::max_align_t) MsgBoxMemSpace msgBoxMemSpace;
 
 public:
     ScreenPrintPreview();

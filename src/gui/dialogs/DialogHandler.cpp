@@ -46,7 +46,7 @@ using SerialPrint = ScreenDialogDoesNotExist;
     #include "screen_input_shaper_calibration.hpp"
 #endif
 
-static std::array<uint8_t, 2560> mem_space;
+alignas(std::max_align_t) static std::array<uint8_t, 2560> mem_space;
 
 // safer than make_static_unique_ptr, checks storage size
 template <class T, class... Args>

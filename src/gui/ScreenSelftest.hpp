@@ -17,7 +17,7 @@ class ScreenSelftest : public screen_t {
 #else
     static constexpr size_t storage_size = 1536;
 #endif
-    alignas(void *) std::array<uint8_t, storage_size> storage;
+    alignas(std::max_align_t) std::array<uint8_t, storage_size> storage;
 
     template <typename T>
     static static_unique_ptr<SelftestFrame> creator(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
