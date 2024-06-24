@@ -603,7 +603,6 @@ static void read_wifi_client_message() {
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start());
     wifi_running = true;
-    send_device_info();
 }
 
 static int get_link_status() {
@@ -787,6 +786,9 @@ static void IRAM_ATTR output_rx_thread(void *arg) {
 }
 
 static void IRAM_ATTR uart_tx_thread(void *arg) {
+    // same as ESP8266 wait a second after start to make sure we are able to receive device info on printer startup
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
     // Send initial device info to let master know ESP is ready
     send_device_info();
 
