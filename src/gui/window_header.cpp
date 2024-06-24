@@ -160,12 +160,12 @@ void window_header_t::updateAllRects() {
     maybe_update(icon_usb, icon_usb.resource()->w);
     maybe_update(icon_network, icon_network.resource()->w);
     maybe_update(icon_stealth, icon_stealth.resource()->w);
-    if (transfer_val_on) {
-        maybe_update(transfer_val, transfer_val_w);
-    }
 #if !HAS_MINI_DISPLAY()
     maybe_update(icon_metrics, icon_metrics.resource()->w);
 #endif
+    if (transfer_val_on) {
+        maybe_update(transfer_val, transfer_val_w);
+    }
     maybe_update(icon_transfer, icon_transfer.resource()->w);
     maybe_update(bed_text, bed_text_width);
     maybe_update(bed_icon, bed_icon.resource()->w);
