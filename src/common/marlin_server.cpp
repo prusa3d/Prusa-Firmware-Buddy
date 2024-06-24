@@ -196,6 +196,12 @@ namespace {
 
     server_t server; // server structure - initialize task to zero
 
+    /// State variables that reset with each print
+    struct PrintState {
+    };
+
+    PrintState print_state;
+
     enum class Pause_Type {
         Pause,
         Repeat_Last_Code,
@@ -931,6 +937,7 @@ bool printer_paused() {
 
 void serial_print_start() {
     server.print_state = State::SerialPrintInit;
+    print_state = {};
 }
 
 void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview) {
@@ -969,6 +976,8 @@ void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_pre
     case State::PrintPreviewToolsMapping:
 #endif
     {
+        print_state = {};
+
         if (filename) {
             // We need a copy of the sfn as well because get_LFN needs the address mutable :/
             std::array<char, FILE_PATH_BUFFER_LEN> filepath_sfn;
