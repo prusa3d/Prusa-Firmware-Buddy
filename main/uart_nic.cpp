@@ -35,6 +35,7 @@
 #include "esp_wifi.h"
 #include "esp_wifi_types.h"
 #include "esp_aio.h"
+#include "esp_crc.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 
@@ -57,7 +58,6 @@ extern "C" {
 
 static constexpr size_t SCAN_MAX_STORED_SSIDS = 64;
 static constexpr size_t BSSID_LEN = 6;
-
 
 // Hack: because we don't see the beacon on some networks (and it's quite
 // common), but don't want to be "flapping", we set the timeout for beacon
@@ -595,7 +595,7 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
             break;
         }
         for (uint8_t j = 0; j < scan.stored_ssids_count; ++j) {
-            ESP_LOGI(TAG, "Comparing >%s< and %s", (char *)scan.stored_ssids[j].ssid, (char *)aps[i].ssid);
+            ESP_LOGI(TAG, "Comparing >%s< and %s", (char *)scan.stored_ssids[j].ssid.data(), (char *)aps[i].ssid);
             if (memcmp(scan.stored_ssids[j].ssid.data(), aps[i].ssid, esp::SSID_LEN) == 0) {
                 found = true;
                 break;
@@ -654,8 +654,14 @@ static void IRAM_ATTR handle_rx_msg_scan_get(uint8_t* data, const esp::Header& h
 
 static void IRAM_ATTR read_message() {
     wait_for_intron();
+    uint32_t crc = 0;
+    crc = crc32_le(crc, tx_message.intron.data(), tx_message.intron.size());
     struct uart0_rx_queue_item queue_item{};
-    uart0_rx_bytes((uint8_t*)&queue_item.header, sizeof(queue_item.header));
+    uart0_rx_bytes(reinterpret_cast<uint8_t *>(&queue_item.header), sizeof(queue_item.header));
+    crc = crc32_le(crc, reinterpret_cast<uint8_t *>(&queue_item.header), sizeof(queue_item.header));
+    uint32_t checksum = 0;
+    uart0_rx_bytes(reinterpret_cast<uint8_t *>(&checksum), sizeof(checksum));
+    checksum = ntohl(checksum);
 
     switch (queue_item.header.type) {
     case esp::MessageType::PACKET_V2:
@@ -699,11 +705,19 @@ static void IRAM_ATTR read_message() {
         uart0_rx_skip_bytes(queue_item.header.size);
     }
 
-    if (xQueueSendToBack(uart0_rx_queue, &queue_item, 0) != pdTRUE) {
-        ESP_LOGE(TAG, "xQueueSendToBack failed (uart0rx)");
-        if (queue_item.data) {
-            free(queue_item.data);
+    if (queue_item.header.size > 0 && queue_item.data != nullptr) {
+        crc = crc32_le(crc, queue_item.data, queue_item.header.size);
+    }
+
+    if (crc == checksum) {
+        if (xQueueSendToBack(uart0_rx_queue, &queue_item, 0) != pdTRUE) {
+            ESP_LOGE(TAG, "xQueueSendToBack failed (uart0rx)");
+            if (queue_item.data) {
+                free(queue_item.data);
+            }
         }
+    } else {
+        ESP_LOGE(TAG, "Checksum mismatch: MT %d, calc: %x ref: %x", static_cast<uint8_t>(queue_item.header.type), crc, checksum);
     }
 }
 
@@ -741,9 +755,16 @@ static void IRAM_ATTR uart0_tx_task(void *arg) {
         struct uart0_tx_queue_item queue_item;
         if (xQueueReceive(uart0_tx_queue, &queue_item, portMAX_DELAY) == pdTRUE) {
 
-            // send fix-sized part of the message (intron + header)
+            // send fix-sized part of the message (intron + header + checksum)
             tx_message.header = queue_item.header;
-            uart0_tx_bytes(tx_message.bytes, sizeof(tx_message.bytes));
+            uint32_t crc = 0;
+            crc = crc32_le(crc, tx_message.intron.data(), tx_message.intron.size());
+            crc = crc32_le(crc, reinterpret_cast<uint8_t *>(&tx_message.header), sizeof(tx_message.header));
+            if (queue_item.header.size != 0 && queue_item.data != nullptr) {
+                crc = crc32_le(crc, queue_item.data, ntohs(queue_item.header.size));
+            }
+            tx_message.data_checksum = htonl(crc);
+            uart0_tx_bytes(reinterpret_cast<uint8_t *>(&tx_message), sizeof(tx_message));
 
             // send variable-sized part of the message (payload depending on message type)
             switch (queue_item.header.type) {
