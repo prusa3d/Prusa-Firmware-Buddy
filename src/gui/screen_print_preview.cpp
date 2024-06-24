@@ -57,10 +57,10 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
 #endif
 
     const auto makeMsgBox = [this](string_view_utf8 caption, string_view_utf8 text, const img::Resource &icon = img::warning_16x16) {
-        return make_static_unique_ptr<MsgBoxTitled>(msgBoxMemSpace.data(), GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes, caption, &icon, is_closed_on_click_t::no);
+        return make_msgbox<MsgBoxTitled>(GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes, caption, &icon, is_closed_on_click_t::no);
     };
     const auto makeMsgBoxWait = [this](string_view_utf8 text) {
-        return make_static_unique_ptr<MsgBoxIconnedWait>(msgBoxMemSpace.data(), GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes);
+        return make_msgbox<MsgBoxIconnedWait>(GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes);
     };
 
     switch (phase) {
@@ -91,7 +91,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
 
     case PhasesPrintPreview::wrong_printer:
     case PhasesPrintPreview::wrong_printer_abort:
-        pMsgbox = make_static_unique_ptr<MsgBoxInvalidPrinter>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, _(label_wrong_printer), &img::warning_16x16);
+        pMsgbox = make_msgbox<MsgBoxInvalidPrinter>(GuiDefaults::RectScreenNoHeader, _(label_wrong_printer), &img::warning_16x16);
         break;
 
     case PhasesPrintPreview::filament_not_inserted:
@@ -157,7 +157,7 @@ void ScreenPrintPreview::show_tools_mapping() {
     }
     #endif
 
-    tools_mapping = make_static_unique_ptr<ToolsMappingBody>(&msgBoxMemSpace, this, gcode);
+    tools_mapping = make_msgbox<ToolsMappingBody>(this, gcode);
     CaptureNormalWindow(*tools_mapping);
     tools_mapping->Show();
     tools_mapping->Invalidate();

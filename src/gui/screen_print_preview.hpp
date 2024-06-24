@@ -59,6 +59,12 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
 #endif
     alignas(std::max_align_t) MsgBoxMemSpace msgBoxMemSpace;
 
+    template <typename T, typename... Args>
+    static_unique_ptr<T> make_msgbox(Args &&...args) {
+        static_assert(sizeof(T) <= std::tuple_size_v<MsgBoxMemSpace>);
+        return make_static_unique_ptr<T>(msgBoxMemSpace.data(), args...);
+    }
+
 public:
     ScreenPrintPreview();
     void Change(fsm::BaseData data);

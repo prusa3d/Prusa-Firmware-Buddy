@@ -26,6 +26,7 @@ MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, 
     , text(this, getTextRect(), multiline, is_closed_on_click_t::no, txt)
     , result(Response::_none) {
     flags.close_on_click = close;
+    static_assert(sizeof(RadioButton) <= std::tuple_size_v<RadioMemSpace>);
     pButtons = make_static_unique_ptr<RadioButton>(&radio_mem_space, this, GuiDefaults::GetButtonRect(rect), resp, labels);
     pButtons->SetBtnIndex(def_btn);
     CaptureNormalWindow(*pButtons);

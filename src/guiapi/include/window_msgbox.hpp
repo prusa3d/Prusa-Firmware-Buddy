@@ -73,6 +73,7 @@ public:
 
         // First reset, then create new class; we cannot afford constructing and then destructing because it's the same memory
         pButtons.reset();
+        static_assert(sizeof(T) <= std::tuple_size_v<RadioMemSpace>);
         pButtons = make_static_unique_ptr<T>(radio_mem_space.data(), this, rc, phase);
 
         has_icon ? pButtons->SetHasIcon() : pButtons->ClrHasIcon();
