@@ -200,6 +200,7 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
                 s = {};
                 s.gcode_reader_pos = shared_state.read_tail.gcode_pos.offset;
                 s.write_tail.buffer_pos = shared_state.read_tail.buffer_pos;
+                s.write_tail.gcode_pos = shared_state.read_tail.gcode_pos;
             }
 
             // Fetch read head so that we know the end of the region where we can write to
