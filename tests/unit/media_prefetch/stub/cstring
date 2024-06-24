@@ -1,5 +1,0 @@
-#pragma once
-
-#include_next <cstring>
-
-extern "C" size_t strlcpy(char *, const char *, size_t);

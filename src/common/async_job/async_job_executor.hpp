@@ -17,12 +17,6 @@ public:
     /// Returns default instance of the executor
     static AsyncJobExecutor &default_instance();
 
-public:
-    /// \returns number of worker thread this executor manages
-    static inline constexpr int worker_count() {
-        return 1;
-    }
-
 private:
     /// Routine that runs on the worker task
     void thread_routine();

@@ -9,7 +9,6 @@
 #include <transfers/transfer.hpp>
 
 #include "gcode_reader_restore_info.hpp"
-#include "gcode_reader_result.hpp"
 
 class IGcodeReader {
 public:
@@ -24,7 +23,14 @@ public:
     };
 
     /// Result type
-    using Result_t = GCodeReaderResult;
+    enum class Result_t {
+        RESULT_OK,
+        RESULT_EOF,
+        RESULT_TIMEOUT, // low level USB function might return timeout in case they can't get mutex in time
+        RESULT_ERROR,
+        RESULT_OUT_OF_RANGE, // Outside of the validity range
+        RESULT_CORRUPT, // Corruption / CRC mismatch / ...
+    };
 
     /// Expected image format
     enum class ImgType {
