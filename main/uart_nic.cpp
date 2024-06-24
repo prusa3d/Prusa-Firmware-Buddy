@@ -47,6 +47,7 @@ extern "C" {
 }
 
 #include "uart0_driver.h"
+#include "esp_protocol/messages.hpp"
 
 // Externals with no header
 extern "C" {
@@ -54,11 +55,8 @@ extern "C" {
     esp_err_t mac_init(void);
 }
 
-#define FW_VERSION 12
-
-#define SCAN_MAX_STORED_SSIDS 64
-#define SSID_LEN 32
-#define BSSID_LEN 6
+static constexpr size_t SCAN_MAX_STORED_SSIDS = 64;
+static constexpr size_t BSSID_LEN = 6;
 
 
 // Hack: because we don't see the beacon on some networks (and it's quite
@@ -74,33 +72,12 @@ static constexpr uint16_t INACTIVE_BEACON_SECONDS = 400;
 // pings to the AP?
 static constexpr uint32_t INACTIVE_PACKET_SECONDS = 5;
 
-// Note: Values 1..5 are deprecated and must not be used.
-#define MSG_DEVINFO_V2 0
-#define MSG_CLIENTCONFIG_V2 6
-#define MSG_PACKET_V2 7
-#define MSG_SCAN_START 8
-#define MSG_SCAN_STOP 9
-#define MSG_SCAN_AP_CNT 10
-#define MSG_SCAN_AP_GET 11
-
-struct __attribute__((packed)) header {
-    uint8_t type;
-    union {
-        uint8_t version;  // when type == MSG_DEVINFO_V2
-        uint8_t unused;   // when type == MSG_CLIENTCONFIG_V2 || type == MSG_SCAN_START || type == MSG_SCAN_STOP
-        uint8_t up;       // when type == MSG_PACKET_V2
-        uint8_t ap_count; // when type == MSG_SCAN_AP_GET
-        uint8_t ap_index; // when type == MSG_SCAN_AP_GET
-    };
-    uint16_t size;
-};
-
 // Note: `uart0_tx_queue` is a FreeRTOS queue of `uart0_tx_queue_item` elements.
 //       Send items to this queue in order to transmit them via UART0
 //       from ESP to printer. The queue is drained by realtime priority
 //       task `uart0_tx_task`.
 struct uart0_tx_queue_item {
-    struct header header;
+    esp::Header header;
     uint8_t *data;
     void* rx_buffer; // Note: This is some internal ESP buffer which we are not
                      //       sure if we can free before data is transmitted.
@@ -112,9 +89,9 @@ static QueueHandle_t uart0_tx_queue = NULL;
 //       whenever they are received via UART0 by ESP from the printer. The queue
 //       is drained by lower priority task `main_task`.
 struct uart0_rx_queue_item {
-    void (*callback)(uint8_t*, struct header);
+    void (*callback)(uint8_t*, const esp::Header&);
+    esp::Header header;
     uint8_t *data;
-    struct header header;
 };
 static QueueHandle_t uart0_rx_queue = 0;
 
@@ -131,20 +108,21 @@ static const char *TAG = "uart_nic";
 
 static int s_retry_num = 0;
 
-// Note: We are using single global buffer here. It has two main parts:
+// Note: We are using single global buffer here. It has three main parts:
 //        * intron is read-only most of the time. The only write access is synchronized by means of critical section.
 //        * header is used only by `uart0_tx_task`
-union message {
-    uint8_t bytes[12];
-    struct {
-        uint8_t intron[8];
-        struct header header;
-    };
+//        * checksum is also used only by uart0_tx_task
+static esp::MessagePrelude tx_message = {
+    .intron = esp::DEFAULT_INTRON,
+    .header = {
+        .type = esp::MessageType::DEVICE_INFO_V2,
+        .variable_byte = 0,
+        .size = 0,
+    },
+    .data_checksum = 0,
 };
-static union message tx_message = { .bytes = {'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05', 0, 0, 0, 0}};
 
-#define MAC_LEN 6
-static uint8_t mac[MAC_LEN];
+static esp::data::MacAddress mac;
 
 static uint32_t IRAM_ATTR now_seconds() {
     return xTaskGetTickCount() / configTICK_RATE_HZ;
@@ -159,7 +137,7 @@ static bool beacon_quirk;
 static uint8_t probe_max_reties = 3;
 static std::atomic<bool> probe_in_progress {false};
 static uint8_t probe_retry_count;
-static uint8_t latest_ssid[SSID_LEN];
+static uint8_t latest_ssid[esp::SSID_LEN];
 static uint8_t latest_bssid[BSSID_LEN];
 
 typedef enum {
@@ -168,12 +146,7 @@ typedef enum {
     SCAN_TYPE_INCREMENTAL,
 } ScanType;
 
-typedef struct __attribute__((packed)) {
-    uint8_t ssid[SSID_LEN];
-    bool needs_password;
-} ScanResult;
-
-const ScanResult EMPTY_RESULT = {};
+static constexpr esp::data::APInfo EMPTY_RESULT = {};
 
 typedef void (*wifi_scan_callback)(wifi_ap_record_t *, int);
 
@@ -181,7 +154,7 @@ static struct {
     ScanType scan_type = SCAN_TYPE_UNKNOWN;
     wifi_scan_callback callback = nullptr;
     uint32_t incremental_scan_time = 0;
-    ScanResult stored_ssids[SCAN_MAX_STORED_SSIDS] = {};
+    esp::data::APInfo stored_ssids[SCAN_MAX_STORED_SSIDS] = {};
     uint8_t stored_ssids_count = 0;
     std::atomic<bool> in_progress {false};
     std::atomic<bool> should_reconnect {false};
@@ -189,7 +162,7 @@ static struct {
 
 static void IRAM_ATTR send_link_status(uint8_t up) {
     struct uart0_tx_queue_item queue_item;
-    queue_item.header.type = MSG_PACKET_V2;
+    queue_item.header.type = esp::MessageType::PACKET_V2;
     queue_item.header.up = up;
     queue_item.header.size = htons(0);
     queue_item.data = NULL;
@@ -297,7 +270,7 @@ static void IRAM_ATTR cache_current_ap_info() {
     wifi_ap_record_t ap_info;
     if (esp_wifi_sta_get_ap_info(&ap_info) == ESP_OK) {
         memcpy(latest_bssid, ap_info.bssid, BSSID_LEN);
-        memcpy(latest_ssid, ap_info.ssid, SSID_LEN);
+        memcpy(latest_ssid, ap_info.ssid, esp::SSID_LEN);
     }
 }
 
@@ -324,7 +297,7 @@ static void IRAM_ATTR probe_handler(wifi_ap_record_t* aps, int ap_count) {
     if (beacon_quirk && !found) {
         for (int i = 0; i < ap_count; ++i) {
             if (latest_ssid != NULL && latest_ssid[0] && aps[i].ssid[0]) {
-                if (0 == strncmp((char *)(latest_ssid), (char *)(aps[i].ssid), SSID_LEN)) {
+                if (0 == strncmp((char *)(latest_ssid), (char *)(aps[i].ssid), esp::SSID_LEN)) {
                     found = true;
                     break;
                 }
@@ -489,13 +462,13 @@ void IRAM_ATTR wifi_init_sta(void) {
 }
 
 static void IRAM_ATTR send_device_info() {
-    esp_wifi_get_mac(WIFI_IF_STA, mac); // ignore error
+    esp_wifi_get_mac(WIFI_IF_STA, mac.data()); // ignore error
 
     struct uart0_tx_queue_item queue_item;
-    queue_item.header.type = MSG_DEVINFO_V2;
-    queue_item.header.version = FW_VERSION;
+    queue_item.header.type = esp::MessageType::DEVICE_INFO_V2;
+    queue_item.header.version = esp::REQUIRED_PROTOCOL_VERSION;
     queue_item.header.size = htons(6);
-    queue_item.data = NULL;
+    queue_item.data = mac.data();
     queue_item.rx_buffer = NULL;
     if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
         ESP_LOGE(TAG, "xQueueSendToBack failed (uart0tx)");
@@ -506,7 +479,7 @@ static void IRAM_ATTR wait_for_intron() {
     // Hope for the best...
     uint8_t intron[8];
     uart0_rx_bytes(intron, 8);
-    while (memcmp(intron, tx_message.intron, 8) != 0) {
+    while (memcmp(intron, tx_message.intron.data(), 8) != 0) {
         // ...but be prepared for the worst.
         for (int i = 0; i < 7; ++i) {
             intron[i] = intron[i+1];
@@ -524,7 +497,7 @@ static int IRAM_ATTR get_link_status() {
     return online;
 }
 
-static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t* data, struct header header) {
+static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t* data, const esp::Header& header) {
     if (header.size == 0) {
         send_link_status(get_link_status());
     } else {
@@ -533,15 +506,15 @@ static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t* data, struct header heade
     }
 }
 
-static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, struct header header) {
+static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, const esp::Header& header) {
     wifi_config_t wifi_config;
     memset(&wifi_config, 0, sizeof(wifi_config_t));
 
     {
         taskENTER_CRITICAL();
-        memcpy(tx_message.intron, data, sizeof(tx_message.intron));
+        memcpy(tx_message.intron.data(), data, tx_message.intron.size());
         taskEXIT_CRITICAL();
-        data += sizeof(tx_message.intron);
+        data += tx_message.intron.size();
     }
     uint8_t ssid_length = 0;
     {
@@ -578,12 +551,12 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, struct header
 
     wifi_running = false;
     esp_wifi_stop();
-    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start());
     wifi_running = true;
 }
 
-static void IRAM_ATTR handle_rx_msg_unknown(uint8_t* data, struct header header) {
+static void IRAM_ATTR handle_rx_msg_unknown(uint8_t* data, const esp::Header& header) {
     if (data) {
         free(data);
     }
@@ -623,21 +596,21 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
         }
         for (uint8_t j = 0; j < scan.stored_ssids_count; ++j) {
             ESP_LOGI(TAG, "Comparing >%s< and %s", (char *)scan.stored_ssids[j].ssid, (char *)aps[i].ssid);
-            if (memcmp(scan.stored_ssids[j].ssid, aps[i].ssid, SSID_LEN) == 0) {
+            if (memcmp(scan.stored_ssids[j].ssid.data(), aps[i].ssid, esp::SSID_LEN) == 0) {
                 found = true;
                 break;
             }
         }
         if (!found) {
-            memcpy(scan.stored_ssids[scan.stored_ssids_count].ssid, aps[i].ssid, SSID_LEN);
-            scan.stored_ssids[scan.stored_ssids_count].needs_password = aps[i].authmode != WIFI_AUTH_OPEN || aps[i].pairwise_cipher != WIFI_CIPHER_TYPE_NONE;
+            memcpy(scan.stored_ssids[scan.stored_ssids_count].ssid.data(), aps[i].ssid, esp::SSID_LEN);
+            scan.stored_ssids[scan.stored_ssids_count].requires_password = aps[i].authmode != WIFI_AUTH_OPEN || aps[i].pairwise_cipher != WIFI_CIPHER_TYPE_NONE;
             scan.stored_ssids_count ++;
             ESP_LOGI(TAG, "Found SSID: %s", aps[i].ssid);
         }
     }
 
     struct uart0_tx_queue_item queue_item{};
-    queue_item.header.type = MSG_SCAN_AP_CNT;
+    queue_item.header.type = esp::MessageType::SCAN_AP_CNT;
     queue_item.header.ap_count = scan.stored_ssids_count;
     if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
         ESP_LOGE(TAG, "xQueueSendToBack failed (uart0tx)");
@@ -645,37 +618,37 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
     ESP_LOGI(TAG, "Scan done. Found: %d", scan.stored_ssids_count);
 }
 
-static void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult* ap_info) {
+static void IRAM_ATTR send_scanned_ssid(uint8_t index, const esp::data::APInfo& ap_info) {
     struct uart0_tx_queue_item queue_item{};
-    queue_item.header.type = MSG_SCAN_AP_GET;
+    queue_item.header.type = esp::MessageType::SCAN_AP_GET;
     queue_item.header.ap_index = index;
-    queue_item.header.size = htons(sizeof(*ap_info));
-    queue_item.data = (uint8_t *)(ap_info);
+    queue_item.header.size = htons(sizeof(ap_info));
+    queue_item.data = (uint8_t *)(&ap_info);
 
     if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
         ESP_LOGE(TAG, "xQueueSendToBack failed (uart0tx)");
     }
 }
 
-static void IRAM_ATTR handle_rx_msg_scan_start(uint8_t* data, struct header header) {
+static void IRAM_ATTR handle_rx_msg_scan_start(uint8_t* data, const esp::Header& header) {
     clear_stored_ssids();
     ESP_LOGI(TAG, "Starting scan...");
 
     start_wifi_scan(&store_scanned_ssids, SCAN_TYPE_INCREMENTAL);
 }
 
-static void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t* data, struct header header) {
+static void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t* data, const esp::Header& header) {
     // Response is send automatically after scan is stopped
     // Intentionally don't fail if the scan is no longer running
     // (aka we connected to AP during scan)
     force_stop_wifi_scan();
 }
 
-static void IRAM_ATTR handle_rx_msg_scan_get(uint8_t* data, struct header header) {
+static void IRAM_ATTR handle_rx_msg_scan_get(uint8_t* data, const esp::Header& header) {
     if (header.ap_index < scan.stored_ssids_count) {
-        send_scanned_ssid(header.ap_index, &scan.stored_ssids[header.ap_index]);
+        send_scanned_ssid(header.ap_index, scan.stored_ssids[header.ap_index]);
     } else {
-        send_scanned_ssid(UINT8_MAX, &EMPTY_RESULT);
+        send_scanned_ssid(UINT8_MAX, EMPTY_RESULT);
     }
 }
 
@@ -685,27 +658,27 @@ static void IRAM_ATTR read_message() {
     uart0_rx_bytes((uint8_t*)&queue_item.header, sizeof(queue_item.header));
 
     switch (queue_item.header.type) {
-    case MSG_PACKET_V2:
+    case esp::MessageType::PACKET_V2:
         queue_item.callback = handle_rx_msg_packet_v2;
         break;
-    case MSG_CLIENTCONFIG_V2:
+    case esp::MessageType::CLIENTCONFIG_V2:
         queue_item.callback = handle_rx_msg_clientconfig_v2;
         break;
-    case MSG_SCAN_START:
+    case esp::MessageType::SCAN_START:
         queue_item.callback = handle_rx_msg_scan_start;
         break;
-    case MSG_SCAN_STOP:
+    case esp::MessageType::SCAN_STOP:
         queue_item.callback = handle_rx_msg_scan_stop;
         break;
-    case MSG_SCAN_AP_CNT:
-        ESP_LOGE(TAG, "MSG_SCAN_AP_CNT is only transmitted, never recieved");
+    case esp::MessageType::SCAN_AP_CNT:
+        ESP_LOGE(TAG, "esp::MessageType::SCAN_AP_CNT is only transmitted, never recieved");
         queue_item.callback = handle_rx_msg_unknown;
         break;
-    case MSG_SCAN_AP_GET:
+    case esp::MessageType::SCAN_AP_GET:
         queue_item.callback = handle_rx_msg_scan_get;
         break;
-    case MSG_DEVINFO_V2:
-        ESP_LOGE(TAG, "MSG_DEVINFIO_V2 is only transmitted, never recieved");
+    case esp::MessageType::DEVICE_INFO_V2:
+        ESP_LOGE(TAG, "esp::MessageType::DEVICE_INFO_V2 is only transmitted, never recieved");
         queue_item.callback = handle_rx_msg_unknown;
         break;
     default:
@@ -774,8 +747,8 @@ static void IRAM_ATTR uart0_tx_task(void *arg) {
 
             // send variable-sized part of the message (payload depending on message type)
             switch (queue_item.header.type) {
-            case MSG_PACKET_V2: {
-                // size may be empty when we are using MSG_PACKET_V2 to only send link status
+            case esp::MessageType::PACKET_V2: {
+                // size may be empty when we are using esp::MessageType::PACKET_V2 to only send link status
                 uint16_t size = ntohs(queue_item.header.size);
                 if (size) {
                     uart0_tx_bytes(queue_item.data, size);
@@ -785,22 +758,22 @@ static void IRAM_ATTR uart0_tx_task(void *arg) {
                     free(queue_item.rx_buffer);
                 }
             } break;
-            case MSG_DEVINFO_V2:
-                uart0_tx_bytes(mac, sizeof(mac));
+            case esp::MessageType::DEVICE_INFO_V2:
+                uart0_tx_bytes(mac.data(), mac.size());
                 break;
-            case MSG_CLIENTCONFIG_V2:
-                ESP_LOGE(TAG, "MSG_CLIENTCONFIG_V2 is only received, never transmitted");
+            case esp::MessageType::CLIENTCONFIG_V2:
+                ESP_LOGE(TAG, "esp::MessageType::CLIENTCONFIG_V2 is only received, never transmitted");
                 break;
-            case MSG_SCAN_START:
-                ESP_LOGE(TAG, "MSG_SCAN_START is only received, never transmitted");
+            case esp::MessageType::SCAN_START:
+                ESP_LOGE(TAG, "esp::MessageType::SCAN_START is only received, never transmitted");
                 break;
-            case MSG_SCAN_AP_CNT:
+            case esp::MessageType::SCAN_AP_CNT:
                 // no data to send
                 break;
-            case MSG_SCAN_STOP:
-                ESP_LOGE(TAG, "MSG_SCAN_STOP is only received, never transmitted");
+            case esp::MessageType::SCAN_STOP:
+                ESP_LOGE(TAG, "esp::MessageType::SCAN_STOP is only received, never transmitted");
                 break;
-            case MSG_SCAN_AP_GET:
+            case esp::MessageType::SCAN_AP_GET:
                 uart0_tx_bytes(queue_item.data, ntohs(queue_item.header.size));
                 break;
             }
@@ -835,7 +808,7 @@ extern "C" void IRAM_ATTR app_main() {
     scan.stored_ssids_count = SCAN_MAX_STORED_SSIDS;
     clear_stored_ssids();
     memset(latest_bssid, 0, BSSID_LEN);
-    memset(latest_ssid, 0, SSID_LEN);
+    memset(latest_ssid, 0, esp::SSID_LEN);
 
     TaskHandle_t uart0_rx_task_handle;
     TaskHandle_t uart0_tx_task_handle;
