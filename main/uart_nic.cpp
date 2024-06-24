@@ -22,9 +22,8 @@
 
 #define UART_FULL_THRESH_DEFAULT (60)
 
-#include <string.h>
-#include <stdatomic.h>
-#include <stdbool.h>
+#include <cstring>
+#include <atomic>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -34,6 +33,7 @@
 #include "esp_netif.h"
 #include "esp_event.h"
 #include "esp_wifi.h"
+#include "esp_wifi_types.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 
@@ -45,9 +45,10 @@
 #include "esp_wpa.h"
 #include <arpa/inet.h>
 
-
+extern "C" {
 // Externals with no header
 esp_err_t mac_init(void);
+}
 
 #define FW_VERSION 12
 
@@ -60,13 +61,13 @@ esp_err_t mac_init(void);
 // inactivity to a ridiculously long time and handle the disconnect ourselves.
 //
 // It's not longer for the only reason the uint16_t doesn't hold as big numbers.
-static const uint16_t INACTIVE_BEACON_SECONDS = 3600 * 18;
+static constexpr uint16_t INACTIVE_BEACON_SECONDS = 3600 * 18;
 // This is the effective timeout. If we don't receive any packet for this long,
 // we consider the signal lost.
 //
 // TODO: Shall we generate something to provoke getting some packets? Like ARP
 // pings to the AP?
-static const uint32_t INACTIVE_PACKET_SECONDS = 5;
+static constexpr uint32_t INACTIVE_PACKET_SECONDS = 5;
 
 #define MSG_DEVINFO_V2 0
 #define MSG_CLIENTCONFIG_V2 6
@@ -88,7 +89,7 @@ struct __attribute__((packed)) header {
     uint16_t size;
 };
 
-static const uint8_t uart_nic_protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N;
+static constexpr uint8_t uart_nic_protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N;
 
 static const char *TAG = "uart_nic";
 
@@ -105,14 +106,14 @@ static uint32_t now_seconds() {
     return xTaskGetTickCount() / configTICK_RATE_HZ;
 }
 
-static atomic_uint_least32_t last_inbound_seen = 0;
-static atomic_bool associated = false;
-static atomic_bool wifi_running = false;
-static atomic_bool connecting = false;
+static std::atomic<uint32_t> last_inbound_seen { 0 };
+static std::atomic<bool> associated = false;
+static std::atomic<bool> wifi_running = false;
+static std::atomic<bool> connecting = false;
 
 static bool beacon_quirk;
 static uint8_t probe_max_reties = 3;
-static atomic_bool probe_in_progress = false;
+static std::atomic<bool> probe_in_progress = false;
 static uint8_t probe_retry_count;
 static uint8_t latest_ssid[SSID_LEN];
 static uint8_t latest_bssid[BSSID_LEN];
@@ -133,22 +134,14 @@ const ScanResult EMPTY_RESULT = {};
 typedef void (*wifi_scan_callback)(wifi_ap_record_t *, int);
 
 static struct {
-    ScanType scan_type;
-    wifi_scan_callback callback;
-    uint32_t incremental_scan_time;
-    ScanResult stored_ssids[SCAN_MAX_STORED_SSIDS];
-    uint8_t stored_ssids_count;
-    atomic_bool in_progress;
-    atomic_bool should_reconnect;
-} scan = {
-    .scan_type = SCAN_TYPE_UNKNOWN,
-    .callback = NULL,
-    .incremental_scan_time = 0,
-    .stored_ssids = {},
-    .stored_ssids_count = 0,
-    .in_progress = false,
-    .should_reconnect = false,
-};
+    ScanType scan_type = SCAN_TYPE_UNKNOWN;
+    wifi_scan_callback callback = nullptr;
+    uint32_t incremental_scan_time = 0;
+    ScanResult stored_ssids[SCAN_MAX_STORED_SSIDS] {};
+    uint8_t stored_ssids_count = 0;
+    std::atomic<bool> in_progress = false;
+    std::atomic<bool> should_reconnect = false;
+} scan { };
 
 typedef struct {
     size_t len;
@@ -183,8 +176,8 @@ static void send_link_status(uint8_t up) {
     xSemaphoreGive(uart_mtx);
 }
 
-static void do_wifi_scan() {
-    wifi_scan_config_t config = {0};
+static void do_wifi_scan(void *) {
+    wifi_scan_config_t config{};
 
     config.scan_type = WIFI_SCAN_TYPE_ACTIVE;
     switch (scan.scan_type) {
@@ -360,9 +353,9 @@ static void IRAM_ATTR handle_disconnect_and_try_reconnect() {
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         uint8_t current_protocol;
-        ESP_ERROR_CHECK(esp_wifi_get_protocol(ESP_IF_WIFI_STA, &current_protocol));
+        ESP_ERROR_CHECK(esp_wifi_get_protocol(WIFI_IF_STA, &current_protocol));
         if (current_protocol != uart_nic_protocol) {
-            ESP_ERROR_CHECK(esp_wifi_set_protocol(ESP_IF_WIFI_STA, uart_nic_protocol));
+            ESP_ERROR_CHECK(esp_wifi_set_protocol(WIFI_IF_STA, uart_nic_protocol));
             return;
         }
         start_wifi_connect_task();
@@ -383,7 +376,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
         beacon_quirk = true;
         send_link_status(1);
         s_retry_num = 0;
-        ESP_ERROR_CHECK(esp_wifi_set_inactive_time(ESP_IF_WIFI_STA, INACTIVE_BEACON_SECONDS));
+        ESP_ERROR_CHECK(esp_wifi_set_inactive_time(WIFI_IF_STA, INACTIVE_BEACON_SECONDS));
         cache_current_ap_info();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_SCAN_DONE) {
         scan.in_progress = false;
@@ -421,38 +414,43 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
     }
 }
 
-static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
+static esp_err_t IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
     // ESP_LOGI(TAG, "Received wifi packet");
 
     // Seeing some traffic - we have signal :-)
     last_inbound_seen = now_seconds();
+
+    const auto cleanup = [&]() {
+        ESP_LOGW(TAG, "Failed to enqueue received wifi packet");
+        free(buffer);
+        esp_wifi_internal_free_rx_buffer(eb);
+    };
 
     // MAC filter
     if ((((const char*)buffer)[5] & 0x01) == 0) {
         for (uint i = 0; i < 6; ++i) {
             if(((const char*)buffer)[i] != mac[i]) {
                 ESP_LOGI(TAG, "Dropping packet based on mac filter");
-                goto cleanup;
+                cleanup();
+                return ESP_FAIL;
             }
         }
     }
 
-    wifi_receive_buff *buff = malloc(sizeof(wifi_receive_buff));
+    wifi_receive_buff *buff = static_cast<wifi_receive_buff *>(malloc(sizeof(wifi_receive_buff)));
     if(!buff) {
-        goto cleanup;
+        cleanup();
+        return ESP_FAIL;
     }
     buff->len = len;
     buff->data = buffer;
     buff->rx_buff = eb;
-    if (!xQueueSendToBack(uart_tx_queue, (void *)&buff, (TickType_t)0/*portMAX_DELAY*/)) {
+    if (!xQueueSendToBack(uart_tx_queue, (void *)&buff, portMAX_DELAY)) {
+        cleanup();
         free_wifi_receive_buff(buff);
+        return ESP_FAIL;
     }
-    return 0;
-
-cleanup:
-    ESP_LOGI(TAG, "Failed to enqueue received wifi packet");
-    esp_wifi_internal_free_rx_buffer(eb);
-    return 0;
+    return ESP_OK;
 }
 
 void wifi_init_sta(void) {
@@ -462,7 +460,7 @@ void wifi_init_sta(void) {
     ESP_ERROR_CHECK(esp_wifi_init_internal(&cfg));
     ESP_ERROR_CHECK(esp_supplicant_init());
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));
-    ESP_ERROR_CHECK(esp_wifi_internal_reg_rxcb(ESP_IF_WIFI_STA, wifi_receive_cb));
+    ESP_ERROR_CHECK(esp_wifi_internal_reg_rxcb(WIFI_IF_STA, wifi_receive_cb));
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
 }
 
@@ -532,7 +530,7 @@ static void IRAM_ATTR read_packet_message(uint16_t size) {
     // ESP_LOGI(TAG, "Receiving packet size: %d", size);
     // ESP_LOGI(TAG, "Allocating pbuf size: %d, free heap: %d", size, esp_get_free_heap_size());
 
-    wifi_send_buff *buff = malloc(sizeof(wifi_send_buff));
+    wifi_send_buff *buff = static_cast<wifi_send_buff *>(malloc(sizeof(wifi_send_buff)));
     if(!buff) {
         goto nomem;
     }
@@ -543,7 +541,7 @@ static void IRAM_ATTR read_packet_message(uint16_t size) {
         goto nomem;
     }
 
-    read_uart(buff->data, buff->len);
+    read_uart(reinterpret_cast<uint8_t *>(buff->data), buff->len);
 
     if (!xQueueSendToBack(wifi_egress_queue, (void *)&buff, (TickType_t)0/*portMAX_DELAY*/)) {
         ESP_LOGI(TAG, "Out of space in egress queue");
@@ -602,7 +600,7 @@ static void read_wifi_client_message() {
 
     wifi_running = false;
     esp_wifi_stop();
-    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start());
     wifi_running = true;
     send_device_info();
@@ -664,7 +662,7 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
         }
     }
 
-    struct header header = {0};
+    struct header header{};
     header.type = MSG_SCAN_AP_CNT;
     header.ap_count = scan.stored_ssids_count;
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
@@ -676,7 +674,7 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
 }
 
 static void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult* scan) {
-    struct header header = {0};
+    struct header header{};
     header.type = MSG_SCAN_AP_GET;
     header.ap_index = index;
     header.size = htons(sizeof(ScanResult));
@@ -772,7 +770,7 @@ static void IRAM_ATTR wifi_egress_thread(void *arg) {
                 continue;
             }
 
-            int8_t err = esp_wifi_internal_tx(ESP_IF_WIFI_STA, buff->data, buff->len);
+            int8_t err = esp_wifi_internal_tx(WIFI_IF_STA, buff->data, buff->len);
             if (err != ESP_OK) {
                 ESP_LOGI(TAG, "Failed to send packet !!!");
             }
@@ -815,7 +813,7 @@ static void IRAM_ATTR uart_tx_thread(void *arg) {
     }
 }
 
-void app_main() {
+extern "C" void app_main() {
     ESP_LOGI(TAG, "UART NIC");
 
 	// esp_log_level_set("*", ESP_LOG_ERROR);
@@ -831,7 +829,9 @@ void app_main() {
         .data_bits = UART_DATA_8_BITS,
         .parity    = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .rx_flow_ctrl_thresh = 0,
+        .source_clk = UART_SCLK_DEFAULT,
     };
     uart_driver_install(UART_NUM_0, 16384, 0, 0, NULL, 0);
     uart_param_config(UART_NUM_0, &uart_config);
@@ -840,9 +840,9 @@ void app_main() {
         | UART_RXFIFO_TOUT_INT_ENA_M
         | UART_FRM_ERR_INT_ENA_M
         | UART_RXFIFO_OVF_INT_ENA_M,
-        .rxfifo_full_thresh = 80,
         .rx_timeout_thresh = 1,
-        .txfifo_empty_intr_thresh = 40
+        .txfifo_empty_intr_thresh = 40,
+        .rxfifo_full_thresh = 80,
     };
     uart_intr_config(UART_NUM_0, &uart_intr);
 
