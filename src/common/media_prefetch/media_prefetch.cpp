@@ -436,7 +436,7 @@ void MediaPrefetchManager::fetch_report_error(AsyncJobExecutionControl &control,
         { SR::RESULT_EOF, Status::end_of_file },
         { SR::RESULT_TIMEOUT, Status::end_of_buffer },
         { SR::RESULT_ERROR, Status::usb_error },
-        { SR::RESULT_OUT_OF_RANGE, Status::end_of_buffer },
+        { SR::RESULT_OUT_OF_RANGE, Status::not_downloaded },
         { SR::RESULT_CORRUPT, Status::corruption },
     };
     const auto status = status_map[error];

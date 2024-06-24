@@ -20,7 +20,7 @@ public:
         /// All is well, command was fetched
         ok,
 
-        /// Reached end of buffer, but it should eventually get more data - waiting for download/USB response/...
+        /// Reached end of buffer, but it should eventually get more data - waiting for USB response, ...
         end_of_buffer,
 
         /// We've reached end of file, no more gcode will be coming
@@ -31,6 +31,9 @@ public:
 
         /// There is a problem with USB that needs to be resolved to continue fetching the data
         usb_error,
+
+        /// We've hit an end of what is downloaded
+        not_downloaded,
     };
 
     /// Returns whether the status \p s is an error that we should try recovering from somehow
