@@ -63,72 +63,76 @@ pipeline {
     }
 
     stages {
-        stage('Create Git Tag') {
-            when {
-                expression {
-                    return env.GIT_URL == 'git@github.com:prusa3d/Prusa-Firmware-Buddy-Private.git';
-                }
-            }
-            agent any
-            steps {
-                script {
-                    version = get_version_info()
-                    tag_name = "build/${version.full}"
-                    base_url = "https://holly.prusa3d.com/job/Prusa-Firmware-Buddy-Private/job/Multibranch/job"
-                    if (env.CHANGE_ID) {
-                        url = "${base_url}/PR-${env.CHANGE_ID}/${env.BUILD_NUMBER}/"
-                    } else {
-                        url = "${base_url}/${env.BRANCH_NAME}/${env.BUILD_NUMBER}/"
+        stage('Prepare') {
+            parallel {
+                stage('Create Git Tag') {
+                    when {
+                        expression {
+                            return env.GIT_URL == 'git@github.com:prusa3d/Prusa-Firmware-Buddy-Private.git';
+                        }
                     }
-                    message = "${tag_name}\n\nBuilt by Holly at ${url}"
-                    sshagent(credentials: ['prusa_holly']) {
+                    agent any
+                    steps {
+                        script {
+                            version = get_version_info()
+                            tag_name = "build/${version.full}"
+                            base_url = "https://holly.prusa3d.com/job/Prusa-Firmware-Buddy-Private/job/Multibranch/job"
+                            if (env.CHANGE_ID) {
+                                url = "${base_url}/PR-${env.CHANGE_ID}/${env.BUILD_NUMBER}/"
+                            } else {
+                                url = "${base_url}/${env.BRANCH_NAME}/${env.BUILD_NUMBER}/"
+                            }
+                            message = "${tag_name}\n\nBuilt by Holly at ${url}"
+                            sshagent(credentials: ['prusa_holly']) {
+                                sh """
+                                    export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+                                    git tag -af "${tag_name}" -m "${message}"
+                                    git push origin "${tag_name}"
+                                """
+                            }
+                        }
+                    }
+                    post {
+                        cleanup {
+                            deleteDir()
+                        }
+                    }
+                }
+
+                stage('Check Formatting') {
+                    agent {
+                        dockerfile {
+                            label 'docker-v2'
+                            filename 'utils/holly/Dockerfile'
+                            additionalBuildArgs '-t prusa-firmware-buddy'
+                        }
+                    }
+                    when {
+                        expression { env.CHANGE_TARGET }
+                    }
+                    steps {
+                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                         sh """
-                            export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
-                            git tag -af "${tag_name}" -m "${message}"
-                            git push origin "${tag_name}"
+                        ln -fs /work/.dependencies
+                        ln -fs /work/.venv
+                        . .venv/bin/activate
+
+                        export XDG_CACHE_HOME=\$PWD/.precommit
+                        git config --unset-all core.hooksPath
+                        pre-commit install
+                        pre-commit run \
+                            --source remotes/origin/${env.CHANGE_TARGET} \
+                            --origin HEAD \
+                            --show-diff-on-failure \
+                            --hook-stage manual
                         """
                     }
-                }
-            }
-            post {
-                cleanup {
-                    deleteDir()
-                }
-            }
-        }
-
-        stage('Check Formatting') {
-            agent {
-                dockerfile {
-                    label 'docker-v2'
-                    filename 'utils/holly/Dockerfile'
-                    additionalBuildArgs '-t prusa-firmware-buddy'
-                }
-            }
-            when {
-                expression { env.CHANGE_TARGET }
-            }
-            steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    sh """
-                    ln -fs /work/.dependencies
-                    ln -fs /work/.venv
-                    . .venv/bin/activate
-
-                    export XDG_CACHE_HOME=\$PWD/.precommit
-                    git config --unset-all core.hooksPath
-                    pre-commit install
-                    pre-commit run \
-                        --source remotes/origin/${env.CHANGE_TARGET} \
-                        --origin HEAD \
-                        --show-diff-on-failure \
-                        --hook-stage manual
-                    """
-                }
-            }
-            post {
-                cleanup {
-                    deleteDir()
+                    }
+                    post {
+                        cleanup {
+                            deleteDir()
+                        }
+                    }
                 }
             }
         }
