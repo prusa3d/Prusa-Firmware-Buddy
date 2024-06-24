@@ -18,6 +18,10 @@
     #error "You're trying to add marlin_server to Dwarf. Don't!"
 #endif /*BOARD_IS_DWARF*/
 
+/// Determines how full should the gcode queue be kept when fetching from media
+/// You need at least one free slot for commands from serial (and UI)
+#define MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET (BUFSIZE - 1)
+
 class GCodeReaderStreamRestoreInfo;
 
 namespace marlin_server {
