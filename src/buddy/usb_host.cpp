@@ -101,19 +101,7 @@ void msc_active() {
             marlin_client_initializated = true;
             marlin_client::init();
         }
-        switch (media_print_get_state()) {
-
-        case media_print_state_NONE:
-            break;
-
-        case media_print_state_PAUSED:
-            marlin_client::print_resume();
-            break;
-
-        case media_print_state_PRINTING:
-            marlin_client::try_recover_from_media_error();
-            break;
-        }
+        marlin_client::try_recover_from_media_error();
     }
 }
 

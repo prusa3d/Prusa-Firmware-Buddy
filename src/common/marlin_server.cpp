@@ -1223,7 +1223,19 @@ void print_resume(void) {
 }
 
 void try_recover_from_media_error() {
-    media_print_reopen();
+    switch (media_print_get_state()) {
+
+    case media_print_state_NONE:
+        break;
+
+    case media_print_state_PAUSED:
+        print_resume();
+        break;
+
+    case media_print_state_PRINTING:
+        media_print_reopen();
+        break;
+    }
 }
 
 // Fast temperature recheck.
