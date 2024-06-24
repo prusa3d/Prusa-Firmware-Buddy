@@ -18,6 +18,9 @@ enum class RecordType : uint8_t {
 
     /// uint32_t offset follows
     offset_update,
+
+    /// uint8_t offset increase follows
+    incremental_offset_update,
 };
 
 struct RecordHeader {
@@ -73,6 +76,13 @@ MediaPrefetchManager::Status MediaPrefetchManager::read_command(ReadResult &resu
         case RecordType::offset_update:
             read_entry(resume_pos.offset);
             continue;
+
+        case RecordType::incremental_offset_update: {
+            uint8_t offset_diff;
+            read_entry(offset_diff);
+            resume_pos.offset += offset_diff;
+            continue;
+        }
 
         case RecordType::restore_info_update:
             read_entry(resume_pos.restore_info);
@@ -286,12 +296,27 @@ bool MediaPrefetchManager::fetch_flush_command(AsyncJobExecutionControl &control
 
     // If the gcode pos changed, publish a relevant record
     if (const auto offset = s.gcode_reader_pos; offset != s.write_tail.gcode_pos.offset) {
-        if (!can_write_entry<RecordHeader, decltype(offset)>()) {
-            return false;
-        }
+        assert(offset >= s.write_tail.gcode_pos.offset);
+        const auto offset_diff = offset - s.write_tail.gcode_pos.offset;
 
-        write_entry<RecordHeader>({ .record_type = RecordType::offset_update });
-        write_entry(offset);
+        if (offset_diff < 256) {
+            // Offset diff fits into one byte -> we can do incremental offset
+            if (!can_write_entry<RecordHeader, uint8_t>()) {
+                return false;
+            }
+
+            write_entry<RecordHeader>({ .record_type = RecordType::incremental_offset_update });
+            write_entry<uint8_t>(offset_diff);
+
+        } else {
+            // Otherwise, emit full 4 byte offsetđ
+            if (!can_write_entry<RecordHeader, decltype(offset)>()) {
+                return false;
+            }
+
+            write_entry<RecordHeader>({ .record_type = RecordType::offset_update });
+            write_entry(offset);
+        }
 
         s.write_tail.gcode_pos.offset = offset;
     }
