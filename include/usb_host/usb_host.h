@@ -26,10 +26,6 @@ void port_disabled();
 // indication that the one click dialog during USB recovery reset should be blocked
 bool block_one_click_print();
 
-// indication that a USB error dialog should be displayed
-// usb reset was unsuccessful and nothing else remains after emptying the prefetch buffer
-extern std::atomic<bool> trigger_usb_failed_dialog;
-
 } // namespace usbh_power_cycle
 
 extern "C" {

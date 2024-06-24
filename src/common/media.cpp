@@ -350,8 +350,8 @@ void media_print_reopen() {
         media_print_file = AnyGcodeFormatReader {};
         skip_gcode = true;
         media_print_file = AnyGcodeFormatReader { marlin_vars()->media_SFN_path.get_ptr() };
-        if (!media_print_file.is_open() || !media_print_file_reset_position()) {
-            usbh_power_cycle::trigger_usb_failed_dialog = true;
+        if (!media_print_file.is_open()) {
+            media_print_file_reset_position();
         }
     }
 }
@@ -446,9 +446,6 @@ void media_loop(void) {
             usbh_error_count++;
             metric_record_integer(&usbh_error_cnt, usbh_error_count);
             media_print_pause();
-            if (usbh_power_cycle::trigger_usb_failed_dialog) {
-                marlin_server::set_warning(WarningType::USBFlashDiskError);
-            }
             return;
         case GCodeFilter::State::Eof:
             // Stop print on EOF

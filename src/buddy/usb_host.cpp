@@ -59,7 +59,6 @@ enum class RecoveryPhase : uint_fast8_t {
 
 std::atomic<RecoveryPhase> recovery_phase = RecoveryPhase::idle;
 std::atomic<bool> resume_print_on_recovery = false;
-std::atomic<bool> trigger_usb_failed_dialog = true;
 
 // Initialize FreeRTOS timer
 void init() {
@@ -70,7 +69,6 @@ void init() {
 // callback from USBH_MSC_Worker when an io error occurs => start the restart procedure
 void io_error() {
     if (recovery_phase == RecoveryPhase::idle) {
-        trigger_usb_failed_dialog = false;
         xTimerChangePeriod(restart_timer, 10, portMAX_DELAY);
     }
 }
@@ -78,7 +76,6 @@ void io_error() {
 // callback from isr => start the restart procedure
 void port_disabled() {
     if (recovery_phase == RecoveryPhase::idle) {
-        trigger_usb_failed_dialog = false;
         xTimerChangePeriodFromISR(restart_timer, 10, nullptr);
     }
 }
@@ -115,7 +112,6 @@ void msc_active() {
 
         case media_print_state_PRINTING:
             marlin_client::try_recover_from_media_error();
-            trigger_usb_failed_dialog = true;
             break;
         }
     }
@@ -173,24 +169,6 @@ void restart_timer_callback(TimerHandle_t) {
         // The power cycle finished, but the drive was not loaded within a given period
         // -> report an error
         recovery_phase = RecoveryPhase::idle;
-        trigger_usb_failed_dialog = true;
-
-        switch (media_print_get_state()) {
-
-        case media_print_state_NONE:
-        case media_print_state_PRINTING:
-            break;
-
-        case media_print_state_PAUSED:
-            static bool marlin_client_initializated = false;
-            // lazy initialization of marlin_client
-            if (!marlin_client_initializated) {
-                marlin_client_initializated = true;
-                marlin_client::init();
-            }
-            marlin_client::set_warning(WarningType::USBFlashDiskError);
-            break;
-        }
         break;
     }
 }
