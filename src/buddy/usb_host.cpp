@@ -3,7 +3,6 @@
 #include "usbh_msc.h"
 
 #include "fatfs.h"
-#include "media.hpp"
 #include <device/board.h>
 #include "common/timing.h"
 
