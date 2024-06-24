@@ -64,4 +64,8 @@ inline bool is_abort_state(State st) {
     return sti >= static_cast<int>(State::Aborting_Begin) && sti <= static_cast<int>(State::Aborted);
 }
 
+inline bool is_pausing_state(State state) {
+    return (state == State::Pausing_Begin) || (state == State::Pausing_Failed_Code) || (state == State::Pausing_WaitIdle) || (state == State::Pausing_ParkHead);
+}
+
 } // namespace marlin_server

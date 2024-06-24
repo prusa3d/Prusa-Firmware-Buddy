@@ -198,6 +198,10 @@ namespace {
 
     /// State variables that reset with each print
     struct PrintState {
+
+        /// When print_resume is called during the pausing (or possibly other sequences), we first have to finish the sequence and then start resuming.
+        /// This flag stores that we have a resume pending and we should start executing it when we can.
+        bool resume_pending = false;
     };
 
     PrintState print_state;
@@ -1221,6 +1225,9 @@ void print_resume(void) {
         // pause queuing commands from serial, until resume sequence is finished.
         GCodeQueue::pause_serial_commands = true;
 
+    } else if (is_pausing_state(server.print_state)) {
+        print_state.resume_pending = true;
+
 #if ENABLED(POWER_PANIC)
     } else if (server.print_state == State::PowerPanic_AwaitingResume) {
         power_panic::resume_continue();
@@ -1672,6 +1679,8 @@ static void _server_print_loop(void) {
         break;
 
     case State::Printing:
+        print_state.resume_pending = false;
+
         if (server.print_is_serial) {
             SerialPrinting::print_loop();
         } else {
@@ -1711,6 +1720,11 @@ static void _server_print_loop(void) {
         gcode.reset_stepper_timeout(); // prevent disable axis
         // resume queuing serial commands (to be able to resume)
         GCodeQueue::pause_serial_commands = false;
+
+        if (print_state.resume_pending) {
+            print_state.resume_pending = false;
+            print_resume();
+        }
         break;
     case State::Resuming_Begin:
 #if ENABLED(CRASH_RECOVERY)
