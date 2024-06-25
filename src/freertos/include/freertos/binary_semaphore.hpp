@@ -7,7 +7,10 @@
 
 namespace freertos {
 
-// C++ wrapper for FreeRTOS binary semaphore.
+/// C++ wrapper for FreeRTOS binary semaphore.
+///
+/// Gets created with 0 permits in it (if acquire is called first, it'll
+/// block).
 class BinarySemaphore {
 public:
     // We use erased storage in order to not pollute the scope with FreeRTOS internals.
@@ -31,14 +34,19 @@ public:
     BinarySemaphore &operator=(const BinarySemaphore &) = delete;
 
     /// Increments the internal counter and unblocks one acquirer
-    /// Raises a bsod if you try to call this when the semaphore is not acquired
+    ///
+    /// Raises a BSOD if the semaphore already contains one permit (eg. if you
+    /// create the semaphore and call release twice without acquire in
+    /// between).
     void release();
 
-    /// Same as \p release, but instead of raising a bsod when the semaphore is not acquired,
-    /// blocks the thread calling \p release, until someone tries to acquire the semaphore.
+    /// Same as \p release, but instead of raising a bsod when there's already
+    /// a permit, it blocks for an acquire to consume it first before
+    /// returning (and setting another permit there).
     void release_blocking();
 
-    /// Decrements the internal counter or blocks until it can.
+    /// Consumes one permit from the semaphore, blocking until it's available
+    /// as necessary.
     void acquire();
 };
 
