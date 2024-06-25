@@ -75,7 +75,7 @@ private:
     std::array<std::array<char, sizeof("T1 HIFIPETG 10.000g") + extra_buffer_size>, EXTRUDERS> consumed_material_values_buffers;
 
     window_text_t consumed_wipe_tower_value;
-    std::array<char, sizeof("Wipe Tower 10.000g") + extra_buffer_size> consumed_wipe_tower_value_buffer;
+    StringViewUtf8Parameters<7> wipe_tower_params;
 
     window_icon_t arrow_right;
     WindowNumbPrintProgress progress_txt;

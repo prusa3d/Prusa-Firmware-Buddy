@@ -44,10 +44,8 @@ DialogConnectRegister::DialogConnectRegister()
 
     text_state.SetText(_("Acquiring registration code, please wait..."));
 
-    char help_buff[20] = { 0 };
-    _(attemptTxt).copyToRAM(help_buff, sizeof(help_buff)); // Translation
-    snprintf(attempt_buffer, sizeof(attempt_buffer), "%s %d/%d", help_buff, 1, connect_client::Registrator::starting_retries);
-    text_attempt.SetText(string_view_utf8::MakeRAM((const uint8_t *)attempt_buffer));
+    const string_view_utf8 str = _(attemptTxt).formatted(attempt_params, 1, connect_client::Registrator::starting_retries);
+    text_attempt.SetText(str);
     text_attempt.Invalidate();
 
     // Show these only after we get the code.
@@ -193,10 +191,8 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
             default:
                 const auto &retries_count { get<2>(last_seen_status) };
                 if (retries_count.has_value()) {
-                    char help_buff[20] = { 0 };
-                    _(attemptTxt).copyToRAM(help_buff, sizeof(help_buff)); // Translation
                     if (get<1>(last_seen_status) != connect_client::OnlineError::NoError) {
-                        snprintf(attempt_buffer, sizeof(attempt_buffer), "%s %d/%d", help_buff, (connect_client::Registrator::starting_retries - retries_count.value()), connect_client::Registrator::starting_retries);
+                        text_attempt.SetText(_(attemptTxt).formatted(attempt_params, (connect_client::Registrator::starting_retries - retries_count.value()), connect_client::Registrator::starting_retries));
                         text_attempt.Invalidate();
                     }
                 }

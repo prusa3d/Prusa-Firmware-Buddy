@@ -184,15 +184,9 @@ void EndResultBody::handle_wipe_tower_showing([[maybe_unused]] const GCodeInfo &
 #if EXTRUDERS > 1
     // wipe tower
     if (has_valid_wipe_tower_grams) {
-
-        auto &buff { consumed_wipe_tower_value_buffer };
         const auto used_g = static_cast<int>(std::lround(gcode.get_filament_wipe_tower_g().value()));
-
-        char translated_fmt[std::tuple_size_v<decltype(consumed_wipe_tower_value_buffer)>];
-        _(txt_wipe_tower_pretranslated).copyToRAM(translated_fmt, sizeof(translated_fmt));
-        snprintf(buff.data(), buff.size(), translated_fmt, used_g);
-
-        consumed_wipe_tower_value.SetText(_(buff.data()));
+        const string_view_utf8 str = _(txt_wipe_tower_pretranslated).formatted(wipe_tower_params, used_g);
+        consumed_wipe_tower_value.SetText(str);
         consumed_wipe_tower_value.Show();
     }
 #endif

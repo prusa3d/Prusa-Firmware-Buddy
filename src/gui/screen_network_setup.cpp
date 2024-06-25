@@ -459,20 +459,18 @@ class FrameConfirmNFC : public FrameText {
 
 public:
     FrameConfirmNFC(window_t *parent)
-        : FrameText(parent, Phase::nfc_confirm, _("Credentials via NFC"), {}) //
-    {
-        decltype(info_text) text_buf;
-        _("Wi-Fi credentials loaded via NFC.\nApply credentials?\n\nSSID: %s").copyToRAM(text_buf);
-
+        : FrameText(parent, Phase::nfc_confirm, _("Credentials via NFC"), {}) {
+        static constexpr const char wifi_credentials_loaded_txt[] = N_("Wi-Fi credentials loaded via NFC.\nApply credentials?\n\nSSID: %s");
+        string_view_utf8 str;
         marlin_vars()->generic_param_string.execute_with([&](const auto &param) {
-            snprintf(info_text.data(), info_text.size(), text_buf.data(), param);
+            str = _(wifi_credentials_loaded_txt).formatted(string_view_parameters, param);
         });
 
-        info.SetText(string_view_utf8::MakeRAM(info_text.data()));
+        info.SetText(str);
     }
 
 protected:
-    std::array<char, 128> info_text;
+    StringViewUtf8Parameters<33> string_view_parameters;
 };
 #endif
 

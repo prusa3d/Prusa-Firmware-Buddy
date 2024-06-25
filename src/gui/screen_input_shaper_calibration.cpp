@@ -299,7 +299,7 @@ public:
 class FrameResults {
 private:
     window_text_t text;
-    std::array<char, 100> text_buffer; // TODO check size...
+    StringViewUtf8Parameters<20> params;
 
 public:
     FrameResults(window_t *parent)
@@ -312,12 +312,9 @@ public:
         const auto y_type = static_cast<input_shaper::Type>(data[2]);
         const auto y_freq = data[3];
 
-        decltype(text_buffer) fmt;
         static const char some_EN_text[] = N_("Computed shapers:\n  X axis %3s %3dHz\n  Y axis %3s %3dHz\nStore and use computed values?");
-        _(some_EN_text).copyToRAM(fmt.data(), fmt.size());
-        snprintf(text_buffer.data(), text_buffer.size(), fmt.data(),
-            to_short_string(x_type), x_freq, to_short_string(y_type), y_freq);
-        text.SetText(string_view_utf8::MakeRAM(text_buffer.data()));
+        const string_view_utf8 str = _(some_EN_text).formatted(params, to_short_string(x_type), x_freq, to_short_string(y_type), y_freq);
+        text.SetText(str);
         text.Invalidate();
     }
 };

@@ -47,7 +47,7 @@ namespace frame {
 
     class CalibrationNOK : public CenteredText {
     private:
-        std::array<char, 150> text_buffer;
+        StringViewUtf8Parameters<32> params;
         char motor;
 
     public:
@@ -57,10 +57,8 @@ namespace frame {
         }
 
         void update(const fsm::PhaseData &data) {
-            std::array<char, 150> fmt;
-            _(txt_calibration_nok).copyToRAM(fmt.data(), fmt.size());
-            snprintf(text_buffer.data(), text_buffer.size(), fmt.data(), motor, data[0], data[1], data[2], data[3]);
-            text.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_buffer.data()));
+            const string_view_utf8 str = _(txt_calibration_nok).formatted(params, motor, data[0], data[1], data[2], data[3]);
+            text.SetText(str);
         }
     };
 
@@ -168,9 +166,8 @@ namespace frame {
         window_text_t title;
         window_text_t motor_x;
         window_text_t motor_y;
-        using TextBuffer = std::array<char, 50>;
-        TextBuffer motor_x_buffer;
-        TextBuffer motor_y_buffer;
+        StringViewUtf8Parameters<10> motor_x_params;
+        StringViewUtf8Parameters<10> motor_y_params;
 
         static constexpr uint16_t padding = 20;
 
@@ -195,13 +192,6 @@ namespace frame {
             height(Font::small),
         };
 
-        static void update_helper(TextBuffer &text_buffer, window_text_t &text, const char motor, const uint8_t reduction) {
-            TextBuffer fmt;
-            _("Motor %c vibration reduced by %2d%%").copyToRAM(fmt.data(), fmt.size());
-            snprintf(text_buffer.data(), text_buffer.size(), fmt.data(), motor, reduction);
-            text.SetText(string_view_utf8::MakeRAM(text_buffer.data()));
-        }
-
     public:
         explicit CalibrationOK(window_t *parent)
             : title { parent, title_rect, is_multiline::no, is_closed_on_click_t::no }
@@ -216,8 +206,9 @@ namespace frame {
         }
 
         void update(const fsm::PhaseData &data) {
-            update_helper(motor_x_buffer, motor_x, 'X', (data[0] + data[1]) / 2);
-            update_helper(motor_y_buffer, motor_y, 'Y', (data[2] + data[3]) / 2);
+            static constexpr const char motor_vibration_txt[] = N_("Motor %c vibration reduced by %2d%%");
+            motor_x.SetText(_(motor_vibration_txt).formatted(motor_x_params, 'X', (data[0] + data[1]) / 2));
+            motor_y.SetText(_(motor_vibration_txt).formatted(motor_y_params, 'Y', (data[2] + data[3]) / 2));
         }
     };
 

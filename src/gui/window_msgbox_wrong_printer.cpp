@@ -19,7 +19,7 @@ MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, const string_view_utf8 &
           { this, _(txt_wrong_printer_model), valid_printer_settings.wrong_printer_model.get_severity(), valid_printer_settings.wrong_printer_model.is_valid() },
           { this, _(txt_wrong_gcode_level), valid_printer_settings.wrong_gcode_level.get_severity(), valid_printer_settings.wrong_gcode_level.is_valid() },
           { this, _(txt_compatibility_mode), valid_printer_settings.mk3_compatibility_mode.get_severity(), valid_printer_settings.mk3_compatibility_mode.is_valid() },
-          { this, string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(wrong_fw_version_buff)), valid_printer_settings.wrong_firmware.get_severity(), valid_printer_settings.wrong_firmware.is_valid() } } }
+          { this, _(txt_old_firmware).formatted(wrong_fw_version_params, valid_printer_settings.latest_fw_version), valid_printer_settings.wrong_firmware.get_severity(), valid_printer_settings.wrong_firmware.is_valid() } } }
     , unsupported_features(this, _(txt_unsupported_features), HWCheckSeverity::Abort, !valid_printer_settings.unsupported_features)
     , unsupported_features_text(this, {}, is_multiline::no) {
 
@@ -60,11 +60,6 @@ MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, const string_view_utf8 &
             m.text.SetRect(text_rect);
         }
     }
-
-    // Build new firmware available text
-    char translated_fmt[sizeof(wrong_fw_version_buff)];
-    _(txt_old_firmware).copyToRAM(translated_fmt, sizeof(translated_fmt));
-    snprintf(wrong_fw_version_buff, sizeof(wrong_fw_version_buff), translated_fmt, valid_printer_settings.latest_fw_version);
 
     // Show unsupported features
     if (unsupported_features.text.HasVisibleFlag()) {

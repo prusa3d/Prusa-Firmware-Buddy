@@ -10,14 +10,15 @@
 
 class DialogConnectRegister : public IDialog {
 private:
-    char attempt_buffer[30];
+    StringViewUtf8Parameters<10> attempt_params;
+
     char detail_buffer[70];
     char error_buffer[90];
 
     // TODO: Doesn't fit
     constexpr static const char *const headerLabel = N_("PRUSA CONNECT");
     constexpr static const char *const moreDetailTxt = N_("More detail at");
-    constexpr static const char *const attemptTxt = N_("Attempt");
+    constexpr static const char *const attemptTxt = N_("Attempt %d/%d");
 
     // TODO: Stolen from selftest_frame_esp_qr.hpp ‒ unify to a common place.
     /** @brief Calculates the position of individual elements of the frame

@@ -29,9 +29,8 @@ class MsgBoxInvalidPrinter : public MsgBoxTitled {
     };
     const GCodeInfo::ValidPrinterSettings &valid_printer_settings;
     std::array<Message, 6> messages;
-    char wrong_fw_version_buff[sizeof(txt_old_firmware) + // Original text
-        sizeof(valid_printer_settings.latest_fw_version) + // Max version len
-        20]; // Some margin for long translation
+
+    StringViewUtf8Parameters<sizeof(valid_printer_settings.latest_fw_version) + 5> wrong_fw_version_params; // Max version len + some margin
 
     Message unsupported_features;
     window_text_t unsupported_features_text;
