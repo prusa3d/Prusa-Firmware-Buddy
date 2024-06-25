@@ -340,10 +340,18 @@ TEST_CASE("media_prefetch::feed_test") {
         // Restart the prefetch
         mp.start(p.filename(), {});
 
-        std::minstd_rand rand_gen;
+        size_t seed;
+        SECTION("Fixed seed") {
+            // Keyboard-mash generated seed to ensure repeatibility of the unittest
+            seed = 65468;
+        }
+        SECTION("Random seed") {
+            seed = std::random_device()();
+        }
 
-        // Keyboard-mash generated seed to ensure repeatibility of the unittest
-        rand_gen.seed(65468);
+        CAPTURE(seed);
+        std::minstd_rand rand_gen;
+        rand_gen.seed(seed);
 
         // We always read one to buffer_size / 8 commands
         std::uniform_int_distribution<> distrib(0, mp.buffer_size / 8);
@@ -366,10 +374,18 @@ TEST_CASE("media_prefetch::feed_test") {
         // Restart the prefetch
         mp.start(p.filename(), {});
 
-        std::minstd_rand rand_gen;
+        size_t seed;
+        SECTION("Fixed seed") {
+            // Keyboard-mash generated seed to ensure repeatibility of the unittest
+            seed = 13654;
+        }
+        SECTION("Random seed") {
+            seed = std::random_device()();
+        }
 
-        // Keyboard-mash generated seed to ensure repeatibility of the unittest
-        rand_gen.seed(65468);
+        CAPTURE(seed);
+        std::minstd_rand rand_gen;
+        rand_gen.seed(seed);
 
         // The media prefetch should check for discard at least once per command write
         const int min_discard_count = 32;
