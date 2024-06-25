@@ -214,6 +214,10 @@ namespace {
         /// Some pauses should cause (partial) gcode replay on resume - crash, power panic, ..., some shouldn't.
         /// This does that
         bool skip_gcode = false;
+
+        /// Whether file open was reported on the serial line.
+        /// We cannot do this directly when calling media_prefecth start, we need to wait till we have file size estimate
+        bool file_open_reported = false;
     };
 
     PrintState print_state;
@@ -1253,6 +1257,13 @@ void media_print_loop() {
             print_state.paused_due_to_media_error = true;
             print_pause();
         };
+
+        if (!print_state.file_open_reported && marlin_vars()->media_size_estimate.get()) {
+            print_state.file_open_reported = true;
+
+            // Do not remove, needed for 3rd party tools such as octoprint to get status about the gcode file being opened
+            SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, marlin_vars()->media_SFN_path.get_ptr(), " Size:", marlin_vars()->media_size_estimate.get());
+        }
 
         switch (status) {
 
