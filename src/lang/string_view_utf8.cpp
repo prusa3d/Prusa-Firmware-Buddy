@@ -1,6 +1,9 @@
 #include "string_view_utf8.hpp"
-
+#include <stdarg.h>
 #include <exception>
+#include <bitset>
+
+static constexpr char delimiter_char = '\0';
 
 string_view_utf8::Length string_view_utf8::computeNumUtf8Chars() const {
     Length r = 0;
@@ -70,6 +73,127 @@ size_t string_view_utf8::copyBytesToRAM(char *dst, size_t buffer_size) const {
     return dst - dst_start;
 }
 
+void string_view_utf8::set_up_formatted(StringViewUtf8ParamBase &params) {
+    formatted_string_params = &params; // Save parameters in the StringViewUtf8Parameters pointer
+    file = FORMATTED_STRING_MARKER; // Set up formatted string symptom
+}
+
+void FormatBuilder::add_param([[maybe_unused]] const size_t unused, ...) {
+    int result_specifiers = -1;
+    while (reader.find_format_specifier() && (result_specifiers = reader.read_format_specifier(format_specifier, sizeof(format_specifier))) == 0)
+        ; // Find and extract a format specifier, that is not "%%" (ret == 0)
+
+    if (result_specifiers <= 0) {
+        // Extraction of format specifier
+        std::terminate(); // BSOD
+        return;
+    }
+
+    va_list args;
+    va_start(args, unused);
+    const int result_vsnprinf = vsnprintf(params.buffer.data() + target_idx, params.buffer.size_bytes() - target_idx, format_specifier, args);
+    va_end(args);
+    if (result_vsnprinf < 0) {
+        // result_vsnprintf == 0: possible empty string parameter
+        std::terminate(); // BSOD
+        return;
+    }
+
+    // parameter buffered successfully
+    target_idx += result_vsnprinf + 1; // + 1 -> null-termination character
+}
+
+static bool is_format_specifier(char c) {
+    static constexpr std::bitset<96> format_specifiers = []() {
+        constexpr const char *chars = "diuoxXfFeEgGaAcspn";
+        std::bitset<96> bs;
+        for (const char *ch = chars; *ch; ch++) {
+            bs.set(*ch - 32);
+        }
+        return bs;
+    }();
+    return c >= 32 && c < (char)format_specifiers.size() + 32 && format_specifiers[c - 32];
+}
+
+static bool is_precision_specifier(char c) {
+    static constexpr std::bitset<96> precision_specifiers = []() {
+        constexpr const char *chars = "0123456789.-+lh";
+        std::bitset<96> bs;
+        for (const char *ch = chars; *ch; ch++) {
+            bs.set(*ch - 32);
+        }
+        return bs;
+    }();
+    return c >= 32 && c < (char)precision_specifiers.size() + 32 && precision_specifiers[c - 32];
+}
+
+bool StringReaderUtf8::find_format_specifier() {
+    unichar uch;
+    while ((uch = getUtf8Char()) != '\0' && uch != '%')
+        ; // Skip all characters before the format specifier including the starting character '%'
+
+    return uch != '\0';
+}
+
+int StringReaderUtf8::read_format_specifier(char *buffer, uint8_t buffer_size) {
+    char ch = peek();
+    advance();
+    if (ch == '%') {
+        return 0; // escape "%%" found - skip format specifier
+    }
+
+    char *buffer_pos = buffer;
+    auto copy_to_buff = [&](char ch) {
+        if (buffer) {
+            if (buffer_pos - buffer < buffer_size) {
+                *(buffer_pos++) = ch;
+            } else {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    // Copy '%', pointer was already looking at the next character
+    if (!copy_to_buff('%')) {
+        return -1;
+    }
+
+    while (is_precision_specifier(ch)) {
+        if (!copy_to_buff(ch)) {
+            return -1;
+        }
+        ch = peek();
+        advance();
+    }
+
+    // After optional precision specifiers, we expect a single format specifier and successful copying of the char and termination character
+    if (!is_format_specifier(ch) || !copy_to_buff(ch) || !copy_to_buff('\0')) {
+        return -1;
+    }
+
+    return buffer ? buffer_pos - buffer : 1; // successful skipping returns 1
+}
+
+bool StringReaderUtf8::trigger_buffer_switch(uint8_t ch) {
+    bool triggered = false;
+    if (!switched_to_param_buffer && ch == '%') {
+        if (peek() == '%') {
+            // escape sequence "%%"
+            advance(); // skip '%' character by advancing the pointer and do not switch buffer
+        } else {
+            // start of a parameter
+            read_format_specifier(nullptr, 0); // skip format specifier in the original string_view
+            switched_to_param_buffer = triggered = true;
+        }
+    } else if (switched_to_param_buffer && ch == delimiter_char) {
+        // end of a parameter
+        switched_to_param_buffer = false; // after this getbyte() extracts from original string_view
+        triggered = true;
+    }
+    return triggered;
+}
+
 unichar StringReaderUtf8::getUtf8Char() {
     if (last_read_byte_ == 0xff) { // in case we don't have any character from the last run, get a new one from the input stream
         last_read_byte_ = getbyte();
@@ -92,23 +216,59 @@ unichar StringReaderUtf8::getUtf8Char() {
 }
 
 uint8_t StringReaderUtf8::getbyte() {
-    switch (view_.type()) {
 
-    case Type::memory_string:
-        return *view_.memory_ptr++; // beware - expecting, that the input string is null-terminated! No other checks are done
-
-    case Type::file_string:
-        return FILE_getbyte();
-
-    case Type::null_string:
-        return '\0';
+    uint8_t ch = peek();
+    advance();
+    if (parameters) {
+        while (trigger_buffer_switch(ch)) {
+            ch = peek();
+            advance();
+        }
     }
 
-    // This should never happen
-    std::terminate();
+    return ch;
 }
 
-uint8_t StringReaderUtf8::FILE_getbyte() {
+void StringReaderUtf8::advance() {
+    if (parameters && switched_to_param_buffer) {
+        parameter_idx++;
+        return;
+    }
+
+    switch (view_.type()) {
+    case Type::memory_string:
+        view_.memory_ptr++;
+        break;
+    case Type::file_string:
+        view_.file_offset++;
+        break;
+    case Type::null_string:
+    case Type::formatted_string:
+        break;
+    }
+}
+
+uint8_t StringReaderUtf8::peek() const {
+    if (parameters && switched_to_param_buffer) {
+        return *(parameters->buffer.data() + parameter_idx);
+    }
+
+    switch (view_.type()) {
+    case Type::memory_string:
+        return *view_.memory_ptr;
+
+    case Type::file_string:
+        return file_peek();
+
+    case Type::null_string:
+    case Type::formatted_string:
+        break;
+    }
+
+    return '\0'; // Should not happen
+}
+
+uint8_t StringReaderUtf8::file_peek() const {
     if (!view_.file) {
         return '\0';
     }
@@ -121,7 +281,6 @@ uint8_t StringReaderUtf8::FILE_getbyte() {
         }
     }
 
-    view_.file_offset++;
     if (fread(&c, 1, 1, view_.file) != 1) {
         return '\0';
     }

@@ -8,10 +8,13 @@
 #include <cstdlib>
 #include <span>
 
-#define UTF8_IS_NONASCII(ch) ((ch)&0x80)
-#define UTF8_IS_CONT(ch)     (((ch)&0xC0) == 0x80)
+#define UTF8_IS_NONASCII(ch)    ((ch)&0x80)
+#define UTF8_IS_CONT(ch)        (((ch)&0xC0) == 0x80)
+#define FORMATTED_STRING_MARKER (FILE *)1 // Special value for formatted string view
 
 using unichar = std::uint32_t;
+class StringViewUtf8ParamBase;
+class StringReaderUtf8;
 
 /// string_view_utf8 allows for iteration over utf8 characters
 /// There will be multiple implementations which will differ in processes of:
@@ -45,6 +48,12 @@ public:
         /// The strnig is stored in the file
         /// \p file contains the file handle, \p file_offset contains the offset
         file_string,
+
+        /// The string is formatted
+        /// \p file pointer is set to FORMATTED_STRING_MARKER
+        /// \p formatted_string_params points to StringViewUtf8Parameters, which contains the original string_view_utf8 and buffer with preformatted parameters
+        /// While reading StringViewReaderUtf8 is switching between original string_view and parameter buffer
+        formatted_string,
     };
 
 private:
@@ -57,6 +66,10 @@ private:
 
         /// If file is not null, this is used as an offset to the file
         uint32_t file_offset;
+
+        /// If file is formatted string marker, this structure contains original string_view and buffer for stringified parameters
+        /// THE USER HAS TO MAKE SURE THE STRUCTURE IS NOT DESTROYED FOR THE WHOLE EXISTENCE OF THE STRING_VIEW AND ITS COPIES
+        StringViewUtf8ParamBase const *formatted_string_params;
     };
 
 public:
@@ -73,11 +86,9 @@ public:
 
     constexpr inline Type type() const {
         if (file) {
-            return Type::file_string;
-
+            return file == FORMATTED_STRING_MARKER ? Type::formatted_string : Type::file_string;
         } else if (memory_ptr) {
             return Type::memory_string;
-
         } else {
             return Type::null_string;
         }
@@ -164,8 +175,36 @@ public:
     bool is_same_ref(const string_view_utf8 &other) const {
         return (file == other.file) && (memory_ptr == other.memory_ptr);
     }
+
+    /// Formatted string_view replaces format specifiers in the translated text with preformatted parameters from parameter buffer inside params buffer
+    /// The caller has to initialize StringViewUtf8Parameters structure with enough space for stringified parameters. It will store formatted parameters (with '\0' delimeter)
+    /// \returns the current string with formatting applied in a printf-like manner.
+    template <typename... Args>
+    string_view_utf8 formatted(StringViewUtf8ParamBase &params, Args... args) const;
+
+    /// Set up formatted string_view
+    void set_up_formatted(StringViewUtf8ParamBase &params);
 };
 static_assert(std::is_trivially_copyable_v<string_view_utf8>);
+
+class StringViewUtf8ParamBase {
+public:
+    StringViewUtf8ParamBase(std::span<char> buffer)
+        : buffer(buffer) {}
+
+    string_view_utf8 original = string_view_utf8::MakeNULLSTR();
+    std::span<char> buffer;
+};
+
+template <size_t buffer_size_>
+class StringViewUtf8Parameters : public StringViewUtf8ParamBase {
+public:
+    StringViewUtf8Parameters()
+        : StringViewUtf8ParamBase(array) {}
+
+private:
+    std::array<char, buffer_size_> array;
+};
 
 /// Class for reading the characters of a string_view_utf8
 class StringReaderUtf8 {
@@ -175,6 +214,11 @@ public:
     /// \param view string to be read (reader makes a copy, it does not need to exist during the reader existence)
     explicit StringReaderUtf8(const string_view_utf8 &view)
         : view_(view) {
+        if (view.type() == Type::formatted_string) {
+            // Unwrap formatted string_view;
+            view_ = view.formatted_string_params->original;
+            parameters = view.formatted_string_params;
+        }
     }
 
     /// No copying, no moving, just reading :)
@@ -195,10 +239,70 @@ public:
     /// \returns 0 in case of end of input data or an error
     uint8_t getbyte();
 
+    /// Iterates through reader until it finds the first format specifier ('%')
+    /// \returns false if non was found
+    bool find_format_specifier();
+
+    /// Extracts format specifier from translated text to local buffer and snprintf them in \param target.
+    /// if \param target is a nullptr, it skips until the reader points right after format specifier
+    /// \returns -1 if error occured
+    /// \returns 0 if escape sequence was found "%%" - have to be skipped
+    /// \returns positive number if extraction was successful
+    int read_format_specifier(char *target, uint8_t target_size);
+
 private:
-    uint8_t FILE_getbyte();
+    /// \returns one byte from source media without advancing internal read ptr, implementation defined in derived classes
+    /// The caller of this function makes sure it does not get called repeatedly after returning the end of input data.
+    /// \returns 0 in case of end of input data or an error
+    uint8_t peek() const;
+
+    void advance();
+
+    uint8_t file_peek() const;
+
+    /// Triggers switch between parameter buffer and original string, based on last_read_byte_
+    /// \param ch extracted character
+    /// \returns if read method was switched
+    bool trigger_buffer_switch(uint8_t ch);
 
 private:
     string_view_utf8 view_;
     uint8_t last_read_byte_ = 0xff;
+    bool switched_to_param_buffer = false;
+    size_t parameter_idx = 0;
+    StringViewUtf8ParamBase const *parameters = nullptr;
 };
+
+class FormatBuilder {
+public:
+    FormatBuilder(string_view_utf8 str_view, StringViewUtf8ParamBase &params)
+        : view(str_view)
+        , reader(str_view)
+        , params(params) {
+        assert(str_view.!isNULLSTR() && params.buffer.size_bytes() > 0);
+    }
+
+    /// vsnprinf append of a single parameter to parameter buffer with a format specifier found in the translated text
+    void add_param(const size_t unused, ...);
+
+    string_view_utf8 finalize_formatted() {
+        params.original = view;
+        string_view_utf8 formatted_string_view;
+        formatted_string_view.set_up_formatted(params);
+        return formatted_string_view;
+    }
+
+private:
+    char format_specifier[10] = { 0 };
+    string_view_utf8 view;
+    StringReaderUtf8 reader;
+    StringViewUtf8ParamBase &params;
+    size_t target_idx = 0;
+};
+
+template <typename... Args>
+string_view_utf8 string_view_utf8::formatted(StringViewUtf8ParamBase &params, Args... args) const {
+    FormatBuilder fmt(*this, params);
+    (fmt.add_param(0, args), ...);
+    return fmt.finalize_formatted();
+}
