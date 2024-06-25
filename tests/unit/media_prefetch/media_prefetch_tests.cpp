@@ -189,7 +189,7 @@ TEST_CASE("media_prefetch::feed_test") {
     MediaPrefetchManager mp;
 
     // Make sure that we feed enough commands, that shouldn't fit in the buffer
-    constexpr size_t command_count = mp.buffer_size * 2;
+    const size_t command_count = mp.buffer_size * 2;
 
     const auto command_str = [](int i, bool for_writing = false) {
         std::stringbuf buf;
@@ -253,158 +253,155 @@ TEST_CASE("media_prefetch::feed_test") {
         CHECK(mp.shared_state.read_tail.buffer_pos == old_read_tail);
     }
 
-    // Full buffer read tests
+    // Read the buffer whole
     {
-        // Read the buffer whole, record command positions
-        {
-            read_state = {};
+        read_state = {};
+        read_whole_buffer();
+
+        // There should definitely be more commands to be fetched
+        CHECK(status == S::end_of_buffer);
+
+        // We definitely shouldn't have been able to fetch more commands that would fit in the buffer
+        // Assume each command needs to be encoded in at least 3 bytes
+        CHECK(read_state.command_i <= mp.buffer_size / 3);
+
+        // Fetch and check the rest of the file
+        while (status == S::end_of_buffer) {
+            mp.issue_fetch(true);
             read_whole_buffer();
-
-            // There should definitely be more commands to be fetched
-            CHECK(status == S::end_of_buffer);
-
-            // We definitely shouldn't have been able to fetch more commands that would fit in the buffer
-            // Assume each command needs to be encoded in at least 3 bytes
-            CHECK(read_state.command_i <= mp.buffer_size / 3);
-
-            // Fetch and check the rest of the file
-            while (status == S::end_of_buffer) {
-                mp.issue_fetch(true);
-                read_whole_buffer();
-            }
-
-            CHECK(status == S::end_of_file);
         }
 
-        const auto first_run_whole_buffer_count = read_state.whole_buffer_count;
-        const auto command_count = read_state.command_i;
+        CHECK(status == S::end_of_file);
+    }
 
-        read_state = {};
+    const auto first_run_whole_buffer_count = read_state.whole_buffer_count;
+    REQUIRE(read_state.command_i == command_count);
 
-        SECTION("Reread with stops") {
-            p.add_breakpoint(R::RESULT_TIMEOUT, 1);
-            p.add_breakpoint(R::RESULT_TIMEOUT, 2);
-            p.add_breakpoint(R::RESULT_TIMEOUT, 16);
-            p.add_breakpoint(R::RESULT_TIMEOUT, 32);
-            p.add_breakpoint(R::RESULT_TIMEOUT, 64);
-            p.add_breakpoint(R::RESULT_TIMEOUT, 128);
+    read_state = {};
 
-            const auto breakpoint_count = p.breakpoint_count();
+    SECTION("Reread with stops") {
+        p.add_breakpoint(R::RESULT_TIMEOUT, 1);
+        p.add_breakpoint(R::RESULT_TIMEOUT, 2);
+        p.add_breakpoint(R::RESULT_TIMEOUT, 16);
+        p.add_breakpoint(R::RESULT_TIMEOUT, 32);
+        p.add_breakpoint(R::RESULT_TIMEOUT, 64);
+        p.add_breakpoint(R::RESULT_TIMEOUT, 128);
 
-            // Restart the prefetch
-            mp.start(p.filename(), {});
+        const auto breakpoint_count = p.breakpoint_count();
+
+        // Restart the prefetch
+        mp.start(p.filename(), {});
+
+        do {
+            mp.issue_fetch(false);
+            read_whole_buffer();
+        } while (status == S::end_of_buffer);
+
+        CHECK(status == S::end_of_file);
+
+        // We should be able to read the buffer in the same number of whole reads, plus the breakpoints we've inserted
+        CHECK(read_state.whole_buffer_count == first_run_whole_buffer_count + breakpoint_count);
+    }
+
+    SECTION("Stream resumes") {
+        // Resume streams at various commands and check that all works well
+        const std::vector<size_t> restart_positions {
+            1,
+            2,
+            command_count / 4,
+            command_count / 3,
+            command_count / 2,
+            command_count - 2,
+            command_count - 1,
+        };
+
+        for (const auto restart_cmd_i : restart_positions) {
+            const auto resume_position = command_replay_positions[restart_cmd_i];
+            CAPTURE(restart_cmd_i, resume_position);
+
+            read_state = {};
+            read_state.command_i = restart_cmd_i;
+            mp.start(p.filename(), GCodeReaderPosition { {}, resume_position });
 
             do {
-                mp.issue_fetch(false);
                 read_whole_buffer();
+                mp.issue_fetch(false);
             } while (status == S::end_of_buffer);
 
             CHECK(status == S::end_of_file);
-
-            // We should be able to read the buffer in the same number of whole reads, plus the breakpoints we've inserted
-            CHECK(read_state.whole_buffer_count == first_run_whole_buffer_count + breakpoint_count);
         }
+    }
 
-        SECTION("Stream resumes") {
-            // Resume streams at various commands and check that all works well
-            const std::vector<size_t> restart_positions {
-                1,
-                2,
-                command_count / 4,
-                command_count / 3,
-                command_count / 2,
-                command_count - 2,
-                command_count - 1,
-            };
+    // Read buffer partially, then fetch to top it up.
+    // This should provide standard results
+    SECTION("Partial reads") {
+        // Restart the prefetch
+        mp.start(p.filename(), {});
 
-            for (const auto restart_cmd_i : restart_positions) {
-                const auto resume_position = command_replay_positions[restart_cmd_i];
-                CAPTURE(restart_cmd_i, resume_position);
+        std::minstd_rand rand_gen;
 
-                read_state = {};
-                read_state.command_i = restart_cmd_i;
-                mp.start(p.filename(), GCodeReaderPosition { {}, resume_position });
+        // Keyboard-mash generated seed to ensure repeatibility of the unittest
+        rand_gen.seed(65468);
 
-                do {
-                    read_whole_buffer();
-                    mp.issue_fetch(false);
-                } while (status == S::end_of_buffer);
+        // We always read one to buffer_size / 8 commands
+        std::uniform_int_distribution<> distrib(0, mp.buffer_size / 8);
 
-                CHECK(status == S::end_of_file);
+        do {
+            int read_cnt = distrib(rand_gen);
+            do {
+                read_single_command();
+            } while (--read_cnt && status == S::ok);
+
+            mp.issue_fetch(false);
+        } while (status == S::end_of_buffer || status == S::ok);
+
+        CHECK(status == S::end_of_file);
+        CHECK(read_state.command_i == command_count);
+    }
+
+    // Same as before, but we also discard the jobs in random intervals
+    SECTION("Partial reads with discarding") {
+        // Restart the prefetch
+        mp.start(p.filename(), {});
+
+        std::minstd_rand rand_gen;
+
+        // Keyboard-mash generated seed to ensure repeatibility of the unittest
+        rand_gen.seed(65468);
+
+        // The media prefetch should check for discard at least once per command write
+        const int min_discard_count = 32;
+        std::uniform_int_distribution<> distrib(0, command_count / min_discard_count);
+
+        size_t discarded_jobs_count = 0;
+
+        std::vector<int> discards;
+
+        do {
+            int read_cnt = distrib(rand_gen);
+            do {
+                read_single_command();
+            } while (--read_cnt && status == S::ok);
+
+            mp.worker_job.discard_after = distrib(rand_gen);
+            discards.push_back(*mp.worker_job.discard_after);
+            mp.issue_fetch(false);
+
+            if (mp.worker_job.was_discarded()) {
+                // Discard only happens together with worker_reset_pending IRL, so we gotta issue that
+                mp.shared_state.worker_reset_pending = true;
+                discarded_jobs_count++;
             }
-        }
+        } while (status == S::end_of_buffer || status == S::ok);
 
-        // Read buffer partially, then fetch to top it up.
-        // This should provide standard results
-        SECTION("Partial reads") {
-            // Restart the prefetch
-            mp.start(p.filename(), {});
+        CHECK(status == S::end_of_file);
+        CHECK(read_state.command_i == command_count);
+        CHECK(mp.worker_job.discard_check_count >= min_discard_count);
 
-            std::minstd_rand rand_gen;
-
-            // Keyboard-mash generated seed to ensure repeatibility of the unittest
-            rand_gen.seed(65468);
-
-            // We always read one to buffer_size / 8 commands
-            std::uniform_int_distribution<> distrib(0, mp.buffer_size / 8);
-
-            do {
-                int read_cnt = distrib(rand_gen);
-                do {
-                    read_single_command();
-                } while (--read_cnt && status == S::ok);
-
-                mp.issue_fetch(false);
-            } while (status == S::end_of_buffer || status == S::ok);
-
-            CHECK(status == S::end_of_file);
-            CHECK(read_state.command_i == command_count);
-        }
-
-        // Same as before, but we also discard the jobs in random intervals
-        SECTION("Partial reads with discarding") {
-            // Restart the prefetch
-            mp.start(p.filename(), {});
-
-            std::minstd_rand rand_gen;
-
-            // Keyboard-mash generated seed to ensure repeatibility of the unittest
-            rand_gen.seed(65468);
-
-            // The media prefetch should check for discard at least once per command write
-            const int min_discard_count = 32;
-            std::uniform_int_distribution<> distrib(0, command_count / min_discard_count);
-
-            size_t discarded_jobs_count = 0;
-
-            std::vector<int> discards;
-
-            do {
-                int read_cnt = distrib(rand_gen);
-                do {
-                    read_single_command();
-                } while (--read_cnt && status == S::ok);
-
-                mp.worker_job.discard_after = distrib(rand_gen);
-                discards.push_back(*mp.worker_job.discard_after);
-                mp.issue_fetch(false);
-
-                if (mp.worker_job.was_discarded()) {
-                    // Discard only happens together with worker_reset_pending IRL, so we gotta issue that
-                    mp.shared_state.worker_reset_pending = true;
-                    discarded_jobs_count++;
-                }
-            } while (status == S::end_of_buffer || status == S::ok);
-
-            CHECK(status == S::end_of_file);
-            CHECK(read_state.command_i == command_count);
-            CHECK(mp.worker_job.discard_check_count >= min_discard_count);
-
-            // Sanity check that we have discarded anything at all
-            CAPTURE(discarded_jobs_count);
-            CAPTURE(discards);
-            CHECK(discarded_jobs_count >= min_discard_count);
-        }
+        // Sanity check that we have discarded anything at all
+        CAPTURE(discarded_jobs_count);
+        CAPTURE(discards);
+        CHECK(discarded_jobs_count >= min_discard_count);
     }
 }
 
