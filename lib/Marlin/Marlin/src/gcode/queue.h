@@ -56,13 +56,15 @@ public:
 
   static constexpr uint32_t SDPOS_INVALID = std::numeric_limits<uint32_t>::max(); // When sdpos doesn't have valid value
 
-  static uint32_t sdpos;                 // Position in file for the latest instruction
-  static uint32_t sdpos_buffer[BUFSIZE]; // Ring buffer of positions (synced with command_buffer)
+  static uint32_t sdpos;                 // Position in file for the latest instruction (behind the end of the queue)
+  static uint32_t last_executed_sdpos;      // (replay) Position of the last executed gcode
+  static uint32_t sdpos_buffer[BUFSIZE]; // Ring buffer of (replay) positions (synced with command_buffer)
 
   /// True pauses processing of serial commands.
   static bool pause_serial_commands;
 
-  // Return the file position of the _current_ instruction
+  /// Return the file position of the _current_ instruction
+  /// Red note: right after executing the gcode, the queue is advanced to the next one, so this actually returns the next gcode
   static uint32_t get_current_sdpos() {
     return length ? sdpos_buffer[index_r] : sdpos;
   }
