@@ -25,12 +25,15 @@
 #include <cstring>
 #include <cstdint>
 #include <atomic>
+#include <algorithm>
+#include <span>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
 #include "esp_system.h"
 #include "esp_log.h"
+#include "esp_crc.h"
 #include "esp_netif.h"
 #include "esp_event.h"
 #include "esp_wifi.h"
@@ -125,7 +128,7 @@ typedef struct {
 
 typedef struct {
     size_t len;
-    void *data;
+    uint8_t *data;
 } wifi_send_buff;
 
 static void IRAM_ATTR free_wifi_receive_buff(wifi_receive_buff *buff) {
@@ -134,17 +137,20 @@ static void IRAM_ATTR free_wifi_receive_buff(wifi_receive_buff *buff) {
 }
 
 static void IRAM_ATTR free_wifi_send_buff(wifi_send_buff *buff) {
-    if(buff->data) free(buff->data);
+    if (buff->data) delete [] buff->data;
     free(buff);
 }
 
 static void send_link_status(uint8_t up) {
     ESP_LOGI(TAG, "Sending link status: %d", up);
+    uint32_t crc = 0;
+    crc = esp_crc32_le(crc, intron.data(), intron.size());
     esp::MessagePrelude message{};
     message.header.type = esp::MessageType::PACKET_V2;
     message.header.up = up;
     message.header.size = htons(0);
-    message.data_checksum = htonl(0);
+    crc = esp_crc32_le(crc, reinterpret_cast<uint8_t *>(&message.header), sizeof(message.header));
+    message.data_checksum = htonl(crc);
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
     uart_write_bytes(UART_NUM_0, intron.data(), intron.size());
     uart_write_bytes(UART_NUM_0, (const char*)&message.header, sizeof(message.header) + sizeof(message.data_checksum));
@@ -447,11 +453,15 @@ static void send_device_info() {
         ESP_LOGI(TAG, "Failed to obtain MAC, returning last one or zeroes");
     }
 
+    uint32_t crc = 0;
+    crc = esp_crc32_le(crc, intron.data(), intron.size());
     esp::MessagePrelude message;
     message.header.type = esp::MessageType::DEVICE_INFO_V2;
     message.header.version = esp::REQUIRED_PROTOCOL_VERSION;
     message.header.size = htons(mac.size());
-    message.data_checksum = htonl(0);
+    crc = esp_crc32_le(crc, reinterpret_cast<uint8_t *>(&message.header), sizeof(message.header));
+    crc = esp_crc32_le(crc, mac.data(), mac.size());
+    message.data_checksum = htonl(crc);
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
     uart_write_bytes(UART_NUM_0, intron.data(), intron.size());
     uart_write_bytes(UART_NUM_0, (const char*)&message.header, sizeof(message.header) + sizeof(message.data_checksum));
@@ -502,61 +512,52 @@ static size_t IRAM_ATTR read_uart(uint8_t *buff, size_t len) {
     return trr;
 }
 
-static void IRAM_ATTR read_packet_message(uint16_t size) {
-    // ESP_LOGI(TAG, "Receiving packet size: %d", size);
-    // ESP_LOGI(TAG, "Allocating pbuf size: %d, free heap: %d", size, esp_get_free_heap_size());
-
+static void IRAM_ATTR read_packet_message(uint8_t *data, uint16_t size) {
     wifi_send_buff *buff = static_cast<wifi_send_buff *>(malloc(sizeof(wifi_send_buff)));
     if(!buff) {
-        goto nomem;
+        delete [] data;
+        ESP_LOGE(TAG, "Out of mem for packet data");
+        return;
     }
     buff->len = size;
-    buff->data = malloc(buff->len);
-    if(!buff->data) {
-        free(buff);
-        goto nomem;
-    }
+    buff->data = data;
 
-    read_uart(reinterpret_cast<uint8_t *>(buff->data), buff->len);
-
-    if (!xQueueSendToBack(wifi_egress_queue, (void *)&buff, (TickType_t)0/*portMAX_DELAY*/)) {
-        ESP_LOGI(TAG, "Out of space in egress queue");
+    if (!xQueueSendToBack(wifi_egress_queue, (void *)&buff, portMAX_DELAY)) {
+        ESP_LOGE(TAG, "Out of space in egress queue");
         free_wifi_send_buff(buff);
-    }
-    return;
-
-nomem:
-    ESP_LOGI(TAG, "Out of mem for packet data");
-    for(uint i = 0; i < size; ++i) {
-        uint8_t c;
-        read_uart(&c, 1);
     }
     return;
 }
 
-static void read_wifi_client_message() {
-    read_uart(intron.data(), intron.size());
+static void read_wifi_client_message(std::span<const uint8_t> data) {
+    auto current = data.begin();
+    std::copy_n(data.begin(), intron.size(), intron.begin());
+    std::advance(current, intron.size());
 
     wifi_config_t wifi_config;
     memset(&wifi_config, 0, sizeof(wifi_config_t));
 
-    uint8_t ssid_len = 0;
-    read_uart(&ssid_len, 1);
+    uint8_t ssid_len = *current++;
     ESP_LOGI(TAG, "Reading SSID len: %d", ssid_len);
     if(ssid_len > sizeof(wifi_config.sta.ssid)) {
         ESP_LOGI(TAG, "SSID too long, trimming");
         ssid_len = sizeof(wifi_config.sta.ssid);
     }
-    read_uart(wifi_config.sta.ssid, ssid_len);
+    std::copy_n(current, ssid_len, wifi_config.sta.ssid);
+    std::advance(current, ssid_len);
 
-    uint8_t pass_len = 0;
-    read_uart(&pass_len, 1);
+    uint8_t pass_len = *current++;
     ESP_LOGI(TAG, "Reading PASS len: %d", pass_len);
     if(pass_len > sizeof(wifi_config.sta.password)) {
         ESP_LOGI(TAG, "PASS too long, trimming");
         pass_len = sizeof(wifi_config.sta.password);
     }
-    read_uart(wifi_config.sta.password, pass_len);
+    std::copy_n(current, pass_len, wifi_config.sta.password);
+    std::advance(current, pass_len);
+
+    if (current != data.end()) {
+        ESP_LOGE(TAG, "Client config: Not all data processed");
+    }
 
     ESP_LOGI(TAG, "Reconfiguring wifi");
 
@@ -638,10 +639,13 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
     }
 
     esp::MessagePrelude message{};
+    uint32_t crc = 0;
+    crc = esp_crc32_le(crc, intron.data(), intron.size());
     message.header.type = esp::MessageType::SCAN_AP_CNT;
     message.header.ap_index = scan.stored_ssids_count;
     message.header.size = 0;
-    message.data_checksum = htonl(0);
+    crc = esp_crc32_le(crc, reinterpret_cast<uint8_t*>(&message.header), sizeof(message.header));
+    message.data_checksum = htonl(crc);
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
     uart_write_bytes(UART_NUM_0, intron.data(), intron.size());
     uart_write_bytes(UART_NUM_0, (const char*)&message.header, sizeof(message.header) + sizeof(message.data_checksum));
@@ -652,10 +656,14 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
 
 static void IRAM_ATTR send_scanned_ssid(uint8_t index, const esp::data::APInfo& scan_ap_info) {
     esp::MessagePrelude message;
+    uint32_t crc = 0;
+    crc = esp_crc32_le(crc, intron.data(), intron.size());
     message.header.type = esp::MessageType::SCAN_AP_GET;
     message.header.ap_index = index;
     message.header.size = htons(sizeof(esp::data::APInfo));
-    message.data_checksum = htonl(0);
+    crc = esp_crc32_le(crc, reinterpret_cast<uint8_t *>(&message.header), sizeof(message.header));
+    crc = esp_crc32_le(crc, reinterpret_cast<const uint8_t *>(&scan_ap_info), sizeof(scan_ap_info));
+    message.data_checksum = htonl(crc);
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
     uart_write_bytes(UART_NUM_0, intron.data(), intron.size());
     uart_write_bytes(UART_NUM_0, (const char*)&message.header, sizeof(message.header) + sizeof(message.data_checksum));
@@ -695,39 +703,59 @@ static void IRAM_ATTR read_message() {
         return;
     }
 
+    uint32_t crc = 0;
+    crc = esp_crc32_le(crc, intron.data(), intron.size());
+    crc = esp_crc32_le(crc, reinterpret_cast<uint8_t *>(&message.header), sizeof(message.header));
     message.header.size = ntohs(message.header.size);
     message.data_checksum = ntohl(message.data_checksum);
 
-    switch (message.header.type) {
-        case esp::MessageType::PACKET_V2: {
-            if (message.header.size > 0) {
-                read_packet_message(message.header.size);
-            } else {
-                send_link_status(get_link_status());
+    uint8_t* data = nullptr;
+    if (message.header.size > 0) {
+        data = new uint8_t[message.header.size];
+        read_uart(data, message.header.size);
+        crc = esp_crc32_le(crc, data, message.header.size);
+    }
+
+    if (message.data_checksum == crc) {
+        switch (message.header.type) {
+            case esp::MessageType::PACKET_V2: {
+                if (message.header.size > 0) {
+                    read_packet_message(data, message.header.size);
+                    data = nullptr;
+                } else {
+                    send_link_status(get_link_status());
+                }
             }
             break;
-        case esp::MessageType::CLIENTCONFIG_V2:
-            read_wifi_client_message();
+            case esp::MessageType::CLIENTCONFIG_V2:
+                read_wifi_client_message(std::span{data, message.header.size});
             break;
-        case esp::MessageType::SCAN_START:
-            handle_rx_msg_scan_start();
+            case esp::MessageType::SCAN_START:
+                handle_rx_msg_scan_start();
             break;
-        case esp::MessageType::SCAN_STOP:
-            handle_rx_msg_scan_stop();
+            case esp::MessageType::SCAN_STOP:
+                handle_rx_msg_scan_stop();
             break;
-        case esp::MessageType::SCAN_AP_CNT:
-            ESP_LOGE(TAG, "esp::MessageType::SCAN_AP_CNT is only transmitted, never recieved");
+            case esp::MessageType::SCAN_AP_CNT:
+                ESP_LOGE(TAG, "esp::MessageType::SCAN_AP_CNT is only transmitted, never recieved");
             break;
-        case esp::MessageType::SCAN_AP_GET:
-            handle_rx_msg_scan_get(message.header);
+            case esp::MessageType::SCAN_AP_GET:
+                handle_rx_msg_scan_get(message.header);
             break;
-        case esp::MessageType::DEVICE_INFO_V2:
-            ESP_LOGE(TAG, "esp::MessageType::DEVICE_INFO_V2 is only transmitted, never recieved");
+            case esp::MessageType::DEVICE_INFO_V2:
+                ESP_LOGE(TAG, "esp::MessageType::DEVICE_INFO_V2 is only transmitted, never recieved");
             break;
-        default:
-            ESP_LOGE(TAG, "Unknown message type: %d !!!", static_cast<uint8_t>(message.header.type));
+            default:
+                ESP_LOGE(TAG, "Unknown message type: %d !!!", static_cast<uint8_t>(message.header.type));
             break;
         }
+    } else {
+        ESP_LOGE(TAG, "Checksum mismatch. MT: %d, ref: %lx calc: %lx",
+                      static_cast<int>(message.header.type), message.data_checksum, crc);
+    }
+
+    if (data != nullptr) {
+        delete[] data;
     }
 
     // Check that we are receiving some packets from the AP. We do so in the
@@ -745,13 +773,13 @@ static void IRAM_ATTR wifi_egress_thread(void *arg) {
         wifi_send_buff *buff;
         if(xQueueReceive(wifi_egress_queue, &buff, (TickType_t)portMAX_DELAY)) {
             if (!buff) {
-                ESP_LOGI(TAG, "NULL pulled from egress queue");
+                ESP_LOGW(TAG, "NULL pulled from egress queue");
                 continue;
             }
 
             int8_t err = esp_wifi_internal_tx(WIFI_IF_STA, buff->data, buff->len);
             if (err != ESP_OK) {
-                ESP_LOGI(TAG, "Failed to send packet !!!");
+                ESP_LOGE(TAG, "Failed to send packet !!!");
             }
             free_wifi_send_buff(buff);
         }
@@ -780,10 +808,14 @@ static void IRAM_ATTR uart_tx_thread(void *arg) {
                 continue;
             }
             esp::MessagePrelude message{};
+            uint32_t crc = 0;
+            crc = esp_crc32_le(crc, intron.data(), intron.size());
             message.header.type = esp::MessageType::PACKET_V2;
             message.header.up = get_link_status();
             message.header.size = htons(buff->len);
-            message.data_checksum = htonl(0);
+            crc = esp_crc32_le(crc, reinterpret_cast<uint8_t *>(&message.header), sizeof(message.header));
+            crc = esp_crc32_le(crc, reinterpret_cast<uint8_t *>(buff->data), buff->len);
+            message.data_checksum = htonl(crc);
             xSemaphoreTake(uart_mtx, portMAX_DELAY);
             uart_write_bytes(UART_NUM_0, intron.data(), intron.size());
             uart_write_bytes(UART_NUM_0, (const char*)&message.header, sizeof(message.header) + sizeof(message.data_checksum));
