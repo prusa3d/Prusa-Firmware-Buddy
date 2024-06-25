@@ -27,6 +27,7 @@
 #include <st25dv64k.h>
 #include <usb_host.h>
 #include <lfn.h>
+#include <media_prefetch/media_prefetch.hpp>
 #include <gcode/gcode_reader_restore_info.hpp>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
@@ -63,7 +64,6 @@
 
 #include "hwio.h"
 #include "wdt.hpp"
-#include "media.hpp"
 #include "../marlin_stubs/G26.hpp"
 #include "../marlin_stubs/M123.hpp"
 #include "fsm_states.hpp"
@@ -152,6 +152,8 @@ extern ClientQueue marlin_client_queue[MARLIN_MAX_CLIENTS];
 
 namespace marlin_server {
 
+MediaPrefetchManager media_prefetch;
+
 namespace {
 
     struct server_t {
@@ -202,6 +204,16 @@ namespace {
         /// When print_resume is called during the pausing (or possibly other sequences), we first have to finish the sequence and then start resuming.
         /// This flag stores that we have a resume pending and we should start executing it when we can.
         bool resume_pending = false;
+
+        bool paused_due_to_media_error = false;
+
+        /// Position the media should be resumed to
+        GCodeReaderStreamRestoreInfo media_restore_info;
+
+        /// Denotes whether a single gcode should be skipped
+        /// Some pauses should cause (partial) gcode replay on resume - crash, power panic, ..., some shouldn't.
+        /// This does that
+        bool skip_gcode = false;
     };
 
     PrintState print_state;
@@ -218,7 +230,7 @@ namespace {
      * @param type pause type used for different media_print pause
      * @param resume_pos position to resume from, used only in Pause_Type::Crash
      */
-    void pause_print(Pause_Type type = Pause_Type::Pause, uint32_t resume_pos = UINT32_MAX);
+    void pause_print(Pause_Type type = Pause_Type::Pause);
 
     fsm::States fsm_states;
 
@@ -345,18 +357,23 @@ namespace {
     MCUTempErrorChecker<WarningType::ModBedMCUMaxTemp> modbedMaxTempErrorChecker("Modular Bed"); ///< Check ModularBed MCU temperature
 #endif /*HAS_MODULARBED()*/
 
-    void pause_print(Pause_Type type, uint32_t resume_pos) {
+    void pause_print(Pause_Type type) {
         if (!server.print_is_serial) {
             switch (type) {
+
             case Pause_Type::Crash:
-                media_print_quick_stop(resume_pos);
-                break;
             case Pause_Type::Repeat_Last_Code:
-                media_print_pause(true);
+                print_state.skip_gcode = false;
                 break;
-            default:
-                media_print_pause(false);
+
+            case Pause_Type::Pause:
+                print_state.skip_gcode = true;
+                break;
             }
+
+            media_prefetch.stop();
+            queue.clear();
+            log_debug(MarlinServer, "Paused at %" PRIu32 ", skip %i", media_position(), print_state.skip_gcode);
         }
 
         SerialPrinting::pause();
@@ -754,7 +771,6 @@ void loop() {
     }
 
     server.idle_cnt = 0;
-    media_loop();
     cycle();
 
 #if HAS_NFC()
@@ -1219,6 +1235,71 @@ static void crash_recovery_begin_crash() {
 }
 #endif /*ENABLED(CRASH_RECOVERY)*/
 
+void media_prefetch_start() {
+    print_state.file_open_reported = false;
+    media_prefetch.start(marlin_vars()->media_SFN_path.get_ptr(), GCodeReaderPosition { stream_restore_info(), media_position() });
+    media_prefetch.issue_fetch(true);
+}
+
+void media_print_loop() {
+    while (queue.length < MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET) {
+        MediaPrefetchManager::ReadResult data;
+        using Status = MediaPrefetchManager::Status;
+        const Status status = media_prefetch.read_command(data);
+
+        // To-do: automatic unpause when paused if the condition fixes itself?
+        const auto media_error = [](WarningType warning_type) {
+            set_warning(warning_type);
+            print_state.paused_due_to_media_error = true;
+            print_pause();
+        };
+
+        switch (status) {
+
+        case Status::ok:
+            if (print_state.skip_gcode) {
+                print_state.skip_gcode = false;
+                continue;
+            }
+
+            print_state.media_restore_info = data.replay_pos.restore_info;
+            queue.sdpos = data.replay_pos.offset;
+            queue.enqueue_one(data.gcode.data(), false);
+            log_debug(MarlinServer, "Enqueue: %" PRIu32 " %s", data.replay_pos.offset, data.gcode.data());
+
+            // Issue another fetch if the media prefetch buffer is running empty
+            media_prefetch.issue_fetch(false);
+            continue;
+
+        case Status::end_of_file:
+            // We've read everything -> start finishing up the print, return from this function completely
+            server.print_state = State::Finishing_WaitIdle;
+            return;
+
+        case Status::end_of_buffer:
+            // Defnitely issue a prefetch here
+            media_prefetch.issue_fetch(true);
+            break;
+
+        case Status::usb_error:
+            media_error(WarningType::USBFlashDiskError);
+            break;
+
+        case Status::corruption:
+            media_error(WarningType::GcodeCorruption);
+            break;
+
+        case Status::not_downloaded:
+            media_error(WarningType::NotDownloaded);
+            break;
+        }
+
+        // If we've got here, it means that the status was not ok, because Status::ok does continue
+        // -> break the loop
+        break;
+    }
+}
+
 void print_resume(void) {
     if (server.print_state == State::Paused) {
         server.print_state = State::Resuming_Begin;
@@ -1239,18 +1320,14 @@ void print_resume(void) {
 }
 
 void try_recover_from_media_error() {
-    switch (media_print_get_state()) {
+    if (server.print_state == State::Printing) {
+        // If we're printing, simply try issuing a fetch if we're running low
+        media_prefetch.issue_fetch(false);
 
-    case media_print_state_NONE:
-        break;
-
-    case media_print_state_PAUSED:
+    } else if (print_state.paused_due_to_media_error) {
+        // Do NOT reset - will be reset if the resume is successful
+        // print_state.paused_due_to_media_error = false;
         print_resume();
-        break;
-
-    case media_print_state_PRINTING:
-        media_print_reopen();
-        break;
     }
 }
 
@@ -1279,8 +1356,9 @@ void powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool auto_
 
     crash_s.set_state(Crash_s::PRINTING);
 
-    // Immediately stop to set the print position
-    media_print_quick_stop(pos);
+    // Set the print position to resume from
+    queue.clear();
+    set_media_position(pos);
 
     // open printing screen
     fsm_create(PhasesPrinting::active);
@@ -1636,7 +1714,8 @@ static void _server_print_loop(void) {
         marlin_vars()->z_offset = 0;
 #endif // HAS_LOADCELL()
 
-        media_print_start();
+        queue.last_executed_sdpos = 0;
+        media_prefetch_start();
 
         print_job_timer.start();
         marlin_vars()->time_to_end = TIME_TO_END_INVALID;
@@ -1680,23 +1759,15 @@ static void _server_print_loop(void) {
 
     case State::Printing:
         print_state.resume_pending = false;
+        print_state.paused_due_to_media_error = false;
 
         if (server.print_is_serial) {
             SerialPrinting::print_loop();
         } else {
-            switch (media_print_get_state()) {
-            case media_print_state_PRINTING:
-                break;
-            case media_print_state_PAUSED:
-                /// TODO don't pause in pause/abort/crash etx.
-                server.print_state = State::Pausing_Begin;
-                break;
-            case media_print_state_NONE:
-                server.print_state = State::Finishing_WaitIdle;
-                break;
-            }
+            media_print_loop();
         }
         break;
+
     case State::Pausing_Begin:
         pause_print();
         [[fallthrough]];
@@ -1764,10 +1835,6 @@ static void _server_print_loop(void) {
             abort_resuming = true;
         }
 
-        if (!server.print_is_serial && (media_print_get_state() != media_print_state_PAUSED)) {
-            break;
-        }
-
         if (queue.has_commands_queued() || planner.processing()) {
             break;
         }
@@ -1798,9 +1865,6 @@ static void _server_print_loop(void) {
             break;
         }
         // server.motion_param.load();  // TODO: currently disabled (see Crash_s::save_parameters())
-        if (!server.print_is_serial) {
-            media_print_resume();
-        }
         if (print_job_timer.isPaused()) {
             print_job_timer.start();
         }
@@ -1827,7 +1891,7 @@ static void _server_print_loop(void) {
         bed_preheat.skip_preheat();
 #endif /*HAS_HEATED_BED*/
 
-        media_print_stop();
+        media_prefetch.stop();
         queue.clear();
 
         print_job_timer.stop();
@@ -1979,7 +2043,8 @@ static void _server_print_loop(void) {
     case State::CrashRecovery_Begin: {
         // pause and set correct resume position: this will stop media reading and clear the queue
         // TODO: this is completely broken for crashes coming from serial printing
-        pause_print(Pause_Type::Crash, crash_s.sdpos);
+        pause_print(Pause_Type::Crash);
+        set_media_position(crash_s.sdpos);
 
         endstops.enable_globally(false);
         crash_s.send_reports();
@@ -2360,26 +2425,31 @@ void resuming_begin(void) {
 #endif
         server.print_state = State::Resuming_Reheating;
     }
+
+    if (!server.print_is_serial) {
+        media_prefetch_start();
+    }
 }
 
 const GCodeReaderStreamRestoreInfo &stream_restore_info() {
-    return media_get_restore_info();
+    return print_state.media_restore_info;
 }
 
 void set_stream_restore_info(const GCodeReaderStreamRestoreInfo &set) {
-    media_set_restore_info(set);
+    print_state.media_restore_info = set;
 }
 
 void print_quick_stop_powerpanic() {
-    media_print_quick_stop_powerpanic();
+    media_prefetch.stop();
+    queue.clear();
 }
 
 uint32_t media_position() {
-    return media_print_get_position();
+    return queue.last_executed_sdpos;
 }
 
 void set_media_position(uint32_t set) {
-    media_print_set_position(set);
+    queue.last_executed_sdpos = set;
 }
 
 void retract() {
@@ -2730,7 +2800,12 @@ static void _server_update_vars() {
         if (progress_data.percent_done.mIsActual(marlin_vars()->print_duration)) {
             progress = static_cast<uint8_t>(progress_data.percent_done.mGetValue());
         } else {
-            progress = static_cast<uint8_t>(media_print_get_percent_done());
+            const auto size_estimate = media_prefetch.stream_size_estimate();
+            if (size_estimate > 0) {
+                progress = std::min<uint8_t>(std::round(100.0f * marlin_vars()->media_position.get() / size_estimate), 99);
+            } else {
+                progress = 0;
+            }
         }
 
         marlin_vars()->sd_percent_done = progress;
@@ -2797,9 +2872,9 @@ static void _server_update_vars() {
     // print state is updated last, to make sure other related variables (like job_id, filenames) are already set when we start print
     marlin_vars()->print_state = static_cast<State>(server.print_state);
 
-    marlin_vars()->media_position = queue.get_current_sdpos();
+    marlin_vars()->media_position = media_position();
 
-    marlin_vars()->media_size_estimate = media_print_get_size();
+    marlin_vars()->media_size_estimate = media_prefetch.stream_size_estimate();
 }
 
 bool _process_server_valid_request(const Request &request, int client_id) {
