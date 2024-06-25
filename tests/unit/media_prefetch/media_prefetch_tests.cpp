@@ -298,6 +298,7 @@ TEST_CASE("media_prefetch::feed_test") {
         } while (status == S::end_of_buffer);
 
         CHECK(status == S::end_of_file);
+        CHECK(read_state.command_i == command_count);
 
         // We should be able to read the buffer in the same number of whole reads, plus the breakpoints we've inserted
         CHECK(read_state.whole_buffer_count == first_run_whole_buffer_count + breakpoint_count);
@@ -329,6 +330,7 @@ TEST_CASE("media_prefetch::feed_test") {
             } while (status == S::end_of_buffer);
 
             CHECK(status == S::end_of_file);
+            CHECK(read_state.command_i == command_count);
         }
     }
 
