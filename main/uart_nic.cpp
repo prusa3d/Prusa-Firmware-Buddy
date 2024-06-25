@@ -23,6 +23,7 @@
 #define UART_FULL_THRESH_DEFAULT (60)
 
 #include <cstring>
+#include <cstdint>
 #include <atomic>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -50,11 +51,10 @@ extern "C" {
 esp_err_t mac_init(void);
 }
 
-#define FW_VERSION 12
+#include "esp_protocol/messages.hpp"
 
-#define SCAN_MAX_STORED_SSIDS 64
-#define SSID_LEN 32
-#define BSSID_LEN 6
+static constexpr size_t SCAN_MAX_STORED_SSIDS = 64;
+static constexpr size_t BSSID_LEN = 6;
 
 // Hack: because we don't see the beacon on some networks (and it's quite
 // common), but don't want to be "flapping", we set the timeout for beacon
@@ -69,38 +69,17 @@ static constexpr uint16_t INACTIVE_BEACON_SECONDS = 3600 * 18;
 // pings to the AP?
 static constexpr uint32_t INACTIVE_PACKET_SECONDS = 5;
 
-#define MSG_DEVINFO_V2 0
-#define MSG_CLIENTCONFIG_V2 6
-#define MSG_PACKET_V2 7
-#define MSG_SCAN_START 8
-#define MSG_SCAN_STOP 9
-#define MSG_SCAN_AP_CNT 10
-#define MSG_SCAN_AP_GET 11
-
-struct __attribute__((packed)) header {
-    uint8_t type;
-    union {
-        uint8_t version;  // when type == MSG_DEVINFO_V2
-        uint8_t unused;   // when type == MSG_CLIENTCONFIG_V2 || type == MSG_SCAN_START || type == MSG_SCAN_STOP
-        uint8_t up;       // when type == MSG_PACKET_V2
-        uint8_t ap_count; // when type == MSG_SCAN_AP_GET
-        uint8_t ap_index; // when type == MSG_SCAN_AP_GET
-    };
-    uint16_t size;
-};
-
 static constexpr uint8_t uart_nic_protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N;
 
 static const char *TAG = "uart_nic";
 
-SemaphoreHandle_t uart_mtx = NULL;
+SemaphoreHandle_t uart_mtx = nullptr;
 static int s_retry_num = 0;
-QueueHandle_t uart_tx_queue = 0;
-QueueHandle_t wifi_egress_queue = 0;
+QueueHandle_t uart_tx_queue = nullptr;
+QueueHandle_t wifi_egress_queue = nullptr;
 
-static char intron[8] = {'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05'};
-#define MAC_LEN 6
-static uint8_t mac[MAC_LEN];
+static esp::Intron intron = esp::DEFAULT_INTRON;
+static esp::data::MacAddress mac;
 
 static uint32_t now_seconds() {
     return xTaskGetTickCount() / configTICK_RATE_HZ;
@@ -115,7 +94,7 @@ static bool beacon_quirk;
 static uint8_t probe_max_reties = 3;
 static std::atomic<bool> probe_in_progress = false;
 static uint8_t probe_retry_count;
-static uint8_t latest_ssid[SSID_LEN];
+static uint8_t latest_ssid[esp::SSID_LEN];
 static uint8_t latest_bssid[BSSID_LEN];
 
 typedef enum {
@@ -124,12 +103,7 @@ typedef enum {
     SCAN_TYPE_INCREMENTAL,
 } ScanType;
 
-typedef struct __attribute__((packed)) {
-    uint8_t ssid[SSID_LEN];
-    bool needs_password;
-} ScanResult;
-
-const ScanResult EMPTY_RESULT = {};
+static constexpr esp::data::APInfo EMPTY_RESULT = {};
 
 typedef void (*wifi_scan_callback)(wifi_ap_record_t *, int);
 
@@ -137,7 +111,7 @@ static struct {
     ScanType scan_type = SCAN_TYPE_UNKNOWN;
     wifi_scan_callback callback = nullptr;
     uint32_t incremental_scan_time = 0;
-    ScanResult stored_ssids[SCAN_MAX_STORED_SSIDS] {};
+    esp::data::APInfo stored_ssids[SCAN_MAX_STORED_SSIDS] {};
     uint8_t stored_ssids_count = 0;
     std::atomic<bool> in_progress = false;
     std::atomic<bool> should_reconnect = false;
@@ -166,13 +140,14 @@ static void IRAM_ATTR free_wifi_send_buff(wifi_send_buff *buff) {
 
 static void send_link_status(uint8_t up) {
     ESP_LOGI(TAG, "Sending link status: %d", up);
-    struct header header;
-    header.type = MSG_PACKET_V2;
-    header.up = up;
-    header.size = htons(0);
+    esp::MessagePrelude message{};
+    message.header.type = esp::MessageType::PACKET_V2;
+    message.header.up = up;
+    message.header.size = htons(0);
+    message.data_checksum = htonl(0);
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
-    uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
-    uart_write_bytes(UART_NUM_0, (const char*)&header, sizeof(header));
+    uart_write_bytes(UART_NUM_0, intron.data(), intron.size());
+    uart_write_bytes(UART_NUM_0, (const char*)&message.header, sizeof(message.header) + sizeof(message.data_checksum));
     xSemaphoreGive(uart_mtx);
 }
 
@@ -269,7 +244,7 @@ static void IRAM_ATTR cache_current_ap_info() {
     wifi_ap_record_t ap_info;
     if (esp_wifi_sta_get_ap_info(&ap_info) == ESP_OK) {
         memcpy(latest_bssid, ap_info.bssid, BSSID_LEN);
-        memcpy(latest_ssid, ap_info.ssid, SSID_LEN);
+        memcpy(latest_ssid, ap_info.ssid, esp::SSID_LEN);
     }
 }
 
@@ -295,7 +270,7 @@ static void IRAM_ATTR probe_handler(wifi_ap_record_t* aps, int ap_count) {
     if (beacon_quirk && !found) {
         for (int i = 0; i < ap_count; ++i) {
             if (latest_ssid[0] && aps[i].ssid[0]) {
-                if (0 == strncmp((char *)(latest_ssid), (char *)(aps[i].ssid), SSID_LEN)) {
+                if (0 == strncmp((char *)(latest_ssid), (char *)(aps[i].ssid), esp::SSID_LEN)) {
                     found = true;
                     break;
                 }
@@ -467,19 +442,20 @@ void wifi_init_sta(void) {
 static void send_device_info() {
     ESP_LOGI(TAG, "Sending device info");
     // MAC address
-    int ret = esp_wifi_get_mac(WIFI_IF_STA, mac);
+    int ret = esp_wifi_get_mac(WIFI_IF_STA, mac.data());
     if(ret != ESP_OK) {
         ESP_LOGI(TAG, "Failed to obtain MAC, returning last one or zeroes");
     }
 
-    struct header header;
-    header.type = MSG_DEVINFO_V2;
-    header.version = FW_VERSION;
-    header.size = htons(6);
+    esp::MessagePrelude message;
+    message.header.type = esp::MessageType::DEVICE_INFO_V2;
+    message.header.version = esp::REQUIRED_PROTOCOL_VERSION;
+    message.header.size = htons(mac.size());
+    message.data_checksum = htonl(0);
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
-    uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
-    uart_write_bytes(UART_NUM_0, (const char*)&header, sizeof(header));
-    uart_write_bytes(UART_NUM_0, (const char*)mac, sizeof(mac));
+    uart_write_bytes(UART_NUM_0, intron.data(), intron.size());
+    uart_write_bytes(UART_NUM_0, (const char*)&message.header, sizeof(message.header) + sizeof(message.data_checksum));
+    uart_write_bytes(UART_NUM_0, mac.data(), mac.size());
     xSemaphoreGive(uart_mtx);
 }
 
@@ -559,7 +535,7 @@ nomem:
 }
 
 static void read_wifi_client_message() {
-    read_uart((uint8_t*)intron, sizeof(intron));
+    read_uart(intron.data(), intron.size());
 
     wifi_config_t wifi_config;
     memset(&wifi_config, 0, sizeof(wifi_config_t));
@@ -647,40 +623,43 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
             break;
         }
         for (uint8_t j = 0; j < scan.stored_ssids_count; ++j) {
-            ESP_LOGI(TAG, "Comparing >%s< and %s", (char *)scan.stored_ssids[j].ssid, (char *)aps[i].ssid);
-            if (memcmp(scan.stored_ssids[j].ssid, aps[i].ssid, SSID_LEN) == 0) {
+            ESP_LOGI(TAG, "Comparing >%.32s< and %s", (char *)scan.stored_ssids[j].ssid.data(), (char *)aps[i].ssid);
+            if (memcmp(scan.stored_ssids[j].ssid.data(), aps[i].ssid, esp::SSID_LEN) == 0) {
                 found = true;
                 break;
             }
         }
         if (!found) {
-            memcpy(scan.stored_ssids[scan.stored_ssids_count].ssid, aps[i].ssid, SSID_LEN);
-            scan.stored_ssids[scan.stored_ssids_count].needs_password = aps[i].authmode != WIFI_AUTH_OPEN || aps[i].pairwise_cipher != WIFI_CIPHER_TYPE_NONE;
+            memcpy(scan.stored_ssids[scan.stored_ssids_count].ssid.data(), aps[i].ssid, esp::SSID_LEN);
+            scan.stored_ssids[scan.stored_ssids_count].requires_password = aps[i].authmode != WIFI_AUTH_OPEN || aps[i].pairwise_cipher != WIFI_CIPHER_TYPE_NONE;
             scan.stored_ssids_count ++;
             ESP_LOGI(TAG, "Found SSID: %s", aps[i].ssid);
         }
     }
 
-    struct header header{};
-    header.type = MSG_SCAN_AP_CNT;
-    header.ap_count = scan.stored_ssids_count;
+    esp::MessagePrelude message{};
+    message.header.type = esp::MessageType::SCAN_AP_CNT;
+    message.header.ap_index = scan.stored_ssids_count;
+    message.header.size = 0;
+    message.data_checksum = htonl(0);
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
-    uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
-    uart_write_bytes(UART_NUM_0, (const char*)&header, sizeof(header));
+    uart_write_bytes(UART_NUM_0, intron.data(), intron.size());
+    uart_write_bytes(UART_NUM_0, (const char*)&message.header, sizeof(message.header) + sizeof(message.data_checksum));
     xSemaphoreGive(uart_mtx);
 
     ESP_LOGI(TAG, "Scan done. Found: %d", scan.stored_ssids_count);
 }
 
-static void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult* scan) {
-    struct header header{};
-    header.type = MSG_SCAN_AP_GET;
-    header.ap_index = index;
-    header.size = htons(sizeof(ScanResult));
+static void IRAM_ATTR send_scanned_ssid(uint8_t index, const esp::data::APInfo& scan_ap_info) {
+    esp::MessagePrelude message;
+    message.header.type = esp::MessageType::SCAN_AP_GET;
+    message.header.ap_index = index;
+    message.header.size = htons(sizeof(esp::data::APInfo));
+    message.data_checksum = htonl(0);
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
-    uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
-    uart_write_bytes(UART_NUM_0, (const char*)&header, sizeof(header));
-    uart_write_bytes(UART_NUM_0, (const char*)scan, sizeof(ScanResult));
+    uart_write_bytes(UART_NUM_0, intron.data(), intron.size());
+    uart_write_bytes(UART_NUM_0, (const char*)&message.header, sizeof(message.header) + sizeof(message.data_checksum));
+    uart_write_bytes(UART_NUM_0, (const char*)&scan_ap_info, sizeof(scan_ap_info));
     xSemaphoreGive(uart_mtx);
 }
 
@@ -698,56 +677,57 @@ static void IRAM_ATTR handle_rx_msg_scan_stop() {
     force_stop_wifi_scan();
 }
 
-static void IRAM_ATTR handle_rx_msg_scan_get(struct header header) {
+static void IRAM_ATTR handle_rx_msg_scan_get(const esp::Header& header) {
     if (header.ap_index < scan.stored_ssids_count) {
-        send_scanned_ssid(header.ap_index, &scan.stored_ssids[header.ap_index]);
+        send_scanned_ssid(header.ap_index, scan.stored_ssids[header.ap_index]);
     } else {
-        send_scanned_ssid(UINT8_MAX, &EMPTY_RESULT);
+        send_scanned_ssid(UINT8_MAX, EMPTY_RESULT);
     }
 }
 
 static void IRAM_ATTR read_message() {
     wait_for_intron();
 
-    struct header header;
-    size_t read = uart_read_bytes(UART_NUM_0, (uint8_t*)&header, sizeof(header), portMAX_DELAY);
-    if (read != sizeof(header)) {
+    esp::MessagePrelude message;
+    size_t read = uart_read_bytes(UART_NUM_0, (uint8_t*)&message.header, sizeof(message.header) + sizeof(message.data_checksum), portMAX_DELAY);
+    if (read != sizeof(message.header) + sizeof(message.data_checksum)) {
         ESP_LOGI(TAG, "Cannot read message header");
         return;
     }
 
-    header.size = ntohs(header.size);
+    message.header.size = ntohs(message.header.size);
+    message.data_checksum = ntohl(message.data_checksum);
 
-    switch (header.type) {
-        case MSG_PACKET_V2: {
-            if (header.size > 0) {
-                read_packet_message(header.size);
+    switch (message.header.type) {
+        case esp::MessageType::PACKET_V2: {
+            if (message.header.size > 0) {
+                read_packet_message(message.header.size);
             } else {
                 send_link_status(get_link_status());
             }
-        }
-        break;
-        case MSG_CLIENTCONFIG_V2:
+            break;
+        case esp::MessageType::CLIENTCONFIG_V2:
             read_wifi_client_message();
-        break;
-        case MSG_SCAN_START:
+            break;
+        case esp::MessageType::SCAN_START:
             handle_rx_msg_scan_start();
-        break;
-        case MSG_SCAN_STOP:
+            break;
+        case esp::MessageType::SCAN_STOP:
             handle_rx_msg_scan_stop();
-        break;
-        case MSG_SCAN_AP_CNT:
-            ESP_LOGE(TAG, "MSG_SCAN_AP_CNT is only transmitted, never recieved");
-        break;
-        case MSG_SCAN_AP_GET:
-            handle_rx_msg_scan_get(header);
-        break;
-        case MSG_DEVINFO_V2:
-            ESP_LOGE(TAG, "MSG_DEVINFO_V2 is only transmitted, never recieved");
-        break;
+            break;
+        case esp::MessageType::SCAN_AP_CNT:
+            ESP_LOGE(TAG, "esp::MessageType::SCAN_AP_CNT is only transmitted, never recieved");
+            break;
+        case esp::MessageType::SCAN_AP_GET:
+            handle_rx_msg_scan_get(message.header);
+            break;
+        case esp::MessageType::DEVICE_INFO_V2:
+            ESP_LOGE(TAG, "esp::MessageType::DEVICE_INFO_V2 is only transmitted, never recieved");
+            break;
         default:
-            ESP_LOGE(TAG, "Unknown message type: %d !!!", header.type);
-        break;
+            ESP_LOGE(TAG, "Unknown message type: %d !!!", static_cast<uint8_t>(message.header.type));
+            break;
+        }
     }
 
     // Check that we are receiving some packets from the AP. We do so in the
@@ -796,17 +776,17 @@ static void IRAM_ATTR uart_tx_thread(void *arg) {
         wifi_receive_buff *buff;
         if(xQueueReceive(uart_tx_queue, &buff, (TickType_t)1000 /*portMAX_DELAY*/)) {
             if (!buff) {
-                ESP_LOGI(TAG, "Skipping packet with null buffer");
+                ESP_LOGW(TAG, "Skipping packet with null buffer");
                 continue;
             }
-            // ESP_LOGI(TAG, "Printing packet to UART");
-            struct header header;
-            header.type = MSG_PACKET_V2;
-            header.up = get_link_status();
-            header.size = htons(buff->len);
+            esp::MessagePrelude message{};
+            message.header.type = esp::MessageType::PACKET_V2;
+            message.header.up = get_link_status();
+            message.header.size = htons(buff->len);
+            message.data_checksum = htonl(0);
             xSemaphoreTake(uart_mtx, portMAX_DELAY);
-            uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
-            uart_write_bytes(UART_NUM_0, (const char*)&header, sizeof(header));
+            uart_write_bytes(UART_NUM_0, intron.data(), intron.size());
+            uart_write_bytes(UART_NUM_0, (const char*)&message.header, sizeof(message.header) + sizeof(message.data_checksum));
             uart_write_bytes(UART_NUM_0, (const char*)buff->data, buff->len);
             xSemaphoreGive(uart_mtx);
             // ESP_LOGI(TAG, "Packet UART out done");
@@ -870,7 +850,7 @@ extern "C" void app_main() {
 
     scan.stored_ssids_count = SCAN_MAX_STORED_SSIDS;
     clear_stored_ssids();
-    memset(latest_ssid, 0, SSID_LEN);
+    memset(latest_ssid, 0, esp::SSID_LEN);
     memset(latest_bssid, 0, BSSID_LEN);
 
     ESP_LOGI(TAG, "Wifi init");
