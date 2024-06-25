@@ -52,7 +52,10 @@ uint32_t block_one_click_print_until_ms = 0;
 
 enum class RecoveryPhase : uint_fast8_t {
     idle,
-    power_off
+
+    /// USB has been turned off and will be turned back on at the end of this phase.
+    restarting_usb,
+
 };
 
 std::atomic<RecoveryPhase> recovery_phase = RecoveryPhase::idle;
@@ -100,7 +103,7 @@ void restart_timer_callback(TimerHandle_t) {
         // or the communication had a problem (but the flash is still inserted and we need to recover)
 
         // Turn the USB off
-        recovery_phase = RecoveryPhase::power_off;
+        recovery_phase = RecoveryPhase::restarting_usb;
         USBH_Stop(&hUsbHostHS);
 
         const auto print_state = printer_state::get_print_state(marlin_vars()->print_state.get(), false);
@@ -115,7 +118,7 @@ void restart_timer_callback(TimerHandle_t) {
         break;
     }
 
-    case RecoveryPhase::power_off:
+    case RecoveryPhase::restarting_usb:
         // Prevent one click print from popping up when the drive initializes.
         // Most USBs should initialize (and call msc_active) within a few hundreds of ms.
         // Some drives take ~3 s to reinitialize, but we don't want to block the OCP for that long.
