@@ -46,7 +46,7 @@ void log_destination_unregister(Destination *destination) {
 void _log_event(Severity severity, const Component *component, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    _log_event(severity, component, fmt, &args);
+    _log_event_valist(severity, component, fmt, &args);
     va_end(args);
 }
 

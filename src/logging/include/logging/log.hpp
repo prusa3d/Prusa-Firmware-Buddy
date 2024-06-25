@@ -92,7 +92,7 @@ struct Destination {
 void __attribute__((format(__printf__, 3, 4)))
 _log_event(Severity severity, const Component *component, const char *fmt, ...);
 
-void _log_event(Severity severity, const Component *component, const char *fmt, va_list *args);
+void _log_event_valist(Severity severity, const Component *component, const char *fmt, va_list *args);
 
 /// Find log component for given name
 Component *log_component_find(const char *name);

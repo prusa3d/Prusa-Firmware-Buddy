@@ -6,7 +6,7 @@
 
 namespace logging {
 
-void _log_event(Severity severity, const Component *component, const char *fmt, va_list *args) {
+void _log_event_valist(Severity severity, const Component *component, const char *fmt, va_list *args) {
     if (severity < component->lowest_severity) {
         return;
     }

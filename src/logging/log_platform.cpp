@@ -29,20 +29,20 @@ extern "C" void lwip_platform_log_error(const char *message) {
 extern "C" void USBH_UsrLog(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    _log_event(logging::Severity::info, &LOG_COMPONENT(USBHost), fmt, args);
+    _log_event_valist(logging::Severity::info, &LOG_COMPONENT(USBHost), fmt, &args);
     va_end(args);
 }
 
 extern "C" void USBH_ErrLog(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    _log_event(logging::Severity::error, &LOG_COMPONENT(USBHost), fmt, args);
+    _log_event_valist(logging::Severity::error, &LOG_COMPONENT(USBHost), fmt, &args);
     va_end(args);
 }
 
 extern "C" void USBH_DbgLog(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    _log_event(logging::Severity::debug, &LOG_COMPONENT(USBHost), fmt, args);
+    _log_event_valist(logging::Severity::debug, &LOG_COMPONENT(USBHost), fmt, &args);
     va_end(args);
 }
