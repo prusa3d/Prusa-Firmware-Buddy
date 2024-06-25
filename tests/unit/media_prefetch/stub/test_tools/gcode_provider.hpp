@@ -36,7 +36,8 @@ public:
         return pos == data.size();
     }
 
-    void add_line(const std::string &text);
+    /// \returns replay position of the added line
+    uint32_t add_line(const std::string &text);
 
     /// Makes the reader return the given result at the given position
     void add_breakpoint(GCodeReaderResult result, std::optional<uint32_t> pos = std::nullopt);

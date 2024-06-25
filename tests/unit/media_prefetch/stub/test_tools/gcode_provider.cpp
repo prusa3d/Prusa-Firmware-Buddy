@@ -14,9 +14,11 @@ StubGcodeProviderBase *StubGcodeProviderBase::from_filename(const char *filename
     return std::bit_cast<StubGcodeProviderBase *>(ptr);
 }
 
-void StubGcodeProviderMemory::add_line(const std::string &text) {
+uint32_t StubGcodeProviderMemory::add_line(const std::string &text) {
+    const auto result = data.size();
     data.append(text);
     data.push_back('\n');
+    return result;
 }
 
 void StubGcodeProviderMemory::add_breakpoint(GCodeReaderResult result, std::optional<uint32_t> pos) {

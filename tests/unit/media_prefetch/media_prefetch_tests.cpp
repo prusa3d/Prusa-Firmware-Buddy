@@ -205,9 +205,12 @@ TEST_CASE("media_prefetch::feed_test") {
         return buf.str();
     };
 
+    std::vector<uint32_t> command_replay_positions;
+
     // Put the commands in the buffer
     for (size_t i = 0; i < command_count; i++) {
-        p.add_line(command_str(i, true));
+        const auto replay_pos = p.add_line(command_str(i, true));
+        command_replay_positions.push_back(replay_pos);
     }
 
     // Start the prefetch, fetch one buffer worth
@@ -221,8 +224,6 @@ TEST_CASE("media_prefetch::feed_test") {
         CHECK(mp.shared_state.read_tail.buffer_pos == old_read_tail);
     }
 
-    std::vector<uint32_t> command_replay_positions;
-
     // Full buffer read tests
     {
         struct {
@@ -235,19 +236,17 @@ TEST_CASE("media_prefetch::feed_test") {
 
         // Read the buffer whole, record command positions
         {
-            size_t media_offset = 0;
             const auto read_whole_buffer = [&] {
                 read_state.whole_buffer_count++;
 
                 while ((status = mp.read_command(r)) == S::ok) {
                     const std::string expected_command = command_str(read_state.command_i).data();
+                    const auto replay_pos = command_replay_positions[read_state.command_i];
                     CHECK(std::string(r.gcode.data()) == expected_command);
-                    CHECK(r.replay_pos.offset == media_offset);
-                    CHECK(r.resume_pos.offset == media_offset + command_str(read_state.command_i, true).size() + 1); // +1 for newline
+                    CHECK(r.replay_pos.offset == replay_pos);
+                    CHECK(r.resume_pos.offset == replay_pos + command_str(read_state.command_i, true).size() + 1); // +1 for newline
 
                     read_state.command_i++;
-                    media_offset = r.resume_pos.offset;
-                    command_replay_positions.push_back(r.replay_pos.offset);
                 }
             };
 
