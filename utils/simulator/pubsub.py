@@ -3,6 +3,7 @@ import asyncio
 
 
 class Subscriber:
+
     def __init__(self):
         self.queue = asyncio.Queue()
 
@@ -11,6 +12,7 @@ class Subscriber:
 
 
 class Publisher:
+
     def __init__(self):
         self.subscribers = set()
 

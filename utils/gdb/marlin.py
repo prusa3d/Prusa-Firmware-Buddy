@@ -4,6 +4,7 @@ import re
 
 # XYZEval prettyprinter to avoid verbose aliases in type union
 class XYZEvalPrinter:
+
     def __init__(self, val, elements):
         self.val = val
         self.elements = elements

@@ -57,6 +57,7 @@ class TLVType(Enum):
 
 
 class UndefinedSha256():
+
     def digest(self):
         return b'\xff' * 32
 
@@ -108,6 +109,7 @@ def write_version(ver, *, build_number: int):
 
 
 class ExtendAction(Action):
+
     def __call__(self, parser, namespace, values, option_string=None):
         items = getattr(namespace, self.dest) or []
         items.extend(values)

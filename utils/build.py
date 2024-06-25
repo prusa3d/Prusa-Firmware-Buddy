@@ -60,6 +60,7 @@ def get_dependency(name):
 
 
 class CaseInsensitiveEnum(Enum):
+
     @classmethod
     def _missing_(cls, name):
         for member in cls:
@@ -103,6 +104,7 @@ class HostTool(CaseInsensitiveEnum):
 
 
 class BuildConfiguration(ABC):
+
     @abstractmethod
     def get_cmake_cache_entries(self) -> List[Tuple[str, str, str]]:
         """Convert the build configuration to CMake cache entries."""
@@ -134,6 +136,7 @@ class BuildLayout(Enum):
 
 
 class FirmwareBuildConfiguration(BuildConfiguration):
+
     def __init__(self,
                  *,
                  preset: Preset,
@@ -242,6 +245,7 @@ class FirmwareBuildConfiguration(BuildConfiguration):
 
 
 class HostToolBuildConfiguration(BuildConfiguration):
+
     def __init__(self,
                  build_type: BuildType,
                  tool: HostTool,
@@ -360,6 +364,7 @@ def build(configuration: BuildConfiguration,
 
 
 class CProjectGenerator:
+
     @staticmethod
     def create_cmake_def(name, value_type, value) -> ET.Element:
         definition = ET.Element('def')
@@ -418,9 +423,9 @@ class CProjectGenerator:
         return result
 
     @staticmethod
-    def generate_cconfiguration(template: ET.Element,
-                                configuration: BuildConfiguration
-                                ) -> ET.Element:
+    def generate_cconfiguration(
+            template: ET.Element,
+            configuration: BuildConfiguration) -> ET.Element:
         get_element = CProjectGenerator.get_element
         cconfiguration = deepcopy(template)
         cache_entries = configuration.get_cmake_cache_entries()
@@ -499,6 +504,7 @@ class CProjectGenerator:
 
 
 class CMakePresetsGenerator:
+
     @staticmethod
     def normalize_cache_value(value, value_type):
         if value_type.lower() == 'filepath' and value:

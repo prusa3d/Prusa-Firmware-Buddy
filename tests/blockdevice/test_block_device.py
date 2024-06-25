@@ -1,6 +1,7 @@
 import pytest
 import os
 import random
+
 BLOCK_SIZE = 4096
 BLOCK_COUNT = 1900
 
@@ -22,6 +23,7 @@ def select_random_block():
 
 @pytest.mark.benchmark(min_rounds=5, warmup=False)
 def test_block_read_write_speed(benchmark, dev):
+
     def perform_read_write():
         block = select_random_block()
         data = os.urandom(BLOCK_SIZE)
@@ -34,6 +36,7 @@ def test_block_read_write_speed(benchmark, dev):
 
 
 def test_block_read_10_blocks_speed(benchmark, dev):
+
     def perform_read():
         block = select_random_block()
         dev.seek(block * BLOCK_SIZE)

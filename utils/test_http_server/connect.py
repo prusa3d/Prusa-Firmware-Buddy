@@ -10,6 +10,7 @@ import connect_test_funcs as test
 
 
 class TestTCPHandler(socketserver.BaseRequestHandler):
+
     def handle(self):
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(1024).strip()

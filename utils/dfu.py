@@ -8,12 +8,14 @@ from pathlib import Path
 
 
 class DfuImage:
+
     def __init__(self, address, data):
         self.address = address
         self.data = data
 
 
 class DfuTarget:
+
     def __init__(self, images: List[DfuImage], name='Generic Target'):
         self.images = images
         self.name = name

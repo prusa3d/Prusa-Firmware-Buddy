@@ -10,6 +10,7 @@ def _bit_flag(bits, pos, fmt):
 
 # StepEventFlag_t prettyprinter
 class StepEventFlagPrinter:
+
     def __init__(self, val):
         self.val = val
 
@@ -54,6 +55,7 @@ gdb.pretty_printers.append(StepEventFlagPrinter.register)
 
 # step_event_{i32,u16}_t prettyprinter
 class StepEventPrinter:
+
     def __init__(self, val):
         self.val = val
 
@@ -80,6 +82,7 @@ gdb.pretty_printers.append(StepEventPrinter.register)
 
 # Full step-event-queue prettyprinter
 class PrintStepEventQueue(gdb.Command):
+
     def __init__(self):
         super().__init__('ps-step-event-queue', gdb.COMMAND_USER)
 
@@ -104,6 +107,7 @@ PrintStepEventQueue()
 
 # MoveFlag_t prettyprinter
 class MoveFlagPrinter:
+
     def __init__(self, val):
         self.val = val
 
@@ -139,6 +143,7 @@ gdb.pretty_printers.append(MoveFlagPrinter.register)
 
 # Full move-segment-queue prettyprinter
 class PrintMoveSegmentQueue(gdb.Command):
+
     def __init__(self):
         super().__init__('ps-move-segment-queue', gdb.COMMAND_USER)
 

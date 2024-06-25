@@ -27,6 +27,7 @@ from bootstrap import get_dependency_directory
 
 
 class BuildDirectory:
+
     def __init__(self, directory: Path):
         self.directory = directory
 
@@ -106,6 +107,7 @@ def get_bootloader_filename(machine_type: MachineType) -> str:
 
 
 def make_sync(f):
+
     @functools.wraps(f)
     def wrapped(*args, **kwargs):
         return asyncio.run(f(*args, **kwargs))

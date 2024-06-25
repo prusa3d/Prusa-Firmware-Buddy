@@ -18,12 +18,14 @@ handler_identifier = uuid.uuid4().hex[:8]
 
 
 class MetricError(Exception):
+
     def __init__(self, message):
         self.message = message
         super().__init__(message)
 
 
 class Point:
+
     def __init__(self,
                  timestamp: Union[int, datetime],
                  metric_name,
@@ -112,6 +114,7 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
     }
 
     class RemotePrinter:
+
         def __init__(self, mac_address):
             self.mac_address = mac_address
             self.last_received_msgid = None
@@ -259,6 +262,7 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
 
 
 class Application:
+
     def __init__(self, influx, syslog_address):
         self.influx: aioinflux.InfluxDBClient = influx
         self.points = []

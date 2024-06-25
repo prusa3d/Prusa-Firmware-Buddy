@@ -11,6 +11,7 @@ from littlefs.lfs import LFSConfig
 
 
 class FileContext(UserContext):
+
     def __init__(self, path: Path):
         self.path = path
         self.logger = logging.getLogger('file-context')
@@ -83,6 +84,7 @@ def add_file_cmd(args) -> int:
 
 
 class HashContext:
+
     def __init__(self):
         self.sha = sha256()
         self.counter = 0

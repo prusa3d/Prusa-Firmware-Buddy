@@ -56,6 +56,7 @@ def validator():
 
 
 class TestLogin:
+
     def test_loging(self, session):
         pass  # test wil done by session fixture
 
@@ -70,6 +71,7 @@ class TestLogin:
 
 
 class TestLoginApi:
+
     def test_loging(self, api_url, user, password, validator):
         check_api_post(api_url + "/login",
                        json={
@@ -87,6 +89,7 @@ class TestLoginApi:
 
 
 class TestApiKey:
+
     def test_printer(self, api_url, api_key):
         check_get(api_url + "/printer", headers={'X-Api-Key': api_key})
 

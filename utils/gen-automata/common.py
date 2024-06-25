@@ -221,6 +221,7 @@ class Automaton:
 
 
 class State:
+
     def __init__(self, name=None):
         self.__transitions = []
         self.__name = name
@@ -288,6 +289,7 @@ class State:
 
 
 class Transition:
+
     def __init__(self, label, label_type, target, fallthrough=False):
         if label_type == LabelType.CharNoCase:
             label = label.lower()

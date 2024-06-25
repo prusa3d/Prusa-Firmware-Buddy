@@ -27,6 +27,7 @@ MOTOR_PERIOD = 1024
 
 
 class Machine:
+
     def __init__(self, port: Serial) -> None:
         self._port = port
         self.accFreq = None
@@ -79,7 +80,8 @@ class Machine:
                     return response
                 response.append(line)
 
-    def multiCommand(self, commands: List[str],
+    def multiCommand(self,
+                     commands: List[str],
                      timeout: float = 10) -> List[str]:
         """
         Issue multiple G-code commands at once, return line summary.
@@ -134,15 +136,15 @@ def getPrusaPort() -> Optional[str]:
 
 
 @contextmanager
-def machineConnection(port: str = getPrusaPort()
-                      ) -> Generator[Machine, None, None]:
+def machineConnection(port: str = getPrusaPort()) -> Generator[Machine, None,
+                                                               None]:
     with Serial(port) as s:
         yield Machine(s)
 
 
 @contextmanager
-def enabledMachineConnection(port: str = getPrusaPort()
-                             ) -> Generator[Machine, None, None]:
+def enabledMachineConnection(port: str = getPrusaPort()) -> Generator[
+        Machine, None, None]:
     with Serial(port) as s:
         m = Machine(s)
         m.waitForBoot()
@@ -443,8 +445,9 @@ def writeLut(machine: Machine, axis: str, direction: str,
     return
 
 
-def captureAccSamples(machine: Machine, axis: str, revs: float, speed: float
-                      ) -> Tuple[List[Tuple[float, float, float, int]], float]:
+def captureAccSamples(
+        machine: Machine, axis: str, revs: float,
+        speed: float) -> Tuple[List[Tuple[float, float, float, int]], float]:
     """
     Move with the print head and capture samples. Return sample in the format: <x>, <y>, <z>, <time_ticks>
     """

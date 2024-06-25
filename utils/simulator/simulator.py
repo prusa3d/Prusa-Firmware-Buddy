@@ -17,6 +17,7 @@ switch_to_venv_if_nedded()
 
 
 class Simulator:
+
     def __init__(self, *, process: asyncio.subprocess.Process,
                  machine: MachineType, tmpdir: Path, logs: Publisher,
                  scriptio_reader: Optional[asyncio.StreamReader],
@@ -39,20 +40,20 @@ class Simulator:
 
     @staticmethod
     @asynccontextmanager
-    async def run(
-            simulator_path: Path,
-            machine: MachineType,
-            firmware_path: Path,
-            tmpdir: Path,
-            scriptio_port: Optional[int] = None,
-            http_proxy_port: Optional[int] = None,
-            mount_dir_as_flash: Optional[Path] = None,
-            eeprom_content: Optional[Tuple[Path, Path]] = None,
-            xflash_content: Optional[Path] = None,
-            nographic=False,
-            usbserial=True,
-            invoke_callback: Optional[Callable[[List[str]], None]] = None,
-            extra_arguments: Optional[List[str]] = None):
+    async def run(simulator_path: Path,
+                  machine: MachineType,
+                  firmware_path: Path,
+                  tmpdir: Path,
+                  scriptio_port: Optional[int] = None,
+                  http_proxy_port: Optional[int] = None,
+                  mount_dir_as_flash: Optional[Path] = None,
+                  eeprom_content: Optional[Tuple[Path, Path]] = None,
+                  xflash_content: Optional[Path] = None,
+                  nographic=False,
+                  usbserial=True,
+                  invoke_callback: Optional[Callable[[List[str]],
+                                                     None]] = None,
+                  extra_arguments: Optional[List[str]] = None):
         # prepare the arguments
         simulator_path = simulator_path.absolute()
         params = ['-machine', machine.value]

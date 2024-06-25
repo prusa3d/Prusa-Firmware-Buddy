@@ -5,10 +5,10 @@ repos:
   rev: v0.6.13
   hooks:
     - id: cmake-format
-- repo: https://github.com/pre-commit/mirrors-yapf
-  rev: 'v0.27.0'
+- repo: https://github.com/google/yapf
+  rev: v0.40.2
   hooks:
-    - id: yapf  # python formatter
+    - id: yapf
 - repo: local
   hooks:
     - id: clang-format

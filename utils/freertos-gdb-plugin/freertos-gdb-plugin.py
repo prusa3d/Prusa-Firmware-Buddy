@@ -10,6 +10,7 @@ def set_reg(reg, value):
 
 
 class Stack(object):
+
     def __init__(self, pointer):
         # work with plain integer because the gdb value is immutable
         self._pointer = value_to_int(pointer)
@@ -24,6 +25,7 @@ class Stack(object):
 
 
 class Task(object):
+
     def __init__(self, tcb_ptr, *args, **kwargs):
         self._tcb_ptr = tcb_ptr
         self._status = kwargs['status']
