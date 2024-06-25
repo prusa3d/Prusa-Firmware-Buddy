@@ -213,6 +213,35 @@ TEST_CASE("media_prefetch::feed_test") {
         command_replay_positions.push_back(replay_pos);
     }
 
+    struct {
+        size_t command_i = 0;
+        size_t whole_buffer_count = 0;
+    } read_state;
+
+    RR r;
+    S status;
+
+    const auto read_single_command = [&] {
+        status = mp.read_command(r);
+        if (status != S::ok) {
+            return false;
+        }
+
+        const std::string expected_command = command_str(read_state.command_i).data();
+        REQUIRE(std::string(r.gcode.data()) == expected_command);
+        REQUIRE(command_replay_positions[read_state.command_i] == r.replay_pos.offset);
+        REQUIRE(r.resume_pos.offset == r.replay_pos.offset + command_str(read_state.command_i, true).size() + 1); // +1 for newline
+        read_state.command_i++;
+        return true;
+    };
+
+    const auto read_whole_buffer = [&] {
+        read_state.whole_buffer_count++;
+
+        while (read_single_command()) {
+        }
+    };
+
     // Start the prefetch, fetch one buffer worth
     mp.start(p.filename(), {});
     mp.issue_fetch(false);
@@ -226,30 +255,8 @@ TEST_CASE("media_prefetch::feed_test") {
 
     // Full buffer read tests
     {
-        struct {
-            size_t command_i = 0;
-            size_t whole_buffer_count = 0;
-        } read_state;
-
-        RR r;
-        S status;
-
         // Read the buffer whole, record command positions
         {
-            const auto read_whole_buffer = [&] {
-                read_state.whole_buffer_count++;
-
-                while ((status = mp.read_command(r)) == S::ok) {
-                    const std::string expected_command = command_str(read_state.command_i).data();
-                    const auto replay_pos = command_replay_positions[read_state.command_i];
-                    CHECK(std::string(r.gcode.data()) == expected_command);
-                    CHECK(r.replay_pos.offset == replay_pos);
-                    CHECK(r.resume_pos.offset == replay_pos + command_str(read_state.command_i, true).size() + 1); // +1 for newline
-
-                    read_state.command_i++;
-                }
-            };
-
             read_state = {};
             read_whole_buffer();
 
@@ -273,26 +280,6 @@ TEST_CASE("media_prefetch::feed_test") {
         const auto command_count = read_state.command_i;
 
         read_state = {};
-
-        const auto read_single_command = [&] {
-            status = mp.read_command(r);
-            if (status != S::ok) {
-                return false;
-            }
-
-            const std::string expected_command = command_str(read_state.command_i).data();
-            REQUIRE(std::string(r.gcode.data()) == expected_command);
-            REQUIRE(command_replay_positions[read_state.command_i] == r.replay_pos.offset);
-            read_state.command_i++;
-            return true;
-        };
-
-        const auto read_whole_buffer = [&] {
-            read_state.whole_buffer_count++;
-
-            while (read_single_command()) {
-            }
-        };
 
         SECTION("Reread with stops") {
             p.add_breakpoint(R::RESULT_TIMEOUT, 1);
