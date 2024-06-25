@@ -595,7 +595,7 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
             break;
         }
         for (uint8_t j = 0; j < scan.stored_ssids_count; ++j) {
-            ESP_LOGI(TAG, "Comparing >%s< and %s", (char *)scan.stored_ssids[j].ssid.data(), (char *)aps[i].ssid);
+            ESP_LOGD(TAG, "Comparing >%.32s< and %s", (char *)scan.stored_ssids[j].ssid.data(), (char *)aps[i].ssid);
             if (memcmp(scan.stored_ssids[j].ssid.data(), aps[i].ssid, esp::SSID_LEN) == 0) {
                 found = true;
                 break;
@@ -805,7 +805,8 @@ static void IRAM_ATTR uart0_tx_task(void *arg) {
 extern "C" void IRAM_ATTR app_main() {
     ESP_LOGI(TAG, "UART NIC");
 
-	esp_log_level_set("*", ESP_LOG_ERROR);
+    esp_log_level_set("*", ESP_LOG_ERROR);
+    esp_log_level_set(TAG, ESP_LOG_WARNING);
 
     ESP_ERROR_CHECK(nvs_flash_init());
 
