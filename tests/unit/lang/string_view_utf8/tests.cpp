@@ -236,3 +236,59 @@ TEST_CASE("string_view_utf8::CopyToRAM dst buffer too small + multibyte chars", 
     copied_bytes = orig.copyBytesToRAM(dst, sizeof(dst));
     REQUIRE(copied_bytes == sizeof(dst) - 1);
 }
+
+TEST_CASE("string_view_utf8::string_build", "[string_view_utf8]") {
+    using Catch::Matchers::Equals;
+    char compare_buff[60] = { 0 };
+
+    static constexpr char fmt_test[] = "%s%d%s%.2f%%%ld%s";
+    static constexpr char ref_test[] = "MK4236.2.010.50%1000000money";
+    StringViewUtf8Parameters<33> params_test;
+    string_view_utf8 str = string_view_utf8::MakeRAM(fmt_test).formatted(params_test, "MK4", 23, "6.2.0", 10.5, 1000000, "money");
+    size_t copied_bytes = str.copyToRAM(compare_buff, sizeof(compare_buff));
+    REQUIRE_THAT(compare_buff, Equals(ref_test));
+    REQUIRE(copied_bytes == strlen(ref_test));
+
+    static constexpr char fmt_one_char[] = "%d";
+    static constexpr char ref_one_char[] = "3";
+    StringViewUtf8Parameters<2> params_one_char;
+    str = string_view_utf8::MakeRAM(fmt_one_char).formatted(params_one_char, 3);
+    copied_bytes = str.copyToRAM(compare_buff, sizeof(compare_buff));
+    REQUIRE_THAT(compare_buff, Equals(ref_one_char));
+    REQUIRE(copied_bytes == strlen(ref_one_char));
+
+    static const char fmt_truncate[] = "%d インプットシェーパーキャリブレーション";
+    static const char ref_truncate[] = "9 インプットシェーパーキャリ";
+    char buffer_too_small[44] = {};
+    StringViewUtf8Parameters<2> params_truncate;
+    str = string_view_utf8::MakeRAM(fmt_truncate).formatted(params_truncate, 9);
+    copied_bytes = str.copyToRAM(buffer_too_small, sizeof(buffer_too_small));
+    REQUIRE_THAT(buffer_too_small, Equals(ref_truncate));
+    REQUIRE(copied_bytes == strlen(ref_truncate));
+
+    static const char fmt_escape[] = "%%%s%%%d%%%.1f%%%%";
+    static const char ref_escape[] = "%heh%0%0.0%%";
+    StringViewUtf8Parameters<10> params_escape;
+    str = string_view_utf8::MakeRAM(fmt_escape).formatted(params_escape, "heh", 0, 0.0f);
+    copied_bytes = str.copyToRAM(compare_buff, sizeof(compare_buff));
+    REQUIRE_THAT(compare_buff, Equals(ref_escape));
+    REQUIRE(copied_bytes == strlen(ref_escape));
+
+    /*
+    static const char fmt_empty_str[] = "%s%s%s";
+    StringViewUtf8Parameters<1> params_empty_str;
+    str = string_view_utf8::MakeRAM(fmt_empty_str).formatted(params_empty_str, "", "", "");
+    copied_bytes = str.copyToRAM(compare_buff, sizeof(compare_buff));
+    REQUIRE_THAT(compare_buff, Equals(""));
+    REQUIRE(copied_bytes == 0);
+    */
+
+    static const char pra[] = "pra";
+    static const char fmt_text_in_between[] = "%s%s%sbabicka rekla \"%s%s%sdedo, ty si ale %sse\"";
+    static const char ref_text_in_between[] = "prapraprababicka rekla \"praprapradedo, ty si ale prase\"";
+    StringViewUtf8Parameters<28> params_text_in_between;
+    str = string_view_utf8::MakeRAM(fmt_text_in_between).formatted(params_text_in_between, pra, pra, pra, pra, pra, pra, pra);
+    copied_bytes = str.copyToRAM(compare_buff, sizeof(compare_buff));
+    REQUIRE_THAT(compare_buff, Equals(ref_text_in_between));
+    REQUIRE(copied_bytes == strlen(ref_text_in_between));
+}

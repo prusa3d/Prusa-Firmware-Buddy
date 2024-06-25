@@ -22,7 +22,7 @@ bool CompareStringViews(string_view_utf8 s, string_view_utf8 s2, set<unichar> &n
                 // Or kick the translator person to stop copying BS formatting characters from MS Word into Phraseapp
                 // Typical situation: U+202A -> e2 80 aa -> LEFT-TO-RIGHT EMBEDDING
                 char tmp[1024];
-                s2.copyToRAM(tmp, 1024);
+                s2.copyBytesToRAM(tmp, 1024);
                 INFO("Language=" << langCode << " : string='" << tmp << "': needs an unknown non-ASCII character ord=0x" << std::hex << c);
                 return false;
             }
