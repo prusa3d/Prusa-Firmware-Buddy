@@ -11,96 +11,6 @@
 
 namespace i2c {
 
-namespace statistics {
-
-    struct Results {
-        std::atomic<uint32_t> HAL_OK = 0;
-        std::atomic<uint32_t> HAL_BUSY = 0;
-        std::atomic<uint32_t> HAL_ERROR = 0;
-        std::atomic<uint32_t> HAL_TIMEOUT = 0;
-    };
-
-#if HAS_I2CN(1)
-    Results ch1;
-#endif
-#if HAS_I2CN(2)
-    Results ch2;
-#endif
-#if HAS_I2CN(3)
-    Results ch3;
-#endif
-
-    uint32_t get_hal_ok(uint8_t channel) {
-        switch (channel) {
-#if HAS_I2CN(1)
-        case 1:
-            return ch1.HAL_OK;
-#endif
-#if HAS_I2CN(2)
-        case 2:
-            return ch2.HAL_OK;
-#endif
-#if HAS_I2CN(3)
-        case 3:
-            return ch3.HAL_OK;
-#endif
-        }
-        return 0;
-    }
-
-    uint32_t get_hal_busy(uint8_t channel) {
-        switch (channel) {
-#if HAS_I2CN(1)
-        case 1:
-            return ch1.HAL_BUSY;
-#endif
-#if HAS_I2CN(2)
-        case 2:
-            return ch2.HAL_BUSY;
-#endif
-#if HAS_I2CN(3)
-        case 3:
-            return ch3.HAL_BUSY;
-#endif
-        }
-        return 0;
-    }
-    uint32_t get_hal_error(uint8_t channel) {
-        switch (channel) {
-#if HAS_I2CN(1)
-        case 1:
-            return ch1.HAL_ERROR;
-#endif
-#if HAS_I2CN(2)
-        case 2:
-            return ch2.HAL_ERROR;
-#endif
-#if HAS_I2CN(3)
-        case 3:
-            return ch3.HAL_ERROR;
-#endif
-        }
-        return 0;
-    }
-    uint32_t get_hal_timeout(uint8_t channel) {
-        switch (channel) {
-#if HAS_I2CN(1)
-        case 1:
-            return ch1.HAL_TIMEOUT;
-#endif
-#if HAS_I2CN(2)
-        case 2:
-            return ch2.HAL_TIMEOUT;
-#endif
-#if HAS_I2CN(3)
-        case 3:
-            return ch3.HAL_TIMEOUT;
-#endif
-        }
-        return 0;
-    }
-} // namespace statistics
-
 namespace {
     std::array<osStaticMutexDef_t, 3> i2c_mutexes;
 } // namespace
@@ -146,46 +56,20 @@ ChannelMutex::~ChannelMutex() {
     }
 }
 
-static Result process_result_n(HAL_StatusTypeDef result, statistics::Results &result_counters) {
+static Result process_result(HAL_StatusTypeDef result) {
     switch (result) {
     case HAL_OK:
-        ++result_counters.HAL_OK;
         return Result::ok;
     case HAL_ERROR:
-        ++result_counters.HAL_ERROR;
         return Result::error;
     case HAL_BUSY:
-        ++result_counters.HAL_BUSY;
         return Result::busy_after_retries;
     case HAL_TIMEOUT:
-        ++result_counters.HAL_TIMEOUT;
         return Result::timeout;
     default:
         fatal_error(ErrCode::ERR_ELECTRO_I2C_TX_UNDEFINED); // TODO change to ERR_ELECTRO_I2C_UNDEFINED
         break;
     }
-    return Result::error; // will not get here, just prevent warning
-}
-
-static Result process_result(I2C_HandleTypeDef &hi2c, HAL_StatusTypeDef result) {
-    int i2c_no = get_i2c_no(hi2c);
-
-    switch (i2c_no) {
-#if HAS_I2CN(1)
-    case 1:
-        return process_result_n(result, statistics::ch1);
-#endif
-#if HAS_I2CN(2)
-    case 2:
-        return process_result_n(result, statistics::ch2);
-#endif
-#if HAS_I2CN(3)
-    case 3:
-        return process_result_n(result, statistics::ch3);
-#endif
-    }
-
-    fatal_error(ErrCode::ERR_ELECTRO_I2C_TX_UNDEFINED); // TODO change to access to unused i2c
     return Result::error; // will not get here, just prevent warning
 }
 
@@ -221,7 +105,7 @@ Result Transmit(I2C_HandleTypeDef &hi2c, uint16_t DevAddress, uint8_t *pData, ui
             MoveIsrDisabler moveIsrDisabler;
             result = HAL_I2C_Master_Transmit(&hi2c, DevAddress, pData, Size, Timeout);
         }
-        res = process_result(hi2c, result);
+        res = process_result(result);
         if (result != HAL_BUSY) {
             break;
         }
@@ -241,7 +125,7 @@ Result Receive(I2C_HandleTypeDef &hi2c, uint16_t DevAddress, uint8_t *pData, uin
             MoveIsrDisabler moveIsrDisabler;
             result = HAL_I2C_Master_Receive(&hi2c, DevAddress, pData, Size, Timeout);
         }
-        res = process_result(hi2c, result);
+        res = process_result(result);
         if (result != HAL_BUSY) {
             break;
         }
@@ -260,7 +144,7 @@ static Result Mem_Write(I2C_HandleTypeDef &hi2c, uint16_t DevAddress, uint16_t M
             MoveIsrDisabler moveIsrDisabler;
             result = HAL_I2C_Mem_Write(&hi2c, DevAddress, MemAddress, MemAddSize, pData, Size, Timeout);
         }
-        res = process_result(hi2c, result);
+        res = process_result(result);
         if (res == Result::ok) {
             break;
         }
@@ -287,7 +171,7 @@ Result Mem_Write_16bit_Addr(I2C_HandleTypeDef &hi2c, uint16_t DevAddress, uint16
             MoveIsrDisabler moveIsrDisabler;
             result = HAL_I2C_Mem_Read(&hi2c, DevAddress, MemAddress, MemAddSize, pData, Size, Timeout);
         }
-        res = process_result(hi2c, result);
+        res = process_result(result);
         if (res != Result::ok) {
             break;
         }
@@ -311,7 +195,7 @@ Result IsDeviceReady(I2C_HandleTypeDef &hi2c, uint16_t DevAddress, uint32_t Tria
         result = HAL_I2C_IsDeviceReady(&hi2c, DevAddress, Trials, Timeout);
     }
 
-    return process_result(hi2c, result);
+    return process_result(result);
 }
 
 } // namespace i2c

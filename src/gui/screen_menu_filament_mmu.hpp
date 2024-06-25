@@ -10,7 +10,6 @@
 #include "WindowMenuItems.hpp"
 #include "menu_item_event_dispatcher.hpp"
 #include "MItem_mmu.hpp"
-#include "MItem_eeprom.hpp"
 #include "MItem_filament.hpp"
 
 using ScreenMenuFilamentMMU__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,

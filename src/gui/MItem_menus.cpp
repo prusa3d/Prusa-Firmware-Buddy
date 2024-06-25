@@ -44,7 +44,6 @@
 #include "screen_menu_connect.hpp"
 #include "screen_menu_experimental_settings.hpp"
 #include "screen_menu_network.hpp"
-#include "screen_menu_eeprom_diagnostics.hpp"
 #include "screen_menu_fail_stat.hpp"
 #include "screen_menu_user_interface.hpp"
 #include "screen_menu_lang_and_time.hpp"
@@ -494,16 +493,6 @@ MI_INFO::MI_INFO()
 
 void MI_INFO::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInfo>);
-}
-
-/**********************************************************************************************/
-// MI_EEPROM_DIAGNOSTICS
-MI_EEPROM_DIAGNOSTICS::MI_EEPROM_DIAGNOSTICS()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
-}
-
-void MI_EEPROM_DIAGNOSTICS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuEepromDiagnostics>);
 }
 
 /**********************************************************************************************/

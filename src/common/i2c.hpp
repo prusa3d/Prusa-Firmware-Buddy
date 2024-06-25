@@ -1,17 +1,10 @@
 #pragma once
 
 #include "inttypes.h"
-#include <atomic>
 #include <device/peripherals.h>
 #include "cmsis_os.h"
 
 namespace i2c {
-namespace statistics {
-    uint32_t get_hal_ok(uint8_t channel);
-    uint32_t get_hal_busy(uint8_t channel);
-    uint32_t get_hal_error(uint8_t channel);
-    uint32_t get_hal_timeout(uint8_t channel);
-} // namespace statistics
 
 // numbered because of touch read return value
 enum class Result {

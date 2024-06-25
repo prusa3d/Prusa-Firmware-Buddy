@@ -27,7 +27,6 @@ target_sources(
           logger.cpp
           menu_vars.cpp
           MItem_crash.cpp
-          MItem_eeprom.cpp
           MItem_experimental_tools.cpp
           MItem_filament.cpp
           MItem_hardware.cpp
@@ -50,7 +49,6 @@ target_sources(
           screen_menu_cancel_object.cpp
           screen_menu_control.cpp
           screen_menu_eeprom.cpp
-          screen_menu_eeprom_diagnostics.cpp
           screen_menu_enclosure.cpp
           screen_menu_error_test.cpp
           screen_menu_factory_reset.cpp
