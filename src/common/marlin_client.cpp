@@ -432,6 +432,13 @@ void set_warning(WarningType type) {
     _send_request_to_server_noreply(request);
 }
 
+void clear_warning(WarningType type) {
+    Request request;
+    request.type = Request::Type::ClearWarning;
+    request.warning_type = type;
+    _send_request_to_server_noreply(request);
+}
+
 //-----------------------------------------------------------------------------
 // responses from client finite state machine (like button click)
 void FSM_encoded_response(EncodedFSMResponse encoded_fsm_response) {

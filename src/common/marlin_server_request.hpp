@@ -33,7 +33,8 @@ struct Request {
         UncancelObjectID,
         CancelCurrentObject,
         MoveMultiple,
-        SetWarning
+        SetWarning,
+        ClearWarning,
     };
 
     union {

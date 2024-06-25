@@ -2953,6 +2953,9 @@ bool _process_server_valid_request(const Request &request, int client_id) {
     case Request::Type::SetWarning:
         set_warning(request.warning_type);
         return true;
+    case Request::Type::ClearWarning:
+        clear_warning(request.warning_type);
+        return true;
     case Request::Type::KnobClick:
         ++server.knob_click_counter;
         return true;
@@ -3088,6 +3091,12 @@ void set_warning(WarningType type, PhasesWarning phase) {
     // We don't want to overlay two warnings and the new one is likely more important.
     clear_warnings();
     fsm_create(phase, data);
+}
+
+void clear_warning(WarningType type) {
+    if (fsm_states.is_active(ClientFSM::Warning) && type == std::bit_cast<WarningType>(fsm_states[ClientFSM::Warning]->GetData())) {
+        fsm_destroy(ClientFSM::Warning);
+    }
 }
 
 /*****************************************************************************/
