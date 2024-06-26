@@ -287,7 +287,9 @@ void DialogHandler::Loop() {
         close(old_top->fsm_type);
         Screens::Access()->Loop();
     } else {
-        abort();
+        // Having neither new_top nor old_top is perfectly valid,
+        // since the FSM state may only differ in generation number.
+        // In such case, we just don't do anything.
     }
 
     fsm_states = new_fsm_states;
