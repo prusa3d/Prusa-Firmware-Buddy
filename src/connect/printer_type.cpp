@@ -8,8 +8,12 @@ PrinterVersion get_printer_version() {
     case ExtendedPrinterType::mk3_9:
         return { 1, 3, 9 };
 
-    case ExtendedPrinterType::mk4:
     case ExtendedPrinterType::mk4s:
+        return { 1, 4, 1 };
+
+    case ExtendedPrinterType::mk4:
+        // Note: that would be { 1, 4, 0 } for actual mk4, which is handled
+        // below.
         break;
     }
 #endif
