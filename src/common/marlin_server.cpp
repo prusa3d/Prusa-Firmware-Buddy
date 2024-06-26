@@ -152,7 +152,7 @@ extern ClientQueue marlin_client_queue[MARLIN_MAX_CLIENTS];
 
 namespace marlin_server {
 
-MediaPrefetchManager media_prefetch;
+__attribute__((section(".ccmram"))) MediaPrefetchManager media_prefetch;
 
 namespace {
 
