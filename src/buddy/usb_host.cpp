@@ -85,12 +85,7 @@ void msc_active() {
     if (resume_print_on_recovery) {
         resume_print_on_recovery = false;
 
-        // lazy initialization of marlin_client
-        static bool marlin_client_initializated = false;
-        if (!marlin_client_initializated) {
-            marlin_client_initializated = true;
-            marlin_client::init();
-        }
+        marlin_client::init_maybe();
         marlin_client::try_recover_from_media_error();
     }
 }
