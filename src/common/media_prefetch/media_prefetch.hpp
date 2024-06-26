@@ -67,8 +67,7 @@ public:
     void stop();
 
     /// Issues prefetch if the buffer is running empty.
-    /// If \param force is \p false, the fetch is issued only when the buffer is running empty
-    void issue_fetch(bool force);
+    void issue_fetch();
 
     /// \returns if the buffer is empty, but we're still fetching.
     /// This is equivalent to the situation where \p read_command returns \p Status::end_of_buffer (but this is only a check, not reading anything)

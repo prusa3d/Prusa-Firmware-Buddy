@@ -151,11 +151,7 @@ bool MediaPrefetchManager::check_buffer_empty() const {
     return (shared_state.read_head.buffer_pos == shared_state.read_tail.buffer_pos) && (shared_state.read_tail.status == Status::end_of_buffer);
 }
 
-void MediaPrefetchManager::issue_fetch(bool force) {
-    if (!force && buffer_occupancy_percent() > 60) {
-        return;
-    }
-
+void MediaPrefetchManager::issue_fetch() {
     // Some fetch is already running -> let it finish
     if (worker_job.is_active()) {
         return;

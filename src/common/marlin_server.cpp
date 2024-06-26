@@ -1242,7 +1242,7 @@ static void crash_recovery_begin_crash() {
 void media_prefetch_start() {
     print_state.file_open_reported = false;
     media_prefetch.start(marlin_vars()->media_SFN_path.get_ptr(), GCodeReaderPosition { stream_restore_info(), media_position() });
-    media_prefetch.issue_fetch(true);
+    media_prefetch.issue_fetch();
 }
 
 void media_print_loop() {
@@ -1279,7 +1279,10 @@ void media_print_loop() {
             log_debug(MarlinServer, "Enqueue: %" PRIu32 " %s", data.replay_pos.offset, data.gcode.data());
 
             // Issue another fetch if the media prefetch buffer is running empty
-            media_prefetch.issue_fetch(false);
+            if (media_prefetch.buffer_occupancy_percent() < 60) {
+                media_prefetch.issue_fetch();
+            }
+
             continue;
 
         case Status::end_of_file:
@@ -1289,7 +1292,7 @@ void media_print_loop() {
 
         case Status::end_of_buffer:
             // Defnitely issue a prefetch here
-            media_prefetch.issue_fetch(true);
+            media_prefetch.issue_fetch();
             break;
 
         case Status::usb_error:
@@ -1332,8 +1335,8 @@ void print_resume(void) {
 
 void try_recover_from_media_error() {
     if (server.print_state == State::Printing) {
-        // If we're printing, simply try issuing a fetch if we're running low
-        media_prefetch.issue_fetch(false);
+        // If we're printing, simply try issuing a fetch to make sure everything's fine
+        media_prefetch.issue_fetch();
 
     } else if (print_state.paused_due_to_media_error) {
         // Do NOT reset - will be reset if the resume is successful

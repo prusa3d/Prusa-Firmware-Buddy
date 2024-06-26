@@ -38,7 +38,7 @@ TEST_CASE("media_prefetch::basic_test") {
 
         MediaPrefetchManager mp;
         mp.start(p.filename(), {});
-        mp.issue_fetch(false);
+        mp.issue_fetch();
 
         REQUIRE(read_gcode(mp, "G0"));
         REQUIRE(read_gcode(mp, "G1"));
@@ -48,12 +48,12 @@ TEST_CASE("media_prefetch::basic_test") {
         REQUIRE(mp.read_command(c) == S::end_of_buffer);
 
         SECTION("Fetch after end of buffer -> end of file") {
-            mp.issue_fetch(true);
+            mp.issue_fetch();
         }
 
         SECTION("Fetch more date -> read the data") {
             p.add_line("G2");
-            mp.issue_fetch(true);
+            mp.issue_fetch();
             REQUIRE(read_gcode(mp, "G2"));
         }
 
@@ -244,12 +244,12 @@ TEST_CASE("media_prefetch::feed_test") {
 
     // Start the prefetch, fetch one buffer worth
     mp.start(p.filename(), {});
-    mp.issue_fetch(false);
+    mp.issue_fetch();
 
     // Consequent fetch should not do anything
     {
         const auto old_read_tail = mp.shared_state.read_tail.buffer_pos;
-        mp.issue_fetch(true);
+        mp.issue_fetch();
         CHECK(mp.shared_state.read_tail.buffer_pos == old_read_tail);
     }
 
@@ -267,7 +267,7 @@ TEST_CASE("media_prefetch::feed_test") {
 
         // Fetch and check the rest of the file
         while (status == S::end_of_buffer) {
-            mp.issue_fetch(true);
+            mp.issue_fetch();
             read_whole_buffer();
         }
 
@@ -293,7 +293,7 @@ TEST_CASE("media_prefetch::feed_test") {
         mp.start(p.filename(), {});
 
         do {
-            mp.issue_fetch(false);
+            mp.issue_fetch();
             read_whole_buffer();
         } while (status == S::end_of_buffer);
 
@@ -326,7 +326,7 @@ TEST_CASE("media_prefetch::feed_test") {
 
             do {
                 read_whole_buffer();
-                mp.issue_fetch(false);
+                mp.issue_fetch();
             } while (status == S::end_of_buffer);
 
             CHECK(status == S::end_of_file);
@@ -362,7 +362,7 @@ TEST_CASE("media_prefetch::feed_test") {
                 read_single_command();
             } while (--read_cnt && status == S::ok);
 
-            mp.issue_fetch(false);
+            mp.issue_fetch();
         } while (status == S::end_of_buffer || status == S::ok);
 
         CHECK(status == S::end_of_file);
@@ -403,7 +403,7 @@ TEST_CASE("media_prefetch::feed_test") {
 
             mp.worker_job.discard_after = distrib(rand_gen);
             discards.push_back(*mp.worker_job.discard_after);
-            mp.issue_fetch(false);
+            mp.issue_fetch();
 
             if (mp.worker_job.was_discarded()) {
                 // Discard only happens together with worker_reset_pending IRL, so we gotta issue that
@@ -440,7 +440,7 @@ TEST_CASE("media_prefetch::command_buffer_overflow_text") {
     p.add_line(short_gcode);
 
     mp.start(p.filename(), {});
-    mp.issue_fetch(false);
+    mp.issue_fetch();
 
     REQUIRE(read_gcode(mp, long_cropped_gcode));
     REQUIRE(read_gcode(mp, long_gcode_with_comment_removed));
