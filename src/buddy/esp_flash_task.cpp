@@ -43,3 +43,8 @@ void start_flash_esp_task() {
     //       and that would call bsod() anyway...
     std::ignore = xTaskCreate(flash_esp_task_body, "flash_esp", 512, nullptr, TASK_PRIORITY_ESP_UPDATE, nullptr);
 }
+
+void skip_esp_flashing() {
+    espif_notify_flash_result(FlashResult::success);
+    TaskDeps::provide(TaskDeps::Dependency::esp_flashed);
+}

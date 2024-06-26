@@ -330,6 +330,10 @@ extern "C" void main_cpp(void) {
 
             espif_task_create();
 
+            // We can't flash ESP while showing error screen as there is no bootstrap progressbar.
+            // Let's pretend that flashing was successful in order to enable Wi-Fi.
+            skip_esp_flashing();
+
             TaskDeps::wait(TaskDeps::Tasks::network);
             start_network_task(/*allow_full=*/false);
             // definition and creation of connectTask
