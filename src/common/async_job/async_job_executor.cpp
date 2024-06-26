@@ -2,7 +2,7 @@
 
 #include "async_job.hpp"
 
-static AsyncJobExecutor default_instance;
+static __attribute__((section(".ccmram"))) AsyncJobExecutor default_instance;
 
 AsyncJobExecutor::AsyncJobExecutor() {
     static constexpr auto thread_func = +[](const void *param) {
