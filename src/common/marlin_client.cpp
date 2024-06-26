@@ -64,7 +64,16 @@ static marlin_client_t *_client_ptr();
 
 static freertos::Mutex mutex;
 
+void init_maybe() {
+    if (!_client_ptr()) {
+        init();
+    }
+}
+
 void init() {
+    // If the marlin has already been initialized, don't call init again
+    assert(!_client_ptr());
+
     int client_id;
     marlin_client_t *client = 0;
     TaskDeps::wait(TaskDeps::Tasks::marlin_client);
@@ -74,6 +83,7 @@ void init() {
             break;
         }
     }
+    assert(client_id < MARLIN_MAX_CLIENTS);
     if (client_id < MARLIN_MAX_CLIENTS) {
         client = clients + client_id;
         memset(client, 0, sizeof(marlin_client_t));
