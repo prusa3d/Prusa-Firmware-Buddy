@@ -1,4 +1,5 @@
 #include "wui.h"
+#include "netdb.h"
 #include "netif_settings.h"
 
 #include "marlin_client.hpp"
@@ -34,7 +35,7 @@
 #include "main.h"
 #include <ccm_thread.hpp>
 #include "tasks.hpp"
-
+#include "sntp_client.h"
 #include "netdev.h"
 
 #include "otp.hpp"
@@ -278,6 +279,7 @@ private:
             // selected interface?
             dns_setserver(0, &cfg.dns1_ip4);
             dns_setserver(1, &cfg.dns2_ip4);
+            sntp_client_static_init((const char *)&cfg.ntp);
             netifapi_netif_set_addr(&iface.dev, &cfg.lan.addr_ip4, &cfg.lan.msk_ip4, &cfg.lan.gw_ip4);
             netifapi_dhcp_inform(&iface.dev);
             break;
@@ -453,7 +455,7 @@ private:
                 // TODO: This does some code gymnastics inside to track changes
                 // of network configuration. Consider cleaning that up and
                 // integrating into some kind of up/down mechanism.
-                sntp_client_step();
+                sntp_client_step(config_store().ntp_via_dhcp.get(), config_store().ntp_addr.get_c_str());
             }
 
             if (events & HealthCheck) {
