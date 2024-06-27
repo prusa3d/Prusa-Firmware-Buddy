@@ -7,54 +7,32 @@
 
 #include "../../lib/Marlin/Marlin/src/module/planner.h"
 
-/**
- * @brief ensures proper progress state in marlin_server
- */
-class FirstLayerProgressLock {
-    static uint32_t isPrinting_;
-
-public:
-    FirstLayerProgressLock() {
-        ++isPrinting_;
-    }
-
-    ~FirstLayerProgressLock() {
-        --isPrinting_;
-    }
-
-    static bool isPrinting() {
-        return isPrinting_;
-    }
-};
-
-class FirstLayer : public FirstLayerProgressLock {
+class FirstLayer {
 private:
-    static uint32_t finished_n_times;
-    static uint32_t started_n_times;
+    static FirstLayer *instance_;
 
     uint16_t total_lines = 1;
     uint16_t current_line = 0;
-    uint8_t last_progress = 0;
 
     void finish_printing();
 
 public:
     FirstLayer() {
-        ++started_n_times;
+        assert(!instance_);
+        instance_ = this;
     }
 
     ~FirstLayer() {
-        ++finished_n_times;
+        assert(instance_ == this);
+        instance_ = nullptr;
         disable_all_steppers();
     }
 
-    static uint32_t HowManyTimesFinished() {
-        return finished_n_times;
+    static FirstLayer *instance() {
+        return instance_;
     }
 
-    static uint32_t HowManyTimesStarted() {
-        return started_n_times;
-    }
+    uint8_t progress_percent() const;
 
     void wait_for_move() {
         planner.synchronize();
@@ -65,9 +43,6 @@ public:
     /// \param e is relative extrusion
     /// \param f is defined in millimeters per minute (like in G code)
     void plan_destination(const float x, const float y, const float z, const float e, const float f);
-
-    /// increases progress by 1 line and sends it to Marlin
-    void inc_progress();
 
     /// Puts the destination into the Marlin planner and waits for the end of the move
     void go_to_destination(const float x, const float y, const float z, const float e, const float f);

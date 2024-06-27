@@ -199,13 +199,15 @@ constexpr float snake2[] = {
 } // anonymous namespace
 
 // static variables
-uint32_t FirstLayerProgressLock::isPrinting_ = 0;
-uint32_t FirstLayer::finished_n_times = 0;
-uint32_t FirstLayer::started_n_times = 0;
+FirstLayer *FirstLayer::instance_ = nullptr;
 
 void FirstLayer::finish_printing() {
     current_line = 1;
     total_lines = 1; /// don't set 0 to avoid division by zero
+}
+
+uint8_t FirstLayer::progress_percent() const {
+    return (total_lines > 0) ? std::min(uint8_t(100), uint8_t(100.f * current_line / (float)total_lines)) : 0;
 }
 
 void FirstLayer::plan_destination(const float x, const float y, const float z, const float e, const float f) {
@@ -240,19 +242,10 @@ void FirstLayer::plan_destination(const float x, const float y, const float z, c
     prepare_move_to_destination();
 }
 
-void FirstLayer::inc_progress() {
-    current_line++;
-    const uint8_t progress = std::min(uint8_t(100), uint8_t(100.f * current_line / (float)total_lines));
-    if (last_progress != progress) {
-        last_progress = progress;
-        marlin_server::set_var_sd_percent_done(progress);
-    }
-}
-
 void FirstLayer::go_to_destination(const float x, const float y, const float z, const float e, const float f) {
     plan_destination(x, y, z, e, f);
     wait_for_move();
-    inc_progress();
+    current_line++;
 }
 
 constexpr float FirstLayer::extrusion(const float x1, const float y1, const float x2, const float y2, const float layerHeight, const float threadWidth) const {

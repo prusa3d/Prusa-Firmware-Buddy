@@ -280,9 +280,6 @@ LoopResult CSelftestPart_FirstLayer::stateShowStartPrint() {
 }
 
 LoopResult CSelftestPart_FirstLayer::statePrintInit() {
-    // reset progress
-    marlin_server::set_var_sd_percent_done(0);
-
     IPartHandler::SetFsmPhase(PhasesSelftest::FirstLayer_mbl);
     auto filament = config_store().get_filament_type(active_extruder);
     auto filament_desc = filament::get_description(filament);
@@ -320,21 +317,30 @@ LoopResult CSelftestPart_FirstLayer::stateMbl() {
 }
 
 LoopResult CSelftestPart_FirstLayer::statePrint() {
-    how_many_times_finished = FirstLayer::HowManyTimesFinished();
     return enqueueGcode("G26") ? LoopResult::RunNext : LoopResult::RunCurrent; // draw firstlay
 }
 
 LoopResult CSelftestPart_FirstLayer::stateMblFinished() {
-    if (how_many_times_finished == FirstLayer::HowManyTimesStarted()) {
+    // Wait for the G26 to start
+    if (!FirstLayer::instance()) {
         return LoopResult::RunCurrent;
     }
 
     IPartHandler::SetFsmPhase(PhasesSelftest::FirstLayer_print);
+    rResult.progress = 0;
     return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_FirstLayer::statePrintFinished() {
-    return (how_many_times_finished == FirstLayer::HowManyTimesFinished()) ? LoopResult::RunCurrent : LoopResult::RunNext;
+    FirstLayer *fli = FirstLayer::instance();
+
+    // If the G26 finished, go to the next phase
+    if (!fli) {
+        return LoopResult::RunNext;
+    }
+
+    rResult.progress = fli->progress_percent();
+    return LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_FirstLayer::stateReprintInit() {

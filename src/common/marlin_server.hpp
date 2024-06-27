@@ -307,8 +307,6 @@ public:
     }
 };
 
-uint8_t get_var_sd_percent_done();
-void set_var_sd_percent_done(uint8_t value);
 void set_warning(WarningType type, PhasesWarning phase = PhasesWarning::Warning);
 void clear_warning(WarningType type);
 

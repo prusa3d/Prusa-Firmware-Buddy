@@ -33,6 +33,8 @@ SelftestFrameFirstLayer::SelftestFrameFirstLayer(window_t *parent, PhasesSelftes
 }
 
 void SelftestFrameFirstLayer::change() {
+    progress.SetProgressPercent(data_current[0]);
+
     switch (phase_current) {
     case PhasesSelftest::FirstLayer_mbl:
         live_z.Idle();

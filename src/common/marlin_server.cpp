@@ -64,7 +64,6 @@
 
 #include "hwio.h"
 #include "wdt.hpp"
-#include "../marlin_stubs/G26.hpp"
 #include "../marlin_stubs/M123.hpp"
 #include "fsm_states.hpp"
 #include "odometer.hpp"
@@ -3194,14 +3193,6 @@ void FSM_notifier::SendNotification() {
 FSM_notifier::~FSM_notifier() {
     s_data = temp_data;
     activeInstance = nullptr;
-}
-
-uint8_t get_var_sd_percent_done() {
-    return marlin_vars()->sd_percent_done;
-}
-
-void set_var_sd_percent_done(uint8_t value) {
-    marlin_vars()->sd_percent_done = value;
 }
 
 FSMResponseVariant get_response_variant_from_phase_internal(uint8_t encoded_fsm, uint8_t encoded_phase) {

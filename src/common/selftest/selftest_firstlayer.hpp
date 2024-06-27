@@ -37,13 +37,11 @@ class CSelftestPart_FirstLayer {
     int temp_nozzle_preheat;
     int temp_bed;
 
-    uint32_t how_many_times_finished;
     bool skip_user_changing_initial_distance;
     bool reprint;
     StateSelectedByUser state_selected_by_user;
 
     LogTimer log;
-    FirstLayerProgressLock lock; // this ensures properly working progress
     bool enqueueGcode(const char *gcode) const;
 
 public:

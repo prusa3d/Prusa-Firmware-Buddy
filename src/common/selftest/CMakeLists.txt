@@ -9,8 +9,6 @@ target_sources(
           selftest_data.cpp
           selftest_fan.cpp
           selftest_fans_interface.cpp
-          selftest_firstlayer.cpp
-          selftest_firstlayer_interface.cpp
           selftest_heater.cpp
           selftest_heaters_interface.cpp
           selftest_netstatus_interface.cpp
@@ -25,6 +23,10 @@ endif()
 
 if(PRINTER STREQUAL "MK4")
   target_sources(firmware PRIVATE selftest_gears.cpp)
+endif()
+
+if(PRINTER STREQUAL "MINI" OR PRINTER STREQUAL "MK3.5")
+  target_sources(firmware PRIVATE selftest_firstlayer.cpp selftest_firstlayer_interface.cpp)
 endif()
 
 if(HAS_ADVANCED_POWER)

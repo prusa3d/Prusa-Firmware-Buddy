@@ -6,17 +6,16 @@
 #pragma once
 
 #include "selftest_frame.hpp"
-#include "window_wizard_progress.hpp"
 #include "status_footer.hpp"
-#include "window_print_progress.hpp"
 #include "liveadjust_z.hpp"
+#include <window_progress.hpp>
 
 class SelftestFrameFirstLayer : public SelftestFrame {
     static constexpr const char *text_str = N_(
         "Once the printer starts extruding plastic, adjust the nozzle height by turning the knob until the filament sticks to the print sheet.");
     StatusFooter footer;
     window_text_t text;
-    WindowPrintProgress progress;
+    window_numberless_progress_t progress;
     WindowLiveAdjustZ_withText live_z;
 
 protected:

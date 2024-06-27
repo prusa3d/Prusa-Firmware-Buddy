@@ -11,6 +11,7 @@
 
 struct SelftestFirstLayer_t {
     union {
+        uint8_t progress;
         float current_offset;
         Response preselect_response;
         fsm::PhaseData converter;
