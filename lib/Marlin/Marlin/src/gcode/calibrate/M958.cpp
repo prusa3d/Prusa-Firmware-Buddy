@@ -485,16 +485,32 @@ static StepEventFlag_t setup_axis() {
         if (parser.seen(axis_code)) {
             stepper_microsteps((AxisEnum)i, 128);
             axis_flag |= (StepEventFlag::STEP_EVENT_FLAG_STEP_X << i);
-            if (parser.seenval(axis_code) && (-1 == (parser.value_long()))) {
+            // Old Core XY support for backwards compatibility. It required
+            // specifying both axes and used a -1 value to distinguish X and Y
+            if (parser.seenval(axis_code) && parser.value_long() == -1) {
                 axis_flag |= (StepEventFlag::STEP_EVENT_FLAG_X_DIR << i);
             }
         }
     }
-    if (0 == axis_flag) {
+
+    if (axis_flag == 0) {
         // no axis requested, assume X
         axis_flag = StepEventFlag::STEP_EVENT_FLAG_STEP_X;
         stepper_microsteps(X_AXIS, 128);
     }
+
+#if ENABLED(COREXY)
+    // For Core XY, X and Y are actually A and B motors, so we need to use both
+    // and for Y axis reverse the B direction
+    if (axis_flag == StepEventFlag::STEP_EVENT_FLAG_STEP_X) {
+        axis_flag |= StepEventFlag::STEP_EVENT_FLAG_STEP_Y;
+        stepper_microsteps(Y_AXIS, 128);
+    } else if (axis_flag == StepEventFlag::STEP_EVENT_FLAG_STEP_Y) {
+        axis_flag |= StepEventFlag::STEP_EVENT_FLAG_STEP_X | StepEventFlag::STEP_EVENT_FLAG_Y_DIR;
+        stepper_microsteps(X_AXIS, 128);
+    }
+#endif
+
     return axis_flag;
 }
 
