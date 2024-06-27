@@ -92,6 +92,10 @@ std::atomic<bool> PreciseStepping::busy = false;
 volatile uint8_t PreciseStepping::step_dl_miss = 0;
 volatile uint8_t PreciseStepping::step_ev_miss = 0;
 
+#if !BOARD_IS_DWARF
+std::atomic<uint32_t> PreciseStepping::stall_count = 0;
+#endif
+
 FORCE_INLINE xyze_long_t get_oriented_msteps_from_block(const block_t &block) {
     const xyze_long_t direction = {
         { { (block.direction_bits & _BV(X_AXIS)) ? -1 : 1,
@@ -978,6 +982,9 @@ void PreciseStepping::process_queue_of_blocks() {
         if (PreciseStepping::total_print_time && PreciseStepping::get_nearest_step_event_status() == STEP_EVENT_INFO_STATUS_GENERATED_INVALID) {
             // motion was already started and the move queue is about to (or ran) dry: enqueue an end block
             append_ending_empty_move();
+#if !BOARD_IS_DWARF
+            stall_count++;
+#endif
         } else if (PreciseStepping::total_print_time == 0. && busy) {
             // motion reset has completed and there is no pending block to process, we're now free
             assert(!has_blocks_queued() && !phase_stepping::processing());

@@ -1246,11 +1246,31 @@ void media_prefetch_start() {
 }
 
 void media_print_loop() {
+    /// Size of the gcode queue
+    METRIC_DEF(metric_gcode_queue_size, "gcd_que_sz", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_integer(&metric_gcode_queue_size, queue.length);
+
     while (queue.length < MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET) {
         MediaPrefetchManager::ReadResult data;
         using Status = MediaPrefetchManager::Status;
         const Status status = media_prefetch.read_command(data);
         const auto metrics = media_prefetch.get_metrics();
+
+        /// Status of the last media_prefetch.read_command. 0 = ok, 1 = end of file, other = error (means that we're stalling)
+        METRIC_DEF(metric_fetch_status, "ftch_status", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+        metric_record_integer(&metric_fetch_status, static_cast<int>(status));
+
+        /// Status at the end of the buffer - for early error indication
+        METRIC_DEF(metric_fetch_tail_status, "ftch_tstatus", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+        metric_record_integer(&metric_fetch_tail_status, static_cast<int>(metrics.tail_status));
+
+        /// Occupancy of the media prefetch buffer, in percent of the buffer size
+        METRIC_DEF(metric_prefetch_buffer_occupancy, "ftch_occ", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+        metric_record_integer(&metric_prefetch_buffer_occupancy, metrics.buffer_occupancy_percent);
+
+        /// Number of commands in the prefetch buffer
+        METRIC_DEF(metric_prefetch_buffer_commands, "ftch_cmds", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+        metric_record_integer(&metric_prefetch_buffer_commands, metrics.commands_in_buffer);
 
         // To-do: automatic unpause when paused if the condition fixes itself?
         const auto media_error = [](WarningType warning_type) {

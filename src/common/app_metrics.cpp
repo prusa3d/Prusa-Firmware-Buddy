@@ -247,6 +247,14 @@ void buddy::metrics::RecordMarlinVariables() {
     METRIC_DEF(pos_z, "pos_z", METRIC_VALUE_FLOAT, 11, METRIC_HANDLER_DISABLE_ALL);
     metric_record_float(&pos_z, pos[Z_AXIS]);
 
+    /// Integer that increases/changes every time a motor stall is detected - meaning the planner has run out of commands.
+    /// If this is encountered during printing, it might be a cause of print artefacts
+    METRIC_DEF(metric_stepper_stall, "stp_stall", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_integer(&metric_stepper_stall, PreciseStepping::stall_count);
+
+    METRIC_DEF(sdpos, "sdpos", METRIC_VALUE_INTEGER, 500, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_integer(&sdpos, marlin_vars()->media_position.get());
+
 #if HAS_BED_PROBE
     METRIC_DEF(adj_z, "adj_z", METRIC_VALUE_FLOAT, 1500, METRIC_HANDLER_ENABLE_ALL);
     metric_record_float(&adj_z, probe_offset.z);
