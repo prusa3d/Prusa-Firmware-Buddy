@@ -768,7 +768,7 @@
 
 /// HW limits of max acceleration
 #define HWLIMIT_NORMAL_MAX_ACCELERATION \
-    { 7000, 7000, 200, 2500 }
+    { 7000, 7000, 750, 6000 }
 #define HWLIMIT_STEALTH_MAX_ACCELERATION \
     { 2500, 2500, 200, 2500 }
 
