@@ -101,8 +101,6 @@ void hwio_beeper_set_vol(float vol) {
 }
 
 void hwio_beeper_tone(float frq, uint32_t del) {
-    uint32_t per;
-    uint32_t pul;
     if (frq && del && hwio_beeper_vol) {
         if (frq < 0) {
             frq *= -1;
@@ -110,10 +108,12 @@ void hwio_beeper_tone(float frq, uint32_t del) {
         if (frq > 100000) {
             frq = 100000;
         }
-        per = (uint32_t)(1'000.0F / frq);
-        pul = (uint32_t)(del / per);
-        hwio_beeper_pulses = pul;
-        hwio_beeper_period = per;
+        // Note: The frequency here is still too low for playing some common
+        //       tunes with M300. We will have to find a free timer to use for
+        //       updating buzzer pin, or hijack some already existing timer.
+        constexpr const float hwio_beeper_frequency_hz = 1000.0f;
+        hwio_beeper_pulses = del * frq / hwio_beeper_frequency_hz;
+        hwio_beeper_period = hwio_beeper_frequency_hz / frq;
     } else {
         hwio_beeper_pulses = 0;
     }
