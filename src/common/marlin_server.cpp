@@ -1250,6 +1250,7 @@ void media_print_loop() {
         MediaPrefetchManager::ReadResult data;
         using Status = MediaPrefetchManager::Status;
         const Status status = media_prefetch.read_command(data);
+        const auto metrics = media_prefetch.get_metrics();
 
         // To-do: automatic unpause when paused if the condition fixes itself?
         const auto media_error = [](WarningType warning_type) {
@@ -1258,11 +1259,11 @@ void media_print_loop() {
             print_pause();
         };
 
-        if (!print_state.file_open_reported && marlin_vars()->media_size_estimate.get()) {
+        if (!print_state.file_open_reported && metrics.stream_size_estimate) {
             print_state.file_open_reported = true;
 
             // Do not remove, needed for 3rd party tools such as octoprint to get status about the gcode file being opened
-            SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, marlin_vars()->media_SFN_path.get_ptr(), " Size:", marlin_vars()->media_size_estimate.get());
+            SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, marlin_vars()->media_SFN_path.get_ptr(), " Size:", metrics.stream_size_estimate);
         }
 
         switch (status) {
@@ -1279,7 +1280,7 @@ void media_print_loop() {
             log_debug(MarlinServer, "Enqueue: %" PRIu32 " %s", data.replay_pos.offset, data.gcode.data());
 
             // Issue another fetch if the media prefetch buffer is running empty
-            if (media_prefetch.buffer_occupancy_percent() < 60) {
+            if (metrics.buffer_occupancy_percent < 60) {
                 media_prefetch.issue_fetch();
             }
 
@@ -2747,6 +2748,8 @@ static void _server_update_pqueue(void) {
 
 // update all server variables
 static void _server_update_vars() {
+    const auto prefetch_metrics = media_prefetch.get_metrics();
+
     marlin_vars()->gqueue = server.gqueue;
     marlin_vars()->pqueue = server.pqueue;
 
@@ -2809,23 +2812,16 @@ static void _server_update_vars() {
         progress_data = oProgressData.standard_mode;
     }
 
-    if (!FirstLayer::isPrinting()) { /// push notifications used for first layer calibration
-        uint8_t progress = 0;
-        if (progress_data.percent_done.mIsActual(marlin_vars()->print_duration)) {
-            progress = static_cast<uint8_t>(progress_data.percent_done.mGetValue());
-        } else {
-            const auto size_estimate = media_prefetch.stream_size_estimate();
-            if (size_estimate > 0) {
-                progress = std::min<uint8_t>(std::round(100.0f * marlin_vars()->media_position.get() / size_estimate), 99);
-            } else {
-                progress = 0;
-            }
-        }
-
-        marlin_vars()->sd_percent_done = progress;
-    }
-
     marlin_vars()->print_duration = print_job_timer.duration();
+    marlin_vars()->sd_percent_done = [&]() -> uint8_t {
+        if (progress_data.percent_done.mIsActual(marlin_vars()->print_duration)) {
+            return static_cast<uint8_t>(progress_data.percent_done.mGetValue());
+        } else if (prefetch_metrics.stream_size_estimate > 0) {
+            return std::min<uint8_t>(std::round(100.0f * queue.last_executed_sdpos / prefetch_metrics.stream_size_estimate), 99);
+        } else {
+            return 0;
+        }
+    }();
 
     if (const bool media = usb_host::is_media_inserted(); marlin_vars()->media_inserted != media) {
         marlin_vars()->media_inserted = media;
@@ -2888,7 +2884,7 @@ static void _server_update_vars() {
 
     marlin_vars()->media_position = media_position();
 
-    marlin_vars()->media_size_estimate = media_prefetch.stream_size_estimate();
+    marlin_vars()->media_size_estimate = prefetch_metrics.stream_size_estimate;
 }
 
 bool _process_server_valid_request(const Request &request, int client_id) {

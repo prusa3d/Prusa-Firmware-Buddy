@@ -161,9 +161,15 @@ void MediaPrefetchManager::issue_fetch() {
     worker_job.issue([this](AsyncJobExecutionControl &control) { fetch_routine(control); });
 }
 
-uint8_t MediaPrefetchManager::buffer_occupancy_percent() const {
+MediaPrefetchManager::Metrics MediaPrefetchManager::get_metrics() const {
     std::lock_guard mutex_guard(mutex);
-    return static_cast<uint8_t>(((shared_state.read_tail.buffer_pos - shared_state.read_head.buffer_pos + buffer_size) % buffer_size * 100) / buffer_size);
+    auto &s = shared_state;
+    return Metrics {
+        .commands_in_buffer = s.commands_in_buffer,
+        .stream_size_estimate = s.stream_size_estimate,
+        .buffer_occupancy_percent = static_cast<uint8_t>(((s.read_tail.buffer_pos - s.read_head.buffer_pos + buffer_size) % buffer_size * 100) / buffer_size),
+        .tail_status = s.read_tail.status,
+    };
 }
 
 void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {

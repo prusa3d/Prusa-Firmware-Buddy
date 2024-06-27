@@ -74,26 +74,29 @@ public:
     bool check_buffer_empty() const;
 
 public:
-    /// \returns the current status at the buffer end.
-    /// The prefetch can possibly recover from the error states by itself.
-    /// !!! To be used only for early warnings, for all other purposes, check result of read() !!!
-    inline Status worker_status() const {
-        std::lock_guard mutex_guard(mutex);
-        return shared_state.read_tail.status;
-    }
+    struct Metrics {
+        /// Number of gcode commands currently in the buffer
+        size_t commands_in_buffer;
 
-    /// \returns how much full the fetch bufer is [0-100]. Only approximate, for statistics/reporting purposes.
-    uint8_t buffer_occupancy_percent() const;
+        /// Estimated size of the stream
+        size_t stream_size_estimate;
+
+        /// How much full the fetch bufer is [0-100]. Only approximate, for statistics/reporting purposes.
+        uint8_t buffer_occupancy_percent;
+
+        /// Current status at the buffer end.
+        /// The prefetch can possibly recover from the error states by itself.
+        /// !!! To be used only for early warnings, for all other purposes, check result of read() !!!
+        Status tail_status;
+    };
+
+    /// \returns various metrics regarding the media prefetch
+    Metrics get_metrics() const;
 
     /// \returns filepath the prefetch is currently set up to
     inline auto filepath() const {
         std::lock_guard mutex_guard(mutex);
         return shared_state.filepath;
-    }
-
-    inline auto stream_size_estimate() const {
-        std::lock_guard mutex_guard(mutex);
-        return shared_state.stream_size_estimate;
     }
 
 private:
