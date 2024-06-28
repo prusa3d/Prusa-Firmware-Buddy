@@ -6,7 +6,11 @@
 #include "utility_extensions.hpp"
 
 #if HAS_TOOLCHANGER()
-    #include "window_tool_action_box.hpp"
+    #include <window_tool_action_box.hpp>
+#endif
+
+#if HAS_MMU2()
+    #include <feature/prusa/MMU2/mmu2_mk4.h>
 #endif
 
 #include <find_error.hpp>
@@ -184,7 +188,9 @@ namespace frame {
 
         static constexpr const char *text_title = N_("Please wait");
     };
+#endif
 
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     class UnloadFilamentPtfe final : public TextFrame {
     public:
         explicit UnloadFilamentPtfe(window_t *parent)
@@ -307,6 +313,8 @@ using Frames = FrameDefinitionList<ScreenColdPull::FrameStorage,
 #if HAS_TOOLCHANGER()
     FrameDefinition<PhasesColdPull::select_tool, frame::SelectTool>,
     FrameDefinition<PhasesColdPull::pick_tool, frame::PickTool>,
+#endif
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     FrameDefinition<PhasesColdPull::unload_ptfe, frame::UnloadFilamentPtfe>,
     FrameDefinition<PhasesColdPull::load_ptfe, frame::LoadFilamentPtfe>,
 #endif
