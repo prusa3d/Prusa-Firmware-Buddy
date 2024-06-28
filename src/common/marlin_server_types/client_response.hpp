@@ -389,6 +389,9 @@ enum class PhasesColdPull : PhaseUnderlyingType {
     select_tool,
     pick_tool,
     #endif
+    #if HAS_MMU2()
+    stop_mmu,
+    #endif
     #if HAS_TOOLCHANGER() || HAS_MMU2()
     unload_ptfe,
     load_ptfe,
@@ -400,6 +403,7 @@ enum class PhasesColdPull : PhaseUnderlyingType {
     heat_up,
     automatic_pull,
     manual_pull,
+    cleanup,
     pull_done,
     finish,
     _last = finish,
@@ -764,6 +768,9 @@ class ClientResponses {
         { Response::Continue, Response::Tool1, Response::Tool2, Response::Tool3, Response::Tool4, Response::Tool5 }, // select_tool
         {}, // pick_tool
     #endif
+    #if HAS_MMU2()
+        { Response::Abort }, // stop_mmu,
+    #endif
     #if HAS_TOOLCHANGER() || HAS_MMU2()
         { Response::Unload, Response::Continue, Response::Abort }, // unload_ptfe,
         { Response::Load, Response::Continue, Response::Abort }, // load_ptfe,
@@ -775,6 +782,7 @@ class ClientResponses {
         { Response::Abort }, // heat_up,
         {}, // automatic_pull,
         { Response::Continue }, // manual_pull,
+        { Response::Abort }, // cleanup (restart_mmu),
         { Response::Finish }, // pull_done,
         {}, // finish,
     };

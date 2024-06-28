@@ -190,6 +190,29 @@ namespace frame {
     };
 #endif
 
+#if HAS_MMU2()
+    class StopMMU final : public TextFrame {
+    public:
+        explicit StopMMU(window_t *parent)
+            : TextFrame(parent, _(text_title), _(text_info)) {}
+
+        static constexpr const char *text_title = N_("Stopping MMU");
+        static constexpr const char *text_info = "";
+    };
+
+    class Cleanup final : public TextFrame {
+    public:
+        explicit Cleanup(window_t *parent)
+            : TextFrame(parent, _(text_title), _(text_info)) {}
+
+        static constexpr const char *text_title = N_("Restarting MMU");
+        static constexpr const char *text_info = "";
+    };
+
+#else
+    using Cleanup = common_frames::Blank;
+#endif
+
 #if HAS_TOOLCHANGER() || HAS_MMU2()
     class UnloadFilamentPtfe final : public TextFrame {
     public:
@@ -208,7 +231,6 @@ namespace frame {
         static constexpr const char *text_title = N_("Load filament");
         static constexpr const char *text_info = N_("Before you continue, make sure PLA filament is loaded directly into the extruder.");
     };
-
 #endif
 
     class PrepareFilament final : public TextFrame {
@@ -314,6 +336,9 @@ using Frames = FrameDefinitionList<ScreenColdPull::FrameStorage,
     FrameDefinition<PhasesColdPull::select_tool, frame::SelectTool>,
     FrameDefinition<PhasesColdPull::pick_tool, frame::PickTool>,
 #endif
+#if HAS_MMU2()
+    FrameDefinition<PhasesColdPull::stop_mmu, frame::StopMMU>,
+#endif
 #if HAS_TOOLCHANGER() || HAS_MMU2()
     FrameDefinition<PhasesColdPull::unload_ptfe, frame::UnloadFilamentPtfe>,
     FrameDefinition<PhasesColdPull::load_ptfe, frame::LoadFilamentPtfe>,
@@ -325,6 +350,7 @@ using Frames = FrameDefinitionList<ScreenColdPull::FrameStorage,
     FrameDefinition<PhasesColdPull::heat_up, frame::HeatUp>,
     FrameDefinition<PhasesColdPull::automatic_pull, frame::AutomaticPull>,
     FrameDefinition<PhasesColdPull::manual_pull, frame::ManualPull>,
+    FrameDefinition<PhasesColdPull::cleanup, frame::Cleanup>,
     FrameDefinition<PhasesColdPull::pull_done, frame::PullDone>>;
 
 } // namespace
