@@ -267,7 +267,6 @@ private:
 
 private:
     string_view_utf8 view_;
-    uint8_t last_read_byte_ = 0xff;
     bool switched_to_param_buffer = false;
     size_t parameter_idx = 0;
     StringViewUtf8ParamBase const *parameters = nullptr;

@@ -195,22 +195,19 @@ bool StringReaderUtf8::trigger_buffer_switch(uint8_t ch) {
 }
 
 unichar StringReaderUtf8::getUtf8Char() {
-    if (last_read_byte_ == 0xff) { // in case we don't have any character from the last run, get a new one from the input stream
-        last_read_byte_ = getbyte();
+    uint8_t byte = getbyte();
+
+    if (!UTF8_IS_NONASCII(byte)) {
+        return byte;
     }
-    unichar ord = last_read_byte_;
-    if (!UTF8_IS_NONASCII(ord)) {
-        last_read_byte_ = 0xff; // consumed, not available for next run
-        return ord;
-    }
-    ord &= 0x7F;
+    unichar ord = byte & 0x7F;
     for (unichar mask = 0x40; ord & mask; mask >>= 1) {
         ord &= ~mask;
     }
-    last_read_byte_ = getbyte();
-    while (UTF8_IS_CONT(last_read_byte_)) {
-        ord = (ord << 6) | (last_read_byte_ & 0x3F);
-        last_read_byte_ = getbyte();
+
+    while (UTF8_IS_CONT(peek())) {
+        byte = getbyte();
+        ord = (ord << 6) | (byte & 0x3F);
     }
     return ord;
 }
