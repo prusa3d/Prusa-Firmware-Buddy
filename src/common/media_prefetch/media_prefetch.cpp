@@ -6,6 +6,11 @@
 #include <logging/log.hpp>
 #include <enum_array.hpp>
 
+#ifndef UNITTESTS
+    #include <metric.h>
+    #include <scope_guard.hpp>
+#endif
+
 namespace media_prefetch {
 
 enum class RecordType : uint8_t {
@@ -26,6 +31,11 @@ enum class RecordType : uint8_t {
 struct RecordHeader {
     RecordType record_type;
 };
+
+#ifndef UNITTESTS
+/// Duration (in ms) of the just executed prefetch
+METRIC_DEF(metric_fetch_duration, "ftch_dur", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_ENABLE_ALL);
+#endif
 
 } // namespace media_prefetch
 
@@ -173,6 +183,13 @@ MediaPrefetchManager::Metrics MediaPrefetchManager::get_metrics() const {
 }
 
 void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
+#ifndef UNITTESTS
+    // Log duration of the metrics fetch
+    ScopeGuard metric_guard = [start = ticks_ms()] {
+        metric_record_integer(&metric_fetch_duration, ticks_diff(ticks_ms(), start));
+    };
+#endif
+
     auto &s = worker_state;
 
     // (Re)initialize the reader if necessary
