@@ -58,6 +58,7 @@ public:
 
   static uint32_t sdpos;                 // Position in file for the latest instruction (behind the end of the queue)
   static uint32_t last_executed_sdpos;      // (replay) Position of the last executed gcode
+  static uint32_t executed_commmand_count; ///< Increased every time a command is executed
   static uint32_t sdpos_buffer[BUFSIZE]; // Ring buffer of (replay) positions (synced with command_buffer)
 
   /// True pauses processing of serial commands.

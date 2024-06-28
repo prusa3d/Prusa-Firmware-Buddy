@@ -252,8 +252,13 @@ void buddy::metrics::RecordMarlinVariables() {
     METRIC_DEF(metric_stepper_stall, "stp_stall", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
     metric_record_integer(&metric_stepper_stall, PreciseStepping::stall_count);
 
-    METRIC_DEF(sdpos, "sdpos", METRIC_VALUE_INTEGER, 500, METRIC_HANDLER_ENABLE_ALL);
-    metric_record_integer(&sdpos, marlin_vars()->media_position.get());
+    /// Position of the last executed gcode in the media stream
+    METRIC_DEF(metric_sdpos, "sdpos", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_integer(&metric_sdpos, marlin_vars()->media_position.get());
+
+    /// Executed gcode count since printer start
+    METRIC_DEF(metric_cmdcnt, "cmdcnt", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_integer(&metric_cmdcnt, GCodeQueue::executed_commmand_count);
 
 #if HAS_BED_PROBE
     METRIC_DEF(adj_z, "adj_z", METRIC_VALUE_FLOAT, 1500, METRIC_HANDLER_ENABLE_ALL);

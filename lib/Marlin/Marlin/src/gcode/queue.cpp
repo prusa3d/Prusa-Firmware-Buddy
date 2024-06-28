@@ -72,6 +72,7 @@ char GCodeQueue::command_buffer[BUFSIZE][MAX_CMD_SIZE];
 
 uint32_t GCodeQueue::sdpos = GCodeQueue::SDPOS_INVALID;
 uint32_t GCodeQueue::last_executed_sdpos = GCodeQueue::SDPOS_INVALID;
+uint32_t GCodeQueue::executed_commmand_count = 0;
 uint32_t GCodeQueue::sdpos_buffer[BUFSIZE];
 bool GCodeQueue::pause_serial_commands = false;
 
@@ -636,6 +637,7 @@ void GCodeQueue::advance() {
   }
 
   #if ENABLED(SDSUPPORT)
+  #error Need to also implement last_executed_sdpos and such
 
     if (card.flag.saving) {
       char* command = command_buffer[index_r];
@@ -670,7 +672,9 @@ void GCodeQueue::advance() {
 
   #else
 
+    last_executed_sdpos = queue.get_current_sdpos();
     gcode.process_next_command();
+    executed_commmand_count++;
 
   #endif // SDSUPPORT
 

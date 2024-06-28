@@ -970,7 +970,6 @@ void GcodeSuite::process_next_command() {
   }
 
   // Parse the next command in the queue
-  queue.last_executed_sdpos = queue.get_current_sdpos();
   parser.parse(current_command);
   process_parsed_command();
 }
