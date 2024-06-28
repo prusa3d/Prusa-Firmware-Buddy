@@ -172,7 +172,16 @@ namespace {
 
     PhasesColdPull blank_unload() {
         filament_gcodes::M702_no_parser(
-            std::nullopt, Z_AXIS_UNLOAD_POS, RetAndCool_t::Return, active_extruder, true);
+            std::nullopt,
+            Z_AXIS_UNLOAD_POS,
+            RetAndCool_t::Return,
+            active_extruder,
+    #if HAS_MMU2()
+            !MMU2::mmu2.Enabled() // MUST be false when MMU is enabled otherwise unload wont do full length
+    #else
+            true
+    #endif
+        );
         planner.resume_queuing(); // HACK for planner.quick_stop(); in Pause::check_user_stop()
     #if HAS_TOOLCHANGER() || HAS_MMU2()
         return PhasesColdPull::load_ptfe;
