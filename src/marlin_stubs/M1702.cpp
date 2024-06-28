@@ -41,6 +41,12 @@ namespace {
     uint8_t selected_tool { 0 };
     #endif
 
+    #if HAS_MMU2()
+    bool was_mmu_enabled { false };
+    #endif
+
+    bool was_success { false };
+
     Response wait_for_response(const PhasesColdPull phase) {
         for (;;) {
             if (Response response = marlin_server::get_response_from_phase(phase); response != Response::_none) {
@@ -81,7 +87,7 @@ namespace {
     PhasesColdPull info() {
         switch (wait_for_response(PhasesColdPull::introduction)) {
         case Response::Stop:
-            return PhasesColdPull::finish;
+            return PhasesColdPull::cleanup;
         case Response::Continue:
     #if HAS_TOOLCHANGER()
             return prusa_toolchanger.is_toolchanger_enabled() ? PhasesColdPull::select_tool : PhasesColdPull::unload_ptfe;
@@ -127,7 +133,52 @@ namespace {
     }
     #endif
 
-    #if HAS_TOOLCHANGER() || HAS_MMU2()
+    #if HAS_MMU2()
+
+    PhasesColdPull stop_mmu() {
+        if (MMU2::mmu2.Enabled() == true) {
+
+            auto progress = [](auto) {}; // intentionally empty
+            auto check_done = []() {
+                return MMU2::mmu2.Enabled() == true;
+            };
+
+            filament_gcodes::mmu_off();
+
+            switch (wait_while_with_progress(PhasesColdPull::stop_mmu, 0, check_done, progress)) {
+            case Response::Abort:
+                return PhasesColdPull::cleanup;
+            case Response::_none:
+                break;
+            default:
+                bsod("Invalid phase encountered.");
+            }
+
+            idle(true); // This is important! Must wait a bit while the new MMU state propagates everywhere.
+        }
+
+        return PhasesColdPull::blank_load;
+    }
+
+    PhasesColdPull cleanup() {
+        if (was_mmu_enabled && MMU2::mmu2.Enabled() == false) {
+
+            auto progress = [](auto) {}; // intentionally empty
+            auto check_done = []() {
+                return MMU2::mmu2.Enabled() == false;
+            };
+
+            filament_gcodes::mmu_on();
+
+            idle(true);
+            wait_while_with_progress(PhasesColdPull::cleanup, 0, check_done, progress);
+        }
+
+        return was_success ? PhasesColdPull::pull_done : PhasesColdPull::finish;
+    }
+
+    #endif
+
     PhasesColdPull unload_ptfe() {
         switch (wait_for_response(PhasesColdPull::unload_ptfe)) {
         case Response::Unload:
@@ -135,7 +186,7 @@ namespace {
         case Response::Continue:
             return PhasesColdPull::load_ptfe;
         case Response::Abort:
-            return PhasesColdPull::finish;
+            return PhasesColdPull::cleanup;
         default:
             bsod("Invalid phase encountered.");
         }
@@ -144,16 +195,19 @@ namespace {
     PhasesColdPull load_ptfe() {
         switch (wait_for_response(PhasesColdPull::load_ptfe)) {
         case Response::Load:
+    #if HAS_MMU2()
+            return was_mmu_enabled ? PhasesColdPull::stop_mmu : PhasesColdPull::blank_load;
+    #else
             return PhasesColdPull::blank_load;
+    #endif
         case Response::Continue:
             return PhasesColdPull::cool_down;
         case Response::Abort:
-            return PhasesColdPull::finish;
+            return PhasesColdPull::cleanup;
         default:
             bsod("Invalid phase encountered.");
         }
     }
-    #endif
 
     PhasesColdPull prepare_filament() {
         switch (wait_for_response(PhasesColdPull::prepare_filament)) {
@@ -164,7 +218,7 @@ namespace {
         case Response::Continue:
             return PhasesColdPull::cool_down;
         case Response::Abort:
-            return PhasesColdPull::finish;
+            return PhasesColdPull::cleanup;
         default:
             bsod("Invalid phase encountered.");
         }
@@ -183,6 +237,7 @@ namespace {
     #endif
         );
         planner.resume_queuing(); // HACK for planner.quick_stop(); in Pause::check_user_stop()
+
     #if HAS_TOOLCHANGER() || HAS_MMU2()
         return PhasesColdPull::load_ptfe;
     #else
@@ -191,13 +246,18 @@ namespace {
     }
 
     PhasesColdPull blank_load() {
+
         filament_gcodes::M701_no_parser(
             filament::Type::PLA,
             std::nullopt,
             Z_AXIS_LOAD_POS,
             RetAndCool_t::Return,
             active_extruder,
+    #if HAS_MMU2()
+            MMU2::FILAMENT_UNKNOWN,
+    #else
             -1,
+    #endif
             std::nullopt,
             filament_gcodes::ResumePrint_t::No);
         planner.resume_queuing(); // HACK for planner.quick_stop(); in Pause::check_user_stop()
@@ -235,7 +295,7 @@ namespace {
 
         switch (wait_while_with_progress(PhasesColdPull::cool_down, COOLING_TIMEOUT_MILLIS, too_hot, progress)) {
         case Response::Abort:
-            return PhasesColdPull::finish;
+            return PhasesColdPull::cleanup;
         case Response::_none:
             break;
         default:
@@ -262,7 +322,7 @@ namespace {
 
         switch (wait_while_with_progress(PhasesColdPull::heat_up, TIMEOUT_DISABLED, too_cold, progress)) {
         case Response::Abort:
-            return PhasesColdPull::finish;
+            return PhasesColdPull::cleanup;
         case Response::_none:
             break;
         default:
@@ -294,6 +354,8 @@ namespace {
         thermalManager.disable_hotend();
         marlin_server::set_temp_to_display(0, active_extruder);
 
+        was_success = true;
+
         switch (wait_for_response(PhasesColdPull::manual_pull)) {
         case Response::Continue:
             break;
@@ -301,7 +363,7 @@ namespace {
             bsod("Invalid phase encountered.");
         }
 
-        return PhasesColdPull::pull_done;
+        return PhasesColdPull::cleanup;
     }
 
     PhasesColdPull pull_done() {
@@ -325,6 +387,10 @@ namespace {
         case PhasesColdPull::pick_tool:
             return pick_tool();
     #endif
+    #if HAS_MMU2()
+        case PhasesColdPull::stop_mmu:
+            return stop_mmu();
+    #endif
     #if HAS_TOOLCHANGER() || HAS_MMU2()
         case PhasesColdPull::unload_ptfe:
             return unload_ptfe();
@@ -345,10 +411,16 @@ namespace {
             return automatic_pull();
         case PhasesColdPull::manual_pull:
             return manual_pull();
+        case PhasesColdPull::cleanup:
+    #if HAS_MMU2()
+            return cleanup();
+    #else
+            return PhasesColdPull::finish;
+    #endif
         case PhasesColdPull::pull_done:
             return pull_done();
         case PhasesColdPull::finish:
-            return PhasesColdPull::finish;
+            break;
         }
         bsod("Invalid phase encountered.");
     }
@@ -358,6 +430,12 @@ namespace {
 void M1702() {
     // Prevent filament autoload during whole ColdPull workflow.
     FS_AutoloadAutolock lock;
+
+    #if HAS_MMU2()
+    was_mmu_enabled = MMU2::mmu2.Enabled();
+    #endif
+
+    was_success = false;
 
     PhasesColdPull phase = PhasesColdPull::introduction;
     marlin_server::FSM_Holder holder { PhasesColdPull::introduction };
