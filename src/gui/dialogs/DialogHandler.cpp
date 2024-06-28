@@ -12,6 +12,7 @@
 #include <screen_network_setup.hpp>
 #include <option/has_phase_stepping.h>
 #include <option/has_input_shaper_calibration.h>
+#include <option/has_coldpull.h>
 
 #if HAS_COLDPULL()
     #include "screen_cold_pull.hpp"
@@ -256,7 +257,11 @@ void DialogHandler::Loop() {
                 change(new_top->fsm_type, new_top->data);
             }
         } else {
-            if (new_top->fsm_type == ClientFSM::Load_unload && old_top->fsm_type == ClientFSM::PrintPreview) {
+            if (new_top->fsm_type == ClientFSM::Load_unload && (old_top->fsm_type == ClientFSM::PrintPreview
+#if HAS_COLDPULL()
+                    || old_top->fsm_type == ClientFSM::ColdPull
+#endif
+                    )) {
                 // TODO Remove this shitcode/prasohack as soon as possible.
                 //      As a special exception we do not close PrintPreview screen when the LoadUnload dialog
                 //      is requested. It would destroy the ToolsMappingBody while one of its methods is still
