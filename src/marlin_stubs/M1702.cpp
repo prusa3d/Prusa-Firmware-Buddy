@@ -1,19 +1,25 @@
 #include <option/has_coldpull.h>
+#include <option/has_mmu2.h>
+#include <option/has_toolchanger.h>
 
 #include <M70X.hpp>
 #include <fs_autoload_autolock.hpp>
 
 #include <module/temperature.h>
 
-#if HAS_TOOLCHANGER()
-    #include <window_tool_action_box.hpp>
-#endif
-
 #include <common/cold_pull.hpp>
 #include <client_fsm_types.h>
 #include <client_response.hpp>
 #include <common/marlin_server.hpp>
 #include <common/RAII.hpp>
+
+#if HAS_TOOLCHANGER()
+    #include <window_tool_action_box.hpp>
+#endif
+
+#if HAS_MMU2()
+    #include <feature/prusa/MMU2/mmu2_mk4.h>
+#endif
 
 #include <optional>
 
@@ -78,11 +84,9 @@ namespace {
             return PhasesColdPull::finish;
         case Response::Continue:
     #if HAS_TOOLCHANGER()
-            if (prusa_toolchanger.is_toolchanger_enabled()) {
-                return PhasesColdPull::select_tool;
-            } else {
-                return PhasesColdPull::unload_ptfe;
-            }
+            return prusa_toolchanger.is_toolchanger_enabled() ? PhasesColdPull::select_tool : PhasesColdPull::unload_ptfe;
+    #elif HAS_MMU2()
+            return MMU2::mmu2.Enabled() ? PhasesColdPull::unload_ptfe : PhasesColdPull::prepare_filament;
     #else
             return PhasesColdPull::prepare_filament;
     #endif
@@ -121,7 +125,9 @@ namespace {
         }
         return PhasesColdPull::unload_ptfe;
     }
+    #endif
 
+    #if HAS_TOOLCHANGER() || HAS_MMU2()
     PhasesColdPull unload_ptfe() {
         switch (wait_for_response(PhasesColdPull::unload_ptfe)) {
         case Response::Unload:
@@ -168,7 +174,7 @@ namespace {
         filament_gcodes::M702_no_parser(
             std::nullopt, Z_AXIS_UNLOAD_POS, RetAndCool_t::Return, active_extruder, true);
         planner.resume_queuing(); // HACK for planner.quick_stop(); in Pause::check_user_stop()
-    #if HAS_TOOLCHANGER()
+    #if HAS_TOOLCHANGER() || HAS_MMU2()
         return PhasesColdPull::load_ptfe;
     #else
         return PhasesColdPull::prepare_filament;
@@ -191,7 +197,7 @@ namespace {
         case PreheatStatus::Result::DoneHasFilament:
             return PhasesColdPull::cool_down;
         default:
-    #if HAS_TOOLCHANGER()
+    #if HAS_TOOLCHANGER() || HAS_MMU2()
             return PhasesColdPull::load_ptfe;
     #else
             return PhasesColdPull::prepare_filament;
@@ -309,6 +315,8 @@ namespace {
             return select_tool();
         case PhasesColdPull::pick_tool:
             return pick_tool();
+    #endif
+    #if HAS_TOOLCHANGER() || HAS_MMU2()
         case PhasesColdPull::unload_ptfe:
             return unload_ptfe();
         case PhasesColdPull::load_ptfe:
