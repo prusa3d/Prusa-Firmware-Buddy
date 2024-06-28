@@ -37,6 +37,7 @@ void WiSpin::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) 
         const auto r = DialogNumericInput::exec(GetLabel(), value(), config_);
         if (r.has_value()) {
             set_value(*r);
+            OnClick();
         }
     }
 }
