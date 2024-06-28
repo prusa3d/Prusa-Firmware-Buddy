@@ -5,6 +5,7 @@
 #include <common/http/resp_parser.h>
 #include <common/tcpip_callback_nofail.hpp>
 #include <common/pbuf_deleter.hpp>
+#include <common/random.h>
 #ifndef UNITTESTS
     // Avoid deep transitive dependency hell in unit tests...
     #include <nhttp/server.h>
@@ -457,12 +458,20 @@ Download::Download(const Request &request, PartialFile::Ptr destination, uint32_
     } else {
         const auto &in = get<Request::Inline>(request.data);
         destination->seek(start_range);
-        engine = Inline {
-            in.file_id,
+        InlinePtr in_ptr(new Inline {
+            in.team_id,
+            // This is just a safety feature - making sure we don't mix chunks
+            // of different file in ourselves (which _shouldn't_ be possible in
+            // the protocol anyway). The chance of accidentally hitting the
+            // same ID being 1:2^32 is good enough.
+            rand_u(),
             start_range,
             end_range.value_or(in.orig_size - 1 /* End is inclusive */),
+            0,
             destination,
-        };
+        });
+        strlcpy(in_ptr->hash, in.hash, sizeof in_ptr->hash);
+        engine = std::move(in_ptr);
         // We do _nothing_ in here, in this case, the Download is kind of "passive"
     }
 }
@@ -471,10 +480,10 @@ DownloadStep Download::step() {
     if (auto *async = get_if<AsyncPtr>(&engine); async != nullptr) {
         return (*async)->status();
     } else {
-        const auto &in = get<Inline>(engine);
-        if (in.status != DownloadStep::Continue) {
-            return in.status;
-        } else if (in.start > in.end /* End is inclusive */) {
+        const auto &in = get<InlinePtr>(engine);
+        if (in->status != DownloadStep::Continue) {
+            return in->status;
+        } else if (in->start > in->end /* End is inclusive */) {
             return DownloadStep::Finished;
         } else {
             return DownloadStep::Continue;
@@ -490,7 +499,7 @@ PartialFile::Ptr Download::get_partial_file() const {
     if (auto *async = get_if<AsyncPtr>(&engine); async != nullptr) {
         return (*async)->destination;
     } else {
-        return get<Inline>(engine).destination;
+        return get<InlinePtr>(engine)->destination;
     }
 }
 
@@ -500,36 +509,45 @@ optional<Download::InlineRequest> Download::inline_request() {
     // - OR -
     //
     // We completed the previous segment and there is no other segment.
-    if (auto *in = get_if<Inline>(&engine); in != nullptr && in->status == DownloadStep::Continue && ((in->start > in->segment_end && in->segment_end != in->end) || !in->started)) {
-        in->started = true;
+    if (auto *in_p = get_if<InlinePtr>(&engine); in_p != nullptr && (*in_p)->status == DownloadStep::Continue && (((*in_p)->start > (*in_p)->segment_end && (*in_p)->segment_end != (*in_p)->end) || !(*in_p)->started)) {
+        auto &in = *in_p;
         uint32_t end = std::min(in->start + INLINE_SEGMENT_SIZE - 1 /* end is inclusive */, in->end);
         in->segment_end = end;
-        return InlineRequest {
+        InlineRequest request = {
             in->file_id,
             in->start,
             end,
         };
+        // We send the extended info only on the first request in the given download.
+        if (!in->started) {
+            request.details = InlineRequestDetails {
+                in->team_id,
+                in->hash,
+            };
+            in->started = true;
+        }
+        return request;
     } else {
         return nullopt;
     }
 }
 
 bool Download::inline_chunk(const InlineChunk &chunk) {
-    if (auto *in = get_if<Inline>(&engine); in != nullptr) {
-        if (in->status != DownloadStep::Continue
-            || in->file_id != chunk.file_id /* Different transfer */
+    if (auto *in = get_if<InlinePtr>(&engine); in != nullptr) {
+        if ((*in)->status != DownloadStep::Continue
+            || (*in)->file_id != chunk.file_id /* Different transfer */
             || chunk.size == 0 /* Error indicated by server */
-            || in->start + chunk.size > in->end + 1 /* end is inclusive */) {
-            in->status = DownloadStep::FailedOther;
+            || (*in)->start + chunk.size > (*in)->end + 1 /* end is inclusive */) {
+            (*in)->status = DownloadStep::FailedOther;
             return false;
         }
-        if (!in->destination->write(chunk.data, chunk.size)) {
-            in->status = DownloadStep::FailedOther;
+        if (!(*in)->destination->write(chunk.data, chunk.size)) {
+            (*in)->status = DownloadStep::FailedOther;
             return false;
         }
-        in->start += chunk.size;
-        if (in->start > in->end) {
-            in->destination->sync();
+        (*in)->start += chunk.size;
+        if ((*in)->start > (*in)->end) {
+            (*in)->destination->sync();
         }
         return true;
     } else {
@@ -538,10 +556,10 @@ bool Download::inline_chunk(const InlineChunk &chunk) {
 }
 
 void Download::network_failed() {
-    if (auto *in = get_if<Inline>(&engine); in != nullptr) {
+    if (auto *in = get_if<InlinePtr>(&engine); in != nullptr) {
         // Only relevant for the inline mode...
-        if (in->started) {
-            in->status = DownloadStep::FailedNetwork;
+        if ((*in)->started) {
+            (*in)->status = DownloadStep::FailedNetwork;
         }
     }
 }

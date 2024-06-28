@@ -92,7 +92,8 @@ public:
         };
 
         struct Inline {
-            uint32_t file_id;
+            const char *hash;
+            uint64_t team_id;
             uint32_t orig_size;
         };
 
@@ -105,9 +106,10 @@ public:
                 url_path,
                 std::move(encryption) }) {}
 
-        Request(uint32_t file_id, uint32_t orig_size)
+        Request(const char *hash, uint64_t team_id, uint32_t orig_size)
             : data(Inline {
-                file_id,
+                hash,
+                team_id,
                 orig_size,
             }) {}
 
@@ -127,17 +129,24 @@ private:
         void operator()(Async *);
     };
     struct Inline {
+        uint64_t team_id;
         uint32_t file_id;
         uint32_t start;
         // One past end
         uint32_t end;
+        uint32_t segment_end = 0;
         PartialFile::Ptr destination;
         DownloadStep status = DownloadStep::Continue;
         bool started = false;
-        uint32_t segment_end = 0;
+        static constexpr size_t HASH_BUFF = 29;
+        char hash[HASH_BUFF] = {};
     };
     using AsyncPtr = std::unique_ptr<Async, AsyncDeleter>;
-    using Engine = std::variant<AsyncPtr, Inline>;
+    // Using pointer here to make both versions same sized. Once we get rid of
+    // the old download way, we should be able to just put it inside us
+    // directly.
+    using InlinePtr = std::unique_ptr<Inline>;
+    using Engine = std::variant<AsyncPtr, InlinePtr>;
     Engine engine;
 
 public:
@@ -162,10 +171,20 @@ public:
     /// Returns the partial file object where the downloaded data is being stored.
     PartialFile::Ptr get_partial_file() const;
 
+    struct InlineRequestDetails {
+        uint64_t team_id;
+        // The InlineRequest is just taken and rendered. It's fine to point
+        // into the Download, as that can be removed only in connect's Sleep,
+        // which doesn't happen during rendering of the InlineRequest. We do
+        // not keep the request across reconnects.
+        const char *hash;
+    };
+
     struct InlineRequest {
         uint32_t file_id;
         uint32_t start;
         uint32_t end;
+        std::optional<InlineRequestDetails> details = std::nullopt;
     };
 
     struct InlineChunk {

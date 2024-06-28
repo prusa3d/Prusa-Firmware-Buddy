@@ -72,15 +72,16 @@ namespace {
         ArgDialogId = 1 << 6,
         ArgResponse = 1 << 7,
         ArgSetValue = 1 << 8,
-        ArgFileId = 1 << 9,
-        ArgId = 1 << 10,
+        ArgId = 1 << 9,
+        ArgTeamId = 1 << 10,
+        ArgHash = 1 << 11,
     };
 
     constexpr uint32_t NO_ARGS = 0;
     // Encrypted download can also process a port, but that one is optional, so not listed here.
     constexpr uint32_t ARGS_ENC_DOWN = ArgPath | ArgKey | ArgIv | ArgOrigSize;
     constexpr uint32_t ARGS_DIALOG_ACTION = ArgDialogId | ArgResponse;
-    constexpr uint32_t ARGS_INLINE_DOWN = ArgPath | ArgOrigSize | ArgFileId;
+    constexpr uint32_t ARGS_INLINE_DOWN = ArgPath | ArgOrigSize | ArgTeamId | ArgHash;
 } // namespace
 
 Command Command::gcode_command(CommandId id, const string_view &body, SharedBuffer::Borrow buff) {
@@ -327,8 +328,14 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         } else if (is_arg("orig_size", Type::Primitive)) {
             INT_ARG(StartEncryptedDownload, uint32_t, orig_size, ArgOrigSize)
             INT_ARG(StartInlineDownload, uint32_t, orig_size, ArgOrigSize)
-        } else if (is_arg("file_id", Type::Primitive)) {
-            INT_ARG(StartInlineDownload, uint32_t, file_id, ArgFileId)
+        } else if (is_arg("team_id", Type::Primitive)) {
+            INT_ARG(StartInlineDownload, uint64_t, team_id, ArgTeamId)
+        } else if (is_arg("hash", Type::String)) {
+            if (auto *cmd = get_if<StartInlineDownload>(&data); cmd != nullptr) {
+                const size_t len = min(event.value->size() + 1, sizeof cmd->hash);
+                strlcpy(cmd->hash, event.value->data(), len);
+                seen_args |= ArgHash;
+            }
         } else if (is_arg("key", Type::String)) {
             HEX_ARG(key, ArgKey)
         } else if (is_arg("iv", Type::String)) {

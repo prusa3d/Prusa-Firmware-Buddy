@@ -61,9 +61,13 @@ struct StartEncryptedDownload {
     uint32_t orig_size;
 };
 struct StartInlineDownload {
-    SharedPath path;
-    uint32_t file_id;
+    uint64_t team_id;
     uint32_t orig_size;
+    SharedPath path;
+    // TODO: In fact, that hash is base64-encoded 16-byte hash. We _could_ save
+    // some space by decoding/encoding as necessary.
+    static constexpr size_t HASH_BUFF = 29;
+    char hash[HASH_BUFF];
 };
 struct DeleteFile {
     SharedPath path;

@@ -51,12 +51,12 @@ struct SerializedTransfer {
     // basic url info
     SerializedString host;
     uint16_t port = 0;
-    SerializedString url_path;
+    SerializedString url_path_or_hash;
     // Is this an inline transfer (running inside a websocket?)
     //
-    // In such case, we do not use url_path, but we do use the file_id below.
+    // In such case, we use hash instead of url path, but we add the team_id below.
     bool is_inline;
-    uint64_t file_id = 0;
+    uint64_t team_id = 0;
     uint32_t orig_size = 0;
 
     uint32_t transfer_id;
@@ -86,7 +86,7 @@ bool Transfer::make_backup(FILE *file, const Download::Request &request, const P
     if (const auto *encrypted = get_if<Download::Request::Encrypted>(&request.data); encrypted != nullptr) {
         transfer.host = SerializedString::serialize(encrypted->host, file, error);
         transfer.port = encrypted->port;
-        transfer.url_path = SerializedString::serialize(encrypted->url_path, file, error);
+        transfer.url_path_or_hash = SerializedString::serialize(encrypted->url_path, file, error);
         transfer.is_inline = false;
 
         // encryption
@@ -95,7 +95,8 @@ bool Transfer::make_backup(FILE *file, const Download::Request &request, const P
         }
     } else {
         const auto &in = get<Download::Request::Inline>(request.data);
-        transfer.file_id = in.file_id;
+        transfer.url_path_or_hash = SerializedString::serialize(in.hash, file, error);
+        transfer.team_id = in.team_id;
         transfer.orig_size = in.orig_size;
         transfer.is_inline = true;
     }
@@ -332,12 +333,15 @@ std::optional<Download::Request> Transfer::RestoredTransfer::get_download_reques
     };
 
     if (transfer.is_inline) {
-        return Download::Request(transfer.file_id, transfer.orig_size);
+        return Download::Request(
+            transfer.url_path_or_hash.deserialize(get_data_ptr),
+            transfer.team_id,
+            transfer.orig_size);
     } else {
         return Download::Request(
             transfer.host.deserialize(get_data_ptr),
             transfer.port,
-            transfer.url_path.deserialize(get_data_ptr),
+            transfer.url_path_or_hash.deserialize(get_data_ptr),
             transfer.encryption_info.has_value() ? std::make_unique<Download::EncryptionInfo>(*transfer.encryption_info) : nullptr);
     }
 }

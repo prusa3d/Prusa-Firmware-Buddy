@@ -75,6 +75,10 @@ namespace {
         JSON_START;
         JSON_OBJ_START;
             JSON_FIELD_STR("transfer", "inline") JSON_COMMA;
+            if (request.details.has_value()) {
+                JSON_FIELD_STR("hash", request.details->hash) JSON_COMMA;
+                JSON_FIELD_INT("team_id", request.details->team_id) JSON_COMMA;
+            }
             // Relates both to size of the FS block and to the MAX_RESP_SIZE in connect.cpp
             JSON_FIELD_INT("chunk", 512) JSON_COMMA;
             JSON_FIELD_INT("file_id", request.file_id) JSON_COMMA;

@@ -98,11 +98,11 @@ TEST_CASE("Start print - tool mapping") {
 }
 
 TEST_CASE("Start print - tool mapping too many tools") {
-    auto cmd = command_test<BrokenCommand>("{\"command\": \"START_PRINT\", \"kwargs\": {\"path\": \"/usb/x.gcode\", \"tool_mapping\": {\"1\": [2, 3, 4, 5, 1, 3]}}}");
+    command_test<BrokenCommand>("{\"command\": \"START_PRINT\", \"kwargs\": {\"path\": \"/usb/x.gcode\", \"tool_mapping\": {\"1\": [2, 3, 4, 5, 1, 3]}}}");
 }
 
 TEST_CASE("Start print - tool mapping 6th tool") {
-    auto cmd = command_test<BrokenCommand>("{\"command\": \"START_PRINT\", \"kwargs\": {\"path\": \"/usb/x.gcode\", \"tool_mapping\": {\"6\": [2, 3, 4, 5]}}}");
+    command_test<BrokenCommand>("{\"command\": \"START_PRINT\", \"kwargs\": {\"path\": \"/usb/x.gcode\", \"tool_mapping\": {\"6\": [2, 3, 4, 5]}}}");
 }
 
 TEST_CASE("Start print - SFN") {
@@ -137,10 +137,18 @@ TEST_CASE("Start connect download - encrypted") {
 }
 
 TEST_CASE("Start inline download") {
-    auto cmd = command_test<StartInlineDownload>("{\"command\":\"START_INLINE_DOWNLOAD\",\"kwargs\":{\"path\":\"/usb/whatever.bgcode\",\"file_id\":42,\"orig_size\":1024}}");
-    REQUIRE(cmd.file_id == 42);
+    auto cmd = command_test<StartInlineDownload>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42, \"hash\": \"abcdef\", \"orig_size\":1024}}");
+    REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
+    REQUIRE(strcmp(cmd.hash, "abcdef") == 0);
+    REQUIRE(cmd.team_id == 42);
     REQUIRE(cmd.orig_size == 1024);
-    REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.bgcode") == 0);
+}
+
+TEST_CASE("Start inline download - missing params") {
+    command_test<BrokenCommand>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {}}");
+    command_test<BrokenCommand>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"hash\": \"abcdef\"}}");
+    command_test<BrokenCommand>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42}}");
+    command_test<BrokenCommand>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {\"team_id\": 42, \"hash\": \"abcdef\"}}");
 }
 
 TEST_CASE("Set token") {

@@ -205,7 +205,7 @@ namespace {
             return Storage { "Unsupported file type" };
         }
 
-        auto request = Download::Request(download.file_id, download.orig_size);
+        auto request = Download::Request(download.hash, download.team_id, download.orig_size);
 
         return Transfer::begin(dpath, request);
     }
