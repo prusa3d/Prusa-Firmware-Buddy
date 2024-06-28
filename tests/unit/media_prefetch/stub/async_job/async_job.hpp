@@ -35,6 +35,9 @@ public:
     void issue(const std::function<void(AsyncJobExecutionControl &)> &f);
 
     bool was_discarded() {
+        if (discard_check_callback) {
+            discard_check_callback();
+        }
         return was_discarded_;
     }
 
@@ -44,4 +47,7 @@ public:
     bool was_discarded_ = false;
 
     size_t discard_check_count = 0;
+
+    /// When set, the function is executed on each discard check
+    std::function<void()> discard_check_callback;
 };

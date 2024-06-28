@@ -421,6 +421,22 @@ TEST_CASE("media_prefetch::feed_test") {
         CAPTURE(discards);
         CHECK(discarded_jobs_count >= min_discard_count);
     }
+
+    SECTION("Single continuous fetch") {
+        // Each time the prefetch worker checks if it was discarded (which is happening every time he wants to sync its status with the manager),
+        // we read the whole buffer.
+        // This should result in the buffer being continuously read as the fetch command is running, so we should read the whole input in a single fetch call.
+        mp.worker_job.discard_check_callback = [&] {
+            read_whole_buffer();
+        };
+
+        // Restart the prefetch
+        mp.start(p.filename(), {});
+        mp.issue_fetch();
+
+        // After flushing the last command ,there should be the last discard check when reporting the EOF. So we should have read everything now.
+        REQUIRE(status == S::end_of_file);
+    }
 }
 
 TEST_CASE("media_prefetch::command_buffer_overflow_text") {
