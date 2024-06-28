@@ -447,12 +447,14 @@ public:
 
     void add_job_result(uint16_t job_id, JobInfo::JobResult result) {
         auto guard = MarlinVarsLockGuard();
-        if (job_history[1].has_value() && job_id == job_history[1]->job_id) {
-            assert(job_history[1]->result == result);
+        if (job_history[0].has_value() && job_history[0]->job_id == job_id) {
+            // We already have a result for this job, let's keep the first result
             return;
         }
-        job_history[0] = job_history[1];
-        job_history[1] = { job_id, result };
+        // If we add more elements, we gotta do this better
+        static_assert(std::tuple_size_v<decltype(job_history)> == 2);
+        job_history[1] = job_history[0];
+        job_history[0] = { job_id, result };
     }
 
     /**
