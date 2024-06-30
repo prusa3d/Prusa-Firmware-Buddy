@@ -211,10 +211,13 @@ public:
     /// \returns 0 in case of end of input data or an error
     uint8_t getbyte();
 
+    uint8_t peek() const;
+
 private:
+    uint8_t FILE_peek() const;
+
     uint8_t FILE_getbyte();
 
 private:
     string_view_utf8 view_;
-    uint8_t last_read_byte_ = 0xff;
 };
