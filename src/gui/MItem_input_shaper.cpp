@@ -111,7 +111,7 @@ void MI_IS_ENABLE_EDITING::click(IWindowMenu &) {
 
 #if HAS_INPUT_SHAPER_CALIBRATION()
 MI_IS_CALIB::MI_IS_CALIB()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, marlin_client::is_printing() ? is_hidden_t::yes : is_hidden_t::no) {
 }
 
 void MI_IS_CALIB::click([[maybe_unused]] IWindowMenu &window_menu) {
