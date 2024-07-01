@@ -59,7 +59,6 @@ enum class RecoveryPhase : uint_fast8_t {
 };
 
 std::atomic<RecoveryPhase> recovery_phase = RecoveryPhase::idle;
-std::atomic<bool> resume_print_on_recovery = false;
 
 // Initialize FreeRTOS timer
 void init() {
@@ -81,18 +80,6 @@ void port_disabled() {
     }
 }
 
-/// This function is called then MSC (mass storage class) is activated
-/// - that means after a USB flash drive is inserted (or re-initialized)
-/// called from USBH_Thread
-void msc_active() {
-    if (resume_print_on_recovery) {
-        resume_print_on_recovery = false;
-
-        marlin_client::init_maybe();
-        marlin_client::try_recover_from_media_error();
-    }
-}
-
 // called from SVC task
 void restart_timer_callback(TimerHandle_t) {
     switch (recovery_phase) {
@@ -106,13 +93,6 @@ void restart_timer_callback(TimerHandle_t) {
         recovery_phase = RecoveryPhase::restarting_usb;
         USBH_Stop(&hUsbHostHS);
 
-        const auto print_state = printer_state::get_print_state(marlin_vars()->print_state.get(), false);
-        const auto should_resume = (print_state == printer_state::DeviceState::Printing);
-
-        // Expected value is false, so we're basically doing an atomic or ehre
-        bool resume_print_expected = false;
-        resume_print_on_recovery.compare_exchange_strong(resume_print_expected, should_resume);
-
         // Call this timer again in 150 ms for the next phase
         xTimerChangePeriod(restart_timer, 150, portMAX_DELAY);
         break;
@@ -120,7 +100,7 @@ void restart_timer_callback(TimerHandle_t) {
 
     case RecoveryPhase::restarting_usb:
         // Prevent one click print from popping up when the drive initializes.
-        // Most USBs should initialize (and call msc_active) within a few hundreds of ms.
+        // Most USBs should initialize within a few hundreds of ms.
         // Some drives take ~3 s to reinitialize, but we don't want to block the OCP for that long.
         // If user disconnects and reconnects the drive, he can do it faster than that and we want the OCP to trigger.
         block_one_click_print_until_ms = ticks_ms() + 800;
@@ -199,7 +179,9 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
 #ifdef USBH_MSC_READAHEAD
         usbh_msc_readahead.enable(USBHFatFS.pdrv);
 #endif
-        usbh_power_cycle::msc_active();
+
+        marlin_client::init_maybe();
+        marlin_client::try_recover_from_media_error();
         break;
     }
 
