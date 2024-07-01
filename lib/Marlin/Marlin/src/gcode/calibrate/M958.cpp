@@ -336,6 +336,43 @@ static void serial_echo_header(bool klipper_mode) {
 }
 
 /**
+ * @brief Get logical axis from motor axis_flag
+ *
+ * @param axis_flag motors and initial directions flags see StepEventFlag
+ * @retval !NO_AXIS_ENUM for single logical axis if vibrations are generated aligned for that particular single logical axis only
+ * @retval NO_AXIS_ENUM for all logical axis if the move is not parallel to single logical axis - e.g. diagonal movement or no movement
+ */
+AxisEnum get_logical_axis(const uint16_t axis_flag) {
+    const bool x_flag = axis_flag & STEP_EVENT_FLAG_STEP_X;
+    const bool y_flag = axis_flag & STEP_EVENT_FLAG_STEP_Y;
+    const bool z_flag = axis_flag & STEP_EVENT_FLAG_STEP_Z;
+#if IS_CARTESIAN
+    if (z_flag) {
+        return (!x_flag && !y_flag ? Z_AXIS : NO_AXIS_ENUM);
+    }
+
+    #if IS_CORE
+        #if CORE_IS_XY
+    if (x_flag == y_flag) {
+        const bool x_dir = axis_flag & STEP_EVENT_FLAG_X_DIR;
+        const bool y_dir = axis_flag & STEP_EVENT_FLAG_Y_DIR;
+        return (x_dir == y_dir ? X_AXIS : Y_AXIS);
+    }
+        #else
+            #error "Not implemented."
+        #endif
+    #else
+    if (x_flag != y_flag) {
+        return (x_flag ? X_AXIS : Y_AXIS);
+    }
+    #endif
+#else
+    #error "Not implemented."
+#endif
+    return NO_AXIS_ENUM;
+}
+
+/**
  * @brief Excite harmonic vibration and measure amplitude if there is an accelerometer
  *
  * @see GcodeSuite::M958() for parameter description
@@ -462,8 +499,11 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_pe
         SERIAL_ECHOLNPAIR_F(" ", z_gain, 5);
     }
 #endif
+
+    AxisEnum logical_axis = get_logical_axis(axis_flag);
     metric_record_custom(&metric_freq_gain, " a=%d,f=%.1f,x=%.4f,y=%.4f,z=%.4f",
-        axis_flag & (STEP_EVENT_FLAG_STEP_X | STEP_EVENT_FLAG_STEP_Y), frequency, x_gain, y_gain, z_gain);
+        logical_axis, frequency, x_gain, y_gain, z_gain);
+
     return { frequency, { x_gain, y_gain, z_gain } };
 }
 
@@ -599,43 +639,6 @@ float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]) {
 
     SERIAL_ECHOLN("error: unsupported configuration");
     return NAN;
-}
-
-/**
- * @brief Get logical axis from motor axis_flag
- *
- * @param axis_flag motors and initial directions flags see StepEventFlag
- * @retval !NO_AXIS_ENUM for single logical axis if vibrations are generated aligned for that particular single logical axis only
- * @retval NO_AXIS_ENUM for all logical axis if the move is not parallel to single logical axis - e.g. diagonal movement or no movement
- */
-static AxisEnum get_logical_axis(const uint16_t axis_flag) {
-    const bool x_flag = axis_flag & STEP_EVENT_FLAG_STEP_X;
-    const bool y_flag = axis_flag & STEP_EVENT_FLAG_STEP_Y;
-    const bool z_flag = axis_flag & STEP_EVENT_FLAG_STEP_Z;
-#if IS_CARTESIAN
-    if (z_flag) {
-        return (!x_flag && !y_flag ? Z_AXIS : NO_AXIS_ENUM);
-    }
-
-    #if IS_CORE
-        #if CORE_IS_XY
-    if (x_flag == y_flag) {
-        const bool x_dir = axis_flag & STEP_EVENT_FLAG_X_DIR;
-        const bool y_dir = axis_flag & STEP_EVENT_FLAG_Y_DIR;
-        return (x_dir == y_dir ? X_AXIS : Y_AXIS);
-    }
-        #else
-            #error "Not implemented."
-        #endif
-    #else
-    if (x_flag != y_flag) {
-        return (x_flag ? X_AXIS : Y_AXIS);
-    }
-    #endif
-#else
-    #error "Not implemented."
-#endif
-    return NO_AXIS_ENUM;
 }
 
 static bool is_ok(PrusaAccelerometer::Error error) {
