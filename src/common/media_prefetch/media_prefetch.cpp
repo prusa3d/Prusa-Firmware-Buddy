@@ -455,10 +455,14 @@ bool MediaPrefetchManager::fetch_command(AsyncJobExecutionControl &control) {
 
         s.command_buffer.flush_pending = true;
 
-    } else if (ch == ';') {
-        s.command_buffer.reading_comment = true;
+    } else if (buf_pos == 0 && ch == ';') {
+        // If the line starts with a comment, skip it
+        s.command_buffer.skip_rest_of_line = true;
 
-    } else if (!s.command_buffer.reading_comment && buf_pos < s.command_buffer_data.size()) {
+    } else if (buf_pos == 0 && isspace(ch)) {
+        // Skip whitespaces at the beginning of the line
+
+    } else if (!s.command_buffer.skip_rest_of_line && buf_pos < s.command_buffer_data.size()) {
         // If we get a gcode that's longer than our buffer, we do best-effort: crop it and try to execute it anyway (but show a warning)
         s.command_buffer_data[buf_pos++] = ch;
     }

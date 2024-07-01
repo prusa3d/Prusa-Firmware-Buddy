@@ -229,8 +229,8 @@ private:
             /// Indicates whether the command buffer is ready to be flushed in the main buffer
             bool flush_pending = false;
 
-            /// Indicates whether we're currently reading a comment
-            bool reading_comment = false;
+            /// Indicates that we should skip the rest of the curent line - probably because we're reading a comment
+            bool skip_rest_of_line = false;
 
         } command_buffer;
 

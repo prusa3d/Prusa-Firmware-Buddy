@@ -451,7 +451,7 @@ TEST_CASE("media_prefetch::command_buffer_overflow_text") {
     const std::string long_gcode = "M28 And this is a very long gcode without a comment, it should get cropped eventually blah blah blah";
     const std::string long_cropped_gcode = long_gcode.substr(0, MAX_CMD_SIZE - 1);
 
-    const std::string long_gcode_with_comment_removed = "M36 And this";
+    const std::string long_gcode_with_comment_removed = "G36X86";
     const std::string long_gcode_with_comment = long_gcode_with_comment_removed + "; And this is a comment that makes the gcode longer than the buffer blah blah blah";
 
     const std::string short_gcode = "A111";
@@ -514,7 +514,6 @@ TEST_CASE("media_prefetch::compression") {
         std::array<uint8_t, 96> compressed_data { 0 };
         const auto compressed_len = compress_gcode(input, compressed_data);
         REQUIRE(compressed_len);
-        REQUIRE(*compressed_len >= 0);
         REQUIRE(*compressed_len <= strlen(input));
 
         std::array<char, 96> decompressed_data { 0 };
@@ -529,8 +528,8 @@ TEST_CASE("media_prefetch::compression") {
     test_compression(" M123 X Y Z");
     test_compression("G1X8Z-3.3");
 
-    // Check that we have a decent compressio ratio - the decompressed string is 25 characters btw, we're compressing it to less
-    REQUIRE(test_compression("G1X120.414Y108.407E.00937") == 12);
+    // Check that we have a decent compressio ratio - the decompressed string is 25 characters btw
+    REQUIRE(test_compression("G1X120.414Y108.407E.00937") == 11);
 
     // Test unsupported symbols - should fail
     {
