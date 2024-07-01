@@ -7,10 +7,13 @@
 #define private   public
 #define protected public
 #include <media_prefetch.hpp>
+#include <prefetch_compression.hpp>
 #undef private
 #undef protected
 
 #include <test_tools/gcode_provider.hpp>
+
+using namespace media_prefetch;
 
 using S = MediaPrefetchManager::Status;
 using RR = MediaPrefetchManager::ReadResult;
@@ -443,7 +446,7 @@ TEST_CASE("media_prefetch::command_buffer_overflow_text") {
     StubGcodeProviderMemory p;
     MediaPrefetchManager mp;
 
-    const std::string long_gcode = "G28 And this is a very long gcode without a comment, it should get cropped eventually blah blah blah";
+    const std::string long_gcode = "M28 And this is a very long gcode without a comment, it should get cropped eventually blah blah blah";
     const std::string long_cropped_gcode = long_gcode.substr(0, MAX_CMD_SIZE - 1);
 
     const std::string long_gcode_with_comment_removed = "M36 And this";
@@ -464,4 +467,42 @@ TEST_CASE("media_prefetch::command_buffer_overflow_text") {
 
     RR r;
     CHECK(mp.read_command(r) == S::end_of_file);
+}
+
+TEST_CASE("media_prefetch::compacting") {
+    const auto test_compacting = [](const char *input, const char *expected_output = nullptr) {
+        if (!expected_output) {
+            expected_output = input;
+        }
+
+        CAPTURE(input, expected_output);
+
+        std::array<char, 96> buffer;
+        strcpy(buffer.data(), input);
+        const auto compacted_len = compact_gcode(buffer.data());
+
+        CAPTURE(buffer.data(), compacted_len);
+
+        REQUIRE(compacted_len == strlen(buffer.data()));
+        REQUIRE(std::string(buffer.data()) == expected_output);
+
+        // Subsequent compacting should do nothing
+        std::array<char, 96> buffer2 = buffer;
+        compact_gcode(buffer2.data());
+        REQUIRE(buffer == buffer2);
+
+        return compacted_len;
+    };
+
+    test_compacting("G1");
+    test_compacting(" G1   X8 Z-3.3", "G1X8Z-3.3");
+    test_compacting("", "");
+    test_compacting("  ; test", "");
+    test_compacting("; test", "");
+    test_compacting(" M123 X Y Z", "M123 X Y Z"); // Not a Gx gcode, only skip initial spaces
+    test_compacting("G1 Z5.015 X111.804 Y100.712 E0.00820 ;tt", "G1Z5.015X111.804Y100.712E0.00820");
+
+    test_compacting("  ; test ccomment", "");
+    test_compacting("  G0 X; test ccomment", "G0X");
+    test_compacting("  M52 This is ; a test", "M52 This is ; a test"); // Keep comments for non-Gx gcodes, it might be not a comment
 }

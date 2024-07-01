@@ -6,6 +6,8 @@
 #include <logging/log.hpp>
 #include <enum_array.hpp>
 
+#include "prefetch_compression.hpp"
+
 #ifndef UNITTESTS
     #include <metric.h>
     #include <scope_guard.hpp>
@@ -341,10 +343,9 @@ bool MediaPrefetchManager::fetch_flush_command(AsyncJobExecutionControl &control
         s.write_tail.gcode_pos.offset = offset;
     }
 
-    // Now flush the gcode itself in the form of plain gcode
-    // TODO: Add compression: space removing, special records for G1 and such
+    // Compact the gcode, strip whitespaces and comments and such
     {
-        const auto command_len = strlen(s.command_buffer_data.data());
+        const auto command_len = s.command_buffer.write_pos;
 
         // We're using one byte to encode length, cannot go longer
         assert(command_len < 256);
@@ -409,12 +410,6 @@ bool MediaPrefetchManager::fetch_command(AsyncJobExecutionControl &control) {
     }
 
     if (ch == '\n') {
-        // Empty line -> just reset the buffer and keep on reading
-        if (buf_pos == 0) {
-            s.command_buffer = {};
-            return true;
-        }
-
         if (buf_pos == s.command_buffer_data.size()) {
             // TODO: propagate overflow warning to the UI
             log_warning(MediaPrefetch, "Warning: gcode didn't fit in the command buffer, cropped");
@@ -422,6 +417,14 @@ bool MediaPrefetchManager::fetch_command(AsyncJobExecutionControl &control) {
         }
 
         s.command_buffer_data[buf_pos] = '\0';
+        buf_pos = compact_gcode(s.command_buffer_data.data());
+
+        // Empty line -> just reset the buffer and keep on reading
+        if (buf_pos == 0) {
+            s.command_buffer = {};
+            return true;
+        }
+
         s.command_buffer.flush_pending = true;
 
     } else if (ch == ';') {

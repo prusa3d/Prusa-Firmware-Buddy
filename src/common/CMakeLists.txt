@@ -38,6 +38,7 @@ if(BOARD MATCHES ".*BUDDY")
             marlin_vars.cpp
             MarlinPin.cpp
             media_prefetch/media_prefetch.cpp
+            media_prefetch/prefetch_compression.cpp
             metric.cpp
             metric_handlers.cpp
             odometer.cpp
