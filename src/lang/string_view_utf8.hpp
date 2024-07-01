@@ -278,7 +278,7 @@ public:
         : view(str_view)
         , reader(str_view)
         , params(params) {
-        assert(str_view.!isNULLSTR() && params.buffer.size_bytes() > 0);
+        assert(!str_view.isNULLSTR() && params.buffer.size_bytes() > 0);
     }
 
     /// vsnprinf append of a single parameter to parameter buffer with a format specifier found in the translated text
