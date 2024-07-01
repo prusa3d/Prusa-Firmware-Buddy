@@ -356,32 +356,32 @@ bool MediaPrefetchManager::fetch_flush_command(AsyncJobExecutionControl &control
         write_entry<RecordHeader>({ .record_type = RecordType::plain_gcode });
         write_entry<uint8_t>(command_len);
         write_entry_raw(s.command_buffer_data.data(), command_len);
+    }
 
-        // Update read_tail
-        {
-            std::lock_guard mutex_guard(mutex);
+    // Update read_tail
+    {
+        std::lock_guard mutex_guard(mutex);
 
-            if (control.is_discarded()) {
-                return false;
-            }
-
-            shared_state.commands_in_buffer++;
-
-            // Only do this now that a gcode is the last record in the buffer.
-            // The read_command function needs to be able to finish, once it starts reading
-            shared_state.read_tail = {
-                .gcode_pos = s.write_tail.gcode_pos,
-                .buffer_pos = s.write_tail.buffer_pos,
-                .status = Status::end_of_buffer,
-            };
-
-            // Fetch read head while we're at it, in case the client read some commands, so what we get more space for writing
-            s.read_head.buffer_pos = shared_state.read_head.buffer_pos;
+        if (control.is_discarded()) {
+            return false;
         }
 
-        // Reset the command buffer state
-        s.command_buffer = {};
+        shared_state.commands_in_buffer++;
+
+        // Only do this now that a gcode is the last record in the buffer.
+        // The read_command function needs to be able to finish, once it starts reading
+        shared_state.read_tail = {
+            .gcode_pos = s.write_tail.gcode_pos,
+            .buffer_pos = s.write_tail.buffer_pos,
+            .status = Status::end_of_buffer,
+        };
+
+        // Fetch read head while we're at it, in case the client read some commands, so what we get more space for writing
+        s.read_head.buffer_pos = shared_state.read_head.buffer_pos;
     }
+
+    // Reset the command buffer state
+    s.command_buffer = {};
 
     return true;
 }
