@@ -14,7 +14,7 @@ StubGcodeProviderBase *StubGcodeProviderBase::from_filename(const char *filename
     return std::bit_cast<StubGcodeProviderBase *>(ptr);
 }
 
-uint32_t StubGcodeProviderMemory::add_line(const std::string &text) {
+uint32_t StubGcodeProviderMemory::add_gcode(const std::string &text) {
     const auto result = data.size();
     data.append(text);
     data.push_back('\n');

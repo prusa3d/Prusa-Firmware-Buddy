@@ -16,9 +16,9 @@ using S = MediaPrefetchManager::Status;
 using RR = MediaPrefetchManager::ReadResult;
 using R = GCodeReaderResult;
 
-bool read_gcode(MediaPrefetchManager &mp, const std::string &cmd) {
+std::string read_gcode(MediaPrefetchManager &mp) {
     MediaPrefetchManager::ReadResult c;
-    return (mp.read_command(c) == S::ok) && c.gcode.data() == cmd;
+    return (mp.read_command(c) == S::ok) ? std::string(c.gcode.data()) : std::string {};
 }
 
 TEST_CASE("media_prefetch::basic_test") {
@@ -32,16 +32,16 @@ TEST_CASE("media_prefetch::basic_test") {
 
     SECTION("Basic reading checks") {
         StubGcodeProviderMemory p;
-        p.add_line("G0");
-        p.add_line("G1");
+        p.add_gcode("G0");
+        p.add_gcode("G1");
         p.add_breakpoint(R::RESULT_TIMEOUT);
 
         MediaPrefetchManager mp;
         mp.start(p.filename(), {});
         mp.issue_fetch();
 
-        REQUIRE(read_gcode(mp, "G0"));
-        REQUIRE(read_gcode(mp, "G1"));
+        REQUIRE(read_gcode(mp) == "G0");
+        REQUIRE(read_gcode(mp) == "G1");
         REQUIRE(mp.read_command(c) == S::end_of_buffer);
 
         // We have not issued a fetch, so we should still see end of buffer now
@@ -52,9 +52,9 @@ TEST_CASE("media_prefetch::basic_test") {
         }
 
         SECTION("Fetch more date -> read the data") {
-            p.add_line("G2");
+            p.add_gcode("G2");
             mp.issue_fetch();
-            REQUIRE(read_gcode(mp, "G2"));
+            REQUIRE(read_gcode(mp) == "G2");
         }
 
         REQUIRE(mp.read_command(c) == S::end_of_file);
@@ -209,7 +209,7 @@ TEST_CASE("media_prefetch::feed_test") {
 
     // Put the commands in the buffer
     for (size_t i = 0; i < command_count; i++) {
-        const auto replay_pos = p.add_line(command_str(i, true));
+        const auto replay_pos = p.add_gcode(command_str(i, true));
         command_replay_positions.push_back(replay_pos);
     }
 
@@ -451,16 +451,16 @@ TEST_CASE("media_prefetch::command_buffer_overflow_text") {
 
     const std::string short_gcode = "A111";
 
-    p.add_line(long_gcode);
-    p.add_line(long_gcode_with_comment);
-    p.add_line(short_gcode);
+    p.add_gcode(long_gcode);
+    p.add_gcode(long_gcode_with_comment);
+    p.add_gcode(short_gcode);
 
     mp.start(p.filename(), {});
     mp.issue_fetch();
 
-    REQUIRE(read_gcode(mp, long_cropped_gcode));
-    REQUIRE(read_gcode(mp, long_gcode_with_comment_removed));
-    REQUIRE(read_gcode(mp, short_gcode));
+    REQUIRE(read_gcode(mp) == long_cropped_gcode);
+    REQUIRE(read_gcode(mp) == long_gcode_with_comment_removed);
+    REQUIRE(read_gcode(mp) == short_gcode);
 
     RR r;
     CHECK(mp.read_command(r) == S::end_of_file);
