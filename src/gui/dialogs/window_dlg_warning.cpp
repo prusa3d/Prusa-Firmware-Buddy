@@ -56,6 +56,7 @@ const img::Resource *warning_dialog_icon(WarningType warning_type) {
 #endif /* XLBUDDY BOARD */
             { WarningType::NotDownloaded, HAS_LARGE_DISPLAY() ? &img::no_stream_48x48 : nullptr }, // Long text, does not fit on the mini display with the icon
             { WarningType::GcodeCorruption, &img::warning_48x48 },
+            { WarningType::GcodeCropped, &img::warning_48x48 },
             { WarningType::MetricsConfigChangePrompt, &img::warning_48x48 },
     };
     return data[warning_type];

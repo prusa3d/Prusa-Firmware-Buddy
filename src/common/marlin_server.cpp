@@ -1321,6 +1321,11 @@ void media_print_loop() {
             if (metrics.buffer_occupancy_percent < 60) {
                 media_prefetch.issue_fetch();
             }
+
+            if (data.cropped) {
+                set_warning(WarningType::GcodeCropped);
+            }
+
             break;
 
         case Status::end_of_file:

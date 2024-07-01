@@ -21,9 +21,9 @@ using S = MediaPrefetchManager::Status;
 using RR = MediaPrefetchManager::ReadResult;
 using R = GCodeReaderResult;
 
-std::string read_gcode(MediaPrefetchManager &mp) {
+std::string read_gcode(MediaPrefetchManager &mp, bool cropped = false) {
     MediaPrefetchManager::ReadResult c;
-    return (mp.read_command(c) == S::ok) ? std::string(c.gcode.data()) : std::string {};
+    return (mp.read_command(c) == S::ok && c.cropped == cropped) ? std::string(c.gcode.data()) : std::string {};
 }
 
 TEST_CASE("media_prefetch::basic_test") {
@@ -233,6 +233,8 @@ TEST_CASE("media_prefetch::feed_test") {
         }
 
         const std::string expected_command = command_str(read_state.command_i).data();
+        CAPTURE(read_state.command_i, expected_command);
+
         REQUIRE(std::string(r.gcode.data()) == expected_command);
         REQUIRE(command_replay_positions[read_state.command_i] == r.replay_pos.offset);
         REQUIRE(r.resume_pos.offset == r.replay_pos.offset + command_str(read_state.command_i, true).size() + 1); // +1 for newline
@@ -463,7 +465,7 @@ TEST_CASE("media_prefetch::command_buffer_overflow_text") {
     mp.start(p.filename(), {});
     mp.issue_fetch();
 
-    REQUIRE(read_gcode(mp) == long_cropped_gcode);
+    REQUIRE(read_gcode(mp, true) == long_cropped_gcode);
     REQUIRE(read_gcode(mp) == long_gcode_with_comment_removed);
     REQUIRE(read_gcode(mp) == short_gcode);
 

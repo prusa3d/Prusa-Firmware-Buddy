@@ -55,6 +55,9 @@ public:
 
         /// Position just AFTER the fetched gcode - to resume the stream from the right position
         GCodeReaderPosition resume_pos;
+
+        /// If true, indicates that the gcode did not fit in the buffer and was cropped
+        bool cropped;
     };
 
     /// Attempts to read one gcode command from the buffer.
@@ -231,6 +234,9 @@ private:
 
             /// Indicates that we should skip the rest of the curent line - probably because we're reading a comment
             bool skip_rest_of_line = false;
+
+            /// If set, denotes that the gcode did not fit into the buffer and was cropped
+            bool cropped = false;
 
         } command_buffer;
 

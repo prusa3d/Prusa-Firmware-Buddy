@@ -467,6 +467,8 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
 #endif // XL_ENCLOSURE_SUPPORT
     case WarningType::GcodeCorruption:
         return ErrCode::ERR_SYSTEM_GCODE_CORRUPTION;
+    case WarningType::GcodeCropped:
+        return ErrCode::ERR_SYSTEM_GCODE_CROPPED;
 
     case WarningType::MetricsConfigChangePrompt:
         return ErrCode::ERR_CONNECT_GCODE_METRICS_CONFIG_CHANGE;

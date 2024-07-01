@@ -32,6 +32,9 @@ enum class RecordType : uint8_t {
 
     /// uint8_t offset increase follows
     incremental_offset_update,
+
+    /// Marks that the following command did not fit in the buffers and was cropped. No data.
+    cropped_flag,
 };
 
 struct RecordHeader {
@@ -79,7 +82,8 @@ MediaPrefetchManager::Status MediaPrefetchManager::read_command(ReadResult &resu
     }
 
     auto &resume_pos = manager_state.read_head.gcode_pos;
-    const GCodeReaderPosition replay_pos = resume_pos;
+    result.cropped = false;
+    result.replay_pos = resume_pos;
 
     // Read records from the buffer until a gcode record is read
     // Worker should put the data in the buffer in such way that when there is data available to read, it ends with a gcode record.
@@ -102,6 +106,10 @@ MediaPrefetchManager::Status MediaPrefetchManager::read_command(ReadResult &resu
 
         case RecordType::restore_info_update:
             read_entry(resume_pos.restore_info);
+            continue;
+
+        case RecordType::cropped_flag:
+            result.cropped = true;
             continue;
 
         case RecordType::plain_gcode: {
@@ -137,12 +145,11 @@ MediaPrefetchManager::Status MediaPrefetchManager::read_command(ReadResult &resu
         break;
     }
 
+    result.resume_pos = resume_pos;
+
     // Let the worker know that we've read stuff and it can reuse the memory
     assert(s.commands_in_buffer > 0);
     s.commands_in_buffer--;
-
-    result.resume_pos = resume_pos;
-    result.replay_pos = replay_pos;
     return Status::ok;
 }
 
@@ -358,6 +365,16 @@ bool MediaPrefetchManager::fetch_flush_command(AsyncJobExecutionControl &control
         s.write_tail.gcode_pos.offset = offset;
     }
 
+    /// If the cropped flag is set, send a message notifying that
+    if (s.command_buffer.cropped) {
+        if (!can_write_entry<RecordHeader>()) {
+            return false;
+        }
+
+        write_entry<RecordHeader>({ .record_type = RecordType::cropped_flag });
+        s.command_buffer.cropped = false;
+    }
+
     // We're using one byte to encode length, cannot go longer.
     static_assert(std::tuple_size_v<decltype(s.command_buffer_data)> <= 256);
 
@@ -439,9 +456,9 @@ bool MediaPrefetchManager::fetch_command(AsyncJobExecutionControl &control) {
 
     if (ch == '\n') {
         if (buf_pos == s.command_buffer_data.size()) {
-            // TODO: propagate overflow warning to the UI
             log_warning(MediaPrefetch, "Warning: gcode didn't fit in the command buffer, cropped");
             buf_pos--;
+            s.command_buffer.cropped = true;
         }
 
         s.command_buffer_data[buf_pos] = '\0';

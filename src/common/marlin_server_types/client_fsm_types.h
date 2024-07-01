@@ -119,6 +119,7 @@ enum class WarningType : uint32_t {
     #endif
     NotDownloaded,
     GcodeCorruption,
+    GcodeCropped,
     MetricsConfigChangePrompt,
     _last = MetricsConfigChangePrompt
 };
