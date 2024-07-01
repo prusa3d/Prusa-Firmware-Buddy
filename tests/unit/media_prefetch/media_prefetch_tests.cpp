@@ -530,7 +530,7 @@ TEST_CASE("media_prefetch::compression") {
     test_compression("G1X8Z-3.3");
 
     // Check that we have a decent compressio ratio - the decompressed string is 25 characters btw, we're compressing it to less
-    REQUIRE(test_compression("G1X120.414Y108.407E.00937") == 14);
+    REQUIRE(test_compression("G1X120.414Y108.407E.00937") == 12);
 
     // Test unsupported symbols - should fail
     {
@@ -567,7 +567,7 @@ TEST_CASE("media_prefetch::compression::deployment") {
         const float compression_ratio = mp.shared_state.read_tail.buffer_pos / float(mp.shared_state.read_tail.gcode_pos.offset);
 
         // Check that we have a passable compression ratio
-        CHECK(compression_ratio < 0.71);
+        CHECK(compression_ratio < 0.62f);
 
         cnt++;
     }

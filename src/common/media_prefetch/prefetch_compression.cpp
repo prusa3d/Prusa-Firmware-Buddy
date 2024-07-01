@@ -3,8 +3,9 @@
 #include <array>
 #include <cctype>
 #include <algorithm>
+#include <cstring>
 
-#include <stdio.h>
+#include <str_utils.hpp>
 
 #ifdef UNITTESTS
     #include <catch2/catch.hpp>
@@ -52,6 +53,29 @@ constexpr std::array character_list {
     'Z', 'X', 'F', 'J', 'P', 'R', 'S', 'M', 'G', ' '
 };
 
+/// Common ways a gcode command can start. We can encode 16 possible options in a single 4-bit word
+constexpr std::array prefix_dictionary {
+    "M486S", // Cancel object
+    "M204P", // Set acceleration
+    "M73P", // Progress report
+    "M73Q", // Progress report
+    "G1X1",
+    "G0X",
+    "G1X",
+    "G1Z", // For spiral vase gcode
+    "G1F",
+    "G1E",
+    "G2X",
+    "G3X", // Arc
+    // Even the following single-character prefixes make sense - this way we encode them using one word, otherwise we would need 3 (0 -> no prefix, 1 -> page, 2 -> index on page)
+    "G",
+    "M",
+};
+static_assert(prefix_dictionary.size() < 15); // - 1 for encoding a non-match
+
+// Must be sorted by length so that we hit the longest match first in the iteration
+static_assert(std::is_sorted(prefix_dictionary.begin(), prefix_dictionary.end(), [](auto a, auto b) { return strlen_constexpr(a) > strlen_constexpr(b); }));
+
 } // namespace
 
 // We're working with 4-bit words, so we cannot encode more than 16 indexes
@@ -60,6 +84,17 @@ static_assert(character_list.size() <= max_supported_compressed_characters);
 
 // If we're not utilising a whole secondary page, we can reduce their count to make the algorithm more optimal
 static_assert(character_list.size() > max_supported_compressed_characters - secondary_page_size);
+
+/// \returns If \p str starts with \p prefix, returns the length of prefix, otherwise returns 0
+static size_t starts_with(const char *str, const char *prefix) {
+    const char *prefix_start = prefix;
+    while (*prefix && *prefix == *str) {
+        prefix++;
+        str++;
+    }
+
+    return (*prefix == '\0') ? (prefix - prefix_start) : 0;
+}
 
 size_t media_prefetch::compact_gcode(char *inplace_buffer) {
     const char *read_ptr = inplace_buffer;
@@ -99,6 +134,11 @@ size_t media_prefetch::compact_gcode(char *inplace_buffer) {
 }
 
 std::optional<size_t> media_prefetch::compress_gcode(const char *input, std::span<uint8_t> output) {
+    // Special case for empty strings
+    if (*input == '\0') {
+        return 0;
+    }
+
     uint8_t *output_ptr = output.data();
     const uint8_t *const output_end = output_ptr + output.size();
     bool second_word_in_byte = false;
@@ -122,6 +162,22 @@ std::optional<size_t> media_prefetch::compress_gcode(const char *input, std::spa
 
         return true;
     };
+
+    // Check if the gcode starts with any of the common prefixes we have in the dictionary
+    {
+        size_t prefix_len = 0;
+
+        // Look for the first prefix the input starts with
+        const auto prefix_pred = [&](const char *prefix) {
+            // Returning true stops the std::find_if iteration, so the matching prefix_len will remain stored
+            prefix_len = starts_with(input, prefix);
+            return prefix_len != 0;
+        };
+        const auto prefix_it = std::find_if(prefix_dictionary.begin(), prefix_dictionary.end(), prefix_pred);
+        // No match -> writes prefix_dictionary.size()
+        write_word(prefix_it - prefix_dictionary.begin());
+        input += prefix_len;
+    }
 
     while (true) {
         char ch = *input++;
@@ -171,6 +227,12 @@ void media_prefetch::decompress_gcode(const uint8_t *input, int compressed_len, 
     char *output_ptr = output.data();
     bool second_word_in_byte = false;
 
+    // Special case for empty strings
+    if (compressed_len == 0) {
+        output[0] = '\0';
+        return;
+    }
+
     /// Reads a 4-bit word from the input
     const auto read_word = [&]() -> uint8_t {
         assert(input_ptr < input_end);
@@ -184,6 +246,11 @@ void media_prefetch::decompress_gcode(const uint8_t *input, int compressed_len, 
             return (*input_ptr++) >> 4;
         }
     };
+
+    // First word is always a prefix index (from prefix_dictionary)
+    if (const auto prefix_ix = read_word(); prefix_ix < prefix_dictionary.size()) {
+        output_ptr += strlcpy(output_ptr, prefix_dictionary[prefix_ix], output.size());
+    }
 
     while (input_ptr < input_end) {
         const auto first_word = read_word();
