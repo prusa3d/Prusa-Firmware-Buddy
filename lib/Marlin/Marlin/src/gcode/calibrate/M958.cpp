@@ -1117,11 +1117,22 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
  * - G<Hz>       End frequency
  * - H<Hz>       Frequency step
  * - A<mm/s-2>   Acceleration
+ * - D           Don't home and move to bed center before calibrating
  * - N<cycles>   Number of excitation signal periods
  *               of active measurement.
  *   W           Write the detected calibration to EEPROM
  */
 void GcodeSuite::M959() {
+    if (!parser.seen('D')) {
+        GcodeSuite::G28_no_parser(false, true, NAN, false, true, true, true);
+
+        current_position[X_AXIS] = X_BED_SIZE / 2;
+        current_position[Y_AXIS] = Y_BED_SIZE / 2;
+        current_position[Z_AXIS] = 20;
+        line_to_current_position(HOMING_FEEDRATE_XY);
+        planner.synchronize();
+    }
+
     // phstep needs to be off _before_ getting the current ustep resolution
     phase_stepping::EnsureDisabled phaseSteppingDisabler;
     MicrostepRestorer microstepRestorer;
