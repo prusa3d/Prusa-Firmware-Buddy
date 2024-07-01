@@ -19,6 +19,10 @@ enum class RecordType : uint8_t {
     /// RecordType + uint8_t (strlen) + non-null-terminated string
     plain_gcode,
 
+    /// RecordType + uint8_t (strlen) + non-null terminated
+    /// Compression is done through compress_gcode and decompress_gcode
+    compressed_gcode,
+
     /// GCodeReaderStreamRestoreInfo follows
     /// Emitted in to the buffer whenever stream restore info changes.
     restore_info_update,
@@ -105,11 +109,22 @@ MediaPrefetchManager::Status MediaPrefetchManager::read_command(ReadResult &resu
             read_entry(gcode_len);
 
             assert(gcode_len < result.gcode.size());
-            auto gcode_buffer = result.gcode.data();
-            read_entry_raw(gcode_buffer, gcode_len);
+            read_entry_raw(result.gcode.data(), gcode_len);
 
             // The gcode in the buffer was not null-terminated, so add the null here
             result.gcode[gcode_len] = '\0';
+            break;
+        }
+
+        case RecordType::compressed_gcode: {
+            uint8_t compressed_len;
+            std::array<uint8_t, MAX_CMD_SIZE> compressed_data;
+
+            read_entry<uint8_t>(compressed_len);
+            assert(compressed_len < compressed_data.size());
+            read_entry_raw(compressed_data.data(), compressed_len);
+
+            decompress_gcode(compressed_data.data(), compressed_len, result.gcode);
             break;
         }
 
@@ -343,13 +358,26 @@ bool MediaPrefetchManager::fetch_flush_command(AsyncJobExecutionControl &control
         s.write_tail.gcode_pos.offset = offset;
     }
 
-    // Compact the gcode, strip whitespaces and comments and such
-    {
-        const auto command_len = s.command_buffer.write_pos;
+    // We're using one byte to encode length, cannot go longer.
+    static_assert(std::tuple_size_v<decltype(s.command_buffer_data)> <= 256);
 
-        // We're using one byte to encode length, cannot go longer
-        assert(command_len < 256);
+    // Try compressing the gcode
+    std::array<uint8_t, MAX_CMD_SIZE> compressed_data;
+    const auto command_len = s.command_buffer.write_pos;
+    const auto compressed_len = compress_gcode(s.command_buffer_data.data(), compressed_data).value_or(command_len);
 
+    if (compressed_len < command_len) {
+        // If the gcode is compressable, store it compressed
+        if (!can_write_entry_raw(sizeof(RecordHeader) + sizeof(uint8_t) + compressed_len)) {
+            return false;
+        }
+
+        write_entry<RecordHeader>({ .record_type = RecordType::compressed_gcode });
+        write_entry<uint8_t>(compressed_len);
+        write_entry_raw(compressed_data.data(), compressed_len);
+
+    } else {
+        // Otherwise store it plain
         if (!can_write_entry_raw(sizeof(RecordHeader) + sizeof(uint8_t) + command_len)) {
             return false;
         }

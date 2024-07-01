@@ -2,6 +2,8 @@
 #include <cstring>
 #include <random>
 #include <sstream>
+#include <filesystem>
+#include <fstream>
 
 // We're naughty and want full access to MediaPrefetchManager
 #define private   public
@@ -541,4 +543,34 @@ TEST_CASE("media_prefetch::compression") {
         std::array<uint8_t, 3> compressed_data { 0 };
         REQUIRE(!compress_gcode("G1X0Y0000", compressed_data));
     }
+}
+
+TEST_CASE("media_prefetch::compression::deployment") {
+    size_t cnt = 0;
+    for (const auto &entry : std::filesystem::directory_iterator("data/compression_ratio")) {
+        StubGcodeProviderMemory p;
+        MediaPrefetchManager mp;
+
+        CAPTURE(entry.path());
+        std::ifstream f(entry.path(), std::ios::in | std::ios::ate);
+        REQUIRE(f.is_open());
+
+        const auto file_size = f.tellg();
+        std::string str(file_size, '\0'); // construct string to stream size
+        f.seekg(0);
+        REQUIRE(f.read(&str[0], file_size));
+
+        p.add_gcode(str);
+        mp.start(p.filename(), {});
+        mp.issue_fetch();
+
+        const float compression_ratio = mp.shared_state.read_tail.buffer_pos / float(mp.shared_state.read_tail.gcode_pos.offset);
+
+        // Check that we have a passable compression ratio
+        CHECK(compression_ratio < 0.71);
+
+        cnt++;
+    }
+
+    REQUIRE(cnt > 0);
 }

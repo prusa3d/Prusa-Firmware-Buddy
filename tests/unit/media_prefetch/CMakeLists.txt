@@ -14,4 +14,15 @@ target_include_directories(
                               ${CMAKE_SOURCE_DIR}/src/common/media_prefetch
   )
 
+file(
+  GLOB_RECURSE DATA_FILES
+  RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+  data/*
+  )
+foreach(filename ${DATA_FILES})
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/${filename} ${CMAKE_CURRENT_BINARY_DIR}/${filename} COPYONLY
+    )
+endforeach(filename)
+
 add_catch_test(media_prefetch_tests)
