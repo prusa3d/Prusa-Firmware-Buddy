@@ -506,3 +506,39 @@ TEST_CASE("media_prefetch::compacting") {
     test_compacting("  G0 X; test ccomment", "G0X");
     test_compacting("  M52 This is ; a test", "M52 This is ; a test"); // Keep comments for non-Gx gcodes, it might be not a comment
 }
+
+TEST_CASE("media_prefetch::compression") {
+    const auto test_compression = [](const char *input) {
+        std::array<uint8_t, 96> compressed_data { 0 };
+        const auto compressed_len = compress_gcode(input, compressed_data);
+        REQUIRE(compressed_len);
+        REQUIRE(*compressed_len >= 0);
+        REQUIRE(*compressed_len <= strlen(input));
+
+        std::array<char, 96> decompressed_data { 0 };
+        decompress_gcode(compressed_data.data(), *compressed_len, decompressed_data);
+        REQUIRE(std::string(decompressed_data.data()) == input);
+        return *compressed_len;
+    };
+
+    test_compression("G1");
+    test_compression(" G1   X8 Z-3.3");
+    test_compression("");
+    test_compression(" M123 X Y Z");
+    test_compression("G1X8Z-3.3");
+
+    // Check that we have a decent compressio ratio - the decompressed string is 25 characters btw, we're compressing it to less
+    REQUIRE(test_compression("G1X120.414Y108.407E.00937") == 14);
+
+    // Test unsupported symbols - should fail
+    {
+        std::array<uint8_t, 96> compressed_data { 0 };
+        REQUIRE(!compress_gcode("ŽŽŽ", compressed_data));
+    }
+
+    // Test output buffer overflow - compress should fail
+    {
+        std::array<uint8_t, 3> compressed_data { 0 };
+        REQUIRE(!compress_gcode("G1X0Y0000", compressed_data));
+    }
+}
