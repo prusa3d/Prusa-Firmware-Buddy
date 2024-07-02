@@ -218,6 +218,8 @@ enum StepGeneratorStatus : uint8_t {
 
 typedef struct basic_step_generator_t {
     const uint8_t axis;
+    StepEventFlag_t step_flags = 0; // generated step active/direction flags
+    StepEventFlag_t move_step_flags = 0; // current move active/direction flags
 } basic_step_generator_t;
 
 // Groups variables for step event generators that work with move segments or micro move segments (input shaper).
@@ -251,7 +253,7 @@ struct step_generator_state_t {
     uint64_t previous_step_time_ticks;
 
     uint64_t initial_time; // initialization timestamp (us)
-    StepEventFlag_t flags; // current axis/direction flags
+    StepEventFlag_t current_flags; // current active/direction flags for all axes
     step_event_i32_t buffered_step; // accumulator for multi-axis step fusion
 
     xyze_long_t current_distance; // current axis position (steps, physical)

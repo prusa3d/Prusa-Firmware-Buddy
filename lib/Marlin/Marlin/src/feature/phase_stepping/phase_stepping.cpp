@@ -252,9 +252,6 @@ step_event_info_t phase_stepping::next_step_event_classic(
         next_step_event.time = axis_state.last_processed_move->print_time + axis_state.last_processed_move->move_time;
     }
 
-    // Always set the current axis active/direction flags
-    next_step_event.flags |= step_generator_state.flags;
-
     return next_step_event;
 }
 
@@ -297,9 +294,6 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
 
         PreciseStepping::move_segment_processed_handler();
     }
-
-    // Always set the current axis active/direction flags
-    next_step_event.flags |= step_generator_state.flags;
 
     return next_step_event;
 }

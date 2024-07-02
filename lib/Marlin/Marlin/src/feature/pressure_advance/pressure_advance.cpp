@@ -137,8 +137,10 @@ void pressure_advance_step_generator_init(const move_t &move, pressure_advance_s
 
     pressure_advance_state_init(step_generator, PressureAdvance::pressure_advance_params, move, axis);
 
-    step_generator_state.flags |= (!pa_state->step_dir) * STEP_EVENT_FLAG_E_DIR;
-    step_generator_state.flags |= ((pa_state->next_position != pa_state->prev_position) * MOVE_FLAG_E_ACTIVE);
+    // Set the initial direction and activity flags for the entire next move
+    step_generator.move_step_flags = 0;
+    step_generator.move_step_flags |= (!pa_state->step_dir) * STEP_EVENT_FLAG_E_DIR;
+    step_generator.move_step_flags |= ((pa_state->next_position != pa_state->prev_position) * MOVE_FLAG_E_ACTIVE);
     move.reference_cnt += 1;
 }
 
@@ -336,7 +338,7 @@ double calc_time_for_distance_pressure_advance(const float distance, pressure_ad
     if (state.next_position == state.prev_position) {
         // Two succeeding positions are the same, which means that the extruder isn't rotating, so we reset the E-axis active flag.
         const uint16_t current_axis_active_flag = (STEP_EVENT_FLAG_X_ACTIVE << axis);
-        step_generator_state.flags &= ~current_axis_active_flag;
+        step_generator.move_step_flags &= ~current_axis_active_flag;
     }
 
 #ifndef NDEBUG
@@ -390,8 +392,8 @@ step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advan
     if (prev_step_dir != step_generator.pa_state->step_dir) {
         // Update step direction flag, which is cached until this move segment is processed.
         const uint16_t current_axis_dir_flag = (STEP_EVENT_FLAG_X_DIR << step_generator.axis);
-        step_generator_state.flags &= ~current_axis_dir_flag;
-        step_generator_state.flags |= (!step_generator.pa_state->step_dir) * current_axis_dir_flag;
+        step_generator.move_step_flags &= ~current_axis_dir_flag;
+        step_generator.move_step_flags |= (!step_generator.pa_state->step_dir) * current_axis_dir_flag;
     }
 
     // When step_time is infinity, it means that next_distance will never be reached.
@@ -445,16 +447,13 @@ step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advan
     } else {
         // If the condition above is met, then definitely this axis is active.
         // And because we always set the bit to a high value, we don't need to clear it.
-        step_generator_state.flags |= (STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis);
+        step_generator.move_step_flags |= (STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis);
 
         next_step_event.time = elapsed_time;
         next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
         next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_VALID;
         step_generator_state.current_distance[step_generator.axis] += (step_generator.pa_state->step_dir ? 1 : -1);
     }
-
-    // Always set the current axis active/direction flags
-    next_step_event.flags |= step_generator_state.flags;
 
     return next_step_event;
 }
