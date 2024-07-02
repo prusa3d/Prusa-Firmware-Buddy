@@ -1033,21 +1033,44 @@ Errors:
     text: "The HEPA filter has expired. Change the HEPA filter before your next print. Visit prusa.io/xl-filter for more information."
     id: "ENCLOSURE_FILTER_EXPIRATION"
     type: "CONNECT"
+
   - code: "XX833"
     printers: [iX, MK4, MK3.5, MINI, XL]
     title: ""
     text: "Bed leveling failed. Try again?"
     id: "PROBING_FAILED"
     type: "CONNECT"
+
   - code: "XX834"
     printers: [iX, MK4, XL]
     title: ""
     text: "Nozzle cleaning failed."
     id: "NOZZLE_CLEANING_FAILED"
     type: "CONNECT"
+
   - code: "XX835"
     printers: [iX, MK4, MK3.5, MINI, XL]
     title: ""
     text: "Waiting for the user. Press \"Resume\" once the printer is ready."
     id: "QUICK_PAUSE"
     type: "CONNECT"
+
+  - code: "XX836"
+    title: ""
+    text: "MCU in Buddy is overheated. Printer's operating temperature is max 38 °C. Prevent overheating for optimal performance."
+    id: "BUDDY_MCU_MAX_TEMP_AMB"
+    type: "CONNECT"
+
+  - code: "XX837"
+    title: ""
+    text: "MCU in Dwarf is overheated. Printer's operating temperature is max 38 °C. Prevent overheating for optimal performance."
+    id: "DWARF_MCU_MAX_TEMP_AMB"
+    type: "CONNECT"
+
+  - code: "XX838"
+    title: ""
+    text: "MCU in Modular Bed is overheated. Printer's operating temperature is max 38 °C. Prevent overheating for optimal performance."
+    id: "MOD_BED_MCU_MAX_TEMP_AMB"
+    type: "CONNECT"
+
+
