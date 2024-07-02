@@ -483,7 +483,6 @@ static StepEventFlag_t setup_axis() {
     LOOP_XYZ(i) {
         const char axis_code = axis_codes[i];
         if (parser.seen(axis_code)) {
-            stepper_microsteps((AxisEnum)i, 128);
             axis_flag |= (StepEventFlag::STEP_EVENT_FLAG_STEP_X << i);
             // Old Core XY support for backwards compatibility. It required
             // specifying both axes and used a -1 value to distinguish X and Y
@@ -496,7 +495,6 @@ static StepEventFlag_t setup_axis() {
     if (axis_flag == 0) {
         // no axis requested, assume X
         axis_flag = StepEventFlag::STEP_EVENT_FLAG_STEP_X;
-        stepper_microsteps(X_AXIS, 128);
     }
 
 #if ENABLED(COREXY)
@@ -504,12 +502,20 @@ static StepEventFlag_t setup_axis() {
     // and for Y axis reverse the B direction
     if (axis_flag == StepEventFlag::STEP_EVENT_FLAG_STEP_X) {
         axis_flag |= StepEventFlag::STEP_EVENT_FLAG_STEP_Y;
-        stepper_microsteps(Y_AXIS, 128);
     } else if (axis_flag == StepEventFlag::STEP_EVENT_FLAG_STEP_Y) {
         axis_flag |= StepEventFlag::STEP_EVENT_FLAG_STEP_X | StepEventFlag::STEP_EVENT_FLAG_Y_DIR;
-        stepper_microsteps(X_AXIS, 128);
     }
 #endif
+
+    if (axis_flag & STEP_EVENT_FLAG_STEP_X) {
+        stepper_microsteps(X_AXIS, 128);
+    }
+    if (axis_flag & STEP_EVENT_FLAG_STEP_Y) {
+        stepper_microsteps(Y_AXIS, 128);
+    }
+    if (axis_flag & STEP_EVENT_FLAG_STEP_Z) {
+        stepper_microsteps(Z_AXIS, 128);
+    }
 
     return axis_flag;
 }
