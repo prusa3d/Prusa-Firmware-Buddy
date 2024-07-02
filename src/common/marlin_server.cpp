@@ -238,40 +238,40 @@ namespace {
 
     fsm::States fsm_states;
 
-    template <WarningType p_warning, bool p_disableHotend>
     class ErrorChecker {
     public:
-        ErrorChecker()
-            : m_failed(false) {};
+        constexpr ErrorChecker() = default;
 
-        void checkTrue(bool condition) {
+        constexpr bool isFailed() const { return m_failed; }
+
+        void checkTrue(bool condition, WarningType warning, bool disable_hotend) {
             if (condition || m_failed) {
                 return;
             }
-            set_warning(p_warning);
+            set_warning(warning);
 
             if (server.print_state == State::Printing) {
                 pause_print(); // Must store current hotend temperatures before they are set to 0
                 server.print_state = State::Pausing_WaitIdle;
             }
 
-            if (p_disableHotend) {
+            if (disable_hotend) {
                 HOTEND_LOOP() {
                     thermalManager.setTargetHotend(0, e);
                 }
             }
             m_failed = true;
         };
-        void reset() { m_failed = false; }
+
+        constexpr void reset() { m_failed = false; }
 
     protected:
-        bool m_failed;
+        bool m_failed = false;
     };
 
-    class HotendErrorChecker : ErrorChecker<WarningType::HotendTempDiscrepancy, true> {
+    class HotendErrorChecker : private ErrorChecker {
     public:
-        HotendErrorChecker()
-            : m_postponeFullPrintFan(false) {};
+        constexpr HotendErrorChecker() = default;
 
         void checkTrue(bool condition) {
             if (!condition && !m_failed) {
@@ -283,7 +283,9 @@ namespace {
 #endif
                 }
             }
-            ErrorChecker::checkTrue(condition);
+
+            ErrorChecker::checkTrue(condition, WarningType::HotendTempDiscrepancy, true);
+
             if (condition) {
                 reset();
             }
@@ -293,39 +295,36 @@ namespace {
             m_postponeFullPrintFan = false;
             return retVal;
         }
-        bool isFailed() { return m_failed; }
+
+        using ErrorChecker::isFailed;
 
     private:
-        bool m_postponeFullPrintFan;
+        bool m_postponeFullPrintFan = false;
     };
 
     /// Check MCU temperature and trigger warning and redscreen
-    template <WarningType p_warning>
-    class MCUTempErrorChecker : public ErrorChecker<p_warning, true> {
+    class MCUTempErrorChecker : public ErrorChecker {
         static constexpr const int32_t mcu_temp_warning = 85; ///< When to show warning and pause the print
         static constexpr const int32_t mcu_temp_hysteresis = 2; ///< Hysteresis to reset warning
         static constexpr const int32_t mcu_temp_redscreen = 95; ///< When to show redscreen error
-
-        const char *name; ///< Name of board with the MCU
 
         int32_t ewma_buffer = 0; ///< Buffer for EWMA [1/8 degrees Celsius]
         bool warning = false; ///< True during warning state, enables hysteresis
 
     public:
-        MCUTempErrorChecker(const char *name)
-            : name(name) {};
+        constexpr MCUTempErrorChecker() {};
 
         /**
          * @brief Check one MCU temperature.
          * @param temperature MCU temperature [degrees Celsius]
          */
-        void check(int32_t temperature) {
+        void check(int32_t temperature, WarningType warning_type, const char *error_arg) {
             ewma_buffer = (ewma_buffer * 7 / 8) + temperature; // Simple EWMA filter (stays 1 degree below stable value)
             const auto filtered_temperature = ewma_buffer / 8;
 
             // Trigger reset immediately
             if (filtered_temperature >= mcu_temp_redscreen) {
-                fatal_error(ErrCode::ERR_TEMPERATURE_MCU_MAXTEMP_ERR, name);
+                fatal_error(ErrCode::ERR_TEMPERATURE_MCU_MAXTEMP_ERR, error_arg);
             }
 
             // Trigger and reset warning
@@ -338,27 +337,30 @@ namespace {
                     warning = true;
                 }
             }
-            this->checkTrue(!warning);
+
+            this->checkTrue(!warning, warning_type, true);
         }
     };
 
-    ErrorChecker<WarningType::HotendFanError, true> hotendFanErrorChecker[HOTENDS];
-    ErrorChecker<WarningType::PrintFanError, false> printFanErrorChecker;
+    constinit std::array<ErrorChecker, HOTENDS> hotendFanErrorChecker;
+    constinit ErrorChecker printFanErrorChecker;
 
 #ifdef HAS_TEMP_HEATBREAK
-    ErrorChecker<WarningType::HeatBreakThermistorFail, true> heatBreakThermistorErrorChecker[HOTENDS];
+    constinit std::array<ErrorChecker, HOTENDS> heatBreakThermistorErrorChecker;
 #endif
-    HotendErrorChecker hotendErrorChecker;
+    constinit HotendErrorChecker hotendErrorChecker;
 
-    MCUTempErrorChecker<WarningType::BuddyMCUMaxTemp> mcuMaxTempErrorChecker("Buddy"); ///< Check Buddy MCU temperature
+    constinit MCUTempErrorChecker mcuMaxTempErrorChecker; ///< Check Buddy MCU temperature
 #if HAS_DWARF()
-    /// Check Dwarf MCU temperature
-    MCUTempErrorChecker<WarningType::DwarfMCUMaxTemp> dwarfMaxTempErrorChecker[HOTENDS] {
+    static constexpr std::array<const char *, HOTENDS> dwarf_names {
         "Dwarf 1", "Dwarf 2", "Dwarf 3", "Dwarf 4", "Dwarf 5", "Dwarf 6"
     };
+
+    /// Check Dwarf MCU temperature
+    constinit std::array<MCUTempErrorChecker, HOTENDS> dwarfMaxTempErrorChecker;
 #endif /*HAS_DWARF()*/
 #if HAS_MODULARBED()
-    MCUTempErrorChecker<WarningType::ModBedMCUMaxTemp> modbedMaxTempErrorChecker("Modular Bed"); ///< Check ModularBed MCU temperature
+    constinit MCUTempErrorChecker modbedMaxTempErrorChecker; ///< Check ModularBed MCU temperature
 #endif /*HAS_MODULARBED()*/
 
     void pause_print(Pause_Type type) {
@@ -2357,10 +2359,10 @@ static void _server_print_loop(void) {
     if (marlin_vars()->fan_check_enabled) {
         HOTEND_LOOP() {
             const auto fan_state = Fans::heat_break(e).getState();
-            hotendFanErrorChecker[e].checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting);
+            hotendFanErrorChecker[e].checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting, WarningType::HotendFanError, true);
         }
         const auto fan_state = Fans::print(active_extruder).getState();
-        printFanErrorChecker.checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting);
+        printFanErrorChecker.checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting, WarningType::PrintFanError, false);
     }
 
     HOTEND_LOOP() {
@@ -2392,7 +2394,7 @@ static void _server_print_loop(void) {
         }
         // Getting 0 -> heatbreak error
         else {
-            heatBreakThermistorErrorChecker[e].checkTrue(!NEAR_ZERO(temp));
+            heatBreakThermistorErrorChecker[e].checkTrue(!NEAR_ZERO(temp), WarningType::HeatBreakThermistorFail, true);
         }
     }
 #endif
@@ -2400,16 +2402,16 @@ static void _server_print_loop(void) {
     hotendErrorChecker.checkTrue(Temperature::saneTempReadingHotend(0));
 
     // Check MCU temperatures
-    mcuMaxTempErrorChecker.check(AdcGet::getMCUTemp());
+    mcuMaxTempErrorChecker.check(AdcGet::getMCUTemp(), WarningType::BuddyMCUMaxTemp, "Buddy");
 #if HAS_DWARF()
     HOTEND_LOOP() {
         if (prusa_toolchanger.is_tool_enabled(e)) {
-            dwarfMaxTempErrorChecker[e].check(buddy::puppies::dwarfs[e].get_mcu_temperature());
+            dwarfMaxTempErrorChecker[e].check(buddy::puppies::dwarfs[e].get_mcu_temperature(), WarningType::DwarfMCUMaxTemp, dwarf_names[e]);
         }
     }
 #endif /*HAS_DWARF()*/
 #if HAS_MODULARBED()
-    modbedMaxTempErrorChecker.check(buddy::puppies::modular_bed.mcu_temperature.value);
+    modbedMaxTempErrorChecker.check(buddy::puppies::modular_bed.mcu_temperature.value, WarningType::ModBedMCUMaxTemp, "Modular Bed");
 #endif /*HAS_MODULARBED()*/
 }
 
