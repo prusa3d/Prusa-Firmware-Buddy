@@ -77,8 +77,8 @@ const AxisConfig_t selftest::Config_XAxis = {
     .axis = X_AXIS,
     .steps = xy_fr_table_size,
     .movement_dir = -1,
-    .park = false,
-    .park_pos = 0,
+    .park = true,
+    .park_pos = 15,
 }; // MINI has movement_dir -1
 
 const AxisConfig_t selftest::Config_YAxis = {
@@ -91,8 +91,8 @@ const AxisConfig_t selftest::Config_YAxis = {
     .axis = Y_AXIS,
     .steps = xy_fr_table_size,
     .movement_dir = -1,
-    .park = false,
-    .park_pos = 0,
+    .park = true,
+    .park_pos = 15,
 };
 
 static const AxisConfig_t Config_ZAxis = {
@@ -289,14 +289,14 @@ void CSelftest::Loop() {
         break;
     }
     case stsXAxis: {
-        if (selftest::phaseAxis(pXAxis, Config_XAxis)) {
+        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::yes)) {
             return;
         }
         // Y is not skipped even if X fails
         break;
     }
     case stsYAxis: {
-        if (selftest::phaseAxis(pYAxis, Config_YAxis)) {
+        if (selftest::phaseAxis(pYAxis, Config_YAxis, Separate::yes)) {
             return;
         }
         break;
