@@ -152,6 +152,7 @@ pipeline {
                             'mini-en-fr,release,yesboot',
                             'mini-en-it,release,yesboot',
                             'mini-en-pl,release,yesboot',
+                            'mini-en-jp,release,yesboot',
                             'mk3.5,release,yesboot',
                             'mk4,release,yesboot',
                             'mk4,release,noboot', // Needed for integration tests, please don't delete
