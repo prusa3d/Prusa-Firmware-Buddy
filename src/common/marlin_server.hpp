@@ -228,7 +228,7 @@ FSMResponseVariant get_response_variant_from_phase(T phase) {
 /// Otherwise, return Response::_none and do not consume it.
 template <class T>
 Response get_response_from_phase(T phase) {
-    return get_response_variant_from_phase(phase).template get_or<Response>(Response::_none);
+    return get_response_variant_from_phase(phase).template value_or<Response>(Response::_none);
 }
 
 // FSM_notifier

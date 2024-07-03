@@ -179,7 +179,7 @@ void FSM_encoded_response(EncodedFSMResponse);
 
 template <class T>
 void FSM_response(T phase, Response response) {
-    FSM_encoded_response(EncodedFSMResponse::encode(phase, response));
+    FSM_encoded_response(EncodedFSMResponse::encode(phase, FSMResponseVariant::make(response)));
 }
 
 template <class T>

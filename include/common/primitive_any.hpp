@@ -2,6 +2,7 @@
 
 #include <type_traits>
 #include <array>
+#include <assert.h>
 
 struct PrimitiveAnyRTTI {
     const void *ptr = nullptr;
@@ -36,8 +37,10 @@ public:
     }
 
     template <typename T>
-    constexpr inline PrimitiveAny(const T &value) {
-        operator=(value);
+    static constexpr inline PrimitiveAny make(const T &value) {
+        PrimitiveAny r;
+        r.set(value);
+        return r;
     }
 
     constexpr ~PrimitiveAny() = default;
@@ -45,24 +48,38 @@ public:
 public:
     /// \returns pointer to the value of type T, if the Variant is of this type (or nullptr)
     template <typename T>
-    constexpr T *get_maybe() {
+    constexpr T *value_maybe() {
         return (type == primitive_any_rtti<T>()) ? reinterpret_cast<T *>(data.data()) : nullptr;
     }
 
     /// \returns pointer to the value of type T, if the Variant is of this type (or nullptr)
     template <typename T>
-    constexpr const T *get_maybe() const {
+    constexpr const T *value_maybe() const {
         return (type == primitive_any_rtti<T>()) ? reinterpret_cast<const T *>(data.data()) : nullptr;
     }
 
     /// \returns value of T, if the variant holds this alternative, or \p fallback
     template <typename T>
-    constexpr const T get_or(const T &fallback) const {
-        if (auto r = get_maybe<T>()) {
+    constexpr const T value_or(const T &fallback) const {
+        if (auto r = value_maybe<T>()) {
             return *r;
         } else {
             return fallback;
         }
+    }
+
+    /// \returns reference to the value of type T. Undefined behavior if the PrimitveAny does not hold the value.
+    template <typename T>
+    constexpr T &value() {
+        assert(holds_alternative<T>());
+        return *value_maybe<T>();
+    }
+
+    /// \returns reference to the value of type T. Undefined behavior if the PrimitveAny does not hold the value.
+    template <typename T>
+    constexpr const T &value() const {
+        assert(holds_alternative<T>());
+        return *value_maybe<T>();
     }
 
     /// Sets the variant to a given value
@@ -84,17 +101,22 @@ public:
         return type == primitive_any_rtti<T>();
     }
 
+    constexpr inline bool has_value() const {
+        return type != PrimitiveAnyRTTI {};
+    }
+
+    constexpr inline operator bool() const {
+        return has_value();
+    }
+    constexpr inline bool operator!() const {
+        return !has_value();
+    }
+
     template <size_t other_size>
     constexpr inline PrimitiveAny &operator=(const PrimitiveAny<other_size> &other) {
         static_assert(max_size >= other_size);
         type = other.type;
         memcpy(data.data(), other.data.data(), max_size);
-        return *this;
-    }
-
-    template <typename T>
-    constexpr inline PrimitiveAny &operator=(const T &value) {
-        set(value);
         return *this;
     }
 
