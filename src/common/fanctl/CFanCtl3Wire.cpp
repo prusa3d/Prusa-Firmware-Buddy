@@ -266,11 +266,11 @@ bool CFanCtl3Wire::selftestSetPWM(uint8_t pwm) {
     return true;
 }
 
-bool CFanCtl3Wire::setPhaseShiftMode(uint8_t psm) {
+bool CFanCtl3Wire::setPhaseShiftMode(CFanCtlPWM::PhaseShiftMode psm) {
     if (selftest_mode) {
         return false;
     }
-    m_pwm.set_PhaseShiftMode((CFanCtlPWM::PhaseShiftMode)psm);
+    m_pwm.set_PhaseShiftMode(psm);
     return true;
 }
 

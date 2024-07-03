@@ -48,9 +48,10 @@ public:
     // getters
     inline uint8_t get_min_PWM() const { return min_value; }
     inline uint8_t get_max_PWM() const { return max_value; }
-    inline PhaseShiftMode get_PhaseShiftMode() const { return (PhaseShiftMode)pha_mode; }
+    inline PhaseShiftMode get_PhaseShiftMode() const { return pha_mode; }
 
     // setters
+    inline void set_PhaseShiftThr(uint8_t val) { pha_thr = val; }
     void set_PWM(uint8_t new_pwm);
     inline void set_PhaseShiftMode(PhaseShiftMode new_pha_mode) { pha_mode = new_pha_mode; }
     void safeState();
@@ -69,7 +70,7 @@ private:
     uint8_t cnt; // pwm counter (value 0..max-1)
     uint8_t val; // pwm value (cached during pwm cycle)
     int8_t pha; // pwm phase shift
-    uint8_t pha_mode; // pwm phase shift mode
+    PhaseShiftMode pha_mode; // pwm phase shift mode
     uint8_t pha_thr; // pwm phase shift threshold (shifting will be enabled for pwm <= pha_thr)
     int8_t pha_max; // pwm phase shift maximum (calculated when pwm changed)
     int8_t pha_stp; // pwm phase shift step (calculated when pwm changed)
@@ -127,7 +128,7 @@ public:
     { return unscalePWM(m_PWMValue); }
     virtual uint16_t getActualRPM() const override // get actual (measured) RPM
     { return m_tach.getRPM(); }
-    uint8_t getPhaseShiftMode() const // get PhaseShiftMode
+    CFanCtlPWM::PhaseShiftMode getPhaseShiftMode() const // get PhaseShiftMode
     { return m_pwm.get_PhaseShiftMode(); }
     virtual bool getRPMIsOk() override;
     inline bool isAutoFan() const // get fan type
@@ -140,8 +141,8 @@ public:
     uint8_t unscalePWM(uint8_t pwm) const; // unscale pwm from range used by this instance to 0-255
 
     // setters
-    bool setPhaseShiftMode(uint8_t psm); // set phase shift mode (none/triangle/random)
     virtual bool setPWM(uint8_t pwm) override; // set PWM value - switch to non closed-loop mode
+    bool setPhaseShiftMode(CFanCtlPWM::PhaseShiftMode psm); // set phase shift mode (none/triangle/random)
     void safeState();
 
     inline void setSkipTacho(skip_tacho_t skip_tacho) {
