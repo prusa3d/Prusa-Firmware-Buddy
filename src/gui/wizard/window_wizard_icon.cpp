@@ -3,6 +3,7 @@
  */
 
 #include <unistd.h>
+#include "display_helper.h"
 #include "window_wizard_icon.hpp"
 #include "img_resources.hpp"
 

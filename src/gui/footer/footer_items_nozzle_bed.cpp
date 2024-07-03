@@ -1,8 +1,6 @@
-/**
- * @file footer_items_nozzle_bed.cpp
- */
-
 #include "footer_items_nozzle_bed.hpp"
+
+#include "display.hpp"
 #include "marlin_client.hpp"
 #include "filament.hpp"
 #include "img_resources.hpp"

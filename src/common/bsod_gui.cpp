@@ -1,6 +1,7 @@
 // bsod_gui.cpp - blue screen of death
 #include "bsod.h"
 #include "bsod_gui.hpp"
+#include "display.hpp"
 #include <find_error.hpp>
 #include "wdt.hpp"
 #include <crash_dump/dump.hpp>
@@ -204,13 +205,7 @@ static const char *cut_path(const char *path_and_file) {
 static void stop_common(void) {
     hwio_safe_state();
 
-#if HAS_ST7789_DISPLAY()
-    st7789v_enable_safe_mode();
-#endif
-
-#if HAS_ILI9488_DISPLAY()
-    ili9488_enable_safe_mode();
-#endif
+    display::enable_safe_mode();
 
     hwio_beeper_notone();
     display::init();

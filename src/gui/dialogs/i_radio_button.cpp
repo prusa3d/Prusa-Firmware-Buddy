@@ -3,6 +3,7 @@
 #include "sound.hpp"
 #include "fonts.hpp"
 #include "gui.hpp"
+#include "display.hpp"
 
 #include <algorithm> //find
 

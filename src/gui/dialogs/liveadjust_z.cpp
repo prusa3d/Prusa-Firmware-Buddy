@@ -5,6 +5,7 @@
 #include "ScreenHandler.hpp"
 #include <guiconfig/GuiDefaults.hpp>
 #include "marlin_client.hpp"
+#include "display.hpp"
 #include "display_helper.h"
 #include "img_resources.hpp"
 #include <option/has_sheet_profiles.h>

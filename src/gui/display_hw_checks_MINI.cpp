@@ -1,7 +1,7 @@
 /**
  * @file display_hw_checks_MINI.cpp
  */
-#include "display.h"
+#include "display.hpp"
 #include "display_hw_checks.hpp"
 #include "ScreenHandler.hpp"
 #include <common/timing.h>

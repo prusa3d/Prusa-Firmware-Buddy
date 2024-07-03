@@ -3,6 +3,7 @@
 #include "marlin_client.hpp"
 #include <sound.hpp>
 #include <i_window_menu_item.hpp>
+#include "display.hpp"
 
 #include <option/has_touch.h>
 #if HAS_TOUCH()

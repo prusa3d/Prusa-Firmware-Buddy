@@ -2,7 +2,7 @@
 #include "window_frame.hpp"
 #include "gui_invalidate.hpp"
 #include "sound.hpp"
-#include "display.h"
+#include "display.hpp"
 #include "marlin_client.hpp"
 
 window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_printing_t close_on_print)

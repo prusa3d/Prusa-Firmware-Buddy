@@ -1,8 +1,8 @@
-// GuiDefaults.hpp
 #pragma once
+
+#include "fonts.hpp"
 #include "guitypes.hpp"
 #include "Rect16.h"
-#include "display.h"
 #include "align.hpp"
 #include "footer_def.hpp"
 #include "color_scheme.hpp"

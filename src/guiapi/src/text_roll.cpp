@@ -2,7 +2,7 @@
 #include <algorithm>
 
 #include "display_helper.h"
-#include "display.h"
+#include "display.hpp"
 #include "gui_timer.h"
 #include "window.hpp"
 #include "gui.hpp"

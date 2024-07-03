@@ -5,6 +5,7 @@
  */
 
 #include "selftest_view.hpp"
+#include "display.hpp"
 
 SelfTestView::SelfTestView(window_t *parrent, Rect16 rc)
     : window_t(parrent, rc)

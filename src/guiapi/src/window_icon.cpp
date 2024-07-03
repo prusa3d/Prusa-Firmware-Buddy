@@ -4,6 +4,7 @@
 
 #include <unistd.h>
 #include "window_icon.hpp"
+#include "display.hpp"
 #include "gui.hpp"
 #include "ScreenHandler.hpp"
 #include "img_resources.hpp"

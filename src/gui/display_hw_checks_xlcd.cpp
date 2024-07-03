@@ -1,8 +1,6 @@
-/**
- * @file display_hw_checks_xlcd.cpp
- */
-#include "display.h"
 #include "display_hw_checks.hpp"
+
+#include "display.hpp"
 #include "ScreenHandler.hpp"
 #include <option/has_touch.h>
 #include <device/peripherals.h>

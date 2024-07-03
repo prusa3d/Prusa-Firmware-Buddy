@@ -4,6 +4,8 @@
 
 #include "window_menu_bar.hpp"
 
+#include "display.hpp"
+
 MenuScrollbar::MenuScrollbar(window_t *parent, Rect16 rect, IWindowMenu &menu)
     : window_t(parent, rect)
     , menu(menu) {}

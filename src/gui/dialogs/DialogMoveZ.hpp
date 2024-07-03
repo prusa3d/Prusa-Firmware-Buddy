@@ -3,7 +3,6 @@
 #include "IDialog.hpp"
 #include "window_header.hpp"
 #include "screen.hpp"
-#include "display.h"
 #include "window_text.hpp"
 #include "window_numb.hpp"
 #include "window_menu_adv.hpp"

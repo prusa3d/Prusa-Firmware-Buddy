@@ -1,5 +1,6 @@
-// window_term.cpp
 #include "window_term.hpp"
+
+#include "display.hpp"
 #include "gui.hpp"
 #include <stdarg.h> //va_list
 

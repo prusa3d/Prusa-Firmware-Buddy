@@ -4,7 +4,6 @@
 #include "guitypes.hpp"
 #include "gui_timer.h"
 #include "display_helper.h"
-#include "display.h"
 #include <guiconfig/GuiDefaults.hpp>
 
 extern void gui_run(void);

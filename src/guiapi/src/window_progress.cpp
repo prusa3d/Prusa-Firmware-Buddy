@@ -1,5 +1,6 @@
-// window_progress.cpp
 #include "window_progress.hpp"
+
+#include "display.hpp"
 #include "gui.hpp"
 #include <algorithm>
 

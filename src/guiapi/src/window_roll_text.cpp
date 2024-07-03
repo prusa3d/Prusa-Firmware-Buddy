@@ -8,7 +8,6 @@
 #include "window_roll_text.hpp"
 #include "gui_timer.h"
 #include "stm32f4xx_hal.h"
-#include "display.h"
 
 void window_roll_text_t::unconditionalDraw() {
     if (flags.color_scheme_background || flags.color_scheme_foreground) {

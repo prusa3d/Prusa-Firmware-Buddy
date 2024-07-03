@@ -1,7 +1,7 @@
 // gui.cpp
 #include <stdlib.h>
 
-#include "display.h"
+#include "display.hpp"
 #include "gui.hpp"
 #include "gui_time.hpp" //gui::GetTick
 #include "ScreenHandler.hpp"
@@ -27,6 +27,10 @@
 
 #include <config_store/store_instance.hpp>
 #include <guiconfig/guiconfig.h>
+
+#if HAS_MINI_DISPLAY()
+    #include "st7789v.hpp"
+#endif
 
 LOG_COMPONENT_REF(GUI);
 LOG_COMPONENT_REF(Touch);

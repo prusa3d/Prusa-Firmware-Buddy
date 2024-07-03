@@ -6,6 +6,8 @@
 
 #include "scroll_bar.hpp"
 
+#include "display.hpp"
+
 ScrollBar::ScrollBar(window_t *parrent, Rect16::Width_t w)
     : window_t(parrent, calculateRect(parrent->GetRect(), w)) {
 }

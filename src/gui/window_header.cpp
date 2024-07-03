@@ -1,5 +1,7 @@
 #include "window_header.hpp"
+
 #include "config.h"
+#include "display.hpp"
 #include "i18n.h"
 #include "gui_media_events.hpp"
 #include "time_tools.hpp"

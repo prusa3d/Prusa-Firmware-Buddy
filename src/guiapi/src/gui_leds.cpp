@@ -5,6 +5,7 @@
  */
 
 #include "gui_leds.hpp"
+#include "display.hpp"
 #include "led_lcd_cs_selector.hpp"
 #include <algorithm>
 #include "neopixel.hpp"
@@ -85,7 +86,7 @@ void leds::enter_power_panic() {
     osThreadSuspend(displayTaskHandle);
 
     // 3. Safe mode for display SPI is enabled (that disables DMA transfers and writes directly to SPI)
-    ili9488_enable_safe_mode();
+    display::enable_safe_mode();
 
     // 4. Reinitialize SPI, so that we terminate any ongoing transfers to display or leds
     // 5. turn off actual leds

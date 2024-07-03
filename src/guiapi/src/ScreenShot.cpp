@@ -1,6 +1,6 @@
 #include <fcntl.h>
 #include "ScreenShot.hpp"
-#include "display.h"
+#include "display.hpp"
 #include <unique_file_ptr.hpp>
 #include <scope_guard.hpp>
 #include <inttypes.h>

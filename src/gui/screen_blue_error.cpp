@@ -1,7 +1,6 @@
 
 #include "screen_blue_error.hpp"
 #include <ScreenHandler.hpp>
-#include <display.h>
 #include <sound.hpp>
 #include <sys.h>
 #include <support_utils.h>

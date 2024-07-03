@@ -1,4 +1,6 @@
 #include <window_colored_rect.hpp>
+
+#include "display.hpp"
 #include <color_grayscale.hpp>
 
 window_colored_rect::window_colored_rect(window_t *parent, Rect16 rect)

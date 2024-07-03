@@ -6,7 +6,6 @@
 #include "sys.h"
 #include "shared_config.h"
 #include "support_utils.h"
-#include "display.h"
 #include "string.h"
 #include "version.h"
 #include "language_eeprom.hpp"

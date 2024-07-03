@@ -45,6 +45,8 @@
     #include <module/prusa/toolchanger.h>
 #endif
 
+#include "display.hpp"
+
 #if HAS_MINI_DISPLAY()
     #define SPLASHSCREEN_PROGRESSBAR_X 16
     #define SPLASHSCREEN_PROGRESSBAR_Y 148

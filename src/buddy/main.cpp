@@ -25,6 +25,7 @@
 #include "metric_handlers.h"
 #include "hwio_pindef.h"
 #include "gui.hpp"
+#include "display.hpp"
 #include <stdint.h>
 #include "printers.h"
 #include "MarlinPin.h"
@@ -541,21 +542,11 @@ extern "C" void main_cpp(void) {
     }
 }
 
-#if HAS_ST7789_DISPLAY()
-extern void st7789v_spi_tx_complete(void);
-#endif
-
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
-#if HAS_GUI() && HAS_ST7789_DISPLAY()
+#if HAS_GUI()
     if (hspi == &SPI_HANDLE_FOR(lcd)) {
-        st7789v_spi_tx_complete();
-    }
-#endif
-
-#if HAS_GUI() && HAS_ILI9488_DISPLAY()
-    if (hspi == &SPI_HANDLE_FOR(lcd)) {
-        ili9488_spi_tx_complete();
+        display::spi_tx_complete();
     }
 #endif
 
@@ -566,9 +557,9 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 
-#if HAS_GUI() && HAS_ILI9488_DISPLAY()
+#if HAS_GUI()
     if (hspi == &SPI_HANDLE_FOR(lcd)) {
-        ili9488_spi_rx_complete();
+        display::spi_rx_complete();
     }
 #endif
 

@@ -5,7 +5,7 @@
 #include <config_store/store_instance.hpp>
 #include "window_qr.hpp"
 #include "gui.hpp"
-#include "display.h"
+#include "display.hpp"
 #include "qrcodegen.h"
 #include "support_utils.h"
 

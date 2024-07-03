@@ -13,8 +13,12 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/screen.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/Rect16.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/display_ex.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/display_helper.cpp
   ${CMAKE_SOURCE_DIR}/src/gui/dialogs/window_dlg_popup.cpp
   ${CMAKE_SOURCE_DIR}/src/gui/dialogs/IDialog.cpp
+  ${CMAKE_SOURCE_DIR}/src/lang/string_view_utf8.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
+  ${CMAKE_SOURCE_DIR}/src/gui/fonts.cpp
   )
 
 add_executable(

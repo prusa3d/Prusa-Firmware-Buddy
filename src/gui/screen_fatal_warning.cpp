@@ -2,7 +2,6 @@
 #include "img_resources.hpp"
 #include "config.h"
 #include "ScreenHandler.hpp"
-#include "display.h"
 #include "sound.hpp"
 #include "sys.h"
 #include "support_utils.h"

@@ -1,5 +1,7 @@
 #include "window_line_connector.hpp"
 
+#include "display.hpp"
+
 window_line_connector::window_line_connector(window_t *parent, Rect16 rect)
     : window_aligned_t(parent, rect) {
     points.fill(unassigned_value);
