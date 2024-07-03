@@ -2496,7 +2496,6 @@ void set_stream_restore_info(const GCodeReaderStreamRestoreInfo &set) {
 }
 
 void print_quick_stop_powerpanic() {
-    media_prefetch.stop();
     queue.clear();
 }
 
