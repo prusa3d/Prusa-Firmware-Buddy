@@ -73,12 +73,6 @@ enum class Response : uint8_t {
     Tool4,
     Tool5,
 
-    // Custom responses, for dialogs with specific buttons (button names need to be remapped then)
-    Custom1,
-    Custom2,
-    Custom3,
-    Custom4,
-    Custom5,
     _count,
     _last = _count - 1,
 };
