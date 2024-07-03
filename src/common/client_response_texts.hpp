@@ -14,14 +14,10 @@ inline constexpr const char *get_response_text(Response response) {
         return N_("ABORT");
     case Response::Abort_invalidate_test:
         return N_("ABORT");
-    case Response::ABS:
-        return "ABS";
     case Response::Adjust:
         return N_("Adjust");
     case Response::All:
         return N_("ALL");
-    case Response::ASA:
-        return "ASA";
     case Response::Back:
         return N_("BACK");
     case Response::Cancel:
@@ -44,12 +40,8 @@ inline constexpr const char *get_response_text(Response response) {
         return N_("FILAMENT REMOVED");
     case Response::Finish:
         return N_("FINISH");
-    case Response::FLEX:
-        return "FLEX";
     case Response::FS_disable:
         return N_("DISABLE FS");
-    case Response::HIPS:
-        return "HIPS";
     case Response::Ignore:
         return N_("IGNORE");
     case Response::Left:
@@ -70,14 +62,6 @@ inline constexpr const char *get_response_text(Response response) {
         return N_("OK");
     case Response::Pause:
         return N_("PAUSE");
-    case Response::PC:
-        return "PC";
-    case Response::PETG:
-        return "PETG";
-    case Response::PLA:
-        return "PLA";
-    case Response::PP:
-        return "PP";
     case Response::Print:
         return "Print";
     case Response::Purge_more:
@@ -86,8 +70,6 @@ inline constexpr const char *get_response_text(Response response) {
 #else
         return N_("PURGE MORE");
 #endif
-    case Response::PVB:
-        return "PVB";
     case Response::Quit:
         return N_("QUIT");
     case Response::Reheat:
@@ -118,8 +100,6 @@ inline constexpr const char *get_response_text(Response response) {
         return N_("YES");
     case Response::Heatup:
         return N_("HEATUP");
-    case Response::PA:
-        return "PA";
     case Response::Postpone5Days:
         return "POSTPONE";
     case Response::PRINT:
