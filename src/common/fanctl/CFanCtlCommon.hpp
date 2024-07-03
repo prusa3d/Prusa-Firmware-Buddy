@@ -24,13 +24,13 @@ public:
     inline uint8_t getMaxRPM() const { return max_rpm; }
     inline uint16_t getMaxPWM() const { return 255; }
 
-    virtual uint16_t getMinPWM() const = 0;
+    virtual uint8_t getMinPWM() const = 0;
     virtual FanState getState() const = 0;
     virtual uint8_t getPWM() const = 0;
     virtual uint16_t getActualRPM() const = 0;
     virtual bool getRPMIsOk() = 0;
     virtual bool getRPMMeasured() const = 0;
-    virtual bool setPWM(uint16_t pwm) = 0;
+    virtual bool setPWM(uint8_t pwm) = 0;
 
     inline bool isSelftest() { return selftest_mode; }
     virtual void enterSelftestMode() = 0;
