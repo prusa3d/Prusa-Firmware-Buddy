@@ -655,7 +655,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   #if ENABLED(PRECISE_HOMING_COREXY)
     // absolute refinement requires both axes to be already probed
-    if (!failed && doX && doY && precise) {
+    if (!failed && ( doX || ENABLED(CODEPENDENT_XY_HOMING)) && doY && precise) {
       failed = !refine_corexy_origin();
     }
   #endif
