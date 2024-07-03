@@ -19,31 +19,31 @@
 #include "filament_sensors_handler.hpp"
 #include "M70X.hpp"
 
-static Response preheatTempKnown(uint8_t target_extruder) {
-    auto filament_type = config_store().get_filament_type(target_extruder);
+static FSMResponseVariant preheatTempKnown(uint8_t target_extruder) {
+    const filament::Type filament_type = config_store().get_filament_type(target_extruder);
     assert(filament_type != filament::Type::NONE);
-    return filament::get_description(filament_type).response;
+    return FSMResponseVariant::make(filament_type);
 }
 
-static Response preheatTempUnKnown(PreheatData preheat_data, bool break_on_autoload = false) {
+static FSMResponseVariant preheatTempUnKnown(PreheatData preheat_data, bool break_on_autoload = false) {
     marlin_server::FSM_Holder holder { PhasesPreheat::UserTempSelection, preheat_data.serialize() };
 
     while (true) {
-        if (const auto ret = marlin_server::get_response_from_phase(PhasesPreheat::UserTempSelection); ret != Response::_none) {
+        if (const auto ret = marlin_server::get_response_variant_from_phase(PhasesPreheat::UserTempSelection)) {
             return ret;
         }
         if (preheat_data.Mode() == PreheatMode::Autoload && FSensors_instance().sensor_state(LogicalFilamentSensor::autoload) == FilamentSensorState::NoFilament) {
-            return Response::Abort;
+            return FSMResponseVariant::make(Response::Abort);
         }
         if (break_on_autoload && FSensors_instance().IsAutoloadInProgress()) {
-            return Response::_none;
+            return FSMResponseVariant();
         }
 
         idle(true, true);
     }
 }
 
-static Response evaluate_preheat_conditions(PreheatData preheat_data, uint8_t target_extruder) {
+static FSMResponseVariant evaluate_preheat_conditions(PreheatData preheat_data, uint8_t target_extruder) {
     bool canKnowTemp = preheat_data.Mode() == PreheatMode::Unload || preheat_data.Mode() == PreheatMode::Change_phase1 || preheat_data.Mode() == PreheatMode::Purge || preheat_data.Mode() == PreheatMode::Unload_askUnloaded;
 
     // Check if we are using operation which can get temp from printer and check if it can get the temp from available info (inserted filament or set temperature in temperature menu and no filament inserted)
@@ -58,16 +58,15 @@ static Response evaluate_preheat_conditions(PreheatData preheat_data, uint8_t ta
 }
 
 std::pair<std::optional<PreheatStatus::Result>, filament::Type> filament_gcodes::preheat(PreheatData preheat_data, uint8_t target_extruder) {
+    const FSMResponseVariant response = evaluate_preheat_conditions(preheat_data, target_extruder);
 
-    const Response response = evaluate_preheat_conditions(preheat_data, target_extruder);
-
-    if (const filament::Type filament = filament::get_type(response); filament != filament::Type::NONE) {
-
+    if (response.holds_alternative<filament::Type>()) {
+        const filament::Type filament = response.value<filament::Type>();
         preheat_to(filament, target_extruder);
         return { std::nullopt, filament };
     }
 
-    switch (response) {
+    switch (response.value_or(Response::_none)) {
 
     case Response::Abort:
         return { PreheatStatus::Result::Aborted, filament::Type::NONE };
@@ -96,9 +95,10 @@ void filament_gcodes::preheat_to(filament::Type filament, uint8_t target_extrude
 }
 
 std::pair<std::optional<PreheatStatus::Result>, filament::Type> filament_gcodes::preheat_for_change_load(PreheatData data, uint8_t target_extruder) {
-    const Response response = preheatTempUnKnown(data);
+    const FSMResponseVariant response = preheatTempUnKnown(data);
 
-    if (const filament::Type filament = filament::get_type(response); filament != filament::Type::NONE) {
+    if (response.holds_alternative<filament::Type>()) {
+        const filament::Type filament = response.value<filament::Type>();
         const filament::Description &fil_cnf = filament::get_description(filament);
 
         // change temp every time (unlike normal preheat)
@@ -111,7 +111,7 @@ std::pair<std::optional<PreheatStatus::Result>, filament::Type> filament_gcodes:
         return { std::nullopt, filament };
     }
 
-    switch (response) {
+    switch (response.value_or(Response::_none)) {
 
     case Response::Abort:
         return { PreheatStatus::Result::Aborted, filament::Type::NONE };
@@ -127,19 +127,20 @@ std::pair<std::optional<PreheatStatus::Result>, filament::Type> filament_gcodes:
 
 void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode, int8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed) {
     InProgress progress;
-    const Response response = preheatTempUnKnown(PreheatData(mode, preheat_tp), true);
+    const FSMResponseVariant response_variant = preheatTempUnKnown(PreheatData(mode, preheat_tp), true);
 
     // autoload ocurred
-    if (response == Response::_none) {
+    if (!response_variant) {
         return;
     }
 
+    const Response response = response_variant.value_or(Response::_none);
     if (response == Response::Abort) {
         PreheatStatus::SetResult(PreheatStatus::Result::Aborted);
         return;
     }
 
-    const filament::Type filament = filament::get_type(response);
+    const filament::Type filament = response_variant.value_or(filament::Type::NONE);
     const filament::Description &fil_cnf = filament::get_description(filament);
 
     const auto set_extruder_temp = [&](uint8_t extruder) {

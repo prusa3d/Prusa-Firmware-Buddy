@@ -10,7 +10,7 @@ struct Description {
     uint16_t nozzle;
     uint16_t nozzle_preheat;
     uint16_t heatbed;
-    Response response;
+    const char *name;
 };
 
 enum class Type : uint8_t {
@@ -76,7 +76,6 @@ constexpr Type default_type = Type::PLA;
 constexpr float cold_nozzle = 50.f;
 constexpr float cold_bed = 45.f;
 
-Type get_type(Response resp);
 Type get_type(const char *name, size_t name_len);
 
 const Description &get_description(Type type);

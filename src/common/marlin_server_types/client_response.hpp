@@ -545,12 +545,12 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::LoadUnloadResponses) == CountPhases<PhasesLoadUnload>());
 
-    static constexpr PhaseResponses PreheatResponses[] = {
-        {}, // initial
-        { Response::Abort, Response::Cooldown, Response::PLA, Response::PETG,
-            Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB, Response::PA }, // UserTempSelection
+    static constexpr EnumArray<PhasesPreheat, PhaseResponses, CountPhases<PhasesPreheat>()> PreheatResponses {
+        { PhasesPreheat::initial, {} },
+
+        // Additionally, filament type selection is passed through FSMResponseVariant(filament::Type)
+        { PhasesPreheat::UserTempSelection, { Response::Abort, Response::Cooldown } },
     };
-    static_assert(std::size(ClientResponses::PreheatResponses) == CountPhases<PhasesPreheat>());
 
     static constexpr PhaseResponses PrintPreviewResponses[] = {
         {}, // loading

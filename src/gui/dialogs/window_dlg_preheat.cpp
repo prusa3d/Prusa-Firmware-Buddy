@@ -27,8 +27,7 @@ NsPreheat::I_MI_Filament::I_MI_Filament(const string_view_utf8 &name, unsigned t
 }
 
 void NsPreheat::I_MI_Filament::click_at(filament::Type filament) {
-    const Response response = filament::get_description(filament).response;
-    marlin_client::FSM_response(PhasesPreheat::UserTempSelection, response);
+    marlin_client::FSM_response_variant(PhasesPreheat::UserTempSelection, FSMResponseVariant::make<filament::Type>(filament));
 }
 
 /*****************************************************************************/
@@ -50,8 +49,7 @@ NsPreheat::MI_COOLDOWN::MI_COOLDOWN()
 }
 
 void NsPreheat::MI_COOLDOWN::click([[maybe_unused]] IWindowMenu &window_menu) {
-    const Response response = filament::get_description(filament::Type::NONE).response;
-    marlin_client::FSM_response(PhasesPreheat::UserTempSelection, response);
+    marlin_client::FSM_response(PhasesPreheat::UserTempSelection, Response::Cooldown);
 }
 
 /*****************************************************************************/
