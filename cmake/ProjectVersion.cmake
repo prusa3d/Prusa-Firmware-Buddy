@@ -62,4 +62,25 @@ function(resolve_version_variables)
       "${PROJECT_VERSION}${PROJECT_VERSION_SUFFIX}"
       PARENT_SCOPE
       )
+
+  # FW_COMMIT_DIRTY
+  git_local_changes(IS_DIRTY)
+  if(${IS_DIRTY} STREQUAL "DIRTY")
+    set(FW_COMMIT_DIRTY
+        TRUE
+        PARENT_SCOPE
+        )
+  else()
+    set(FW_COMMIT_DIRTY
+        FALSE
+        PARENT_SCOPE
+        )
+  endif()
+
+  # FW_COMMIT_HASH
+  get_git_head_revision(COMMIT_REFSPEC COMMIT_HASH)
+  set(FW_COMMIT_HASH
+      ${COMMIT_HASH}
+      PARENT_SCOPE
+      )
 endfunction()
