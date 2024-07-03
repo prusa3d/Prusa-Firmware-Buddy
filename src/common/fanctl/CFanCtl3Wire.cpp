@@ -242,15 +242,15 @@ void CFanCtl3Wire::tick() {
     }
 }
 
-uint16_t CFanCtl3Wire::scalePWM(uint16_t pwm) const {
+uint8_t CFanCtl3Wire::scalePWM(uint8_t pwm) const {
     return pwm * m_pwm.get_max_PWM() / 255;
 }
 
-uint16_t CFanCtl3Wire::unscalePWM(uint16_t pwm) const {
+uint8_t CFanCtl3Wire::unscalePWM(uint8_t pwm) const {
     return pwm * 255 / m_pwm.get_max_PWM();
 }
 
-bool CFanCtl3Wire::setPWM(uint16_t pwm) {
+bool CFanCtl3Wire::setPWM(uint8_t pwm) {
     if (selftest_mode) {
         return false;
     }

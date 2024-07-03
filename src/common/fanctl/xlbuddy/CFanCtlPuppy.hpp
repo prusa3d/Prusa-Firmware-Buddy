@@ -19,7 +19,7 @@ public:
 
     void reset_fan();
 
-    virtual bool setPWM(uint16_t pwm) override;
+    virtual bool setPWM(uint8_t pwm) override;
 
     virtual bool selftestSetPWM(uint8_t pwm) override;
 
@@ -32,7 +32,7 @@ public:
     virtual FanState getState() const override;
 
     // Not used
-    virtual uint16_t getMinPWM() const override { return 0; }
+    virtual uint8_t getMinPWM() const override { return 0; }
     virtual bool getRPMMeasured() const override { return false; }
     virtual void tick() override {}
 
