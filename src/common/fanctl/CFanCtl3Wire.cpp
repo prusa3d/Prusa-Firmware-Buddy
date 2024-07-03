@@ -57,9 +57,7 @@ int8_t CFanCtlPWM::tick() {
             } else {
                 pha_stp = 0; // set step to zero - disable phase shifting
             }
-        }
-#if 1
-        else if (pha_stp) // pha_stp != 0 means phase shifting enabled
+        } else if (pha_stp) { // pha_stp != 0 means phase shifting enabled
             switch (pha_mode) {
             case none:
                 pha = 0;
@@ -78,7 +76,7 @@ int8_t CFanCtlPWM::tick() {
                 pha = pha_max * rand_f_from_u(rand_u_sw());
                 break;
             }
-#endif
+        }
     }
 #if (BOARD_IS_XBUDDY)
     // set output pin
