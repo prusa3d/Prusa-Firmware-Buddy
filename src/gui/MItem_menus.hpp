@@ -175,3 +175,11 @@ using MI_SELFTEST_SNAKE
 using MI_BED_LEVEL_CORRECTION
     = MI_SCREEN<N_("Bed Level Correction"), class ScreenMenuBedLevelCorrection>;
 #endif
+
+class MI_SERIAL_PRINTING_SCREEN_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Serial Printing Screen");
+
+public:
+    MI_SERIAL_PRINTING_SCREEN_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};

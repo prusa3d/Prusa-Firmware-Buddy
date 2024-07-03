@@ -134,3 +134,12 @@ template struct MI_SCREEN_CTOR<ScreenMenuSTSCalibrations>;
 #if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
 template struct MI_SCREEN_CTOR<ScreenMenuBedLevelCorrection>;
 #endif
+
+/**********************************************************************************************/
+// MI_SERIAL_PRINTING_SCREEN_ENABLE
+MI_SERIAL_PRINTING_SCREEN_ENABLE::MI_SERIAL_PRINTING_SCREEN_ENABLE()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().serial_print_screen_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+void MI_SERIAL_PRINTING_SCREEN_ENABLE::OnChange(size_t old_index) {
+    config_store().serial_print_screen_enabled.set(!old_index);
+}
