@@ -297,14 +297,15 @@ void screen_home_data_t::on_enter() {
     first_event = false;
 
 #if !DEVELOPER_MODE()
-    #if HAS_SELFTEST_SNAKE()
+    #if !PRINTER_IS_PRUSA_iX
+        #if HAS_SELFTEST_SNAKE()
     static bool first_time_check_st { true };
     if (first_time_check_st) {
         first_time_check_st = false;
         warn_unfinished_selftest_msgbox();
     }
+        #endif
     #endif
-
     handle_crash_dump();
 #endif
 }

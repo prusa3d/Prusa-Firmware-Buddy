@@ -97,7 +97,7 @@ screen_splash_data_t::screen_splash_data_t()
     const bool run_firstlay = config_store().run_first_layer.get();
     const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
 
-#else
+#elif !PRINTER_IS_PRUSA_iX
     const bool run_wizard =
         []() {
             SelftestResult sr = config_store().selftest_result.get();
@@ -134,6 +134,8 @@ screen_splash_data_t::screen_splash_data_t()
 
             return true;
         }();
+#else
+    const bool run_wizard = false;
 #endif
 
     constexpr auto pepa_callback = +[] {
