@@ -505,6 +505,15 @@ void MI_EEPROM_DIAGNOSTICS::click(IWindowMenu & /*window_menu*/) {
 }
 
 /**********************************************************************************************/
+// MI_SERIAL_PRINTING_SCREEN_ENABLE
+MI_SERIAL_PRINTING_SCREEN_ENABLE::MI_SERIAL_PRINTING_SCREEN_ENABLE()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().serial_print_screen_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+void MI_SERIAL_PRINTING_SCREEN_ENABLE::OnChange(size_t old_index) {
+    config_store().serial_print_screen_enabled.set(!old_index);
+}
+
+/**********************************************************************************************/
 // MI_USB_MSC_ENABLE
 MI_USB_MSC_ENABLE::MI_USB_MSC_ENABLE()
     : WI_ICON_SWITCH_OFF_ON_t(config_store().usb_msc_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}

@@ -1,6 +1,7 @@
 #include <serial_printing.hpp>
 #include <state/printer_state.hpp>
 #include <option/developer_mode.h>
+#include <config_store/store_instance.hpp>
 
 uint32_t SerialPrinting::last_serial_indicator_ms = 0;
 
@@ -84,6 +85,10 @@ void SerialPrinting::serial_command_hook(const char *command) {
     // if marlin server already printing, or is not able to start print, do not enter serial printing state
     // command will be still queued for execution regardless of this.
     if (!printer_state::remote_print_ready(true)) {
+        return;
+    }
+
+    if (!config_store().serial_print_screen_enabled.get()) {
         return;
     }
 
