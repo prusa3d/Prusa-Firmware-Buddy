@@ -14,7 +14,7 @@ enum {
 
 // this structure contain variables for rpm measuement
 // used in class CFanCtlTach
-typedef struct _fanctl_tach_t {
+struct fanctl_tach_t {
     union {
         struct { // flags:
             bool input_state : 1; //  last tacho input state (0/1)
@@ -26,7 +26,7 @@ typedef struct _fanctl_tach_t {
     uint16_t pwm_sum; // sum of ticks with pwm=1 in current cycle
     uint16_t rpm; // calculated RPM value (filtered)
     bool m_value_ready; // measure RPM done
-} fanctl_tach_t;
+};
 
 // class for software pwm control with phase-shifting
 class CFanCtlPWM {
@@ -116,7 +116,6 @@ public:
     CFanCtl3Wire(const buddy::hw::OutputPin &pinOut, const buddy::hw::InputPin &pinTach, uint8_t minPWM, uint8_t maxPWM,
         uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan, skip_tacho_t skip_tacho);
 
-public:
     virtual void tick() override; // tick callback from timer interrupt
 
     // getters

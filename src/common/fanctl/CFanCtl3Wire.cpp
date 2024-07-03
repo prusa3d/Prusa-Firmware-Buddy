@@ -12,6 +12,7 @@
 #include "gpio.h"
 #include <stdlib.h>
 #include <random.h>
+#include <algorithm>
 
 #if (BOARD_IS_XBUDDY)
     #include "hw_configuration.hpp"
@@ -41,7 +42,7 @@ int8_t CFanCtlPWM::tick() {
     if (pwm_on >= val) {
         pwm_on -= max_value;
     }
-    bool o = (cnt >= pha) && (cnt < (pha + val));
+    const bool o = (cnt >= pha) && (cnt < (pha + val));
     if (++cnt >= max_value) {
         cnt = 0;
         if (val != pwm) { // pwm changed
@@ -92,13 +93,7 @@ int8_t CFanCtlPWM::tick() {
 }
 
 void CFanCtlPWM::set_PWM(uint8_t new_pwm) {
-    if (new_pwm > max_value) {
-        new_pwm = max_value;
-    }
-    if (new_pwm && (new_pwm < min_value)) {
-        new_pwm = min_value;
-    }
-    pwm = new_pwm;
+    pwm = (new_pwm > 0) ? std::clamp(new_pwm, min_value, max_value) : 0;
 }
 
 void CFanCtlPWM::safeState() {
@@ -172,7 +167,7 @@ void CFanCtl3Wire::tick() {
     // PWM control
     int8_t pwm_on = m_pwm.tick();
     // RPM measurement
-    bool edge = 0;
+    bool edge = false;
 
     if (m_skip_tacho != skip_tacho_t::yes) {
         edge = m_tach.tick(pwm_on);
