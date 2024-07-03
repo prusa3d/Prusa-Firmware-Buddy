@@ -15,7 +15,7 @@ struct FSMHandlerMetadata {
         using Result = std::optional<Phase>;
 
         Phase current_phase;
-        Response response = Response::_none;
+        FSMResponseVariant response;
     };
 
     struct InitCallbackArgs {
@@ -92,7 +92,7 @@ public:
     bool loop() {
         const typename Meta::LoopCallbackArgs loop_callback_args {
             .current_phase = phase_,
-            .response = marlin_server::get_response_from_phase(phase_),
+            .response = marlin_server::get_response_variant_from_phase(phase_),
         };
 
         const auto f = phase_config[phase_].loop_callback;

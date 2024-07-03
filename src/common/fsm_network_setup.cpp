@@ -111,7 +111,7 @@ private:
     }
 
     PhaseOpt phase_ask_switch_to_wifi(const Meta::LoopCallbackArgs &args) {
-        switch (args.response) {
+        switch (args.response.value_or(Response::_none)) {
 
         case Response::Yes:
             // It takes a bit to apply the change
@@ -137,7 +137,7 @@ private:
             return phase;
         }
 
-        switch (args.response) {
+        switch (args.response.value_or(Response::_none)) {
 
         case Response::Back:
             return Phase::finish;
@@ -174,7 +174,7 @@ private:
         // The FSM waits for the UI to write into config_store wifi credentials
         // and send NetworkSetupResponse::connect response.
 
-        switch (args.response) {
+        switch (args.response.value_or(Response::_none)) {
 
         case Response::Back:
             return Phase::action_select;
@@ -194,7 +194,7 @@ private:
     }
 
     PhaseOpt phase_wait_for_ini_file(const Meta::LoopCallbackArgs &args) {
-        switch (args.response) {
+        switch (args.response.value_or(Response::_none)) {
 
         case Response::Back: // From touch swipe
         case Response::Cancel:
@@ -218,7 +218,7 @@ private:
     }
 
     PhaseOpt phase_ask_delete_ini_file(const Meta::LoopCallbackArgs &args) {
-        switch (args.response) {
+        switch (args.response.value_or(Response::_none)) {
 
         case Response::Back: // From touch swipe
             return Phase::action_select;
@@ -242,7 +242,7 @@ private:
             return phase;
         }
 
-        switch (args.response) {
+        switch (args.response.value_or(Response::_none)) {
 
         case Response::Back: // From touch swipe
         case Response::Cancel:
@@ -261,7 +261,7 @@ private:
     }
 
     PhaseOpt phase_nfc_confirm(const Meta::LoopCallbackArgs &args) {
-        switch (args.response) {
+        switch (args.response.value_or(Response::_none)) {
 
         case Response::Ok:
             config_store().wifi_ap_ssid.set(nfc_credentials_.ssid.data());
@@ -308,7 +308,7 @@ private:
             return Phase::connection_error;
         }
 
-        switch (args.response) {
+        switch (args.response.value_or(Response::_none)) {
 
         case Response::Back:
         case Response::Cancel:
@@ -331,7 +331,7 @@ private:
     }
 
     PhaseOpt phase_connected(const Meta::LoopCallbackArgs &args) {
-        switch (args.response) {
+        switch (args.response.value_or(Response::_none)) {
 
         case Response::Ok:
             return Phase::finish;
@@ -342,7 +342,7 @@ private:
     }
 
     PhaseOpt phase_esp_error(const Meta::LoopCallbackArgs &args) {
-        switch (args.response) {
+        switch (args.response.value_or(Response::_none)) {
 
         case Response::Retry:
             return Phase::init;
@@ -365,7 +365,7 @@ private:
             return Phase::connected;
         }
 
-        switch (args.response) {
+        switch (args.response.value_or(Response::_none)) {
 
         case Response::Back:
             return cancel_target_phase_;
@@ -382,7 +382,7 @@ private:
     }
 
     PhaseOpt phase_help_qr(const Meta::LoopCallbackArgs &args) {
-        switch (args.response) {
+        switch (args.response.value_or(Response::_none)) {
 
         case Response::Back:
             return Phase::init;

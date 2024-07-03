@@ -9,6 +9,10 @@ class FSMMenuItem : public IWindowMenuItem {
 public:
     template <typename Phase>
     FSMMenuItem(Phase phase, Response response, const string_view_utf8 &text, const img::Resource *icon = nullptr)
+        : FSMMenuItem(phase, FSMResponseVariant::make(response), text, icon) {}
+
+    template <typename Phase>
+    FSMMenuItem(Phase phase, FSMResponseVariant response, const string_view_utf8 &text, const img::Resource *icon = nullptr)
         : IWindowMenuItem(text, icon)
         , encoded_response(EncodedFSMResponse::encode(phase, FSMResponseVariant::make(response))) //
     {}
