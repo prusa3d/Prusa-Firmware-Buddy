@@ -51,6 +51,8 @@ public:
     inline PhaseShiftMode get_PhaseShiftMode() const { return pha_mode; }
 
     // setters
+    inline void set_min_PWM(uint8_t val) { min_value = val; }
+    inline void set_max_PWM(uint8_t val) { max_value = val; }
     inline void set_PhaseShiftThr(uint8_t val) { pha_thr = val; }
     void set_PWM(uint8_t new_pwm);
     inline void set_PhaseShiftMode(PhaseShiftMode new_pha_mode) { pha_mode = new_pha_mode; }
@@ -58,8 +60,8 @@ public:
 
 private:
     const buddy::hw::OutputPin &m_pin;
-    const uint8_t min_value; // minimum pwm value
-    const uint8_t max_value; // maximum pwm value
+    uint8_t min_value; // minimum pwm value
+    uint8_t max_value; // maximum pwm value
     union {
         struct { // flags:
             bool pha_ena : 1; //  phase shift enabled
@@ -109,7 +111,7 @@ enum class skip_tacho_t : bool {
 };
 
 //
-class CFanCtl3Wire final : public CFanCtlCommon {
+class CFanCtl3Wire : public CFanCtlCommon {
 
 public:
     // constructor
@@ -152,7 +154,8 @@ public:
     virtual void enterSelftestMode() override;
     virtual void exitSelftestMode() override;
     virtual bool selftestSetPWM(uint8_t pwm) override; // sets pwm in selftest, doesn't work outside selftest
-private:
+
+protected:
     uint16_t m_Ticks; // tick counter - used for starting and measurement
     uint16_t m_Result;
     FanState m_State; // fan control state

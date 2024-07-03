@@ -2,14 +2,9 @@
 #include <fanctl.hpp>
 #include "hwio_pindef.h"
 #include "CFanCtl3Wire.hpp"
-#include "CFanCtl3WireDynamic.hpp"
-
-#if !PRINTER_IS_PRUSA_MK4
-    #error "Dynamic PWM is only for MK4, fix your CMakeLists.txt!"
-#endif
 
 CFanCtlCommon &Fans::print(size_t index) {
-    static auto instance = CFanCtl3WireDynamic(
+    static auto instance = CFanCtl3Wire(
         buddy::hw::fanPrintPwm,
         buddy::hw::fanTach,
         FANCTLPRINT_PWM_MIN, FANCTLPRINT_PWM_MAX,
