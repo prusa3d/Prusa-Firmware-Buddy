@@ -344,13 +344,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   HomingReporter reporter;
 
-#if PRINTER_IS_PRUSA_iX()
-  // Avoid tool cleaner
-  if (Y) { 
-    X = true; 
-  }
-#endif
-
   DEBUG_SECTION(log_G28, "G28", DEBUGGING(LEVELING));
   if (DEBUGGING(LEVELING)) log_machine_info();
 

@@ -464,7 +464,7 @@
 #define HOMING_MAX_ATTEMPTS 10
 
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
-#define X_HOME_BUMP_MM 20
+#define X_HOME_BUMP_MM 10
 #define Y_HOME_BUMP_MM 20
 #define Z_HOME_BUMP_MM 2
 #define HOMING_BUMP_DIVISOR \
@@ -477,10 +477,11 @@
 #define HOMING_BACKOFF_POST_MM { 2, 2, 0 }
 
 // When G28 is called, this option will make Y home before X
-//#define HOME_Y_BEFORE_X
+// X must be homed before Y to avoid Nozzle Cleaner
+#define HOME_Y_BEFORE_X false
 
 // Enable this if X or Y can't home without homing the other axis first.
-//#define CODEPENDENT_XY_HOMING
+#define CODEPENDENT_XY_HOMING true
 
 /**
  * Z Steppers Auto-Alignment
