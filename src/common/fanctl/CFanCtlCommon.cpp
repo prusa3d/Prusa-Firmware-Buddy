@@ -4,6 +4,7 @@
 #include "metric.h"
 #include "Marlin/src/module/motion.h" // for active_extruder
 #include <utils/utility_extensions.hpp>
+#include <cmath>
 
 void record_fanctl_metrics() {
     METRIC_DEF(metric, "fan", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
@@ -16,12 +17,12 @@ void record_fanctl_metrics() {
     static constexpr uint32_t UPDATE_PERIOD = 987;
 
     auto record = [](const auto &fanctl, const char *fan_name) {
-        int8_t state = ftrstd::to_underlying(fanctl.getState());
-        float pwm = static_cast<float>(fanctl.getPWM()) / static_cast<float>(fanctl.getMaxPWM());
-        float measured = static_cast<float>(fanctl.getActualRPM()) / static_cast<float>(fanctl.getMaxRPM());
+        const int8_t state = ftrstd::to_underlying(fanctl.getState());
+        const float pwm = fanctl.getPWM() * 100.f / fanctl.getMaxPWM();
+        const float measured = fanctl.getActualRPM() * 100.f / fanctl.getMaxRPM();
 
         metric_record_custom(&metric, ",fan=%s state=%i,pwm=%i,measured=%i",
-            fan_name, state, (int)(pwm * 100.0f), (int)(measured * 100.0f));
+            fan_name, state, static_cast<int>(std::lround(pwm)), static_cast<int>(std::lround(measured)));
     };
 
     if (HAL_GetTick() - last_update > UPDATE_PERIOD) {
