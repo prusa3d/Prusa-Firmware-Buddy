@@ -16,6 +16,8 @@ extern "C" {
 #include "CrashCatcher.h"
 }
 
+#include <version.h>
+
 namespace crash_dump {
 
 /// While dumping, this stores size of already dumped data
@@ -311,10 +313,11 @@ static void dump_failed() {
     HAL_NVIC_SystemReset();
 }
 
-static const CrashCatcherMemoryRegion regions[] = {
+static constexpr CrashCatcherMemoryRegion regions[] = {
     { crash_dump::SCB_ADDR, crash_dump::SCB_ADDR + crash_dump::SCB_SIZE, CRASH_CATCHER_WORD },
     { crash_dump::RAM_ADDR, crash_dump::RAM_ADDR + crash_dump::RAM_SIZE, CRASH_CATCHER_BYTE },
     { crash_dump::CCMRAM_ADDR, crash_dump::CCMRAM_ADDR + crash_dump::CCMRAM_SIZE, CRASH_CATCHER_BYTE },
+    { reinterpret_cast<uintptr_t>(&project_build_identification), reinterpret_cast<uintptr_t>(&project_build_identification) + sizeof(project_build_identification), CRASH_CATCHER_BYTE },
     { 0xFFFFFFFF, 0, CRASH_CATCHER_BYTE },
 };
 
