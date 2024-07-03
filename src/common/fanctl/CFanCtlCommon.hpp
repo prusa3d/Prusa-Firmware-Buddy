@@ -48,9 +48,13 @@ protected:
 extern void record_fanctl_metrics();
 
 // FANCTLPRINT - printing fan
-inline constexpr uint8_t FANCTLPRINT_PWM_MIN = 10;
-inline constexpr uint8_t FANCTLPRINT_PWM_MAX = 50;
+inline constexpr uint8_t FANCTLPRINT_PWM_MIN = 10; // min duty cycle length 10 / 50 = 0.2 = 20%
+inline constexpr uint8_t FANCTLPRINT_PWM_MAX = 50; // 1000Hz / 50 = 20Hz PWM cycle
+#if PRINTER_IS_PRUSA_MK4
+inline constexpr uint16_t FANCTLPRINT_RPM_MIN = 90; // Dynamic PWM enables lower RPM
+#else
 inline constexpr uint16_t FANCTLPRINT_RPM_MIN = 150;
+#endif
 inline constexpr uint16_t FANCTLPRINT_RPM_MAX =
 #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX || PRINTER_IS_PRUSA_XL)
     6850
