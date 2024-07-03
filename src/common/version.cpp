@@ -1,6 +1,7 @@
 #include "version.h"
 #include "config.h"
 #include <string.h>
+#include <array>
 
 #define _STR(x) #x
 #define STR(x)  _STR(x)
@@ -38,6 +39,32 @@ const char project_firmware_name[] = "Buddy_iX";
 #else
     #error "Unknown PRINTER_TYPE."
 #endif
+
+#include <option/enable_translation_cs.h>
+#include <option/enable_translation_de.h>
+#include <option/enable_translation_es.h>
+#include <option/enable_translation_fr.h>
+#include <option/enable_translation_it.h>
+#include <option/enable_translation_pl.h>
+#include <option/enable_translation_ja.h>
+
+const BuildIdentification project_build_identification {
+    .commit_hash = STR(FW_COMMIT_HASH),
+    .project_version_full = STR(FW_VERSION_FULL),
+    .enabled_translations = (0 //
+        | ENABLE_TRANSLATION_CS() << 0
+        | ENABLE_TRANSLATION_DE() << 1
+        | ENABLE_TRANSLATION_ES() << 2
+        | ENABLE_TRANSLATION_FR() << 3
+        | ENABLE_TRANSLATION_IT() << 4
+        | ENABLE_TRANSLATION_PL() << 5
+        | ENABLE_TRANSLATION_JA() << 6
+        //
+        ),
+    .printer_code = PRINTER_CODE,
+    .commit_dirty = FW_COMMIT_DIRTY,
+    .has_bootloader = FW_BOOTLOADER,
+};
 
 void fill_project_version_no_dots(char *buffer, size_t buffer_size) {
     for (size_t version_i = 0, buffer_i = 0; version_i < strlen(project_version) && buffer_i < buffer_size - 1; ++version_i) {
