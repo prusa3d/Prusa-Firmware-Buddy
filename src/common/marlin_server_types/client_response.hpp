@@ -458,19 +458,6 @@ enum class PhasesSerialPrinting : PhaseUnderlyingType {
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesSerialPrinting) { return ClientFSM::Serial_printing; }
 
-namespace NetworkSetupResponse {
-constexpr Response scan_wifi = Response::Custom1;
-
-#if HAS_NFC()
-constexpr Response scan_nfc = Response::Custom2;
-#endif
-
-static constexpr Response load_from_ini = Response::Custom3;
-
-/// Client stored credentials into the config_store - use them and try to connect
-static constexpr Response connect = Response::Custom4;
-} // namespace NetworkSetupResponse
-
 // static class for work with fsm responses (like button click)
 // encode responses - get them from marlin client, to marlin server and decode them again
 class ClientResponses {
@@ -706,20 +693,15 @@ class ClientResponses {
     static constexpr EnumArray<PhaseNetworkSetup, PhaseResponses, PhaseNetworkSetup::_cnt> network_setup_responses {
         { PhaseNetworkSetup::init, {} },
             { PhaseNetworkSetup::ask_switch_to_wifi, { Response::Yes, Response::No } },
-            {
-                PhaseNetworkSetup::action_select,
-                // Note: This list is probably not necessary. All should work if you leave it empty
-                {
-#if HAS_NFC()
-                    NetworkSetupResponse::scan_nfc,
-#endif
-                    Response::Back, NetworkSetupResponse::scan_wifi, NetworkSetupResponse::load_from_ini, NetworkSetupResponse::connect, Response::Help },
-            },
-            { PhaseNetworkSetup::wifi_scan, { NetworkSetupResponse::connect, Response::Back } },
+            // Note: Additionally to this, the phase accepts various NetworkSetupResponse responses through FSMResponseVariant
+            { PhaseNetworkSetup::action_select, { Response::Back, Response::Help } },
+            // Note: Additionally to this, the phase accepts various NetworkSetupResponse responses through FSMResponseVariant
+            { PhaseNetworkSetup::wifi_scan, { Response::Back } },
             { PhaseNetworkSetup::wait_for_ini_file, { Response::Cancel } },
             { PhaseNetworkSetup::ask_delete_ini_file, { Response::Yes, Response::No } },
 #if HAS_NFC()
-            { PhaseNetworkSetup::wait_for_nfc, { Response::Cancel } }, { PhaseNetworkSetup::nfc_confirm, { Response::Ok, Response::Cancel } },
+            { PhaseNetworkSetup::wait_for_nfc, { Response::Cancel } },
+            { PhaseNetworkSetup::nfc_confirm, { Response::Ok, Response::Cancel } },
 #endif
             { PhaseNetworkSetup::connecting, { Response::Finish, Response::Cancel } },
             { PhaseNetworkSetup::connected, { Response::Ok } },

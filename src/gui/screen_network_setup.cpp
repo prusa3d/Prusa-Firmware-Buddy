@@ -53,7 +53,7 @@ class MI_ACTION_LOAD_INI : public FSMMenuItem {
 
 public:
     MI_ACTION_LOAD_INI()
-        : FSMMenuItem(Phase::action_select, NetworkSetupResponse::load_from_ini, _("Load config from file")) {}
+        : FSMMenuItem(Phase::action_select, FSMResponseVariant::make(NetworkSetupResponse::load_from_ini), _("Load config from file")) {}
 };
 
 #if HAS_NFC()
@@ -61,7 +61,7 @@ class MI_ACTION_LOAD_NFC : public FSMMenuItem {
 
 public:
     MI_ACTION_LOAD_NFC()
-        : FSMMenuItem(Phase::action_select, NetworkSetupResponse::scan_nfc, _("Setup via NFC")) {}
+        : FSMMenuItem(Phase::action_select, FSMResponseVariant::make(NetworkSetupResponse::scan_nfc), _("Setup via NFC")) {}
 };
 #endif
 
@@ -69,7 +69,7 @@ class MI_ACTION_SCAN : public FSMMenuItem {
 
 public:
     MI_ACTION_SCAN()
-        : FSMMenuItem(Phase::action_select, NetworkSetupResponse::scan_wifi, _("Scan networks")) {}
+        : FSMMenuItem(Phase::action_select, FSMResponseVariant::make(NetworkSetupResponse::scan_wifi), _("Scan networks")) {}
 };
 
 class MI_ACTION_MANUAL : public IWindowMenuItem {
@@ -93,7 +93,7 @@ protected:
 
         config_store().wifi_ap_ssid.set(ssid);
         config_store().wifi_ap_password.set(password);
-        marlin_client::FSM_response(Phase::action_select, NetworkSetupResponse::connect);
+        marlin_client::FSM_response_variant(Phase::action_select, FSMResponseVariant::make(NetworkSetupResponse::connect));
     }
 };
 

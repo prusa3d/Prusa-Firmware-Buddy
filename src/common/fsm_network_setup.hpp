@@ -21,6 +21,18 @@ enum class WizardMode {
 #endif
 };
 
+enum class NetworkSetupResponse {
+    scan_wifi,
+#if HAS_NFC()
+    scan_nfc,
+#endif
+    load_from_ini,
+    /// Client stored credentials into the config_store - use them and try to connect
+    connect,
+
+    _count
+};
+
 /// To be called from the marlin thread, this is basically a gcode
 void network_setup_wizard();
 

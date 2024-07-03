@@ -142,27 +142,34 @@ private:
         case Response::Back:
             return Phase::finish;
 
+        case Response::Help:
+            return Phase::help_qr;
+
+        default:
+            break;
+        }
+
+        switch (args.response.value_or(NetworkSetupResponse::_count)) {
+
         case NetworkSetupResponse::scan_wifi:
             return Phase::wifi_scan;
 
         case NetworkSetupResponse::load_from_ini:
             return Phase::wait_for_ini_file;
 
-#if HAS_NFC()
-        case NetworkSetupResponse::scan_nfc:
-            return Phase::wait_for_nfc;
-#endif
-
-        case Response::Help:
-            return Phase::help_qr;
-
         case NetworkSetupResponse::connect:
             // Continue -> user set up the new credentials into the config_store
             return Phase::connecting;
 
+#if HAS_NFC()
+        case NetworkSetupResponse::scan_nfc:
+            return Phase::wait_for_nfc;
+#endif
         default:
-            return std::nullopt;
+            break;
         }
+
+        return std::nullopt;
     }
 
     PhaseOpt phase_wifi_scan(const Meta::LoopCallbackArgs &args) {
