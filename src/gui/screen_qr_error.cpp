@@ -17,13 +17,13 @@
 using namespace crash_dump;
 
 static const constexpr Rect16 hand_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(250, 105, 65, 82) : Rect16(20, 155, 64, 82);
-static const constexpr Rect16 descr_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 85, 215, 100) : Rect16(10, 50, display::GetW() - 20, 220);
+static const constexpr Rect16 descr_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 85, 215, 100) : Rect16(10, 50, GuiDefaults::ScreenWidth - 20, 220);
 static const constexpr Rect16 QR_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(320, 85, 130, 130) : Rect16(90, 140, 130, 130);
-static const constexpr Rect16 link_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 222, 420, 20) : Rect16(0, 270, display::GetW(), 13);
+static const constexpr Rect16 link_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 222, 420, 20) : Rect16(0, 270, GuiDefaults::ScreenWidth, 13);
 static const constexpr Rect16 qr_code_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(180, 265, 100, 20) : Rect16(100, 295, 64, 13);
 static const constexpr Rect16 help_txt_rect = Rect16(30, 200, 215, 20);
 static const constexpr Rect16 title_line_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 70, 420, 1) : Rect16(10, 44, 219, 1);
-static const constexpr Rect16 fw_version_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 265, display::GetW() - 30, 20) : Rect16(6, 295, display::GetW() - 6, 13);
+static const constexpr Rect16 fw_version_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 265, GuiDefaults::ScreenWidth - 30, 20) : Rect16(6, 295, GuiDefaults::ScreenWidth - 6, 13);
 
 static constexpr const char *const header_label = N_("ERROR");
 static constexpr const char *const help_text = N_("More detail at");

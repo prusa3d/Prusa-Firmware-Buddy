@@ -10,9 +10,9 @@
 
 using namespace crash_dump;
 
-static const constexpr Rect16 fw_version_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, ScreenBlueError::fw_line_top, display::GetW() - 30, 20) : Rect16(6, 295, display::GetW() - 6, 13);
+static const constexpr Rect16 fw_version_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, ScreenBlueError::fw_line_top, GuiDefaults::ScreenWidth - 30, 20) : Rect16(6, 295, GuiDefaults::ScreenWidth - 6, 13);
 static const constexpr Rect16 header_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(14, 10, 240, GuiDefaults::HeaderHeight - 10) : GuiDefaults::RectHeader;
-static const constexpr Rect16 title_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 44, display::GetW() - 60, 20) : Rect16(13, 12, display::GetW() - 26, 20);
+static const constexpr Rect16 title_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 44, GuiDefaults::ScreenWidth - 60, 20) : Rect16(13, 12, GuiDefaults::ScreenWidth - 26, 20);
 
 ScreenBlueError::ScreenBlueError()
     : ScreenResetError(fw_version_rect)

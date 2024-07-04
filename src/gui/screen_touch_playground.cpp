@@ -5,7 +5,7 @@
 #include <ScreenHandler.hpp>
 
 ScreenTouchPlayground::ScreenTouchPlayground()
-    : text(this, Rect16(4, 4, display::GetW() - 8, 64), is_multiline::yes)
+    : text(this, Rect16(4, 4, GuiDefaults::ScreenWidth - 8, 64), is_multiline::yes)
     , touch_rect(this, {}) {
 
     text.set_font(Font::normal);

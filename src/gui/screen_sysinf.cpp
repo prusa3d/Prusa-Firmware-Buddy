@@ -36,10 +36,10 @@ enum { row_h = 20 };
 
 screen_sysinfo_data_t::screen_sysinfo_data_t()
     : screen_t()
-    , textMenuName(this, Rect16(0, 0, display::GetW(), 22), is_multiline::no)
+    , textMenuName(this, Rect16(0, 0, GuiDefaults::ScreenWidth, 22), is_multiline::no)
     , textCPU_load(this, Rect16(col_0, 25, col_0_w, row_h), is_multiline::no)
     , textCPU_load_val(this, Rect16(col_1, 25, col_1_w, row_h))
-    , textDateTime(this, Rect16(0, 50, display::GetW(), row_h), is_multiline::no)
+    , textDateTime(this, Rect16(0, 50, GuiDefaults::ScreenWidth, row_h), is_multiline::no)
     , textPrintFan_RPM(this, Rect16(col_0, 75, col_0_w, row_h), is_multiline::no)
     , textPrintFan_RPM_val(this, Rect16(col_1, 75, col_1_w, row_h))
     , textHeatBreakFan_RPM(this, Rect16(col_0, 100, col_0_w, row_h), is_multiline::no)

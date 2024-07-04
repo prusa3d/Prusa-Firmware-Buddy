@@ -183,11 +183,11 @@ MsgBoxIconPepaCentered::MsgBoxIconPepaCentered(Rect16 rect, const PhaseResponses
 }
 
 Rect16 MsgBoxIconPepaCentered::getTextRect() {
-    return Rect16(10, GuiDefaults::HeaderHeight + 147, display::GetW() - 10, 23 * 4);
+    return Rect16(10, GuiDefaults::HeaderHeight + 147, GuiDefaults::ScreenWidth - 10, 23 * 4);
 }
 
 Rect16 MsgBoxIconPepaCentered::getIconRect() {
-    return Rect16(0, GuiDefaults::HeaderHeight, display::GetW(), 140);
+    return Rect16(0, GuiDefaults::HeaderHeight, GuiDefaults::ScreenWidth, 140);
 }
 
 /*****************************************************************************/
@@ -216,10 +216,10 @@ MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, 
 MsgBoxIconnedWait::MsgBoxIconnedWait(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     const string_view_utf8 &txt, is_multiline multiline)
     : MsgBoxIconned(rect, resp, def_btn, labels, txt, multiline, &img::hourglass_26x39) {
-    icon.SetRect(Rect16(0, GuiDefaults::HeaderHeight, display::GetW(), 140));
+    icon.SetRect(Rect16(0, GuiDefaults::HeaderHeight, GuiDefaults::ScreenWidth, 140));
     icon.SetAlignment(Align_t::Center());
 
-    text.SetRect(Rect16(10, GuiDefaults::HeaderHeight + 147, display::GetW() - 10, 23 * 4));
+    text.SetRect(Rect16(10, GuiDefaults::HeaderHeight + 147, GuiDefaults::ScreenWidth - 10, 23 * 4));
     text.SetAlignment(Align_t::Center());
 }
 

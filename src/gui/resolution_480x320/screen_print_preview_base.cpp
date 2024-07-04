@@ -9,15 +9,15 @@
 static constexpr Rect16 title_rect {
     GuiDefaults::PreviewThumbnailRect.Left(),
     GuiDefaults::HeaderHeight + 8,
-    display::GetW() - 2 * GuiDefaults::PreviewThumbnailRect.Left(),
+    GuiDefaults::ScreenWidth - 2 * GuiDefaults::PreviewThumbnailRect.Left(),
     TITLE_HEIGHT
 };
 
 static constexpr Rect16 vertical_radio_buttons_rect {
-    GuiDefaults::PreviewThumbnailRect.Right() + (display::GetW() - GuiDefaults::PreviewThumbnailRect.Right() - RadioButtonPreview::vertical_buttons_width) / 2,
+    GuiDefaults::PreviewThumbnailRect.Right() + (GuiDefaults::ScreenWidth - GuiDefaults::PreviewThumbnailRect.Right() - RadioButtonPreview::vertical_buttons_width) / 2,
     GuiDefaults::PreviewThumbnailRect.Top(),
     RadioButtonPreview::vertical_buttons_width,
-    display::GetH() - GuiDefaults::PreviewThumbnailRect.Top()
+    GuiDefaults::ScreenHeight - GuiDefaults::PreviewThumbnailRect.Top()
 };
 
 ScreenPrintPreviewBase::ScreenPrintPreviewBase()

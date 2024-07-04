@@ -66,16 +66,16 @@ static_assert(sizeof(Pixel) == bytes_per_pixel);
 void transform_buffer(Pixel *buffer) {
     // Y-axis mirror image - because BMP pixel format has base origin in left-bottom corner not in left-top like on displays
     for (int row = 0; row < buffer_rows / 2; row++) {
-        const auto offset1 = row * display::GetW();
-        const auto offset2 = (buffer_rows - row - 1) * display::GetW();
+        const auto offset1 = row * GuiDefaults::ScreenWidth;
+        const auto offset2 = (buffer_rows - row - 1) * GuiDefaults::ScreenWidth;
 
-        for (int col = 0; col < display::GetW(); col++) {
+        for (size_t col = 0; col < GuiDefaults::ScreenWidth; col++) {
             std::swap(buffer[offset1 + col], buffer[offset2 + col]);
         }
     }
 
     // Apply display-specific pixel data transformations
-    for (Pixel *p = buffer, *e = buffer + buffer_rows * display::GetW(); p != e; p++) {
+    for (Pixel *p = buffer, *e = buffer + buffer_rows * GuiDefaults::ScreenWidth; p != e; p++) {
         transform_pixel(*p);
     }
 }
@@ -85,7 +85,7 @@ enum {
     BMP_INFO_HEADER_SIZE = 40,
     BMP_HEADER_SIZE = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE,
 
-    BMP_IMAGE_DATA_SIZE = display::GetW() * display::GetH() * bytes_per_pixel,
+    BMP_IMAGE_DATA_SIZE = GuiDefaults::ScreenWidth * GuiDefaults::ScreenHeight * bytes_per_pixel,
     BMP_FILE_SIZE = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE + BMP_IMAGE_DATA_SIZE,
     SCREENSHOT_FILE_NAME_MAX_LEN = 30,
     SCREENSHOT_FILE_NAME_BUFFER_LEN = SCREENSHOT_FILE_NAME_MAX_LEN + 3,
@@ -124,14 +124,14 @@ constexpr const uint8_t bmp_header[BMP_HEADER_SIZE] {
     0,
 
     // [4B] Horizontal width of bitmap in pixels
-    static_cast<uint8_t>(display::GetW()),
-    static_cast<uint8_t>(display::GetW() >> 8),
+    static_cast<uint8_t>(GuiDefaults::ScreenWidth),
+    static_cast<uint8_t>(GuiDefaults::ScreenWidth >> 8),
     0,
     0,
 
     // [4B] Vertical height of bitmap in pixels
-    static_cast<uint8_t>(display::GetH()),
-    static_cast<uint8_t>(display::GetH() >> 8),
+    static_cast<uint8_t>(GuiDefaults::ScreenHeight),
+    static_cast<uint8_t>(GuiDefaults::ScreenHeight >> 8),
     0,
     0,
 
@@ -208,9 +208,9 @@ bool TakeAScreenshotAs(const char *file_name) {
         return false;
     }
 
-    for (int block = display::GetH() / buffer_rows - 1; block >= 0; block--) {
+    for (int block = GuiDefaults::ScreenHeight / buffer_rows - 1; block >= 0; block--) {
         const point_ui16_t start = point_ui16(0, block * buffer_rows);
-        const point_ui16_t end = point_ui16(display::GetW() - 1, (block + 1) * buffer_rows - 1);
+        const point_ui16_t end = point_ui16(GuiDefaults::ScreenWidth - 1, (block + 1) * buffer_rows - 1);
         uint8_t *buffer = display::GetBlock(start, end); // this pointer is valid only until another display memory write is called
         if (!buffer) {
             return false;
@@ -218,7 +218,7 @@ bool TakeAScreenshotAs(const char *file_name) {
 
         transform_buffer(reinterpret_cast<Pixel *>(buffer + read_start_offset));
 
-        const int write_size = display::GetW() * buffer_rows * bytes_per_pixel;
+        const int write_size = GuiDefaults::ScreenWidth * buffer_rows * bytes_per_pixel;
         if (fwrite(buffer + read_start_offset, 1, write_size, f.get()) != write_size) {
             return false;
         }

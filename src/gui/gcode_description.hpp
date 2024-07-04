@@ -7,8 +7,8 @@
 #include <inplace_function.hpp>
 
 #if HAS_MINI_DISPLAY()
-inline constexpr uint16_t SCREEN_WIDTH = display::GetW();
-inline constexpr uint16_t SCREEN_HEIGHT = display::GetH();
+inline constexpr uint16_t SCREEN_WIDTH = GuiDefaults::ScreenWidth;
+inline constexpr uint16_t SCREEN_HEIGHT = GuiDefaults::ScreenHeight;
 inline constexpr uint16_t PADDING = 10;
 inline constexpr uint16_t TITLE_HEIGHT = 24;
 inline constexpr uint16_t LINE_HEIGHT = 15;

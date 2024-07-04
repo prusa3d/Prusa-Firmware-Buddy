@@ -16,7 +16,7 @@ using namespace crash_dump;
 
 static const constexpr uint16_t left_padding = ScreenFatalWarning::title_rect.Left();
 static const constexpr uint16_t text_start_y = 85;
-static const constexpr uint16_t qr_start_x = (display::GetW() * 2) / 3;
+static const constexpr uint16_t qr_start_x = (GuiDefaults::ScreenWidth * 2) / 3;
 static const constexpr uint16_t info_text_width = 293;
 
 static const constexpr Rect16 QR_rect = Rect16(qr_start_x, 74, GuiDefaults::QRSize, GuiDefaults::QRSize);
@@ -25,7 +25,7 @@ static const constexpr Rect16 descr_rect = Rect16(left_padding, text_start_y, in
 static const constexpr Rect16 help_txt_rect = Rect16(left_padding, 242, info_text_width, 20);
 static const constexpr Rect16 link_rect = Rect16(left_padding, 264, info_text_width, 20);
 static const constexpr Rect16 qr_code_rect = Rect16(180, 295, 100, 20);
-static const constexpr Rect16 fw_version_rect = Rect16(30, 295, display::GetW() - 30, 20);
+static const constexpr Rect16 fw_version_rect = Rect16(30, 295, GuiDefaults::ScreenWidth - 30, 20);
 
 static constexpr const char *const header_label = N_("Wrong hardware");
 static constexpr const char *const help_text = N_("More detail at");

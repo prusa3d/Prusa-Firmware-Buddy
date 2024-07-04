@@ -6,7 +6,7 @@
 #include "gcode_description.hpp" // TITLE_HEIGHT
 
 ScreenPrintPreviewBase::ScreenPrintPreviewBase()
-    : title_text(this, Rect16(PADDING, PADDING, display::GetW() - 2 * PADDING, TITLE_HEIGHT))
+    : title_text(this, Rect16(PADDING, PADDING, GuiDefaults::ScreenWidth - 2 * PADDING, TITLE_HEIGHT))
     , radio(this, GuiDefaults::GetButtonRect(GetRect())) {
     radio.SetBtnCount(2);
 }

@@ -5,7 +5,7 @@
 #include "metric.h"
 #include "window_event.hpp"
 #include "guitypes.hpp"
-#include "display.h"
+#include <guiconfig/GuiDefaults.hpp>
 
 /// Returns metric for logging touch events
 metric_t *metric_touch_event();
@@ -16,10 +16,10 @@ public:
     static_assert(static_cast<int>(GUI_event_t::_count) < (1 << 6));
     GUI_event_t type : 6 = GUI_event_t::_count;
 
-    static_assert(display::GetW() <= (1 << 10));
+    static_assert(GuiDefaults::ScreenWidth <= (1 << 10));
     uint16_t pos_x : 10;
 
-    static_assert(display::GetH() <= (1 << 10));
+    static_assert(GuiDefaults::ScreenHeight <= (1 << 10));
     uint16_t pos_y : 10;
 
 public:

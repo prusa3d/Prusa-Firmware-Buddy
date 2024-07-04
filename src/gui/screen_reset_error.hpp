@@ -16,7 +16,7 @@ class ScreenResetError : public screen_t {
 public:
     ScreenResetError(const Rect16 &fw_version_rect);
 
-    static const constexpr Rect16 title_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 44, display::GetW() - 60, 20) : Rect16(10, 24, display::GetW() - 26, 20);
+    static const constexpr Rect16 title_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 44, GuiDefaults::ScreenWidth - 60, 20) : Rect16(10, 24, GuiDefaults::ScreenWidth - 26, 20);
 
 protected:
     /// starts sound and avoids repetitive starting

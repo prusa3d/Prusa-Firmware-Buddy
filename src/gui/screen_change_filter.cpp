@@ -21,7 +21,7 @@ constexpr const uint16_t visual_delimeter = 10;
 constexpr const Rect16 descr_rect = Rect16(
     text_padding,
     GuiDefaults::HeaderHeight + visual_delimeter,
-    display::GetW() - 2 * text_padding - GuiDefaults::QRSize - visual_delimeter,
+    GuiDefaults::ScreenWidth - 2 * text_padding - GuiDefaults::QRSize - visual_delimeter,
     GuiDefaults::MsgBoxLayoutRect.Height() / 2);
 constexpr const Rect16 help_rect = Rect16(descr_rect.Left(), descr_rect.Bottom() + 20, descr_rect.Width(), descr_rect.Height());
 constexpr const Rect16 qr_rect = Rect16(descr_rect.Right() + visual_delimeter, descr_rect.Top(), GuiDefaults::QRSize, GuiDefaults::QRSize);

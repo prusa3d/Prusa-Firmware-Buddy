@@ -14,7 +14,6 @@
 #include "fonts.hpp"
 #include <guiconfig/guiconfig.h>
 
-typedef uint16_t(display_size_t)(void);
 typedef void(display_init_t)(void);
 typedef void(display_init_t)(void);
 typedef void(display_done_t)(void);
@@ -41,12 +40,6 @@ typedef bool(display_is_reset_required_t)();
 typedef void(display_complete_lcd_reinit_t)();
 
 template <
-#if !HAS_MOCK_DISPLAY() // mock display has dynamical size
-    uint16_t W, uint16_t H
-#else
-    display_size_t *COLS, display_size_t *ROWS
-#endif
-    ,
     display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_get_block_t *GET_BLOCK,
     display_draw_rounded_rect_t *DRAW_ROUNDED_RECT, // private only
     display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR, display_draw_text_t *DRAW_TEXT,
@@ -58,15 +51,6 @@ template <
 class Display {
     // sorted raw array of known utf8 character indices
 public:
-    /// Get width or height  of display
-#if !HAS_MOCK_DISPLAY() // mock display has dynamical size
-    constexpr static uint16_t GetW() { return W; }
-    constexpr static uint16_t GetH() { return H; }
-#else
-    constexpr static uint16_t GetW() { return COLS(); }
-    constexpr static uint16_t GetH() { return ROWS(); }
-#endif
-
     constexpr static void Init() { INIT(); }
     constexpr static void Done() { DONE(); }
     constexpr static void Clear(color_t clr) { CLEAR(clr); }
@@ -134,7 +118,7 @@ public:
 
 #if HAS_ST7789_DISPLAY()
     #include "st7789v.hpp"
-using display = Display<ST7789V_COLS, ST7789V_ROWS,
+using display = Display<
     st7789v_init,
     st7789v_done,
     display_ex_clear,
@@ -159,7 +143,7 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
 
 #if HAS_ILI9488_DISPLAY()
     #include "ili9488.hpp"
-using display = Display<ILI9488_COLS, ILI9488_ROWS,
+using display = Display<
     ili9488_init,
     ili9488_done,
     display_ex_clear,
@@ -184,7 +168,7 @@ using display = Display<ILI9488_COLS, ILI9488_ROWS,
 
 #if HAS_MOCK_DISPLAY()
     #include "mock_display.hpp"
-using display = Display<MockDisplay::Cols, MockDisplay::Rows,
+using display = Display<
     MockDisplay::init,
     MockDisplay::done,
     display_ex_clear,
