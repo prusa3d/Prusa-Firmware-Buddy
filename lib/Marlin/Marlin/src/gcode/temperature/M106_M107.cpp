@@ -65,7 +65,7 @@ void GcodeSuite::M106() {
     static_assert(FAN_COUNT < 3, "Fan index 3 is reserved for Enclosure fan and should not be set by thermalManager");
     if (p == 3) {
         // Enclosure fan does not support T parameter
-        const uint8_t s = parser.byteval('S', 255);
+        uint16_t s = parser.ushortval('S', 255);
         Fans::enclosure().setPWM(s);
         return;
     }

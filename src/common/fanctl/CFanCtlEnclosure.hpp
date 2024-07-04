@@ -21,11 +21,11 @@ public:
     virtual uint16_t getActualRPM() const override { return tachometer.get_rpm().value_or(0); }
     virtual bool getRPMIsOk() override { return !desired_pwm || getActualRPM() > min_rpm; }
     virtual bool getRPMMeasured() const override { return tachometer.get_rpm().has_value(); }
-    virtual bool setPWM(uint8_t pwm) override {
-        desired_pwm = pwm;
+    virtual bool setPWM(uint16_t pwm) override {
+        desired_pwm = pwm > 255 ? 255 : static_cast<uint8_t>(pwm);
         return true;
     }
-    virtual uint8_t getMinPWM() const override { return 0; }
+    virtual uint16_t getMinPWM() const override { return 0; }
 
     virtual void enterSelftestMode() override { selftest_mode = true; }
     virtual void exitSelftestMode() override { selftest_mode = false; }
