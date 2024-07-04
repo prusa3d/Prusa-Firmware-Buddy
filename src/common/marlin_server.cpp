@@ -151,6 +151,8 @@ extern ClientQueue marlin_client_queue[MARLIN_MAX_CLIENTS];
 
 namespace marlin_server {
 
+void media_prefetch_start();
+
 __attribute__((section(".ccmram"))) MediaPrefetchManager media_prefetch;
 
 namespace {
@@ -1031,8 +1033,11 @@ void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_pre
         // Update GCodeInfo
         GCodeInfo::getInstance().set_gcode_file(filepath_sfn.data(), filename_lfn.data());
     }
+    set_media_position(0);
+    media_prefetch_start();
 
     server.print_state = State::WaitGui;
+
     PrintPreview::Instance().set_skip_if_able(skip_preview);
 }
 
@@ -1770,9 +1775,6 @@ static void _server_print_loop(void) {
         probe_offset.z = 0;
         marlin_vars()->z_offset = 0;
 #endif // HAS_LOADCELL()
-
-        queue.last_executed_sdpos = 0;
-        media_prefetch_start();
 
         print_job_timer.start();
         marlin_vars()->time_to_end = TIME_TO_END_INVALID;
