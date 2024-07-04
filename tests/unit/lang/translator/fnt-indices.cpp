@@ -4,7 +4,7 @@
 // use pre-generated font_indices.ipp
 struct FCIndex {
     uint16_t unc; /// utf8 character value (stripped of prefixes)
-    uint8_t charX, charY;
+    uint16_t index;
 };
 // clang-format off
 static constexpr const FCIndex fontCharIndices[] =

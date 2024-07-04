@@ -21,7 +21,7 @@
 // just to test the FW with fonts - will be refactored
 struct FCIndex {
     uint16_t unc; /// utf8 character value (stripped of prefixes)
-    uint8_t charX, charY;
+    uint16_t index;
 };
 
 // clang-format off
@@ -80,7 +80,7 @@ uint32_t get_char_position_in_font(unichar c, const font_t *pf) {
         // character not found
         return get_char_position_in_font('?', pf);
     } else {
-        return i->charY * 16 + i->charX; // compute character index in font
+        return i->index;
     }
 }
 

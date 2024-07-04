@@ -129,8 +129,8 @@ def cmd_create_font_png(charset_option: str, required_chars_path: Path,
 
                     # Write index
                     file.write("{")
-                    file.write(" {}, {}, {}".format(hex(char_to_int(ch)), x,
-                                                    y))
+                    file.write(" {}, {}".format(hex(char_to_int(ch)),
+                                                16 * y + x))
                     file.write("},\n")
 
                     x += 1
