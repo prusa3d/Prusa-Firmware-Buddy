@@ -23,12 +23,12 @@ CFanCtl3WireDynamic::CFanCtl3WireDynamic(
     setPhaseShiftMode(CFanCtlPWM::PhaseShiftMode::none);
 }
 
-bool CFanCtl3WireDynamic::setPWM(uint8_t pwm) {
+bool CFanCtl3WireDynamic::setPWM(uint16_t pwm) {
     if (selftest_mode) {
         return false;
     }
     if (pwm) {
-        pwm = std::clamp<uint8_t>(pwm, 255 * 9 / 100 /* 9% min */, 255);
+        pwm = std::clamp<uint16_t>(pwm, 255 * 9 / 100 /* 9% min */, 255);
         uint8_t val = 0;
         if (pwm < 50) {
             val = 250;
