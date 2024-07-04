@@ -129,6 +129,7 @@ uint32_t Printer::info_fingerprint() const {
         .add(parameters.version.type)
         .add(parameters.version.version)
         .add(parameters.version.subversion)
+        .add(parameters.enabled_tool_cnt())
 #if XL_ENCLOSURE_SUPPORT()
         .add(parameters.enclosure_info.present)
         .add(parameters.enclosure_info.enabled)
