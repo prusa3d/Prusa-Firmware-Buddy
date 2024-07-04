@@ -15,15 +15,15 @@ LOG_COMPONENT_REF(GUI);
 
 namespace {
 void reinit_lcd_and_redraw() {
-    display::CompleteReinitLCD();
-    display::Init();
+    display::complete_reinit();
+    display::init();
     Screens::Access()->SetDisplayReinitialized();
 }
 
 void check_lcd() {
     // Determine if we should reset the LCD
     {
-        bool do_reset = display::IsResetRequired();
+        bool do_reset = display::is_reset_required();
 
 #if HAS_TOUCH()
         if (touchscreen.is_enabled()) {

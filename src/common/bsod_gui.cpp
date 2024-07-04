@@ -213,8 +213,8 @@ static void stop_common(void) {
 #endif
 
     hwio_beeper_notone();
-    display::Init();
-    display::Init();
+    display::init();
+    display::init();
 }
 
 /**
@@ -237,7 +237,7 @@ static void fallback_bsod(const char *fmt, const char *file_name, int line_numbe
     stop_common();
 
     ///< Clear with dark blue color
-    display::Clear(COLOR_NAVY);
+    display::clear(COLOR_NAVY);
 
     char fallback_bsod_text[300];
 

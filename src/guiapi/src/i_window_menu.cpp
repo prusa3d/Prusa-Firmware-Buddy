@@ -242,7 +242,7 @@ void IWindowMenu::draw() {
 
         if constexpr (GuiDefaults::MenuLinesBetweenItems) {
             if (flags.invalid_background && slot < visible_slot_count - 1) {
-                display::DrawLine(point_ui16(Left() + GuiDefaults::MenuItemDelimiterPadding.left, rect.Top() + rect.Height()),
+                display::draw_line(point_ui16(Left() + GuiDefaults::MenuItemDelimiterPadding.left, rect.Top() + rect.Height()),
                     point_ui16(Left() + Width() - GuiDefaults::MenuItemDelimiterPadding.right, rect.Top() + rect.Height()), COLOR_DARK_GRAY);
             }
         }
@@ -260,7 +260,7 @@ void IWindowMenu::draw() {
                 return;
             }
             rc_win += Rect16::Top_t(menu_h);
-            display::FillRect(rc_win, GetBackColor());
+            display::fill_rect(rc_win, GetBackColor());
         } else {
             // we dont have any items, just fill rectangle with back color
             unconditionalDraw();

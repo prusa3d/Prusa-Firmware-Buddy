@@ -217,10 +217,10 @@ void screen_splash_data_t::draw() {
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
     #if HAS_MINI_DISPLAY()
-    display::DrawText(Rect16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(Font::small), COLOR_BLACK, COLOR_RED);
+    display::draw_text(Rect16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(Font::small), COLOR_BLACK, COLOR_RED);
     #endif
     #if HAS_LARGE_DISPLAY()
-    display::DrawText(Rect16(340, 130, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(Font::small), COLOR_BLACK, COLOR_RED);
+    display::draw_text(Rect16(340, 130, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(Font::small), COLOR_BLACK, COLOR_RED);
     #endif
 #endif //_DEBUG
 }

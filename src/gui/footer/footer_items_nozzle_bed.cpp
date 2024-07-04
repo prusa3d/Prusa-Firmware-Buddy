@@ -65,20 +65,20 @@ void FooterItemBed::unconditionalDraw() {
             bool warm = last_warm_bedlet_mask & idx_mask;
 
             if (enabled) {
-                display::FillRect(
+                display::fill_rect(
                     Rect16(icon.Left() + x * 4, icon.Top() + icon.Height() - 4 - (y * 4), 3, 3),
                     COLOR_ORANGE);
             } else if (warm) {
                 uint px = icon.Left() + x * 4;
                 uint py = icon.Top() + icon.Height() - 4 - (y * 4);
 
-                display::SetPixel(point_ui16_t(px + 1, py), COLOR_ORANGE);
-                display::SetPixel(point_ui16_t(px + 1, py + 1), COLOR_ORANGE);
-                display::SetPixel(point_ui16_t(px + 1, py + 2), COLOR_ORANGE);
-                display::SetPixel(point_ui16_t(px, py + 1), COLOR_ORANGE);
-                display::SetPixel(point_ui16_t(px + 2, py + 1), COLOR_ORANGE);
+                display::set_pixel(point_ui16_t(px + 1, py), COLOR_ORANGE);
+                display::set_pixel(point_ui16_t(px + 1, py + 1), COLOR_ORANGE);
+                display::set_pixel(point_ui16_t(px + 1, py + 2), COLOR_ORANGE);
+                display::set_pixel(point_ui16_t(px, py + 1), COLOR_ORANGE);
+                display::set_pixel(point_ui16_t(px + 2, py + 1), COLOR_ORANGE);
             } else {
-                display::FillRect(
+                display::fill_rect(
                     Rect16(icon.Left() + x * 4, icon.Top() + icon.Height() - 4 - (y * 4), 3, 3),
                     COLOR_GRAY);
             }
@@ -129,7 +129,7 @@ void FooterItemAllNozzles::unconditionalDraw() {
     const uint16_t column_size = icon.Width() / NOZZLES_COUNT; // 3 px per nozzle, 2 px column + 1 px space
 
     // White mark above currently shown tool
-    display::FillRect(
+    display::fill_rect(
         Rect16(icon.Left() + nozzle_n * column_size, icon.Top(), column_size + 1, 2),
         COLOR_WHITE);
 
@@ -146,12 +146,12 @@ void FooterItemAllNozzles::unconditionalDraw() {
         uint gray_column_height = std::clamp<uint>(column_height, 0, gray_column_max);
 
         // Gray column down
-        display::FillRect(
+        display::fill_rect(
             Rect16(icon.Left() + nozzle * column_size + 1, icon.Top() + icon.Height() - gray_column_height, column_size - 1, gray_column_height),
             COLOR_GRAY);
         // Orange column up
         if (column_height > gray_column_max) {
-            display::FillRect(
+            display::fill_rect(
                 Rect16(icon.Left() + nozzle * column_size + 1, icon.Top() + icon.Height() - column_height, column_size - 1, column_height - gray_column_max),
                 COLOR_ORANGE);
         }

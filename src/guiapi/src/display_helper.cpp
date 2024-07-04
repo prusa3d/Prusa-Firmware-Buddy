@@ -92,7 +92,7 @@ void get_char_position_in_font(unichar c, const font_t *pf, uint8_t *charX, uint
 /// If @h is too high, it will be cropped so nothing is drawn outside of the @rc but
 /// @top and @left are not checked whether they are in @rc
 void fill_till_end_of_line(const int left, const int top, const int h, Rect16 rc, color_t clr) {
-    display::FillRect(Rect16(left, top, std::max(0, rc.EndPoint().x - left), CLAMP(rc.EndPoint().y - top, 0, h)), clr);
+    display::fill_rect(Rect16(left, top, std::max(0, rc.EndPoint().x - left), CLAMP(rc.EndPoint().y - top, 0, h)), clr);
 }
 
 /// Fills space between two rectangles with a color
@@ -103,16 +103,16 @@ void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t co
     }
     /// top
     const Rect16 rc_t = { r_out->Left(), r_out->Top(), r_out->Width(), uint16_t(r_in->Top() - r_out->Top()) };
-    display::FillRect(rc_t, color);
+    display::fill_rect(rc_t, color);
     /// bottom
     const Rect16 rc_b = { r_out->Left(), int16_t(r_in->Top() + r_in->Height()), r_out->Width(), uint16_t((r_out->Top() + r_out->Height()) - (r_in->Top() + r_in->Height())) };
-    display::FillRect(rc_b, color);
+    display::fill_rect(rc_b, color);
     /// left
     const Rect16 rc_l = { r_out->Left(), r_in->Top(), uint16_t(r_in->Left() - r_out->Left()), r_in->Height() };
-    display::FillRect(rc_l, color);
+    display::fill_rect(rc_l, color);
     /// right
     const Rect16 rc_r = { int16_t(r_in->Left() + r_in->Width()), r_in->Top(), uint16_t((r_out->Left() + r_out->Width()) - (r_in->Left() + r_in->Width())), r_in->Height() };
-    display::FillRect(rc_r, color);
+    display::fill_rect(rc_r, color);
 }
 
 /// Draws a text into the specified rectangle @rc
@@ -131,7 +131,7 @@ size_ui16_t render_line(T &textWrapper, Rect16 rc, StringReaderUtf8 &reader, con
     const uint16_t fnt_w = pf->w; // char width
     const uint16_t fnt_h = pf->h; // char height
 
-    const uint16_t buff_char_capacity = display::BufferPixelSize() / (fnt_w * fnt_h);
+    const uint16_t buff_char_capacity = display::buffer_pixel_size() / (fnt_w * fnt_h);
     assert(buff_char_capacity > 0 && "Buffer needs to take at least one character");
     uint16_t line_char_cnt = rc.Width() / fnt_w; // character count - rects are calculated through font measurings (newlines are ignored)
     uint16_t chars_cnt = 0; // character count of currently drawn loop iteration
@@ -146,13 +146,13 @@ size_ui16_t render_line(T &textWrapper, Rect16 rc, StringReaderUtf8 &reader, con
             if (c == '\n') {
                 j--; // j have to be unaffected by new line character
             } else {
-                display::StoreCharInBuffer(chars_cnt, j, c, pf, clr_bg, clr_fg);
+                display::store_char_in_buffer(chars_cnt, j, c, pf, clr_bg, clr_fg);
             }
         }
         // Drawing from the buffer
         if (chars_cnt > 0) {
             chars_left -= chars_cnt;
-            display::DrawFromBuffer(pt, chars_cnt * fnt_w, fnt_h);
+            display::draw_from_buffer(pt, chars_cnt * fnt_w, fnt_h);
             pt.x += chars_cnt * fnt_w;
         }
     }
@@ -225,7 +225,7 @@ void render_text_align(Rect16 rc, const string_view_utf8 &text, Font f, color_t 
     if (txt_size.w == 0 || txt_size.h == 0) {
         /// empty text => draw background rectangle only
         if (fill_rect) {
-            display::FillRect(rc, clr_bg);
+            display::fill_rect(rc, clr_bg);
         }
         return;
     }
@@ -268,12 +268,12 @@ void render_text_align(Rect16 rc, const string_view_utf8 &text, Font f, color_t 
             // in front of line
             Rect16 front = line_to_align.LeftSubrect(line_rect);
             if (front.Width()) {
-                display::FillRect(front, clr_bg);
+                display::fill_rect(front, clr_bg);
             }
             // behind line
             Rect16 behind = line_to_align.RightSubrect(line_rect);
             if (behind.Width()) {
-                display::FillRect(behind, clr_bg);
+                display::fill_rect(behind, clr_bg);
             }
             // middle of line (text)
             render_line(wrapper, line_rect, reader, font, clr_bg, clr_fg);
@@ -295,9 +295,9 @@ void render_icon_align(Rect16 rc, const img::Resource *res, color_t clr_back, ic
         Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
         rc_ico.Align(rc, flags.align);
         rc_ico = rc_ico.Intersection(rc);
-        display::DrawImg(point_ui16(rc_ico.Left(), rc_ico.Top()), *res, clr_back, flags.raster_flags);
+        display::draw_img(point_ui16(rc_ico.Left(), rc_ico.Top()), *res, clr_back, flags.raster_flags);
     } else {
-        display::FillRect(rc, clr_back);
+        display::fill_rect(rc, clr_back);
     }
 }
 
@@ -416,9 +416,9 @@ size_ui16_t font_meas_text(Font font, const string_view_utf8 &str, uint16_t *num
 }
 
 void render_rect(Rect16 rc, color_t clr) {
-    display::FillRect(rc, clr);
+    display::fill_rect(rc, clr);
 }
 
 void render_rounded_rect(Rect16 rc, color_t bg_clr, color_t fg_clr, uint8_t rad, uint8_t flag) {
-    display::DrawRoundedRect(rc, bg_clr, fg_clr, rad, flag);
+    display::draw_rounded_rect(rc, bg_clr, fg_clr, rad, flag);
 }

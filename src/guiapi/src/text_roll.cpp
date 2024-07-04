@@ -91,7 +91,7 @@ void txtroll_t::renderTextAlign(Rect16 rc, const string_view_utf8 &text, Font fo
 
     if (text.isNULLSTR()) {
         if (fill_rect) {
-            display::FillRect(rc, clr_back);
+            display::fill_rect(rc, clr_back);
         }
         return;
     }
@@ -100,7 +100,7 @@ void txtroll_t::renderTextAlign(Rect16 rc, const string_view_utf8 &text, Font fo
     if (unused_pxls) {
         Rect16 rc_unused_pxls = { int16_t(rect.Left() + rect.Width() - unused_pxls), rect.Top(), unused_pxls, rect.Height() };
         if (fill_rect) {
-            display::FillRect(rc_unused_pxls, clr_back);
+            display::fill_rect(rc_unused_pxls, clr_back);
         }
     }
 
@@ -117,7 +117,7 @@ void txtroll_t::renderTextAlign(Rect16 rc, const string_view_utf8 &text, Font fo
         }
     } else {
         if (fill_rect) {
-            display::FillRect(rc, clr_back);
+            display::fill_rect(rc, clr_back);
         }
     }
 }

@@ -67,7 +67,7 @@ void window_icon_t::unconditional_draw(window_aligned_t *window, const img::Reso
     Rect16 rc_ico = Rect16(0, 0, image->w, image->h);
     rc_ico.Align(window->GetRect(), window->GetAlignment());
     rc_ico = rc_ico.Intersection(window->GetRect());
-    display::DrawImg(point_ui16(rc_ico.Left(), rc_ico.Top()), *image, window->GetBackColor(), raster_op);
+    display::draw_img(point_ui16(rc_ico.Left(), rc_ico.Top()), *image, window->GetBackColor(), raster_op);
 }
 
 void window_icon_t::unconditionalDraw() {
@@ -151,7 +151,7 @@ void WindowMultiIconButton::unconditionalDraw() {
         pImg = &pRes->disabled;
     }
 
-    display::DrawImg(point_ui16(Left(), Top()), *pImg, GetBackColor());
+    display::draw_img(point_ui16(Left(), Top()), *pImg, GetBackColor());
 }
 
 void WindowMultiIconButton::windowEvent(window_t *sender, GUI_event_t event, void *param) {
@@ -251,7 +251,7 @@ void window_icon_hourglass_t::unconditionalDraw() {
     }
 
     for (auto it = begin; it != end; ++it) {
-        display::DrawLine(point_ui16(Left() + it->first.x, Top() + it->first.y), point_ui16(Left() + it->last.x, Top() + it->last.y), it->color);
+        display::draw_line(point_ui16(Left() + it->first.x, Top() + it->first.y), point_ui16(Left() + it->last.x, Top() + it->last.y), it->color);
     }
 }
 

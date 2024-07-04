@@ -286,10 +286,10 @@ void window_header_t::windowEvent(window_t *sender, GUI_event_t event, void *par
         uint16_t cpu = osGetCPUUsage();
         if (!cpu_warning_on && cpu >= 80) {
             cpu_warning_on = true;
-            display::FillRect(Rect16(5, 5, 5, 5), COLOR_RED_ALERT);
+            display::fill_rect(Rect16(5, 5, 5, 5), COLOR_RED_ALERT);
         } else if (cpu_warning_on && cpu < 80) {
             cpu_warning_on = false;
-            display::FillRect(Rect16(5, 5, 5, 5), GetBackColor());
+            display::fill_rect(Rect16(5, 5, 5, 5), GetBackColor());
         }
     }
 #endif // DEBUG

@@ -8,13 +8,13 @@
 
 namespace {
 void reinit_lcd_and_redraw() {
-    display::CompleteReinitLCD();
-    display::Init();
+    display::complete_reinit();
+    display::init();
     Screens::Access()->SetDisplayReinitialized();
 }
 
 void check_lcd() {
-    if (display::IsResetRequired()) {
+    if (display::is_reset_required()) {
         reinit_lcd_and_redraw();
     }
 }

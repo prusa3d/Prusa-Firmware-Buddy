@@ -38,9 +38,9 @@ void window_colored_rect::unconditionalDraw() {
 
     // draw the border rect
     if (flags.has_round_corners) {
-        display::DrawRoundedRect(rect, parent_color, is_closer_to_white ? COLOR_BLACK : COLOR_WHITE, GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS);
+        display::draw_rounded_rect(rect, parent_color, is_closer_to_white ? COLOR_BLACK : COLOR_WHITE, GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS);
     } else {
-        display::DrawRect(rect, is_closer_to_white ? COLOR_BLACK : COLOR_WHITE);
+        display::draw_rect(rect, is_closer_to_white ? COLOR_BLACK : COLOR_WHITE);
     }
 
     // shrink the rect for the actual color
@@ -51,9 +51,9 @@ void window_colored_rect::unconditionalDraw() {
 
     // draw the actual rect
     if (flags.has_round_corners) {
-        display::DrawRoundedRect(rect,
+        display::draw_rounded_rect(rect,
             is_closer_to_white ? COLOR_BLACK : COLOR_WHITE, GetBackColor(), GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS);
     } else {
-        display::FillRect(rect, GetBackColor());
+        display::fill_rect(rect, GetBackColor());
     }
 }

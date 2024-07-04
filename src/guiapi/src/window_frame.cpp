@@ -189,7 +189,7 @@ void window_frame_t::draw() {
     } else {
         // invalid_area must be drawn before subwins
         if (!invalid_area.IsEmpty()) {
-            display::FillRect(invalid_area, GetBackColor());
+            display::fill_rect(invalid_area, GetBackColor());
         }
     }
 

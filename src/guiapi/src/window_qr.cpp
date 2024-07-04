@@ -63,7 +63,7 @@ void window_qr_t::unconditionalDraw() {
     { // Create QR code
         /// Temporary buffer, 353 B using display buffer
         display::BorrowBuffer buffer;
-        assert(display::BufferPixelSize() >= qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max));
+        assert(display::buffer_pixel_size() >= qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max));
         if (!qrcodegen_encodeText(text, buffer, qrcode, qrcodegen_Ecc_LOW, 1, qr_version_max, qrcodegen_Mask_AUTO, true)) {
             return;
         }
@@ -103,7 +103,7 @@ void window_qr_t::unconditionalDraw() {
     /// paint QR code
     for (int y = -border; y < (size + border); ++y) {
         for (int x = -border; x < (size + border); ++x) {
-            display::FillRect(Rect16(x0 + x * ppm, y0 + y * ppm, ppm, ppm), ((qrcodegen_getModule(qrcode, x, y) ? COLOR_BLACK : COLOR_WHITE)));
+            display::fill_rect(Rect16(x0 + x * ppm, y0 + y * ppm, ppm, ppm), ((qrcodegen_getModule(qrcode, x, y) ? COLOR_BLACK : COLOR_WHITE)));
         }
     }
 }

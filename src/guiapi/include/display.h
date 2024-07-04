@@ -51,30 +51,30 @@ template <
 class Display {
     // sorted raw array of known utf8 character indices
 public:
-    constexpr static void Init() { INIT(); }
-    constexpr static void Done() { DONE(); }
-    constexpr static void Clear(color_t clr) { CLEAR(clr); }
-    constexpr static void SetPixel(point_ui16_t pt, color_t clr) { SET_PIXEL(pt, clr); }
-    constexpr static uint8_t *GetBlock(point_ui16_t start, point_ui16_t end) { return GET_BLOCK(start, end); }
-    constexpr static void DrawRoundedRect(Rect16 rect, color_t back, color_t front, uint8_t cor_rad, uint8_t cor_flag, color_t secondary_col = COLOR_BLACK) { return DRAW_ROUNDED_RECT(rect, back, front, cor_rad, cor_flag, secondary_col); }
-    constexpr static void DrawLine(point_ui16_t pt0, point_ui16_t pt1, color_t clr) { DRAW_LINE(pt0, pt1, clr); }
-    constexpr static void DrawLine(point_i16_t pt0, point_i16_t pt1, color_t clr) {
+    constexpr static void init() { INIT(); }
+    constexpr static void done() { DONE(); }
+    constexpr static void clear(color_t clr) { CLEAR(clr); }
+    constexpr static void set_pixel(point_ui16_t pt, color_t clr) { SET_PIXEL(pt, clr); }
+    constexpr static uint8_t *get_block(point_ui16_t start, point_ui16_t end) { return GET_BLOCK(start, end); }
+    constexpr static void draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint8_t cor_rad, uint8_t cor_flag, color_t secondary_col = COLOR_BLACK) { return DRAW_ROUNDED_RECT(rect, back, front, cor_rad, cor_flag, secondary_col); }
+    constexpr static void draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) { DRAW_LINE(pt0, pt1, clr); }
+    constexpr static void draw_line(point_i16_t pt0, point_i16_t pt1, color_t clr) {
         uint16_t l = std::max(int16_t(0), pt0.x);
         uint16_t t = std::max(int16_t(0), pt0.y);
         uint16_t r = std::max(int16_t(0), pt1.x);
         uint16_t b = std::max(int16_t(0), pt1.y);
-        DrawLine(point_ui16(l, t), point_ui16(r, b), clr);
+        draw_line(point_ui16(l, t), point_ui16(r, b), clr);
     }
-    constexpr static void DrawRect(Rect16 rc, color_t clr) { DRAW_RECT(rc, clr); }
-    constexpr static void FillRect(Rect16 rc, color_t clr) { FIL_RECT(rc, clr); }
-    constexpr static bool DrawChar(point_ui16_t pt, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+    constexpr static void draw_rect(Rect16 rc, color_t clr) { DRAW_RECT(rc, clr); }
+    constexpr static void fill_rect(Rect16 rc, color_t clr) { FIL_RECT(rc, clr); }
+    constexpr static bool draw_char(point_ui16_t pt, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg) {
         uint8_t charX = 0, charY = 0;
         get_char_position_in_font(c, pf, &charX, &charY);
         return DRAW_CHAR(pt, charX, charY, pf, clr_bg, clr_fg);
     }
     /// Draws text on the display
     /// \param rc rectangle where text will be placed
-    static size_ui16_t DrawText(Rect16 rc, const string_view_utf8 &str, const font_t *pf, color_t clr_bg, color_t clr_fg) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg); }
+    static size_ui16_t draw_text(Rect16 rc, const string_view_utf8 &str, const font_t *pf, color_t clr_bg, color_t clr_fg) { return DRAW_TEXT(rc, str, pf, clr_bg, clr_fg); }
 
     /**
      * @brief Borrow display buffer.
@@ -89,31 +89,31 @@ public:
         operator uint8_t *() { return buffer; }
     };
 
-    constexpr static uint32_t BufferPixelSize() { return BUFFER_PIXEL_SIZE(); }
-    constexpr static void StoreCharInBuffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+    constexpr static uint32_t buffer_pixel_size() { return BUFFER_PIXEL_SIZE(); }
+    constexpr static void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg) {
         uint8_t charX = 0, charY = 0;
         get_char_position_in_font(c, pf, &charX, &charY);
         STORE_CHAR_IN_BUFFER(char_cnt, curr_char_idx, charX, charY, pf, clr_bg, clr_fg);
     }
-    constexpr static void DrawFromBuffer(point_ui16_t pt, uint16_t w, uint16_t h) { DRAW_FROM_BUFFER(pt, w, h); }
+    constexpr static void draw_from_buffer(point_ui16_t pt, uint16_t w, uint16_t h) { DRAW_FROM_BUFFER(pt, w, h); }
 
     // DrawImg functions intentionally don't have default parameters - to optimize multiple calls
-    constexpr static void DrawImg(point_ui16_t pt, const img::Resource &img) {
+    constexpr static void draw_img(point_ui16_t pt, const img::Resource &img) {
         DRAW_QOI(pt, img, 0, ropfn(), Rect16(0, 0, 0, 0));
     }
-    constexpr static void DrawImg(point_ui16_t pt, const img::Resource &img, color_t back_color) {
+    constexpr static void draw_img(point_ui16_t pt, const img::Resource &img, color_t back_color) {
         DRAW_QOI(pt, img, back_color, ropfn(), Rect16(0, 0, 0, 0));
     }
-    constexpr static void DrawImg(point_ui16_t pt, const img::Resource &img, color_t back_color, ropfn rop) {
+    constexpr static void draw_img(point_ui16_t pt, const img::Resource &img, color_t back_color, ropfn rop) {
         DRAW_QOI(pt, img, back_color, rop, Rect16(0, 0, 0, 0));
     }
-    constexpr static void DrawImg(point_ui16_t pt, const img::Resource &img, color_t back_color, ropfn rop, Rect16 subrect) {
+    constexpr static void draw_img(point_ui16_t pt, const img::Resource &img, color_t back_color, ropfn rop, Rect16 subrect) {
         DRAW_QOI(pt, img, back_color, rop, subrect);
     }
 
-    constexpr static void SetBacklight(uint8_t bck) { BACKLIGHT(bck); }
-    constexpr static bool IsResetRequired() { return IS_RESET_REQUIRED(); }
-    constexpr static void CompleteReinitLCD() { COMPLETE_LCD_REINIT(); }
+    constexpr static void set_backlight(uint8_t bck) { BACKLIGHT(bck); }
+    constexpr static bool is_reset_required() { return IS_RESET_REQUIRED(); }
+    constexpr static void complete_reinit() { COMPLETE_LCD_REINIT(); }
 };
 
 #if HAS_ST7789_DISPLAY()

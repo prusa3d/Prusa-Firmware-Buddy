@@ -34,7 +34,7 @@ void WindowPreviewThumbnail::unconditionalDraw() {
         return;
     }
 
-    display::DrawImg(point_ui16(Left(), Top()), res);
+    display::draw_img(point_ui16(Left(), Top()), res);
     f_gcode_thumb_close(&f);
 }
 
@@ -82,7 +82,7 @@ void WindowProgressThumbnail::unconditionalDraw() {
     }
 
     // Draw whole thumbnail:
-    display::DrawImg(point_ui16(have_old_alternative ? get_old_left() : Left(), Top()), res);
+    display::draw_img(point_ui16(have_old_alternative ? get_old_left() : Left(), Top()), res);
 
     redraw_whole = false;
     f_gcode_thumb_close(&f);

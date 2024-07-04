@@ -50,7 +50,7 @@ static Sw_Timer<uint32_t> gui_loop_timer(GUI_DELAY_LOOP);
 static Sw_Timer<uint32_t> gui_redraw_timer(GUI_DELAY_REDRAW);
 
 void gui_init(void) {
-    display::Init();
+    display::init();
 
 // select jogwheel type by measured 'reset delay'
 // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)

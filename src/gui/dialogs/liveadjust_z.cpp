@@ -48,7 +48,7 @@ void WindowScale::SetMark(float relative) {
 }
 
 void WindowScale::horizLine(uint16_t width_pad, uint16_t height, color_t color) {
-    display::DrawLine(
+    display::draw_line(
         point_ui16(Left() + width_pad, Top() + height),
         point_ui16(Left() + 10 - width_pad, Top() + height),
         color);
@@ -61,7 +61,7 @@ void WindowScale::unconditionalDraw() {
     }
     mark_old_y = std::nullopt;
     /// vertical line of scale
-    display::DrawLine(point_ui16(Left() + 5, Top()), point_ui16(Left() + 5, Top() + Height()), COLOR_WHITE);
+    display::draw_line(point_ui16(Left() + 5, Top()), point_ui16(Left() + 5, Top() + Height()), COLOR_WHITE);
     /// horizontal lines
     horizLineWhite(0, 0);
     horizLineWhite(2, Height() / 4);

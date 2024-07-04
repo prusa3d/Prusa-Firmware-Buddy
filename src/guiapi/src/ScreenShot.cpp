@@ -211,7 +211,7 @@ bool TakeAScreenshotAs(const char *file_name) {
     for (int block = GuiDefaults::ScreenHeight / buffer_rows - 1; block >= 0; block--) {
         const point_ui16_t start = point_ui16(0, block * buffer_rows);
         const point_ui16_t end = point_ui16(GuiDefaults::ScreenWidth - 1, (block + 1) * buffer_rows - 1);
-        uint8_t *buffer = display::GetBlock(start, end); // this pointer is valid only until another display memory write is called
+        uint8_t *buffer = display::get_block(start, end); // this pointer is valid only until another display memory write is called
         if (!buffer) {
             return false;
         }

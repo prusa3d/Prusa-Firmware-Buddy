@@ -24,7 +24,7 @@ void window_line_connector::set_line_thickness(uint16_t new_value) {
 
 void window_line_connector::unconditionalDraw() {
     auto this_rect = GetRect();
-    display::FillRect(this_rect, COLOR_BLACK);
+    display::fill_rect(this_rect, COLOR_BLACK);
 
     // horizontal mode not yet implemented
     assert(parent_side == ParentSide::left || parent_side == ParentSide::right);
@@ -75,8 +75,8 @@ void window_line_connector::unconditionalDraw() {
             line_thickness
         };
 
-        display::FillRect(child_to_middle_rect, COLOR_GRAY);
-        display::FillRect(middle_to_middle_rect, COLOR_GRAY);
-        display::FillRect(parent_to_middle_rect, COLOR_GRAY);
+        display::fill_rect(child_to_middle_rect, COLOR_GRAY);
+        display::fill_rect(middle_to_middle_rect, COLOR_GRAY);
+        display::fill_rect(parent_to_middle_rect, COLOR_GRAY);
     }
 }

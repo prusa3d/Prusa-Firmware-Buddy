@@ -47,5 +47,5 @@ void ScrollBar::unconditionalDraw() {
     rc = Rect16::Height_t(bar_size);
     rc += Rect16::Top_t(offset_scaled);
 
-    display::DrawRect(rc, COLOR_SILVER);
+    display::draw_rect(rc, COLOR_SILVER);
 }

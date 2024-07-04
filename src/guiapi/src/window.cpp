@@ -413,9 +413,9 @@ void window_t::addInvalidationRect([[maybe_unused]] Rect16 rc) {
 void window_t::unconditionalDraw() {
     if (flags.has_round_corners) {
         color_t parent_back_color = GetParent() ? GetParent()->GetBackColor() : GetBackColor();
-        display::DrawRoundedRect(GetRect(), parent_back_color, GetBackColor(), GuiDefaults::DefaultCornerRadius, MIC_ALL_CORNERS);
+        display::draw_rounded_rect(GetRect(), parent_back_color, GetBackColor(), GuiDefaults::DefaultCornerRadius, MIC_ALL_CORNERS);
     } else {
-        display::FillRect(GetRect(), GetBackColor());
+        display::fill_rect(GetRect(), GetBackColor());
     }
 }
 

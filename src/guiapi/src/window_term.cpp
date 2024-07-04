@@ -57,7 +57,7 @@ static void render_term(term_t *pterm, size_t x, size_t y, color_t color_back, c
                     // character is followed by attribute
                     uint8_t ch = *(pb++);
                     pb++; // uint8_t attr = *(pb++);
-                    display::DrawChar(point_ui16(x + c * char_w, y + r * char_h), ch, resource_font(font), color_back, color_text);
+                    display::draw_char(point_ui16(x + c * char_w, y + r * char_h), ch, resource_font(font), color_back, color_text);
                 } else {
                     pb += 2;
                 }

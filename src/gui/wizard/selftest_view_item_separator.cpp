@@ -17,11 +17,11 @@ SelfTestViewSeparator::SelfTestViewSeparator()
 void SelfTestViewSeparator::Draw(Rect16::Top_t top) const {
     Rect16 rc = Rect(top);
     rc = top_padding;
-    display::FillRect(rc, GuiDefaults::ColorBack);
+    display::fill_rect(rc, GuiDefaults::ColorBack);
     rc += Rect16::Top_t(rc.Height());
     rc = Rect16::Height_t(line_height);
-    display::FillRect(rc, COLOR_ORANGE);
+    display::fill_rect(rc, COLOR_ORANGE);
     rc += Rect16::Top_t(rc.Height());
     rc = bot_padding;
-    display::FillRect(rc, GuiDefaults::ColorBack);
+    display::fill_rect(rc, GuiDefaults::ColorBack);
 }
