@@ -68,4 +68,8 @@ inline bool is_pausing_state(State state) {
     return (state == State::Pausing_Begin) || (state == State::Pausing_Failed_Code) || (state == State::Pausing_WaitIdle) || (state == State::Pausing_ParkHead);
 }
 
+inline bool is_resuming_state(State state) {
+    return (state == State::Resuming_Begin) || (state == State::Resuming_Reheating) || (state == State::Resuming_UnparkHead_XY) || (state == State::Resuming_UnparkHead_ZE);
+}
+
 } // namespace marlin_server

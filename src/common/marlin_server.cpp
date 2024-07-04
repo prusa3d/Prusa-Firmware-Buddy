@@ -1136,6 +1136,8 @@ void print_exit(void) {
 }
 
 void print_pause(void) {
+    print_state.resume_pending = false;
+
     if (server.print_state == State::Printing) {
         server.print_state = State::Pausing_Begin;
     }
@@ -1353,6 +1355,9 @@ void print_resume(void) {
         server.print_state = State::Resuming_Begin;
         // pause queuing commands from serial, until resume sequence is finished.
         GCodeQueue::pause_serial_commands = true;
+
+    } else if (is_resuming_state(server.print_state)) {
+        // Do nothing
 
     } else if (is_pausing_state(server.print_state)) {
         print_state.resume_pending = true;
