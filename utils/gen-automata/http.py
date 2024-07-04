@@ -422,6 +422,11 @@ def authorization_header():
         u.add_fallback(unknown)
     after_unknown = tr.add_state()
     unknown.add_transition('=', LabelType.Char, after_unknown)
+    # For unknown headers without '=' in them
+    unknown.add_transition('Whitespace',
+                           LabelType.Special,
+                           tr_start,
+                           fallthrough=True)
     unknown.loop_fallback()
     after_unknown.loop("HorizWhitespace", LabelType.Special)
     ignore_unknown_header, iuh_end, fallthrough = auth_value(None)
