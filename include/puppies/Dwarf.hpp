@@ -51,7 +51,7 @@ public:
     static constexpr uint8_t FIFO_RETRIES = 3;
 
     /// when this is set as PWM, fan is switched to automatic mode
-    static constexpr uint8_t FAN_MODE_AUTO_PWM = std::numeric_limits<uint8_t>::max();
+    static constexpr uint16_t FAN_MODE_AUTO_PWM = std::numeric_limits<uint16_t>::max();
 
 public:
     Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address);

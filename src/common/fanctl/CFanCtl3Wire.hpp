@@ -121,8 +121,8 @@ public:
     virtual void tick() override; // tick callback from timer interrupt
 
     // getters
-    virtual uint8_t getMinPWM() const override // get minimum PWM, this should be safe value for self starting
-    { return unscalePWM(m_pwm.get_min_PWM()); }
+    virtual uint16_t getMinPWM() const override // get minimum PWM, this should be safe value for self starting
+    { return m_pwm.get_min_PWM(); }
     virtual FanState getState() const override // get fan control state
     { return m_State; }
     virtual uint8_t getPWM() const override // get PWM value
@@ -138,11 +138,11 @@ public:
     virtual bool getRPMMeasured() const override { return m_tach.getValueReady(); }
     inline skip_tacho_t getSkipTacho() const { return m_skip_tacho; }
 
-    uint8_t scalePWM(uint8_t pwm) const; // scale pwm from 0-255 to range used by this instance
-    uint8_t unscalePWM(uint8_t pwm) const; // unscale pwm from range used by this instance to 0-255
+    uint16_t scalePWM(uint16_t pwm) const; // scale pwm from 0-255 to range used by this instance
+    uint16_t unscalePWM(uint16_t pwm) const; // unscale pwm from range used by this instance to 0-255
 
     // setters
-    virtual bool setPWM(uint8_t pwm) override; // set PWM value - switch to non closed-loop mode
+    virtual bool setPWM(uint16_t pwm) override; // set PWM value - switch to non closed-loop mode
     bool setPhaseShiftMode(CFanCtlPWM::PhaseShiftMode psm); // set phase shift mode (none/triangle/random)
     void safeState();
 

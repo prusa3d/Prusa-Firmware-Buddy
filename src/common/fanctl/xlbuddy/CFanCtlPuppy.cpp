@@ -16,7 +16,7 @@ void CFanCtlPuppy::reset_fan() {
     setPWM(is_autofan ? buddy::puppies::Dwarf::FAN_MODE_AUTO_PWM : 0);
 }
 
-bool CFanCtlPuppy::setPWM(uint8_t pwm) {
+bool CFanCtlPuppy::setPWM(uint16_t pwm) {
     if (selftest_mode) {
         return false;
     }
