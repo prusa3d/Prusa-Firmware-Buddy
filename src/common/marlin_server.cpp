@@ -1281,6 +1281,18 @@ void media_print_loop() {
             print_pause();
         };
 
+        const auto clear_media_error = [] {
+            if (!print_state.paused_due_to_media_error) {
+                return;
+            }
+
+            print_state.paused_due_to_media_error = false;
+
+            clear_warning(WarningType::USBFlashDiskError);
+            clear_warning(WarningType::GcodeCorruption);
+            clear_warning(WarningType::NotDownloaded);
+        };
+
         if (!print_state.file_open_reported && metrics.stream_size_estimate) {
             print_state.file_open_reported = true;
 
@@ -1296,6 +1308,8 @@ void media_print_loop() {
                 continue;
             }
 
+            clear_media_error();
+
             print_state.media_restore_info = data.replay_pos.restore_info;
             queue.sdpos = data.replay_pos.offset;
             queue.enqueue_one(data.gcode.data(), false);
@@ -1305,10 +1319,11 @@ void media_print_loop() {
             if (metrics.buffer_occupancy_percent < 60) {
                 media_prefetch.issue_fetch();
             }
-
-            continue;
+            break;
 
         case Status::end_of_file:
+            clear_media_error();
+
             // We've read everything -> start finishing up the print, return from this function completely
             server.print_state = State::Finishing_WaitIdle;
             return;
@@ -1316,24 +1331,20 @@ void media_print_loop() {
         case Status::end_of_buffer:
             // Defnitely issue a prefetch here
             media_prefetch.issue_fetch();
-            break;
+            return;
 
         case Status::usb_error:
             media_error(WarningType::USBFlashDiskError);
-            break;
+            return;
 
         case Status::corruption:
             media_error(WarningType::GcodeCorruption);
-            break;
+            return;
 
         case Status::not_downloaded:
             media_error(WarningType::NotDownloaded);
-            break;
+            return;
         }
-
-        // If we've got here, it means that the status was not ok, because Status::ok does continue
-        // -> break the loop
-        break;
     }
 }
 
@@ -1796,7 +1807,6 @@ static void _server_print_loop(void) {
 
     case State::Printing:
         print_state.resume_pending = false;
-        print_state.paused_due_to_media_error = false;
 
         if (server.print_is_serial) {
             SerialPrinting::print_loop();
