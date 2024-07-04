@@ -23,6 +23,7 @@
 #define MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET (BUFSIZE - 1)
 
 class GCodeReaderStreamRestoreInfo;
+struct GCodeReaderPosition;
 
 namespace marlin_server {
 
@@ -77,9 +78,10 @@ void serial_print_start();
 /**
  * @brief Direct print file with SFN format.
  * @param filename file to print
+ * @param resume_pos position in the file to start from
  * @param skip_preview can be used to skip preview thumbnail or toolmapping screen
  */
-void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview = marlin_server::PreviewSkipIfAble::no);
+void print_start(const char *filename, const GCodeReaderPosition &resume_pos, marlin_server::PreviewSkipIfAble skip_preview = marlin_server::PreviewSkipIfAble::no);
 
 /// Finalize serial print (exit print state and clean up)
 /// this is meant to be gracefull print finish, called when print finishes sucessfully.
@@ -183,7 +185,6 @@ bool get_media_inserted();
 void resuming_begin();
 
 const GCodeReaderStreamRestoreInfo &stream_restore_info();
-void set_stream_restore_info(const GCodeReaderStreamRestoreInfo &set);
 
 /// Returns media position of the currently executed gcode
 uint32_t media_position();
@@ -315,7 +316,7 @@ void clear_warning(WarningType type);
 void set_axes_length(xy_float_t xy);
 #endif
 
-void powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool auto_recover);
+void powerpanic_resume(const char *media_SFN_path, const GCodeReaderPosition &resume_pos, bool auto_recover);
 void powerpanic_finish_recovery();
 void powerpanic_finish_pause();
 void powerpanic_finish_toolcrash();

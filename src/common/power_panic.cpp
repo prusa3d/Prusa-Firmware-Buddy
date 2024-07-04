@@ -495,7 +495,12 @@ void resume_print(bool auto_recover) {
     if (resume_state == ResumeState::Setup && auto_recover) {
         resume_state = ResumeState::Resume;
     }
-    marlin_server::powerpanic_resume_loop(state_buf.media_SFN_path, state_buf.crash.sdpos, auto_recover);
+
+    const GCodeReaderPosition gcode_pos {
+        .restore_info = state_buf.gcode_stream_restore_info,
+        .offset = state_buf.crash.sdpos,
+    };
+    marlin_server::powerpanic_resume(state_buf.media_SFN_path, gcode_pos, auto_recover);
 }
 
 void resume_continue() {
@@ -566,7 +571,6 @@ void resume_loop() {
 #if ENABLED(PRUSA_SPOOL_JOIN)
         spool_join.deserialize(state_buf.spool_join);
 #endif
-        marlin_server::set_stream_restore_info(state_buf.gcode_stream_restore_info);
 
 #if HAS_TOOLCHANGER()
         if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL) { // Was in toolchange area

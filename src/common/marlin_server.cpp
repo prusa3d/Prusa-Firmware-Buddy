@@ -967,7 +967,7 @@ void serial_print_start() {
     print_state = {};
 }
 
-void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview) {
+void print_start(const char *filename, const GCodeReaderPosition &resume_pos, marlin_server::PreviewSkipIfAble skip_preview) {
 #if HAS_SELFTEST()
     if (SelftestInstance().IsInProgress()) {
         return;
@@ -1033,7 +1033,9 @@ void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_pre
         // Update GCodeInfo
         GCodeInfo::getInstance().set_gcode_file(filepath_sfn.data(), filename_lfn.data());
     }
-    set_media_position(0);
+
+    set_media_position(resume_pos.offset);
+    print_state.media_restore_info = resume_pos.restore_info;
     media_prefetch_start();
 
     server.print_state = State::WaitGui;
@@ -1377,7 +1379,7 @@ void print_resume(void) {
         server.print_state = State::PowerPanic_Resume;
 #endif
     } else {
-        print_start(nullptr, marlin_server::PreviewSkipIfAble::all);
+        print_start(nullptr, GCodeReaderPosition(), marlin_server::PreviewSkipIfAble::all);
     }
 }
 
@@ -1413,14 +1415,9 @@ bool print_reheat_ready() {
 }
 
 #if ENABLED(POWER_PANIC)
-void powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool auto_recover) {
-    print_start(media_SFN_path, marlin_server::PreviewSkipIfAble::all);
-
+void powerpanic_resume(const char *media_SFN_path, const GCodeReaderPosition &resume_pos, bool auto_recover) {
+    print_start(media_SFN_path, resume_pos, marlin_server::PreviewSkipIfAble::all);
     crash_s.set_state(Crash_s::PRINTING);
-
-    // Set the print position to resume from
-    queue.clear();
-    set_media_position(pos);
 
     // open printing screen
     fsm_create(PhasesPrinting::active);
@@ -2493,10 +2490,6 @@ const GCodeReaderStreamRestoreInfo &stream_restore_info() {
     return print_state.media_restore_info;
 }
 
-void set_stream_restore_info(const GCodeReaderStreamRestoreInfo &set) {
-    print_state.media_restore_info = set;
-}
-
 void print_quick_stop_powerpanic() {
     queue.clear();
 }
@@ -2959,7 +2952,7 @@ bool _process_server_valid_request(const Request &request, int client_id) {
         return false;
 #endif
     case Request::Type::PrintStart:
-        print_start(request.print_start.filename, request.print_start.skip_preview);
+        print_start(request.print_start.filename, GCodeReaderPosition(), request.print_start.skip_preview);
         return true;
     case Request::Type::PrintReady:
         gui_ready_to_print();

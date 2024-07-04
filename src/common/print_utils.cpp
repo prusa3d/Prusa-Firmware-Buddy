@@ -15,6 +15,7 @@
 #include <state/printer_state.hpp>
 #include <transfers/transfer.hpp>
 #include <feature/prusa/restore_z.h>
+#include <gcode/gcode_reader_restore_info.hpp>
 
 #include <option/bootloader.h>
 #include <option/has_mmu2.h>
@@ -122,7 +123,7 @@ void run_once_after_boot() {
     static constexpr const char *autostart_filename = "/usb/AUTO.GCO";
     if (access(autostart_filename, F_OK) == 0) {
         // call directly marlin server start print. This function is not safe
-        marlin_server::print_start(autostart_filename, marlin_server::PreviewSkipIfAble::all);
+        marlin_server::print_start(autostart_filename, GCodeReaderPosition(), marlin_server::PreviewSkipIfAble::all);
         oProgressData.mInit();
     }
 }
