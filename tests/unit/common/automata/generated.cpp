@@ -303,4 +303,12 @@ TEST_CASE("Digest auth without quotes") {
     ex.consume("GET /api/version HTTP/1.1\r\nAuthorization: Digest username=\"user\", realm=\"Printer API\", nonce=dcd98b7102dd2f0e, uri=\"/api/version\", response=684d849df474f295771de997e7412ea4\r\n\r\n");
     REQUIRE(ex.collect_entered(Names::NonceUnquoted) == "dcd98b7102dd2f0e");
     REQUIRE(ex.collect_entered(Names::ResponseUnquoted) == "684d849df474f295771de997e7412ea4");
+    REQUIRE(ex.contains_enter(Names::Body));
+}
+
+TEST_CASE("Basic auth mistake") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET /api/v1/info HTTP/1.1\r\nAuthorization: Basic bWFrZXI6bm90X215X3B3\r\nUser-Agent: curl/8.8.0\r\nAccept: */*\r\n\r\n");
+    REQUIRE(ex.contains_enter(Names::Body));
 }
