@@ -46,7 +46,6 @@ const char project_firmware_name[] = "Buddy_iX";
 #include <option/enable_translation_fr.h>
 #include <option/enable_translation_it.h>
 #include <option/enable_translation_pl.h>
-#include <option/enable_translation_ja.h>
 
 const BuildIdentification project_build_identification {
     .commit_hash = STR(FW_COMMIT_HASH),
@@ -58,7 +57,6 @@ const BuildIdentification project_build_identification {
         | ENABLE_TRANSLATION_FR() << 3
         | ENABLE_TRANSLATION_IT() << 4
         | ENABLE_TRANSLATION_PL() << 5
-        | ENABLE_TRANSLATION_JA() << 6
         //
         ),
     .printer_code = PRINTER_CODE,
