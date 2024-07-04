@@ -15,5 +15,5 @@ public:
         is_autofan_t autofan,
         skip_tacho_t skip_tacho);
 
-    bool setPWM(uint8_t pwm) override;
+    bool setPWM(uint16_t pwm) override;
 };
