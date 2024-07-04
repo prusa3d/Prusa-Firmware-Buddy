@@ -213,21 +213,16 @@ static inline void store_to_buffer(uint8_t *buffer, Rect16 rect, uint16_t artefa
 namespace display {
 
 /// Draws a single character according to selected font
-/// \param charX x-index of character in font bitmap
-/// \param charY y-index of character in font bitmap
 /// \param clr_bg background color
 /// \param clr_fg font/foreground color
 /// If font is not available for the character, solid rectangle will be drawn in background color
 void draw_char(point_ui16_t pt, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    uint8_t charX = 0, charY = 0;
-    get_char_position_in_font(c, pf, &charX, &charY);
     store_char_in_buffer(1, 0, c, pf, clr_bg, clr_fg);
     draw_from_buffer(pt, pf->w, pf->h);
 }
 
 void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    uint8_t charX = 0, charY = 0;
-    get_char_position_in_font(c, pf, &charX, &charY);
+    uint32_t chr = get_char_position_in_font(c, pf);
 
     const uint16_t char_w = pf->w; // char width
     const uint16_t char_h = pf->h; // char height
@@ -243,7 +238,6 @@ void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, 
 
     DispBuffer buff(pms, clr_bg, clr_fg);
 
-    uint32_t chr = charY * 16 + charX; // compute character index in font
     uint32_t buffer_offset = 0; // buffer byte offset
 
     pch = (uint8_t *)(pf->pcs) + ((chr /*- pf->asc_min*/) * bpc);

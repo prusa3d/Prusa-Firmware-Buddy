@@ -47,21 +47,18 @@ bool hasASCII(FontCharacterSet charset_option) {
     return charset_option == FontCharacterSet::full || charset_option == FontCharacterSet::standard;
 }
 
-void get_char_position_in_font(unichar c, const font_t *pf, uint8_t *charX, uint8_t *charY) {
+uint32_t get_char_position_in_font(unichar c, const font_t *pf) {
     static_assert(sizeof(FCIndex) == 4, "font char indices size mismatch");
 
     if (c < uint8_t(pf->asc_min)) { // this really happens with non-utf8 characters on filesystems
-        get_char_position_in_font('?', pf, charX, charY);
-        return;
+        return get_char_position_in_font('?', pf);
     }
 
     if (hasASCII(pf->charset) && c < 127) {
         // standard ASCII character
         // This means that fonts with FontCharacterSet::full have to have all standard ASCII characters even though some of them are not used
         // We take this trade off - we waste a little bit of space, but no lower_bound is necessary for standard character indices
-        *charX = (c - pf->asc_min) % 16;
-        *charY = (c - pf->asc_min) / 16;
-        return;
+        return c - pf->asc_min;
     }
 
     // extended utf8 character - must search in the font_XXX_char_indices map
@@ -81,10 +78,9 @@ void get_char_position_in_font(unichar c, const font_t *pf, uint8_t *charX, uint
 
     if (!i) {
         // character not found
-        get_char_position_in_font('?', pf, charX, charY);
+        return get_char_position_in_font('?', pf);
     } else {
-        *charX = i->charX;
-        *charY = i->charY;
+        return i->charY * 16 + i->charX; // compute character index in font
     }
 }
 

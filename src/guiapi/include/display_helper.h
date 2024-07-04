@@ -12,7 +12,7 @@
 #include "../../lang/string_view_utf8.hpp"
 #include "fonts.hpp"
 
-void get_char_position_in_font(unichar c, const font_t *pf, uint8_t *charX, uint8_t *charY);
+uint32_t get_char_position_in_font(unichar c, const font_t *pf);
 size_ui16_t render_text_singleline(Rect16 rc, const string_view_utf8 &str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 void render_text_align(Rect16 rc, const string_view_utf8 &text, Font, color_t clr0, color_t clr1, padding_ui8_t padding, text_flags flags, bool fill_rect = true);
 void render_icon_align(Rect16 rc, const img::Resource *res, color_t clr_back, icon_flags flags);
