@@ -260,6 +260,8 @@ set(PRINTERS_WITH_SHEET_SUPPORT "MINI" "MK3.5")
 
 set(PRINTERS_WITH_NFC "MK3.5" "MK4")
 
+set(PRINTERS_WITH_NOZZLE_CLEANER "iX")
+
 # Set printer board
 set(BOARDS_WITH_ADVANCED_POWER "XBUDDY" "XLBUDDY" "DWARF")
 set(BOARDS_WITH_ILI9488 "XBUDDY" "XLBUDDY")
@@ -698,6 +700,12 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_NFC)
   define_boolean_option(HAS_NFC YES)
 else()
   define_boolean_option(HAS_NFC NO)
+endif()
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_NOZZLE_CLEANER)
+  define_boolean_option(HAS_NOZZLE_CLEANER YES)
+else()
+  define_boolean_option(HAS_NOZZLE_CLEANER NO)
 endif()
 
 # define enabled features

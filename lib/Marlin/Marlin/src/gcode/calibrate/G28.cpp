@@ -90,6 +90,8 @@
 #include "../../../../../../src/common/trinamic.h" // for disabling Wave Table during homing
 #include <feature/phase_stepping/phase_stepping.hpp> // for disabling phase stepping during homing
 
+#include <option/has_nozzle_cleaner.h>
+
 #if ENABLED(DELTA) || ENABLED(SCARA) || ENABLED(AXEL_TPARA) || ENABLED(DUAL_X_CARRIAGE) || ENABLED(FOAMCUTTER_XYUV)
   #error These babies are no longer welcome here. The relevants ifdefs were removed.
 #endif
@@ -196,6 +198,14 @@
 
 #if ENABLED(PRUSA_TOOLCHANGER)
       do_blocking_move_to_xy(destination, PrusaToolChanger::limit_stealth_feedrate(feedrate_mm_s));
+#elif HAS_NOZZLE_CLEANER()
+  #if AVOID_NOZZLE_CLEANER_Y_FIRST
+    do_blocking_move_to_xy(current_position.x, destination.y);
+    do_blocking_move_to_xy(destination.x, destination.y);
+  #else
+    do_blocking_move_to_xy(destination.x, current_position.y);
+    do_blocking_move_to_xy(destination.x, destination.y);
+  #endif
 #else
       do_blocking_move_to_xy(destination);
 #endif
