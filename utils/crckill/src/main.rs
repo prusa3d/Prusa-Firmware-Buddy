@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use std::fs::File;
-use std::io::{BufReader, BufWriter, ErrorKind, Read, Write};
+use std::io::{BufReader, BufWriter, ErrorKind, Read, Seek, Write};
 use std::path::PathBuf;
 
 use anyhow::{ensure, Context, Error};
@@ -203,7 +203,11 @@ fn main() -> Result<(), Error> {
             .context("Reading block content")?;
         let l = block.len();
         let crc = &mut block[l - checksum_size..];
-        println!("Block {idx}: {:?} ({}), CRC: {:?}", header.tp, header.compressed_size, crc);
+        let pos = output.stream_position().unwrap_or_default();
+        println!(
+            "Block {idx} @{pos}: {:?} ({}), CRC: {:?}, Size: {size}",
+            header.tp, header.compressed_size, crc
+        );
         if killblocks.contains(&idx) {
             println!("Killing CRC");
             for b in crc {
