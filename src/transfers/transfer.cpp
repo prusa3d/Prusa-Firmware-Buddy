@@ -235,8 +235,10 @@ void Transfer::init_download_order_if_needed() {
 }
 
 void Transfer::update_backup(bool force) {
+    const auto state = partial_file->get_state();
+    const auto crossed_size = !initial_part_done && state.get_valid_size() >= PlainGcodeDownloadOrder::MinimalFileSize /* This one is just a guess at "probably ready to print" */;
     bool backup_outdated = last_backup_update_ms.has_value() == false || ticks_ms() - *last_backup_update_ms > BackupUpdateIntervalMs;
-    if (force == false && !backup_outdated) {
+    if (force == false && !backup_outdated && !crossed_size) {
         return;
     }
 
@@ -252,6 +254,14 @@ void Transfer::update_backup(bool force) {
         log_info(transfers, "Backup file updated");
     }
     last_backup_update_ms = ticks_ms();
+
+    if (crossed_size) {
+        initial_part_done = true;
+    }
+
+    if (is_printable && !already_notified) {
+        notify_created();
+    }
 }
 
 std::optional<struct stat> Transfer::get_transfer_partial_file_stat(MutablePath &destination_path) {
@@ -347,9 +357,6 @@ Transfer::State Transfer::step(bool is_printing) {
 
                 switch (next_step) {
                 case Transfer::Action::Continue:
-                    if (is_printable && !already_notified) {
-                        notify_created();
-                    }
                     break;
                 case Transfer::Action::RangeJump:
                     download.reset();
