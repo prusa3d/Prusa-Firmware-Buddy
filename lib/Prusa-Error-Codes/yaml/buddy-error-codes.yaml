@@ -983,21 +983,21 @@ Errors:
 
   - code: "XX825"
     title: ""
-    text: "MCU in Buddy is overheated. Any higher will result in fatal error."
+    text: "MCU in Buddy is overheated, likely due to exceeding the printer's operating temperature. Prevent overheating for optimal performance."
     id: "BUDDY_MCU_MAX_TEMP"
     type: "CONNECT"
 
   - code: "XX826"
     printers: [XL]
     title: ""
-    text: "MCU in Dwarf is overheated. Any higher will result in fatal error."
+    text: "MCU in Dwarf is overheated, likely due to exceeding the printer's operating temperature. Prevent overheating for optimal performance."
     id: "DWARF_MCU_MAX_TEMP"
     type: "CONNECT"
 
   - code: "XX827"
     printers: [iX, XL]
     title: ""
-    text: "MCU in Modular Bed is overheated. Any higher will result in fatal error."
+    text: "MCU in Modular Bed is overheated, likely due to exceeding the printer's operating temperature. Prevent overheating for optimal performance."
     id: "MOD_BED_MCU_MAX_TEMP"
     type: "CONNECT"
     
@@ -1054,23 +1054,3 @@ Errors:
     text: "Waiting for the user. Press \"Resume\" once the printer is ready."
     id: "QUICK_PAUSE"
     type: "CONNECT"
-
-  - code: "XX836"
-    title: ""
-    text: "MCU in Buddy is overheated. Printer's operating temperature is max 38 °C. Prevent overheating for optimal performance."
-    id: "BUDDY_MCU_MAX_TEMP_AMB"
-    type: "CONNECT"
-
-  - code: "XX837"
-    title: ""
-    text: "MCU in Dwarf is overheated. Printer's operating temperature is max 38 °C. Prevent overheating for optimal performance."
-    id: "DWARF_MCU_MAX_TEMP_AMB"
-    type: "CONNECT"
-
-  - code: "XX838"
-    title: ""
-    text: "MCU in Modular Bed is overheated. Printer's operating temperature is max 38 °C. Prevent overheating for optimal performance."
-    id: "MOD_BED_MCU_MAX_TEMP_AMB"
-    type: "CONNECT"
-
-
