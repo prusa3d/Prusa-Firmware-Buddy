@@ -353,27 +353,6 @@ bool state_stored() {
     return retval;
 }
 
-// decide whether to current print can auto-recover
-static bool auto_recover_check() {
-    if (state_buf.print.odometer_e_start >= Odometer_s::instance().get_extruded_all()) {
-        // nothing has been extruded on the bed so far, it's safe to auto-resume irregardless of temp
-        return true;
-    }
-
-// check the bed temperature
-#if ENABLED(MODULAR_HEATBED)
-    thermalManager.setEnabledBedletMask(state_buf.planner.enabled_bedlets_mask);
-#endif
-    float current_bed_temp = thermalManager.degBed();
-    bool auto_recover;
-    if (!state_buf.planner.target_bed || current_bed_temp >= state_buf.planner.target_bed) {
-        auto_recover = true;
-    } else {
-        auto_recover = (state_buf.planner.target_bed - current_bed_temp) < POWER_PANIC_MAX_BED_DIFF;
-    }
-    return auto_recover;
-}
-
 const char *stored_media_path() {
     assert(state_stored()); // caller is responsible for checking
     FLASH_LOAD(fixed.media_SFN_path, state_buf.media_SFN_path);
@@ -486,7 +465,25 @@ void resume_print() {
     mode_specific(state_buf.progress.standard_mode, oProgressData.standard_mode);
     mode_specific(state_buf.progress.stealth_mode, oProgressData.stealth_mode);
 
-    const bool auto_recover = auto_recover_check();
+    const bool auto_recover = [] {
+        if (state_buf.print.odometer_e_start >= Odometer_s::instance().get_extruded_all()) {
+            // nothing has been extruded on the bed so far, it's safe to auto-resume irregardless of temp
+            return true;
+        }
+
+// check the bed temperature
+#if ENABLED(MODULAR_HEATBED)
+        thermalManager.setEnabledBedletMask(state_buf.planner.enabled_bedlets_mask);
+#endif
+        float current_bed_temp = thermalManager.degBed();
+        bool auto_recover;
+        if (!state_buf.planner.target_bed || current_bed_temp >= state_buf.planner.target_bed) {
+            auto_recover = true;
+        } else {
+            auto_recover = (state_buf.planner.target_bed - current_bed_temp) < POWER_PANIC_MAX_BED_DIFF;
+        }
+        return auto_recover;
+    }();
 
     if (resume_state == ResumeState::Setup && auto_recover) {
         resume_state = ResumeState::Resume;
