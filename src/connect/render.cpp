@@ -621,7 +621,7 @@ namespace {
         { "filament used [mm]", MetaFilter::Float },
         { "filament used [cm3]", MetaFilter::Float },
         { "filament used [mm3]", MetaFilter::Float },
-        { "filament used [g]", MetaFilter::Float },
+        { "filament used [g]", MetaFilter::String },
         { "filament used [m]", MetaFilter::Float },
         { "bed_temperature", MetaFilter::Int },
         { "brim_width", MetaFilter::Int },
@@ -641,6 +641,8 @@ namespace {
         { "objects_info", MetaFilter::String },
         { "estimated_print_time", MetaFilter::Int },
         { "estimated_printing_time_normal_mode", MetaFilter::String },
+        { "extruder_colour", MetaFilter::String },
+        { "total filament used for wipe tower [g]", MetaFilter::Float },
     };
 
     MetaFilter meta_filter(const char *name) {
