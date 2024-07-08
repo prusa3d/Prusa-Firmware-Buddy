@@ -374,33 +374,6 @@ static bool auto_recover_check() {
     return auto_recover;
 }
 
-bool setup_auto_recover_check() {
-    assert(state_stored()); // caller is responsible for checking
-
-    // load the data
-    flash_data::fixed_t::load();
-    flash_data::state_t::load();
-    if (w25x_fetch_error()) {
-        log_error(PowerPanic, "Setup load failed.");
-        return false;
-    }
-
-    // immediately update print progress
-    print_job_timer.resume(state_buf.progress.print_duration);
-    print_job_timer.pause();
-
-    const auto mode_specific = [](const flash_progress_t::ModeSpecificData &mbuf, ClProgressData::ModeSpecificData &pdata) {
-        pdata.percent_done.mSetValue(mbuf.percent_done, state_buf.progress.print_duration);
-        pdata.percent_done.mSetValue(mbuf.time_to_end, state_buf.progress.print_duration);
-        pdata.percent_done.mSetValue(mbuf.time_to_pause, state_buf.progress.print_duration);
-    };
-    mode_specific(state_buf.progress.standard_mode, oProgressData.standard_mode);
-    mode_specific(state_buf.progress.stealth_mode, oProgressData.stealth_mode);
-
-    // decide whether to auto-recover
-    return auto_recover_check();
-}
-
 const char *stored_media_path() {
     assert(state_stored()); // caller is responsible for checking
     FLASH_LOAD(fixed.media_SFN_path, state_buf.media_SFN_path);
@@ -490,10 +463,31 @@ void resume_print() {
     assert(state_stored()); // caller is responsible for checking
     assert(marlin_server::printer_idle()); // caller is responsible for checking
 
-    const bool auto_recover = power_panic::setup_auto_recover_check();
+    // load the data
+    flash_data::fixed_t::load();
+    flash_data::state_t::load();
+    if (w25x_fetch_error()) {
+        log_error(PowerPanic, "Setup load failed.");
+        return;
+    }
 
     log_info(PowerPanic, "resuming print");
     state_buf.nested_fault = true;
+
+    // immediately update print progress
+    print_job_timer.resume(state_buf.progress.print_duration);
+    print_job_timer.pause();
+
+    const auto mode_specific = [](const flash_progress_t::ModeSpecificData &mbuf, ClProgressData::ModeSpecificData &pdata) {
+        pdata.percent_done.mSetValue(mbuf.percent_done, state_buf.progress.print_duration);
+        pdata.percent_done.mSetValue(mbuf.time_to_end, state_buf.progress.print_duration);
+        pdata.percent_done.mSetValue(mbuf.time_to_pause, state_buf.progress.print_duration);
+    };
+    mode_specific(state_buf.progress.standard_mode, oProgressData.standard_mode);
+    mode_specific(state_buf.progress.stealth_mode, oProgressData.stealth_mode);
+
+    const bool auto_recover = auto_recover_check();
+
     if (resume_state == ResumeState::Setup && auto_recover) {
         resume_state = ResumeState::Resume;
     }
