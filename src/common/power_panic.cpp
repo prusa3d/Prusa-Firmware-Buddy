@@ -454,16 +454,18 @@ void resume_print() {
     state_buf.nested_fault = true;
 
     // immediately update print progress
-    print_job_timer.resume(state_buf.progress.print_duration);
-    print_job_timer.pause();
+    {
+        print_job_timer.resume(state_buf.progress.print_duration);
+        print_job_timer.pause();
 
-    const auto mode_specific = [](const flash_progress_t::ModeSpecificData &mbuf, ClProgressData::ModeSpecificData &pdata) {
-        pdata.percent_done.mSetValue(mbuf.percent_done, state_buf.progress.print_duration);
-        pdata.percent_done.mSetValue(mbuf.time_to_end, state_buf.progress.print_duration);
-        pdata.percent_done.mSetValue(mbuf.time_to_pause, state_buf.progress.print_duration);
-    };
-    mode_specific(state_buf.progress.standard_mode, oProgressData.standard_mode);
-    mode_specific(state_buf.progress.stealth_mode, oProgressData.stealth_mode);
+        const auto mode_specific = [](const flash_progress_t::ModeSpecificData &mbuf, ClProgressData::ModeSpecificData &pdata) {
+            pdata.percent_done.mSetValue(mbuf.percent_done, state_buf.progress.print_duration);
+            pdata.percent_done.mSetValue(mbuf.time_to_end, state_buf.progress.print_duration);
+            pdata.percent_done.mSetValue(mbuf.time_to_pause, state_buf.progress.print_duration);
+        };
+        mode_specific(state_buf.progress.standard_mode, oProgressData.standard_mode);
+        mode_specific(state_buf.progress.stealth_mode, oProgressData.stealth_mode);
+    }
 
     const bool auto_recover = [] {
         if (state_buf.print.odometer_e_start >= Odometer_s::instance().get_extruded_all()) {
@@ -475,14 +477,13 @@ void resume_print() {
 #if ENABLED(MODULAR_HEATBED)
         thermalManager.setEnabledBedletMask(state_buf.planner.enabled_bedlets_mask);
 #endif
-        float current_bed_temp = thermalManager.degBed();
-        bool auto_recover;
+        const float current_bed_temp = thermalManager.degBed();
+
         if (!state_buf.planner.target_bed || current_bed_temp >= state_buf.planner.target_bed) {
-            auto_recover = true;
-        } else {
-            auto_recover = (state_buf.planner.target_bed - current_bed_temp) < POWER_PANIC_MAX_BED_DIFF;
+            return true;
         }
-        return auto_recover;
+
+        return (state_buf.planner.target_bed - current_bed_temp) < POWER_PANIC_MAX_BED_DIFF;
     }();
 
     if (resume_state == ResumeState::Setup && auto_recover) {
