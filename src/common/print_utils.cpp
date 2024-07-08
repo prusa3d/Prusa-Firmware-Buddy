@@ -97,7 +97,6 @@ void run_once_after_boot() {
     #endif
         if (!reset_pp) {
             // load the panic data and setup print progress early
-            bool auto_recover = power_panic::setup_auto_recover_check();
             const char *path = power_panic::stored_media_path();
             bool resume = false;
             bool path_exists = file_exists(path);
@@ -109,7 +108,7 @@ void run_once_after_boot() {
             }
             if (resume) {
                 // resume and bypass g-code autostart
-                power_panic::resume_print(auto_recover);
+                power_panic::resume_print();
                 return;
             }
         }

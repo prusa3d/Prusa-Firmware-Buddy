@@ -486,9 +486,11 @@ static void atomic_finish() {
     HAL_NVIC_EnableIRQ(buddy::hw::acFault.getIRQn());
 }
 
-void resume_print(bool auto_recover) {
+void resume_print() {
     assert(state_stored()); // caller is responsible for checking
     assert(marlin_server::printer_idle()); // caller is responsible for checking
+
+    const bool auto_recover = power_panic::setup_auto_recover_check();
 
     log_info(PowerPanic, "resuming print");
     state_buf.nested_fault = true;
