@@ -9,7 +9,8 @@ CFanCtl3WireDynamic::CFanCtl3WireDynamic(
     uint16_t maxRPM,
     uint8_t thrPWM,
     is_autofan_t autofan,
-    skip_tacho_t skip_tacho)
+    skip_tacho_t skip_tacho,
+    uint8_t min_pwm_to_measure_rpm)
     : CFanCtl3Wire(
         pinOut,
         pinTach,
@@ -19,7 +20,8 @@ CFanCtl3WireDynamic::CFanCtl3WireDynamic(
         maxRPM,
         thrPWM,
         autofan,
-        skip_tacho) {
+        skip_tacho,
+        min_pwm_to_measure_rpm) {
     setPhaseShiftMode(CFanCtlPWM::PhaseShiftMode::none);
 }
 

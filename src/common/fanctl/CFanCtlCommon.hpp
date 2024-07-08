@@ -66,6 +66,20 @@ inline constexpr uint16_t FANCTLPRINT_RPM_MAX =
     ;
 inline constexpr uint8_t FANCTLPRINT_PWM_THR = 20;
 
+// On Mk3 the printer would ignore rpm measurements if the pwm was under 30%.
+// Because some of the printers have a really weak print fan, it would cause
+// MK3.5 users to get print fan errors on low pwm, that wouldn't happend on MK3.
+// Sadly since we doing pwm differently we are not able to set it to 30% exactly,
+// but rather we round to nearest int:
+// <= 32% - ignore RPM measurement
+// >= 33% - will trigger print fan error if the pwm is too low (FANCTLPRINT_RPM_MIN)
+inline constexpr uint8_t FANCTLPRINT_MIN_PWM_TO_MEASURE_RPM =
+#if PRINTER_IS_PRUSA_MK3_5
+    FANCTLPRINT_PWM_MAX * 0.3;
+#else
+    0;
+#endif
+
 // FANCTLHEATBREAK - heatbreak fan
 inline constexpr uint8_t FANCTLHEATBREAK_PWM_MIN = 0;
 inline constexpr uint8_t FANCTLHEATBREAK_PWM_MAX = 50;
@@ -78,6 +92,7 @@ inline constexpr uint16_t FANCTLHEATBREAK_RPM_MAX =
 #endif
     ;
 inline constexpr uint8_t FANCTLHEATBREAK_PWM_THR = 20;
+inline constexpr uint8_t FANCTLHEATBREAK_MIN_PWM_TO_MEASURE_RPM = 0;
 
 // FANCTLENCLOSURE - enclosure fan
 #if XL_ENCLOSURE_SUPPORT()
