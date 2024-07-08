@@ -175,7 +175,7 @@ namespace {
                 { nullptr, nullptr, nullopt }
             } {}
         virtual const char *url() const override {
-            return "/p/ws-pre";
+            return "/p/ws";
         }
         virtual Method method() const override {
             return Method::Get;
