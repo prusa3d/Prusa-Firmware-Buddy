@@ -110,7 +110,7 @@ void AsyncJobBase::unqueue_nolock() {
         previous_job = nullptr;
     } else {
         assert(ex.first_job == this);
-        ex.first_job = nullptr;
+        ex.first_job = next_job;
     }
 
     if (next_job) {
@@ -118,6 +118,6 @@ void AsyncJobBase::unqueue_nolock() {
         next_job = nullptr;
     } else {
         assert(ex.last_job == this);
-        ex.last_job = nullptr;
+        ex.last_job = previous_job;
     }
 }
