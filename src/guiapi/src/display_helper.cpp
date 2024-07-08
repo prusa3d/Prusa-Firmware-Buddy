@@ -18,38 +18,23 @@
 #include <utility_extensions.hpp>
 #include "font_character_sets.hpp"
 
-// just to test the FW with fonts - will be refactored
-struct FCIndex {
-    uint16_t unc; /// utf8 character value (stripped of prefixes)
-    uint16_t index;
+static constexpr const uint16_t font_full_char_indices[] = {
+#include "../guiapi/include/fnt-full-indices.ipp"
 };
 
-// clang-format off
-static constexpr const FCIndex font_full_char_indices[] =
-    #include "../guiapi/include/fnt-full-indices.ipp"
-static constexpr const FCIndex font_standard_char_indices[] =
-    #include "../guiapi/include/fnt-standard-indices.ipp"
-static constexpr const FCIndex font_digits_char_indices[] =
-    #include "../guiapi/include/fnt-digits-indices.ipp"
+static constexpr const uint16_t font_standard_char_indices[] = {
+#include "../guiapi/include/fnt-standard-indices.ipp"
+};
 
-const FCIndex * find_indexed_char(const unichar c, const FCIndex font_indices[], const size_t font_indices_count) {
-    auto cmp = [](const FCIndex &i, unichar ch) { return i.unc < ch; };
-
-    const FCIndex *i = std::lower_bound(font_indices, font_indices + font_indices_count, c, cmp);
-    if (i == font_indices + font_indices_count || i->unc != c) {
-        i = nullptr;
-    }
-    return i;
-}
-// clang-format on
+static constexpr const uint16_t font_digits_char_indices[] = {
+#include "../guiapi/include/fnt-digits-indices.ipp"
+};
 
 bool hasASCII(FontCharacterSet charset_option) {
     return charset_option == FontCharacterSet::full || charset_option == FontCharacterSet::standard;
 }
 
 uint32_t get_char_position_in_font(unichar c, const font_t *pf) {
-    static_assert(sizeof(FCIndex) == 4, "font char indices size mismatch");
-
     if (c < uint8_t(pf->asc_min)) { // this really happens with non-utf8 characters on filesystems
         return get_char_position_in_font('?', pf);
     }
@@ -62,26 +47,28 @@ uint32_t get_char_position_in_font(unichar c, const font_t *pf) {
     }
 
     // extended utf8 character - must search in the font_XXX_char_indices map
-    const FCIndex *i = nullptr;
 
+    const uint16_t *first = nullptr, *last = nullptr;
     switch (pf->charset) {
     case FontCharacterSet::full:
-        i = find_indexed_char(c, font_full_char_indices, std::size(font_full_char_indices));
+        first = std::begin(font_full_char_indices);
+        last = std::end(font_full_char_indices);
         break;
     case FontCharacterSet::standard:
-        i = find_indexed_char(c, font_standard_char_indices, std::size(font_standard_char_indices));
+        first = std::begin(font_standard_char_indices);
+        last = std::end(font_standard_char_indices);
         break;
     case FontCharacterSet::digits:
-        i = find_indexed_char(c, font_digits_char_indices, std::size(font_digits_char_indices));
+        first = std::begin(font_digits_char_indices);
+        last = std::end(font_digits_char_indices);
         break;
     }
 
-    if (!i) {
-        // character not found
+    const uint16_t *i = std::lower_bound(first, last, c);
+    if (i == last || *i != c) {
         return get_char_position_in_font('?', pf);
-    } else {
-        return i->index;
     }
+    return std::distance(first, i);
 }
 
 /// Fill space from [@top, @left] corner to the end of @rc with height @h
