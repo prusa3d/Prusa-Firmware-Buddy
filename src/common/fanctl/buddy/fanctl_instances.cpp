@@ -12,7 +12,8 @@ CFanCtlCommon &Fans::print(size_t index) {
         FANCTLPRINT_RPM_MIN, FANCTLPRINT_RPM_MAX,
         FANCTLPRINT_PWM_THR,
         is_autofan_t::no,
-        skip_tacho_t::no);
+        skip_tacho_t::no,
+        FANCTLPRINT_MIN_PWM_TO_MEASURE_RPM);
 
     if (index) {
         bsod("Print fan %u does not exist", index);
@@ -28,7 +29,8 @@ CFanCtlCommon &Fans::heat_break(size_t index) {
         FANCTLHEATBREAK_RPM_MIN, FANCTLHEATBREAK_RPM_MAX,
         FANCTLHEATBREAK_PWM_THR,
         is_autofan_t::yes,
-        skip_tacho_t::no);
+        skip_tacho_t::no,
+        FANCTLHEATBREAK_MIN_PWM_TO_MEASURE_RPM);
 
     if (index) {
         bsod("Heat break fan %u does not exist", index);

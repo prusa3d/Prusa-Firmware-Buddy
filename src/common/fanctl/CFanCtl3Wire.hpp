@@ -116,7 +116,7 @@ class CFanCtl3Wire : public CFanCtlCommon {
 public:
     // constructor
     CFanCtl3Wire(const buddy::hw::OutputPin &pinOut, const buddy::hw::InputPin &pinTach, uint8_t minPWM, uint8_t maxPWM,
-        uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan, skip_tacho_t skip_tacho);
+        uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan, skip_tacho_t skip_tacho, uint8_t min_pwm_to_measure_rpm);
 
     virtual void tick() override; // tick callback from timer interrupt
 
@@ -161,6 +161,7 @@ protected:
     FanState m_State; // fan control state
     uint8_t m_PWMValue; // current pwm value
     uint8_t m_Edges; // edge counter - used for starting and measurement
+    uint8_t min_pwm_to_measure_rpm;
     is_autofan_t is_autofan; // autofan restores temp differently (used in selftest)
     CFanCtlPWM m_pwm;
     CFanCtlTach m_tach;

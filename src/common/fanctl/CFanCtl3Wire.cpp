@@ -152,10 +152,11 @@ bool CFanCtlTach::tick(int8_t pwm_on) {
 // CFanCtl3Wire implementation
 
 CFanCtl3Wire::CFanCtl3Wire(const OutputPin &pinOut, const InputPin &pinTach,
-    uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan, skip_tacho_t skip_tacho)
+    uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan, skip_tacho_t skip_tacho, uint8_t min_pwm_to_measure_rpm)
     : CFanCtlCommon(minRPM, maxRPM)
     , m_State(idle)
     , m_PWMValue(0)
+    , min_pwm_to_measure_rpm(min_pwm_to_measure_rpm)
     , is_autofan(autofan)
     , m_pwm(pinOut, minPWM, maxPWM, thrPWM)
     , m_tach(pinTach)
@@ -276,7 +277,7 @@ void CFanCtl3Wire::safeState() {
 }
 
 bool CFanCtl3Wire::getRPMIsOk() {
-    if (m_PWMValue && (getActualRPM() < min_rpm)) {
+    if (m_PWMValue > min_pwm_to_measure_rpm && (getActualRPM() < min_rpm)) {
         return false;
     }
     return true;
