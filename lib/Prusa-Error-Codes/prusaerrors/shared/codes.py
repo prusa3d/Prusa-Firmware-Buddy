@@ -11,7 +11,7 @@ import json
 import re
 from enum import unique, IntEnum
 from pathlib import Path
-from typing import TextIO, Dict
+from typing import List, TextIO, Dict
 import yaml
 
 
@@ -68,6 +68,7 @@ class Code:
             title: str,
             message: str,
             approved: bool,
+            action: List[str] = None
     ):
         if printer.value < 0 or printer.value > 99:
             raise ValueError(f"Printer class {printer} out of range")
@@ -83,6 +84,7 @@ class Code:
         self._title = title
         self._message = message
         self._approved = approved
+        self._action = action
 
     @property
     def code(self) -> str:
@@ -165,6 +167,13 @@ class Code:
         build from being used in production.
         """
         return self._approved
+
+    @property
+    def action(self) -> List[str]:
+        """
+        List of strings with actions to be taken when the error occurs.
+        """
+        return self._action
 
     def __lt__(self, other):
         if not isinstance(other, Code):
@@ -386,7 +395,9 @@ def yaml_codes(src_path: Path):
             printer = Printer(int(code_parts["printer"]))
             category = Category(int(code_parts["category"]))
             error = int(code_parts["error"])
-            setattr(cls, entry["id"], Code(printer, category, error, entry["title"], entry["text"], entry["approved"]))
+            action = entry.get("action", [])
+            setattr(cls, entry["id"], Code(printer, category, error, entry["title"], entry["text"],
+                                           entry["approved"], action))
         return cls
 
     return decor

@@ -30,7 +30,7 @@ Errors:
     approved: true
 
   - code: "XX102"
-    printers: [XL]
+    printers: [iX, XL]
     title: "PRECISE REFINEMENT FAILED"
     text: "Consider adjusting belt tension."
     id: "PRECISE_REFINEMENT_FAILED"
@@ -464,6 +464,14 @@ Errors:
     id: "CONNECT_REGISTRATION_FAILED"
     approved: true
 
+  # XX4402 NEW_WIFI_CREDENTIALS deprecated
+  
+  - code: "XX403"
+    title: "G-CODE METRICS CONFIG CHANGE"
+    text: "Gcode is trying to change metrics configuration.\n\nAllow the changes?"
+    id: "GCODE_METRICS_CONFIG_CHANGE"
+    approved: false
+
   - code: "XX501"
     printers: [iX, XL]
     title: "MODULAR BED ERROR"
@@ -677,6 +685,17 @@ Errors:
     id: "ESP_NOT_CONNECTED"
     approved: false
 
+  - code: "XX534"
+    title: "Gcode Corruption"
+    text: "Gcode on the USB drive is corrupt. Fix manually before resuming."
+    id: "GCODE_CORRUPTION"
+
+  - code: "XX535"
+    title: "Gcode Cropped"
+    text: "G-code command was too long and did not fit in the internal buffers. As a result, it might have beet not executed correctly."
+    id: "GCODE_CROPPED"
+    approved: false
+
   - code: "XX601"
     title: ""
     text: "This error code is not found\nin our database.\nContact the support."
@@ -769,6 +788,12 @@ Errors:
     id: "UNSUPPORTED_BBF_VERSION"
     approved: true
 
+  - code: "XX615"
+    title: "EXTRUDER NOT DETECTED"
+    text: "Unable to verify the extruder type, check the wiring and connectors."
+    id: "BT_EXTRUDER_NOT_DETECTED"
+    approved: true
+
   - code: "XX701"
     printers: [MK4]
     title: "Firmware Update Required"
@@ -784,7 +809,7 @@ Errors:
     approved: true
 
   - code: "XX702"
-    printers: [MK4]
+    printers: [MK3.5, MK4, XL]
     title: "Cold Pull"
     text: "Welcome to the Cold Pull wizard. Prepare a 30cm piece of PLA filament and follow the instructions. For more details, visit:"
     id: "COLD_PULL_INTRO"
@@ -958,21 +983,21 @@ Errors:
 
   - code: "XX825"
     title: ""
-    text: "MCU in Buddy is overheated. Any higher will result in fatal error."
+    text: "MCU in Buddy is overheated, likely due to exceeding the printer's operating temperature. Prevent overheating for optimal performance."
     id: "BUDDY_MCU_MAX_TEMP"
     type: "CONNECT"
 
   - code: "XX826"
     printers: [XL]
     title: ""
-    text: "MCU in Dwarf is overheated. Any higher will result in fatal error."
+    text: "MCU in Dwarf is overheated, likely due to exceeding the printer's operating temperature. Prevent overheating for optimal performance."
     id: "DWARF_MCU_MAX_TEMP"
     type: "CONNECT"
 
   - code: "XX827"
     printers: [iX, XL]
     title: ""
-    text: "MCU in Modular Bed is overheated. Any higher will result in fatal error."
+    text: "MCU in Modular Bed is overheated, likely due to exceeding the printer's operating temperature. Prevent overheating for optimal performance."
     id: "MOD_BED_MCU_MAX_TEMP"
     type: "CONNECT"
     
@@ -1008,18 +1033,21 @@ Errors:
     text: "The HEPA filter has expired. Change the HEPA filter before your next print. Visit prusa.io/xl-filter for more information."
     id: "ENCLOSURE_FILTER_EXPIRATION"
     type: "CONNECT"
+
   - code: "XX833"
     printers: [iX, MK4, MK3.5, MINI, XL]
     title: ""
     text: "Bed leveling failed. Try again?"
     id: "PROBING_FAILED"
     type: "CONNECT"
+
   - code: "XX834"
-    printers: [iX, MK4, MK3.5, XL]
+    printers: [iX, MK4, XL]
     title: ""
     text: "Nozzle cleaning failed."
     id: "NOZZLE_CLEANING_FAILED"
     type: "CONNECT"
+
   - code: "XX835"
     printers: [iX, MK4, MK3.5, MINI, XL]
     title: ""
