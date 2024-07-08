@@ -428,7 +428,7 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
         filamentBtnSetState();
 
 #if ENABLED(POWER_PANIC)
-        if (TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && !power_panic::is_power_panic_resuming())
+        if (TaskDeps::check(TaskDeps::Dependency::usb_temp_gui_ready) && !power_panic::is_power_panic_resuming())
 #endif // ENABLED(POWER_PANIC)
         { // every time usb is inserted we check wifi credentials
             if (usbInserted) {
@@ -445,7 +445,7 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
         if (!DialogHandler::Access().IsOpen()) {
             if (HAS_HUMAN_INTERACTIONS() &&
     #if ENABLED(POWER_PANIC)
-                TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && !power_panic::is_power_panic_resuming() &&
+                TaskDeps::check(TaskDeps::Dependency::usb_temp_gui_ready) && !power_panic::is_power_panic_resuming() &&
     #endif // ENABLED(POWER_PANIC)
                 GuiMediaEventsHandler::ConsumeOneClickPrinting() && !usbh_power_cycle::block_one_click_print()) {
                 // TODO this should be done in main thread before Event::MediaInserted is generated

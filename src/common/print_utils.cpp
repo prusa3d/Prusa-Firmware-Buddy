@@ -133,14 +133,14 @@ void print_utils_loop() {
 
     static uint32_t current_time = ticks_ms();
 
-    if (!TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && ticks_ms() >= current_time + rescan_delay) {
+    if (!TaskDeps::check(TaskDeps::Dependency::usb_temp_gui_ready) && ticks_ms() >= current_time + rescan_delay) {
         current_time += rescan_delay;
-        if (usb_host::is_media_inserted() && thermalManager.temperatures_ready()) {
+        if (usb_host::is_media_inserted() && thermalManager.temperatures_ready() && TaskDeps::check(TaskDeps::Dependency::gui_ready)) {
             run_once_after_boot();
-            TaskDeps::provide(TaskDeps::Dependency::usb_and_temp_ready);
+            TaskDeps::provide(TaskDeps::Dependency::usb_temp_gui_ready);
         } else if (current_time > max_rescan_time || !marlin_server::printer_idle()) {
             // no longer attempt to run the autostart sequence
-            TaskDeps::provide(TaskDeps::Dependency::usb_and_temp_ready);
+            TaskDeps::provide(TaskDeps::Dependency::usb_temp_gui_ready);
         }
     }
 }

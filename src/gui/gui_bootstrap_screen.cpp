@@ -87,7 +87,7 @@ void gui_bootstrap_screen_run() {
     screen_splash_data_t::bootstrap_cb(bootstrap_progress->percent, bootstrap_progress->message);
     gui_redraw();
     // start flashing resources
-    TaskDeps::provide(TaskDeps::Dependency::gui_screen_ready);
+    TaskDeps::provide(TaskDeps::Dependency::gui_display_ready);
 
     while (TaskDeps::check(TaskDeps::Tasks::bootstrap_done) == false) {
         if (bootstrap_progress->need_redraw) {

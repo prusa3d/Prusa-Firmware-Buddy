@@ -315,6 +315,8 @@ void gui_run(void) {
 
     log_onewire_otp();
 
+    TaskDeps::provide(TaskDeps::Dependency::gui_ready);
+
     // TODO make some kind of registration
     while (1) {
         gui::StartLoop();

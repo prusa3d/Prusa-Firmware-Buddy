@@ -26,8 +26,9 @@ enum class Dependency : size_t {
     default_task_ready,
     esp_flashed,
     networking_ready,
-    usb_and_temp_ready, ///< Check autoprint and powerpanic state
-    gui_screen_ready,
+    usb_temp_gui_ready, ///< Check autoprint and powerpanic state
+    gui_display_ready, ///< Display is initialized and ready
+    gui_ready, ///< GUI is ready, home screen has been opened
     _count
 };
 
@@ -65,7 +66,7 @@ namespace Tasks {
     inline constexpr dependency_t connect = make(Dependency::networking_ready);
     inline constexpr dependency_t syslog = make(Dependency::networking_ready);
     inline constexpr dependency_t network = make(Dependency::esp_flashed);
-    inline constexpr dependency_t bootstrap_start = make(Dependency::gui_screen_ready);
+    inline constexpr dependency_t bootstrap_start = make(Dependency::gui_display_ready);
     inline constexpr dependency_t puppy_task_start = make(Dependency::esp_flashed);
 
 } // namespace Tasks
