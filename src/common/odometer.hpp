@@ -119,12 +119,13 @@ public:
     /// Mayer's singleton must have part
 public:
     static Odometer_s &instance() {
-        static Odometer_s s;
-        return s;
+        return instance_;
     }
     Odometer_s(const Odometer_s &) = delete;
     Odometer_s &operator=(const Odometer_s &) = delete;
 
 private:
     ~Odometer_s() {}
+
+    static Odometer_s instance_;
 };

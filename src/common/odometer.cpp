@@ -7,6 +7,8 @@
 
 static_assert(HOTENDS <= config_store_ns::max_tool_count, "Too many hotends");
 
+Odometer_s Odometer_s::instance_;
+
 bool Odometer_s::changed() {
     // Note: While running the force_to_eeprom, it's possible a get will
     // temporarily get slightly wrong value. Next time it'll be correct.
