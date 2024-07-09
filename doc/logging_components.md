@@ -52,5 +52,5 @@ This file is generated automatically so don't edit it directly
 - XLCD: logging::Severity::info, src/gui/guimain.cpp
 - connect: logging::Severity::info, src/connect/connect.cpp
 - httpc: logging::Severity::debug, src/common/http/httpc.cpp
-- socket: logging::Severity::debug, src/common/http/socket.cpp
+- socket: logging::Severity::info, src/common/http/socket.cpp
 - transfers: logging::Severity::info, src/transfers/logging.cpp

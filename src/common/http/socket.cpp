@@ -36,7 +36,7 @@
 
 using std::unique_ptr;
 
-LOG_COMPONENT_DEF(socket, logging::Severity::debug);
+LOG_COMPONENT_DEF(socket, logging::Severity::info);
 
 namespace {
 
