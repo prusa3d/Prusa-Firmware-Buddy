@@ -44,3 +44,5 @@ const char *get_name(Type type);
 
 // This is here to reduce changes for the future PRs. It will be removed soon.
 using FilamentType = filament::Type;
+using PresetFilamentType = FilamentType;
+using FilamentTypeParameters = filament::Description;

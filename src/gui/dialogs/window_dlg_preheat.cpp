@@ -19,15 +19,20 @@ constexpr static const char index_error[] = "Index error"; // intentionally not 
 
 /*****************************************************************************/
 // NsPreheat::I_MI_Filament
-NsPreheat::I_MI_Filament::I_MI_Filament(const string_view_utf8 &name, unsigned t_noz, unsigned t_bed)
-    : WiInfo<info_len>(name, nullptr, is_enabled_t::yes, is_hidden_t::no) {
+NsPreheat::I_MI_Filament::I_MI_Filament(FilamentType filament_type)
+    : WiInfo<info_len>({}, nullptr, is_enabled_t::yes, is_hidden_t::no)
+    , filament_params(filament::get_description(filament_type))
+    , filament_type(filament_type) //
+{
+    SetLabel(string_view_utf8::MakeRAM(filament_params.name));
+
     char buff[info_len];
-    snprintf(buff, sizeof(buff), t_bed > 100 ? "%3u/%3u " : "%3u/%2u  ", t_noz, t_bed); // extra space(s) at the end are intended .. "260/100 " or  "215/60  "
+    snprintf(buff, sizeof(buff), filament_params.heatbed > 100 ? "%3u/%3u " : "%3u/%2u  ", filament_params.nozzle, filament_params.heatbed); // extra space(s) at the end are intended .. "260/100 " or  "215/60  "
     ChangeInformation(buff);
 }
 
-void NsPreheat::I_MI_Filament::click_at(filament::Type filament) {
-    marlin_client::FSM_response_variant(PhasesPreheat::UserTempSelection, FSMResponseVariant::make<filament::Type>(filament));
+void NsPreheat::I_MI_Filament::click(IWindowMenu &) {
+    marlin_client::FSM_response_variant(PhasesPreheat::UserTempSelection, FSMResponseVariant::make<FilamentType>(filament_type));
 }
 
 /*****************************************************************************/

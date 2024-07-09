@@ -19,22 +19,21 @@ namespace NsPreheat {
 inline constexpr size_t info_len = sizeof("999/999 "); // extra space at the end is intended
 class I_MI_Filament : public WiInfo<info_len> {
 public:
-    I_MI_Filament(const string_view_utf8 &name, unsigned t_noz, unsigned t_bed);
+    I_MI_Filament(FilamentType filament_type);
 
 protected:
-    void click_at(filament::Type filament_index);
+    virtual void click(IWindowMenu &) final;
+
+protected:
+    const FilamentTypeParameters filament_params;
+    const FilamentType filament_type;
 };
 
-template <filament::Type T>
+template <PresetFilamentType T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(_(filament::get_name(T)), filament::get_description(T).nozzle, filament::get_description(T).heatbed) {}
-
-protected:
-    virtual void click(IWindowMenu & /*window_menu*/) override {
-        click_at(T);
-    }
+        : I_MI_Filament(T) {}
 };
 
 class MI_RETURN : public IWindowMenuItem {
