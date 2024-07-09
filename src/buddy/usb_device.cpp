@@ -23,9 +23,7 @@ LOG_COMPONENT_DEF(USBDevice, logging::Severity::info);
 #if PRINTER_IS_PRUSA_MINI
     #define USBD_PID 0x000C
 #elif PRINTER_IS_PRUSA_MK4
-    #define USBD_PID                 0x000D
-    #define USBD_PRODUCT_STRING_MK39 "Original Prusa MK3.9"
-    #define USBD_PRODUCT_STRING_MK4S "Original Prusa MK4S"
+// !!! Changes based on extended printer type
 #elif PRINTER_IS_PRUSA_MK3_5
     #define USBD_PID 0x0017
 #elif PRINTER_IS_PRUSA_iX
@@ -38,6 +36,7 @@ LOG_COMPONENT_DEF(USBDevice, logging::Severity::info);
 
 #define USBD_LANGID_STRING          1033
 #define USBD_MANUFACTURER_STRING    "Prusa Research (prusa3d.com)"
+#define USBD_LANGID_STRING          1033
 #define USBD_PRODUCT_STRING_FS      ("Original Prusa " PRINTER_MODEL)
 #define USBD_SERIALNUMBER_STRING_FS "00000000001A"
 #define USBD_VBUS_CHECK_INTERVAL_MS 1000
@@ -137,7 +136,11 @@ static tusb_desc_device_t desc_device = {
     .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
 
     .idVendor = USBD_VID,
+#ifdef USBD_PID
     .idProduct = USBD_PID,
+#else
+    .idProduct = 0, // Will be defined later
+#endif
     .bcdDevice = 0x0100,
 
     .iManufacturer = 0x01,
@@ -227,18 +230,17 @@ usb_device_log(const char *fmt, ...) {
 // Invoked when received GET DEVICE DESCRIPTOR
 // Application returns pointer to the descriptor
 uint8_t const *tud_descriptor_device_cb(void) {
+
 #if PRINTER_IS_PRUSA_MK4
-    switch (config_store().extended_printer_type.get()) {
+    static constexpr EnumArray<ExtendedPrinterType, uint16_t, extended_printer_type_count> usb_pids {
+        { ExtendedPrinterType::mk4, 0x000D },
+        { ExtendedPrinterType::mk4s, 0x001a },
+        { ExtendedPrinterType::mk3_9, 0x0015 },
+    };
+    desc_device.idProduct = usb_pids.get_fallback(config_store().extended_printer_type.get(), ExtendedPrinterType::mk4);
 
-    case ExtendedPrinterType::mk3_9:
-        desc_device.idProduct = 0x0015; // MK3.9 PID == 21 == 0x0015
-        break;
-
-    case ExtendedPrinterType::mk4:
-    case ExtendedPrinterType::mk4s:
-        // Leave the default PID
-        break;
-    }
+#elifndef USBD_PID
+    #error USBD_PID must be defined!
 #endif
 
     return (uint8_t const *)&desc_device;
@@ -306,11 +308,11 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, [[maybe_unused]] uint16_
                 break;
 
             case ExtendedPrinterType::mk4s:
-                str = USBD_PRODUCT_STRING_MK4S;
+                str = "Original Prusa MK4S";
                 break;
 
             case ExtendedPrinterType::mk3_9:
-                str = USBD_PRODUCT_STRING_MK39;
+                str = "Original Prusa MK3.9";
                 break;
             }
         }
