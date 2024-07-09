@@ -36,6 +36,30 @@ LOG_COMPONENT_DEF(PRUSA_GCODE, logging::Severity::info);
 
 static void record_pre_gcode_metrics();
 
+FilamentType PrusaGcodeSuite::get_filament_type_from_command(char parameter, const char **string_begin_ptr) {
+    if (!parser.seen(parameter)) {
+        return FilamentType::none;
+    }
+
+    const char *text_begin = strchr(parser.string_arg, '"');
+    if (!text_begin) {
+        return FilamentType::none;
+    }
+
+    text_begin++; // move pointer from '"' to first letter
+
+    const char *text_end = strchr(text_begin, '"');
+    if (!text_end) {
+        return FilamentType::none;
+    }
+
+    if (string_begin_ptr) {
+        *string_begin_ptr = text_begin;
+    }
+
+    return filament::get_type(text_begin, text_end - text_begin);
+}
+
 bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
     record_pre_gcode_metrics();
     bool processed = true;

@@ -137,26 +137,12 @@ void M600_execute(xyz_pos_t park_point, uint8_t target_extruder,
 void M600_manual() {
     char colourtype[16] = { '\0' };
 
-    auto filament_to_be_loaded = filament::Type::NONE;
-    const char *text_begin = 0;
-    if (parser.seen('S')) {
-        text_begin = strchr(parser.string_arg, '"');
-        if (text_begin) {
-            ++text_begin; // move pointer from '"' to first letter
-            const char *text_end = strchr(text_begin, '"');
-            if (text_end) {
-                auto filament = filament::get_type(text_begin, text_end - text_begin);
-                if (filament != filament::Type::NONE) {
-                    filament_to_be_loaded = filament;
-                }
-            }
-        }
-    }
+    const auto filament_to_be_loaded = PrusaGcodeSuite::get_filament_type_from_command('S');
 
     if (parser.seen('C')) {
         const char *colourtype_ptr = nullptr;
         if ((colourtype_ptr = strstr(parser.string_arg, "C\"")) != nullptr) {
-            text_begin = strchr(colourtype_ptr, '"');
+            const char *text_begin = strchr(colourtype_ptr, '"');
             if (text_begin) {
                 ++text_begin;
                 strlcpy(colourtype, text_begin, sizeof(colourtype));
@@ -168,7 +154,7 @@ void M600_manual() {
                 }
             }
         } else if ((colourtype_ptr = strstr(parser.string_arg, "C ")) != nullptr) {
-            text_begin = strchr(colourtype_ptr, ' ');
+            const char *text_begin = strchr(colourtype_ptr, ' ');
             if (text_begin) {
                 ++text_begin;
                 strlcpy(colourtype, text_begin, sizeof(colourtype));
