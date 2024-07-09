@@ -40,24 +40,28 @@ static_assert(configLIBRARY_LOWEST_INTERRUPT_PRIORITY == 15);
     /************************************************
      * Task priorities
      *************************************************/
-    #define TASK_PRIORITY_PUPPY_TASK                 osPriorityRealtime
-    #define TASK_PRIORITY_USB_DEVICE                 osPriorityNormal
-    #define TASK_PRIORITY_AC_FAULT                   osPriorityRealtime
-    #define TASK_PRIORITY_ESP                        osPriorityRealtime
-    #define TASK_PRIORITY_DEFAULT_TASK               osPriorityHigh
-    #define TASK_PRIORITY_STARTUP                    osPriorityHigh
-    #define TASK_PRIORITY_MEDIA_PREFETCH             osPriorityHigh
-    #define TASK_PRIORITY_METRIC_SYSTEM              osPriorityAboveNormal
-    #define TASK_PRIORITY_USB_HOST                   osPriorityNormal
-    #define TASK_PRIORITY_USB_MSC_WORKER_HIGH        osPriorityRealtime
-    #define TASK_PRIORITY_USB_MSC_WORKER_LOW         osPriorityNormal
-    #define TASK_PRIORITY_DISPLAY_TASK               osPriorityNormal
-    #define TASK_PRIORITY_MEASUREMENT_TASK           osPriorityNormal
-    #define TASK_PRIORITY_ESP_UPDATE                 osPriorityNormal
-    #define TASK_PRIORITY_MEDIA_PREFETCH_WHILE_FREAD osPriorityNormal // decreased priroity when media prefetch calls fread
-    #define TASK_PRIORITY_TCPIP_THREAD               osPriorityBelowNormal
-    #define TASK_PRIORITY_WUI                        osPriorityBelowNormal
-    #define TASK_PRIORITY_CONNECT                    osPriorityBelowNormal
+    #define TASK_PRIORITY_PUPPY_TASK          osPriorityRealtime
+    #define TASK_PRIORITY_USB_DEVICE          osPriorityNormal
+    #define TASK_PRIORITY_AC_FAULT            osPriorityRealtime
+    #define TASK_PRIORITY_ESP                 osPriorityRealtime
+    #define TASK_PRIORITY_DEFAULT_TASK        osPriorityHigh
+    #define TASK_PRIORITY_STARTUP             osPriorityHigh
+    #define TASK_PRIORITY_METRIC_SYSTEM       osPriorityAboveNormal
+    #define TASK_PRIORITY_USB_HOST            osPriorityNormal
+    #define TASK_PRIORITY_USB_MSC_WORKER_HIGH osPriorityRealtime
+    #define TASK_PRIORITY_USB_MSC_WORKER_LOW  osPriorityNormal
+    #define TASK_PRIORITY_DISPLAY_TASK        osPriorityNormal
+    #define TASK_PRIORITY_MEASUREMENT_TASK    osPriorityNormal
+    #define TASK_PRIORITY_ESP_UPDATE          osPriorityNormal
+    #define TASK_PRIORITY_TCPIP_THREAD        osPriorityBelowNormal
+    #define TASK_PRIORITY_WUI                 osPriorityBelowNormal
+    #define TASK_PRIORITY_CONNECT             osPriorityBelowNormal
+    #define TASK_PRIORITY_ASYNC_JOB_EXECUTOR  osPriorityLow
+
+    // Media prefetch runs on async executor, but raises the priority temporarily when reading
+    // To win the figths with connect USB writing and such
+    #define TASK_PRIORITY_MEDIA_PREFETCH osPriorityNormal
+
 static_assert(configTIMER_TASK_PRIORITY == 5); // 5 is more than osPriorityRealtime
 
 #elif BOARD_IS_DWARF

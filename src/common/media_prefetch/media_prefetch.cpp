@@ -11,6 +11,7 @@
 #ifndef UNITTESTS
     #include <metric.h>
     #include <scope_guard.hpp>
+    #include <cmsis_os.h>
 #endif
 
 namespace media_prefetch {
@@ -213,9 +214,17 @@ MediaPrefetchManager::Metrics MediaPrefetchManager::get_metrics() const {
 
 void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
 #ifndef UNITTESTS
-    // Log duration of the metrics fetch
-    ScopeGuard metric_guard = [start = ticks_ms()] {
-        metric_record_integer(&metric_fetch_duration, ticks_diff(ticks_ms(), start));
+    // Increase the priority during the fetch routine - we want to win fights over USB with Connect
+    const auto thread_id = osThreadGetId();
+    const auto original_priority = osThreadGetPriority(thread_id);
+    osThreadSetPriority(thread_id, TASK_PRIORITY_MEDIA_PREFETCH);
+
+    ScopeGuard exit_guard = [start = ticks_ms(), thread_id, original_priority] {
+        osThreadSetPriority(thread_id, original_priority);
+
+        const int32_t prefetch_duration = ticks_diff(ticks_ms(), start);
+        log_debug(MediaPrefetch, "Media prefetch took %" PRIi32 " ms", prefetch_duration);
+        metric_record_integer(&metric_fetch_duration, prefetch_duration);
     };
 #endif
 
