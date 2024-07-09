@@ -8,6 +8,7 @@
 #include "client_response.hpp"
 #include "general_response.hpp"
 #include "marlin_server.hpp"
+#include <media_prefetch_instance.hpp>
 #include "timing.h"
 #include "filament_sensors_handler.hpp"
 #include "filament.hpp"
@@ -419,40 +420,47 @@ PrintPreview::Result PrintPreview::Loop() {
         break;
 
     case State::download_wait:
-        switch (response) {
-
-        case Response::Quit:
+        if (response == Response::Quit) {
             gcode_info_scan::cancel_scan();
             ChangeState(State::inactive);
             return Result::Abort;
 
-        default:
-            break;
-        }
-
-        if (gcode_info.can_be_printed()) {
-            ChangeState(State::loading);
         } else if (gcode_info.has_error()) {
             ChangeState(State::file_error_wait_user);
+
+        } else if (!gcode_info.can_be_printed()) {
+            // Wait till we have downloaded enough
+
+        } else if (!marlin_server::media_prefetch.check_ready_to_start_print()) {
+            // Make sure we have the prefetch buffer full before start the print
+            // If we got into the "downloading" phase, do the prefetch checking here, because we're waiting for the file to download more
+            marlin_server::media_prefetch.issue_fetch();
+
+        } else {
+            ChangeState(State::loading);
         }
         break;
 
     case State::loading:
         if (gcode_info_scan::scan_start_result() == gcode_info_scan::ScanStartResult::not_started) {
-            break;
-        }
+            // Wait for the gcode scan to start
 
-        if (gcode_info.has_error()) {
+        } else if (gcode_info.has_error()) {
             ChangeState(State::file_error_wait_user);
-            break;
-        }
 
-        if (!gcode_info.can_be_printed()) {
+        } else if (!gcode_info.can_be_printed()) {
+            // The file is not fully downloaded, wait till we have downloaded enough for printing
             ChangeState(State::download_wait);
-            break;
-        }
 
-        if (gcode_info.is_loaded()) {
+        } else if (!gcode_info.is_loaded()) {
+            // Wait for the gcode info to fully load
+
+        } else if (!marlin_server::media_prefetch.check_ready_to_start_print()) {
+            // Make sure we have the prefetch buffer full before start the print
+            marlin_server::media_prefetch.issue_fetch();
+
+        } else {
+            // We're ready to print now
             ChangeState((skip_if_able > marlin_server::PreviewSkipIfAble::no) ? stateFromSelftestCheck() : State::preview_wait_user);
         }
         break;

@@ -76,6 +76,9 @@ public:
     /// This is equivalent to the situation where \p read_command returns \p Status::end_of_buffer (but this is only a check, not reading anything)
     bool check_buffer_empty() const;
 
+    /// \returns whether the buffer is full or at EOF
+    bool check_ready_to_start_print() const;
+
 public:
     struct Metrics {
         /// Number of gcode commands currently in the buffer
