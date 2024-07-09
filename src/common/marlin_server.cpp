@@ -69,6 +69,7 @@
 #include "odometer.hpp"
 #include "metric.h"
 #include "app_metrics.h"
+#include "media_prefetch_instance.hpp"
 
 #include <option/has_leds.h>
 #if HAS_LEDS()
@@ -152,8 +153,6 @@ extern ClientQueue marlin_client_queue[MARLIN_MAX_CLIENTS];
 namespace marlin_server {
 
 void media_prefetch_start();
-
-__attribute__((section(".ccmram"))) MediaPrefetchManager media_prefetch;
 
 namespace {
 
