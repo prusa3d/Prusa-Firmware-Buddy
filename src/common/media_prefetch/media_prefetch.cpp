@@ -467,6 +467,11 @@ bool MediaPrefetchManager::fetch_command(AsyncJobExecutionControl &control) {
         }
 
         s.command_buffer_data[buf_pos] = '\0';
+
+        if (s.command_buffer.cropped) {
+            log_warning(MediaPrefetch, "Cropped gcode: %s", s.command_buffer_data.data());
+        }
+
         buf_pos = compact_gcode(s.command_buffer_data.data());
 
         // Empty line -> just reset the buffer and keep on reading
