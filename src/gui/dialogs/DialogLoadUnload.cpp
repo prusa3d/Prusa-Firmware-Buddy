@@ -528,8 +528,8 @@ void DialogLoadUnload::phaseExit() {
         return;
     }
 
-    if (get_current_state(*current_phase).onExit) {
-        get_current_state(*current_phase).onExit();
+    if (auto f = get_current_state(*current_phase).onExit) {
+        f();
     }
 }
 
@@ -545,29 +545,24 @@ void DialogLoadUnload::phaseEnter() {
         }
     }
 
-    if (mode == LoadUnloadMode::Load) { // Change is currently split into Load/Unload, therefore no need to if (mode == change)
-        if (filament::get_type_to_load() != filament::Type::NONE) {
-            filament_type_text.Show();
-            auto fil_name = filament::get_name(filament::get_type_to_load());
-            filament_type_text.SetText(_(fil_name));
-            if (filament::get_color_to_load().has_value()) {
+    const FilamentType filament_to_load = (mode == LoadUnloadMode::Load) ? filament::get_type_to_load() : FilamentType::none;
+    const bool has_filament_to_load = (filament_to_load != FilamentType::none);
+    const bool has_color_to_load = has_filament_to_load && filament::get_color_to_load().has_value();
 
-                int16_t left_pos = (GuiDefaults::ScreenWidth - (width(Font::normal) + 1) * (strlen(fil_name) + 1 + 1) - color_size) / 2; // make the pos to be on the left of the text (+ one added space to the left of the text, + additional one for some reason makes it work )
-                auto rect = filament_color_icon_rect + Rect16::X_t { static_cast<int16_t>(left_pos) };
+    filament_type_text.set_visible(has_filament_to_load);
+    filament_color_icon.set_visible(has_color_to_load);
 
-                auto col = filament::get_color_to_load().value();
-                filament_color_icon.SetBackColor(col);
-                filament_color_icon.SetRect(rect);
-                filament_color_icon.Show();
-            } else {
-                filament_color_icon.Hide();
-            }
-        } else {
-            filament_type_text.Hide();
-            filament_color_icon.Hide();
-        }
-    } else {
-        filament_color_icon.Hide();
-        filament_type_text.Hide();
+    if (has_filament_to_load) {
+        filament_type_parameters = filament::get_description(filament_to_load);
+        filament_type_text.SetText(string_view_utf8::MakeRAM(filament_type_parameters.name));
+    }
+
+    if (has_color_to_load) {
+        const int16_t left_pos = (GuiDefaults::ScreenWidth - (width(Font::normal) + 1) * (strlen(filament_type_parameters.name) + 1 + 1) - color_size) / 2; // make the pos to be on the left of the text (+ one added space to the left of the text, + additional one for some reason makes it work )
+        const auto rect = filament_color_icon_rect + Rect16::X_t { static_cast<int16_t>(left_pos) };
+
+        const auto col = filament::get_color_to_load().value();
+        filament_color_icon.SetBackColor(col);
+        filament_color_icon.SetRect(rect);
     }
 }

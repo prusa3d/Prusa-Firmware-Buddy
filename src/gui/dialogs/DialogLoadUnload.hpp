@@ -102,5 +102,8 @@ private:
     char error_code_str[32 + MaxErrorCodeDigits + 1]; // static text before error code has 32 chars
     LoadUnloadMode mode;
 
+    // Needs to be held in memory because we're rendering the name from it
+    FilamentTypeParameters filament_type_parameters;
+
     static DialogLoadUnload *instance; // needed for sounds
 };
