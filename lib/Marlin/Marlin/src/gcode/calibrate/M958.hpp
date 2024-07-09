@@ -16,13 +16,18 @@ struct FrequencyGain {
     float gain;
 };
 
-struct FrequencyGain3D {
+struct FrequencyGain3d {
     float frequency;
     float gain[3];
 
     constexpr float get_square() const {
         return sq(gain[0]) + sq(gain[1]) + sq(gain[2]);
     }
+};
+
+struct FrequencyGain3dError {
+    FrequencyGain3d frequencyGain3d;
+    bool error;
 };
 
 class Spectrum {
@@ -92,7 +97,7 @@ public:
 float get_accelerometer_sample_period(AccelerometerProgressHook&, PrusaAccelerometer &accelerometer);
 
 float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]);
-FrequencyGain3D vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_period, StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles);
+FrequencyGain3dError vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_period, StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles);
 
 // Interface for hooking into find_best_shaper()
 class FindBestShaperProgressHook {

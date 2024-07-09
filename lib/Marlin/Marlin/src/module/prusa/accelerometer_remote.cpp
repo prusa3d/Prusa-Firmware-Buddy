@@ -58,7 +58,7 @@ PrusaAccelerometer::~PrusaAccelerometer() {
 void PrusaAccelerometer::clear() {
     // todo wait for for so many samples that it is assured
     // that even if all buffers were full we went through
-    // all samples
+    // all samples and reflect possible delay in steps_to_do_max
     std::lock_guard lock(s_buffer_mutex);
     m_sample_buffer.clear();
     m_error = Error::none;

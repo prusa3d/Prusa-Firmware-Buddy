@@ -334,9 +334,13 @@ static PhasesInputShaperCalibration measuring_axis(
         data[2] = static_cast<uint8_t>(frequency_requested);
         marlin_server::fsm_change(phase, data);
 
-        FrequencyGain3D frequencyGain3D = vibrate_measure(*context.accelerometer, context.accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
-        frequencyGain3D.gain[logicalAxis] = max(frequencyGain3D.gain[logicalAxis] - 1.f, 0.f);
-        spectrum.samples[i] = frequencyGain3D.get_square();
+        FrequencyGain3dError frequencyGain3dError = vibrate_measure(*context.accelerometer, context.accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+        if (frequencyGain3dError.error) {
+            return PhasesInputShaperCalibration::measurement_failed;
+        }
+
+        frequencyGain3dError.frequencyGain3d.gain[logicalAxis] = max(frequencyGain3dError.frequencyGain3d.gain[logicalAxis] - 1.f, 0.f);
+        spectrum.samples[i] = frequencyGain3dError.frequencyGain3d.get_square();
         frequency_requested += frequency_range.increment;
     }
     spectrum.dump(logicalAxis == X_AXIS ? 'x' : 'y');

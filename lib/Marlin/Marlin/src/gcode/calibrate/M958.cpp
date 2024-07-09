@@ -291,7 +291,7 @@ float get_accelerometer_sample_period(AccelerometerProgressHook &progress_hook, 
         duration_ms = now - start_time;
 
         if (duration_ms > max_duration_ms) {
-            SERIAL_ERROR_MSG("timed out");
+            SERIAL_ERROR_MSG("sample period: getting accelerometer samples timed out");
             (void)is_ok(accelerometer.get_error());
             return NAN;
         }
@@ -387,7 +387,7 @@ AxisEnum get_logical_axis(const uint16_t axis_flag) {
  * @param calibrate_accelerometer
  * @return Frequency and gain measured on each axis if there is accelerometer
  */
-FrequencyGain3D
+FrequencyGain3dError
 vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_period, StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles) {
     // As we push steps directly, phase stepping needs to be off
     phase_stepping::assert_disabled();
@@ -416,6 +416,7 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_pe
     uint32_t step_nr = 0;
     GcodeSuite::reset_stepper_timeout();
     const uint32_t steps_to_do = generator.getStepsPerPeriod() * cycles;
+    const uint32_t steps_to_do_max = steps_to_do * 2 + generator.getStepsPerPeriod() + STEP_EVENT_QUEUE_SIZE;
 
     accelerometer.clear();
     while ((step_nr < steps_to_do) || (!enough_samples_collected) || (step_nr % generator.getStepsPerPeriod() != 0)) {
@@ -455,6 +456,13 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_pe
 
         enqueue_step(step_dir.step_us, step_dir.dir, axis_flag);
         ++step_nr;
+        if (step_nr > steps_to_do_max) {
+            SERIAL_ERROR_MSG("vibrate measure: getting accelerometer samples timed out");
+            (void)is_ok(accelerometer.get_error());
+            FrequencyGain3dError retval;
+            retval.error = true;
+            return retval;
+        }
     }
 
     for (int axis = 0; axis < num_axis; ++axis) {
@@ -504,7 +512,7 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_pe
     metric_record_custom(&metric_freq_gain, " a=%d,f=%.1f,x=%.4f,y=%.4f,z=%.4f",
         logical_axis, frequency, x_gain, y_gain, z_gain);
 
-    return { frequency, { x_gain, y_gain, z_gain } };
+    return { {frequency, { x_gain, y_gain, z_gain }}, false };
 }
 
 /**
@@ -759,8 +767,11 @@ static void naive_zv_tune(StepEventFlag_t axis_flag, float start_frequency, floa
     const bool klipper_mode = false;
     serial_echo_header(klipper_mode);
     for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
-        FrequencyGain3D frequencyGain3D = vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
-        FrequencyGain frequencyGain = { frequencyGain3D.frequency, frequencyGain3D.gain[logicalAxis] };
+        FrequencyGain3dError frequencyGain3dError = vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+        if (frequencyGain3dError.error) {
+            return;
+        }
+        FrequencyGain frequencyGain = { frequencyGain3dError.frequencyGain3d.frequency, frequencyGain3dError.frequencyGain3d.gain[logicalAxis] };
         if (frequencyGain.gain > maxFrequencyGain.gain) {
             maxFrequencyGain = frequencyGain;
         }
@@ -1076,11 +1087,14 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
     const bool klipper_mode = true;
     serial_echo_header(klipper_mode);
     for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
-        FrequencyGain3D frequencyGain3D = vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
-        if (subtract_excitation) {
-            frequencyGain3D.gain[logicalAxis] = max(frequencyGain3D.gain[logicalAxis] - 1.f, 0.f);
+        FrequencyGain3dError frequencyGain3dError = vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+        if (frequencyGain3dError.error) {
+            return;
         }
-        const float psd_xyz = sq(frequencyGain3D.gain[0]) + sq(frequencyGain3D.gain[1]) + sq(frequencyGain3D.gain[2]);
+        if (subtract_excitation) {
+            frequencyGain3dError.frequencyGain3d.gain[logicalAxis] = max(frequencyGain3dError.frequencyGain3d.gain[logicalAxis] - 1.f, 0.f);
+        }
+        const float psd_xyz = sq(frequencyGain3dError.frequencyGain3d.gain[0]) + sq(frequencyGain3dError.frequencyGain3d.gain[1]) + sq(frequencyGain3dError.frequencyGain3d.gain[2]);
         psd.put(psd_xyz);
     }
 
