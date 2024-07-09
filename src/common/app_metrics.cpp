@@ -70,9 +70,9 @@ void buddy::metrics::RecordRuntimeStats() {
         metric_record_string(&buddy_bom, "%u", otp_get_bom_id().value_or(0));
     }
 
-    METRIC_DEF(current_filamnet, "filament", METRIC_VALUE_STRING, 10 * 1007, METRIC_HANDLER_ENABLE_ALL);
-    auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
-    metric_record_string(&current_filamnet, "%s", filament::get_name(current_filament));
+    METRIC_DEF(metric_current_filament, "filament", METRIC_VALUE_STRING, 10 * 1007, METRIC_HANDLER_ENABLE_ALL);
+    const FilamentType current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
+    metric_record_string(&metric_current_filament, "%s", filament::get_name(current_filament));
 
     METRIC_DEF(stack, "stack", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL); // Thread stack usage
     METRIC_DEF(runtime, "runtime", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL); // Thread runtime usage

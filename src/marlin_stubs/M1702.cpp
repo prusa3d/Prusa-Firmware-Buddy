@@ -254,7 +254,7 @@ namespace {
     PhasesColdPull blank_load() {
 
         filament_gcodes::M701_no_parser(
-            filament::Type::PLA,
+            FilamentType::PLA,
             std::nullopt,
             Z_AXIS_LOAD_POS,
             RetAndCool_t::Return,
@@ -350,7 +350,7 @@ namespace {
             planner.synchronize();
 
             // mark filament unloaded
-            config_store().set_filament_type(active_extruder, filament::Type::NONE);
+            config_store().set_filament_type(active_extruder, FilamentType::none);
             filament_gcodes::M70X_process_user_response(PreheatStatus::Result::DoneNoFilament, active_extruder);
         }
         return PhasesColdPull::manual_pull;

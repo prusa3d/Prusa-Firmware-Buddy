@@ -146,39 +146,17 @@ float get_nozzle_diameter([[maybe_unused]] size_t idx) {
 void print_right_tool_into_buffer(size_t idx, std::array<std::array<char, ToolsMappingBody::max_item_text_width>, ToolsMappingBody::max_item_rows> &text_buffers, bool drawing_nozzles) {
     // IDX here means REAL
 
-    const auto loaded_filament_type = config_store().get_filament_type(idx);
+    const FilamentType loaded_filament_type = config_store().get_filament_type(idx);
     const char *loaded_filament_name = filament::get_name(loaded_filament_type);
 
 #if HAS_MMU2()
-    // upon request from the Content team - if we get "---", translate it into FILAM - a crude and awful hack :(
-    static constexpr const char unknownFilName[] = "---";
-    if (!strcmp(loaded_filament_name, unknownFilName)) {
-        // Note: this part is a subject to changes soon, there is no need to make this piece of code "nice"
-        // Hopefully, it will disappear completely in future releases
-        static const char unknownFilamentName1[] = "FIL1";
-        static const char unknownFilamentName2[] = "FIL2";
-        static const char unknownFilamentName3[] = "FIL3";
-        static const char unknownFilamentName4[] = "FIL4";
-        static const char unknownFilamentName5[] = "FIL5";
-        switch (idx) {
-        case 0:
-            loaded_filament_name = unknownFilamentName1;
-            break;
-        case 1:
-            loaded_filament_name = unknownFilamentName2;
-            break;
-        case 2:
-            loaded_filament_name = unknownFilamentName3;
-            break;
-        case 3:
-            loaded_filament_name = unknownFilamentName4;
-            break;
-        case 4:
-            loaded_filament_name = unknownFilamentName5;
-            break;
-        default:
-            break; // keep "---" by default
-        }
+    static constexpr std::array unknown_filament_names = {
+        "FIL1", "FIL2", "FIL3", "FIL4", "FIL5"
+    };
+
+    // Upon request from the Content team - if we get "---", translate it into FILAM - a crude and awful hack :(
+    if (loaded_filament_type == FilamentType::none && idx < unknown_filament_names.size()) {
+        loaded_filament_name = unknown_filament_names[idx];
     }
 #endif
 

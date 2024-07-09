@@ -26,7 +26,9 @@ enum class Type : uint8_t {
     PP,
     FLEX,
     PA,
-    _last = PA
+
+    _last = PA,
+    none = NONE,
 };
 
 constexpr Type default_type = Type::PLA;
@@ -39,3 +41,6 @@ const Description &get_description(Type type);
 const char *get_name(Type type);
 
 }; // namespace filament
+
+// This is here to reduce changes for the future PRs. It will be removed soon.
+using FilamentType = filament::Type;

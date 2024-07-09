@@ -512,7 +512,7 @@ void CurrentStore::set_tool_offset(uint8_t index, ToolOffset value) {
 }
 #endif
 
-filament::Type CurrentStore::get_filament_type([[maybe_unused]] uint8_t index) {
+FilamentType CurrentStore::get_filament_type([[maybe_unused]] uint8_t index) {
 #if EXTRUDERS <= 1
     assert(index == 0);
     return filament_type_0.get();
@@ -537,7 +537,7 @@ filament::Type CurrentStore::get_filament_type([[maybe_unused]] uint8_t index) {
 #endif
 }
 
-void CurrentStore::set_filament_type([[maybe_unused]] uint8_t index, filament::Type value) {
+void CurrentStore::set_filament_type([[maybe_unused]] uint8_t index, FilamentType value) {
 #if EXTRUDERS <= 1
     assert(index == 0);
     filament_type_0.set(value);

@@ -95,9 +95,9 @@ void DUMMY_AXIS_E::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_p
 }
 
 bool DUMMY_AXIS_E::IsTargetTempOk() {
-    auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
+    const auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
     auto current_filament_nozzle_target = filament::get_description(current_filament).nozzle;
-    return (current_filament != filament::Type::NONE) // filament is selected
+    return (current_filament != FilamentType::none) // filament is selected
         && (int(marlin_vars()->active_hotend().target_nozzle + 0.9F) >= current_filament_nozzle_target); // target temperature is high enough - +0.9 to avoid float round error
 }
 

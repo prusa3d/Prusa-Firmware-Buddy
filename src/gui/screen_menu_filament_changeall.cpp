@@ -150,7 +150,7 @@ void handle_change_all(const std::array<size_t, ScreenChangeAllFilaments::tool_c
         }
 
         if (selection[tool] == I_MI_FilamentSelect::unload_index) {
-            config_store().set_filament_type(tool, filament::Type::NONE);
+            config_store().set_filament_type(tool, FilamentType::none);
             continue;
         }
 

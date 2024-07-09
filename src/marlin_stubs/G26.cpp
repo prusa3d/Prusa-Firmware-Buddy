@@ -363,7 +363,7 @@ void FirstLayer::print_shape_2() {
 void PrusaGcodeSuite::G26() {
     // is filament selected
     auto filament = config_store().get_filament_type(active_extruder);
-    if (filament == filament::Type::NONE) {
+    if (filament == FilamentType::none) {
         return;
     }
 

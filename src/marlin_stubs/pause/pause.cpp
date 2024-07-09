@@ -934,7 +934,7 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
             break;
         }
 
-        config_store().set_filament_type(settings.GetExtruder(), filament::Type::NONE);
+        config_store().set_filament_type(settings.GetExtruder(), FilamentType::none);
 
         switch (unload_type) {
 
@@ -1493,7 +1493,7 @@ void Pause::handle_filament_removal(LoadPhases_t phase_to_set) {
     // only if there is no filament present and we are sure (FS on and sees no filament)
     if (FSensors_instance().has_filament(false)) {
         set(phase_to_set);
-        config_store().set_filament_type(settings.GetExtruder(), filament::Type::NONE);
+        config_store().set_filament_type(settings.GetExtruder(), FilamentType::none);
         return;
     }
     return;

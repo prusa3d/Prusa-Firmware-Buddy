@@ -550,7 +550,7 @@ class ClientResponses {
     static constexpr EnumArray<PhasesPreheat, PhaseResponses, CountPhases<PhasesPreheat>()> PreheatResponses {
         { PhasesPreheat::initial, {} },
 
-        // Additionally, filament type selection is passed through FSMResponseVariant(filament::Type)
+        // Additionally, filament type selection is passed through FSMResponseVariant(FilamentType)
         { PhasesPreheat::UserTempSelection, { Response::Abort, Response::Cooldown } },
     };
 

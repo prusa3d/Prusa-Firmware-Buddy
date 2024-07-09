@@ -132,7 +132,7 @@ void GcodeSuite::M600() {
 void M600_execute(xyz_pos_t park_point, uint8_t target_extruder,
     xyze_float_t resume_point, std::optional<float> unloadLength, std::optional<float> fastLoadLength,
     std::optional<float> retractLength, std::optional<Color> filament_colour,
-    std::optional<filament::Type> filament_type, pause::Settings::CalledFrom);
+    std::optional<FilamentType> filament_type, pause::Settings::CalledFrom);
 
 void M600_manual() {
     char colourtype[16] = { '\0' };
@@ -232,7 +232,7 @@ void M600_manual() {
 
 void M600_execute(xyz_pos_t park_point, uint8_t target_extruder, xyze_float_t resume_point,
     std::optional<float> unloadLength, std::optional<float> fastLoadLength, std::optional<float> retractLength,
-    std::optional<Color> filament_colour, std::optional<filament::Type> filament_type,
+    std::optional<Color> filament_colour, std::optional<FilamentType> filament_type,
     pause::Settings::CalledFrom called_from) {
 
     // Ignore estalls during filament change

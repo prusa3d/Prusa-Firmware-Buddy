@@ -304,8 +304,8 @@ struct CurrentStore
     StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 5")> filament_type_5;
 #endif
 
-    filament::Type get_filament_type(uint8_t index);
-    void set_filament_type(uint8_t index, filament::Type value);
+    FilamentType get_filament_type(uint8_t index);
+    void set_filament_type(uint8_t index, FilamentType value);
 
     StoreItem<bool, false, journal::hash("Heatup Bed")> heatup_bed;
 

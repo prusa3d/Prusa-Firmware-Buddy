@@ -60,7 +60,7 @@ bool filament_gcodes::load_unload([[maybe_unused]] LoadUnloadMode type, filament
     return res;
 }
 
-void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot, std::optional<Color> color_to_be_loaded, ResumePrint_t resume_print_request) {
+void filament_gcodes::M701_no_parser(FilamentType filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot, std::optional<Color> color_to_be_loaded, ResumePrint_t resume_print_request) {
     InProgress progress;
 
     marlin_server::DisableNozzleTimeout disableNozzleTimeout;
@@ -69,7 +69,7 @@ void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const
     }
 
     if (op_preheat) {
-        if (filament_to_be_loaded == filament::Type::NONE) {
+        if (filament_to_be_loaded == FilamentType::none) {
             PreheatData data(!fast_load_length.has_value() || fast_load_length > 0.F ? PreheatMode::Load : PreheatMode::Purge, *op_preheat);
             auto preheat_ret = data.Mode() == PreheatMode::Load ? preheat_for_change_load(data, target_extruder) : preheat(data, target_extruder);
             if (preheat_ret.first) {
@@ -212,13 +212,13 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res, uint
 }
 
 void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder) {
-    filament::set_type_to_load(filament::Type::NONE);
+    filament::set_type_to_load(FilamentType::none);
     filament::set_color_to_load(std::nullopt);
 
     InProgress progress;
     if constexpr (option::has_bowden) {
-        config_store().set_filament_type(target_extruder, filament::Type::NONE);
-        M701_no_parser(filament::Type::NONE, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0, std::nullopt, ResumePrint_t::No);
+        config_store().set_filament_type(target_extruder, FilamentType::none);
+        M701_no_parser(FilamentType::none, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0, std::nullopt, ResumePrint_t::No);
     } else {
 
         pause::Settings settings;
@@ -248,7 +248,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
                 return;
             }
 
-            filament::Type filament = preheat_ret.second;
+            const FilamentType filament = preheat_ret.second;
             filament::set_type_to_load(filament);
             filament::set_color_to_load(std::nullopt);
 
@@ -270,20 +270,20 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
     FSensors_instance().ClrAutoloadSent();
 }
 
-void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint8_t target_extruder, RetAndCool_t preheat, AskFilament_t ask_filament, std::optional<Color> color_to_be_loaded) {
+void filament_gcodes::M1600_no_parser(FilamentType filament_to_be_loaded, uint8_t target_extruder, RetAndCool_t preheat, AskFilament_t ask_filament, std::optional<Color> color_to_be_loaded) {
     InProgress progress;
 
-    filament::Type filament = config_store().get_filament_type(target_extruder);
-    if (filament == filament::Type::NONE && ask_filament == AskFilament_t::Never) {
+    FilamentType filament = config_store().get_filament_type(target_extruder);
+    if (filament == FilamentType::none && ask_filament == AskFilament_t::Never) {
         PreheatStatus::SetResult(PreheatStatus::Result::DoneNoFilament);
         return;
     }
 
-    if (ask_filament == AskFilament_t::Always || (filament == filament::Type::NONE && ask_filament == AskFilament_t::IfUnknown)) {
+    if (ask_filament == AskFilament_t::Always || (filament == FilamentType::none && ask_filament == AskFilament_t::IfUnknown)) {
         // need to save filament to check if operation went well, PreheatMode::Unload for user info in header
         M1700_no_parser(preheat, PreheatMode::Unload, target_extruder, true, true, config_store().heatup_bed.get());
         filament = config_store().get_filament_type(target_extruder);
-        if (filament == filament::Type::NONE) {
+        if (filament == FilamentType::none) {
             return; // no need to set PreheatStatus::Result::DoneNoFilament, M1700 did that
         }
     }
@@ -314,7 +314,7 @@ void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint
 
     // LOAD
     // cannot do normal preheat, since printer is already preheated from unload
-    if (filament_to_be_loaded == filament::Type::NONE) {
+    if (filament_to_be_loaded == FilamentType::none) {
         PreheatData data(PreheatMode::Change_phase2, preheat);
         auto preheat_ret = preheat_for_change_load(data, target_extruder);
         if (preheat_ret.first) {
