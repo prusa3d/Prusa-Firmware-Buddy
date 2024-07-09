@@ -144,7 +144,14 @@ LoopResult CSelftestPart_FirstLayer::stateFilamentLoadEnqueueGcode() {
     }
 
     // load, no return no cooldown
-    return enqueueGcode("M701 W0") ? LoopResult::RunNext : LoopResult::RunCurrent;
+    // Note: We need to specify slot here, otherwise this fails when using
+    //       MMU without loaded filament. We just choose the first slot.
+    //       When another slot is required, it can be preloaded before
+    //       entering calibration. When not using MMU, P is ignored.
+    // FIXME It would be nice to present option to let user choose slot.
+    //       That would be much easier to implement after we transition
+    //       to new g-code style selftests, which we want to do at some point.
+    return enqueueGcode("M701 W0 P0") ? LoopResult::RunNext : LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_FirstLayer::stateFilamentLoadWaitFinished() {
