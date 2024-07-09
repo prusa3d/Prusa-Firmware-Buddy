@@ -256,11 +256,16 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
         }
 
         log_debug(MediaPrefetch, "Fetch start '%s' from %" PRIu32, filepath.data(), s.gcode_reader_pos);
-        assert(strlen(filepath.data()) > 0);
 
         if (reader_needs_initialization) {
             // First destroy, then create, to prevent having two readers at the same time
             s.gcode_reader = {};
+
+            if (filepath[0] == '\0') {
+                // No file, just close the reader and exit
+                return;
+            }
+
             s.gcode_reader = AnyGcodeFormatReader(filepath.data());
 
             if (!s.gcode_reader.is_open()) {

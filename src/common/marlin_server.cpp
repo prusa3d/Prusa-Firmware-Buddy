@@ -719,6 +719,13 @@ void static finalize_print(bool finished) {
     // Reset IS at the end of the print
     input_shaper::init();
 
+    {
+        media_prefetch.stop();
+
+        // We need to issue a "fetch" to make the prefetch close the file handle
+        media_prefetch.issue_fetch();
+    }
+
     server.print_is_serial = false; // reset flag about serial print
 
     marlin_vars()->print_end_time = time(nullptr);
@@ -2090,6 +2097,7 @@ static void _server_print_loop(void) {
         if (fsm_states.is_active(ClientFSM::Serial_printing)) {
             finalize_print(false);
         }
+
         server.print_state = State::Idle;
         break;
 
