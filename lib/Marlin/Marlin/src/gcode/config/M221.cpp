@@ -44,7 +44,7 @@ void GcodeSuite::M221() {
   if (parser.seenval('S')) {
     int flow_percentage = parser.value_int();
     #if ENABLED(GCODE_COMPATIBILITY_MK3)
-      if (gcode.compatibility_mode == GcodeSuite::CompatibilityMode::MK3) {
+      if (gcode.gcode_compatibility_mode == GcodeSuite::GcodeCompatibilityMode::MK3) {
         flow_percentage = (float)flow_percentage / 0.95;
       }
     #endif

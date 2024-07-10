@@ -322,7 +322,7 @@ public:
   }
   static inline void set_relative_mode(const bool rel) {
     #if ENABLED(GCODE_COMPATIBILITY_MK3)
-        if (compatibility_mode == CompatibilityMode::MK3) {
+        if (gcode_compatibility_mode == GcodeCompatibilityMode::MK3) {
             axis_relative = rel ? _BV(REL_X) | _BV(REL_Y) | _BV(REL_Z) : 0;
         } else {
             axis_relative = rel ? _BV(REL_X) | _BV(REL_Y) | _BV(REL_Z) | _BV(REL_E) : 0;
@@ -341,11 +341,11 @@ public:
   }
 
   #if ENABLED(GCODE_COMPATIBILITY_MK3)
-    enum class CompatibilityMode {
+    enum class GcodeCompatibilityMode {
       NONE,
       MK3,
     };
-    static CompatibilityMode compatibility_mode;
+    static GcodeCompatibilityMode gcode_compatibility_mode;
   #endif
 
   #if ENABLED(CNC_WORKSPACE_PLANES)
