@@ -18,7 +18,7 @@ MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, const string_view_utf8 &
           { this, _(txt_wrong_nozzle_diameter), valid_printer_settings.wrong_nozzle_diameter.get_severity(), valid_printer_settings.wrong_nozzle_diameter.is_valid() },
           { this, _(txt_wrong_printer_model), valid_printer_settings.wrong_printer_model.get_severity(), valid_printer_settings.wrong_printer_model.is_valid() },
           { this, _(txt_wrong_gcode_level), valid_printer_settings.wrong_gcode_level.get_severity(), valid_printer_settings.wrong_gcode_level.is_valid() },
-          { this, _(txt_compatibility_mode), valid_printer_settings.mk3_compatibility_mode.get_severity(), valid_printer_settings.mk3_compatibility_mode.is_valid() },
+          { this, _(txt_gcode_compatibility_mode), valid_printer_settings.gcode_compatibility_mode.get_severity(), valid_printer_settings.gcode_compatibility_mode.is_valid() },
           { this, _(txt_old_firmware).formatted(wrong_fw_version_params, valid_printer_settings.latest_fw_version), valid_printer_settings.wrong_firmware.get_severity(), valid_printer_settings.wrong_firmware.is_valid() } } }
     , unsupported_features(this, _(txt_unsupported_features), HWCheckSeverity::Abort, !valid_printer_settings.unsupported_features)
     , unsupported_features_text(this, {}, is_multiline::no) {
