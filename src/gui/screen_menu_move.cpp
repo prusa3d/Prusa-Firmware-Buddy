@@ -197,7 +197,8 @@ ScreenMenuMove::ScreenMenuMove()
     header.SetIcon(&img::move_16x16);
 #endif
     prev_accel = marlin_vars()->travel_acceleration;
-    marlin_client::gcode("M204 T200");
+    marlin_client::gcode("M9201"); // Restore default motion parameters
+    marlin_client::gcode("M204 T200"); // Set accelerations
     Item<MI_AXIS_E>().set_is_hidden(true); // one of pair MI_AXIS_E DUMMY_AXIS_E must be hidden for swap to work
     checkNozzleTemp();
     ClrMenuTimeoutClose(); // No timeout for move screen
