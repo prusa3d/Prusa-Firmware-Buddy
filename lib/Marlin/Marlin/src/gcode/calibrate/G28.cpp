@@ -276,6 +276,9 @@
     Motion_Parameters motion_parameters;
     motion_parameters.save();
 
+    // Reset default feedrate and acceleration limits during homing
+    Motion_Parameters::reset();
+
     auto s = planner.user_settings;
     s.max_acceleration_mm_per_s2[X_AXIS] = XY_HOMING_ACCELERATION;
     s.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
