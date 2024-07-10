@@ -30,7 +30,7 @@ protected:
     Rect16 getNumRect(point_i16_t pt) const;
 
 private:
-    void horizLine(uint16_t width_pad, uint16_t height, color_t color);
+    void horizLine(uint16_t width_pad, uint16_t height, Color color);
     void horizLineWhite(uint16_t width_pad, uint16_t height) {
         horizLine(width_pad, height, COLOR_WHITE);
     }

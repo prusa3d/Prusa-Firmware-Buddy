@@ -24,7 +24,7 @@ private:
     // if enabled and set != nullptr
     //   window automatically draws differently when selected or shadowed
     union {
-        color_t color_back = GuiDefaults::ColorBack;
+        Color color_back = GuiDefaults::ColorBack;
         const color_scheme *pBackColorScheme;
     };
 
@@ -124,9 +124,9 @@ public:
 
     void HideBehindDialog();
     virtual void ShowAfterDialog();
-    void SetBackColor(color_t clr);
+    void SetBackColor(Color clr);
     void SetBackColor(const color_scheme &clr);
-    color_t GetBackColor() const;
+    Color GetBackColor() const;
     void SetRelativeSubwins() { flags.has_relative_subwins = true; }
     void SetRoundCorners() { flags.has_round_corners = true; }
     void SetHasIcon();

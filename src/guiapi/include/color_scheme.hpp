@@ -8,12 +8,12 @@
 #include "guitypes.hpp"
 
 struct color_scheme {
-    color_t normal; // not focused and not shadowed
-    color_t focused;
-    color_t shadowed;
-    color_t focused_and_shadowed;
+    Color normal; // not focused and not shadowed
+    Color focused;
+    Color shadowed;
+    Color focused_and_shadowed;
 
-    constexpr color_t Get(bool is_focused, bool is_shadowed) const {
+    constexpr Color Get(bool is_focused, bool is_shadowed) const {
         if (is_focused && is_shadowed) {
             return focused_and_shadowed;
 

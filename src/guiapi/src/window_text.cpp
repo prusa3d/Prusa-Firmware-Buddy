@@ -20,7 +20,7 @@ window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multili
 
 namespace {
 
-void do_draw(Rect16 rect, const string_view_utf8 &text, Font font, color_t parent_background, color_t clr_text_background, color_t clr_text_foreground, padding_ui8_t padding, text_flags text_flags, uint8_t rounding_rad, uint8_t rounding_flag, bool has_round_corners) {
+void do_draw(Rect16 rect, const string_view_utf8 &text, Font font, Color parent_background, Color clr_text_background, Color clr_text_foreground, padding_ui8_t padding, text_flags text_flags, uint8_t rounding_rad, uint8_t rounding_flag, bool has_round_corners) {
     if (has_round_corners) {
         render_rounded_rect(rect, parent_background, clr_text_background, rounding_rad, rounding_flag);
 
@@ -104,7 +104,7 @@ WindowBlinkingText::WindowBlinkingText(window_t *parent, Rect16 rect, const stri
 
 void WindowBlinkingText::unconditionalDraw() {
     // blink_enable handled in event (better invalidation)
-    color_t backup_clr = GetTextColor();
+    Color backup_clr = GetTextColor();
     if (flags.blink0) {
         SetTextColor(color_blink);
     }

@@ -37,8 +37,8 @@ class IWindowMenuItem {
 public:
     struct ColorScheme {
         struct ColorPair {
-            color_t focused;
-            color_t unfocused;
+            Color focused;
+            Color unfocused;
         };
 
         struct ROpPair {
@@ -135,8 +135,8 @@ protected:
     Rect16 getExtensionRect(Rect16 rect) const;
     bool is_touch_in_extension_rect(IWindowMenu &window_menu, point_ui16_t relative_touch_point) const;
 
-    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const; // must be virtual, because pictures of flags are drawn differently
-    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const; // things behind rect
+    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, Color color_back) const; // must be virtual, because pictures of flags are drawn differently
+    virtual void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const; // things behind rect
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) {};
     virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point);
     virtual invalidate_t change(int /*dif*/) { return invalidate_t::no; }
@@ -144,8 +144,8 @@ protected:
     void setLabelFont(Font);
     Font getLabelFont() const;
 
-    color_t GetTextColor() const;
-    color_t GetBackColor() const;
+    Color GetTextColor() const;
+    Color GetBackColor() const;
 
     void showDevOnly() {
         if (hidden != (uint8_t)is_hidden_t::dev) {
@@ -224,8 +224,8 @@ public:
     inline const string_view_utf8 &GetLabel() const { return label; }
 
     void Print(Rect16 rect);
-    void printRoundCorners(Rect16 rect, color_t front, color_t back) const;
-    void printOverRoundCorners(Rect16 rect, uint8_t left_width, uint8_t right_width, color_t color_back) const;
+    void printRoundCorners(Rect16 rect, Color front, Color back) const;
+    void printOverRoundCorners(Rect16 rect, uint8_t left_width, uint8_t right_width, Color color_back) const;
 
     inline bool Increment(uint8_t dif) { return Change(dif); }
     inline bool Decrement(uint8_t dif) { return Change(-int(dif)); }

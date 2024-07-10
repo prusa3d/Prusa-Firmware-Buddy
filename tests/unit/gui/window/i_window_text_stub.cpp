@@ -6,14 +6,14 @@
  */
 #include "i_window_text.hpp"
 
-color_t IWindowText::GetTextColor() const {
+Color IWindowText::GetTextColor() const {
     if (flags.color_scheme_foreground && pTextColorScheme) {
         return pTextColorScheme->Get(IsFocused(), IsShadowed());
     }
     return color_text;
 }
 
-void IWindowText::SetTextColor(color_t clr) {
+void IWindowText::SetTextColor(Color clr) {
     if (flags.color_scheme_foreground || color_text != clr) {
         color_text = clr;
         flags.color_scheme_foreground = false;

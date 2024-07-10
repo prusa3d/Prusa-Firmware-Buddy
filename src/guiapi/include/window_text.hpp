@@ -57,16 +57,16 @@ protected:
 using window_text_button_t = WindowButton;
 
 class WindowBlinkingText : public window_text_t {
-    color_t color_blink;
+    Color color_blink;
     uint16_t blink_step;
     bool blink_enable;
 
 public:
-    void SetBlinkColor(color_t clr) {
+    void SetBlinkColor(Color clr) {
         color_blink = clr;
         color_blink == GetTextColor() ? DisableBlink() : EnableBlink();
     }
-    constexpr color_t GetBlinkColor() const { return color_blink; }
+    constexpr Color GetBlinkColor() const { return color_blink; }
     constexpr void EnableBlink() { blink_enable = true; }
     constexpr void DisableBlink() { blink_enable = false; }
 

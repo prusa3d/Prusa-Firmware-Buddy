@@ -72,7 +72,7 @@ void txtroll_t::Init(Rect16 rc, const string_view_utf8 &text, Font font,
 }
 
 void txtroll_t::RenderTextAlign(Rect16 rc, const string_view_utf8 &text, Font font,
-    color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment, bool fill_rect) const {
+    Color clr_back, Color clr_text, padding_ui8_t padding, Align_t alignment, bool fill_rect) const {
     switch (phase) {
     case phase_t::uninitialized:
     case phase_t::idle:
@@ -87,7 +87,7 @@ void txtroll_t::RenderTextAlign(Rect16 rc, const string_view_utf8 &text, Font fo
 }
 
 void txtroll_t::renderTextAlign(Rect16 rc, const string_view_utf8 &text, Font font,
-    color_t clr_back, color_t clr_text, [[maybe_unused]] padding_ui8_t padding, [[maybe_unused]] Align_t alignment, bool fill_rect) const {
+    Color clr_back, Color clr_text, [[maybe_unused]] padding_ui8_t padding, [[maybe_unused]] Align_t alignment, bool fill_rect) const {
 
     if (text.isNULLSTR()) {
         if (fill_rect) {

@@ -22,7 +22,7 @@ public:
     const char *GetFormat() { return format; }
     void SetValue(float val);
     float GetValue() const { return value; }
-    void SetColor(color_t clr);
+    void SetColor(Color clr);
     window_numb_t(window_t *parent, Rect16 rect, float value = 0, const char *frmt = nullptr, Font font = GuiDefaults::DefaultFont);
     void PrintTime(char *buffer);
 

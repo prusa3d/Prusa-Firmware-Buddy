@@ -17,7 +17,7 @@ public:
     virtual uint16_t Cols() = 0;
     virtual uint16_t Rows() = 0;
     virtual uint16_t BuffRows() = 0;
-    virtual void clear(color_t clr) = 0;
+    virtual void clear(Color clr) = 0;
     virtual uint32_t GetpixelNativeColor(uint16_t point_x, uint16_t point_y) = 0;
     virtual void SetpixelNativeColor(uint16_t point_x, uint16_t point_y, uint32_t clr) = 0;
     virtual uint8_t *GetBlock(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) const = 0;

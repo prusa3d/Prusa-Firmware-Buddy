@@ -32,7 +32,7 @@ void draw_from_buffer(point_ui16_t pt, uint16_t w, uint16_t h) {
     st7789v_draw_from_buffer(pt.x, pt.y, w, h);
 }
 
-void clear(const color_t clr) {
+void clear(const Color clr) {
     st7789v_clear(color_to_native(clr));
 }
 
@@ -77,7 +77,7 @@ void draw_from_buffer(point_ui16_t pt, uint16_t w, uint16_t h) {
     ili9488_draw_from_buffer(pt.x, pt.y, w, h);
 }
 
-void clear(const color_t clr) {
+void clear(const Color clr) {
     ili9488_clear(color_to_native(clr));
 }
 
@@ -133,7 +133,7 @@ void draw_from_buffer(point_ui16_t pt, uint16_t w, uint16_t h) {
     MockDisplay::Instance().drawFromBuff(pt, w, h);
 }
 
-void clear(const color_t clr) {
+void clear(const Color clr) {
     MockDisplay::Instance().clear(clr);
 }
 
@@ -163,12 +163,12 @@ class TDispBuffer {
     display::BorrowBuffer borrow_buffer;
     PTR_TYPE *p;
     DATA_TYPE clr_native[LEN];
-    const color_t clr_bg;
-    const color_t clr_fg;
+    const Color clr_bg;
+    const Color clr_fg;
 
 public:
     // pms (pixel mask) == number of combinations of font bits
-    TDispBuffer(uint8_t pms, color_t clr_bg, color_t clr_fg)
+    TDispBuffer(uint8_t pms, Color clr_bg, Color clr_fg)
         : p(reinterpret_cast<PTR_TYPE *>(borrow_buffer.buffer))
         , clr_bg(clr_bg)
         , clr_fg(clr_fg) {
@@ -196,7 +196,7 @@ public:
 };
 using DispBuffer = TDispBuffer<BuffAlphaLen, BuffDATA_TYPE, BuffPTR_TYPE, BuffNATIVE_PIXEL_SIZE>;
 
-static inline void store_to_buffer(uint8_t *buffer, Rect16 rect, uint16_t artefact_width, color_t color) {
+static inline void store_to_buffer(uint8_t *buffer, Rect16 rect, uint16_t artefact_width, Color color) {
     uint8_t *buff = buffer + (rect.Top() * artefact_width + rect.Left()) * BuffNATIVE_PIXEL_SIZE;
     uint32_t clr = color_to_native(color);
     for (int i = 0; i < rect.Height(); i++) {
@@ -216,12 +216,12 @@ namespace display {
 /// \param clr_bg background color
 /// \param clr_fg font/foreground color
 /// If font is not available for the character, solid rectangle will be drawn in background color
-void draw_char(point_ui16_t pt, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+void draw_char(point_ui16_t pt, unichar c, const font_t *pf, Color clr_bg, Color clr_fg) {
     store_char_in_buffer(1, 0, c, pf, clr_bg, clr_fg);
     draw_from_buffer(pt, pf->w, pf->h);
 }
 
-void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, const font_t *pf, Color clr_bg, Color clr_fg) {
     uint32_t chr = get_char_position_in_font(c, pf);
 
     const uint16_t char_w = pf->w; // char width
@@ -258,7 +258,7 @@ void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, 
 }
 
 /// Draws a rectangle boundary of defined color
-void draw_rect(Rect16 rc, color_t clr) {
+void draw_rect(Rect16 rc, Color clr) {
     if (rc.IsEmpty()) {
         return;
     }
@@ -273,7 +273,7 @@ void draw_rect(Rect16 rc, color_t clr) {
     fill_rect(Rect16(pt2, rc.Width(), 1), clr); // bottom
 }
 
-void fill_rect(Rect16 rc, color_t clr) {
+void fill_rect(Rect16 rc, Color clr) {
     rc = rc.Intersection(DisplayClip());
     if (rc.IsEmpty()) {
         return;
@@ -284,7 +284,7 @@ void fill_rect(Rect16 rc, color_t clr) {
 
 /// Draws simple line (no antialiasing)
 /// Both end points are drawn
-void draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
+void draw_line(point_ui16_t pt0, point_ui16_t pt1, Color clr) {
     const uint32_t native_color = color_to_native(clr);
     // todo check rectangle
     int n;
@@ -336,7 +336,7 @@ void draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 }
 
 // Draws rounded rect with only one pixel radius (draw_rounded_rect() process is not compatible with such a low radius)
-static void draw_rounded_rect_rad1(Rect16 rect, color_t back, color_t front, uint8_t flag, uint8_t loop, color_t secondary_color) {
+static void draw_rounded_rect_rad1(Rect16 rect, Color back, Color front, uint8_t flag, uint8_t loop, Color secondary_color) {
     BorrowBuffer borrow_buffer;
     uint8_t *buffer = borrow_buffer.buffer;
 
@@ -369,7 +369,7 @@ static void draw_rounded_rect_rad1(Rect16 rect, color_t back, color_t front, uin
 
 /// Draws rounded rectangle with parametric corner radius
 /// flag parameter determines which corners will be drawn rounded
-void draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint8_t cor_rad, uint8_t flag, color_t secondary_color) {
+void draw_rounded_rect(Rect16 rect, Color back, Color front, uint8_t cor_rad, uint8_t flag, Color secondary_color) {
     if (cor_rad == 0) {
         // front color is color of rext
         // back is not used (would be drawn behind corners)
@@ -455,7 +455,7 @@ void draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint8_t cor_rad
 }
 
 /// Turns the specified pixel to the specified color
-void set_pixel(point_ui16_t pt, color_t clr) {
+void set_pixel(point_ui16_t pt, Color clr) {
     if (!DisplayClip().Contain(pt)) {
         return;
     }
@@ -463,7 +463,7 @@ void set_pixel(point_ui16_t pt, color_t clr) {
     set_pixel_colorFormatNative(pt.x, pt.y, native_color);
 }
 
-void draw_img(point_ui16_t pt, const img::Resource &qoi, color_t back_color, ropfn rop, Rect16 subrect) {
+void draw_img(point_ui16_t pt, const img::Resource &qoi, Color back_color, ropfn rop, Rect16 subrect) {
     FILE *file;
 
     // Use provided file or default resource file
@@ -491,7 +491,7 @@ void draw_img(point_ui16_t pt, const img::Resource &qoi, color_t back_color, rop
     draw_qoi_ex_C(file, pt.x, pt.y, back_color.raw, rop, subrect);
 }
 
-void draw_text(Rect16 rc, const string_view_utf8 &str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+void draw_text(Rect16 rc, const string_view_utf8 &str, const font_t *pf, Color clr_bg, Color clr_fg) {
     render_text_singleline(rc, str, pf, clr_bg, clr_fg);
 }
 

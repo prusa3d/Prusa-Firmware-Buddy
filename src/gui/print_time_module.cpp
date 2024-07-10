@@ -30,7 +30,7 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
         return time_end_format;
     }
 
-    const color_t print_end_text_color = [&] {
+    const Color print_end_text_color = [&] {
         // Invalid
         if (time_to_end == marlin_server::TIME_TO_END_INVALID || time_to_end > 60 * 60 * 24 * 365) {
             strlcpy(text_time_end.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
@@ -116,7 +116,7 @@ void PrintTime::generate_timestamp_string(const time_t curr_sec, const uint32_t 
     print_timestamp_string_to_buffer(curr_sec, time_to_end, { text_time_end });
 }
 
-color_t PrintTime::generate_duration(time_t rawtime) {
+Color PrintTime::generate_duration(time_t rawtime) {
     print_formatted_duration(static_cast<uint32_t>(rawtime), { text_time_dur }, true);
     // TODO: Print duration validation -> validation color
     return GuiDefaults::COLOR_VALUE_VALID;

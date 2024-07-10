@@ -66,10 +66,10 @@ Rect16 WiSpin::getUnitRect(Rect16 extension_rect) const {
 
 static constexpr Font TheFont = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::FontMenuSpecial : GuiDefaults::FontMenuItems;
 
-void WiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
+void WiSpin::printExtension(Rect16 extension_rect, Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const {
 
     const string_view_utf8 spin_txt = string_view_utf8::MakeRAM(text_buffer_.data());
-    const color_t cl_txt = is_edited() ? COLOR_ORANGE : color_text;
+    const Color cl_txt = is_edited() ? COLOR_ORANGE : color_text;
     const Align_t align = Align_t::RightTop(); // This have to be aligned this way and set up with padding, because number and units have different fonts
     padding_ui8_t extension_padding = Padding;
     if constexpr (GuiDefaults::MenuSpinHasUnits) {

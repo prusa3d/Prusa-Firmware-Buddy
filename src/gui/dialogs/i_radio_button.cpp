@@ -185,7 +185,7 @@ void IRadioButton::draw_0_btn() {
 
 static constexpr auto ButtonFont = Font::big;
 
-static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, const string_view_utf8 &text, bool is_selected);
+static void button_draw(Rect16 rc_btn, Color back_color, Color parent_color, const string_view_utf8 &text, bool is_selected);
 
 // called internally, responses must exist
 void IRadioButton::draw_1_btn() {
@@ -214,7 +214,7 @@ void IRadioButton::draw_n_btns(size_t btn_count) {
                 GetBtnIndex() == i && IsEnabled(i) && !disabled_drawing_selected);
         }
     }
-    color_t spaces_clr = (GetBackColor() == COLOR_ORANGE) ? COLOR_BLACK : COLOR_ORANGE;
+    Color spaces_clr = (GetBackColor() == COLOR_ORANGE) ? COLOR_BLACK : COLOR_ORANGE;
     for (size_t i = 0; i < btn_count - 1; ++i) {
         display::fill_rect(layout.spaces[i], spaces_clr);
     }
@@ -261,9 +261,9 @@ void IRadioButton::EnableDrawingSelected() {
     disabled_drawing_selected = false;
 }
 
-static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, const string_view_utf8 &text, bool is_selected) {
-    color_t button_cl = is_selected ? back_color : COLOR_GRAY;
-    color_t text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
+static void button_draw(Rect16 rc_btn, Color back_color, Color parent_color, const string_view_utf8 &text, bool is_selected) {
+    Color button_cl = is_selected ? back_color : COLOR_GRAY;
+    Color text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
     if (GuiDefaults::RadioButtonCornerRadius) {
         display::draw_rounded_rect(rc_btn, parent_color, button_cl, GuiDefaults::RadioButtonCornerRadius, MIC_ALL_CORNERS);
         rc_btn += Rect16::Left_t(GuiDefaults::RadioButtonCornerRadius);

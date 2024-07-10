@@ -10,8 +10,6 @@
 
 #include <utils/color.hpp>
 
-using color_t = Color;
-
 // Menu item corners - background rounded corners
 enum {
     MIC_TOP_RIGHT = 1 << 0,

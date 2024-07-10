@@ -188,8 +188,8 @@ struct Line {
 };
 
 struct LineColored : public Line {
-    color_t color;
-    constexpr LineColored(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, color_t clr)
+    Color color;
+    constexpr LineColored(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, Color clr)
         : Line(x0, y0, x1, y1)
         , color(clr) {
     }
@@ -197,8 +197,8 @@ struct LineColored : public Line {
 
 void window_icon_hourglass_t::unconditionalDraw() {
 
-    static constexpr color_t animation_color = COLOR_ORANGE;
-    static constexpr color_t back_color = COLOR_BLACK;
+    static constexpr Color animation_color = COLOR_ORANGE;
+    static constexpr Color back_color = COLOR_BLACK;
 
     static constexpr LineColored lines[] = {
         { 13, 24, 13, 28, animation_color },

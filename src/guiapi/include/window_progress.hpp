@@ -5,7 +5,7 @@
 #include "window_frame.hpp"
 
 class window_numberless_progress_t : public window_t {
-    color_t color_progress;
+    Color color_progress;
     int corner_radius; //< radius of rounded corner
 
 protected:
@@ -13,26 +13,26 @@ protected:
     virtual void unconditionalDraw() override;
 
 public:
-    window_numberless_progress_t(window_t *parent, Rect16 rect, color_t cl_progress = COLOR_LIME, color_t cl_back = COLOR_GRAY, int corner_radius = 0);
+    window_numberless_progress_t(window_t *parent, Rect16 rect, Color cl_progress = COLOR_LIME, Color cl_back = COLOR_GRAY, int corner_radius = 0);
 
     void SetProgressInPixels(uint16_t px);
     void SetProgressPercent(float val);
     uint16_t GetProgressPixels() const;
 
-    void SetColor(color_t clr);
+    void SetColor(Color clr);
 };
 
 class window_vertical_progress_t : public window_t {
-    color_t color_progress;
+    Color color_progress;
     uint16_t progress_in_pixels;
 
 protected:
     virtual void unconditionalDraw() override;
 
 public:
-    window_vertical_progress_t(window_t *parent, Rect16 rect, color_t cl_progress = COLOR_ORANGE, color_t cl_back = COLOR_DARK_GRAY);
+    window_vertical_progress_t(window_t *parent, Rect16 rect, Color cl_progress = COLOR_ORANGE, Color cl_back = COLOR_DARK_GRAY);
     void SetValue(float val);
-    void SetProgressColor(color_t clr);
+    void SetProgressColor(Color clr);
     void SetProgressWidth(uint16_t width);
     void SetProgressInPixels(uint16_t px);
     void SetProgressPercent(uint8_t val);
@@ -53,8 +53,8 @@ public:
         return max_circles;
     }
     void set_index(uint8_t new_index);
-    void set_on_color(color_t clr);
-    void set_off_color(color_t clr);
+    void set_on_color(Color clr);
+    void set_off_color(Color clr);
     void set_one_circle_mode(bool new_mode);
 
 protected:
@@ -64,6 +64,6 @@ private:
     const uint8_t max_circles; // how many circles should be drawn within the rect, must be >0
     uint8_t current_index { 0 }; // current progress in range [0, max_circles)
     bool one_circle_mode { false }; // true if only current_index circle should be colored as 'on', false if current_index and also all previous should be colored as 'on'
-    color_t color_on { COLOR_WHITE }; // color of circle that's ON
-    color_t color_off { COLOR_GRAY }; // color of circle that's OFF
+    Color color_on { COLOR_WHITE }; // color of circle that's ON
+    Color color_off { COLOR_GRAY }; // color of circle that's OFF
 };

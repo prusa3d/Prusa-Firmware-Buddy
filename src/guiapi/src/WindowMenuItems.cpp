@@ -69,6 +69,6 @@ void WI_ICON_SWITCH_OFF_ON_t::click(IWindowMenu &) {
     set_value(!value_, true);
 }
 
-void WI_ICON_SWITCH_OFF_ON_t::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, ropfn raster_op) const {
+void WI_ICON_SWITCH_OFF_ON_t::printExtension(Rect16 extension_rect, [[maybe_unused]] Color color_text, Color color_back, ropfn raster_op) const {
     render_icon_align(extension_rect, value_ ? &img::switch_on_36x18 : &img::switch_off_36x18, color_back, { Align_t::Center(), raster_op });
 }

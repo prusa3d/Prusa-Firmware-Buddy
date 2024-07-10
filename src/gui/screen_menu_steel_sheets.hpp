@@ -18,7 +18,7 @@ class MI_SHEET_OFFSET : public WI_LAMBDA_LABEL_t {
     float offset = 0;
     bool calib = false;
     static constexpr char const *const notCalibrated = N_("Not Calib");
-    void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
+    void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
 
 public:
     MI_SHEET_OFFSET();

@@ -14,6 +14,6 @@ public:
     MI_CURRENT_SHEET_PROFILE();
 
 protected:
-    void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
+    void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
     void click(IWindowMenu &) override;
 };

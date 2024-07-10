@@ -63,7 +63,7 @@ Rect16 WI_LAMBDA_SPIN::getRightBracketRect(Rect16 extension_rect) const {
 /**
  * @brief Print switch text and brackets.
  */
-void WI_LAMBDA_SPIN::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
+void WI_LAMBDA_SPIN::printExtension(Rect16 extension_rect, Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const {
     string_view_utf8 stringView = string_view_utf8::MakeRAM((uint8_t *)text);
 
     // Draw switch

@@ -8,7 +8,7 @@
 #include <dialog_text_input.hpp>
 #include <str_utils.hpp>
 
-void MI_SHEET_OFFSET::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
+void MI_SHEET_OFFSET::printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const {
     if (calib) {
         WI_LAMBDA_LABEL_t::printExtension(extension_rect, color_text, color_back, raster_op);
     } else {

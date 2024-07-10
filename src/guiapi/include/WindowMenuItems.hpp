@@ -58,7 +58,7 @@ protected:
 
     virtual void click(IWindowMenu &window_menu) override;
     virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) override;
-    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
+    virtual void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
 
     /// Legacy reference to value_
     const bool &index; // TODO: Remove this legacy variable

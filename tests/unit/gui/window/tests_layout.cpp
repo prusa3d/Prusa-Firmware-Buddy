@@ -58,7 +58,7 @@ font_t *resource_font(Font) {
 
 static Rect16 DispRect() { return Rect16(0, 0, MockDisplay::Cols(), MockDisplay::Rows()); }
 
-static void TestRectColor(Rect16 rect, color_t color) {
+static void TestRectColor(Rect16 rect, Color color) {
     for (int16_t X = rect.Left(); X < rect.Width(); ++X) {
         for (int16_t Y = rect.Top(); Y < rect.Height(); ++Y) {
             REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == color.raw);
@@ -68,7 +68,7 @@ static void TestRectColor(Rect16 rect, color_t color) {
 
 // Minuend: The number that is to be subtracted from.
 // Subtrahend: The number that is to be subtracted.
-static void TestRectDiffColor(Rect16 Minuend, Rect16 Subtrahend, color_t MinuendColor, color_t DiffColor) {
+static void TestRectDiffColor(Rect16 Minuend, Rect16 Subtrahend, Color MinuendColor, Color DiffColor) {
     for (int16_t X = Minuend.Left(); X < Minuend.Width(); ++X) {
         for (int16_t Y = Minuend.Top(); Y < Minuend.Height(); ++Y) {
             if (Subtrahend.Contain(point_i16_t({ X, Y }))) {
@@ -80,14 +80,14 @@ static void TestRectDiffColor(Rect16 Minuend, Rect16 Subtrahend, color_t Minuend
     }
 };
 
-static void TestRectDraw(Rect16 rect, color_t color) {
+static void TestRectDraw(Rect16 rect, Color color) {
     BasicWindow win(nullptr, rect);
     win.SetBackColor(color);
     win.Draw();
     TestRectColor(rect, color);
 };
 
-static void TestDispRectDraw(Rect16 rect, color_t color_win, color_t color_disp) {
+static void TestDispRectDraw(Rect16 rect, Color color_win, Color color_disp) {
     MockDisplay::Instance().clear(color_disp);
     TestRectColor(DispRect(), color_disp);
     TestRectDraw(rect, color_win);
@@ -95,7 +95,7 @@ static void TestDispRectDraw(Rect16 rect, color_t color_win, color_t color_disp)
 };
 
 template <size_t COLS, size_t ROWS>
-static void TestPixelMask(std::array<std::array<bool, COLS>, ROWS> mask, color_t cl_false, color_t cl_true) {
+static void TestPixelMask(std::array<std::array<bool, COLS>, ROWS> mask, Color cl_false, Color cl_true) {
     REQUIRE(MockDisplay::Cols() == COLS);
     REQUIRE(MockDisplay::Rows() == ROWS);
     for (uint16_t X = 0; X < COLS; ++X) {

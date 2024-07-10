@@ -6,7 +6,7 @@
 
 /*****************************************************************************/
 // window_numberless_progress_t
-window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rect16 rect, color_t cl_progress, color_t cl_back, int corner_radius)
+window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rect16 rect, Color cl_progress, Color cl_back, int corner_radius)
     : window_t(parent, rect)
     , color_progress(cl_progress)
     , corner_radius(corner_radius) {
@@ -32,7 +32,7 @@ uint16_t window_numberless_progress_t::GetProgressPixels() const {
     return progress_in_pixels;
 }
 
-void window_numberless_progress_t::SetColor(color_t clr) {
+void window_numberless_progress_t::SetColor(Color clr) {
     if (clr != color_progress) {
         color_progress = clr;
         Invalidate();
@@ -45,7 +45,7 @@ void window_numberless_progress_t::unconditionalDraw() {
     rc += Rect16::Left_t(progress_w);
     rc -= Rect16::Width_t(progress_w);
 
-    color_t screen_background = GetParent() ? GetParent()->GetBackColor() : GetBackColor();
+    Color screen_background = GetParent() ? GetParent()->GetBackColor() : GetBackColor();
 
     // Draw background
     if (rc.Width()) {
@@ -61,7 +61,7 @@ void window_numberless_progress_t::unconditionalDraw() {
     // Draw progress
     if (rc.Width()) {
         if (corner_radius) {
-            color_t secondary_clr = GetProgressPixels() == GetRect().Width() ? screen_background : GetBackColor();
+            Color secondary_clr = GetProgressPixels() == GetRect().Width() ? screen_background : GetBackColor();
             display::draw_rounded_rect(rc, screen_background, color_progress, corner_radius,
                 MIC_ALL_CORNERS | MIC_ALT_CL_TOP_RIGHT | MIC_ALT_CL_BOT_RIGHT, secondary_clr);
         } else {
@@ -72,13 +72,13 @@ void window_numberless_progress_t::unconditionalDraw() {
 
 /*******************************************************************************/
 // window_vertical_progress_t
-window_vertical_progress_t::window_vertical_progress_t(window_t *parent, Rect16 rect, color_t cl_progress, color_t cl_back)
+window_vertical_progress_t::window_vertical_progress_t(window_t *parent, Rect16 rect, Color cl_progress, Color cl_back)
     : window_t(parent, rect)
     , color_progress(cl_progress) {
     SetBackColor(cl_back);
 }
 
-void window_vertical_progress_t::SetProgressColor(color_t clr) {
+void window_vertical_progress_t::SetProgressColor(Color clr) {
     if (clr != color_progress) {
         color_progress = clr;
         Invalidate();
@@ -148,7 +148,7 @@ void WindowProgressCircles::unconditionalDraw() {
             static_cast<Rect16::Width_t>(drawn_rect.Height()),
             static_cast<Rect16::Height_t>(drawn_rect.Height()),
         };
-        const color_t color = i == current_index || (!one_circle_mode && i < current_index) ? color_on : color_off;
+        const Color color = i == current_index || (!one_circle_mode && i < current_index) ? color_on : color_off;
 
         const auto corner_radius =
             [&]() {
@@ -178,12 +178,12 @@ void WindowProgressCircles::set_index(uint8_t new_index) {
     Invalidate();
 }
 
-void WindowProgressCircles::set_on_color(color_t clr) {
+void WindowProgressCircles::set_on_color(Color clr) {
     color_on = clr;
     Invalidate();
 }
 
-void WindowProgressCircles::set_off_color(color_t clr) {
+void WindowProgressCircles::set_off_color(Color clr) {
     color_off = clr;
     Invalidate();
 }

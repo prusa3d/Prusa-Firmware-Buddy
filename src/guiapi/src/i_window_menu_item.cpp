@@ -209,8 +209,8 @@ void IWindowMenuItem::Print(Rect16 rect) {
         raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
     }
 
-    color_t mi_color_back = GetBackColor();
-    color_t mi_color_text = GetTextColor();
+    Color mi_color_back = GetBackColor();
+    Color mi_color_text = GetTextColor();
 
     if (IsIconInvalid() && IsLabelInvalid() && IsExtensionInvalid()) {
         render_rounded_rect(rect, GuiDefaults::MenuColorBack, mi_color_back, GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS);
@@ -258,12 +258,12 @@ void IWindowMenuItem::Print(Rect16 rect) {
  *   MenuColorText                | 100
  *   MenuColorDisabled            | 000
  */
-color_t IWindowMenuItem::GetTextColor() const {
+Color IWindowMenuItem::GetTextColor() const {
     if (clr_scheme) {
         return IsFocused() ? clr_scheme->text.focused : clr_scheme->text.unfocused;
     }
 
-    color_t ret;
+    Color ret;
     if (IsEnabled() && hidden == (uint8_t)is_hidden_t::dev) {
         ret = GuiDefaults::MenuColorDevelopment;
     } else if (hidden == (uint8_t)is_hidden_t::dev) {
@@ -283,25 +283,25 @@ color_t IWindowMenuItem::GetTextColor() const {
  *   MenuColorFocusedBack         | 11
  *   MenuColorDisabled            | 01
  */
-color_t IWindowMenuItem::GetBackColor() const {
+Color IWindowMenuItem::GetBackColor() const {
     if (clr_scheme) {
         return IsFocused() ? clr_scheme->back.focused : clr_scheme->back.unfocused;
     }
 
-    color_t ret = GuiDefaults::MenuColorBack;
+    Color ret = GuiDefaults::MenuColorBack;
     if (IsFocused()) {
         ret = IsEnabled() ? GuiDefaults::MenuColorFocusedBack : GuiDefaults::MenuColorDisabled;
     }
     return ret;
 }
 
-void IWindowMenuItem::printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const {
+void IWindowMenuItem::printIcon(Rect16 icon_rect, ropfn raster_op, Color color_back) const {
     if (id_icon) {
         render_icon_align(icon_rect, id_icon, color_back, icon_flags(Align_t::Center(), raster_op));
     }
 }
 
-void IWindowMenuItem::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, ropfn raster_op) const {
+void IWindowMenuItem::printExtension(Rect16 extension_rect, [[maybe_unused]] Color color_text, Color color_back, ropfn raster_op) const {
     render_icon_align(extension_rect, &img::arrow_right_10x16, color_back, icon_flags(Align_t::Center(), raster_op));
 }
 

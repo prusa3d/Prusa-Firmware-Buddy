@@ -25,7 +25,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override;
-    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const override;
+    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, Color color_back) const override;
 
 private:
     const uint16_t lang_code;

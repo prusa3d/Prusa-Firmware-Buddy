@@ -8,16 +8,16 @@
 
 namespace display {
 
-void clear(color_t clr);
-void draw_char(point_ui16_t pt, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg);
-void draw_img(point_ui16_t pt, const img::Resource &img, color_t back_color = COLOR_BLACK, ropfn rop = ropfn(), Rect16 subrect = Rect16());
-void draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr);
-void draw_rect(Rect16 rc, color_t clr);
-void draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint8_t cor_rad, uint8_t cor_flag, color_t secondary_col = COLOR_BLACK);
-void draw_text(Rect16 rc, const string_view_utf8 &str, const font_t *pf, color_t clr_bg, color_t clr_fg);
-void fill_rect(Rect16 rc, color_t clr);
+void clear(Color clr);
+void draw_char(point_ui16_t pt, unichar c, const font_t *pf, Color clr_bg, Color clr_fg);
+void draw_img(point_ui16_t pt, const img::Resource &img, Color back_color = COLOR_BLACK, ropfn rop = ropfn(), Rect16 subrect = Rect16());
+void draw_line(point_ui16_t pt0, point_ui16_t pt1, Color clr);
+void draw_rect(Rect16 rc, Color clr);
+void draw_rounded_rect(Rect16 rect, Color back, Color front, uint8_t cor_rad, uint8_t cor_flag, Color secondary_col = COLOR_BLACK);
+void draw_text(Rect16 rc, const string_view_utf8 &str, const font_t *pf, Color clr_bg, Color clr_fg);
+void fill_rect(Rect16 rc, Color clr);
 
-void set_pixel(point_ui16_t pt, color_t clr);
+void set_pixel(point_ui16_t pt, Color clr);
 uint8_t *get_block(point_ui16_t start, point_ui16_t end);
 
 void enable_safe_mode();
@@ -41,7 +41,7 @@ struct BorrowBuffer {
 };
 
 uint32_t buffer_pixel_size();
-void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, const font_t *pf, color_t clr_bg, color_t clr_fg);
+void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, const font_t *pf, Color clr_bg, Color clr_fg);
 void draw_from_buffer(point_ui16_t pt, uint16_t w, uint16_t h);
 
 } // namespace display

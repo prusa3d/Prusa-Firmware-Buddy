@@ -11,7 +11,7 @@ void window_colored_rect::set_border_thickness(uint8_t new_thickness) {
     Invalidate();
 }
 
-void window_colored_rect::set_parent_color(color_t new_parent_color) {
+void window_colored_rect::set_parent_color(Color new_parent_color) {
     parent_color = new_parent_color;
     Invalidate();
 }

@@ -21,7 +21,7 @@ struct term_buff_t {
 // to be sizeable?
 class window_term_t : public window_t {
 public:
-    color_t color_text;
+    Color color_text;
     term_t term;
 
     // font must be known in ctor, used to calculate rectangle, do not change it later

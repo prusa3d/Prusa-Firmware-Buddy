@@ -11,12 +11,12 @@ public:
     window_colored_rect(window_t *parent, Rect16 rect);
 
     void set_border_thickness(uint8_t new_thickness);
-    void set_parent_color(color_t new_parent_color);
+    void set_parent_color(Color new_parent_color);
 
 protected:
     void unconditionalDraw() override;
 
 private:
     uint8_t border_thickness { 1 }; // how thick is the encircling border, 0 for none
-    color_t parent_color { COLOR_BLACK }; // Needed for rounded mode to draw the background properly
+    Color parent_color { COLOR_BLACK }; // Needed for rounded mode to draw the background properly
 };

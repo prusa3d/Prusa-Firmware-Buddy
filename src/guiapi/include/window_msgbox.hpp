@@ -67,7 +67,7 @@ public:
 
         Rect16 rc = pButtons->GetRect();
         bool has_icon = pButtons->HasIcon();
-        color_t back = pButtons->GetBackColor();
+        Color back = pButtons->GetBackColor();
 
         ReleaseCaptureOfNormalWindow();
 

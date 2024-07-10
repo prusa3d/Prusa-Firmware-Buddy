@@ -8,7 +8,7 @@ MI_CURRENT_SHEET_PROFILE::MI_CURRENT_SHEET_PROFILE()
     : IWindowMenuItem(_(label), extension_width, nullptr, is_enabled_t::yes, SteelSheets::NumOfCalibrated() > 1 ? is_hidden_t::no : is_hidden_t::yes) {
 }
 
-void MI_CURRENT_SHEET_PROFILE::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn) const {
+void MI_CURRENT_SHEET_PROFILE::printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn) const {
     std::array<char, SHEET_NAME_BUFFER_SIZE + 2> nameBuf;
     char *name = nameBuf.data();
     *(name++) = '[';

@@ -74,13 +74,13 @@ uint32_t get_char_position_in_font(unichar c, const font_t *pf) {
 /// Fill space from [@top, @left] corner to the end of @rc with height @h
 /// If @h is too high, it will be cropped so nothing is drawn outside of the @rc but
 /// @top and @left are not checked whether they are in @rc
-void fill_till_end_of_line(const int left, const int top, const int h, Rect16 rc, color_t clr) {
+void fill_till_end_of_line(const int left, const int top, const int h, Rect16 rc, Color clr) {
     display::fill_rect(Rect16(left, top, std::max(0, rc.EndPoint().x - left), CLAMP(rc.EndPoint().y - top, 0, h)), clr);
 }
 
 /// Fills space between two rectangles with a color
 /// @r_in must be completely in @r_out
-void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t color) {
+void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, Color color) {
     if (!r_out->Contain(*r_in)) {
         return;
     }
@@ -105,7 +105,7 @@ void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t co
 /// \returns size of drawn area
 /// Draws unused space of @rc with @clr_bg
 template <class T>
-size_ui16_t render_line(T &textWrapper, Rect16 rc, StringReaderUtf8 &reader, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+size_ui16_t render_line(T &textWrapper, Rect16 rc, StringReaderUtf8 &reader, const font_t *pf, Color clr_bg, Color clr_fg) {
     if (!pf || pf->w == 0 || pf->h == 0 || rc.Width() < pf->w || rc.Height() < pf->h) {
         return size_ui16_t { 0, 0 };
     }
@@ -149,7 +149,7 @@ size_ui16_t render_line(T &textWrapper, Rect16 rc, StringReaderUtf8 &reader, con
 /// \param clr_fg font/foreground color
 /// \returns size of drawn area
 /// Draws unused space of @rc with @clr_bg
-size_ui16_t render_text_singleline(Rect16 rc, const string_view_utf8 &str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
+size_ui16_t render_text_singleline(Rect16 rc, const string_view_utf8 &str, const font_t *pf, Color clr_bg, Color clr_fg) {
     no_wrap text_plain;
 
     StringReaderUtf8 reader(str);
@@ -197,7 +197,7 @@ static RectTextLayout multiline_loop(uint8_t MaxColsInRect, [[maybe_unused]] uin
 
 /// Draws text into the specified rectangle with proper alignment (@flags)
 /// This cannot horizontally align a text spread over more lines (multiline text).
-void render_text_align(Rect16 rc, const string_view_utf8 &text, Font f, color_t clr_bg, color_t clr_fg, padding_ui8_t padding, text_flags flags, bool fill_rect) {
+void render_text_align(Rect16 rc, const string_view_utf8 &text, Font f, Color clr_bg, Color clr_fg, padding_ui8_t padding, text_flags flags, bool fill_rect) {
     const font_t *font = resource_font(f);
     Rect16 rc_pad = rc;
     rc_pad.CutPadding(padding);
@@ -271,7 +271,7 @@ void render_text_align(Rect16 rc, const string_view_utf8 &text, Font f, color_t 
     }
 }
 
-void render_icon_align(Rect16 rc, const img::Resource *res, color_t clr_back, icon_flags flags) {
+void render_icon_align(Rect16 rc, const img::Resource *res, Color clr_back, icon_flags flags) {
 
     if (res) {
         point_ui16_t wh_ico = { res->w, res->h };
@@ -398,10 +398,10 @@ size_ui16_t font_meas_text(Font font, const string_view_utf8 &str, uint16_t *num
     return { uint16_t(std::max(x, w)), uint16_t(h) };
 }
 
-void render_rect(Rect16 rc, color_t clr) {
+void render_rect(Rect16 rc, Color clr) {
     display::fill_rect(rc, clr);
 }
 
-void render_rounded_rect(Rect16 rc, color_t bg_clr, color_t fg_clr, uint8_t rad, uint8_t flag) {
+void render_rounded_rect(Rect16 rc, Color bg_clr, Color fg_clr, uint8_t rad, uint8_t flag) {
     display::draw_rounded_rect(rc, bg_clr, fg_clr, rad, flag);
 }

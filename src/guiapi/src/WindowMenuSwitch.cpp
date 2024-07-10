@@ -67,7 +67,7 @@ Rect16 IWiSwitch::getRightBracketRect(Rect16 extension_rect) const {
     return extension_rect;
 }
 
-void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
+void IWiSwitch::printExtension(Rect16 extension_rect, Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const {
     // draw switch
     render_text_align(getSwitchRect(extension_rect), current_item_text(), GuiDefaults::FontMenuItems, color_back,
         (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text,

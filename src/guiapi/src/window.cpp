@@ -194,14 +194,14 @@ void window_t::set_shadow(bool set) {
     Invalidate();
 }
 
-color_t window_t::GetBackColor() const {
+Color window_t::GetBackColor() const {
     if (flags.color_scheme_background && pBackColorScheme) {
         return pBackColorScheme->Get(IsFocused(), IsShadowed());
     }
     return color_back;
 }
 
-void window_t::SetBackColor(color_t clr) {
+void window_t::SetBackColor(Color clr) {
     if (flags.color_scheme_background || color_back != clr) {
         color_back = clr;
         flags.color_scheme_background = false;
@@ -412,7 +412,7 @@ void window_t::addInvalidationRect([[maybe_unused]] Rect16 rc) {
 
 void window_t::unconditionalDraw() {
     if (flags.has_round_corners) {
-        color_t parent_back_color = GetParent() ? GetParent()->GetBackColor() : GetBackColor();
+        Color parent_back_color = GetParent() ? GetParent()->GetBackColor() : GetBackColor();
         display::draw_rounded_rect(GetRect(), parent_back_color, GetBackColor(), GuiDefaults::DefaultCornerRadius, MIC_ALL_CORNERS);
     } else {
         display::fill_rect(GetRect(), GetBackColor());

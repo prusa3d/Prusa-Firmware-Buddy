@@ -14,7 +14,7 @@ class IWindowText : public window_aligned_t {
     // if enabled and set != nullptr
     //   window automatically draws differently when selected or shadowed
     union {
-        color_t color_text = color_t();
+        Color color_text = Color();
         const color_scheme *pTextColorScheme;
     };
 
@@ -23,9 +23,9 @@ class IWindowText : public window_aligned_t {
 public:
     padding_ui8_t padding; // TODO private
 
-    void SetTextColor(color_t clr);
+    void SetTextColor(Color clr);
     void SetTextColor(const color_scheme &clr);
-    color_t GetTextColor() const;
+    Color GetTextColor() const;
     void set_font(Font);
     Font get_font() const;
     void SetPadding(padding_ui8_t padd);

@@ -78,7 +78,7 @@ private:
      *  Input values are consider to be already checked for invalidity.
      *
      *  @param [in] time_to_end - seconds to end of the print
-     *  @retval color_t - returns color based on time validation
+     *  @retval Color - returns color based on time validation
      */
     void generate_countdown_string(const uint32_t time_to_end);
 
@@ -87,9 +87,9 @@ private:
      *  It updates it's internal buffer and makeRAM the time string. Prints print duration.
      *
      *  @param [in] rawtime - seconds from epoch start, from internal clock (fed by sntp)
-     *  @retval color_t - returns color based on time validation
+     *  @retval Color - returns color based on time validation
      */
-    color_t generate_duration(const time_t rawtime);
+    Color generate_duration(const time_t rawtime);
 
     inline static std::array<char, MAX_END_TIMESTAMP_SIZE> text_time_end; /**< Buffer for time to end (max 31 chars) */
     inline static std::array<char, MAX_TIMEDUR_STR_SIZE> text_time_dur; /**< Buffer for time duration (max 9 chars) */

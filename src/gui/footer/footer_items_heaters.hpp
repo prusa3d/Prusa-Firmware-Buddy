@@ -63,7 +63,7 @@ public:
 protected:
     static constexpr int heating_difference = 2;
 
-    static constexpr std::array<color_t, size_t(HeatState::_last) + 1> colors = { { COLOR_WHITE, COLOR_ORANGE, COLOR_AZURE, COLOR_GREEN } };
+    static constexpr std::array<Color, size_t(HeatState::_last) + 1> colors = { { COLOR_WHITE, COLOR_ORANGE, COLOR_AZURE, COLOR_GREEN } };
 
     /**
      * @brief Get the State object
@@ -88,7 +88,7 @@ protected:
 public:
     virtual resized_t updateState() override;
 
-    static inline color_t ColorFromState(HeatState st) { return colors[std::min(size_t(st), size_t(HeatState::_last))]; }
+    static inline Color ColorFromState(HeatState st) { return colors[std::min(size_t(st), size_t(HeatState::_last))]; }
 
     FooterItemHeater(window_t *parent, const img::Resource *icon, view_maker_cb view_maker, reader_cb value_reader);
 };

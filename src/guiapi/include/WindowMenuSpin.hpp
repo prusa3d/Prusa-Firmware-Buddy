@@ -57,7 +57,7 @@ protected:
     Rect16 getUnitRect(Rect16 extension_rect) const;
 
     void click(IWindowMenu &window_menu) override;
-    void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
+    void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
 
     virtual invalidate_t change(int dif) override;
     void update();

@@ -18,7 +18,7 @@ protected:
     constexpr static const char *NA = N_("N/A");
     constexpr static const char *NI = N_("Not initialized");
 
-    void printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const override {
+    void printExtension(Rect16 extension_rect, [[maybe_unused]] Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const override {
         char text[GuiDefaults::infoDefaultLen];
         string_view_utf8 stringView;
         printAs(text);
