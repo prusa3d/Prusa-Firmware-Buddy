@@ -32,7 +32,7 @@ protected:
 #endif
 
 class MI_Z_AXIS_LEN : public WiSpin {
-    constexpr static const char *const label = "Z-axis length";
+    constexpr static const char *const label = N_("Z-axis length");
 
 public:
     MI_Z_AXIS_LEN();
@@ -40,7 +40,7 @@ public:
 };
 
 class MI_RESET_Z_AXIS_LEN : public IWindowMenuItem {
-    static constexpr const char *const label = "Reset Z-length";
+    static constexpr const char *const label = N_("Reset Z-length");
 
 public:
     MI_RESET_Z_AXIS_LEN();
@@ -50,7 +50,7 @@ protected:
 };
 
 class MI_STEPS_PER_UNIT_X : public WiSpin {
-    constexpr static const char *const label = "X-axis steps per unit";
+    constexpr static const char *const label = N_("X-axis steps per unit");
 
 public:
     MI_STEPS_PER_UNIT_X();
@@ -58,7 +58,7 @@ public:
 };
 
 class MI_STEPS_PER_UNIT_Y : public WiSpin {
-    constexpr static const char *const label = "Y-axis steps per unit";
+    constexpr static const char *const label = N_("Y-axis steps per unit");
 
 public:
     MI_STEPS_PER_UNIT_Y();
@@ -66,7 +66,7 @@ public:
 };
 
 class MI_STEPS_PER_UNIT_Z : public WiSpin {
-    constexpr static const char *const label = "Z-axis steps per unit";
+    constexpr static const char *const label = N_("Z-axis steps per unit");
 
 public:
     MI_STEPS_PER_UNIT_Z();
@@ -74,7 +74,7 @@ public:
 };
 
 class MI_STEPS_PER_UNIT_E : public WiSpin {
-    constexpr static const char *const label = "Extruder steps per unit";
+    constexpr static const char *const label = N_("Extruder steps per unit");
 
 public:
     MI_STEPS_PER_UNIT_E();
@@ -82,7 +82,7 @@ public:
 };
 
 class MI_RESET_STEPS_PER_UNIT : public IWindowMenuItem {
-    static constexpr const char *const label = "Reset steps per unit";
+    static constexpr const char *const label = N_("Reset steps per unit");
 
 public:
     MI_RESET_STEPS_PER_UNIT();
@@ -93,14 +93,15 @@ protected:
 
 class WiSwitchDirection : public WI_SWITCH_t<2> {
     constexpr static const char *const str_prusa = "Prusa";
-    constexpr static const char *const str_wrong = "Wrong";
+    // Wrong direction
+    constexpr static const char *const str_wrong = N_("Wrong");
 
 public:
     WiSwitchDirection(bool current_direction_negative, const string_view_utf8 &label_view);
 };
 
 class MI_DIRECTION_X : public WiSwitchDirection {
-    constexpr static const char *const label = "X-axis direction";
+    constexpr static const char *const label = N_("X-axis direction");
 
 public:
     MI_DIRECTION_X();
@@ -108,7 +109,7 @@ public:
 };
 
 class MI_DIRECTION_Y : public WiSwitchDirection {
-    constexpr static const char *const label = "Y-axis direction";
+    constexpr static const char *const label = N_("Y-axis direction");
 
 public:
     MI_DIRECTION_Y();
@@ -116,7 +117,7 @@ public:
 };
 
 class MI_DIRECTION_Z : public WiSwitchDirection {
-    constexpr static const char *const label = "Z-axis direction";
+    constexpr static const char *const label = N_("Z-axis direction");
 
 public:
     MI_DIRECTION_Z();
@@ -124,7 +125,7 @@ public:
 };
 
 class MI_DIRECTION_E : public WiSwitchDirection {
-    constexpr static const char *const label = "Extruder direction";
+    constexpr static const char *const label = N_("Extruder direction");
 
 public:
     MI_DIRECTION_E();
@@ -132,7 +133,7 @@ public:
 };
 
 class MI_RESET_DIRECTION : public IWindowMenuItem {
-    static constexpr const char *const label = "Reset directions";
+    static constexpr const char *const label = N_("Reset directions");
 
 public:
     MI_RESET_DIRECTION();
@@ -142,7 +143,7 @@ protected:
 };
 
 class MI_CURRENT_X : public WiSpin {
-    constexpr static const char *const label = "X current (0 default)";
+    constexpr static const char *const label = N_("X current (0 default)");
 
 public:
     MI_CURRENT_X();
@@ -150,7 +151,7 @@ public:
 };
 
 class MI_CURRENT_Y : public WiSpin {
-    constexpr static const char *const label = "Y current (0 default)";
+    constexpr static const char *const label = N_("Y current (0 default)");
 
 public:
     MI_CURRENT_Y();
@@ -158,7 +159,7 @@ public:
 };
 
 class MI_CURRENT_Z : public WiSpin {
-    constexpr static const char *const label = "Z current";
+    constexpr static const char *const label = N_("Z current");
 
 public:
     MI_CURRENT_Z();
@@ -166,7 +167,7 @@ public:
 };
 
 class MI_CURRENT_E : public WiSpin {
-    constexpr static const char *const label = "Extruder current";
+    constexpr static const char *const label = N_("Extruder current");
 
 public:
     MI_CURRENT_E();
@@ -174,7 +175,7 @@ public:
 };
 
 class MI_RESET_CURRENTS : public IWindowMenuItem {
-    static constexpr const char *const label = "Reset currents";
+    static constexpr const char *const label = N_("Reset currents");
 
 public:
     MI_RESET_CURRENTS();
@@ -184,7 +185,7 @@ protected:
 };
 
 class MI_SAVE_AND_RETURN : public IWindowMenuItem {
-    static constexpr const char *const label = "Save and return";
+    static constexpr const char *const label = N_("Save and return");
 
 public:
     MI_SAVE_AND_RETURN();

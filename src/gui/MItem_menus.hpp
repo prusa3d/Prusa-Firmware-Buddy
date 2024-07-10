@@ -196,7 +196,7 @@ protected:
 };
 
 class MI_EEPROM : public IWindowMenuItem {
-    static constexpr const char *const label = "Eeprom";
+    static constexpr const char *const label = "EEPROM";
 
 public:
     MI_EEPROM();
@@ -242,7 +242,7 @@ protected:
 };
 
 class MI_EXPERIMENTAL_SETTINGS : public IWindowMenuItem {
-    static constexpr const char *const label = "Experimental Settings";
+    static constexpr const char *const label = N_("Experimental Settings");
 
 public:
     MI_EXPERIMENTAL_SETTINGS();
