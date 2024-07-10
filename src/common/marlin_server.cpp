@@ -717,6 +717,10 @@ void static finalize_print(bool finished) {
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
     GcodeSuite::gcode_compatibility_mode = GcodeSuite::GcodeCompatibilityMode::NONE;
 #endif
+
+#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
+    GcodeSuite::fan_compatibility_mode = GcodeSuite::FanCompatibilityMode::NONE;
+#endif
     // Reset IS at the end of the print
     input_shaper::init();
 

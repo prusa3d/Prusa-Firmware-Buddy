@@ -347,6 +347,13 @@ public:
     };
     static GcodeCompatibilityMode gcode_compatibility_mode;
   #endif
+  #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
+    enum class FanCompatibilityMode {
+        NONE,
+        MK3_TO_MK4_NON_S,
+    };
+    static FanCompatibilityMode fan_compatibility_mode;
+  #endif
 
   #if ENABLED(CNC_WORKSPACE_PLANES)
     /**

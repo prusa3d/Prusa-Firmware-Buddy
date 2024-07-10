@@ -208,6 +208,7 @@
  *  some gcodes (like G80) can have a different meaning.
  */
 #define GCODE_COMPATIBILITY_MK3
+#define FAN_COMPATIBILITY_MK4_MK3
 
 // A dual extruder that uses a single stepper motor
 //#define SWITCHING_EXTRUDER

@@ -384,8 +384,16 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 }
 #endif
 
+#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
+    #if !HAS_EXTENDED_PRINTER_TYPE()
+        #error "FAN_COMPATIBILITY_MK4_MK3 requires EXTENDED_PRINTER_TYPE"
+    #endif
+                if (config_store().extended_printer_type.get() == ExtendedPrinterType::mk4s && ((strncmp(printer.c_str(), "MK4", 3) == 0 && strncmp(printer.c_str(), "MK4S", 4) != 0) || strncmp(printer.c_str(), "MK3", 3) == 0)) {
+                    valid_printer_settings.compatibility_mode.fail();
+                }
+#endif
                 // Check basic printer model as MK4 or XL
-                if (!std::any_of(begin(printer_compatibility_list), end(printer_compatibility_list), [&](const auto &v) { return printer == v; })) {
+                if (!std::ranges::any_of(printer_compatibility_list, [&](const auto &v) { return printer == v; })) {
                     valid_printer_settings.wrong_printer_model.fail();
                 }
                 break;
