@@ -251,13 +251,13 @@ void GCodeInfo::ValidPrinterSettings::add_unsupported_feature(const char *featur
 }
 
 bool GCodeInfo::ValidPrinterSettings::is_valid(bool is_tools_mapping_possible) const {
-    return wrong_printer_model.is_valid() && wrong_gcode_level.is_valid() && wrong_firmware.is_valid() && mk3_compatibility_mode.is_valid() && !unsupported_features
+    return wrong_printer_model.is_valid() && wrong_gcode_level.is_valid() && wrong_firmware.is_valid() && gcode_compatibility_mode.is_valid() && !unsupported_features
         && (is_tools_mapping_possible // if is_possible -> always true -> handled by tools_mapping screen
             || (wrong_tools.is_valid() && wrong_nozzle_diameter.is_valid()));
 }
 
 bool GCodeInfo::ValidPrinterSettings::is_fatal(bool is_tools_mapping_possible) const {
-    return wrong_printer_model.is_fatal() || wrong_gcode_level.is_fatal() || wrong_firmware.is_fatal() || mk3_compatibility_mode.is_fatal()
+    return wrong_printer_model.is_fatal() || wrong_gcode_level.is_fatal() || wrong_firmware.is_fatal() || gcode_compatibility_mode.is_fatal()
         || (!is_tools_mapping_possible // if is_possible -> always false -> handled by tools_mapping screen
             && (wrong_tools.is_fatal() || wrong_nozzle_diameter.is_fatal()));
 }
@@ -376,7 +376,7 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 auto printer = cmd.get_string();
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
                 if (strncmp(printer.c_str(), "MK3", 3) == 0 && strncmp(printer.c_str(), "MK3.", 4) != 0) { // second condition due to MK3.5 & MK3.9
-                    valid_printer_settings.mk3_compatibility_mode.fail();
+                    valid_printer_settings.gcode_compatibility_mode.fail();
                 }
 #endif
 

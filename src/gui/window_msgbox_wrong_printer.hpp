@@ -11,7 +11,7 @@ class MsgBoxInvalidPrinter : public MsgBoxTitled {
     static constexpr const char *txt_wrong_tools = N_("printer doesn't have enough tools");
     static constexpr const char *txt_wrong_nozzle_diameter = N_("nozzle diameter doesn't match");
     static constexpr const char *txt_wrong_printer_model = N_("printer model doesn't match");
-    static constexpr const char *txt_compatibility_mode = N_("it will run in MK3-compatibility mode");
+    static constexpr const char *txt_gcode_compatibility_mode = N_("it will run in MK3-compatibility mode");
     static constexpr const char *txt_wrong_gcode_level = N_("G-code version doesn't match");
 #if HAS_LARGE_DISPLAY()
     static constexpr const char txt_old_firmware[] = N_("newer firmware is required: %s");
