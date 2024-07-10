@@ -90,6 +90,10 @@
 #include "../../../../../../src/common/trinamic.h" // for disabling Wave Table during homing
 #include <feature/phase_stepping/phase_stepping.hpp> // for disabling phase stepping during homing
 
+#if ENABLED(DELTA) || ENABLED(SCARA) || ENABLED(AXEL_TPARA) || ENABLED(DUAL_X_CARRIAGE) || ENABLED(FOAMCUTTER_XYUV)
+  #error These babies are no longer welcome here. The relevants ifdefs were removed.
+#endif
+
 #if ENABLED(QUICK_HOME)
 
   static void quick_home_xy() {
@@ -186,9 +190,6 @@
 
       if (DEBUGGING(LEVELING)) DEBUG_POS("home_z_safely", destination);
 
-      // Free the active extruder for movement
-      TERN_(DUAL_X_CARRIAGE, idex_set_parked(false));
-
       TERN_(SENSORLESS_HOMING, safe_delay(500)); // Short delay needed to settle
 
 #if ENABLED(PRUSA_TOOLCHANGER)
@@ -248,9 +249,6 @@
       if (position_is_reachable(destination)) {
 
         if (DEBUGGING(LEVELING)) DEBUG_POS("detect_print_sheet", destination);
-
-        // Free the active extruder for movement
-        TERN_(DUAL_X_CARRIAGE, idex_set_parked(false));
 
         TERN_(SENSORLESS_HOMING, safe_delay(500)); // Short delay needed to settle
 
@@ -387,11 +385,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     planner.laser_inline.status.isPowered = false;
   #endif
 
-  #if ENABLED(DUAL_X_CARRIAGE)
-    bool IDEX_saved_duplication_state = extruder_duplication_enabled;
-    DualXMode IDEX_saved_mode = dual_x_carriage_mode;
-  #endif
-
   #if ENABLED(MARLIN_DEV_MODE)
     if (S) {
       LOOP_NUM_AXES(a) set_axis_is_at_home((AxisEnum)a);
@@ -455,7 +448,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   reset_stepper_timeout();
 
   #define HAS_CURRENT_HOME(N) (defined(N##_CURRENT_HOME) && N##_CURRENT_HOME != N##_CURRENT)
-  #if HAS_CURRENT_HOME(X) || HAS_CURRENT_HOME(X2) || HAS_CURRENT_HOME(Y) || HAS_CURRENT_HOME(Y2) || (ENABLED(DELTA) && HAS_CURRENT_HOME(Z)) || HAS_CURRENT_HOME(I) || HAS_CURRENT_HOME(J) || HAS_CURRENT_HOME(K) || HAS_CURRENT_HOME(U) || HAS_CURRENT_HOME(V) || HAS_CURRENT_HOME(W)
+  #if HAS_CURRENT_HOME(X) || HAS_CURRENT_HOME(X2) || HAS_CURRENT_HOME(Y) || HAS_CURRENT_HOME(Y2) || HAS_CURRENT_HOME(I) || HAS_CURRENT_HOME(J) || HAS_CURRENT_HOME(K) || HAS_CURRENT_HOME(U) || HAS_CURRENT_HOME(V) || HAS_CURRENT_HOME(W)
     #define HAS_HOMING_CURRENT 1
   #endif
 
@@ -489,13 +482,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
       if(!no_change) {
         stepperY2.rms_current(Y2_CURRENT_HOME);
         if (DEBUGGING(LEVELING)) debug_current(F(STR_Y2), tmc_save_current_Y2, Y2_CURRENT_HOME);
-      }
-    #endif
-    #if HAS_CURRENT_HOME(Z) && ENABLED(DELTA)
-      const int16_t tmc_save_current_Z = stepperZ.getMilliamps();
-      if(!no_change) {
-        stepperZ.rms_current(Z_CURRENT_HOME);
-        if (DEBUGGING(LEVELING)) debug_current(F(STR_Z), tmc_save_current_Z, Z_CURRENT_HOME);
       }
     #endif
     #if HAS_CURRENT_HOME(I)
@@ -562,9 +548,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   // Always home with tool 0 active (but not with PRUSA_TOOLCHANGER)
   #if HAS_MULTI_HOTEND && DISABLED(PRUSA_TOOLCHANGER)
-    #if DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE)
-      const uint8_t old_tool_index = active_extruder;
-    #endif
+    const uint8_t old_tool_index = active_extruder;
     // PARKING_EXTRUDER homing requires different handling of movement / solenoid activation, depending on the side of homing
     #if ENABLED(PARKING_EXTRUDER)
       const bool pe_final_change_must_unpark = parking_extruder_unpark_after_homing(old_tool_index, X_HOME_DIR + 1 == old_tool_index * 2);
@@ -584,291 +568,196 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   endstops.enable(true); // Enable endstops for next homing move
 
-  #if ENABLED(DELTA)
+  #define _UNSAFE(A) (homeZ && TERN0(Z_SAFE_HOMING, axes_should_home(_BV(A##_AXIS))))
 
-    constexpr bool doZ = true; // for NANODLP_Z_SYNC if your DLP is on a DELTA
+  const bool homeZ = TERN0(HAS_Z_AXIS, Z),
+              NUM_AXIS_LIST(              // Other axes should be homed before Z safe-homing
+                needX = _UNSAFE(X), needY = _UNSAFE(Y), needZ = false, // UNUSED
+                needI = _UNSAFE(I), needJ = _UNSAFE(J), needK = _UNSAFE(K),
+                needU = _UNSAFE(U), needV = _UNSAFE(V), needW = _UNSAFE(W)
+              ),
+              NUM_AXIS_LIST(              // Home each axis if needed or flagged
+                homeX = needX || X,
+                homeY = needY || Y,
+                homeZZ = homeZ,
+                homeI = needI || parser.seen_test(AXIS4_NAME), homeJ = needJ || parser.seen_test(AXIS5_NAME),
+                homeK = needK || parser.seen_test(AXIS6_NAME), homeU = needU || parser.seen_test(AXIS7_NAME),
+                homeV = needV || parser.seen_test(AXIS8_NAME), homeW = needW || parser.seen_test(AXIS9_NAME)
+              ),
+              home_all = NUM_AXIS_GANG(   // Home-all if all or none are flagged
+                  homeX == homeX, && homeY == homeX, && homeZ == homeX,
+                && homeI == homeX, && homeJ == homeX, && homeK == homeX,
+                && homeU == homeX, && homeV == homeX, && homeW == homeX
+              ),
+              NUM_AXIS_LIST(
+                doX = home_all || homeX, doY = home_all || homeY, doZ = home_all || homeZ,
+                doI = home_all || homeI, doJ = home_all || homeJ, doK = home_all || homeK,
+                doU = home_all || homeU, doV = home_all || homeV, doW = home_all || homeW
+              );
 
-    home_delta();
-
-    TERN_(IMPROVE_HOMING_RELIABILITY, end_slow_homing(saved_motion_state));
-
-  #elif ENABLED(AXEL_TPARA)
-
-    constexpr bool doZ = true; // for NANODLP_Z_SYNC if your DLP is on a TPARA
-
-    home_TPARA();
-
+  #if HAS_Z_AXIS
+    UNUSED(needZ); UNUSED(homeZZ);
   #else
-
-    #define _UNSAFE(A) (homeZ && TERN0(Z_SAFE_HOMING, axes_should_home(_BV(A##_AXIS))))
-
-    const bool homeZ = TERN0(HAS_Z_AXIS, Z),
-               NUM_AXIS_LIST(              // Other axes should be homed before Z safe-homing
-                 needX = _UNSAFE(X), needY = _UNSAFE(Y), needZ = false, // UNUSED
-                 needI = _UNSAFE(I), needJ = _UNSAFE(J), needK = _UNSAFE(K),
-                 needU = _UNSAFE(U), needV = _UNSAFE(V), needW = _UNSAFE(W)
-               ),
-               NUM_AXIS_LIST(              // Home each axis if needed or flagged
-                 homeX = needX || X,
-                 homeY = needY || Y,
-                 homeZZ = homeZ,
-                 homeI = needI || parser.seen_test(AXIS4_NAME), homeJ = needJ || parser.seen_test(AXIS5_NAME),
-                 homeK = needK || parser.seen_test(AXIS6_NAME), homeU = needU || parser.seen_test(AXIS7_NAME),
-                 homeV = needV || parser.seen_test(AXIS8_NAME), homeW = needW || parser.seen_test(AXIS9_NAME)
-               ),
-               home_all = NUM_AXIS_GANG(   // Home-all if all or none are flagged
-                    homeX == homeX, && homeY == homeX, && homeZ == homeX,
-                 && homeI == homeX, && homeJ == homeX, && homeK == homeX,
-                 && homeU == homeX, && homeV == homeX, && homeW == homeX
-               ),
-               NUM_AXIS_LIST(
-                 doX = home_all || homeX, doY = home_all || homeY, doZ = home_all || homeZ,
-                 doI = home_all || homeI, doJ = home_all || homeJ, doK = home_all || homeK,
-                 doU = home_all || homeU, doV = home_all || homeV, doW = home_all || homeW
-               );
-
-    #if HAS_Z_AXIS
-      UNUSED(needZ); UNUSED(homeZZ);
-    #else
-      constexpr bool doZ = false;
-    #endif
-
-    TERN_(HOME_Z_FIRST, if (!failed && doZ) failed = !homeaxis(Z_AXIS));
-
-    const bool seenR = !isnan(R);
-    const float z_homing_height = seenR ? R : Z_HOMING_HEIGHT;
-
-    if (!failed && z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
-      // Raise Z before homing any other axes and z is not already high enough (never lower z)
-      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Raise Z (before homing) by ", z_homing_height);
-      do_z_clearance(z_homing_height);
-      TERN_(BLTOUCH, bltouch.init());
-    }
-
-    // Diagonal move first if both are homing
-    TERN_(QUICK_HOME, if (!failed && doX && doY) quick_home_xy());
-
-    // Only allow wavetable change if homing performs a backoff. This backoff is made in the way that it ends on stepper zero-position, so that re-enabling wavetable is safe.
-    bool wavetable_off_X = false, wavetable_off_Y = false;
-    #if defined(HOMING_BACKOFF_POST_MM) && defined(HAS_TMC_WAVETABLE)
-      constexpr xyz_float_t homing_backoff = HOMING_BACKOFF_POST_MM;
-      wavetable_off_X = (homing_backoff[X] > 0.0f) && doX;
-      wavetable_off_Y = (homing_backoff[Y] > 0.0f) && doY;
-    #endif
-    void (*reenable_wt_X)(AxisEnum) = wavetable_off_X ? reenable_wavetable : NULL;
-    void (*reenable_wt_Y)(AxisEnum) = wavetable_off_Y ? reenable_wavetable : NULL;
-    // function pointers are useful because homing code doesn't need access to trinamic headres in order to re-enable wavetable during homing procedures
-
-    // Turn off Wave Table for X and Y, which should improve homing
-    // NOTE: change of Wave Table shall normally be done only when motors are guaranteed at zero-step. Here we are far enough from the print, so if the motors do something "wild" they should make no harm.
-    // re-enabling wavetable back will take place during homing, when we are guaranteed at stepper zero
-    if (!failed) {
-      tmc_disable_wavetable(wavetable_off_X, wavetable_off_Y, false);
-    }
-
-    #if ENABLED(PRUSA_TOOLCHANGER)
-    if (!failed && doX && doY) {
-      // Bump right edge to align toolchanger locking plates
-      if (!prusa_toolchanger.align_locks()) {
-        ui.status_printf_P(0, "Toolchanger lock alignment failed");
-        homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_X); }); // The alignment happens in X axis
-        failed = true;
-      }
-    }
-
-    // X position is unknown or near right edge
-    if (!failed && (axes_need_homing(_BV(X_AXIS)) || current_position.x > X_MAX_POS - MOVE_BACK_BEFORE_HOMING_DISTANCE)) {
-      do_homing_move(X_AXIS, -1 * MOVE_BACK_BEFORE_HOMING_DISTANCE); // Move a bit left to avoid unlocking the tool
-    }
-    #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
-
-    // Home Y (before X)
-    if (ENABLED(HOME_Y_BEFORE_X) && !failed && (doY || TERN0(CODEPENDENT_XY_HOMING, doX))) {
-      failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y OPTARG(PRECISE_HOMING, !parser.seen('D')));
-    }
-
-    // Home X
-    if (!failed && (doX || (doY && ENABLED(CODEPENDENT_XY_HOMING) && DISABLED(HOME_Y_BEFORE_X)))) {
-
-      #if ENABLED(DUAL_X_CARRIAGE)
-
-        // Always home the 2nd (right) extruder first
-        active_extruder = 1;
-        failed = !homeaxis(X_AXIS);
-
-        if (!failed) {
-          // Remember this extruder's position for later tool change
-          inactive_extruder_x = current_position.x;
-
-          // Home the 1st (left) extruder
-          active_extruder = 0;
-          failed = !homeaxis(X_AXIS);
-        }
-
-        if (!failed) {
-          // Consider the active extruder to be in its "parked" position
-          idex_set_parked();
-        }
-
-      #else
-
-        failed = !homeaxis(X_AXIS, fr_mm_s, false, reenable_wt_X OPTARG(PRECISE_HOMING, !parser.seen('D')));
-
-      #endif
-    }
-
-    #if BOTH(FOAMCUTTER_XYUV, HAS_I_AXIS)
-      // Home I (after X)
-      if (!failed && doI) failed = !homeaxis(I_AXIS);
-    #endif
-
-    // Home Y (after X)
-    if (DISABLED(HOME_Y_BEFORE_X) && !failed && doY) {
-      failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y  OPTARG(PRECISE_HOMING, !parser.seen('D')));
-    }
-
-    #if BOTH(FOAMCUTTER_XYUV, HAS_J_AXIS)
-      // Home J (after Y)
-      if (!failed && doJ) failed = !homeaxis(J_AXIS);
-    #endif
-
-    #if ENABLED(PRECISE_HOMING_COREXY)
-      // absolute refinement requires both axes to be already probed
-      if (!failed && doX && doY && precise) {
-        failed = !refine_corexy_origin();
-      }
-    #endif
-
-    TERN_(IMPROVE_HOMING_RELIABILITY, if(!no_change) end_slow_homing(saved_motion_state));
-
-    #if ENABLED(FOAMCUTTER_XYUV)
-      // skip homing of unused Z axis for foamcutters
-      if (!failed && doZ) set_axis_is_at_home(Z_AXIS);
-    #else
-      // Home Z last if homing towards the bed
-      #if HAS_Z_AXIS && DISABLED(HOME_Z_FIRST)
-        if (!failed && doZ) {
-          #if EITHER(Z_MULTI_ENDSTOPS, Z_STEPPER_AUTO_ALIGN)
-            stepper.set_all_z_lock(false);
-            stepper.set_separate_multi_axis(false);
-          #endif
-
-          #if ENABLED(PRUSA_TOOLCHANGER)
-          if (active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
-            // When no tool is picked, make sure to pick one
-            failed = !prusa_toolchanger.tool_change(0, tool_return_t::no_return, current_position, tool_change_lift_t::no_lift, false);
-          }
-          #endif
-
-          if (!failed) {
-          #if ENABLED(Z_SAFE_HOMING)
-            if (TERN1(POWER_LOSS_RECOVERY, !parser.seen_test('H'))) {
-              failed = !home_z_safely();
-
-              #if ENABLED(DETECT_PRINT_SHEET)
-              if (!failed && check_sheet) {
-                failed = [&] {
-                  // Do multiple attempts of detect print sheet
-                  // The point is that we want to prevent false failures caused by a dirty nozzle (cold filament left hanging out)
-                  // BFW-5028
-                  for(uint8_t attempt = 0;; attempt++) {
-                    // If detect_print_sheet, return success (failed -> false)
-                    if(detect_print_sheet(z_homing_height)) {
-                      return false;
-                    }
-
-                    // Ran out of attempts -> fail
-                    if(attempt == 2) {
-                      // Move the bed to the bottom to give space for the user to insert the sheet
-                      do_blocking_move_to_z(DETECT_PRINT_SHEET_Z_AFTER_FAILURE, homing_feedrate(Z_AXIS));
-
-                      // Fall into red screen
-                      kill(GET_TEXT(MSG_LCD_MISSING_SHEET));
-
-                      // Return failure
-                      return true;
-                    }
-
-                    // Raise the Z again to prevent crashing into the sheet
-                    do_z_clearance(z_homing_height);
-                    
-                    // Return to the XY homing position over the printbed and try rehoming z
-                    if(!home_z_safely()) {
-                      // Fail straight away if z homing fails, only repeat if detect_print_sheet fails
-                      return true;
-                    }
-                  }
-                }();
-              }
-              #endif
-
-            } else {
-              failed = !homeaxis(Z_AXIS);
-            }
-          #else
-            failed = !homeaxis(Z_AXIS);
-          #endif
-          }
-
-          if (!failed) {
-            move_z_after_probing();
-          }
-        }
-      #endif
-
-      SECONDARY_AXIS_CODE(
-        if (!failed && doI) failed = !homeaxis(I_AXIS),
-        if (!failed && doJ) failed = !homeaxis(J_AXIS),
-        if (!failed && doK) failed = !homeaxis(K_AXIS),
-        if (!failed && doU) failed = !homeaxis(U_AXIS),
-        if (!failed && doV) failed = !homeaxis(V_AXIS),
-        if (!failed && doW) failed = !homeaxis(W_AXIS)
-      );
-    #endif
-
-    sync_plan_position();
-
-    // clear any step fraction: we're at home
-    PreciseStepping::reset_from_halt(false);
+    constexpr bool doZ = false;
   #endif
 
-  /**
-   * Preserve DXC mode across a G28 for IDEX printers in DXC_DUPLICATION_MODE.
-   * This is important because it lets a user use the LCD Panel to set an IDEX Duplication mode, and
-   * then print a standard GCode file that contains a single print that does a G28 and has no other
-   * IDEX specific commands in it.
-   */
-  #if ENABLED(DUAL_X_CARRIAGE)
+  TERN_(HOME_Z_FIRST, if (!failed && doZ) failed = !homeaxis(Z_AXIS));
 
-    if (idex_is_duplicating()) {
+  const bool seenR = !isnan(R);
+  const float z_homing_height = seenR ? R : Z_HOMING_HEIGHT;
+
+  if (!failed && z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
+    // Raise Z before homing any other axes and z is not already high enough (never lower z)
+    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Raise Z (before homing) by ", z_homing_height);
+    do_z_clearance(z_homing_height);
+    TERN_(BLTOUCH, bltouch.init());
+  }
+
+  // Diagonal move first if both are homing
+  TERN_(QUICK_HOME, if (!failed && doX && doY) quick_home_xy());
+
+  // Only allow wavetable change if homing performs a backoff. This backoff is made in the way that it ends on stepper zero-position, so that re-enabling wavetable is safe.
+  bool wavetable_off_X = false, wavetable_off_Y = false;
+  #if defined(HOMING_BACKOFF_POST_MM) && defined(HAS_TMC_WAVETABLE)
+    constexpr xyz_float_t homing_backoff = HOMING_BACKOFF_POST_MM;
+    wavetable_off_X = (homing_backoff[X] > 0.0f) && doX;
+    wavetable_off_Y = (homing_backoff[Y] > 0.0f) && doY;
+  #endif
+  void (*reenable_wt_X)(AxisEnum) = wavetable_off_X ? reenable_wavetable : NULL;
+  void (*reenable_wt_Y)(AxisEnum) = wavetable_off_Y ? reenable_wavetable : NULL;
+  // function pointers are useful because homing code doesn't need access to trinamic headres in order to re-enable wavetable during homing procedures
+
+  // Turn off Wave Table for X and Y, which should improve homing
+  // NOTE: change of Wave Table shall normally be done only when motors are guaranteed at zero-step. Here we are far enough from the print, so if the motors do something "wild" they should make no harm.
+  // re-enabling wavetable back will take place during homing, when we are guaranteed at stepper zero
+  if (!failed) {
+    tmc_disable_wavetable(wavetable_off_X, wavetable_off_Y, false);
+  }
+
+  #if ENABLED(PRUSA_TOOLCHANGER)
+  if (!failed && doX && doY) {
+    // Bump right edge to align toolchanger locking plates
+    if (!prusa_toolchanger.align_locks()) {
+      ui.status_printf_P(0, "Toolchanger lock alignment failed");
+      homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_X); }); // The alignment happens in X axis
+      failed = true;
+    }
+  }
+
+  // X position is unknown or near right edge
+  if (!failed && (axes_need_homing(_BV(X_AXIS)) || current_position.x > X_MAX_POS - MOVE_BACK_BEFORE_HOMING_DISTANCE)) {
+    do_homing_move(X_AXIS, -1 * MOVE_BACK_BEFORE_HOMING_DISTANCE); // Move a bit left to avoid unlocking the tool
+  }
+  #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
+
+  // Home Y (before X)
+  if (ENABLED(HOME_Y_BEFORE_X) && !failed && (doY || TERN0(CODEPENDENT_XY_HOMING, doX))) {
+    failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y OPTARG(PRECISE_HOMING, !parser.seen('D')));
+  }
+
+  // Home X
+  if (!failed && (doX || (doY && ENABLED(CODEPENDENT_XY_HOMING) && DISABLED(HOME_Y_BEFORE_X)))) {
+    failed = !homeaxis(X_AXIS, fr_mm_s, false, reenable_wt_X OPTARG(PRECISE_HOMING, !parser.seen('D')));
+  }
+
+  // Home Y (after X)
+  if (DISABLED(HOME_Y_BEFORE_X) && !failed && doY) {
+    failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y  OPTARG(PRECISE_HOMING, !parser.seen('D')));
+  }
+
+  #if ENABLED(PRECISE_HOMING_COREXY)
+    // absolute refinement requires both axes to be already probed
+    if (!failed && doX && doY && precise) {
+      failed = !refine_corexy_origin();
+    }
+  #endif
+
+  TERN_(IMPROVE_HOMING_RELIABILITY, if(!no_change) end_slow_homing(saved_motion_state));
+
+  // Home Z last if homing towards the bed
+  #if HAS_Z_AXIS && DISABLED(HOME_Z_FIRST)
+    if (!failed && doZ) {
+      #if EITHER(Z_MULTI_ENDSTOPS, Z_STEPPER_AUTO_ALIGN)
+        stepper.set_all_z_lock(false);
+        stepper.set_separate_multi_axis(false);
+      #endif
+
+      #if ENABLED(PRUSA_TOOLCHANGER)
+      if (active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+        // When no tool is picked, make sure to pick one
+        failed = !prusa_toolchanger.tool_change(0, tool_return_t::no_return, current_position, tool_change_lift_t::no_lift, false);
+      }
+      #endif
 
       if (!failed) {
-        TERN_(IMPROVE_HOMING_RELIABILITY, saved_motion_state = begin_slow_homing());
+      #if ENABLED(Z_SAFE_HOMING)
+        if (TERN1(POWER_LOSS_RECOVERY, !parser.seen_test('H'))) {
+          failed = !home_z_safely();
 
-        // Always home the 2nd (right) extruder first
-        active_extruder = 1;
-        failed = !homeaxis(X_AXIS);
+          #if ENABLED(DETECT_PRINT_SHEET)
+          if (!failed && check_sheet) {
+            failed = [&] {
+              // Do multiple attempts of detect print sheet
+              // The point is that we want to prevent false failures caused by a dirty nozzle (cold filament left hanging out)
+              // BFW-5028
+              for(uint8_t attempt = 0;; attempt++) {
+                // If detect_print_sheet, return success (failed -> false)
+                if(detect_print_sheet(z_homing_height)) {
+                  return false;
+                }
+
+                // Ran out of attempts -> fail
+                if(attempt == 2) {
+                  // Move the bed to the bottom to give space for the user to insert the sheet
+                  do_blocking_move_to_z(DETECT_PRINT_SHEET_Z_AFTER_FAILURE, homing_feedrate(Z_AXIS));
+
+                  // Fall into red screen
+                  kill(GET_TEXT(MSG_LCD_MISSING_SHEET));
+
+                  // Return failure
+                  return true;
+                }
+
+                // Raise the Z again to prevent crashing into the sheet
+                do_z_clearance(z_homing_height);
+                
+                // Return to the XY homing position over the printbed and try rehoming z
+                if(!home_z_safely()) {
+                  // Fail straight away if z homing fails, only repeat if detect_print_sheet fails
+                  return true;
+                }
+              }
+            }();
+          }
+          #endif
+
+        } else {
+          failed = !homeaxis(Z_AXIS);
+        }
+      #else
+        failed = !homeaxis(Z_AXIS);
+      #endif
       }
 
       if (!failed) {
-        // Remember this extruder's position for later tool change
-        inactive_extruder_x = current_position.x;
-
-        // Home the 1st (left) extruder
-        active_extruder = 0;
-        failed = !homeaxis(X_AXIS);
-
-        // Consider the active extruder to be parked
-        idex_set_parked();
-
-        dual_x_carriage_mode = IDEX_saved_mode;
-        set_duplication_enabled(IDEX_saved_duplication_state);
-
-        TERN_(IMPROVE_HOMING_RELIABILITY, end_slow_homing(saved_motion_state));
+        move_z_after_probing();
       }
     }
+  #endif
 
-  #endif // DUAL_X_CARRIAGE
+  SECONDARY_AXIS_CODE(
+    if (!failed && doI) failed = !homeaxis(I_AXIS),
+    if (!failed && doJ) failed = !homeaxis(J_AXIS),
+    if (!failed && doK) failed = !homeaxis(K_AXIS),
+    if (!failed && doU) failed = !homeaxis(U_AXIS),
+    if (!failed && doV) failed = !homeaxis(V_AXIS),
+    if (!failed && doW) failed = !homeaxis(W_AXIS)
+  );
+
+  sync_plan_position();
+
+  // clear any step fraction: we're at home
+  PreciseStepping::reset_from_halt(false);
 
   endstops.not_homing();
 
@@ -888,7 +777,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   restore_feedrate_and_scaling();
 
   // Restore the active tool after homing
-  #if HAS_MULTI_HOTEND && (DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE)) && DISABLED(PRUSA_TOOLCHANGER)
+  #if HAS_MULTI_HOTEND && DISABLED(PRUSA_TOOLCHANGER)
     tool_change(old_tool_index, TERN(PARKING_EXTRUDER, !pe_final_change_must_unpark, DISABLED(DUAL_X_CARRIAGE)));   // Do move if one of these
   #endif
 
@@ -905,9 +794,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     #endif
     #if HAS_CURRENT_HOME(Y2)
       stepperY2.rms_current(tmc_save_current_Y2);
-    #endif
-    #if HAS_CURRENT_HOME(Z) && ENABLED(DELTA)
-      stepperZ.rms_current(tmc_save_current_Z);
     #endif
     #if HAS_CURRENT_HOME(I)
       stepperI.rms_current(tmc_save_current_I);
