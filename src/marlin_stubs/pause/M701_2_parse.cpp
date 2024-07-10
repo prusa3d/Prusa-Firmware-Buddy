@@ -30,7 +30,7 @@ using namespace filament_gcodes;
  *              - W1  - preheat with cool down option
  *              - W2  - preheat with return option
  *              - W3  - preheat with cool down and return options
- *  O<value>    - Color number corresponding to filament::Colour, RGB order
+ *  O<value>    - Color number corresponding to Color, RGB order
  *  R           - resume print if paused
  *
  *  Default values are used for omitted arguments.
@@ -52,7 +52,7 @@ void GcodeSuite::M701() {
         }
     }
 
-    std::optional<filament::Colour> color_to_be_loaded = { std::nullopt };
+    std::optional<Color> color_to_be_loaded = { std::nullopt };
     if (parser.seen('O')) {
         color_to_be_loaded = Color::from_raw(parser.longval('O'));
     }

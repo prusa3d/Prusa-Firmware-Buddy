@@ -59,7 +59,7 @@ bool filament_gcodes::load_unload([[maybe_unused]] LoadUnloadMode type, filament
     return res;
 }
 
-void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot, std::optional<filament::Colour> color_to_be_loaded, ResumePrint_t resume_print_request) {
+void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot, std::optional<Color> color_to_be_loaded, ResumePrint_t resume_print_request) {
     InProgress progress;
 
     marlin_server::DisableNozzleTimeout disableNozzleTimeout;
@@ -269,7 +269,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
     FSensors_instance().ClrAutoloadSent();
 }
 
-void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint8_t target_extruder, RetAndCool_t preheat, AskFilament_t ask_filament, std::optional<filament::Colour> color_to_be_loaded) {
+void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint8_t target_extruder, RetAndCool_t preheat, AskFilament_t ask_filament, std::optional<Color> color_to_be_loaded) {
     InProgress progress;
 
     filament::Type filament = config_store().get_filament_type(target_extruder);

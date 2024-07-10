@@ -662,8 +662,8 @@ std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ToolsMa
     return ret;
 }
 
-std::array<std::optional<filament::Colour>, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ToolsMappingBody::build_color_array() {
-    std::array<std::optional<filament::Colour>, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ret;
+std::array<std::optional<Color>, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ToolsMappingBody::build_color_array() {
+    std::array<std::optional<Color>, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ret;
     ret.fill(std::nullopt); // No color given
 
     for (size_t idx = 0; idx < get_num_of_enabled_tools(); ++idx) {

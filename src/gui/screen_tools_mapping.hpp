@@ -153,7 +153,7 @@ private:
     std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> build_preselect_array();
 
     // builds colour array for change all dialog so the colours shows up during load/change dialog
-    std::array<std::optional<filament::Colour>, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> build_color_array();
+    std::array<std::optional<Color>, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> build_color_array();
 
     SpoolJoin joiner;
     ToolMapper mapper;

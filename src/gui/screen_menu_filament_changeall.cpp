@@ -46,7 +46,7 @@ ScreenChangeAllFilaments::ScreenChangeAllFilaments()
 }
 
 namespace {
-void handle_change_all(const std::array<size_t, ScreenChangeAllFilaments::tool_count> &selection, [[maybe_unused]] const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors = {}) {
+void handle_change_all(const std::array<size_t, ScreenChangeAllFilaments::tool_count> &selection, [[maybe_unused]] const std::array<std::optional<Color>, ScreenChangeAllFilaments::tool_count> &colors = {}) {
     static constexpr auto tool_count = ScreenChangeAllFilaments::tool_count;
 
     filament::Type new_filament[tool_count] = {}; // Filled with NONE
@@ -230,7 +230,7 @@ void DMI_FilamentApplyChanges::click(IWindowMenu & /*window_menu*/) {
     }
 }
 
-DialogChangeAllFilaments::DialogChangeAllFilaments(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media_, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors_)
+DialogChangeAllFilaments::DialogChangeAllFilaments(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media_, const std::array<std::optional<Color>, ScreenChangeAllFilaments::tool_count> &colors_)
     : IDialog(GuiDefaults::RectScreenNoHeader)
     , exit_on_media(exit_on_media_)
     , colors(colors_)
@@ -294,7 +294,7 @@ void DialogChangeAllFilaments::windowEvent(window_t *sender, GUI_event_t event, 
 }
 } // namespace dialog_change_all_filaments
 
-bool ChangeAllFilamentsBox(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors) {
+bool ChangeAllFilamentsBox(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media, const std::array<std::optional<Color>, ScreenChangeAllFilaments::tool_count> &colors) {
     dialog_change_all_filaments::DialogChangeAllFilaments d { default_selections, exit_on_media, colors };
     Screens::Access()->gui_loop_until_dialog_closed();
     return d.was_exited_by_media();

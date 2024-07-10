@@ -178,7 +178,7 @@ public:
      * @param default_selections default selections for each tool
      * @param exit_on_media_ if true, exit on media removed or error
      */
-    DialogChangeAllFilaments(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media_, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors_);
+    DialogChangeAllFilaments(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media_, const std::array<std::optional<Color>, ScreenChangeAllFilaments::tool_count> &colors_);
 
     static constexpr size_t tool_count = ScreenChangeAllFilaments::tool_count; ///< Number of tools shown in this menu
 
@@ -192,7 +192,7 @@ private:
 
     detail::DialogChangeAllFilaments container;
 
-    std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> colors; // colors to be displayed as 'we want to load this' in load action
+    std::array<std::optional<Color>, ScreenChangeAllFilaments::tool_count> colors; // colors to be displayed as 'we want to load this' in load action
 
     window_menu_t menu;
     window_header_t header;
@@ -207,4 +207,4 @@ private:
  * @param exit_on_media if true, exit on media removed or error
  * @return true if exited by USB removal or error
  */
-bool ChangeAllFilamentsBox(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections = {}, bool exit_on_media = false, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors = {});
+bool ChangeAllFilamentsBox(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections = {}, bool exit_on_media = false, const std::array<std::optional<Color>, ScreenChangeAllFilaments::tool_count> &colors = {});
