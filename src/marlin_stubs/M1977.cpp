@@ -272,7 +272,7 @@ namespace PrusaGcodeSuite {
 
 void M1977() {
     PhasesPhaseStepping phase = PhasesPhaseStepping::intro;
-    Context context;
+    Context context {};
     marlin_server::FSM_Holder holder { phase };
     do {
         phase = get_next_phase(context, phase);
