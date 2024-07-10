@@ -380,7 +380,7 @@ static void startup_old_manufacturer() {
     ili9488_cmd_colmod(DEFAULT_COLMOD); // memory data access control
     ili9488_cmd_dispon(); // display on
     ili9488_delay_ms(10); // 10ms wait
-    ili9488_clear(COLOR_BLACK); // black screen after power on
+    ili9488_clear(0x000000); // black screen after power on
     ili9488_delay_ms(100); // time to set black color
     ili9488_inversion_on();
 }
@@ -442,7 +442,7 @@ static void startup_new_manufacturer() {
     ili9488_cmd_slpout(); // Sleep OUT - turns off the sleep mode
     ili9488_delay_ms(120); // 120ms wait
     ili9488_cmd_dispon(); // display on
-    ili9488_clear(COLOR_BLACK); // black screen after power on
+    ili9488_clear(0x000000); // black screen after power on
     // ili9488_delay_ms(100);      // time to set black color
 }
 

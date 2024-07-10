@@ -14,7 +14,7 @@ class IWindowText : public window_aligned_t {
     // if enabled and set != nullptr
     //   window automatically draws differently when selected or shadowed
     union {
-        color_t color_text;
+        color_t color_text = color_t();
         const color_scheme *pTextColorScheme;
     };
 

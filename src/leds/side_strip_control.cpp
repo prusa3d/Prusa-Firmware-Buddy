@@ -130,7 +130,7 @@ void SideStripControl::Tick() {
     }
 }
 
-Color SideStripControl::HsvToRgb(HsvColor hsv) {
+leds::Color SideStripControl::HsvToRgb(HsvColor hsv) {
     Color rgb;
     unsigned char region, remainder, p, q, t;
 

@@ -115,7 +115,7 @@ void PrusaGcodeSuite::M1600() {
 
     std::optional<filament::Colour> color_to_be_loaded = { std::nullopt };
     if (parser.seen('O')) {
-        color_to_be_loaded = filament::Colour::from_int(parser.longval('O'));
+        color_to_be_loaded = Color::from_raw(parser.longval('O'));
     }
 
     const filament_gcodes::AskFilament_t ask_unload = filament_gcodes::AskFilament_t(parser.byteval('U', 0));

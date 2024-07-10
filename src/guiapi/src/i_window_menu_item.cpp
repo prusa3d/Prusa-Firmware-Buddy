@@ -23,8 +23,8 @@ constexpr IWindowMenuItem::ColorScheme IWindowMenuItem::color_scheme_title = {
         .unfocused = COLOR_WHITE,
     },
     .back = {
-        .focused = 0x00AAAAAA,
-        .unfocused = 0x00333333,
+        .focused = Color::from_raw(0x00AAAAAA),
+        .unfocused = Color::from_raw(0x00333333),
     },
 };
 

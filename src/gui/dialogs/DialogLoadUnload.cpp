@@ -555,7 +555,7 @@ void DialogLoadUnload::phaseEnter() {
                 auto rect = filament_color_icon_rect + Rect16::X_t { static_cast<int16_t>(left_pos) };
 
                 auto col = filament::get_color_to_load().value();
-                filament_color_icon.SetBackColor(to_color_t(col.red, col.green, col.blue));
+                filament_color_icon.SetBackColor(col);
                 filament_color_icon.SetRect(rect);
                 filament_color_icon.Show();
             } else {

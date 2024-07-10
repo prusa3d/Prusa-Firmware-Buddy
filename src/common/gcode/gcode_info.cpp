@@ -564,17 +564,7 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
                     per_extruder_info[extruder].filament_used_g = filament_used_g;
 
                 } else if (is_extruder_colour) {
-                    uint32_t red;
-                    uint32_t green;
-                    uint32_t blue;
-                    // uint8_t doesn't work properly, so tmps are uint32_t
-                    if (sscanf(item->data(), "#%02lX%02lX%02lX", &red, &green, &blue) == 3) {
-                        per_extruder_info[extruder].extruder_colour = {
-                            .red = static_cast<uint8_t>(red),
-                            .green = static_cast<uint8_t>(green),
-                            .blue = static_cast<uint8_t>(blue),
-                        };
-                    }
+                    per_extruder_info[extruder].extruder_colour = Color::from_string(item->data());
                 }
                 extruder++;
             }

@@ -242,7 +242,7 @@ window_colored_rect make_left_gcode_color(size_t idx, window_t *parent, GCodeInf
     window_colored_rect colored { parent, get_left_gcode_color_rect(idx) };
     if (auto extruder_info = gcode.get_extruder_info(idx);
         extruder_info.used() && extruder_info.extruder_colour.has_value()) {
-        colored.SetBackColor(to_color_t(extruder_info.extruder_colour->red, extruder_info.extruder_colour->green, extruder_info.extruder_colour->blue));
+        colored.SetBackColor(*extruder_info.extruder_colour);
     } else {
         colored.Hide();
     }
@@ -356,7 +356,7 @@ ToolsMappingBody::ToolsMappingBody(window_t *parent, GCodeInfo &gcode_info)
     , bottom_radio(parent, bottom_radio_rect, responses_with_print)
     , gcode(gcode_info) {
 
-    bottom_guide.SetTextColor(0x00CCCCCC);
+    bottom_guide.SetTextColor(Color::from_raw(0x00CCCCCC));
 
     for (auto &txt : left_gcode_texts) {
         txt.SetRoundCorners();
@@ -670,9 +670,9 @@ std::array<std::optional<filament::Colour>, I_MI_FilamentSelect::max_I_MI_Filame
         const auto real_phys = right_phys_idx_to_real[idx];
         if (auto real_mapped_gcode = tools_mapping::to_gcode_tool_custom(mapper, joiner, real_phys); real_mapped_gcode == tools_mapping::no_tool) { // not assigned
             continue; // leave preselection as Don't change
-        } else if (const auto &opt_color = gcode.get_extruder_info(real_mapped_gcode).extruder_colour; opt_color.has_value()) {
+        } else if (const auto &opt_color = gcode.get_extruder_info(real_mapped_gcode).extruder_colour) {
             assert(gcode.get_extruder_info(real_mapped_gcode).used()); // otherwise bug in mapping
-            ret[real_phys] = { .red = opt_color.value().red, .green = opt_color.value().green, .blue = opt_color.value().blue };
+            ret[real_phys] = opt_color;
         }
     }
 

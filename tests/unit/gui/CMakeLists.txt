@@ -59,6 +59,14 @@ target_include_directories(
 target_compile_definitions(mini_text_input_layout_tests PUBLIC BOARD=1)
 add_catch_test(mini_text_input_layout_tests)
 
+# color_tests
+add_executable(
+  color_tests ${CMAKE_CURRENT_SOURCE_DIR}/color_tests.cpp
+              ${CMAKE_SOURCE_DIR}/src/common/utils/color.cpp
+  )
+target_include_directories(color_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
+add_catch_test(color_tests)
+
 add_subdirectory(lazyfilelist)
 add_subdirectory(jogwheel)
 add_subdirectory(window)

@@ -13,8 +13,8 @@
 // st7789v specific variables objects and function aliases
 static constexpr Rect16 DisplayClip() { return Rect16(0, 0, ST7789V_COLS, ST7789V_ROWS); }
 
-inline uint16_t color_to_native(uint32_t clr) {
-    return color_to_565(clr);
+inline uint16_t color_to_native(Color clr) {
+    return color_to_565(clr.raw);
 }
 
 // TDispBuffer configuration
@@ -59,8 +59,8 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
 // ili9488 specific variables objects and function aliases
 static constexpr Rect16 DisplayClip() { return Rect16(0, 0, ILI9488_COLS, ILI9488_ROWS); }
 
-inline uint32_t color_to_native(uint32_t clr) {
-    return color_to_666(clr);
+inline uint32_t color_to_native(Color clr) {
+    return color_to_666(clr.raw);
 }
 
 // TDispBuffer configuration
@@ -106,8 +106,8 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
 // mock_display specific variables objects and function aliases
 static Rect16 DisplayClip() { return Rect16(0, 0, MockDisplay::Cols(), MockDisplay::Rows()); }
 
-inline uint32_t color_to_native(uint32_t clr) {
-    return clr;
+inline uint32_t color_to_native(Color clr) {
+    return clr.raw;
 }
 
 // TDispBuffer configuration
@@ -173,7 +173,7 @@ public:
         , clr_bg(clr_bg)
         , clr_fg(clr_fg) {
         for (size_t i = 0; i < std::min(LEN, size_t(pms + 1)); i++) {
-            clr_native[i] = color_to_native(color_alpha(clr_bg, clr_fg, 255 * i / pms));
+            clr_native[i] = color_to_native(Color::from_raw(color_alpha(clr_bg.raw, clr_fg.raw, 255 * i / pms)));
         }
     }
 
@@ -488,7 +488,7 @@ void draw_img(point_ui16_t pt, const img::Resource &qoi, color_t back_color, rop
 
     // Seek to the beginning of the image and draw
     fseek(file, qoi.offset, SEEK_SET);
-    draw_qoi_ex_C(file, pt.x, pt.y, back_color, rop, subrect);
+    draw_qoi_ex_C(file, pt.x, pt.y, back_color.raw, rop, subrect);
 }
 
 void draw_text(Rect16 rc, const string_view_utf8 &str, const font_t *pf, color_t clr_bg, color_t clr_fg) {

@@ -72,12 +72,12 @@ void filament::set_type_to_load(filament::Type filament) {
     filament_to_load = filament;
 }
 
-static std::optional<filament::Colour> color_to_load { std::nullopt };
+static std::optional<Color> color_to_load { std::nullopt };
 
-std::optional<filament::Colour> filament::get_color_to_load() {
+std::optional<Color> filament::get_color_to_load() {
     return color_to_load;
 }
 
-void filament::set_color_to_load(std::optional<filament::Colour> color) {
+void filament::set_color_to_load(std::optional<Color> color) {
     color_to_load = color;
 }

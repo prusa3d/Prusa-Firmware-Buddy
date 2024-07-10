@@ -33,9 +33,9 @@ public:
     virtual uint16_t Cols() override { return COLS; }
     virtual uint16_t Rows() override { return ROWS; }
     virtual uint16_t BuffRows() override { return BUFF_ROWS; }
-    virtual void clear(color_t clr) override {
-        std::array<color_t, COLS> row;
-        row.fill(clr);
+    virtual void clear(Color clr) override {
+        std::array<uint32_t, COLS> row;
+        row.fill(clr.raw);
         pixels.fill(row);
     }
     virtual uint32_t GetpixelNativeColor(uint16_t point_x, uint16_t point_y) override {
@@ -65,7 +65,7 @@ public:
     }
 
 private:
-    std::array<std::array<color_t, COLS>, ROWS> pixels;
+    std::array<std::array<uint32_t, COLS>, ROWS> pixels;
     uint32_t buffer[COLS * BUFF_ROWS];
 };
 

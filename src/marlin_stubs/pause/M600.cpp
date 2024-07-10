@@ -224,7 +224,7 @@ void M600_manual() {
         parser.seen('U') ? std::make_optional(parser.value_axis_units(E_AXIS)) : std::nullopt,
         parser.seen('L') ? std::make_optional(parser.value_axis_units(E_AXIS)) : std::nullopt,
         parser.seen('E') ? std::make_optional(std::abs(parser.value_axis_units(E_AXIS))) : std::nullopt,
-        parser.seen('C') ? std::make_optional(filament::Colour::from_string(colourtype)) : std::nullopt,
+        parser.seen('C') ? Color::from_string(colourtype) : std::nullopt,
         parser.seen('S') ? std::make_optional(filament_to_be_loaded) : std::nullopt,
         pause::Settings::CalledFrom::Pause);
 }

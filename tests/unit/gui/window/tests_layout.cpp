@@ -61,7 +61,7 @@ static Rect16 DispRect() { return Rect16(0, 0, MockDisplay::Cols(), MockDisplay:
 static void TestRectColor(Rect16 rect, color_t color) {
     for (int16_t X = rect.Left(); X < rect.Width(); ++X) {
         for (int16_t Y = rect.Top(); Y < rect.Height(); ++Y) {
-            REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == color);
+            REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == color.raw);
         }
     }
 };
@@ -72,9 +72,9 @@ static void TestRectDiffColor(Rect16 Minuend, Rect16 Subtrahend, color_t Minuend
     for (int16_t X = Minuend.Left(); X < Minuend.Width(); ++X) {
         for (int16_t Y = Minuend.Top(); Y < Minuend.Height(); ++Y) {
             if (Subtrahend.Contain(point_i16_t({ X, Y }))) {
-                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == DiffColor);
+                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == DiffColor.raw);
             } else {
-                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == MinuendColor);
+                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == MinuendColor.raw);
             }
         }
     }
@@ -101,9 +101,9 @@ static void TestPixelMask(std::array<std::array<bool, COLS>, ROWS> mask, color_t
     for (uint16_t X = 0; X < COLS; ++X) {
         for (uint16_t Y = 0; Y < ROWS; ++Y) {
             if (mask[Y][X]) {
-                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == cl_true);
+                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == cl_true.raw);
             } else {
-                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == cl_false);
+                REQUIRE(MockDisplay::Instance().GetpixelNativeColor(X, Y) == cl_false.raw);
             }
         }
     }

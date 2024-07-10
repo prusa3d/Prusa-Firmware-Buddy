@@ -64,17 +64,11 @@ public:
     using filament_buff = std::array<char, 8>;
 
     struct ExtruderInfo {
-        struct Colour {
-            uint8_t red;
-            uint8_t green;
-            uint8_t blue;
-        };
-
         std::optional<filament_buff> filament_name; /**< stores string representation of filament type */
         std::optional<float> filament_used_g; /**< stores how much filament will be used for this print (weight) */
         std::optional<float> filament_used_mm; /**< stores how much filament will be used for this print (distance) */
         std::optional<float> nozzle_diameter; /**< stores diameter of nozzle*/
-        std::optional<Colour> extruder_colour; /**< stores colour of extruder*/
+        std::optional<Color> extruder_colour; /**< stores colour of extruder*/
 
         inline bool used() const {
             /// At least this much filament [g] to be considered used (just purge is about 0.06 g on both XL and MK3)

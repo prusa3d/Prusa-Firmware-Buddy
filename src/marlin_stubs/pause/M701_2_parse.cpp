@@ -54,7 +54,7 @@ void GcodeSuite::M701() {
 
     std::optional<filament::Colour> color_to_be_loaded = { std::nullopt };
     if (parser.seen('O')) {
-        color_to_be_loaded = filament::Colour::from_int(parser.longval('O'));
+        color_to_be_loaded = Color::from_raw(parser.longval('O'));
     }
     const bool isL = (parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin));
     const std::optional<float> fast_load_length = isL ? std::optional<float>(::abs(parser.value_axis_units(E_AXIS))) : std::nullopt;
