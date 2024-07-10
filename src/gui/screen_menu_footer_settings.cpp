@@ -75,10 +75,10 @@ void I_MI_FOOTER::store_footer_index(size_t item_n) {
 
 MI_LEFT_ALIGN_TEMP::MI_LEFT_ALIGN_TEMP()
     : WI_SWITCH_t(size_t(FooterItemHeater::GetDrawType()),
-        string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no,
-        string_view_utf8::MakeCPUFLASH((const uint8_t *)str_0),
-        string_view_utf8::MakeCPUFLASH((const uint8_t *)str_1),
-        string_view_utf8::MakeCPUFLASH((const uint8_t *)str_2)) {}
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no,
+        _(str_0),
+        _(str_1),
+        _(str_2)) {}
 
 void MI_LEFT_ALIGN_TEMP::OnChange(size_t /*old_index*/) {
     FooterItemHeater::SetDrawType(footer::ItemDrawType(index));
@@ -86,7 +86,7 @@ void MI_LEFT_ALIGN_TEMP::OnChange(size_t /*old_index*/) {
 
 MI_SHOW_ZERO_TEMP_TARGET::MI_SHOW_ZERO_TEMP_TARGET()
     : WI_ICON_SWITCH_OFF_ON_t(FooterItemHeater::IsZeroTargetDrawn(),
-        string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_SHOW_ZERO_TEMP_TARGET::OnChange(size_t old_index) {
     old_index == 0 ? FooterItemHeater::EnableDrawZeroTarget() : FooterItemHeater::DisableDrawZeroTarget();

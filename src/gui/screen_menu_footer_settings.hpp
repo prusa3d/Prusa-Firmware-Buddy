@@ -80,9 +80,9 @@ public:
 
 class MI_LEFT_ALIGN_TEMP : public WI_SWITCH_t<3> {
     constexpr static const char *const label = N_("Temp. style");
-    constexpr static const char *str_0 = "Static";
-    constexpr static const char *str_1 = "Static-left";
-    constexpr static const char *str_2 = "Dynamic";
+    constexpr static const char *str_0 = N_("Static");
+    constexpr static const char *str_1 = N_("Static-left");
+    constexpr static const char *str_2 = N_("Dynamic");
 
 public:
     MI_LEFT_ALIGN_TEMP();
