@@ -36,7 +36,6 @@ LOG_COMPONENT_DEF(USBDevice, logging::Severity::info);
 
 #define USBD_LANGID_STRING          1033
 #define USBD_MANUFACTURER_STRING    "Prusa Research (prusa3d.com)"
-#define USBD_LANGID_STRING          1033
 #define USBD_PRODUCT_STRING_FS      ("Original Prusa " PRINTER_MODEL)
 #define USBD_SERIALNUMBER_STRING_FS "00000000001A"
 #define USBD_VBUS_CHECK_INTERVAL_MS 1000
