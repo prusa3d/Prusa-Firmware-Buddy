@@ -81,6 +81,12 @@ void GcodeSuite::M106() {
         uint16_t d = parser.seen('A') ? thermalManager.fan_speed[active_extruder] : 255;
         uint16_t s = parser.ushortval('S', d);
         NOMORE(s, 255U);
+    #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
+        if (GcodeSuite::fan_compatibility_mode == GcodeSuite::FanCompatibilityMode::MK3_TO_MK4_NON_S) {
+            s = (s * 7) / 10; // Converts speed to 70% of its values
+        }
+    #endif
+
 
         thermalManager.set_fan_speed(p, s);
     }

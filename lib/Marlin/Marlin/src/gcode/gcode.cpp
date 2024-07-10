@@ -84,6 +84,10 @@ uint8_t GcodeSuite::axis_relative = (
   GcodeSuite::GcodeCompatibilityMode GcodeSuite::gcode_compatibility_mode = GcodeCompatibilityMode::NONE;
 #endif
 
+#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
+  GcodeSuite::FanCompatibilityMode GcodeSuite::fan_compatibility_mode = FanCompatibilityMode::NONE;
+#endif
+
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
   GcodeSuite::MarlinBusyState GcodeSuite::busy_state = NOT_BUSY;
   uint8_t GcodeSuite::host_keepalive_interval = DEFAULT_KEEPALIVE_INTERVAL;
