@@ -138,14 +138,20 @@ namespace {
     PhasesColdPull stop_mmu() {
         if (MMU2::mmu2.Enabled() == true) {
 
+            // Two reasons for the show_time:
+            // - show the screen for at least 1.5 seconds (it's almost instant and unreadable otherwise)
+            // - must wait a bit while the new MMU state propagates everywhere
+            constexpr const millis_t MINIMAL_SHOW_TIME { 1500 };
+            const millis_t deadline = millis() + MINIMAL_SHOW_TIME;
+
             auto progress = [](auto) {}; // intentionally empty
-            auto check_done = []() {
-                return MMU2::mmu2.Enabled() == true;
+            auto mmu_on_timed = [&]() {
+                return MMU2::mmu2.Enabled() == true || millis() < deadline;
             };
 
             filament_gcodes::mmu_off();
 
-            switch (wait_while_with_progress(PhasesColdPull::stop_mmu, 0, check_done, progress)) {
+            switch (wait_while_with_progress(PhasesColdPull::stop_mmu, 0, mmu_on_timed, progress)) {
             case Response::Abort:
                 return PhasesColdPull::cleanup;
             case Response::_none:
@@ -154,7 +160,7 @@ namespace {
                 bsod("Invalid phase encountered.");
             }
 
-            idle(true); // This is important! Must wait a bit while the new MMU state propagates everywhere.
+            idle(true); // Still do one event-loop in case the MMU stop took too long.
         }
 
         return PhasesColdPull::blank_load;
@@ -164,14 +170,14 @@ namespace {
         if (was_mmu_enabled && MMU2::mmu2.Enabled() == false) {
 
             auto progress = [](auto) {}; // intentionally empty
-            auto check_done = []() {
+            auto mmu_off = []() {
                 return MMU2::mmu2.Enabled() == false;
             };
 
             filament_gcodes::mmu_on();
 
             idle(true);
-            wait_while_with_progress(PhasesColdPull::cleanup, 0, check_done, progress);
+            wait_while_with_progress(PhasesColdPull::cleanup, 0, mmu_off, progress);
         }
 
         return was_success ? PhasesColdPull::pull_done : PhasesColdPull::finish;
