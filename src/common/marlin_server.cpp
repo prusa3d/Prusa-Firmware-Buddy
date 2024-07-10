@@ -695,7 +695,7 @@ void static finalize_print() {
     spool_join.reset();
 #endif
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
-    gcode.compatibility_mode = GcodeSuite::CompatibilityMode::NONE;
+    GcodeSuite::gcode_compatibility_mode = GcodeSuite::GcodeCompatibilityMode::NONE;
 #endif
     // Reset IS at the end of the print
     input_shaper::init();

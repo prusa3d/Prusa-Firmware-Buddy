@@ -81,7 +81,7 @@ uint8_t GcodeSuite::axis_relative = (
 );
 
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
-  GcodeSuite::CompatibilityMode GcodeSuite::compatibility_mode = CompatibilityMode::NONE;
+  GcodeSuite::GcodeCompatibilityMode GcodeSuite::gcode_compatibility_mode = GcodeCompatibilityMode::NONE;
 #endif
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)

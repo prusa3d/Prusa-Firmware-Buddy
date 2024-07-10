@@ -32,7 +32,7 @@ void PrusaGcodeSuite::M862_3() {
             arg++;
         }
         if (strncmp(arg, "MK3", 3) == 0 && strncmp(arg, "MK3.", 4) != 0) {
-            gcode.compatibility_mode = GcodeSuite::CompatibilityMode::MK3;
+            GcodeSuite::gcode_compatibility_mode = GcodeSuite::GcodeCompatibilityMode::MK3;
         }
     }
     #endif
