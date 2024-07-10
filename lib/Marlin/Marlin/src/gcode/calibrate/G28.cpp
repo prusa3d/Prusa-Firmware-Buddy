@@ -94,6 +94,8 @@
   #error These babies are no longer welcome here. The relevants ifdefs were removed.
 #endif
 
+#include <scope_guard.hpp>
+
 #if ENABLED(QUICK_HOME)
 
   static void quick_home_xy() {
@@ -269,33 +271,6 @@
   #endif // DETECT_PRINT_SHEET
 
 #endif // Z_SAFE_HOMING
-
-#if ENABLED(IMPROVE_HOMING_RELIABILITY)
-
-  Motion_Parameters begin_slow_homing() {
-    Motion_Parameters motion_parameters;
-    motion_parameters.save();
-
-    // Reset default feedrate and acceleration limits during homing
-    Motion_Parameters::reset();
-
-    auto s = planner.user_settings;
-    s.max_acceleration_mm_per_s2[X_AXIS] = XY_HOMING_ACCELERATION;
-    s.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
-    s.travel_acceleration = XY_HOMING_ACCELERATION;
-    #if HAS_CLASSIC_JERK
-      s.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK);
-    #endif
-    planner.apply_settings(s);
-    
-    return motion_parameters;
-  }
-
-  void end_slow_homing(const Motion_Parameters &motion_parameters) {
-    motion_parameters.load();
-  }
-
-#endif // IMPROVE_HOMING_RELIABILITY
 
 static void reenable_wavetable(AxisEnum axis)
 {
@@ -544,8 +519,22 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   #if ENABLED(IMPROVE_HOMING_RELIABILITY)
     Motion_Parameters saved_motion_state;
+    saved_motion_state.save();
+    ScopeGuard restore_motion_state_guard = [&] {
+      saved_motion_state.load();
+    };
     if (!no_change) {
-      saved_motion_state = begin_slow_homing();
+      // Reset default feedrate and acceleration limits during homing
+      Motion_Parameters::reset();
+
+      auto s = planner.user_settings;
+      s.max_acceleration_mm_per_s2[X_AXIS] = XY_HOMING_ACCELERATION;
+      s.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
+      s.travel_acceleration = XY_HOMING_ACCELERATION;
+      #if HAS_CLASSIC_JERK
+        s.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK);
+      #endif
+      planner.apply_settings(s);
     }
   #endif
 
@@ -568,6 +557,9 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   // Homing feedrate
   float fr_mm_s = no_change ? feedrate_mm_s : 0.0f;
   remember_feedrate_scaling_off();
+  ScopeGuard resatore_feedrate_scaling = [] {
+    restore_feedrate_and_scaling();
+  };
 
   endstops.enable(true); // Enable endstops for next homing move
 
@@ -675,8 +667,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     }
   #endif
 
-  TERN_(IMPROVE_HOMING_RELIABILITY, if(!no_change) end_slow_homing(saved_motion_state));
-
   // Home Z last if homing towards the bed
   #if HAS_Z_AXIS && DISABLED(HOME_Z_FIRST)
     if (!failed && doZ) {
@@ -776,8 +766,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   }
 
   TERN_(CAN_SET_LEVELING_AFTER_G28, if (leveling_restore_state) set_bed_leveling_enabled());
-
-  restore_feedrate_and_scaling();
 
   // Restore the active tool after homing
   #if HAS_MULTI_HOTEND && DISABLED(PRUSA_TOOLCHANGER)
