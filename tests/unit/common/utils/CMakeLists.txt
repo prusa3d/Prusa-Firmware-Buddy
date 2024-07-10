@@ -1,4 +1,4 @@
-# define the test executable
+# center_approx
 add_executable(center_approx center_approx.cpp)
 
 target_include_directories(
@@ -7,5 +7,11 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/tests/stubs ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/inc
   )
 
-# tell build system about the test case
 add_catch_test(center_approx)
+
+# dynamic_item_mapping
+add_executable(dynamic_index_mapping dynamic_index_mapping_tests.cpp)
+
+target_include_directories(dynamic_index_mapping PUBLIC ${CMAKE_SOURCE_DIR}/src/common/utils)
+
+add_catch_test(dynamic_index_mapping)
