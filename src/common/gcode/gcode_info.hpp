@@ -54,13 +54,7 @@ public:
     };
     static constexpr uint32_t gcode_level = GCODE_LEVEL;
 
-#if PRINTER_IS_PRUSA_MK4
-    static constexpr std::array<const char *, 3> printer_compatibility_list = { PRINTER_MODEL, "MK3.9" }; ///< Basic compatibility for M862.3 G-code
-#else
-    static constexpr std::array<const char *, 1> printer_compatibility_list = { PRINTER_MODEL }; ///< Basic compatibility for M862.3 G-code
-#endif
-
-    static constexpr std::array<const char *, 1> supported_features = { "Input shaper" };
+    static constexpr auto supported_features = std::to_array({ "Input shaper" });
 
     // search this many g-code at the beginning of the file for the various g-codes (M862.x nozzle size, bed heating, nozzle heating)
     static constexpr size_t search_first_x_gcodes = 200;
@@ -139,8 +133,6 @@ public:
     using GCodePerExtruderInfo = std::array<ExtruderInfo, EXTRUDERS>;
 
 private:
-    uint32_t printer_model_code; ///< model code (see printer_model2code())
-
     // atomic flags to signal to other thread, the progress of gcode loading
     std::atomic<bool> is_loaded_ = false; ///< did the load() function finish?
     std::atomic<StartLoadResult> start_load_result_ = {}; ///< None if nt started yet, Failed - opening gcode failed, Started - success

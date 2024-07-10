@@ -49,11 +49,12 @@ bool GCodeInfo::hasThumbnail(IGcodeReader &reader, size_ui16_t size) {
 }
 #endif
 
-uint32_t printer_model2code(const char *model) {
-    struct {
-        const char *model;
-        uint32_t code;
-    } models[] = {
+constexpr uint32_t printer_model2code(const char *model) {
+    // For MK3 and prior the values were assigned randomly.
+    // For MINI, MK4, ... and newer printers, first two numbers corespond to USB device ID and then are
+    // followed by zero.
+    // If the model contains mmu, then the mmu version (two numbers) are prefixed to the printer number.
+    constexpr auto models = std::to_array<std::pair<const char *, uint32_t>>({
         { "MK1", 100 },
         { "MK2", 200 },
         { "MK2MM", 201 },
@@ -74,22 +75,23 @@ uint32_t printer_model2code(const char *model) {
         { "MINI", 120 },
         { "MK4", 130 },
         { "MK4MMU3", 30130 },
+        { "MK4S", 260 },
+        { "MK4SMMU3", 30260 },
         { "iX", 160 },
         { "XL", 170 },
-    };
+    });
+    // TODO: Make the models array sorted, to allow us to use binary search
 
-    for (auto &m : models) {
-        if (std::string_view(m.model) == model) {
-            return m.code;
+    for (const auto &[model_name, model_code] : models) {
+        if (std::string_view(model_name) == model) {
+            return model_code;
         }
     }
-    assert(false);
     return 0;
 }
 
 GCodeInfo::GCodeInfo()
-    : printer_model_code(printer_model2code(PRINTER_MODEL))
-    , printing_time { "?" }
+    : printing_time { "?" }
     , has_preview_thumbnail_(false)
     , has_progress_thumbnail_(false)
     , filament_described(false)
@@ -191,7 +193,15 @@ void GCodeInfo::reset_info() {
 }
 
 uint32_t GCodeInfo::getPrinterModelCode() const {
-    return printer_model_code;
+    // FIXME: We are not checking if the printer has MMU and that is different model code
+    // But also we don't validate printer models with MMU values, MMU is checked as a feature
+#if HAS_EXTENDED_PRINTER_TYPE()
+    const auto current_sub_type = config_store().extended_printer_type.get();
+    const auto *const current_name = extended_printer_type_names[current_sub_type];
+    return printer_model2code(current_name);
+#else
+    return printer_model2code(PRINTER_MODEL);
+#endif
 }
 
 void GCodeInfo::EvaluateToolsValid() {
@@ -389,7 +399,13 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 }
 #endif
                 // Check basic printer model as MK4 or XL
-                if (!std::ranges::any_of(printer_compatibility_list, [&](const auto &v) { return printer == v; })) {
+#if HAS_EXTENDED_PRINTER_TYPE()
+                const auto current_sub_type = config_store().extended_printer_type.get();
+                const auto *const current_name = extended_printer_type_names[current_sub_type];
+                if (printer != current_name && (current_sub_type != ExtendedPrinterType::mk4 || printer != "MK3.9") && (current_sub_type != ExtendedPrinterType::mk3_9 || printer != "MK4")) {
+#else
+                if (strncmp(PRINTER_MODEL, printer.c_str(), strlen(PRINTER_MODEL)) != 0) {
+#endif
                     valid_printer_settings.wrong_printer_model.fail();
                 }
                 break;
@@ -400,15 +416,19 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                     valid_printer_settings.wrong_firmware.fail();
                 }
                 break;
-            case '2':
-#if PRINTER_IS_PRUSA_MK4
-                if (cmd.get_uint() != printer_model_code && cmd.get_uint() != printer_model2code("MK3.9")) {
+            case '2': {
+#if HAS_EXTENDED_PRINTER_TYPE()
+                const auto current_sub_type = config_store().extended_printer_type.get();
+                const auto *const current_name = extended_printer_type_names[current_sub_type];
+                const auto current_code = printer_model2code(current_name);
+                if (cmd.get_uint() != current_code && (current_sub_type != ExtendedPrinterType::mk4 || cmd.get_uint() != printer_model2code("MK3.9")) && (current_sub_type != ExtendedPrinterType::mk3_9 || cmd.get_uint() != printer_model2code("MK4"))) {
 #else
-                if (cmd.get_uint() != printer_model_code) {
+                if (cmd.get_uint() != printer_model2code(PRINTER_MODEL)) {
 #endif
                     valid_printer_settings.wrong_printer_model.fail();
                 }
                 break;
+            }
             case '5':
                 if (cmd.get_uint() > gcode_level) {
                     valid_printer_settings.wrong_gcode_level.fail();
