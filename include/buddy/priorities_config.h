@@ -56,7 +56,7 @@ static_assert(configLIBRARY_LOWEST_INTERRUPT_PRIORITY == 15);
     #define TASK_PRIORITY_TCPIP_THREAD        osPriorityBelowNormal
     #define TASK_PRIORITY_WUI                 osPriorityBelowNormal
     #define TASK_PRIORITY_CONNECT             osPriorityBelowNormal
-    #define TASK_PRIORITY_ASYNC_JOB_EXECUTOR  osPriorityLow
+    #define TASK_PRIORITY_ASYNC_JOB_EXECUTOR  osPriorityBelowNormal
 
     // Media prefetch runs on async executor, but raises the priority temporarily when reading
     // To win the figths with connect USB writing and such
