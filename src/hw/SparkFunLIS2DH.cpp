@@ -221,7 +221,7 @@ status_t LIS2DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
         outputPointer++;
         i++;
     }
-    if (tempFFCounter == i) {
+    if (i > 0 && tempFFCounter == i) {
         // Ok, we've recieved all ones, report
         returnError = IMU_ALL_ONES_WARNING;
     }
@@ -638,8 +638,10 @@ int Fifo::get(Acceleration &acceleration) {
                 SERIAL_ECHOLNPAIR_F("After successfully received samples:", m_succeded_samples);
                 m_succeded_samples = 0;
             }
+
             const int remote_num_samples = (fifo_status & 0b0001'1111) + overrun;
             static_assert(std::endian::native == std::endian::little, "Byte swapping for 16-bit record.raw value not implemented.");
+
             const status_t returnError = m_accelerometer.readRegisterRegion(reinterpret_cast<uint8_t *>(m_records), LIS2DH_OUT_X_L, remote_num_samples * sizeof(Record));
 
             if (returnError != IMU_SUCCESS) {
