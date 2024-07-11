@@ -13,6 +13,7 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 #include <find_error.hpp>
+#include <filament_to_load.hpp>
 
 RadioButtonNotice::RadioButtonNotice(window_t *parent, Rect16 rect)
     : RadioButton(parent, rect) {}

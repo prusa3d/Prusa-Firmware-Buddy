@@ -25,6 +25,7 @@
 #include "module/tool_change.h"
 #include "marlin_stubs/PrusaGcodeSuite.hpp"
 #include <logging/log.hpp>
+#include <filament_to_load.hpp>
 
 LOG_COMPONENT_REF(PRUSA_GCODE);
 

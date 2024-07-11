@@ -27,6 +27,7 @@
 #include <config_store/store_instance.hpp>
 #include <option/has_bowden.h>
 #include <option/has_human_interactions.h>
+#include <filament_to_load.hpp>
 
 uint filament_gcodes::InProgress::lock = 0;
 

@@ -38,9 +38,4 @@ Type get_type(const char *name, size_t name_len);
 const Description &get_description(Type type);
 const char *get_name(Type type);
 
-Type get_type_to_load();
-void set_type_to_load(Type filament);
-
-std::optional<Color> get_color_to_load();
-void set_color_to_load(std::optional<Color> color);
 }; // namespace filament
