@@ -348,7 +348,16 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
 
         GPIO_InitStruct.Pin = GPIO_PIN_10;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    #if spi_accelerometer == 2
+        // Accelerometer CLK: Pullup. The SPI clock on the MCU is high Z when
+        // not transmitting. The accelerometer requires clock idle to be high,
+        // and on the accelerometer (rev. 06) there's a 100k pulldown. Set the
+        // pullup on the MCU to force the clock high for the start of the
+        // communication.
+        GPIO_InitStruct.Pull = GPIO_PULLUP;
+    #else
         GPIO_InitStruct.Pull = GPIO_NOPULL;
+    #endif
     #if BOARD_IS_XBUDDY
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
     #else

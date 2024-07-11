@@ -739,14 +739,15 @@ void hw_spi2_init() {
     hspi2.Init.Mode = SPI_MODE_MASTER;
     hspi2.Init.Direction = SPI_DIRECTION_2LINES;
     hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+    hspi2.Init.NSS = SPI_NSS_SOFT;
+#if spi_accelerometer == 2
+    hspi2.Init.CLKPolarity = SPI_POLARITY_HIGH;
+    hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
+    hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8
+#elif spi_lcd == 2
     hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-    hspi2.Init.NSS = SPI_NSS_SOFT;
-    hspi2.Init.BaudRatePrescaler =
-#if spi_accelerometer == 2
-        SPI_BAUDRATEPRESCALER_8
-#elif spi_lcd == 2
-        SPI_BAUDRATEPRESCALER_2
+    hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2
 #endif
         ;
     hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
