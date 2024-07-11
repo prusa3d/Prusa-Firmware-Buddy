@@ -127,10 +127,10 @@ public:
         // Ensure minimum deselect time from previous transfer.
         // The chip might be deselected in ISR so the minimum delay is not
         // in ISR but here.
-        delay_ns_precise<50>();
+        delay_us_precise<2>();
         // take the chip select low to select the device:
         pin.write(Pin::State::low);
-        delay_ns_precise<5>();
+        delay_us_precise<2>();
     }
     ~ChipSelect() {
         // take the chip select high to de-select:
