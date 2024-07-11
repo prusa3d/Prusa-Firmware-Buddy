@@ -12,7 +12,8 @@ enum class HWCheckType {
     model,
     firmware,
     gcode,
-    compatibility
+    gcode_compatibility,
+    fan_compatibility
 };
 
 template <HWCheckType HWCheck>
@@ -31,8 +32,10 @@ class MI_HARDWARE_CHECK_t : public WI_SWITCH_t<3> {
             return static_cast<size_t>(config_store().hw_check_firmware.get());
         case HWCheckType::gcode:
             return static_cast<size_t>(config_store().hw_check_gcode.get());
-        case HWCheckType::compatibility:
+        case HWCheckType::gcode_compatibility:
             return static_cast<size_t>(config_store().hw_check_compatibility.get());
+        case HWCheckType::fan_compatibility:
+            return static_cast<size_t>(config_store().hw_check_fan_compatibility.get());
         default:
             assert(false);
             return 1;
@@ -61,8 +64,11 @@ protected:
         case HWCheckType::gcode:
             config_store().hw_check_gcode.set(static_cast<HWCheckSeverity>(index));
             break;
-        case HWCheckType::compatibility:
+        case HWCheckType::gcode_compatibility:
             config_store().hw_check_compatibility.set(static_cast<HWCheckSeverity>(index));
+            break;
+        case HWCheckType::fan_compatibility:
+            config_store().hw_check_fan_compatibility.set(static_cast<HWCheckSeverity>(index));
             break;
         default:
             assert(false);
@@ -135,11 +141,19 @@ public:
         : MI_HARDWARE_CHECK_t(_(label)) {}
 };
 
-class MI_MK3_COMPATIBILITY_CHECK : public MI_HARDWARE_CHECK_t<HWCheckType::compatibility> {
+class MI_MK3_COMPATIBILITY_CHECK : public MI_HARDWARE_CHECK_t<HWCheckType::gcode_compatibility> {
     static constexpr const char *const label = N_("MK3 Compatibility");
 
 public:
     MI_MK3_COMPATIBILITY_CHECK()
+        : MI_HARDWARE_CHECK_t(_(label)) {}
+};
+
+class MI_FAN_COMPATIBILITY_CHECK : public MI_HARDWARE_CHECK_t<HWCheckType::fan_compatibility> {
+    static constexpr const char *const label = N_("Fan Compatibility");
+
+public:
+    MI_FAN_COMPATIBILITY_CHECK()
         : MI_HARDWARE_CHECK_t(_(label)) {}
 };
 

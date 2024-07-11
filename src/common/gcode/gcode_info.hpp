@@ -97,6 +97,7 @@ public:
         Feature wrong_gcode_level { config_store().hw_check_gcode.get() }; // M862.5 disagree
         Feature wrong_firmware { config_store().hw_check_firmware.get() }; // M862.4 Px.yy.z disagrees
         Feature gcode_compatibility_mode { config_store().hw_check_compatibility.get() };
+        Feature fan_compatibility_mode { config_store().hw_check_fan_compatibility.get() };
         Feature outdated_firmware { config_store().hw_check_firmware.get() }; // M115 Ux.yy.z disagrees (TODO: Separate EEVAR?)
         bool unsupported_features { false };
         char unsupported_features_text[37] { "" };
