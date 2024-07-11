@@ -1,7 +1,6 @@
 #pragma once
-#include "gui.hpp"
 #include "gcode_info.hpp"
-#include "img_resources.hpp"
+#include "window_msgbox.hpp"
 #include <guiconfig/guiconfig.h>
 #include <find_error.hpp>
 

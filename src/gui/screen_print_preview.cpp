@@ -7,6 +7,7 @@
 #include "filament_sensors_handler.hpp"
 #include <stdarg.h>
 #include "sound.hpp"
+#include "img_resources.hpp"
 #include "ScreenHandler.hpp"
 #include "screen_printing.hpp"
 #include "print_utils.hpp"

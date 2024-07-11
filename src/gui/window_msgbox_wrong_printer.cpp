@@ -1,4 +1,5 @@
 #include "window_msgbox_wrong_printer.hpp"
+#include "img_resources.hpp"
 
 #include <guiconfig/guiconfig.h>
 
