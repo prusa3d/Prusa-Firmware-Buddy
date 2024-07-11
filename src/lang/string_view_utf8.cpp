@@ -1,9 +1,8 @@
 #include "string_view_utf8.hpp"
+
 #include <stdarg.h>
 #include <exception>
 #include <bitset>
-
-static constexpr char delimiter_char = '\0';
 
 string_view_utf8::Length string_view_utf8::computeNumUtf8Chars() const {
     Length r = 0;
@@ -73,11 +72,6 @@ size_t string_view_utf8::copyBytesToRAM(char *dst, size_t buffer_size) const {
     return dst - dst_start;
 }
 
-void string_view_utf8::set_up_formatted(StringViewUtf8ParamBase &params) {
-    formatted_string_params = &params; // Save parameters in the StringViewUtf8Parameters pointer
-    file = FORMATTED_STRING_MARKER; // Set up formatted string symptom
-}
-
 void FormatBuilder::add_param([[maybe_unused]] const size_t unused, ...) {
     int result_specifiers = -1;
     while (reader.find_format_specifier() && (result_specifiers = reader.read_format_specifier(format_specifier, sizeof(format_specifier))) == 0)
@@ -103,28 +97,40 @@ void FormatBuilder::add_param([[maybe_unused]] const size_t unused, ...) {
     target_idx += result_vsnprinf + 1; // + 1 -> null-termination character
 }
 
+StringReaderUtf8::StringReaderUtf8(const string_view_utf8 &view)
+    : view_(view) //
+{
+    if (view.type() == Type::formatted_string) {
+        // Unwrap formatted string_view;
+        parameters = view_.formatted_string_params;
+        view_ = parameters->original;
+    }
+}
+
 static bool is_format_specifier(char c) {
+    constexpr char bitset_offset = 32;
     static constexpr std::bitset<96> format_specifiers = []() {
         constexpr const char *chars = "diuoxXfFeEgGaAcspn";
         std::bitset<96> bs;
         for (const char *ch = chars; *ch; ch++) {
-            bs.set(*ch - 32);
+            bs.set(*ch - bitset_offset);
         }
         return bs;
     }();
-    return c >= 32 && c < (char)format_specifiers.size() + 32 && format_specifiers[c - 32];
+    return c >= bitset_offset && c < (char)format_specifiers.size() + bitset_offset && format_specifiers[c - bitset_offset];
 }
 
 static bool is_precision_specifier(char c) {
+    constexpr char bitset_offset = 32;
     static constexpr std::bitset<96> precision_specifiers = []() {
         constexpr const char *chars = "0123456789.-+lh";
         std::bitset<96> bs;
         for (const char *ch = chars; *ch; ch++) {
-            bs.set(*ch - 32);
+            bs.set(*ch - bitset_offset);
         }
         return bs;
     }();
-    return c >= 32 && c < (char)precision_specifiers.size() + 32 && precision_specifiers[c - 32];
+    return c >= bitset_offset && c < (char)precision_specifiers.size() + bitset_offset && precision_specifiers[c - bitset_offset];
 }
 
 bool StringReaderUtf8::find_format_specifier() {
@@ -186,7 +192,7 @@ bool StringReaderUtf8::trigger_buffer_switch(uint8_t ch) {
             read_format_specifier(nullptr, 0); // skip format specifier in the original string_view
             switched_to_param_buffer = triggered = true;
         }
-    } else if (switched_to_param_buffer && ch == delimiter_char) {
+    } else if (switched_to_param_buffer && ch == '\0') {
         // end of a parameter
         switched_to_param_buffer = false; // after this getbyte() extracts from original string_view
         triggered = true;
@@ -213,9 +219,9 @@ unichar StringReaderUtf8::getUtf8Char() {
 }
 
 uint8_t StringReaderUtf8::getbyte() {
-
     uint8_t ch = peek();
     advance();
+
     if (parameters) {
         while (trigger_buffer_switch(ch)) {
             ch = peek();
@@ -236,9 +242,11 @@ void StringReaderUtf8::advance() {
     case Type::memory_string:
         view_.memory_ptr++;
         break;
+
     case Type::file_string:
         view_.file_offset++;
         break;
+
     case Type::null_string:
     case Type::formatted_string:
         break;
@@ -282,4 +290,20 @@ uint8_t StringReaderUtf8::file_peek() const {
         return '\0';
     }
     return c;
+}
+
+FormatBuilder::FormatBuilder(string_view_utf8 str_view, StringViewUtf8ParamBase &params)
+    : reader(str_view)
+    , params(params) {
+    assert(!str_view.isNULLSTR());
+    assert(str_view.type() != string_view_utf8::Type::formatted_string);
+    assert(params.buffer.size_bytes() > 0);
+    params.original = str_view;
+}
+
+string_view_utf8 FormatBuilder::finalize() {
+    string_view_utf8 result;
+    result.file = FORMATTED_STRING_MARKER;
+    result.formatted_string_params = &params;
+    return result;
 }

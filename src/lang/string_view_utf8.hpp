@@ -7,6 +7,7 @@
 #include "assert.h"
 #include <cstdlib>
 #include <span>
+#include <bit>
 
 #define UTF8_IS_NONASCII(ch)    ((ch)&0x80)
 #define UTF8_IS_CONT(ch)        (((ch)&0xC0) == 0x80)
@@ -32,6 +33,7 @@ class StringReaderUtf8;
 ///    need to implement some kind of virtual methods but within an instance, which is achieved by pointers to functions and a union of all possible attributes
 class string_view_utf8 {
     friend class StringReaderUtf8;
+    friend class FormatBuilder;
 
 public:
     using Length = int16_t;
@@ -181,9 +183,6 @@ public:
     /// \returns the current string with formatting applied in a printf-like manner.
     template <typename... Args>
     string_view_utf8 formatted(StringViewUtf8ParamBase &params, Args... args) const;
-
-    /// Set up formatted string_view
-    void set_up_formatted(StringViewUtf8ParamBase &params);
 };
 static_assert(std::is_trivially_copyable_v<string_view_utf8>);
 
@@ -212,14 +211,7 @@ class StringReaderUtf8 {
 
 public:
     /// \param view string to be read (reader makes a copy, it does not need to exist during the reader existence)
-    explicit StringReaderUtf8(const string_view_utf8 &view)
-        : view_(view) {
-        if (view.type() == Type::formatted_string) {
-            // Unwrap formatted string_view;
-            view_ = view.formatted_string_params->original;
-            parameters = view.formatted_string_params;
-        }
-    }
+    explicit StringReaderUtf8(const string_view_utf8 &view);
 
     /// No copying, no moving, just reading :)
     StringReaderUtf8(const StringReaderUtf8 &) = delete;
@@ -274,26 +266,15 @@ private:
 
 class FormatBuilder {
 public:
-    FormatBuilder(string_view_utf8 str_view, StringViewUtf8ParamBase &params)
-        : view(str_view)
-        , reader(str_view)
-        , params(params) {
-        assert(!str_view.isNULLSTR() && params.buffer.size_bytes() > 0);
-    }
+    FormatBuilder(string_view_utf8 str_view, StringViewUtf8ParamBase &params);
 
     /// vsnprinf append of a single parameter to parameter buffer with a format specifier found in the translated text
     void add_param(const size_t unused, ...);
 
-    string_view_utf8 finalize_formatted() {
-        params.original = view;
-        string_view_utf8 formatted_string_view;
-        formatted_string_view.set_up_formatted(params);
-        return formatted_string_view;
-    }
+    string_view_utf8 finalize();
 
 private:
     char format_specifier[10] = { 0 };
-    string_view_utf8 view;
     StringReaderUtf8 reader;
     StringViewUtf8ParamBase &params;
     size_t target_idx = 0;
@@ -303,5 +284,5 @@ template <typename... Args>
 string_view_utf8 string_view_utf8::formatted(StringViewUtf8ParamBase &params, Args... args) const {
     FormatBuilder fmt(*this, params);
     (fmt.add_param(0, args), ...);
-    return fmt.finalize_formatted();
+    return fmt.finalize();
 }
