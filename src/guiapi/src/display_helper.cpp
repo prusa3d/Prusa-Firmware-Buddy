@@ -149,10 +149,8 @@ size_ui16_t render_line(T &textWrapper, Rect16 rc, StringReaderUtf8 &reader, con
 /// \param clr_fg font/foreground color
 /// \returns size of drawn area
 /// Draws unused space of @rc with @clr_bg
-size_ui16_t render_text_singleline(Rect16 rc, const string_view_utf8 &str, const font_t *pf, Color clr_bg, Color clr_fg) {
+size_ui16_t render_text_singleline(Rect16 rc, StringReaderUtf8 &reader, const font_t *pf, Color clr_bg, Color clr_fg) {
     no_wrap text_plain;
-
-    StringReaderUtf8 reader(str);
     return render_line(text_plain, rc, reader, pf, clr_bg, clr_fg);
 }
 
@@ -213,6 +211,7 @@ void render_text_align(Rect16 rc, const string_view_utf8 &text, Font f, Color cl
         return;
     }
 
+    StringReaderUtf8 reader(text);
     /// single line, can modify rc pad
     if (font->h * 2 > rc_pad.Height() /// 2 lines would not fit
         || (txt_size.h == font->h && txt_size.w <= rc_pad.Width()) /// text fits into a single line completely
@@ -224,7 +223,7 @@ void render_text_align(Rect16 rc, const string_view_utf8 &text, Font f, Color cl
 
         /// 2nd pass reading the string_view_utf8 - draw the text
         /// surrounding of rc_pad will be printed with back color
-        rc_pad = Rect16(rc_pad.TopLeft(), render_text_singleline(rc_pad, text, font, clr_bg, clr_fg));
+        rc_pad = Rect16(rc_pad.TopLeft(), render_text_singleline(rc_pad, reader, font, clr_bg, clr_fg));
     } else {
         /// multiline text
         const uint8_t MaxColsInRect = std::min(255, rc_pad.Width() / font->w);
@@ -241,7 +240,6 @@ void render_text_align(Rect16 rc, const string_view_utf8 &text, Font f, Color cl
         line_to_align = Rect16::Height_t(font->h); // helps with calculations
 
         /// 3rd pass reading the string_view_utf8 - draw the text
-        StringReaderUtf8 reader(text);
         text_wrapper<ram_buffer, const font_t *> wrapper(rc_pad.Width(), font);
         for (size_t i = 0; i < std::min(layout.GetLineCount(), MaxRowsInRect); ++i) {
             const size_t line_char_cnt = layout.LineCharacters(i);

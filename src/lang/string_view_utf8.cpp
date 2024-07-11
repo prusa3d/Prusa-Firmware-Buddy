@@ -19,15 +19,6 @@ unichar string_view_utf8::getFirstUtf8Char() const {
     return reader.getUtf8Char();
 }
 
-string_view_utf8 string_view_utf8::substr(size_t pos) const {
-    StringReaderUtf8 reader(*this);
-    while (pos--) {
-        reader.getUtf8Char();
-    }
-
-    return reader.remaining_string();
-}
-
 size_t string_view_utf8::copyToRAM(char *dst, size_t max_size) const {
     if (max_size == 0) {
         return 0;
@@ -198,6 +189,13 @@ bool StringReaderUtf8::trigger_buffer_switch(uint8_t ch) {
         triggered = true;
     }
     return triggered;
+}
+
+StringReaderUtf8 &StringReaderUtf8::skip(uint16_t num_of_chars) {
+    while (num_of_chars--) {
+        getUtf8Char();
+    }
+    return *this;
 }
 
 unichar StringReaderUtf8::getUtf8Char() {

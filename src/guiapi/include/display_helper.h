@@ -13,7 +13,7 @@
 #include "fonts.hpp"
 
 uint32_t get_char_position_in_font(unichar c, const font_t *pf);
-size_ui16_t render_text_singleline(Rect16 rc, const string_view_utf8 &str, const font_t *pf, Color clr_bg, Color clr_fg);
+size_ui16_t render_text_singleline(Rect16 rc, StringReaderUtf8 &reader, const font_t *pf, Color clr_bg, Color clr_fg);
 void render_text_align(Rect16 rc, const string_view_utf8 &text, Font, Color clr0, Color clr1, padding_ui8_t padding, text_flags flags, bool fill_rect = true);
 void render_icon_align(Rect16 rc, const img::Resource *res, Color clr_back, icon_flags flags);
 

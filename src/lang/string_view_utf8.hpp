@@ -123,9 +123,6 @@ public:
         return copyToRAM(target.data(), target.size());
     }
 
-    /// \returns substring of the current string, starting at the position \p pos, ending at the end of the string
-    string_view_utf8 substr(size_t pos) const;
-
     /// Construct string_view_utf8 to provide data from CPU FLASH
     static string_view_utf8 MakeCPUFLASH(const uint8_t *utf8raw) {
         string_view_utf8 s;
@@ -217,10 +214,8 @@ public:
     StringReaderUtf8(const StringReaderUtf8 &) = delete;
 
 public:
-    /// \returns remaining string that hasn't been read yet
-    inline string_view_utf8 remaining_string() const {
-        return view_;
-    }
+    /// Skip next \param num_of_chars UTF-8 characters
+    StringReaderUtf8 &skip(uint16_t num_of_chars);
 
     /// @returns one UTF-8 character from the input data
     /// and advances internal pointers (in derived classes) to the next one

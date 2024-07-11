@@ -235,7 +235,7 @@ void IWindowMenuItem::Print(Rect16 rect) {
     if (IsLabelInvalid()) {
         if (is_focused()) {
             // Is focused -> use shared roll instance
-            focused_menu_item_roll.RenderTextAlign(label_rect, label, label_font, mi_color_back, mi_color_text, GuiDefaults::MenuPaddingItems, GuiDefaults::MenuAlignment());
+            focused_menu_item_roll.render_text(label_rect, label, label_font, mi_color_back, mi_color_text, GuiDefaults::MenuPaddingItems, GuiDefaults::MenuAlignment());
 
         } else {
             // Not focused -> render without roll

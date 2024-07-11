@@ -71,7 +71,7 @@ void txtroll_t::Init(Rect16 rc, const string_view_utf8 &text, Font font,
     phase = phase_t::init_roll;
 }
 
-void txtroll_t::RenderTextAlign(Rect16 rc, const string_view_utf8 &text, Font font,
+void txtroll_t::render_text(Rect16 rc, const string_view_utf8 &text, Font font,
     Color clr_back, Color clr_text, padding_ui8_t padding, Align_t alignment, bool fill_rect) const {
     switch (phase) {
     case phase_t::uninitialized:
@@ -81,12 +81,12 @@ void txtroll_t::RenderTextAlign(Rect16 rc, const string_view_utf8 &text, Font fo
         render_text_align(rc, text, font, clr_back, clr_text, padding, alignment, fill_rect); // normal render
         break;
     default:
-        renderTextAlign(rc, text, font, clr_back, clr_text, padding, alignment, fill_rect); // rolling render
+        render_rolling_text_align(rc, text, font, clr_back, clr_text, padding, alignment, fill_rect); // rolling render
         break;
     }
 }
 
-void txtroll_t::renderTextAlign(Rect16 rc, const string_view_utf8 &text, Font font,
+void txtroll_t::render_rolling_text_align(Rect16 rc, const string_view_utf8 &text, Font font,
     Color clr_back, Color clr_text, [[maybe_unused]] padding_ui8_t padding, [[maybe_unused]] Align_t alignment, bool fill_rect) const {
 
     if (text.isNULLSTR()) {
@@ -111,7 +111,7 @@ void txtroll_t::renderTextAlign(Rect16 rc, const string_view_utf8 &text, Font fo
     }
 
     if (!set_txt_rc.IsEmpty()) {
-        Rect16 text_drawn_at(set_txt_rc.TopLeft(), render_text_singleline(set_txt_rc, text.substr(draw_progress), resource_font(font), clr_back, clr_text));
+        Rect16 text_drawn_at(set_txt_rc.TopLeft(), render_text_singleline(set_txt_rc, StringReaderUtf8(text).skip(draw_progress), resource_font(font), clr_back, clr_text));
         if (fill_rect) {
             fill_between_rectangles(&rc, &text_drawn_at, clr_back);
         }

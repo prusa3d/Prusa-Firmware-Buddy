@@ -13,10 +13,10 @@ void window_roll_text_t::unconditionalDraw() {
     if (flags.color_scheme_background || flags.color_scheme_foreground) {
         // TODO keep only following 3 lines in function body, remove rest
         window_text_t::unconditionalDraw();
-        roll.RenderTextAlign(GetRect(), text, get_font(),
+        roll.render_text(GetRect(), text, get_font(),
             GetBackColor(), GetTextColor(), padding, GetAlignment());
     } else {
-        roll.RenderTextAlign(GetRect(), text, get_font(),
+        roll.render_text(GetRect(), text, get_font(),
             (IsFocused()) ? GetTextColor() : GetBackColor(),
             (IsFocused()) ? GetBackColor() : GetTextColor(),
             padding, GetAlignment());
