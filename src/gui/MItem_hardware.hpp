@@ -8,7 +8,7 @@
 #include <common/extended_printer_type.hpp>
 
 enum class HWCheckType {
-    nozzle,
+    nozzle_diameter,
     model,
     firmware,
     gcode,
@@ -24,8 +24,8 @@ class MI_HARDWARE_CHECK_t : public WI_SWITCH_t<3> {
 
     size_t get_eeprom() {
         switch (HWCheck) {
-        case HWCheckType::nozzle:
-            return static_cast<size_t>(config_store().hw_check_nozzle.get());
+        case HWCheckType::nozzle_diameter:
+            return static_cast<size_t>(config_store().hw_check_nozzle_diameter.get());
         case HWCheckType::model:
             return static_cast<size_t>(config_store().hw_check_model.get());
         case HWCheckType::firmware:
@@ -45,15 +45,15 @@ class MI_HARDWARE_CHECK_t : public WI_SWITCH_t<3> {
 public:
     MI_HARDWARE_CHECK_t(const string_view_utf8 &label)
         : WI_SWITCH_t(get_eeprom(), label, nullptr, is_enabled_t::yes, is_hidden_t::no,
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_none),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_warn),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_strict)) {}
+            string_view_utf8::MakeCPUFLASH(str_none),
+            string_view_utf8::MakeCPUFLASH(str_warn),
+            string_view_utf8::MakeCPUFLASH(str_strict)) {}
 
 protected:
     void OnChange([[maybe_unused]] size_t old_index) override {
         switch (HWCheck) {
-        case HWCheckType::nozzle:
-            config_store().hw_check_nozzle.set(static_cast<HWCheckSeverity>(index));
+        case HWCheckType::nozzle_diameter:
+            config_store().hw_check_nozzle_diameter.set(static_cast<HWCheckSeverity>(index));
             break;
         case HWCheckType::model:
             config_store().hw_check_model.set(static_cast<HWCheckSeverity>(index));
