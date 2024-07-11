@@ -138,7 +138,11 @@ static bool filament_known(const char *curr_filament) {
 #if ENABLED(PRUSA_SPOOL_JOIN) && ENABLED(PRUSA_TOOL_MAPPING)
 
 bool PrintPreview::ToolsMappingValidty::all_ok() const {
-    return unassigned_gcodes.count() == 0 && mismatched_filaments.count() == 0 && mismatched_nozzles.count() == 0 && unloaded_tools.count() == 0;
+    return unassigned_gcodes.count() == 0 &&
+    #if not HAS_MMU2()
+        mismatched_filaments.count() == 0 &&
+    #endif
+        mismatched_nozzles.count() == 0 && unloaded_tools.count() == 0;
 }
 
 auto PrintPreview::check_tools_mapping_validity(const ToolMapper &mapper, const SpoolJoin &joiner, const GCodeInfo &gcode) -> ToolsMappingValidty {
