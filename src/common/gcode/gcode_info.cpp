@@ -228,25 +228,24 @@ void GCodeInfo::EvaluateToolsValid() {
         }
 #endif
 
-        // nozzle diameter of this tool in gcode is different then printer has
-        if (per_extruder_info[e].nozzle_diameter.has_value()) {
-            auto do_nozzle_check = [&](uint8_t hotend) {
-                assert(hotend < HOTENDS);
-                float nozzle_diameter_distance = std::abs(per_extruder_info[e].nozzle_diameter.value() - config_store().get_nozzle_diameter(hotend));
-                if (nozzle_diameter_distance > 0.001f) {
-                    valid_printer_settings.wrong_nozzle_diameter.fail();
-                }
-            };
+        auto do_nozzle_check = [&](uint8_t hotend) {
+            assert(hotend < HOTENDS);
+
+            const auto &extruder_info = per_extruder_info[hotend];
+
+            if (auto dia = extruder_info.nozzle_diameter; dia && std::abs(*dia - config_store().get_nozzle_diameter(hotend)) > 0.001f) {
+                valid_printer_settings.wrong_nozzle_diameter.fail();
+            }
+        };
 
 #if ENABLED(SINGLENOZZLE)
-            do_nozzle_check(0);
+        do_nozzle_check(0);
 #else
-            tools_mapping::execute_on_whole_chain(physical_tool,
-                [&](uint8_t physical) {
-                    do_nozzle_check(physical); // here should be map to hotend from this extruder but the #if ENABLED(SINGLENOZZLE) should be enough for now
-                });
+        tools_mapping::execute_on_whole_chain(physical_tool,
+            [&](uint8_t physical) {
+                do_nozzle_check(physical); // here should be map to hotend from this extruder but the #if ENABLED(SINGLENOZZLE) should be enough for now
+            });
 #endif
-        }
     }
 }
 
@@ -396,9 +395,11 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
             tool = cmd.get_uint(); // Check particular tool (only for M862.1)
         } else if (letter == 'P') {
             switch (subcode) {
+
             case '1':
                 p_diameter = cmd.get_float(); // Only store value in case Tx comes later
                 break;
+
             case '3': {
                 auto printer = cmd.get_string();
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
@@ -427,18 +428,21 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 }
                 break;
             }
+
             case '4':
                 // Parse M862.4 for minimal required firmware version
                 if (!is_up_to_date(cmd.c_str())) {
                     valid_printer_settings.wrong_firmware.fail();
                 }
                 break;
+
             case '2': {
 #if HAS_EXTENDED_PRINTER_TYPE()
                 const auto current_sub_type = config_store().extended_printer_type.get();
                 const auto *const current_name = extended_printer_type_names[current_sub_type];
                 const auto current_code = printer_model2code(current_name);
-                if (cmd.get_uint() != current_code && (current_sub_type != ExtendedPrinterType::mk4 || cmd.get_uint() != printer_model2code("MK3.9")) && (current_sub_type != ExtendedPrinterType::mk3_9 || cmd.get_uint() != printer_model2code("MK4"))) {
+                const auto cmd_code = cmd.get_uint();
+                if (cmd_code != current_code && (current_sub_type != ExtendedPrinterType::mk4 || cmd_code != printer_model2code("MK3.9")) && (current_sub_type != ExtendedPrinterType::mk3_9 || cmd_code != printer_model2code("MK4"))) {
 #else
                 if (cmd.get_uint() != printer_model2code(PRINTER_MODEL)) {
 #endif
@@ -446,12 +450,14 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 }
                 break;
             }
+
             case '5':
                 if (cmd.get_uint() > gcode_level) {
                     valid_printer_settings.wrong_gcode_level.fail();
                 }
                 break;
-            case '6':
+
+            case '6': {
                 auto compare = [](GcodeBuffer::String &a, const char *b) {
                     for (char *c = a.begin;; ++c, ++b) {
                         if (c == a.end || *b == '\0') {
@@ -485,27 +491,31 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 }
                 break;
             }
+            }
         }
         cmd.skip_nws();
         cmd.skip_ws();
     }
 
+    const auto visit_tool = [&](const auto &visitor) {
 #if ENABLED(PRUSA_MMU2)
-    // Store nozzle diameter - MMU-equipped printers have only one nozzle diameter for all tools/slots
-    // Makes the pre-print screen hide the nozzle sizes, which is both good and bad at the same time
-    // -> "?.??" is gone, but no actual diameter is shown anymore - that can be tweaked further on the visualization side.
-    // Here, we must set the correct nozzle diameter for all tools if specified.
-    if (!isnan(p_diameter)) {
+        // MMU-equipped printers have only one nozzle diameter for all tools/slots
+        // Makes the pre-print screen hide the nozzle sizes, which is both good and bad at the same time
+        // -> "?.??" is gone, but no actual diameter is shown anymore - that can be tweaked further on the visualization side.
+        // Here, we must set the correct nozzle diameter for all tools if specified.
         EXTRUDER_LOOP() {
-            per_extruder_info[e].nozzle_diameter = p_diameter;
+            visitor(per_extruder_info[e]);
         }
-    }
 #else
-    // store nozzle diameter per tool
-    if (!isnan(p_diameter) && tool < EXTRUDERS) {
-        per_extruder_info[tool].nozzle_diameter = p_diameter;
-    }
+        if (tool < EXTRUDERS) {
+            visitor(per_extruder_info[tool]);
+        }
 #endif
+    };
+
+    if (!isnan(p_diameter)) {
+        visit_tool([&](auto &info) { info.nozzle_diameter = p_diameter; });
+    }
 }
 
 void GCodeInfo::parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter) {
