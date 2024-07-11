@@ -374,6 +374,7 @@ struct CurrentStore
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Firmware")> hw_check_firmware;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check G-code")> hw_check_gcode;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Compatibility")> hw_check_compatibility;
+    StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Fan Compatibility")> hw_check_fan_compatibility;
 #if HAS_SELFTEST()
     StoreItem<SelftestResult, defaults::selftest_result, journal::hash("Selftest Result Gears")> selftest_result;
 #endif

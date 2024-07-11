@@ -17,7 +17,7 @@
 LOG_COMPONENT_REF(Buddy);
 
 #if ENABLED(PRUSA_MMU2)
-    #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
+    #include "Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #endif
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -395,7 +395,7 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
         #error "FAN_COMPATIBILITY_MK4_MK3 requires EXTENDED_PRINTER_TYPE"
     #endif
                 if (config_store().extended_printer_type.get() == ExtendedPrinterType::mk4s && ((strncmp(printer.c_str(), "MK4", 3) == 0 && strncmp(printer.c_str(), "MK4S", 4) != 0) || strncmp(printer.c_str(), "MK3", 3) == 0)) {
-                    valid_printer_settings.compatibility_mode.fail();
+                    valid_printer_settings.fan_compatibility_mode.fail();
                 }
 #endif
                 // Check basic printer model as MK4 or XL
