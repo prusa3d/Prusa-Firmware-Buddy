@@ -529,15 +529,54 @@ bool Planner::can_receive_command() const {
 }
 
 void Planner::action_done(ActionResult result) {
+    auto exponential_backoff = [&]() {
+        if (const auto since_success = since(last_success); since_success.value_or(0) >= RECONNECT_AFTER && !planned_event.has_value()) {
+            // We have talked to the server long time ago (it's probably in
+            // a galaxy far far away), so next time we manage to do so,
+            // initialize the communication with the Info event again.
+
+            planned_event = Event {
+                EventType::Info,
+            };
+            last_success = nullopt;
+        }
+
+        // Failed to talk to the server. Retry after a while (with a back-off), but otherwise keep stuff the same.
+        cooldown = min(COOLDOWN_MAX, cooldown.value_or(COOLDOWN_BASE / 2) * 2);
+        perform_cooldown = true;
+    };
+
+    auto reset_backoff = [&]() {
+        perform_cooldown = false;
+        cooldown = nullopt;
+    };
+
+    auto cleanups = [&]() {
+        // In case of refused, we also remove the event, won't try to send it again.
+        failed_attempts = 0;
+#if !WEBSOCKET()
+        if (planned_event.has_value()) {
+            // Enforce telemetry now. We may get a new command with it.
+            // Websocket doesn't need this, commands can come independently from telemetry.
+            last_telemetry = nullopt;
+        }
+#endif
+        planned_event = nullopt;
+    };
+
     switch (result) {
     case ActionResult::Refused:
-        // In case of refused, we also remove the event, won't try to send it again.
+        cleanups();
+        exponential_backoff();
+        break;
+    case ActionResult::RefusedFast:
+        cleanups();
+        reset_backoff();
+        break;
     case ActionResult::Ok: {
         const Timestamp n = now();
         last_success = n;
-        perform_cooldown = false;
-        cooldown = nullopt;
-        failed_attempts = 0;
+        reset_backoff();
         if (planned_event.has_value()) {
             if (planned_event->type == EventType::Info) {
                 info_changes.mark_clean();
@@ -546,12 +585,6 @@ void Planner::action_done(ActionResult result) {
             } else if (planned_event->type == EventType::StateChanged) {
                 state_info.mark_clean();
             }
-            planned_event = nullopt;
-#if !WEBSOCKET()
-            // Enforce telemetry now. We may get a new command with it.
-            // Websocket doesn't need this, commands can come independently from telemetry.
-            last_telemetry = nullopt;
-#endif
         } else {
             last_telemetry = n;
             if (last_telemetry_mode == SendTelemetry::Mode::Full) {
@@ -559,6 +592,7 @@ void Planner::action_done(ActionResult result) {
                 telemetry_changes.mark_clean();
             }
         }
+        cleanups();
         break;
     }
     case ActionResult::Failed:
@@ -575,20 +609,7 @@ void Planner::action_done(ActionResult result) {
             failed_attempts = 0;
         }
 
-        if (const auto since_success = since(last_success); since_success.value_or(0) >= RECONNECT_AFTER && !planned_event.has_value()) {
-            // We have talked to the server long time ago (it's probably in
-            // a galaxy far far away), so next time we manage to do so,
-            // initialize the communication with the Info event again.
-
-            planned_event = Event {
-                EventType::Info,
-            };
-            last_success = nullopt;
-        }
-
-        // Failed to talk to the server. Retry after a while (with a back-off), but otherwise keep stuff the same.
-        cooldown = min(COOLDOWN_MAX, cooldown.value_or(COOLDOWN_BASE / 2) * 2);
-        perform_cooldown = true;
+        exponential_backoff();
         break;
     }
 }

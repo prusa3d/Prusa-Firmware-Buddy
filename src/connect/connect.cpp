@@ -701,7 +701,7 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
         // We don't know that exactly the server answer means, but we guess
         // that it will persist, so we consider it refused and throw the
         // request away.
-        planner().action_done(ActionResult::Refused);
+        planner().action_done(resp.status == Status::BadRequest ? ActionResult::RefusedFast : ActionResult::Refused);
         // Switch just to provide proper error message
         switch (resp.status) {
         case Status::BadRequest:

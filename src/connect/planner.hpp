@@ -78,6 +78,7 @@ enum class ActionResult {
     Ok,
     Failed,
     Refused,
+    RefusedFast,
 };
 
 /// The planner
