@@ -26,7 +26,7 @@
 #include <config_store/store_instance.hpp>
 
 #include <option/has_local_accelerometer.h>
-#include <option/has_puppies.h>
+#include <option/has_dwarf.h>
 #include <option/has_remote_accelerometer.h>
 
 static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
@@ -662,7 +662,7 @@ static bool is_ok(PrusaAccelerometer::Error error) {
     case PrusaAccelerometer::Error::busy:
         SERIAL_ERROR_MSG("busy");
         break;
-#if HAS_PUPPIES()
+#if HAS_DWARF()
     case PrusaAccelerometer::Error::corrupted_transmission_error:
     case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
 #endif

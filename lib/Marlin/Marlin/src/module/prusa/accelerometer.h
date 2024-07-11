@@ -3,7 +3,7 @@
  */
 #pragma once
 #include "../../inc/MarlinConfigPre.h"
-#include <option/has_puppies.h>
+#include <option/has_dwarf.h>
 #include <option/has_local_accelerometer.h>
 #include <option/has_remote_accelerometer.h>
 
@@ -46,7 +46,7 @@ public:
         no_active_tool,
         busy,
         corrupted_buddy_overflow, // Data not consistent, sample missed on buddy
-#if HAS_PUPPIES()
+#if HAS_DWARF()
         corrupted_dwarf_overflow, // Data not consistent, sample missed on dwarf
         corrupted_transmission_error, // Data not consistent, sample possibly lost in transfer
 #endif
