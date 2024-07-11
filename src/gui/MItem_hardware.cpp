@@ -14,6 +14,16 @@
     #endif /*HAS_SIDE_FSENSOR()*/
 #endif /*HAS_TOOLCHANGER()*/
 
+MI_HARDWARE_CHECK::MI_HARDWARE_CHECK(HWCheckType check_type)
+    : WI_SWITCH_t(static_cast<int>(config_store().visit_hw_check(check_type, [](auto &item) { return item.get(); })), _(hw_check_type_names[check_type]), nullptr, is_enabled_t::yes, is_hidden_t::no,
+        _("None"), _("Warn"), _("Strict"))
+    , check_type(check_type) //
+{}
+
+void MI_HARDWARE_CHECK::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().visit_hw_check(check_type, [set = static_cast<HWCheckSeverity>(index)](auto &item) { item.set(set); });
+}
+
 MI_NOZZLE_DIAMETER::MI_NOZZLE_DIAMETER(int tool_idx, [[maybe_unused]] is_hidden_t with_toolchanger)
     : WiSpin(get_eeprom(tool_idx), nozzle_diameter_spin_config, _(label))
     , tool_idx(tool_idx) {

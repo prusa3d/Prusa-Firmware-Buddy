@@ -13,6 +13,7 @@
 #include <module/prusa/tool_offset.hpp>
 #include <filament_sensors_remap_data.hpp>
 #include <printers.h>
+#include <common/hw_check.hpp>
 
 #include "constants.hpp"
 #include <common/nozzle_type.hpp>

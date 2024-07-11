@@ -33,6 +33,7 @@
 #include <option/has_selftest.h>
 #include <option/has_phase_stepping.h>
 #include <common/extended_printer_type.hpp>
+#include <common/hw_check.hpp>
 
 #if HAS_SHEET_PROFILES()
     #include <common/sheet.hpp>
@@ -372,8 +373,43 @@ struct CurrentStore
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Model")> hw_check_model;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Firmware")> hw_check_firmware;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check G-code")> hw_check_gcode;
-    StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Compatibility")> hw_check_compatibility;
+
+#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Fan Compatibility")> hw_check_fan_compatibility;
+#endif
+
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+    StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Compatibility")> hw_check_compatibility;
+#endif
+
+    template <typename F>
+    auto visit_hw_check(HWCheckType type, const F &visitor) {
+        switch (type) {
+
+        case HWCheckType::nozzle_diameter:
+            return visitor(hw_check_nozzle_diameter);
+
+        case HWCheckType::model:
+            return visitor(hw_check_model);
+
+        case HWCheckType::firmware:
+            return visitor(hw_check_firmware);
+
+        case HWCheckType::gcode:
+            return visitor(hw_check_gcode);
+
+#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
+        case HWCheckType::fan_compatibility:
+            return visitor(hw_check_fan_compatibility);
+#endif
+
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+        case HWCheckType::mk3_compatibility:
+            return visitor(hw_check_compatibility);
+#endif
+        }
+    }
+
 #if HAS_SELFTEST()
     StoreItem<SelftestResult, defaults::selftest_result, journal::hash("Selftest Result Gears")> selftest_result;
 #endif

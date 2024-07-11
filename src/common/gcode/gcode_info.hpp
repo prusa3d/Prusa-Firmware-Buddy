@@ -96,8 +96,12 @@ public:
         Feature wrong_printer_model { config_store().hw_check_model.get() }; // M862.2 or M862.3 or printer_model (from comments) disagree
         Feature wrong_gcode_level { config_store().hw_check_gcode.get() }; // M862.5 disagree
         Feature wrong_firmware { config_store().hw_check_firmware.get() }; // M862.4 Px.yy.z disagrees
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
         Feature gcode_compatibility_mode { config_store().hw_check_compatibility.get() };
+#endif
+#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
         Feature fan_compatibility_mode { config_store().hw_check_fan_compatibility.get() };
+#endif
         Feature outdated_firmware { config_store().hw_check_firmware.get() }; // M115 Ux.yy.z disagrees (TODO: Separate EEVAR?)
         bool unsupported_features { false };
         char unsupported_features_text[37] { "" };

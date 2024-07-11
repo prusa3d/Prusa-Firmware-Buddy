@@ -11,13 +11,6 @@ inline bool operator==(PID_t lhs, PID_t rhs) {
     return lhs.Kd == rhs.Kd && lhs.Ki == rhs.Ki && lhs.Kp == rhs.Kp;
 }
 
-// TODO: Find a better home for this
-enum class HWCheckSeverity : uint8_t {
-    Ignore = 0,
-    Warning = 1,
-    Abort = 2
-};
-
 namespace config_store_ns {
 // place for constants relevant to config_store
 inline constexpr size_t sheets_num { 8 };

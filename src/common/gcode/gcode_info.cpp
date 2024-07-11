@@ -265,13 +265,26 @@ void GCodeInfo::ValidPrinterSettings::add_unsupported_feature(const char *featur
 }
 
 bool GCodeInfo::ValidPrinterSettings::is_valid(bool is_tools_mapping_possible) const {
-    return wrong_printer_model.is_valid() && wrong_gcode_level.is_valid() && wrong_firmware.is_valid() && gcode_compatibility_mode.is_valid() && !unsupported_features
+    return wrong_printer_model.is_valid() && wrong_gcode_level.is_valid() && wrong_firmware.is_valid()
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+        && gcode_compatibility_mode.is_valid()
+#endif
+#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
+        && fan_compatibility_mode.is_valid()
+#endif
+        && !unsupported_features
         && (is_tools_mapping_possible // if is_possible -> always true -> handled by tools_mapping screen
             || (wrong_tools.is_valid() && wrong_nozzle_diameter.is_valid()));
 }
 
 bool GCodeInfo::ValidPrinterSettings::is_fatal(bool is_tools_mapping_possible) const {
-    return wrong_printer_model.is_fatal() || wrong_gcode_level.is_fatal() || wrong_firmware.is_fatal() || gcode_compatibility_mode.is_fatal()
+    return wrong_printer_model.is_fatal() || wrong_gcode_level.is_fatal() || wrong_firmware.is_fatal()
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+        || gcode_compatibility_mode.is_fatal()
+#endif
+#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
+        || fan_compatibility_mode.is_fatal()
+#endif
         || (!is_tools_mapping_possible // if is_possible -> always false -> handled by tools_mapping screen
             && (wrong_tools.is_fatal() || wrong_nozzle_diameter.is_fatal()));
 }

@@ -4,25 +4,18 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_hardware.hpp"
 
-using ScreenMenuHardwareChecks__ = ScreenMenu<GuiDefaults::MenuFooter,
-    MI_RETURN,
-    MI_NOZZLE_DIAMETER_CHECK,
-    MI_PRINTER_MODEL_CHECK,
-    MI_FIRMWARE_CHECK,
-    MI_GCODE_LEVEL_CHECK
-#if ENABLED(GCODE_COMPATIBILITY_MK3)
-    ,
-    MI_MK3_COMPATIBILITY_CHECK
-#endif
-#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
-    ,
-    MI_FAN_COMPATIBILITY_CHECK
-#endif
-    >;
+template <typename>
+struct ScreenMenuHardwareChecks_;
 
-class ScreenMenuHardwareChecks : public ScreenMenuHardwareChecks__ {
+template <size_t... ix>
+struct ScreenMenuHardwareChecks_<std::index_sequence<ix...>> {
+    using T = ScreenMenu<GuiDefaults::MenuFooter,
+        MI_RETURN,
+        WithConstructorArgs<MI_HARDWARE_CHECK, static_cast<HWCheckType>(ix)>...>;
+};
+
+class ScreenMenuHardwareChecks : public ScreenMenuHardwareChecks_<std::make_index_sequence<hw_check_type_count>>::T {
 public:
-    constexpr static const char *label = N_("CHECKS");
     ScreenMenuHardwareChecks()
-        : ScreenMenuHardwareChecks__(_(label)) {}
+        : ScreenMenu(_("CHECKS")) {}
 };
