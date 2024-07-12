@@ -1,7 +1,5 @@
 #pragma once
 
-#define ENABLED(V...) false
-
 #define DEFAULT_AXIS_STEPS_PER_UNIT \
     { 80, 80, 800, 380 }
 #define DEFAULT_INVERT_X_DIR  false
