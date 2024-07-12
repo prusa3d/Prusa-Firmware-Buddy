@@ -370,7 +370,7 @@ void PrusaGcodeSuite::G26() {
     FirstLayer fl;
 
     auto filament_description = filament::get_description(filament);
-    const int temp_nozzle = filament_description.nozzle;
+    const int temp_nozzle = filament_description.nozzle_temperature;
 
     // nozzle temperature print
     thermalManager.setTargetHotend(temp_nozzle, 0);

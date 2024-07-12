@@ -188,7 +188,7 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res, uint
     switch (res) {
     case PreheatStatus::Result::DoneHasFilament: {
         auto filament = config_store().get_filament_type(target_extruder);
-        auto preheat_temp = filament::get_description(filament).nozzle_preheat;
+        auto preheat_temp = filament::get_description(filament).nozzle_preheat_temperature;
         thermalManager.setTargetHotend(preheat_temp, 0);
         break;
     }

@@ -32,9 +32,9 @@ constexpr filament::Description filaments[size_t(filament::Type::_last) + 1] = {
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament::Type::_last) + 1, "Filament count error.");
 
 constexpr bool temperatures_are_within_spec(filament::Description filament) {
-    return (filament.nozzle <= HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN)
-        && (filament.nozzle_preheat <= HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN)
-        && (filament.heatbed <= BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN);
+    return (filament.nozzle_temperature <= HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN)
+        && (filament.nozzle_preheat_temperature <= HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN)
+        && (filament.heatbed_temperature <= BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN);
 }
 
 static_assert(std::ranges::all_of(filaments, temperatures_are_within_spec));

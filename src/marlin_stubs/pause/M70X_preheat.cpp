@@ -84,11 +84,11 @@ void filament_gcodes::preheat_to(FilamentType filament, uint8_t target_extruder)
     const filament::Description &fil_cnf = filament::get_description(filament);
 
     // change temp only if it is lower than currently loaded filament
-    if (thermalManager.degTargetHotend(target_extruder) < fil_cnf.nozzle) {
-        thermalManager.setTargetHotend(fil_cnf.nozzle, target_extruder);
-        marlin_server::set_temp_to_display(fil_cnf.nozzle, target_extruder);
+    if (thermalManager.degTargetHotend(target_extruder) < fil_cnf.nozzle_temperature) {
+        thermalManager.setTargetHotend(fil_cnf.nozzle_temperature, target_extruder);
+        marlin_server::set_temp_to_display(fil_cnf.nozzle_temperature, target_extruder);
         if (config_store().heatup_bed.get()) {
-            thermalManager.setTargetBed(fil_cnf.heatbed);
+            thermalManager.setTargetBed(fil_cnf.heatbed_temperature);
         }
     }
 }
@@ -101,10 +101,10 @@ std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::p
         const filament::Description &fil_cnf = filament::get_description(filament);
 
         // change temp every time (unlike normal preheat)
-        thermalManager.setTargetHotend(fil_cnf.nozzle, target_extruder);
-        marlin_server::set_temp_to_display(fil_cnf.nozzle, target_extruder);
+        thermalManager.setTargetHotend(fil_cnf.nozzle_temperature, target_extruder);
+        marlin_server::set_temp_to_display(fil_cnf.nozzle_temperature, target_extruder);
         if (config_store().heatup_bed.get()) {
-            thermalManager.setTargetBed(fil_cnf.heatbed);
+            thermalManager.setTargetBed(fil_cnf.heatbed_temperature);
         }
 
         return { std::nullopt, filament };
@@ -143,8 +143,8 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode,
     const filament::Description &fil_cnf = filament::get_description(filament);
 
     const auto set_extruder_temp = [&](uint8_t extruder) {
-        thermalManager.setTargetHotend(enforce_target_temp ? fil_cnf.nozzle : fil_cnf.nozzle_preheat, extruder);
-        marlin_server::set_temp_to_display(fil_cnf.nozzle, extruder);
+        thermalManager.setTargetHotend(enforce_target_temp ? fil_cnf.nozzle_temperature : fil_cnf.nozzle_preheat_temperature, extruder);
+        marlin_server::set_temp_to_display(fil_cnf.nozzle_temperature, extruder);
     };
 
     if (response == Response::Cooldown || target_extruder < 0) {
@@ -165,7 +165,7 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode,
     }
 
     if (preheat_bed) {
-        thermalManager.setTargetBed(fil_cnf.heatbed);
+        thermalManager.setTargetBed(fil_cnf.heatbed_temperature);
     }
 
     // cooldown pressed

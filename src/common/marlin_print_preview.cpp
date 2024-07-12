@@ -322,7 +322,7 @@ static void queue_filament_load_gcodes() {
             : "";
 #if HOTENDS > 1
         // if printer has multiple hotends (eg: XL), preheat all that will be loaded to save time for user
-        auto target_temp = filament::get_description(filament::get_type(filament_name, strlen(filament_name))).nozzle;
+        auto target_temp = filament::get_description(filament::get_type(filament_name, strlen(filament_name))).nozzle_temperature;
         thermalManager.setTargetHotend(target_temp, e);
         marlin_server::set_temp_to_display(target_temp, e);
 #endif
@@ -350,7 +350,7 @@ static void queue_filament_change_gcodes() {
 
 #if HOTENDS > 1 // Here we would love mapping of extruder -> hotend, but since we don't have it, this check will have to suffice
         // if printer has multiple hotends (eg: XL), preheat all that will be loaded to save time for user
-        auto temp_old = filament::get_description(config_store().get_filament_type(e)).nozzle;
+        auto temp_old = filament::get_description(config_store().get_filament_type(e)).nozzle_temperature;
 
         thermalManager.setTargetHotend(temp_old, e);
         marlin_server::set_temp_to_display(temp_old, e);

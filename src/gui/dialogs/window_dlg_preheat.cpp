@@ -27,7 +27,7 @@ NsPreheat::I_MI_Filament::I_MI_Filament(FilamentType filament_type)
     SetLabel(string_view_utf8::MakeRAM(filament_params.name));
 
     char buff[info_len];
-    snprintf(buff, sizeof(buff), filament_params.heatbed > 100 ? "%3u/%3u " : "%3u/%2u  ", filament_params.nozzle, filament_params.heatbed); // extra space(s) at the end are intended .. "260/100 " or  "215/60  "
+    snprintf(buff, sizeof(buff), filament_params.heatbed_temperature > 100 ? "%3u/%3u " : "%3u/%2u  ", filament_params.nozzle_temperature, filament_params.heatbed_temperature); // extra space(s) at the end are intended .. "260/100 " or  "215/60  "
     ChangeInformation(buff);
 }
 

@@ -148,7 +148,7 @@ void MenuMultiFilamentChange::carry_out_changes() {
             continue;
         }
 
-        const uint16_t temperature = max(filament::get_description(config.new_filament).nozzle, filament::get_description(config.old_filament).nozzle);
+        const uint16_t temperature = max(filament::get_description(config.new_filament).nozzle_temperature, filament::get_description(config.old_filament).nozzle_temperature);
         marlin_client::set_target_nozzle(temperature, tool);
         marlin_client::set_display_nozzle(temperature, tool);
     }

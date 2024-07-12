@@ -282,9 +282,9 @@ LoopResult CSelftestPart_FirstLayer::statePrintInit() {
     IPartHandler::SetFsmPhase(PhasesSelftest::FirstLayer_mbl);
     auto filament = config_store().get_filament_type(active_extruder);
     auto filament_desc = filament::get_description(filament);
-    const int temp_nozzle = filament_desc.nozzle;
-    temp_nozzle_preheat = filament_desc.nozzle_preheat;
-    temp_bed = filament_desc.heatbed;
+    const int temp_nozzle = filament_desc.nozzle_temperature;
+    temp_nozzle_preheat = filament_desc.nozzle_preheat_temperature;
+    temp_bed = filament_desc.heatbed_temperature;
 
     // nozzle temperature preheat
     thermalManager.setTargetHotend(temp_nozzle_preheat, 0);

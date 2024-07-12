@@ -8,9 +8,9 @@
 namespace filament {
 
 struct Description {
-    uint16_t nozzle;
-    uint16_t nozzle_preheat;
-    uint16_t heatbed;
+    uint16_t nozzle_temperature;
+    uint16_t nozzle_preheat_temperature;
+    uint16_t heatbed_temperature;
     const char *name;
 };
 
