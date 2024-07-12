@@ -619,42 +619,38 @@ bool ToolsMappingBody::are_all_gcode_tools_mapped() const {
     return true;
 }
 
-std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ToolsMappingBody::build_preselect_array() {
-    std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ret;
-    ret.fill(ftrstd::to_underlying(filament::Type::NONE)); // Don't change
+MultiFilamentChangeConfig ToolsMappingBody::build_changeall_config() {
+    MultiFilamentChangeConfig result;
 
     for (size_t idx = 0; idx < get_num_of_enabled_tools(); ++idx) {
         const auto real_phys = right_phys_idx_to_real[idx];
-        if (auto real_mapped_gcode = tools_mapping::to_gcode_tool_custom(mapper, joiner, real_phys); real_mapped_gcode == tools_mapping::no_tool) { // not assigned
-            continue; // leave preselection as Don't change
-        } else if (const auto &opt_name = gcode.get_extruder_info(real_mapped_gcode).filament_name; opt_name.has_value()) {
-            assert(gcode.get_extruder_info(real_mapped_gcode).used()); // otherwise bug in mapping
-            if (auto desired_filament = filament::get_type(opt_name.value().data(), strlen(opt_name.value().data()));
-                config_store().get_filament_type(real_phys) != desired_filament) {
-                // only preselect if we don't have it already
-                ret[real_phys] = ftrstd::to_underlying(filament::get_type(opt_name.value().data(), strlen(opt_name.value().data())));
-            }
+        const auto real_mapped_gcode = tools_mapping::to_gcode_tool_custom(mapper, joiner, real_phys);
+
+        // Not assigned -> keep as 'don't change'
+        if (real_mapped_gcode == tools_mapping::no_tool) {
+            continue;
         }
+
+        auto &config = result[real_phys];
+        assert(gcode.get_extruder_info(real_mapped_gcode).used()); // otherwise bug in mapping
+        config.color = gcode.get_extruder_info(real_mapped_gcode).extruder_colour;
+
+        const auto &opt_name = gcode.get_extruder_info(real_mapped_gcode).filament_name;
+        if (!opt_name.has_value()) {
+            continue;
+        }
+
+        // only preselect if we don't have it already
+        const auto desired_filament = filament::get_type(opt_name.value().data(), strlen(opt_name.value().data()));
+        if (config_store().get_filament_type(real_phys) == desired_filament) {
+            continue;
+        }
+
+        config.action = multi_filament_change::Action::change;
+        config.new_filament = desired_filament;
     }
 
-    return ret;
-}
-
-std::array<std::optional<Color>, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ToolsMappingBody::build_color_array() {
-    std::array<std::optional<Color>, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ret;
-    ret.fill(std::nullopt); // No color given
-
-    for (size_t idx = 0; idx < get_num_of_enabled_tools(); ++idx) {
-        const auto real_phys = right_phys_idx_to_real[idx];
-        if (auto real_mapped_gcode = tools_mapping::to_gcode_tool_custom(mapper, joiner, real_phys); real_mapped_gcode == tools_mapping::no_tool) { // not assigned
-            continue; // leave preselection as Don't change
-        } else if (const auto &opt_color = gcode.get_extruder_info(real_mapped_gcode).extruder_colour) {
-            assert(gcode.get_extruder_info(real_mapped_gcode).used()); // otherwise bug in mapping
-            ret[real_phys] = opt_color;
-        }
-    }
-
-    return ret;
+    return result;
 }
 
 void ToolsMappingBody::refresh_physical_tool_filament_labels() {
@@ -1190,7 +1186,7 @@ void ToolsMappingBody::windowEvent([[maybe_unused]] window_t *sender, GUI_event_
             tool_mapper = mapper;
             spool_join = joiner;
         } else if (response == Response::Filament) {
-            if (ChangeAllFilamentsBox(build_preselect_array(), true, build_color_array())) {
+            if (DialogChangeAllFilaments::exec(build_changeall_config(), true)) {
                 // This was closed while changing filament by print_abort()
                 Screens::Access()->Get()->Validate(); // Do not redraw this
                 return;

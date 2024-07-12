@@ -17,7 +17,7 @@
     #include <module/prusa/spool_join.hpp>
     #include <module/prusa/tool_mapper.hpp>
 #endif
-#include <screen_menu_filament_changeall.hpp>
+#include <multi_filament_change.hpp>
 
 class ToolsMappingBody : public window_t {
 public:
@@ -149,11 +149,8 @@ private:
     // refreshes lables within window texts to match current state of loaded filaments
     void refresh_physical_tool_filament_labels();
 
-    // builds default selection array for change all dialog so that physical tools try to load based on what the gcodes want to print with (that they're mapped to)
-    std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> build_preselect_array();
-
-    // builds colour array for change all dialog so the colours shows up during load/change dialog
-    std::array<std::optional<Color>, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> build_color_array();
+    // builds default selection config for change all dialog so that physical tools try to load based on what the gcodes want to print with (that they're mapped to)
+    MultiFilamentChangeConfig build_changeall_config();
 
     SpoolJoin joiner;
     ToolMapper mapper;
