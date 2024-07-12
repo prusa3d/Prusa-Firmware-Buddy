@@ -146,7 +146,6 @@ class FirmwareBuildConfiguration(BuildConfiguration):
                  toolchain: Optional[Path] = None,
                  generator: str = 'Ninja',
                  generate_dfu: bool = False,
-                 generate_bbf: bool = False,
                  signing_key: Optional[Path] = None,
                  version_suffix: Optional[str] = None,
                  version_suffix_short: Optional[str] = None,
@@ -159,7 +158,6 @@ class FirmwareBuildConfiguration(BuildConfiguration):
         )
         self.generator = generator
         self.generate_dfu = generate_dfu
-        self.generate_bbf = generate_bbf
         self.signing_key = signing_key
         self.version_suffix = version_suffix
         self.version_suffix_short = version_suffix_short
@@ -171,13 +169,12 @@ class FirmwareBuildConfiguration(BuildConfiguration):
             __file__).resolve().parent.parent / 'cmake/GccArmNoneEabi.cmake'
 
     def get_cmake_cache_entries(self):
-        if self.generate_bbf and self.bootloader != Bootloader.NO:
-            generate_bbf = True
-            signing_key_flg = self.signing_key.resolve(
-            ) if self.signing_key else ''
+        # resolve signing key
+        if self.signing_key:
+            signing_key_flg = self.signing_key.resolve()
         else:
-            generate_bbf = False
             signing_key_flg = ''
+
         entries = []
 
         # set ninja executable if used as a generator
@@ -202,7 +199,6 @@ class FirmwareBuildConfiguration(BuildConfiguration):
         # set general entries
         entries.extend([
             ('BOOTLOADER', 'STRING', self.bootloader.value.upper()),
-            ('GENERATE_BBF', 'BOOL', str(generate_bbf).upper()),
             ('GENERATE_DFU', 'BOOL', 'ON' if self.generate_dfu else 'OFF'),
             ('SIGNING_KEY', 'FILEPATH', str(signing_key_flg)),
             ('CMAKE_TOOLCHAIN_FILE', 'FILEPATH', str(self.toolchain)),
@@ -683,12 +679,6 @@ def main():
         type=Path,
         help='Path to a CMake toolchain file to be used.')
     parser.add_argument(
-        '--generate-bbf',
-        action='store_true',
-        help=('Generate .bbf versions of the firmware.'
-              ' Use --signing-key to specify a private key to be used for signing.')
-    )
-    parser.add_argument(
         '--generate-dfu',
         action='store_true',
         help='Generate .dfu versions of the firmware.'
@@ -772,7 +762,6 @@ def main():
             build_type=build_type,
             build_layout=build_layout,
             generate_dfu=args.generate_dfu,
-            generate_bbf=args.generate_bbf,
             signing_key=args.signing_key,
             version_suffix=args.version_suffix,
             version_suffix_short=args.version_suffix_short,

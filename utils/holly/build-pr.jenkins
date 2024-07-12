@@ -204,7 +204,6 @@ pipeline {
                                                 --preset ${config.preset} \
                                                 --build-type ${config.build_type} \
                                                 --bootloader ${config.bootloader} \
-                                                --generate-bbf \
                                                 --generate-dfu \
                                                 --no-store-output \
                                                 --skip-bootstrap \

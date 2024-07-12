@@ -27,7 +27,7 @@ repos:
     - id: generate-cmake-presets
       name: generate-cmake-presets
       description: This hook generates CMakePresets.json file based on utils/presets/presets.json
-      entry: python utils/build.py --generate-cmake-presets --generate-bbf
+      entry: python utils/build.py --generate-cmake-presets
       files: (^|/)(.*.json)$
       pass_filenames: false
       language: python

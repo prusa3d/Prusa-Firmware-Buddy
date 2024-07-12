@@ -23,7 +23,6 @@ Run `git clone https://github.com/prusa3d/Prusa-Firmware-Buddy.git`.
 Run `python utils/build.py`. The binaries are then going to be stored under `./build/products`.
 
 - Without any arguments, it will build a release version of the firmware for all supported printers and bootloader settings.
-- To generate `.bbf` versions of the firmware, use: `./utils/build.py --generate-bbf`.
 - Use `--build-type` to select build configurations to be built (`debug`, `release`).
 - Use `--preset` to select for which printers the firmware should be built.
 - By default, it will build the firmware in "prerelease mode" set to `beta`. You can change the prerelease using `--prerelease alpha`, or use `--final` to build a final version of the firmware.

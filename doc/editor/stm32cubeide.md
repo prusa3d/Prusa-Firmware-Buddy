@@ -9,7 +9,7 @@ Installation:
 
 Generate and open the project:
 
-1. Generate a project file by running: `python utils/build.py --generate-bbf --generate-dfu --generate-cproject`
+1. Generate a project file by running: `python utils/build.py --generate-dfu --generate-cproject`
 2. Open the project in the IDE (`File` > `Import Projects from File System...` > Select the root directory of this repository > `Finish`)
 3. Right click on the project and select `Properties`. Make sure the settings for `Indexer` is the same as on the screenshot below (sometimes, it does not get loaded).
     ![screenshot](stm32cubeide_indexer.png)

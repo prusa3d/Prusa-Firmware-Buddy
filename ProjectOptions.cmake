@@ -41,13 +41,9 @@ set(MCU
       STRING
       "Select the MCU for which you want to compile the project (valid values are ${MCU_VALID_OPTS})."
     )
-set(GENERATE_BBF
-    "NO"
-    CACHE BOOL "Whether a .bbf version should be generated."
-    )
 set(GENERATE_DFU
     "NO"
-    CACHE BOOL "Whether a .dfu file should be generated. Implies GENERATE_BBF."
+    CACHE BOOL "Whether a .dfu file should be generated."
     )
 set(SIGNING_KEY
     ""
@@ -356,14 +352,10 @@ if(${RESOURCES} STREQUAL "<auto>")
 endif()
 define_boolean_option(RESOURCES ${RESOURCES})
 
-# in order to generate DFU file for bootloader, we need a BFU
-if(GENERATE_DFU
-   AND BOOTLOADER
-   OR RESOURCES
-   )
-
+# A DFU file with bootloader always requires a BBF
+if(RESOURCES OR (GENERATE_DFU AND BOOTLOADER))
   set(GENERATE_BBF "YES")
-elseif(NOT BOARD_IS_MASTER_BOARD)
+else()
   set(GENERATE_BBF "NO")
 endif()
 
@@ -602,9 +594,6 @@ if(ENABLE_PUPPY_BOOTLOAD)
         CACHE PATH "Where to have build directory for the modular bed firmware."
         )
   endif()
-
-  # A BBF is required to update puppies
-  set(GENERATE_BBF "YES")
 endif()
 
 if(BOARD MATCHES "XL_DEV_KIT_XLB")

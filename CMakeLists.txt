@@ -523,7 +523,7 @@ report_size(firmware)
 
 add_link_dependency(firmware "${LINKER_SCRIPT}")
 
-# generate .bbf version if requested
+# generate bbf if needed
 if(GENERATE_BBF)
   message(STATUS "Configured to generate .bbf version of the firmware.")
   message(STATUS "Signing Key: ${SIGNING_KEY}")

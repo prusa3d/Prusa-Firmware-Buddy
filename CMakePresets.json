@@ -35,10 +35,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -93,10 +89,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -153,10 +145,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -211,10 +199,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -275,10 +259,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -337,10 +317,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -401,10 +377,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -463,10 +435,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -527,10 +495,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -589,10 +553,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -653,10 +613,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -715,10 +671,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -779,10 +731,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -841,10 +789,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -905,10 +849,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -967,10 +907,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -1031,10 +967,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -1093,10 +1025,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -1157,10 +1085,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -1219,10 +1143,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -1283,10 +1203,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -1345,10 +1261,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -1409,10 +1321,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -1471,10 +1379,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -1535,10 +1439,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -1597,10 +1497,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -1661,10 +1557,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -1723,10 +1615,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -1791,10 +1679,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -1857,10 +1741,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -1925,10 +1805,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -1992,10 +1868,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -2046,10 +1918,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -2102,10 +1970,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -2156,10 +2020,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -2212,10 +2072,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -2266,10 +2122,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -2322,10 +2174,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -2377,10 +2225,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -2431,10 +2275,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -2491,10 +2331,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -2549,10 +2385,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -2609,10 +2441,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -2667,10 +2495,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -2735,10 +2559,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -2801,10 +2621,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -2869,10 +2685,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -2935,10 +2747,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -3007,10 +2815,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -3077,10 +2881,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -3149,10 +2949,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -3220,10 +3016,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -3286,10 +3078,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -3354,10 +3142,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -3420,10 +3204,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -3488,10 +3268,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -3546,10 +3322,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -3606,10 +3378,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -3664,10 +3432,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -3724,10 +3488,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -3778,10 +3538,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -3834,10 +3590,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -3888,10 +3640,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -3944,10 +3692,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -3998,10 +3742,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -4054,10 +3794,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -4108,10 +3844,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -4164,10 +3896,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -4218,10 +3946,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
@@ -4274,10 +3998,6 @@
                     "type": "STRING",
                     "value": "NO"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -4329,10 +4049,6 @@
                     "type": "STRING",
                     "value": "YES"
                 },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "TRUE"
-                },
                 "GENERATE_DFU": {
                     "type": "BOOL",
                     "value": "OFF"
@@ -4383,10 +4099,6 @@
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
-                },
-                "GENERATE_BBF": {
-                    "type": "BOOL",
-                    "value": "FALSE"
                 },
                 "GENERATE_DFU": {
                     "type": "BOOL",
