@@ -24,10 +24,10 @@ MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, const string_view_utf8 &
             { this, _("Printer model doesn't match"), valid_printer_settings.wrong_printer_model },
             { this, _("G-code version doesn't match"), valid_printer_settings.wrong_gcode_level },
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
-            { this, _("It will run in MK3 compatibility mode"), valid_printer_settings.gcode_compatibility_mode },
+            { this, _("MK3 compatibility mode"), valid_printer_settings.gcode_compatibility_mode },
 #endif
 #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
-            { this, _("Fan speed will be reduced"), valid_printer_settings.fan_compatibility_mode },
+            { this, _("Fan speeds will be adjusted"), valid_printer_settings.fan_compatibility_mode },
 #endif
             { this,
                 (HAS_LARGE_DISPLAY() ? _("Newer firmware is required: %s") : _("Newer FW req.: %s"))
