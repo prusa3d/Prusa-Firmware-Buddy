@@ -27,11 +27,9 @@ private:
 private:
     static constexpr auto items = std::to_array<DynamicIndexMappingRecord<Action>>({
         Action::keep,
-        // Should be + 1, but we're skipping the 0th "no" filament
-        { Action::change, DynamicIndexMappingType::static_section, static_cast<size_t>(filament::Type::_last) },
+        { Action::change, DynamicIndexMappingType::static_section, total_filament_type_count },
         { Action::unload, DynamicIndexMappingType::optional_item },
     });
-    static_assert(static_cast<int>(filament::Type::NONE) == 0);
 
 private:
     const uint8_t tool_ix;

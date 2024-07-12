@@ -186,7 +186,7 @@ bool Enclosure::isPostPrintFiltrationNeeded() {
         }
 
         // If any of the filaments in filaments_requiring_filtration is used in the print -> activate post print filtration
-        for (const filament::Type type : filaments_requiring_filtration) {
+        for (const FilamentType type : filaments_requiring_filtration) {
             if (is_same(filament::get_name(type), extruder_info.filament_name.value())) {
                 return true;
             }

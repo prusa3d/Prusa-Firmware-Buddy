@@ -5,7 +5,8 @@
 #include "footer_item_filament.hpp"
 #include "marlin_client.hpp"
 #include "img_resources.hpp"
-#include "filament.hpp"
+#include <filament.hpp>
+#include <encoded_filament.hpp>
 #include <config_store/store_instance.hpp>
 
 #include <option/has_toolchanger.h>
@@ -25,7 +26,7 @@ int FooterItemFilament::static_readValue() {
 #endif /*HAS_TOOLCHANGER()*/
 
     auto current_filament = config_store().get_filament_type(marlin_vars().active_extruder);
-    return static_cast<int>(current_filament);
+    return EncodedFilamentType(current_filament).data;
 }
 
 string_view_utf8 FooterItemFilament::static_makeView(int value) {
@@ -34,6 +35,6 @@ string_view_utf8 FooterItemFilament::static_makeView(int value) {
         return string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>(no_tool_str));
     }
 
-    auto filament = static_cast<filament::Type>(value);
+    auto filament = EncodedFilamentType::from_data(value).decode();
     return string_view_utf8::MakeCPUFLASH((const uint8_t *)filament::get_name(filament));
 }

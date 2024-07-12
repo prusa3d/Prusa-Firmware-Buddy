@@ -14,6 +14,9 @@
 #include <window_dlg_wait.hpp>
 #include "Marlin/src/gcode/queue.h"
 #include "Marlin/src/module/planner.h"
+#include <str_utils.hpp>
+#include <algorithm_extensions.hpp>
+#include <filament_list.hpp>
 
 using namespace multi_filament_change;
 
@@ -21,7 +24,7 @@ MI_ActionSelect::MI_ActionSelect(uint8_t tool_ix)
     : WI_LAMBDA_SPIN({}, 1, nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [this](char *buffer) { get_item_text(GetIndex(), { buffer, GuiDefaults::infoDefaultLen }); })
     , tool_ix(tool_ix) //
 {
-    has_filament_loaded = (config_store().get_filament_type(tool_ix) != filament::Type::NONE);
+    has_filament_loaded = (config_store().get_filament_type(tool_ix) != FilamentType::none);
     set_is_hidden(!is_tool_enabled(tool_ix));
     SetLabel(_(HAS_MMU2() ? N_("Tool %u Filament") : N_("Filament %u")).formatted(label_params, static_cast<unsigned>(tool_ix) + 1));
     index_mapping.set_item_enabled<Action::unload>(has_filament_loaded);
@@ -39,8 +42,7 @@ void MI_ActionSelect::set_config(const ConfigItem &set) {
             return index_mapping.to_index<Action::unload>();
 
         case Action::change:
-            static_assert(static_cast<int>(FilamentType::NONE) == 0);
-            return index_mapping.to_index<Action::change>(static_cast<size_t>(set.new_filament) - 1);
+            return index_mapping.to_index<Action::change>(stdext::index_of(all_filament_types, set.new_filament));
         }
 
         std::abort();
@@ -49,11 +51,10 @@ void MI_ActionSelect::set_config(const ConfigItem &set) {
 
 ConfigItem MI_ActionSelect::config() const {
     const auto mapping = index_mapping.from_index(GetIndex());
-    static_assert(static_cast<int>(FilamentType::none) == 0);
     return ConfigItem {
         .action = mapping.item,
-        .new_filament = (mapping.item == Action::change) ? static_cast<FilamentType>(mapping.pos_in_section + 1) : FilamentType::none,
-        .color = color,
+        .new_filament = (mapping.item == Action::change) ? all_filament_types[mapping.pos_in_section] : FilamentType::none,
+        .color = color
     };
 }
 
@@ -73,7 +74,7 @@ void MI_ActionSelect::get_item_text(size_t index, std::span<char> buffer) const 
         StringBuilder sb(buffer);
         sb.append_string_view(_("Change to"));
         sb.append_char(' ');
-        sb.append_string(filament::get_name(filament::Type(mapping.pos_in_section)));
+        sb.append_string(all_filament_types[mapping.pos_in_section].parameters().name);
         break;
     }
     }
@@ -129,7 +130,7 @@ void MenuMultiFilamentChange::carry_out_changes() {
             continue;
         }
 
-        if (config.action == Action::unload && config_store().get_filament_type(tool) == filament::Type::NONE) {
+        if (config.action == Action::unload && config_store().get_filament_type(tool) == FilamentType::none) {
             config.action = Action::keep;
             continue;
         }

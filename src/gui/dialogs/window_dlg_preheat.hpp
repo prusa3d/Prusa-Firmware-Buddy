@@ -56,16 +56,16 @@ protected:
 
 using WinMenuContainer = WinMenuContainer<
     MI_RETURN,
-    MI_Filament<filament::Type::PLA>,
-    MI_Filament<filament::Type::PETG>,
-    MI_Filament<filament::Type::ASA>,
-    MI_Filament<filament::Type::PC>,
-    MI_Filament<filament::Type::PVB>,
-    MI_Filament<filament::Type::ABS>,
-    MI_Filament<filament::Type::HIPS>,
-    MI_Filament<filament::Type::PP>,
-    MI_Filament<filament::Type::PA>,
-    MI_Filament<filament::Type::FLEX>,
+    MI_Filament<PresetFilamentType::PLA>,
+    MI_Filament<PresetFilamentType::PETG>,
+    MI_Filament<PresetFilamentType::ASA>,
+    MI_Filament<PresetFilamentType::PC>,
+    MI_Filament<PresetFilamentType::PVB>,
+    MI_Filament<PresetFilamentType::ABS>,
+    MI_Filament<PresetFilamentType::HIPS>,
+    MI_Filament<PresetFilamentType::PP>,
+    MI_Filament<PresetFilamentType::PA>,
+    MI_Filament<PresetFilamentType::FLEX>,
     MI_COOLDOWN>;
 
 }; // namespace NsPreheat

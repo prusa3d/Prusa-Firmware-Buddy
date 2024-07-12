@@ -221,7 +221,6 @@ namespace defaults {
     inline constexpr DockPosition dock_position { 0, 0 };
     inline constexpr ToolOffset tool_offset { 0, 0, 0 };
 
-    inline constexpr filament::Type filament_type { filament::Type::NONE };
     inline constexpr float nozzle_diameter {
 #if PRINTER_IS_PRUSA_XL
         0.60f

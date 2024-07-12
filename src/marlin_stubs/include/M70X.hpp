@@ -7,15 +7,18 @@
  */
 
 #pragma once
+
+#include <optional>
+#include <algorithm>
+
 #include "config_features.h"
 #include <fs_event_autolock.hpp>
 #include <feature/prusa/e-stall_detector.h>
 #include "fsm_preheat_type.hpp"
 #include "preheat_multithread_status.hpp"
-#include <optional>
-#include <algorithm>
 #include "filament.hpp"
 #include "pause_stubbed.hpp"
+#include <color.hpp>
 
 namespace filament_gcodes {
 using Func = bool (Pause::*)(const pause::Settings &); // member fnc pointer

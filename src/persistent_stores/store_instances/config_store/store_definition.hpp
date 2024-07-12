@@ -17,7 +17,7 @@
 #include <sound_enum.h>
 #include <footer_eeprom.hpp>
 #include <time_tools.hpp>
-#include <filament.hpp>
+#include <encoded_filament.hpp>
 #include <selftest_result.hpp>
 #include <module/prusa/dock_position.hpp>
 #include <module/prusa/tool_offset.hpp>
@@ -293,13 +293,13 @@ struct CurrentStore
     void set_tool_offset(uint8_t index, ToolOffset value);
 #endif
 
-    StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 0")> filament_type_0;
+    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 0")> filament_type_0;
 #if EXTRUDERS > 1 // for now only doing one ifdef for simplicity
-    StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 1")> filament_type_1;
-    StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 2")> filament_type_2;
-    StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 3")> filament_type_3;
-    StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 4")> filament_type_4;
-    StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 5")> filament_type_5;
+    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 1")> filament_type_1;
+    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 2")> filament_type_2;
+    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 3")> filament_type_3;
+    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 4")> filament_type_4;
+    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 5")> filament_type_5;
 #endif
 
     FilamentType get_filament_type(uint8_t index);

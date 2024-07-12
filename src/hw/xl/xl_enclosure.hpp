@@ -9,6 +9,7 @@
 #include "client_fsm_types.h"
 #include <optional>
 #include <array>
+#include <general_response.hpp>
 
 /*
  *  Timers    - description                                - measuring time during
@@ -36,13 +37,13 @@ public:
     static constexpr int64_t expiration_deadline_sec = 600 * 3600;
     static constexpr int64_t expiration_warning_sec = 500 * 3600;
     static constexpr const int MIN_FAN_PWM = 50;
-    static constexpr std::array<filament::Type, 6> filaments_requiring_filtration = {
-        filament::Type::ABS,
-        filament::Type::ASA,
-        filament::Type::PC,
-        filament::Type::FLEX,
-        filament::Type::HIPS,
-        filament::Type::PP
+    static constexpr std::array<FilamentType, 6> filaments_requiring_filtration = {
+        PresetFilamentType::ABS,
+        PresetFilamentType::ASA,
+        PresetFilamentType::PC,
+        PresetFilamentType::FLEX,
+        PresetFilamentType::HIPS,
+        PresetFilamentType::PP
     };
 
     Enclosure();

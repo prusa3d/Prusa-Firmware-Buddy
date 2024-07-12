@@ -55,7 +55,7 @@ public:
     static constexpr size_t search_first_x_gcodes = 200;
 
     using time_buff = std::array<char, 16>;
-    using filament_buff = std::array<char, 8>;
+    using filament_buff = std::array<char, filament_name_buffer_size>;
 
     struct ExtruderInfo {
         std::optional<filament_buff> filament_name; /**< stores string representation of filament type */

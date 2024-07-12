@@ -254,7 +254,7 @@ namespace {
     PhasesColdPull blank_load() {
 
         filament_gcodes::M701_no_parser(
-            FilamentType::PLA,
+            PresetFilamentType::PLA,
             std::nullopt,
             Z_AXIS_LOAD_POS,
             RetAndCool_t::Return,

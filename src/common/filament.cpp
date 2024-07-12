@@ -1,63 +1,147 @@
-#include "assert.h"
 #include "filament.hpp"
+#include "filament_list.hpp"
+
+#include <cassert>
+#include <cstring>
+
 #include "i18n.h"
 #include "client_response_texts.hpp"
 #include "../../include/printers.h"
 #include <Marlin/src/inc/MarlinConfigPre.h>
-
-#include <cstring>
+#include <enum_array.hpp>
 #include <option/has_loadcell.h>
 
-// These temperatures correspond to slicer defaults for MBL.
-constexpr uint16_t PC_NOZZLE_PREHEAT = HAS_LOADCELL() ? 170 : 275 - 25;
-constexpr uint16_t FLEX_NOZZLE_PREHEAT = HAS_LOADCELL() ? 170 : 210;
+// We're storing the bed temperature in uint8_t, so make sure the bed cannot go higher
+static_assert(BED_MAXTEMP <= 255);
 
-// MINI has slightly lower max nozzle temperature but it is still OK for polyamid
-constexpr uint16_t PA_NOZZLE = PRINTER_IS_PRUSA_MINI ? 280 : 285;
-
-constexpr filament::Description filaments[size_t(filament::Type::_last) + 1] = {
-    { 0, 0, 0, "" },
-    { 215, 170, 60, "PLA" },
-    { 230, 170, 85, "PETG" },
-    { 260, 170, 100, "ASA" },
-    { 275, PC_NOZZLE_PREHEAT, 100, "PC" },
-    { 215, 170, 75, "PVB" },
-    { 255, 170, 100, "ABS" },
-    { 220, 170, 100, "HIPS" },
-    { 240, 170, 100, "PP" },
-    { PA_NOZZLE, 170, 100, "PA" },
-    { 240, FLEX_NOZZLE_PREHEAT, 50, "FLEX" },
+static constexpr FilamentTypeParameters none_filament_parameters {
+    .name = "---",
+    .nozzle_temperature = 0,
+    .nozzle_preheat_temperature = 0,
+    .heatbed_temperature = 0,
 };
 
-static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament::Type::_last) + 1, "Filament count error.");
-
-constexpr bool temperatures_are_within_spec(filament::Description filament) {
+// These temperatures correspond to slicer defaults for MBL.
+constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentType::_count> preset_filament_parameters {
+    {
+        PresetFilamentType::PLA,
+        {
+            .name = "PLA",
+            .nozzle_temperature = 215,
+            .heatbed_temperature = 60,
+        },
+    },
+    {
+        PresetFilamentType::PETG,
+        {
+            .name = "PETG",
+            .nozzle_temperature = 230,
+            .heatbed_temperature = 85,
+        },
+    },
+    {
+        PresetFilamentType::ASA,
+        {
+            .name = "ASA",
+            .nozzle_temperature = 260,
+            .heatbed_temperature = 100,
+            .requires_filtration = true,
+        },
+    },
+    {
+        PresetFilamentType::PC,
+        {
+            .name = "PC",
+            .nozzle_temperature = 275,
+            .nozzle_preheat_temperature = HAS_LOADCELL() ? 170 : 275 - 25,
+            .heatbed_temperature = 100,
+            .requires_filtration = true,
+        },
+    },
+    {
+        PresetFilamentType::PVB,
+        {
+            .name = "PVB",
+            .nozzle_temperature = 215,
+            .heatbed_temperature = 75,
+        },
+    },
+    {
+        PresetFilamentType::ABS,
+        {
+            .name = "ABS",
+            .nozzle_temperature = 255,
+            .heatbed_temperature = 100,
+            .requires_filtration = true,
+        },
+    },
+    {
+        PresetFilamentType::HIPS,
+        {
+            .name = "HIPS",
+            .nozzle_temperature = 220,
+            .heatbed_temperature = 100,
+            .requires_filtration = true,
+        },
+    },
+    {
+        PresetFilamentType::PP,
+        {
+            .name = "PP",
+            .nozzle_temperature = 240,
+            .heatbed_temperature = 100,
+            .requires_filtration = true,
+        },
+    },
+    {
+        PresetFilamentType::FLEX,
+        {
+            .name = "FLEX",
+            .nozzle_temperature = 240,
+            .nozzle_preheat_temperature = HAS_LOADCELL() ? 170 : 210,
+            .heatbed_temperature = 50,
+            .requires_filtration = true,
+        },
+    },
+    {
+        PresetFilamentType::PA,
+        {
+            .name = "PA",
+            // MINI has slightly lower max nozzle temperature but it is still OK for polyamid
+            .nozzle_temperature = PRINTER_IS_PRUSA_MINI ? 280 : 285,
+            .heatbed_temperature = 100,
+        },
+    },
+};
+constexpr bool temperatures_are_within_spec(const FilamentTypeParameters &filament) {
     return (filament.nozzle_temperature <= HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN)
         && (filament.nozzle_preheat_temperature <= HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN)
         && (filament.heatbed_temperature <= BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN);
 }
+static_assert(std::ranges::all_of(preset_filament_parameters, temperatures_are_within_spec));
 
-static_assert(std::ranges::all_of(filaments, temperatures_are_within_spec));
+FilamentType FilamentType::from_name(std::string_view name) {
+    if (name.length() >= filament_name_buffer_size) {
+        return FilamentType::none;
+    }
 
-filament::Type filament::get_type(const char *name, size_t name_len) {
-    // first name is not valid ("---")
-    for (size_t i = size_t(filament::Type::NONE) + 1; i <= size_t(filament::Type::_last); ++i) {
-        const char *filament_name = filaments[i].name;
-        if ((strlen(filament_name) == name_len) && (!strncmp(name, filament_name, name_len))) {
-            return static_cast<filament::Type>(i);
+    for (const FilamentType filament_type : all_filament_types) {
+        if (name == filament_type.parameters().name) {
+            return filament_type;
         }
     }
-    return filament::Type::NONE;
+
+    return FilamentType::none;
 }
 
-const filament::Description &filament::get_description(filament::Type filament) {
-    return filaments[size_t(filament)];
-}
+const FilamentTypeParameters &FilamentType::parameters() const {
+    return std::visit([]<typename T>(const T &v) -> const FilamentTypeParameters & {
+        if constexpr (std::is_same_v<T, PresetFilamentType>) {
+            return preset_filament_parameters[v];
 
-const char *filament::get_name(Type type) {
-    if (type == Type::NONE) {
-        return "---";
-    }
-    const Description &description = get_description(type);
-    return description.name;
+        } else if constexpr (std::is_same_v<T, NoFilamentType>) {
+            return none_filament_parameters;
+        }
+    },
+        *this);
 }
