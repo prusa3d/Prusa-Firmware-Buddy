@@ -3,7 +3,6 @@
 #include <img_resources.hpp>
 #include <marlin_client.hpp>
 #include <ScreenHandler.hpp>
-#include <ScreenSelftest.hpp>
 #include <selftest_types.hpp>
 #include <RAII.hpp>
 #include <option/has_toolchanger.h>

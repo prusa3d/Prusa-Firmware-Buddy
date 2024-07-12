@@ -85,13 +85,3 @@ public:
 protected:
     void click(IWindowMenu &window_menu) override;
 };
-
-class MI_TEST_DISABLED_RETURN : public IWindowMenuItem {
-    static constexpr const char *const label = "Disabled RETURN Button";
-
-public:
-    MI_TEST_DISABLED_RETURN();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};

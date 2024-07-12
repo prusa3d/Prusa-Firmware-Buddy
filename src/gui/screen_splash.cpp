@@ -24,7 +24,6 @@
 #include <option/has_selftest.h>
 #if HAS_SELFTEST()
     #include "printer_selftest.hpp"
-    #include "ScreenSelftest.hpp"
     #include "screen_menu_selftest_snake.hpp"
 #endif // HAS_SELFTEST
 

@@ -196,17 +196,6 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-// MI_CALIB_Z
-
-MI_CALIB_Z::MI_CALIB_Z()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_CALIB_Z::click(IWindowMenu & /*window_menu*/) {
-    gui_dlg_calib_z();
-}
-
-/*****************************************************************************/
 // MI_DISABLE_STEP
 MI_DISABLE_STEP::MI_DISABLE_STEP()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {

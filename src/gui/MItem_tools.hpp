@@ -107,16 +107,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_CALIB_Z : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Calibrate Z");
-
-public:
-    MI_CALIB_Z();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_DISABLE_STEP : public IWindowMenuItem {
     static constexpr const char *const label = N_("Disable Motors");
 

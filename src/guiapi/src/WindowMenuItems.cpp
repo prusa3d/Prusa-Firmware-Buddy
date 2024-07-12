@@ -27,15 +27,6 @@ void MI_EXIT::click(IWindowMenu &window_menu) {
     Screens::Access()->Close();
 }
 
-MI_TEST_DISABLED_RETURN::MI_TEST_DISABLED_RETURN()
-    // just for test (in debug), do not translate
-    : IWindowMenuItem(string_view_utf8::MakeCPUFLASH((uint8_t *)label), &img::folder_up_16x16, is_enabled_t::no, is_hidden_t::no) {
-}
-
-void MI_TEST_DISABLED_RETURN::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Close();
-}
-
 WI_ICON_SWITCH_OFF_ON_t::WI_ICON_SWITCH_OFF_ON_t(bool value, const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : IWindowMenuItem(label, 36, id_icon, enabled, hidden)
     , index(value_)

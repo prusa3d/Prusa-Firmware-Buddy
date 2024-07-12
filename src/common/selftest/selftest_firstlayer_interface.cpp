@@ -43,8 +43,6 @@ bool phaseFirstLayer(IPartHandler *&pFirstLayer, const uint8_t previous_sheet) {
         return true;
     }
 
-    config_store().run_first_layer.set(false);
-
     delete pFirstLayer;
     pFirstLayer = nullptr;
     config.previous_sheet = UNKNOWN_SHEET;

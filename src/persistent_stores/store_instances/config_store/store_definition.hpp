@@ -62,8 +62,6 @@ struct CurrentStore
 
     // wizard flags
     StoreItem<bool, true, journal::hash("Run Selftest")> run_selftest;
-    StoreItem<bool, true, journal::hash("Run XYZ Calibration")> run_xyz_calib;
-    StoreItem<bool, true, journal::hash("Run First Layer")> run_first_layer;
 
     /// If false, a ScreenPrinterSetup will appear on printer boot
     StoreItem<bool, false, journal::hash("Printer setup done")> printer_setup_done;
@@ -569,6 +567,9 @@ struct DeprecatedStore
 #endif
 
     StoreItem<uint8_t, 0, journal::hash("Metrics Allow")> metrics_allow; ///< Metrics are allowed to be enabled
+
+    StoreItem<bool, true, journal::hash("Run XYZ Calibration")> run_xyz_calib;
+    StoreItem<bool, true, journal::hash("Run First Layer")> run_first_layer;
 };
 
 } // namespace config_store_ns

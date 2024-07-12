@@ -4,22 +4,10 @@
 #include "MItem_loadcell.hpp"
 #include "printer_selftest.hpp"
 #include "marlin_client.hpp"
-#include "ScreenSelftest.hpp"
 #include "ScreenHandler.hpp"
 #include "loadcell.hpp"
 #include "WindowMenuSpin.hpp"
 #include <config_store/store_instance.hpp>
-
-/*****************************************************************************/
-// MI_TEST_LOADCELL
-MI_TEST_LOADCELL::MI_TEST_LOADCELL()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_TEST_LOADCELL::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmLoadcell);
-}
 
 /*****************************************************************************/
 // MI_LOADCELL_SCALE

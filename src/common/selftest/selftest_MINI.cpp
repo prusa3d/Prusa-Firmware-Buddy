@@ -423,8 +423,6 @@ void CSelftest::phaseDidSelftestPass() {
         auto &store = config_store();
         auto transaction = store.get_backend().transaction_guard();
         store.run_selftest.set(false); // clear selftest flag
-        store.run_xyz_calib.set(false); // clear XYZ calib flag
-        store.run_first_layer.set(false); // clear first layer flag
     }
 }
 
@@ -438,8 +436,6 @@ bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
             auto &store = config_store();
             auto transaction = store.get_backend().transaction_guard();
             store.run_selftest.set(false); // clear selftest flag
-            store.run_xyz_calib.set(false); // clear XYZ calib flag
-            store.run_first_layer.set(false); // clear first layer flag
         }
         Abort();
     }

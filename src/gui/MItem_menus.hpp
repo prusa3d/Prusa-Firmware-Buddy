@@ -235,16 +235,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_DIAGNOSTICS : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Diagnostics");
-
-public:
-    MI_DIAGNOSTICS();
-
-protected:
-    virtual void click(IWindowMenu &windowMenu) override;
-};
-
 class MI_USER_INTERFACE : public IWindowMenuItem {
     static constexpr const char *const label = N_("User Interface");
 

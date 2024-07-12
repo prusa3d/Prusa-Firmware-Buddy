@@ -8,16 +8,6 @@
 #include "i18n.h"
 #include "sensor_data_buffer.hpp"
 
-class MI_TEST_LOADCELL : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Test Loadcell");
-
-public:
-    MI_TEST_LOADCELL();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_LOADCELL_SCALE : public WiSpin {
     constexpr static const char *const label = "Loadcell Scale";
 

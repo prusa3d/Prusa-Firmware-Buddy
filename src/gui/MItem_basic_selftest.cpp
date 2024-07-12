@@ -1,204 +1,20 @@
 #include "MItem_basic_selftest.hpp"
-#include "marlin_client.hpp"
 #include "gui.hpp"
 #include "sys.h"
 #include "ScreenHandler.hpp"
 #include "printer_selftest.hpp"
 #include "main.h"
-#include "Pin.hpp"
-#include "hwio_pindef.h"
 #include "config.h"
-#include "WindowMenuSpin.hpp"
-#include "ScreenSelftest.hpp"
 #include <option/has_toolchanger.h>
-#include <option/has_selftest.h>
-#include "filament_sensors_handler.hpp"
 #include "printers.h"
 #include <inttypes.h>
 #include <config_store/store_instance.hpp>
-#include <option/has_mmu2.h>
 
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif
 
-#if !HAS_SELFTEST()
-/*****************************************************************************/
-// MI_WIZARD
-MI_WIZARD::MI_WIZARD()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmWizard);
-}
-
-/*****************************************************************************/
-// MI_SELFTEST
-MI_SELFTEST::MI_SELFTEST()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmFullSelftest);
-}
-
-/*****************************************************************************/
-// MI_SELFTEST_RESULT
-MI_SELFTEST_RESULT::MI_SELFTEST_RESULT()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmShow_result);
-}
-#endif // !HAS_SELFTEST()
-
-/*****************************************************************************/
-// MI_CALIB_FIRST
-MI_CALIB_FIRST::MI_CALIB_FIRST()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, (PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5) ? is_hidden_t::no : is_hidden_t::dev) {
-}
-
-void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmFirstLayer);
-#endif
-}
-
-/*****************************************************************************/
-// MI_TEST_FANS
-MI_TEST_FANS::MI_TEST_FANS()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmFans);
-}
-
-// CoreXY does not support all axis at once
-#if !PRINTER_IS_PRUSA_XL && !PRINTER_IS_PRUSA_iX
-/*****************************************************************************/
-// MI_TEST_XYZ
-MI_TEST_XYZ::MI_TEST_XYZ()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmXYZAxis);
-}
-#endif
-
-/*****************************************************************************/
-// MI_TEST_X
-MI_TEST_X::MI_TEST_X()
-    : IWindowMenuItem(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_TEST_X::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmXAxis);
-}
-
-/*****************************************************************************/
-// MI_TEST_Y
-MI_TEST_Y::MI_TEST_Y()
-    : IWindowMenuItem(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_TEST_Y::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmYAxis);
-}
-
-/*****************************************************************************/
-// MI_TEST_Z
-#if (!PRINTER_IS_PRUSA_iX)
-MI_TEST_Z::MI_TEST_Z()
-    : IWindowMenuItem(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_TEST_Z::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmZAxis);
-}
-#endif
-
-/*****************************************************************************/
-// MI_TEST_HEAT
-MI_TEST_HEAT::MI_TEST_HEAT()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmHeaters);
-}
-
-/*****************************************************************************/
-// MI_TEST_HOTEND
-MI_TEST_HOTEND::MI_TEST_HOTEND()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_TEST_HOTEND::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmHeaters_noz);
-}
-
-/*****************************************************************************/
-#if (!PRINTER_IS_PRUSA_iX)
-// MI_TEST_BED
-MI_TEST_BED::MI_TEST_BED()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_TEST_BED::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmHeaters_bed);
-}
-#endif
-/*****************************************************************************/
-// MI_CALIB_FSENSOR
-#if FILAMENT_SENSOR_IS_ADC()
-MI_CALIB_FSENSOR::MI_CALIB_FSENSOR()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_CALIB_FSENSOR::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmFSensor);
-}
-#endif
-
-#if PRINTER_IS_PRUSA_MK4
-MI_CALIB_GEARS::MI_CALIB_GEARS()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_CALIB_GEARS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmGears);
-}
-#endif
-
 #if HAS_TOOLCHANGER()
-/*****************************************************************************/
-// MI_CALIBRATE_TOOL_OFFSETS
-MI_CALIBRATE_TOOL_OFFSETS::MI_CALIBRATE_TOOL_OFFSETS()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
-}
-
-void MI_CALIBRATE_TOOL_OFFSETS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmToolOffsets);
-}
 
 /*****************************************************************************/
 // MI_RESTORE_CALIBRATION_FROM_USB

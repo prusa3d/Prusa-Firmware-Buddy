@@ -64,7 +64,6 @@
 #include <printers.h>
 
 #if HAS_SELFTEST()
-    #include "screen_menu_diagnostics.hpp"
     #include "screen_menu_selftest_snake.hpp"
 #endif
 
@@ -292,26 +291,6 @@ MI_PRUSALINK::MI_PRUSALINK()
 
 void MI_PRUSALINK::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuPrusaLink>);
-}
-
-/**********************************************************************************************/
-// MI_DIAGNOSTICS
-
-MI_DIAGNOSTICS::MI_DIAGNOSTICS()
-    : IWindowMenuItem(_(label), nullptr,
-#if HAS_SELFTEST()
-        is_enabled_t::yes
-#else
-        is_enabled_t::no
-#endif
-        ,
-        is_hidden_t::no, expands_t::yes) {
-}
-
-void MI_DIAGNOSTICS::click(IWindowMenu & /*window_menu*/) {
-#if HAS_SELFTEST()
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuDiagnostics>);
-#endif
 }
 
 /**********************************************************************************************/
