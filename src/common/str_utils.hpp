@@ -347,15 +347,8 @@ class StringBuilder {
 public:
     StringBuilder() = default;
 
-    template <size_t n>
-    StringBuilder(std::array<char, n> &arr) {
-        init(arr.data(), n);
-    }
-
-    template <size_t n>
-    StringBuilder(char (&arr)[n], size_t start = 0) {
-        assert(start < n);
-        init(arr + start, n - start);
+    StringBuilder(std::span<char> span) {
+        init(span.data(), span.size());
     }
 
     /// See StringBuilder::init
