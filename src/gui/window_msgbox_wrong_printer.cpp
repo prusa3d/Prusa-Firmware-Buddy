@@ -19,23 +19,23 @@ MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, const string_view_utf8 &
     : MsgBoxTitled(rect, Responses_NONE, 0, nullptr, _(find_error(ErrCode::CONNECT_PRINT_PREVIEW_WRONG_PRINTER).err_text), is_multiline::yes, tit, title_icon, is_closed_on_click_t::no)
     , valid_printer_settings(GCodeInfo::getInstance().get_valid_printer_settings())
     , messages({
-        { this, _("printer doesn't have enough tools"), valid_printer_settings.wrong_tools },
-            { this, _("nozzle diameter doesn't match"), valid_printer_settings.wrong_nozzle_diameter },
-            { this, _("printer model doesn't match"), valid_printer_settings.wrong_printer_model },
+        { this, _("Printer doesn't have enough tools"), valid_printer_settings.wrong_tools },
+            { this, _("Nozzle diameter doesn't match"), valid_printer_settings.wrong_nozzle_diameter },
+            { this, _("Printer model doesn't match"), valid_printer_settings.wrong_printer_model },
             { this, _("G-code version doesn't match"), valid_printer_settings.wrong_gcode_level },
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
-            { this, _("it will run in MK3-compatibility mode"), valid_printer_settings.gcode_compatibility_mode },
+            { this, _("It will run in MK3 compatibility mode"), valid_printer_settings.gcode_compatibility_mode },
 #endif
 #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
-            { this, _("fan speed will be reduced"), valid_printer_settings.fan_compatibility_mode },
+            { this, _("Fan speed will be reduced"), valid_printer_settings.fan_compatibility_mode },
 #endif
             { this,
-                (HAS_LARGE_DISPLAY() ? _("newer firmware is required: %s") : _("Newer FW req.: %s"))
+                (HAS_LARGE_DISPLAY() ? _("Newer firmware is required: %s") : _("Newer FW req.: %s"))
                     .formatted(wrong_fw_version_params, valid_printer_settings.latest_fw_version),
                 valid_printer_settings.wrong_firmware },
     })
     , unsupported_features(this,
-          (HAS_LARGE_DISPLAY() ? _("following features are required:") : _("Features required:")),
+          (HAS_LARGE_DISPLAY() ? _("Following features are required:") : _("Features required:")),
           HWCheckSeverity::Abort, !valid_printer_settings.unsupported_features)
     , unsupported_features_text(this, {}, is_multiline::no) {
 
