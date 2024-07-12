@@ -16,22 +16,27 @@ MsgBoxInvalidPrinter::Message::Message(window_t *parent, const string_view_utf8 
     : Message(parent, text, feature.get_severity(), feature.is_valid()) {}
 
 MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, const string_view_utf8 &tit, const img::Resource *title_icon)
-    : MsgBoxTitled(rect, Responses_NONE, 0, nullptr, _(txt_wrong_printer_title), is_multiline::yes, tit, title_icon, is_closed_on_click_t::no)
+    : MsgBoxTitled(rect, Responses_NONE, 0, nullptr, _(find_error(ErrCode::CONNECT_PRINT_PREVIEW_WRONG_PRINTER).err_text), is_multiline::yes, tit, title_icon, is_closed_on_click_t::no)
     , valid_printer_settings(GCodeInfo::getInstance().get_valid_printer_settings())
     , messages({
-        { this, _(txt_wrong_tools), valid_printer_settings.wrong_tools },
-            { this, _(txt_wrong_nozzle_diameter), valid_printer_settings.wrong_nozzle_diameter },
-            { this, _(txt_wrong_printer_model), valid_printer_settings.wrong_printer_model },
-            { this, _(txt_wrong_gcode_level), valid_printer_settings.wrong_gcode_level },
+        { this, _("printer doesn't have enough tools"), valid_printer_settings.wrong_tools },
+            { this, _("nozzle diameter doesn't match"), valid_printer_settings.wrong_nozzle_diameter },
+            { this, _("printer model doesn't match"), valid_printer_settings.wrong_printer_model },
+            { this, _("G-code version doesn't match"), valid_printer_settings.wrong_gcode_level },
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
-            { this, _(txt_gcode_compatibility_mode), valid_printer_settings.gcode_compatibility_mode },
+            { this, _("it will run in MK3-compatibility mode"), valid_printer_settings.gcode_compatibility_mode },
 #endif
 #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
-            { this, _(txt_fan_compatibility_mode), valid_printer_settings.fan_compatibility_mode },
+            { this, _("fan speed will be reduced"), valid_printer_settings.fan_compatibility_mode },
 #endif
-            { this, _(txt_old_firmware).formatted(wrong_fw_version_params, valid_printer_settings.latest_fw_version), valid_printer_settings.wrong_firmware },
+            { this,
+                (HAS_LARGE_DISPLAY() ? _("newer firmware is required: %s") : _("Newer FW req.: %s"))
+                    .formatted(wrong_fw_version_params, valid_printer_settings.latest_fw_version),
+                valid_printer_settings.wrong_firmware },
     })
-    , unsupported_features(this, _(txt_unsupported_features), HWCheckSeverity::Abort, !valid_printer_settings.unsupported_features)
+    , unsupported_features(this,
+          (HAS_LARGE_DISPLAY() ? _("following features are required:") : _("Features required:")),
+          HWCheckSeverity::Abort, !valid_printer_settings.unsupported_features)
     , unsupported_features_text(this, {}, is_multiline::no) {
 
     static constexpr const Rect16::Width_t icon_margin = GuiDefaults::InvalidPrinterIconMargin;
