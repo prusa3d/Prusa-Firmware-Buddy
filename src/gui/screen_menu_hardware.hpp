@@ -39,47 +39,74 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #if HAS_EXTENDED_PRINTER_TYPE()
     MI_EXTENDED_PRINTER_TYPE,
 #endif
+
+    // ================================
+    // Nozzle/hotend related
+    // ================================
     MI_NOZZLE_DIAMETER,
-    MI_HARDWARE_G_CODE_CHECKS
+    MI_NOZZLE_TYPE,
 #if HAS_HOTEND_TYPE_SUPPORT()
-    ,
-    MI_HOTEND_SOCK_OR_TYPE
+    MI_HOTEND_SOCK_OR_TYPE,
 #endif
-    ,
-    MI_NOZZLE_TYPE
+
+// ================================
+// Extruder related
+// ================================
+#if HAS_MMU2()
+    MI_MMU_NEXTRUDER_REWORK,
+    #if HAS_LOADCELL()
+    MI_DONE_EXTRUDER_MAINTENANCE,
+    #endif // HAS_LOADCELL()
+#endif
+
+// ================================
+// Filament sensor related
+// ================================
 #if HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()
-    ,
-    MI_SIDE_FSENSOR_REMAP
+    MI_SIDE_FSENSOR_REMAP,
 #endif /*HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()*/
-#if ENABLED(MODULAR_HEATBED)
-    ,
-    MI_HEAT_ENTIRE_BED
+    MI_FS_AUTOLOAD,
+
+// ================================
+// Motion related
+// ================================
+#if HAS_PHASE_STEPPING()
+    MI_PHASE_STEPPING,
 #endif
+#if ENABLED(CRASH_RECOVERY)
+    MI_CRASH_SENSITIVITY_XY, MI_CRASH_MAX_PERIOD_X, MI_CRASH_MAX_PERIOD_Y,
+    #if HAS_DRIVER(TMC2130)
+    MI_CRASH_FILTERING,
+    #endif
+#endif // ENABLED(CRASH_RECOVERY)
+
+// ================================
+// Bed related
+// ================================
+#if ENABLED(MODULAR_HEATBED)
+    MI_HEAT_ENTIRE_BED,
+#endif
+#if HAS_SHEET_PROFILES()
+    MI_STEEL_SHEETS,
+#endif
+
+    // ================================
+    // Other
+    // ================================
+    MI_HARDWARE_G_CODE_CHECKS,
+
+    // ================================
+    // Dev-only items
+    // ================================
+    MI_EXPERIMENTAL_SETTINGS,
+    MI_XFLASH_RESET, MI_EEPROM
 #ifdef HAS_TMC_WAVETABLE
     ,
     MI_WAVETABLE_XYZ
 #endif
-#if ENABLED(CRASH_RECOVERY)
-    ,
-    MI_CRASH_SENSITIVITY_XY, MI_CRASH_MAX_PERIOD_X, MI_CRASH_MAX_PERIOD_Y
-    #if HAS_DRIVER(TMC2130)
-    ,
-    MI_CRASH_FILTERING
-    #endif
-#endif // ENABLED(CRASH_RECOVERY)
-#if HAS_PHASE_STEPPING()
-    ,
-    MI_PHASE_STEPPING
-#endif
-    ,
-    MI_FS_AUTOLOAD, MI_EXPERIMENTAL_SETTINGS, MI_XFLASH_RESET, MI_EEPROM
 #if HAS_LOADCELL()
     ,
     MI_LOADCELL_SCALE
-#endif
-#if HAS_SHEET_PROFILES()
-    ,
-    MI_STEEL_SHEETS
 #endif
 #if (BOARD_IS_XLBUDDY)
     ,
@@ -96,14 +123,6 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_FS_REF<3, false>, MI_FS_REF<3, true>,
     MI_FS_REF<4, false>, MI_FS_REF<4, true>,
     MI_FS_REF<5, false>, MI_FS_REF<5, true>
-#endif
-#if HAS_MMU2()
-    ,
-    MI_MMU_NEXTRUDER_REWORK
-    #if HAS_LOADCELL()
-    ,
-    MI_DONE_EXTRUDER_MAINTENANCE
-    #endif // HAS_LOADCELL()
 #endif
     >;
 
