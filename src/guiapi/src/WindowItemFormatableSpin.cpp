@@ -2,11 +2,11 @@
 
 #include "WindowItemFormatableSpin.hpp"
 
-WI_LAMBDA_SPIN::WI_LAMBDA_SPIN(const string_view_utf8 &label, size_t index_n_, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, size_t init_index, stdext::inplace_function<void(char *)> printAs)
+WI_LAMBDA_SPIN::WI_LAMBDA_SPIN(const string_view_utf8 &label, size_t item_count, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, size_t init_index, stdext::inplace_function<void(char *)> printAs)
     : WI_LAMBDA_LABEL_t(label, icon, enabled, hidden, printAs)
     , index(init_index)
-    , index_n(index_n_) {
-    assert(index_n > init_index && "Cannot start with invalid value");
+    , item_count(item_count) {
+    assert(item_count > init_index && "Cannot start with invalid value");
 
     UpdateText(); // Format text and get extension width
 }
@@ -103,12 +103,12 @@ void WI_LAMBDA_SPIN::click([[maybe_unused]] IWindowMenu &window_menu) {
 void WI_LAMBDA_SPIN::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
     if (is_touch_in_extension_rect(window_menu, relative_touch_point)) {
         set_is_edited(true);
-        SetIndex((index + 1) % index_n);
+        SetIndex((index + 1) % item_count);
     }
 }
 
 void WI_LAMBDA_SPIN::SetIndex(size_t new_index) {
-    if (new_index < index_n) {
+    if (new_index < item_count) {
         index = new_index;
         UpdateText(); // Update extension width
         InValidateLabel(); // Invalidate label to clear remaining longer text
@@ -129,8 +129,8 @@ invalidate_t WI_LAMBDA_SPIN::change(int dif) {
             dif = -1 * index; // Prevent underflow
         }
     } else {
-        if (index + dif >= index_n) {
-            dif = index_n - 1 - index; // Prevent overflow
+        if (index + dif >= item_count) {
+            dif = item_count - 1 - index; // Prevent overflow
         }
     }
 

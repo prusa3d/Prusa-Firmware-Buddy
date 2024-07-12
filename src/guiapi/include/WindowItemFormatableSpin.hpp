@@ -15,13 +15,11 @@ class WI_LAMBDA_SPIN : public WI_LAMBDA_LABEL_t {
     char text[GuiDefaults::infoDefaultLen]; ///< Buffer for switch text
 
 public:
-    const size_t index_n; ///< Limit for the spinner switch index.
-
     /**
      * @brief Construct a spinner with different texts to choose from.
-     * @param index_n number of valid indexes, valid are from 0 to index_n - 1
+     * @param item_count number of valid indexes, valid are from 0 to index_n - 1
      */
-    WI_LAMBDA_SPIN(const string_view_utf8 &label, size_t index_n_, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, size_t init_index, stdext::inplace_function<void(char *)> printAs);
+    WI_LAMBDA_SPIN(const string_view_utf8 &label, size_t item_count, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, size_t init_index, stdext::inplace_function<void(char *)> printAs);
 
     /**
      * @brief Get currently selected index.
@@ -99,4 +97,7 @@ protected:
      * To be overriden in children.
      */
     virtual void OnChange() {}
+
+protected:
+    size_t item_count; ///< Limit for the spinner switch index.
 };
