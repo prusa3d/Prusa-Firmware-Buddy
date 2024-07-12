@@ -23,6 +23,7 @@ class MsgBoxInvalidPrinter : public MsgBoxTitled {
 
     struct Message {
         Message(window_t *parent, const string_view_utf8 &text, HWCheckSeverity severity, bool valid);
+        Message(window_t *parent, const string_view_utf8 &text, const GCodeInfo::ValidPrinterSettings::Feature &feature);
 
         window_icon_t icon;
         window_text_t text;

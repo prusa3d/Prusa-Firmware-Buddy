@@ -12,20 +12,25 @@ MsgBoxInvalidPrinter::Message::Message(window_t *parent, const string_view_utf8 
     }
 }
 
+MsgBoxInvalidPrinter::Message::Message(window_t *parent, const string_view_utf8 &text, const GCodeInfo::ValidPrinterSettings::Feature &feature)
+    : Message(parent, text, feature.get_severity(), feature.is_valid()) {}
+
 MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, const string_view_utf8 &tit, const img::Resource *title_icon)
     : MsgBoxTitled(rect, Responses_NONE, 0, nullptr, _(txt_wrong_printer_title), is_multiline::yes, tit, title_icon, is_closed_on_click_t::no)
     , valid_printer_settings(GCodeInfo::getInstance().get_valid_printer_settings())
-    , messages { { { this, _(txt_wrong_tools), valid_printer_settings.wrong_tools.get_severity(), valid_printer_settings.wrong_tools.is_valid() },
-          { this, _(txt_wrong_nozzle_diameter), valid_printer_settings.wrong_nozzle_diameter.get_severity(), valid_printer_settings.wrong_nozzle_diameter.is_valid() },
-          { this, _(txt_wrong_printer_model), valid_printer_settings.wrong_printer_model.get_severity(), valid_printer_settings.wrong_printer_model.is_valid() },
-          { this, _(txt_wrong_gcode_level), valid_printer_settings.wrong_gcode_level.get_severity(), valid_printer_settings.wrong_gcode_level.is_valid() },
+    , messages({
+        { this, _(txt_wrong_tools), valid_printer_settings.wrong_tools },
+            { this, _(txt_wrong_nozzle_diameter), valid_printer_settings.wrong_nozzle_diameter },
+            { this, _(txt_wrong_printer_model), valid_printer_settings.wrong_printer_model },
+            { this, _(txt_wrong_gcode_level), valid_printer_settings.wrong_gcode_level },
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
-          { this, _(txt_gcode_compatibility_mode), valid_printer_settings.gcode_compatibility_mode.get_severity(), valid_printer_settings.gcode_compatibility_mode.is_valid() },
+            { this, _(txt_gcode_compatibility_mode), valid_printer_settings.gcode_compatibility_mode },
 #endif
 #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
-          { this, _(txt_fan_compatibility_mode), valid_printer_settings.fan_compatibility_mode.get_severity(), valid_printer_settings.fan_compatibility_mode.is_valid() },
+            { this, _(txt_fan_compatibility_mode), valid_printer_settings.fan_compatibility_mode },
 #endif
-          { this, _(txt_old_firmware).formatted(wrong_fw_version_params, valid_printer_settings.latest_fw_version), valid_printer_settings.wrong_firmware.get_severity(), valid_printer_settings.wrong_firmware.is_valid() } } }
+            { this, _(txt_old_firmware).formatted(wrong_fw_version_params, valid_printer_settings.latest_fw_version), valid_printer_settings.wrong_firmware },
+    })
     , unsupported_features(this, _(txt_unsupported_features), HWCheckSeverity::Abort, !valid_printer_settings.unsupported_features)
     , unsupported_features_text(this, {}, is_multiline::no) {
 
