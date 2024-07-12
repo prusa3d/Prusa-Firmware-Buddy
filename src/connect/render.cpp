@@ -334,13 +334,15 @@ namespace {
                             JSON_FIELD_INT("post_print_filtration_time", params.enclosure_info.post_print_filtration_time) JSON_COMMA;
                             JSON_FIELD_INT("filter_lifetime", Enclosure::expiration_deadline_sec) JSON_COMMA;
                             JSON_FIELD_ARR("filtration_filaments");
-                            state.iter = 0;
-                            while (state.iter <  std::size(Enclosure::filaments_requiring_filtration)) {
-                                if (state.iter > 0) {
+                            for (state.iter = 0, state.need_comma = false; state.iter < FilamentType::all_filaments.size(); state.iter++) {
+                                if(!FilamentType::all_filaments[state.iter].parameters().requires_filtration) {
+                                    continue;
+                                }
+                                if (state.need_comma) {
                                     JSON_COMMA;
                                 }
-                                JSON_CUSTOM("\"%s\"", filament::get_name(Enclosure::filaments_requiring_filtration[state.iter]));
-                                state.iter ++;
+                                JSON_CUSTOM("\"%s\"",  FilamentType::all_filaments[state.iter].parameters().name);
+                                state.need_comma = true;
                             }
                             JSON_ARR_END;
                         JSON_OBJ_END JSON_COMMA;

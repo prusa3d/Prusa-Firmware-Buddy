@@ -5,10 +5,12 @@
 
 #pragma once
 
-#include "marlin_server_shared.h"
-#include "client_fsm_types.h"
 #include <optional>
 #include <array>
+#include <general_response.hpp>
+
+#include "marlin_server_shared.h"
+#include "client_fsm_types.h"
 #include <general_response.hpp>
 
 /*
@@ -37,14 +39,6 @@ public:
     static constexpr int64_t expiration_deadline_sec = 600 * 3600;
     static constexpr int64_t expiration_warning_sec = 500 * 3600;
     static constexpr const int MIN_FAN_PWM = 50;
-    static constexpr std::array<FilamentType, 6> filaments_requiring_filtration = {
-        PresetFilamentType::ABS,
-        PresetFilamentType::ASA,
-        PresetFilamentType::PC,
-        PresetFilamentType::FLEX,
-        PresetFilamentType::HIPS,
-        PresetFilamentType::PP
-    };
 
     Enclosure();
     int getEnclosureTemperature();

@@ -24,10 +24,6 @@ static constexpr int32_t dwarf_board_temp_model_difference = -15; // °C
 
 static constexpr const int pwm_on_50_percent = (FANCTLENCLOSURE_PWM_MAX * 50) / 100;
 
-static bool is_same(const char *curr_filament, const GCodeInfo::filament_buff &filament_type) {
-    return strncmp(curr_filament, filament_type.begin(), filament_type.size()) == 0;
-}
-
 Enclosure xl_enclosure;
 
 Enclosure::Enclosure()
@@ -185,11 +181,8 @@ bool Enclosure::isPostPrintFiltrationNeeded() {
             continue;
         }
 
-        // If any of the filaments in filaments_requiring_filtration is used in the print -> activate post print filtration
-        for (const FilamentType type : filaments_requiring_filtration) {
-            if (is_same(filament::get_name(type), extruder_info.filament_name.value())) {
-                return true;
-            }
+        if (FilamentType::from_name(extruder_info.filament_name.value().data()).parameters().requires_filtration) {
+            return true;
         }
     }
     return false;
