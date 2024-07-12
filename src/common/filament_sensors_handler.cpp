@@ -10,11 +10,11 @@
 #include <tasks.hpp>
 #include "window_msgbox.hpp"
 #include <logging/log.hpp>
-#include <option/has_selftest_snake.h>
+#include <option/has_selftest.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
 
-#if HAS_SELFTEST_SNAKE()
+#if HAS_SELFTEST()
     #include <ScreenHandler.hpp>
     #include "screen_menu_selftest_snake.hpp"
 #endif
@@ -216,7 +216,7 @@ void FilamentSensors::process_events() {
             || autoload_sent
             || isAutoloadLocked()
             || !marlin_vars()->fs_autoload_enabled //
-#if HAS_SELFTEST_SNAKE()
+#if HAS_SELFTEST()
             // We're accessing screens from the filamentsensors thread here. This looks quite unsafe.
             || Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
             || Screens::Access()->IsScreenOnStack<ScreenMenuSTSCalibrations>()

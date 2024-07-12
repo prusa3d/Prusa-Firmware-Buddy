@@ -298,7 +298,7 @@ void screen_home_data_t::on_enter() {
 
 #if !DEVELOPER_MODE()
     #if !PRINTER_IS_PRUSA_iX
-        #if HAS_SELFTEST_SNAKE()
+        #if HAS_SELFTEST()
     static bool first_time_check_st { true };
     if (first_time_check_st) {
         first_time_check_st = false;

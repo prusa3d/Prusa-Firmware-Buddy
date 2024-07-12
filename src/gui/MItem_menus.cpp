@@ -65,10 +65,7 @@
 
 #if HAS_SELFTEST()
     #include "screen_menu_diagnostics.hpp"
-    #include <option/has_selftest_snake.h>
-    #if HAS_SELFTEST_SNAKE()
-        #include "screen_menu_selftest_snake.hpp"
-    #endif
+    #include "screen_menu_selftest_snake.hpp"
 #endif
 
 #include <option/has_side_leds.h>
@@ -609,27 +606,17 @@ void MI_CALIBRATE_DOCK::click(IWindowMenu & /*window_menu*/) {
 }
 #endif
 
-#if HAS_SELFTEST_SNAKE()
+#if HAS_SELFTEST()
 /**********************************************************************************************/
 // MI_SELFTEST_SNAKE
 
 MI_SELFTEST_SNAKE::MI_SELFTEST_SNAKE()
     : IWindowMenuItem(_(label), &img::calibrate_white_16x16,
-    #if HAS_SELFTEST()
-        is_enabled_t::yes
-    #else
-        is_enabled_t::no
-    #endif
-        ,
-        is_hidden_t::no, expands_t::yes) {
+        is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_SELFTEST_SNAKE::click(IWindowMenu & /*window_menu*/) {
-    #if HAS_SELFTEST() && HAS_SELFTEST_SNAKE()
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSTSCalibrations>);
-    #else
-    bsod("Invalid configuration for this menu item");
-    #endif
 }
 #endif
 

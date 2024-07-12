@@ -21,7 +21,7 @@
     #include "screen_menu_filament_changeall.hpp"
     #include "box_unfinished_selftest.hpp"
 #endif
-#include <option/has_selftest_snake.h>
+#include <option/has_selftest.h>
 
 #include <option/has_toolchanger.h>
 #if ENABLED(PRUSA_TOOLCHANGER)
@@ -755,7 +755,7 @@ void PrintPreview::Init() {
 }
 
 IPrintPreview::State PrintPreview::stateFromSelftestCheck() {
-#if (!DEVELOPER_MODE() && HAS_SELFTEST_SNAKE())
+#if (!DEVELOPER_MODE() && HAS_SELFTEST())
     const bool show_warning = !selftest_warning_selftest_finished();
 #else
     const bool show_warning = false;

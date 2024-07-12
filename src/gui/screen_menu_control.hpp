@@ -10,7 +10,6 @@
 #include <option/buddy_enable_connect.h>
 #include <option/has_toolchanger.h>
 #include <option/has_selftest.h>
-#include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
 #include <option/has_coldpull.h>
 #include <option/has_sheet_profiles.h>
@@ -58,37 +57,11 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_MMU_LOAD_TEST_FILAMENT,
 #endif
 
-#if HAS_SELFTEST_SNAKE()
-    #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
     MI_MESH_BED,
     MI_BED_LEVEL_CORRECTION,
-    #endif
-    MI_SELFTEST_SNAKE
-#else
-    MI_CALIB_FIRST
-    #if HAS_SELFTEST()
-    ,
-    MI_FS_SPAN<0, false>,
-    MI_FS_REF<0, false>
-        #if !PRINTER_IS_PRUSA_MINI
-    ,
-    MI_CALIB_Z
-        #endif /*!PRINTER_IS_PRUSA_MINI*/
-        #if FILAMENT_SENSOR_IS_ADC()
-    ,
-    MI_CALIB_FSENSOR
-        #endif // FILAMENT_SENSOR_IS_ADC()
-    ,
-    MI_SELFTEST,
-    MI_DIAGNOSTICS
-    #endif
-    #if PRINTER_IS_PRUSA_MK4
-    ,
-    MI_CALIB_GEARS
-    #endif
 #endif
-
-    >;
+    MI_SELFTEST_SNAKE>;
 
 class ScreenMenuControl : public ScreenMenuControlSpec {
 public:

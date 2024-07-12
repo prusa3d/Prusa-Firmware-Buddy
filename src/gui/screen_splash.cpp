@@ -21,9 +21,11 @@
 #include <option/has_translations.h>
 #include <gui/screen_printer_setup.hpp>
 
+#include <option/has_selftest.h>
 #if HAS_SELFTEST()
     #include "printer_selftest.hpp"
     #include "ScreenSelftest.hpp"
+    #include "screen_menu_selftest_snake.hpp"
 #endif // HAS_SELFTEST
 
 #include <option/has_touch.h>
@@ -33,11 +35,6 @@
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
-#endif
-
-#include <option/has_selftest_snake.h>
-#if HAS_SELFTEST_SNAKE()
-    #include "screen_menu_selftest_snake.hpp"
 #endif
 
 #include <option/has_toolchanger.h>
@@ -88,16 +85,6 @@ screen_splash_data_t::screen_splash_data_t()
 
 #elif DEVELOPER_MODE()
     const bool run_wizard = false;
-
-#elif !HAS_SELFTEST_SNAKE()
-    #if PRINTER_IS_PRUSA_MK4
-    const bool run_selftest = !SelftestResult_Passed_Mandatory(config_store().selftest_result.get());
-    #else
-    const bool run_selftest = config_store().run_selftest.get();
-    #endif
-    const bool run_xyzcalib = config_store().run_xyz_calib.get();
-    const bool run_firstlay = config_store().run_first_layer.get();
-    const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
 
 #elif !PRINTER_IS_PRUSA_iX
     const bool run_wizard =
@@ -188,11 +175,9 @@ screen_splash_data_t::screen_splash_data_t()
             { !config_store().printer_setup_done.get() ? ScreenFactory::Screen<ScreenPrinterSetup> : nullptr },
             { !config_store().printer_setup_done.get() ? ScreenFactory::Screen<PseudoScreenCallback, network_callback> : nullptr },
 
-#if HAS_SELFTEST_SNAKE()
-            { run_wizard ? ScreenFactory::Screen<ScreenMenuSTSWizard> : nullptr }
-#elif HAS_SELFTEST()
+#if HAS_SELFTEST()
         {
-            run_wizard ? screen_node(ScreenFactory::Screen<ScreenSelftest>, stmWizard) : screen_node()
+            run_wizard ? ScreenFactory::Screen<ScreenMenuSTSWizard> : nullptr
         }
 #endif
     };

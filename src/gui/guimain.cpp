@@ -38,8 +38,10 @@
     #include "hw_configuration.hpp"
 #endif
 
+#include <option/has_selftest.h>
 #if HAS_SELFTEST()
     #include "ScreenSelftest.hpp"
+    #include "screen_menu_selftest_snake.hpp"
 #endif
 
 #if HAS_SIDE_LEDS()
@@ -58,11 +60,6 @@
 #endif
 #include <logging/log.hpp>
 #include <printers.h>
-
-#include <option/has_selftest_snake.h>
-#if HAS_SELFTEST_SNAKE()
-    #include "screen_menu_selftest_snake.hpp"
-#endif
 
 #if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
     #include "MItem_love_board.hpp"
