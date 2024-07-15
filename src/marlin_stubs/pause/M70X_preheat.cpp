@@ -81,7 +81,7 @@ std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::p
 }
 
 void filament_gcodes::preheat_to(FilamentType filament, uint8_t target_extruder) {
-    const filament::Description &fil_cnf = filament::get_description(filament);
+    const FilamentTypeParameters fil_cnf = filament.parameters();
 
     // change temp only if it is lower than currently loaded filament
     if (thermalManager.degTargetHotend(target_extruder) < fil_cnf.nozzle_temperature) {
@@ -98,7 +98,7 @@ std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::p
 
     if (response.holds_alternative<FilamentType>()) {
         const FilamentType filament = response.value<FilamentType>();
-        const filament::Description &fil_cnf = filament::get_description(filament);
+        const FilamentTypeParameters fil_cnf = filament.parameters();
 
         // change temp every time (unlike normal preheat)
         thermalManager.setTargetHotend(fil_cnf.nozzle_temperature, target_extruder);
@@ -140,7 +140,7 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode,
     }
 
     const FilamentType filament = response_variant.value_or(FilamentType::none);
-    const filament::Description &fil_cnf = filament::get_description(filament);
+    const FilamentTypeParameters fil_cnf = filament.parameters();
 
     const auto set_extruder_temp = [&](uint8_t extruder) {
         thermalManager.setTargetHotend(enforce_target_temp ? fil_cnf.nozzle_temperature : fil_cnf.nozzle_preheat_temperature, extruder);

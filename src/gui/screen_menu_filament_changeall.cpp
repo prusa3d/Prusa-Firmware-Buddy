@@ -149,7 +149,7 @@ void MenuMultiFilamentChange::carry_out_changes() {
             continue;
         }
 
-        const uint16_t temperature = max(filament::get_description(config.new_filament).nozzle_temperature, filament::get_description(config.old_filament).nozzle_temperature);
+        const uint16_t temperature = max(config.new_filament.parameters().nozzle_temperature, config.old_filament.parameters().nozzle_temperature);
         marlin_client::set_target_nozzle(temperature, tool);
         marlin_client::set_display_nozzle(temperature, tool);
     }
@@ -198,7 +198,7 @@ void MenuMultiFilamentChange::carry_out_changes() {
 
             // M1600 - filament change (doesn't ask for unload)
             // M701 - filament load
-            command_builder.append_printf((config.old_filament != FilamentType::none) ? "M1600 S\"%s\" T%d R" : "M701 S\"%s\" T%d W2", filament::get_name(config.new_filament), tool);
+            command_builder.append_printf((config.old_filament != FilamentType::none) ? "M1600 S\"%s\" T%d R" : "M701 S\"%s\" T%d W2", config.new_filament.parameters().name, tool);
 
             if (config.color.has_value()) {
                 command_builder.append_printf(" O%" PRIu32, config.color->raw);

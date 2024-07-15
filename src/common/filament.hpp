@@ -13,8 +13,9 @@ constexpr size_t filament_name_buffer_size = 8;
 struct FilamentTypeParameters {
 
 public:
-    /// Name of the filament (zero terminated)
-    const char *name = nullptr;
+    /// Name of the filament (zero terminated).
+    /// Keeping this as not array for ease of assignment and reading using snprintf
+    char name[filament_name_buffer_size] = "";
 
     /// Nozzle temperature for the filament, in degrees Celsius
     uint16_t nozzle_temperature;
@@ -79,8 +80,12 @@ public:
 
     static FilamentType from_name(std::string_view name);
 
+    static inline FilamentType from_name_array(const std::array<char, filament_name_buffer_size> &name) {
+        return from_name(std::string_view(name.data()));
+    }
+
     /// \returns parameters of the filament type
-    const FilamentTypeParameters &parameters() const;
+    FilamentTypeParameters parameters() const;
 
     /// \returns whether the filaments parameters can be adjusted by the user
     inline bool is_customizable() const {
@@ -98,21 +103,3 @@ public:
     inline constexpr bool operator==(const FilamentType &) const = default;
     inline constexpr bool operator!=(const FilamentType &) const = default;
 };
-
-// Compatibility code, will be removed in further commits
-namespace filament {
-using Type = FilamentType;
-using Description = FilamentTypeParameters;
-
-inline FilamentType get_type(const char *name, size_t name_len) {
-    return FilamentType::from_name(std::string_view(name, name_len));
-}
-
-inline const FilamentTypeParameters &get_description(FilamentType type) {
-    return type.parameters();
-}
-
-inline const char *get_name(FilamentType type) {
-    return type.parameters().name;
-}
-} // namespace filament

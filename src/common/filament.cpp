@@ -134,8 +134,8 @@ FilamentType FilamentType::from_name(std::string_view name) {
     return FilamentType::none;
 }
 
-const FilamentTypeParameters &FilamentType::parameters() const {
-    return std::visit([]<typename T>(const T &v) -> const FilamentTypeParameters & {
+FilamentTypeParameters FilamentType::parameters() const {
+    return std::visit([]<typename T>(const T &v) -> FilamentTypeParameters {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {
             return preset_filament_parameters[v];
 

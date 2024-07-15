@@ -57,7 +57,7 @@ FilamentType PrusaGcodeSuite::get_filament_type_from_command(char parameter, con
         *string_begin_ptr = text_begin;
     }
 
-    return filament::get_type(text_begin, text_end - text_begin);
+    return FilamentType::from_name(std::string_view(text_begin, text_end));
 }
 
 bool GcodeSuite::process_parsed_command_custom(bool no_ok) {

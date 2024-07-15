@@ -369,7 +369,7 @@ void PrusaGcodeSuite::G26() {
 
     FirstLayer fl;
 
-    auto filament_description = filament::get_description(filament);
+    auto filament_description = filament.parameters();
     const int temp_nozzle = filament_description.nozzle_temperature;
 
     // nozzle temperature print

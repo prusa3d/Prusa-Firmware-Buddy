@@ -31,9 +31,9 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     // different values. But they would still be reasonably "sane". If we eg.
     // finish a print and base what we include on previous version, we may
     // outdated values, but they are still there.
-    auto &vars = marlin_vars();
+    marlin_vars_t &vars = marlin_vars();
     const FilamentType filament = config_store().get_filament_type(vars.active_extruder);
-    const char *filament_material = filament::get_name(filament);
+    const FilamentTypeParameters filament_material = filament.parameters();
 
     bool operational = true;
     bool paused = false;
@@ -146,7 +146,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
             JSON_FIELD_INT("print-speed", vars.print_speed) JSON_COMMA;
             // XYZE, mm
             JSON_FIELD_FFIXED("z-height", vars.logical_pos[2], 1) JSON_COMMA;
-            JSON_FIELD_STR("material", filament_material);
+            JSON_FIELD_STR("material", filament_material.name);
         JSON_OBJ_END JSON_COMMA;
 
         JSON_FIELD_OBJ("temperature");

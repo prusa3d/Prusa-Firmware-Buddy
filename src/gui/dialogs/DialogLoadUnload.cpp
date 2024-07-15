@@ -553,7 +553,7 @@ void DialogLoadUnload::phaseEnter() {
     filament_color_icon.set_visible(has_color_to_load);
 
     if (has_filament_to_load) {
-        filament_type_parameters = filament::get_description(filament_to_load);
+        filament_type_parameters = filament_to_load.parameters();
         filament_type_text.SetText(string_view_utf8::MakeRAM(filament_type_parameters.name));
     }
 

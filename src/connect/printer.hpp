@@ -14,6 +14,7 @@
 #include <state/printer_state.hpp>
 #include <device/board.h>
 #include <connect/hostname.hpp>
+#include <filament.hpp>
 
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
@@ -43,7 +44,7 @@ public:
     };
 
     struct SlotInfo {
-        const char *material = nullptr;
+        std::array<char, filament_name_buffer_size> material = { 0 };
         float temp_nozzle = 0;
         uint16_t print_fan_rpm = 0;
         uint16_t heatbreak_fan_rpm = 0;

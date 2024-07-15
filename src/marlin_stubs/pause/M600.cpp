@@ -255,7 +255,7 @@ void M600_execute(xyz_pos_t park_point, uint8_t target_extruder, xyze_float_t re
         resume_point = prusa_toolchanger.get_tool_dock_position(target_extruder); // Sets only x, y coordinates
 
         // Preheat the tool for filament change -> normally we don't do that for M600. But the slicer team wanted this.
-        const auto &filament_data = filament::get_description(config_store().get_filament_type(target_extruder));
+        const auto filament_data = config_store().get_filament_type(target_extruder).parameters();
         Temperature::setTargetHotend(filament_data.nozzle_temperature, target_extruder);
         Temperature::wait_for_hotend(target_extruder);
     }

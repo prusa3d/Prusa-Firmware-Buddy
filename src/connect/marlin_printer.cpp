@@ -172,7 +172,7 @@ namespace {
                 // only one hotend in any other situation
                 auto &hotend = marlin_vars().active_hotend();
 #endif
-                params.slots[i].material = filament::get_name(config_store().get_filament_type(i));
+                params.slots[i].material = std::to_array(config_store().get_filament_type(i).parameters().name);
                 params.slots[i].temp_nozzle = hotend.temp_nozzle;
                 params.slots[i].print_fan_rpm = hotend.print_fan_rpm;
                 params.slots[i].heatbreak_fan_rpm = hotend.heatbreak_fan_rpm;

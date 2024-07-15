@@ -16,7 +16,7 @@
 // NsPreheat::I_MI_Filament
 NsPreheat::I_MI_Filament::I_MI_Filament(FilamentType filament_type)
     : WiInfo<info_len>({}, nullptr, is_enabled_t::yes, is_hidden_t::no)
-    , filament_params(filament::get_description(filament_type))
+    , filament_params(filament_type.parameters())
     , filament_type(filament_type) //
 {
     SetLabel(string_view_utf8::MakeRAM(filament_params.name));

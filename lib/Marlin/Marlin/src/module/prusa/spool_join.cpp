@@ -15,7 +15,6 @@
 #include "marlin_vars.hpp"
 #include "module/tool_change.h"
 #include "lcd/extensible_ui/ui_api.h" // for ExtUI::onStatusChanged to send notification about spool join
-#include "filament.hpp" // for filament::set_type_in_extruder
 #include <config_store/store_instance.hpp>
 #include "mmu2_toolchanger_common.hpp"
 

@@ -280,8 +280,8 @@ LoopResult CSelftestPart_FirstLayer::stateShowStartPrint() {
 
 LoopResult CSelftestPart_FirstLayer::statePrintInit() {
     IPartHandler::SetFsmPhase(PhasesSelftest::FirstLayer_mbl);
-    auto filament = config_store().get_filament_type(active_extruder);
-    auto filament_desc = filament::get_description(filament);
+    const auto filament = config_store().get_filament_type(active_extruder);
+    const auto filament_desc = filament.parameters();
     const int temp_nozzle = filament_desc.nozzle_temperature;
     temp_nozzle_preheat = filament_desc.nozzle_preheat_temperature;
     temp_bed = filament_desc.heatbed_temperature;

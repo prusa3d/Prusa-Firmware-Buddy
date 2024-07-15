@@ -11,6 +11,7 @@
 #include <state/printer_state.hpp>
 #include <transfers/transfer.hpp>
 #include <filament.hpp>
+#include <filament_list.hpp>
 #if XL_ENCLOSURE_SUPPORT()
     #include <xl_enclosure.hpp>
 #endif
@@ -143,8 +144,8 @@ namespace {
                 JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
                 JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
                 JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
-                if (params.slots[params.preferred_slot()].material != nullptr) {
-                    JSON_FIELD_STR_G(params.slots[params.preferred_slot()].material != nullptr, "material", params.slots[params.preferred_slot()].material) JSON_COMMA;
+                if (strlen(params.slots[params.preferred_slot()].material.data()) > 0) {
+                    JSON_FIELD_STR("material", params.slots[params.preferred_slot()].material.data()) JSON_COMMA;
                 }
 #if XL_ENCLOSURE_SUPPORT()
                 if (params.enclosure_info.present) {
@@ -176,7 +177,7 @@ namespace {
                             // Note: XL can have multiple slots, but not consequitive, therefore the trick with a mask.
                             if (params.slot_mask & (1 << state.iter)) {
                                 JSON_CUSTOM("\"%zu\":{", state.iter + 1);
-                                    JSON_FIELD_STR("material", params.slots[state.iter].material) JSON_COMMA;
+                                    JSON_FIELD_STR("material", params.slots[state.iter].material.data()) JSON_COMMA;
                                     JSON_FIELD_FFIXED("temp", params.slots[state.iter].temp_nozzle, 1) JSON_COMMA;
                                     JSON_FIELD_FFIXED("fan_hotend", params.slots[state.iter].heatbreak_fan_rpm, 1) JSON_COMMA;
                                     JSON_FIELD_FFIXED("fan_print", params.slots[state.iter].print_fan_rpm, 1);
@@ -334,14 +335,14 @@ namespace {
                             JSON_FIELD_INT("post_print_filtration_time", params.enclosure_info.post_print_filtration_time) JSON_COMMA;
                             JSON_FIELD_INT("filter_lifetime", Enclosure::expiration_deadline_sec) JSON_COMMA;
                             JSON_FIELD_ARR("filtration_filaments");
-                            for (state.iter = 0, state.need_comma = false; state.iter < FilamentType::all_filaments.size(); state.iter++) {
-                                if(!FilamentType::all_filaments[state.iter].parameters().requires_filtration) {
+                            for (state.iter = 0, state.need_comma = false; state.iter <all_filament_types.size(); state.iter++) {
+                                if(!all_filament_types[state.iter].parameters().requires_filtration) {
                                     continue;
                                 }
                                 if (state.need_comma) {
                                     JSON_COMMA;
                                 }
-                                JSON_CUSTOM("\"%s\"",  FilamentType::all_filaments[state.iter].parameters().name);
+                                JSON_CUSTOM("\"%s\"",  all_filament_types[state.iter].parameters().name);
                                 state.need_comma = true;
                             }
                             JSON_ARR_END;

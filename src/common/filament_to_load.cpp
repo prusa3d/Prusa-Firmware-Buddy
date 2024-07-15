@@ -1,12 +1,12 @@
 #include "filament_to_load.hpp"
 
-static filament::Type filament_to_load = FilamentType::none;
+static FilamentType filament_to_load = FilamentType::none;
 
-filament::Type filament::get_type_to_load() {
+FilamentType filament::get_type_to_load() {
     return filament_to_load;
 }
 
-void filament::set_type_to_load(filament::Type filament) {
+void filament::set_type_to_load(FilamentType filament) {
     filament_to_load = filament;
 }
 

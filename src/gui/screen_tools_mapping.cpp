@@ -147,7 +147,7 @@ void print_right_tool_into_buffer(size_t idx, std::array<std::array<char, ToolsM
     // IDX here means REAL
 
     const FilamentType loaded_filament_type = config_store().get_filament_type(idx);
-    const char *loaded_filament_name = filament::get_name(loaded_filament_type);
+    std::array<char, filament_name_buffer_size> loaded_filament_name = std::to_array(loaded_filament_type.parameters().name);
 
 #if HAS_MMU2()
     static constexpr std::array unknown_filament_names = {
@@ -156,11 +156,11 @@ void print_right_tool_into_buffer(size_t idx, std::array<std::array<char, ToolsM
 
     // Upon request from the Content team - if we get "---", translate it into FILAM - a crude and awful hack :(
     if (loaded_filament_type == FilamentType::none && idx < unknown_filament_names.size()) {
-        loaded_filament_name = unknown_filament_names[idx];
+        strlcpy(loaded_filament_name.data(), unknown_filament_names[idx], filament_name_buffer_size);
     }
 #endif
 
-    snprintf(text_buffers[idx].data(), ToolsMappingBody::max_item_text_width, "%hhu. %-5.5s", static_cast<uint8_t>(idx + 1), loaded_filament_name);
+    snprintf(text_buffers[idx].data(), ToolsMappingBody::max_item_text_width, "%hhu. %-5.5s", static_cast<uint8_t>(idx + 1), loaded_filament_name.data());
 
     if (drawing_nozzles) {
         const auto cur_strlen = strlen(text_buffers[idx].data());
@@ -647,7 +647,7 @@ MultiFilamentChangeConfig ToolsMappingBody::build_changeall_config() {
         }
 
         // only preselect if we don't have it already
-        const auto desired_filament = filament::get_type(opt_name.value().data(), strlen(opt_name.value().data()));
+        const auto desired_filament = FilamentType::from_name(opt_name.value().data());
         if (config_store().get_filament_type(real_phys) == desired_filament) {
             continue;
         }
