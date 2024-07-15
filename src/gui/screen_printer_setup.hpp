@@ -90,7 +90,6 @@ using ScreenBase
         MI_NOZZLE_DIAMETER_MENU,
 #endif
         MI_NOZZLE_DIAMETER,
-        MI_NOZZLE_TYPE,
         MI_HOTEND_SOCK_OR_TYPE,
 #if HAS_MMU2()
         MI_MMU_NEXTRUDER_REWORK,

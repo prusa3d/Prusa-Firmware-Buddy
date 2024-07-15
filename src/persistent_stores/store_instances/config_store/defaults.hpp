@@ -16,7 +16,6 @@
 #include <common/hw_check.hpp>
 
 #include "constants.hpp"
-#include <common/nozzle_type.hpp>
 #include <common/hotend_type.hpp>
 
 #include <option/has_sheet_support.h>

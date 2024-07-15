@@ -44,7 +44,6 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     // Nozzle/hotend related
     // ================================
     MI_NOZZLE_DIAMETER,
-    MI_NOZZLE_TYPE,
 #if HAS_HOTEND_TYPE_SUPPORT()
     MI_HOTEND_SOCK_OR_TYPE,
 #endif
