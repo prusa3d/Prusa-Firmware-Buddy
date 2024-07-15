@@ -34,7 +34,6 @@ void CurrentStore::perform_config_check() {
 
 #if PRINTER_IS_PRUSA_MK4
         extended_printer_type.set(ExtendedPrinterType::mk4s);
-        nozzle_type.set(NozzleType::HighFlow);
         hotend_type.set(HotendType::stock_with_sock);
 
 #elif PRINTER_IS_PRUSA_XL

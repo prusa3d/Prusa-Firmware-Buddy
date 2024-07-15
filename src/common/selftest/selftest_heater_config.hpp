@@ -51,10 +51,6 @@ struct HeaterConfig_t {
     uint32_t min_pwm_to_measure { 0 };
 
     std::array<int8_t, static_cast<size_t>(HotendType::_cnt)> hotend_type_temp_offsets { 0 };
-
-#if HAS_NOZZLE_TYPE_SELFETST_SUPPORT()
-    std::array<int8_t, static_cast<size_t>(NozzleType::_cnt)> nozzle_type_temp_offsets { 0 };
-#endif
 };
 
 }; // namespace selftest

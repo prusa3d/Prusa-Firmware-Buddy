@@ -9,7 +9,6 @@
 #include "i_selftest.hpp"
 #include "algorithm_scale.hpp"
 #include <option/has_toolchanger.h>
-#include <common/nozzle_type.hpp>
 #include "advanced_power.hpp"
 #include <printers.h>
 #include "config_store/store_instance.hpp"
@@ -256,12 +255,6 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
         // Bounds check, there might be invalid value in the config_store
         const auto hotend_type = static_cast<size_t>(config_store().hotend_type.get());
         hw_diff += m_config.hotend_type_temp_offsets[hotend_type < static_cast<size_t>(HotendType::_cnt) ? hotend_type : 0];
-
-#if HAS_NOZZLE_TYPE_SELFETST_SUPPORT()
-        // Bounds check, there might be invalid value in the config_store
-        const auto nozzle_type = static_cast<size_t>(config_store().nozzle_type.get());
-        hw_diff += m_config.nozzle_type_temp_offsets[nozzle_type < static_cast<size_t>(NozzleType::_cnt) ? nozzle_type : 0];
-#endif
     }
 
     if (hw_diff) {

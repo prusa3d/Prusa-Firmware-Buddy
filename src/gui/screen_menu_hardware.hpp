@@ -45,8 +45,6 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     ,
     MI_HOTEND_SOCK_OR_TYPE
 #endif
-    ,
-    MI_NOZZLE_TYPE
 #if HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()
     ,
     MI_SIDE_FSENSOR_REMAP

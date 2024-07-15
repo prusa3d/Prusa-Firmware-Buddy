@@ -151,11 +151,6 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
             { HotendType::stock_with_sock, -20 },
             { HotendType::e3d_revo, -127 }, // Not supported on this printer
         },
-#if HAS_NOZZLE_TYPE_SELFETST_SUPPORT()
-        .nozzle_type_temp_offsets = EnumArray<NozzleType, int8_t, NozzleType::_cnt> {
-            { NozzleType::Normal, 0 },
-        },
-#endif
     }
 };
 

@@ -1,7 +1,6 @@
 #pragma once
 #include <Marlin/src/inc/MarlinConfigPre.h>
 
-#include <common/nozzle_type.hpp>
 #include <common/hotend_type.hpp>
 #include "constants.hpp"
 #include "defaults.hpp"
@@ -418,7 +417,6 @@ struct CurrentStore
 
     // Nozzle Sock has is here for backwards compatibility (should be binary compatible)
     StoreItem<HotendType, defaults::hotend_type, journal::hash("Nozzle Sock")> hotend_type;
-    StoreItem<NozzleType, NozzleType::Normal, journal::hash("Nozzle Type")> nozzle_type;
 
     StoreItem<restore_z::Position, restore_z::default_position, journal::hash("Restore Z Coordinate After Boot")> restore_z_after_boot;
 
@@ -532,6 +530,8 @@ struct DeprecatedStore
 #if PRINTER_IS_PRUSA_XL
     StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Selftest Result - Nozzle Diameter")> selftest_result_nozzle_diameter;
 #endif
+
+    StoreItem<uint8_t, 0, journal::hash("Nozzle Type")> nozzle_type;
 };
 
 } // namespace config_store_ns
