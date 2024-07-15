@@ -1,6 +1,7 @@
 #include "async_job_executor.hpp"
 
 #include "async_job.hpp"
+#include <priorities_config.h>
 
 static __attribute__((section(".ccmram"))) AsyncJobExecutor default_instance;
 
@@ -8,7 +9,7 @@ AsyncJobExecutor::AsyncJobExecutor() {
     static constexpr auto thread_func = +[](const void *param) {
         reinterpret_cast<AsyncJobExecutor *>(const_cast<void *>(param))->thread_routine();
     };
-    osThreadStaticDef(worker_thread, thread_func, osPriorityLow, 0, thread_stack.size(), thread_stack.data(), &thread_def);
+    osThreadStaticDef(worker_thread, thread_func, TASK_PRIORITY_ASYNC_JOB_EXECUTOR, 0, thread_stack.size(), thread_stack.data(), &thread_def);
     thread_id = osThreadCreate(osThread(worker_thread), this);
 }
 
