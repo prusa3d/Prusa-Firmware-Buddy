@@ -4,6 +4,8 @@
 #include "menu_vars.h"
 #include "WindowMenuSpin.hpp"
 #include "img_resources.hpp"
+#include <numeric_input_config_common.hpp>
+
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "module/prusa/toolchanger.h"
 #endif
@@ -21,14 +23,8 @@ is_hidden_t MI_NOZZLE_ABSTRACT::is_hidden([[maybe_unused]] uint8_t tool_nr) {
 #endif
 }
 
-static constexpr NumericInputConfig nozzle_spin_config = {
-    .max_value = HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN,
-    .special_value = 0,
-    .unit = Unit::celsius,
-};
-
 MI_NOZZLE_ABSTRACT::MI_NOZZLE_ABSTRACT(uint8_t tool_nr, [[maybe_unused]] const char *label)
-    : WiSpin(uint16_t(marlin_vars()->hotend(tool_nr).target_nozzle), nozzle_spin_config,
+    : WiSpin(uint16_t(marlin_vars()->hotend(tool_nr).target_nozzle), numeric_input_config::nozzle_temperature,
 #if ENABLED(PRUSA_TOOLCHANGER)
         prusa_toolchanger.is_toolchanger_enabled() ? _(label) : _(generic_label),
 #else
@@ -45,14 +41,9 @@ void MI_NOZZLE_ABSTRACT::OnClick() {
 
 /*****************************************************************************/
 // MI_HEATBED
-static constexpr NumericInputConfig bed_spin_config = {
-    .max_value = (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN),
-    .special_value = 0,
-    .unit = Unit::celsius,
-};
 
 MI_HEATBED::MI_HEATBED()
-    : WiSpin(uint8_t(marlin_vars()->target_bed), bed_spin_config, _(label), &img::heatbed_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    : WiSpin(uint8_t(marlin_vars()->target_bed), numeric_input_config::bed_temperature, _(label), &img::heatbed_16x16, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_HEATBED::OnClick() {
     marlin_client::set_target_bed(value());

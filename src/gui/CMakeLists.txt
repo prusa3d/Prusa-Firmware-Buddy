@@ -35,6 +35,7 @@ target_sources(
           MItem_network.cpp
           MItem_print.cpp
           MItem_tools.cpp
+          numeric_input_config_common.cpp
           print_time_module.cpp
           pseudo_screen_callback.cpp
           qoi_decoder.cpp

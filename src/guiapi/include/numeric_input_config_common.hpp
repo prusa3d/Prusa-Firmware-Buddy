@@ -8,4 +8,7 @@ static constexpr NumericInputConfig network_port = {
     .max_value = 65535,
 };
 
+extern const NumericInputConfig nozzle_temperature;
+extern const NumericInputConfig bed_temperature;
+
 } // namespace numeric_input_config
