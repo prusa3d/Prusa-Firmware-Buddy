@@ -27,8 +27,8 @@ struct CurrentStoreConfig {
     using Backend = BackendT;
     template <StoreItemDataC DataT, auto default_val, typename BackendT::Id id>
     using StoreItem = JournalItem<DataT, default_val, backend, id>;
-    template <StoreItemDataC DataT, auto default_val, typename BackendT::Id id, uint8_t item_count>
-    using StoreItemArray = JournalItemArray<DataT, default_val, backend, id, item_count>;
+    template <StoreItemDataC DataT, auto default_val, typename BackendT::Id id, uint8_t max_item_count, uint8_t item_count>
+    using StoreItemArray = JournalItemArray<DataT, default_val, backend, id, max_item_count, item_count>;
 };
 
 template <BackendC BackendT>

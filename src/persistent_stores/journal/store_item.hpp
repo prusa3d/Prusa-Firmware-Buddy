@@ -175,7 +175,11 @@ public:
     }
 };
 
-template <StoreItemDataC DataT, auto default_val, auto backend, uint16_t hashed_id, uint8_t item_count>
+/// Array of journal items
+/// \p item_count determines the array size. It can be increased in time, possibly even decreased
+/// \p max_item_count determines the maximum item_count the item can ever have. This is only used for hash collision checking. It can never be decreased, but it can be increased (granted that it does not cause hash collisions)
+/// The journal_hashes_generator python script looks for the next argument after journal::hash for the hash range size - so \p max_item_count must be directly after \p hashed_id
+template <StoreItemDataC DataT, auto default_val, auto backend, uint16_t hashed_id, uint8_t max_item_count, uint8_t item_count>
     requires ItemArrayDefaultValC<DataT, decltype(default_val), item_count> && (item_count > 0)
 struct JournalItemArray {
 private:
@@ -189,6 +193,7 @@ public:
     static constexpr size_t data_size { sizeof(DataT) };
     static_assert(journal::BackendC<BackendT>); // BackendT type needs to fulfill this concept. Can be moved to signature with newer clangd, causes too many errors now (constrained auto)
     static_assert(data_size < BackendT::MAX_ITEM_SIZE, "Item is too large");
+    static_assert(max_item_count >= item_count);
 
     using DataArg = JournalItemBase<DataT, backend>::DataArg;
 
@@ -332,8 +337,8 @@ private:
 
 template <typename>
 struct is_item_array : std::false_type {};
-template <typename DataT, auto default_val, auto backend, uint16_t hashed_id, uint8_t item_count>
-struct is_item_array<JournalItemArray<DataT, default_val, backend, hashed_id, item_count>> : std::true_type {};
+template <typename DataT, auto default_val, auto backend, uint16_t hashed_id, uint8_t max_item_count, uint8_t item_count>
+struct is_item_array<JournalItemArray<DataT, default_val, backend, hashed_id, max_item_count, item_count>> : std::true_type {};
 
 template <typename T>
 inline constexpr bool is_item_array_v = is_item_array<T>::value;
