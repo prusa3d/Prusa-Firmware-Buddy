@@ -177,6 +177,13 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             T("CANCEL_OBJECT", CancelObject, ArgId)
             T("UNCANCEL_OBJECT", UncancelObject, ArgId)
             T("START_INLINE_DOWNLOAD", StartInlineDownload, ARGS_INLINE_DOWN)
+            // For technical reasons, Connect wants to have only one
+            // (START_CONNECT_DOWNLOAD) command and let the printer figure if
+            // it wants to do that through the websocket or "around". We do it
+            // inline the websocket always, and for some time it's unclear
+            // which command will be coming from which Connect instance ->
+            // accept both, handle the same way.
+            T("START_CONNECT_DOWNLOAD", StartInlineDownload, ARGS_INLINE_DOWN)
             T("START_ENCRYPTED_DOWNLOAD", StartEncryptedDownload, ARGS_ENC_DOWN) { // else is part of the previous T
                 return;
             }
