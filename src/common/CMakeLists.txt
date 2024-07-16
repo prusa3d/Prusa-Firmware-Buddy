@@ -198,7 +198,7 @@ endif()
 
 if(GUI)
   # TODO: Some of it should be moved under GUI
-  target_sources(firmware PRIVATE bsod_gui.cpp filament.cpp filament_to_load.cpp)
+  target_sources(firmware PRIVATE bsod_gui.cpp filament.cpp filament_gui.cpp filament_to_load.cpp)
 endif()
 
 if(NOT BOARD STREQUAL "DWARF" AND NOT BOARD STREQUAL "MODULARBED")
