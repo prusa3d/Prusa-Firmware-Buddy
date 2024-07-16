@@ -140,6 +140,20 @@ public:
         }
     }
 
+    /// Applies f(val) on the item value
+    /// This is done under the lock, so the operation is atomic
+    inline void apply(std::invocable<DataT &> auto f) {
+        // This class gets instantiated for each f anyway, so no need to put it into base class
+        auto l = backend().lock();
+        const auto old_value = this->data;
+        DataT new_value = old_value;
+        f(new_value);
+        if (new_value != old_value) {
+            this->data = new_value;
+            this->do_save(hashed_id);
+        }
+    }
+
     /// Sets the config item to its default value.
     /// \returns the default value
     DataT set_to_default() {
