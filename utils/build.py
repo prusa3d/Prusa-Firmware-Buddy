@@ -341,7 +341,7 @@ def build(configuration: BuildConfiguration,
         build_returncode = build_process.returncode
         products.extend(build_dir / fname for fname in [
             'firmware', 'firmware.bin', 'firmware.bbf', 'firmware.dfu',
-            'firmware.map', 'firmware_update_pre_4.4.bbf'
+            'firmware.map'
         ] if (build_dir / fname).exists())
     else:
         build_returncode = None
@@ -572,8 +572,6 @@ def store_products(products: List[Path], build_config: BuildConfiguration,
     products_dir.mkdir(parents=True, exist_ok=True)
     for product in products:
         base_name = build_config.name.lower()
-        if 'firmware_update' in product.name:
-            base_name += '_update_pre_4.4'
         if isinstance(build_config, FirmwareBuildConfiguration
                       ) and build_config.version_suffix != '<auto>':
             version = project_version()
