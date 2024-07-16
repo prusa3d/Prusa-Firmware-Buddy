@@ -230,8 +230,6 @@ DialogNumericInput::DialogNumericInput(const string_view_utf8 &prompt, double in
             {
                 auto &wnd = ui.txt_result;
                 wnd.set_enabled(false);
-                wnd.set_font(Font::large);
-                wnd.SetAlignment(Align_t::RightBottom());
                 wnd.SetRect(Rect16::fromLTWH(x, y, result_w, result_h));
                 RegisterSubWin(wnd);
             }
@@ -323,10 +321,21 @@ void DialogNumericInput::update() {
         StringBuilder b(result_text_);
         result_accum_.to_string(b);
 
-        ui.txt_result.SetText(is_special_value_ ? _(config_.special_value_str) : string_view_utf8::MakeRAM(result_text_.data()));
+        auto &wnd = ui.txt_result;
+
+        if (is_special_value_) {
+            // Large font does not have string characters, so we cannot display special values with it
+            wnd.set_font(Font::big);
+            wnd.SetAlignment(Align_t::RightCenter());
+            wnd.SetText(_(config_.special_value_str));
+        } else {
+            wnd.set_font(Font::large);
+            wnd.SetAlignment(Align_t::RightBottom());
+            wnd.SetText(string_view_utf8::MakeRAM(result_text_.data()));
+        }
 
         // The text has still the same ref, we just changed the contents
-        ui.txt_result.Invalidate();
+        wnd.Invalidate();
     }
 
     // Check if we're within input bounds
@@ -422,7 +431,7 @@ void DialogNumericInput::clear_button_callback(window_t &button) {
     }
 
     result_accum_ = {};
-    is_initial_value_ = 0;
+    is_initial_value_ = false;
     is_special_value_ = config_.special_value.has_value();
     update();
 }
