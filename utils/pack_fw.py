@@ -158,9 +158,6 @@ def main():
     parser.add_argument(
         "--bbf-version", type=int, required=False, default=1,
         help="Version of the BBF. 0: original first version, 1: version with TLV extension")
-    parser.add_argument(
-        "--output-file", type=str,
-        help="Optional filepath of the final generated bbf")
     parser.add_argument('-TCI', '--TCI', action='store_true', required=False,
         help='evoked from Travis script')
     # yapf: enable
@@ -247,7 +244,7 @@ def main():
     print("\tsign:     ", sig.hex())
 
     # Bootloader Binary File / Firmware
-    with open(args.output_file or "%s.bbf" % fw_file, "wb") as bbf:
+    with open(f"{fw_file}.bbf", "wb") as bbf:
         bbf.write(sig)
         bbf.write(sha.digest())
         bbf.write(bin_data)
