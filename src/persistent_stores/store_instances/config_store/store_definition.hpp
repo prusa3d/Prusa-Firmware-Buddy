@@ -306,6 +306,8 @@ struct CurrentStore
 #endif
 
     StoreItem<std::bitset<max_preset_filament_type_count>, defaults::visible_preset_filament_types, journal::hash("Visible Preset Filament Types")> visible_preset_filament_types;
+    StoreItemArray<FilamentTypeParameters, defaults::user_filament_parameters, journal::hash("User Filament Parameters"), max_user_filament_type_count, user_filament_type_count> user_filament_parameters;
+    StoreItem<std::bitset<max_user_filament_type_count>, defaults::visible_user_filament_types, journal::hash("Visible User Filament Types")> visible_user_filament_types;
 
     FilamentType get_filament_type(uint8_t index);
     void set_filament_type(uint8_t index, FilamentType value);

@@ -18,6 +18,10 @@ static constexpr FilamentListStorage all_filament_types = [] {
         r[index++] = static_cast<PresetFilamentType>(i);
     }
 
+    for (uint8_t i = 0; i < user_filament_type_count; i++) {
+        r[index++] = UserFilamentType { i };
+    }
+
     if (index != r.size()) {
         std::abort();
     }

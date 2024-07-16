@@ -12,12 +12,17 @@ size_t generate_filament_list(FilamentListStorage &storage, const GenerateFilame
     // Generate visible list to prevent locking the config_store mutex many times
     if (config.visible_first || config.visible_only) {
         // If this changes, the generator code probably also needs to change
-        static_assert(std::is_same_v<FilamentType_, std::variant<NoFilamentType, PresetFilamentType>>);
+        static_assert(std::is_same_v<FilamentType_, std::variant<NoFilamentType, PresetFilamentType, UserFilamentType>>);
 
         const auto is_preset_filament_visible = config_store().visible_preset_filament_types.get();
         for (size_t i = 0; i < static_cast<size_t>(PresetFilamentType::_count); i++) {
             const auto ft = static_cast<PresetFilamentType>(i);
             is_filament_visible_bitset.set(EncodedFilamentType(ft).data, is_preset_filament_visible.test(i));
+        }
+
+        const auto is_user_filament_visible = config_store().visible_user_filament_types.get();
+        for (UserFilamentType ft; ft.index < user_filament_type_count; ft.index++) {
+            is_filament_visible_bitset.set(EncodedFilamentType(ft).data, is_user_filament_visible.test(ft.index));
         }
     }
 

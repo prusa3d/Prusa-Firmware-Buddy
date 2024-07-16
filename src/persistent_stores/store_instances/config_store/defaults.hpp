@@ -283,12 +283,33 @@ namespace defaults {
     // This is a bit wonky, but std::bitset "is not structural", so we cannot pass it directly as a template argument.
     // So instead, we pass this empty struct that converts to the bitset.
     // The struct intializes everything to one.
-    struct VisibleFilamentTypes {
+    struct VisiblePresetFilamentTypes {
         constexpr operator std::bitset<max_preset_filament_type_count>() const {
             return ~std::bitset<max_preset_filament_type_count>();
         }
     };
-    inline constexpr VisibleFilamentTypes visible_preset_filament_types;
+    inline constexpr VisiblePresetFilamentTypes visible_preset_filament_types;
+
+    /// By default, a single user filament is visible, to advertise to the user that we have this feature
+    inline constexpr uint8_t visible_user_filament_types = 1;
+
+    inline constexpr auto user_filament_parameters = [] {
+        std::array<FilamentTypeParameters, user_filament_type_count> result;
+        for (size_t i = 0; i < result.size(); i++) {
+            result[i] = FilamentTypeParameters {
+                .name = {
+                    'U', 'S', 'E', 'R',
+                    static_cast<uint8_t>('0' + (i >= 10 ? i / 10 : i % 10)),
+                    static_cast<uint8_t>(i >= 10 ? ('0' + i % 10) : '\0'),
+                    '\0' },
+                .nozzle_temperature = 215,
+                .nozzle_preheat_temperature = 170,
+                .heatbed_temperature = 0,
+                .requires_filtration = false,
+            };
+        }
+        return result;
+    }();
 } // namespace defaults
 
 } // namespace config_store_ns

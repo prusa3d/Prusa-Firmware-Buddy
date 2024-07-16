@@ -133,3 +133,4 @@ backspace_44x33.png
 clear_44x33.png
 ok_16x16.png
 metrics_16x16.png
+user_filament_16x16.png

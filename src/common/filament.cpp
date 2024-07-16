@@ -12,8 +12,14 @@
 #include <enum_array.hpp>
 #include <option/has_loadcell.h>
 
-// !!! If this value changes, you need to inspect usages and possibly write up some config store migrations
+// !!! If these value change, you need to inspect usages and possibly write up some config store migrations
+static_assert(filament_name_buffer_size == 8);
 static_assert(max_preset_filament_type_count == 32);
+static_assert(max_user_filament_type_count == 32);
+static_assert(sizeof(FilamentTypeParameters) == 14);
+
+static_assert(preset_filament_type_count <= max_preset_filament_type_count);
+static_assert(user_filament_type_count <= max_user_filament_type_count);
 
 // We're storing the bed temperature in uint8_t, so make sure the bed cannot go higher
 static_assert(BED_MAXTEMP <= 255);
@@ -143,6 +149,9 @@ FilamentTypeParameters FilamentType::parameters() const {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {
             return preset_filament_parameters[v];
 
+        } else if constexpr (std::is_same_v<T, UserFilamentType>) {
+            return config_store().user_filament_parameters.get(v.index);
+
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
             return none_filament_parameters;
         }
@@ -154,6 +163,9 @@ bool FilamentType::is_visible() const {
     return std::visit([]<typename T>(const T &v) -> bool {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {
             return config_store().visible_preset_filament_types.get().test(static_cast<size_t>(v));
+
+        } else if constexpr (std::is_same_v<T, UserFilamentType>) {
+            return config_store().visible_user_filament_types.get().test(v.index);
 
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
             return false;
@@ -167,6 +179,11 @@ void FilamentType::set_visible(bool set) const {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {
             config_store().visible_preset_filament_types.apply([v, set](auto &value) {
                 value.set(static_cast<size_t>(v), set);
+            });
+
+        } else if constexpr (std::is_same_v<T, UserFilamentType>) {
+            config_store().visible_user_filament_types.apply([v, set](auto &value) {
+                value.set(v.index, set);
             });
 
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
