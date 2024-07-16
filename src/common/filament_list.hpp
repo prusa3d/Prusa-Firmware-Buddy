@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include "filament.hpp"
 
 using FilamentListStorage = std::array<FilamentType, total_filament_type_count>;
@@ -22,3 +24,22 @@ static constexpr FilamentListStorage all_filament_types = [] {
 
     return r;
 }();
+
+struct GenerateFilamentListConfig {
+    /// If set, only outputs visible filaments
+    bool visible_only = true;
+
+    /// If set, visible items will be at the front
+    bool visible_first = false;
+
+    /// If set, the set filament type will be at the first position of the list, circumventing all filters and sorting rules
+    FilamentType enforce_first_item = FilamentType::none;
+};
+
+/// Generate filament list config for management purposes - show all, respect user ordering
+extern const GenerateFilamentListConfig management_generate_filament_list_config;
+
+/// Generates a filament list based on the provided \p config.
+/// The result is stored in \p storage. (But some slots might be unused).
+/// \returns generated list size
+size_t generate_filament_list(FilamentListStorage &storage, const GenerateFilamentListConfig &config);

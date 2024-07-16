@@ -51,7 +51,7 @@ void MI_FILAMENT::click(IWindowMenu &) {
 WindowMenuFilamentManagementList::WindowMenuFilamentManagementList(window_t *parent, Rect16 rect)
     : WindowMenuVirtual(parent, rect, CloseScreenReturnBehavior::yes) //
 {
-    filament_list = all_filament_types;
+    generate_filament_list(filament_list, management_generate_filament_list_config);
     setup_items();
 }
 
