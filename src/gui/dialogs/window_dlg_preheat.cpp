@@ -12,11 +12,6 @@
 #include "i18n.h"
 #include <limits>
 
-constexpr static const char *load_preheat = N_("Preheating for load");
-constexpr static const char *unload_preheat = N_("Preheating for unload");
-constexpr static const char *purge_preheat = N_("Preheating for purge");
-constexpr static const char *index_error = "Index error"; // intentionally not to be translated
-
 /*****************************************************************************/
 // NsPreheat::I_MI_Filament
 NsPreheat::I_MI_Filament::I_MI_Filament(FilamentType filament_type)
@@ -93,19 +88,20 @@ string_view_utf8 DialogMenuPreheat::get_title(fsm::BaseData data) {
     switch (get_type(data).Mode()) {
     case PreheatMode::None:
         return string_view_utf8::MakeNULLSTR();
+
     case PreheatMode::Load:
     case PreheatMode::Autoload:
-        return _(load_preheat);
+    case PreheatMode::Change_phase2: // use load caption, not a bug
+        return _("Preheating for load");
+
     case PreheatMode::Unload:
-        return _(unload_preheat);
+    case PreheatMode::Change_phase1: // use unload caption, not a bug
+        return _("Preheating for unload");
+
     case PreheatMode::Purge:
-        return _(purge_preheat);
-    case PreheatMode::Change_phase1:
-        return _(unload_preheat); // use unload caption, not a bug
-    case PreheatMode::Change_phase2:
-        return _(load_preheat); // use load caption, not a bug
+        return _("Preheating for purge");
+
     default:
-        break;
+        return string_view_utf8::MakeCPUFLASH("Index error");
     }
-    return string_view_utf8::MakeCPUFLASH((const uint8_t *)index_error);
 }
