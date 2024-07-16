@@ -106,7 +106,7 @@ protected:
     }
 };
 
-template <StoreItemDataC DataT, DataT DefaultVal, auto &(*backend)(), uint16_t HashedID>
+template <StoreItemDataC DataT, auto DefaultVal, auto &(*backend)(), uint16_t HashedID>
 struct JournalItem : public JournalItemBase<DataT, backend> {
 
 public:
@@ -324,7 +324,7 @@ struct is_item_array<JournalItemArray<DataT, default_val, backend, hashed_id, it
 template <typename T>
 inline constexpr bool is_item_array_v = is_item_array<T>::value;
 
-template <StoreItemDataC DataT, DataT DefaultVal, journal::BackendC BackendT, uint16_t HashedID>
+template <StoreItemDataC DataT, auto DefaultVal, journal::BackendC BackendT, uint16_t HashedID>
 struct DeprecatedStoreItem {
     static constexpr uint16_t hashed_id { HashedID };
     static constexpr size_t data_size { sizeof(DataT) };

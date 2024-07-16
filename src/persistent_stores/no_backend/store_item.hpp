@@ -6,7 +6,7 @@
 
 namespace no_backend {
 
-template <typename DataT, DataT DefaultVal>
+template <typename DataT, auto DefaultVal>
 class CurrentItem {
 public:
     static constexpr DataT default_val { DefaultVal };
