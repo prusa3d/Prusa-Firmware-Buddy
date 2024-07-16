@@ -66,12 +66,28 @@ public:
     };
 
 public:
+    /// \returns size of a dynamic section
+    template <Item item>
+    size_t section_size() const {
+        static constexpr auto record = item_record<item>();
+        static_assert(record.type == DynamicIndexMappingType::dynamic_section);
+        return dynamic_section_sizes[dynamic_section_count_before<item>()];
+    }
+
     /// Sets size of a dynamic section
     template <Item item>
     void set_section_size(size_t set) {
         static constexpr auto record = item_record<item>();
         static_assert(record.type == DynamicIndexMappingType::dynamic_section);
         dynamic_section_sizes[dynamic_section_count_before<item>()] = set;
+    }
+
+    /// \returns whether an item is enabled
+    template <Item item>
+    bool is_item_enabled() const {
+        static constexpr auto record = item_record<item>();
+        static_assert(record.type == DynamicIndexMappingType::optional_item);
+        return dynamic_section_sizes[dynamic_section_count_before<item>()] != 0;
     }
 
     /// Sets whether an optional item should be shown or not
