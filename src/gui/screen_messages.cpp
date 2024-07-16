@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include "i18n.h"
 #include "gui.hpp"
+#include <sound.hpp>
 
 MessageBuffer screen_messages_data_t::message_buffer;
 
@@ -31,6 +32,7 @@ void screen_messages_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
     case GUI_event_t::CLICK:
     case GUI_event_t::TOUCH_SWIPE_LEFT:
     case GUI_event_t::TOUCH_SWIPE_RIGHT:
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
         Screens::Access()->Close();
         return;
 
