@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <utility>
 
 #include "i18n.h"
 #include "client_response_texts.hpp"
@@ -10,6 +11,9 @@
 #include <Marlin/src/inc/MarlinConfigPre.h>
 #include <enum_array.hpp>
 #include <option/has_loadcell.h>
+
+// !!! If this value changes, you need to inspect usages and possibly write up some config store migrations
+static_assert(max_preset_filament_type_count == 32);
 
 // We're storing the bed temperature in uint8_t, so make sure the bed cannot go higher
 static_assert(BED_MAXTEMP <= 255);
@@ -141,6 +145,35 @@ FilamentTypeParameters FilamentType::parameters() const {
 
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
             return none_filament_parameters;
+        }
+    },
+        *this);
+}
+
+bool FilamentType::is_visible() const {
+    return std::visit([]<typename T>(const T &v) -> bool {
+        if constexpr (std::is_same_v<T, PresetFilamentType>) {
+            return config_store().visible_preset_filament_types.get().test(static_cast<size_t>(v));
+
+        } else if constexpr (std::is_same_v<T, NoFilamentType>) {
+            return false;
+        }
+    },
+        *this);
+}
+
+void FilamentType::set_visible(bool set) const {
+    return std::visit([set]<typename T>(const T &v) -> void {
+        if constexpr (std::is_same_v<T, PresetFilamentType>) {
+            config_store().visible_preset_filament_types.apply([v, set](auto &value) {
+                value.set(static_cast<size_t>(v), set);
+            });
+
+        } else if constexpr (std::is_same_v<T, NoFilamentType>) {
+            // Do nothing
+
+        } else {
+            static_assert(0);
         }
     },
         *this);

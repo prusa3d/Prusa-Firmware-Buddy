@@ -1,6 +1,8 @@
 #pragma once
 #include <Marlin/src/inc/MarlinConfigPre.h>
 
+#include <bitset>
+
 #include <common/hotend_type.hpp>
 #include "constants.hpp"
 #include "defaults.hpp"
@@ -293,6 +295,7 @@ struct CurrentStore
     void set_tool_offset(uint8_t index, ToolOffset value);
 #endif
 
+    // Filament types loaded in extruders
     StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 0")> filament_type_0;
 #if EXTRUDERS > 1 // for now only doing one ifdef for simplicity
     StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 1")> filament_type_1;
@@ -301,6 +304,8 @@ struct CurrentStore
     StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 4")> filament_type_4;
     StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 5")> filament_type_5;
 #endif
+
+    StoreItem<std::bitset<max_preset_filament_type_count>, defaults::visible_preset_filament_types, journal::hash("Visible Preset Filament Types")> visible_preset_filament_types;
 
     FilamentType get_filament_type(uint8_t index);
     void set_filament_type(uint8_t index, FilamentType value);

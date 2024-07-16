@@ -66,6 +66,21 @@ void MI_FILAMENT_REQUIRES_FILTRATION::update() {
     set_is_enabled(filament_type.is_customizable());
 }
 
+// * MI_FILAMENT_VISIBLE
+static_assert(UpdatableMenuItem<MI_FILAMENT_VISIBLE>);
+
+MI_FILAMENT_VISIBLE::MI_FILAMENT_VISIBLE()
+    : MI_COMMON(false, _("Visible")) {
+}
+
+void MI_FILAMENT_VISIBLE::update() {
+    set_value(filament_type.is_visible(), false);
+}
+
+void MI_FILAMENT_VISIBLE::OnChange(size_t) {
+    filament_type.set_visible(value());
+}
+
 // * ScreenFilamentDetail
 ScreenFilamentDetail::ScreenFilamentDetail(FilamentType filament_type)
     : ScreenMenu(_("FILAMENT DETAIL")) {

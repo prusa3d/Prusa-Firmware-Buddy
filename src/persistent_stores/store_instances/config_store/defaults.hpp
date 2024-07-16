@@ -14,6 +14,7 @@
 #include <filament_sensors_remap_data.hpp>
 #include <printers.h>
 #include <common/hw_check.hpp>
+#include <filament.hpp>
 
 #include "constants.hpp"
 #include <common/hotend_type.hpp>
@@ -278,6 +279,16 @@ namespace defaults {
     };
     inline constexpr uint8_t uint8_percentage_80 { 80 };
     inline constexpr int64_t int64_zero { 0 };
+
+    // This is a bit wonky, but std::bitset "is not structural", so we cannot pass it directly as a template argument.
+    // So instead, we pass this empty struct that converts to the bitset.
+    // The struct intializes everything to one.
+    struct VisibleFilamentTypes {
+        constexpr operator std::bitset<max_preset_filament_type_count>() const {
+            return ~std::bitset<max_preset_filament_type_count>();
+        }
+    };
+    inline constexpr VisibleFilamentTypes visible_preset_filament_types;
 } // namespace defaults
 
 } // namespace config_store_ns

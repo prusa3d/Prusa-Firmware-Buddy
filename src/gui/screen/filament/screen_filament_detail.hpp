@@ -54,9 +54,17 @@ public:
     void update();
 };
 
+class MI_FILAMENT_VISIBLE final : public MI_COMMON<MI_FILAMENT_VISIBLE, WI_ICON_SWITCH_OFF_ON_t> {
+public:
+    MI_FILAMENT_VISIBLE();
+    void update();
+    void OnChange(size_t) final;
+};
+
 using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
     MI_RETURN,
     MI_FILAMENT_NAME,
+    MI_FILAMENT_VISIBLE,
     MI_FILAMENT_NOZZLE_TEMPERATURE,
     MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE,
     MI_FILAMENT_BED_TEMPERATURE,

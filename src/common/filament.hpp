@@ -9,7 +9,9 @@
 /// Maximum length of a filament name, including the terminating zero
 constexpr size_t filament_name_buffer_size = 8;
 
-// !!! DO NOT CHANGE - this is used in config store
+/// Maximum ever expected filament types.
+constexpr size_t max_preset_filament_type_count = 32;
+
 struct FilamentTypeParameters {
 
 public:
@@ -92,6 +94,11 @@ public:
         // TODO: user defined filaments
         return false;
     }
+
+    /// \returns whether the filament is visible - shown in standard filament lists
+    bool is_visible() const;
+
+    void set_visible(bool set) const;
 
 public:
     // * Operators
