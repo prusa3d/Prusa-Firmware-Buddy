@@ -42,12 +42,18 @@ public:
         };
 
         struct ROpPair {
-            ropfn focused = {};
+            ropfn focused = { .invert = is_inverted::yes };
             ropfn unfocused = {};
         };
 
-        ColorPair text;
-        ColorPair back;
+        ColorPair text = {
+            .focused = GuiDefaults::MenuColorBack,
+            .unfocused = GuiDefaults::MenuColorText,
+        };
+        ColorPair back = {
+            .focused = GuiDefaults::MenuColorFocusedBack,
+            .unfocused = GuiDefaults::MenuColorBack,
+        };
         ROpPair rop = {};
     };
 
