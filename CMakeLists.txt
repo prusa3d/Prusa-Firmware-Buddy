@@ -564,8 +564,6 @@ if(GENERATE_BBF)
     "${PRINTER_SUBVERSION}"
     SIGNING_KEY
     "${SIGNING_KEY}"
-    BBF_VERSION
-    "2"
     RESOURCE_IMAGES
     ${resource_images}
     RESOURCE_IMAGE_NAMES

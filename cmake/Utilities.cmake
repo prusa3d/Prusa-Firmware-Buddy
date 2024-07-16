@@ -99,14 +99,8 @@ endfunction()
 
 function(pack_firmware target)
   # parse arguments
-  set(one_value_args
-      FW_VERSION
-      BUILD_NUMBER
-      PRINTER_TYPE
-      PRINTER_VERSION
-      PRINTER_SUBVERSION
-      SIGNING_KEY
-      BBF_VERSION
+  set(one_value_args FW_VERSION BUILD_NUMBER PRINTER_TYPE PRINTER_VERSION PRINTER_SUBVERSION
+                     SIGNING_KEY
       )
   set(multi_value_args RESOURCE_IMAGES RESOURCE_IMAGE_NAMES)
   cmake_parse_arguments(ARG "" "${one_value_args}" "${multi_value_args}" ${ARGN})
@@ -166,10 +160,6 @@ function(pack_firmware target)
     endforeach()
   endif()
 
-  if(ARG_BBF_VERSION)
-    set(bbf_version_opts "--bbf-version" "${ARG_BBF_VERSION}")
-  endif()
-
   add_custom_command(
     TARGET ${target}
     POST_BUILD
@@ -182,7 +172,7 @@ function(pack_firmware target)
       "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/pack_fw.py" --version="${ARG_FW_VERSION}"
       --printer-type "${ARG_PRINTER_TYPE}" --printer-version "${ARG_PRINTER_VERSION}"
       --printer-subversion "${ARG_PRINTER_SUBVERSION}" --build-number "${ARG_BUILD_NUMBER}"
-      ${sign_opts} ${resources_opts} ${bbf_version_opts} -- "${bin_firmware_path}"
+      ${sign_opts} ${resources_opts} -- "${bin_firmware_path}"
     )
 endfunction()
 

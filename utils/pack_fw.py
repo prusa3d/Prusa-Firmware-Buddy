@@ -156,8 +156,8 @@ def main():
         "--tlv", type=str,
         help='TLV data (TYPE:FILE format)', action='extend', nargs='*', default=[])
     parser.add_argument(
-        "--bbf-version", type=int, required=False, default=1,
-        help="Version of the BBF. 0: original first version, 1: version with TLV extension")
+        "--bbf-version", type=int, required=False, default=2,
+        help="Version of the BBF. 1: original first version, 2: version with TLV extension")
     parser.add_argument('-TCI', '--TCI', action='store_true', required=False,
         help='evoked from Travis script')
     # yapf: enable
