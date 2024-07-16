@@ -158,8 +158,6 @@ def main():
     parser.add_argument(
         "--bbf-version", type=int, required=False, default=2,
         help="Version of the BBF. 1: original first version, 2: version with TLV extension")
-    parser.add_argument('-TCI', '--TCI', action='store_true', required=False,
-        help='evoked from Travis script')
     # yapf: enable
 
     args = parser.parse_args()
@@ -235,11 +233,7 @@ def main():
 
     sig = bytes(64)  # zeros if not sign
     if not args.no_sign:
-        if args.TCI:
-            key_str = os.environ.get("sign_key")
-            key = SigningKey.from_pem(key_str)
-        else:
-            key = SigningKey.from_pem(open(args.key).read())
+        key = SigningKey.from_pem(open(args.key).read())
         sig = key.sign(bin_data_fw_only, hashfunc=sha256)
     print("\tsign:     ", sig.hex())
 
