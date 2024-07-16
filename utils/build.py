@@ -99,7 +99,6 @@ class HostTool(CaseInsensitiveEnum):
 
     png2font = "png2font"
     bin2cc = "bin2cc"
-    hex2dfu = "hex2dfu"
     unittests = "unittests"
 
 
