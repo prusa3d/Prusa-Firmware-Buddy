@@ -11,6 +11,7 @@
 #include "menu_item_event_dispatcher.hpp"
 #include "MItem_mmu.hpp"
 #include "MItem_filament.hpp"
+#include <gui/screen/filament/screen_filament_management.hpp>
 
 using ScreenMenuFilamentMMU__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_MMU_PRELOAD,
@@ -23,7 +24,8 @@ using ScreenMenuFilamentMMU__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     // debug items, but the functionality will be used by the error screens - hidden in release builds
     MI_MMU_SW_RESET,
     MI_MMU_HW_RESET,
-    MI_MMU_POWER_CYCLE>;
+    MI_MMU_POWER_CYCLE,
+    MI_FILAMENT_MANAGEMENT>;
 
 class ScreenMenuFilamentMMU : public ScreenMenuFilamentMMU__ {
 public:

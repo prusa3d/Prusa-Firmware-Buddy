@@ -57,6 +57,9 @@
 #include <screen_menu_languages.hpp>
 #include <screen_menu_info.hpp>
 
+#include <screen/filament/screen_filament_management.hpp>
+#include <screen/filament/screen_filament_management_list.hpp>
+
 #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
     #include <screen_menu_bed_level_correction.hpp>
 #endif

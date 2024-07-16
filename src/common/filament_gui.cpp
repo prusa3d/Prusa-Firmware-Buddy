@@ -7,6 +7,6 @@ static constexpr IWindowMenuItem::ColorScheme hidden_filament_color_scheme {
     },
 };
 
-void FilamentTypeGUI::setup_menu_item(FilamentType ft, const FilamentTypeParameters &params, IWindowMenuItem &item) {
+void FilamentTypeGUI::setup_menu_item([[maybe_unused]] FilamentType ft, const FilamentTypeParameters &params, IWindowMenuItem &item) {
     item.SetLabel(string_view_utf8::MakeRAM(params.name));
 }

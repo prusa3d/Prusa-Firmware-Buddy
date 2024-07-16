@@ -27,6 +27,12 @@ public:
     void click(IWindowMenu &) override;
 };
 
+class ScreenFilamentManagement;
+using MI_FILAMENT_MANAGEMENT = MI_SCREEN<N_("Manage Filaments"), ScreenFilamentManagement>;
+
+class ScreenFilamentManagementList;
+using MI_EDIT_FILAMENTS = MI_SCREEN<N_("Edit Filaments"), ScreenFilamentManagementList>;
+
 class ScreenMenuVersionInfo;
 using MI_VERSION_INFO = MI_SCREEN<N_("Version Info"), ScreenMenuVersionInfo>;
 

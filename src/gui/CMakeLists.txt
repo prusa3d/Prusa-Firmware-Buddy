@@ -227,6 +227,8 @@ endif()
 
 add_subdirectory(dialogs)
 add_subdirectory(footer)
+add_subdirectory(screen)
+
 if(HAS_LEDS)
   add_subdirectory(led_animations)
 endif()
