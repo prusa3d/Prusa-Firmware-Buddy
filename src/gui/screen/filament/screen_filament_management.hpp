@@ -7,7 +7,8 @@
 
 using ScreenFilamentManagement_ = ScreenMenu<EFooter::Off,
     MI_RETURN,
-    MI_EDIT_FILAMENTS //
+    MI_EDIT_FILAMENTS,
+    MI_FILAMENTS_VISIBILITY //
     >;
 
 class ScreenFilamentManagement final : public ScreenFilamentManagement_ {
