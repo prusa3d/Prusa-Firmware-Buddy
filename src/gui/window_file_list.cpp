@@ -146,7 +146,7 @@ const char *window_file_list_t::TopItemSFN() {
 }
 
 window_file_list_t::window_file_list_t(window_t *parent, Rect16 rc)
-    : WindowMenuVirtual(parent, rc) {
+    : WindowMenuVirtual(parent, rc, CloseScreenReturnBehavior::no) {
 
     assert(max_items_on_screen_count() <= max_max_items_on_screen);
 

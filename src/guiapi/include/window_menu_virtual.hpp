@@ -11,9 +11,19 @@ class WindowMenuVirtualBase : public IWindowMenu {
 public:
     static constexpr int item_buffer_size = GuiDefaults::ScreenHeight / IWindowMenu::item_height();
 
+    /// Whether we should close the screen as return behavior (on swipe left/right)
+    enum class CloseScreenReturnBehavior {
+        /// No - The window will handle the SWIPE_LEFT/RIGHT differently
+        no,
+
+        /// Yes - call Screens.Close() on SWIPE_LEFT/RIGHT
+        yes,
+    };
+
 public:
-    WindowMenuVirtualBase(window_t *parent, Rect16 rect)
-        : IWindowMenu(parent, rect) {}
+    WindowMenuVirtualBase(window_t *parent, Rect16 rect, CloseScreenReturnBehavior close_screen_return_behavior)
+        : IWindowMenu(parent, rect)
+        , close_screen_return_behavior_(close_screen_return_behavior) {}
 
 public:
     IWindowMenuItem *item_at(int index) final;
@@ -35,10 +45,14 @@ protected:
     virtual void setup_buffer_slot(int buffer_slot, std::optional<int> index) = 0;
 
 protected:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+    void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+    void screenEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 private:
     std::optional<int> buffer_slot_index(int buffer_slot, int scroll_offset) const;
+
+private:
+    CloseScreenReturnBehavior close_screen_return_behavior_;
 };
 
 /// WindowMenu implementation that only keeps items that are currently on the screen in the memory.
@@ -52,8 +66,8 @@ public:
     using ItemVariant = std::variant<std::monostate, ItemVariants...>;
 
 public:
-    WindowMenuVirtual(window_t *parent, Rect16 rect)
-        : WindowMenuVirtualBase(parent, rect) {}
+    // Use parent constructor
+    using WindowMenuVirtualBase::WindowMenuVirtualBase;
 
 protected:
     /// Sets up the provided item for a given index:

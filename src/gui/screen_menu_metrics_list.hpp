@@ -35,9 +35,6 @@ protected:
 class ScreenMenuMetricsList : public ScreenMenuBase<WindowMenuMetricsList> {
 public:
     ScreenMenuMetricsList();
-
-protected:
-    void screenEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 } // namespace screen_menu_metrics_list

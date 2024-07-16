@@ -180,7 +180,7 @@ class WindowMenuWifiScan : public WindowMenuVirtual<MI_SCAN_RETURN, MI_WIFI, Win
 
 public:
     WindowMenuWifiScan(window_t *parent, Rect16 rect)
-        : WindowMenuVirtual(parent, rect) {
+        : WindowMenuVirtual(parent, rect, CloseScreenReturnBehavior::no) {
         if (espif::scan::start() != ERR_OK) {
             log_error(GUI, "Scan start failed");
         }

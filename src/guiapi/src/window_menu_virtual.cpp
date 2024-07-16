@@ -1,5 +1,8 @@
 #include "window_menu_virtual.hpp"
 
+#include <ScreenHandler.hpp>
+#include <sound.hpp>
+
 void WindowMenuVirtualBase::setup_items() {
     const auto scroll_offset = this->scroll_offset();
     const auto item_count = this->item_count();
@@ -86,4 +89,22 @@ void WindowMenuVirtualBase::windowEvent(window_t *sender, GUI_event_t event, voi
     }
 
     IWindowMenu::windowEvent(sender, event, param);
+}
+
+void WindowMenuVirtualBase::screenEvent(window_t *sender, GUI_event_t event, void *param) {
+    switch (event) {
+
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT:
+        if (bool(close_screen_return_behavior_)) {
+            Sound_Play(eSOUND_TYPE::ButtonEcho);
+            Screens::Access()->Close();
+            return;
+        }
+
+    default:
+        break;
+    }
+
+    IWindowMenu::screenEvent(sender, event, param);
 }

@@ -21,7 +21,7 @@ void MI_METRIC::OnChange(size_t) {
 }
 
 WindowMenuMetricsList::WindowMenuMetricsList(window_t *parent, Rect16 rect)
-    : WindowMenuVirtual(parent, rect) {
+    : WindowMenuVirtual(parent, rect, CloseScreenReturnBehavior::yes) {
     setup_items();
 }
 
@@ -42,20 +42,4 @@ void WindowMenuMetricsList::setup_item(ItemVariant &variant, int index) {
 
 ScreenMenuMetricsList::ScreenMenuMetricsList()
     : ScreenMenuBase(nullptr, _("METRICS LIST"), EFooter::Off) {
-}
-
-void screen_menu_metrics_list::ScreenMenuMetricsList::screenEvent(window_t *sender, GUI_event_t event, void *param) {
-    switch (event) {
-
-    case GUI_event_t::TOUCH_SWIPE_LEFT:
-    case GUI_event_t::TOUCH_SWIPE_RIGHT:
-        Sound_Play(eSOUND_TYPE::ButtonEcho);
-        Screens::Access()->Close();
-        return;
-
-    default:
-        break;
-    }
-
-    ScreenMenuBase::screenEvent(sender, event, param);
 }
