@@ -26,7 +26,7 @@ Run `python utils/build.py`. The binaries are then going to be stored under `./b
 - Use `--build-type` to select build configurations to be built (`debug`, `release`).
 - Use `--preset` to select for which printers the firmware should be built.
 - By default, it will build the firmware in "prerelease mode" set to `beta`. You can change the prerelease using `--prerelease alpha`, or use `--final` to build a final version of the firmware.
-- Use `--host-tools` to include host tools in the build (`bin2cc`, `png2font`, ...)
+- Use `--host-tools` to include host tools in the build (`png2font`, ...)
 - Find more options using the `--help` flag!
 
 #### Examples:

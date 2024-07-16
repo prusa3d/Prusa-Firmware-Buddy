@@ -98,7 +98,6 @@ class HostTool(CaseInsensitiveEnum):
     """Known host tools."""
 
     png2font = "png2font"
-    bin2cc = "bin2cc"
     unittests = "unittests"
 
 
