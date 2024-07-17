@@ -385,7 +385,9 @@ namespace {
             spool_join.reset();
             tool_mapper.set_enable(false);
         };
-        tool_mapper.reset();
+        // Wipe defaults (eg mapping 1-1, 2-2, ...) - we want to replace it,
+        // not merge and create some kind of weird hydra-mapping.
+        tool_mapper.set_all_unassigned();
         tool_mapper.set_enable(true);
         for (size_t i = 0; i < tool_mapping.size(); i++) {
             auto &curr_tool = tool_mapping[i][0];
