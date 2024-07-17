@@ -127,13 +127,12 @@ def cmd_create_font_png(charset_option: str, required_chars_path: Path,
                                         (y + 1) * char_height))
 
                     # Write index
-                    file.write("{}\n".format(hex(char_to_int(ch))))
+                    file.write("{},\n".format(hex(char_to_int(ch))))
 
                     x += 1
                     if (x >= chars_per_row):
                         x = 0
                         y += 1
-
             if fail:
                 logger.error(
                     "Remove / Replace the unsupported characters in PO files, rerun \"new_translations.sh\" and regenerate fonts again"
