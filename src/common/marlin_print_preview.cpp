@@ -379,6 +379,10 @@ void PrintPreview::tools_mapping_cleanup(bool leaving_to_print) {
     if (!leaving_to_print) {
         // stop preheating bed
         marlin_server::set_target_bed(0);
+#if ENABLED(PRUSA_TOOL_MAPPING)
+        tool_mapper.reset();
+        spool_join.reset();
+#endif
     }
 
 #if PRINTER_IS_PRUSA_XL

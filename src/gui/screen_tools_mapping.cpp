@@ -396,16 +396,22 @@ ToolsMappingBody::ToolsMappingBody(window_t *parent, GCodeInfo &gcode_info)
     std::iota(std::begin(left_gcode_pos_to_real), std::end(left_gcode_pos_to_real), 0); // default order with spaces
     std::iota(std::begin(right_phys_pos_to_real), std::end(right_phys_pos_to_real), 0); // default order with spaces
 
-    // setup mapper to be 1-1, 2-2, but only for each gcode we're trying to assign (unassign the rest)
-    mapper.reset(); // default assignment is 1-1, 2-2
-    for (size_t i = gcode.UsedExtrudersCount(); i < std::size(left_gcode_idx_to_real); ++i) {
-        mapper.set_unassigned(left_gcode_idx_to_real[i]);
+    if (tool_mapper.is_enabled()) {
+        // Marlin contains valid tool mapping - probably preset by Connect. Take that one as our initial input.
+        mapper = tool_mapper;
+        joiner = spool_join;
+    } else {
+        // setup mapper to be 1-1, 2-2, but only for each gcode we're trying to assign (unassign the rest)
+        mapper.reset(); // default assignment is 1-1, 2-2
+        for (size_t i = gcode.UsedExtrudersCount(); i < std::size(left_gcode_idx_to_real); ++i) {
+            mapper.set_unassigned(left_gcode_idx_to_real[i]);
+        }
+        // also unassign when the right side is not available
+        for (size_t i = get_num_of_enabled_tools(); i < std::size(right_phys_idx_to_real); ++i) {
+            mapper.set_unassigned(right_phys_idx_to_real[i]);
+        }
+        mapper.set_enable(true);
     }
-    // also unassign when the right side is not available
-    for (size_t i = get_num_of_enabled_tools(); i < std::size(right_phys_idx_to_real); ++i) {
-        mapper.set_unassigned(right_phys_idx_to_real[i]);
-    }
-    mapper.set_enable(true);
 
     bottom_guide.SetAlignment(Align_t::Center());
 
