@@ -11,6 +11,7 @@
 #include <option/has_toolchanger.h>
 #include <config_store/store_instance.hpp>
 #include <gui/menu_vars.h>
+#include <gui/event/touch_event.hpp>
 
 static constexpr const char *const heating_str = N_("Heating");
 static constexpr const char *const low_temp_str = N_("Low temp");
@@ -83,17 +84,6 @@ void DUMMY_AXIS_E::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_client::gcode("M1700 S E W2 B0"); // set filament, preheat to target, do not heat bed, return option
 }
 
-/**
- * @brief handle touch
- * it behaves the same as click, but only when extension was clicked
- */
-void DUMMY_AXIS_E::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
-    Rect16::Width_t width = window_menu.GetRect().Width();
-    if (width >= relative_touch_point.x && (width - extension_width) <= relative_touch_point.x) {
-        click(window_menu);
-    }
-}
-
 bool DUMMY_AXIS_E::IsTargetTempOk() {
     const auto current_filament = config_store().get_filament_type(marlin_vars().active_extruder);
     auto current_filament_nozzle_target = filament::get_description(current_filament).nozzle_temperature;
@@ -110,7 +100,9 @@ DUMMY_AXIS_E::DUMMY_AXIS_E()
             } else {
                 _(low_temp_str).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
             }
-        }) {}
+        }) {
+    touch_extension_only_ = true;
+}
 
 void DUMMY_AXIS_E::Update() {
     if (value != IsTargetTempOk()) {

@@ -66,7 +66,6 @@ public:
 
 protected:
     void click(IWindowMenu &window_menu) override;
-    void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) override;
 };
 
 using MI_AXIS_X = MI_AXIS<X_AXIS>;

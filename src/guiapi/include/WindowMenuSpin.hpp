@@ -61,10 +61,7 @@ protected:
 
     virtual invalidate_t change(int dif) override;
     void update();
-
-#if HAS_TOUCH()
-    void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) final;
-#endif
+    void event(WindowMenuItemEventContext &ctx) final;
 
 private:
     const NumericInputConfig &config_;

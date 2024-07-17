@@ -10,6 +10,7 @@
 
 #if HAS_TOUCH()
     #include <dialog_numeric_input.hpp>
+    #include <gui/event/touch_event.hpp>
 #endif
 
 WiSpin::WiSpin(float value, const NumericInputConfig &config, const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
@@ -27,21 +28,27 @@ void WiSpin::click(IWindowMenu & /*window_menu*/) {
     toggle_edit_mode();
 }
 
+void WiSpin::event(WindowMenuItemEventContext &ctx) {
 #if HAS_TOUCH()
-/**
- * @brief handle touch
- * it behaves the same as click, but only when extension was clicked
- */
-void WiSpin::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
-    if (is_touch_in_extension_rect(window_menu, relative_touch_point)) {
-        const auto r = DialogNumericInput::exec(GetLabel(), value(), config_);
-        if (r.has_value()) {
-            set_value(*r);
-            OnClick();
+    if (auto e = ctx.event.value_maybe<gui_event::TouchEvent>()) {
+        if (is_touch_in_extension_rect(*ctx.menu, e->relative_touch_point)) {
+            const auto r = DialogNumericInput::exec(GetLabel(), value(), config_);
+            if (r.has_value()) {
+                set_value(*r);
+                OnClick();
+            }
         }
+
+        // Accept touch in every case - we don't want the event to keep propagating
+        ctx.accept();
+
+        // Return - we don't want the default 'click' behavior from IWindowMenuItem
+        return;
     }
-}
 #endif
+
+    IWindowMenuItem::event(ctx);
+}
 
 Rect16 WiSpin::getSpinRect(Rect16 extension_rect) const {
     extension_rect -= getUnitRect(extension_rect).Width();

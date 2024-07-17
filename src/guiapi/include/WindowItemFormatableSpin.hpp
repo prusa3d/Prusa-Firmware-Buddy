@@ -71,14 +71,6 @@ protected:
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) final;
 
     /**
-     * @brief Handle touch.
-     * It behaves the same as click, but only when extension was clicked.
-     * @param window_menu reference to menu where this item is shown
-     * @param relative_touch_point where this item is touched
-     */
-    virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) final;
-
-    /**
      * @brief Selected value changed by dif ticks.
      * Called from parents.
      * @param dif change by this many ticks

@@ -1,5 +1,3 @@
-
-
 #include "WindowItemFormatableSpin.hpp"
 
 WI_LAMBDA_SPIN::WI_LAMBDA_SPIN(const string_view_utf8 &label, size_t item_count, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, size_t init_index, stdext::inplace_function<void(char *)> printAs)
@@ -8,6 +6,7 @@ WI_LAMBDA_SPIN::WI_LAMBDA_SPIN(const string_view_utf8 &label, size_t item_count,
     , item_count(item_count) {
     assert(item_count > init_index && "Cannot start with invalid value");
 
+    touch_extension_only_ = true;
     UpdateText(); // Format text and get extension width
 }
 
@@ -92,19 +91,6 @@ void WI_LAMBDA_SPIN::click([[maybe_unused]] IWindowMenu &window_menu) {
         OnClick(); // User overridable callback when item selection is confirmed
     }
     toggle_edit_mode();
-}
-
-/**
- * @brief Handle touch.
- * It behaves the same as click, but only when extension was clicked.
- * @param window_menu reference to menu where this item is shown
- * @param relative_touch_point where this item is touched
- */
-void WI_LAMBDA_SPIN::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
-    if (is_touch_in_extension_rect(window_menu, relative_touch_point)) {
-        set_is_edited(true);
-        SetIndex((index + 1) % item_count);
-    }
 }
 
 void WI_LAMBDA_SPIN::SetIndex(size_t new_index) {

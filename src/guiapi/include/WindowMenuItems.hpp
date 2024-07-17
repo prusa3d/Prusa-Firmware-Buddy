@@ -57,7 +57,6 @@ protected:
     virtual void OnChange([[maybe_unused]] size_t old_index) {} // TODO: Remove this ugly legacy parameter
 
     virtual void click(IWindowMenu &window_menu) override;
-    virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) override;
     virtual void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
 
     /// Legacy reference to value_

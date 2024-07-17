@@ -31,7 +31,9 @@ WI_ICON_SWITCH_OFF_ON_t::WI_ICON_SWITCH_OFF_ON_t(bool value, const string_view_u
     : IWindowMenuItem(label, 36, id_icon, enabled, hidden)
     , index(value_)
     , value_(value) //
-{}
+{
+    touch_extension_only_ = true;
+}
 
 void WI_ICON_SWITCH_OFF_ON_t::set_value(bool set, bool emit_change) {
     if (value_ == set) {
@@ -48,12 +50,6 @@ void WI_ICON_SWITCH_OFF_ON_t::set_value(bool set, bool emit_change) {
 invalidate_t WI_ICON_SWITCH_OFF_ON_t::change(int) {
     value_ = !value_;
     return invalidate_t::yes;
-}
-
-void WI_ICON_SWITCH_OFF_ON_t::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
-    if (is_touch_in_extension_rect(window_menu, relative_touch_point)) {
-        click(window_menu);
-    }
 }
 
 void WI_ICON_SWITCH_OFF_ON_t::click(IWindowMenu &) {

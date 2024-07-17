@@ -8,6 +8,7 @@
 #include "img_resources.hpp"
 
 #include <gui/event/focus_event.hpp>
+#include <gui/event/touch_event.hpp>
 
 namespace window_menu_item_private {
 
@@ -329,16 +330,16 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
     }
 }
 
-void IWindowMenuItem::Touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
+void IWindowMenuItem::Touch([[maybe_unused]] IWindowMenu &window_menu, [[maybe_unused]] point_ui16_t relative_touch_point) {
+#if HAS_TOUCH()
     if (IsEnabled()) {
         focused_menu_item_roll.Deinit();
         InValidateExtension();
-        touch(window_menu, relative_touch_point);
-    }
-}
 
-void IWindowMenuItem::touch(IWindowMenu &window_menu, [[maybe_unused]] point_ui16_t relative_touch_point) {
-    click(window_menu);
+        WindowMenuItemEventContext ctx(gui_event::TouchEvent { relative_touch_point }, &window_menu);
+        event(ctx);
+    }
+#endif
 }
 
 bool IWindowMenuItem::IsHidden() const {
@@ -446,5 +447,21 @@ bool IWindowMenuItem::Change(int dif) {
     return changed;
 }
 
-void IWindowMenuItem::event(WindowMenuItemEventContext &) {
+void IWindowMenuItem::event(WindowMenuItemEventContext &ctx) {
+    // The event has been processed & accepted -> do nothing
+    if (ctx.is_accepted()) {
+        return;
+    }
+
+#if HAS_TOUCH()
+    if (const auto *e = ctx.event.value_maybe<gui_event::TouchEvent>()) {
+        assert(ctx.menu);
+        if (!touch_extension_only_ || is_touch_in_extension_rect(*ctx.menu, e->relative_touch_point)) {
+            click(*ctx.menu);
+        }
+
+        // Accept touch in every case - we don't want the event to keep propagating
+        ctx.accept();
+    }
+#endif
 }

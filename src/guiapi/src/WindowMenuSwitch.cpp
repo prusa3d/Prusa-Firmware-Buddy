@@ -10,7 +10,9 @@
 // IWiSwitch
 IWiSwitch::IWiSwitch(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : IWindowMenuItem(label, 0, id_icon, enabled, hidden) //
-{}
+{
+    touch_extension_only_ = true;
+}
 
 invalidate_t IWiSwitch::change(int /*dif*/) {
     if ((++index) >= item_count()) {
@@ -24,16 +26,6 @@ void IWiSwitch::click(IWindowMenu & /*window_menu*/) {
     Change(0);
     OnChange(old_index);
     changeExtentionWidth();
-}
-
-/**
- * @brief handle touch
- * it behaves the same as click, but only when extension was clicked
- */
-void IWiSwitch::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
-    if (is_touch_in_extension_rect(window_menu, relative_touch_point)) {
-        click(window_menu);
-    }
 }
 
 void IWiSwitch::SetIndex(size_t idx) {

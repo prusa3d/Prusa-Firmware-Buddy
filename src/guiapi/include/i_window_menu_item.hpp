@@ -144,6 +144,10 @@ protected:
     /// Marks this menu item as returning.
     /// TOUCH_SWIPE_LEFT gesture tries to find an item with this flag in the menu and execute it.
     bool has_return_behavior_ : 1 = false;
+
+    /// If set, touch event generates the click event only when the touch happens in the extension rect by default
+    bool touch_extension_only_ : 1 = false;
+
     bool invalid_icon : 1 = true;
     bool invalid_label : 1 = true;
     bool invalid_extension : 1 = true;
@@ -159,7 +163,6 @@ protected:
     virtual void printIcon(Rect16 icon_rect, ropfn raster_op, Color color_back) const; // must be virtual, because pictures of flags are drawn differently
     virtual void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const; // things behind rect
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) {};
-    virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point);
     virtual invalidate_t change(int /*dif*/) { return invalidate_t::no; }
     virtual void event(WindowMenuItemEventContext &);
 
