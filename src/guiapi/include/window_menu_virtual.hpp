@@ -97,6 +97,11 @@ protected:
         return std::visit(visit_f, item_buffer_[buffer_slot]);
     }
 
+    /// \returns item instance variants that are currently in the buffer
+    inline auto &buffered_items() {
+        return item_buffer_;
+    }
+
 private:
     std::array<ItemVariant, item_buffer_size> item_buffer_;
 };
