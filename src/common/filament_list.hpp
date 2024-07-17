@@ -36,6 +36,10 @@ struct GenerateFilamentListConfig {
     /// If set, visible items will be at the front
     bool visible_first = false;
 
+    /// If set, the filaments will be sorted based on config_store().filament_order
+    /// \p visible_first has precedence
+    bool user_ordering = true;
+
     /// If set, the set filament type will be at the first position of the list, circumventing all filters and sorting rules
     FilamentType enforce_first_item = FilamentType::none;
 };

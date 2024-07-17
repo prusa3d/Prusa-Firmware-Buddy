@@ -46,6 +46,15 @@ size_t generate_filament_list(FilamentListStorage &storage, const GenerateFilame
 
     /// Walks filaments, one possibly multiple times
     const auto walk_filaments = [&](auto &&f) {
+        // First walk user ordered filaments
+        if (config.user_ordering) {
+            const auto order = config_store().filament_order.get();
+            for (auto it = order.begin(); *it; it++) {
+                f(*it);
+            }
+        }
+
+        // Then walk all filaments - user ordered filaments should already be in the result, so they shall be skipped
         for (FilamentType ft : all_filament_types) {
             f(ft);
         }

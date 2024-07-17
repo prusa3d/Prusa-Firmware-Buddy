@@ -9,11 +9,14 @@
 /// Maximum length of a filament name, including the terminating zero
 constexpr size_t filament_name_buffer_size = 8;
 
-/// Maximum ever expected preset filament types.
+/// Maximum ever expected preset filament type count
 constexpr size_t max_preset_filament_type_count = 32;
 
-/// Maximum ever expected user filament types.
+/// Maximum ever expected user filament type count
 constexpr size_t max_user_filament_type_count = 32;
+
+/// Maximum ever expected count of  all filament types
+constexpr size_t max_total_filament_count = max_user_filament_type_count + max_preset_filament_type_count;
 
 /// Actually defined user filament type count
 constexpr size_t user_filament_type_count = 8;

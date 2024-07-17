@@ -16,6 +16,7 @@
 static_assert(filament_name_buffer_size == 8);
 static_assert(max_preset_filament_type_count == 32);
 static_assert(max_user_filament_type_count == 32);
+static_assert(max_total_filament_count == 64);
 static_assert(sizeof(FilamentTypeParameters) == 14);
 
 static_assert(preset_filament_type_count <= max_preset_filament_type_count);

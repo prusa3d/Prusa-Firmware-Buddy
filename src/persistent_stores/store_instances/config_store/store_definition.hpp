@@ -305,6 +305,9 @@ struct CurrentStore
     StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 5")> filament_type_5;
 #endif
 
+    /// User-defined filament ordering. Does not need to contain all the filaments - the rest will be appended to the back using the standard rules
+    StoreItem<std::array<FilamentType, max_total_filament_count>, FilamentType::none, journal::hash("Filament Order")> filament_order;
+
     StoreItem<std::bitset<max_preset_filament_type_count>, defaults::visible_preset_filament_types, journal::hash("Visible Preset Filament Types")> visible_preset_filament_types;
     StoreItemArray<FilamentTypeParameters, defaults::user_filament_parameters, journal::hash("User Filament Parameters"), max_user_filament_type_count, user_filament_type_count> user_filament_parameters;
     StoreItem<std::bitset<max_user_filament_type_count>, defaults::visible_user_filament_types, journal::hash("Visible User Filament Types")> visible_user_filament_types;
