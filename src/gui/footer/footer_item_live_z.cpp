@@ -19,7 +19,7 @@ int FooterItemLiveZ::static_readValue() {
 
 string_view_utf8 FooterItemLiveZ::static_makeView(int value) {
     static std::array<char, 7> buff; //"-2" - "0", longest "-0.001"
-    int value_clamped = std::clamp(value, -2000, 0);
+    int value_clamped = std::clamp(value, -3000, 0);
 
     int printed_chars = snprintf(buff.data(), buff.size(), "%i.%.3u", value_clamped / 1000, std::abs(value_clamped) % 1000);
 
