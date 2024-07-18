@@ -3,8 +3,6 @@
 
 #include <cassert>
 
-marlin_vars_t marlin_vars_instance;
-
 void marlin_vars_t::lock() {
 
     if (current_mutex_owner == osThreadGetId()) {
@@ -23,11 +21,11 @@ void marlin_vars_t::unlock() {
 }
 
 MarlinVarsLockGuard::MarlinVarsLockGuard() {
-    marlin_vars_instance.lock();
+    marlin_vars()->lock();
 }
 
 MarlinVarsLockGuard::~MarlinVarsLockGuard() {
-    marlin_vars_instance.unlock();
+    marlin_vars()->unlock();
 }
 
 void marlin_vars_t::init() {
