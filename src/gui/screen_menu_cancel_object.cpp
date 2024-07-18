@@ -15,7 +15,7 @@ ScreenMenuCancelObject::ScreenMenuCancelObject()
 
 MI_CO_CANCEL_OBJECT::MI_CO_CANCEL_OBJECT()
     : IWindowMenuItem(
-        _(label), nullptr, marlin_vars()->cancel_object_count > 0 ? is_enabled_t::yes : is_enabled_t::no,
+        _(label), nullptr, marlin_vars().cancel_object_count > 0 ? is_enabled_t::yes : is_enabled_t::no,
         is_hidden_t::no, expands_t::yes) {
 }
 
@@ -34,14 +34,14 @@ MI_CO_OBJECT_N::MI_CO_OBJECT_N(int ObjectId_)
 }
 
 void MI_CO_OBJECT_N::UpdateState() {
-    size_t new_index = (marlin_vars()->get_cancel_object_mask() & (static_cast<uint64_t>(1) << ObjectId)) ? 1 : 0;
+    size_t new_index = (marlin_vars().get_cancel_object_mask() & (static_cast<uint64_t>(1) << ObjectId)) ? 1 : 0;
     if (GetIndex() != new_index) {
         SetIndex(new_index);
     }
 }
 
 void MI_CO_OBJECT_N::UpdateName() {
-    if (marlin_vars()->cancel_object_count > ObjectId) {
+    if (marlin_vars().cancel_object_count > ObjectId) {
         bool empty; ///< True if object name from G-code is empty
 
         { // Do all things in one lock
@@ -49,12 +49,12 @@ void MI_CO_OBJECT_N::UpdateName() {
 
             // Check if object name is empty
             char first_char[2]; // Needs to be 2 to get 1 character and a valid null-terminator
-            marlin_vars()->cancel_object_names[ObjectId].copy_to(first_char, 2, lock);
+            marlin_vars().cancel_object_names[ObjectId].copy_to(first_char, 2, lock);
             empty = (first_char[0] == '\0');
 
             // Check if object name is known and (either was unknown before or changed)
-            if (!empty && (backup_label_used || (!marlin_vars()->cancel_object_names[ObjectId].equals(label_buffer, lock)))) {
-                marlin_vars()->cancel_object_names[ObjectId].copy_to(label_buffer, sizeof(label_buffer), lock);
+            if (!empty && (backup_label_used || (!marlin_vars().cancel_object_names[ObjectId].equals(label_buffer, lock)))) {
+                marlin_vars().cancel_object_names[ObjectId].copy_to(label_buffer, sizeof(label_buffer), lock);
                 backup_label_used = false;
                 Invalidate(); // The string memory is the same, so it needs to be invalidated manually
             }
@@ -89,7 +89,7 @@ void MI_CO_OBJECT_N::OnChange(size_t old_index) {
 }
 
 MI_CO_CANCEL_CURRENT::MI_CO_CANCEL_CURRENT()
-    : IWindowMenuItem(_(label), &img::arrow_right_10x16, is_enabled_t::yes, marlin_vars()->cancel_object_count > 0 ? is_hidden_t::no : is_hidden_t::yes) {}
+    : IWindowMenuItem(_(label), &img::arrow_right_10x16, is_enabled_t::yes, marlin_vars().cancel_object_count > 0 ? is_hidden_t::no : is_hidden_t::yes) {}
 
 void MI_CO_CANCEL_CURRENT::click(IWindowMenu & /*window_menu*/) {
     marlin_client::cancel_current_object();

@@ -28,7 +28,7 @@ void jog_axis(float &position, const float target, const AxisEnum axis) {
 
     // Just fill the entire queue with movements.
     // When i went up to BLOCK_BUFFER_SIZE, it was still choppy in certain situations
-    for (uint8_t i = marlin_vars()->pqueue; i < BLOCK_BUFFER_SIZE - 1; i++) {
+    for (uint8_t i = marlin_vars().pqueue; i < BLOCK_BUFFER_SIZE - 1; i++) {
         const float difference = (float)target - position;
         if (difference == 0) {
             break;
@@ -129,7 +129,7 @@ void jog_multiple_axis(xyz_float_t &position, const xyz_float_t target) {
 
     // Fill marlin queue enought so we have continuous movement,
     // but we don't block other events beeing processed
-    for (uint8_t i = marlin_vars()->pqueue; i < BLOCK_BUFFER_SIZE - 4; i++) {
+    for (uint8_t i = marlin_vars().pqueue; i < BLOCK_BUFFER_SIZE - 4; i++) {
         const auto difference = target - position;
         if (all_zero(difference)) {
             return;

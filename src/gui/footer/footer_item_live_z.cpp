@@ -14,7 +14,7 @@ FooterItemLiveZ::FooterItemLiveZ(window_t *parent)
 }
 
 int FooterItemLiveZ::static_readValue() {
-    return std::lroundf(1000.f * marlin_vars()->z_offset); // store as fix point
+    return std::lroundf(1000.f * marlin_vars().z_offset); // store as fix point
 }
 
 string_view_utf8 FooterItemLiveZ::static_makeView(int value) {

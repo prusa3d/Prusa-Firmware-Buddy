@@ -371,7 +371,7 @@ void prepare() {
     // do not erase/save unless we have a path we can use to resume later
     if (!state_buf.nested_fault) {
         // update the internal filename on the first fault
-        marlin_vars()->media_SFN_path.copy_to(state_buf.media_SFN_path, sizeof(state_buf.media_SFN_path));
+        marlin_vars().media_SFN_path.copy_to(state_buf.media_SFN_path, sizeof(state_buf.media_SFN_path));
     }
 
     // erase and save the MBL data
@@ -1044,7 +1044,7 @@ void ac_fault_isr() {
 
     // stop motion
     if (!state_buf.nested_fault) {
-        marlin_vars()->media_SFN_path.copy_to(state_buf.media_SFN_path, sizeof(state_buf.media_SFN_path));
+        marlin_vars().media_SFN_path.copy_to(state_buf.media_SFN_path, sizeof(state_buf.media_SFN_path));
         state_buf.planner.was_paused = marlin_server::printer_paused();
         state_buf.planner.was_crashed = crash_s.did_trigger();
     }
@@ -1104,7 +1104,7 @@ void ac_fault_isr() {
             state_buf.planner.print_speed = resume.print_speed;
         } else {
             state_buf.planner.fan_speed = thermalManager.fan_speed[0];
-            state_buf.planner.print_speed = marlin_vars()->print_speed;
+            state_buf.planner.print_speed = marlin_vars().print_speed;
         }
         state_buf.planner.target_bed = thermalManager.degTargetBed();
 #if ENABLED(MODULAR_HEATBED)

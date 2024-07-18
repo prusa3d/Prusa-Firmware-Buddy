@@ -129,7 +129,7 @@ void window_header_t::update_bed_info() {
         bed_last_change_ms = now;
     }
 
-    snprintf(bed_str, sizeof(bed_str), "%d\xC2\xB0\x43", static_cast<int>(marlin_vars()->temp_bed.get()));
+    snprintf(bed_str, sizeof(bed_str), "%d\xC2\xB0\x43", static_cast<int>(marlin_vars().temp_bed.get()));
     bed_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)bed_str));
     bed_text.Invalidate();
 }
@@ -197,7 +197,7 @@ void window_header_t::updateIcons() {
     icon_metrics.set_visible(config_store().enable_metrics.get());
 #endif
 
-    icon_stealth.set_visible(marlin_vars()->stealth_mode.get());
+    icon_stealth.set_visible(marlin_vars().stealth_mode.get());
 
     updateAllRects();
 }

@@ -27,20 +27,20 @@ void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void
 
         Item<MI_INFO_MCU_TEMP>().UpdateValue(buffer.GetValue(SensorData::Sensor::MCUTemp));
 
-        Item<MI_INFO_HEATBREAK_N_TEMP<0>>().UpdateValue(marlin_vars()->hotend(0).temp_heatbreak.get());
-        Item<MI_INFO_HEATBREAK_N_TEMP<1>>().UpdateValue(marlin_vars()->hotend(1).temp_heatbreak.get());
-        Item<MI_INFO_HEATBREAK_N_TEMP<2>>().UpdateValue(marlin_vars()->hotend(2).temp_heatbreak.get());
-        Item<MI_INFO_HEATBREAK_N_TEMP<3>>().UpdateValue(marlin_vars()->hotend(3).temp_heatbreak.get());
-        Item<MI_INFO_HEATBREAK_N_TEMP<4>>().UpdateValue(marlin_vars()->hotend(4).temp_heatbreak.get());
+        Item<MI_INFO_HEATBREAK_N_TEMP<0>>().UpdateValue(marlin_vars().hotend(0).temp_heatbreak.get());
+        Item<MI_INFO_HEATBREAK_N_TEMP<1>>().UpdateValue(marlin_vars().hotend(1).temp_heatbreak.get());
+        Item<MI_INFO_HEATBREAK_N_TEMP<2>>().UpdateValue(marlin_vars().hotend(2).temp_heatbreak.get());
+        Item<MI_INFO_HEATBREAK_N_TEMP<3>>().UpdateValue(marlin_vars().hotend(3).temp_heatbreak.get());
+        Item<MI_INFO_HEATBREAK_N_TEMP<4>>().UpdateValue(marlin_vars().hotend(4).temp_heatbreak.get());
 
         SensorData::Value res = buffer.GetValue(SensorData::Sensor::bedTemp);
         Item<MI_INFO_BED_TEMP>().UpdateValue(res);
 
-        Item<MI_INFO_NOZZLE_N_TEMP<0>>().UpdateValue(marlin_vars()->hotend(0).temp_nozzle.get());
-        Item<MI_INFO_NOZZLE_N_TEMP<1>>().UpdateValue(marlin_vars()->hotend(1).temp_nozzle.get());
-        Item<MI_INFO_NOZZLE_N_TEMP<2>>().UpdateValue(marlin_vars()->hotend(2).temp_nozzle.get());
-        Item<MI_INFO_NOZZLE_N_TEMP<3>>().UpdateValue(marlin_vars()->hotend(3).temp_nozzle.get());
-        Item<MI_INFO_NOZZLE_N_TEMP<4>>().UpdateValue(marlin_vars()->hotend(4).temp_nozzle.get());
+        Item<MI_INFO_NOZZLE_N_TEMP<0>>().UpdateValue(marlin_vars().hotend(0).temp_nozzle.get());
+        Item<MI_INFO_NOZZLE_N_TEMP<1>>().UpdateValue(marlin_vars().hotend(1).temp_nozzle.get());
+        Item<MI_INFO_NOZZLE_N_TEMP<2>>().UpdateValue(marlin_vars().hotend(2).temp_nozzle.get());
+        Item<MI_INFO_NOZZLE_N_TEMP<3>>().UpdateValue(marlin_vars().hotend(3).temp_nozzle.get());
+        Item<MI_INFO_NOZZLE_N_TEMP<4>>().UpdateValue(marlin_vars().hotend(4).temp_nozzle.get());
 
         Item<MI_INFO_DWARF_BOARD_TEMPERATURE>().UpdateValue(buffer.GetValue(SensorData::Sensor::dwarfBoardTemperature));
 
@@ -50,13 +50,13 @@ void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void
 
         Item<MI_INFO_LOADCELL>().UpdateValue(buffer.GetValue(SensorData::Sensor::loadCell));
 
-        if (auto fsensor = GetExtruderFSensor(marlin_vars()->active_extruder.get()); fsensor) { // Try to get extruder filament sensor
+        if (auto fsensor = GetExtruderFSensor(marlin_vars().active_extruder.get()); fsensor) { // Try to get extruder filament sensor
             Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->get_state()), static_cast<int>(fsensor->GetFilteredValue())));
         } else {
             Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue({ {}, {} });
         }
 
-        if (auto fsensor = GetSideFSensor(marlin_vars()->active_extruder.get()); fsensor) { // Try to get side filament sensor
+        if (auto fsensor = GetSideFSensor(marlin_vars().active_extruder.get()); fsensor) { // Try to get side filament sensor
             Item<MI_INFO_SIDE_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->get_state()), static_cast<int>(fsensor->GetFilteredValue())));
         } else {
             Item<MI_INFO_SIDE_FILL_SENSOR>().UpdateValue({ {}, {} });

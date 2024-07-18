@@ -31,8 +31,8 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     // different values. But they would still be reasonably "sane". If we eg.
     // finish a print and base what we include on previous version, we may
     // outdated values, but they are still there.
-    marlin_vars_t *vars = marlin_vars();
-    const FilamentType filament = config_store().get_filament_type(vars->active_extruder);
+    auto &vars = marlin_vars();
+    const FilamentType filament = config_store().get_filament_type(vars.active_extruder);
     const char *filament_material = filament::get_name(filament);
 
     bool operational = true;
@@ -45,7 +45,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     bool error = false;
     const char *link_state_str = nullptr;
 
-    switch (vars->print_state) {
+    switch (vars.print_state) {
     case State::CrashRecovery_Begin:
     case State::CrashRecovery_Lifting:
     case State::CrashRecovery_ToolchangePowerPanic:
@@ -141,26 +141,26 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     JSON_START;
     JSON_OBJ_START;
         JSON_FIELD_OBJ("telemetry");
-            JSON_FIELD_FFIXED("temp-bed", vars->temp_bed, 1) JSON_COMMA;
-            JSON_FIELD_FFIXED("temp-nozzle", vars->active_hotend().temp_nozzle, 1) JSON_COMMA;
-            JSON_FIELD_INT("print-speed", vars->print_speed) JSON_COMMA;
+            JSON_FIELD_FFIXED("temp-bed", vars.temp_bed, 1) JSON_COMMA;
+            JSON_FIELD_FFIXED("temp-nozzle", vars.active_hotend().temp_nozzle, 1) JSON_COMMA;
+            JSON_FIELD_INT("print-speed", vars.print_speed) JSON_COMMA;
             // XYZE, mm
-            JSON_FIELD_FFIXED("z-height", vars->logical_pos[2], 1) JSON_COMMA;
+            JSON_FIELD_FFIXED("z-height", vars.logical_pos[2], 1) JSON_COMMA;
             JSON_FIELD_STR("material", filament_material);
         JSON_OBJ_END JSON_COMMA;
 
         JSON_FIELD_OBJ("temperature");
             JSON_FIELD_OBJ("tool0");
-                JSON_FIELD_FFIXED("actual", vars->hotend(0).temp_nozzle, 1) JSON_COMMA;
-                JSON_FIELD_FFIXED("target", vars->hotend(0).target_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("actual", vars.hotend(0).temp_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("target", vars.hotend(0).target_nozzle, 1) JSON_COMMA;
                 // Note: our own extension, because our printers sometimes display
                 // different "target" temperature than what they heat towards.
-                JSON_FIELD_FFIXED("display", vars->hotend(0).display_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("display", vars.hotend(0).display_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_INT("offset", 0);
             JSON_OBJ_END JSON_COMMA;
             JSON_FIELD_OBJ("bed");
-                JSON_FIELD_FFIXED("actual", vars->temp_bed, 1) JSON_COMMA;
-                JSON_FIELD_FFIXED("target", vars->target_bed, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("actual", vars.temp_bed, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("target", vars.target_bed, 1) JSON_COMMA;
                 JSON_FIELD_INT("offset", 0);
             JSON_OBJ_END;
         JSON_OBJ_END JSON_COMMA;
@@ -245,12 +245,12 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
     // different values. But they would still be reasonably "sane". If we eg.
     // finish a print and base what we include on previous version, we may
     // outdated values, but they are still there.
-    marlin_vars_t *vars = marlin_vars();
+    auto &vars = marlin_vars();
 
     bool has_job = false;
     const char *state = "Unknown";
 
-    switch (vars->print_state) {
+    switch (vars.print_state) {
     case State::Finishing_WaitIdle:
     case State::Finishing_UnloadFilament:
     case State::Finishing_ParkHead:
@@ -335,8 +335,8 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
     char sfn_buffer[FILE_PATH_MAX_LEN];
     {
         auto lock = MarlinVarsLockGuard();
-        marlin_vars()->media_LFN.copy_to(lfn_buffer, sizeof(lfn_buffer), lock);
-        marlin_vars()->media_SFN_path.copy_to(sfn_buffer, sizeof(sfn_buffer), lock);
+        marlin_vars().media_LFN.copy_to(lfn_buffer, sizeof(lfn_buffer), lock);
+        marlin_vars().media_SFN_path.copy_to(sfn_buffer, sizeof(sfn_buffer), lock);
     }
 
     // Keep the indentation of the JSON in here!
@@ -346,7 +346,7 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
         JSON_FIELD_STR("state", state) JSON_COMMA;
         if (has_job) {
             JSON_FIELD_OBJ("job");
-                JSON_FIELD_INT("estimatedPrintTime", vars->print_duration + vars->time_to_end) JSON_COMMA;
+                JSON_FIELD_INT("estimatedPrintTime", vars.print_duration + vars.time_to_end) JSON_COMMA;
                 JSON_FIELD_OBJ("file")
                     JSON_FIELD_STR("name", lfn_buffer) JSON_COMMA;
                     JSON_FIELD_STR("path", sfn_buffer) JSON_COMMA;
@@ -355,11 +355,11 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
             JSON_OBJ_END JSON_COMMA;
             JSON_FIELD_OBJ("progress");
                 //Send only valid time_to_end value
-                if (vars->time_to_end != TIME_TO_END_INVALID) {
-                    JSON_FIELD_INT("printTimeLeft", vars->time_to_end) JSON_COMMA;
+                if (vars.time_to_end != TIME_TO_END_INVALID) {
+                    JSON_FIELD_INT("printTimeLeft", vars.time_to_end) JSON_COMMA;
                 }
-                JSON_FIELD_FFIXED("completion", ((float)vars->sd_percent_done / 100.0f), 2) JSON_COMMA;
-                JSON_FIELD_INT("printTime", vars->print_duration);
+                JSON_FIELD_FFIXED("completion", ((float)vars.sd_percent_done / 100.0f), 2) JSON_COMMA;
+                JSON_FIELD_INT("printTime", vars.print_duration);
             JSON_OBJ_END;
         } else {
             JSON_CONTROL("\"job\": null,\"progress\": null");
@@ -370,7 +370,7 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
 }
 
 json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output) {
-    uint32_t time_to_end = marlin_vars()->time_to_end;
+    uint32_t time_to_end = marlin_vars().time_to_end;
     const char *state = "ERROR";
     auto link_state = printer_state::get_state(false);
     switch (link_state) {
@@ -395,8 +395,8 @@ json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output) {
     char sfn_path[FILE_PATH_MAX_LEN];
     {
         auto lock = MarlinVarsLockGuard();
-        marlin_vars()->media_LFN.copy_to(filename, sizeof(filename), lock);
-        marlin_vars()->media_SFN_path.copy_to(sfn_path, sizeof(sfn_path), lock);
+        marlin_vars().media_LFN.copy_to(filename, sizeof(filename), lock);
+        marlin_vars().media_SFN_path.copy_to(sfn_path, sizeof(sfn_path), lock);
     }
 
     bool has_stat { true };
@@ -413,13 +413,13 @@ json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output) {
     // clang-format off
     JSON_START;
     JSON_OBJ_START;
-        JSON_FIELD_INT("id", marlin_vars()->job_id) JSON_COMMA;
+        JSON_FIELD_INT("id", marlin_vars().job_id) JSON_COMMA;
         JSON_FIELD_STR("state", state) JSON_COMMA;
-        JSON_FIELD_FFIXED("progress", ((float)marlin_vars()->sd_percent_done), 2) JSON_COMMA;
+        JSON_FIELD_FFIXED("progress", ((float)marlin_vars().sd_percent_done), 2) JSON_COMMA;
         if (time_to_end != TIME_TO_END_INVALID) {
             JSON_FIELD_INT("time_remaining", time_to_end) JSON_COMMA;
         }
-        JSON_FIELD_INT("time_printing", marlin_vars()->print_duration) JSON_COMMA;
+        JSON_FIELD_INT("time_printing", marlin_vars().print_duration) JSON_COMMA;
         JSON_FIELD_OBJ("file");
             JSON_FIELD_OBJ("refs");
                 JSON_CUSTOM("\"icon\":\"/thumb/s%s\",", sfn_path_escaped);

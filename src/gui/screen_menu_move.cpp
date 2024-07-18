@@ -37,13 +37,13 @@ static const NumericInputConfig &axis_ranges_spin_config(uint8_t axis) {
 }
 
 I_MI_AXIS::I_MI_AXIS(size_t index)
-    : WiSpin(round(marlin_vars()->logical_curr_pos[index].get()),
+    : WiSpin(round(marlin_vars().logical_curr_pos[index].get()),
         axis_ranges_spin_config(index), _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , axis_index(index) {
     xyz_float_t init_pos {
-        marlin_vars()->logical_curr_pos[X_AXIS].get(),
-        marlin_vars()->logical_curr_pos[Y_AXIS].get(),
-        marlin_vars()->logical_curr_pos[Z_AXIS].get(),
+        marlin_vars().logical_curr_pos[X_AXIS].get(),
+        marlin_vars().logical_curr_pos[Y_AXIS].get(),
+        marlin_vars().logical_curr_pos[Z_AXIS].get(),
     };
     did_final_move = false;
     last_queued_pos = target_position = init_pos;
@@ -95,10 +95,10 @@ void DUMMY_AXIS_E::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_p
 }
 
 bool DUMMY_AXIS_E::IsTargetTempOk() {
-    const auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
+    const auto current_filament = config_store().get_filament_type(marlin_vars().active_extruder);
     auto current_filament_nozzle_target = filament::get_description(current_filament).nozzle;
     return (current_filament != FilamentType::none) // filament is selected
-        && (int(marlin_vars()->active_hotend().target_nozzle + 0.9F) >= current_filament_nozzle_target); // target temperature is high enough - +0.9 to avoid float round error
+        && (int(marlin_vars().active_hotend().target_nozzle + 0.9F) >= current_filament_nozzle_target); // target temperature is high enough - +0.9 to avoid float round error
 }
 
 DUMMY_AXIS_E::DUMMY_AXIS_E()
@@ -188,7 +188,7 @@ void ScreenMenuMove::checkNozzleTemp() {
 
 bool ScreenMenuMove::IsTempOk() {
     return DUMMY_AXIS_E::IsTargetTempOk() // target correctly set
-        && (marlin_vars()->active_hotend().temp_nozzle >= temp_ok); // Temperature is above coldextrusion
+        && (marlin_vars().active_hotend().temp_nozzle >= temp_ok); // Temperature is above coldextrusion
 }
 
 ScreenMenuMove::ScreenMenuMove()
@@ -196,7 +196,7 @@ ScreenMenuMove::ScreenMenuMove()
 #if !PRINTER_IS_PRUSA_MINI
     header.SetIcon(&img::move_16x16);
 #endif
-    prev_accel = marlin_vars()->travel_acceleration;
+    prev_accel = marlin_vars().travel_acceleration;
     marlin_client::gcode("M9201"); // Restore default motion parameters
     marlin_client::gcode("M204 T200"); // Set accelerations
     Item<MI_AXIS_E>().set_is_hidden(true); // one of pair MI_AXIS_E DUMMY_AXIS_E must be hidden for swap to work

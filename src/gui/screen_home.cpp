@@ -156,7 +156,7 @@ static void FilamentBtnMMU_cb(window_t &) {
 // clang-format off
 screen_home_data_t::screen_home_data_t()
     : screen_t()
-    , usbInserted(marlin_vars()->media_inserted)
+    , usbInserted(marlin_vars().media_inserted)
     , header(this)
     , footer(this)
 #if HAS_MINI_DISPLAY()
@@ -226,7 +226,7 @@ screen_home_data_t::~screen_home_data_t() {
 
 void screen_home_data_t::filamentBtnSetState() {
 #if HAS_MMU2()
-    const MMU2::xState new_state = MMU2::xState(marlin_vars()->mmu2_state.get());
+    const MMU2::xState new_state = MMU2::xState(marlin_vars().mmu2_state.get());
     if (new_state != mmu_state) {
         mmu_state = new_state;
 

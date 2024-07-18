@@ -11,7 +11,7 @@ bool DialogMoveZ::DialogShown = false;
 
 DialogMoveZ::DialogMoveZ()
     : IDialog(GuiDefaults::EnableDialogBigLayout ? GuiDefaults::RectScreen : GuiDefaults::RectScreenNoFoot)
-    , value(round(marlin_vars()->logical_pos[2]))
+    , value(round(marlin_vars().logical_pos[2]))
     , lastQueuedPos(value)
     , axisText(this, text_rc, is_multiline::no, is_closed_on_click_t::no, _(axisLabel))
     , infoText(this, infoText_rc, is_multiline::yes, is_closed_on_click_t::no, _(infoTextContent))
@@ -29,7 +29,7 @@ DialogMoveZ::DialogMoveZ()
     , icon(this, icon_rc, &img::turn_knob_81x55) {
     DialogShown = true;
 
-    prev_accel = marlin_vars()->travel_acceleration;
+    prev_accel = marlin_vars().travel_acceleration;
     marlin_client::gcode("M204 T200");
     /// using window_t 1bit flag
     flags.close_on_click = is_closed_on_click_t::yes;

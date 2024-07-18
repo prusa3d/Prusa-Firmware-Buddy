@@ -230,7 +230,7 @@ bool SpoolJoin::do_join(uint8_t current_tool) {
 
     // transfer target temperature from one tool to another
     auto target_temp = thermalManager.degTargetHotend(current_tool);
-    float display_temp = marlin_vars()->hotend(current_tool).display_nozzle;
+    float display_temp = marlin_vars().hotend(current_tool).display_nozzle;
     thermalManager.setTargetHotend(target_temp, new_tool);
     marlin_server::set_temp_to_display(display_temp, new_tool);
 

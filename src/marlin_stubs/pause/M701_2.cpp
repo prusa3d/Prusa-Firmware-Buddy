@@ -37,7 +37,7 @@ using namespace filament_gcodes;
  * Shared code for load/unload filament
  */
 bool filament_gcodes::load_unload([[maybe_unused]] LoadUnloadMode type, filament_gcodes::Func f_load_unload, pause::Settings &rSettings) {
-    float disp_temp = marlin_vars()->active_hotend().display_nozzle;
+    float disp_temp = marlin_vars().active_hotend().display_nozzle;
     float targ_temp = Temperature::degTargetHotend(rSettings.GetExtruder());
 
     if (disp_temp > targ_temp) {

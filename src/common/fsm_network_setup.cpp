@@ -264,7 +264,7 @@ private:
 
 #if HAS_NFC()
     void phase_nfc_confirm_init(const Meta::InitCallbackArgs &) {
-        marlin_vars()->generic_param_string.set(nfc_credentials_.ssid.data(), nfc_credentials_.ssid.size());
+        marlin_vars().generic_param_string.set(nfc_credentials_.ssid.data(), nfc_credentials_.ssid.size());
     }
 
     PhaseOpt phase_nfc_confirm(const Meta::LoopCallbackArgs &args) {

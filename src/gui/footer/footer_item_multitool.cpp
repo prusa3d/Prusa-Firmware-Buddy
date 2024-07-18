@@ -18,7 +18,7 @@ FooterItemFinda::FooterItemFinda(window_t *parent)
 }
 
 int FooterItemFinda::static_readValue() {
-    return int(marlin_vars()->mmu2_finda);
+    return int(marlin_vars().mmu2_finda);
 }
 
 string_view_utf8 FooterItemFinda::static_makeView(int value) {
@@ -35,7 +35,7 @@ FooterItemCurrentTool::FooterItemCurrentTool(window_t *parent)
 }
 
 int FooterItemCurrentTool::static_readValue() {
-    return int(marlin_vars()->active_extruder);
+    return int(marlin_vars().active_extruder);
 }
 
 string_view_utf8 FooterItemCurrentTool::static_makeView(int value) {

@@ -14,9 +14,9 @@ WindowPrintProgress::WindowPrintProgress(window_t *parent, Rect16 rect)
 
 void WindowPrintProgress::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        if (marlin_vars()->sd_percent_done != last_sd_percent_done) {
-            SetProgressPercent(marlin_vars()->sd_percent_done);
-            last_sd_percent_done = marlin_vars()->sd_percent_done;
+        if (marlin_vars().sd_percent_done != last_sd_percent_done) {
+            SetProgressPercent(marlin_vars().sd_percent_done);
+            last_sd_percent_done = marlin_vars().sd_percent_done;
         }
     }
     window_numberless_progress_t::windowEvent(sender, event, param);
@@ -33,9 +33,9 @@ WindowNumbPrintProgress::WindowNumbPrintProgress(window_t *parent, Rect16 rect)
 
 void WindowNumbPrintProgress::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        if (marlin_vars()->sd_percent_done != last_sd_percent_done) {
-            last_sd_percent_done = marlin_vars()->sd_percent_done;
-            SetValue(marlin_vars()->sd_percent_done);
+        if (marlin_vars().sd_percent_done != last_sd_percent_done) {
+            last_sd_percent_done = marlin_vars().sd_percent_done;
+            SetValue(marlin_vars().sd_percent_done);
             percent_changed = true;
         }
     }
@@ -52,9 +52,9 @@ WindowPrintVerticalProgress::WindowPrintVerticalProgress(window_t *parent, Rect1
 
 void WindowPrintVerticalProgress::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        if (marlin_vars()->sd_percent_done != last_sd_percent_done) {
-            last_sd_percent_done = marlin_vars()->sd_percent_done;
-            SetProgressPercent(marlin_vars()->sd_percent_done);
+        if (marlin_vars().sd_percent_done != last_sd_percent_done) {
+            last_sd_percent_done = marlin_vars().sd_percent_done;
+            SetProgressPercent(marlin_vars().sd_percent_done);
         }
     }
     window_vertical_progress_t::windowEvent(sender, event, param);

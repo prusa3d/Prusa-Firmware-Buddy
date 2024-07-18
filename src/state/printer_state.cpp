@@ -118,9 +118,9 @@ optional<ErrCode> load_unload_attention_while_printing([[maybe_unused]] const fs
 namespace printer_state {
 
 DeviceState get_state(bool ready) {
-    const auto &fsm_states = marlin_vars()->get_fsm_states();
+    const auto &fsm_states = marlin_vars().get_fsm_states();
     const auto &top = fsm_states.get_top();
-    State state = marlin_vars()->print_state;
+    State state = marlin_vars().print_state;
     if (!top) {
         // No FSM present...
         return get_print_state(state, ready);
@@ -274,7 +274,7 @@ DeviceState get_print_state(State state, bool ready) {
 StateWithDialog get_state_with_dialog(bool ready) {
     // Get the state and slap top FSM dialog on top of it, if any
     DeviceState state = get_state(ready);
-    const auto &fsm_states = marlin_vars()->get_fsm_states();
+    const auto &fsm_states = marlin_vars().get_fsm_states();
     const auto &fsm_gen = fsm_states.generation;
     const auto &top = fsm_states.get_top();
     if (!top) {
@@ -350,7 +350,7 @@ StateWithDialog get_state_with_dialog(bool ready) {
 }
 
 bool remote_print_ready(bool preview_only) {
-    auto &print_state = marlin_vars()->print_state;
+    auto &print_state = marlin_vars().print_state;
     if (print_state == State::PrintPreviewInit || print_state == State::PrintPreviewImage) {
         return !preview_only;
     }
@@ -374,7 +374,7 @@ bool has_job() {
     case DeviceState::Paused:
         return true;
     case DeviceState::Attention: {
-        const auto &fsm_states = marlin_vars()->get_fsm_states();
+        const auto &fsm_states = marlin_vars().get_fsm_states();
         // Attention while printing or one of these questions before print(eg. wrong filament)
         return (fsm_states[ClientFSM::Printing] || fsm_states[ClientFSM::PrintPreview]);
     }

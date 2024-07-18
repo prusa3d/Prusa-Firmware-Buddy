@@ -308,9 +308,9 @@ bool wui_is_file_being_printed(const char *filename) {
     char sfn[FILE_PATH_BUFFER_LEN];
     strlcpy(sfn, filename, sizeof(sfn));
     get_SFN_path(sfn);
-    return marlin_vars()->media_SFN_path.equals(sfn);
+    return marlin_vars().media_SFN_path.equals(sfn);
 }
 
 bool wui_media_inserted() {
-    return marlin_vars()->media_inserted;
+    return marlin_vars().media_inserted;
 }

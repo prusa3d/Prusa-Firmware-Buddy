@@ -31,7 +31,7 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
 }
 
 void screen_printing_serial_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
-    marlin_server::State state = marlin_vars()->print_state;
+    marlin_server::State state = marlin_vars().print_state;
 
     if (state != last_state) {
         switch (state) {
@@ -63,7 +63,7 @@ void screen_printing_serial_data_t::tuneAction() {
 
 void screen_printing_serial_data_t::pauseAction() {
     // pause or resume button, depenging on what state we are in
-    marlin_server::State state = marlin_vars()->print_state;
+    marlin_server::State state = marlin_vars().print_state;
     switch (state) {
     case marlin_server::State::Paused:
         marlin_client::print_resume();

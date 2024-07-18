@@ -59,7 +59,7 @@ constexpr const char *printer_busy_text = N_("Printer is busy. Please try repeat
 } // namespace
 
 bool gui_check_space_in_gcode_queue_with_msg() {
-    if (marlin_vars()->gqueue <= MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET) {
+    if (marlin_vars().gqueue <= MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET) {
         return true;
     }
 
@@ -551,11 +551,11 @@ void IMI_FS_REF::OnClick() {
 /*****************************************************************************/
 // MI_FAN_CHECK
 MI_FAN_CHECK::MI_FAN_CHECK()
-    : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars()->fan_check_enabled), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars().fan_check_enabled), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_FAN_CHECK::OnChange(size_t old_index) {
     marlin_client::set_fan_check(!old_index);
-    config_store().fan_check_enabled.set(static_cast<bool>(marlin_vars()->fan_check_enabled));
+    config_store().fan_check_enabled.set(static_cast<bool>(marlin_vars().fan_check_enabled));
 }
 
 MI_INFO_FW::MI_INFO_FW()
@@ -604,11 +604,11 @@ static is_hidden_t get_autoload_hide_state() {
 }
 
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
-    : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars()->fs_autoload_enabled), _(label), nullptr, is_enabled_t::yes, get_autoload_hide_state()) {}
+    : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars().fs_autoload_enabled), _(label), nullptr, is_enabled_t::yes, get_autoload_hide_state()) {}
 
 void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
     marlin_client::set_fs_autoload(!old_index);
-    config_store().fs_autoload_enabled.set(static_cast<bool>(marlin_vars()->fs_autoload_enabled));
+    config_store().fs_autoload_enabled.set(static_cast<bool>(marlin_vars().fs_autoload_enabled));
 }
 
 /*****************************************************************************/

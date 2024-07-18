@@ -143,7 +143,7 @@ void make_gui_ready_to_print() {
         Screens::Access()->Get()->Validate(); // Do not redraw after CloseAll (keep wait dialog displayed)
 
         while (!DialogHandler::Access().IsAnyOpen() // Wait for start of the print - to prevent any unwanted GUI action
-            && marlin_vars()->print_state != marlin_server::State::Idle) { // Abort if print was not started (this function is called when State::WaitGui)
+            && marlin_vars().print_state != marlin_server::State::Idle) { // Abort if print was not started (this function is called when State::WaitGui)
             // main thread is processing a print
             // wait for print screen to open, any fsm can break waiting (f.e.: Print Preview)
             gui_timers_cycle(); // refresh GUI time
@@ -323,7 +323,7 @@ void gui_run(void) {
 
         // I must do it before screen and dialog loops
         // do not use marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state, it can make gui freeze in case main thread is unresponsive
-        volatile bool print_processor_waiting = marlin_vars()->print_state == marlin_server::State::WaitGui;
+        volatile bool print_processor_waiting = marlin_vars().print_state == marlin_server::State::WaitGui;
 
         DialogHandler::Access().Loop();
 

@@ -80,10 +80,10 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textHeatBreakFan_RPM.SetText(_(cl1));
 
     textPrintFan_RPM_val.SetFormat((const char *)"%0.0f");
-    textPrintFan_RPM_val.SetValue(marlin_vars()->active_hotend().print_fan_rpm);
+    textPrintFan_RPM_val.SetValue(marlin_vars().active_hotend().print_fan_rpm);
 
     textHeatBreakFan_RPM_val.SetFormat((const char *)"%0.0f");
-    textHeatBreakFan_RPM_val.SetValue(marlin_vars()->active_hotend().heatbreak_fan_rpm);
+    textHeatBreakFan_RPM_val.SetValue(marlin_vars().active_hotend().heatbreak_fan_rpm);
 
     textExit.set_font(Font::big);
 
@@ -107,8 +107,8 @@ void screen_sysinfo_data_t::windowEvent(window_t *sender, GUI_event_t event, voi
             last_CPU_load = actual_CPU_load;
         }
 
-        textPrintFan_RPM_val.SetValue(marlin_vars()->active_hotend().print_fan_rpm);
-        textHeatBreakFan_RPM_val.SetValue(marlin_vars()->active_hotend().heatbreak_fan_rpm);
+        textPrintFan_RPM_val.SetValue(marlin_vars().active_hotend().print_fan_rpm);
+        textHeatBreakFan_RPM_val.SetValue(marlin_vars().active_hotend().heatbreak_fan_rpm);
         break;
     }
 

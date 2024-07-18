@@ -464,7 +464,7 @@ public:
         : FrameText(parent, Phase::nfc_confirm, _("Credentials via NFC"), {}) {
         static constexpr const char wifi_credentials_loaded_txt[] = N_("Wi-Fi credentials loaded via NFC.\nApply credentials?\n\nSSID: %s");
         string_view_utf8 str;
-        marlin_vars()->generic_param_string.execute_with([&](const auto &param) {
+        marlin_vars().generic_param_string.execute_with([&](const auto &param) {
             str = _(wifi_credentials_loaded_txt).formatted(string_view_parameters, param);
         });
 

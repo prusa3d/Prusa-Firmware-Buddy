@@ -90,7 +90,7 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
         // wouldn't harvest the print and the bed would cool down, it'd cause
         // the print to be detached and greatly increase the chance of
         // harvesting failure.
-        if (marlin_vars()->print_state == marlin_server::State::Finished) {
+        if (marlin_vars().print_state == marlin_server::State::Finished) {
             HOTEND_LOOP() {
                 show_warning |= thermalManager.degTargetHotend(e) != 0;
             }

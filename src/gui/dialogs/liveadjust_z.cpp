@@ -77,7 +77,7 @@ void WindowScale::unconditionalDraw() {
 
 WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
     : window_frame_t(parent, GuiDefaults::RectScreenBody)
-    , number(this, getNumberRect(pt), marlin_vars()->z_offset)
+    , number(this, getNumberRect(pt), marlin_vars().z_offset)
     , arrows(this, getIconPoint(pt)) {
 
     SetRect(number.GetRect().Union(arrows.GetRect()));

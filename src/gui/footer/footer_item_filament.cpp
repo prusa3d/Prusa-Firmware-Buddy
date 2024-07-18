@@ -19,12 +19,12 @@ FooterItemFilament::FooterItemFilament(window_t *parent)
 
 int FooterItemFilament::static_readValue() {
 #if HAS_TOOLCHANGER()
-    if (marlin_vars()->active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+    if (marlin_vars().active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
         return no_tool_value;
     }
 #endif /*HAS_TOOLCHANGER()*/
 
-    auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
+    auto current_filament = config_store().get_filament_type(marlin_vars().active_extruder);
     return static_cast<int>(current_filament);
 }
 

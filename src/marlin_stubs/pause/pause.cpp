@@ -266,7 +266,7 @@ bool Pause::ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t pr
     setPhase(settings.can_stop ? PhasesLoadUnload::WaitingTemp_stoppable : PhasesLoadUnload::WaitingTemp_unstoppable, progress_min);
 
     PauseFsmNotifier N(*this, Temperature::degHotend(active_extruder),
-        Temperature::degTargetHotend(active_extruder) - heating_phase_min_hotend_diff, progress_min, progress_max, marlin_vars()->hotend(active_extruder).temp_nozzle);
+        Temperature::degTargetHotend(active_extruder) - heating_phase_min_hotend_diff, progress_min, progress_max, marlin_vars().hotend(active_extruder).temp_nozzle);
 
     // Wait until temperature is close
     while (Temperature::degHotend(active_extruder) < (Temperature::degTargetHotend(active_extruder) - heating_phase_min_hotend_diff)) {
@@ -285,7 +285,7 @@ bool Pause::ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t pr
 }
 
 void Pause::do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
-    PauseFsmNotifier N(*this, current_position.e, current_position.e + length, progress_min, progress_max, marlin_vars()->native_pos[MARLIN_VAR_INDEX_E]);
+    PauseFsmNotifier N(*this, current_position.e, current_position.e + length, progress_min, progress_max, marlin_vars().native_pos[MARLIN_VAR_INDEX_E]);
 
     mapi::extruder_move(length, fr_mm_s);
 
@@ -1161,7 +1161,7 @@ void Pause::park_nozzle_and_notify() {
         if (axes_need_homing(_BV(Z_AXIS))) {
             unhomed_z_lift(target_Z);
         } else {
-            PauseFsmNotifier N(*this, current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len), marlin_vars()->native_pos[MARLIN_VAR_INDEX_Z]);
+            PauseFsmNotifier N(*this, current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len), marlin_vars().native_pos[MARLIN_VAR_INDEX_Z]);
             plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
             if (wait_for_motion_finish_or_user_stop()) {
                 return;
@@ -1212,13 +1212,13 @@ void Pause::park_nozzle_and_notify() {
 #endif /*CORE_IS_XY*/
 
         if (x_greater_than_y) {
-            PauseFsmNotifier N(*this, begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_X]); // from Z% to 100%
+            PauseFsmNotifier N(*this, begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100, marlin_vars().native_pos[MARLIN_VAR_INDEX_X]); // from Z% to 100%
             plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
             if (wait_for_motion_finish_or_user_stop()) {
                 return;
             }
         } else {
-            PauseFsmNotifier N(*this, begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_Y]); // from Z% to 100%
+            PauseFsmNotifier N(*this, begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100, marlin_vars().native_pos[MARLIN_VAR_INDEX_Y]); // from Z% to 100%
             plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
             if (wait_for_motion_finish_or_user_stop()) {
                 return;
@@ -1252,10 +1252,10 @@ void Pause::unpark_nozzle_and_notify() {
     }
 
     if (x_greater_than_y) {
-        PauseFsmNotifier N(*this, begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len), marlin_vars()->native_pos[MARLIN_VAR_INDEX_X]);
+        PauseFsmNotifier N(*this, begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len), marlin_vars().native_pos[MARLIN_VAR_INDEX_X]);
         do_blocking_move_to_xy(settings.resume_pos, NOZZLE_UNPARK_XY_FEEDRATE);
     } else {
-        PauseFsmNotifier N(*this, begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len), marlin_vars()->native_pos[MARLIN_VAR_INDEX_Y]);
+        PauseFsmNotifier N(*this, begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len), marlin_vars().native_pos[MARLIN_VAR_INDEX_Y]);
         do_blocking_move_to_xy(settings.resume_pos, NOZZLE_UNPARK_XY_FEEDRATE);
     }
 
@@ -1270,7 +1270,7 @@ void Pause::unpark_nozzle_and_notify() {
         planner.apply_leveling(resume_pos_adj);
 #endif
 
-        PauseFsmNotifier N(*this, current_position.z, resume_pos_adj.z, parkMoveXYPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_Z]); // from XY% to 100%
+        PauseFsmNotifier N(*this, current_position.z, resume_pos_adj.z, parkMoveXYPercent(Z_len, XY_len), 100, marlin_vars().native_pos[MARLIN_VAR_INDEX_Z]); // from XY% to 100%
         // FIXME: use a beter movement api when available
         do_blocking_move_to_z(resume_pos_adj.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
         // But since the plan_park_move_to overrides the current position values (which are by default in

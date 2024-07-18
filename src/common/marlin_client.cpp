@@ -354,7 +354,7 @@ bool is_print_started() {
     // user.
 
     while (true) {
-        switch (marlin_vars()->print_state) {
+        switch (marlin_vars().print_state) {
         case State::WaitGui:
         // We also need to wait these two out, because they are not considered printing
         // and if connect want to send JOB_INFO before marlin_server goes through them
@@ -380,7 +380,7 @@ bool is_print_started() {
 
 bool is_print_exited() {
     while (true) {
-        switch (marlin_vars()->print_state) {
+        switch (marlin_vars().print_state) {
         case State::Finished:
         case State::Aborted:
         case State::Exit:
@@ -458,7 +458,7 @@ void FSM_encoded_response(EncodedFSMResponse encoded_fsm_response) {
     _send_request_to_server_and_wait(request);
 }
 bool is_printing() {
-    switch (marlin_vars()->print_state) {
+    switch (marlin_vars().print_state) {
     case State::Aborted:
     case State::Idle:
     case State::Finished:
@@ -474,7 +474,7 @@ bool is_printing() {
 }
 
 bool is_paused() {
-    switch (marlin_vars()->print_state) {
+    switch (marlin_vars().print_state) {
     case State::Paused:
         return true;
     default:
@@ -483,7 +483,7 @@ bool is_paused() {
 }
 
 bool is_idle() {
-    switch (marlin_vars()->print_state) {
+    switch (marlin_vars().print_state) {
     case State::Idle:
         return true;
     default:
@@ -576,31 +576,31 @@ void marlin_set_variable(MarlinVariable<T> &variable, T value) {
 }
 
 void set_target_nozzle(float val, uint8_t hotend) {
-    return marlin_set_variable(marlin_vars()->hotend(hotend).target_nozzle, val);
+    return marlin_set_variable(marlin_vars().hotend(hotend).target_nozzle, val);
 }
 void set_display_nozzle(float val, uint8_t hotend) {
-    return marlin_set_variable(marlin_vars()->hotend(hotend).display_nozzle, val);
+    return marlin_set_variable(marlin_vars().hotend(hotend).display_nozzle, val);
 }
 void set_target_bed(float val) {
-    return marlin_set_variable(marlin_vars()->target_bed, val);
+    return marlin_set_variable(marlin_vars().target_bed, val);
 }
 void set_fan_speed(uint8_t val) {
-    return marlin_set_variable(marlin_vars()->print_fan_speed, val);
+    return marlin_set_variable(marlin_vars().print_fan_speed, val);
 }
 void set_print_speed(uint16_t val) {
-    return marlin_set_variable(marlin_vars()->print_speed, val);
+    return marlin_set_variable(marlin_vars().print_speed, val);
 }
 void set_flow_factor(uint16_t val, uint8_t hotend) {
-    return marlin_set_variable(marlin_vars()->hotend(hotend).flow_factor, val);
+    return marlin_set_variable(marlin_vars().hotend(hotend).flow_factor, val);
 }
 void set_z_offset(float val) {
-    return marlin_set_variable(marlin_vars()->z_offset, std::clamp(val, Z_OFFSET_MIN, Z_OFFSET_MAX));
+    return marlin_set_variable(marlin_vars().z_offset, std::clamp(val, Z_OFFSET_MIN, Z_OFFSET_MAX));
 }
 void set_fan_check(bool val) {
-    return marlin_set_variable(marlin_vars()->fan_check_enabled, static_cast<uint8_t>(val));
+    return marlin_set_variable(marlin_vars().fan_check_enabled, static_cast<uint8_t>(val));
 }
 void set_fs_autoload(bool val) {
-    return marlin_set_variable(marlin_vars()->fs_autoload_enabled, static_cast<uint8_t>(val));
+    return marlin_set_variable(marlin_vars().fs_autoload_enabled, static_cast<uint8_t>(val));
 }
 
 #if ENABLED(CANCEL_OBJECTS)

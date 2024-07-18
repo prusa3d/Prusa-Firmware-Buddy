@@ -24,7 +24,7 @@ is_hidden_t MI_NOZZLE_ABSTRACT::is_hidden([[maybe_unused]] uint8_t tool_nr) {
 }
 
 MI_NOZZLE_ABSTRACT::MI_NOZZLE_ABSTRACT(uint8_t tool_nr, [[maybe_unused]] const char *label)
-    : WiSpin(uint16_t(marlin_vars()->hotend(tool_nr).target_nozzle), numeric_input_config::nozzle_temperature,
+    : WiSpin(uint16_t(marlin_vars().hotend(tool_nr).target_nozzle), numeric_input_config::nozzle_temperature,
 #if ENABLED(PRUSA_TOOLCHANGER)
         prusa_toolchanger.is_toolchanger_enabled() ? _(label) : _(generic_label),
 #else
@@ -43,7 +43,7 @@ void MI_NOZZLE_ABSTRACT::OnClick() {
 // MI_HEATBED
 
 MI_HEATBED::MI_HEATBED()
-    : WiSpin(uint8_t(marlin_vars()->target_bed), numeric_input_config::bed_temperature, _(label), &img::heatbed_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    : WiSpin(uint8_t(marlin_vars().target_bed), numeric_input_config::bed_temperature, _(label), &img::heatbed_16x16, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_HEATBED::OnClick() {
     marlin_client::set_target_bed(value());
@@ -59,7 +59,7 @@ static constexpr NumericInputConfig printfan_spin_config = {
 };
 
 MI_PRINTFAN::MI_PRINTFAN()
-    : WiSpin(val_mapping(false, marlin_vars()->print_fan_speed, 255, 100),
+    : WiSpin(val_mapping(false, marlin_vars().print_fan_speed, 255, 100),
         printfan_spin_config, _(label), &img::fan_16x16, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_PRINTFAN::OnClick() {
@@ -81,7 +81,7 @@ static constexpr NumericInputConfig print_speed_spin_config = {
 };
 
 MI_SPEED::MI_SPEED()
-    : WiSpin(uint16_t(marlin_vars()->print_speed), print_speed_spin_config, _(label), &img::speed_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    : WiSpin(uint16_t(marlin_vars().print_speed), print_speed_spin_config, _(label), &img::speed_16x16, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SPEED::OnClick() {
@@ -107,7 +107,7 @@ static constexpr NumericInputConfig flowfact_spin_config {
 };
 
 MI_FLOWFACT_ABSTRACT::MI_FLOWFACT_ABSTRACT(uint8_t tool_nr, [[maybe_unused]] const char *label)
-    : WiSpin(uint16_t(marlin_vars()->hotend(tool_nr).flow_factor), flowfact_spin_config,
+    : WiSpin(uint16_t(marlin_vars().hotend(tool_nr).flow_factor), flowfact_spin_config,
 #if HAS_TOOLCHANGER()
         prusa_toolchanger.is_toolchanger_enabled() ? _(label) : _(generic_label),
 #elif HAS_MMU2()

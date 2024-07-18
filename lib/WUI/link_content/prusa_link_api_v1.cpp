@@ -120,7 +120,7 @@ optional<ConnectionState> PrusaLinkApiV1::accept(const RequestParser &parser) co
         if (!id.has_value()) {
             return StatusPage(Status::BadRequest, parser);
         }
-        if (id.value() != marlin_vars()->job_id) {
+        if (id.value() != marlin_vars().job_id) {
             return StatusPage(Status::NotFound, parser);
         }
         switch (parser.method) {

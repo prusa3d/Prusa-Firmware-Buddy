@@ -21,11 +21,11 @@ void marlin_vars_t::unlock() {
 }
 
 MarlinVarsLockGuard::MarlinVarsLockGuard() {
-    marlin_vars()->lock();
+    marlin_vars().lock();
 }
 
 MarlinVarsLockGuard::~MarlinVarsLockGuard() {
-    marlin_vars()->unlock();
+    marlin_vars().unlock();
 }
 
 void marlin_vars_t::init() {

@@ -13,7 +13,7 @@ FooterItemSpeed::FooterItemSpeed(window_t *parent)
 }
 
 int FooterItemSpeed::static_readValue() {
-    return marlin_vars()->print_speed;
+    return marlin_vars().print_speed;
 }
 
 string_view_utf8 FooterItemSpeed::static_makeView(int value) {

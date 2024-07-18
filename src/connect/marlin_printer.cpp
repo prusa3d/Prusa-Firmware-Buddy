@@ -123,8 +123,8 @@ void MarlinPrinter::renew(std::optional<SharedBuffer::Borrow> new_borrow) {
         borrow = BorrowPaths(move(*new_borrow));
         // update variables from marlin server, sample LFN+SFN atomically
         auto lock = MarlinVarsLockGuard();
-        marlin_vars()->media_SFN_path.copy_to(borrow->path(), FILE_PATH_BUFFER_LEN, lock);
-        marlin_vars()->media_LFN.copy_to(borrow->name(), FILE_NAME_BUFFER_LEN, lock);
+        marlin_vars().media_SFN_path.copy_to(borrow->path(), FILE_PATH_BUFFER_LEN, lock);
+        marlin_vars().media_LFN.copy_to(borrow->name(), FILE_NAME_BUFFER_LEN, lock);
     } else {
         borrow.reset();
     }
@@ -147,7 +147,7 @@ namespace {
 #if HAS_MMU2()
         params.progress_code = MMU2::Fsm::Instance().reporter.GetProgressCode();
         params.command_code = MMU2::Fsm::Instance().reporter.GetCommandInProgress();
-        const bool mmu_enabled = config_store().mmu2_enabled.get() && marlin_vars()->mmu2_state == ftrstd::to_underlying(MMU2::xState::Active);
+        const bool mmu_enabled = config_store().mmu2_enabled.get() && marlin_vars().mmu2_state == ftrstd::to_underlying(MMU2::xState::Active);
         params.slot_mask = mmu_enabled ? 0b00011111 : 1;
         params.mmu_version = MMU2::mmu2.GetMMUFWVersion();
         // Note: 0 means no active tool, indexing from 1
@@ -167,10 +167,10 @@ namespace {
         for (size_t i = 0; i < params.slots.size(); i++) {
             if (params.slot_mask & (1 << i)) {
 #if HAS_TOOLCHANGER()
-                auto &hotend = marlin_vars()->hotend(i);
+                auto &hotend = marlin_vars().hotend(i);
 #else
                 // only one hotend in any other situation
-                auto &hotend = marlin_vars()->active_hotend();
+                auto &hotend = marlin_vars().active_hotend();
 #endif
                 params.slots[i].material = filament::get_name(config_store().get_filament_type(i));
                 params.slots[i].temp_nozzle = hotend.temp_nozzle;
@@ -186,21 +186,21 @@ Printer::Params MarlinPrinter::params() const {
     Params params(borrow);
     params.state = get_state_with_dialog(ready);
     params.has_job = has_job();
-    params.temp_bed = marlin_vars()->temp_bed;
-    params.target_bed = marlin_vars()->target_bed;
-    params.target_nozzle = marlin_vars()->active_hotend().target_nozzle;
-    params.pos[X_AXIS_POS] = marlin_vars()->logical_pos[X_AXIS_POS];
-    params.pos[Y_AXIS_POS] = marlin_vars()->logical_pos[Y_AXIS_POS];
-    params.pos[Z_AXIS_POS] = marlin_vars()->logical_pos[Z_AXIS_POS];
-    params.print_speed = marlin_vars()->print_speed;
-    params.flow_factor = marlin_vars()->active_hotend().flow_factor;
-    params.job_id = marlin_vars()->job_id;
+    params.temp_bed = marlin_vars().temp_bed;
+    params.target_bed = marlin_vars().target_bed;
+    params.target_nozzle = marlin_vars().active_hotend().target_nozzle;
+    params.pos[X_AXIS_POS] = marlin_vars().logical_pos[X_AXIS_POS];
+    params.pos[Y_AXIS_POS] = marlin_vars().logical_pos[Y_AXIS_POS];
+    params.pos[Z_AXIS_POS] = marlin_vars().logical_pos[Z_AXIS_POS];
+    params.print_speed = marlin_vars().print_speed;
+    params.flow_factor = marlin_vars().active_hotend().flow_factor;
+    params.job_id = marlin_vars().job_id;
     // Version can change between MK4 and MK3.9 in runtime
     params.version = get_printer_version();
     get_slot_info(params);
 #if ENABLED(CANCEL_OBJECTS)
-    params.cancel_object_count = marlin_vars()->cancel_object_count;
-    params.cancel_object_mask = marlin_vars()->get_cancel_object_mask();
+    params.cancel_object_count = marlin_vars().cancel_object_count;
+    params.cancel_object_mask = marlin_vars().get_cancel_object_mask();
 #endif
 #if XL_ENCLOSURE_SUPPORT()
     params.enclosure_info = {
@@ -215,13 +215,13 @@ Printer::Params MarlinPrinter::params() const {
         .time_in_use = std::min(config_store().xl_enclosure_filter_timer.get(), Enclosure::expiration_deadline_sec)
     };
 #endif
-    params.print_duration = marlin_vars()->print_duration;
-    params.time_to_end = marlin_vars()->time_to_end;
-    params.time_to_pause = marlin_vars()->time_to_pause;
-    params.progress_percent = marlin_vars()->sd_percent_done;
+    params.print_duration = marlin_vars().print_duration;
+    params.time_to_end = marlin_vars().time_to_end;
+    params.time_to_pause = marlin_vars().time_to_pause;
+    params.progress_percent = marlin_vars().sd_percent_done;
     params.filament_used = Odometer_s::instance().get_extruded_all();
     params.nozzle_diameter = config_store().get_nozzle_diameter(params.preferred_slot());
-    params.has_usb = marlin_vars()->media_inserted;
+    params.has_usb = marlin_vars().media_inserted;
     params.can_start_download = can_start_download;
 
     struct statvfs fsbuf = {};
@@ -254,7 +254,7 @@ uint32_t MarlinPrinter::cancelable_fingerprint() const {
         crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(*s), strlen(s));
     };
     for (size_t i = 0; i < marlin_vars_t::CANCEL_OBJECTS_NAME_COUNT; i++) {
-        marlin_vars()->cancel_object_names[i].execute_with(calc_crc);
+        marlin_vars().cancel_object_names[i].execute_with(calc_crc);
     }
     crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&parameters.job_id), sizeof(parameters.job_id));
     crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&parameters.cancel_object_count), sizeof(parameters.cancel_object_count));
@@ -273,7 +273,7 @@ void MarlinPrinter::uncancel_object(uint8_t id) {
 }
 
 const char *MarlinPrinter::get_cancel_object_name(char *buffer, size_t size, size_t index) const {
-    marlin_vars()->cancel_object_names[index].copy_to(buffer, size);
+    marlin_vars().cancel_object_names[index].copy_to(buffer, size);
     return buffer;
 }
 #endif
@@ -499,7 +499,7 @@ void MarlinPrinter::reset_printer() {
 }
 
 const char *MarlinPrinter::dialog_action(uint32_t dialog_id, Response response) {
-    const fsm::States fsm_states = marlin_vars()->get_fsm_states();
+    const fsm::States fsm_states = marlin_vars().get_fsm_states();
     const std::optional<fsm::States::Top> top = fsm_states.get_top();
 
     // We always send dialog from the top FSM, so we can
@@ -527,7 +527,7 @@ const char *MarlinPrinter::dialog_action(uint32_t dialog_id, Response response) 
 }
 
 std::optional<MarlinPrinter::FinishedJobResult> MarlinPrinter::get_prior_job_result(uint16_t job_id) const {
-    auto result = marlin_vars()->get_job_result(job_id);
+    auto result = marlin_vars().get_job_result(job_id);
     if (!result.has_value()) {
         return nullopt;
     }

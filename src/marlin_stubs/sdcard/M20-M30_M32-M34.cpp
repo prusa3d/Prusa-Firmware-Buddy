@@ -50,7 +50,7 @@ void GcodeSuite::M23() {
             *fn = '\0';
         }
     }
-    marlin_vars()->media_SFN_path.set(parser.string_arg);
+    marlin_vars().media_SFN_path.set(parser.string_arg);
     // Do not remove. Used by third party tools to detect that a file has been selected
     SERIAL_ECHOLNPGM(MSG_SD_FILE_SELECTED);
 }
@@ -92,13 +92,13 @@ void GcodeSuite::M26() {
 void GcodeSuite::M27() {
     if (parser.seen('C')) {
         SERIAL_ECHOPGM("Current file: ");
-        SERIAL_ECHOLN(marlin_vars()->media_SFN_path.get_ptr());
+        SERIAL_ECHOLN(marlin_vars().media_SFN_path.get_ptr());
 
-    } else if (marlin_server::is_printing_state(marlin_vars()->print_state.get())) {
+    } else if (marlin_server::is_printing_state(marlin_vars().print_state.get())) {
         SERIAL_ECHOPGM(MSG_SD_PRINTING_BYTE);
-        SERIAL_ECHO(marlin_vars()->media_position.get());
+        SERIAL_ECHO(marlin_vars().media_position.get());
         SERIAL_CHAR('/');
-        SERIAL_ECHOLN(marlin_vars()->media_size_estimate.get());
+        SERIAL_ECHOLN(marlin_vars().media_size_estimate.get());
     } else {
         SERIAL_ECHOLNPGM(MSG_SD_NOT_PRINTING);
     }

@@ -155,7 +155,7 @@ void print_begin(const char *filename, marlin_server::PreviewSkipIfAble skip_pre
 }
 
 DeleteResult remove_file(const char *path) {
-    if (marlin_vars()->media_SFN_path.equals(path)) {
+    if (marlin_vars().media_SFN_path.equals(path)) {
         switch (printer_state::get_state()) {
         case printer_state::DeviceState::Finished:
         case printer_state::DeviceState::Stopped:

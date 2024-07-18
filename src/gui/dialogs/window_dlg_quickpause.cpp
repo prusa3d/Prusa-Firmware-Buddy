@@ -19,10 +19,10 @@ DialogQuickPause::DialogQuickPause(fsm::BaseData data)
     , gcode_name(this, Rect16(GuiDefaults::MsgBoxLayoutRect.Left(), 45, GuiDefaults::MsgBoxLayoutRect.Width(), 21))
     , radio(this, GuiDefaults::GetButtonRect_AvoidFooter(GuiDefaults::RectScreenBody), PhasesQuickPause::QuickPaused) {
 
-    if (marlin_vars()->print_state == marlin_server::State::Printing) {
+    if (marlin_vars().print_state == marlin_server::State::Printing) {
         auto lock = MarlinVarsLockGuard();
         static char buff[FILE_NAME_BUFFER_LEN] = { 0 };
-        marlin_vars()->media_LFN.copy_to(buff, FILE_NAME_BUFFER_LEN, lock);
+        marlin_vars().media_LFN.copy_to(buff, FILE_NAME_BUFFER_LEN, lock);
         gcode_name.SetText(string_view_utf8::MakeRAM(buff));
     }
 

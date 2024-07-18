@@ -52,14 +52,14 @@ private:
 
     void reload() {
         std::lock_guard lock(mutex);
-        PrinterState state = leds::mpsToAnimationState(marlin_vars()->print_state);
+        PrinterState state = leds::mpsToAnimationState(marlin_vars().print_state);
         oldState = state;
         changeAnimation(state);
     }
     void update() {
         std::lock_guard lock(mutex);
 
-        PrinterState state = leds::mpsToAnimationState(marlin_vars()->print_state);
+        PrinterState state = leds::mpsToAnimationState(marlin_vars().print_state);
         if (state != oldState && !change_animation_on.has_value()) {
             oldState = state;
             changeAnimation(state);

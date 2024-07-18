@@ -387,11 +387,11 @@ namespace {
 
         print_job_timer.pause();
         HOTEND_LOOP() {
-            server.resume.nozzle_temp[e] = marlin_vars()->hotend(e).target_nozzle; // save nozzle target temp
+            server.resume.nozzle_temp[e] = marlin_vars().hotend(e).target_nozzle; // save nozzle target temp
         }
         server.resume.nozzle_temp_paused = true;
-        server.resume.fan_speed = marlin_vars()->print_fan_speed; // save fan speed
-        server.resume.print_speed = marlin_vars()->print_speed;
+        server.resume.fan_speed = marlin_vars().print_fan_speed; // save fan speed
+        server.resume.print_speed = marlin_vars().print_speed;
 #if FAN_COUNT > 0
         if (hotendErrorChecker.runFullFan()) {
             thermalManager.set_fan_speed(0, 255);
@@ -464,7 +464,7 @@ namespace {
 
 static void commit_fsm_states() {
     ++fsm_states.generation;
-    marlin_vars()->set_fsm_states(fsm_states);
+    marlin_vars().set_fsm_states(fsm_states);
 }
 
 void fsm_create_internal(ClientFSM type, fsm::BaseData data) {
@@ -553,7 +553,7 @@ void init(void) {
     // after a reboot.
     fsm_states.generation = rand_u();
 
-    marlin_vars()->init();
+    marlin_vars().init();
 #if HAS_SHEET_PROFILES()
     SteelSheets::CheckIfCurrentValid();
 #endif
@@ -698,7 +698,7 @@ void static finalize_print(bool finished) {
     // Check if the stopwatch was NOT stopped to and add the current printime to the statistics.
     // finalize_print is beeing called multiple times and we don't want to add the time twice.
     if (!server.was_print_time_saved) {
-        Odometer_s::instance().add_time(marlin_vars()->print_duration);
+        Odometer_s::instance().add_time(marlin_vars().print_duration);
         server.was_print_time_saved = true;
     }
 
@@ -733,8 +733,8 @@ void static finalize_print(bool finished) {
 
     server.print_is_serial = false; // reset flag about serial print
 
-    marlin_vars()->print_end_time = time(nullptr);
-    marlin_vars()->add_job_result(job_id, finished ? marlin_vars_t::JobInfo::JobResult::finished : marlin_vars_t::JobInfo::JobResult::aborted);
+    marlin_vars().print_end_time = time(nullptr);
+    marlin_vars().add_job_result(job_id, finished ? marlin_vars_t::JobInfo::JobResult::finished : marlin_vars_t::JobInfo::JobResult::aborted);
 }
 
 static const uint8_t MARLIN_IDLE_CNT_BUSY = 1;
@@ -893,10 +893,10 @@ static void settings_load() {
     thermalManager.updatePID();
 #endif
 
-    marlin_vars()->fan_check_enabled = config_store().fan_check_enabled.get();
-    marlin_vars()->fs_autoload_enabled = config_store().fs_autoload_enabled.get();
+    marlin_vars().fan_check_enabled = config_store().fan_check_enabled.get();
+    marlin_vars().fs_autoload_enabled = config_store().fs_autoload_enabled.get();
 
-    marlin_vars()->stealth_mode = config_store().stealth_mode.get();
+    marlin_vars().stealth_mode = config_store().stealth_mode.get();
     planner.set_stealth_mode(config_store().stealth_mode.get());
 
     job_id = config_store().job_id.get();
@@ -1035,10 +1035,10 @@ void print_start(const char *filename, const GCodeReaderPosition &resume_pos, ma
             MarlinVarsLockGuard lock;
 
             // update media_SFN_path
-            strlcpy(marlin_vars()->media_SFN_path.get_modifiable_ptr(lock), filepath_sfn.data(), marlin_vars()->media_SFN_path.max_length());
+            strlcpy(marlin_vars().media_SFN_path.get_modifiable_ptr(lock), filepath_sfn.data(), marlin_vars().media_SFN_path.max_length());
 
             // set media_LFN
-            strlcpy(marlin_vars()->media_LFN.get_modifiable_ptr(lock), filename_lfn.data(), marlin_vars()->media_LFN.max_length());
+            strlcpy(marlin_vars().media_LFN.get_modifiable_ptr(lock), filename_lfn.data(), marlin_vars().media_LFN.max_length());
         }
 
         // Update GCodeInfo
@@ -1199,7 +1199,7 @@ static void prepare_tool_pickup() {
 
     // Disable heaters
     HOTEND_LOOP() {
-        if ((marlin_vars()->hotend(e).target_nozzle > 0)) {
+        if ((marlin_vars().hotend(e).target_nozzle > 0)) {
             thermalManager.setTargetHotend(0, e);
             set_temp_to_display(0, e);
         }
@@ -1262,7 +1262,7 @@ static void crash_recovery_begin_crash() {
 
 void media_prefetch_start() {
     print_state.file_open_reported = false;
-    media_prefetch.start(marlin_vars()->media_SFN_path.get_ptr(), GCodeReaderPosition { stream_restore_info(), media_position() });
+    media_prefetch.start(marlin_vars().media_SFN_path.get_ptr(), GCodeReaderPosition { stream_restore_info(), media_position() });
     media_prefetch.issue_fetch();
 }
 
@@ -1316,7 +1316,7 @@ void media_print_loop() {
             print_state.file_open_reported = true;
 
             // Do not remove, needed for 3rd party tools such as octoprint to get status about the gcode file being opened
-            SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, marlin_vars()->media_SFN_path.get_ptr(), " Size:", metrics.stream_size_estimate);
+            SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, marlin_vars().media_SFN_path.get_ptr(), " Size:", metrics.stream_size_estimate);
         }
 
         switch (status) {
@@ -1411,14 +1411,14 @@ void try_recover_from_media_error() {
 bool print_reheat_ready() {
     // check nozzles
     HOTEND_LOOP() {
-        auto &extruder = marlin_vars()->hotend(e);
+        auto &extruder = marlin_vars().hotend(e);
         if (extruder.target_nozzle != server.resume.nozzle_temp[e] || (extruder.target_nozzle > 0 && extruder.temp_nozzle < (extruder.target_nozzle - TEMP_HYSTERESIS))) {
             return false;
         }
     }
 
     // check bed
-    if (marlin_vars()->temp_bed < (marlin_vars()->target_bed - TEMP_BED_HYSTERESIS)) {
+    if (marlin_vars().temp_bed < (marlin_vars().target_bed - TEMP_BED_HYSTERESIS)) {
         return false;
     }
 
@@ -1544,7 +1544,7 @@ void nozzle_timeout_off() {
 void nozzle_timeout_loop() {
     if ((ticks_ms() - server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)) && server.enable_nozzle_temp_timeout) {
         HOTEND_LOOP() {
-            if ((marlin_vars()->hotend(e).target_nozzle > 0)) {
+            if ((marlin_vars().hotend(e).target_nozzle > 0)) {
                 thermalManager.setTargetHotend(0, e);
                 set_temp_to_display(0, e);
             }
@@ -1554,7 +1554,7 @@ void nozzle_timeout_loop() {
 
 // Checking valid behaviour of Heatbreak fan & Print fan of currently active extruder/tool
 bool fan_checks() {
-    if (marlin_vars()->fan_check_enabled
+    if (marlin_vars().fan_check_enabled
 #if HAS_TOOLCHANGER()
         && prusa_toolchanger.is_any_tool_active() // Nothing to check
 #endif /*HAS_TOOLCHANGER()*/
@@ -1694,7 +1694,7 @@ static void _server_print_loop(void) {
             new_state = did_not_start_print ? State::Idle : State::Finishing_WaitIdle;
             if (did_not_start_print) {
                 // Saving the result for connect, we already send the job id to them at this point.
-                marlin_vars()->add_job_result(job_id, marlin_vars_t::JobInfo::JobResult::aborted);
+                marlin_vars().add_job_result(job_id, marlin_vars_t::JobInfo::JobResult::aborted);
             }
             fsm_destroy(ClientFSM::PrintPreview);
             break;
@@ -1773,7 +1773,7 @@ static void _server_print_loop(void) {
 #endif // ENABLED(CRASH_RECOVERY)
 #if ENABLED(CANCEL_OBJECTS)
         cancelable.reset();
-        for (auto &cancel_object_name : marlin_vars()->cancel_object_names) {
+        for (auto &cancel_object_name : marlin_vars().cancel_object_names) {
             cancel_object_name.set(""); // Erase object names
         }
 #endif
@@ -1781,13 +1781,13 @@ static void _server_print_loop(void) {
 #if HAS_LOADCELL()
         // Reset Live-Adjust-Z value before every print
         probe_offset.z = 0;
-        marlin_vars()->z_offset = 0;
+        marlin_vars().z_offset = 0;
 #endif // HAS_LOADCELL()
 
         print_job_timer.start();
-        marlin_vars()->time_to_end = TIME_TO_END_INVALID;
-        marlin_vars()->time_to_pause = TIME_TO_END_INVALID;
-        marlin_vars()->print_start_time = time(nullptr);
+        marlin_vars().time_to_end = TIME_TO_END_INVALID;
+        marlin_vars().time_to_pause = TIME_TO_END_INVALID;
+        marlin_vars().print_start_time = time(nullptr);
         server.print_state = State::Printing;
         if (fsm_states.is_active(ClientFSM::PrintPreview)) {
             fsm_destroy_and_create(ClientFSM::PrintPreview, ClientFSM::Printing, fsm::BaseData());
@@ -1814,12 +1814,12 @@ static void _server_print_loop(void) {
 #endif // ENABLED(CRASH_RECOVERY)
 #if ENABLED(CANCEL_OBJECTS)
         cancelable.reset();
-        for (auto &cancel_object_name : marlin_vars()->cancel_object_names) {
+        for (auto &cancel_object_name : marlin_vars().cancel_object_names) {
             cancel_object_name.set(""); // Erase object names
         }
 #endif
         print_job_timer.start();
-        marlin_vars()->print_start_time = time(nullptr);
+        marlin_vars().print_start_time = time(nullptr);
         fsm_create(PhasesSerialPrinting::active);
         server.print_state = State::Printing;
         break;
@@ -2386,7 +2386,7 @@ static void _server_print_loop(void) {
         break;
     }
 
-    if (marlin_vars()->fan_check_enabled) {
+    if (marlin_vars().fan_check_enabled) {
         HOTEND_LOOP() {
             const auto fan_state = Fans::heat_break(e).getState();
             hotendFanErrorChecker[e].checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting, WarningType::HotendFanError, true);
@@ -2623,16 +2623,16 @@ void set_exclusive_mode(int exclusive) {
 }
 
 void set_target_bed(float value) {
-    marlin_vars()->target_bed = value;
+    marlin_vars().target_bed = value;
     thermalManager.setTargetBed(value);
 }
 
 void set_temp_to_display(float value, uint8_t extruder) {
-    marlin_vars()->hotend(extruder).display_nozzle = value;
+    marlin_vars().hotend(extruder).display_nozzle = value;
 }
 
 bool get_media_inserted(void) {
-    return marlin_vars()->media_inserted;
+    return marlin_vars().media_inserted;
 }
 
 resume_state_t *get_resume_data() {
@@ -2797,28 +2797,28 @@ static void _server_update_pqueue(void) {
 static void _server_update_vars() {
     const auto prefetch_metrics = media_prefetch.get_metrics();
 
-    marlin_vars()->gqueue = server.gqueue;
-    marlin_vars()->pqueue = server.pqueue;
+    marlin_vars().gqueue = server.gqueue;
+    marlin_vars().pqueue = server.pqueue;
 
     // Get native position
     xyze_pos_t pos_mm, curr_pos_mm;
     planner.get_axis_position_mm(pos_mm);
     curr_pos_mm = current_position;
     LOOP_XYZE(i) {
-        marlin_vars()->native_pos[i] = pos_mm[i];
-        marlin_vars()->native_curr_pos[i] = curr_pos_mm[i];
+        marlin_vars().native_pos[i] = pos_mm[i];
+        marlin_vars().native_curr_pos[i] = curr_pos_mm[i];
     }
     // Convert to logical position
     planner.unapply_leveling(pos_mm);
     toLogical(pos_mm);
     toLogical(curr_pos_mm);
     LOOP_XYZE(i) {
-        marlin_vars()->logical_pos[i] = pos_mm[i];
-        marlin_vars()->logical_curr_pos[i] = curr_pos_mm[i];
+        marlin_vars().logical_pos[i] = pos_mm[i];
+        marlin_vars().logical_curr_pos[i] = curr_pos_mm[i];
     }
 
     HOTEND_LOOP() {
-        auto &extruder = marlin_vars()->hotend(e);
+        auto &extruder = marlin_vars().hotend(e);
 
         extruder.temp_nozzle = thermalManager.degHotend(e);
         extruder.target_nozzle = thermalManager.degTargetHotend(e);
@@ -2835,23 +2835,23 @@ static void _server_update_vars() {
     }
 
 #if ENABLED(CANCEL_OBJECTS)
-    marlin_vars()->set_cancel_object_mask(cancelable.canceled); // Canceled objects
-    marlin_vars()->cancel_object_count = cancelable.object_count; // Total number of objects
+    marlin_vars().set_cancel_object_mask(cancelable.canceled); // Canceled objects
+    marlin_vars().cancel_object_count = cancelable.object_count; // Total number of objects
 #endif /*ENABLED(CANCEL_OBJECTS)*/
 
-    marlin_vars()->temp_bed = thermalManager.degBed();
-    marlin_vars()->target_bed = thermalManager.degTargetBed();
+    marlin_vars().temp_bed = thermalManager.degBed();
+    marlin_vars().target_bed = thermalManager.degTargetBed();
 #if ENABLED(MODULAR_HEATBED)
-    marlin_vars()->enabled_bedlet_mask = thermalManager.getEnabledBedletMask();
+    marlin_vars().enabled_bedlet_mask = thermalManager.getEnabledBedletMask();
 #endif
 
-    marlin_vars()->z_offset = probe_offset.z;
+    marlin_vars().z_offset = probe_offset.z;
 #if FAN_COUNT > 0
-    marlin_vars()->print_fan_speed = thermalManager.fan_speed[0];
+    marlin_vars().print_fan_speed = thermalManager.fan_speed[0];
 #endif
-    marlin_vars()->print_speed = static_cast<uint16_t>(feedrate_percentage);
+    marlin_vars().print_speed = static_cast<uint16_t>(feedrate_percentage);
 
-    auto progress_data = oProgressData.mode_specific(marlin_vars()->stealth_mode);
+    auto progress_data = oProgressData.mode_specific(marlin_vars().stealth_mode);
 
     // If the mode-specific progress data is all empty (never set by the M73 command),
     // fall back to standard mode progress data to show at least something
@@ -2859,9 +2859,9 @@ static void _server_update_vars() {
         progress_data = oProgressData.standard_mode;
     }
 
-    marlin_vars()->print_duration = print_job_timer.duration();
-    marlin_vars()->sd_percent_done = [&]() -> uint8_t {
-        if (progress_data.percent_done.mIsActual(marlin_vars()->print_duration)) {
+    marlin_vars().print_duration = print_job_timer.duration();
+    marlin_vars().sd_percent_done = [&]() -> uint8_t {
+        if (progress_data.percent_done.mIsActual(marlin_vars().print_duration)) {
             return static_cast<uint8_t>(progress_data.percent_done.mGetValue());
         } else if (prefetch_metrics.stream_size_estimate > 0) {
             return std::min<uint8_t>(std::round(100.0f * queue.last_executed_sdpos / prefetch_metrics.stream_size_estimate), 99);
@@ -2870,13 +2870,13 @@ static void _server_update_vars() {
         }
     }();
 
-    if (const bool media = usb_host::is_media_inserted(); marlin_vars()->media_inserted != media) {
-        marlin_vars()->media_inserted = media;
-        _send_notify_event(marlin_vars()->media_inserted ? Event::MediaInserted : Event::MediaRemoved, 0, 0);
+    if (const bool media = usb_host::is_media_inserted(); marlin_vars().media_inserted != media) {
+        marlin_vars().media_inserted = media;
+        _send_notify_event(marlin_vars().media_inserted ? Event::MediaInserted : Event::MediaRemoved, 0, 0);
     }
 
-    const auto duration = marlin_vars()->print_duration.get();
-    const auto print_speed = marlin_vars()->print_speed.get();
+    const auto duration = marlin_vars().print_duration.get();
+    const auto print_speed = marlin_vars().print_speed.get();
 
     const auto update_time_to = [&](const ClValidityValueSec &progress_data_value, MarlinVariable<uint32_t> &marlin_var) {
         uint32_t v = TIME_TO_END_INVALID;
@@ -2891,21 +2891,21 @@ static void _server_update_vars() {
             marlin_var = (v * 100) / print_speed;
         }
     };
-    update_time_to(progress_data.time_to_end, marlin_vars()->time_to_end);
-    update_time_to(progress_data.time_to_pause, marlin_vars()->time_to_pause);
+    update_time_to(progress_data.time_to_end, marlin_vars().time_to_end);
+    update_time_to(progress_data.time_to_pause, marlin_vars().time_to_pause);
 
     if (server.print_state == State::Printing) {
-        marlin_vars()->time_to_end.execute_with([&](const uint32_t &time_to_end) {
+        marlin_vars().time_to_end.execute_with([&](const uint32_t &time_to_end) {
             if (time_to_end != TIME_TO_END_INVALID) {
-                marlin_vars()->print_end_time = time(nullptr) + time_to_end;
+                marlin_vars().print_end_time = time(nullptr) + time_to_end;
             } else {
-                marlin_vars()->print_end_time = TIMESTAMP_INVALID;
+                marlin_vars().print_end_time = TIMESTAMP_INVALID;
             }
         });
     }
 
-    marlin_vars()->job_id = job_id;
-    marlin_vars()->travel_acceleration = planner.settings.travel_acceleration;
+    marlin_vars().job_id = job_id;
+    marlin_vars().travel_acceleration = planner.settings.travel_acceleration;
 
     uint8_t mmu2State =
 #if HAS_MMU2()
@@ -2913,7 +2913,7 @@ static void _server_update_vars() {
 #else
         0;
 #endif
-    marlin_vars()->mmu2_state = mmu2State;
+    marlin_vars().mmu2_state = mmu2State;
 
     bool mmu2FindaPressed =
 #if HAS_MMU2()
@@ -2922,16 +2922,16 @@ static void _server_update_vars() {
         false;
 #endif
 
-    marlin_vars()->mmu2_finda = mmu2FindaPressed;
+    marlin_vars().mmu2_finda = mmu2FindaPressed;
 
-    marlin_vars()->active_extruder = active_extruder;
+    marlin_vars().active_extruder = active_extruder;
 
     // print state is updated last, to make sure other related variables (like job_id, filenames) are already set when we start print
-    marlin_vars()->print_state = static_cast<State>(server.print_state);
+    marlin_vars().print_state = static_cast<State>(server.print_state);
 
-    marlin_vars()->media_position = media_position();
+    marlin_vars().media_position = media_position();
 
-    marlin_vars()->media_size_estimate = prefetch_metrics.stream_size_estimate;
+    marlin_vars().media_size_estimate = prefetch_metrics.stream_size_estimate;
 }
 
 bool _process_server_valid_request(const Request &request, int client_id) {
@@ -3011,7 +3011,7 @@ bool _process_server_valid_request(const Request &request, int client_id) {
         // This is temporary solution, Event::MediaInserted and Event::MediaRemoved events are replaced
         // with variable media_inserted, but some parts of application still using the events.
         // We need this workaround for app startup.
-        if ((server.notify_events[client_id] & make_mask(Event::MediaInserted)) && marlin_vars()->media_inserted) {
+        if ((server.notify_events[client_id] & make_mask(Event::MediaInserted)) && marlin_vars().media_inserted) {
             server.client_events[client_id] |= make_mask(Event::MediaInserted);
         }
         return true;
@@ -3062,42 +3062,42 @@ static void _server_set_var(const Request &request) {
     const uintptr_t variable_identifier = request.set_variable.variable;
 
     // Set normal (non-extruder) variables
-    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->target_bed)) {
-        marlin_vars()->target_bed = request.set_variable.float_value;
-        thermalManager.setTargetBed(marlin_vars()->target_bed);
+    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars().target_bed)) {
+        marlin_vars().target_bed = request.set_variable.float_value;
+        thermalManager.setTargetBed(marlin_vars().target_bed);
         return;
     }
-    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->z_offset)) {
-        marlin_vars()->z_offset = request.set_variable.float_value;
+    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars().z_offset)) {
+        marlin_vars().z_offset = request.set_variable.float_value;
 #if HAS_BED_PROBE
-        probe_offset.z = marlin_vars()->z_offset;
+        probe_offset.z = marlin_vars().z_offset;
 #endif // HAS_BED_PROBE
         return;
     }
-    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->print_fan_speed)) {
-        marlin_vars()->print_fan_speed = request.set_variable.uint32_value;
+    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars().print_fan_speed)) {
+        marlin_vars().print_fan_speed = request.set_variable.uint32_value;
 #if FAN_COUNT > 0
-        thermalManager.set_fan_speed(0, marlin_vars()->print_fan_speed);
+        thermalManager.set_fan_speed(0, marlin_vars().print_fan_speed);
 #endif
         return;
     }
-    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->print_speed)) {
-        marlin_vars()->print_speed = request.set_variable.uint32_value;
-        feedrate_percentage = (int16_t)marlin_vars()->print_speed;
+    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars().print_speed)) {
+        marlin_vars().print_speed = request.set_variable.uint32_value;
+        feedrate_percentage = (int16_t)marlin_vars().print_speed;
         return;
     }
-    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->fan_check_enabled)) {
-        marlin_vars()->fan_check_enabled = request.set_variable.uint32_value;
+    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars().fan_check_enabled)) {
+        marlin_vars().fan_check_enabled = request.set_variable.uint32_value;
         return;
     }
-    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->fs_autoload_enabled)) {
-        marlin_vars()->fs_autoload_enabled = request.set_variable.uint32_value;
+    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars().fs_autoload_enabled)) {
+        marlin_vars().fs_autoload_enabled = request.set_variable.uint32_value;
         return;
     }
 
     // Now see if extruder variable is set
     HOTEND_LOOP() {
-        auto &extruder = marlin_vars()->hotend(e);
+        auto &extruder = marlin_vars().hotend(e);
         if (reinterpret_cast<uintptr_t>(&extruder.target_nozzle) == variable_identifier) {
             extruder.target_nozzle = request.set_variable.float_value;
 

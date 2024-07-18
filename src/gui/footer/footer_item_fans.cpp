@@ -39,12 +39,12 @@ FooterItemPrintFan::FooterItemPrintFan(window_t *parent)
 
 int FooterItemPrintFan::static_readValue() {
 #if HAS_TOOLCHANGER()
-    if (marlin_vars()->active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+    if (marlin_vars().active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
         return no_tool_value;
     }
 #endif /*HAS_TOOLCHANGER()*/
 
-    return marlin_vars()->active_hotend().print_fan_rpm;
+    return marlin_vars().active_hotend().print_fan_rpm;
 }
 
 FooterItemHeatBreakFan::FooterItemHeatBreakFan(window_t *parent)
@@ -53,10 +53,10 @@ FooterItemHeatBreakFan::FooterItemHeatBreakFan(window_t *parent)
 
 int FooterItemHeatBreakFan::static_readValue() {
 #if HAS_TOOLCHANGER()
-    if (marlin_vars()->active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+    if (marlin_vars().active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
         return no_tool_value;
     }
 #endif /*HAS_TOOLCHANGER()*/
 
-    return marlin_vars()->active_hotend().heatbreak_fan_rpm;
+    return marlin_vars().active_hotend().heatbreak_fan_rpm;
 }

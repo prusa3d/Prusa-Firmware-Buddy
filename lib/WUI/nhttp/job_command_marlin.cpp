@@ -26,11 +26,9 @@ namespace {
     };
 
     SimplePrintState get_state() {
-        marlin_vars_t *vars = marlin_vars();
-
         SimplePrintState simple_state {};
 
-        switch (vars->print_state) {
+        switch (marlin_vars().print_state) {
 
         case State::Printing:
             simple_state = SimplePrintState::Printing;

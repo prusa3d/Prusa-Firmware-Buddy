@@ -292,7 +292,7 @@ enum {
 class marlin_vars_t {
 private:
     marlin_vars_t() = default;
-    friend marlin_vars_t *marlin_vars();
+    friend marlin_vars_t &marlin_vars();
 
 public:
     void init();
@@ -505,7 +505,7 @@ private:
     marlin_vars_t &operator=(marlin_vars_t const &) = delete;
 };
 
-inline marlin_vars_t *marlin_vars() {
+inline marlin_vars_t &marlin_vars() {
     static marlin_vars_t instance;
-    return &instance;
+    return instance;
 }

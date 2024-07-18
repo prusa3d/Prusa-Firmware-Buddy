@@ -28,12 +28,12 @@ void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void
         SensorData::Value res = buffer.GetValue(SensorData::Sensor::bedTemp);
         Item<MI_INFO_BED_TEMP>().UpdateValue(res);
         Item<MI_INFO_MCU_TEMP>().UpdateValue(buffer.GetValue(SensorData::Sensor::MCUTemp));
-        Item<MI_INFO_HEATBREAK_TEMP>().UpdateValue(marlin_vars()->hotend(0).temp_heatbreak.get());
-        Item<MI_INFO_NOZZLE_TEMP>().UpdateValue(marlin_vars()->hotend(0).temp_nozzle.get());
+        Item<MI_INFO_HEATBREAK_TEMP>().UpdateValue(marlin_vars().hotend(0).temp_heatbreak.get());
+        Item<MI_INFO_NOZZLE_TEMP>().UpdateValue(marlin_vars().hotend(0).temp_nozzle.get());
 
         Item<MI_INFO_LOADCELL>().UpdateValue(buffer.GetValue(SensorData::Sensor::loadCell));
 
-        if (auto fsensor = GetExtruderFSensor(marlin_vars()->active_extruder.get()); fsensor) { // Try to get extruder filament sensor
+        if (auto fsensor = GetExtruderFSensor(marlin_vars().active_extruder.get()); fsensor) { // Try to get extruder filament sensor
             Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->get_state()), static_cast<int>(fsensor->GetFilteredValue())));
         } else {
             Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue({ {}, {} });

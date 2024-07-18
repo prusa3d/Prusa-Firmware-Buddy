@@ -130,7 +130,7 @@ void EndResultBody::Show() {
 
     auto &gcode { GCodeInfo::getInstance() };
 
-    PrintTime::print_formatted_duration(marlin_vars()->print_duration.get(), { printing_time_value_buffer }, true);
+    PrintTime::print_formatted_duration(marlin_vars().print_duration.get(), { printing_time_value_buffer }, true);
 
     printing_time_label.Show();
     printing_time_value.Show();
@@ -139,8 +139,8 @@ void EndResultBody::Show() {
     print_started_label.Show();
     print_ended_label.Show();
 
-    handle_timestamp_text_item(marlin_vars()->print_start_time, print_started_value_buffer, print_started_value);
-    handle_timestamp_text_item(marlin_vars()->print_end_time, print_ended_value_buffer, print_ended_value);
+    handle_timestamp_text_item(marlin_vars().print_start_time, print_started_value_buffer, print_started_value);
+    handle_timestamp_text_item(marlin_vars().print_end_time, print_ended_value_buffer, print_ended_value);
 
     handle_consumed_material_showing(gcode);
 

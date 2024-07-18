@@ -56,7 +56,7 @@ void ScreenMenuTune::windowEvent(window_t *sender, GUI_event_t event, void *para
 
 #if ENABLED(CANCEL_OBJECTS)
         // Enable cancel object menu
-        if (marlin_vars()->cancel_object_count > 0) {
+        if (marlin_vars().cancel_object_count > 0) {
             Item<MI_CO_CANCEL_OBJECT>().Enable();
         } else {
             Item<MI_CO_CANCEL_OBJECT>().Disable();

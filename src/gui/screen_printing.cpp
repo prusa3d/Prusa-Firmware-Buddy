@@ -233,7 +233,7 @@ screen_printing_data_t::screen_printing_data_t()
 
 #if HAS_LARGE_DISPLAY()
     print_progress.Pause();
-    last_e_axis_position = marlin_vars()->logical_curr_pos[MARLIN_VAR_INDEX_E];
+    last_e_axis_position = marlin_vars().logical_curr_pos[MARLIN_VAR_INDEX_E];
 
     rotating_circles.set_one_circle_mode(true);
 
@@ -261,7 +261,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
     updateTimes();
 
     /// -- close screen when print is done / stopped and USB media is removed
-    if (!marlin_vars()->media_inserted && (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED)) {
+    if (!marlin_vars().media_inserted && (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED)) {
         marlin_client::print_exit();
         return;
     }
@@ -272,7 +272,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
         set_pause_icon_and_label();
     }
     if (event == GUI_event_t::HELD_RELEASED) {
-        if (marlin_vars()->logical_curr_pos[2 /* Z Axis */] <= 1.0f && p_state == printing_state_t::PRINTING) {
+        if (marlin_vars().logical_curr_pos[2 /* Z Axis */] <= 1.0f && p_state == printing_state_t::PRINTING) {
             LiveAdjustZ::Show();
         } else if (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED) {
             DialogMoveZ::Show();
@@ -281,15 +281,15 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
     }
 #if HAS_LARGE_DISPLAY()
     if (event == GUI_event_t::LOOP && p_state == printing_state_t::PRINTING) {
-        auto vars = marlin_vars();
-        const bool midprint = vars->logical_curr_pos[MARLIN_VAR_INDEX_Z] >= 1.0f;
-        const bool extruder_moved = (vars->logical_curr_pos[MARLIN_VAR_INDEX_E] - last_e_axis_position) > 0
-            && vars->logical_curr_pos[MARLIN_VAR_INDEX_E] > 0
+        const auto &vars = marlin_vars();
+        const bool midprint = vars.logical_curr_pos[MARLIN_VAR_INDEX_Z] >= 1.0f;
+        const bool extruder_moved = (vars.logical_curr_pos[MARLIN_VAR_INDEX_E] - last_e_axis_position) > 0
+            && vars.logical_curr_pos[MARLIN_VAR_INDEX_E] > 0
             && last_e_axis_position > 0; // Ignore negative movements and reset of E position (e.g. retraction)
         if (print_progress.isPaused() && midprint && extruder_moved) {
             print_progress.Resume();
         } else if (print_progress.isPaused()) {
-            last_e_axis_position = vars->logical_curr_pos[MARLIN_VAR_INDEX_E];
+            last_e_axis_position = vars.logical_curr_pos[MARLIN_VAR_INDEX_E];
         }
     }
 #endif
@@ -481,8 +481,8 @@ void screen_printing_data_t::updateTimes() {
     }
 
     bool value_available = true;
-    auto time_to_end = marlin_vars()->time_to_end.get();
-    auto time_to_change = marlin_vars()->time_to_pause.get();
+    auto time_to_end = marlin_vars().time_to_end.get();
+    auto time_to_change = marlin_vars().time_to_pause.get();
 
     if ((currently_showing == CurrentlyShowing::end_time
             || currently_showing == CurrentlyShowing::remaining_time)
@@ -504,7 +504,7 @@ void screen_printing_data_t::updateTimes() {
 
     case CurrentlyShowing::time_since_start:
         w_etime_label.SetText(_(EndResultBody::txt_printing_time));
-        PrintTime::print_formatted_duration(marlin_vars()->print_duration.get(), w_etime_value_buffer, true);
+        PrintTime::print_formatted_duration(marlin_vars().print_duration.get(), w_etime_value_buffer, true);
         break;
 
     case CurrentlyShowing::time_to_change:
@@ -522,7 +522,7 @@ void screen_printing_data_t::updateTimes() {
 
     // Add unknown marker
     // (time since start is always exact, not influenced by the print speed)
-    if (marlin_vars()->print_speed != 100 && currently_showing != CurrentlyShowing::time_since_start) {
+    if (marlin_vars().print_speed != 100 && currently_showing != CurrentlyShowing::time_since_start) {
         strlcat(w_etime_value_buffer.data(), "?", w_etime_value_buffer.size());
     }
 
@@ -567,7 +567,7 @@ void screen_printing_data_t::set_pause_icon_and_label() {
     case printing_state_t::PAUSED:
         EnableButton(BtnSocket::Middle);
         SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Resume, LabelRes::Resume);
-        if (!marlin_vars()->media_inserted) {
+        if (!marlin_vars().media_inserted) {
             DisableButton(BtnSocket::Middle);
         }
         break;
@@ -660,7 +660,7 @@ void screen_printing_data_t::set_stop_icon_and_label() {
 void screen_printing_data_t::change_print_state() {
     printing_state_t st = printing_state_t::COUNT;
 
-    switch (marlin_vars()->print_state) {
+    switch (marlin_vars().print_state) {
     case State::Idle:
     case State::WaitGui:
     case State::PrintPreviewInit:

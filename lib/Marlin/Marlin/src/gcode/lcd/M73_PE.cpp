@@ -148,16 +148,16 @@ void M73_PE_no_parser(const M73_Params &params) {
     // Print progress report. Do not remove as third party tools might depend on this
     if (params == M73_Params {}) {
         SERIAL_ECHO_START();
-        SERIAL_ECHOLNPAIR(" M73 Progress: ", marlin_vars()->sd_percent_done, "%;");
-        const uint32_t time_to_end = marlin_vars()->time_to_end;
+        SERIAL_ECHOLNPAIR(" M73 Progress: ", marlin_vars().sd_percent_done, "%;");
+        const uint32_t time_to_end = marlin_vars().time_to_end;
         if (time_to_end != marlin_server::TIME_TO_END_INVALID) {
             SERIAL_ECHOPAIR(" Time left: ", time_to_end / 60, "m;");
             SERIAL_EOL();
         }
 
-        const uint32_t time_to_pause = oProgressData.mode_specific(marlin_vars()->stealth_mode).time_to_pause.mGetValue();
+        const uint32_t time_to_pause = oProgressData.mode_specific(marlin_vars().stealth_mode).time_to_pause.mGetValue();
         if (time_to_pause != marlin_server::TIME_TO_END_INVALID) {
-            const int print_speed = marlin_vars()->print_speed;
+            const int print_speed = marlin_vars().print_speed;
             SERIAL_ECHOPAIR(" Change: ", print_speed > 0 ? ((time_to_pause * 100) / print_speed) / 60 : 0, "m;");
             SERIAL_EOL();
         }

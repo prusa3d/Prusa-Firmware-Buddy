@@ -240,7 +240,7 @@ DialogHandler &DialogHandler::Access() {
 }
 
 void DialogHandler::Loop() {
-    const auto &new_fsm_states = marlin_vars()->get_fsm_states();
+    const auto &new_fsm_states = marlin_vars().get_fsm_states();
     const auto &old_fsm_states = fsm_states;
     if (old_fsm_states == new_fsm_states) {
         return;

@@ -76,7 +76,7 @@ void GcodeSuite::M486() {
             if (arg[len - 1] == '\"') {
                 len--; // Remove " at the end
             }
-            marlin_vars()->cancel_object_names[cancelable.active_object].set(arg, len);
+            marlin_vars().cancel_object_names[cancelable.active_object].set(arg, len);
         }
         return; // Do not parse the line if A or N are found
     }

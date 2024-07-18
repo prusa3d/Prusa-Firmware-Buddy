@@ -71,7 +71,7 @@ void buddy::metrics::RecordRuntimeStats() {
     }
 
     METRIC_DEF(metric_current_filament, "filament", METRIC_VALUE_STRING, 10 * 1007, METRIC_HANDLER_ENABLE_ALL);
-    const FilamentType current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
+    const FilamentType current_filament = config_store().get_filament_type(marlin_vars().active_extruder);
     metric_record_string(&metric_current_filament, "%s", filament::get_name(current_filament));
 
     METRIC_DEF(stack, "stack", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL); // Thread stack usage
@@ -254,7 +254,7 @@ void buddy::metrics::RecordMarlinVariables() {
 
     /// Position of the last executed gcode in the media stream
     METRIC_DEF(metric_sdpos, "sdpos", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
-    metric_record_integer(&metric_sdpos, marlin_vars()->media_position.get());
+    metric_record_integer(&metric_sdpos, marlin_vars().media_position.get());
 
     /// Executed gcode count since printer start
     METRIC_DEF(metric_cmdcnt, "cmdcnt", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
@@ -324,9 +324,9 @@ void buddy::metrics::RecordPowerStats() {
 
 void buddy::metrics::RecordPrintFilename() {
     METRIC_DEF(file_name, "print_filename", METRIC_VALUE_STRING, 5000, METRIC_HANDLER_ENABLE_ALL);
-    if (marlin_vars()->print_state != marlin_server::State::Idle) {
+    if (marlin_vars().print_state != marlin_server::State::Idle) {
         // The docstring for media_print_filename() advises against using this function; however, there is currently no replacement for it.
-        metric_record_string(&file_name, "%s", marlin_vars()->media_LFN.get_ptr());
+        metric_record_string(&file_name, "%s", marlin_vars().media_LFN.get_ptr());
     } else {
         metric_record_string(&file_name, "");
     }

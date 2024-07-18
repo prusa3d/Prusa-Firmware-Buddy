@@ -239,14 +239,14 @@ void M600_execute(xyz_pos_t park_point, uint8_t target_extruder, xyze_float_t re
 
     // Check if we need to do a toolchange
     std::optional<ToolChangeData> tool_change_data {};
-    if (target_extruder != marlin_vars()->active_extruder) {
+    if (target_extruder != marlin_vars().active_extruder) {
         // Since the native coordinates contain hotend_currently_applied_offset we need to store the logical
         // version of these coordinates to make it easier to convert to the target_extruder's native coordinates.
         const auto logical_resume = resume_point.asLogical();
         tool_change_data = ToolChangeData {
             .original_resume_point = logical_resume,
             .target_extruder_original_temperature = Temperature::degTargetHotend(target_extruder),
-            .original_extruder = marlin_vars()->active_extruder,
+            .original_extruder = marlin_vars().active_extruder,
         };
 
         tool_change(target_extruder, tool_return_t::no_return, tool_change_lift_t::mbl_only_lift, true);
@@ -282,7 +282,7 @@ void M600_execute(xyz_pos_t park_point, uint8_t target_extruder, xyze_float_t re
         marlin_server::unpause_nozzle(target_extruder);
     }
 
-    const float disp_temp = marlin_vars()->hotend(target_extruder).display_nozzle;
+    const float disp_temp = marlin_vars().hotend(target_extruder).display_nozzle;
     const float targ_temp = Temperature::degTargetHotend(target_extruder);
 
     marlin_server::nozzle_timeout_off();
