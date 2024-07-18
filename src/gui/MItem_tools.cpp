@@ -634,35 +634,19 @@ MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(const string_view_utf8 &label)
         label, nullptr, is_enabled_t::yes, is_hidden_t::no, { {}, {} }, [&](char *buffer) {
             if (value.second.is_valid() || value.first.is_valid()) {
 
-                static constexpr char disconnected[] = N_("disconnected / %ld");
-                static constexpr char notCalibrated[] = N_("uncalibrated / %ld"); // not calibrated would be too long
-                static constexpr char inserted[] = N_(" INS / %7ld");
-                static constexpr char notInserted[] = N_("NINS / %7ld");
-                static constexpr char disabled[] = N_("disabled / %ld");
-                static constexpr char notInitialized[] = N_("uninitialized / %ld");
+                static constexpr EnumArray<FilamentSensorState, const char *, 6> texts {
+                    { FilamentSensorState::NotInitialized, N_("uninitialized / %ld") },
+                    { FilamentSensorState::NotCalibrated, N_("uncalibrated / %ld") }, // not calibrated would be too long
+                    { FilamentSensorState::HasFilament, N_(" INS / %7ld") },
+                    { FilamentSensorState::NoFilament, N_("NINS / %7ld") },
+                    { FilamentSensorState::NotConnected, N_("disconnected / %ld") },
+                    { FilamentSensorState::Disabled, N_("disabled / %ld") },
+                };
 
-                char fmt[GuiDefaults::infoDefaultLen] = { '\0' }; // max len of extension
-                switch ((FilamentSensorState)value.first.get_int()) {
-                case FilamentSensorState::NotInitialized:
-                    _(notInitialized).copyToRAM(fmt, sizeof(fmt));
-                    break;
-                case FilamentSensorState::NotConnected:
-                    _(disconnected).copyToRAM(fmt, sizeof(fmt));
-                    break;
-                case FilamentSensorState::Disabled:
-                    _(disabled).copyToRAM(fmt, sizeof(fmt));
-                    break;
-                case FilamentSensorState::NotCalibrated:
-                    _(notCalibrated).copyToRAM(fmt, sizeof(fmt));
-                    break;
-                case FilamentSensorState::HasFilament:
-                    _(inserted).copyToRAM(fmt, sizeof(fmt));
-                    break;
-                case FilamentSensorState::NoFilament:
-                    _(notInserted).copyToRAM(fmt, sizeof(fmt));
-                    break;
-                }
-                snprintf(buffer, GuiDefaults::infoDefaultLen, fmt, value.second.get_int());
+                StringViewUtf8Parameters<8> params;
+                const auto orig_str = _(texts.get_fallback(static_cast<FilamentSensorState>(value.first.get_int()), FilamentSensorState::NotInitialized));
+                orig_str.formatted(params, value.second.get_int()).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
+
             } else {
                 if (value.first.is_valid() || value.second.is_valid()) {
                     strlcpy(buffer, NA, GuiDefaults::infoDefaultLen);
