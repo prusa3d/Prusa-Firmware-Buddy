@@ -86,6 +86,10 @@ protected:
     }
 
     IWindowMenuItem *item_at_buffer_slot(int buffer_slot) final {
+        if (item_buffer_[buffer_slot].valueless_by_exception()) {
+            return nullptr;
+        }
+
         constexpr auto visit_f = []<typename T>(T &item) -> IWindowMenuItem * {
             if constexpr (std::is_same_v<T, std::monostate>) {
                 return nullptr;
