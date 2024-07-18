@@ -37,6 +37,10 @@ constexpr size_t strlen_constexpr(const char *str) {
 template <char... chars>
 struct TemplateString {
     static constexpr inline const char str[] = { chars..., '\0' };
+
+    constexpr inline operator const char *() const {
+        return str;
+    }
 };
 
 template <typename T, T... chars>
