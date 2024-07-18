@@ -115,7 +115,7 @@ void FilamentSensors::task_cycle() {
     marlin_client::loop();
 
     static bool old_state = false;
-    const bool new_state = marlin_vars_t().get_fsm_states().is_active(ClientFSM::Load_unload);
+    const bool new_state = marlin_vars()->get_fsm_states().is_active(ClientFSM::Load_unload);
 
     if (old_state && !new_state) {
         FSensors_instance().DecEvLock(); // ClientFSM::Load_unload destroy
