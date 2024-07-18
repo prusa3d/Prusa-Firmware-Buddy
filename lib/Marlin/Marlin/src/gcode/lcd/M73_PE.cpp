@@ -149,7 +149,7 @@ void M73_PE_no_parser(const M73_Params &params) {
     if (params == M73_Params {}) {
         SERIAL_ECHO_START();
         SERIAL_ECHOLNPAIR(" M73 Progress: ", marlin_vars()->sd_percent_done, "%;");
-        const uint32_t time_to_end = marlin_vars_t().time_to_end;
+        const uint32_t time_to_end = marlin_vars()->time_to_end;
         if (time_to_end != marlin_server::TIME_TO_END_INVALID) {
             SERIAL_ECHOPAIR(" Time left: ", time_to_end / 60, "m;");
             SERIAL_EOL();
