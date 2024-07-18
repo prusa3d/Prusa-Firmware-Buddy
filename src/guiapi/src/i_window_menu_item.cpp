@@ -333,6 +333,15 @@ bool IWindowMenuItem::IsDevOnly() const {
     return hidden == (uint8_t)is_hidden_t::dev && GuiDefaults::ShowDevelopmentTools;
 }
 
+void IWindowMenuItem::SetIconId(const img::Resource *id) {
+    if (id_icon == id) {
+        return;
+    }
+
+    id_icon = id;
+    InValidateIcon();
+}
+
 void IWindowMenuItem::SetLabel(const string_view_utf8 &text) {
     if (!label.is_same_ref(text)) {
         label = text;
@@ -387,11 +396,16 @@ void IWindowMenuItem::InValidateExtension() {
 }
 
 void IWindowMenuItem::set_color_scheme(const ColorScheme *scheme) {
+    if (clr_scheme == scheme) {
+        return;
+    }
+
     clr_scheme = scheme;
+    Invalidate();
 }
 
 void IWindowMenuItem::reset_color_scheme() {
-    clr_scheme = nullptr;
+    set_color_scheme(nullptr);
 }
 
 void IWindowMenuItem::set_icon_position(const IconPosition position) {

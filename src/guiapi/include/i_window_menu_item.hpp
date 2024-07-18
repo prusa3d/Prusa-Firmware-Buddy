@@ -219,10 +219,7 @@ public:
     bool IsHidden() const;
     bool IsDevOnly() const;
 
-    void SetIconId(const img::Resource *id) {
-        id_icon = id;
-        InValidateIcon();
-    }
+    void SetIconId(const img::Resource *id);
     void SetLabel(const string_view_utf8 &text);
     /// @returns the label translated via gettext
     /// Use this function when you want to get the actual translated text
