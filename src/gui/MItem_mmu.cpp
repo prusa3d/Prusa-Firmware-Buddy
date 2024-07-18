@@ -296,10 +296,7 @@ MI_INFO_FINDA::MI_INFO_FINDA()
             if (MMU2::mmu2.Enabled()) {
                 // TODO: change of visualization scheme is expected soon, some unification with fsensor visualization will happen as a result.
                 // For now, FINDA is visualized the same way like filament sensors' states
-                static constexpr char inserted[] = N_(" INS / 1");
-                static constexpr char notInserted[] = N_("NINS / 0");
-
-                _(value ? inserted : notInserted).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
+                _(value ? N_(" INS / 1") : N_("NINS / 0")).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
             } // else: when MMU is not active, the MI_INFO_FINDA item is hidden anyway, so no update is really needed
         }) {}
 

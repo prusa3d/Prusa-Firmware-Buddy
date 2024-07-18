@@ -220,7 +220,7 @@ static constexpr Rect16 notice_link_rect = { 86, 218, 244, 32 };
 static constexpr Rect16 notice_icon_rect = { 370, 180, 59, 72 };
 static constexpr Rect16 notice_icon_type_rect = { 24, 44, 48, 48 };
 static constexpr Rect16 notice_qr_rect = { 350, 72, 100, 100 };
-static constexpr char error_code_link_format[] = N_("More detail at\nprusa.io/%05u");
+static constexpr const char *error_code_link_format = N_("More detail at\nprusa.io/%05u");
 namespace {
 constexpr size_t color_size { 16 };
 constexpr size_t text_height { 21 };

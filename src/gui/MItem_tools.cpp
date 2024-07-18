@@ -249,7 +249,7 @@ MI_FACTORY_HARD_RESET::MI_FACTORY_HARD_RESET()
 }
 
 void MI_FACTORY_HARD_RESET::click(IWindowMenu & /*window_menu*/) {
-    static constexpr char fmt2Translate[] = N_("This operation cannot be undone. Current configuration will be lost!\nYou will need a USB drive with this firmware (%s_firmware_%s.bbf file) to start the printer again.\nDo you really want to continue?");
+    static constexpr const char *fmt2Translate = N_("This operation cannot be undone. Current configuration will be lost!\nYou will need a USB drive with this firmware (%s_firmware_%s.bbf file) to start the printer again.\nDo you really want to continue?");
 
     StringViewUtf8Parameters<20> params;
     const string_view_utf8 str = _(fmt2Translate).formatted(params, PRINTER_MODEL, project_version);

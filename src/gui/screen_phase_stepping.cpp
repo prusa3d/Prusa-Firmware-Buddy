@@ -206,7 +206,7 @@ namespace frame {
         }
 
         void update(const fsm::PhaseData &data) {
-            static constexpr const char motor_vibration_txt[] = N_("Motor %c vibration reduced by %2d%%");
+            static constexpr const char *motor_vibration_txt = N_("Motor %c vibration reduced by %2d%%");
             motor_x.SetText(_(motor_vibration_txt).formatted(motor_x_params, 'X', (data[0] + data[1]) / 2));
             motor_y.SetText(_(motor_vibration_txt).formatted(motor_y_params, 'Y', (data[2] + data[3]) / 2));
         }

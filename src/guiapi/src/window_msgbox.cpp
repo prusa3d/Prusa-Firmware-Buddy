@@ -243,6 +243,8 @@ struct MsgBoxImplicitConfig {
 
 constexpr bool big_layout = GuiDefaults::EnableDialogBigLayout;
 
+constexpr const char *nullstr = nullptr;
+
 constexpr EnumArray<MsgBoxType, MsgBoxImplicitConfig, MsgBoxType::_count> msb_box_implicit_configs {
     {
         MsgBoxType::standard,
@@ -261,7 +263,7 @@ constexpr EnumArray<MsgBoxType, MsgBoxImplicitConfig, MsgBoxType::_count> msb_bo
         MsgBoxImplicitConfig {
             .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconnedError : MsgBoxDialogClass::MsgBoxTitled,
             .icon = big_layout ? &img::error_white_48x48 : &img::error_16x16,
-            .title = big_layout ? nullptr : N_("Error"),
+            .title = big_layout ? nullstr : N_("Error"),
         },
     },
     {
@@ -269,7 +271,7 @@ constexpr EnumArray<MsgBoxType, MsgBoxImplicitConfig, MsgBoxType::_count> msb_bo
         MsgBoxImplicitConfig {
             .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
             .icon = big_layout ? &img::question_48x48 : &img::question_16x16,
-            .title = big_layout ? nullptr : N_("Question"),
+            .title = big_layout ? nullstr : N_("Question"),
         },
     },
     {
@@ -277,7 +279,7 @@ constexpr EnumArray<MsgBoxType, MsgBoxImplicitConfig, MsgBoxType::_count> msb_bo
         MsgBoxImplicitConfig {
             .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
             .icon = big_layout ? &img::warning_48x48 : &img::warning_16x16,
-            .title = big_layout ? nullptr : N_("Warning"),
+            .title = big_layout ? nullstr : N_("Warning"),
         },
     },
     {
@@ -285,7 +287,7 @@ constexpr EnumArray<MsgBoxType, MsgBoxImplicitConfig, MsgBoxType::_count> msb_bo
         MsgBoxImplicitConfig {
             .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
             .icon = big_layout ? &img::info_48x48 : &img::info_16x16,
-            .title = big_layout ? nullptr : N_("Information"),
+            .title = big_layout ? nullstr : N_("Information"),
         },
     },
     {

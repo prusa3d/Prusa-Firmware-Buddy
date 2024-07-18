@@ -34,7 +34,7 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
     static constexpr const char *txt_fil_detected_mmu = find_error(ErrCode::CONNECT_PRINT_PREVIEW_MMU_FILAMENT_INSERTED).err_text;
 #endif
 
-    static constexpr const char *txt_new_fw_available = N_(find_error(ErrCode::CONNECT_PRINT_PREVIEW_NEW_FW).err_text);
+    static constexpr const char *txt_new_fw_available = find_error(ErrCode::CONNECT_PRINT_PREVIEW_NEW_FW).err_text;
     static constexpr const char *txt_wrong_fil_type = find_error(ErrCode::CONNECT_PRINT_PREVIEW_WRONG_FILAMENT).err_text;
 
     static ScreenPrintPreview *ths; // to be accessible in dialog handler

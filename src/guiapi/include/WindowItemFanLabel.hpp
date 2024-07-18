@@ -15,7 +15,7 @@ public:
                 const auto rpm = value.second.get_int();
                 const unsigned int raw_value = (pwm * 100 + PWM_MAX - 1) / PWM_MAX; // ceil div
                 const int8_t percent = std::clamp(raw_value, 0u, 100u);
-                const char *const format = [&]() {
+                const char *const format = [&]() -> const char * {
                     if (rpm) {
                         return N_("%u %% / %li RPM");
                     }

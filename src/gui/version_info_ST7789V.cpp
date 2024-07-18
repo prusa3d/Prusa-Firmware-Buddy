@@ -34,9 +34,8 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     auto end = version_info_str.end();
     {
         // r=1 c=20
-        static const char fmt2Translate[] = N_("Firmware Version\n");
         char fmt[21];
-        _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
+        _("Firmware Version\n").copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
         begin += snprintf(begin, end - begin, fmt);
     }
 
@@ -58,9 +57,8 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
 
     if (end > begin) {
         // c=20 r=4
-        static const char fmt2Translate[] = N_("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d\n%s");
         char fmt[20 * 4];
-        _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
+        _("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d\n%s").copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
         begin += snprintf(begin, end - begin,
             fmt,
             bootloader->major, bootloader->minor, bootloader->patch,

@@ -52,8 +52,7 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
 
     // write pattern
     textCPU_load.set_font(Font::normal);
-    static const char cl[] = N_("CPU load");
-    textCPU_load.SetText(_(cl));
+    textCPU_load.SetText(_("CPU load"));
 
     textCPU_load_val.SetFormat((const char *)"%.0f");
     textCPU_load_val.SetValue(osGetCPUUsage());
@@ -72,12 +71,10 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
 #endif
 
     textPrintFan_RPM.set_font(Font::normal);
-    static const char cl0[] = N_("PrintFan RPM");
-    textPrintFan_RPM.SetText(_(cl0));
+    textPrintFan_RPM.SetText(_("PrintFan RPM"));
 
     textHeatBreakFan_RPM.set_font(Font::normal);
-    static const char cl1[] = N_("HB Fan RPM");
-    textHeatBreakFan_RPM.SetText(_(cl1));
+    textHeatBreakFan_RPM.SetText(_("HB Fan RPM"));
 
     textPrintFan_RPM_val.SetFormat((const char *)"%0.0f");
     textPrintFan_RPM_val.SetValue(marlin_vars().active_hotend().print_fan_rpm);
@@ -86,9 +83,7 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textHeatBreakFan_RPM_val.SetValue(marlin_vars().active_hotend().heatbreak_fan_rpm);
 
     textExit.set_font(Font::big);
-
-    static const char ex[] = N_("EXIT");
-    textExit.SetText(_(ex));
+    textExit.SetText(_("EXIT"));
 }
 
 void screen_sysinfo_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {

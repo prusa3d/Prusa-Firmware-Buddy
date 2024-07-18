@@ -12,10 +12,10 @@
 #include "i18n.h"
 #include <limits>
 
-constexpr static const char load_preheat[] = N_("Preheating for load");
-constexpr static const char unload_preheat[] = N_("Preheating for unload");
-constexpr static const char purge_preheat[] = N_("Preheating for purge");
-constexpr static const char index_error[] = "Index error"; // intentionally not to be translated
+constexpr static const char *load_preheat = N_("Preheating for load");
+constexpr static const char *unload_preheat = N_("Preheating for unload");
+constexpr static const char *purge_preheat = N_("Preheating for purge");
+constexpr static const char *index_error = "Index error"; // intentionally not to be translated
 
 /*****************************************************************************/
 // NsPreheat::I_MI_Filament

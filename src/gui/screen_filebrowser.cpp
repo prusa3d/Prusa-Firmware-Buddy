@@ -24,8 +24,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     , header(this)
     , file_browser(this, GuiDefaults::RectScreenNoHeader, GCodeInfo::getInstance().GetGcodeFilepath()) {
     header.SetIcon(&img::folder_full_16x16);
-    static const char sf[] = N_("PROJECTS");
-    header.SetText(_(sf));
+    header.SetText(_("PROJECTS"));
 
     CaptureNormalWindow(file_browser);
 }
