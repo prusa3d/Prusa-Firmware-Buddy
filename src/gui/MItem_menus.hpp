@@ -13,15 +13,22 @@
 #include <option/has_translations.h>
 #include <common/sheet.hpp>
 
-class MI_VERSION_INFO : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Version Info");
-
+/// Usage:
+/// class Screen;
+/// using MI_XXX = MI_SCREEN<N_("Label"), Screen>;
+/// And then in MItem_menus.cpp, you need to include the relevant screen header
+template <auto label_, class Screen_>
+class MI_SCREEN final : public IWindowMenuItem {
 public:
-    MI_VERSION_INFO();
+    MI_SCREEN()
+        : IWindowMenuItem(_(label_.str), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {}
 
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
+    // Implemented in the cpp file
+    void click(IWindowMenu &) override;
 };
+
+class ScreenMenuVersionInfo;
+using MI_VERSION_INFO = MI_SCREEN<N_("Version Info"), ScreenMenuVersionInfo>;
 
 class MI_SENSOR_INFO : public IWindowMenuItem {
     static constexpr const char *const label = N_("Sensor Info");

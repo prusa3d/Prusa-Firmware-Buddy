@@ -82,14 +82,9 @@
 
 #include <config_store/store_instance.hpp>
 
-/*****************************************************************************/
-// MI_VERSION_INFO
-MI_VERSION_INFO::MI_VERSION_INFO()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-}
-
-void MI_VERSION_INFO::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuVersionInfo>);
+template <auto label_, class Screen_>
+void MI_SCREEN<label_, Screen_>::click(IWindowMenu &) {
+    Screens::Access()->Open<Screen_>();
 }
 
 /*****************************************************************************/
