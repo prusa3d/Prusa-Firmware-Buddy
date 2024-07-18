@@ -2,6 +2,7 @@
 #include "i18n.h"
 #include "img_resources.hpp"
 #include <guiconfig/wizard_config.hpp>
+#include <str_utils.hpp>
 
 #include <algorithm>
 
@@ -114,22 +115,19 @@ void SelftestFrameDock::change() {
 }
 
 void SelftestFrameDock::set_name(SelftestDocks_t data) {
-    static const char fmt2Translate[] = N_("Dock %d calibration");
-    size_t buff_pos = 0;
+    StringBuilder sb(name_buff);
+
     if (data.current_dock != std::numeric_limits<decltype(data.current_dock)>::max()) {
-        char fmt[std::tuple_size_v<decltype(name_buff)>];
-        _(fmt2Translate).copyToRAM(fmt, sizeof(name_buff));
-        buff_pos += snprintf(name_buff.data(), name_buff.size(), fmt, data.current_dock + 1);
-        buff_pos = std::min(buff_pos, name_buff.size());
+        StringViewUtf8Parameters<4> params;
+        sb.append_string_view(_("Dock %d calibration").formatted(params, data.current_dock + 1));
     }
+
     if (const char *phase_name = get_phase_name(); phase_name != nullptr) {
-        char phase_name_buff[50];
-        _(phase_name).copyToRAM(phase_name_buff, sizeof(phase_name_buff));
-
-        snprintf(name_buff.data() + buff_pos, name_buff.size() - buff_pos, " - %s", phase_name_buff);
+        sb.append_string(" - ");
+        sb.append_string_view(_(phase_name));
     }
 
-    SetName(string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(name_buff.data())));
+    SetName(string_view_utf8::MakeRAM(name_buff.data()));
 }
 
 void SelftestFrameDock::set_remaining() {
