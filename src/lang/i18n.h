@@ -59,8 +59,20 @@
 /// If translation not available, returns the same text.
 #define _(String) gettext(String)
 
+template <char... chars>
+struct TranslatableStringT {
+    static constexpr inline const char str[] = { chars..., '\0' };
+
+    constexpr inline operator const char *() const {
+        return str;
+    }
+};
+
+template <typename T, T... chars>
+constexpr TranslatableStringT<chars...> operator""_ntr() { return {}; }
+
 /// This just marks the text to be translated (extracted by gettext tools). Does not alter its content.
-#define N_(String) String
+#define N_(String) String##_ntr
 
 #define textdomain(Domain)
 #define bindtextdomain(Package, Directory)
