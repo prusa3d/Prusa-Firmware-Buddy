@@ -7,6 +7,8 @@
 #include "gui_invalidate.hpp"
 #include "img_resources.hpp"
 
+#include <gui/event/focus_event.hpp>
+
 namespace window_menu_item_private {
 
 IWindowMenuItem *focused_menu_item = nullptr;
@@ -126,20 +128,34 @@ bool IWindowMenuItem::move_focus(IWindowMenuItem *target) {
         return false;
     }
 
+    IWindowMenuItem *previous_focused_item = focused_menu_item;
+
     // Redraw previously focused menu item
-    if (auto *i = focused_menu_item) {
-        i->Invalidate();
+    if (previous_focused_item) {
+        previous_focused_item->Invalidate();
     }
 
     focused_menu_item_roll.Deinit();
     focused_menu_item = target;
 
-    if (auto *i = focused_menu_item) {
-        if (i->IsHidden()) {
-            i->show();
+    if (target) {
+        if (target->IsHidden()) {
+            target->show();
         }
 
-        i->Invalidate();
+        target->Invalidate();
+    }
+
+    if (previous_focused_item) {
+        // We don't know the menu, so we cannot provide it
+        WindowMenuItemEventContext ctx(gui_event::FocusOutEvent {}, nullptr);
+        previous_focused_item->event(ctx);
+    }
+
+    if (target) {
+        // We don't know the menu, so we cannot provide it
+        WindowMenuItemEventContext ctx(gui_event::FocusInEvent {}, nullptr);
+        target->event(ctx);
     }
 
     return true;
@@ -428,4 +444,7 @@ bool IWindowMenuItem::Change(int dif) {
         InValidateExtension();
     }
     return changed;
+}
+
+void IWindowMenuItem::event(WindowMenuItemEventContext &) {
 }

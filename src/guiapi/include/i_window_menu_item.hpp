@@ -12,6 +12,7 @@
 #include "i_window_menu.hpp" //needed invalidate for click
 #include "text_roll.hpp"
 #include <utility_extensions.hpp>
+#include <gui/event/gui_event.hpp>
 
 // IWindowMenuItem
 // todo make version with constant label
@@ -29,6 +30,20 @@
 //+-------+--------------+--------------+
 //| icon  | text         | [value]      | switch with brackets
 //+-------+--------------+--------------+
+
+class WindowMenuItemEventContext : public GuiEventContext {
+
+public:
+    inline WindowMenuItemEventContext(GuiEventType auto &&event, IWindowMenu *menu)
+        : GuiEventContext(event)
+        , menu(menu) {
+    }
+
+public:
+    // TODO: Get rid of this completely, currently here only to keep compatibility with the old API
+    /// Menu of the item the event is called for. Might be not known.
+    IWindowMenu *const menu = nullptr;
+};
 
 /*****************************************************************************/
 // IWindowMenuItem
@@ -146,6 +161,7 @@ protected:
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) {};
     virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point);
     virtual invalidate_t change(int /*dif*/) { return invalidate_t::no; }
+    virtual void event(WindowMenuItemEventContext &);
 
     void setLabelFont(Font);
     Font getLabelFont() const;
