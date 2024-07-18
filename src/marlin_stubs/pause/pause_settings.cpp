@@ -47,7 +47,13 @@ float Settings::GetDefaultUnloadLength() {
 }
 
 float Settings::GetDefaultPurgeLength() {
+#if PRINTER_IS_PRUSA_MK4
+    // Double the purge length for HF nozzles - presumably on MK4S (for now)
+    // This code will change in the future for different nozzle types
+    return ((config_store().extended_printer_type.get() == ExtendedPrinterType::mk4s) ? 2 : 1) * ADVANCED_PAUSE_PURGE_LENGTH;
+#else
     return ADVANCED_PAUSE_PURGE_LENGTH;
+#endif
 }
 
 float Settings::GetDefaultRetractLength() {
