@@ -453,7 +453,7 @@ class FrameWaitForNFC : public FrameText {
 
 public:
     FrameWaitForNFC(window_t *parent)
-        : FrameText(parent, Phase::wait_for_nfc, _("Credentials via NFC"), _("1. Open Prusa Connect app on your mobile device.\n\n2. Go to in-app Menu and select \"Set up Printer Wi-Fi.\"\n\n3. Follow on-screen instructions.")) {
+        : FrameText(parent, Phase::wait_for_nfc, _("Credentials via NFC"), _("1. Open Prusa app on your mobile device.\n\n2. Go to in-app Menu and select \"Set up Printer Wi-Fi.\"\n\n3. Follow on-screen instructions.")) {
     }
 };
 
