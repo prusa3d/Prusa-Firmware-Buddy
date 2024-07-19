@@ -38,6 +38,10 @@ struct TransferCheckResult {
         // Partial file & backup present and not empty -> running transfer
         return partial_file_found && backup_file_found && !backup_file_empty;
     }
+
+    inline bool is_aborted() const {
+        return partial_file_found && backup_file_found && backup_file_empty;
+    }
 };
 
 enum class TransferCheckValidOnly {
