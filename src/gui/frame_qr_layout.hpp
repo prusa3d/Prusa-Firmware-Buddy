@@ -58,7 +58,7 @@ public:
     /** @returns Rect16 position and size of the link widget */
     static constexpr Rect16 link_rect() {
         if (GuiDefaults::ScreenWidth > 240) {
-            return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0 + textHeight, phone_icon_rect().Left() - WizardDefaults::col_0, WizardDefaults::txt_h };
+            return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0 + textHeight, WizardDefaults::X_space, WizardDefaults::txt_h };
         } else {
             return Rect16 { WizardDefaults::col_0, qrcode_rect().Bottom() - 5 /* QR is actually smaller than its rect */, WizardDefaults::X_space, WizardDefaults::txt_h };
         }
