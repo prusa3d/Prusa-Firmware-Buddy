@@ -14,6 +14,9 @@
 #include <fsm_menu_item.hpp>
 #include <fsm_network_setup.hpp>
 #include <gui/frame_qr_layout.hpp>
+#include <logging/log.hpp>
+#include "timing.h"
+#include <DialogConnectReg.hpp>
 
 #if HAS_NFC()
     #include <nfc.hpp>
@@ -491,6 +494,26 @@ protected:
 };
 #endif
 
+class FrameAskSetupPrusaConnect : public FrameText {
+
+public:
+    FrameAskSetupPrusaConnect(window_t *parent)
+        : FrameText(parent, Phase::ask_setup_prusa_connect, _("Set up Prusa Connect?"), _("Do you want to add your printer to Prusa Connect?")) {
+    }
+};
+
+class FramePrusaConnectSetup {
+
+public:
+    FramePrusaConnectSetup(window_t *) {
+        // Prusa Connect setup is a dialog for some reason, so just blockingly execute it
+        DialogConnectRegister::Show();
+
+        // And let the FSM now that we finished afterwards
+        marlin_client::FSM_response(PhaseNetworkSetup::prusa_conect_setup, Response::Done);
+    }
+};
+
 using Frames = FrameDefinitionList<ScreenNetworkSetup::FrameStorage,
 #if HAS_NFC()
     FrameDefinition<Phase::ask_use_prusa_app, FrameAskUsePrusaApp>,
@@ -507,7 +530,9 @@ using Frames = FrameDefinitionList<ScreenNetworkSetup::FrameStorage,
     FrameDefinition<Phase::no_interface_error, FrameESPError>,
     FrameDefinition<Phase::connection_error, FrameError>,
     FrameDefinition<Phase::help_qr, FrameHelpQR>,
-    FrameDefinition<Phase::connected, FrameConnected> //
+    FrameDefinition<Phase::connected, FrameConnected>,
+    FrameDefinition<Phase::ask_setup_prusa_connect, FrameAskSetupPrusaConnect>,
+    FrameDefinition<Phase::prusa_conect_setup, FramePrusaConnectSetup> //
     >;
 
 } // namespace network_wizard

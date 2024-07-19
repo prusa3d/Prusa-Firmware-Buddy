@@ -331,6 +331,8 @@ enum class PhaseNetworkSetup : PhaseUnderlyingType {
     connecting_finishable, ///< The user is connecting to a Wi-Fi. The screen offers a "Finish" button that keeps connecting on the background and "Cancel" to go back.
     connecting_nonfinishable, ///< The user is connecting to a Wi-Fi. The screen only offers a "Cancel" button to go back.
     connected,
+    ask_setup_prusa_connect, ///< Prompts the user if he wants to set up Prusa Connect
+    prusa_conect_setup, ///< Setup connect is running, waiting for it to finish
 
     no_interface_error,
     connection_error,
@@ -728,6 +730,9 @@ class ClientResponses {
             { PhaseNetworkSetup::connecting_finishable, { Response::Finish, Response::Cancel } },
             { PhaseNetworkSetup::connecting_nonfinishable, { Response::Cancel } },
             { PhaseNetworkSetup::connected, { Response::Ok } },
+            { PhaseNetworkSetup::ask_setup_prusa_connect, { Response::Yes, Response::No } },
+            { PhaseNetworkSetup::prusa_conect_setup, { Response::Done } },
+
             { PhaseNetworkSetup::no_interface_error, { Response::Ok, Response::Help, Response::Retry } },
             { PhaseNetworkSetup::connection_error, { Response::Back, Response::Help, Response::Abort } },
             { PhaseNetworkSetup::help_qr, { Response::Back } },
