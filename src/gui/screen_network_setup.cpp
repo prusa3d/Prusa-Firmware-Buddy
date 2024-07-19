@@ -463,11 +463,12 @@ public:
 };
 
 #if HAS_NFC()
-class FrameAskUsePrusaApp : public FrameText {
+class FrameAskUsePrusaApp : public FrameRadioQR {
+    static constexpr const char *url = "prusa.io/app";
 
 public:
     FrameAskUsePrusaApp(window_t *parent)
-        : FrameText(parent, Phase::ask_use_prusa_app, _("Connect through Prusa App?"), _("Do you want to connect to the Wi-Fi with the Prusa App on your phone (using NFC)?")) {
+        : FrameRadioQR(parent, Phase::ask_use_prusa_app, _("Do you want to connect to the Wi-Fi with the Prusa App on your phone (using NFC)?"), url, url) {
     }
 };
 
