@@ -291,6 +291,24 @@ void turn_off() {
     std::ignore = user_write_bytes(EepromCommand::memory, MEM_RF_MNGT_Dyn, &val, sizeof(val));
 }
 
+bool has_nfc() {
+    // Currently, we don't have a way to detect the antenna presence. So just guess based on the printer model.
+    // Revisit this if we add more products
+
+#if PRINTER_IS_PRUSA_MK4
+    static_assert(extended_printer_type_count == 3);
+    return config_store().extended_printer_type.get() == ExtendedPrinterType::mk4s;
+
+#elif PRINTER_IS_PRUSA_MK3_5
+    static_assert(!HAS_EXTENDED_PRINTER_TYPE());
+    return false;
+
+#else
+    #error Revisit this
+
+#endif
+}
+
 bool has_activity() {
     uint8_t state { 0 };
 
