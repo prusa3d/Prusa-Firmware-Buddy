@@ -348,11 +348,18 @@ protected:
     std::array<char, config_store_ns::wifi_max_ssid_len + 1> ssid_buffer;
 };
 
-class FrameConnecting : public FrameTextWithSSID {
+class FrameConnectingFinishable : public FrameTextWithSSID {
 
 public:
-    FrameConnecting(window_t *parent)
-        : FrameTextWithSSID(parent, Phase::connecting, _("Connecting to:"), _("You can press 'Finish' to continue connecting on the background.")) {}
+    FrameConnectingFinishable(window_t *parent)
+        : FrameTextWithSSID(parent, Phase::connecting_finishable, _("Connecting to:"), _("You can press 'Finish' to continue connecting on the background.")) {}
+};
+
+class FrameConnectingNonfinishable : public FrameTextWithSSID {
+
+public:
+    FrameConnectingNonfinishable(window_t *parent)
+        : FrameTextWithSSID(parent, Phase::connecting_nonfinishable, _("Connecting to:"), {}) {}
 };
 
 class FrameESPError : public FrameText {
@@ -486,7 +493,8 @@ using Frames = FrameDefinitionList<ScreenNetworkSetup::FrameStorage,
     FrameDefinition<Phase::wifi_scan, FrameWifiScan>,
     FrameDefinition<Phase::ask_delete_ini_file, FrameAskDeleteINIFile>,
     FrameDefinition<Phase::wait_for_ini_file, FrameWaitForINI>,
-    FrameDefinition<Phase::connecting, FrameConnecting>,
+    FrameDefinition<Phase::connecting_finishable, FrameConnectingFinishable>,
+    FrameDefinition<Phase::connecting_nonfinishable, FrameConnectingNonfinishable>,
     FrameDefinition<Phase::no_interface_error, FrameESPError>,
     FrameDefinition<Phase::connection_error, FrameError>,
     FrameDefinition<Phase::help_qr, FrameHelpQR>,
