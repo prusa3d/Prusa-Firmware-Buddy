@@ -283,9 +283,17 @@ private:
         netdev_set_active_id(NETDEV_ESP_ID);
     }
 
-    void phase_connecting_reset_and_connect() {
+    /// Commit the network configuration. This blocks for some significant time.
+    void commit_network_configuration() {
         espif_reset_connection();
         notify_reconfigure();
+    }
+
+    void phase_connecting_exit(const Meta::ExitCallbackArgs &) {
+        // If the user closed the screen before the netif update was issued, issue it now.
+        if (!phase_action_done_) {
+            commit_network_configuration();
+        }
     }
 
     PhaseOpt phase_connecting(const Meta::LoopCallbackArgs &args) {
@@ -299,7 +307,7 @@ private:
         // We do this after some delay, because it freezes the printer.
         // If we did this in the phase init, the screen would not be redrawn for some time.
         if (phase_time_ms > 700 && !phase_action_done_) {
-            phase_connecting_reset_and_connect();
+            commit_network_configuration();
             phase_action_done_ = true;
         }
 
@@ -312,15 +320,9 @@ private:
 
         case Response::Back:
         case Response::Cancel:
-            if (!phase_action_done_) {
-                phase_connecting_reset_and_connect();
-            }
             return cancel_target_phase_;
 
         case Response::Finish:
-            if (!phase_action_done_) {
-                phase_connecting_reset_and_connect();
-            }
             return Phase::finish;
 
         default:
@@ -405,7 +407,7 @@ private:
             { Phase::wait_for_nfc, { &C::phase_wait_for_nfc } },
             { Phase::nfc_confirm, { .loop_callback = &C::phase_nfc_confirm, .init_callback = &C::phase_nfc_confirm_init } },
 #endif
-            { Phase::connecting, { .loop_callback = &C::phase_connecting, .init_callback = &C::phase_connecting_init } },
+            { Phase::connecting, { .loop_callback = &C::phase_connecting, .init_callback = &C::phase_connecting_init, .exit_callback = &C::phase_connecting_exit } },
             { Phase::connected, { &C::phase_connected } },
             { Phase::no_interface_error, { &C::phase_esp_error } },
             { Phase::connection_error, { &C::phase_connecting_error } },
