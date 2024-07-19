@@ -455,6 +455,14 @@ private:
 };
 
 #if HAS_NFC()
+class FrameAskUsePrusaApp : public FrameText {
+
+public:
+    FrameAskUsePrusaApp(window_t *parent)
+        : FrameText(parent, Phase::ask_use_prusa_app, _("Connect through Prusa App?"), _("Do you want to connect to the Wi-Fi with the Prusa App on your phone (using NFC)?")) {
+    }
+};
+
 class FrameWaitForNFC : public FrameText {
     nfc::SharedEnabler nfc_enable;
 
@@ -485,6 +493,7 @@ protected:
 
 using Frames = FrameDefinitionList<ScreenNetworkSetup::FrameStorage,
 #if HAS_NFC()
+    FrameDefinition<Phase::ask_use_prusa_app, FrameAskUsePrusaApp>,
     FrameDefinition<Phase::wait_for_nfc, FrameWaitForNFC>,
     FrameDefinition<Phase::nfc_confirm, FrameConfirmNFC>,
 #endif

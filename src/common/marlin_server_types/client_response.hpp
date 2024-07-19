@@ -319,21 +319,25 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesSelftest) { return Client
 
 enum class PhaseNetworkSetup : PhaseUnderlyingType {
     init,
+
     ask_switch_to_wifi, ///< User is already connected through an ethernet cable, ask him if he wants to switch to wi-fi
     action_select, ///< Letting the user to choose how the wi-fi should be set up
     wifi_scan, ///< Scanning available wi-fi networks (the scanning is fully handled on the GUI thread)
     wait_for_ini_file, ///< Prompting user to insert a flash drive with creds
     ask_delete_ini_file, ///< Asking the user if he wants to delete the ini file
 #if HAS_NFC()
+    ask_use_prusa_app, ///< User is prompted if he wants to use the Prusa App to connect to the wi-fi
     wait_for_nfc, ///< Prompting user to provide the credentials through NFW
     nfc_confirm, ///< Loaded credentials via NFC, asking for confirmation
 #endif
     connecting_finishable, ///< The user is connecting to a Wi-Fi. The screen offers a "Finish" button that keeps connecting on the background and "Cancel" to go back.
     connecting_nonfinishable, ///< The user is connecting to a Wi-Fi. The screen only offers a "Cancel" button to go back.
     connected,
+
     no_interface_error,
     connection_error,
     help_qr, ///< Display as QR code to the help page
+
     finish,
     _last = finish,
     _cnt,
@@ -703,6 +707,7 @@ class ClientResponses {
             { PhaseNetworkSetup::wait_for_ini_file, { Response::Cancel } },
             { PhaseNetworkSetup::ask_delete_ini_file, { Response::Yes, Response::No } },
 #if HAS_NFC()
+            { PhaseNetworkSetup::ask_use_prusa_app, { Response::Yes, Response::No } },
             { PhaseNetworkSetup::wait_for_nfc, { Response::Cancel } },
             { PhaseNetworkSetup::nfc_confirm, { Response::Ok, Response::Cancel } },
 #endif
