@@ -790,24 +790,23 @@ class ClientResponses {
 #endif
 
 #if HAS_INPUT_SHAPER_CALIBRATION()
-    static constexpr PhaseResponses InputShaperCalibrationResponses[] = {
-        { Response::Yes, Response::No }, // info_factory
-        { Response::Continue, Response::Abort }, // info_calibrated
-        {}, // parking
-        { Response::Abort }, // connect_to_board
-        { Response::Abort }, // wait_for_extruder_temperature
-        { Response::Continue, Response::Abort }, // attach_to_extruder
-        { Response::Abort }, // calibrating_accelerometer,
-        { Response::Abort }, // measuring_x_axis
-        { Response::Continue, Response::Abort }, // attach_to_bed
-        { Response::Abort }, // measuring_y_axis
-        { Response::Retry, Response::Abort }, // measurement_failed
-        { Response::Abort }, // computing
-        { Response::Ok }, // bad_results
-        { Response::Yes, Response::No }, // results
-        {}, // finish
+    static constexpr EnumArray<PhasesInputShaperCalibration, PhaseResponses, CountPhases<PhasesInputShaperCalibration>()> input_shaper_calibration_responses {
+        { PhasesInputShaperCalibration::info_factory, { Response::Yes, Response::No } },
+        { PhasesInputShaperCalibration::info_calibrated, { Response::Continue, Response::Abort } },
+        { PhasesInputShaperCalibration::parking, {} },
+        { PhasesInputShaperCalibration::connect_to_board, { Response::Abort } },
+        { PhasesInputShaperCalibration::wait_for_extruder_temperature, { Response::Abort } },
+        { PhasesInputShaperCalibration::attach_to_extruder, { Response::Continue, Response::Abort } },
+        { PhasesInputShaperCalibration::calibrating_accelerometer, { Response::Abort } },
+        { PhasesInputShaperCalibration::measuring_x_axis, { Response::Abort } },
+        { PhasesInputShaperCalibration::attach_to_bed, { Response::Continue, Response::Abort } },
+        { PhasesInputShaperCalibration::measuring_y_axis, { Response::Abort } },
+        { PhasesInputShaperCalibration::measurement_failed, { Response::Retry, Response::Abort } },
+        { PhasesInputShaperCalibration::computing, { Response::Abort } },
+        { PhasesInputShaperCalibration::bad_results, { Response::Ok } },
+        { PhasesInputShaperCalibration::results, { Response::Yes, Response::No } },
+        { PhasesInputShaperCalibration::finish, {} },
     };
-    static_assert(std::size(ClientResponses::InputShaperCalibrationResponses) == CountPhases<PhasesInputShaperCalibration>());
 #endif
 
     static constexpr EnumArray<ClientFSM, std::span<const PhaseResponses>, ClientFSM::_count> fsm_phase_responses {
@@ -832,7 +831,7 @@ class ClientResponses {
             { ClientFSM::PhaseStepping, PhaseSteppingResponses },
 #endif
 #if HAS_INPUT_SHAPER_CALIBRATION()
-            { ClientFSM::InputShaperCalibration, InputShaperCalibrationResponses },
+            { ClientFSM::InputShaperCalibration, input_shaper_calibration_responses },
 #endif
     };
 
