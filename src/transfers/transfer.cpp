@@ -440,7 +440,9 @@ bool Transfer::cleanup_transfers() {
 
             if (r.is_running()) {
                 can_cleanup = false;
-            } else if (r.partial_file_found && !cleanup_finalize(transfer_path)) {
+            } else if (r.is_aborted() && !cleanup_remove(transfer_path)) {
+                all_ok = false;
+            } else if (r.is_finished() && !cleanup_finalize(transfer_path)) {
                 all_ok = false;
             }
 
@@ -591,6 +593,8 @@ bool Transfer::cleanup_remove(Path &path) {
 
     if (success) {
         ChangedPath::instance.changed_path(path.as_destination(), ChangedPath::Type::File, ChangedPath::Incident::Deleted);
+    } else {
+        log_error(transfers, "Failed to remove aborted transfer %s", path.as_destination());
     }
     return success;
 }
