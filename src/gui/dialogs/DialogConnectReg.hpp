@@ -7,6 +7,7 @@
 #include <guiconfig/wizard_config.hpp>
 
 #include <connect/status.hpp>
+#include <connect/registrator.hpp>
 
 class DialogConnectRegister : public IDialog {
 private:
@@ -15,10 +16,11 @@ private:
     char detail_buffer[70];
     char error_buffer[90];
 
+    StringViewUtf8Parameters<connect_client::CODE_SIZE + 1> code_params;
+
     // TODO: Doesn't fit
     constexpr static const char *const headerLabel = N_("PRUSA CONNECT");
     constexpr static const char *const moreDetailTxt = N_("More detail at");
-    constexpr static const char *const attemptTxt = N_("Attempt %d/%d");
 
     // TODO: Stolen from selftest_frame_esp_qr.hpp ‒ unify to a common place.
     /** @brief Calculates the position of individual elements of the frame

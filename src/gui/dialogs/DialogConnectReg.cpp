@@ -6,6 +6,7 @@
 #include <find_error.hpp>
 #include <connect/connect.hpp>
 #include <guiconfig/guiconfig.h>
+#include <str_utils.hpp>
 
 using connect_client::ConnectionStatus;
 using connect_client::OnlineStatus;
@@ -42,11 +43,8 @@ DialogConnectRegister::DialogConnectRegister()
 
     last_seen_status = std::make_tuple(connect_client::ConnectionStatus::Unknown, connect_client::OnlineError::NoError, std::nullopt);
 
-    text_state.SetText(_("Acquiring registration code, please wait..."));
-
-    const string_view_utf8 str = _(attemptTxt).formatted(attempt_params, 1, connect_client::Registrator::starting_retries);
-    text_attempt.SetText(str);
-    text_attempt.Invalidate();
+    text_state.SetText(_("Registering the printer to Prusa Connect..."));
+    text_attempt.Hide();
 
     // Show these only after we get the code.
     qr_rect = false;
@@ -103,7 +101,7 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
             switch (get<0>(last_seen_status)) {
             case ConnectionStatus::RegistrationCode: {
                 const char *code = connect_client::registration_code();
-                char url_buffer[max_url_len + 1];
+
                 // Note: the URL hardcoded for production instance. This is
                 // because the hostname for the printer is different from the
                 // hostname for the user (because of certificates...)
@@ -111,23 +109,22 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
                 // In case the user is not using the production instance, they
                 // already need the ini file to override the hostname and
                 // therefore the wizard is of little use to them.
+
+                ArrayStringBuilder<max_url_len> url_sb;
+                url_sb.append_string("https://connect.prusa3d.com/add/");
+                url_sb.append_string(code);
+                qr.SetText(url_sb.str());
                 showQR();
-                snprintf(url_buffer, sizeof url_buffer, "https://connect.prusa3d.com/add/%s", code);
-                qr.SetText(url_buffer);
-                // The MakeRAM doesn't copy it, it just passes the pointer
-                // through and assumes the data live for long enough.
-                //
-                // This is OK here, as the registration_code is stable and not
-                // changing until we leave the registration, which we do in our
-                // destructor.
-                text_detail.SetText(string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(code)));
+
+                text_detail.SetText(_("Code: %s").formatted(code_params, code));
 
 #if HAS_MINI_DISPLAY()
-                text_state.SetText(_("Scan QR or visit prusa.io/add, log in and add printer code:"));
+                text_state.SetText(_("Scan the QR code using the Prusa app or camera, or visit prusa.io/add.\n"));
 #else
-                text_state.SetText(_("1. Scan the QR code or visit prusa.io/add.\n2. Log in.\n3. Add printer with code:\n"));
+                text_state.SetText(_("1. Scan the QR code using the Prusa app or camera, or visit prusa.io/add.\n2. Log in."));
 #endif
                 break;
+                ;
             }
             case ConnectionStatus::RegistrationDone: {
                 hideDetails();
@@ -188,13 +185,16 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
                 text_detail.Invalidate();
                 break;
             }
-            default:
-                const auto &retries_count { get<2>(last_seen_status) };
-                if (retries_count.has_value()) {
-                    if (get<1>(last_seen_status) != connect_client::OnlineError::NoError) {
-                        text_attempt.SetText(_(attemptTxt).formatted(attempt_params, (connect_client::Registrator::starting_retries - retries_count.value()), connect_client::Registrator::starting_retries));
-                        text_attempt.Invalidate();
-                    }
+
+            default: {
+                const auto retries_count = get<2>(last_seen_status);
+                const auto retry_ix = retries_count.transform([](auto v) { return connect_client::Registrator::starting_retries - v; }).value_or(0);
+
+                // After a few attempts, show the user that we're retrying
+                if (retry_ix > 1) {
+                    text_attempt.SetText(_("Attempt %d/%d").formatted(attempt_params, retry_ix, connect_client::Registrator::starting_retries));
+                    text_attempt.Invalidate();
+                    text_attempt.Show();
                 }
                 // Some other state:
                 // * Unknown.
@@ -203,6 +203,7 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
                 //
                 // For these, we just keep the default.
                 break;
+            }
             }
         }
 
@@ -287,7 +288,7 @@ constexpr Rect16 DialogConnectRegister::Positioner::textRectTitle() {
 constexpr Rect16 DialogConnectRegister::Positioner::textRectState([[maybe_unused]] bool final) {
 #if !HAS_MINI_DISPLAY()
     if (final) {
-        return textRect(WizardDefaults::row_h * 2, WizardDefaults::txt_h * 4, phoneIconRect().Left() - WizardDefaults::col_0);
+        return textRect(WizardDefaults::row_h * 2, WizardDefaults::txt_h * 6, phoneIconRect().Left() - WizardDefaults::col_0);
     } else {
         return textRect(WizardDefaults::row_h * 2, WizardDefaults::row_h * 2);
     }
