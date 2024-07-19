@@ -114,8 +114,8 @@ dependencies = {
         ],
     },
     'CrashDebug': {
-        'version': 'ab03f8b6fb6e3445c62fe3fa5f3263d2945d74ff',
-        'url': 'https://github.com/prusa3d/CrashDebug/archive/ab03f8b6fb6e3445c62fe3fa5f3263d2945d74ff.zip',
+        'version': '22acef8c6e248db2f04f65eebf4c2b470f4010c2',
+        'url': 'https://github.com/prusa3d/CrashDebug/archive/22acef8c6e248db2f04f65eebf4c2b470f4010c2.zip',
     },
 }
 # yapf: enable
