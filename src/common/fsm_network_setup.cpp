@@ -31,6 +31,10 @@ public:
 
     void setup_initial_setup() {
         mode_ = WizardMode::initial_setup;
+
+        // We cannot allow continuing the connecting on background on the initial setup,
+        // because we want to offer Prusa Connect if the user connects successfully.
+        connecting_phase_ = Phase::connecting_nonfinishable;
     }
 
     void setup_ini() {
@@ -159,7 +163,7 @@ private:
 
         case NetworkSetupResponse::connect:
             // Continue -> user set up the new credentials into the config_store
-            return Phase::connecting;
+            return connecting_phase_;
 
 #if HAS_NFC()
         case NetworkSetupResponse::scan_nfc:
@@ -188,7 +192,7 @@ private:
 
         case Response::Continue:
             // Continue -> user set up the new credentials into the config_store
-            return Phase::connecting;
+            return connecting_phase_;
 
         default:
             return std::nullopt;
@@ -232,10 +236,10 @@ private:
 
         case Response::Yes:
             remove(settings_ini::file_name);
-            return Phase::connecting;
+            return connecting_phase_;
 
         case Response::No:
-            return Phase::connecting;
+            return connecting_phase_;
 
         default:
             break;
@@ -273,7 +277,7 @@ private:
         case Response::Ok:
             config_store().wifi_ap_ssid.set(nfc_credentials_.ssid.data());
             config_store().wifi_ap_password.set(nfc_credentials_.password.data());
-            return Phase::connecting;
+            return connecting_phase_;
 
         case Response::Back: // From touch swipe
         case Response::Cancel:
@@ -330,6 +334,7 @@ private:
             return cancel_target_phase_;
 
         case Response::Finish:
+        case Response::Abort:
             return Phase::finish;
 
         default:
@@ -414,7 +419,8 @@ private:
             { Phase::wait_for_nfc, { &C::phase_wait_for_nfc } },
             { Phase::nfc_confirm, { .loop_callback = &C::phase_nfc_confirm, .init_callback = &C::phase_nfc_confirm_init } },
 #endif
-            { Phase::connecting, { .loop_callback = &C::phase_connecting, .init_callback = &C::phase_connecting_init, .exit_callback = &C::phase_connecting_exit } },
+            { Phase::connecting_finishable, { .loop_callback = &C::phase_connecting, .init_callback = &C::phase_connecting_init, .exit_callback = &C::phase_connecting_exit } },
+            { Phase::connecting_nonfinishable, { .loop_callback = &C::phase_connecting, .init_callback = &C::phase_connecting_init, .exit_callback = &C::phase_connecting_exit } },
             { Phase::connected, { &C::phase_connected } },
             { Phase::no_interface_error, { &C::phase_esp_error } },
             { Phase::connection_error, { &C::phase_connecting_error } },
@@ -435,6 +441,9 @@ private:
 
     /// Phase the FSM should go to when cancel/back is pressed
     Phase cancel_target_phase_ = Phase::action_select;
+
+    /// Phase the FSM should go to when connecting
+    Phase connecting_phase_ = Phase::connecting_finishable;
 
 #if HAS_NFC()
     /// Time of the last nfc check

@@ -328,7 +328,8 @@ enum class PhaseNetworkSetup : PhaseUnderlyingType {
     wait_for_nfc, ///< Prompting user to provide the credentials through NFW
     nfc_confirm, ///< Loaded credentials via NFC, asking for confirmation
 #endif
-    connecting,
+    connecting_finishable, ///< The user is connecting to a Wi-Fi. The screen offers a "Finish" button that keeps connecting on the background and "Cancel" to go back.
+    connecting_nonfinishable, ///< The user is connecting to a Wi-Fi. The screen only offers a "Cancel" button to go back.
     connected,
     no_interface_error,
     connection_error,
@@ -705,7 +706,8 @@ class ClientResponses {
             { PhaseNetworkSetup::wait_for_nfc, { Response::Cancel } },
             { PhaseNetworkSetup::nfc_confirm, { Response::Ok, Response::Cancel } },
 #endif
-            { PhaseNetworkSetup::connecting, { Response::Finish, Response::Cancel } },
+            { PhaseNetworkSetup::connecting_finishable, { Response::Finish, Response::Cancel } },
+            { PhaseNetworkSetup::connecting_nonfinishable, { Response::Cancel } },
             { PhaseNetworkSetup::connected, { Response::Ok } },
             { PhaseNetworkSetup::no_interface_error, { Response::Ok, Response::Help, Response::Retry } },
             { PhaseNetworkSetup::connection_error, { Response::Back, Response::Help, Response::Abort } },
