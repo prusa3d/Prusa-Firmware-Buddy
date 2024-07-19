@@ -13,6 +13,9 @@ void init();
 void turn_on();
 void turn_off();
 
+/// \returns whether it is "probable" that the printer has the NFC antenna connected
+bool has_nfc_probably();
+
 bool has_activity();
 
 std::optional<WifiCredentials> consume_data();
