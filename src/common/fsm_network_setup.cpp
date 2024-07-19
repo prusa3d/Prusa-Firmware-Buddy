@@ -346,7 +346,7 @@ private:
         }
 
         // Connecting takes too long -> go to the error screen
-        if (phase_time_ms > 120 * 1000) {
+        if (phase_time_ms > 1 * 60 * 1000) {
             return Phase::connection_error;
         }
 
