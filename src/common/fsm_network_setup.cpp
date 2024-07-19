@@ -89,27 +89,29 @@ private:
     }
 
     PhaseOpt phase_init(const Meta::LoopCallbackArgs &) {
-        // If we're successfully connected through ethernet, first ask if want to switch to wi-fi
         const auto active_interface = config_store().active_netdev.get();
-        if (active_interface != NETDEV_ESP_ID && netdev_get_status(active_interface) == NETDEV_NETIF_UP) {
-            switch (mode_) {
 
-            case WizardMode::initial_setup:
-                return Phase::connected;
-
-#if HAS_NFC()
-            case WizardMode::nfc_only:
-#endif
-            case WizardMode::from_network_menu:
-            case WizardMode::ini_load_only:
-                return Phase::ask_switch_to_wifi;
-            }
+        // Initial setup only cares about being connected to the internet. If we already are, just show it.
+        if (mode_ == WizardMode::initial_setup && netdev_get_status(active_interface) == NETDEV_NETIF_UP) {
+            return Phase::connected;
         }
 
         const auto esp_state = esp_fw_state();
         if (esp_state != EspFwState::Ok && esp_state != EspFwState::Scanning) {
             return Phase::no_interface_error;
         }
+
+        // If we're successfully connected through ethernet, first ask if want to switch to wi-fi
+        if (active_interface != NETDEV_ESP_ID) {
+            return Phase::ask_switch_to_wifi;
+        }
+
+#if HAS_NFC()
+        // Offer using Prusa App only to printers that actually have NFC. Without it, the app is pointless.
+        if (mode_ == WizardMode::initial_setup && nfc::has_nfc()) {
+            return Phase::ask_use_prusa_app;
+        }
+#endif
 
         return first_phase_;
     }
@@ -241,6 +243,21 @@ private:
         return std::nullopt;
     }
 
+#if HAS_NFC()
+    PhaseOpt phase_ask_use_prusa_app(const Meta::LoopCallbackArgs &args) {
+        switch (args.response.value_or(Response::_none)) {
+
+        case Response::Yes:
+            return Phase::wait_for_nfc;
+
+        case Response::No:
+            return Phase::action_select;
+
+        default:
+            return std::nullopt;
+        }
+    }
+
     PhaseOpt phase_wait_for_nfc(const Meta::LoopCallbackArgs &args) {
         if (auto phase = check_nfc()) {
             return phase;
@@ -259,7 +276,6 @@ private:
         return std::nullopt;
     }
 
-#if HAS_NFC()
     void phase_nfc_confirm_init(const Meta::InitCallbackArgs &) {
         marlin_vars()->generic_param_string.set(nfc_credentials_.ssid.data(), nfc_credentials_.ssid.size());
     }
@@ -409,6 +425,7 @@ private:
             { Phase::wait_for_ini_file, { .loop_callback = &C::phase_wait_for_ini_file, .init_callback = &C::phase_general_init } },
             { Phase::ask_delete_ini_file, { .loop_callback = &C::phase_ask_delete_ini_file } },
 #if HAS_NFC()
+            { Phase::ask_use_prusa_app, { &C::phase_ask_use_prusa_app } },
             { Phase::wait_for_nfc, { &C::phase_wait_for_nfc } },
             { Phase::nfc_confirm, { .loop_callback = &C::phase_nfc_confirm, .init_callback = &C::phase_nfc_confirm_init } },
 #endif
