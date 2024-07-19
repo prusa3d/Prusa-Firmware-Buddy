@@ -8,6 +8,7 @@
 #include <common/marlin_server.hpp>
 #include <sys/stat.h>
 #include <option/has_nfc.h>
+#include <connect/connect.hpp>
 
 #if HAS_NFC()
     #include <nfc.hpp>
@@ -364,6 +365,36 @@ private:
         switch (args.response.value_or(Response::_none)) {
 
         case Response::Ok:
+            if (mode_ == WizardMode::initial_setup && std::get<0>(connect_client::last_status()) != connect_client::ConnectionStatus::Ok) {
+                return Phase::ask_setup_prusa_connect;
+
+            } else {
+                return Phase::finish;
+            }
+
+        default:
+            return std::nullopt;
+        }
+    }
+
+    PhaseOpt phase_ask_setup_prusa_connect(const Meta::LoopCallbackArgs &args) {
+        switch (args.response.value_or(Response::_none)) {
+
+        case Response::Yes:
+            return Phase::prusa_conect_setup;
+
+        case Response::No:
+            return Phase::finish;
+
+        default:
+            return std::nullopt;
+        }
+    }
+
+    PhaseOpt phase_prusa_connect_setup(const Meta::LoopCallbackArgs &args) {
+        switch (args.response.value_or(Response::_none)) {
+
+        case Response::Done:
             return Phase::finish;
 
         default:
@@ -439,6 +470,10 @@ private:
             { Phase::connecting_finishable, { .loop_callback = &C::phase_connecting, .init_callback = &C::phase_connecting_init, .exit_callback = &C::phase_connecting_exit } },
             { Phase::connecting_nonfinishable, { .loop_callback = &C::phase_connecting, .init_callback = &C::phase_connecting_init, .exit_callback = &C::phase_connecting_exit } },
             { Phase::connected, { &C::phase_connected } },
+
+            { Phase::ask_setup_prusa_connect, { &C::phase_ask_setup_prusa_connect } },
+            { Phase::prusa_conect_setup, { &C::phase_prusa_connect_setup } },
+
             { Phase::no_interface_error, { &C::phase_esp_error } },
             { Phase::connection_error, { &C::phase_connecting_error } },
             { Phase::help_qr, { &C::phase_help_qr } },
