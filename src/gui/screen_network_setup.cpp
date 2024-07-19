@@ -410,7 +410,35 @@ public:
     }
 };
 
-class FrameHelpQR {
+class FrameRadioQR {
+
+public:
+    FrameRadioQR(window_t *parent, Phase phase, const string_view_utf8 &text, const char *text_url, const char *qr_url)
+        : text(parent, FrameQRLayout::text_rect(), is_multiline::yes)
+        , link(parent, FrameQRLayout::link_rect(), is_multiline::no)
+        , icon_phone(parent, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72)
+        , qr(parent, FrameQRLayout::qrcode_rect(), qr_url)
+        , radio(parent, GuiDefaults::GetButtonRect(parent->GetRect()), phase) //
+    {
+        this->text.SetText(text);
+        link.SetText(string_view_utf8::MakeCPUFLASH(text_url));
+
+        static_cast<window_frame_t *>(parent)->CaptureNormalWindow(radio);
+    }
+
+    ~FrameRadioQR() {
+        static_cast<window_frame_t *>(radio.GetParent())->ReleaseCaptureOfNormalWindow();
+    }
+
+private:
+    window_text_t text;
+    window_text_t link;
+    window_icon_t icon_phone;
+    window_qr_t qr;
+    RadioButtonFsm<PhaseNetworkSetup> radio;
+};
+
+class FrameHelpQR : public FrameRadioQR {
 
 public:
 #if PRINTER_IS_PRUSA_MINI
@@ -431,28 +459,7 @@ public:
 
 public:
     FrameHelpQR(window_t *parent)
-        : text(parent, FrameQRLayout::text_rect(), is_multiline::yes)
-        , link(parent, FrameQRLayout::link_rect(), is_multiline::no)
-        , icon_phone(parent, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72)
-        , qr(parent, FrameQRLayout::qrcode_rect(), qr_addr)
-        , radio(parent, GuiDefaults::GetButtonRect(parent->GetRect()), Phase::help_qr) //
-    {
-        text.SetText(_("To setup or troubleshoot your Wi-Fi, please visit:"));
-        link.SetText(string_view_utf8::MakeCPUFLASH(text_addr));
-
-        static_cast<window_frame_t *>(parent)->CaptureNormalWindow(radio);
-    }
-
-    ~FrameHelpQR() {
-        static_cast<window_frame_t *>(radio.GetParent())->ReleaseCaptureOfNormalWindow();
-    }
-
-private:
-    window_text_t text;
-    window_text_t link;
-    window_icon_t icon_phone;
-    window_qr_t qr;
-    RadioButtonFsm<PhaseNetworkSetup> radio;
+        : FrameRadioQR(parent, Phase::help_qr, _("To setup or troubleshoot your Wi-Fi, please visit:"), text_addr, qr_addr) {}
 };
 
 #if HAS_NFC()
