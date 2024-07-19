@@ -1,6 +1,5 @@
 #include "M1959.hpp"
 
-#include <common/extended_printer_type.hpp>
 #include <common/marlin_server.hpp>
 #include <common/str_utils.hpp>
 #include <Marlin/src/gcode/calibrate/M958.hpp>
@@ -146,12 +145,32 @@ struct Context {
     }
 };
 
-static PhasesInputShaperCalibration info(Context &) {
-    switch (wait_for_response(PhasesInputShaperCalibration::info)) {
-    case Response::Abort:
-        return PhasesInputShaperCalibration::finish;
-    case Response::Continue:
+static PhasesInputShaperCalibration info_proceed(Context &context) {
+    if (context.setup_accelerometer()) {
         return PhasesInputShaperCalibration::parking;
+    }
+    return PhasesInputShaperCalibration::connect_to_board;
+}
+
+static PhasesInputShaperCalibration info_factory(Context &context) {
+    switch (wait_for_response(PhasesInputShaperCalibration::info_factory)) {
+    case Response::Yes:
+        return info_proceed(context);
+    case Response::No:
+        set_test_result(TestResult_Passed);
+        return PhasesInputShaperCalibration::finish;
+    default:
+        std::terminate();
+    }
+}
+
+static PhasesInputShaperCalibration info_calibrated(Context &context) {
+    switch (wait_for_response(PhasesInputShaperCalibration::info_calibrated)) {
+    case Response::Continue:
+        return info_proceed(context);
+    case Response::Abort:
+        // do not set_test_result()
+        return PhasesInputShaperCalibration::finish;
     default:
         std::terminate();
     }
@@ -507,8 +526,10 @@ static PhasesInputShaperCalibration finish(Context &context) {
 
 static PhasesInputShaperCalibration get_next_phase(Context &context, const PhasesInputShaperCalibration phase) {
     switch (phase) {
-    case PhasesInputShaperCalibration::info:
-        return info(context);
+    case PhasesInputShaperCalibration::info_factory:
+        return info_factory(context);
+    case PhasesInputShaperCalibration::info_calibrated:
+        return info_calibrated(context);
     case PhasesInputShaperCalibration::parking:
         return parking(context);
     case PhasesInputShaperCalibration::connect_to_board:
@@ -538,49 +559,16 @@ static PhasesInputShaperCalibration get_next_phase(Context &context, const Phase
     std::terminate();
 }
 
-static void M1959_internal(Context &context, PhasesInputShaperCalibration phase) {
-    marlin_server::FSM_Holder holder { phase };
-    do {
-        phase = get_next_phase(context, phase);
-    } while (phase != PhasesInputShaperCalibration::finish);
-}
-
 namespace PrusaGcodeSuite {
 
 void M1959() {
     Context context;
-
-#if HAS_REMOTE_ACCELEROMETER()
-    // On XL we can just start the wizard.
-    M1959_internal(context, PhasesInputShaperCalibration::info);
-    return;
-#else
-    // On MKx, we need to check the presence of the accelerometer first
-    if (context.setup_accelerometer()) {
-        M1959_internal(context, PhasesInputShaperCalibration::info);
-        return;
-    }
-
-    #if HAS_EXTENDED_PRINTER_TYPE()
-    switch (config_store().extended_printer_type.get()) {
-    case ExtendedPrinterType::mk3_9:
-    case ExtendedPrinterType::mk4:
-        // Original Prusa MK3.9 and MK4 do not come with the accelerometer.
-        // It would be lame to show the screen asking users to connect it,
-        // so let's ignore the missing accelerometer and consider the calibration done.
-        set_test_result(TestResult_Passed);
-        return;
-    case ExtendedPrinterType::mk4s:
-        // Original Prusa MK4S comes with the accelerometer.
-        // Failure to communicate with it is most likely due to cable not being connected,
-        // so let's prompt the user to connect it.
-        M1959_internal(context, PhasesInputShaperCalibration::connect_to_board);
-        return;
-    }
-    #endif
-#endif
-
-    set_test_result(TestResult_Skipped);
+    const bool factory = config_store().selftest_result_input_shaper_calibration.get() == TestResult_Unknown;
+    PhasesInputShaperCalibration phase = factory ? PhasesInputShaperCalibration::info_factory : PhasesInputShaperCalibration::info_calibrated;
+    marlin_server::FSM_Holder holder { phase };
+    do {
+        phase = get_next_phase(context, phase);
+    } while (phase != PhasesInputShaperCalibration::finish);
 }
 
 } // namespace PrusaGcodeSuite

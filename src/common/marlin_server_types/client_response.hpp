@@ -425,7 +425,8 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesPhaseStepping) { return C
 
 #if HAS_INPUT_SHAPER_CALIBRATION()
 enum class PhasesInputShaperCalibration : PhaseUnderlyingType {
-    info,
+    info_factory,
+    info_calibrated,
     parking,
     connect_to_board,
     wait_for_extruder_temperature,
@@ -801,7 +802,8 @@ class ClientResponses {
 
 #if HAS_INPUT_SHAPER_CALIBRATION()
     static constexpr PhaseResponses InputShaperCalibrationResponses[] = {
-        { Response::Continue, Response::Abort }, // info
+        { Response::Yes, Response::No }, // info_factory
+        { Response::Continue, Response::Abort }, // info_calibrated
         {}, // parking
         { Response::Abort }, // connect_to_board
         { Response::Abort }, // wait_for_extruder_temperature
