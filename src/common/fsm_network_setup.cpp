@@ -91,9 +91,10 @@ private:
 
     PhaseOpt phase_init(const Meta::LoopCallbackArgs &) {
         const auto active_interface = config_store().active_netdev.get();
+        const bool is_connected = (netdev_get_status(active_interface) == NETDEV_NETIF_UP);
 
         // Initial setup only cares about being connected to the internet. If we already are, just show it.
-        if (mode_ == WizardMode::initial_setup && netdev_get_status(active_interface) == NETDEV_NETIF_UP) {
+        if (mode_ == WizardMode::initial_setup && is_connected) {
             return Phase::connected;
         }
 
@@ -102,9 +103,14 @@ private:
             return Phase::no_interface_error;
         }
 
-        // If we're successfully connected through ethernet, first ask if want to switch to wi-fi
         if (active_interface != NETDEV_ESP_ID) {
-            return Phase::ask_switch_to_wifi;
+            if (is_connected) {
+                // If we're successfully connected through ethernet, first ask if want to switch to wi-fi
+                return Phase::ask_switch_to_wifi;
+            } else {
+                // If we're not, switch to Wi-Fi automatically
+                netdev_set_active_id(NETDEV_ESP_ID);
+            }
         }
 
 #if HAS_NFC()
