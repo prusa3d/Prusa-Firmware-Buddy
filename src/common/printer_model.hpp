@@ -104,4 +104,31 @@ constexpr PrinterModelCode model_code_without_mmu(PrinterModelCode src) {
     }
 }
 
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+constexpr bool requires_gcode_compatibility_mode(printer::PrinterModelCode code) {
+    switch (code) {
+    case printer::PrinterModelCode::MK3:
+    case printer::PrinterModelCode::MK3S:
+        return true;
+    default:
+        return false;
+    }
+}
+#endif
+
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+constexpr bool requires_fan_compatibility_mode(printer::PrinterModelCode code) {
+    switch (code) {
+    case printer::PrinterModelCode::MK3:
+    case printer::PrinterModelCode::MK3S:
+    case printer::PrinterModelCode::MK3_5:
+    case printer::PrinterModelCode::MK3_9:
+    case printer::PrinterModelCode::MK4:
+        return true;
+    default:
+        return false;
+    }
+}
+#endif
+
 } // namespace printer
