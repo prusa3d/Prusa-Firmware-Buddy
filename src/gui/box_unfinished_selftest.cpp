@@ -1,6 +1,7 @@
 #include "box_unfinished_selftest.hpp"
 #include <selftest_result_type.hpp>
 #include "printers.h"
+#include <option/has_selftest.h>
 #include <option/has_sheet_profiles.h>
 #include <config_store/store_instance.hpp>
 
@@ -13,6 +14,9 @@
 #endif
 
 bool selftest_warning_selftest_finished() {
+#if DEVELOPER_MODE() || !HAS_SELFTEST() || PRINTER_IS_PRUSA_iX
+    return true;
+#endif
 
     [[maybe_unused]] SelftestResult sr = config_store().selftest_result.get();
 
