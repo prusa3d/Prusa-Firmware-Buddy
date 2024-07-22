@@ -20,7 +20,15 @@ void PrusaGcodeSuite::M862_3() {
     // P is ignored when printing (it is handled before printing by GCodeInfo.*)
     if (parser.boolval('Q')) {
         SERIAL_ECHO_START();
+    #if HAS_EXTENDED_PRINTER_TYPE()
+        const auto current_sub_type = config_store().extended_printer_type.get();
+        const auto *const current_name = extended_printer_type_names[current_sub_type];
+        SERIAL_ECHO("  M862.3 P \"");
+        SERIAL_ECHO(current_name);
+        SERIAL_ECHO("\"");
+    #else
         SERIAL_ECHO("  M862.3 P \"" PRINTER_MODEL "\"");
+    #endif
         SERIAL_EOL();
     }
 
