@@ -116,7 +116,12 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
                 qr.SetText(url_sb.str());
                 showQR();
 
-                text_detail.SetText(_("Code: %s").formatted(code_params, code));
+                {
+                    StringBuilder sb(code_buffer);
+                    sb.append_string_view(_("Code: "));
+                    sb.append_string(code);
+                    text_detail.SetText(string_view_utf8::MakeRAM(code_buffer.data()));
+                }
 
 #if HAS_MINI_DISPLAY()
                 text_state.SetText(_("Scan the QR code using the Prusa app or camera, or visit prusa.io/add.\n"));
@@ -188,14 +193,13 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
 
             default: {
                 const auto retries_count = get<2>(last_seen_status);
-                const auto retry_ix = retries_count.transform([](auto v) { return connect_client::Registrator::starting_retries - v; }).value_or(0);
+                const auto retry_ix = connect_client::Registrator::starting_retries - retries_count.value_or(connect_client::Registrator::starting_retries);
 
                 // After a few attempts, show the user that we're retrying
                 if (retry_ix > 1) {
                     StringBuilder sb(attempt_buffer);
                     sb.append_string_view(_("Attempt"));
                     sb.append_printf(" %d/%d", retry_ix, connect_client::Registrator::starting_retries);
-
 
                     text_attempt.SetText(string_view_utf8::MakeRAM(attempt_buffer.data()));
                     text_attempt.Invalidate();

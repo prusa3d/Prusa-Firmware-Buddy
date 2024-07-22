@@ -14,8 +14,7 @@ private:
     std::array<char, 32> attempt_buffer;
     char detail_buffer[70];
     char error_buffer[90];
-
-    StringViewUtf8Parameters<connect_client::CODE_SIZE + 1> code_params;
+    std::array<char, 32> code_buffer;
 
     // TODO: Doesn't fit
     constexpr static const char *const headerLabel = N_("PRUSA CONNECT");

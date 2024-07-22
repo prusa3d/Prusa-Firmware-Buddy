@@ -252,7 +252,7 @@ private:
 
 #if HAS_NFC()
     PhaseOpt phase_ask_use_prusa_app(const Meta::LoopCallbackArgs &args) {
-        switch (args.response.value_or(Response::_none)) {
+        switch (args.response) {
 
         case Response::Yes:
             return Phase::wait_for_nfc;
@@ -377,7 +377,7 @@ private:
     }
 
     PhaseOpt phase_ask_setup_prusa_connect(const Meta::LoopCallbackArgs &args) {
-        switch (args.response.value_or(Response::_none)) {
+        switch (args.response) {
 
         case Response::Yes:
             return Phase::prusa_conect_setup;
@@ -391,7 +391,7 @@ private:
     }
 
     PhaseOpt phase_prusa_connect_setup(const Meta::LoopCallbackArgs &args) {
-        switch (args.response.value_or(Response::_none)) {
+        switch (args.response) {
 
         case Response::Done:
             return Phase::finish;
