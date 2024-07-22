@@ -146,10 +146,21 @@ struct Context {
 };
 
 static PhasesInputShaperCalibration info_proceed(Context &context) {
+#if HAS_REMOTE_ACCELEROMETER()
+    // Do not context.setup_accelerometer() here, because XL needs to pick up
+    // the tool before having valid samples, which is performed in the parking
+    // state.
+    std::ignore = context;
+    return PhasesInputShaperCalibration::parking;
+#else
+    // Check the accelerometer now. It would be annoying to do all the homing
+    // and parking moves and then tell the user to turn off the printer, just
+    // to do all the moves after the reboot again.
     if (context.setup_accelerometer()) {
         return PhasesInputShaperCalibration::parking;
     }
     return PhasesInputShaperCalibration::connect_to_board;
+#endif
 }
 
 static PhasesInputShaperCalibration info_factory(Context &context) {
