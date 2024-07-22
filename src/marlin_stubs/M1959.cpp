@@ -27,6 +27,10 @@ static constexpr bool klipper_mode = true;
 static constexpr float acceleration_requested = 2.5f;
 static constexpr uint32_t cycles = 50;
 
+static TestResult get_test_result() {
+    return config_store().selftest_result_input_shaper_calibration.get();
+}
+
 static void set_test_result(TestResult test_result) {
     config_store().selftest_result_input_shaper_calibration.set(test_result);
 }
@@ -574,16 +578,28 @@ static PhasesInputShaperCalibration get_next_phase(Context &context, const Phase
     std::terminate();
 }
 
-namespace PrusaGcodeSuite {
-
-void M1959() {
+static void M1959_internal(PhasesInputShaperCalibration phase) {
     Context context;
-    const bool factory = config_store().selftest_result_input_shaper_calibration.get() == TestResult_Unknown;
-    PhasesInputShaperCalibration phase = factory ? PhasesInputShaperCalibration::info_factory : PhasesInputShaperCalibration::info_calibrated;
     marlin_server::FSM_Holder holder { phase };
     do {
         phase = get_next_phase(context, phase);
     } while (phase != PhasesInputShaperCalibration::finish);
+}
+
+namespace PrusaGcodeSuite {
+
+void M1959() {
+    switch (get_test_result()) {
+    case TestResult_Unknown:
+        // Do not run calibration on the initial wizard after factory reset,
+        // but take a note so we can run the wizard later...
+        return set_test_result(TestResult_Skipped);
+    case TestResult_Skipped:
+        return M1959_internal(PhasesInputShaperCalibration::info_factory);
+    case TestResult_Passed:
+    case TestResult_Failed:
+        return M1959_internal(PhasesInputShaperCalibration::info_calibrated);
+    }
 }
 
 } // namespace PrusaGcodeSuite
