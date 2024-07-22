@@ -14,7 +14,7 @@
 static constexpr Rect16 DisplayClip() { return Rect16(0, 0, ST7789V_COLS, ST7789V_ROWS); }
 
 inline uint16_t color_to_native(Color clr) {
-    return color_to_565(clr.raw);
+    return color_to_565(clr);
 }
 
 // TDispBuffer configuration
@@ -38,7 +38,7 @@ void clear(const Color clr) {
 
 } // namespace display
 
-static inline void draw_qoi_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
+static inline void draw_qoi_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, Color back_color, ropfn rop, Rect16 subrect) {
     st7789v_draw_qoi_ex(pf, point_x, point_y, back_color, rop.ConvertToC(), subrect);
 }
 
@@ -83,7 +83,7 @@ void clear(const Color clr) {
 
 } // namespace display
 
-static inline void draw_qoi_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
+static inline void draw_qoi_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, Color back_color, ropfn rop, Rect16 subrect) {
     ili9488_draw_qoi_ex(pf, point_x, point_y, back_color, rop.ConvertToC(), subrect);
 }
 
@@ -139,7 +139,7 @@ void clear(const Color clr) {
 
 } // namespace display
 
-static inline void draw_qoi_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
+static inline void draw_qoi_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, Color back_color, ropfn rop, Rect16 subrect) {
     // todo
 }
 
@@ -488,7 +488,7 @@ void draw_img(point_ui16_t pt, const img::Resource &qoi, Color back_color, ropfn
 
     // Seek to the beginning of the image and draw
     fseek(file, qoi.offset, SEEK_SET);
-    draw_qoi_ex_C(file, pt.x, pt.y, back_color.raw, rop, subrect);
+    draw_qoi_ex_C(file, pt.x, pt.y, back_color, rop, subrect);
 }
 
 void draw_text(Rect16 rc, const string_view_utf8 &str, const font_t *pf, Color clr_bg, Color clr_fg) {

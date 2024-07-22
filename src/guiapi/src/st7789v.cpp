@@ -615,19 +615,7 @@ void st7789v_ctrl_set(uint8_t ctrl) {
     st7789v_cmd(CMD_WRCTRLD, &st7789v_config.control, sizeof(st7789v_config.control));
 }
 
-/**
- * @brief Apply alpha blending to one channel.
- * @param a alpha value
- * @param back background value
- * @param front foreground value
- * @return blended value
- */
-static inline uint8_t apply_alpha(uint8_t a, uint8_t back, uint8_t front) {
-    /// @note Technically correct would be "/ 255", but difference to ">> 8" is less than 1.
-    return ((255 - a) * static_cast<uint16_t>(back) + a * static_cast<uint16_t>(front)) >> 8;
-};
-
-void st7789v_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect) {
+void st7789v_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, Color back_color, uint8_t rop, Rect16 subrect) {
     assert(!st7789v_buff_borrowed && "Buffer lent to someone");
     assert(pf);
 
@@ -715,10 +703,8 @@ void st7789v_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t 
                 pixel = qoi::transform::apply_rop(pixel, rop);
 
                 // Store to output buffer
-                uint32_t out_color = apply_alpha(pixel.a, back_color, pixel.r)
-                    | apply_alpha(pixel.a, back_color >> 8, pixel.g) << 8
-                    | apply_alpha(pixel.a, back_color >> 16, pixel.b) << 16;
-                uint16_t clr565 = color_to_565(out_color);
+                const Color c = Color::mix(back_color, Color::from_rgb(pixel.r, pixel.g, pixel.b), pixel.a);
+                uint16_t clr565 = color_to_565(c);
                 *o_data++ = clr565;
                 *o_data++ = clr565 >> 8;
 

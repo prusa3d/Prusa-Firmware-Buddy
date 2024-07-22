@@ -581,19 +581,7 @@ void ili9488_draw_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
     ili9488_set_cs();
 }
 
-/**
- * @brief Apply alpha blending to one channel.
- * @param a alpha value
- * @param back background value
- * @param front foreground value
- * @return blended value
- */
-static inline uint8_t apply_alpha(uint8_t a, uint8_t back, uint8_t front) {
-    /// @note Technically correct would be "/ 255", but difference to ">> 8" is less than 1.
-    return ((255 - a) * static_cast<uint16_t>(back) + a * static_cast<uint16_t>(front)) >> 8;
-};
-
-void ili9488_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect) {
+void ili9488_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, Color back_color, uint8_t rop, Rect16 subrect) {
     assert(!ili9488_buff_borrowed && "Buffer lent to someone");
     assert(pf);
 
@@ -680,10 +668,12 @@ void ili9488_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t 
                 // Transform pixel data
                 pixel = qoi::transform::apply_rop(pixel, rop);
 
+                const Color c = Color::mix(back_color, Color::from_rgb(pixel.r, pixel.g, pixel.b), pixel.a);
+
                 // Store to output buffer
-                *o_data++ = apply_alpha(pixel.a, back_color >> 16, pixel.b);
-                *o_data++ = apply_alpha(pixel.a, back_color >> 8, pixel.g);
-                *o_data++ = apply_alpha(pixel.a, back_color, pixel.r);
+                *o_data++ = c.b;
+                *o_data++ = c.g;
+                *o_data++ = c.r;
 
                 // Another 3 bytes wouldn't fit, write to display
                 if (p_buf.end() - o_data < 3) {

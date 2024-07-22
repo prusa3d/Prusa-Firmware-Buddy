@@ -10,11 +10,7 @@
 #define ILI9488_BUFF_ROWS 4 // Buffer size needs to fit at least one character of the largest font
 
 inline uint32_t color_to_666(uint32_t clr) {
-    return ((clr >> 16) & 0x00FC) | (clr & 0xFC00) | ((clr << 16) & 0xFC0000);
-}
-
-inline uint32_t color_from_666(uint32_t clr666) {
-    return ((clr666 >> 16) & 0x00FC) | (clr666 & 0xFC00) | ((clr666 << 16) & 0xFC0000);
+    return clr & 0xFCFCFC;
 }
 
 extern void ili9488_init(void);
@@ -34,7 +30,7 @@ extern void ili9488_fill_rect_colorFormat666(uint16_t rect_x, uint16_t rect_y, u
  * @param rop raster operations as defined in display_math_helper.h and qoi_decoder.h
  * @param subrect subrectangle of the image to draw
  */
-void ili9488_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect);
+void ili9488_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, Color back_color, uint8_t rop, Rect16 subrect);
 
 extern void ili9488_inversion_on(void);
 extern void ili9488_inversion_off(void);

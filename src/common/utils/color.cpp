@@ -27,6 +27,17 @@ static constexpr auto color_presets = std::to_array<ColorPreset>({
     { "WHITE", Color::from_raw(0xFFFFFF) },
 });
 
+Color Color::mix(Color back, Color front, uint8_t front_alpha) {
+    // Technically correct would be "/ 255", but difference to ">> 8" is less than 1.
+
+    const uint8_t front_alpha_inv = 255 - front_alpha;
+    Color result;
+    result.b = (front_alpha * front.b + front_alpha_inv * back.b) >> 8;
+    result.g = (front_alpha * front.g + front_alpha_inv * back.g) >> 8;
+    result.r = (front_alpha * front.r + front_alpha_inv * back.r) >> 8;
+    return result;
+}
+
 std::optional<Color> Color::from_string(const std::string_view &str) {
     if (str.size() == 0) {
         return std::nullopt;

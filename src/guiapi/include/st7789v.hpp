@@ -13,13 +13,11 @@ enum {
     ST7789V_BUFFER_SIZE = ST7789V_COLS * ST7789V_BUFF_ROWS * 2
 };
 
-inline uint16_t color_to_565(uint32_t clr) {
-    return swap_ui16(((clr >> 19) & 0x001f) | ((clr >> 5) & 0x07e0) | ((clr << 8) & 0xf800));
-}
-
-inline uint32_t color_from_565([[maybe_unused]] uint16_t clr565) {
-    // TODO
-    return 0;
+inline uint16_t color_to_565(Color clr) {
+    static constexpr uint8_t r_shift = (8 - 5);
+    static constexpr uint8_t g_shift = (8 - 6) + r_shift;
+    static constexpr uint8_t b_shift = (8 - 5) + g_shift;
+    return swap_ui16(((clr.raw >> r_shift) & 0x001f) | ((clr.raw >> g_shift) & 0x07e0) | ((clr.raw >> b_shift) & 0xf800));
 }
 
 extern void st7789v_init(void);
@@ -37,7 +35,7 @@ extern void st7789v_fill_rect_colorFormat565(uint16_t rect_x, uint16_t rect_y, u
  * @param rop raster operations as defined in display_math_helper.h and qoi_decoder.h
  * @param subrect subrectangle of the image to draw
  */
-void st7789v_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect);
+void st7789v_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, Color back_color, uint8_t rop, Rect16 subrect);
 
 inline void st7789v_set_backlight([[maybe_unused]] uint8_t bck) {}
 
