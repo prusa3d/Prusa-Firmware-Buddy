@@ -208,7 +208,7 @@ window_header_t::window_header_t(window_t *parent, const string_view_utf8 &txt)
     , label(this, first_rect_doesnt_matter, txt)
 #if !HAS_MINI_DISPLAY() // Time is not shown on ST7789
     , time_val(this, first_rect_doesnt_matter, is_multiline::no)
-    , icon_metrics(this, first_rect_doesnt_matter, &img::speed_16x16)
+    , icon_metrics(this, first_rect_doesnt_matter, &img::metrics_16x16)
 #endif /* !HAS_MINI_DISPLAY() */
     , icon_usb(this, first_rect_doesnt_matter, &img::usb_20x16)
     , icon_network(this, first_rect_doesnt_matter, nullptr)
