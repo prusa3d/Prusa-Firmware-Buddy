@@ -159,6 +159,24 @@ FilamentTypeParameters FilamentType::parameters() const {
         *this);
 }
 
+void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
+    std::visit([&]<typename T>(const T &v) {
+        if constexpr (std::is_same_v<T, PresetFilamentType>) {
+            assert(false);
+
+        } else if constexpr (std::is_same_v<T, UserFilamentType>) {
+            config_store().user_filament_parameters.set(v.index, set);
+
+        } else if constexpr (std::is_same_v<T, NoFilamentType>) {
+            assert(false);
+
+        } else {
+            static_assert(false);
+        }
+    },
+        *this);
+}
+
 bool FilamentType::is_visible() const {
     return std::visit([]<typename T>(const T &v) -> bool {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {

@@ -28,30 +28,35 @@ class MI_FILAMENT_NAME final : public MI_COMMON<MI_FILAMENT_NAME, WiInfo<filamen
 public:
     MI_FILAMENT_NAME();
     void update();
+    void click(IWindowMenu &) override;
 };
 
 class MI_FILAMENT_NOZZLE_TEMPERATURE final : public MI_COMMON<MI_FILAMENT_NOZZLE_TEMPERATURE, WiSpin> {
 public:
     MI_FILAMENT_NOZZLE_TEMPERATURE();
     void update();
+    void OnClick() override;
 };
 
 class MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE final : public MI_COMMON<MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE, WiSpin> {
 public:
     MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE();
     void update();
+    void OnClick() override;
 };
 
 class MI_FILAMENT_BED_TEMPERATURE final : public MI_COMMON<MI_FILAMENT_BED_TEMPERATURE, WiSpin> {
 public:
     MI_FILAMENT_BED_TEMPERATURE();
     void update();
+    void OnClick() override;
 };
 
 class MI_FILAMENT_REQUIRES_FILTRATION final : public MI_COMMON<MI_FILAMENT_REQUIRES_FILTRATION, WI_ICON_SWITCH_OFF_ON_t> {
 public:
     MI_FILAMENT_REQUIRES_FILTRATION();
     void update();
+    void OnChange(size_t) override;
 };
 
 class MI_FILAMENT_VISIBLE final : public MI_COMMON<MI_FILAMENT_VISIBLE, WI_ICON_SWITCH_OFF_ON_t> {

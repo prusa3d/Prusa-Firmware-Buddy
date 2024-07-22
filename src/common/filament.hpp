@@ -108,6 +108,17 @@ public:
     /// \returns parameters of the filament type
     FilamentTypeParameters parameters() const;
 
+    /// Sets parameters of the filament type, provided that the filament type is customizable
+    void set_parameters(const FilamentTypeParameters &set) const;
+
+    /// \returns Modified parameters of the filament type (calls \p f(params) and stores the modified data)
+    template <class F>
+    void modify_parameters(F &&f) const {
+        FilamentTypeParameters params = parameters();
+        f(params);
+        set_parameters(params);
+    }
+
     /// \returns whether the filaments parameters can be adjusted by the user
     inline bool is_customizable() const {
         return std::holds_alternative<UserFilamentType>(*this);

@@ -1,8 +1,10 @@
 #include "screen_filament_detail.hpp"
 
 #include <filament_list.hpp>
+#include <filament_gui.hpp>
 #include <numeric_input_config_common.hpp>
 #include <algorithm_extensions.hpp>
+#include <dialog_text_input.hpp>
 
 using namespace screen_filament_detail;
 
@@ -22,6 +24,35 @@ void MI_FILAMENT_NAME::update() {
     set_is_enabled(filament_type.is_customizable());
 }
 
+void MI_FILAMENT_NAME::click(IWindowMenu &) {
+    std::array<char, filament_name_buffer_size> buf;
+    value().copyToRAM(buf);
+
+    while (true) {
+        if (!DialogTextInput::exec(GetLabel(), buf)) {
+            return;
+        }
+
+        if (!FilamentTypeGUI::validate_user_filament_name(buf.data())) {
+            MsgBoxWarning(_("Filament name is not valid"), Responses_Ok);
+            continue;
+        }
+
+        const auto check_name_collision = [&](FilamentType ft) {
+            return (ft != filament_type) && strcmp(ft.parameters().name, buf.data()) == 0;
+        };
+        if (std::any_of(all_filament_types.begin(), all_filament_types.end(), check_name_collision)) {
+            MsgBoxWarning(_("Filament with this name already exists"), Responses_Ok);
+            continue;
+        }
+
+        break;
+    }
+
+    filament_type.modify_parameters([&](auto &p) { memcpy(p.name, buf.data(), buf.size()); });
+    ChangeInformation(buf.data());
+}
+
 // * MI_FILAMENT_NOZZLE_TEMPERATURE
 static_assert(UpdatableMenuItem<MI_FILAMENT_NOZZLE_TEMPERATURE>);
 
@@ -31,6 +62,10 @@ MI_FILAMENT_NOZZLE_TEMPERATURE::MI_FILAMENT_NOZZLE_TEMPERATURE()
 void MI_FILAMENT_NOZZLE_TEMPERATURE::update() {
     set_value(filament_type.parameters().nozzle_temperature);
     set_is_enabled(filament_type.is_customizable());
+}
+
+void MI_FILAMENT_NOZZLE_TEMPERATURE::OnClick() {
+    filament_type.modify_parameters([&](auto &p) { p.nozzle_temperature = value(); });
 }
 
 // * MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE
@@ -44,6 +79,10 @@ void MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::update() {
     set_is_enabled(filament_type.is_customizable());
 }
 
+void MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::OnClick() {
+    filament_type.modify_parameters([&](auto &p) { p.nozzle_preheat_temperature = value(); });
+}
+
 // * MI_FILAMENT_BED_TEMPERATURE
 static_assert(UpdatableMenuItem<MI_FILAMENT_BED_TEMPERATURE>);
 
@@ -55,6 +94,10 @@ void MI_FILAMENT_BED_TEMPERATURE::update() {
     set_is_enabled(filament_type.is_customizable());
 }
 
+void MI_FILAMENT_BED_TEMPERATURE::OnClick() {
+    filament_type.modify_parameters([&](auto &p) { p.heatbed_temperature = value(); });
+}
+
 // * MI_FILAMENT_REQUIRES_FILTRATION
 static_assert(UpdatableMenuItem<MI_FILAMENT_REQUIRES_FILTRATION>);
 
@@ -64,6 +107,10 @@ MI_FILAMENT_REQUIRES_FILTRATION::MI_FILAMENT_REQUIRES_FILTRATION()
 void MI_FILAMENT_REQUIRES_FILTRATION::update() {
     set_value(filament_type.parameters().requires_filtration, false);
     set_is_enabled(filament_type.is_customizable());
+}
+
+void MI_FILAMENT_REQUIRES_FILTRATION::OnChange(size_t) {
+    filament_type.modify_parameters([&](auto &p) { p.requires_filtration = value(); });
 }
 
 // * MI_FILAMENT_VISIBLE
