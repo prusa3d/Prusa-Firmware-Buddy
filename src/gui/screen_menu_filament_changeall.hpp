@@ -6,6 +6,7 @@
 #include <window_menu_adv.hpp>
 #include <screen_menu.hpp>
 
+#include <filament_list.hpp>
 #include <i18n.h>
 #include <dynamic_index_mapping.hpp>
 #include <meta_utils.hpp>
@@ -27,7 +28,7 @@ private:
 private:
     static constexpr auto items = std::to_array<DynamicIndexMappingRecord<Action>>({
         Action::keep,
-        { Action::change, DynamicIndexMappingType::static_section, total_filament_type_count },
+        { Action::change, DynamicIndexMappingType::dynamic_section },
         { Action::unload, DynamicIndexMappingType::optional_item },
     });
 
@@ -38,6 +39,7 @@ private:
 
     StringViewUtf8Parameters<2> label_params;
     DynamicIndexMapping<items> index_mapping;
+    FilamentListStorage filament_list;
 };
 
 class MI_ApplyChanges : public IWindowMenuItem {
