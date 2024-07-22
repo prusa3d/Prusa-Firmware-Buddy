@@ -109,4 +109,39 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+class MI_IS_CALIB_RESULT : public IWindowMenuItem {
+private:
+    const char *gcode;
+
+protected:
+    MI_IS_CALIB_RESULT(const char *label, const char *gcode);
+
+    virtual void click(IWindowMenu &) final;
+};
+
+class MI_IS_CALIB_RESULT_UNKNOWN final : public MI_IS_CALIB_RESULT {
+public:
+    MI_IS_CALIB_RESULT_UNKNOWN()
+        : MI_IS_CALIB_RESULT("Set Result Unknown", "M1959 W0") {}
+};
+
+class MI_IS_CALIB_RESULT_SKIPPED final : public MI_IS_CALIB_RESULT {
+public:
+    MI_IS_CALIB_RESULT_SKIPPED()
+        : MI_IS_CALIB_RESULT("Set Result Skipped", "M1959 W1") {}
+};
+
+class MI_IS_CALIB_RESULT_PASSED final : public MI_IS_CALIB_RESULT {
+public:
+    MI_IS_CALIB_RESULT_PASSED()
+        : MI_IS_CALIB_RESULT("Set Result Passed", "M1959 W2") {}
+};
+
+class MI_IS_CALIB_RESULT_FAILED final : public MI_IS_CALIB_RESULT {
+public:
+    MI_IS_CALIB_RESULT_FAILED()
+        : MI_IS_CALIB_RESULT("Set Result Failed", "M1959 W3") {}
+};
+
 #endif
