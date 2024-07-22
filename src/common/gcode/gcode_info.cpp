@@ -563,11 +563,10 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
         if (is_filament_type || is_filament_used_g || is_filament_used_mm || is_extruder_colour) {
             std::span<char> value(val.c_str(), val.len());
             size_t extruder = 0;
-            while (std::optional<std::span<char>> item = iterate_items(value, is_filament_type || is_extruder_colour ? ';' : ',')) {
-                if (!item.has_value()) {
-                    break;
-                } else if (extruder >= per_extruder_info.size()) {
+            while (const auto item = iterate_items(value, is_filament_type || is_extruder_colour ? ';' : ',')) {
+                if (extruder >= per_extruder_info.size()) {
                     continue;
+
                 } else if (is_filament_type) {
                     filament_buff filament_name;
                     snprintf(filament_name.begin(), filament_name.size(), "%.*s", item->size(), item->data());
@@ -585,7 +584,7 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
                     per_extruder_info[extruder].filament_used_g = filament_used_g;
 
                 } else if (is_extruder_colour) {
-                    per_extruder_info[extruder].extruder_colour = Color::from_string(item->data());
+                    per_extruder_info[extruder].extruder_colour = Color::from_string(*item);
                 }
                 extruder++;
             }
@@ -601,7 +600,7 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
     }
 }
 
-std::optional<std::span<char>> GCodeInfo::iterate_items(std::span<char> &buffer, char separator) {
+std::optional<std::string_view> GCodeInfo::iterate_items(std::span<char> &buffer, char separator) {
     // skip leading spaces
     while (buffer[0] && isspace(*buffer.data())) {
         buffer = buffer.subspan(1);
@@ -621,12 +620,9 @@ std::optional<std::span<char>> GCodeInfo::iterate_items(std::span<char> &buffer,
         item_length--;
     }
 
-    auto item = buffer.subspan(0, item_length);
+    const auto result = item_length ? std::make_optional(std::string_view(buffer.begin(), buffer.begin() + item_length)) : std::nullopt;
     buffer = next_buffer;
-    if (item_length == 0) {
-        return std::nullopt;
-    }
-    return item;
+    return result;
 }
 
 bool GCodeInfo::is_singletool_gcode() const {

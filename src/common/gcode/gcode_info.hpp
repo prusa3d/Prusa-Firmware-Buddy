@@ -256,7 +256,7 @@ public:
 
 private:
     /** Iterate over items separated by some delimeter character */
-    std::optional<std::span<char>> iterate_items(std::span<char> &buffer, char separator);
+    std::optional<std::string_view> iterate_items(std::span<char> &buffer, char separator);
 
     /// stores current gcode file path
     /// SFN filepath (used for referencing the file)
