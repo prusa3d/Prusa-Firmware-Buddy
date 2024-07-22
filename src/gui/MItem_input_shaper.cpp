@@ -117,6 +117,17 @@ MI_IS_CALIB::MI_IS_CALIB()
 void MI_IS_CALIB::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_client::gcode("M1959");
 }
+
+// dev item, no need to translate
+MI_IS_CALIB_RESULT::MI_IS_CALIB_RESULT(const char *label, const char *gcode)
+    : IWindowMenuItem { _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev }
+    , gcode { gcode } {
+}
+
+void MI_IS_CALIB_RESULT::click(IWindowMenu &) {
+    marlin_client::gcode(gcode);
+}
+
 #endif
 
 MI_IS_RESTORE_DEFAULTS::MI_IS_RESTORE_DEFAULTS()
