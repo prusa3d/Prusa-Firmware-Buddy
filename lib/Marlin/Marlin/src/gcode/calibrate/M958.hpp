@@ -60,23 +60,21 @@ float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_h
 float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]);
 
 struct VibrateMeasureParams {
-    PrusaAccelerometer &accelerometer;
-    StepEventFlag_t axis_flag;
-    bool klipper_mode;
     float acceleration;
+    /// Configured automatically in setup()
+    float step_len = NAN;
     uint32_t cycles;
+    bool klipper_mode;
+    bool calibrate_accelerometer;
+    StepEventFlag_t axis_flag;
 
     /// Which harmonic frequency to measure
     uint16_t measured_harmonic = 1;
 
-    /// If not set, it gets configured in setup()
-    float accelerometer_sample_period = NAN;
 
-    /// Configured automatically in setup()
-    float step_len = NAN;
 
     /// \returns false on failure
-    bool setup(const MicrostepRestorer &microstep_restorer, bool calibrate_accelerometer);
+    bool setup(const MicrostepRestorer &microstep_restorer);
 };
 
 struct VibrateMeasureRange {
@@ -85,6 +83,7 @@ struct VibrateMeasureRange {
     float frequency_increment;
 };
 
+FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float frequency, const SamplePeriodProgressHook &progress_hook);
 FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float frequency);
 
 /// \returns false if the measurement should be aborted

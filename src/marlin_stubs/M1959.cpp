@@ -122,9 +122,6 @@ public:
 };
 
 struct Context {
-    // Note: ptr is needed because accelerometer does init and doesn't have reinit
-    std::unique_ptr<PrusaAccelerometer> accelerometer;
-    float accelerometer_sample_period { NAN };
     FrequencyRangeSpectrum spectrum_x;
     FrequencyRangeSpectrum spectrum_y;
     input_shaper::AxisConfig axis_config_x;
@@ -132,41 +129,30 @@ struct Context {
 #if HAS_PHASE_STEPPING()
     phase_stepping::StateRestorer phstep_restorer;
 #endif
-
-    bool is_accelerometer_ok() const {
-        assert(accelerometer);
-        return accelerometer->get_error() == PrusaAccelerometer::Error::none;
-    }
-
-    bool setup_accelerometer() {
-        accelerometer.reset();
-        accelerometer = std::make_unique<PrusaAccelerometer>();
-        return is_accelerometer_ok();
-    }
 };
 
-static PhasesInputShaperCalibration info_proceed(Context &context) {
+static PhasesInputShaperCalibration info_proceed() {
 #if HAS_REMOTE_ACCELEROMETER()
-    // Do not context.setup_accelerometer() here, because XL needs to pick up
+    // Do not check accelerometer here, because XL needs to pick up
     // the tool before having valid samples, which is performed in the parking
     // state.
-    std::ignore = context;
     return PhasesInputShaperCalibration::parking;
 #else
     // Check the accelerometer now. It would be annoying to do all the homing
     // and parking moves and then tell the user to turn off the printer, just
     // to do all the moves after the reboot again.
-    if (context.setup_accelerometer()) {
+    PrusaAccelerometer accelerometer;
+    if (PrusaAccelerometer::Error::none == accelerometer.get_error()) {
         return PhasesInputShaperCalibration::parking;
     }
     return PhasesInputShaperCalibration::connect_to_board;
 #endif
 }
 
-static PhasesInputShaperCalibration info(Context &context) {
+static PhasesInputShaperCalibration info() {
     switch (wait_for_response(PhasesInputShaperCalibration::info)) {
     case Response::Continue:
-        return info_proceed(context);
+        return info_proceed();
     case Response::Abort:
         // do not set_test_result()
         return PhasesInputShaperCalibration::finish;
@@ -219,7 +205,7 @@ static PhasesInputShaperCalibration parking(Context &context) {
 #if HAS_LOCAL_ACCELEROMETER()
     return PhasesInputShaperCalibration::wait_for_extruder_temperature;
 #else
-    return PhasesInputShaperCalibration::calibrating_accelerometer;
+    return PhasesInputShaperCalibration::measuring_x_axis;
 #endif
 }
 
@@ -268,61 +254,26 @@ static PhasesInputShaperCalibration attach_to_extruder(Context &) {
     case Response::Abort:
         return PhasesInputShaperCalibration::finish;
     case Response::Continue:
-        return PhasesInputShaperCalibration::calibrating_accelerometer;
+        return PhasesInputShaperCalibration::measuring_x_axis;
     default:
         break;
     }
     bsod(__FUNCTION__);
 }
 
-static PhasesInputShaperCalibration calibrating_accelerometer(Context &context) {
-    if (!context.setup_accelerometer()) {
-        return PhasesInputShaperCalibration::measurement_failed;
-    }
-
-    bool aborted = false;
-    const auto progress_hook = [&aborted](float progress) {
-        aborted |= was_abort_requested(PhasesInputShaperCalibration::calibrating_accelerometer);
-        if (aborted) {
-            return false;
-        }
-
-        fsm::PhaseData data = { static_cast<uint8_t>(255 * progress), 0, 0, 0 };
-        marlin_server::fsm_change(PhasesInputShaperCalibration::calibrating_accelerometer, data);
-        idle(true, true);
-        return true;
-    };
-
-    context.accelerometer_sample_period = get_accelerometer_sample_period(progress_hook, *context.accelerometer);
-    if (aborted) {
-        return PhasesInputShaperCalibration::finish;
-
-    } else if (isnan(context.accelerometer_sample_period)) {
-        return PhasesInputShaperCalibration::measurement_failed;
-
-    } else {
-        return PhasesInputShaperCalibration::measuring_x_axis;
-    }
-}
-
 // helper
 static PhasesInputShaperCalibration measuring_axis(
-    Context &context,
     const PhasesInputShaperCalibration phase,
     const PhasesInputShaperCalibration next_phase,
     const AxisEnum logicalAxis,
     const StepEventFlag_t axis_flag,
     FrequencyRangeSpectrum &spectrum) {
-    assert(!isnan(context.accelerometer_sample_period));
-    if (!context.setup_accelerometer()) {
-        return PhasesInputShaperCalibration::measurement_failed;
-    }
 
     fsm::PhaseData data {
         static_cast<uint8_t>(frequency_range.start),
         static_cast<uint8_t>(frequency_range.end),
-        static_cast<uint8_t>(frequency_range.start), // current frequency
-        0,
+        static_cast<uint8_t>(0), // current progress
+        1, // data[3] == 1 calibrating
     };
     marlin_server::fsm_change(phase, data);
 
@@ -334,26 +285,46 @@ static PhasesInputShaperCalibration measuring_axis(
     stepper_microsteps(logicalAxis, 128);
 
     VibrateMeasureParams args {
-        .accelerometer = *context.accelerometer,
-        .axis_flag = axis_flag,
-        .klipper_mode = klipper_mode,
         .acceleration = acceleration_requested,
         .cycles = cycles,
-        .accelerometer_sample_period = context.accelerometer_sample_period,
+        .klipper_mode = klipper_mode,
+        .calibrate_accelerometer = true,
+        .axis_flag = axis_flag,
     };
-    if (!args.setup(microstepRestorer, false)) {
+    if (!args.setup(microstepRestorer)) {
         bsod("setup failed");
     }
 
     float frequency = frequency_range.start;
+
+    bool aborted = false;
+    const auto progress_hook = [&aborted, phase](float progress) {
+        aborted |= was_abort_requested(phase);
+        if (aborted) {
+            return false;
+        }
+
+        // data[3] == 1 calibrating
+        fsm::PhaseData calibrating_data = { 0, 0, static_cast<uint8_t>(255 * progress), 1 };
+        marlin_server::fsm_change(phase, calibrating_data);
+        idle(true, true);
+        return true;
+    };
+
     for (size_t i = 0; i < spectrum.size(); ++i) {
-        if (was_abort_requested(phase)) {
+        if (was_abort_requested(phase) || aborted) {
             return PhasesInputShaperCalibration::finish;
         }
-        data[2] = static_cast<uint8_t>(frequency);
+
+        if (!args.calibrate_accelerometer) {
+            data[2] = static_cast<uint8_t>(frequency);
+        }
+        data[3] = args.calibrate_accelerometer;
+
         marlin_server::fsm_change(phase, data);
 
-        FrequencyGain3dError frequencyGain3dError = vibrate_measure(args, frequency);
+        FrequencyGain3dError frequencyGain3dError = vibrate_measure(args, frequency, progress_hook);
+        args.calibrate_accelerometer = false;
         if (frequencyGain3dError.error) {
             return PhasesInputShaperCalibration::measurement_failed;
         }
@@ -377,7 +348,6 @@ static PhasesInputShaperCalibration measuring_x_axis(Context &context) {
     constexpr auto next_phase = PhasesInputShaperCalibration::measuring_y_axis;
 #endif
     return measuring_axis(
-        context,
         PhasesInputShaperCalibration::measuring_x_axis,
         next_phase,
         X_AXIS,
@@ -400,7 +370,6 @@ static PhasesInputShaperCalibration attach_to_bed(Context &) {
 
 static PhasesInputShaperCalibration measuring_y_axis(Context &context) {
     return measuring_axis(
-        context,
         PhasesInputShaperCalibration::measuring_y_axis,
         PhasesInputShaperCalibration::computing,
         Y_AXIS,
@@ -412,9 +381,6 @@ static PhasesInputShaperCalibration measurement_failed(Context &context) {
     marlin_server::fsm_change(PhasesInputShaperCalibration::measurement_failed);
     switch (wait_for_response(PhasesInputShaperCalibration::measurement_failed)) {
     case Response::Retry:
-        if (isnan(context.accelerometer_sample_period)) {
-            return PhasesInputShaperCalibration::calibrating_accelerometer;
-        }
         if (!context.spectrum_x.is_valid()) {
             return PhasesInputShaperCalibration::measuring_x_axis;
         }
@@ -524,13 +490,11 @@ static PhasesInputShaperCalibration finish(Context &context) {
 static PhasesInputShaperCalibration get_next_phase(Context &context, const PhasesInputShaperCalibration phase) {
     switch (phase) {
     case PhasesInputShaperCalibration::info:
-        return info(context);
+        return info();
     case PhasesInputShaperCalibration::parking:
         return parking(context);
     case PhasesInputShaperCalibration::connect_to_board:
         return connect_to_board(context);
-    case PhasesInputShaperCalibration::calibrating_accelerometer:
-        return calibrating_accelerometer(context);
     case PhasesInputShaperCalibration::wait_for_extruder_temperature:
         return wait_for_extruder_temperature(context);
     case PhasesInputShaperCalibration::attach_to_extruder:

@@ -52,13 +52,15 @@ class FrameMeasurement {
 private:
     window_text_t text_above;
     window_text_t text_below;
+    string_view_utf8 text_above_axis;
     window_wizard_progress_t progress;
     std::array<char, sizeof("255 Hz")> text_below_buffer;
 
 protected:
     FrameMeasurement(window_t *parent, const string_view_utf8 &txt)
-        : text_above(parent, rect_frame_top, is_multiline::no, is_closed_on_click_t::no, txt)
+        : text_above(parent, rect_frame_top, is_multiline::no, is_closed_on_click_t::no, _("Calibrating accelerometer..."))
         , text_below(parent, rect_frame_bottom, is_multiline::no, is_closed_on_click_t::no)
+        , text_above_axis(txt)
         , progress(parent, progress_top) {
         text_above.SetAlignment(Align_t::CenterTop());
         text_below.SetAlignment(Align_t::CenterTop());
@@ -66,10 +68,15 @@ protected:
 
 public:
     void update(fsm::PhaseData data) {
-        progress.SetProgressPercent(100 * float(data[2] - data[0]) / (data[1] - data[0]));
-        snprintf(text_below_buffer.data(), text_below_buffer.size(), "%3d Hz", data[2]);
-        text_below.SetText(string_view_utf8::MakeRAM(text_below_buffer.data()));
-        text_below.Invalidate();
+        if (data[3]) {
+            progress.SetProgressPercent(data[2] / 2.55);
+        } else {
+            progress.SetProgressPercent(100 * float(data[2] - data[0]) / (data[1] - data[0]));
+            snprintf(text_below_buffer.data(), text_below_buffer.size(), "%3d Hz", data[2]);
+            text_above.SetText(text_above_axis);
+            text_below.SetText(string_view_utf8::MakeRAM(text_below_buffer.data()));
+            text_below.Invalidate();
+        }
     }
 };
 
@@ -172,25 +179,6 @@ public:
         "Firmly attach the accelerometer to the extruder "
         "(remove silicone sock if necessary). "
         "In the next step, extruder will start vibrating and resonance will be measured.");
-};
-
-class FrameCalibratingAccelerometer final {
-    window_text_t text_above;
-    window_wizard_progress_t progress;
-
-public:
-    FrameCalibratingAccelerometer(window_t *parent)
-        : text_above(parent, rect_frame_top, is_multiline::no, is_closed_on_click_t::no, _(text_calibrating_accelerometer))
-        , progress(parent, 100 /*TODO*/) {
-        text_above.SetAlignment(Align_t::CenterTop());
-    }
-
-public:
-    void update(fsm::PhaseData data) {
-        progress.SetProgressPercent(data[0] / 2.55);
-    }
-
-    static constexpr const char *text_calibrating_accelerometer = N_("Calibrating accelerometer...");
 };
 
 class FrameAttachToBed final : public FrameInstructions {
@@ -338,7 +326,6 @@ using Frames = FrameDefinitionList<ScreenInputShaperCalibration::FrameStorage,
     FrameDefinition<PhasesInputShaperCalibration::connect_to_board, FrameConnectToBoard>,
     FrameDefinition<PhasesInputShaperCalibration::wait_for_extruder_temperature, FrameWaitForExtruderTemperature>,
     FrameDefinition<PhasesInputShaperCalibration::attach_to_extruder, FrameAttachToExtruder>,
-    FrameDefinition<PhasesInputShaperCalibration::calibrating_accelerometer, FrameCalibratingAccelerometer>,
     FrameDefinition<PhasesInputShaperCalibration::measuring_x_axis, FrameMeasuringExtruder>,
     FrameDefinition<PhasesInputShaperCalibration::attach_to_bed, FrameAttachToBed>,
     FrameDefinition<PhasesInputShaperCalibration::measuring_y_axis, FrameMeasuringBed>,

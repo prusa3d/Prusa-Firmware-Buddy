@@ -306,20 +306,12 @@ float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_h
     return duration_ms / 1000.f / static_cast<float>(request_samples_num);
 }
 
-static float get_accelerometer_sample_period(PrusaAccelerometer &accelerometer) {
-    const auto progress_hook = [](auto) {
-        idle(true, true);
-        return true;
-    };
-    return get_accelerometer_sample_period(progress_hook, accelerometer);
-}
-
-static float maybe_calibrate_and_get_accelerometer_sample_period(PrusaAccelerometer &accelerometer, bool calibrate_accelerometer) {
+static float maybe_calibrate_and_get_accelerometer_sample_period(PrusaAccelerometer &accelerometer, bool calibrate_accelerometer, const SamplePeriodProgressHook &progress_hook) {
     // TODO: Perhaps we should always calibrate accelerometer and not use this global variable...
     //       Then again, maybe we should not have M958 in the first place...
     static float sample_period = expected_accelerometer_sample_period;
     if (calibrate_accelerometer || isnan(sample_period)) {
-        sample_period = get_accelerometer_sample_period(accelerometer);
+        sample_period = get_accelerometer_sample_period(progress_hook, accelerometer);
         SERIAL_ECHOLNPAIR_F("Sample freq: ", 1.f / sample_period);
     }
     return sample_period;
@@ -370,21 +362,11 @@ AxisEnum get_logical_axis(const uint16_t axis_flag) {
     return NO_AXIS_ENUM;
 }
 
-bool VibrateMeasureParams::setup(const MicrostepRestorer &microstep_restorer, bool calibrate_accelerometer) {
+bool VibrateMeasureParams::setup(const MicrostepRestorer &microstep_restorer) {
     step_len = get_step_len(axis_flag, microstep_restorer.saved_mres());
     if (isnan(step_len)) {
         return false;
     }
-
-    if (!is_ok(accelerometer.get_error())) {
-        return false;
-    }
-
-    accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, calibrate_accelerometer);
-    if (isnan(accelerometer_sample_period)) {
-        return false;
-    }
-
     return true;
 }
 
@@ -403,7 +385,7 @@ bool VibrateMeasureParams::setup(const MicrostepRestorer &microstep_restorer, bo
  * @param calibrate_accelerometer
  * @return Frequency and gain measured on each axis if there is accelerometer
  */
-FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float requested_frequency) {
+FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float requested_frequency, const SamplePeriodProgressHook &progress_hook) {
     if (args.klipper_mode && args.measured_harmonic != 1) {
         SERIAL_ERROR_MSG("vibrate measure: klipper mode does not support measuring higher harmonics");
         return FrequencyGain3dError { .error = true };
@@ -424,12 +406,20 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
     StepDir stepDir(generator);
 
     const float acceleration = generator.getAcceleration(excitation_frequency);
+    PrusaAccelerometer accelerometer;
+    if (!is_ok(accelerometer.get_error())) {
+        return FrequencyGain3dError { .error = true };
+    }
 
     Accumulator accumulator = {};
     float accelerometer_period_time = 0.f;
+    const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, args.calibrate_accelerometer, progress_hook);
+        if (isnan(accelerometer_sample_period)) {
+            return FrequencyGain3dError { .error = true };
+        }
 
     uint32_t sample_nr = 0;
-    const uint32_t samples_to_collect = excitation_period * args.cycles / args.accelerometer_sample_period;
+    const uint32_t samples_to_collect = excitation_period * args.cycles / accelerometer_sample_period;
     bool enough_samples_collected = false;
     TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 #ifdef M958_OUTPUT_SAMPLES
@@ -443,13 +433,13 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
     const uint32_t steps_to_do = generator.getStepsPerPeriod() * args.cycles;
     const uint32_t steps_to_do_max = steps_to_do * 2 + generator.getStepsPerPeriod() + STEP_EVENT_QUEUE_SIZE;
 
-    args.accelerometer.clear();
+    accelerometer.clear();
     while ((step_nr < steps_to_do) || (!enough_samples_collected) || (step_nr % generator.getStepsPerPeriod() != 0)) {
         StepDir::RetVal step_dir = stepDir.get();
 
         while (is_full()) {
             PrusaAccelerometer::Acceleration measured_acceleration;
-            const int samples = args.accelerometer.get_sample(measured_acceleration);
+            const int samples = accelerometer.get_sample(measured_acceleration);
             if (samples && !enough_samples_collected && (step_nr > STEP_EVENT_QUEUE_SIZE)) {
                 metric_record_custom(&accel, " x=%.4f,y=%.4f,z=%.4f", (double)measured_acceleration.val[0], (double)measured_acceleration.val[1], (double)measured_acceleration.val[2]);
                 const float accelerometer_time_2pi_measurement_freq = measurement_freq_2pi * accelerometer_period_time;
@@ -461,7 +451,7 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
 
                 ++sample_nr;
                 enough_samples_collected = sample_nr >= samples_to_collect;
-                accelerometer_period_time += args.accelerometer_sample_period;
+                accelerometer_period_time += accelerometer_sample_period;
                 if (accelerometer_period_time > measurement_period) {
                     accelerometer_period_time -= measurement_period;
                 }
@@ -483,12 +473,12 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
         ++step_nr;
         if (step_nr > steps_to_do_max) {
             SERIAL_ERROR_MSG("vibrate measure: getting accelerometer samples timed out");
-            (void)is_ok(args.accelerometer.get_error());
+            (void)is_ok(accelerometer.get_error());
             return FrequencyGain3dError { .error = true };
         }
     }
 
-    if (!is_ok(args.accelerometer.get_error())) {
+    if (!is_ok(accelerometer.get_error())) {
         return FrequencyGain3dError { .error = true };
     }
 
@@ -541,6 +531,14 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
         logical_axis, excitation_frequency, x_gain, y_gain, z_gain);
 
     return { { excitation_frequency, { x_gain, y_gain, z_gain } }, false };
+}
+
+FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float frequency) {
+    const auto progress_hook = [](auto) {
+        idle(true, true);
+        return true;
+    };
+    return vibrate_measure(args, frequency, progress_hook);
 }
 
 /**
@@ -741,11 +739,11 @@ void GcodeSuite::M958() {
 
     PrusaAccelerometer accelerometer;
     VibrateMeasureParams args {
-        .accelerometer = accelerometer,
-        .axis_flag = axis_flag,
-        .klipper_mode = parser.seen('K'),
         .acceleration = 2.5f,
         .cycles = 50,
+        .klipper_mode = parser.seen('K'),
+        .calibrate_accelerometer = parser.seen('C'),
+        .axis_flag = axis_flag,
     };
     float frequency = 35;
 
@@ -762,7 +760,7 @@ void GcodeSuite::M958() {
         args.measured_harmonic = parser.value_ulong();
     }
 
-    if (!args.setup(microstepRestorer, parser.seen('C'))) {
+    if (!args.setup(microstepRestorer)) {
         return;
     }
 
@@ -782,7 +780,7 @@ static constexpr float epsilon = 0.01f;
  * But in reality we are exciting the system by sine wave displacement. We for sure can not tell, if the force is still sine wave
  * and what is the force - the force depends on motor load angle and belt stiffness and we don't know it.
  */
-static void naive_zv_tune(const VibrateMeasureParams &args, const VibrateMeasureRange &range) {
+static void naive_zv_tune(VibrateMeasureParams &args, const VibrateMeasureRange &range) {
     FrequencyGain maxFrequencyGain = { 0.f, 0.f };
     const AxisEnum logicalAxis = get_logical_axis(args.axis_flag);
     if (logicalAxis == NO_AXIS_ENUM) {
@@ -794,6 +792,7 @@ static void naive_zv_tune(const VibrateMeasureParams &args, const VibrateMeasure
 
     for (float frequency = range.start_frequency; frequency <= range.end_frequency + epsilon; frequency += range.frequency_increment) {
         FrequencyGain3dError frequencyGain3dError = vibrate_measure(args, frequency);
+        args.calibrate_accelerometer = false;
         if (frequencyGain3dError.error) {
             return;
         }
@@ -1082,7 +1081,7 @@ input_shaper::AxisConfig find_best_shaper(const FindBestShaperProgressHook &prog
  *
  * To save memory we assume reached frequency was equal to requested, so frequency returned by vibrate_measure() is discarded.
  */
-static void klipper_tune(const VibrateMeasureParams &args, VibrateMeasureRange range, bool subtract_excitation) {
+static void klipper_tune(VibrateMeasureParams &args, VibrateMeasureRange range, bool subtract_excitation) {
     // Power spectrum density
     FixedLengthSpectrum<146> psd(range.start_frequency, range.frequency_increment);
     range.end_frequency = limit_end_frequency(range.start_frequency, range.end_frequency, range.frequency_increment, psd.max_size());
@@ -1096,6 +1095,7 @@ static void klipper_tune(const VibrateMeasureParams &args, VibrateMeasureRange r
 
     for (float frequency = range.start_frequency; frequency <= range.end_frequency + epsilon; frequency += range.frequency_increment) {
         FrequencyGain3dError frequencyGain3dError = vibrate_measure(args, frequency);
+        args.calibrate_accelerometer = false;
         if (frequencyGain3dError.error) {
             return;
         }
@@ -1186,11 +1186,11 @@ void GcodeSuite::M959() {
     PrusaAccelerometer accelerometer;
 
     VibrateMeasureParams args {
-        .accelerometer = accelerometer,
-        .axis_flag = setup_axis(), // modifies mres as a side-effect
-        .klipper_mode = parser.seen('K'),
         .acceleration = 2.5f,
         .cycles = 50,
+        .klipper_mode = parser.seen('K'),
+		.calibrate_accelerometer = true,
+        .axis_flag = setup_axis(), // modifies mres as a side-effect
     };
     VibrateMeasureRange range {
         .start_frequency = 5,
@@ -1217,7 +1217,7 @@ void GcodeSuite::M959() {
         args.measured_harmonic = parser.value_ulong();
     }
 
-    if (!args.setup(microstep_restorer, true)) {
+    if (!args.setup(microstep_restorer)) {
         return;
     }
 
