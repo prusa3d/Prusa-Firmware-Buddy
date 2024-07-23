@@ -854,10 +854,18 @@ void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
     }
 
     if (index && (config_store().selftest_result_phase_stepping.get() != TestResult_Passed)) {
+    #if PRINTER_IS_PRUSA_iX()
+        if (MsgBoxQuestion(_("Turn on Phase stepping uncalibrated?"), Responses_YesNo) == Response::No) {
+            AutoRestore ar(event_in_progress, true);
+            set_value(old_index, false);
+            return;
+        }
+    #else
         AutoRestore ar(event_in_progress, true);
         MsgBoxWarning(_("Phase stepping not ready: perform calibration first."), Responses_Ok);
         set_value(old_index, false);
         return;
+    #endif
     }
 
     if (index) {
