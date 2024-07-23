@@ -19,7 +19,7 @@ constexpr const char *ADDR_IN_TEXT = "prusa.io/xl-phstep";
 #endif
 constexpr const char *txt_header { N_("PHASE STEPPING CALIBRATION") };
 constexpr const char *txt_learn_more { N_("To learn more about the phase stepping calibration process, read the article:") };
-constexpr const char *txt_picking_tool { N_("Picking Tool") };
+constexpr const char *txt_homing { N_("Homing") };
 constexpr const char *txt_calibrating { N_("Running the phase stepping calibration to reduce vibrations. Please wait...") };
 constexpr const char *txt_calibrating_x { N_("Calibrating X motor") };
 constexpr const char *txt_calibrating_y { N_("Calibrating Y motor") };
@@ -141,10 +141,10 @@ namespace frame {
         void update(const fsm::PhaseData &) {}
     };
 
-    class PickingTool final : public CenteredStaticText {
+    class Homing final : public CenteredStaticText {
     public:
-        explicit PickingTool(window_t *parent)
-            : CenteredStaticText { parent, _(txt_picking_tool) } {
+        explicit Homing(window_t *parent)
+            : CenteredStaticText { parent, _(txt_homing) } {
         }
     };
 
@@ -235,7 +235,7 @@ namespace frame {
 
 using Frames = FrameDefinitionList<ScreenPhaseStepping::FrameStorage,
     FrameDefinition<PhasesPhaseStepping::intro, frame::Introduction>,
-    FrameDefinition<PhasesPhaseStepping::pick_tool, frame::PickingTool>,
+    FrameDefinition<PhasesPhaseStepping::home, frame::Homing>,
     FrameDefinition<PhasesPhaseStepping::calib_x, frame::CalibratingX>,
     FrameDefinition<PhasesPhaseStepping::calib_y, frame::CalibratingY>,
     FrameDefinition<PhasesPhaseStepping::calib_x_nok, frame::CalibrationXNOK>,

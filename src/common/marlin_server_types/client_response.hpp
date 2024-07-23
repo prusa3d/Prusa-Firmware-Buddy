@@ -423,7 +423,7 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesColdPull) { return Client
 #if HAS_PHASE_STEPPING()
 enum class PhasesPhaseStepping : PhaseUnderlyingType {
     intro,
-    pick_tool,
+    home,
     calib_x,
     calib_y,
     calib_x_nok,
@@ -788,7 +788,7 @@ class ClientResponses {
 #if HAS_PHASE_STEPPING()
     static constexpr PhaseResponses PhaseSteppingResponses[] = {
         { Response::Continue, Response::Abort }, // PhasesPhaseStepping::intro
-        {}, // PhasesPhaseStepping::pick_tool
+        {}, // PhasesPhaseStepping::home
         { Response::Abort }, // PhasesPhaseStepping::calib_x
         { Response::Abort }, // PhasesPhaseStepping::calib_y
         { Response::Ok }, // PhasesPhaseStepping::calib_x_nok
