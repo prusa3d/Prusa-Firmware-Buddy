@@ -76,7 +76,8 @@ def main():
     definition_files = str(args.Definition).split(';')
 
     # Define a regular expression pattern to match the hash strings
-    regex = re.compile(r'journal::hash\(\s*"([^"]+)"\)(?:, (\d+))?')
+    regex = re.compile(
+        r'journal::hash\(\s*"([^"]+)"\)(?:\s*,\s*([a-zA-Z0-9_]+))?')
 
     # Create a list to store the tuples
     hash_tuples = []
