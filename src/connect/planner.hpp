@@ -216,6 +216,12 @@ public:
     /// and enabled or its configuration changes (and we may be possibly talking
     /// to another server).
     void reset();
+
+    /// Reset the telemetry timeouts.
+    ///
+    /// For eg. reconnect on websocket, since the server node might want to
+    /// have "fresh" telemetry.
+    void reset_telemetry();
     /// A command was received from the server.
     ///
     /// The caller is responsible only for handing it over. No automatic acks

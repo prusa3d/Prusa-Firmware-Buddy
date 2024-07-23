@@ -311,6 +311,11 @@ void Planner::reset() {
     failed_attempts = 0;
 }
 
+void Planner::reset_telemetry() {
+    last_telemetry = nullopt;
+    telemetry_changes.mark_dirty();
+}
+
 Sleep Planner::sleep(Duration amount, http::Connection *wake_on_readable, bool cooldown) {
     if (!can_receive_command()) {
         // We don't want to cut the sleep short in case there is a command waiting but we can't receive it.

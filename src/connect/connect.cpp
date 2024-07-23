@@ -760,6 +760,13 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
         if (now() - last_send > ping_inactivity) {
             return send_ping(conn_factory);
         }
+    } else {
+        // The server node might want to have fresh telemetry. Important in websocket mode, because:
+        // * We stretch the time between telemetries to much longer in
+        //   websocket mode, so the time to "auto-recover" is longer.
+        // * The server node in the websocket mode can keep a bit more context
+        //   internally, unlike the http-based exchange.
+        planner().reset_telemetry();
     }
 #endif
     auto action = planner().next_action(buffer, wake_on_readable);
