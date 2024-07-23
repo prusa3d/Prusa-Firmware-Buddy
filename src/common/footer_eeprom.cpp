@@ -95,7 +95,7 @@ uint8_t get_center_n_and_fewer() {
     return get_draw_cnf_ref().center_n_and_fewer;
 }
 
-#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_MINI() || PRINTER_IS_PRUSA_XL()
 Record decode_from_old_eeprom_v22(uint32_t encoded) {
     // Only valid for XL and MINI
 
@@ -153,7 +153,7 @@ Record decode_from_old_eeprom_v22(uint32_t encoded) {
         case config_store_ns::old_eeprom::v22::FooterItems::Heatbreak:
             ret[i] = footer::Item::heatbreak_temp;
             break;
-    #if PRINTER_IS_PRUSA_MINI
+    #if PRINTER_IS_PRUSA_MINI()
         case config_store_ns::old_eeprom::v22::FooterItems::LiveZ:
             ret[i] = footer::Item::live_z;
             break;
@@ -161,7 +161,7 @@ Record decode_from_old_eeprom_v22(uint32_t encoded) {
             ret[i] = footer::Item::sheets;
             break;
     #endif
-    #if PRINTER_IS_PRUSA_XL
+    #if PRINTER_IS_PRUSA_XL()
         case config_store_ns::old_eeprom::v22::FooterItems::CurrentTool:
             ret[i] = footer::Item::current_tool;
             break;

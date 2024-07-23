@@ -44,7 +44,7 @@ static struct lfs_config littlefs_config = {
     .block_size = BLOCK_SIZE,
     .block_count = 0, // to be initialized at runtime
     .block_cycles = 500,
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
     .cache_size = 128, // need to save RAM on MINI, also PNG draw is faster due smaller and more efficient display
 #else
     .cache_size = 512, // PNG draws about 4% faster compared to cache_size 128

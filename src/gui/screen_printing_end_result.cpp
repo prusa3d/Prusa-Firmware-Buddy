@@ -11,7 +11,7 @@ namespace {
 constexpr const char *txt_print_started { N_("Print started") };
 constexpr const char *txt_print_ended { N_("Print ended") };
 constexpr const char *txt_consumed_material { N_("Consumed material") };
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
 constexpr const char *txt_wipe_tower_pretranslated { N_("Prime tower %dg") };
 #else
 constexpr const char *txt_wipe_tower_pretranslated { N_("Wipe tower %dg") };

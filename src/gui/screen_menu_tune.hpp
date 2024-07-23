@@ -56,7 +56,7 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #endif
     MI_STEALTH_MODE,
     MI_SOUND_MODE,
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
     MI_SOUND_VOLUME,
 #endif
     MI_INPUT_SHAPER,
@@ -76,9 +76,9 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #endif // ENABLED(CRASH_RECOVERY)
     ,
     MI_USER_INTERFACE, MI_NETWORK,
-#if (!PRINTER_IS_PRUSA_MINI) || defined(_DEBUG) // Save space in MINI release
+#if (!PRINTER_IS_PRUSA_MINI()) || defined(_DEBUG) // Save space in MINI release
     MI_HARDWARE_TUNE,
-#endif /*(!PRINTER_IS_PRUSA_MINI) || defined(_DEBUG)*/
+#endif /*(!PRINTER_IS_PRUSA_MINI()) || defined(_DEBUG)*/
     MI_TIMEZONE, MI_TIMEZONE_MIN, MI_TIMEZONE_SUMMER, MI_INFO, MI_TRIGGER_POWER_PANIC,
 
 /* MI_FOOTER_SETTINGS,*/ // currently experimental, but we want it in future

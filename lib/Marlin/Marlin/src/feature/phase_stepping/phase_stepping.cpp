@@ -527,7 +527,7 @@ void phase_stepping::clear_targets() {
 // Given axis and speed, return current adjustment expressed as range <0, 255>
 [[maybe_unused]] static int current_adjustment(int /*axis*/, float speed) {
     speed = std::abs(speed);
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     float BREAKPOINT = 6.f;
     float ENDPOINT = 10.f;
     int REDUCTION_TO = 150;

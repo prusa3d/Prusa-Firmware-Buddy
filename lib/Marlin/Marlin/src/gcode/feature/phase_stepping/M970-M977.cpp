@@ -454,7 +454,7 @@ public:
     void on_termination() override {
         SERIAL_ECHOLN("Calibration done");
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
         SERIAL_ECHO("Overall score parameter 1: ");
         auto [p1_f, p1_b] = _calibration_results[0];
         auto [p3_f, p3_b] = _calibration_results[2];

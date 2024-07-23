@@ -25,7 +25,7 @@ bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<
                 &CSelftestPart_Fan::state_start,
                 &CSelftestPart_Fan::state_wait_rpm_100_percent,
                 &CSelftestPart_Fan::state_measure_rpm_100_percent,
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
                 // Adding only for MK3.5 because selftest is unable to skip states. This seems to me as a cleaner choice than checking in every state for basically the same thing.
                 &CSelftestPart_Fan::state_manual_check_init,
                 &CSelftestPart_Fan::state_manual_check_wait_fan,

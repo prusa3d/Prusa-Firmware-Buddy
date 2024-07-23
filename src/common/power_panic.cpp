@@ -986,9 +986,9 @@ std::atomic<bool> ac_fault_enabled = false;
 
 void check_ac_fault_at_startup() {
     // AC-fault during initialization //TODO: IXL Remove if after PP is ready
-    if constexpr (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5) {
+    if constexpr (PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5()) {
         if (power_panic::is_ac_fault_active()) {
-#if !PRINTER_IS_PRUSA_MK3_5 // TODO fix error codes
+#if !PRINTER_IS_PRUSA_MK3_5() // TODO fix error codes
             fatal_error(ErrCode::ERR_ELECTRO_ACF_AT_INIT);
 #endif
         }
@@ -1032,7 +1032,7 @@ void ac_fault_isr() {
     power_panic_state = PPState::Triggered;
 
     // power off devices in order of power draw
-#if PRINTER_IS_PRUSA_iX
+#if PRINTER_IS_PRUSA_iX()
     buddy::hw::modularBedReset.write(buddy::hw::Pin::State::high);
 #endif
     state_buf.orig_axis_known_position = axis_known_position;

@@ -1,6 +1,6 @@
 #include "spool_join.hpp"
 #include "printers.h"
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     #include "Configuration_XL.h"
 #endif
 #include <logging/log.hpp>
@@ -222,7 +222,7 @@ bool SpoolJoin::do_join(uint8_t current_tool) {
 
     xyze_pos_t return_pos = current_position;
 
-#if DISABLED(SIGNLENOZZLE) && PRINTER_IS_PRUSA_XL
+#if DISABLED(SIGNLENOZZLE) && PRINTER_IS_PRUSA_XL()
 
     // Park current tool, to get away from print
     tool_change(PrusaToolChanger::MARLIN_NO_TOOL_PICKED, tool_return_t::no_return);
@@ -248,7 +248,7 @@ bool SpoolJoin::do_join(uint8_t current_tool) {
     }
     tool_mapper.set_enable(true);
 
-#if DISABLED(SINGLENOZZLE) && PRINTER_IS_PRUSA_XL
+#if DISABLED(SINGLENOZZLE) && PRINTER_IS_PRUSA_XL()
     if (target_temp != 0) {
         thermalManager.wait_for_hotend(new_tool, false, true);
     }

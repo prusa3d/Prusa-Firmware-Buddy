@@ -44,7 +44,7 @@ static constexpr void set_correction_value(CorrectionIndex index, int8_t new_val
 
 class I_MI_CORRECT : public WiSpin {
     static constexpr const char *correction_label(CorrectionIndex index) {
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
         switch (index) {
         case LEFT:
             return N_("Left Side");
@@ -57,7 +57,7 @@ class I_MI_CORRECT : public WiSpin {
         }
 #endif
 
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
         switch (index) {
         case LEFT:
             return N_("Left Side [um]");

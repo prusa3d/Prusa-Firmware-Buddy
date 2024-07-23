@@ -104,7 +104,7 @@ inline constexpr std::array<float, Branch::count> UNEXPECTED_CURRENT_TOLERANCE {
 #define MIN_HB_RESISTANCE 4.5f // for checking of "HeaterShortCircuit" error
 #define MAX_HB_RESISTANCE 40.0f // for checking of "HeaterDisconnected" error
 
-#if PRINTER_IS_PRUSA_iX
+#if PRINTER_IS_PRUSA_iX()
 inline constexpr bool is_used_bedlet(uint32_t heatbedletIndex) {
     uint32_t connector_nr = heatbedletIndex + 1;
     switch (connector_nr) {
@@ -121,7 +121,7 @@ inline constexpr bool is_used_bedlet(uint32_t heatbedletIndex) {
     }
 }
 inline constexpr std::array<float, Branch::count> PWM_MAX_CURRENT_AMPS { 4, 5 }; // {4x HeatBedLet on 24V_A, 5x HeatBedLet on 24V_B}
-#elif PRINTER_IS_PRUSA_XL
+#elif PRINTER_IS_PRUSA_XL()
 inline constexpr bool is_used_bedlet(uint32_t) {
     return true;
 }

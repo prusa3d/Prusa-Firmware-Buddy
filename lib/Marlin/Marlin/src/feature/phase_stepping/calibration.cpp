@@ -620,7 +620,7 @@ phase_stepping::calibrate_axis(AxisEnum axis, CalibrateAxisHooks &hooks) {
 }
 
 PrinterCalibrationConfig phase_stepping::get_printer_calibration_config() {
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     static constexpr std::array phases = {
         CalibrationPhase {
             .harmonic = 2,

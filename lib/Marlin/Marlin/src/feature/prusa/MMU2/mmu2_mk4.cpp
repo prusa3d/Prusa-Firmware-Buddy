@@ -17,6 +17,7 @@
 #include "mmu2_progress_converter.h"
 #include "mmu2_reporting.h"
 #include "../e-stall_detector.h"
+#include <printers.h>
 #ifndef UNITTEST
     // because it brings in whole Marlin and the unit tests commit suicide ...
     #include "../../../module/prusa/spool_join.hpp"
@@ -1481,7 +1482,7 @@ void MMU2::OnMMUProgressMsgSame(ProgressCode pc) {
                 loadFilamentStarted = false;
                 planner_abort_queued_moves();
                 {
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
                     // on the MK3.5 due to fsensor filtering delay (compared to MK3S),
                     // we are getting 0.175mm of extra loaded filament per 1mm/s speed increase of slow loading speed.
                     // i.e. for 20mm/s we get roughly 4mm of extra loaded filament

@@ -101,7 +101,7 @@ constexpr float snake1[] = {
     10,
 };
 
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
 constexpr float y_step = 20;
 #else
 constexpr float y_step = 30;

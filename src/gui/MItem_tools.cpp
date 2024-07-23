@@ -145,7 +145,7 @@ void MI_STEALTH_MODE::OnChange(size_t old_index) {
 // MI_LIVE_ADJUST_Z
 MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes,
-#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MINI() || PRINTER_IS_PRUSA_MK3_5()
         is_hidden_t::no
 #else
         is_hidden_t::dev
@@ -202,7 +202,7 @@ MI_DISABLE_STEP::MI_DISABLE_STEP()
 }
 
 void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
-#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK3_5)
+#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_MK3_5())
     marlin_client::gcode("M18 X Y E");
 #else
     marlin_client::gcode("M18");
@@ -408,7 +408,7 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
 /*****************************************************************************/
 // MI_SOUND_VOLUME
 static constexpr NumericInputConfig sound_volume_spin_config = {
-    .max_value = PRINTER_IS_PRUSA_MINI ? 11 : 3,
+    .max_value = PRINTER_IS_PRUSA_MINI() ? 11 : 3,
     .special_value = 0,
 };
 
@@ -482,7 +482,7 @@ MI_TIME_NOW::MI_TIME_NOW()
 /*****************************************************************************/
 // IMI_FS_SPAN
 static constexpr NumericInputConfig fs_span_spin_config = {
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     .min_value = 50,
     .max_value = 1500,
     .step = 10,

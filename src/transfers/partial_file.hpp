@@ -7,7 +7,7 @@
 #include <array>
 #include <stdint.h>
 #include "usbh_async_diskio.hpp"
-
+#include <printers.h>
 #include <common/unique_file_ptr.hpp>
 #include <freertos/mutex.hpp>
 #include <freertos/counting_semaphore.hpp>
@@ -41,7 +41,7 @@ namespace transfers {
 class PartialFile {
 public:
     static const size_t SECTOR_SIZE = 512;
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
     static const size_t SECTORS_PER_WRITE = 1; // Low on RAM on mini
 #else
     static const size_t SECTORS_PER_WRITE = 8;

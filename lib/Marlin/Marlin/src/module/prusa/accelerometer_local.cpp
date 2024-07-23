@@ -5,7 +5,7 @@
 static_assert(HAS_LOCAL_ACCELEROMETER());
 
 PrusaAccelerometer::PrusaAccelerometer()
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
     : output_enabler { buddy::hw::fanPrintTach, buddy::hw::Pin::State::high, buddy::hw::OMode::pushPull, buddy::hw::OSpeed::high }
     , output_pin { output_enabler.pin() }
     , accelerometer { output_pin }

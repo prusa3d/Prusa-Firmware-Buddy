@@ -49,7 +49,7 @@ void StartMeasurementTask([[maybe_unused]] void const *argument) {
     uint32_t next_sg_cycle = ticks_ms();
 
     tmc_set_sg_mask(
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
         0 // disable sampling on mini
 #else
         0x07 // XYZ

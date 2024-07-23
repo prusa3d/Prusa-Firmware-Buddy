@@ -112,7 +112,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
         {
             .name = "PA",
             // MINI has slightly lower max nozzle temperature but it is still OK for polyamid
-            .nozzle_temperature = PRINTER_IS_PRUSA_MINI ? 280 : 285,
+            .nozzle_temperature = PRINTER_IS_PRUSA_MINI() ? 280 : 285,
             .heatbed_temperature = 100,
         },
     },

@@ -9,9 +9,9 @@ class ScreenFactory {
     ScreenFactory() = delete;
     ScreenFactory(const ScreenFactory &) = delete;
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     using Storage = std::array<uint8_t, 4096>;
-#elif PRINTER_IS_PRUSA_MINI
+#elif PRINTER_IS_PRUSA_MINI()
     using Storage = std::array<uint8_t, 3072>;
 #else
     using Storage = std::array<uint8_t, 4096>;

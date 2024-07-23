@@ -286,7 +286,7 @@ void CSelftestPart_Heater::actualizeProgress(float current, float progres_start,
 }
 
 // Currently supported only by XL, others needs to implement sensor reading, MK4 uses PowerCheckBoth to check its linked heaters
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
 void CSelftestPart_Heater::single_check_callback() {
     assert(m_config.type == heater_type_t::Nozzle || m_config.type == heater_type_t::Bed);
 

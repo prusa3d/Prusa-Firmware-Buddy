@@ -296,7 +296,7 @@
    *   features of all three systems combined.
    */
 
-  #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+  #if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
 
   // Apply weighted correction on each point based on it's location.
   // The whole correction is then conversed from µm to mm. 
@@ -990,7 +990,7 @@
           }
           z_values[x][y] = measured_z;
           
-          #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+          #if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
             //apply bed level correction on each probed point
             apply_bed_level_correction(x,y);
           #endif 

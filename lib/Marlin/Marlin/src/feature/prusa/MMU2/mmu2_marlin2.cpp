@@ -16,7 +16,7 @@
 
 namespace MMU2 {
 
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
 // MK3.5 underextrudes by default to match mk3's behaviour,
 // that doesn't play nicely with the absolute move distances of the MMU
 // -> need to compensate for the slight discrepancy.

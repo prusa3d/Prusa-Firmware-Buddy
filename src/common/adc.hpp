@@ -87,7 +87,7 @@ enum AD1 { // ADC1 channels
     vref,
     ADC1_CH_CNT
 };
-#elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5)
+#elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5())
 enum AD1 { // ADC1 channels
     hotend_T,
     heatbed_T,
@@ -462,7 +462,7 @@ inline void sampleNozzle() {
 }
 
 inline uint16_t bed() { return adcDma1.get_and_shift_channel(AdcChannel::heatbed_T); }
-    #if (!PRINTER_IS_PRUSA_MK3_5)
+    #if (!PRINTER_IS_PRUSA_MK3_5())
 inline uint16_t heatbreakTemp() { return adcDma1.get_and_shift_channel(AdcChannel::heatbreak_T); }
     #endif
 inline uint16_t boardTemp() { return adcDma3.get_and_shift_channel(AdcChannel::board_T); }

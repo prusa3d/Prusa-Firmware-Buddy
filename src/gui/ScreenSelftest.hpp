@@ -12,7 +12,7 @@
 #include <selftest_frame.hpp>
 
 class ScreenSelftest : public screen_t {
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     static constexpr size_t storage_size = 2048;
 #else
     static constexpr size_t storage_size = 1536;

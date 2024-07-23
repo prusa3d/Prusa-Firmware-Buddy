@@ -85,7 +85,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc) {
          * PA6     ------> ADC1_IN6
          */
 
-#if (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5)
+#if (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5())
         analog_gpio_init(GPIOA, THERM_1_Pin | HEATER_VOLTAGE_Pin | BED_VOLTAGE_Pin); /*Initialize GPIOA pins as analog input*/
         analog_gpio_init(THERM_0_GPIO_Port, THERM_0_Pin);
 #elif BOARD_IS_XBUDDY
@@ -164,7 +164,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *hadc) {
 #if (BOARD_IS_BUDDY)
                 | THERM_PINDA_Pin
 #endif
-#if (BOARD_IS_XBUDDY && (!PRINTER_IS_PRUSA_MK3_5))
+#if (BOARD_IS_XBUDDY && (!PRINTER_IS_PRUSA_MK3_5()))
                 | THERM_HEATBREAK_Pin
 #endif
         );
@@ -1268,7 +1268,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
         __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_TC);
 
         // Enable the ISR
-    #if (PRINTER_IS_PRUSA_iX)
+    #if (PRINTER_IS_PRUSA_iX())
         HAL_NVIC_SetPriority(USART6_IRQn, ISR_PRIORITY_PUPPIES_USART, 0);
     #else
         HAL_NVIC_SetPriority(USART6_IRQn, ISR_PRIORITY_DEFAULT, 0);

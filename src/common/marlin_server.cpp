@@ -702,7 +702,7 @@ void static finalize_print(bool finished) {
         server.was_print_time_saved = true;
     }
 
-#if !PRINTER_IS_PRUSA_iX
+#if !PRINTER_IS_PRUSA_iX()
     // On iX, we're not cooling down the bed after the print.
     // Resetting bounding rect would result in turning all bedlets on, which we don't want.
     // First - it's increasing power consumption; second - it could clear the bed preheat status.

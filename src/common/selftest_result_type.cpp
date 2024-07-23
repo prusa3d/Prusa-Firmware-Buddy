@@ -24,7 +24,7 @@ bool passed_for_all_that_always_need_to_pass(const SelftestResult &results) {
         if (results.tools[e].heatBreakFan != TestResult_Passed) {
             return false;
         }
-#if not PRINTER_IS_PRUSA_MINI
+#if not PRINTER_IS_PRUSA_MINI()
         if (results.tools[e].fansSwitched != TestResult_Passed) {
             return false;
         }
@@ -69,7 +69,7 @@ bool SelftestResult_Passed_All(const SelftestResult &results) {
 bool SelftestResult_Passed_Mandatory(const SelftestResult &results) {
     for (int e = 0; e < HOTENDS; ++e) {
 #if FILAMENT_SENSOR_IS_ADC()
-    #if PRINTER_IS_PRUSA_MK4
+    #if PRINTER_IS_PRUSA_MK4()
         if (results.tools[e].fsensor == TestResult_Failed) {
             return false;
         }
@@ -98,7 +98,7 @@ bool SelftestResult_Failed(const SelftestResult &results) {
             return true;
         }
 
-#if not PRINTER_IS_PRUSA_MINI
+#if not PRINTER_IS_PRUSA_MINI()
         if (results.tools[e].fansSwitched == TestResult_Failed) {
             return true;
         }

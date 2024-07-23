@@ -139,11 +139,11 @@ namespace defaults {
 #endif /*DEVELOPMENT_ITEMS()*/
 
     inline constexpr bool crash_enabled {
-#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX || PRINTER_IS_PRUSA_XL)
+#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_XL())
         false
 #else
         true
-#endif // (( PRINTER_IS_PRUSA_MK4) || ( PRINTER_IS_PRUSA_MK3_5))
+#endif // (( PRINTER_IS_PRUSA_MK4()) || ( PRINTER_IS_PRUSA_MK3_5()))
     };
 
     inline constexpr int16_t crash_sens[2] =
@@ -208,7 +208,7 @@ namespace defaults {
     inline constexpr uint32_t side_fs_value_span { 310 };
 
     inline constexpr bool fsensor_enabled {
-#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MINI() || PRINTER_IS_PRUSA_MK3_5()
         true // MINI and 3.5 do not require any calibration
 #else
         false
@@ -223,7 +223,7 @@ namespace defaults {
     inline constexpr ToolOffset tool_offset { 0, 0, 0 };
 
     inline constexpr float nozzle_diameter {
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
         0.60f
 #else
         0.40f
@@ -271,7 +271,7 @@ namespace defaults {
     inline constexpr int16_t homing_sens_y { stallguard_sensitivity_unset };
 
     inline constexpr HotendType hotend_type {
-#if PRINTER_IS_PRUSA_iX
+#if PRINTER_IS_PRUSA_iX()
         HotendType::stock_with_sock
 #else
         HotendType::stock

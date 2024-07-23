@@ -190,7 +190,7 @@ float FooterItemNozzleDiameter::static_readValue() {
 }
 
 int FooterItemNozzlePWM::static_readValue() {
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     // I haven't been able to find out what code is responsible for this not being 255 :/
     static constexpr float pwm_max = 127.0f;
 #else

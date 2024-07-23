@@ -185,7 +185,7 @@ bool ScreenMenuMove::IsTempOk() {
 
 ScreenMenuMove::ScreenMenuMove()
     : ScreenMenuMove__(_(label)) {
-#if !PRINTER_IS_PRUSA_MINI
+#if !PRINTER_IS_PRUSA_MINI()
     header.SetIcon(&img::move_16x16);
 #endif
     prev_accel = marlin_vars().travel_acceleration;

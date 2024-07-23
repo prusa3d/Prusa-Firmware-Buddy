@@ -216,7 +216,7 @@ CommunicationStatus ModularBed::read_bedlet_data() {
                 fatal_error(ErrCode::ERR_TEMPERATURE_MB_PREHEAT_ERR, bedlet_number);
             } else if (fault_int & ftrstd::to_underlying(HeatbedletError::TestHeatingError)) {
                 fatal_error(ErrCode::ERR_TEMPERATURE_MB_TEST_HEATING_ERR, bedlet_number);
-#if PRINTER_IS_PRUSA_iX
+#if PRINTER_IS_PRUSA_iX()
             } else if (fault_int & ftrstd::to_underlying(HeatbedletError::HeaterConnected)) {
                 fatal_error(ErrCode::ERR_TEMPERATURE_MB_HEATER_CONNECTED, bedlet_number);
 #endif
@@ -328,7 +328,7 @@ uint16_t ModularBed::idx(const uint8_t column, const uint8_t row) {
     assert(column < BEDLET_MAX_X);
     assert(row < BEDLET_MAX_Y);
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     static_assert(BEDLET_MAX_X == 4);
     static_assert(BEDLET_MAX_Y == 4);
     static constexpr uint8_t map[BEDLET_MAX_Y][BEDLET_MAX_X] = {
@@ -337,7 +337,7 @@ uint16_t ModularBed::idx(const uint8_t column, const uint8_t row) {
         { 3, 4, 13, 14 },
         { 2, 1, 16, 15 },
     };
-#elif PRINTER_IS_PRUSA_iX
+#elif PRINTER_IS_PRUSA_iX()
     static_assert(BEDLET_MAX_X == 3);
     static_assert(BEDLET_MAX_Y == 3);
     static constexpr uint8_t map[BEDLET_MAX_Y][BEDLET_MAX_X] = {

@@ -46,7 +46,7 @@ XlcdEeprom get_xlcd_eeprom();
 #endif
 
 // MK3.5 doesn't have a loveboard, but it needs the detection to complain if it's running on an MK4
-#if HAS_LOVE_BOARD() || PRINTER_IS_PRUSA_MK3_5
+#if HAS_LOVE_BOARD() || PRINTER_IS_PRUSA_MK3_5()
 OtpStatus get_loveboard_status();
 
 LoveBoardEeprom get_loveboard_eeprom();

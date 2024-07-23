@@ -46,7 +46,7 @@ CSelftestPart_FSensor::CSelftestPart_FSensor(IPartHandler &state_machine, const 
     , log_fast(500)
     , extruder(GetExtruderFSensor(rConfig.extruder_id))
     , side(
-#if HAS_MMU2() || PRINTER_IS_PRUSA_iX
+#if HAS_MMU2() || PRINTER_IS_PRUSA_iX()
           // MKx has the MMU "side sensor" and iX has a side sensor too, but neither is calibrated
           nullptr
 #else

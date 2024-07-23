@@ -218,7 +218,7 @@ constexpr vars_body_t body_defaults = {
     0, // EEVAR_FILAMENT_TYPE_4
     0, // EEVAR_FILAMENT_TYPE_5
     false, // EEVAR_HEATUP_BED
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     0.60f, // EEVAR_NOZZLE_DIA_0
     0.60f, // EEVAR_NOZZLE_DIA_1
     0.60f, // EEVAR_NOZZLE_DIA_2
@@ -240,7 +240,7 @@ constexpr vars_body_t body_defaults = {
     {}, // EEVAR_SELFTEST_RESULT_PRE_23
 };
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
 // first introduced footer items for XL
 enum class FooterItems : uint8_t {
     Nozzle,
@@ -316,7 +316,7 @@ inline vars_body_t convert(const old_eeprom::v12::vars_body_t &src) {
 
     // copy entire v12 struct
     memcpy(&ret, &src, sizeof(old_eeprom::v12::vars_body_t));
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     ret.FOOTER_SETTING = encode(default_items); // this is first XL version, so set default properly (even though this should never happen)
 #endif
 

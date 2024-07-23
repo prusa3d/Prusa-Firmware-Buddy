@@ -57,7 +57,7 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_MMU_LOAD_TEST_FILAMENT,
 #endif
 
-#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
     MI_MESH_BED,
     MI_BED_LEVEL_CORRECTION,
 #endif

@@ -33,7 +33,7 @@ namespace migrations {
     }
 #endif
 
-#if PRINTER_IS_PRUSA_XL and HAS_GUI() // MINI goes directly from old eeprom to multiple footer items, MK4 gets its footer reset
+#if PRINTER_IS_PRUSA_XL() and HAS_GUI() // MINI goes directly from old eeprom to multiple footer items, MK4 gets its footer reset
     void footer_setting_v1(journal::Backend &backend) {
         // See selftest_result_pre_23 (above) for in-depth commentary
         using FooterSettingsV1 = decltype(DeprecatedStore::footer_setting_v1);
@@ -147,7 +147,7 @@ namespace migrations {
         backend.save_migration_item(journal::hash("FSensor Enabled V2"), new_fs_enabled);
     }
 
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     void extended_printer_type(journal::Backend &backend) {
         // See selftest_result_pre_23 (above) for in-depth commentary
         using OldItem = decltype(DeprecatedStore::xy_motors_400_step);

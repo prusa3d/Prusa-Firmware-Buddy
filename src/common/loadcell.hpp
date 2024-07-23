@@ -163,7 +163,7 @@ public:
     FailureOnLoadAboveEnforcer CreateLoadAboveErrEnforcer(bool enable = true, float grams = 3000);
 
 private:
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     // Tweaked butter(2, [0.07 0.11])
     struct ZFilterParams {
         static constexpr float gain = 276.1148366795870;

@@ -16,7 +16,7 @@ DialogMoveZ::DialogMoveZ()
     , axisText(this, text_rc, is_multiline::no, is_closed_on_click_t::no, _(axisLabel))
     , infoText(this, infoText_rc, is_multiline::yes, is_closed_on_click_t::no, _(infoTextContent))
     , closeText(this, closeText_rc, is_multiline::yes, is_closed_on_click_t::no, _(closeTextContent))
-#if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
+#if (PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_iX()) // XL moves bed down while Z goes up
     , rightText(this, rightText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
     , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(upTextContent))
 #else /*PRINTER_TYPE*/
@@ -86,7 +86,7 @@ void DialogMoveZ::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t eve
         const int enc_change = int(param);
         change(-enc_change);
         numb.SetValue(value);
-#if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
+#if (PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_iX()) // XL moves bed down while Z goes up
         arrows.SetState(WindowArrows::State_t::up);
 #else /*PRINTER_TYPE*/
         arrows.SetState(WindowArrows::State_t::down);
@@ -98,7 +98,7 @@ void DialogMoveZ::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t eve
         const int enc_change = int(param);
         change(enc_change);
         numb.SetValue(value);
-#if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
+#if (PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_iX()) // XL moves bed down while Z goes up
         arrows.SetState(WindowArrows::State_t::down);
 #else /*PRINTER_TYPE*/
         arrows.SetState(WindowArrows::State_t::up);

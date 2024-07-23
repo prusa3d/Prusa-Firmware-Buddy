@@ -179,7 +179,7 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_100_percent() {
         result.heatbreak_fan_state = SelftestSubtestState_t::not_good;
     }
 
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
     if (heatbreak_fan_rpm > 6000 || print_fan_rpm > 6000) {
         // this rpm is unreachable by noctua therefore the fans are a lot faster and pwm fix is needed to make printer quiet
         // check both fans because they could be switched.
@@ -228,7 +228,7 @@ bool CSelftestPart_Fan::are_fans_switched(const FanHandler &print_fan, const Fan
     return false;
 }
 
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
 LoopResult CSelftestPart_Fan::state_manual_check_init() {
     if (result.fans_switched_state != SelftestSubtestState_t::ok) {
         print_fan.set_pwm(0); // stop print fan since heatbreak is the critical one
@@ -333,7 +333,7 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_40_percent() {
 }
 
 void CSelftestPart_Fan::update_progress() {
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
     // Time update is necessary because of possible human interaction which causes unpredictable delay
     if (IPartHandler::GetFsmPhase() != PhasesSelftest::Fans_second) {
         end_time = SelftestInstance().GetTime() + state_wait_rpm_0_percent_delay

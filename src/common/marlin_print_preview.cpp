@@ -378,7 +378,7 @@ void PrintPreview::tools_mapping_cleanup(bool leaving_to_print) {
 #endif
     }
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     // set dwarf leds to be handled 'normally'
     HOTEND_LOOP() {
         prusa_toolchanger.getTool(e).set_cheese_led(); // Default LED config
@@ -668,7 +668,7 @@ PrintPreview::Result PrintPreview::Loop() {
         break;
 
     case State::checks_done:
-#if PRINTER_IS_PRUSA_iX
+#if PRINTER_IS_PRUSA_iX()
         // We've removed reset_bounding_rect at the end of the print for the iX (in marlin_server.cpp::finalize_print).
         // So now, just to make sure, we reset the bounding rect at the start if we don't see it being set in the gcode.
         // BFW-5085

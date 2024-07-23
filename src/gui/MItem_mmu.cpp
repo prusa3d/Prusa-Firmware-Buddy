@@ -183,7 +183,7 @@ static bool flip_mmu_rework([[maybe_unused]] bool flip_mmu_at_the_end) {
     config_store().is_mmu_rework.set(set_mmu_rework);
 
 // The FS is not calibrated on MK3.5
-#if !PRINTER_IS_PRUSA_MK3_5
+#if !PRINTER_IS_PRUSA_MK3_5()
     const auto fsstate = GetExtruderFSensor(0)->get_state();
     GetExtruderFSensor(0)->SetInvalidateCalibrationFlag();
 
@@ -219,7 +219,7 @@ void MI_MMU_ENABLE::OnChange(size_t old_index) {
         // if we are enabling MMU and the MMU Rework option is not enabled, enable it
         flip_mmu_rework(true);
 
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
         // On other printers flip_mmu_rework executes FS Calibration, which then enables MMU
         // There is no FS Calibration on MK3.5, so we turn on MMU here instead
         marlin_client::gcode("M709 S1");

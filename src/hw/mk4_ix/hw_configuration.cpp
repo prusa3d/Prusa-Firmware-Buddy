@@ -29,7 +29,7 @@ float Configuration::curr_measurement_voltage_to_current(float voltage) const {
 }
 
 bool Configuration::is_fw_incompatible_with_hw() {
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     if (get_loveboard_status().data_valid) {
         return false; // valid data, fw compatible
     }

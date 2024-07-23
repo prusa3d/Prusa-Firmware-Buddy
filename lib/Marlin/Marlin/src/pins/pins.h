@@ -517,13 +517,13 @@
 #elif MB(LERDGE_X)
   #include "stm32/pins_LERDGE_X.h"              // STM32F4                                env:STM32F4
 #elif MB(BUDDY_2209_02)
-  #if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX
+  #if PRINTER_IS_PRUSA_MINI() || PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX()
     #include "stm32/pins_BUDDY_2209_02.h"       // STM32F4                                env:STM32F4
   #else
     #error "Unknown PRINTER_TYPE"
   #endif
 #elif MB(XLBUDDY_V1)
-  #if PRINTER_IS_PRUSA_XL
+  #if PRINTER_IS_PRUSA_XL()
     #include "stm32/pins_XLBUDDY.h"       // STM32F4                                env:STM32F4
   #else
     #error "Unknown PRINTER_TYPE"

@@ -61,7 +61,7 @@
 #include <screen/filament/screen_filament_management_list.hpp>
 #include <screen/filament/screen_filaments_visibility.hpp>
 
-#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
     #include <screen_menu_bed_level_correction.hpp>
 #endif
 
@@ -615,7 +615,7 @@ void MI_INPUT_SHAPER::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInputShaper>);
 }
 
-#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
 /*****************************************************************************/
 // MI_BED_LEVEL_CORRECTION
 

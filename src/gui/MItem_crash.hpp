@@ -38,7 +38,7 @@ public:
     virtual void OnClick() override;
 };
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
 // XL set Crash Sensitivity in user friendly was (Low/Medium/High), whereas other printers set integer directly and its development menu only
 
 class MI_CRASH_SENSITIVITY_XY : public WI_SWITCH_t<3> {

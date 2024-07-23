@@ -113,7 +113,7 @@ extern TIM_HandleTypeDef htim14;
     #define THERM_2_GPIO_Port GPIOF
 #endif
 
-#if (BOARD_IS_XBUDDY && !PRINTER_IS_PRUSA_MK3_5)
+#if (BOARD_IS_XBUDDY && !PRINTER_IS_PRUSA_MK3_5())
     #define THERM_HEATBREAK_Pin       GPIO_PIN_6
     #define THERM_HEATBREAK_GPIO_Port GPIOA
 #endif
@@ -194,7 +194,7 @@ extern TIM_HandleTypeDef htim14;
     #define i2c2_SCL_PIN       GPIO_PIN_1
 
     // iX uses the I2C3 pins for back door filament sensor - BFW-4746
-    #if !PRINTER_IS_PRUSA_iX
+    #if !PRINTER_IS_PRUSA_iX()
         #define i2c3_SDA_PORT_BASE GPIOC_BASE
         #define i2c3_SCL_PORT_BASE GPIOA_BASE
         #define i2c3_SDA_PORT      ((GPIO_TypeDef *)i2c3_SDA_PORT_BASE)
@@ -256,7 +256,7 @@ extern TIM_HandleTypeDef htim14;
     #define uart_esp          8
     #define spi_accelerometer 2
     #define spi_extconn       4
-    #if PRINTER_IS_PRUSA_iX
+    #if PRINTER_IS_PRUSA_iX()
         #define uart_puppies 6
         /// iX uses the I2C3 pins for back door filament sensor - BFW-4746
         #define i2c_touch    -1
@@ -285,7 +285,7 @@ extern TIM_HandleTypeDef htim14;
     #error Unknown board
 #endif
 
-#if PRINTER_IS_PRUSA_iX
+#if PRINTER_IS_PRUSA_iX()
     #define spi_led spi_extconn
 #endif
 

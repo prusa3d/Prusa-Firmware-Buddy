@@ -104,9 +104,9 @@ inline constexpr AxisConfig axis_x_default {
     // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
 
     .type = Type::mzv,
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
     .frequency = 118.2,
-#elif PRINTER_IS_PRUSA_XL
+#elif PRINTER_IS_PRUSA_XL()
     .frequency = 35.8,
 #else
     .frequency = 50.7f,
@@ -118,9 +118,9 @@ inline constexpr AxisConfig axis_y_default {
     // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
 
     .type = Type::mzv,
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
     .frequency = 32.8,
-#elif PRINTER_IS_PRUSA_XL
+#elif PRINTER_IS_PRUSA_XL()
     .frequency = 35.4,
 #else
     .frequency = 40.6f,
@@ -142,7 +142,7 @@ inline constexpr AxisConfig axis_defaults[3] = { axis_x_default, axis_y_default,
 
 inline constexpr bool weight_adjust_enabled_default = {
 // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     false
 #else
     true
@@ -151,7 +151,7 @@ inline constexpr bool weight_adjust_enabled_default = {
 
 inline constexpr WeightAdjustConfig weight_adjust_y_default {
     // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     .frequency_delta = 0,
 #else
     .frequency_delta = -20.0f,
@@ -170,7 +170,7 @@ void set_axis_config(const AxisEnum axis, std::optional<AxisConfig> axis_config)
 void set_axis_y_weight_adjust(std::optional<WeightAdjustConfig> wa_config);
 
 constexpr float frequency_safe_min = 10.0;
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
 constexpr float frequency_safe_max = 150.0;
 #else
 constexpr float frequency_safe_max = 100.0;

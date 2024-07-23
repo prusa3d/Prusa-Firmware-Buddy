@@ -64,7 +64,7 @@ inline constexpr const char *get_response_text(Response response) {
     case Response::Print:
         return "Print";
     case Response::Purge_more:
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
         return N_("MORE");
 #else
         return N_("PURGE MORE");

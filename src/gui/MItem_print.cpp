@@ -70,7 +70,7 @@ void MI_PRINTFAN::OnClick() {
 // MI_SPEED
 
 static constexpr NumericInputConfig print_speed_spin_config = {
-#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX)
+#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_iX())
     .min_value = 50,
     .max_value = 1000,
 #else

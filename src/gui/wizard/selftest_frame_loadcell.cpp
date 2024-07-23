@@ -67,7 +67,7 @@ void SelftestFrameLoadcell::change() {
         txt_phase = N_("Validity check");
         break;
     case PhasesSelftest::Loadcell_move_away:
-#if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX)
+#if (PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_iX())
         txt_phase = N_("Moving down");
 #else
         txt_phase = N_("Moving up");

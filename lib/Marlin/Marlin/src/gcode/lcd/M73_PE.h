@@ -6,7 +6,7 @@
 
 #include "config.h"
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     // XL needs more time for initial 5 tool preheat/cleanup and MBL
     #define PROGRESS_DATA_VALIDITY_PERIOD (60 * 10) // [s] ~ 10min
 #else

@@ -56,7 +56,7 @@ constexpr vars_body_t body_defaults = {
 
 // Between v10 and v11 some items were added to the footer, so record new 'snapshot' and a have a migration function from v10
 
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
 enum class FooterItems : uint8_t {
     Nozzle,
     Bed,
@@ -158,7 +158,7 @@ inline vars_body_t convert(const old_eeprom::v10::vars_body_t &src) {
 
     // copy entire v10 struct
     memcpy(&ret, &src, sizeof(old_eeprom::v10::vars_body_t));
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
     ret.FOOTER_SETTING = convert_from_old_eeprom(ret.FOOTER_SETTING);
 #endif // other printers don't exist yet
 

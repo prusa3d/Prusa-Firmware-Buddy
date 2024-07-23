@@ -56,7 +56,7 @@ public:
     LoopResult state_start();
     LoopResult state_wait_rpm_100_percent();
     LoopResult state_measure_rpm_100_percent();
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
     LoopResult state_manual_check_init();
     LoopResult state_manual_check_wait_fan();
     LoopResult state_manual_check_ask();

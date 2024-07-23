@@ -5,7 +5,7 @@
 #include <option/has_sheet_profiles.h>
 #include <config_store/store_instance.hpp>
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     #include <module/prusa/toolchanger.h>
 #endif
 
@@ -14,7 +14,7 @@
 #endif
 
 bool selftest_warning_selftest_finished() {
-#if DEVELOPER_MODE() || !HAS_SELFTEST() || PRINTER_IS_PRUSA_iX
+#if DEVELOPER_MODE() || !HAS_SELFTEST() || PRINTER_IS_PRUSA_iX()
     return true;
 #endif
 
@@ -25,7 +25,7 @@ bool selftest_warning_selftest_finished() {
 
         return ((results == TestResult_Passed) && ...); // all passed
     };
-#if (PRINTER_IS_PRUSA_XL)
+#if (PRINTER_IS_PRUSA_XL())
     if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed, config_store().selftest_result_phase_stepping.get())) {
         return false;
     }
@@ -46,7 +46,7 @@ bool selftest_warning_selftest_finished() {
     }
 
     return true;
-#elif (PRINTER_IS_PRUSA_MK4)
+#elif (PRINTER_IS_PRUSA_MK4())
     if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
         return false;
     }
@@ -61,7 +61,7 @@ bool selftest_warning_selftest_finished() {
     }
 
     return true;
-#elif PRINTER_IS_PRUSA_iX
+#elif PRINTER_IS_PRUSA_iX()
     if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
         return false;
     }
@@ -72,7 +72,7 @@ bool selftest_warning_selftest_finished() {
     }
 
     return true;
-#elif PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+#elif PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
     if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
         return false;
     }
@@ -83,7 +83,7 @@ bool selftest_warning_selftest_finished() {
 
     HOTEND_LOOP()
     if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle
-    #if not PRINTER_IS_PRUSA_MINI
+    #if not PRINTER_IS_PRUSA_MINI()
             ,
             sr.tools[e].fansSwitched
     #endif

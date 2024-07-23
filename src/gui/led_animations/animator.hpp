@@ -28,7 +28,7 @@ public:
                 return &storage[i];
             }
         }
-#if !PRINTER_IS_PRUSA_MK3_5 // TODO fix error codes
+#if !PRINTER_IS_PRUSA_MK3_5() // TODO fix error codes
         fatal_error(ErrCode::ERR_SYSTEM_LED_ANIMATION_BAD_SPACE_MANAGEMENT);
 #endif
         return nullptr;

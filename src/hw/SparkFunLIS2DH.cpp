@@ -659,7 +659,7 @@ int Fifo::get(Acceleration &acceleration) {
 
 Fifo::Acceleration Fifo::to_acceleration(Record record) {
     Acceleration retval;
-#if PRINTER_IS_PRUSA_iX
+#if PRINTER_IS_PRUSA_iX()
     retval.val[0] = m_accelerometer.calcAccel(record.raw_y);
     retval.val[1] = m_accelerometer.calcAccel(record.raw_z);
     retval.val[2] = m_accelerometer.calcAccel(record.raw_x);

@@ -30,7 +30,7 @@
 
 #include <option/has_side_leds.h>
 
-#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5()
     #include "screen_fatal_warning.hpp"
 #endif
 
@@ -60,7 +60,7 @@
 #include <logging/log.hpp>
 #include <printers.h>
 
-#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
+#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_iX()
     #include "MItem_love_board.hpp"
 #endif
 
@@ -160,7 +160,7 @@ void make_gui_ready_to_print() {
 
 static void log_onewire_otp() {
 #if DEVELOPMENT_ITEMS()
-    #if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
+    #if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_iX()
     OtpStatus loveboard = buddy::hw::Configuration::Instance().get_loveboard_status();
 
     if (loveboard.data_valid) {
@@ -196,7 +196,7 @@ static ScreenFactory::Creator get_error_screen() {
     if (crash_dump::message_get_type() == crash_dump::MsgType::RSOD && !crash_dump::message_is_displayed()) {
         return ScreenFactory::Screen<ScreenErrorQR>;
     }
-#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5()
     if (crash_dump::message_get_type() == crash_dump::MsgType::FATAL_WARNING && !crash_dump::message_is_displayed()) {
         return ScreenFactory::Screen<ScreenFatalWarning>;
     }

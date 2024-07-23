@@ -74,7 +74,7 @@ constexpr uint32_t old_footer_encode(std::array<uint8_t, 3> old_footer) {
 
 constexpr vars_body_t body_defaults = {
     old_eeprom::v9::body_defaults,
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
     old_footer_encode({ ftrstd::to_underlying(FooterItems::ItemSpeed), ftrstd::to_underlying(FooterItems::ItemLiveZ), ftrstd::to_underlying(FooterItems::ItemFilament) }), // EEVAR_FOOTER_SETTING // proper v10 default
 #else
     0, // invalid default for other printers

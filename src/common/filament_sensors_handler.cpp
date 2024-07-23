@@ -220,7 +220,7 @@ void FilamentSensors::process_events() {
             // We're accessing screens from the filamentsensors thread here. This looks quite unsafe.
             || Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
             || Screens::Access()->IsScreenOnStack<ScreenMenuSTSCalibrations>()
-#endif /*PRINTER_IS_PRUSA_XL*/
+#endif
         ) {
             return false;
         }
@@ -242,7 +242,7 @@ void FilamentSensors::process_events() {
             return;
         }
 
-#if PRINTER_IS_PRUSA_iX
+#if PRINTER_IS_PRUSA_iX()
         // On filament runout on iX, the filament gets unloaded and the printer paused.
         // So when the user inserts a filament during a pause, we want the autoload to trigger,
         // because it's part of the filament change sequence.

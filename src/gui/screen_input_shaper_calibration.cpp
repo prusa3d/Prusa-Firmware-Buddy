@@ -94,13 +94,13 @@ public:
 private:
     static constexpr const char *text_info = N_(
         "To learn more about the input shaper calibration process, visit our website:");
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     static constexpr const char *text_link = "prusa.io/mk4-iscal";
     static constexpr const char *text_qr = "prusa.io/qr-mk4-iscal";
-#elif PRINTER_IS_PRUSA_MK3_5
+#elif PRINTER_IS_PRUSA_MK3_5()
     static constexpr const char *text_link = "prusa.io/mk35-iscal";
     static constexpr const char *text_qr = "prusa.io/qr-mk35-iscal";
-#elif PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_XL_DEV_KIT
+#elif PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_XL_DEV_KIT()
     static constexpr const char *text_link = "prusa.io/xl-iscal";
     static constexpr const char *text_qr = "prusa.io/qr-xl-iscal";
 #else

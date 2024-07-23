@@ -48,7 +48,7 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
         return creator<SelftestFrameFSensor>;
 #endif
 
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     case SelftestParts::GearsCalib:
         return creator<SelftestFrameGearsCalib>;
 #endif
@@ -142,7 +142,7 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
 #if FILAMENT_SENSOR_IS_ADC()
     case SelftestParts::FSensor:
 #endif
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     case SelftestParts::GearsCalib:
 #endif
     case SelftestParts::Heaters:
@@ -180,7 +180,7 @@ const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
 #if FILAMENT_SENSOR_IS_ADC()
     case SelftestParts::FSensor:
 #endif
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     case SelftestParts::GearsCalib:
 #endif
     case SelftestParts::Heaters:

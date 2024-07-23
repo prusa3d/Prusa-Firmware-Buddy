@@ -6,7 +6,7 @@
 // Some printer models share the same firmware, but have a slightly different hardware.
 // ExtendedPrinterType (+ accompanying store item) serves to distinguish them.
 
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     #define HAS_EXTENDED_PRINTER_TYPE() 1
 
 /// !!! Never change order, never remove items - this is used in config store

@@ -73,11 +73,11 @@ constexpr vars_body_t body_defaults = {
     true,                // EEVAR_CONNECT_TLS
     false,               // EEVAR_CONNECT_ENABLED
     0,                   // EEVAR_JOB_ID
-#if (( PRINTER_IS_PRUSA_MK4) || ( PRINTER_IS_PRUSA_MK3_5))
+#if (( PRINTER_IS_PRUSA_MK4()) || ( PRINTER_IS_PRUSA_MK3_5()))
     false,               // EEVAR_CRASH_ENABLED
 #else
     true,                // EEVAR_CRASH_ENABLED
-#endif // (( PRINTER_IS_PRUSA_MK4) || ( PRINTER_IS_PRUSA_MK3_5))
+#endif // (( PRINTER_IS_PRUSA_MK4()) || ( PRINTER_IS_PRUSA_MK3_5()))
     crash_sens[0],       // EEVAR_CRASH_SENS_X,
     crash_sens[1],       // EEVAR_CRASH_SENS_Y,
     crash_max_period[0], // EEVAR_CRASH_MAX_PERIOD_X,
@@ -89,7 +89,7 @@ constexpr vars_body_t body_defaults = {
 };
 // clang-format on
 
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
 enum class FooterItems : uint8_t {
     Nozzle,
     Bed,
@@ -211,7 +211,7 @@ inline vars_body_t convert(const old_eeprom::v11::vars_body_t &src) {
     // copy entire v11 struct
     memcpy(&ret, &src, sizeof(old_eeprom::v11::vars_body_t));
 
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
     // MINI needs to properly keep converting
     ret.FOOTER_SETTING = convert_from_old_eeprom(ret.FOOTER_SETTING);
 #endif // else we can leave whatever values in, they won't be migrated to config_store (footer will be set to defaults)

@@ -204,7 +204,7 @@ LoopResult CSelftestPart_Axis::stateEvaluateHomingXY() {
 }
 
 LoopResult CSelftestPart_Axis::stateHomeZ() {
-#if PRINTER_IS_PRUSA_iX && ENABLED(DETECT_PRINT_SHEET)
+#if PRINTER_IS_PRUSA_iX() && ENABLED(DETECT_PRINT_SHEET)
     queue.enqueue_one_now("G28 P");
 #else
     // we have Z safe homing enabled, so Z might need to home all axis

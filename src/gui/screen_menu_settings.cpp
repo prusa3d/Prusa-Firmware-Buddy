@@ -19,7 +19,7 @@ MI_HELP_FW_UPDATE::MI_HELP_FW_UPDATE()
 }
 
 void MI_HELP_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
-#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_MINI()
     Screens::Access()->Open(ScreenFactory::Screen<ScreenHelpFWUpdate>);
 #endif
 }
@@ -30,9 +30,9 @@ ScreenMenuSettings::ScreenMenuSettings()
 
     EnableLongHoldScreenAction();
 
-#if (!PRINTER_IS_PRUSA_MINI)
+#if (!PRINTER_IS_PRUSA_MINI())
     header.SetIcon(&img::settings_16x16);
-#endif // PRINTER_IS_PRUSA_MINI
+#endif // PRINTER_IS_PRUSA_MINI()
 
     gui::knob::RegisterLongPressScreenAction([]() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuExperimentalSettings>); }); // new hold action
     EnableLongHoldScreenAction();

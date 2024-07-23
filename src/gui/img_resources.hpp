@@ -7,20 +7,20 @@ namespace img {
 
 #ifdef UNITTESTS
 
-#elif PRINTER_IS_PRUSA_iX
+#elif PRINTER_IS_PRUSA_iX()
 inline constexpr const Resource &printer_logo = prusa_ix_logo_121x40;
 
-#elif PRINTER_IS_PRUSA_MINI
+#elif PRINTER_IS_PRUSA_MINI()
 inline constexpr const Resource &printer_logo = prusa_mini_logo_153x40;
 
-#elif PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+#elif PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5()
     #ifndef _DEBUG
 inline constexpr const Resource &printer_logo = prusa_mk4_logo_153x40;
     #else // _DEBUG
 inline constexpr const Resource &printer_logo = prusa_mk4_logo_debug_158x40;
     #endif // _DEBUG
 
-#elif PRINTER_IS_PRUSA_XL
+#elif PRINTER_IS_PRUSA_XL()
     #ifndef _DEBUG
 inline constexpr const Resource &printer_logo = prusa_xl_logo_158x40;
     #else // _DEBUG

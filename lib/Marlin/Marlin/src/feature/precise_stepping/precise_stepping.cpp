@@ -40,7 +40,7 @@ LOG_COMPONENT_DEF(PreciseStepping, logging::Severity::debug);
 #endif
 
 #ifdef SQUARE_WAVE_STEPPING
-    #if PRINTER_IS_PRUSA_XL && !BOARD_IS_DWARF
+    #if PRINTER_IS_PRUSA_XL() && !BOARD_IS_DWARF
         // on XLBuddy the XY pin assignment is dynamic depending on board revision
         #define X_STEP_SET() buddy::hw::XStep->toggle();
         #define Y_STEP_SET() buddy::hw::YStep->toggle();

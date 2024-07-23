@@ -7,7 +7,7 @@
 #include <optional>
 #include <freertos/mutex.hpp>
 
-#if PRINTER_IS_PRUSA_iX
+#if PRINTER_IS_PRUSA_iX()
     /// PresentColor duration_ms value 0 means forever
     #define SIDE_STRIP_ENDLESS_CUSTOM_COLOR() 1
 #else

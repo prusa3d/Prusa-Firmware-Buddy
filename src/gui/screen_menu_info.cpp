@@ -18,7 +18,7 @@ void ScreenMenuInfo::windowEvent(window_t *sender, GUI_event_t event, void *para
 ScreenMenuInfo::ScreenMenuInfo()
     : ScreenMenuInfo__(_(label)) {
     EnableLongHoldScreenAction();
-#if (!PRINTER_IS_PRUSA_MINI)
+#if (!PRINTER_IS_PRUSA_MINI())
     header.SetIcon(&img::info_16x16);
-#endif // PRINTER_IS_PRUSA_MINI
+#endif // PRINTER_IS_PRUSA_MINI()
 }

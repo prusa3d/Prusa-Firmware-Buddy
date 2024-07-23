@@ -14,7 +14,7 @@ using ScreenMenuLangAndTime__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_LANGUAGE,
 #endif
     MI_TIMEZONE, MI_TIMEZONE_MIN, MI_TIMEZONE_SUMMER, MI_TIME_FORMAT
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
     ,
     MI_TIME_NOW // Mini does not show time in header, so show it here
 #endif

@@ -24,7 +24,7 @@ std::pair<int, int> MenuVars::axis_range(uint8_t axis) {
         return { X_MIN_POS, X_MAX_POS };
 
     case Y_AXIS:
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
         // restrict movement of the tool for user to the bed area only to prevent crashes of the tool at toolchange area
         return { Y_MIN_POS, Y_MAX_PRINT_POS };
 #else

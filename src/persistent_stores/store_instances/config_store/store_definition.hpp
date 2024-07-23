@@ -416,7 +416,7 @@ struct CurrentStore
     StoreItem<SelftestResult, defaults::selftest_result, journal::hash("Selftest Result Gears")> selftest_result;
 #endif
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Test Result Phase Stepping")> selftest_result_phase_stepping;
 #endif
 
@@ -475,7 +475,7 @@ struct CurrentStore
     input_shaper::Config get_input_shaper_config();
     void set_input_shaper_config(const input_shaper::Config &);
 
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
     StoreItem<bool, false, journal::hash("Has Alt Fans")> has_alt_fans;
 #endif
 
@@ -487,14 +487,14 @@ struct CurrentStore
     void set_phase_stepping_enabled(AxisEnum axis, bool new_state);
 #endif
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     StoreItem<uint8_t, 6, journal::hash("XL Enclosure Flags")> xl_enclosure_flags;
     StoreItem<int64_t, defaults::int64_zero, journal::hash("XL Enclosure Filter Timer")> xl_enclosure_filter_timer;
     StoreItem<uint8_t, defaults::uint8_percentage_80, journal::hash("XL Enclosure Fan Manual Setting")> xl_enclosure_fan_manual;
     StoreItem<uint8_t, 10, journal::hash("XL Enclosure Post Print Duration")> xl_enclosure_post_print_duration;
 #endif
 
-#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
     StoreItem<int8_t, 0, journal::hash("Left Bed Correction")> left_bed_correction;
     StoreItem<int8_t, 0, journal::hash("Right Bed Correction")> right_bed_correction;
     StoreItem<int8_t, 0, journal::hash("Front Bed Correction")> front_bed_correction;
@@ -565,7 +565,7 @@ struct DeprecatedStore
     StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("LAN Hostname")> lan_hostname;
     StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("WIFI Hostname")> wifi_hostname;
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Selftest Result - Nozzle Diameter")> selftest_result_nozzle_diameter;
 #endif
 

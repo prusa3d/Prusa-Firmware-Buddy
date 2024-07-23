@@ -20,9 +20,9 @@ enum {
 
 ScreenMenuFilament::ScreenMenuFilament()
     : ScreenMenuFilament__(_(label)) {
-#if (!PRINTER_IS_PRUSA_MINI)
+#if (!PRINTER_IS_PRUSA_MINI())
     header.SetIcon(&img::spool_white_16x16);
-#endif // PRINTER_IS_PRUSA_MINI
+#endif // PRINTER_IS_PRUSA_MINI()
     deactivate_item();
 }
 

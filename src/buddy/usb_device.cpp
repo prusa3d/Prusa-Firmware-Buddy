@@ -20,15 +20,15 @@ LOG_COMPONENT_DEF(USBDevice, logging::Severity::info);
 #define USBD_VID 0x2C99 /// Prusa Research Vendor ID
 
 /// Product ID
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
     #define USBD_PID 0x000C
-#elif PRINTER_IS_PRUSA_MK4
+#elif PRINTER_IS_PRUSA_MK4()
 // !!! Changes based on extended printer type
-#elif PRINTER_IS_PRUSA_MK3_5
+#elif PRINTER_IS_PRUSA_MK3_5()
     #define USBD_PID 0x0017
-#elif PRINTER_IS_PRUSA_iX
+#elif PRINTER_IS_PRUSA_iX()
     #define USBD_PID 0x0010
-#elif PRINTER_IS_PRUSA_XL
+#elif PRINTER_IS_PRUSA_XL()
     #define USBD_PID 0x0011
 #else
     #error "Unknown PRINTER_TYPE!"
@@ -230,7 +230,7 @@ usb_device_log(const char *fmt, ...) {
 // Application returns pointer to the descriptor
 uint8_t const *tud_descriptor_device_cb(void) {
 
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     static constexpr EnumArray<ExtendedPrinterType, uint16_t, extended_printer_type_count> usb_pids {
         { ExtendedPrinterType::mk4, 0x000D },
         { ExtendedPrinterType::mk4s, 0x001a },
@@ -299,7 +299,7 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, [[maybe_unused]] uint16_
         }
 
         const char *str = string_desc_arr[index];
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
         if (index == 2) {
             switch (config_store().extended_printer_type.get()) {
 

@@ -14,7 +14,7 @@
 class ResultFans : public SelfTestGroup {
     SelfTestViewTextWithIconAndResult heatbreak;
     SelfTestViewTextWithIconAndResult print;
-#if not PRINTER_IS_PRUSA_MINI
+#if not PRINTER_IS_PRUSA_MINI()
     SelfTestViewTextWithIconAndResult fans_switched;
 #endif
 

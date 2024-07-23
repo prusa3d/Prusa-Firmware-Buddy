@@ -13,15 +13,15 @@ enum {
 };
 
 // default string used as LAN hostname
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     #define LAN_HOSTNAME_DEF "prusa-mk4"
-#elif PRINTER_IS_PRUSA_MK3_5
+#elif PRINTER_IS_PRUSA_MK3_5()
     #define LAN_HOSTNAME_DEF "prusa-mk3-5"
-#elif PRINTER_IS_PRUSA_XL
+#elif PRINTER_IS_PRUSA_XL()
     #define LAN_HOSTNAME_DEF "prusa-xl"
-#elif PRINTER_IS_PRUSA_iX
+#elif PRINTER_IS_PRUSA_iX()
     #define LAN_HOSTNAME_DEF "prusa-ix"
-#elif PRINTER_IS_PRUSA_MINI
+#elif PRINTER_IS_PRUSA_MINI()
     #define LAN_HOSTNAME_DEF "prusa-mini"
 #else
     #error Unsupported printer
@@ -32,7 +32,7 @@ enum {
 #endif
 
 // Enabled Z calibration (MK3, MK4, XL)
-#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_XL)
+#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_XL())
     #define WIZARD_Z_CALIBRATION
 #endif
 

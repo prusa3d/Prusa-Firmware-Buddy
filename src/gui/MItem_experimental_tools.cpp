@@ -12,7 +12,7 @@
 
 #define NOTRAN(x) string_view_utf8::MakeCPUFLASH((const uint8_t *)x)
 
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
 /*****************************************************************************/
 // MI_ALT_FAN_CORRECTION
 bool MI_ALT_FAN::init_index() {

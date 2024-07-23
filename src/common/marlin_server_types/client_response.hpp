@@ -191,7 +191,7 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     _last_WizardPrologue = WizardPrologue_info_detailed,
 
     Fans,
-    #if PRINTER_IS_PRUSA_MK3_5
+    #if PRINTER_IS_PRUSA_MK3_5()
     Fans_manual,
     #endif
     Fans_second,
@@ -565,9 +565,9 @@ class ClientResponses {
         {}, // loading
         { Response::Quit }, // download_wait
         {
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
             Response::Continue,
-#elif PRINTER_IS_PRUSA_MINI
+#elif PRINTER_IS_PRUSA_MINI()
             Response::PRINT,
 #else
             Response::Print,
@@ -585,7 +585,7 @@ class ClientResponses {
         { Response::Back, Response::Filament, Response::PRINT }, // tools_mapping
 #endif
         {
-#if !PRINTER_IS_PRUSA_XL
+#if !PRINTER_IS_PRUSA_XL()
             Response::Change,
 #endif
             Response::Ok, Response::Abort }, // wrong_filament
@@ -597,7 +597,7 @@ class ClientResponses {
         { PhasesSelftest::_none, {} },
             { PhasesSelftest::WizardPrologue_ask_run, { Response::Continue, Response::Cancel } },
             { PhasesSelftest::WizardPrologue_ask_run_dev, { Response::Continue, Response::Cancel
-#if not PRINTER_IS_PRUSA_MINI
+#if not PRINTER_IS_PRUSA_MINI()
                                                               ,
                                                               Response::Ignore
 #endif
@@ -607,7 +607,7 @@ class ClientResponses {
 
             { PhasesSelftest::Fans, {} },
 
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
             { PhasesSelftest::Fans_manual, { Response::Yes, Response::No } },
 #endif
 
@@ -910,7 +910,7 @@ enum class SelftestParts {
 #if FILAMENT_SENSOR_IS_ADC()
     FSensor,
 #endif
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     GearsCalib,
 #endif
     FirstLayer,
@@ -943,7 +943,7 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     case SelftestParts::FSensor:
         return PhasesSelftest::_first_FSensor;
 #endif
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     case SelftestParts::GearsCalib:
         return PhasesSelftest::_first_GearsCalib;
 #endif
@@ -993,7 +993,7 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
     case SelftestParts::FSensor:
         return PhasesSelftest::_last_FSensor;
 #endif
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     case SelftestParts::GearsCalib:
         return PhasesSelftest::_last_GearsCalib;
 #endif
@@ -1059,7 +1059,7 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
         return SelftestParts::FSensor;
     }
 #endif
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     if (SelftestPartContainsPhase(SelftestParts::GearsCalib, ph)) {
         return SelftestParts::GearsCalib;
     }

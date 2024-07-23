@@ -13,11 +13,11 @@
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()
     : WI_ICON_SWITCH_OFF_ON_t(crash_s.is_enabled(), _(label), nullptr, is_enabled_t::yes,
-    #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5)
+    #if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5())
         is_hidden_t::dev
     #else
         is_hidden_t::no
-    #endif // (( PRINTER_IS_PRUSA_MK4) || ( PRINTER_IS_PRUSA_MK3_5))
+    #endif // (( PRINTER_IS_PRUSA_MK4()) || ( PRINTER_IS_PRUSA_MK3_5()))
     ) {
 }
 
@@ -51,7 +51,7 @@ static constexpr NumericInputConfig crash_max_period_spin_config = {
 };
 
 MI_CRASH_SENSITIVITY_X::MI_CRASH_SENSITIVITY_X()
-    : WiSpin(crash_s.get_sensitivity().x, crash_sensitivity_spin_config, _(label), nullptr, is_enabled_t::yes, PRINTER_IS_PRUSA_XL ? is_hidden_t::no : is_hidden_t::dev) {
+    : WiSpin(crash_s.get_sensitivity().x, crash_sensitivity_spin_config, _(label), nullptr, is_enabled_t::yes, PRINTER_IS_PRUSA_XL() ? is_hidden_t::no : is_hidden_t::dev) {
 }
 void MI_CRASH_SENSITIVITY_X::OnClick() {
 
@@ -61,7 +61,7 @@ void MI_CRASH_SENSITIVITY_X::OnClick() {
 }
 
 MI_CRASH_SENSITIVITY_Y::MI_CRASH_SENSITIVITY_Y()
-    : WiSpin(crash_s.get_sensitivity().y, crash_sensitivity_spin_config, _(label), nullptr, is_enabled_t::yes, PRINTER_IS_PRUSA_XL ? is_hidden_t::no : is_hidden_t::dev) {
+    : WiSpin(crash_s.get_sensitivity().y, crash_sensitivity_spin_config, _(label), nullptr, is_enabled_t::yes, PRINTER_IS_PRUSA_XL() ? is_hidden_t::no : is_hidden_t::dev) {
 }
 void MI_CRASH_SENSITIVITY_Y::OnClick() {
     xy_long_t se = crash_s.get_sensitivity();
@@ -69,7 +69,7 @@ void MI_CRASH_SENSITIVITY_Y::OnClick() {
     crash_s.set_sensitivity(se);
 }
 
-    #if PRINTER_IS_PRUSA_XL
+    #if PRINTER_IS_PRUSA_XL()
 MI_CRASH_SENSITIVITY_XY::MI_CRASH_SENSITIVITY_XY()
     : WI_SWITCH_t<3>(get_item_id_from_sensitivity(crash_s.get_sensitivity().x), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no,
         _(ITEMS[0].name), _(ITEMS[1].name), _(ITEMS[2].name)) {}
@@ -126,7 +126,7 @@ MI_POWER_PANICS::MI_POWER_PANICS()
 
 MI_CRASHES_X_LAST::MI_CRASHES_X_LAST()
     : WI_INFO_t(crash_s.counters.get(Crash_s::Counter::axis_crash_x), _(label),
-    #if PRINTER_IS_PRUSA_XL
+    #if PRINTER_IS_PRUSA_XL()
         is_hidden_t::no
     #else
         is_hidden_t::dev
@@ -136,7 +136,7 @@ MI_CRASHES_X_LAST::MI_CRASHES_X_LAST()
 
 MI_CRASHES_Y_LAST::MI_CRASHES_Y_LAST()
     : WI_INFO_t(crash_s.counters.get(Crash_s::Counter::axis_crash_y), _(label),
-    #if PRINTER_IS_PRUSA_XL
+    #if PRINTER_IS_PRUSA_XL()
         is_hidden_t::no
     #else
         is_hidden_t::dev
@@ -146,7 +146,7 @@ MI_CRASHES_Y_LAST::MI_CRASHES_Y_LAST()
 
 MI_CRASHES_X::MI_CRASHES_X()
     : WI_INFO_t(config_store().crash_count_x.get(), _(label),
-    #if PRINTER_IS_PRUSA_XL
+    #if PRINTER_IS_PRUSA_XL()
         is_hidden_t::no
     #else
         is_hidden_t::dev
@@ -156,7 +156,7 @@ MI_CRASHES_X::MI_CRASHES_X()
 
 MI_CRASHES_Y::MI_CRASHES_Y()
     : WI_INFO_t(config_store().crash_count_y.get(), _(label),
-    #if PRINTER_IS_PRUSA_XL
+    #if PRINTER_IS_PRUSA_XL()
         is_hidden_t::no
     #else
         is_hidden_t::dev

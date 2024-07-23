@@ -43,7 +43,7 @@ static std::pair<XlcdEeprom, OtpStatus> read_xlcd() {
 }
     #endif
 
-    #if HAS_LOVE_BOARD() || PRINTER_IS_PRUSA_MK3_5
+    #if HAS_LOVE_BOARD() || PRINTER_IS_PRUSA_MK3_5()
 static std::pair<LoveBoardEeprom, OtpStatus> read_loveboard() {
     __HAL_RCC_GPIOF_CLK_ENABLE(); // enable loveboard eeprom pin port clock
     OtpFromEeprom LoveBoard = OtpFromEeprom(GPIOF, GPIO_PIN_13);
@@ -70,7 +70,7 @@ void data_exchange_init() {
     #endif
 
     // MK3.5 doesn't have a loveboard, but it needs the detection to complain if it's running on an MK4
-    #if HAS_LOVE_BOARD() || PRINTER_IS_PRUSA_MK3_5
+    #if HAS_LOVE_BOARD() || PRINTER_IS_PRUSA_MK3_5()
     auto loveboard = read_loveboard();
     ram_data_exchange.loveboard_eeprom = loveboard.first;
     ram_data_exchange.loveboard_status = loveboard.second;
@@ -137,7 +137,7 @@ XlcdEeprom get_xlcd_eeprom() {
 }
 #endif
 
-#if HAS_LOVE_BOARD() || PRINTER_IS_PRUSA_MK3_5
+#if HAS_LOVE_BOARD() || PRINTER_IS_PRUSA_MK3_5()
 OtpStatus get_loveboard_status() {
     return ram_data_exchange.loveboard_status;
 }

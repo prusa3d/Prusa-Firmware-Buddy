@@ -93,7 +93,7 @@ void MI_SHOW_ZERO_TEMP_TARGET::OnChange(size_t old_index) {
 }
 
 static constexpr NumericInputConfig footer_center_N_spin_config = {
-    .max_value = PRINTER_IS_PRUSA_MINI ? 3 : 5,
+    .max_value = PRINTER_IS_PRUSA_MINI() ? 3 : 5,
     .special_value = 0,
 };
 

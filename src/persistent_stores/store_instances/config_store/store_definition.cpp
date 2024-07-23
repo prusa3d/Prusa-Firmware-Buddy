@@ -32,11 +32,11 @@ void CurrentStore::perform_config_check() {
         touch_enabled.set(true);
 #endif
 
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
         extended_printer_type.set(ExtendedPrinterType::mk4s);
         hotend_type.set(HotendType::stock_with_sock);
 
-#elif PRINTER_IS_PRUSA_XL
+#elif PRINTER_IS_PRUSA_XL()
         // New XL printers have .4mm nozzles: BFW-5638
         for (int i = 0; i < HOTENDS; i++) {
             set_nozzle_diameter(i, 0.4f);

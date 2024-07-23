@@ -4,7 +4,7 @@
 #include "CFanCtl3Wire.hpp"
 #include "CFanCtl3WireDynamic.hpp"
 
-#if !PRINTER_IS_PRUSA_MK4
+#if !PRINTER_IS_PRUSA_MK4()
     #error "Dynamic PWM is only for MK4, fix your CMakeLists.txt!"
 #endif
 

@@ -18,12 +18,12 @@
 #include <device/board.h>
 
 // sadly this must be macros, it is used in preprocessor
-#if (defined(PRINTER_TYPE) && PRINTER_IS_PRUSA_MINI) || HAS_MOCK_DISPLAY()
+#if (defined(PRINTER_TYPE) && PRINTER_IS_PRUSA_MINI()) || HAS_MOCK_DISPLAY()
     #define FOOTER_HAS_LIVE_Z
     #define FOOTER_LINES__          2
     #define FOOTER_ITEMS_PER_LINE__ 3
 #else
-    #if (defined(PRINTER_TYPE) && PRINTER_IS_PRUSA_XL)
+    #if (defined(PRINTER_TYPE) && PRINTER_IS_PRUSA_XL())
         #define FOOTER_HAS_TOOL_NR
     #endif
     #define FOOTER_LINES__          1
@@ -89,7 +89,7 @@ inline constexpr std::array disabled_items {
 #if not HAS_MMU2()
         Item::finda,
 #endif
-#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MINI() || PRINTER_IS_PRUSA_MK3_5()
         Item::heatbreak_temp,
 #endif
 #if not defined(FOOTER_HAS_TOOL_NR)
@@ -151,7 +151,7 @@ constexpr const char *to_string(Item item) {
     case Item::print_fan:
         return N_("Print fan");
     case Item::heatbreak_fan:
-#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
         return N_("Hotend Fan");
 #else
         return N_("Heatbreak Fan");

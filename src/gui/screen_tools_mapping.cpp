@@ -571,7 +571,7 @@ void ToolsMappingBody::go_left() {
     }
 
     update_bottom_guide();
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     update_dwarf_lights();
 #endif
     Invalidate();
@@ -604,7 +604,7 @@ void ToolsMappingBody::go_right() {
 
     state = State::right;
     update_bottom_guide();
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     update_dwarf_lights();
 #endif
     Invalidate();
@@ -768,13 +768,13 @@ void ToolsMappingBody::update_shown_state_after_scroll(uint8_t previous_idx) {
         }
     }
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     update_dwarf_lights();
 #endif
 }
 
 void ToolsMappingBody::update_dwarf_lights() {
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     HOTEND_LOOP() {
         prusa_toolchanger.getTool(e).set_cheese_led(0, 0); // disable all
     }
@@ -799,7 +799,7 @@ void ToolsMappingBody::update_dwarf_lights() {
             });
         } // else unassigned and do nothing
     }
-#endif // PRINTER_IS_PRUSA_XL
+#endif // PRINTER_IS_PRUSA_XL()
 }
 
 void ToolsMappingBody::update_shown_state() {

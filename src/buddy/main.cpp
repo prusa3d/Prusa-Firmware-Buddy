@@ -252,7 +252,7 @@ extern "C" void main_cpp(void) {
     hw_adc1_init();
     adcDma1.init();
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     // Read Sandwich hw revision
     SandwichConfiguration::Instance();
 #endif
@@ -294,7 +294,7 @@ extern "C" void main_cpp(void) {
     nfc::turn_off();
 #endif
 
-#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5()
     /*
      * MK3.5 HW detected on MK4 firmware or vice versa
        Ignore the check in production (tester_mode), the xBuddy's connected peripherals are safe in this mode.

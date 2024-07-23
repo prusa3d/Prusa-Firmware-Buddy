@@ -8,26 +8,26 @@
 #include "img_resources.hpp"
 #include "printers.h"
 
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
 static constexpr size_t margin_texts = 0;
 static constexpr Align_t align_text_icon = Align_t::CenterTop();
 static const char *txt_prologue = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
-#elif PRINTER_IS_PRUSA_MK4
+#elif PRINTER_IS_PRUSA_MK4()
 static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
 static constexpr Align_t align_text_icon = Align_t::CenterTop();
 static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa MK4 printer.\n"
                                      "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_iX
+#elif PRINTER_IS_PRUSA_iX()
 static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
 static constexpr Align_t align_text_icon = Align_t::CenterTop();
 static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa iX printer.\n"
                                      "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_MK3_5
+#elif PRINTER_IS_PRUSA_MK3_5()
 static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
 static constexpr Align_t align_text_icon = Align_t::CenterTop();
 static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa MK3.5 printer.\n"
                                      "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_XL
+#elif PRINTER_IS_PRUSA_XL()
 static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
 static constexpr Align_t align_text_icon = Align_t::CenterTop();
 static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa XL printer.\n"

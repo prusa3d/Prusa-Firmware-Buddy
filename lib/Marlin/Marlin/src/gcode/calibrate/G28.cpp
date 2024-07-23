@@ -344,7 +344,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   HomingReporter reporter;
 
-#if PRINTER_IS_PRUSA_iX
+#if PRINTER_IS_PRUSA_iX()
   // Avoid tool cleaner
   if (Y) { 
     X = true; 

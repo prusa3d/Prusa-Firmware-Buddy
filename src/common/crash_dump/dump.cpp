@@ -60,11 +60,11 @@ static_assert(sizeof(message_t) <= (w25x_pp_start_address - w25x_error_start_adr
 static const message_t *dumpmessage_flash = reinterpret_cast<message_t *>(w25x_error_start_adress);
 
 enum {
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
     // dumped ram area (128kb)
     RAM_ADDR = 0x20000000,
     RAM_SIZE = 0x00020000,
-#elif (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX)
+#elif (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_iX())
     // dumped ram area (192kb)
     RAM_ADDR = 0x20000000,
     RAM_SIZE = 0x00030000,

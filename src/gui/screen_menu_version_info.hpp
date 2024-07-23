@@ -7,8 +7,8 @@
 #include "printers.h"
 
 // conditional parent alias include
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
     #include "screen_menu_version_info_mini.hpp"
 #else
     #include "screen_menu_version_info_non_mini.hpp"
-#endif // PRINTER_IS_PRUSA_MINI
+#endif // PRINTER_IS_PRUSA_MINI()

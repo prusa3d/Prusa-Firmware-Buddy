@@ -3,18 +3,19 @@
 #include <freertos/mutex.hpp>
 #include <atomic>
 #include <limits>
+#include <printers.h>
 
 #ifndef UNITTESTS
     #include "usbh_core.h"
     #include "usbh_msc.h"
 #endif
 
-#if !PRINTER_IS_PRUSA_MINI /* MINI doesn't have enough RAM, sorry MINI */
+#if !PRINTER_IS_PRUSA_MINI() /* MINI doesn't have enough RAM, sorry MINI */
     #define USBH_MSC_READAHEAD
     // #ifdef _DEBUG
     #define USBH_MSC_READAHEAD_STATISTICS
 // #endif
-#endif /* !PRINTER_IS_PRUSA_MINI */
+#endif /* !PRINTER_IS_PRUSA_MINI() */
 
 // Task handle of the process for executing the r/w MSC operations
 extern osThreadId USBH_MSC_WorkerTaskHandle;

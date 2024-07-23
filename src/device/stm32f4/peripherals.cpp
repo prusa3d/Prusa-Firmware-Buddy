@@ -211,9 +211,9 @@ void hw_dma_init() {
     __HAL_RCC_DMA1_CLK_ENABLE();
     __HAL_RCC_DMA2_CLK_ENABLE();
 
-#if (!PRINTER_IS_PRUSA_MINI)
+#if (!PRINTER_IS_PRUSA_MINI())
     // DMA1_Stream3_IRQn interrupt configuration
-    #if PRINTER_IS_PRUSA_XL
+    #if PRINTER_IS_PRUSA_XL()
     HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, ISR_PRIORITY_PUPPIES_USART, 0);
     #else
     HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, ISR_PRIORITY_DEFAULT, 0);
@@ -241,7 +241,7 @@ void hw_dma_init() {
     HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
     // DMA2_Stream7_IRQn interrupt configuration
-    #if PRINTER_IS_PRUSA_iX
+    #if PRINTER_IS_PRUSA_iX()
     HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, ISR_PRIORITY_PUPPIES_USART, 0);
     #else
     HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, ISR_PRIORITY_DEFAULT, 0);
@@ -275,7 +275,7 @@ void hw_dma_init() {
     HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
 // DMA2_Stream2_IRQn interrupt configuration
-#if (PRINTER_IS_PRUSA_iX)
+#if (PRINTER_IS_PRUSA_iX())
     HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, ISR_PRIORITY_PUPPIES_USART, 0);
 #else
     HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, ISR_PRIORITY_DEFAULT, 0);
@@ -328,7 +328,7 @@ void hw_adc1_init() {
     config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::heatbed_U);
     config_adc_ch(&hadc1, ADC_CHANNEL_TEMPSENSOR, AdcChannel::mcu_temperature);
     config_adc_ch(&hadc1, ADC_CHANNEL_VREFINT, AdcChannel::vref);
-#elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5)
+#elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5())
     config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::heatbed_U);
@@ -932,7 +932,7 @@ void hw_tim3_init() {
     TIM_OC_InitTypeDef sConfigOC {};
 
     htim3.Instance = TIM3;
-#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX)
+#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX())
     htim3.Init.Prescaler = 11; // 36us, 33.0kHz
 #else
     htim3.Init.Prescaler = TIM3_default_Prescaler; // 49ms, 20.3Hz

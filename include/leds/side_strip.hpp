@@ -11,9 +11,9 @@ namespace leds {
 class SideStrip : public LedStrip {
 public:
     static constexpr bool HasWhiteLed() {
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
         return true;
-#elif PRINTER_IS_PRUSA_iX
+#elif PRINTER_IS_PRUSA_iX()
         return false;
 #else
     #error "Not defined for this printer."
@@ -66,10 +66,10 @@ private:
     std::atomic<uint8_t> enclosure_fan_pwm;
     std::atomic<bool> needs_update = false;
 
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
     /// First driver in the daisy chain: RGB, second driver: W + enclosure fan
     static constexpr size_t led_drivers_count = 2;
-#elif PRINTER_IS_PRUSA_iX
+#elif PRINTER_IS_PRUSA_iX()
     /// 3x 3 or 3 x 6 RGB drivers in the U shape along the gantry (left, back, right)
     /// Newer strips have double the segments (the 3 x 6 version), just
     /// unconditionally send data for the variant with more segments

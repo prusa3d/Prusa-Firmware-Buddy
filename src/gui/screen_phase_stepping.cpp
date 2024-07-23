@@ -11,7 +11,7 @@
 #include <window_text.hpp>
 
 namespace {
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
 constexpr const char *QR_ADDR = "prusa.io/xl-phstep-qr";
 constexpr const char *ADDR_IN_TEXT = "prusa.io/xl-phstep";
 #else

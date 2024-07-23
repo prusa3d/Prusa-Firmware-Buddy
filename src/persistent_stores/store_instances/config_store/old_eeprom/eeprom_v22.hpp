@@ -50,7 +50,7 @@ constexpr vars_body_t body_defaults = {
 };
 
 // Explicitly two versions for MINI/XL without ifdefs inside to make sure this doesn't break in the future
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
 enum class FooterItems : uint8_t {
     Nozzle,
     Bed,
@@ -82,7 +82,7 @@ inline constexpr size_t count = old_footer_items_per_line;
 inline constexpr size_t count_of_trailing_ones = v12::count_of_trailing_ones;
 inline constexpr size_t value_bit_size = v12::value_bit_size; // 32 different items should be enough
 
-#elif PRINTER_IS_PRUSA_XL
+#elif PRINTER_IS_PRUSA_XL()
 
 enum class FooterItems : uint8_t {
     Nozzle,
@@ -119,7 +119,7 @@ inline constexpr size_t count_of_trailing_ones = v32787::count_of_trailing_ones;
 inline constexpr size_t value_bit_size = v32787::value_bit_size; // 32 different items should be enough
 #endif
 
-#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_MINI() || PRINTER_IS_PRUSA_XL()
 /**
  * @brief encodes footer setting to uint32_t
  *
@@ -138,7 +138,7 @@ constexpr uint32_t encode(Record rec) {
 }
 #endif
 
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI()
 inline Record decode_from_v12(uint32_t encoded) {
     static constexpr size_t min_bit_size { value_bit_size };
     uint32_t mask = (uint32_t(1) << (min_bit_size)) - 1;
@@ -212,7 +212,7 @@ inline uint32_t convert_from_old_eeprom(uint32_t encoded) {
     auto decoded = decode_from_v12(encoded);
     return encode(decoded);
 }
-#elif PRINTER_IS_PRUSA_XL
+#elif PRINTER_IS_PRUSA_XL()
 inline Record decode_from_32787(uint32_t encoded) {
     static constexpr size_t min_bit_size { value_bit_size };
     uint32_t mask = (uint32_t(1) << (min_bit_size)) - 1;
@@ -298,7 +298,7 @@ inline vars_body_t convert(const old_eeprom::v32789::vars_body_t &src) {
     // copy entire v32789 struct
     memcpy(&ret, &src, sizeof(old_eeprom::v32789::vars_body_t));
 
-#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_MINI() || PRINTER_IS_PRUSA_XL()
     // properly convert from previous version
     ret.FOOTER_SETTING = convert_from_old_eeprom(ret.FOOTER_SETTING);
 #endif

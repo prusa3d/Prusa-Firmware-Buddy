@@ -22,7 +22,7 @@ static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 class PrusaAccelerometer {
 private:
 #if HAS_LOCAL_ACCELEROMETER()
-    #if PRINTER_IS_PRUSA_MK3_5
+    #if PRINTER_IS_PRUSA_MK3_5()
     buddy::hw::OutputEnabler output_enabler;
     buddy::hw::OutputPin output_pin;
     #endif

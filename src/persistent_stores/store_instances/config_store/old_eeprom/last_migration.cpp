@@ -149,7 +149,7 @@ void migrate(old_eeprom::current::vars_body_t &body, journal::Backend &backend) 
     migrate_one(journal::hash("FSensor Enabled"), body.FSENSOR_ENABLED);
 
     // Do not migrate PID on XL, these values were never used on XL
-#if ENABLED(PIDTEMP) && !PRINTER_IS_PRUSA_XL
+#if ENABLED(PIDTEMP) && !PRINTER_IS_PRUSA_XL()
     migrate_one(journal::hash("PID Nozzle P"), body.PID_NOZ_P);
     migrate_one(journal::hash("PID Nozzle I"), body.PID_NOZ_I);
     migrate_one(journal::hash("PID Nozzle D"), body.PID_NOZ_D);
@@ -339,7 +339,7 @@ void migrate(old_eeprom::current::vars_body_t &body, journal::Backend &backend) 
     migrate_one(journal::hash("Axis Microsteps E0"), body.AXIS_MICROSTEPS_E0);
     migrate_one(journal::hash("Axis RMS Current MA X"), body.AXIS_RMS_CURRENT_MA_X);
 
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     // Upgrade MK4 Y current for IS only when unchanged
     migrate_one(journal::hash("Axis RMS Current MA Y"), body.AXIS_RMS_CURRENT_MA_Y == 600 ? static_cast<uint16_t>(700) : body.AXIS_RMS_CURRENT_MA_Y);
 #else
@@ -353,7 +353,7 @@ void migrate(old_eeprom::current::vars_body_t &body, journal::Backend &backend) 
     migrate_one(journal::hash("Nozzle Sock"), body.NOZZLE_SOCK);
     migrate_one(journal::hash("Nozzle Type"), body.NOZZLE_TYPE);
 
-#if (PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_XL) && HAS_GUI()
+#if (PRINTER_IS_PRUSA_MINI() || PRINTER_IS_PRUSA_XL()) && HAS_GUI()
     {
         auto decoded_rec = footer::eeprom::decode_from_old_eeprom_v22(body.FOOTER_SETTING);
 

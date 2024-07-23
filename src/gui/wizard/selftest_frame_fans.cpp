@@ -34,7 +34,7 @@ static constexpr const char *en_text_print_fan = N_("Print fan RPM test");
 static constexpr const char *en_text_fans_switched = N_("Checking for switched fans");
 #endif
 
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
 static constexpr const char *en_text_manual_check_hotend = N_("Is Hotend fan (left) spinning?");
 #endif
 
@@ -63,7 +63,7 @@ SelftestFrameFans::fan_state_t SelftestFrameFans::make_fan_row(size_t index) {
         .icon_heatbreak_fan_state = WindowIcon_OkNg(this, { y, row_2 }),
         .icon_print_fan_state = WindowIcon_OkNg(this, { y, row_3 }),
 
-#if not PRINTER_IS_PRUSA_MINI
+#if not PRINTER_IS_PRUSA_MINI()
         .icon_fans_switched_state = WindowIcon_OkNg(this, { y, row_4 }),
 #endif
     };
@@ -90,15 +90,15 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
     , text_hotend_fan(this, Rect16(col_texts, row_2, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_hotend_fan))
     , icon_print_fan(this, &img::turbine_16x16, point_i16_t({ WizardDefaults::col_0, row_3 }))
     , text_print_fan(this, Rect16(col_texts, row_3, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_print_fan))
-#if not PRINTER_IS_PRUSA_MINI
+#if not PRINTER_IS_PRUSA_MINI()
     , text_fans_switched(this, Rect16(col_texts, row_4, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_fans_switched))
 #endif
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
     // The question should cover whole text_info - so we should take the values from it
     , text_question(this, text_info.GetRect(), is_multiline::yes, is_closed_on_click_t::no, _(en_text_manual_check_hotend))
 #endif
     , fan_states(make_fan_row_array(std::make_index_sequence<HOTENDS>())) {
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
     text_question.Hide();
 #endif
 #if HAS_TOOLCHANGER()
@@ -123,7 +123,7 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
 void SelftestFrameFans::change() {
     SelftestFansResult result;
 
-#if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5()
     switch (phase_current) {
     case PhasesSelftest::Fans_manual:
         text_question.Show();
@@ -145,7 +145,7 @@ void SelftestFrameFans::change() {
             fan_states[i].icon_print_fan_state.SetState(result.hotend_results[i].print_fan_state);
             fan_states[i].icon_heatbreak_fan_state.SetState(result.hotend_results[i].heatbreak_fan_state);
 
-#if not PRINTER_IS_PRUSA_MINI
+#if not PRINTER_IS_PRUSA_MINI()
             fan_states[i].icon_fans_switched_state.SetState(result.hotend_results[i].fans_switched_state);
 #endif
 

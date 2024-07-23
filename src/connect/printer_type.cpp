@@ -2,7 +2,7 @@
 #include <config_store/store_instance.hpp>
 
 PrinterVersion get_printer_version() {
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
     switch (config_store().extended_printer_type.get()) {
 
     case ExtendedPrinterType::mk3_9:

@@ -147,7 +147,7 @@ static void save_divisor_to_eeprom(int try_nr, AxisEnum axis) {
     }
 }
 
-#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5()
 inline constexpr uint8_t HOMING_SENSITIVITY_CALIBRATION_TRIES = 4;
 
 static void store_homing_sensitivity(AxisEnum axis, int16_t value) {
@@ -332,7 +332,7 @@ float home_axis_precise(AxisEnum axis, int axis_home_dir, bool can_calibrate, fl
         SERIAL_ECHOPAIR(" try ", try_nr);
         SERIAL_ECHOLN(" ==");
 
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4()
         // If homing is failing, try to recalibrate sensitivity. We do this
         // after we couldn't home perfectly, and increase the perfect only
         // tries so that we still try to home perfectly after recalibrating

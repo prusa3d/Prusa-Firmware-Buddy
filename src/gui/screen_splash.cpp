@@ -85,7 +85,7 @@ screen_splash_data_t::screen_splash_data_t()
 #elif DEVELOPER_MODE()
     const bool run_wizard = false;
 
-#elif !PRINTER_IS_PRUSA_iX
+#elif !PRINTER_IS_PRUSA_iX()
     const bool run_wizard =
         []() {
             SelftestResult sr = config_store().selftest_result.get();
@@ -97,7 +97,7 @@ screen_splash_data_t::screen_splash_data_t()
             };
 
             if (any_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed
-    #if PRINTER_IS_PRUSA_XL
+    #if PRINTER_IS_PRUSA_XL()
                     ,
                     config_store().selftest_result_phase_stepping.get()
 
@@ -112,7 +112,7 @@ screen_splash_data_t::screen_splash_data_t()
                 }
     #endif
                 if (any_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan,
-    #if !PRINTER_IS_PRUSA_MINI
+    #if !PRINTER_IS_PRUSA_MINI()
                         sr.tools[e].fansSwitched,
     #endif
                         sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].dockoffset, sr.tools[e].tooloffset)) {
@@ -128,20 +128,20 @@ screen_splash_data_t::screen_splash_data_t()
 
     constexpr auto pepa_callback = +[] {
         const char *txt =
-#if PRINTER_IS_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL()
             N_("Hi, this is your\nOriginal Prusa XL printer.\n"
                "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_MK4
+#elif PRINTER_IS_PRUSA_MK4()
             // The MK4 is left out intentionally - it could be MK4, MK4S or MK3.9, we don't know yet
             N_("Hi, this is your\nOriginal Prusa printer.\n"
                "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_MK3_5
+#elif PRINTER_IS_PRUSA_MK3_5()
             N_("Hi, this is your\nOriginal Prusa MK3.5 printer.\n"
                "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_MINI
+#elif PRINTER_IS_PRUSA_MINI()
             N_("Hi, this is your\nOriginal Prusa MINI printer.\n"
                "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_iX
+#elif PRINTER_IS_PRUSA_iX()
             N_("Hi, this is your\nOriginal Prusa iX printer.\n"
                "I would like to guide you\nthrough the setup process.");
 #else

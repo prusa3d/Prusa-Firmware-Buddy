@@ -480,7 +480,7 @@ void CSelftest::phaseSelftestStart() {
         m_result.tools[0].printFan = TestResult_Unknown;
         m_result.tools[0].heatBreakFan = TestResult_Unknown;
 
-#if not PRINTER_IS_PRUSA_MINI
+#if not PRINTER_IS_PRUSA_MINI()
         m_result.tools[0].fansSwitched = TestResult_Unknown;
 #endif
     }
