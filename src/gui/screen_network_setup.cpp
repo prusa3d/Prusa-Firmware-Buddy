@@ -287,7 +287,7 @@ private:
 class FrameText {
 
 public:
-    FrameText(window_t *parent, Phase phase, const string_view_utf8 &txt_title, const string_view_utf8 &txt_info)
+    FrameText(window_t *parent, Phase phase, const string_view_utf8 &txt_title, const string_view_utf8 &txt_info, Align_t info_alignment = Align_t::CenterTop())
         : title(parent, {}, is_multiline::yes, is_closed_on_click_t::no, txt_title)
         , info(parent, {}, is_multiline::yes, is_closed_on_click_t::no, txt_info)
         , radio(parent, {}, phase) //
@@ -301,7 +301,7 @@ public:
         title.set_font(GuiDefaults::FontBig);
 
         info.SetRect(Rect16::fromLTRB(32, text_top + 16, parent_rect.Right() - 32, radio_rect.Bottom()));
-        info.SetAlignment(Align_t::CenterTop());
+        info.SetAlignment(info_alignment);
 #if HAS_MINI_DISPLAY()
         info.set_font(Font::small);
 #endif
@@ -468,7 +468,7 @@ class FrameAskUsePrusaApp : public FrameRadioQR {
 
 public:
     FrameAskUsePrusaApp(window_t *parent)
-        : FrameRadioQR(parent, Phase::ask_use_prusa_app, _("Do you want to connect to the Wi-Fi with the Prusa App on your phone (using NFC)?"), url, url) {
+        : FrameRadioQR(parent, Phase::ask_use_prusa_app, _("Do you want to connect to the Wi-Fi with the Prusa app on your phone using NFC?"), url, url) {
     }
 };
 
@@ -477,7 +477,10 @@ class FrameWaitForNFC : public FrameText {
 
 public:
     FrameWaitForNFC(window_t *parent)
-        : FrameText(parent, Phase::wait_for_nfc, _("Credentials via NFC"), _("1. Open Prusa app on your mobile device.\n\n2. Go to in-app Menu and select \"Set up Printer Wi-Fi.\"\n\n3. Follow on-screen instructions.")) {
+        : FrameText(parent, Phase::wait_for_nfc,
+            _("Credentials via NFC"),
+            _("1. Open Prusa app on your mobile device.\n\n2. Go to in-app Menu and select \"Set up Printer Wi-Fi.\"\n\n3. Follow on-screen instructions."),
+            Align_t::LeftTop()) {
     }
 };
 
@@ -547,6 +550,7 @@ using namespace network_wizard;
 
 ScreenNetworkSetup::ScreenNetworkSetup()
     : ScreenFSM(N_("NETWORK SETUP"), GuiDefaults::RectScreenNoHeader) {
+    header.SetIcon(&img::wizard_16x16);
     CaptureNormalWindow(inner_frame);
     create_frame();
 }

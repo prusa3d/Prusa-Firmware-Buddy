@@ -326,7 +326,7 @@ enum class PhaseNetworkSetup : PhaseUnderlyingType {
     wait_for_ini_file, ///< Prompting user to insert a flash drive with creds
     ask_delete_ini_file, ///< Asking the user if he wants to delete the ini file
 #if HAS_NFC()
-    ask_use_prusa_app, ///< User is prompted if he wants to use the Prusa App to connect to the wi-fi
+    ask_use_prusa_app, ///< User is prompted if he wants to use the Prusa app to connect to the wi-fi
     wait_for_nfc, ///< Prompting user to provide the credentials through NFW
     nfc_confirm, ///< Loaded credentials via NFC, asking for confirmation
 #endif
