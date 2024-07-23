@@ -29,7 +29,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2024-07-16 14:29+0200\n"
+"POT-Creation-Date: 2024-07-23 13:20+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -115,27 +115,27 @@ msgstr ""
 msgid "!! Careful, tools are hot !!"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:128
+#: src/gui/include_XL/selftest_snake_config.hpp:127
 #, c-format
 msgid "%d Bed Heater Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:122
+#: src/gui/include_XL/selftest_snake_config.hpp:121
 #, c-format
 msgid "%d Dock Position Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:118
+#: src/gui/include_XL/selftest_snake_config.hpp:117
 #: src/gui/include_MK3.5/selftest_snake_config.hpp:76
 #: src/gui/include_MINI/selftest_snake_config.hpp:75
 #: src/gui/include_iX/selftest_snake_config.hpp:74
-#: src/gui/include_MK4/selftest_snake_config.hpp:79
+#: src/gui/include_MK4/selftest_snake_config.hpp:78
 #, c-format
 msgid "%d Fan Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:127
-#: src/gui/include_MK4/selftest_snake_config.hpp:86
+#: src/gui/include_XL/selftest_snake_config.hpp:126
+#: src/gui/include_MK4/selftest_snake_config.hpp:85
 #, c-format
 msgid "%d Filament Sensor Calibration"
 msgstr ""
@@ -146,48 +146,42 @@ msgstr ""
 msgid "%d First Layer Calibration"
 msgstr ""
 
-#: src/gui/include_MK4/selftest_snake_config.hpp:85
+#: src/gui/include_MK4/selftest_snake_config.hpp:84
 #, c-format
 msgid "%d Gears Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:126
+#: src/gui/include_XL/selftest_snake_config.hpp:125
 #: src/gui/include_MK3.5/selftest_snake_config.hpp:80
 #: src/gui/include_MINI/selftest_snake_config.hpp:78
 #: src/gui/include_iX/selftest_snake_config.hpp:77
-#: src/gui/include_MK4/selftest_snake_config.hpp:84
+#: src/gui/include_MK4/selftest_snake_config.hpp:83
 #, c-format
 msgid "%d Heater Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:131
-#: src/gui/include_MK4/selftest_snake_config.hpp:87
-#, c-format
-msgid "%d Input Shaper Calibration"
-msgstr ""
-
-#: src/gui/include_XL/selftest_snake_config.hpp:123
-#: src/gui/include_MK4/selftest_snake_config.hpp:82
+#: src/gui/include_XL/selftest_snake_config.hpp:122
+#: src/gui/include_MK4/selftest_snake_config.hpp:81
 #, c-format
 msgid "%d Loadcell Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:129
+#: src/gui/include_XL/selftest_snake_config.hpp:128
 #, c-format
 msgid "%d Nozzle Heaters Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:130
+#: src/gui/include_XL/selftest_snake_config.hpp:129
 #, c-format
 msgid "%d Phase Stepping Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:124
+#: src/gui/include_XL/selftest_snake_config.hpp:123
 #, c-format
 msgid "%d Tool Offset Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:121
+#: src/gui/include_XL/selftest_snake_config.hpp:120
 #, c-format
 msgid "%d X Axis Test"
 msgstr ""
@@ -195,28 +189,28 @@ msgstr ""
 #: src/gui/include_MK3.5/selftest_snake_config.hpp:78
 #: src/gui/include_MINI/selftest_snake_config.hpp:76
 #: src/gui/include_iX/selftest_snake_config.hpp:75
-#: src/gui/include_MK4/selftest_snake_config.hpp:81
+#: src/gui/include_MK4/selftest_snake_config.hpp:80
 #, c-format
 msgid "%d XY Axis Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:120
+#: src/gui/include_XL/selftest_snake_config.hpp:119
 #, c-format
 msgid "%d Y Axis Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:119
+#: src/gui/include_XL/selftest_snake_config.hpp:118
 #: src/gui/include_MK3.5/selftest_snake_config.hpp:77
-#: src/gui/include_MK4/selftest_snake_config.hpp:80
+#: src/gui/include_MK4/selftest_snake_config.hpp:79
 #, c-format
 msgid "%d Z Alignment Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:125
+#: src/gui/include_XL/selftest_snake_config.hpp:124
 #: src/gui/include_MK3.5/selftest_snake_config.hpp:79
 #: src/gui/include_MINI/selftest_snake_config.hpp:77
 #: src/gui/include_iX/selftest_snake_config.hpp:76
-#: src/gui/include_MK4/selftest_snake_config.hpp:83
+#: src/gui/include_MK4/selftest_snake_config.hpp:82
 #, c-format
 msgid "%d Z Axis Test"
 msgstr ""
@@ -273,9 +267,9 @@ msgstr ""
 msgid "00 min"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:454
+#: src/gui/screen_network_setup.cpp:482
 msgid ""
-"1. Open Prusa Connect app on your mobile device.\n"
+"1. Open Prusa app on your mobile device.\n"
 "\n"
 "2. Go to in-app Menu and select \"Set up Printer Wi-Fi.\"\n"
 "\n"
@@ -288,11 +282,11 @@ msgid ""
 "the rear and align it with pins"
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:130
+#: src/gui/dialogs/DialogConnectReg.cpp:129
 msgid ""
-"1. Scan the QR code or visit prusa.io/add.\n"
-"2. Log in.\n"
-"3. Add printer with code:\n"
+"1. Scan the QR code using the Prusa app or camera, or visit prusa.io/add\n"
+"\n"
+"2. Log in"
 msgstr ""
 
 #: src/gui/MItem_tools.hpp:321
@@ -362,16 +356,12 @@ msgstr ""
 msgid "ALL"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:130
+#: src/gui/screen_input_shaper_calibration.cpp:132
 msgid ""
 "Accelerometer is not responding. Turn off the printer and make sure the "
 "accelerometer cable is connected to the main board. You can also abort the "
 "input shaper calibration and continue using the printer with default "
 "settings."
-msgstr ""
-
-#: src/gui/dialogs/DialogConnectReg.cpp:45
-msgid "Acquiring registration code, please wait..."
 msgstr ""
 
 #: src/gui/MItem_network.hpp:68
@@ -468,7 +458,7 @@ msgid ""
 "bar."
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.hpp:20
+#: src/gui/dialogs/DialogConnectReg.cpp:201
 msgid "Attempt"
 msgstr ""
 
@@ -589,7 +579,7 @@ msgid ""
 msgstr ""
 
 #. Now show always, bed heater selftest can fail if there is no sheet on the bed
-#: src/gui/screen_menu_selftest_snake.cpp:401
+#: src/gui/screen_menu_selftest_snake.cpp:395
 msgid ""
 "Before you continue, make sure the print sheet is installed on the heatbed."
 msgstr ""
@@ -717,7 +707,7 @@ msgstr ""
 msgid "Calibrating Y motor"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:188
+#: src/gui/screen_input_shaper_calibration.cpp:190
 msgid "Calibrating accelerometer..."
 msgstr ""
 
@@ -930,6 +920,10 @@ msgid ""
 "Close the idler door and secure it with the swivel. The calibration is done!"
 msgstr ""
 
+#: src/gui/dialogs/DialogConnectReg.cpp:121
+msgid "Code: "
+msgstr ""
+
 #: src/gui/MItem_tools.hpp:793 tmp_error_headers/error_list_xl.hpp:687
 #: tmp_error_headers/error_list_mk4.hpp:484
 #: tmp_error_headers/error_list_mk35.hpp:442
@@ -951,7 +945,7 @@ msgstr ""
 msgid "Comm err"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:316
+#: src/gui/screen_input_shaper_calibration.cpp:318
 #, c-format
 msgid ""
 "Computed shapers:\n"
@@ -960,7 +954,7 @@ msgid ""
 "Store and use computed values?"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:241
+#: src/gui/screen_input_shaper_calibration.cpp:243
 msgid "Computing best shaper..."
 msgstr ""
 
@@ -985,7 +979,7 @@ msgstr ""
 msgid "Connecting"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:355
+#: src/gui/screen_network_setup.cpp:358 src/gui/screen_network_setup.cpp:365
 msgid "Connecting to:"
 msgstr ""
 
@@ -1002,7 +996,7 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: src/gui/screen_menu_selftest_snake.cpp:209
+#: src/gui/screen_menu_selftest_snake.cpp:203
 msgid "Continue running Calibrations & Tests?"
 msgstr ""
 
@@ -1050,11 +1044,11 @@ msgstr ""
 msgid "Crashes on Y Axis"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:391
+#: src/gui/screen_network_setup.cpp:401
 msgid "Credentials from INI"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:454 src/gui/screen_network_setup.cpp:462
+#: src/gui/screen_network_setup.cpp:481 src/gui/screen_network_setup.cpp:491
 msgid "Credentials via NFC"
 msgstr ""
 
@@ -1131,11 +1125,11 @@ msgstr ""
 msgid "DWARF ERROR"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:399
+#: src/gui/screen_network_setup.cpp:409
 msgid "Delete INI file"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:399
+#: src/gui/screen_network_setup.cpp:409
 msgid "Delete credentials INI file? (Recommended)"
 msgstr ""
 
@@ -1185,7 +1179,7 @@ msgstr ""
 msgid "Divide by Zero"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:42
+#: src/gui/screen_network_setup.cpp:45
 msgid "Do not connect to a Wi-Fi"
 msgstr ""
 
@@ -1209,6 +1203,16 @@ msgstr ""
 
 #: src/gui/MItem_input_shaper.cpp:125
 msgid "Do you really want to restore default input shaper configuration?"
+msgstr ""
+
+#: src/gui/screen_network_setup.cpp:512
+msgid "Do you want to add your printer to Prusa Connect?"
+msgstr ""
+
+#: src/gui/screen_network_setup.cpp:471
+msgid ""
+"Do you want to connect to the Wi-Fi with the Prusa app on your phone using "
+"NFC?"
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:70
@@ -1244,23 +1248,23 @@ msgstr ""
 msgid "Dock %d position differs too much from expected values."
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:83
+#: src/gui/include_XL/selftest_snake_config.hpp:82
 msgid "Dock 1 Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:84
+#: src/gui/include_XL/selftest_snake_config.hpp:83
 msgid "Dock 2 Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:85
+#: src/gui/include_XL/selftest_snake_config.hpp:84
 msgid "Dock 3 Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:86
+#: src/gui/include_XL/selftest_snake_config.hpp:85
 msgid "Dock 4 Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:87
+#: src/gui/include_XL/selftest_snake_config.hpp:86
 msgid "Dock 5 Calibration"
 msgstr ""
 
@@ -1562,7 +1566,7 @@ msgstr ""
 msgid "Engaging idler"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:79
+#: src/gui/screen_network_setup.cpp:82
 msgid "Enter credentials manually"
 msgstr ""
 
@@ -1579,7 +1583,7 @@ msgid ""
 msgstr ""
 
 #: src/guiapi/src/window_msgbox.cpp:263 src/gui/screen_menu_connect.cpp:51
-#: src/gui/screen_menu_connect.hpp:35 src/gui/screen_network_setup.cpp:370
+#: src/gui/screen_menu_connect.hpp:35 src/gui/screen_network_setup.cpp:380
 msgid "Error"
 msgstr ""
 
@@ -1605,7 +1609,7 @@ msgid ""
 "drive and try again."
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:143 src/gui/screen_network_setup.cpp:380
+#: src/gui/MItem_menus.hpp:143 src/gui/screen_network_setup.cpp:390
 msgid "Ethernet"
 msgstr ""
 
@@ -1698,7 +1702,7 @@ msgstr ""
 msgid "FINISH"
 msgstr ""
 
-#: src/gui/screen_menu_selftest_snake.cpp:206
+#: src/gui/screen_menu_selftest_snake.cpp:200
 msgid ""
 "FINISH remaining calibrations without proceeding to other tests, or perform "
 "ALL Calibrations and Tests?\n"
@@ -2181,14 +2185,14 @@ msgstr ""
 msgid "Finishing moves"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:167
+#: src/gui/screen_input_shaper_calibration.cpp:169
 msgid ""
 "Firmly attach the accelerometer to the extruder (remove silicone sock if "
 "necessary). In the next step, extruder will start vibrating and resonance "
 "will be measured."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:197
+#: src/gui/screen_input_shaper_calibration.cpp:199
 msgid ""
 "Firmly attach the accelerometer to the heatbed. In the next step, heatbed "
 "will start vibrating and resonance will be measured."
@@ -2662,7 +2666,7 @@ msgstr ""
 msgid "HW test selector"
 msgstr ""
 
-#: src/gui/screen_menu_selftest_snake.cpp:416
+#: src/gui/screen_menu_selftest_snake.cpp:410
 #: src/gui/wizard/selftest_frame_wizard_epilogue.cpp:55
 msgid "Happy printing!"
 msgstr ""
@@ -2844,7 +2848,7 @@ msgstr ""
 msgid "Heating..."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:49
+#: src/gui/screen_network_setup.cpp:52
 msgid "Help"
 msgstr ""
 
@@ -3309,7 +3313,7 @@ msgid "Last Print Crashes on Y Axis"
 msgstr ""
 
 #. TODO: How does this thing get translated/marked for translation?
-#: src/gui/dialogs/DialogConnectReg.cpp:18
+#: src/gui/dialogs/DialogConnectReg.cpp:19
 msgid "Leave"
 msgstr ""
 
@@ -3381,7 +3385,7 @@ msgstr ""
 msgid "Load Settings from File"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:56
+#: src/gui/screen_network_setup.cpp:59
 msgid "Load config from file"
 msgstr ""
 
@@ -3828,15 +3832,15 @@ msgid ""
 "in contact with hotend. In case of damage, replace it."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:330
+#: src/gui/screen_input_shaper_calibration.cpp:332
 msgid "Measurement failed."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:206
+#: src/gui/screen_input_shaper_calibration.cpp:208
 msgid "Measuring X resonance..."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:214
+#: src/gui/screen_input_shaper_calibration.cpp:216
 msgid "Measuring Y resonance..."
 msgstr ""
 
@@ -3885,7 +3889,7 @@ msgid "Mon"
 msgstr ""
 
 #: src/gui/screen_qr_error.cpp:29 src/gui/screen_fatal_warning.cpp:31
-#: src/gui/dialogs/DialogConnectReg.hpp:19
+#: src/gui/dialogs/DialogConnectReg.hpp:21
 msgid "More detail at"
 msgstr ""
 
@@ -3960,7 +3964,7 @@ msgstr ""
 msgid "NETWORK"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:501
+#: src/gui/screen_network_setup.cpp:554
 msgid "NETWORK SETUP"
 msgstr ""
 
@@ -4097,7 +4101,7 @@ msgid ""
 "first!"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:362
+#: src/gui/screen_network_setup.cpp:372
 msgid "No network interface"
 msgstr ""
 
@@ -4427,7 +4431,7 @@ msgid "PROJECTS"
 msgstr ""
 
 #. TODO: Doesn't fit
-#: src/gui/screen_menu_connect.hpp:79 src/gui/dialogs/DialogConnectReg.hpp:18
+#: src/gui/screen_menu_connect.hpp:79 src/gui/dialogs/DialogConnectReg.hpp:20
 msgid "PRUSA CONNECT"
 msgstr ""
 
@@ -4480,7 +4484,7 @@ msgid "Park Current Tool"
 msgstr ""
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:50
-#: src/gui/screen_input_shaper_calibration.cpp:121
+#: src/gui/screen_input_shaper_calibration.cpp:123
 msgid "Parking"
 msgstr ""
 
@@ -4506,7 +4510,7 @@ msgid "Parking tool"
 msgstr ""
 
 #: src/gui/screen_prusa_link.hpp:39 src/gui/screen_prusa_link.hpp:52
-#: src/gui/screen_network_setup.cpp:28
+#: src/gui/screen_network_setup.cpp:31
 msgid "Password"
 msgstr ""
 
@@ -4612,7 +4616,7 @@ msgstr ""
 msgid "Please complete Calibrations & Tests before using the printer."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:391
+#: src/gui/screen_network_setup.cpp:401
 msgid ""
 "Please insert a flash drive with a network configuration file.\n"
 "\n"
@@ -4880,11 +4884,11 @@ msgstr ""
 msgid "Prusa Connect"
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:41
+#: src/gui/dialogs/DialogConnectReg.cpp:42
 msgid "Prusa Connect - printer setup"
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:89
+#: src/gui/dialogs/DialogConnectReg.cpp:85
 msgid ""
 "Prusa Connect setup is not finished. Do you want to exit and abort the "
 "process?"
@@ -5033,11 +5037,11 @@ msgstr ""
 msgid "Rear Side [um]"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:254
+#: src/gui/screen_input_shaper_calibration.cpp:256
 msgid "Recommended shaper frequency for X axis: "
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:255
+#: src/gui/screen_input_shaper_calibration.cpp:257
 msgid "Recommended shaper frequency for Y axis: "
 msgstr ""
 
@@ -5059,6 +5063,10 @@ msgstr ""
 
 #: src/gui/screen_menu_connect.cpp:52
 msgid "Registering"
+msgstr ""
+
+#: src/gui/dialogs/DialogConnectReg.cpp:46
+msgid "Registering the printer to Prusa Connect..."
 msgstr ""
 
 #: src/gui/dialogs/DialogConnectReg.cpp:136
@@ -5165,8 +5173,8 @@ msgstr ""
 
 #: src/guiapi/include/WindowMenuItems.hpp:72
 #: src/guiapi/include/window_tool_action_box.hpp:100
-#: src/gui/screen_network_setup.cpp:29 src/gui/screen_network_setup.cpp:35
-#: src/gui/screen_network_setup.cpp:140
+#: src/gui/screen_network_setup.cpp:32 src/gui/screen_network_setup.cpp:38
+#: src/gui/screen_network_setup.cpp:143
 #: src/gui/dialogs/window_dlg_preheat.hpp:41
 msgid "Return"
 msgstr ""
@@ -5195,7 +5203,7 @@ msgstr ""
 msgid "Run Full Selftest"
 msgstr ""
 
-#: src/gui/screen_menu_selftest_snake.cpp:395
+#: src/gui/screen_menu_selftest_snake.cpp:389
 msgid "Run selftests and calibrations now?"
 msgstr ""
 
@@ -5244,7 +5252,7 @@ msgstr ""
 msgid "SPOOL JOIN"
 msgstr ""
 
-#: src/gui/MItem_network.hpp:51 src/gui/screen_network_setup.cpp:84
+#: src/gui/MItem_network.hpp:51 src/gui/screen_network_setup.cpp:87
 msgid "SSID"
 msgstr ""
 
@@ -5286,12 +5294,13 @@ msgstr ""
 msgid "Saving to USB"
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:128
-msgid "Scan QR or visit prusa.io/add, log in and add printer code:"
+#: src/gui/screen_network_setup.cpp:75
+msgid "Scan networks"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:72
-msgid "Scan networks"
+#: src/gui/dialogs/DialogConnectReg.cpp:127
+msgid ""
+"Scan the QR code using the Prusa app or camera, or visit prusa.io/add.\n"
 msgstr ""
 
 #. Wifi module is scanning for Access points
@@ -5299,11 +5308,11 @@ msgstr ""
 msgid "Scanning"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:207
+#: src/gui/screen_network_setup.cpp:210
 msgid "Scanning for networks..."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:207
+#: src/gui/screen_network_setup.cpp:210
 msgid "Scanning..."
 msgstr ""
 
@@ -5375,6 +5384,10 @@ msgstr ""
 msgid "Set Ready"
 msgstr ""
 
+#: src/gui/screen_network_setup.cpp:512
+msgid "Set up Prusa Connect?"
+msgstr ""
+
 #: tmp_error_headers/error_list_xl.hpp:506
 #: tmp_error_headers/error_list_ix.hpp:485
 #: tmp_error_headers/error_list_mk4.hpp:296
@@ -5385,7 +5398,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:64
+#: src/gui/screen_network_setup.cpp:67
 msgid "Setup via NFC"
 msgstr ""
 
@@ -5619,7 +5632,7 @@ msgstr ""
 msgid "Stuck Filament Detection"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:378
+#: src/gui/screen_network_setup.cpp:388
 msgid "Successfully connected to:"
 msgstr ""
 
@@ -5634,7 +5647,7 @@ msgid ""
 "properly."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:325
+#: src/gui/screen_network_setup.cpp:328
 msgid "Switch to Wi-Fi"
 msgstr ""
 
@@ -5979,7 +5992,7 @@ msgid ""
 "the wiring is correct."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:362
+#: src/gui/screen_network_setup.cpp:372
 msgid ""
 "The Wi-Fi module is not working properly or is missing.\n"
 "\n"
@@ -6093,7 +6106,7 @@ msgid ""
 "action."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:370
+#: src/gui/screen_network_setup.cpp:380
 msgid "There was an error connecting to the Wi-Fi."
 msgstr ""
 
@@ -6259,7 +6272,7 @@ msgid ""
 "prusa.io/xl-filter"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:94
+#: src/gui/screen_input_shaper_calibration.cpp:96
 msgid ""
 "To learn more about the input shaper calibration process, visit our website:"
 msgstr ""
@@ -6273,7 +6286,7 @@ msgstr ""
 msgid "To learn more including firmware downgrade, please visit:\n"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:430
+#: src/gui/screen_network_setup.cpp:462
 msgid "To setup or troubleshoot your Wi-Fi, please visit:"
 msgstr ""
 
@@ -6295,7 +6308,7 @@ msgstr ""
 msgid "Tool 1 Filament"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:93
+#: src/gui/include_XL/selftest_snake_config.hpp:92
 msgid "Tool 1 Filament Sensor Calibration"
 msgstr ""
 
@@ -6303,7 +6316,7 @@ msgstr ""
 msgid "Tool 1 Flow Factor"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:88
+#: src/gui/include_XL/selftest_snake_config.hpp:87
 msgid "Tool 1 Loadcell Test"
 msgstr ""
 
@@ -6315,7 +6328,7 @@ msgstr ""
 msgid "Tool 2 Filament"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:94
+#: src/gui/include_XL/selftest_snake_config.hpp:93
 msgid "Tool 2 Filament Sensor Calibration"
 msgstr ""
 
@@ -6323,7 +6336,7 @@ msgstr ""
 msgid "Tool 2 Flow Factor"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:89
+#: src/gui/include_XL/selftest_snake_config.hpp:88
 msgid "Tool 2 Loadcell Test"
 msgstr ""
 
@@ -6335,7 +6348,7 @@ msgstr ""
 msgid "Tool 3 Filament"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:95
+#: src/gui/include_XL/selftest_snake_config.hpp:94
 msgid "Tool 3 Filament Sensor Calibration"
 msgstr ""
 
@@ -6343,7 +6356,7 @@ msgstr ""
 msgid "Tool 3 Flow Factor"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:90
+#: src/gui/include_XL/selftest_snake_config.hpp:89
 msgid "Tool 3 Loadcell Test"
 msgstr ""
 
@@ -6355,7 +6368,7 @@ msgstr ""
 msgid "Tool 4 Filament"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:96
+#: src/gui/include_XL/selftest_snake_config.hpp:95
 msgid "Tool 4 Filament Sensor Calibration"
 msgstr ""
 
@@ -6363,7 +6376,7 @@ msgstr ""
 msgid "Tool 4 Flow Factor"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:91
+#: src/gui/include_XL/selftest_snake_config.hpp:90
 msgid "Tool 4 Loadcell Test"
 msgstr ""
 
@@ -6375,7 +6388,7 @@ msgstr ""
 msgid "Tool 5 Filament"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:97
+#: src/gui/include_XL/selftest_snake_config.hpp:96
 msgid "Tool 5 Filament Sensor Calibration"
 msgstr ""
 
@@ -6383,7 +6396,7 @@ msgstr ""
 msgid "Tool 5 Flow Factor"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:92
+#: src/gui/include_XL/selftest_snake_config.hpp:91
 msgid "Tool 5 Loadcell Test"
 msgstr ""
 
@@ -6760,7 +6773,7 @@ msgstr ""
 msgid "Waiting for hotends to stabilize at calibration temperature:"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:150
+#: src/gui/screen_input_shaper_calibration.cpp:152
 msgid "Waiting for nozzle to cool down"
 msgstr ""
 
@@ -6898,7 +6911,7 @@ msgid ""
 "Would you like to connect your printer to Wi-Fi now?"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:465
+#: src/gui/screen_network_setup.cpp:494
 #, c-format
 msgid ""
 "Wi-Fi credentials loaded via NFC.\n"
@@ -7008,11 +7021,11 @@ msgid ""
 "For more information, visit prusa.io/nozzle-types"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:378
+#: src/gui/screen_network_setup.cpp:388
 msgid "You can now fully use all network features of the printer."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:355
+#: src/gui/screen_network_setup.cpp:358
 msgid "You can press 'Finish' to continue connecting on the background."
 msgstr ""
 
@@ -7023,7 +7036,7 @@ msgid ""
 " "
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:325
+#: src/gui/screen_network_setup.cpp:328
 msgid ""
 "You're already successfully connected through the ethernet cable.\n"
 "Switch to Wi-Fi and continue?"
@@ -7066,14 +7079,14 @@ msgstr ""
 msgid "axis"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:253
+#: src/gui/screen_input_shaper_calibration.cpp:255
 msgid ""
 "axis frequency is too high.\n"
 "Please check your HW setup.\n"
 "If the problem prevails, contact the customer support."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:252
+#: src/gui/screen_input_shaper_calibration.cpp:254
 msgid ""
 "axis frequency is too low.\n"
 "Please tighten the belt."
