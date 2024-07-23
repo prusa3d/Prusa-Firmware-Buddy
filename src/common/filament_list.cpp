@@ -3,6 +3,7 @@
 const GenerateFilamentListConfig management_generate_filament_list_config {
     .visible_only = false,
     .visible_first = false,
+    .user_ordering = true,
 };
 
 size_t generate_filament_list(FilamentListStorage &storage, const GenerateFilamentListConfig &config) {

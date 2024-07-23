@@ -59,6 +59,7 @@
 
 #include <screen/filament/screen_filament_management.hpp>
 #include <screen/filament/screen_filament_management_list.hpp>
+#include <screen/filament/screen_filaments_reorder.hpp>
 #include <screen/filament/screen_filaments_visibility.hpp>
 
 #if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()

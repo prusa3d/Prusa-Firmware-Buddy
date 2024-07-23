@@ -33,6 +33,9 @@ using MI_FILAMENT_MANAGEMENT = MI_SCREEN<N_("Manage Filaments"), ScreenFilamentM
 class ScreenFilamentManagementList;
 using MI_EDIT_FILAMENTS = MI_SCREEN<N_("Edit Filaments"), ScreenFilamentManagementList>;
 
+class ScreenFilamentsReorder;
+using MI_REORDER_FILAMENTS = MI_SCREEN<N_("Reorder Filaments"), ScreenFilamentsReorder>;
+
 class ScreenFilamentsVisibility;
 using MI_FILAMENTS_VISIBILITY = MI_SCREEN<N_("Enable Filaments"), ScreenFilamentsVisibility>;
 
