@@ -114,7 +114,7 @@ private:
         }
 
 #if HAS_NFC()
-        // Offer using Prusa App only to printers that actually have NFC. Without it, the app is pointless.
+        // Offer using Prusa app only to printers that actually have NFC. Without it, the app is pointless.
         if (mode_ == WizardMode::initial_setup && nfc::has_nfc()) {
             return Phase::ask_use_prusa_app;
         }
