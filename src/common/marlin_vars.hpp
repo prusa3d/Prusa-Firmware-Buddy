@@ -14,9 +14,9 @@
 #include <assert.h>
 #include <tuple>
 
-#if BOARD_IS_DWARF
+#if BOARD_IS_DWARF()
     #error "You're trying to add marlin_vars to Dwarf. Don't!"
-#endif /*BOARD_IS_DWARF*/
+#endif /*BOARD_IS_DWARF()*/
 
 class MarlinVarsLockGuard {
 public:

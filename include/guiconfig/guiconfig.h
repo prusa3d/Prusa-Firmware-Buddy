@@ -15,9 +15,9 @@
 /// Not sure what this one does
 #define DISPLAY_TYPE_MOCK 2
 
-#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
     #define DISPLAY_TYPE() DISPLAY_TYPE_LARGE
-#elif BOARD_IS_BUDDY
+#elif BOARD_IS_BUDDY()
     #define DISPLAY_TYPE() DISPLAY_TYPE_MINI
 #else
     #define DISPLAY_TYPE() DISPLAY_TYPE_MOCK

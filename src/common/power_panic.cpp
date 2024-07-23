@@ -747,7 +747,7 @@ bool shutdown_loop() {
         ili9488_power_down();
         break;
     case 2:
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
         hwio_low_power_state();
         break;
 #else

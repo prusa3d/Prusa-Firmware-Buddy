@@ -48,7 +48,7 @@ static void usb_device_task_run(const void *);
 
 static serial_nr_t serial_nr;
 
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY())
     #define FUSB302B_INTERPOSER
     #include "FUSB302B.hpp"
     #include "hwio_pindef.h"

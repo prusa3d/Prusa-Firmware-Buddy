@@ -127,7 +127,7 @@ bool block_one_click_print() {
 } // namespace usbh_power_cycle
 
 void MX_USB_HOST_Init(void) {
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY())
     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET);
     osDelay(200);
     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET);

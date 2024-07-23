@@ -1,7 +1,7 @@
 // HardwareSerial.cpp - Buddy/STM32
 #include <device/board.h>
 
-#if (BOARD_IS_BUDDY)
+#if (BOARD_IS_BUDDY())
     #include <Arduino.h>
     #include "buffered_serial.hpp"
     #include "cmsis_os.h"

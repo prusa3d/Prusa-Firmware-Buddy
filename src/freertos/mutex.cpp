@@ -10,7 +10,7 @@
 // Do not check the concept on boards where #include <mutex> fills FLASH
 #ifndef UNITTESTS
     #include <device/board.h>
-    #if !defined(BOARD_IS_MODULARBED) && !defined(BOARD_IS_DWARF)
+    #if !BOARD_IS_MODULARBED() && !BOARD_IS_DWARF()
         #include <common/concepts.hpp>
 static_assert(concepts::Lockable<freertos::Mutex>);
     #endif

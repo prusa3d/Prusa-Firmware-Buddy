@@ -3239,7 +3239,7 @@ void onIdle() {
     buddy::metrics::RecordMarlinVariables();
     buddy::metrics::RecordRuntimeStats();
     buddy::metrics::RecordPrintFilename();
-#if (BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XLBUDDY())
     buddy::metrics::record_dwarf_internal_temperatures();
 #endif
     print_utils_loop();

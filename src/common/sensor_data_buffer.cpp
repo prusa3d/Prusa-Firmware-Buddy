@@ -29,9 +29,9 @@ const metric_handler_t *SensorDataBuffer::getHandler() {
     return nullptr;
 }
 
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
 static constexpr Sensor first_sensor_to_log = Sensor::bedTemp;
-#elif BOARD_IS_XBUDDY
+#elif BOARD_IS_XBUDDY()
 static constexpr Sensor first_sensor_to_log = Sensor::printFan;
 #else
 static constexpr Sensor first_sensor_to_log = Sensor::MCUTemp;

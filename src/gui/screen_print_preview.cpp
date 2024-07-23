@@ -145,7 +145,7 @@ void ScreenPrintPreview::show_main_dialog() {
     radio.Show();
     title_text.Show();
     CaptureNormalWindow(radio);
-#if BOARD_IS_XBUDDY or BOARD_IS_XLBUDDY
+#if BOARD_IS_XBUDDY() or BOARD_IS_XLBUDDY()
     header.SetText(_("PRINT"));
 #endif
 }
@@ -163,7 +163,7 @@ void ScreenPrintPreview::show_tools_mapping() {
     tools_mapping->Show();
     tools_mapping->Invalidate();
 
-    #if BOARD_IS_XBUDDY or BOARD_IS_XLBUDDY
+    #if BOARD_IS_XBUDDY() or BOARD_IS_XLBUDDY()
         #if not HAS_MMU2()
     header.SetText(_("TOOLS MAPPING"));
         #else

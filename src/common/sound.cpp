@@ -256,7 +256,7 @@ void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, [[maybe_unused]
     /// repeating sound is playing
     float tmpVol;
 
-#if BOARD_IS_BUDDY
+#if BOARD_IS_BUDDY()
     if (varVolume > 1) {
         tmpVol = 1.F;
     } else {
@@ -304,7 +304,7 @@ void Sound::nextRepeat() {
 }
 
 float Sound::real_volume(int displayed_volume) {
-#if BOARD_IS_BUDDY
+#if BOARD_IS_BUDDY()
     return displayed_volume == 11 ? displayed_volume : displayed_volume / 10.F;
 #else
     return displayed_volume == 0 ? 0 : 1.51F - displayed_volume / 2.F;
@@ -312,7 +312,7 @@ float Sound::real_volume(int displayed_volume) {
 }
 
 uint8_t Sound::displayed_volume(float real_volume) {
-#if BOARD_IS_BUDDY
+#if BOARD_IS_BUDDY()
     return real_volume > 1.1F ? real_volume : real_volume * 10.F;
 #else
     return real_volume == 0 ? 0 : -(real_volume - 1.51F) * 2.F;

@@ -84,7 +84,7 @@
     #include "wui.h"
 #endif
 
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY())
     #include "hw_configuration.hpp"
 #endif
 
@@ -262,7 +262,7 @@ extern "C" void main_cpp(void) {
     adcDma3.init();
 #endif
 
-#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
+#if BOARD_IS_BUDDY() || BOARD_IS_XBUDDY()
     hw_tim1_init();
 #endif
 
@@ -354,11 +354,11 @@ extern "C" void main_cpp(void) {
     logging_init();
     TaskDeps::components_init();
 
-#if (BOARD_IS_BUDDY)
+#if (BOARD_IS_BUDDY())
     hw_uart1_init();
 #endif
 
-#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
+#if BOARD_IS_BUDDY() || BOARD_IS_XBUDDY()
     hw_tim3_init();
 #endif
 
@@ -366,7 +366,7 @@ extern "C" void main_cpp(void) {
     SPI_INIT(lcd);
 #endif
 
-#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
     I2C_INIT(usbc);
 #endif
 
@@ -374,7 +374,7 @@ extern "C" void main_cpp(void) {
     I2C_INIT(touch);
 #endif
 
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
     SPI_INIT(extconn);
     SPI_INIT(accelerometer);
 #endif
@@ -395,7 +395,7 @@ extern "C" void main_cpp(void) {
     UART_INIT(mmu);
 #endif
 
-#if HAS_GUI() && !(BOARD_IS_XLBUDDY)
+#if HAS_GUI() && !(BOARD_IS_XLBUDDY())
     hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on XL. Not needed without display.
 #endif
 
@@ -473,11 +473,11 @@ extern "C" void main_cpp(void) {
         manufacture_report(); // TODO erase this after all printers use manufacture_report_endless_loop (== ESP UART)
     }
 
-#if (BOARD_IS_BUDDY)
+#if (BOARD_IS_BUDDY())
     uart2.Open();
 #endif
 
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
     #if !HAS_PUPPIES()
     uart6.Open();
     #endif
@@ -569,7 +569,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-#if (BOARD_IS_BUDDY)
+#if (BOARD_IS_BUDDY())
     if (huart == &huart2) {
         uart2.WriteFinishedISR();
     }
@@ -581,7 +581,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     }
 #endif
 
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
     #if !HAS_PUPPIES()
     if (huart == &huart6) {
         //        log_debug(Buddy, "HAL_UART6_TxCpltCallback");
@@ -601,7 +601,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
 
-#if (BOARD_IS_BUDDY)
+#if (BOARD_IS_BUDDY())
     if (huart == &huart2) {
         uart2.FirstHalfReachedISR();
     }
@@ -613,7 +613,7 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
     }
 #endif
 
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
     #if !HAS_PUPPIES()
     if (huart == &huart6) {
         uart6.FirstHalfReachedISR();
@@ -623,7 +623,7 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-#if (BOARD_IS_BUDDY)
+#if (BOARD_IS_BUDDY())
     if (huart == &huart2) {
         uart2.SecondHalfReachedISR();
     }
@@ -635,7 +635,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     }
 #endif
 
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
     #if !HAS_PUPPIES()
     if (huart == &huart6) {
         uart6.SecondHalfReachedISR();
@@ -719,7 +719,7 @@ void init_error_screen() {
         SPI_INIT(lcd);
 
 #if !(_DEBUG)
-    #if HAS_GUI() && !(BOARD_IS_XLBUDDY)
+    #if HAS_GUI() && !(BOARD_IS_XLBUDDY())
         hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on XL. Not needed without display.
     #endif
 #endif
@@ -795,7 +795,7 @@ extern "C" void startup_task(void const *) {
 
 // must do this before timer 1, timer 1 interrupt calls Configuration
 // also must be before initializing global variables
-#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
     buddy::hw::Configuration::Instance();
 #endif
 

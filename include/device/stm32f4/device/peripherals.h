@@ -7,7 +7,7 @@
 extern "C" {
 #endif //__cplusplus
 
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY())
     #define HAS_ADC3
 #endif
 
@@ -99,7 +99,7 @@ extern TIM_HandleTypeDef htim14;
 #define THERM_1_Pin           GPIO_PIN_4
 #define THERM_1_GPIO_Port     GPIOA
 
-#if (BOARD_IS_BUDDY)
+#if (BOARD_IS_BUDDY())
     #define ESP_TX_Pin            GPIO_PIN_6
     #define ESP_TX_GPIO_Port      GPIOC
     #define ESP_RX_Pin            GPIO_PIN_7
@@ -113,7 +113,7 @@ extern TIM_HandleTypeDef htim14;
     #define THERM_2_GPIO_Port GPIOF
 #endif
 
-#if (BOARD_IS_XBUDDY && !PRINTER_IS_PRUSA_MK3_5())
+#if (BOARD_IS_XBUDDY() && !PRINTER_IS_PRUSA_MK3_5())
     #define THERM_HEATBREAK_Pin       GPIO_PIN_6
     #define THERM_HEATBREAK_GPIO_Port GPIOA
 #endif
@@ -162,7 +162,7 @@ extern TIM_HandleTypeDef htim14;
 
 #define USB_OVERC_Pin       GPIO_PIN_4
 #define USB_OVERC_GPIO_Port GPIOE
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY())
     #define ESP_GPIO0_Pin GPIO_PIN_15
 #else
     #define ESP_GPIO0_Pin GPIO_PIN_6
@@ -185,7 +185,7 @@ extern TIM_HandleTypeDef htim14;
 #define WP1_Pin                     GPIO_PIN_0
 #define WP1_GPIO_Port               GPIOE
 
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY())
     #define i2c2_SDA_PORT_BASE GPIOF_BASE
     #define i2c2_SCL_PORT_BASE GPIOF_BASE
     #define i2c2_SDA_PORT      ((GPIO_TypeDef *)i2c2_SDA_PORT_BASE)
@@ -204,7 +204,7 @@ extern TIM_HandleTypeDef htim14;
     #endif
 #endif
 
-#if (BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XLBUDDY())
     #define i2c1_SDA_PORT_BASE GPIOB_BASE
     #define i2c1_SCL_PORT_BASE GPIOB_BASE
     #define i2c1_SDA_PORT      ((GPIO_TypeDef *)i2c1_SDA_PORT_BASE)
@@ -213,7 +213,7 @@ extern TIM_HandleTypeDef htim14;
     #define i2c1_SCL_PIN       GPIO_PIN_6
 #endif
 
-#if (BOARD_IS_BUDDY)
+#if (BOARD_IS_BUDDY())
     #define i2c1_SDA_PORT_BASE GPIOB_BASE
     #define i2c1_SCL_PORT_BASE GPIOB_BASE
     #define i2c1_SDA_PORT      ((GPIO_TypeDef *)i2c1_SDA_PORT_BASE)
@@ -233,7 +233,7 @@ extern TIM_HandleTypeDef htim14;
 // -1 == don't have, currently i2c only
 //
 
-#if BOARD_IS_BUDDY
+#if BOARD_IS_BUDDY()
     #define i2c_eeprom       1
     #define i2c_usbc         -1
     #define i2c_touch        -1
@@ -244,7 +244,7 @@ extern TIM_HandleTypeDef htim14;
     #define spi_lcd          2
     #define uart_tmc         2
     #define uart_esp         6
-#elif BOARD_IS_XBUDDY
+#elif BOARD_IS_XBUDDY()
     #define i2c_eeprom        2
     #define i2c_usbc          2
     #define i2c_gcode         2
@@ -264,7 +264,7 @@ extern TIM_HandleTypeDef htim14;
         #define uart_mmu  6
         #define i2c_touch 3
     #endif
-#elif BOARD_IS_XLBUDDY
+#elif BOARD_IS_XLBUDDY()
     #define i2c_eeprom         2
     #define i2c_usbc           1
     #define i2c_touch          3

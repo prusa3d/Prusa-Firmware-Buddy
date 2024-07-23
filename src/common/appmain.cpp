@@ -45,7 +45,7 @@
 
 #include <tusb.h>
 
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
     #include <puppies/Dwarf.hpp>
     #include <Marlin/src/module/prusa/toolchanger.h>
     #include <filament_sensors_handler.hpp>
@@ -238,7 +238,7 @@ void advanced_power_irq() {
 }
 #endif // #if HAS_ADVANCED_POWER()
 
-#if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())
+#if (BOARD_IS_XLBUDDY() && FILAMENT_SENSOR_IS_ADC())
 // update filament sensor irq = 76Hz
 static void filament_sensor_irq() {
 
@@ -323,7 +323,7 @@ void app_tim14_tick(void) {
 
     adc_tick_1ms();
 
-#if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())
+#if (BOARD_IS_XLBUDDY() && FILAMENT_SENSOR_IS_ADC())
     filament_sensor_irq();
 #endif
 }

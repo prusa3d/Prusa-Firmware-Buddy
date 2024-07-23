@@ -1053,7 +1053,7 @@
 #define DISABLE_Z false
 
 // X and Y axes ENABLE/DISABLE functions are linked through pins
-#if BOARD_IS_XBUDDY
+#if BOARD_IS_XBUDDY()
   #define XY_LINKED_ENABLE true
 #endif
 

@@ -2,6 +2,7 @@
 #pragma once
 #include <limits>
 
+#include <device/board.h>
 #include "filament_sensor_states.hpp"
 
 namespace FSensorADCEval {
@@ -9,14 +10,14 @@ namespace FSensorADCEval {
 static constexpr int32_t filtered_value_not_ready { std::numeric_limits<int32_t>::min() }; // invalid value of fs_filtered_value
 static constexpr int32_t ref_value_not_calibrated { std::numeric_limits<int32_t>::min() }; // invalid value of fs_filtered_value
 static constexpr int32_t lower_limit = // value for detecting disconnected sensor
-#if (BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XLBUDDY())
     20;
 #else
     2000;
 #endif
 
 static constexpr int32_t upper_limit =
-#if (BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XLBUDDY())
     4096; // this is max value of 12 bit ADC, there is no value that would indicate broken sensor on XL
 #else
     2'000'000;

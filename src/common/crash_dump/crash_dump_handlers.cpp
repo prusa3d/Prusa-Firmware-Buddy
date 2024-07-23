@@ -89,7 +89,7 @@ void upload_buddy_dump_to_server() {
     std::array<char, url_buff_size> url_buff;
     std::array<char, url_buff_size> escaped_url_string;
 
-    create_url_string(url_buff, escaped_url_string, BOARD_STRING);
+    create_url_string(url_buff, escaped_url_string, BOARD_STRING());
     BuddyDumpRequest req(escaped_url_string.data());
     upload_dump_to_server(req);
 }

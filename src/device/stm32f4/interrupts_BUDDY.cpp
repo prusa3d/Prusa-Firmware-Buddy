@@ -8,7 +8,7 @@
     #include "espif.h"
 #endif
 
-static_assert(BOARD_IS_BUDDY);
+static_assert(BOARD_IS_BUDDY());
 
 // TODO stick this somewhere else
 static uint8_t uart2rx_data[32];

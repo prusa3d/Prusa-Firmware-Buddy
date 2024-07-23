@@ -119,7 +119,7 @@ void TWIBus::addstring(char str[]) {
 void TWIBus::send() {
   debug(F("send"), addr);
   
-  #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+  #if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
   if (addr == buddy::hw::io_expander2.fixed_addr) [[unlikely]] {
     // In io_expander2 we only support single byte write (bits correspond to pins)
     buddy::hw::io_expander2.write(buffer[0]);
@@ -200,7 +200,7 @@ void TWIBus::echodata(uint8_t bytes, FSTR_P const pref, uint8_t adr, const uint8
 bool TWIBus::request(const uint8_t bytes) {
   // io_expander2's has a disabled read
   if (!addr
-  #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+  #if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
     || addr == buddy::hw::io_expander2.fixed_addr
   #endif
   ) return false;

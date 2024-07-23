@@ -8,9 +8,9 @@
     #include "Configuration_MINI_adv.h"
 #elif PRINTER_IS_PRUSA_XL_DEV_KIT()
     #include "Configuration_XL_DEV_KIT_adv.h"
-#elif PRINTER_IS_PRUSA_XL() && BOARD_IS_XLBUDDY
+#elif PRINTER_IS_PRUSA_XL() && BOARD_IS_XLBUDDY()
     #include "Configuration_XL_adv.h"
-#elif PRINTER_IS_PRUSA_XL() && BOARD_IS_DWARF
+#elif PRINTER_IS_PRUSA_XL() && BOARD_IS_DWARF()
     #include "Configuration_XL_Dwarf_adv.h"
 #elif PRINTER_IS_PRUSA_MK4()
     #include "Configuration_MK4_adv.h"

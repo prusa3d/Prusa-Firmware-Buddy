@@ -22,7 +22,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY())
     #include "hw_configuration.hpp"
 #endif
 
@@ -101,14 +101,14 @@ TIM_HandleTypeDef htim14;
 RTC_HandleTypeDef hrtc;
 RNG_HandleTypeDef hrng;
 
-#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
 namespace buddy::hw {
 TCA6408A io_expander2(I2C_HANDLE_FOR(io_expander2));
-    #if BOARD_IS_XLBUDDY
+    #if BOARD_IS_XLBUDDY()
 PCA9557 io_expander1(I2C_HANDLE_FOR(io_expander1), 0x1);
-    #endif // BOARD_IS_XLBUDDY
+    #endif // BOARD_IS_XLBUDDY()
 } // namespace buddy::hw
-#endif // BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+#endif // BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
 
 //
 // Initialization
@@ -165,7 +165,7 @@ void hw_gpio_init() {
 
     // Configure ESP GPIO0 (PROG, High for ESP module boot from Flash)
     GPIO_InitStruct.Pin =
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY())
         GPIO_PIN_15
 #else
         GPIO_PIN_6
@@ -175,7 +175,7 @@ void hw_gpio_init() {
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_WritePin(GPIOE,
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY())
         GPIO_PIN_15
 #else
         GPIO_PIN_6
@@ -221,7 +221,7 @@ void hw_dma_init() {
     HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
 #endif
 
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY())
     // DMA1_Stream0_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
@@ -252,7 +252,7 @@ void hw_dma_init() {
     HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
 
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
     // DMA1_Stream1_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, ISR_PRIORITY_PUPPIES_USART, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
@@ -320,7 +320,7 @@ void hw_adc1_init() {
     config_adc(&hadc1, ADC1, AdcChannel::ADC1_CH_CNT);
 
     // Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-#if (BOARD_IS_BUDDY)
+#if (BOARD_IS_BUDDY())
     config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::board_T);
@@ -328,14 +328,14 @@ void hw_adc1_init() {
     config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::heatbed_U);
     config_adc_ch(&hadc1, ADC_CHANNEL_TEMPSENSOR, AdcChannel::mcu_temperature);
     config_adc_ch(&hadc1, ADC_CHANNEL_VREFINT, AdcChannel::vref);
-#elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5())
+#elif (BOARD_IS_XBUDDY() && PRINTER_IS_PRUSA_MK3_5())
     config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::heatbed_U);
     config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::hotend_U);
     config_adc_ch(&hadc1, ADC_CHANNEL_VREFINT, AdcChannel::vref);
     config_adc_ch(&hadc1, ADC_CHANNEL_TEMPSENSOR, AdcChannel::mcu_temperature);
-#elif (BOARD_IS_XBUDDY)
+#elif (BOARD_IS_XBUDDY())
     config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::heatbed_U);
@@ -343,7 +343,7 @@ void hw_adc1_init() {
     config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::hotend_U);
     config_adc_ch(&hadc1, ADC_CHANNEL_VREFINT, AdcChannel::vref);
     config_adc_ch(&hadc1, ADC_CHANNEL_TEMPSENSOR, AdcChannel::mcu_temperature);
-#elif BOARD_IS_XLBUDDY
+#elif BOARD_IS_XLBUDDY()
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::dwarf_I);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::mux1_y);
     config_adc_ch(&hadc1, ADC_CHANNEL_8, AdcChannel::mux1_x);
@@ -363,13 +363,13 @@ void hw_adc3_init() {
     config_adc(&hadc3, ADC3, AdcChannel::ADC3_CH_CNT);
 
     // Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-    #if BOARD_IS_XBUDDY
+    #if BOARD_IS_XBUDDY()
     config_adc_ch(&hadc3, ADC_CHANNEL_4, AdcChannel::MMU_I);
     config_adc_ch(&hadc3, ADC_CHANNEL_8, AdcChannel::board_T);
     config_adc_ch(&hadc3, ADC_CHANNEL_9, AdcChannel::hotend_I);
     config_adc_ch(&hadc3, ADC_CHANNEL_14, AdcChannel::board_I);
     config_adc_ch(&hadc3, ADC_CHANNEL_15, AdcChannel::case_T);
-    #elif BOARD_IS_XLBUDDY
+    #elif BOARD_IS_XLBUDDY()
     config_adc_ch(&hadc3, ADC_CHANNEL_8, AdcChannel::board_T);
     config_adc_ch(&hadc3, ADC_CHANNEL_4, AdcChannel::mux2_y);
     config_adc_ch(&hadc3, ADC_CHANNEL_10, AdcChannel::mux2_x);
@@ -767,7 +767,7 @@ void hw_spi3_init() {
     hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi3.Init.NSS = SPI_NSS_SOFT;
-#if (BOARD_IS_BUDDY)
+#if (BOARD_IS_BUDDY())
     hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
 #else
     hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;

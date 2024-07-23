@@ -19,7 +19,7 @@ using namespace buddy::hw;
 //!
 //! Set fans to maximum, heaters to minimum and disable motors.
 void hwio_safe_state(void) {
-#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+#if BOARD_IS_BUDDY() || BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
     // enable fans, disable hotends
     #if HAS_DWARF()
     // Reset all dwarfs to enable fans
@@ -57,18 +57,18 @@ void hwio_safe_state(void) {
     #endif
 
     // disable motors
-    #if BOARD_IS_XLBUDDY
+    #if BOARD_IS_XLBUDDY()
     xyEnable.write(Pin::State::high);
     #else
     xEnable.write(Pin::State::high);
-        #if BOARD_IS_BUDDY
+        #if BOARD_IS_BUDDY()
     yEnable.write(Pin::State::high);
         #endif
     e0Enable.write(Pin::State::high);
     #endif
     zEnable.write(Pin::State::high);
 
-    #if BOARD_IS_XLBUDDY
+    #if BOARD_IS_XLBUDDY()
     // Disable ESP
     espPower.reset();
 
@@ -76,7 +76,7 @@ void hwio_safe_state(void) {
     fsUSBPwrEnable.set();
     hsUSBEnable.set();
     #endif
-#elif BOARD_IS_DWARF
+#elif BOARD_IS_DWARF()
     // heater OFF
     heat0.write(Pin::State::low);
 
@@ -89,7 +89,7 @@ void hwio_safe_state(void) {
 }
 
 void hwio_low_power_state(void) {
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
     // Disable ESP
     espPower.reset();
 
@@ -105,7 +105,7 @@ void hwio_low_power_state(void) {
 void buddy_disable_heaters(void) {
     // this function is called before breakpoint, and has to be callable from ISR.
     // Do not do any mutexes etc. Only simple pin
-#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
+#if BOARD_IS_BUDDY() || BOARD_IS_XBUDDY()
     gpio_init(MARLIN_PIN(HEAT0), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
     gpio_set(MARLIN_PIN(HEAT0), 0);
 

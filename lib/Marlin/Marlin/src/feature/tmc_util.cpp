@@ -50,13 +50,13 @@
 #include "bsod.h"
 
 #ifndef STALL_THRESHOLD_TMC2130
-#if !(BOARD_IS_DWARF)
+#if !(BOARD_IS_DWARF())
 #include "configuration.hpp"
 #endif
 #endif
 
 #include <device/board.h>
-#if BOARD_IS_XBUDDY
+#if BOARD_IS_XBUDDY()
   #include <hw_configuration.hpp>
 #endif
 
@@ -68,9 +68,9 @@ static inline uint32_t get_tmc_freq(AxisEnum axis_id) {
   case X_AXIS:
   case Y_AXIS:
   case Z_AXIS:
-#if BOARD_IS_XBUDDY
+#if BOARD_IS_XBUDDY()
     return buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? TMC2130_EXT_OSC_FREQ : TMC2130_INT_OSC_FREQ;
-#elif BOARD_IS_XLBUDDY
+#elif BOARD_IS_XLBUDDY()
     return TMC2130_EXT_OSC_FREQ;
 #else
     return TMC2130_INT_OSC_FREQ;

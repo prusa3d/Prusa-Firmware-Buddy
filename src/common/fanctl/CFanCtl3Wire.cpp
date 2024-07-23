@@ -14,7 +14,7 @@
 #include <random.h>
 #include <algorithm>
 
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
     #include "hw_configuration.hpp"
 #endif
 
@@ -79,7 +79,7 @@ int8_t CFanCtlPWM::tick() {
             }
         }
     }
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
     // set output pin
     if (buddy::hw::Configuration::Instance().has_inverted_fans()) {
         m_pin.write(static_cast<Pin::State>(!o));
@@ -98,7 +98,7 @@ void CFanCtlPWM::set_PWM(uint8_t new_pwm) {
 
 void CFanCtlPWM::safeState() {
     set_PWM(max_value);
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
     if (buddy::hw::Configuration::Instance().has_inverted_fans()) {
         m_pin.write(Pin::State::low);
     } else {

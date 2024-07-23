@@ -29,14 +29,14 @@ void HAL_HCD_MspInit(HCD_HandleTypeDef *hcdHandle) {
         GPIO_InitStruct.Alternate = GPIO_AF12_OTG_HS_FS;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
         GPIO_InitStruct.Pin = GPIO_PIN_8;
         GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
         GPIO_InitStruct.Pull = GPIO_PULLUP;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
         HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET);
-#elif (BOARD_IS_XLBUDDY)
+#elif (BOARD_IS_XLBUDDY())
         GPIO_InitStruct.Pin = GPIO_PIN_13;
         GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
         GPIO_InitStruct.Pull = GPIO_PULLUP;
@@ -360,18 +360,18 @@ USBH_StatusTypeDef USBH_LL_DriverVBUS(USBH_HandleTypeDef *phost, uint8_t state) 
     if (phost->id == HOST_HS) {
         if (state == 0) {
             /* Drive high Charge pump */
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
             HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET);
-#elif (BOARD_IS_XLBUDDY)
+#elif (BOARD_IS_XLBUDDY())
             HAL_GPIO_WritePin(GPIOF, GPIO_PIN_13, GPIO_PIN_SET);
 #else
             HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET);
 #endif
         } else {
             /* Drive low Charge pump */
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
             HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET);
-#elif (BOARD_IS_XLBUDDY)
+#elif (BOARD_IS_XLBUDDY())
             HAL_GPIO_WritePin(GPIOF, GPIO_PIN_13, GPIO_PIN_RESET);
 #else
             HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);

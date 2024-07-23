@@ -9,7 +9,7 @@
     #include "espif.h"
 #endif
 
-static_assert(BOARD_IS_XBUDDY);
+static_assert(BOARD_IS_XBUDDY());
 
 #if HAS_PUPPIES()
 void uart6_idle_cb() {

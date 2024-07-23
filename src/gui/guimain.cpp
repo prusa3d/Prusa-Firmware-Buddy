@@ -34,7 +34,7 @@
     #include "screen_fatal_warning.hpp"
 #endif
 
-#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
     #include "hw_configuration.hpp"
 #endif
 
@@ -64,7 +64,7 @@
     #include "MItem_love_board.hpp"
 #endif
 
-#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
     #include "menu_item_xlcd.hpp"
 #endif
 
@@ -173,7 +173,7 @@ static void log_onewire_otp() {
     }
     #endif
 
-    #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+    #if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
     OtpStatus xlcd = buddy::hw::Configuration::Instance().get_xlcd_status();
 
     log_info(XLCD, "%s: Read e. %u, Repeated e. %u, Cyclic e. %u, Retried %u",

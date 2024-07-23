@@ -1,6 +1,6 @@
 #include <device/board.h>
 
-#if (BOARD_IS_XLBUDDY || BOARD_IS_XBUDDY)
+#if (BOARD_IS_XLBUDDY() || BOARD_IS_XBUDDY())
     #include "SPI.h"
     #include <device/board.h>
     #include <device/hal.h>

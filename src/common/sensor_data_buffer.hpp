@@ -9,7 +9,7 @@
 #include <device/board.h>
 namespace SensorData {
 
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
 enum class Sensor {
     bedTemp,
     boardTemp,
@@ -28,7 +28,7 @@ enum class Sensor {
     mbedMCUTemperature,
     count,
 };
-#elif BOARD_IS_XBUDDY
+#elif BOARD_IS_XBUDDY()
 enum class Sensor {
     bedTemp,
     boardTemp,
@@ -194,7 +194,7 @@ private:
     bool allMetricsEnabled = false;
 
     // array of metrics we want to show in sensor screen
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
     constexpr static SensorArray sensors = ConstexprQuickSort::sort(SensorArray {
                                                                         {
                                                                             { "temp_bed", Sensor::bedTemp },
@@ -216,7 +216,7 @@ private:
                                                                     },
         compareFN {});
 
-#elif BOARD_IS_XBUDDY
+#elif BOARD_IS_XBUDDY()
     constexpr static SensorArray sensors = ConstexprQuickSort::sort(SensorArray {
                                                                         { { "temp_bed", Sensor::bedTemp },
                                                                             { "temp_brd", Sensor::boardTemp },

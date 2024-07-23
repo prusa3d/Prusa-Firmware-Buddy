@@ -53,7 +53,7 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
         return creator<SelftestFrameGearsCalib>;
 #endif
 
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
     case SelftestParts::Dock:
         return creator<SelftestFrameDock>;
 
@@ -149,7 +149,7 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     case SelftestParts::CalibZ:
     case SelftestParts::Result:
     case SelftestParts::RevisePrinterSetup:
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
     case SelftestParts::Dock:
     case SelftestParts::ToolOffsets:
 #endif
@@ -189,7 +189,7 @@ const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     case SelftestParts::FirstLayerQuestions:
     case SelftestParts::Result:
     case SelftestParts::RevisePrinterSetup:
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
     case SelftestParts::Dock:
     case SelftestParts::ToolOffsets:
 #endif

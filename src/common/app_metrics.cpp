@@ -31,7 +31,7 @@
 
 #include <config_store/store_instance.hpp>
 
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
     #include <puppies/Dwarf.hpp>
     #include <Marlin/src/module/prusa/toolchanger.h>
 #endif
@@ -172,7 +172,7 @@ void buddy::metrics::RecordMarlinVariables() {
         static int32_t mcu_sum = 0;
         mcu_sum += AdcGet::getMCUTemp();
 
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
         METRIC_DEF(sandwich, "temp_sandwich", METRIC_VALUE_FLOAT, 1000 - 10, METRIC_HANDLER_DISABLE_ALL);
         static int sandwich_sum = 0;
         sandwich_sum += AdcGet::sandwichTemp();
@@ -180,12 +180,12 @@ void buddy::metrics::RecordMarlinVariables() {
         METRIC_DEF(splitter, "temp_splitter", METRIC_VALUE_FLOAT, 1000 - 11, METRIC_HANDLER_DISABLE_ALL);
         static int splitter_sum = 0;
         splitter_sum += AdcGet::splitterTemp();
-#endif /*BOARD_IS_XLBUDDY*/
+#endif /*BOARD_IS_XLBUDDY()*/
 
         if (++sample_nr >= OVERSAMPLENR) {
             metric_record_integer(&mcu, mcu_sum / OVERSAMPLENR);
             mcu_sum = 0;
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
             // The same thermistor, use the same conversion as TEMP_BOARD
             // The function takes downsampled ADC value multiplied by OVERSAMPLENR
             metric_record_float(&sandwich, Temperature::analog_to_celsius_board(sandwich_sum));
@@ -194,7 +194,7 @@ void buddy::metrics::RecordMarlinVariables() {
                 metric_record_float(&splitter, Temperature::analog_to_celsius_board(splitter_sum));
             }
             splitter_sum = 0;
-#endif /*BOARD_IS_XLBUDDY*/
+#endif /*BOARD_IS_XLBUDDY()*/
             sample_nr = 0;
         }
     }
@@ -272,7 +272,7 @@ void buddy::metrics::RecordMarlinVariables() {
 }
 
 #if HAS_ADVANCED_POWER()
-    #if BOARD_IS_XBUDDY
+    #if BOARD_IS_XBUDDY()
 void buddy::metrics::RecordPowerStats() {
     METRIC_DEF(metric_bed_v_raw, "volt_bed_raw", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
     metric_record_integer(&metric_bed_v_raw, advancedpower.GetBedVoltageRaw());
@@ -299,7 +299,7 @@ void buddy::metrics::RecordPowerStats() {
     METRIC_DEF(metric_oc_input_fault, "oc_inp", METRIC_VALUE_INTEGER, 1011, METRIC_HANDLER_ENABLE_ALL);
     metric_record_integer(&metric_oc_input_fault, advancedpower.OvercurrentFaultDetected());
 }
-    #elif BOARD_IS_XLBUDDY
+    #elif BOARD_IS_XLBUDDY()
 void buddy::metrics::RecordPowerStats() {
     METRIC_DEF(metric_splitter_5V_current, "splitter_5V_current", METRIC_VALUE_FLOAT, 1000, METRIC_HANDLER_ENABLE_ALL);
     metric_record_float(&metric_splitter_5V_current, advancedpower.GetDwarfSplitter5VCurrent());
@@ -332,7 +332,7 @@ void buddy::metrics::RecordPrintFilename() {
     }
 }
 
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
 void buddy::metrics::record_dwarf_internal_temperatures() {
     // Dwarf board and MCU temperature for sensor screen
     buddy::puppies::Dwarf &dwarf = prusa_toolchanger.getActiveToolOrFirst();

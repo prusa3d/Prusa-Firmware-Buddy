@@ -107,7 +107,7 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     ,
     MI_LOADCELL_SCALE
 #endif
-#if (BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XLBUDDY())
     ,
     MI_RESTORE_CALIBRATION_FROM_USB, MI_BACKUP_CALIBRATION_TO_USB,
     MI_FS_SPAN<0, false>, MI_FS_SPAN<0, true>,

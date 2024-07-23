@@ -2144,7 +2144,7 @@ float scan_thermistor_table_bed(const int raw){
     #if ENABLED(HEATBREAK_USER_THERMISTOR)
       return user_thermistor_to_deg_c(CTI_HEATBREAK, raw);
     #elif ENABLED(HEATBREAK_USES_THERMISTOR)
-      #if (BOARD_IS_XBUDDY)
+      #if (BOARD_IS_XBUDDY())
           uint8_t loveboard_bom = hwio_get_loveboard_bomid();
           if ((loveboard_bom < 33 && loveboard_bom != 0) // error -> expect more common variant
               || loveboard_bom == 0xff) { // error when run in simulator -> simulator uses table 5
@@ -3192,7 +3192,7 @@ void Temperature::readings_ready() {
 HAL_TEMP_TIMER_ISR() {
   HAL_timer_isr_prologue(TEMP_TIMER_NUM);
 
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
     AdcGet::sampleNozzle();
 #endif
     Temperature::isr();

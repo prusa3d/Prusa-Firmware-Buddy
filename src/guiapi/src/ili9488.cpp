@@ -130,13 +130,13 @@ void ili9488_ctrl_set(uint8_t ctrl);
 using namespace buddy::hw;
 
 static void ili9488_set_cs(void) {
-#if (BOARD_IS_BUDDY)
+#if (BOARD_IS_BUDDY())
     displayCs.write(Pin::State::high);
 #endif
 }
 
 static void ili9488_clr_cs(void) {
-#if (BOARD_IS_BUDDY)
+#if (BOARD_IS_BUDDY())
     displayCs.write(Pin::State::low);
 #endif
 }

@@ -90,7 +90,7 @@
 
 #include <config_store/store_c_api.h>  // for has_inverted_axis
 
-#if !(BOARD_IS_DWARF)
+#if !(BOARD_IS_DWARF())
 #include "configuration.hpp"
 #endif
 

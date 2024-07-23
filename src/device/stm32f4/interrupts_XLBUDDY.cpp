@@ -9,7 +9,7 @@
     #include "espif.h"
 #endif
 
-static_assert(BOARD_IS_XLBUDDY);
+static_assert(BOARD_IS_XLBUDDY());
 
 extern "C" void uart3_idle_cb();
 

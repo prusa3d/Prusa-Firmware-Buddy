@@ -5,11 +5,11 @@
 #include "hwio_pindef.h"
 #include <option/has_mmu2.h>
 
-#if BOARD_IS_XBUDDY
+#if BOARD_IS_XBUDDY()
     #include "hw_configuration.hpp"
 #endif
 
-#if !(BOARD_IS_DWARF)
+#if !(BOARD_IS_DWARF())
     #include "bsod.h"
 #endif
 
@@ -25,7 +25,7 @@ AdvancedPower::AdvancedPower()
     : isInitialized(false) {
 }
 
-#if !(BOARD_IS_DWARF)
+#if !(BOARD_IS_DWARF())
 bool AdvancedPower::HSUSBOvercurentFaultDetected() const {
     return (hsUSBOvercurrent.read() == Pin::State::low);
 }
@@ -36,7 +36,7 @@ bool AdvancedPower::FSUSBOvercurentFaultDetected() const {
 #endif
 
 void AdvancedPower::ResetOvercurrentFault() {
-#if BOARD_IS_XBUDDY
+#if BOARD_IS_XBUDDY()
     faultMemoryReset.write(Pin::State::low);
     HAL_Delay(2);
     faultMemoryReset.write(Pin::State::high);
@@ -45,7 +45,7 @@ void AdvancedPower::ResetOvercurrentFault() {
     isInitialized = true;
 }
 
-#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
+#if BOARD_IS_BUDDY() || BOARD_IS_XBUDDY()
 
 bool AdvancedPower::HeaterOvercurentFaultDetected() const {
     return (heaterCurrentFault.read() == Pin::State::high);
@@ -60,12 +60,12 @@ float AdvancedPower::GetInputCurrent() const {
 }
 #endif
 
-#if !(BOARD_IS_DWARF)
+#if !(BOARD_IS_DWARF())
 void AdvancedPower::Update() {
     if (!isInitialized) {
         return;
     }
-    #if BOARD_IS_XBUDDY
+    #if BOARD_IS_XBUDDY()
     if (HeaterOvercurentFaultDetected()) {
         fatal_error(ErrCode::ERR_ELECTRO_NOZZLE_OVERCURRENT);
     } else if (OvercurrentFaultDetected()) {

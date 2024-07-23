@@ -33,7 +33,7 @@
 #if HOTENDS > 1 || E_STEPPERS > 1
   #error "Buddy supports up to 1 hotends / E-steppers."
 #endif
-#if !BOARD_IS_DWARF
+#if !BOARD_IS_DWARF()
   #error Wrong board
 #endif
 

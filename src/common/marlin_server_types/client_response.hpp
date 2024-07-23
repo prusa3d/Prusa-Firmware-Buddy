@@ -1005,7 +1005,7 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
         return PhasesSelftest::_last_FirstLayer;
     case SelftestParts::FirstLayerQuestions:
         return PhasesSelftest::_last_FirstLayerQuestions;
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
     case SelftestParts::Dock:
         return PhasesSelftest::_last_Dock;
     case SelftestParts::ToolOffsets:
@@ -1088,7 +1088,7 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
         return SelftestParts::Result;
     }
 
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
     if (SelftestPartContainsPhase(SelftestParts::Dock, ph)) {
         return SelftestParts::Dock;
     }

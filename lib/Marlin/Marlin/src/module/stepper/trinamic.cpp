@@ -95,7 +95,7 @@ enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
   TMC_SPI_DEFINE(Z3, Z);
 #endif
 #if AXIS_HAS_SPI(E0)
-  #if BOARD_IS_XLBUDDY
+  #if BOARD_IS_XLBUDDY()
     TMCMarlin<TMC2130Stepper> stepperE0('E', '0', E_AXIS, TMC2130Stepper::Connection::Remote, E0_RSENSE);
   #else
     TMC_SPI_DEFINE_E(0);

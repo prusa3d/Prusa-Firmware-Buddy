@@ -9,7 +9,7 @@
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
 #include "selftest_tool_helper.hpp"
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
     #include "src/module/prusa/toolchanger.h"
 #endif
 #include <config_store/store_instance.hpp>

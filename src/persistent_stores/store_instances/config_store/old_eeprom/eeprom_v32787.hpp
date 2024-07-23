@@ -138,9 +138,9 @@ constexpr vars_body_t body_defaults = {
     80, // EEVAR_LOADCELL_HYST
     -40, // EEVAR_LOADCELL_THRS_CONTINOUS
     std::numeric_limits<int32_t>::min(), // EEVAR_FS_REF_VALUE_0, std::numeric_limits<int32_t>::min() == will require calibration
-#if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100)
+#if (BOARD_IS_XBUDDY() && defined LOVEBOARD_HAS_PT100)
     100, // EEVAR_FS_VALUE_SPAN_0
-#elif (BOARD_IS_XLBUDDY)
+#elif (BOARD_IS_XLBUDDY())
     1000,
 #else
     350000, // EEVAR_FS_VALUE_SPAN_0

@@ -12,20 +12,20 @@ extern "C" {
 }
 #endif
 
-#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+#if BOARD_IS_BUDDY() || BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
 /************************************************
  * Interrupt priorities:
  *************************************************/
 static_assert(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY == 5);
     #define ISR_PRIORITY_TICK_TIMER 0
     #define ISR_PRIORITY_WWDG       0
-    #if !BOARD_IS_XBUDDY
+    #if !BOARD_IS_XBUDDY()
         #define ISR_PRIORITY_ENDSTOP 0 // High priority to preempt the STEP_TIMER when possible
     #endif
     #define ISR_PRIORITY_PHASE_TIMER 1
     #define ISR_PRIORITY_STEP_TIMER  2
     #define ISR_PRIORITY_HX717_HARD  3
-    #if BOARD_IS_XBUDDY
+    #if BOARD_IS_XBUDDY()
         #define ISR_PRIORITY_ENDSTOP ISR_PRIORITY_HX717_HARD // Shared EXTI line: avoid STEP jitter
     #endif
     #define ISR_PRIORITY_TEMP_TIMER    4
@@ -64,7 +64,7 @@ static_assert(configLIBRARY_LOWEST_INTERRUPT_PRIORITY == 15);
 
 static_assert(configTIMER_TASK_PRIORITY == 5); // 5 is more than osPriorityRealtime
 
-#elif BOARD_IS_DWARF
+#elif BOARD_IS_DWARF()
 /************************************************
  * Interrupt priorities:
  *************************************************/
@@ -85,7 +85,7 @@ static_assert(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY == 0);
     #define TASK_PRIORITY_STARTUP        osPriorityHigh
     #define TASK_PRIORITY_MODBUS         osPriorityAboveNormal
 
-#elif BOARD_IS_MODULARBED
+#elif BOARD_IS_MODULARBED()
 /************************************************
  * Interrupt priorities:
  *************************************************/

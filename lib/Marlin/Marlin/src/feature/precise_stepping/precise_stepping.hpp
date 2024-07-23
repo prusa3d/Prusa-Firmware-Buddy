@@ -103,7 +103,7 @@ public:
     // For now, used only for resetting the positions of axes.
     static PreciseSteppingFlag_t flags;
 
-#if !BOARD_IS_DWARF
+#if !BOARD_IS_DWARF()
     /// This completely arbitrary number is increased every time a stall happens (we run out of motion data)
     /// The idea is that the "subscriber" compares the value to the previous value it has seen and if they differ, the planner has stalled during the time
     /// This doesn't even have to be volatile, even though we're accessing from other threads, as we're only checking for difference and it's only informative.

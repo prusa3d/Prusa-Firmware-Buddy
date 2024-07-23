@@ -189,9 +189,9 @@ namespace defaults {
     inline constexpr int32_t extruder_fs_ref_ins_value { std::numeric_limits<int32_t>::min() };
 
     inline constexpr uint32_t extruder_fs_value_span {
-#if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100)
+#if (BOARD_IS_XBUDDY() && defined LOVEBOARD_HAS_PT100)
         100
-#elif (BOARD_IS_XLBUDDY)
+#elif (BOARD_IS_XLBUDDY())
         1000
 #else
         350000

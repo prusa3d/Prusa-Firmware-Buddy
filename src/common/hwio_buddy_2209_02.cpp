@@ -37,7 +37,7 @@
     #include "../../lib/Marlin/Marlin/src/module/modular_heatbed.h"
 #endif
 
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY())
     #include "hw_configuration.hpp"
 #endif
 
@@ -316,7 +316,7 @@ void hwio_update_1ms(void) {
     }
 }
 
-#if (BOARD_IS_XBUDDY && HAS_TEMP_HEATBREAK)
+#if (BOARD_IS_XBUDDY() && HAS_TEMP_HEATBREAK)
 extern "C" uint8_t hwio_get_loveboard_bomid() {
     return buddy::hw::Configuration::Instance().get_love_board().bomID;
 }
@@ -488,15 +488,15 @@ uint32_t analogRead(uint32_t ulPin) {
 #endif
 
         case MARLIN_PIN(TEMP_0):
-#if (BOARD_IS_BUDDY || BOARD_IS_XBUDDY)
+#if (BOARD_IS_BUDDY() || BOARD_IS_XBUDDY())
             return AdcGet::nozzle();
 #endif
 
 #if (HAS_TEMP_HEATBREAK)
         case MARLIN_PIN(TEMP_HEATBREAK):
-    #if (BOARD_IS_BUDDY)
+    #if (BOARD_IS_BUDDY())
             return AdcGet::pinda();
-    #elif (BOARD_IS_XBUDDY)
+    #elif (BOARD_IS_XBUDDY())
             return AdcGet::heatbreakTemp();
     #endif
 #endif // HAS_TEMP_HEATBREAK

@@ -25,7 +25,7 @@ TRACED_ISR(TIM8_TRG_COM_TIM14_IRQHandler, HAL_TIM_IRQHandler, &htim14);
 TRACED_ISR(WWDG_IRQHandler, HAL_WWDG_IRQHandler, &hwwdg);
 TRACED_ISR(OTG_FS_IRQHandler, tud_int_handler, 0);
 
-#if !BOARD_IS_XL_DEV_KIT_XLB
+#if !BOARD_IS_XL_DEV_KIT_XLB()
 
 TRACED_ISR(OTG_HS_IRQHandler, HAL_HCD_IRQHandler, &hhcd_USB_OTG_HS);
 TRACED_ISR(ETH_IRQHandler, HAL_ETH_IRQHandler, &heth);

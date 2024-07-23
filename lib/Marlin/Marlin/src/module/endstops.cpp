@@ -752,7 +752,7 @@ void Endstops::update() {
   }
 
 // Handle XY probing
-#if BOARD_IS_XLBUDDY
+#if BOARD_IS_XLBUDDY()
   // TODO: This does not clean the endstop bits on xy_probe disable. It cannot as it might clear the real endstops.
   // The hit_on_purpose is supposed to be called cleaning the bits.
   if(stepper.axis_is_moving(X_AXIS)) {

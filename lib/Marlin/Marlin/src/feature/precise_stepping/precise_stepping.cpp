@@ -27,7 +27,7 @@ LOG_COMPONENT_DEF(PreciseStepping, logging::Severity::debug);
     #include <sound.hpp>
 #endif
 
-#if BOARD_IS_DWARF
+#if BOARD_IS_DWARF()
     #define X_APPLY_DIR(v) X_DIR_WRITE(v)
     #define Y_APPLY_DIR(v) Y_DIR_WRITE(v)
     #define Z_APPLY_DIR(v) Z_DIR_WRITE(v)
@@ -40,7 +40,7 @@ LOG_COMPONENT_DEF(PreciseStepping, logging::Severity::debug);
 #endif
 
 #ifdef SQUARE_WAVE_STEPPING
-    #if PRINTER_IS_PRUSA_XL() && !BOARD_IS_DWARF
+    #if PRINTER_IS_PRUSA_XL() && !BOARD_IS_DWARF()
         // on XLBuddy the XY pin assignment is dynamic depending on board revision
         #define X_STEP_SET() buddy::hw::XStep->toggle();
         #define Y_STEP_SET() buddy::hw::YStep->toggle();
@@ -92,7 +92,7 @@ std::atomic<bool> PreciseStepping::busy = false;
 volatile uint8_t PreciseStepping::step_dl_miss = 0;
 volatile uint8_t PreciseStepping::step_ev_miss = 0;
 
-#if !BOARD_IS_DWARF
+#if !BOARD_IS_DWARF()
 std::atomic<uint32_t> PreciseStepping::stall_count = 0;
 #endif
 
@@ -990,7 +990,7 @@ void PreciseStepping::process_queue_of_blocks() {
         if (PreciseStepping::total_print_time && PreciseStepping::get_nearest_step_event_status() == STEP_EVENT_INFO_STATUS_GENERATED_INVALID) {
             // motion was already started and the move queue is about to (or ran) dry: enqueue an end block
             append_ending_empty_move();
-#if !BOARD_IS_DWARF
+#if !BOARD_IS_DWARF()
             stall_count++;
 #endif
         } else if (PreciseStepping::total_print_time == 0. && busy) {
