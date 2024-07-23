@@ -41,7 +41,7 @@ public:
     IGcodeReader *operator->() { return this; }
 
     bool is_open() const {
-        return true;
+        return provider;
     }
 
     void set_restore_info(const GCodeReaderStreamRestoreInfo &) {}
