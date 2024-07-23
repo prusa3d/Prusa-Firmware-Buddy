@@ -295,11 +295,7 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
 
             if (stream_start_result != IGcodeReader::Result_t::RESULT_OK) {
                 log_debug(MediaPrefetch, "Fetch start stream fail: %i", static_cast<int>(stream_start_result));
-
-                // Close the reader so that stream_gcode_start is attempted on the next fetch
-                s.gcode_reader = {};
-
-                fetch_report_error(control, stream_start_result);
+                fetch_handle_error(control, stream_start_result);
                 return;
             }
 
@@ -465,7 +461,7 @@ bool MediaPrefetchManager::fetch_command(AsyncJobExecutionControl &control) {
         ch = '\n';
 
     } else if (getc_result != SR::RESULT_OK) {
-        fetch_report_error(control, getc_result);
+        fetch_handle_error(control, getc_result);
         return false;
 
     } else {
@@ -511,20 +507,11 @@ bool MediaPrefetchManager::fetch_command(AsyncJobExecutionControl &control) {
     return true;
 }
 
-void MediaPrefetchManager::fetch_report_error(AsyncJobExecutionControl &control, IGcodeReader::Result_t error) {
+void MediaPrefetchManager::fetch_handle_error(AsyncJobExecutionControl &control, IGcodeReader::Result_t error) {
     using SR = IGcodeReader::Result_t;
 
     assert(error != SR::RESULT_OK);
     log_debug(MediaPrefetch, "Read error: %i", static_cast<int>(error));
-
-    // If the read errored, update the tail error status and wait for another fetch
-    std::lock_guard mutex_guard(mutex);
-
-    // Early return if the job was discarded
-    // Do this after locking the mutex, to ensure proper synchronization (stop() calls discard() before locking the mutex)
-    if (control.is_discarded()) {
-        return;
-    }
 
     static constexpr EnumArray<SR, Status, static_cast<int>(SR::_RESULT_LAST) + 1> status_map {
         { SR::RESULT_OK, Status::end_of_buffer },
@@ -535,12 +522,26 @@ void MediaPrefetchManager::fetch_report_error(AsyncJobExecutionControl &control,
         { SR::RESULT_CORRUPT, Status::corruption },
     };
     const auto status = status_map[error];
+    const bool is_error = this->is_error(status);
+
+    // Close the reader now, release the handle as soon as possible
+    if (status != Status::end_of_buffer) {
+        worker_state.gcode_reader = {};
+    }
+
+    // If the read errored, update the tail error status and wait for another fetch
+    std::lock_guard mutex_guard(mutex);
+
+    // Early return if the job was discarded
+    // Do this after locking the mutex, to ensure proper synchronization (stop() calls discard() before locking the mutex)
+    if (control.is_discarded()) {
+        return;
+    }
+
     shared_state.read_tail.status = status;
 
     // If we get in an error, trying to just keep reading likely wouldn't work -> reset the worker, re-try to continue from read_tail
-    if (is_error(status)) {
-        shared_state.worker_reset_pending = true;
-    }
+    shared_state.worker_reset_pending |= is_error;
 }
 
 bool MediaPrefetchManager::can_read_entry_raw(size_t bytes) const {

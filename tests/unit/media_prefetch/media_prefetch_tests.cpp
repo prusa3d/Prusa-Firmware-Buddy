@@ -189,6 +189,40 @@ TEST_CASE("media_prefetch::buffer_test") {
     }
 }
 
+TEST_CASE("media_prefetch::file_handle_tests") {
+    MediaPrefetchManager::ReadResult c;
+
+    SECTION("File gets closed after reading the whole file") {
+        StubGcodeProviderMemory p;
+        p.add_gcode("G0");
+
+        MediaPrefetchManager mp;
+        mp.start(p.filename(), {});
+        mp.issue_fetch();
+        CHECK(!mp.worker_state.gcode_reader.is_open());
+    }
+
+    SECTION("File gets closed after an error") {
+        StubGcodeProviderMemory p;
+        p.add_gcode("G0");
+        p.add_breakpoint(R::RESULT_ERROR);
+        p.add_gcode("G1");
+
+        MediaPrefetchManager mp;
+        mp.start(p.filename(), {});
+        mp.issue_fetch();
+
+        REQUIRE(read_gcode(mp) == "G0");
+        REQUIRE(mp.read_command(c) == S::usb_error);
+        REQUIRE(!mp.worker_state.gcode_reader.is_open());
+
+        mp.issue_fetch();
+        REQUIRE(read_gcode(mp) == "G1");
+        REQUIRE(mp.read_command(c) == S::end_of_file);
+        REQUIRE(!mp.worker_state.gcode_reader.is_open());
+    }
+}
+
 TEST_CASE("media_prefetch::feed_test") {
     StubGcodeProviderMemory p;
     MediaPrefetchManager mp;

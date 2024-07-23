@@ -117,7 +117,7 @@ private:
     /// \returns \p false if the execution of the fetch should stop
     bool fetch_command(AsyncJobExecutionControl &control);
 
-    void fetch_report_error(AsyncJobExecutionControl &control, IGcodeReader::Result_t error);
+    void fetch_handle_error(AsyncJobExecutionControl &control, IGcodeReader::Result_t error);
 
 private:
     /// \returns where the read contains at least \n bytes bytes
