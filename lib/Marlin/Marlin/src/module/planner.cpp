@@ -1672,18 +1672,31 @@ bool Planner::_populate_block(block_t * const block,
   // Calculate and limit speed in mm/sec for each axis
   xyze_float_t current_speed;
   float speed_factor = 1.0f; // factor <1 decreases speed
-  LOOP_XYZE(i) {
+
+  #ifdef COREXY_CONVERT_LIMITS
+    const float speed_mm_x = std::abs(current_speed[X_AXIS] = delta_mm[X_AXIS] * inverse_secs);
+    const float speed_mm_y = std::abs(current_speed[Y_AXIS] = delta_mm[Y_AXIS] * inverse_secs);
+    const feedRate_t highest_strain = (speed_mm_x + speed_mm_y) * 0.5f;
+    
+    const float max_feedrate_mm_s = settings.max_feedrate_mm_s[X_AXIS];
+    if(highest_strain > max_feedrate_mm_s) {
+      NOMORE(speed_factor, max_feedrate_mm_s / highest_strain);
+    }
+  #else
+    LOOP_XY(i) {
+      const float delta_mm_i = delta_mm[i];
+      const feedRate_t cs = ABS(current_speed[i] = delta_mm_i * inverse_secs);
+      if (cs > settings.max_feedrate_mm_s[i]) NOMORE(speed_factor, settings.max_feedrate_mm_s[i] / cs);
+    }
+  #endif
+
+  LOOP_S_LE_N(i, Z_AXIS, E_AXIS) {
     const float delta_mm_i = delta_mm[i];
     const feedRate_t cs = ABS(current_speed[i] = delta_mm_i * inverse_secs);
+    if (cs > settings.max_feedrate_mm_s[i]) NOMORE(speed_factor, settings.max_feedrate_mm_s[i] / cs);
     #if ENABLED(DISTINCT_E_FACTORS)
       if (i == E_AXIS) i += extruder;
     #endif
-#ifdef COREXY_CONVERT_LIMITS
-    const float max_feedrate_mm_s = settings.max_feedrate_mm_s[i] / std::sqrt(2.f);
-    if (cs > max_feedrate_mm_s) NOMORE(speed_factor, max_feedrate_mm_s / cs);
-#else
-    if (cs > settings.max_feedrate_mm_s[i]) NOMORE(speed_factor, settings.max_feedrate_mm_s[i] / cs);
-#endif
   }
 
   // Max segment time in µs.
@@ -2296,11 +2309,7 @@ void Planner::refresh_acceleration_rates() {
   #endif
   uint32_t highest_rate = 1;
   LOOP_XYZE_N(i) {
-#ifdef COREXY_CONVERT_LIMITS
-    max_acceleration_msteps_per_s2[i] = settings.max_acceleration_mm_per_s2[i] * settings.axis_msteps_per_mm[i] / std::sqrt(2.f);
-#else
     max_acceleration_msteps_per_s2[i] = settings.max_acceleration_mm_per_s2[i] * settings.axis_msteps_per_mm[i];
-#endif
     if (AXIS_CONDITION) NOLESS(highest_rate, max_acceleration_msteps_per_s2[i]);
   }
   cutoff_long = 4294967295UL / highest_rate; // 0xFFFFFFFFUL
