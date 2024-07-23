@@ -47,8 +47,6 @@ TestResult get_test_result(Action action, Tool tool) {
         }
     case Action::Gears:
         return evaluate_results(sr.gears);
-    case Action::InputShaperCalibration:
-        return evaluate_results(config_store().selftest_result_input_shaper_calibration.get());
     case Action::_count:
         break;
     }
@@ -77,9 +75,6 @@ uint64_t get_test_mask(Action action) {
         return stmZcalib;
     case Action::Gears:
         return stmGears;
-    case Action::InputShaperCalibration:
-        bsod("get_test_mask");
-        break;
     case Action::_count:
         break;
     }

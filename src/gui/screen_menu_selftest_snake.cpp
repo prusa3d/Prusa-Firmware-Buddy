@@ -148,12 +148,6 @@ void do_snake(Action action, Tool tool = Tool::_first) {
             break;
 #endif
 
-#if HAS_INPUT_SHAPER_CALIBRATION()
-        case Action::InputShaperCalibration:
-            marlin_client::gcode("M1959");
-            break;
-#endif
-
         default:
             has_test_special_handling = false;
             break;

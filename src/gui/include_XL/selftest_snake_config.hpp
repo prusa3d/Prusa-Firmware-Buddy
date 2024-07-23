@@ -41,7 +41,6 @@ enum class Action {
     ToolOffsetsCalibration,
     BedHeaters,
     PhaseSteppingCalibration,
-    InputShaperCalibration,
     _count,
     _last = _count - 1,
     _first = Fans,
@@ -128,7 +127,6 @@ inline constexpr MenuItemText blank_item_texts[] {
     { Action::BedHeaters, N_("%d Bed Heater Test") },
     { Action::NozzleHeaters, N_("%d Nozzle Heaters Test") },
     { Action::PhaseSteppingCalibration, N_("%d Phase Stepping Calibration") },
-    { Action::InputShaperCalibration, N_("%d Input Shaper Calibration") },
 };
 
 TestResult get_test_result(Action action, Tool tool);
