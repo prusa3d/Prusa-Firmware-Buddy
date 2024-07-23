@@ -159,14 +159,18 @@ void MediaPrefetchManager::start(const char *filepath, const GCodeReaderPosition
 
     log_debug(MediaPrefetch, "Media prefetch start '%s' %" PRIu32, filepath, position.offset);
 
-    // The worker is definitely invalidated after we've called stop, so we can write into shared_data without synchronization
-    assert(strlen(filepath) < shared_state.filepath.size());
-    strlcpy(shared_state.filepath.data(), filepath, shared_state.filepath.size());
+    // Set up for the new file
+    {
+        std::lock_guard mutex_guard(mutex);
 
-    assert(shared_state.worker_reset_pending);
-    manager_state.read_head.gcode_pos = position;
-    shared_state.read_tail.gcode_pos = position;
-    shared_state.read_tail.status = Status::end_of_buffer;
+        assert(strlen(filepath) < shared_state.filepath.size());
+        strlcpy(shared_state.filepath.data(), filepath, shared_state.filepath.size());
+
+        manager_state.read_head.gcode_pos = position;
+        shared_state.worker_reset_pending = true;
+        shared_state.read_tail.gcode_pos = position;
+        shared_state.read_tail.status = Status::end_of_buffer;
+    }
 }
 
 void MediaPrefetchManager::stop() {
@@ -176,9 +180,14 @@ void MediaPrefetchManager::stop() {
     worker_job.discard();
 
     // Reset us to the initial state
-    std::lock_guard mutex_guard(mutex);
-    shared_state = {};
-    manager_state = {};
+    {
+        std::lock_guard mutex_guard(mutex);
+        shared_state = {};
+        manager_state = {};
+    }
+
+    // Issue a "fetch" (with fetch_requested = false) that closes the file handle
+    worker_job.issue([this](AsyncJobExecutionControl &control) { fetch_routine(control); });
 }
 
 bool MediaPrefetchManager::check_buffer_empty() const {
@@ -192,9 +201,15 @@ bool MediaPrefetchManager::check_ready_to_start_print() const {
 }
 
 void MediaPrefetchManager::issue_fetch() {
-    // Some fetch is already running -> let it finish
-    if (worker_job.is_active()) {
-        return;
+    {
+        std::lock_guard mutex_guard(mutex);
+
+        // Some fetch is already running -> let it finish
+        if (worker_job.is_active() && shared_state.fetch_requested) {
+            return;
+        }
+
+        shared_state.fetch_requested = true;
     }
 
     log_debug(MediaPrefetch, "Media prefetch issue fetch");
@@ -233,6 +248,7 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
     // (Re)initialize the reader if necessary
     {
         bool reader_needs_initialization = !s.gcode_reader.is_open();
+        bool fetch_requested;
 
         // Hold some variables on the stack so that we can do the AnyGcodeFormatReader initialization outside of the mutex
         decltype(shared_state.filepath) filepath;
@@ -246,6 +262,7 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
             }
 
             filepath = shared_state.filepath;
+            fetch_requested = shared_state.fetch_requested;
 
             if (shared_state.worker_reset_pending) {
                 shared_state.worker_reset_pending = false;
@@ -316,6 +333,11 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
 
         } else {
             s.gcode_reader->update_validity(filepath.data());
+        }
+
+        // Fetch not requested - we just do the file handle thing and exit
+        if (!fetch_requested) {
+            return;
         }
     }
 

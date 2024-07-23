@@ -724,12 +724,7 @@ void static finalize_print(bool finished) {
     // Reset IS at the end of the print
     input_shaper::init();
 
-    {
-        media_prefetch.stop();
-
-        // We need to issue a "fetch" to make the prefetch close the file handle
-        media_prefetch.issue_fetch();
-    }
+    media_prefetch.stop();
 
     server.print_is_serial = false; // reset flag about serial print
 
@@ -1696,6 +1691,7 @@ static void _server_print_loop(void) {
                 // Saving the result for connect, we already send the job id to them at this point.
                 marlin_vars().add_job_result(job_id, marlin_vars_t::JobInfo::JobResult::aborted);
             }
+            media_prefetch.stop();
             fsm_destroy(ClientFSM::PrintPreview);
             break;
 
@@ -2051,6 +2047,7 @@ static void _server_print_loop(void) {
         server.print_state = State::Idle;
         PrintPreview::Instance().ChangeState(IPrintPreview::State::inactive);
         fsm_destroy(ClientFSM::PrintPreview);
+        media_prefetch.stop();
         break;
 
     case State::Finishing_WaitIdle:
@@ -2103,6 +2100,7 @@ static void _server_print_loop(void) {
             finalize_print(false);
         }
 
+        media_prefetch.stop();
         server.print_state = State::Idle;
         break;
 

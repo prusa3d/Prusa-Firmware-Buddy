@@ -198,6 +198,9 @@ private:
         /// If set to true, indicates that the worker should completely reset its state and try start fetching from \p read_tail
         bool worker_reset_pending = true;
 
+        /// If set to false, means that no fetching is actually requested and the prefetch should only try to open the file
+        bool fetch_requested = false;
+
         /// Number of commands stored in the buffer
         size_t commands_in_buffer = 0;
 

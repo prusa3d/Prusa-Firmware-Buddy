@@ -221,6 +221,21 @@ TEST_CASE("media_prefetch::file_handle_tests") {
         REQUIRE(mp.read_command(c) == S::end_of_file);
         REQUIRE(!mp.worker_state.gcode_reader.is_open());
     }
+
+    SECTION("File gets closed after calling stop()") {
+        StubGcodeProviderMemory p;
+        p.add_breakpoint(R::RESULT_TIMEOUT);
+
+        MediaPrefetchManager mp;
+        mp.start(p.filename(), {});
+        mp.issue_fetch();
+
+        REQUIRE(mp.read_command(c) == S::end_of_buffer);
+        REQUIRE(mp.worker_state.gcode_reader.is_open());
+
+        mp.stop();
+        REQUIRE(!mp.worker_state.gcode_reader.is_open());
+    }
 }
 
 TEST_CASE("media_prefetch::feed_test") {
