@@ -14,7 +14,7 @@ IWiInfo::IWiInfo(const string_view_utf8 &value, const string_view_utf8 &label, c
 
 void IWiInfo::update_extension_width() {
     uint16_t new_width;
-    if (id_icon) {
+    if (id_icon && icon_position == IconPosition::right) {
         new_width = id_icon->w;
     } else {
         new_width = value_.computeNumUtf8Chars() * width(font);
