@@ -74,8 +74,6 @@ TestResult get_test_result(Action action, Tool tool) {
         }
     case Action::PhaseSteppingCalibration:
         return evaluate_results(config_store().selftest_result_phase_stepping.get());
-    case Action::InputShaperCalibration:
-        return evaluate_results(config_store().selftest_result_input_shaper_calibration.get());
     case Action::_count:
         break;
     }
@@ -131,7 +129,6 @@ uint64_t get_test_mask(Action action) {
     case Action::ToolOffsetsCalibration:
         return stmToolOffsets;
     case Action::PhaseSteppingCalibration:
-    case Action::InputShaperCalibration:
         bsod("get_test_mask");
         break;
     case Action::_count:
