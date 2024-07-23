@@ -585,17 +585,6 @@ static void M1959_internal(PhasesInputShaperCalibration phase) {
 namespace PrusaGcodeSuite {
 
 void M1959() {
-    if (parser.seen('W')) {
-        switch (const uint8_t w = parser.value_byte()) {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-            set_test_result(static_cast<TestResult>(w));
-        }
-        return;
-    }
-
     switch (get_test_result()) {
     case TestResult_Unknown:
         // Do not run calibration on the initial wizard after factory reset,
