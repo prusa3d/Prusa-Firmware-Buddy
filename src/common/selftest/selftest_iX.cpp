@@ -374,6 +374,11 @@ void CSelftest::Loop() {
     case stsSelftestStop:
         restoreAfterSelftest();
         break;
+#if HAS_PHASE_STEPPING()
+    case stsPhaseStepping:
+        bsod("phase stepping calibration is only supported as gcode, not as a selftest");
+        break;
+#endif // HAS_PHASE_STEPPING()
     case stsFinish:
         phaseFinish();
         break;

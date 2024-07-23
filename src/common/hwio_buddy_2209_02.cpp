@@ -30,6 +30,8 @@
 #include <option/has_gui.h>
 #include <option/has_modularbed.h>
 
+#include <Pin.hpp>
+
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "../../lib/Marlin/Marlin/src/module/prusa/toolchanger.h"
 #endif
@@ -379,6 +381,14 @@ void hwio_arduino_error(int err, uint32_t pin32) {
     }
     bsod(text);
 }
+
+#if HAS_PHASE_STEPPING()
+// Using handlers alike XL uses for backwards compatibility
+namespace buddy::hw {
+const OutputPin *XStep = &xStep;
+const OutputPin *YStep = &yStep;
+} // namespace buddy::hw
+#endif
 
 /**
  * @brief Read digital pin to be used from Marlin

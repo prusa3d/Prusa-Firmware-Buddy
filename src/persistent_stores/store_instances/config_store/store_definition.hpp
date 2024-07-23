@@ -416,7 +416,7 @@ struct CurrentStore
     StoreItem<SelftestResult, defaults::selftest_result, journal::hash("Selftest Result Gears")> selftest_result;
 #endif
 
-#if PRINTER_IS_PRUSA_XL()
+#if HAS_PHASE_STEPPING()
     StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Test Result Phase Stepping")> selftest_result_phase_stepping;
 #endif
 

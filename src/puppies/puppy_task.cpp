@@ -226,8 +226,10 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
 
             TaskDeps::wait(TaskDeps::Tasks::puppy_run);
 
+#if HAS_DWARF()
             // write current Marlin's state of the E TMC
             stepperE0.push();
+#endif
 
             // now run puppy main loop
             puppy_task_loop();

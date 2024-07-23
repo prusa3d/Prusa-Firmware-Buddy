@@ -44,6 +44,8 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
         } else {
             return evaluate_results(sr.tools[ftrstd::to_underlying(tool)].fsensor);
         }
+    case Action::PhaseSteppingCalibration:
+        return evaluate_results(config_store().selftest_result_phase_stepping.get());
     case Action::_count:
         break;
     }
@@ -72,6 +74,8 @@ uint64_t get_test_mask(Action action) {
         return stmLoadcell;
     case Action::ZAlign:
         return stmZcalib;
+    case Action::PhaseSteppingCalibration:
+        return stmPhaseStepping;
     case Action::_count:
         break;
     }

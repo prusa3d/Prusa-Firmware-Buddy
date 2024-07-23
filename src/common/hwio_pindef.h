@@ -49,6 +49,7 @@
 #include "buddy/priorities_config.h"
 #include <option/has_modularbed.h>
 #include <option/has_loadcell_hx717.h>
+#include <option/has_phase_stepping.h>
 
 #if (!defined(PRINTER_IS_PRUSA_MINI) || !defined(PRINTER_IS_PRUSA_MK4) || !defined(PRINTER_IS_PRUSA_MK3_5) \
     || !defined(PRINTER_IS_PRUSA_XL) || !defined(PRINTER_IS_PRUSA_iX))
@@ -544,6 +545,11 @@ inline Pin::State xyProbeReadFn() {
     const bool zStall = !static_cast<bool>(buddy::hw::zDiag.read()); // TMC2130 driver has inverted diag output
     return static_cast<Pin::State>(!(loadcell.GetXYEndstop() || zStall)); // Marlin expects inverted XY PROBE endstop
 }
+#endif
+
+#if HAS_PHASE_STEPPING()
+extern const OutputPin *XStep;
+extern const OutputPin *YStep;
 #endif
 
 /**

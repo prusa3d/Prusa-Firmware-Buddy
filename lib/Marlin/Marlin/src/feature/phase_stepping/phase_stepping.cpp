@@ -25,6 +25,8 @@
 #include <cassert>
 #include <cmath>
 
+#include <timing_precise.hpp>
+
 LOG_COMPONENT_DEF(PhaseStepping, logging::Severity::debug);
 
 using namespace phase_stepping;
@@ -531,7 +533,13 @@ void phase_stepping::clear_targets() {
     float BREAKPOINT = 6.f;
     float ENDPOINT = 10.f;
     int REDUCTION_TO = 150;
-
+#elif PRINTER_IS_PRUSA_iX() // TODO simple copy-paste of XL values. To be removed as soon as iX values are measured
+    float BREAKPOINT = 6.f;
+    float ENDPOINT = 10.f;
+    int REDUCTION_TO = 150;
+#else
+    #error "Unsupported printer"
+#endif
     if (speed < BREAKPOINT) {
         return 255;
     }
@@ -539,9 +547,6 @@ void phase_stepping::clear_targets() {
         return REDUCTION_TO;
     }
     return 255 - (speed - BREAKPOINT) * (255 - REDUCTION_TO) / (ENDPOINT - BREAKPOINT);
-#else
-    #error "Unsupported printer"
-#endif
 }
 
 int phase_stepping::phase_difference(int a, int b) {

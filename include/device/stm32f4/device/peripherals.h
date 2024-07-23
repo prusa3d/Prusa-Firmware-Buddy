@@ -245,17 +245,18 @@ extern TIM_HandleTypeDef htim14;
     #define uart_tmc         2
     #define uart_esp         6
 #elif BOARD_IS_XBUDDY()
-    #define i2c_eeprom        2
-    #define i2c_usbc          2
-    #define i2c_gcode         2
-    #define i2c_io_expander1  -1
-    #define i2c_io_expander2  2
-    #define spi_flash         5
-    #define spi_lcd           6
-    #define spi_tmc           3
-    #define uart_esp          8
-    #define spi_accelerometer 2
-    #define spi_extconn       4
+    #define i2c_eeprom         2
+    #define i2c_usbc           2
+    #define i2c_gcode          2
+    #define i2c_io_expander1   -1
+    #define i2c_io_expander2   2
+    #define spi_flash          5
+    #define spi_lcd            6
+    #define spi_tmc            3
+    #define uart_esp           8
+    #define spi_accelerometer  2
+    #define spi_extconn        4
+    #define tim_phase_stepping 13
     #if PRINTER_IS_PRUSA_iX()
         #define uart_puppies 6
         /// iX uses the I2C3 pins for back door filament sensor - BFW-4746

@@ -660,6 +660,46 @@ PrinterCalibrationConfig phase_stepping::get_printer_calibration_config() {
         .calib_revs = 0.5f,
         .phases = std::vector(phases.begin(), phases.end()),
     };
+#elif PRINTER_IS_PRUSA_iX() // TODO for now it is just copy-paste of XL values; needs changes when iX specific values are measured
+    static constexpr std::array phases = {
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 3.f,
+            .pha = 3.14f,
+            .pha_window = 4.f,
+            .mag = 0.02f,
+            .mag_window = 0.05f,
+            .iteration_count = 10,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 1.5f,
+            .pha = 0.f,
+            .pha_window = 4.f,
+            .mag = 0.015f,
+            .mag_window = 0.04f,
+            .iteration_count = 10,
+        },
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 3.f,
+            .pha_window = 1.f,
+            .mag_window = 0.02f,
+            .iteration_count = 16,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 1.5f,
+            .pha_window = 1.5f,
+            .mag_window = 0.02f,
+            .iteration_count = 16,
+        },
+    };
+
+    return PrinterCalibrationConfig {
+        .calib_revs = 0.5f,
+        .phases = std::vector(phases.begin(), phases.end()),
+    };
 #else
     #error "Unsupported printer"
 #endif

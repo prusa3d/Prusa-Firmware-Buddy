@@ -13,6 +13,7 @@ typedef enum {
     stsStart,
     stsSelftestStart,
     stsFans,
+    stsPhaseStepping,
     stsWait_fans,
     stsEnsureZAway,
     stsYAxis,
@@ -56,4 +57,5 @@ enum SelftestMask_t : uint32_t {
     stmFSensor = to_one_hot(stsFSensor_calibration),
     stmSelftestStart = to_one_hot(stsSelftestStart),
     stmSelftestStop = to_one_hot(stsSelftestStop),
+    stmPhaseStepping = to_one_hot(stsPhaseStepping),
 };
