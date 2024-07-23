@@ -50,12 +50,13 @@ def find_duplicates(tuples_list):
     duplicates = set()  # Set to store tuples with duplicate numbers
 
     for string, num, hash_count in tuples_list:
-        for index in range(hash_count):
-            if (num + index) in num_count:
-                duplicates.add(num_count[(num + index)])
-                duplicates.add((string, (num + index)))
+        for index in range(num, num + hash_count):
+            record = (string, index)
+            if index in num_count:
+                duplicates.add(num_count[index])
+                duplicates.add(record)
             else:
-                num_count[(num + index)] = (string, (num + index))
+                num_count[index] = record
 
     return duplicates
 
