@@ -80,10 +80,10 @@ private:
     window_icon_t icon_phone;
     window_qr_t qr;
 
-protected:
-    explicit FrameInfo(window_t *parent, string_view_utf8 txt1, string_view_utf8 txt2)
-        : text(parent, FrameQRLayout::text_rect(), is_multiline::yes, is_closed_on_click_t::no, txt1)
-        , link(parent, FrameQRLayout::link_rect(), is_multiline::no, is_closed_on_click_t::no, txt2)
+public:
+    explicit FrameInfo(window_t *parent)
+        : text(parent, FrameQRLayout::text_rect(), is_multiline::yes, is_closed_on_click_t::no, _(text_info))
+        , link(parent, FrameQRLayout::link_rect(), is_multiline::no, is_closed_on_click_t::no, _(text_link))
         , icon_phone(parent, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72)
         , qr(parent, FrameQRLayout::qrcode_rect(), text_qr) {
         text.SetAlignment(Align_t::LeftCenter());
@@ -92,50 +92,17 @@ protected:
     void update(fsm::PhaseData) {}
 
 private:
-#if PRINTER_IS_PRUSA_MK4
-    static constexpr const char *text_qr = "prusa.io/qr-mk4-iscal";
-#elif PRINTER_IS_PRUSA_MK3_5
-    static constexpr const char *text_qr = "prusa.io/qr-mk35-iscal";
-#elif PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_XL_DEV_KIT
-    static constexpr const char *text_qr = "prusa.io/qr-xl-iscal";
-#else
-    #error "No QR wizard url for this printer"
-#endif
-};
-
-class FrameInfoFactory final : FrameInfo {
-public:
-    FrameInfoFactory(window_t *parent)
-        : FrameInfo(parent, _(text_info_factory), _(text_question)) {}
-
-private:
-#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
-    static constexpr const char *text_info_factory = N_(
-        "Your input shaper is calibrated with factory defaults.\n"
-        "If you want to recalibrate it, you need to connect the accelerometer addon.");
-#elif PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_XL_DEV_KIT
-    static constexpr const char *text_info_factory = N_(
-        "Your input shaper is calibrated with factory defaults.");
-#else
-    #error "No factory info for this printer"
-#endif
-    static constexpr const char *text_question = N_("Do you want to recalibrate?");
-};
-
-class FrameInfoCalibrated final : FrameInfo {
-public:
-    FrameInfoCalibrated(window_t *parent)
-        : FrameInfo(parent, _(text_info_calibrated), _(text_link)) {}
-
-private:
-    static constexpr const char *text_info_calibrated = N_(
+    static constexpr const char *text_info = N_(
         "To learn more about the input shaper calibration process, visit our website:");
 #if PRINTER_IS_PRUSA_MK4
     static constexpr const char *text_link = "prusa.io/mk4-iscal";
+    static constexpr const char *text_qr = "prusa.io/qr-mk4-iscal";
 #elif PRINTER_IS_PRUSA_MK3_5
     static constexpr const char *text_link = "prusa.io/mk35-iscal";
+    static constexpr const char *text_qr = "prusa.io/qr-mk35-iscal";
 #elif PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_XL_DEV_KIT
     static constexpr const char *text_link = "prusa.io/xl-iscal";
+    static constexpr const char *text_qr = "prusa.io/qr-xl-iscal";
 #else
     #error "No wizard url for this printer"
 #endif
@@ -366,8 +333,7 @@ public:
 };
 
 using Frames = FrameDefinitionList<ScreenInputShaperCalibration::FrameStorage,
-    FrameDefinition<PhasesInputShaperCalibration::info_factory, FrameInfoFactory>,
-    FrameDefinition<PhasesInputShaperCalibration::info_calibrated, FrameInfoCalibrated>,
+    FrameDefinition<PhasesInputShaperCalibration::info, FrameInfo>,
     FrameDefinition<PhasesInputShaperCalibration::parking, FrameParking>,
     FrameDefinition<PhasesInputShaperCalibration::connect_to_board, FrameConnectToBoard>,
     FrameDefinition<PhasesInputShaperCalibration::wait_for_extruder_temperature, FrameWaitForExtruderTemperature>,

@@ -167,20 +167,8 @@ static PhasesInputShaperCalibration info_proceed(Context &context) {
 #endif
 }
 
-static PhasesInputShaperCalibration info_factory(Context &context) {
-    switch (wait_for_response(PhasesInputShaperCalibration::info_factory)) {
-    case Response::Yes:
-        return info_proceed(context);
-    case Response::No:
-        set_test_result(TestResult_Passed);
-        return PhasesInputShaperCalibration::finish;
-    default:
-        std::terminate();
-    }
-}
-
-static PhasesInputShaperCalibration info_calibrated(Context &context) {
-    switch (wait_for_response(PhasesInputShaperCalibration::info_calibrated)) {
+static PhasesInputShaperCalibration info(Context &context) {
+    switch (wait_for_response(PhasesInputShaperCalibration::info)) {
     case Response::Continue:
         return info_proceed(context);
     case Response::Abort:
@@ -545,10 +533,8 @@ static PhasesInputShaperCalibration finish(Context &context) {
 
 static PhasesInputShaperCalibration get_next_phase(Context &context, const PhasesInputShaperCalibration phase) {
     switch (phase) {
-    case PhasesInputShaperCalibration::info_factory:
-        return info_factory(context);
-    case PhasesInputShaperCalibration::info_calibrated:
-        return info_calibrated(context);
+    case PhasesInputShaperCalibration::info:
+        return info(context);
     case PhasesInputShaperCalibration::parking:
         return parking(context);
     case PhasesInputShaperCalibration::connect_to_board:
@@ -595,10 +581,9 @@ void M1959() {
         // but take a note so we can run the wizard later...
         return set_test_result(TestResult_Skipped);
     case TestResult_Skipped:
-        return M1959_internal(PhasesInputShaperCalibration::info_factory);
     case TestResult_Passed:
     case TestResult_Failed:
-        return M1959_internal(PhasesInputShaperCalibration::info_calibrated);
+        return M1959_internal(PhasesInputShaperCalibration::info);
     }
 }
 
