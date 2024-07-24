@@ -2,6 +2,7 @@
 
 #include <common/nozzle_diameter.hpp>
 #include <ScreenHandler.hpp>
+#include <img_resources.hpp>
 
 using namespace screen_toolhead_settings;
 
@@ -24,6 +25,19 @@ float MI_NOZZLE_DIAMETER::read_value_impl(ToolheadIndex ix) {
 
 void MI_NOZZLE_DIAMETER::store_value_impl(ToolheadIndex ix, float set) {
     config_store().set_nozzle_diameter(ix, set);
+}
+
+// * MI_NOZZLE_DIAMETER_HELP
+MI_NOZZLE_DIAMETER_HELP::MI_NOZZLE_DIAMETER_HELP()
+    : IWindowMenuItem(_("What nozzle diameter do I have?"), &img::question_16x16) {
+}
+
+void MI_NOZZLE_DIAMETER_HELP::click(IWindowMenu &) {
+    MsgBoxInfo(_("You can determine the nozzle diameter by counting the markings (dots) on the nozzle:\n"
+                 "  0.40 mm nozzle: 3 dots\n"
+                 "  0.60 mm nozzle: 4 dots\n\n"
+                 "For more information, visit prusa.io/nozzle-types"),
+        Responses_Ok);
 }
 
 // * ScreenToolheadDetail

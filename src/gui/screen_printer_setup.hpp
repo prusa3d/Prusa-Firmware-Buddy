@@ -26,21 +26,9 @@ protected:
     void click(IWindowMenu &menu) override;
 };
 
-class MI_NOZZLE_DIAMETER_HELP : public IWindowMenuItem {
-
-public:
-    MI_NOZZLE_DIAMETER_HELP();
-
-protected:
-    void click(IWindowMenu &menu) override;
-};
-
 using ScreenBase
     = ScreenMenu<EFooter::Off,
         MI_EXTENDED_PRINTER_TYPE, //< Show always, for non-extended models, there is a non-changeable WiInfo
-#if HAS_TOOLCHANGER()
-        MI_NOZZLE_DIAMETER_HELP,
-#endif
         MI_TOOLHEAD_SETTINGS,
         MI_HOTEND_SOCK_OR_TYPE,
 #if HAS_MMU2()

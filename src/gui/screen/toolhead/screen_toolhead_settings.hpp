@@ -14,9 +14,21 @@ public:
     static void store_value_impl(ToolheadIndex ix, float set);
 };
 
+class MI_NOZZLE_DIAMETER_HELP : public IWindowMenuItem {
+public:
+    MI_NOZZLE_DIAMETER_HELP();
+    void click(IWindowMenu &menu) override;
+};
+
 using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
     MI_RETURN,
-    MI_NOZZLE_DIAMETER //
+    MI_NOZZLE_DIAMETER
+#if PRINTER_IS_PRUSA_XL()
+    // Prusa XL was sold with .6mm nozzles and then with .4mm nozzles, so the users need to set in the FW what nozzles they have
+    // This is to help them out a bit
+    ,
+    MI_NOZZLE_DIAMETER_HELP
+#endif
     >;
 
 class ScreenToolheadDetail : public ScreenToolheadDetail_ {
