@@ -42,6 +42,7 @@
 #include <screen/filament/screen_filament_management_list.hpp>
 #include <screen/filament/screen_filaments_reorder.hpp>
 #include <screen/filament/screen_filaments_visibility.hpp>
+#include <screen/toolhead/screen_toolhead_settings.hpp>
 
 #if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
     #include <screen_menu_bed_level_correction.hpp>
@@ -142,4 +143,27 @@ MI_SERIAL_PRINTING_SCREEN_ENABLE::MI_SERIAL_PRINTING_SCREEN_ENABLE()
 }
 void MI_SERIAL_PRINTING_SCREEN_ENABLE::OnChange(size_t old_index) {
     config_store().serial_print_screen_enabled.set(!old_index);
+}
+
+// * MI_TOOLHEAD_SETTINGS
+MI_TOOLHEAD_SETTINGS::MI_TOOLHEAD_SETTINGS()
+    : IWindowMenuItem(
+#if HAS_TOOLCHANGER()
+        prusa_toolchanger.get_num_enabled_tools() > 1 ? _("Tools") : _("Tool"),
+#else
+        _("Toolhead"),
+#endif
+        nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+
+void MI_TOOLHEAD_SETTINGS::click(IWindowMenu &) {
+    ScreenFactory::Creator screen = ScreenFactory::Screen<ScreenToolheadDetail>;
+
+#if HAS_TOOLCHANGER()
+    if (prusa_toolchanger.is_toolchanger_enabled() && prusa_toolchanger.get_num_enabled_tools() > 1) {
+        screen = ScreenFactory::Screen<ScreenToolheadSettingsList>;
+    }
+#endif
+
+    Screens::Access()->Open(screen);
 }

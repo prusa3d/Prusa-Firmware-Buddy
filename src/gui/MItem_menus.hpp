@@ -183,3 +183,10 @@ public:
     MI_SERIAL_PRINTING_SCREEN_ENABLE();
     virtual void OnChange(size_t old_index) override;
 };
+
+/// Opens toolhead 0 settings on single toolhead machines or submenu to select a toolhead on multi-toolhead machines
+class MI_TOOLHEAD_SETTINGS final : public IWindowMenuItem {
+public:
+    MI_TOOLHEAD_SETTINGS();
+    void click(IWindowMenu &) override;
+};
