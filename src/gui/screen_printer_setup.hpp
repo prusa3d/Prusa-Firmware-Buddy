@@ -9,6 +9,7 @@
 #include <screen_menu.hpp>
 #include <common/extended_printer_type.hpp>
 
+#include <MItem_menus.hpp>
 #include <option/has_mmu2.h>
 #if HAS_MMU2()
     #include <MItem_mmu.hpp>
@@ -90,6 +91,7 @@ using ScreenBase
         MI_NOZZLE_DIAMETER_MENU,
 #endif
         MI_NOZZLE_DIAMETER,
+        MI_TOOLHEAD_SETTINGS,
         MI_HOTEND_SOCK_OR_TYPE,
 #if HAS_MMU2()
         MI_MMU_NEXTRUDER_REWORK,
