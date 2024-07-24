@@ -2,13 +2,14 @@
 
 #include <math.h>
 
-float NumericInputConfig::clamp(float value) const {
+float NumericInputConfig::clamp(float value, float diff) const {
     const bool is_below_min = (value < min_value);
 
     if (!is_below_min && value <= max_value) {
         return value;
 
-    } else if (special_value.has_value() && (special_value < max_value) == is_below_min) {
+    } else if (special_value.has_value() && (special_value < max_value) == is_below_min && (diff == 0 || (diff < 0) == is_below_min)) {
+        // Jump to special value if out of bounds and diff = 0 or diffing even more out of bounds
         return *special_value;
 
     } else {

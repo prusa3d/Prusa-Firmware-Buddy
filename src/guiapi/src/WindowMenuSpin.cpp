@@ -131,7 +131,7 @@ Rect16::Width_t WiSpin::calculateExtensionWidth(const NumericInputConfig &config
 invalidate_t WiSpin::change(int dif) {
     const auto previous_value = value_;
     value_ = round(value_ / config_.step + dif) * config_.step;
-    value_ = config_.clamp(value_);
+    value_ = config_.clamp(value_, dif);
 
     if (!dif || value_ != previous_value) { // 0 dif forces redraw
         update();

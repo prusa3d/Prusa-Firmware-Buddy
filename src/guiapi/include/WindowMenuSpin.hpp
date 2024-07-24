@@ -47,6 +47,10 @@ public:
         set_value(val);
     }
 
+    inline const NumericInputConfig &config() const {
+        return config_;
+    }
+
 protected:
     virtual void OnClick() {}
 

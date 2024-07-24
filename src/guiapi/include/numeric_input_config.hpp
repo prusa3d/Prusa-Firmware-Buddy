@@ -38,7 +38,8 @@ public:
 
 public:
     /// Clamps the value to min/max or sets it to special value if out of bounds
-    float clamp(float value) const;
+    /// If \param diff sign matches the direction the value is out of bounds, does not to special value, but clamps to the bounds
+    float clamp(float value, float diff = 0) const;
 
     /// \returns number of digits of the provided value (excluding decimal ones)
     static constexpr uint8_t num_digits(uint32_t value) {
