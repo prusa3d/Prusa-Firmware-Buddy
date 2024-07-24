@@ -74,61 +74,61 @@ void CalcHBControllers() {
     for (int hbIndex = 0; hbIndex < HEATBEDLET_COUNT; hbIndex++) {
         HeatbedletInfo *pHBInfo = HeatbedletInfo::Get(hbIndex);
         float action = 0;
+        if (is_used_bedlet(hbIndex)) {
+            if (pHBInfo->m_TargetTemperature == 0 || (TURN_OFF_HEATING_ON_ERROR && (pHBInfo->m_State == HeatbedletState::Error || StateLogic::IsAnyFaultActive()))) {
+                // clear controller action
+                if (pHBInfo->m_PID_IsON) {
+                    pHBInfo->m_PID_IsON = false;
+                    pHBInfo->m_PID_Err = 0;
+                    pHBInfo->m_PID_P_Action = 0;
+                    pHBInfo->m_PID_I_ActionDelta = 0;
+                    pHBInfo->m_PID_I_Action = 0;
+                    pHBInfo->m_PID_D_Action = 0;
+                }
+            } else {
+                // initialize controller
+                if (!pHBInfo->m_PID_IsON) {
+                    pHBInfo->m_PID_IsON = true;
+                    pHBInfo->m_PID_I_Action = CalcExpectedLinearPWM(pHBInfo->m_FilteredMeasuredTemperature - HeatbedletInfo::m_ChamberTemperature);
+                }
 
-        if (pHBInfo->m_TargetTemperature == 0 || (TURN_OFF_HEATING_ON_ERROR && (pHBInfo->m_State == HeatbedletState::Error || StateLogic::IsAnyFaultActive()))) {
-            // clear controller action
-            if (pHBInfo->m_PID_IsON) {
-                pHBInfo->m_PID_IsON = false;
-                pHBInfo->m_PID_Err = 0;
-                pHBInfo->m_PID_P_Action = 0;
-                pHBInfo->m_PID_I_ActionDelta = 0;
-                pHBInfo->m_PID_I_Action = 0;
-                pHBInfo->m_PID_D_Action = 0;
+                // calculate control error
+                pHBInfo->m_PID_Err = pHBInfo->m_TargetTemperature - pHBInfo->m_FilteredMeasuredTemperature;
+
+                // proportional component
+                pHBInfo->m_PID_P_Action = pHBInfo->m_PID_P_Coef * pHBInfo->m_PID_Err;
+
+                // integration component
+                pHBInfo->m_PID_I_ActionDelta = (double)pHBInfo->m_PID_I_Coef * (double)pHBInfo->m_PID_Err / (double)CONTROLLER_FREQUENCY;
+                pHBInfo->m_PID_I_Action += pHBInfo->m_PID_I_ActionDelta;
+
+                // derivative component
+                // use "derivative on measurement" trick to avoid "derivative kick" problem
+                pHBInfo->m_PID_D_Action = -pHBInfo->m_PID_D_Coef * pHBInfo->m_FilteredMeasuredTemperatureDiff;
+
+                action = pHBInfo->m_PID_P_Action + (float)pHBInfo->m_PID_I_Action + pHBInfo->m_PID_D_Action;
+
+                // action = pHBInfo->m_TargetTemperature / 100.0f; //For testing purposes
+                // action = CalcExpectedLinearPWM(pHBInfo->m_TargetTemperature - HeatbedletInfo::m_ChamberTemperature); //For testing purposes
             }
-        } else {
-            // initialize controller
-            if (!pHBInfo->m_PID_IsON) {
-                pHBInfo->m_PID_IsON = true;
-                pHBInfo->m_PID_I_Action = CalcExpectedLinearPWM(pHBInfo->m_FilteredMeasuredTemperature - HeatbedletInfo::m_ChamberTemperature);
+
+            if (action < 0) {
+                action = 0;
+                pHBInfo->m_IsPWMLowerSaturated = true;
             }
 
-            // calculate control error
-            pHBInfo->m_PID_Err = pHBInfo->m_TargetTemperature - pHBInfo->m_FilteredMeasuredTemperature;
+            if (action > 1) {
+                action = 1;
+                pHBInfo->m_IsPWMUpperSaturated = true;
+            }
 
-            // proportional component
-            pHBInfo->m_PID_P_Action = pHBInfo->m_PID_P_Coef * pHBInfo->m_PID_Err;
+            action = DelinearizePWM(action);
 
-            // integration component
-            pHBInfo->m_PID_I_ActionDelta = (double)pHBInfo->m_PID_I_Coef * (double)pHBInfo->m_PID_Err / (double)CONTROLLER_FREQUENCY;
-            pHBInfo->m_PID_I_Action += pHBInfo->m_PID_I_ActionDelta;
-
-            // derivative component
-            // use "derivative on measurement" trick to avoid "derivative kick" problem
-            pHBInfo->m_PID_D_Action = -pHBInfo->m_PID_D_Coef * pHBInfo->m_FilteredMeasuredTemperatureDiff;
-
-            action = pHBInfo->m_PID_P_Action + (float)pHBInfo->m_PID_I_Action + pHBInfo->m_PID_D_Action;
-
-            // action = pHBInfo->m_TargetTemperature / 100.0f; //For testing purposes
-            // action = CalcExpectedLinearPWM(pHBInfo->m_TargetTemperature - HeatbedletInfo::m_ChamberTemperature); //For testing purposes
+            if (action > 1) {
+                action = 1;
+                pHBInfo->m_IsPWMUpperSaturated = true;
+            }
         }
-
-        if (action < 0) {
-            action = 0;
-            pHBInfo->m_IsPWMLowerSaturated = true;
-        }
-
-        if (action > 1) {
-            action = 1;
-            pHBInfo->m_IsPWMUpperSaturated = true;
-        }
-
-        action = DelinearizePWM(action);
-
-        if (action > 1) {
-            action = 1;
-            pHBInfo->m_IsPWMUpperSaturated = true;
-        }
-
         pHBInfo->m_PWMValue = action;
     }
 }
