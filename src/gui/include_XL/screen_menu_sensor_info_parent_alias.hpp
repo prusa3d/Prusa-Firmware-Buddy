@@ -41,19 +41,7 @@ namespace internal {
         MI_INFO_MODULAR_BED_MCU_TEMPERATURE,
         MI_INFO_LOADCELL,
         MI_INFO_PRINTER_FILL_SENSOR,
-        MI_FS_REF<0, false>,
-        MI_FS_REF<1, false>,
-        MI_FS_REF<2, false>,
-        MI_FS_REF<3, false>,
-        MI_FS_REF<4, false>,
-        MI_FS_REF<5, false>,
         MI_INFO_SIDE_FILL_SENSOR,
-        MI_FS_REF<0, true>,
-        MI_FS_REF<1, true>,
-        MI_FS_REF<2, true>,
-        MI_FS_REF<3, true>,
-        MI_FS_REF<4, true>,
-        MI_FS_REF<5, true>,
         MI_INFO_PRINT_FAN,
         MI_INFO_HBR_FAN,
         MI_INFO_INPUT_VOLTAGE,
@@ -63,21 +51,8 @@ namespace internal {
 } // namespace internal
 class ScreenMenuSensorInfo : public internal::ScreenMenuSensorInfo {
 public:
-    // recursive helper function for hiding inactive MI_FS_REF
-    template <int N>
-    void hide_fs_ref(uint8_t tool_nr) {
-        if (tool_nr != N) {
-            Item<MI_FS_REF<N, false>>().set_is_hidden(true);
-            Item<MI_FS_REF<N, true>>().set_is_hidden(true);
-        }
-        if constexpr (N > 0) {
-            hide_fs_ref<N - 1>(tool_nr);
-        }
-    }
-
     ScreenMenuSensorInfo(const string_view_utf8 &label, window_t *parent = nullptr)
         : internal::ScreenMenuSensorInfo(label, parent) {
-        hide_fs_ref<5>(prusa_toolchanger.get_active_tool_nr());
     }
 };
 } // namespace detail

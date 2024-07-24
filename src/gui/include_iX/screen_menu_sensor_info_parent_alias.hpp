@@ -30,7 +30,6 @@ using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
     MI_INFO_NOZZLE_TEMP,
     MI_INFO_LOADCELL,
     MI_INFO_PRINTER_FILL_SENSOR,
-    MI_FS_REF<0, false>,
     MI_INFO_PRINT_FAN,
     MI_INFO_HBR_FAN,
     MI_INFO_HEATER_VOLTAGE,

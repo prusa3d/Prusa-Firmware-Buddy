@@ -1,1 +1,1 @@
-target_sources(firmware PRIVATE screen_toolhead_settings.cpp screen_toolhead_settings_common.cpp)
+target_sources(firmware PRIVATE screen_toolhead_settings.cpp screen_toolhead_settings_common.cpp screen_toolhead_settings_fs.cpp)

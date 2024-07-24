@@ -92,19 +92,7 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #endif
 #if (BOARD_IS_XLBUDDY())
     ,
-    MI_RESTORE_CALIBRATION_FROM_USB, MI_BACKUP_CALIBRATION_TO_USB,
-    MI_FS_SPAN<0, false>, MI_FS_SPAN<0, true>,
-    MI_FS_SPAN<1, false>, MI_FS_SPAN<1, true>,
-    MI_FS_SPAN<2, false>, MI_FS_SPAN<2, true>,
-    MI_FS_SPAN<3, false>, MI_FS_SPAN<3, true>,
-    MI_FS_SPAN<4, false>, MI_FS_SPAN<4, true>,
-    MI_FS_SPAN<5, false>, MI_FS_SPAN<5, true>,
-    MI_FS_REF<0, false>, MI_FS_REF<0, true>,
-    MI_FS_REF<1, false>, MI_FS_REF<1, true>,
-    MI_FS_REF<2, false>, MI_FS_REF<2, true>,
-    MI_FS_REF<3, false>, MI_FS_REF<3, true>,
-    MI_FS_REF<4, false>, MI_FS_REF<4, true>,
-    MI_FS_REF<5, false>, MI_FS_REF<5, true>
+    MI_RESTORE_CALIBRATION_FROM_USB, MI_BACKUP_CALIBRATION_TO_USB
 #endif
     >;
 

@@ -4,6 +4,8 @@
 #include <ScreenHandler.hpp>
 #include <img_resources.hpp>
 
+#include "screen_toolhead_settings_fs.hpp"
+
 using namespace screen_toolhead_settings;
 
 static constexpr NumericInputConfig nozzle_diameter_spin_config_with_special = [] {
@@ -53,6 +55,14 @@ void MI_NOZZLE_SOCK::OnChange([[maybe_unused]] size_t old_index) {
     config_store().hotend_type.set(index ? HotendType::stock_with_sock : HotendType::stock);
 }
 #endif
+
+// * MI_FILAMENT_SENSORS
+MI_FILAMENT_SENSORS::MI_FILAMENT_SENSORS(Toolhead toolhead)
+    : MI_TOOLHEAD_SPECIFIC(toolhead, _("Filament Sensors Tuning"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {}
+
+void MI_FILAMENT_SENSORS::click(IWindowMenu &) {
+    Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenToolheadDetailFS>(toolhead()));
+}
 
 // * ScreenToolheadDetail
 ScreenToolheadDetail::ScreenToolheadDetail(Toolhead toolhead)

@@ -45,24 +45,28 @@ public:
 using MI_HOTEND_SOCK_OR_TYPE = std::conditional_t<hotend_type_only_sock, MI_NOZZLE_SOCK, MI_HOTEND_TYPE>;
 #endif
 
+class MI_FILAMENT_SENSORS : public MI_TOOLHEAD_SPECIFIC<MI_FILAMENT_SENSORS, IWindowMenuItem> {
+public:
+    MI_FILAMENT_SENSORS(Toolhead toolhead = default_toolhead);
+    void click(IWindowMenu &) override;
+};
+
 using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
     MI_RETURN,
-    MI_NOZZLE_DIAMETER
+    MI_NOZZLE_DIAMETER,
 #if PRINTER_IS_PRUSA_XL()
     // Prusa XL was sold with .6mm nozzles and then with .4mm nozzles, so the users need to set in the FW what nozzles they have
     // This is to help them out a bit
-    ,
-    MI_NOZZLE_DIAMETER_HELP
+    MI_NOZZLE_DIAMETER_HELP,
 #endif
 #if HAS_HOTEND_TYPE_SUPPORT()
-    ,
-    MI_HOTEND_SOCK_OR_TYPE
+    MI_HOTEND_SOCK_OR_TYPE,
 #endif
 #if HAS_MMU2()
-    ,
     MI_MMU_NEXTRUDER_REWORK,
-    MI_DONE_EXTRUDER_MAINTENANCE // both for loadcell equipped printers and MK3.5
+    MI_DONE_EXTRUDER_MAINTENANCE, // both for loadcell equipped printers and MK3.5
 #endif
+    MI_FILAMENT_SENSORS //
     >;
 
 class ScreenToolheadDetail : public ScreenToolheadDetail_ {
