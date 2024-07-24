@@ -36,9 +36,13 @@ float CalcElectricCurrent(int adcValue) {
 }
 
 float CalcHBReferenceResistance(float current, float temperature) {
-    float resistance = ((float)HEATBEDLET_VOLTAGE) / current;
-    resistance = resistance / (1 + HEATBEDLET_RESISTANCE_TEMPERATURE_COEFFICIENT * (temperature - HEATBEDLET_REFERENCE_TEMPERATURE));
-    return resistance;
+    // safeguard just in case to avoid division by 0
+    if (current != 0) {
+        float resistance = ((float)HEATBEDLET_VOLTAGE) / current;
+        resistance = resistance / (1 + HEATBEDLET_RESISTANCE_TEMPERATURE_COEFFICIENT * (temperature - HEATBEDLET_REFERENCE_TEMPERATURE));
+        return resistance;
+    }
+    return INF_RESISTANCE;
 }
 
 float CalcHBResistanceAtTemperature(float referenceResistance, float temperature) {

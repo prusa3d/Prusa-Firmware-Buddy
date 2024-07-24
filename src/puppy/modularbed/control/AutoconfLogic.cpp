@@ -64,6 +64,9 @@ void MeasureAndCheckHBResistance_Impl(uint32_t hbIndex) {
 
     float resistance = HEATBEDLET_DEFAULT_RESISTANCE;
 
+    bool connected = false;
+    bool disconnected = false;
+
     if (pHBInfo->IsTempSensorOK() && !StateLogic::IsPowerPanicActive()) {
         // set maximum PWM for iterated bed
         HeatbedletInfo::Get(hbIndex)->m_PWMValue = 1;
@@ -74,17 +77,40 @@ void MeasureAndCheckHBResistance_Impl(uint32_t hbIndex) {
 
         float current = MeasurementLogic::PreciselyMeasureChannel(currChannel);
         float temperature = MeasurementLogic::MeasureSingleChannel(tempChannel);
-        resistance = CalcHBReferenceResistance(current, temperature);
-
         // turn off PWM for iterated bed
         HeatbedletInfo::Get(hbIndex)->m_PWMValue = 0;
         HeatbedletInfo::Get(hbIndex)->m_MeasureResistance = false;
+
+        if (current < 0) {
+            current = 0;
+        }
+
+        bool heater_connected = false;
+        bool ntc_connected = false;
+
+        if (current >= CURRENT_MIN) {
+            heater_connected = true;
+        }
+
+        if (temperature >= TEMPERATURE_MIN) {
+            ntc_connected = true;
+        }
+
+        connected = heater_connected && ntc_connected;
+        disconnected = !(heater_connected || ntc_connected);
+
+        if (connected) {
+            resistance = CalcHBReferenceResistance(current, temperature);
+        } else {
+            resistance = INF_RESISTANCE;
+        }
+
+        if (resistance > INF_RESISTANCE) {
+            resistance = INF_RESISTANCE;
+        }
     }
 
     // store measured resistance and max current
-    if (resistance > (1000 * MAX_HB_RESISTANCE)) { // avoid infinite resistance
-        resistance = (1000 * MAX_HB_RESISTANCE);
-    }
     pHBInfo->m_ReferenceResistance = resistance;
     pHBInfo->m_ReferenceMaxCurrent = ((float)HEATBEDLET_VOLTAGE) / resistance;
     ModbusRegisters::SetRegValue(ModbusRegisters::HBHoldingRegister::measured_max_current, hbIndex, (uint16_t)(pHBInfo->m_ReferenceMaxCurrent * MODBUS_CURRENT_REGISTERS_SCALE + 0.5f));
@@ -94,11 +120,14 @@ void MeasureAndCheckHBResistance_Impl(uint32_t hbIndex) {
         StateLogic::SetHBErrorFlag(hbIndex, HeatbedletError::HeaterShortCircuit);
     }
 
-    if (is_used_bedlet(hbIndex) && (resistance > MAX_HB_RESISTANCE)) {
-        StateLogic::SetHBErrorFlag(hbIndex, HeatbedletError::HeaterDisconnected);
-    }
-    if (!is_used_bedlet(hbIndex) && (resistance <= MAX_HB_RESISTANCE)) {
-        StateLogic::SetHBErrorFlag(hbIndex, HeatbedletError::HeaterConnected);
+    if (is_used_bedlet(hbIndex)) {
+        if (!connected || (resistance > MAX_HB_RESISTANCE)) {
+            StateLogic::SetHBErrorFlag(hbIndex, HeatbedletError::HeaterDisconnected);
+        }
+    } else {
+        if (!disconnected) {
+            StateLogic::SetHBErrorFlag(hbIndex, HeatbedletError::HeaterConnected);
+        }
     }
 }
 

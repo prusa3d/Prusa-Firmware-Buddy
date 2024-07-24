@@ -71,6 +71,8 @@ inline constexpr uint8_t ADC_BATCH_SIZE = 34; // please do not change this value
 #define ENABLE_TEMPERATURE_CHECKS 1
 #define TURN_OFF_HEATING_ON_ERROR 1
 
+#define CURRENT_MIN 0.1f
+
 #define TEMPERATURE_MIN 5
 #define TEMPERATURE_MAX 120
 
@@ -103,6 +105,7 @@ inline constexpr std::array<float, Branch::count> UNEXPECTED_CURRENT_TOLERANCE {
 
 #define MIN_HB_RESISTANCE 4.5f // for checking of "HeaterShortCircuit" error
 #define MAX_HB_RESISTANCE 40.0f // for checking of "HeaterDisconnected" error
+#define INF_RESISTANCE    (MAX_HB_RESISTANCE * 1000)
 
 #if PRINTER_IS_PRUSA_iX()
 inline constexpr bool is_used_bedlet(uint32_t heatbedletIndex) {
