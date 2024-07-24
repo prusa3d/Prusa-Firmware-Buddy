@@ -281,7 +281,8 @@ extern "C" void main_cpp(void) {
 
 #if BUDDY_ENABLE_CONNECT()
     // On a place shared for both code branches, so we have just one connectTask buffer.
-    osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2336);
+    constexpr size_t stack_size_words = 2360;
+    osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, stack_size_words);
 #endif
 
 #if HAS_NFC()
