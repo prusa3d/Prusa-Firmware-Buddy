@@ -124,10 +124,6 @@ void Screens::Open(screen_node screen_creator) {
     creator_node = screen_creator;
 }
 
-void Screens::Open(const ScreenFactory::Creator screen_creator) {
-    Open(screen_node(screen_creator));
-}
-
 /**
  * @brief close current screen
  * it sets flag to close current screen

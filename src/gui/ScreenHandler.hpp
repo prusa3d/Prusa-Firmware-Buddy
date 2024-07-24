@@ -11,15 +11,21 @@ inline constexpr size_t MAX_SCREENS = 16;
 struct screen_node {
     ScreenFactory::Creator creator;
     screen_init_variant init_data;
-    screen_node(ScreenFactory::Creator creator = nullptr, screen_init_variant init_data = screen_init_variant())
+
+    screen_node(ScreenFactory::Creator creator = {}, screen_init_variant init_data = screen_init_variant())
         : creator(creator)
         , init_data(init_data) {}
+
+    screen_node(ScreenFactory::Creator::Func creator, screen_init_variant init_data = screen_init_variant())
+        : creator(creator)
+        , init_data(init_data) {}
+
     void MakeEmpty() {
-        creator = nullptr;
+        creator = {};
         init_data = screen_init_variant();
     }
     bool IsEmpty() {
-        return creator == nullptr;
+        return creator.func == nullptr;
     }
 };
 using ScreenArray = std::array<screen_node, MAX_SCREENS>;
@@ -45,7 +51,6 @@ class Screens {
 public:
     void Loop(); // call inside guiloop
 
-    void Open(const ScreenFactory::Creator screen_creator); // remember creator and create later with default initialization parameter (like selected item in menu)
     void Open(screen_node screen_creator); // remember creator and create later with stored initialization parameter
 
     template <typename Screen, auto... args>
@@ -53,7 +58,7 @@ public:
         return Open(ScreenFactory::Screen<Screen, args...>);
     }
 
-    bool IsOpenPending() const { return creator_node.creator != nullptr; }
+    bool IsOpenPending() const { return creator_node.creator.func != nullptr; }
 
     void PushBeforeCurrent(const ScreenFactory::Creator screen_creator);
     void PushBeforeCurrent(screen_node screen_creator);
