@@ -30,9 +30,6 @@ using ScreenBase
     = ScreenMenu<EFooter::Off,
         MI_EXTENDED_PRINTER_TYPE, //< Show always, for non-extended models, there is a non-changeable WiInfo
         MI_TOOLHEAD_SETTINGS,
-#if HAS_MMU2()
-        MI_MMU_NEXTRUDER_REWORK,
-#endif
         MI_DONE>;
 
 class ScreenPrinterSetup : public ScreenBase {

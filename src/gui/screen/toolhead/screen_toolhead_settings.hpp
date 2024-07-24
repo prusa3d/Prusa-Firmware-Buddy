@@ -7,6 +7,11 @@
 
 #include <window_menu_enum_switch.hpp>
 #include <config_store/store_definition.hpp>
+#include <option/has_mmu2.h>
+
+#if HAS_MMU2()
+    #include <MItem_mmu.hpp>
+#endif
 
 namespace screen_toolhead_settings {
 
@@ -52,6 +57,11 @@ using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
 #if HAS_HOTEND_TYPE_SUPPORT()
     ,
     MI_HOTEND_SOCK_OR_TYPE
+#endif
+#if HAS_MMU2()
+    ,
+    MI_MMU_NEXTRUDER_REWORK,
+    MI_DONE_EXTRUDER_MAINTENANCE // both for loadcell equipped printers and MK3.5
 #endif
     >;
 

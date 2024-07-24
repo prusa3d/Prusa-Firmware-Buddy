@@ -39,19 +39,7 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #if HAS_EXTENDED_PRINTER_TYPE()
     MI_EXTENDED_PRINTER_TYPE,
 #endif
-
-    // ================================
-    // Nozzle/hotend related
-    // ================================
     MI_TOOLHEAD_SETTINGS,
-
-// ================================
-// Extruder related
-// ================================
-#if HAS_MMU2()
-    MI_MMU_NEXTRUDER_REWORK,
-    MI_DONE_EXTRUDER_MAINTENANCE, // both for loadcell equipped printers and MK3.5
-#endif
 
 // ================================
 // Filament sensor related
