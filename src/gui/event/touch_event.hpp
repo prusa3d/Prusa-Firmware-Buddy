@@ -12,6 +12,8 @@ namespace gui_event {
 struct TouchEvent {
     /// Touch point relative to receiving item
     point_ui16_t relative_touch_point;
+
+    inline bool operator==(const TouchEvent &) const = default;
 };
 static_assert(GuiEventType<TouchEvent>);
 

@@ -4,23 +4,31 @@
 #include <array>
 #include <assert.h>
 
-struct PrimitiveAnyRTTI {
-    const void *ptr = nullptr;
+using PrimitiveAnyAlignment = void *;
 
-    constexpr bool operator==(const PrimitiveAnyRTTI &) const = default;
-    constexpr bool operator!=(const PrimitiveAnyRTTI &) const = default;
+struct PrimitiveAnyRTTI {
+
+public:
+    template <typename T>
+    static consteval const PrimitiveAnyRTTI *get_for_type() {
+        static_assert(std::alignment_of_v<T> <= std::alignment_of_v<PrimitiveAnyAlignment>);
+
+        // PrimitiveAny would need a more complex implementation if we were to support non-trivial copies and destructors
+        static_assert(std::is_trivially_destructible_v<T>);
+        static_assert(std::is_trivially_copyable_v<T>);
+
+        // Unique pointer for each instance
+        static constexpr PrimitiveAnyRTTI data {};
+        return &data;
+    }
+
+private:
+    // Make sure PrimitiveAnyRTTI has sizeof() > 0
+    [[maybe_unused]] uint8_t data;
 };
 
-template <typename T>
-consteval PrimitiveAnyRTTI primitive_any_rtti() {
-    // Unique pointer for each type
-    static constexpr bool ptr = false;
-    return { &ptr };
-}
-
-// Some basic sanity checks
-static_assert(primitive_any_rtti<void>() != primitive_any_rtti<uint32_t>());
-static_assert(primitive_any_rtti<void>() == primitive_any_rtti<void>());
+// Sanity check that we're really creating unique pointer for each type
+static_assert(PrimitiveAnyRTTI::get_for_type<uint32_t>() != PrimitiveAnyRTTI::get_for_type<uint8_t>());
 
 /// Alternative to std::any that:
 /// - never dynamically allocates
@@ -49,13 +57,13 @@ public:
     /// \returns pointer to the value of type T, if the Variant is of this type (or nullptr)
     template <typename T>
     constexpr T *value_maybe() {
-        return (type == primitive_any_rtti<T>()) ? reinterpret_cast<T *>(data.data()) : nullptr;
+        return (type == PrimitiveAnyRTTI::get_for_type<T>()) ? reinterpret_cast<T *>(data.data()) : nullptr;
     }
 
     /// \returns pointer to the value of type T, if the Variant is of this type (or nullptr)
     template <typename T>
     constexpr const T *value_maybe() const {
-        return (type == primitive_any_rtti<T>()) ? reinterpret_cast<const T *>(data.data()) : nullptr;
+        return (type == PrimitiveAnyRTTI::get_for_type<T>()) ? reinterpret_cast<const T *>(data.data()) : nullptr;
     }
 
     /// \returns value of T, if the variant holds this alternative, or \p fallback
@@ -86,24 +94,18 @@ public:
     /// Sets the variant to a given value
     template <typename T>
     constexpr void set(const T &value) {
-        // If T is not trivially destructible, we need to add support for it in this class destructor
-        static_assert(std::is_trivially_destructible_v<T>);
-
-        // Ditto for copying
-        static_assert(std::is_trivially_copyable_v<T>);
-
-        type = primitive_any_rtti<T>();
+        type = PrimitiveAnyRTTI::get_for_type<T>();
         new (data.data()) T(value);
     }
 
     /// \returns if the variant holds alternative of the given type
     template <typename T>
     constexpr bool holds_alternative() const {
-        return type == primitive_any_rtti<T>();
+        return type == PrimitiveAnyRTTI::get_for_type<T>();
     }
 
     constexpr inline bool has_value() const {
-        return type != PrimitiveAnyRTTI {};
+        return type != nullptr;
     }
 
     constexpr inline operator bool() const {
@@ -111,6 +113,13 @@ public:
     }
     constexpr inline bool operator!() const {
         return !has_value();
+    }
+
+    bool operator==(const PrimitiveAny &o) const {
+        return (type == o.type) && (!type || data == o.data);
+    }
+    bool operator!=(const PrimitiveAny &o) const {
+        return !(*this == o);
     }
 
     template <size_t other_size>
@@ -123,8 +132,8 @@ public:
 
 private:
     /// Contents of the variant
-    std::array<uint8_t, max_size> data = { 0 };
+    alignas(PrimitiveAnyAlignment) std::array<uint8_t, max_size> data = { 0 };
 
     /// Pointer representing the type
-    PrimitiveAnyRTTI type;
+    const PrimitiveAnyRTTI *type = nullptr;
 };
