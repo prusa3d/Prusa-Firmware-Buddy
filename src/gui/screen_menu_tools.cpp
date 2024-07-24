@@ -16,41 +16,6 @@
 
 static int displayed_tool = 0;
 
-static constexpr NumericInputConfig POSITION_CONFIG {
-    .max_value = 500,
-    .step = 0.1,
-    .max_decimal_places = 2,
-    .unit = Unit::millimeter,
-};
-
-MI_POSITION::MI_POSITION(const string_view_utf8 &label, [[maybe_unused]] const img::Resource *id_icon, [[maybe_unused]] is_enabled_t enabled, [[maybe_unused]] is_hidden_t hidden, float initVal)
-    : WiSpin(initVal, POSITION_CONFIG, label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
-
-void MI_POSITION::OnClick() {
-    set_pos(GetVal());
-    prusa_toolchanger.save_tool_info();
-}
-
-MI_DOCK_POSITION_X::MI_DOCK_POSITION_X()
-    : MI_POSITION(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, prusa_toolchanger.get_tool_info(prusa_toolchanger.getTool(displayed_tool)).dock_x) {}
-
-void MI_DOCK_POSITION_X::set_pos(const float pos) {
-    const buddy::puppies::Dwarf &dwarf = prusa_toolchanger.getTool(displayed_tool);
-    PrusaToolInfo info = prusa_toolchanger.get_tool_info(dwarf);
-    info.dock_x = pos;
-    prusa_toolchanger.set_tool_info(dwarf, info);
-}
-
-MI_DOCK_POSITION_Y::MI_DOCK_POSITION_Y()
-    : MI_POSITION(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, prusa_toolchanger.get_tool_info(prusa_toolchanger.getTool(displayed_tool)).dock_y) {}
-
-void MI_DOCK_POSITION_Y::set_pos(const float pos) {
-    const buddy::puppies::Dwarf &dwarf = prusa_toolchanger.getTool(displayed_tool);
-    PrusaToolInfo info = prusa_toolchanger.get_tool_info(dwarf);
-    info.dock_y = pos;
-    prusa_toolchanger.set_tool_info(dwarf, info);
-}
-
 static constexpr NumericInputConfig OFFSET_CONFIG_X {
     .min_value = X_MIN_OFFSET,
     .max_value = X_MAX_OFFSET,
@@ -107,14 +72,6 @@ MI_PICKUP_TOOL::MI_PICKUP_TOOL()
 void MI_PICKUP_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_client::gcode("G27 P0 Z5"); // Lift Z if not high enough
     marlin_client::gcode_printf("T%d S1 L0 D0", displayed_tool);
-}
-
-MI_DOCK_CALIBRATE::MI_DOCK_CALIBRATE()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_DOCK_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::test_start_with_data(stmDocks, static_cast<ToolMask>(1 << displayed_tool));
 }
 
 MI_FSENSORS_CALIBRATE::MI_FSENSORS_CALIBRATE()

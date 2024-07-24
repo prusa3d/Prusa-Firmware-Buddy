@@ -11,36 +11,6 @@
 #include "MItem_hardware.hpp"
 #include "WindowItemTempLabel.hpp"
 
-class MI_POSITION : public WiSpin {
-public:
-    MI_POSITION(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
-
-protected:
-    virtual void set_pos(const float pos) = 0;
-
-    virtual void OnClick() override;
-};
-
-class MI_DOCK_POSITION_X : public MI_POSITION {
-    static constexpr const char *label = N_("Dock X");
-    static constexpr const char *axis_name = "X";
-
-public:
-    MI_DOCK_POSITION_X();
-
-    virtual void set_pos(const float pos) override;
-};
-
-class MI_DOCK_POSITION_Y : public MI_POSITION {
-    static constexpr const char *label = N_("Dock Y");
-    static constexpr const char *axis_name = "Y";
-
-public:
-    MI_DOCK_POSITION_Y();
-
-    virtual void set_pos(const float pos) override;
-};
-
 class MI_OFFSET : public WiSpin {
 public:
     MI_OFFSET(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const NumericInputConfig &config);
@@ -82,15 +52,6 @@ public:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_DOCK_CALIBRATE : public IWindowMenuItem {
-    static constexpr const char *label = N_("Calibrate Dock Position");
-
-public:
-    MI_DOCK_CALIBRATE();
-
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_FSENSORS_CALIBRATE : public IWindowMenuItem {
     static constexpr const char *label = N_("Calibrate Filament Sensor");
 
@@ -101,7 +62,7 @@ public:
 };
 
 namespace detail {
-using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_DOCK_POSITION_X, MI_DOCK_POSITION_Y, MI_DOCK_CALIBRATE, MI_FSENSORS_CALIBRATE, MI_OFFSET_X, MI_OFFSET_Y, MI_OFFSET_Z, MI_PICKUP_TOOL>;
+using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_FSENSORS_CALIBRATE, MI_OFFSET_X, MI_OFFSET_Y, MI_OFFSET_Z, MI_PICKUP_TOOL>;
 }
 
 class ScreenMenuToolSetup : public detail::ScreenMenuToolSetup {

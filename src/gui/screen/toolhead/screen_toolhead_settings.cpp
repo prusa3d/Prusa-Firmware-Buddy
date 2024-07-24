@@ -5,6 +5,7 @@
 #include <img_resources.hpp>
 
 #include "screen_toolhead_settings_fs.hpp"
+#include "screen_toolhead_settings_dock.hpp"
 
 using namespace screen_toolhead_settings;
 
@@ -56,6 +57,16 @@ void MI_NOZZLE_SOCK::OnChange([[maybe_unused]] size_t old_index) {
 }
 #endif
 
+#if HAS_TOOLCHANGER()
+// * MI_DOCK
+MI_DOCK::MI_DOCK(Toolhead toolhead)
+    : MI_TOOLHEAD_SPECIFIC(toolhead, _("Dock Position"), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {}
+
+void MI_DOCK::click(IWindowMenu &) {
+    Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenToolheadDetailDock>(toolhead()));
+}
+#endif
+
 // * MI_FILAMENT_SENSORS
 MI_FILAMENT_SENSORS::MI_FILAMENT_SENSORS(Toolhead toolhead)
     : MI_TOOLHEAD_SPECIFIC(toolhead, _("Filament Sensors Tuning"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {}
@@ -79,10 +90,14 @@ ScreenToolheadDetail::ScreenToolheadDetail(Toolhead toolhead)
 
     // Do not show certain items until printer setup is done
     if (!config_store().printer_setup_done.get()) {
+#if HAS_TOOLCHANGER()
+        container.Item<MI_DOCK>().set_is_hidden();
+#endif
     }
 
     // Some options don't make sense for AllToolheads
     if (toolhead == all_toolheads) {
+        container.Item<MI_DOCK>().set_is_hidden();
     }
 }
 

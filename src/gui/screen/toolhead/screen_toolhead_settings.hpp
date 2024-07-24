@@ -45,6 +45,14 @@ public:
 using MI_HOTEND_SOCK_OR_TYPE = std::conditional_t<hotend_type_only_sock, MI_NOZZLE_SOCK, MI_HOTEND_TYPE>;
 #endif
 
+#if HAS_TOOLCHANGER()
+class MI_DOCK : public MI_TOOLHEAD_SPECIFIC<MI_DOCK, IWindowMenuItem> {
+public:
+    MI_DOCK(Toolhead toolhead = default_toolhead);
+    void click(IWindowMenu &) override;
+};
+#endif
+
 class MI_FILAMENT_SENSORS : public MI_TOOLHEAD_SPECIFIC<MI_FILAMENT_SENSORS, IWindowMenuItem> {
 public:
     MI_FILAMENT_SENSORS(Toolhead toolhead = default_toolhead);
@@ -65,6 +73,9 @@ using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
 #if HAS_MMU2()
     MI_MMU_NEXTRUDER_REWORK,
     MI_DONE_EXTRUDER_MAINTENANCE, // both for loadcell equipped printers and MK3.5
+#endif
+#if HAS_TOOLCHANGER()
+    MI_DOCK,
 #endif
     MI_FILAMENT_SENSORS //
     >;
