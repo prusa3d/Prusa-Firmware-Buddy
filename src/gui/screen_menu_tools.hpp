@@ -11,11 +11,6 @@
 #include "MItem_hardware.hpp"
 #include "WindowItemTempLabel.hpp"
 
-class MI_TOOL_NOZZLE_DIAMETER : public MI_NOZZLE_DIAMETER {
-public:
-    MI_TOOL_NOZZLE_DIAMETER();
-};
-
 class MI_POSITION : public WiSpin {
 public:
     MI_POSITION(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
@@ -106,7 +101,7 @@ public:
 };
 
 namespace detail {
-using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_TOOL_NOZZLE_DIAMETER, MI_DOCK_POSITION_X, MI_DOCK_POSITION_Y, MI_DOCK_CALIBRATE, MI_FSENSORS_CALIBRATE, MI_OFFSET_X, MI_OFFSET_Y, MI_OFFSET_Z, MI_PICKUP_TOOL>;
+using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_DOCK_POSITION_X, MI_DOCK_POSITION_Y, MI_DOCK_CALIBRATE, MI_FSENSORS_CALIBRATE, MI_OFFSET_X, MI_OFFSET_Y, MI_OFFSET_Z, MI_PICKUP_TOOL>;
 }
 
 class ScreenMenuToolSetup : public detail::ScreenMenuToolSetup {

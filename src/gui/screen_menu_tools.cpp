@@ -16,10 +16,6 @@
 
 static int displayed_tool = 0;
 
-MI_TOOL_NOZZLE_DIAMETER::MI_TOOL_NOZZLE_DIAMETER()
-    : MI_NOZZLE_DIAMETER(displayed_tool, is_hidden_t::no) {
-}
-
 static constexpr NumericInputConfig POSITION_CONFIG {
     .max_value = 500,
     .step = 0.1,

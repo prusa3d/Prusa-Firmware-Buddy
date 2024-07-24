@@ -18,28 +18,6 @@ private:
     const HWCheckType check_type;
 };
 
-class MI_NOZZLE_DIAMETER : public WiSpin {
-    static constexpr const char *const label = N_("Nozzle Diameter");
-
-    int tool_idx; ///< Configure this tool [indexed from 0]
-
-    /**
-     * @brief Get diameter value stored in eeprom.
-     * @param tool_idx this tool [indexed from 0] (has to be parameter since internal variable is not yet inited when using this function)
-     * @return diameter value
-     */
-    float get_eeprom(int tool_idx) const;
-
-public:
-    /**
-     * @brief Construct menu item to configure nozzle diameter.
-     * @param tool_idx this tool [indexed from 0]
-     * @param with_toolchanger whether to hide this item if toolchanger is enabled
-     */
-    MI_NOZZLE_DIAMETER(int tool_idx = 0, is_hidden_t with_toolchanger = is_hidden_t::yes);
-    virtual void OnClick() override;
-};
-
 class MI_HARDWARE_G_CODE_CHECKS : public IWindowMenuItem {
     static constexpr const char *const label = N_("G-Code Checks");
 

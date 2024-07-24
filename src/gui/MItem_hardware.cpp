@@ -25,22 +25,6 @@ void MI_HARDWARE_CHECK::OnChange([[maybe_unused]] size_t old_index) {
     config_store().visit_hw_check(check_type, [set = static_cast<HWCheckSeverity>(index)](auto &item) { item.set(set); });
 }
 
-MI_NOZZLE_DIAMETER::MI_NOZZLE_DIAMETER(int tool_idx, [[maybe_unused]] is_hidden_t with_toolchanger)
-    : WiSpin(get_eeprom(tool_idx), nozzle_diameter_spin_config, _(label))
-    , tool_idx(tool_idx) {
-#if ENABLED(PRUSA_TOOLCHANGER)
-    set_is_hidden(prusa_toolchanger.is_toolchanger_enabled());
-#endif
-}
-
-float MI_NOZZLE_DIAMETER::get_eeprom(int tool_idx) const {
-    return config_store().get_nozzle_diameter(tool_idx);
-}
-
-void MI_NOZZLE_DIAMETER::OnClick() {
-    config_store().set_nozzle_diameter(tool_idx, GetVal());
-}
-
 MI_HARDWARE_G_CODE_CHECKS::MI_HARDWARE_G_CODE_CHECKS()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
