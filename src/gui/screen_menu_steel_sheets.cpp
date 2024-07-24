@@ -144,11 +144,5 @@ I_MI_SHEET_PROFILE::I_MI_SHEET_PROFILE(int sheet_index)
 
 // ScreenFactory::Screen depends on ProfileRecord following code cannot stay in header (be template)
 void I_MI_SHEET_PROFILE::click([[maybe_unused]] IWindowMenu &window_menu) {
-    static constexpr const auto screen_open_f = []<size_t... ix>(const std::index_sequence<ix...>) {
-        return std::array {
-            ScreenFactory::Screen<SheetProfileMenuScreen, ix>...
-        };
-    }(std::make_index_sequence<config_store_ns::sheets_num>());
-
-    Screens::Access()->Open(screen_open_f[sheet_index]);
+    Screens::Access()->Open(ScreenFactory::ScreenWithArg<SheetProfileMenuScreen>(sheet_index));
 }
