@@ -75,6 +75,26 @@ void MI_FILAMENT_SENSORS::click(IWindowMenu &) {
     Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenToolheadDetailFS>(toolhead()));
 }
 
+#if FILAMENT_SENSOR_IS_ADC()
+// * MI_CALIBRATE_FILAMENT_SENSORS
+MI_CALIBRATE_FILAMENT_SENSORS::MI_CALIBRATE_FILAMENT_SENSORS(Toolhead toolhead)
+    : MI_TOOLHEAD_SPECIFIC(toolhead, string_view_utf8()) {
+    update();
+}
+
+void MI_CALIBRATE_FILAMENT_SENSORS::update() {
+    SetLabel((HAS_SIDE_FSENSOR() || toolhead() == all_toolheads) ? _("Calibrate Filament Sensors") : _("Calibrate Filament Sensor"));
+}
+
+void MI_CALIBRATE_FILAMENT_SENSORS::click(IWindowMenu &) {
+    if (MsgBoxQuestion(_("Perform filament sensors calibration? This discards previous filament sensors calibration."), Responses_YesNo) == Response::No) {
+        return;
+    }
+
+    marlin_client::test_start_with_data(stmFSensor, (toolhead() == all_toolheads) ? ToolMask::AllTools : static_cast<ToolMask>(1 << std::get<ToolheadIndex>(toolhead())));
+}
+#endif
+
 // * ScreenToolheadDetail
 ScreenToolheadDetail::ScreenToolheadDetail(Toolhead toolhead)
     : ScreenMenu({})
@@ -92,6 +112,9 @@ ScreenToolheadDetail::ScreenToolheadDetail(Toolhead toolhead)
     if (!config_store().printer_setup_done.get()) {
 #if HAS_TOOLCHANGER()
         container.Item<MI_DOCK>().set_is_hidden();
+#endif
+#if FILAMENT_SENSOR_IS_ADC()
+        container.Item<MI_CALIBRATE_FILAMENT_SENSORS>().set_is_hidden();
 #endif
     }
 

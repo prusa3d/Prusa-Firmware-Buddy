@@ -52,17 +52,8 @@ public:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_FSENSORS_CALIBRATE : public IWindowMenuItem {
-    static constexpr const char *label = N_("Calibrate Filament Sensor");
-
-public:
-    MI_FSENSORS_CALIBRATE();
-
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 namespace detail {
-using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_FSENSORS_CALIBRATE, MI_OFFSET_X, MI_OFFSET_Y, MI_OFFSET_Z, MI_PICKUP_TOOL>;
+using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_OFFSET_X, MI_OFFSET_Y, MI_OFFSET_Z, MI_PICKUP_TOOL>;
 }
 
 class ScreenMenuToolSetup : public detail::ScreenMenuToolSetup {

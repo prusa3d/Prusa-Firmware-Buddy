@@ -59,6 +59,15 @@ public:
     void click(IWindowMenu &) override;
 };
 
+#if FILAMENT_SENSOR_IS_ADC()
+class MI_CALIBRATE_FILAMENT_SENSORS : public MI_TOOLHEAD_SPECIFIC<MI_CALIBRATE_FILAMENT_SENSORS, IWindowMenuItem> {
+public:
+    MI_CALIBRATE_FILAMENT_SENSORS(Toolhead toolhead = default_toolhead);
+    void update();
+    void click(IWindowMenu &) override;
+};
+#endif
+
 using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
     MI_RETURN,
     MI_NOZZLE_DIAMETER,
@@ -76,6 +85,9 @@ using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
 #endif
 #if HAS_TOOLCHANGER()
     MI_DOCK,
+#endif
+#if FILAMENT_SENSOR_IS_ADC()
+    MI_CALIBRATE_FILAMENT_SENSORS,
 #endif
     MI_FILAMENT_SENSORS //
     >;

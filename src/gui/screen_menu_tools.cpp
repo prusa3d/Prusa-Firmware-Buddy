@@ -74,18 +74,6 @@ void MI_PICKUP_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_client::gcode_printf("T%d S1 L0 D0", displayed_tool);
 }
 
-MI_FSENSORS_CALIBRATE::MI_FSENSORS_CALIBRATE()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_FSENSORS_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
-    if (MsgBoxQuestion(_("Perform filament sensors calibration? This discards previous filament sensors calibration. The extruder will be replaced during calibration"), Responses_YesNo) == Response::No) {
-        return;
-    }
-
-    marlin_client::test_start_with_data(stmFSensor, static_cast<ToolMask>(1 << displayed_tool));
-}
-
 ScreenMenuToolSetup::ScreenMenuToolSetup()
     : detail::ScreenMenuToolSetup(_(labels[displayed_tool])) {
 }
