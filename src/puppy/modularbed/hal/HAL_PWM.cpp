@@ -172,6 +172,9 @@ void AddPWMPulse(uint32_t heatbedletIndex, uint32_t pulseStartEdge, uint32_t pul
         }
 
         if (pulseStartEdge != pulseEndEdge) {
+            if (pulseEndEdge >= PWM_PERIOD_LENGTH) {
+                bsod("PWM pulse is too long!");
+            }
             uint32_t *pEdgeMaskList = (s_pActualEdgeMaskList == s_EdgeMaskList_A) ? s_EdgeMaskList_B : s_EdgeMaskList_A;
             pEdgeMaskList[pulseStartEdge] |= hbMask << 16;
             pEdgeMaskList[pulseEndEdge] |= hbMask;
