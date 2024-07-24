@@ -478,6 +478,9 @@ struct CurrentStore
     // Nozzle Sock has is here for backwards compatibility (should be binary compatible)
     StoreItem<HotendType, defaults::hotend_type, journal::hash("Nozzle Sock")> hotend_type;
 
+    // If hotend count increases, we need to migrate hotend_type to an array
+    static_assert(!HAS_HOTEND_TYPE_SUPPORT() || HOTENDS == 1);
+
     StoreItem<restore_z::Position, restore_z::default_position, journal::hash("Restore Z Coordinate After Boot")> restore_z_after_boot;
 
     StoreItem<int16_t, defaults::homing_sens_x, journal::hash("Homing Sens X")> homing_sens_x; // X axis homing sensitivity

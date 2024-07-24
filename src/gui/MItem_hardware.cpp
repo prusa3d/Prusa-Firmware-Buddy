@@ -33,14 +33,6 @@ void MI_HARDWARE_G_CODE_CHECKS::click(IWindowMenu &) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuHardwareChecks>);
 }
 
-// MI_NOZZLE_SOCK
-MI_NOZZLE_SOCK::MI_NOZZLE_SOCK()
-    : WI_ICON_SWITCH_OFF_ON_t(config_store().hotend_type.get() == HotendType::stock_with_sock, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
-
-void MI_NOZZLE_SOCK::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().hotend_type.set(index ? HotendType::stock_with_sock : HotendType::stock);
-}
-
 #if HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()
 // MI_SIDE_FSENSOR_REMAP
 MI_SIDE_FSENSOR_REMAP::MI_SIDE_FSENSOR_REMAP()

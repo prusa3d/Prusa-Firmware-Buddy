@@ -40,6 +40,20 @@ void MI_NOZZLE_DIAMETER_HELP::click(IWindowMenu &) {
         Responses_Ok);
 }
 
+#if HAS_HOTEND_TYPE_SUPPORT()
+// * MI_HOTEND_TYPE
+MI_HOTEND_TYPE::MI_HOTEND_TYPE()
+    : WiStoreEnumSwitch(_("Hotend Type"), hotend_type_names, true, hotend_type_supported) {}
+
+// * MI_NOZZLE_SOCK
+MI_NOZZLE_SOCK::MI_NOZZLE_SOCK()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().hotend_type.get() == HotendType::stock_with_sock, _("Nextruder Silicone Sock"), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_NOZZLE_SOCK::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().hotend_type.set(index ? HotendType::stock_with_sock : HotendType::stock);
+}
+#endif
+
 // * ScreenToolheadDetail
 ScreenToolheadDetail::ScreenToolheadDetail(Toolhead toolhead)
     : ScreenMenu({})
