@@ -139,7 +139,7 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode,
         return;
     }
 
-    const FilamentType filament = response_variant.value_or(FilamentType::none);
+    const FilamentType filament = response_variant.value_or<FilamentType>(FilamentType::none);
     const FilamentTypeParameters fil_cnf = filament.parameters();
 
     const auto set_extruder_temp = [&](uint8_t extruder) {
