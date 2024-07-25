@@ -59,8 +59,9 @@ public:
     }
 
     /// \returns value of T, if the variant holds this alternative, or \p fallback
-    template <typename T>
-    constexpr const T value_or(const T &fallback) const {
+    template <typename T, typename Fallback>
+    constexpr const T value_or(const Fallback &fallback) const {
+        // !!! It is important to have T and Fallback separate to prevent automatic T inferation
         if (auto r = value_maybe<T>()) {
             return *r;
         } else {

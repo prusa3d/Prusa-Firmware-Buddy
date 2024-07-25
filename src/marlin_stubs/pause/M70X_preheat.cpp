@@ -66,7 +66,7 @@ std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::p
         return { std::nullopt, filament };
     }
 
-    switch (response.value_or(Response::_none)) {
+    switch (response.value_or<Response>(Response::_none)) {
 
     case Response::Abort:
         return { PreheatStatus::Result::Aborted, FilamentType::none };
@@ -110,7 +110,7 @@ std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::p
         return { std::nullopt, filament };
     }
 
-    switch (response.value_or(Response::_none)) {
+    switch (response.value_or<Response>(Response::_none)) {
 
     case Response::Abort:
         return { PreheatStatus::Result::Aborted, FilamentType::none };
@@ -133,7 +133,7 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode,
         return;
     }
 
-    const Response response = response_variant.value_or(Response::_none);
+    const Response response = response_variant.value_or<Response>(Response::_none);
     if (response == Response::Abort) {
         PreheatStatus::SetResult(PreheatStatus::Result::Aborted);
         return;
