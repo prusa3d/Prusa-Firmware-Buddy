@@ -350,16 +350,16 @@ std::optional<WifiCredentials> consume_data() {
     return credentials;
 }
 
-std::atomic<uint8_t> SharedEnabler::level { 0 };
+std::atomic<int8_t> SharedEnabler::level { 0 };
 
 SharedEnabler::SharedEnabler() {
-    if (++level == 1) {
+    if (level.fetch_add(1) == 0) {
         turn_on();
     }
 }
 
 SharedEnabler::~SharedEnabler() {
-    if (--level == 0) {
+    if (level.fetch_sub(1) == 1) {
         turn_off();
     }
 }

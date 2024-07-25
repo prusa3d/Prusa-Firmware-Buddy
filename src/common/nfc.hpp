@@ -28,7 +28,7 @@ struct SharedEnabler {
     SharedEnabler &operator=(const SharedEnabler &) = delete;
 
 protected:
-    static std::atomic<uint8_t> level;
+    static std::atomic<int8_t> level;
 };
 
 }; // namespace nfc
