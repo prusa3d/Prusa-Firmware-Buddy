@@ -45,9 +45,9 @@ class MI_HARDWARE_CHECK_t : public WI_SWITCH_t<3> {
 public:
     MI_HARDWARE_CHECK_t(string_view_utf8 label)
         : WI_SWITCH_t(get_eeprom(), label, nullptr, is_enabled_t::yes, is_hidden_t::no,
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_none),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_warn),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)str_strict)) {}
+            _(str_none),
+            _(str_warn),
+            _(str_strict)) {}
 
 protected:
     void OnChange([[maybe_unused]] size_t old_index) override {
