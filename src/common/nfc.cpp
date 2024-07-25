@@ -274,6 +274,14 @@ void init() {
         st25dv64k_user_write_bytes(0x0, &cc, sizeof(cc));
 
         st25dv64k_wr_cfg(REG_LOCK_CCFILE, 0x1); // lock the CC block
+
+        st25dv64k_wr_cfg(REG_ENDA3, 0xFF);
+        st25dv64k_wr_cfg(REG_ENDA2, 0xFF); // AREA2 0x500 to end
+        st25dv64k_wr_cfg(REG_ENDA1, 0x27); // AREA1 0 to 0x4ff
+
+        st25dv64k_wr_cfg(REG_RFA1SS, 0b0); // AREA 1 RF R/W
+        st25dv64k_wr_cfg(REG_RFA2SS, 0b1101); // AREA 2 RF N/A
+        st25dv64k_wr_cfg(REG_RFA3SS, 0b1101); // AREA 3 RF N/A
     }
 
     nfc::init_printer_id();
