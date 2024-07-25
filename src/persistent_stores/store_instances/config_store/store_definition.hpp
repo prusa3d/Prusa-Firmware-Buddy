@@ -326,6 +326,15 @@ struct CurrentStore
     float get_nozzle_diameter(uint8_t index);
     void set_nozzle_diameter(uint8_t index, float value);
 
+    // If this assert fails, we need to do some migrations on the following items
+    static_assert(HOTENDS <= 8);
+
+    /// Stores whether a nozzle is hardened (resistant to abrasive filament) or not. One bit per each hotend
+    StoreItem<std::bitset<8>, 0, journal::hash("Nozzle is Hardened")> nozzle_is_hardened;
+
+    /// Stores whether a nozzle is high-flow (supports high-flow print profile) or not. One bit per each hotend
+    StoreItem<std::bitset<8>, 0, journal::hash("Nozzle is High-Flow")> nozzle_is_high_flow;
+
     StoreItem<float, 0.0f, journal::hash("Homing Bump Divisor X")> homing_bump_divisor_x;
     StoreItem<float, 0.0f, journal::hash("Homing Bump Divisor Y")> homing_bump_divisor_y;
 
