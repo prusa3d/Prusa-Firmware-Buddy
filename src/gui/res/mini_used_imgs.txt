@@ -105,6 +105,7 @@ spool_16x16.png
 stealth_20x16.png
 switch_off_36x18.png
 switch_on_36x18.png
+switch_mid_36x18.png
 temperature_16x16.png
 transfer_icon_16x16.png
 turn_knob_81x55.png
