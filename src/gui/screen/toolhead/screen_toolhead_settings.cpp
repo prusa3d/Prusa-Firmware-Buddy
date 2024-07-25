@@ -6,6 +6,7 @@
 
 #include "screen_toolhead_settings_fs.hpp"
 #include "screen_toolhead_settings_dock.hpp"
+#include "screen_toolhead_settings_nozzle_offset.hpp"
 
 using namespace screen_toolhead_settings;
 
@@ -95,6 +96,14 @@ void MI_CALIBRATE_FILAMENT_SENSORS::click(IWindowMenu &) {
 }
 #endif
 
+// * MI_NOZZLE_OFFSET
+MI_NOZZLE_OFFSET::MI_NOZZLE_OFFSET(Toolhead toolhead)
+    : MI_TOOLHEAD_SPECIFIC(toolhead, _("Nozzle Offset"), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {}
+
+void MI_NOZZLE_OFFSET::click(IWindowMenu &) {
+    Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenToolheadDetailNozzleOffset>(toolhead()));
+}
+
 // * ScreenToolheadDetail
 ScreenToolheadDetail::ScreenToolheadDetail(Toolhead toolhead)
     : ScreenMenu({})
@@ -112,6 +121,7 @@ ScreenToolheadDetail::ScreenToolheadDetail(Toolhead toolhead)
     if (!config_store().printer_setup_done.get()) {
 #if HAS_TOOLCHANGER()
         container.Item<MI_DOCK>().set_is_hidden();
+        container.Item<MI_NOZZLE_OFFSET>().set_is_hidden();
 #endif
 #if FILAMENT_SENSOR_IS_ADC()
         container.Item<MI_CALIBRATE_FILAMENT_SENSORS>().set_is_hidden();
@@ -120,7 +130,17 @@ ScreenToolheadDetail::ScreenToolheadDetail(Toolhead toolhead)
 
     // Some options don't make sense for AllToolheads
     if (toolhead == all_toolheads) {
+#if HAS_TOOLCHANGER()
         container.Item<MI_DOCK>().set_is_hidden();
+        container.Item<MI_NOZZLE_OFFSET>().set_is_hidden();
+#endif
+    }
+
+    if (toolhead == default_toolhead) {
+#if HAS_TOOLCHANGER()
+        // Nozzle offset is always relative to the first tool, so it does not make sense to calibrate it for tool 0
+        container.Item<MI_NOZZLE_OFFSET>().set_is_hidden();
+#endif
     }
 }
 

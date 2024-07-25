@@ -16,55 +16,6 @@
 
 static int displayed_tool = 0;
 
-static constexpr NumericInputConfig OFFSET_CONFIG_X {
-    .min_value = X_MIN_OFFSET,
-    .max_value = X_MAX_OFFSET,
-    .step = 0.01,
-    .max_decimal_places = 2,
-    .unit = Unit::millimeter,
-};
-static constexpr NumericInputConfig OFFSET_CONFIG_Y {
-    .min_value = Y_MIN_OFFSET,
-    .max_value = Y_MAX_OFFSET,
-    .step = 0.01,
-    .max_decimal_places = 2,
-    .unit = Unit::millimeter,
-};
-static constexpr NumericInputConfig OFFSET_CONFIG_Z {
-    .min_value = Z_MIN_OFFSET,
-    .max_value = Z_MAX_OFFSET,
-    .step = 0.01,
-    .max_decimal_places = 2,
-    .unit = Unit::millimeter,
-};
-
-MI_OFFSET::MI_OFFSET(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const NumericInputConfig &config)
-    : WiSpin(initVal, config, label, id_icon, enabled, hidden) {}
-
-MI_OFFSET_X::MI_OFFSET_X()
-    : MI_OFFSET(_(label), nullptr, is_enabled_t::yes, displayed_tool ? is_hidden_t::no : is_hidden_t::yes, hotend_offset[displayed_tool].x, OFFSET_CONFIG_X) {}
-
-void MI_OFFSET_X::OnClick() {
-    hotend_offset[displayed_tool].x = GetVal();
-    prusa_toolchanger.save_tool_offsets();
-}
-
-MI_OFFSET_Y::MI_OFFSET_Y()
-    : MI_OFFSET(_(label), nullptr, is_enabled_t::yes, displayed_tool ? is_hidden_t::no : is_hidden_t::yes, hotend_offset[displayed_tool].y, OFFSET_CONFIG_Y) {}
-
-void MI_OFFSET_Y::OnClick() {
-    hotend_offset[displayed_tool].y = GetVal();
-    prusa_toolchanger.save_tool_offsets();
-}
-
-MI_OFFSET_Z::MI_OFFSET_Z()
-    : MI_OFFSET(_(label), nullptr, is_enabled_t::yes, displayed_tool ? is_hidden_t::no : is_hidden_t::yes, hotend_offset[displayed_tool].z, OFFSET_CONFIG_Z) {}
-
-void MI_OFFSET_Z::OnClick() {
-    hotend_offset[displayed_tool].z = GetVal();
-    prusa_toolchanger.save_tool_offsets();
-}
-
 MI_PICKUP_TOOL::MI_PICKUP_TOOL()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
 }

@@ -68,6 +68,12 @@ public:
 };
 #endif
 
+class MI_NOZZLE_OFFSET : public MI_TOOLHEAD_SPECIFIC<MI_NOZZLE_OFFSET, IWindowMenuItem> {
+public:
+    MI_NOZZLE_OFFSET(Toolhead toolhead = default_toolhead);
+    void click(IWindowMenu &) override;
+};
+
 using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
     MI_RETURN,
     MI_NOZZLE_DIAMETER,
@@ -84,6 +90,7 @@ using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
     MI_DONE_EXTRUDER_MAINTENANCE, // both for loadcell equipped printers and MK3.5
 #endif
 #if HAS_TOOLCHANGER()
+    MI_NOZZLE_OFFSET,
     MI_DOCK,
 #endif
 #if FILAMENT_SENSOR_IS_ADC()

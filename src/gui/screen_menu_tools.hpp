@@ -11,38 +11,6 @@
 #include "MItem_hardware.hpp"
 #include "WindowItemTempLabel.hpp"
 
-class MI_OFFSET : public WiSpin {
-public:
-    MI_OFFSET(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const NumericInputConfig &config);
-};
-
-class MI_OFFSET_X : public MI_OFFSET {
-    static constexpr const char *label = N_("Offset X");
-
-public:
-    MI_OFFSET_X();
-
-    virtual void OnClick() override;
-};
-
-class MI_OFFSET_Y : public MI_OFFSET {
-    static constexpr const char *label = N_("Offset Y");
-
-public:
-    MI_OFFSET_Y();
-
-    virtual void OnClick() override;
-};
-
-class MI_OFFSET_Z : public MI_OFFSET {
-    static constexpr const char *label = N_("Offset Z");
-
-public:
-    MI_OFFSET_Z();
-
-    virtual void OnClick() override;
-};
-
 class MI_PICKUP_TOOL : public IWindowMenuItem {
     static constexpr const char *label = N_("Pickup Tool");
 
@@ -53,7 +21,7 @@ public:
 };
 
 namespace detail {
-using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_OFFSET_X, MI_OFFSET_Y, MI_OFFSET_Z, MI_PICKUP_TOOL>;
+using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_PICKUP_TOOL>;
 }
 
 class ScreenMenuToolSetup : public detail::ScreenMenuToolSetup {
