@@ -117,8 +117,8 @@ void init_printer_id() {
     dst_addr += sizeof(data);
 
     tlv = {
-        .type = ndef::Type::terminator, // terminator
-        .length = sizeof(data)
+        .type = ndef::Type::terminator,
+        .length = 0,
     };
 
     std::ignore = user_write_bytes(EepromCommand::memory, dst_addr, &tlv, sizeof(tlv));
