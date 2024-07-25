@@ -11,46 +11,6 @@
 #include "MItem_hardware.hpp"
 #include "WindowItemTempLabel.hpp"
 
-namespace detail {
-using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN>;
-}
-
-class ScreenMenuToolSetup : public detail::ScreenMenuToolSetup {
-public:
-    ScreenMenuToolSetup();
-
-    constexpr static const char *labels[] = { N_("TOOL 1"), N_("TOOL 2"), N_("TOOL 3"), N_("TOOL 4"), N_("TOOL 5") };
-};
-
-class I_MI_TOOL : public IWindowMenuItem {
-
-public:
-    I_MI_TOOL(uint8_t tool_index);
-
-protected:
-    void click(IWindowMenu &window_menu);
-
-private:
-    const uint8_t tool_index;
-};
-
-template <int N>
-class MI_TOOL : public I_MI_TOOL {
-public:
-    MI_TOOL()
-        : I_MI_TOOL(N) {}
-};
-
-namespace detail {
-using ScreenMenuTools = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_TOOL<0>, MI_TOOL<1>, MI_TOOL<2>, MI_TOOL<3>, MI_TOOL<4>>;
-}
-
-class ScreenMenuTools : public detail::ScreenMenuTools {
-public:
-    constexpr static const char *label = N_("TOOLS");
-    ScreenMenuTools();
-};
-
 class MI_INFO_DWARF_BOARD_TEMPERATURE : public WI_TEMP_LABEL_t {
     static constexpr const char *const label = N_("Dwarf Board Temp");
 

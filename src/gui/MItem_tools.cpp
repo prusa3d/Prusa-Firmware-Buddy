@@ -950,16 +950,6 @@ void MI_TOOL_LEDS_ENABLE::OnChange(size_t old_index) {
     }
     config_store().tool_leds_enabled.set(!old_index);
 }
-
-/*****************************************************************************/
-// MI_TOOLS_SETUP
-MI_TOOLS_SETUP::MI_TOOLS_SETUP()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes, expands_t::yes) {
-}
-
-void MI_TOOLS_SETUP::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuTools>);
-}
 #endif
 
 // MI_TRIGGER_POWER_PANIC

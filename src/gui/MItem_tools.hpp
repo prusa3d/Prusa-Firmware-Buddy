@@ -748,16 +748,6 @@ public:
     MI_TOOL_LEDS_ENABLE();
     virtual void OnChange(size_t old_index) override;
 };
-
-class MI_TOOLS_SETUP : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Tools");
-
-public:
-    MI_TOOLS_SETUP();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
 #endif /*HAS_TOOLCHANGER()*/
 
 class MI_TRIGGER_POWER_PANIC : public IWindowMenuItem {

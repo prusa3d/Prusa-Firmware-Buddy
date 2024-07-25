@@ -51,7 +51,7 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_CRASH_DETECTION,
 #endif // ENABLED(CRASH_RECOVERY)
 #if HAS_TOOLCHANGER()
-    MI_TOOLS_SETUP,
+    MI_TOOLHEAD_SETTINGS,
 #endif
     MI_INPUT_SHAPER,
 #if DEVELOPER_MODE()
