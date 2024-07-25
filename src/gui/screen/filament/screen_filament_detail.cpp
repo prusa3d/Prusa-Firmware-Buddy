@@ -113,6 +113,21 @@ void MI_FILAMENT_REQUIRES_FILTRATION::OnChange(size_t) {
     filament_type.modify_parameters([&](auto &p) { p.requires_filtration = value(); });
 }
 
+// * MI_FILAMENT_IS_ABRASIVE
+static_assert(UpdatableMenuItem<MI_FILAMENT_IS_ABRASIVE>);
+
+MI_FILAMENT_IS_ABRASIVE::MI_FILAMENT_IS_ABRASIVE()
+    : MI_COMMON(false, _("Is Abrasive")) {}
+
+void MI_FILAMENT_IS_ABRASIVE::update() {
+    set_value(filament_type.parameters().is_abrasive, false);
+    set_is_enabled(filament_type.is_customizable());
+}
+
+void MI_FILAMENT_IS_ABRASIVE::OnChange(size_t) {
+    filament_type.modify_parameters([&](auto &p) { p.is_abrasive = value(); });
+}
+
 // * MI_FILAMENT_VISIBLE
 static_assert(UpdatableMenuItem<MI_FILAMENT_VISIBLE>);
 

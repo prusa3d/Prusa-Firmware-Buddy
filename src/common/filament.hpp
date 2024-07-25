@@ -38,8 +38,11 @@ public:
     /// Whether the filament requires filtration (used in XL enclosure)
     bool requires_filtration : 1 = false;
 
+    /// Whether the filament is abrasive and requires hardened (abrasive-resistant) nozzle
+    bool is_abrasive : 1 = false;
+
     // Keeping the remaining bits of the bitfield unused, but zero initizliazed, for future proofing
-    uint8_t _unused : 7 = 0;
+    uint8_t _unused : 6 = 0;
 
 public:
     constexpr bool operator==(const FilamentTypeParameters &) const = default;
