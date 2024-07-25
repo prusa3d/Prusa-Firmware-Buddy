@@ -16,6 +16,7 @@
 
 #if HAS_NFC()
     #include <nfc.hpp>
+    #include <optional>
 #endif
 
 class screen_home_data_t : public screen_t {
@@ -47,7 +48,8 @@ private:
     window_text_t w_labels[button_count];
 
 #if HAS_NFC()
-    nfc::SharedEnabler nfc_enable;
+    std::optional<nfc::SharedEnabler> nfc_enable { std::in_place };
+    void update_nfc_state();
 #endif
 
 public:

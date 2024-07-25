@@ -223,6 +223,18 @@ screen_home_data_t::~screen_home_data_t() {
     GuiMediaEventsHandler::ConsumeOneClickPrinting();
 }
 
+#if HAS_NFC()
+void screen_home_data_t::update_nfc_state() {
+    if (GetLastDialog()) {
+        nfc_enable.reset();
+    } else {
+        if (!nfc_enable) {
+            nfc_enable.emplace();
+        }
+    }
+}
+#endif
+
 void screen_home_data_t::filamentBtnSetState() {
 #if HAS_MMU2()
     const MMU2::xState new_state = MMU2::xState(marlin_vars()->mmu2_state.get());
@@ -466,6 +478,12 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
 #endif
 
     screen_t::windowEvent(sender, event, param);
+
+#if HAS_NFC()
+    // This is to handle the Preheat dialog, that is put above this screen
+    // instead of replacing it, leaving NFC enabled.
+    update_nfc_state();
+#endif
 }
 
 static bool find_latest_gcode(char *fpath, int fpath_len) {
