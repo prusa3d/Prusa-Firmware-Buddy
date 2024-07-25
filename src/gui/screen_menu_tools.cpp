@@ -16,15 +16,6 @@
 
 static int displayed_tool = 0;
 
-MI_PICKUP_TOOL::MI_PICKUP_TOOL()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
-}
-
-void MI_PICKUP_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::gcode("G27 P0 Z5"); // Lift Z if not high enough
-    marlin_client::gcode_printf("T%d S1 L0 D0", displayed_tool);
-}
-
 ScreenMenuToolSetup::ScreenMenuToolSetup()
     : detail::ScreenMenuToolSetup(_(labels[displayed_tool])) {
 }
@@ -37,15 +28,6 @@ I_MI_TOOL::I_MI_TOOL(uint8_t tool_index)
 void I_MI_TOOL::click(IWindowMenu &) {
     displayed_tool = tool_index;
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuToolSetup>);
-}
-
-MI_PARK_TOOL::MI_PARK_TOOL()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
-}
-
-void MI_PARK_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::gcode("G27 P0 Z5"); // Lift Z if not high enough
-    marlin_client::gcode_printf("T%d S1 L0 D0", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
 }
 
 ScreenMenuTools::ScreenMenuTools()

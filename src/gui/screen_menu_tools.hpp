@@ -11,17 +11,8 @@
 #include "MItem_hardware.hpp"
 #include "WindowItemTempLabel.hpp"
 
-class MI_PICKUP_TOOL : public IWindowMenuItem {
-    static constexpr const char *label = N_("Pickup Tool");
-
-public:
-    MI_PICKUP_TOOL();
-
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 namespace detail {
-using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_PICKUP_TOOL>;
+using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN>;
 }
 
 class ScreenMenuToolSetup : public detail::ScreenMenuToolSetup {
@@ -50,17 +41,8 @@ public:
         : I_MI_TOOL(N) {}
 };
 
-class MI_PARK_TOOL : public IWindowMenuItem {
-    static constexpr const char *label = N_("Park Current Tool");
-
-public:
-    MI_PARK_TOOL();
-
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 namespace detail {
-using ScreenMenuTools = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_TOOL<0>, MI_TOOL<1>, MI_TOOL<2>, MI_TOOL<3>, MI_TOOL<4>, MI_PARK_TOOL>;
+using ScreenMenuTools = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_TOOL<0>, MI_TOOL<1>, MI_TOOL<2>, MI_TOOL<3>, MI_TOOL<4>>;
 }
 
 class ScreenMenuTools : public detail::ScreenMenuTools {

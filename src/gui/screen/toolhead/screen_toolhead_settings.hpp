@@ -51,6 +51,13 @@ public:
     MI_DOCK(Toolhead toolhead = default_toolhead);
     void click(IWindowMenu &) override;
 };
+
+class MI_PICK_PARK : public MI_TOOLHEAD_SPECIFIC<MI_PICK_PARK, WI_ICON_SWITCH_OFF_ON_t> {
+public:
+    MI_PICK_PARK(Toolhead toolhead = default_toolhead);
+    void update(bool update_value = true);
+    void OnChange(size_t) override;
+};
 #endif
 
 class MI_FILAMENT_SENSORS : public MI_TOOLHEAD_SPECIFIC<MI_FILAMENT_SENSORS, IWindowMenuItem> {
@@ -90,6 +97,7 @@ using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
     MI_DONE_EXTRUDER_MAINTENANCE, // both for loadcell equipped printers and MK3.5
 #endif
 #if HAS_TOOLCHANGER()
+    MI_PICK_PARK,
     MI_NOZZLE_OFFSET,
     MI_DOCK,
 #endif

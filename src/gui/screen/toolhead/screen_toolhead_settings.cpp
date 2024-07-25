@@ -66,6 +66,30 @@ MI_DOCK::MI_DOCK(Toolhead toolhead)
 void MI_DOCK::click(IWindowMenu &) {
     Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenToolheadDetailDock>(toolhead()));
 }
+
+// * MI_PICK_PARK
+MI_PICK_PARK::MI_PICK_PARK(Toolhead toolhead)
+    : MI_TOOLHEAD_SPECIFIC(toolhead, false, _("Pick Tool")) {
+    update();
+}
+
+void MI_PICK_PARK::update(bool update_value) {
+    if (update_value) {
+        const auto picked_tool = prusa_toolchanger.detect_tool_nr();
+        set_value((toolhead() == all_toolheads) ? (picked_tool != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) : (picked_tool == std::get<ToolheadIndex>(toolhead())), false);
+    }
+
+    // If we're in all toolheads mode, allow only unpicking the tool
+    set_is_enabled((toolhead() != all_toolheads) || value());
+}
+
+void MI_PICK_PARK::OnChange(size_t) {
+    marlin_client::gcode("G27 P0 Z5"); // Lift Z if not high enough
+    marlin_client::gcode_printf("T%d S1 L0 D0", (value() && toolhead() != all_toolheads) ? std::get<ToolheadIndex>(toolhead()) : PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+
+    update(false);
+}
+
 #endif
 
 // * MI_FILAMENT_SENSORS
@@ -122,6 +146,7 @@ ScreenToolheadDetail::ScreenToolheadDetail(Toolhead toolhead)
 #if HAS_TOOLCHANGER()
         container.Item<MI_DOCK>().set_is_hidden();
         container.Item<MI_NOZZLE_OFFSET>().set_is_hidden();
+        container.Item<MI_PICK_PARK>().set_is_hidden();
 #endif
 #if FILAMENT_SENSOR_IS_ADC()
         container.Item<MI_CALIBRATE_FILAMENT_SENSORS>().set_is_hidden();
