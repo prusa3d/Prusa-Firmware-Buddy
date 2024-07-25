@@ -42,6 +42,8 @@
   #include "prusa/toolchanger.h"
 #endif
 
+#include <atomic>
+
 #ifndef SOFT_PWM_SCALE
   #define SOFT_PWM_SCALE 0
 #endif
@@ -360,6 +362,12 @@ class Temperature {
       static uint8_t soft_pwm_amount_fan[FAN_COUNT],
                      soft_pwm_count_fan[FAN_COUNT];
     #endif
+
+    // For metrics only
+    #if !HAS_MODULARBED()
+      std::atomic<int> bed_pwm;
+    #endif
+    std::atomic<int> nozzle_pwm;
 
     #if ENABLED(PREVENT_COLD_EXTRUSION)
       static bool allow_cold_extrude;

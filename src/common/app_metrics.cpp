@@ -199,6 +199,14 @@ void buddy::metrics::RecordMarlinVariables() {
         }
     }
 
+    METRIC_DEF(metric_nozzle_pwm, "nozzle_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
+    metric_record_integer(&metric_nozzle_pwm, thermalManager.nozzle_pwm);
+
+#if !HAS_MODULARBED()
+    METRIC_DEF(metric_bed_pwm, "bed_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
+    metric_record_integer(&metric_nozzle_pwm, thermalManager.bed_pwm);
+#endif
+
     METRIC_DEF(bed, "temp_bed", METRIC_VALUE_FLOAT, 2000 + 23, METRIC_HANDLER_DISABLE_ALL);
     metric_record_float(&bed, thermalManager.degBed());
 

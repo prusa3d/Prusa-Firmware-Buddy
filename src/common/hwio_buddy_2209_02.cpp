@@ -25,6 +25,8 @@
 #include "appmain.hpp"
 #include "Marlin.h"
 #include "MarlinPin.hpp"
+#include <Marlin/src/module/temperature.h>
+
 #include <option/has_puppies.h>
 #include <option/has_loadcell.h>
 #include <option/has_gui.h>
@@ -120,9 +122,6 @@ static void _hwio_pwm_set_val(int i_pwm, int val);
 static uint32_t _pwm_get_chan(int i_pwm);
 static TIM_HandleTypeDef *_pwm_get_htim(int i_pwm);
 static constexpr int is_pwm_id_valid(int i_pwm);
-
-METRIC_DEF(metric_nozzle_pwm, "nozzle_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_bed_pwm, "bed_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
 
 //--------------------------------------
 // analog output functions
@@ -226,11 +225,13 @@ void _hwio_pwm_analogWrite_set_val(int i_pwm, int val) {
 
     switch (i_pwm) {
     case HWIO_PWM_HEATER_0:
-        metric_record_integer(&metric_nozzle_pwm, val);
+        thermalManager.nozzle_pwm = val;
         break;
+#if !HAS_MODULARBED()
     case HWIO_PWM_HEATER_BED:
-        metric_record_integer(&metric_bed_pwm, val);
+        thermalManager.bed_pwm = val;
         break;
+#endif
     }
 
     if (_pwm_analogWrite_val[i_pwm] != val) {
