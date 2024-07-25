@@ -45,6 +45,20 @@ public:
 using MI_HOTEND_SOCK_OR_TYPE = std::conditional_t<hotend_type_only_sock, MI_NOZZLE_SOCK, MI_HOTEND_TYPE>;
 #endif
 
+class MI_NOZZLE_HARDENED : public MI_TOOLHEAD_SPECIFIC_TOGGLE<MI_NOZZLE_HARDENED> {
+public:
+    MI_NOZZLE_HARDENED(Toolhead toolhead = default_toolhead);
+    static bool read_value_impl(ToolheadIndex ix);
+    static void store_value_impl(ToolheadIndex ix, bool set);
+};
+
+class MI_NOZZLE_HIGH_FLOW : public MI_TOOLHEAD_SPECIFIC_TOGGLE<MI_NOZZLE_HIGH_FLOW> {
+public:
+    MI_NOZZLE_HIGH_FLOW(Toolhead toolhead = default_toolhead);
+    static bool read_value_impl(ToolheadIndex ix);
+    static void store_value_impl(ToolheadIndex ix, bool set);
+};
+
 #if HAS_TOOLCHANGER()
 class MI_DOCK : public MI_TOOLHEAD_SPECIFIC<MI_DOCK, IWindowMenuItem> {
 public:
@@ -89,6 +103,8 @@ using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
     // This is to help them out a bit
     MI_NOZZLE_DIAMETER_HELP,
 #endif
+    MI_NOZZLE_HARDENED,
+    MI_NOZZLE_HIGH_FLOW,
 #if HAS_HOTEND_TYPE_SUPPORT()
     MI_HOTEND_SOCK_OR_TYPE,
 #endif

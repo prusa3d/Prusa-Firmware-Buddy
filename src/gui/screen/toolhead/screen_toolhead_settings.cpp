@@ -58,6 +58,40 @@ void MI_NOZZLE_SOCK::OnChange([[maybe_unused]] size_t old_index) {
 }
 #endif
 
+// * MI_NOZZLE_HARDENED
+MI_NOZZLE_HARDENED::MI_NOZZLE_HARDENED(Toolhead toolhead)
+    : MI_TOOLHEAD_SPECIFIC_TOGGLE(toolhead, false, _("Nozzle Hardened")) //
+{
+    update();
+}
+
+bool MI_NOZZLE_HARDENED::read_value_impl(ToolheadIndex ix) {
+    return config_store().nozzle_is_hardened.get().test(ix);
+}
+
+void MI_NOZZLE_HARDENED::store_value_impl(ToolheadIndex ix, bool set) {
+    config_store().nozzle_is_hardened.apply([&](auto &item) {
+        item.set(ix, set);
+    });
+}
+
+// * MI_NOZZLE_HIGH_FLOW
+MI_NOZZLE_HIGH_FLOW::MI_NOZZLE_HIGH_FLOW(Toolhead toolhead)
+    : MI_TOOLHEAD_SPECIFIC_TOGGLE(toolhead, false, _("Nozzle High-flow")) //
+{
+    update();
+}
+
+bool MI_NOZZLE_HIGH_FLOW::read_value_impl(ToolheadIndex ix) {
+    return config_store().nozzle_is_high_flow.get().test(ix);
+}
+
+void MI_NOZZLE_HIGH_FLOW::store_value_impl(ToolheadIndex ix, bool set) {
+    config_store().nozzle_is_high_flow.apply([&](auto &item) {
+        item.set(ix, set);
+    });
+}
+
 #if HAS_TOOLCHANGER()
 // * MI_DOCK
 MI_DOCK::MI_DOCK(Toolhead toolhead)

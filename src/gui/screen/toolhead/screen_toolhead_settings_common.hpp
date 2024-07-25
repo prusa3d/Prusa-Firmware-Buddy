@@ -6,6 +6,7 @@
 
 #include <utils/algorithm_extensions.hpp>
 
+#include <gui/widget/window_toggle_switch.hpp>
 #include <screen_menu.hpp>
 #include <WindowMenuSpin.hpp>
 #include <MItem_tools.hpp>
@@ -128,7 +129,30 @@ public:
     }
 
     void OnClick() final {
-        if (this->value() != this->config().special_value) {
+        if (this->value() == this->config().special_value) {
+            return;
+        }
+
+        if (msgbox_confirm_change(this->toolhead())) {
+            this->template store_value(this->value());
+        } else {
+            update();
+        }
+    }
+};
+
+template <typename Child>
+class MI_TOOLHEAD_SPECIFIC_TOGGLE : public MI_TOOLHEAD_SPECIFIC<Child, WindowToggleSwitch> {
+public:
+    // Inherit parent constructor
+    using MI_TOOLHEAD_SPECIFIC<Child, WindowToggleSwitch>::MI_TOOLHEAD_SPECIFIC;
+
+    void update() {
+        this->set_value(this->template read_value().transform(Tristate::from_bool).value_or(Tristate::other), false);
+    }
+
+    void toggled(Tristate) final {
+        if (this->value() == Tristate::other) {
             return;
         }
 
