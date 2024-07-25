@@ -56,11 +56,6 @@ void IWindowMenuItem::set_is_enabled(bool set) {
         return;
     }
 
-    // Cannot disable focused element
-    if (!set && is_focused()) {
-        return;
-    }
-
     enabled = is_enabled_t(set);
     Invalidate();
 }
