@@ -71,6 +71,7 @@ void CSelftestPart_Axis::phaseMove(int8_t dir) {
         start_sensorless_homing_per_axis(AxisEnum(config.axis));
     }
 #endif
+    unmeasured_distance = (dir > 0 ? soft_endstop.min : soft_endstop.max)[config.axis] - current_position.pos[config.axis];
 
     current_position.pos[config.axis] += dir * (config.length + EXTRA_LEN_MM);
     line_to_current_position(feedrate);
@@ -104,6 +105,7 @@ LoopResult CSelftestPart_Axis::wait(int8_t dir) {
         length_mm *= -1;
     }
 #endif
+    length_mm += unmeasured_distance;
 
     if ((length_mm < config.length_min) || (length_mm > config.length_max)) {
         log_error(Selftest, "%s measured length = %fmm out of range <%f,%f>", config.partname, (double)length_mm, (double)config.length_min, (double)config.length_max);

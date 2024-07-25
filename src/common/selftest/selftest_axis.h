@@ -33,6 +33,7 @@ class CSelftestPart_Axis {
     uint16_t m_SGCount = 0;
     uint8_t m_Step = 0;
     uint8_t m_SGOrig_mask;
+    float unmeasured_distance = 0; // Distance traveled before axis measuring is started
     bool coils_ok = false; // Initially false, set to true when any coil check passes
     static CSelftestPart_Axis *m_pSGAxis;
 
