@@ -18,11 +18,12 @@ class WindowMenuPreheat;
 // extra space at the end is intended
 class MI_FILAMENT : public WiInfo<sizeof("999/999 ")> {
 public:
-    MI_FILAMENT(FilamentType filament_type);
+    MI_FILAMENT(FilamentType filament_type, uint8_t target_extruder);
     void click(IWindowMenu &) final;
 
     const FilamentType filament_type;
     const FilamentTypeParameters filament_params;
+    const uint8_t target_extruder;
 };
 
 class MI_RETURN_PREHEAT : public IWindowMenuItem {
@@ -80,6 +81,7 @@ private:
     });
 
 private:
+    const PreheatData preheat_data;
     FilamentListStorage filament_list_storage;
     DynamicIndexMapping<items> index_mapping;
     bool show_all_filaments_ = false;

@@ -11,10 +11,11 @@
 using namespace preheat_menu;
 
 // * MI_FILAMENT
-MI_FILAMENT::MI_FILAMENT(FilamentType filament_type)
+MI_FILAMENT::MI_FILAMENT(FilamentType filament_type, uint8_t target_extruder)
     : WiInfo({}, nullptr, is_enabled_t::yes, is_hidden_t::no)
     , filament_type(filament_type)
-    , filament_params(filament_type.parameters()) //
+    , filament_params(filament_type.parameters())
+    , target_extruder(target_extruder) //
 {
     FilamentTypeGUI::setup_menu_item(filament_type, filament_params, *this);
 
@@ -24,6 +25,13 @@ MI_FILAMENT::MI_FILAMENT(FilamentType filament_type)
 }
 
 void MI_FILAMENT::click(IWindowMenu &) {
+    if (filament_params.is_abrasive && !config_store().nozzle_is_hardened.get().test(target_extruder)) {
+        StringViewUtf8Parameters<filament_name_buffer_size + 1> params;
+        if (MsgBoxWarning(_("Filament '%s' is abrasive, but you don't have a hardened nozzle installed. Do you really want to continue?").formatted(params, filament_params.name), Responses_YesNo) != Response::Yes) {
+            return;
+        }
+    }
+
     marlin_client::FSM_response_variant(PhasesPreheat::UserTempSelection, FSMResponseVariant::make<FilamentType>(filament_type));
 }
 
@@ -59,7 +67,8 @@ void MI_COOLDOWN::click([[maybe_unused]] IWindowMenu &window_menu) {
 
 // * WindowMenuPreheat
 WindowMenuPreheat::WindowMenuPreheat(window_t *parent, const Rect16 &rect, const PreheatData &data)
-    : WindowMenuVirtual(parent, rect, CloseScreenReturnBehavior::no) //
+    : WindowMenuVirtual(parent, rect, CloseScreenReturnBehavior::no)
+    , preheat_data(data) //
 {
     index_mapping.set_item_enabled<Item::return_>(data.has_return_option);
     index_mapping.set_item_enabled<Item::cooldown>(data.has_cooldown_option);
@@ -105,7 +114,7 @@ void WindowMenuPreheat::setup_item(ItemVariant &variant, int index) {
         break;
 
     case Item::filament_section:
-        variant.emplace<MI_FILAMENT>(filament_list_storage[mapping.pos_in_section]);
+        variant.emplace<MI_FILAMENT>(filament_list_storage[mapping.pos_in_section], preheat_data.extruder);
         break;
     }
 }
