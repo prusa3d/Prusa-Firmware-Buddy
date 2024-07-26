@@ -61,8 +61,6 @@ public:
     float get_sampling_rate() const { return m_sampling_rate; }
     Error get_error() { return m_error; }
 
-    void set_enabled(bool enable);
-
 #if HAS_REMOTE_ACCELEROMETER()
     static void put_sample(common::puppies::fifo::AccelerometerXyzSample sample);
     static void mark_corrupted(const Error error);
