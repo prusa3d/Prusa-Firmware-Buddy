@@ -42,7 +42,7 @@ void menu_set_toolhead(Container &container, Toolhead toolhead) {
 
 /// Shows a message box confirming that the change will be done on all tools (if toolhead == all_tools).
 /// \returns if the user agrees with the change
-bool msgbox_confirm_change(Toolhead toolhead);
+bool msgbox_confirm_change(Toolhead toolhead, bool &confirmed_before);
 
 /// Curiously recurring parent for all menu items that are per toolhead
 template <typename Child, typename Parent>
@@ -114,6 +114,10 @@ protected:
         }
     }
 
+protected:
+    /// Stores whether the user has previously confirmed msgbox_confirm_change for this item, to prevent repeating the confirmation on subsequent changes
+    bool user_already_confirmed_changes_ = false;
+
 private:
     Toolhead toolhead_;
 };
@@ -133,7 +137,7 @@ public:
             return;
         }
 
-        if (msgbox_confirm_change(this->toolhead())) {
+        if (msgbox_confirm_change(this->toolhead(), this->user_already_confirmed_changes_)) {
             this->template store_value(this->value());
         } else {
             update();
@@ -156,7 +160,7 @@ public:
             return;
         }
 
-        if (msgbox_confirm_change(this->toolhead())) {
+        if (msgbox_confirm_change(this->toolhead(), this->user_already_confirmed_changes_)) {
             this->template store_value(this->value());
         } else {
             update();
