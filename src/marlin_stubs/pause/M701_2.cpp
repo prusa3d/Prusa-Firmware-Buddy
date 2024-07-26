@@ -70,8 +70,8 @@ void filament_gcodes::M701_no_parser(FilamentType filament_to_be_loaded, const s
 
     if (op_preheat) {
         if (filament_to_be_loaded == FilamentType::none) {
-            PreheatData data(!fast_load_length.has_value() || fast_load_length > 0.F ? PreheatMode::Load : PreheatMode::Purge, *op_preheat);
-            auto preheat_ret = data.Mode() == PreheatMode::Load ? preheat_for_change_load(data, target_extruder) : preheat(data, target_extruder);
+            PreheatData data = PreheatData::make(!fast_load_length.has_value() || fast_load_length > 0.F ? PreheatMode::Load : PreheatMode::Purge, target_extruder, *op_preheat);
+            auto preheat_ret = data.mode == PreheatMode::Load ? preheat_for_change_load(data, target_extruder) : preheat(data, target_extruder);
             if (preheat_ret.first) {
                 // canceled
                 M70X_process_user_response(*preheat_ret.first, target_extruder);
@@ -130,7 +130,7 @@ void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z
     }
 
     if (op_preheat) {
-        PreheatData data(PreheatMode::Unload, *op_preheat); // TODO do I need PreheatMode::Unload_askUnloaded
+        PreheatData data = PreheatData::make(PreheatMode::Unload, target_extruder, *op_preheat); // TODO do I need PreheatMode::Unload_askUnloaded
         auto preheat_ret = preheat(data, target_extruder);
         if (preheat_ret.first) {
             // canceled
@@ -235,7 +235,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         }
 
         if constexpr (option::has_human_interactions) {
-            PreheatData data(PreheatMode::Autoload, RetAndCool_t::Return);
+            PreheatData data = PreheatData::make(PreheatMode::Autoload, target_extruder, RetAndCool_t::Return);
             auto preheat_ret = preheat_for_change_load(data, target_extruder);
 
             if (preheat_ret.first) {
@@ -313,7 +313,7 @@ void filament_gcodes::M1600_no_parser(FilamentType filament_to_be_loaded, uint8_
     // LOAD
     // cannot do normal preheat, since printer is already preheated from unload
     if (filament_to_be_loaded == FilamentType::none) {
-        PreheatData data(PreheatMode::Change_phase2, preheat);
+        PreheatData data = PreheatData::make(PreheatMode::Change_phase2, target_extruder, preheat);
         auto preheat_ret = preheat_for_change_load(data, target_extruder);
         if (preheat_ret.first) {
             // canceled

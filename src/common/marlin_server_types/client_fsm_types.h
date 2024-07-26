@@ -74,11 +74,11 @@ enum class PreheatMode : uint8_t {
     _last = Autoload
 };
 
-enum class RetAndCool_t {
-    Neither,
-    Cooldown,
-    Return,
-    Both,
+enum class RetAndCool_t : uint8_t {
+    Neither = 0b00,
+    Cooldown = 0b01,
+    Return = 0b10,
+    Both = 0b11,
     last_ = Both
 };
 

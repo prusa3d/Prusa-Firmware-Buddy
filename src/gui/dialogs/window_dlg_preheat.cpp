@@ -61,8 +61,8 @@ void MI_COOLDOWN::click([[maybe_unused]] IWindowMenu &window_menu) {
 WindowMenuPreheat::WindowMenuPreheat(window_t *parent, const Rect16 &rect, const PreheatData &data)
     : WindowMenuVirtual(parent, rect, CloseScreenReturnBehavior::no) //
 {
-    index_mapping.set_item_enabled<Item::return_>(data.HasReturnOption());
-    index_mapping.set_item_enabled<Item::cooldown>(data.HasCooldownOption());
+    index_mapping.set_item_enabled<Item::return_>(data.has_return_option);
+    index_mapping.set_item_enabled<Item::cooldown>(data.has_cooldown_option);
     update_list();
 }
 
@@ -131,7 +131,7 @@ void WindowMenuPreheat::screenEvent(window_t *sender, GUI_event_t event, void *p
 // * DialogMenuPreheat
 DialogMenuPreheat::DialogMenuPreheat(fsm::BaseData data)
     : IDialogMarlin(GuiDefaults::RectScreen)
-    , menu(this, GuiDefaults::RectScreenNoHeader, PreheatData(data.GetData()))
+    , menu(this, GuiDefaults::RectScreenNoHeader, PreheatData::deserialize(data.GetData()))
     , header(this) //
 {
     if (string_view_utf8 title = get_title(data); !title.isNULLSTR()) {
@@ -145,7 +145,7 @@ DialogMenuPreheat::DialogMenuPreheat(fsm::BaseData data)
 }
 
 string_view_utf8 DialogMenuPreheat::get_title(fsm::BaseData data) {
-    switch (PreheatData(data.GetData()).Mode()) {
+    switch (PreheatData::deserialize(data.GetData()).mode) {
     case PreheatMode::None:
         return string_view_utf8::MakeNULLSTR();
 

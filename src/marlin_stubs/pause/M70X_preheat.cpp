@@ -32,7 +32,7 @@ static FSMResponseVariant preheatTempUnKnown(PreheatData preheat_data, bool brea
         if (const auto ret = marlin_server::get_response_variant_from_phase(PhasesPreheat::UserTempSelection)) {
             return ret;
         }
-        if (preheat_data.Mode() == PreheatMode::Autoload && FSensors_instance().sensor_state(LogicalFilamentSensor::autoload) == FilamentSensorState::NoFilament) {
+        if (preheat_data.mode == PreheatMode::Autoload && FSensors_instance().sensor_state(LogicalFilamentSensor::autoload) == FilamentSensorState::NoFilament) {
             return FSMResponseVariant::make(Response::Abort);
         }
         if (break_on_autoload && FSensors_instance().IsAutoloadInProgress()) {
@@ -44,7 +44,7 @@ static FSMResponseVariant preheatTempUnKnown(PreheatData preheat_data, bool brea
 }
 
 static FSMResponseVariant evaluate_preheat_conditions(PreheatData preheat_data, uint8_t target_extruder) {
-    bool canKnowTemp = preheat_data.Mode() == PreheatMode::Unload || preheat_data.Mode() == PreheatMode::Change_phase1 || preheat_data.Mode() == PreheatMode::Purge || preheat_data.Mode() == PreheatMode::Unload_askUnloaded;
+    bool canKnowTemp = preheat_data.mode == PreheatMode::Unload || preheat_data.mode == PreheatMode::Change_phase1 || preheat_data.mode == PreheatMode::Purge || preheat_data.mode == PreheatMode::Unload_askUnloaded;
 
     // Check if we are using operation which can get temp from printer and check if it can get the temp from available info (inserted filament or set temperature in temperature menu and no filament inserted)
     if (canKnowTemp && ((config_store().get_filament_type(target_extruder) != FilamentType::none))) {
@@ -126,7 +126,7 @@ std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::p
 
 void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode, int8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed) {
     InProgress progress;
-    const FSMResponseVariant response_variant = preheatTempUnKnown(PreheatData(mode, preheat_tp), true);
+    const FSMResponseVariant response_variant = preheatTempUnKnown(PreheatData::make(mode, target_extruder, preheat_tp), true);
 
     // autoload ocurred
     if (!response_variant) {
