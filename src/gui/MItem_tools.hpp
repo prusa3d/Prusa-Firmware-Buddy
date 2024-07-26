@@ -13,6 +13,10 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_filament_sensors_menu.h>
 #include <option/has_coldpull.h>
+#include <option/has_leds.h>
+#include <option/has_side_leds.h>
+#include <option/buddy_enable_connect.h>
+#include <trinamic.h>
 
 /// \returns tool name for tool menu item purposes
 inline constexpr const char *tool_name(uint8_t tool_index) {
@@ -789,4 +793,125 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+#endif
+
+class MI_GCODE_VERIFY : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Verify GCode");
+
+public:
+    MI_GCODE_VERIFY();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_DEVHASH_IN_QR : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Device Hash in QR");
+
+public:
+    MI_DEVHASH_IN_QR();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_WAVETABLE_XYZ : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Change Wave Table XYZ");
+
+public:
+    MI_WAVETABLE_XYZ();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_LOAD_SETTINGS : public IWindowMenuItem {
+    constexpr static const char *const label = N_("Load Settings from File");
+
+public:
+    MI_LOAD_SETTINGS();
+
+    virtual void click(IWindowMenu &) override;
+};
+
+class MI_USB_MSC_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static char const *label = "USB MSC";
+
+public:
+    MI_USB_MSC_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};
+
+#if HAS_LEDS()
+class MI_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("RGB Status Bar");
+
+public:
+    MI_LEDS_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};
+#endif
+
+#if HAS_SIDE_LEDS()
+class MI_SIDE_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("RGB Side Strip");
+
+public:
+    MI_SIDE_LEDS_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_SIDE_LEDS_DIMMING : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("RGB Side Strip Dimming");
+
+public:
+    MI_SIDE_LEDS_DIMMING();
+    virtual void OnChange(size_t old_index) override;
+};
+#endif
+
+#if HAS_TOOLCHANGER()
+class MI_TOOL_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Tool Light");
+
+public:
+    MI_TOOL_LEDS_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_TOOLS_SETUP : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Tools");
+
+public:
+    MI_TOOLS_SETUP();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+#endif /*HAS_TOOLCHANGER()*/
+
+class MI_TRIGGER_POWER_PANIC : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Trigger Power Panic");
+
+public:
+    MI_TRIGGER_POWER_PANIC();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+#if HAS_TOOLCHANGER()
+class MI_PICK_PARK_TOOL : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Pick/Park Tool");
+
+public:
+    MI_PICK_PARK_TOOL();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_CALIBRATE_DOCK : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Calibrate Dock Position");
+
+public:
+    MI_CALIBRATE_DOCK();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
 #endif

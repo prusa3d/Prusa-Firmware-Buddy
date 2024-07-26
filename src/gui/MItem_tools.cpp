@@ -38,12 +38,35 @@
 #include <option/filament_sensor.h>
 #include <option/has_phase_stepping.h>
 #include <option/has_side_fsensor.h>
+#include <option/has_side_leds.h>
 #include <option/has_coldpull.h>
 #include <RAII.hpp>
 #include <st25dv64k.h>
 #include <time.h>
 #include <footer_items_heaters.hpp>
 #include <footer_line.hpp>
+#include <str_utils.hpp>
+#include <netdev.h>
+#include <wui.h>
+#include <power_panic.hpp>
+
+#if ENABLED(PRUSA_TOOLCHANGER)
+    #include "../../../lib/Marlin/Marlin/src/module/prusa/toolchanger.h"
+    #include "screen_menu_tools.hpp"
+    #include <window_tool_action_box.hpp>
+#endif
+
+#if HAS_LEDS()
+    #include <led_animations/animator.hpp>
+#endif
+
+#if HAS_SIDE_LEDS()
+    #include <leds/side_strip_control.hpp>
+#endif
+
+#if BUDDY_ENABLE_CONNECT()
+    #include <connect/marlin_printer.hpp>
+#endif
 
 namespace {
 void MsgBoxNonBlockInfo(const string_view_utf8 &txt) {
@@ -891,5 +914,164 @@ MI_COLD_PULL::MI_COLD_PULL()
 
 void MI_COLD_PULL::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_client::gcode("M1702");
+}
+#endif
+
+MI_GCODE_VERIFY::MI_GCODE_VERIFY()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().verify_gcode.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_GCODE_VERIFY::OnChange([[maybe_unused]] size_t old_index) {
+    bool newState = !config_store().verify_gcode.get();
+    config_store().verify_gcode.set(newState);
+}
+
+/*****************************************************************************/
+// MI_DEVHASH_IN_QR
+MI_DEVHASH_IN_QR::MI_DEVHASH_IN_QR()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().devhash_in_qr.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+void MI_DEVHASH_IN_QR::OnChange(size_t old_index) {
+    config_store().devhash_in_qr.set(!old_index);
+}
+
+#ifdef HAS_TMC_WAVETABLE
+MI_WAVETABLE_XYZ::MI_WAVETABLE_XYZ()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().tmc_wavetable_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+void MI_WAVETABLE_XYZ::OnChange(size_t old_index) {
+    /// enable
+    old_index ? tmc_disable_wavetable(true, true, true) : tmc_enable_wavetable(true, true, true);
+    config_store().tmc_wavetable_enabled.set(!old_index);
+}
+#endif
+
+/**********************************************************************************************/
+// MI_LOAD_SETTINGS
+
+MI_LOAD_SETTINGS::MI_LOAD_SETTINGS()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_LOAD_SETTINGS::click(IWindowMenu & /*window_menu*/) {
+    auto build_message = [](StringBuilder &msg_builder, const string_view_utf8 &name, bool ok) {
+        msg_builder.append_string_view(name);
+        msg_builder.append_string(": ");
+        msg_builder.append_string_view(ok ? _("Ok") : _("Failed"));
+        msg_builder.append_char('\n');
+    };
+    std::array<char, 150> msg;
+    StringBuilder msg_builder(msg);
+    msg_builder.append_string_view(_("\nLoading settings finished.\n\n"));
+
+    const bool network_settings_loaded = netdev_load_ini_to_eeprom();
+    if (network_settings_loaded) {
+        notify_reconfigure();
+    }
+    build_message(msg_builder, _("Network"), network_settings_loaded);
+
+#if BUDDY_ENABLE_CONNECT()
+    build_message(msg_builder, _("Connect"), connect_client::MarlinPrinter::load_cfg_from_ini());
+#endif
+
+    MsgBoxInfo(string_view_utf8::MakeRAM((const uint8_t *)msg.data()), Responses_Ok);
+}
+
+/**********************************************************************************************/
+// MI_USB_MSC_ENABLE
+MI_USB_MSC_ENABLE::MI_USB_MSC_ENABLE()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().usb_msc_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+
+void MI_USB_MSC_ENABLE::OnChange(size_t old_index) {
+    config_store().usb_msc_enabled.set(!old_index);
+}
+#if HAS_LEDS()
+/**********************************************************************************************/
+// MI_LEDS_ENABLE
+MI_LEDS_ENABLE::MI_LEDS_ENABLE()
+    : WI_ICON_SWITCH_OFF_ON_t(Animator_LCD_leds().animator_state(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+void MI_LEDS_ENABLE::OnChange(size_t old_index) {
+    if (old_index) {
+        Animator_LCD_leds().pause_animator();
+    } else {
+        Animator_LCD_leds().start_animator();
+    }
+}
+#endif
+
+#if HAS_SIDE_LEDS()
+/**********************************************************************************************/
+// MI_SIDE_LEDS_ENABLE
+MI_SIDE_LEDS_ENABLE::MI_SIDE_LEDS_ENABLE()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().side_leds_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+void MI_SIDE_LEDS_ENABLE::OnChange(size_t old_index) {
+    leds::side_strip_control.SetEnable(!old_index);
+    config_store().side_leds_enabled.set(!old_index);
+}
+#endif
+
+#if HAS_SIDE_LEDS()
+/**********************************************************************************************/
+// MI_SIDE_LEDS_DIMMING
+MI_SIDE_LEDS_DIMMING::MI_SIDE_LEDS_DIMMING()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().side_leds_dimming_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+void MI_SIDE_LEDS_DIMMING::OnChange(size_t) {
+    config_store().side_leds_dimming_enabled.set(index);
+    leds::side_strip_control.set_dimming_enabled(index);
+}
+#endif
+
+#if ENABLED(PRUSA_TOOLCHANGER)
+/**********************************************************************************************/
+// MI_TOOL_LEDS_ENABLE
+MI_TOOL_LEDS_ENABLE::MI_TOOL_LEDS_ENABLE()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().tool_leds_enabled.get(), _(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+}
+void MI_TOOL_LEDS_ENABLE::OnChange(size_t old_index) {
+    HOTEND_LOOP() {
+        prusa_toolchanger.getTool(e).set_cheese_led(!old_index ? 0xff : 0x00, 0x00);
+    }
+    config_store().tool_leds_enabled.set(!old_index);
+}
+
+/*****************************************************************************/
+// MI_TOOLS_SETUP
+MI_TOOLS_SETUP::MI_TOOLS_SETUP()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes, expands_t::yes) {
+}
+
+void MI_TOOLS_SETUP::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuTools>);
+}
+#endif
+
+// MI_TRIGGER_POWER_PANIC
+MI_TRIGGER_POWER_PANIC::MI_TRIGGER_POWER_PANIC()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::no) {
+}
+
+void MI_TRIGGER_POWER_PANIC::click([[maybe_unused]] IWindowMenu &windowMenu) {
+    // this is normally supposed to be called from ISR, but since disables IRQ so it works fine even outside of ISR
+    power_panic::ac_fault_isr();
+}
+
+#if ENABLED(PRUSA_TOOLCHANGER)
+/*****************************************************************************/
+MI_PICK_PARK_TOOL::MI_PICK_PARK_TOOL()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes, expands_t::yes) {
+}
+
+void MI_PICK_PARK_TOOL::click(IWindowMenu & /*window_menu*/) {
+    ToolActionBox<ToolBox::MenuPickPark>();
+}
+
+/*****************************************************************************/
+MI_CALIBRATE_DOCK::MI_CALIBRATE_DOCK()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes, expands_t::yes) {
+}
+
+void MI_CALIBRATE_DOCK::click(IWindowMenu & /*window_menu*/) {
+    ToolActionBox<ToolBox::MenuCalibrateDock>();
+    Screens::Access()->Get()->Validate();
 }
 #endif

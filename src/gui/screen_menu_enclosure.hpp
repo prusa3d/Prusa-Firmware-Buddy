@@ -8,6 +8,7 @@
 #include "screen_menu.hpp"
 #include "MItem_enclosure.hpp"
 #include "MItem_menus.hpp"
+#include <MItem_tools.hpp>
 #include "option/has_side_leds.h"
 #include "option/has_toolchanger.h"
 #include <device/board.h>
