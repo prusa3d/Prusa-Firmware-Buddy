@@ -1239,9 +1239,8 @@ msgid ""
 "the drive into the printer and turn it on or restart it. Confirm the "
 "installation of the new firmware."
 msgstr ""
-"Téléchargez le fichier firmware (.bbf) sur une clé USB, insérez-la dans "
-"l'imprimante, allumez ou redémarrez, puis confirmez l'installation du "
-"nouveau firmware."
+"Téléchargez le fichier firmware (.bbf) sur une clé USB, insérez-la dans l'imprimante,"
+" allumez ou redémarrez, puis confirmez l'installation."
 
 #: src/gui/screen_print_preview.cpp:73
 msgid "Downloading..."

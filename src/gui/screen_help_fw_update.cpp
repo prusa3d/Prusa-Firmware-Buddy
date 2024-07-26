@@ -26,9 +26,9 @@ constexpr size_t col_1_w = GuiDefaults::QRSize;
 constexpr size_t col_0_1_gap = col_1 - col_0 - col_0_w;
 constexpr size_t tot_w = col_0_w + col_1_w + col_0_1_gap;
 
-static const constexpr Rect16 descr_rect = Rect16(col_0, row_0, col_0_w, descr_h);
-static const constexpr Rect16 QR_rect = Rect16(col_1, row_0, GuiDefaults::QRSize, GuiDefaults::QRSize);
-static const constexpr Rect16 help_rect = Rect16(col_0, row_1, tot_w, height(Font::normal) * 3);
+static const constexpr Rect16 descr_rect = Rect16(col_0, row_0, col_0_w + 30, descr_h);
+static const constexpr Rect16 QR_rect = Rect16(col_1 + 30, row_0, GuiDefaults::QRSize, GuiDefaults::QRSize);
+static const constexpr Rect16 help_rect = Rect16(col_0, row_1, tot_w, height(Font::normal) * 4);
 static constexpr const char *txt_descr = N_("Download and copy the firmware (.bbf) file to the USB flash drive. Insert the drive into the printer and turn it on or restart it. Confirm the installation of the new firmware.");
 #elif HAS_MINI_DISPLAY()
 constexpr size_t col_0 = 10;

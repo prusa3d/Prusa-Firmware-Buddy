@@ -85,8 +85,9 @@ void MI_METRICS_INFO_LABEL::click(IWindowMenu & /*window_menu*/) {
 #if HAS_MINI_DISPLAY()
     MetricsInfoMsgbox(_(txt_info));
 #else
-    MsgBoxBase msgbox(GuiDefaults::RectScreen, {}, 0, nullptr, _(txt_info));
-    msgbox.set_text_font(GuiDefaults::FontMenuSpecial);
+    MsgBoxBase msgbox(GuiDefaults::RectScreenNoHeader, {}, 0, nullptr, _(txt_info));
+    msgbox.SetAlignment(Align_t::LeftTop());
+    msgbox.AdjustTextRect(Rect16(30, 0, GuiDefaults::ScreenWidth - 60, GuiDefaults::ScreenHeight));
     Screens::Access()->gui_loop_until_dialog_closed();
 #endif
 }

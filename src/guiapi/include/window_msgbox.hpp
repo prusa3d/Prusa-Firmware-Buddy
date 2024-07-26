@@ -53,6 +53,9 @@ public:
         return result;
     }
 
+    void SetAlignment(Align_t align) { text.SetAlignment(align); }
+    void AdjustTextRect(Rect16 rect) { text.SetRect(rect); }
+
     template <class FSM_PHASE>
     void BindToFSM(FSM_PHASE phase) {
         static_assert(sizeof(RadioButtonFsm<FSM_PHASE>) <= sizeof(radio_mem_space), "RadioMemSpace is too small");

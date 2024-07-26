@@ -1240,9 +1240,8 @@ msgid ""
 "the drive into the printer and turn it on or restart it. Confirm the "
 "installation of the new firmware."
 msgstr ""
-"ファームウェア(.bbf)ファイルヲ ダウンロードシテ USBドライブニ コピーシマス。"
-"USBドライブヲ プリンタニ イレテ、デンゲンヲ イレルカ サイキドウシマス。アタラ"
-"シイ ファームウェアノ インストールヲ カクニンシマス。"
+"ファームウェア (.bbf) ファイルヲ ダウンロードシテ USB ドライブニ コピー。"
+"ドライブヲ プリンタニ サシ、オンカ サイキドウ。ファームウェア ノ インストール カクニン。"
 
 #: src/gui/screen_print_preview.cpp:73
 msgid "Downloading..."
