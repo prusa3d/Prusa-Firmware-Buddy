@@ -359,6 +359,13 @@ Transfer::State Transfer::step(bool is_printing) {
                     break;
                 case Transfer::Action::Finished:
                     done(State::Finished, Monitor::Outcome::Finished);
+                    // With the plain gcodes where we download out of order, it
+                    // may happen that we already have the whole file, but the
+                    // download would still be able to provide some more data
+                    // and would say Continue. Fix that situation up here
+                    // (especially because we don't want to touch the now
+                    // thrown away partial file).
+                    step_result = DownloadStep::Finished;
                     break;
                 }
             }
