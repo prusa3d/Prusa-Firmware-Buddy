@@ -559,14 +559,29 @@ void Planner::action_done(ActionResult result) {
     auto cleanups = [&]() {
         // In case of refused, we also remove the event, won't try to send it again.
         failed_attempts = 0;
-#if !WEBSOCKET()
+
         if (planned_event.has_value()) {
+            if (planned_event->type == EventType::Info) {
+                info_changes.mark_clean();
+            } else if (planned_event->type == EventType::CancelableChanged) {
+                cancellable_objects.mark_clean();
+            } else if (planned_event->type == EventType::StateChanged) {
+                state_info.mark_clean();
+            }
+#if !WEBSOCKET()
             // Enforce telemetry now. We may get a new command with it.
             // Websocket doesn't need this, commands can come independently from telemetry.
             last_telemetry = nullopt;
-        }
 #endif
-        planned_event = nullopt;
+        } else {
+            const Timestamp n = now();
+            last_telemetry = n;
+            if (last_telemetry_mode == SendTelemetry::Mode::Full) {
+                last_full_telemetry = n;
+                telemetry_changes.mark_clean();
+            }
+        }
+        planned_event.reset();
     };
 
     switch (result) {
@@ -582,21 +597,6 @@ void Planner::action_done(ActionResult result) {
         const Timestamp n = now();
         last_success = n;
         reset_backoff();
-        if (planned_event.has_value()) {
-            if (planned_event->type == EventType::Info) {
-                info_changes.mark_clean();
-            } else if (planned_event->type == EventType::CancelableChanged) {
-                cancellable_objects.mark_clean();
-            } else if (planned_event->type == EventType::StateChanged) {
-                state_info.mark_clean();
-            }
-        } else {
-            last_telemetry = n;
-            if (last_telemetry_mode == SendTelemetry::Mode::Full) {
-                last_full_telemetry = n;
-                telemetry_changes.mark_clean();
-            }
-        }
         cleanups();
         break;
     }
@@ -609,7 +609,7 @@ void Planner::action_done(ActionResult result) {
             // unable to distinguish from just a network error while sending
             // the data), so avoid some kind of infinite loop/blocked state.
             if (planned_event.has_value() && planned_event->type != EventType::Info) {
-                planned_event.reset();
+                cleanups();
             }
             failed_attempts = 0;
         }
