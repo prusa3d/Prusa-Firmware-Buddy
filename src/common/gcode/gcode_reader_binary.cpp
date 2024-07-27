@@ -629,6 +629,25 @@ bool PrusaPackGcodeReader::valid_for_print() {
         return IterateResult_t::Continue;
     });
 
+    if (auto err = std::get_if<Result_t>(&res); err != nullptr) {
+        switch (*err) {
+        case Result_t::RESULT_EOF:
+            set_error(N_("File doesn't contain any print instructions"));
+            break;
+        case Result_t::RESULT_CORRUPT:
+            set_error(N_("File corrupt"));
+            break;
+        case Result_t::RESULT_ERROR:
+            set_error(N_("Unknown file error"));
+            break;
+        default:
+            // All the rest (OK, Timeout, out of range) don't prevent this
+            // file from being printable in the future, so don't set any
+            // error.
+            break;
+        }
+    }
+
     return std::holds_alternative<BlockHeader>(res);
 }
 
