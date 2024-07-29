@@ -73,6 +73,13 @@ public:
     void OnChange(size_t) final;
 };
 
+class MI_PREHEAT_CONFIRM final : public MI_COMMON<MI_PREHEAT_CONFIRM, IWindowMenuItem> {
+public:
+    MI_PREHEAT_CONFIRM();
+    void update();
+    void click(IWindowMenu &) override;
+};
+
 using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
     MI_RETURN,
     MI_FILAMENT_NAME,
@@ -81,13 +88,32 @@ using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
     MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE,
     MI_FILAMENT_BED_TEMPERATURE,
     MI_FILAMENT_IS_ABRASIVE,
-    MI_FILAMENT_REQUIRES_FILTRATION //
+    MI_FILAMENT_REQUIRES_FILTRATION,
+    MI_PREHEAT_CONFIRM //
     >;
 
 /// Management of a specified filament type
 class ScreenFilamentDetail final : public ScreenFilamentDetail_ {
 public:
-    ScreenFilamentDetail(FilamentType filament_type);
+    enum class Mode : uint8_t {
+        /// Standard filament detail screen, as accessed from menu
+        standard,
+
+        /// When the detail screen is opened from within the preheat menu.
+        /// Adds a "Confirm" button that sends the filament as a response to the preheat FSM
+        preheat,
+    };
+
+    struct Params {
+        EncodedFilamentType filament_type;
+        Mode mode = Mode::standard;
+    };
+
+public:
+    ScreenFilamentDetail(Params params);
+
+    ScreenFilamentDetail(FilamentType filament_type)
+        : ScreenFilamentDetail(Params { .filament_type = filament_type }) {}
 };
 
 }; // namespace screen_filament_detail

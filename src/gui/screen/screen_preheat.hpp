@@ -52,11 +52,13 @@ private:
         filament_section,
         show_all,
         cooldown,
+        adhoc_filament,
     };
 
     static constexpr auto items = std::to_array<DynamicIndexMappingRecord<Item>>({
         { Item::return_, DynamicIndexMappingType::optional_item },
         { Item::filament_section, DynamicIndexMappingType::dynamic_section },
+        { Item::adhoc_filament },
         { Item::cooldown, DynamicIndexMappingType::optional_item },
         { Item::show_all, DynamicIndexMappingType::optional_item },
     });
@@ -66,6 +68,9 @@ private:
     FilamentListStorage filament_list_storage;
     DynamicIndexMapping<items> index_mapping;
     bool show_all_filaments_ = false;
+
+    /// Extruder we're doing the preload for
+    uint8_t extruder_index = 0;
 };
 
 class ScreenPreheat : public ScreenFSM {

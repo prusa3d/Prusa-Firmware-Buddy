@@ -5,6 +5,7 @@
 #include <numeric_input_config_common.hpp>
 #include <algorithm_extensions.hpp>
 #include <dialog_text_input.hpp>
+#include <ScreenHandler.hpp>
 
 using namespace screen_filament_detail;
 
@@ -146,13 +147,27 @@ void MI_FILAMENT_VISIBLE::OnChange(size_t) {
     filament_type.set_visible(value());
 }
 
+// * MI_PREHEAT_CONFIRM
+MI_PREHEAT_CONFIRM::MI_PREHEAT_CONFIRM()
+    : MI_COMMON(_("Confirm"), &img::ok_16x16) {}
+
+void MI_PREHEAT_CONFIRM::update() {
+}
+
+void MI_PREHEAT_CONFIRM::click(IWindowMenu &) {
+    marlin_client::FSM_response_variant(PhasesPreheat::UserTempSelection, FSMResponseVariant::make<FilamentType>(filament_type));
+    Screens::Access()->Close();
+}
+
 // * ScreenFilamentDetail
-ScreenFilamentDetail::ScreenFilamentDetail(FilamentType filament_type)
-    : ScreenMenu(_("FILAMENT DETAIL")) {
+ScreenFilamentDetail::ScreenFilamentDetail(Params params)
+    : ScreenMenu(params.mode == Mode::preheat ? _("CUSTOM PARAMETERS") : _("FILAMENT DETAIL")) {
 
     stdext::visit_tuple(container.menu_items, [&]<typename T>(T &item) {
         if constexpr (CMI_COMMON<T>) {
-            item.set_filament_type(filament_type);
+            item.set_filament_type(params.filament_type);
         };
     });
+
+    Item<MI_PREHEAT_CONFIRM>().set_is_hidden(params.mode != Mode::preheat);
 }

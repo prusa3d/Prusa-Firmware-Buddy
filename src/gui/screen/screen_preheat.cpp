@@ -7,6 +7,8 @@
 #include <limits>
 #include <filament_gui.hpp>
 #include <str_utils.hpp>
+#include <gui/screen/filament/screen_filament_detail.hpp>
+#include <ScreenHandler.hpp>
 
 using namespace preheat_menu;
 
@@ -44,6 +46,7 @@ WindowMenuPreheat::WindowMenuPreheat(window_t *parent, const Rect16 &rect)
 void WindowMenuPreheat::set_data(const PreheatData &data) {
     index_mapping.set_item_enabled<Item::return_>(data.has_return_option);
     index_mapping.set_item_enabled<Item::cooldown>(data.has_cooldown_option);
+    extruder_index = data.extruder;
     update_list();
 }
 
@@ -101,6 +104,17 @@ void WindowMenuPreheat::setup_item(ItemVariant &variant, int index) {
     case Item::filament_section:
         variant.emplace<MI_FILAMENT>(filament_list_storage[mapping.pos_in_section], preheat_data.extruder);
         break;
+
+    case Item::adhoc_filament: {
+        const auto callback = [this] {
+            Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenFilamentDetail>(ScreenFilamentDetail::Params {
+                .filament_type = FilamentType(AdHocFilamentType { .tool = extruder_index }),
+                .mode = ScreenFilamentDetail::Mode::preheat,
+            }));
+        };
+        variant.emplace<WindowMenuCallbackItem>(_("Custom"), callback);
+        break;
+    }
     }
 }
 
