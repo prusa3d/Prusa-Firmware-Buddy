@@ -94,6 +94,8 @@
 #include "configuration.hpp"
 #endif
 
+#include <option/has_nozzle_cleaner.h>
+
 #define XYZ_CONSTS(T, NAME, OPT) const PROGMEM XYZval<T> NAME##_P = { X_##OPT, Y_##OPT, Z_##OPT }
 
 XYZ_CONSTS(float, base_min_pos,   MIN_POS);
@@ -511,6 +513,18 @@ void do_blocking_move_to_xy(const xy_pos_t &raw, const feedRate_t &fr_mm_s/*=0.0
 
 void do_blocking_move_to_xy_z(const xy_pos_t &raw, const float &z, const feedRate_t &fr_mm_s/*=0.0f*/) {
   do_blocking_move_to(raw.x, raw.y, z, fr_mm_s);
+}
+
+void do_blocking_move_around_nozzle_cleaner_to_xy(const xy_pos_t& destination, const feedRate_t& feedrate) {
+  #if !HAS_NOZZLE_CLEANER()
+    do_blocking_move_to_xy(destination, feedrate);
+  #elif AVOID_NOZZLE_CLEANER_Y_FIRST
+    do_blocking_move_to_y(destination.y, feedrate);
+    do_blocking_move_to_x(destination.x, feedrate);
+  #else
+    do_blocking_move_to_x(destination.x, feedrate);
+    do_blocking_move_to_y(destination.y, feedrate);
+  #endif
 }
 
 #if HAS_Z_AXIS

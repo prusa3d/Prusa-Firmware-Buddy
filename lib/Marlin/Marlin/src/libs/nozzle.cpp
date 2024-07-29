@@ -185,7 +185,7 @@ Nozzle nozzle;
 #if ENABLED(NOZZLE_PARK_FEATURE)
 
   void Nozzle::park(const uint8_t z_action, const xyz_pos_t &park/*=NOZZLE_PARK_POINT*/) {
-    constexpr feedRate_t fr_xy = NOZZLE_PARK_XY_FEEDRATE, fr_z = NOZZLE_PARK_Z_FEEDRATE;
+    static constexpr feedRate_t fr_xy = NOZZLE_PARK_XY_FEEDRATE, fr_z = NOZZLE_PARK_Z_FEEDRATE;
 
     switch (z_action) {
       case 1: // Go to Z-park height
@@ -200,8 +200,15 @@ Nozzle nozzle;
         do_blocking_move_to_z(_MAX(park.z, current_position.z), fr_z);
     }
 
-    do_blocking_move_to_xy(park, fr_xy);
-
+  #ifdef NOZZLE_PRE_PARK_POINT
+  static constexpr xyz_pos_t default_park{{NOZZLE_PARK_POINT}};
+  if(park == default_park) {
+    static constexpr xy_pos_t pre_park{{NOZZLE_PRE_PARK_POINT}};
+    do_blocking_move_around_nozzle_cleaner_to_xy(pre_park, fr_xy);
+  }
+  #endif
+  
+    do_blocking_move_around_nozzle_cleaner_to_xy(park, fr_xy);
     report_current_position();
   }
 
