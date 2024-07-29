@@ -120,11 +120,14 @@ public:
 public:
     // * Name/parameters
 
-    static FilamentType from_name(std::string_view name);
+    /// \returns filament type with the corresponding name
+    /// !!! This disregards ad-hoc filament types
+    static FilamentType from_name(const std::string_view &name);
 
-    static inline FilamentType from_name_array(const std::array<char, filament_name_buffer_size> &name) {
-        return from_name(std::string_view(name.data()));
-    }
+    /// \returns whether the filament type is of the specified name.
+    /// !!! Prefer using "loaded_filament.matches(b_name)" over "loaded_filament == FilamentType::from_name(b_name)" where it makes sense.
+    /// !!! This is because "loaded_filament" could be an ad-hoc filament, which is never returned from FilamentType::from_name.
+    bool matches(const std::string_view &name) const;
 
     /// \returns parameters of the filament type
     FilamentTypeParameters parameters() const;

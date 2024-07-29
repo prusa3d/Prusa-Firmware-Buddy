@@ -9,6 +9,7 @@
 #include "gcode_info.hpp"
 #include "filament.hpp"
 #include <ctime>
+#include <tools_mapping.hpp>
 #include "option/development_items.h"
 
 static constexpr uint32_t footer_temp_delay_sec = 5 * 60;
@@ -177,11 +178,16 @@ bool Enclosure::isPostPrintFiltrationNeeded() {
 
     EXTRUDER_LOOP() { // e == physical_extruder
         auto &extruder_info = GCodeInfo::getInstance().get_extruder_info(e);
-        if (!extruder_info.used() || !extruder_info.filament_name.has_value()) {
+        if (!extruder_info.used()) {
             continue;
         }
 
-        if (FilamentType::from_name(extruder_info.filament_name.value().data()).parameters().requires_filtration) {
+        const uint8_t tool_index = tools_mapping::to_physical_tool(e);
+        if (tool_index == tools_mapping::no_tool) {
+            continue;
+        }
+
+        if (config_store().get_filament_type(tool_index).parameters().requires_filtration) {
             return true;
         }
     }

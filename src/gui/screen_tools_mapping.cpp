@@ -647,13 +647,14 @@ MultiFilamentChangeConfig ToolsMappingBody::build_changeall_config() {
         }
 
         // only preselect if we don't have it already
-        const auto desired_filament = FilamentType::from_name(opt_name.value().data());
-        if (config_store().get_filament_type(real_phys) == desired_filament) {
+        if (config_store().get_filament_type(real_phys).matches(opt_name.value().data())) {
             continue;
         }
 
         config.action = multi_filament_change::Action::change;
-        config.new_filament = desired_filament;
+
+        // We're loading a new filament, do not fallback into ad-hoc one -> extruder_index = std::nullopt
+        config.new_filament = FilamentType::from_name(opt_name.value().data());
     }
 
     return result;

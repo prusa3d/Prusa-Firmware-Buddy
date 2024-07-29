@@ -132,7 +132,7 @@ constexpr bool temperatures_are_within_spec(const FilamentTypeParameters &filame
 }
 static_assert(std::ranges::all_of(preset_filament_parameters, temperatures_are_within_spec));
 
-FilamentType FilamentType::from_name(std::string_view name) {
+FilamentType FilamentType::from_name(const std::string_view &name) {
     if (name.length() >= filament_name_buffer_size) {
         return FilamentType::none;
     }
@@ -144,6 +144,10 @@ FilamentType FilamentType::from_name(std::string_view name) {
     }
 
     return FilamentType::none;
+}
+
+bool FilamentType::matches(const std::string_view &name) const {
+    return parameters().name == name;
 }
 
 FilamentTypeParameters FilamentType::parameters() const {

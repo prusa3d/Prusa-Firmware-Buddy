@@ -315,6 +315,7 @@ static void queue_filament_load_gcodes() {
             : "";
 #if HOTENDS > 1
         // if printer has multiple hotends (eg: XL), preheat all that will be loaded to save time for user
+        // We're loading a new filament, do not fallback into ad-hoc one -> extruder_index = std::nullopt
         const auto target_temp = FilamentType::from_name(filament_name).parameters().nozzle_temperature;
         thermalManager.setTargetHotend(target_temp, e);
         marlin_server::set_temp_to_display(target_temp, e);
