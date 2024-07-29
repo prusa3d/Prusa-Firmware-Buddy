@@ -3,7 +3,7 @@
 #include <filament.hpp>
 #include <string_view_utf8.hpp>
 #include <screen_menu.hpp>
-#include <IDialogMarlin.hpp>
+#include <screen_fsm.hpp>
 #include <filament_list.hpp>
 #include <dynamic_index_mapping.hpp>
 #include <window_menu_virtual.hpp>
@@ -50,8 +50,9 @@ public:
 class WindowMenuPreheat : public WindowMenuVirtual<MI_FILAMENT, MI_SHOW_ALL, MI_RETURN_PREHEAT, MI_COOLDOWN> {
 
 public:
-    WindowMenuPreheat(window_t *parent, const Rect16 &rect, const PreheatData &data);
+    WindowMenuPreheat(window_t *parent, const Rect16 &rect);
 
+    void set_data(const PreheatData &data);
     void set_show_all_filaments(bool set);
 
     int item_count() const final {
@@ -81,23 +82,25 @@ private:
     });
 
 private:
-    const PreheatData preheat_data;
+    PreheatData preheat_data;
     FilamentListStorage filament_list_storage;
     DynamicIndexMapping<items> index_mapping;
     bool show_all_filaments_ = false;
 };
 
-class DialogMenuPreheat : public IDialogMarlin {
+class ScreenPreheat : public ScreenFSM {
     WindowExtendedMenu<WindowMenuPreheat> menu;
     window_header_t header;
 
 public:
-    DialogMenuPreheat(fsm::BaseData data);
+    ScreenPreheat();
 
 protected:
-    static string_view_utf8 get_title(fsm::BaseData data);
+    void create_frame();
+    void destroy_frame();
+    void update_frame();
 };
 
 }; // namespace preheat_menu
 
-using DialogMenuPreheat = preheat_menu::DialogMenuPreheat;
+using ScreenPreheat = preheat_menu::ScreenPreheat;

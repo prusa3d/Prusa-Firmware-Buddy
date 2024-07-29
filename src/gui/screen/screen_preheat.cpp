@@ -1,4 +1,4 @@
-#include "window_dlg_preheat.hpp"
+#include "screen_preheat.hpp"
 
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
@@ -66,10 +66,12 @@ void MI_COOLDOWN::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 // * WindowMenuPreheat
-WindowMenuPreheat::WindowMenuPreheat(window_t *parent, const Rect16 &rect, const PreheatData &data)
-    : WindowMenuVirtual(parent, rect, CloseScreenReturnBehavior::no)
-    , preheat_data(data) //
+WindowMenuPreheat::WindowMenuPreheat(window_t *parent, const Rect16 &rect)
+    : WindowMenuVirtual(parent, rect, CloseScreenReturnBehavior::no) //
 {
+}
+
+void WindowMenuPreheat::set_data(const PreheatData &data) {
     index_mapping.set_item_enabled<Item::return_>(data.has_return_option);
     index_mapping.set_item_enabled<Item::cooldown>(data.has_cooldown_option);
     update_list();
@@ -137,40 +139,47 @@ void WindowMenuPreheat::screenEvent(window_t *sender, GUI_event_t event, void *p
     WindowMenuVirtual::screenEvent(sender, event, param);
 }
 
-// * DialogMenuPreheat
-DialogMenuPreheat::DialogMenuPreheat(fsm::BaseData data)
-    : IDialogMarlin(GuiDefaults::RectScreen)
-    , menu(this, GuiDefaults::RectScreenNoHeader, PreheatData::deserialize(data.GetData()))
+// * ScreenPreheat
+ScreenPreheat::ScreenPreheat()
+    : ScreenFSM(nullptr, {})
+    , menu(this, GuiDefaults::RectScreenNoHeader)
     , header(this) //
 {
-    if (string_view_utf8 title = get_title(data); !title.isNULLSTR()) {
-        header.SetText(title);
-    } else {
-        SetRect(GuiDefaults::RectScreenNoHeader);
-        header.Hide();
-    }
-
     CaptureNormalWindow(menu);
 }
 
-string_view_utf8 DialogMenuPreheat::get_title(fsm::BaseData data) {
-    switch (PreheatData::deserialize(data.GetData()).mode) {
-    case PreheatMode::None:
-        return string_view_utf8::MakeNULLSTR();
+void preheat_menu::ScreenPreheat::create_frame() {
+    // The FSM has a single screen, no need to do anything
+}
 
-    case PreheatMode::Load:
-    case PreheatMode::Autoload:
-    case PreheatMode::Change_phase2: // use load caption, not a bug
-        return _("Preheating for load");
+void preheat_menu::ScreenPreheat::destroy_frame() {
+    // The FSM has a single screen, no need to do anything
+}
 
-    case PreheatMode::Unload:
-    case PreheatMode::Change_phase1: // use unload caption, not a bug
-        return _("Preheating for unload");
+void preheat_menu::ScreenPreheat::update_frame() {
+    const PreheatData data = PreheatData::deserialize(fsm_base_data.GetData());
+    const auto title = [&] -> const char * {
+        switch (data.mode) {
+        case PreheatMode::None:
+            return N_("Preheating");
 
-    case PreheatMode::Purge:
-        return _("Preheating for purge");
+        case PreheatMode::Load:
+        case PreheatMode::Autoload:
+        case PreheatMode::Change_phase2: // use load caption, not a bug
+            return N_("Preheating for load");
 
-    default:
-        return string_view_utf8::MakeCPUFLASH("Index error");
-    }
+        case PreheatMode::Unload:
+        case PreheatMode::Change_phase1: // use unload caption, not a bug
+            return N_("Preheating for unload");
+
+        case PreheatMode::Purge:
+            return N_("Preheating for purge");
+
+        default:
+            return N_("---");
+        }
+    }();
+
+    header.SetText(_(title));
+    menu.menu.set_data(data);
 }

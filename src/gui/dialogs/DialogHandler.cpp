@@ -6,13 +6,13 @@
 #include "screen_printing.hpp"
 #include "config_features.h"
 #include "screen_print_preview.hpp"
-#include "window_dlg_preheat.hpp"
 #include "window_dlg_quickpause.hpp"
 #include "window_dlg_warning.hpp"
 #include <screen_network_setup.hpp>
 #include <option/has_phase_stepping.h>
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_coldpull.h>
+#include <gui/screen/screen_preheat.hpp>
 
 #if HAS_COLDPULL()
     #include "screen_cold_pull.hpp"
@@ -150,7 +150,7 @@ struct FSMDisplayConfigDef {
 using FSMDisplayConfig = FSMDisplayConfigDef<
     FSMPrintDef<ClientFSM::Serial_printing>,
     FSMDialogDef<ClientFSM::Load_unload, DialogLoadUnload>,
-    FSMDialogDef<ClientFSM::Preheat, DialogMenuPreheat>,
+    FSMScreenDef<ClientFSM::Preheat, ScreenPreheat>,
 #if HAS_SELFTEST()
     FSMScreenDef<ClientFSM::Selftest, ScreenSelftest>,
 #endif
