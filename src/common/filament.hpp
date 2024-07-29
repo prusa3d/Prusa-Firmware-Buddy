@@ -21,6 +21,10 @@ constexpr size_t max_total_filament_count = max_user_filament_type_count + max_p
 /// Actually defined user filament type count
 constexpr size_t user_filament_type_count = 8;
 
+/// Should match extruder count (or be higher), one for each extruder
+/// Hardcoded to prevent dependency pollution
+constexpr size_t adhoc_filament_type_count = 6;
+
 // !!! DO NOT CHANGE - this is used in config store
 struct __attribute__((packed)) FilamentTypeParameters {
 
@@ -70,6 +74,7 @@ enum class PresetFilamentType : uint8_t {
 
 static constexpr size_t preset_filament_type_count = static_cast<size_t>(PresetFilamentType::_count);
 
+/// User-configurable "presets" for filaments
 struct UserFilamentType {
     uint8_t index = 0;
 
@@ -77,12 +82,22 @@ struct UserFilamentType {
     inline constexpr bool operator!=(const UserFilamentType &) const = default;
 };
 
+/// Ad-hoc filament type, adjustable, one for each toolhead.
+/// Not listed in all_filament_types.
+/// The parameters can be entered directly during preheat by selecting a special option in the preheat menu.
+struct AdHocFilamentType {
+    uint8_t tool = 0;
+
+    inline constexpr bool operator==(const AdHocFilamentType &) const = default;
+    inline constexpr bool operator!=(const AdHocFilamentType &) const = default;
+};
+
 struct NoFilamentType {
     inline constexpr bool operator==(const NoFilamentType &) const = default;
     inline constexpr bool operator!=(const NoFilamentType &) const = default;
 };
 
-using FilamentType_ = std::variant<NoFilamentType, PresetFilamentType, UserFilamentType>;
+using FilamentType_ = std::variant<NoFilamentType, PresetFilamentType, UserFilamentType, AdHocFilamentType>;
 
 /// Count of all filament types
 constexpr size_t total_filament_type_count = preset_filament_type_count + user_filament_type_count;
@@ -127,7 +142,7 @@ public:
 
     /// \returns whether the filaments parameters can be adjusted by the user
     inline bool is_customizable() const {
-        return std::holds_alternative<UserFilamentType>(*this);
+        return std::holds_alternative<UserFilamentType>(*this) || std::holds_alternative<AdHocFilamentType>(*this);
     }
 
     /// \returns whether the filament is visible - shown in standard filament lists

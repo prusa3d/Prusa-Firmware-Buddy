@@ -5,7 +5,10 @@
 struct EncodedFilamentType {
 
 public:
+    static constexpr uint8_t adhoc_filaments_offset = 176;
     static constexpr uint8_t user_filaments_offset = 192;
+
+    static_assert(adhoc_filaments_offset + adhoc_filament_type_count <= user_filaments_offset);
     static_assert(static_cast<int>(user_filaments_offset) + max_user_filament_type_count <= 255);
 
     uint8_t data = 0;
@@ -22,6 +25,9 @@ public:
 
             } else if constexpr (std::is_same_v<T, UserFilamentType>) {
                 return v.index + user_filaments_offset;
+
+            } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
+                return v.tool + adhoc_filaments_offset;
 
             } else if constexpr (std::is_same_v<T, NoFilamentType>) {
                 return 0;
@@ -44,6 +50,9 @@ public:
 
         } else if (data >= user_filaments_offset && data < user_filaments_offset + user_filament_type_count) {
             return UserFilamentType { static_cast<uint8_t>(data - user_filaments_offset) };
+
+        } else if (data >= adhoc_filaments_offset && data < adhoc_filaments_offset + adhoc_filament_type_count) {
+            return AdHocFilamentType { static_cast<uint8_t>(data - adhoc_filaments_offset) };
 
         } else {
             return NoFilamentType {};

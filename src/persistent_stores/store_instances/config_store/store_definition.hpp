@@ -314,6 +314,8 @@ struct CurrentStore
     static_assert(max_user_filament_type_count == 32);
     StoreItemArray<FilamentTypeParameters, defaults::user_filament_parameters, journal::hash("User Filament Parameters"), 32, user_filament_type_count> user_filament_parameters;
 
+    StoreItemArray<FilamentTypeParameters, defaults::adhoc_filament_parameters, journal::hash("Adhoc Filament Parameters"), 8, adhoc_filament_type_count> adhoc_filament_parameters;
+
     StoreItem<std::bitset<max_user_filament_type_count>, defaults::visible_user_filament_types, journal::hash("Visible User Filament Types")> visible_user_filament_types;
 
     FilamentType get_filament_type(uint8_t index);

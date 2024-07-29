@@ -13,7 +13,7 @@ size_t generate_filament_list(FilamentListStorage &storage, const GenerateFilame
     // Generate visible list to prevent locking the config_store mutex many times
     if (config.visible_first || config.visible_only) {
         // If this changes, the generator code probably also needs to change
-        static_assert(std::is_same_v<FilamentType_, std::variant<NoFilamentType, PresetFilamentType, UserFilamentType>>);
+        static_assert(std::is_same_v<FilamentType_, std::variant<NoFilamentType, PresetFilamentType, UserFilamentType, AdHocFilamentType>>);
 
         const auto is_preset_filament_visible = config_store().visible_preset_filament_types.get();
         for (size_t i = 0; i < static_cast<size_t>(PresetFilamentType::_count); i++) {

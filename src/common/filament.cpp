@@ -21,6 +21,7 @@ static_assert(sizeof(FilamentTypeParameters) == 14);
 
 static_assert(preset_filament_type_count <= max_preset_filament_type_count);
 static_assert(user_filament_type_count <= max_user_filament_type_count);
+static_assert(EXTRUDERS <= adhoc_filament_type_count);
 
 // We're storing the bed temperature in uint8_t, so make sure the bed cannot go higher
 static_assert(BED_MAXTEMP <= 255);
@@ -153,6 +154,9 @@ FilamentTypeParameters FilamentType::parameters() const {
         } else if constexpr (std::is_same_v<T, UserFilamentType>) {
             return config_store().user_filament_parameters.get(v.index);
 
+        } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
+            return config_store().adhoc_filament_parameters.get(v.tool);
+
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
             return none_filament_parameters;
         }
@@ -167,6 +171,9 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
 
         } else if constexpr (std::is_same_v<T, UserFilamentType>) {
             config_store().user_filament_parameters.set(v.index, set);
+
+        } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
+            config_store().adhoc_filament_parameters.set(v.tool, set);
 
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
             assert(false);
@@ -186,6 +193,9 @@ bool FilamentType::is_visible() const {
         } else if constexpr (std::is_same_v<T, UserFilamentType>) {
             return config_store().visible_user_filament_types.get().test(v.index);
 
+        } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
+            return false;
+
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
             return false;
         }
@@ -204,6 +214,10 @@ void FilamentType::set_visible(bool set) const {
             config_store().visible_user_filament_types.apply([v, set](auto &value) {
                 value.set(v.index, set);
             });
+
+        } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
+            // Should never happen
+            assert(0);
 
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
             // Do nothing

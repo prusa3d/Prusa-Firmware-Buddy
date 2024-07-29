@@ -310,6 +310,12 @@ namespace defaults {
         }
         return result;
     }();
+
+    inline constexpr FilamentTypeParameters adhoc_filament_parameters = {
+        .name = "NAME",
+        .nozzle_temperature = 215,
+        .nozzle_preheat_temperature = 170,
+    };
 } // namespace defaults
 
 } // namespace config_store_ns
