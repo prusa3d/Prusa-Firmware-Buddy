@@ -389,7 +389,7 @@ struct CurrentStore
     // A "leaky bucket" for MMU failures.
     StoreItem<uint16_t, 0, journal::hash("MMU fail bucket")> mmu_fail_bucket;
 
-    StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Nozzle")> hw_check_nozzle_diameter;
+    StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Nozzle")> hw_check_nozzle;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Model")> hw_check_model;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Firmware")> hw_check_firmware;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check G-code")> hw_check_gcode;
@@ -406,8 +406,8 @@ struct CurrentStore
     auto visit_hw_check(HWCheckType type, const F &visitor) {
         switch (type) {
 
-        case HWCheckType::nozzle_diameter:
-            return visitor(hw_check_nozzle_diameter);
+        case HWCheckType::nozzle:
+            return visitor(hw_check_nozzle);
 
         case HWCheckType::model:
             return visitor(hw_check_model);

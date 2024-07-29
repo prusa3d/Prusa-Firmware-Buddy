@@ -14,7 +14,7 @@ enum class HWCheckSeverity : uint8_t {
 };
 
 enum class HWCheckType : uint8_t {
-    nozzle_diameter,
+    nozzle,
     model,
     firmware,
 #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
@@ -31,7 +31,7 @@ enum class HWCheckType : uint8_t {
 static constexpr size_t hw_check_type_count = static_cast<size_t>(HWCheckType::_last) + 1;
 
 static constexpr EnumArray<HWCheckType, const char *, hw_check_type_count> hw_check_type_names {
-    { HWCheckType::nozzle_diameter, N_("Nozzle Diameter") },
+    { HWCheckType::nozzle, N_("Nozzle") },
         { HWCheckType::model, N_("Printer Model") },
         { HWCheckType::firmware, N_("Firmware Version") },
 #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)

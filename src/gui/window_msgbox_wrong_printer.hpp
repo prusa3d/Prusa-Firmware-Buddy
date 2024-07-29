@@ -18,7 +18,7 @@ class MsgBoxInvalidPrinter : public MsgBoxTitled {
     /// Max version len + some margin
     StringViewUtf8Parameters<sizeof(valid_printer_settings.latest_fw_version) + 5> wrong_fw_version_params;
 
-    std::array<Message, hw_check_type_count + 1> messages;
+    std::array<Message, hw_check_type_count + 3> messages;
 
     Message unsupported_features;
     window_text_t unsupported_features_text;

@@ -196,6 +196,12 @@ void GCodeInfo::EvaluateToolsValid() {
             if (auto dia = extruder_info.nozzle_diameter; dia && std::abs(*dia - config_store().get_nozzle_diameter(hotend)) > 0.001f) {
                 valid_printer_settings.wrong_nozzle_diameter.fail();
             }
+            if (extruder_info.requires_hardened_nozzle.value_or(false) && !config_store().nozzle_is_hardened.get()[hotend]) {
+                valid_printer_settings.nozzle_not_hardened.fail();
+            }
+            if (extruder_info.requires_high_flow_nozzle.value_or(false) && !config_store().nozzle_is_high_flow.get()[hotend]) {
+                valid_printer_settings.nozzle_not_high_flow.fail();
+            }
         };
 
 #if ENABLED(SINGLENOZZLE)
@@ -233,7 +239,7 @@ bool GCodeInfo::ValidPrinterSettings::is_valid(bool is_tools_mapping_possible) c
 #endif
         && !unsupported_features
         && (is_tools_mapping_possible // if is_possible -> always true -> handled by tools_mapping screen
-            || (wrong_tools.is_valid() && wrong_nozzle_diameter.is_valid()));
+            || (wrong_tools.is_valid() && wrong_nozzle_diameter.is_valid() && nozzle_not_hardened.is_valid() && nozzle_not_high_flow.is_valid()));
 }
 
 bool GCodeInfo::ValidPrinterSettings::is_fatal(bool is_tools_mapping_possible) const {
@@ -245,7 +251,7 @@ bool GCodeInfo::ValidPrinterSettings::is_fatal(bool is_tools_mapping_possible) c
         || fan_compatibility_mode.is_fatal()
 #endif
         || (!is_tools_mapping_possible // if is_possible -> always false -> handled by tools_mapping screen
-            && (wrong_tools.is_fatal() || wrong_nozzle_diameter.is_fatal()));
+            && (wrong_tools.is_fatal() || wrong_nozzle_diameter.is_fatal() || nozzle_not_hardened.is_fatal() || nozzle_not_high_flow.is_fatal()));
 }
 
 bool GCodeInfo::is_up_to_date(const char *new_version_string) {
@@ -348,9 +354,10 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
 
     // Parse parameters
     [[maybe_unused]] uint8_t tool = 0; // Default is first tool
-    float p_diameter = NAN;
+    std::optional<float> p_diameter;
+    std::optional<bool> requires_hardened_nozzle, requires_high_flow_nozzle;
     while (!cmd.is_empty()) {
-        char letter = cmd.pop_front();
+        const char letter = cmd.pop_front();
         if (letter == 'T') {
             tool = cmd.get_uint(); // Check particular tool (only for M862.1)
         } else if (letter == 'P') {
@@ -462,6 +469,26 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 break;
             }
             }
+        } else if (letter == 'A') {
+            switch (subcode) {
+
+            case '1':
+                requires_hardened_nozzle = cmd.get_uint();
+                break;
+
+            default:
+                break;
+            }
+        } else if (letter == 'F') {
+            switch (subcode) {
+
+            case '1':
+                requires_high_flow_nozzle = cmd.get_uint();
+                break;
+
+            default:
+                break;
+            }
         }
         cmd.skip_nws();
         cmd.skip_ws();
@@ -483,8 +510,14 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
 #endif
     };
 
-    if (!isnan(p_diameter)) {
-        visit_tool([&](auto &info) { info.nozzle_diameter = p_diameter; });
+    if (p_diameter.has_value()) {
+        visit_tool([&](auto &info) { info.nozzle_diameter = *p_diameter; });
+    }
+    if (requires_hardened_nozzle.has_value()) {
+        visit_tool([&](auto &info) { info.requires_hardened_nozzle = *requires_hardened_nozzle; });
+    }
+    if (requires_high_flow_nozzle.has_value()) {
+        visit_tool([&](auto &info) { info.requires_high_flow_nozzle = *requires_high_flow_nozzle; });
     }
 }
 

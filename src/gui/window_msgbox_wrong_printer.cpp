@@ -21,6 +21,8 @@ MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, const string_view_utf8 &
     , messages({
         { this, _("Printer doesn't have enough tools"), valid_printer_settings.wrong_tools },
             { this, _("Nozzle diameter doesn't match"), valid_printer_settings.wrong_nozzle_diameter },
+            { this, _("Nozzle is not hardened"), valid_printer_settings.nozzle_not_hardened },
+            { this, _("Nozzle is not high-flow"), valid_printer_settings.nozzle_not_high_flow },
             { this, _("Printer model doesn't match"), valid_printer_settings.wrong_printer_model },
             { this, _("G-code version doesn't match"), valid_printer_settings.wrong_gcode_level },
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
