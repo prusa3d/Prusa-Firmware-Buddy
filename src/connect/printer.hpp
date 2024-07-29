@@ -146,6 +146,13 @@ public:
         }
         // Either the active slot, if any, or the first available slot if no slot is active.
         uint8_t preferred_slot() const;
+        // Either the active head, if any, or the first available one.
+        //
+        // This is the same as preferred_slot for XL (where tools and slots are
+        // the same thing), but always returns 0 on other printers, including
+        // ones with MMU (they have multiple filament slots, but just one head
+        // / nozzle / ...).
+        uint8_t preferred_head() const;
     };
 
     struct Config {

@@ -187,4 +187,12 @@ uint8_t Printer::Params::preferred_slot() const {
     }
 }
 
+uint8_t Printer::Params::preferred_head() const {
+#if HAS_TOOLCHANGER()
+    return preferred_slot();
+#else
+    return 0;
+#endif
+}
+
 } // namespace connect_client

@@ -138,7 +138,7 @@ namespace {
             // need to coordinate with Connect, as these are probably
             // "essential" fields right now.
             if (telemetry.mode == SendTelemetry::Mode::Full) {
-                JSON_FIELD_FFIXED("temp_nozzle", params.slots[params.preferred_slot()].temp_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("temp_nozzle", params.slots[params.preferred_head()].temp_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
@@ -163,8 +163,8 @@ namespace {
                 }
                 JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
                 if (params.has_job) {
-                    JSON_FIELD_INT("fan_extruder", params.slots[params.preferred_slot()].heatbreak_fan_rpm) JSON_COMMA;
-                    JSON_FIELD_INT("fan_print", params.slots[params.preferred_slot()].print_fan_rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_extruder", params.slots[params.preferred_head()].heatbreak_fan_rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_print", params.slots[params.preferred_head()].print_fan_rpm) JSON_COMMA;
                     JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
                 }
 

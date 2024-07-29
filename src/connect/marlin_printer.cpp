@@ -220,7 +220,7 @@ Printer::Params MarlinPrinter::params() const {
     params.time_to_pause = marlin_vars().time_to_pause;
     params.progress_percent = marlin_vars().sd_percent_done;
     params.filament_used = Odometer_s::instance().get_extruded_all();
-    params.nozzle_diameter = config_store().get_nozzle_diameter(params.preferred_slot());
+    params.nozzle_diameter = config_store().get_nozzle_diameter(params.preferred_head());
     params.has_usb = marlin_vars().media_inserted;
     params.can_start_download = can_start_download;
 
