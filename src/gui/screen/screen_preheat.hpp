@@ -7,6 +7,7 @@
 #include <filament_list.hpp>
 #include <dynamic_index_mapping.hpp>
 #include <window_menu_virtual.hpp>
+#include <window_menu_callback_item.hpp>
 
 #include <MItem_tools.hpp>
 #include <fsm_preheat_type.hpp>
@@ -26,28 +27,7 @@ public:
     const uint8_t target_extruder;
 };
 
-class MI_RETURN_PREHEAT : public IWindowMenuItem {
-public:
-    MI_RETURN_PREHEAT();
-    virtual void click(IWindowMenu &window_menu);
-};
-
-class MI_SHOW_ALL : public IWindowMenuItem {
-public:
-    MI_SHOW_ALL(WindowMenuPreheat &menu);
-    virtual void click(IWindowMenu &);
-
-private:
-    WindowMenuPreheat &menu;
-};
-
-class MI_COOLDOWN : public IWindowMenuItem {
-public:
-    MI_COOLDOWN();
-    virtual void click(IWindowMenu &window_menu);
-};
-
-class WindowMenuPreheat : public WindowMenuVirtual<MI_FILAMENT, MI_SHOW_ALL, MI_RETURN_PREHEAT, MI_COOLDOWN> {
+class WindowMenuPreheat : public WindowMenuVirtual<WindowMenuCallbackItem, MI_FILAMENT> {
 
 public:
     WindowMenuPreheat(window_t *parent, const Rect16 &rect);

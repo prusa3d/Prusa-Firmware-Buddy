@@ -35,36 +35,6 @@ void MI_FILAMENT::click(IWindowMenu &) {
     marlin_client::FSM_response_variant(PhasesPreheat::UserTempSelection, FSMResponseVariant::make<FilamentType>(filament_type));
 }
 
-// * MI_RETURN_PREHEAT
-MI_RETURN_PREHEAT::MI_RETURN_PREHEAT()
-    : IWindowMenuItem(_("Return"), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
-    has_return_behavior_ = true;
-}
-
-void MI_RETURN_PREHEAT::click(IWindowMenu &window_menu) {
-    window_menu.Validate(); /// don't redraw since we leave the menu
-    marlin_client::FSM_response(PhasesPreheat::UserTempSelection, Response::Abort);
-}
-
-// * MI_SHOW_ALL
-MI_SHOW_ALL::MI_SHOW_ALL(WindowMenuPreheat &menu)
-    : IWindowMenuItem(_("Show All"))
-    , menu(menu) {
-}
-
-void MI_SHOW_ALL::click(IWindowMenu &) {
-    menu.set_show_all_filaments(true);
-}
-
-// * MI_COOLDOWN
-MI_COOLDOWN::MI_COOLDOWN()
-    : IWindowMenuItem(_(get_response_text(Response::Cooldown)), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_COOLDOWN::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::FSM_response(PhasesPreheat::UserTempSelection, Response::Cooldown);
-}
-
 // * WindowMenuPreheat
 WindowMenuPreheat::WindowMenuPreheat(window_t *parent, const Rect16 &rect)
     : WindowMenuVirtual(parent, rect, CloseScreenReturnBehavior::no) //
@@ -103,17 +73,30 @@ void WindowMenuPreheat::setup_item(ItemVariant &variant, int index) {
     const auto mapping = index_mapping.from_index(index);
     switch (mapping.item) {
 
-    case Item::return_:
-        variant.emplace<MI_RETURN_PREHEAT>();
+    case Item::return_: {
+        const auto callback = [this] {
+            Validate(); /// don't redraw since we leave the menu
+            marlin_client::FSM_response(PhasesPreheat::UserTempSelection, Response::Abort);
+        };
+        variant.emplace<WindowMenuCallbackItem>(_("Return"), callback, &img::folder_up_16x16);
         break;
+    }
 
-    case Item::cooldown:
-        variant.emplace<MI_COOLDOWN>();
+    case Item::cooldown: {
+        const auto callback = [] {
+            marlin_client::FSM_response(PhasesPreheat::UserTempSelection, Response::Cooldown);
+        };
+        variant.emplace<WindowMenuCallbackItem>(_(get_response_text(Response::Cooldown)), callback);
         break;
+    }
 
-    case Item::show_all:
-        variant.emplace<MI_SHOW_ALL>(*this);
+    case Item::show_all: {
+        const auto callback = [this] {
+            set_show_all_filaments(true);
+        };
+        variant.emplace<WindowMenuCallbackItem>(_("Show All"), callback);
         break;
+    }
 
     case Item::filament_section:
         variant.emplace<MI_FILAMENT>(filament_list_storage[mapping.pos_in_section], preheat_data.extruder);
