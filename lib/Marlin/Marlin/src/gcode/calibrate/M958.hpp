@@ -51,7 +51,7 @@ public:
         save_state(m_mres);
     }
 
-    static void save_state(State& state) {
+    static void save_state(State &state) {
         LOOP_XYZ(i) {
             state[i] = stepper_microsteps((AxisEnum)i);
         }
@@ -60,7 +60,7 @@ public:
     ~MicrostepRestorer() {
         restore_state(m_mres);
     }
-    static void restore_state(State& state) {
+    static void restore_state(State &state) {
         while (has_steps()) {
             idle(true, true);
         }
@@ -94,10 +94,34 @@ public:
     // Periodically called by get_accelerometer_sample_period() as it makes progress
     virtual ProgressResult operator()(float progress_ratio) = 0;
 };
-float get_accelerometer_sample_period(AccelerometerProgressHook&, PrusaAccelerometer &accelerometer);
+float get_accelerometer_sample_period(AccelerometerProgressHook &, PrusaAccelerometer &accelerometer);
 
 float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]);
-FrequencyGain3dError vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_period, StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles);
+
+struct VibrateMeasureParams {
+    PrusaAccelerometer &accelerometer;
+    StepEventFlag_t axis_flag;
+    bool klipper_mode;
+    float acceleration;
+    uint32_t cycles;
+
+    /// Configured in setup()
+    float accelerometer_sample_period = NAN;
+
+    /// Configured automatically in setup()
+    float step_len = NAN;
+
+    /// \returns false on failure
+    bool setup(const MicrostepRestorer &microstep_restorer, bool calibrate_accelerometer);
+};
+
+struct VibrateMeasureRange {
+    float start_frequency;
+    float end_frequency;
+    float frequency_increment;
+};
+
+FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float frequency);
 
 // Interface for hooking into find_best_shaper()
 class FindBestShaperProgressHook {
@@ -107,4 +131,4 @@ public:
     // Periodically called by find_best_shaper() as it makes progress
     virtual ProgressResult operator()(input_shaper::Type, float progress_ratio) = 0;
 };
-input_shaper::AxisConfig find_best_shaper(FindBestShaperProgressHook&, const Spectrum &psd, input_shaper::AxisConfig default_config);
+input_shaper::AxisConfig find_best_shaper(FindBestShaperProgressHook &, const Spectrum &psd, input_shaper::AxisConfig default_config);

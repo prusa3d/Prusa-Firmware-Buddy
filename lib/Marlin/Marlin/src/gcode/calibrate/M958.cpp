@@ -372,6 +372,24 @@ AxisEnum get_logical_axis(const uint16_t axis_flag) {
     return NO_AXIS_ENUM;
 }
 
+bool VibrateMeasureParams::setup(const MicrostepRestorer &microstep_restorer, bool calibrate_accelerometer) {
+    step_len = get_step_len(axis_flag, microstep_restorer.saved_mres());
+    if (isnan(step_len)) {
+        return false;
+    }
+
+    if (!is_ok(accelerometer.get_error())) {
+        return false;
+    }
+
+    accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, calibrate_accelerometer);
+    if (isnan(accelerometer_sample_period)) {
+        return false;
+    }
+
+    return true;
+}
+
 /**
  * @brief Excite harmonic vibration and measure amplitude if there is an accelerometer
  *
@@ -387,12 +405,11 @@ AxisEnum get_logical_axis(const uint16_t axis_flag) {
  * @param calibrate_accelerometer
  * @return Frequency and gain measured on each axis if there is accelerometer
  */
-FrequencyGain3dError
-vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_period, StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles) {
+FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float requested_frequency) {
     // As we push steps directly, phase stepping needs to be off
     phase_stepping::assert_disabled();
 
-    HarmonicGenerator generator(frequency_requested, acceleration_requested, step_len);
+    HarmonicGenerator generator(requested_frequency, args.acceleration, args.step_len);
     const float frequency = generator.getFrequency();
     StepDir stepDir(generator);
 
@@ -404,7 +421,7 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_pe
     float accelerometer_period_time = 0.f;
 
     uint32_t sample_nr = 0;
-    const uint32_t samples_to_collect = period * cycles / accelerometer_sample_period;
+    const uint32_t samples_to_collect = period * args.cycles / args.accelerometer_sample_period;
     bool enough_samples_collected = false;
     TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 #ifdef M958_OUTPUT_SAMPLES
@@ -415,16 +432,16 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_pe
 
     uint32_t step_nr = 0;
     GcodeSuite::reset_stepper_timeout();
-    const uint32_t steps_to_do = generator.getStepsPerPeriod() * cycles;
+    const uint32_t steps_to_do = generator.getStepsPerPeriod() * args.cycles;
     const uint32_t steps_to_do_max = steps_to_do * 2 + generator.getStepsPerPeriod() + STEP_EVENT_QUEUE_SIZE;
 
-    accelerometer.clear();
+    args.accelerometer.clear();
     while ((step_nr < steps_to_do) || (!enough_samples_collected) || (step_nr % generator.getStepsPerPeriod() != 0)) {
         StepDir::RetVal step_dir = stepDir.get();
 
         while (is_full()) {
             PrusaAccelerometer::Acceleration measured_acceleration;
-            const int samples = accelerometer.get_sample(measured_acceleration);
+            const int samples = args.accelerometer.get_sample(measured_acceleration);
             if (samples && !enough_samples_collected && (step_nr > STEP_EVENT_QUEUE_SIZE)) {
                 metric_record_custom(&accel, " x=%.4f,y=%.4f,z=%.4f", (double)measured_acceleration.val[0], (double)measured_acceleration.val[1], (double)measured_acceleration.val[2]);
                 const float accelerometer_time_2pi_freq = freq_2pi * accelerometer_period_time;
@@ -436,7 +453,7 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_pe
 
                 ++sample_nr;
                 enough_samples_collected = sample_nr >= samples_to_collect;
-                accelerometer_period_time += accelerometer_sample_period;
+                accelerometer_period_time += args.accelerometer_sample_period;
                 if (accelerometer_period_time > period) {
                     accelerometer_period_time -= period;
                 }
@@ -454,23 +471,18 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_pe
             }
         }
 
-        enqueue_step(step_dir.step_us, step_dir.dir, axis_flag);
+        enqueue_step(step_dir.step_us, step_dir.dir, args.axis_flag);
         ++step_nr;
         if (step_nr > steps_to_do_max) {
             SERIAL_ERROR_MSG("vibrate measure: getting accelerometer samples timed out");
-            (void)is_ok(accelerometer.get_error());
-            FrequencyGain3dError retval;
-            retval.error = true;
-            return retval;
+            (void)is_ok(args.accelerometer.get_error());
+            return FrequencyGain3dError { .error = true };
         }
     }
 
-    if(!is_ok(accelerometer.get_error())) {
-        FrequencyGain3dError retval;
-        retval.error = true;
-        return retval;
+    if (!is_ok(args.accelerometer.get_error())) {
+        return FrequencyGain3dError { .error = true };
     }
-
 
     for (int axis = 0; axis < num_axis; ++axis) {
         acumulator.val[axis] *= 2.;
@@ -499,7 +511,7 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_pe
     SERIAL_ECHOLNPAIR_F(" Z ", z_acceleration_amplitude, 5);
 #else
     SERIAL_ECHO(frequency);
-    if (klipper_mode) {
+    if (args.klipper_mode) {
         SERIAL_ECHOPAIR_F(",", sq(x_gain), 5);
         SERIAL_ECHOPAIR_F(",", sq(y_gain), 5);
         SERIAL_ECHOPAIR_F(",", sq(z_gain), 5);
@@ -515,11 +527,11 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_pe
     }
 #endif
 
-    AxisEnum logical_axis = get_logical_axis(axis_flag);
+    AxisEnum logical_axis = get_logical_axis(args.axis_flag);
     metric_record_custom(&metric_freq_gain, " a=%d,f=%.1f,x=%.4f,y=%.4f,z=%.4f",
         logical_axis, frequency, x_gain, y_gain, z_gain);
 
-    return { {frequency, { x_gain, y_gain, z_gain }}, false };
+    return { { frequency, { x_gain, y_gain, z_gain } }, false };
 }
 
 /**
@@ -714,41 +726,35 @@ void GcodeSuite::M958() {
     // phstep needs to be off _before_ getting the current ustep resolution
     phase_stepping::EnsureDisabled phaseSteppingDisabler;
     MicrostepRestorer microstepRestorer;
+
     const StepEventFlag_t axis_flag = setup_axis(); // modifies mres as a side-effect
-    const float step_len = get_step_len(axis_flag, microstepRestorer.saved_mres());
-    if (isnan(step_len)) {
-        return;
-    }
 
-    const bool klipper_mode = parser.seen('K');
-
-    float frequency_requested = 35.f;
-    if (parser.seenval('F')) {
-        frequency_requested = abs(parser.value_float());
-    }
-
-    float acceleration_requested = 2.5f;
-
-    if (parser.seenval('A')) {
-        acceleration_requested = abs(parser.value_float()) * 0.001f;
-    }
-
-    uint32_t cycles = 50;
-    if (parser.seenval('N')) {
-        cycles = parser.value_ulong();
-    }
-
-    bool calibrate_accelerometer = parser.seen('C');
     PrusaAccelerometer accelerometer;
-    if (!is_ok(accelerometer.get_error())) {
+    VibrateMeasureParams args {
+        .accelerometer = accelerometer,
+        .axis_flag = axis_flag,
+        .klipper_mode = parser.seen('K'),
+        .acceleration = 2.5f,
+        .cycles = 50,
+    };
+    float frequency = 35;
+
+    if (parser.seenval('F')) {
+        frequency = abs(parser.value_float());
+    }
+    if (parser.seenval('A')) {
+        args.acceleration = abs(parser.value_float()) * 0.001f;
+    }
+    if (parser.seenval('N')) {
+        args.cycles = parser.value_ulong();
+    }
+
+    if (!args.setup(microstepRestorer, parser.seen('C'))) {
         return;
     }
-    const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, calibrate_accelerometer);
-    if (isnan(accelerometer_sample_period)) {
-        return;
-    }
-    serial_echo_header(klipper_mode);
-    vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+
+    serial_echo_header(args.klipper_mode);
+    vibrate_measure(args, frequency);
 }
 
 /** @}*/
@@ -763,26 +769,18 @@ static constexpr float epsilon = 0.01f;
  * But in reality we are exciting the system by sine wave displacement. We for sure can not tell, if the force is still sine wave
  * and what is the force - the force depends on motor load angle and belt stiffness and we don't know it.
  */
-static void naive_zv_tune(StepEventFlag_t axis_flag, float start_frequency, float end_frequency, float frequency_increment, float acceleration_requested, const float step_len, uint32_t cycles) {
+static void naive_zv_tune(const VibrateMeasureParams &args, const VibrateMeasureRange &range) {
     FrequencyGain maxFrequencyGain = { 0.f, 0.f };
-    const AxisEnum logicalAxis = get_logical_axis(axis_flag);
+    const AxisEnum logicalAxis = get_logical_axis(args.axis_flag);
     if (logicalAxis == NO_AXIS_ENUM) {
         SERIAL_ECHOLN("error: not moving along one logical axis");
         return;
     }
 
-    PrusaAccelerometer accelerometer;
-    if (!is_ok(accelerometer.get_error())) {
-        return;
-    }
-    const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true);
-    if (isnan(accelerometer_sample_period)) {
-        return;
-    }
-    const bool klipper_mode = false;
-    serial_echo_header(klipper_mode);
-    for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
-        FrequencyGain3dError frequencyGain3dError = vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+    serial_echo_header(args.klipper_mode);
+
+    for (float frequency = range.start_frequency; frequency <= range.end_frequency + epsilon; frequency += range.frequency_increment) {
+        FrequencyGain3dError frequencyGain3dError = vibrate_measure(args, frequency);
         if (frequencyGain3dError.error) {
             return;
         }
@@ -1021,9 +1019,9 @@ struct Best_score {
     input_shaper::Type type;
 };
 static input_shaper::AxisConfig find_best_shaper(FindBestShaperProgressHook &progress_hook, const Spectrum &psd, const Action final_action, input_shaper::AxisConfig default_config) {
-    static constexpr auto first_enabled_filter_iterator = std::ranges::find_if(input_shaper::enabled_filters, [](bool el){ return el; });
+    static constexpr auto first_enabled_filter_iterator = std::ranges::find_if(input_shaper::enabled_filters, [](bool el) { return el; });
     static_assert(first_enabled_filter_iterator != input_shaper::enabled_filters.end(), "all input shaper filters are disabled");
-    
+
     static constexpr int first_shaper_idx = std::distance(input_shaper::enabled_filters.begin(), first_enabled_filter_iterator);
     static constexpr input_shaper::Type first_shaper_type = static_cast<input_shaper::Type>(first_shaper_idx);
     static_assert(first_shaper_type != input_shaper::Type::null, "first enabled filter cannot be null");
@@ -1072,37 +1070,21 @@ input_shaper::AxisConfig find_best_shaper(FindBestShaperProgressHook &progress_h
  * @brief
  *
  * To save memory we assume reached frequency was equal to requested, so frequency returned by vibrate_measure() is discarded.
- *
- * @param subtract_excitation
- * @param axis_flag
- * @param start_frequency
- * @param end_frequency
- * @param frequency_increment
- * @param acceleration_requested
- * @param cycles
  */
-static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t axis_flag, const float start_frequency, float end_frequency, const float frequency_increment, const float acceleration_requested, const float step_len, const uint32_t cycles) {
+static void klipper_tune(const VibrateMeasureParams &args, VibrateMeasureRange range, bool subtract_excitation) {
     // Power spectrum density
-    FixedLengthSpectrum<146> psd(start_frequency, frequency_increment);
-    end_frequency = limit_end_frequency(start_frequency, end_frequency, frequency_increment, psd.max_size());
-    const AxisEnum logicalAxis = get_logical_axis(axis_flag);
+    FixedLengthSpectrum<146> psd(range.start_frequency, range.frequency_increment);
+    range.end_frequency = limit_end_frequency(range.start_frequency, range.end_frequency, range.frequency_increment, psd.max_size());
+    const AxisEnum logicalAxis = get_logical_axis(args.axis_flag);
     if (logicalAxis == NO_AXIS_ENUM) {
         SERIAL_ECHOLN("error: not moving along one logical axis");
         return;
     }
 
-    PrusaAccelerometer accelerometer;
-    if (!is_ok(accelerometer.get_error())) {
-        return;
-    }
-    const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true);
-    if (isnan(accelerometer_sample_period)) {
-        return;
-    }
-    const bool klipper_mode = true;
-    serial_echo_header(klipper_mode);
-    for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
-        FrequencyGain3dError frequencyGain3dError = vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+    serial_echo_header(args.klipper_mode);
+
+    for (float frequency = range.start_frequency; frequency <= range.end_frequency + epsilon; frequency += range.frequency_increment) {
+        FrequencyGain3dError frequencyGain3dError = vibrate_measure(args, frequency);
         if (frequencyGain3dError.error) {
             return;
         }
@@ -1155,7 +1137,6 @@ void GcodeSuite::M959() {
     SERIAL_ECHO_START();
     SERIAL_ECHOLNPAIR("Running: ", parser.get_command());
 
-
     if (!parser.seen('D')) {
         GcodeSuite::G28_no_parser(false, true, NAN, false, true, true, true);
 
@@ -1168,42 +1149,49 @@ void GcodeSuite::M959() {
 
     // phstep needs to be off _before_ getting the current ustep resolution
     phase_stepping::EnsureDisabled phaseSteppingDisabler;
-    MicrostepRestorer microstepRestorer;
-    const StepEventFlag_t axis_flag = setup_axis(); // modifies mres as a side-effect
-    const float step_len = get_step_len(axis_flag, microstepRestorer.saved_mres());
-    if (isnan(step_len)) {
+    MicrostepRestorer microstep_restorer;
+    PrusaAccelerometer accelerometer;
+
+    VibrateMeasureParams args {
+        .accelerometer = accelerometer,
+        .axis_flag = setup_axis(), // modifies mres as a side-effect
+        .klipper_mode = parser.seen('K'),
+        .acceleration = 2.5f,
+        .cycles = 50,
+    };
+    VibrateMeasureRange range {
+        .start_frequency = 5,
+        .end_frequency = 150,
+        .frequency_increment = 1,
+    };
+
+    if (parser.seenval('F')) {
+        range.start_frequency = abs(parser.value_float());
+    }
+    if (parser.seenval('G')) {
+        range.end_frequency = abs(parser.value_float());
+    }
+    if (parser.seenval('H')) {
+        range.frequency_increment = abs(parser.value_float());
+    }
+    if (parser.seenval('A')) {
+        args.acceleration = abs(parser.value_float()) * 0.001f;
+    }
+    if (parser.seenval('N')) {
+        args.cycles = parser.value_ulong();
+    }
+
+    if (!args.setup(microstep_restorer, true)) {
         return;
     }
 
-    const bool seen_m = parser.seen('M');
-
-    float start_frequency = 5.f;
-    if (parser.seenval('F')) {
-        start_frequency = abs(parser.value_float());
-    }
-    float end_frequency = 150.f;
-    if (parser.seenval('G')) {
-        end_frequency = abs(parser.value_float());
-    }
-    float frequency_increment = 1.f;
-    if (parser.seenval('H')) {
-        frequency_increment = abs(parser.value_float());
-    }
-    float acceleration_requested = 2.5f;
-    if (parser.seenval('A')) {
-        acceleration_requested = abs(parser.value_float()) * 0.001f;
-    }
-    uint32_t cycles = 50;
-    if (parser.seenval('N')) {
-        cycles = parser.value_ulong();
-    }
-    if (parser.seen('K')) {
-        klipper_tune(seen_m, axis_flag, start_frequency, end_frequency, frequency_increment, acceleration_requested, step_len, cycles);
+    if (args.klipper_mode) {
+        klipper_tune(args, range, parser.seen('M'));
     } else {
-        naive_zv_tune(axis_flag, start_frequency, end_frequency, frequency_increment, acceleration_requested, step_len, cycles);
+        naive_zv_tune(args, range);
     }
 
-    const AxisEnum logical_axis = get_logical_axis(axis_flag);
+    const AxisEnum logical_axis = get_logical_axis(args.axis_flag);
     auto axis_config = *input_shaper::current_config().axis[logical_axis];
 
     SERIAL_ECHO_START();
