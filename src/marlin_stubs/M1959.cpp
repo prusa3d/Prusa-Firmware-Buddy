@@ -275,41 +275,34 @@ static PhasesInputShaperCalibration attach_to_extruder(Context &) {
     bsod(__FUNCTION__);
 }
 
-class AccelerometerProgressHookFsm final : public AccelerometerProgressHook {
-private:
-    bool m_aborted = false;
-
-public:
-    AccelerometerProgressHookFsm() {
-        std::ignore = operator()(0.0f);
-    }
-
-    ProgressResult operator()(float progress_ratio) final {
-        if (m_aborted || was_abort_requested(PhasesInputShaperCalibration::calibrating_accelerometer)) {
-            m_aborted = true;
-            return ProgressResult::abort;
-        } else {
-            fsm::PhaseData data = { static_cast<uint8_t>(255 * progress_ratio), 0, 0, 0 };
-            marlin_server::fsm_change(PhasesInputShaperCalibration::calibrating_accelerometer, data);
-            idle(true, true);
-            return ProgressResult::progress;
-        }
-    }
-
-    bool aborted() const { return m_aborted; }
-};
-
 static PhasesInputShaperCalibration calibrating_accelerometer(Context &context) {
     if (!context.setup_accelerometer()) {
         return PhasesInputShaperCalibration::measurement_failed;
     }
 
-    AccelerometerProgressHookFsm progress_hook;
+    bool aborted = false;
+    const auto progress_hook = [&aborted](float progress) {
+        aborted |= was_abort_requested(PhasesInputShaperCalibration::calibrating_accelerometer);
+        if (aborted) {
+            return false;
+        }
+
+        fsm::PhaseData data = { static_cast<uint8_t>(255 * progress), 0, 0, 0 };
+        marlin_server::fsm_change(PhasesInputShaperCalibration::calibrating_accelerometer, data);
+        idle(true, true);
+        return true;
+    };
+
     context.accelerometer_sample_period = get_accelerometer_sample_period(progress_hook, *context.accelerometer);
-    if (isnan(context.accelerometer_sample_period)) {
+    if (aborted) {
+        return PhasesInputShaperCalibration::finish;
+
+    } else if (isnan(context.accelerometer_sample_period)) {
         return PhasesInputShaperCalibration::measurement_failed;
+
+    } else {
+        return PhasesInputShaperCalibration::measuring_x_axis;
     }
-    return progress_hook.aborted() ? PhasesInputShaperCalibration::finish : PhasesInputShaperCalibration::measuring_x_axis;
 }
 
 // helper
@@ -416,38 +409,6 @@ static PhasesInputShaperCalibration measuring_y_axis(Context &context) {
         context.spectrum_y);
 }
 
-class FindBestShaperProgressHookFsm final : public FindBestShaperProgressHook {
-private:
-    bool m_aborted = false;
-    AxisEnum m_axis = AxisEnum::NO_AXIS_ENUM;
-
-public:
-    FindBestShaperProgressHookFsm() {
-        std::ignore = operator()(input_shaper::Type::null, 0.0f);
-    }
-
-    ProgressResult operator()(input_shaper::Type type, float progress_ratio) final {
-        if (m_aborted || was_abort_requested(PhasesInputShaperCalibration::computing)) {
-            m_aborted = true;
-            return ProgressResult::abort;
-        } else {
-            fsm::PhaseData data {
-                static_cast<uint8_t>(255 * progress_ratio),
-                ftrstd::to_underlying(type),
-                m_axis,
-                0,
-            };
-            marlin_server::fsm_change(PhasesInputShaperCalibration::computing, data);
-            idle(true, true);
-            return ProgressResult::progress;
-        }
-    }
-
-    void set_axis(AxisEnum axis) { m_axis = axis; } // TODO maybe this belongs to the progress hook...
-
-    bool aborted() const { return m_aborted; }
-};
-
 static PhasesInputShaperCalibration measurement_failed(Context &context) {
     marlin_server::fsm_change(PhasesInputShaperCalibration::measurement_failed);
     switch (wait_for_response(PhasesInputShaperCalibration::measurement_failed)) {
@@ -480,21 +441,46 @@ static PhasesInputShaperCalibration check_result(Context &context) {
 }
 
 static PhasesInputShaperCalibration computing(Context &context) {
-    FindBestShaperProgressHookFsm progress_hook;
+    AxisEnum logicalAxis;
+    bool aborted = false;
+    const auto progress_hook = [&](input_shaper::Type type, float progress) {
+        aborted |= was_abort_requested(PhasesInputShaperCalibration::computing);
+        if (aborted) {
+            return false;
+        }
+
+        fsm::PhaseData data {
+            static_cast<uint8_t>(255 * progress),
+            ftrstd::to_underlying(type),
+            logicalAxis,
+            0,
+        };
+        marlin_server::fsm_change(PhasesInputShaperCalibration::computing, data);
+        idle(true, true);
+        return true;
+    };
+
     {
-        const AxisEnum logicalAxis = X_AXIS;
-        progress_hook.set_axis(logicalAxis);
+        logicalAxis = X_AXIS;
         context.axis_config_x = find_best_shaper(progress_hook, context.spectrum_x, input_shaper::axis_defaults[logicalAxis]);
+        if (aborted) {
+            return PhasesInputShaperCalibration::finish;
+        }
+
         log_axis_config(context.axis_config_x, 'x');
     }
+
     {
-        const AxisEnum logicalAxis = Y_AXIS;
-        progress_hook.set_axis(logicalAxis);
+        logicalAxis = Y_AXIS;
         context.axis_config_y = find_best_shaper(progress_hook, context.spectrum_y, input_shaper::axis_defaults[logicalAxis]);
+        if (aborted) {
+            return PhasesInputShaperCalibration::finish;
+        }
+
         log_axis_config(context.axis_config_y, 'y');
     }
 
-    return progress_hook.aborted() ? PhasesInputShaperCalibration::finish : PhasesInputShaperCalibration::results;
+    return PhasesInputShaperCalibration::results;
 }
 
 static PhasesInputShaperCalibration results(Context &context) {

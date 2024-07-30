@@ -264,7 +264,7 @@ static constexpr float expected_accelerometer_sample_period = 1.f / 1344.f;
  * @return accelerometer sample period in seconds
  * @retval NAN error
  */
-float get_accelerometer_sample_period(AccelerometerProgressHook &progress_hook, PrusaAccelerometer &accelerometer) {
+float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_hook, PrusaAccelerometer &accelerometer) {
     for (int i = 0; i < 96; ++i) {
         // Note: this is fast enough, it does not need to call progress_hook
         idle(true, true);
@@ -275,16 +275,18 @@ float get_accelerometer_sample_period(AccelerometerProgressHook &progress_hook, 
     const uint32_t start_time = millis();
     uint32_t duration_ms = 0;
 
+    if (!progress_hook(0)) {
+        return NAN;
+    }
+
     for (int i = 0; i < request_samples_num;) {
         PrusaAccelerometer::Acceleration measured_acceleration;
         const int samples = accelerometer.get_sample(measured_acceleration);
         if (samples) {
             ++i;
-        } else {
-            const float progress_ratio = static_cast<float>(i) / request_samples_num;
-            if (progress_hook(progress_ratio) == ProgressResult::abort) {
-                return 0;
-            }
+
+        } else if (!progress_hook(static_cast<float>(i) / request_samples_num)) {
+            return NAN;
         }
 
         const uint32_t now = millis();
@@ -304,16 +306,12 @@ float get_accelerometer_sample_period(AccelerometerProgressHook &progress_hook, 
     return duration_ms / 1000.f / static_cast<float>(request_samples_num);
 }
 
-class AccelerometerProgressHookNoop final : public AccelerometerProgressHook {
-public:
-    ProgressResult operator()(float) final {
-        idle(true, true);
-        return ProgressResult::progress;
-    }
-};
 static float get_accelerometer_sample_period(PrusaAccelerometer &accelerometer) {
-    AccelerometerProgressHookNoop noop_progress_hook;
-    return get_accelerometer_sample_period(noop_progress_hook, accelerometer);
+    const auto progress_hook = [](auto) {
+        idle(true, true);
+        return true;
+    };
+    return get_accelerometer_sample_period(progress_hook, accelerometer);
 }
 
 static float maybe_calibrate_and_get_accelerometer_sample_period(PrusaAccelerometer &accelerometer, bool calibrate_accelerometer) {
@@ -931,7 +929,7 @@ struct Shaper_result {
     float score;
     float smoothing;
 };
-static Shaper_result fit_shaper(FindBestShaperProgressHook &progress_hook, input_shaper::Type type, const Spectrum &psd, const Action final_action, input_shaper::AxisConfig default_config) {
+static Shaper_result fit_shaper(const FindBestShaperProgressHook &progress_hook, input_shaper::Type type, const Spectrum &psd, const Action final_action, input_shaper::AxisConfig default_config) {
     constexpr float start_frequency = 5.f;
     constexpr float end_frequency = 150.f;
     constexpr float frequency_step = .2f;
@@ -953,7 +951,7 @@ static Shaper_result fit_shaper(FindBestShaperProgressHook &progress_hook, input
     for (Action action = Action::first; action <= final_action; ++action) {
         for (float frequency = end_frequency; frequency >= start_frequency - epsilon; frequency -= frequency_step) {
             const float progress_ratio = (end_frequency - frequency) / (end_frequency - start_frequency);
-            if (progress_hook(type, progress_ratio) == ProgressResult::abort) {
+            if (!progress_hook(type, progress_ratio)) {
                 return {};
             }
             input_shaper::Shaper shaper = input_shaper::get(default_damping_ratio, frequency, default_vibration_reduction, type);
@@ -970,7 +968,7 @@ static Shaper_result fit_shaper(FindBestShaperProgressHook &progress_hook, input
                 if (vibrations > shaper_vibrations) {
                     shaper_vibrations = vibrations;
                 }
-                if (progress_hook(type, progress_ratio) == ProgressResult::abort) {
+                if (!progress_hook(type, progress_ratio)) {
                     return {};
                 }
             }
@@ -1014,55 +1012,53 @@ static Shaper_result fit_shaper(FindBestShaperProgressHook &progress_hook, input
     return shaper_result;
 }
 
-struct Best_score {
-    Shaper_result result;
-    input_shaper::Type type;
-};
-static input_shaper::AxisConfig find_best_shaper(FindBestShaperProgressHook &progress_hook, const Spectrum &psd, const Action final_action, input_shaper::AxisConfig default_config) {
-    static constexpr auto first_enabled_filter_iterator = std::ranges::find_if(input_shaper::enabled_filters, [](bool el) { return el; });
-    static_assert(first_enabled_filter_iterator != input_shaper::enabled_filters.end(), "all input shaper filters are disabled");
-
-    static constexpr int first_shaper_idx = std::distance(input_shaper::enabled_filters.begin(), first_enabled_filter_iterator);
-    static constexpr input_shaper::Type first_shaper_type = static_cast<input_shaper::Type>(first_shaper_idx);
-    static_assert(first_shaper_type != input_shaper::Type::null, "first enabled filter cannot be null");
-
-    Best_score best_shaper = {
-        .result = fit_shaper(progress_hook, first_shaper_type, psd, final_action, default_config),
-        .type = first_shaper_type
+static input_shaper::AxisConfig find_best_shaper(const FindBestShaperProgressHook &progress_hook, const Spectrum &psd, const Action final_action, input_shaper::AxisConfig default_config) {
+    struct Best_score {
+        Shaper_result result;
+        input_shaper::Type type;
     };
+    std::optional<Best_score> best_shaper;
 
-    for (input_shaper::Type shaper_type = first_shaper_type + 1; shaper_type <= input_shaper::Type::last; ++shaper_type) {
+    for (input_shaper::Type shaper_type = input_shaper::Type::first; shaper_type <= input_shaper::Type::last; ++shaper_type) {
         if (shaper_type == input_shaper::Type::null || !input_shaper::enabled_filters[ftrstd::to_underlying(shaper_type)]) {
             continue;
         }
 
+        if (!progress_hook(shaper_type, 0.0f)) {
+            break;
+        }
+
         Shaper_result shaper = fit_shaper(progress_hook, shaper_type, psd, final_action, default_config);
-        if (shaper.score * 1.2f < best_shaper.result.score
-            || ((shaper.score * 1.05f < best_shaper.result.score) && (shaper.smoothing * 1.1f < best_shaper.result.smoothing))) {
-            best_shaper.type = shaper_type;
-            best_shaper.result = shaper;
+
+        if (
+            !best_shaper.has_value() //
+            || shaper.score * 1.2f < best_shaper->result.score
+            || ((shaper.score * 1.05f < best_shaper->result.score) && (shaper.smoothing * 1.1f < best_shaper->result.smoothing)) //
+        ) {
+            best_shaper = {
+                .result = shaper,
+                .type = shaper_type,
+            };
         }
     }
+
     return input_shaper::AxisConfig {
-        .type = best_shaper.type,
-        .frequency = best_shaper.result.frequency,
+        .type = best_shaper ? best_shaper->type : input_shaper::Type::null,
+        .frequency = best_shaper ? best_shaper->result.frequency : 0,
         .damping_ratio = default_config.damping_ratio,
         .vibration_reduction = default_config.vibration_reduction,
     };
 }
 
 static input_shaper::AxisConfig find_best_shaper(const Spectrum &psd, const Action final_action, input_shaper::AxisConfig default_config) {
-    class ProgressHook final : public FindBestShaperProgressHook {
-    public:
-        ProgressResult operator()(input_shaper::Type, float) final {
-            idle(true, true);
-            return ProgressResult::progress;
-        }
-    } progress_hook;
+    const auto progress_hook = [](input_shaper::Type, float) {
+        idle(true, true);
+        return true;
+    };
     return find_best_shaper(progress_hook, psd, final_action, default_config);
 }
 
-input_shaper::AxisConfig find_best_shaper(FindBestShaperProgressHook &progress_hook, const Spectrum &psd, input_shaper::AxisConfig default_config) {
+input_shaper::AxisConfig find_best_shaper(const FindBestShaperProgressHook &progress_hook, const Spectrum &psd, input_shaper::AxisConfig default_config) {
     return find_best_shaper(progress_hook, psd, Action::find_best_result, default_config);
 }
 

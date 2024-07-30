@@ -8,6 +8,7 @@
 #include "Marlin/src/module/stepper/trinamic.h"
 #include "Marlin/src/module/prusa/accelerometer.h"
 #include "Marlin/src/feature/input_shaper/input_shaper_config.hpp"
+#include <inplace_function.hpp>
 
 static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 
@@ -80,21 +81,11 @@ private:
     }
 };
 
-// Return value for progress hooks
-enum class [[nodiscard]] ProgressResult {
-    abort,
-    progress,
-};
 
-// Interface for hooking into get_accelerometer_sample_period()
-class AccelerometerProgressHook {
-public:
-    virtual ~AccelerometerProgressHook() = default;
+/// \returns false if the measurement should be aborted
+using SamplePeriodProgressHook = stdext::inplace_function<bool(float progress)>;
 
-    // Periodically called by get_accelerometer_sample_period() as it makes progress
-    virtual ProgressResult operator()(float progress_ratio) = 0;
-};
-float get_accelerometer_sample_period(AccelerometerProgressHook &, PrusaAccelerometer &accelerometer);
+float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_hook, PrusaAccelerometer &accelerometer);
 
 float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]);
 
@@ -123,12 +114,7 @@ struct VibrateMeasureRange {
 
 FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float frequency);
 
-// Interface for hooking into find_best_shaper()
-class FindBestShaperProgressHook {
-public:
-    virtual ~FindBestShaperProgressHook() = default;
+/// \returns false if the measurement should be aborted
+using FindBestShaperProgressHook = stdext::inplace_function<bool(input_shaper::Type checked_type, float progress)>;
 
-    // Periodically called by find_best_shaper() as it makes progress
-    virtual ProgressResult operator()(input_shaper::Type, float progress_ratio) = 0;
-};
-input_shaper::AxisConfig find_best_shaper(FindBestShaperProgressHook &, const Spectrum &psd, input_shaper::AxisConfig default_config);
+input_shaper::AxisConfig find_best_shaper(const FindBestShaperProgressHook& progress_hook, const Spectrum &psd, input_shaper::AxisConfig default_config);
