@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <limits>
+
 #include <option/has_local_accelerometer.h>
 #include <option/has_remote_accelerometer.h>
 #include "Marlin/src/core/types.h"
@@ -60,9 +61,16 @@ float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_h
 float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]);
 
 struct VibrateMeasureParams {
-    float acceleration;
+    /// How much we're exciting the vibrations, in m/s^2.
+    float excitation_acceleration = NAN;
+
+    /// How much we're exciting the vibrations, in meters.
+    /// Alternative to using \p excitation_acceleration.
+    float excitation_amplitude = NAN;
+
     /// Configured automatically in setup()
     float step_len = NAN;
+
     uint32_t cycles;
     bool klipper_mode;
     bool calibrate_accelerometer;
@@ -70,8 +78,6 @@ struct VibrateMeasureParams {
 
     /// Which harmonic frequency to measure
     uint16_t measured_harmonic = 1;
-
-
 
     /// \returns false on failure
     bool setup(const MicrostepRestorer &microstep_restorer);

@@ -285,7 +285,7 @@ static PhasesInputShaperCalibration measuring_axis(
     stepper_microsteps(logicalAxis, 128);
 
     VibrateMeasureParams args {
-        .acceleration = acceleration_requested,
+        .excitation_acceleration = acceleration_requested,
         .cycles = cycles,
         .klipper_mode = klipper_mode,
         .calibrate_accelerometer = true,

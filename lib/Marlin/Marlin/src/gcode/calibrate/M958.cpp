@@ -43,6 +43,8 @@ METRIC_DEF(accel, "tk_accel", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL
 
 namespace {
 class HarmonicGenerator {
+
+public:
     /**
      * @brief Displacement amplitude
      *
@@ -58,10 +60,8 @@ class HarmonicGenerator {
     static int amplitudeRoundToSteps(float amplitude_not_rounded, float step_len) {
         return ceil(amplitude_not_rounded / step_len);
     }
-
-public:
-    HarmonicGenerator(float frequency, float acceleration, float step_len)
-        : m_amplitude_steps(amplitudeRoundToSteps(amplitudeNotRounded(frequency, acceleration), step_len))
+    HarmonicGenerator(float frequency, float amplitude, float step_len)
+        : m_amplitude_steps(amplitudeRoundToSteps(amplitude, step_len))
         , m_step(step_len)
         , m_freq2pi_inv(1.f / (frequency * 2 * std::numbers::pi_v<float>))
         , m_last_time(1.f / (frequency * 4.f))
@@ -394,7 +394,16 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
     // As we push steps directly, phase stepping needs to be off
     phase_stepping::assert_disabled();
 
-    HarmonicGenerator generator(requested_frequency, args.acceleration, args.step_len);
+    // Check that exactly one of excitation_acceleration, excitation_amplitude is specified
+    assert(isnan(args.excitation_acceleration) != isnan(args.excitation_amplitude));
+
+    const float excitation_amplitude = //
+        !isnan(args.excitation_amplitude)
+        ? args.excitation_amplitude
+        : HarmonicGenerator::amplitudeNotRounded(requested_frequency, args.excitation_acceleration);
+
+    HarmonicGenerator generator(requested_frequency, excitation_amplitude, args.step_len);
+
     const float excitation_frequency = generator.getFrequency();
     const float measurement_frequency = excitation_frequency * args.measured_harmonic;
 
@@ -786,7 +795,7 @@ void GcodeSuite::M958() {
 
     PrusaAccelerometer accelerometer;
     VibrateMeasureParams args {
-        .acceleration = 2.5f,
+        .excitation_acceleration = 2.5f,
         .cycles = 50,
         .klipper_mode = parser.seen('K'),
         .calibrate_accelerometer = parser.seen('C'),
@@ -798,7 +807,7 @@ void GcodeSuite::M958() {
         frequency = abs(parser.value_float());
     }
     if (parser.seenval('A')) {
-        args.acceleration = abs(parser.value_float()) * 0.001f;
+        args.excitation_acceleration = abs(parser.value_float()) * 0.001f;
     }
     if (parser.seenval('N')) {
         args.cycles = parser.value_ulong();
@@ -1233,7 +1242,7 @@ void GcodeSuite::M959() {
     PrusaAccelerometer accelerometer;
 
     VibrateMeasureParams args {
-        .acceleration = 2.5f,
+        .excitation_acceleration = 2.5f,
         .cycles = 50,
         .klipper_mode = parser.seen('K'),
 		.calibrate_accelerometer = true,
@@ -1255,7 +1264,7 @@ void GcodeSuite::M959() {
         range.frequency_increment = abs(parser.value_float());
     }
     if (parser.seenval('A')) {
-        args.acceleration = abs(parser.value_float()) * 0.001f;
+        args.excitation_acceleration = abs(parser.value_float()) * 0.001f;
     }
     if (parser.seenval('N')) {
         args.cycles = parser.value_ulong();
