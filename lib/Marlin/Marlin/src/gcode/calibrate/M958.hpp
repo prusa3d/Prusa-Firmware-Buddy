@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <limits>
+#include <optional>
 
 #include <option/has_local_accelerometer.h>
 #include <option/has_remote_accelerometer.h>
@@ -17,20 +18,6 @@ static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 struct FrequencyGain {
     float frequency;
     float gain;
-};
-
-struct FrequencyGain3d {
-    float frequency;
-    float gain[3];
-
-    constexpr float get_square() const {
-        return sq(gain[0]) + sq(gain[1]) + sq(gain[2]);
-    }
-};
-
-struct FrequencyGain3dError {
-    FrequencyGain3d frequencyGain3d;
-    bool error;
 };
 
 class Spectrum {
@@ -100,7 +87,17 @@ struct VibrateMeasureRange {
     float frequency_increment;
 };
 
-FrequencyGain3dError vibrate_measure_repeat(const VibrateMeasureParams &args, float frequency, const SamplePeriodProgressHook &progress_hook);
+struct VibrateMeasureResult {
+    float excitation_frequency;
+    xyz_float_t gain;
+    xyz_float_t amplitude;
+
+    constexpr float gain_square() const {
+        return sq(gain[0]) + sq(gain[1]) + sq(gain[2]);
+    }
+};
+
+std::optional<VibrateMeasureResult> vibrate_measure_repeat(const VibrateMeasureParams &args, float frequency, const SamplePeriodProgressHook &progress_hook);
 
 /// \returns false if the measurement should be aborted
 using FindBestShaperProgressHook = stdext::inplace_function<bool(input_shaper::Type checked_type, float progress)>;
