@@ -216,7 +216,7 @@ static void enqueue_step(int step_us, bool dir, StepEventFlag_t axis_flags) {
     CRITICAL_SECTION_END;
 }
 
-struct Acumulator {
+struct Accumulator {
     std::complex<double> val[3];
 };
 
@@ -415,7 +415,7 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
 
     const float acceleration = generator.getAcceleration(frequency);
 
-    Acumulator acumulator = {};
+    Accumulator accumulator = {};
     const float freq_2pi = std::numbers::pi_v<float> * frequency * 2.f;
     const float period = 1 / frequency;
     float accelerometer_period_time = 0.f;
@@ -448,7 +448,7 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
                 const std::complex<float> amplitude = { sinf(accelerometer_time_2pi_freq), cosf(accelerometer_time_2pi_freq) };
 
                 for (int axis = 0; axis < num_axis; ++axis) {
-                    acumulator.val[axis] += amplitude * measured_acceleration.val[axis];
+                    accumulator.val[axis] += amplitude * measured_acceleration.val[axis];
                 }
 
                 ++sample_nr;
@@ -485,13 +485,13 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
     }
 
     for (int axis = 0; axis < num_axis; ++axis) {
-        acumulator.val[axis] *= 2.;
-        acumulator.val[axis] /= (sample_nr + 1);
+        accumulator.val[axis] *= 2.;
+        accumulator.val[axis] /= (sample_nr + 1);
     }
 
-    const float x_acceleration_amplitude = std::abs(acumulator.val[0]);
-    const float y_acceleration_amplitude = std::abs(acumulator.val[1]);
-    const float z_acceleration_amplitude = std::abs(acumulator.val[2]);
+    const float x_acceleration_amplitude = std::abs(accumulator.val[0]);
+    const float y_acceleration_amplitude = std::abs(accumulator.val[1]);
+    const float z_acceleration_amplitude = std::abs(accumulator.val[2]);
     const float x_gain = x_acceleration_amplitude / acceleration;
     const float y_gain = y_acceleration_amplitude / acceleration;
     const float z_gain = z_acceleration_amplitude / acceleration;
@@ -500,12 +500,12 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
     SERIAL_ECHO_START();
     SERIAL_ECHOPAIR_F("frequency ", frequency);
     SERIAL_ECHOPAIR_F(" Msampl ", (sample_nr + 1));
-    SERIAL_ECHOPAIR_F(" Xsin ", acumulator.val[0][0], 5);
-    SERIAL_ECHOPAIR_F(" Xcos ", acumulator.val[0][1], 5);
-    SERIAL_ECHOPAIR_F(" Ysin ", acumulator.val[1][0], 5);
-    SERIAL_ECHOPAIR_F(" Ycos ", acumulator.val[1][1], 5);
-    SERIAL_ECHOPAIR_F(" Zsin ", acumulator.val[2][0], 5);
-    SERIAL_ECHOPAIR_F(" Zcos ", acumulator.val[2][1], 5);
+    SERIAL_ECHOPAIR_F(" Xsin ", accumulator.val[0][0], 5);
+    SERIAL_ECHOPAIR_F(" Xcos ", accumulator.val[0][1], 5);
+    SERIAL_ECHOPAIR_F(" Ysin ", accumulator.val[1][0], 5);
+    SERIAL_ECHOPAIR_F(" Ycos ", accumulator.val[1][1], 5);
+    SERIAL_ECHOPAIR_F(" Zsin ", accumulator.val[2][0], 5);
+    SERIAL_ECHOPAIR_F(" Zcos ", accumulator.val[2][1], 5);
     SERIAL_ECHOPAIR_F(" X ", x_acceleration_amplitude, 5);
     SERIAL_ECHOPAIR_F(" Y ", y_acceleration_amplitude, 5);
     SERIAL_ECHOLNPAIR_F(" Z ", z_acceleration_amplitude, 5);
