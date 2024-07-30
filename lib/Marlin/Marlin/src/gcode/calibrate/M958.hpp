@@ -9,6 +9,7 @@
 #include "Marlin/src/module/prusa/accelerometer.h"
 #include "Marlin/src/feature/input_shaper/input_shaper_config.hpp"
 #include <inplace_function.hpp>
+#include <freertos/critical_section.hpp>
 
 static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 
@@ -41,46 +42,15 @@ public:
 };
 
 class MicrostepRestorer {
-public:
-    using State = std::array<uint16_t, 3>;
-
 private:
-    State m_mres;
+    std::array<uint16_t, 3> state;
 
 public:
-    MicrostepRestorer() {
-        save_state(m_mres);
-    }
+    MicrostepRestorer();
+    ~MicrostepRestorer();
 
-    static void save_state(State &state) {
-        LOOP_XYZ(i) {
-            state[i] = stepper_microsteps((AxisEnum)i);
-        }
-    }
-
-    ~MicrostepRestorer() {
-        restore_state(m_mres);
-    }
-    static void restore_state(State &state) {
-        while (has_steps()) {
-            idle(true, true);
-        }
-        LOOP_XYZ(i) {
-            stepper_microsteps((AxisEnum)i, state[i]);
-        }
-    }
-
-    const uint16_t *saved_mres() const { return m_mres.data(); }
-
-private:
-    static bool has_steps() {
-        CRITICAL_SECTION_START;
-        bool retval = PreciseStepping::has_step_events_queued();
-        CRITICAL_SECTION_END;
-        return retval;
-    }
+    const uint16_t *saved_mres() const { return state.data(); }
 };
-
 
 /// \returns false if the measurement should be aborted
 using SamplePeriodProgressHook = stdext::inplace_function<bool(float progress)>;
@@ -117,4 +87,4 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float fre
 /// \returns false if the measurement should be aborted
 using FindBestShaperProgressHook = stdext::inplace_function<bool(input_shaper::Type checked_type, float progress)>;
 
-input_shaper::AxisConfig find_best_shaper(const FindBestShaperProgressHook& progress_hook, const Spectrum &psd, input_shaper::AxisConfig default_config);
+input_shaper::AxisConfig find_best_shaper(const FindBestShaperProgressHook &progress_hook, const Spectrum &psd, input_shaper::AxisConfig default_config);

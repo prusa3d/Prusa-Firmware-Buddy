@@ -1108,6 +1108,24 @@ static void klipper_tune(const VibrateMeasureParams &args, VibrateMeasureRange r
     input_shaper::set_axis_config(logicalAxis, axis_config);
 }
 
+MicrostepRestorer::MicrostepRestorer() {
+    LOOP_XYZ(i) {
+        state[i] = stepper_microsteps((AxisEnum)i);
+    }
+}
+MicrostepRestorer::~MicrostepRestorer() {
+    const auto has_steps = []() {
+        freertos::CriticalSection _cs;
+        return PreciseStepping::has_step_events_queued();
+    };
+    while (has_steps()) {
+        idle(true, true);
+    }
+    LOOP_XYZ(i) {
+        stepper_microsteps((AxisEnum)i, state[i]);
+    }
+}
+
 /** \addtogroup G-Codes
  * @{
  */
