@@ -421,6 +421,7 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
     }
 
     Accumulator accumulator = {};
+
     float accelerometer_period_time = 0.f;
     const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, args.calibrate_accelerometer, progress_hook);
     if (isnan(accelerometer_sample_period)) {
@@ -428,8 +429,11 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
     }
 
     uint32_t sample_nr = 0;
-    const uint32_t samples_to_collect = excitation_period * args.excitation_cycles / accelerometer_sample_period;
+    const bool do_delayed_measurement = (args.measurement_cycles != 0);
+    const auto measurement_cycles = do_delayed_measurement ? args.measurement_cycles : args.excitation_cycles;
+    const uint32_t samples_to_collect = excitation_period * measurement_cycles / accelerometer_sample_period;
     bool enough_samples_collected = false;
+
     TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 #ifdef M958_OUTPUT_SAMPLES
     SERIAL_ECHOLN("Yraw  sinf cosf");
@@ -454,11 +458,12 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
         }
 
         ++sample_nr;
-        enough_samples_collected = sample_nr >= samples_to_collect;
+        enough_samples_collected = (sample_nr >= samples_to_collect);
         accelerometer_period_time += accelerometer_sample_period;
         if (accelerometer_period_time > measurement_period) {
             accelerometer_period_time -= measurement_period;
         }
+
 #ifdef M958_OUTPUT_SAMPLES
         char buff[40];
         snprintf(buff, 40, "%f %f %f\n", static_cast<double>(measured_acceleration.val[1]), static_cast<double>(amplitude[0]), static_cast<double>(amplitude[1]));
@@ -468,22 +473,27 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
     };
 
     accelerometer.clear();
+
+    // Excitation phase (with accelerometer sample collection, if the measurement is not delayed)
     while (
         // Enqueue at least \p steps_to_do
         (step_nr < steps_to_do)
 
         // Repeat until we have enough samples, if the measurement is not delayed
-        || !enough_samples_collected
+        || (!do_delayed_measurement && !enough_samples_collected)
 
         // Always enqueue whole sine waves (do not stop in the middle of the period)
         || (step_nr % generator.getStepsPerPeriod() != 0)
 
     ) {
-
         while (is_full()) {
             PrusaAccelerometer::Acceleration measured_acceleration;
             bool got_sample = accelerometer.get_sample(measured_acceleration);
-            if (!got_sample) {
+            if (do_delayed_measurement) {
+                // If the measurement is delayed, just clear the accelerometer buffer
+                accelerometer.clear();
+
+            } else if (!got_sample) {
                 // Failed to obtain thie sample, whatevs
 
             } else if (step_nr <= STEP_EVENT_QUEUE_SIZE) {
@@ -515,6 +525,46 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
 
     if (!is_ok(accelerometer.get_error())) {
         return FrequencyGain3dError { .error = true };
+    }
+
+    // Possible delayed measurement
+    if (do_delayed_measurement) {
+        const auto has_steps = []() {
+            // Cannot use freertos::CriticalSection here - steppers have higher priority than RTOS-aware interrupts
+            CRITICAL_SECTION_START;
+            const auto result = PreciseStepping::has_step_events_queued();
+            CRITICAL_SECTION_END;
+            return result;
+        };
+
+        // Wait till all the movement is executed
+        while (has_steps()) {
+            accelerometer.clear();
+            idle(true, true);
+        }
+
+        // Then wait for the specified time
+        {
+            const uint32_t end_time = millis() + excitation_period * args.wait_cycles * 1000.f;
+            while (ticks_diff(millis(), end_time) > 0) {
+                accelerometer.clear();
+                idle(true, true);
+            }
+        }
+
+        // And then finally do the measurement
+        accelerometer.clear();
+
+        while (!enough_samples_collected) {
+            PrusaAccelerometer::Acceleration measured_acceleration;
+            const bool got_sample = accelerometer.get_sample(measured_acceleration);
+
+            if (got_sample) {
+                collect_sample(measured_acceleration);
+            } else {
+                idle(true, true);
+            }
+        }
     }
 
     for (int axis = 0; axis < num_axis; ++axis) {

@@ -52,7 +52,11 @@ public:
      * @brief Clear buffers and Overflow
      */
     void clear();
+
+    /// Obtains one sample from the buffer and puts it to \param acceleration
+    /// \returns 0 if the queue is empty and no sample was obtained otherwise a number >0 (number of samples remaining to be read + 1 - the just returned one)
     int get_sample(Acceleration &acceleration);
+
     float get_sampling_rate() const { return m_sampling_rate; }
     /**
      * @brief Get error

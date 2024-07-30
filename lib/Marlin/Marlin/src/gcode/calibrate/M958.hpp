@@ -71,7 +71,18 @@ struct VibrateMeasureParams {
     /// Configured automatically in setup()
     float step_len = NAN;
 
+    /// How many excitation cycles we should (1/excitation_frequency) do.
+    /// If \p measurement_cycles == 0, the measuring is done for this duration as well.
     uint32_t excitation_cycles;
+
+    /// How many cycles (1/excitation_frequency) we should wait before initiating the measurement.
+    /// Only used if \p measurement_cycles != 0.
+    uint32_t wait_cycles = 0;
+
+    /// If set, the measurement will be done \p wait_cycles after excitation. Otherwise, the measurement is done together with the excitation.
+    /// For how many cycles (1/excitation_frequency) we should measure
+    uint32_t measurement_cycles = 0;
+
     bool klipper_mode;
     bool calibrate_accelerometer;
     StepEventFlag_t axis_flag;
