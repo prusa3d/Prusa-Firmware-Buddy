@@ -329,7 +329,7 @@ static void serial_echo_header(bool klipper_mode) {
     if (klipper_mode) {
         SERIAL_ECHOLNPGM("freq,psd_x,psd_y,psd_z,psd_xyz,mzv");
     } else {
-        SERIAL_ECHOLNPGM("frequency[Hz] excitation[m/s^2] X[m/s^2] Y[m/s^2] Z[m/s^2] X_gain Y_gain Z_gain");
+        SERIAL_ECHOLNPGM("excitation_frequency[Hz] measurement_frequency[Hz] excitation[m/s^2] X[m/s^2] Y[m/s^2] Z[m/s^2] X_gain Y_gain Z_gain");
     }
 }
 
@@ -404,22 +404,32 @@ bool VibrateMeasureParams::setup(const MicrostepRestorer &microstep_restorer, bo
  * @return Frequency and gain measured on each axis if there is accelerometer
  */
 FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float requested_frequency) {
+    if (args.klipper_mode && args.measured_harmonic != 1) {
+        SERIAL_ERROR_MSG("vibrate measure: klipper mode does not support measuring higher harmonics");
+        return FrequencyGain3dError { .error = true };
+    }
+
     // As we push steps directly, phase stepping needs to be off
     phase_stepping::assert_disabled();
 
     HarmonicGenerator generator(requested_frequency, args.acceleration, args.step_len);
-    const float frequency = generator.getFrequency();
+    const float excitation_frequency = generator.getFrequency();
+    const float measurement_frequency = excitation_frequency * args.measured_harmonic;
+
+    const float excitation_period = 1 / excitation_frequency;
+    const float measurement_period = 1 / measurement_frequency;
+
+    const float measurement_freq_2pi = std::numbers::pi_v<float> * measurement_frequency * 2.f;
+
     StepDir stepDir(generator);
 
-    const float acceleration = generator.getAcceleration(frequency);
+    const float acceleration = generator.getAcceleration(excitation_frequency);
 
     Accumulator accumulator = {};
-    const float freq_2pi = std::numbers::pi_v<float> * frequency * 2.f;
-    const float period = 1 / frequency;
     float accelerometer_period_time = 0.f;
 
     uint32_t sample_nr = 0;
-    const uint32_t samples_to_collect = period * args.cycles / args.accelerometer_sample_period;
+    const uint32_t samples_to_collect = excitation_period * args.cycles / args.accelerometer_sample_period;
     bool enough_samples_collected = false;
     TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 #ifdef M958_OUTPUT_SAMPLES
@@ -442,8 +452,8 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
             const int samples = args.accelerometer.get_sample(measured_acceleration);
             if (samples && !enough_samples_collected && (step_nr > STEP_EVENT_QUEUE_SIZE)) {
                 metric_record_custom(&accel, " x=%.4f,y=%.4f,z=%.4f", (double)measured_acceleration.val[0], (double)measured_acceleration.val[1], (double)measured_acceleration.val[2]);
-                const float accelerometer_time_2pi_freq = freq_2pi * accelerometer_period_time;
-                const std::complex<float> amplitude = { sinf(accelerometer_time_2pi_freq), cosf(accelerometer_time_2pi_freq) };
+                const float accelerometer_time_2pi_measurement_freq = measurement_freq_2pi * accelerometer_period_time;
+                const std::complex<float> amplitude = { sinf(accelerometer_time_2pi_measurement_freq), cosf(accelerometer_time_2pi_measurement_freq) };
 
                 for (int axis = 0; axis < num_axis; ++axis) {
                     accumulator.val[axis] += amplitude * measured_acceleration.val[axis];
@@ -452,8 +462,8 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
                 ++sample_nr;
                 enough_samples_collected = sample_nr >= samples_to_collect;
                 accelerometer_period_time += args.accelerometer_sample_period;
-                if (accelerometer_period_time > period) {
-                    accelerometer_period_time -= period;
+                if (accelerometer_period_time > measurement_period) {
+                    accelerometer_period_time -= measurement_period;
                 }
 #ifdef M958_OUTPUT_SAMPLES
                 char buff[40];
@@ -462,7 +472,7 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
                 tud_cdc_write_flush();
 #endif
             }
-            metric_record_float(&metric_excite_freq, frequency);
+            metric_record_float(&metric_excite_freq, excitation_frequency);
 
             if (!samples) {
                 idle(true, true);
@@ -508,13 +518,14 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
     SERIAL_ECHOPAIR_F(" Y ", y_acceleration_amplitude, 5);
     SERIAL_ECHOLNPAIR_F(" Z ", z_acceleration_amplitude, 5);
 #else
-    SERIAL_ECHO(frequency);
+    SERIAL_ECHO(excitation_frequency);
     if (args.klipper_mode) {
         SERIAL_ECHOPAIR_F(",", sq(x_gain), 5);
         SERIAL_ECHOPAIR_F(",", sq(y_gain), 5);
         SERIAL_ECHOPAIR_F(",", sq(z_gain), 5);
         SERIAL_ECHOLNPAIR_F(",", sq(x_gain) + sq(y_gain) + sq(z_gain), 5);
     } else {
+        SERIAL_ECHOPAIR_F(" ", measurement_frequency);
         SERIAL_ECHOPAIR_F(" ", acceleration);
         SERIAL_ECHOPAIR_F(" ", x_acceleration_amplitude, 5);
         SERIAL_ECHOPAIR_F(" ", y_acceleration_amplitude, 5);
@@ -527,9 +538,9 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
 
     AxisEnum logical_axis = get_logical_axis(args.axis_flag);
     metric_record_custom(&metric_freq_gain, " a=%d,f=%.1f,x=%.4f,y=%.4f,z=%.4f",
-        logical_axis, frequency, x_gain, y_gain, z_gain);
+        logical_axis, excitation_frequency, x_gain, y_gain, z_gain);
 
-    return { { frequency, { x_gain, y_gain, z_gain } }, false };
+    return { { excitation_frequency, { x_gain, y_gain, z_gain } }, false };
 }
 
 /**
@@ -719,6 +730,7 @@ static bool is_ok(PrusaAccelerometer::Error error) {
  *             some extra cycles can be generated.
  * - C         Calibrate accelerometer sample rate
  * - K         Klipper compatible report
+ * - I<n>      Which harmonic frequency to measure
  */
 void GcodeSuite::M958() {
     // phstep needs to be off _before_ getting the current ustep resolution
@@ -745,6 +757,9 @@ void GcodeSuite::M958() {
     }
     if (parser.seenval('N')) {
         args.cycles = parser.value_ulong();
+    }
+    if (parser.seenval('I')) {
+        args.measured_harmonic = parser.value_ulong();
     }
 
     if (!args.setup(microstepRestorer, parser.seen('C'))) {
@@ -1145,7 +1160,8 @@ MicrostepRestorer::~MicrostepRestorer() {
  * - D           Don't home and move to bed center before calibrating
  * - N<cycles>   Number of excitation signal periods
  *               of active measurement.
- *   W           Write the detected calibration to EEPROM
+ * - W           Write the detected calibration to EEPROM
+ * - I<n>        Which harmonic frequency to measure
  */
 void GcodeSuite::M959() {
     SERIAL_ECHO_START();
@@ -1193,6 +1209,9 @@ void GcodeSuite::M959() {
     }
     if (parser.seenval('N')) {
         args.cycles = parser.value_ulong();
+    }
+    if (parser.seenval('I')) {
+        args.measured_harmonic = parser.value_ulong();
     }
 
     if (!args.setup(microstep_restorer, true)) {

@@ -66,7 +66,10 @@ struct VibrateMeasureParams {
     float acceleration;
     uint32_t cycles;
 
-    /// Configured in setup()
+    /// Which harmonic frequency to measure
+    uint16_t measured_harmonic = 1;
+
+    /// If not set, it gets configured in setup()
     float accelerometer_sample_period = NAN;
 
     /// Configured automatically in setup()
