@@ -1330,7 +1330,7 @@ void media_print_loop() {
             log_debug(MarlinServer, "Enqueue: %" PRIu32 " %s", data.replay_pos.offset, data.gcode.data());
 
             // Issue another fetch if the media prefetch buffer is running empty
-            if (metrics.buffer_occupancy_percent < 60) {
+            if (metrics.buffer_occupancy_percent < 60 && metrics.tail_status != Status::end_of_file) {
                 media_prefetch.issue_fetch();
             }
 

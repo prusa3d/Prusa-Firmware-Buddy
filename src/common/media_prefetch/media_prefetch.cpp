@@ -253,6 +253,7 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
         // Hold some variables on the stack so that we can do the AnyGcodeFormatReader initialization outside of the mutex
         decltype(shared_state.filepath) filepath;
         GCodeReaderStreamRestoreInfo stream_restore_info;
+        Status tail_status;
 
         {
             std::lock_guard mutex_guard(mutex);
@@ -263,6 +264,7 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
 
             filepath = shared_state.filepath;
             fetch_requested = shared_state.fetch_requested;
+            tail_status = shared_state.read_tail.status;
 
             if (shared_state.worker_reset_pending) {
                 shared_state.worker_reset_pending = false;
@@ -286,6 +288,11 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
         if (reader_needs_initialization) {
             // First destroy, then create, to prevent having two readers at the same time
             s.gcode_reader = {};
+
+            if (tail_status == Status::end_of_file) {
+                log_debug(MediaPrefetch, "Won't fetch past end of file");
+                return;
+            }
 
             if (filepath[0] == '\0') {
                 // No file, just close the reader and exit
