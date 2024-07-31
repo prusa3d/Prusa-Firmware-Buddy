@@ -776,19 +776,19 @@ static void naive_zv_tune(StepEventFlag_t axis_flag, float start_frequency, floa
             maxFrequencyGain = frequencyGain;
         }
     }
-    SERIAL_ECHOPAIR_F("Maximum resonant gain: ", maxFrequencyGain.gain);
-    SERIAL_ECHOLNPAIR_F(" at frequency: ", maxFrequencyGain.frequency);
-
     const float damping_ratio = get_zv_shaper_damping_ratio(maxFrequencyGain.gain);
-    SERIAL_ECHOLN("ZV shaper selected");
-    SERIAL_ECHOPAIR_F("Frequency: ", maxFrequencyGain.frequency);
+
+    SERIAL_ECHOPAIR_F("ZV tune: Maximum resonant gain: ", maxFrequencyGain.gain);
+    SERIAL_ECHOPAIR_F(" at frequency: ", maxFrequencyGain.frequency);
     SERIAL_ECHOLNPAIR_F(" damping ratio: ", damping_ratio, 5);
+
     input_shaper::AxisConfig axis_config {
         .type = input_shaper::Type::zv,
         .frequency = maxFrequencyGain.frequency,
         .damping_ratio = damping_ratio,
         .vibration_reduction = 0.f,
     };
+
     input_shaper::set_axis_config(logicalAxis, axis_config);
 }
 
@@ -980,20 +980,20 @@ static Shaper_result fit_shaper(FindBestShaperProgressHook &progress_hook, input
             }
         }
         SERIAL_ECHO_START();
-        SERIAL_ECHOPAIR("For shaper type: ", to_string(type), "(", static_cast<int>(type), ")");
+        SERIAL_ECHOPAIR("IS filter: ", to_string(type));
         switch (action) {
         case Action::find_best_result:
-            SERIAL_ECHOPAIR(" lowest vibration frequency: ", selected_result.frequency);
+            SERIAL_ECHOPAIR(" lowest vibration freq: ", selected_result.frequency);
             break;
         case Action::select:
-            SERIAL_ECHOPAIR(" selected frequency: ", selected_result.frequency);
+            SERIAL_ECHOPAIR(" selected freq: ", selected_result.frequency);
             break;
         }
-        SERIAL_ECHO(" with score: ");
+        SERIAL_ECHO(" score: ");
         SERIAL_PRINT(selected_result.score, 6);
         SERIAL_ECHO(" remaining vibrations: ");
         SERIAL_PRINT(selected_result.vibrs, 8);
-        SERIAL_ECHO(" and smoothing: ");
+        SERIAL_ECHO(" smoothing: ");
         SERIAL_PRINTLN(selected_result.smoothing, 4);
     }
 
@@ -1113,9 +1113,6 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
     const Action final_action = subtract_excitation ? Action::find_best_result : Action::last;
     input_shaper::AxisConfig axis_config = find_best_shaper(psd, final_action, input_shaper::axis_defaults[logicalAxis]);
     input_shaper::set_axis_config(logicalAxis, axis_config);
-    SERIAL_ECHO_START();
-    SERIAL_ECHOPAIR("Activated ", axis_codes[logicalAxis], " axis default damping and vibr. reduction shaper type: ", to_string(axis_config.type), "(", static_cast<int>(axis_config.type), ")");
-    SERIAL_ECHOLNPAIR_F(" frequency: ", axis_config.frequency);
 }
 
 /** \addtogroup G-Codes
@@ -1140,6 +1137,7 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
  *   W           Write the detected calibration to EEPROM
  */
 void GcodeSuite::M959() {
+
     if (!parser.seen('D')) {
         GcodeSuite::G28_no_parser(false, true, NAN, false, true, true, true);
 
@@ -1187,10 +1185,19 @@ void GcodeSuite::M959() {
         naive_zv_tune(axis_flag, start_frequency, end_frequency, frequency_increment, acceleration_requested, step_len, cycles);
     }
 
+    const AxisEnum logical_axis = get_logical_axis(axis_flag);
+    auto axis_config = *input_shaper::current_config().axis[logical_axis];
+
+    SERIAL_ECHO_START();
+    SERIAL_ECHOPAIR("IS calibrated for axis: ", axis_codes[logical_axis]);
+    SERIAL_ECHOPAIR(" filter: ", to_string(axis_config.type));
+    SERIAL_ECHOPAIR_F(" frequency: ", axis_config.frequency);
+
     if (parser.seen('W')) {
-        SERIAL_ECHO_START();
-        SERIAL_ECHOLN("Storing IS configuration to EEPROM");
+        SERIAL_ECHOLN(", saving");
         config_store().set_input_shaper_config(input_shaper::current_config());
+    } else {
+        SERIAL_ECHOLN("");
     }
 }
 
