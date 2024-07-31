@@ -18,7 +18,11 @@
 #include <option/has_leds.h>
 #include <option/has_side_leds.h>
 #include <option/buddy_enable_connect.h>
+#include <option/has_belt_tuning.h>
 #include <trinamic.h>
+#include <meta_utils.hpp>
+#include <str_utils.hpp>
+#include <gui/menu_item/window_menu_gcode_item.hpp>
 
 /// \returns tool name for tool menu item purposes
 inline constexpr const char *tool_name(uint8_t tool_index) {
@@ -925,4 +929,8 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+#endif
+
+#if HAS_BELT_TUNING()
+using MI_BELT_TUNING = WithConstructorArgs<WindowMenuGCodeItem, N_("Belt Tuning"), "M960 W"_tstr>;
 #endif

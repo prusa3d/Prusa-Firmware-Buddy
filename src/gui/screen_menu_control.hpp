@@ -53,6 +53,10 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_COLD_PULL,
 #endif
 
+#if HAS_BELT_TUNING()
+    MI_BELT_TUNING,
+#endif
+
 #if HAS_MMU2()
     MI_MMU_LOAD_TEST_FILAMENT,
 #endif

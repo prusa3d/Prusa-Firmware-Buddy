@@ -1,6 +1,7 @@
 #include <marlin_stubs/PrusaGcodeSuite.hpp>
 
 #include <feature/belt_tuning/belt_tuning.hpp>
+#include <feature/belt_tuning/belt_tuning_wizard.hpp>
 #include <gcode/gcode_parser.hpp>
 
 /**
@@ -47,5 +48,10 @@ void PrusaGcodeSuite::M960() {
     parser.store_option('S', params.skip_tuning);
     parser.store_option('X', params.skip_setup);
 
-    measure_belt_tension(params);
+    const bool run_wizard = parser.option<bool>('W').value_or(false);
+    if (run_wizard) {
+        belt_tuning_wizard(params);
+    } else {
+        measure_belt_tension(params);
+    }
 }

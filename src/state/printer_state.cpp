@@ -179,6 +179,9 @@ DeviceState get_state(bool ready) {
 #if HAS_INPUT_SHAPER_CALIBRATION()
     case ClientFSM::InputShaperCalibration:
 #endif
+#if HAS_BELT_TUNING()
+    case ClientFSM::BeltTuning:
+#endif
     case ClientFSM::Serial_printing:
         // FIXME: BFW-3893 Sadly there is no way (without saving state in this function)
         //  to distinguish between preheat from main screen,
@@ -188,6 +191,7 @@ DeviceState get_state(bool ready) {
         // preheat menu to be the only menu screen to not be Idle... :-(
     case ClientFSM::Preheat:
         return DeviceState::Busy;
+
     case ClientFSM::Warning: {
         auto result = get_print_state(state, ready);
         // Some warnings are "soft" (eg. heaters timeouts). They probably
@@ -359,6 +363,9 @@ StateWithDialog get_state_with_dialog(bool ready) {
 #endif
 #if HAS_INPUT_SHAPER_CALIBRATION()
     case ClientFSM::InputShaperCalibration:
+#endif
+#if HAS_BELT_TUNING()
+    case ClientFSM::BeltTuning:
 #endif
     case ClientFSM::Preheat:
         // TODO: On some future sunny day, we want to cover all the selftests

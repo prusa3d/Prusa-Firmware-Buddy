@@ -47,6 +47,10 @@ using SerialPrint = ScreenDialogDoesNotExist;
     #include "screen_input_shaper_calibration.hpp"
 #endif
 
+#if HAS_BELT_TUNING()
+    #include <gui/wizard/screen_belt_tuning_wizard.hpp>
+#endif
+
 alignas(std::max_align_t) static std::array<uint8_t, 2560> mem_space;
 
 // safer than make_static_unique_ptr, checks storage size
@@ -170,6 +174,9 @@ using FSMDisplayConfig = FSMDisplayConfigDef<
 #endif
 #if HAS_INPUT_SHAPER_CALIBRATION()
     FSMScreenDef<ClientFSM::InputShaperCalibration, ScreenInputShaperCalibration>,
+#endif
+#if HAS_BELT_TUNING()
+    FSMScreenDef<ClientFSM::BeltTuning, ScreenBeltTuningWizard>,
 #endif
 
     // This is here so that we can worry-free write commas at the end of each argument
