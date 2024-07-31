@@ -17,6 +17,7 @@
 #include <logging/log.hpp>
 #include "timing.h"
 #include <DialogConnectReg.hpp>
+#include <gui/standard_frame/frame_prompt.hpp>
 
 #if HAS_NFC()
     #include <nfc.hpp>
@@ -278,55 +279,18 @@ private:
     WindowExtendedMenu<WindowMenuWifiScan> menu;
 };
 
-class FrameText {
-
-public:
-    FrameText(window_t *parent, Phase phase, const string_view_utf8 &txt_title, const string_view_utf8 &txt_info, Align_t info_alignment = Align_t::CenterTop())
-        : title(parent, {}, is_multiline::yes, is_closed_on_click_t::no, txt_title)
-        , info(parent, {}, is_multiline::yes, is_closed_on_click_t::no, txt_info)
-        , radio(parent, {}, phase) //
-    {
-        const auto parent_rect = parent->GetRect();
-        const auto text_top = parent_rect.Top() + 64;
-        const auto radio_rect = GuiDefaults::GetButtonRect(parent_rect);
-
-        title.SetRect(Rect16::fromLTRB(0, parent_rect.Top(), parent_rect.Right(), text_top));
-        title.SetAlignment(Align_t::CenterBottom());
-        title.set_font(GuiDefaults::FontBig);
-
-        info.SetRect(Rect16::fromLTRB(32, text_top + 16, parent_rect.Right() - 32, radio_rect.Bottom()));
-        info.SetAlignment(info_alignment);
-#if HAS_MINI_DISPLAY()
-        info.set_font(Font::small);
-#endif
-
-        radio.SetRect(radio_rect);
-
-        static_cast<window_frame_t *>(parent)->CaptureNormalWindow(radio);
-    }
-
-    ~FrameText() {
-        static_cast<window_frame_t *>(radio.GetParent())->ReleaseCaptureOfNormalWindow();
-    }
-
-protected:
-    window_text_t title;
-    window_text_t info;
-    RadioButtonFsm<PhaseNetworkSetup> radio;
-};
-
-class FrameAskSwitchToWifi : public FrameText {
+class FrameAskSwitchToWifi : public FramePrompt {
 
 public:
     FrameAskSwitchToWifi(window_t *parent)
-        : FrameText(parent, Phase::ask_switch_to_wifi, _("Switch to Wi-Fi"), _("You're already successfully connected through the ethernet cable.\nSwitch to Wi-Fi and continue?")) {
+        : FramePrompt(parent, Phase::ask_switch_to_wifi, _("Switch to Wi-Fi"), _("You're already successfully connected through the ethernet cable.\nSwitch to Wi-Fi and continue?")) {
     }
 };
 
-class FrameTextWithSSID : public FrameText {
+class FrameTextWithSSID : public FramePrompt {
 public:
     FrameTextWithSSID(window_t *parent, Phase phase, const string_view_utf8 &txt_title, const string_view_utf8 &txt_info)
-        : FrameText(parent, phase, txt_title, txt_info)
+        : FramePrompt(parent, phase, txt_title, txt_info)
         , ssid_text(parent, info.GetRect(), is_multiline::no) {
         const Rect16 r = ssid_text.GetRect();
         const auto ssid_text_height = 64;
@@ -359,19 +323,19 @@ public:
         : FrameTextWithSSID(parent, Phase::connecting_nonfinishable, _("Connecting to:"), {}) {}
 };
 
-class FrameESPError : public FrameText {
+class FrameESPError : public FramePrompt {
 
 public:
     FrameESPError(window_t *parent)
-        : FrameText(parent, Phase::no_interface_error, _("No network interface"), _("The Wi-Fi module is not working properly or is missing.\n\nInsert the module, try restarting the printer, or use the ethernet cable.")) {
+        : FramePrompt(parent, Phase::no_interface_error, _("No network interface"), _("The Wi-Fi module is not working properly or is missing.\n\nInsert the module, try restarting the printer, or use the ethernet cable.")) {
     }
 };
 
-class FrameError : public FrameText {
+class FrameError : public FramePrompt {
 
 public:
     FrameError(window_t *parent)
-        : FrameText(parent, Phase::connection_error, _("Error"), _("There was an error connecting to the Wi-Fi.")) {
+        : FramePrompt(parent, Phase::connection_error, _("Error"), _("There was an error connecting to the Wi-Fi.")) {
     }
 };
 
@@ -388,19 +352,19 @@ public:
 private:
 };
 
-class FrameWaitForINI : public FrameText {
+class FrameWaitForINI : public FramePrompt {
 
 public:
     FrameWaitForINI(window_t *parent)
-        : FrameText(parent, Phase::wait_for_ini_file, _("Credentials from INI"), _("Please insert a flash drive with a network configuration file.\n\nThe configuration file can be generated in PrusaSlicer.")) {
+        : FramePrompt(parent, Phase::wait_for_ini_file, _("Credentials from INI"), _("Please insert a flash drive with a network configuration file.\n\nThe configuration file can be generated in PrusaSlicer.")) {
     }
 };
 
-class FrameAskDeleteINIFile : public FrameText {
+class FrameAskDeleteINIFile : public FramePrompt {
 
 public:
     FrameAskDeleteINIFile(window_t *parent)
-        : FrameText(parent, Phase::ask_delete_ini_file, _("Delete INI file"), _("Delete credentials INI file? (Recommended)")) {
+        : FramePrompt(parent, Phase::ask_delete_ini_file, _("Delete INI file"), _("Delete credentials INI file? (Recommended)")) {
     }
 };
 
@@ -462,23 +426,23 @@ public:
     }
 };
 
-class FrameWaitForNFC : public FrameText {
+class FrameWaitForNFC : public FramePrompt {
     nfc::SharedEnabler nfc_enable;
 
 public:
     FrameWaitForNFC(window_t *parent)
-        : FrameText(parent, Phase::wait_for_nfc,
+        : FramePrompt(parent, Phase::wait_for_nfc,
             _("Credentials via NFC"),
             _("1. Open Prusa app on your mobile device.\n\n2. Go to in-app Menu and select \"Set up Printer Wi-Fi.\"\n\n3. Follow on-screen instructions."),
             Align_t::LeftTop()) {
     }
 };
 
-class FrameConfirmNFC : public FrameText {
+class FrameConfirmNFC : public FramePrompt {
 
 public:
     FrameConfirmNFC(window_t *parent)
-        : FrameText(parent, Phase::nfc_confirm, _("Credentials via NFC"), {}) {
+        : FramePrompt(parent, Phase::nfc_confirm, _("Credentials via NFC"), {}) {
         static constexpr const char *wifi_credentials_loaded_txt = N_("Wi-Fi credentials loaded via NFC.\nApply credentials?\n\nSSID: %s");
         string_view_utf8 str;
         marlin_vars().generic_param_string.execute_with([&](const auto &param) {
@@ -493,11 +457,11 @@ protected:
 };
 #endif
 
-class FrameAskSetupPrusaConnect : public FrameText {
+class FrameAskSetupPrusaConnect : public FramePrompt {
 
 public:
     FrameAskSetupPrusaConnect(window_t *parent)
-        : FrameText(parent, Phase::ask_setup_prusa_connect, _("Set up Prusa Connect?"), _("Do you want to add your printer to Prusa Connect?")) {
+        : FramePrompt(parent, Phase::ask_setup_prusa_connect, _("Set up Prusa Connect?"), _("Do you want to add your printer to Prusa Connect?")) {
     }
 };
 
