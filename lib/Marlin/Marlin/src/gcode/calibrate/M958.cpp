@@ -1137,6 +1137,9 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
  *   W           Write the detected calibration to EEPROM
  */
 void GcodeSuite::M959() {
+    SERIAL_ECHO_START();
+    SERIAL_ECHOLNPAIR("Running: ", parser.get_command());
+
 
     if (!parser.seen('D')) {
         GcodeSuite::G28_no_parser(false, true, NAN, false, true, true, true);

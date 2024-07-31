@@ -366,6 +366,8 @@ public:
 
   static inline feedRate_t value_feedrate() { return MMM_TO_MMS(value_linear_units()); }
 
+  const char *get_command() const { return command_ptr; }
+
   void unknown_command_error();
 
   // Provide simple value accessors with default option
