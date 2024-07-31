@@ -33,6 +33,21 @@ constexpr size_t strlen_constexpr(const char *str) {
     return *str ? 1 + strlen_constexpr(str + 1) : 0;
 }
 
+/// A const char* that is guaranteed to have unlimited lifetime (thanks to the consteval constructor)
+struct ConstexprString {
+    consteval ConstexprString() = default;
+    consteval ConstexprString(const ConstexprString &) = default;
+    consteval ConstexprString(const char *str)
+        : str_(str) {}
+
+    constexpr operator const char *() const {
+        return str_;
+    }
+
+private:
+    const char *str_ = nullptr;
+};
+
 /// String that can be passed as a template parameter (use "XX"_tstr)
 template <char... chars>
 struct TemplateString {

@@ -1,0 +1,1 @@
+target_sources(firmware PRIVATE window_menu_gcode_item.cpp)
