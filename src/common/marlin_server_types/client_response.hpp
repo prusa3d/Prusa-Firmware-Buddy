@@ -342,7 +342,6 @@ enum class PhaseNetworkSetup : PhaseUnderlyingType {
 
     finish,
     _last = finish,
-    _cnt,
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhaseNetworkSetup) { return ClientFSM::NetworkSetup; }
 
@@ -699,7 +698,7 @@ class ClientResponses {
             { PhasesSelftest::RevisePrinterStatus_ask_retry, { Response::Yes, Response::No } },
     };
 
-    static constexpr EnumArray<PhaseNetworkSetup, PhaseResponses, PhaseNetworkSetup::_cnt> network_setup_responses {
+    static constexpr EnumArray<PhaseNetworkSetup, PhaseResponses, CountPhases<PhaseNetworkSetup>()> network_setup_responses {
         { PhaseNetworkSetup::init, {} },
             { PhaseNetworkSetup::ask_switch_to_wifi, { Response::Yes, Response::No } },
             // Note: Additionally to this, the phase accepts various NetworkSetupResponse responses through FSMResponseVariant

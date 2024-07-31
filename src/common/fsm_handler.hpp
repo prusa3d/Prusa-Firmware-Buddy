@@ -56,7 +56,7 @@ public:
 
 /// The \p Phase expects to have ::init && ::finish
 template <typename Phase_, typename FSMClass_>
-using FSMHandlerPhasesConfig = EnumArray<Phase_, FSMHandlerPhaseConfig<Phase_, FSMClass_>, Phase_::_cnt>;
+using FSMHandlerPhasesConfig = EnumArray<Phase_, FSMHandlerPhaseConfig<Phase_, FSMClass_>, CountPhases<Phase_>()>;
 
 template <const auto &phase_config>
 using FSMHandlerPhasesConfigMeta = std::remove_cvref_t<decltype(phase_config)>::value_type::Meta;
