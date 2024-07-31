@@ -17,6 +17,7 @@
 #include <option/has_leds.h>
 #include <option/has_phase_stepping.h>
 #include <option/has_input_shaper_calibration.h>
+#include <option/has_belt_tuning.h>
 
 #if HAS_LOADCELL()
     #include "loadcell.hpp"
@@ -190,6 +191,11 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 920:
             PrusaGcodeSuite::M920();
             break;
+#if HAS_BELT_TUNING()
+        case 960:
+            PrusaGcodeSuite::M960();
+            break;
+#endif
         case 997:
             PrusaGcodeSuite::M997();
             break;

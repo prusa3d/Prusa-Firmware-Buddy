@@ -6,6 +6,7 @@
 
 #include <option/has_toolchanger.h>
 #include <option/has_side_leds.h>
+#include <option/has_belt_tuning.h>
 
 /// the version of the g-code that the printer supports
 #define GCODE_LEVEL 2
@@ -84,6 +85,10 @@ void M864(); ///< spool join control
 #endif
 
 void M591(); ///< configure Filament stuck monitoring
+
+#if HAS_BELT_TUNING()
+void M960(); ///< Belt tuning
+#endif
 
 void M997(); ///< Update firmware. Prusa STM32 platform specific
 void M999();
