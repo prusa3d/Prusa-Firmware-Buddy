@@ -66,8 +66,13 @@ struct TranslatableStringT {
     constexpr inline operator const char *() const {
         return str;
     }
+
+    inline operator string_view_utf8() const {
+        return _(str);
+    }
 };
 
+/// !!! Don't use this directly, use N_(XXX) instead. _ntr is not scanned for.
 template <typename T, T... chars>
 constexpr TranslatableStringT<chars...> operator""_ntr() { return {}; }
 
