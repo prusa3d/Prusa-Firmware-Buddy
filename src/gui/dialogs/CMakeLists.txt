@@ -12,6 +12,7 @@ target_sources(
           liveadjust_z.cpp
           print_progress.cpp
           radio_button.cpp
+          radio_button_fsm.cpp
           window_dlg_calib_z.cpp
           window_dlg_popup.cpp
           window_dlg_preheat.cpp

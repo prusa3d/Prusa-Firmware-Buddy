@@ -6,12 +6,27 @@
 #include "radio_button.hpp"
 #include "marlin_client.hpp"
 
+/// A sensible implementation of RadioButtonFsm.
+/// Ignore the other one
+class RadioButtonFSM : public RadioButton {
+
+public:
+    RadioButtonFSM(window_t *parent, Rect16 rect, FSMAndPhase fsm_phase);
+
+protected:
+    void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+
+private:
+    FSMAndPhase fsm_phase_;
+};
+
 /**
  * @brief radio button bound to fsm
  * unlike normal radio button it does not store responses but fsm phase
  * responses are generated from it at run time
  * this behavior allows to handle click automatically
  */
+/// !!! DEPRECATED, USE RadioButtonFSM
 template <class FSM_PHASE>
 class RadioButtonFsm : public IRadioButton {
 
