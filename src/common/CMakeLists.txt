@@ -231,6 +231,7 @@ if(BOARD MATCHES "BUDDY")
 endif()
 if(BOARD_IS_MASTER_BOARD)
   add_subdirectory(gcode)
+  add_subdirectory(feature)
 endif()
 
 add_subdirectory(utils)
