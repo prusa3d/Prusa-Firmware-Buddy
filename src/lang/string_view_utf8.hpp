@@ -78,6 +78,7 @@ public:
     string_view_utf8() = default;
     string_view_utf8(const string_view_utf8 &) = default;
     string_view_utf8(string_view_utf8 &&) = default;
+    string_view_utf8(std::nullptr_t) {}
 
     /// @returns number of UTF-8 characters
     /// Beware: this may be something different than byte-length of the string
