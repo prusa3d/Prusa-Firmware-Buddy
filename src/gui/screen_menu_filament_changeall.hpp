@@ -82,7 +82,6 @@ private:
 
 private:
     MenuMultiFilamentChange_::Container container;
-    MultiFilamentChangeConfig configuration;
     bool is_carrying_out_changes_ = false;
 };
 
@@ -108,7 +107,7 @@ protected:
     void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 private:
-    DialogChangeAllFilaments();
+    DialogChangeAllFilaments(const MultiFilamentChangeConfig &initial_configuration);
 
 private:
     window_header_t header;

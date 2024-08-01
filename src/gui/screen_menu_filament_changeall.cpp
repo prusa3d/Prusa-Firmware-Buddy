@@ -97,11 +97,9 @@ MenuMultiFilamentChange::MenuMultiFilamentChange(window_t *parent, const Rect16 
 }
 
 void MenuMultiFilamentChange::set_configuration(const MultiFilamentChangeConfig &set) {
-    configuration = set;
-
     // Set the correct indexes for the actions
     stdext::visit_sequence<tool_count>([&]<size_t ix>() {
-        container.Item<WithConstructorArgs<MI_ActionSelect, ix>>().set_config(configuration[ix]);
+        container.Item<WithConstructorArgs<MI_ActionSelect, ix>>().set_config(set[ix]);
     });
 }
 
@@ -240,22 +238,23 @@ ScreenChangeAllFilaments::ScreenChangeAllFilaments()
 {
     EnableLongHoldScreenAction();
     Screens::Access()->DisableMenuTimeout();
+    menu.menu.set_configuration({});
 }
 
 bool DialogChangeAllFilaments::exec(const MultiFilamentChangeConfig &initial_config, bool exit_on_media) {
-    DialogChangeAllFilaments dlg;
+    DialogChangeAllFilaments dlg(initial_config);
     dlg.exit_on_media = exit_on_media;
-    dlg.menu.set_configuration(initial_config);
     Screens::Access()->gui_loop_until_dialog_closed();
     return dlg.exited_by_media;
 }
 
-DialogChangeAllFilaments::DialogChangeAllFilaments()
+DialogChangeAllFilaments::DialogChangeAllFilaments(const MultiFilamentChangeConfig &initial_configuration)
     : IDialog(GuiDefaults::RectScreenNoHeader)
     , header(this, _(header_text))
     , menu(this, GuiDefaults::RectScreenNoHeader) //
 {
     CaptureNormalWindow(menu);
+    menu.set_configuration(initial_configuration);
 }
 
 void DialogChangeAllFilaments::windowEvent(window_t *sender, GUI_event_t event, void *param) {
