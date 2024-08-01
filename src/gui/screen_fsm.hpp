@@ -30,10 +30,10 @@ struct FrameDefinitionList {
 
     static_assert(Storage::template has_enough_space_for<FrameType<T>...>());
 
-    static void create_frame(Storage &storage, auto phase, window_t *parent) {
+    static void create_frame(Storage &storage, auto phase, auto... args) {
         auto f = [&]<typename FD> {
             if (phase == FD::phase) {
-                storage.template create<typename FD::FrameType>(parent);
+                storage.template create<typename FD::FrameType>(args...);
             }
         };
         (f.template operator()<T>(), ...);
