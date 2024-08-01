@@ -270,9 +270,9 @@ LIGHTMODBUS_RET_ERROR modbusParseResponseRTU(
 	uint16_t responseLength)
 {
 	// Unpack request
-	const uint8_t *requestPDU;
-	uint16_t requestPDULength;
-	uint8_t requestAddress;
+	const uint8_t *requestPDU = nullptr;
+	uint16_t requestPDULength = 0;
+	uint8_t requestAddress = 0;
 	ModbusError err = modbusUnpackRTU(
 		request,
 		requestLength,
