@@ -156,7 +156,7 @@ void Fsm::Loop() {
             log_debug(MMU2, "Report error =%u", static_cast<unsigned>(r.errorCode));
             marlin_server::fsm_change(
                 PhasesLoadUnload::MMU_ERRWaitingForUser,
-                fsm::PointerSerializer<MMUErrDesc>(ConvertMMUErrorCode(r.errorCode)).Serialize());
+                fsm::serialize_data(&ConvertMMUErrorCode(r.errorCode)));
         }
     },
         *report);

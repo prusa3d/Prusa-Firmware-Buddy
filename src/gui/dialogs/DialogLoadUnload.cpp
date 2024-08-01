@@ -422,7 +422,7 @@ bool DialogLoadUnload::Change(fsm::BaseData base_data) {
     if (is_notice(phase)) {
     #if HAS_MMU2()
         if (is_notice_mmu(phase)) {
-            const MMU2::MMUErrDesc *ptr_desc = fsm::PointerSerializer<MMU2::MMUErrDesc>(data).Get();
+            const auto *ptr_desc = fsm::deserialize_data<const MMU2::MMUErrDesc *>(data);
             PhaseResponses responses {
                 MMU2::ButtonOperationToResponse(ptr_desc->buttons[0]),
                 MMU2::ButtonOperationToResponse(ptr_desc->buttons[1]),

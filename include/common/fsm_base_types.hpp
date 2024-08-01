@@ -17,6 +17,26 @@ namespace fsm {
 inline constexpr size_t BaseDataSZ = 5;
 using PhaseData = std::array<uint8_t, BaseDataSZ - 1>;
 
+template <typename T>
+PhaseData serialize_data(const T &t) {
+    static_assert(std::is_trivially_copyable_v<T>);
+    static_assert(sizeof(T) <= sizeof(PhaseData));
+
+    PhaseData result;
+    memcpy(result.data(), &t, sizeof(T));
+    return result;
+}
+
+template <typename T>
+T deserialize_data(PhaseData data) {
+    static_assert(std::is_trivially_copyable_v<T>);
+    static_assert(sizeof(T) <= sizeof(PhaseData));
+
+    T result;
+    memcpy(&result, data.data(), sizeof(T));
+    return result;
+}
+
 class BaseData {
 
     PhaseData data;
@@ -42,47 +62,5 @@ public:
 static_assert(sizeof(BaseData) == BaseDataSZ, "Wrong size of BaseData");
 
 #pragma pack(pop)
-
-template <typename T>
-struct PointerSerializer {
-    typedef T *ptr_t;
-
-    constexpr inline PointerSerializer(const T &p)
-        : ptr(&p) {}
-
-    constexpr inline PointerSerializer(fsm::PhaseData new_data)
-        : ptr(nullptr) {
-        Deserialize(new_data);
-    }
-
-    constexpr inline fsm::PhaseData Serialize() const {
-        return fsm::PhaseData({ { ptr.bytes[0], ptr.bytes[1], ptr.bytes[2], ptr.bytes[3] } });
-    }
-
-    constexpr inline void Deserialize(fsm::PhaseData new_data) {
-        std::copy(new_data.begin(), new_data.end(), ptr.bytes);
-    }
-
-    constexpr inline bool operator==(const PointerSerializer &other) const {
-        return ptr == other.ptr;
-    }
-
-    constexpr inline bool operator!=(const PointerSerializer &other) const {
-        return !((*this) == other);
-    }
-
-    constexpr const T *Get() const { return ptr.p; }
-
-private:
-    union U {
-        const T *p;
-        uint8_t bytes[4];
-        constexpr U(const T *p)
-            : p(p) {}
-    };
-    static_assert(sizeof(ptr_t) == 4, "Incompatible pointer size");
-
-    U ptr;
-};
 
 }; // namespace fsm
