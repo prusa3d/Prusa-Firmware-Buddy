@@ -11,7 +11,8 @@ endif()
 
 target_sources(
   firmware
-  PRIVATE box_unfinished_selftest.cpp
+  PRIVATE auto_layout.cpp
+          box_unfinished_selftest.cpp
           file_sort.cpp
           fonts.cpp
           frame_qr_layout.cpp
@@ -101,6 +102,7 @@ target_sources(
           window_print_progress.cpp
           window_thumbnail.cpp
   )
+
 if(PRINTER IN_LIST PRINTERS_WITH_CRASH_DETECTION)
   target_sources(firmware PRIVATE screen_crash_recovery.cpp)
 endif()
