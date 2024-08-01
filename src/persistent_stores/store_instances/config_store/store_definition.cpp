@@ -11,7 +11,7 @@
 
 namespace config_store_ns {
 #if not HAS_CONFIG_STORE_WO_BACKEND()
-static_assert((sizeof(CurrentStore) + (aggregate_arity<CurrentStore>::size() - 1) * sizeof(journal::Backend::ItemHeader)) < (BANK_SIZE / 100) * 75, "EEPROM bank is almost full");
+static_assert((sizeof(CurrentStore) + aggregate_arity<CurrentStore>() * sizeof(journal::Backend::ItemHeader)) < (BANK_SIZE / 100) * 75, "EEPROM bank is almost full");
 static_assert(journal::has_unique_items<config_store_ns::CurrentStore>(), "Just added items are causing collisions with reserved backend IDs");
 #endif
 

@@ -1,29 +1,50 @@
 #pragma once
-#include "tuple"
 
-struct filler {
-    template <typename type>
-    operator type();
+#include <type_traits>
+#include <concepts>
+
+namespace detail {
+
+// helper type that is convertible to anything
+struct UniversalType {
+    template <typename T>
+    operator T() {}
 };
 
-template <typename aggregate, typename index_sequence = std::index_sequence<>,
-    typename = void>
-struct aggregate_arity : index_sequence {};
+// helper type that is convertible to anything that isn't a base class of Derived
+template <typename Derived>
+struct NoBaseUniversalType {
+    template <typename NotBaseT>
+    operator NotBaseT()
+        requires(not std::is_base_of_v<NotBaseT, Derived>)
+    {}
+};
 
-#ifdef __GNUC__
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#endif
+/**
+ * @brief Counts the number of members via trying to build the aggregate with increasingly more arguments until it can't be built anymore and stopping there
+ *
+ * @tparam T Struct to be counted
+ */
+template <typename T>
+consteval auto number_of_members(auto... members) {
+    if constexpr (not requires { T { members... }; }) { // end recursion when can't build anymore
+        return (0 + ... + std::same_as<NoBaseUniversalType<T>, decltype(members)>); // count how many non-base types are used in construction
+    } else {
+        if constexpr (requires { T { members..., NoBaseUniversalType<T> {} }; }) { // if can be built with previous args + one that cannot be a base class
+            return number_of_members<T>(members..., NoBaseUniversalType<T> {}); // 'save' the arg as 'not a base class one'
+        } else {
+            return number_of_members<T>(members..., UniversalType {}); // 'save' the arg as 'anything' (including base class arg)
+        }
+    }
+}
+} // namespace detail
 
-// returns the number of members in struct
-template <typename aggregate, std::size_t... indices>
-struct aggregate_arity<
-    aggregate, std::index_sequence<indices...>,
-    std::void_t<decltype(aggregate { (void(indices), std::declval<filler>())...,
-        std::declval<filler>() })>>
-    : aggregate_arity<aggregate,
-          std::index_sequence<indices..., sizeof...(indices)>> {};
-
-#ifdef __GNUC__
-    #pragma GCC diagnostic pop
-#endif
+/**
+ * @brief Returns the number of members in an aggregate (struct, without any base classes)
+ *
+ * @tparam T
+ */
+template <typename T>
+consteval auto aggregate_arity() {
+    return detail::number_of_members<T>();
+}

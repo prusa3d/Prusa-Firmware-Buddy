@@ -22,7 +22,7 @@ def main():
 /// Calls visitor(field, args...) on each struct member
 template <typename T, typename Visitor, typename... Args>
 constexpr void visit_all_struct_fields(T &t, Visitor visitor, Args&&... args) {{
-	constexpr auto arity = aggregate_arity<T>::size() - 1;
+	static constexpr auto arity = aggregate_arity<T>();
     static_assert(arity < {num_of_cases}, "visit_all_struct_fields_generator needs to be called with with larger arity");
 
  	""")
