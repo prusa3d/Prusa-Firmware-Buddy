@@ -362,7 +362,6 @@ ScreenInputShaperCalibration::ScreenInputShaperCalibration()
 ScreenInputShaperCalibration::~ScreenInputShaperCalibration() {
     instance = nullptr;
     destroy_frame();
-    ReleaseCaptureOfNormalWindow();
 }
 
 ScreenInputShaperCalibration *ScreenInputShaperCalibration::GetInstance() {

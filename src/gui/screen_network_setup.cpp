@@ -108,9 +108,6 @@ public:
     {
         static_cast<window_frame_t *>(parent)->CaptureNormalWindow(menu);
     }
-    ~FrameActionSelect() {
-        static_cast<window_frame_t *>(menu.GetParent())->ReleaseCaptureOfNormalWindow();
-    }
 
     void update(fsm::PhaseData data) {
         const WizardMode mode = static_cast<WizardMode>(data[0]);
@@ -276,9 +273,6 @@ public:
 
         static_cast<window_frame_t *>(parent)->CaptureNormalWindow(menu);
     }
-    ~FrameWifiScan() {
-        static_cast<window_frame_t *>(menu.GetParent())->ReleaseCaptureOfNormalWindow();
-    }
 
 private:
     WindowExtendedMenu<WindowMenuWifiScan> menu;
@@ -424,10 +418,6 @@ public:
         link.SetText(string_view_utf8::MakeCPUFLASH(text_url));
 
         static_cast<window_frame_t *>(parent)->CaptureNormalWindow(radio);
-    }
-
-    ~FrameRadioQR() {
-        static_cast<window_frame_t *>(radio.GetParent())->ReleaseCaptureOfNormalWindow();
     }
 
 private:

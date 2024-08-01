@@ -136,6 +136,10 @@ void window_frame_t::unregisterAnySubWin(window_t &win, CompactRAMPointer<window
         return;
     }
 
+    if (captured_normal_window == &win) {
+        ReleaseCaptureOfNormalWindow();
+    }
+
     Rect16 inv_rect = win.GetRect();
     bool clr_begin_end = (&win == pFirst && pFirst == pLast);
 

@@ -16,6 +16,5 @@ TestResultScreen::TestResultScreen()
     ClrMenuTimeoutClose(); // don't close on menu timeout
     header.SetIcon(&img::selftest_16x16);
 
-    ReleaseCaptureOfNormalWindow(); // release is not automatic !!!
     CaptureNormalWindow(result);
 }
