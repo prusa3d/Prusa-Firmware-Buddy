@@ -52,6 +52,27 @@ constexpr T GetEnumFromPhaseIndex(size_t index) {
 
 using PhaseUnderlyingType = uint8_t;
 
+struct FSMAndPhase {
+
+public:
+    constexpr FSMAndPhase(ClientFSM fsm, PhaseUnderlyingType phase)
+        : fsm(fsm)
+        , phase(phase) {
+    }
+
+    template <typename Phase>
+    constexpr FSMAndPhase(Phase phase)
+        : fsm(client_fsm_from_phase(phase))
+        , phase(std::to_underlying(phase)) {
+    }
+
+    constexpr FSMAndPhase(const FSMAndPhase &) = default;
+
+public:
+    ClientFSM fsm;
+    PhaseUnderlyingType phase;
+};
+
 // define enum classes for responses here
 // and YES phase can have 0 responses
 // every enum must have "_last"
@@ -859,21 +880,19 @@ public:
     }
 
     // get all responses accepted in phase
-    template <class T>
-    static constexpr const PhaseResponses &GetResponses(const T phase) {
-        return get_fsm_responses(client_fsm_from_phase(phase), ftrstd::to_underlying(phase));
+    static constexpr const PhaseResponses &GetResponses(FSMAndPhase fsm_phase) {
+        return get_fsm_responses(fsm_phase.fsm, fsm_phase.phase);
     }
 
     // get index of single response in PhaseResponses
     // return -1 (maxval) if does not exist
-    template <class T>
-    static uint8_t GetIndex(T phase, Response response) {
-        const auto responses = fsm_phase_responses[client_fsm_from_phase(phase)];
-        if (ftrstd::to_underlying(phase) >= responses.size()) {
+    static constexpr uint8_t GetIndex(FSMAndPhase fsm_phase, Response response) {
+        const auto responses = fsm_phase_responses[fsm_phase.fsm];
+        if (fsm_phase.phase >= responses.size()) {
             return -1;
         }
 
-        const PhaseResponses &cmds = responses[ftrstd::to_underlying(phase)];
+        const PhaseResponses &cmds = responses[fsm_phase.phase];
         for (size_t i = 0; i < MAX_RESPONSES; ++i) {
             if (cmds[i] == response) {
                 return i;
@@ -883,8 +902,7 @@ public:
     }
 
     // get response from PhaseResponses by index
-    template <class T>
-    static const Response &GetResponse(const T phase, const uint8_t index) {
+    static constexpr const Response &GetResponse(FSMAndPhase phase, const uint8_t index) {
         if (index >= MAX_RESPONSES) {
             return ResponseNone;
         }
