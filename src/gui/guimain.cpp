@@ -319,8 +319,6 @@ void gui_run(void) {
 
         led_animation_step();
 
-        lcd::communication_check();
-
         // I must do it before screen and dialog loops
         // do not use marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state, it can make gui freeze in case main thread is unresponsive
         volatile bool print_processor_waiting = marlin_vars().print_state == marlin_server::State::WaitGui;

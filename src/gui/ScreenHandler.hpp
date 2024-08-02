@@ -40,7 +40,6 @@ class Screens {
     bool close;
     bool close_all;
     bool close_printing;
-    bool display_reinitialized;
 
     uint32_t timeout_tick;
 
@@ -96,7 +95,6 @@ public:
     void EnableFanCheck();
     void DisableFanCheck();
     bool GetFanChceck();
-    void SetDisplayReinitialized();
 
     static void Init(screen_node screen_creator);
     static void Init(const screen_node *begin, const screen_node *end); // init in normal order, skips nullptr

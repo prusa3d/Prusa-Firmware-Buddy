@@ -16,7 +16,9 @@ namespace {
 void reinit_lcd_and_redraw() {
     display::complete_reinit();
     display::init();
-    Screens::Access()->SetDisplayReinitialized();
+    if (auto *screen = Screens::Access()->Get()) {
+        screen->Invalidate();
+    }
 }
 
 void check_lcd() {

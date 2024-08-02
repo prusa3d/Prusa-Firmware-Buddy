@@ -14,7 +14,6 @@ Screens::Screens(screen_node screen_creator)
     , close(false)
     , close_all(false)
     , close_printing(false)
-    , display_reinitialized(false)
     , timeout_tick(0) {
 }
 
@@ -172,13 +171,6 @@ void Screens::ResetTimeout() {
 }
 
 void Screens::Loop() {
-    if (display_reinitialized) {
-        screen_t *pScr = Get();
-        if (pScr) {
-            pScr->Invalidate();
-        }
-        display_reinitialized = false;
-    }
     /// menu timeout logic:
     /// when timeout is expired on current screen,
     /// we iterate through whole stack and close every screen that should be closed
@@ -320,10 +312,6 @@ void Screens::InnerLoop() {
         current->InitState(creator_node.init_data);
         creator_node.MakeEmpty();
     }
-}
-
-void Screens::SetDisplayReinitialized() {
-    display_reinitialized = true;
 }
 
 void Screens::gui_loop_until_dialog_closed(stdext::inplace_function<void()> callback) {
