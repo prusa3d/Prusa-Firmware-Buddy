@@ -71,8 +71,9 @@ void loadcell_irq() {
     record.timestamp = sample_timestamp;
     record.loadcell_raw_value = raw_value;
     // No need for locking, we are the only interrupt touching the sample buffer
-    const bool write_buffer_success = sample_buffer.try_put(record);
-    if (!write_buffer_success) {
+    if (!sample_buffer.is_full()) {
+        sample_buffer.put(record);
+    } else {
         buffer_overflown++;
     }
 }
@@ -86,8 +87,12 @@ bool filter(const LoadcellRecord &sample) {
 bool get_loadcell_sample(LoadcellRecord &sample) {
     // Consume samples until a good one is found
     for (;;) {
-        if (freertos::CriticalSection critical_section; !sample_buffer.try_get(sample)) {
-            return false;
+        {
+            freertos::CriticalSection critical_section;
+            if (sample_buffer.is_empty()) {
+                return false;
+            }
+            sample = sample_buffer.get();
         }
         if (filter(sample)) {
             // Sample looks good

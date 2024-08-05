@@ -22,11 +22,10 @@ TEST_CASE("CircularBuffer basics", "[circular_buffer]") {
         CHECK(cb.size() == 0);
 
         uint32_t in = 0xdeadbeef;
-        CHECK(cb.try_put(in));
+        cb.put(in);
         CHECK(cb.size() == 1);
 
-        uint32_t out;
-        CHECK(cb.try_get(out));
+        uint32_t out = cb.get();
         CHECK(out == in);
         CHECK(cb.size() == 0);
     }
@@ -36,50 +35,52 @@ TEST_CASE("CircularBuffer basics", "[circular_buffer]") {
         CHECK(cb.size() == 0);
 
         // put 3 items
-        CHECK(cb.try_put(0x11111111));
+        cb.put(0x11111111);
         CHECK(cb.size() == 1);
-        CHECK(cb.try_put(0x22222222));
+        cb.put(0x22222222);
         CHECK(cb.size() == 2);
-        CHECK(cb.try_put(0x33333333));
+        cb.put(0x33333333);
         CHECK(cb.size() == 3);
 
         // can't put 4th item
-        CHECK(!cb.try_put(0x44444444));
-        CHECK(cb.size() == 3);
+        CHECK(cb.is_full());
 
         // get 1st item
-        uint32_t dummy;
-        CHECK(cb.try_get(dummy));
+        uint32_t dummy = cb.get();
         CHECK(dummy == 0x11111111);
         CHECK(cb.size() == 2);
 
         // can put 4th item now
-        CHECK(cb.try_put(0x44444444));
+        cb.put(0x44444444);
         CHECK(cb.size() == 3);
 
         // get all items
-        CHECK(cb.try_get(dummy));
+        dummy = cb.get();
         CHECK(dummy == 0x22222222);
         CHECK(cb.size() == 2);
-        CHECK(cb.try_get(dummy));
+        dummy = cb.get();
         CHECK(dummy == 0x33333333);
         CHECK(cb.size() == 1);
-        CHECK(cb.try_get(dummy));
+        dummy = cb.get();
         CHECK(dummy == 0x44444444);
         CHECK(cb.size() == 0);
 
         // can't get more
-        CHECK(!cb.try_get(dummy));
-        CHECK(cb.size() == 0);
+        CHECK(cb.is_empty());
 
         // put one more
-        CHECK(cb.try_put(0x55555555));
+        cb.put(0x55555555);
         CHECK(cb.size() == 1);
 
         // clear
         cb.clear();
         CHECK(cb.size() == 0);
-        CHECK(!cb.try_get(dummy));
-        CHECK(cb.try_put(dummy));
+        CHECK(cb.is_empty());
+
+        // check front and try pop
+        cb.put(dummy);
+        CHECK(cb.front() == dummy);
+        cb.pop();
+        CHECK(cb.is_empty());
     }
 }

@@ -15,22 +15,21 @@ class MessageBuffer {
 public:
     // try getting some message, caller is responsible for freeing it
     [[nodiscard]] bool try_get(CharPtr &txt) {
-        return buffer.try_get(txt);
+        if (buffer.is_empty()) {
+            return false;
+        }
+        txt = buffer.get();
+        return true;
     }
 
     // put message into buffer, potentially discarding some old message
     void put(const CharPtr &txt) {
-        for (;;) {
-            if (buffer.try_put(txt)) {
-                // success -> done
-                return;
-            }
+        if (buffer.is_full()) {
             // failure -> make space
-            if (CharPtr tmp; buffer.try_get(tmp)) {
-                // success -> do not forget to deallocate
-                free(tmp);
-            }
+            free(buffer.get());
         }
+        buffer.put(txt);
+        return;
     }
 };
 
