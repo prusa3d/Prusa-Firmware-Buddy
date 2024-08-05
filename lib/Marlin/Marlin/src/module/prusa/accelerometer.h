@@ -35,8 +35,6 @@ public:
 #else
     struct Acceleration {
         float val[3];
-        bool buffer_overflow;
-        bool sample_overrun;
     };
 #endif
 

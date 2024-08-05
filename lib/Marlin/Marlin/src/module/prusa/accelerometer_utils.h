@@ -40,6 +40,10 @@ public:
     }
 
 #if HAS_REMOTE_ACCELEROMETER()
-    static PrusaAccelerometer::Acceleration unpack_sample(common::puppies::fifo::AccelerometerXyzSample sample);
+    struct SampleStatus {
+        bool buffer_overflow;
+        bool sample_overrun;
+    };
+    static PrusaAccelerometer::Acceleration unpack_sample(SampleStatus &sampleStatus, common::puppies::fifo::AccelerometerXyzSample sample);
 #endif
 };

@@ -96,11 +96,12 @@ int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
     common::puppies::fifo::AccelerometerXyzSample sample;
     const bool ret_val = m_sample_buffer.try_get(sample);
     if (ret_val) {
-        acceleration = AccelerometerUtils::unpack_sample(sample);
-        if (acceleration.buffer_overflow) {
+        AccelerometerUtils::SampleStatus sample_status;
+        acceleration = AccelerometerUtils::unpack_sample(sample_status, sample);
+        if (sample_status.buffer_overflow) {
             mark_corrupted(Error::corrupted_dwarf_overflow);
         }
-        if (acceleration.sample_overrun) {
+        if (sample_status.sample_overrun) {
             mark_corrupted(Error::corrupted_sample_overrun);
         }
     }
