@@ -464,7 +464,7 @@
 #define HOMING_MAX_ATTEMPTS 10
 
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
-#define X_HOME_BUMP_MM 10
+#define X_HOME_BUMP_MM 15
 #define Y_HOME_BUMP_MM 20
 #define Z_HOME_BUMP_MM 2
 #define HOMING_BUMP_DIVISOR \
