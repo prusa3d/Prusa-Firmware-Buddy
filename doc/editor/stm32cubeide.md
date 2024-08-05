@@ -3,7 +3,7 @@
 Installation:
 
 1. Install latest STM32CubeIDE ([link](https://www.st.com/en/development-tools/stm32cubeide.html))
-2. Install `cmake4eclipse` extension (`Help` > `Eclipse Marketplace...` > search for `cmake4eclipse` and install it)
+2. Install `cmake4eclipse 2.1.4` extension (`Help` > `Install new software...`> Work with: https://raw.githubusercontent.com/15knots/cmake4eclipse/master/releng/comp-update/ select `cmake4eclipse` version 2.1.4 and install it) (Later version is not supported by project generator)
 3. For FreeRTOS-aware debugging, install the `FreeRTOS` plugin [from here](https://mcuoneclipse.com/2016/07/06/freertos-kernel-awareness-for-eclipse-from-nxp/).
 4. Install some spell checker (e.g. [Eclipse CDT](https://www.eclipse.org/cdt/) includes one).
 
