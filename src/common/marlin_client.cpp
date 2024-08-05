@@ -246,10 +246,10 @@ void gcode_printf(const char *format, ...) {
     }
 }
 
-void gcode_push_front(const char *gcode) {
+void inject(InjectQueueRecord record) {
     Request request;
-    request.type = Request::Type::InjectGcode;
-    request.inject_gcode = gcode;
+    request.type = Request::Type::Inject;
+    request.inject = record;
     _send_request_to_server_and_wait(request);
 }
 

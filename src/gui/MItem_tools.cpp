@@ -351,7 +351,7 @@ MI_M600::MI_M600()
 }
 void MI_M600::click(IWindowMenu & /*window_menu*/) {
     if (!enqueued) {
-        marlin_client::gcode_push_front("M600");
+        marlin_client::inject("M600");
         enqueued = true;
     }
 }

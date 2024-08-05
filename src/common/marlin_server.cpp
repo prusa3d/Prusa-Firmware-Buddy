@@ -136,6 +136,7 @@
 #endif
 
 #include <wui.h>
+// #include <sound.hpp>
 
 using namespace ExtUI;
 
@@ -864,8 +865,11 @@ bool enqueue_gcode_printf(const char *gcode, ...) {
     return ret;
 }
 
-bool inject_gcode(const char *gcode) {
-    queue.inject_P(gcode);
+bool inject(InjectQueueRecord record) {
+    if (!queue.inject(record)) {
+        // Sound_Play(eSOUND_TYPE::SingleBeepAlwaysLoud);
+        return false;
+    }
     return true;
 }
 
@@ -2937,8 +2941,9 @@ bool _process_server_valid_request(const Request &request, int client_id) {
     case Request::Type::Gcode:
         //@TODO return value depending on success of enqueueing gcode
         return enqueue_gcode(request.gcode);
-    case Request::Type::InjectGcode:
-        return inject_gcode(request.inject_gcode);
+    case Request::Type::Inject:
+        inject(request.inject);
+        return true;
     case Request::Type::SetVariable:
         _server_set_var(request);
         return true;

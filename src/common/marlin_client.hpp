@@ -8,6 +8,7 @@
 #include <option/has_selftest.h>
 #include "Marlin/src/core/types.h"
 #include "common/selftest/selftest_data.hpp"
+#include <gcode/inject_queue_actions.hpp>
 
 namespace marlin_client {
 
@@ -55,7 +56,10 @@ void __attribute__((format(__printf__, 1, 2)))
 gcode_printf(const char *format, ...);
 
 // inject gcode - thread-safe version
-void gcode_push_front(const char *gcode);
+void inject(InjectQueueRecord record);
+
+// inject gcode directly - thread-safe version
+inline void inject(const char *gcode) { inject(GCodeLiteral(gcode)); };
 
 // returns current event status for evt_id
 int event(marlin_server::Event evt_id);

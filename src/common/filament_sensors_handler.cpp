@@ -201,7 +201,7 @@ void FilamentSensors::process_events() {
 
         m600_sent = true;
 
-        marlin_client::gcode_push_front("M600 A"); // change filament
+        marlin_client::inject("M600 A"); // change filament
 
         log_info(FSensor, "Injected runout");
         return true;
@@ -226,7 +226,7 @@ void FilamentSensors::process_events() {
         }
 
         autoload_sent = true;
-        marlin_client::gcode_push_front("M1701 Z40"); // autoload with return option and minimal Z value of 40mm
+        marlin_client::inject("M1701 Z40"); // autoload with return option and minimal Z value of 40mm
         log_info(FSensor, "Injected autoload");
 
         return true;

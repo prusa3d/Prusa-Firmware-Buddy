@@ -28,6 +28,7 @@
 
 #include "../inc/MarlinConfig.h"
 #include <limits>
+#include <gcode/inject_queue_actions.hpp>
 
 class GCodeQueue {
 public:
@@ -90,6 +91,12 @@ public:
    * Note: process_injected_command() will process them.
    */
   static void inject_P(PGM_P const pgcode);
+
+  /**
+   * Enqueue action to inject_queue, if inject_queue isn't already full
+   * @param record [in] record variant
+   */
+  static bool inject(InjectQueueRecord record);
 
   /**
    * Enqueue and return only when commands are actually enqueued

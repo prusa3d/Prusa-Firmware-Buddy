@@ -3,6 +3,7 @@
 #include <common/encoded_fsm_response.hpp>
 #include <freertos/queue.hpp>
 #include <common/marlin_events.h>
+#include <gcode/inject_queue_actions.hpp>
 
 namespace marlin_server {
 
@@ -11,7 +12,7 @@ struct Request {
     enum class Type : uint8_t {
         EventMask,
         Gcode,
-        InjectGcode,
+        Inject,
         SetVariable,
         Babystep,
         TestStart,
@@ -65,7 +66,7 @@ struct Request {
             float feedrate;
         } move_multiple; // Type::MoveMultiple
         char gcode[MARLIN_MAX_REQUEST + 1]; // Type::Gcode
-        const char *inject_gcode; // Type::InjectGcode
+        InjectQueueRecord inject; // Type::Inject
         EncodedFSMResponse encoded_fsm_response; // Type::FSM
         float babystep; // Type::Babystep
         struct {

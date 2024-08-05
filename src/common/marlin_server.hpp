@@ -11,6 +11,7 @@
 #include "client_fsm_types.h"
 #include "marlin_server_extended_fsm_data.hpp"
 #include <stddef.h>
+#include <gcode/inject_queue_actions.hpp>
 
 #include <serial_printing.hpp>
 
@@ -61,10 +62,10 @@ bool enqueue_gcode(const char *gcode);
 bool __attribute__((format(__printf__, 1, 2)))
 enqueue_gcode_printf(const char *gcode, ...);
 
-// direct call of 'inject_P'
-// @retval true command enqueued
+// direct call of 'inject_action'
+// @retval true command enqueued in inject queue
 // @retval false otherwise
-bool inject_gcode(const char *gcode);
+bool inject(InjectQueueRecord record);
 
 // direct call of settings.save()
 void settings_save();
