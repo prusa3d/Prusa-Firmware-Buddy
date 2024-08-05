@@ -471,6 +471,12 @@ inline uint16_t heaterVoltage() { return adcDma1.get_and_shift_channel(AdcChanne
 inline uint16_t inputVoltage() {
     return adcDma1.get_and_shift_channel(AdcChannel::heatbed_U);
 }
+
+    #if PRINTER_IS_PRUSA_iX()
+inline uint16_t psu_temp() { return adcDma1.get_and_shift_channel(AdcChannel::heatbed_T); }
+inline uint16_t ambient_temp() { return adcDma3.get_and_shift_channel(AdcChannel::case_T); }
+    #endif
+
 inline uint16_t MMUCurrent() { return adcDma3.get_and_shift_channel(AdcChannel::MMU_I); }
 inline uint16_t heaterCurrent() { return adcDma3.get_and_shift_channel(AdcChannel::hotend_I); }
 inline uint16_t inputCurrent() { return adcDma3.get_and_shift_channel(AdcChannel::board_I); }

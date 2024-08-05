@@ -236,6 +236,14 @@ void buddy::metrics::RecordMarlinVariables() {
         }
     }
 
+#if PRINTER_IS_PRUSA_iX()
+    METRIC_DEF(temp_psu, "temp_psu", METRIC_VALUE_FLOAT, 1100, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_float(&temp_psu, thermalManager.deg_psu());
+
+    METRIC_DEF(temp_ambient, "temp_ambient", METRIC_VALUE_FLOAT, 1100, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_float(&temp_ambient, thermalManager.deg_ambient());
+#endif
+
 #if FAN_COUNT >= 1
     METRIC_DEF(fan_speed, "fan_speed", METRIC_VALUE_INTEGER, 501, METRIC_HANDLER_DISABLE_ALL);
     metric_record_integer(&fan_speed, thermalManager.fan_speed[0]);

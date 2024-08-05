@@ -514,6 +514,14 @@ uint32_t analogRead(uint32_t ulPin) {
 
         case MARLIN_PIN(THERM2):
             return AdcGet::boardTemp();
+
+#if PRINTER_IS_PRUSA_iX()
+        case MARLIN_PIN(TEMP_PSU):
+            return AdcGet::psu_temp();
+        case MARLIN_PIN(TEMP_AMBIENT):
+            return AdcGet::ambient_temp();
+#endif
+
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_RD, ulPin); // error: undefined pin analog read
         }

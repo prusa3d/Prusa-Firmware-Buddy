@@ -298,6 +298,11 @@ Temperature thermalManager;
   //hotend_pid_t Temperature::pid[HOTENDS];
 #endif
 
+#if PRINTER_IS_PRUSA_iX()
+  TempInfo Temperature::temp_psu;
+  TempInfo Temperature::temp_ambient;
+#endif
+
 #if ENABLED(PREVENT_COLD_EXTRUSION)
   bool Temperature::allow_cold_extrude = false;
   int16_t Temperature::extrude_min_temp = EXTRUDE_MINTEMP;
@@ -2222,6 +2227,12 @@ void Temperature::updateTemperaturesFromRawValues() {
     temp_board.celsius = analog_to_celsius_board(temp_board.raw);
   #endif
 
+  #if PRINTER_IS_PRUSA_iX()
+    // Both psu and ambient temperatures use the MK4 bed thermistor
+    temp_psu.celsius = scan_thermistor_table_bed(temp_psu.raw);
+    temp_ambient.celsius = scan_thermistor_table_bed(temp_ambient.raw);
+  #endif
+
   // Reset the watchdog on good temperature measurement
   watchdog_refresh();
 
@@ -2392,6 +2403,10 @@ void Temperature::init() {
   #endif
   #if HAS_HEATED_BED
     HAL_ANALOG_SELECT(TEMP_BED_PIN);
+  #endif
+  #if PRINTER_IS_PRUSA_iX()
+    HAL_ANALOG_SELECT(TEMP_PSU_PIN);
+    HAL_ANALOG_SELECT(TEMP_AMBIENT_PIN);
   #endif
   #if HAS_TEMP_CHAMBER
     HAL_ANALOG_SELECT(TEMP_CHAMBER_PIN);
@@ -2993,6 +3008,11 @@ void Temperature::set_current_temp_raw() {
     temp_board.update();
   #endif
 
+  #if PRINTER_IS_PRUSA_iX()
+    temp_psu.update();
+    temp_ambient.update();
+  #endif
+
   #if HAS_JOY_ADC_X
     joystick.x.update();
   #endif
@@ -3037,6 +3057,11 @@ void Temperature::readings_ready() {
 
   #if HAS_TEMP_BOARD
     temp_board.reset();
+  #endif
+
+  #if PRINTER_IS_PRUSA_iX()
+    temp_psu.reset();
+    temp_ambient.reset();
   #endif
 
   #if HAS_JOY_ADC_X
@@ -3579,6 +3604,14 @@ void Temperature::isr() {
     #if HAS_TEMP_BOARD
       case PrepareTemp_BOARD: HAL_START_ADC(TEMP_BOARD_PIN); break;
       case MeasureTemp_BOARD: ACCUMULATE_ADC(temp_board); break;
+    #endif
+
+
+    #if PRINTER_IS_PRUSA_iX()
+      case PrepareTemp_PSU: HAL_START_ADC(TEMP_PSU_PIN); break;
+      case MeasureTemp_PSU: ACCUMULATE_ADC(temp_psu); break;
+      case PrepareTemp_AMBIENT: HAL_START_ADC(TEMP_AMBIENT_PIN); break;
+      case MeasureTemp_AMBIENT: ACCUMULATE_ADC(temp_ambient); break;
     #endif
 
     #if HAS_TEMP_ADC_1

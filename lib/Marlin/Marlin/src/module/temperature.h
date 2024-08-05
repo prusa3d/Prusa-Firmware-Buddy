@@ -116,6 +116,10 @@ enum ADCSensorState : char {
   #if HAS_TEMP_BOARD
     PrepareTemp_BOARD, MeasureTemp_BOARD,
   #endif
+  #if PRINTER_IS_PRUSA_iX()
+    PrepareTemp_PSU, MeasureTemp_PSU,
+    PrepareTemp_AMBIENT, MeasureTemp_AMBIENT,
+  #endif
   #if HAS_TEMP_ADC_1
     PrepareTemp_1, MeasureTemp_1,
   #endif
@@ -348,6 +352,11 @@ class Temperature {
 
     #if HAS_TEMP_HEATBREAK
       static heatbreak_info_t temp_heatbreak[HOTENDS];
+    #endif
+
+    #if PRINTER_IS_PRUSA_iX()
+      static TempInfo temp_psu;
+      static TempInfo temp_ambient;
     #endif
 
     #if ENABLED(AUTO_POWER_E_FANS)
@@ -889,6 +898,11 @@ class Temperature {
       #endif
       FORCE_INLINE static float degBoard()            { return temp_board.celsius; }
     #endif // HAS_TEMP_BOARD
+
+    #if PRINTER_IS_PRUSA_iX()
+      FORCE_INLINE static float deg_psu() { return temp_psu.celsius; }
+      FORCE_INLINE static float deg_ambient() { return temp_ambient.celsius; }
+    #endif
 
     /**
      * The software PWM power for a heater
