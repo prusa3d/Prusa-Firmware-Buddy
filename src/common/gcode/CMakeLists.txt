@@ -10,5 +10,6 @@ target_sources(
          gcode_reader_interface.cpp
          gcode_reader_plaintext.cpp
          gcode_thumb_decoder.cpp
+         inject_queue.cpp
          meatpack.cpp
   )
