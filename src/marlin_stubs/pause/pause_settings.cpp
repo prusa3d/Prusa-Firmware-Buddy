@@ -19,7 +19,6 @@ Settings::Settings()
     : unload_length(GetDefaultUnloadLength())
     , slow_load_length(GetDefaultSlowLoadLength())
     , fast_load_length(GetDefaultFastLoadLength())
-    , purge_length(GetDefaultPurgeLength())
     , retract(GetDefaultRetractLength())
     , park_z_feedrate(MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z))
     , park_pos { NAN, NAN, NAN }
@@ -46,14 +45,9 @@ float Settings::GetDefaultUnloadLength() {
     return fc_settings[active_extruder].unload_length;
 }
 
-float Settings::GetDefaultPurgeLength() {
-#if PRINTER_IS_PRUSA_MK4()
-    // Double the purge length for HF nozzles - presumably on MK4S (for now)
-    // This code will change in the future for different nozzle types
-    return ((config_store().extended_printer_type.get() == ExtendedPrinterType::mk4s) ? 2 : 1) * ADVANCED_PAUSE_PURGE_LENGTH;
-#else
-    return ADVANCED_PAUSE_PURGE_LENGTH;
-#endif
+float Settings::GetDefaultPurgeLength(uint8_t extruder) {
+    // Double the purge length for HF nozzles
+    return ADVANCED_PAUSE_PURGE_LENGTH * (config_store().nozzle_is_high_flow.get().test(ENABLED(SINGLENOZZLE) ? 0 : extruder) ? 2 : 1);
 }
 
 float Settings::GetDefaultRetractLength() {
@@ -77,7 +71,7 @@ void Settings::SetFastLoadLength(const std::optional<float> &len) {
 }
 
 void Settings::SetPurgeLength(const std::optional<float> &len) {
-    purge_length = std::max(std::abs(len.has_value() ? len.value() : GetDefaultPurgeLength()), (float)minimal_purge);
+    purge_length_ = len;
 }
 
 void Settings::SetRetractLength(const std::optional<float> &len) {
@@ -103,4 +97,8 @@ void Settings::SetResumePoint(const xyze_pos_t &resume_point) {
 
 void Settings::SetMmuFilamentToLoad(uint8_t index) {
     mmu_filament_to_load = index;
+}
+
+float pause::Settings::purge_length() const {
+    return std::max<float>(std::abs(purge_length_.value_or(GetDefaultPurgeLength(ENABLED(SINGLENOZZLE) ? 0 : target_extruder))), minimal_purge);
 }

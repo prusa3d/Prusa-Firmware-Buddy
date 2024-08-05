@@ -26,7 +26,7 @@ public:
     static float GetDefaultFastLoadLength();
     static float GetDefaultSlowLoadLength();
     static float GetDefaultUnloadLength();
-    static float GetDefaultPurgeLength();
+    static float GetDefaultPurgeLength(uint8_t extruder);
     static float GetDefaultRetractLength();
     static float GetDefaultParkZFeedrate(); ///< Get feedrate for park z move [mm/s].
 
@@ -46,6 +46,8 @@ public:
     void SetCalledFrom(CalledFrom cf) { called_from = cf; }
     CalledFrom GetCalledFrom() const { return called_from; }
 
+    float purge_length() const;
+
 private:
     friend class ::Pause; // forward declaration of Pause is not enough, have to add scope resolution operator too
 
@@ -53,7 +55,7 @@ private:
     float unload_length;
     float slow_load_length;
     float fast_load_length;
-    float purge_length;
+    std::optional<float> purge_length_;
     float retract;
     float park_z_feedrate; ///< feedrate for park z move [mm/s]
 

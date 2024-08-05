@@ -340,7 +340,7 @@ void Pause::loop_load(Response response) {
 }
 
 void Pause::loop_load_purge(Response response) {
-    const float purge_ln = settings.purge_length;
+    const float purge_ln = settings.purge_length();
 
     // transitions
     switch (getLoadPhase()) {
@@ -383,7 +383,7 @@ void Pause::loop_load_purge(Response response) {
 }
 
 void Pause::loop_load_not_blocking([[maybe_unused]] Response response) {
-    const float purge_ln = settings.purge_length;
+    const float purge_ln = settings.purge_length();
 
     // transitions
     switch (getLoadPhase()) {
@@ -453,7 +453,7 @@ void Pause::loop_autoload(Response response) {
 }
 
 void Pause::loop_load_common(Response response, CommonLoadType load_type) {
-    const float purge_ln = settings.purge_length;
+    const float purge_ln = settings.purge_length();
 
     // Provide default values just in case, the following switch should cover everything
     bool is_unstoppable = true;
