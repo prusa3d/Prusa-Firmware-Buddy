@@ -1,1 +1,6 @@
 build
+.esp32-tools
+.esp32-sdk
+
+compile_commands.json
+.cache
