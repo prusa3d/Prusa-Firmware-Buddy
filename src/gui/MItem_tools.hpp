@@ -531,7 +531,7 @@ public:
     MI_INFO_BED_TEMP();
 };
 
-class MI_INFO_FILL_SENSOR : public WI_FORMATABLE_LABEL_t<std::pair<SensorData::Value, SensorData::Value>> {
+class MI_INFO_FILL_SENSOR : public WI_FORMATABLE_LABEL_t<std::pair<float, float>> {
 public:
     MI_INFO_FILL_SENSOR(const string_view_utf8 &label);
 };
@@ -648,63 +648,63 @@ public:
     MI_ODOMETER_TIME();
 };
 
-class MI_INFO_HEATER_VOLTAGE : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+class MI_INFO_HEATER_VOLTAGE : public WI_FORMATABLE_LABEL_t<float> {
     static constexpr const char *const label = N_("Heater Voltage");
 
 public:
     MI_INFO_HEATER_VOLTAGE();
 };
 
-class MI_INFO_INPUT_VOLTAGE : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+class MI_INFO_INPUT_VOLTAGE : public WI_FORMATABLE_LABEL_t<float> {
     static constexpr const char *const label = N_("Input Voltage");
 
 public:
     MI_INFO_INPUT_VOLTAGE();
 };
 
-class MI_INFO_5V_VOLTAGE : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+class MI_INFO_5V_VOLTAGE : public WI_FORMATABLE_LABEL_t<float> {
     static constexpr const char *const label = N_("5V Voltage");
 
 public:
     MI_INFO_5V_VOLTAGE();
 };
 
-class MI_INFO_HEATER_CURRENT : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+class MI_INFO_HEATER_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
     static constexpr const char *const label = N_("Heater Current");
 
 public:
     MI_INFO_HEATER_CURRENT();
 };
 
-class MI_INFO_INPUT_CURRENT : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+class MI_INFO_INPUT_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
     static constexpr const char *const label = N_("Input Current");
 
 public:
     MI_INFO_INPUT_CURRENT();
 };
 
-class MI_INFO_MMU_CURRENT : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+class MI_INFO_MMU_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
     static constexpr const char *const label = N_("MMU Current");
 
 public:
     MI_INFO_MMU_CURRENT();
 };
 
-class MI_INFO_SPLITTER_5V_CURRENT : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+class MI_INFO_SPLITTER_5V_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
     static constexpr const char *const label = N_("Splitter 5V Current");
 
 public:
     MI_INFO_SPLITTER_5V_CURRENT();
 };
 
-class MI_INFO_SANDWICH_5V_CURRENT : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+class MI_INFO_SANDWICH_5V_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
     static constexpr const char *const label = N_("Sandwich 5V Current");
 
 public:
     MI_INFO_SANDWICH_5V_CURRENT();
 };
 
-class MI_INFO_BUDDY_5V_CURRENT : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+class MI_INFO_BUDDY_5V_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
     static constexpr const char *const label = N_("XL Buddy 5V Current");
 
 public:

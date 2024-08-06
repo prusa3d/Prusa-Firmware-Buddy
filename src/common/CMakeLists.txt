@@ -56,7 +56,7 @@ if(BOARD MATCHES ".*BUDDY")
             segmented_json.cpp
             selftest_result.cpp
             selftest_result_type.cpp
-            sensor_data_buffer.cpp
+            sensor_data.cpp
             serial_printing.cpp
             sound.cpp
             st25dv64k.cpp

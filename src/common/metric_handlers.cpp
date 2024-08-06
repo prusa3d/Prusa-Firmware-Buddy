@@ -8,7 +8,6 @@
 #include "timing.h"
 #include "syslog_transport.hpp"
 #include "otp.hpp"
-#include "sensor_data_buffer.h"
 #include <option/development_items.h>
 #include <config_store/store_instance.hpp>
 #include <atomic>
@@ -173,10 +172,4 @@ const metric_handler_t metric_handler_syslog = {
     .identifier = METRIC_HANDLER_SYSLOG_ID,
     .name = "SYSLOG",
     .handle_fn = syslog_handler,
-};
-
-const metric_handler_t metric_handler_info_screen = {
-    .identifier = METRIC_HANDLER_INFO_SCREEN,
-    .name = "SENSOR_INFO_SCREEN",
-    .handle_fn = info_screen_handler,
 };

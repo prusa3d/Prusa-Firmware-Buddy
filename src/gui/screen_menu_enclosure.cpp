@@ -1,10 +1,12 @@
 #include "screen_menu_enclosure.hpp"
-#include "../common/sensor_data_buffer.hpp"
+
+#include <common/sensor_data.hpp>
 
 #include <device/board.h>
 #if XL_ENCLOSURE_SUPPORT()
     #include "xl_enclosure.hpp"
 #endif
+#include <common/timing.h>
 
 ScreenMenuEnclosure::ScreenMenuEnclosure()
     : detail::ScreenMenuEnclosure(_(label))

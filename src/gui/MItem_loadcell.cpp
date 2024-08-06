@@ -29,16 +29,8 @@ void MI_LOADCELL_SCALE::OnClick() {
 /*****************************************************************************/
 // MI_INFO_LOADCELL
 MI_INFO_LOADCELL::MI_INFO_LOADCELL()
-    : WI_FORMATABLE_LABEL_t<SensorData::Value>(
+    : WI_FORMATABLE_LABEL_t<float>(
         _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            if (value.is_valid()) {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f", (double)value.get_float());
-            } else {
-                if (value.is_enabled()) {
-                    strlcpy(buffer, NA, GuiDefaults::infoDefaultLen);
-                } else {
-                    strlcpy(buffer, NI, GuiDefaults::infoDefaultLen);
-                }
-            }
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f", (double)value);
         }) {
 }

@@ -3,6 +3,7 @@
 #include <fanctl.hpp>
 #include "metric.h"
 #include "Marlin/src/module/motion.h" // for active_extruder
+#include <common/sensor_data.hpp>
 #include <utils/utility_extensions.hpp>
 #include <cmath>
 
@@ -27,9 +28,17 @@ void record_fanctl_metrics() {
 
     if (HAL_GetTick() - last_update > UPDATE_PERIOD) {
         record(Fans::print(active_extruder), "print");
-        metric_record_integer(&fan_print, Fans::print(active_extruder).getActualRPM());
+        {
+            const float value = Fans::print(active_extruder).getActualRPM();
+            metric_record_integer(&fan_print, value);
+            sensor_data().printFanAct = value;
+        }
         record(Fans::heat_break(active_extruder), "heatbreak");
-        metric_record_integer(&fan_hbr, Fans::heat_break(active_extruder).getActualRPM());
+        {
+            const float value = Fans::heat_break(active_extruder).getActualRPM();
+            metric_record_integer(&fan_hbr, value);
+            sensor_data().hbrFanAct = value;
+        }
 #if XL_ENCLOSURE_SUPPORT() // XLBOARD has additional enclosure fan
         record(Fans::enclosure(), "enclosure");
         metric_record_integer(&fan_enclosure, Fans::enclosure().getActualRPM());

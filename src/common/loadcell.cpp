@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <numeric>
 #include <limits>
+#include <common/sensor_data.hpp>
 #include "timing.h"
 #include <logging/log.hpp>
 #include "probe_position_lookback.hpp"
@@ -191,6 +192,7 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
     // filtered loads
     const float tared_z_load = get_tared_z_load();
     metric_record_float(&metric_loadcell_value, tared_z_load);
+    sensor_data().loadCell = tared_z_load;
     if (!std::isfinite(tared_z_load)) {
         fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_INFINITE_LOAD);
     }

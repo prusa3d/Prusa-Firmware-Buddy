@@ -1,5 +1,6 @@
 #include "puppies/modular_bed.hpp"
 #include "bsod.h"
+#include <common/sensor_data.hpp>
 #include <logging/log.hpp>
 #include "metric.h"
 #include "puppy/modularbed/PuppyConfig.hpp"
@@ -286,6 +287,7 @@ CommunicationStatus ModularBed::read_mcu_temperature() {
 
     log_debug(ModularBed, "MCU Temperature: %d", mcu_temperature.value);
     metric_record_float(&metric_mcu_temperature, mcu_temperature.value);
+    sensor_data().mbedMCUTemperature = mcu_temperature.value;
     return status;
 }
 

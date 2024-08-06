@@ -6,7 +6,7 @@
 #include "WindowMenuItems.hpp"
 #include "WindowItemFormatableLabel.hpp"
 #include "i18n.h"
-#include "sensor_data_buffer.hpp"
+#include <common/sensor_data.hpp>
 
 class MI_LOADCELL_SCALE : public WiSpin {
     constexpr static const char *const label = "Loadcell Scale";
@@ -16,7 +16,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_INFO_LOADCELL : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+class MI_INFO_LOADCELL : public WI_FORMATABLE_LABEL_t<float> {
     static constexpr const char *const label = N_("Loadcell Value");
 
 public:

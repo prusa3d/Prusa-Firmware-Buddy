@@ -130,7 +130,6 @@ void iwdg_warning_cb(void);
 
 extern const metric_handler_t *const metric_system_handlers[] = {
     &metric_handler_syslog,
-    &metric_handler_info_screen,
     nullptr
 };
 
