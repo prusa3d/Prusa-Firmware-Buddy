@@ -25,6 +25,12 @@ LOG_COMPONENT_REF(USBHost);
 extern "C" void lwip_platform_log_error(const char *message) {
     log_error(Network, "%s", message);
 }
+extern "C" void lwip_platform_log_info(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    _log_event_valist(logging::Severity::info, &LOG_COMPONENT(Network), fmt, &args);
+    va_end(args);
+}
 
 extern "C" void USBH_UsrLog(const char *fmt, ...) {
     va_list args;
