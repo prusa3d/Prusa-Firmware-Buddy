@@ -612,7 +612,8 @@ status_t LIS2DH::fifoGetStatus(uint8_t *tempReadByte) {
  * @retval 1 this is last fresh sample, fresh samples retrieval started
  * @retval 0 nothing returned
  */
-int Fifo::get(Acceleration &acceleration) {
+int Fifo::get(Acceleration &acceleration, bool &overrun) {
+    overrun = false;
     if (m_sampling_start_time == 0) {
         m_sampling_start_time = micros();
     }
@@ -640,14 +641,7 @@ int Fifo::get(Acceleration &acceleration) {
                     break;
                 }
             }
-            const bool overrun = fifo_status & 0b0100'0000;
-            if (overrun) {
-                SERIAL_ERROR_MSG("Overrun.");
-                SERIAL_ECHO_START();
-                SERIAL_ECHOLNPAIR_F("After successfully received samples:", m_succeded_samples);
-                m_succeded_samples = 0;
-            }
-
+            overrun = fifo_status & 0b0100'0000;
             const int remote_num_samples = (fifo_status & 0b0001'1111) + overrun;
             static_assert(std::endian::native == std::endian::little, "Byte swapping for 16-bit record.raw value not implemented.");
 
@@ -658,7 +652,6 @@ int Fifo::get(Acceleration &acceleration) {
             }
             assert(remote_num_samples >= 0);
             m_num_records = remote_num_samples;
-            m_succeded_samples += remote_num_samples;
             m_record_index_to_get = 0;
 
             m_samples_taken += remote_num_samples;

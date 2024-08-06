@@ -161,10 +161,9 @@ public:
         , m_num_records(0)
         , m_record_index_to_get(0)
         , m_state(State::draining)
-        , m_succeded_samples { 0 }
         , m_sampling_start_time(0)
         , m_samples_taken(0) {}
-    int get(Acceleration &acceleration);
+    int get(Acceleration &acceleration, bool &overrun);
     float get_sampling_rate();
 
 private:
@@ -184,7 +183,6 @@ private:
     int8_t m_num_records;
     int8_t m_record_index_to_get;
     State m_state;
-    uint32_t m_succeded_samples;
 
     uint32_t m_sampling_start_time;
     uint32_t m_samples_taken;

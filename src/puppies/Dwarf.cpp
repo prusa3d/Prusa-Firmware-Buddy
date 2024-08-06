@@ -203,7 +203,7 @@ CommunicationStatus Dwarf::read_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo
         if (status == CommunicationStatus::ERROR) {
             // Mark acceleration data as corrupted, but retry. Dwarf is most probably ok,
             // no need to do a full puppy reconnect.
-            PrusaAccelerometer::mark_corrupted(PrusaAccelerometer::Error::corrupted_transmission_error);
+            PrusaAccelerometer::set_possible_overflow();
         }
     }
     return status;

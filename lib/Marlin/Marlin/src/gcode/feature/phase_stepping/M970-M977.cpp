@@ -209,28 +209,30 @@ static bool accelerometer_ok(PrusaAccelerometer &acc, YieldError yield_error) {
     case PrusaAccelerometer::Error::communication:
         yield_error("accelerometer communication");
         return false;
+#if HAS_REMOTE_ACCELEROMETER()
     case PrusaAccelerometer::Error::no_active_tool:
         yield_error("no active tool");
         return false;
     case PrusaAccelerometer::Error::busy:
         yield_error("busy");
         return false;
+#endif
+    case PrusaAccelerometer::Error::overflow_sensor:
+        yield_error("sample overrun on accelerometer sensor");
+        return false;
 #if HAS_REMOTE_ACCELEROMETER()
-    case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
+    case PrusaAccelerometer::Error::overflow_buddy:
+        yield_error("buddy overflow");
+        return false;
+    case PrusaAccelerometer::Error::overflow_dwarf:
         yield_error("dwarf overflow");
         return false;
-    case PrusaAccelerometer::Error::corrupted_transmission_error:
+    case PrusaAccelerometer::Error::overflow_possible:
         yield_error("dwarf transmission error");
         return false;
 #endif
-    case PrusaAccelerometer::Error::corrupted_buddy_overflow:
-        yield_error("buddy overflow");
-        return false;
-    case PrusaAccelerometer::Error::corrupted_sample_overrun:
-        yield_error("overrun");
-        return false;
     }
-    bsod("Unrecognized accelerometer error");
+    bsod("Unrecognized accelerometer Error");
 }
 
 /**
@@ -328,6 +330,8 @@ void GcodeSuite::M975() {
         sampleNum++;
     };
 
+    accelerometer.clear();
+
     for (int i = 0; i < request_samples_num;) {
         PrusaAccelerometer::Acceleration measured_acceleration;
         const int samples = accelerometer.get_sample(measured_acceleration);
@@ -339,7 +343,9 @@ void GcodeSuite::M975() {
         }
     }
 
-    accelerometer_ok(accelerometer, print_error);
+    if (!accelerometer_ok(accelerometer, print_error)) {
+        return;
+    }
     SERIAL_ECHO("sample freq: ");
     SERIAL_ECHOLN(accelerometer.get_sampling_rate());
 }

@@ -11,7 +11,7 @@
 static_assert(HAS_REMOTE_ACCELEROMETER());
 
 freertos::Mutex PrusaAccelerometer::s_buffer_mutex;
-PrusaAccelerometer::Sample_buffer *PrusaAccelerometer::s_sample_buffer = nullptr;
+PrusaAccelerometer::SampleBuffer *PrusaAccelerometer::s_sample_buffer = nullptr;
 float PrusaAccelerometer::m_sampling_rate = 0;
 
 /**
@@ -21,7 +21,6 @@ float PrusaAccelerometer::m_sampling_rate = 0;
  * Do nothing otherwise.
  */
 PrusaAccelerometer::PrusaAccelerometer() {
-    m_error = Error::none;
     bool enable_accelerometer = false;
     {
         std::lock_guard lock(s_buffer_mutex);
@@ -29,20 +28,23 @@ PrusaAccelerometer::PrusaAccelerometer() {
             s_sample_buffer = &m_sample_buffer;
             enable_accelerometer = true;
         }
-        s_sample_buffer->clear();
+        s_sample_buffer->buffer.clear();
     }
     if (enable_accelerometer) {
         buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
         if (!dwarf) {
-            m_error = Error::no_active_tool;
+            std::lock_guard lock(s_buffer_mutex);
+            m_sample_buffer.error.set(Error::no_active_tool);
             return;
         }
         if (!dwarf->set_accelerometer(true)) {
-            m_error = Error::communication;
+            std::lock_guard lock(s_buffer_mutex);
+            m_sample_buffer.error.set(Error::communication);
             return;
         }
     } else {
-        m_error = Error::busy;
+        std::lock_guard lock(s_buffer_mutex);
+        m_sample_buffer.error.set(Error::busy);
     }
 }
 /**
@@ -60,13 +62,14 @@ PrusaAccelerometer::~PrusaAccelerometer() {
         }
     }
     if (disable_accelerometer) {
-        switch (m_error) {
+        std::lock_guard lock(s_buffer_mutex);
+        switch (m_sample_buffer.error.get()) {
         case Error::none:
         case Error::communication:
-        case Error::corrupted_buddy_overflow:
-        case Error::corrupted_dwarf_overflow:
-        case Error::corrupted_sample_overrun:
-        case Error::corrupted_transmission_error: {
+        case Error::overflow_sensor:
+        case Error::overflow_buddy:
+        case Error::overflow_dwarf:
+        case Error::overflow_possible: {
             buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
             if (!dwarf) {
                 return;
@@ -88,21 +91,21 @@ void PrusaAccelerometer::clear() {
     // that even if all buffers were full we went through
     // all samples and reflect possible delay in steps_to_do_max
     std::lock_guard lock(s_buffer_mutex);
-    m_sample_buffer.clear();
-    m_error = Error::none;
+    m_sample_buffer.buffer.clear();
+    m_sample_buffer.error.clear_overflow();
 }
 int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
     std::lock_guard lock(s_buffer_mutex);
     common::puppies::fifo::AccelerometerXyzSample sample;
-    const bool ret_val = m_sample_buffer.try_get(sample);
+    const bool ret_val = m_sample_buffer.buffer.try_get(sample);
     if (ret_val) {
         AccelerometerUtils::SampleStatus sample_status;
         acceleration = AccelerometerUtils::unpack_sample(sample_status, sample);
         if (sample_status.buffer_overflow) {
-            mark_corrupted(Error::corrupted_dwarf_overflow);
+            m_sample_buffer.error.set(Error::overflow_dwarf);
         }
         if (sample_status.sample_overrun) {
-            mark_corrupted(Error::corrupted_sample_overrun);
+            m_sample_buffer.error.set(Error::overflow_sensor);
         }
     }
     return ret_val;
@@ -110,21 +113,19 @@ int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
 void PrusaAccelerometer::put_sample(common::puppies::fifo::AccelerometerXyzSample sample) {
     std::lock_guard lock(s_buffer_mutex);
     if (s_sample_buffer) {
-        if (!s_sample_buffer->try_put(sample)) {
-            mark_corrupted(Error::corrupted_buddy_overflow);
+        if (!s_sample_buffer->buffer.try_put(sample)) {
+            s_sample_buffer->error.set(Error::overflow_buddy);
         }
     }
 }
-void PrusaAccelerometer::mark_corrupted(const Error error) {
-    assert(error == Error::corrupted_dwarf_overflow
-        || error == Error::corrupted_buddy_overflow
-        || error == Error::corrupted_transmission_error
-        || error == Error::corrupted_sample_overrun);
-    m_error = error;
+
+void PrusaAccelerometer::set_possible_overflow() {
+    std::lock_guard lock(s_buffer_mutex);
+    if (s_sample_buffer) {
+        s_sample_buffer->error.set(Error::overflow_possible);
+    }
 }
 
 void PrusaAccelerometer::set_rate(float rate) {
     m_sampling_rate = rate;
 }
-
-PrusaAccelerometer::Error PrusaAccelerometer::m_error = Error::none;

@@ -465,6 +465,13 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_pe
         }
     }
 
+    if(!is_ok(accelerometer.get_error())) {
+        FrequencyGain3dError retval;
+        retval.error = true;
+        return retval;
+    }
+
+
     for (int axis = 0; axis < num_axis; ++axis) {
         acumulator.val[axis] *= 2.;
         acumulator.val[axis] /= (sample_nr + 1);
@@ -656,20 +663,28 @@ static bool is_ok(PrusaAccelerometer::Error error) {
     case PrusaAccelerometer::Error::communication:
         SERIAL_ERROR_MSG("accelerometer communication");
         break;
+#if HAS_REMOTE_ACCELEROMETER()
     case PrusaAccelerometer::Error::no_active_tool:
         SERIAL_ERROR_MSG("no active tool");
         break;
     case PrusaAccelerometer::Error::busy:
         SERIAL_ERROR_MSG("busy");
         break;
-#if HAS_DWARF()
-    case PrusaAccelerometer::Error::corrupted_transmission_error:
-    case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
 #endif
-    case PrusaAccelerometer::Error::corrupted_sample_overrun:
-    case PrusaAccelerometer::Error::corrupted_buddy_overflow:
-        SERIAL_ERROR_MSG("corrupted");
+    case PrusaAccelerometer::Error::overflow_sensor:
+        SERIAL_ERROR_MSG("sample overrun on accelerometer sensor");
         break;
+#if HAS_REMOTE_ACCELEROMETER()
+    case PrusaAccelerometer::Error::overflow_buddy:
+        SERIAL_ERROR_MSG("sample missed on buddy");
+        break;
+    case PrusaAccelerometer::Error::overflow_dwarf:
+        SERIAL_ERROR_MSG("sample missed on dwarf");
+        break;
+    case PrusaAccelerometer::Error::overflow_possible:
+        SERIAL_ERROR_MSG("sample possibly lost in transfer");
+        break;
+#endif
     }
     return false;
 }
