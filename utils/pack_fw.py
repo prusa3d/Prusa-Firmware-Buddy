@@ -31,6 +31,7 @@ class PrinterType(Enum):
     XL = 3
     iX = 4
     MK3point5 = 5
+    CUBE = 6
 
 
 class TLVType(Enum):

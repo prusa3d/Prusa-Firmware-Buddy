@@ -2,6 +2,15 @@
     "$schema": "./presets_schema.json",
     "presets": [
         {
+            "name": "cube",
+            "description": "Original Prusa CUBE",
+            "cacheVariables": {
+                "PRINTER": "CUBE",
+                "BOARD": "XBUDDY",
+                "BOARD_VERSION": "0.2.7"
+            }
+        },
+        {
             "name": "mini",
             "description": "Original Prusa MINI",
             "cacheVariables": {

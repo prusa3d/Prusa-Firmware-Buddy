@@ -276,6 +276,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
      OR PRINTER STREQUAL "MK3.5"
      OR PRINTER STREQUAL "XL"
      OR PRINTER STREQUAL "iX"
+     OR PRINTER STREQUAL "CUBE"
      )
     add_compile_options(-Og)
   else()
