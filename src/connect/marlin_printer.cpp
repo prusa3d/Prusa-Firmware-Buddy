@@ -187,6 +187,10 @@ Printer::Params MarlinPrinter::params() const {
     params.state = get_state_with_dialog(ready);
     params.has_job = has_job();
     params.temp_bed = marlin_vars().temp_bed;
+#if PRINTER_IS_PRUSA_iX()
+    params.temp_psu = thermalManager.deg_psu();
+    params.temp_ambient = thermalManager.deg_ambient();
+#endif
     params.target_bed = marlin_vars().target_bed;
     params.target_nozzle = marlin_vars().active_hotend().target_nozzle;
     params.pos[X_AXIS_POS] = marlin_vars().logical_pos[X_AXIS_POS];

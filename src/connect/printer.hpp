@@ -1,5 +1,7 @@
 #pragma once
 
+#include "printers.h"
+
 #include <otp.hpp>
 #include <common/shared_buffer.hpp>
 #include <inc/MarlinConfigPre.h>
@@ -109,6 +111,10 @@ public:
         // A 1-based index.
         uint8_t active_slot = 1;
         float temp_bed = 0;
+#if PRINTER_IS_PRUSA_iX()
+        float temp_psu = 0;
+        float temp_ambient = 0;
+#endif
         float target_nozzle = 0;
         float target_bed = 0;
         float pos[4] = { 0, 0, 0, 0 };
