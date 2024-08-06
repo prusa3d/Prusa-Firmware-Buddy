@@ -9,6 +9,7 @@
 #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 #include <option/has_mmu2.h>
+#include <common/printer_model.hpp>
 
 // cannot be class member (externed in marlin)
 fil_change_settings_t fc_settings[EXTRUDERS];
@@ -50,7 +51,7 @@ float Settings::GetDefaultPurgeLength() {
 #if PRINTER_IS_PRUSA_MK4
     // Double the purge length for HF nozzles - presumably on MK4S (for now)
     // This code will change in the future for different nozzle types
-    return ((config_store().extended_printer_type.get() == ExtendedPrinterType::mk4s) ? 2 : 1) * ADVANCED_PAUSE_PURGE_LENGTH;
+    return ((PrinterModelInfo::current().model == PrinterModel::mk4s) ? 2 : 1) * ADVANCED_PAUSE_PURGE_LENGTH;
 #else
     return ADVANCED_PAUSE_PURGE_LENGTH;
 #endif

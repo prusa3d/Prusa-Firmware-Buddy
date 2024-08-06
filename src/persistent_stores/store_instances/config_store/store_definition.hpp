@@ -464,7 +464,7 @@ struct CurrentStore
 #endif
 
 #if HAS_EXTENDED_PRINTER_TYPE()
-    StoreItem<ExtendedPrinterType, static_cast<ExtendedPrinterType>(0), journal::hash("Extended Printer Type")> extended_printer_type;
+    StoreItem<uint8_t, 0, journal::hash("Extended Printer Type")> extended_printer_type;
 #endif
 
 #if HAS_INPUT_SHAPER_CALIBRATION()

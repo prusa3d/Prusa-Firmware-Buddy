@@ -11,6 +11,7 @@
 #include <tasks.hpp>
 #include <timing.h>
 #include <atomic>
+#include <str_utils.hpp>
 
 LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
@@ -19,25 +20,8 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
 #define USBD_VID 0x2C99 /// Prusa Research Vendor ID
 
-/// Product ID
-#if PRINTER_IS_PRUSA_MINI
-    #define USBD_PID 0x000C
-#elif PRINTER_IS_PRUSA_MK4
-// !!! Changes based on extended printer type
-#elif PRINTER_IS_PRUSA_MK3_5
-    #define USBD_PID 0x0017
-#elif PRINTER_IS_PRUSA_iX
-    #define USBD_PID 0x0010
-#elif PRINTER_IS_PRUSA_XL
-    #define USBD_PID 0x0011
-#else
-    #error "Unknown PRINTER_TYPE!"
-#endif
-
 #define USBD_LANGID_STRING          1033
 #define USBD_MANUFACTURER_STRING    "Prusa Research (prusa3d.com)"
-#define USBD_LANGID_STRING          1033
-#define USBD_PRODUCT_STRING_FS      ("Original Prusa " PRINTER_MODEL)
 #define USBD_SERIALNUMBER_STRING_FS "00000000001A"
 #define USBD_VBUS_CHECK_INTERVAL_MS 1000
 
@@ -136,11 +120,7 @@ static tusb_desc_device_t desc_device = {
     .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
 
     .idVendor = USBD_VID,
-#ifdef USBD_PID
-    .idProduct = USBD_PID,
-#else
     .idProduct = 0, // Will be defined later
-#endif
     .bcdDevice = 0x0100,
 
     .iManufacturer = 0x01,
@@ -230,19 +210,7 @@ usb_device_log(const char *fmt, ...) {
 // Invoked when received GET DEVICE DESCRIPTOR
 // Application returns pointer to the descriptor
 uint8_t const *tud_descriptor_device_cb(void) {
-
-#if PRINTER_IS_PRUSA_MK4
-    static constexpr EnumArray<ExtendedPrinterType, uint16_t, extended_printer_type_count> usb_pids {
-        { ExtendedPrinterType::mk4, 0x000D },
-        { ExtendedPrinterType::mk4s, 0x001a },
-        { ExtendedPrinterType::mk3_9, 0x0015 },
-    };
-    desc_device.idProduct = usb_pids.get_fallback(config_store().extended_printer_type.get(), ExtendedPrinterType::mk4);
-
-#elifndef USBD_PID
-    #error USBD_PID must be defined!
-#endif
-
+    desc_device.idProduct = PrinterModelInfo::current().usb_pid;
     return (uint8_t const *)&desc_device;
 }
 
@@ -277,7 +245,7 @@ uint8_t const *tud_descriptor_configuration_cb([[maybe_unused]] uint8_t index) {
 char const *string_desc_arr[] = {
     (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
     USBD_MANUFACTURER_STRING, // 1: Manufacturer
-    USBD_PRODUCT_STRING_FS, // 2: Product
+    nullptr, // 2: Product
     serial_nr.begin(), // 3: Serials, should use chip ID
     "CDC", // 4: CDC Interface
 };
@@ -299,34 +267,16 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, [[maybe_unused]] uint16_
             return NULL;
         }
 
-        const char *str = string_desc_arr[index];
-#if PRINTER_IS_PRUSA_MK4
-        if (index == 2) {
-            switch (config_store().extended_printer_type.get()) {
+        static char product_str[32];
+        StringBuilder sb(product_str);
+        sb.append_string("Original Prusa ");
+        sb.append_string(PrinterModelInfo::current().id_str);
 
-            case ExtendedPrinterType::mk4:
-                break;
-
-            case ExtendedPrinterType::mk4s:
-                str = "Original Prusa MK4S";
-                break;
-
-            case ExtendedPrinterType::mk3_9:
-                str = "Original Prusa MK3.9";
-                break;
-            }
-        }
-#endif
-
-        // cap at max char
-        chr_count = strlen(str);
-        if (chr_count > 31) {
-            chr_count = 31;
-        }
+        const auto len = strlen(product_str);
 
         // convert ASCII string into UTF-16
-        for (uint8_t i = 0; i < chr_count; i++) {
-            desc_str[1 + i] = str[i];
+        for (uint8_t i = 0; i < len; i++) {
+            desc_str[1 + i] = product_str[i];
         }
     }
 

@@ -275,10 +275,6 @@ public:
     /** Evaluates tool compatibility*/
     void EvaluateToolsValid();
 
-    /** Getter for printer_model_code
-     */
-    uint32_t getPrinterModelCode() const;
-
 private:
     /**
      * @brief Parse G-code file for comments and info codes.

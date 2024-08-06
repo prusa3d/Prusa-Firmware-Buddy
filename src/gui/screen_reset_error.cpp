@@ -50,12 +50,5 @@ void ScreenResetError::windowEvent([[maybe_unused]] window_t *sender, GUI_event_
 }
 
 void ScreenResetError::update_error_code([[maybe_unused]] uint16_t &error_code) {
-#if PRINTER_IS_PRUSA_MK4
-    static constexpr EnumArray<ExtendedPrinterType, int32_t, extended_printer_type_count> error_code_offsets {
-        { ExtendedPrinterType::mk4, 0 },
-        { ExtendedPrinterType::mk4s, (21 - ERR_PRINTER_CODE) * 1000 },
-        { ExtendedPrinterType::mk3_9, (26 - ERR_PRINTER_CODE) * 1000 },
-    };
-    error_code += error_code_offsets.get_fallback(config_store().extended_printer_type.get(), ExtendedPrinterType::mk4);
-#endif
+    error_code = error_code - ERR_PRINTER_CODE + PrinterModelInfo::current().usb_pid * 1000;
 }
