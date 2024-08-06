@@ -23,7 +23,9 @@ PrusaAccelerometer::PrusaAccelerometer()
 PrusaAccelerometer::~PrusaAccelerometer() {}
 
 void PrusaAccelerometer::clear() {
-    accelerometer.fifoClear();
+    Acceleration acceleration;
+    while (m_fifo.get(acceleration))
+        ;
 }
 int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
     int new_samples = m_fifo.get(acceleration);
