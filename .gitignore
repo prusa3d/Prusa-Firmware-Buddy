@@ -1,1 +1,6 @@
 build
+.esp8266-tools
+.esp8266-sdk
+
+compile_commands.json
+.cache

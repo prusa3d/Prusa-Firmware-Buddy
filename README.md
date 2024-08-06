@@ -8,6 +8,22 @@ This implements Wifi NIC on top of UART and ESP8266. The NIC can be used either 
 
 Either build docker image as described by provided Dockerfile or proceed according to the [ESP8266 RTOS SDK user manual](https://docs.espressif.com/projects/esp8266-rtos-sdk/en/latest/get-started/index.html)
 
+### Local build
+
+If you want to build the Wifi NIC firmware locally you can use `setup.sh` script:
+
+```bash
+./setup.sh
+```
+
+It will intstall the ESP8266 RTOS SDK locally (it won't polute your normall environment).
+It will also try to activate the local environment, to verify the instalation.
+
+To activate the dev environment, you can just run:
+```bash
+source ./activate.sh
+```
+
 ## Build
 
 This assumes SDK environemnt was sources and current directory is checked out root of the project.
