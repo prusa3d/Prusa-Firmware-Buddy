@@ -156,18 +156,6 @@ void GCodeInfo::reset_info() {
     error_str_ = {};
 }
 
-uint32_t GCodeInfo::getPrinterModelCode() const {
-    // FIXME: We are not checking if the printer has MMU and that is different model code
-    // But also we don't validate printer models with MMU values, MMU is checked as a feature
-#if HAS_EXTENDED_PRINTER_TYPE()
-    const auto current_sub_type = config_store().extended_printer_type.get();
-    const auto *const current_name = extended_printer_type_names[current_sub_type];
-    return std::to_underlying(printer::name_to_model_code(current_name));
-#else
-    return std::to_underlying(printer::name_to_model_code(PRINTER_MODEL));
-#endif
-}
-
 void GCodeInfo::EvaluateToolsValid() {
     EXTRUDER_LOOP() { // e == gcode_tool
         // do not check this nozzle if not used in print
@@ -352,6 +340,32 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
     char subcode = cmd.pop_front();
     cmd.skip_ws();
 
+    const auto check_compatibility = [&](const PrinterModelInfo *gcode_printer) {
+        // Unknown gcode printer, sayonara!
+        if (!gcode_printer) {
+            valid_printer_settings.wrong_printer_model.fail();
+            return;
+        }
+        const PrinterGCodeCompatibilityReport compatibility = PrinterModelInfo::current().gcode_compatibility_report(*gcode_printer);
+
+        // If there isn't full compatibility of the gcode, report wrong printer model
+        if (compatibility != PrinterGCodeCompatibilityReport { .is_compatible = true }) {
+            valid_printer_settings.wrong_printer_model.fail();
+        }
+
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+        if (compatibility.mk3_compatibility_mode) {
+            valid_printer_settings.gcode_compatibility_mode.fail();
+        }
+#endif
+
+#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
+        if (compatibility.mk4s_fan_compatibility_mode) {
+            valid_printer_settings.fan_compatibility_mode.fail();
+        }
+#endif
+    };
+
     // Parse parameters
     [[maybe_unused]] uint8_t tool = 0; // Default is first tool
     std::optional<float> p_diameter;
@@ -368,31 +382,8 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 break;
 
             case '3': {
-                auto printer = cmd.get_string();
-#if ENABLED(GCODE_COMPATIBILITY_MK3)
-                if (strncmp(printer.c_str(), "MK3", 3) == 0 && strncmp(printer.c_str(), "MK3.", 4) != 0) { // second condition due to MK3.5 & MK3.9
-                    valid_printer_settings.gcode_compatibility_mode.fail();
-                }
-#endif
-
-#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
-    #if !HAS_EXTENDED_PRINTER_TYPE()
-        #error "FAN_COMPATIBILITY_MK4_MK3 requires EXTENDED_PRINTER_TYPE"
-    #endif
-                if (config_store().extended_printer_type.get() == ExtendedPrinterType::mk4s && ((strncmp(printer.c_str(), "MK4", 3) == 0 && strncmp(printer.c_str(), "MK4S", 4) != 0) || strncmp(printer.c_str(), "MK3", 3) == 0)) {
-                    valid_printer_settings.fan_compatibility_mode.fail();
-                }
-#endif
-                // Check basic printer model as MK4 or XL
-#if HAS_EXTENDED_PRINTER_TYPE()
-                const auto current_sub_type = config_store().extended_printer_type.get();
-                const auto *const current_name = extended_printer_type_names[current_sub_type];
-                if (printer != current_name && (current_sub_type != ExtendedPrinterType::mk4 || printer != "MK3.9") && (current_sub_type != ExtendedPrinterType::mk3_9 || printer != "MK4")) {
-#else
-                if (strncmp(PRINTER_MODEL, printer.c_str(), strlen(PRINTER_MODEL)) != 0) {
-#endif
-                    valid_printer_settings.wrong_printer_model.fail();
-                }
+                const auto gcode_printer_str = cmd.get_string();
+                check_compatibility(PrinterModelInfo::from_id_str(std::string_view(gcode_printer_str.begin, gcode_printer_str.end)));
                 break;
             }
 
@@ -403,30 +394,9 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 }
                 break;
 
-            case '2': {
-                const auto printer_model_code = printer::model_code_without_mmu(static_cast<printer::PrinterModelCode>(cmd.get_uint()));
-#if ENABLED(GCODE_COMPATIBILITY_MK3)
-                if (printer::requires_gcode_compatibility_mode(printer_model_code)) {
-                    valid_printer_settings.gcode_compatibility_mode.fail();
-                }
-#endif
-#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
-                if (config_store().extended_printer_type.get() == ExtendedPrinterType::mk4s && printer::requires_fan_compatibility_mode(printer_model_code)) {
-                    valid_printer_settings.fan_compatibility_mode.fail();
-                }
-#endif
-#if HAS_EXTENDED_PRINTER_TYPE()
-                const auto current_sub_type = config_store().extended_printer_type.get();
-                const auto *const current_name = extended_printer_type_names[current_sub_type];
-                const auto current_code = printer::name_to_model_code(current_name);
-                if (printer_model_code != current_code && (current_sub_type != ExtendedPrinterType::mk4 || printer_model_code != printer::PrinterModelCode::MK3_9) && (current_sub_type != ExtendedPrinterType::mk3_9 || printer_model_code != printer::PrinterModelCode::MK4)) {
-#else
-                if (printer_model_code != printer::name_to_model_code(PRINTER_MODEL)) {
-#endif
-                    valid_printer_settings.wrong_printer_model.fail();
-                }
+            case '2':
+                check_compatibility(PrinterModelInfo::from_gcode_check_code(cmd.get_uint()));
                 break;
-            }
 
             case '5':
                 if (cmd.get_uint() > gcode_level) {

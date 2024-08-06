@@ -300,23 +300,17 @@ void turn_off() {
 }
 
 bool has_nfc_probably() {
-    // Currently, we don't have a way to detect the antenna presence. So just guess based on the printer model.
-    // Revisit this if we add more products
-
-#if PRINTER_IS_PRUSA_MK4()
-    // MK4S is the only printer that has the antenna in the package.
+    // MK 3.xS/4S are the only printers that has the antenna in the package.
     // So if this is a MK4S, it probably has an NFC, if not, then it probably doesn't.
-    static_assert(extended_printer_type_count == 3);
-    return config_store().extended_printer_type.get() == ExtendedPrinterType::mk4s;
+    switch (PrinterModelInfo::current().model) {
+    case PrinterModel::mk4s:
+    case PrinterModel::mk3_9s:
+    case PrinterModel::mk3_5s:
+        return true;
 
-#elif PRINTER_IS_PRUSA_MK3_5()
-    static_assert(!HAS_EXTENDED_PRINTER_TYPE());
-    return false;
-
-#else
-    #error Revisit this
-
-#endif
+    default:
+        return false;
+    }
 }
 
 bool has_activity() {

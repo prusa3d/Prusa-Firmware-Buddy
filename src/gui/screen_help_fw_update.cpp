@@ -9,7 +9,6 @@
 #include <config_store/store_instance.hpp>
 #include <guiconfig/guiconfig.h>
 #include <img_resources.hpp>
-#include <common/help_urls.hpp>
 
 inline constexpr PhaseResponses Responses_Back = { Response::Back, Response::_none, Response::_none, Response::_none };
 
@@ -72,7 +71,7 @@ ScreenHelpFWUpdate::ScreenHelpFWUpdate()
     header.SetIcon(&img::info_16x16);
     header.SetText(_(txt_header));
 
-    StringBuilder(qr_link_text).append_printf("prusa.io/%s-firmware", get_printer_help_url());
+    StringBuilder(qr_link_text).append_printf("prusa.io/%s-firmware", PrinterModelInfo::current().help_url);
     qr.SetText(qr_link_text.data());
 
     description.SetAlignment(Align_t::LeftTop());

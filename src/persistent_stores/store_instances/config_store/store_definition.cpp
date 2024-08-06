@@ -33,7 +33,8 @@ void CurrentStore::perform_config_check() {
 #endif
 
 #if PRINTER_IS_PRUSA_MK4()
-        extended_printer_type.set(ExtendedPrinterType::mk4s);
+        static_assert(extended_printer_type_model[1] == PrinterModel::mk4s);
+        extended_printer_type.set(1);
         hotend_type.set(HotendType::stock_with_sock);
 
 #elif PRINTER_IS_PRUSA_XL()
@@ -41,6 +42,11 @@ void CurrentStore::perform_config_check() {
         for (int i = 0; i < HOTENDS; i++) {
             set_nozzle_diameter(i, 0.4f);
         }
+
+#elif PRINTER_IS_PRUSA_MK3_5()
+        static_assert(extended_printer_type_model[1] == PrinterModel::mk3_5s);
+        extended_printer_type.set(1);
+
 #endif
     }
 

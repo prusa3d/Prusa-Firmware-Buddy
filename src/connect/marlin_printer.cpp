@@ -195,8 +195,7 @@ Printer::Params MarlinPrinter::params() const {
     params.print_speed = marlin_vars().print_speed;
     params.flow_factor = marlin_vars().active_hotend().flow_factor;
     params.job_id = marlin_vars().job_id;
-    // Version can change between MK4 and MK3.9 in runtime
-    params.version = get_printer_version();
+    params.version = PrinterModelInfo::current().version;
     get_slot_info(params);
 #if ENABLED(CANCEL_OBJECTS)
     params.cancel_object_count = marlin_vars().cancel_object_count;

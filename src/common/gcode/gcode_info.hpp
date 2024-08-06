@@ -254,10 +254,6 @@ public:
     /** Evaluates tool compatibility*/
     void EvaluateToolsValid();
 
-    /** Getter for printer_model_code
-     */
-    uint32_t getPrinterModelCode() const;
-
 private:
     /** Iterate over items separated by some delimeter character */
     std::optional<std::string_view> iterate_items(std::span<char> &buffer, char separator);
