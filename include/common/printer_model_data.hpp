@@ -116,6 +116,15 @@ inline constexpr std::array printer_model_info {
         .gcode_check_code = 160,
         .id_str = "iX",
     },
+    PrinterModelInfo {
+        .model = PrinterModel::cube,
+        .compatibility_group = PrinterModelCompatibilityGroup::cube,
+        .version = { 6, 1, 0 },
+        .help_url = "cube",
+        .usb_pid = 30,
+        .gcode_check_code = 300,
+        .id_str = "CUBE",
+    },
 };
 
 inline constexpr std::array printer_model_mmu_variant {
@@ -158,6 +167,11 @@ inline constexpr std::array printer_model_mmu_variant {
         .model = PrinterModel::mk4s,
         .gcode_check_code = 30260,
         .id_str = "MK4SMMU3",
+    },
+    PrinterModelMMUVariant {
+        .model = PrinterModel::cube,
+        .gcode_check_code = 30300,
+        .id_str = "CUBEMMU3",
     },
 };
 

@@ -22,6 +22,7 @@ enum class PrinterModel : uint8_t {
     xl,
     xl_dev_kit,
     ix,
+    cube,
 
     _cnt
 };
@@ -34,6 +35,7 @@ enum class PrinterModelCompatibilityGroup : uint8_t {
     xl,
     ix,
     mini,
+    cube,
 };
 
 struct PrinterVersion {
