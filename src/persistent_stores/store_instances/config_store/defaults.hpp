@@ -299,8 +299,8 @@ namespace defaults {
             result[i] = FilamentTypeParameters {
                 .name = {
                     'U', 'S', 'E', 'R',
-                    static_cast<uint8_t>('0' + (i >= 10 ? i / 10 : i % 10)),
-                    static_cast<uint8_t>(i >= 10 ? ('0' + i % 10) : '\0'),
+                    static_cast<char>('0' + (i >= 10 ? i / 10 : i % 10)),
+                    static_cast<char>(i >= 10 ? ('0' + i % 10) : '\0'),
                     '\0' },
                 .nozzle_temperature = 215,
                 .nozzle_preheat_temperature = 170,

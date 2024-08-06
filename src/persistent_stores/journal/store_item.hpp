@@ -15,9 +15,6 @@ namespace journal {
 template <typename DataT>
 concept StoreItemDataC = std::equality_comparable<DataT> && std::default_initializable<DataT> && std::is_trivially_copyable_v<DataT>;
 
-template <typename DataT, typename T, uint8_t count>
-concept ItemArrayDefaultValC = std::same_as<std::array<DataT, count>, T> || std::same_as<DataT, T>;
-
 template <StoreItemDataC DataT, auto backend>
 struct JournalItemBase {
 protected:
@@ -180,10 +177,9 @@ public:
 /// \p max_item_count determines the maximum item_count the item can ever have. This is only used for hash collision checking. It can never be decreased, but it can be increased (granted that it does not cause hash collisions)
 /// The journal_hashes_generator python script looks for the next argument after journal::hash for the hash range size - so \p max_item_count must be directly after \p hashed_id
 template <StoreItemDataC DataT, auto default_val, auto backend, uint16_t hashed_id, uint8_t max_item_count, uint8_t item_count>
-    requires ItemArrayDefaultValC<DataT, decltype(default_val), item_count> && (item_count > 0)
 struct JournalItemArray {
 private:
-    using DefaultVal = decltype(default_val);
+    using DefaultVal = std::remove_cvref_t<decltype(default_val)>;
     using ItemArray = std::array<DataT, item_count>;
     ItemArray data_array;
 
@@ -194,6 +190,8 @@ public:
     static_assert(journal::BackendC<BackendT>); // BackendT type needs to fulfill this concept. Can be moved to signature with newer clangd, causes too many errors now (constrained auto)
     static_assert(data_size < BackendT::MAX_ITEM_SIZE, "Item is too large");
     static_assert(max_item_count >= item_count);
+    static_assert(std::is_same_v<DefaultVal, std::array<DataT, item_count>> || std::is_same_v<DefaultVal, DataT>);
+    static_assert(item_count > 0);
 
     using DataArg = JournalItemBase<DataT, backend>::DataArg;
 
