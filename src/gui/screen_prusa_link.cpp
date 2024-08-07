@@ -46,6 +46,21 @@ void MI_PL_PASSWORD_VALUE::print_password(const char *passwd) {
 MI_PL_PASSWORD_VALUE::MI_PL_PASSWORD_VALUE()
     : IWindowMenuItem(_(label), PASSWD_STR_LENGTH * width(GuiDefaults::FontMenuSpecial)) {}
 
+MI_PL_APIKEY_LABEL::MI_PL_APIKEY_LABEL()
+    : IWindowMenuItem(_(label), 0) {}
+
+void MI_PL_APIKEY_VALUE::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
+    render_text_align(extension_rect, string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(apikey_buffer)), GuiDefaults::FontMenuSpecial, color_back, (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter());
+}
+
+void MI_PL_APIKEY_VALUE::print_apikey(const char *passwd) {
+    snprintf(apikey_buffer, PASSWD_STR_LENGTH + 1, "%s", passwd);
+    InValidateExtension();
+}
+
+MI_PL_APIKEY_VALUE::MI_PL_APIKEY_VALUE()
+    : IWindowMenuItem(_(label), PASSWD_STR_LENGTH * width(GuiDefaults::FontMenuSpecial)) {}
+
 void MI_PL_USER::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
     render_text_align(extension_rect, string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(PRUSA_LINK_USERNAME)), GuiDefaults::FontMenuSpecial, color_back, (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter());
 }
@@ -59,7 +74,8 @@ ScreenMenuPrusaLink::ScreenMenuPrusaLink()
     , header(this) {
     header.SetText(_("PRUSALINK"));
     CaptureNormalWindow(menu); // set capture to list
-    display_passwd(wui_get_password());
+    display_apikey(wui_get_apikey());
+    display_passwd(wui_get_user_password());
     // The user might want to read the password from here, don't time it out on them.
     ClrMenuTimeoutClose();
 }
@@ -71,14 +87,28 @@ void ScreenMenuPrusaLink::windowEvent(EventLock /*has private ctor*/, window_t *
         uint32_t type = ((uint32_t)param) & 0xFFFF0000;
         switch (type) {
         case MI_PL_REGENERATE_PASSWORD::EventMask::value: {
-            char password[config_store_ns::pl_password_size] = { 0 };
-            wui_generate_password(password, config_store_ns::pl_password_size);
-            wui_store_password(password, config_store_ns::pl_password_size);
-            display_passwd(password);
+            uint8_t key_flags = wui_load_ini_file();
+            if (!(key_flags & 1)) {
+                char password[config_store_ns::pl_password_size] = { 0 };
+                wui_generate_password(password, config_store_ns::pl_password_size);
+                wui_store_apikey(password, config_store_ns::pl_password_size);
+            }
+            display_apikey(wui_get_apikey());
+            // Set user password to api-key if none given
+            if (!(key_flags & 2)) {
+                wui_store_user_password((char *)wui_get_apikey(), config_store_ns::pl_password_size);
+            }
+            display_passwd(wui_get_user_password());
             break;
         }
         case MI_PL_ENABLED::EventMask::value:
             config_store().prusalink_enabled.set(static_cast<uint8_t>(action));
+            // Load keys now?
+            if (wui_load_ini_file() != 0) {
+                // Keys found - update display
+                display_apikey(wui_get_apikey());
+                display_passwd(wui_get_user_password());
+            }
             notify_reconfigure();
             break;
         default:
