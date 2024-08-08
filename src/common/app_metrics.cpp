@@ -214,12 +214,8 @@ void buddy::metrics::RecordMarlinVariables() {
     metric_record_integer(&metric_nozzle_pwm, thermalManager.bed_pwm);
 #endif
 
-    {
-        METRIC_DEF(bed, "temp_bed", METRIC_VALUE_FLOAT, 2000 + 23, METRIC_HANDLER_DISABLE_ALL);
-        const float value = thermalManager.degBed();
-        metric_record_float(&bed, value);
-        sensor_data().bedTemp = value;
-    }
+    METRIC_DEF(bed, "temp_bed", METRIC_VALUE_FLOAT, 2000 + 23, METRIC_HANDLER_DISABLE_ALL);
+    metric_record_float(&bed, thermalManager.degBed());
 
     METRIC_DEF(target_bed, "ttemp_bed", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
     metric_record_integer(&target_bed, thermalManager.degTargetBed());
@@ -241,12 +237,8 @@ void buddy::metrics::RecordMarlinVariables() {
     }
 
 #if FAN_COUNT >= 1
-    {
-        METRIC_DEF(fan_speed, "fan_speed", METRIC_VALUE_INTEGER, 501, METRIC_HANDLER_DISABLE_ALL);
-        const float value = thermalManager.fan_speed[0];
-        metric_record_integer(&fan_speed, value);
-        sensor_data().printFan = value;
-    }
+    METRIC_DEF(fan_speed, "fan_speed", METRIC_VALUE_INTEGER, 501, METRIC_HANDLER_DISABLE_ALL);
+    metric_record_integer(&fan_speed, thermalManager.fan_speed[0]);
 #endif
 
 #if FAN_COUNT >= 2

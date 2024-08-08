@@ -16,11 +16,7 @@ private:
 
 public:
     float MCUTemp;
-    float printFanAct;
-    float hbrFanAct;
     float boardTemp;
-    float bedTemp;
-    float printFan;
     float hbrFan;
 #if BOARD_IS_XLBUDDY()
     float inputVoltage;

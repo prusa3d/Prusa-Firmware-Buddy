@@ -28,17 +28,9 @@ void record_fanctl_metrics() {
 
     if (HAL_GetTick() - last_update > UPDATE_PERIOD) {
         record(Fans::print(active_extruder), "print");
-        {
-            const float value = Fans::print(active_extruder).getActualRPM();
-            metric_record_integer(&fan_print, value);
-            sensor_data().printFanAct = value;
-        }
+        metric_record_integer(&fan_print, Fans::print(active_extruder).getActualRPM());
         record(Fans::heat_break(active_extruder), "heatbreak");
-        {
-            const float value = Fans::heat_break(active_extruder).getActualRPM();
-            metric_record_integer(&fan_hbr, value);
-            sensor_data().hbrFanAct = value;
-        }
+        metric_record_integer(&fan_hbr, Fans::heat_break(active_extruder).getActualRPM());
 #if XL_ENCLOSURE_SUPPORT() // XLBOARD has additional enclosure fan
         record(Fans::enclosure(), "enclosure");
         metric_record_integer(&fan_enclosure, Fans::enclosure().getActualRPM());
