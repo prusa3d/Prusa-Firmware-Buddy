@@ -653,8 +653,8 @@ MI_INFO_BED_TEMP::MI_INFO_BED_TEMP()
 /*****************************************************************************/
 // MI_INFO_FILL_SENSOR
 MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(const string_view_utf8 &label)
-    : WI_FORMATABLE_LABEL_t<std::pair<float, float>>(
-        label, nullptr, is_enabled_t::yes, is_hidden_t::no, { {}, {} }, [&](char *buffer) {
+    : WI_LAMBDA_LABEL_t(
+        label, nullptr, is_enabled_t::yes, is_hidden_t::no, [&](char *buffer) {
             static constexpr EnumArray<FilamentSensorState, const char *, 6> texts {
                 { FilamentSensorState::NotInitialized, N_("uninitialized / %ld") },
                 { FilamentSensorState::NotCalibrated, N_("uncalibrated / %ld") }, // not calibrated would be too long
@@ -665,9 +665,23 @@ MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(const string_view_utf8 &label)
             };
 
             StringViewUtf8Parameters<8> params;
-            const auto orig_str = _(texts.get_fallback(static_cast<FilamentSensorState>((int)value.first), FilamentSensorState::NotInitialized));
-            orig_str.formatted(params, (int)value.second).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
+            const auto orig_str = _(texts.get_fallback(state, FilamentSensorState::NotInitialized));
+            orig_str.formatted(params, value).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
         }) {}
+
+void MI_INFO_FILL_SENSOR::UpdateValue(IFSensor *fsensor) {
+    FilamentSensorState state = FilamentSensorState::NotInitialized;
+    int32_t value = 0;
+    if (fsensor) {
+        state = fsensor->get_state();
+        value = fsensor->GetFilteredValue();
+    }
+    if (this->state != state || this->value != value) {
+        this->state = state;
+        this->value = value;
+        InValidateExtension();
+    }
+}
 
 /*****************************************************************************/
 // MI_INFO_PRINTER_FILL_SENSOR

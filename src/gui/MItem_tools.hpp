@@ -8,6 +8,8 @@
 #include "WindowItemFanLabel.hpp"
 #include "WindowItemTempLabel.hpp"
 #include "config.h"
+#include <common/filament_sensor.hpp>
+#include <common/filament_sensor_states.hpp>
 #include <utility_extensions.hpp>
 #include <option/has_dwarf.h>
 #include <option/has_side_fsensor.h>
@@ -531,9 +533,18 @@ public:
     MI_INFO_BED_TEMP();
 };
 
-class MI_INFO_FILL_SENSOR : public WI_FORMATABLE_LABEL_t<std::pair<float, float>> {
+class MI_INFO_FILL_SENSOR : public WI_LAMBDA_LABEL_t {
+private:
+    FilamentSensorState state;
+    int32_t value;
+
+protected:
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
+
 public:
     MI_INFO_FILL_SENSOR(const string_view_utf8 &label);
+
+    void UpdateValue(IFSensor *fsensor);
 };
 
 class MI_INFO_PRINTER_FILL_SENSOR : public MI_INFO_FILL_SENSOR {

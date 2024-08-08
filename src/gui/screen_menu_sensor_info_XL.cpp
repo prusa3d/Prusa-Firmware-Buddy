@@ -38,16 +38,8 @@ void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void
         Item<MI_INFO_DWARF_MCU_TEMPERATURE>().UpdateValue(sensor_data().dwarfMCUTemperature);
         Item<MI_INFO_MODULAR_BED_MCU_TEMPERATURE>().UpdateValue(sensor_data().mbedMCUTemperature);
         Item<MI_INFO_LOADCELL>().UpdateValue(sensor_data().loadCell);
-        if (auto fsensor = GetExtruderFSensor(marlin_vars().active_extruder.get()); fsensor) { // Try to get extruder filament sensor
-            Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->get_state()), static_cast<int>(fsensor->GetFilteredValue())));
-        } else {
-            Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue({ {}, {} });
-        }
-        if (auto fsensor = GetSideFSensor(marlin_vars().active_extruder.get()); fsensor) { // Try to get side filament sensor
-            Item<MI_INFO_SIDE_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->get_state()), static_cast<int>(fsensor->GetFilteredValue())));
-        } else {
-            Item<MI_INFO_SIDE_FILL_SENSOR>().UpdateValue({ {}, {} });
-        }
+        Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(GetExtruderFSensor(marlin_vars().active_extruder.get()));
+        Item<MI_INFO_SIDE_FILL_SENSOR>().UpdateValue(GetSideFSensor(marlin_vars().active_extruder.get()));
         Item<MI_INFO_PRINT_FAN>().UpdateValue(
             sensor_data().printFan,
             sensor_data().printFanAct);
