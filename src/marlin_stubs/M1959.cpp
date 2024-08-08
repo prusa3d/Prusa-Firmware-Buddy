@@ -332,10 +332,6 @@ static PhasesInputShaperCalibration measuring_axis(
     enable_all_steppers(); // enable all axes to have the same state as printing
 
     stepper_microsteps(logicalAxis, 128);
-    const float step_len = get_step_len(axis_flag, microstepRestorer.saved_mres());
-    if (isnan(step_len)) {
-        bsod("isnan(step_len)");
-    }
 
     VibrateMeasureParams args {
         .accelerometer = *context.accelerometer,
@@ -344,8 +340,11 @@ static PhasesInputShaperCalibration measuring_axis(
         .acceleration = acceleration_requested,
         .cycles = cycles,
         .accelerometer_sample_period = context.accelerometer_sample_period,
-        .step_len = step_len,
     };
+    if (!args.setup(microstepRestorer, false)) {
+        bsod("setup failed");
+    }
+
     float frequency = frequency_range.start;
     for (size_t i = 0; i < spectrum.size(); ++i) {
         if (was_abort_requested(phase)) {
