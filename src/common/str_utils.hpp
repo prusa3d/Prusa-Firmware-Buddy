@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <assert.h>
+#include "../lang/string_view_utf8.hpp"
 
 inline constexpr char CHAR_SPACE = ' ';
 inline constexpr char CHAR_NBSP = '\xA0'; /// Non Breaking Space
@@ -383,6 +384,8 @@ public:
     void append_char(char ch);
 
     void append_string(const char *str);
+
+    void append_string_view(string_view_utf8 str);
 
     /// Appends text to the builder, using vsnprintf under the hood.
     void __attribute__((format(__printf__, 2, 3)))

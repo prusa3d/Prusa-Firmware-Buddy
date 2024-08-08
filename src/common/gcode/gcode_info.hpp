@@ -66,7 +66,7 @@ public:
     static constexpr size_t search_first_x_gcodes = 200;
 
     using time_buff = std::array<char, 16>;
-    using filament_buff = std::array<char, 8>;
+    using filament_buff = std::array<char, config_store_ns::max_filament_name_size>;
 
     struct ExtruderInfo {
         struct Colour {

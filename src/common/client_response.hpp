@@ -503,7 +503,8 @@ class ClientResponses {
     static constexpr PhaseResponses PreheatResponses[] = {
         {}, // initial
         { Response::Abort, Response::Cooldown, Response::PLA, Response::PETG,
-            Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB, Response::PA }, // UserTempSelection
+            Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB, Response::PA,
+            Response::CUSTOM_1, Response::CUSTOM_2, Response::CUSTOM_3, Response::CUSTOM_4 }, // UserTempSelection
     };
     static_assert(std::size(ClientResponses::PreheatResponses) == CountPhases<PhasesPreheat>());
 
