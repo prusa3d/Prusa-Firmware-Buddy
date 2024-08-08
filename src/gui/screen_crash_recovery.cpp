@@ -245,6 +245,10 @@ WinsToolRecovery::WinsToolRecovery(ScreenCrashRecovery &screen)
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
         #endif
 }
+
+WinsToolRecovery::~WinsToolRecovery() {
+    Sound_Stop();
+}
     #endif /*HAS_TOOLCHANGER()*/
 
 ScreenCrashRecovery::ScreenCrashRecovery()
