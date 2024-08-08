@@ -29,8 +29,8 @@ void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void
             Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue({ {}, {} });
         }
         Item<MI_INFO_FINDA>().UpdateValue(marlin_vars().mmu2_finda);
-        Item<MI_INFO_PRINT_FAN>().UpdateValue(std::make_pair(sensor_data().printFan, sensor_data().printFanAct));
-        Item<MI_INFO_HBR_FAN>().UpdateValue(std::make_pair(sensor_data().hbrFan, sensor_data().hbrFanAct));
+        Item<MI_INFO_PRINT_FAN>().UpdateValue(sensor_data().printFan, sensor_data().printFanAct);
+        Item<MI_INFO_HBR_FAN>().UpdateValue(sensor_data().hbrFan, sensor_data().hbrFanAct);
         Item<MI_INFO_HEATER_VOLTAGE>().UpdateValue(sensor_data().heaterVoltage);
         Item<MI_INFO_INPUT_VOLTAGE>().UpdateValue(sensor_data().inputVoltage);
         Item<MI_INFO_HEATER_CURRENT>().UpdateValue(sensor_data().heaterCurrent);

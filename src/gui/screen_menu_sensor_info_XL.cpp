@@ -48,13 +48,13 @@ void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void
         } else {
             Item<MI_INFO_SIDE_FILL_SENSOR>().UpdateValue({ {}, {} });
         }
-        Item<MI_INFO_PRINT_FAN>().UpdateValue(std::make_pair(
+        Item<MI_INFO_PRINT_FAN>().UpdateValue(
             sensor_data().printFan,
-            sensor_data().printFanAct));
+            sensor_data().printFanAct);
 
-        Item<MI_INFO_HBR_FAN>().UpdateValue(std::make_pair(
+        Item<MI_INFO_HBR_FAN>().UpdateValue(
             sensor_data().hbrFan,
-            sensor_data().hbrFanAct));
+            sensor_data().hbrFanAct);
         Item<MI_INFO_INPUT_VOLTAGE>().UpdateValue(sensor_data().inputVoltage);
         Item<MI_INFO_5V_VOLTAGE>().UpdateValue(sensor_data().sandwich5VVoltage);
         Item<MI_INFO_SANDWICH_5V_CURRENT>().UpdateValue(sensor_data().sandwich5VCurrent);
