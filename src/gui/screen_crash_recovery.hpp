@@ -76,6 +76,7 @@ struct WinsToolRecovery {
     RadioButton radio;
     static constexpr PhaseTexts texts = { { "Continue" } };
     WinsToolRecovery(ScreenCrashRecovery &screen);
+    ~WinsToolRecovery();
 };
 
 using WinVariant = std::variant<
