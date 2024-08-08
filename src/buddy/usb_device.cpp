@@ -241,11 +241,14 @@ uint8_t const *tud_descriptor_configuration_cb([[maybe_unused]] uint8_t index) {
     return desc_fs_configuration;
 }
 
+/// Updated dynamically
+static char product_str[32];
+
 // Array of pointer to string descriptors
 char const *string_desc_arr[] = {
-    (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
+    "\x09\x04", // 0: is supported language is English (0x0409)
     USBD_MANUFACTURER_STRING, // 1: Manufacturer
-    nullptr, // 2: Product
+    product_str, // 2: Product
     serial_nr.begin(), // 3: Serials, should use chip ID
     "CDC", // 4: CDC Interface
 };
@@ -253,35 +256,32 @@ char const *string_desc_arr[] = {
 // Invoked when received GET STRING DESCRIPTOR request
 // Application return pointer to descriptor, whose contents must exist long enough for transfer to complete
 uint16_t const *tud_descriptor_string_cb(uint8_t index, [[maybe_unused]] uint16_t langid) {
-    static uint16_t desc_str[32];
-    uint8_t chr_count;
+    // note: Dthe 0xEE index string is a Microsoft OS 1.0 Descriptors.
+    // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
 
-    if (index == 0) {
-        memcpy(&desc_str[1], string_desc_arr[0], 2);
-        chr_count = 1;
-    } else {
-        // note: Dthe 0xEE index string is a Microsoft OS 1.0 Descriptors.
-        // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
+    if (index >= std::size(string_desc_arr)) {
+        return NULL;
+    }
 
-        if (!(index < sizeof(string_desc_arr) / sizeof(string_desc_arr[0]))) {
-            return NULL;
-        }
-
-        static char product_str[32];
+    if (index == 2) {
+        // Product string - needs to be dynamically updated
         StringBuilder sb(product_str);
         sb.append_string("Original Prusa ");
         sb.append_string(PrinterModelInfo::current().id_str);
-
-        const auto len = strlen(product_str);
-
-        // convert ASCII string into UTF-16
-        for (uint8_t i = 0; i < len; i++) {
-            desc_str[1 + i] = product_str[i];
-        }
     }
 
+    const char *str = string_desc_arr[index];
+    const uint8_t chr_count = strlen(str);
+
+    static uint16_t desc_str[32];
+
     // first byte is length (including header), second byte is string type
-    desc_str[0] = (TUSB_DESC_STRING << 8) | (2 * chr_count + 2);
+    desc_str[0] = (2 * chr_count + 2) | (TUSB_DESC_STRING << 8);
+
+    // convert ASCII string into UTF-16
+    for (uint8_t i = 0; i < chr_count; i++) {
+        desc_str[i + 1] = str[i];
+    }
 
     return desc_str;
 }
