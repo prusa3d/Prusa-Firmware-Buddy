@@ -103,7 +103,7 @@ public:
 
 private:
     static constexpr const char *text_info = N_(
-        "To learn more about the input shaper calibration process, visit our website:");
+        "Attention: Ensure the accelerometer is properly connected. Follow the step-by-step guide in the link below:");
     std::array<char, 32> link_buffer;
     std::array<char, 32> qr_buffer;
 };
