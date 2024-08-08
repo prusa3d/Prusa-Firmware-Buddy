@@ -111,7 +111,6 @@ static std::atomic<netif *> active_esp_netif;
 static std::atomic<uint8_t> init_countdown = 20;
 static std::atomic<bool> seen_intron = false;
 static std::atomic<bool> seen_rx_packet = false;
-static std::atomic<bool> reset_parser = false;
 
 // UART
 static std::atomic<bool> esp_detected;
@@ -636,22 +635,6 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
     static struct pbuf *rx_buff_cur = NULL; // Current pbuf for data receive (part of rx_buff chain)
     static uint32_t rx_read = 0; // Amount of bytes already read into rx_buff_cur
 
-    bool did_reset = true;
-    if (reset_parser.compare_exchange_strong(did_reset, false, std::memory_order_release, std::memory_order_relaxed)) {
-        log_info(ESPIF, "Reseting uart input parser");
-        state = Intron;
-        rx_len = 0;
-        rx_read = 0;
-        intron_read = 0;
-        mac_read = 0;
-        scan.ap_ssid_read = 0;
-        if (rx_buff != nullptr) {
-            pbuf_free(rx_buff);
-            rx_buff = nullptr;
-            rx_buff_cur = nullptr;
-        }
-    }
-
     const uint8_t *end = &data[size];
     for (uint8_t *c = &data[0]; c < end;) {
         switch (state) {
@@ -952,7 +935,6 @@ void espif_reset() {
     force_down();
     hard_reset_device(); // Reset device to receive MAC address
     esp_operating_mode = ESPIF_WAIT_INIT;
-    reset_parser = true;
 }
 
 void espif_notify_flash_result(FlashResult result) {
