@@ -1,14 +1,15 @@
 #include "selftest_gears.hpp"
-#include "filament_sensors_handler.hpp"
-#include <guiconfig/wizard_config.hpp>
-#include "i_selftest.hpp"
-#include "common/RAII.hpp"
-#include "M70X.hpp"
+#include "selftest_part.hpp"
 
-#include "mapi/motion.hpp"
-#include "Marlin/src/module/temperature.h"
-#include "../../Marlin/src/module/stepper.h"
+#include <M70X.hpp>
+#include <Marlin/src/Marlin.h>
+#include <Marlin/src/module/stepper.h>
+#include <Marlin/src/module/temperature.h>
+#include <common/RAII.hpp>
+#include <common/filament_sensors_handler.hpp>
 #include <config_store/store_instance.hpp>
+#include <guiconfig/wizard_config.hpp>
+#include <mapi/motion.hpp>
 
 LOG_COMPONENT_REF(Selftest);
 
@@ -38,6 +39,7 @@ bool phase_gears(IPartHandler *&selftest_gears, const SelftestGearsConfig &confi
             &SelftestGears::state_done);
     }
 
+    enable_Z();
     bool in_progress = selftest_gears->Loop();
 
     marlin_server::fsm_change(IPartHandler::GetFsmPhase(), static_result.serialize());
@@ -56,6 +58,8 @@ bool phase_gears(IPartHandler *&selftest_gears, const SelftestGearsConfig &confi
 
     delete selftest_gears;
     selftest_gears = nullptr;
+
+    disable_Z();
 
     config_store().selftest_result.set(eeres);
 
