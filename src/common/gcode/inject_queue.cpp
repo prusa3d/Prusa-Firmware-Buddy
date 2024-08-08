@@ -115,7 +115,7 @@ std::expected<const char *, InjectQueue::GetGCodeError> InjectQueue::get_gcode()
     }
 
     // Otherwise, the item is a file, we need to start buffering
-    StringBuilder filepath(filepath_buffer);
+    StringBuilder filepath(gcode_stream_buffer);
     filepath.append_string("/usb/macros/");
     std::visit([&]<typename T>(const T &v) {
         if constexpr (std::is_same_v<T, GCodeMacroButton>) {
@@ -141,7 +141,7 @@ std::expected<const char *, InjectQueue::GetGCodeError> InjectQueue::get_gcode()
     assert(!worker_job.is_active());
     buffer_state = BufferState::buffering;
     worker_job.issue([this](AsyncJobExecutionControl &control) {
-        InjectQueue::load_gcodes_from_file_callback(filepath_buffer, control);
+        InjectQueue::load_gcodes_from_file_callback(gcode_stream_buffer, control);
     });
 
     return std::unexpected(GetGCodeError::buffering);

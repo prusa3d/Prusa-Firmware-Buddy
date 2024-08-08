@@ -3,7 +3,6 @@
 #include "inject_queue_actions.hpp"
 #include <common/circular_buffer.hpp>
 #include <async_job/async_job.hpp>
-#include <span>
 #include <str_utils.hpp>
 #include <expected>
 #include <atomic>
@@ -56,7 +55,6 @@ private:
 
     std::atomic<BufferState> buffer_state = BufferState::idle;
     char gcode_stream_buffer[gcode_stream_buffer_size]; //!< buffer for compiling gcode stream from a file
-    char filepath_buffer[FILE_PATH_BUFFER_LEN]; //!< buffer for macro gcode filepath
     CircularBuffer<InjectQueueRecord, queue_size> queue; //!< Queue (real size is queue_size - 1)
     AsyncJob worker_job; //!< Used for asynchronous buffering of gcode stream from a file
 };
