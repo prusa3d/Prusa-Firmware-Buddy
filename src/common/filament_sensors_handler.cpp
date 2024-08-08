@@ -253,6 +253,10 @@ void FilamentSensors::process_events() {
 #endif
 
     } else {
+        if (sensor(LogicalFilamentSensor::current_extruder)->get_state() == FilamentSensorState::NoFilament) {
+            config_store().set_filament_type(tool_index, FilamentType::none);
+        }
+
         if (check_autoload()) {
             return;
         }
