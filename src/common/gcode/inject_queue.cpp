@@ -32,6 +32,8 @@ void InjectQueue::load_gcodes_from_file_callback(const char *filepath, AsyncJobE
         }
     }
 
+    // gcode_stream_buffer is used to store filepath & then the gcode stream itself
+    // Filepath doesn't need separate buffer - file is opened and after that buffer is no longer needed and is overwritten here
     StringBuilder str_builder(inject_queue.gcode_stream_buffer);
     bool first_line = true;
     while (true) {
@@ -115,6 +117,9 @@ std::expected<const char *, InjectQueue::GetGCodeError> InjectQueue::get_gcode()
     }
 
     // Otherwise, the item is a file, we need to start buffering
+
+    // Using the gcode_stream buffer to store filepath - to avoid RAM cost of another filepath buffer
+    // File is opened by async job and and then its safe to use it for buffering the file
     StringBuilder filepath(gcode_stream_buffer);
     filepath.append_string("/usb/macros/");
     std::visit([&]<typename T>(const T &v) {

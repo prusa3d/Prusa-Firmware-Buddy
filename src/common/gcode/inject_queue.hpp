@@ -54,7 +54,7 @@ private:
     static void load_gcodes_from_file_callback(const char *filepath, AsyncJobExecutionControl &control);
 
     std::atomic<BufferState> buffer_state = BufferState::idle;
-    char gcode_stream_buffer[gcode_stream_buffer_size]; //!< buffer for compiling gcode stream from a file
+    char gcode_stream_buffer[gcode_stream_buffer_size]; //!< buffer for temporary storing gcode filepath & compiling gcode stream from a file
     CircularBuffer<InjectQueueRecord, queue_size> queue; //!< Queue (real size is queue_size - 1)
     AsyncJob worker_job; //!< Used for asynchronous buffering of gcode stream from a file
 };
