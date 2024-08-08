@@ -81,6 +81,9 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
         if (ip4addr_aton(value, &tmp_config->lan.gw_ip4)) {
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_GW_IP4);
         }
+    } else if (ini_string_match(section, "network", name, "ntp")) {
+        strlcpy(tmp_config->ntp, value, DNS_NTP_MAX_NAME_LENGTH);
+        tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_NTP_ADDRESS);
     } else if (ini_string_match(section, "network", name, "dns4")) {
 
         if (NULL != strchr(value, ';')) {
@@ -170,7 +173,9 @@ void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id
         netdev_id == NETDEV_ETH_ID ? config_store().lan_hostname.set(ethconfig->hostname)
                                    : config_store().wifi_hostname.set(ethconfig->hostname);
     }
-
+    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_NTP_ADDRESS)) {
+        config_store().ntp_addr.set(ethconfig->ntp);
+    }
     if (ap != NULL) {
         assert(netdev_id == NETDEV_ESP_ID);
         static_assert(SSID_MAX_LEN == config_store_ns::wifi_max_ssid_len);
@@ -195,6 +200,7 @@ void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id
         ethconfig->dns2_ip4.addr = config_store().lan_ip4_dns2.get();
         ethconfig->lan.msk_ip4.addr = config_store().lan_ip4_mask.get();
         ethconfig->lan.gw_ip4.addr = config_store().lan_ip4_gateway.get();
+        strlcpy(ethconfig->ntp, config_store().ntp_addr.get_c_str(), DNS_NTP_MAX_NAME_LENGTH);
         strlcpy(ethconfig->hostname, config_store().lan_hostname.get_c_str(), ETH_HOSTNAME_LEN + 1);
     } else {
         ethconfig->lan.flag = config_store().wifi_flag.get() & ~RESERVED_MASK;
@@ -203,6 +209,7 @@ void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id
         ethconfig->dns2_ip4.addr = config_store().wifi_ip4_dns2.get();
         ethconfig->lan.msk_ip4.addr = config_store().wifi_ip4_mask.get();
         ethconfig->lan.gw_ip4.addr = config_store().wifi_ip4_gateway.get();
+        strlcpy(ethconfig->ntp, config_store().ntp_addr.get_c_str(), DNS_NTP_MAX_NAME_LENGTH);
         strlcpy(ethconfig->hostname, config_store().wifi_hostname.get_c_str(), ETH_HOSTNAME_LEN + 1);
     }
 
