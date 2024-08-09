@@ -1130,8 +1130,11 @@ MicrostepRestorer::MicrostepRestorer() {
 }
 MicrostepRestorer::~MicrostepRestorer() {
     const auto has_steps = []() {
-        freertos::CriticalSection _cs;
-        return PreciseStepping::has_step_events_queued();
+        // Cannot use freertos::CriticalSection here - steppers have higher priority than RTOS-aware interrupts
+        CRITICAL_SECTION_START;
+        const auto result = PreciseStepping::has_step_events_queued();
+        CRITICAL_SECTION_END;
+        return result;
     };
     while (has_steps()) {
         idle(true, true);
