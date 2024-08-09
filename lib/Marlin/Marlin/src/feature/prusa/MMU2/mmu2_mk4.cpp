@@ -25,7 +25,6 @@
 #else
     #include "stubs/spool_join_stub.h"
 #endif
-#include "strlen_cx.h"
 
 #include "../../../../../../../src/mmu2/mmu2_bootloader.hpp"
 
@@ -1388,7 +1387,7 @@ void MMU2::ReportError(ErrorCode ec, ErrorSource res) {
             && mmu2Magic[2] == 'U'
             && mmu2Magic[3] == '2'
             && mmu2Magic[4] == ':'
-            && strlen_constexpr(mmu2Magic) == 5,
+            && mmu2Magic[5] == '\0',
         "MMU2 logging prefix mismatch, must be updated at various spots");
 }
 
