@@ -12,7 +12,6 @@ extern "C" {
 void espif_receive_data();
 
 void espif_tx_callback();
-void espif_task_create();
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Initialize ESPIF (part of LwIP netif setup)

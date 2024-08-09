@@ -333,8 +333,6 @@ extern "C" void main_cpp(void) {
             // Needed for SSL random data
             hw_rng_init();
 
-            espif_task_create();
-
             // We can't flash ESP while showing error screen as there is no bootstrap progressbar.
             // Let's pretend that flashing was successful in order to enable Wi-Fi.
             skip_esp_flashing();
@@ -508,8 +506,6 @@ extern "C" void main_cpp(void) {
     // In tester mode ESP UART is being used to talk to the testing station,
     // thus it must not be used for the ESP -> no networking tasks shall be started.
     if (!running_in_tester_mode()) {
-        espif_task_create();
-
         TaskDeps::wait(TaskDeps::Tasks::network);
         start_network_task(/*allow_full=*/true);
     }

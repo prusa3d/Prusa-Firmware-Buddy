@@ -202,80 +202,24 @@ static bool can_recieve_data(ESPIFOperatingMode mode) {
     return false;
 }
 
-static TaskHandle_t espif_task = nullptr;
+// A semaphore by which an interrupt informs a (single) initiating task that
+// its DMA transfer into the UART is finished.
+//
+// The atomic pointer to this is additional safety measure. This way we can
+// prove (and double-check by asserts) that we get exactly one release for one
+// request. Using some other, unrelated variable to make sure could be OK, but
+// it would be significantly harder to prove that.
 static freertos::BinarySemaphore tx_semaphore;
-static HAL_StatusTypeDef tx_result;
-static bool tx_waiting = false;
+static std::atomic<freertos::BinarySemaphore *> tx_semaphore_active;
 
 using pbuf_smart = std::unique_ptr<pbuf, PbufDeleter>;
 using pbuf_variant = std::variant<pbuf *, pbuf_smart>;
 static pbuf_variant tx_pbuf = nullptr; // only valid when tx_waiting == true
 
 void espif_tx_callback() {
-    // This is an interrupt handler for UART transmit completion. We want
-    // to keep it short, delegate to `espif_task`, waking it up if possible.
-    // Note that we can't simply `assert(espif_task)` because transmit may
-    // happen even before `espif_task` is created.
-    if (espif_task != nullptr) {
-        BaseType_t higher_priority_task_woken = pdFALSE;
-        vTaskNotifyGiveFromISR(espif_task, &higher_priority_task_woken);
-        portYIELD_FROM_ISR(higher_priority_task_woken);
-    }
-}
-
-static void espif_task_step() {
-    // block indefinitely until ISR wakes us...
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    // ...woken up, do something
-
-    // Note that we can't simply `assert(tx_waiting)` because transmit may
-    // be initiated by code outside of the espif module.
-    if (tx_waiting) {
-        if (std::visit([](const auto &buf) { return buf != nullptr; }, tx_pbuf)) {
-            if constexpr (!option::has_embedded_esp32) {
-                // Predictive flow control - delay for ESP to load big enough buffer into UART driver
-                // This is hotfix for ESP8266 not supplying buffers fast enough
-                // Possibly, this slows down upload a little bit, but it is still faster than handling corruption.
-                osDelay(1);
-            }
-
-            uint8_t *data = reinterpret_cast<uint8_t *>(std::visit([](const auto &buf) { return buf->payload; }, tx_pbuf));
-            size_t size = std::visit([](const auto &buf) { return buf->len; }, tx_pbuf);
-
-            assert(can_be_used_by_dma(data));
-            tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, data, size);
-
-            if (std::holds_alternative<pbuf *>(tx_pbuf)) {
-                tx_pbuf = std::get<pbuf *>(tx_pbuf)->next;
-            } else {
-                tx_pbuf = nullptr;
-            }
-
-            if (tx_result != HAL_OK) {
-                log_error(ESPIF, "HAL_UART_Transmit_DMA() failed: %d", tx_result);
-                tx_waiting = false;
-                tx_semaphore.release();
-            }
-        } else {
-            tx_waiting = false;
-            tx_semaphore.release();
-        }
-    }
-}
-
-static void espif_task_run(void const *) {
-    for (;;) {
-        espif_task_step();
-    }
-}
-
-void espif_task_create() {
-    assert(espif_task == nullptr);
-
-    osThreadCCMDef(esp_task, espif_task_run, TASK_PRIORITY_ESP, 0, 128);
-    espif_task = osThreadCreate(osThread(esp_task), nullptr);
-    if (espif_task == nullptr) {
-        bsod("espif_task_create (task)");
+    if (auto *semaphore = tx_semaphore_active.exchange(nullptr); semaphore != nullptr) {
+        long woken = semaphore->release_from_isr();
+        portYIELD_FROM_ISR(woken);
     }
 }
 
@@ -308,6 +252,25 @@ static uint32_t message_checksum(esp::MessagePrelude &msg, const pbuf_variant &p
 }
 
 // FIXME: This casually uses HAL_StatusTypeDef as a err_t, which works for the OK case (both 0), but it is kinda sketchy.
+static err_t espif_tx_buffer(const uint8_t *data, size_t len) {
+    // We are supposed to be under a mutex by the caller.
+    [[maybe_unused]] auto old_semaphore = tx_semaphore_active.exchange(&tx_semaphore);
+    assert(old_semaphore == nullptr);
+    assert(can_be_used_by_dma(data));
+    HAL_StatusTypeDef tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, data, len);
+
+    if (tx_result == HAL_OK) {
+        tx_semaphore.acquire();
+    } else {
+        [[maybe_unused]] auto withdrawn = tx_semaphore_active.exchange(nullptr);
+        // It's the one we put in
+        assert(withdrawn == &tx_semaphore);
+    }
+
+    return tx_result;
+}
+
+// FIXME: This casually uses HAL_StatusTypeDef as a err_t, which works for the OK case (both 0), but it is kinda sketchy.
 [[nodiscard]] static err_t espif_tx_raw(esp::MessageType message_type, uint8_t message_byte, pbuf_variant p) {
     std::lock_guard lock { uart_write_mutex };
 
@@ -318,20 +281,32 @@ static uint32_t message_checksum(esp::MessagePrelude &msg, const pbuf_variant &p
     tx_message.header.size = htons(size);
     tx_message.data_checksum = htonl(message_checksum(tx_message, p));
 
-    assert(!tx_waiting);
-    taskENTER_CRITICAL();
-    tx_waiting = true;
-    tx_pbuf = std::move(p);
-    assert(can_be_used_by_dma(&tx_message));
-    HAL_StatusTypeDef tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, (uint8_t *)&tx_message, sizeof(tx_message));
-    if (tx_result == HAL_OK) {
-        taskEXIT_CRITICAL();
-        tx_semaphore.acquire();
-    } else {
-        tx_waiting = false;
-        taskEXIT_CRITICAL();
+    auto tx_result = espif_tx_buffer((const uint8_t *)&tx_message, sizeof(tx_message));
+    if (tx_result != HAL_OK) {
         log_error(ESPIF, "HAL_UART_Transmit_DMA() failed: %d", tx_result);
+        return tx_result;
     }
+
+    pbuf *tx_pbuf;
+    if (std::holds_alternative<pbuf *>(p)) {
+        tx_pbuf = std::get<pbuf *>(p);
+    } else {
+        tx_pbuf = std::get<pbuf_smart>(p).get();
+    }
+
+    while (tx_pbuf != nullptr) {
+        // Predictive flow control - delay for ESP to load big enough buffer into UART driver
+        // This is hotfix for not supplying buffers fast enough
+        // Possibly, this slows down upload a little bit, but it is still faster than handling corruption.
+        osDelay(1);
+        tx_result = espif_tx_buffer((const uint8_t *)tx_pbuf->payload, tx_pbuf->len);
+        if (tx_result != HAL_OK) {
+            log_error(ESPIF, "HAL_UART_Transmit_DMA() failed: %d", tx_result);
+            return tx_result;
+        }
+        tx_pbuf = tx_pbuf->next;
+    }
+
     return tx_result;
 }
 

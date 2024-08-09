@@ -39,6 +39,15 @@ void BinarySemaphore::release() {
     }
 }
 
+long BinarySemaphore::release_from_isr() {
+    long wakeup = 0;
+    if (xSemaphoreGiveFromISR(handle_cast(semaphore_storage), &wakeup) != pdTRUE) {
+        // Since the semaphore was obtained correctly, this should never happen.
+        std::abort();
+    }
+    return wakeup;
+}
+
 void BinarySemaphore::release_blocking() {
     // Same as xSemaphoreGive macro, just the ticksToWait is portMAX_DELAY
     if (xQueueGenericSend((QueueHandle_t)(handle_cast(semaphore_storage)), NULL, portMAX_DELAY, queueSEND_TO_BACK) != pdTRUE) {
