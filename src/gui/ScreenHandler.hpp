@@ -63,7 +63,19 @@ public:
     void PushBeforeCurrent(screen_node screen_creator);
     void PushBeforeCurrent(const screen_node *begin, const screen_node *end); // push in normal order, skips nullptr
 
+    /// Closes currently open screen on the stack
     void Close();
+
+    /// Closes the specific screen anywhere on the stack
+    /// \returns if any screen was closed
+    template <typename Screen>
+    inline bool Close() {
+        return Close(ScreenFactory::Screen<Screen>);
+    };
+
+    /// Closes the specific screen anywhere on the stack
+    /// \returns if any screen was closed
+    bool Close(const ScreenFactory::Creator &creator);
 
     void CloseAll();
 

@@ -134,6 +134,37 @@ void Screens::Close() {
     creator_node.MakeEmpty();
 }
 
+bool Screens::Close(const ScreenFactory::Creator &creator) {
+    bool found = false;
+
+    // Check screen that is to be opened
+    if (creator_node.creator == creator) {
+        creator_node.MakeEmpty();
+        found = true;
+    }
+
+    // Check currently open screen
+    if (stack_iterator != stack.begin() && stack_iterator->creator == creator) {
+        close = true;
+        found = true;
+    }
+
+    // Check screens on the stack
+    auto new_stack_iterator = std::remove_if(stack.begin(), stack_iterator, [&](const auto &item) {
+        if (item.creator == creator) {
+            found = true;
+            return true;
+        }
+        return false;
+    });
+
+    // Move the currently open screen on the right position
+    *new_stack_iterator = *stack_iterator;
+    stack_iterator = new_stack_iterator;
+
+    return found;
+}
+
 /**
  * @brief close all screens (but top one - home)
  * it sets flag to close all screens
