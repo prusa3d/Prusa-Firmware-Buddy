@@ -150,6 +150,26 @@ bool FilamentType::matches(const std::string_view &name) const {
     return parameters().name == name;
 }
 
+void FilamentType::build_name_with_info(StringBuilder &builder) const {
+    builder.append_string(parameters().name);
+
+    std::visit([&]<typename T>(const T &) {
+        if constexpr (std::is_same_v<T, PresetFilamentType> || std::is_same_v<T, NoFilamentType>) {
+            // Do nothing
+
+        } else if constexpr (std::is_same_v<T, UserFilamentType>) {
+            builder.append_string_view(_(" (User)"));
+
+        } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
+            builder.append_string_view(_(" (Custom)"));
+
+        } else {
+            static_assert(false);
+        }
+    },
+        *this);
+}
+
 FilamentTypeParameters FilamentType::parameters() const {
     return std::visit([]<typename T>(const T &v) -> FilamentTypeParameters {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {

@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <variant>
 
+#include <str_utils.hpp>
+
 // !!! DO NOT CHANGE - this is used in config store
 /// Maximum length of a filament name, including the terminating zero
 constexpr size_t filament_name_buffer_size = 8;
@@ -128,6 +130,10 @@ public:
     /// !!! Prefer using "loaded_filament.matches(b_name)" over "loaded_filament == FilamentType::from_name(b_name)" where it makes sense.
     /// !!! This is because "loaded_filament" could be an ad-hoc filament, which is never returned from FilamentType::from_name.
     bool matches(const std::string_view &name) const;
+
+    /// Appends name of the filament to the builder
+    /// If the filament type is non-preset, it visually distincts it (for example by appending PLA (Custom))
+    void build_name_with_info(StringBuilder &builder) const;
 
     /// \returns parameters of the filament type
     FilamentTypeParameters parameters() const;
