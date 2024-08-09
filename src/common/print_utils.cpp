@@ -200,3 +200,17 @@ uint8_t get_num_of_enabled_tools() {
     return EXTRUDERS;
 #endif
 }
+
+bool is_tool_enabled(uint8_t tool) {
+    if (tool >= EXTRUDERS) {
+        return false;
+    }
+
+#if HAS_TOOLCHANGER()
+    return prusa_toolchanger.getTool(tool).is_enabled();
+#elif HAS_MMU2()
+    return tool == 0 || MMU2::mmu2.Enabled();
+#else
+    return true;
+#endif
+}

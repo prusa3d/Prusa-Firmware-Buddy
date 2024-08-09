@@ -18,14 +18,6 @@
 #include <config_store/store_instance.hpp>
 #include "mmu2_toolchanger_common.hpp"
 
-bool is_tool_enabled([[maybe_unused]] uint8_t idx) {
-#if HAS_TOOLCHANGER()
-    return prusa_toolchanger.is_tool_enabled(idx);
-#elif HAS_MMU2()
-    return MMU2::mmu2.Enabled(); // All 5 filament slots are always available
-#endif
-}
-
 SpoolJoin spool_join;
 
 LOG_COMPONENT_REF(Marlin);

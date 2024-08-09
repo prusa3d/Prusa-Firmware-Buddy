@@ -22,4 +22,9 @@ enum DeleteResult {
 
 DeleteResult remove_file(const char *path);
 
+/// For XL, returns number of enabled dwarves.
+/// For MMU, returns number of MMU slots
+/// Otherwise returns 1
 uint8_t get_num_of_enabled_tools();
+
+bool is_tool_enabled(uint8_t tool);
