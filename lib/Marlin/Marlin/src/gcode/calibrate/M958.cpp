@@ -370,21 +370,6 @@ bool VibrateMeasureParams::setup(const MicrostepRestorer &microstep_restorer) {
     return true;
 }
 
-/**
- * @brief Excite harmonic vibration and measure amplitude if there is an accelerometer
- *
- * @see GcodeSuite::M958() for parameter description
- *
- * @param axis_flag StepEventFlag bit field
- * STEP_EVENT_FLAG_STEP_* is set for all the motors which should vibrate together
- * STEP_EVENT_FLAG_*_DIR encodes initial phase for each motor
- * @param klipper_mode
- * @param frequency_requested
- * @param acceleration_requested
- * @param cycles
- * @param calibrate_accelerometer
- * @return Frequency and gain measured on each axis if there is accelerometer
- */
 static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float requested_frequency, const SamplePeriodProgressHook &progress_hook) {
     if (args.klipper_mode && args.measured_harmonic != 1) {
         SERIAL_ERROR_MSG("vibrate measure: klipper mode does not support measuring higher harmonics");
