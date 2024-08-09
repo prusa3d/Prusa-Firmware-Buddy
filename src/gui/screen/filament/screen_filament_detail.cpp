@@ -42,7 +42,13 @@ void MI_FILAMENT_NAME::click(IWindowMenu &) {
         const auto check_name_collision = [&](FilamentType ft) {
             return (ft != filament_type) && strcmp(ft.parameters().name, buf.data()) == 0;
         };
-        if (std::any_of(all_filament_types.begin(), all_filament_types.end(), check_name_collision)) {
+        if (
+            // Ad-hoc filaments can "override" standard ones, so we allow name collisions for them
+            !std::holds_alternative<AdHocFilamentType>(filament_type)
+
+            && std::any_of(all_filament_types.begin(), all_filament_types.end(), check_name_collision)
+
+        ) {
             MsgBoxWarning(_("Filament with this name already exists"), Responses_Ok);
             continue;
         }
