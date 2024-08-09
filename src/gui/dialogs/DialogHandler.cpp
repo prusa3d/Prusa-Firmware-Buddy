@@ -72,8 +72,8 @@ struct FSMScreenDef {
     }
 
     static void close() {
-        assert(Screens::Access()->get<Screen>());
-        Screens::Access()->Close();
+        assert(Screens::Access()->IsScreenOnStack<Screen>());
+        Screens::Access()->Close<Screen>();
     }
 
     static void change(fsm::BaseData data) {
