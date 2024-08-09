@@ -110,7 +110,7 @@ public:
      */
     template <class T>
     bool IsScreenOpened() const {
-        return ScreenFactory::DoesCreatorHoldType<T>(stack_iterator->creator);
+        return stack_iterator->creator.is_screen<T>();
     }
 
     bool IsScreenOpened(ScreenFactory::Creator creator) const {
@@ -127,12 +127,7 @@ public:
      */
     template <class T>
     bool IsScreenClosed() const {
-        for (auto it = stack.begin(); it != stack_iterator; ++it) {
-            if (ScreenFactory::DoesCreatorHoldType<T>(it->creator)) {
-                return true;
-            }
-        }
-        return false;
+        return std::any_of(stack.begin(), ScreenArray::const_iterator(stack_iterator + 1), [](const auto &node) { return node.creator.template is_screen<T>(); });
     }
 
     /**

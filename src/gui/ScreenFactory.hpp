@@ -32,6 +32,11 @@ public:
             : func(func)
             , arg(arg) {}
 
+        template <typename Screen>
+        inline bool is_screen() const {
+            return *this == Creator(ScreenFactory::Screen<Screen>);
+        }
+
         constexpr inline UniquePtr operator()() const {
             return func(arg);
         }
@@ -57,10 +62,5 @@ public:
             return make_static_unique_ptr<T>(storage.data(), arg_variant.value<Arg>());
         };
         return Creator(ctor, Creator::Arg::make(arg));
-    }
-
-    template <class T>
-    static bool DoesCreatorHoldType(Creator cr) {
-        return Creator(Screen<T>) == cr;
     }
 };
