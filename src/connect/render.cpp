@@ -727,9 +727,9 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
 
     constexpr static const char *intro = "\"preview\":\"";
     constexpr static const char *outro = "\",";
-    constexpr static size_t intro_len = strlen_constexpr(intro);
+    constexpr static size_t intro_len = strlen(intro);
     // Ending quote and comma
-    constexpr static size_t outro_len = strlen_constexpr(outro);
+    constexpr static size_t outro_len = strlen(outro);
     // Don't bother with too small buffers to make the code easier. Extra char
     // for trying out there's some preview in there.
     constexpr static size_t min_len = intro_len + outro_len + encoded_chunk_size;

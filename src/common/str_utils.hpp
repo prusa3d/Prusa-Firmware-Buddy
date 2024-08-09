@@ -29,10 +29,6 @@ int strshiftUnicode(uint32_t *str, size_t max_size, const size_t n = 1, const ui
 int strinsUnicode(uint32_t *str, size_t max_size, const uint32_t *const ins, size_t times = 1);
 int str2multilineUnicode(uint32_t *str, size_t max_size, const size_t line_width);
 
-constexpr size_t strlen_constexpr(const char *str) {
-    return *str ? 1 + strlen_constexpr(str + 1) : 0;
-}
-
 /// A const char* that is guaranteed to have unlimited lifetime (thanks to the consteval constructor)
 struct ConstexprString {
     consteval ConstexprString() = default;

@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <cstring>
 
-#include <str_utils.hpp>
-
 #ifdef UNITTESTS
     #include <catch2/catch.hpp>
     #undef assert
@@ -74,7 +72,7 @@ constexpr std::array prefix_dictionary {
 static_assert(prefix_dictionary.size() < 15); // - 1 for encoding a non-match
 
 // Must be sorted by length so that we hit the longest match first in the iteration
-static_assert(std::is_sorted(prefix_dictionary.begin(), prefix_dictionary.end(), [](auto a, auto b) { return strlen_constexpr(a) > strlen_constexpr(b); }));
+static_assert(std::is_sorted(prefix_dictionary.begin(), prefix_dictionary.end(), [](auto a, auto b) { return strlen(a) > strlen(b); }));
 
 } // namespace
 

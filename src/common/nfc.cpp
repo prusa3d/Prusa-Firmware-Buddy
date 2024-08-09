@@ -141,7 +141,7 @@ std::optional<WifiCredentials> try_parse_wifi_message(uint16_t from, const uint8
         auto &buffer = credentials.password;
 
         constexpr const char WIFI_MIME_TYPE[] = "application/vnd.wfa.wsc";
-        static_assert(sizeof(buffer) > strlen_constexpr(WIFI_MIME_TYPE));
+        static_assert(sizeof(buffer) > strlen(WIFI_MIME_TYPE));
 
         const auto result = user_read_bytes(
             EepromCommand::memory,

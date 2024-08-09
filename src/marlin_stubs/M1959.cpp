@@ -94,7 +94,7 @@ public:
     void dump(char axis) const {
 #if DEVELOPMENT_ITEMS()
         // I don't really care about timezones, efficiency and errors since this is debug-only...
-        std::array<char, 1 + strlen_constexpr("YYYYmmddHHMMSS")> strftime_buffer;
+        std::array<char, 1 + strlen("YYYYmmddHHMMSS")> strftime_buffer;
         const time_t curr_sec = time(nullptr);
         struct tm now;
         localtime_r(&curr_sec, &now);
