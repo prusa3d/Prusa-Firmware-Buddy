@@ -5,8 +5,11 @@
 
 #include <MItem_menus.hpp>
 
+#include "screen_filaments_loaded.hpp"
+
 using ScreenFilamentManagement_ = ScreenMenu<EFooter::Off,
     MI_RETURN,
+    MI_LOADED_FILAMENT,
     MI_EDIT_FILAMENTS,
     MI_REORDER_FILAMENTS,
     MI_FILAMENTS_VISIBILITY //
