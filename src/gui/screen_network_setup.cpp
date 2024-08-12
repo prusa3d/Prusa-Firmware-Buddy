@@ -64,7 +64,9 @@ class MI_ACTION_LOAD_NFC : public FSMMenuItem {
 
 public:
     MI_ACTION_LOAD_NFC()
-        : FSMMenuItem(Phase::action_select, NetworkSetupResponse::scan_nfc, _("Setup via NFC")) {}
+        : FSMMenuItem(Phase::action_select, NetworkSetupResponse::scan_nfc, _("Setup via NFC")) {
+        set_is_hidden(!nfc::has_nfc());
+    }
 };
 #endif
 
