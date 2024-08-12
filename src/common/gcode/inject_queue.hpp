@@ -44,9 +44,6 @@ public:
      */
     std::expected<const char *, GetGCodeError> get_gcode();
 
-    inline bool is_empty() const { return queue.is_empty(); }
-    inline bool is_full() const { return queue.is_full(); }
-
 private:
     /**
      *  Buffering a file. This callback is executed in a different thread through AsyncJob worker_job

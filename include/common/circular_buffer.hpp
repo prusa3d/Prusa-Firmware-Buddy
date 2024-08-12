@@ -2,7 +2,6 @@
 
 #include <cstddef>
 #include <array>
-#include <cassert>
 
 // Minimal circular buffer.
 // Unlike CircleBuffer, this one actually works.
@@ -23,31 +22,23 @@ private:
     std::array<T, N> buffer;
 
 public:
-    void put(const T &item) {
-        assert(!is_full());
+    [[nodiscard]] bool try_put(const T &item) {
         const size_t new_write_index = (write_index + 1) % N;
+        if (new_write_index == read_index) {
+            return false; // buffer is full
+        }
         buffer[write_index] = item;
         write_index = new_write_index;
+        return true;
     }
 
-    T get() {
-        assert(!is_empty());
-        auto item = front();
-        pop();
-        return item;
-    }
-
-    T front() const {
-        assert(!is_empty());
-        return buffer[read_index];
-    }
-
-    inline bool is_empty() const { return read_index == write_index; }
-    inline bool is_full() const { return read_index == (write_index + 1) % N; }
-
-    void pop() {
-        assert(!is_empty());
+    [[nodiscard]] bool try_get(T &item) {
+        if (read_index == write_index) {
+            return false; // buffer is empty
+        }
+        item = buffer[read_index];
         read_index = (read_index + 1) % N;
+        return true;
     }
 
     void clear() {

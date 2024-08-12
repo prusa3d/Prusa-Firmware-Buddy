@@ -185,21 +185,17 @@ void dwarf::accelerometer::irq() {
     record.sample_overrun = status.zyxor;
     lis2dh12_acceleration_raw_get(&dev_ctx, record.raw);
     // No need for locking, we are the only interrupt touching the sample buffer
-    if (sample_buffer.is_full()) {
+    if (!sample_buffer.try_put(record)) {
         overflown_count++;
-    } else {
-        sample_buffer.put(record);
     }
 }
 
 bool dwarf::accelerometer::accelerometer_get_sample(AccelerometerRecord &sample) {
     freertos::CriticalSection critical_section;
-    bool result = !sample_buffer.is_empty();
-    if (result) {
-        sample = sample_buffer.get();
-    }
+    const bool ret = sample_buffer.try_get(sample);
+    // Mark all outgoing packets as corrupted when there is an overflow
     sample.buffer_overflow = overflown_count > 0;
-    return result;
+    return ret;
 }
 
 size_t dwarf::accelerometer::get_num_samples() {

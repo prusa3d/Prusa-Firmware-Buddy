@@ -77,11 +77,7 @@ void InjectQueue::load_gcodes_from_file_callback(const char *filepath, AsyncJobE
 }
 
 bool InjectQueue::try_push(InjectQueueRecord record) {
-    if (!queue.is_full()) {
-        queue.put(record);
-        return true;
-    }
-    return false;
+    return queue.try_put(record);
 }
 
 std::expected<const char *, InjectQueue::GetGCodeError> InjectQueue::get_gcode() {
@@ -105,11 +101,10 @@ std::expected<const char *, InjectQueue::GetGCodeError> InjectQueue::get_gcode()
     }
 
     // If we've reached here, we need to check the queue and do something
-    if (queue.is_empty()) {
+    InjectQueueRecord item;
+    if (!queue.try_get(item)) {
         return std::unexpected(GetGCodeError::empty);
     }
-
-    const auto item = queue.get();
 
     // The item is a literal -> just return the literal
     if (const auto *val = std::get_if<GCodeLiteral>(&item)) {
