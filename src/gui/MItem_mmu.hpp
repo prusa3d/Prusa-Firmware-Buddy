@@ -5,6 +5,7 @@
 #include "WindowMenuInfo.hpp"
 #include "WindowItemFormatableLabel.hpp"
 #include "i18n.h"
+#include <option/has_loadcell.h>
 
 class MI_MMU_PRELOAD_ADVANCED : public IWindowMenuItem {
     static constexpr const char *const label = N_("Preload to MMU Advanced");
@@ -295,8 +296,11 @@ public:
 };
 
 class MI_DONE_EXTRUDER_MAINTENANCE : public IWindowMenuItem {
+#if HAS_LOADCELL()
     constexpr static const char *const label = N_("Nextruder Maintenance");
-
+#else
+    constexpr static const char *const label = N_("Extruder Maintenance");
+#endif
 public:
     MI_DONE_EXTRUDER_MAINTENANCE();
 

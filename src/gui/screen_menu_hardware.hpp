@@ -53,9 +53,7 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 // ================================
 #if HAS_MMU2()
     MI_MMU_NEXTRUDER_REWORK,
-    #if HAS_LOADCELL()
-    MI_DONE_EXTRUDER_MAINTENANCE,
-    #endif // HAS_LOADCELL()
+    MI_DONE_EXTRUDER_MAINTENANCE, // both for loadcell equipped printers and MK3.5
 #endif
 
 // ================================
