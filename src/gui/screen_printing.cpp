@@ -322,10 +322,18 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
             string_view_utf8 txt;
             switch (*reason) {
             case MMU2::MaintenanceReason::Failures:
+    #if HAS_LOADCELL()
                 txt = _("Printer has detected multiple consecutive filament loading errors. We recommend checking Nextruder main-plate. Visit prusa.io/mmu-care");
+    #else
+                txt = _("Printer has detected multiple consecutive filament loading errors. We recommend checking the extruder. Visit prusa.io/mmu-care");
+    #endif
                 break;
             case MMU2::MaintenanceReason::Changes:
+    #if HAS_LOADCELL()
                 txt = _("Maintenance Reminder. Filament changes have reached main-plate lifespan. Inspect the part and ensure you have a spare plate available. Visit prusa.io/mmu-care");
+    #else
+                txt = _("Maintenance Reminder. Filament changes have reached 30k. Inspect and clean the extruder. Visit prusa.io/mmu-care");
+    #endif
                 break;
             }
 
