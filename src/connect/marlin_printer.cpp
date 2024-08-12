@@ -168,14 +168,19 @@ namespace {
             if (params.slot_mask & (1 << i)) {
 #if HAS_TOOLCHANGER()
                 auto &hotend = marlin_vars().hotend(i);
+                const size_t nozzle = i;
 #else
                 // only one hotend in any other situation
                 auto &hotend = marlin_vars().active_hotend();
+                const size_t nozzle = 0;
 #endif
                 params.slots[i].material = std::to_array(config_store().get_filament_type(i).parameters().name);
                 params.slots[i].temp_nozzle = hotend.temp_nozzle;
                 params.slots[i].print_fan_rpm = hotend.print_fan_rpm;
                 params.slots[i].heatbreak_fan_rpm = hotend.heatbreak_fan_rpm;
+                params.slots[i].nozzle_diameter = config_store().get_nozzle_diameter(nozzle);
+                params.slots[i].hardened = config_store().nozzle_is_hardened.get()[nozzle];
+                params.slots[i].high_flow = config_store().nozzle_is_high_flow.get()[nozzle];
             }
         }
     }
@@ -223,7 +228,6 @@ Printer::Params MarlinPrinter::params() const {
     params.time_to_pause = marlin_vars().time_to_pause;
     params.progress_percent = marlin_vars().sd_percent_done;
     params.filament_used = Odometer_s::instance().get_extruded_all();
-    params.nozzle_diameter = config_store().get_nozzle_diameter(params.preferred_head());
     params.has_usb = marlin_vars().media_inserted;
     params.can_start_download = can_start_download;
 

@@ -50,6 +50,9 @@ public:
         float temp_nozzle = 0;
         uint16_t print_fan_rpm = 0;
         uint16_t heatbreak_fan_rpm = 0;
+        bool high_flow = false;
+        bool hardened = false;
+        float nozzle_diameter = 0;
     };
 
 #if XL_ENCLOSURE_SUPPORT()
@@ -72,7 +75,7 @@ public:
     static constexpr size_t Y_AXIS_POS = 1;
     static constexpr size_t Z_AXIS_POS = 2;
 
-#if HAS_MMU2() || HAS_TOOLCHANGER()
+#if HAS_MMU2() || HAS_TOOLCHANGER() || defined(UNITTESTS)
     static constexpr size_t NUMBER_OF_SLOTS = 5;
 #else
     static constexpr size_t NUMBER_OF_SLOTS = 1;
@@ -119,9 +122,6 @@ public:
         float target_bed = 0;
         float pos[4] = { 0, 0, 0, 0 };
         float filament_used = 0;
-        // FIXME: We should handle XL with up to 5 nozzles, but the network protocol
-        // does not support it as of now, so for the time being we just send the first one.
-        float nozzle_diameter = 0;
         // Note: These strings live in a shared buffer in the real implementation. As a result:
         // * These are NULL unless paths was passed to the constructor.
         // * They get invalidated by calling drop_paths or new renew() on the printer.

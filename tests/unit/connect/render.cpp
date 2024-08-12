@@ -264,7 +264,65 @@ TEST_CASE("Render") {
                 "\"transfer_paused\":true,"
                 "\"storages\":[],"
                 "\"network_info\":{\"hostname\":\"\"},"
+                "\"tools\":{"
+                    "\"1\":{"
+                        "\"nozzle_diameter\":0.40,"
+                        "\"high_flow\":false,"
+                        "\"hardened\":false,"
+                        "\"material\":\"---\""
+                    "}"
+                "},"
                 "\"slots\":1"
+            "},"
+            "\"state\":\"IDLE\","
+            "\"command_id\":11,"
+            "\"event\":\"INFO\""
+        "}";
+        // clang-format on
+    }
+
+    SECTION("Event - info - multi") {
+        action = Event {
+            EventType::Info,
+            11,
+        };
+        auto idle = params_idle();
+        // Enable slot 1 and 3
+        idle.slot_mask = 5;
+        idle.slots[2] = Printer::SlotInfo {
+            .material = { "PETG" },
+            .hardened = true,
+            .nozzle_diameter = 0.6,
+        };
+        params.emplace(idle);
+
+        // clang-format off
+        expected = "{"
+            "\"data\":{"
+                "\"firmware\":\"TST-1234\","
+                "\"printer_type\":\"2.3.0\","
+                "\"sn\":\"FAKE-1234\","
+                "\"appendix\":false,"
+                "\"fingerprint\":\"DEADBEEF\","
+                "\"nozzle_diameter\":0.40,"
+                "\"transfer_paused\":true,"
+                "\"storages\":[],"
+                "\"network_info\":{\"hostname\":\"\"},"
+                "\"tools\":{"
+                    "\"1\":{"
+                        "\"nozzle_diameter\":0.40,"
+                        "\"high_flow\":false,"
+                        "\"hardened\":false,"
+                        "\"material\":\"---\""
+                    "},"
+                    "\"3\":{"
+                        "\"nozzle_diameter\":0.60,"
+                        "\"high_flow\":false,"
+                        "\"hardened\":true,"
+                        "\"material\":\"PETG\""
+                    "}"
+                "},"
+                "\"slots\":2"
             "},"
             "\"state\":\"IDLE\","
             "\"command_id\":11,"

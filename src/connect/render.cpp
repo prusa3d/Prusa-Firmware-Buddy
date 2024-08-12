@@ -294,7 +294,9 @@ namespace {
                     JSON_FIELD_STR("sn", info.serial_number.begin()) JSON_COMMA;
                     JSON_FIELD_BOOL("appendix", info.appendix) JSON_COMMA;
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
-                    JSON_FIELD_FFIXED("nozzle_diameter", params.nozzle_diameter, 2) JSON_COMMA;
+                    // TODO: Deprecated, kept for now for backwards compatibility. Parts of the tools object.
+                    // Remove eventually.
+                    JSON_FIELD_FFIXED("nozzle_diameter", params.slots[params.preferred_head()].nozzle_diameter, 2) JSON_COMMA;
                     JSON_FIELD_BOOL("transfer_paused", !params.can_start_download) JSON_COMMA;
                     if (strlen(creds.pl_password) > 0) {
                         JSON_FIELD_STR("api_key", creds.pl_password) JSON_COMMA;
@@ -328,6 +330,25 @@ namespace {
                             JSON_IP("wifi_ipv4", state.wifi->ip) JSON_COMMA;
                         }
                         JSON_FIELD_STR("hostname", creds.hostname);
+                    JSON_OBJ_END JSON_COMMA;
+
+                    JSON_FIELD_OBJ("tools");
+                        for (state.iter = 0, state.need_comma = false; state.iter < Printer::NUMBER_OF_SLOTS; state.iter ++) {
+                            if (params.slot_mask & (1 << state.iter)) {
+                                if (state.need_comma) {
+                                    JSON_COMMA;
+                                }
+
+                                JSON_CUSTOM("\"%zu\":{", state.iter + 1);
+                                    JSON_FIELD_FFIXED("nozzle_diameter", params.slots[state.iter].nozzle_diameter, 2) JSON_COMMA;
+                                    JSON_FIELD_BOOL("high_flow", params.slots[state.iter].high_flow) JSON_COMMA;
+                                    JSON_FIELD_BOOL("hardened", params.slots[state.iter].hardened) JSON_COMMA;
+                                    JSON_FIELD_STR("material", *params.slots[state.iter].material.data() ? params.slots[state.iter].material.data() : "---");
+                                JSON_OBJ_END;
+
+                                state.need_comma = true;
+                            }
+                        }
                     JSON_OBJ_END JSON_COMMA;
 
 #if XL_ENCLOSURE_SUPPORT()

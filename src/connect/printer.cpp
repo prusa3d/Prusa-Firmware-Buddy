@@ -52,9 +52,7 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
 
     for (size_t i = 0; i < slots.size(); i++) {
         if (slot_mask & (1 << i)) {
-            // Using the pointer value, not the pointed-to string (because they are
-            // in-code constants)... therefore, nullptr is also a valid value.
-            crc.add(slots[i].material)
+            crc.add_str(slots[i].material.data())
                 .add(int(slots[i].temp_nozzle))
                 // The RPM values are in thousands and fluctuating a bit, we don't want
                 // that to trigger the send too often, only when it actually really
@@ -119,12 +117,22 @@ uint32_t Printer::info_fingerprint() const {
     const auto creds = net_creds();
     const auto &parameters = params();
 
+    for (size_t i = 0; i < NUMBER_OF_SLOTS; i++) {
+        if (parameters.slot_mask & (1 << i)) {
+            const auto &slot = parameters.slots[i];
+            crc
+                .add(slot.nozzle_diameter)
+                .add(slot.hardened)
+                .add(slot.high_flow)
+                .add_str(slot.material.data());
+        }
+    }
+
     return crc
         .add_str(creds.ssid)
         .add_str(creds.pl_password)
         .add_str(creds.hostname)
         .add(parameters.has_usb)
-        .add(parameters.nozzle_diameter)
         .add(parameters.can_start_download)
         .add(parameters.version.type)
         .add(parameters.version.version)
