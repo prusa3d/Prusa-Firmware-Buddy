@@ -18,6 +18,7 @@ This file is generated automatically so don't edit it directly
 - ESPIF: logging::Severity::info, lib/WUI/espif.cpp
 - FSensor: logging::Severity::info, src/common/filament_sensors_handler.cpp
 - FileSystem: logging::Severity::info, src/buddy/filesystem.cpp
+- Fsm: logging::Severity::debug, src/common/fsm_states.cpp
 - GUI: logging::Severity::debug, src/gui/logger.cpp
 - Led: logging::Severity::info, src/gui/led_animations/printer_animation_state.cpp
 - Loadcell: logging::Severity::info, src/common/loadcell.cpp

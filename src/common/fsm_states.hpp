@@ -38,6 +38,8 @@ public:
     std::optional<Top> get_top() const;
 
     constexpr auto operator<=>(const States &) const = default;
+
+    void log() const;
 };
 
 } // namespace fsm

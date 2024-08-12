@@ -466,6 +466,7 @@ namespace {
 static void commit_fsm_states() {
     ++fsm_states.generation;
     marlin_vars().set_fsm_states(fsm_states);
+    fsm_states.log();
 }
 
 void fsm_create_internal(ClientFSM type, fsm::BaseData data) {

@@ -2,6 +2,9 @@
 
 #include <option/has_phase_stepping.h>
 #include <option/has_input_shaper_calibration.h>
+#include <logging/log.hpp>
+
+LOG_COMPONENT_DEF(Fsm, logging::Severity::debug);
 
 namespace fsm {
 
@@ -62,6 +65,17 @@ std::optional<States::Top> States::get_top() const {
     }
 
     return top;
+}
+
+void States::log() const {
+#if _DEBUG
+    log_debug(Fsm, "New generation %" PRIu32, generation);
+    for (size_t i = 0; i < states.size(); i++) {
+        if (states[i].has_value()) {
+            log_debug(Fsm, "%zu: %hhu", i, states[i]->GetPhase());
+        }
+    }
+#endif
 }
 
 } // namespace fsm
