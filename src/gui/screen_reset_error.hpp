@@ -22,5 +22,4 @@ protected:
     /// starts sound and avoids repetitive starting
     void start_sound();
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
-    void update_error_code(uint16_t &error_code); ///< distinguish MK3.9 from MK4 and update error_code's printer prefix
 };
