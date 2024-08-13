@@ -1,4 +1,4 @@
 # The ESP32 firmware
 
-Comes from <https://github.com/vladamatena/Prusa-ESP-Nic-FW-Private/>. Current version is
-built from `fca62816d707b45cb699a5b87dff4f8ae60f46d5`.
+Firmware comes from <https://github.com/prusa3d/Prusa-ESP32-Nic-FW/>.
+Current version is built from `8bdad358fce0a05695183240d950b73b04727a70`.
