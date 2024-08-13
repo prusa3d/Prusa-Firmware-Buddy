@@ -1,6 +1,7 @@
 #pragma once
 
 #include <error_codes.hpp>
+#include <error_code_mangle.hpp>
 #include <cstdint>
 
 #include <optional>
@@ -68,7 +69,9 @@ struct StateWithDialog {
     // The numeric value of the dialog's code if present, 0 otherwise.
     uint32_t code_num() const {
         if (has_code()) {
-            return static_cast<uint32_t>(*dialog->code);
+            auto code = static_cast<uint16_t>(*dialog->code);
+            update_error_code(code);
+            return static_cast<uint32_t>(code);
         } else {
             return 0;
         }

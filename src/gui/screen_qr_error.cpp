@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <crash_dump/dump.hpp>
 #include <error_codes.hpp>
+#include <error_code_mangle.hpp>
 #include <config_store/store_instance.hpp>
 #include <guiconfig/guiconfig.h>
 #include <option/has_leds.h>
