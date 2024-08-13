@@ -141,6 +141,7 @@ namespace {
                 JSON_FIELD_FFIXED("temp_nozzle", params.slots[params.preferred_head()].temp_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
 #if PRINTER_IS_PRUSA_iX()
+                JSON_FIELD_FFIXED("temp_heatbreak", params.slots[params.preferred_head()].temp_heatbreak, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("temp_psu", params.temp_psu, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("temp_ambient", params.temp_ambient, 1) JSON_COMMA;
 #endif

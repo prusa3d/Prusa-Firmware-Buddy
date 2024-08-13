@@ -54,6 +54,9 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         if (slot_mask & (1 << i)) {
             crc.add_str(slots[i].material.data())
                 .add(int(slots[i].temp_nozzle))
+#if PRINTER_IS_PRUSA_iX()
+                .add(int(slots[i].temp_heatbreak))
+#endif
                 // The RPM values are in thousands and fluctuating a bit, we don't want
                 // that to trigger the send too often, only when it actually really
                 // changes.

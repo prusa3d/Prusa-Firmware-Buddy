@@ -176,6 +176,9 @@ namespace {
 #endif
                 params.slots[i].material = std::to_array(config_store().get_filament_type(i).parameters().name);
                 params.slots[i].temp_nozzle = hotend.temp_nozzle;
+#if PRINTER_IS_PRUSA_iX()
+                params.slots[i].temp_heatbreak = hotend.temp_heatbreak;
+#endif
                 params.slots[i].print_fan_rpm = hotend.print_fan_rpm;
                 params.slots[i].heatbreak_fan_rpm = hotend.heatbreak_fan_rpm;
                 params.slots[i].nozzle_diameter = config_store().get_nozzle_diameter(nozzle);

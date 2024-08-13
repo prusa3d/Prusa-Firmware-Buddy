@@ -48,6 +48,9 @@ public:
     struct SlotInfo {
         std::array<char, filament_name_buffer_size> material = { 0 };
         float temp_nozzle = 0;
+#if PRINTER_IS_PRUSA_iX()
+        float temp_heatbreak = 0;
+#endif
         uint16_t print_fan_rpm = 0;
         uint16_t heatbreak_fan_rpm = 0;
         bool high_flow = false;
