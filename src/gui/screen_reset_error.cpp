@@ -50,5 +50,5 @@ void ScreenResetError::windowEvent([[maybe_unused]] window_t *sender, GUI_event_
 }
 
 void ScreenResetError::update_error_code([[maybe_unused]] uint16_t &error_code) {
-    error_code = error_code - ERR_PRINTER_CODE + PrinterModelInfo::current().usb_pid * 1000;
+    error_code = error_code - (ERR_PRINTER_CODE * 1000) + (PrinterModelInfo::current().usb_pid * 1000);
 }
