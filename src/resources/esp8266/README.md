@@ -1,7 +1,7 @@
 # The ESP8266 firmware
 
-Comes from <https://github.com/prusa3d/Prusa-ESP-Nic-FW/>. Current version is
-built from `1e0740cf0fc831124614538ef689748a83141596`.
+Firmware comes from <https://github.com/prusa3d/Prusa-ESP-Nic-FW/>.
+Current version is built from `ca8c12af60a3fb916bf84527cb91d9ccd3128091`.
 
-Flasher stub is built from commit 28757e077be51e3849bb900e028869297d206926
-of the repository git@github.com:prusa3d/esptool.git
+Flasher stub comes from <https://github.com/prusa3d/esptool/>.
+Current version is built from `5583f160d9ddb9f07f73c0dc696c8d7a52db2390`.
