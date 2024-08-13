@@ -117,10 +117,12 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
                 showQR();
 
                 text_detail.SetText(_("Code: %s").formatted(code_params, code));
+#if !HAS_MINI_DISPLAY()
                 Rect16 adjusted_rect = text_detail.GetRect();
                 adjusted_rect += Rect16::Top_t(WizardDefaults::row_h);
                 adjusted_rect -= Rect16::Height_t(WizardDefaults::row_h);
                 text_detail.SetRect(adjusted_rect);
+#endif
 
 #if HAS_MINI_DISPLAY()
                 text_state.SetText(_("Scan the QR code using the Prusa app or camera, or visit prusa.io/add.\n"));
