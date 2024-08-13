@@ -102,7 +102,7 @@ static std::atomic<netif *> active_esp_netif;
 // 10 seconds (20 health-check loops spaced 500ms from each other)
 static std::atomic<uint8_t> init_countdown = 20;
 static std::atomic<bool> seen_intron = false;
-static std::atomic<bool> seen_rx_packet = false;
+static std::atomic<bool> seen_pong = false;
 
 // UART
 static std::atomic<bool> esp_detected;
@@ -639,11 +639,18 @@ struct UartRxParser final : public esp::RxParserBase {
         packet_buff_read = 0;
         if (validate_checksum()) {
             process_link_change(msg.header.up, netif);
-            if (netif->input(packet_buff_head, netif) != ERR_OK) {
-                log_warning(ESPIF, "tcpip_input() failed, dropping packet");
+            if (packet_buff_head == nullptr || packet_buff_head->tot_len == 0) {
+                log_debug(ESPIF, "ESP pong");
+                // Not a packet, but a pong.
+                // (historical reasons, empty packets are pings/pongs)
+                seen_pong = true;
             } else {
-                seen_rx_packet = true;
-                packet_buff_head = nullptr;
+                if (netif->input(packet_buff_head, netif) == ERR_OK) {
+                    // Packet successfully "eaten" by netif->input, do not free on our side.
+                    packet_buff_head = nullptr;
+                } else {
+                    log_warning(ESPIF, "tcpip_input() failed, dropping packet");
+                }
             }
         }
     }
@@ -776,8 +783,9 @@ bool espif_tick() {
     }
 
     if (espif_link()) {
-        const bool was_alive = seen_intron.exchange(false);
-        if (!seen_rx_packet.exchange(false) && is_running(esp_operating_mode)) {
+        const bool was_alive = seen_pong.exchange(false);
+        seen_intron.store(false);
+        if (is_running(esp_operating_mode)) {
             log_debug(ESPIF, "Ping ESP");
             // Poke the ESP somewhat to see if it's still alive and provoke it to
             // do some activity during next round.
