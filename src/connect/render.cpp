@@ -657,6 +657,9 @@ namespace {
     }
 
     enum class MetaFilter {
+        // Currently unused. We switched to sending everything (as strings)
+        // unless stated otherwise, but we keep this one to allow explicitly
+        // opting out of some fields.
         Ignore,
         String,
         Int,
@@ -672,21 +675,14 @@ namespace {
     // TODO: We probably can come up with some way of not storing the long
     // strings in here and save some flash size with maybe CRCs of the strings?
     static constexpr MetaRecord meta_records[] = {
-        { "estimated printing time (normal mode)", MetaFilter::String },
         { "filament cost", MetaFilter::Float },
         { "filament used [mm]", MetaFilter::Float },
         { "filament used [cm3]", MetaFilter::Float },
         { "filament used [mm3]", MetaFilter::Float },
-        { "filament used [g]", MetaFilter::String },
         { "filament used [m]", MetaFilter::Float },
         { "bed_temperature", MetaFilter::Int },
         { "brim_width", MetaFilter::Int },
-        { "filament_type", MetaFilter::String },
-        // Yes, really, a string, because it contains the % sign.
-        { "fill_density", MetaFilter::String },
         { "layer_height", MetaFilter::Float },
-        { "nozzle_diameter", MetaFilter::Float },
-        { "printer_model", MetaFilter::String },
         { "temperature", MetaFilter::Int },
         // Note: These two should actually be Bools. But it seems the server is
         // currently expecting 0/1, the gcode also contains 0/1, so we adhere
@@ -694,10 +690,7 @@ namespace {
         { "ironing", MetaFilter::Int },
         { "support_material", MetaFilter::Int },
         { "max_layer_z", MetaFilter::Float },
-        { "objects_info", MetaFilter::String },
         { "estimated_print_time", MetaFilter::Int },
-        { "estimated_printing_time_normal_mode", MetaFilter::String },
-        { "extruder_colour", MetaFilter::String },
         { "total filament used for wipe tower [g]", MetaFilter::Float },
     };
 
@@ -708,7 +701,7 @@ namespace {
             }
         }
 
-        return MetaFilter::Ignore;
+        return MetaFilter::String;
     }
 } // namespace
 
