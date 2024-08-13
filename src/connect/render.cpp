@@ -423,6 +423,10 @@ namespace {
                     // rendering a trailing comma if it outputs anything at
                     // all.
                     JSON_CHUNK(state.file_extra.renderer);
+
+                    // BEWARE:
+                    // If you add another field below, make sure to also
+                    // include it in the blacklist of meta headers (see MetaFilter::Ignore).
                     if (state.has_stat) {
                         // has_stat might be off in case of /usb, that one acts
                         // "weird", as it is root of the FS.
@@ -657,9 +661,6 @@ namespace {
     }
 
     enum class MetaFilter {
-        // Currently unused. We switched to sending everything (as strings)
-        // unless stated otherwise, but we keep this one to allow explicitly
-        // opting out of some fields.
         Ignore,
         String,
         Int,
@@ -692,6 +693,19 @@ namespace {
         { "max_layer_z", MetaFilter::Float },
         { "estimated_print_time", MetaFilter::Int },
         { "total filament used for wipe tower [g]", MetaFilter::Float },
+
+        // Blacklist of names not to send.
+        // These really aren't metadata headers in common gcode files as far as
+        // we know. But these are some additional fields we include in the data
+        // object of the FILE_INFO event, so we protect against a collision by
+        // malicious or confused gcode file.
+        { "preview", MetaFilter::Ignore },
+        { "size", MetaFilter::Ignore },
+        { "m_timestamp", MetaFilter::Ignore },
+        { "read_only", MetaFilter::Ignore },
+        { "display_name", MetaFilter::Ignore },
+        { "type", MetaFilter::Ignore },
+        { "path", MetaFilter::Ignore },
     };
 
     MetaFilter meta_filter(const char *name) {
