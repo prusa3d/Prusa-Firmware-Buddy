@@ -4,10 +4,12 @@ add_executable(
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/src/common/crc32.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/error_code_mangle.cpp
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/printer_model.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_any.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_binary.cpp
@@ -125,9 +127,11 @@ add_executable(
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/src/common/crc32.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/error_code_mangle.cpp
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/printer_model.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/httpc.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
@@ -218,6 +222,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aesni.c
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/src/common/crc32.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/error_code_mangle.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/httpc.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
@@ -226,6 +231,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/printer_model.cpp
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp
