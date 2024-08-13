@@ -29,7 +29,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2024-07-23 13:20+0200\n"
+"POT-Creation-Date: 2024-08-14 13:13+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -126,7 +126,7 @@ msgid "%d Dock Position Calibration"
 msgstr ""
 
 #: src/gui/include_XL/selftest_snake_config.hpp:117
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:76
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:77
 #: src/gui/include_MINI/selftest_snake_config.hpp:75
 #: src/gui/include_iX/selftest_snake_config.hpp:74
 #: src/gui/include_MK4/selftest_snake_config.hpp:78
@@ -140,7 +140,7 @@ msgstr ""
 msgid "%d Filament Sensor Calibration"
 msgstr ""
 
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:81
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:82
 #: src/gui/include_MINI/selftest_snake_config.hpp:79
 #, c-format
 msgid "%d First Layer Calibration"
@@ -152,12 +152,17 @@ msgid "%d Gears Calibration"
 msgstr ""
 
 #: src/gui/include_XL/selftest_snake_config.hpp:125
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:80
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:81
 #: src/gui/include_MINI/selftest_snake_config.hpp:78
 #: src/gui/include_iX/selftest_snake_config.hpp:77
 #: src/gui/include_MK4/selftest_snake_config.hpp:83
 #, c-format
 msgid "%d Heater Test"
+msgstr ""
+
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:83
+#, c-format
+msgid "%d Input Shaper Calibration"
 msgstr ""
 
 #: src/gui/include_XL/selftest_snake_config.hpp:122
@@ -186,7 +191,7 @@ msgstr ""
 msgid "%d X Axis Test"
 msgstr ""
 
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:78
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:79
 #: src/gui/include_MINI/selftest_snake_config.hpp:76
 #: src/gui/include_iX/selftest_snake_config.hpp:75
 #: src/gui/include_MK4/selftest_snake_config.hpp:80
@@ -200,14 +205,14 @@ msgid "%d Y Axis Test"
 msgstr ""
 
 #: src/gui/include_XL/selftest_snake_config.hpp:118
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:77
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:78
 #: src/gui/include_MK4/selftest_snake_config.hpp:79
 #, c-format
 msgid "%d Z Alignment Calibration"
 msgstr ""
 
 #: src/gui/include_XL/selftest_snake_config.hpp:124
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:79
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:80
 #: src/gui/include_MINI/selftest_snake_config.hpp:77
 #: src/gui/include_iX/selftest_snake_config.hpp:76
 #: src/gui/include_MK4/selftest_snake_config.hpp:82
@@ -267,7 +272,7 @@ msgstr ""
 msgid "00 min"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:482
+#: src/gui/screen_network_setup.cpp:484
 msgid ""
 "1. Open Prusa app on your mobile device.\n"
 "\n"
@@ -282,7 +287,7 @@ msgid ""
 "the rear and align it with pins"
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:129
+#: src/gui/dialogs/DialogConnectReg.cpp:136
 msgid ""
 "1. Scan the QR code using the Prusa app or camera, or visit prusa.io/add\n"
 "\n"
@@ -348,7 +353,7 @@ msgstr ""
 msgid "ABORT"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:602
+#: src/gui/screen_printing.cpp:610
 msgid "ABORTING ..."
 msgstr ""
 
@@ -356,7 +361,7 @@ msgstr ""
 msgid "ALL"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:132
+#: src/gui/screen_input_shaper_calibration.cpp:135
 msgid ""
 "Accelerometer is not responding. Turn off the printer and make sure the "
 "accelerometer cable is connected to the main board. You can also abort the "
@@ -458,7 +463,7 @@ msgid ""
 "bar."
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:201
+#: src/gui/dialogs/DialogConnectReg.cpp:208
 msgid "Attempt"
 msgstr ""
 
@@ -468,6 +473,12 @@ msgid ""
 "This could have been caused by a wrong configuration.\n"
 "\n"
 "Do you want to revise your printer configuration?"
+msgstr ""
+
+#: src/gui/screen_input_shaper_calibration.cpp:106
+msgid ""
+"Attention: Ensure the accelerometer is properly connected. Follow the step-"
+"by-step guide in the link below:"
 msgstr ""
 
 #: src/gui/MItem_tools.hpp:91
@@ -659,7 +670,7 @@ msgid "CPU load"
 msgstr ""
 
 #. don't close on menu timeout
-#: src/gui/screen_crash_recovery.cpp:257
+#: src/gui/screen_crash_recovery.cpp:261
 msgid "CRASH DETECTED"
 msgstr ""
 
@@ -707,7 +718,7 @@ msgstr ""
 msgid "Calibrating Y motor"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:190
+#: src/gui/screen_input_shaper_calibration.cpp:193
 msgid "Calibrating accelerometer..."
 msgstr ""
 
@@ -945,7 +956,7 @@ msgstr ""
 msgid "Comm err"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:318
+#: src/gui/screen_input_shaper_calibration.cpp:321
 #, c-format
 msgid ""
 "Computed shapers:\n"
@@ -954,7 +965,7 @@ msgid ""
 "Store and use computed values?"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:243
+#: src/gui/screen_input_shaper_calibration.cpp:246
 msgid "Computing best shaper..."
 msgstr ""
 
@@ -979,7 +990,7 @@ msgstr ""
 msgid "Connecting"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:358 src/gui/screen_network_setup.cpp:365
+#: src/gui/screen_network_setup.cpp:360 src/gui/screen_network_setup.cpp:367
 msgid "Connecting to:"
 msgstr ""
 
@@ -1028,7 +1039,7 @@ msgstr ""
 msgid "Crash Sensitivity XY"
 msgstr ""
 
-#: src/gui/screen_home.cpp:268
+#: src/gui/screen_home.cpp:280
 msgid ""
 "Crash detected. Save it to USB?\n"
 "\n"
@@ -1044,11 +1055,11 @@ msgstr ""
 msgid "Crashes on Y Axis"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:401
+#: src/gui/screen_network_setup.cpp:403
 msgid "Credentials from INI"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:481 src/gui/screen_network_setup.cpp:491
+#: src/gui/screen_network_setup.cpp:483 src/gui/screen_network_setup.cpp:493
 msgid "Credentials via NFC"
 msgstr ""
 
@@ -1060,11 +1071,11 @@ msgstr ""
 msgid "Current tool"
 msgstr ""
 
-#: src/gui/screen_menu_mmu_cut_filament.hpp:21 src/gui/MItem_mmu.hpp:60
+#: src/gui/screen_menu_mmu_cut_filament.hpp:21 src/gui/MItem_mmu.hpp:61
 msgid "Cut Filament"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:219
+#: src/gui/MItem_mmu.hpp:220
 msgid "Cutter"
 msgstr ""
 
@@ -1125,11 +1136,11 @@ msgstr ""
 msgid "DWARF ERROR"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:409
+#: src/gui/screen_network_setup.cpp:411
 msgid "Delete INI file"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:409
+#: src/gui/screen_network_setup.cpp:411
 msgid "Delete credentials INI file? (Recommended)"
 msgstr ""
 
@@ -1205,11 +1216,11 @@ msgstr ""
 msgid "Do you really want to restore default input shaper configuration?"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:512
+#: src/gui/screen_network_setup.cpp:514
 msgid "Do you want to add your printer to Prusa Connect?"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:471
+#: src/gui/screen_network_setup.cpp:473
 msgid ""
 "Do you want to connect to the Wi-Fi with the Prusa app on your phone using "
 "NFC?"
@@ -1221,8 +1232,12 @@ msgid ""
 "nozzle and heatbed?"
 msgstr ""
 
-#: src/gui/MItem_mmu.cpp:335
+#: src/gui/MItem_mmu.cpp:336
 msgid "Do you want to reset the Nextruder main-plate maintenance reminder?"
+msgstr ""
+
+#: src/gui/MItem_mmu.cpp:338
+msgid "Do you want to reset the extruder maintenance reminder?"
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:18
@@ -1296,14 +1311,14 @@ msgstr ""
 msgid "Done"
 msgstr ""
 
-#: src/gui/screen_help_fw_update.cpp:32
+#: src/gui/screen_help_fw_update.cpp:31
 msgid ""
 "Download and copy the firmware (.bbf) file to the USB flash drive. Insert "
 "the drive into the printer and turn it on or restart it. Confirm the "
 "installation of the new firmware."
 msgstr ""
 
-#: src/gui/screen_help_fw_update.cpp:47
+#: src/gui/screen_help_fw_update.cpp:46
 msgid "Download the firmware (.bbf) file to the USB flash drive."
 msgstr ""
 
@@ -1498,7 +1513,7 @@ msgstr ""
 msgid "Eeprom Diagnostics"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:50 src/gui/MItem_mmu.hpp:115
+#: src/gui/MItem_mmu.hpp:51 src/gui/MItem_mmu.hpp:116
 msgid "Eject From MMU"
 msgstr ""
 
@@ -1566,7 +1581,7 @@ msgstr ""
 msgid "Engaging idler"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:82
+#: src/gui/screen_network_setup.cpp:84
 msgid "Enter credentials manually"
 msgstr ""
 
@@ -1583,7 +1598,7 @@ msgid ""
 msgstr ""
 
 #: src/guiapi/src/window_msgbox.cpp:263 src/gui/screen_menu_connect.cpp:51
-#: src/gui/screen_menu_connect.hpp:35 src/gui/screen_network_setup.cpp:380
+#: src/gui/screen_menu_connect.hpp:35 src/gui/screen_network_setup.cpp:382
 msgid "Error"
 msgstr ""
 
@@ -1609,7 +1624,7 @@ msgid ""
 "drive and try again."
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:143 src/gui/screen_network_setup.cpp:390
+#: src/gui/MItem_menus.hpp:143 src/gui/screen_network_setup.cpp:392
 msgid "Ethernet"
 msgstr ""
 
@@ -1626,8 +1641,12 @@ msgid "Exit"
 msgstr ""
 
 #. for MK3.5 we call this option simply "Extruder"
-#: src/gui/MItem_mmu.hpp:271
+#: src/gui/MItem_mmu.hpp:272
 msgid "Extruder"
+msgstr ""
+
+#: src/gui/MItem_mmu.hpp:302
+msgid "Extruder Maintenance"
 msgstr ""
 
 #: src/gui/screen_menu_factory_reset.hpp:12
@@ -1674,7 +1693,7 @@ msgstr ""
 msgid "FILTER CHANGE"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:284
+#: src/gui/MItem_mmu.hpp:285
 msgid "FINDA"
 msgstr ""
 
@@ -1710,7 +1729,7 @@ msgid ""
 "If you QUIT, all data up to this point is saved."
 msgstr ""
 
-#: src/gui/screen_printing.cpp:608
+#: src/gui/screen_printing.cpp:616
 msgid "FINISHED"
 msgstr ""
 
@@ -2132,6 +2151,14 @@ msgstr ""
 msgid "Filament sensors calibration"
 msgstr ""
 
+#: src/common/gcode/gcode_reader_binary.cpp:638
+msgid "File corrupt"
+msgstr ""
+
+#: src/common/gcode/gcode_reader_binary.cpp:635
+msgid "File doesn't contain any print instructions"
+msgstr ""
+
 #: tmp_error_headers/error_list_mini.hpp:449
 #: tmp_error_headers/error_list_mini.hpp:450
 #: tmp_error_headers/error_list_xl.hpp:729
@@ -2185,14 +2212,14 @@ msgstr ""
 msgid "Finishing moves"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:169
+#: src/gui/screen_input_shaper_calibration.cpp:172
 msgid ""
 "Firmly attach the accelerometer to the extruder (remove silicone sock if "
 "necessary). In the next step, extruder will start vibrating and resonance "
 "will be measured."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:199
+#: src/gui/screen_input_shaper_calibration.cpp:202
 msgid ""
 "Firmly attach the accelerometer to the heatbed. In the next step, heatbed "
 "will start vibrating and resonance will be measured."
@@ -2469,7 +2496,7 @@ msgstr ""
 msgid "Gears Calibration"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:249
+#: src/gui/MItem_mmu.hpp:250
 msgid "General Fails in Print"
 msgstr ""
 
@@ -2550,7 +2577,7 @@ msgid "HAL detected an I2C undefined error when sending data via I2C."
 msgstr ""
 
 #: src/gui/screen_menu_hardware_tune.hpp:24
-#: src/gui/screen_menu_hardware.hpp:110
+#: src/gui/screen_menu_hardware.hpp:107
 msgid "HARDWARE"
 msgstr ""
 
@@ -2634,7 +2661,7 @@ msgstr ""
 msgid "HOTEND HEATER OVERCURRENT"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:178
+#: src/gui/MItem_mmu.hpp:179
 msgid "HW Reset"
 msgstr ""
 
@@ -2959,7 +2986,7 @@ msgid ""
 "wiring."
 msgstr ""
 
-#: src/gui/screen_help_fw_update.cpp:51
+#: src/gui/screen_help_fw_update.cpp:50
 msgid "How to update firmware?"
 msgstr ""
 
@@ -3148,7 +3175,7 @@ msgid ""
 "during the boot. This will install the MK4/MK3.9 firmware."
 msgstr ""
 
-#: src/gui/screen_help_fw_update.cpp:48
+#: src/gui/screen_help_fw_update.cpp:47
 msgid ""
 "Insert the drive into the printer and turn it on or restart it. Confirm the "
 "installation."
@@ -3369,7 +3396,7 @@ msgstr ""
 msgid "Load"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:235
+#: src/gui/MItem_mmu.hpp:236
 msgid "Load Fails in Print"
 msgstr ""
 
@@ -3393,7 +3420,7 @@ msgstr ""
 msgid "Load filament"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:40 src/gui/screen_menu_mmu_load_to_nozzle.hpp:21
+#: src/gui/MItem_mmu.hpp:41 src/gui/screen_menu_mmu_load_to_nozzle.hpp:21
 msgid "Load to Nozzle"
 msgstr ""
 
@@ -3444,7 +3471,7 @@ msgstr ""
 msgid "Loaded successfully. Enable Connect to activate."
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:30
+#: src/gui/MItem_mmu.hpp:31
 msgid "Loading Test"
 msgstr ""
 
@@ -3618,11 +3645,11 @@ msgstr ""
 msgid "MK3 Compatibility"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:274
+#: src/gui/MItem_mmu.hpp:275
 msgid "MMU"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:291
+#: src/gui/MItem_mmu.hpp:292
 msgid "MMU BL Status"
 msgstr ""
 
@@ -3670,7 +3697,7 @@ msgstr ""
 msgid "MMU SELFTEST FAILED"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:211
+#: src/gui/MItem_mmu.hpp:212
 msgid "MMU Unit"
 msgstr ""
 
@@ -3768,7 +3795,13 @@ msgstr ""
 msgid "MULTITOOL FILAMENT CHANGE"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:328
+#: src/gui/screen_printing.cpp:335
+msgid ""
+"Maintenance Reminder. Filament changes have reached 30k. Inspect and clean "
+"the extruder. Visit prusa.io/mmu-care"
+msgstr ""
+
+#: src/gui/screen_printing.cpp:333
 msgid ""
 "Maintenance Reminder. Filament changes have reached main-plate lifespan. "
 "Inspect the part and ensure you have a spare plate available. Visit prusa.io/"
@@ -3832,15 +3865,15 @@ msgid ""
 "in contact with hotend. In case of damage, replace it."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:332
+#: src/gui/screen_input_shaper_calibration.cpp:335
 msgid "Measurement failed."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:208
+#: src/gui/screen_input_shaper_calibration.cpp:211
 msgid "Measuring X resonance..."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:216
+#: src/gui/screen_input_shaper_calibration.cpp:219
 msgid "Measuring Y resonance..."
 msgstr ""
 
@@ -3964,7 +3997,7 @@ msgstr ""
 msgid "NETWORK"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:554
+#: src/gui/screen_network_setup.cpp:556
 msgid "NETWORK SETUP"
 msgstr ""
 
@@ -4056,15 +4089,15 @@ msgstr ""
 msgid "Newer FW req.: %s"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:511
+#: src/gui/screen_printing.cpp:519
 msgid "Next change in"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:268
+#: src/gui/MItem_mmu.hpp:269
 msgid "Nextruder"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:298
+#: src/gui/MItem_mmu.hpp:300
 msgid "Nextruder Maintenance"
 msgstr ""
 
@@ -4101,7 +4134,7 @@ msgid ""
 "first!"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:372
+#: src/gui/screen_network_setup.cpp:374
 msgid "No network interface"
 msgstr ""
 
@@ -4362,11 +4395,11 @@ msgstr ""
 msgid "PAUSE"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:599
+#: src/gui/screen_printing.cpp:607
 msgid "PAUSED"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:595
+#: src/gui/screen_printing.cpp:603
 msgid "PAUSING ..."
 msgstr ""
 
@@ -4484,7 +4517,7 @@ msgid "Park Current Tool"
 msgstr ""
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:50
-#: src/gui/screen_input_shaper_calibration.cpp:123
+#: src/gui/screen_input_shaper_calibration.cpp:126
 msgid "Parking"
 msgstr ""
 
@@ -4616,7 +4649,7 @@ msgstr ""
 msgid "Please complete Calibrations & Tests before using the printer."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:401
+#: src/gui/screen_network_setup.cpp:403
 msgid ""
 "Please insert a flash drive with a network configuration file.\n"
 "\n"
@@ -4660,7 +4693,7 @@ msgstr ""
 msgid "Post Print Filtration Duration"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:186
+#: src/gui/MItem_mmu.hpp:187
 msgid "Power Cycle"
 msgstr ""
 
@@ -4705,15 +4738,15 @@ msgstr ""
 msgid "Preheating for unload"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:70
+#: src/gui/MItem_mmu.hpp:71
 msgid "Preload All"
 msgstr ""
 
-#: src/gui/screen_menu_mmu_preload_to_mmu.hpp:18 src/gui/MItem_mmu.hpp:20
+#: src/gui/screen_menu_mmu_preload_to_mmu.hpp:18 src/gui/MItem_mmu.hpp:21
 msgid "Preload to MMU"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:10
+#: src/gui/MItem_mmu.hpp:11
 msgid "Preload to MMU Advanced"
 msgstr ""
 
@@ -4833,14 +4866,20 @@ msgstr ""
 msgid "Printer Model"
 msgstr ""
 
-#: src/gui/MItem_hardware.hpp:194 src/gui/MItem_hardware.hpp:204
+#: src/gui/MItem_hardware.cpp:78 src/gui/MItem_hardware.hpp:201
 msgid "Printer Type"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:325
+#: src/gui/screen_printing.cpp:326
 msgid ""
 "Printer has detected multiple consecutive filament loading errors. We "
 "recommend checking Nextruder main-plate. Visit prusa.io/mmu-care"
+msgstr ""
+
+#: src/gui/screen_printing.cpp:328
+msgid ""
+"Printer has detected multiple consecutive filament loading errors. We "
+"recommend checking the extruder. Visit prusa.io/mmu-care"
 msgstr ""
 
 #: src/gui/MItem_tools.cpp:56
@@ -5037,11 +5076,11 @@ msgstr ""
 msgid "Rear Side [um]"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:256
+#: src/gui/screen_input_shaper_calibration.cpp:259
 msgid "Recommended shaper frequency for X axis: "
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:257
+#: src/gui/screen_input_shaper_calibration.cpp:260
 msgid "Recommended shaper frequency for Y axis: "
 msgstr ""
 
@@ -5069,7 +5108,7 @@ msgstr ""
 msgid "Registering the printer to Prusa Connect..."
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:136
+#: src/gui/dialogs/DialogConnectReg.cpp:143
 msgid "Registration successful, continue at connect.prusa3d.com"
 msgstr ""
 
@@ -5174,7 +5213,7 @@ msgstr ""
 #: src/guiapi/include/WindowMenuItems.hpp:72
 #: src/guiapi/include/window_tool_action_box.hpp:100
 #: src/gui/screen_network_setup.cpp:32 src/gui/screen_network_setup.cpp:38
-#: src/gui/screen_network_setup.cpp:143
+#: src/gui/screen_network_setup.cpp:145
 #: src/gui/dialogs/window_dlg_preheat.hpp:41
 msgid "Return"
 msgstr ""
@@ -5252,7 +5291,7 @@ msgstr ""
 msgid "SPOOL JOIN"
 msgstr ""
 
-#: src/gui/MItem_network.hpp:51 src/gui/screen_network_setup.cpp:87
+#: src/gui/MItem_network.hpp:51 src/gui/screen_network_setup.cpp:89
 msgid "SSID"
 msgstr ""
 
@@ -5260,7 +5299,7 @@ msgstr ""
 msgid "STOP"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:605
+#: src/gui/screen_printing.cpp:613
 msgid "STOPPED"
 msgstr ""
 
@@ -5269,7 +5308,7 @@ msgstr ""
 msgid "STUCK FILAMENT DETECTED"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:170
+#: src/gui/MItem_mmu.hpp:171
 msgid "SW Reset"
 msgstr ""
 
@@ -5290,17 +5329,16 @@ msgstr ""
 msgid "Save Crash Dump"
 msgstr ""
 
-#: src/gui/screen_home.cpp:284
+#: src/gui/screen_home.cpp:296
 msgid "Saving to USB"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:75
+#: src/gui/screen_network_setup.cpp:77
 msgid "Scan networks"
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:127
-msgid ""
-"Scan the QR code using the Prusa app or camera, or visit prusa.io/add.\n"
+#: src/gui/dialogs/DialogConnectReg.cpp:134
+msgid "Scan the QR code using the Prusa app or camera, or visit prusa.io/add"
 msgstr ""
 
 #. Wifi module is scanning for Access points
@@ -5308,11 +5346,11 @@ msgstr ""
 msgid "Scanning"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:210
+#: src/gui/screen_network_setup.cpp:212
 msgid "Scanning for networks..."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:210
+#: src/gui/screen_network_setup.cpp:212
 msgid "Scanning..."
 msgstr ""
 
@@ -5384,7 +5422,7 @@ msgstr ""
 msgid "Set Ready"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:512
+#: src/gui/screen_network_setup.cpp:514
 msgid "Set up Prusa Connect?"
 msgstr ""
 
@@ -5576,7 +5614,7 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:71 src/gui/MItem_mmu.hpp:227
+#: src/gui/MItem_tools.hpp:71 src/gui/MItem_mmu.hpp:228
 msgid "Stealth Mode"
 msgstr ""
 
@@ -5592,7 +5630,7 @@ msgstr ""
 msgid "Steppers disabled due to inactivity."
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:273
+#: src/gui/MItem_mmu.hpp:274
 msgid "Stock"
 msgstr ""
 
@@ -5632,7 +5670,7 @@ msgstr ""
 msgid "Stuck Filament Detection"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:388
+#: src/gui/screen_network_setup.cpp:390
 msgid "Successfully connected to:"
 msgstr ""
 
@@ -5647,7 +5685,7 @@ msgid ""
 "properly."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:328
+#: src/gui/screen_network_setup.cpp:330
 msgid "Switch to Wi-Fi"
 msgstr ""
 
@@ -5889,7 +5927,7 @@ msgstr ""
 msgid "Temperature"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:160
+#: src/gui/MItem_mmu.hpp:161
 msgid "Test All"
 msgstr ""
 
@@ -5992,7 +6030,7 @@ msgid ""
 "the wiring is correct."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:372
+#: src/gui/screen_network_setup.cpp:374
 msgid ""
 "The Wi-Fi module is not working properly or is missing.\n"
 "\n"
@@ -6106,7 +6144,7 @@ msgid ""
 "action."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:380
+#: src/gui/screen_network_setup.cpp:382
 msgid "There was an error connecting to the Wi-Fi."
 msgstr ""
 
@@ -6272,21 +6310,16 @@ msgid ""
 "prusa.io/xl-filter"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:96
-msgid ""
-"To learn more about the input shaper calibration process, visit our website:"
-msgstr ""
-
 #: src/gui/screen_phase_stepping.cpp:21
 msgid ""
 "To learn more about the phase stepping calibration process, read the article:"
 msgstr ""
 
-#: src/gui/screen_help_fw_update.cpp:84
+#: src/gui/screen_help_fw_update.cpp:83
 msgid "To learn more including firmware downgrade, please visit:\n"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:462
+#: src/gui/screen_network_setup.cpp:464
 msgid "To setup or troubleshoot your Wi-Fi, please visit:"
 msgstr ""
 
@@ -6437,11 +6470,11 @@ msgstr ""
 msgid "Tools Changed"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:257
+#: src/gui/MItem_mmu.hpp:258
 msgid "Total General Fails"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:242
+#: src/gui/MItem_mmu.hpp:243
 msgid "Total Load Fails"
 msgstr ""
 
@@ -6668,6 +6701,10 @@ msgstr ""
 msgid "Unknown Error"
 msgstr ""
 
+#: src/common/gcode/gcode_reader_binary.cpp:641
+msgid "Unknown file error"
+msgstr ""
+
 #: tmp_error_headers/error_list_xl.hpp:443
 #: tmp_error_headers/error_list_ix.hpp:422
 msgid "Unknown puppy type"
@@ -6677,7 +6714,7 @@ msgstr ""
 msgid "Unload"
 msgstr ""
 
-#: src/gui/MItem_filament.hpp:19 src/gui/MItem_mmu.hpp:152
+#: src/gui/MItem_filament.hpp:19 src/gui/MItem_mmu.hpp:153
 msgid "Unload Filament"
 msgstr ""
 
@@ -6773,7 +6810,7 @@ msgstr ""
 msgid "Waiting for hotends to stabilize at calibration temperature:"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:152
+#: src/gui/screen_input_shaper_calibration.cpp:155
 msgid "Waiting for nozzle to cool down"
 msgstr ""
 
@@ -6905,13 +6942,13 @@ msgstr ""
 msgid "Wi-Fi Wizard"
 msgstr ""
 
-#: src/gui/screen_home.cpp:376
+#: src/gui/screen_home.cpp:388
 msgid ""
 "Wi-Fi credentials (SSID and password) discovered on the USB flash drive. "
 "Would you like to connect your printer to Wi-Fi now?"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:494
+#: src/gui/screen_network_setup.cpp:496
 #, c-format
 msgid ""
 "Wi-Fi credentials loaded via NFC.\n"
@@ -7021,11 +7058,11 @@ msgid ""
 "For more information, visit prusa.io/nozzle-types"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:388
+#: src/gui/screen_network_setup.cpp:390
 msgid "You can now fully use all network features of the printer."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:358
+#: src/gui/screen_network_setup.cpp:360
 msgid "You can press 'Finish' to continue connecting on the background."
 msgstr ""
 
@@ -7036,7 +7073,7 @@ msgid ""
 " "
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:328
+#: src/gui/screen_network_setup.cpp:330
 msgid ""
 "You're already successfully connected through the ethernet cable.\n"
 "Switch to Wi-Fi and continue?"
@@ -7079,14 +7116,14 @@ msgstr ""
 msgid "axis"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:255
+#: src/gui/screen_input_shaper_calibration.cpp:258
 msgid ""
 "axis frequency is too high.\n"
 "Please check your HW setup.\n"
 "If the problem prevails, contact the customer support."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:254
+#: src/gui/screen_input_shaper_calibration.cpp:257
 msgid ""
 "axis frequency is too low.\n"
 "Please tighten the belt."
