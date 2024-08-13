@@ -121,15 +121,17 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
                     sb.append_string_view(_("Code: "));
                     sb.append_string(code);
                     text_detail.SetText(string_view_utf8::MakeRAM(code_buffer.data()));
+#if !HAS_MINI_DISPLAY()
                     // Translations are too long - adjust rectangle
                     Rect16 adjusted_rect = text_detail.GetRect();
                     adjusted_rect += Rect16::Top_t(WizardDefaults::row_h);
                     adjusted_rect -= Rect16::Height_t(WizardDefaults::row_h);
                     text_detail.SetRect(adjusted_rect);
+#endif // !HAS_MINI_DISPLAY()
                 }
 
 #if HAS_MINI_DISPLAY()
-                text_state.SetText(_("Scan the QR code using the Prusa app or camera, or visit prusa.io/add.\n"));
+                text_state.SetText(_("Scan the QR code using the Prusa app or camera, or visit prusa.io/add"));
 #else
                 text_state.SetText(_("1. Scan the QR code using the Prusa app or camera, or visit prusa.io/add\n\n2. Log in"));
 #endif
