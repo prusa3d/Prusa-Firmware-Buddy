@@ -63,6 +63,7 @@ Printer::Config load_eeprom_config() {
     strlcpy(configuration.token, config_store().connect_token.get().data(), sizeof(configuration.token));
     configuration.tls = config_store().connect_tls.get();
     configuration.port = config_store().connect_port.get();
+    configuration.custom_cert = config_store().connect_custom_tls_cert.get();
 
     return configuration;
 }

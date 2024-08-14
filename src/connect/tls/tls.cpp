@@ -5,6 +5,8 @@
 #include <memory>
 
 #include <logging/log.hpp>
+#include <unique_file_ptr.hpp>
+#include <common/heap.h>
 
 #include <lwip/mem.h>
 
@@ -61,9 +63,10 @@ struct InitContexts {
 
 namespace connect_client {
 
-tls::tls(uint8_t timeout_s)
+tls::tls(uint8_t timeout_s, bool custom_cert)
     : http::Connection(timeout_s)
-    , net_context(timeout_s) {
+    , net_context(timeout_s)
+    , custom_cert(custom_cert) {
     mbedtls_net_init(&net_context);
     mbedtls_ssl_init(&ssl_context);
     mbedtls_ssl_config_init(&ssl_config);
@@ -100,9 +103,50 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
     }
 
     mbedtls_ssl_conf_rng(&ssl_config, mbedtls_ctr_drbg_random, &ctxs.drbg_context);
-    for (const auto &cert : certificates) {
-        if ((status = mbedtls_x509_crt_parse_der_nocopy(&ctxs.x509_certificate, cert.data(), cert.size())) != 0) {
+    class FreeDeleter {
+    public:
+        void operator()(void *p) {
+            free(p);
+        }
+    };
+    unique_ptr<void, FreeDeleter> der_buffer;
+    if (custom_cert) {
+        // Note that mbedtls offers the parse_path / parse_file variants, but
+        // these expect a PEM file and we do not want to support PEM too (extra
+        // code size).
+        //
+        // TODO: Unify the path somewhere
+        unique_file_ptr cert(fopen("/internal/connect/connect.der", "rb"));
+        if (!cert) {
+            // Missing cert
+            return Error::Tls;
+        }
+
+        if (fseek(cert.get(), 0, SEEK_END) != 0) {
             return Error::InternalError;
+        }
+
+        long fsize = ftell(cert.get());
+        if (fsize == -1) {
+            return Error::InternalError;
+        }
+
+        rewind(cert.get());
+
+        der_buffer.reset(malloc_fallible(fsize));
+        if (!der_buffer) {
+            return Error::InternalError;
+        }
+
+        if (mbedtls_x509_crt_parse_der_nocopy(&ctxs.x509_certificate, static_cast<const uint8_t *>(der_buffer.get()), fsize) != 0) {
+            // Wrong file content
+            return Error::Tls;
+        }
+    } else {
+        for (const auto &cert : certificates) {
+            if ((status = mbedtls_x509_crt_parse_der_nocopy(&ctxs.x509_certificate, cert.data(), cert.size())) != 0) {
+                return Error::InternalError;
+            }
         }
     }
 

@@ -21,9 +21,10 @@ private:
     mbedtls_ssl_config ssl_config;
     mbedtls_net_context net_context;
     mbedtls_ssl_context ssl_context;
+    bool custom_cert;
 
 public:
-    tls(uint8_t timeout_s);
+    tls(uint8_t timeout_s, bool custom_cert);
     ~tls();
     tls(const tls &other) = delete;
     tls(tls &&other) = delete;

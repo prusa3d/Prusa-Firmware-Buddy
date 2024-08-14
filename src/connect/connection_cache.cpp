@@ -50,7 +50,7 @@ void CachedFactory::refresh(const Printer::Config &config) {
 
         if (config.tls) {
             log_debug(connect, "Creating TLS");
-            cache.emplace<tls>(SOCKET_TIMEOUT_SEC);
+            cache.emplace<tls>(SOCKET_TIMEOUT_SEC, config.custom_cert);
             connection = &get<tls>(cache);
         } else {
             log_debug(connect, "Creating plain");
