@@ -782,7 +782,7 @@
 
 /// HW limits of feed rate
 #define HWLIMIT_NORMAL_MAX_FEEDRATE \
-    { 400, 400, 20, 100 }
+    { 230, 230, 20, 100 }
 #define HWLIMIT_STEALTH_MAX_FEEDRATE \
     { 140, 140, 12, 100 }
 
