@@ -20,7 +20,6 @@ enum class Action {
     ZCheck,
     Heaters,
     FirstLayer,
-    InputShaperCalibration,
     _count,
     _last = _count - 1,
     _first = Fans,
@@ -80,7 +79,6 @@ inline constexpr MenuItemText blank_item_texts[] {
     { Action::ZCheck, N_("%d Z Axis Test") },
     { Action::Heaters, N_("%d Heater Test") },
     { Action::FirstLayer, N_("%d First Layer Calibration") },
-    { Action::InputShaperCalibration, N_("%d Input Shaper Calibration") },
 };
 
 TestResult get_test_result(Action action, Tool tool);
