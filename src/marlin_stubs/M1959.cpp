@@ -359,10 +359,10 @@ static PhasesInputShaperCalibration measuring_axis(
 }
 
 static PhasesInputShaperCalibration measuring_x_axis(Context &context) {
-#if HAS_LOCAL_ACCELEROMETER()
-    constexpr auto next_phase = PhasesInputShaperCalibration::attach_to_bed;
-#else
+#if ENABLED(COREXY)
     constexpr auto next_phase = PhasesInputShaperCalibration::measuring_y_axis;
+#else
+    constexpr auto next_phase = PhasesInputShaperCalibration::attach_to_bed;
 #endif
     return measuring_axis(
         PhasesInputShaperCalibration::measuring_x_axis,
