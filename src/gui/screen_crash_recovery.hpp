@@ -11,6 +11,18 @@ class ScreenCrashRecovery;
 
 namespace crash_recovery {
 
+class RepeatedBeep {
+public:
+    RepeatedBeep();
+    ~RepeatedBeep();
+};
+
+class SingleBeep {
+public:
+    SingleBeep();
+    ~SingleBeep();
+};
+
 struct WinsCheckAxis {
     window_text_t text_long;
     window_icon_t icon_nozzle_crash;
@@ -21,6 +33,7 @@ struct WinsCheckAxis {
     WindowIcon_OkNg icon_x_axis;
     window_text_t text_y_axis;
     WindowIcon_OkNg icon_y_axis;
+    SingleBeep beep;
 
     WinsCheckAxis(ScreenCrashRecovery &screen);
 };
@@ -32,6 +45,7 @@ struct WinsHome {
     BasicWindow line;
     window_text_t text_home_axes;
     WindowIcon_OkNg icon_home_axes;
+    SingleBeep beep;
 
     WinsHome(ScreenCrashRecovery &screen);
 };
@@ -45,6 +59,8 @@ struct WinsAxisNok {
     WindowIcon_OkNg icon_y_axis;
     RadioButton radio;
     static constexpr PhaseTexts texts = { { "Retry", "Pause", "Resume" } };
+    RepeatedBeep beep;
+
     WinsAxisNok(ScreenCrashRecovery &screen);
 };
 
@@ -55,6 +71,8 @@ struct WinsRepeatedCrash {
     window_text_t text_info;
     RadioButton radio;
     static constexpr PhaseTexts texts = { { "Resume", "Pause" } };
+    RepeatedBeep beep;
+
     WinsRepeatedCrash(ScreenCrashRecovery &screen);
 };
 
@@ -65,6 +83,8 @@ struct WinsHomeFail {
     window_text_t text_info;
     RadioButton radio;
     static constexpr PhaseTexts texts = { { "Retry" } };
+    RepeatedBeep beep;
+
     WinsHomeFail(ScreenCrashRecovery &screen);
 };
 
@@ -75,8 +95,9 @@ struct WinsToolRecovery {
     WindowIcon_OkNg icon_tool[EXTRUDERS];
     RadioButton radio;
     static constexpr PhaseTexts texts = { { "Continue" } };
+    RepeatedBeep beep;
+
     WinsToolRecovery(ScreenCrashRecovery &screen);
-    ~WinsToolRecovery();
 };
 
 using WinVariant = std::variant<

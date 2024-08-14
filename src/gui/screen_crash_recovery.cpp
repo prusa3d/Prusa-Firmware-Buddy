@@ -113,6 +113,22 @@ static constexpr const char *en_text_long_homefail = find_error(ErrCode::CONNECT
 static constexpr const char *en_text_homefail_info = N_("Try checking belt tension\nor debris on the axes.");
 static constexpr const char *en_text_tool_careful = N_("!! Careful, tools are hot !!");
 
+RepeatedBeep::RepeatedBeep() {
+    Sound_Play(eSOUND_TYPE::WaitingBeep);
+}
+
+RepeatedBeep::~RepeatedBeep() {
+    Sound_Stop();
+}
+
+SingleBeep::SingleBeep() {
+    Sound_Play(eSOUND_TYPE::SingleBeep);
+}
+
+SingleBeep::~SingleBeep() {
+    // No need to even stop the sound
+}
+
 WinsCheckAxis::WinsCheckAxis(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_long_check))
     , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &img::nozzle_crash_101x64)
@@ -127,7 +143,6 @@ WinsCheckAxis::WinsCheckAxis(ScreenCrashRecovery &screen)
     line.SetBackColor(COLOR_ORANGE);
     text_long.SetAlignment(Align_t::Center());
     icon_x_axis.SetState(SelftestSubtestState_t::running);
-    Sound_Play(eSOUND_TYPE::SingleBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
     #endif
@@ -144,7 +159,6 @@ WinsHome::WinsHome(ScreenCrashRecovery &screen)
     line.SetBackColor(COLOR_ORANGE);
     text_long.SetAlignment(Align_t::Center());
     icon_home_axes.SetState(SelftestSubtestState_t::running);
-    Sound_Play(eSOUND_TYPE::SingleBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
     #endif
@@ -161,7 +175,6 @@ WinsAxisNok::WinsAxisNok(ScreenCrashRecovery &screen)
 
     line.SetBackColor(COLOR_ORANGE);
     text_long.SetAlignment(Align_t::Center());
-    Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
     #endif
@@ -183,7 +196,6 @@ WinsRepeatedCrash::WinsRepeatedCrash(ScreenCrashRecovery &screen)
     text_long.SetAlignment(Align_t::Center());
     text_info.SetAlignment(Align_t::Center());
     text_info.set_font(Font::small);
-    Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
     #endif
@@ -199,7 +211,6 @@ WinsHomeFail::WinsHomeFail(ScreenCrashRecovery &screen)
     text_long.SetAlignment(Align_t::Center());
     text_info.SetAlignment(Align_t::Center());
     text_info.set_font(Font::small);
-    Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
     #endif
@@ -239,15 +250,9 @@ WinsToolRecovery::WinsToolRecovery(ScreenCrashRecovery &screen)
 
     static_assert(EXTRUDERS == 6, "This screen is made for EXTRUDERS=6");
 
-    Sound_Play(eSOUND_TYPE::WaitingBeep);
-
         #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
         #endif
-}
-
-WinsToolRecovery::~WinsToolRecovery() {
-    Sound_Stop();
 }
     #endif /*HAS_TOOLCHANGER()*/
 
