@@ -175,6 +175,7 @@ public:
         uint16_t port = 0;
         bool tls = true;
         bool enabled = false;
+        bool custom_cert = false;
         // Used only through loading.
         bool loaded = false;
 

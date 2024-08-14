@@ -15,6 +15,7 @@
 #include <filament_sensors_handler.hpp>
 #include <filament_sensor_states.hpp>
 #include <state/printer_state.hpp>
+#include <common/unique_file_ptr.hpp>
 
 #if XL_ENCLOSURE_SUPPORT()
     #include <xl_enclosure.hpp>
@@ -25,8 +26,10 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 #include <cctype>
+#include <sys/stat.h>
 #include <sys/statvfs.h>
 #include <crc32.h>
 
@@ -104,8 +107,39 @@ namespace {
             } else {
                 return 0;
             }
+        } else if (ini_string_match(section, INI_SECTION, name, "custom_cert")) {
+            if (strcmp(value, "1") == 0 || strcasecmp(value, "true") == 0) {
+                config->custom_cert = true;
+            } else if (strcmp(value, "0") == 0 || strcasecmp(value, "false") == 0) {
+                config->custom_cert = false;
+            } else {
+                return 0;
+            }
         }
         return 1;
+    }
+
+    bool copy(const char *src, const char *dst) {
+        unique_file_ptr s(fopen(src, "rb"));
+        if (!s) {
+            return false;
+        }
+        unique_file_ptr d(fopen(dst, "wb"));
+        if (!d) {
+            return false;
+        }
+
+        while (!feof(s.get()) && !ferror(s.get()) && !ferror(d.get())) {
+            constexpr size_t block = 128;
+            uint8_t buffer[block];
+            size_t read = fread(buffer, 1, block, s.get());
+            size_t written = fwrite(buffer, 1, read, d.get());
+            if (read != written) {
+                return false;
+            }
+        }
+
+        return !ferror(s.get()) && !ferror(d.get());
     }
 } // namespace
 
@@ -299,6 +333,16 @@ bool MarlinPrinter::load_cfg_from_ini() {
     Config config;
     bool ok = ini_parse("/usb/prusa_printer_settings.ini", connect_ini_handler, &config) == 0;
     ok = ok && config.loaded;
+
+    if (ok && config.custom_cert) {
+        // OK to fail (for example if the dir already exists). In any case, we
+        // care about the below successes.
+        mkdir("/internal/connect", 0777);
+        if (!copy("/usb/connect.der", "/internal/connect/connect.der")) {
+            ok = false;
+        }
+    }
+
     if (ok) {
         if (config.port == 0) {
             config.port = config.tls ? 443 : 80;
@@ -310,6 +354,7 @@ bool MarlinPrinter::load_cfg_from_ini() {
         store.connect_token.set(config.token);
         store.connect_port.set(config.port);
         store.connect_tls.set(config.tls);
+        store.connect_custom_tls_cert.set(config.custom_cert);
         // Note: enabled is controlled in the GUI
     }
     return ok;

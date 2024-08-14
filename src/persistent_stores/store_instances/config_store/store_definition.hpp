@@ -154,6 +154,7 @@ struct CurrentStore
     StoreItem<uint16_t, defaults::connect_port, journal::hash("Connect Port")> connect_port;
     StoreItem<bool, true, journal::hash("Connect TLS")> connect_tls;
     StoreItem<bool, false, journal::hash("Connect Enabled")> connect_enabled;
+    StoreItem<bool, false, journal::hash("Connect custom TLS certificate")> connect_custom_tls_cert;
 
     // Metrics
     StoreItem<bool, defaults::enable_metrics, journal::hash("Metrics Init")> enable_metrics;
