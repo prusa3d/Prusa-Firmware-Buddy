@@ -10,7 +10,17 @@ namespace MMU2 {
 ///
 /// https://en.wikipedia.org/wiki/Leaky_bucket
 class FailLeakyBucket {
+private:
+    // We remove one failure every X loads.
+    uint32_t leak_every;
+    // If we accumulate X failures (either because the happen all at once, or
+    // because they slowly accumulate over time), the bucket overflows.
+    uint16_t overflow_limit;
+
 public:
+    FailLeakyBucket(uint32_t leak_every = 1000, uint16_t overflow_limit = 50)
+        : leak_every(leak_every)
+        , overflow_limit(overflow_limit) {}
     /// Add one failure.
     void add_failure();
     /// A success happened.
