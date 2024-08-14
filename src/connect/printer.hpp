@@ -17,6 +17,7 @@
 #include <device/board.h>
 #include <connect/hostname.hpp>
 #include <filament.hpp>
+#include <filament_sensor_states.hpp>
 
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
@@ -50,6 +51,8 @@ public:
         float temp_nozzle = 0;
 #if PRINTER_IS_PRUSA_iX()
         float temp_heatbreak = 0;
+        std::optional<FilamentSensorState> extruder_fs_state;
+        std::optional<FilamentSensorState> remote_fs_state;
 #endif
         uint16_t print_fan_rpm = 0;
         uint16_t heatbreak_fan_rpm = 0;

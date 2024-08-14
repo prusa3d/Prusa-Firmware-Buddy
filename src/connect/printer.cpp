@@ -56,6 +56,8 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
                 .add(int(slots[i].temp_nozzle))
 #if PRINTER_IS_PRUSA_iX()
                 .add(int(slots[i].temp_heatbreak))
+                .add(slots[i].extruder_fs_state ? ftrstd::to_underlying(*slots[i].extruder_fs_state) : -1)
+                .add(slots[i].remote_fs_state ? ftrstd::to_underlying(*slots[i].remote_fs_state) : -1)
 #endif
                 // The RPM values are in thousands and fluctuating a bit, we don't want
                 // that to trigger the send too often, only when it actually really

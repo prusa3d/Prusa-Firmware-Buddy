@@ -212,6 +212,17 @@ namespace {
                 params.slots[i].temp_nozzle = hotend.temp_nozzle;
 #if PRINTER_IS_PRUSA_iX()
                 params.slots[i].temp_heatbreak = hotend.temp_heatbreak;
+
+                if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::current_extruder)) {
+                    params.slots[i].extruder_fs_state = sensor->get_state();
+                } else {
+                    params.slots[i].extruder_fs_state.reset();
+                }
+                if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::current_side)) {
+                    params.slots[i].remote_fs_state = sensor->get_state();
+                } else {
+                    params.slots[i].remote_fs_state.reset();
+                }
 #endif
                 params.slots[i].print_fan_rpm = hotend.print_fan_rpm;
                 params.slots[i].heatbreak_fan_rpm = hotend.heatbreak_fan_rpm;

@@ -12,6 +12,7 @@
 #include <transfers/transfer.hpp>
 #include <filament.hpp>
 #include <filament_list.hpp>
+#include <filament_sensor_states.hpp>
 #if XL_ENCLOSURE_SUPPORT()
     #include <xl_enclosure.hpp>
 #endif
@@ -56,6 +57,27 @@ namespace {
         return nullptr;
     }
 
+#if PRINTER_IS_PRUSA_iX()
+    const char *to_str(FilamentSensorState state) {
+        switch (state) {
+        case FilamentSensorState::NotInitialized:
+            return "NOT_INITIALIZED";
+        case FilamentSensorState::NotCalibrated:
+            return "NOT_CALIBRATED";
+        case FilamentSensorState::HasFilament:
+            return "HAS_FILAMENT";
+        case FilamentSensorState::NoFilament:
+            return "NO_FILAMENT";
+        case FilamentSensorState::NotConnected:
+            return "NOT_CONNECTED";
+        case FilamentSensorState::Disabled:
+            return "DISABLED";
+        }
+
+        return "Unknown";
+    }
+#endif
+
     std::optional<transfers::Monitor::Status> get_transfer_status(size_t resume_point, const RenderState &state) {
         if (state.transfer_id.has_value()) {
             // If we've seen a transfer info previously, allow using a stale one to continue there.
@@ -94,6 +116,12 @@ namespace {
         const auto params = state.printer.params();
 
         const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
+        const auto &preferred_head = params.slots[params.preferred_head()];
+
+#if PRINTER_IS_PRUSA_iX()
+        auto extruder_fs_state = preferred_head.extruder_fs_state;
+        auto remote_fs_state = preferred_head.remote_fs_state;
+#endif
 
         // Keep the indentation of the JSON in here!
         // clang-format off
@@ -138,12 +166,18 @@ namespace {
             // need to coordinate with Connect, as these are probably
             // "essential" fields right now.
             if (telemetry.mode == SendTelemetry::Mode::Full) {
-                JSON_FIELD_FFIXED("temp_nozzle", params.slots[params.preferred_head()].temp_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("temp_nozzle", preferred_head.temp_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
 #if PRINTER_IS_PRUSA_iX()
-                JSON_FIELD_FFIXED("temp_heatbreak", params.slots[params.preferred_head()].temp_heatbreak, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("temp_heatbreak", preferred_head.temp_heatbreak, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("temp_psu", params.temp_psu, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("temp_ambient", params.temp_ambient, 1) JSON_COMMA;
+                if (extruder_fs_state) {
+                    JSON_FIELD_STR_G(extruder_fs_state, "extruder_fs_state", to_str(*extruder_fs_state)) JSON_COMMA;
+                }
+                if (remote_fs_state) {
+                    JSON_FIELD_STR_G(extruder_fs_state, "remote_fs_state", to_str(*remote_fs_state)) JSON_COMMA;
+                }
 #endif
                 JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
@@ -168,8 +202,8 @@ namespace {
                 }
                 JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
                 if (params.has_job) {
-                    JSON_FIELD_INT("fan_extruder", params.slots[params.preferred_head()].heatbreak_fan_rpm) JSON_COMMA;
-                    JSON_FIELD_INT("fan_print", params.slots[params.preferred_head()].print_fan_rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_extruder", preferred_head.heatbreak_fan_rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_print", preferred_head.print_fan_rpm) JSON_COMMA;
                     JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
                 }
 
