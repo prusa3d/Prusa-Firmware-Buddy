@@ -372,6 +372,40 @@ bool VibrateMeasureParams::setup(const MicrostepRestorer &microstep_restorer) {
     return true;
 }
 
+/**
+ * @brief Excite harmonic vibration and measure amplitude
+ *
+ * Intended usage of this function is to do frequency sweep.
+ * This is done by this function in a loop with requested_frequency smoothly changing.
+ * When doing frequency sweep intended behaviour is to never stop the movement during the sweep.
+ * This is achieved by this function trying hard to keep stepper buffer full all the time it is running and also when it returns.
+ * (With the exception of delayed measurement (args.measurement_cycles > 0))
+ * This is implemented by doing anything what is not essential to refill stepper buffer
+ * only when the stepper buffer is full.
+ * That way chance that the move stops for some moment is minimized.
+ *
+ * Measurement principle of doing frequency sweep and measuring acceleration achieved is in constantly pumping energy to the system
+ * and observing resonant gain caused by resonator ability to store some energy.
+ *
+ * If move would stop in between this function calls or at some point inside of its call it would drain some energy from resonator.
+ * And amount of energy loss would depend on pause duration compared to resonator period (1 / frequency).
+ * If the pause duration would be whole number multiply of resonator period then energy loss would be minimal.
+ * If the pause duration would be half of whole number multiply of resonator period then energy loss would be total.
+ * Non-deterministic energy loss caused by pauses could drastically alter measured frequency spectrum.
+ * It is even possible to construct example setting and system where excitation pause with half resonator period duration
+ * just before the measurement which is expected to measure maximum resonant gain would measure zero.
+ * If such example system is already resonating near its maximum amplitude, then excitation is phase shifted 180° by the pause
+ * and then during sufficiently short measurement system is vibrating with 180° phase shift compared to excitation signal
+ * for half of the measurement duration with amplitude going to zero and then half of the measurement duration in phase with
+ * increasing amplitude - when such response is correlated with excitation signal there is zero correlation.
+ *
+ * @param args see VibrateMeasureParams
+ * @param requested_frequency Requested excitation frequency.
+ * 		  Rounding error may cause it not to be reached exactly. Excitation frequency reached is returned in result.
+ * @param progress_hook
+ * @retval VibrateMeasureResult on success
+ * @retval std::nullopt on failure
+ */
 static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &args, float requested_frequency, const SamplePeriodProgressHook &progress_hook) {
     if (args.klipper_mode && args.measured_harmonic != 1) {
         SERIAL_ERROR_MSG("vibrate measure: klipper mode does not support measuring higher harmonics");
@@ -432,6 +466,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
     GcodeSuite::reset_stepper_timeout();
     const uint32_t steps_to_do = generator.getStepsPerPeriod() * args.excitation_cycles;
     const uint32_t steps_to_do_max = steps_to_do * 2 + generator.getStepsPerPeriod() + STEP_EVENT_QUEUE_SIZE;
+    bool do_once = true; // Do once after step buffer is refilled
 
     /// Processes one sample from the accelerometer.
     /// \returns true if there was a sample to process.
@@ -459,8 +494,6 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
 #endif
     };
 
-    accelerometer.clear();
-
     // Excitation phase (with accelerometer sample collection, if the measurement is not delayed)
     while (
         // Enqueue at least \p steps_to_do
@@ -477,6 +510,12 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
         const StepDir::RetVal step_dir = stepDir.get();
 
         while (is_full()) {
+            if (do_once) {
+                // Accelerometer::clear() is not instant so it should be called only with full
+                // stepper buffer to avoid possible movement stall.
+                accelerometer.clear();
+                do_once = false;
+            }
             PrusaAccelerometer::Acceleration measured_acceleration;
             bool got_sample = accelerometer.get_sample(measured_acceleration);
             if (do_delayed_measurement) {
@@ -634,7 +673,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
 }
 
 /**
- * @brief Excite harmonic vibration and measure amplitude if there is an accelerometer
+ * @brief Excite harmonic vibration and measure amplitude, repeat on failure
  *
  * Repeat if there is an error up to max_attempts times.
  *
