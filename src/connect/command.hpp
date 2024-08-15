@@ -100,9 +100,7 @@ enum class PropertyName {
 };
 struct SetValue {
     PropertyName name;
-    bool bool_value;
-    uint32_t int_value;
-    SharedBorrow str_value;
+    std::variant<bool, uint32_t, SharedBorrow> value;
 };
 struct CancelObject {
     uint8_t id;

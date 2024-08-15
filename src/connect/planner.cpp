@@ -904,22 +904,23 @@ void Planner::command(const Command &command, const SetValue &params) {
     const char *err = nullptr;
     switch (params.name) {
     case connect_client::PropertyName::HostName:
-        err = set_hostname(reinterpret_cast<const char *>(params.str_value->data()));
+        err = set_hostname(reinterpret_cast<const char *>(get<SharedBorrow>(params.value)->data()));
         break;
 #if XL_ENCLOSURE_SUPPORT()
     case connect_client::PropertyName::EnclosureEnabled:
-        xl_enclosure.setEnabled(params.bool_value);
+        xl_enclosure.setEnabled(get<bool>(params.value));
         break;
     case connect_client::PropertyName::EnclosurePrintingFiltration:
-        xl_enclosure.setPrintFiltration(params.bool_value);
+        xl_enclosure.setPrintFiltration(get<bool>(params.value));
         break;
     case connect_client::PropertyName::EnclosurePostPrint:
-        xl_enclosure.setPostPrintFiltration(params.bool_value);
+        xl_enclosure.setPostPrintFiltration(get<bool>(params.value));
         break;
-    case connect_client::PropertyName::EnclosurePostPrintFiltrationTime:
+    case connect_client::PropertyName::EnclosurePostPrintFiltrationTime: {
         // we recieve it in seconds, but this function expects minutes
-        uint32_t minutes = params.int_value / 60;
-        if (params.int_value % 60 != 0) {
+        uint32_t raw_value = get<uint32_t>(params.value);
+        uint32_t minutes = raw_value / 60;
+        if (raw_value % 60 != 0) {
             err = "Value should be whole minutes";
         } else if (minutes >= 1 && minutes <= 10) {
             xl_enclosure.setPostPrintFiltrationDuration(minutes);
@@ -927,6 +928,7 @@ void Planner::command(const Command &command, const SetValue &params) {
             err = "Value out of range";
         }
         break;
+    }
 #endif
     }
 

@@ -222,9 +222,9 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                 seen_args |= ArgSetValue;
                 cmd->name = name;
                 if (event.value->compare("true") == 0) {
-                    cmd->bool_value = true;
+                    cmd->value = true;
                 } else if (event.value->compare("false") == 0) {
-                    cmd->bool_value = false;
+                    cmd->value = false;
                 } else {
                     data = BrokenCommand { "Invalid bool value" };
                 }
@@ -305,7 +305,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                     seen_args |= ArgSetValue;
                     cmd->name = PropertyName::HostName;
                     strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
-                    cmd->str_value = std::make_shared<SharedBuffer::Borrow>(move(buff));
+                    cmd->value = std::make_shared<SharedBuffer::Borrow>(move(buff));
                     buffer_available = false;
                 } else {
                     data = BrokenCommand { "Hostname too long." };
@@ -324,7 +324,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                 cmd->name = PropertyName::EnclosurePostPrintFiltrationTime;
                 auto time = convert_int<uint32_t>(event.value.value());
                 if (time.has_value()) {
-                    cmd->int_value = time.value();
+                    cmd->value = time.value();
                 } else {
                     data = BrokenCommand { "Invalid int value" };
                 }
