@@ -7577,7 +7577,7 @@ msgid ""
 "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
 msgstr ""
 "Willkommen zum Original Prusa MINI Einrichtungsassistent\n"
-"Fortfahren ?"
+"Fortfahren?"
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:98
 msgid ""
