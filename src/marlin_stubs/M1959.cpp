@@ -323,7 +323,7 @@ static PhasesInputShaperCalibration measuring_axis(
 
         marlin_server::fsm_change(phase, data);
 
-        FrequencyGain3dError frequencyGain3dError = vibrate_measure(args, frequency, progress_hook);
+        FrequencyGain3dError frequencyGain3dError = vibrate_measure_repeat(args, frequency, progress_hook);
         args.calibrate_accelerometer = false;
         if (frequencyGain3dError.error) {
             return PhasesInputShaperCalibration::measurement_failed;

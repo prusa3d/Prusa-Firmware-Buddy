@@ -83,8 +83,7 @@ struct VibrateMeasureRange {
     float frequency_increment;
 };
 
-FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float frequency, const SamplePeriodProgressHook &progress_hook);
-FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float frequency);
+FrequencyGain3dError vibrate_measure_repeat(const VibrateMeasureParams &args, float frequency, const SamplePeriodProgressHook &progress_hook);
 
 /// \returns false if the measurement should be aborted
 using FindBestShaperProgressHook = stdext::inplace_function<bool(input_shaper::Type checked_type, float progress)>;

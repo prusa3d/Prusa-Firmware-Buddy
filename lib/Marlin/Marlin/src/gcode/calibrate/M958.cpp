@@ -385,7 +385,7 @@ bool VibrateMeasureParams::setup(const MicrostepRestorer &microstep_restorer) {
  * @param calibrate_accelerometer
  * @return Frequency and gain measured on each axis if there is accelerometer
  */
-FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float requested_frequency, const SamplePeriodProgressHook &progress_hook) {
+static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float requested_frequency, const SamplePeriodProgressHook &progress_hook) {
     if (args.klipper_mode && args.measured_harmonic != 1) {
         SERIAL_ERROR_MSG("vibrate measure: klipper mode does not support measuring higher harmonics");
         return FrequencyGain3dError { .error = true };
@@ -533,12 +533,59 @@ FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float req
     return { { excitation_frequency, { x_gain, y_gain, z_gain } }, false };
 }
 
-FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float frequency) {
+static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, float frequency) {
     const auto progress_hook = [](auto) {
         idle(true, true);
         return true;
     };
     return vibrate_measure(args, frequency, progress_hook);
+}
+
+static FrequencyGain3dError vibrate_measure_repeat(const VibrateMeasureParams &args, float frequency) {
+    constexpr int max_attempts = 3;
+    FrequencyGain3dError ret_val;
+    for (int attempt = 0; attempt < max_attempts; ++attempt) {
+        ret_val = vibrate_measure(args, frequency);
+        if (false == ret_val.error) {
+            break;
+        }
+    }
+    if (ret_val.error) {
+        SERIAL_ERROR_MSG("maximum attempts exhausted");
+    }
+    return ret_val;
+}
+
+/**
+ * @brief Excite harmonic vibration and measure amplitude if there is an accelerometer
+ *
+ * Repeat if there is an error up to max_attempts times.
+ *
+ * @see GcodeSuite::M958() for parameter description
+ *
+ * @param axis_flag StepEventFlag bit field
+ * STEP_EVENT_FLAG_STEP_* is set for all the motors which should vibrate together
+ * STEP_EVENT_FLAG_*_DIR encodes initial phase for each motor
+ * @param klipper_mode
+ * @param frequency_requested
+ * @param acceleration_requested
+ * @param cycles
+ * @param calibrate_accelerometer
+ * @return Frequency and gain measured on each axis if there is accelerometer
+ */
+FrequencyGain3dError vibrate_measure_repeat(const VibrateMeasureParams &args, float frequency, const SamplePeriodProgressHook &progress_hook) {
+    constexpr int max_attempts = 3;
+    FrequencyGain3dError ret_val;
+    for (int attempt = 0; attempt < max_attempts; ++attempt) {
+        ret_val = vibrate_measure(args, frequency, progress_hook);
+        if (false == ret_val.error) {
+            break;
+        }
+    }
+    if (ret_val.error) {
+        SERIAL_ERROR_MSG("maximum attempts exhausted");
+    }
+    return ret_val;
 }
 
 /**
@@ -791,7 +838,7 @@ static void naive_zv_tune(VibrateMeasureParams &args, const VibrateMeasureRange 
     serial_echo_header(args.klipper_mode);
 
     for (float frequency = range.start_frequency; frequency <= range.end_frequency + epsilon; frequency += range.frequency_increment) {
-        FrequencyGain3dError frequencyGain3dError = vibrate_measure(args, frequency);
+        FrequencyGain3dError frequencyGain3dError = vibrate_measure_repeat(args, frequency);
         args.calibrate_accelerometer = false;
         if (frequencyGain3dError.error) {
             return;
@@ -1094,7 +1141,7 @@ static void klipper_tune(VibrateMeasureParams &args, VibrateMeasureRange range, 
     serial_echo_header(args.klipper_mode);
 
     for (float frequency = range.start_frequency; frequency <= range.end_frequency + epsilon; frequency += range.frequency_increment) {
-        FrequencyGain3dError frequencyGain3dError = vibrate_measure(args, frequency);
+        FrequencyGain3dError frequencyGain3dError = vibrate_measure_repeat(args, frequency);
         args.calibrate_accelerometer = false;
         if (frequencyGain3dError.error) {
             return;
