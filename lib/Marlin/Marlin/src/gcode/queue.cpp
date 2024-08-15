@@ -192,7 +192,7 @@ bool GCodeQueue::process_injected_command() {
   if (injected_commands_P == nullptr) {
     const auto inject_gcode = inject_queue.get_gcode();
     if (inject_gcode.has_value()) {
-      // valid gcode stream
+      // successfully received G-Code stream [const char *]
       injected_commands_P = *inject_gcode;
     } else if (inject_gcode.error() == InjectQueue::GetGCodeError::empty) {
       // Empty inject_queue -> continue parsing standard G-Code queue

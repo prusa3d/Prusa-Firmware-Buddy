@@ -2,11 +2,10 @@
 
 #include "inject_queue_actions.hpp"
 #include <common/circular_buffer.hpp>
-#include <async_job/async_job.hpp>
-#include <str_utils.hpp>
 #include <expected>
 #include <atomic>
 #include <file_list_defs.h>
+#include <async_job/async_job.hpp>
 
 class InjectQueue {
 public:
@@ -44,16 +43,16 @@ public:
      */
     std::expected<const char *, GetGCodeError> get_gcode();
 
+    inline std::span<char> get_buffer() { return gcode_stream_buffer; }
+    inline void change_buffer_state(const BufferState new_state) { buffer_state = new_state; }
+
 private:
-    /**
-     *  Buffering a file. This callback is executed in a different thread through AsyncJob worker_job
-     */
-    static void load_gcodes_from_file_callback(const char *filepath, AsyncJobExecutionControl &control);
+    static void load_gcodes_from_file_callback(AsyncJobExecutionControl &control);
 
     std::atomic<BufferState> buffer_state = BufferState::idle;
     char gcode_stream_buffer[gcode_stream_buffer_size]; //!< buffer for temporary storing gcode filepath & compiling gcode stream from a file
     CircularBuffer<InjectQueueRecord, queue_size> queue; //!< Queue (real size is queue_size - 1)
-    AsyncJob worker_job; //!< Used for asynchronous buffering of gcode stream from a file
+    AsyncJob worker_job; //!< Used for asynchronous buffering of gcode stream from a file or callback execution
 };
 
 extern InjectQueue inject_queue;

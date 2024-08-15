@@ -1,14 +1,16 @@
 #pragma once
 #include <variant>
 #include <enum_array.hpp>
+#include <async_job/async_job_execution_control.hpp>
 
-enum class GCodePresetMacro : uint8_t {
-    nozzle_cleaning,
-    _cnt,
+typedef void (*GCodePresetMacroCallback)(AsyncJobExecutionControl &);
+
+struct GCodePresetMacro {
+    GCodePresetMacroCallback callback;
 };
 
-static constexpr EnumArray<GCodePresetMacro, const char *, GCodePresetMacro::_cnt> gcode_macro_preset_filanames {
-    { GCodePresetMacro::nozzle_cleaning, "nozzle_cleaning" },
+struct GCodeFilename {
+    const char *name;
 };
 
 struct GCodeLiteral {
@@ -19,4 +21,4 @@ struct GCodeMacroButton {
     uint8_t button;
 };
 
-using InjectQueueRecord = std::variant<GCodePresetMacro, GCodeMacroButton, GCodeLiteral>;
+using InjectQueueRecord = std::variant<GCodePresetMacro, GCodeFilename, GCodeMacroButton, GCodeLiteral>;
