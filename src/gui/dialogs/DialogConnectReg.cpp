@@ -125,7 +125,7 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
 #endif
 
 #if HAS_MINI_DISPLAY()
-                text_state.SetText(_("Scan the QR code using the Prusa app or camera, or visit prusa.io/add.\n"));
+                text_state.SetText(_("Scan the QR code using the Prusa app or camera, or visit prusa.io/add"));
 #else
                 text_state.SetText(_("1. Scan the QR code using the Prusa app or camera, or visit prusa.io/add\n\n2. Log in"));
 #endif
