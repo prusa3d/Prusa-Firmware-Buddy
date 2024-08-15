@@ -576,7 +576,7 @@ bool MMU2::get_response() {
  */
 void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
 
-    constexpr xyz_pos_t park_point = NOZZLE_PARK_POINT;
+    constexpr xyz_pos_t park_point = { { XYZ_NOZZLE_PARK_POINT } };
     bool response = false;
     mmu_print_saved = false;
     xyz_pos_t resume_position;
@@ -601,7 +601,7 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
                 resume_position = current_position;
 
                 if (move_axes && all_axes_homed()) {
-                    nozzle.park(2, park_point /*= NOZZLE_PARK_POINT*/);
+                    nozzle.park(2, park_point /*= {{XYZ_NOZZLE_PARK_POINT}}*/);
                 }
 
                 if (turn_off_nozzle) {

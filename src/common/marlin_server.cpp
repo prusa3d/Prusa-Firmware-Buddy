@@ -2532,7 +2532,7 @@ void retract() {
 
 void lift_head() {
 #if ENABLED(NOZZLE_PARK_FEATURE)
-    const constexpr xyz_pos_t park = NOZZLE_PARK_POINT;
+    const constexpr xyz_pos_t park = XYZ_NOZZLE_PARK_POINT;
     plan_move_by(NOZZLE_PARK_Z_FEEDRATE, 0, 0, _MIN(park.z, Z_MAX_POS - current_position.z));
 #endif // ENABLED(NOZZLE_PARK_FEATURE)
 }
@@ -2557,13 +2557,13 @@ void park_head() {
     }
     #endif /*HAS_TOOLCHANGER()*/
 
-    xyz_pos_t park = NOZZLE_PARK_POINT;
-    #ifdef NOZZLE_PARK_POINT_M600
-    const xyz_pos_t park_clean = NOZZLE_PARK_POINT_M600;
+    xyz_pos_t park = XYZ_NOZZLE_PARK_POINT;
+    #ifdef XYZ_NOZZLE_PARK_POINT_M600
+    const xyz_pos_t park_clean = XYZ_NOZZLE_PARK_POINT_M600;
     if (server.mbl_failed) {
         park = park_clean;
     }
-    #endif // NOZZLE_PARK_POINT_M600
+    #endif // XYZ_NOZZLE_PARK_POINT_M600
     park.z = current_position.z;
     plan_park_move_to_xyz(park, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
 #endif // NOZZLE_PARK_FEATURE

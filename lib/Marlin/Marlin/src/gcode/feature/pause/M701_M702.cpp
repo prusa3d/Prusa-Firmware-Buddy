@@ -57,7 +57,7 @@
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
-  xyz_pos_t park_point = NOZZLE_PARK_POINT;
+  xyz_pos_t park_point = {{XYZ_NOZZLE_PARK_POINT}};
 
   #if ENABLED(NO_MOTION_BEFORE_HOMING)
     // Don't raise Z if the machine isn't homed
@@ -151,7 +151,7 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
-  xyz_pos_t park_point = NOZZLE_PARK_POINT;
+  xyz_pos_t park_point = {{XYZ_NOZZLE_PARK_POINT}};
 
   #if ENABLED(NO_MOTION_BEFORE_HOMING)
     // Don't raise Z if the machine isn't homed

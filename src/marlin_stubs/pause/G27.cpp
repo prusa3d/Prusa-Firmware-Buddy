@@ -49,7 +49,7 @@ void GcodeSuite::G27() {
     const bool doY = parser.seen('Y');
     const bool doZ = parser.seen('Z');
 
-    constexpr xyz_pos_t default_park_pos = { { NOZZLE_PARK_POINT } };
+    constexpr xyz_pos_t default_park_pos = { { XYZ_NOZZLE_PARK_POINT } };
     xyz_pos_t park_pos;
 
     if (doX || doY || doZ) {

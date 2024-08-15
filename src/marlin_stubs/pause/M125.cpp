@@ -58,7 +58,7 @@ void GcodeSuite::M125() {
     #endif
     );
 
-    xyz_pos_t park_point = NOZZLE_PARK_POINT;
+    xyz_pos_t park_point = XYZ_NOZZLE_PARK_POINT;
 
     // Move XY axes to filament change position or given position
     if (parser.seenval('X')) {

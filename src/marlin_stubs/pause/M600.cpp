@@ -177,10 +177,10 @@ void M600_manual() {
 #endif
 
     xyz_pos_t park_point =
-#ifdef NOZZLE_PARK_POINT_M600
-        NOZZLE_PARK_POINT_M600;
+#ifdef XYZ_NOZZLE_PARK_POINT_M600
+        XYZ_NOZZLE_PARK_POINT_M600;
 #else
-        NOZZLE_PARK_POINT;
+        XYZ_NOZZLE_PARK_POINT;
 #endif
 
     // Lift Z axis
@@ -332,7 +332,7 @@ void M600_execute(xyz_pos_t park_point, uint8_t target_extruder, xyze_float_t re
 #if HAS_LOADCELL()
 void PrusaGcodeSuite::M1601() {
     M600_execute(
-        NOZZLE_PARK_POINT_M600,
+        XYZ_NOZZLE_PARK_POINT_M600,
         active_extruder,
         current_position,
         std::nullopt, std::nullopt, std::nullopt,

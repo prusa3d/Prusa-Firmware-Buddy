@@ -1612,13 +1612,22 @@
     #define Y_AXIS_UNLOAD_POS  Y_AXIS_PURGE_POS
     #define X_AXIS_LOAD_POS  (std::numeric_limits<float>::quiet_NaN())
     #define X_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
+
     // Specify a park position as { X, Y, Z }
     // Park at the back of XL
-    #define NOZZLE_PARK_POINT \
-        { (X_MIN_POS + 10), (Y_MAX_POS - 110), 20 }
+    #define X_NOZZLE_PARK_POINT (X_MAX_POS - 10)
+    #define Y_NOZZLE_PARK_POINT (Y_MAX_POS - 110)
+    #define Z_NOZZLE_PARK_POINT 20
+    #define XYZ_NOZZLE_PARK_POINT \
+        {X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, Z_NOZZLE_PARK_POINT}
+
     // Filament exchange in the front of XL
-    #define NOZZLE_PARK_POINT_M600 \
-        { (X_MIN_POS + 50), Y_AXIS_PURGE_POS, 20 }
+    #define X_NOZZLE_PARK_POINT_M600    (X_MIN_POS + 50)
+    #define Y_NOZZLE_PARK_POINT_M600    Y_AXIS_PURGE_POS
+    #define Z_NOZZLE_PARK_POINT_M600    20
+    #define XYZ_NOZZLE_PARK_POINT_M600 \
+        {X_NOZZLE_PARK_POINT_M600, Y_NOZZLE_PARK_POINT_M600, Z_NOZZLE_PARK_POINT_M600}
+
     #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
     #define NOZZLE_PARK_Z_FEEDRATE 5 // (mm/s) Z axis feedrate (not used for delta printers)
 

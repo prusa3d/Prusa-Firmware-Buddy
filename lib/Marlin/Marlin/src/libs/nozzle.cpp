@@ -184,7 +184,7 @@ Nozzle nozzle;
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
 
-  void Nozzle::park(const uint8_t z_action, const xyz_pos_t &park/*=NOZZLE_PARK_POINT*/) {
+  void Nozzle::park(const uint8_t z_action, const xyz_pos_t &park/*={{XYZ_NOZZLE_PARK_POINT}}*/) {
     static constexpr feedRate_t fr_xy = NOZZLE_PARK_XY_FEEDRATE, fr_z = NOZZLE_PARK_Z_FEEDRATE;
 
     switch (z_action) {
@@ -201,7 +201,7 @@ Nozzle nozzle;
     }
 
   #ifdef NOZZLE_PRE_PARK_POINT
-  static constexpr xyz_pos_t default_park{{NOZZLE_PARK_POINT}};
+  static constexpr xyz_pos_t default_park{{XYZ_NOZZLE_PARK_POINT}};
   if(park == default_park) {
     static constexpr xy_pos_t pre_park{{NOZZLE_PRE_PARK_POINT}};
     do_blocking_move_around_nozzle_cleaner_to_xy(pre_park, fr_xy);

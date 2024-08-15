@@ -83,7 +83,7 @@ class Nozzle {
 
   #if ENABLED(NOZZLE_PARK_FEATURE)
 
-    static void park(const uint8_t z_action, const xyz_pos_t &park=NOZZLE_PARK_POINT) __Os;
+    static void park(const uint8_t z_action, const xyz_pos_t &park={{XYZ_NOZZLE_PARK_POINT}}) __Os;
 
   #endif
 };

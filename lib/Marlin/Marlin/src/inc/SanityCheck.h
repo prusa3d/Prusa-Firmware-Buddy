@@ -728,7 +728,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 #endif
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
-  constexpr float npp[] = NOZZLE_PARK_POINT;
+  constexpr float npp[] = XYZ_NOZZLE_PARK_POINT;
   static_assert(COUNT(npp) == XYZ, "NOZZLE_PARK_POINT requires X, Y, and Z values.");
 #endif
 
