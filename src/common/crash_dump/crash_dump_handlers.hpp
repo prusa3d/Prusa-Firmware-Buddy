@@ -1,8 +1,8 @@
 #pragma once
 #include "crash_dump_distribute.hpp"
 #include <device/board.h>
-
-#if BOARD_IS_XLBUDDY()
+#include <option/has_puppies.h>
+#if HAS_PUPPIES()
     #include <puppies/puppy_crash_dump.hpp>
 #endif
 
@@ -18,7 +18,7 @@ struct DumpHandler {
 };
 
 inline constexpr auto dump_handlers { std::to_array<DumpHandler>({
-#if BOARD_IS_XLBUDDY()
+#if HAS_PUPPIES()
     {
         .presence_check = buddy::puppies::crash_dump::is_a_dump_in_filesystem,
         .usb_save = []() { buddy::puppies::crash_dump::save_dumps_to_usb(); },
