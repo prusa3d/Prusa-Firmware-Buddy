@@ -14,7 +14,7 @@ LOG_COMPONENT_REF(MarlinServer);
 void InjectQueue::load_gcodes_from_file_callback(AsyncJobExecutionControl &control) {
     AnyGcodeFormatReader reader(inject_queue.get_buffer().data());
     // Error conditions
-    if (!reader.is_open() || reader->get_gcode_stream_size_estimate() >= InjectQueue::gcode_stream_buffer_size) {
+    if (!reader.is_open()) {
         inject_queue.change_buffer_state(InjectQueue::BufferState::error);
         log_error(MarlinServer, "InjectQueue: fail to open file");
         return;
@@ -59,6 +59,12 @@ void InjectQueue::load_gcodes_from_file_callback(AsyncJobExecutionControl &contr
         const size_t line_length = media_prefetch::compact_gcode(line_buff.buffer.data());
         if (line_length == 0) {
             continue;
+        }
+        if (str_builder.byte_count() + line_length > InjectQueue::gcode_stream_buffer_size) {
+            // File is too large to buffer
+            inject_queue.change_buffer_state(InjectQueue::BufferState::error);
+            log_error(MarlinServer, "InjectQueue: buffered file is too large");
+            return;
         }
 
         if (!first_line) {
