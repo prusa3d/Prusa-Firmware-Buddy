@@ -535,7 +535,9 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             // With extruder MMU rework, we gotta assist the user with inserting the filament
             // BFW-5134
             if (settings.extruder_mmu_rework) {
+#if ENABLED(PREVENT_COLD_EXTRUSION)
                 AutoRestore ar_ce(thermalManager.allow_cold_extrude, true);
+#endif
                 mapi::extruder_schedule_turning(3);
             }
 
