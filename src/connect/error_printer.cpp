@@ -141,4 +141,8 @@ void ErrorPrinter::reset_printer() {
     NVIC_SystemReset();
 }
 
+void ErrorPrinter::set_slot_info(size_t, const SlotInfo &) {
+    // Nothing in the error state
+}
+
 } // namespace connect_client

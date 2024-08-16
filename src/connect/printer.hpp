@@ -282,6 +282,8 @@ public:
     std::tuple<Config, bool> config(bool reset_fingerprint = true);
 
     uint32_t info_fingerprint() const;
+
+    virtual void set_slot_info(size_t idx, const SlotInfo &slot) = 0;
 };
 
 } // namespace connect_client

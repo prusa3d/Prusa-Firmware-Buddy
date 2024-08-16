@@ -552,4 +552,19 @@ std::optional<MarlinPrinter::FinishedJobResult> MarlinPrinter::get_prior_job_res
     return nullopt;
 }
 
+void MarlinPrinter::set_slot_info(size_t idx, const SlotInfo &info) {
+    config_store().set_nozzle_diameter(idx, info.nozzle_diameter);
+    // The below ones are, technically, a bit racy. That is, if some other
+    // thread does something similar with a different nozzle than us, there's a
+    // change one of the changes may get lost. But we consider such occurence
+    // to be improbable (eg. user setting the nozzle params at the printer and
+    // through Connect at the very same moment).
+    auto hardened = config_store().nozzle_is_hardened.get();
+    hardened[idx] = info.hardened;
+    config_store().nozzle_is_hardened.set(hardened);
+    auto high_flow = config_store().nozzle_is_high_flow.get();
+    high_flow[idx] = info.high_flow;
+    config_store().nozzle_is_high_flow.set(high_flow);
+}
+
 } // namespace connect_client

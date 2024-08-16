@@ -130,6 +130,8 @@ public:
     virtual const char *dialog_action(uint32_t dialog_id, Response response) override {
         return nullptr;
     }
+
+    virtual void set_slot_info(size_t, const SlotInfo &) override {}
 };
 
 } // namespace connect_client

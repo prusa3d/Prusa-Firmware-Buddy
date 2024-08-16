@@ -902,6 +902,13 @@ void Planner::command(const Command &command, const DialogAction &params) {
 
 void Planner::command(const Command &command, const SetValue &params) {
     const char *err = nullptr;
+
+    auto adjust_nozzle = [&](size_t idx, auto cback) {
+        auto slot = printer.params().slots[idx];
+        cback(slot);
+        printer.set_slot_info(idx, slot);
+    };
+
     switch (params.name) {
     case connect_client::PropertyName::HostName:
         err = set_hostname(reinterpret_cast<const char *>(get<SharedBorrow>(params.value)->data()));
@@ -930,6 +937,31 @@ void Planner::command(const Command &command, const SetValue &params) {
         break;
     }
 #endif
+#define NOZZLE(i)                                               \
+    case connect_client::PropertyName::Nozzle##i##HighFlow:     \
+        adjust_nozzle(i, [&](auto &slot) {                      \
+            slot.high_flow = get<bool>(params.value);           \
+        });                                                     \
+        break;                                                  \
+    case connect_client::PropertyName::Nozzle##i##AntiAbrasive: \
+        adjust_nozzle(i, [&](auto &slot) {                      \
+            slot.hardened = get<bool>(params.value);            \
+        });                                                     \
+        break;                                                  \
+    case connect_client::PropertyName::Nozzle##i##Diameter:     \
+        adjust_nozzle(i, [&](auto &slot) {                      \
+            slot.nozzle_diameter = get<float>(params.value);    \
+        });                                                     \
+        break;
+
+        NOZZLE(0);
+#if HAS_TOOLCHANGER() || UNITTESTS
+        NOZZLE(1);
+        NOZZLE(2);
+        NOZZLE(3);
+        NOZZLE(4);
+#endif
+#undef NOZZLE
     }
 
     if (err != nullptr) {
