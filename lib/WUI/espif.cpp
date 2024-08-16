@@ -639,7 +639,7 @@ struct UartRxParser final : public esp::RxParserBase {
         packet_buff_read = 0;
         if (validate_checksum()) {
             process_link_change(msg.header.up, netif);
-            if (packet_buff_head == nullptr || packet_buff_head->tot_len == 0) {
+            if (msg.header.size == 0) {
                 log_debug(ESPIF, "ESP pong");
                 // Not a packet, but a pong.
                 // (historical reasons, empty packets are pings/pongs)
