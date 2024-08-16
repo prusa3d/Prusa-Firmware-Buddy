@@ -40,7 +40,7 @@ namespace {
     const constexpr size_t MAX_TOKENS = 60;
 
     template <class R>
-    optional<R> convert_int(std::string_view str) {
+    optional<R> convert_num(std::string_view str) {
         if (R result; from_chars(str.begin(), str.end(), result).ec == errc {}) {
             return result;
         } else {
@@ -135,7 +135,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
 #if ENABLED(PRUSA_TOOL_MAPPING)
         auto is_tool_mapping_index = [&]() -> std::optional<uint32_t> {
             if (in_tool_mapping && event.type == Type::Array && event.depth == 3) {
-                return convert_int<uint32_t>(event.key.value());
+                return convert_num<uint32_t>(event.key.value());
             }
             return std::nullopt;
         };
@@ -196,7 +196,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         // kind).
 #define INT_ARG(TYPE, FIELD_TYPE, FIELD, MARK)                                              \
     if (auto *cmd = get_if<TYPE>(&data); cmd != nullptr) {                                  \
-        if (auto value = convert_int<FIELD_TYPE>(event.value.value()); value.has_value()) { \
+        if (auto value = convert_num<FIELD_TYPE>(event.value.value()); value.has_value()) { \
             cmd->FIELD = *value;                                                            \
             seen_args |= MARK;                                                              \
         }                                                                                   \
@@ -216,7 +216,6 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         }                                                                    \
     }
 
-#if XL_ENCLOSURE_SUPPORT()
         auto set_value_bool_arg = [&](PropertyName name) {
             if (auto *cmd = get_if<SetValue>(&data); cmd != nullptr) {
                 seen_args |= ArgSetValue;
@@ -230,7 +229,20 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                 }
             }
         };
-#endif
+
+        auto set_value_float_arg = [&](PropertyName name) {
+            if (auto *cmd = get_if<SetValue>(&data); cmd != nullptr) {
+                seen_args |= ArgSetValue;
+                cmd->name = name;
+                auto value = convert_num<float>(event.value.value());
+                if (value.has_value()) {
+                    cmd->value = value.value();
+                } else {
+                    data = BrokenCommand { "Invalid float value" };
+                }
+            }
+        };
+
         if (event.depth == 1 && event.type == Type::Object && event.key == "kwargs") {
             in_kwargs = true;
         } else if (event.depth == 1 && event.type == Type::Pop) {
@@ -266,7 +278,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             if (auto *cmd = get_if<StartPrint>(&data); cmd != nullptr) {
                 if (tool_mapping_index_outer < cmd->tool_mapping.value().size()
                     && tool_mapping_index_inner < cmd->tool_mapping.value()[tool_mapping_index_outer].size()) {
-                    auto tool = convert_int<uint32_t>(event.value.value());
+                    auto tool = convert_num<uint32_t>(event.value.value());
                     if (tool.has_value()) {
                         cmd->tool_mapping.value()[tool_mapping_index_outer][tool_mapping_index_inner++] = tool.value() - 1;
                     } else {
@@ -322,7 +334,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             if (auto *cmd = get_if<SetValue>(&data); cmd != nullptr) {
                 seen_args |= ArgSetValue;
                 cmd->name = PropertyName::EnclosurePostPrintFiltrationTime;
-                auto time = convert_int<uint32_t>(event.value.value());
+                auto time = convert_num<uint32_t>(event.value.value());
                 if (time.has_value()) {
                     cmd->value = time.value();
                 } else {
@@ -330,6 +342,25 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                 }
             }
 #endif
+#define NOZZLE_PARAMS(num, i)                                             \
+    }                                                                     \
+    else if (is_arg("tools." #num ".high_flow", Type::Primitive)) {       \
+        set_value_bool_arg(PropertyName::Nozzle##i##HighFlow);            \
+    }                                                                     \
+    else if (is_arg("tools." #num ".anti_abrasive", Type::Primitive)) {   \
+        set_value_bool_arg(PropertyName::Nozzle##i##AntiAbrasive);        \
+    }                                                                     \
+    else if (is_arg("tools." #num ".nozzle_diameter", Type::Primitive)) { \
+        set_value_float_arg(PropertyName::Nozzle##i##Diameter);
+
+            NOZZLE_PARAMS(1, 0)
+#if HAS_TOOLCHANGER() || UNITTESTS
+            NOZZLE_PARAMS(2, 1)
+            NOZZLE_PARAMS(3, 2)
+            NOZZLE_PARAMS(4, 3)
+            NOZZLE_PARAMS(5, 4)
+#endif
+#undef NOZZLE_PARAMS
         } else if (is_arg("port", Type::Primitive)) {
             INT_ARG(StartEncryptedDownload, uint16_t, port, 0)
         } else if (is_arg("orig_size", Type::Primitive)) {

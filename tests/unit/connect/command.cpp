@@ -165,7 +165,31 @@ TEST_CASE("Set token ‒ Too long") {
 }
 
 TEST_CASE("Set value - hostname") {
-    command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\": {\"hostname\":\"Nice_hostname\"}}");
+    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\": {\"hostname\":\"Nice_hostname\"}}");
+    REQUIRE(cmd.name == PropertyName::HostName);
+    REQUIRE(holds_alternative<SharedBorrow>(cmd.value));
+    REQUIRE(strcmp(reinterpret_cast<const char *>(get<SharedBorrow>(cmd.value)->data()), "Nice_hostname") == 0);
+}
+
+TEST_CASE("Set value - nozzle diameter") {
+    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.2.nozzle_diameter\":0.25}}");
+    REQUIRE(cmd.name == PropertyName::Nozzle1Diameter);
+    REQUIRE(holds_alternative<float>(cmd.value));
+    REQUIRE(get<float>(cmd.value) == 0.25);
+}
+
+TEST_CASE("Set value - anti abrasive") {
+    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.3.anti_abrasive\":true}}");
+    REQUIRE(cmd.name == PropertyName::Nozzle2AntiAbrasive);
+    REQUIRE(holds_alternative<bool>(cmd.value));
+    REQUIRE(get<bool>(cmd.value));
+}
+
+TEST_CASE("Set value - anti abrasive") {
+    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.4.high_flow\":true}}");
+    REQUIRE(cmd.name == PropertyName::Nozzle3HighFlow);
+    REQUIRE(holds_alternative<bool>(cmd.value));
+    REQUIRE(get<bool>(cmd.value));
 }
 
 TEST_CASE("Set value - hostname too long") {

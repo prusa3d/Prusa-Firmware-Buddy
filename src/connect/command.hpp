@@ -89,6 +89,11 @@ struct DialogAction {
     Response response;
 };
 
+#define NOZZLE_NAMES(i)      \
+    Nozzle##i##Diameter,     \
+        Nozzle##i##HighFlow, \
+        Nozzle##i##AntiAbrasive
+
 enum class PropertyName {
     HostName,
 #if XL_ENCLOSURE_SUPPORT()
@@ -97,10 +102,20 @@ enum class PropertyName {
     EnclosurePostPrint,
     EnclosurePostPrintFiltrationTime,
 #endif
+    NOZZLE_NAMES(0),
+#if HAS_TOOLCHANGER() || UNITTESTS
+    NOZZLE_NAMES(1),
+    NOZZLE_NAMES(2),
+    NOZZLE_NAMES(3),
+    NOZZLE_NAMES(4),
+#endif
 };
+
+#undef NOZZLE_NAMES
+
 struct SetValue {
     PropertyName name;
-    std::variant<bool, uint32_t, SharedBorrow> value;
+    std::variant<bool, uint32_t, float, SharedBorrow> value;
 };
 struct CancelObject {
     uint8_t id;
