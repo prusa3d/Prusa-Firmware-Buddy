@@ -758,7 +758,7 @@
 
 /// HW limits of feed rate
 #define HWLIMIT_NORMAL_MAX_FEEDRATE \
-    { 400, 400, 20, 100 }
+    { 300, 300, 20, 100 }
 #define HWLIMIT_STEALTH_MAX_FEEDRATE \
     { 140, 140, 12, 100 }
 
@@ -768,7 +768,7 @@
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
 #define DEFAULT_MAX_FEEDRATE \
-    { 200, 200, 12, 60 }
+    { 300, 300, 12, 60 }
 
 /// HW limits of max acceleration
 #define HWLIMIT_NORMAL_MAX_ACCELERATION \

@@ -1676,7 +1676,7 @@ bool Planner::_populate_block(block_t * const block,
   #ifdef COREXY_CONVERT_LIMITS
     const float speed_mm_x = std::abs(current_speed[X_AXIS] = delta_mm[X_AXIS] * inverse_secs);
     const float speed_mm_y = std::abs(current_speed[Y_AXIS] = delta_mm[Y_AXIS] * inverse_secs);
-    const feedRate_t highest_strain = (speed_mm_x + speed_mm_y) * 0.5f;
+    const feedRate_t highest_strain = speed_mm_x + speed_mm_y;
     
     const float max_feedrate_mm_s = settings.max_feedrate_mm_s[X_AXIS];
     if(highest_strain > max_feedrate_mm_s) {
