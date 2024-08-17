@@ -546,7 +546,7 @@ static FrequencyGain3dError vibrate_measure_repeat(const VibrateMeasureParams &a
     FrequencyGain3dError ret_val;
     for (int attempt = 0; attempt < max_attempts; ++attempt) {
         ret_val = vibrate_measure(args, frequency);
-        if (false == ret_val.error) {
+        if (!ret_val.error) {
             break;
         }
     }
@@ -578,7 +578,7 @@ FrequencyGain3dError vibrate_measure_repeat(const VibrateMeasureParams &args, fl
     FrequencyGain3dError ret_val;
     for (int attempt = 0; attempt < max_attempts; ++attempt) {
         ret_val = vibrate_measure(args, frequency, progress_hook);
-        if (false == ret_val.error) {
+        if (!ret_val.error) {
             break;
         }
     }
