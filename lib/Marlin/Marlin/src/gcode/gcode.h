@@ -341,14 +341,14 @@ public:
   }
 
   #if ENABLED(GCODE_COMPATIBILITY_MK3)
-    enum class GcodeCompatibilityMode {
+    enum class GcodeCompatibilityMode : uint8_t {
       NONE,
       MK3,
     };
     static GcodeCompatibilityMode gcode_compatibility_mode;
   #endif
   #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
-    enum class FanCompatibilityMode {
+    enum class FanCompatibilityMode : uint8_t {
         NONE,
         MK3_TO_MK4_NON_S,
     };

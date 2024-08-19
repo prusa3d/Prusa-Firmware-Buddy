@@ -144,7 +144,10 @@ struct flash_planner_t {
     uint8_t axis_relative;
     uint8_t allow_cold_extrude;
 
-    uint8_t _padding_is[1];
+    uint8_t gcode_compatibility_mode;
+    uint8_t fan_compatibility_mode;
+
+    uint8_t _padding_is[3];
 
     // IS/PA
     input_shaper::AxisConfig axis_config[3]; // XYZ
@@ -538,6 +541,14 @@ void resume_loop() {
         thermalManager.extrude_min_temp = state_buf.planner.extrude_min_temp;
         thermalManager.allow_cold_extrude = state_buf.planner.allow_cold_extrude;
 #endif
+
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+        GcodeSuite::gcode_compatibility_mode = static_cast<GcodeSuite::GcodeCompatibilityMode>(state_buf.planner.gcode_compatibility_mode);
+#endif
+#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
+        GcodeSuite::fan_compatibility_mode = static_cast<GcodeSuite::FanCompatibilityMode>(state_buf.planner.fan_compatibility_mode);
+#endif
+
         // planner settings
         planner.apply_settings(state_buf.planner.settings);
         planner.refresh_acceleration_rates();
@@ -1162,6 +1173,23 @@ void ac_fault_isr() {
         // it's now safe to overwrite with the current intermediate location for parking
         crash_s.set_state(Crash_s::TRIGGERED_AC_FAULT);
     }
+
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+    static_assert(
+        std::is_same_v<
+            decltype(state_buf.planner.gcode_compatibility_mode),
+            std::underlying_type_t<GcodeSuite::GcodeCompatibilityMode>>
+        == true);
+    state_buf.planner.gcode_compatibility_mode = static_cast<uint8_t>(GcodeSuite::gcode_compatibility_mode);
+#endif
+#if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
+    static_assert(
+        std::is_same_v<
+            decltype(state_buf.planner.fan_compatibility_mode),
+            std::underlying_type_t<GcodeSuite::FanCompatibilityMode>>
+        == true);
+    state_buf.planner.fan_compatibility_mode = static_cast<uint8_t>(GcodeSuite::fan_compatibility_mode);
+#endif
 
     // heaters are *already* disabled via HW, but stop temperature and fan regulation too
     thermalManager.disable_all_heaters();
