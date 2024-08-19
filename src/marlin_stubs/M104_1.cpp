@@ -5,6 +5,7 @@
 #include <marlin_vars.hpp>
 #include <Marlin/src/gcode/parser.h>
 #include <gcode/gcode.h>
+#include "../../module/planner.h"
 
 #ifdef PRINT_CHECKING_Q_CMDS
 
@@ -34,6 +35,14 @@ void PrusaGcodeSuite::M104_1() {
 
     // If we should start preheating, simply process this command as if it was standard M104 (otherwise do nothing)
     if (should_start_preheating) {
+        millis_t dwell_ms = 0;
+        if (parser.seen('P')) {
+            dwell_ms = parser.ulongval('P');
+        } else if (parser.seen('Q')) {
+            dwell_ms = parser.ulongval('Q');
+        }
+        planner.synchronize();
+        GcodeSuite::dwell(dwell_ms);
         GcodeSuite::M104();
     }
 }
