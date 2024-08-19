@@ -157,6 +157,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             T("START_PRINT", StartPrint, ArgPath)
             T("SET_PRINTER_READY", SetPrinterReady, NO_ARGS)
             T("CANCEL_PRINTER_READY", CancelPrinterReady, NO_ARGS)
+            T("SET_IDLE", SetPrinterIdle, NO_ARGS)
             T("DELETE_FILE", DeleteFile, ArgPath)
             T("DELETE_FOLDER", DeleteFolder, ArgPath)
             T("CREATE_FOLDER", CreateFolder, ArgPath)

@@ -734,6 +734,12 @@ void Planner::command(const Command &command, const CancelPrinterReady &) {
     planned_event = Event { EventType::Finished, command.id };
 }
 
+void Planner::command(const Command &command, const SetPrinterIdle &) {
+    auto result = printer.set_idle() ? EventType::Finished : EventType::Rejected;
+    const char *reason = (result == EventType::Rejected) ? "Can't set idle now" : nullptr;
+    planned_event = Event { result, command.id, nullopt, nullopt, nullopt, reason };
+}
+
 void Planner::command(const Command &, const ProcessingThisCommand &) {
     // Unreachable:
     // * In case we are processing this command, this is handled one level up

@@ -44,6 +44,7 @@ struct StartPrint {
 };
 struct SetPrinterReady {};
 struct CancelPrinterReady {};
+struct SetPrinterIdle {};
 // This command actually implements both the START_CONNECT_DOWNLOAD and
 // START_ENCRYPTED_DOWNLOAD. The reason is, for us, the commands are really
 // similar and we reuse a lot of code for it.
@@ -122,7 +123,7 @@ struct UncancelObject {
     uint8_t id;
 };
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartEncryptedDownload, StartInlineDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer, SetToken, ResetPrinter, SendStateInfo, DialogAction, SetValue, CancelObject, UncancelObject>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, SetPrinterIdle, StartEncryptedDownload, StartInlineDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer, SetToken, ResetPrinter, SendStateInfo, DialogAction, SetValue, CancelObject, UncancelObject>;
 
 struct Command {
     CommandId id;

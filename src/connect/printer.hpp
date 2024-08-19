@@ -250,6 +250,7 @@ public:
     };
     virtual GcodeResult submit_gcode(const char *gcode) = 0;
     virtual bool set_ready(bool ready) = 0;
+    virtual bool set_idle() = 0;
     void set_can_start_download(bool can) {
         can_start_download = can;
     }
