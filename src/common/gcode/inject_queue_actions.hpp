@@ -3,10 +3,12 @@
 #include <enum_array.hpp>
 #include <async_job/async_job_execution_control.hpp>
 
-typedef void (*GCodePresetMacroCallback)(AsyncJobExecutionControl &);
+namespace {
+typedef void (*InjectPresetMacroCallback)(AsyncJobExecutionControl &);
+}
 
-struct GCodePresetMacro {
-    GCodePresetMacroCallback callback;
+struct InjectPresetMacro {
+    InjectPresetMacroCallback callback;
 };
 
 struct GCodeFilename {
@@ -21,4 +23,4 @@ struct GCodeMacroButton {
     uint8_t button;
 };
 
-using InjectQueueRecord = std::variant<GCodePresetMacro, GCodeFilename, GCodeMacroButton, GCodeLiteral>;
+using InjectQueueRecord = std::variant<InjectPresetMacro, GCodeFilename, GCodeMacroButton, GCodeLiteral>;
