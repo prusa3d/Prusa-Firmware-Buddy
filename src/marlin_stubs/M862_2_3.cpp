@@ -74,11 +74,11 @@ void PrusaGcodeSuite::M862_3() {
         }
 
         const char *arg_end = arg;
-        while (isalnum(*arg) || *arg == '.') {
-            arg++;
+        while (isalnum(*arg_end) || *arg_end == '.') {
+            arg_end++;
         }
 
-        setup_gcode_compatibility(PrinterModelInfo::from_id_str(std::string_view(arg, arg_end - arg)));
+        setup_gcode_compatibility(PrinterModelInfo::from_id_str(std::string_view(arg, arg_end)));
     }
 }
 
