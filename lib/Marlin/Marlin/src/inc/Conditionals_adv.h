@@ -131,9 +131,6 @@
   #endif
 #endif
 
-// Extensible UI pin mapping for RepRapDiscount
-#define TOUCH_UI_ULTIPANEL ENABLED(LULZBOT_TOUCH_UI) && ANY(AO_EXP1_PINMAP, AO_EXP2_PINMAP, CR10_TFT_PINMAP)
-
 // Poll-based jogging for joystick and other devices
 #if ENABLED(JOYSTICK)
   #define POLL_JOG
