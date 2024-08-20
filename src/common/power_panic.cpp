@@ -147,7 +147,9 @@ struct flash_planner_t {
     uint8_t gcode_compatibility_mode;
     uint8_t fan_compatibility_mode;
 
-    uint8_t _padding_is[3];
+    uint8_t marlin_debug_flags;
+
+    uint8_t _padding_is[2];
 
     // IS/PA
     input_shaper::AxisConfig axis_config[3]; // XYZ
@@ -548,6 +550,8 @@ void resume_loop() {
 #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
         GcodeSuite::fan_compatibility_mode = static_cast<GcodeSuite::FanCompatibilityMode>(state_buf.planner.fan_compatibility_mode);
 #endif
+
+        marlin_debug_flags = state_buf.planner.marlin_debug_flags;
 
         // planner settings
         planner.apply_settings(state_buf.planner.settings);
@@ -1190,6 +1194,13 @@ void ac_fault_isr() {
         == true);
     state_buf.planner.fan_compatibility_mode = static_cast<uint8_t>(GcodeSuite::fan_compatibility_mode);
 #endif
+
+    static_assert(
+        std::is_same_v<
+            decltype(state_buf.planner.marlin_debug_flags),
+            decltype(marlin_debug_flags)>
+        == true);
+    state_buf.planner.marlin_debug_flags = marlin_debug_flags;
 
     // heaters are *already* disabled via HW, but stop temperature and fan regulation too
     thermalManager.disable_all_heaters();
