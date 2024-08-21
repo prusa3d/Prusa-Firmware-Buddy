@@ -1921,7 +1921,6 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   + ENABLED(MKS_12864OLED_SSD1306) \
   + ENABLED(U8GLIB_SH1106_EINSTART) \
   + ENABLED(OVERLORD_OLED) \
-  + ENABLED(MALYAN_LCD) \
   + ENABLED(FSMC_GRAPHICAL_TFT)
   #error "Please select no more than one LCD controller option."
 #endif

@@ -346,12 +346,6 @@
   #endif
 #endif
 
-// Extensible UI serial touch screens. (See src/lcd/extensible_ui)
-#if ENABLED(MALYAN_LCD)
-  #define IS_EXTUI
-  #define EXTENSIBLE_UI
-#endif
-
 // Aliases for LCD features
 #define HAS_SPI_LCD          ENABLED(ULTRA_LCD)
 #define HAS_DISPLAY         (HAS_SPI_LCD || ENABLED(EXTENSIBLE_UI))

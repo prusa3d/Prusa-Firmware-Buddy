@@ -2171,11 +2171,6 @@
 //
 
 //
-// LCD for Malyan M200 printers.
-//
-//#define MALYAN_LCD
-
-//
 // CONTROLLER TYPE: Keypad / Add-on
 //
 
