@@ -162,7 +162,7 @@ namespace migrations {
 
         static_assert(extended_printer_type_model[0] == PrinterModel::mk4);
         static_assert(extended_printer_type_model[2] == PrinterModel::mk3_9);
-        backend.save_migration_item(journal::hash("Extended Printer Type"), has_400_motors ? 0 : 2);
+        backend.save_migration_item<uint8_t>(journal::hash("Extended Printer Type"), has_400_motors ? 0 : 2);
     }
 #endif
 
