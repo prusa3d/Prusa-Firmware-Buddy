@@ -57,9 +57,7 @@ public:
     static float amplitudeNotRounded(float frequency, float acceleration) {
         return acceleration / (4 * std::numbers::pi_v<float> * std::numbers::pi_v<float> * frequency * frequency);
     }
-    static int amplitudeRoundToSteps(float amplitude_not_rounded, float step_len) {
-        return ceil(amplitude_not_rounded / step_len);
-    }
+
     HarmonicGenerator(float frequency, float amplitude, float step_len)
         : m_amplitude_steps(amplitudeRoundToSteps(amplitude, step_len))
         , m_step(step_len)
@@ -109,6 +107,10 @@ public:
     }
 
 private:
+    static int amplitudeRoundToSteps(float amplitude_not_rounded, float step_len) {
+        return ceil(amplitude_not_rounded / step_len);
+    }
+
     const int m_amplitude_steps; ///< amplitude rounded to steps
     const float m_step;
     const float m_freq2pi_inv;
