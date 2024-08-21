@@ -188,7 +188,6 @@ target_compile_definitions(
             MARLIN_DISABLE_INFINITE_LOOP
             PROCESS_CUSTOM_GCODE
             HAS_MARLIN=$<BOOL:${HAS_MARLIN}>
-            _EXTUI
   )
 
 if(MCU MATCHES "STM32")

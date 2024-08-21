@@ -21,8 +21,6 @@
     #error "Unknown PRINTER_TYPE!"
 #endif
 
-#ifdef _EXTUI
-    #undef RA_CONTROL_PANEL
-    #define EXTENSIBLE_UI
-    #define NO_LCD_MENUS
-#endif
+#undef RA_CONTROL_PANEL
+#define EXTENSIBLE_UI
+#define NO_LCD_MENUS

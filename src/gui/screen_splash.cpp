@@ -227,7 +227,6 @@ void screen_splash_data_t::bootstrap_cb(unsigned percent, std::optional<const ch
 }
 
 void screen_splash_data_t::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
-#ifdef _EXTUI
     if (event == GUI_event_t::GUI_STARTUP) { // without clear it could run multiple times before screen is closed
         if (!param) {
             return;
@@ -257,10 +256,5 @@ void screen_splash_data_t::windowEvent([[maybe_unused]] window_t *sender, GUI_ev
         }
 
         progress.SetProgressPercent(std::clamp(percent, 0, 100));
-
-#else // _EXTUI
-    if (HAL_GetTick() > 3000) {
-        Screens::Access()->Close();
-#endif // _EXTUI
     }
 }
