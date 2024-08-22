@@ -286,7 +286,7 @@ static PhasesInputShaperCalibration measuring_axis(
 
     VibrateMeasureParams args {
         .excitation_acceleration = acceleration_requested,
-        .cycles = cycles,
+        .excitation_cycles = cycles,
         .klipper_mode = klipper_mode,
         .calibrate_accelerometer = true,
         .axis_flag = axis_flag,

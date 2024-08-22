@@ -71,7 +71,7 @@ struct VibrateMeasureParams {
     /// Configured automatically in setup()
     float step_len = NAN;
 
-    uint32_t cycles;
+    uint32_t excitation_cycles;
     bool klipper_mode;
     bool calibrate_accelerometer;
     StepEventFlag_t axis_flag;

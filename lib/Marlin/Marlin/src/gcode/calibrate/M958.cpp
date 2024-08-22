@@ -428,7 +428,7 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
         }
 
     uint32_t sample_nr = 0;
-    const uint32_t samples_to_collect = excitation_period * args.cycles / accelerometer_sample_period;
+    const uint32_t samples_to_collect = excitation_period * args.excitation_cycles / accelerometer_sample_period;
     bool enough_samples_collected = false;
     TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 #ifdef M958_OUTPUT_SAMPLES
@@ -439,7 +439,7 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
 
     uint32_t step_nr = 0;
     GcodeSuite::reset_stepper_timeout();
-    const uint32_t steps_to_do = generator.getStepsPerPeriod() * args.cycles;
+    const uint32_t steps_to_do = generator.getStepsPerPeriod() * args.excitation_cycles;
     const uint32_t steps_to_do_max = steps_to_do * 2 + generator.getStepsPerPeriod() + STEP_EVENT_QUEUE_SIZE;
 
     accelerometer.clear();
@@ -791,15 +791,13 @@ void GcodeSuite::M958() {
     phase_stepping::EnsureDisabled phaseSteppingDisabler;
     MicrostepRestorer microstepRestorer;
 
-    const StepEventFlag_t axis_flag = setup_axis(); // modifies mres as a side-effect
-
     PrusaAccelerometer accelerometer;
     VibrateMeasureParams args {
         .excitation_acceleration = 2.5f,
-        .cycles = 50,
+        .excitation_cycles = 50,
         .klipper_mode = parser.seen('K'),
         .calibrate_accelerometer = parser.seen('C'),
-        .axis_flag = axis_flag,
+        .axis_flag = setup_axis(), // modifies mres as a side-effect
     };
     float frequency = 35;
 
@@ -810,7 +808,7 @@ void GcodeSuite::M958() {
         args.excitation_acceleration = abs(parser.value_float()) * 0.001f;
     }
     if (parser.seenval('N')) {
-        args.cycles = parser.value_ulong();
+        args.excitation_cycles = parser.value_ulong();
     }
     if (parser.seenval('I')) {
         args.measured_harmonic = parser.value_ulong();
@@ -1243,9 +1241,9 @@ void GcodeSuite::M959() {
 
     VibrateMeasureParams args {
         .excitation_acceleration = 2.5f,
-        .cycles = 50,
+        .excitation_cycles = 50,
         .klipper_mode = parser.seen('K'),
-		.calibrate_accelerometer = true,
+        .calibrate_accelerometer = true,
         .axis_flag = setup_axis(), // modifies mres as a side-effect
     };
     VibrateMeasureRange range {
@@ -1267,7 +1265,7 @@ void GcodeSuite::M959() {
         args.excitation_acceleration = abs(parser.value_float()) * 0.001f;
     }
     if (parser.seenval('N')) {
-        args.cycles = parser.value_ulong();
+        args.excitation_cycles = parser.value_ulong();
     }
     if (parser.seenval('I')) {
         args.measured_harmonic = parser.value_ulong();
