@@ -444,10 +444,8 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
 
     /// Processes one sample from the accelerometer.
     /// \returns true if there was a sample to process.
-    const auto collect_sample = [&] {
-        PrusaAccelerometer::Acceleration measured_acceleration;
-        const int samples = accelerometer.get_sample(measured_acceleration);
-        if (samples && !enough_samples_collected && (step_nr > STEP_EVENT_QUEUE_SIZE)) {
+    const auto collect_sample = [&](const PrusaAccelerometer::Acceleration &measured_acceleration) {
+        if (true) {
             metric_record_custom(&accel, " x=%.4f,y=%.4f,z=%.4f", (double)measured_acceleration.val[0], (double)measured_acceleration.val[1], (double)measured_acceleration.val[2]);
             const float accelerometer_time_2pi_measurement_freq = measurement_freq_2pi * accelerometer_period_time;
             const std::complex<float> amplitude = { sinf(accelerometer_time_2pi_measurement_freq), cosf(accelerometer_time_2pi_measurement_freq) };
@@ -469,9 +467,6 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
             tud_cdc_write_flush();
 #endif
         }
-        metric_record_float(&metric_excite_freq, excitation_frequency);
-
-        return samples > 0;
     };
 
     accelerometer.clear();
@@ -488,9 +483,23 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
     ) {
 
         while (is_full()) {
-            const auto samples = collect_sample();
+            PrusaAccelerometer::Acceleration measured_acceleration;
+            bool got_sample = accelerometer.get_sample(measured_acceleration);
+            if (!got_sample) {
+                // Failed to obtain thie sample, whatevs
 
-            if (!samples) {
+            } else if (step_nr <= STEP_EVENT_QUEUE_SIZE) {
+                // Start collecting samples only after we're sure that the steppers are processing our excitation movements and something that was in the buffer before that.
+                // So discard samples until we've queued enough steps to fill the entire stepper buffer (at which point we can be sure there is nothing remaining).
+
+            } else if (!enough_samples_collected) {
+                collect_sample(measured_acceleration);
+            }
+
+            // Send the metric only when the step queue is full, to prevent possible movement stall
+            metric_record_float(&metric_excite_freq, excitation_frequency);
+
+            if (!got_sample) {
                 idle(true, true);
             }
         }
