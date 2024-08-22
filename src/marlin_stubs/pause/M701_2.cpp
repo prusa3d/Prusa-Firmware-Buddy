@@ -187,7 +187,9 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res, uint
     // modify temperatures
     switch (res) {
     case PreheatStatus::Result::DoneHasFilament: {
-        thermalManager.setTargetHotend(config_store().get_filament_type(target_extruder).parameters().nozzle_preheat_temperature, 0);
+        const float disp_temp = config_store().get_filament_type(target_extruder).parameters().nozzle_preheat_temperature;
+        thermalManager.setTargetHotend(disp_temp, target_extruder);
+        marlin_server::set_temp_to_display(disp_temp, target_extruder);
         break;
     }
     case PreheatStatus::Result::CooledDown:
