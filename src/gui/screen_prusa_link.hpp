@@ -10,6 +10,7 @@
 #include <guiconfig/guiconfig.h>
 #include <MItem_network.hpp>
 #include <str_utils.hpp>
+#include <gui/qr.hpp>
 
 // ----------------------------------------------------------------
 // GUI Prusa Link Password regenerate
@@ -94,7 +95,7 @@ protected:
 class ScreenPrusaLinkQRCode final : public screen_t {
     window_text_t text;
     window_icon_t icon_phone;
-    window_qr_t qr;
+    QRDynamicStringWindow<100> qr;
 
 public:
     ScreenPrusaLinkQRCode();

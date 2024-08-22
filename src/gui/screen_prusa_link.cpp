@@ -99,18 +99,16 @@ ScreenPrusaLinkQRCode::ScreenPrusaLinkQRCode()
     : screen_t(nullptr, win_type_t::normal, is_closed_on_timeout_t::no)
     , text(this, FrameQRLayout::text_rect(), is_multiline::yes, is_closed_on_click_t::no, _(screen_prusa_link_qrcode))
     , icon_phone(this, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72)
-    , qr(this, FrameQRLayout::qrcode_rect(), "nevim3") {
+    , qr(this, FrameQRLayout::qrcode_rect(), Align_t::Center()) {
 
     lan_t config = {};
     netdev_get_ipv4_addresses(netdev_get_active_id(), &config);
 
-    std::array<char, 100> buff;
-    snprintf(buff.data(), buff.size(), "http://" PRUSA_LINK_USERNAME ":%s@%lu.%lu.%lu.%lu/", wui_get_password(),
+    qr.get_string_builder().append_printf("http://" PRUSA_LINK_USERNAME ":%s@%lu.%lu.%lu.%lu/", wui_get_password(),
         (config.addr_ip4.addr >> 0) & 0xff,
         (config.addr_ip4.addr >> 8) & 0xff,
         (config.addr_ip4.addr >> 16) & 0xff,
         (config.addr_ip4.addr >> 24) & 0xff);
-    qr.SetText(buff.data());
 }
 
 void ScreenPrusaLinkQRCode::windowEvent(window_t *, GUI_event_t event, void *) {

@@ -2,8 +2,8 @@
 
 #include <gui.hpp>
 #include <window_header.hpp>
-#include <window_qr.hpp>
 #include "radio_button.hpp"
+#include <gui/qr.hpp>
 #include <guiconfig/wizard_config.hpp>
 
 #include <connect/status.hpp>
@@ -69,7 +69,8 @@ private:
 
     window_header_t header;
     window_icon_t icon_phone;
-    window_qr_t qr;
+    QRDynamicStringWindow<128> qr_registration_code;
+    QRErrorUrlWindow qr_error;
     window_text_t title;
     BasicWindow line;
     window_text_t text_state;
@@ -80,7 +81,7 @@ private:
     DialogConnectRegister();
 
     void hideDetails();
-    void showQR();
+    void showQR(window_t &qr);
 
 protected:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;

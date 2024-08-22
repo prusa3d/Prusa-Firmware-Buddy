@@ -6,6 +6,7 @@
 #include "radio_button.hpp"
 #include "selftest_dock_type.hpp"
 #include "status_footer.hpp"
+#include <gui/qr.hpp>
 
 class SelftestFrameDock : public SelftestFrameNamedWithRadio {
     FooterLine footer;
@@ -15,7 +16,7 @@ class SelftestFrameDock : public SelftestFrameNamedWithRadio {
     window_icon_t icon_warning;
     window_text_t text_warning;
     window_icon_t icon_info;
-    window_qr_t qr;
+    QRStaticStringWindow qr;
     window_text_t text_link; ///< Web address to manual
     std::array<char, 100> name_buff;
     std::array<char, 50> remaining_buff;

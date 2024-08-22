@@ -36,14 +36,12 @@ ScreenChangeFilter::ScreenChangeFilter()
     , header(this)
     , description(this, descr_rect, is_multiline::yes)
     , help(this, help_rect, is_multiline::yes)
-    , qr(this, qr_rect, 1, Align_t::RightTop())
+    , qr(this, qr_rect, Align_t::RightTop(), qr_link)
     , radio(this, GuiDefaults::GetButtonRect(GetRect()), responses_change_filter) {
     CaptureNormalWindow(radio);
 
     header.SetIcon(&img::info_16x16);
     header.SetText(_("FILTER CHANGE"));
-
-    qr.SetText(qr_link);
 
     description.SetAlignment(Align_t::LeftTop());
     description.SetText(_(txt_descr));

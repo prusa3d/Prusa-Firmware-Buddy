@@ -1,7 +1,10 @@
 #pragma once
+
 #include "gui.hpp"
 #include "window_text.hpp"
 #include <array>
+#include <gui/text_error_url.hpp>
+#include <gui/qr.hpp>
 #include "screen.hpp"
 #include "screen_reset_error.hpp"
 #include "window_header.hpp"
@@ -14,9 +17,9 @@ class ScreenFatalWarning : public ScreenResetError {
     window_text_t err_title;
     window_text_t err_description;
     window_icon_t hand_icon;
-    window_qr_t qr;
+    QRErrorUrlWindow qr;
     window_text_t help_txt;
-    window_text_t help_link;
+    TextErrorUrlWindow help_link;
     window_text_t qr_code_txt;
     AnimatorLCD::AnimationGuard anim;
 

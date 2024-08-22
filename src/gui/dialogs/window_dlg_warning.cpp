@@ -109,7 +109,7 @@ DialogWarning::DialogWarning(PhasesWarning data, WarningType warning_type, const
     : IDialogMarlin(screen_rect)
     , icon(this, icon_rect, warning_dialog_icon(warning_type))
     , phone(this, phone_rect, phone_resource)
-    , qr(this, qr_rect, (uint16_t)error_desc.err_code)
+    , qr(this, qr_rect, error_desc.err_code)
     , text(this, text_rect, is_multiline::yes, is_closed_on_click_t::yes, _(error_desc.err_text))
     , button(this, GuiDefaults::GetButtonRect(screen_rect), data) {
     CaptureNormalWindow(button);

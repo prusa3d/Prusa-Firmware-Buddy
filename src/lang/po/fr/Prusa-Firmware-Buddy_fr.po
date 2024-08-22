@@ -3985,13 +3985,6 @@ msgstr "PLUS"
 msgid "More detail at"
 msgstr "Plus de détail sur"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:222
-#, c-format
-msgid ""
-"More detail at\n"
-"prusa.io/%05u"
-msgstr "Plus de détails sur prusa.io/%05u"
-
 #: src/gui/screen_phase_stepping.cpp:200
 #, c-format
 msgid "Motor %c vibration reduced by %2d%%"

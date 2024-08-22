@@ -21,7 +21,6 @@ extern void gui_redraw(void);
 #include "window_term.hpp"
 #include "window_msgbox.hpp"
 #include "window_progress.hpp"
-#include "window_qr.hpp"
 
 extern uint8_t gui_get_nesting(void);
 

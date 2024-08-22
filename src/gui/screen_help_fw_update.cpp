@@ -57,7 +57,7 @@ ScreenHelpFWUpdate::ScreenHelpFWUpdate()
     , description2(this, descr_rect2, is_multiline::yes)
 #endif
     , help(this, help_rect, is_multiline::yes)
-    , qr(this, QR_rect, 1, Align_t::RightTop())
+    , qr(this, QR_rect, Align_t::RightTop())
     , radio(this, GuiDefaults::GetButtonRect(GetRect()), Responses_Back) {
     CaptureNormalWindow(radio);
 
@@ -71,8 +71,7 @@ ScreenHelpFWUpdate::ScreenHelpFWUpdate()
     header.SetIcon(&img::info_16x16);
     header.SetText(_(txt_header));
 
-    StringBuilder(qr_link_text).append_printf("prusa.io/%s-firmware", PrinterModelInfo::current().help_url);
-    qr.SetText(qr_link_text.data());
+    qr.get_string_builder().append_printf("prusa.io/%s-firmware", PrinterModelInfo::current().help_url);
 
     description.SetAlignment(Align_t::LeftTop());
     description.SetText(_(txt_descr));
@@ -81,7 +80,7 @@ ScreenHelpFWUpdate::ScreenHelpFWUpdate()
     {
         StringBuilder sb(help_text);
         sb.append_string_view(_("To learn more including firmware downgrade, please visit:\n"));
-        sb.append_string(qr_link_text.data());
+        sb.append_string(qr);
         help.SetText(string_view_utf8::MakeRAM(help_text.data()));
     }
 }

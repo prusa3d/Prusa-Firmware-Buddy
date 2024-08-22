@@ -7,7 +7,6 @@
 #include "window_text.hpp"
 #include "window_icon.hpp"
 #include "client_response.hpp"
-#include "window_qr.hpp"
 #include <guiconfig/guiconfig.h>
 #include <static_alocation_ptr.hpp>
 #include <inplace_function.hpp>

@@ -18,15 +18,14 @@ const PhaseResponses dlg_responses = { Response::Continue, Response::_none, Resp
 // TODO: How does this thing get translated/marked for translation?
 const PhaseTexts dlg_texts = { { N_("Leave") } };
 
-const constexpr size_t max_url_len = 128;
-
 } // namespace
 
 DialogConnectRegister::DialogConnectRegister()
     : IDialog(WizardDefaults::RectSelftestFrame)
     , header(this, _(headerLabel))
     , icon_phone(this, Positioner::phoneIconRect(), &img::hand_qr_59x72)
-    , qr(this, Positioner::qrcodeRect(), "")
+    , qr_registration_code(this, Positioner::qrcodeRect(), Align_t::Center())
+    , qr_error(this, Positioner::qrcodeRect(), ErrCode::ERR_CONNECT_CONNECT_REGISTRATION_FAILED)
     , title(this, Positioner::textRectTitle(), is_multiline::no)
     , line(this, Positioner::lineRect())
     , text_state(this, Positioner::textRectState(), is_multiline::yes)
@@ -48,7 +47,8 @@ DialogConnectRegister::DialogConnectRegister()
 
     // Show these only after we get the code.
     qr_rect = false;
-    qr.Hide();
+    qr_registration_code.Hide();
+    qr_error.Hide();
     icon_phone.Hide();
 
     connect_client::request_registration();
@@ -110,11 +110,10 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
                 // already need the ini file to override the hostname and
                 // therefore the wizard is of little use to them.
 
-                ArrayStringBuilder<max_url_len> url_sb;
-                url_sb.append_string("https://connect.prusa3d.com/add/");
-                url_sb.append_string(code);
-                qr.SetText(url_sb.str());
-                showQR();
+                qr_registration_code.get_string_builder()
+                    .append_string("https://connect.prusa3d.com/add/")
+                    .append_string(code);
+                showQR(qr_registration_code);
 
                 text_detail.SetText(_("Code: %s").formatted(code_params, code));
 #if !HAS_MINI_DISPLAY()
@@ -170,7 +169,6 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
                     err_buffer = "";
                 }
 
-                char url_buffer[15] = { 0 };
                 char error_help_buffer[70];
                 char error_detail_buffer[30];
 
@@ -180,13 +178,10 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
                 text_state.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_buffer));
                 text_state.Invalidate();
 
-                snprintf(url_buffer, sizeof(url_buffer), "prusa.io/%d", static_cast<int>(error.err_code));
-                qr.SetText(url_buffer);
-                showQR();
+                showQR(qr_error);
 
-                // Detail uses the same buffer from the start so SetText here is obsolete as it does nothing and the text is changed within memory
                 _(moreDetailTxt).copyToRAM(error_detail_buffer, sizeof(error_detail_buffer)); // Translation
-                snprintf(detail_buffer, sizeof(detail_buffer), "%s:\n%s", error_detail_buffer, url_buffer);
+                snprintf(detail_buffer, sizeof(detail_buffer), "%s:\nprusa.io/%d", error_detail_buffer, static_cast<int>(error.err_code));
                 text_detail.SetText(string_view_utf8::MakeRAM((const uint8_t *)detail_buffer));
                 text_detail.Invalidate();
                 break;
@@ -222,12 +217,13 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
 }
 
 void DialogConnectRegister::hideDetails() {
-    qr.Hide();
+    qr_registration_code.Hide();
+    qr_error.Hide();
     icon_phone.Hide();
     text_detail.Hide();
 }
 
-void DialogConnectRegister::showQR() {
+void DialogConnectRegister::showQR(window_t &qr) {
     if (!qr_rect) {
         text_state.Hide();
         text_attempt.Hide();

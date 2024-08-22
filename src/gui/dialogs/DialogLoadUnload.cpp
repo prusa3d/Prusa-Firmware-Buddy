@@ -220,7 +220,6 @@ static constexpr Rect16 notice_link_rect = { 86, 218, 244, 32 };
 static constexpr Rect16 notice_icon_rect = { 370, 180, 59, 72 };
 static constexpr Rect16 notice_icon_type_rect = { 24, 44, 48, 48 };
 static constexpr Rect16 notice_qr_rect = { 350, 72, 100, 100 };
-static constexpr const char *error_code_link_format = N_("More detail at\nprusa.io/%05u");
 namespace {
 constexpr size_t color_size { 16 };
 constexpr size_t text_height { 21 };
@@ -319,10 +318,10 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     , notice_frame(this, get_frame_rect(GetRect()))
     , notice_title(&notice_frame, notice_title_rect, is_multiline::no)
     , notice_text(&notice_frame, notice_text_rect, is_multiline::yes)
-    , notice_link(&notice_frame, notice_link_rect, is_multiline::yes)
+    , notice_link(&notice_frame, notice_link_rect, ErrCode::ERR_UNDEF)
     , notice_icon_hand(&notice_frame, notice_icon_rect, &img::hand_qr_59x72)
     , notice_icon_type(&notice_frame, notice_icon_type_rect, &img::warning_48x48)
-    , notice_qr(&notice_frame, notice_qr_rect)
+    , notice_qr(&notice_frame, notice_qr_rect, ErrCode::ERR_UNDEF)
     , notice_radio_button(&notice_frame, GuiDefaults::GetButtonRect_AvoidFooter(GetRect()))
     , filament_type_text(&progress_frame, filament_type_text_rect, is_multiline::no)
     , filament_color_icon(&progress_frame, filament_color_icon_rect)
@@ -489,10 +488,9 @@ void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, con
     notice_title.SetText(_(errTitle));
     notice_text.SetText(_(errDesc));
 
-    snprintf(error_code_str, sizeof(error_code_str), error_code_link_format, errCode);
-    notice_link.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_code_str));
+    notice_link.set_error_code(ErrCode(errCode));
 
-    notice_qr.SetQRHeader(errCode);
+    notice_qr.set_error_code(ErrCode(errCode));
 }
 
 string_view_utf8 DialogLoadUnload::get_name(LoadUnloadMode mode) {

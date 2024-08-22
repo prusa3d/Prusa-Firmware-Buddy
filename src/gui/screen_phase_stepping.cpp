@@ -4,10 +4,10 @@
 #include "i18n.h"
 #include "img_resources.hpp"
 #include <array>
+#include <gui/qr.hpp>
 #include <guiconfig/wizard_config.hpp>
 #include <window_icon.hpp>
 #include <window_progress.hpp>
-#include <window_qr.hpp>
 #include <window_text.hpp>
 
 namespace {
@@ -132,14 +132,14 @@ namespace frame {
         window_text_t text;
         window_text_t link;
         window_icon_t icon_phone;
-        window_qr_t qr;
+        QRStaticStringWindow qr;
 
     public:
         explicit Introduction(window_t *parent)
             : text { parent, FrameQRLayout::text_rect(), is_multiline::yes, is_closed_on_click_t::no, _(txt_learn_more) }
             , link { parent, FrameQRLayout::link_rect(), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>(ADDR_IN_TEXT)) }
             , icon_phone { parent, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72 }
-            , qr { parent, FrameQRLayout::qrcode_rect(), QR_ADDR } {
+            , qr { parent, FrameQRLayout::qrcode_rect(), Align_t::Center(), QR_ADDR } {
         }
         void update(const fsm::PhaseData &) {}
     };

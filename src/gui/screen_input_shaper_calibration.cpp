@@ -1,6 +1,7 @@
 #include "screen_input_shaper_calibration.hpp"
 
 #include "window_wizard_progress.hpp"
+#include <gui/qr.hpp>
 #include <gui/frame_qr_layout.hpp>
 #include <img_resources.hpp>
 #include <str_utils.hpp>
@@ -85,25 +86,24 @@ private:
     window_text_t text;
     window_text_t link;
     window_icon_t icon_phone;
-    window_qr_t qr;
+    QRDynamicStringWindow<32> qr;
 
 public:
     explicit FrameInfo(window_t *parent)
         : text(parent, FrameQRLayout::text_rect(), is_multiline::yes, is_closed_on_click_t::no, _(text_info))
         , link(parent, FrameQRLayout::link_rect(), is_multiline::no, is_closed_on_click_t::no)
         , icon_phone(parent, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72)
-        , qr(parent, FrameQRLayout::qrcode_rect()) {
+        , qr(parent, FrameQRLayout::qrcode_rect(), Align_t::Center()) {
         text.SetAlignment(Align_t::LeftCenter());
         StringBuilder(link_buffer)
             .append_string("prusa.io/")
             .append_string(PrinterModelInfo::current().help_url)
             .append_string("-iscal");
         link.SetText(_(link_buffer.data()));
-        StringBuilder(qr_buffer)
+        qr.get_string_builder()
             .append_string("prusa.io/qr-")
             .append_string(PrinterModelInfo::current().help_url)
             .append_string("-iscal");
-        qr.SetText(qr_buffer.data());
     }
 
     void update(fsm::PhaseData) {}
@@ -112,7 +112,6 @@ private:
     static constexpr const char *text_info = N_(
         "Attention: Ensure the accelerometer is properly connected. Follow the step-by-step guide in the link below:");
     std::array<char, 32> link_buffer;
-    std::array<char, 32> qr_buffer;
 };
 
 class FrameParking final {

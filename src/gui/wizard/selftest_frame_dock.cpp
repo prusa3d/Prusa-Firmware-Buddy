@@ -27,7 +27,7 @@ SelftestFrameDock::SelftestFrameDock(window_t *parent, PhasesSelftest ph, fsm::P
     , icon_warning(this, &img::printer_is_moving, point_i16(col_texts, row_4))
     , text_warning(this, Rect16(col_texts + img::warning_48x48.w + 20, row_4, WizardDefaults::X_space - img::warning_48x48.w - 20, 3 * txt_h), is_multiline::yes)
     , icon_info(this, &img::parking1, text_info.GetRect().TopRight())
-    , qr(this, get_info_icon_rect() + Rect16::Left_t(25), LINK)
+    , qr(this, get_info_icon_rect() + Rect16::Left_t(25), Align_t::Center(), LINK)
     , text_link(this, get_link_text_rect(), is_multiline::no) {
     qr.Hide();
     text_link.Hide();

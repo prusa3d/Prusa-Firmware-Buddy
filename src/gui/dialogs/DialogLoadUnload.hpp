@@ -10,8 +10,9 @@
 #include "window_icon.hpp"
 #include "window_numb.hpp"
 #include "window_progress.hpp"
-#include "window_qr.hpp"
 #include "window_text.hpp"
+#include <gui/text_error_url.hpp>
+#include <gui/qr.hpp>
 #include <optional>
 
 /**
@@ -90,16 +91,15 @@ private:
 
     window_text_t notice_title;
     window_text_t notice_text;
-    window_text_t notice_link;
+    TextErrorUrlWindow notice_link;
     window_icon_t notice_icon_hand;
     window_icon_t notice_icon_type;
-    window_qr_t notice_qr;
+    QRErrorUrlWindow notice_qr;
     RadioButtonNotice notice_radio_button; // workaround, see RadioButtonNotice comment
 
     window_text_t filament_type_text;
     window_colored_rect filament_color_icon;
 
-    char error_code_str[32 + MaxErrorCodeDigits + 1]; // static text before error code has 32 chars
     LoadUnloadMode mode;
 
     // Needs to be held in memory because we're rendering the name from it

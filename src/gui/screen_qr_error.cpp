@@ -35,9 +35,9 @@ ScreenErrorQR::ScreenErrorQR()
     , err_title(this, title_rect, is_multiline::no)
     , err_description(this, descr_rect, is_multiline::yes)
     , hand_icon(this, hand_rect, &img::hand_qr_59x72)
-    , qr(this, QR_rect, 1, Align_t::RightTop()) // error code is passed in the constructor
+    , qr(this, QR_rect, ErrCode::ERR_UNDEF)
     , help_txt(this, help_txt_rect, is_multiline::no)
-    , help_link(this, link_rect, is_multiline::no)
+    , help_link(this, link_rect, ErrCode::ERR_UNDEF)
     , qr_code_txt(this, qr_code_rect, is_multiline::no)
 #if HAS_LEDS()
     , anim(Animator_LCD_leds().start_animations(Fading(leds::Color(255, 0, 0), 500), 10))
@@ -68,15 +68,13 @@ ScreenErrorQR::ScreenErrorQR()
     uint16_t error_code = load_message_error_code(); // Unknow code == ERR_UNDEF == 0
 
     const auto show_qr = [&]() {
-        qr.SetQRHeader(error_code);
-        /// draw short URL
-        const char *qr_text = qr.GetQRShortText();
+        qr.set_error_code(ErrCode(error_code));
         if (GuiDefaults::EnableDialogBigLayout) {
             help_txt.SetText(_(help_text));
         } else {
             help_txt.Hide();
         }
-        help_link.SetText(_(qr_text));
+        help_link.set_error_code(ErrCode(error_code));
 
         if (config_store().devhash_in_qr.get()) {
             static char p_code[PRINTER_CODE_SIZE + 1];
@@ -102,7 +100,6 @@ ScreenErrorQR::ScreenErrorQR()
         err_description.SetText(_(err_message_buff));
 
         if (error_code != static_cast<std::underlying_type_t<ErrCode>>(ErrCode::ERR_UNDEF) && error_code / 1000 == ERR_PRINTER_CODE) {
-            update_error_code(error_code); // distinguish MK3.9 from MK4 and update error_code's printer prefix, does nothing on other printers
             show_qr();
         } else {
             hide_qr();

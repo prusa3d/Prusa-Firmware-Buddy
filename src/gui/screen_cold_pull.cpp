@@ -14,6 +14,8 @@
 #endif
 
 #include <find_error.hpp>
+#include <gui/text_error_url.hpp>
+#include <gui/qr.hpp>
 #include <guiconfig/wizard_config.hpp>
 #include <common/cold_pull.hpp>
 #include <common/sound.hpp>
@@ -119,31 +121,22 @@ namespace frame {
     /** individual frames */
     class Introduction final {
         window_text_t text;
-        window_text_t link;
+        TextErrorUrlWindow link;
         window_icon_t icon_phone;
-        window_qr_t qr;
+        QRErrorUrlWindow qr;
 
-        char error_code_str[10 + 5 + 1]; // static text before error code has 32 chars
     public:
         explicit Introduction(window_t *parent)
             : text(parent, FrameQRLayout::text_rect(), is_multiline::yes, is_closed_on_click_t::no)
-            , link(parent, FrameQRLayout::link_rect(), is_multiline::no, is_closed_on_click_t::no)
+            , link(parent, FrameQRLayout::link_rect(), ErrCode::WARNING_COLD_PULL_INTRO)
             , icon_phone(parent, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72)
-            , qr(parent, FrameQRLayout::qrcode_rect()) {
+            , qr(parent, FrameQRLayout::qrcode_rect(), ErrCode::WARNING_COLD_PULL_INTRO) {
 
             text.SetAlignment(Align_t::LeftCenter());
 
             const auto err_desc = find_error(ErrCode::WARNING_COLD_PULL_INTRO);
             text.SetText(_(err_desc.err_text));
-
-            const auto err_code_num = ftrstd::to_underlying(ErrCode::WARNING_COLD_PULL_INTRO);
-            qr.SetQRHeader(err_code_num);
-
-            snprintf(error_code_str, sizeof(error_code_str), text_link, err_code_num);
-            link.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_code_str));
         }
-
-        static constexpr const char *text_link = "prusa.io/%05u";
     };
 
 #if HAS_TOOLCHANGER()

@@ -10,6 +10,7 @@
 #include "status_footer.hpp"
 #include "radio_button.hpp"
 #include <guiconfig/guiconfig.h>
+#include <gui/qr.hpp>
 
 class ScreenHelpFWUpdate : public screen_t {
     window_header_t header;
@@ -18,11 +19,10 @@ class ScreenHelpFWUpdate : public screen_t {
     window_text_t description2;
 #endif
     window_text_t help;
-    window_qr_t qr;
+    QRDynamicStringWindow<32> qr;
     RadioButton radio;
 
     std::array<char, 128> help_text;
-    std::array<char, 32> qr_link_text;
 
 public:
     ScreenHelpFWUpdate();

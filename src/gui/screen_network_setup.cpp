@@ -377,7 +377,7 @@ public:
         : text(parent, FrameQRLayout::text_rect(), is_multiline::yes)
         , link(parent, FrameQRLayout::link_rect(), is_multiline::no)
         , icon_phone(parent, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72)
-        , qr(parent, FrameQRLayout::qrcode_rect(), qr_url)
+        , qr(parent, FrameQRLayout::qrcode_rect(), Align_t::Center(), qr_url)
         , radio(parent, GuiDefaults::GetButtonRect(parent->GetRect()), phase) //
     {
         this->text.SetText(text);
@@ -390,7 +390,7 @@ private:
     window_text_t text;
     window_text_t link;
     window_icon_t icon_phone;
-    window_qr_t qr;
+    QRStaticStringWindow qr;
     RadioButtonFsm<PhaseNetworkSetup> radio;
 };
 
