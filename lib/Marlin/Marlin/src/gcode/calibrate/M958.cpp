@@ -475,8 +475,17 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
     };
 
     accelerometer.clear();
-    while ((step_nr < steps_to_do) || (!enough_samples_collected) || (step_nr % generator.getStepsPerPeriod() != 0)) {
-        StepDir::RetVal step_dir = stepDir.get();
+    while (
+        // Enqueue at least \p steps_to_do
+        (step_nr < steps_to_do)
+
+        // Repeat until we have enough samples, if the measurement is not delayed
+        || !enough_samples_collected
+
+        // Always enqueue whole sine waves (do not stop in the middle of the period)
+        || (step_nr % generator.getStepsPerPeriod() != 0)
+
+    ) {
 
         while (is_full()) {
             const auto samples = collect_sample();
@@ -486,8 +495,10 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
             }
         }
 
+        const StepDir::RetVal step_dir = stepDir.get();
         enqueue_step(step_dir.step_us, step_dir.dir, args.axis_flag);
         ++step_nr;
+
         if (step_nr > steps_to_do_max) {
             SERIAL_ERROR_MSG("vibrate measure: getting accelerometer samples timed out");
             (void)is_ok(accelerometer.get_error());
