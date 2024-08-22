@@ -442,11 +442,10 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
     const uint32_t steps_to_do = generator.getStepsPerPeriod() * args.excitation_cycles;
     const uint32_t steps_to_do_max = steps_to_do * 2 + generator.getStepsPerPeriod() + STEP_EVENT_QUEUE_SIZE;
 
-    accelerometer.clear();
-    while ((step_nr < steps_to_do) || (!enough_samples_collected) || (step_nr % generator.getStepsPerPeriod() != 0)) {
-        StepDir::RetVal step_dir = stepDir.get();
-
-        while (is_full()) {
+    /// Processes one sample from the accelerometer.
+    /// \returns true if there was a sample to process.
+    const auto collect_sample = [&] {
+        { // Only temporary, to make the diff more readable
             PrusaAccelerometer::Acceleration measured_acceleration;
             const int samples = accelerometer.get_sample(measured_acceleration);
             if (samples && !enough_samples_collected && (step_nr > STEP_EVENT_QUEUE_SIZE)) {
@@ -472,6 +471,17 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
 #endif
             }
             metric_record_float(&metric_excite_freq, excitation_frequency);
+
+            return samples > 0;
+        }
+    };
+
+    accelerometer.clear();
+    while ((step_nr < steps_to_do) || (!enough_samples_collected) || (step_nr % generator.getStepsPerPeriod() != 0)) {
+        StepDir::RetVal step_dir = stepDir.get();
+
+        while (is_full()) {
+            const auto samples = collect_sample();
 
             if (!samples) {
                 idle(true, true);
