@@ -445,35 +445,33 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
     /// Processes one sample from the accelerometer.
     /// \returns true if there was a sample to process.
     const auto collect_sample = [&] {
-        { // Only temporary, to make the diff more readable
-            PrusaAccelerometer::Acceleration measured_acceleration;
-            const int samples = accelerometer.get_sample(measured_acceleration);
-            if (samples && !enough_samples_collected && (step_nr > STEP_EVENT_QUEUE_SIZE)) {
-                metric_record_custom(&accel, " x=%.4f,y=%.4f,z=%.4f", (double)measured_acceleration.val[0], (double)measured_acceleration.val[1], (double)measured_acceleration.val[2]);
-                const float accelerometer_time_2pi_measurement_freq = measurement_freq_2pi * accelerometer_period_time;
-                const std::complex<float> amplitude = { sinf(accelerometer_time_2pi_measurement_freq), cosf(accelerometer_time_2pi_measurement_freq) };
+        PrusaAccelerometer::Acceleration measured_acceleration;
+        const int samples = accelerometer.get_sample(measured_acceleration);
+        if (samples && !enough_samples_collected && (step_nr > STEP_EVENT_QUEUE_SIZE)) {
+            metric_record_custom(&accel, " x=%.4f,y=%.4f,z=%.4f", (double)measured_acceleration.val[0], (double)measured_acceleration.val[1], (double)measured_acceleration.val[2]);
+            const float accelerometer_time_2pi_measurement_freq = measurement_freq_2pi * accelerometer_period_time;
+            const std::complex<float> amplitude = { sinf(accelerometer_time_2pi_measurement_freq), cosf(accelerometer_time_2pi_measurement_freq) };
 
-                for (int axis = 0; axis < num_axis; ++axis) {
-                    accumulator.val[axis] += amplitude * measured_acceleration.val[axis];
-                }
-
-                ++sample_nr;
-                enough_samples_collected = sample_nr >= samples_to_collect;
-                accelerometer_period_time += accelerometer_sample_period;
-                if (accelerometer_period_time > measurement_period) {
-                    accelerometer_period_time -= measurement_period;
-                }
-#ifdef M958_OUTPUT_SAMPLES
-                char buff[40];
-                snprintf(buff, 40, "%f %f %f\n", static_cast<double>(measured_acceleration.val[1]), static_cast<double>(amplitude[0]), static_cast<double>(amplitude[1]));
-                tud_cdc_n_write_str(0, buff);
-                tud_cdc_write_flush();
-#endif
+            for (int axis = 0; axis < num_axis; ++axis) {
+                accumulator.val[axis] += amplitude * measured_acceleration.val[axis];
             }
-            metric_record_float(&metric_excite_freq, excitation_frequency);
 
-            return samples > 0;
+            ++sample_nr;
+            enough_samples_collected = sample_nr >= samples_to_collect;
+            accelerometer_period_time += accelerometer_sample_period;
+            if (accelerometer_period_time > measurement_period) {
+                accelerometer_period_time -= measurement_period;
+            }
+#ifdef M958_OUTPUT_SAMPLES
+            char buff[40];
+            snprintf(buff, 40, "%f %f %f\n", static_cast<double>(measured_acceleration.val[1]), static_cast<double>(amplitude[0]), static_cast<double>(amplitude[1]));
+            tud_cdc_n_write_str(0, buff);
+            tud_cdc_write_flush();
+#endif
         }
+        metric_record_float(&metric_excite_freq, excitation_frequency);
+
+        return samples > 0;
     };
 
     accelerometer.clear();
