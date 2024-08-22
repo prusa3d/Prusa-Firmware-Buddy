@@ -1,66 +1,7 @@
-// window_qr.cpp
-#include <algorithm>
-#include <math.h>
-
-#include <config_store/store_instance.hpp>
 #include "window_qr.hpp"
-#include "gui.hpp"
+
 #include "display.hpp"
 #include "qrcodegen.h"
-#include "support_utils.h"
-
-/// QR Window
-window_qr_t::window_qr_t(window_t *parent, Rect16 rect, uint16_t err_num, Align_t align)
-    : window_qr_t(parent, rect, align) {
-    SetQRHeader(err_num);
-}
-
-window_qr_t::window_qr_t(window_t *parent, Rect16 rect, Align_t align)
-    : window_t(parent, rect)
-    , error_num(0)
-    , align(align) {
-    text[0] = '\0';
-}
-
-window_qr_t::window_qr_t(window_t *parent, Rect16 rect, const char *txt)
-    : window_qr_t(parent, rect, Align_t::Center()) {
-    strncpy(text, txt, sizeof(text));
-}
-
-void window_qr_t::SetQRHeader(uint16_t err_num) {
-    error_num = err_num;
-    bool devhash_in_qr = config_store().devhash_in_qr.get();
-    if (devhash_in_qr) {
-        error_url_long(text, sizeof(text), err_num);
-    } else {
-        error_url_short(text, sizeof(text), err_num);
-    }
-    Invalidate();
-}
-
-void window_qr_t::SetText(const char *txt) {
-    strlcpy(text, txt, sizeof(text));
-    Invalidate();
-}
-
-const char *window_qr_t::GetQRLongText() {
-    error_url_long(text, sizeof(text), error_num);
-    return text;
-}
-
-const char *window_qr_t::GetQRShortText() {
-    error_url_short(text, sizeof(text), error_num);
-    return text;
-}
-
-void window_qr_t::unconditionalDraw() {
-    DrawQROptions options {
-        .data = text,
-        .rect = GetRect(),
-        .align = align,
-    };
-    draw_qr(options);
-}
 
 void draw_qr(const DrawQROptions &options) {
     /// Defines maximal size of QR code and buffers needed for generating. Keep it low.
