@@ -194,10 +194,10 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res, uint
     }
     case PreheatStatus::Result::CooledDown:
         // set temperatures to zero
-        thermalManager.setTargetHotend(0, 0);
+        thermalManager.setTargetHotend(0, target_extruder);
         thermalManager.setTargetBed(0);
-        marlin_server::set_temp_to_display(0, 0);
-        thermalManager.set_fan_speed(0, 0);
+        marlin_server::set_temp_to_display(0, target_extruder);
+        thermalManager.set_fan_speed(0, target_extruder);
         break;
     case PreheatStatus::Result::DoneNoFilament:
     case PreheatStatus::Result::Aborted:
