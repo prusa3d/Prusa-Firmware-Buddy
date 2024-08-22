@@ -423,9 +423,9 @@ static FrequencyGain3dError vibrate_measure(const VibrateMeasureParams &args, fl
     Accumulator accumulator = {};
     float accelerometer_period_time = 0.f;
     const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, args.calibrate_accelerometer, progress_hook);
-        if (isnan(accelerometer_sample_period)) {
-            return FrequencyGain3dError { .error = true };
-        }
+    if (isnan(accelerometer_sample_period)) {
+        return FrequencyGain3dError { .error = true };
+    }
 
     uint32_t sample_nr = 0;
     const uint32_t samples_to_collect = excitation_period * args.excitation_cycles / accelerometer_sample_period;
