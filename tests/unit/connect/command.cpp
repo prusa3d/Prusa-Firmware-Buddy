@@ -173,21 +173,24 @@ TEST_CASE("Set value - hostname") {
 
 TEST_CASE("Set value - nozzle diameter") {
     auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.2.nozzle_diameter\":0.25}}");
-    REQUIRE(cmd.name == PropertyName::Nozzle1Diameter);
+    REQUIRE(cmd.name == PropertyName::NozzleDiameter);
+    REQUIRE(cmd.idx == 1);
     REQUIRE(holds_alternative<float>(cmd.value));
     REQUIRE(get<float>(cmd.value) == 0.25);
 }
 
 TEST_CASE("Set value - anti abrasive") {
     auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.3.anti_abrasive\":true}}");
-    REQUIRE(cmd.name == PropertyName::Nozzle2AntiAbrasive);
+    REQUIRE(cmd.name == PropertyName::NozzleAntiAbrasive);
+    REQUIRE(cmd.idx == 2);
     REQUIRE(holds_alternative<bool>(cmd.value));
     REQUIRE(get<bool>(cmd.value));
 }
 
 TEST_CASE("Set value - anti abrasive") {
     auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.4.high_flow\":true}}");
-    REQUIRE(cmd.name == PropertyName::Nozzle3HighFlow);
+    REQUIRE(cmd.name == PropertyName::NozzleHighFlow);
+    REQUIRE(cmd.idx == 3);
     REQUIRE(holds_alternative<bool>(cmd.value));
     REQUIRE(get<bool>(cmd.value));
 }

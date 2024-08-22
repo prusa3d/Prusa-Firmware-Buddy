@@ -216,10 +216,11 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         }                                                                    \
     }
 
-        auto set_value_bool_arg = [&](PropertyName name) {
+        auto set_value_bool_arg = [&](PropertyName name, size_t idx = 0) {
             if (auto *cmd = get_if<SetValue>(&data); cmd != nullptr) {
                 seen_args |= ArgSetValue;
                 cmd->name = name;
+                cmd->idx = idx;
                 if (event.value->compare("true") == 0) {
                     cmd->value = true;
                 } else if (event.value->compare("false") == 0) {
@@ -230,10 +231,11 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             }
         };
 
-        auto set_value_float_arg = [&](PropertyName name) {
+        auto set_value_float_arg = [&](PropertyName name, size_t idx = 0) {
             if (auto *cmd = get_if<SetValue>(&data); cmd != nullptr) {
                 seen_args |= ArgSetValue;
                 cmd->name = name;
+                cmd->idx = idx;
                 auto value = convert_num<float>(event.value.value());
                 if (value.has_value()) {
                     cmd->value = value.value();
@@ -342,23 +344,23 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                 }
             }
 #endif
-#define NOZZLE_PARAMS(num, i)                                             \
+#define NOZZLE_PARAMS(num)                                                \
     }                                                                     \
     else if (is_arg("tools." #num ".high_flow", Type::Primitive)) {       \
-        set_value_bool_arg(PropertyName::Nozzle##i##HighFlow);            \
+        set_value_bool_arg(PropertyName::NozzleHighFlow, num - 1);        \
     }                                                                     \
     else if (is_arg("tools." #num ".anti_abrasive", Type::Primitive)) {   \
-        set_value_bool_arg(PropertyName::Nozzle##i##AntiAbrasive);        \
+        set_value_bool_arg(PropertyName::NozzleAntiAbrasive, num - 1);    \
     }                                                                     \
     else if (is_arg("tools." #num ".nozzle_diameter", Type::Primitive)) { \
-        set_value_float_arg(PropertyName::Nozzle##i##Diameter);
+        set_value_float_arg(PropertyName::NozzleDiameter, num - 1);
 
-            NOZZLE_PARAMS(1, 0)
+            NOZZLE_PARAMS(1)
 #if HAS_TOOLCHANGER() || UNITTESTS
-            NOZZLE_PARAMS(2, 1)
-            NOZZLE_PARAMS(3, 2)
-            NOZZLE_PARAMS(4, 3)
-            NOZZLE_PARAMS(5, 4)
+            NOZZLE_PARAMS(2)
+            NOZZLE_PARAMS(3)
+            NOZZLE_PARAMS(4)
+            NOZZLE_PARAMS(5)
 #endif
 #undef NOZZLE_PARAMS
         } else if (is_arg("port", Type::Primitive)) {

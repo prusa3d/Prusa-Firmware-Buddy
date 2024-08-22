@@ -937,31 +937,21 @@ void Planner::command(const Command &command, const SetValue &params) {
         break;
     }
 #endif
-#define NOZZLE(i)                                               \
-    case connect_client::PropertyName::Nozzle##i##HighFlow:     \
-        adjust_nozzle(i, [&](auto &slot) {                      \
-            slot.high_flow = get<bool>(params.value);           \
-        });                                                     \
-        break;                                                  \
-    case connect_client::PropertyName::Nozzle##i##AntiAbrasive: \
-        adjust_nozzle(i, [&](auto &slot) {                      \
-            slot.hardened = get<bool>(params.value);            \
-        });                                                     \
-        break;                                                  \
-    case connect_client::PropertyName::Nozzle##i##Diameter:     \
-        adjust_nozzle(i, [&](auto &slot) {                      \
-            slot.nozzle_diameter = get<float>(params.value);    \
-        });                                                     \
+    case connect_client::PropertyName::NozzleHighFlow:
+        adjust_nozzle(params.idx, [&](auto &slot) {
+            slot.high_flow = get<bool>(params.value);
+        });
         break;
-
-        NOZZLE(0);
-#if HAS_TOOLCHANGER() || UNITTESTS
-        NOZZLE(1);
-        NOZZLE(2);
-        NOZZLE(3);
-        NOZZLE(4);
-#endif
-#undef NOZZLE
+    case connect_client::PropertyName::NozzleAntiAbrasive:
+        adjust_nozzle(params.idx, [&](auto &slot) {
+            slot.hardened = get<bool>(params.value);
+        });
+        break;
+    case connect_client::PropertyName::NozzleDiameter:
+        adjust_nozzle(params.idx, [&](auto &slot) {
+            slot.nozzle_diameter = get<float>(params.value);
+        });
+        break;
     }
 
     if (err != nullptr) {

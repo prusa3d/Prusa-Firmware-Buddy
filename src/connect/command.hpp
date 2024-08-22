@@ -102,19 +102,17 @@ enum class PropertyName {
     EnclosurePostPrint,
     EnclosurePostPrintFiltrationTime,
 #endif
-    NOZZLE_NAMES(0),
-#if HAS_TOOLCHANGER() || UNITTESTS
-    NOZZLE_NAMES(1),
-    NOZZLE_NAMES(2),
-    NOZZLE_NAMES(3),
-    NOZZLE_NAMES(4),
-#endif
+    NozzleDiameter,
+    NozzleHighFlow,
+    NozzleAntiAbrasive,
 };
 
 #undef NOZZLE_NAMES
 
 struct SetValue {
     PropertyName name;
+    // For names that relate to stuff we have more of… like nozzles.
+    size_t idx;
     std::variant<bool, uint32_t, float, SharedBorrow> value;
 };
 struct CancelObject {
