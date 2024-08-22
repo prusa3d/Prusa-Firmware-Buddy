@@ -638,7 +638,7 @@ void int_item_migration(journal::Backend &backend, uint16_t new_id) {
 
     typename IntItemT::value_type new_int_item { old_int_item };
 
-    backend.save_migration_item(new_id, new_int_item);
+    backend.save_migration_item<typename IntItemT::value_type>(new_id, new_int_item);
 }
 
 namespace V1_deprecated_ids {

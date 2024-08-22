@@ -16,6 +16,8 @@
 #include <memory>
 #include <storage_drivers/storage.hpp>
 #include <assert.h>
+#include <type_traits>
+
 namespace journal {
 
 /**
@@ -202,14 +204,21 @@ public:
     void override_cold_start_state();
 
     /**
-     * @brief Shorthand meant for migrating functions to easily save data
+     * @brief Shorthand meant for migrating functions to easily save data.
      *
-     * @tparam T
+     * @tparam T - intentionally prevented from being automatically deduced, it has bitten us before - see BFW-5938.
+     * We need precise control over the type of the items that we're saving,
+     * because if the record size does not match the expected value type size of a config store item,
+     * bsods happen (or even worse, they do not happen and the printer just doesn't boot).
+     *
+     * So we're enforcing explicit specification of T to prevent accidental wrong type deductions,
+     * for example "0" being deduced as int, when the record type is uint8_t.
+     *
      * @param hashed_id
      * @param item_to_be_saved
      */
     template <typename T>
-    void save_migration_item(Id hashed_id, const T &item_to_be_saved) {
+    void save_migration_item(Id hashed_id, const std::type_identity_t<T> &item_to_be_saved) {
         static_assert(sizeof(T) <= MAX_ITEM_SIZE, "Trying to save an item too big");
         assert(transaction.has_value() && transaction->type == Transaction::Type::version_migration); // migrating transaction must be in progress
 

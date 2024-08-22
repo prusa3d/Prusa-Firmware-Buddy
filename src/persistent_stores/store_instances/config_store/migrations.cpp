@@ -29,7 +29,7 @@ namespace migrations {
         // Create new data from the temporaries
         SelftestResult new_selftest_result { sr_pre23 };
 
-        backend.save_migration_item(journal::hash("Selftest Result V23"), new_selftest_result); // Save the new data into the backend
+        backend.save_migration_item<SelftestResult>(journal::hash("Selftest Result V23"), new_selftest_result); // Save the new data into the backend
     }
 #endif
 
@@ -47,18 +47,18 @@ namespace migrations {
 
         auto decoded_rec { footer::eeprom::decode_from_old_eeprom_v22(footer_setting_v1) };
 
-        backend.save_migration_item(journal::hash("Footer Setting 0"), decoded_rec[0]);
+        backend.save_migration_item<footer::Item>(journal::hash("Footer Setting 0"), decoded_rec[0]);
     #if FOOTER_ITEMS_PER_LINE__ > 1
-        backend.save_migration_item(journal::hash("Footer Setting 1"), decoded_rec[1]);
+        backend.save_migration_item<footer::Item>(journal::hash("Footer Setting 1"), decoded_rec[1]);
     #endif
     #if FOOTER_ITEMS_PER_LINE__ > 2
-        backend.save_migration_item(journal::hash("Footer Setting 2"), decoded_rec[2]);
+        backend.save_migration_item<footer::Item>(journal::hash("Footer Setting 2"), decoded_rec[2]);
     #endif
     #if FOOTER_ITEMS_PER_LINE__ > 3
-        backend.save_migration_item(journal::hash("Footer Setting 3"), decoded_rec[3]);
+        backend.save_migration_item<footer::Item>(journal::hash("Footer Setting 3"), decoded_rec[3]);
     #endif
     #if FOOTER_ITEMS_PER_LINE__ > 4
-        backend.save_migration_item(journal::hash("Footer Setting 4"), decoded_rec[4]);
+        backend.save_migration_item<footer::Item>(journal::hash("Footer Setting 4"), decoded_rec[4]);
     #endif
     }
 #endif
@@ -113,7 +113,7 @@ namespace migrations {
         });
 
         for (const auto &migration_rec : migration_mapping) {
-            backend.save_migration_item(migration_rec.newID, values[migration_rec.index]);
+            backend.save_migration_item<Value>(migration_rec.newID, values[migration_rec.index]);
         }
     }
 
@@ -129,7 +129,7 @@ namespace migrations {
         };
         backend.read_items_for_migrations(callback);
         SelftestResult new_selftest_result { sr_pre_gears };
-        backend.save_migration_item(journal::hash("Selftest Result Gears"), new_selftest_result);
+        backend.save_migration_item<SelftestResult>(journal::hash("Selftest Result Gears"), new_selftest_result);
     }
 #endif
 
@@ -144,7 +144,7 @@ namespace migrations {
         };
         backend.read_items_for_migrations(callback);
         bool new_fs_enabled { fs_enabled_v1 };
-        backend.save_migration_item(journal::hash("FSensor Enabled V2"), new_fs_enabled);
+        backend.save_migration_item<bool>(journal::hash("FSensor Enabled V2"), new_fs_enabled);
     }
 
 #if PRINTER_IS_PRUSA_MK4()
@@ -180,7 +180,7 @@ namespace migrations {
         backend.read_items_for_migrations(callback);
 
         if (strlen(hostname.data()) > 0) {
-            backend.save_migration_item(NewItem::hashed_id, hostname);
+            backend.save_migration_item<NewItem::value_type>(NewItem::hashed_id, hostname);
         }
     }
 } // namespace migrations
