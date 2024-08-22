@@ -76,8 +76,19 @@ public:
     /// This is equivalent to the situation where \p read_command returns \p Status::end_of_buffer (but this is only a check, not reading anything)
     bool check_buffer_empty() const;
 
+    enum class ReadyToStartPrintResult {
+        /// There is not enoug data to start printing, we need to fetch more
+        needs_fetching,
+
+        /// The prefetch buffer is full, we can start printing
+        ready,
+
+        /// There was an error during the fetching
+        error,
+    };
+
     /// \returns whether the buffer is full or at EOF
-    bool check_ready_to_start_print() const;
+    ReadyToStartPrintResult check_ready_to_start_print() const;
 
 public:
     struct Metrics {

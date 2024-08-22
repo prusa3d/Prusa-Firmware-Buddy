@@ -421,51 +421,78 @@ PrintPreview::Result PrintPreview::Loop() {
         }
         break;
 
-    case State::download_wait:
+    case State::download_wait: {
         if (response == Response::Quit) {
             gcode_info_scan::cancel_scan();
             ChangeState(State::inactive);
             return Result::Abort;
+        }
 
-        } else if (gcode_info.has_error()) {
+        if (gcode_info.has_error()) {
             ChangeState(State::file_error_wait_user);
+            break;
 
         } else if (!gcode_info.can_be_printed()) {
             // Wait till we have downloaded enough
+            break;
+        }
 
-        } else if (!marlin_server::media_prefetch.check_ready_to_start_print()) {
+        const auto prefetch_ready = marlin_server::media_prefetch.check_ready_to_start_print();
+        if (prefetch_ready == MediaPrefetchManager::ReadyToStartPrintResult::needs_fetching) {
             // Make sure we have the prefetch buffer full before start the print
             // If we got into the "downloading" phase, do the prefetch checking here, because we're waiting for the file to download more
             marlin_server::media_prefetch.issue_fetch();
+            break;
 
-        } else {
-            ChangeState(State::loading);
+        } else if (prefetch_ready == MediaPrefetchManager::ReadyToStartPrintResult::error) {
+            // This is a bit hacky way, but the error reporting is done through gcode_info, so we gotta put the error there.
+            gcode_info.set_error(N_("The file is corrupt."));
+            ChangeState(State::file_error_wait_user);
+            break;
         }
-        break;
 
-    case State::loading:
+        ChangeState(State::loading);
+        break;
+    }
+
+    case State::loading: {
         if (gcode_info_scan::scan_start_result() == gcode_info_scan::ScanStartResult::not_started) {
             // Wait for the gcode scan to start
+            break;
+        }
 
-        } else if (gcode_info.has_error()) {
+        if (gcode_info.has_error()) {
             ChangeState(State::file_error_wait_user);
+            break;
 
         } else if (!gcode_info.can_be_printed()) {
             // The file is not fully downloaded, wait till we have downloaded enough for printing
             ChangeState(State::download_wait);
+            break;
 
         } else if (!gcode_info.is_loaded()) {
             // Wait for the gcode info to fully load
-
-        } else if (!marlin_server::media_prefetch.check_ready_to_start_print()) {
-            // Make sure we have the prefetch buffer full before start the print
-            marlin_server::media_prefetch.issue_fetch();
-
-        } else {
-            // We're ready to print now
-            ChangeState((skip_if_able > marlin_server::PreviewSkipIfAble::no) ? stateFromSelftestCheck() : State::preview_wait_user);
+            break;
         }
+
+        const auto prefetch_ready = marlin_server::media_prefetch.check_ready_to_start_print();
+        if (prefetch_ready == MediaPrefetchManager::ReadyToStartPrintResult::needs_fetching) {
+            // Make sure we have the prefetch buffer full before start the print
+            // If we got into the "downloading" phase, do the prefetch checking here, because we're waiting for the file to download more
+            marlin_server::media_prefetch.issue_fetch();
+            break;
+
+        } else if (prefetch_ready == MediaPrefetchManager::ReadyToStartPrintResult::error) {
+            // This is a bit hacky way, but the error reporting is done through gcode_info, so we gotta put the error there.
+            gcode_info.set_error(N_("The file is corrupt."));
+            ChangeState(State::file_error_wait_user);
+            break;
+        }
+
+        // We're ready to print now
+        ChangeState((skip_if_able > marlin_server::PreviewSkipIfAble::no) ? stateFromSelftestCheck() : State::preview_wait_user);
         break;
+    }
 
     case State::preview_wait_user:
         switch (response) {

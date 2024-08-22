@@ -195,9 +195,28 @@ bool MediaPrefetchManager::check_buffer_empty() const {
     return (shared_state.read_head.buffer_pos == shared_state.read_tail.buffer_pos) && (shared_state.read_tail.status == Status::end_of_buffer);
 }
 
-bool MediaPrefetchManager::check_ready_to_start_print() const {
+MediaPrefetchManager::ReadyToStartPrintResult MediaPrefetchManager::check_ready_to_start_print() const {
     const auto metrics = get_metrics();
-    return metrics.buffer_occupancy_percent > 90 || metrics.tail_status == Status::end_of_file;
+
+    if (metrics.buffer_occupancy_percent > 90) {
+        return ReadyToStartPrintResult::ready;
+    }
+
+    switch (metrics.tail_status) {
+    case Status::ok:
+    case Status::end_of_buffer:
+    case Status::not_downloaded:
+        return ReadyToStartPrintResult::needs_fetching;
+
+    case Status::end_of_file:
+        return ReadyToStartPrintResult::ready;
+
+    case Status::corruption:
+    case Status::usb_error:
+        return ReadyToStartPrintResult::error;
+    }
+
+    return ReadyToStartPrintResult::error;
 }
 
 void MediaPrefetchManager::issue_fetch() {
