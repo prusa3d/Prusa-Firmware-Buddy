@@ -113,6 +113,17 @@ optional<ErrCode> load_unload_attention_while_printing([[maybe_unused]] const fs
     // MMU not supported or not active -> all load/unload during print is really attention.
     return ErrCode::CONNECT_FILAMENT_RUNOUT;
 }
+
+bool state_is_active(DeviceState state) {
+    switch (state) {
+    case DeviceState::Busy:
+    case DeviceState::Paused:
+    case DeviceState::Printing:
+        return true;
+    default:
+        return false;
+    }
+}
 } // namespace
 
 namespace printer_state {
@@ -177,11 +188,27 @@ DeviceState get_state(bool ready) {
         // preheat menu to be the only menu screen to not be Idle... :-(
     case ClientFSM::Preheat:
         return DeviceState::Busy;
-    case ClientFSM::Warning:
-        if (is_warning_attention(data)) {
+    case ClientFSM::Warning: {
+        auto result = get_print_state(state, ready);
+        // Some warnings are "soft" (eg. heaters timeouts). They probably
+        // require something when printing (paused / busy / ...), so we report
+        // them as Attention, but if they happen on Idle (or Finished / Stopped
+        // / ...), they can be safely ignored and a new print can be started
+        // without dealing with them.
+        //
+        // We still do send the dialog, we just don't mark the printer as
+        // requiring attention.
+        //
+        // Note that the get_printer_state looks only the data from marlin
+        // server, not at full FSM states and can't detect some things - in
+        // particular, load / unload from menu is not detectable by this (if
+        // "covered" by the warning).
+        if (state_is_active(result) || is_warning_attention(data)) {
             return DeviceState::Attention;
+        } else {
+            return result;
         }
-        break;
+    }
     case ClientFSM::_none:
         break;
     }
