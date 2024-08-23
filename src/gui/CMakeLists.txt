@@ -40,6 +40,7 @@ target_sources(
           print_time_module.cpp
           pseudo_screen_callback.cpp
           qoi_decoder.cpp
+          qr.cpp
           screen_blue_error.cpp
           screen_bsod.cpp
           screen_change_filter.cpp
@@ -94,6 +95,7 @@ target_sources(
           ScreenFactory.cpp
           ScreenHandler.cpp
           ScreenPrintingModel.cpp
+          text_error_url.cpp
           time_tools.cpp
           window_file_list.cpp
           window_filebrowser.cpp
