@@ -40,6 +40,7 @@ private:
     StringViewUtf8Parameters<2> label_params;
 };
 
+#if HAS_TOOLCHANGER()
 template <typename>
 struct ScreenToolheadSettingsList_;
 
@@ -52,9 +53,12 @@ class ScreenToolheadSettingsList : public ScreenToolheadSettingsList_<std::make_
 public:
     ScreenToolheadSettingsList();
 };
+#endif
 
 } // namespace screen_toolhead_settings
 
 using ScreenToolheadDetail = screen_toolhead_settings::ScreenToolheadDetail;
 
+#if HAS_TOOLCHANGER()
 using ScreenToolheadSettingsList = screen_toolhead_settings::ScreenToolheadSettingsList;
+#endif

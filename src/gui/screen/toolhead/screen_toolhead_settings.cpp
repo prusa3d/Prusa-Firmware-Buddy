@@ -69,7 +69,11 @@ void MI_TOOLHEAD::click(IWindowMenu &) {
     Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenToolheadDetail>(toolhead));
 }
 
+#if HAS_TOOLCHANGER()
+
 // * ScreenToolheadSettingsList
 ScreenToolheadSettingsList::ScreenToolheadSettingsList()
     : ScreenMenu(_("TOOLS SETTINGS")) //
 {}
+
+#endif
