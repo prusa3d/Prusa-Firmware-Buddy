@@ -495,6 +495,13 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
             metric_record_float(&metric_excite_freq, excitation_frequency);
 
             if (!got_sample) {
+                // The progress hook is intended for reporting accelerometer calibration, not vibrate measure progress...
+                // Design like this shouldn't have been merged.
+                // But since we're here, let's also use  it for allowing aborting the vibrate_measure
+                if (!progress_hook(1)) {
+                    return std::nullopt;
+                }
+
                 idle(true, true);
             }
         }
@@ -549,6 +556,13 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
             if (got_sample) {
                 collect_sample(measured_acceleration);
             } else {
+                // The progress hook is intended for reporting accelerometer calibration, not vibrate measure progress...
+                // Design like this shouldn't have been merged.
+                // But since we're here, let's also use  it for allowing aborting the vibrate_measure
+                if (!progress_hook(1)) {
+                    return std::nullopt;
+                }
+
                 idle(true, true);
             }
         }
