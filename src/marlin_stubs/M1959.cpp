@@ -297,22 +297,31 @@ static PhasesInputShaperCalibration measuring_axis(
 
     float frequency = frequency_range.start;
 
-    bool aborted = false;
-    const auto progress_hook = [&aborted, phase](float progress) {
-        aborted |= was_abort_requested(phase);
-        if (aborted) {
+    struct {
+        bool aborted = false;
+        float prev_progress = NAN;
+        PhasesInputShaperCalibration phase;
+
+    } progress_hook_data {
+        .phase = phase
+    };
+    const auto progress_hook = [&progress_hook_data](float progress) {
+        progress_hook_data.aborted |= was_abort_requested(progress_hook_data.phase);
+        if (progress_hook_data.aborted) {
             return false;
         }
 
         // data[3] == 1 calibrating
-        fsm::PhaseData calibrating_data = { 0, 0, static_cast<uint8_t>(255 * progress), 1 };
-        marlin_server::fsm_change(phase, calibrating_data);
-        idle(true, true);
+        if (progress != progress_hook_data.prev_progress) {
+            fsm::PhaseData calibrating_data = { 0, 0, static_cast<uint8_t>(255 * progress), 1 };
+            marlin_server::fsm_change(progress_hook_data.phase, calibrating_data);
+            progress_hook_data.prev_progress = progress;
+        }
         return true;
     };
 
     for (size_t i = 0; i < spectrum.size(); ++i) {
-        if (was_abort_requested(phase) || aborted) {
+        if (was_abort_requested(phase) || progress_hook_data.aborted) {
             return PhasesInputShaperCalibration::finish;
         }
 
