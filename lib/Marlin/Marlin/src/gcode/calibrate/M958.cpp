@@ -308,7 +308,7 @@ float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_h
     return duration_ms / 1000.f / static_cast<float>(request_samples_num);
 }
 
-static float maybe_calibrate_and_get_accelerometer_sample_period(PrusaAccelerometer &accelerometer, bool calibrate_accelerometer, const SamplePeriodProgressHook &progress_hook) {
+float maybe_calibrate_and_get_accelerometer_sample_period(PrusaAccelerometer &accelerometer, bool calibrate_accelerometer, const SamplePeriodProgressHook &progress_hook) {
     // TODO: Perhaps we should always calibrate accelerometer and not use this global variable...
     //       Then again, maybe we should not have M958 in the first place...
     static float sample_period = expected_accelerometer_sample_period;

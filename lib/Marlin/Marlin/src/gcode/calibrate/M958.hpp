@@ -43,6 +43,8 @@ public:
 /// \returns false if the measurement should be aborted
 using SamplePeriodProgressHook = stdext::inplace_function<bool(float progress)>;
 
+float maybe_calibrate_and_get_accelerometer_sample_period(PrusaAccelerometer &accelerometer, bool calibrate_accelerometer, const SamplePeriodProgressHook &progress_hook);
+
 float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_hook, PrusaAccelerometer &accelerometer);
 
 float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]);
