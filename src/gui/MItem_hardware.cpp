@@ -19,7 +19,7 @@ MI_NOZZLE_DIAMETER::MI_NOZZLE_DIAMETER(int tool_idx, [[maybe_unused]] is_hidden_
     : WiSpin(get_eeprom(tool_idx), nozzle_diameter_spin_config, _(label))
     , tool_idx(tool_idx) {
 #if ENABLED(PRUSA_TOOLCHANGER)
-    set_is_hidden(prusa_toolchanger.is_toolchanger_enabled());
+    set_is_hidden(prusa_toolchanger.is_toolchanger_enabled() ? with_toolchanger : is_hidden_t::no);
 #endif
 }
 
