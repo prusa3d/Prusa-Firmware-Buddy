@@ -140,6 +140,12 @@ using MI_OPEN_FACTORY_RESET
 using MI_INPUT_SHAPER
     = MI_SCREEN<N_("Input Shaper"), class ScreenMenuInputShaper>;
 
+namespace screen_printer_setup_private {
+class ScreenPrinterSetup;
+}
+using MI_PRINTER_SETUP
+    = MI_SCREEN<N_("Printer Setup"), screen_printer_setup_private::ScreenPrinterSetup, nullptr, is_hidden_t::dev>;
+
 #if DEVELOPER_MODE()
 
 using MI_ERROR_TEST

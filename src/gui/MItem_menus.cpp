@@ -37,6 +37,7 @@
 #include <screen_menu_settings.hpp>
 #include <screen_menu_tune.hpp>
 #include <screen_menu_filament.hpp>
+#include <screen_printer_setup.hpp>
 
 #include <screen/filament/screen_filament_management.hpp>
 #include <screen/filament/screen_filament_management_list.hpp>
@@ -111,6 +112,7 @@ template struct MI_SCREEN_CTOR<ScreenMenuStatistics>;
 template struct MI_SCREEN_CTOR<ScreenMenuInfo>;
 template struct MI_SCREEN_CTOR<ScreenMenuFactoryReset>;
 template struct MI_SCREEN_CTOR<ScreenMenuInputShaper>;
+template struct MI_SCREEN_CTOR<ScreenPrinterSetup>;
 
 #if DEVELOPER_MODE()
 template struct MI_SCREEN_CTOR<ScreenMenuErrorTest>;
