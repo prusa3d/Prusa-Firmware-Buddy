@@ -99,7 +99,7 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
     // Sweep the frequency range, find the most resonant frequency
     for (float frequency = config.start_frequency_hz; frequency <= config.end_frequency_hz; frequency += config.frequency_step_hz) {
         const auto measure_result = vibrate_measure_repeat(measure_params, frequency, [&](auto) {
-            idle(true, false);
+            idle(true, true);
 
             return !config.progress_callback || config.progress_callback(progress_args);
         });

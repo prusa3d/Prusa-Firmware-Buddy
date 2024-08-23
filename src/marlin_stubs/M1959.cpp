@@ -317,6 +317,8 @@ static PhasesInputShaperCalibration measuring_axis(
             marlin_server::fsm_change(progress_hook_data.phase, calibrating_data);
             progress_hook_data.prev_progress = progress;
         }
+
+        idle(true, true);
         return true;
     };
 
