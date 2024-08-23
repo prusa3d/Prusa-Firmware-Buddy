@@ -7,22 +7,6 @@
 
 using Catch::Matchers::Equals;
 
-TEST_CASE("End of string", "[support_utils]") {
-    SECTION("Empty string") {
-        char str[1] = "";
-        char *eos = eofstr(str);
-        CHECK(*eos == '\0');
-        CHECK(eos == str);
-    }
-
-    SECTION("Some string") {
-        char str[20] = "sdjknrbtdfnvakd";
-        char *eos = eofstr(str);
-        CHECK(*eos == '\0');
-        CHECK(eos == str + 15);
-    }
-}
-
 TEST_CASE("Block To Hex", "[support_utils]") {
     constexpr uint8_t str_size = 20;
     char str[str_size];

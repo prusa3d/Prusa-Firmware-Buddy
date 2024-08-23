@@ -3,10 +3,6 @@
 
 #include "support_utils_lib.hpp"
 
-char *eofstr(char *str) {
-    return (str + strlen(str));
-}
-
 void block2hex(char *str, uint32_t str_size, uint8_t *pdata, size_t length) {
     for (; length > 0; --length, str += 2, str_size -= 2) {
         snprintf(str, str_size, "%02X", *(pdata++));

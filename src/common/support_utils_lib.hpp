@@ -3,9 +3,6 @@
 #include <cstdint>
 #include <cstdlib>
 
-/// \returns pointer to the end of \param str (\0)
-char *eofstr(char *str);
-
 /// Converts binary data to string of hex numbers
 /// \param str output string space
 /// \param st_size available space for string

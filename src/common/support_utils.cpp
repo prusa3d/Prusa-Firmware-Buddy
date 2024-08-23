@@ -19,12 +19,6 @@
 
 #include <option/bootloader.h>
 
-/// FIXME same code in support_utils_lib
-/// but linker cannot find it
-char *eofstr(char *str) {
-    return (str + strlen(str));
-}
-
 void printerHash(char *str, size_t size, bool state_prefix) {
     serial_nr_t serial_nr;
     const uint8_t serial_nr_len = otp_get_serial_nr(serial_nr);
@@ -77,19 +71,6 @@ void printerCode(char *str) {
     printerHash(str, PRINTER_CODE_SIZE, true);
 
     str[PRINTER_CODE_SIZE] = '\0';
-}
-
-/// Adds "/en" or other language abbreviation
-void addLanguage(char *str, const uint32_t str_size) {
-    char lang[3];
-    const uint16_t langNum = LangEEPROM::getInstance().getLanguage();
-    uint16_t *langP = (uint16_t *)lang;
-    *langP = langNum;
-    // uint16_t *(lang) = langNum;
-    // lang[0] = langNum / 256;
-    // lang[1] = langNum % 256;
-    lang[2] = '\0';
-    snprintf(eofstr(str), str_size - strlen(str), "/%s", lang);
 }
 
 bool appendix_exist() {

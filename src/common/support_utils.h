@@ -6,8 +6,6 @@ extern "C" {
 
 #define PRINTER_CODE_SIZE 8
 
-extern char *eofstr(char *str);
-
 extern void printerCode(char *str);
 // Similar to printerCode, but more generic.
 //
