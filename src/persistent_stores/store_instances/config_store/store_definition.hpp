@@ -33,6 +33,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_selftest.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_i2c_expander.h>
 #include <common/extended_printer_type.hpp>
 #include <common/hw_check.hpp>
 
@@ -533,6 +534,12 @@ struct CurrentStore
 #if HAS_INPUT_SHAPER_CALIBRATION()
     StoreItem<TestResult, TestResult_Unknown, journal::hash("Input Shaper Calibration")> selftest_result_input_shaper_calibration;
 #endif
+
+#if HAS_I2C_EXPANDER()
+    StoreItem<uint8_t, 0, journal::hash("IO Expander's Configuration Register")> io_expander_config_register;
+    StoreItem<uint8_t, 0, journal::hash("IO Expander's Output Register")> io_expander_output_register;
+    StoreItem<uint8_t, 0, journal::hash("IO Expander's Polarity Register")> io_expander_polarity_register;
+#endif // HAS_I2C_EXPANDER()
 };
 
 /**
