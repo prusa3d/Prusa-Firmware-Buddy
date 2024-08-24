@@ -7,6 +7,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_side_leds.h>
 #include <option/has_belt_tuning.h>
+#include <option/has_i2c_expander.h>
 
 /// the version of the g-code that the printer supports
 #define GCODE_LEVEL 2
@@ -41,6 +42,15 @@ void M150();
 #if HAS_SIDE_LEDS()
 void M151();
 #endif
+
+#if HAS_I2C_EXPANDER()
+void M262(); ///< IO Expander: Configure pin
+void M263(); ///< IO Expander: Read selected pin
+void M264(); ///< IO Expander: Set up selected pin
+void M265(); ///< IO Expander: Toggle selected output pin
+void M267(); ///< IO Expander: Set register
+void M268(); ///< IO Expander: Read register
+#endif // HAS_I2C_EXPANDER()
 
 void M300(); ///< Beep
 // void M505(); ///< set eeprom variable // deprecated

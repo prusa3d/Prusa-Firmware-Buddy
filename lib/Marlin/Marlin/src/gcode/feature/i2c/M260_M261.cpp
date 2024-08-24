@@ -46,6 +46,8 @@
  *
  *  M260 S1 ; Send the buffered data and reset the buffer
  *  M260 R1 ; Reset the buffer without sending data
+ *
+ *  Prusa IO Expander: Only writes first byte of the buffer
  */
 void GcodeSuite::M260() {
   // Set the target address
@@ -69,6 +71,8 @@ void GcodeSuite::M260() {
  * M261: Request X bytes from I2C slave device
  *
  * Usage: M261 A<slave device address base 10> B<number of bytes> S<style>
+ *
+ * Prusa IO Expander: Only reads one byte and the rest is set to 0
  */
 void GcodeSuite::M261() {
   if (parser.seenval('A')) { 

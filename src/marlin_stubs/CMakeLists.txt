@@ -29,6 +29,10 @@ if(NOT BOARD MATCHES "XL_DEV_KIT_XLB")
   target_sources(firmware PRIVATE G26.cpp M862_2_3.cpp M862_5.cpp M862_6.cpp)
 endif()
 
+if(HAS_I2C_EXPANDER)
+  target_sources(firmware PRIVATE M262-M268.cpp)
+endif()
+
 add_subdirectory(pause)
 add_subdirectory(sdcard)
 add_subdirectory(host)

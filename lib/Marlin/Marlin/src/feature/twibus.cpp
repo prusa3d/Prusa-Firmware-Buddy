@@ -27,6 +27,7 @@
 #include "twibus.h"
 #include "hwio_pindef.h"
 #include "i2c.hpp"
+#include <option/has_i2c_expander.h>
 
 static constexpr uint16_t i2c_timeout_ms = 100;
 
@@ -119,12 +120,12 @@ void TWIBus::addstring(char str[]) {
 void TWIBus::send() {
   debug(F("send"), addr);
   
-  #if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
+  #if HAS_I2C_EXPANDER()
   if (addr == buddy::hw::io_expander2.fixed_addr) [[unlikely]] {
-    // In io_expander2 we only support single byte write (bits correspond to pins)
+    // Only full byte can be written here
     buddy::hw::io_expander2.write(buffer[0]);
   } else [[likely]] 
-  #endif
+  #endif // HAS_I2C_EXPANDER()
   {
     i2c::Result ret = i2c::Transmit(I2C_HANDLE_FOR(gcode), addr << 1, buffer, buffer_s, i2c_timeout_ms);
     check_hal_response(ret);
@@ -198,12 +199,7 @@ void TWIBus::echodata(uint8_t bytes, FSTR_P const pref, uint8_t adr, const uint8
 }
 
 bool TWIBus::request(const uint8_t bytes) {
-  // io_expander2's has a disabled read
-  if (!addr
-  #if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
-    || addr == buddy::hw::io_expander2.fixed_addr
-  #endif
-  ) return false;
+  if (!addr) return false;
 
   debug(F("request"), bytes);
 
@@ -215,10 +211,26 @@ bool TWIBus::request(const uint8_t bytes) {
 
   flush();
 
-  i2c::Result ret = i2c::Receive(I2C_HANDLE_FOR(gcode), addr << 1 | 0x1, read_buffer, bytes, i2c_timeout_ms);
+#if HAS_I2C_EXPANDER()  
+  if (addr == buddy::hw::io_expander2.fixed_addr) [[unlikely]] {
+    const auto byte = buddy::hw::io_expander2.read();
+    if (!byte.has_value()) {
+      SERIAL_ECHO_MSG("I/O Expander: Read failure");
+      return false;
+    }
+    
+    read_buffer[0] = byte.value();
+    for (uint8_t i = 1; i < bytes; i++) {
+      read_buffer[i] = 0;
+    }
+  } else [[likely]]
+#endif // HAS_I2C_EXPANDER()
+  {
+    i2c::Result ret = i2c::Receive(I2C_HANDLE_FOR(gcode), addr << 1 | 0x1, read_buffer, bytes, i2c_timeout_ms);
 
-  if (!check_hal_response(ret)) {
-    return false;
+    if (!check_hal_response(ret)) {
+      return false;
+    }
   }
 
   read_buffer_available = bytes;
