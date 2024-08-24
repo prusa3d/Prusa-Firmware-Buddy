@@ -45,3 +45,7 @@ if(BOARD_IS_MASTER_BOARD)
     add_subdirectory(xl_dev_kit)
   endif()
 endif()
+
+if(HAS_I2C_EXPANDER)
+  target_sources(firmware PRIVATE TCA6408A.cpp)
+endif()
