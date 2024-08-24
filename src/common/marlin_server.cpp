@@ -88,6 +88,7 @@
 #include <option/has_loadcell.h>
 #include <option/has_nfc.h>
 #include <option/has_sheet_profiles.h>
+#include <option/has_i2c_expander.h>
 
 #if HAS_DWARF()
     #include <puppies/Dwarf.hpp>
@@ -136,7 +137,6 @@
 #endif
 
 #include <wui.h>
-// #include <sound.hpp>
 
 using namespace ExtUI;
 
@@ -629,6 +629,50 @@ void send_notifications_to_clients() {
     }
 }
 
+#if HAS_I2C_EXPANDER()
+
+// Used to avoid multiple triggering of pressed buttons.
+static uint8_t io_expander_button_trigger_check(uint8_t pin_states, uint8_t pin_mask) {
+    static uint8_t prev_pressed_buttons = 0;
+
+    // Pin states are inversed - pin is low on button press
+    const auto pressed_buttons = (~pin_states) & pin_mask;
+    const auto triggered_buttons = pressed_buttons & ~prev_pressed_buttons;
+    prev_pressed_buttons = pressed_buttons;
+
+    return triggered_buttons;
+}
+
+void io_expander_read_loop() {
+    // Initialization will happen only once after power up
+    buddy::hw::io_expander2.initialize();
+    if (uint8_t pin_mask = config_store().io_expander_config_register.get()) {
+        static constexpr int32_t io_expander_read_loop_delay_ms = 500;
+        static uint32_t last_tick_ms = ticks_ms();
+        uint32_t tick_ms = ticks_ms();
+        if (ticks_diff(tick_ms, last_tick_ms) >= io_expander_read_loop_delay_ms) {
+            if (const auto value = buddy::hw::io_expander2.read(pin_mask)) {
+
+                // Debouncing mechanism - after pressing a button, there have to be at least one released state before button can be pressed again
+                uint8_t pressed_buttons_mask = io_expander_button_trigger_check(*value, pin_mask);
+
+                for (uint8_t pin_number = 0; pin_number < buddy::hw::TCA6408A::pin_count; pin_number++) {
+                    // Create a mask and extract the pin from the pressed_buttons_mask
+                    const uint8_t single_pin_mask = 0x1 << pin_number;
+
+                    if (pin_mask & single_pin_mask & pressed_buttons_mask) {
+                        if (!inject(GCodeMacroButton(pin_number))) {
+                            SERIAL_ECHOLIST("Injecting Macro Button failed, pin: ", pin_number);
+                        }
+                    }
+                }
+            }
+            last_tick_ms = tick_ms;
+        }
+    }
+}
+#endif // HAS_I2C_EXPANDER()
+
 static void cycle() {
     static int processing = 0;
     if (processing) {
@@ -675,6 +719,10 @@ static void cycle() {
     // Check if tool didn't fall off
     prusa_toolchanger.loop(!printer_idle(), printer_paused());
 #endif /*HAS_TOOLCHANGER()*/
+
+#if HAS_I2C_EXPANDER()
+    io_expander_read_loop();
+#endif // HAS_I2C_EXPANDER()
 
     if (Request request; server_queue.try_receive(request, 0)) {
         _process_server_request(request);
@@ -868,7 +916,7 @@ bool enqueue_gcode_printf(const char *gcode, ...) {
 
 bool inject(InjectQueueRecord record) {
     if (!queue.inject(record)) {
-        // Sound_Play(eSOUND_TYPE::SingleBeepAlwaysLoud);
+        // TODO: If requested, figure out thread-safe way to call Sound_Play(eSOUND_TYPE::SingleBeepAlwaysLoud);
         return false;
     }
     return true;
