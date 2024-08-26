@@ -3,6 +3,9 @@
 #include <common/nozzle_diameter.hpp>
 #include <ScreenHandler.hpp>
 #include <img_resources.hpp>
+#include <gui/dialogs/window_dlg_wait.hpp>
+#include <gcode/queue.h>
+#include <module/planner.h>
 
 #include "screen_toolhead_settings_fs.hpp"
 #include "screen_toolhead_settings_dock.hpp"
@@ -120,6 +123,12 @@ void MI_PICK_PARK::update(bool update_value) {
 void MI_PICK_PARK::OnChange(size_t) {
     marlin_client::gcode("G27 P0 Z5"); // Lift Z if not high enough
     marlin_client::gcode_printf("T%d S1 L0 D0", (value() && toolhead() != all_toolheads) ? std::get<ToolheadIndex>(toolhead()) : PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+
+    gui_dlg_wait([] {
+        if (!(queue.has_commands_queued() || planner.processing())) {
+            Screens::Access()->Close();
+        }
+    });
 
     update(false);
 }
