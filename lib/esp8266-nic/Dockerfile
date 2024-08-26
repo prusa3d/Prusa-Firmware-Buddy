@@ -28,4 +28,3 @@ RUN apt-get update && apt-get -y install \
 RUN git clone --recursive -b v3.4 --recurse-submodules https://github.com/espressif/ESP8266_RTOS_SDK.git && \
     cd /ESP8266_RTOS_SDK && PYTHONPATH=/usr/lib/python3.9/site-packages ./install.sh && \
     echo "source /ESP8266_RTOS_SDK/export.sh" >> ~/.bashrc
-

@@ -27,7 +27,7 @@ MSG_PACKET = 4
 INTRON = b"UN\x00\x01\x02\x03\x04\x05"
 INTERFACE = "tap0"
 SERIAL = sys.argv[1] if len(sys.argv) == 2 else "/dev/ttyUSB0"
-BAUD_RATE = 1000000 #921600
+BAUD_RATE = 1000000  #921600
 SSID = "esptest"
 PASS = "lwesp8266"
 MTU = 1420
@@ -39,10 +39,10 @@ ifr = struct.pack(b"16sH", INTERFACE.encode("ascii"), IFF_TAP | IFF_NO_PI)
 fcntl.ioctl(tap, TUNSETIFF, ifr)
 fcntl.ioctl(tap, TUNSETOWNER, os.getuid())
 
-
 ser = serial.Serial(SERIAL, baudrate=BAUD_RATE, parity=serial.PARITY_NONE)
 last_in = datetime.datetime.now()
 lock = Lock()
+
 
 def safe(b: bytes):
     try:
@@ -88,8 +88,10 @@ def send_wifi_client():
     ssid_data = SSID.encode()
     pass_data = PASS.encode()
     header = INTRON + MSG_CLIENTCONFIG.to_bytes(1, "little")
-    ssid_part = len(ssid_data).to_bytes(length=1, byteorder="little", signed=False) + ssid_data
-    pass_part = len(pass_data).to_bytes(length=1, byteorder="little", signed=False) + pass_data
+    ssid_part = len(ssid_data).to_bytes(
+        length=1, byteorder="little", signed=False) + ssid_data
+    pass_part = len(pass_data).to_bytes(
+        length=1, byteorder="little", signed=False) + pass_data
 
     send_message(header + ssid_part + pass_part)
 
@@ -170,10 +172,8 @@ def ping_thread():
 
 Thread(target=ping_thread, daemon=True).start()
 
-
 print("TAP: Configuring wifi")
 send_wifi_client()
-
 
 print("TAP: Reading tap device")
 while True:
@@ -183,12 +183,8 @@ while True:
     # if not link_up:
     #     send_wifi_client()
 
-    out = (
-        INTRON
-        + MSG_PACKET.to_bytes(1, "little")
-        + len(packet).to_bytes(4, "little", signed=False)
-        + packet
-    )
+    out = (INTRON + MSG_PACKET.to_bytes(1, "little") +
+           len(packet).to_bytes(4, "little", signed=False) + packet)
     # print(f"TAP: SOUT MESSAGE: {out}")
     send_message(out)
     #print("O", end="", flush=True)
@@ -197,6 +193,5 @@ while True:
     #         print("UART reset")
     #         ser.close()
     #         ser = serial.Serial("/dev/ttyUSB0", baudrate=BAUD_RATE, parity=serial.PARITY_NONE)
-
 
 tap.close()

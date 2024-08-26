@@ -182,7 +182,7 @@ MSG_SCAN_AP_CNT
     This message is send every time after the scan segment is
     compeleted.
 
-    COUNT Number of stored scanned result. 
+    COUNT Number of stored scanned result.
 
 
 MSG_SCAN_AP_GET

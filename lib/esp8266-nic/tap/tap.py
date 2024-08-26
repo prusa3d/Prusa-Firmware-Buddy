@@ -25,7 +25,7 @@ MSG_PACKET_V2 = 7
 INTRON = b"UN\x00\x01\x02\x03\x04\x05"
 INTERFACE = "tap0"
 SERIAL = sys.argv[1] if len(sys.argv) == 2 else "/dev/ttyUSB0"
-BAUD_RATE = 4600000 #921600
+BAUD_RATE = 4600000  #921600
 SSID = "esptest"
 PASS = "lwesp8266"
 MTU = 1420
@@ -37,10 +37,10 @@ ifr = struct.pack(b"16sH", INTERFACE.encode("ascii"), IFF_TAP | IFF_NO_PI)
 fcntl.ioctl(tap, TUNSETIFF, ifr)
 fcntl.ioctl(tap, TUNSETOWNER, os.getuid())
 
-
 ser = serial.Serial(SERIAL, baudrate=BAUD_RATE, parity=serial.PARITY_NONE)
 last_in = datetime.datetime.now()
 lock = Lock()
+
 
 def safe(b: bytes):
     try:
@@ -80,7 +80,6 @@ def recv_link(up_data):
         send_wifi_client()
 
 
-
 def recv_packet():
     global last_in
     up = ser.read(1)
@@ -102,8 +101,10 @@ def send_wifi_client():
 
     ssid_data = SSID.encode()
     pass_data = PASS.encode()
-    ssid_part = len(ssid_data).to_bytes(length=1, byteorder='big', signed=False) + ssid_data
-    pass_part = len(pass_data).to_bytes(length=1, byteorder='big', signed=False) + pass_data
+    ssid_part = len(ssid_data).to_bytes(
+        length=1, byteorder='big', signed=False) + ssid_data
+    pass_part = len(pass_data).to_bytes(
+        length=1, byteorder='big', signed=False) + pass_data
     payload = INTRON + ssid_part + pass_part
 
     send_message(MSG_CLIENTCONFIG_V2, 0, payload)
@@ -114,11 +115,11 @@ send_lock = Lock()
 
 def send_message(msg_type, msg_byte, payload: bytes):
     with send_lock:
-        ser.write(INTRON
-            + msg_type.to_bytes(1, byteorder='big', signed=False)
-            + msg_byte.to_bytes(1, byteorder='big', signed=False)
-            + len(payload).to_bytes(2, byteorder='big', signed=False)
-            + payload)
+        ser.write(INTRON +
+                  msg_type.to_bytes(1, byteorder='big', signed=False) +
+                  msg_byte.to_bytes(1, byteorder='big', signed=False) +
+                  len(payload).to_bytes(2, byteorder='big', signed=False) +
+                  payload)
         try:
             ser.flush()
         except Exception:
@@ -173,10 +174,8 @@ def ping_thread():
 
 Thread(target=ping_thread, daemon=True).start()
 
-
 print("TAP: Configuring wifi")
 send_wifi_client()
-
 
 print("TAP: Reading tap device")
 while True:
@@ -190,6 +189,5 @@ while True:
     #         print("UART reset")
     #         ser.close()
     #         ser = serial.Serial("/dev/ttyUSB0", baudrate=BAUD_RATE, parity=serial.PARITY_NONE)
-
 
 tap.close()

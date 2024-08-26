@@ -31,15 +31,15 @@ static size_t rx_size;
 
 #define FORCE_INLINE inline __attribute__((always_inline))
 
-static FORCE_INLINE uint8_t *uart0_rx_fifo(uint8_t* data, size_t size) {
-    for (const uint8_t* end = data + size; data != end; ++data) {
+static FORCE_INLINE uint8_t *uart0_rx_fifo(uint8_t *data, size_t size) {
+    for (const uint8_t *end = data + size; data != end; ++data) {
         *data = uart0.fifo.rw_byte; // read from register to drain hardware RX FIFO
     }
     return data;
 }
 
-static FORCE_INLINE uint8_t *uart0_tx_fifo(uint8_t* data, size_t size) {
-    for (const uint8_t* end = data + size; data != end; ++data) {
+static FORCE_INLINE uint8_t *uart0_tx_fifo(uint8_t *data, size_t size) {
+    for (const uint8_t *end = data + size; data != end; ++data) {
         uart0.fifo.rw_byte = *data; // write to register to fill hardware TX FIFO
     }
     return data;
@@ -82,7 +82,7 @@ static void IRAM_ATTR uart0_isr(void *param) {
                 vTaskNotifyGiveFromISR(tx_task_handle, &task_woken);
             }
             uart0.int_clr.txfifo_empty = 1;
-        } else if (uart_intr_status & (UART_RXFIFO_FULL_INT_ST_M|UART_RXFIFO_TOUT_INT_ST_M)) {
+        } else if (uart_intr_status & (UART_RXFIFO_FULL_INT_ST_M | UART_RXFIFO_TOUT_INT_ST_M)) {
             // Handle RX FIFO empty and RX timeout conditions.
 
             const uint8_t rx_fifo_cnt = uart0.status.rxfifo_cnt;

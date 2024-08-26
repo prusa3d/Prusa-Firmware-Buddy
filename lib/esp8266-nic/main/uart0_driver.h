@@ -26,4 +26,3 @@ void uart0_rx_bytes(uint8_t *data, uint32_t size);
 // Before calling this function for the first time, the task must call `ulTaskNotifyTake()`
 // to ensure proper synchronization with `uart0_driver_install()`
 void uart0_tx_bytes(uint8_t *data, size_t size);
-

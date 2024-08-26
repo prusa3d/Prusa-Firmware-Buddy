@@ -1,6 +1,6 @@
 /* UART NIC
 
-  This code makes ESP WiFi device accessible to external system using UART. 
+  This code makes ESP WiFi device accessible to external system using UART.
   This is implemented using a simple protocol that enables sending and
   receiveing network packets and some confuration using messages.
 
@@ -17,7 +17,7 @@
 
 
   Copyright (C) 2022 Prusa Research a.s - www.prusa3d.com
-  SPDX-License-Identifier: GPL-3.0-or-later 
+  SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 #include <cstdint>
@@ -41,10 +41,10 @@
 
 #include "esp_private/wifi.h"
 extern "C" {
-    // including esp_supplicant/esp_wpa.h breaks c++ compilation,
-    // lets forward declare the needed function from that header
-    // to prevent compiler errors
-    esp_err_t esp_supplicant_init();
+// including esp_supplicant/esp_wpa.h breaks c++ compilation,
+// lets forward declare the needed function from that header
+// to prevent compiler errors
+esp_err_t esp_supplicant_init();
 }
 
 #include "uart0_driver.h"
@@ -52,8 +52,8 @@ extern "C" {
 
 // Externals with no header
 extern "C" {
-    int ieee80211_output_pbuf(esp_aio_t *aio);
-    esp_err_t mac_init(void);
+int ieee80211_output_pbuf(esp_aio_t *aio);
+esp_err_t mac_init(void);
 }
 
 static constexpr size_t SCAN_MAX_STORED_SSIDS = 64;
@@ -79,7 +79,7 @@ static constexpr uint32_t INACTIVE_PACKET_SECONDS = 5;
 struct uart0_tx_queue_item {
     esp::Header header;
     uint8_t *data;
-    void* rx_buffer; // Note: This is some internal ESP buffer which we are not
+    void *rx_buffer; // Note: This is some internal ESP buffer which we are not
                      //       sure if we can free before data is transmitted.
 };
 static QueueHandle_t uart0_tx_queue = NULL;
@@ -89,7 +89,7 @@ static QueueHandle_t uart0_tx_queue = NULL;
 //       whenever they are received via UART0 by ESP from the printer. The queue
 //       is drained by lower priority task `main_task`.
 struct uart0_rx_queue_item {
-    void (*callback)(uint8_t*, const esp::Header&);
+    void (*callback)(uint8_t *, const esp::Header &);
     esp::Header header;
     uint8_t *data;
 };
@@ -128,14 +128,14 @@ static uint32_t IRAM_ATTR now_seconds() {
     return xTaskGetTickCount() / configTICK_RATE_HZ;
 }
 
-static std::atomic<uint_least32_t> last_inbound_seen{0};
-static std::atomic<bool> associated {false};
-static std::atomic<bool> wifi_running {false};
-static std::atomic<bool> connecting {false};
+static std::atomic<uint_least32_t> last_inbound_seen { 0 };
+static std::atomic<bool> associated { false };
+static std::atomic<bool> wifi_running { false };
+static std::atomic<bool> connecting { false };
 
 static bool beacon_quirk;
 static uint8_t probe_max_reties = 3;
-static std::atomic<bool> probe_in_progress {false};
+static std::atomic<bool> probe_in_progress { false };
 static uint8_t probe_retry_count;
 static uint8_t latest_ssid[esp::SSID_LEN];
 static uint8_t latest_bssid[BSSID_LEN];
@@ -156,8 +156,8 @@ static struct {
     uint32_t incremental_scan_time = 0;
     esp::data::APInfo stored_ssids[SCAN_MAX_STORED_SSIDS] = {};
     uint8_t stored_ssids_count = 0;
-    std::atomic<bool> in_progress {false};
-    std::atomic<bool> should_reconnect {false};
+    std::atomic<bool> in_progress { false };
+    std::atomic<bool> should_reconnect { false };
 } scan {};
 
 static void IRAM_ATTR send_link_status(uint8_t up) {
@@ -172,33 +172,33 @@ static void IRAM_ATTR send_link_status(uint8_t up) {
     }
 }
 
-static void IRAM_ATTR do_wifi_scan(void * arg) {
-    wifi_scan_config_t config{};
+static void IRAM_ATTR do_wifi_scan(void *arg) {
+    wifi_scan_config_t config {};
 
     config.scan_type = WIFI_SCAN_TYPE_ACTIVE;
     switch (scan.scan_type) {
-        case SCAN_TYPE_PROBE:
-            config.show_hidden = true;
-            config.scan_time.active.min = 120;
-            config.scan_time.active.max = 300;
-            break;
-        case SCAN_TYPE_INCREMENTAL:
-            // The given timeouts are in ms, but per channel
-            // On 2.4GHz wifi it would be 12-14 channels
-            if (scan.incremental_scan_time == 0) {
-                scan.incremental_scan_time = 42; // 42*12 = 504ms of total scan time
-            } else {
-                scan.incremental_scan_time *= 2;
-                // Cap scan segment at ~30s (12*2500 = 30 000ms).
-                if (scan.incremental_scan_time > 2500) {
-                    scan.incremental_scan_time = 2500;
-                }
+    case SCAN_TYPE_PROBE:
+        config.show_hidden = true;
+        config.scan_time.active.min = 120;
+        config.scan_time.active.max = 300;
+        break;
+    case SCAN_TYPE_INCREMENTAL:
+        // The given timeouts are in ms, but per channel
+        // On 2.4GHz wifi it would be 12-14 channels
+        if (scan.incremental_scan_time == 0) {
+            scan.incremental_scan_time = 42; // 42*12 = 504ms of total scan time
+        } else {
+            scan.incremental_scan_time *= 2;
+            // Cap scan segment at ~30s (12*2500 = 30 000ms).
+            if (scan.incremental_scan_time > 2500) {
+                scan.incremental_scan_time = 2500;
             }
-            config.scan_time.active.max = config.scan_time.active.min = scan.incremental_scan_time;
-            break;
-        case SCAN_TYPE_UNKNOWN:
-        default:
-            break;
+        }
+        config.scan_time.active.max = config.scan_time.active.min = scan.incremental_scan_time;
+        break;
+    case SCAN_TYPE_UNKNOWN:
+    default:
+        break;
     }
 
     ESP_ERROR_CHECK(esp_wifi_scan_start(&config, false));
@@ -233,7 +233,7 @@ static esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType
     if (associated && scan_type != SCAN_TYPE_PROBE) {
         // The wifi scan behaves differently when the esp is connected to the AP.
         // Intentionally disconnect when starting a scan.
-        // The connection will be automatically reestablished after the scan. 
+        // The connection will be automatically reestablished after the scan.
         //
         // But we don't want to disconnect the wifi while probing.
         // That can cause "wifi speed decrease" since the connection procedure can take a long time
@@ -276,7 +276,7 @@ static void IRAM_ATTR cache_current_ap_info() {
 
 static void IRAM_ATTR probe_run();
 
-static void IRAM_ATTR probe_handler(wifi_ap_record_t* aps, int ap_count) {
+static void IRAM_ATTR probe_handler(wifi_ap_record_t *aps, int ap_count) {
     bool found = false;
 
     if (associated) {
@@ -322,7 +322,7 @@ static void IRAM_ATTR probe_run() {
     start_wifi_scan(&probe_handler, SCAN_TYPE_PROBE);
 }
 
-static void IRAM_ATTR wifi_re_connect_task(void* args) {
+static void IRAM_ATTR wifi_re_connect_task(void *args) {
     if (!scan.in_progress) {
         ESP_LOGI(TAG, "Connecting to AP");
         esp_wifi_connect();
@@ -346,14 +346,14 @@ static void IRAM_ATTR handle_disconnect_and_try_reconnect() {
         start_wifi_connect_task();
         s_retry_num++;
         ESP_LOGI(TAG, "retry to connect to the AP");
-        ESP_LOGI(TAG,"connect to the AP fail, now lowering RF power to reduce interference");
+        ESP_LOGI(TAG, "connect to the AP fail, now lowering RF power to reduce interference");
         esp_wifi_set_max_tx_power(48); // 12dB (down from 20dB) to reduce antenna reflections, needed for some modules (see ESP8266_RTOS_SDK#1200)
     } else {
         connecting = false;
     }
 }
 
-static void IRAM_ATTR event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
+static void IRAM_ATTR event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         uint8_t current_protocol;
         ESP_ERROR_CHECK(esp_wifi_get_protocol(WIFI_IF_STA, &current_protocol));
@@ -398,17 +398,17 @@ static void IRAM_ATTR event_handler(void* arg, esp_event_base_t event_base, int3
 
         if (!scan.in_progress) {
             // If callback didn't start a new scan check the scan type, change it and rerun scan if possible
-            switch(scan.scan_type) {
-                case SCAN_TYPE_INCREMENTAL:
-                    ESP_LOGI(TAG, "Restarting incremental scan");
-                    start_wifi_scan(scan.callback, SCAN_TYPE_INCREMENTAL);
+            switch (scan.scan_type) {
+            case SCAN_TYPE_INCREMENTAL:
+                ESP_LOGI(TAG, "Restarting incremental scan");
+                start_wifi_scan(scan.callback, SCAN_TYPE_INCREMENTAL);
                 break;
-                default:
-                    scan.scan_type = SCAN_TYPE_UNKNOWN;
-                    if (scan.should_reconnect) {
-                        scan.should_reconnect = false;
-                        handle_disconnect_and_try_reconnect();
-                    }
+            default:
+                scan.scan_type = SCAN_TYPE_UNKNOWN;
+                if (scan.should_reconnect) {
+                    scan.should_reconnect = false;
+                    handle_disconnect_and_try_reconnect();
+                }
                 break;
             }
         }
@@ -423,9 +423,9 @@ static esp_err_t IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb)
     last_inbound_seen = now_seconds();
 
     // MAC filter
-    if ((((const char*)buffer)[5] & 0x01) == 0) {
+    if ((((const char *)buffer)[5] & 0x01) == 0) {
         for (uint i = 0; i < 6; ++i) {
-            if(((const char*)buffer)[i] != mac[i]) {
+            if (((const char *)buffer)[i] != mac[i]) {
                 ESP_LOGI(TAG, "Incoming packet filtered out.");
                 free(buffer);
                 esp_wifi_internal_free_rx_buffer(eb);
@@ -482,7 +482,7 @@ static void IRAM_ATTR wait_for_intron() {
     while (memcmp(intron, tx_message.intron.data(), 8) != 0) {
         // ...but be prepared for the worst.
         for (int i = 0; i < 7; ++i) {
-            intron[i] = intron[i+1];
+            intron[i] = intron[i + 1];
         }
         uart0_rx_bytes(&intron[7], 1);
     }
@@ -497,7 +497,7 @@ static int IRAM_ATTR get_link_status() {
     return online;
 }
 
-static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t* data, const esp::Header& header) {
+static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t *data, const esp::Header &header) {
     if (header.size == 0) {
         send_link_status(get_link_status());
     } else {
@@ -506,7 +506,7 @@ static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t* data, const esp::Header& 
     }
 }
 
-static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, const esp::Header& header) {
+static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t *data, const esp::Header &header) {
     wifi_config_t wifi_config;
     memset(&wifi_config, 0, sizeof(wifi_config_t));
 
@@ -521,7 +521,8 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, const esp::He
         memcpy(&ssid_length, data, sizeof(ssid_length));
         data += sizeof(ssid_length);
         size_t memcpy_size = ssid_length < sizeof(wifi_config.sta.ssid)
-                           ? ssid_length : sizeof(wifi_config.sta.ssid);
+            ? ssid_length
+            : sizeof(wifi_config.sta.ssid);
         memcpy(wifi_config.sta.ssid, data, memcpy_size);
         data += ssid_length;
     }
@@ -530,14 +531,15 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, const esp::He
         memcpy(&password_length, data, sizeof(password_length));
         data += sizeof(password_length);
         size_t memcpy_size = password_length < sizeof(wifi_config.sta.password)
-                           ? password_length : sizeof(wifi_config.sta.password);
+            ? password_length
+            : sizeof(wifi_config.sta.password);
         memcpy(wifi_config.sta.password, data, memcpy_size);
         data += password_length;
     }
 
     /* Setting a password implies station will connect to all security modes including WEP/WPA.
-        * However these modes are deprecated and not advisable to be used. Incase your Access point
-        * doesn't support WPA2, these mode can be enabled by commenting below line */
+     * However these modes are deprecated and not advisable to be used. Incase your Access point
+     * doesn't support WPA2, these mode can be enabled by commenting below line */
     if (password_length) {
         wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
     }
@@ -551,12 +553,12 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, const esp::He
 
     wifi_running = false;
     esp_wifi_stop();
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
     wifi_running = true;
 }
 
-static void IRAM_ATTR handle_rx_msg_unknown(uint8_t* data, const esp::Header& header) {
+static void IRAM_ATTR handle_rx_msg_unknown(uint8_t *data, const esp::Header &header) {
     if (data) {
         free(data);
     }
@@ -604,12 +606,12 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
         if (!found) {
             memcpy(scan.stored_ssids[scan.stored_ssids_count].ssid.data(), aps[i].ssid, esp::SSID_LEN);
             scan.stored_ssids[scan.stored_ssids_count].requires_password = aps[i].authmode != WIFI_AUTH_OPEN || aps[i].pairwise_cipher != WIFI_CIPHER_TYPE_NONE;
-            scan.stored_ssids_count ++;
+            scan.stored_ssids_count++;
             ESP_LOGI(TAG, "Found SSID: %s", aps[i].ssid);
         }
     }
 
-    struct uart0_tx_queue_item queue_item{};
+    struct uart0_tx_queue_item queue_item {};
     queue_item.header.type = esp::MessageType::SCAN_AP_CNT;
     queue_item.header.ap_count = scan.stored_ssids_count;
     if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
@@ -618,8 +620,8 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
     ESP_LOGI(TAG, "Scan done. Found: %d", scan.stored_ssids_count);
 }
 
-static void IRAM_ATTR send_scanned_ssid(uint8_t index, const esp::data::APInfo& ap_info) {
-    struct uart0_tx_queue_item queue_item{};
+static void IRAM_ATTR send_scanned_ssid(uint8_t index, const esp::data::APInfo &ap_info) {
+    struct uart0_tx_queue_item queue_item {};
     queue_item.header.type = esp::MessageType::SCAN_AP_GET;
     queue_item.header.ap_index = index;
     queue_item.header.size = htons(sizeof(ap_info));
@@ -630,21 +632,21 @@ static void IRAM_ATTR send_scanned_ssid(uint8_t index, const esp::data::APInfo& 
     }
 }
 
-static void IRAM_ATTR handle_rx_msg_scan_start(uint8_t* data, const esp::Header& header) {
+static void IRAM_ATTR handle_rx_msg_scan_start(uint8_t *data, const esp::Header &header) {
     clear_stored_ssids();
     ESP_LOGI(TAG, "Starting scan...");
 
     start_wifi_scan(&store_scanned_ssids, SCAN_TYPE_INCREMENTAL);
 }
 
-static void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t* data, const esp::Header& header) {
+static void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t *data, const esp::Header &header) {
     // Response is send automatically after scan is stopped
     // Intentionally don't fail if the scan is no longer running
     // (aka we connected to AP during scan)
     force_stop_wifi_scan();
 }
 
-static void IRAM_ATTR handle_rx_msg_scan_get(uint8_t* data, const esp::Header& header) {
+static void IRAM_ATTR handle_rx_msg_scan_get(uint8_t *data, const esp::Header &header) {
     if (header.ap_index < scan.stored_ssids_count) {
         send_scanned_ssid(header.ap_index, scan.stored_ssids[header.ap_index]);
     } else {
@@ -656,7 +658,7 @@ static void IRAM_ATTR read_message() {
     wait_for_intron();
     uint32_t crc = 0;
     crc = crc32_le(crc, tx_message.intron.data(), tx_message.intron.size());
-    struct uart0_rx_queue_item queue_item{};
+    struct uart0_rx_queue_item queue_item {};
     uart0_rx_bytes(reinterpret_cast<uint8_t *>(&queue_item.header), sizeof(queue_item.header));
     crc = crc32_le(crc, reinterpret_cast<uint8_t *>(&queue_item.header), sizeof(queue_item.header));
     uint32_t checksum = 0;
@@ -730,7 +732,7 @@ static void IRAM_ATTR uart0_rx_task(void *arg) {
     }
 }
 
-static void IRAM_ATTR main_task(void* arg) {
+static void IRAM_ATTR main_task(void *arg) {
     // Wait because printer sends reset for whatever reason.
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
