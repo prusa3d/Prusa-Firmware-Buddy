@@ -296,11 +296,12 @@ namespace defaults {
     inline constexpr auto user_filament_parameters = [] {
         std::array<FilamentTypeParameters, user_filament_type_count> result;
         for (size_t i = 0; i < result.size(); i++) {
+            const size_t display_ix = i + 1;
             result[i] = FilamentTypeParameters {
                 .name = {
                     'U', 'S', 'E', 'R',
-                    static_cast<char>('0' + (i >= 10 ? i / 10 : i % 10)),
-                    static_cast<char>(i >= 10 ? ('0' + i % 10) : '\0'),
+                    static_cast<char>('0' + (display_ix >= 10 ? display_ix / 10 : display_ix % 10)),
+                    static_cast<char>(display_ix >= 10 ? ('0' + display_ix % 10) : '\0'),
                     '\0' },
                 .nozzle_temperature = 215,
                 .nozzle_preheat_temperature = 170,
