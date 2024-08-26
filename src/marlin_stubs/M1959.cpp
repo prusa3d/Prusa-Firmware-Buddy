@@ -312,7 +312,7 @@ static PhasesInputShaperCalibration measuring_axis(
         }
 
         // data[3] == 1 calibrating
-        if (progress != progress_hook_data.prev_progress) {
+        if (abs(progress - progress_hook_data.prev_progress) >= 0.01f) {
             fsm::PhaseData calibrating_data = { 0, 0, static_cast<uint8_t>(255 * progress), 1 };
             marlin_server::fsm_change(progress_hook_data.phase, calibrating_data);
             progress_hook_data.prev_progress = progress;

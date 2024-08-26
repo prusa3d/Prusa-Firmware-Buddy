@@ -80,7 +80,7 @@ private:
                 return false;
             }
 
-            if (progress != prev_progress) {
+            if (abs(progress - prev_progress) >= 0.01f) {
                 prev_progress = progress;
                 fsm_.change_data(fsm::serialize_data(BeltTuninigWizardMeasuringData {
                     .progress_0_255 = static_cast<uint8_t>(progress * 255),
