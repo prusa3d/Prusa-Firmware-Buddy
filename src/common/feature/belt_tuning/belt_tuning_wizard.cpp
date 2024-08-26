@@ -110,7 +110,7 @@ private:
                 return false;
             }
 
-            static constexpr float max_expected_amplitude = 0.04f;
+            static constexpr float max_expected_amplitude = 0.2f;
 
             if (args != prev_args) {
                 prev_args = args;
