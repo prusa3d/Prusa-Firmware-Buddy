@@ -644,8 +644,9 @@ static uint8_t io_expander_button_trigger_check(uint8_t pin_states, uint8_t pin_
 }
 
 void io_expander_read_loop() {
-    // Initialization will happen only once after power up
-    buddy::hw::io_expander2.initialize();
+    if (!buddy::hw::io_expander2.is_initialized()) {
+        return;
+    }
     if (uint8_t pin_mask = config_store().io_expander_config_register.get()) {
         static constexpr int32_t io_expander_read_loop_delay_ms = 500;
         static uint32_t last_tick_ms = ticks_ms();

@@ -75,6 +75,11 @@ std::optional<uint8_t> TCA6408A::read(uint8_t pin_mask) const {
 }
 
 bool TCA6408A::read_reg(Register reg, uint8_t &value) const {
+    if (!is_initialized_) {
+        SERIAL_ERROR_MSG(" IO Expander not initialized properly");
+        return false;
+    }
+
     i2c::Result res_transmit = i2c::Transmit(i2c, write_address, (uint8_t *)&reg, sizeof(uint8_t), timeout_ms);
     HAL_Delay(5); // TODO: Check if delay can be shortened
     i2c::Result res_receive = i2c::Receive(i2c, read_address, &value, sizeof(uint8_t), timeout_ms);
@@ -83,21 +88,33 @@ bool TCA6408A::read_reg(Register reg, uint8_t &value) const {
 }
 
 bool TCA6408A::write_reg(Register reg, uint8_t value) {
+    if (!is_initialized_) {
+        SERIAL_ERROR_MSG(" IO Expander not initialized properly");
+        return false;
+    }
+
     uint8_t data[2] = { (uint8_t)reg, value };
     i2c::Result res = i2c::Transmit(i2c, write_address, data, sizeof(data), timeout_ms);
     return res == i2c::Result::ok;
 }
 
 void TCA6408A::initialize() {
-    if (is_intialized) {
+    is_initialized_ = true;
+
+    // Trying to initialize 3 times
+    for (uint8_t i = 0; i < 3; i++) {
+        if (!write_reg(Register::Output, config_store().io_expander_output_register.get())) {
+            continue;
+        }
+        if (!write_reg(Register::Config, config_store().io_expander_config_register.get())) {
+            continue;
+        }
+        if (!write_reg(Register::Polarity, config_store().io_expander_polarity_register.get())) {
+            continue;
+        }
         return;
     }
-
-    const bool res_output = write_reg(Register::Output, config_store().io_expander_output_register.get());
-    const bool res_config = write_reg(Register::Config, config_store().io_expander_config_register.get());
-    const bool res_polarity = write_reg(Register::Polarity, config_store().io_expander_polarity_register.get());
-
-    is_intialized = res_output && res_config && res_polarity;
+    is_initialized_ = false;
 }
 
 bool TCA6408A::toggle(uint8_t pin_number) {

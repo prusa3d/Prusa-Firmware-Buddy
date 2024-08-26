@@ -73,6 +73,8 @@ public:
      */
     bool toggle(uint8_t pin_number);
 
+    inline bool is_initialized() { return is_initialized_; }
+
 private:
     I2C_HandleTypeDef &i2c; ///< I2C communication channel
     const uint8_t read_address; ///< I2C address for reading registers
@@ -88,6 +90,6 @@ private:
     static constexpr uint8_t read_operation = 1;
 
     uint8_t triggered_states = 0xFF; ///< Button states used to avoid multiple triggering on one press; HIGH means not pressed
-    bool is_intialized = false;
+    bool is_initialized_ = false;
 };
 } // namespace buddy::hw

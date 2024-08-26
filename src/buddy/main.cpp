@@ -50,6 +50,7 @@
 #include <option/buddy_enable_wui.h>
 #include <option/has_touch.h>
 #include <option/has_nfc.h>
+#include <option/has_i2c_expander.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -486,6 +487,11 @@ extern "C" void main_cpp(void) {
     if (config_store().mmu2_enabled.get()) {
         MMU2::mmu2.Start();
     }
+#endif
+
+#if HAS_I2C_EXPANDER()
+    // I2C IO Expander have to be initialized after Configuration Store
+    buddy::hw::io_expander2.initialize();
 #endif
 
     osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1152);
