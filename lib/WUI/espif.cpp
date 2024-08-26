@@ -563,9 +563,6 @@ struct UartRxParser final : public esp::RxParserBase {
 
     void process_invalid_message() final {
         log_error(ESPIF, "Message invalid (MT: %d)", ftrstd::to_underlying(msg.header.type));
-#if _DEBUG
-        bsod("Printer recieved invalid message from esp");
-#endif
     }
 
     void process_esp_device_info() final {
