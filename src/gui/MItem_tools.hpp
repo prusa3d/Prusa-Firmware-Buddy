@@ -22,7 +22,7 @@
 #include <trinamic.h>
 #include <meta_utils.hpp>
 #include <str_utils.hpp>
-#include <gui/menu_item/window_menu_gcode_item.hpp>
+#include <gui/menu_item/menu_item_gcode_action.hpp>
 
 /// \returns tool name for tool menu item purposes
 inline constexpr const char *tool_name(uint8_t tool_index) {
@@ -783,5 +783,5 @@ protected:
 #endif
 
 #if HAS_BELT_TUNING()
-using MI_BELT_TUNING = WithConstructorArgs<WindowMenuGCodeItem, N_("Belt Tuning"), "M960 W"_tstr>;
+using MI_BELT_TUNING = WithConstructorArgs<MenuItemGcodeAction, N_("Belt Tuning"), "M960 W"_tstr>;
 #endif

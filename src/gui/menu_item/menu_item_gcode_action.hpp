@@ -4,9 +4,9 @@
 #include <str_utils.hpp>
 
 /// Menu item that executes a provided gcode when clicked on
-class WindowMenuGCodeItem : public IWindowMenuItem {
+class MenuItemGcodeAction : public IWindowMenuItem {
 public:
-    WindowMenuGCodeItem(const string_view_utf8 &label, ConstexprString gcode);
+    MenuItemGcodeAction(const string_view_utf8 &label, ConstexprString gcode);
 
 protected:
     void click(IWindowMenu &) override;

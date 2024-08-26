@@ -6,7 +6,7 @@
 
 #include <utils/algorithm_extensions.hpp>
 
-#include <gui/widget/window_toggle_switch.hpp>
+#include <gui/menu_item/menu_item_toggle_switch.hpp>
 #include <screen_menu.hpp>
 #include <WindowMenuSpin.hpp>
 #include <MItem_tools.hpp>
@@ -146,10 +146,10 @@ public:
 };
 
 template <typename Child>
-class MI_TOOLHEAD_SPECIFIC_TOGGLE : public MI_TOOLHEAD_SPECIFIC<Child, WindowToggleSwitch> {
+class MI_TOOLHEAD_SPECIFIC_TOGGLE : public MI_TOOLHEAD_SPECIFIC<Child, MenuItemToggleSwitch> {
 public:
     // Inherit parent constructor
-    using MI_TOOLHEAD_SPECIFIC<Child, WindowToggleSwitch>::MI_TOOLHEAD_SPECIFIC;
+    using MI_TOOLHEAD_SPECIFIC<Child, MenuItemToggleSwitch>::MI_TOOLHEAD_SPECIFIC;
 
     void update() {
         this->set_value(this->template read_value().transform(Tristate::from_bool).value_or(Tristate::other), false);

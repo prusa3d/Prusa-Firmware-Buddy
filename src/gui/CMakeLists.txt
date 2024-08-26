@@ -232,7 +232,6 @@ add_subdirectory(footer)
 add_subdirectory(screen)
 add_subdirectory(menu_item)
 add_subdirectory(standard_frame)
-add_subdirectory(widget)
 
 if(HAS_LEDS)
   add_subdirectory(led_animations)

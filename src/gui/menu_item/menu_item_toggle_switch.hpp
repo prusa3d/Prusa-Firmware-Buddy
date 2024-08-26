@@ -6,10 +6,10 @@
 
 /// Toggle switch with icon
 /// This is similar as WI_ICON_SWITCH_OFF_ON_t, just with cleaner API and tri-state support
-class WindowToggleSwitch : public IWindowMenuItem {
+class MenuItemToggleSwitch : public IWindowMenuItem {
 
 public:
-    WindowToggleSwitch(Tristate value, const string_view_utf8 &label);
+    MenuItemToggleSwitch(Tristate value, const string_view_utf8 &label);
 
 public:
     inline Tristate value() const {
