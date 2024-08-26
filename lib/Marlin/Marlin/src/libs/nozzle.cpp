@@ -200,10 +200,10 @@ Nozzle nozzle;
         do_blocking_move_to_z(_MAX(park.z, current_position.z), fr_z);
     }
 
-  #ifdef NOZZLE_PRE_PARK_POINT
+  #ifdef XY_NOZZLE_PRE_PARK_POINT
   static constexpr xyz_pos_t default_park{{XYZ_NOZZLE_PARK_POINT}};
   if(park == default_park) {
-    static constexpr xy_pos_t pre_park{{NOZZLE_PRE_PARK_POINT}};
+    static constexpr xy_pos_t pre_park{{XY_NOZZLE_PRE_PARK_POINT}};
     do_blocking_move_around_nozzle_cleaner_to_xy(pre_park, fr_xy);
   }
   #endif
