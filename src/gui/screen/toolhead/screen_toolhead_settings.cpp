@@ -106,23 +106,24 @@ void MI_DOCK::click(IWindowMenu &) {
 
 // * MI_PICK_PARK
 MI_PICK_PARK::MI_PICK_PARK(Toolhead toolhead)
-    : MI_TOOLHEAD_SPECIFIC(toolhead, false, _("Pick Tool")) {
+    : MI_TOOLHEAD_SPECIFIC(toolhead, string_view_utf8()) {
     update();
 }
 
-void MI_PICK_PARK::update(bool update_value) {
-    if (update_value) {
-        const auto picked_tool = prusa_toolchanger.detect_tool_nr();
-        set_value((toolhead() == all_toolheads) ? (picked_tool != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) : (picked_tool == std::get<ToolheadIndex>(toolhead())), false);
-    }
+void MI_PICK_PARK::update(bool) {
+    const auto picked_tool = prusa_toolchanger.detect_tool_nr();
+    is_picked = (toolhead() == all_toolheads) ? (picked_tool != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) : (picked_tool == std::get<ToolheadIndex>(toolhead()));
+
+    // Do not show "Pick Tool" at all for all_toolheads, only "Park Tool" that gets disabled when no tool is selected
+    SetLabel(_(is_picked || (toolhead() == all_toolheads) ? N_("Park Tool") : N_("Pick Tool")));
 
     // If we're in all toolheads mode, allow only unpicking the tool
-    set_is_enabled((toolhead() != all_toolheads) || value());
+    set_is_enabled((toolhead() != all_toolheads) || is_picked);
 }
 
-void MI_PICK_PARK::OnChange(size_t) {
+void MI_PICK_PARK::click(IWindowMenu &) {
     marlin_client::gcode("G27 P0 Z5"); // Lift Z if not high enough
-    marlin_client::gcode_printf("T%d S1 L0 D0", (value() && toolhead() != all_toolheads) ? std::get<ToolheadIndex>(toolhead()) : PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+    marlin_client::gcode_printf("T%d S1 L0 D0", (!is_picked && toolhead() != all_toolheads) ? std::get<ToolheadIndex>(toolhead()) : PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
 
     gui_dlg_wait([] {
         if (!(queue.has_commands_queued() || planner.processing())) {

@@ -66,11 +66,14 @@ public:
     void click(IWindowMenu &) override;
 };
 
-class MI_PICK_PARK : public MI_TOOLHEAD_SPECIFIC<MI_PICK_PARK, WI_ICON_SWITCH_OFF_ON_t> {
+class MI_PICK_PARK : public MI_TOOLHEAD_SPECIFIC<MI_PICK_PARK, IWindowMenuItem> {
 public:
     MI_PICK_PARK(Toolhead toolhead = default_toolhead);
     void update(bool update_value = true);
-    void OnChange(size_t) override;
+    void click(IWindowMenu &) override;
+
+private:
+    bool is_picked = false;
 };
 #endif
 
