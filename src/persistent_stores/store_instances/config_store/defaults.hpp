@@ -290,8 +290,8 @@ namespace defaults {
     };
     inline constexpr VisiblePresetFilamentTypes visible_preset_filament_types;
 
-    /// By default, a single user filament is visible, to advertise to the user that we have this feature
-    inline constexpr uint8_t visible_user_filament_types = 1;
+    /// By default, no user filaments are enabled
+    inline constexpr uint8_t visible_user_filament_types = 0;
 
     inline constexpr auto user_filament_parameters = [] {
         std::array<FilamentTypeParameters, user_filament_type_count> result;
