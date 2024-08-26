@@ -37,11 +37,13 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
         }
 
 #if HAS_TOOLCHANGER()
-        // Always do the measurements with the first tool for consistency
-        tool_change(0, tool_return_t::no_return);
+        if (prusa_toolchanger.is_toolchanger_enabled()) {
+            // Always do the measurements with the first tool for consistency
+            tool_change(0, tool_return_t::no_return);
 
-        if (aborted()) {
-            return std::nullopt;
+            if (aborted()) {
+                return std::nullopt;
+            }
         }
 #endif
 
