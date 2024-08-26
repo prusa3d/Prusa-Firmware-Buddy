@@ -8,6 +8,7 @@
 #include <option/has_side_leds.h>
 #include <option/has_belt_tuning.h>
 #include <option/has_i2c_expander.h>
+#include <option/buddy_enable_connect.h>
 
 /// the version of the g-code that the printer supports
 #define GCODE_LEVEL 2
@@ -102,6 +103,10 @@ void M960(); ///< Belt tuning
 
 void M997(); ///< Update firmware. Prusa STM32 platform specific
 void M999();
+
+#if BUDDY_ENABLE_CONNECT()
+void M1200(); ///< Set ready for printing (Connect-related)
+#endif // BUDDY_ENABLE_CONNECT()
 
 void M1600(); ///< Menu change filament. Prusa STM32 platform specific
 void M1601(); ///< Filament stuck detected, Prusa STM32 platform specific

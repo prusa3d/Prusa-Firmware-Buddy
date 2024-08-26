@@ -227,6 +227,11 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
                 processed = false;
                 break;
             }
+#if BUDDY_ENABLE_CONNECT()
+        case 1200:
+            PrusaGcodeSuite::M1200();
+            break;
+#endif // BUDDY_ENABLE_CONNECT()
         case 1600:
             PrusaGcodeSuite::M1600();
             break;
