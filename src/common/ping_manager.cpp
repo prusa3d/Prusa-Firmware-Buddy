@@ -5,6 +5,7 @@
 #include <common/tcpip_callback_nofail.hpp>
 #include <common/random.h>
 #include <common/pbuf_deleter.hpp>
+#include <logging/log.hpp>
 
 #include <lwip/inet.h>
 #include <lwip/inet_chksum.h>
@@ -19,10 +20,13 @@
 using std::lock_guard;
 using std::unique_ptr;
 
+LOG_COMPONENT_DEF(Ping, logging::Severity::info);
+
 namespace {
 
 // Ping every 3s
 constexpr const uint32_t ping_round = 3000;
+constexpr const uint32_t ping_spread = 100;
 
 } // namespace
 
@@ -207,23 +211,29 @@ uint8_t PingManager::recv(struct pbuf *p, const ip_addr_t *addr) {
     }
 
     size_t slot = echo.id - id;
-    if (echo.type != ICMP_ER || slot >= nslots || echo.seqno != PP_HTONS(seq.load())) {
+    if (echo.type != ICMP_ER || slot >= nslots) {
         return 0;
     }
 
-    // OK, it looks like it is an echo response for one of our requests from
-    // the last round. Find the right slot for it.
+    // OK, it looks like it is an echo response for one of our requests.
 
     lock_guard lock(mutex);
     auto &stat = stats[slot];
 
+    log_info(Ping, "Received %zu with seq %" PRIu16, slot, PP_NTOHS(echo.seqno));
+
+    if (PP_HTONS(stat.last_seq) != echo.seqno) {
+        return 0;
+    }
+
     if (ip_2_ip4(addr)->addr == stat.ip.addr && stat.awaiting) {
-        uint32_t duration = ticks_ms() - last_round;
+        uint32_t duration = ticks_ms() - stat.last_sent_time;
         stat.ms_total += duration;
         stat.success++;
         stat.awaiting = false;
         stat.maybe_aggregate();
         pbuf_free(p);
+        log_info(Ping, "Duration %" PRIu32, duration);
         return 1;
     }
 
@@ -234,16 +244,11 @@ void PingManager::round_wrap(void *arg) {
     reinterpret_cast<PingManager *>(arg)->round();
 }
 
-void PingManager::round() {
-    // Reschedule next round
-    sys_timeout(ping_round, PingManager::round_wrap, this);
+// Note: Already locked by the caller
+void PingManager::send_ping(size_t idx) {
+    Stat &stat = stats[idx];
 
-    // Increment the sequence number for the round
-    //
-    // For each active slot, send the ping out.
-
-    seq.fetch_add(1);
-    const uint16_t cur_seq = PP_HTONS(seq.load());
+    const uint16_t cur_seq = PP_HTONS(seq);
     struct icmp_echo_hdr echo = {};
     echo.type = ICMP_ECHO;
     echo.code = 0;
@@ -252,42 +257,56 @@ void PingManager::round() {
     ip_addr_t addr;
     IP_SET_TYPE_VAL(addr, IPADDR_TYPE_V4);
 
+    if (stat.ip.addr == IP4_ADDR_ANY->addr) {
+        return;
+    }
+
+    unique_ptr<pbuf, PbufDeleter> pkt(pbuf_alloc(PBUF_IP, sizeof echo, PBUF_RAM));
+    if (!pkt) {
+        log_warning(Ping, "Failed to allocate packet");
+        stat.send_err++;
+        stat.maybe_aggregate();
+        return;
+    }
+    echo.id = id + idx;
+    // The checksum is computed from the checksum field too, we need to
+    // set it to 0 for it to come out correctly.
+    echo.chksum = 0;
+    echo.chksum = inet_chksum(&echo, sizeof echo);
+    memcpy(pkt->payload, &echo, sizeof echo);
+
+    ip4_addr_copy(*ip_2_ip4(&addr), stat.ip);
+    auto err = raw_sendto(pcb, pkt.get(), &addr);
+    if (err == ERR_OK) {
+        log_info(Ping, "Sent ping %zu / %" PRIu16 " / %zu", idx, seq, idx + id);
+        stat.last_sent_time = ticks_ms();
+        stat.last_seq = seq;
+        stat.cnt++;
+        stat.awaiting = true;
+    } else {
+        log_warning(Ping, "Failed to send ping");
+        stat.send_err++;
+    }
+}
+
+void PingManager::round() {
     lock_guard lock(mutex);
 
-    last_round = ticks_ms();
-
-    for (size_t i = 0; i < nslots; i++) {
-        Stat &stat = stats[i];
-        if (stat.ip.addr == IP4_ADDR_ANY->addr) {
-            continue;
+    if (idx >= nslots) {
+        // Schedule the next round of pings
+        uint32_t wait_time = ping_round - nslots * ping_spread;
+        if (nslots * ping_spread >= ping_round) {
+            wait_time = 0;
         }
-        // TODO: Do we want to spread out the sending, so we don't run out of small
-        // pcbs in one ping "burst"?
-        //
-        // Also, why can't we reuse the pbuf across multiple pings and have
-        // to free it and create a new one? :-O (it creates malformed
-        // packets otherwise).
-        unique_ptr<pbuf, PbufDeleter> pkt(pbuf_alloc(PBUF_IP, sizeof echo, PBUF_RAM));
-        if (!pkt) {
-            stat.send_err++;
-            stat.maybe_aggregate();
-            continue;
-        }
-        echo.id = id + i;
-        // The checksum is computed from the checksum field too, we need to
-        // set it to 0 for it to come out correctly.
-        echo.chksum = 0;
-        echo.chksum = inet_chksum(&echo, sizeof echo);
-        memcpy(pkt->payload, &echo, sizeof echo);
-
-        ip4_addr_copy(*ip_2_ip4(&addr), stat.ip);
-        auto err = raw_sendto(pcb, pkt.get(), &addr);
-        if (err == ERR_OK) {
-            stat.cnt++;
-            stat.awaiting = true;
-        } else {
-            stat.send_err++;
-        }
+        sys_timeout(wait_time, PingManager::round_wrap, this);
+        seq++;
+        idx = 0;
+        log_info(Ping, "Next round, seq %" PRIu16 ", wait %" PRIu32, seq, wait_time);
+    } else {
+        // Next ping in the round, just spread them a bit so they don't leave all at once.
+        sys_timeout(ping_spread, PingManager::round_wrap, this);
+        send_ping(idx);
+        idx++;
     }
 }
 

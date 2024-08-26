@@ -1,6 +1,5 @@
 #pragma once
 
-#include <atomic>
 #include <memory>
 
 #include <lwip/ip4.h>
@@ -32,6 +31,9 @@ public:
         size_t ms_total = 0;
         /// Number of pings we failed to send (eg. out of memory).
         size_t send_err = 0;
+        // Info about the last ping we sent out.
+        uint32_t last_sent_time = 0;
+        uint16_t last_seq = 0;
         /// The IP to ping. ADDR_ANY means disabled slot (not pinging).
         ///
         /// Could be not set yet with set_ip, or DNS resolution is still running (set_host).
@@ -94,7 +96,7 @@ private:
     SemaphoreHandle_t delete_sem;
     /// Protects the statistics.
     ///
-    /// The rest is either private to the tcpip thread, read-only or atomic.
+    /// The rest is either private to the tcpip thread, read-only.
     freertos::Mutex mutex;
     /// Current statistics / slots.
     ///
@@ -107,8 +109,9 @@ private:
     // Random on construction, never changes.
     const uint16_t id;
     // Sequence number of the ping (contains the current round).
-    std::atomic<uint16_t> seq = 0;
-    uint32_t last_round;
+    uint16_t seq = 0;
+    // While sending, index of the thing we are sending out.
+    uint32_t idx = 0;
     const size_t nslots;
 
     // The below functions are run in the tcpip thread, as callbacks.
@@ -121,6 +124,8 @@ private:
     // Sends out the next round of pings
     void round();
     static void round_wrap(void *arg);
+
+    void send_ping(size_t idx);
 
     // Called from destructor, to perform cleanup inside the tcpip thread
     // Destructor is blocked until this completes.

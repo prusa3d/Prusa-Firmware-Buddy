@@ -38,6 +38,7 @@ This file is generated automatically so don't edit it directly
 - Network: logging::Severity::info, lib/WUI/wui.cpp
 - PRUSA_GCODE: logging::Severity::info, src/marlin_stubs/gcode.cpp
 - PhaseStepping: logging::Severity::debug, lib/Marlin/Marlin/src/feature/phase_stepping/phase_stepping.cpp
+- Ping: logging::Severity::info, src/common/ping_manager.cpp
 - PowerPanic: logging::Severity::info, src/common/power_panic.cpp
 - PreciseStepping: logging::Severity::debug, lib/Marlin/Marlin/src/feature/precise_stepping/precise_stepping.cpp
 - PrusaToolChanger: logging::Severity::debug, lib/Marlin/Marlin/src/module/prusa/toolchanger_utils.cpp
