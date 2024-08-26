@@ -86,6 +86,8 @@ private:
                     .progress_0_255 = static_cast<uint8_t>(progress * 255),
                 }));
             }
+
+            idle(true, true);
             return true;
         });
 
