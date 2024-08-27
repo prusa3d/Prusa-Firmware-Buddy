@@ -551,6 +551,10 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
         // And then finally do the measurement
         accelerometer.clear();
 
+        uint32_t max_duration_ms = 2.f * 1000.f * samples_to_collect * accelerometer_sample_period;
+        const uint32_t start_time = millis();
+        uint32_t duration_ms = 0;
+
         while (!enough_samples_collected) {
             PrusaAccelerometer::Acceleration measured_acceleration;
             const bool got_sample = accelerometer.get_sample(measured_acceleration);
@@ -566,6 +570,15 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
                 }
 
                 idle(true, true);
+            }
+
+            const uint32_t now = millis();
+            duration_ms = now - start_time;
+
+            if (duration_ms > max_duration_ms) {
+                SERIAL_ERROR_MSG("vibrate measure: getting accelerometer samples timed out");
+                (void)is_ok(accelerometer.get_error());
+                return std::nullopt;
             }
         }
     }
