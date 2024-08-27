@@ -58,11 +58,10 @@ protected:
 
         // Draw data where we know them
         if (!data_.empty()) {
-            float prev_val = data_[0];
+            uint8_t prev_val = data_[0];
             for (const uint8_t val : data_) {
-                const float new_val = val * 0.5f + prev_val * 0.5f;
-                display::draw_line(point_ui16_t { x, static_cast<uint16_t>(rect.Bottom() - prev_val) }, point_ui16_t { x, static_cast<uint16_t>(rect.Bottom() - new_val) }, COLOR_WHITE);
-                prev_val = new_val;
+                display::draw_line(point_ui16_t { x, static_cast<uint16_t>(rect.Bottom() - prev_val) }, point_ui16_t { x, static_cast<uint16_t>(rect.Bottom() - val) }, COLOR_WHITE);
+                prev_val = val;
                 x++;
             }
         }
