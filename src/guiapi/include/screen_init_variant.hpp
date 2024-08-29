@@ -25,8 +25,8 @@ public:
     };
 
     struct menu_t {
-        uint8_t persistent_focused_index;
-        uint8_t persistent_scroll_offset;
+        std::optional<int16_t> persistent_focused_index;
+        std::optional<int16_t> persistent_scroll_offset;
     };
 
     constexpr screen_init_variant()

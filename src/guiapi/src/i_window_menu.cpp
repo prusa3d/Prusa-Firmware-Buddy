@@ -189,8 +189,8 @@ std::optional<int> IWindowMenu::index_to_slot(std::optional<int> index) const {
 
 screen_init_variant::menu_t IWindowMenu::get_restore_state() const {
     return {
-        .persistent_focused_index = static_cast<uint8_t>(item_index_to_persistent_index(focused_item_index()).value_or(-1)),
-        .persistent_scroll_offset = static_cast<uint8_t>(item_index_to_persistent_index(scroll_offset()).value_or(0)),
+        .persistent_focused_index = item_index_to_persistent_index(focused_item_index()),
+        .persistent_scroll_offset = item_index_to_persistent_index(scroll_offset()),
     };
 }
 
