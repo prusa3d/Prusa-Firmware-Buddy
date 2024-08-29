@@ -50,6 +50,7 @@
 #include <option/has_modularbed.h>
 #include <option/has_loadcell_hx717.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_i2c_expander.h>
 
 #if (!defined(PRINTER_IS_PRUSA_MINI) || !defined(PRINTER_IS_PRUSA_MK4) || !defined(PRINTER_IS_PRUSA_MK3_5) \
     || !defined(PRINTER_IS_PRUSA_XL) || !defined(PRINTER_IS_PRUSA_iX))
@@ -403,12 +404,12 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
         #error "Unknown board."
     #endif // #if (BOARD_TYPE == BUDDY_BOARD)
 
-    #if BOARD_IS_XBUDDY()
+    #if HAS_I2C_EXPANDER()
         #include "TCA6408A.hpp"
         namespace buddy::hw {
             extern TCA6408A io_expander2;
         }
-    #endif // BOARD_IS_XBUDDY()
+    #endif // HAS_I2C_EXPANDER()
 // clang-format on
 
 /**

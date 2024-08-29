@@ -16,6 +16,7 @@
 #include "data_exchange.hpp"
 #include <option/has_puppies.h>
 #include <option/has_burst_stepping.h>
+#include <option/has_i2c_expander.h>
 #include <printers.h>
 
 // breakpoint
@@ -101,14 +102,14 @@ TIM_HandleTypeDef htim14;
 RTC_HandleTypeDef hrtc;
 RNG_HandleTypeDef hrng;
 
-#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
 namespace buddy::hw {
+#if HAS_I2C_EXPANDER() // HAS_I2C_EXPANDER corresponds to FDM-MK4-GPIO, not io_expander1 which connects DWARFs
 TCA6408A io_expander2(I2C_HANDLE_FOR(io_expander2));
-    #if BOARD_IS_XLBUDDY()
+#endif // HAS_I2C_EXPANDER()
+#if BOARD_IS_XLBUDDY()
 PCA9557 io_expander1(I2C_HANDLE_FOR(io_expander1), 0x1);
-    #endif // BOARD_IS_XLBUDDY()
+#endif // BOARD_IS_XLBUDDY()
 } // namespace buddy::hw
-#endif // BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
 
 //
 // Initialization
