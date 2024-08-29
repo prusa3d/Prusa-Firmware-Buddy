@@ -8,7 +8,10 @@
 #include <filament.hpp>
 #include <encoded_filament.hpp>
 #include <config_store/store_instance.hpp>
-
+#include <option/has_mmu2.h>
+#if HAS_MMU2()
+    #include "feature/prusa/MMU2/mmu2_mk4.h"
+#endif
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -25,8 +28,16 @@ int FooterItemFilament::static_readValue() {
     }
 #endif /*HAS_TOOLCHANGER()*/
 
-    auto current_filament = config_store().get_filament_type(marlin_vars().active_extruder);
-    return EncodedFilamentType(current_filament).data;
+    uint8_t slot = marlin_vars().active_extruder;
+
+#if HAS_MMU2()
+    // There's a bug in marlin_vars::active_extruder that always reports 0 for MMU. Fixing it is complicated, this is a workaround.
+    if (marlin_vars().mmu2_state.get() != static_cast<uint8_t>(MMU2::xState::Stopped)) {
+        slot = MMU2::mmu2.get_current_tool();
+    }
+#endif
+
+    return EncodedFilamentType(slot < EXTRUDERS ? config_store().get_filament_type(slot) : FilamentType::none).data;
 }
 
 string_view_utf8 FooterItemFilament::static_makeView(int value) {
