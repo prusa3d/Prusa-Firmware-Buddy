@@ -154,8 +154,11 @@ void FilamentType::build_name_with_info(StringBuilder &builder) const {
     builder.append_string(parameters().name);
 
     std::visit([&]<typename T>(const T &) {
-        if constexpr (std::is_same_v<T, PresetFilamentType> || std::is_same_v<T, NoFilamentType>) {
+        if constexpr (std::is_same_v<T, NoFilamentType>) {
             // Do nothing
+
+        } else if constexpr (std::is_same_v<T, PresetFilamentType>) {
+            builder.append_string_view(_(" (Preset)"));
 
         } else if constexpr (std::is_same_v<T, UserFilamentType>) {
             builder.append_string_view(_(" (User)"));
