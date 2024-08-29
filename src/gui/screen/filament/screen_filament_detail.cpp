@@ -21,13 +21,14 @@ MI_FILAMENT_NAME::MI_FILAMENT_NAME()
     : MI_COMMON(_("Name"), nullptr, is_enabled_t(filament_type.is_customizable())) {}
 
 void MI_FILAMENT_NAME::update() {
-    ChangeInformation(filament_type.parameters().name);
+    ArrayStringBuilder<GetInfoLen()> sb;
+    filament_type.build_name_with_info(sb);
+    ChangeInformation(sb.str());
     set_is_enabled(filament_type.is_customizable());
 }
 
 void MI_FILAMENT_NAME::click(IWindowMenu &) {
-    std::array<char, filament_name_buffer_size> buf;
-    value().copyToRAM(buf);
+    std::array<char, filament_name_buffer_size> buf = std::to_array(filament_type.parameters().name);
 
     while (true) {
         if (!DialogTextInput::exec(GetLabel(), buf)) {
@@ -57,7 +58,7 @@ void MI_FILAMENT_NAME::click(IWindowMenu &) {
     }
 
     filament_type.modify_parameters([&](auto &p) { memcpy(p.name, buf.data(), buf.size()); });
-    ChangeInformation(buf.data());
+    update();
 }
 
 // * MI_FILAMENT_NOZZLE_TEMPERATURE
