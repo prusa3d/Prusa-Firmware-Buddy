@@ -46,7 +46,16 @@ WindowMenuPreheat::WindowMenuPreheat(window_t *parent, const Rect16 &rect)
 void WindowMenuPreheat::set_data(const PreheatData &data) {
     index_mapping.set_item_enabled<Item::return_>(data.has_return_option);
     index_mapping.set_item_enabled<Item::cooldown>(data.has_cooldown_option);
+
+    // PreheatData might contain -1 for extruder index - that would screw things up
     extruder_index = data.extruder;
+    if (extruder_index >= EXTRUDERS) {
+        extruder_index = marlin_vars().active_extruder.get();
+    }
+    if (extruder_index >= EXTRUDERS) {
+        extruder_index = 0;
+    }
+
     update_list();
 }
 
@@ -107,10 +116,11 @@ void WindowMenuPreheat::setup_item(ItemVariant &variant, int index) {
 
     case Item::adhoc_filament: {
         const auto callback = [this] {
-            Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenFilamentDetail>(ScreenFilamentDetail::Params {
+            const ScreenFilamentDetail::Params params {
                 .filament_type = FilamentType(AdHocFilamentType { .tool = extruder_index }),
                 .mode = ScreenFilamentDetail::Mode::preheat,
-            }));
+            };
+            Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenFilamentDetail>(params));
         };
         variant.emplace<WindowMenuCallbackItem>(_("Custom"), callback);
         break;

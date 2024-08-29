@@ -69,7 +69,7 @@ private:
     DynamicIndexMapping<items> index_mapping;
     bool show_all_filaments_ = false;
 
-    /// Extruder we're doing the preload for
+    /// Extruder we're doing the load/preheat for
     uint8_t extruder_index = 0;
 };
 
