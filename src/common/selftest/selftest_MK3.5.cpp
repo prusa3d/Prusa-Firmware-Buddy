@@ -71,8 +71,8 @@ const AxisConfig_t selftest::Config_XAxis = {
     .axis = X_AXIS,
     .steps = xy_fr_table_size,
     .movement_dir = 1,
-    .park = false,
-    .park_pos = 0,
+    .park = true,
+    .park_pos = 125, // park in the middle to not hit stuff in enclosure (BFW-5966)
 }; // MINI has movement_dir -1
 
 const AxisConfig_t selftest::Config_YAxis = {
