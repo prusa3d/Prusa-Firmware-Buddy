@@ -7,7 +7,10 @@
 #include "img_resources.hpp"
 #include "filament.hpp"
 #include <config_store/store_instance.hpp>
-
+#include <option/has_mmu2.h>
+#if HAS_MMU2()
+    #include "feature/prusa/MMU2/mmu2_mk4.h"
+#endif
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -23,9 +26,13 @@ int FooterItemFilament::static_readValue() {
         return no_tool_value;
     }
 #endif /*HAS_TOOLCHANGER()*/
-
-    auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
-    return static_cast<int>(current_filament);
+    uint8_t slot = marlin_vars()->active_extruder;
+#if HAS_MMU2()
+    if (marlin_vars()->mmu2_state.get() != static_cast<uint8_t>(MMU2::xState::Stopped)) {
+        slot = MMU2::mmu2.get_current_tool();
+    }
+#endif
+    return static_cast<int>(config_store().get_filament_type(slot));
 }
 
 string_view_utf8 FooterItemFilament::static_makeView(int value) {
