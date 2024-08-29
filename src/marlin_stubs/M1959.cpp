@@ -150,6 +150,11 @@ static PhasesInputShaperCalibration info_proceed() {
 }
 
 static PhasesInputShaperCalibration info() {
+#if PRINTER_IS_PRUSA_XL()
+    // On XL, we don't need to be shown the info that asks the user to "ensure that the accelerometer is installed" - it's always on the board
+    return info_proceed();
+
+#else
     switch (wait_for_response(PhasesInputShaperCalibration::info)) {
     case Response::Continue:
         return info_proceed();
@@ -159,6 +164,7 @@ static PhasesInputShaperCalibration info() {
     default:
         std::terminate();
     }
+#endif
 }
 
 // Note: This is only relevant for printers which HAS_LOCAL_ACCELEROMETER()
