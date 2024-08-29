@@ -4,21 +4,6 @@
 #include "i_window_menu_container.hpp"
 #include <tuple>
 
-// helper functions to get Nth element at runtime
-// todo make it member
-template <std::size_t I = 0, typename... Tp>
-inline typename std::enable_if<I == sizeof...(Tp), IWindowMenuItem *>::type
-get_ptr_for_index(int, std::tuple<Tp...> &) { return nullptr; }
-
-template <std::size_t I = 0, typename... Tp>
-    inline typename std::enable_if < I<sizeof...(Tp), IWindowMenuItem *>::type
-    get_ptr_for_index(int index, std::tuple<Tp...> &t) {
-    if (index == 0) {
-        return &(std::get<I>(t));
-    }
-    return get_ptr_for_index<I + 1, Tp...>(index - 1, t);
-}
-
 template <class... T>
 class WinMenuContainer : public IWinMenuContainer {
 public:
@@ -40,11 +25,11 @@ public:
     }
 
     virtual IWindowMenuItem *GetItemByRawIndex(int pos) const override {
-        if (pos > GetRawCount()) {
-            return nullptr;
-        } else {
-            return get_ptr_for_index((int)pos, menu_items);
-        }
+        IWindowMenuItem *result = nullptr;
+        [&]<size_t... i>(std::index_sequence<i...>) {
+            ((pos == i ? (result = &std::get<i>(menu_items)), true : false) || ...);
+        }(std::make_index_sequence<sizeof...(T)>());
+        return result;
     }
 
     virtual int GetRawIndex(IWindowMenuItem &item) const override {
