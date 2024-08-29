@@ -53,6 +53,9 @@ private:
 
 private:
     CloseScreenReturnBehavior close_screen_return_behavior_;
+
+    /// Whether \p setup_items() was ever called
+    bool items_set_up_ = false;
 };
 
 /// WindowMenu implementation that only keeps items that are currently on the screen in the memory.

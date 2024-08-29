@@ -12,7 +12,13 @@ void WindowMenuVirtualBase::setup_items() {
         setup_buffer_slot(buffer_slot, index < item_count ? index : std::nullopt);
     }
 
+    if (!items_set_up_ && should_focus_item_on_init()) {
+        move_focus_to_index(0);
+    }
+
     Invalidate();
+
+    items_set_up_ = true;
 }
 
 IWindowMenuItem *WindowMenuVirtualBase::item_at(int index) {
