@@ -76,7 +76,7 @@ void MI_ActionSelect::get_item_text(size_t index, std::span<char> buffer) const 
 
     case Action::change: {
         StringBuilder sb(buffer);
-        sb.append_string_view(_("Change to"));
+        sb.append_string_view(_(has_filament_loaded ? N_("Change to") : N_("Load")));
         sb.append_char(' ');
         sb.append_string(filament_list[mapping.pos_in_section].parameters().name);
         break;
