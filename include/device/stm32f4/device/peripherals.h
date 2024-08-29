@@ -271,7 +271,7 @@ extern TIM_HandleTypeDef htim14;
     #define i2c_touch          3
     #define i2c_gcode          2
     #define i2c_io_expander1   2
-    #define i2c_io_expander2   2
+    #define i2c_io_expander2   -1
     #define spi_flash          5
     #define spi_lcd            6
     #define spi_tmc            3
