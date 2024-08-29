@@ -59,8 +59,8 @@ private:
         { Item::return_, DynamicIndexMappingType::optional_item },
         { Item::filament_section, DynamicIndexMappingType::dynamic_section },
         { Item::adhoc_filament },
-        { Item::cooldown, DynamicIndexMappingType::optional_item },
         { Item::show_all, DynamicIndexMappingType::optional_item },
+        { Item::cooldown, DynamicIndexMappingType::optional_item },
     });
 
 private:
