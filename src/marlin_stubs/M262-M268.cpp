@@ -25,10 +25,14 @@ static std::optional<uint8_t> check_param(const char param, const char *gcode, u
 /**
  *  M262: Configure pin on IO Expander.
  *
- *  P<base 10> - Select single pin <0;7> to be configured.
- *  B<base 10> - Select pin mode (0 == Output pin, 1 == Input pin)
+ *  ## Parameters
  *
- *  Example: M262 P0 B0     - Set pin0 as Output pin (0)
+ * - `P` - Single pin <0;7> to be configured.
+ * - `B` - Pin mode (0 == Output pin, 1 == Input pin)
+ *
+ *  ## Examples
+ *
+ * - `M262 P0 B0` - Set pin0 as Output pin (0)
  */
 void PrusaGcodeSuite::M262() {
     static constexpr const char *gcode = "M262";
@@ -48,10 +52,14 @@ void PrusaGcodeSuite::M262() {
 /**
  *  M263: Read from IO Expander's pin.
  *
- *  P<base 10> - Select single pin to read from <0;7>.
+ *  ## Parameters
  *
- *  Example: M263 P6    - read only from pin6, received value will be HIGH (binary 0010 0000 => dec 32) or LOW (binary 0000 0000 => dec 0)
- *  Example: M263       - read whole Input register (byte)
+ * - `P` - Single pin to read from <0;7>.
+ *
+ *  ## Examples
+ *
+ * - `M263 P6` - read only from pin6, received value will be HIGH (binary 0010 0000 => dec 32) or LOW (binary 0000 0000 => dec 0)
+ * - `M263` - read whole Input register (byte)
  */
 void PrusaGcodeSuite::M263() {
     static constexpr const char *gcode = "M263";
@@ -86,11 +94,15 @@ void PrusaGcodeSuite::M263() {
 /**
  *  M264: Write to IO Expander's pin.
  *
- *  P<base 10> Select single pin to write to <0;7>.
- *  B<boolean> value to write (0 or 1)
+ *  ## Parameters
  *
- *  Example: M264 P0 B1     - Set output pin0 to HIGH (1)
- *  Example: M264 P7 B0     - Set output pin7 to LOW (0)
+ * - `P` - Select single pin to write to <0;7>.
+ * - `B` - [value] to write (0 or 1)
+ *
+ *  ## Examples
+ *
+ * - `M264 P0 B1` - Set output pin0 to HIGH (1)
+ * - `M264 P7 B0` - Set output pin7 to LOW (0)
  */
 void PrusaGcodeSuite::M264() {
     static constexpr const char *gcode = "M264";
@@ -109,9 +121,13 @@ void PrusaGcodeSuite::M264() {
 /**
  *  M265: Toggle IO Expander's output pin. This G-Code doesn't check if selected pin is configured as Output pin.
  *
- *  P<base 10> Select single pin to flip <0;7>.
+ *  ## Parameters
  *
- *  Example: M264 P0        - Flip pin0
+ *  - `P` - Select single pin to flip <0;7>.
+ *
+ *  ## Examples
+ *
+ * - `M264 P0` - Flip pin0
  */
 void PrusaGcodeSuite::M265() {
     static constexpr const char *gcode = "M265";
@@ -128,12 +144,19 @@ void PrusaGcodeSuite::M265() {
 
 /**
  *  M267: Write to IO Expander's register. This overwrites whole byte. Configuration and Output registers are saved into persistent memory.
- *  R<base 10> Register
- *    Output = 1,
- *    Polarity = 2,
- *    Config = 3
- *  B<base 10> value to be set
- *  Example: M267 R3 B255 - Set up Config register to the value 255dec (1111 1111b)
+
+ *  ## Parameters
+ *
+ *  - `R` - Register
+ *      - Output = 1,
+ *      - Polarity = 2,
+ *      - Config = 3
+ *
+ *  - `B` - [value] to be set
+ *
+ *  ## Examples
+ *
+ * - `M267 R3 B255` - Set up Config register to the value 255dec (1111 1111b)
  */
 void PrusaGcodeSuite::M267() {
     static constexpr const char *gcode = "M267";
@@ -155,12 +178,18 @@ void PrusaGcodeSuite::M267() {
 
 /**
  *  M268: Reads IO expander's register. This reads whole byte.
- *  R<base 10> Register
- *    Input = 0,
- *    Output = 1,
- *    Polarity = 2,
- *    Config = 3
- *  Example: M268 R3 - Reads Config register
+ *
+ *  ## Parameters
+ *
+ *  - `R` - Register
+ *      - Input = 0,
+ *      - Output = 1,
+ *      - Polarity = 2,
+ *      - Config = 3
+ *
+ *  ## Examples
+ *
+ * - `M268 R3` - Reads Config register
  */
 void PrusaGcodeSuite::M268() {
     static constexpr const char *gcode = "M268";

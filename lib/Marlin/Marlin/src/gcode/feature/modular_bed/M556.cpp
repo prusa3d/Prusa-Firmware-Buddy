@@ -34,6 +34,13 @@
 
 /**
  * M556: Override modular bedled active
+ *
+ * ## Parameters
+ *
+ * - `x` - [value] Coordinate on X axis
+ * - `Y` - [value] Coordinate on Y axis
+ * - `I` - [value] Betlet number
+ * - '[A|D]` - activate/deactivate selected betlet
  */
 void GcodeSuite::M556() {
 

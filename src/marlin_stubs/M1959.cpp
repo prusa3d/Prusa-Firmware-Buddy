@@ -537,6 +537,14 @@ static PhasesInputShaperCalibration get_next_phase(Context &context, const Phase
 
 namespace PrusaGcodeSuite {
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
+/**
+ *  Input Shaper Calibration Wizard. Prusa BUDDY FW specific.
+ */
+
 void M1959() {
     Context context;
     PhasesInputShaperCalibration phase = PhasesInputShaperCalibration::info;
@@ -545,5 +553,7 @@ void M1959() {
         phase = get_next_phase(context, phase);
     } while (phase != PhasesInputShaperCalibration::finish);
 }
+
+/** @}*/
 
 } // namespace PrusaGcodeSuite

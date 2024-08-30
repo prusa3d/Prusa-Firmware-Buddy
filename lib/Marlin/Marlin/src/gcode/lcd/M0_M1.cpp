@@ -51,7 +51,20 @@
 
 /**
  * M0: Unconditional stop - Wait for user button press on LCD
+ *
+ * ## Parameters
+ *
+ * - `P` - [value] Milliseconds to wait
+ * - `S` - [value] Seconds to wait (priority)
+ */
+
+/**
  * M1: Conditional stop   - Wait for user button press on LCD
+ *
+ * ## Parameters
+ *
+ * - `P` - [value] Milliseconds to wait
+ * - `S` - [value] Seconds to wait (priority)
  */
 void GcodeSuite::M0_M1() {
   const char * const args = parser.string_arg;

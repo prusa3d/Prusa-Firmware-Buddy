@@ -272,6 +272,13 @@ PhasesPhaseStepping get_next_phase(Context &context, const PhasesPhaseStepping p
 
 namespace PrusaGcodeSuite {
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
+/**
+ *  Phase Stepping Calibration Dialog. Prusa BUDDY FW specific.
+ */
 void M1977() {
     PhasesPhaseStepping phase = PhasesPhaseStepping::intro;
     Context context {};
@@ -280,5 +287,7 @@ void M1977() {
         phase = get_next_phase(context, phase);
     } while (phase != PhasesPhaseStepping::finish);
 }
+
+/** @}*/
 
 } // namespace PrusaGcodeSuite

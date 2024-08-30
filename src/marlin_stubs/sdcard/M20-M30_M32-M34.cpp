@@ -104,6 +104,14 @@ void GcodeSuite::M27() {
     }
 }
 
+/**
+ *  M32 - Select file and start SD print
+ */
+void GcodeSuite::M32() {
+    M23();
+    M24();
+}
+
 /** @}*/
 
 // M28 - Begin write to SD card
@@ -119,12 +127,6 @@ void GcodeSuite::M29() {
 // M30 - Delete a file on the SD card
 void GcodeSuite::M30() {
     // TODO
-}
-
-// M32 - Select file and start SD print
-void GcodeSuite::M32() {
-    M23();
-    M24();
 }
 
 //
