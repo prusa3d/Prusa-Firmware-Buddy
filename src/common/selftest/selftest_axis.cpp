@@ -71,7 +71,7 @@ void CSelftestPart_Axis::phaseMove(int8_t dir) {
         start_sensorless_homing_per_axis(AxisEnum(config.axis));
     }
 #endif
-    unmeasured_distance = (dir > 0 ? soft_endstop.min : soft_endstop.max)[config.axis] - current_position.pos[config.axis];
+    unmeasured_distance = std::abs((dir > 0 ? soft_endstop.min : soft_endstop.max)[config.axis] - current_position.pos[config.axis]);
 
     current_position.pos[config.axis] += dir * (config.length + EXTRA_LEN_MM);
     line_to_current_position(feedrate);
