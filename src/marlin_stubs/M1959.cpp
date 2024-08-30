@@ -311,17 +311,17 @@ static PhasesInputShaperCalibration measuring_axis(
     } progress_hook_data {
         .phase = phase
     };
-    const auto progress_hook = [&progress_hook_data](float progress) {
+    const auto progress_hook = [&progress_hook_data](const VibrateMeasureProgressHookParams &params) {
         progress_hook_data.aborted |= was_abort_requested(progress_hook_data.phase);
         if (progress_hook_data.aborted) {
             return false;
         }
 
         // data[3] == 1 calibrating
-        if (abs(progress - progress_hook_data.prev_progress) >= 0.01f) {
-            fsm::PhaseData calibrating_data = { 0, 0, static_cast<uint8_t>(255 * progress), 1 };
+        if (params.phase == VibrateMeasureProgressHookParams::Phase::calibrating && abs(params.progress - progress_hook_data.prev_progress) >= 0.01f) {
+            fsm::PhaseData calibrating_data = { 0, 0, static_cast<uint8_t>(255 * params.progress), 1 };
             marlin_server::fsm_change(progress_hook_data.phase, calibrating_data);
-            progress_hook_data.prev_progress = progress;
+            progress_hook_data.prev_progress = params.progress;
         }
 
         idle(true, true);

@@ -41,6 +41,7 @@ public:
 };
 
 /// \returns false if the measurement should be aborted
+/// \param progress is in range 0-1
 using SamplePeriodProgressHook = stdext::inplace_function<bool(float progress)>;
 
 float maybe_calibrate_and_get_accelerometer_sample_period(PrusaAccelerometer &accelerometer, bool calibrate_accelerometer, const SamplePeriodProgressHook &progress_hook);
@@ -99,7 +100,26 @@ struct VibrateMeasureResult {
     }
 };
 
-std::optional<VibrateMeasureResult> vibrate_measure_repeat(const VibrateMeasureParams &args, float frequency, const SamplePeriodProgressHook &progress_hook);
+struct VibrateMeasureProgressHookParams {
+    enum class Phase {
+        /// Calibrating accelerometer phase
+        calibrating,
+
+        /// The actual measuring.
+        measuring,
+    };
+
+    /// Phase of \p vibrate_measure. Phases have separate progress reporting.
+    Phase phase;
+
+    /// Progress (0-1) withing the \p phase
+    float progress;
+};
+
+/// \returns \p false if the measurement should be aborted
+using VibrateMeasureProgressHook = stdext::inplace_function<bool(const VibrateMeasureProgressHookParams &params)>;
+
+std::optional<VibrateMeasureResult> vibrate_measure_repeat(const VibrateMeasureParams &args, float frequency, const VibrateMeasureProgressHook &progress_hook);
 
 /// \returns false if the measurement should be aborted
 using FindBestShaperProgressHook = stdext::inplace_function<bool(input_shaper::Type checked_type, float progress)>;

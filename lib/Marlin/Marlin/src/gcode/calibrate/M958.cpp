@@ -419,7 +419,7 @@ bool VibrateMeasureParams::setup(const MicrostepRestorer &microstep_restorer) {
  * @retval VibrateMeasureResult on success
  * @retval std::nullopt on failure
  */
-static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &args, float requested_frequency, const SamplePeriodProgressHook &progress_hook) {
+static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &args, float requested_frequency, const VibrateMeasureProgressHook &progress_hook) {
     if (args.klipper_mode && args.measured_harmonic != 1) {
         SERIAL_ERROR_MSG("vibrate measure: klipper mode does not support measuring higher harmonics");
         return std::nullopt;
@@ -456,8 +456,13 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
 
     Accumulator accumulator = {};
 
-    float accelerometer_period_time = 0.f;
-    const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, args.calibrate_accelerometer, progress_hook);
+    const auto calib_progress_hook = [&progress_hook](float progress) {
+        return progress_hook(VibrateMeasureProgressHookParams {
+            .phase = VibrateMeasureProgressHookParams::Phase::calibrating,
+            .progress = progress,
+        });
+    };
+    const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, args.calibrate_accelerometer, calib_progress_hook);
     if (isnan(accelerometer_sample_period)) {
         return std::nullopt;
     }
@@ -480,6 +485,12 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
     const uint32_t steps_to_do = generator.getStepsPerPeriod() * args.excitation_cycles;
     const uint32_t steps_to_do_max = steps_to_do * 2 + generator.getStepsPerPeriod() + STEP_EVENT_QUEUE_SIZE;
     bool do_once = true; // Do once after step buffer is refilled
+    float accelerometer_period_time = 0.f;
+
+    VibrateMeasureProgressHookParams progress_hook_params {
+        .phase = VibrateMeasureProgressHookParams::Phase::measuring,
+        .progress = 0,
+    };
 
     /// Processes one sample from the accelerometer.
     /// \returns true if there was a sample to process.
@@ -494,6 +505,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
 
         ++sample_nr;
         enough_samples_collected = (sample_nr >= samples_to_collect);
+        progress_hook_params.progress = std::min<float>(static_cast<float>(sample_nr) / samples_to_collect, 1);
         accelerometer_period_time += accelerometer_sample_period;
         if (accelerometer_period_time > measurement_period) {
             accelerometer_period_time -= measurement_period;
@@ -559,7 +571,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
                 // The progress hook is intended for reporting accelerometer calibration, not vibrate measure progress...
                 // Design like this shouldn't have been merged.
                 // But since we're here, let's also use  it for allowing aborting the vibrate_measure
-                if (!progress_hook(1)) {
+                if (!progress_hook(progress_hook_params)) {
                     return std::nullopt;
                 }
 
@@ -622,7 +634,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
                 // The progress hook is intended for reporting accelerometer calibration, not vibrate measure progress...
                 // Design like this shouldn't have been merged.
                 // But since we're here, let's also use  it for allowing aborting the vibrate_measure
-                if (!progress_hook(1)) {
+                if (!progress_hook(progress_hook_params)) {
                     return std::nullopt;
                 }
 
@@ -712,7 +724,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
  * @param calibrate_accelerometer
  * @return Frequency and gain measured on each axis if there is accelerometer
  */
-std::optional<VibrateMeasureResult> vibrate_measure_repeat(const VibrateMeasureParams &args, float frequency, const SamplePeriodProgressHook &progress_hook) {
+std::optional<VibrateMeasureResult> vibrate_measure_repeat(const VibrateMeasureParams &args, float frequency, const VibrateMeasureProgressHook &progress_hook) {
     constexpr int max_attempts = 3;
     for (int attempt = 0; attempt < max_attempts; ++attempt) {
         const auto result = vibrate_measure(args, frequency, progress_hook);
@@ -861,7 +873,7 @@ float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]) {
     return NAN;
 }
 
-static bool idle_progress_hook(float) {
+static bool idle_progress_hook(const VibrateMeasureProgressHookParams &) {
     idle(true, true);
     return true;
 };
