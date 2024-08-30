@@ -310,6 +310,19 @@ StringBuilder &StringBuilder::append_vprintf(const char *fmt, va_list args) {
     return *this;
 }
 
+// This stupid utility function saves 3kB of FLASH...
+// ...unless somebody else uses pow() somewhere, then it can be removed again.
+static constexpr uint32_t dumb_pow_10(uint8_t exponent) {
+    uint32_t result = 1;
+    for (uint8_t i = 0; i < exponent; ++i) {
+        result *= 10;
+    }
+    return result;
+}
+static_assert(dumb_pow_10(0) == 1);
+static_assert(dumb_pow_10(1) == 10);
+static_assert(dumb_pow_10(2) == 100);
+
 StringBuilder &StringBuilder::append_float(double val, const AppendFloatConfig &config) {
     if (isnan(val)) {
         append_string("NaN");
@@ -317,7 +330,7 @@ StringBuilder &StringBuilder::append_float(double val, const AppendFloatConfig &
     }
 
     const bool is_negative = val < 0;
-    uint32_t precision_mult = static_cast<uint32_t>(pow(10, config.max_decimal_places));
+    uint32_t precision_mult = dumb_pow_10(config.max_decimal_places);
     uint64_t accum = static_cast<uint64_t>(round(abs(val) * precision_mult));
 
     if (accum == 0) {
