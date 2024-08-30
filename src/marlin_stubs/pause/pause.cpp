@@ -480,7 +480,6 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         case CommonLoadType::autoload:
             // if filament is not present we want to break and not set loaded filament
             // we have already loaded the filament in gear, now just wait for temperature to rise
-            config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
             set(LoadPhases_t::wait_temp);
             handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
             break;
@@ -494,8 +493,6 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
                 set(LoadPhases_t::_finish);
                 break;
             }
-
-            config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
 
             setPhase(PhasesLoadUnload::IsColor, 99);
             set(LoadPhases_t::ask_is_color_correct);
@@ -516,6 +513,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
             break;
         }
+        config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         break;
 
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
