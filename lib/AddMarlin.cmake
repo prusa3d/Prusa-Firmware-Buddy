@@ -189,18 +189,19 @@ if(BOARD_IS_MASTER_BOARD)
             Marlin/Marlin/src/module/stepper/TMC26X.cpp
     )
 
-  if(HAS_LOCAL_ACCELEROMETER)
+  if(HAS_REMOTE_ACCELEROMETER OR HAS_LOCAL_ACCELEROMETER)
     target_sources(
       Marlin PRIVATE Marlin/Marlin/src/gcode/calibrate/M958.cpp
-                     Marlin/Marlin/src/module/prusa/accelerometer_local.cpp
+                     Marlin/Marlin/src/module/prusa/accelerometer.cpp
       )
+  endif()
+  if(HAS_LOCAL_ACCELEROMETER)
+    target_sources(Marlin PRIVATE Marlin/Marlin/src/module/prusa/accelerometer_local.cpp)
   endif()
   if(HAS_REMOTE_ACCELEROMETER)
     target_sources(
-      Marlin
-      PRIVATE Marlin/Marlin/src/gcode/calibrate/M958.cpp
-              Marlin/Marlin/src/module/prusa/accelerometer_remote.cpp
-              Marlin/Marlin/src/module/prusa/accelerometer_utils.cpp
+      Marlin PRIVATE Marlin/Marlin/src/module/prusa/accelerometer_remote.cpp
+                     Marlin/Marlin/src/module/prusa/accelerometer_utils.cpp
       )
   endif()
 

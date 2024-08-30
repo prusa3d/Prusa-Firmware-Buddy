@@ -200,41 +200,6 @@ void GcodeSuite::M973() {
     phase_stepping::save_correction_to_file(lut, phase_stepping::get_correction_file_path(axis, forward_correction ? phase_stepping::CorrectionType::forward : phase_stepping::CorrectionType::backward));
 }
 
-template <typename YieldError>
-static bool accelerometer_ok(PrusaAccelerometer &acc, YieldError yield_error) {
-    PrusaAccelerometer::Error error = acc.get_error();
-    switch (error) {
-    case PrusaAccelerometer::Error::none:
-        return true;
-    case PrusaAccelerometer::Error::communication:
-        yield_error("accelerometer communication");
-        return false;
-#if HAS_REMOTE_ACCELEROMETER()
-    case PrusaAccelerometer::Error::no_active_tool:
-        yield_error("no active tool");
-        return false;
-    case PrusaAccelerometer::Error::busy:
-        yield_error("busy");
-        return false;
-#endif
-    case PrusaAccelerometer::Error::overflow_sensor:
-        yield_error("sample overrun on accelerometer sensor");
-        return false;
-#if HAS_REMOTE_ACCELEROMETER()
-    case PrusaAccelerometer::Error::overflow_buddy:
-        yield_error("buddy overflow");
-        return false;
-    case PrusaAccelerometer::Error::overflow_dwarf:
-        yield_error("dwarf overflow");
-        return false;
-    case PrusaAccelerometer::Error::overflow_possible:
-        yield_error("dwarf transmission error");
-        return false;
-#endif
-    }
-    bsod("Unrecognized accelerometer Error");
-}
-
 /**
  * @brief Measure print head resonance
  *
@@ -313,7 +278,7 @@ void GcodeSuite::M974() {
  **/
 void GcodeSuite::M975() {
     PrusaAccelerometer accelerometer;
-    if (!accelerometer_ok(accelerometer, print_error)) {
+    if (accelerometer.report_error(print_error)) {
         return;
     }
 
@@ -349,15 +314,11 @@ void GcodeSuite::M975() {
             break;
 
         case GetSampleResult::error:
-            [[maybe_unused]] const auto is_ok = accelerometer_ok(accelerometer, print_error);
-            assert(!is_ok);
+            accelerometer.report_error(print_error);
             return;
         }
     }
 
-    if (!accelerometer_ok(accelerometer, print_error)) {
-        return;
-    }
     SERIAL_ECHO("sample freq: ");
     SERIAL_ECHOLN(accelerometer.get_sampling_rate());
 }

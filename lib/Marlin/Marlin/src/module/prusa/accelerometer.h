@@ -44,6 +44,8 @@ public:
         overflow_dwarf, ///< Data not consistent, sample missed on dwarf
         overflow_possible, ///< Data not consistent, sample possibly lost in transfer
 #endif
+
+        _cnt
     };
 
     PrusaAccelerometer();
@@ -72,6 +74,21 @@ public:
      */
     Error get_error() const { return m_sample_buffer.error.get(); }
 
+    /// \returns string describing the error or \p nullptr
+    const char *error_str() const;
+
+    /// If \p get_error() is not \p None, calls \p report_func(error_str)
+    /// \returns \p true if there was an error and \p report_func was called
+    template <typename F>
+    inline bool report_error(const F &report_func) const {
+        if (const auto str = error_str()) {
+            report_func(str);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 #if HAS_REMOTE_ACCELEROMETER()
     static void put_sample(common::puppies::fifo::AccelerometerXyzSample sample);
     static void set_rate(float rate);
@@ -95,11 +112,13 @@ private:
             switch (m_error) {
             case Error::none:
             case Error::communication:
+            case Error::_cnt:
 #if HAS_REMOTE_ACCELEROMETER()
             case Error::no_active_tool:
             case Error::busy:
 #endif
                 break;
+
             case Error::overflow_sensor:
 #if HAS_REMOTE_ACCELEROMETER()
             case Error::overflow_buddy:

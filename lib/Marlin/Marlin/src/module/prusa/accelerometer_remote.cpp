@@ -65,6 +65,7 @@ PrusaAccelerometer::~PrusaAccelerometer() {
         std::lock_guard lock(s_buffer_mutex);
         switch (m_sample_buffer.error.get()) {
         case Error::none:
+        case Error::_cnt:
         case Error::communication:
         case Error::overflow_sensor:
         case Error::overflow_buddy:
