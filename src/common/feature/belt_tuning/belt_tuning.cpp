@@ -105,10 +105,12 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
 
             return !config.progress_callback || config.progress_callback(progress_args);
         });
-        measure_params.calibrate_accelerometer = false;
+
         if (!measure_result.has_value()) {
             return std::nullopt;
         }
+
+        measure_params.calibrate_accelerometer = false;
 
         const float amplitude = measure_result->amplitude[X_AXIS] * measure_result->amplitude[Y_AXIS];
         log_info(Marlin, "Belt tuning: %f Hz -> %f", (double)measure_result->excitation_frequency, (double)amplitude);
