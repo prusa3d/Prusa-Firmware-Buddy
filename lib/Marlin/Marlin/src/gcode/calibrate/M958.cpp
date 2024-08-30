@@ -718,7 +718,7 @@ std::optional<VibrateMeasureResult> vibrate_measure_repeat(const VibrateMeasureP
         }
     }
 
-    SERIAL_ERROR_MSG("maximum attempts exhausted");
+    SERIAL_ERROR_MSG("vibrate_measure_repeat: maximum attempts exhausted");
     return std::nullopt;
 }
 
