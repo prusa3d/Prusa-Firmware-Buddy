@@ -7,6 +7,7 @@
 #include "selftest_axis_config.hpp"
 #include "selftest_log.hpp"
 
+#include <printers.h>
 namespace selftest {
 
 inline constexpr char axis_to_letter(uint32_t axis) {
@@ -33,7 +34,9 @@ class CSelftestPart_Axis {
     uint16_t m_SGCount = 0;
     uint8_t m_Step = 0;
     uint8_t m_SGOrig_mask;
+#if !PRINTER_IS_PRUSA_XL()
     float unmeasured_distance = 0; // Distance traveled before axis measuring is started
+#endif
     bool coils_ok = false; // Initially false, set to true when any coil check passes
     static CSelftestPart_Axis *m_pSGAxis;
 
