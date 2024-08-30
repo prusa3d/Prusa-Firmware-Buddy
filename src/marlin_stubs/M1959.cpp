@@ -305,7 +305,7 @@ static PhasesInputShaperCalibration measuring_axis(
 
     struct {
         bool aborted = false;
-        float prev_progress = NAN;
+        float prev_progress = -1;
         PhasesInputShaperCalibration phase;
 
     } progress_hook_data {

@@ -72,7 +72,7 @@ private:
 
     PhaseOpt phase_calibrating_accelerometer(const Meta::LoopCallbackArgs &) {
         PrusaAccelerometer accelerometer;
-        float prev_progress = NAN;
+        float prev_progress = -1;
 
         const auto calib_result = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true, [&](float progress) {
             aborted_ |= (marlin_server::get_response_from_phase(fsm_.phase()) == Response::Abort);
