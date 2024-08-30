@@ -18,7 +18,6 @@ LOG_COMPONENT_REF(GUI);
 /// This is something else than the selected file for print
 /// This is used to restore the content of the browser into previous state including the layout
 static char firstVisibleSFN[FileSort::MAX_SFN];
-char WindowFileBrowser::root_[FILE_PATH_BUFFER_LEN] = "/usb";
 
 static constexpr char dirUp[] = "..";
 static constexpr char slash = '/';
@@ -26,8 +25,6 @@ static constexpr char slash = '/';
 WindowFileBrowser::WindowFileBrowser(window_t *parent, Rect16 rect, const char *media_SFN_path)
     : window_file_list_t(parent, rect) {
 
-    // set root of the file list
-    window_file_list_t::SetRoot(root_);
     // initialize the directory
     // here the strncpy is meant to be - need the rest of the buffer zeroed
     strncpy(sfn_path, media_SFN_path, sizeof(sfn_path));
@@ -37,8 +34,8 @@ WindowFileBrowser::WindowFileBrowser(window_t *parent, Rect16 rect, const char *
     char *c = strrchr(sfn_path, '/');
     *c = 0; // even if we didn't find the '/', c will point to valid memory
     // check if we are at least in the root directory, if not move to root directory
-    if (strstr(sfn_path, root_) != sfn_path) {
-        strlcpy(sfn_path, root_, FILE_PATH_BUFFER_LEN);
+    if (strstr(sfn_path, root) != sfn_path) {
+        strlcpy(sfn_path, root, FILE_PATH_BUFFER_LEN);
     }
     // Moreover - the next characters after c contain the filename, which I want to start my cursor at!
     Load(GuiFileSort::Get(), c + 1, firstVisibleSFN);
@@ -71,14 +68,6 @@ void WindowFileBrowser::windowEvent(window_t *sender, GUI_event_t event, void *p
     }
 
     window_file_list_t::windowEvent(sender, event, param);
-}
-
-const char *WindowFileBrowser::root() {
-    return root_;
-}
-
-void WindowFileBrowser::SetRoot(const char *path) {
-    strlcpy(root_, path, sizeof(root_));
 }
 
 void WindowFileBrowser::SaveTopSFN() {

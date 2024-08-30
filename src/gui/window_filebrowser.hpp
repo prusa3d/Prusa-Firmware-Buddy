@@ -5,13 +5,8 @@
 #include <window_menu_adv.hpp>
 
 class WindowFileBrowser : public window_file_list_t {
-    static char root_[FILE_PATH_BUFFER_LEN]; // we currently do not support multiple file browsers
-
 public:
     WindowFileBrowser(window_t *parent, Rect16 rect, const char *media_SFN_path);
-
-    static void SetRoot(const char *path);
-    const char *root();
 
     void SaveTopSFN();
     void clear_first_visible_sfn();

@@ -183,7 +183,6 @@ screen_home_data_t::screen_home_data_t()
     EnableLongHoldScreenAction();
     window_frame_t::ClrMenuTimeoutClose();
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
-    WindowFileBrowser::SetRoot("/usb");
 
 #if !HAS_MINI_DISPLAY()
     header.SetIcon(&img::home_shape_16x16);

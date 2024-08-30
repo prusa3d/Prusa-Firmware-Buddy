@@ -47,6 +47,7 @@ public:
 class window_file_list_t : public WindowMenuVirtual<WindowMenuItem, MI_RETURN> {
 
 public:
+    static constexpr const char *root = "/usb";
     static constexpr int max_max_items_on_screen = GuiDefaults::FileBrowserRect.Height() / item_height();
     using LDV = LazyDirView<max_max_items_on_screen>;
 
@@ -68,7 +69,6 @@ public:
     const char *TopItemSFN();
     const char *CurrentLFN(bool *isFile = nullptr) const;
     const char *CurrentSFN(bool *isFile = nullptr) const;
-    static void SetRoot(char *rootPath);
 
     /// @return true if path is either empty or contains just a "/"
     static bool IsPathRoot(const char *path);
@@ -78,5 +78,4 @@ protected:
 
 protected:
     LDV ldv;
-    static char *root; // this is a Short-File-Name path to the root of the dialog
 };

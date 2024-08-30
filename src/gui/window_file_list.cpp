@@ -42,9 +42,6 @@ void GuiFileSort::Set(WF_Sort_t val) {
     instance().sort = val;
 }
 
-// static definitions
-char *window_file_list_t::root = nullptr;
-
 void window_file_list_t::set_scroll_offset(int set) {
     if (scroll_offset() == set) {
         return;
@@ -59,7 +56,7 @@ void window_file_list_t::set_scroll_offset(int set) {
 }
 
 bool window_file_list_t::IsPathRoot(const char *path) {
-    return (path[0] == 0 || (root && strcmp(path, root) == 0));
+    return (path[0] == 0 || (strcmp(path, root) == 0));
 }
 
 void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
@@ -152,11 +149,7 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rc)
 
     DisableLongHoldScreenAction();
     Enable();
-    strlcpy(sfn_path, "/usb", FILE_PATH_BUFFER_LEN);
-}
-
-void window_file_list_t::SetRoot(char *rootPath) {
-    root = rootPath;
+    strlcpy(sfn_path, root, FILE_PATH_BUFFER_LEN);
 }
 
 void window_file_list_t::setup_item(ItemVariant &variant, int index) {
