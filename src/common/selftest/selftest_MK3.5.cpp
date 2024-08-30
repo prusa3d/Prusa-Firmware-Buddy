@@ -63,11 +63,11 @@ static constexpr SelftestFansConfig fans_configs[] = {
 // reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = {
     .partname = "X-Axis",
-    .length = X_MAX_POS,
+    .length = X_MAX_LENGTH,
     .fr_table_fw = XYfr_table,
     .fr_table_bw = XYfr_table,
-    .length_min = X_MAX_POS,
-    .length_max = X_MAX_POS + X_END_GAP,
+    .length_min = X_MAX_LENGTH,
+    .length_max = X_MAX_LENGTH + X_END_GAP,
     .axis = X_AXIS,
     .steps = xy_fr_table_size,
     .movement_dir = 1,
