@@ -2,6 +2,7 @@
  * @file
  */
 #pragma once
+
 #include "../../inc/MarlinConfigPre.h"
 #include <option/has_local_accelerometer.h>
 #include <option/has_remote_accelerometer.h>
@@ -53,9 +54,14 @@ public:
      */
     void clear();
 
-    /// Obtains one sample from the buffer and puts it to \param acceleration
-    /// \returns 0 if the queue is empty and no sample was obtained otherwise a number >0 (number of samples remaining to be read + 1 - the just returned one)
-    int get_sample(Acceleration &acceleration);
+    enum class GetSampleResult {
+        ok,
+        buffer_empty,
+        error,
+    };
+
+    /// Obtains one sample from the buffer and puts it to \param acceleration (if the results is ok).
+    GetSampleResult get_sample(Acceleration &acceleration);
 
     float get_sampling_rate() const { return m_sampling_rate; }
     /**

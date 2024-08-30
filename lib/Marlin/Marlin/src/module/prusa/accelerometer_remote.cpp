@@ -94,22 +94,34 @@ void PrusaAccelerometer::clear() {
     m_sample_buffer.buffer.clear();
     m_sample_buffer.error.clear_overflow();
 }
-int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
+
+PrusaAccelerometer::GetSampleResult PrusaAccelerometer::get_sample(Acceleration &acceleration) {
     std::lock_guard lock(s_buffer_mutex);
-    common::puppies::fifo::AccelerometerXyzSample sample;
-    const bool ret_val = m_sample_buffer.buffer.try_get(sample);
-    if (ret_val) {
-        AccelerometerUtils::SampleStatus sample_status;
-        acceleration = AccelerometerUtils::unpack_sample(sample_status, sample);
-        if (sample_status.buffer_overflow) {
-            m_sample_buffer.error.set(Error::overflow_dwarf);
-        }
-        if (sample_status.sample_overrun) {
-            m_sample_buffer.error.set(Error::overflow_sensor);
-        }
+    if (get_error() != Error::none) {
+        return GetSampleResult::error;
     }
-    return ret_val;
+
+    common::puppies::fifo::AccelerometerXyzSample sample;
+    if (!m_sample_buffer.buffer.try_get(sample)) {
+        return GetSampleResult::buffer_empty;
+    }
+
+    AccelerometerUtils::SampleStatus sample_status;
+    acceleration = AccelerometerUtils::unpack_sample(sample_status, sample);
+
+    if (sample_status.buffer_overflow) {
+        m_sample_buffer.error.set(Error::overflow_dwarf);
+        return GetSampleResult::error;
+    }
+
+    if (sample_status.sample_overrun) {
+        m_sample_buffer.error.set(Error::overflow_sensor);
+        return GetSampleResult::error;
+    }
+
+    return GetSampleResult::ok;
 }
+
 void PrusaAccelerometer::put_sample(common::puppies::fifo::AccelerometerXyzSample sample) {
     std::lock_guard lock(s_buffer_mutex);
     if (s_sample_buffer) {

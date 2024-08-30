@@ -336,14 +336,24 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
     while (axis_state.is_cruising.load()) {
         counter++;
         PrusaAccelerometer::Acceleration sample;
-        int has_new_sample = accelerometer.get_sample(sample);
-        if (has_new_sample && counter > 20) { // Be pessimistic about old samples in FIFOs
-            yield_sample(sample);
+        using GetSampleResult = PrusaAccelerometer::GetSampleResult;
+        switch (accelerometer.get_sample(sample)) {
+
+        case GetSampleResult::ok:
+            if (counter > 20) { // Be pessimistic about old samples in FIFOs
+                yield_sample(sample);
+            }
+            break;
+
+        case GetSampleResult::buffer_empty:
+            break;
+
+        case GetSampleResult::error: {
+            const PrusaAccelerometer::Error error = accelerometer.get_error();
+            log_error(PhaseStepping, "Accelerometer reading failed %u", static_cast<unsigned>(error));
+            return 0;
         }
-    }
-    if (PrusaAccelerometer::Error error = accelerometer.get_error(); error != PrusaAccelerometer::Error::none) {
-        log_error(PhaseStepping, "Accelerometer reading failed %u", static_cast<unsigned>(error));
-        return 0;
+        }
     }
     return accelerometer.get_sampling_rate();
 }

@@ -283,26 +283,34 @@ float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_h
 
     for (int i = 0; i < request_samples_num;) {
         PrusaAccelerometer::Acceleration measured_acceleration;
-        const int samples = accelerometer.get_sample(measured_acceleration);
-        if (samples) {
+        using GetSampleResult = PrusaAccelerometer::GetSampleResult;
+        switch (accelerometer.get_sample(measured_acceleration)) {
+
+        case GetSampleResult::ok:
             ++i;
+            break;
 
-        } else if (!progress_hook(static_cast<float>(i) / request_samples_num)) {
-            return NAN;
+        case GetSampleResult::buffer_empty: {
+            if (!progress_hook(static_cast<float>(i) / request_samples_num)) {
+                return NAN;
+            }
+
+            const uint32_t now = millis();
+            duration_ms = now - start_time;
+
+            if (duration_ms > max_duration_ms) {
+                SERIAL_ERROR_MSG("sample period: getting accelerometer samples timed out");
+                (void)is_ok(accelerometer.get_error());
+                return NAN;
+            }
+            break;
         }
 
-        const uint32_t now = millis();
-        duration_ms = now - start_time;
-
-        if (duration_ms > max_duration_ms) {
-            SERIAL_ERROR_MSG("sample period: getting accelerometer samples timed out");
-            (void)is_ok(accelerometer.get_error());
+        case GetSampleResult::error:
+            [[maybe_unused]] const auto is_ok_r = is_ok(accelerometer.get_error());
+            assert(!is_ok_r);
             return NAN;
         }
-    }
-
-    if (!is_ok(accelerometer.get_error())) {
-        return NAN;
     }
 
     return duration_ms / 1000.f / static_cast<float>(request_samples_num);
@@ -517,12 +525,18 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
                 do_once = false;
             }
             PrusaAccelerometer::Acceleration measured_acceleration;
-            bool got_sample = accelerometer.get_sample(measured_acceleration);
-            if (do_delayed_measurement) {
+            using GetSampleResult = PrusaAccelerometer::GetSampleResult;
+            const GetSampleResult get_sample_result = accelerometer.get_sample(measured_acceleration);
+
+            if (get_sample_result == GetSampleResult::error) {
+                (void)is_ok(accelerometer.get_error());
+                return std::nullopt;
+
+            } else if (do_delayed_measurement) {
                 // If the measurement is delayed, just clear the accelerometer buffer
                 accelerometer.clear();
 
-            } else if (!got_sample) {
+            } else if (get_sample_result != GetSampleResult::ok) {
                 // Failed to obtain thie sample, whatevs
 
             } else if (step_nr <= STEP_EVENT_QUEUE_SIZE) {
@@ -536,7 +550,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
             // Send the metric only when the step queue is full, to prevent possible movement stall
             metric_record_float(&metric_excite_freq, excitation_frequency);
 
-            if (!got_sample) {
+            if (get_sample_result != GetSampleResult::ok) {
                 // The progress hook is intended for reporting accelerometer calibration, not vibrate measure progress...
                 // Design like this shouldn't have been merged.
                 // But since we're here, let's also use  it for allowing aborting the vibrate_measure
@@ -556,10 +570,6 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
             (void)is_ok(accelerometer.get_error());
             return std::nullopt;
         }
-    }
-
-    if (!is_ok(accelerometer.get_error())) {
-        return std::nullopt;
     }
 
     // Possible delayed measurement
@@ -596,11 +606,14 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
 
         while (!enough_samples_collected) {
             PrusaAccelerometer::Acceleration measured_acceleration;
-            const bool got_sample = accelerometer.get_sample(measured_acceleration);
+            using GetSampleResult = PrusaAccelerometer::GetSampleResult;
+            switch (accelerometer.get_sample(measured_acceleration)) {
 
-            if (got_sample) {
+            case GetSampleResult::ok:
                 collect_sample(measured_acceleration);
-            } else {
+                break;
+
+            case GetSampleResult::buffer_empty:
                 // The progress hook is intended for reporting accelerometer calibration, not vibrate measure progress...
                 // Design like this shouldn't have been merged.
                 // But since we're here, let's also use  it for allowing aborting the vibrate_measure
@@ -609,6 +622,11 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
                 }
 
                 idle(true, true);
+                break;
+
+            case GetSampleResult::error:
+                std::ignore = is_ok(accelerometer.get_error());
+                return std::nullopt;
             }
 
             const uint32_t now = millis();

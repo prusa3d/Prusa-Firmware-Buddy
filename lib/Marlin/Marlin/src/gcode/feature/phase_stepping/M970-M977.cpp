@@ -334,12 +334,24 @@ void GcodeSuite::M975() {
 
     for (int i = 0; i < request_samples_num;) {
         PrusaAccelerometer::Acceleration measured_acceleration;
-        const int samples = accelerometer.get_sample(measured_acceleration);
-        if (samples) {
+        using GetSampleResult = PrusaAccelerometer::GetSampleResult;
+        const GetSampleResult get_sample_result = accelerometer.get_sample(measured_acceleration);
+
+        switch (get_sample_result) {
+
+        case GetSampleResult::ok:
             ++i;
             report(measured_acceleration);
-        } else {
+            break;
+
+        case GetSampleResult::buffer_empty:
             idle(true, true);
+            break;
+
+        case GetSampleResult::error:
+            [[maybe_unused]] const auto is_ok = accelerometer_ok(accelerometer, print_error);
+            assert(!is_ok);
+            return;
         }
     }
 
