@@ -194,13 +194,16 @@ private:
 
 } // anonymous namespace
 
-static bool is_ok(PrusaAccelerometer::Error error);
-
 static bool is_full() {
     CRITICAL_SECTION_START;
     bool retval = PreciseStepping::is_step_event_queue_full();
     CRITICAL_SECTION_END;
     return retval;
+}
+
+static void print_accelerometer_error(const char *error) {
+    SERIAL_ERROR_START();
+    SERIAL_ECHOLN(error);
 }
 
 static void enqueue_step(int step_us, bool dir, StepEventFlag_t axis_flags) {
@@ -300,15 +303,14 @@ float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_h
 
             if (duration_ms > max_duration_ms) {
                 SERIAL_ERROR_MSG("sample period: getting accelerometer samples timed out");
-                (void)is_ok(accelerometer.get_error());
+                accelerometer.report_error(print_accelerometer_error);
                 return NAN;
             }
             break;
         }
 
         case GetSampleResult::error:
-            [[maybe_unused]] const auto is_ok_r = is_ok(accelerometer.get_error());
-            assert(!is_ok_r);
+            accelerometer.report_error(print_accelerometer_error);
             return NAN;
         }
     }
@@ -445,7 +447,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
 
     const float acceleration = generator.getAcceleration(excitation_frequency);
     PrusaAccelerometer accelerometer;
-    if (!is_ok(accelerometer.get_error())) {
+    if (accelerometer.report_error(print_accelerometer_error)) {
         return std::nullopt;
     }
 
@@ -529,7 +531,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
             const GetSampleResult get_sample_result = accelerometer.get_sample(measured_acceleration);
 
             if (get_sample_result == GetSampleResult::error) {
-                (void)is_ok(accelerometer.get_error());
+                accelerometer.report_error(print_accelerometer_error);
                 return std::nullopt;
 
             } else if (do_delayed_measurement) {
@@ -567,7 +569,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
 
         if (step_nr > steps_to_do_max) {
             SERIAL_ERROR_MSG("vibrate measure: getting accelerometer samples timed out");
-            (void)is_ok(accelerometer.get_error());
+            accelerometer.report_error(print_accelerometer_error);
             return std::nullopt;
         }
     }
@@ -625,7 +627,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
                 break;
 
             case GetSampleResult::error:
-                std::ignore = is_ok(accelerometer.get_error());
+                accelerometer.report_error(print_accelerometer_error);
                 return std::nullopt;
             }
 
@@ -634,7 +636,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
 
             if (duration_ms > max_duration_ms) {
                 SERIAL_ERROR_MSG("vibrate measure: getting accelerometer samples timed out");
-                (void)is_ok(accelerometer.get_error());
+                accelerometer.report_error(print_accelerometer_error);
                 return std::nullopt;
             }
         }
@@ -852,39 +854,6 @@ float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]) {
 
     SERIAL_ECHOLN("error: unsupported configuration");
     return NAN;
-}
-
-static bool is_ok(PrusaAccelerometer::Error error) {
-    switch (error) {
-    case PrusaAccelerometer::Error::none:
-        return true;
-    case PrusaAccelerometer::Error::communication:
-        SERIAL_ERROR_MSG("accelerometer communication");
-        break;
-#if HAS_REMOTE_ACCELEROMETER()
-    case PrusaAccelerometer::Error::no_active_tool:
-        SERIAL_ERROR_MSG("no active tool");
-        break;
-    case PrusaAccelerometer::Error::busy:
-        SERIAL_ERROR_MSG("busy");
-        break;
-#endif
-    case PrusaAccelerometer::Error::overflow_sensor:
-        SERIAL_ERROR_MSG("sample overrun on accelerometer sensor");
-        break;
-#if HAS_REMOTE_ACCELEROMETER()
-    case PrusaAccelerometer::Error::overflow_buddy:
-        SERIAL_ERROR_MSG("sample missed on buddy");
-        break;
-    case PrusaAccelerometer::Error::overflow_dwarf:
-        SERIAL_ERROR_MSG("sample missed on dwarf");
-        break;
-    case PrusaAccelerometer::Error::overflow_possible:
-        SERIAL_ERROR_MSG("sample possibly lost in transfer");
-        break;
-#endif
-    }
-    return false;
 }
 
 static bool idle_progress_hook(float) {
