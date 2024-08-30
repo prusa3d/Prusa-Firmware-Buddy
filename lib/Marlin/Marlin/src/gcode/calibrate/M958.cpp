@@ -473,6 +473,9 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
         || (step_nr % generator.getStepsPerPeriod() != 0)
 
     ) {
+        // stepDir.get is relatively expensive, so do it first and then check if the buffer is still full
+        const StepDir::RetVal step_dir = stepDir.get();
+
         while (is_full()) {
             PrusaAccelerometer::Acceleration measured_acceleration;
             bool got_sample = accelerometer.get_sample(measured_acceleration);
@@ -506,7 +509,6 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
             }
         }
 
-        const StepDir::RetVal step_dir = stepDir.get();
         enqueue_step(step_dir.step_us, step_dir.dir, args.axis_flag);
         ++step_nr;
 
