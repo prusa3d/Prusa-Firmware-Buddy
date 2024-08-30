@@ -64,7 +64,7 @@ public:
      * Check after PrusaAccelerometer construction.
      * Check after measurement to see if it was valid.
      */
-    Error get_error() { return m_sample_buffer.error.get(); }
+    Error get_error() const { return m_sample_buffer.error.get(); }
 
 #if HAS_REMOTE_ACCELEROMETER()
     static void put_sample(common::puppies::fifo::AccelerometerXyzSample sample);
@@ -82,7 +82,7 @@ private:
                 m_error = error;
             }
         }
-        Error get() {
+        Error get() const {
             return m_error;
         }
         void clear_overflow() {
