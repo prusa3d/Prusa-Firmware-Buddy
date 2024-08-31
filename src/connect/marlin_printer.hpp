@@ -51,6 +51,7 @@ public:
     virtual const char *delete_file(const char *path) override;
     virtual GcodeResult submit_gcode(const char *code) override;
     virtual bool set_ready(bool ready) override;
+    virtual bool set_idle() override;
     virtual bool is_printing() const override;
     virtual bool is_in_error() const override;
     virtual bool is_idle() const override;

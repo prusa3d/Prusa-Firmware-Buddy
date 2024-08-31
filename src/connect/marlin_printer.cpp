@@ -531,6 +531,15 @@ bool MarlinPrinter::set_ready(bool ready) {
     return set_printer_ready(ready);
 }
 
+bool MarlinPrinter::set_idle() {
+    const auto state = printer_state::get_state(false);
+    if (state == printer_state::DeviceState::Finished || state == printer_state::DeviceState::Stopped) {
+        marlin_client::print_exit();
+        return true;
+    }
+    return false;
+}
+
 bool MarlinPrinter::is_printing() const {
     return marlin_client::is_printing();
 }

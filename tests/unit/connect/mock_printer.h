@@ -105,6 +105,10 @@ public:
         return true;
     }
 
+    virtual bool set_idle() override {
+        return true;
+    }
+
     virtual bool is_printing() const override {
         return false;
     }
