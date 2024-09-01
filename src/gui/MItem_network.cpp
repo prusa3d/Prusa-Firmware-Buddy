@@ -127,7 +127,7 @@ MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
 }
 
 void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
-    netdev_set_active_id(this->index);
+    netdev_set_active_id(this->GetIndex());
 }
 
 MI_HOSTNAME::MI_HOSTNAME()

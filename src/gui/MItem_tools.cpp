@@ -471,7 +471,7 @@ MI_SOUND_MODE::MI_SOUND_MODE()
 }
 
 void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
-    Sound_SetMode(static_cast<eSOUND_MODE>(index));
+    Sound_SetMode(static_cast<eSOUND_MODE>(GetIndex()));
 }
 
 /*****************************************************************************/
@@ -537,7 +537,7 @@ MI_TIMEZONE_MIN::MI_TIMEZONE_MIN()
 }
 
 void MI_TIMEZONE_MIN::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().timezone_minutes.set(static_cast<time_tools::TimezoneOffsetMinutes>(index));
+    config_store().timezone_minutes.set(static_cast<time_tools::TimezoneOffsetMinutes>(GetIndex()));
 }
 
 /*****************************************************************************/
@@ -546,7 +546,7 @@ MI_TIMEZONE_SUMMER::MI_TIMEZONE_SUMMER()
     : WI_ICON_SWITCH_OFF_ON_t(static_cast<uint8_t>(config_store().timezone_summer.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_TIMEZONE_SUMMER::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().timezone_summer.set(static_cast<time_tools::TimezoneOffsetSummerTime>(index));
+    config_store().timezone_summer.set(static_cast<time_tools::TimezoneOffsetSummerTime>(GetIndex()));
 }
 
 /*****************************************************************************/
@@ -563,7 +563,7 @@ MI_TIME_FORMAT::MI_TIME_FORMAT()
 }
 
 void MI_TIME_FORMAT::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().time_format.set(static_cast<time_tools::TimeFormat>(index));
+    config_store().time_format.set(static_cast<time_tools::TimeFormat>(GetIndex()));
 }
 
 /*****************************************************************************/

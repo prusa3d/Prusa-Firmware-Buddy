@@ -27,7 +27,7 @@ MI_HARDWARE_CHECK::MI_HARDWARE_CHECK(HWCheckType check_type)
 {}
 
 void MI_HARDWARE_CHECK::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().visit_hw_check(check_type, [set = static_cast<HWCheckSeverity>(index)](auto &item) { item.set(set); });
+    config_store().visit_hw_check(check_type, [set = static_cast<HWCheckSeverity>(this->GetIndex())](auto &item) { item.set(set); });
 }
 
 MI_HARDWARE_G_CODE_CHECKS::MI_HARDWARE_G_CODE_CHECKS()
