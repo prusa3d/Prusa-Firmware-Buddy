@@ -413,6 +413,16 @@ public:
 };
 #endif
 
+#if HAS_LEDS()
+class MI_DISPLAY_BACKLIGHT_BRIGHTNESS : public WiSpin {
+    static constexpr const char *const label = N_("Display Backlight Brightness");
+
+public:
+    MI_DISPLAY_BACKLIGHT_BRIGHTNESS();
+    virtual void OnClick() override;
+};
+#endif
+
 #if HAS_SIDE_LEDS()
 class MI_SIDE_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
     static constexpr const char *const label = N_("RGB Side Strip");

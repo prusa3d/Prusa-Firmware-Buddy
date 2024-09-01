@@ -25,6 +25,7 @@
 #include <option/has_leds.h>
 #if HAS_LEDS()
     #include "led_animations/animator.hpp"
+    #include "gui_leds.hpp"
 #endif
 #include "img_resources.hpp"
 #include "power_panic.hpp"
@@ -533,6 +534,24 @@ void MI_LEDS_ENABLE::OnChange(size_t old_index) {
     } else {
         Animator_LCD_leds().start_animator();
     }
+}
+#endif
+
+#if HAS_LEDS()
+/**********************************************************************************************/
+// MI_DISPLAY_BACKLIGHT_BRIGHTNESS
+static constexpr NumericInputConfig led_display_backlight_brightness_spin_config = {
+    // Keep a min value of 2 percent to make sure the user can still see the lcd content if changed by mistake
+    .min_value = 2,
+    .max_value = 100
+};
+
+MI_DISPLAY_BACKLIGHT_BRIGHTNESS::MI_DISPLAY_BACKLIGHT_BRIGHTNESS()
+    : WiSpin(config_store().leds_display_backlight_brightness.get(), led_display_backlight_brightness_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+void MI_DISPLAY_BACKLIGHT_BRIGHTNESS::OnClick() {
+    leds::display_backlight_brightness(GetVal());
+    leds::store_display_backlight_brightness(GetVal());
 }
 #endif
 
