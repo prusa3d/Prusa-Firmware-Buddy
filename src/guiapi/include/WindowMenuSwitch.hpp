@@ -49,10 +49,8 @@ protected:
     virtual void click(IWindowMenu &window_menu) final;
     virtual void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
 
-protected:
-    size_t index = 0;
-
 private:
     std::span<const char *const> items_;
     bool translate_items_ = true;
+    size_t index = 0;
 };
