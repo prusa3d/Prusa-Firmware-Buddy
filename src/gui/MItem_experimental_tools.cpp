@@ -111,7 +111,7 @@ MI_DIRECTION_X::MI_DIRECTION_X()
     : WiSwitchDirection(has_wrong_x(), NOTRAN(label)) {}
 
 void MI_DIRECTION_X::Store() {
-    index == 1 ? set_wrong_direction_x() : set_PRUSA_direction_x();
+    GetIndex() == 1 ? set_wrong_direction_x() : set_PRUSA_direction_x();
 }
 
 /*****************************************************************************/
@@ -120,7 +120,7 @@ MI_DIRECTION_Y::MI_DIRECTION_Y()
     : WiSwitchDirection(has_wrong_y(), NOTRAN(label)) {}
 
 void MI_DIRECTION_Y::Store() {
-    index == 1 ? set_wrong_direction_y() : set_PRUSA_direction_y();
+    GetIndex() == 1 ? set_wrong_direction_y() : set_PRUSA_direction_y();
 }
 
 /*****************************************************************************/
@@ -129,7 +129,7 @@ MI_DIRECTION_Z::MI_DIRECTION_Z()
     : WiSwitchDirection(has_wrong_z(), NOTRAN(label)) {}
 
 void MI_DIRECTION_Z::Store() {
-    index == 1 ? set_wrong_direction_z() : set_PRUSA_direction_z();
+    GetIndex() == 1 ? set_wrong_direction_z() : set_PRUSA_direction_z();
 }
 
 /*****************************************************************************/
@@ -138,7 +138,7 @@ MI_DIRECTION_E::MI_DIRECTION_E()
     : WiSwitchDirection(has_wrong_e(), NOTRAN(label)) {}
 
 void MI_DIRECTION_E::Store() {
-    index == 1 ? set_wrong_direction_e() : set_PRUSA_direction_e();
+    GetIndex() == 1 ? set_wrong_direction_e() : set_PRUSA_direction_e();
 }
 
 /*****************************************************************************/

@@ -122,7 +122,7 @@ MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
 }
 
 void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
-    netdev_set_active_id(this->index);
+    netdev_set_active_id(this->GetIndex());
 }
 
 MI_HOSTNAME::MI_HOSTNAME()
@@ -176,12 +176,12 @@ MI_NET_IP::MI_NET_IP(NetDeviceID device_id)
     : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH(label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH(str_DHCP), string_view_utf8::MakeCPUFLASH(str_static))
     , device_id(device_id) //
 {
-    index = netdev_get_ip_obtained_type(this->device_id());
+    this->SetIndex(netdev_get_ip_obtained_type(this->device_id()));
 }
 
 void MI_NET_IP::OnChange([[maybe_unused]] size_t old_index) {
     const auto dev_id = device_id();
-    if (index == NETDEV_STATIC) {
+    if (this->GetIndex() == NETDEV_STATIC) {
         netdev_set_static(dev_id);
     } else {
         netdev_set_dhcp(dev_id);
@@ -190,7 +190,7 @@ void MI_NET_IP::OnChange([[maybe_unused]] size_t old_index) {
 
 MI_NET_IP_VER_t::MI_NET_IP_VER_t()
     : WI_SWITCH_t(0, _(label), nullptr, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeCPUFLASH(str_v4), string_view_utf8::MakeCPUFLASH(str_v6)) {
-    this->index = 0;
+    this->SetIndex(0);
 }
 
 IMI_IP4_ADDR::IMI_IP4_ADDR(const char *label, NetDeviceID device_id, AddrType addr)

@@ -84,7 +84,7 @@ constexpr size_t MI_CRASH_SENSITIVITY_XY::get_item_id_from_sensitivity(int32_t s
 }
 
 void MI_CRASH_SENSITIVITY_XY::OnChange([[maybe_unused]] size_t old_index) {
-    int32_t sensitivity = ITEMS[index].value;
+    int32_t sensitivity = ITEMS[this->GetIndex()].value;
     xy_long_t se = crash_s.get_sensitivity();
     se.x = sensitivity;
     se.y = sensitivity;
