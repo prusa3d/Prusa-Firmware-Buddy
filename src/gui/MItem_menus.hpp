@@ -449,6 +449,14 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
+class MI_TOOL_LEDS_BRIGHTNESS : public WiSpin {
+    static constexpr const char *const label = N_("Tool Light Brightness");
+
+public:
+    MI_TOOL_LEDS_BRIGHTNESS();
+    virtual void OnClick() override;
+};
+
 class MI_TOOLS_SETUP : public IWindowMenuItem {
     static constexpr const char *const label = N_("Tools");
 

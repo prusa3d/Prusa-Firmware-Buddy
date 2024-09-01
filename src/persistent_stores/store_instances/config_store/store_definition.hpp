@@ -333,6 +333,7 @@ struct CurrentStore
     StoreItem<int, 120, journal::hash("Side LEDs dimming duration")> side_leds_dimming_duration;
 
     StoreItem<bool, true, journal::hash("Enable Tool LEDs")> tool_leds_enabled;
+    StoreItem<uint8_t, 100, journal::hash("Tool LED brightness")> tool_leds_brightness;
 
     StoreItem<float, 0.0f, journal::hash("Odometer X")> odometer_x;
     StoreItem<float, 0.0f, journal::hash("Odometer Y")> odometer_y;
