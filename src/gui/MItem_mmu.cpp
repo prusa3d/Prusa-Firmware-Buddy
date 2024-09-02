@@ -227,7 +227,7 @@ void MI_MMU_ENABLE::OnChange(size_t old_index) {
     } else {
         // logical_sensors.current_extruder is not synchronized, but in this case it it OK
         if (!is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_extruder))) {
-            MsgBoxWarning(_("Can't enable MMU: enable the printer's filament sensor first."), Responses_Ok);
+            MsgBoxWarning(_("Can't enable MMU: calibrate and enable the printer's filament sensor first."), Responses_Ok);
             SetIndex(old_index);
             return;
         }
