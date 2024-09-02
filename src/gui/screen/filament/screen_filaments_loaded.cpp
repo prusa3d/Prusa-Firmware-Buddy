@@ -20,7 +20,12 @@ MI_LOADED_FILAMENT::MI_LOADED_FILAMENT(DisplayFormat display_format, uint8_t too
 
         StringBuilder sb(label_buffer_);
         if (display_format == DisplayFormat::auto_submenu) {
+#if HAS_MINI_DISPLAY()
+            // Longer text doesn't fit well on the mini display
+            sb.append_string_view(_("Loaded"));
+#else
             sb.append_string_view(_("Loaded filament"));
+#endif
         } else {
             sb.append_string_view(_("Filament"));
             sb.append_printf(" %d", tool + 1);
