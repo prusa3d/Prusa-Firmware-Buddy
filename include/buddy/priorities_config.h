@@ -52,6 +52,7 @@ static_assert(configLIBRARY_LOWEST_INTERRUPT_PRIORITY == 15);
     #define TASK_PRIORITY_DISPLAY_TASK        osPriorityNormal
     #define TASK_PRIORITY_MEASUREMENT_TASK    osPriorityNormal
     #define TASK_PRIORITY_ESP_UPDATE          osPriorityNormal
+    #define TASK_PRIORITY_LOG_TASK            osPriorityBelowNormal
     #define TASK_PRIORITY_TCPIP_THREAD        osPriorityBelowNormal
     #define TASK_PRIORITY_WUI                 osPriorityBelowNormal
     #define TASK_PRIORITY_CONNECT             osPriorityBelowNormal

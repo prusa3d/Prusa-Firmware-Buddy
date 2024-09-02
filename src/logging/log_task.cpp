@@ -1,6 +1,8 @@
 #include <logging/log_task.hpp>
 
 #include <array>
+#include <buddy/priorities_config.h>
+#include <cmsis_os.h>
 #include <cstdio>
 #include <cstdlib>
 
@@ -8,17 +10,20 @@ namespace logging {
 
 Task::Task()
     : task_handle { nullptr } {
-    TaskHandle_t local_task_handle = xTaskCreateStatic(
-        +[](void *ctx) { static_cast<Task *>(ctx)->run(); },
-        "log_task",
-        STACK_SIZE,
-        this,
-        tskIDLE_PRIORITY + 2,
-        task_stack,
-        &task_buffer);
-    if (local_task_handle == nullptr) {
-        abort(); // Since we are allocating statically, this should never happen.
-    }
+    // Here, we are using cmsis in order to use the same priority scheme for all the tasks in system.
+    osThreadDef_t def = {
+        .name = "log_task",
+        // cmsis is REDACTED and for some reason forces the const here
+        .pthread = +[](void const *ctx) { static_cast<Task *>(const_cast<void *>(ctx))->run(); },
+        .tpriority = TASK_PRIORITY_LOG_TASK,
+        // cmsis is REDACTED and insists on having this member without actually using it
+        .instances = 1,
+        // cmsis is REDACTED and lies about this being in bytes; no, it is in words
+        .stacksize = STACK_SIZE,
+        .buffer = task_stack,
+        .controlblock = &task_buffer,
+    };
+    osThreadCreate(&def, this);
 }
 
 void Task::run() {
