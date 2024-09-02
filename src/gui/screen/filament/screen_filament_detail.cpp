@@ -65,7 +65,7 @@ void MI_FILAMENT_NAME::click(IWindowMenu &) {
 static_assert(UpdatableMenuItem<MI_FILAMENT_NOZZLE_TEMPERATURE>);
 
 MI_FILAMENT_NOZZLE_TEMPERATURE::MI_FILAMENT_NOZZLE_TEMPERATURE()
-    : MI_COMMON(0, numeric_input_config::filament_nozzle_temperature, _("Nozzle Temperature")) {}
+    : MI_COMMON(0, numeric_input_config::filament_nozzle_temperature, HAS_MINI_DISPLAY() ? _("Nozzle Temp") : _("Nozzle Temperature")) {}
 
 void MI_FILAMENT_NOZZLE_TEMPERATURE::update() {
     set_value(filament_type.parameters().nozzle_temperature);
@@ -80,7 +80,7 @@ void MI_FILAMENT_NOZZLE_TEMPERATURE::OnClick() {
 static_assert(UpdatableMenuItem<MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE>);
 
 MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE()
-    : MI_COMMON(0, numeric_input_config::nozzle_temperature, _("Nozzle Preheat Temperature")) {}
+    : MI_COMMON(0, numeric_input_config::nozzle_temperature, HAS_MINI_DISPLAY() ? _("Preheat Temp") : _("Nozzle Preheat Temperature")) {}
 
 void MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::update() {
     set_value(filament_type.parameters().nozzle_preheat_temperature);
@@ -95,7 +95,7 @@ void MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::OnClick() {
 static_assert(UpdatableMenuItem<MI_FILAMENT_BED_TEMPERATURE>);
 
 MI_FILAMENT_BED_TEMPERATURE::MI_FILAMENT_BED_TEMPERATURE()
-    : MI_COMMON(0, numeric_input_config::bed_temperature, _("Bed Temperature")) {}
+    : MI_COMMON(0, numeric_input_config::bed_temperature, HAS_MINI_DISPLAY() ? _("Bed Temp") : _("Bed Temperature")) {}
 
 void MI_FILAMENT_BED_TEMPERATURE::update() {
     set_value(filament_type.parameters().heatbed_temperature);
