@@ -153,24 +153,34 @@ bool FilamentType::matches(const std::string_view &name) const {
 void FilamentType::build_name_with_info(StringBuilder &builder) const {
     builder.append_string(parameters().name);
 
-    std::visit([&]<typename T>(const T &) {
-        if constexpr (std::is_same_v<T, NoFilamentType>) {
-            // Do nothing
+    const char *suffix =
+#if HAS_MINI_DISPLAY()
+        // The suffix doesn't fit on the mini display
+        nullptr;
+#else
+        std::visit([&]<typename T>(const T &) -> const char * {
+            if constexpr (std::is_same_v<T, NoFilamentType>) {
+                return nullptr;
 
-        } else if constexpr (std::is_same_v<T, PresetFilamentType>) {
-            builder.append_string_view(_(" (Preset)"));
+            } else if constexpr (std::is_same_v<T, PresetFilamentType>) {
+                return N_(" (Preset)");
 
-        } else if constexpr (std::is_same_v<T, UserFilamentType>) {
-            builder.append_string_view(_(" (User)"));
+            } else if constexpr (std::is_same_v<T, UserFilamentType>) {
+                return N_(" (User)");
 
-        } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
-            builder.append_string_view(_(" (Custom)"));
+            } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
+                return N_(" (Custom)");
 
-        } else {
-            static_assert(false);
-        }
-    },
-        *this);
+            } else {
+                static_assert(false);
+            }
+        },
+            *this);
+#endif
+
+    if (suffix) {
+        builder.append_string_view(_(suffix));
+    }
 }
 
 FilamentTypeParameters FilamentType::parameters() const {
