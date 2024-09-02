@@ -35,6 +35,7 @@
 #if HAS_BED_PROBE
   #include "probe.h"
 #endif
+#include <option/has_wastebin.h>
 
 #if IS_SCARA
   #include "scara.h"
@@ -254,6 +255,7 @@ FORCE_INLINE void do_blocking_move_to_xy_z(const xyze_pos_t &raw, const float &z
  * Simple helper function doing blocking move so that it avoids nozzle cleaner. It should be used whenever there is a reasonably high probability of head moving closely around nozzle cleaner
  */
 void do_blocking_move_around_nozzle_cleaner_to_xy(const xy_pos_t& destination, const feedRate_t& feedrate);
+
 
 void remember_feedrate_and_scaling();
 void remember_feedrate_scaling_off();

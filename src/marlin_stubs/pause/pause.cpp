@@ -40,10 +40,12 @@
 #include "mapi/motion.hpp"
 #include <cmath>
 #include <config_store/store_instance.hpp>
-#include <option/has_human_interactions.h>
-#include <option/has_mmu2.h>
 #include <scope_guard.hpp>
 #include <filament_to_load.hpp>
+
+#include <option/has_human_interactions.h>
+#include <option/has_mmu2.h>
+#include <option/has_wastebin.h>
 
 #ifndef NOZZLE_UNPARK_XY_FEEDRATE
     #define NOZZLE_UNPARK_XY_FEEDRATE NOZZLE_PARK_XY_FEEDRATE
@@ -419,7 +421,6 @@ void Pause::loop_load_not_blocking([[maybe_unused]] Response response) {
         set(LoadPhases_t::purge);
         break;
     }
-
     case LoadPhases_t::purge:
         // Extrude filament to get into hotend
         setPhase(PhasesLoadUnload::Purging_stoppable, 70);

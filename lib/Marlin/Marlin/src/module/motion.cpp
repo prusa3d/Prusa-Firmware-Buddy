@@ -95,6 +95,7 @@
 #endif
 
 #include <option/has_nozzle_cleaner.h>
+#include <option/has_wastebin.h>
 
 #define XYZ_CONSTS(T, NAME, OPT) const PROGMEM XYZval<T> NAME##_P = { X_##OPT, Y_##OPT, Z_##OPT }
 
