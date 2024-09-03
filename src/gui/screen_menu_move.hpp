@@ -3,6 +3,7 @@
  */
 #pragma once
 
+#include <meta_utils.hpp>
 #include "screen_menu.hpp"
 #include "WindowItemFormatableLabel.hpp"
 #include "MItem_filament.hpp"
@@ -29,22 +30,11 @@ protected:
     static bool did_final_move;
 };
 
-template <size_t INDEX>
-class MI_AXIS : public I_MI_AXIS {
-protected:
-public:
-    MI_AXIS()
-        : I_MI_AXIS(INDEX) {}
-};
-
-class MI_AXIS_Z : public MI_AXIS<Z_AXIS> {
-};
-
-class MI_AXIS_E : public MI_AXIS<E_AXIS> {
+class MI_AXIS_E : public I_MI_AXIS {
 
 public:
     MI_AXIS_E()
-        : MI_AXIS<E_AXIS>() {}
+        : I_MI_AXIS(E_AXIS) {}
 
     void OnClick() override;
     void Loop() override;
@@ -68,8 +58,9 @@ protected:
     void click(IWindowMenu &window_menu) override;
 };
 
-using MI_AXIS_X = MI_AXIS<X_AXIS>;
-using MI_AXIS_Y = MI_AXIS<Y_AXIS>;
+using MI_AXIS_X = WithConstructorArgs<I_MI_AXIS, X_AXIS>;
+using MI_AXIS_Y = WithConstructorArgs<I_MI_AXIS, Y_AXIS>;
+using MI_AXIS_Z = WithConstructorArgs<I_MI_AXIS, Z_AXIS>;
 
 using ScreenMenuMove__ = ScreenMenu<EFooter::On, MI_RETURN, MI_AXIS_X, MI_AXIS_Y, MI_AXIS_Z, MI_AXIS_E, DUMMY_AXIS_E, MI_COOLDOWN>;
 
