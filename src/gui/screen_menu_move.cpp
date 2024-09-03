@@ -13,9 +13,6 @@
 #include <gui/menu_vars.h>
 #include <gui/event/touch_event.hpp>
 
-static constexpr const char *const heating_str = N_("Heating");
-static constexpr const char *const low_temp_str = N_("Low temp");
-
 xyz_float_t I_MI_AXIS::last_queued_pos {};
 xyz_float_t I_MI_AXIS::target_position {};
 bool I_MI_AXIS::did_final_move {};
@@ -95,11 +92,8 @@ DUMMY_AXIS_E::DUMMY_AXIS_E()
     : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), nullptr, is_enabled_t::yes, is_hidden_t::no, 0,
         // this lambda is used during print, but does require item to be invalidated
         [&](char *buffer) {
-            if (value) {
-                _(heating_str).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
-            } else {
-                _(low_temp_str).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
-            }
+            const char *label_str = value ? N_("Heating") : N_("Low temp");
+            _(label_str).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
         }) {
     touch_extension_only_ = true;
 }
