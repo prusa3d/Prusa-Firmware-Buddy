@@ -103,9 +103,15 @@ optional<ErrCode> load_unload_attention_while_printing([[maybe_unused]] const fs
 #if HAS_MMU2()
     if (config_store().mmu2_enabled.get()) {
         // distinguish between regular progress of MMU Load/Unload and a real attention/MMU error screen (which is only one particular FSM state)
-        if (GetEnumFromPhaseIndex<PhasesLoadUnload>(data.GetPhase()) == PhasesLoadUnload::MMU_ERRWaitingForUser) {
+        switch (GetEnumFromPhaseIndex<PhasesLoadUnload>(data.GetPhase())) {
+        case PhasesLoadUnload::MMU_ERRWaitingForUser:
             return ErrCode::CONNECT_MMU_LOAD_UNLOAD_ERROR;
-        } else {
+            // Some other questions... they are the same(ish) as with the non-MMU case, so "rounding up" into the same "error".
+        case PhasesLoadUnload::LoadFilamentIntoMMU:
+        case PhasesLoadUnload::IsColor:
+        case PhasesLoadUnload::IsColorPurge:
+            return ErrCode::CONNECT_FILAMENT_RUNOUT;
+        default:
             return nullopt;
         }
     }
@@ -150,8 +156,8 @@ DeviceState get_state(bool ready) {
         // NOTE: handled in get_print_state, it can be Printing, Paused or Stopped
         break;
     case ClientFSM::Load_unload:
-        if (const fsm::States::State &fsm_state = fsm_states[ClientFSM::Printing]) {
-            if (load_unload_attention_while_printing(*fsm_state)) {
+        if (fsm_states.is_active(ClientFSM::Printing)) {
+            if (load_unload_attention_while_printing(*fsm_states[ClientFSM::Load_unload])) {
                 return DeviceState::Attention;
             } else {
                 return DeviceState::Printing;
@@ -315,8 +321,8 @@ StateWithDialog get_state_with_dialog(bool ready) {
     const auto &data = top->data;
     switch (top->fsm_type) {
     case ClientFSM::Load_unload:
-        if (const fsm::States::State &fsm_state = fsm_states[ClientFSM::Printing]) {
-            if (auto attention_code = load_unload_attention_while_printing(*fsm_state); attention_code.has_value()) {
+        if (fsm_states.is_active(ClientFSM::Printing)) {
+            if (auto attention_code = load_unload_attention_while_printing(*fsm_states[ClientFSM::Load_unload]); attention_code.has_value()) {
                 const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesLoadUnload>(data.GetPhase())).data();
                 return { state, attention_code, fsm_gen, responses };
             }
