@@ -9,6 +9,7 @@
 
 #include <gui/standard_frame/frame_prompt.hpp>
 #include <feature/belt_tuning/belt_tuning_wizard.hpp>
+#include <feature/belt_tuning/printer_belt_parameters.hpp>
 
 using Phase = PhaseBeltTuning;
 
@@ -154,13 +155,13 @@ public:
     {
         static constexpr std::initializer_list layout {
             // Title
-            StackLayoutItem { .height = 64 },
+            StackLayoutItem { .height = 48 },
 
             // Info
             StackLayoutItem { .height = StackLayoutItem::stretch, .margin_side = 16, .margin_top = 16 },
 
             // Graph
-            StackLayoutItem { .height = ScreenBeltTuningWizard::graph_height, .width = ScreenBeltTuningWizard::graph_width, .margin_bottom = 32 },
+            StackLayoutItem { .height = ScreenBeltTuningWizard::graph_height, .width = ScreenBeltTuningWizard::graph_width, .margin_bottom = 16 },
 
             // Radio
             standard_stack_layout::for_radio,
@@ -170,7 +171,11 @@ public:
 
     void update(const fsm::PhaseData &serialized_data) {
         const auto data = fsm::deserialize_data<BeltTuningWizardResultsData>(serialized_data);
-        info.SetText(string_view_utf8::MakeCPUFLASH("%i N (%i Hz)").formatted(info_params, (int)data.tension, (int)data.frequency));
+        const auto &params = printer_belt_parameters.belt_system[0];
+
+        std::array<char, 16> target_str;
+        _("Target").copyToRAM(target_str);
+        info.SetText(string_view_utf8::MakeCPUFLASH("%i N (%i Hz)\n\n%s: %.1f +- %.1f N").formatted(info_params, (int)data.tension, (int)data.frequency, target_str.data(), params.target_tension_force_n, params.target_tension_force_dev_n));
         graph.set_data(screen.graph_data);
     }
 
@@ -178,7 +183,7 @@ private:
     WindowGraphView graph;
 
 private:
-    StringViewUtf8Parameters<8> info_params;
+    StringViewUtf8Parameters<32> info_params;
     ScreenBeltTuningWizard &screen;
 };
 
