@@ -434,6 +434,10 @@ void IWindowMenuItem::handle_roll() {
     }
 }
 
+void IWindowMenuItem::reset_roll() {
+    focused_menu_item_roll.Deinit();
+}
+
 bool IWindowMenuItem::Change(int dif) {
     bool changed = change(dif) == invalidate_t::yes;
     if (changed) {

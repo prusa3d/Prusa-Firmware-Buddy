@@ -258,6 +258,9 @@ public:
     /// Handles text roll on the focused item
     static void handle_roll();
 
+    /// Reset text roll of the focused item
+    static void reset_roll();
+
     bool IsInvalid() const;
     bool IsIconInvalid() const;
     bool IsLabelInvalid() const;

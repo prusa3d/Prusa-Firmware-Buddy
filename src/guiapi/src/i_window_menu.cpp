@@ -27,6 +27,9 @@ void IWindowMenu::set_scroll_offset(int set) {
     bool back = flags.invalid_background;
     Invalidate();
     flags.invalid_background = back;
+
+    // The text roll needs to be invalidated, it has different coordinates now
+    IWindowMenuItem::reset_roll();
 }
 
 bool IWindowMenu::ensure_item_on_screen(std::optional<int> opt_index) {
