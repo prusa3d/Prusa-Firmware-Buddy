@@ -66,9 +66,13 @@ void I_MI_AXIS::finish_move() {
 }
 
 void MI_AXIS_E::OnClick() {
+    // Finish the move to the target
+    marlin_client::move_axis(GetVal(), MenuVars::GetManualFeedrate()[E_AXIS], E_AXIS);
+
     marlin_client::gcode("G90"); // Set to Absolute Positioning
     marlin_client::gcode("M82"); // Set extruder to absolute mode
     marlin_client::gcode("G92 E0"); // Reset position before change
+
     SetVal(0); // Reset spin before change
     last_queued_position = 0; // zero it out so we wont go back when we exit the spinner
 }
