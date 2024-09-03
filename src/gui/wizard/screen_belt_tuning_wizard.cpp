@@ -17,11 +17,11 @@ namespace {
 using FramePreparing = WithConstructorArgs<FramePrompt, Phase::preparing, N_("Preparing"), N_("Setting the printer up for the calibration.\n\nPlease wait.")>;
 
 // TODO: Maybe add progress bar?
-using FrameCalibratingAccelerometer = WithConstructorArgs<FramePrompt, Phase::calibrating_accelerometer, N_("Calibrating accelerometer"), N_("Calibrating the accelerometer.\n\nPlease wait.")>;
+using FrameCalibratingAccelerometer = WithConstructorArgs<FramePrompt, Phase::calibrating_accelerometer, N_("Calibrating accelerometer"), N_("Please wait.")>;
 
-using FrameAskForDampenersInstallation = WithConstructorArgs<FramePrompt, Phase::ask_for_dampeners_installation, N_("Install belt dampeners"), N_("Please install the belt dampener gizmos to the left and right side of the printer.")>;
-using FrameAskForDampenersUninstallation = WithConstructorArgs<FramePrompt, Phase::ask_for_dampeners_uninstallation, N_("Remove belt dampeners"), N_("Please remove the dampener gizmos.")>;
-using FrameError = WithConstructorArgs<FramePrompt, Phase::error, N_("Error"), N_("An error occured during the belt tuning procedure.\nPlease contact your deity of choice.")>;
+using FrameAskForDampenersInstallation = WithConstructorArgs<FramePrompt, Phase::ask_for_dampeners_installation, N_("Install belt dampeners"), N_("Please install the belt dampeners to the left and right side of the printer.")>;
+using FrameAskForDampenersUninstallation = WithConstructorArgs<FramePrompt, Phase::ask_for_dampeners_uninstallation, N_("Remove belt dampeners"), N_("Please remove the belt dampeners.")>;
+using FrameError = WithConstructorArgs<FramePrompt, Phase::error, N_("Error"), N_("An error occurred during the belt tuning procedure.\nTry running the calibration again.")>;
 
 // This is a bit of a hack - FrameDefitinList::create_frame passes the same arguments to all frame types
 // We however need to pass the screen pointer to some of our frames,
