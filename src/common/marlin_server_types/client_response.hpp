@@ -27,8 +27,16 @@
 #include <option/has_belt_tuning.h>
 #include <common/hotend_type.hpp>
 
-enum { RESPONSE_BITS = 4, // number of bits used to encode response
-    MAX_RESPONSES = (1 << RESPONSE_BITS) }; // maximum number of responses in one phase
+/// number of bits used to encode response
+// TODO: Make 2 everywhere: BFW-6028
+#if HAS_MMU2() || HAS_TOOLCHANGER()
+    #define RESPONSE_BITS 4
+#else
+    #define RESPONSE_BITS 2
+#endif
+
+/// maximum number of responses in one phase
+#define MAX_RESPONSES (1 << RESPONSE_BITS)
 
 using PhaseResponses = std::array<Response, MAX_RESPONSES>;
 static constexpr PhaseResponses empty_phase_responses = {};

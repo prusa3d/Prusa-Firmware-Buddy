@@ -34,17 +34,23 @@ void RadioButton::Change(Responses_t resp, const PhaseTexts *txts) {
     invalidateWhatIsNeeded();
 }
 
+// TODO: REMOVEME completely BFW-6028
+#if MAX_RESPONSES != 4
 void RadioButton::Change(const PhaseResponses &resp, const PhaseTexts *txts) {
     Change(generateResponses(resp), txts);
 }
+#endif
 
 RadioButton::RadioButton(window_t *parent, Rect16 rect)
     : RadioButton(parent, rect, Responses_t({ { Response::_none, Response::_none, Response::_none, Response::_none } })) {
 }
 
+// TODO: REMOVEME completely BFW-6028
+#if MAX_RESPONSES != 4
 RadioButton::RadioButton(window_t *parent, Rect16 rect, const PhaseResponses &resp, const PhaseTexts *labels)
     : RadioButton(parent, rect, generateResponses(resp), labels) {
 }
+#endif
 
 RadioButton::RadioButton(window_t *parent, Rect16 rect, Responses_t resp, const PhaseTexts *labels)
     : IRadioButton(parent, rect, cnt_buttons(labels, resp))
