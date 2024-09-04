@@ -24,23 +24,16 @@ void ScreenMenuInputShaper::update_gui() {
     const bool x_enabled = config_store().input_shaper_axis_x_enabled.get();
     const bool y_enabled = config_store().input_shaper_axis_y_enabled.get();
 
-    Item<MI_IS_X_ONOFF>().set_is_enabled(is_editing_enabled);
-    Item<MI_IS_Y_ONOFF>().set_is_enabled(is_editing_enabled);
     Item<MI_IS_X_TYPE>().set_is_enabled(is_editing_enabled && x_enabled);
     Item<MI_IS_X_FREQUENCY>().set_is_enabled(is_editing_enabled && x_enabled);
     Item<MI_IS_Y_TYPE>().set_is_enabled(is_editing_enabled && y_enabled);
     Item<MI_IS_Y_FREQUENCY>().set_is_enabled(is_editing_enabled && y_enabled);
-    Item<MI_IS_Y_COMPENSATION>().set_is_enabled(is_editing_enabled && y_enabled);
     Item<MI_IS_RESTORE_DEFAULTS>().set_is_enabled(is_editing_enabled);
 
     Item<MI_IS_X_TYPE>().set_show_disabled_extension(x_enabled);
     Item<MI_IS_X_FREQUENCY>().set_show_disabled_extension(x_enabled);
     Item<MI_IS_Y_TYPE>().set_show_disabled_extension(y_enabled);
     Item<MI_IS_Y_FREQUENCY>().set_show_disabled_extension(y_enabled);
-    Item<MI_IS_Y_COMPENSATION>().set_show_disabled_extension(y_enabled);
-
-    Item<MI_IS_X_ONOFF>().SetIndex(x_enabled);
-    Item<MI_IS_Y_ONOFF>().SetIndex(y_enabled);
 
     if (x_enabled) {
         const auto axis_config = config_store().input_shaper_axis_x_config.get();
@@ -52,7 +45,6 @@ void ScreenMenuInputShaper::update_gui() {
         const auto axis_config = config_store().input_shaper_axis_y_config.get();
         Item<MI_IS_Y_TYPE>().SetIndex(static_cast<unsigned>(axis_config.type));
         Item<MI_IS_Y_FREQUENCY>().SetVal(static_cast<int>(axis_config.frequency));
-        Item<MI_IS_Y_COMPENSATION>().SetIndex(config_store().input_shaper_weight_adjust_y_enabled.get());
     }
 }
 

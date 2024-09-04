@@ -18,13 +18,10 @@ using ScreenMenuInputShaper = ScreenMenu<
     MI_IS_CALIB,
 #endif
     MI_IS_ENABLE_EDITING,
-    MI_IS_X_ONOFF,
     MI_IS_X_TYPE,
     MI_IS_X_FREQUENCY,
-    MI_IS_Y_ONOFF,
     MI_IS_Y_TYPE,
     MI_IS_Y_FREQUENCY,
-    MI_IS_Y_COMPENSATION,
     MI_IS_RESTORE_DEFAULTS>;
 } // namespace detail
 

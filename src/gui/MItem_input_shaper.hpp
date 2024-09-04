@@ -11,26 +11,6 @@ enum class InputShaperMenuItemChildClickParam {
     enable_editing,
 };
 
-class MI_IS_X_ONOFF : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("X-axis");
-
-public:
-    MI_IS_X_ONOFF();
-
-protected:
-    void OnChange(size_t old_index) override;
-};
-
-class MI_IS_Y_ONOFF : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Y-axis");
-
-public:
-    MI_IS_Y_ONOFF();
-
-protected:
-    void OnChange(size_t old_index) override;
-};
-
 class MI_IS_X_TYPE : public WiEnumSwitch {
     static constexpr const char *const label = N_("X-axis Filter");
 
@@ -66,16 +46,6 @@ class MI_IS_Y_FREQUENCY : public WiSpin {
 public:
     MI_IS_Y_FREQUENCY();
     virtual void OnClick() override;
-};
-
-class MI_IS_Y_COMPENSATION : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Y Weight Compensation");
-
-public:
-    MI_IS_Y_COMPENSATION();
-
-protected:
-    void OnChange(size_t old_index) override;
 };
 
 class MI_IS_ENABLE_EDITING : public IWindowMenuItem {
