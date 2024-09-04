@@ -151,10 +151,11 @@ void MI_SERIAL_PRINTING_SCREEN_ENABLE::OnChange(size_t old_index) {
 MI_TOOLHEAD_SETTINGS::MI_TOOLHEAD_SETTINGS()
     : IWindowMenuItem(
 #if HAS_TOOLCHANGER()
-        prusa_toolchanger.get_num_enabled_tools() > 1 ? _("Tools") : _("Tool"),
-#else
-        _("Toolhead"),
+        prusa_toolchanger.is_toolchanger_enabled()
+            ? _("Tools")
+            :
 #endif
+            _("Toolhead"),
         nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
