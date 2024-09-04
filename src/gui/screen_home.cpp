@@ -101,7 +101,7 @@ constexpr Rect16 logoRect = Rect16(41, 31, 158, 40);
 
 #if HAS_LARGE_DISPLAY()
 constexpr size_t buttonsXSpacing = 40;
-constexpr size_t buttonTextWidth = 94;
+constexpr size_t buttonTextWidth = 99;
 constexpr size_t buttonTextHeight = 23;
 
 constexpr size_t buttonTopOffset = 53;
