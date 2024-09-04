@@ -2,7 +2,6 @@
 
 #include "eeprom_v_current.hpp"
 #include <journal/backend.hpp>
-#include <option/development_items.h>
 
 /**
  * @brief Remnants of old eeprom required for migration
@@ -30,12 +29,7 @@ inline constexpr uint32_t EEPROM_DATASIZE = sizeof(eeprom_vars_t);
 inline constexpr uint16_t EEPROM_MAX_DATASIZE = 1024; // maximum datasize
 static_assert(EEPROM_DATASIZE <= EEPROM_MAX_DATASIZE, "EEPROM_MAX_DATASIZE might be outdated and not needed anymore, but EEPROM_DATASIZE shouldn't have increased anyway");
 
-#if DEVELOPMENT_ITEMS()
-    #define PRIVATE__EEPROM_OFFSET (1 << 15) // to avoid collision with public version
-    #define NO_EEPROM_UPGRADES
-#else
-    #define PRIVATE__EEPROM_OFFSET 0
-#endif
+#define PRIVATE__EEPROM_OFFSET 0
 
 /**
  * @brief union containing eeprom struct and entire eeprom area
