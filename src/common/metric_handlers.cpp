@@ -8,7 +8,6 @@
 #include "timing.h"
 #include "syslog_transport.hpp"
 #include "otp.hpp"
-#include <option/development_items.h>
 #include <config_store/store_instance.hpp>
 #include <atomic>
 #include <algorithm>

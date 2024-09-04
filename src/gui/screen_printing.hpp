@@ -10,7 +10,6 @@
 #include "print_progress.hpp"
 #include "print_time_module.hpp"
 #include <guiconfig/guiconfig.h>
-#include <option/development_items.h>
 #include <option/developer_mode.h>
 #include <array>
 #include <window_progress.hpp>

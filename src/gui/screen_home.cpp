@@ -37,7 +37,6 @@
 
 #include <option/has_loadcell.h>
 #include <option/developer_mode.h>
-#include <option/development_items.h>
 #include <device/peripherals.h>
 #include <option/has_mmu2.h>
 #include <option/has_human_interactions.h>
