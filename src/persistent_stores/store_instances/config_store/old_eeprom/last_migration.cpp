@@ -23,19 +23,16 @@ constexpr uint16_t EEPROM_FEATURE_CONNECT { 0x0040 };
 
 constexpr uint16_t EEPROM_FEATURES { EEPROM_FEATURE_PID_NOZ | EEPROM_FEATURE_PID_BED | EEPROM_FEATURE_LAN | EEPROM_FEATURE_LOADCELL | EEPROM_FEATURE_SHEETS | EEPROM_FEATURE_MMU2 | EEPROM_FEATURE_CONNECT };
 
-constexpr uint16_t EEPROM_VERSION = PRIVATE__EEPROM_OFFSET + 23;
+constexpr uint16_t EEPROM_VERSION = 23;
 
 constexpr uint16_t EEPROM_LAST_VERSION_WITH_OLD_CRC { 10 };
 
 bool is_older_version(const eeprom_data &eeprom_ram_mirror) {
-    return (eeprom_ram_mirror.vars.head.VERSION != EEPROM_VERSION
-               && eeprom_ram_mirror.vars.head.VERSION != (EEPROM_VERSION ^ PRIVATE__EEPROM_OFFSET) // also accept versions with/without PRIVATE__EEPROM_OFFSET
-               )
+    return (eeprom_ram_mirror.vars.head.VERSION != EEPROM_VERSION)
         || (eeprom_ram_mirror.vars.head.FEATURES != EEPROM_FEATURES);
 }
 
 bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
-#ifndef NO_EEPROM_UPGRADES
     uint16_t version = data.head.VERSION;
     if (version == 4) {
         data.v6 = old_eeprom::v6::convert(data.v4);
@@ -100,9 +97,6 @@ bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
 
     // if update was successful, version will be current
     return version == EEPROM_VERSION;
-#else // NO_EEPROM_UPGRADES
-    return false; // forces defaults
-#endif // NO_EEPROM_UPGRADES
 }
 
 // version independent crc32 check

@@ -29,8 +29,6 @@ inline constexpr uint32_t EEPROM_DATASIZE = sizeof(eeprom_vars_t);
 inline constexpr uint16_t EEPROM_MAX_DATASIZE = 1024; // maximum datasize
 static_assert(EEPROM_DATASIZE <= EEPROM_MAX_DATASIZE, "EEPROM_MAX_DATASIZE might be outdated and not needed anymore, but EEPROM_DATASIZE shouldn't have increased anyway");
 
-#define PRIVATE__EEPROM_OFFSET 0
-
 /**
  * @brief union containing eeprom struct and entire eeprom area
  * area (data) is needed for old eeprom version update and crc verification
@@ -39,7 +37,6 @@ static_assert(EEPROM_DATASIZE <= EEPROM_MAX_DATASIZE, "EEPROM_MAX_DATASIZE might
 union eeprom_data {
     uint8_t data[EEPROM_MAX_DATASIZE];
     eeprom_vars_t vars;
-#ifndef NO_EEPROM_UPGRADES
     struct {
         eeprom_head_t head;
         union {
@@ -56,7 +53,6 @@ union eeprom_data {
             old_eeprom::current::vars_body_t current;
         };
     };
-#endif // NO_EEPROM_UPGRADES
 };
 
 void eeprom_init_ram_mirror(eeprom_data &eeprom_ram_mirror);
