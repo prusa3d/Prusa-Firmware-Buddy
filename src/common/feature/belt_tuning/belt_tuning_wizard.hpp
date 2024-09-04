@@ -28,7 +28,11 @@ struct BeltTuningWizardResultsData {
     /// Hz
     uint8_t frequency = 0;
 
-    /// N
+    // Keep one decimal place for the tension.
+    // 25.5 N of tension would be way out of range, so should be safe
+    static constexpr float tension_mult = 10;
+
+    /// N * tension_mult
     uint8_t tension = 0;
 
     uint8_t belt_system = 0;
