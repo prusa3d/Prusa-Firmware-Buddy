@@ -2,6 +2,7 @@
 #include <Marlin/src/inc/MarlinConfigPre.h>
 #include <module/prusa/dock_position.hpp>
 #include <module/prusa/tool_offset.hpp>
+#include <option/development_items.h>
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>

@@ -2,6 +2,7 @@
 
 #include "eeprom_v_current.hpp"
 #include <journal/backend.hpp>
+#include <option/development_items.h>
 
 /**
  * @brief Remnants of old eeprom required for migration
