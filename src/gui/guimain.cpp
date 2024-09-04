@@ -34,10 +34,6 @@
     #include "screen_fatal_warning.hpp"
 #endif
 
-#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
-    #include "hw_configuration.hpp"
-#endif
-
 #include <option/has_selftest.h>
 #if HAS_SELFTEST()
     #include "screen_menu_selftest_snake.hpp"
@@ -57,25 +53,9 @@
 #if HAS_LEDS()
     #include "led_animations/printer_animation_state.hpp"
 #endif
-#include <logging/log.hpp>
 #include <printers.h>
 
-#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_iX()
-    #include "MItem_love_board.hpp"
-#endif
-
-#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
-    #include "menu_item_xlcd.hpp"
-#endif
-
 #include <config_store/store_instance.hpp>
-
-using namespace buddy::hw;
-
-LOG_COMPONENT_REF(GUI);
-LOG_COMPONENT_REF(Buddy);
-LOG_COMPONENT_DEF(XLCD, logging::Severity::info);
-LOG_COMPONENT_DEF(LoveBoard, logging::Severity::info);
 
 marlin_vars_t *gui_marlin_vars = 0;
 
@@ -157,35 +137,6 @@ void make_gui_ready_to_print() {
     }
 }
 } // anonymous namespace
-
-static void log_onewire_otp() {
-#if DEVELOPMENT_ITEMS()
-    #if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_iX()
-    OtpStatus loveboard = buddy::hw::Configuration::Instance().get_loveboard_status();
-
-    if (loveboard.data_valid) {
-        log_info(LoveBoard, "PASSED: Read e. %u, Repeated e. %u, Cyclic e. %u, Retried %u",
-            loveboard.single_read_error_counter, loveboard.repeated_read_error_counter, loveboard.cyclic_read_error_counter, loveboard.retried);
-        log_info(LoveBoard, "Eeprom: %s", MI_INFO_SERIAL_NUM_LOVEBOARD::to_array().data());
-    } else {
-        log_error(LoveBoard, "FAILED: Read e. %u, Repeated e. %u, Cyclic e. %u, Retried %u",
-            loveboard.single_read_error_counter, loveboard.repeated_read_error_counter, loveboard.cyclic_read_error_counter, loveboard.retried);
-    }
-    #endif
-
-    #if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
-    OtpStatus xlcd = buddy::hw::Configuration::Instance().get_xlcd_status();
-
-    log_info(XLCD, "%s: Read e. %u, Repeated e. %u, Cyclic e. %u, Retried %u",
-        xlcd.data_valid ? "DETECTED" : "NOT DT.", xlcd.single_read_error_counter, xlcd.repeated_read_error_counter, xlcd.cyclic_read_error_counter, xlcd.retried);
-
-    if (xlcd.data_valid) {
-        log_info(XLCD, "Eeprom: %s", MI_INFO_SERIAL_NUM_XLCD::to_array().data());
-    }
-    #endif
-
-#endif
-}
 
 /**
  * @brief Get the right error page to display
@@ -308,8 +259,6 @@ void gui_run(void) {
 #if HAS_SIDE_LEDS()
     leds::side_strip_control.ActivityPing();
 #endif
-
-    log_onewire_otp();
 
     TaskDeps::provide(TaskDeps::Dependency::gui_ready);
 
