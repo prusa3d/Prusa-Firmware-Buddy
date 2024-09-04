@@ -37,8 +37,8 @@ static constexpr PrinterBeltParameters printer_belt_parameters {
             .measurement_pos = { .x = 342, .y = 110 },
             .nominal_length_m = 0.395f,
             .nominal_weight_kg_m = 0.007569f,
-            .target_tension_force_n = 17,
-            .target_tension_force_dev_n = 0.5f,
+            .target_tension_force_n = 18,
+            .target_tension_force_dev_n = 1,
         },
     },
 };
