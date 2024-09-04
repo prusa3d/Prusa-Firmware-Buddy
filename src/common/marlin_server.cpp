@@ -29,6 +29,8 @@
 #include <lfn.h>
 #include <media_prefetch/media_prefetch.hpp>
 #include <gcode/gcode_reader_restore_info.hpp>
+#include <dirent.h>
+#include <scope_guard.hpp>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -1421,9 +1423,52 @@ void media_print_loop() {
     }
 }
 
+/// Update SFN filepath from LFN.
+/// The SFN of the file could have been changed by the user during the pause (for example by re-uploading a damaged file).
+/// BFW-5775
+void update_sfn() {
+    // Copy the current SFN + LFN from marlin vars
+    MutablePath filepath_sfn;
+    marlin_vars().media_SFN_path.copy_to(filepath_sfn.get_buffer(), filepath_sfn.maximum_length());
+    log_info(MarlinServer, "Old SFN: %s", filepath_sfn.get());
+
+    // Pop filename, leave path only
+    filepath_sfn.pop();
+
+    // This is done on the marlin thread, so we can keep using the pointer
+    const char *lfn = marlin_vars().media_LFN.get_ptr();
+
+    DIR *dir = opendir(filepath_sfn.get());
+    if (!dir) {
+        return;
+    }
+    ScopeGuard dir_guard([&] { closedir(dir); });
+
+    struct dirent *ent;
+    while ((ent = readdir(dir))) {
+        if ((strcasecmp(ent->d_name, lfn) == 0) || (strcasecmp(ent->lfn, lfn) == 0)) {
+            break;
+        }
+    }
+    if (!ent) {
+        return;
+    }
+
+    // Store the new SFN
+    filepath_sfn.push(ent->d_name);
+    log_info(MarlinServer, "New SFN: %s", filepath_sfn.get());
+
+    // Update the relevant variables
+    marlin_vars().media_SFN_path.set(filepath_sfn.get());
+    GCodeInfo::getInstance().set_gcode_file(filepath_sfn.get(), lfn);
+}
+
 void print_resume(void) {
     if (server.print_state == State::Paused) {
+        update_sfn();
+
         server.print_state = State::Resuming_Begin;
+
         // pause queuing commands from serial, until resume sequence is finished.
         GCodeQueue::pause_serial_commands = true;
 
