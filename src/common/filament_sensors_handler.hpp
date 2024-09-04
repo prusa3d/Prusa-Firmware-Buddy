@@ -76,10 +76,16 @@ public:
         return logical_sensor_states_[sensor];
     }
 
-    /// \returns whether the printer knows that it HAS the filament (if should_have_filament == true) or that it HASN'T (if should_have_filament == false)
+    /// \returns whether the printer knows that it HAS the filament
     /// If the filament sensor is disabled, not calibrated, disconnected and such, always returns false
-    inline bool has_filament(bool should_have_filament) {
-        return logical_sensor_states_[LogicalFilamentSensor::current_extruder] == (should_have_filament ? FilamentSensorState::HasFilament : FilamentSensorState::NoFilament);
+    inline bool has_filament_surely() {
+        return logical_sensor_states_[LogicalFilamentSensor::current_extruder] == FilamentSensorState::HasFilament;
+    }
+
+    /// \returns whether the printer knows that it HASN'T the filament
+    /// If the filament sensor is disabled, not calibrated, disconnected and such, always returns false
+    inline bool no_filament_surely() {
+        return logical_sensor_states_[LogicalFilamentSensor::current_extruder] == FilamentSensorState::NoFilament;
     }
 
 protected:

@@ -522,14 +522,14 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
         if constexpr (!option::has_human_interactions) {
             setPhase(PhasesLoadUnload::Inserting_unstoppable);
-            if (FSensors_instance().has_filament(true)) {
+            if (FSensors_instance().has_filament_surely()) {
                 set(LoadPhases_t::load_in_gear);
             }
 
             break;
         }
 
-        if (FSensors_instance().has_filament(false)) {
+        if (FSensors_instance().no_filament_surely()) {
             setPhase(is_unstoppable ? PhasesLoadUnload::MakeSureInserted_unstoppable : PhasesLoadUnload::MakeSureInserted_stoppable);
 
             // With extruder MMU rework, we gotta assist the user with inserting the filament
@@ -974,7 +974,7 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
 
     case UnloadPhases_t::filament_not_in_fs:
         setPhase(PhasesLoadUnload::FilamentNotInFS);
-        if (!FSensors_instance().has_filament(true)) { // Either no filament in FS or unknown (FS off)
+        if (!FSensors_instance().has_filament_surely()) { // Either no filament in FS or unknown (FS off)
 #if !HAS_HUMAN_INTERACTIONS()
             // In case of no human interactions, require no filament being
             // detected for at least 1s to avoid FS flicking off and on due
@@ -994,7 +994,7 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
 
     case UnloadPhases_t::manual_unload:
         if (response == Response::Continue
-            && !FSensors_instance().has_filament(true)) { // Allow to continue when nothing remains in filament sensor
+            && !FSensors_instance().has_filament_surely()) { // Allow to continue when nothing remains in filament sensor
             enable_e_steppers();
             set(UnloadPhases_t::_finish);
         } else if (response == Response::Retry) { // Retry unloading
@@ -1493,7 +1493,7 @@ void Pause::finalize_user_stop() {
 }
 void Pause::handle_filament_removal(LoadPhases_t phase_to_set) {
     // only if there is no filament present and we are sure (FS on and sees no filament)
-    if (FSensors_instance().has_filament(false)) {
+    if (FSensors_instance().has_filament_surely()) {
         set(phase_to_set);
         config_store().set_filament_type(settings.GetExtruder(), FilamentType::none);
         return;

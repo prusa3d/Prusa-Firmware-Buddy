@@ -69,7 +69,7 @@ void filament_gcodes::mmu_off() {
     // When we turn the MMU off, it should now actually store what's in the nozzle.
     // If there is nothing in the nozzle, clear the setting.
     // BFW-5199
-    if (!FSensors_instance().has_filament(true)) {
+    if (!FSensors_instance().has_filament_surely()) {
         config_store().filament_type_0.set(EncodedFilamentType());
     }
 
