@@ -8,7 +8,6 @@
 
 enum class InputShaperMenuItemChildClickParam {
     request_gui_update,
-    enable_editing,
 };
 
 class MI_IS_X_TYPE : public WiEnumSwitch {
@@ -46,16 +45,6 @@ class MI_IS_Y_FREQUENCY : public WiSpin {
 public:
     MI_IS_Y_FREQUENCY();
     virtual void OnClick() override;
-};
-
-class MI_IS_ENABLE_EDITING : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Enable Editing");
-
-public:
-    MI_IS_ENABLE_EDITING();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
 };
 
 /// Resets input shaper config to defaults on click

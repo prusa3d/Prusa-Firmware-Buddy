@@ -15,9 +15,8 @@ void ScreenMenuInputShaper::update_gui() {
         return;
     }
 
-    // If the "enable editing" button is hiden, enable editing by default
     // Also do not allow IS tuning mid-print
-    is_editing_enabled = Item<MI_IS_ENABLE_EDITING>().IsHidden() && !marlin_client::is_printing();
+    const bool is_editing_enabled = !marlin_client::is_printing();
 
     AutoRestore _ar(is_updating_gui, true);
 
@@ -53,11 +52,6 @@ void ScreenMenuInputShaper::windowEvent(window_t *sender, GUI_event_t event, voi
         switch (ftrstd::bit_cast<InputShaperMenuItemChildClickParam>(param)) {
 
         case InputShaperMenuItemChildClickParam::request_gui_update:
-            update_gui();
-            break;
-
-        case InputShaperMenuItemChildClickParam::enable_editing:
-            is_editing_enabled = true;
             update_gui();
             break;
 

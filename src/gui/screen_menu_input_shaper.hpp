@@ -17,7 +17,6 @@ using ScreenMenuInputShaper = ScreenMenu<
 #if HAS_INPUT_SHAPER_CALIBRATION()
     MI_IS_CALIB,
 #endif
-    MI_IS_ENABLE_EDITING,
     MI_IS_X_TYPE,
     MI_IS_X_FREQUENCY,
     MI_IS_Y_TYPE,
@@ -33,9 +32,6 @@ public:
 
     /// Updates values & states of the menu items to match the current IS config
     void update_gui();
-
-public:
-    bool is_editing_enabled = false; // Is set to true in the constructor if MI_IS_ENABLE_EDITING is hidden
 
 protected:
     void windowEvent(window_t *sender, GUI_event_t event, void *param);

@@ -62,14 +62,6 @@ void MI_IS_Y_FREQUENCY::OnClick() {
     gui_try_gcode_with_msg("M9200");
 }
 
-MI_IS_ENABLE_EDITING::MI_IS_ENABLE_EDITING()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::yes) {
-}
-
-void MI_IS_ENABLE_EDITING::click(IWindowMenu &) {
-    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, ftrstd::bit_cast<void *>(InputShaperMenuItemChildClickParam::enable_editing));
-}
-
 #if HAS_INPUT_SHAPER_CALIBRATION()
 MI_IS_CALIB::MI_IS_CALIB()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, marlin_client::is_printing() ? is_hidden_t::yes : is_hidden_t::no) {
