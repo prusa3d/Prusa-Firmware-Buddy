@@ -84,7 +84,7 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 /* MI_FOOTER_SETTINGS,*/ // currently experimental, but we want it in future
 #if DEVELOPER_MODE()
     MI_ERROR_TEST,
-#endif /*DEVELOPMENT_ITEMS()*/
+#endif
     MI_MESSAGES>;
 
 class ScreenMenuTune : public ScreenMenuTune__ {
