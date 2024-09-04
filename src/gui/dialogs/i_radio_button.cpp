@@ -347,6 +347,7 @@ size_t IRadioButton::maxSize() const {
 }
 
 // 4th response for iconned layout is ensured to be _none
+// TODO: REMOVEME BFW-6028
 IRadioButton::Responses_t IRadioButton::generateResponses(const PhaseResponses &resp) {
     Responses_t newResponses;
     newResponses[3] = Response::_none;

@@ -85,6 +85,7 @@ protected:
     bool isIndexValid(size_t index);
     size_t maxSize() const; // depends id it is iconned
 
+    // TODO: REMOVEME BFW-6028
     static Responses_t generateResponses(const PhaseResponses &resp);
 
     static size_t cnt_labels(const PhaseTexts *labels);
