@@ -172,10 +172,11 @@ public:
     void update(const fsm::PhaseData &serialized_data) {
         const auto data = fsm::deserialize_data<BeltTuningWizardResultsData>(serialized_data);
         const auto &params = printer_belt_parameters.belt_system[0];
+        const float tension = static_cast<float>(data.tension) / BeltTuningWizardResultsData::tension_mult;
 
         std::array<char, 16> target_str;
         _("Target").copyToRAM(target_str);
-        info.SetText(string_view_utf8::MakeCPUFLASH("%i N (%i Hz)\n\n%s: %.1f +- %.1f N").formatted(info_params, (int)data.tension, (int)data.frequency, target_str.data(), params.target_tension_force_n, params.target_tension_force_dev_n));
+        info.SetText(string_view_utf8::MakeCPUFLASH("%.1f N (%i Hz)\n\n%s: %.1f +- %.1f N").formatted(info_params, tension, (int)data.frequency, target_str.data(), params.target_tension_force_n, params.target_tension_force_dev_n));
         graph.set_data(screen.graph_data);
     }
 
