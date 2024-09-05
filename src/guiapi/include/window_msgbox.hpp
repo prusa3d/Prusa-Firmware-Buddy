@@ -44,7 +44,7 @@ protected:
     using RadioMemSpace = std::array<uint8_t, mem_space_size>;
     alignas(std::max_align_t) RadioMemSpace radio_mem_space;
     static_unique_ptr<IRadioButton> pButtons;
-    Response result; // return value
+    Response result = Response::_none; // return value
 
 public:
     MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
