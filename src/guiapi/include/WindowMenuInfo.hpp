@@ -101,15 +101,4 @@ protected:
     std::array<char, INFO_LEN> value_array_ { 0 };
 };
 
-// Dev version of info
-template <size_t INFO_LEN>
-class WiInfoDev : public WiInfo<INFO_LEN> {
-public:
-    WiInfoDev(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled = is_enabled_t::yes)
-        : WiInfo<INFO_LEN>(label, id_icon, enabled, is_hidden_t::dev) {}
-    WiInfoDev(uint32_t num_to_print, const string_view_utf8 &label, const img::Resource *id_icon = nullptr)
-        : WiInfo<INFO_LEN>(num_to_print, label, is_hidden_t::dev, id_icon) {}
-};
-
 using WI_INFO_t = WiInfo<GuiDefaults::infoDefaultLen>;
-using WI_INFO_DEV_t = WiInfoDev<GuiDefaults::infoDefaultLen>;

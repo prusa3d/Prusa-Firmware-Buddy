@@ -24,38 +24,3 @@ class MI_INFO_HEATBREAK_TEMP : public WI_TEMP_LABEL_t {
 public:
     MI_INFO_HEATBREAK_TEMP();
 };
-
-class MI_LOVEBOARD_SINGLE_ERR : public WI_INFO_DEV_t {
-    constexpr static const char *const label = "Loveboard Single e.";
-
-public:
-    MI_LOVEBOARD_SINGLE_ERR();
-};
-
-class MI_LOVEBOARD_REPEATED_ERR : public WI_INFO_DEV_t {
-    constexpr static const char *const label = "Loveboard Repeated e.";
-
-public:
-    MI_LOVEBOARD_REPEATED_ERR();
-};
-
-class MI_LOVEBOARD_CYCLIC_ERR : public WI_INFO_DEV_t {
-    constexpr static const char *const label = "Loveboard Cyclic e.";
-
-public:
-    MI_LOVEBOARD_CYCLIC_ERR();
-};
-
-class MI_LOVEBOARD_RETRIED : public WI_INFO_DEV_t {
-    constexpr static const char *const label = "Loveboard Retried";
-
-public:
-    MI_LOVEBOARD_RETRIED();
-};
-
-class MI_LOVEBOARD_STATUS : public WI_INFO_DEV_t {
-    constexpr static const char *const label = "Loveboard Status";
-
-public:
-    MI_LOVEBOARD_STATUS();
-};

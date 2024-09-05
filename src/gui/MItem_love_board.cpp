@@ -24,20 +24,3 @@ MI_INFO_SERIAL_NUM_LOVEBOARD::Buff MI_INFO_SERIAL_NUM_LOVEBOARD::to_array() {
 MI_INFO_HEATBREAK_TEMP::MI_INFO_HEATBREAK_TEMP()
     : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
-
-MI_LOVEBOARD_SINGLE_ERR::MI_LOVEBOARD_SINGLE_ERR()
-    : WI_INFO_DEV_t(buddy::hw::Configuration::Instance().get_loveboard_status().single_read_error_counter, _(label)) {}
-
-MI_LOVEBOARD_REPEATED_ERR::MI_LOVEBOARD_REPEATED_ERR()
-    : WI_INFO_DEV_t(buddy::hw::Configuration::Instance().get_loveboard_status().repeated_read_error_counter, _(label)) {}
-
-MI_LOVEBOARD_CYCLIC_ERR::MI_LOVEBOARD_CYCLIC_ERR()
-    : WI_INFO_DEV_t(buddy::hw::Configuration::Instance().get_loveboard_status().cyclic_read_error_counter, _(label)) {}
-
-MI_LOVEBOARD_RETRIED::MI_LOVEBOARD_RETRIED()
-    : WI_INFO_DEV_t(buddy::hw::Configuration::Instance().get_loveboard_status().retried, _(label)) {}
-
-MI_LOVEBOARD_STATUS::MI_LOVEBOARD_STATUS()
-    : WI_INFO_DEV_t(_(label), nullptr) {
-    ChangeInformation(buddy::hw::Configuration::Instance().get_loveboard_status().data_valid ? "PASSED" : "FAILED");
-}

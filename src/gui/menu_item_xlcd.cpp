@@ -20,20 +20,3 @@ MI_INFO_SERIAL_NUM_XLCD::Buff MI_INFO_SERIAL_NUM_XLCD::to_array() {
     snprintf(tmp.data() + sizeof(XlcdEeprom::datamatrix), tmp.size() - sizeof(XlcdEeprom::datamatrix), "/%u", cnf.get_xlcd().bomID);
     return tmp;
 }
-
-MI_XLCD_SINGLE_ERR::MI_XLCD_SINGLE_ERR()
-    : WI_INFO_DEV_t(buddy::hw::Configuration::Instance().get_xlcd_status().single_read_error_counter, _(label)) {}
-
-MI_XLCD_REPEATED_ERR::MI_XLCD_REPEATED_ERR()
-    : WI_INFO_DEV_t(buddy::hw::Configuration::Instance().get_xlcd_status().repeated_read_error_counter, _(label)) {}
-
-MI_XLCD_CYCLIC_ERR::MI_XLCD_CYCLIC_ERR()
-    : WI_INFO_DEV_t(buddy::hw::Configuration::Instance().get_xlcd_status().cyclic_read_error_counter, _(label)) {}
-
-MI_XLCD_RETRIED::MI_XLCD_RETRIED()
-    : WI_INFO_DEV_t(buddy::hw::Configuration::Instance().get_xlcd_status().retried, _(label)) {}
-
-MI_XLCD_STATUS::MI_XLCD_STATUS()
-    : WI_INFO_DEV_t(_(label), nullptr) {
-    ChangeInformation(buddy::hw::Configuration::Instance().get_xlcd_status().data_valid ? "DETECTED" : "NOT DETECTED");
-}
