@@ -77,6 +77,9 @@ public:
 
     constexpr FSMAndPhase(const FSMAndPhase &) = default;
 
+    constexpr bool operator==(const FSMAndPhase &) const = default;
+    constexpr bool operator!=(const FSMAndPhase &) const = default;
+
 public:
     ClientFSM fsm;
     PhaseUnderlyingType phase;
