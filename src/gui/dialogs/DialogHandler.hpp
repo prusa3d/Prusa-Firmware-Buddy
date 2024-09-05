@@ -10,7 +10,7 @@ class DialogHandler {
     friend struct FSMDialogDef;
 
     static_unique_ptr<IDialogMarlin> ptr;
-    fsm::States fsm_states;
+    std::optional<fsm::States::Top> current_fsm_top;
     std::pair<ClientFSM, fsm::BaseData> last_fsm_change;
     std::optional<std::pair<ClientFSM, fsm::BaseData>> dialog_cache;
     DialogHandler() = default;
@@ -27,6 +27,5 @@ public:
     void Loop(); // synchronization loop, call it outside event
     bool IsOpen() const; // returns true if any dialog is active (we dont want popups)
 
-    bool IsOpen(ClientFSM fsm) const;
     bool IsAnyOpen() const;
 };

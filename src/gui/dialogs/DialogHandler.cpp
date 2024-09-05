@@ -247,14 +247,12 @@ DialogHandler &DialogHandler::Access() {
 }
 
 void DialogHandler::Loop() {
-    const auto &new_fsm_states = marlin_vars().get_fsm_states();
-    const auto &old_fsm_states = fsm_states;
-    if (old_fsm_states == new_fsm_states) {
+    const auto old_top = current_fsm_top;
+    const auto new_top = marlin_vars().get_fsm_states().get_top();
+
+    if (new_top == old_top) {
         return;
     }
-
-    const auto &new_top = new_fsm_states.get_top();
-    const auto &old_top = old_fsm_states.get_top();
 
     // TODO Investigate whether Screens::Access()->Loop() is really needed.
     // TODO Update open() so that we won't need to call change() afterwards.
@@ -290,18 +288,12 @@ void DialogHandler::Loop() {
         close(old_top->fsm_type);
         Screens::Access()->Loop();
     } else {
-        // Having neither new_top nor old_top is perfectly valid,
-        // since the FSM state may only differ in generation number.
-        // In such case, we just don't do anything.
+        std::abort();
     }
 
-    fsm_states = new_fsm_states;
-}
-
-bool DialogHandler::IsOpen(ClientFSM fsm) const {
-    return fsm_states.is_active(fsm);
+    current_fsm_top = new_top;
 }
 
 bool DialogHandler::IsAnyOpen() const {
-    return fsm_states.get_top().has_value();
+    return current_fsm_top.has_value();
 }

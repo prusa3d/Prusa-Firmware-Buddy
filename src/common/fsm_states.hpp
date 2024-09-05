@@ -34,10 +34,11 @@ public:
     struct Top {
         ClientFSM fsm_type;
         BaseData data;
+
+        bool operator==(const Top &) const = default;
+        bool operator!=(const Top &) const = default;
     };
     std::optional<Top> get_top() const;
-
-    constexpr auto operator<=>(const States &) const = default;
 
     void log() const;
 };
