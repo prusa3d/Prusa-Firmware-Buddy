@@ -27,7 +27,7 @@ static constexpr const uint8_t label_height = 16;
 static constexpr const uint8_t button_cnt = 2;
 
 RadioButtonPreview::RadioButtonPreview(window_t *parent, Rect16 rect)
-    : RadioButtonFsm<PhasesPrintPreview>(parent, rect, PhasesPrintPreview::main_dialog) {
+    : RadioButtonFSM(parent, rect, PhasesPrintPreview::main_dialog) {
 }
 
 Rect16 RadioButtonPreview::getVerticalIconRect(uint8_t idx) const {
@@ -73,12 +73,16 @@ void RadioButtonPreview::windowEvent(window_t *sender, GUI_event_t event, void *
     switch (event) {
 
     case GUI_event_t::CLICK: {
-        Response response = Click();
-        event_conversion_union un;
-        un.response = response;
-        marlin_client::FSM_response(current_phase, response); // Use FSM logic from RadioButtonFsm<>
+        const Response response = Click();
+
+        marlin_client::FSM_encoded_response(EncodedFSMResponse {
+            .response = FSMResponseVariant::make(response),
+            .encoded_phase = fsm_and_phase().phase,
+            .encoded_fsm = std::to_underlying(fsm_and_phase().fsm),
+        });
+
         if (GetParent()) {
-            GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
+            GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, event_conversion_union { .response = response }.pvoid);
         }
     } break;
 
@@ -102,6 +106,7 @@ void RadioButtonPreview::windowEvent(window_t *sender, GUI_event_t event, void *
     } break;
 
     default:
-        RadioButtonFsm::windowEvent(sender, event, param);
+        RadioButtonFSM::windowEvent(sender, event, param);
+        break;
     }
 }

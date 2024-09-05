@@ -11,7 +11,7 @@
  * responses are generated from it at run time
  * this behavior allows to handle click automatically
  */
-class RadioButtonPreview : public RadioButtonFsm<PhasesPrintPreview> {
+class RadioButtonPreview : public RadioButtonFSM {
 public:
     /**
      * @brief Construct a new Radio Button object

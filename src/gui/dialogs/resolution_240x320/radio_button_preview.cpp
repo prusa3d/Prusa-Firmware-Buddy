@@ -6,5 +6,5 @@
 #include "i18n.h"
 
 RadioButtonPreview::RadioButtonPreview(window_t *parent, Rect16 rect)
-    : RadioButtonFsm<PhasesPrintPreview>(parent, rect, PhasesPrintPreview::main_dialog) {
+    : RadioButtonFSM(parent, rect, PhasesPrintPreview::main_dialog) {
 }
