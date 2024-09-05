@@ -40,7 +40,7 @@ protected:
     // template parameter <PhasesPrintPreview> is irrelevant - same size
     // in case it changes swap <PhasesPrintPreview> with the biggest type
     // it is checked in BindToFSM method
-    static constexpr size_t mem_space_size = std::max({ sizeof(RadioButtonFsm<PhasesPrintPreview>), sizeof(RadioButton) });
+    static constexpr size_t mem_space_size = std::max({ sizeof(RadioButtonFSM), sizeof(RadioButton) });
     using RadioMemSpace = std::array<uint8_t, mem_space_size>;
     alignas(std::max_align_t) RadioMemSpace radio_mem_space;
     static_unique_ptr<IRadioButton> pButtons;
@@ -54,9 +54,9 @@ public:
         return result;
     }
 
-    template <class FSM_PHASE>
-    void BindToFSM(FSM_PHASE phase) {
-        using T = RadioButtonFsm<FSM_PHASE>;
+    // TODO: Get rid of this madness
+    void BindToFSM(FSMAndPhase phase) {
+        using T = RadioButtonFSM;
         static_assert(sizeof(T) <= mem_space_size, "RadioMemSpace is too small");
 
         if (!pButtons) { // pButtons can never be null
