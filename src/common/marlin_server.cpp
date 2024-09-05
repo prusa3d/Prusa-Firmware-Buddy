@@ -502,8 +502,7 @@ ServerQueue server_queue;
 
 constexpr EncodedFSMResponse empty_encoded_fsm_response = {
     .response = {},
-    .encoded_phase = 0xff,
-    .encoded_fsm = 0xff,
+    .fsm_and_phase = FSMAndPhase(static_cast<ClientFSM>(0xff), 0xff),
 };
 static EncodedFSMResponse server_side_encoded_fsm_response = empty_encoded_fsm_response;
 
@@ -3299,14 +3298,14 @@ FSM_notifier::~FSM_notifier() {
     activeInstance = nullptr;
 }
 
-FSMResponseVariant get_response_variant_from_phase_internal(uint8_t encoded_fsm, uint8_t encoded_phase) {
+FSMResponseVariant get_response_variant_from_phase(FSMAndPhase fsm_and_phase) {
     // FIXME: Critical section is used to mimic original behaviour with std::atomic
     //        However, maybe we should instead require that the calling task
     //        is actually Marlin task. This is most probably the case,
     //        but checking that is beyond the scope of this patch.
     freertos::CriticalSection critical_section;
     const EncodedFSMResponse value = server_side_encoded_fsm_response;
-    if (encoded_fsm == value.encoded_fsm && encoded_phase == value.encoded_phase) {
+    if (value.fsm_and_phase == fsm_and_phase) {
         server_side_encoded_fsm_response = empty_encoded_fsm_response;
         return value.response;
     } else {

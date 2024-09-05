@@ -181,14 +181,12 @@ bool is_idle();
 
 void FSM_encoded_response(EncodedFSMResponse);
 
-template <class T>
-void FSM_response(T phase, Response response) {
-    FSM_encoded_response(EncodedFSMResponse::encode(phase, FSMResponseVariant::make(response)));
+inline void FSM_response(FSMAndPhase fsm_and_phase, Response response) {
+    FSM_encoded_response(EncodedFSMResponse { .response = FSMResponseVariant::make(response), .fsm_and_phase = fsm_and_phase });
 }
 
-template <class T>
-void FSM_response_variant(T phase, FSMResponseVariant response) {
-    FSM_encoded_response(EncodedFSMResponse::encode(phase, response));
+inline void FSM_response_variant(FSMAndPhase fsm_and_phase, FSMResponseVariant response) {
+    FSM_encoded_response(EncodedFSMResponse { .response = response, .fsm_and_phase = fsm_and_phase });
 }
 
 } // namespace marlin_client

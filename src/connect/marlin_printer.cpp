@@ -586,8 +586,7 @@ const char *MarlinPrinter::dialog_action(uint32_t dialog_id, Response response) 
 
     marlin_client::FSM_encoded_response(EncodedFSMResponse {
         .response = FSMResponseVariant::make(response),
-        .encoded_phase = top->data.GetPhase(),
-        .encoded_fsm = ftrstd::to_underlying(top->fsm_type),
+        .fsm_and_phase = FSMAndPhase(top->fsm_type, top->data.GetPhase()),
     });
     return nullptr;
 }

@@ -16,11 +16,7 @@ void RadioButtonFSM::set_fsm_and_phase(FSMAndPhase target) {
 void RadioButtonFSM::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK:
-        marlin_client::FSM_encoded_response(EncodedFSMResponse {
-            .response = FSMResponseVariant::make(Click()),
-            .encoded_phase = fsm_and_phase_.phase,
-            .encoded_fsm = std::to_underlying(fsm_and_phase_.fsm),
-        });
+        marlin_client::FSM_response(fsm_and_phase(), Click());
         break;
 
     default:
