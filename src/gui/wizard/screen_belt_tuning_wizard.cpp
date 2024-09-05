@@ -179,6 +179,8 @@ public:
         std::array<char, 16> target_str;
         _("Target").copyToRAM(target_str);
         info.SetText(string_view_utf8::MakeCPUFLASH("%.1f N (%i Hz)\n\n%s: %.1f +- %.1f N").formatted(info_params, tension, (int)data.frequency, target_str.data(), params.target_tension_force_n, params.target_tension_force_dev_n));
+        info.Invalidate(); // Annoying reference comparison in SetText
+
         graph.set_data(screen.graph_data);
     }
 
