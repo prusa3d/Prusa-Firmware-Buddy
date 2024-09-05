@@ -99,7 +99,7 @@ public:
             .append_string("prusa.io/")
             .append_string(PrinterModelInfo::current().help_url)
             .append_string("-iscal");
-        link.SetText(_(link_buffer.data()));
+        link.SetText(string_view_utf8::MakeRAM(link_buffer.data()));
         qr.get_string_builder()
             .append_string("prusa.io/qr-")
             .append_string(PrinterModelInfo::current().help_url)
