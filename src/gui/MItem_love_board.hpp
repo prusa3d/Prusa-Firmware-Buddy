@@ -13,9 +13,6 @@ class MI_INFO_SERIAL_NUM_LOVEBOARD : public WiInfo<28> {
 
 public:
     MI_INFO_SERIAL_NUM_LOVEBOARD();
-
-    using Buff = std::array<char, sizeof(LoveBoardEeprom::datamatrix) + 1 + 3 + 1>;
-    static Buff to_array();
 };
 
 class MI_INFO_HEATBREAK_TEMP : public WI_TEMP_LABEL_t {
