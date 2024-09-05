@@ -55,31 +55,7 @@ public:
     }
 
     // TODO: Get rid of this madness
-    void BindToFSM(FSMAndPhase phase) {
-        using T = RadioButtonFSM;
-        static_assert(sizeof(T) <= mem_space_size, "RadioMemSpace is too small");
-
-        if (!pButtons) { // pButtons can never be null
-            assert("unassigned msgbox");
-            return;
-        }
-
-        Rect16 rc = pButtons->GetRect();
-        bool has_icon = pButtons->HasIcon();
-        Color back = pButtons->GetBackColor();
-
-        ReleaseCaptureOfNormalWindow();
-
-        // First reset, then create new class; we cannot afford constructing and then destructing because it's the same memory
-        pButtons.reset();
-        static_assert(sizeof(T) <= std::tuple_size_v<RadioMemSpace>);
-        pButtons = make_static_unique_ptr<T>(radio_mem_space.data(), this, rc, phase);
-
-        has_icon ? pButtons->SetHasIcon() : pButtons->ClrHasIcon();
-        pButtons->SetBackColor(back);
-
-        CaptureNormalWindow(*pButtons);
-    }
+    void BindToFSM(FSMAndPhase phase);
 
     /// Sets response and generates appropriate events as if a button was pressed
     void generate_response(Response r);
