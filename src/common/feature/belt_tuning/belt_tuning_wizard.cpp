@@ -1,5 +1,6 @@
 #include "belt_tuning_wizard.hpp"
 
+#include <module/stepper.h>
 #include <module/prusa/accelerometer.h>
 #include <Marlin/src/gcode/gcode.h>
 #include <gcode/calibrate/M958.hpp>
@@ -31,7 +32,27 @@ public:
 
 private:
     PhaseOpt phase_init(const Meta::LoopCallbackArgs &) {
-        return Phase::preparing;
+        return Phase::ask_for_gantry_align;
+    }
+
+    void phase_ask_for_gantry_align_init(const Meta::InitCallbackArgs &) {
+        // Disable the XY gantry - the user is prompted to move it by hand in this phase
+        planner.synchronize();
+        disable_XY();
+    }
+
+    PhaseOpt phase_ask_for_gantry_align(const Meta::LoopCallbackArgs &args) {
+        switch (args.response.value_or<Response>(Response::_none)) {
+
+        case Response::Done:
+            return Phase::preparing;
+
+        case Response::Abort:
+            return Phase::finish;
+
+        default:
+            return std::nullopt;
+        }
     }
 
     PhaseOpt phase_preparing(const Meta::LoopCallbackArgs &) {
@@ -195,6 +216,7 @@ private:
     using C = FSMBeltTuning;
     static constexpr Config config {
         { Phase::init, { &C::phase_init } },
+        { Phase::ask_for_gantry_align, { &C::phase_ask_for_gantry_align, &C::phase_ask_for_gantry_align_init } },
         { Phase::preparing, { &C::phase_preparing } },
         { Phase::ask_for_dampeners_installation, { &C::phase_ask_for_dampeners_installation } },
         { Phase::calibrating_accelerometer, { &C::phase_calibrating_accelerometer } },

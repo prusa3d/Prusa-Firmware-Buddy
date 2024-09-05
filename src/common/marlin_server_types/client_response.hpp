@@ -499,6 +499,9 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesSerialPrinting) { return 
 enum class PhaseBeltTuning : PhaseUnderlyingType {
     init,
 
+    /// The user is prompted to loose the belts so that the gantry is aligned
+    ask_for_gantry_align,
+
     /// Homing, selecting a proper tool and moving it to the measuring position
     preparing,
 
@@ -880,6 +883,7 @@ class ClientResponses {
 #if HAS_BELT_TUNING()
     static constexpr EnumArray<PhaseBeltTuning, PhaseResponses, CountPhases<PhaseBeltTuning>()> belt_tuning_responses {
         { PhaseBeltTuning::init, {} },
+        { PhaseBeltTuning::ask_for_gantry_align, { Response::Done, Response::Abort } },
         { PhaseBeltTuning::preparing, { Response::Abort } },
         { PhaseBeltTuning::ask_for_dampeners_installation, { Response::Done, Response::Abort } },
         { PhaseBeltTuning::calibrating_accelerometer, { Response::Abort } },

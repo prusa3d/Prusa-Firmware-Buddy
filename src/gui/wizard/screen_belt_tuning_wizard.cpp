@@ -8,6 +8,7 @@
 #include <display.hpp>
 
 #include <gui/standard_frame/frame_prompt.hpp>
+#include <gui/standard_frame/frame_qr_prompt.hpp>
 #include <feature/belt_tuning/belt_tuning_wizard.hpp>
 #include <feature/belt_tuning/printer_belt_parameters.hpp>
 
@@ -15,6 +16,7 @@ using Phase = PhaseBeltTuning;
 
 namespace {
 
+using FrameAskForGantryAlign = WithConstructorArgs<FrameQRPrompt, Phase::ask_for_gantry_align, N_("Please follow the XY gantry alignment process in the manual."), "belt-tuning"_tstr>;
 using FramePreparing = WithConstructorArgs<FramePrompt, Phase::preparing, N_("Preparing"), N_("Setting the printer up for the calibration.\n\nPlease wait.")>;
 
 // TODO: Maybe add progress bar?
@@ -189,6 +191,7 @@ private:
 };
 
 using Frames = FrameDefinitionList<ScreenBeltTuningWizard::FrameStorage,
+    FrameDefinition<Phase::ask_for_gantry_align, FrameAskForGantryAlign>,
     FrameDefinition<Phase::preparing, FramePreparing>,
     FrameDefinition<Phase::ask_for_dampeners_installation, FrameAskForDampenersInstallation>,
     FrameDefinition<Phase::calibrating_accelerometer, FrameCalibratingAccelerometer>,
