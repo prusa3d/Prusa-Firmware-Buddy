@@ -6,7 +6,7 @@
 
 class ScreenColdPull final : public ScreenFSM {
 private:
-    RadioButtonFsm<PhasesColdPull> radio;
+    RadioButtonFSM radio;
     FooterLine footer;
 
 public:

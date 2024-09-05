@@ -51,7 +51,7 @@ private:
     window_numb_t progress_number;
     window_text_t label;
     std::optional<PhasesLoadUnload> current_phase = std::nullopt;
-    RadioButtonFsm<PhasesLoadUnload> radio;
+    RadioButtonFSM radio;
 
     void set_progress_percent(uint8_t val);
     void phaseExit();

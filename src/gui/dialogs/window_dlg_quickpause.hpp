@@ -11,7 +11,7 @@ class DialogQuickPause : public IDialogMarlin {
     window_icon_t icon;
     window_text_t text;
     window_roll_text_t gcode_name;
-    RadioButtonFsm<PhasesQuickPause> radio;
+    RadioButtonFSM radio;
 
 public:
     DialogQuickPause(fsm::BaseData data);

@@ -13,7 +13,7 @@ class DialogWarning : public IDialogMarlin {
     window_icon_t phone;
     QRErrorUrlWindow qr;
     window_text_t text;
-    RadioButtonFsm<PhasesWarning> button;
+    RadioButtonFSM button;
 
     DialogWarning(PhasesWarning, WarningType);
     DialogWarning(PhasesWarning, WarningType, const ErrDesc &);

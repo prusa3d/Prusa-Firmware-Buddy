@@ -37,7 +37,7 @@ public:
  */
 class SelftestFrameWithRadio : public SelftestFrame {
 protected:
-    RadioButtonFsm<PhasesSelftest> radio;
+    RadioButtonFSM radio;
     virtual void pre_change() override; // update radio button
 public:
     SelftestFrameWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, size_t lines_of_footer = 0);
@@ -59,7 +59,7 @@ public:
  */
 class SelftestFrameNamedWithRadio : public SelftestFrameNamed {
 protected:
-    RadioButtonFsm<PhasesSelftest> radio;
+    RadioButtonFSM radio;
     virtual void pre_change() override; // update radio button
 public:
     SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, const string_view_utf8 &name, size_t lines_of_footer = 0);

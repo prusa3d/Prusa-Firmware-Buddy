@@ -5,7 +5,7 @@
 
 class ScreenInputShaperCalibration final : public ScreenFSM {
 private:
-    RadioButtonFsm<PhasesInputShaperCalibration> radio;
+    RadioButtonFSM radio;
 
 public:
     ScreenInputShaperCalibration();

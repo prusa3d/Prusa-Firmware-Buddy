@@ -391,7 +391,7 @@ private:
     window_text_t link;
     window_icon_t icon_phone;
     QRStaticStringWindow qr;
-    RadioButtonFsm<PhaseNetworkSetup> radio;
+    RadioButtonFSM radio;
 };
 
 class FrameHelpQR : public FrameRadioQR {

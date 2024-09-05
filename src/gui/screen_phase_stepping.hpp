@@ -5,7 +5,7 @@
 
 class ScreenPhaseStepping : public ScreenFSM {
 private:
-    RadioButtonFsm<PhasesPhaseStepping> radio;
+    RadioButtonFSM radio;
 
 public:
     ScreenPhaseStepping();
