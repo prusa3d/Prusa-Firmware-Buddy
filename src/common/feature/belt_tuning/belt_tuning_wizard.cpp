@@ -160,7 +160,7 @@ private:
     void phase_results_init(const Meta::InitCallbackArgs &) {
         fsm_.change_data(fsm::serialize_data(BeltTuningWizardResultsData {
             .frequency = static_cast<uint8_t>(result_->resonant_frequency_hz),
-            .tension = static_cast<uint8_t>(result_->tension_force_n * BeltTuningWizardResultsData::tension_mult),
+            .tension = static_cast<uint8_t>(std::clamp<float>(result_->tension_force_n * BeltTuningWizardResultsData::tension_mult, 0, 255)),
             .belt_system = config_.belt_system,
         }));
     }
