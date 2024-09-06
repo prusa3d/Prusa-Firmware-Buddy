@@ -21,30 +21,27 @@ float PrusaAccelerometer::m_sampling_rate = 0;
  * Do nothing otherwise.
  */
 PrusaAccelerometer::PrusaAccelerometer() {
-    bool enable_accelerometer = false;
     {
         std::lock_guard lock(s_buffer_mutex);
-        if (!s_sample_buffer) {
-            s_sample_buffer = &m_sample_buffer;
-            enable_accelerometer = true;
+        if (s_sample_buffer) {
+            m_sample_buffer.error.set(Error::busy);
+            return;
         }
-        s_sample_buffer->buffer.clear();
+
+        s_sample_buffer = &m_sample_buffer;
     }
-    if (enable_accelerometer) {
-        buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
-        if (!dwarf) {
-            std::lock_guard lock(s_buffer_mutex);
-            m_sample_buffer.error.set(Error::no_active_tool);
-            return;
-        }
-        if (!dwarf->set_accelerometer(true)) {
-            std::lock_guard lock(s_buffer_mutex);
-            m_sample_buffer.error.set(Error::communication);
-            return;
-        }
-    } else {
+
+    buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
+    if (!dwarf) {
         std::lock_guard lock(s_buffer_mutex);
-        m_sample_buffer.error.set(Error::busy);
+        m_sample_buffer.error.set(Error::no_active_tool);
+        return;
+    }
+
+    if (!dwarf->set_accelerometer(true)) {
+        std::lock_guard lock(s_buffer_mutex);
+        m_sample_buffer.error.set(Error::communication);
+        return;
     }
 }
 /**
