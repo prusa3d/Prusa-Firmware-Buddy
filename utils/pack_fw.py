@@ -105,6 +105,8 @@ def write_version(ver, *, build_number: int):
         data += getattr(ver, it).to_bytes(1, 'little')
     data += build_number.to_bytes(2, 'little')
     data += ver.prerelease.ljust(5, '\0').encode()
+    if len(data) != 10:
+        raise ValueError('version must be 10 bytes long')
     return data
 
 
