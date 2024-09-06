@@ -11,7 +11,7 @@ struct PrinterBeltParameters {
 
     struct BeltSystemParameters {
         /// Position of the toolhead at which the measurements should be performed
-        xy_pos_t measurement_pos;
+        xyz_pos_t measurement_pos;
 
         /// (meters) Nominal length of the belt system
         float nominal_length_m;
@@ -34,7 +34,7 @@ struct PrinterBeltParameters {
 static constexpr PrinterBeltParameters printer_belt_parameters {
     .belt_system = {
         PrinterBeltParameters::BeltSystemParameters {
-            .measurement_pos = { .x = 342, .y = 110 },
+            .measurement_pos = { .x = 342, .y = 110, .z = 10 },
             .nominal_length_m = 0.395f,
             .nominal_weight_kg_m = 0.007569f,
             .target_tension_force_n = 18,

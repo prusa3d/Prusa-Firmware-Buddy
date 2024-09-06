@@ -27,8 +27,8 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
             return config.progress_callback && !config.progress_callback({});
         };
 
-        // Make sure we're homed (XY)
-        if (!GcodeSuite::G28_no_parser(false, true, 5, false, true, true, false)) {
+        // Make sure we're homed
+        if (!GcodeSuite::G28_no_parser(false, true, 5, false, true, true, true)) {
             return std::nullopt;
         }
 
