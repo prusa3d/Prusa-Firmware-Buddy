@@ -110,6 +110,11 @@ void motion_do_blocking_move_to_z(float z, float feedRate_mm_s) {
 #endif
 
     do_blocking_move_to(target_pos, feedRate_mm_s);
+
+    // But since the plan_park_move_to overrides the current position values (which are by default in
+    // native (without MBL) coordinates and we apply MBL to them) we need to reset the z height to
+    // make all the future moves correct.
+    current_position.z = z;
 }
 
 void nozzle_park() {
