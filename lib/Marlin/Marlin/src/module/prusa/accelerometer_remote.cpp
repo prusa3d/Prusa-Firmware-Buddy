@@ -50,40 +50,39 @@ PrusaAccelerometer::PrusaAccelerometer() {
  * Do nothing otherwise.
  */
 PrusaAccelerometer::~PrusaAccelerometer() {
-    bool disable_accelerometer = false;
-    {
-        std::lock_guard lock(s_buffer_mutex);
-        if (&m_sample_buffer == s_sample_buffer) {
-            s_sample_buffer = nullptr;
-            disable_accelerometer = true;
-        }
+    std::lock_guard lock(s_buffer_mutex);
+
+    if (&m_sample_buffer != s_sample_buffer) {
+        return;
     }
-    if (disable_accelerometer) {
-        std::lock_guard lock(s_buffer_mutex);
-        switch (m_sample_buffer.error.get()) {
-        case Error::none:
-        case Error::_cnt:
-        case Error::communication:
-        case Error::overflow_sensor:
-        case Error::overflow_buddy:
-        case Error::overflow_dwarf:
-        case Error::overflow_possible: {
-            buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
-            if (!dwarf) {
-                return;
-            }
-            if (!dwarf->set_accelerometer(false)) {
-                SERIAL_ERROR_MSG("Failed to disable accelerometer, communication error");
-            }
-            return;
+
+    s_sample_buffer = nullptr;
+
+    switch (m_sample_buffer.error.get()) {
+    case Error::none:
+    case Error::communication:
+    case Error::overflow_sensor:
+    case Error::overflow_buddy:
+    case Error::overflow_dwarf:
+    case Error::overflow_possible: {
+        buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
+        if (!dwarf) {
+            break;
         }
-        case Error::no_active_tool:
-            return;
-        case Error::busy:
-            bsod("Unexpected");
+        if (!dwarf->set_accelerometer(false)) {
+            SERIAL_ERROR_MSG("Failed to disable accelerometer, communication error");
         }
+        break;
+    }
+    case Error::no_active_tool:
+        break;
+
+    case Error::busy:
+    case Error::_cnt:
+        bsod("Unexpected");
     }
 }
+
 void PrusaAccelerometer::clear() {
     // todo wait for for so many samples that it is assured
     // that even if all buffers were full we went through
