@@ -24,6 +24,7 @@
 #include <utility_extensions.hpp>
 
 #include <config_store/store_instance.hpp>
+#include <logging/log.hpp>
 
 #include <option/has_local_accelerometer.h>
 #include <option/has_dwarf.h>
@@ -36,6 +37,8 @@ static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 #ifdef M958_OUTPUT_SAMPLES
     #include "../../../../../tinyusb/src/class/cdc/cdc_device.h"
 #endif
+
+LOG_COMPONENT_REF(Marlin);
 
 METRIC_DEF(metric_excite_freq, "excite_freq", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
 METRIC_DEF(metric_freq_gain, "freq_gain", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
@@ -716,6 +719,8 @@ std::optional<VibrateMeasureResult> vibrate_measure_repeat(const VibrateMeasureP
         if (result.has_value()) {
             return result;
         }
+
+        log_info(Marlin, "vibrate_measure: Attempt %i failed", attempt);
     }
 
     SERIAL_ERROR_MSG("vibrate_measure_repeat: maximum attempts exhausted");
