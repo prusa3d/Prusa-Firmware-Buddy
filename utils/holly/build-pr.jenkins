@@ -6,7 +6,7 @@ def get_version_info() {
     def full_suffix
     if (env.CHANGE_ID) {
         // This is a PR build
-        short_suffix = "-BETA+${commit_nr}"
+        short_suffix = "-DEV+${commit_nr}"
         full_suffix = "${short_suffix}.PR${env.CHANGE_ID}.B${env.BUILD_NUMBER}"
     } else if (env.BRANCH_NAME.startsWith("RELEASE-")) {
         // This is an RC build
@@ -14,7 +14,7 @@ def get_version_info() {
         full_suffix = "${short_suffix}.B${env.BUILD_NUMBER}"
     } else {
         // This is build of an ordinary branch (not a release branch)
-        short_suffix = "-BETA+${commit_nr}"
+        short_suffix = "-DEV+${commit_nr}"
         def branch_spec = env.BRANCH_NAME.replaceAll("_", "-")
         full_suffix = "${short_suffix}.BRANCH-${branch_spec}.B${env.BUILD_NUMBER}"
     }
