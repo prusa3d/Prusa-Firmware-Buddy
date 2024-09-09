@@ -84,9 +84,7 @@ void G27_no_parser(const G27Params &params) {
             do_z_clearance(params.park_position.z);
             return;
         } else {
-            // Don't allow nozzle parking without homing first
-            axis_unhomed_error();
-            return;
+            GcodeSuite::G28_no_parser(true, true, 3, false, params.do_x, params.do_y, params.do_z);
         }
     } // Regular park
     nozzle.park(params.z_action, park_position);
