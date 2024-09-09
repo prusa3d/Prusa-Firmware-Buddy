@@ -431,9 +431,9 @@ json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output) {
             // Note: This modifies the buffer, so it has to be done after all other
             // uses of it above!!
             dirname(sfn_path);
-            JSON_FIELD_STR("path", sfn_path) JSON_COMMA;
+            JSON_FIELD_STR("path", sfn_path);
             if (has_stat) {
-                JSON_FIELD_INT_G(has_stat, "size", st.st_size) JSON_COMMA;
+                JSON_COMMA JSON_FIELD_INT_G(has_stat, "size", st.st_size) JSON_COMMA;
                 JSON_FIELD_INT_G(has_stat, "m_timestamp", st.st_mtime);
             }
         JSON_OBJ_END;
