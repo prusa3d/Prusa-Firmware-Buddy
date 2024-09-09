@@ -21,11 +21,11 @@
 #include <functional> // std::invoke
 #include <cmath>
 #include "filament_sensors_handler.hpp"
-#include "config_store/store_c_api.h"
-#include "RAII.hpp"
 #include "M70X.hpp"
 #include <config_store/store_instance.hpp>
 #include <filament_to_load.hpp>
+#include <Marlin/src/gcode/gcode.h>
+#include <marlin_stubs/pause/G27.hpp>
 
 #include <option/has_bowden.h>
 #include <option/has_human_interactions.h>
@@ -224,6 +224,15 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         config_store().set_filament_type(target_extruder, FilamentType::none);
         M701_no_parser(FilamentType::none, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0, std::nullopt, ResumePrint_t::No);
     } else {
+
+#if ENABLED(NOZZLE_PARK_FEATURE) && PRINTER_IS_PRUSA_iX()
+        // iX wants to park as the the filament is pushed through the PTFE tube
+        G27_no_parser(
+            {
+                .where_to_park = G27Params::ParkPosition::load,
+                .z_action = 4,
+            });
+#endif
 
         pause::Settings settings;
         settings.SetExtruder(target_extruder);

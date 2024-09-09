@@ -185,7 +185,14 @@ void FilamentSensors::reconfigure_sensors_if_needed(bool force) {
     ls[LFS::current_side] = side_fs;
     ls[LFS::primary_runout] = side_fs ?: extruder_fs;
     ls[LFS::secondary_runout] = side_fs ? extruder_fs : nullptr;
+#if PRINTER_IS_PRUSA_iX()
+    /**  iX can behave a little bit differently when autoloading thanks to it being outside of user's reach. The head will move during autohoming and could cause harm to person having hands within head's space.
+        If the autoload would be triggered by extruder fs it could mean that user is trying to insert filament while manipulating with head itself, an action that could cause harm.
+        This can change in the future but needs some thought on printer's behaviour in such case (e.g. filament is already in extruder, there is no need for parking movement) */
+    ls[LFS::autoload] = side_fs ?: nullptr;
+#else
     ls[LFS::autoload] = has_mmu ? nullptr : extruder_fs;
+#endif
 }
 
 void FilamentSensors::process_events() {
@@ -210,12 +217,11 @@ void FilamentSensors::process_events() {
     const auto check_autoload = [&]() {
         const auto event = sensor(LogicalFilamentSensor::autoload)->last_event();
 
-        if (
-            event != IFSensor::Event::filament_inserted
+        if (event != IFSensor::Event::filament_inserted
             || has_mmu
             || autoload_sent
             || isAutoloadLocked()
-            || !marlin_vars().fs_autoload_enabled //
+            || !marlin_vars().fs_autoload_enabled
 #if HAS_SELFTEST()
             // We're accessing screens from the filamentsensors thread here. This looks quite unsafe.
             || Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
@@ -251,7 +257,6 @@ void FilamentSensors::process_events() {
             return;
         }
 #endif
-
     } else {
         // During MMU standard operation, there is no filament loaded to the nozzle when not printing.
         // So it's not a good idea to reset what filament types we have stored.

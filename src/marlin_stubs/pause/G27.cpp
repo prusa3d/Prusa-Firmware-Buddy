@@ -31,6 +31,16 @@
     #include <common/gcode/gcode_parser.hpp>
     #include <common/filament_sensors_handler.hpp>
 
+static constexpr EnumArray<G27Params::ParkPosition, xyz_pos_t, G27Params::ParkPosition::_cnt> park_positions {
+    { G27Params::ParkPosition::park, xyz_pos_t({ { XYZ_NOZZLE_PARK_POINT } }) },
+    #if HAS_WASTEBIN()
+        { G27Params::ParkPosition::purge, xyz_pos_t({ X_WASTEBIN_POINT, Y_WASTEBIN_POINT, Z_NOZZLE_PARK_POINT }) },
+    #else
+        { G27Params::ParkPosition::purge, xyz_pos_t({ { XYZ_NOZZLE_PARK_POINT } }) },
+    #endif
+        { G27Params::ParkPosition::load, xyz_pos_t({ X_AXIS_LOAD_POS, Y_AXIS_LOAD_POS, Z_NOZZLE_PARK_POINT }) },
+};
+
 /** \addtogroup G-Codes
  * @{
  */
@@ -44,11 +54,14 @@
  * - `Y` - Park nozzle on X axis
  * - `Z` - Park nozzle on X axis
  * - `P` - [value] Z action
+ * - 'W' - [0-2] Use pre-defined park position. Usable only if X, Y and Z are not present as they override pre-defined behaviour.
  */
 void GcodeSuite::G27() {
     GCodeParser2 parser { GCodeParser2::from_marlin_parser };
     G27Params params;
     parser.store_option('P', params.z_action);
+
+    params.where_to_park = G27Params::ParkPosition { parser.option<uint8_t>('W').transform([](uint8_t val) -> uint8_t { return val < ftrstd::to_underlying(G27Params::ParkPosition::_cnt) ? val : 0; }).value_or(0) };
 
     params.do_x = parser.store_option('X', params.park_position.x);
     params.do_y = parser.store_option('Y', params.park_position.y);
@@ -60,9 +73,8 @@ void GcodeSuite::G27() {
 void G27_no_parser(const G27Params &params) {
     xyz_pos_t park_position { params.park_position };
 
-    static xyz_pos_t default_park_pos { { XYZ_NOZZLE_PARK_POINT } };
     if (!params.do_x && !params.do_y && !params.do_z) {
-        park_position = default_park_pos;
+        park_position = park_positions[params.where_to_park];
     }
 
     // If not homed and only Z clearance is requested, od just that, otherwise home and then park.

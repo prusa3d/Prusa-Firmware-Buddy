@@ -1,5 +1,14 @@
 #pragma once
 struct G27Params {
+
+    enum class ParkPosition : uint8_t {
+        park,
+        purge,
+        load,
+        _cnt,
+    };
+
+    ParkPosition where_to_park { ParkPosition::park };
     bool do_x { false };
     bool do_y { false };
     bool do_z { false };
