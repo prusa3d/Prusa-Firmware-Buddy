@@ -213,7 +213,7 @@ DeviceState get_state(bool ready) {
         // server, not at full FSM states and can't detect some things - in
         // particular, load / unload from menu is not detectable by this (if
         // "covered" by the warning).
-        if (state_is_active(result) || is_warning_attention(data)) {
+        if (state_is_active(result) || is_warning_attention(data) || fsm_states.is_active(ClientFSM::Load_unload) || fsm_states.is_active(ClientFSM::Preheat)) {
             return DeviceState::Attention;
         } else {
             return result;
