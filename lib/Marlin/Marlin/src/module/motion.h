@@ -256,7 +256,6 @@ FORCE_INLINE void do_blocking_move_to_xy_z(const xyze_pos_t &raw, const float &z
  */
 void do_blocking_move_around_nozzle_cleaner_to_xy(const xy_pos_t& destination, const feedRate_t& feedrate);
 
-
 void remember_feedrate_and_scaling();
 void remember_feedrate_scaling_off();
 void restore_feedrate_and_scaling();

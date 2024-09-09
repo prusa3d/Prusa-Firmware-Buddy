@@ -702,11 +702,36 @@ void Pause::loop_loadToGear([[maybe_unused]] Response response) {
     // transitions
     switch (getLoadPhase()) {
     case LoadPhases_t::_init:
-        set(LoadPhases_t::load_in_gear);
+        set(LoadPhases_t::assist_filament_insertion);
+        start_time = ticks_ms();
         break;
-    case LoadPhases_t::load_in_gear:
+    case LoadPhases_t::assist_filament_insertion: {
         setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
-        do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
+
+        // Filament is in Extruder autoload assistance si done.
+        if (FSensors_instance().has_filament_surely()) {
+            set(LoadPhases_t::load_in_gear);
+            break;
+        }
+
+        // Moves are planned wait until they aren't before panning more
+        if (planner.processing()) {
+            break;
+        }
+
+        // Load for at least 40 seconds before giving up. Alternatively, if filament is removed altogether, stop too.
+        auto pre_park_sensor = FSensors_instance().sensor(LogicalFilamentSensor::autoload);
+        if (ticks_diff(ticks_ms(), start_time) > 40000 /*Move for at least 40 seconds before giving up*/
+            || (pre_park_sensor && pre_park_sensor->get_state() != FilamentSensorState::HasFilament)) {
+            settings.do_stop = true;
+            return;
+        }
+
+        do_e_move_notify_progress_coldextrude(FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 10);
+        break;
+    }
+    case LoadPhases_t::load_in_gear:
+        do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30);
         set(LoadPhases_t::_finish);
         break;
     default:

@@ -249,6 +249,15 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
             return;
         }
 
+#if HAS_WASTEBIN()
+        // Passing LoadToGear() (above ^) means that filament is successfully caught in gear and head should move over to wastebin for purge
+        G27_no_parser(
+            {
+                .where_to_park = G27Params::ParkPosition::purge,
+                .z_action = 4,
+            });
+#endif
+
         if constexpr (option::has_human_interactions) {
             PreheatData data = PreheatData::make(PreheatMode::Autoload, target_extruder, RetAndCool_t::Return);
             auto preheat_ret = preheat_for_change_load(data, target_extruder);

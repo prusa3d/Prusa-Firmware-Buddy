@@ -52,6 +52,7 @@ protected:
         _finish = intFinishVal,
         _init = int(UnloadPhases_t::_last) + 1,
         check_filament_sensor_and_user_push__ask, // must be one phase because of button click
+        assist_filament_insertion,
         load_in_gear,
         wait_temp,
         error_temp,
@@ -126,6 +127,7 @@ class Pause : public PausePrivatePhase {
     pause::Settings settings;
     bool user_stop_pending = false;
 
+    uint32_t start_time = 0;
 #if !HAS_HUMAN_INTERACTIONS()
     uint32_t runout_timer_ms { 0 };
 #endif
