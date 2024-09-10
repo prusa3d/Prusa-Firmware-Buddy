@@ -51,6 +51,15 @@ enum class EventType {
 
 const char *to_str(EventType event);
 
+enum class MachineReason {
+    None,
+    TransferInProgress,
+    FileExists,
+    StorageFailure,
+};
+
+const char *to_str(MachineReason reason);
+
 struct Event {
     EventType type;
     std::optional<CommandId> command_id { std::nullopt };
@@ -62,6 +71,9 @@ struct Event {
     /// Reasons are constant strings, therefore the non-owned const char * ‒
     /// they are not supposed to get "constructed" or interpolated.
     const char *reason = nullptr;
+    /// Similar in function to reason, but in a machine-readable enum way, so
+    /// the server can actually base some actions on it.
+    MachineReason machine_reason = MachineReason::None;
     bool is_file = false;
     transfers::ChangedPath::Incident incident {};
     std::optional<CommandId> start_cmd_id { std::nullopt };

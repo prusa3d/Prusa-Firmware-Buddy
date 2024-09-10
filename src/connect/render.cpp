@@ -317,6 +317,10 @@ namespace {
                 JSON_FIELD_STR("reason", event.reason) JSON_COMMA;
             }
 
+            if (event.machine_reason != MachineReason::None) {
+                JSON_FIELD_STR("machine_reason", to_str(event.machine_reason)) JSON_COMMA;
+            }
+
             // Relevant "data" block, if any
 
             // Note: this would very much like to be a switch. Nevertheless, the

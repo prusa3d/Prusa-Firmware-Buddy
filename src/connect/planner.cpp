@@ -288,6 +288,23 @@ const char *to_str(EventType event) {
     }
 }
 
+const char *to_str(MachineReason reason) {
+    switch (reason) {
+    case MachineReason::None:
+        // Not actually rendered, just to cover the case.
+        return "";
+    case MachineReason::TransferInProgress:
+        return "TRANSFER_IN_PROGRESS";
+    case MachineReason::FileExists:
+        return "FILE_EXISTS";
+    case MachineReason::StorageFailure:
+        return "STORAGE_FAILURE";
+    }
+
+    assert(false);
+    return "???";
+}
+
 Planner::Planner(Printer &printer)
     : printer(printer) {
     reset();
@@ -762,11 +779,11 @@ void Planner::handle_transfer_result(const Command &command, Transfer::BeginResu
             planned_event->start_cmd_id = command.id;
             transfer_start_cmd = command.id;
         } else if constexpr (is_same_v<T, transfers::NoTransferSlot>) {
-            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Another transfer in progress" };
+            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Another transfer in progress", MachineReason::TransferInProgress };
         } else if constexpr (is_same_v<T, transfers::AlreadyExists>) {
-            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "File already exists" };
+            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "File already exists", MachineReason::FileExists };
         } else if constexpr (is_same_v<T, transfers::Storage>) {
-            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, arg.msg };
+            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, arg.msg, MachineReason::StorageFailure };
         } else {
             static_assert(always_false_v<T>, "non-exhaustive visitor!");
         }
