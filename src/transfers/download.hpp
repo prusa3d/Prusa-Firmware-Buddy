@@ -14,7 +14,6 @@
 namespace transfers {
 
 // Some error states
-struct RefusedRequest {};
 struct AlreadyExists {};
 struct Storage {
     const char *msg;

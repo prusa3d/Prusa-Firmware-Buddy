@@ -765,8 +765,6 @@ void Planner::handle_transfer_result(const Command &command, Transfer::BeginResu
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Another transfer in progress" };
         } else if constexpr (is_same_v<T, transfers::AlreadyExists>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "File already exists" };
-        } else if constexpr (is_same_v<T, transfers::RefusedRequest>) {
-            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Failed to download" };
         } else if constexpr (is_same_v<T, transfers::Storage>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, arg.msg };
         } else {

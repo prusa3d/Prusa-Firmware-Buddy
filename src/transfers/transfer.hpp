@@ -334,7 +334,7 @@ public:
     Transfer &operator=(Transfer &&other) = default;
     Transfer &operator=(const Transfer &other) = delete;
 
-    using BeginResult = std::variant<Transfer, NoTransferSlot, AlreadyExists, RefusedRequest, Storage>;
+    using BeginResult = std::variant<Transfer, NoTransferSlot, AlreadyExists, Storage>;
     /// Begin a new transfer.
     static BeginResult begin(const char *destination_path, const Download::Request &request);
 
