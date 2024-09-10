@@ -56,6 +56,8 @@ enum class MachineReason {
     TransferInProgress,
     FileExists,
     StorageFailure,
+    NetworkFailure,
+    NotReady,
 };
 
 const char *to_str(MachineReason reason);

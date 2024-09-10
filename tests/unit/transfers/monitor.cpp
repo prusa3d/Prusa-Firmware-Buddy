@@ -117,8 +117,8 @@ TEST_CASE("Transfer history") {
     auto id1 = o(Monitor::Outcome::Finished);
     REQUIRE(monitor.outcome(id1) == Monitor::Outcome::Finished);
 
-    auto id2 = o(Monitor::Outcome::Error);
-    REQUIRE(monitor.outcome(id2) == Monitor::Outcome::Error);
+    auto id2 = o(Monitor::Outcome::ErrorNetwork);
+    REQUIRE(monitor.outcome(id2) == Monitor::Outcome::ErrorNetwork);
     // The id1 is still reachable
     REQUIRE(monitor.outcome(id1) == Monitor::Outcome::Finished);
 
@@ -134,8 +134,8 @@ TEST_CASE("Transfer history") {
 
     slot.reset();
 
-    // Nobody called the done() method, the default should be Error.
-    REQUIRE(monitor.outcome(*id4) == Monitor::Outcome::Error);
+    // Nobody called the done() method, the default should be ErrorOther.
+    REQUIRE(monitor.outcome(*id4) == Monitor::Outcome::ErrorOther);
 
     // Already out of history (yes, we abuse the knowledge of the history size in this test).
     REQUIRE_FALSE(monitor.outcome(id1).has_value());

@@ -26,8 +26,12 @@ struct FromStart {};
 enum class DownloadStep {
     Continue,
     Finished,
+    // Network issues (timeouts, lost connections, ...)
     FailedNetwork,
-    FailedOther,
+    // Failed to write to USB
+    FailedStorage,
+    // Server not acting the way we expect.
+    FailedRemote,
     // Aborted by calling the deleter
     Aborted,
 };

@@ -38,7 +38,7 @@ Monitor::Slot::~Slot() {
         }
 
         if (!destruction_handled) {
-            done(Outcome::Error);
+            done(Outcome::ErrorOther);
         }
 
         owner.transfer_active = false;

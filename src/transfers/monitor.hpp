@@ -101,19 +101,12 @@ public:
         /// It finished successfuly.
         Finished,
 
-        /// The (or some other system) asked us to bail out.
+        /// The Connect (or some other system) asked us to bail out.
         Stopped,
 
-        /// Something bad happened.
-        ///
-        /// Currently, specifics are not stored. But something like a network
-        /// error, write error, etc.
-        ///
-        /// As it seems to be the most common call we
-        /// just make it the default handling and rely
-        /// on it, so that we don't clutter the code
-        /// and also get things like timeout to be Error.
-        Error,
+        ErrorNetwork,
+        ErrorStorage,
+        ErrorOther,
     };
 
     /// A Status of a running transfer.

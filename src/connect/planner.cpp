@@ -299,6 +299,10 @@ const char *to_str(MachineReason reason) {
         return "FILE_EXISTS";
     case MachineReason::StorageFailure:
         return "STORAGE_FAILURE";
+    case MachineReason::NotReady:
+        return "NOT_READY";
+    case MachineReason::NetworkFailure:
+        return "NETWORK_FAILURE";
     }
 
     assert(false);
@@ -441,12 +445,21 @@ Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_read
             // is set only to shut up the compiler about
             // uninitialized use
             EventType type = EventType::Failed;
+            MachineReason reason = MachineReason::None;
 
             switch (*outcome) {
             case Monitor::Outcome::Finished:
                 type = EventType::TransferFinished;
                 break;
-            case Monitor::Outcome::Error:
+            case Monitor::Outcome::ErrorStorage:
+                type = EventType::TransferAborted;
+                reason = MachineReason::StorageFailure;
+                break;
+            case Monitor::Outcome::ErrorNetwork:
+                type = EventType::TransferAborted;
+                reason = MachineReason::NetworkFailure;
+                break;
+            case Monitor::Outcome::ErrorOther:
                 type = EventType::TransferAborted;
                 break;
             case Monitor::Outcome::Stopped:
@@ -459,6 +472,7 @@ Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_read
             // Not nullopt, otherwise we wouldn't get an outcome.
             planned_event->transfer_id = *terminated_transfer;
             planned_event->start_cmd_id = transfer_start_cmd;
+            planned_event->machine_reason = reason;
             transfer_start_cmd = nullopt;
             return *planned_event;
         }
@@ -815,7 +829,7 @@ void Planner::command(const Command &command, const StartEncryptedDownload &down
     }
 
     if (transfer_recovery == TransferRecoveryState::WaitingForUSB) {
-        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Not ready" };
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Not ready", MachineReason::NotReady };
         return;
     }
 

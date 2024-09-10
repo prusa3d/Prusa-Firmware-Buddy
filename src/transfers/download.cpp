@@ -198,7 +198,7 @@ public:
         char req[MAX_REQ_SIZE + 1];
         size_t len = snprintf(req, sizeof req, "GET %s HTTP/1.1\r\nHost: %s\r\nContent-Encryption-Mode: AES-CTR\r\nRange: %s\r\n\r\n", request.path, request.hostname, range);
         if (len >= sizeof req) {
-            done(DownloadStep::FailedOther);
+            done(DownloadStep::FailedRemote);
             return ERR_ABRT;
         }
 
@@ -232,18 +232,18 @@ public:
         }
 
         if (destination->tell() != 0 && status != Status::PartialContent) {
-            done(DownloadStep::FailedOther);
+            done(DownloadStep::FailedRemote);
             return ERR_ABRT;
         }
 
         if (!resp.content_length.has_value()) {
-            done(DownloadStep::FailedOther);
+            done(DownloadStep::FailedRemote);
             return ERR_ABRT;
         }
 
         if (resp.content_encryption_mode != ContentEncryptionMode::AES_CTR) {
             // Other modes are no longer supported
-            done(DownloadStep::FailedOther);
+            done(DownloadStep::FailedRemote);
             return ERR_ABRT;
         }
 
@@ -338,7 +338,7 @@ public:
 #endif
 
         if (conn == nullptr) {
-            done(DownloadStep::FailedOther);
+            done(DownloadStep::FailedNetwork);
             return;
         }
 
@@ -347,7 +347,7 @@ public:
         altcp_poll(conn, timeout_check_wrap, 1);
         altcp_recv(conn, recv_wrap);
         if (altcp_connect(conn, &request.ip, request.port, connected_wrap) != ERR_OK) {
-            done(DownloadStep::FailedOther);
+            done(DownloadStep::FailedNetwork);
         }
     }
 
@@ -538,11 +538,11 @@ bool Download::inline_chunk(const InlineChunk &chunk) {
             || (*in)->file_id != chunk.file_id /* Different transfer */
             || chunk.size == 0 /* Error indicated by server */
             || (*in)->start + chunk.size > (*in)->end + 1 /* end is inclusive */) {
-            (*in)->status = DownloadStep::FailedOther;
+            (*in)->status = DownloadStep::FailedRemote;
             return false;
         }
         if (!(*in)->destination->write(chunk.data, chunk.size)) {
-            (*in)->status = DownloadStep::FailedOther;
+            (*in)->status = DownloadStep::FailedStorage;
             return false;
         }
         (*in)->start += chunk.size;

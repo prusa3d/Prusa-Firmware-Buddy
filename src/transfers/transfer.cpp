@@ -377,15 +377,17 @@ Transfer::State Transfer::step(bool is_printing) {
                 }
             }
             switch (step_result) {
-            case DownloadStep::Continue: {
+            case DownloadStep::Continue:
                 update_backup(/*force=*/false);
                 break;
-            }
             case DownloadStep::FailedNetwork:
                 recoverable_failure(is_printing);
                 break;
-            case DownloadStep::FailedOther:
-                done(State::Failed, Monitor::Outcome::Error);
+            case DownloadStep::FailedStorage:
+                done(State::Failed, Monitor::Outcome::ErrorStorage);
+                break;
+            case DownloadStep::FailedRemote:
+                done(State::Failed, Monitor::Outcome::ErrorOther);
                 break;
             case DownloadStep::Finished:
                 download.reset();
@@ -509,7 +511,7 @@ void Transfer::recoverable_failure(bool is_printing) {
         restart_requested_by_jump = false;
         download.reset();
     } else {
-        done(State::Failed, Monitor::Outcome::Error);
+        done(State::Failed, Monitor::Outcome::ErrorNetwork);
     }
 }
 
