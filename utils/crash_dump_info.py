@@ -112,7 +112,15 @@ if args.checkout and current_commit != commit_hash:
 
     print(f"Checking out...")
     subprocess.call(["git", "checkout", commit_hash])
-    print(f"Check out.")
+
+    # Apply fixes for the CrashDebug debugger. They were not merged yet in some versions.
+    if any(project_version.startswith(x) for x in ["6.1"]):
+        subprocess.call(
+            ["git", "cherry-pick", "696e68fd9dcdf7188c47af2568e9cf375c0ad5b0"])
+        subprocess.call(
+            ["git", "cherry-pick", "66558da8f0db86e6c17516ae082464bd5882a88f"])
+
+    print(f"Checked out.")
 
 if args.debug:
     elf_file = os.path.join(args.debug, build_filename)
