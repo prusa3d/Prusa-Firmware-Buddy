@@ -65,6 +65,11 @@ except:
 (commit_hash, project_version, translation_bits, printer_code, commit_dirty,
  has_bootloader) = unpacked_struct
 
+# There was a bug in older versions of the FW that the bootloader flag was not properly set
+# For those versions, we assume that the dumps are always with the bootloader
+if any(project_version.startswith(x) for x in ["6.1", "6.2"]):
+    has_bootloader = True
+
 commit_hash = commit_hash.decode("utf-8").split('\0')[0]
 project_version = project_version.decode("utf-8").split('\0')[0]
 printer_str = printer_name_by_code.get(printer_code, f"#{printer_code}")

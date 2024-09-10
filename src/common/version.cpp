@@ -3,6 +3,8 @@
 #include <string.h>
 #include <array>
 
+#include <option/bootloader.h>
+
 #define _STR(x) #x
 #define STR(x)  _STR(x)
 
@@ -63,7 +65,7 @@ const BuildIdentification project_build_identification {
         ),
     .printer_code = PRINTER_CODE,
     .commit_dirty = FW_COMMIT_DIRTY,
-    .has_bootloader = FW_BOOTLOADER,
+    .has_bootloader = BOOTLOADER(),
 };
 
 void fill_project_version_no_dots(char *buffer, size_t buffer_size) {
