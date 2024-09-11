@@ -14,10 +14,10 @@
 #include "../../Marlin.h"
 #include "../../module/stepper/trinamic.h"
 #include "../../module/prusa/accelerometer.h"
+#include "../../module/prusa/fourier_series.h"
 #include "../../feature/input_shaper/input_shaper.hpp"
 #include "metric.h"
 #include <cmath>
-#include <complex>
 #include <numbers>
 #include <limits>
 #include <bit>
@@ -34,15 +34,12 @@ static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 
 // #define M958_OUTPUT_SAMPLES
 // #define M958_VERBOSE
-#ifdef M958_OUTPUT_SAMPLES
-    #include "../../../../../tinyusb/src/class/cdc/cdc_device.h"
-#endif
+
 
 LOG_COMPONENT_REF(Marlin);
 
 METRIC_DEF(metric_excite_freq, "excite_freq", METRIC_VALUE_FLOAT, 100, METRIC_DISABLED);
 METRIC_DEF(metric_freq_gain, "freq_gain", METRIC_VALUE_CUSTOM, 100, METRIC_ENABLED);
-METRIC_DEF(accel, "tk_accel", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
 
 namespace {
 class HarmonicGenerator {
@@ -194,7 +191,6 @@ private:
     float m_frequency_step;
     size_t m_size;
 };
-
 } // anonymous namespace
 
 static bool is_full() {
@@ -223,10 +219,6 @@ static void enqueue_step(int step_us, bool dir, StepEventFlag_t axis_flags) {
     PreciseStepping::step_event_queue.head = next_queue_head;
     CRITICAL_SECTION_END;
 }
-
-struct Accumulator {
-    std::complex<double> val[3];
-};
 
 /**
  * @brief Get recommended damping ratio for zv input shaper
@@ -386,6 +378,20 @@ bool VibrateMeasureParams::setup(const MicrostepRestorer &microstep_restorer) {
 }
 
 /**
+ * @brief Advance time and wrap it within period
+ *
+ * @param[in,out] time to modify in seconds
+ * @param advance time in seconds
+ * @param period in seconds
+ */
+static void advance_and_wrap_time_within_period(float& time, const float advance, const float period) {
+    time += advance;
+    if (time > period) {
+    	time -= period;
+    }
+}
+
+/**
  * @brief Excite harmonic vibration and measure amplitude
  *
  * Intended usage of this function is to do frequency sweep.
@@ -444,8 +450,6 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
     const float excitation_period = 1 / excitation_frequency;
     const float measurement_period = 1 / measurement_frequency;
 
-    const float measurement_freq_2pi = std::numbers::pi_v<float> * measurement_frequency * 2.f;
-
     StepDir stepDir(generator);
 
     const float acceleration = generator.getAcceleration(excitation_frequency);
@@ -454,7 +458,7 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
         return std::nullopt;
     }
 
-    Accumulator accumulator = {};
+    FourierSeries3d fourier(measurement_frequency);
 
     const auto calib_progress_hook = [&progress_hook](float progress) {
         return progress_hook(VibrateMeasureProgressHookParams {
@@ -467,18 +471,24 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
         return std::nullopt;
     }
 
-    uint32_t sample_nr = 0;
     const bool do_delayed_measurement = (args.measurement_cycles != 0);
     const auto measurement_cycles = do_delayed_measurement ? args.measurement_cycles : args.excitation_cycles;
     const uint32_t samples_to_collect = excitation_period * measurement_cycles / accelerometer_sample_period;
     bool enough_samples_collected = false;
 
     TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
-#ifdef M958_OUTPUT_SAMPLES
+#ifdef FOURIER_SERIES_OUTPUT_SAMPLES
     SERIAL_ECHOLN("Yraw  sinf cosf");
 #endif
 
-    constexpr int num_axis = sizeof(PrusaAccelerometer::Acceleration::val) / sizeof(PrusaAccelerometer::Acceleration::val[0]);
+
+    const auto get_progress_measuring = [&]() {
+    	VibrateMeasureProgressHookParams progress_hook_params {
+    	        .phase = VibrateMeasureProgressHookParams::Phase::measuring,
+    	        .progress = std::min<float>(static_cast<float>(fourier.get_samples_num()) / samples_to_collect, 1),
+    	    };
+        return progress_hook_params;
+    };
 
     uint32_t step_nr = 0;
     GcodeSuite::reset_stepper_timeout();
@@ -486,38 +496,6 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
     const uint32_t steps_to_do_max = steps_to_do * 2 + generator.getStepsPerPeriod() + STEP_EVENT_QUEUE_SIZE;
     bool do_once = true; // Do once after step buffer is refilled
     float accelerometer_period_time = 0.f;
-
-    VibrateMeasureProgressHookParams progress_hook_params {
-        .phase = VibrateMeasureProgressHookParams::Phase::measuring,
-        .progress = 0,
-    };
-
-    /// Processes one sample from the accelerometer.
-    /// \returns true if there was a sample to process.
-    const auto collect_sample = [&](const PrusaAccelerometer::Acceleration &measured_acceleration) {
-        metric_record_custom(&accel, " x=%.4f,y=%.4f,z=%.4f", (double)measured_acceleration.val[0], (double)measured_acceleration.val[1], (double)measured_acceleration.val[2]);
-        const float accelerometer_time_2pi_measurement_freq = measurement_freq_2pi * accelerometer_period_time;
-        const std::complex<float> amplitude = { sinf(accelerometer_time_2pi_measurement_freq), cosf(accelerometer_time_2pi_measurement_freq) };
-
-        for (int axis = 0; axis < num_axis; ++axis) {
-            accumulator.val[axis] += amplitude * measured_acceleration.val[axis];
-        }
-
-        ++sample_nr;
-        enough_samples_collected = (sample_nr >= samples_to_collect);
-        progress_hook_params.progress = std::min<float>(static_cast<float>(sample_nr) / samples_to_collect, 1);
-        accelerometer_period_time += accelerometer_sample_period;
-        if (accelerometer_period_time > measurement_period) {
-            accelerometer_period_time -= measurement_period;
-        }
-
-#ifdef M958_OUTPUT_SAMPLES
-        char buff[40];
-        snprintf(buff, 40, "%f %f %f\n", static_cast<double>(measured_acceleration.val[1]), static_cast<double>(amplitude[0]), static_cast<double>(amplitude[1]));
-        tud_cdc_n_write_str(0, buff);
-        tud_cdc_write_flush();
-#endif
-    };
 
     // Excitation phase (with accelerometer sample collection, if the measurement is not delayed)
     while (
@@ -561,17 +539,15 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
                 // So discard samples until we've queued enough steps to fill the entire stepper buffer (at which point we can be sure there is nothing remaining).
 
             } else if (!enough_samples_collected) {
-                collect_sample(measured_acceleration);
+                enough_samples_collected = (fourier.add_sample(accelerometer_period_time, measured_acceleration) >= samples_to_collect);
+                advance_and_wrap_time_within_period(accelerometer_period_time, accelerometer_sample_period, measurement_period);
             }
 
             // Send the metric only when the step queue is full, to prevent possible movement stall
             metric_record_float(&metric_excite_freq, excitation_frequency);
 
             if (get_sample_result != GetSampleResult::ok) {
-                // The progress hook is intended for reporting accelerometer calibration, not vibrate measure progress...
-                // Design like this shouldn't have been merged.
-                // But since we're here, let's also use  it for allowing aborting the vibrate_measure
-                if (!progress_hook(progress_hook_params)) {
+                if (!progress_hook(get_progress_measuring())) {
                     return std::nullopt;
                 }
 
@@ -627,14 +603,12 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
             switch (accelerometer.get_sample(measured_acceleration)) {
 
             case GetSampleResult::ok:
-                collect_sample(measured_acceleration);
+                enough_samples_collected = (fourier.add_sample(accelerometer_period_time, measured_acceleration) >= samples_to_collect);
+                advance_and_wrap_time_within_period(accelerometer_period_time, accelerometer_sample_period, measurement_period);
                 break;
 
             case GetSampleResult::buffer_empty:
-                // The progress hook is intended for reporting accelerometer calibration, not vibrate measure progress...
-                // Design like this shouldn't have been merged.
-                // But since we're here, let's also use  it for allowing aborting the vibrate_measure
-                if (!progress_hook(progress_hook_params)) {
+                if (!progress_hook(get_progress_measuring())) {
                     return std::nullopt;
                 }
 
@@ -661,12 +635,8 @@ static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureP
         .excitation_frequency = excitation_frequency,
     };
 
-    for (int axis = 0; axis < num_axis; ++axis) {
-        accumulator.val[axis] *= 2.;
-        accumulator.val[axis] /= (sample_nr + 1);
-        result.amplitude[axis] = std::abs(accumulator.val[axis]);
-        result.gain[axis] = result.amplitude[axis] / acceleration;
-    }
+    result.amplitude = fourier.get_magnitude();
+    result.gain = result.amplitude / acceleration;
 
 #ifdef M958_VERBOSE
     SERIAL_ECHO_START();

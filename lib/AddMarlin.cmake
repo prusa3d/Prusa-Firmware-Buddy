@@ -191,8 +191,10 @@ if(BOARD_IS_MASTER_BOARD)
 
   if(HAS_REMOTE_ACCELEROMETER OR HAS_LOCAL_ACCELEROMETER)
     target_sources(
-      Marlin PRIVATE Marlin/Marlin/src/gcode/calibrate/M958.cpp
-                     Marlin/Marlin/src/module/prusa/accelerometer.cpp
+      Marlin
+      PRIVATE Marlin/Marlin/src/gcode/calibrate/M958.cpp
+              Marlin/Marlin/src/module/prusa/accelerometer.cpp
+              Marlin/Marlin/src/module/prusa/fourier_series.cpp
       )
   endif()
   if(HAS_LOCAL_ACCELEROMETER)
