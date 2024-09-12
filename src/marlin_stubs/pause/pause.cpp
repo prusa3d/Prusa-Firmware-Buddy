@@ -195,7 +195,7 @@ bool PausePrivatePhase::CanSafetyTimerExpire() const {
     if (HasTempToRestore()) {
         return false; // already expired
     }
-    if ((getPhase() == PhasesLoadUnload::MakeSureInserted_stoppable) || (getPhase() == PhasesLoadUnload::MakeSureInserted_unstoppable)) { // special waiting state without button
+    if ((getPhase() == PhasesLoadUnload::MakeSureInserted_stoppable) || (getPhase() == PhasesLoadUnload::MakeSureInserted_unstoppable) || (getPhase() == PhasesLoadUnload::FilamentNotInFS)) { // special waiting state without button
         return true; // waits for filament sensor
     }
     return ClientResponses::HasButton(getPhase()); // button in current phase == can wait on user == can timeout
