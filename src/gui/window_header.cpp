@@ -52,6 +52,10 @@ void window_header_t::updateNetwork() {
 
     // Not fully connected -> make the icon gray
     icon_network.set_shadow(interface_status != NETDEV_NETIF_UP);
+
+#if !HAS_MINI_DISPLAY()
+    icon_metrics.set_shadow(interface_status != NETDEV_NETIF_UP);
+#endif
 }
 
 void window_header_t::updateTransfer() {
