@@ -1519,7 +1519,7 @@ void Pause::finalize_user_stop() {
 }
 void Pause::handle_filament_removal(LoadPhases_t phase_to_set) {
     // only if there is no filament present and we are sure (FS on and sees no filament)
-    if (FSensors_instance().has_filament_surely()) {
+    if (FSensors_instance().no_filament_surely()) {
         set(phase_to_set);
         config_store().set_filament_type(settings.GetExtruder(), FilamentType::none);
         return;
