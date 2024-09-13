@@ -1,0 +1,11 @@
+add_executable(
+  gcode_basic_parser_tests
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_basic_parser.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_parser_helper.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/gcode_basic_parser_tests.cpp
+  )
+target_include_directories(
+  gcode_basic_parser_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/stub
+                                  ${CMAKE_SOURCE_DIR}/src/common/gcode ${CMAKE_SOURCE_DIR}/lib/SG14
+  )
+add_catch_test(gcode_basic_parser_tests)
