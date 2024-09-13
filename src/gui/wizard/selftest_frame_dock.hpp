@@ -33,25 +33,6 @@ class SelftestFrameDock : public SelftestFrameNamedWithRadio {
     const char *get_phase_name();
     int get_phase_remaining_minutes();
 
-    // One dock takes approximately 1:45 to calibrate if you know what you are doing
-    static constexpr const char *PROLOGUE = N_("We suggest opening the online guide for the first-time calibration.");
-    static constexpr const char *LINK = "prusa.io/dock-setup"; // Intentionally without translation
-    static constexpr const char *MOVE_AWAY = N_("Do not touch the printer. Be careful around the moving parts.");
-    static constexpr const char *PARK1 = N_("1. Please park current tool manually. Move the tool changing mechanism to the rear and align it with pins");
-    static constexpr const char *PARK2 = N_("2. Now move the tool changing mechanism to the right, the tool will be locked in the dock");
-    static constexpr const char *PARK3 = N_("3. The tool changing mechanism can now move freely.\nMove it a little bit to the front.");
-    static constexpr const char *REMOVE_DOCK_PINS = N_("The calibrated dock is illuminated at the bottom and front side is flashing with white color.\n\nLoosen and remove the dock pins.");
-    static constexpr const char *LOOSEN_DOCK_SCREW = N_("Loosen the two screws on the right side of the dock pillar (marked in orange) using the uni-wrench.");
-    static constexpr const char *LOCK_TOOL = N_("Align the tool changing mechanism with the tool and lock it by sliding both metal bars to the right.");
-    static constexpr const char *TIGHTEN_TOP = N_("Tighten the top dock screw at the right side of the pillar\n\nBe careful in next step the printer will be moving");
-    static constexpr const char *MEASURING = N_("Do not touch the printer!\nThe printer is moving while measuring dock position.");
-    static constexpr const char *TIGHTEN_BOT = N_("Tighten only the bottom screw on the right side of the dock pillar.");
-    static constexpr const char *INSTALL_DOCK_PINS = N_("Install and tighten the dock pins.\n\nBe careful in next step the printer will be moving.");
-    static constexpr const char *PARKING_TEST = N_("Do not touch the printer!\nThe printer is performing the parking test. Be careful around the moving parts.");
-    static constexpr const char *TEST_FAILED = N_("Parking test failed.\n\nPlease try again.");
-    static constexpr const char *TEST_SUCCESS = N_("Dock successfully calibrated.");
-    static constexpr const char *REMAINING = N_("Approx. %d min");
-
 protected:
     virtual void change() override;
 

@@ -27,7 +27,7 @@ SelftestFrameDock::SelftestFrameDock(window_t *parent, PhasesSelftest ph, fsm::P
     , icon_warning(this, &img::printer_is_moving, point_i16(col_texts, row_4))
     , text_warning(this, Rect16(col_texts + img::warning_48x48.w + 20, row_4, WizardDefaults::X_space - img::warning_48x48.w - 20, 3 * txt_h), is_multiline::yes)
     , icon_info(this, &img::parking1, text_info.GetRect().TopRight())
-    , qr(this, get_info_icon_rect() + Rect16::Left_t(25), Align_t::Center(), LINK)
+    , qr(this, get_info_icon_rect() + Rect16::Left_t(25), Align_t::Center(), "prusa.io/dock-setup")
     , text_link(this, get_link_text_rect(), is_multiline::no) {
     qr.Hide();
     text_link.Hide();
@@ -49,62 +49,62 @@ void SelftestFrameDock::change() {
         break;
 
     case PhasesSelftest::Dock_move_away:
-        set_warning_layout(_(MOVE_AWAY));
+        set_warning_layout(_("Do not touch the printer. Be careful around the moving parts."));
         break;
 
     case PhasesSelftest::Dock_wait_user_park1:
-        set_info_layout(_(PARK1), &img::parking1);
+        set_info_layout(_("1. Please park current tool manually. Move the tool changing mechanism to the rear and align it with pins"), &img::parking1);
         break;
 
     case PhasesSelftest::Dock_wait_user_park2:
-        set_info_layout(_(PARK2), &img::parking2);
+        set_info_layout(_("2. Now move the tool changing mechanism to the right, the tool will be locked in the dock"), &img::parking2);
         break;
 
     case PhasesSelftest::Dock_wait_user_park3:
-        set_info_layout(_(PARK3), &img::parking2);
+        set_info_layout(_("3. The tool changing mechanism can now move freely.\nMove it a little bit to the front."), &img::parking2);
         break;
 
     case PhasesSelftest::Dock_wait_user_remove_pins:
-        set_info_layout(_(REMOVE_DOCK_PINS), &img::loosen_screws2);
+        set_info_layout(_("The calibrated dock is illuminated at the bottom and front side is flashing with white color.\n\nLoosen and remove the dock pins."), &img::loosen_screws2);
         break;
 
     case PhasesSelftest::Dock_wait_user_loosen_pillar:
-        set_info_layout(_(LOOSEN_DOCK_SCREW), &img::loosen_screws1);
+        set_info_layout(_("Loosen the two screws on the right side of the dock pillar (marked in orange) using the uni-wrench."), &img::loosen_screws1);
         break;
 
     case PhasesSelftest::Dock_wait_user_lock_tool:
-        set_info_layout(_(LOCK_TOOL), &img::lock_carriage);
+        set_info_layout(_("Align the tool changing mechanism with the tool and lock it by sliding both metal bars to the right."), &img::lock_carriage);
         break;
 
     case PhasesSelftest::Dock_wait_user_tighten_top_screw:
-        set_info_layout(_(TIGHTEN_TOP), &img::tighten_screw1);
+        set_info_layout(_("Tighten the top dock screw at the right side of the pillar\n\nBe careful in next step the printer will be moving"), &img::tighten_screw1);
         break;
 
     case PhasesSelftest::Dock_measure:
-        set_warning_layout(_(MEASURING));
+        set_warning_layout(_("Do not touch the printer!\nThe printer is moving while measuring dock position."));
         break;
 
     case PhasesSelftest::Dock_wait_user_tighten_bottom_screw:
-        set_info_layout(_(TIGHTEN_BOT), &img::tighten_screw2);
+        set_info_layout(_("Tighten only the bottom screw on the right side of the dock pillar."), &img::tighten_screw2);
         break;
 
     case PhasesSelftest::Dock_wait_user_install_pins:
-        set_info_layout(_(INSTALL_DOCK_PINS), &img::tighten_screw3);
+        set_info_layout(_("Install and tighten the dock pins.\n\nBe careful in next step the printer will be moving."), &img::tighten_screw3);
         break;
 
     case PhasesSelftest::Dock_selftest_park_test:
-        set_warning_layout(_(PARKING_TEST));
+        set_warning_layout(_("Do not touch the printer!\nThe printer is performing the parking test. Be careful around the moving parts."));
         break;
 
     case PhasesSelftest::Dock_selftest_failed:
-        set_info_layout(_(TEST_FAILED), &img::error_white_48x48);
+        set_info_layout(_("Parking test failed.\n\nPlease try again."), &img::error_white_48x48);
         break;
 
     case PhasesSelftest::Dock_calibration_success:
         text_info.Hide();
         icon_info.Hide();
         icon_warning.Hide();
-        text_warning.SetText(_(TEST_SUCCESS));
+        text_warning.SetText(_("Dock successfully calibrated."));
         text_warning.Show();
         break;
 
@@ -133,7 +133,7 @@ void SelftestFrameDock::set_name(SelftestDocks_t data) {
 void SelftestFrameDock::set_remaining() {
     // Get translated message into a standard char array as the string_view_utf8 dows not allow direct access to underlying memory.
     char temp_remaining_buff[50];
-    _(REMAINING).copyToRAM(temp_remaining_buff, std::size(temp_remaining_buff));
+    _("Approx. %d min").copyToRAM(temp_remaining_buff);
 
     // Format the resulting string, build a string view on top of the static memory, and set the text of the gui element
     snprintf(remaining_buff.data(), std::size(remaining_buff), temp_remaining_buff, get_phase_remaining_minutes());
@@ -168,12 +168,12 @@ void SelftestFrameDock::set_info_layout(const string_view_utf8 &txt, const img::
 
 void SelftestFrameDock::set_prologue() {
     text_info.SetRect(Rect16(col_texts, row_2, WizardDefaults::X_space * 1 / 2, txt_h * 6));
-    text_info.SetText(_(PROLOGUE));
+    text_info.SetText(_("We suggest opening the online guide for the first-time calibration."));
     icon_info.SetRect(Rect16(text_info.GetRect().TopRight(), text_info.GetRect().TopRight() + point_i16_t { (int16_t)59, (int16_t)72 }) + Rect16::Top_t(25));
     icon_info.SetRes(&img::hand_qr_59x72);
     icon_info.Show();
     qr.Show();
-    text_link.SetText(_(LINK));
+    text_link.SetText(_("prusa.io/dock-setup"));
     text_link.SetAlignment(Align_t::Right());
     text_link.Show();
     text_estimate.Show();
