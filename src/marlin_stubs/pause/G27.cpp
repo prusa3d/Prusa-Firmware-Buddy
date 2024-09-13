@@ -63,9 +63,9 @@ void GcodeSuite::G27() {
 
     params.where_to_park = G27Params::ParkPosition { parser.option<uint8_t>('W').transform([](uint8_t val) -> uint8_t { return val < ftrstd::to_underlying(G27Params::ParkPosition::_cnt) ? val : 0; }).value_or(0) };
 
-    params.do_x = parser.store_option('X', params.park_position.x);
-    params.do_y = parser.store_option('Y', params.park_position.y);
-    params.do_z = parser.store_option('Z', params.park_position.z);
+    params.do_x = parser.store_option('X', params.park_position.x).has_value();
+    params.do_y = parser.store_option('Y', params.park_position.y).has_value();
+    params.do_z = parser.store_option('Z', params.park_position.z).has_value();
 
     G27_no_parser(params);
 }

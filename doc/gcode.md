@@ -19,3 +19,15 @@ Body: r"[^;*]*?" # Non-greedy - exclude trailing whitespace
 
 Ws: r"[ \f\n\r\t\v]"
 ```
+
+## GCode with options
+When parsing gcode options, the `Body` from the basic parser must match `BodyWithOptions`:
+```
+BodyWithOptions: (OptionKey Ws* OptionValue? Ws*)*¨
+
+OptionKey: r"[A-Z]"
+OptionValue: BasicOptionValue | QuotedOptionValue
+
+BasicOptionValue: r"[0-9+\-.,]"
+QuotedOptionValue: r"\"([^\"]|\\.)*\""
+```
