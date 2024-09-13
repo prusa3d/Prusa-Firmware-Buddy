@@ -19,13 +19,12 @@ class SelftestFrameDock : public SelftestFrameNamedWithRadio {
     QRStaticStringWindow qr;
     window_text_t text_link; ///< Web address to manual
     std::array<char, 100> name_buff;
-    std::array<char, 50> remaining_buff;
+    StringViewUtf8Parameters<4> remaining_params;
 
     void set_warning_layout(const string_view_utf8 &txt);
     void set_info_layout(const string_view_utf8 &txt, const img::Resource *res = nullptr);
     void set_name(SelftestDocks_t data);
     void set_prologue();
-    void set_remaining();
     constexpr Rect16 get_info_text_rect();
     constexpr Rect16 get_estimate_text_rect();
     constexpr Rect16 get_info_icon_rect();

@@ -40,7 +40,7 @@ SelftestFrameDock::SelftestFrameDock(window_t *parent, PhasesSelftest ph, fsm::P
 void SelftestFrameDock::change() {
     const SelftestDocks_t dock_data(data_current);
     set_name(dock_data);
-    set_remaining();
+    text_estimate.SetText(_("Approx. %d min").formatted(remaining_params, get_phase_remaining_minutes()));
     invalidate();
 
     switch (phase_current) {
@@ -128,16 +128,6 @@ void SelftestFrameDock::set_name(SelftestDocks_t data) {
     }
 
     SetName(string_view_utf8::MakeRAM(name_buff.data()));
-}
-
-void SelftestFrameDock::set_remaining() {
-    // Get translated message into a standard char array as the string_view_utf8 dows not allow direct access to underlying memory.
-    char temp_remaining_buff[50];
-    _("Approx. %d min").copyToRAM(temp_remaining_buff);
-
-    // Format the resulting string, build a string view on top of the static memory, and set the text of the gui element
-    snprintf(remaining_buff.data(), std::size(remaining_buff), temp_remaining_buff, get_phase_remaining_minutes());
-    text_estimate.SetText(string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(remaining_buff.data())));
 }
 
 void SelftestFrameDock::set_warning_layout(const string_view_utf8 &txt) {
