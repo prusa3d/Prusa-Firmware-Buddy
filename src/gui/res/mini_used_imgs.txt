@@ -135,3 +135,7 @@ clear_44x33.png
 ok_16x16.png
 metrics_16x16.png
 user_filament_16x16.png
+set_ready_16x16.png
+set_ready_64x64.png
+set_ready_64x64_focused.png
+set_ready_64x64_disabled.png
