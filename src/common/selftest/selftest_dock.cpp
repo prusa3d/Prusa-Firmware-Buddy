@@ -94,24 +94,30 @@ LoopResult CSelftestPart_Dock::state_wait_user_manual_park1() {
         IPartHandler::SetFsmPhase(PhasesSelftest::Dock_wait_user_park1);
         return LoopResult::RunCurrent;
     }
+
     return LoopResult::RunNext;
 }
+
 LoopResult CSelftestPart_Dock::state_wait_user_manual_park2() {
     if (needs_manual_park && state_machine.GetButtonPressed() != Response::Continue) {
         IPartHandler::SetFsmPhase(PhasesSelftest::Dock_wait_user_park2);
         return LoopResult::RunCurrent;
     }
+
+    if (prusa_toolchanger.detect_tool_nr() != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+        log_error(Selftest, "User failed to park the current tool %d", config.dock_id);
+        return LoopResult::GoToMark0;
+    }
+
     return LoopResult::RunNext;
 }
+
 LoopResult CSelftestPart_Dock::state_wait_user_manual_park3() {
     if (needs_manual_park && state_machine.GetButtonPressed() != Response::Continue) {
         IPartHandler::SetFsmPhase(PhasesSelftest::Dock_wait_user_park3);
         return LoopResult::RunCurrent;
     }
-    if (prusa_toolchanger.detect_tool_nr() != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
-        log_error(Selftest, "User failed to park the current tool %d", config.dock_id);
-        return LoopResult::GoToMark0;
-    }
+
     return LoopResult::RunNext;
 }
 
