@@ -286,8 +286,9 @@
             "request": "launch",
             "gdbpath": "gdb",
             // Note: replace this with whatever test you want to debug:
-            "target": "${workspaceRoot}/build_tests/tests/unit/common/your_unitest_executable_goes_here",
-            "cwd": "${workspaceRoot}/build_tests/tests/unit/common/your_unitest_executable_goes_here",
+            "target": "${workspaceRoot}/build_tests/tests/unit/DIR/EXECUTABLE",
+            "cwd": "${workspaceRoot}/build_tests/tests/unit/DIR",
+            "debugger_args": ["-d", "${workspaceRoot}"]
         },
     ],
     "compounds": [
