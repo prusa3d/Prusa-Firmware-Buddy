@@ -187,7 +187,7 @@ TEST_CASE("Set value - anti abrasive") {
     REQUIRE(get<bool>(cmd.value));
 }
 
-TEST_CASE("Set value - anti abrasive") {
+TEST_CASE("Set value - high flow") {
     auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.4.high_flow\":true}}");
     REQUIRE(cmd.name == PropertyName::NozzleHighFlow);
     REQUIRE(cmd.idx == 3);
