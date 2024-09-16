@@ -8,6 +8,8 @@
 #include <time.h>
 #include <guiconfig/guiconfig.h>
 
+#include <option/buddy_enable_connect.h>
+
 struct window_header_t : public window_frame_t {
 
     window_icon_t icon_base;
@@ -26,6 +28,9 @@ struct window_header_t : public window_frame_t {
     window_text_t transfer_val;
     window_icon_t icon_transfer;
     window_icon_t icon_stealth;
+#if BUDDY_ENABLE_CONNECT()
+    window_icon_t icon_ready_for_connect;
+#endif // BUDDY_ENABLE_CONNECT()
     window_text_t bed_text;
     window_icon_t bed_icon;
     uint32_t bed_last_change_ms { 0 }; // stores timestamp for bed blinking

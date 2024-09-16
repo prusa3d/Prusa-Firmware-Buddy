@@ -13,6 +13,10 @@
 #include <guiconfig/guiconfig.h>
 #include <marlin_vars.hpp>
 #include "timing.h"
+#if BUDDY_ENABLE_CONNECT()
+    #include <connect/connect.hpp>
+    #include <connect/marlin_printer.hpp>
+#endif
 
 namespace {
 constexpr uint16_t inter_item_padding { 4 };
@@ -171,6 +175,9 @@ void window_header_t::updateAllRects() {
     maybe_update(icon_transfer, icon_transfer.resource()->w);
     maybe_update(bed_text, bed_text_width);
     maybe_update(bed_icon, bed_icon.resource()->w);
+#if BUDDY_ENABLE_CONNECT()
+    maybe_update(icon_ready_for_connect, icon_ready_for_connect.resource()->w);
+#endif // BUDDY_ENABLE_CONNECT()
 
     auto label_width = current_offset - GuiDefaults::HeaderPadding.left;
 
@@ -192,6 +199,10 @@ void window_header_t::updateIcons() {
     updateTransfer();
     updateTime();
     update_bed_info();
+
+#if BUDDY_ENABLE_CONNECT()
+    icon_ready_for_connect.set_visible(connect_client::is_connect_registered() && connect_client::MarlinPrinter::is_printer_ready());
+#endif // BUDDY_ENABLE_CONNECT()
 
 #if !HAS_MINI_DISPLAY()
     icon_metrics.set_visible(config_store().enable_metrics.get());
@@ -215,6 +226,9 @@ window_header_t::window_header_t(window_t *parent, const string_view_utf8 &txt)
     , transfer_val(this, first_rect_doesnt_matter, is_multiline::no)
     , icon_transfer(this, first_rect_doesnt_matter, &img::transfer_icon_16x16)
     , icon_stealth(this, first_rect_doesnt_matter, &img::stealth_20x16)
+#if BUDDY_ENABLE_CONNECT()
+    , icon_ready_for_connect(this, first_rect_doesnt_matter, &img::set_ready_16x16)
+#endif // BUDDY_ENABLE_CONNECT()
     , bed_text(this, first_rect_doesnt_matter, is_multiline::no)
     , bed_icon(this, first_rect_doesnt_matter, &img::heatbed_16x16)
 #if HAS_MINI_DISPLAY()
