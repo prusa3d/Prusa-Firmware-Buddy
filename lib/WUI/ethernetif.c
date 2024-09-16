@@ -16,6 +16,10 @@
 #include <stdbool.h>
 #include "buddy/priorities_config.h"
 
+#define PHY_REGNEW_SSR           (uint16_t)31 /* PHY Special Status Register */
+#define PHY_REGNEW_SSR_SPD_100M  ((uint32_t)1 << 3) /* Speed Indication, bits 4:2 */
+#define PHY_REGNEW_SSR_DUPL_FULL ((uint32_t)1 << 4) /* Speed Indication, bits 4:2 */
+
 /* The time to block waiting for input. */
 #define TIME_WAITING_FOR_INPUT (portMAX_DELAY)
 /* Stack size of the interface thread */
@@ -520,10 +524,10 @@ void ethernetif_update_config(struct netif *netif) {
             } while (((regvalue & PHY_AUTONEGO_COMPLETE) != PHY_AUTONEGO_COMPLETE));
 
             /* Read the result of the auto-negotiation */
-            HAL_ETH_ReadPHYRegister(&heth, PHY_SR, &regvalue);
+            HAL_ETH_ReadPHYRegister(&heth, PHY_REGNEW_SSR, &regvalue);
 
             /* Configure the MAC with the Duplex Mode fixed by the auto-negotiation process */
-            if ((regvalue & PHY_DUPLEX_STATUS) != (uint32_t)RESET) {
+            if (regvalue & PHY_REGNEW_SSR_DUPL_FULL) {
                 /* Set Ethernet duplex mode to Full-duplex following the auto-negotiation */
                 heth.Init.DuplexMode = ETH_MODE_FULLDUPLEX;
             } else {
@@ -531,12 +535,12 @@ void ethernetif_update_config(struct netif *netif) {
                 heth.Init.DuplexMode = ETH_MODE_HALFDUPLEX;
             }
             /* Configure the MAC with the speed fixed by the auto-negotiation process */
-            if (regvalue & PHY_SPEED_STATUS) {
-                /* Set Ethernet speed to 10M following the auto-negotiation */
-                heth.Init.Speed = ETH_SPEED_10M;
-            } else {
+            if (regvalue & PHY_REGNEW_SSR_SPD_100M) {
                 /* Set Ethernet speed to 100M following the auto-negotiation */
                 heth.Init.Speed = ETH_SPEED_100M;
+            } else {
+                /* Set Ethernet speed to 10M following the auto-negotiation */
+                heth.Init.Speed = ETH_SPEED_10M;
             }
         } else /* AutoNegotiation Disable */
         {
