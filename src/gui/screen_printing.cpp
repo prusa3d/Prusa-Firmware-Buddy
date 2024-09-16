@@ -32,6 +32,12 @@
     #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
 #endif
 
+#include <option/buddy_enable_connect.h>
+#if BUDDY_ENABLE_CONNECT()
+    #include <connect/connect.hpp>
+    #include <connect/marlin_printer.hpp>
+#endif
+
 using namespace marlin_server;
 
 void screen_printing_data_t::invalidate_print_state() {
@@ -39,6 +45,14 @@ void screen_printing_data_t::invalidate_print_state() {
 }
 printing_state_t screen_printing_data_t::GetState() const {
     return state__readonly__use_change_print_state;
+}
+
+static bool is_waiting_for_connect_set_ready() {
+#if BUDDY_ENABLE_CONNECT()
+    return connect_client::is_connect_registered() && !connect_client::MarlinPrinter::is_printer_ready();
+#else
+    return false;
+#endif
 }
 
 void screen_printing_data_t::tuneAction() {
@@ -51,6 +65,11 @@ void screen_printing_data_t::tuneAction() {
     case printing_state_t::PAUSED:
         Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuTune>);
         break;
+    case printing_state_t::PRINTED:
+        if (is_waiting_for_connect_set_ready()) {
+            connect_client::MarlinPrinter::set_printer_ready(true);
+            set_tune_icon_and_label(); // Disable Set Ready button
+        }
     default:
         break;
     }
@@ -632,6 +651,14 @@ void screen_printing_data_t::set_tune_icon_and_label() {
         break;
     case printing_state_t::ABORTING:
         DisableButton(BtnSocket::Left);
+        break;
+    case printing_state_t::PRINTED:
+        if (is_waiting_for_connect_set_ready()) {
+            EnableButton(BtnSocket::Left);
+            SetButtonIconAndLabel(BtnSocket::Left, BtnRes::SetReady, LabelRes::SetReady);
+        } else {
+            DisableButton(BtnSocket::Left);
+        }
         break;
     default:
         DisableButton(BtnSocket::Left);

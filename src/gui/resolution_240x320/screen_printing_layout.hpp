@@ -14,5 +14,6 @@ inline constexpr WindowMultiIconButton::Pngs icon_resources[] = {
     { img::resume_64x64, img::resume_64x64_focused, img::resume_64x64_disabled },
     { img::home_64x64, img::home_64x64_focused, img::home_64x64_disabled },
     { img::reprint_64x64, img::reprint_64x64_focused, img::reprint_64x64_disabled },
-    { img::disconnect_64x64, img::disconnect_64x64_focused, img::disconnect_64x64_disabled }
+    { img::disconnect_64x64, img::disconnect_64x64_focused, img::disconnect_64x64_disabled },
+    { img::set_ready_64x64, img::set_ready_64x64_focused, img::set_ready_64x64_disabled },
 };

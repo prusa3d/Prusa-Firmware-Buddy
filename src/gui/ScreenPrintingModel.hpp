@@ -28,6 +28,7 @@ protected:
         Home,
         Reprint,
         Disconnect,
+        SetReady,
         _count,
         _last = _count - 1,
     };
@@ -44,6 +45,7 @@ protected:
         Home,
         Skip,
         Disconnect,
+        SetReady,
         _count,
         _last = _count - 1,
     };
