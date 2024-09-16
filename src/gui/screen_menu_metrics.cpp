@@ -98,15 +98,15 @@ MI_METRICS_ALLOW::MI_METRICS_ALLOW()
     , warning_not_shown(config_store().metrics_allow.get() == MetricsAllow::None) {}
 
 void MI_METRICS_ALLOW::OnChange(size_t old_index) {
-    if (old_index == ftrstd::to_underlying(MetricsAllow::None) && index != ftrstd::to_underlying(MetricsAllow::None)) { // Enable
+    if (old_index == ftrstd::to_underlying(MetricsAllow::None) && GetIndex() != ftrstd::to_underlying(MetricsAllow::None)) { // Enable
         if (warning_not_shown && MsgBoxWarning(_(txt_confirm), Responses_YesNo, 1) != Response::Yes) {
-            index = ftrstd::to_underlying(MetricsAllow::None); // User changed his mind
+            SetIndex(ftrstd::to_underlying(MetricsAllow::None)); // User changed his mind
         } else {
             warning_not_shown = false;
         }
     }
 
-    config_store().metrics_allow.set(MetricsAllow(index));
+    config_store().metrics_allow.set(MetricsAllow(GetIndex()));
 
     check_disable();
 }
