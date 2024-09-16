@@ -4,6 +4,8 @@
 
 #include <Configuration.h>
 
+#include "belt_tuning.hpp"
+
 struct PrinterBeltParameters {
     // Although CoreXY machines have two belts, they actually share tension, so they behave as a single belt system
     // Bedslingers have two separate belts
@@ -25,6 +27,9 @@ struct PrinterBeltParameters {
         /// (Netwons) Deviation from the target force that is still considered acceptable.
         /// If the measured tension is within (target +- dev), then the tensioning is considered ok
         float target_tension_force_dev_n;
+
+        /// Default parameters used for belt tuning
+        MeasureBeltTensionSpecificParams belt_tuning_params;
     };
 
     std::array<BeltSystemParameters, belt_system_count> belt_system;
@@ -39,9 +44,19 @@ static constexpr PrinterBeltParameters printer_belt_parameters {
             .nominal_weight_kg_m = 0.007569f,
             .target_tension_force_n = 18,
             .target_tension_force_dev_n = 1,
+            .belt_tuning_params = {
+                .excitation_amplitude_m = 0.00006f,
+                .start_frequency_hz = 50,
+                .end_frequency_hz = 95,
+                .frequency_step_hz = 0.5,
+                .excitation_cycles = 50,
+                .wait_cycles = 10,
+                .measurement_cycles = 30,
+            },
         },
     },
 };
+
 #else
     #error Mising belt tensioning parameters for the printer
 #endif

@@ -1,5 +1,6 @@
 #include <marlin_stubs/PrusaGcodeSuite.hpp>
 
+#include <feature/belt_tuning/printer_belt_parameters.hpp>
 #include <feature/belt_tuning/belt_tuning.hpp>
 #include <feature/belt_tuning/belt_tuning_wizard.hpp>
 #include <gcode/gcode_parser.hpp>
@@ -30,9 +31,17 @@
 void PrusaGcodeSuite::M960() {
     GCodeParser2 parser(GCodeParser2::from_marlin_parser);
 
-    MeasureBeltTensionParams params;
-    parser.store_option('B', params.belt_system);
-    parser.store_option('A', params.excitation_amplitude_m);
+    const auto belt_system = parser.option<uint8_t>('B').value_or(0);
+
+    // Initialize the tension parameters from the defaults for the specified belt system
+    MeasureBeltTensionParams params {
+        printer_belt_parameters.belt_system[belt_system].belt_tuning_params,
+    };
+    params.belt_system = belt_system;
+
+    if (parser.store_option('A', params.excitation_amplitude_m)) {
+        params.excitation_amplitude_m_func = {};
+    }
 
     parser.store_option('F', params.start_frequency_hz);
     parser.store_option('G', params.end_frequency_hz);
