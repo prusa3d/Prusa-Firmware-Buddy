@@ -23,7 +23,8 @@ constexpr const char *label_resources[] = {
     N_("Reprint"),
     N_("Home"),
     N_("Skip"),
-    N_("Disconnect")
+    N_("Disconnect"),
+    N_("Set Ready"),
 };
 } // namespace
 
