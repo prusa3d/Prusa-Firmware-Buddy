@@ -14,6 +14,13 @@ struct MeasureBeltTensionParams {
     /// (meters) Excitation amplitude for the measurement
     float excitation_amplitude_m = 0.00006f;
 
+    /// \returns excitation amplitude (in meters)
+    using ExcitationAmplitudeFunc = float (*)(float frequency_hz);
+
+    /// (meters) Excitation amplitude for the measurement, dependent on the frequency.
+    /// Overrides \p excitation_amplitude_m
+    ExcitationAmplitudeFunc excitation_amplitude_m_func = {};
+
     /// (Hz) Start frequency of the tuning scan (relates to minimum detectable tension)
     float start_frequency_hz = 50;
 
