@@ -5,14 +5,9 @@
 
 #include <inplace_function.hpp>
 
-struct MeasureBeltTensionParams {
-    // Default values determined in BFW-5758, taken from the original prototype implementation.
-
-    /// Belt system we're measuring
-    uint8_t belt_system = 0;
-
+struct MeasureBeltTensionSpecificParams {
     /// (meters) Excitation amplitude for the measurement
-    float excitation_amplitude_m = 0.00006f;
+    float excitation_amplitude_m = 0;
 
     /// \returns excitation amplitude (in meters)
     using ExcitationAmplitudeFunc = float (*)(float frequency_hz);
@@ -22,26 +17,33 @@ struct MeasureBeltTensionParams {
     ExcitationAmplitudeFunc excitation_amplitude_m_func = {};
 
     /// (Hz) Start frequency of the tuning scan (relates to minimum detectable tension)
-    float start_frequency_hz = 50;
+    float start_frequency_hz;
 
     /// (Hz) End frequency of the tuning scan (relates to maximum detectable tensions)
     /// Some XLs have quite tight belts from the manufacturer, so it's recommended to keep this high
-    float end_frequency_hz = 95;
+    float end_frequency_hz;
 
     /// (Hz) Increment of the frequency sweep
-    float frequency_step_hz = 0.5f;
+    float frequency_step_hz;
 
     /// (1/frequency) How many excitation sine waves we should do
-    uint32_t excitation_cycles = 50;
+    uint32_t excitation_cycles;
 
     /// (1/frequency) How many cycles we should wait after excitation
-    uint32_t wait_cycles = 10;
+    uint32_t wait_cycles;
 
     /// (1/frequency) How many cycles we should measure for afterwards
-    uint32_t measurement_cycles = 30;
+    uint32_t measurement_cycles;
 
     /// Which harmonic frequency we're measuring
     uint16_t measured_harmonic = 2;
+};
+
+struct MeasureBeltTensionParams : public MeasureBeltTensionSpecificParams {
+    // Default values determined in BFW-5758, taken from the original prototype implementation.
+
+    /// Belt system we're measuring
+    uint8_t belt_system = 0;
 
     bool calibrate_accelerometer = true;
 
