@@ -904,6 +904,18 @@ OnlineStatus last_status() {
     return make_tuple(last_known_status.load(), last_connection_error.load(), retries_left.load());
 }
 
+bool is_connect_registered() {
+    switch (last_known_status.load()) {
+    case ConnectionStatus::Ok:
+    case ConnectionStatus::Connecting:
+    case ConnectionStatus::Error:
+        return true;
+    default:
+        break;
+    }
+    return false;
+}
+
 void request_registration() {
     bool old = registration.exchange(true);
     // Avoid warnings

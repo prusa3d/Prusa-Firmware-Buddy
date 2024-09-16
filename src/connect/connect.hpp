@@ -18,6 +18,8 @@ class CachedFactory;
 
 OnlineStatus last_status();
 
+bool is_connect_registered();
+
 /*
  * Registration process.
  *
