@@ -107,6 +107,9 @@ LoopResult CSelftestPart_FSensor::state_init() {
 
 #if HAS_MMU2()
     mmu_mode = config_store().is_mmu_rework.get();
+#elif PRINTER_IS_PRUSA_iX()
+    // iX has the MMU filament sensor
+    mmu_mode = true;
 #endif
 
     return LoopResult::RunNext;
