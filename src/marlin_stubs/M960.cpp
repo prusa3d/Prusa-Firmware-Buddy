@@ -27,6 +27,8 @@
  * - `C` - Calibrate accelerometer
  * - `S` - Skip tuning (only do setup)
  * - `X` - Skip setup (only do tuning)
+ *
+ * - `W` - Wizard mode (GUI)
  */
 void PrusaGcodeSuite::M960() {
     GCodeParser2 parser(GCodeParser2::from_marlin_parser);
