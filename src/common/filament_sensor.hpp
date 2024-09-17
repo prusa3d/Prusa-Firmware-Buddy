@@ -52,8 +52,6 @@ public:
     virtual bool IsCalibrationFinished() const { return true; }
     virtual void SetInvalidateCalibrationFlag() {}
 
-    virtual void MetricsSetEnabled(bool) {} // Enable/disable metrics for this filament sensor
-
 protected:
     // Protected functions are only to be called from FilamentSensors to prevent race conditions
 

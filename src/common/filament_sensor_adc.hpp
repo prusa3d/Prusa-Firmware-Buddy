@@ -50,7 +50,6 @@ protected:
     void CalibrateInserted(int32_t filtered_value);
 
     virtual void record_state() override;
-    void MetricsSetEnabled(bool) override;
 
 public:
     FSensorADC(uint8_t tool_index, bool is_side_sensor);
@@ -75,7 +74,4 @@ private:
     // Limit metrics recording for each tool
     buddy::metrics::RunApproxEvery limit_record = 49;
     buddy::metrics::RunApproxEvery limit_record_raw = 60;
-
-    metric_s &metric_raw();
-    metric_s &metric_filtered();
 };

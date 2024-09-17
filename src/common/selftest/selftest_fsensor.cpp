@@ -55,24 +55,9 @@ CSelftestPart_FSensor::CSelftestPart_FSensor(IPartHandler &state_machine, const 
 #endif
       ) {
     log_info(Selftest, "%s Started", rConfig.partname);
-
-    if (extruder) {
-        extruder->MetricsSetEnabled(true);
-    } else {
-        bsod("%s wrong printer sensor index", rConfig.partname);
-    }
-
-    if (side) {
-        side->MetricsSetEnabled(true);
-    }
 }
+
 CSelftestPart_FSensor::~CSelftestPart_FSensor() {
-    if (extruder) {
-        extruder->MetricsSetEnabled(false);
-    }
-    if (side) {
-        side->MetricsSetEnabled(false);
-    }
 }
 
 bool CSelftestPart_FSensor::AbortAndInvalidateIfAbortPressed() {

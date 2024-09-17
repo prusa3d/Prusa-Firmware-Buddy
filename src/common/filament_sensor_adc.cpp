@@ -155,7 +155,7 @@ void FSensorADC::record_state() {
         return;
     }
 
-    metric_record_custom(&metric_filtered(), ",n=%u st=%ui,f=%" PRId32 "i,r=%" PRId32 "i,ri=%" PRId32 "i,sp=%" PRId32 "i",
+    metric_record_custom(is_side ? &metric_side : &metric_extruder, ",n=%u st=%ui,f=%" PRId32 "i,r=%" PRId32 "i,ri=%" PRId32 "i,sp=%" PRId32 "i",
         tool_index, static_cast<unsigned>(get_state()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
 }
 
@@ -164,19 +164,5 @@ void FSensorADC::record_raw(int32_t val) {
         return;
     }
 
-    metric_record_custom(&metric_raw(), ",n=%u v=%" PRId32 "i", tool_index, val);
-}
-
-void FSensorADC::MetricsSetEnabled(bool enable) {
-    uint32_t new_state = enable ? METRIC_HANDLER_ENABLE_ALL : METRIC_HANDLER_DISABLE_ALL;
-    metric_filtered().enabled_handlers = new_state;
-    metric_raw().enabled_handlers = new_state;
-}
-
-metric_s &FSensorADC::metric_raw() {
-    return is_side ? metric_side_raw : metric_extruder_raw;
-}
-
-metric_s &FSensorADC::metric_filtered() {
-    return is_side ? metric_side : metric_extruder;
+    metric_record_custom(is_side ? &metric_side_raw : &metric_extruder_raw, ",n=%u v=%" PRId32 "i", tool_index, val);
 }
