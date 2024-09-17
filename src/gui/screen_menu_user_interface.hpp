@@ -30,7 +30,8 @@ using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #endif
 #if HAS_LEDS()
     ,
-    MI_LEDS_ENABLE
+    MI_LEDS_ENABLE,
+    MI_DISPLAY_BACKLIGHT_BRIGHTNESS
 #endif
 #if HAS_SIDE_LEDS()
     ,
@@ -39,7 +40,8 @@ using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #endif
 #if HAS_TOOLCHANGER()
     ,
-    MI_TOOL_LEDS_ENABLE
+    MI_TOOL_LEDS_ENABLE,
+    MI_TOOL_LEDS_BRIGHTNESS
 #endif /*HAS_TOOLCHANGER()*/
 #if HAS_TOUCH()
     ,
