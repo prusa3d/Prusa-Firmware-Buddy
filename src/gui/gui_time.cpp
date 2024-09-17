@@ -1,8 +1,11 @@
 #include <algorithm>
 #include "gui_time.hpp"
 #include "timing.h"
-#include "metric.h"
 #include "sw_timer.hpp"
+
+#ifndef UNITTESTS
+    #include "metric.h"
+#endif
 
 static uint32_t current_tick = 0;
 static uint32_t current_loop_counter = 0;
@@ -23,12 +26,16 @@ void gui::StartLoop() {
     loop_start_tick = current_tick;
 }
 
+#ifndef UNITTESTS
 METRIC_DEF(gui_loop_duration, "gui_loop_dur", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
+#endif
 
 void gui::EndLoop() {
     worst_duration = std::max(worst_duration, ticks_ms() - loop_start_tick);
     if (report_timer.RestartIfIsOver(ticks_ms())) {
+#ifndef UNITTESTS
         metric_record_integer(&gui_loop_duration, worst_duration);
+#endif
         worst_duration = 0;
     }
 }

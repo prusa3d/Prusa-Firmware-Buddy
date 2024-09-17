@@ -349,11 +349,9 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
 
 #include "metric.h"
 
-void metric_record_custom_at_time([[maybe_unused]] metric_t *metric, [[maybe_unused]] uint32_t timestamp, [[maybe_unused]] const char *fmt, ...) {
-}
-
-void metric_record_integer_at_time([[maybe_unused]] metric_t *metric, [[maybe_unused]] uint32_t timestamp, int) {
-}
+void metric_record_custom_at_time(metric_t *, uint32_t, const char *, ...) {}
+void metric_record_integer(metric_t *, int) {}
+void metric_record_integer_at_time(metric_t *, uint32_t, int) {}
 
 // Marlin's HAL
 

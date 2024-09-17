@@ -138,6 +138,11 @@ static void point_enqueue(metric_point_t *recording) {
         dropped_points_count.fetch_add(1, std::memory_order::relaxed);
     }
 }
+
+void metric_record_float(metric_t *metric, float value) {
+    metric_record_float_at_time(metric, ticks_us(), value);
+}
+
 void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float value) {
     metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_FLOAT);
     if (!recording) {
@@ -147,28 +152,35 @@ void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float val
     point_enqueue(recording);
 }
 
-void metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...) {
+void metric_record_string_at_time_v(metric_t *metric, uint32_t timestamp, const char *fmt, va_list args) {
     metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_STRING);
     if (!recording) {
         return;
     }
-    va_list args;
-    va_start(args, fmt);
     vsnprintf(recording->value_str, sizeof(recording->value_str), fmt, args);
-    va_end(args);
     point_enqueue(recording);
 }
 
-void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...) {
+void metric_record_string(metric_t *metric, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    metric_record_string_at_time_v(metric, ticks_us(), fmt, args);
+    va_end(args);
+}
+
+void metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    metric_record_string_at_time_v(metric, timestamp, fmt, args);
+    va_end(args);
+}
+
+static void metric_record_custom_at_time_v(metric_t *metric, uint32_t timestamp, const char *fmt, va_list args) {
     metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_CUSTOM);
     if (!recording) {
         return;
     }
-    va_list args;
-    va_start(args, fmt);
     int length = vsnprintf(recording->value_custom, sizeof(recording->value_custom), fmt, args);
-    va_end(args);
-
     if ((size_t)length >= sizeof(recording->value_custom)) {
         recording->error = true;
         strcpy(recording->error_msg, "value too long");
@@ -177,12 +189,34 @@ void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const ch
     point_enqueue(recording);
 }
 
+void metric_record_custom(metric_t *metric, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    metric_record_custom_at_time_v(metric, ticks_us(), fmt, args);
+    va_end(args);
+}
+
+void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    metric_record_custom_at_time_v(metric, timestamp, fmt, args);
+    va_end(args);
+}
+
+void metric_record_event(metric_t *metric) {
+    metric_record_event_at_time(metric, ticks_us());
+}
+
 void metric_record_event_at_time(metric_t *metric, uint32_t timestamp) {
     metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_EVENT);
     if (!recording) {
         return;
     }
     point_enqueue(recording);
+}
+
+void metric_record_integer(metric_t *metric, int value) {
+    metric_record_integer_at_time(metric, ticks_us(), value);
 }
 
 void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int value) {

@@ -156,13 +156,13 @@ typedef const metric_handler_t *const *metric_handler_list_t;
 void metric_system_init();
 
 /// Record a float (metric.type has to be METRIC_VALUE_FLOAT)
-#define metric_record_float(metric, value) metric_record_float_at_time(metric, ticks_us(), value)
+void metric_record_float(metric_t *metric, float value);
 
 /// Record a float with given timestamp (metric.type has to be METRIC_VALUE_FLOAT)
 void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float value);
 
 /// Record an integer (metric.type has to be METRIC_VALUE_INTEGER)
-#define metric_record_integer(metric, value) metric_record_integer_at_time(metric, ticks_us(), value)
+void metric_record_integer(metric_t *metric, int value);
 
 /// Record an integer with given timestamp (metric.type has to be METRIC_VALUE_INTEGER)
 void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int value);
@@ -170,7 +170,7 @@ void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int val
 /// Record a string (metric.type has to be METRIC_VALUE_STRING)
 ///
 /// The string is automatically truncated to the length of metric_point_t.value_str buffer size.
-#define metric_record_string(metric, fmt, ...) metric_record_string_at_time(metric, ticks_us(), fmt, ##__VA_ARGS__)
+void metric_record_string(metric_t *metric, const char *fmt, ...) __attribute__((format(__printf__, 2, 3)));
 
 /// Record a string with given timestamp (metric.type has to be METRIC_VALUE_STRING)
 ///
@@ -179,7 +179,7 @@ void __attribute__((format(__printf__, 3, 4)))
 metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
 
 /// Record an event (metric.type has to be METRIC_VALUE_EVENT)
-#define metric_record_event(metric) metric_record_event_at_time(metric, ticks_us())
+void metric_record_event(metric_t *metric);
 
 /// Record an event with given timestamp (metric.type has to be METRIC_VALUE_EVENT)
 void metric_record_event_at_time(metric_t *metric, uint32_t timestamp);
@@ -191,7 +191,7 @@ void metric_record_event_at_time(metric_t *metric, uint32_t timestamp);
 ///
 /// A metric error (datapoint with error=<message>) is recorded in case the resulting
 /// string does not fit the internal buffers.
-#define metric_record_custom(metric, fmt, ...) metric_record_custom_at_time(metric, ticks_us(), fmt, ##__VA_ARGS__)
+void metric_record_custom(metric_t *metric, const char *fmt, ...) __attribute__((format(__printf__, 2, 3)));
 
 /// Record a custom event with given timestamp (metric.type has to be METRIC_VALUE_CUSTOM)
 ///
