@@ -328,14 +328,14 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
 }
 
 static void record_pre_gcode_metrics() {
-    METRIC_DEF(gcode, "gcode", METRIC_VALUE_STRING, 0, METRIC_HANDLER_DISABLE_ALL);
+    METRIC_DEF(gcode, "gcode", METRIC_VALUE_STRING, 0, METRIC_DISABLED);
     metric_record_string(&gcode, "%s", parser.command_ptr);
 
 #if HAS_LOADCELL()
-    METRIC_DEF(loadcell_scale_m, "loadcell_scale", METRIC_VALUE_FLOAT, 5000, METRIC_HANDLER_ENABLE_ALL);
-    METRIC_DEF(loadcell_threshold_static_m, "loadcell_threshold", METRIC_VALUE_FLOAT, 5005, METRIC_HANDLER_ENABLE_ALL);
-    METRIC_DEF(loadcell_threshold_continuous_m, "loadcell_threshold_cont", METRIC_VALUE_FLOAT, 5010, METRIC_HANDLER_ENABLE_ALL);
-    METRIC_DEF(loadcell_hysteresis_m, "loadcell_hysteresis", METRIC_VALUE_FLOAT, 5015, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(loadcell_scale_m, "loadcell_scale", METRIC_VALUE_FLOAT, 5000, METRIC_ENABLED);
+    METRIC_DEF(loadcell_threshold_static_m, "loadcell_threshold", METRIC_VALUE_FLOAT, 5005, METRIC_ENABLED);
+    METRIC_DEF(loadcell_threshold_continuous_m, "loadcell_threshold_cont", METRIC_VALUE_FLOAT, 5010, METRIC_ENABLED);
+    METRIC_DEF(loadcell_hysteresis_m, "loadcell_hysteresis", METRIC_VALUE_FLOAT, 5015, METRIC_ENABLED);
 
     metric_record_float(&loadcell_scale_m, loadcell.GetScale());
     metric_record_float(&loadcell_threshold_static_m, loadcell.GetThreshold(Loadcell::TareMode::Static));

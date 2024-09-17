@@ -13,7 +13,7 @@ void LogEchoEvent_P(const char *msg_P) {
     SERIAL_ECHOLN();
 }
 
-METRIC_DEF(metric_mmu_comm, "mmu_comm", METRIC_VALUE_STRING, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_mmu_comm, "mmu_comm", METRIC_VALUE_STRING, 0, METRIC_DISABLED);
 
 void LogRequestMsg(const char *msg) {
     metric_record_string(&metric_mmu_comm, "%s", msg);

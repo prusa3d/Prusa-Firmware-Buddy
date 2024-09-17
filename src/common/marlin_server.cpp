@@ -1318,7 +1318,7 @@ void media_prefetch_start() {
 
 void media_print_loop() {
     /// Size of the gcode queue
-    METRIC_DEF(metric_gcode_queue_size, "gcd_que_sz", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(metric_gcode_queue_size, "gcd_que_sz", METRIC_VALUE_INTEGER, 100, METRIC_ENABLED);
     metric_record_integer(&metric_gcode_queue_size, queue.length);
 
     while (queue.length < MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET) {
@@ -1328,19 +1328,19 @@ void media_print_loop() {
         const auto metrics = media_prefetch.get_metrics();
 
         /// Status of the last media_prefetch.read_command. 0 = ok, 1 = end of file, other = error (means that we're stalling)
-        METRIC_DEF(metric_fetch_status, "ftch_status", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+        METRIC_DEF(metric_fetch_status, "ftch_status", METRIC_VALUE_INTEGER, 100, METRIC_ENABLED);
         metric_record_integer(&metric_fetch_status, static_cast<int>(status));
 
         /// Status at the end of the buffer - for early error indication
-        METRIC_DEF(metric_fetch_tail_status, "ftch_tstatus", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+        METRIC_DEF(metric_fetch_tail_status, "ftch_tstatus", METRIC_VALUE_INTEGER, 100, METRIC_ENABLED);
         metric_record_integer(&metric_fetch_tail_status, static_cast<int>(metrics.tail_status));
 
         /// Occupancy of the media prefetch buffer, in percent of the buffer size
-        METRIC_DEF(metric_prefetch_buffer_occupancy, "ftch_occ", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+        METRIC_DEF(metric_prefetch_buffer_occupancy, "ftch_occ", METRIC_VALUE_INTEGER, 100, METRIC_ENABLED);
         metric_record_integer(&metric_prefetch_buffer_occupancy, metrics.buffer_occupancy_percent);
 
         /// Number of commands in the prefetch buffer
-        METRIC_DEF(metric_prefetch_buffer_commands, "ftch_cmds", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_ENABLE_ALL);
+        METRIC_DEF(metric_prefetch_buffer_commands, "ftch_cmds", METRIC_VALUE_INTEGER, 100, METRIC_ENABLED);
         metric_record_integer(&metric_prefetch_buffer_commands, metrics.commands_in_buffer);
 
         // To-do: automatic unpause when paused if the condition fixes itself?
@@ -1533,7 +1533,7 @@ void powerpanic_resume(const char *media_SFN_path, const GCodeReaderPosition &re
 
     // enter the main powerpanic resume loop
     server.print_state = auto_recover ? State::PowerPanic_Resume : State::PowerPanic_AwaitingResume;
-    METRIC_DEF(power, "power_panic", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(power, "power_panic", METRIC_VALUE_EVENT, 0, METRIC_ENABLED);
     metric_record_event(&power);
 }
 
@@ -2312,7 +2312,7 @@ static void _server_print_loop(void) {
         }
 
     #if ENABLED(AXIS_MEASURE)
-        METRIC_DEF(crash_len, "crash_length", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+        METRIC_DEF(crash_len, "crash_length", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
         metric_record_custom(&crash_len, " x=%.3f,y=%.3f", (double)server.axis_length[X_AXIS], (double)server.axis_length[Y_AXIS]);
     #endif
 

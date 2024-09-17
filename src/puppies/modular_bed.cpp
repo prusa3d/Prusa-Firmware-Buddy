@@ -23,15 +23,15 @@ namespace buddy::puppies {
 
 LOG_COMPONENT_DEF(ModularBed, logging::Severity::info);
 
-METRIC_DEF(metric_state, "bed_state", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_currents, "bed_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
-METRIC_DEF(metric_states, "bedlet_state", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_temps, "bedlet_temp", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_targets, "bedlet_target", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_pwms, "bedlet_pwm", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_regulators, "bedlet_reg", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_bedlet_currents, "bedlet_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_mcu_temperature, "bed_mcu_temp", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_state, "bed_state", METRIC_VALUE_INTEGER, 0, METRIC_DISABLED);
+METRIC_DEF(metric_currents, "bed_curr", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
+METRIC_DEF(metric_states, "bedlet_state", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
+METRIC_DEF(metric_temps, "bedlet_temp", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
+METRIC_DEF(metric_targets, "bedlet_target", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
+METRIC_DEF(metric_pwms, "bedlet_pwm", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
+METRIC_DEF(metric_regulators, "bedlet_reg", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
+METRIC_DEF(metric_bedlet_currents, "bedlet_curr", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
+METRIC_DEF(metric_mcu_temperature, "bed_mcu_temp", METRIC_VALUE_FLOAT, 0, METRIC_DISABLED);
 
 ModularBed::ModularBed(PuppyModbus &bus, uint8_t modbus_address)
     : ModbusDevice(bus, modbus_address) {}

@@ -44,7 +44,7 @@ struct RecordHeader {
 
 #ifndef UNITTESTS
 /// Duration (in ms) of the just executed prefetch
-METRIC_DEF(metric_fetch_duration, "ftch_dur", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_fetch_duration, "ftch_dur", METRIC_VALUE_INTEGER, 0, METRIC_ENABLED);
 #endif
 
 } // namespace media_prefetch

@@ -11,13 +11,13 @@
 using namespace buddy::puppies;
 
 #ifdef TIME_SYNC_DEBUG
-METRIC_DEF(metric_buddy_time_us, "buddy_t", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_ENABLE_ALL);
-METRIC_DEF(metric_puppy_time_us, "puppy_t", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
-METRIC_DEF(metric_sync_roundtrip_us, "sync_rt", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
-METRIC_DEF(metric_puppy_offset_us, "puppy_off", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
-METRIC_DEF(metric_puppy_drift_ppb, "puppy_drift", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
-METRIC_DEF(metric_puppy_average_offset_us, "puppy_aoff", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
-METRIC_DEF(metric_puppy_average_drift_ppb, "puppy_adrif", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_buddy_time_us, "buddy_t", METRIC_VALUE_INTEGER, 0, METRIC_ENABLED);
+METRIC_DEF(metric_puppy_time_us, "puppy_t", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
+METRIC_DEF(metric_sync_roundtrip_us, "sync_rt", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
+METRIC_DEF(metric_puppy_offset_us, "puppy_off", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
+METRIC_DEF(metric_puppy_drift_ppb, "puppy_drift", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
+METRIC_DEF(metric_puppy_average_offset_us, "puppy_aoff", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
+METRIC_DEF(metric_puppy_average_drift_ppb, "puppy_adrif", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
 #endif
 
 TimeSync::TimeSync(const uint8_t id)

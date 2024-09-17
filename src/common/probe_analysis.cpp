@@ -36,7 +36,7 @@ ProbeAnalysisBase::Result ProbeAnalysisBase::Analyse() {
     auto relative_position = [&window = this->window](Sample sample) {
         return static_cast<double>(sample - window.begin()) / static_cast<double>(window.capacity());
     };
-    METRIC_DEF(probe_window_metric, "probe_window", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+    METRIC_DEF(probe_window_metric, "probe_window", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
     metric_record_custom(&probe_window_metric, " as=%0.3f,fe=%0.3f,rs=%0.3f,ae=%0.3f",
         relative_position(features.analysisStart),
         relative_position(features.fallEnd),

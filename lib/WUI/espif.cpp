@@ -224,7 +224,7 @@ void espif_tx_callback() {
 }
 
 static void espif_tx_update_metrics(uint32_t len) {
-    METRIC_DEF(metric_esp_out, "esp_out", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(metric_esp_out, "esp_out", METRIC_VALUE_CUSTOM, 1000, METRIC_ENABLED);
     static uint32_t bytes_sent = 0;
     bytes_sent += len;
     metric_record_custom(&metric_esp_out, " sent=%" PRIu32 "i", bytes_sent);
@@ -665,7 +665,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
     esp_detected = true;
 
     // record metrics
-    METRIC_DEF(metric_esp_in, "esp_in", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(metric_esp_in, "esp_in", METRIC_VALUE_CUSTOM, 1000, METRIC_ENABLED);
     static uint32_t bytes_received = 0;
     bytes_received += size;
     metric_record_custom(&metric_esp_in, " recv=%" PRIu32 "i", bytes_received);

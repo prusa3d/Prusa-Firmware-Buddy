@@ -343,7 +343,7 @@ void Crash_s::send_reports() {
         speed = tmc_period_to_feedrate(Y_AXIS, get_microsteps_y(), stepperY.TSTEP(), get_steps_per_unit_y());
     }
 
-    METRIC_DEF(crash_metric, "crash", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(crash_metric, "crash", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
     metric_record_custom(&crash_metric, ",axis=%c sens=%ldi,period=%ldi,speed=%.3f",
         axis_codes[axis_hit], sensitivity.pos[axis_hit], max_period.pos[axis_hit],
         static_cast<double>(speed));
@@ -389,7 +389,7 @@ void Crash_s::count_crash() {
     uint32_t valid = clean_history();
     if (valid == crash_timestamps.size()) {
         repeated_crash = true;
-        METRIC_DEF(crash_repeated, "crash_repeated", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
+        METRIC_DEF(crash_repeated, "crash_repeated", METRIC_VALUE_EVENT, 0, METRIC_ENABLED);
         metric_record_event(&crash_repeated);
     }
     crash_timestamps[crash_timestamps_idx++] = print_job_timer.duration();

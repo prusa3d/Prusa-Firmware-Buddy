@@ -58,7 +58,7 @@ void Crash_s_Counters::save_to_eeprom() {
             config_store().crash_count_y.set(total);
         }
 
-        METRIC_DEF(crash_stat, "crash_stat", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+        METRIC_DEF(crash_stat, "crash_stat", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
         metric_record_custom(&crash_stat, ",axis=%c last=%ui,total=%ui", axis_codes[axis], counter_var, total);
     }
 

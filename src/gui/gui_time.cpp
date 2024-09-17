@@ -27,7 +27,7 @@ void gui::StartLoop() {
 }
 
 #ifndef UNITTESTS
-METRIC_DEF(gui_loop_duration, "gui_loop_dur", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(gui_loop_duration, "gui_loop_dur", METRIC_VALUE_INTEGER, 100, METRIC_DISABLED);
 #endif
 
 void gui::EndLoop() {

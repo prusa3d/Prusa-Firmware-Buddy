@@ -36,13 +36,13 @@ LOG_COMPONENT_DEF(Dwarf_6, logging::Severity::info);
 /// NOTE: has to ba called inside member funciton of Dwarf class
 #define DWARF_LOG(severity, fmt, ...) _log_event(severity, &this->log_component, fmt, ##__VA_ARGS__);
 
-METRIC_DEF(metric_fast_refresh_delay, "dwarf_fast_refresh_delay", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_fast_refresh_delay, "dwarf_fast_refresh_delay", METRIC_VALUE_INTEGER, 0, METRIC_DISABLED);
 
-METRIC_DEF(metric_dwarf_picked_raw, "dwarf_picked_raw", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_dwarf_parked_raw, "dwarf_parked_raw", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_dwarf_picked_raw, "dwarf_picked_raw", METRIC_VALUE_CUSTOM, 100, METRIC_DISABLED);
+METRIC_DEF(metric_dwarf_parked_raw, "dwarf_parked_raw", METRIC_VALUE_CUSTOM, 100, METRIC_DISABLED);
 
-METRIC_DEF(metric_dwarf_heater_current, "dwarf_heat_curr", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_dwarf_heater_pwm, "dwarf_heat_pwm", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_dwarf_heater_current, "dwarf_heat_curr", METRIC_VALUE_CUSTOM, 100, METRIC_DISABLED);
+METRIC_DEF(metric_dwarf_heater_pwm, "dwarf_heat_pwm", METRIC_VALUE_CUSTOM, 100, METRIC_DISABLED);
 
 Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
     : ModbusDevice(bus, modbus_address)

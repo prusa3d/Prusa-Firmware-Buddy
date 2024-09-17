@@ -10,7 +10,7 @@ in real-time while your algorithm runs on a real printer.
 1. Define a metric
 
     ```C
-    METRIC_DEF(cpu_usage, "cpu_usage", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
+    METRIC_DEF(cpu_usage, "cpu_usage", METRIC_VALUE_FLOAT, 100, METRIC_DISABLED);
     ```
 
     - The first parameter - `cpu_usage` - is the variable name
@@ -19,8 +19,8 @@ in real-time while your algorithm runs on a real printer.
     - The fourth parameter - `100` - defines the minimal interval between consecutive recorded points in ms.
         - E.g., the value 100 ms makes the `cpu_usage` metric being transmitted at a maximum frequency of 10 Hz.
         - If you want to disable throttling and send the values as fast as possible, set it to 0.
-    - The last parameter is a bitmap specifying which handlers should have this metric enabled after startup.
-        - `METRIC_HANDLER_DISABLE_ALL` is the safe value you should use for most metrics. It makes the metric disabled by default (for all handlers).
+    - The last parameter determines whether the metric should be enabled by default or not.
+        - `METRIC_DISABLED` is the safe value you should use for most metrics. It makes the metric disabled by default.
 
 
 2. Record your values

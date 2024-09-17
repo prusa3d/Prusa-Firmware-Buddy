@@ -36,7 +36,7 @@ static_assert(EXTRUDERS == 1);
 constexpr float MMM_TO_MMS(float MM_M) { return MM_M / 60.0f; }
 #else
     #ifndef UNITTEST
-METRIC_DEF(metric_unloadDistanceFSOff, "mmu_unl_fs_trg_dist", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_unloadDistanceFSOff, "mmu_unl_fs_trg_dist", METRIC_VALUE_FLOAT, 100, METRIC_DISABLED);
     #endif
 #endif
 

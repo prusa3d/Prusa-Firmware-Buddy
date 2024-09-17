@@ -20,10 +20,10 @@ LOG_COMPONENT_REF(FSensor);
 
 // min_interval_ms is 0, that is intended here.
 // Rate limiting is done per-sensor inside FSensorADC through limit_record(_raw)
-METRIC_DEF(metric_extruder_raw, "fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_extruder, "fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_side_raw, "side_fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_side, "side_fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_extruder_raw, "fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
+METRIC_DEF(metric_extruder, "fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
+METRIC_DEF(metric_side_raw, "side_fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
+METRIC_DEF(metric_side, "side_fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
 
 void FSensorADC::cycle() {
     const auto filtered_value { fs_filtered_value.load() }; // store value - so interrupt cannot change it during evaluation

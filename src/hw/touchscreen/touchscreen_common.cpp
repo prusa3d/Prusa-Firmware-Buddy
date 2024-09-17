@@ -9,8 +9,8 @@
 
 LOG_COMPONENT_DEF(Touch, logging::Severity::info);
 
-METRIC_DEF(metric_touch_event_, "touch_evt", METRIC_VALUE_STRING, 0, METRIC_HANDLER_ENABLE_ALL);
-METRIC_DEF(metric_touch_pos, "touch_pos", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_touch_event_, "touch_evt", METRIC_VALUE_STRING, 0, METRIC_ENABLED);
+METRIC_DEF(metric_touch_pos, "touch_pos", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
 
 metric_t *metric_touch_event() {
     return &metric_touch_event_;

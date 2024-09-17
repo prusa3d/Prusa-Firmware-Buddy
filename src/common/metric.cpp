@@ -50,7 +50,7 @@ static std::atomic<uint16_t> dropped_points_count = 0;
 LOG_COMPONENT_DEF(Metrics, logging::Severity::info);
 
 // internal metrics
-METRIC_DEF(metric_dropped_points, "points_dropped", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_dropped_points, "points_dropped", METRIC_VALUE_INTEGER, 1000, METRIC_ENABLED);
 
 void metric_system_init() {
     if (metric_system_initialized) {

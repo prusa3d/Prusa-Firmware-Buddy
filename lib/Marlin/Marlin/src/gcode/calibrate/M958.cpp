@@ -40,9 +40,9 @@ static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 
 LOG_COMPONENT_REF(Marlin);
 
-METRIC_DEF(metric_excite_freq, "excite_freq", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_freq_gain, "freq_gain", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
-METRIC_DEF(accel, "tk_accel", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_excite_freq, "excite_freq", METRIC_VALUE_FLOAT, 100, METRIC_DISABLED);
+METRIC_DEF(metric_freq_gain, "freq_gain", METRIC_VALUE_CUSTOM, 100, METRIC_ENABLED);
+METRIC_DEF(accel, "tk_accel", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
 
 namespace {
 class HarmonicGenerator {

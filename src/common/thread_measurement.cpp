@@ -17,10 +17,10 @@
     #include <feature/phase_stepping/phase_stepping.hpp>
 #endif
 
-METRIC_DEF(metric_tmc_sg_x, "tmc_sg_x", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_tmc_sg_y, "tmc_sg_y", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_tmc_sg_z, "tmc_sg_z", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_DISABLE_ALL);
-METRIC_DEF(metric_tmc_sg_e, "tmc_sg_e", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_tmc_sg_x, "tmc_sg_x", METRIC_VALUE_INTEGER, 10, METRIC_DISABLED);
+METRIC_DEF(metric_tmc_sg_y, "tmc_sg_y", METRIC_VALUE_INTEGER, 10, METRIC_DISABLED);
+METRIC_DEF(metric_tmc_sg_z, "tmc_sg_z", METRIC_VALUE_INTEGER, 10, METRIC_DISABLED);
+METRIC_DEF(metric_tmc_sg_e, "tmc_sg_e", METRIC_VALUE_INTEGER, 10, METRIC_DISABLED);
 
 static metric_t *metrics_tmc_sg[4] = {
     &metric_tmc_sg_x,

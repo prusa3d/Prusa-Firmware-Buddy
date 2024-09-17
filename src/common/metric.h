@@ -19,7 +19,7 @@ extern "C" {
 /// Quick start
 /// 1. Define your metrics (or use an existing one)
 ///
-///    METRIC_DEF(val_xyz, "val_xyz", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
+///    METRIC_DEF(val_xyz, "val_xyz", METRIC_VALUE_INTEGER, 100, METRIC_DISABLED);
 ///
 ///     - The first parameter - "val_xyz" - is the metric's name. Keep it as short as possible!
 ///     - The second parameter defines the type of recorded points (values) of this metric.
@@ -37,9 +37,6 @@ extern "C" {
 ///    TODO: complete those instructions
 ///
 
-#define METRIC_HANDLER_ENABLE_ALL  1
-#define METRIC_HANDLER_DISABLE_ALL 0
-
 typedef enum {
     METRIC_VALUE_EVENT = 0x00, // no value, just an event
     METRIC_VALUE_FLOAT = 0x01,
@@ -47,6 +44,11 @@ typedef enum {
     METRIC_VALUE_STRING = 0x03,
     METRIC_VALUE_CUSTOM = 0x04, // multiple values formatted via customized line protocol (see metrics.md)
 } metric_value_type_t;
+
+enum {
+    METRIC_DISABLED = 0,
+    METRIC_ENABLED = 1,
+};
 
 /// A metric definition.
 ///

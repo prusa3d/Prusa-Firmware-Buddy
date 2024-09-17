@@ -333,7 +333,7 @@ void tmc_register_write_hook(uint8_t slave_addr, uint8_t reg_addr, uint32_t val)
     if (!should_log_register_operation(reg_addr)) {
         return;
     }
-    METRIC_DEF(metric_write, "tmc_write", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(metric_write, "tmc_write", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
     metric_record_custom(&metric_write, ",ax=%c reg=%ui,regn=\"%s\",value=%" PRIu32 "i",
         tmc_slave_addr_to_axis_character(slave_addr), reg_addr, tmc_reg_addr_to_name(reg_addr), val);
 }
@@ -342,7 +342,7 @@ void tmc_register_read_hook(uint8_t slave_addr, uint8_t reg_addr, uint32_t val) 
     if (!should_log_register_operation(reg_addr)) {
         return;
     }
-    METRIC_DEF(metric_read, "tmc_read", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(metric_read, "tmc_read", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
     metric_record_custom(&metric_read, ",ax=%c reg=%ui,regn=\"%s\",value=%" PRIu32 "i",
         tmc_slave_addr_to_axis_character(slave_addr), reg_addr, tmc_reg_addr_to_name(reg_addr), val);
 }
