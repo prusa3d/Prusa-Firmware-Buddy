@@ -195,7 +195,8 @@ Nozzle nozzle;
       case 2: // Raise by Z-park height
         do_blocking_move_to_z(_MIN(current_position.z + park.z, Z_MAX_POS), fr_z);
         break;
-
+      case 4: /// No Z move, just XY park
+        break;
       default: // Raise to at least the Z-park height
         do_blocking_move_to_z(_MAX(park.z, current_position.z), fr_z);
     }
