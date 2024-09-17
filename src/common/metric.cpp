@@ -98,10 +98,6 @@ static bool check_min_interval(metric_t *metric, uint32_t timestamp) {
     }
 }
 
-static void update_min_interval(metric_t *metric) {
-    metric->_last_update_timestamp = ticks_us();
-}
-
 static metric_point_t *point_check_and_prepare(metric_t *metric, uint32_t timestamp, metric_value_type_t type) {
     if (!metric_system_initialized) {
         return NULL;
@@ -136,7 +132,7 @@ static metric_point_t *point_check_and_prepare(metric_t *metric, uint32_t timest
 static void point_enqueue(metric_point_t *recording) {
     metric_t *metric = recording->metric;
     if (osMailPut(metric_system_queue, (void *)recording) == osOK) {
-        update_min_interval(metric);
+        metric->_last_update_timestamp = ticks_us();
     } else {
         osMailFree(metric_system_queue, recording);
         dropped_points_count.fetch_add(1, std::memory_order::relaxed);
