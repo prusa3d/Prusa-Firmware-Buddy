@@ -772,7 +772,7 @@ void MI_HEATUP_BED::OnChange(size_t old_index) {
 }
 
 MI_SET_READY::MI_SET_READY()
-    : IWindowMenuItem(_(label), &img::print_16x16, connect_client::MarlinPrinter::is_printer_ready() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), &img::set_ready_16x16, connect_client::MarlinPrinter::is_printer_ready() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
