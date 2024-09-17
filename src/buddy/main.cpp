@@ -129,11 +129,6 @@ void StartConnectTaskError(void const *argument); // Version for redscreen
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
-extern const metric_handler_t *const metric_system_handlers[] = {
-    &metric_handler_syslog,
-    nullptr
-};
-
 extern buddy::hw::BufferedSerial uart2;
 extern buddy::hw::BufferedSerial uart6;
 

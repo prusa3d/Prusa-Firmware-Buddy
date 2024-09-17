@@ -117,7 +117,7 @@ static int syslog_message_init(char *buffer, int buffer_len, int64_t timestamp) 
         facility * 8 + severity, otp_get_mac_address_str().data(), appname, message_id++, timestamp);
 }
 
-static void syslog_handler(metric_point_t *point) {
+extern "C" void metric_handler(metric_point_t *point) {
     static uint32_t buffer_reference_timestamp = 0;
     static char buffer_has_header = false;
     static char buffer[1024];
@@ -166,9 +166,3 @@ static void syslog_handler(metric_point_t *point) {
         }
     }
 }
-
-const metric_handler_t metric_handler_syslog = {
-    .identifier = METRIC_HANDLER_SYSLOG_ID,
-    .name = "SYSLOG",
-    .handle_fn = syslog_handler,
-};

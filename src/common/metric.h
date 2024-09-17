@@ -37,8 +37,8 @@ extern "C" {
 ///    TODO: complete those instructions
 ///
 
-#define METRIC_HANDLER_ENABLE_ALL  (0xff)
-#define METRIC_HANDLER_DISABLE_ALL (0x00)
+#define METRIC_HANDLER_ENABLE_ALL  1
+#define METRIC_HANDLER_DISABLE_ALL 0
 
 typedef enum {
     METRIC_VALUE_EVENT = 0x00, // no value, just an event
@@ -67,19 +67,14 @@ typedef struct metric_s {
     /// of this metric are not going to be sent faster then
     /// at 20 Hz.
     /// When set to zero, no throttling is going to be performed.
-    uint16_t min_interval_ms;
+    const uint16_t min_interval_ms;
 
     /// The type of the values associated with this metric.
-    const metric_value_type_t type : 8;
+    const metric_value_type_t type : 3;
 
-    /// Specifies, which handlers are going to receive points for this metric.
-    ///
-    /// Bitmap, where bit on position METRIC_HANDLER_<NAME>_ID represents, whether
-    /// the handler <NAME> should receive points for this metric.
-    ///
-    /// Set to METRIC_HANDLER_ENABLE_ALL or METRIC_HANDLER_DISABLE_ALL to enable/disable
-    /// this metric globally.
-    uint8_t enabled_handlers;
+    bool enabled : 1;
+
+    const uint16_t _unused : 12;
 
 } metric_t;
 
@@ -92,7 +87,7 @@ typedef struct metric_s {
 #endif
 
 /// To be used for metric_t structure initialization.
-#define METRIC_DEF(var, name, type, min_interval_ms, enabled_handlers) static metric_t var _METRIC_DEF_ATTRS = { name, 0, min_interval_ms, type, enabled_handlers }
+#define METRIC_DEF(var, name, type, min_interval_ms, enabled) static metric_t var _METRIC_DEF_ATTRS = { name, 0, min_interval_ms, type, enabled, 0 }
 
 /// Represents a single recorded value.
 ///
@@ -129,26 +124,6 @@ typedef struct {
         char error_msg[48];
     };
 } metric_point_t;
-
-/// Metric Handler
-///
-/// Handler is the entity processing all recorded points. It
-/// can send them via UART, aggregate them and create new metrics,
-/// or send them via Ethernet. So many options!
-typedef struct {
-    /// The identifier of this handler.
-    uint8_t identifier;
-
-    /// Human-friendly name of the handler.
-    const char *name;
-
-    /// The function to be called for every recorded point.
-    ///
-    /// It is not called if the handler is not enabled (metric_t.enabled_handlers).
-    void (*handle_fn)(metric_point_t *point);
-} metric_handler_t;
-
-typedef const metric_handler_t *const *metric_handler_list_t;
 
 /// Initialize metrics
 ///
@@ -207,22 +182,11 @@ metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *f
 void __attribute__((format(__printf__, 2, 3)))
 metric_record_error(metric_t *metric, const char *fmt, ...);
 
-/// Return null-terminated list of handlers
-metric_handler_list_t metric_get_handlers();
-
 /// Returns pointer to the first metric defintion
 metric_t *metric_get_iterator_begin();
 
 /// Returns pointer BEHIND the last metric defintion
 metric_t *metric_get_iterator_end();
-
-bool is_metric_enabled_for_handler(const metric_t *metric, const metric_handler_t *handler);
-
-/// Enable metric for given handler
-void metric_enable_for_handler(metric_t *metric, const metric_handler_t *handler);
-
-/// Disable metric for given handler
-void metric_disable_for_handler(metric_t *metric, const metric_handler_t *handler);
 
 /// returns true, when metric min_interval_ms already passed and new record can be created
 /// note: useful if obtaining record value takes significant time

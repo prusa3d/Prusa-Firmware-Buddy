@@ -87,7 +87,7 @@ void StartMeasurementTask([[maybe_unused]] void const *argument) {
                 if (sg_mask & (1 << axis)) {
                     num_of_enabled_axes += 1;
                 }
-                if (metrics_tmc_sg[axis]->enabled_handlers) {
+                if (metrics_tmc_sg[axis]->enabled) {
                     next_delay = std::min<uint32_t>(next_delay, metrics_tmc_sg[axis]->min_interval_ms);
                 }
             }

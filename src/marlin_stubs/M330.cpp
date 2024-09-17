@@ -29,7 +29,7 @@ void PrusaGcodeSuite::M331() {
 
     for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         if (strcmp(metric->name, parser.string_arg) == 0) {
-            metric_enable_for_handler(metric, &metric_handler_syslog);
+            metric->enabled = true;
             SERIAL_ECHO_START();
             SERIAL_ECHOLNPAIR_F("Metric enabled: ", parser.string_arg);
             return;
@@ -55,7 +55,7 @@ void PrusaGcodeSuite::M332() {
 
     for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         if (strcmp(metric->name, parser.string_arg) == 0) {
-            metric_disable_for_handler(metric, &metric_handler_syslog);
+            metric->enabled = false;
             SERIAL_ECHO_START();
             SERIAL_ECHOLNPAIR_F("Metric disabled: ", parser.string_arg);
             return;
@@ -74,7 +74,7 @@ void PrusaGcodeSuite::M333() {
     for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         SERIAL_ECHO_START();
         SERIAL_ECHOPGM(metric->name);
-        SERIAL_ECHOPGM(is_metric_enabled_for_handler(metric, &metric_handler_syslog) ? " 1" : " 0");
+        SERIAL_ECHOPGM(metric->enabled ? " 1" : " 0");
         SERIAL_EOL();
     }
 }

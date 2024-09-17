@@ -5,14 +5,10 @@
 extern "C" {
 #endif //__cplusplus
 
-enum {
-    METRIC_HANDLER_SYSLOG_ID,
-};
-
-extern const metric_handler_t metric_handler_syslog;
-
 /// Set up the metrics handlers based on config store
 void metrics_reconfigure();
+
+extern void metric_handler(metric_point_t *point);
 
 #ifdef __cplusplus
 }

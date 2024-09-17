@@ -8,7 +8,7 @@
 using namespace screen_menu_metrics_list;
 
 MI_METRIC::MI_METRIC(metric_t *metric)
-    : WI_ICON_SWITCH_OFF_ON_t(is_metric_enabled_for_handler(metric, &metric_handler_syslog), {})
+    : WI_ICON_SWITCH_OFF_ON_t(metric->enabled, {})
     , metric_(metric) //
 {
     StringBuilder sb(label_);
@@ -17,7 +17,7 @@ MI_METRIC::MI_METRIC(metric_t *metric)
 }
 
 void MI_METRIC::OnChange(size_t) {
-    (index ? metric_enable_for_handler : metric_disable_for_handler)(metric_, &metric_handler_syslog);
+    metric_->enabled = index;
 }
 
 WindowMenuMetricsList::WindowMenuMetricsList(window_t *parent, Rect16 rect)
