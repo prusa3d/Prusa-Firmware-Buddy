@@ -81,7 +81,7 @@ void G27_no_parser(const G27Params &params) {
     if (axes_need_homing()) {
         if (!params.do_x && !params.do_y && params.do_z && params.z_action == 0) {
             // Only Z axis is given in P=0 mode, do Z clearance
-            do_z_clearance(params.park_position.z);
+            do_z_clearance(park_position.z);
             return;
         } else {
             GcodeSuite::G28_no_parser(true, true, 3, false, params.do_x, params.do_y, params.do_z);
