@@ -1762,7 +1762,7 @@
  * Recovery from power failure. This is a distinct implementation from
  * POWER_LOSS_RECOVERY specific to Prusa printers.
  */
-#define POWER_PANIC
+//#define POWER_PANIC
 
 #ifdef POWER_PANIC
     #define POWER_PANIC_Z_LIFT_CYCLES 4 // 4xFullStep cycles = ~0.64mm
