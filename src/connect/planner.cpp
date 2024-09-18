@@ -977,7 +977,7 @@ void Planner::command(const Command &command, const SetValue &params) {
             slot.high_flow = get<bool>(params.value);
         });
         break;
-    case connect_client::PropertyName::NozzleAntiAbrasive:
+    case connect_client::PropertyName::NozzleHardened:
         adjust_nozzle(params.idx, [&](auto &slot) {
             slot.hardened = get<bool>(params.value);
         });
