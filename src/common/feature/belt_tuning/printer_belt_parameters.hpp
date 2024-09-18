@@ -67,22 +67,7 @@ static constexpr PrinterBeltParameters printer_belt_parameters {
             .target_tension_force_n = 18,
             .target_tension_force_dev_n = 1,
             .belt_tuning_params = {
-                .excitation_amplitude_m_func = [](float freqency) {
-                    // Linearly increasing amplitude
-                    constexpr auto f = [](float freq) {
-                        static constexpr float amplitude_a = 0.00007f;
-                        static constexpr float amplitude_b = 0.00009f;
-                        static constexpr float freq_a = 75;
-                        static constexpr float freq_b = 105;
-                        return amplitude_a + (freq - freq_a) * (amplitude_b - amplitude_a) / (freq_b - freq_a);
-                    };
-
-                    static_assert(f(75) == 0.00007f);
-                    static_assert(f(90) == 0.00008f);
-                    static_assert(f(105) == 0.00009f);
-
-                    return f(freqency);
-                },
+                .excitation_amplitude_m_func = MeasureBeltTensionSpecificParams::linearly_varying_amplitude<75.0f, 105.0f, 0.00007f, 0.00009f>,
                 .start_frequency_hz = 75,
                 .end_frequency_hz = 105,
                 .frequency_step_hz = 0.5,
