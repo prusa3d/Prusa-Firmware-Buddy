@@ -33,10 +33,10 @@ LOG_COMPONENT_DEF(PreciseStepping, logging::Severity::debug);
     #define Z_APPLY_DIR(v) Z_DIR_WRITE(v)
     #define E_APPLY_DIR(v) E0_DIR_WRITE(v)
 #else
-    #define X_APPLY_DIR(v) buddy::hw::xDir.write((buddy::hw::Pin::State)(v))
-    #define Y_APPLY_DIR(v) buddy::hw::yDir.write((buddy::hw::Pin::State)(v))
-    #define Z_APPLY_DIR(v) buddy::hw::zDir.write((buddy::hw::Pin::State)(v))
-    #define E_APPLY_DIR(v) buddy::hw::e0Dir.write((buddy::hw::Pin::State)(v))
+    #define X_APPLY_DIR(v) buddy::hw::xDir.writeb(v)
+    #define Y_APPLY_DIR(v) buddy::hw::yDir.writeb(v)
+    #define Z_APPLY_DIR(v) buddy::hw::zDir.writeb(v)
+    #define E_APPLY_DIR(v) buddy::hw::e0Dir.writeb(v)
 #endif
 
 #ifdef SQUARE_WAVE_STEPPING

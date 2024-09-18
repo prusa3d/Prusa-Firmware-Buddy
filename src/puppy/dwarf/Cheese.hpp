@@ -14,7 +14,7 @@ public:
     static constexpr uint16_t HALL_THRESHOLD_HIGH = HALL_THRESHOLD_MID + HALL_HYSTERESIS / 2;
 
     static inline void set_led(bool state) {
-        buddy::hw::ledPWM.write(state ? buddy::hw::Pin::State::high : buddy::hw::Pin::State::low);
+        buddy::hw::ledPWM.writeb(state);
     }
 
     static inline uint16_t get_raw_parked() {
