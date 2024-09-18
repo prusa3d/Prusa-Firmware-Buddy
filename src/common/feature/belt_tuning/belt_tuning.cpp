@@ -10,6 +10,15 @@
     #include <Marlin/src/module/prusa/toolchanger.h>
 #endif
 
+// Sanity checks for linearly increasing amplitude
+static_assert([] {
+    using P = MeasureBeltTensionSpecificParams;
+    const P::ExcitationAmplitudeFunc f = P::linearly_varying_amplitude<75.0f, 105.0f, 0.00007f, 0.00009f>;
+    return (f(75) == 0.00007f)
+        && (f(90) == 0.00008f)
+        && (f(105) == 0.00009f);
+}());
+
 LOG_COMPONENT_REF(Marlin);
 
 std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTensionParams &config) {
