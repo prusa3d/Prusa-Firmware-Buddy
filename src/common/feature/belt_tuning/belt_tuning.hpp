@@ -12,6 +12,12 @@ struct MeasureBeltTensionSpecificParams {
     /// \returns excitation amplitude (in meters)
     using ExcitationAmplitudeFunc = float (*)(float frequency_hz);
 
+    /// Utility ExcitationAmplitudeFunc that linearly changes excitation amplitude based on the specified parameters.
+    template <float freq_a_hz, float freq_b_hz, float amplicute_a_m, float amplitude_b_m>
+    static constexpr float linearly_varying_amplitude(float freq) {
+        return amplicute_a_m + (freq - freq_a_hz) * (amplitude_b_m - amplicute_a_m) / (freq_b_hz - freq_a_hz);
+    }
+
     /// (meters) Excitation amplitude for the measurement, dependent on the frequency.
     /// Overrides \p excitation_amplitude_m
     ExcitationAmplitudeFunc excitation_amplitude_m_func = {};
