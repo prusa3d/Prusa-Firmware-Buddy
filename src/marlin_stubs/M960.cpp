@@ -31,7 +31,10 @@
  * - `W` - Wizard mode (GUI)
  */
 void PrusaGcodeSuite::M960() {
-    GCodeParser2 parser(GCodeParser2::from_marlin_parser);
+    GCodeParser2 parser;
+    if (!parser.parse_marlin_command()) {
+        return;
+    }
 
     const auto belt_system = parser.option<uint8_t>('B').value_or(0);
 

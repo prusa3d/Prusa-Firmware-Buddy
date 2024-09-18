@@ -57,7 +57,11 @@ static constexpr EnumArray<G27Params::ParkPosition, xyz_pos_t, G27Params::ParkPo
  * - 'W' - [0-2] Use pre-defined park position. Usable only if X, Y and Z are not present as they override pre-defined behaviour.
  */
 void GcodeSuite::G27() {
-    GCodeParser2 parser { GCodeParser2::from_marlin_parser };
+    GCodeParser2 parser;
+    if (!parser.parse_marlin_command()) {
+        return;
+    }
+
     G27Params params;
     parser.store_option('P', params.z_action);
 

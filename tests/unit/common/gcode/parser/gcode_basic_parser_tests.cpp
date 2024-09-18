@@ -7,7 +7,8 @@
 
 TEST_CASE("gcode_parser::gcode_basic_parser") {
     SECTION("1") {
-        GCodeBasicParser p("  N1 G256 Test test *asd *163587 ;asd ;as", fail_test_error_callback);
+        GCodeBasicParser p(fail_test_error_callback);
+        CHECK(p.parse("  N1 G256 Test test *asd *163587 ;asd ;as"));
         CHECK(p.is_ok());
         CHECK(p.line_number() == 1);
         CHECK(p.command() == GCodeCommand { .letter = 'G', .codenum = 256 });
@@ -15,7 +16,8 @@ TEST_CASE("gcode_parser::gcode_basic_parser") {
     }
 
     SECTION("2") {
-        GCodeBasicParser p("M1.12", fail_test_error_callback);
+        GCodeBasicParser p(fail_test_error_callback);
+        CHECK(p.parse("M1.12"));
         CHECK(p.is_ok());
         CHECK(p.line_number() == std::nullopt);
         CHECK(p.command() == GCodeCommand { .letter = 'M', .codenum = 1, .subcode = 12 });

@@ -6,18 +6,6 @@
 #include <cstdarg>
 #include <cinttypes>
 
-GCodeParser2::GCodeParser2(const std::string_view &gcode, const ErrorCallback &error_callback) {
-    set_error_callback(error_callback);
-    parse(gcode);
-}
-
-#ifndef UNITTESTS
-    #include <gcode/parser.h>
-
-GCodeParser2::GCodeParser2(FromMarlinParser)
-    : GCodeParser2(parser.command_ptr) {}
-#endif
-
 GCodeParser2::StoreOptionResult GCodeParser2::store_option(char key, std::string_view &target, std::span<char> buffer) const {
     if (key < first_option_letter || key > last_option_letter) {
         assert(0); // You shouldn't be feeding invalid keys to the function

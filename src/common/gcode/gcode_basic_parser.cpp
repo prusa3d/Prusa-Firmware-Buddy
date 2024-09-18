@@ -7,17 +7,15 @@
 #include <ctype.h>
 #include <cstring>
 
-GCodeBasicParser::GCodeBasicParser(const std::string_view &gcode, const ErrorCallback &error_callback)
-    : error_callback_(error_callback) //
-{
-    parse(gcode);
-}
+GCodeBasicParser::GCodeBasicParser(const ErrorCallback &error_callback)
+    : error_callback_(error_callback) {}
 
 #ifndef UNITTESTS
     #include <gcode/parser.h>
 
-GCodeBasicParser::GCodeBasicParser(FromMarlinParser)
-    : GCodeBasicParser(parser.command_ptr) {}
+bool GCodeBasicParser::parse_marlin_command() {
+    return parse(parser.command_ptr);
+}
 #endif
 
 bool GCodeBasicParser::parse(const std::string_view &gcode) {

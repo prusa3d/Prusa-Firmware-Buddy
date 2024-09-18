@@ -47,21 +47,18 @@ public:
     /// \param args are variadic args for \p message formatting
     using ErrorCallback = stdext::inplace_function<void(const ErrorCallbackArgs &data, va_list args)>;
 
-    struct FromMarlinParser {};
-    static constexpr FromMarlinParser from_marlin_parser {};
-
 public:
-    GCodeBasicParser() = default;
+    explicit GCodeBasicParser() = default;
 
-    /// Shorthand for \p set_error_callback + \p parse
-    GCodeBasicParser(const std::string_view &gcode, const ErrorCallback &error_callback = {});
+    explicit GCodeBasicParser(const ErrorCallback &error_callback);
+
+    [[nodiscard]] virtual bool parse(const std::string_view &gcode);
 
 #ifndef UNITTESTS
-    /// Takes the gcode from the OG marlin parser
-    GCodeBasicParser(FromMarlinParser);
+    /// Parses the current command marlin server is processing.
+    /// !!! To be called only from within the gcode functions.
+    [[nodiscard]] bool parse_marlin_command();
 #endif
-
-    virtual bool parse(const std::string_view &gcode);
 
     /// \returns whether the last \p parse() was successful
     inline bool is_ok() const {

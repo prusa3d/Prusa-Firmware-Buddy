@@ -32,16 +32,10 @@ public:
     static constexpr char last_option_letter = 'Z';
 
 public:
-    GCodeParser2() = default;
+    // Inherit parent constructors
+    using GCodeBasicParser::GCodeBasicParser;
 
-    /// Shorthand for \p set_error_callback + \p parse
-    GCodeParser2(const std::string_view &gcode, const ErrorCallback &error_callback = {});
-
-#ifndef UNITTESTS
-    GCodeParser2(FromMarlinParser);
-#endif
-
-    bool parse(const std::string_view &gcode) override;
+    [[nodiscard]] bool parse(const std::string_view &gcode) override;
 
 public:
     /// \returns Whether the \param option is present in the gcode (does not necessarily have to have a value)
