@@ -108,10 +108,16 @@ enum class IoPin : uint8_t {
  */
 class Pin {
 public:
-    enum class State {
+    enum class State : uint8_t {
         low = GPIO_PinState::GPIO_PIN_RESET,
         high = GPIO_PinState::GPIO_PIN_SET,
     };
+
+    // Ensure all definitions are aligned
+    static_assert(static_cast<bool>(State::low) == false);
+    static_assert(static_cast<bool>(State::high) == true);
+    static_assert(GPIO_PinState::GPIO_PIN_RESET == false);
+    static_assert(GPIO_PinState::GPIO_PIN_SET == true);
 
     static constexpr uint32_t IoPinToHal(IoPin ioPin) {
         return (0x1U << static_cast<uint32_t>(ioPin));
@@ -173,12 +179,11 @@ public:
         : Pin(ioPort, ioPin)
         , m_mode(iMode)
         , m_pull(pull) {}
+    bool readb() const {
+        return ((getHalPort()->IDR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET));
+    }
     State read() const {
-        if ((getHalPort()->IDR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
-            return State::high;
-        } else {
-            return State::low;
-        }
+        return static_cast<State>(readb());
     }
     void pullUp() const { configure(Pull::up); }
     void pullDown() const { configure(Pull::down); }
@@ -248,13 +253,11 @@ class InterruptPin_Inverted : public InterruptPin {
 public:
     constexpr InterruptPin_Inverted(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, uint8_t preemptPriority, uint8_t subPriority)
         : InterruptPin(ioPort, ioPin, iMode, pull, preemptPriority, subPriority) {}
-
+    bool readb() const {
+        return ((getHalPort()->IDR & m_halPin) == static_cast<uint32_t>(GPIO_PIN_RESET));
+    }
     State read() const {
-        if ((getHalPort()->IDR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
-            return State::low;
-        } else {
-            return State::high;
-        }
+        return static_cast<State>(readb());
     }
 };
 
@@ -266,6 +269,7 @@ class VirtualInterruptPin {
 public:
     constexpr VirtualInterruptPin(IMode) {}
     void configure() const {}
+    bool readb() const { return readFunction() == Pin::State::high; }
     Pin::State read() const { return readFunction(); }
     void isr() const { interruptRoutine(); }
 };
@@ -303,24 +307,26 @@ public:
 
     /**
      * @brief  Read output pin.
-     *
      * Reads output data register. Can not work for alternate function pin.
-     * @retval State::high
-     * @retval State::low
      */
-    State read() const {
-        if ((getHalPort()->ODR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
-            return State::high;
-        } else {
-            return State::low;
-        }
+    bool readb() const {
+        return ((getHalPort()->ODR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET));
     }
-    void write(State pinState) const {
-        if (pinState != State::low) {
+
+    State read() const {
+        return static_cast<State>(readb());
+    }
+
+    void writeb(bool pinState) const {
+        if (pinState) {
             getHalPort()->BSRR = m_halPin;
         } else {
             getHalPort()->BSRR = m_halPin << 16U;
         }
+    }
+
+    void write(State pinState) const {
+        writeb(static_cast<bool>(pinState));
     }
 
     __attribute__((always_inline)) inline void toggle() const {
@@ -354,26 +360,29 @@ public:
         , m_initState((State::low == initState) ? State::high : State::low)
         , m_mode(oMode)
         , m_speed(oSpeed) {}
+
     /**
      * @brief  Read output pin.
-     *
      * Reads output data register. Can not work for alternate function pin.
-     * @retval State::high
-     * @retval State::low
      */
-    State read() const {
-        if ((getHalPort()->ODR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
-            return State::low;
-        } else {
-            return State::high;
-        }
+    bool readb() const {
+        return ((getHalPort()->ODR & m_halPin) == static_cast<uint32_t>(GPIO_PIN_RESET));
     }
-    void write(State pinState) const {
-        if (pinState != State::low) {
+
+    State read() const {
+        return static_cast<State>(readb());
+    }
+
+    void writeb(bool pinState) const {
+        if (pinState) {
             getHalPort()->BSRR = m_halPin << 16U;
         } else {
             getHalPort()->BSRR = m_halPin;
         }
+    }
+
+    void write(State pinState) const {
+        writeb(static_cast<bool>(pinState));
     }
 
     __attribute__((always_inline)) inline void set() const {
@@ -403,12 +412,11 @@ public:
         : OutputPin(ioPort, ioPin, initState, oMode, oSpeed) {}
 
 private:
+    bool readb() const {
+        return ((getHalPort()->IDR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET));
+    }
     State read() const {
-        if ((getHalPort()->IDR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
-            return State::high;
-        } else {
-            return State::low;
-        }
+        return static_cast<State>(readb());
     }
     void enableInput(Pull pull) const;
     void enableOutput() const {
@@ -428,12 +436,15 @@ public:
         : InputPin(ioPort, ioPin, iMode, pull) {}
 
 private:
-    void write(State pinState) const {
-        if (pinState != State::low) {
+    void writeb(bool pinState) const {
+        if (pinState) {
             getHalPort()->BSRR = m_halPin;
         } else {
             getHalPort()->BSRR = m_halPin << 16U;
         }
+    }
+    void write(State pinState) const {
+        writeb(static_cast<bool>(pinState));
     }
     void enableInput() const {
         configure();
@@ -449,10 +460,11 @@ public:
         , m_state(initState) {}
     /**
      * @brief  Read output pin.
-     *
      * @return initState
      */
+    bool readb() const { return m_state == State::high; }
     State read() const { return m_state; }
+    void writeb(bool) const {}
     void write(State) const {}
     void configure() const {}
 
@@ -471,6 +483,9 @@ public:
     }
     ~InputEnabler() {
         m_outputInputPin.enableOutput();
+    }
+    bool readb() {
+        return m_outputInputPin.readb();
     }
     Pin::State read() {
         return m_outputInputPin.read();
@@ -495,10 +510,12 @@ public:
     ~OutputEnabler() {
         m_innputOutputPin.enableInput();
     }
+    void writeb(bool pinState) const {
+        m_innputOutputPin.writeb(pinState);
+    }
     void write(Pin::State pinState) const {
         m_innputOutputPin.write(pinState);
     }
-
     OutputPin pin() {
         return { m_innputOutputPin, m_pinState, m_mode, m_speed };
     }
