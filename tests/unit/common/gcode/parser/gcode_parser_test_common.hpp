@@ -33,7 +33,6 @@ bool test_parse_failure(const char *gcode) {
         msg = data.message;
     });
     const bool parse_result = p.parse(gcode);
-    CHECK(p.is_ok() == parse_result);
     CHECK(parse_result == !error_reported);
     UNSCOPED_INFO(msg);
     return !parse_result;

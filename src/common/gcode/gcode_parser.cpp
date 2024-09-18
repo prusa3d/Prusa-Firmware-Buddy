@@ -105,9 +105,6 @@ bool GCodeParser2::parse(const std::string_view &gcode) {
         return true;
     }
 
-    // Set back to true if we successfully return from the function
-    data_.is_ok = false;
-
     GCodeParserHelper p(*this, body());
 
     // Parse parameters in a loop
@@ -140,7 +137,6 @@ bool GCodeParser2::parse(const std::string_view &gcode) {
         }
     }
 
-    data_.is_ok = true;
     return true;
 }
 std::optional<std::string_view> GCodeParser2::parse_option_value(GCodeParserHelper &p, std::span<char> accumulator) const {

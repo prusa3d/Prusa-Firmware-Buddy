@@ -88,6 +88,5 @@ bool GCodeBasicParser::parse(const std::string_view &gcode) {
         data_.body = std::string_view(body_start, body_end);
     }
 
-    data_.is_ok = true;
     return true;
 }

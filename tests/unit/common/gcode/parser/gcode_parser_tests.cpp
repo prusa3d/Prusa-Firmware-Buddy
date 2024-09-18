@@ -23,7 +23,6 @@ TEST_CASE("gcode_parser::gcode_parser::params_tests") {
     SECTION("1") {
         GCodeParser2 p(fail_test_error_callback);
         REQUIRE(p.parse("  N1 G256 X0 Z1Y3F ; O1"));
-        CHECK(p.is_ok());
         CHECK(p.line_number() == 1);
         CHECK(p.command() == GCodeCommand { .letter = 'G', .codenum = 256 });
         CHECK(p.body() == "X0 Z1Y3F");
@@ -56,7 +55,6 @@ TEST_CASE("gcode_parser::gcode_parser::params_tests") {
     SECTION("2") {
         GCodeParser2 p(fail_test_error_callback);
         REQUIRE(p.parse("X999 X\" Y\" Z"));
-        CHECK(p.is_ok());
         CHECK(p.command() == GCodeCommand { .letter = 'X', .codenum = 999 });
         CHECK(option_list(p) == "XZ");
 
@@ -67,7 +65,6 @@ TEST_CASE("gcode_parser::gcode_parser::params_tests") {
     SECTION("3") {
         GCodeParser2 p(fail_test_error_callback);
         REQUIRE(p.parse("M13 X\"TESTXYZ\" Y \"ZYXEST\" Z   \"KAKA \\\"LOL\" *123 ZYXXA"));
-        CHECK(p.is_ok());
         CHECK(p.command() == GCodeCommand { .letter = 'M', .codenum = 13 });
         CHECK(option_list(p) == "XYZ");
 
@@ -83,7 +80,6 @@ TEST_CASE("gcode_parser::gcode_parser::params_tests") {
     SECTION("4") {
         GCodeParser2 p(fail_test_error_callback);
         REQUIRE(p.parse("G0 ABCDE1G0HF"));
-        CHECK(p.is_ok());
         CHECK(p.command() == GCodeCommand { .letter = 'G', .codenum = 0 });
         CHECK(option_list(p) == "ABCDEFGH");
 
@@ -102,7 +98,6 @@ TEST_CASE("gcode_parser::gcode_parser::params_tests") {
     SECTION("escaping_test") {
         GCodeParser2 p(fail_test_error_callback);
         REQUIRE(p.parse("Z12 A\"TES\\\"XES\" B\"ZAB\\\\ac\\\"AS\""));
-        CHECK(p.is_ok());
         CHECK(p.command() == GCodeCommand { .letter = 'Z', .codenum = 12 });
         CHECK(option_list(p) == "AB");
 

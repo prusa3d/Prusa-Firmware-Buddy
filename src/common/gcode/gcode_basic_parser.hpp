@@ -60,11 +60,6 @@ public:
     [[nodiscard]] bool parse_marlin_command();
 #endif
 
-    /// \returns whether the last \p parse() was successful
-    inline bool is_ok() const {
-        return data_.is_ok;
-    }
-
     inline const auto &error_callback() const {
         return error_callback_;
     }
@@ -106,10 +101,5 @@ protected:
 
         /// "G123.1 X5 Y5" -> "X5 Y5"
         std::string_view body;
-
-        /// Stores whether the gcode was parsed succesfully
-        /// (the last \p parse() returned true)
-        /// !!! This does not take parameter type-specific parsing done afterwards
-        bool is_ok = false;
     } data_;
 };
