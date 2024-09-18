@@ -104,7 +104,7 @@ enum class PropertyName {
 #endif
     NozzleDiameter,
     NozzleHighFlow,
-    NozzleAntiAbrasive,
+    NozzleHardened,
 };
 
 #undef NOZZLE_NAMES

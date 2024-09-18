@@ -349,8 +349,8 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
     else if (is_arg("tools." #num ".high_flow", Type::Primitive)) {       \
         set_value_bool_arg(PropertyName::NozzleHighFlow, num - 1);        \
     }                                                                     \
-    else if (is_arg("tools." #num ".anti_abrasive", Type::Primitive)) {   \
-        set_value_bool_arg(PropertyName::NozzleAntiAbrasive, num - 1);    \
+    else if (is_arg("tools." #num ".hardened", Type::Primitive)) {        \
+        set_value_bool_arg(PropertyName::NozzleHardened, num - 1);        \
     }                                                                     \
     else if (is_arg("tools." #num ".nozzle_diameter", Type::Primitive)) { \
         set_value_float_arg(PropertyName::NozzleDiameter, num - 1);

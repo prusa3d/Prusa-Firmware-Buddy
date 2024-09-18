@@ -180,8 +180,8 @@ TEST_CASE("Set value - nozzle diameter") {
 }
 
 TEST_CASE("Set value - anti abrasive") {
-    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.3.anti_abrasive\":true}}");
-    REQUIRE(cmd.name == PropertyName::NozzleAntiAbrasive);
+    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.3.hardened\":true}}");
+    REQUIRE(cmd.name == PropertyName::NozzleHardened);
     REQUIRE(cmd.idx == 2);
     REQUIRE(holds_alternative<bool>(cmd.value));
     REQUIRE(get<bool>(cmd.value));
