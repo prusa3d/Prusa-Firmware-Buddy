@@ -702,8 +702,7 @@ void Pause::loop_loadToGear([[maybe_unused]] Response response) {
     // transitions
     switch (getLoadPhase()) {
     case LoadPhases_t::_init:
-        set(LoadPhases_t::assist_filament_insertion);
-        start_time = ticks_ms();
+        set_timed(LoadPhases_t::assist_filament_insertion);
         break;
     case LoadPhases_t::assist_filament_insertion: {
         setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
@@ -721,7 +720,7 @@ void Pause::loop_loadToGear([[maybe_unused]] Response response) {
 
         // Load for at least 40 seconds before giving up. Alternatively, if filament is removed altogether, stop too.
         auto pre_park_sensor = FSensors_instance().sensor(LogicalFilamentSensor::autoload);
-        if (ticks_diff(ticks_ms(), start_time) > 40000 /*Move for at least 40 seconds before giving up*/
+        if (ticks_diff(ticks_ms(), start_time_ms) > 40000 /*Move for at least 40 seconds before giving up*/
             || (pre_park_sensor && pre_park_sensor->get_state() != FilamentSensorState::HasFilament)) {
             settings.do_stop = true;
             return;

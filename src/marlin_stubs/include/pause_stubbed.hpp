@@ -127,7 +127,7 @@ class Pause : public PausePrivatePhase {
     pause::Settings settings;
     bool user_stop_pending = false;
 
-    uint32_t start_time = 0;
+    uint32_t start_time_ms { 0 };
 #if !HAS_HUMAN_INTERACTIONS()
     uint32_t runout_timer_ms { 0 };
 #endif
@@ -163,6 +163,12 @@ public:
     void FilamentChange(const pause::Settings &settings_);
 
     void finalize_user_stop();
+
+    template <class ENUM>
+    void set_timed(ENUM en) {
+        start_time_ms = ticks_ms();
+        set(en);
+    }
 
 private:
     using loop_fn = void (Pause::*)(Response response);
