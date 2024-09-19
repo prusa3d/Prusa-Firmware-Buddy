@@ -195,11 +195,12 @@ private:
     void loop_load_mmu(Response response);
     void loop_load_mmu_change(Response response);
     void loop_autoload(Response response); // todo force remove filament in retry
-    void loop_loadToGear(Response response);
+    void loop_load_to_gear(Response response);
     void loop_load_change(Response response);
     void loop_load_filament_stuck(Response response);
 
     enum class CommonLoadType : uint8_t {
+        load_to_gear,
         standard,
         autoload,
         filament_change,

@@ -472,13 +472,22 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     case CommonLoadType::mmu_change:
         is_unstoppable = true;
         break;
+    case CommonLoadType::load_to_gear:
+        is_unstoppable = !option::has_human_interactions;
+        break;
     }
 
     // transitions
     switch (getLoadPhase()) {
     case LoadPhases_t::_init:
         switch (load_type) {
-
+        case CommonLoadType::load_to_gear:
+            if (FSensors_instance().sensor(LogicalFilamentSensor::current_side) && is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side))) {
+                set_timed(LoadPhases_t::assist_filament_insertion);
+            } else {
+                set(LoadPhases_t::load_in_gear);
+            }
+            break;
         case CommonLoadType::autoload:
             // if filament is not present we want to break and not set loaded filament
             // we have already loaded the filament in gear, now just wait for temperature to rise
@@ -555,10 +564,40 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         }
         break;
 
+    case LoadPhases_t::assist_filament_insertion: {
+        setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
+
+        // Filament is in Extruder autoload assistance si done.
+        if (FSensors_instance().has_filament_surely()) {
+            set(LoadPhases_t::load_in_gear);
+            break;
+        }
+
+        // Moves are planned wait until they aren't before panning more
+        if (planner.processing()) {
+            break;
+        }
+
+        // Load for at least 40 seconds before giving up. Alternatively, if filament is removed altogether, stop too.
+        auto sensor = FSensors_instance().sensor(LogicalFilamentSensor::autoload);
+        if (ticks_diff(ticks_ms(), start_time_ms) > 40000 /*Move for at least 40 seconds before giving up*/
+            || (sensor && is_fsensor_working_state(sensor->get_state()) && sensor->get_state() != FilamentSensorState::HasFilament)) {
+            settings.do_stop = true;
+            return;
+        }
+
+        do_e_move_notify_progress_coldextrude(FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 10);
+        break;
+    }
     case LoadPhases_t::load_in_gear: // slow load
         setPhase(is_unstoppable ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
 
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
+        if (load_type == CommonLoadType::load_to_gear) {
+            set(LoadPhases_t::_finish);
+            break;
+        }
+
         // if filament is not present we want to break and not set loaded filament
         config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         set(LoadPhases_t::wait_temp);
@@ -675,7 +714,12 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         }
 
         switch (load_type) {
-
+        case CommonLoadType::load_to_gear:
+#if !HAS_HUMAN_INTERACTIONS()
+            // This state should be unreachable for printers without Human interaction and could be unrecoverable. We need to finish the FSM in order to not block interactions from Connect.
+            set(LoadPhases_t::_finish);
+            break;
+#endif
         case CommonLoadType::filament_change:
         case CommonLoadType::filament_stuck:
         case CommonLoadType::mmu:
@@ -698,44 +742,8 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     }
 }
 
-void Pause::loop_loadToGear([[maybe_unused]] Response response) {
-    // transitions
-    switch (getLoadPhase()) {
-    case LoadPhases_t::_init:
-        set_timed(LoadPhases_t::assist_filament_insertion);
-        break;
-    case LoadPhases_t::assist_filament_insertion: {
-        setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
-
-        // Filament is in Extruder autoload assistance si done.
-        if (FSensors_instance().has_filament_surely()) {
-            set(LoadPhases_t::load_in_gear);
-            break;
-        }
-
-        // Moves are planned wait until they aren't before panning more
-        if (planner.processing()) {
-            break;
-        }
-
-        // Load for at least 40 seconds before giving up. Alternatively, if filament is removed altogether, stop too.
-        auto pre_park_sensor = FSensors_instance().sensor(LogicalFilamentSensor::autoload);
-        if (ticks_diff(ticks_ms(), start_time_ms) > 40000 /*Move for at least 40 seconds before giving up*/
-            || (pre_park_sensor && pre_park_sensor->get_state() != FilamentSensorState::HasFilament)) {
-            settings.do_stop = true;
-            return;
-        }
-
-        do_e_move_notify_progress_coldextrude(FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 10);
-        break;
-    }
-    case LoadPhases_t::load_in_gear:
-        do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30);
-        set(LoadPhases_t::_finish);
-        break;
-    default:
-        set(LoadPhases_t::_finish);
-    }
+void Pause::loop_load_to_gear(Response response) {
+    loop_load_common(response, CommonLoadType::load_to_gear);
 }
 
 void Pause::loop_load_change(Response response) {
@@ -807,7 +815,7 @@ bool Pause::FilamentAutoload(const pause::Settings &settings_) {
 bool Pause::LoadToGear(const pause::Settings &settings_) {
     settings = settings_;
     FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Load);
-    return filamentLoad(&Pause::loop_loadToGear);
+    return filamentLoad(&Pause::loop_load_to_gear);
 }
 
 /**
@@ -850,7 +858,7 @@ bool Pause::filamentUnload(loop_fn fn) {
 bool Pause::filamentLoad(loop_fn fn) {
 
     // actual temperature does not matter, only target
-    if (!is_target_temperature_safe() && fn != &Pause::loop_loadToGear) {
+    if (!is_target_temperature_safe() && fn != &Pause::loop_load_to_gear) {
         return false;
     }
 
