@@ -1,6 +1,7 @@
 #include "screen_belt_tuning_wizard.hpp"
 
 #include <span>
+#include <array>
 
 #include <img_resources.hpp>
 #include <meta_utils.hpp>
@@ -151,7 +152,7 @@ class FrameResults : public FramePrompt {
 
 public:
     FrameResults(FrameParent parent)
-        : FramePrompt(parent, Phase::results, N_("Your belts are tensioned to:"), nullptr)
+        : FramePrompt(parent, Phase::results, nullptr, nullptr)
         , graph(this)
         , screen(*parent.screen) //
     {
@@ -175,6 +176,14 @@ public:
         const auto data = fsm::deserialize_data<BeltTuningWizardResultsData>(serialized_data);
         const auto &params = printer_belt_parameters.belt_system[0];
         const float tension = static_cast<float>(data.tension) / BeltTuningWizardResultsData::tension_mult;
+
+        static constexpr std::array<const char *, 3> title_text {
+            N_("Too loose"),
+            N_("Perfect!"),
+            N_("Too tight"),
+        };
+        const float normalized_error = (tension - params.target_tension_force_n) / params.target_tension_force_dev_n;
+        title.SetText(_(title_text[std::clamp<int>(copysign(floor(abs(normalized_error)), normalized_error), -1, 1) + 1]));
 
         std::array<char, 16> target_str;
         _("Target").copyToRAM(target_str);
