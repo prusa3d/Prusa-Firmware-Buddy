@@ -177,17 +177,18 @@ ScreenToolheadDetail::ScreenToolheadDetail(Toolhead toolhead)
     : ScreenMenu({})
     , toolhead(toolhead) //
 {
+
+#if HAS_TOOLCHANGER()
     if (toolhead == all_toolheads) {
         header.SetText(_("ALL TOOLS"));
-    }
-#if HAS_TOOLCHANGER()
-    else if (prusa_toolchanger.is_toolchanger_enabled()) {
+    } else if (prusa_toolchanger.is_toolchanger_enabled()) {
         header.SetText(_("TOOL %d").formatted(title_params, std::get<ToolheadIndex>(toolhead) + 1));
-    }
-#endif
-    else {
+    } else {
         header.SetText(_("TOOLHEAD"));
     }
+#else
+    header.SetText(_("PRINTHEAD"));
+#endif
 
     menu_set_toolhead(container, toolhead);
 
