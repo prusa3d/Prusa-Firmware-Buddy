@@ -180,7 +180,7 @@ public:
         , m_mode(iMode)
         , m_pull(pull) {}
     bool readb() const {
-        return ((getHalPort()->IDR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET));
+        return (getHalPort()->IDR & m_halPin);
     }
     State read() const {
         return static_cast<State>(readb());
@@ -254,7 +254,7 @@ public:
     constexpr InterruptPin_Inverted(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, uint8_t preemptPriority, uint8_t subPriority)
         : InterruptPin(ioPort, ioPin, iMode, pull, preemptPriority, subPriority) {}
     bool readb() const {
-        return ((getHalPort()->IDR & m_halPin) == static_cast<uint32_t>(GPIO_PIN_RESET));
+        return !(getHalPort()->IDR & m_halPin);
     }
     State read() const {
         return static_cast<State>(readb());
@@ -310,7 +310,7 @@ public:
      * Reads output data register. Can not work for alternate function pin.
      */
     bool readb() const {
-        return ((getHalPort()->ODR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET));
+        return (getHalPort()->ODR & m_halPin);
     }
 
     State read() const {
@@ -366,7 +366,7 @@ public:
      * Reads output data register. Can not work for alternate function pin.
      */
     bool readb() const {
-        return ((getHalPort()->ODR & m_halPin) == static_cast<uint32_t>(GPIO_PIN_RESET));
+        return !(getHalPort()->ODR & m_halPin);
     }
 
     State read() const {
@@ -413,7 +413,7 @@ public:
 
 private:
     bool readb() const {
-        return ((getHalPort()->IDR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET));
+        return (getHalPort()->IDR & m_halPin);
     }
     State read() const {
         return static_cast<State>(readb());
