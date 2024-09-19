@@ -891,7 +891,7 @@ class ClientResponses {
         { PhaseBeltTuning::ask_for_dampeners_installation, { Response::Done, Response::Abort } },
         { PhaseBeltTuning::calibrating_accelerometer, { Response::Abort } },
         { PhaseBeltTuning::measuring, { Response::Abort } },
-        { PhaseBeltTuning::results, { Response::Finish, Response::Retry } },
+        { PhaseBeltTuning::results, { Response::Retry, Response::Finish } },
         { PhaseBeltTuning::ask_for_dampeners_uninstallation, { Response::Done } },
         { PhaseBeltTuning::error, { Response::Abort, Response::Retry } },
         { PhaseBeltTuning::finish, {} },
