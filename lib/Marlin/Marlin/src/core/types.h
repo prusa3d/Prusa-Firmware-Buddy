@@ -281,6 +281,7 @@ typedef struct XYval<float>        xy_float_t;
 typedef struct XYZval<float>      xyz_float_t;
 typedef struct XYZEval<float>    xyze_float_t;
 
+typedef struct XYZval<double>    xyz_double_t;
 typedef struct XYZEval<double>    xyze_double_t;
 
 typedef struct XYval<feedRate_t>     xy_feedrate_t;
@@ -572,6 +573,8 @@ struct XYZval {
   FI XYZval<T>  operator/ (const float &v)             { XYZval<T> ls = *this; NUM_AXIS_CODE(ls.x /= v,    ls.y /= v,    ls.z /= v,    ls.i /= v,    ls.j /= v,    ls.k /= v,    ls.u /= v,    ls.v /= v,    ls.w /= v   ); return ls; }
   FI XYZval<T>  operator/ (const int &v)         const { XYZval<T> ls = *this; NUM_AXIS_CODE(ls.x /= v,    ls.y /= v,    ls.z /= v,    ls.i /= v,    ls.j /= v,    ls.k /= v,    ls.u /= v,    ls.v /= v,    ls.w /= v   ); return ls; }
   FI XYZval<T>  operator/ (const int &v)               { XYZval<T> ls = *this; NUM_AXIS_CODE(ls.x /= v,    ls.y /= v,    ls.z /= v,    ls.i /= v,    ls.j /= v,    ls.k /= v,    ls.u /= v,    ls.v /= v,    ls.w /= v   ); return ls; }
+  FI XYZval<T>  operator/ (const uint32_t &v)    const { XYZval<T> ls = *this; NUM_AXIS_CODE(ls.x /= v,    ls.y /= v,    ls.z /= v,    ls.i /= v,    ls.j /= v,    ls.k /= v,    ls.u /= v,    ls.v /= v,    ls.w /= v   ); return ls; }
+  FI XYZval<T>  operator/ (const uint32_t &v)          { XYZval<T> ls = *this; NUM_AXIS_CODE(ls.x /= v,    ls.y /= v,    ls.z /= v,    ls.i /= v,    ls.j /= v,    ls.k /= v,    ls.u /= v,    ls.v /= v,    ls.w /= v   ); return ls; }
   FI XYZval<T>  operator>>(const int &v)         const { XYZval<T> ls = *this; NUM_AXIS_CODE(_RS(ls.x),    _RS(ls.y),    _RS(ls.z),    _RS(ls.i),    _RS(ls.j),    _RS(ls.k),    _RS(ls.u),    _RS(ls.v),    _RS(ls.w)   ); return ls; }
   FI XYZval<T>  operator>>(const int &v)               { XYZval<T> ls = *this; NUM_AXIS_CODE(_RS(ls.x),    _RS(ls.y),    _RS(ls.z),    _RS(ls.i),    _RS(ls.j),    _RS(ls.k),    _RS(ls.u),    _RS(ls.v),    _RS(ls.w)   ); return ls; }
   FI XYZval<T>  operator<<(const int &v)         const { XYZval<T> ls = *this; NUM_AXIS_CODE(_LS(ls.x),    _LS(ls.y),    _LS(ls.z),    _LS(ls.i),    _LS(ls.j),    _LS(ls.k),    _LS(ls.u),    _LS(ls.v),    _LS(ls.w)   ); return ls; }
@@ -593,6 +596,7 @@ struct XYZval {
   FI XYZval<T>& operator*=(const XYZEval<T> &rs)       { NUM_AXIS_CODE(x *= rs.x, y *= rs.y, z *= rs.z, i *= rs.i, j *= rs.j, k *= rs.k, u *= rs.u, v *= rs.v, w *= rs.w); return *this; }
   FI XYZval<T>& operator/=(const XYZEval<T> &rs)       { NUM_AXIS_CODE(x /= rs.x, y /= rs.y, z /= rs.z, i /= rs.i, j /= rs.j, k /= rs.k, u /= rs.u, v /= rs.v, w /= rs.w); return *this; }
   FI XYZval<T>& operator*=(const float &v)             { NUM_AXIS_CODE(x *= v,    y *= v,    z *= v,    i *= v,    j *= v,    k *= v,    u *= v,    v *= v,    w *= v);    return *this; }
+  FI XYZval<T>& operator*=(const double &v)  requires(std::is_same_v<T, double>)   { NUM_AXIS_CODE(x *= v,    y *= v,    z *= v,    i *= v,    j *= v,    k *= v,    u *= v,    v *= v,    w *= v);    return *this; }
   FI XYZval<T>& operator*=(const int &v)               { NUM_AXIS_CODE(x *= v,    y *= v,    z *= v,    i *= v,    j *= v,    k *= v,    u *= v,    v *= v,    w *= v);    return *this; }
   FI XYZval<T>& operator>>=(const int &v)              { NUM_AXIS_CODE(_RS(x),    _RS(y),    _RS(z),    _RS(i),    _RS(j),    _RS(k),    _RS(u),    _RS(v),    _RS(w));    return *this; }
   FI XYZval<T>& operator<<=(const int &v)              { NUM_AXIS_CODE(_LS(x),    _LS(y),    _LS(z),    _LS(i),    _LS(j),    _LS(k),    _LS(u),    _LS(v),    _LS(w));    return *this; }
