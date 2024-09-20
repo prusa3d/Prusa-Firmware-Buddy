@@ -60,6 +60,10 @@ void window_header_t::updateNetwork() {
 #if !HAS_MINI_DISPLAY()
     icon_metrics.set_shadow(interface_status != NETDEV_NETIF_UP);
 #endif
+
+#if BUDDY_ENABLE_CONNECT()
+    icon_connect.set_shadow(interface_status != NETDEV_NETIF_UP);
+#endif // BUDDY_ENABLE_CONNECT()
 }
 
 void window_header_t::updateTransfer() {
@@ -180,7 +184,7 @@ void window_header_t::updateAllRects() {
     maybe_update(bed_text, bed_text_width);
     maybe_update(bed_icon, bed_icon.resource()->w);
 #if BUDDY_ENABLE_CONNECT()
-    maybe_update(icon_ready_for_connect, icon_ready_for_connect.resource()->w);
+    maybe_update(icon_connect, icon_connect.resource()->w);
 #endif // BUDDY_ENABLE_CONNECT()
 
     auto label_width = current_offset - GuiDefaults::HeaderPadding.left;
@@ -205,7 +209,8 @@ void window_header_t::updateIcons() {
     update_bed_info();
 
 #if BUDDY_ENABLE_CONNECT()
-    icon_ready_for_connect.set_visible(connect_client::is_connect_registered() && connect_client::MarlinPrinter::is_printer_ready());
+    icon_connect.SetRes(connect_client::MarlinPrinter::is_printer_ready() ? &img::set_ready_16x16 : &img::connect_16x16);
+    icon_connect.set_visible(connect_client::is_connect_registered());
 #endif // BUDDY_ENABLE_CONNECT()
 
 #if !HAS_MINI_DISPLAY()
@@ -231,7 +236,7 @@ window_header_t::window_header_t(window_t *parent, const string_view_utf8 &txt)
     , icon_transfer(this, first_rect_doesnt_matter, &img::transfer_icon_16x16)
     , icon_stealth(this, first_rect_doesnt_matter, &img::stealth_20x16)
 #if BUDDY_ENABLE_CONNECT()
-    , icon_ready_for_connect(this, first_rect_doesnt_matter, &img::set_ready_16x16)
+    , icon_connect(this, first_rect_doesnt_matter, &img::connect_16x16)
 #endif // BUDDY_ENABLE_CONNECT()
     , bed_text(this, first_rect_doesnt_matter, is_multiline::no)
     , bed_icon(this, first_rect_doesnt_matter, &img::heatbed_16x16)
