@@ -30,6 +30,19 @@ struct PrinterBeltParameters {
 
         /// Default parameters used for belt tuning
         MeasureBeltTensionSpecificParams belt_tuning_params;
+
+        /// Calculates belt tension from their resonant frequency.
+        /// \returns tension (in Newtons)
+        constexpr float resonant_frequency_to_tension(float resonant_frequency_hz) const {
+            // Formula taken from http://www.hyperphysics.gsu.edu/hbase/Waves/string.html
+            return 4 * nominal_weight_kg_m * nominal_length_m * nominal_length_m * resonant_frequency_hz * resonant_frequency_hz;
+        }
+
+        /// Calculates reonant frequency from the tension
+        /// \returns resonant frequency (in Hz)
+        constexpr float tension_to_resonant_frequency(float tension_n) const {
+            return sqrt(tension_n / (4 * nominal_weight_kg_m * nominal_length_m * nominal_length_m));
+        }
     };
 
     std::array<BeltSystemParameters, belt_system_count> belt_system;

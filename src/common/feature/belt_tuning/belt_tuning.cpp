@@ -19,6 +19,12 @@ static_assert([] {
         && (f(105) == 0.00009f);
 }());
 
+// Check that resonant_frequency_to_tension and tension_to_resonant_frequency are inverse to each other
+static_assert([] {
+    const auto &bs = printer_belt_parameters.belt_system[0];
+    return abs(bs.resonant_frequency_to_tension(bs.tension_to_resonant_frequency(bs.target_tension_force_n)) - bs.target_tension_force_n) < 0.01f;
+}());
+
 LOG_COMPONENT_REF(Marlin);
 
 std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTensionParams &config) {
@@ -162,8 +168,5 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
 }
 
 float MeasureBeltTensionResult::tension_force_n() const {
-    const PrinterBeltParameters::BeltSystemParameters &belt_system_params = printer_belt_parameters.belt_system[belt_system];
-
-    // Formula taken from http://www.hyperphysics.gsu.edu/hbase/Waves/string.html
-    return 4 * belt_system_params.nominal_weight_kg_m * belt_system_params.nominal_length_m * belt_system_params.nominal_length_m * resonant_frequency_hz * resonant_frequency_hz;
+    return printer_belt_parameters.belt_system[belt_system].resonant_frequency_to_tension(resonant_frequency_hz);
 }
