@@ -149,6 +149,10 @@ LIS2DHCore::LIS2DHCore(const buddy::hw::OutputPin &chip_sel_pin)
 }
 
 status_t LIS2DHCore::beginCore(void) {
+    // Enable SPI now -> make sure the clock is not floating before we do ChipSelect
+    // BFW-6057
+    __HAL_SPI_ENABLE(&SPI_HANDLE_FOR(accelerometer));
+
     // Check the ID register to determine if we have an accelerometer
     uint8_t readCheck;
     readRegister(&readCheck, LIS2DH_WHO_AM_I);
