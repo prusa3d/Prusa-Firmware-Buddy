@@ -84,11 +84,13 @@ struct MeasureBeltTensionParams : public MeasureBeltTensionSpecificParams {
 };
 
 struct MeasureBeltTensionResult {
-    /// The most resonant frequency of the belt
-    float resonant_frequency_hz = NAN;
+    uint8_t belt_system;
 
-    /// Calculated force the belt is tensioned with
-    float tension_force_n = NAN;
+    /// The most resonant frequency of the belt
+    float resonant_frequency_hz;
+
+    /// \returns force the belt is tensioned with, based on the resonant frequency
+    float tension_force_n() const;
 };
 
 /// Measures belt tension by finding out their resonant frequency.

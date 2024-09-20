@@ -114,10 +114,11 @@ public:
 
     void update(const fsm::PhaseData &data_) {
         const auto data = fsm::deserialize_data<BeltTuninigWizardMeasuringData>(data_);
+        const float frequency = static_cast<float>(data.encoded_frequency) / data.frequency_mult;
         progress_bar.SetProgressPercent(data.progress_0_255 / 255.0f * 100.0f);
 
-        if (data.frequency) {
-            info.SetText(string_view_utf8::MakeCPUFLASH("%d Hz").formatted(info_params, (int)data.frequency));
+        if (data.encoded_frequency) {
+            info.SetText(string_view_utf8::MakeCPUFLASH("%.1f Hz").formatted(info_params, frequency));
             info.Invalidate();
 
             // Update the graph data
@@ -175,19 +176,23 @@ public:
     void update(const fsm::PhaseData &serialized_data) {
         const auto data = fsm::deserialize_data<BeltTuningWizardResultsData>(serialized_data);
         const auto &params = printer_belt_parameters.belt_system[0];
-        const float tension = static_cast<float>(data.tension) / BeltTuningWizardResultsData::tension_mult;
+
+        const MeasureBeltTensionResult result {
+            .belt_system = data.belt_system,
+            .resonant_frequency_hz = static_cast<float>(data.encoded_frequency) / data.frequency_mult,
+        };
 
         static constexpr std::array<const char *, 3> title_text {
             N_("Too loose"),
             N_("Perfect!"),
             N_("Too tight"),
         };
-        const float normalized_error = (tension - params.target_tension_force_n) / params.target_tension_force_dev_n;
+        const float normalized_error = (result.tension_force_n() - params.target_tension_force_n) / params.target_tension_force_dev_n;
         title.SetText(_(title_text[std::clamp<int>(copysign(floor(abs(normalized_error)), normalized_error), -1, 1) + 1]));
 
         std::array<char, 16> target_str;
         _("Target").copyToRAM(target_str);
-        info.SetText(string_view_utf8::MakeCPUFLASH("%.1f N (%i Hz)\n\n%s: %.1f +- %.1f N").formatted(info_params, tension, (int)data.frequency, target_str.data(), params.target_tension_force_n, params.target_tension_force_dev_n));
+        info.SetText(string_view_utf8::MakeCPUFLASH("%.1f N (%.1f Hz)\n\n%s: %.1f +- %.1f N").formatted(info_params, result.tension_force_n(), result.resonant_frequency_hz, target_str.data(), params.target_tension_force_n, params.target_tension_force_dev_n));
         info.Invalidate(); // Annoying reference comparison in SetText
 
         graph.set_data(screen.graph_data);

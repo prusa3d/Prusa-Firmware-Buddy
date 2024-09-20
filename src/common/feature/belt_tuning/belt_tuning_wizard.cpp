@@ -136,7 +136,7 @@ private:
             if (args != prev_args) {
                 prev_args = args;
                 fsm_.change_data(fsm::serialize_data(BeltTuninigWizardMeasuringData {
-                    .frequency = static_cast<uint8_t>(args.last_frequency),
+                    .encoded_frequency = static_cast<BeltTuninigWizardMeasuringData::EncodedFrequency>(args.last_frequency * BeltTuninigWizardMeasuringData::frequency_mult),
                     .progress_0_255 = static_cast<uint8_t>(args.overall_progress * 255),
                     .last_amplitude_percent = static_cast<uint8_t>(std::clamp<float>(args.last_result * 100.0f / max_expected_amplitude, 0, 100)),
                 }));
@@ -159,8 +159,7 @@ private:
 
     void phase_results_init(const Meta::InitCallbackArgs &) {
         fsm_.change_data(fsm::serialize_data(BeltTuningWizardResultsData {
-            .frequency = static_cast<uint8_t>(result_->resonant_frequency_hz),
-            .tension = static_cast<uint8_t>(std::clamp<float>(result_->tension_force_n * BeltTuningWizardResultsData::tension_mult, 0, 255)),
+            .encoded_frequency = static_cast<BeltTuningWizardResultsData::EncodedFrequency>(result_->resonant_frequency_hz * BeltTuningWizardResultsData::frequency_mult),
             .belt_system = config_.belt_system,
         }));
     }

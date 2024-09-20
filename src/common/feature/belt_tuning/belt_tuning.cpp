@@ -150,14 +150,20 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
     }
 
     {
-        MeasureBeltTensionResult result;
-        result.resonant_frequency_hz = best_match->frequency;
+        const MeasureBeltTensionResult result {
+            .belt_system = config.belt_system,
+            .resonant_frequency_hz = best_match->frequency,
+        };
 
-        // Formula taken from http://www.hyperphysics.gsu.edu/hbase/Waves/string.html
-        result.tension_force_n = 4 * belt_system_params.nominal_weight_kg_m * belt_system_params.nominal_length_m * belt_system_params.nominal_length_m * result.resonant_frequency_hz * result.resonant_frequency_hz;
-
-        log_info(Marlin, "Belt tuning result: %f Hz %f N", (double)result.resonant_frequency_hz, (double)result.tension_force_n);
+        log_info(Marlin, "Belt tuning result: %f Hz %f N", (double)result.resonant_frequency_hz, (double)result.tension_force_n());
 
         return result;
     }
+}
+
+float MeasureBeltTensionResult::tension_force_n() const {
+    const PrinterBeltParameters::BeltSystemParameters &belt_system_params = printer_belt_parameters.belt_system[belt_system];
+
+    // Formula taken from http://www.hyperphysics.gsu.edu/hbase/Waves/string.html
+    return 4 * belt_system_params.nominal_weight_kg_m * belt_system_params.nominal_length_m * belt_system_params.nominal_length_m * resonant_frequency_hz * resonant_frequency_hz;
 }
