@@ -262,7 +262,7 @@ private:
         void unbindFromSafetyTimer();
         static bool active; // we currently support only 1 instance
     public:
-        FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode);
+        FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode, bool park);
         ~FSM_HolderLoadUnload();
         friend class Pause;
     };
