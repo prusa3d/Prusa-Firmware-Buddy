@@ -139,3 +139,4 @@ set_ready_16x16.png
 set_ready_64x64.png
 set_ready_64x64_focused.png
 set_ready_64x64_disabled.png
+connect_16x16.png
