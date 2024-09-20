@@ -170,3 +170,25 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
 float MeasureBeltTensionResult::tension_force_n() const {
     return printer_belt_parameters.belt_system[belt_system].resonant_frequency_to_tension(resonant_frequency_hz);
 }
+
+float MeasureBeltTensionResult::adjust_screw_turns() const {
+    const PrinterBeltParameters::BeltSystemParameters &params = printer_belt_parameters.belt_system[belt_system];
+    const float tension = tension_force_n();
+    const float target_frequency = params.tension_to_resonant_frequency(params.target_tension_force_n);
+
+    if (tension < params.target_tension_force_n - params.target_tension_tolerance_n) {
+        // Belts are too loose -> tighten
+
+        // There is ~linear corelation between the belt resonant frequency and screw turns
+        constexpr float hz_per_turn = 12;
+        return (target_frequency - resonant_frequency_hz) / hz_per_turn;
+
+    } else if (tension <= params.target_tension_force_n + params.target_tension_tolerance_n) {
+        // Belts are within the tolerance -> no need to adjust
+        return 0;
+
+    } else {
+        // Belts are too tight -> we need to loose them under the tolerance and start tightening again
+        return -2;
+    }
+}

@@ -91,6 +91,10 @@ struct MeasureBeltTensionResult {
 
     /// \returns force the belt is tensioned with, based on the resonant frequency
     float tension_force_n() const;
+
+    /// \returns number of turns (clockwise -> in the tightening direction) needed to get to the ideal tension
+    /// \returns 0 if the tension is within the tolerance
+    float adjust_screw_turns() const;
 };
 
 /// Measures belt tension by finding out their resonant frequency.

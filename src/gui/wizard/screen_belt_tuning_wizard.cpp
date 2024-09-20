@@ -182,13 +182,13 @@ public:
             .resonant_frequency_hz = static_cast<float>(data.encoded_frequency) / data.frequency_mult,
         };
 
-        static constexpr std::array<const char *, 3> title_text {
-            N_("Too loose"),
-            N_("Perfect!"),
-            N_("Too tight"),
-        };
-        const float normalized_error = (result.tension_force_n() - params.target_tension_force_n) / params.target_tension_tolerance_n;
-        title.SetText(_(title_text[std::clamp<int>(copysign(floor(abs(normalized_error)), normalized_error), -1, 1) + 1]));
+        const float screw_turns = result.adjust_screw_turns();
+        if (screw_turns == 0) {
+            title.SetText(_("Perfect!"));
+        } else {
+            title.SetText(_(screw_turns < 0 ? N_("Loosen by %.1f turns") : N_("Tighten by %.1f turns")).formatted(turn_params, abs(screw_turns)));
+        }
+        title.Invalidate();
 
         std::array<char, 16> target_str;
         _("Target").copyToRAM(target_str);
@@ -202,6 +202,7 @@ private:
     WindowGraphView graph;
 
 private:
+    StringViewUtf8Parameters<8> turn_params;
     StringViewUtf8Parameters<32> info_params;
     ScreenBeltTuningWizard &screen;
 };
