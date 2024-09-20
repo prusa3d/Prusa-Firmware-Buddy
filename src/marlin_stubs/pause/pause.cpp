@@ -492,7 +492,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         if constexpr (!option::has_human_interactions) {
             setPhase(PhasesLoadUnload::Inserting_unstoppable);
             if (FSensors_instance().has_filament_surely()) {
-                set(LoadPhases_t::load_in_gear);
+                set_timed(LoadPhases_t::assist_filament_insertion);
             }
 
             break;
