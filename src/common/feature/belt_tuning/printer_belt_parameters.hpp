@@ -24,9 +24,9 @@ struct PrinterBeltParameters {
         /// (Newtons) Target tension force
         float target_tension_force_n;
 
-        /// (Netwons) Deviation from the target force that is still considered acceptable.
+        /// (Netwons) Tolerance from the target tension force that is still considered acceptable.
         /// If the measured tension is within (target +- dev), then the tensioning is considered ok
-        float target_tension_force_dev_n;
+        float target_tension_tolerance_n;
 
         /// Default parameters used for belt tuning
         MeasureBeltTensionSpecificParams belt_tuning_params;
@@ -43,7 +43,7 @@ static constexpr PrinterBeltParameters printer_belt_parameters {
             .nominal_length_m = 0.395f,
             .nominal_weight_kg_m = 0.007569f,
             .target_tension_force_n = 18,
-            .target_tension_force_dev_n = 1,
+            .target_tension_tolerance_n = 1,
             .belt_tuning_params = {
                 .excitation_amplitude_m_func = MeasureBeltTensionSpecificParams::linearly_varying_amplitude<50.0f, 95.0f, 0.00005f, 0.00009f>,
                 .start_frequency_hz = 50,
@@ -65,7 +65,7 @@ static constexpr PrinterBeltParameters printer_belt_parameters {
             .nominal_length_m = 0.300f,
             .nominal_weight_kg_m = 0.007569f,
             .target_tension_force_n = 18,
-            .target_tension_force_dev_n = 1,
+            .target_tension_tolerance_n = 1,
             .belt_tuning_params = {
                 .excitation_amplitude_m_func = MeasureBeltTensionSpecificParams::linearly_varying_amplitude<75.0f, 105.0f, 0.00007f, 0.00009f>,
                 .start_frequency_hz = 75,
