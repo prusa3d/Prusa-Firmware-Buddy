@@ -29,7 +29,7 @@ struct window_header_t : public window_frame_t {
     window_icon_t icon_transfer;
     window_icon_t icon_stealth;
 #if BUDDY_ENABLE_CONNECT()
-    window_icon_t icon_ready_for_connect;
+    window_icon_t icon_connect; /// Icon switches between connect_16x16 and set_ready_16x16
 #endif // BUDDY_ENABLE_CONNECT()
     window_text_t bed_text;
     window_icon_t bed_icon;
