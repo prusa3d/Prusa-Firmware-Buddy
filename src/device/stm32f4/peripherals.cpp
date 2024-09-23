@@ -1,6 +1,5 @@
 #include <device/board.h>
 #include <device/peripherals.h>
-#include <device/mcu.h>
 #include <buddy/phase_stepping_opts.h>
 #include <atomic>
 #include "Pin.hpp"
@@ -450,7 +449,7 @@ void hw_uart6_init() {
     }
 }
 
-#if MCU_IS_STM32F42X()
+#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
 void hw_uart8_init() {
     huart8.Instance = UART8;
     #if uart_esp == 8
@@ -782,7 +781,7 @@ void hw_spi3_init() {
     }
 }
 
-#if MCU_IS_STM32F42X()
+#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
 void hw_spi4_init() {
     // SPI 4 is used for side leds, but only on specific HW revisions
     hspi4.Instance = SPI4;
@@ -801,7 +800,9 @@ void hw_spi4_init() {
         Error_Handler();
     }
 }
+#endif
 
+#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
 void hw_spi5_init() {
     hspi5.Instance = SPI5;
     hspi5.Init.Mode = SPI_MODE_MASTER;
@@ -819,7 +820,9 @@ void hw_spi5_init() {
         Error_Handler();
     }
 }
+#endif
 
+#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
 void hw_spi6_init() {
     hspi6.Instance = SPI6;
     hspi6.Init.Mode = SPI_MODE_MASTER;
