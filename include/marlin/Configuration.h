@@ -21,5 +21,9 @@
     #error "Unknown PRINTER_TYPE!"
 #endif
 
+#ifndef MOTHERBOARD
+    #error "Undefined MOTHERBOARD"
+#endif
+
 #define EXTENSIBLE_UI
 #define NO_LCD_MENUS

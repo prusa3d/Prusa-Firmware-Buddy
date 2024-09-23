@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#define MOTHERBOARD BOARD_BUDDY_2209_02
+
 #include <option/has_toolchanger.h>
 #include <option/has_modularbed.h>
 #include <option/has_loadcell.h>

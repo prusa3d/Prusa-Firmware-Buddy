@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#define MOTHERBOARD BOARD_XLBUDDY_V1
+
 #include <option/has_toolchanger.h>
 #include <option/has_loadcell.h>
 

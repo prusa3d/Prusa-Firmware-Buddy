@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#define MOTHERBOARD BOARD_BUDDY_2209_02
+
 #include "hw_configuration.hpp"
 #include <option/has_loadcell.h>
 
