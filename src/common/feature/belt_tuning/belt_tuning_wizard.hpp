@@ -27,7 +27,7 @@ struct BeltTuninigWizardMeasuringData {
     uint8_t last_amplitude_percent = 0;
 };
 
-/// Structure representing a FSM state for PhaseBeltTuning::results
+/// Structure representing a FSM state for PhaseBeltTuning::results and vibration_check
 struct BeltTuningWizardResultsData {
     static constexpr float frequency_mult = 128;
 

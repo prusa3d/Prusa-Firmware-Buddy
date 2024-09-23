@@ -5,6 +5,8 @@
 #include <Marlin/src/gcode/gcode.h>
 #include <gcode/calibrate/M958.hpp>
 
+#include "printer_belt_parameters.hpp"
+
 namespace {
 
 class FSMBeltTuning final {
@@ -153,7 +155,7 @@ private:
             return Phase::error;
 
         } else {
-            return Phase::results;
+            return Phase::vibration_check;
         }
     }
 
@@ -162,6 +164,51 @@ private:
             .encoded_frequency = static_cast<BeltTuningWizardResultsData::EncodedFrequency>(result_->resonant_frequency_hz * BeltTuningWizardResultsData::frequency_mult),
             .belt_system = config_.belt_system,
         }));
+    }
+
+    PhaseOpt phase_vibration_check(const Meta::LoopCallbackArgs &args) {
+        FSMResponseVariant response = args.response;
+
+        if (!response) {
+            // Vibrate on the measured resonant frequency and let the user visually verify that the belts are vibrating.
+            // This is basically a results validation check.
+            MicrostepRestorer microstep_restorer;
+
+            // Taken from M958::setup_axis
+            stepper_microsteps(X_AXIS, 128);
+            stepper_microsteps(Y_AXIS, 128);
+
+            VibrateMeasureParams params {
+                .excitation_amplitude = 0.00005f,
+                .excitation_cycles = 50,
+                .klipper_mode = false,
+                .calibrate_accelerometer = false,
+                .axis_flag = printer_belt_parameters.belt_system[config_.belt_system].axis_flags,
+            };
+            if (!params.setup(microstep_restorer)) {
+                return Phase::error;
+            }
+
+            vibrate_measure(params, result_->resonant_frequency_hz, [&](const auto &) {
+                if ((response = marlin_server::get_response_variant_from_phase(args.current_phase)).has_value()) {
+                    return false;
+                }
+
+                idle(true, true);
+                return true;
+            });
+        }
+        switch (response.value_or<Response>(Response::_none)) {
+
+        case Response::Yes:
+            return Phase::results;
+
+        case Response::No:
+            return Phase::error;
+
+        default:
+            return std::nullopt;
+        }
     }
 
     PhaseOpt phase_results(const Meta::LoopCallbackArgs &args) {
@@ -220,6 +267,7 @@ private:
         { Phase::ask_for_dampeners_installation, { &C::phase_ask_for_dampeners_installation } },
         { Phase::calibrating_accelerometer, { &C::phase_calibrating_accelerometer } },
         { Phase::measuring, { &C::phase_measuring } },
+        { Phase::vibration_check, { &C::phase_vibration_check, &C::phase_results_init } },
         { Phase::results, { &C::phase_results, &C::phase_results_init } },
         { Phase::ask_for_dampeners_uninstallation, { &C::phase_ask_for_dampeners_uninstallation } },
         { Phase::error, { &C::phase_error } },
@@ -228,6 +276,7 @@ private:
 
 private:
     FSMHandler<config> fsm_;
+    phase_stepping::EnsureDisabled phase_stepping_disabler_;
     MeasureBeltTensionParams config_;
     std::optional<MeasureBeltTensionResult> result_;
     bool dampeners_installed_ = false;

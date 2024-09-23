@@ -159,9 +159,10 @@ private:
 class FrameResults : public FramePrompt {
 
 public:
-    FrameResults(FrameParent parent)
-        : FramePrompt(parent, Phase::results, nullptr, nullptr)
+    FrameResults(FrameParent parent, PhaseBeltTuning phase = PhaseBeltTuning::results)
+        : FramePrompt(parent, phase, nullptr, nullptr)
         , graph(this)
+        , phase(phase)
         , screen(*parent.screen) //
     {
         static constexpr std::initializer_list layout {
@@ -189,13 +190,18 @@ public:
             .resonant_frequency_hz = static_cast<float>(data.encoded_frequency) / data.frequency_mult,
         };
 
-        const float screw_turns = result.adjust_screw_turns();
-        if (screw_turns == 0) {
-            title.SetText(_("Perfect!"));
+        if (phase == Phase::vibration_check) {
+            title.SetText(_("Are the belts vibrating?"));
+
         } else {
-            title.SetText(_(screw_turns < 0 ? N_("Loosen by %.1f turns") : N_("Tighten by %.1f turns")).formatted(turn_params, abs(screw_turns)));
+            const float screw_turns = result.adjust_screw_turns();
+            if (screw_turns == 0) {
+                title.SetText(_("Perfect!"));
+            } else {
+                title.SetText(_(screw_turns < 0 ? N_("Loosen by %.1f turns") : N_("Tighten by %.1f turns")).formatted(turn_params, abs(screw_turns)));
+            }
         }
-        title.Invalidate();
+        title.Invalidate(); // Annoying reference comparison in SetText
 
         std::array<char, 16> target_str;
         _("Target").copyToRAM(target_str);
@@ -209,6 +215,7 @@ private:
     WindowGraphView graph;
 
 private:
+    const PhaseBeltTuning phase;
     StringViewUtf8Parameters<8> turn_params;
     StringViewUtf8Parameters<32> info_params;
     ScreenBeltTuningWizard &screen;
@@ -220,6 +227,7 @@ using Frames = FrameDefinitionList<ScreenBeltTuningWizard::FrameStorage,
     FrameDefinition<Phase::ask_for_dampeners_installation, FrameAskForDampenersInstallation>,
     FrameDefinition<Phase::calibrating_accelerometer, FrameCalibratingAccelerometer>,
     FrameDefinition<Phase::measuring, FrameMeasuring>,
+    FrameDefinition<Phase::vibration_check, WithConstructorArgs<FrameResults, Phase::vibration_check>>,
     FrameDefinition<Phase::results, FrameResults>,
     FrameDefinition<Phase::ask_for_dampeners_uninstallation, FrameAskForDampenersUninstallation>,
     FrameDefinition<Phase::error, FrameError> //
