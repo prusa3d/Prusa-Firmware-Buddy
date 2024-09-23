@@ -3,6 +3,7 @@
 #include <array>
 
 #include <Configuration.h>
+#include <feature/precise_stepping/common.hpp>
 
 #include "belt_tuning.hpp"
 
@@ -14,6 +15,9 @@ struct PrinterBeltParameters {
     struct BeltSystemParameters {
         /// Position of the toolhead at which the measurements should be performed
         xyz_pos_t measurement_pos;
+
+        /// Axis flags used for exciting the belt system
+        StepEventFlag_t axis_flags;
 
         /// (meters) Nominal length of the belt system
         float nominal_length_m;
@@ -53,6 +57,7 @@ static constexpr PrinterBeltParameters printer_belt_parameters {
     .belt_system = {
         PrinterBeltParameters::BeltSystemParameters {
             .measurement_pos = { .x = 342, .y = 110, .z = 10 },
+            .axis_flags = STEP_EVENT_FLAG_STEP_X | STEP_EVENT_FLAG_STEP_Y | STEP_EVENT_FLAG_Y_DIR, // Vibrate the toolhead front and back
             .nominal_length_m = 0.395f,
             .nominal_weight_kg_m = 0.007569f,
             .target_tension_force_n = 18,
@@ -75,6 +80,7 @@ static constexpr PrinterBeltParameters printer_belt_parameters {
     .belt_system = {
         PrinterBeltParameters::BeltSystemParameters {
             .measurement_pos = { .x = 257, .y = 8, .z = 10 },
+            .axis_flags = STEP_EVENT_FLAG_STEP_X | STEP_EVENT_FLAG_STEP_Y | STEP_EVENT_FLAG_Y_DIR, // Vibrate the toolhead front and back
             .nominal_length_m = 0.300f,
             .nominal_weight_kg_m = 0.007569f,
             .target_tension_force_n = 18,

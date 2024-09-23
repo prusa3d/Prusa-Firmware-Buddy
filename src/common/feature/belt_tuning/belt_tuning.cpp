@@ -81,16 +81,6 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
     stepper_microsteps(X_AXIS, 128);
     stepper_microsteps(Y_AXIS, 128);
 
-    static constexpr std::array<StepEventFlag_t, PrinterBeltParameters::belt_system_count> belt_system_axis_flags {
-#if ENABLED(COREXY)
-        // Vibrate the toolhead front and back
-        STEP_EVENT_FLAG_STEP_X | STEP_EVENT_FLAG_STEP_Y | STEP_EVENT_FLAG_Y_DIR,
-#else
-        STEP_EVENT_FLAG_STEP_X,
-            STEP_EVENT_FLAG_STEP_Y,
-#endif
-    };
-
     VibrateMeasureParams measure_params {
         .excitation_amplitude = config.excitation_amplitude_m,
         .excitation_cycles = config.excitation_cycles,
@@ -98,7 +88,7 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
         .measurement_cycles = config.measurement_cycles,
         .klipper_mode = false,
         .calibrate_accelerometer = config.calibrate_accelerometer,
-        .axis_flag = belt_system_axis_flags[config.belt_system],
+        .axis_flag = belt_system_params.axis_flags,
         .measured_harmonic = config.measured_harmonic,
     };
     if (!measure_params.setup(microstep_restorer)) {
