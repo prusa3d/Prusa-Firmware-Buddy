@@ -82,7 +82,7 @@ static_assert(height(progress_num_font) <= progress_num_height);
 } // namespace
 
 PrintProgress::PrintProgress(window_t *parent)
-    : DialogTimed(getTime() > MI_PRINT_PROGRESS_TIME::config.min_value ? parent : nullptr, GuiDefaults::RectScreen, 1000 * getTime())
+    : DialogTimed(config_store().print_progress_time.get() != MI_PRINT_PROGRESS_TIME::config.special_value ? parent : nullptr, GuiDefaults::RectScreen, 1000 * getTime())
     , estime_label(this, Rect16(text_left_side_offset, text_baseline_y, left_column_width, text_label_height), is_multiline::no)
     , estime_value(this, Rect16(text_left_side_offset, text_baseline_y + text_label_height + text_value_y_offset, left_column_width
 #if HAS_LARGE_DISPLAY() // adding middle_column_width because middle column is currently unused & the left estime_value doesn't have enough space to hold the current version of all the data
