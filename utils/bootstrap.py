@@ -45,12 +45,13 @@ dependencies = {
         },
     },
     'cmake': {
-        'version': '3.28.3',
+        'version': '3.30.3',
         'url': {
-            'Linux': 'https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-x86_64.tar.gz',
-            'Linux-aarch64': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/cmake-3.28.3-Linux-aarch64.tar.gz',
-            'Windows': 'https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-windows-x86_64.zip',
-            'Darwin': 'https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-macos-universal.tar.gz',
+            'Linux': 'https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3-linux-x86_64.tar.gz',
+            'Linux-aarch64': 'https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3-linux-aarch64.tar.gz',
+            'Windows': 'https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3-windows-x86_64.zip',
+            'Windows-arm64': 'https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3-windows-arm64.zip',
+            'Darwin': 'https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3-macos-universal.tar.gz',
         },
     },
     'gcc-arm-none-eabi': {

@@ -1,7 +1,7 @@
 {
     "cmake.configureOnOpen": true,
     "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
-    "cmake.cmakePath": "${workspaceFolder}/.dependencies/cmake-3.28.3/bin/cmake",
+    "cmake.cmakePath": "${workspaceFolder}/.dependencies/cmake-3.30.3/bin/cmake",
     "cmake.generator": "Ninja",
     "files.insertFinalNewline": true,
     "files.associations": {

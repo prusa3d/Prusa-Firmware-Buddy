@@ -93,10 +93,10 @@ pipeline {
             steps {
                 sh """
                 python3 utils/bootstrap.py
-                export PATH=\$PWD/.dependencies/cmake-3.22.5/bin:\$PWD/.dependencies/ninja-1.10.2:\$PATH
+                export PATH=\$PWD/.dependencies/cmake-3.30.3/bin:\$PWD/.dependencies/ninja-1.10.2:\$PATH
                 export CTEST_OUTPUT_ON_FAILURE=1
                 mkdir -p build-test
-                LD_LIBRARY_PATH=/usr/local/lib32 \$PWD/.dependencies/cmake-3.22.5/bin/ctest --build-and-test . build-test \
+                LD_LIBRARY_PATH=/usr/local/lib32 \$PWD/.dependencies/cmake-3.30.3/bin/ctest --build-and-test . build-test \
                     -DCMAKE_MAKE_PROGRAM=\$PWD/.dependencies/ninja-1.10.2/ninja \
                     --build-generator Ninja \
                     --build-target tests \
