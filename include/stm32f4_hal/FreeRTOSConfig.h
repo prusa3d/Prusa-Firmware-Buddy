@@ -144,21 +144,15 @@ extern uint32_t SystemCoreClock;
 
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS 0
 
-#define configCHECK_FOR_STACK_OVERFLOW   2
-#define configUSE_TRACE_FACILITY         1
-#define configMAX_TASK_NAME_LEN          (16)
-#define configUSE_16_BIT_TICKS           0
-#define configUSE_MUTEXES                1
-#define configUSE_RECURSIVE_MUTEXES      1
-#define INCLUDE_xSemaphoreGetMutexHolder 1
-#define configQUEUE_REGISTRY_SIZE        0
-#if MCU_IS_STM32F4()
-    #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
-#elif MCU_IS_STM32G0()
-    #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
-#else
-    #error Unknown MCU
-#endif
+#define configCHECK_FOR_STACK_OVERFLOW          2
+#define configUSE_TRACE_FACILITY                1
+#define configMAX_TASK_NAME_LEN                 (16)
+#define configUSE_16_BIT_TICKS                  0
+#define configUSE_MUTEXES                       1
+#define configUSE_RECURSIVE_MUTEXES             1
+#define INCLUDE_xSemaphoreGetMutexHolder        1
+#define configQUEUE_REGISTRY_SIZE               0
+#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 
 #define configUSE_TIMERS 1
 /* Apart from running timer the timer task also executes function triggered
