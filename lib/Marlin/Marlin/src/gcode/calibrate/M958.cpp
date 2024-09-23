@@ -428,7 +428,7 @@ static void advance_and_wrap_time_within_period(float& time, const float advance
  * @retval VibrateMeasureResult on success
  * @retval std::nullopt on failure
  */
-static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &args, float requested_frequency, const VibrateMeasureProgressHook &progress_hook) {
+std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &args, float requested_frequency, const VibrateMeasureProgressHook &progress_hook) {
     if (args.klipper_mode && args.measured_harmonic != 1) {
         SERIAL_ERROR_MSG("vibrate measure: klipper mode does not support measuring higher harmonics");
         return std::nullopt;

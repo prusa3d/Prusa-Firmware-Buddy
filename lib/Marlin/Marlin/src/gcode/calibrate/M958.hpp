@@ -121,6 +121,9 @@ using VibrateMeasureProgressHook = stdext::inplace_function<bool(const VibrateMe
 
 std::optional<VibrateMeasureResult> vibrate_measure_repeat(const VibrateMeasureParams &args, float frequency, const VibrateMeasureProgressHook &progress_hook);
 
+/// Same as \p vibrate_measure_repeat, but does not retry on failure.
+std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &args, float frequency, const VibrateMeasureProgressHook &progress_hook);
+
 /// \returns false if the measurement should be aborted
 using FindBestShaperProgressHook = stdext::inplace_function<bool(input_shaper::Type checked_type, float progress)>;
 
