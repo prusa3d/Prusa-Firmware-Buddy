@@ -64,11 +64,12 @@ dependencies = {
         }
     },
     'clang-format': {
-        'version': '16-83817c2f',
+        'version': '18.1.8',
         'url': {
-            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-16-83817c2f-linux.zip',
-            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-16-83817c2f-windows.zip',
-            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-16-83817c2f-macosx.zip',
+            'Linux': 'https://github.com/ysmilda/clang-llvm/releases/download/llvmorg-18.1.8/clang-format-18.1.8-x86_64-linux-gnu-ubuntu-18.04',
+            'Linux-aarch64': 'https://github.com/ysmilda/clang-llvm/releases/download/llvmorg-18.1.8/clang-format-18.1.8-aarch64-linux-gnu',
+            'Windows': 'https://github.com/ysmilda/clang-llvm/releases/download/llvmorg-18.1.8/clang-format-18.1.8-x86_64-pc-windows-msvc.exe',
+            'Darwin': 'https://github.com/ysmilda/clang-llvm/releases/download/llvmorg-18.1.8/clang-format-18.1.8-arm64-apple-macos11',
         }
     },
     'bootloader-mini': {

@@ -39,7 +39,7 @@ Run `git clone https://github.com/prusa3d/Prusa-Firmware-MMU.git`.
 Run `./utils/bootstrap.py`
 
 `bootstrap.py` will now download all the "missing" dependencies into the `.dependencies` folder:
-- clang-format-9.0.0-noext
+- clang-format-18.1.8
 - cmake-3.30.3
 - ninja-1.10.2
 - avr-gcc-7.3.0
