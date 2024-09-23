@@ -398,13 +398,13 @@ void buddy::hw::hwio_configure_board_revision_changed_pins() {
 void hw_init_spi_side_leds() {
     // Side leds was connectet to dedicated SPI untill revision 8, in revision 9 SPI is shared with LCD. So init SPI only if needed.
     if (board_bom_id <= 8) {
-        hw_spi4_init();
+        SPI_INIT(led);
     }
 }
 SPI_HandleTypeDef *hw_get_spi_side_strip() {
     if (board_bom_id >= 9 || board_bom_id == 4) {
         return &SPI_HANDLE_FOR(lcd);
     } else {
-        return &hspi4;
+        return &SPI_HANDLE_FOR(led);
     }
 }

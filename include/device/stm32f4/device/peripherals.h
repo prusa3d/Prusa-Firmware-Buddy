@@ -278,7 +278,7 @@ extern TIM_HandleTypeDef htim14;
     #define uart_esp           8
     #define spi_accelerometer  2
     // Side LEDs use either SPI4 or share SPI with LCD, depending on HW revision
-    // #define spi_led           4 or spi_lcd
+    #define spi_led            4
     #define uart_puppies       3
     #define tim_burst_stepping 8
     #define tim_phase_stepping 13
