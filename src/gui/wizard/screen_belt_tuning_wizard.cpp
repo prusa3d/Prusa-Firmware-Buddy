@@ -9,6 +9,7 @@
 #include <display.hpp>
 
 #include <gui/standard_frame/frame_prompt.hpp>
+#include <gui/standard_frame/frame_progress_prompt.hpp>
 #include <gui/standard_frame/frame_qr_prompt.hpp>
 #include <feature/belt_tuning/belt_tuning_wizard.hpp>
 #include <feature/belt_tuning/printer_belt_parameters.hpp>
@@ -19,10 +20,6 @@ namespace {
 
 using FrameAskForGantryAlign = WithConstructorArgs<FrameQRPrompt, Phase::ask_for_gantry_align, N_("Please follow the XY gantry alignment process in the manual."), "belt-tuning"_tstr>;
 using FramePreparing = WithConstructorArgs<FramePrompt, Phase::preparing, N_("Preparing"), N_("Setting the printer up for the calibration.\n\nPlease wait.")>;
-
-// TODO: Maybe add progress bar?
-using FrameCalibratingAccelerometer = WithConstructorArgs<FramePrompt, Phase::calibrating_accelerometer, N_("Calibrating accelerometer"), N_("Please wait.")>;
-
 using FrameAskForDampenersInstallation = WithConstructorArgs<FramePrompt, Phase::ask_for_dampeners_installation, N_("Install belt dampeners"), N_("Please install the belt dampeners to the left and right side of the printer.")>;
 using FrameAskForDampenersUninstallation = WithConstructorArgs<FramePrompt, Phase::ask_for_dampeners_uninstallation, N_("Remove belt dampeners"), N_("Please remove the belt dampeners.")>;
 using FrameError = WithConstructorArgs<FramePrompt, Phase::error, N_("Error"), N_("An error occurred during the belt tuning procedure.\nTry running the calibration again.")>;
@@ -81,12 +78,23 @@ private:
     std::span<uint8_t> data_;
 };
 
-class FrameMeasuring : public FramePrompt {
+class FrameCalibratingAccelerometer : public FrameProgressPrompt {
+
+public:
+    FrameCalibratingAccelerometer(FrameParent parent)
+        : FrameProgressPrompt(parent, Phase::calibrating_accelerometer, _("Calibrating accelerometer"), _("Please wait.")) {}
+
+    void update(const fsm::PhaseData &data_) {
+        const auto data = fsm::deserialize_data<BeltTuningWizardCalibratingData>(data_);
+        progress_bar.SetProgressPercent(static_cast<float>(data.progress_0_255) / 255.0f * 100.0f);
+    }
+};
+
+class FrameMeasuring : public FrameProgressPrompt {
 
 public:
     FrameMeasuring(FrameParent parent)
-        : FramePrompt(parent, Phase::measuring, N_("Measuring belt tension"), nullptr)
-        , progress_bar(this, {}, COLOR_ORANGE)
+        : FrameProgressPrompt(parent, Phase::measuring, N_("Measuring belt tension"), nullptr)
         , graph(this)
         , screen(*parent.screen) //
     {
@@ -140,11 +148,10 @@ public:
     }
 
 private:
-    window_numberless_progress_t progress_bar;
     WindowGraphView graph;
 
 private:
-    StringViewUtf8Parameters<4> info_params;
+    StringViewUtf8Parameters<8> info_params;
     ScreenBeltTuningWizard &screen;
     size_t graph_data_size = 0;
 };
