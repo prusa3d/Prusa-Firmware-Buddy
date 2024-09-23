@@ -6,8 +6,22 @@ void layout_vertical_stack(const Rect16 &rect, const std::initializer_list<windo
     int minimum_size = 0;
     float remaining_stretch_ratio_sum = 0;
 
+    const auto iterate = [&](auto &&callback) {
+        auto window_it = windows.begin();
+        for (const auto &item : items) {
+            window_t *window = *window_it++;
+
+            // Skip hidden windows
+            if (window && !window->IsVisible()) {
+                continue;
+            }
+
+            callback(item, window);
+        }
+    };
+
     // First pass - collect information
-    for (const auto &item : items) {
+    iterate([&](const StackLayoutItem &item, [[maybe_unused]] window_t *window) {
         minimum_size += item.margin_top;
 
         std::visit([&]<typename T>(T val) {
@@ -20,15 +34,14 @@ void layout_vertical_stack(const Rect16 &rect, const std::initializer_list<windo
             item.height);
 
         minimum_size += item.margin_bottom;
-    }
+    });
 
     assert(rect.Height() >= minimum_size);
     int remaining_stretch_space = rect.Height() - minimum_size;
 
     // Second pass - lay out
     int y = rect.Top();
-    auto window_it = windows.begin();
-    for (const auto &item : items) {
+    iterate([&](const StackLayoutItem &item, window_t *window) {
         y += item.margin_top;
 
         const int item_height = std::visit([&]<typename T>(T val) -> int {
@@ -44,7 +57,7 @@ void layout_vertical_stack(const Rect16 &rect, const std::initializer_list<windo
         },
             item.height);
 
-        if (auto window = *window_it) {
+        if (window) {
             const int available_width = rect.Width() - item.margin_side * 2;
             const int item_width = std::visit([&]<typename T>(T val) -> int {
                 if constexpr (std::is_same_v<T, StackLayoutItem::Stretch>) {
@@ -60,6 +73,5 @@ void layout_vertical_stack(const Rect16 &rect, const std::initializer_list<windo
         }
 
         y += item_height + item.margin_bottom;
-        window_it++;
-    }
+    });
 }
