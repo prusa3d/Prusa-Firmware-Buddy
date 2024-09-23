@@ -181,19 +181,6 @@ else()
 endif()
 
 #
-# Configure Arduino Core
-#
-
-if(MCU MATCHES "STM32F4")
-  set(ARDUINO_CORE_BUDDY_USB_SUPPORT TRUE)
-elseif(MCU MATCHES "STM32G0")
-  set(ARDUINO_CORE_BUDDY_USB_SUPPORT FALSE)
-else()
-  message(FATAL_ERROR "Undefined ARDUINO_CORE_BUDDY_USB_SUPPORT for ${MCU}")
-endif()
-add_library(CoreBuddy_Config ALIAS BuddyHeaders)
-
-#
 # Configure STMicroelectronics Libraries
 #
 

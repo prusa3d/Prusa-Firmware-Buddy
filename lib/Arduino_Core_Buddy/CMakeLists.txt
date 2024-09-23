@@ -9,9 +9,9 @@ target_include_directories(
 
 target_compile_definitions(CoreBuddy PUBLIC ARDUINO=187 HAVE_HWSERIAL2 USBD_USE_CDC USBCON)
 
-target_link_libraries(CoreBuddy PUBLIC FreeRTOS::FreeRTOS CoreBuddy_Config)
+target_link_libraries(CoreBuddy PUBLIC FreeRTOS::FreeRTOS BuddyHeaders)
 
-if(ARDUINO_CORE_BUDDY_USB_SUPPORT)
+if(BOARD IN_LIST BOARDS_WITH_ARDUINO_USB_SERIAL)
   target_sources(CoreBuddy PRIVATE cores/arduino/USBSerial.cpp)
   target_link_libraries(CoreBuddy PUBLIC STM32::USBHost tinyusb::tinyusb)
 endif()
