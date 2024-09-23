@@ -11,13 +11,14 @@
     #define TICK_TIMER_IRQ        TIM5_IRQn
     #define TICK_TIMER_IRQHandler TIM5_IRQHandler
     #define TICK_TIMER_IS_32BIT   1
-#else
-    // TODO, not supported yet
+#elif MCU_IS_STM32G0()
     #define TICK_TIMER            TIM3
     #define TICK_TIMER_CLK_ENABLE __HAL_RCC_TIM3_CLK_ENABLE
     #define TICK_TIMER_IRQ        TIM3_IRQn
     #define TICK_TIMER_IRQHandler TIM3_IRQHandler
     #define TICK_TIMER_IS_32BIT   0
+#else
+    #error Unknown MCU
 #endif
 
 enum {

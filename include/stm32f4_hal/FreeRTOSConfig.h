@@ -154,8 +154,10 @@ extern uint32_t SystemCoreClock;
 #define configQUEUE_REGISTRY_SIZE        0
 #if MCU_IS_STM32F4()
     #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
-#else
+#elif MCU_IS_STM32G0()
     #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
+#else
+    #error Unknown MCU
 #endif
 
 #define configUSE_TIMERS 1

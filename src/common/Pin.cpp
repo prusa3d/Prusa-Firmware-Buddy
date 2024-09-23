@@ -61,9 +61,11 @@ void InterruptPin::configure() const {
         if ((preemptPriority != m_priority.preemptPriority) || (subPriority != m_priority.subPriority)) {
             bsod("IRQ priority mismatch."); // The same IRQ was already enabled, but with different priority.
         }
-#else
+#elif MCU_IS_STM32G0()
         // TODO: this is not yet implemented
         system_core_error_handler();
+#else
+    #error InterruptPin::configure() is not defined for this MCU
 #endif
     }
 }
@@ -114,6 +116,8 @@ IRQn_Type InterruptPin::getIRQn() const {
     case GPIO_PIN_14:
     case GPIO_PIN_15:
         return EXTI4_15_IRQn;
+#else
+    #error InterruptPin::getIRQn() is not defined for this MCU
 #endif
     default:
         bsod("Unexpected PIN.");
