@@ -205,7 +205,7 @@ public:
 
         std::array<char, 16> target_str;
         _("Target").copyToRAM(target_str);
-        info.SetText(string_view_utf8::MakeCPUFLASH("%.1f N (%.1f Hz)\n\n%s: %.1f +- %.1f N").formatted(info_params, result.tension_force_n(), result.resonant_frequency_hz, target_str.data(), params.target_tension_force_n, params.target_tension_tolerance_n));
+        info.SetText(string_view_utf8::MakeCPUFLASH("Measured: %.1f N (%.1f Hz)\n%s: %.1f +- %.1f N").formatted(info_params, result.tension_force_n(), result.resonant_frequency_hz, target_str.data(), params.target_tension_force_n, params.target_tension_tolerance_n));
         info.Invalidate(); // Annoying reference comparison in SetText
 
         graph.set_data(screen.graph_data);
