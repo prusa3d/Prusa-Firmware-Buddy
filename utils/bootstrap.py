@@ -36,12 +36,13 @@ running_in_venv = Path(sys.prefix).resolve() == venv_dir.resolve()
 # yapf: disable
 dependencies = {
     'ninja': {
-        'version': '1.10.2',
+        'version': '1.12.1',
         'url': {
-            'Linux': 'https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-linux.zip',
-            'Linux-aarch64': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/ninja-v1.10.2-linux-aarch64.zip',
-            'Windows': 'https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-win.zip',
-            'Darwin': 'https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-mac.zip',
+            'Linux': 'https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux.zip',
+            'Linux-aarch64': 'https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux-aarch64.zip',
+            'Windows': 'https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip',
+            'Windows-arm64': 'https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-winarm64.zip',
+            'Darwin': 'https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-mac.zip',
         },
     },
     'cmake': {

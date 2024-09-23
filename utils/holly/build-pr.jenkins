@@ -242,13 +242,13 @@ pipeline {
                     }
                     steps {
                         sh """
-                        export PATH=/work/.dependencies/cmake-3.30.3/bin:/work/.dependencies/ninja-1.10.2:\$PATH
+                        export PATH=/work/.dependencies/cmake-3.30.3/bin:/work/.dependencies/ninja-1.12.1:\$PATH
                         ln -fs /work/.dependencies
                         ln -fs /work/.venv
                         . .venv/bin/activate
                         mkdir -p build-test
                         LD_LIBRARY_PATH=/usr/local/lib32 /work/.dependencies/cmake-3.30.3/bin/ctest --build-and-test . build-test \
-                            -DCMAKE_MAKE_PROGRAM=/work/.dependencies/ninja-1.10.2/ninja \
+                            -DCMAKE_MAKE_PROGRAM=/work/.dependencies/ninja-1.12.1/ninja \
                             --build-generator Ninja \
                             --build-target tests \
                             --build-options -DBOARD=BUDDY \
