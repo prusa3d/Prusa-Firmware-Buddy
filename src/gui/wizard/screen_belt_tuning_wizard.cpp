@@ -131,8 +131,8 @@ public:
 
             // Update the graph data
             {
-                size_t start = std::max<size_t>(graph_data_size, 1) - 1;
                 const size_t end = std::clamp<size_t>(std::ceil(data.progress_0_255 / 255.0f * ScreenBeltTuningWizard::graph_width), 0, ScreenBeltTuningWizard::graph_width);
+                const size_t start = std::clamp<size_t>(end, 1, graph_data_size) - 1;
 
                 const float end_val = data.last_amplitude_percent / 100.0f * ScreenBeltTuningWizard::graph_height;
                 const float start_val = graph_data_size ? screen.graph_data[start] : end_val;
