@@ -41,8 +41,9 @@ MAX_WRITE_CHUNK = 247
 
 class Bus(object):
 
-    def __init__(self, port):
-        self.address = b'\x00'
+    def __init__(self, port, address: bytes):
+        assert (len(address) == 1)
+        self.address = address
         timeout = 0.02  #shorter timeouts were giving me troubles
         self._serial = serial.Serial(port,
                                      baudrate=230400,
@@ -80,6 +81,22 @@ HardwareInfo = namedtuple('HardwareInfo',
 
 class Hardware(Enum):
     MODULARBED = 43
+    DWARF = 44
+    EXTENSION_BOARD = 45
+
+
+class MessageId(Enum):
+    GET_PROTOCOL_VERSION = b'\x00'
+    SET_ADDRESS = b'\x01'
+    GET_HARDWARE_INFO = b'\x03'
+    START_APPLICATION = b'\x05'
+    WRITE_FLASH = b'\x06'
+    FINALIZE_FLASH = b'\x07'
+    READ_FLASH = b'\x08'
+    GET_MAX_PACKET_LENGTH = b'\x0c'
+    GET_FINGERPRINT = b'\x0e'
+    COMPUTE_FINGERPRINT = b'\x0f'
+    READ_OTP = b'\x10'
 
 
 class BootloaderProtocol(object):
@@ -88,7 +105,7 @@ class BootloaderProtocol(object):
     def __init__(self, bus):
         self._bus = bus
 
-    def _transaction(self, tx_pdu, wait=None):
+    def _transaction(self, tx_pdu: bytes, wait=None):
         # this is like modbus, but with custom function codes and error handling
         rx_pdu = self._bus.transaction(tx_pdu, wait)
         status = rx_pdu[0:1]
@@ -105,10 +122,10 @@ class BootloaderProtocol(object):
         return result
 
     def get_protocol_version(self):
-        return self._transaction(b'\x00')
+        return self._transaction(MessageId.GET_PROTOCOL_VERSION.value)
 
     def get_hardware_info(self):
-        payload = self._transaction(b'\x03')
+        payload = self._transaction(MessageId.GET_HARDWARE_INFO.value)
         if len(payload) != 11:
             raise Exception('length mismatch')
 
@@ -117,20 +134,40 @@ class BootloaderProtocol(object):
                             bl_version=parse_int_modbus(payload[3:7]),
                             app_size=parse_int_modbus(payload[7:11]))
 
-    def start_application(self, salt, fingerprint):
-        return self._transaction(b'\x05' + salt + fingerprint)
+    def set_address(self, new_address: bytes):
+        assert (len(new_address) == 1)
+        self._transaction(MessageId.SET_ADDRESS.value + new_address)
 
-    def write_flash(self, address, data):
-        self._transaction(b'\x06' + address + data)
+    def read_flash(self, address: int, read_len: int):
+        return self._transaction(MessageId.READ_FLASH.value +
+                                 address.to_bytes(4, byteorder='big') +
+                                 read_len.to_bytes(1))
+
+    def read_otp(self, address: int, read_len: int):
+        return self._transaction(MessageId.READ_OTP.value +
+                                 address.to_bytes(4, byteorder='big') +
+                                 read_len.to_bytes(1))
+
+    def get_max_packet_length(self):
+        return parse_int_modbus(
+            self._transaction(MessageId.GET_MAX_PACKET_LENGTH.value))
+
+    def start_application(self, salt, fingerprint):
+        return self._transaction(MessageId.START_APPLICATION.value + salt +
+                                 fingerprint)
+
+    def write_flash(self, address: int, data: bytes):
+        self._transaction(MessageId.WRITE_FLASH.value +
+                          address.to_bytes(4, byteorder='big') + data)
 
     def finalize_flash(self):
-        self._transaction(b'\x07')
+        self._transaction(MessageId.FINALIZE_FLASH.value)
 
     def get_fingerprint(self):
-        return self._transaction(b'\x0e')
+        return self._transaction(MessageId.GET_FINGERPRINT.value)
 
     def compute_fingerprint(self, salt):
-        self._transaction(b'\x0f' + salt, wait=0.5)
+        self._transaction(MessageId.COMPUTE_FINGERPRINT.value + salt, wait=0.5)
 
 
 class Bootloader(object):
@@ -151,7 +188,7 @@ class Bootloader(object):
         offset = 0
         while offset < len(blob):
             chunk = blob[offset:offset + MAX_WRITE_CHUNK]
-            self._protocol.write_flash(offset.to_bytes(4, 'big'), chunk)
+            self._protocol.write_flash(offset, chunk)
             offset += MAX_WRITE_CHUNK
         self._protocol.finalize_flash()
 
@@ -188,7 +225,7 @@ class ModbusProtocol(object):
 def main():
     port = '/dev/ttyUSB0'
     modularbed_firmware_path = 'build-vscode-modularbed/firmware.bin'
-    with closing(Bus(port)) as bus:
+    with closing(Bus(port, b'\x00')) as bus:
         bootloader = Bootloader(bus)
         if not bootloader.is_running():
             print('reset the board, bootloader needs to be running')
