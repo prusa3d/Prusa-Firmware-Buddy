@@ -4,7 +4,7 @@
 
 #include "screen_menu_version_info.hpp"
 #include "config.h"
-#include "version.h"
+#include <version/version.hpp>
 #include "img_resources.hpp"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 #include "../common/otp.hpp"
@@ -28,7 +28,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
         Item<MI_INFO_SERIAL_NUM>().ChangeInformation(sb.str());
     }
 
-    Item<MI_INFO_FW>().ChangeInformation(project_version_full);
+    Item<MI_INFO_FW>().ChangeInformation(version::project_version_full);
 
     {
         const version_t *bootloader_version = (const version_t *)BOOTLOADER_VERSION_ADDRESS;

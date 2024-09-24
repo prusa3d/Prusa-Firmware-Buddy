@@ -34,7 +34,6 @@ size_t strlcat(char *dst, const char *src, size_t size) {
     return start + strlen(src);
 }
 
-const char project_version_full[] = "1.0.0";
 sys_mutex_t lock_tcpip_core;
 
 void *mem_malloc(size_t size) {

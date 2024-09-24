@@ -4,7 +4,7 @@
 #include <config_store/store_instance.hpp>
 
 #include <support_utils.h>
-#include <version.h>
+#include <version/version.hpp>
 
 #include <mbedtls/sha256.h>
 
@@ -69,7 +69,7 @@ Printer::Config load_eeprom_config() {
 }
 
 void init_info(Printer::PrinterInfo &info) {
-    info.firmware_version = project_version_full;
+    info.firmware_version = version::project_version_full;
     info.appendix = appendix_exist();
 
     otp_get_serial_nr(info.serial_number);

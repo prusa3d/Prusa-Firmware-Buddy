@@ -22,7 +22,7 @@
 #include "Jogwheel.hpp"
 #include "sys.h"
 #include "hwio.h"
-#include "version.h"
+#include <version/version.hpp>
 #include "support_utils.h"
 #include "error_codes.hpp"
 #include "../../lib/Marlin/Marlin/src/core/language.h"
@@ -238,7 +238,7 @@ static void fallback_bsod(const char *fmt, const char *file_name, int line_numbe
 
     // Add filename to buffer
     size_t consumed = snprintf(fallback_bsod_text, std::size(fallback_bsod_text), "Fallback BSOD\n(possibly BSODception)\n%s\n%s:%d\n",
-        project_version_full, cut_path(file_name), line_number);
+        version::project_version_full, cut_path(file_name), line_number);
 
     // Add message to buffer
     if (consumed < std::size(fallback_bsod_text)) {

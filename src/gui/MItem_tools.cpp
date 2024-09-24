@@ -24,7 +24,7 @@
 #include "WindowMenuSpin.hpp"
 #include "time_tools.hpp"
 #include "footer_eeprom.hpp"
-#include "version.h"
+#include <version/version.hpp>
 #include "../../common/PersistentStorage.h"
 #include "sys.h"
 #include "w25x.h"
@@ -314,7 +314,7 @@ void MI_FACTORY_HARD_RESET::click(IWindowMenu & /*window_menu*/) {
     static constexpr const char *fmt2Translate = N_("This operation cannot be undone. Current configuration will be lost!\nYou will need a USB drive with this firmware (%s_firmware_%s.bbf file) to start the printer again.\nDo you really want to continue?");
 
     StringViewUtf8Parameters<20> params;
-    const string_view_utf8 str = _(fmt2Translate).formatted(params, PRINTER_MODEL, project_version);
+    const string_view_utf8 str = _(fmt2Translate).formatted(params, PRINTER_MODEL, version::project_version);
 
     if (MsgBoxWarning(str, Responses_YesNo, 1) == Response::Yes) {
         do_factory_reset(true);
@@ -570,7 +570,7 @@ MI_INFO_FW::MI_INFO_FW()
 void MI_INFO_FW::click([[maybe_unused]] IWindowMenu &window_menu) {
     // If we have development tools shown, click will print whole fw version string in info messagebox
     if constexpr (GuiDefaults::ShowDevelopmentTools) {
-        MsgBoxInfo(string_view_utf8::MakeRAM((const uint8_t *)project_version_full), Responses_Ok);
+        MsgBoxInfo(string_view_utf8::MakeRAM((const uint8_t *)version::project_version_full), Responses_Ok);
     }
 }
 

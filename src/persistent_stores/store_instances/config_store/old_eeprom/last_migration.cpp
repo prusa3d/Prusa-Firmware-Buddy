@@ -2,7 +2,7 @@
 #include <freertos/critical_section.hpp>
 #include <journal/backend.hpp>
 #include <charconv>
-#include <version.h>
+#include <version/version.hpp>
 #include <config_store/backend_instance.hpp>
 #include <journal/store.hpp>
 #include <footer_eeprom.hpp>
@@ -89,10 +89,10 @@ bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
     data.head.VERSION = EEPROM_VERSION;
     data.head.FEATURES = EEPROM_FEATURES;
     data.head.DATASIZE = EEPROM_DATASIZE;
-    data.head.FWBUILD = project_build_number;
+    data.head.FWBUILD = version::project_build_number;
 
     char buffer[15];
-    fill_project_version_no_dots(buffer, sizeof(buffer));
+    version::fill_project_version_no_dots(buffer, sizeof(buffer));
     std::from_chars(buffer, buffer + strlen(buffer), data.head.FWVERSION);
 
     // if update was successful, version will be current

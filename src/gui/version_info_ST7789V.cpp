@@ -4,7 +4,7 @@
 
 #include "screen_menu_version_info.hpp"
 #include "config.h"
-#include "version.h"
+#include <version/version.hpp>
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 #include "../common/otp.hpp"
 #include "img_resources.hpp"
@@ -41,7 +41,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
 
     // TODO: Oh, this is bad. Someone really has to fix text wrapping.
     const int max_chars_per_line = 18;
-    int project_version_full_len = strlen(project_version_full);
+    int project_version_full_len = strlen(version::project_version_full);
 
     for (int i = 0; i < project_version_full_len; i += max_chars_per_line) {
         int line_length;
@@ -51,7 +51,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
             line_length = max_chars_per_line;
         }
         if (end > begin) {
-            begin += snprintf(begin, end - begin, "%.*s\n", line_length, project_version_full + i);
+            begin += snprintf(begin, end - begin, "%.*s\n", line_length, version::project_version_full + i);
         }
     }
 

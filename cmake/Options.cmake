@@ -104,3 +104,6 @@ function(define_enum_option)
 
   configure_file(${input_file} ${output_file} COPYONLY)
 endfunction()
+
+add_library(options INTERFACE)
+target_include_directories(options INTERFACE ${OPTIONS_INCLUDE_DIR})

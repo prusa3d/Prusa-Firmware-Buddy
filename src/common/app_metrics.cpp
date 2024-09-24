@@ -3,7 +3,7 @@
 #include "metric.h"
 #include <logging/log.hpp>
 #include <common/sensor_data.hpp>
-#include "version.h"
+#include <version/version.hpp>
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include "malloc.h"
@@ -59,7 +59,7 @@ extern metric_t metric_home_diff;
 
 void buddy::metrics::RecordRuntimeStats() {
     METRIC_DEF(fw_version, "fw_version", METRIC_VALUE_STRING, 65535, METRIC_ENABLED);
-    metric_record_string(&fw_version, "%s", project_version_full);
+    metric_record_string(&fw_version, "%s", version::project_version_full);
 
     METRIC_DEF(buddy_revision, "buddy_revision", METRIC_VALUE_STRING, 65534, METRIC_ENABLED);
     if (metric_record_is_due(&buddy_revision)) {

@@ -1,12 +1,20 @@
-#include "version.h"
-#include "config.h"
-#include <string.h>
-#include <array>
+#include <version/version.hpp>
 
+#include <cstring>
 #include <option/bootloader.h>
+#include <option/enable_translation_cs.h>
+#include <option/enable_translation_de.h>
+#include <option/enable_translation_es.h>
+#include <option/enable_translation_fr.h>
+#include <option/enable_translation_it.h>
+#include <option/enable_translation_ja.h>
+#include <option/enable_translation_pl.h>
+#include <printers.h>
 
 #define _STR(x) #x
 #define STR(x)  _STR(x)
+
+namespace version {
 
 const char project_version[] = STR(FW_VERSION);
 
@@ -25,13 +33,7 @@ const int project_build_number = FW_BUILD_NUMBER;
 #if PRINTER_IS_PRUSA_MINI()
 const char project_firmware_name[] = "Buddy_MINI";
 #elif PRINTER_IS_PRUSA_XL()
-    #if (BOARD_IS_DWARF())
-const char project_firmware_name[] = "Dwarf";
-    #elif (BOARD_IS_MODULARBED())
-const char project_firmware_name[] = "ModularBed";
-    #else
 const char project_firmware_name[] = "Buddy_XL";
-    #endif
 #elif PRINTER_IS_PRUSA_MK4()
 const char project_firmware_name[] = "Buddy_MK4";
 #elif PRINTER_IS_PRUSA_MK3_5()
@@ -41,14 +43,6 @@ const char project_firmware_name[] = "Buddy_iX";
 #else
     #error "Unknown PRINTER_TYPE."
 #endif
-
-#include <option/enable_translation_cs.h>
-#include <option/enable_translation_de.h>
-#include <option/enable_translation_es.h>
-#include <option/enable_translation_fr.h>
-#include <option/enable_translation_it.h>
-#include <option/enable_translation_pl.h>
-#include <option/enable_translation_ja.h>
 
 const BuildIdentification project_build_identification {
     .commit_hash = STR(FW_COMMIT_HASH),
@@ -81,3 +75,5 @@ void fill_project_version_no_dots(char *buffer, size_t buffer_size) {
         ++buffer_i;
     }
 }
+
+} // namespace version

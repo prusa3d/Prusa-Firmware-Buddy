@@ -3,7 +3,7 @@
 
 #include "config.h"
 #include "config_features.h"
-#include "version.h"
+#include <version/version.hpp>
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include <config_store/store_instance.hpp>
@@ -75,7 +75,7 @@ screen_splash_data_t::screen_splash_data_t()
     text_progress.SetAlignment(Align_t::Center());
     text_progress.SetTextColor(COLOR_GRAY);
 
-    snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Firmware %s", project_version_full);
+    snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Firmware %s", version::project_version_full);
     text_progress.SetText(string_view_utf8::MakeRAM((uint8_t *)text_progress_buffer));
     progress.SetProgressPercent(0);
 
@@ -248,7 +248,7 @@ void screen_splash_data_t::windowEvent([[maybe_unused]] window_t *sender, GUI_ev
             version_displayed = false;
         } else {
             if (!version_displayed) {
-                snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Firmware %s", project_version_full);
+                snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Firmware %s", version::project_version_full);
                 text_progress.SetText(string_view_utf8::MakeRAM((uint8_t *)text_progress_buffer));
                 text_progress.Invalidate();
                 version_displayed = true;

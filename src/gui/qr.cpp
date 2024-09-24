@@ -4,7 +4,7 @@
 #include <common/error_code_mangle.hpp>
 #include <common/support_utils.h>
 #include <common/str_utils.hpp>
-#include <common/version.h>
+#include <version/version.hpp>
 
 QRStaticStringWindow::QRStaticStringWindow(window_t *parent, Rect16 rect, Align_t align, const char *data)
     : window_aligned_t { parent, rect }
@@ -40,7 +40,7 @@ void QRErrorUrlWindow::set_error_code(ErrCode ec) {
         }
         {
             char version[10] = {};
-            fill_project_version_no_dots(version, sizeof(version));
+            version::fill_project_version_no_dots(version, sizeof(version));
             builder.append_string("/");
             builder.append_string(version);
         }

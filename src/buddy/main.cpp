@@ -57,7 +57,7 @@
 #include <espif.h>
 #include "sound.hpp"
 #include <ccm_thread.hpp>
-#include "version.h"
+#include <version/version.hpp>
 #include "str_utils.hpp"
 #include "data_exchange.hpp"
 #include "bootloader/bootloader.hpp"
@@ -157,7 +157,7 @@ static void manufacture_report() {
 
     static_assert(sizeof(intro) > 1); // prevent accidental buffer underrun below
     SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
-    SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen(project_version_full));
+    SerialUSB.write(reinterpret_cast<const uint8_t *>(version::project_version_full), strlen(version::project_version_full));
     SerialUSB.write('\n');
 }
 
@@ -169,7 +169,7 @@ static void manufacture_report_endless_loop() {
     constexpr const char *str_fw = "FW:";
     while (true) {
         HAL_UART_Transmit(&UART_HANDLE_FOR(esp), reinterpret_cast<const uint8_t *>(str_fw), strlen(str_fw), 1000);
-        HAL_UART_Transmit(&UART_HANDLE_FOR(esp), reinterpret_cast<const uint8_t *>(project_version_full), strlen(project_version_full), 1000);
+        HAL_UART_Transmit(&UART_HANDLE_FOR(esp), reinterpret_cast<const uint8_t *>(version::project_version_full), strlen(version::project_version_full), 1000);
         HAL_UART_Transmit(&UART_HANDLE_FOR(esp), &endl, sizeof(endl), 1000);
         osDelay(500); // tester needs 500ms, do not change this value!
     }

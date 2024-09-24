@@ -13,6 +13,7 @@
 #include "mutable_path.hpp"
 #include <logging/log.hpp>
 #include <option/has_mmu2.h>
+#include <version/version.hpp>
 #include "common/printer_model.hpp"
 
 LOG_COMPONENT_REF(Buddy);
@@ -260,19 +261,19 @@ bool GCodeInfo::is_up_to_date(const char *new_version_string) {
         parsed.build_number = 0;
     }
 
-    if (parsed.major > project_version_major) { // Major is higher
+    if (parsed.major > version::project_version_major) { // Major is higher
         return false;
     }
 
-    if (parsed.major == project_version_major && parsed.minor > project_version_minor) { // Minor is higher
+    if (parsed.major == version::project_version_major && parsed.minor > version::project_version_minor) { // Minor is higher
         return false;
     }
 
-    if (parsed.major == project_version_major && parsed.minor == project_version_minor && parsed.patch > project_version_patch) { // Patch is higher
+    if (parsed.major == version::project_version_major && parsed.minor == version::project_version_minor && parsed.patch > version::project_version_patch) { // Patch is higher
         return false;
     }
 
-    if (parsed.major == project_version_major && parsed.minor == project_version_minor && parsed.patch == project_version_patch && parsed.build_number && parsed.build_number > unsigned(project_build_number)) { // Suffix is higher
+    if (parsed.major == version::project_version_major && parsed.minor == version::project_version_minor && parsed.patch == version::project_version_patch && parsed.build_number && parsed.build_number > unsigned(version::project_build_number)) { // Suffix is higher
         return false;
     }
 

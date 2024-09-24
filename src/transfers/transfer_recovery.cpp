@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 
 #include <logging/log.hpp>
-#include <common/version.h>
+#include <version/version.hpp>
 #include <common/bsod.h>
 #include <common/crc32.h>
 #include <common/unique_dir_ptr.hpp>
@@ -82,7 +82,7 @@ bool Transfer::make_backup(FILE *file, const Download::Request &request, const P
 
     transfer.partial_file_state = state;
     transfer.partial_file_state_crc = crc32_calc((const uint8_t *)&state, sizeof(state));
-    transfer.fw_version = SerializedString::serialize(project_version_full, file, error);
+    transfer.fw_version = SerializedString::serialize(version::project_version_full, file, error);
     if (const auto *encrypted = get_if<Download::Request::Encrypted>(&request.data); encrypted != nullptr) {
         transfer.host = SerializedString::serialize(encrypted->host, file, error);
         transfer.port = encrypted->port;
@@ -180,7 +180,7 @@ std::optional<Transfer::RestoredTransfer> Transfer::restore(FILE *file) {
         }
 
         // Fail if even version lengths differ
-        const size_t project_version_full_size = strlen(project_version_full);
+        const size_t project_version_full_size = strlen(version::project_version_full);
         if (transfer.fw_version.size != project_version_full_size + 1) { // +1 for terminating 0 byte not included in strlen
             return std::nullopt;
         }
@@ -191,7 +191,7 @@ std::optional<Transfer::RestoredTransfer> Transfer::restore(FILE *file) {
             if (fread(&c, 1, 1, file) != 1) {
                 return std::nullopt;
             }
-            if (c != project_version_full[pos]) {
+            if (c != version::project_version_full[pos]) {
                 return std::nullopt;
             }
         }

@@ -1,10 +1,9 @@
 #pragma once
-#include <stdint.h>
+
+#include <cstdint>
 #include <cstddef>
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
+namespace version {
 
 /// Project's version (4.0.2)
 extern const char project_version[];
@@ -64,6 +63,4 @@ extern const BuildIdentification project_build_identification;
  */
 void fill_project_version_no_dots(char *buffer, size_t buffer_size);
 
-#ifdef __cplusplus
-}
-#endif //__cplusplus
+} // namespace version

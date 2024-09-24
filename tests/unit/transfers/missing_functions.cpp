@@ -1,7 +1,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <common/version.h>
 #include <transfers/transfer_file_check.hpp>
 
 extern "C" {
@@ -39,5 +38,3 @@ bool random32bit(uint32_t *output) {
     *output = random();
     return true;
 }
-
-const char project_version_full[] = "1.0.0";

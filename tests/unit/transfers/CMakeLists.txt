@@ -22,6 +22,7 @@ add_executable(
 target_include_directories(
   transfers_tests
   PRIVATE .
+          ${CMAKE_CURRENT_SOURCE_DIR}/mock
           ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_SOURCE_DIR}/src/common

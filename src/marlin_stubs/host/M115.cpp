@@ -39,7 +39,7 @@ static void cap_line(PGM_P const name, bool ena = false) {
 }
 #endif
 
-#include "version.h"
+#include <version/version.hpp>
 
 /** \addtogroup G-Codes
  * @{
@@ -50,7 +50,7 @@ static void cap_line(PGM_P const name, bool ena = false) {
  */
 void GcodeSuite::M115() {
     SERIAL_ECHOPGM("FIRMWARE_NAME:Prusa-Firmware-Buddy ");
-    SERIAL_ECHOPGM(project_version_full);
+    SERIAL_ECHOPGM(version::project_version_full);
     SERIAL_ECHOPGM(" (Github) SOURCE_CODE_URL:https://github.com/prusa3d/Prusa-Firmware-Buddy");
     SERIAL_ECHOPGM(" PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:Prusa-" PRINTER_MODEL);
 

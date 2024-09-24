@@ -1,6 +1,6 @@
 #include "crash_dump_distribute.hpp"
 #include <http/socket_connection_factory.hpp>
-#include <version.h>
+#include <version/version.hpp>
 #include <otp.hpp>
 #include <printers.h>
 #include <cstdio>
@@ -45,7 +45,7 @@ bool escape_url_string(std::span<char> escaped_url_string, const std::array<char
 }
 
 void create_url_string(std::array<char, url_buff_size> &url_buff, std::array<char, url_buff_size> &escaped_url_string, const char *board) {
-    [[maybe_unused]] auto rc = snprintf(url_buff.data(), url_buff.size(), "/?printer_type=%s&version=%s&mac=%s&board=%s", PRINTER_MODEL, project_version_full, otp_get_mac_address_str().data(), board);
+    [[maybe_unused]] auto rc = snprintf(url_buff.data(), url_buff.size(), "/?printer_type=%s&version=%s&mac=%s&board=%s", PRINTER_MODEL, version::project_version_full, otp_get_mac_address_str().data(), board);
     assert(static_cast<size_t>(rc) < url_buff_size); // either wanted to write too much, or an error (negative, casted to big unsigned)
     if (!escape_url_string(escaped_url_string, url_buff)) {
         assert(false); // doesn't fit

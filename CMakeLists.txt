@@ -157,12 +157,16 @@ else()
   message(FATAL_ERROR "Unknown printer \"${PRINTER}\".")
 endif()
 
+add_library(printers INTERFACE)
+target_include_directories(printers INTERFACE ${CMAKE_SOURCE_DIR}/include)
+target_compile_definitions(
+  printers INTERFACE PRINTER_TYPE=${PRINTER_TYPE} PRINTER_VERSION=${PRINTER_VERSION}
+                     PRINTER_SUBVERSION=${PRINTER_SUBVERSION}
+  )
+
 target_compile_definitions(
   BuddyHeaders
   INTERFACE PRINTER_MODEL="${PRINTER}"
-            PRINTER_TYPE=${PRINTER_TYPE}
-            PRINTER_VERSION=${PRINTER_VERSION}
-            PRINTER_SUBVERSION=${PRINTER_SUBVERSION}
             PRINTER_CODE=${PRINTER_CODE}
             BOARD=BOARD_${BOARD}
             BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
@@ -171,6 +175,7 @@ target_compile_definitions(
             MARLIN_DISABLE_INFINITE_LOOP
             PROCESS_CUSTOM_GCODE
   )
+target_link_libraries(BuddyHeaders INTERFACE printers)
 
 if(MCU MATCHES "STM32F4")
   target_compile_definitions(BuddyHeaders INTERFACE STM32GENERIC STM32F4 STM32F4xx)
@@ -607,6 +612,7 @@ if(BOARD MATCHES "BUDDY")
                             # $<$<BOOL:${HAS_MMU2}>:error_codes_mmu>
             bgcode_core
             heatshrink_decoder
+            version
     )
 elseif(BOARD STREQUAL "DWARF")
   target_link_libraries(
@@ -634,21 +640,6 @@ elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
                             # $<$<BOOL:${HAS_MMU2}>:error_codes_mmu>
             bgcode_core # todo: remove
             heatshrink_decoder # todo: remove
+            version
     )
 endif()
-
-set_property(
-  SOURCE src/common/version.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS
-           FW_BUILD_NUMBER=${BUILD_NUMBER}
-           FW_VERSION_FULL=${PROJECT_VERSION_FULL}
-           FW_VERSION=${PROJECT_VERSION}
-           FW_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
-           FW_VERSION_MINOR=${PROJECT_VERSION_MINOR}
-           FW_VERSION_PATCH=${PROJECT_VERSION_PATCH}
-           FW_VERSION_SUFFIX=${PROJECT_VERSION_SUFFIX}
-           FW_VERSION_SUFFIX_SHORT=${PROJECT_VERSION_SUFFIX_SHORT}
-           FW_COMMIT_HASH=${FW_COMMIT_HASH}
-           FW_COMMIT_DIRTY=$<BOOL:${FW_COMMIT_DIRTY}>
-  )
