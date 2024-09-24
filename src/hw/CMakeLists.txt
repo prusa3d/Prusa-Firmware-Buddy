@@ -29,7 +29,10 @@ if(HAS_ACCELEROMETER)
 endif()
 
 if(BOARD_IS_MASTER_BOARD)
-  if((PRINTER STREQUAL "MK4") OR (PRINTER STREQUAL "iX"))
+  if((PRINTER STREQUAL "MK4")
+     OR (PRINTER STREQUAL "iX")
+     OR (PRINTER STREQUAL "CUBE")
+     )
     add_subdirectory(mk4_ix)
   endif()
 

@@ -18,6 +18,8 @@
     #include "Configuration_MK3.5_adv.h"
 #elif PRINTER_IS_PRUSA_iX()
     #include "Configuration_iX_adv.h"
+#elif PRINTER_IS_PRUSA_CUBE()
+    #include "Configuration_CUBE_adv.h"
 #else
     #error "Unknown PRINTER_TYPE!"
 #endif

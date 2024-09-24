@@ -401,7 +401,7 @@ public:
     static constexpr const char *qr_addr = "prusa.io/wifiminiqr";
     static constexpr const char *text_addr = "prusa.io/wifimini";
 
-#elif PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX()
+#elif PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_CUBE()
     static constexpr const char *qr_addr = "prusa.io/wifimk4qr";
     static constexpr const char *text_addr = "prusa.io/wifimk4";
 

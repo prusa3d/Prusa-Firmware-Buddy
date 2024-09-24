@@ -33,7 +33,7 @@ if(NOT (${PRINTER} STREQUAL "MINI"))
     )
 endif()
 
-if(PRINTER STREQUAL "MK4")
+if((PRINTER STREQUAL "MK4") OR (PRINTER STREQUAL "CUBE"))
   target_sources(firmware PRIVATE selftest_frame_gears_calib.cpp)
 endif()
 

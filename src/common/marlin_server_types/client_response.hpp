@@ -984,7 +984,7 @@ enum class SelftestParts {
 #if FILAMENT_SENSOR_IS_ADC()
     FSensor,
 #endif
-#if PRINTER_IS_PRUSA_MK4()
+#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_CUBE()
     GearsCalib,
 #endif
     FirstLayer,
@@ -1017,7 +1017,7 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     case SelftestParts::FSensor:
         return PhasesSelftest::_first_FSensor;
 #endif
-#if PRINTER_IS_PRUSA_MK4()
+#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_CUBE()
     case SelftestParts::GearsCalib:
         return PhasesSelftest::_first_GearsCalib;
 #endif
@@ -1067,7 +1067,7 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
     case SelftestParts::FSensor:
         return PhasesSelftest::_last_FSensor;
 #endif
-#if PRINTER_IS_PRUSA_MK4()
+#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_CUBE()
     case SelftestParts::GearsCalib:
         return PhasesSelftest::_last_GearsCalib;
 #endif

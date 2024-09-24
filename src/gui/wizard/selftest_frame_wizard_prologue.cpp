@@ -32,6 +32,11 @@ static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
 static constexpr Align_t align_text_icon = Align_t::CenterTop();
 static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa XL printer.\n"
                                      "I would like to guide you\nthrough the setup process.");
+#elif PRINTER_IS_PRUSA_CUBE()
+static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
+static constexpr Align_t align_text_icon = Align_t::CenterTop();
+static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa CUBE printer.\n"
+                                     "I would like to guide you\nthrough the setup process.");
 #else
     #error "Unknown printer type"
 #endif
