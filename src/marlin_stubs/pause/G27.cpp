@@ -36,7 +36,7 @@ static constexpr EnumArray<G27Params::ParkPosition, xyz_pos_t, G27Params::ParkPo
     #if HAS_WASTEBIN()
         { G27Params::ParkPosition::purge, xyz_pos_t({ X_WASTEBIN_POINT, Y_WASTEBIN_POINT, Z_NOZZLE_PARK_POINT }) },
     #else
-        { G27Params::ParkPosition::purge, xyz_pos_t({ { XYZ_NOZZLE_PARK_POINT } }) },
+        { G27Params::ParkPosition::purge, xyz_pos_t({ X_AXIS_LOAD_POS, Y_AXIS_LOAD_POS, Z_NOZZLE_PARK_POINT }) },
     #endif
         { G27Params::ParkPosition::load, xyz_pos_t({ X_AXIS_LOAD_POS, Y_AXIS_LOAD_POS, Z_NOZZLE_PARK_POINT }) },
 };

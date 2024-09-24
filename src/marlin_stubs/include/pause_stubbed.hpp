@@ -55,6 +55,7 @@ protected:
         await_filament,
         assist_filament_insertion,
         load_in_gear,
+        move_to_purge,
         wait_temp,
         error_temp,
         long_load,
@@ -245,6 +246,8 @@ private:
     bool wait_for_motion_finish_or_user_stop(); //< waits until motion is finished; if stop is triggered then returns true
     bool process_stop();
     void handle_filament_removal(LoadPhases_t phase_to_set); //<checks if filament is present if not it sets different phase
+
+    bool can_move_head_during_load();
 
     enum class RammingType {
         unload,

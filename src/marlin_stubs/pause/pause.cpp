@@ -42,6 +42,7 @@
 #include <config_store/store_instance.hpp>
 #include <scope_guard.hpp>
 #include <filament_to_load.hpp>
+#include <marlin_stubs/pause/G27.hpp>
 
 #include <option/has_human_interactions.h>
 #include <option/has_mmu2.h>
@@ -445,7 +446,14 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             }
             break;
         case CommonLoadType::not_blocking:
-            set_timed(LoadPhases_t::await_filament);
+            // If we are certain that filament has been inserted, we can skip after load_in_gears phase
+            if (FSensors_instance().has_filament_surely()) {
+                set(LoadPhases_t::move_to_purge);
+            } else if (FSensors_instance().sensor(LogicalFilamentSensor::current_side) && is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side))) {
+                set_timed(LoadPhases_t::await_filament);
+            } else {
+                set(LoadPhases_t::load_in_gear);
+            }
             break;
         case CommonLoadType::autoload:
             // if filament is not present we want to break and not set loaded filament
@@ -570,17 +578,22 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         setPhase(is_unstoppable ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
 
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
+
+        // if filament is not present we want to break and not set loaded filament
+        set(LoadPhases_t::move_to_purge);
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+        break;
+    case LoadPhases_t::move_to_purge:
+        if (can_move_head_during_load()) {
+            G27_no_parser({ .where_to_park = G27Params::ParkPosition::purge, .z_action = 4 });
+        }
         if (load_type == CommonLoadType::load_to_gear) {
             set(LoadPhases_t::_finish);
             break;
+        } else {
+            set(LoadPhases_t::wait_temp);
         }
-
-        // if filament is not present we want to break and not set loaded filament
-        config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
-        set(LoadPhases_t::wait_temp);
-        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
-
     case LoadPhases_t::wait_temp:
         if (ensureSafeTemperatureNotifyProgress(30, 50)) {
             set(LoadPhases_t::long_load);
@@ -611,7 +624,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         // Extrude filament to get into hotend
         setPhase(is_unstoppable ? PhasesLoadUnload::Purging_unstoppable : PhasesLoadUnload::Purging_stoppable, 70);
         do_e_move_notify_progress_hotextrude(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
-
+        config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         if constexpr (!option::has_human_interactions) {
             set(LoadPhases_t::_finish);
             break;
@@ -955,9 +968,10 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
         switch (unload_type) {
 
         case CommonUnloadType::standard:
+#if HAS_HUMAN_INTERACTIONS()
             set(UnloadPhases_t::_finish);
             break;
-
+#endif
         case CommonUnloadType::ask_unloaded:
         case CommonUnloadType::filament_change:
         case CommonUnloadType::filament_stuck:
@@ -1299,6 +1313,10 @@ void Pause::unpark_nozzle_and_notify() {
     if (settings.retract) {
         plan_e_move(-settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
     }
+}
+
+inline bool Pause::can_move_head_during_load() {
+    return FSensors_instance().sensor(LogicalFilamentSensor::current_side) && is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side));
 }
 
 /**
