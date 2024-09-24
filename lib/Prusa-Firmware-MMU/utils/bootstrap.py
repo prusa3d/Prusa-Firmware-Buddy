@@ -91,20 +91,34 @@ def find_single_subdir(path: Path):
         raise RuntimeError
 
 
-def download_and_unzip(url: str, directory: Path):
+def download_and_unzip(url: str, directory: Path, dependency: str):
     """Download a compressed file and extract it at `directory`."""
     extract_dir = directory.with_suffix('.temp')
     shutil.rmtree(directory, ignore_errors=True)
     shutil.rmtree(extract_dir, ignore_errors=True)
 
     print('Downloading ' + directory.name)
-    f, _ = urlretrieve(url, filename=None)
-    print('Extracting ' + directory.name)
-    if '.tar.bz2' in url or '.tar.gz' in url or '.tar.xz' in url:
-        obj = tarfile.open(f)
+
+    tarExtensions = (
+        '.tar.bz2',
+        '.tar.gz',
+        '.tar.xz',
+    )
+    zipExtensions = ('.zip')
+
+    if url.endswith(tarExtensions) or url.endswith(zipExtensions):
+        f, _ = urlretrieve(url, filename=None)
+        print('Extracting ' + directory.name)
+        if url.endswith(tarExtensions):
+            obj = tarfile.open(f)
+            obj.extractall(path=str(extract_dir), filter='fully_trusted')
+        else:
+            obj = zipfile.ZipFile(f, 'r')
+            obj.extractall(path=str(extract_dir))
+
     else:
-        obj = zipfile.ZipFile(f, 'r')
-    obj.extractall(path=str(extract_dir))
+        os.mkdir(extract_dir)
+        f, _ = urlretrieve(url, filename=os.path.join(extract_dir, dependency))
 
     subdir = find_single_subdir(extract_dir)
     shutil.move(str(subdir), str(directory))
@@ -149,7 +163,9 @@ def install_dependency(dependency):
     url = specs['url']
     if isinstance(url, dict):
         url = url[platform.system()]
-    download_and_unzip(url=url, directory=installation_directory)
+    download_and_unzip(url=url,
+                       directory=installation_directory,
+                       dependency=dependency)
     fix_executable_permissions(dependency, installation_directory)
 
 

@@ -18,7 +18,6 @@ import sys
 import tarfile
 import venv
 import zipfile
-import stat
 from argparse import ArgumentParser
 from pathlib import Path
 from urllib.request import urlretrieve
@@ -61,7 +60,7 @@ dependencies = {
             'Linux': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz',
             'Linux-aarch64': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-aarch64-arm-none-eabi.tar.xz',
             'Windows': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-mingw-w64-i686-arm-none-eabi.zip',
-            'Darwin': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-darwin-x86_64-arm-none-eabi.tar.xzg',
+            'Darwin': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-darwin-x86_64-arm-none-eabi.tar.xz',
         }
     },
     'clang-format': {
@@ -138,20 +137,34 @@ def find_single_subdir(path: Path):
         raise RuntimeError
 
 
-def download_and_unzip(url: str, directory: Path):
+def download_and_unzip(url: str, directory: Path, dependency: str):
     """Download a compressed file and extract it at `directory`."""
     extract_dir = directory.with_suffix('.temp')
     shutil.rmtree(directory, ignore_errors=True)
     shutil.rmtree(extract_dir, ignore_errors=True)
 
     print('Downloading ' + directory.name)
-    f, _ = urlretrieve(url, filename=None)
-    print('Extracting ' + directory.name)
-    if '.tar.bz2' in url or '.tar.gz' in url or '.tar.xz' in url:
-        obj = tarfile.open(f)
+
+    tarExtensions = (
+        '.tar.bz2',
+        '.tar.gz',
+        '.tar.xz',
+    )
+    zipExtensions = ('.zip')
+
+    if url.endswith(tarExtensions) or url.endswith(zipExtensions):
+        f, _ = urlretrieve(url, filename=None)
+        print('Extracting ' + directory.name)
+        if url.endswith(tarExtensions):
+            obj = tarfile.open(f)
+            obj.extractall(path=str(extract_dir), filter='fully_trusted')
+        else:
+            obj = zipfile.ZipFile(f, 'r')
+            obj.extractall(path=str(extract_dir))
+
     else:
-        obj = zipfile.ZipFile(f, 'r')
-    obj.extractall(path=str(extract_dir))
+        os.mkdir(extract_dir)
+        f, _ = urlretrieve(url, filename=os.path.join(extract_dir, dependency))
 
     subdir = find_single_subdir(extract_dir)
     shutil.move(str(subdir), str(directory))
@@ -202,7 +215,9 @@ def install_dependency(dependency):
                 url = url[platform.system()]
             else:
                 url = url[full_description]
-        download_and_unzip(url=url, directory=installation_directory)
+        download_and_unzip(url=url,
+                           directory=installation_directory,
+                           dependency=dependency)
     elif files is not None:
         os.mkdir(installation_directory)
         for file in files:
