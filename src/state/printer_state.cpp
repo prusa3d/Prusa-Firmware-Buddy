@@ -529,9 +529,12 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
 
     case WarningType::MetricsConfigChangePrompt:
         return ErrCode::ERR_CONNECT_GCODE_METRICS_CONFIG_CHANGE;
-
     case WarningType::AccelerometerCommunicationFailed:
         return ErrCode::ERR_ELECTRO_ACCELEROMETER_COMMUNICATION_FAILED;
+#if PRINTER_IS_PRUSA_iX()
+    case WarningType::FilamentLoadingTimeout:
+        return ErrCode::CONNECT_FILAMENT_LOADING_TIMEOUT;
+#endif
     }
 
     assert(false);
