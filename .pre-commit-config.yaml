@@ -14,7 +14,7 @@ repos:
     - id: clang-format
       name: clang-format
       description: This hook automatically checks and reformats changed files using clang-format formatter.
-      entry: './.dependencies/clang-format-16-83817c2f/clang-format'
+      entry: './.dependencies/clang-format-18.1.8/clang-format'
       language: script
       files: \.(h\+\+|h|hh|hxx|hpp|cuh|c|cc|cpp|cu|c\+\+|cxx|tpp|txx)$
       args: ['-i', '-style=file']

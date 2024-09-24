@@ -53,7 +53,7 @@ rm -rf full-chars.txt standard-chars.txt digits-chars.txt
 # Build png2font binary
 mkdir -p build_tests
 cd build_tests
-../.dependencies/cmake-3.28.3/bin/cmake -D CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=YES -D CMAKE_C_FLAGS="-O0 -ggdb3" -D CMAKE_CXX_FLAGS="-O0 -ggdb3 -std=c++20" -D CMAKE_BUILD_TYPE=Debug .. -G Ninja
+../.dependencies/cmake-3.30.3/bin/cmake -D CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=YES -D CMAKE_C_FLAGS="-O0 -ggdb3" -D CMAKE_CXX_FLAGS="-O0 -ggdb3 -std=c++20" -D CMAKE_BUILD_TYPE=Debug .. -G Ninja
 ninja utils/translations_and_fonts/png2font/png2font
 cd ../
 

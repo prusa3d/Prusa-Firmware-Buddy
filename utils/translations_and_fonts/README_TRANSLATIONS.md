@@ -88,7 +88,7 @@ cd build_tests
 # If it says, that -std=c++20 does not exist, your compilator is too old. Install g++-10 and run this command before cmake:
 # export CXX=/bin/g++-10
 
-../.dependencies/cmake-3.28.3/bin/cmake -D CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=YES -D CMAKE_C_FLAGS="-O0 -ggdb3" -D CMAKE_CXX_FLAGS="-O0 -ggdb3 -std=c++20" -D CMAKE_BUILD_TYPE=Debug ..
+../.dependencies/cmake-3.30.3/bin/cmake -D CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=YES -D CMAKE_C_FLAGS="-O0 -ggdb3" -D CMAKE_CXX_FLAGS="-O0 -ggdb3 -std=c++20" -D CMAKE_BUILD_TYPE=Debug ..
 make -j$(nproc) tests VERBOSE=1 # This will build unit tests
-../.dependencies/cmake-3.28.3/bin/ctest --output-on-failure . # This will run unit tests
+../.dependencies/cmake-3.30.3/bin/ctest --output-on-failure . # This will run unit tests
 ```

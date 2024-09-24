@@ -3,7 +3,7 @@
         "name": "avr-gcc",
         "toolchainFile": "${workspaceFolder}/cmake/AvrGcc.cmake",
         "cmakeSettings": {
-            "CMAKE_MAKE_PROGRAM": "${workspaceFolder}/.dependencies/ninja-1.10.2/ninja",
+            "CMAKE_MAKE_PROGRAM": "${workspaceFolder}/.dependencies/ninja-1.12.1/ninja",
             "CMAKE_BUILD_TYPE": "Release"
         }
     }
