@@ -97,22 +97,11 @@ void run_once_after_boot() {
             reset_pp = false;
         }
     #endif
-        if (!reset_pp) {
+        if (!reset_pp && file_exists(power_panic::stored_media_path()) && usb_host::is_media_inserted_since_startup()) {
             // load the panic data and setup print progress early
-            const char *path = power_panic::stored_media_path();
-            bool resume = false;
-            bool path_exists = file_exists(path);
-            if (path_exists) {
-                resume = true;
-            } else if (!path_exists) {
-                // TODO: ask about wrong stick. do not clear the state yet!
-                reset_pp = false;
-            }
-            if (resume) {
-                // resume and bypass g-code autostart
-                power_panic::resume_print();
-                return;
-            }
+            // resume and bypass g-code autostart
+            power_panic::resume_print();
+            return;
         }
         if (reset_pp) {
             power_panic::reset();
