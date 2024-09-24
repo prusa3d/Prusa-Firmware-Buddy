@@ -9,8 +9,14 @@
 #include "IPause.hpp"
 #include "../../lib/Marlin/Marlin/src/core/utility.h"
 
+#include <option/has_human_interactions.h>
+
 class SafetyTimer {
+#if !HAS_HUMAN_INTERACTIONS()
+    static constexpr millis_t default_interval = 10 * 60 * 1000;
+#else
     static constexpr millis_t default_interval = 30 * 60 * 1000;
+#endif
     IPause *pBoundPause;
     millis_t interval; // zero if disabled
     millis_t last_reset;
