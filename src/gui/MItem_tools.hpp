@@ -147,6 +147,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+#if PRINTER_IS_PRUSA_MK4()
 class MI_FACTORY_SHIPPING_PREP : public IWindowMenuItem {
     static constexpr const char *const label = N_("Shipping Preparation");
 
@@ -156,6 +157,7 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+#endif
 
 #ifdef BUDDY_ENABLE_DFU_ENTRY
 class MI_ENTER_DFU : public IWindowMenuItem {

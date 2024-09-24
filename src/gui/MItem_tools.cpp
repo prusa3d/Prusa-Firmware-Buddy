@@ -264,6 +264,7 @@ void do_factory_reset(bool wipe_fw) {
     msg_and_sys_reset();
 }
 
+#if PRINTER_IS_PRUSA_MK4()
 void do_shipping_prep() {
     auto msg = MsgBoxBase(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, // a dummy comment to break line by force
         _("Shipping preparation\n\nErasing configuration\n(but keeping Nextruder type)\nit will take some time..."));
@@ -291,6 +292,7 @@ void do_shipping_prep() {
 
     msg_and_sys_reset();
 }
+#endif
 
 } // anonymous namespace
 
@@ -319,6 +321,7 @@ void MI_FACTORY_HARD_RESET::click(IWindowMenu & /*window_menu*/) {
     }
 }
 
+#if PRINTER_IS_PRUSA_MK4()
 MI_FACTORY_SHIPPING_PREP::MI_FACTORY_SHIPPING_PREP()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -328,6 +331,7 @@ void MI_FACTORY_SHIPPING_PREP::click(IWindowMenu & /*window_menu*/) {
         do_shipping_prep();
     }
 }
+#endif
 
 /*****************************************************************************/
 // MI_ENTER_DFU
