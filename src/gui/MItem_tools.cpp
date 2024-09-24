@@ -222,13 +222,22 @@ void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 
 namespace {
-void do_factory_reset(bool wipe_fw) {
-    auto msg = MsgBoxBase(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, wipe_fw ? _("Erasing everything,\nit will take some time...") : _("Erasing configuration,\nit will take some time..."));
-    msg.Draw(); // Non-blocking info
+void st25dv64k_chip_erase() {
     static constexpr uint32_t empty = 0xffffffff;
     for (uint16_t address = 0; address <= (8096 - 4); address += 4) {
         st25dv64k_user_write_bytes(address, &empty, sizeof(empty));
     }
+}
+
+void msg_and_sys_reset() {
+    MsgBoxInfo(_("Reset complete. The system will now restart."), Responses_Ok);
+    sys_reset();
+}
+
+void do_factory_reset(bool wipe_fw) {
+    auto msg = MsgBoxBase(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, wipe_fw ? _("Erasing everything,\nit will take some time...") : _("Erasing configuration,\nit will take some time..."));
+    msg.Draw(); // Non-blocking info
+    st25dv64k_chip_erase();
     if (wipe_fw) {
         w25x_chip_erase();
 #if BOOTLOADER()
@@ -239,9 +248,37 @@ void do_factory_reset(bool wipe_fw) {
         // Never gets here
 #endif /*BOOTLOADER()*/
     }
-    MsgBoxInfo(_("Reset complete. The system will now restart."), Responses_Ok);
-    sys_reset();
+    msg_and_sys_reset();
 }
+
+void do_shipping_prep() {
+    auto msg = MsgBoxBase(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, // a dummy comment to break line by force
+        _("Shipping preparation\n\nErasing configuration\n(but keeping Nextruder type)\nit will take some time..."));
+    msg.Draw(); // Non-blocking info
+
+    bool is_mmu_rework = config_store().is_mmu_rework.get();
+    uint8_t ext_printer_type = config_store().extended_printer_type.get();
+
+    // To avoid data deduplication on the config_store level, which could prevent the data actually being written into the chip's memory,
+    // let's force default values at this spot.
+    // Doing so here also prevents wasting journal records while writing later.
+    // The defaults could be probably obtained from the config_store definition somehow, but that is not important.
+    config_store().is_mmu_rework.set(false);
+    config_store().extended_printer_type.set(0);
+
+    st25dv64k_chip_erase();
+
+    // build the structures again - this is the tricky part
+    config_store().get_backend().erase_storage_area();
+    config_store().init();
+
+    // write back the flags we want to keep
+    config_store().is_mmu_rework.set(is_mmu_rework);
+    config_store().extended_printer_type.set(ext_printer_type);
+
+    msg_and_sys_reset();
+}
+
 } // anonymous namespace
 
 MI_FACTORY_SOFT_RESET::MI_FACTORY_SOFT_RESET()
@@ -269,6 +306,16 @@ void MI_FACTORY_HARD_RESET::click(IWindowMenu & /*window_menu*/) {
 
     if (MsgBoxWarning(_(buff), Responses_YesNo, 1) == Response::Yes) {
         do_factory_reset(true);
+    }
+}
+
+MI_FACTORY_SHIPPING_PREP::MI_FACTORY_SHIPPING_PREP()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_FACTORY_SHIPPING_PREP::click(IWindowMenu & /*window_menu*/) {
+    if (MsgBoxWarning(_("This operation cannot be undone. Current configuration will be lost!\nDo you want to perform the Factory Shipping Preparation procedure?"), Responses_YesNo, 1) == Response::Yes) {
+        do_shipping_prep();
     }
 }
 
