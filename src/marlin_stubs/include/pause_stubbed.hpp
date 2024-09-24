@@ -52,6 +52,7 @@ protected:
         _finish = intFinishVal,
         _init = int(UnloadPhases_t::_last) + 1,
         check_filament_sensor_and_user_push__ask, // must be one phase because of button click
+        await_filament,
         assist_filament_insertion,
         load_in_gear,
         wait_temp,

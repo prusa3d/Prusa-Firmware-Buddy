@@ -445,7 +445,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             }
             break;
         case CommonLoadType::not_blocking:
-            set_timed(LoadPhases_t::assist_filament_insertion);
+            set_timed(LoadPhases_t::await_filament);
             break;
         case CommonLoadType::autoload:
             // if filament is not present we want to break and not set loaded filament
@@ -522,6 +522,24 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             settings.do_stop = true;
         }
         break;
+
+    case LoadPhases_t::await_filament: {
+        setPhase(PhasesLoadUnload::Inserting_stoppable);
+        // If EXTRUDER sensor is not assigned or not working, or if the user fails to insert filament in time, show Warning and quit loading.
+        if (!FSensors_instance().sensor(LogicalFilamentSensor::current_extruder) || !is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_extruder)) || ticks_diff(ticks_ms(), start_time_ms) > 10 * 60 * 1000) {
+            marlin_server::set_warning(WarningType::FilamentLoadingTimeout);
+            set(LoadPhases_t::_finish);
+            break;
+        }
+
+        if (!FSensors_instance().sensor(LogicalFilamentSensor::current_side) || !is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side)) // If SIDE sensor is not assigned or not working go directly to loading
+            || FSensors_instance().sensor(LogicalFilamentSensor::current_side)->get_state() == FilamentSensorState::HasFilament) { // If filament arrived at SIDE sensor, we can start loading sequence.
+            set_timed(LoadPhases_t::assist_filament_insertion);
+            break;
+        }
+
+        break;
+    }
 
     case LoadPhases_t::assist_filament_insertion: {
         setPhase(is_unstoppable ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
