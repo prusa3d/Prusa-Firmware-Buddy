@@ -147,6 +147,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_FACTORY_SHIPPING_PREP : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Shipping Preparation");
+
+public:
+    MI_FACTORY_SHIPPING_PREP();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 #ifdef BUDDY_ENABLE_DFU_ENTRY
 class MI_ENTER_DFU : public IWindowMenuItem {
     static constexpr const char *const label = "Enter DFU";
