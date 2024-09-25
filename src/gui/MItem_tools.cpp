@@ -251,7 +251,7 @@ void do_factory_reset(bool wipe_fw) {
     msg_and_sys_reset();
 }
 
-#if PRINTER_IS_PRUSA_MK4()
+#if PRINTER_IS_PRUSA_MK4
 void do_shipping_prep() {
     auto msg = MsgBoxBase(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, // a dummy comment to break line by force
         _("Shipping preparation\n\nErasing configuration\n(but keeping Nextruder type)\nit will take some time..."));
@@ -260,18 +260,17 @@ void do_shipping_prep() {
     bool is_mmu_rework = config_store().is_mmu_rework.get();
     uint8_t ext_printer_type = config_store().extended_printer_type.get();
 
-    // To avoid data deduplication on the config_store level, which could prevent the data actually being written into the chip's memory,
-    // let's force default values at this spot.
-    // Doing so here also prevents wasting journal records while writing later.
-    // The defaults could be probably obtained from the config_store definition somehow, but that is not important.
-    config_store().is_mmu_rework.set(false);
-    config_store().extended_printer_type.set(0);
-
     st25dv64k_chip_erase();
 
-    // build the structures again - this is the tricky part
-    config_store().get_backend().erase_storage_area();
-    config_store().init();
+    // Build the structures again - this is the tricky part.
+    // What an awful way of force-reinitializing the RAM data structures of config_store
+    // - unfortunately it gobbled up 3KB of code space. It would be nice to find a more subtle impl.
+    using Store = std::remove_cvref_t<decltype(config_store())>;
+    config_store().~Store();
+    new (&config_store()) Store();
+
+    init_config_store();
+    config_store().perform_config_check();
 
     // write back the flags we want to keep
     config_store().is_mmu_rework.set(is_mmu_rework);
@@ -311,7 +310,7 @@ void MI_FACTORY_HARD_RESET::click(IWindowMenu & /*window_menu*/) {
     }
 }
 
-#if PRINTER_IS_PRUSA_MK4()
+#if PRINTER_IS_PRUSA_MK4
 MI_FACTORY_SHIPPING_PREP::MI_FACTORY_SHIPPING_PREP()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
