@@ -45,6 +45,7 @@
 #include <time.h>
 #include <footer_items_heaters.hpp>
 #include <footer_line.hpp>
+#include <freertos/critical_section.hpp>
 #include <str_utils.hpp>
 #include <netdev.h>
 #include <wui.h>
@@ -275,18 +276,20 @@ void do_shipping_prep() {
     bool is_mmu_rework = config_store().is_mmu_rework.get();
     uint8_t ext_printer_type = config_store().extended_printer_type.get();
 
-    st25dv64k_chip_erase();
+    {
+        freertos::CriticalSection critical_section;
+        st25dv64k_chip_erase();
 
-    // Build the structures again - this is the tricky part.
-    // What an awful way of force-reinitializing the RAM data structures of config_store
-    // - unfortunately it gobbled up 3KB of code space. It would be nice to find a more subtle impl.
-    using Store = std::remove_cvref_t<decltype(config_store())>;
-    config_store().~Store();
-    new (&config_store()) Store();
+        // Build the structures again - this is the tricky part.
+        // What an awful way of force-reinitializing the RAM data structures of config_store
+        // - unfortunately it gobbled up 3KB of code space. It would be nice to find a more subtle impl.
+        using Store = std::remove_cvref_t<decltype(config_store())>;
+        config_store().~Store();
+        new (&config_store()) Store();
 
-    init_config_store();
-    config_store().perform_config_check();
-
+        init_config_store();
+        config_store().perform_config_check();
+    }
     // write back the flags we want to keep
     config_store().is_mmu_rework.set(is_mmu_rework);
     config_store().extended_printer_type.set(ext_printer_type);
