@@ -88,7 +88,6 @@ target_include_directories(
             include/usb_host
             include/usb_device
             include/marlin
-            include/freertos
             src/hw
             src/common
             src/persistent_stores
@@ -227,7 +226,6 @@ target_link_libraries(Segger_Config INTERFACE BuddyHeaders)
 #
 
 add_library(FreeRTOS_Config INTERFACE)
-target_include_directories(FreeRTOS_Config INTERFACE include/freertos)
 target_link_libraries(FreeRTOS_Config INTERFACE Segger BuddyHeaders)
 
 #
