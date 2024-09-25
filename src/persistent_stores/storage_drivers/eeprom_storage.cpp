@@ -14,9 +14,8 @@ void EEPROMStorage::write_bytes(uint16_t address, std::span<const uint8_t> data)
 };
 
 void EEPROMStorage::erase_area(uint16_t start_address, uint16_t end_address) {
-    uint8_t data[] { 0xff, 0xff, 0xff, 0xff };
-    static_assert(sizeof(data) == 4, "Wrongly initialized");
-    for (; start_address < end_address; start_address += sizeof(data)) {
+    static constexpr std::array<uint8_t, 4> data { 0xff, 0xff, 0xff, 0xff };
+    for (; start_address < end_address; start_address += data.size()) {
         write_bytes(start_address, data);
     }
 }

@@ -50,6 +50,8 @@
 #include <wui.h>
 #include <power_panic.hpp>
 
+#include <type_traits>
+
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "../../../lib/Marlin/Marlin/src/module/prusa/toolchanger.h"
     #include "screen_menu_tools.hpp"
@@ -273,18 +275,17 @@ void do_shipping_prep() {
     bool is_mmu_rework = config_store().is_mmu_rework.get();
     uint8_t ext_printer_type = config_store().extended_printer_type.get();
 
-    // To avoid data deduplication on the config_store level, which could prevent the data actually being written into the chip's memory,
-    // let's force default values at this spot.
-    // Doing so here also prevents wasting journal records while writing later.
-    // The defaults could be probably obtained from the config_store definition somehow, but that is not important.
-    config_store().is_mmu_rework.set(false);
-    config_store().extended_printer_type.set(0);
-
     st25dv64k_chip_erase();
 
-    // build the structures again - this is the tricky part
-    config_store().get_backend().erase_storage_area();
-    config_store().init();
+    // Build the structures again - this is the tricky part.
+    // What an awful way of force-reinitializing the RAM data structures of config_store
+    // - unfortunately it gobbled up 3KB of code space. It would be nice to find a more subtle impl.
+    using Store = std::remove_cvref_t<decltype(config_store())>;
+    config_store().~Store();
+    new (&config_store()) Store();
+
+    init_config_store();
+    config_store().perform_config_check();
 
     // write back the flags we want to keep
     config_store().is_mmu_rework.set(is_mmu_rework);
