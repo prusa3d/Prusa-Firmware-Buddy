@@ -160,9 +160,6 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
     switch (id) {
 
     case HOST_USER_DISCONNECTION:
-#ifdef USBH_MSC_READAHEAD
-        usbh_msc_readahead.disable();
-#endif
         media_inserted = false;
         media_inserted_since_startup = false;
         f_mount(0, (TCHAR const *)USBHPath, 1); // umount
@@ -176,9 +173,6 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
 
         media_inserted_since_startup = (media_on_startup_detection_timeout != 0);
         media_inserted = true;
-#ifdef USBH_MSC_READAHEAD
-        usbh_msc_readahead.enable(USBHFatFS.pdrv);
-#endif
 
         marlin_client::init_maybe();
         marlin_client::try_recover_from_media_error();

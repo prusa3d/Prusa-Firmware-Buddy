@@ -42,10 +42,6 @@ const Diskio_drvTypeDef USBH_Driver = {
 #endif /* FF_FS_READONLY == 0 */
 };
 
-#ifdef USBH_MSC_READAHEAD
-UsbhMscReadahead usbh_msc_readahead;
-#endif
-
 osThreadId USBH_MSC_WorkerTaskHandle;
 
 static constexpr size_t queue_length = 5;
@@ -90,18 +86,6 @@ USBH_StatusTypeDef usbh_msc_submit_request(UsbhMscRequest *request) {
     // we don't have any io scheduler, but if only tasks with the same priority send
     // their requests, they will be distributed fairly
     assert(((DWORD)request->data & 3) == 0);
-#ifdef USBH_MSC_READAHEAD
-    switch (request->operation) {
-    case UsbhMscRequest::UsbhMscRequestOperation::Read:
-        usbh_msc_readahead.notify_read(request->lun, request->sector_nbr + request->count);
-        break;
-    case UsbhMscRequest::UsbhMscRequestOperation::Write:
-        usbh_msc_readahead.invalidate(request->lun, request->sector_nbr, request->count);
-        break;
-    case UsbhMscRequest::UsbhMscRequestOperation::Noop:
-        break;
-    }
-#endif
     if (xQueueSend(request_queue, &request, portMAX_DELAY) != pdPASS) {
         return USBH_FAIL;
     }
@@ -114,28 +98,7 @@ USBH_StatusTypeDef usbh_msc_submit_request(UsbhMscRequest *request) {
 static void USBH_MSC_WorkerTask(void const *) {
     for (;;) {
         UsbhMscRequest *request;
-#ifdef USBH_MSC_READAHEAD
-        usbh_msc_readahead.send_stats();
-        BaseType_t queue_status;
-        TickType_t ticks_to_wait = 0;
-        do {
-            queue_status = xQueueReceive(request_queue, &request, ticks_to_wait);
-            if (queue_status != pdPASS) {
-                bool preload_performed = usbh_msc_readahead.preload();
-                if (preload_performed) {
-    #ifdef USBH_MSC_READAHEAD_STATISTICS
-                    if (uxQueueMessagesWaiting(request_queue)) {
-                        usbh_msc_readahead.inc_stats_block_another_io();
-                    }
-    #endif
-                } else {
-                    ticks_to_wait = portMAX_DELAY;
-                }
-            }
-        } while (queue_status != pdPASS);
-#else
         BaseType_t queue_status = xQueueReceive(request_queue, &request, portMAX_DELAY);
-#endif
         if (queue_status == pdPASS && request->operation != UsbhMscRequest::UsbhMscRequestOperation::Noop) {
             {
                 switch (request->operation) {
@@ -212,7 +175,7 @@ static USBH_StatusTypeDef USBH_MSC_GetLUNInfo_synchronized(
  * @param  count: Number of sectors to read (1..128)
  * @retval DRESULT: Operation result
  */
-DRESULT USBH_read_ii(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
+DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
     USBH_StatusTypeDef status = USBH_OK;
@@ -251,40 +214,6 @@ DRESULT USBH_read_ii(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
     return res;
 }
 
-DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
-#ifdef USBH_MSC_READAHEAD
-    assert(count <= 32);
-    DRESULT result = RES_OK;
-    // use a mask register to indicate which sectors are taken from the cache
-    // from the least significant bit (0 means it needs to be loaded)
-    uint32_t mask = ~0u << count;
-    for (unsigned i = 0; i < count; ++i) {
-        if (usbh_msc_readahead.get(lun, sector + i, buff + i * UsbhMscRequest::SECTOR_SIZE)) {
-            mask |= 1 << i;
-        }
-    }
-    if (mask != ~0u << count) { // some sectors in the cache
-        while (mask != ~0u) {
-            int i = std::countr_one(mask);
-            result = USBH_read_ii(lun, buff + i * UsbhMscRequest::SECTOR_SIZE, sector + i, 1);
-            if (result != RES_OK) {
-                return result;
-            }
-            mask |= 1 << i;
-        }
-    } else { // no cache match => read whole buffer at once
-        result = USBH_read_ii(lun, buff, sector, count);
-    }
-    #ifdef USBH_MSC_READAHEAD
-    usbh_msc_readahead.notify_read(lun, sector + count);
-    #endif
-
-    return result;
-#else
-    return USBH_read_ii(lun, buff, sector, count);
-#endif
-}
-
 /**
  * @brief  Writes Sector(s)
  * @param  lun : lun id
@@ -298,9 +227,6 @@ DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
     USBH_StatusTypeDef status = USBH_OK;
-    #ifdef USBH_MSC_READAHEAD
-    usbh_msc_readahead.invalidate(lun, sector, count);
-    #endif
     if ((DWORD)buff & 3) { // DMA Alignment issue, do single up to aligned buffer
         USBH_ErrLog("Suspicious DMA Alignment issue, do single up to aligned buffer");
         while (count--) {
@@ -400,178 +326,3 @@ DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
     return res;
 }
 #endif /* FF_FS_READONLY == 0 */
-
-#ifdef USBH_MSC_READAHEAD
-
-bool UsbhMscReadahead::get(UsbhMscRequest::LunNbr lun_nbr, UsbhMscRequest::SectorNbr sector_nbr, uint8_t *data) {
-    if (this->lun_nbr != lun_nbr) {
-        return false;
-    }
-
-    bool found = false;
-    {
-        Lock lock(mutex);
-        auto entry = std::find(begin(cache), end(cache), sector_nbr);
-
-        if (entry != end(cache)) {
-            Lock lock2(entry->mutex);
-            if (entry->sector_nbr == sector_nbr) {
-                entry->timestamp = 0;
-                if (entry->preloaded) {
-                    found = true;
-                    memcpy(data, entry->data, UsbhMscRequest::SECTOR_SIZE);
-                } else {
-                    entry->reset();
-                    entry->sector_nbr = INVALID_SECTOR_NBR;
-                }
-            }
-        }
-    }
-    if (found) {
-        inc_stats_hit();
-        xTaskNotifyGive(USBH_MSC_WorkerTaskHandle);
-        return true;
-    } else {
-        inc_stats_missed();
-        return false;
-    }
-}
-
-// typical fatfs read requests are 1kb so it's a good idea to preload 2 sectors
-void UsbhMscReadahead::notify_read(UsbhMscRequest::LunNbr lun_nbr, UsbhMscRequest::SectorNbr sector_nbr) {
-    Lock lock(mutex);
-    if (this->lun_nbr != lun_nbr) {
-        return;
-    }
-    static_assert(size >= 2);
-    // find the oldest and second oldest slots
-    auto it = begin(cache);
-    auto first = it++;
-    auto second = it++;
-    if (*second < *first) {
-        std::swap(first, second);
-    }
-
-    for (; it != end(cache); ++it) {
-        if (*it < *first) {
-            second = first;
-            first = it;
-        } else if (*it < *second) {
-            second = it;
-        }
-    }
-
-    auto plan = [](auto it, auto sector_nbr) {
-        Lock locks(it->mutex);
-        it->sector_nbr = sector_nbr;
-        it->preloaded = false;
-        it->timestamp = osKernelSysTick();
-    };
-    if (std::find(begin(cache), end(cache), sector_nbr) == end(cache)) {
-        plan(first, sector_nbr);
-    } else {
-        second = first;
-    }
-    sector_nbr++;
-    if (std::find(begin(cache), end(cache), sector_nbr) == end(cache)) {
-        plan(second, sector_nbr);
-    }
-    // wake up the USBH_worker task to perform another readahead
-    static UsbhMscRequest noop = {
-        .operation = UsbhMscRequest::UsbhMscRequestOperation::Noop,
-        .lun = 0,
-        .count = 0,
-        .sector_nbr = 0,
-        .data = 0,
-        .result = USBH_OK,
-        .callback = 0,
-        .callback_param1 = 0,
-        .callback_param2 = 0
-    };
-    static UsbhMscRequest *noop_ptr = &noop;
-    xQueueSend(request_queue, &noop_ptr, 0);
-}
-
-void UsbhMscReadahead::enable(UsbhMscRequest::LunNbr lun_nbr) {
-    this->lun_nbr = lun_nbr;
-}
-
-void UsbhMscReadahead::disable() {
-    Lock lock(mutex);
-    reset();
-    this->lun_nbr = INVALID_LUN_NBR;
-}
-
-void UsbhMscReadahead::invalidate(UsbhMscRequest::LunNbr lun_nbr, UsbhMscRequest::SectorNbr sector_nbr, size_t count) {
-    Lock lock(mutex);
-    if (this->lun_nbr != lun_nbr) {
-        return;
-    }
-    for (auto &e : cache) {
-        if (e.sector_nbr >= sector_nbr && e.sector_nbr < sector_nbr + count) {
-            Lock lock2(e.mutex);
-            e.reset();
-        }
-    }
-}
-
-bool UsbhMscReadahead::preload() {
-    decltype(cache)::iterator entry;
-    {
-        Lock lock(mutex);
-
-        if (this->lun_nbr == INVALID_LUN_NBR) {
-            return false;
-        }
-        entry = std::find_if(begin(cache), end(cache),
-            [](const auto &e) {
-                return e.preloaded == false && e.sector_nbr != INVALID_SECTOR_NBR;
-            });
-
-        if (entry == end(cache)) {
-            return false;
-        }
-    }
-    {
-    #ifdef USBH_MSC_READAHEAD_STATISTICS
-        stats_speculative_read_count++;
-    #endif
-        {
-            Lock lock(entry->mutex);
-            if (entry->preloaded == false && entry->sector_nbr != INVALID_SECTOR_NBR) {
-                auto result = USBH_MSC_Read(&hUsbHostHS, lun_nbr, entry->sector_nbr, entry->data, 1);
-                if (result == USBH_OK) {
-                    entry->preloaded = true;
-                } else {
-                    entry->reset();
-                }
-            }
-        }
-        return true;
-    }
-}
-
-void UsbhMscReadahead::reset() {
-    for (auto &e : cache) {
-        e.reset();
-    }
-}
-
-void UsbhMscReadahead::send_stats() {
-    #ifdef USBH_MSC_READAHEAD_STATISTICS
-    auto now = osKernelSysTick();
-    if (now - sent_statistics_timestamp > 5000) {
-        log_info(USBHost, "MSC readahead stat speculative reads=%" PRIu32 ", hit=%" PRIu32 ", missed=%" PRIu32 ", blocking=%" PRIu32,
-            stats_speculative_read_count.load(), stats_hit.load(), stats_missed.load(), stats_block_another_io.load());
-        sent_statistics_timestamp = now;
-    }
-    #endif
-}
-
-void UsbhMscReadahead::inc_stats_block_another_io() {
-    #ifdef USBH_MSC_READAHEAD_STATISTICS
-    stats_block_another_io++;
-    #endif
-}
-
-#endif // USBH_MSC_READAHEAD
