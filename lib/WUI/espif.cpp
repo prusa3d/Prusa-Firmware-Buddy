@@ -15,6 +15,7 @@
 #include <freertos/binary_semaphore.hpp>
 #include <freertos/mutex.hpp>
 #include <common/metric.h>
+#include <common/crc32.h>
 #include <freertos/queue.hpp>
 #include <task.h>
 #include <semphr.h>
@@ -24,6 +25,9 @@
 
 #include <buddy/esp_uart_dma_buffer_rx.hpp>
 #include "data_exchange.hpp"
+#include "esp_protocol/messages.hpp"
+#include "esp_protocol/parser.hpp"
+#include "pbuf_deleter.hpp"
 #include "pbuf_rx.h"
 #include "scope_guard.hpp"
 #include "wui.h"
@@ -91,20 +95,7 @@ enum ESPIFOperatingMode {
     ESPIF_FLASHING_ERROR_OTHER,
 };
 
-enum MessageType {
-    MSG_DEVINFO_V2 = 0,
-    MSG_CLIENTCONFIG_V2 = 6,
-    MSG_PACKET_V2 = 7,
-    MSG_SCAN_START = 8,
-    MSG_SCAN_STOP = 9,
-    MSG_SCAN_AP_CNT = 10,
-    MSG_SCAN_AP_GET = 11,
-};
-
-static constexpr uint8_t SUPPORTED_FW_VERSION = 12;
-
 // NIC state
-static std::atomic<uint8_t> fw_version;
 static std::atomic<ESPIFOperatingMode> esp_operating_mode = ESPIF_UNINITIALIZED_MODE;
 static std::atomic<bool> associated = false;
 static std::atomic<netif *> active_esp_netif;
@@ -112,7 +103,6 @@ static std::atomic<netif *> active_esp_netif;
 static std::atomic<uint8_t> init_countdown = 20;
 static std::atomic<bool> seen_intron = false;
 static std::atomic<bool> seen_pong = false;
-static std::atomic<bool> reset_parser = false;
 
 // UART
 static std::atomic<bool> esp_detected;
@@ -124,37 +114,28 @@ static size_t old_dma_pos = 0;
 static freertos::Mutex uart_write_mutex;
 static std::atomic<bool> uart_error_occured = false;
 // Note: We never transmit more than one message so we might as well allocate statically.
-static struct __attribute__((packed)) {
-    uint8_t intron[8];
-    uint8_t type;
-    uint8_t byte; // interpretation depends on particular type
-    uint16_t size;
-} tx_message = {
-    .intron = { 'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05' },
-    .type = 0,
-    .byte = 0,
-    .size = 0,
-};
-
-struct APInfo {
-    std::span<uint8_t> ssid;
-    uint8_t ap_index;
-    bool requires_password;
+static esp::MessagePrelude tx_message = {
+    .intron = esp::DEFAULT_INTRON,
+    .header = {
+        .type = esp::MessageType::DEVICE_INFO_V2,
+        .variable_byte = 0,
+        .size = 0,
+    },
+    .data_checksum = 0,
 };
 
 struct ScanData {
     std::atomic<bool> is_running;
-    APInfo result;
-    uint16_t ap_ssid_read = 0;
     ESPIFOperatingMode prescan_op_mode = ESPIF_UNINITIALIZED_MODE;
     std::atomic<uint8_t> ap_count = 0;
+    uint8_t ap_index = 0;
     static constexpr auto SYNC_EVENT_TIMEOUT = 10 /*ms*/;
     static freertos::Mutex get_ap_info_mutex;
-    static freertos::Queue<APInfo, 1> ap_info_queue;
+    static freertos::Queue<esp::data::APInfo, 1> ap_info_queue;
 };
 
 freertos::Mutex ScanData::get_ap_info_mutex {};
-freertos::Queue<APInfo, 1> ScanData::ap_info_queue;
+freertos::Queue<esp::data::APInfo, 1> ScanData::ap_info_queue;
 
 static ScanData scan;
 
@@ -231,12 +212,7 @@ static bool can_recieve_data(ESPIFOperatingMode mode) {
 static freertos::BinarySemaphore tx_semaphore;
 static std::atomic<freertos::BinarySemaphore *> tx_semaphore_active;
 
-struct PBufDeleter {
-    inline void operator()(pbuf *data) {
-        pbuf_free(data);
-    }
-};
-using pbuf_smart = std::unique_ptr<pbuf, PBufDeleter>;
+using pbuf_smart = std::unique_ptr<pbuf, PbufDeleter>;
 using pbuf_variant = std::variant<pbuf *, pbuf_smart>;
 static pbuf_variant tx_pbuf = nullptr; // only valid when tx_waiting == true
 
@@ -252,6 +228,27 @@ static void espif_tx_update_metrics(uint32_t len) {
     static uint32_t bytes_sent = 0;
     bytes_sent += len;
     metric_record_custom(&metric_esp_out, " sent=%" PRIu32 "i", bytes_sent);
+}
+
+static uint32_t message_checksum(esp::MessagePrelude &msg, const pbuf_variant &p) {
+    uint32_t crc = 0;
+
+    crc = crc32_calc_ex(crc, msg.intron.data(), msg.intron.size());
+    crc = crc32_calc_ex(crc, reinterpret_cast<uint8_t *>(&msg.header), sizeof(msg.header));
+
+    pbuf *buf = nullptr;
+    if (std::holds_alternative<pbuf_smart>(p)) {
+        buf = std::get<pbuf_smart>(p).get();
+    } else {
+        buf = std::get<pbuf *>(p);
+    }
+
+    while (buf != nullptr) {
+        crc = crc32_calc_ex(crc, reinterpret_cast<uint8_t *>(buf->payload), buf->len);
+        buf = buf->next;
+    }
+
+    return crc;
 }
 
 // FIXME: This casually uses HAL_StatusTypeDef as a err_t, which works for the OK case (both 0), but it is kinda sketchy.
@@ -274,14 +271,15 @@ static err_t espif_tx_buffer(const uint8_t *data, size_t len) {
 }
 
 // FIXME: This casually uses HAL_StatusTypeDef as a err_t, which works for the OK case (both 0), but it is kinda sketchy.
-[[nodiscard]] static err_t espif_tx_raw(uint8_t message_type, uint8_t message_byte, pbuf_variant p) {
+[[nodiscard]] static err_t espif_tx_raw(esp::MessageType message_type, uint8_t message_byte, pbuf_variant p) {
     std::lock_guard lock { uart_write_mutex };
 
     const uint16_t size = std::visit([](const auto &pbuf) { return pbuf != nullptr ? pbuf->tot_len : 0; }, p);
     espif_tx_update_metrics(sizeof(tx_message) + size);
-    tx_message.type = message_type;
-    tx_message.byte = message_byte;
-    tx_message.size = htons(size);
+    tx_message.header.type = message_type;
+    tx_message.header.variable_byte = message_byte;
+    tx_message.header.size = htons(size);
+    tx_message.data_checksum = htonl(message_checksum(tx_message, p));
 
     auto tx_result = espif_tx_buffer((const uint8_t *)&tx_message, sizeof(tx_message));
     if (tx_result != HAL_OK) {
@@ -355,10 +353,10 @@ static err_t espif_tx_buffer(const uint8_t *data, size_t len) {
         assert(buffer == (uint8_t *)pbuf->payload + length);
     }
 
-    err_t err = espif_tx_raw(MSG_CLIENTCONFIG_V2, 0, pbuf_variant { std::move(pbuf) });
+    err_t err = espif_tx_raw(esp::MessageType::CLIENTCONFIG_V2, 0, pbuf_variant { std::move(pbuf) });
     if (err == ERR_OK) {
         std::lock_guard lock { uart_write_mutex };
-        std::copy_n(new_intron.begin(), sizeof(tx_message.intron), tx_message.intron);
+        std::copy_n(new_intron.begin(), tx_message.intron.size(), tx_message.intron.begin());
         log_info(ESPIF, "Client config complete, have new intron");
     } else {
         log_error(ESPIF, "Client config failed: %d", static_cast<int>(err));
@@ -369,7 +367,7 @@ static err_t espif_tx_buffer(const uint8_t *data, size_t len) {
 
 [[nodiscard]] static err_t espif_tx_msg_packet(pbuf *p) {
     constexpr uint8_t up = 1;
-    return espif_tx_raw(MSG_PACKET_V2, up, p);
+    return espif_tx_raw(esp::MessageType::PACKET_V2, up, p);
 }
 
 void espif_input_once(struct netif *netif) {
@@ -427,30 +425,6 @@ void espif_input_once(struct netif *netif) {
     }
 }
 
-static void process_mac(uint8_t *data, struct netif *netif) {
-    log_info(ESPIF, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", data[0], data[1], data[2], data[3], data[4], data[5]);
-    netif->hwaddr_len = ETHARP_HWADDR_LEN;
-    memcpy(netif->hwaddr, data, ETHARP_HWADDR_LEN);
-
-    ESPIFOperatingMode old = ESPIF_WAIT_INIT;
-    if (esp_operating_mode.compare_exchange_strong(old, ESPIF_NEED_AP)) {
-        const uint8_t version = fw_version.load();
-        if (version != SUPPORTED_FW_VERSION) {
-            log_warning(ESPIF, "Firmware version mismatch: %u != %u",
-                version, static_cast<unsigned>(SUPPORTED_FW_VERSION));
-            esp_operating_mode = ESPIF_WRONG_FW;
-            return;
-        }
-        esp_operating_mode = ESPIF_NEED_AP;
-        esp_was_ok = true;
-        log_info(ESPIF, "Waiting for AP");
-    } else {
-        // FIXME: Actually, the ESP sends the MAC twice during it's lifetime.
-        // BFW-5609.
-        log_error(ESPIF, "ESP operating mode mismatch: %d", static_cast<int>(old));
-    }
-}
-
 bool espif_link() {
     return associated;
 }
@@ -480,7 +454,7 @@ static void process_link_change(bool link_up, struct netif *netif) {
     // TODO: Validate that we can start a scan
     ::scan.is_running.exchange(true);
 
-    const auto err = espif_tx_raw(MSG_SCAN_START, 0, nullptr);
+    const auto err = espif_tx_raw(esp::MessageType::SCAN_START, 0, nullptr);
 
     if (err == ERR_OK) {
         ::scan.prescan_op_mode = esp_operating_mode.exchange(ESPIF_SCANNING_MODE);
@@ -504,7 +478,7 @@ bool espif::scan::is_running() { return ::scan.is_running.load(std::memory_order
         return ERR_IF;
     }
 
-    const auto err = espif_tx_raw(MSG_SCAN_STOP, 0, nullptr);
+    const auto err = espif_tx_raw(esp::MessageType::SCAN_STOP, 0, nullptr);
     if (err == ERR_OK) {
         ::scan.is_running.exchange(false);
         auto expected = ESPIF_SCANNING_MODE;
@@ -532,15 +506,15 @@ uint8_t espif::scan::get_ap_count() {
     assert(index < ::scan.ap_count);
     assert(buffer.size() >= config_store_ns::wifi_max_ssid_len);
     std::lock_guard lock(ScanData::get_ap_info_mutex);
-    ::scan.result.ssid = buffer;
 
     int tries = 4;
 
+    ::scan.ap_index = index;
     err_t last_error = ERR_OK;
-    APInfo info {};
+    esp::data::APInfo info {};
     while (tries >= 0) {
         --tries;
-        const auto err = espif_tx_raw(MSG_SCAN_AP_GET, index, nullptr);
+        const auto err = espif_tx_raw(esp::MessageType::SCAN_AP_GET, index, nullptr);
 
         if (err != ERR_OK) {
             last_error = err;
@@ -548,28 +522,144 @@ uint8_t espif::scan::get_ap_count() {
         }
 
         // There can be some old data in the queue if we just didn't make the timeout
-        if (ScanData::ap_info_queue.try_receive(info, ScanData::SYNC_EVENT_TIMEOUT) && info.ap_index == index && info.ssid.data() == buffer.data()) {
-            last_error = ERR_OK;
-            break;
+        if (ScanData::ap_info_queue.try_receive(info, ScanData::SYNC_EVENT_TIMEOUT)) {
+            std::copy(info.ssid.begin(), info.ssid.end(), buffer.begin());
+            needs_password = info.requires_password;
+            return ERR_OK;
         } else {
             last_error = ERR_IF;
         }
     }
 
-    if (last_error != ERR_OK) {
-        return last_error;
+    return last_error;
+}
+
+struct UartRxParser final : public esp::RxParserBase {
+    using esp::RxParserBase::RxParserBase;
+
+    bool validate_checksum() {
+        if (!checksum_valid) {
+            log_error(ESPIF, "Checksum mismatch (MT: %d, ref: %lx, calc: %lx)",
+                ftrstd::to_underlying(msg.header.type), msg.data_checksum, crc);
+        } else {
+            seen_intron.store(true);
+        }
+        return checksum_valid;
     }
-    needs_password = info.requires_password;
-    return ERR_OK;
-}
 
-static void process_scan_ap_count(uint8_t ap_count) {
-    scan.ap_count.exchange(ap_count);
-}
+    void process_scan_ap_count() final {
+        if (validate_checksum()) {
+            scan.ap_count.store(msg.header.ap_count, std::memory_order_relaxed);
+        }
+    }
 
-static void process_scan_ssid() {
-    ScanData::ap_info_queue.send(::scan.result);
-}
+    void process_scan_ap_info() final {
+        static_assert(sizeof(esp::data::APInfo) <= SMALL_BUFFER_SIZE, "AP info data won't fit into the small buffer inside the RxParserBase");
+        if (validate_checksum() && msg.header.ap_index == scan.ap_index) {
+            auto *info = reinterpret_cast<esp::data::APInfo *>(buffer.data());
+            ScanData::ap_info_queue.send(*info);
+        }
+    }
+
+    void process_invalid_message() final {
+        log_error(ESPIF, "Message invalid (MT: %d)", ftrstd::to_underlying(msg.header.type));
+    }
+
+    void process_esp_device_info() final {
+        static_assert(sizeof(esp::data::MacAddress) <= SMALL_BUFFER_SIZE, "Device info data won't fit into the small buffer inside the RxParserBase");
+        // TODO: what to do when the checksum is not valid?
+        //       reseting the esp seems like bit too much
+        //       probably ask the esp for device info again
+
+        // calling process_checksum to at least print an error
+        validate_checksum();
+
+        log_info(ESPIF, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5]);
+        netif->hwaddr_len = ETHARP_HWADDR_LEN;
+        memcpy(netif->hwaddr, buffer.data(), ETHARP_HWADDR_LEN);
+
+        ESPIFOperatingMode old = ESPIF_WAIT_INIT;
+        if (esp_operating_mode.compare_exchange_strong(old, ESPIF_NEED_AP)) {
+            if (msg.header.version != esp::REQUIRED_PROTOCOL_VERSION) {
+                log_warning(ESPIF, "Firmware version mismatch: %u != %u",
+                    msg.header.version, static_cast<unsigned>(esp::REQUIRED_PROTOCOL_VERSION));
+                esp_operating_mode = ESPIF_WRONG_FW;
+                return;
+            }
+            esp_operating_mode = ESPIF_NEED_AP;
+            esp_was_ok = true;
+            log_info(ESPIF, "Waiting for AP");
+        } else {
+            // FIXME: Actually, the ESP sends the MAC twice during it's lifetime.
+            // BFW-5609.
+            log_error(ESPIF, "ESP operating mode mismatch: %d", static_cast<int>(old));
+        }
+    }
+
+    bool start_packet() final {
+        packet_buff_head = pbuf_alloc_rx(msg.header.size);
+        packet_buff_read = 0;
+        if (packet_buff_head != nullptr) {
+            packet_buff_curr = packet_buff_head;
+        } else {
+            log_warning(ESPIF, "pbuf_alloc_rx() failed, dropping packet");
+        }
+
+        return packet_buff_head != nullptr;
+    }
+
+    void reset_packet() final {
+        if (packet_buff_head != nullptr) {
+            pbuf_free(packet_buff_head);
+            packet_buff_head = nullptr;
+            packet_buff_curr = nullptr;
+        }
+    }
+
+    void update_packet(std::span<const uint8_t> data) final {
+        while (!data.empty()) {
+            const auto to_read = std::min<uint32_t>(packet_buff_curr->len - packet_buff_read, data.size());
+            memcpy(reinterpret_cast<uint8_t *>(packet_buff_curr->payload) + packet_buff_read, data.data(), to_read);
+            data = std::span { data.data() + to_read, data.size() - to_read };
+            packet_buff_read += to_read;
+
+            // Switch to next pbuf
+            if (packet_buff_read == packet_buff_curr->len) {
+                packet_buff_curr = packet_buff_curr->next;
+                packet_buff_read = 0;
+            }
+        }
+    }
+
+    void process_packet() final {
+        packet_buff_curr = packet_buff_curr->next;
+        packet_buff_read = 0;
+        if (validate_checksum()) {
+            process_link_change(msg.header.up, netif);
+            if (msg.header.size == 0) {
+                log_debug(ESPIF, "ESP pong");
+                // Not a packet, but a pong.
+                // (historical reasons, empty packets are pings/pongs)
+                seen_pong = true;
+            } else {
+                if (netif->input(packet_buff_head, netif) == ERR_OK) {
+                    // Packet successfully "eaten" by netif->input, do not free on our side.
+                    packet_buff_head = nullptr;
+                } else {
+                    log_warning(ESPIF, "tcpip_input() failed, dropping packet");
+                }
+            }
+        }
+    }
+
+    struct netif *netif;
+
+protected:
+    pbuf *packet_buff_head, *packet_buff_curr;
+    uint16_t packet_buff_read;
+};
+
+static UartRxParser uart_rx_parser {};
 
 static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
     esp_detected = true;
@@ -580,213 +670,9 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
     bytes_received += size;
     metric_record_custom(&metric_esp_in, " recv=%" PRIu32 "i", bytes_received);
 
-    static enum ProtocolState {
-        Intron,
-        HeaderByte0,
-        HeaderByte1,
-        HeaderByte2,
-        HeaderByte3,
-        PacketData,
-        PacketDataThrowaway,
-        MACData,
-        APData,
-    } state
-        = Intron;
-
-    static uint intron_read = 0;
-
-    static uint8_t message_type = MSG_CLIENTCONFIG_V2; // might as well initialize to something invalid
-
-    static uint mac_read = 0; // Amount of MAC bytes already read
-    static uint8_t mac_data[ETHARP_HWADDR_LEN];
-
-    static uint16_t rx_len = 0; // Length of RX packet
-
-    static struct pbuf *rx_buff = NULL; // First RX pbuf for current packet (chain head)
-    static struct pbuf *rx_buff_cur = NULL; // Current pbuf for data receive (part of rx_buff chain)
-    static uint32_t rx_read = 0; // Amount of bytes already read into rx_buff_cur
-
-    bool did_reset = true;
-    if (reset_parser.compare_exchange_strong(did_reset, false, std::memory_order_release, std::memory_order_relaxed)) {
-        log_info(ESPIF, "Reseting uart input parser");
-        state = Intron;
-        rx_len = 0;
-        rx_read = 0;
-        intron_read = 0;
-        mac_read = 0;
-        scan.ap_ssid_read = 0;
-        if (rx_buff != nullptr) {
-            pbuf_free(rx_buff);
-            rx_buff = nullptr;
-            rx_buff_cur = nullptr;
-        }
-    }
-
-    const uint8_t *end = &data[size];
-    for (uint8_t *c = &data[0]; c < end;) {
-        switch (state) {
-        case Intron:
-            if (*c++ == tx_message.intron[intron_read]) {
-                intron_read++;
-                if (intron_read >= sizeof(tx_message.intron)) {
-                    state = HeaderByte0;
-                    intron_read = 0;
-                    seen_intron = true;
-                }
-            } else {
-                intron_read = 0;
-            }
-
-            break;
-
-        case HeaderByte0:
-            message_type = *c++;
-            switch (message_type) {
-            case MSG_DEVINFO_V2:
-            case MSG_PACKET_V2:
-            case MSG_SCAN_AP_GET:
-            case MSG_SCAN_AP_CNT:
-                state = HeaderByte1;
-                break;
-            default:
-                log_warning(ESPIF, "Unknown message type: %d", message_type);
-                state = Intron;
-            }
-            break;
-
-        case HeaderByte1:
-            switch (message_type) {
-            case MSG_DEVINFO_V2:
-                fw_version.store(*c++);
-                if (fw_version < 10) {
-                    process_mac(mac_data, netif);
-                    state = Intron;
-                } else {
-                    state = HeaderByte2;
-                }
-                break;
-            case MSG_SCAN_AP_CNT:
-                process_scan_ap_count(*c++);
-                state = HeaderByte2;
-                break;
-            case MSG_SCAN_AP_GET:
-                state = HeaderByte2;
-                ::scan.result.ap_index = *c++;
-                break;
-            case MSG_SCAN_STOP:
-                state = HeaderByte2;
-                c++;
-                break;
-            case MSG_PACKET_V2:
-                process_link_change(*c++, netif);
-                state = HeaderByte2;
-                break;
-            default:
-                assert(false && "internal inconsistency");
-                state = Intron;
-            }
-            break;
-
-        case MACData:
-            while (c < end && mac_read < sizeof(mac_data)) {
-                mac_data[mac_read++] = *c++;
-            }
-            if (mac_read == sizeof(mac_data)) {
-                process_mac(mac_data, netif);
-                mac_read = 0;
-                state = Intron;
-            }
-            break;
-
-        case APData:
-            assert(rx_len == 33);
-
-            while (c < end && scan.ap_ssid_read < config_store_ns::wifi_max_ssid_len) {
-                scan.result.ssid[scan.ap_ssid_read++] = *c++;
-            }
-            if (scan.ap_ssid_read == config_store_ns::wifi_max_ssid_len && c != end) {
-                scan.result.requires_password = static_cast<bool>(*c++);
-                process_scan_ssid();
-                scan.ap_ssid_read = 0;
-                state = Intron;
-            }
-            break;
-
-        case HeaderByte2:
-            rx_len = (*c++) << 8;
-            state = HeaderByte3;
-            break;
-
-        case HeaderByte3:
-            rx_len = rx_len | (*c++);
-            switch (message_type) {
-            case MSG_DEVINFO_V2:
-                state = MACData;
-                break;
-            case MSG_SCAN_AP_GET:
-                state = APData;
-                break;
-            case MSG_SCAN_AP_CNT:
-                state = Intron;
-                break;
-            case MSG_PACKET_V2:
-                if (rx_len == 0) {
-                    state = Intron;
-                    seen_pong = true;
-                    break;
-                }
-                rx_buff = pbuf_alloc_rx(rx_len);
-                if (rx_buff) {
-                    rx_buff_cur = rx_buff;
-                    rx_read = 0;
-                    state = PacketData;
-                } else {
-                    log_warning(ESPIF, "pbuf_alloc_rx() failed, dropping packet");
-                    rx_read = 0;
-                    state = PacketDataThrowaway;
-                }
-                break;
-            default:
-                assert(false && "internal inconsistency");
-                state = Intron;
-            }
-            break;
-        case PacketData: {
-            // Copy input to current pbuf (until end of input or current pbuf)
-            const uint32_t to_read = std::min(rx_buff_cur->len - rx_read, (uint32_t)(end - c));
-            memcpy((uint8_t *)rx_buff_cur->payload + rx_read, c, to_read);
-            c += to_read;
-            rx_read += to_read;
-
-            // Switch to next pbuf
-            if (rx_read == rx_buff_cur->len) {
-                rx_buff_cur = rx_buff_cur->next;
-                rx_read = 0;
-            }
-
-            // Filled all pbufs in a packet (current set to next = NULL)
-            if (!rx_buff_cur) {
-                if (netif->input(rx_buff, netif) != ERR_OK) {
-                    log_warning(ESPIF, "tcpip_input() failed, dropping packet");
-                    pbuf_free(rx_buff);
-                    rx_buff = nullptr;
-                    state = Intron;
-                    break;
-                }
-                seen_pong = true;
-                state = Intron;
-            }
-        } break;
-        case PacketDataThrowaway:
-            const uint32_t to_read = std::min(rx_len - rx_read, (uint32_t)(end - c));
-            c += to_read;
-            rx_read += to_read;
-            if (rx_read == rx_len) {
-                state = Intron;
-            }
-            break;
-        }
-    }
+    uart_rx_parser.set_intron(tx_message.intron);
+    uart_rx_parser.netif = netif;
+    uart_rx_parser.process_data(std::span { data, size });
 }
 
 /**
@@ -818,8 +704,8 @@ static void force_down() {
 static void reset_intron() {
     log_debug(ESPIF, "Reset intron");
     std::lock_guard lock { uart_write_mutex };
-    for (uint i = 2; i < sizeof(tx_message.intron); i++) {
-        tx_message.intron[i] = i - 2;
+    for (uint i = 2; i < tx_message.intron.size(); i++) {
+        tx_message.intron.at(i) = i - 2;
     }
 }
 
@@ -924,7 +810,7 @@ void espif_reset() {
     force_down();
     hard_reset_device(); // Reset device to receive MAC address
     esp_operating_mode = ESPIF_WAIT_INIT;
-    reset_parser = true;
+    uart_rx_parser.reset();
 }
 
 void espif_notify_flash_result(FlashResult result) {

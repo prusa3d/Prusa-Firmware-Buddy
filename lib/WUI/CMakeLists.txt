@@ -3,6 +3,7 @@ add_library(WUI INTERFACE)
 target_sources(
   WUI
   INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
+            esp_protocol/parser.cpp
             espif.cpp
             ethernetif.c
             ethernetif.cpp
