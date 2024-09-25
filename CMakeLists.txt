@@ -577,14 +577,11 @@ target_include_directories(
   firmware PRIVATE src/lang src/hw src/segger src/syslog src/mmu2 include/mbedtls
   )
 
-target_link_libraries(
-  firmware PRIVATE BuddyHeaders Segger printf::printf CrashCatcher marlin_server_types SG14
-  )
-
 if(BOARD MATCHES "BUDDY")
   target_link_libraries(
     firmware
     PRIVATE BuddyHeaders
+            CrashCatcher
             Marlin
             Arduino::Core
             Arduino::TMCStepper
@@ -615,10 +612,20 @@ if(BOARD MATCHES "BUDDY")
     )
 elseif(BOARD STREQUAL "DWARF")
   target_link_libraries(
-    firmware PRIVATE BuddyHeaders Marlin Arduino::Core Arduino::TMCStepper freertos error_codes
+    firmware
+    PRIVATE Arduino::Core
+            Arduino::TMCStepper
+            BuddyHeaders
+            CrashCatcher
+            error_codes
+            freertos
+            Marlin
+            printf::printf
     )
 elseif(BOARD STREQUAL "MODULARBED")
-  target_link_libraries(firmware PRIVATE BuddyHeaders freertos error_codes)
+  target_link_libraries(
+    firmware PRIVATE BuddyHeaders CrashCatcher error_codes freertos printf::printf
+    )
 elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
   target_link_libraries(
     firmware
