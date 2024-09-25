@@ -605,6 +605,7 @@ if(BOARD MATCHES "BUDDY")
             $<$<BOOL:${HAS_MMU2}>:MMU2::MMU2>
             mbedTLS
             $<$<BOOL:${HAS_PUPPIES}>:lightmodbus>
+            freertos
             error_codes
             error_codes_mmu # TODO once MMU is not necessary for the build, replace with:
                             # $<$<BOOL:${HAS_MMU2}>:error_codes_mmu>
@@ -614,10 +615,10 @@ if(BOARD MATCHES "BUDDY")
     )
 elseif(BOARD STREQUAL "DWARF")
   target_link_libraries(
-    firmware PRIVATE BuddyHeaders Marlin Arduino::Core Arduino::TMCStepper error_codes
+    firmware PRIVATE BuddyHeaders Marlin Arduino::Core Arduino::TMCStepper freertos error_codes
     )
 elseif(BOARD STREQUAL "MODULARBED")
-  target_link_libraries(firmware PRIVATE BuddyHeaders error_codes)
+  target_link_libraries(firmware PRIVATE BuddyHeaders freertos error_codes)
 elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
   target_link_libraries(
     firmware
@@ -633,6 +634,7 @@ elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
             $<$<BOOL:${HAS_MMU2}>:MMU2::MMU2>
             mbedTLS
             $<$<BOOL:${HAS_PUPPIES}>:lightmodbus>
+            freertos
             error_codes
             error_codes_mmu # TODO once MMU is not necessary for the build, replace with:
                             # $<$<BOOL:${HAS_MMU2}>:error_codes_mmu>
