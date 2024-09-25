@@ -6,7 +6,7 @@
 #include "metric_handlers.h"
 #include "stm32f4xx_hal.h"
 #include "timing.h"
-#include "syslog_transport.hpp"
+#include <syslog/syslog_transport.hpp>
 #include "otp.hpp"
 #include <config_store/store_instance.hpp>
 #include <atomic>

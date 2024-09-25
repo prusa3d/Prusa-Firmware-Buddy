@@ -38,7 +38,7 @@
 
 #if HAS_MMU2()
     #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
-    #include <mmu2_fsm.hpp>
+    #include <mmu2/mmu2_fsm.hpp>
 #endif
 
 using marlin_client::GcodeTryResult;

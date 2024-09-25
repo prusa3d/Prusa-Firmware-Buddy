@@ -6,7 +6,7 @@
 #include "client_response_texts.hpp"
 #include "ScreenHandler.hpp"
 #include "fonts.hpp"
-#include "mmu2_error_converter.h"
+#include <mmu2/mmu2_error_converter.h>
 #include "filament_sensors_handler.hpp"
 #include "img_resources.hpp"
 #include "fsm_loadunload_type.hpp"

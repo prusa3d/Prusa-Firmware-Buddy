@@ -124,7 +124,7 @@
 #endif
 
 #if HAS_MMU2()
-    #include <mmu2_fsm.hpp>
+    #include <mmu2/mmu2_fsm.hpp>
 #endif
 
 #include <config_store/store_instance.hpp>

@@ -573,10 +573,6 @@ if(GENERATE_DFU)
     )
 endif()
 
-target_include_directories(
-  firmware PRIVATE src/lang src/hw src/segger src/syslog src/mmu2 include/mbedtls
-  )
-
 if(BOARD MATCHES "BUDDY")
   target_link_libraries(
     firmware
