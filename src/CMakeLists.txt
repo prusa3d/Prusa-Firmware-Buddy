@@ -1,12 +1,12 @@
-target_include_directories(firmware PRIVATE .)
-
-add_subdirectory(device)
-add_subdirectory(segger)
-add_subdirectory(hw)
-add_subdirectory(logging)
-add_subdirectory(common)
-
 if(BOARD MATCHES "BUDDY")
+  target_include_directories(firmware PRIVATE .)
+
+  add_subdirectory(device)
+  add_subdirectory(segger)
+  add_subdirectory(hw)
+  add_subdirectory(logging)
+  add_subdirectory(common)
+
   if(HAS_ESP_FLASH_TASK)
     add_subdirectory(buddy-esp-serial-flasher)
     target_link_libraries(firmware PRIVATE buddy-esp-serial-flasher)
@@ -59,14 +59,38 @@ if(BOARD MATCHES "BUDDY")
 
   add_subdirectory(semihosting)
 elseif(BOARD STREQUAL "DWARF")
+  target_include_directories(firmware PRIVATE .)
+
+  add_subdirectory(device)
+  add_subdirectory(segger)
+  add_subdirectory(hw)
+  add_subdirectory(logging)
+  add_subdirectory(common)
+
   add_subdirectory(freertos)
   add_subdirectory(puppy/dwarf)
   add_subdirectory(puppy/shared)
 elseif(BOARD STREQUAL "MODULARBED")
+  target_include_directories(firmware PRIVATE .)
+
+  add_subdirectory(device)
+  add_subdirectory(segger)
+  add_subdirectory(hw)
+  add_subdirectory(logging)
+  add_subdirectory(common)
+
   add_subdirectory(freertos)
   add_subdirectory(puppy/modularbed)
   add_subdirectory(puppy/shared)
 elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
+  target_include_directories(firmware PRIVATE .)
+
+  add_subdirectory(device)
+  add_subdirectory(segger)
+  add_subdirectory(hw)
+  add_subdirectory(logging)
+  add_subdirectory(common)
+
   add_subdirectory(freertos)
   add_subdirectory(persistent_stores)
   add_subdirectory(xl_dev_kit)
