@@ -1,6 +1,12 @@
 add_library(
-  freertos OBJECT binary_semaphore.cpp mutex.cpp queue.cpp wait_condition.cpp critical_section.cpp
-                  counting_semaphore.cpp
+  freertos OBJECT
+  binary_semaphore.cpp
+  counting_semaphore.cpp
+  critical_section.cpp
+  mutex.cpp
+  queue.cpp
+  system_tasks.cpp
+  wait_condition.cpp
   )
 
 target_link_libraries(freertos PRIVATE FreeRTOS::FreeRTOS)

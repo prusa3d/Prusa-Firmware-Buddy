@@ -75,5 +75,4 @@ elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
   add_subdirectory(marlin_stubs)
 endif()
 
-target_sources(firmware PRIVATE freertos.cpp)
 target_link_libraries(firmware PRIVATE freertos)
