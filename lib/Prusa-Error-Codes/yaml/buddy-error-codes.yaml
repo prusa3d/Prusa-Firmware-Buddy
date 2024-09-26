@@ -534,84 +534,84 @@ Errors:
     approved: true
 
   - code: "XX511"
-    printers: [iX, XL]
+    printers: [iX, XL, CUBE]
     title: "PUPPY ERROR"
     text: "Address assignment error"
     id: "PUPPY_ADDR_ASSIGN_ERR"
     approved: false
 
   - code: "XX512"
-    printers: [iX, XL]
+    printers: [iX, XL, CUBE]
     title: "PUPPY ERROR"
     text: "Unassigned puppy found"
     id: "PUPPY_NO_ADDR"
     approved: false
 
   - code: "XX513"
-    printers: [iX, XL]
+    printers: [iX, XL, CUBE]
     title: "PUPPY ERROR"
     text: "Puppy discovery error. No puppy found"
     id: "PUPPY_DISCOVER_ERR"
     approved: false
 
   - code: "XX514"
-    printers: [iX, XL]
+    printers: [iX, XL, CUBE]
     title: "PUPPY ERROR"
     text: "Puppy %s not responding"
     id: "PUPPY_NOT_RESPONDING"
     approved: false
 
   - code: "XX515"
-    printers: [iX, XL]
+    printers: [iX, XL, CUBE]
     title: "PUPPY ERROR"
     text: "Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
     id: "PUPPY_INCOMPATIBLE_BOOTLODER"
     approved: false
 
   - code: "XX516"
-    printers: [iX, XL]
+    printers: [iX, XL, CUBE]
     title: "PUPPY ERROR"
     text: "Unknown puppy type"
     id: "PUPPY_UNKNOWN_TYPE"
     approved: false
 
   - code: "XX517"
-    printers: [iX, XL]
+    printers: [iX, XL, CUBE]
     title: "PUPPY ERROR"
     text: "Unable to start puppy application"
     id: "PUPPY_START_APP_ERR"
     approved: false
 
   - code: "XX518"
-    printers: [iX, XL]
+    printers: [iX, XL, CUBE]
     title: "PUPPY ERROR"
     text: "Puppy %s firmware not found"
     id: "PUPPY_FW_NOT_FOUND"
     approved: false
 
   - code: "XX519"
-    printers: [iX, XL]
+    printers: [iX, XL, CUBE]
     title: "PUPPY ERROR"
     text: "Puppy %s flash writing failed"
     id: "PUPPY_WRITE_FLASH_ERR"
     approved: false
 
   - code: "XX520"
-    printers: [iX, XL]
+    printers: [iX, XL, CUBE]
     title: "PUPPY ERROR"
     text: "Puppy %s firmware fingerprint mismatch"
     id: "PUPPY_FINGERPRINT_MISMATCH"
     approved: false
 
   - code: "XX521"
-    printers: [iX, XL]
+    printers: [iX, XL, CUBE]
     title: "PUPPY ERROR"
     text: "Waiting for fingerprint timed out"
     id: "PUPPY_FINGERPRINT_TIMEOUT"
     approved: false
 
   - code: "XX522"
-    printers: [iX, XL]
+    printers: [iX, XL, CUBE]
     title: "PUPPY ERROR"
     text: "Waiting for puppies to start timed out"
     id: "PUPPY_RUN_TIMEOUT"
