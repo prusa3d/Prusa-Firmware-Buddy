@@ -116,7 +116,7 @@ bool GCodeQueue::has_commands_queued() {
  * Clear the Marlin command queue
  */
 void GCodeQueue::clear() {
-  sdpos = get_current_sdpos();
+  sdpos = last_executed_sdpos;
   index_r = index_w = length = 0;
 }
 
