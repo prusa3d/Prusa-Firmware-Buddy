@@ -488,8 +488,8 @@
 #endif
 #include <option/has_wastebin.h>
 #if HAS_WASTEBIN()
-    #define X_WASTEBIN_POINT 258.6
-    #define Y_WASTEBIN_POINT 283.95
+    #define X_WASTEBIN_POINT 267.4
+    #define Y_WASTEBIN_POINT 305
     #define XY_WASTEBIN_POINT \
         {X_WASTEBIN_POINT, Y_WASTEBIN_POINT}
 #endif
