@@ -17,7 +17,7 @@
 
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
-#include <freertos/critical_section.hpp>
+#include <atomic>
 #include <functional> // std::invoke
 #include <cmath>
 #include "filament_sensors_handler.hpp"
@@ -172,17 +172,14 @@ void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z
 
 namespace PreheatStatus {
 
-volatile static Result preheatResult = Result::DidNotFinish;
+static std::atomic<Result> preheatResult = Result::DidNotFinish;
 
 Result ConsumeResult() {
-    freertos::CriticalSection critical_section;
-    Result ret = preheatResult;
-    preheatResult = Result::DidNotFinish;
-    return ret;
+    return preheatResult.exchange(Result::DidNotFinish);
 }
 
 void SetResult(Result res) {
-    preheatResult = res;
+    preheatResult.store(res);
 }
 
 } // namespace PreheatStatus
