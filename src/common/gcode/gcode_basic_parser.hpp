@@ -4,6 +4,7 @@
 #include <optional>
 #include <cstdint>
 #include <limits>
+#include <cstdarg>
 
 #include <inplace_function.hpp>
 

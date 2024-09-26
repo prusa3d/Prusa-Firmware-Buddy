@@ -2,6 +2,7 @@
 #include "netdev.h"
 #include "printer.hpp"
 
+#include <path_utils.h>
 #include <filename_type.hpp>
 #include <logging/log.hpp>
 #include <transfers/transfer.hpp>
@@ -113,20 +114,6 @@ namespace {
         const bool is_on_usb = strncmp(path, usb, strlen(usb)) == 0 || strcmp(path, "/usb") == 0;
         const bool contains_upper = strstr(path, "/../") != nullptr;
         return is_on_usb && !contains_upper;
-    }
-
-    bool file_exists(const char *path) {
-        struct stat st = {};
-        if (stat_retry(path, &st) != 0) {
-            return false;
-        }
-
-        if (S_ISDIR(st.st_mode)) {
-            MutablePath mp(path);
-            return transfers::is_valid_transfer(mp);
-        }
-
-        return true;
     }
 
     bool dir_exists(const char *path) {
@@ -697,7 +684,7 @@ void Planner::command(const Command &command, const StartPrint &params) {
     const char *reason = nullptr;
     if (!path_allowed(path)) {
         reason = "Forbidden path";
-    } else if (!file_exists(path)) {
+    } else if (!transfers::is_valid_file_or_transfer(path)) {
         reason = "File not found";
     } else if (const char *error = printer.start_print(path, params.tool_mapping); error != nullptr) {
         reason = error;
@@ -844,7 +831,7 @@ void Planner::command(const Command &command, const DeleteFile &params) {
     const char *reason = nullptr;
     if (!path_allowed(path)) {
         reason = "Forbidden path";
-    } else if (!file_exists(path)) {
+    } else if (!transfers::is_valid_file_or_transfer(path)) {
         reason = "File not found";
     } else if (auto err = printer.delete_file(path); err != nullptr) {
         reason = err;

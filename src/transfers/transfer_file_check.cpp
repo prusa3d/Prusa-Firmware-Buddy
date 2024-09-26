@@ -52,4 +52,18 @@ bool is_valid_file_or_transfer(const MutablePath &file) {
     }
 }
 
+bool is_valid_file_or_transfer(const char *path) {
+    struct stat st = {};
+    if (stat_retry(path, &st) != 0) {
+        return false;
+    }
+
+    if (S_ISDIR(st.st_mode)) {
+        MutablePath mp(path);
+        return is_valid_transfer(mp);
+    }
+
+    return true;
+}
+
 } // namespace transfers

@@ -6,6 +6,7 @@
 #include "../lib/Marlin/Marlin/src/module/temperature.h"
 #include "marlin_client.hpp"
 #include "marlin_server.hpp"
+#include "path_utils.h"
 #include "unique_file_ptr.hpp"
 #include "timing.h"
 #include "unistd.h"
@@ -29,22 +30,6 @@
     #if BOOTLOADER()
         #include "sys.h" // support for bootloader<1.2.3
     #endif
-#endif
-
-#if ENABLED(POWER_PANIC)
-    #include "transfers/transfer.hpp"
-
-static bool file_exists(const char *filename) {
-    if (unique_file_ptr(fopen(filename, "r"))) {
-        return true;
-    }
-
-    if (MutablePath path(filename); transfers::is_valid_transfer(path)) {
-        return true;
-    }
-
-    return false;
-}
 #endif
 
 /**
@@ -97,7 +82,7 @@ void run_once_after_boot() {
             reset_pp = false;
         }
     #endif
-        if (!reset_pp && file_exists(power_panic::stored_media_path()) && usb_host::is_media_inserted_since_startup()) {
+        if (!reset_pp && transfers::is_valid_file_or_transfer(power_panic::stored_media_path()) && usb_host::is_media_inserted_since_startup()) {
             // load the panic data and setup print progress early
             // resume and bypass g-code autostart
             power_panic::resume_print();

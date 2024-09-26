@@ -1,6 +1,7 @@
 #include <puppies/puppy_crash_dump.hpp>
 #include <unique_file_ptr.hpp>
 #include <logging/log.hpp>
+#include <path_utils.h>
 #include <sys/stat.h>
 #include <cstring>
 
@@ -58,11 +59,6 @@ bool download_dump_into_file(std::span<uint8_t> buffer,
     }
     log_info(Puppies, "Successfully downloaded crash_dump for %s", puppy_name);
     return true;
-}
-
-[[nodiscard]] bool file_exists(const char *path) {
-    struct stat fs;
-    return stat(path, &fs) == 0;
 }
 
 bool is_a_dump_in_filesystem() {
