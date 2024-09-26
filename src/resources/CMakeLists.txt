@@ -102,7 +102,9 @@ if(PUPPY_FLASH_FW)
   if(HAS_DWARF)
     add_resource("${DWARF_BINARY_PATH}" "/puppies/fw-dwarf.bin")
   endif()
-  add_resource("${MODULARBED_BINARY_PATH}" "/puppies/fw-modularbed.bin")
+  if(HAS_MODULARBED)
+    add_resource("${MODULARBED_BINARY_PATH}" "/puppies/fw-modularbed.bin")
+  endif()
 endif()
 
 # /web directory

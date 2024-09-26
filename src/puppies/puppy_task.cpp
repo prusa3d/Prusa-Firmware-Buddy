@@ -51,7 +51,10 @@ static void verify_puppies_running() {
     constexpr uint32_t WAIT_TIME = 5000;
     auto reacheability_wait_start = ticks_ms();
     do {
-        bool modular_bed_ok = !modular_bed.is_enabled() || (modular_bed.ping() != CommunicationStatus::ERROR);
+        bool modular_bed_ok = true;
+#if HAS_MODULARBED()
+        modular_bed_ok = !modular_bed.is_enabled() || (modular_bed.ping() != CommunicationStatus::ERROR);
+#endif
 
         uint8_t num_dwarfs_ok = 0, num_dwarfs_dead = 0;
 #if HAS_DWARF()
@@ -150,12 +153,15 @@ static void puppy_task_loop() {
                 }
             } else
 #endif
+
+#if HAS_MODULARBED()
             {
                 // Try slow refresh of modular bed
                 if (modular_bed.refresh() == CommunicationStatus::ERROR) {
                     return;
                 }
             }
+#endif
 #if ENABLED(PRUSA_TOOLCHANGER)
         } while (!worked && slow_stage != orig_stage); // End if we did some work or if no stage has anything to do
 #endif
@@ -175,9 +181,11 @@ static bool puppy_initial_scan() {
     }
 #endif
 
+#if HAS_MODULARBED()
     if (modular_bed.initial_scan() == CommunicationStatus::ERROR) {
         return false;
     }
+#endif
     return true;
 }
 
@@ -195,8 +203,10 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
         // once some puppies are detected, consider this minimal puppy config (do no allow disconnection of puppy while running)
         minimal_puppy_config = bootstrap_result;
 
+#if HAS_MODULARBED()
         // set what puppies are connected
         modular_bed.set_enabled(bootstrap_result.is_dock_occupied(Dock::MODULAR_BED));
+#endif
 #if HAS_DWARF()
         for (int i = 0; i < DWARF_MAX_COUNT; i++) {
             dwarfs[i].set_enabled(bootstrap_result.is_dock_occupied(Dock::DWARF_1 + i));

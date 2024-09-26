@@ -47,7 +47,7 @@ void hwio_safe_state(void) {
     gpio_set(MARLIN_PIN(HEAT0), 0);
     #endif
     // Disable heated bed
-    #if HAS_PUPPIES()
+    #if HAS_MODULARBED()
     // Set power panic for modular bed
     modularBedReset.set();
     #else

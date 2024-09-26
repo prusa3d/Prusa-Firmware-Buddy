@@ -42,17 +42,22 @@ const char *PuppyBootstrap::Progress::description() {
         return "Verifying dwarf";
     }
 #endif
+#if HAS_MODULARBED()
     else if (stage == PuppyBootstrap::FlashingStage::CHECK_FINGERPRINT && puppy_type == PuppyType::MODULARBED) {
         return "Verifying modularbed";
     }
+#endif
 #if HAS_DWARF()
     else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::DWARF) {
         return "Flashing dwarf";
     }
 #endif
+#if HAS_MODULARBED()
     else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::MODULARBED) {
         return "Flashing modularbed";
-    } else if (stage == PuppyBootstrap::FlashingStage::DONE) {
+    }
+#endif
+    else if (stage == PuppyBootstrap::FlashingStage::DONE) {
         return ""; // Currently guimain prints nothing for the last bit of initialization, this should match
     } else {
         return "?";
@@ -308,18 +313,21 @@ void PuppyBootstrap::reset_all_puppies() {
     reset_puppies_range(Dock::FIRST, Dock::LAST);
 }
 
-void PuppyBootstrap::reset_puppies_range(Dock from, Dock to) {
+void PuppyBootstrap::reset_puppies_range([[maybe_unused]] Dock from, [[maybe_unused]] Dock to) {
+#if HAS_DWARF() || HAS_MODULARBED()
     const auto write_puppies_reset_pin = [](Dock dockFrom, Dock dockTo, Pin::State state) {
         static const decltype(buddy::hw::modularBedReset) *const reset_pins[] = {
+    #if HAS_MODULARBED()
             &buddy::hw::modularBedReset,
-#if HAS_DWARF()
+    #endif
+    #if HAS_DWARF()
             &buddy::hw::dwarf1Reset,
             &buddy::hw::dwarf2Reset,
             &buddy::hw::dwarf3Reset,
             &buddy::hw::dwarf4Reset,
             &buddy::hw::dwarf5Reset,
             &buddy::hw::dwarf6Reset,
-#endif
+    #endif
         };
         for (Dock k = dockFrom; k <= dockTo; k = k + 1U) {
             reset_pins[static_cast<uint8_t>(k)]->write(state);
@@ -329,6 +337,7 @@ void PuppyBootstrap::reset_puppies_range(Dock from, Dock to) {
     write_puppies_reset_pin(from, to, Pin::State::high);
     osDelay(1);
     write_puppies_reset_pin(from, to, Pin::State::low);
+#endif
 }
 
 bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address address) {

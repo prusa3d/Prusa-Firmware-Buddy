@@ -6,6 +6,8 @@
 #include <modular_bed_registers.hpp>
 #include <utility_extensions.hpp>
 
+#if HAS_MODULARBED()
+
 namespace buddy::puppies {
 
 constexpr size_t bedlet_idx_to_board_number(size_t idx) {
@@ -167,3 +169,5 @@ private:
 extern ModularBed modular_bed;
 
 } // namespace buddy::puppies
+
+#endif
