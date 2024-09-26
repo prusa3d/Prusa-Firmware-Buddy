@@ -1827,7 +1827,7 @@
         #endif
 
         #if Z_DRIVER_TYPE == TMC2130
-            #define Z_STALL_SENSITIVITY 3
+            #define Z_STALL_SENSITIVITY 4
         #elif Z_DRIVER_TYPE == TMC2209
             #define Z_STALL_SENSITIVITY 100
         #endif
