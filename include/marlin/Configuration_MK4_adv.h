@@ -1832,6 +1832,7 @@
             #define Z_STALL_SENSITIVITY 100
         #endif
 
+        // #define STALL_THRESHOLD_TMC2130 400 // Instead determined by get_homing_stall_threshold
         #define STALL_THRESHOLD_TMC2209 400
 
         #define IMPROVE_HOMING_RELIABILITY

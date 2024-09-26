@@ -45,7 +45,7 @@ uint32_t get_homing_stall_threshold(AxisEnum axis_id) {
     case Y_AXIS:
         return tmc_period_to_feedrate(X_AXIS, get_microsteps_x(), HOMING_FEEDRATE_XY / 60 * 0.8, get_steps_per_unit_x());
     case Z_AXIS:
-        return 80; // this value may or may not be correct
+        return 400;
     default:
         bsod("Wrong axis for homing stall threshold");
     }
