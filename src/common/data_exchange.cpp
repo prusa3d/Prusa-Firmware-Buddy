@@ -1,11 +1,12 @@
 #include "data_exchange.hpp"
-#include "otp_types.hpp"
+
+#include <common/otp_types.hpp>
+#include <common/wdt.hpp>
 #include <cstdint>
 #include <cstring>
-#include <option/bootloader.h>
-
-#include "at21csxx_otp.hpp"
 #include <device/hal.h>
+#include <hw/at21csxx.hpp>
+#include <option/bootloader.h>
 
 // pin PA13 state
 static constexpr uint8_t APPENDIX_FLAG_MASK = 0x01;
@@ -26,8 +27,42 @@ struct __attribute__((packed)) DataExchange {
 DataExchange ram_data_exchange __attribute__((section(".boot_fw_data_exchange")));
 
 #if !BOOTLOADER()
+
+/**
+ * @brief reads OTP data from external onewire AT21CSxx eeprom
+ * currently supports only OTP_v2 (and OTP_v5 since it is the same)
+ * supporting obsolete OTP_v0, OTP_v1 and OTP_v3 does not make sense
+ * and OTP_v4 is the same as OTP_v2/OTP_v5 with extra mac address
+ */
+static void load_otp_from_eeprom(AT21CSxx &eeprom, OTP_v2 &calib_data, OtpStatus &status) {
+    // Read data from EEPROM
+    wdt_iwdg_refresh();
+    status.data_valid = false;
+    calib_data = {};
+
+    constexpr const int MAX_RETRY = 8;
+    for (status.retried = 0; status.retried < MAX_RETRY; ++status.retried) {
+        if (eeprom.read_block(0, (uint8_t *)&calib_data, sizeof(calib_data)) != 1) {
+            wdt_iwdg_refresh();
+            continue;
+        }
+
+        if (calib_data.size == sizeof(calib_data) && calib_data.datamatrix[0] == '0' && calib_data.datamatrix[1] == '0') { // heuristics: if read failed somehow, these values are probably not OK
+            status.data_valid = true;
+            break;
+        } else {
+            wdt_iwdg_refresh();
+            eeprom.reset_discovery();
+        }
+    }
+
+    status.single_read_error_counter = eeprom.get_single_read_error();
+    status.repeated_read_error_counter = eeprom.get_repeated_read_error();
+    status.cyclic_read_error_counter = eeprom.get_cyclic_read_error();
+}
+
     #if HAS_XLCD()
-static std::pair<XlcdEeprom, OtpStatus> read_xlcd() {
+static void read_xlcd(XlcdEeprom &data, OtpStatus &status) {
     // LCD reset
     __HAL_RCC_GPIOG_CLK_ENABLE(); // enable lcd reset pin port clock
     GPIO_InitTypeDef GPIO_InitStruct {};
@@ -38,16 +73,16 @@ static std::pair<XlcdEeprom, OtpStatus> read_xlcd() {
     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
     __HAL_RCC_GPIOC_CLK_ENABLE(); // enable lcd eeprom pin port clock
-    OtpFromEeprom XlcdEeprom = OtpFromEeprom(GPIOC, GPIO_PIN_8);
-    return { XlcdEeprom.calib_data, XlcdEeprom.get_status() };
+    AT21CSxx eeprom { GPIOC, GPIO_PIN_8 };
+    load_otp_from_eeprom(eeprom, data, status);
 }
     #endif
 
     #if HAS_LOVE_BOARD() || PRINTER_IS_PRUSA_MK3_5()
-static std::pair<LoveBoardEeprom, OtpStatus> read_loveboard() {
+static void read_loveboard(LoveBoardEeprom &data, OtpStatus &status) {
     __HAL_RCC_GPIOF_CLK_ENABLE(); // enable loveboard eeprom pin port clock
-    OtpFromEeprom LoveBoard = OtpFromEeprom(GPIOF, GPIO_PIN_13);
-    return { LoveBoard.calib_data, LoveBoard.get_status() };
+    AT21CSxx eeprom { GPIOF, GPIO_PIN_13 };
+    load_otp_from_eeprom(eeprom, data, status);
 }
     #endif
 
@@ -64,16 +99,12 @@ void data_exchange_init() {
     ram_data_exchange.loveboard_eeprom = {};
 
     #if HAS_XLCD()
-    auto xlcd = read_xlcd();
-    ram_data_exchange.xlcd_eeprom = xlcd.first;
-    ram_data_exchange.xlcd_status = xlcd.second;
+    read_xlcd(ram_data_exchange.xlcd_eeprom, ram_data_exchange.xlcd_status);
     #endif
 
     // MK3.5 doesn't have a loveboard, but it needs the detection to complain if it's running on an MK4
     #if HAS_LOVE_BOARD() || PRINTER_IS_PRUSA_MK3_5()
-    auto loveboard = read_loveboard();
-    ram_data_exchange.loveboard_eeprom = loveboard.first;
-    ram_data_exchange.loveboard_status = loveboard.second;
+    read_loveboard(ram_data_exchange.loveboard_eeprom, ram_data_exchange.loveboard_status);
     #endif
 }
 #else

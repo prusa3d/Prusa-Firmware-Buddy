@@ -15,7 +15,7 @@ if((BOARD STREQUAL "XBUDDY")
   target_sources(firmware PRIVATE FUSB302B.cpp)
   add_subdirectory(xbuddy_xlbuddy)
   if(BOOTLOADER STREQUAL "NO")
-    target_sources(firmware PRIVATE at21csxx.cpp at21csxx_otp.cpp)
+    target_sources(firmware PRIVATE at21csxx.cpp)
   endif()
 endif()
 
