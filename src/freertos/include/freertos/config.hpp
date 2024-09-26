@@ -12,7 +12,7 @@ static constexpr size_t internal_storage_align = 8;
 static constexpr size_t internal_storage_size = 168;
 #else
 static constexpr size_t internal_storage_align = 4;
-static constexpr size_t internal_storage_size = 80;
+static constexpr size_t internal_storage_size = FREERTOS_INTERNAL_STORAGE_SIZE;
 #endif
 
 // In current implementation of FreeRTOS all these are actually the same

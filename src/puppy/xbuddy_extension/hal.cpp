@@ -27,7 +27,9 @@ ISR_HANDLER(MemManage_Handler)
 ISR_HANDLER(BusFault_Handler)
 ISR_HANDLER(UsageFault_Handler)
 ISR_HANDLER(DebugMon_Handler)
-ISR_HANDLER(SVC_Handler)
-ISR_HANDLER(PendSV_Handler)
-ISR_HANDLER(SysTick_Handler)
 #undef ISR_HANDLER
+
+// SVC_Handler + PendSV_Handler + SysTick_Handler are defined by FreeRTOS
+// Note that this means HAL_Delay() doesn't work because nobody is calling
+// HAL_IncTick() but that is OK since we should not be using HAL functions
+// which perform busy-waiting anyway.
