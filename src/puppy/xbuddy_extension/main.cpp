@@ -1,6 +1,9 @@
+#include "app.hpp"
 #include "hal.hpp"
 #include "FreeRTOS.h"
 #include "task.h"
+#include <utility>
+#include <freertos/delay.hpp>
 
 // The logic is inverted here. We explicitly mark data we don't want to be
 // shared and make all the other are shared between tasks.
@@ -27,7 +30,17 @@ constexpr const size_t main_task_stack_size = 200;
 alignas(32) NON_SHARED_DATA StackType_t main_task_stack[main_task_stack_size];
 NON_SHARED_DATA StaticTask_t main_task_control_block;
 static void main_task_code(void *) {
-    hal::panic();
+    app::run();
+}
+
+constexpr const size_t hal_task_stack_size = 100;
+alignas(32) NON_SHARED_DATA static StackType_t hal_task_stack[hal_task_stack_size];
+NON_SHARED_DATA static StaticTask_t hal_task_control_block;
+static void hal_task_code(void *) {
+    for (;;) {
+        hal::step();
+        freertos::delay(1);
+    }
 }
 
 extern "C" int main() {
@@ -47,6 +60,17 @@ extern "C" int main() {
             main_task_stack,
             &main_task_control_block);
         vTaskAllocateMPURegions(main_task_handle, regions);
+    }
+    {
+        TaskHandle_t hal_task_handle = xTaskCreateStatic(
+            hal_task_code,
+            "hal_task",
+            hal_task_stack_size,
+            NULL,
+            tskIDLE_PRIORITY + 1,
+            hal_task_stack,
+            &hal_task_control_block);
+        vTaskAllocateMPURegions(hal_task_handle, regions);
     }
 
     // Start FreeRTOS scheduler and we are done.

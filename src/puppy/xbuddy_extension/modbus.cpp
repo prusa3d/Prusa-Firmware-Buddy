@@ -1,0 +1,101 @@
+/// @file
+#include "modbus.hpp"
+
+static constexpr const std::byte read_holding_registers { 0x03 };
+static constexpr const std::byte read_input_registers { 0x04 };
+static constexpr const std::byte write_multiple_registers { 0x10 };
+
+static constexpr uint16_t modbus_compute_crc(std::span<const std::byte> bytes) {
+    uint16_t crc = 0xffff;
+    for (auto byte : bytes) {
+        crc ^= uint16_t(byte);
+        for (int bit = 0; bit < 8; ++bit) {
+            if (crc & 1) {
+                crc >>= 1;
+                crc ^= 0xa001;
+            } else {
+                crc >>= 1;
+            }
+        }
+    }
+    return crc;
+}
+
+static constexpr std::byte modbus_byte_lo(uint16_t value) {
+    return std::byte(value & 0xff);
+}
+
+static constexpr std::byte modbus_byte_hi(uint16_t value) {
+    return std::byte(value >> 8);
+}
+
+std::span<std::byte> modbus::handle_transaction(
+    Callbacks &callbacks,
+    std::span<const std::byte> request,
+    std::span<std::byte> response_buffer) {
+
+    if (request.size() < 4 || modbus_compute_crc(request) != 0) {
+        return {};
+    }
+
+    // have at least device, function and valid crc
+    std::byte *response = response_buffer.data();
+
+    const auto device = request[0];
+    const auto function = request[1];
+    request = request.subspan(2, request.size() - 4);
+
+    *response++ = device;
+    *response++ = function;
+
+    switch (function) {
+    case read_holding_registers:
+    case read_input_registers: {
+        if (request.size() != 4) {
+            return {};
+        } else {
+            const uint16_t address = (uint8_t)request[0] << 8 | (uint8_t)request[1];
+            const uint16_t count = (uint8_t)request[2] << 8 | (uint8_t)request[3];
+            // TODO handle invalid address or count
+
+            const uint8_t bytes = 2 * count;
+            *response++ = std::byte { bytes };
+            for (uint16_t i = 0; i < count; ++i) {
+                const uint16_t value = callbacks.read_register(address + i);
+                *response++ = modbus_byte_hi(value);
+                *response++ = modbus_byte_lo(value);
+            }
+        }
+    } break;
+    case write_multiple_registers: {
+        if (request.size() < 5) {
+            return {};
+        } else {
+            const uint16_t address = (uint8_t)request[0] << 8 | (uint8_t)request[1];
+            const uint16_t count = (uint8_t)request[2] << 8 | (uint8_t)request[3];
+            const uint8_t bytes = (uint8_t)request[4];
+            request = request.subspan(5);
+            // TODO handle invalid address or count or bytes
+            (void)bytes;
+
+            for (uint16_t i = 0; i < count; ++i) {
+                const uint16_t value = (uint8_t)request[0] << 8 | (uint8_t)request[1];
+                request = request.subspan(2);
+                callbacks.write_register(address + i, value);
+            }
+            *response++ = modbus_byte_hi(address);
+            *response++ = modbus_byte_lo(address);
+            *response++ = modbus_byte_hi(count);
+            *response++ = modbus_byte_lo(count);
+        }
+    } break;
+    default: {
+        response_buffer[1] |= std::byte { 0x80 };
+        *response++ = std::byte { 0x01 };
+    } break;
+    }
+    uint16_t crc = modbus_compute_crc({ response_buffer.data(), response });
+    *response++ = modbus_byte_lo(crc);
+    *response++ = modbus_byte_hi(crc);
+    return { response_buffer.data(), response };
+}
