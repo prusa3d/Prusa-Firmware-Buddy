@@ -33,7 +33,6 @@ extern SPI_HandleTypeDef hspi6;
 // UART
 //
 
-extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart6;
@@ -202,7 +201,6 @@ extern TIM_HandleTypeDef htim14;
 #endif
 
 // Make our life a bit easier and don't distinguish between UART and USART
-#define UART1 USART1
 #define UART2 USART2
 #define UART3 USART3
 #define UART6 USART6
@@ -291,7 +289,6 @@ void hw_dma_init();
 void hw_adc1_init();
 void hw_adc3_init();
 
-void hw_uart1_init();
 void hw_uart2_init();
 void hw_uart3_init();
 void hw_uart6_init();

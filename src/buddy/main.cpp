@@ -347,10 +347,6 @@ extern "C" void main_cpp(void) {
     logging_init();
     TaskDeps::components_init();
 
-#if (BOARD_IS_BUDDY())
-    hw_uart1_init();
-#endif
-
 #if BOARD_IS_BUDDY() || BOARD_IS_XBUDDY()
     hw_tim3_init();
 #endif

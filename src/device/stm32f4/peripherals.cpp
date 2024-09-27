@@ -48,7 +48,6 @@ SPI_HandleTypeDef hspi6;
 // UART
 //
 
-UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 UART_HandleTypeDef huart6;
@@ -361,20 +360,6 @@ void hw_adc3_init() {
     HAL_NVIC_DisableIRQ(DMA2_Stream0_IRQn);
 }
 #endif
-
-void hw_uart1_init() {
-    huart1.Instance = USART1;
-    huart1.Init.BaudRate = 115200;
-    huart1.Init.WordLength = UART_WORDLENGTH_8B;
-    huart1.Init.StopBits = UART_STOPBITS_1;
-    huart1.Init.Parity = UART_PARITY_NONE;
-    huart1.Init.Mode = UART_MODE_TX_RX;
-    huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-    if (HAL_UART_Init(&huart1) != HAL_OK) {
-        Error_Handler();
-    }
-}
 
 void hw_uart2_init() {
     huart2.Instance = USART2;
