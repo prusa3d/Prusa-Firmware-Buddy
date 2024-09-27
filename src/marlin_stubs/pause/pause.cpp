@@ -529,6 +529,10 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             break;
         }
 
+        if (response == Response::FS_disable) {
+            FSensors_instance().set_enabled_global(false);
+        }
+
         if (FSensors_instance().has_filament(false)) {
             setPhase(is_unstoppable ? PhasesLoadUnload::MakeSureInserted_unstoppable : PhasesLoadUnload::MakeSureInserted_stoppable);
 
@@ -974,6 +978,11 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
 
     case UnloadPhases_t::filament_not_in_fs:
         setPhase(PhasesLoadUnload::FilamentNotInFS);
+
+        if (response == Response::FS_disable) {
+            FSensors_instance().set_enabled_global(false);
+        }
+
         if (!FSensors_instance().has_filament(true)) { // Either no filament in FS or unknown (FS off)
 #if !HAS_HUMAN_INTERACTIONS()
             // In case of no human interactions, require no filament being
@@ -993,13 +1002,25 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
         break;
 
     case UnloadPhases_t::manual_unload:
-        if (response == Response::Continue
-            && !FSensors_instance().has_filament(true)) { // Allow to continue when nothing remains in filament sensor
+        setPhase(FSensors_instance().has_filament(true) ? PhasesLoadUnload::ManualUnload_fsOn : PhasesLoadUnload::ManualUnload, 100);
+        switch (response) {
+
+        case Response::FS_disable:
+            FSensors_instance().set_enabled_global(false);
+            break;
+
+        case Response::Continue:
             enable_e_steppers();
             set(UnloadPhases_t::_finish);
-        } else if (response == Response::Retry) { // Retry unloading
+            break;
+
+        case Response::Retry:
             enable_e_steppers();
             set(UnloadPhases_t::ram_sequence);
+            break;
+
+        default:
+            break;
         }
         break;
 
@@ -1491,6 +1512,7 @@ void Pause::finalize_user_stop() {
     current_position = real_current_position;
     planner.set_position_mm(current_position);
 }
+
 void Pause::handle_filament_removal(LoadPhases_t phase_to_set) {
     // only if there is no filament present and we are sure (FS on and sees no filament)
     if (FSensors_instance().has_filament(false)) {

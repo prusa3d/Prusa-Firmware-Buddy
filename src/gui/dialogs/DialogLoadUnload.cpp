@@ -39,6 +39,7 @@ void RadioButtonNotice::ChangePhase(PhasesLoadUnload phase, PhaseResponses respo
 // clang-format off
 static const PhaseTexts ph_txt_stop          = { get_response_text(Response::Stop),             get_response_text(Response::_none), get_response_text(Response::_none), get_response_text(Response::_none) };
 static const PhaseTexts ph_txt_continue      = { get_response_text(Response::Continue),         get_response_text(Response::_none), get_response_text(Response::_none), get_response_text(Response::_none) };
+static const PhaseTexts ph_txt_disable_fs  =   { get_response_text(Response::FS_disable) };
 static const PhaseTexts ph_txt_continue_stop = { get_response_text(Response::Continue),         get_response_text(Response::Stop),  get_response_text(Response::_none), get_response_text(Response::_none) };
 static const PhaseTexts ph_txt_none          = { get_response_text(Response::_none),            get_response_text(Response::_none), get_response_text(Response::_none), get_response_text(Response::_none) };
 static const PhaseTexts ph_txt_yesno         = { get_response_text(Response::Yes),              get_response_text(Response::No),    get_response_text(Response::_none), get_response_text(Response::_none) };
@@ -144,6 +145,7 @@ static constexpr State states[CountPhases<PhasesLoadUnload>()] = {
         { txt_unload_confirm,       ClientResponses::GetResponses(PhasesLoadUnload::IsFilamentUnloaded),            ph_txt_yesno, DialogLoadUnload::phaseWaitSound },
         { txt_filament_not_in_fs,   ClientResponses::GetResponses(PhasesLoadUnload::FilamentNotInFS),               ph_txt_none, DialogLoadUnload::phaseAlertSound},
         { txt_manual_unload,        ClientResponses::GetResponses(PhasesLoadUnload::ManualUnload),                  ph_txt_continue, DialogLoadUnload::phaseStopSound },
+        { txt_manual_unload,        ClientResponses::GetResponses(PhasesLoadUnload::ManualUnload),                  ph_txt_disable_fs, DialogLoadUnload::phaseStopSound },
         { txt_push_fil,             ClientResponses::GetResponses(PhasesLoadUnload::UserPush_stoppable),            ph_txt_continue_stop, DialogLoadUnload::phaseAlertSound },
         { txt_push_fil,             ClientResponses::GetResponses(PhasesLoadUnload::UserPush_unstoppable),          ph_txt_continue, DialogLoadUnload::phaseAlertSound },
         { txt_make_sure_inserted,   ClientResponses::GetResponses(PhasesLoadUnload::MakeSureInserted_stoppable),    ph_txt_stop, DialogLoadUnload::phaseAlertSound },
