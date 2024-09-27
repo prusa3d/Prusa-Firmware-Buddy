@@ -528,7 +528,7 @@ void do_blocking_move_around_nozzle_cleaner_to_xy(const xy_pos_t& destination, c
 }
 
 #if HAS_Z_AXIS
-  void do_z_clearance(const_float_t zclear, const bool lower_allowed/*=false*/) {
+  uint8_t do_z_clearance(const_float_t zclear, const bool lower_allowed/*=false*/) {
     float zdest = zclear;
     if (!lower_allowed) NOLESS(zdest, current_position.z);
     NOMORE(zdest, Z_MAX_POS);
@@ -542,14 +542,18 @@ void do_blocking_move_around_nozzle_cleaner_to_xy(const xy_pos_t& destination, c
 
       const auto distance = zdest - current_position.z;
       current_position.z = zdest;
-      do_homing_move(Z_AXIS, distance); // Move as a homing move to stop if we reach endstop
+      const auto trigger_state = do_homing_move(Z_AXIS, distance); // Move as a homing move to stop if we reach endstop
       sync_plan_position();
 
       if (!endstop_enabled) {
         endstops.not_homing(); // Reset endstops only if they weren't enabled before
       }
       restore_feedrate_and_scaling();
+
+      return trigger_state;
     }
+
+    return 0;
   }
 #endif
 

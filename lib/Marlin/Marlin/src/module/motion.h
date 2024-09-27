@@ -260,9 +260,9 @@ void remember_feedrate_scaling_off();
 void restore_feedrate_and_scaling();
 
 #if HAS_Z_AXIS
-  void do_z_clearance(const_float_t zclear, const bool lower_allowed=false);
+  uint8_t do_z_clearance(const_float_t zclear, const bool lower_allowed=false);
 #else
-  inline void do_z_clearance(float, bool=false) {}
+  inline uint8_t do_z_clearance(float, bool=false) { return 0; }
 #endif
 
 //
