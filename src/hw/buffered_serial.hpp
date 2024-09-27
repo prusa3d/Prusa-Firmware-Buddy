@@ -19,7 +19,7 @@ namespace hw {
         typedef void (*HalfDuplexSwitchCallback_t)(bool transmit);
 
         BufferedSerial(
-            UART_HandleTypeDef *uart, DMA_HandleTypeDef *rxDma, BufferedSerial::HalfDuplexSwitchCallback_t halfDuplexSwitchCallback,
+            UART_HandleTypeDef *uart, BufferedSerial::HalfDuplexSwitchCallback_t halfDuplexSwitchCallback,
             uint8_t *rxBufPool, size_t rxBufPoolSize, BufferedSerial::CommunicationMode txMode);
         ~BufferedSerial();
 
@@ -93,7 +93,6 @@ namespace hw {
         uint32_t writeTimeoutMs;
         bool isOpen;
         UART_HandleTypeDef *uart;
-        DMA_HandleTypeDef *rxDma;
         uartrxbuff_t rxBuf;
         CommunicationMode txMode;
         HalfDuplexSwitchCallback_t halfDuplexSwitchCallback;

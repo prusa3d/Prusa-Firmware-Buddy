@@ -119,13 +119,12 @@ int uartrxbuff_getchar(BufferedSerial::uartrxbuff_t *prxbuff) {
 LOG_COMPONENT_DEF(BufferedSerial, logging::Severity::debug);
 
 BufferedSerial::BufferedSerial(
-    UART_HandleTypeDef *uart, DMA_HandleTypeDef *rxDma, BufferedSerial::HalfDuplexSwitchCallback_t halfDuplexSwitchCallback,
+    UART_HandleTypeDef *uart, BufferedSerial::HalfDuplexSwitchCallback_t halfDuplexSwitchCallback,
     uint8_t *rxBufPool, size_t rxBufPoolSize, BufferedSerial::CommunicationMode txMode)
     : readTimeoutMs(100)
     , writeTimeoutMs(100)
     , isOpen(false)
     , uart(uart)
-    , rxDma(rxDma)
     , txMode(txMode)
     , halfDuplexSwitchCallback(halfDuplexSwitchCallback)
     , pendingWrite(false)
@@ -146,7 +145,7 @@ void BufferedSerial::Open() {
 
     memset(&rxBuf, 0, sizeof(BufferedSerial::uartrxbuff_t));
     assert(rxBufPoolSize <= 256); // uint8_t is used
-    rxBuf.phdma = rxDma;
+    rxBuf.phdma = uart->hdmarx;
     rxBuf.buffer_size = rxBufPoolSize;
     rxBuf.buffer = rxBufPool;
     rxBuf.event_group = xEventGroupCreate();

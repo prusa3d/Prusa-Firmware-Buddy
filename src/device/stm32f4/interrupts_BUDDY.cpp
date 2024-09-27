@@ -14,7 +14,6 @@ static_assert(BOARD_IS_BUDDY());
 static uint8_t uart2rx_data[32];
 buddy::hw::BufferedSerial uart2 {
     &huart2,
-    &hdma_usart2_rx,
     nullptr,
     uart2rx_data,
     sizeof(uart2rx_data),

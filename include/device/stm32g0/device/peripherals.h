@@ -128,9 +128,6 @@ void hw_spi2_init(void);
 /// Get handle for given peripheral: UART_HANDLE_FOR(esp) -> huart3
 #define UART_HANDLE_FOR(peripheral) _JOIN(huart, uart_##peripheral, )
 
-/// Get handle for given DMA peripheral: UART_DMA_HANDLE_FOR(esp, rx) -> hdma_uart3_rx
-#define UART_DMA_HANDLE_FOR(peripheral, rx_tx) _JOIN(hdma_uart, uart_##peripheral, _##rx_tx)
-
 /// Call initialization function for given peripheral
 /// Example: I2C_INIT(touch)
 #define I2C_INIT(peripheral)               \

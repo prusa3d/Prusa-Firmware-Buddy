@@ -18,7 +18,6 @@ void uart6_idle_cb() {
 static uint8_t uart6rx_data[32];
 buddy::hw::BufferedSerial uart6 {
     &huart6,
-    &hdma_usart6_rx,
     nullptr,
     uart6rx_data,
     sizeof(uart6rx_data),

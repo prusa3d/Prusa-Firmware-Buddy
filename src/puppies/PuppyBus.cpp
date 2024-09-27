@@ -15,7 +15,7 @@ namespace puppies {
     UART_HandleTypeDef &PuppyBus::UART = UART_HANDLE_FOR(puppies);
     // Rx data has to absorb any reponse. Standard Modbus response fits in 256 bytes
     static uint8_t uart_pupies_rx_data[256];
-    BufferedSerial PuppyBus::bufferedSerial(&UART, &UART_DMA_HANDLE_FOR(puppies, rx), PuppyBus::HalfDuplexCallbackSwitch, uart_pupies_rx_data, sizeof(uart_pupies_rx_data), BufferedSerial::CommunicationMode::DMA);
+    BufferedSerial PuppyBus::bufferedSerial(&UART, PuppyBus::HalfDuplexCallbackSwitch, uart_pupies_rx_data, sizeof(uart_pupies_rx_data), BufferedSerial::CommunicationMode::DMA);
     osMutexDef(puppyMutex);
     static osMutexId puppyMutexId;
     uint32_t PuppyBus::last_operation_time_us = 0;
