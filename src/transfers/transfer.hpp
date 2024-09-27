@@ -283,9 +283,6 @@ private:
     /// TODO: We have to better handle errors here (distinguish between recoverable and non-recoverable ones)
     bool restart_download();
 
-    /// Counts retries and either aborts or schedules a next attempt.
-    void recoverable_failure(bool is_printing);
-
     void done(State state, Monitor::Outcome outcome);
 
     /// For some reasons we might not have a download order from the very beginning.
@@ -360,6 +357,9 @@ public:
     ///
     /// After fully successful cleanup, the index file is removed.
     static bool cleanup_transfers();
+
+    /// Counts retries and either aborts or schedules a next attempt.
+    void recoverable_failure(bool is_printing);
 };
 
 } // namespace transfers

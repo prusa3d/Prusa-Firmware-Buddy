@@ -199,8 +199,6 @@ public:
     // Get the request in case we are in inline mode and mark as started.
     std::optional<InlineRequest> inline_request();
     bool inline_chunk(const InlineChunk &chunk);
-    // Network failed during the inline transfer - reset it in case it was already started.
-    void network_failed();
 };
 
 } // namespace transfers

@@ -494,6 +494,7 @@ DONE:
 
 void Transfer::recoverable_failure(bool is_printing) {
     if (retries_left > 0) {
+        log_warning(transfers, "Network failure, %zu retries left", retries_left);
         if (!is_printing) {
             // We want to make sure not to give up on downloading
             // the file that is being printed. This is much broader
@@ -518,6 +519,10 @@ void Transfer::recoverable_failure(bool is_printing) {
 void Transfer::done(State state, Monitor::Outcome outcome) {
     this->state = state;
     download.reset();
+    if (!partial_file) {
+        // Done called multiple times.
+        return;
+    }
     partial_file.reset();
     if (state == State::Finished) {
         remove(path.as_backup());

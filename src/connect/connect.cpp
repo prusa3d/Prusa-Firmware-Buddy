@@ -841,6 +841,10 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
     auto prepared = prepare_connection(conn_factory, config);
     if (!holds_alternative<monostate>(prepared)) {
         log_debug(connect, "No connection to communicate");
+        if (holds_alternative<Event>(action) || holds_alternative<SendTelemetry>(action)) {
+            planner().action_done(ActionResult::Failed);
+        }
+
         return prepared;
     }
 

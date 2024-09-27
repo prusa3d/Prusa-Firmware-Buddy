@@ -555,13 +555,4 @@ bool Download::inline_chunk(const InlineChunk &chunk) {
     }
 }
 
-void Download::network_failed() {
-    if (auto *in = get_if<InlinePtr>(&engine); in != nullptr) {
-        // Only relevant for the inline mode...
-        if ((*in)->started) {
-            (*in)->status = DownloadStep::FailedNetwork;
-        }
-    }
-}
-
 } // namespace transfers

@@ -1142,8 +1142,8 @@ bool Planner::transfer_chunk(const Download::InlineChunk &chunk) {
 }
 
 void Planner::transfer_reset() {
-    if (transfer.has_value() && transfer->download.has_value()) {
-        transfer->download->network_failed();
+    if (transfer.has_value()) {
+        transfer->recoverable_failure(printer.is_printing());
     }
 }
 
