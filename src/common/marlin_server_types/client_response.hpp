@@ -170,15 +170,8 @@ enum class PhasesLoadUnload : PhaseUnderlyingType {
     MMU_ErrHwTestFailed,
 #endif
 
-#if HAS_LOADCELL() && HAS_MMU2()
-    _last = MMU_ErrHwTestFailed
-#elif HAS_LOADCELL()
-    _last = FilamentStuck
-#elif HAS_MMU2()
-    _last = MMU_ErrHwTestFailed
-#else
-    _last = Unparking
-#endif
+    _cnt,
+    _last = _cnt - 1
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesLoadUnload) { return ClientFSM::Load_unload; }
 
