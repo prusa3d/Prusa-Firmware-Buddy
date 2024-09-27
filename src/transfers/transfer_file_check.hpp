@@ -63,6 +63,4 @@ inline bool is_valid_transfer(const MutablePath &filepath) {
 /// \returns whether the \p file is an existing file or a valid transfer
 bool is_valid_file_or_transfer(const MutablePath &file);
 
-[[nodiscard]] bool is_valid_file_or_transfer(const char *path);
-
 } // namespace transfers
