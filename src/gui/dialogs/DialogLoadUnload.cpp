@@ -36,73 +36,68 @@ void RadioButtonNotice::ChangePhase(PhasesLoadUnload phase, PhaseResponses respo
     Change(responses);
 }
 
-/*****************************************************************************/
-// clang-format off
-static constexpr const char *txt_first              = N_("Finishing buffered gcodes");
-static constexpr const char *txt_tool               = N_("Changing tool");
-static constexpr const char *txt_parking            = N_("Parking");
-static constexpr const char *txt_unparking          = N_("Unparking");
-static constexpr const char *txt_wait_temp          = N_("Waiting for temperature");
-static constexpr const char *txt_prep_ram           = N_("Preparing to ram");
-static constexpr const char *txt_ram                = N_("Ramming");
-static constexpr const char *txt_unload             = N_("Unloading");
-static constexpr const char *txt_unload_confirm     = N_("Was filament unload successful?");
+static constexpr const char *txt_first = N_("Finishing buffered gcodes");
+static constexpr const char *txt_tool = N_("Changing tool");
+static constexpr const char *txt_parking = N_("Parking");
+static constexpr const char *txt_unparking = N_("Unparking");
+static constexpr const char *txt_wait_temp = N_("Waiting for temperature");
+static constexpr const char *txt_prep_ram = N_("Preparing to ram");
+static constexpr const char *txt_ram = N_("Ramming");
+static constexpr const char *txt_unload = N_("Unloading");
+static constexpr const char *txt_unload_confirm = N_("Was filament unload successful?");
 static constexpr const char *txt_filament_not_in_fs = N_("Please remove filament from filament sensor.");
-static constexpr const char *txt_manual_unload      = N_("Please open idler and remove filament manually");
-static constexpr const char *txt_push_fil           = N_("Press CONTINUE and push filament into the extruder.");
+static constexpr const char *txt_manual_unload = N_("Please open idler and remove filament manually");
+static constexpr const char *txt_push_fil = N_("Press CONTINUE and push filament into the extruder.");
 static constexpr const char *txt_make_sure_inserted = N_("Make sure the filament is inserted through the sensor.");
-static constexpr const char *txt_inserting          = N_("Inserting");
-static constexpr const char *txt_is_filament_in_gear= N_("Is filament in extruder gear?");
-static constexpr const char *txt_ejecting           = N_("Ejecting");
-static constexpr const char *txt_loading            = N_("Loading to nozzle");
-static constexpr const char *txt_purging            = N_("Purging");
-static constexpr const char *txt_is_color           = N_("Is color correct?");
+static constexpr const char *txt_inserting = N_("Inserting");
+static constexpr const char *txt_is_filament_in_gear = N_("Is filament in extruder gear?");
+static constexpr const char *txt_ejecting = N_("Ejecting");
+static constexpr const char *txt_loading = N_("Loading to nozzle");
+static constexpr const char *txt_purging = N_("Purging");
+static constexpr const char *txt_is_color = N_("Is color correct?");
 #if HAS_LOADCELL()
-static constexpr const char *txt_filament_stuck     = ""; // Empty here, set from the error description
+static constexpr const char *txt_filament_stuck = ""; // Empty here, set from the error description
 #endif
 #if HAS_MMU2()
 // MMU-related
-static constexpr const char *txt_mmu_engag_idler    = N_("Engaging idler");
-static constexpr const char *txt_mmu_diseng_idler   = N_("Disengaging idler");
-static constexpr const char *txt_mmu_unload_finda   = N_("Unloading to FINDA");
-static constexpr const char *txt_mmu_unload_pulley  = N_("Unloading to pulley");
-static constexpr const char *txt_mmu_feed_finda     = N_("Feeding to FINDA");
-static constexpr const char *txt_mmu_feed_bondtech  = N_("Feeding to drive gear");
-static constexpr const char *txt_mmu_feed_nozzle    = N_("Feeding to nozzle");
-static constexpr const char *txt_mmu_avoid_grind    = N_("Avoiding grind");
-static constexpr const char *txt_mmu_finish_moves   = N_("Finishing moves");
-static constexpr const char *txt_mmu_err_internal   = N_("ERR Internal");
-static constexpr const char *txt_mmu_err_help_fil   = N_("ERR Helping filament");
-static constexpr const char *txt_mmu_err_tmc        = N_("ERR TMC failed");
-static constexpr const char *txt_mmu_unload_filament= N_("Unloading filament");
-static constexpr const char *txt_mmu_load_filament  = N_("Loading filament");
-static constexpr const char *txt_mmu_select_slot    = N_("Selecting filament slot");
-static constexpr const char *txt_mmu_prepare_blade  = N_("Preparing blade");
-static constexpr const char *txt_mmu_push_filament  = N_("Pushing filament");
-static constexpr const char *txt_mmu_perform_cut    = N_("Performing cut");
-static constexpr const char *txt_mmu_return_selector= N_("Returning selector");
-static constexpr const char *txt_mmu_park_selector  = N_("Parking selector");
+static constexpr const char *txt_mmu_engag_idler = N_("Engaging idler");
+static constexpr const char *txt_mmu_diseng_idler = N_("Disengaging idler");
+static constexpr const char *txt_mmu_unload_finda = N_("Unloading to FINDA");
+static constexpr const char *txt_mmu_unload_pulley = N_("Unloading to pulley");
+static constexpr const char *txt_mmu_feed_finda = N_("Feeding to FINDA");
+static constexpr const char *txt_mmu_feed_bondtech = N_("Feeding to drive gear");
+static constexpr const char *txt_mmu_feed_nozzle = N_("Feeding to nozzle");
+static constexpr const char *txt_mmu_avoid_grind = N_("Avoiding grind");
+static constexpr const char *txt_mmu_finish_moves = N_("Finishing moves");
+static constexpr const char *txt_mmu_err_internal = N_("ERR Internal");
+static constexpr const char *txt_mmu_err_help_fil = N_("ERR Helping filament");
+static constexpr const char *txt_mmu_err_tmc = N_("ERR TMC failed");
+static constexpr const char *txt_mmu_unload_filament = N_("Unloading filament");
+static constexpr const char *txt_mmu_load_filament = N_("Loading filament");
+static constexpr const char *txt_mmu_select_slot = N_("Selecting filament slot");
+static constexpr const char *txt_mmu_prepare_blade = N_("Preparing blade");
+static constexpr const char *txt_mmu_push_filament = N_("Pushing filament");
+static constexpr const char *txt_mmu_perform_cut = N_("Performing cut");
+static constexpr const char *txt_mmu_return_selector = N_("Returning selector");
+static constexpr const char *txt_mmu_park_selector = N_("Parking selector");
 static constexpr const char *txt_mmu_eject_filament = N_("Ejecting filament");
-static constexpr const char *txt_mmu_retract_finda  = N_("Retracting from FINDA");
-static constexpr const char *txt_mmu_homing         = N_("Homing");
-static constexpr const char *txt_mmu_moving_selector= N_("Moving selector");
-static constexpr const char *txt_mmu_feeding_fsensor= N_("Feeding to fsensor");
-static constexpr const char *txt_mmu_hw_test_begin  = N_("HW test begin");
-static constexpr const char *txt_mmu_hw_test_idler  = N_("HW test idler");
-static constexpr const char *txt_mmu_hw_test_sel    = N_("HW test selector");
+static constexpr const char *txt_mmu_retract_finda = N_("Retracting from FINDA");
+static constexpr const char *txt_mmu_homing = N_("Homing");
+static constexpr const char *txt_mmu_moving_selector = N_("Moving selector");
+static constexpr const char *txt_mmu_feeding_fsensor = N_("Feeding to fsensor");
+static constexpr const char *txt_mmu_hw_test_begin = N_("HW test begin");
+static constexpr const char *txt_mmu_hw_test_idler = N_("HW test idler");
+static constexpr const char *txt_mmu_hw_test_sel = N_("HW test selector");
 static constexpr const char *txt_mmu_hw_test_pulley = N_("HW test pulley");
-static constexpr const char *txt_mmu_hw_test_cleanup= N_("HW test cleanup");
-static constexpr const char *txt_mmu_hw_test_exec   = N_("HW test exec");
-static constexpr const char *txt_mmu_hw_test_display= N_("HW test display");
-static constexpr const char *txt_mmu_errhw_test_fail= N_("ERR HW test failed");
-static constexpr const char *txt_mmu_insert_filament= N_("Press CONTINUE and push filament into MMU.");
+static constexpr const char *txt_mmu_hw_test_cleanup = N_("HW test cleanup");
+static constexpr const char *txt_mmu_hw_test_exec = N_("HW test exec");
+static constexpr const char *txt_mmu_hw_test_display = N_("HW test display");
+static constexpr const char *txt_mmu_errhw_test_fail = N_("ERR HW test failed");
+static constexpr const char *txt_mmu_insert_filament = N_("Press CONTINUE and push filament into MMU.");
 
-//MMU_ErrWaitForUser, // need to distinguish error states based on prusa-error-codes @@TODO
-static constexpr const char *txt_mmu_err_wait_user  = find_error(ErrCode::CONNECT_MMU_LOAD_UNLOAD_ERROR).err_text;
+// MMU_ErrWaitForUser, // need to distinguish error states based on prusa-error-codes @@TODO
+static constexpr const char *txt_mmu_err_wait_user = find_error(ErrCode::CONNECT_MMU_LOAD_UNLOAD_ERROR).err_text;
 #endif
-
-// clang-format on
-/*****************************************************************************/
 
 // function pointer for onEnter & onExit callbacks
 using change_state_cb_t = void (*)();
