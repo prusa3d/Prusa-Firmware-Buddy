@@ -2,12 +2,60 @@
 #include "printers.h"
 #include <device/board.h>
 #include <logging/log.hpp>
-#include "FreeRTOSConfig.h"
+// #include "FreeRTOSConfig.h"
 #include <device/peripherals.h>
 #include "priorities_config.h"
 #include <option/has_burst_stepping.h>
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
+#if BOARD_IS_BUDDY()
+static DMA_HandleTypeDef hdma_spi2_rx;
+static DMA_HandleTypeDef hdma_spi2_tx;
+static DMA_HandleTypeDef hdma_spi3_rx;
+static DMA_HandleTypeDef hdma_spi3_tx;
+static DMA_HandleTypeDef hdma_usart1_rx;
+static DMA_HandleTypeDef hdma_usart2_rx;
+static DMA_HandleTypeDef hdma_usart6_rx;
+static DMA_HandleTypeDef hdma_usart6_tx;
+static DMA_HandleTypeDef hdma_adc1;
+static DMA_HandleTypeDef hdma_tim8;
+#elif BOARD_IS_XBUDDY()
+static DMA_HandleTypeDef hdma_spi2_rx;
+static DMA_HandleTypeDef hdma_spi3_rx;
+static DMA_HandleTypeDef hdma_spi3_tx;
+static DMA_HandleTypeDef hdma_spi4_tx;
+static DMA_HandleTypeDef hdma_spi5_tx;
+static DMA_HandleTypeDef hdma_spi5_rx;
+static DMA_HandleTypeDef hdma_spi6_tx;
+static DMA_HandleTypeDef hdma_usart6_rx;
+static DMA_HandleTypeDef hdma_usart6_tx;
+static DMA_HandleTypeDef hdma_uart8_rx;
+static DMA_HandleTypeDef hdma_uart8_tx;
+static DMA_HandleTypeDef hdma_adc1;
+static DMA_HandleTypeDef hdma_adc3;
+static DMA_HandleTypeDef hdma_tim8;
+#elif BOARD_IS_XLBUDDY()
+static DMA_HandleTypeDef hdma_spi3_rx;
+static DMA_HandleTypeDef hdma_spi3_tx;
+    #if !HAS_BURST_STEPPING()
+static DMA_HandleTypeDef hdma_spi4_tx;
+    #endif
+static DMA_HandleTypeDef hdma_spi5_tx;
+static DMA_HandleTypeDef hdma_spi5_rx;
+static DMA_HandleTypeDef hdma_spi6_tx;
+static DMA_HandleTypeDef hdma_usart3_rx;
+static DMA_HandleTypeDef hdma_usart3_tx;
+static DMA_HandleTypeDef hdma_usart6_rx;
+static DMA_HandleTypeDef hdma_usart6_tx;
+static DMA_HandleTypeDef hdma_uart8_rx;
+static DMA_HandleTypeDef hdma_uart8_tx;
+static DMA_HandleTypeDef hdma_adc1;
+static DMA_HandleTypeDef hdma_adc3;
+static DMA_HandleTypeDef hdma_tim8;
+#else
+    #error "Unknown board"
+#endif
 
 /**
  * Initializes the Global MSP.

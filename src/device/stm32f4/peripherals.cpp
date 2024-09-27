@@ -39,48 +39,28 @@ I2C_HandleTypeDef hi2c3;
 //
 
 SPI_HandleTypeDef hspi2;
-DMA_HandleTypeDef hdma_spi2_rx;
-DMA_HandleTypeDef hdma_spi2_tx;
 SPI_HandleTypeDef hspi3;
-DMA_HandleTypeDef hdma_spi3_rx;
-DMA_HandleTypeDef hdma_spi3_tx;
 SPI_HandleTypeDef hspi4;
-DMA_HandleTypeDef hdma_spi4_tx;
 SPI_HandleTypeDef hspi5;
-DMA_HandleTypeDef hdma_spi5_tx;
-DMA_HandleTypeDef hdma_spi5_rx;
 SPI_HandleTypeDef hspi6;
-DMA_HandleTypeDef hdma_spi6_tx;
-DMA_HandleTypeDef hdma_spi6_rx;
 
 //
 // UART
 //
 
 UART_HandleTypeDef huart1;
-DMA_HandleTypeDef hdma_usart1_rx;
 UART_HandleTypeDef huart2;
-DMA_HandleTypeDef hdma_usart2_rx;
 UART_HandleTypeDef huart3;
-DMA_HandleTypeDef hdma_usart3_rx;
-DMA_HandleTypeDef hdma_usart3_tx;
 UART_HandleTypeDef huart6;
-DMA_HandleTypeDef hdma_usart6_rx;
-DMA_HandleTypeDef hdma_usart6_tx;
 UART_HandleTypeDef huart8;
-DMA_HandleTypeDef hdma_uart8_rx;
-DMA_HandleTypeDef hdma_uart8_tx;
 
 //
 // ADCs
 //
 
 ADC_HandleTypeDef hadc1;
-DMA_HandleTypeDef hdma_adc1;
 ADC_HandleTypeDef hadc2;
-DMA_HandleTypeDef hdma_adc2;
 ADC_HandleTypeDef hadc3;
-DMA_HandleTypeDef hdma_adc3;
 
 //
 // Timers
@@ -90,7 +70,6 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim8;
-DMA_HandleTypeDef hdma_tim8;
 TIM_HandleTypeDef htim13;
 TIM_HandleTypeDef htim14;
 
