@@ -363,8 +363,11 @@ extern "C" void main_cpp(void) {
     I2C_INIT(touch);
 #endif
 
+#if PRINTER_IS_PRUSA_iX()
+    SPI_INIT(led);
+#endif
+
 #if (BOARD_IS_XBUDDY())
-    SPI_INIT(extconn);
     SPI_INIT(accelerometer);
 #endif
 

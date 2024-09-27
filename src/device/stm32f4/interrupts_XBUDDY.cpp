@@ -4,6 +4,7 @@
 #include <hw/buffered_serial.hpp>
 #include <option/buddy_enable_wui.h>
 #include <option/has_puppies.h>
+#include <printers.h>
 
 #if BUDDY_ENABLE_WUI()
     #include "espif.h"
@@ -36,8 +37,12 @@ TRACED_ISR(DMA2_Stream0_IRQHandler, HAL_DMA_IRQHandler, hadc3.DMA_Handle);
 TRACED_ISR(SPI3_IRQHandler, HAL_SPI_IRQHandler, &SPI_HANDLE_FOR(tmc));
 TRACED_ISR(DMA1_Stream5_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(tmc).hdmatx);
 
+#if PRINTER_IS_PRUSA_iX()
+
 // SPI for side leds on iX
-TRACED_ISR(DMA2_Stream1_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(extconn).hdmatx);
+TRACED_ISR(DMA2_Stream1_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(led).hdmatx);
+
+#endif
 
 // SPI for flash memory
 TRACED_ISR(DMA2_Stream3_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(flash).hdmarx);

@@ -232,15 +232,16 @@ extern TIM_HandleTypeDef htim14;
     #define spi_tmc            3
     #define uart_esp           8
     #define spi_accelerometer  2
-    #define spi_extconn        4
     #define tim_phase_stepping 13
     #if PRINTER_IS_PRUSA_iX()
         #define uart_puppies 6
         /// iX uses the I2C3 pins for back door filament sensor - BFW-4746
         #define i2c_touch    -1
+        #define spi_led      4
     #else
         #define uart_mmu  6
         #define i2c_touch 3
+        #define spi_led   -1
     #endif
 #elif BOARD_IS_XLBUDDY()
     #define i2c_eeprom         2
@@ -261,10 +262,6 @@ extern TIM_HandleTypeDef htim14;
     #define tim_phase_stepping 13
 #else
     #error Unknown board
-#endif
-
-#if PRINTER_IS_PRUSA_iX()
-    #define spi_led spi_extconn
 #endif
 
 #define HAS_I2CN(n) ((n == i2c_eeprom) || (n == i2c_touch) || (n == i2c_usbc) || (n == i2c_gcode) || (n == i2c_io_expander1) || (n == i2c_io_expander2))
