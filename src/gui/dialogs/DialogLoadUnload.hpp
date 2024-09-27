@@ -54,7 +54,6 @@ private:
     RadioButtonFSM radio;
 
     void set_progress_percent(uint8_t val);
-    void phaseExit();
 
 public:
     bool Change(fsm::BaseData data) override final;

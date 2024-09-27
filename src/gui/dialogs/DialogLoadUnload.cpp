@@ -106,7 +106,6 @@ struct State {
     const char *label;
     // callbacks for phase start/end
     change_state_cb_t onEnter = nullptr;
-    change_state_cb_t onExit = nullptr;
 };
 
 static constexpr EnumArray<PhasesLoadUnload, State, CountPhases<PhasesLoadUnload>()> states { {
@@ -440,7 +439,6 @@ bool DialogLoadUnload::Change(fsm::BaseData base_data) {
 
     // is normal
     if ((!current_phase) || (current_phase != phase)) {
-        phaseExit();
         current_phase = phase;
         phaseEnter();
     }
@@ -499,16 +497,6 @@ string_view_utf8 DialogLoadUnload::get_name(LoadUnloadMode mode) {
 
 float DialogLoadUnload::deserialize_progress(fsm::PhaseData data) const {
     return ProgressSerializerLoadUnload(data).progress;
-}
-
-void DialogLoadUnload::phaseExit() {
-    if (!current_phase) {
-        return;
-    }
-
-    if (auto f = get_current_state(*current_phase).onExit) {
-        f();
-    }
 }
 
 void DialogLoadUnload::phaseEnter() {
