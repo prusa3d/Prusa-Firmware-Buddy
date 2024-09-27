@@ -607,7 +607,14 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   if (!failed && z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
     // Raise Z before homing any other axes and z is not already high enough (never lower z)
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Raise Z (before homing) by ", z_homing_height);
-    do_z_clearance(z_homing_height);
+    const auto trigger_states = do_z_clearance(z_homing_height);
+
+    // If we have the Z homed and trigger an endstop, that means that we have homed wrong.
+    // Letting this continue could lead to collision with the print or with the bedsheet, so rather raise a redscreen.
+    // BFW-5334
+    if((trigger_states & (1 << EndstopEnum::Z_MAX)) && !doZ && !axes_need_homing(_BV(Z_AXIS))) {
+      raise_redscreen(ErrCode::ERR_UNDEF, "Unexpected Z MAX endstop trigger", "G28");
+    }
     TERN_(BLTOUCH, bltouch.init());
   }
 
