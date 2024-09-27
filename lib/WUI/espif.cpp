@@ -16,6 +16,7 @@
 #include <freertos/mutex.hpp>
 #include <common/metric.h>
 #include <common/crc32.h>
+#include <device/peripherals_uart.hpp>
 #include <freertos/queue.hpp>
 #include <task.h>
 #include <semphr.h>
@@ -80,8 +81,6 @@ static_assert(ETHARP_HWADDR_LEN == 6);
  *   can be trusted not to alternate packet content the ESP would be able to compute packet checksums.
  *
  */
-
-#define ESP_UART_HANDLE UART_HANDLE_FOR(esp)
 
 enum ESPIFOperatingMode {
     ESPIF_UNINITIALIZED_MODE,
@@ -159,7 +158,7 @@ static void hard_reset_device() {
 static bool can_recieve_data(ESPIFOperatingMode mode);
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
-    if (huart == &UART_HANDLE_FOR(esp)) {
+    if (huart == &uart_handle_for_esp) {
         uart_error_occured = true;
     }
 }
@@ -257,7 +256,7 @@ static err_t espif_tx_buffer(const uint8_t *data, size_t len) {
     [[maybe_unused]] auto old_semaphore = tx_semaphore_active.exchange(&tx_semaphore);
     assert(old_semaphore == nullptr);
     assert(can_be_used_by_dma(data));
-    HAL_StatusTypeDef tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, data, len);
+    HAL_StatusTypeDef tx_result = HAL_UART_Transmit_DMA(&uart_handle_for_esp, data, len);
 
     if (tx_result == HAL_OK) {
         tx_semaphore.acquire();
@@ -385,19 +384,18 @@ void espif_input_once(struct netif *netif) {
         //        It doesn't matter too much besides spamming the log, so this remains
         //        to be fixed later...
         log_warning(ESPIF, "Recovering from UART error");
-        UART_HandleTypeDef *huart = &UART_HANDLE_FOR(esp);
 
-        __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);
-        auto enable_idle_iterrupt = ScopeGuard { [&] { __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE); } };
+        __HAL_UART_DISABLE_IT(&uart_handle_for_esp, UART_IT_IDLE);
+        auto enable_idle_iterrupt = ScopeGuard { [&] { __HAL_UART_ENABLE_IT(&uart_handle_for_esp, UART_IT_IDLE); } };
 
-        HAL_UART_DeInit(huart);
-        if (const HAL_StatusTypeDef status = HAL_UART_Init(huart); status != HAL_OK) {
+        HAL_UART_DeInit(&uart_handle_for_esp);
+        if (const HAL_StatusTypeDef status = HAL_UART_Init(&uart_handle_for_esp); status != HAL_OK) {
             log_warning(ESPIF, "HAL_UART_Init() failed: %d", status);
             uart_error_occured = true;
             return;
         }
         assert(can_be_used_by_dma(dma_buffer_rx));
-        if (const HAL_StatusTypeDef status = HAL_UART_Receive_DMA(huart, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN); status != HAL_OK) {
+        if (const HAL_StatusTypeDef status = HAL_UART_Receive_DMA(&uart_handle_for_esp, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN); status != HAL_OK) {
             log_warning(ESPIF, "HAL_UART_Receive_DMA() failed: %d", status);
             uart_error_occured = true;
             return;
@@ -407,7 +405,7 @@ void espif_input_once(struct netif *netif) {
         return;
     }
 
-    uint32_t dma_bytes_left = __HAL_DMA_GET_COUNTER(ESP_UART_HANDLE.hdmarx); // no. of bytes left for buffer full
+    uint32_t dma_bytes_left = __HAL_DMA_GET_COUNTER(uart_handle_for_esp.hdmarx); // no. of bytes left for buffer full
     const size_t pos = sizeof(dma_buffer_rx) - dma_bytes_left;
     if (pos != old_dma_pos) {
         if (pos > old_dma_pos) {

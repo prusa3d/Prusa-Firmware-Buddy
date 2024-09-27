@@ -1,5 +1,6 @@
 #include <buddy/esp_uart_dma_buffer_rx.hpp>
 #include <cstdlib>
+#include <device/peripherals_uart.hpp>
 #include <device/peripherals.h>
 #include <esp_loader.h>
 #include <string.h>
@@ -14,7 +15,7 @@ extern "C" {
 
 esp_loader_error_t loader_port_write(const uint8_t *data, uint16_t size, uint32_t timeout) {
 
-    HAL_StatusTypeDef err = HAL_UART_Transmit(&UART_HANDLE_FOR(esp), (uint8_t *)data, size, timeout);
+    HAL_StatusTypeDef err = HAL_UART_Transmit(&uart_handle_for_esp, (uint8_t *)data, size, timeout);
 
     if (err == HAL_OK) {
         return ESP_LOADER_SUCCESS;
@@ -30,7 +31,7 @@ esp_loader_error_t loader_port_read(uint8_t *data, uint16_t size, uint32_t timeo
 
     // Wait for enough data in read buffer
     for (;;) {
-        const uint32_t pos = sizeof(dma_buffer_rx) - __HAL_DMA_GET_COUNTER(UART_HANDLE_FOR(esp).hdmarx);
+        const uint32_t pos = sizeof(dma_buffer_rx) - __HAL_DMA_GET_COUNTER(uart_handle_for_esp.hdmarx);
         if (pos - uart_dma_position >= size) {
             break;
         }
@@ -53,13 +54,13 @@ esp_loader_error_t loader_port_read(uint8_t *data, uint16_t size, uint32_t timeo
 }
 
 esp_loader_error_t loader_port_change_transmission_rate(uint32_t baudrate) {
-    UART_HANDLE_FOR(esp).Init.BaudRate = baudrate;
+    uart_handle_for_esp.Init.BaudRate = baudrate;
 
-    if (HAL_UART_Init(&UART_HANDLE_FOR(esp)) != HAL_OK) {
+    if (HAL_UART_Init(&uart_handle_for_esp) != HAL_OK) {
         return ESP_LOADER_ERROR_FAIL;
     }
 
-    if (HAL_UART_Receive_DMA(&UART_HANDLE_FOR(esp), (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
+    if (HAL_UART_Receive_DMA(&uart_handle_for_esp, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
         return ESP_LOADER_ERROR_FAIL;
     }
 

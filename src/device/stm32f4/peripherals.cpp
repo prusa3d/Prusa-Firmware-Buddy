@@ -12,7 +12,6 @@
 #include "TCA6408A.hpp"
 #include <logging/log.hpp>
 #include "timing_precise.hpp"
-#include "data_exchange.hpp"
 #include <option/has_puppies.h>
 #include <option/has_burst_stepping.h>
 #include <option/has_i2c_expander.h>
@@ -43,15 +42,6 @@ SPI_HandleTypeDef hspi3;
 SPI_HandleTypeDef hspi4;
 SPI_HandleTypeDef hspi5;
 SPI_HandleTypeDef hspi6;
-
-//
-// UART
-//
-
-UART_HandleTypeDef huart2;
-UART_HandleTypeDef huart3;
-UART_HandleTypeDef huart6;
-UART_HandleTypeDef huart8;
 
 //
 // ADCs
@@ -358,80 +348,6 @@ void hw_adc3_init() {
 
     // Disable ADC DMA IRQ by default. This is enabled on-demand by AdcMultiplexer
     HAL_NVIC_DisableIRQ(DMA2_Stream0_IRQn);
-}
-#endif
-
-void hw_uart2_init() {
-    huart2.Instance = USART2;
-    huart2.Init.BaudRate = 115200;
-    huart2.Init.WordLength = UART_WORDLENGTH_8B;
-    huart2.Init.StopBits = UART_STOPBITS_1;
-    huart2.Init.Parity = UART_PARITY_NONE;
-    huart2.Init.Mode = UART_MODE_TX_RX;
-    huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-    if (HAL_HalfDuplex_Init(&huart2) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
-void hw_uart3_init() {
-    huart3.Instance = USART3;
-    huart3.Init.BaudRate = 230400;
-    huart3.Init.WordLength = UART_WORDLENGTH_8B;
-    huart3.Init.StopBits = UART_STOPBITS_1;
-    huart3.Init.Parity = UART_PARITY_NONE;
-    huart3.Init.Mode = UART_MODE_TX_RX;
-    huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-    if (HAL_UART_Init(&huart3) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
-static constexpr uint32_t tester_uart_speed = 115'200; // HW tester during manufacturing needs this speed
-static constexpr uint32_t uart6_default_speed = 115'200;
-static constexpr uint32_t uart8_default_speed = 4'600'000;
-
-void hw_uart6_init() {
-    huart6.Instance = USART6;
-#if HAS_PUPPIES() && (uart_puppies == 6)
-    huart6.Init.BaudRate = 230400;
-#elif uart_esp == 6
-    huart6.Init.BaudRate = running_in_tester_mode() ? tester_uart_speed : uart6_default_speed;
-#else
-    huart6.Init.BaudRate = uart6_default_speed;
-#endif
-    huart6.Init.WordLength = UART_WORDLENGTH_8B;
-    huart6.Init.StopBits = UART_STOPBITS_1;
-    huart6.Init.Parity = UART_PARITY_NONE;
-    huart6.Init.Mode = UART_MODE_TX_RX;
-    huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart6.Init.OverSampling = UART_OVERSAMPLING_16;
-    if (HAL_UART_Init(&huart6) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
-#if BOARD_IS_XBUDDY() || BOARD_IS_XLBUDDY()
-void hw_uart8_init() {
-    huart8.Instance = UART8;
-    #if uart_esp == 8
-    // In tester mode ESP UART is being used to talk to the testing station,
-    // thus it must not be used for the ESP, different UART setup is needed as well.
-    huart8.Init.BaudRate = running_in_tester_mode() ? tester_uart_speed : uart8_default_speed;
-    #else
-    huart8.Init.BaudRate = uart8_default_speed;
-    #endif
-    huart8.Init.WordLength = UART_WORDLENGTH_8B;
-    huart8.Init.StopBits = UART_STOPBITS_1;
-    huart8.Init.Parity = UART_PARITY_NONE;
-    huart8.Init.Mode = UART_MODE_TX_RX;
-    huart8.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart8.Init.OverSampling = UART_OVERSAMPLING_8;
-    if (HAL_UART_Init(&huart8) != HAL_OK) {
-        Error_Handler();
-    }
 }
 #endif
 

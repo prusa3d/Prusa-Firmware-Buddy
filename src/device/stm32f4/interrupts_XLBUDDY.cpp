@@ -1,6 +1,7 @@
 #include "interrupts_helper.hpp"
 #include <device/board.h>
 #include <device/peripherals.h>
+#include <device/peripherals_uart.hpp>
 #include <option/buddy_enable_wui.h>
 #include <option/has_burst_stepping.h>
 #include <option/has_puppies.h>
@@ -44,15 +45,15 @@ TRACED_ISR(DMA2_Stream1_IRQHandler, HAL_DMA_IRQHandler, hspi4.hdmatx);
 #endif
 
 // UART for puppy modbus
-TRACED_ISR(USART3_IRQHandler, HAL_UART_IRQHandler_with_idle, &UART_HANDLE_FOR(puppies), uart3_idle_cb);
-TRACED_ISR(DMA1_Stream1_IRQHandler, HAL_DMA_IRQHandler, UART_HANDLE_FOR(puppies).hdmarx);
-TRACED_ISR(DMA1_Stream3_IRQHandler, HAL_DMA_IRQHandler, UART_HANDLE_FOR(puppies).hdmatx);
+TRACED_ISR(USART3_IRQHandler, HAL_UART_IRQHandler_with_idle, &uart_handle_for_puppies, uart3_idle_cb);
+TRACED_ISR(DMA1_Stream1_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_puppies.hdmarx);
+TRACED_ISR(DMA1_Stream3_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_puppies.hdmatx);
 
 #if BUDDY_ENABLE_WUI()
 
 // UART for ESP network interface card
-TRACED_ISR(UART8_IRQHandler, HAL_UART_IRQHandler_with_idle, &UART_HANDLE_FOR(esp), espif_receive_data);
-TRACED_ISR(DMA1_Stream6_IRQHandler, HAL_DMA_IRQHandler_with_idle, UART_HANDLE_FOR(esp).hdmarx, espif_receive_data);
-TRACED_ISR(DMA1_Stream0_IRQHandler, HAL_DMA_IRQHandler, UART_HANDLE_FOR(esp).hdmatx);
+TRACED_ISR(UART8_IRQHandler, HAL_UART_IRQHandler_with_idle, &uart_handle_for_esp, espif_receive_data);
+TRACED_ISR(DMA1_Stream6_IRQHandler, HAL_DMA_IRQHandler_with_idle, uart_handle_for_esp.hdmarx, espif_receive_data);
+TRACED_ISR(DMA1_Stream0_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_esp.hdmatx);
 
 #endif

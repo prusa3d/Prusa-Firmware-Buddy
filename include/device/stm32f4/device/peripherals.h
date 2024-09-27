@@ -30,15 +30,6 @@ extern SPI_HandleTypeDef hspi5;
 extern SPI_HandleTypeDef hspi6;
 
 //
-// UART
-//
-
-extern UART_HandleTypeDef huart2;
-extern UART_HandleTypeDef huart3;
-extern UART_HandleTypeDef huart6;
-extern UART_HandleTypeDef huart8;
-
-//
 // ADCs
 //
 
@@ -200,11 +191,6 @@ extern TIM_HandleTypeDef htim14;
     #define i2c1_SCL_PIN       GPIO_PIN_8
 #endif
 
-// Make our life a bit easier and don't distinguish between UART and USART
-#define UART2 USART2
-#define UART3 USART3
-#define UART6 USART6
-
 //
 // External Peripherals Assignment
 // -1 == don't have, currently i2c only
@@ -219,8 +205,6 @@ extern TIM_HandleTypeDef htim14;
     #define i2c_io_expander2 -1
     #define spi_flash        3
     #define spi_lcd          2
-    #define uart_tmc         2
-    #define uart_esp         6
 #elif BOARD_IS_XBUDDY()
     #define i2c_eeprom         2
     #define i2c_usbc           2
@@ -230,16 +214,13 @@ extern TIM_HandleTypeDef htim14;
     #define spi_flash          5
     #define spi_lcd            6
     #define spi_tmc            3
-    #define uart_esp           8
     #define spi_accelerometer  2
     #define tim_phase_stepping 13
     #if PRINTER_IS_PRUSA_iX()
-        #define uart_puppies 6
         /// iX uses the I2C3 pins for back door filament sensor - BFW-4746
-        #define i2c_touch    -1
-        #define spi_led      4
+        #define i2c_touch -1
+        #define spi_led   4
     #else
-        #define uart_mmu  6
         #define i2c_touch 3
         #define spi_led   -1
     #endif
@@ -253,11 +234,9 @@ extern TIM_HandleTypeDef htim14;
     #define spi_flash          5
     #define spi_lcd            6
     #define spi_tmc            3
-    #define uart_esp           8
     #define spi_accelerometer  2
     // Side LEDs use either SPI4 or share SPI with LCD, depending on HW revision
     #define spi_led            4
-    #define uart_puppies       3
     #define tim_burst_stepping 8
     #define tim_phase_stepping 13
 #else
@@ -285,11 +264,6 @@ void hw_dma_init();
 
 void hw_adc1_init();
 void hw_adc3_init();
-
-void hw_uart2_init();
-void hw_uart3_init();
-void hw_uart6_init();
-void hw_uart8_init();
 
 //
 // i2c init may not exist without External Peripherals Assignment
@@ -339,9 +313,6 @@ void hw_tim14_init();
 /// Get handle for given peripheral: TIM_HANDLE_FOR(phase_stepping) -> htim12
 #define TIM_HANDLE_FOR(peripheral) _JOIN(htim, tim_##peripheral, )
 
-/// Get handle for given peripheral: UART_HANDLE_FOR(esp) -> huart3
-#define UART_HANDLE_FOR(peripheral) _JOIN(huart, uart_##peripheral, )
-
 /// Call initialization function for given peripheral
 /// Example: I2C_INIT(touch)
 #define I2C_INIT(peripheral)               \
@@ -352,12 +323,6 @@ void hw_tim14_init();
 /// Example: SPI_INIT(lcd)
 #define SPI_INIT(peripheral)               \
     _JOIN(hw_spi, spi_##peripheral, _init) \
-    ()
-
-/// Call initialization function for given peripheral
-/// Example: UART_INIT(esp)
-#define UART_INIT(peripheral)                \
-    _JOIN(hw_uart, uart_##peripheral, _init) \
     ()
 
 #ifdef __cplusplus

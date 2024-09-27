@@ -1,6 +1,7 @@
 #include "esp_flash_task.hpp"
 #include "esp_uart_dma_buffer_rx.hpp"
 
+#include <device/peripherals_uart.hpp>
 #include <espif.h>
 #include <esp_flash.hpp>
 #include <gui/gui_bootstrap_screen.hpp>
@@ -52,5 +53,5 @@ void skip_esp_flashing() {
 
     // To make esp work we need to initialize the uart DMA to receive messages from esp.
     // Normally this is done at the end of the flashing when we change the baudrate.
-    HAL_UART_Receive_DMA(&UART_HANDLE_FOR(esp), (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
+    HAL_UART_Receive_DMA(&uart_handle_for_esp, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
 }

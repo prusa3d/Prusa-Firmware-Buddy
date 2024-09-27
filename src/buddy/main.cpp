@@ -3,6 +3,7 @@
 #include "platform.h"
 #include <device/board.h>
 #include <device/peripherals.h>
+#include <device/peripherals_uart.hpp>
 #include <freertos/critical_section.hpp>
 #include <guiconfig/guiconfig.h>
 #include "config_features.h"
@@ -168,9 +169,9 @@ static void manufacture_report_endless_loop() {
     constexpr const uint8_t endl = '\n';
     constexpr const char *str_fw = "FW:";
     while (true) {
-        HAL_UART_Transmit(&UART_HANDLE_FOR(esp), reinterpret_cast<const uint8_t *>(str_fw), strlen(str_fw), 1000);
-        HAL_UART_Transmit(&UART_HANDLE_FOR(esp), reinterpret_cast<const uint8_t *>(version::project_version_full), strlen(version::project_version_full), 1000);
-        HAL_UART_Transmit(&UART_HANDLE_FOR(esp), &endl, sizeof(endl), 1000);
+        HAL_UART_Transmit(&uart_handle_for_esp, reinterpret_cast<const uint8_t *>(str_fw), strlen(str_fw), 1000);
+        HAL_UART_Transmit(&uart_handle_for_esp, reinterpret_cast<const uint8_t *>(version::project_version_full), strlen(version::project_version_full), 1000);
+        HAL_UART_Transmit(&uart_handle_for_esp, &endl, sizeof(endl), 1000);
         osDelay(500); // tester needs 500ms, do not change this value!
     }
 }
@@ -323,7 +324,7 @@ extern "C" void main_cpp(void) {
         // block esp in tester mode (redscreen probably shouldn't happen on tester, but better safe than sorry)
         if (!running_in_tester_mode() && config_store().connect_enabled.get()) {
             TaskDeps::components_init();
-            UART_INIT(esp);
+            uart_init_esp();
             // Needed for certificate verification
             hw_rtc_init();
             // Needed for SSL random data
@@ -373,18 +374,18 @@ extern "C" void main_cpp(void) {
 
 #if defined(spi_tmc)
     SPI_INIT(tmc);
-#elif defined(uart_tmc)
-    UART_INIT(tmc);
+#elif BOARD_IS_BUDDY()
+    uart_init_tmc();
 #else
     #error Do not know how to init TMC communication channel
 #endif
 
 #if BUDDY_ENABLE_WUI()
-    UART_INIT(esp);
+    uart_init_esp();
 #endif
 
 #if HAS_MMU2()
-    UART_INIT(mmu);
+    uart_init_mmu();
 #endif
 
 #if HAS_GUI() && !(BOARD_IS_XLBUDDY())
@@ -396,7 +397,7 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if HAS_PUPPIES()
-    UART_INIT(puppies);
+    uart_init_puppies();
     buddy::puppies::PuppyBus::Open();
 #endif
 
@@ -564,78 +565,66 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-#if (BOARD_IS_BUDDY())
-    if (huart == &huart2) {
+#if BOARD_IS_BUDDY()
+    if (huart == &uart_handle_for_tmc) {
         uart2.WriteFinishedISR();
     }
 #endif
 
 #if HAS_PUPPIES()
-    if (huart == &UART_HANDLE_FOR(puppies)) {
+    if (huart == &uart_handle_for_puppies) {
         buddy::puppies::PuppyBus::bufferedSerial.WriteFinishedISR();
     }
 #endif
 
-#if (BOARD_IS_XBUDDY())
-    #if !HAS_PUPPIES()
-    if (huart == &huart6) {
-        //        log_debug(Buddy, "HAL_UART6_TxCpltCallback");
+#if HAS_MMU2()
+    if (huart == &uart_handle_for_mmu) {
         uart6.WriteFinishedISR();
-        #if HAS_MMU2()
-                // instruct the RS485 converter, that we have finished sending data and from now on we are expecting a response from the MMU
-                // set to high in hwio_pindef.h
-                // buddy::hw::RS485FlowControl.write(buddy::hw::Pin::State::high);
-        #endif
     }
-    #endif
 #endif
-    if (huart == &UART_HANDLE_FOR(esp)) {
+
+    if (huart == &uart_handle_for_esp) {
         return espif_tx_callback();
     }
 }
 
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
-
-#if (BOARD_IS_BUDDY())
-    if (huart == &huart2) {
+#if BOARD_IS_BUDDY()
+    if (huart == &uart_handle_for_tmc) {
         uart2.FirstHalfReachedISR();
     }
 #endif
 
 #if HAS_PUPPIES()
-    if (huart == &UART_HANDLE_FOR(puppies)) {
+    if (huart == &uart_handle_for_puppies) {
         buddy::puppies::PuppyBus::bufferedSerial.FirstHalfReachedISR();
     }
 #endif
 
-#if (BOARD_IS_XBUDDY())
-    #if !HAS_PUPPIES()
-    if (huart == &huart6) {
+#if HAS_MMU2()
+    if (huart == &uart_handle_for_mmu) {
         uart6.FirstHalfReachedISR();
     }
-    #endif
 #endif
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-#if (BOARD_IS_BUDDY())
-    if (huart == &huart2) {
+#if BOARD_IS_BUDDY()
+    if (huart == &uart_handle_for_tmc) {
         uart2.SecondHalfReachedISR();
     }
 #endif
 
 #if HAS_PUPPIES()
-    if (huart == &UART_HANDLE_FOR(puppies)) {
+    if (huart == &uart_handle_for_puppies) {
         buddy::puppies::PuppyBus::bufferedSerial.SecondHalfReachedISR();
     }
 #endif
 
-#if (BOARD_IS_XBUDDY())
-    #if !HAS_PUPPIES()
-    if (huart == &huart6) {
+#if HAS_MMU2()
+    if (huart == &uart_handle_for_mmu) {
         uart6.SecondHalfReachedISR();
     }
-    #endif
 #endif
 }
 

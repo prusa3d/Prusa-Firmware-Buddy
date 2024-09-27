@@ -125,9 +125,6 @@ void hw_spi2_init(void);
 /// Get handle for given peripheral: SPI_HANDLE_FOR(lcd) -> hspi3
 #define SPI_HANDLE_FOR(peripheral) _JOIN(hspi, spi_##peripheral, )
 
-/// Get handle for given peripheral: UART_HANDLE_FOR(esp) -> huart3
-#define UART_HANDLE_FOR(peripheral) _JOIN(huart, uart_##peripheral, )
-
 /// Call initialization function for given peripheral
 /// Example: I2C_INIT(touch)
 #define I2C_INIT(peripheral)               \
@@ -138,10 +135,4 @@ void hw_spi2_init(void);
 /// Example: SPI_INIT(lcd)
 #define SPI_INIT(peripheral)               \
     _JOIN(hw_spi, spi_##peripheral, _init) \
-    ()
-
-/// Call initialization function for given peripheral
-/// Example: UART_INIT(esp)
-#define UART_INIT(peripheral)                \
-    _JOIN(hw_uart, uart_##peripheral, _init) \
     ()
