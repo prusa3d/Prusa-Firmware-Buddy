@@ -65,3 +65,54 @@ This does not apply to 3rd party code in our repository.
 
 ### Code Style: Coding Conventions
 - (recommendation) Prefer using anonymous namespaces instead of `static` cpp members.
+
+## Documentation
+
+### G-Code command documentation
+ - Use following format and syntax
+```
+/**
+*### [G|M]<number>: <Description><web link to RepRap wiki> (no space between * and ### . Header size)
+*
+*#### Usage  (no space between * and #### . Sub-header size)
+*
+* G<number> [ <parameter 1> | <parameter 2> | ... | <parameter n> ] (four spaces between *  and [G|M] to format a code)
+*
+*#### Parameters (no space between * and #### . Sub-header size)
+*
+* - '<parameter 1' - <description parameter 1> (one space between * and -)
+*
+*    -  '<param. value>' -  <description param.value>
+*
+*#### Examples
+*
+*    [G|M]<number> <parameter 1><param. value> ; <Description of this example gcode> (four spaces between *  and [G|M] to format a code)
+*
+*/
+```
+
+ - Example G-Code documentation
+
+```
+/**
+ *### G27: Park the nozzle <a href="https://reprap.org/wiki/G-code#G27:_Park_toolhead">G27: Park toolhead</a>
+ *
+ *#### Usage
+ *
+ * G27 [ X | Y | Z | P ]
+ *
+ *#### Parameters
+ *
+ * - `X` - X park position
+ * - `Y` - Y park position
+ * - `Z` - Z park position
+ * - `P` - [value] Z action
+ *   - `0` - (Default) Relative raise by NOZZLE_PARK_Z_RAISE_MIN before XY parking
+ *   - `1` - Absolute move to NOZZLE_PARK_POINT.z before XY parking. This may move the nozzle down, so use with caution!
+ *   - `2` - Relative raise by NOZZLE_PARK_POINT.z before XY parking.
+ * - 'W' - [value] Pre-defined positions. Usable only if X, Y and Z are not present as they override pre-defined behaviour. Positions defined in configuration via NOZZLE_PARK_POINT, WASTEBIN_POINT and AXIS_LOAD_POS. WASTEBIN is replaced by PARK in case it is not defined (currently defined only for iX).
+ *   - `0` - Predefined park position
+ *   - `1` - Predefined purge position
+ *   - `2` - Predefined load position
+ */
+```
