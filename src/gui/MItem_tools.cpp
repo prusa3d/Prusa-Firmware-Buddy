@@ -277,9 +277,12 @@ void do_shipping_prep() {
     const auto nozzle_is_high_flow = config_store().nozzle_is_high_flow.get();
     const auto ext_printer_type = config_store().extended_printer_type.get();
 
+    // at this spot, we hope, that no other thread is actually writing into the EEPROM. They can read, even though it doesn't probably happen
+    // we cannot disable task switching here because osDelays stop working ... which is required for erasing the EEPROM
+    st25dv64k_chip_erase();
     {
+        // disable task switching now while reloading the EEPROM structures
         freertos::CriticalSection critical_section;
-        st25dv64k_chip_erase();
 
         // Build the structures again - this is the tricky part.
         // What an awful way of force-reinitializing the RAM data structures of config_store
