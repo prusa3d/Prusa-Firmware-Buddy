@@ -273,8 +273,9 @@ void do_shipping_prep() {
         _("Shipping preparation\n\nErasing configuration\n(but keeping Nextruder type)\nit will take some time..."));
     msg.Draw(); // Non-blocking info
 
-    bool is_mmu_rework = config_store().is_mmu_rework.get();
-    uint8_t ext_printer_type = config_store().extended_printer_type.get();
+    const auto is_mmu_rework = config_store().is_mmu_rework.get();
+    const auto nozzle_is_high_flow = config_store().nozzle_is_high_flow.get();
+    const auto ext_printer_type = config_store().extended_printer_type.get();
 
     {
         freertos::CriticalSection critical_section;
@@ -290,9 +291,11 @@ void do_shipping_prep() {
         init_config_store();
         config_store().perform_config_check();
     }
+
     // write back the flags we want to keep
     config_store().is_mmu_rework.set(is_mmu_rework);
     config_store().extended_printer_type.set(ext_printer_type);
+    config_store().nozzle_is_high_flow.set(nozzle_is_high_flow);
 
     msg_and_sys_reset();
 }
