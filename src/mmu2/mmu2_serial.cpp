@@ -2,16 +2,17 @@
 #include <device/board.h>
 #include <option/has_mmu2.h>
 
-#if HAS_MMU2()
-    #include <device/peripherals_uart.hpp>
-    #include "cmsis_os.h"
-    #include "bsod.h"
-    #include "../common/hwio_pindef.h"
-    #include <timing.h>
+static_assert(HAS_MMU2());
+
+#include <device/peripherals_uart.hpp>
+#include "cmsis_os.h"
+#include "bsod.h"
+#include "../common/hwio_pindef.h"
+#include <timing.h>
 
 using namespace buddy::hw;
 
-    #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_serial.h"
+#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_serial.h"
 
 namespace MMU2 {
 
@@ -79,19 +80,3 @@ void MMU2Serial::check_recovery() {
 MMU2Serial mmu2Serial;
 
 } // namespace MMU2
-
-#else // HAS_MMU2()
-
-    // a crude workaround to link FW for older incarnations of MK4's xBUDDY
-    // Empty implementation for the MMU2Serial. Hopefully, with the release of MK4 this can be removed completely...
-    #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_serial.h"
-namespace MMU2 {
-void MMU2Serial::begin(uint32_t /*baud*/) {}
-void MMU2Serial::close() {}
-int MMU2Serial::read() { return 0; }
-void MMU2Serial::flush() {}
-size_t MMU2Serial::write(const uint8_t * /*buffer*/, size_t /*size*/) { return 0; }
-MMU2Serial mmu2Serial;
-} // namespace MMU2
-
-#endif // HAS_MMU2()
