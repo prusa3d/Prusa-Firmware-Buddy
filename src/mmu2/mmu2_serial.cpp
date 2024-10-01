@@ -1,18 +1,11 @@
-#include "printers.h"
-#include <device/board.h>
+#include <Marlin/src/feature/prusa/MMU2/mmu2_serial.h>
+
+#include <common/timing.h>
+#include <device/hal.h>
+#include <device/peripherals_uart.hpp>
 #include <option/has_mmu2.h>
 
 static_assert(HAS_MMU2());
-
-#include <device/peripherals_uart.hpp>
-#include "cmsis_os.h"
-#include "bsod.h"
-#include "../common/hwio_pindef.h"
-#include <timing.h>
-
-using namespace buddy::hw;
-
-#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_serial.h"
 
 namespace MMU2 {
 
