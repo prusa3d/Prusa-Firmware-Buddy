@@ -9,11 +9,6 @@ static_assert(HAS_MMU2());
 
 namespace MMU2 {
 
-// @@TODO not available in BufferedSerial
-// bool MMU2Serial::available()const {
-//    return BufferedSerial::uartNr.Available();
-//}
-
 void MMU2Serial::begin(uint32_t baud) {
     baud_rate = baud;
 
