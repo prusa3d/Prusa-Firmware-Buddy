@@ -1248,7 +1248,7 @@ void Pause::park_nozzle_and_notify() {
         LOOP_XY(axis) {
             // TODO: make homeaxis non-blocking to allow quick_stop
             if (!isnan(settings.park_pos.pos[axis]) && axes_need_homing(_BV(axis))) {
-                GcodeSuite::G28_no_parser(false, false, 0, false, axis == X_AXIS, axis == Y_AXIS, false);
+                GcodeSuite::G28_no_parser(false, 0, axis == X_AXIS, axis == Y_AXIS, false);
             }
             if (check_user_stop()) {
                 return;
@@ -1295,7 +1295,7 @@ void Pause::unpark_nozzle_and_notify() {
     // we can move only one axis during parking and not home the other one and then unpark and move the not homed one, so we need to home it
     LOOP_XY(axis) {
         if (!isnan(settings.park_pos.pos[axis]) && axes_need_homing(_BV(axis))) {
-            GcodeSuite::G28_no_parser(false, false, 0, false, axis == X_AXIS, axis == Y_AXIS, false);
+            GcodeSuite::G28_no_parser(false, 0, axis == X_AXIS, axis == Y_AXIS, false);
         }
     }
 

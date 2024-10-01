@@ -303,7 +303,6 @@ static void reenable_wavetable(AxisEnum axis)
  *  None  Home to all axes with no parameters.
  *        With QUICK_HOME enabled XY will home together, then Z.
  *
- *  L<bool>   Force leveling state ON (if possible) or OFF after homing (Requires RESTORE_LEVELING_AFTER_G28 or ENABLE_LEVELING_AFTER_G28)
  *  O         Home only if the position is not known and trusted
  *  R<linear> Raise by n mm/inches before homing
  *
@@ -321,15 +320,10 @@ static void reenable_wavetable(AxisEnum axis)
  *
  *  P   Do not check print sheet presence
  */
-void GcodeSuite::G28(const bool always_home_all) {
+void GcodeSuite::G28() {
 #if ENABLED(NOZZLE_LOAD_CELL)
   BlockEStallDetection block_e_stall_detection;
 #endif
-
-  bool S = false;
-  #if ENABLED(MARLIN_DEV_MODE)
-    S = parser.seen('S')
-  #endif
 
   bool O = parser.boolval('O');
   #if ENABLED(DETECT_PRINT_SHEET)
@@ -344,12 +338,12 @@ void GcodeSuite::G28(const bool always_home_all) {
   #endif
   float R = parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT;
 
-  G28_no_parser(always_home_all, O, R, S, X, Y, Z, no_change OPTARG(PRECISE_HOMING_COREXY, precise) OPTARG(DETECT_PRINT_SHEET, check_sheet));
+  G28_no_parser(O, R, X, Y, Z, no_change OPTARG(PRECISE_HOMING_COREXY, precise) OPTARG(DETECT_PRINT_SHEET, check_sheet));
 }
 
 /** @}*/
 
-bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y, bool Z
+bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_height, bool X, bool Y, bool Z
   , bool no_change OPTARG(PRECISE_HOMING_COREXY, bool precise) OPTARG(DETECT_PRINT_SHEET, bool check_sheet)) {
 
   HomingReporter reporter;
@@ -387,7 +381,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     SBI(required_axis_bits, Y_AXIS);
     SBI(required_axis_bits, Z_AXIS);
   }
-  if (!axes_should_home(required_axis_bits) && O) {
+  if (!axes_should_home(required_axis_bits) && only_if_needed) {
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("> homing not needed, skip");
     return true;
   }
@@ -601,8 +595,8 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   TERN_(HOME_Z_FIRST, if (!failed && doZ) failed = !homeaxis(Z_AXIS));
 
-  const bool seenR = !isnan(R);
-  const float z_homing_height = seenR ? R : Z_HOMING_HEIGHT;
+  const bool seenR = !isnan(z_height);
+  const float z_homing_height = seenR ? z_height : Z_HOMING_HEIGHT;
 
   if (!failed && z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
     // Raise Z before homing any other axes and z is not already high enough (never lower z)

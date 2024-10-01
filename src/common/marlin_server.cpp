@@ -2378,7 +2378,7 @@ static void _server_print_loop(void) {
         if (axis_unhomed_error(_BV(X_AXIS) | _BV(Y_AXIS)
                 | (crash_s.is_homefail_z() ? _BV(Z_AXIS) : 0))) { // Needs homing
             TemporaryBedLevelingState tbs(false); // Disable for the additional homing, keep previous state after homing
-            if (!GcodeSuite::G28_no_parser(false, false, 0, false, true, true, crash_s.is_homefail_z())) {
+            if (!GcodeSuite::G28_no_parser(false, 0, true, true, crash_s.is_homefail_z())) {
                 // Unsuccesfull rehome
                 set_axis_is_not_at_home(X_AXIS);
                 set_axis_is_not_at_home(Y_AXIS);
