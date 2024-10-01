@@ -47,18 +47,10 @@ TRACED_ISR(DMA2_Stream7_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_puppies.
 #else
 
 // UART for MMU
-static uint8_t uart6rx_data[32];
-buddy::hw::BufferedSerial uart6 {
-    &uart_handle_for_mmu,
-    nullptr,
-    uart6rx_data,
-    sizeof(uart6rx_data),
-    buddy::hw::BufferedSerial::CommunicationMode::DMA
-};
-void uart6_idle_cb() {
-    uart6.IdleISR();
+void uart_for_mmu_idle_isr() {
+    uart_for_mmu.IdleISR();
 }
-TRACED_ISR(USART6_IRQHandler, HAL_UART_IRQHandler_with_idle, &uart_handle_for_mmu, uart6_idle_cb);
+TRACED_ISR(USART6_IRQHandler, HAL_UART_IRQHandler_with_idle, &uart_handle_for_mmu, uart_for_mmu_idle_isr);
 TRACED_ISR(DMA2_Stream2_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_mmu.hdmarx);
 TRACED_ISR(DMA2_Stream7_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_mmu.hdmatx);
 

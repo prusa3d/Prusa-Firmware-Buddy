@@ -130,8 +130,6 @@ void StartConnectTaskError(void const *argument); // Version for redscreen
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
-extern buddy::hw::BufferedSerial uart6;
-
 /**
  * @brief Bootstrap finished
  *
@@ -469,13 +467,8 @@ extern "C" void main_cpp(void) {
     uart_for_tmc.Open();
 #endif
 
-#if (BOARD_IS_XBUDDY())
-    #if !HAS_PUPPIES()
-    uart6.Open();
-    #endif
-#endif
-
 #if HAS_MMU2()
+    uart_for_mmu.Open();
     // mmu2 is normally serviced from the marlin thread
     // so execute it before the defaultTask is created to prevent race conditions
     if (config_store().mmu2_enabled.get()) {
@@ -578,7 +571,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 
 #if HAS_MMU2()
     if (huart == &uart_handle_for_mmu) {
-        uart6.WriteFinishedISR();
+        uart_for_mmu.WriteFinishedISR();
     }
 #endif
 
@@ -602,7 +595,7 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
 
 #if HAS_MMU2()
     if (huart == &uart_handle_for_mmu) {
-        uart6.FirstHalfReachedISR();
+        uart_for_mmu.FirstHalfReachedISR();
     }
 #endif
 }
@@ -622,7 +615,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 #if HAS_MMU2()
     if (huart == &uart_handle_for_mmu) {
-        uart6.SecondHalfReachedISR();
+        uart_for_mmu.SecondHalfReachedISR();
     }
 #endif
 }

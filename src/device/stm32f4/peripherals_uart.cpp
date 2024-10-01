@@ -69,6 +69,14 @@ void uart_init_puppies() {
 
 #if HAS_MMU2()
 UART_HandleTypeDef uart_handle_for_mmu;
+static uint8_t uart_for_mmu_rx_data[32];
+buddy::hw::BufferedSerial uart_for_mmu {
+    &uart_handle_for_mmu,
+    nullptr,
+    uart_for_mmu_rx_data,
+    sizeof(uart_for_mmu_rx_data),
+    buddy::hw::BufferedSerial::CommunicationMode::DMA,
+};
 void uart_init_mmu() {
     uart_handle_for_mmu.Instance = UART_MMU;
     uart_handle_for_mmu.Init.BaudRate = 115'200;

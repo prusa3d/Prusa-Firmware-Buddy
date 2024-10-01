@@ -19,6 +19,7 @@ void uart_init_puppies();
 
 #if HAS_MMU2()
 extern UART_HandleTypeDef uart_handle_for_mmu;
+extern buddy::hw::BufferedSerial uart_for_mmu;
 void uart_init_mmu();
 #endif
 
