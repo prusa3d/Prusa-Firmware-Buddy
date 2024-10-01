@@ -213,8 +213,8 @@ set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY "MINI" "MK4" "MK3.5" "XL" "iX")
 set(PRINTERS_WITH_ADVANCED_PAUSE "MINI" "MK4" "MK3.5" "iX" "XL" "XL_DEV_KIT")
 set(PRINTERS_WITH_CRASH_DETECTION "MINI" "MK4" "MK3.5" "iX" "XL") # this does require selftest to
                                                                   # work
-set(PRINTERS_WITH_POWER_PANIC "MK4" "iX" "XL") # this does require selftest and crash
-# detection to work
+set(PRINTERS_WITH_POWER_PANIC "MK4" "MK3.5" "iX" "XL") # this does require selftest and crash
+                                                       # detection to work
 set(PRINTERS_WITH_PRECISE_HOMING "MK4" "MK3.5")
 set(PRINTERS_WITH_PRECISE_HOMING_COREXY "iX" "XL" "XL_DEV_KIT")
 set(PRINTERS_WITH_PHASE_STEPPING "XL" "iX")
