@@ -76,19 +76,25 @@ void GcodeSuite::G27() {
 
 void G27_no_parser(const G27Params &params) {
     xyz_pos_t park_position { params.park_position };
+    bool do_x { params.do_x };
+    bool do_y { params.do_y };
+    bool do_z { params.do_z };
 
-    if (!params.do_x && !params.do_y && !params.do_z) {
+    if (!do_x && !do_y && !do_z) {
         park_position = park_positions[params.where_to_park];
+        do_x = !isnan(park_position.x);
+        do_y = !isnan(park_position.y);
+        do_z = !isnan(park_position.z);
     }
 
     // If not homed and only Z clearance is requested, od just that, otherwise home and then park.
-    if (axes_need_homing()) {
-        if (!params.do_x && !params.do_y && params.do_z && params.z_action == 0) {
+    if (axes_need_homing(X_AXIS | Y_AXIS | Z_AXIS)) {
+        if (!do_x && !do_y && do_z && params.z_action == 0) {
             // Only Z axis is given in P=0 mode, do Z clearance
             do_z_clearance(park_position.z);
             return;
         } else {
-            GcodeSuite::G28_no_parser(true, 3, params.do_x, params.do_y, params.do_z);
+            GcodeSuite::G28_no_parser(true, 3, do_x, do_y, do_z);
         }
     } // Regular park
     nozzle.park(params.z_action, park_position);
