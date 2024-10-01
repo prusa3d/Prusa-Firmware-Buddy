@@ -7,7 +7,6 @@
 #include <option/has_mmu2.h>
 #include <option/has_puppies.h>
 #include <option/has_tmc_uart.h>
-#include <printers.h>
 
 #if HAS_PUPPIES()
     #include <puppies/PuppyBus.hpp>
@@ -17,9 +16,11 @@
     #define UART_TMC USART2
     #define UART_ESP USART6
 #elif BOARD_IS_XBUDDY()
-    #if PRINTER_IS_PRUSA_iX()
+    #if HAS_PUPPIES() && HAS_MMU2()
+        #error "Can't have both puppies and mmu2 on the same UART"
+    #elif HAS_PUPPIES()
         #define UART_PUPPIES USART6
-    #else
+    #elif HAS_MMU2()
         #define UART_MMU USART6
     #endif
     #define UART_ESP UART8
@@ -27,7 +28,7 @@
     #define UART_PUPPIES USART3
     #define UART_ESP     UART8
 #else
-    #error "Unknown printer"
+    #error "Unknown board"
 #endif
 
 #if HAS_TMC_UART()

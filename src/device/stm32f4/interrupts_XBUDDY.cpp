@@ -4,6 +4,7 @@
 #include <device/peripherals_uart.hpp>
 #include <hw/buffered_serial.hpp>
 #include <option/buddy_enable_wui.h>
+#include <option/has_mmu2.h>
 #include <option/has_puppies.h>
 #include <printers.h>
 
@@ -35,7 +36,7 @@ TRACED_ISR(DMA2_Stream6_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(flash).hd
 // SPI for LCD
 TRACED_ISR(DMA2_Stream5_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(lcd).hdmatx);
 
-#if PRINTER_IS_PRUSA_iX()
+#if HAS_PUPPIES()
 
 // UART for puppies on iX
 void uart_for_puppies_idle_isr() {
@@ -45,7 +46,9 @@ TRACED_ISR(USART6_IRQHandler, HAL_UART_IRQHandler_with_idle, &uart_handle_for_pu
 TRACED_ISR(DMA2_Stream2_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_puppies.hdmarx);
 TRACED_ISR(DMA2_Stream7_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_puppies.hdmatx);
 
-#else
+#endif
+
+#if HAS_MMU2()
 
 // UART for MMU
 void uart_for_mmu_idle_isr() {
