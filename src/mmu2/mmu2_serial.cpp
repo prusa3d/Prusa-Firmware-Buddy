@@ -9,9 +9,7 @@ static_assert(HAS_MMU2());
 
 namespace MMU2 {
 
-void MMU2Serial::begin(uint32_t baud) {
-    baud_rate = baud;
-
+void MMU2Serial::begin() {
     uart_for_mmu.Open();
     // zero the default read timeout to make BufferedSerial::Read() non-blocking
     uart_for_mmu.SetReadTimeoutMs(0);
@@ -51,7 +49,7 @@ void MMU2Serial::check_recovery() {
 
     } else if (ticks_diff(now, recovery_start_ms) > 50) {
         close();
-        begin(baud_rate);
+        begin();
     }
 }
 

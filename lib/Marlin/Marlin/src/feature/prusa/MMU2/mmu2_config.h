@@ -85,7 +85,6 @@ static constexpr float MMU2_FEED_RATE = 31.F; // 31mm/s
 #endif
 
 static constexpr uint8_t MMU2_NO_TOOL = 99;
-static constexpr uint32_t MMU_BAUD = 115200;
 
 typedef float feedRate_t;
 

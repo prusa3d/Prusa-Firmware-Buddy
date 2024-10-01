@@ -75,7 +75,7 @@ namespace MMU2 {
 
 MMU2Serial mmu2Serial;
 
-void MMU2Serial::begin(uint32_t /*baud*/) {
+void MMU2Serial::begin() {
     mockLog_RecordFn();
 }
 

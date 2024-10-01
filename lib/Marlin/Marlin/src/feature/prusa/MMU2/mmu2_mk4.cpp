@@ -149,7 +149,7 @@ MMU2::MMU2()
 
 #if ENABLED(PRUSA_MMU2)
 void MMU2::Start() {
-    mmu2Serial.begin(MMU_BAUD);
+    mmu2Serial.begin();
 
     PowerOn();
     mmu2Serial.flush(); // make sure the UART buffer is clear before starting communication
