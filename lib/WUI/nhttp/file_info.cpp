@@ -306,7 +306,7 @@ FileInfo::FileInfo(const char *filepath, bool can_keep_alive, bool json_errors, 
     }
 }
 
-Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size) {
+void FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size, Step &out) {
     const size_t last_chunk_len = strlen(LAST_CHUNK);
     size_t written = 0;
     const ConnectionHandling handling = can_keep_alive ? (method == ReqMethod::Head ? ConnectionHandling::ContentLengthKeep : ConnectionHandling::ChunkedKeep) : ConnectionHandling::Close;
@@ -345,7 +345,8 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
             renderer = DirRenderer(api); // Produces empty file list
             break;
         case FileType::NotFound:
-            return Step { 0, 0, StatusPage(Status::NotFound, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors) };
+            out = Step { 0, 0, StatusPage(Status::NotFound, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors) };
+            return;
         }
 
         const char *extra_hdrs[] = {
@@ -356,11 +357,13 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
         written = write_headers(output, output_size, after_upload ? Status::Created : Status::Ok, ContentType::ApplicationJson, handling, std::nullopt, etag, extra_hdrs);
 
         if (method == ReqMethod::Head) {
-            return Step { 0, written, Terminating::for_handling(handling) };
+            out = Step { 0, written, Terminating::for_handling(handling) };
+            return;
         }
 
         if (output_size - written <= MIN_CHUNK_SIZE) {
-            return { 0, written, Continue() };
+            out = Step { 0, written, Continue() };
+            return;
         }
     }
     // Note: The above falls through and tries to put at least part of the answer into the rest of the current packet with headers.
@@ -382,11 +385,13 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
             break;
         case JsonResult::Incomplete:
             // Send this packet out, but ask for another one.
-            return { 0, written, Continue() };
+            out = Step { 0, written, Continue() };
+            return;
         case JsonResult::BufferTooSmall:
             if (first_packet) {
                 // Too small, but possibly because we've taken up a part by the headers.
-                return { 0, written, Continue() };
+                out = Step { 0, written, Continue() };
+                return;
             }
             [[fallthrough]];
         case JsonResult::Abort:
@@ -394,7 +399,8 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
             // return a 500 error, we have sent the headers out already
             // (possibly), so the best we can do is to abort the
             // connection.
-            return { 0, 0, Terminating { 0, Done::CloseFast } };
+            out = Step { 0, 0, Terminating { 0, Done::CloseFast } };
+            return;
         }
     }
 
@@ -402,19 +408,21 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
         if (can_keep_alive) {
             if (written + last_chunk_len > output_size) {
                 // Need to leave the last chunk for next packet
-                return { 0, written, Continue() };
+                out = Step { 0, written, Continue() };
+                return;
             } else {
                 memcpy(output + written, LAST_CHUNK, last_chunk_len);
                 written += last_chunk_len;
             }
         }
 
-        return Step { 0, written, Terminating::for_handling(handling) };
+        out = Step { 0, written, Terminating::for_handling(handling) };
+        return;
     }
 
     // This place should be unreachable!
     assert(0);
-    return { 0, 0, Terminating { 0, Done::CloseFast } };
+    out = Step { 0, 0, Terminating { 0, Done::CloseFast } };
 }
 
 } // namespace nhttp::printer

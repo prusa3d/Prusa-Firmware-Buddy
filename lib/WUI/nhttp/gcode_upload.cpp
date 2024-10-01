@@ -453,15 +453,17 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     });
 }
 
-Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
+void GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, size_t, Step &out) {
     if (terminated_by_client && size_rest > 0) {
-        return { 0, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Truncated body") };
+        out = Step { 0, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Truncated body") };
+        return;
     }
 
     const size_t read = std::min(input.size(), size_rest);
     if (monitor_slot.is_stopped()) {
         monitor_slot.done(Monitor::Outcome::Stopped);
-        return { 0, 0, StatusPage(Status::ServiceTemporarilyUnavailable, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Upload stopped from connect") };
+        out = Step { 0, 0, StatusPage(Status::ServiceTemporarilyUnavailable, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Upload stopped from connect") };
+        return;
     }
 
     // remove the "/usb/" prefix
@@ -470,7 +472,8 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
     static_cast<void>(input);
     auto filename_error = check_filename(filename);
     if (std::get<0>(filename_error) != Status::Ok) {
-        return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(filename_error)) };
+        out = Step { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(filename_error)) };
+        return;
     }
 
     assert(put_transfer.f == nullptr); // No other transfer is happening at the moment.
@@ -483,7 +486,7 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
     put_transfer.overwrite = upload.overwrite;
     put_transfer.file_idx = file_idx;
     cleanup_temp_file = false;
-    return { 0, 0, make_tuple(&put_transfer, size_rest) };
+    out = Step { 0, 0, make_tuple(&put_transfer, size_rest) };
 }
 
 } // namespace nhttp::printer

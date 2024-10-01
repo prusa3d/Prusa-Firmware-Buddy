@@ -168,11 +168,11 @@ public:
 // Sends a fake index page, for testing purposes.
 class FakeIndex final : public Selector {
 public:
-    virtual optional<ConnectionState> accept(const RequestParser &parser) const override {
+    virtual Accepted accept(const RequestParser &parser, Step &out) const override {
         char filename[MAX_URL_LEN + 1];
 
         if (!parser.uri_filename(filename, sizeof(filename))) {
-            return nullopt;
+            return Accepted::NextSelector;
         }
 
         if (strcmp(filename, "/") == 0) {
@@ -181,10 +181,11 @@ public:
 
         if (strcmp(filename, "/index.html") == 0) {
             static const char *extra_hdrs[] = { "Fake: YesOfCourse\r\n", nullptr };
-            return SendStaticMemory("<h1>Hello world</h1>", guess_content_by_ext(filename), parser.can_keep_alive(), extra_hdrs);
+            out.next = SendStaticMemory("<h1>Hello world</h1>", guess_content_by_ext(filename), parser.can_keep_alive(), extra_hdrs);
+            return Accepted::Accepted;
         }
 
-        return nullopt;
+        return Accepted::NextSelector;
     }
 };
 
@@ -192,23 +193,24 @@ const FakeIndex fake_index;
 
 class FakeApi final : public Selector {
 public:
-    virtual optional<ConnectionState> accept(const RequestParser &parser) const override {
+    virtual Accepted accept(const RequestParser &parser, Step &out) const override {
         char filename[MAX_URL_LEN + 1];
 
         if (!parser.uri_filename(filename, sizeof(filename))) {
-            return nullopt;
+            return Accepted::NextSelector;
         }
 
         if (strcmp(filename, "/secret.html") == 0) {
-            if (auto unauthorized_status = parser.authenticated_status(); unauthorized_status.has_value()) {
-                return std::visit([](auto unauth_status) -> ConnectionState { return std::move(unauth_status); }, *unauthorized_status);
+            if (!parser.check_auth(out)) {
+                return Accepted::Accepted;
             } else {
                 static const char *extra_hdrs[] = { "Fake: YesOfCourse\r\n", nullptr };
-                return SendStaticMemory("<html><body><h1>Don't tell anyone!</h1>", guess_content_by_ext(filename), parser.can_keep_alive(), extra_hdrs);
+                out.next = SendStaticMemory("<html><body><h1>Don't tell anyone!</h1>", guess_content_by_ext(filename), parser.can_keep_alive(), extra_hdrs);
+                return Accepted::Accepted;
             }
         }
 
-        return nullopt;
+        return Accepted::NextSelector;
     }
 };
 

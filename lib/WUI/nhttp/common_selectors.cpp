@@ -7,26 +7,29 @@ using std::optional;
 
 namespace nhttp::handler::selectors {
 
-optional<ConnectionState> ValidateRequest::accept(const RequestParser &request) const {
+Selector::Accepted ValidateRequest::accept(const RequestParser &request, Step &out) const {
     if (request.error_code != Status::UnknownStatus) {
         /*
          * BadRequest may mean badly formed/unparsed request. Always close in
          * that case since there might be leftovers of the unrecognized request
          * lying around.
          */
-        return StatusPage(request.error_code, request.error_code == Status::BadRequest ? StatusPage::CloseHandling::ErrorClose : request.status_page_handling(), request.accepts_json);
+        out.next = StatusPage(request.error_code, request.error_code == Status::BadRequest ? StatusPage::CloseHandling::ErrorClose : request.status_page_handling(), request.accepts_json);
+        return Accepted::Accepted;
     }
 
     if (request.method == Method::UnknownMethod) {
-        return StatusPage(Status::MethodNotAllowed, request, "Unrecognized method");
+        out.next = StatusPage(Status::MethodNotAllowed, request, "Unrecognized method");
+        return Accepted::Accepted;
     }
-    return nullopt;
+    return Accepted::NextSelector;
 }
 
 const ValidateRequest validate_request;
 
-optional<ConnectionState> UnknownRequest::accept(const RequestParser &request) const {
-    return StatusPage(Status::NotFound, request);
+Selector::Accepted UnknownRequest::accept(const RequestParser &request, Step &out) const {
+    out.next = StatusPage(Status::NotFound, request);
+    return Accepted::Accepted;
 }
 
 const UnknownRequest unknown_request;

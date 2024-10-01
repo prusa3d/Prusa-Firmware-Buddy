@@ -39,7 +39,7 @@ StatusPage::StatusPage(http::Status status, CloseHandling close_handling, bool j
     , json_content(json_content)
     , etag(etag) {}
 
-Step StatusPage::step_impl(std::string_view, bool, uint8_t *output, size_t output_size, const char *const *extra_hdrs) {
+void StatusPage::step_impl(std::string_view, bool, uint8_t *output, size_t output_size, const char *const *extra_hdrs, Step &out) {
     /*
      * Note: we assume the buffers has reasonable size and our payload fits. We
      * won't do out-of-range access if not, but the response would be
@@ -81,18 +81,18 @@ Step StatusPage::step_impl(std::string_view, bool, uint8_t *output, size_t outpu
     memcpy(output + used_up, content_buffer, write);
 
     Terminating term = close_handling == CloseHandling::ErrorClose ? Terminating::error_termination() : Terminating::for_handling(handling);
-    return Step { 0, used_up + write, term };
+    out = Step { 0, used_up + write, term };
 }
 
-Step StatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size) {
-    return step_impl(input, terminated_by_client, output, output_size, nullptr);
+void StatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, Step &out) {
+    step_impl(input, terminated_by_client, output, output_size, nullptr, out);
 }
 
 UnauthenticatedStatusPage::UnauthenticatedStatusPage(const RequestParser &parser, AuthMethod auth_method)
     : StatusPage(Status::Unauthorized, parser, "")
     , auth_method(auth_method) {}
 
-Step UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, DigestAuth digest_auth) {
+void UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, DigestAuth digest_auth, Step &out) {
     const char *stale = digest_auth.nonce_stale ? "true" : "false";
     char digest_header[88];
     snprintf(digest_header, sizeof(digest_header), "WWW-Authenticate: Digest realm=\"" AUTH_REALM "\", nonce=\"%016" PRIx64 "\", stale=%s\r\n", digest_auth.nonce, stale);
@@ -101,20 +101,19 @@ Step UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_
         digest_header,
         nullptr
     };
-    return step_impl(input, terminated_by_client, output, output_size, auth_header);
+    step_impl(input, terminated_by_client, output, output_size, auth_header, out);
 }
 
-Step UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, [[maybe_unused]] ApiKeyAuth api_key_auth) {
-
+void UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, [[maybe_unused]] ApiKeyAuth api_key_auth, Step &out) {
     const char *api_key_header = "WWW-Authenticate: ApiKey realm=\"" AUTH_REALM "\"\r\n";
     const char *auth_header[] = {
         api_key_header,
         nullptr
     };
-    return step_impl(input, terminated_by_client, output, output_size, auth_header);
+    step_impl(input, terminated_by_client, output, output_size, auth_header, out);
 }
 
-Step UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size) {
-    return std::visit([&](auto auth) { return step(input, terminated_by_client, output, output_size, auth); }, auth_method);
+void UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, Step &out) {
+    std::visit([&](auto auth) { return step(input, terminated_by_client, output, output_size, auth, out); }, auth_method);
 }
 } // namespace nhttp::handler

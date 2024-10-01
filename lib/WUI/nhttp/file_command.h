@@ -54,7 +54,7 @@ public:
     FileCommand(const char *filename, size_t content_length, bool can_keep_alive, bool json_errors);
     bool want_read() const { return true; }
     bool want_write() const { return false; }
-    handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);
+    void step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size, handler::Step &step);
 };
 
 } // namespace nhttp::printer

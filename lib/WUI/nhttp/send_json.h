@@ -54,7 +54,7 @@ public:
 
     bool want_read() const { return false; }
     bool want_write() const { return progress != Progress::Done; }
-    Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);
+    void step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size, Step &out);
 };
 
 } // namespace nhttp::handler

@@ -33,10 +33,11 @@ JobCommand::JobCommand(size_t content_length, bool can_keep_alive, bool json_err
     memset(buffer.data(), 0, buffer.size());
 }
 
-Step JobCommand::step(std::string_view input, bool terminated_by_client, uint8_t *, size_t) {
+void JobCommand::step(std::string_view input, bool terminated_by_client, uint8_t *, size_t, Step &out) {
     if (content_length > buffer.size()) {
         // Refuse early, without reading the body -> drop the connection too.
-        return Step { 0, 0, StatusPage(Status::PayloadTooLarge, StatusPage::CloseHandling::ErrorClose, json_errors) };
+        out = Step { 0, 0, StatusPage(Status::PayloadTooLarge, StatusPage::CloseHandling::ErrorClose, json_errors) };
+        return;
     }
 
     const size_t rest = content_length - buffer_used;
@@ -51,13 +52,15 @@ Step JobCommand::step(std::string_view input, bool terminated_by_client, uint8_t
     if (content_length > buffer_used) {
         // Still waiting for more data.
         if (terminated_by_client) {
-            return Step { to_read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Truncated request") };
+            out = Step { to_read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Truncated request") };
+            return;
         } else {
-            return Step { to_read, 0, Continue() };
+            out = Step { to_read, 0, Continue() };
+            return;
         }
     }
 
-    return Step { to_read, 0, process() };
+    out = Step { to_read, 0, process() };
 }
 
 StatusPage JobCommand::process() {

@@ -14,7 +14,7 @@ bool SendStaticMemory::is_done() const {
     return headers_sent && data.empty();
 }
 
-Step SendStaticMemory::step(string_view, bool, uint8_t *buffer, size_t buff_len) {
+void SendStaticMemory::step(string_view, bool, uint8_t *buffer, size_t buff_len, Step &out) {
     if (buffer) {
         size_t sent = 0;
         ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ContentLengthKeep : ConnectionHandling::Close;
@@ -29,12 +29,10 @@ Step SendStaticMemory::step(string_view, bool, uint8_t *buffer, size_t buff_len)
         memcpy(buffer + sent, data.begin(), data_to_send);
         data = data.substr(data_to_send);
         if (is_done()) {
-            return Step { 0, sent + data_to_send, Terminating::for_handling(handling) };
+            out = Step { 0, sent + data_to_send, Terminating::for_handling(handling) };
         } else {
-            return Step { 0, sent + data_to_send, Continue() };
+            out = Step { 0, sent + data_to_send, Continue() };
         }
-    } else {
-        return Step { 0, 0, Continue() };
     }
 }
 

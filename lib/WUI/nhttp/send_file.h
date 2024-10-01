@@ -36,7 +36,7 @@ private:
 
 public:
     SendFile(FILE *file, const char *path, http::ContentType content_type, bool can_keep_alive, bool json_errors, uint32_t if_none_match, const char *const *extra_hdrs = nullptr);
-    Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);
+    void step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size, Step &out);
     bool want_write() const { return bool(file); }
     bool want_read() const { return false; }
     /*

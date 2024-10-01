@@ -37,7 +37,7 @@ protected:
 
     // Note: This exists only so we can reuse the exact same code also for UnauthenticatedStatusPage, the only diffrerence
     // is we add the correct Authentication header into extra_hdrs.
-    Step step_impl(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, const char *const *extra_hdrs);
+    void step_impl(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, const char *const *extra_hdrs, Step &out);
 
 public:
     StatusPage(http::Status status, const RequestParser &parser, const char *extra_content = "");
@@ -46,7 +46,7 @@ public:
 
     bool want_read() const { return false; }
     bool want_write() const { return true; }
-    virtual Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
+    virtual void step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, Step &out);
 };
 
 struct ApiKeyAuth {};
@@ -58,13 +58,13 @@ using AuthMethod = std::variant<DigestAuth, ApiKeyAuth>;
 class UnauthenticatedStatusPage final : public StatusPage {
 private:
     AuthMethod auth_method;
-    Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, DigestAuth digest_auth);
-    Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, ApiKeyAuth api_key_auth);
+    void step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, DigestAuth digest_auth, Step &out);
+    void step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, ApiKeyAuth api_key_auth, Step &out);
 
 public:
     UnauthenticatedStatusPage(const RequestParser &parser, AuthMethod auth_method);
 
-    Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size) override;
+    void step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, Step &out) override;
 };
 
 } // namespace nhttp::handler

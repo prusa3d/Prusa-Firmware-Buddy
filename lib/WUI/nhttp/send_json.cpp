@@ -19,7 +19,7 @@ json::JsonResult EmptyRenderer::renderState(size_t resume_point, json::JsonOutpu
 }
 
 template <class Renderer>
-Step SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size) {
+void SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size, Step &out) {
     const size_t last_chunk_len = strlen(LAST_CHUNK);
     size_t written = 0;
     bool first_packet = false;
@@ -30,7 +30,8 @@ Step SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t bu
         first_packet = true;
 
         if (buffer_size - written <= MIN_CHUNK_SIZE) {
-            return { 0, written, Continue() };
+            out = Step { 0, written, Continue() };
+            return;
         }
         [[fallthrough]]; // Fall through, see if something more fits.
     case Progress::SendPayload:
@@ -49,12 +50,14 @@ Step SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t bu
             break;
         case JsonResult::Incomplete:
             // Send this packet out, but ask for another one.
-            return { 0, written, Continue() };
+            out = Step { 0, written, Continue() };
+            return;
         case JsonResult::BufferTooSmall:
             // It is small, but we've alreaty taken part of it by headers. Try
             // again with the next packet.
             if (first_packet) {
-                return { 0, written, Continue() };
+                out = Step { 0, written, Continue() };
+                return;
             }
             [[fallthrough]]; // Fall through to the error state.
         case JsonResult::Abort:
@@ -62,14 +65,16 @@ Step SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t bu
             // return a 500 error, we have sent the headers out already
             // (possibly), so the best we can do is to abort the
             // connection.
-            return { 0, 0, Terminating { 0, Done::CloseFast } };
+            out = Step { 0, 0, Terminating { 0, Done::CloseFast } };
+            return;
         }
         [[fallthrough]]; // Fall through: the last chunk may fit
     case Progress::EndChunk:
         if (connection_handling == ConnectionHandling::ChunkedKeep) {
             if (written + last_chunk_len > buffer_size) {
                 // Need to leave the last chunk for next packet
-                return { 0, written, Continue() };
+                out = Step { 0, written, Continue() };
+                return;
             } else {
                 memcpy(buffer + written, LAST_CHUNK, last_chunk_len);
                 written += last_chunk_len;
@@ -78,11 +83,13 @@ Step SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t bu
 
         progress = Progress::Done;
 
-        return Step { 0, written, Terminating::for_handling(connection_handling) };
+        out = Step { 0, written, Terminating::for_handling(connection_handling) };
+        return;
     case Progress::Done:
     default:
         assert(false);
-        return Step { 0, 0, Continue() };
+        out = Step { 0, 0, Continue() };
+        return;
     }
 }
 

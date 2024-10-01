@@ -20,7 +20,7 @@ namespace nhttp::handler::selectors {
  * kind of error pages.
  */
 class ValidateRequest final : public Selector {
-    virtual std::optional<ConnectionState> accept(const RequestParser &request) const override;
+    virtual Accepted accept(const RequestParser &request, Step &out) const override;
 };
 
 const extern ValidateRequest validate_request;
@@ -32,7 +32,7 @@ const extern ValidateRequest validate_request;
  * requests that reach it.
  */
 class UnknownRequest final : public Selector {
-    virtual std::optional<ConnectionState> accept(const RequestParser &request) const override;
+    virtual Accepted accept(const RequestParser &request, Step &out) const override;
 };
 
 const extern UnknownRequest unknown_request;

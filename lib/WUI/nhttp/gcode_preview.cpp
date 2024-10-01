@@ -37,10 +37,11 @@ GCodePreview::GCodePreview(AnyGcodeFormatReader f, const char *path, bool can_ke
     }
 }
 
-Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) {
+void GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size, Step &out) {
     if (etag_matches) {
         // No need to pass the json_errors, NotModified has no content anyway.
-        return { 0, 0, StatusPage(Status::NotModified, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, false, etag) };
+        out = Step { 0, 0, StatusPage(Status::NotModified, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, false, etag) };
+        return;
     }
     ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ChunkedKeep : ConnectionHandling::Close;
 
@@ -58,7 +59,8 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
              * Something is wrong. We don't care about exactly what, we simply
              * don't have the preview -> 404.
              */
-            return { 0, 0, StatusPage(Status::NotFound, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "File doesn't contain preview") };
+            out = Step { 0, 0, StatusPage(Status::NotFound, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "File doesn't contain preview") };
+            return;
         }
 
         written += write_headers(buffer, buffer_size, Status::Ok, ContentType::ImagePng, handling, std::nullopt, etag);
@@ -67,7 +69,7 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
         headers_sent = true;
     }
 
-    NextInstruction instruction = Continue();
+    out.next = Continue();
     if (buffer_size >= MIN_CHUNK_SIZE) {
         written += http::render_chunk(handling, buffer, buffer_size, [&](uint8_t *buffer_, size_t buffer_size_) {
             int got = 0;
@@ -81,13 +83,13 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
                 return got;
             } else {
                 // The decoder doesn't distinguish between error or end, so we handle both as end.
-                instruction = Terminating::for_handling(handling);
+                out.next = Terminating::for_handling(handling);
                 gcode = AnyGcodeFormatReader {};
                 return 0;
             }
         });
     }
-    return { 0, written, std::move(instruction) };
+    out.written = written;
 }
 
 } // namespace nhttp::printer
