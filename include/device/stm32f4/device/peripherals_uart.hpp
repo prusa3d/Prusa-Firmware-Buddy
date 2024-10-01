@@ -1,11 +1,11 @@
 #pragma once
 
 #include <device/hal.h>
-#include <device/board.h>
 #include <option/has_mmu2.h>
 #include <option/has_puppies.h>
+#include <option/has_tmc_uart.h>
 
-#if BOARD_IS_BUDDY()
+#if HAS_TMC_UART()
 extern UART_HandleTypeDef uart_handle_for_tmc;
 void uart_init_tmc();
 #endif

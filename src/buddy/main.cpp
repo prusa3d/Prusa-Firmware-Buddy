@@ -374,7 +374,7 @@ extern "C" void main_cpp(void) {
 
 #if defined(spi_tmc)
     SPI_INIT(tmc);
-#elif BOARD_IS_BUDDY()
+#elif HAS_TMC_UART()
     uart_init_tmc();
 #else
     #error Do not know how to init TMC communication channel
@@ -466,7 +466,7 @@ extern "C" void main_cpp(void) {
         manufacture_report(); // TODO erase this after all printers use manufacture_report_endless_loop (== ESP UART)
     }
 
-#if (BOARD_IS_BUDDY())
+#if HAS_TMC_UART()
     uart2.Open();
 #endif
 
@@ -565,7 +565,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-#if BOARD_IS_BUDDY()
+#if HAS_TMC_UART()
     if (huart == &uart_handle_for_tmc) {
         uart2.WriteFinishedISR();
     }
@@ -589,7 +589,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
-#if BOARD_IS_BUDDY()
+#if HAS_TMC_UART()
     if (huart == &uart_handle_for_tmc) {
         uart2.FirstHalfReachedISR();
     }
@@ -609,7 +609,7 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-#if BOARD_IS_BUDDY()
+#if HAS_TMC_UART()
     if (huart == &uart_handle_for_tmc) {
         uart2.SecondHalfReachedISR();
     }

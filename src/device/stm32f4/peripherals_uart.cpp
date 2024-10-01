@@ -5,6 +5,7 @@
 #include <device/hal.h>
 #include <option/has_mmu2.h>
 #include <option/has_puppies.h>
+#include <option/has_tmc_uart.h>
 #include <printers.h>
 
 #if BOARD_IS_BUDDY()
@@ -24,7 +25,7 @@
     #error "Unknown printer"
 #endif
 
-#if BOARD_IS_BUDDY()
+#if HAS_TMC_UART()
 UART_HandleTypeDef uart_handle_for_tmc;
 void uart_init_tmc() {
     uart_handle_for_tmc.Instance = UART_TMC;
