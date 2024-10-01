@@ -36,17 +36,7 @@ void MMU2Serial::flush() {
     uart_for_mmu.Flush();
 }
 
-/// Generally, the xBuddy uses a full-duplex UART6 connected to an RS-485 converter.
-/// The direction of communication is handled by a separate pin PB7
-/// (low = receive, high = transmit from the xBuddy board's perspective)
-/// As this direction pin is not HW-tied to the UART6's ability to switch directions in half-duplex mode
-/// (because as noted above - the UART is running in full-duplex), we need to set the direction flag by hand in the FW.
-/// Setting the direction to transmit is done here, setting to receive is done in main.cpp HAL_UART_TxCpltCallback
 size_t MMU2Serial::write(const uint8_t *buffer, size_t size) {
-    // set RS485 transmit direction - from xBuddy into the MMU
-    //    RS485FlowControl.write(Pin::State::low); // beware of setting this to high when using normal RS-232! It will stop working arbitrarily
-    // set to high in hwio_pindef.h
-    // RS485FlowControl.write(Pin::State::high); // @@TODO for RS-232
     return uart_for_mmu.Write((const char *)buffer, size);
 }
 
