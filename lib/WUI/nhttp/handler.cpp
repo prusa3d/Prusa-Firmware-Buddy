@@ -4,22 +4,22 @@ using std::string_view;
 
 namespace nhttp::handler {
 
-Step Idle::step(string_view, bool terminated_by_client, uint8_t *, size_t) {
+void Idle::step(string_view, bool terminated_by_client, uint8_t *, size_t, Step &out) {
     if (terminated_by_client) {
-        return { 0, 0, Terminating { 0, Done::Close } };
+        out = Step { 0, 0, Terminating { 0, Done::Close } };
     } else {
-        return { 0, 0, Continue() };
+        out = Step { 0, 0, Continue() };
     }
 }
 
-Step Terminating::step(string_view input, bool client_closed, uint8_t *, size_t) {
+void Terminating::step(string_view input, bool client_closed, uint8_t *, size_t, Step &out) {
     if (client_closed) {
         eat_input = 0;
     }
     if (!input.empty() && eat_input) {
-        return { input.size(), 0, Continue() };
+        out = Step { input.size(), 0, Continue() };
     } else {
-        return { 0, 0, Continue() };
+        out = Step { 0, 0, Continue() };
     }
 }
 

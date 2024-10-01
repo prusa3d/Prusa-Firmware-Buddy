@@ -40,14 +40,15 @@ void SendFile::disable_caching() {
     etag = nullopt;
 }
 
-Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size) {
+void SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size, Step &out) {
     if (etag_matches) {
         // Note: json_errors are not enabled, because NotModified has no content anyway.
-        return Step { 0, 0, StatusPage(Status::NotModified, (connection_handling != ConnectionHandling::Close) ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, false, etag) };
+        out = Step { 0, 0, StatusPage(Status::NotModified, (connection_handling != ConnectionHandling::Close) ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, false, etag) };
+        return;
     }
 
     if (!buffer) {
-        return Step { 0, 0, Continue() };
+        return;
     }
 
     size_t written = 0;
@@ -57,12 +58,12 @@ Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size)
         headers_sent = true;
 
         if (written + MIN_CHUNK_SIZE >= buffer_size) {
-            return Step { 0, written, Continue() };
+            out = Step { 0, written, Continue() };
+            return;
         }
         // Continue sending, there's still a bit of space left.
     }
 
-    NextInstruction instruction = Continue();
     written += render_chunk(connection_handling, buffer + written, buffer_size - written, [&](uint8_t *buffer_, size_t buffer_size_) -> std::optional<size_t> {
         size_t read = fread(buffer_, 1, buffer_size_, file.get());
         if (read == 0) {
@@ -78,17 +79,17 @@ Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size)
                  * If we are in connection-close mode, then, well, there's
                  * no good way to signal that :-(.
                  */
-                instruction = Terminating {};
+                out.next = Terminating {};
                 return std::nullopt;
             } else {
                 // This naturally returns and creates the terminating 0-sized chunk.
-                instruction = Terminating::for_handling(connection_handling);
+                out.next = Terminating::for_handling(connection_handling);
             }
             file.reset();
         }
         return read;
     });
-    return Step { 0, written, std::move(instruction) };
+    out.written = written;
 }
 
 } // namespace nhttp::handler

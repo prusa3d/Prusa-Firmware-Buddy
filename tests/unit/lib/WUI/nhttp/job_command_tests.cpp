@@ -4,7 +4,9 @@
 #include <catch2/catch.hpp>
 
 using nhttp::handler::ConnectionState;
+using nhttp::handler::Continue;
 using nhttp::handler::StatusPage;
+using nhttp::handler::Step;
 using nhttp::printer::JobCommand;
 using std::get_if;
 using std::optional;
@@ -25,7 +27,8 @@ void do_test(string_view data, optional<Cmd> expected_command) {
     history.clear();
 
     JobCommand command(data.size(), true, false);
-    const auto result = command.step(data, false, nullptr, 0);
+    Step result = { 0, 0, Continue() };
+    command.step(data, false, nullptr, 0, result);
 
     REQUIRE(result.written == 0);
     REQUIRE(result.read == data.size());

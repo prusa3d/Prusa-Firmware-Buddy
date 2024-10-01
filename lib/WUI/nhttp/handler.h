@@ -97,7 +97,7 @@ namespace handler {
     public:
         bool want_read() const { return false; }
         bool want_write() const { return false; }
-        Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
+        void step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, Step &out);
     };
 
     /**
@@ -117,7 +117,7 @@ namespace handler {
         bool shutdown_send = false;
         bool want_read() const { return eat_input > 0; }
         bool want_write() const { return false; }
-        Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
+        void step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, Step &out);
         static Terminating for_handling(http::ConnectionHandling handling) {
             return Terminating { false, handling == http::ConnectionHandling::Close ? Done::Close : Done::KeepAlive, false };
         }
@@ -175,6 +175,11 @@ namespace handler {
 
     /**
      * \brief The full response of the handler's step method.
+     *
+     * *Note*: We use it as an out parameter. The struct is rather big (the
+     *   ConnectionState in it) and for some reason, the compiler is placing it
+     *   on many stacks in between in case it is a return value, wasting
+     *   precious memory.
      */
     struct Step {
         /**
@@ -215,8 +220,26 @@ namespace handler {
      */
     class Selector {
     public:
+        enum class Accepted {
+            Accepted,
+            NextSelector,
+        };
         virtual ~Selector() = default;
-        virtual std::optional<ConnectionState> accept(const RequestParser &request) const = 0;
+        /**
+         * Try handling the request.
+         *
+         * Either returns true and sets out to the step that should handle it,
+         * or returns false and leaves it to the next selector in the list.
+         *
+         * The out pamareter is not elegant, but is used for practical reason.
+         * When we pass it through the return value, the compiler is not able
+         * to optimize it as well and places several of these on the stack
+         * (because these calls to various functions that return the Step nest
+         * a bit); this way we have more control and we make sure it is not
+         * duplicated on the stack. The Step is rather big structure, so it
+         * does matter.
+         */
+        virtual Accepted accept(const RequestParser &request, Step &out) const = 0;
     };
 
 } // namespace handler

@@ -29,7 +29,7 @@ optional<string_view> remove_prefix(string_view input, string_view prefix) {
     return input.substr(prefix.size());
 }
 
-optional<ConnectionState> parse_file_url(const RequestParser &parser, const size_t prefix_len, char *filename, const size_t filename_len, RemapPolicy remapPolicy) {
+bool parse_file_url(const RequestParser &parser, const size_t prefix_len, char *filename, const size_t filename_len, RemapPolicy remapPolicy, handler::Step &out) {
     /*
      * We do *not* use the uri with prefix removed. We need the safe
      * transformation into a file name (removal of query params,
@@ -46,7 +46,8 @@ optional<ConnectionState> parse_file_url(const RequestParser &parser, const size
     if (parser.uri_filename(filename, filename_len)) {
         size_t len = strlen(filename);
         if (prefix_len > len) {
-            return StatusPage(Status::NotFound, parser);
+            out.next = StatusPage(Status::NotFound, parser);
+            return false;
         }
 
         if (remapPolicy == RemapPolicy::Octoprint) {
@@ -78,7 +79,8 @@ optional<ConnectionState> parse_file_url(const RequestParser &parser, const size
          * on the USB drive (eg. our xflash).
          */
         if (strncmp(fname_real, "/usb/", 5) != 0 && strcmp(fname_real, "/usb") != 0) {
-            return StatusPage(Status::Forbidden, parser);
+            out.next = StatusPage(Status::Forbidden, parser);
+            return false;
         }
 
         // We need to use memmove, because fname_real points into filename
@@ -89,9 +91,10 @@ optional<ConnectionState> parse_file_url(const RequestParser &parser, const size
         // Slicer sometimes produces duplicate slashes in the URL and
         // this may confuse eg. marlin.
         dedup_slashes(filename);
-        return nullopt;
+        return true;
     } else {
-        return StatusPage(Status::NotFound, parser);
+        out.next = StatusPage(Status::NotFound, parser);
+        return false;
     }
 }
 
@@ -140,12 +143,12 @@ StatusPage print_file(char *filename, const RequestParser &parser) {
     }
 }
 
-handler::ConnectionState get_only(handler::ConnectionState state, const handler::RequestParser &parser) {
+void get_only(handler::ConnectionState state, const handler::RequestParser &parser, handler::Step &out) {
     if (parser.method == http::Method::Get) {
-        return state;
+        out.next = move(state);
     } else {
         // Drop the connection in fear there might be a body we don't know about.
-        return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+        out.next = StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
     }
 }
 } // namespace nhttp::link_content

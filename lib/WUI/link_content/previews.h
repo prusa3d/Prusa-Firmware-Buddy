@@ -6,7 +6,7 @@ namespace nhttp::link_content {
 
 class Previews final : public handler::Selector {
 public:
-    virtual std::optional<handler::ConnectionState> accept(const handler::RequestParser &parser) const override;
+    virtual Accepted accept(const handler::RequestParser &parser, handler::Step &out) const override;
 };
 
 extern const Previews previews;

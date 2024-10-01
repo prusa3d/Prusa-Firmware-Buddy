@@ -64,7 +64,7 @@ namespace printer {
     public:
         bool want_read() const { return size_rest > 0; }
         bool want_write() const { return false; }
-        handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
+        void step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, handler::Step &out);
         using UploadResult = std::variant<handler::StatusPage, GcodeUpload>;
         static UploadResult start(const handler::RequestParser &parser, UploadedNotify *uploaded, bool json_errors, PutParams &&uploadParams);
         GcodeUpload(const GcodeUpload &other) = delete;

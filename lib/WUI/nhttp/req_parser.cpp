@@ -218,9 +218,9 @@ ExecutionControl RequestParser::event(Event event) {
     return ExecutionControl::Continue;
 }
 
-Step RequestParser::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
+void RequestParser::step(string_view input, bool terminated_by_client, uint8_t *, size_t, Step &out) {
     if (done) {
-        return Step { 0, 0, Continue() };
+        return;
     }
 
     api_key = server->get_password();
@@ -251,12 +251,13 @@ Step RequestParser::step(string_view input, bool terminated_by_client, uint8_t *
          * handles unhandled/unknown requests ‒ one that returns 404 or so.
          */
         for (const Selector *const *selector = server->selectors(); /* No condition on purpose*/; selector++) {
-            if (auto state = (*selector)->accept(*this); state.has_value()) {
-                return Step { consumed, 0, std::move(*state) };
+            if ((*selector)->accept(*this, out) == Selector::Accepted::Accepted) {
+                out.read = consumed;
+                return;
             }
         }
     } else {
-        return Step { consumed, 0, Continue() };
+        out = Step { consumed, 0, Continue() };
     }
 }
 
@@ -322,36 +323,41 @@ uint64_t RequestParser::new_nonce() const {
     return (static_cast<uint64_t>(nonce_random)) << 32 | (static_cast<uint64_t>(ticks_s()));
 }
 
-std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser::authenticated_status(const ApiKeyAuthParams &params) const {
-    if (holds_alternative<bool>(params) and get<bool>(params)) {
-        return std::nullopt;
-    } else {
-        return UnauthenticatedStatusPage(*this, ApiKeyAuth {});
-    }
-}
-std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser::authenticated_status(const DigestAuthParams &params) const {
+bool RequestParser::check_auth(const DigestAuthParams &params, Step &out) const {
     if (nonce_random == 0) {
         if (!rand_u_secure(&nonce_random)) {
-            return StatusPage(Status::InternalServerError, status_page_handling(), accepts_json);
+            out.next = StatusPage(Status::InternalServerError, status_page_handling(), accepts_json);
+            return false;
         }
     }
     if (nonce_valid(params.recieved_nonce)) {
         if (check_digest_auth(params.recieved_nonce)) {
-            return std::nullopt;
+            return true;
         } else {
-            return UnauthenticatedStatusPage(*this, DigestAuth { new_nonce(), false });
+            out.next = UnauthenticatedStatusPage(*this, DigestAuth { new_nonce(), false });
+            return false;
         }
     } else {
         // We set stale=true for every nonce with valid digest for that nonce,
         // because it means the client knows the username and password and we want
         // him to retry with new nonce.
         bool stale = check_digest_auth(params.recieved_nonce);
-        return UnauthenticatedStatusPage(*this, DigestAuth { new_nonce(), stale });
+        out.next = UnauthenticatedStatusPage(*this, DigestAuth { new_nonce(), stale });
+        return false;
     }
 }
 
-std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser::authenticated_status() const {
-    return std::visit([this](auto &params) { return authenticated_status(params); }, auth_status);
+bool RequestParser::check_auth(const ApiKeyAuthParams &params, Step &out) const {
+    if (holds_alternative<bool>(params) && get<bool>(params)) {
+        return true;
+    } else {
+        out.next = UnauthenticatedStatusPage(*this, ApiKeyAuth {});
+        return false;
+    }
+}
+
+bool RequestParser::check_auth(Step &out) const {
+    return std::visit([&](auto &params) { return check_auth(params, out); }, auth_status);
 }
 
 namespace {

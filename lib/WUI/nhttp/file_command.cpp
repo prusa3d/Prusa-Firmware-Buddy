@@ -14,6 +14,7 @@ size_t strlcpy(char *, const char *, size_t);
 namespace nhttp::printer {
 
 using namespace handler;
+using handler::Step;
 using http::Status;
 using json::Event;
 using json::Type;
@@ -79,10 +80,11 @@ handler::StatusPage FileCommand::process() {
     }
 }
 
-handler::Step FileCommand::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
+void FileCommand::step(string_view input, bool terminated_by_client, uint8_t *, size_t, Step &out) {
     if (content_length > buffer.size()) {
         // Refuse early, without reading the body -> drop the connection too.
-        return Step { 0, 0, StatusPage(Status::PayloadTooLarge, StatusPage::CloseHandling::ErrorClose, json_errors) };
+        out = Step { 0, 0, StatusPage(Status::PayloadTooLarge, StatusPage::CloseHandling::ErrorClose, json_errors) };
+        return;
     }
 
     const size_t rest = content_length - buffer_used;
@@ -97,13 +99,16 @@ handler::Step FileCommand::step(string_view input, bool terminated_by_client, ui
     if (content_length > buffer_used) {
         // Still waiting for more data.
         if (terminated_by_client) {
-            return Step { to_read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Truncated request") };
+            out = Step { to_read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Truncated request") };
+            return;
         } else {
-            return Step { to_read, 0, Continue() };
+            out = Step { to_read, 0, Continue() };
+            return;
         }
     }
 
-    return Step { to_read, 0, process() };
+    out = Step { to_read, 0, process() };
+    return;
 }
 
 } // namespace nhttp::printer

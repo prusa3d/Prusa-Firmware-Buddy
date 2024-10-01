@@ -14,7 +14,7 @@ using std::optional;
 using std::string_view;
 using namespace handler;
 
-optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
+Selector::Accepted Previews::accept(const RequestParser &parser, handler::Step &out) const {
     const string_view uri = parser.uri();
     const constexpr string_view prefix = "/thumb/";
 
@@ -22,12 +22,12 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
     // The + 2 is for size specification (s/ or l/)
     const size_t extra_size = prefix.size() + 2;
     if (uri.size() < extra_size || uri.substr(0, prefix.size()) != prefix) {
-        return nullopt;
+        return Accepted::NextSelector;
     }
 
     // Content of the USB drive is only for authenticated, don't ever try anything without it.
-    if (auto unauthorized_status = parser.authenticated_status(); unauthorized_status.has_value()) {
-        return std::visit([](auto unauth_status) -> ConnectionState { return unauth_status; }, *unauthorized_status);
+    if (!parser.check_auth(out)) {
+        return Accepted::Accepted;
     }
 
     uint16_t width;
@@ -44,12 +44,14 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
         height = 17;
         allow_larger = true;
     } else {
-        return StatusPage(Status::NotFound, parser, "Thumbnail size specification not recognized");
+        out.next = StatusPage(Status::NotFound, parser, "Thumbnail size specification not recognized");
+        return Accepted::Accepted;
     }
 
     char fname[FILE_PATH_BUFFER_LEN + extra_size];
     if (!parser.uri_filename(fname, sizeof(fname))) {
-        return StatusPage(Status::NotFound, parser, "This doesn't look like file name");
+        out.next = StatusPage(Status::NotFound, parser, "This doesn't look like file name");
+        return Accepted::Accepted;
     }
 
     // Strip the extra prefix (without the last /)
@@ -58,12 +60,15 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
     if (parser.method == Method::Get) {
         AnyGcodeFormatReader f(fname);
         if (f.is_open()) {
-            return GCodePreview(std::move(f), fname, parser.can_keep_alive(), parser.accepts_json, width, height, allow_larger, parser.if_none_match);
+            out.next = GCodePreview(std::move(f), fname, parser.can_keep_alive(), parser.accepts_json, width, height, allow_larger, parser.if_none_match);
+            return Accepted::Accepted;
         } else {
-            return StatusPage(Status::NotFound, parser);
+            out.next = StatusPage(Status::NotFound, parser);
+            return Accepted::Accepted;
         }
     } else {
-        return StatusPage(Status::MethodNotAllowed, parser);
+        out.next = StatusPage(Status::MethodNotAllowed, parser);
+        return Accepted::Accepted;
     }
 }
 

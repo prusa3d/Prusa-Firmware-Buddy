@@ -6,7 +6,7 @@ namespace nhttp::link_content {
 
 class UsbFiles final : public handler::Selector {
 public:
-    virtual std::optional<handler::ConnectionState> accept(const handler::RequestParser &parser) const override;
+    virtual Accepted accept(const handler::RequestParser &parser, handler::Step &out) const override;
 };
 
 extern const UsbFiles usb_files;

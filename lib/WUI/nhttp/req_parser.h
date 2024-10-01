@@ -109,8 +109,8 @@ private:
     uint64_t new_nonce() const;
     bool check_digest_auth(uint64_t nonce_to_use) const;
 
-    std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> authenticated_status(const ApiKeyAuthParams &params) const;
-    std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> authenticated_status(const DigestAuthParams &params) const;
+    bool check_auth(const ApiKeyAuthParams &params, Step &out) const;
+    bool check_auth(const DigestAuthParams &params, Step &out) const;
 
     uint8_t boundary_size = 0;
 
@@ -129,7 +129,7 @@ public:
     bool want_write() const { return false; }
     bool want_read() const { return !done; }
 
-    Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
+    void step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, Step &out);
 
     RequestParser(const Server &server);
 
@@ -144,10 +144,12 @@ public:
     // Status page close handling for the current can_keep_alive.
     StatusPage::CloseHandling status_page_handling() const;
 
-    /**
-     * \brief Is the request authenticated by a valid api key?
+    /*
+     * Check if authenticated.
+     *
+     * If not, returns false and sets the right status page into out.
      */
-    std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> authenticated_status() const;
+    bool check_auth(Step &out) const;
 
     bool uri_filename(char *buffer, size_t buffer_len) const;
     std::string_view uri() const { return std::string_view(url.begin(), url_size); }

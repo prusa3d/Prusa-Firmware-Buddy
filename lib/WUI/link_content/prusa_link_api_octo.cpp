@@ -30,24 +30,25 @@ using nhttp::printer::GcodeUpload;
 using nhttp::printer::JobCommand;
 using transfers::ChangedPath;
 
-optional<ConnectionState> PrusaLinkApiOcto::accept(const RequestParser &parser) const {
+Selector::Accepted PrusaLinkApiOcto::accept(const RequestParser &parser, Step &out) const {
     const string_view uri = parser.uri();
 
     // Claim the whole /api prefix.
     const auto suffix_opt = remove_prefix(uri, "/api/");
     if (!suffix_opt.has_value()) {
-        return nullopt;
+        return Accepted::NextSelector;
     }
 
     const auto suffix = *suffix_opt;
 
-    if (auto unauthorized_status = parser.authenticated_status(); unauthorized_status.has_value()) {
-        return std::visit([](auto unauth_status) -> ConnectionState { return unauth_status; }, *unauthorized_status);
+    if (!parser.check_auth(out)) {
+        return Accepted::Accepted;
     }
 
     // Some stubs for now, to make more clients (including the web page) happier.
     if (suffix == "settings") {
-        return get_only(SendStaticMemory("{\"printer\": {}}", http::ContentType::ApplicationJson, parser.can_keep_alive()), parser);
+        get_only(SendStaticMemory("{\"printer\": {}}", http::ContentType::ApplicationJson, parser.can_keep_alive()), parser, out);
+        return Accepted::Accepted;
     } else if (remove_prefix(suffix, "files").has_value()) {
         // Note: The check for boundary is a bit of a hack. We probably should
         // be more thorough in the parser and extract the actual content type.
@@ -56,64 +57,77 @@ optional<ConnectionState> PrusaLinkApiOcto::accept(const RequestParser &parser) 
         // scenarios and will simply produce slightly weird error messages in
         // case it isn't.
         if (parser.method == Method::Post && !parser.boundary().empty()) {
-            return StatusPage(Status::Gone, parser);
+            out.next = StatusPage(Status::Gone, parser);
+            return Accepted::Accepted;
         } else {
             static const auto prefix = "/api/files";
             static const size_t prefix_len = strlen(prefix);
             char filename[FILE_PATH_BUFFER_LEN + prefix_len];
-            auto error = parse_file_url(parser, prefix_len, filename, sizeof(filename), RemapPolicy::Octoprint);
-            if (error.has_value()) {
-                return error;
+            if (!parse_file_url(parser, prefix_len, filename, sizeof(filename), RemapPolicy::Octoprint, out)) {
+                return Accepted::Accepted;
             }
 
             switch (parser.method) {
             case Method::Get: {
                 uint32_t etag = ChangedPath::instance.change_chain_hash(filename);
-                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get, FileInfo::APIVersion::Octoprint, etag);
+                out.next = FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get, FileInfo::APIVersion::Octoprint, etag);
+                return Accepted::Accepted;
             }
             case Method::Delete: {
-                return delete_file(filename, parser);
+                out.next = delete_file(filename, parser);
+                return Accepted::Accepted;
             }
             case Method::Post:
                 if (parser.content_length.has_value()) {
-                    return FileCommand(filename, *parser.content_length, parser.can_keep_alive(), parser.accepts_json);
+                    out.next = FileCommand(filename, *parser.content_length, parser.can_keep_alive(), parser.accepts_json);
                 } else {
                     // Drop the connection (and the body there).
-                    return StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+                    out.next = StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
                 }
+                return Accepted::Accepted;
             default:
                 // Drop the connection in fear there might be a body we don't know about.
-                return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+                out.next = StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+                return Accepted::Accepted;
             }
         }
         // The real API endpoints
     } else if (suffix == "version") {
-        return get_only(SendJson(EmptyRenderer(get_version), parser.can_keep_alive()), parser);
+        get_only(SendJson(EmptyRenderer(get_version), parser.can_keep_alive()), parser, out);
+        return Accepted::Accepted;
     } else if (suffix == "job") {
         switch (parser.method) {
         case Method::Get:
-            return SendJson(EmptyRenderer(get_job_octoprint), parser.can_keep_alive());
+            out.next = SendJson(EmptyRenderer(get_job_octoprint), parser.can_keep_alive());
+            return Accepted::Accepted;
         case Method::Post: {
             if (parser.content_length.has_value()) {
-                return JobCommand(*parser.content_length, parser.can_keep_alive(), parser.accepts_json);
+                out.next = JobCommand(*parser.content_length, parser.can_keep_alive(), parser.accepts_json);
+                return Accepted::Accepted;
             } else {
                 // Drop the connection (and the body there).
-                return StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+                out.next = StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+                return Accepted::Accepted;
             }
         }
         default:
-            return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+            out.next = StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+            return Accepted::Accepted;
         }
     } else if (suffix == "printer") {
-        return get_only(SendJson(EmptyRenderer(get_printer), parser.can_keep_alive()), parser);
+        get_only(SendJson(EmptyRenderer(get_printer), parser.can_keep_alive()), parser, out);
+        return Accepted::Accepted;
     } else if (suffix == "download" || suffix == "transfer") {
         if (auto status = transfers::Monitor::instance.status(); status.has_value()) {
-            return get_only(SendJson(TransferRenderer(status->id, http::APIVersion::Octoprint), parser.can_keep_alive()), parser);
+            get_only(SendJson(TransferRenderer(status->id, http::APIVersion::Octoprint), parser.can_keep_alive()), parser, out);
+            return Accepted::Accepted;
         } else {
-            return StatusPage(Status::NoContent, parser);
+            out.next = StatusPage(Status::NoContent, parser);
+            return Accepted::Accepted;
         }
     } else {
-        return StatusPage(Status::NotFound, parser);
+        out.next = StatusPage(Status::NotFound, parser);
+        return Accepted::Accepted;
     }
 }
 

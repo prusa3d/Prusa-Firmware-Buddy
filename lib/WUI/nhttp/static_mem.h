@@ -33,7 +33,7 @@ public:
         , content_type(content_type)
         , can_keep_alive(can_keep_alive)
         , extra_hdrs(extra_hdrs) {}
-    Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);
+    void step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size, Step &out);
     bool want_write() const { return !is_done(); }
     bool want_read() const { return false; }
 };

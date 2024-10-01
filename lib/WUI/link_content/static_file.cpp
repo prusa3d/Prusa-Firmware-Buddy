@@ -19,7 +19,7 @@ namespace {
     constexpr const string_view INDEX = "index.html";
 }
 
-optional<ConnectionState> StaticFile::accept(const RequestParser &parser) const {
+Selector::Accepted StaticFile::accept(const RequestParser &parser, handler::Step &out) const {
     static constexpr const char prefix[] { "/internal/res/web" };
     static constexpr size_t prefix_len { std::char_traits<char>::length(prefix) };
     char fname_buffer[FILE_PATH_BUFFER_LEN + prefix_len];
@@ -27,7 +27,7 @@ optional<ConnectionState> StaticFile::accept(const RequestParser &parser) const 
     strcpy(fname_buffer, prefix);
 
     if (!parser.uri_filename(fname_buffer + prefix_len, sizeof(fname_buffer) - prefix_len)) {
-        return nullopt;
+        return Accepted::NextSelector;
     }
 
     bool cache_enabled = true;
@@ -55,11 +55,12 @@ optional<ConnectionState> StaticFile::accept(const RequestParser &parser) const 
                 "Content-Encoding: gzip\r\n",
                 nullptr
             };
-            return SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.accepts_json, parser.if_none_match, cache_enabled ? extra_hdrs_cache : extra_hdrs_no_cache);
+            out.next = SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.accepts_json, parser.if_none_match, cache_enabled ? extra_hdrs_cache : extra_hdrs_no_cache);
+            return Accepted::Accepted;
         }
     }
 
-    return nullopt;
+    return Accepted::NextSelector;
 }
 
 const StaticFile static_file;

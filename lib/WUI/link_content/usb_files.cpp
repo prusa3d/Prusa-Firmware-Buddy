@@ -14,23 +14,24 @@ using std::optional;
 using std::string_view;
 using namespace handler;
 
-optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
+Selector::Accepted UsbFiles::accept(const RequestParser &parser, handler::Step &out) const {
     const string_view uri = parser.uri();
     const constexpr string_view prefix = "/usb/";
 
     // We claim the /usb/ namespace.
     if (uri.size() < prefix.size() || uri.substr(0, prefix.size()) != prefix) {
-        return nullopt;
+        return Accepted::NextSelector;
     }
 
     // Content of the USB drive is only for authenticated, don't ever try anything without it.
-    if (auto unauthorized_status = parser.authenticated_status(); unauthorized_status.has_value()) {
-        return std::visit([](auto unauth_status) -> ConnectionState { return unauth_status; }, *unauthorized_status);
+    if (!parser.check_auth(out)) {
+        return Accepted::Accepted;
     }
 
     char fname[FILE_PATH_BUFFER_LEN];
     if (!parser.uri_filename(fname, sizeof(fname))) {
-        return StatusPage(Status::NotFound, parser, "This doesn't look like file name");
+        out.next = StatusPage(Status::NotFound, parser, "This doesn't look like file name");
+        return Accepted::Accepted;
     }
 
     if (parser.method == Method::Get) {
@@ -46,20 +47,20 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
                 "Content-Disposition: attachment\r\n",
                 nullptr,
             };
-            SendFile step(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.accepts_json, parser.if_none_match, hdrs);
+            out.next = SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.accepts_json, parser.if_none_match, hdrs);
             /*
              * Some browsers reportedly mishandle combination of attachment +
              * etags/caching. We give up caching in this particular case, as it
              * is not super useful anyway.
              */
-            step.disable_caching();
-            return step;
+            get<SendFile>(get<ConnectionState>(out.next)).disable_caching();
+        } else {
+            out.next = StatusPage(Status::NotFound, parser);
         }
-
-        return StatusPage(Status::NotFound, parser);
     } else {
-        return StatusPage(Status::MethodNotAllowed, parser);
+        out.next = StatusPage(Status::MethodNotAllowed, parser);
     }
+    return Accepted::Accepted;
 }
 
 const UsbFiles usb_files;
