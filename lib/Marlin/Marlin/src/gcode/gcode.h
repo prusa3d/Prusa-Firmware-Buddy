@@ -426,7 +426,7 @@ public:
    * @param * see GcodeSuite::G28() for details
    * @return true on success
    */
-  static bool G28_no_parser(bool only_if_needed = false, float z_height = NAN, bool X = false, bool Y = false, bool Z = false
+  static bool G28_no_parser(bool always_home_all = true, bool O = false, float R = false, bool S = false, bool X = false, bool Y = false, bool Z = false
     , bool no_change = false OPTARG(PRECISE_HOMING_COREXY, bool precise = true) OPTARG(DETECT_PRINT_SHEET, bool check_sheet = false));
   
   static void T(const uint8_t tool_index);
@@ -482,7 +482,7 @@ private:
     static void G27();
   #endif
 
-  static void G28();
+  static void G28(const bool always_home_all);
 
   #if HAS_LEVELING
     #if ENABLED(G29_RETRY_AND_RECOVER)

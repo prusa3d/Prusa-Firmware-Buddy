@@ -94,7 +94,7 @@ void G27_no_parser(const G27Params &params) {
             do_z_clearance(park_position.z);
             return;
         } else {
-            GcodeSuite::G28_no_parser(true, 3, do_x, do_y, do_z);
+            GcodeSuite::G28_no_parser(true, true, 3, false, do_x, do_y, do_z);
         }
     } // Regular park
     nozzle.park(params.z_action, park_position);
