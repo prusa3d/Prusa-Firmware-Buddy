@@ -38,9 +38,8 @@ TRACED_ISR(DMA2_Stream5_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(lcd).hdma
 #if PRINTER_IS_PRUSA_iX()
 
 // UART for puppies on iX
-void uart6_idle_cb() {
-}
-TRACED_ISR(USART6_IRQHandler, HAL_UART_IRQHandler_with_idle, &uart_handle_for_puppies, uart6_idle_cb);
+extern "C" void uart3_idle_cb();
+TRACED_ISR(USART6_IRQHandler, HAL_UART_IRQHandler_with_idle, &uart_handle_for_puppies, uart3_idle_cb);
 TRACED_ISR(DMA2_Stream2_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_puppies.hdmarx);
 TRACED_ISR(DMA2_Stream7_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_puppies.hdmatx);
 
