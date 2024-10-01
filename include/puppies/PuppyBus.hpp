@@ -2,7 +2,6 @@
 
 #include <cstdlib>
 #include <device/peripherals.h>
-#include "buffered_serial.hpp"
 
 namespace buddy {
 namespace puppies {
@@ -51,12 +50,7 @@ namespace puppies {
         /// Calling whis will ensure that there is delay on bus between two messages
         static void EnsurePause();
 
-        static buddy::hw::BufferedSerial bufferedSerial;
-
     private:
-        /// UART used to communicate with puppies
-        static UART_HandleTypeDef &UART;
-
         /// Time when last operation was done
         static uint32_t last_operation_time_us;
 

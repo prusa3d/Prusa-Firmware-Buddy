@@ -14,6 +14,7 @@ void uart_init_tmc();
 
 #if HAS_PUPPIES()
 extern UART_HandleTypeDef uart_handle_for_puppies;
+extern buddy::hw::BufferedSerial uart_for_puppies;
 void uart_init_puppies();
 #endif
 

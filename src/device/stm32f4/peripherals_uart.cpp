@@ -8,6 +8,10 @@
 #include <option/has_tmc_uart.h>
 #include <printers.h>
 
+#if HAS_PUPPIES()
+    #include <puppies/PuppyBus.hpp>
+#endif
+
 #if BOARD_IS_BUDDY()
     #define UART_TMC USART2
     #define UART_ESP USART6
@@ -52,6 +56,15 @@ void uart_init_tmc() {
 
 #if HAS_PUPPIES()
 UART_HandleTypeDef uart_handle_for_puppies;
+// Rx data has to absorb any reponse. Standard Modbus response fits in 256 bytes
+static uint8_t uart_for_puppies_rx_data[256];
+buddy::hw::BufferedSerial uart_for_puppies {
+    &uart_handle_for_puppies,
+    buddy::puppies::PuppyBus::HalfDuplexCallbackSwitch,
+    uart_for_puppies_rx_data,
+    sizeof(uart_for_puppies_rx_data),
+    buddy::hw::BufferedSerial::CommunicationMode::DMA,
+};
 void uart_init_puppies() {
     uart_handle_for_puppies.Instance = UART_PUPPIES;
     uart_handle_for_puppies.Init.BaudRate = 230'400;

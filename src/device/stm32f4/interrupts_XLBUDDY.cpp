@@ -12,8 +12,6 @@
 
 static_assert(BOARD_IS_XLBUDDY());
 
-extern "C" void uart3_idle_cb();
-
 // TODO Document ADC peripherals
 TRACED_ISR(DMA2_Stream4_IRQHandler, HAL_DMA_IRQHandler, hadc1.DMA_Handle);
 TRACED_ISR(DMA2_Stream0_IRQHandler, HAL_DMA_IRQHandler, hadc3.DMA_Handle);
@@ -45,7 +43,10 @@ TRACED_ISR(DMA2_Stream1_IRQHandler, HAL_DMA_IRQHandler, hspi4.hdmatx);
 #endif
 
 // UART for puppy modbus
-TRACED_ISR(USART3_IRQHandler, HAL_UART_IRQHandler_with_idle, &uart_handle_for_puppies, uart3_idle_cb);
+void uart_for_puppies_idle_isr() {
+    uart_for_puppies.IdleISR();
+}
+TRACED_ISR(USART3_IRQHandler, HAL_UART_IRQHandler_with_idle, &uart_handle_for_puppies, uart_for_puppies_idle_isr);
 TRACED_ISR(DMA1_Stream1_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_puppies.hdmarx);
 TRACED_ISR(DMA1_Stream3_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_puppies.hdmatx);
 

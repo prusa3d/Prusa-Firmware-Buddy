@@ -565,7 +565,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 
 #if HAS_PUPPIES()
     if (huart == &uart_handle_for_puppies) {
-        buddy::puppies::PuppyBus::bufferedSerial.WriteFinishedISR();
+        uart_for_puppies.WriteFinishedISR();
     }
 #endif
 
@@ -589,7 +589,7 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
 
 #if HAS_PUPPIES()
     if (huart == &uart_handle_for_puppies) {
-        buddy::puppies::PuppyBus::bufferedSerial.FirstHalfReachedISR();
+        uart_for_puppies.FirstHalfReachedISR();
     }
 #endif
 
@@ -609,7 +609,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 #if HAS_PUPPIES()
     if (huart == &uart_handle_for_puppies) {
-        buddy::puppies::PuppyBus::bufferedSerial.SecondHalfReachedISR();
+        uart_for_puppies.SecondHalfReachedISR();
     }
 #endif
 
