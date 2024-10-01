@@ -3,6 +3,7 @@
 #include <buddy/main.h>
 #include <device/board.h>
 #include <device/hal.h>
+#include <espif.h>
 #include <option/has_mmu2.h>
 #include <option/has_puppies.h>
 #include <option/has_tmc_uart.h>
@@ -122,4 +123,68 @@ void uart_init_esp() {
     if (HAL_UART_Init(&uart_handle_for_esp) != HAL_OK) {
         Error_Handler();
     }
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+#if HAS_TMC_UART()
+    if (huart == &uart_handle_for_tmc) {
+        uart_for_tmc.WriteFinishedISR();
+    }
+#endif
+
+#if HAS_PUPPIES()
+    if (huart == &uart_handle_for_puppies) {
+        uart_for_puppies.WriteFinishedISR();
+    }
+#endif
+
+#if HAS_MMU2()
+    if (huart == &uart_handle_for_mmu) {
+        uart_for_mmu.WriteFinishedISR();
+    }
+#endif
+
+    if (huart == &uart_handle_for_esp) {
+        return espif_tx_callback();
+    }
+}
+
+void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
+#if HAS_TMC_UART()
+    if (huart == &uart_handle_for_tmc) {
+        uart_for_tmc.FirstHalfReachedISR();
+    }
+#endif
+
+#if HAS_PUPPIES()
+    if (huart == &uart_handle_for_puppies) {
+        uart_for_puppies.FirstHalfReachedISR();
+    }
+#endif
+
+#if HAS_MMU2()
+    if (huart == &uart_handle_for_mmu) {
+        uart_for_mmu.FirstHalfReachedISR();
+    }
+#endif
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+#if HAS_TMC_UART()
+    if (huart == &uart_handle_for_tmc) {
+        uart_for_tmc.SecondHalfReachedISR();
+    }
+#endif
+
+#if HAS_PUPPIES()
+    if (huart == &uart_handle_for_puppies) {
+        uart_for_puppies.SecondHalfReachedISR();
+    }
+#endif
+
+#if HAS_MMU2()
+    if (huart == &uart_handle_for_mmu) {
+        uart_for_mmu.SecondHalfReachedISR();
+    }
+#endif
 }
