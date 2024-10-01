@@ -130,7 +130,6 @@ void StartConnectTaskError(void const *argument); // Version for redscreen
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
-extern buddy::hw::BufferedSerial uart2;
 extern buddy::hw::BufferedSerial uart6;
 
 /**
@@ -467,7 +466,7 @@ extern "C" void main_cpp(void) {
     }
 
 #if HAS_TMC_UART()
-    uart2.Open();
+    uart_for_tmc.Open();
 #endif
 
 #if (BOARD_IS_XBUDDY())
@@ -567,7 +566,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 #if HAS_TMC_UART()
     if (huart == &uart_handle_for_tmc) {
-        uart2.WriteFinishedISR();
+        uart_for_tmc.WriteFinishedISR();
     }
 #endif
 
@@ -591,7 +590,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
 #if HAS_TMC_UART()
     if (huart == &uart_handle_for_tmc) {
-        uart2.FirstHalfReachedISR();
+        uart_for_tmc.FirstHalfReachedISR();
     }
 #endif
 
@@ -611,7 +610,7 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 #if HAS_TMC_UART()
     if (huart == &uart_handle_for_tmc) {
-        uart2.SecondHalfReachedISR();
+        uart_for_tmc.SecondHalfReachedISR();
     }
 #endif
 

@@ -27,6 +27,14 @@
 
 #if HAS_TMC_UART()
 UART_HandleTypeDef uart_handle_for_tmc;
+static uint8_t uart_for_tmc_rx_data[32];
+buddy::hw::BufferedSerial uart_for_tmc {
+    &uart_handle_for_tmc,
+    nullptr,
+    uart_for_tmc_rx_data,
+    sizeof(uart_for_tmc_rx_data),
+    buddy::hw::BufferedSerial::CommunicationMode::IT,
+};
 void uart_init_tmc() {
     uart_handle_for_tmc.Instance = UART_TMC;
     uart_handle_for_tmc.Init.BaudRate = 115'200;

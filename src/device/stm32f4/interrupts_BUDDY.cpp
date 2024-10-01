@@ -11,17 +11,8 @@
 
 static_assert(BOARD_IS_BUDDY());
 
-// TODO stick this somewhere else
-static uint8_t uart2rx_data[32];
-buddy::hw::BufferedSerial uart2 {
-    &uart_handle_for_tmc,
-    nullptr,
-    uart2rx_data,
-    sizeof(uart2rx_data),
-    buddy::hw::BufferedSerial::CommunicationMode::IT,
-};
-void uart2_idle_cb() {
-    uart2.IdleISR();
+void uart_for_tmc_idle_isr() {
+    uart_for_tmc.IdleISR();
 }
 
 // SPI for flash memory
@@ -34,7 +25,7 @@ TRACED_ISR(DMA1_Stream3_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(lcd).hdma
 TRACED_ISR(DMA1_Stream4_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(lcd).hdmatx);
 
 // UART for Trinamic driver
-TRACED_ISR(USART2_IRQHandler, HAL_UART_IRQHandler_with_idle, &uart_handle_for_tmc, uart2_idle_cb);
+TRACED_ISR(USART2_IRQHandler, HAL_UART_IRQHandler_with_idle, &uart_handle_for_tmc, uart_for_tmc_idle_isr);
 TRACED_ISR(DMA1_Stream5_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_tmc.hdmarx);
 
 #if BUDDY_ENABLE_WUI()

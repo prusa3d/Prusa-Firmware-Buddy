@@ -7,20 +7,20 @@
     #include "cmsis_os.h"
     #include "bsod.h"
 
-extern buddy::hw::BufferedSerial uart2;
+extern buddy::hw::BufferedSerial uart_for_tmc;
 
 HardwareSerial::HardwareSerial([[maybe_unused]] void *peripheral) {
 }
 
 void HardwareSerial::begin([[maybe_unused]] unsigned long baud) {
-    uart2.Open();
+    uart_for_tmc.Open();
 }
 
 void HardwareSerial::begin([[maybe_unused]] unsigned long baud, [[maybe_unused]] byte config) {
 }
 
 void HardwareSerial::close() {
-    uart2.Close();
+    uart_for_tmc.Close();
 }
 
 int HardwareSerial::available(void) {
@@ -34,20 +34,20 @@ int HardwareSerial::peek(void) {
 
 int HardwareSerial::read(void) {
     char ch;
-    int read = uart2.Read(&ch, 1);
+    int read = uart_for_tmc.Read(&ch, 1);
     return read ? ch : -1;
 }
 
 void HardwareSerial::flush() {
-    uart2.Flush();
+    uart_for_tmc.Flush();
 }
 
 size_t HardwareSerial::write(const uint8_t c) {
-    return uart2.Write((const char *)&c, 1);
+    return uart_for_tmc.Write((const char *)&c, 1);
 }
 
 size_t HardwareSerial::write(const uint8_t *buffer, size_t size) {
-    return uart2.Write((const char *)buffer, size);
+    return uart_for_tmc.Write((const char *)buffer, size);
 }
 
 HardwareSerial::operator bool() {

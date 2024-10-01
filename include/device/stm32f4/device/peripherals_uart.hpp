@@ -1,12 +1,14 @@
 #pragma once
 
 #include <device/hal.h>
+#include <hw/buffered_serial.hpp>
 #include <option/has_mmu2.h>
 #include <option/has_puppies.h>
 #include <option/has_tmc_uart.h>
 
 #if HAS_TMC_UART()
 extern UART_HandleTypeDef uart_handle_for_tmc;
+extern buddy::hw::BufferedSerial uart_for_tmc;
 void uart_init_tmc();
 #endif
 
