@@ -351,7 +351,7 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
             MACRO_FUNCTION(buddy::hw::OutputPin, yCs, BUDDY_PIN(CS_Y), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::OutputPin, zCs, BUDDY_PIN(CS_Z), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::OutputPin, eCs, BUDDY_PIN(CS_E), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
-            MACRO_FUNCTION(buddy::hw::OutputPin, RS485FlowControl, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+            MACRO_FUNCTION(buddy::hw::OutputPin, RS485FlowControlPuppies, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::OutputPin, MMUReset, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p8, Pin::State::high COMMA OMode::openDrain COMMA OSpeed::low, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::OutputPin, MMUEnable, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p2, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::InputPin, MMUFault, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p6, IMode::input COMMA Pull::up, buddy::hw::noHandler) \
@@ -379,7 +379,7 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
             MACRO_FUNCTION(buddy::hw::OutputPin, yCs, BUDDY_PIN(CS_Y), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::OutputPin, zCs, BUDDY_PIN(CS_Z), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::OutputPin, eCs, BUDDY_PIN(CS_E), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
-            MACRO_FUNCTION(buddy::hw::OutputPin, RS485FlowControl, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+            MACRO_FUNCTION(buddy::hw::OutputPin, RS485FlowControlPuppies, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::OutputPin, MMUReset, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p8, Pin::State::high COMMA OMode::openDrain COMMA OSpeed::low, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::OutputPin, MMUEnable, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p2, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::InputPin, MMUFault, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p6, IMode::input COMMA Pull::up, buddy::hw::noHandler) \
