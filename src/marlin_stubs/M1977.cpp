@@ -164,7 +164,6 @@ namespace state {
     PhasesPhaseStepping home() {
         marlin_server::fsm_change(PhasesPhaseStepping::home);
         GcodeSuite::G28_no_parser( // home
-            true, // always_home_all
             true, // home only if needed,
             3, // raise Z by 3 mm
             false, // S-parameter,

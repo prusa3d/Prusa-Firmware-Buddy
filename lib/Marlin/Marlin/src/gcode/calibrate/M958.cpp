@@ -1308,7 +1308,7 @@ void GcodeSuite::M959() {
     SERIAL_ECHOLNPAIR("Running: ", parser.get_command());
 
     if (!parser.seen('D')) {
-        GcodeSuite::G28_no_parser(false, true, NAN, false, true, true, true);
+        GcodeSuite::G28_no_parser(true, NAN, false, true, true, true);
 
         current_position[X_AXIS] = X_BED_SIZE / 2;
         current_position[Y_AXIS] = Y_BED_SIZE / 2;

@@ -30,7 +30,7 @@ void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
 
     // Home XY first
     if (axis_unhomed_error(_BV(X_AXIS) | _BV(Y_AXIS))) {
-        if (!GcodeSuite::G28_no_parser(false, false, 0, false, true, true, false)) {
+        if (!GcodeSuite::G28_no_parser(false, 0, false, true, true, false)) {
             return; // This can happen only during print, homing recovery should follow
         }
     }
