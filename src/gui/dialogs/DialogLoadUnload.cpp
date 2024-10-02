@@ -131,7 +131,6 @@ static constexpr EnumArray<PhasesLoadUnload, State, CountPhases<PhasesLoadUnload
     { PhasesLoadUnload::IsFilamentUnloaded, { txt_unload_confirm, DialogLoadUnload::phaseWaitSound } },
     { PhasesLoadUnload::FilamentNotInFS, { txt_filament_not_in_fs, DialogLoadUnload::phaseAlertSound } },
     { PhasesLoadUnload::ManualUnload, { txt_manual_unload, DialogLoadUnload::phaseStopSound } },
-    { PhasesLoadUnload::ManualUnload_fsOn, { txt_manual_unload, DialogLoadUnload::phaseStopSound } },
     { PhasesLoadUnload::UserPush_stoppable, { txt_push_fil, DialogLoadUnload::phaseAlertSound } },
     { PhasesLoadUnload::UserPush_unstoppable, { txt_push_fil, DialogLoadUnload::phaseAlertSound } },
     { PhasesLoadUnload::MakeSureInserted_stoppable, { txt_make_sure_inserted, DialogLoadUnload::phaseAlertSound } },
