@@ -150,7 +150,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     }
 }
 
-void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
+void HAL_UART_RxHalfCpltCallback([[maybe_unused]] UART_HandleTypeDef *huart) {
 #if HAS_TMC_UART()
     if (huart == &uart_handle_for_tmc) {
         uart_for_tmc.FirstHalfReachedISR();
@@ -170,7 +170,7 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
 #endif
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+void HAL_UART_RxCpltCallback([[maybe_unused]] UART_HandleTypeDef *huart) {
 #if HAS_TMC_UART()
     if (huart == &uart_handle_for_tmc) {
         uart_for_tmc.SecondHalfReachedISR();
