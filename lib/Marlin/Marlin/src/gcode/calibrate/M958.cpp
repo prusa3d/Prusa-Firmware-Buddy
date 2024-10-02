@@ -310,6 +310,9 @@ float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_h
         }
     }
 
+    const uint32_t now = millis();
+    duration_ms = now - start_time;
+
     return duration_ms / 1000.f / static_cast<float>(request_samples_num);
 }
 
