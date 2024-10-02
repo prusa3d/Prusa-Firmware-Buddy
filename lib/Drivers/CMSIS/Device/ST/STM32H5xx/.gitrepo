@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:STMicroelectronics/cmsis_device_h5.git
+	branch = v1.3.0
+	commit = 9a778e0f162bd21200647adafb922d50b2c60f81
+	parent = 3e42f04d3b284773e4005369741e40ec0edf30df
+	method = merge
+	cmdver = 0.4.9
