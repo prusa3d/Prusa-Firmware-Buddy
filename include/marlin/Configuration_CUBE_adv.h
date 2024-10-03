@@ -1552,7 +1552,7 @@
 
     #if AXIS_IS_TMC(X)
         // 200 step
-        #define X_CURRENT 500 // (mA) RMS current. Multiply by 1.414 for peak current.
+        #define X_CURRENT 550 // (mA) RMS current. Multiply by 1.414 for peak current.
         #define X_MICROSTEPS 8 // 0..256
         #define X_RSENSE 0.22
         #define X_CHAIN_POS 0
@@ -1566,7 +1566,7 @@
 
     #if AXIS_IS_TMC(Y)
         // 200 step
-        #define Y_CURRENT 500
+        #define Y_CURRENT 550
         #define Y_MICROSTEPS 8
         #define Y_RSENSE 0.22
         #define Y_CHAIN_POS 0
