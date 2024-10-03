@@ -142,7 +142,7 @@ inline constexpr AxisConfig axis_defaults[3] = { axis_x_default, axis_y_default,
 
 inline constexpr bool weight_adjust_enabled_default = {
 // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
-#if PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_iX()
+#if PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_CUBE()
     false
 #else
     true
@@ -151,7 +151,7 @@ inline constexpr bool weight_adjust_enabled_default = {
 
 inline constexpr WeightAdjustConfig weight_adjust_y_default {
     // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
-#if PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_iX()
+#if PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_CUBE()
     .frequency_delta = 0,
 #else
     .frequency_delta = -20.0f,
