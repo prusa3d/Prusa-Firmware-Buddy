@@ -18,11 +18,12 @@ std::optional<leds::ColorRGBW> parse_color() {
         uint8_t G = parser.byteval('G');
         uint8_t B = parser.byteval('B');
         return leds::ColorRGBW { R, G, B };
+
     } else if (parser.seen('S') && parser.seen('H') && parser.seen('V')) {
         float H = parser.floatval('H');
         float S = parser.floatval('S');
         float V = parser.floatval('V');
-        return leds::ColorRGBW { leds::ColorHSV(H, S, V) };
+        return leds::ColorRGBW::from_hsv({ H, S, V });
     }
     return std::nullopt;
 }

@@ -101,12 +101,15 @@ AnimatorLCD::AnimationGuard leds::start_animation(Animations animation, int prio
 Animations leds::get_animation(PrinterState state) {
     Animation_model animationModel = default_animations[static_cast<uint32_t>(state)];
     switch (static_cast<AnimationTypes>(animationModel.type)) {
+
     case AnimationTypes::SolidColor:
         return SolidColor(leds::ColorRGBW(animationModel.R, animationModel.G, animationModel.B));
+
     case AnimationTypes::Fading:
         return Fading(leds::ColorRGBW(animationModel.R, animationModel.G, animationModel.B), animationModel.period);
     }
-    return SolidColor(leds::ColorRGBW(leds::ColorHSV { 0, 0, 0 }));
+
+    return SolidColor({});
 }
 AnimatorLCD::AnimationGuard leds::start_animation(PrinterState state, int priority) {
     Animations animation = get_animation(state);
