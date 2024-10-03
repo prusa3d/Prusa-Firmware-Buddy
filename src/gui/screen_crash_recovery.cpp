@@ -144,7 +144,7 @@ WinsCheckAxis::WinsCheckAxis(ScreenCrashRecovery &screen)
     text_long.SetAlignment(Align_t::Center());
     icon_x_axis.SetState(SelftestSubtestState_t::running);
     #if HAS_SIDE_LEDS()
-    leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
+    leds::side_strip_control.PresentColor(leds::ColorRGBW(255, 0, 0), 400, 100);
     #endif
 }
 
@@ -160,7 +160,7 @@ WinsHome::WinsHome(ScreenCrashRecovery &screen)
     text_long.SetAlignment(Align_t::Center());
     icon_home_axes.SetState(SelftestSubtestState_t::running);
     #if HAS_SIDE_LEDS()
-    leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
+    leds::side_strip_control.PresentColor(leds::ColorRGBW(255, 0, 0), 400, 100);
     #endif
 }
 
@@ -176,7 +176,7 @@ WinsAxisNok::WinsAxisNok(ScreenCrashRecovery &screen)
     line.SetBackColor(COLOR_ORANGE);
     text_long.SetAlignment(Align_t::Center());
     #if HAS_SIDE_LEDS()
-    leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
+    leds::side_strip_control.PresentColor(leds::ColorRGBW(255, 0, 0), 400, 100);
     #endif
 }
 
@@ -197,7 +197,7 @@ WinsRepeatedCrash::WinsRepeatedCrash(ScreenCrashRecovery &screen)
     text_info.SetAlignment(Align_t::Center());
     text_info.set_font(Font::small);
     #if HAS_SIDE_LEDS()
-    leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
+    leds::side_strip_control.PresentColor(leds::ColorRGBW(255, 0, 0), 400, 100);
     #endif
 }
 
@@ -212,7 +212,7 @@ WinsHomeFail::WinsHomeFail(ScreenCrashRecovery &screen)
     text_info.SetAlignment(Align_t::Center());
     text_info.set_font(Font::small);
     #if HAS_SIDE_LEDS()
-    leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
+    leds::side_strip_control.PresentColor(leds::ColorRGBW(255, 0, 0), 400, 100);
     #endif
 }
 
@@ -251,7 +251,7 @@ WinsToolRecovery::WinsToolRecovery(ScreenCrashRecovery &screen)
     static_assert(EXTRUDERS == 6, "This screen is made for EXTRUDERS=6");
 
         #if HAS_SIDE_LEDS()
-    leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
+    leds::side_strip_control.PresentColor(leds::ColorRGBW(255, 0, 0), 400, 100);
         #endif
 }
     #endif /*HAS_TOOLCHANGER()*/

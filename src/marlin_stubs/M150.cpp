@@ -12,17 +12,17 @@
 #include <optional>
 #include <gui/led_animations/animation_model.hpp>
 
-std::optional<leds::Color> parse_color() {
+std::optional<leds::ColorRGBW> parse_color() {
     if (parser.seen('R') && parser.seen('G') && parser.seen('B')) {
         uint8_t R = parser.byteval('R');
         uint8_t G = parser.byteval('G');
         uint8_t B = parser.byteval('B');
-        return leds::Color { R, G, B };
+        return leds::ColorRGBW { R, G, B };
     } else if (parser.seen('S') && parser.seen('H') && parser.seen('V')) {
         float H = parser.floatval('H');
         float S = parser.floatval('S');
         float V = parser.floatval('V');
-        return leds::Color { leds::ColorHSV(H, S, V) };
+        return leds::ColorRGBW { leds::ColorHSV(H, S, V) };
     }
     return std::nullopt;
 }

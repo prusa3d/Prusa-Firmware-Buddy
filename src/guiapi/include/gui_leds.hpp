@@ -42,7 +42,7 @@ void TickLoop();
  * @param clr color
  * @param n index, index::count_ sets all leds
  */
-void SetNth(Color clr, index n);
+void SetNth(ColorRGBW clr, index n);
 
 /**
  * @brief Set the Brightness of display
@@ -58,9 +58,9 @@ void SetBrightness(unsigned percent);
 void ForceRefresh(size_t cnt);
 
 // TODO rename afte LED have a meaning (represent a function like print status)
-inline void Set0th(Color clr) { SetNth(clr, index::l0_D2); }
-inline void Set1st(Color clr) { SetNth(clr, index::l1_D21); }
-inline void Set2nd(Color clr) { SetNth(clr, index::l2_D10); }
+inline void Set0th(ColorRGBW clr) { SetNth(clr, index::l0_D2); }
+inline void Set1st(ColorRGBW clr) { SetNth(clr, index::l1_D21); }
+inline void Set2nd(ColorRGBW clr) { SetNth(clr, index::l2_D10); }
 
 /**
  * @brief Called from power panic module to quickly turn off leds from AC fault task

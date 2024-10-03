@@ -19,7 +19,7 @@ struct ColorHSV {
 };
 
 /// Represents color of an LED
-struct Color {
+struct ColorRGBW {
     union {
         uint32_t data;
         struct {
@@ -51,22 +51,22 @@ struct Color {
         }
     };
 
-    Color(uint32_t data_ = 0)
+    ColorRGBW(uint32_t data_ = 0)
         : data(data_) {}
 
-    Color(uint8_t r_, uint8_t g_, uint8_t b_)
+    ColorRGBW(uint8_t r_, uint8_t g_, uint8_t b_)
         : b(b_)
         , r(r_)
         , g(g_)
         , w(0) {}
 
-    Color(uint8_t r, uint8_t g, uint8_t b, uint8_t w)
+    ColorRGBW(uint8_t r, uint8_t g, uint8_t b, uint8_t w)
         : b(b)
         , r(r)
         , g(g)
         , w(w) {}
 
-    Color(ColorHSV hsv) {
+    ColorRGBW(ColorHSV hsv) {
         if (hsv.H > 360 || hsv.H < 0 || hsv.S > 100 || hsv.S < 0 || hsv.V > 100 || hsv.V < 0) {
             hsv.H = hsv.S = hsv.V = 0;
         }
@@ -78,17 +78,17 @@ struct Color {
         w = 0; // TODO
     }
 
-    bool operator==(const Color &other) const {
-        Color cmp = other;
+    bool operator==(const ColorRGBW &other) const {
+        ColorRGBW cmp = other;
         return cmp.data == data;
     }
 
-    bool operator!=(const Color &other) const {
+    bool operator!=(const ColorRGBW &other) const {
         return !(*this == other);
     }
 
-    Color operator*(double e) const {
-        return Color { static_cast<uint8_t>(r * e), static_cast<uint8_t>(g * e), static_cast<uint8_t>(b * e) };
+    ColorRGBW operator*(double e) const {
+        return ColorRGBW { static_cast<uint8_t>(r * e), static_cast<uint8_t>(g * e), static_cast<uint8_t>(b * e) };
     }
 };
 

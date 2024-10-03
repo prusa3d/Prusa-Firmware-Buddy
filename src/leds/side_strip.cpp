@@ -24,12 +24,12 @@ void SideStrip::Update() {
     // BFW-5067: The led/fan control driver is actually second in the daisy-chain (but the indexing in the code is inverted)
     static_assert(!HasWhiteLed() || led_drivers_count == 2);
     if (HasWhiteLed()) {
-        leds.Set(Color(enclosure_fan_pwm, current_color.w, 0).data, 0);
+        leds.Set(ColorRGBW(enclosure_fan_pwm, current_color.w, 0).data, 0);
         i++;
     }
 
     for (; i < led_drivers_count; ++i) {
-        leds.Set(Color(current_color.g, current_color.r, current_color.b).data, i);
+        leds.Set(ColorRGBW(current_color.g, current_color.r, current_color.b).data, i);
     }
 
     leds.Tick();

@@ -14,12 +14,12 @@ void SideStripControl::ActivityPing() {
     active_start_timestamp.emplace(ticks_ms());
 }
 
-void SideStripControl::PresentColor(Color color, uint32_t duration_ms, uint32_t transition_ms) {
+void SideStripControl::PresentColor(ColorRGBW color, uint32_t duration_ms, uint32_t transition_ms) {
     std::unique_lock lock(mutex);
     custom_color.emplace(CustomColorState { color, transition_ms, duration_ms, ticks_ms() });
 }
 
-void SideStripControl::TransitionToColor(Color color, uint32_t transition_ms) {
+void SideStripControl::TransitionToColor(ColorRGBW color, uint32_t transition_ms) {
     current_transition.emplace(side_strip.GetColor(0), color, transition_ms);
 }
 
@@ -40,18 +40,18 @@ void SideStripControl::Tick() {
 
     auto set_idle = [&](int transition_ms = 5000) {
         if (SideStrip::HasWhiteLed()) {
-            TransitionToColor(Color(0, 0, 0, 40), transition_ms);
+            TransitionToColor(ColorRGBW(0, 0, 0, 40), transition_ms);
         } else {
-            TransitionToColor(Color(40, 40, 40, 40), transition_ms);
+            TransitionToColor(ColorRGBW(40, 40, 40, 40), transition_ms);
         }
         state = State::Idle;
     };
 
     auto set_active = [&](int transition_ms = 500) {
         if (SideStrip::HasWhiteLed()) {
-            TransitionToColor(Color(0, 0, 0, 255), transition_ms);
+            TransitionToColor(ColorRGBW(0, 0, 0, 255), transition_ms);
         } else {
-            TransitionToColor(Color(255, 255, 255, 255), transition_ms);
+            TransitionToColor(ColorRGBW(255, 255, 255, 255), transition_ms);
         }
         state = State::Active;
     };
@@ -111,7 +111,7 @@ void SideStripControl::Tick() {
         break;
     }
     case State::SetOff: {
-        TransitionToColor(Color(0, 0, 0, 0), 500);
+        TransitionToColor(ColorRGBW(0, 0, 0, 0), 500);
         state = State::Off;
         break;
     }
@@ -130,8 +130,8 @@ void SideStripControl::Tick() {
     }
 }
 
-leds::Color SideStripControl::HsvToRgb(HsvColor hsv) {
-    Color rgb;
+leds::ColorRGBW SideStripControl::HsvToRgb(HsvColor hsv) {
+    ColorRGBW rgb;
     unsigned char region, remainder, p, q, t;
 
     if (hsv.s == 0) {
@@ -184,7 +184,7 @@ leds::Color SideStripControl::HsvToRgb(HsvColor hsv) {
     return rgb;
 }
 
-SideStripControl::HsvColor SideStripControl::RgbToHsv(Color rgb) {
+SideStripControl::HsvColor SideStripControl::RgbToHsv(ColorRGBW rgb) {
     uint8_t rgb_min = std::min({ rgb.r, rgb.g, rgb.b });
     uint8_t rgb_max = std::max({ rgb.r, rgb.g, rgb.b });
 
