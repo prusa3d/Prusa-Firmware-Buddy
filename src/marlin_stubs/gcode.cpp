@@ -89,6 +89,12 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             PrusaGcodeSuite::M123();
             break;
 
+#if HAS_CHAMBER_API()
+        case 141:
+            PrusaGcodeSuite::M141();
+            break;
+#endif
+
 #if HAS_LEDS()
         case 150:
             PrusaGcodeSuite::M150();
@@ -99,6 +105,13 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             PrusaGcodeSuite::M151();
             break;
 #endif
+
+#if HAS_CHAMBER_API()
+        case 191:
+            PrusaGcodeSuite::M191();
+            break;
+#endif
+
 #if HAS_I2C_EXPANDER()
         case 262:
             PrusaGcodeSuite::M262();
