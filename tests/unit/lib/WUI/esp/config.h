@@ -1,3 +1,0 @@
-#pragma once
-
-// NO DEFS HERE TO MAKE CRC32 SW ONLY
