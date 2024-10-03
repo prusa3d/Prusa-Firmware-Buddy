@@ -1,6 +1,6 @@
 target_include_directories(firmware PRIVATE . include)
 
-if(BOARD MATCHES ".*BUDDY")
+if(BOARD IN_LIST BUDDY_BOARDS)
   target_sources(
     firmware
     PRIVATE adc.cpp
@@ -79,7 +79,7 @@ if(BOARD MATCHES ".*BUDDY")
     )
   add_subdirectory(async_job)
 
-  if(BOARD MATCHES "XLBUDDY")
+  if(BOARD STREQUAL "XLBUDDY")
     target_sources(firmware PRIVATE hwio_XLBuddy.cpp)
   else()
     target_sources(firmware PRIVATE hwio_buddy_2209_02.cpp)
@@ -88,7 +88,7 @@ if(BOARD MATCHES ".*BUDDY")
   if(HAS_SHEET_PROFILES)
     target_sources(firmware PRIVATE SteelSheets.cpp)
   endif()
-elseif(BOARD MATCHES "DWARF")
+elseif(BOARD STREQUAL "DWARF")
   target_sources(
     firmware
     PRIVATE adc.cpp
@@ -101,10 +101,10 @@ elseif(BOARD MATCHES "DWARF")
             safe_state.cpp
     )
   target_link_libraries(firmware PRIVATE logging)
-elseif(BOARD MATCHES "MODULARBED")
+elseif(BOARD STREQUAL "MODULARBED")
   target_sources(firmware PRIVATE heap.cpp otp.cpp)
   target_link_libraries(firmware PRIVATE logging)
-elseif(BOARD MATCHES "XL_DEV_KIT_XLB")
+elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
   target_sources(
     firmware
     PRIVATE adc.cpp
@@ -222,7 +222,7 @@ add_subdirectory(fanctl)
 add_subdirectory(mapi)
 add_subdirectory(marlin_server_types)
 
-if(BOARD MATCHES "BUDDY")
+if(BOARD IN_LIST BUDDY_BOARDS)
   add_subdirectory(crash_dump)
   add_subdirectory(automata)
   add_subdirectory(http)
