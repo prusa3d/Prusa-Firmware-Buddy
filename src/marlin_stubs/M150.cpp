@@ -22,7 +22,7 @@ std::optional<leds::Color> parse_color() {
         float H = parser.floatval('H');
         float S = parser.floatval('S');
         float V = parser.floatval('V');
-        return leds::Color { leds::HSV(H, S, V) };
+        return leds::Color { leds::ColorHSV(H, S, V) };
     }
     return std::nullopt;
 }

@@ -6,8 +6,8 @@
 
 namespace leds {
 
-struct HSV {
-    constexpr HSV(float H, float S, float V)
+struct ColorHSV {
+    constexpr ColorHSV(float H, float S, float V)
         : H(H)
         , S(S)
         , V(V) {
@@ -66,7 +66,7 @@ struct Color {
         , g(g)
         , w(w) {}
 
-    Color(HSV hsv) {
+    Color(ColorHSV hsv) {
         if (hsv.H > 360 || hsv.H < 0 || hsv.S > 100 || hsv.S < 0 || hsv.V > 100 || hsv.V < 0) {
             hsv.H = hsv.S = hsv.V = 0;
         }
