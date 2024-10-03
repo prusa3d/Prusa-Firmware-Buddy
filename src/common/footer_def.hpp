@@ -13,6 +13,7 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 #include <option/has_sheet_profiles.h>
+#include <option/has_chamber_api.h>
 #include "i18n.h"
 #include <bsod.h>
 #include <device/board.h>
@@ -71,7 +72,7 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
     f_sensor_side = 21,
     nozzle_diameter = 22,
     nozzle_pwm = 23,
-    enclosure_temp = 24,
+    chamber_temp = 24,
     _count,
 };
 
@@ -104,8 +105,8 @@ inline constexpr std::array disabled_items {
 #if not HAS_SIDE_FSENSOR()
         Item::f_sensor_side,
 #endif
-#if not XL_ENCLOSURE_SUPPORT()
-        Item::enclosure_temp,
+#if not HAS_CHAMBER_API()
+        Item::chamber_temp,
 #endif
 };
 
