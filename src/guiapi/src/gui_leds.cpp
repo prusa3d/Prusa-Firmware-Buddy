@@ -10,13 +10,19 @@
 #include <algorithm>
 #include "neopixel.hpp"
 #include <option/has_side_leds.h>
-#if HAS_SIDE_LEDS()
-    #include "leds/side_strip_control.hpp"
-#endif
+#include <option/has_xbuddy_extension.h>
+
 #include "ili9488.hpp"
 #include "led_animations/animator.hpp"
 #include <device/peripherals.h>
 #include <config_store/store_instance.hpp>
+
+#if HAS_SIDE_LEDS()
+    #include "leds/side_strip_control.hpp"
+#endif
+#if HAS_XBUDDY_EXTENSION()
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+#endif
 
 using namespace leds;
 
@@ -51,6 +57,13 @@ void leds::TickLoop() {
 }
 
 void leds::SetNth(ColorRGBW clr, leds::index n) {
+#if HAS_XBUDDY_EXTENSION()
+    if (n == index::l1_D21) {
+        // Bed LEDs copy LCD status bar strip
+        buddy::xbuddy_extension().set_bed_leds_color(clr);
+    }
+#endif
+
     if (n >= index::count_) {
         for (size_t i = 0; i < Count; ++i) {
             SetNth(clr, leds::index(i));
