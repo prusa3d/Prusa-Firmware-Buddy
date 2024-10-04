@@ -1,4 +1,4 @@
-#include "main.h"
+#include <buddy/main.h>
 #include "buddy/esp_flash_task.hpp"
 #include "platform.h"
 #include <device/board.h>
@@ -8,8 +8,8 @@
 #include <guiconfig/guiconfig.h>
 #include "config_features.h"
 #include "cmsis_os.h"
-#include "fatfs.h"
-#include "usb_device.hpp"
+#include <buddy/fatfs.h>
+#include <buddy/usb_device.hpp>
 #include "usb_host.h"
 #include "buffered_serial.hpp"
 #include "bsod_gui.hpp"
@@ -33,9 +33,9 @@
 #include "crc32.h"
 #include "w25x.h"
 #include "timing.h"
-#include "filesystem.h"
+#include <buddy/filesystem.h>
 #include "adc.hpp"
-#include "logging.h"
+#include <buddy/logging.h>
 #include <i2c.hpp>
 #include <option/buddy_enable_connect.h>
 #include <option/has_puppies.h>
@@ -57,14 +57,14 @@
 #include "safe_state.h"
 #include <espif.h>
 #include "sound.hpp"
-#include <ccm_thread.hpp>
+#include <buddy/ccm_thread.hpp>
 #include <version/version.hpp>
 #include "str_utils.hpp"
 #include "data_exchange.hpp"
 #include "bootloader/bootloader.hpp"
 #include "gui_bootstrap_screen.hpp"
 #include "resources/revision.hpp"
-#include "filesystem_semihosting.h"
+#include <buddy/filesystem_semihosting.h>
 
 #if BUDDY_ENABLE_CONNECT()
     #include "connect/run.hpp"

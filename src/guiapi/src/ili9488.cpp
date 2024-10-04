@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "qoi_decoder.hpp"
-#include <ccm_thread.hpp>
+#include <buddy/ccm_thread.hpp>
 #include "cmath_ext.h"
 #include <stdint.h>
 #include "printers.h"

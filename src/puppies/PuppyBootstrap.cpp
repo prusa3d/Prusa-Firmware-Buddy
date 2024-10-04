@@ -9,7 +9,7 @@
 #include "hwio_pindef.h"
 #include "mbedtls/sha256.h"
 #include <logging/log.hpp>
-#include "main.h"
+#include <buddy/main.h>
 #include "tasks.hpp"
 #include "timing.h"
 #include "bsod.h"

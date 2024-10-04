@@ -16,7 +16,7 @@
 #include "timer_defaults.h"
 #include "hwio_pindef.h"
 #include "bsod.h"
-#include "main.h"
+#include <buddy/main.h>
 #include <stdint.h>
 #include <device/board.h>
 #include "printers.h"

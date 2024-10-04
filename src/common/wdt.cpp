@@ -2,7 +2,7 @@
 
 #include "wdt.hpp"
 #include "config.h"
-#include "priorities_config.h"
+#include <buddy/priorities_config.h>
 
 #ifndef _DEBUG
     #define WDT_IWDG_ENABLED

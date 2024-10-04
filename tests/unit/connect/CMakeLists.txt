@@ -83,6 +83,7 @@ target_include_directories(
   PRIVATE .
           ${CMAKE_CURRENT_SOURCE_DIR}/mock
           ${CMAKE_CURRENT_BINARY_DIR}
+          ${CMAKE_SOURCE_DIR}/tests/stubs # must be before ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_BINARY_DIR}/include
           ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_SOURCE_DIR}/src
@@ -97,7 +98,6 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/WUI
           ${CMAKE_SOURCE_DIR}/lib/heatshrink
           ${CMAKE_SOURCE_DIR}/src/gui
-          ${CMAKE_SOURCE_DIR}/tests/stubs
           ${CMAKE_SOURCE_DIR}/include/usb_host
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/system
@@ -195,6 +195,7 @@ target_include_directories(
   PRIVATE .
           ${CMAKE_CURRENT_SOURCE_DIR}/mock
           ${CMAKE_CURRENT_BINARY_DIR}
+          ${CMAKE_SOURCE_DIR}/tests/stubs # must be before ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_BINARY_DIR}/include
           ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_SOURCE_DIR}/src/connect
@@ -205,7 +206,6 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/lib/jsmn
           ${CMAKE_SOURCE_DIR}/lib/WUI
-          ${CMAKE_SOURCE_DIR}/tests/stubs
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
           ${CMAKE_SOURCE_DIR}/include/usb_host
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include

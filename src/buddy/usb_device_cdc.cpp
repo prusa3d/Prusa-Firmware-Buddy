@@ -1,6 +1,6 @@
 #include "tusb.h"
 #include "USBSerial.h"
-#include "usb_device.hpp"
+#include <buddy/usb_device.hpp>
 #include <logging/log_dest_usb.hpp>
 
 void usb_cdc_switch_to_marlin() {

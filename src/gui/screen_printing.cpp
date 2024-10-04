@@ -2,7 +2,7 @@
 #include "screen_printing.hpp"
 #include "marlin_client.hpp"
 #include "print_utils.hpp"
-#include "ffconf.h"
+#include <buddy/ffconf.h>
 #include "ScreenHandler.hpp"
 #include <ctime>
 #include "../lang/format_print_will_end.hpp"

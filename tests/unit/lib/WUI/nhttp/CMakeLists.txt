@@ -94,9 +94,9 @@ target_include_directories(
   PRIVATE .
           ${CMAKE_CURRENT_SOURCE_DIR}/mock
           ${CMAKE_CURRENT_BINARY_DIR}
+          ${CMAKE_SOURCE_DIR}/tests/stubs # must be before ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_BINARY_DIR}/include
-          ${CMAKE_SOURCE_DIR}/tests/stubs
           ${CMAKE_SOURCE_DIR}/lib/WUI
           ${CMAKE_SOURCE_DIR}/lib/WUI/http
           ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp

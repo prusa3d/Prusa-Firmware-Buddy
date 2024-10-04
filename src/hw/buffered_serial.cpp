@@ -1,7 +1,7 @@
 #include <hw/buffered_serial.hpp>
 
 #include <algorithm>
-#include <ccm_thread.hpp>
+#include <buddy/ccm_thread.hpp>
 #include <common/bsod.h>
 #include <common/timing.h>
 #include <logging/log.hpp>

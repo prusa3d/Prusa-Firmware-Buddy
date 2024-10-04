@@ -3,7 +3,7 @@
 #include "sys.h"
 #include "ScreenHandler.hpp"
 #include "printer_selftest.hpp"
-#include "main.h"
+#include <buddy/main.h>
 #include "config.h"
 #include <option/has_toolchanger.h>
 #include "printers.h"

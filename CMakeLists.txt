@@ -112,14 +112,6 @@ else()
   message(FATAL_ERROR "Undefined HAL for ${MCU}")
 endif()
 
-if(BOARD_IS_MASTER_BOARD)
-  target_include_directories(BuddyHeaders INTERFACE include/buddy)
-elseif(BOARD STREQUAL "DWARF")
-  target_include_directories(BuddyHeaders INTERFACE include/dwarf)
-elseif(BOARD STREQUAL "MODULARBED")
-  target_include_directories(BuddyHeaders INTERFACE include/modularbed)
-endif()
-
 target_include_directories(BuddyHeaders INTERFACE include)
 
 target_link_libraries(BuddyHeaders INTERFACE FreeRTOS::FreeRTOS)

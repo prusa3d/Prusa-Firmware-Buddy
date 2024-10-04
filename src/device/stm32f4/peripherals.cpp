@@ -5,7 +5,7 @@
 #include "Pin.hpp"
 #include "hwio_pindef.h"
 #include "safe_state.h"
-#include "main.h"
+#include <buddy/main.h>
 #include "adc.hpp"
 #include "timer_defaults.h"
 #include "PCA9557.hpp"

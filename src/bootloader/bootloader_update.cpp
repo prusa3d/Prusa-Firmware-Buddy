@@ -23,7 +23,7 @@
 
 // FIXME: Those includes are here only for the RNG.
 // We should add support for the stdlib's standard random function
-#include "main.h"
+#include <buddy/main.h>
 
 LOG_COMPONENT_REF(Bootloader);
 

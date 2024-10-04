@@ -1,12 +1,12 @@
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
 #include "tusb.h"
-#include "main.h"
-#include "usb_device.hpp"
+#include <buddy/main.h>
+#include <buddy/usb_device.hpp>
 #include <logging/log.hpp>
 #include "otp.hpp"
 #include "buddy/priorities_config.h"
-#include <ccm_thread.hpp>
+#include <buddy/ccm_thread.hpp>
 #include <config_store/store_instance.hpp>
 #include <tasks.hpp>
 #include <timing.h>

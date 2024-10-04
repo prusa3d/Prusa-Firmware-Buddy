@@ -20,7 +20,7 @@
 #include <freertos/queue.hpp>
 #include <task.h>
 #include <semphr.h>
-#include <ccm_thread.hpp>
+#include <buddy/ccm_thread.hpp>
 #include <bsod.h>
 #include <lwip/netifapi.h>
 

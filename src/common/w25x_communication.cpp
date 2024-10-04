@@ -4,7 +4,7 @@
 #include <logging/log.hpp>
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
-#include <ccm_thread.hpp>
+#include <buddy/ccm_thread.hpp>
 #include "stm32f4xx_hal.h"
 
 LOG_COMPONENT_REF(W25X);

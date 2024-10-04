@@ -40,7 +40,7 @@ EndBSPDependencies */
 #include "usbh_msc.h"
 #include "usbh_msc_bot.h"
 #include "usbh_msc_scsi.h"
-#include "filesystem_semihosting.h"
+#include <buddy/filesystem_semihosting.h>
 
 /** @addtogroup USBH_LIB
   * @{

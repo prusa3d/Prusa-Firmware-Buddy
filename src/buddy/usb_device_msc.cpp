@@ -1,8 +1,8 @@
 #include <inttypes.h>
-#include "usb_device.hpp"
+#include <buddy/usb_device.hpp>
 #include "usbh_msc.h"
 #include <logging/log.hpp>
-#include "littlefs_internal.h"
+#include <buddy/littlefs_internal.h>
 #include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_DEF(USBMSC, logging::Severity::debug);

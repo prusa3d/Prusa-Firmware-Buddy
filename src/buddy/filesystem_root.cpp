@@ -2,8 +2,8 @@
 #include <string.h>
 #include <sys/iosupport.h>
 #include <sys/syslimits.h>
-#include "filesystem.h"
-#include "filesystem_root.h"
+#include <buddy/filesystem.h>
+#include <buddy/filesystem_root.h>
 
 #define DIR_INDEX ((DIR *)dirState->dirStruct)->index
 

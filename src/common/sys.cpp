@@ -4,7 +4,7 @@
 #include "shared_config.h"
 #include "stm32f4xx_hal.h"
 #include "st25dv64k.h"
-#include "main.h"
+#include <buddy/main.h>
 #include <logging/log.hpp>
 #include "disable_interrupts.h"
 #include "utility_extensions.hpp"
