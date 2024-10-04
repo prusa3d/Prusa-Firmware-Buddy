@@ -1,4 +1,4 @@
-if(BOARD MATCHES "BUDDY")
+if(BOARD IN_LIST BUDDY_BOARDS)
   target_include_directories(firmware PRIVATE .)
 
   add_subdirectory(device)

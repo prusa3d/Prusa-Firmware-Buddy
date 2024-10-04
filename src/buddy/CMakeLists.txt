@@ -1,4 +1,4 @@
-if(BOARD MATCHES "XL_DEV_KIT_XLB")
+if(BOARD STREQUAL "XL_DEV_KIT_XLB")
   target_sources(firmware PRIVATE timing_sys.cpp usb_device.cpp usb_device_cdc.cpp)
 else()
   target_sources(

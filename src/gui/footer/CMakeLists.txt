@@ -35,6 +35,6 @@ if(HAS_SHEET_PROFILES)
   target_sources(firmware PRIVATE footer_item_sheet_profile.cpp)
 endif()
 
-if(BOARD MATCHES "XLBUDDY")
+if(BOARD STREQUAL "XLBUDDY")
   target_sources(firmware PRIVATE footer_item_enclosure.cpp)
 endif()
