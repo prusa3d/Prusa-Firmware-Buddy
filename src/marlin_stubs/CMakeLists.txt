@@ -25,7 +25,7 @@ target_sources(
           M999.cpp
   )
 
-if(NOT BOARD MATCHES "XL_DEV_KIT_XLB")
+if(NOT BOARD STREQUAL "XL_DEV_KIT_XLB")
   target_sources(firmware PRIVATE G26.cpp M862_2_3.cpp M862_5.cpp M862_6.cpp)
 endif()
 

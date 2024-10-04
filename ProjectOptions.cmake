@@ -22,6 +22,7 @@ set(MCU_VALID_OPTS "<default>" "STM32F407VG" "STM32F429VI" "STM32F427ZI" "STM32G
 set(BOOTLOADER_VALID_OPTS "NO" "EMPTY" "YES")
 set(TRANSLATIONS_ENABLED_VALID_OPTS "<default>" "NO" "YES")
 set(TOUCH_ENABLED_VALID_OPTS "<default>" "NO" "YES")
+set(BUDDY_BOARDS "BUDDY" "XBUDDY" "XLBUDDY")
 
 set(PRINTER
     "MINI"
@@ -137,7 +138,7 @@ endforeach()
 define_boolean_option(BOOTLOADER ${BOOTLOADER})
 
 # Set BOARD_IS_MASTER_BOARD - means main board of entire printer, non-main board are puppies
-if(BOARD MATCHES ".*BUDDY" OR BOARD MATCHES "XL_DEV_KIT_XLB")
+if(BOARD IN_LIST BUDDY_BOARDS OR BOARD STREQUAL "XL_DEV_KIT_XLB")
   set(BOARD_IS_MASTER_BOARD true)
 else()
   set(BOARD_IS_MASTER_BOARD false)
@@ -624,7 +625,7 @@ if(ENABLE_PUPPY_BOOTLOAD)
   endif()
 endif()
 
-if(BOARD MATCHES "XL_DEV_KIT_XLB")
+if(BOARD STREQUAL "XL_DEV_KIT_XLB")
   set(PUPPY_SKIP_FLASH_FW
       "ON"
       CACHE BOOL "Disable flashing puppies to debug puppy with bootloader."

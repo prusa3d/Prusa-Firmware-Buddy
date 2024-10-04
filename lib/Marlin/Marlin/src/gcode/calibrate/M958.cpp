@@ -310,6 +310,9 @@ float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_h
         }
     }
 
+    const uint32_t now = millis();
+    duration_ms = now - start_time;
+
     return duration_ms / 1000.f / static_cast<float>(request_samples_num);
 }
 
@@ -425,7 +428,7 @@ static void advance_and_wrap_time_within_period(float& time, const float advance
  * @retval VibrateMeasureResult on success
  * @retval std::nullopt on failure
  */
-static std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &args, float requested_frequency, const VibrateMeasureProgressHook &progress_hook) {
+std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &args, float requested_frequency, const VibrateMeasureProgressHook &progress_hook) {
     if (args.klipper_mode && args.measured_harmonic != 1) {
         SERIAL_ERROR_MSG("vibrate measure: klipper mode does not support measuring higher harmonics");
         return std::nullopt;

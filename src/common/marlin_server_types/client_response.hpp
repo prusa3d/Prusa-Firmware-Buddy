@@ -106,7 +106,6 @@ enum class PhasesLoadUnload : PhaseUnderlyingType {
     IsFilamentUnloaded,
     FilamentNotInFS,
     ManualUnload,
-    ManualUnload_fsOn,
     UserPush_stoppable,
     UserPush_unstoppable,
     MakeSureInserted_stoppable,
@@ -511,6 +510,10 @@ enum class PhaseBeltTuning : PhaseUnderlyingType {
     /// Measuring the vibrations and such
     measuring,
 
+    /// We vibrate on the highest measured peak frequency and let the user evaluate whether the belts are resonating.
+    /// This is basically a measurement validity check
+    vibration_check,
+
     /// Presenting the results to the user
     results,
 
@@ -548,13 +551,12 @@ class ClientResponses {
         {}, // Unloading_unstoppable,
         { Response::Filament_removed }, // RemoveFilament,
         { Response::Yes, Response::No }, // IsFilamentUnloaded,
-        { Response::FS_disable }, // FilamentNotInFS
+        {}, // FilamentNotInFS
         { Response::Continue, Response::Retry }, // ManualUnload,
-        { Response::FS_disable, Response::Retry }, // ManualUnload_fsOn,
         { Response::Continue, Response::Stop }, // UserPush_stoppable,
         { Response::Continue }, // UserPush_unstoppable,
-        { Response::Stop, Response::FS_disable }, // MakeSureInserted_stoppable,
-        { Response::FS_disable }, // MakeSureInserted_unstoppable,
+        { Response::Stop }, // MakeSureInserted_stoppable,
+        {}, // MakeSureInserted_unstoppable,
         { Response::Stop }, // Inserting_stoppable,
         {}, // Inserting_unstoppable,
         { Response::Yes, Response::No }, // IsFilamentInGear,
@@ -886,6 +888,7 @@ class ClientResponses {
         { PhaseBeltTuning::ask_for_dampeners_installation, { Response::Done, Response::Abort } },
         { PhaseBeltTuning::calibrating_accelerometer, { Response::Abort } },
         { PhaseBeltTuning::measuring, { Response::Abort } },
+        { PhaseBeltTuning::vibration_check, { Response::Yes, Response::No } },
         { PhaseBeltTuning::results, { Response::Retry, Response::Finish } },
         { PhaseBeltTuning::ask_for_dampeners_uninstallation, { Response::Done } },
         { PhaseBeltTuning::error, { Response::Abort, Response::Retry } },

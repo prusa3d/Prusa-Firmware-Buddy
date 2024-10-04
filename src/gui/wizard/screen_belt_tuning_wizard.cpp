@@ -9,6 +9,7 @@
 #include <display.hpp>
 
 #include <gui/standard_frame/frame_prompt.hpp>
+#include <gui/standard_frame/frame_progress_prompt.hpp>
 #include <gui/standard_frame/frame_qr_prompt.hpp>
 #include <feature/belt_tuning/belt_tuning_wizard.hpp>
 #include <feature/belt_tuning/printer_belt_parameters.hpp>
@@ -19,10 +20,6 @@ namespace {
 
 using FrameAskForGantryAlign = WithConstructorArgs<FrameQRPrompt, Phase::ask_for_gantry_align, N_("Please follow the XY gantry alignment process in the manual."), "belt-tuning"_tstr>;
 using FramePreparing = WithConstructorArgs<FramePrompt, Phase::preparing, N_("Preparing"), N_("Setting the printer up for the calibration.\n\nPlease wait.")>;
-
-// TODO: Maybe add progress bar?
-using FrameCalibratingAccelerometer = WithConstructorArgs<FramePrompt, Phase::calibrating_accelerometer, N_("Calibrating accelerometer"), N_("Please wait.")>;
-
 using FrameAskForDampenersInstallation = WithConstructorArgs<FramePrompt, Phase::ask_for_dampeners_installation, N_("Install belt dampeners"), N_("Please install the belt dampeners to the left and right side of the printer.")>;
 using FrameAskForDampenersUninstallation = WithConstructorArgs<FramePrompt, Phase::ask_for_dampeners_uninstallation, N_("Remove belt dampeners"), N_("Please remove the belt dampeners.")>;
 using FrameError = WithConstructorArgs<FramePrompt, Phase::error, N_("Error"), N_("An error occurred during the belt tuning procedure.\nTry running the calibration again.")>;
@@ -81,12 +78,23 @@ private:
     std::span<uint8_t> data_;
 };
 
-class FrameMeasuring : public FramePrompt {
+class FrameCalibratingAccelerometer : public FrameProgressPrompt {
+
+public:
+    FrameCalibratingAccelerometer(FrameParent parent)
+        : FrameProgressPrompt(parent, Phase::calibrating_accelerometer, _("Calibrating accelerometer"), _("Please wait.")) {}
+
+    void update(const fsm::PhaseData &data_) {
+        const auto data = fsm::deserialize_data<BeltTuningWizardCalibratingData>(data_);
+        progress_bar.SetProgressPercent(static_cast<float>(data.progress_0_255) / 255.0f * 100.0f);
+    }
+};
+
+class FrameMeasuring : public FrameProgressPrompt {
 
 public:
     FrameMeasuring(FrameParent parent)
-        : FramePrompt(parent, Phase::measuring, N_("Measuring belt tension"), nullptr)
-        , progress_bar(this, {}, COLOR_ORANGE)
+        : FrameProgressPrompt(parent, Phase::measuring, N_("Measuring belt tension"), nullptr)
         , graph(this)
         , screen(*parent.screen) //
     {
@@ -114,16 +122,17 @@ public:
 
     void update(const fsm::PhaseData &data_) {
         const auto data = fsm::deserialize_data<BeltTuninigWizardMeasuringData>(data_);
+        const float frequency = static_cast<float>(data.encoded_frequency) / data.frequency_mult;
         progress_bar.SetProgressPercent(data.progress_0_255 / 255.0f * 100.0f);
 
-        if (data.frequency) {
-            info.SetText(string_view_utf8::MakeCPUFLASH("%d Hz").formatted(info_params, (int)data.frequency));
+        if (data.encoded_frequency) {
+            info.SetText(string_view_utf8::MakeCPUFLASH("%.1f Hz").formatted(info_params, frequency));
             info.Invalidate();
 
             // Update the graph data
             {
-                size_t start = std::max<size_t>(graph_data_size, 1) - 1;
                 const size_t end = std::clamp<size_t>(std::ceil(data.progress_0_255 / 255.0f * ScreenBeltTuningWizard::graph_width), 0, ScreenBeltTuningWizard::graph_width);
+                const size_t start = std::clamp<size_t>(end, 1, graph_data_size) - 1;
 
                 const float end_val = data.last_amplitude_percent / 100.0f * ScreenBeltTuningWizard::graph_height;
                 const float start_val = graph_data_size ? screen.graph_data[start] : end_val;
@@ -139,11 +148,10 @@ public:
     }
 
 private:
-    window_numberless_progress_t progress_bar;
     WindowGraphView graph;
 
 private:
-    StringViewUtf8Parameters<4> info_params;
+    StringViewUtf8Parameters<8> info_params;
     ScreenBeltTuningWizard &screen;
     size_t graph_data_size = 0;
 };
@@ -151,9 +159,10 @@ private:
 class FrameResults : public FramePrompt {
 
 public:
-    FrameResults(FrameParent parent)
-        : FramePrompt(parent, Phase::results, nullptr, nullptr)
+    FrameResults(FrameParent parent, PhaseBeltTuning phase = PhaseBeltTuning::results)
+        : FramePrompt(parent, phase, nullptr, nullptr)
         , graph(this)
+        , phase(phase)
         , screen(*parent.screen) //
     {
         static constexpr std::initializer_list layout {
@@ -175,19 +184,28 @@ public:
     void update(const fsm::PhaseData &serialized_data) {
         const auto data = fsm::deserialize_data<BeltTuningWizardResultsData>(serialized_data);
         const auto &params = printer_belt_parameters.belt_system[0];
-        const float tension = static_cast<float>(data.tension) / BeltTuningWizardResultsData::tension_mult;
 
-        static constexpr std::array<const char *, 3> title_text {
-            N_("Too loose"),
-            N_("Perfect!"),
-            N_("Too tight"),
+        const MeasureBeltTensionResult result {
+            .belt_system = data.belt_system,
+            .resonant_frequency_hz = static_cast<float>(data.encoded_frequency) / data.frequency_mult,
         };
-        const float normalized_error = (tension - params.target_tension_force_n) / params.target_tension_force_dev_n;
-        title.SetText(_(title_text[std::clamp<int>(copysign(floor(abs(normalized_error)), normalized_error), -1, 1) + 1]));
+
+        if (phase == Phase::vibration_check) {
+            title.SetText(_("Are the belts vibrating?"));
+
+        } else {
+            const float screw_turns = result.adjust_screw_turns();
+            if (screw_turns == 0) {
+                title.SetText(_("Perfect!"));
+            } else {
+                title.SetText(_(screw_turns < 0 ? N_("Loosen by %.1f turns") : N_("Tighten by %.1f turns")).formatted(turn_params, abs(screw_turns)));
+            }
+        }
+        title.Invalidate(); // Annoying reference comparison in SetText
 
         std::array<char, 16> target_str;
         _("Target").copyToRAM(target_str);
-        info.SetText(string_view_utf8::MakeCPUFLASH("%.1f N (%i Hz)\n\n%s: %.1f +- %.1f N").formatted(info_params, tension, (int)data.frequency, target_str.data(), params.target_tension_force_n, params.target_tension_force_dev_n));
+        info.SetText(string_view_utf8::MakeCPUFLASH("Measured: %.1f N (%.1f Hz)\n%s: %.1f +- %.1f N").formatted(info_params, result.tension_force_n(), result.resonant_frequency_hz, target_str.data(), params.target_tension_force_n, params.target_tension_tolerance_n));
         info.Invalidate(); // Annoying reference comparison in SetText
 
         graph.set_data(screen.graph_data);
@@ -197,6 +215,8 @@ private:
     WindowGraphView graph;
 
 private:
+    const PhaseBeltTuning phase;
+    StringViewUtf8Parameters<8> turn_params;
     StringViewUtf8Parameters<32> info_params;
     ScreenBeltTuningWizard &screen;
 };
@@ -207,6 +227,7 @@ using Frames = FrameDefinitionList<ScreenBeltTuningWizard::FrameStorage,
     FrameDefinition<Phase::ask_for_dampeners_installation, FrameAskForDampenersInstallation>,
     FrameDefinition<Phase::calibrating_accelerometer, FrameCalibratingAccelerometer>,
     FrameDefinition<Phase::measuring, FrameMeasuring>,
+    FrameDefinition<Phase::vibration_check, WithConstructorArgs<FrameResults, Phase::vibration_check>>,
     FrameDefinition<Phase::results, FrameResults>,
     FrameDefinition<Phase::ask_for_dampeners_uninstallation, FrameAskForDampenersUninstallation>,
     FrameDefinition<Phase::error, FrameError> //

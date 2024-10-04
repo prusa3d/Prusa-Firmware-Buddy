@@ -19,6 +19,12 @@ static_assert([] {
         && (f(105) == 0.00009f);
 }());
 
+// Check that resonant_frequency_to_tension and tension_to_resonant_frequency are inverse to each other
+static_assert([] {
+    const auto &bs = printer_belt_parameters.belt_system[0];
+    return abs(bs.resonant_frequency_to_tension(bs.tension_to_resonant_frequency(bs.target_tension_force_n)) - bs.target_tension_force_n) < 0.01f;
+}());
+
 LOG_COMPONENT_REF(Marlin);
 
 std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTensionParams &config) {
@@ -75,16 +81,6 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
     stepper_microsteps(X_AXIS, 128);
     stepper_microsteps(Y_AXIS, 128);
 
-    static constexpr std::array<StepEventFlag_t, PrinterBeltParameters::belt_system_count> belt_system_axis_flags {
-#if ENABLED(COREXY)
-        // Vibrate the toolhead front and back
-        STEP_EVENT_FLAG_STEP_X | STEP_EVENT_FLAG_STEP_Y | STEP_EVENT_FLAG_Y_DIR,
-#else
-        STEP_EVENT_FLAG_STEP_X,
-            STEP_EVENT_FLAG_STEP_Y,
-#endif
-    };
-
     VibrateMeasureParams measure_params {
         .excitation_amplitude = config.excitation_amplitude_m,
         .excitation_cycles = config.excitation_cycles,
@@ -92,7 +88,7 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
         .measurement_cycles = config.measurement_cycles,
         .klipper_mode = false,
         .calibrate_accelerometer = config.calibrate_accelerometer,
-        .axis_flag = belt_system_axis_flags[config.belt_system],
+        .axis_flag = belt_system_params.axis_flags,
         .measured_harmonic = config.measured_harmonic,
     };
     if (!measure_params.setup(microstep_restorer)) {
@@ -150,14 +146,39 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
     }
 
     {
-        MeasureBeltTensionResult result;
-        result.resonant_frequency_hz = best_match->frequency;
+        const MeasureBeltTensionResult result {
+            .belt_system = config.belt_system,
+            .resonant_frequency_hz = best_match->frequency,
+        };
 
-        // Formula taken from http://www.hyperphysics.gsu.edu/hbase/Waves/string.html
-        result.tension_force_n = 4 * belt_system_params.nominal_weight_kg_m * belt_system_params.nominal_length_m * belt_system_params.nominal_length_m * result.resonant_frequency_hz * result.resonant_frequency_hz;
-
-        log_info(Marlin, "Belt tuning result: %f Hz %f N", (double)result.resonant_frequency_hz, (double)result.tension_force_n);
+        log_info(Marlin, "Belt tuning result: %f Hz %f N", (double)result.resonant_frequency_hz, (double)result.tension_force_n());
 
         return result;
+    }
+}
+
+float MeasureBeltTensionResult::tension_force_n() const {
+    return printer_belt_parameters.belt_system[belt_system].resonant_frequency_to_tension(resonant_frequency_hz);
+}
+
+float MeasureBeltTensionResult::adjust_screw_turns() const {
+    const PrinterBeltParameters::BeltSystemParameters &params = printer_belt_parameters.belt_system[belt_system];
+    const float tension = tension_force_n();
+    const float target_frequency = params.tension_to_resonant_frequency(params.target_tension_force_n);
+
+    if (tension < params.target_tension_force_n - params.target_tension_tolerance_n) {
+        // Belts are too loose -> tighten
+
+        // There is ~linear corelation between the belt resonant frequency and screw turns
+        constexpr float hz_per_turn = 12;
+        return (target_frequency - resonant_frequency_hz) / hz_per_turn;
+
+    } else if (tension <= params.target_tension_force_n + params.target_tension_tolerance_n) {
+        // Belts are within the tolerance -> no need to adjust
+        return 0;
+
+    } else {
+        // Belts are too tight -> we need to loose them under the tolerance and start tightening again
+        return -2;
     }
 }

@@ -114,9 +114,9 @@ endif()
 
 if(BOARD_IS_MASTER_BOARD)
   target_include_directories(BuddyHeaders INTERFACE include/buddy)
-elseif(BOARD MATCHES "DWARF")
+elseif(BOARD STREQUAL "DWARF")
   target_include_directories(BuddyHeaders INTERFACE include/dwarf)
-elseif(BOARD MATCHES "MODULARBED")
+elseif(BOARD STREQUAL "MODULARBED")
   target_include_directories(BuddyHeaders INTERFACE include/modularbed)
 endif()
 
@@ -374,7 +374,7 @@ add_subdirectory(lib)
 # Build Puppy Firmwares
 #
 
-if(BOARD MATCHES ".*BUDDY" AND HAS_PUPPIES_BOOTLOADER)
+if(BOARD IN_LIST BUDDY_BOARDS AND HAS_PUPPIES_BOOTLOADER)
   string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower)
   string(TOLOWER "${PRINTER}" PRINTER_lower)
 
@@ -430,7 +430,7 @@ if(NOT CMAKE_CROSSCOMPILING)
 endif()
 
 # std::rand/random
-if(BOARD MATCHES ".*BUDDY")
+if(BOARD IN_LIST BUDDY_BOARDS)
   set(ENABLE_HW_STD_RAND TRUE)
   set(RANDOM_CPP random_hw.cpp)
 else()
@@ -577,7 +577,7 @@ if(GENERATE_DFU)
     )
 endif()
 
-if(BOARD MATCHES "BUDDY")
+if(BOARD IN_LIST BUDDY_BOARDS)
   target_link_libraries(
     firmware
     PRIVATE BuddyHeaders
