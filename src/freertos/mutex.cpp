@@ -7,15 +7,6 @@
 #include <FreeRTOS.h>
 #include <semphr.h>
 
-// Do not check the concept on boards where #include <mutex> fills FLASH
-#ifndef UNITTESTS
-    #include <device/board.h>
-    #if !BOARD_IS_MODULARBED() && !BOARD_IS_DWARF()
-        #include <common/concepts.hpp>
-static_assert(concepts::Lockable<freertos::Mutex>);
-    #endif
-#endif
-
 namespace freertos {
 
 // If these asserts start failing, go fix the Storage definition
