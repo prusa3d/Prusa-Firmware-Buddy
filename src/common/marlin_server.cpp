@@ -2752,6 +2752,9 @@ static void _server_update_vars() {
 
     marlin_vars()->active_extruder = active_extruder;
 
+    marlin_vars()->extrude_min_temp = thermalManager.extrude_min_temp;
+    marlin_vars()->allow_cold_extrude = thermalManager.allow_cold_extrude;
+
     // print state is updated last, to make sure other related variables (like job_id, filenames) are already set when we start print
     marlin_vars()->print_state = static_cast<State>(server.print_state);
 }
