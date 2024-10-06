@@ -187,8 +187,9 @@ void ScreenMenuMove::checkNozzleTemp() {
 #endif // 0 .. make unit test
 
 bool ScreenMenuMove::IsTempOk() {
-    return DUMMY_AXIS_E::IsTargetTempOk() // target correctly set
-        && (marlin_vars()->active_hotend().temp_nozzle >= temp_ok); // Temperature is above coldextrusion
+    return DUMMY_AXIS_E::IsTargetTempOk() // target correctly set the selected material of extruder
+        && (marlin_vars()->allow_cold_extrude // don't check cold extrusion temp if marlin doesn't
+            || (marlin_vars()->active_hotend().temp_nozzle >= marlin_vars()->extrude_min_temp)); // Temperature is above cold extrusion temp of marlin
 }
 
 ScreenMenuMove::ScreenMenuMove()
