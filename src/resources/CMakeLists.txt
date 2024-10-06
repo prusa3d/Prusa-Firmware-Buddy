@@ -71,9 +71,9 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_ESP_FLASH_TASK)
     add_custom_command(
       OUTPUT ${ESP_PARTS}
       COMMAND
-        ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py ARGS --output ${ESP_PARTS} --basedir
-        ${CMAKE_CURRENT_SOURCE_DIR}/esp32/ --flash partition-table.bin:0x08000 --flash
-        bootloader.bin:0x01000 --flash uart_wifi.bin:0x10000
+        "${Python3_EXECUTABLE}" ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py ARGS --output
+        ${ESP_PARTS} --basedir ${CMAKE_CURRENT_SOURCE_DIR}/esp32/ --flash
+        partition-table.bin:0x08000 --flash bootloader.bin:0x01000 --flash uart_wifi.bin:0x10000
       DEPENDS esp32/uart_wifi.bin esp32/bootloader.bin esp32/partition-table.bin
               ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py
       )
@@ -86,10 +86,10 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_ESP_FLASH_TASK)
     add_custom_command(
       OUTPUT ${ESP_PARTS}
       COMMAND
-        ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py ARGS --output ${ESP_PARTS} --basedir
-        ${CMAKE_CURRENT_SOURCE_DIR}/esp8266/ --flash partition-table.bin:0x08000 --flash
-        bootloader.bin:0x00000 --flash uart_wifi.bin:0x10000 --memory stub_text.bin:0x4010d000
-        --memory stub_data.bin:0x3fff01b4
+        "${Python3_EXECUTABLE}" ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py ARGS --output
+        ${ESP_PARTS} --basedir ${CMAKE_CURRENT_SOURCE_DIR}/esp8266/ --flash
+        partition-table.bin:0x08000 --flash bootloader.bin:0x00000 --flash uart_wifi.bin:0x10000
+        --memory stub_text.bin:0x4010d000 --memory stub_data.bin:0x3fff01b4
       DEPENDS esp8266/uart_wifi.bin esp8266/bootloader.bin esp8266/partition-table.bin
               esp8266/stub_text.bin esp8266/stub_data.bin
               ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py
