@@ -1592,11 +1592,11 @@
 #define NOZZLE_PARK_FEATURE
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
-    #define Z_AXIS_LOAD_POS  40
+    #define Z_AXIS_LOAD_POS  5
     #define Z_AXIS_UNLOAD_POS 20
-    #define Y_AXIS_LOAD_POS    (Y_MAX_POS - 10)
+    #define Y_AXIS_LOAD_POS    -5
     #define Y_AXIS_UNLOAD_POS  (Y_MAX_POS - 10)
-    #define X_AXIS_LOAD_POS  (X_MIN_POS + 10)
+    #define X_AXIS_LOAD_POS  5
     #define X_AXIS_UNLOAD_POS  (X_MIN_POS + 10)
 
     #define X_NOZZLE_PARK_POINT (X_MAX_POS - 10)
