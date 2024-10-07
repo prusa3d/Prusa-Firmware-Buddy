@@ -2,7 +2,7 @@
 #include "usbh_core.h"
 #include "usbh_msc.h"
 
-#include "fatfs.h"
+#include <buddy/fatfs.h>
 #include <device/board.h>
 #include "common/timing.h"
 

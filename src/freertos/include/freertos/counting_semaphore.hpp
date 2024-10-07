@@ -1,9 +1,8 @@
 #pragma once
 
-#include <type_traits>
 #include <array>
-#include <cstdint>
-#include <stddef.h>
+#include <cstddef>
+#include <freertos/config.hpp>
 
 namespace freertos {
 
@@ -12,14 +11,7 @@ class CountingSemaphore {
 public:
     // We use erased storage in order to not pollute the scope with FreeRTOS internals.
     // The actual size and alignment are statically asserted in implementation file.
-#ifdef UNITTESTS
-    static constexpr size_t semaphore_storage_size = 168;
-    static constexpr size_t semaphore_storage_align = 8;
-#else
-    static constexpr size_t semaphore_storage_size = 80;
-    static constexpr size_t semaphore_storage_align = 4;
-#endif
-    using Storage = std::array<uint8_t, semaphore_storage_size>;
+    using Storage = std::array<std::byte, semaphore_storage_size>;
 
 private:
     alignas(semaphore_storage_align) Storage semaphore_storage;

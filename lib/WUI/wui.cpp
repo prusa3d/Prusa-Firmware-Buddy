@@ -31,8 +31,8 @@
 #include <freertos/mutex.hpp>
 #include <mutex>
 #include "http_lifetime.h"
-#include "main.h"
-#include <ccm_thread.hpp>
+#include <buddy/main.h>
+#include <buddy/ccm_thread.hpp>
 #include "tasks.hpp"
 
 #include "netdev.h"

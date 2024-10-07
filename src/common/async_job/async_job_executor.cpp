@@ -1,7 +1,7 @@
 #include "async_job_executor.hpp"
 
 #include "async_job.hpp"
-#include <priorities_config.h>
+#include <buddy/priorities_config.h>
 
 static __attribute__((section(".ccmram"))) AsyncJobExecutor default_instance;
 

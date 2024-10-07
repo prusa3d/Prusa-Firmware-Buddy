@@ -11,7 +11,7 @@
 #include <cstdint>
 #include "config.h"
 #include "bsod.h"
-#include "ffconf.h"
+#include <buddy/ffconf.h>
 #include <logging/log.hpp>
 #include "../lib/Marlin/Marlin/src/core/macros.h"
 #include <module/motion.h>

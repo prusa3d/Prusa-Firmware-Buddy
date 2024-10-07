@@ -1,3 +1,9 @@
+if(BOOTLOADER STREQUAL "EMPTY" OR BOOTLOADER)
+  set(BOOT_SUFFIX "_boot")
+else()
+  set(BOOT_SUFFIX "")
+endif()
+
 if(MCU MATCHES "STM32F4")
   add_subdirectory(stm32f4)
 elseif(MCU MATCHES "STM32G0")

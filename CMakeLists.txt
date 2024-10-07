@@ -112,14 +112,6 @@ else()
   message(FATAL_ERROR "Undefined HAL for ${MCU}")
 endif()
 
-if(BOARD_IS_MASTER_BOARD)
-  target_include_directories(BuddyHeaders INTERFACE include/buddy)
-elseif(BOARD STREQUAL "DWARF")
-  target_include_directories(BuddyHeaders INTERFACE include/dwarf)
-elseif(BOARD STREQUAL "MODULARBED")
-  target_include_directories(BuddyHeaders INTERFACE include/modularbed)
-endif()
-
 target_include_directories(BuddyHeaders INTERFACE include)
 
 target_link_libraries(BuddyHeaders INTERFACE FreeRTOS::FreeRTOS)
@@ -344,26 +336,6 @@ endif()
 #
 # add_compile_options(-mno-unaligned-access)
 
-if(CMAKE_CROSSCOMPILING)
-  # configure linker script
-  if(BOOTLOADER STREQUAL "EMPTY" OR BOOTLOADER)
-    set(BOOT_SUFFIX "_boot")
-  else()
-    set(BOOT_SUFFIX "")
-  endif()
-  if(MCU MATCHES "STM32F42")
-    set(LINKER_SCRIPT "src/device/stm32f4/linker/stm32f42x${BOOT_SUFFIX}.ld")
-  elseif(MCU MATCHES "STM32F407")
-    set(LINKER_SCRIPT "src/device/stm32f4/linker/stm32f407vg${BOOT_SUFFIX}.ld")
-  elseif(MCU MATCHES "STM32G070")
-    set(LINKER_SCRIPT "src/device/stm32g0/linker/stm32g070rb${BOOT_SUFFIX}.ld")
-  else()
-    message(FATAL_ERROR "Unknown LINKER_SCRIPT for ${MCU}")
-  endif()
-  set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/${LINKER_SCRIPT}")
-  add_link_options("-Wl,-T,${LINKER_SCRIPT}")
-endif()
-
 #
 # Import definitions of all libraries
 #
@@ -499,8 +471,6 @@ endif()
 
 # inform about the firmware's size in terminal
 report_size(firmware)
-
-add_link_dependency(firmware "${LINKER_SCRIPT}")
 
 # generate bbf if needed
 if(GENERATE_BBF)

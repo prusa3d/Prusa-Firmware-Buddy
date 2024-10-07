@@ -6,9 +6,9 @@
 #include <sys/iosupport.h>
 #include <sys/stat.h>
 #include <sys/syslimits.h>
-#include "filesystem.h"
-#include "filesystem_littlefs.h"
-#include "littlefs_internal.h"
+#include <buddy/filesystem.h>
+#include <buddy/filesystem_littlefs.h>
+#include <buddy/littlefs_internal.h>
 
 #define RESULT result < 0 ? -1 : 0;
 

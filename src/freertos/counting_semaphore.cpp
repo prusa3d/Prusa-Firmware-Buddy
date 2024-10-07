@@ -13,7 +13,7 @@ static SemaphoreHandle_t handle_cast(CountingSemaphore::Storage &semaphore_stora
 }
 
 CountingSemaphore::CountingSemaphore(size_t max_count, size_t initial_count) {
-    // If these asserts start failing, go fix the Storage definition
+    // If these asserts start failing, go fix the constants.
     static_assert(semaphore_storage_size == sizeof(StaticSemaphore_t));
     static_assert(semaphore_storage_align == alignof(StaticSemaphore_t));
 

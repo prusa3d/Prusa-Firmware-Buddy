@@ -5,7 +5,7 @@
 #include <iterator>
 #include "cmsis_os.h"
 #include <logging/log.hpp>
-#include "main.h"
+#include <buddy/main.h>
 #include "puppies/modular_bed.hpp"
 #include "puppies/Dwarf.hpp"
 #include "puppies/PuppyBootstrap.hpp"
@@ -14,7 +14,7 @@
 #include "Marlin/src/module/prusa/toolchanger.h"
 #include <tasks.hpp>
 #include <option/has_dwarf.h>
-#include <ccm_thread.hpp>
+#include <buddy/ccm_thread.hpp>
 #include "bsod.h"
 #include "gui_bootstrap_screen.hpp"
 

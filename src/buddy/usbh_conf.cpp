@@ -1,6 +1,6 @@
 #include "usbh_core.h"
 
-#include "main.h"
+#include <buddy/main.h>
 #include <logging/log.hpp>
 #include "device/board.h"
 #include "usbh_async_diskio.hpp"

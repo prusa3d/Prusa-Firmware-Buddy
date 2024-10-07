@@ -251,3 +251,9 @@ function(gzip_file input_file output_file)
     VERBATIM
     )
 endfunction()
+
+function(target_set_linker_script target linker_script)
+  target_link_options(${target} PRIVATE "-Wl,-T,${linker_script}")
+  add_custom_target("${target}_linker_script" DEPENDS "${linker_script}")
+  add_dependencies(${target} "${target}_linker_script")
+endfunction()

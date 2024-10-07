@@ -1,7 +1,7 @@
 #include <logging/log.hpp>
-#include "filesystem_littlefs.h"
+#include <buddy/filesystem_littlefs.h>
 #include <sys/iosupport.h>
-#include "littlefs_internal.h"
+#include <buddy/littlefs_internal.h>
 
 static filesystem_littlefs_ctx_t internal_ctx;
 

@@ -1,8 +1,8 @@
 #include <logging/log.hpp>
-#include "filesystem_littlefs.h"
-#include "filesystem_littlefs_bbf.h"
+#include <buddy/filesystem_littlefs.h>
+#include <buddy/filesystem_littlefs_bbf.h>
 #include <sys/iosupport.h>
-#include "littlefs_bbf.h"
+#include <buddy/littlefs_bbf.h>
 #include "bbf.hpp"
 
 LOG_COMPONENT_REF(FileSystem);

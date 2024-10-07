@@ -87,7 +87,10 @@ public:
 
     /// @brief  This is minimal puppy configuration that is needed for printer to boot up. Minimal puppy config is that we have modular bed & dwarf 1
     static constexpr inline BootstrapResult MINIMAL_PUPPY_CONFIG {
-        1 << static_cast<uint8_t>(Dock::MODULAR_BED)
+        0
+#if HAS_MODULARBED()
+            | 1 << static_cast<uint8_t>(Dock::MODULAR_BED)
+#endif
 #if HAS_DWARF()
             | 1 << static_cast<uint8_t>(Dock::DWARF_1)
 #endif

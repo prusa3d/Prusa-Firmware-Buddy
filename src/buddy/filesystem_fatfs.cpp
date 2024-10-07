@@ -1,6 +1,6 @@
 #include <errno.h>
 #include <ff.h>
-#include <ffconf.h>
+#include <buddy/ffconf.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <time.h>
@@ -8,8 +8,8 @@
 #include <sys/iosupport.h>
 #include <sys/stat.h>
 #include <sys/syslimits.h>
-#include "filesystem.h"
-#include "filesystem_fatfs.h"
+#include <buddy/filesystem.h>
+#include <buddy/filesystem_fatfs.h>
 #include <logging/log.hpp>
 
 // #define FATFS_FSTAT 1

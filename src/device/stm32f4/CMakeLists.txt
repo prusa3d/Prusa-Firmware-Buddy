@@ -20,3 +20,13 @@ if(BOOTLOADER)
 else()
   target_sources(firmware PRIVATE cmsis.cpp)
 endif()
+
+if(MCU MATCHES "STM32F42")
+  target_set_linker_script(firmware "${CMAKE_CURRENT_SOURCE_DIR}/linker/stm32f42x${BOOT_SUFFIX}.ld")
+elseif(MCU MATCHES "STM32F407")
+  target_set_linker_script(
+    firmware "${CMAKE_CURRENT_SOURCE_DIR}/linker/stm32f407vg${BOOT_SUFFIX}.ld"
+    )
+else()
+  message(FATAL_ERROR "Unknown linker script for ${MCU}")
+endif()

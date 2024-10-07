@@ -6,7 +6,7 @@
 #include "hwio_pindef.h"
 #include "qoi_decoder.hpp"
 #include "raster_opfn_c.h"
-#include <ccm_thread.hpp>
+#include <buddy/ccm_thread.hpp>
 #include <device/hal.h>
 #include <span>
 #include <stdbool.h>
