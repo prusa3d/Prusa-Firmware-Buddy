@@ -58,7 +58,7 @@ void window_header_t::updateNetwork() {
     icon_network.set_shadow(interface_status != NETDEV_NETIF_UP);
 
 #if BUDDY_ENABLE_CONNECT()
-    icon_connect.set_shadow(interface_status != NETDEV_NETIF_UP);
+    icon_connect.set_shadow(interface_status != NETDEV_NETIF_UP || get<0>(connect_client::last_status()) != connect_client::ConnectionStatus::Ok);
 #endif // BUDDY_ENABLE_CONNECT()
 }
 
