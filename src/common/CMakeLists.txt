@@ -16,6 +16,7 @@ if(BOARD IN_LIST BUDDY_BOARDS)
             ExtInterruptHandler.cpp
             filename_type.cpp
             filepath_operation.cpp
+            footer_def.cpp
             footer_eeprom.cpp
             fsm_network_setup.cpp
             fsm_states.cpp

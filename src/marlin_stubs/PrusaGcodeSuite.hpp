@@ -8,6 +8,7 @@
 #include <option/has_side_leds.h>
 #include <option/has_belt_tuning.h>
 #include <option/has_i2c_expander.h>
+#include <option/has_chamber_api.h>
 #include <option/buddy_enable_connect.h>
 
 /// the version of the g-code that the printer supports
@@ -38,10 +39,18 @@ void M104_1(); ///< Set hotend temperature with preheat & stealth mode support
 
 void M123(); ///< Fan speed reporting
 
+#if HAS_CHAMBER_API()
+void M141(); ///< Set chamber temperature
+#endif
+
 void M150();
 
 #if HAS_SIDE_LEDS()
 void M151();
+#endif
+
+#if HAS_CHAMBER_API()
+void M191(); ///< Wait for chamber temperature
 #endif
 
 #if HAS_I2C_EXPANDER()

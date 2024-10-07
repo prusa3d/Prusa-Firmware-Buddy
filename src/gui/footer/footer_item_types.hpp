@@ -13,9 +13,10 @@
 #include "footer_item_multitool.hpp"
 #include "footer_item_fsvalue.hpp"
 #include "footer_item_input_shaper.hpp"
-#include "footer_item_enclosure.hpp"
+#include "footer_item_chamber_temp.hpp"
 #include <option/has_mmu2.h>
 #include <option/has_sheet_profiles.h>
+#include <option/has_chamber_api.h>
 #include <meta_utils.hpp>
 
 #if HAS_SHEET_PROFILES()
@@ -69,8 +70,8 @@ using FooterItemMappings = TypeList< //
 #endif
     FooterItemMappingRec<FooterItemNozzleDiameter, Item::nozzle_diameter>,
     FooterItemMappingRec<FooterItemNozzlePWM, Item::nozzle_pwm>,
-#if XL_ENCLOSURE_SUPPORT()
-    FooterItemMappingRec<FooterItemEnclosure, Item::enclosure_temp>,
+#if HAS_CHAMBER_API()
+    FooterItemMappingRec<FooterItemChamberTemperature, Item::chamber_temp>,
 #endif
     FooterItemMappingRec<FooterItemNozzle, Item::nozzle>
     //

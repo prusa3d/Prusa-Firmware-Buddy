@@ -209,7 +209,7 @@ static_assert(ftrstd::to_underlying(Item::none) == 0
         && ftrstd::to_underlying(Item::f_sensor_side) == 21
         && ftrstd::to_underlying(Item::nozzle_diameter) == 22
         && ftrstd::to_underlying(Item::nozzle_pwm) == 23
-        && ftrstd::to_underlying(Item::enclosure_temp) == 24
+        && ftrstd::to_underlying(Item::chamber_temp) == 24
         && true, // So that we don't have to move the ',' around
     "Numbers assigned to items should never change and always be available (not ifdefed)!!");
 
