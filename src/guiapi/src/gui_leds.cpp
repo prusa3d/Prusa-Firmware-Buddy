@@ -50,7 +50,7 @@ void leds::TickLoop() {
 #endif
 }
 
-void leds::SetNth(Color clr, leds::index n) {
+void leds::SetNth(ColorRGBW clr, leds::index n) {
     if (n >= index::count_) {
         for (size_t i = 0; i < Count; ++i) {
             SetNth(clr, leds::index(i));
@@ -68,7 +68,7 @@ void leds::SetBrightness(unsigned percent) {
     percent *= 255;
     percent /= 100;
 
-    SetNth(Color(0, percent, 0), index::backlight);
+    SetNth(ColorRGBW(0, percent, 0), index::backlight);
 }
 
 extern osThreadId displayTaskHandle;
@@ -92,11 +92,11 @@ void leds::enter_power_panic() {
     // 5. turn off actual leds
 #if HAS_SIDE_LEDS()
     hw_init_spi_side_leds();
-    side_strip.SetColor(Color(0, 0, 0));
+    side_strip.SetColor(ColorRGBW());
     side_strip.Update();
 #endif
     SPI_INIT(lcd);
-    leds::SetNth(Color(0, 0, 0), leds::index::count_);
+    leds::SetNth(ColorRGBW(), leds::index::count_);
     leds::ForceRefresh(size_t(leds::index::count_));
     getNeopixels().Tick();
 

@@ -41,7 +41,7 @@ ScreenFatalWarning::ScreenFatalWarning()
     , help_txt(this, help_txt_rect, is_multiline::no)
     , help_link(this, link_rect, ErrCode::ERR_UNDEF)
     , qr_code_txt(this, qr_code_rect, is_multiline::no)
-    , anim(Animator_LCD_leds().start_animations(Fading(leds::Color(255, 0, 0), 500), 10)) {
+    , anim(Animator_LCD_leds().start_animations(Fading(leds::ColorRGBW(255, 0, 0), 500), 10)) {
 
     img::enable_resource_file();
 

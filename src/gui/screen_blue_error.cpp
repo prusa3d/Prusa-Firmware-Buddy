@@ -20,7 +20,7 @@ ScreenBlueError::ScreenBlueError()
     , title(this, title_rect, is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>("Unable to show details")))
     , description(this, description_rect, is_multiline::yes)
 #if HAS_LEDS()
-    , anim(Animator_LCD_leds().start_animations(Fading(leds::Color(0, 0, 255), 500), 10))
+    , anim(Animator_LCD_leds().start_animations(Fading(leds::ColorRGBW(0, 0, 255), 500), 10))
 #endif /*HAS_LEDS()*/
 {
     SetBlueLayout();

@@ -25,7 +25,7 @@ void Animation::EndAnimation() {
 void Animation::KillAnimation() {
     state = AnimationStateInternal::Ended;
 }
-void Animation::writeColorToLeds(const leds::Color &toSet, const std::pair<uint16_t, uint16_t> &leds_to_run) {
+void Animation::writeColorToLeds(const leds::ColorRGBW &toSet, const std::pair<uint16_t, uint16_t> &leds_to_run) {
     for (size_t i = leds_to_run.first; i <= leds_to_run.second; i++) {
         leds::SetNth(toSet, static_cast<leds::index>(i));
     }
@@ -39,7 +39,7 @@ void Fading::Step(const std::pair<uint16_t, uint16_t> &leds_to_run) {
         state = AnimationStateInternal::InProgress;
         [[fallthrough]];
     case AnimationStateInternal::InProgress: {
-        leds::Color toSet = calculateColor(ticks);
+        leds::ColorRGBW toSet = calculateColor(ticks);
         writeColorToLeds(toSet, leds_to_run);
         return;
     }
@@ -47,7 +47,7 @@ void Fading::Step(const std::pair<uint16_t, uint16_t> &leds_to_run) {
 
         uint32_t periodCount = (ticks - startTime) / (2 * period);
         // if we are still in last breathe we want to calculate the color
-        leds::Color toSet = periodCount < 1 ? calculateColor(ticks) : leds::Color { 0 };
+        leds::ColorRGBW toSet = periodCount < 1 ? calculateColor(ticks) : leds::ColorRGBW { 0 };
 
         if (periodCount >= 1) {
             state = AnimationStateInternal::Ended;
@@ -64,7 +64,7 @@ void Fading::Step(const std::pair<uint16_t, uint16_t> &leds_to_run) {
     }
 }
 
-leds::Color Fading::calculateColor(uint32_t ticks) {
+leds::ColorRGBW Fading::calculateColor(uint32_t ticks) {
     uint32_t posInPeriod = (ticks - startTime) % period;
     uint32_t parity = ((ticks - startTime) / period) % 2;
 
@@ -89,7 +89,7 @@ void Fading::EndAnimation() {
     }
 }
 
-Fading::Fading(leds::Color color_, uint16_t period_)
+Fading::Fading(leds::ColorRGBW color_, uint16_t period_)
     : color(color_)
     , period(period_) {
 }
@@ -117,7 +117,7 @@ void SolidColor::Step(const std::pair<uint16_t, uint16_t> &leds_to_run) {
         }
 
         double e = 1.0 - ((double)timeSinceStart / fade_length);
-        leds::Color toSet = color * e;
+        leds::ColorRGBW toSet = color * e;
         for (size_t i = leds_to_run.first; i <= leds_to_run.second; i++) {
             leds::SetNth(toSet, static_cast<leds::index>(i));
         }

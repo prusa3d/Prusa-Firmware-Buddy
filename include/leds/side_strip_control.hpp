@@ -27,7 +27,7 @@ public:
     SideStripControl();
 
     void ActivityPing();
-    void PresentColor(Color color, uint32_t duration_ms, uint32_t transition_ms);
+    void PresentColor(ColorRGBW color, uint32_t duration_ms, uint32_t transition_ms);
 
     void Tick();
 
@@ -59,9 +59,9 @@ private:
         uint8_t v;
     };
 
-    static Color HsvToRgb(HsvColor hsv);
+    static ColorRGBW HsvToRgb(HsvColor hsv);
 
-    static HsvColor RgbToHsv(Color rgb);
+    static HsvColor RgbToHsv(ColorRGBW rgb);
 
     class Transition {
         uint8_t from;
@@ -96,11 +96,11 @@ private:
             , white(fromWhite, toWhite) {
         }
 
-        ColorTransition(Color from, Color to)
+        ColorTransition(ColorRGBW from, ColorRGBW to)
             : ColorTransition(RgbToHsv(from), from.w, RgbToHsv(to), to.w) {
         }
 
-        Color Get(float progress) {
+        ColorRGBW Get(float progress) {
             auto rgb = HsvToRgb({ hue.Get(progress), saturation.Get(progress), value.Get(progress) });
             rgb.w = white.Get(progress);
             return rgb;
@@ -112,7 +112,7 @@ private:
         uint32_t duration_ms;
         ColorTransition transition;
 
-        ActiveColorTransition(Color from, Color to, uint32_t duration_ms)
+        ActiveColorTransition(ColorRGBW from, ColorRGBW to, uint32_t duration_ms)
             : start_timestamp(ticks_ms())
             , duration_ms(duration_ms)
             , transition(from, to) {
@@ -133,13 +133,13 @@ private:
             return GetProgress() >= 1.0f;
         }
 
-        Color GetCurrentColor() {
+        ColorRGBW GetCurrentColor() {
             return transition.Get(GetProgress());
         }
     };
 
     std::optional<ActiveColorTransition> current_transition;
-    void TransitionToColor(Color color, uint32_t transition_ms);
+    void TransitionToColor(ColorRGBW color, uint32_t transition_ms);
     State state = State::Startup;
     bool dimming_enabled = false;
     freertos::Mutex mutex;
@@ -150,7 +150,7 @@ private:
 
     // Custom Color State
     struct CustomColorState {
-        Color color;
+        ColorRGBW color;
         uint32_t transition_duration;
         uint32_t state_duration;
         uint32_t start_timestamp;

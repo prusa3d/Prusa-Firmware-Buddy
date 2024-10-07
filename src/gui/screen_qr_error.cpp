@@ -40,7 +40,7 @@ ScreenErrorQR::ScreenErrorQR()
     , help_link(this, link_rect, ErrCode::ERR_UNDEF)
     , qr_code_txt(this, qr_code_rect, is_multiline::no)
 #if HAS_LEDS()
-    , anim(Animator_LCD_leds().start_animations(Fading(leds::Color(255, 0, 0), 500), 10))
+    , anim(Animator_LCD_leds().start_animations(Fading(leds::ColorRGBW(255, 0, 0), 500), 10))
 #endif
     , title_line(this, title_line_rect) {
 

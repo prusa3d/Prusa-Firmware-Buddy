@@ -31,17 +31,17 @@ public:
         return 1;
     }
 
-    Color GetColor([[maybe_unused]] int led_idx) {
+    ColorRGBW GetColor([[maybe_unused]] int led_idx) {
         assert(led_idx == 0);
         return current_color;
     }
 
-    void SetColor([[maybe_unused]] int led_idx, Color color) {
+    void SetColor([[maybe_unused]] int led_idx, ColorRGBW color) {
         assert(led_idx == 0);
         SetColor(color);
     }
 
-    void SetColor(Color color) {
+    void SetColor(ColorRGBW color) {
         if (color == current_color) {
             return;
         }
@@ -62,7 +62,7 @@ public:
     void Update();
 
 private:
-    Color current_color;
+    ColorRGBW current_color;
     std::atomic<uint8_t> enclosure_fan_pwm;
     std::atomic<bool> needs_update = false;
 
