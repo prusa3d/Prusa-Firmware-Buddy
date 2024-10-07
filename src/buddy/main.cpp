@@ -48,6 +48,7 @@
 #include <option/has_side_leds.h>
 #include <option/has_phase_stepping.h>
 #include <option/has_burst_stepping.h>
+#include <option/has_xbuddy_extension.h>
 #include <option/buddy_enable_wui.h>
 #include <option/has_touch.h>
 #include <option/has_nfc.h>
@@ -465,6 +466,12 @@ extern "C" void main_cpp(void) {
 
 #if HAS_TMC_UART()
     uart_for_tmc.Open();
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    // Yes, this is intentional.
+    // MMUEnable is probably a misnomer now that we have xBuddyExtension.
+    buddy::hw::MMUEnable.set();
 #endif
 
 #if HAS_MMU2()
