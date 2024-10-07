@@ -48,7 +48,12 @@ const char *footer::to_string(Item item) {
         { Item::f_sensor_side, HAS_SIDE_FSENSOR() ? (const char *)N_("FSensor side") : nullptr },
         { Item::nozzle_diameter, N_("Nozzle diameter") },
         { Item::nozzle_pwm, N_("Nozzle PWM") },
-        { Item::chamber_temp, HAS_CHAMBER_API() ? (const char *)N_("Chamber temperature") : nullptr },
+        {
+            Item::chamber_temp,
+            PRINTER_IS_PRUSA_XL() ? (const char *)N_("Enclosure temperature") : //
+                HAS_CHAMBER_API() ? (const char *)N_("Chamber temperature")
+                                  : nullptr //
+        },
     };
 
     return texts.get_fallback(item, Item::none);
