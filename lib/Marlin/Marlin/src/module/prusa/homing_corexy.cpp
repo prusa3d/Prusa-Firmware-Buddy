@@ -16,6 +16,8 @@
 #include "bsod.h"
 #include "feature/phase_stepping/phase_stepping.hpp"
 
+static constexpr uint16_t full_ustep[] = { X_MICROSTEPS * 64, Y_MICROSTEPS * 64, Z_MICROSTEPS * 64 };
+
 // convert raw AB steps to XY mm
 void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm) {
     float x = static_cast<float>(steps.a + steps.b) / 2.f;
@@ -77,7 +79,8 @@ static int16_t phase_per_ustep(const AxisEnum axis) {
 
 // TMC full cycle µsteps per Marlin µsteps
 static int16_t phase_cycle_steps(const AxisEnum axis) {
-    return 1024 / phase_per_ustep(axis);
+    assert(axis <= AxisEnum::Z_AXIS);
+    return full_ustep[axis] / phase_per_ustep(axis);
 }
 
 static int16_t axis_mscnt(const AxisEnum axis) {
@@ -107,7 +110,7 @@ static int16_t phase_backoff_steps(const AxisEnum axis) {
     int16_t phaseCurrent = axis_mscnt(axis); // The TMC µsteps(phase) count of the current position
     int16_t phaseDelta = (0 - phaseCurrent) * stepperBackoutDir;
     if (phaseDelta < 0) {
-        phaseDelta += 1024;
+        phaseDelta += full_ustep[axis];
     }
     int16_t phasePerStep = phase_per_ustep(axis);
     return int16_t((phaseDelta + phasePerStep / 2) / phasePerStep) * effectorBackoutDir;
@@ -116,7 +119,8 @@ static int16_t phase_backoff_steps(const AxisEnum axis) {
 static bool phase_aligned(AxisEnum axis) {
     int16_t phase_cur = axis_mscnt(axis);
     int16_t ustep_max = phase_per_ustep(axis) / 2;
-    return (phase_cur <= ustep_max || phase_cur >= (1024 - ustep_max));
+    assert(axis <= AxisEnum::Z_AXIS);
+    return (phase_cur <= ustep_max || phase_cur >= (full_ustep[axis] - ustep_max));
 }
 
 /**
