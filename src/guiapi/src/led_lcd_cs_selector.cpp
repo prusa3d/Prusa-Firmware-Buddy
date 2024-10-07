@@ -5,10 +5,10 @@
  */
 
 #include "led_lcd_cs_selector.hpp"
-#include "main.h"
+#include <buddy/main.h>
 #include "hwio_pindef.h"
 #include "gui_time.hpp" //gui::GetTick()
-#include <ccm_thread.hpp>
+#include <buddy/ccm_thread.hpp>
 #include "option/has_side_leds.h"
 #include <common/spi_baud_rate_prescaler_guard.hpp>
 #include <option/has_burst_stepping.h>

@@ -23,7 +23,7 @@
 
 // clang-format off
 
-#include "filename_defs.h"
+#include <buddy/filename_defs.h>
 
 /**
  * Configuration_adv.h

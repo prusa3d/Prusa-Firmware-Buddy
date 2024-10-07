@@ -13,9 +13,9 @@ static QueueHandle_t handle_cast(QueueBase::Storage &queue_storage) {
 }
 
 QueueBase::QueueBase(size_t item_count, size_t item_size, uint8_t *item_storage) {
-    // If these asserts start failing, go fix the Storage definition.
+    // If these asserts start failing, go fix the constants.
     static_assert(queue_storage_size == sizeof(StaticQueue_t));
-    static_assert(alignof(queue_storage) == alignof(StaticQueue_t));
+    static_assert(queue_storage_align == alignof(StaticQueue_t));
 
     QueueHandle_t queue = xQueueCreateStatic(item_count, item_size, item_storage, reinterpret_cast<StaticQueue_t *>(&queue_storage));
     // We are creating static FreeRTOS object here, supplying our own buffer

@@ -1,10 +1,10 @@
-#include "main.h"
+#include <buddy/main.h>
 #include "printers.h"
 #include <device/board.h>
 #include <logging/log.hpp>
 // #include "FreeRTOSConfig.h"
 #include <device/peripherals.h>
-#include "priorities_config.h"
+#include <buddy/priorities_config.h>
 #include <option/has_burst_stepping.h>
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);

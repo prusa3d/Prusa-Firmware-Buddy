@@ -17,7 +17,7 @@
 #include "sound.hpp"
 #include "language_eeprom.hpp"
 #include <device/board.h>
-#include <usb_device.hpp>
+#include <buddy/usb_device.hpp>
 
 #include <option/has_advanced_power.h>
 #if HAS_ADVANCED_POWER()
@@ -33,7 +33,7 @@
 #include <Arduino.h>
 #include "trinamic.h"
 #include "../Marlin/src/module/configuration_store.h"
-#include "main.h"
+#include <buddy/main.h>
 #include <stdint.h>
 #include "fanctl.hpp"
 #include "printers.h"

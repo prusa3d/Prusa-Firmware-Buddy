@@ -1,5 +1,5 @@
 if(NOT TARGET Marlin_Config)
-  message(FATAL_ERROR "Target STM32F4_HAL_Config does not exist.")
+  message(FATAL_ERROR "Target Marlin_Config does not exist.")
 endif()
 
 # Minimal Marlin configuration common to all boards

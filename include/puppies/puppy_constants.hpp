@@ -3,7 +3,8 @@
 #include <array>
 #include <cstdint>
 #include <string>
-#include "option/has_dwarf.h"
+#include <option/has_dwarf.h>
+#include <option/has_modularbed.h>
 
 namespace buddy::puppies {
 
@@ -14,7 +15,9 @@ enum PuppyType : size_t {
 #if HAS_DWARF()
     DWARF,
 #endif
+#if HAS_MODULARBED()
     MODULARBED,
+#endif
     PUPPY_TYPE_NUM_ELEMENTS,
 };
 
@@ -22,7 +25,9 @@ enum PuppyType : size_t {
 enum class Dock : uint8_t {
     FIRST = 0,
 
+#if HAS_MODULARBED()
     MODULAR_BED = FIRST,
+#endif
 #if HAS_DWARF()
     DWARF_1 = 1,
     DWARF_2 = 2,
@@ -31,15 +36,19 @@ enum class Dock : uint8_t {
     DWARF_5 = 5,
     DWARF_6 = 6,
     LAST = DWARF_6,
-#else
+#elif HAS_MODULARBED()
     LAST = MODULAR_BED,
+#else
+    LAST = FIRST,
 #endif
 };
 
 constexpr const char *to_string(Dock k) {
     switch (k) {
+#if HAS_MODULARBED()
     case Dock::MODULAR_BED:
         return "MODULAR_BED";
+#endif
 #if HAS_DWARF()
     case Dock::DWARF_1:
         return "DWARF_1";
@@ -58,19 +67,25 @@ constexpr const char *to_string(Dock k) {
     return "unspecified";
 }
 
-#if HAS_DWARF()
 constexpr PuppyType to_puppy_type(Dock dock) {
-    if (dock == Dock::MODULAR_BED) {
+    switch (dock) {
+#if HAS_MODULARBED()
+    case Dock::MODULAR_BED:
         return MODULARBED;
-    } else {
+#endif
+#if HAS_DWARF()
+    case Dock::DWARF_1:
+    case Dock::DWARF_2:
+    case Dock::DWARF_3:
+    case Dock::DWARF_4:
+    case Dock::DWARF_5:
+    case Dock::DWARF_6:
         return DWARF;
+#endif
+    default:
+        return PUPPY_TYPE_NUM_ELEMENTS;
     }
 }
-#else
-constexpr PuppyType to_puppy_type(Dock) {
-    return MODULARBED;
-}
-#endif
 
 constexpr Dock operator+(Dock a, unsigned int b) {
     return (Dock)(static_cast<uint8_t>(a) + static_cast<uint8_t>(b));
@@ -91,11 +106,13 @@ inline constexpr std::array<PuppyInfo, PUPPY_TYPE_NUM_ELEMENTS> puppy_info { {
         42,
     },
 #endif
+#if HAS_MODULARBED()
     {
         "modularbed",
         "/internal/res/puppies/fw-modularbed.bin",
         43,
     },
+#endif
 } };
 
 struct DockInfo {
@@ -106,34 +123,33 @@ struct DockInfo {
  * @brief Data about each dock, indexed by the enum Dock
  *
  */
-inline constexpr auto dock_info {
-    std::to_array<DockInfo>(
-        {
-            {
-                "/internal/dump_modularbed.dmp",
-            },
-#if HAS_DWARF()
-                {
-                    "/internal/dump_dwarf1.dmp",
-                },
-                {
-                    "/internal/dump_dwarf2.dmp",
-                },
-                {
-                    "/internal/dump_dwarf3.dmp",
-                },
-                {
-                    "/internal/dump_dwarf4.dmp",
-                },
-                {
-                    "/internal/dump_dwarf5.dmp",
-                },
-                {
-                    "/internal/dump_dwarf6.dmp",
-                },
+inline constexpr std::array<DockInfo, static_cast<size_t>(Dock::LAST) + 1> dock_info { {
+#if HAS_MODULARBED()
+    {
+        "/internal/dump_modularbed.dmp",
+    },
 #endif
-        })
-};
+#if HAS_DWARF()
+    {
+        "/internal/dump_dwarf1.dmp",
+    },
+    {
+        "/internal/dump_dwarf2.dmp",
+    },
+    {
+        "/internal/dump_dwarf3.dmp",
+    },
+    {
+        "/internal/dump_dwarf4.dmp",
+    },
+    {
+        "/internal/dump_dwarf5.dmp",
+    },
+    {
+        "/internal/dump_dwarf6.dmp",
+    },
+#endif
+} };
 
 constexpr uint8_t to_info_idx(Dock dock) {
     return static_cast<uint8_t>(dock);

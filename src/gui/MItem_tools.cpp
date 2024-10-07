@@ -17,7 +17,7 @@
 #include "filament_sensors_handler.hpp"
 #include "liveadjust_z.hpp"
 #include "filament_sensor.hpp"
-#include "main.h"
+#include <buddy/main.h>
 #include "Pin.hpp"
 #include "hwio_pindef.h"
 #include "config.h"

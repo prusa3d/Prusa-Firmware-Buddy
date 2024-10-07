@@ -2,25 +2,17 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 #include <array>
+#include <freertos/config.hpp>
 
 namespace freertos {
 
 // C++ wrapper for FreeRTOS queue.
 class QueueBase {
 public:
-// We use erased storage in order to not pollute the scope with FreeRTOS internals.
-// The actual size and alignment are statically asserted in implementation file.
-#ifdef UNITTESTS
-    static constexpr size_t queue_storage_size = 168;
-    static constexpr size_t queue_storage_align = 8;
-#else
-    static constexpr size_t queue_storage_size = 80;
-    static constexpr size_t queue_storage_align = 4;
-#endif
-
-    using Storage = std::array<uint8_t, queue_storage_size>;
+    // We use erased storage in order to not pollute the scope with FreeRTOS internals.
+    // The actual size and alignment are statically asserted in implementation file.
+    using Storage = std::array<std::byte, queue_storage_size>;
 
 private:
     alignas(queue_storage_align) Storage queue_storage;

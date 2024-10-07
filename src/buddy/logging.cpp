@@ -1,7 +1,7 @@
 #include <stddef.h>
 
-#include "logging.h"
-#include "usb_device.hpp"
+#include <buddy/logging.h>
+#include <buddy/usb_device.hpp>
 
 #include <logging/log_dest_rtt.hpp>
 #include <logging/log_dest_syslog.hpp>

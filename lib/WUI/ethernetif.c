@@ -1,5 +1,5 @@
 #include <inttypes.h>
-#include "main.h"
+#include <buddy/main.h>
 #include "metric.h"
 #include "pbuf_rx.h"
 #include "wui.h"

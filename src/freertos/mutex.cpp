@@ -7,26 +7,17 @@
 #include <FreeRTOS.h>
 #include <semphr.h>
 
-// Do not check the concept on boards where #include <mutex> fills FLASH
-#ifndef UNITTESTS
-    #include <device/board.h>
-    #if !BOARD_IS_MODULARBED() && !BOARD_IS_DWARF()
-        #include <common/concepts.hpp>
-static_assert(concepts::Lockable<freertos::Mutex>);
-    #endif
-#endif
-
 namespace freertos {
-
-// If these asserts start failing, go fix the Storage definition
-static_assert(Mutex::storage_size == sizeof(StaticSemaphore_t));
-static_assert(Mutex::storage_align == alignof(StaticSemaphore_t));
 
 static SemaphoreHandle_t handle_cast(Mutex::Storage &mutex_storage) {
     return static_cast<SemaphoreHandle_t>(static_cast<void *>(mutex_storage.data()));
 }
 
 Mutex::Mutex() {
+    // If these asserts start failing, go fix the constants.
+    static_assert(mutex_storage_size == sizeof(StaticSemaphore_t));
+    static_assert(mutex_storage_align == alignof(StaticSemaphore_t));
+
     SemaphoreHandle_t semaphore = xSemaphoreCreateMutexStatic(reinterpret_cast<StaticSemaphore_t *>(&mutex_storage));
     // We are creating static FreeRTOS object here, supplying our own buffer
     // to be used by FreeRTOS. FreeRTOS constructs an object in that memory

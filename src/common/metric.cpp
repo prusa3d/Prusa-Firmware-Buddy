@@ -5,11 +5,11 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <ccm_thread.hpp>
+#include <buddy/ccm_thread.hpp>
 #include <cstring>
 #include <atomic>
 
-#include "priorities_config.h"
+#include <buddy/priorities_config.h>
 #include "metric_handlers.h"
 
 static_assert(sizeof(metric_t) == 12);

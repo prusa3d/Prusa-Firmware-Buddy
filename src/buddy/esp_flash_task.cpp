@@ -1,5 +1,5 @@
 #include "esp_flash_task.hpp"
-#include "esp_uart_dma_buffer_rx.hpp"
+#include <buddy/esp_uart_dma_buffer_rx.hpp>
 
 #include <device/peripherals_uart.hpp>
 #include <espif.h>

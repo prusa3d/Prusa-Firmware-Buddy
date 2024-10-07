@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include <bitset>
 
-#include "filename_defs.h"
+#include <buddy/filename_defs.h>
 #include "window.hpp"
 #include "display_helper.h"
 #include "lazyfilelist.hpp"

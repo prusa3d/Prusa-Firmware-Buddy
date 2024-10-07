@@ -1,4 +1,4 @@
-#include "littlefs_internal.h"
+#include <buddy/littlefs_internal.h>
 #include "w25x.h"
 
 #define BLOCK_SIZE W25X_BLOCK_SIZE

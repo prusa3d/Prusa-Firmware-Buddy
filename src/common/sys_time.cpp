@@ -1,6 +1,6 @@
 #include <time.h>
 #include "stm32f4xx_hal.h"
-#include "main.h"
+#include <buddy/main.h>
 
 clock_t clock(void) {
     return HAL_GetTick() / CLOCKS_PER_SEC;

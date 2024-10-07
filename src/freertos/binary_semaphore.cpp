@@ -13,9 +13,9 @@ static SemaphoreHandle_t handle_cast(BinarySemaphore::Storage &semaphore_storage
 }
 
 BinarySemaphore::BinarySemaphore() {
-    // If these asserts start failing, go fix the Storage definition
+    // If these asserts start failing, go fix the constants.
     static_assert(semaphore_storage_size == sizeof(StaticSemaphore_t));
-    static_assert(alignof(semaphore_storage) == alignof(StaticSemaphore_t));
+    static_assert(semaphore_storage_align == alignof(StaticSemaphore_t));
 
     SemaphoreHandle_t semaphore = xSemaphoreCreateBinaryStatic(reinterpret_cast<StaticSemaphore_t *>(&semaphore_storage));
     // We are creating static FreeRTOS object here, supplying our own buffer

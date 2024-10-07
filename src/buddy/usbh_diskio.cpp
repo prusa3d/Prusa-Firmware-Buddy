@@ -1,7 +1,7 @@
 #include "ff_gen_drv.h"
 #include "usbh_diskio.h"
 #include "usbh_async_diskio.hpp"
-#include "ccm_thread.hpp"
+#include <buddy/ccm_thread.hpp>
 #include "usb_host.h"
 
 #include <freertos/binary_semaphore.hpp>
