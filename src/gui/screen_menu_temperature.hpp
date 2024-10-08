@@ -11,7 +11,7 @@
 #include "MItem_filament.hpp"
 
 #if HAS_CHAMBER_API()
-    #include <gui/menu_item/menu_item_chamber.hpp>
+    #include <gui/menu_item/specific/menu_items_chamber.hpp>
 #endif
 
 /*****************************************************************************/

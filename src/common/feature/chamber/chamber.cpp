@@ -25,9 +25,6 @@ void Chamber::step() {
 
 #if PRINTER_IS_PRUSA_XL()
     current_temperature_ = xl_enclosure.getEnclosureTemperature();
-    if (current_temperature_ == Enclosure::INVALID_TEMPERATURE) {
-        current_temperature_ = std::nullopt;
-    }
 
 #elif HAS_XBUDDY_EXTENSION()
     // Dummy, untested implementation.

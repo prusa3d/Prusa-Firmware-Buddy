@@ -23,7 +23,7 @@ void ScreenMenuEnclosure::windowEvent(window_t *sender, GUI_event_t event, void 
     if (event == GUI_event_t::LOOP) {
         if (ticks_s() - last_ticks_s >= loop_delay_s) {
             last_ticks_s = ticks_s();
-            Item<MI_ENCLOSURE_TEMP>().UpdateValue(xl_enclosure.getEnclosureTemperature());
+            Item<MI_ENCLOSURE_TEMP>().UpdateValue(xl_enclosure.getEnclosureTemperature().value_or(0));
         }
 
     } else if (event == GUI_event_t::CLICK) {
