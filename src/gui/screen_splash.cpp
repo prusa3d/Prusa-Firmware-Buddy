@@ -42,6 +42,7 @@
 #endif
 
 #include "display.hpp"
+#include <option/has_switched_fan_test.h>
 
 #if HAS_MINI_DISPLAY()
     #define SPLASHSCREEN_PROGRESSBAR_X 16
@@ -112,9 +113,9 @@ screen_splash_data_t::screen_splash_data_t()
                 }
     #endif
                 if (any_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan,
-    #if !PRINTER_IS_PRUSA_MINI()
+    #if HAS_SWITCHED_FAN_TEST()
                         sr.tools[e].fansSwitched,
-    #endif
+    #endif /* HAS_SWITCHED_FAN_TEST() */
                         sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].dockoffset, sr.tools[e].tooloffset)) {
                     return false;
                 }

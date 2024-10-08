@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include "i_selftest_part.hpp"
 #include "selftest_fan_config.hpp"
+#include <option/has_switched_fan_test.h>
 
 namespace selftest {
 
@@ -46,7 +47,9 @@ class CSelftestPart_Fan {
     static uint32_t estimate();
     void update_progress();
 
+#if HAS_SWITCHED_FAN_TEST()
     static bool are_fans_switched(const FanHandler &print_fan, const FanHandler &heatbreak_fan, const SelftestFansConfig &config, const uint16_t print_fan_rpm, const uint16_t heatbreak_fan_rpm, SelftestFanHotendResult &result);
+#endif /* HAS_SWITCHED_FAN_TEST() */
 
 public:
     CSelftestPart_Fan(IPartHandler &state_machine, const SelftestFansConfig &config,
@@ -56,7 +59,7 @@ public:
     LoopResult state_start();
     LoopResult state_wait_rpm_100_percent();
     LoopResult state_measure_rpm_100_percent();
-#if PRINTER_IS_PRUSA_MK3_5()
+#if PRINTER_IS_PRUSA_MK3_5() && HAS_SWITCHED_FAN_TEST()
     LoopResult state_manual_check_init();
     LoopResult state_manual_check_wait_fan();
     LoopResult state_manual_check_ask();

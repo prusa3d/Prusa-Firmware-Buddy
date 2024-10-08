@@ -517,9 +517,7 @@ void CSelftest::phaseSelftestStart() {
 
     m_result = config_store().selftest_result.get(); // read previous result
     if (m_Mask & stmFans) {
-        m_result.tools[0].printFan = TestResult_Unknown;
-        m_result.tools[0].heatBreakFan = TestResult_Unknown;
-        m_result.tools[0].fansSwitched = TestResult_Unknown;
+        m_result.tools[0].reset_fan_tests();
     }
     if (m_Mask & stmXAxis) {
         m_result.xaxis = TestResult_Unknown;
