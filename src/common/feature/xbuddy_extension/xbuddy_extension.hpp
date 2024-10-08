@@ -9,7 +9,6 @@ namespace buddy {
 
 /// Thread-safe API, can be read/written to from any thread
 class XBuddyExtension {
-
 public: // General things, status
     enum class Status {
         disabled,
@@ -51,7 +50,7 @@ public: // LEDs
 
 public: // Other
     /// \returns chamber temperature measured through the thermistor connected to the board, in degrees Celsius
-    std::optional<uint8_t> chamber_temperature();
+    std::optional<float> chamber_temperature();
 
 protected:
     /// Updates all relevant target registers to match the current config of the printer

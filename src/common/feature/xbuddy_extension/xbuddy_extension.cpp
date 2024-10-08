@@ -1,9 +1,7 @@
 #include "xbuddy_extension.hpp"
 
-// Stubbed for now, will be properly implemented later
+#include <puppies/xbuddy_extension.hpp>
 
-static uint8_t fan1_2_pwm = 0;
-static uint8_t fan3_pwm = 0;
 static leds::ColorRGBW bed_leds_color;
 
 namespace buddy {
@@ -13,23 +11,24 @@ XBuddyExtension::Status XBuddyExtension::status() const {
 }
 
 std::optional<uint16_t> XBuddyExtension::fan1_rpm() const {
-    return fan1_2_pwm > 0 ? 500 : 0;
+    return puppies::xbuddy_extension.get_fan_rpm(0);
 }
 
 std::optional<uint16_t> XBuddyExtension::fan2_rpm() const {
-    return fan1_2_pwm > 0 ? 500 : 0;
+    return puppies::xbuddy_extension.get_fan_rpm(1);
 }
 
 void XBuddyExtension::set_fan1_fan2_pwm(uint8_t pwm) {
-    fan1_2_pwm = pwm;
+    puppies::xbuddy_extension.set_fan_pwm(0, pwm);
+    puppies::xbuddy_extension.set_fan_pwm(1, pwm);
 }
 
 std::optional<uint16_t> XBuddyExtension::fan3_rpm() const {
-    return fan3_pwm > 0 ? 500 : 0;
+    return puppies::xbuddy_extension.get_fan_rpm(2);
 }
 
 void XBuddyExtension::set_fan3_pwm(uint8_t pwm) {
-    fan3_pwm = pwm;
+    puppies::xbuddy_extension.set_fan_pwm(2, pwm);
 }
 
 leds::ColorRGBW XBuddyExtension::bed_leds_color() const {
@@ -38,6 +37,7 @@ leds::ColorRGBW XBuddyExtension::bed_leds_color() const {
 
 void XBuddyExtension::set_bed_leds_color(leds::ColorRGBW set) {
     ::bed_leds_color = set;
+    puppies::xbuddy_extension.set_rgbw_led({ set.r, set.g, set.b, set.w });
 }
 
 uint8_t XBuddyExtension::chamber_leds_pwm() {
@@ -46,10 +46,11 @@ uint8_t XBuddyExtension::chamber_leds_pwm() {
 
 void XBuddyExtension::set_chamber_leds_pwm(uint8_t set) {
     config_store().xbuddy_extension_chamber_leds_pwm.set(set);
+    puppies::xbuddy_extension.set_white_led(set);
 }
 
-std::optional<uint8_t> XBuddyExtension::chamber_temperature() {
-    return 50;
+std::optional<float> XBuddyExtension::chamber_temperature() {
+    return puppies::xbuddy_extension.get_chamber_temp();
 }
 
 void XBuddyExtension::update_registers() {

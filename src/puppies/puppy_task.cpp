@@ -6,8 +6,10 @@
 #include "cmsis_os.h"
 #include <logging/log.hpp>
 #include <buddy/main.h>
-#include "puppies/modular_bed.hpp"
-#include "puppies/Dwarf.hpp"
+#include <puppies/modular_bed.hpp>
+#include <puppies/Dwarf.hpp>
+#include <puppies/xbuddy_extension.hpp>
+#include <option/has_xbuddy_extension.h>
 #include "puppies/PuppyBootstrap.hpp"
 #include "timing.h"
 #include "Marlin/src/module/stepper.h"
@@ -19,6 +21,9 @@
 #include "gui_bootstrap_screen.hpp"
 
 LOG_COMPONENT_DEF(Puppies, logging::Severity::debug);
+
+// TODO Disallow this after we have functioning xbuddy_extension
+static constexpr bool allow_xbuddy_extension_failure = true;
 
 namespace buddy::puppies {
 
@@ -69,12 +74,19 @@ static void verify_puppies_running() {
         }
 #endif
 
-        if (num_dwarfs_dead == 0 && modular_bed_ok) {
+#if HAS_XBUDDY_EXTENSION()
+        const bool xbuddy_extension_ping_ok = xbuddy_extension.ping() != CommunicationStatus::ERROR;
+        const bool xbuddy_extension_ok = xbuddy_extension_ping_ok || allow_xbuddy_extension_failure;
+#else
+        const bool xbuddy_extension_ok = true;
+#endif
+
+        if (num_dwarfs_dead == 0 && modular_bed_ok && xbuddy_extension_ok) {
             log_info(Puppies, "All puppies are reacheable. Continuing");
             return;
         } else if (ticks_diff(reacheability_wait_start + WAIT_TIME, ticks_ms()) > 0) {
-            log_info(Puppies, "Puppies not ready (dwarfs_num: %d/%d, bed: %i), waiting another 200 ms",
-                num_dwarfs_ok, num_dwarfs_ok + num_dwarfs_dead, modular_bed_ok);
+            log_info(Puppies, "Puppies not ready (dwarfs_num: %d/%d, bed: %i, xbuddy_extension: %i), waiting another 200 ms",
+                num_dwarfs_ok, num_dwarfs_ok + num_dwarfs_dead, static_cast<int>(modular_bed_ok), static_cast<int>(xbuddy_extension_ok));
             osDelay(200);
             continue;
         } else {
@@ -162,6 +174,17 @@ static void puppy_task_loop() {
                 }
             }
 #endif
+#if HAS_XBUDDY_EXTENSION()
+            {
+                // TODO: Deal with possibility of extension being optional
+                CommunicationStatus status = xbuddy_extension.refresh();
+                if (status == CommunicationStatus::ERROR) {
+                    return;
+                }
+
+                worked |= status == CommunicationStatus::OK;
+            }
+#endif
 #if ENABLED(PRUSA_TOOLCHANGER)
         } while (!worked && slow_stage != orig_stage); // End if we did some work or if no stage has anything to do
 #endif
@@ -184,6 +207,14 @@ static bool puppy_initial_scan() {
 #if HAS_MODULARBED()
     if (modular_bed.initial_scan() == CommunicationStatus::ERROR) {
         return false;
+    }
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    // TODO: Eventually, there'll be printers that have the extension as
+    // optional at runtime - we'll have to deal with that somehow.
+    if (xbuddy_extension.initial_scan() == CommunicationStatus::ERROR) {
+        return false || allow_xbuddy_extension_failure;
     }
 #endif
     return true;
