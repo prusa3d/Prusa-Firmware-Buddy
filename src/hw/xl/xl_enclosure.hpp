@@ -116,13 +116,6 @@ public:
     };
 
 private:
-    enum class FanMode {
-        Off = 0,
-        Test,
-        User,
-        Max,
-    };
-
     enum class EnclosureMode {
         Idle = 0,
         Test,
