@@ -64,10 +64,10 @@ static consteval SelftestFansConfig make_fan_config(uint8_t index) {
             ///  Blocked fan increases its RPMs over 7000.
             ///  With XL shroud the values can be 6200 - 6600 depending on fan shroud version.
             .rpm_min = 5300,
-            .rpm_max = 6799,
+            .rpm_max = 7000,
         },
         .heatbreak_fan = {
-            .rpm_min = 6800,
+            .rpm_min = 6500,
             .rpm_max = 8700,
         },
     };
