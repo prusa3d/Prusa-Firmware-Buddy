@@ -16,4 +16,7 @@ extern const NumericInputConfig filament_nozzle_temperature;
 
 extern const NumericInputConfig bed_temperature;
 
+/// 0-100 %, 0 % = off
+extern const NumericInputConfig percent_with_off;
+
 } // namespace numeric_input_config

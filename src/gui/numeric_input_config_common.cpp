@@ -19,3 +19,9 @@ const NumericInputConfig numeric_input_config::bed_temperature = {
     .special_value = 0,
     .unit = Unit::celsius,
 };
+
+const NumericInputConfig numeric_input_config::percent_with_off = {
+    .max_value = 100,
+    .special_value = 0,
+    .unit = Unit::percent,
+};
