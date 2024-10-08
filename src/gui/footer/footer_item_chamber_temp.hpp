@@ -4,12 +4,13 @@
  */
 
 #pragma once
-#include "ifooter_item.hpp"
 
-class FooterItemEnclosure : public FooterIconText_IntVal {
+#include "footer_items_heaters.hpp"
+
+class FooterItemChamberTemperature : public FooterItemHeater {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
 
 public:
-    FooterItemEnclosure(window_t *parent);
+    FooterItemChamberTemperature(window_t *parent);
 };

@@ -91,6 +91,7 @@
 #include <option/has_nfc.h>
 #include <option/has_sheet_profiles.h>
 #include <option/has_i2c_expander.h>
+#include <option/has_chamber_api.h>
 
 #if HAS_DWARF()
     #include <puppies/Dwarf.hpp>
@@ -136,6 +137,10 @@
 #if HAS_NFC()
     #include <nfc.hpp>
     #include <fsm_network_setup.hpp>
+#endif
+
+#if HAS_CHAMBER_API()
+    #include <feature/chamber/chamber.hpp>
 #endif
 
 #include <wui.h>
@@ -707,6 +712,10 @@ static void cycle() {
         set_warning(*notif, *notif == WarningType::EnclosureFilterExpiration ? PhasesWarning::EnclosureFilterExpiration : PhasesWarning::Warning); // Notify the GUI about the warning
     }
 
+#endif
+
+#if HAS_CHAMBER_API()
+    buddy::chamber().step();
 #endif
 
     if (call_print_loop) {

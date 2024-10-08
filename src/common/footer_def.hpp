@@ -13,6 +13,7 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 #include <option/has_sheet_profiles.h>
+#include <option/has_chamber_api.h>
 #include "i18n.h"
 #include <bsod.h>
 #include <device/board.h>
@@ -71,7 +72,7 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
     f_sensor_side = 21,
     nozzle_diameter = 22,
     nozzle_pwm = 23,
-    enclosure_temp = 24,
+    chamber_temp = 24,
     _count,
 };
 
@@ -104,8 +105,8 @@ inline constexpr std::array disabled_items {
 #if not HAS_SIDE_FSENSOR()
         Item::f_sensor_side,
 #endif
-#if not XL_ENCLOSURE_SUPPORT()
-        Item::enclosure_temp,
+#if not HAS_CHAMBER_API()
+        Item::chamber_temp,
 #endif
 };
 
@@ -122,96 +123,7 @@ static_assert(all_disabled_items_are_unique(), "All disabled items must be uniqu
  * @param item get name of this item
  * @return name of the item
  */
-constexpr const char *to_string(Item item) {
-    switch (item) {
-    case Item::nozzle:
-        return N_("Nozzle");
-    case Item::nozzle_diameter:
-        return N_("Nozzle diameter");
-    case Item::nozzle_pwm:
-        return N_("Nozzle PWM");
-    case Item::bed:
-        return N_("Bed");
-    case Item::filament:
-        return N_("Filament");
-    case Item::f_sensor:
-        return N_("FSensor");
-    case Item::f_s_value:
-        return N_("FS Value");
-    case Item::speed:
-        return N_("Speed");
-    case Item::axis_x:
-        return N_("X");
-    case Item::axis_y:
-        return N_("Y");
-    case Item::axis_z:
-        return N_("Z");
-    case Item::z_height:
-        return N_("Z height");
-    case Item::print_fan:
-        return N_("Print fan");
-    case Item::heatbreak_fan:
-#if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
-        return N_("Hotend Fan");
-#else
-        return N_("Heatbreak Fan");
-#endif
-    case Item::input_shaper_x:
-        return N_("Input Shaper X");
-    case Item::input_shaper_y:
-        return N_("Input Shaper Y");
-    case Item::live_z:
-#if defined(FOOTER_HAS_LIVE_Z)
-        return N_("Live Z");
-#else
-        break;
-#endif
-    case Item::heatbreak_temp:
-        return N_("Heatbreak");
-    case Item::sheets:
-#if HAS_SHEET_PROFILES()
-        return N_("Sheets");
-#else
-        break;
-#endif
-    case Item::finda:
-#if HAS_MMU2()
-        return N_("Finda");
-#else
-        break;
-#endif
-    case Item::current_tool:
-#if defined(FOOTER_HAS_TOOL_NR)
-        return N_("Current tool");
-#else
-        break;
-#endif
-    case Item::all_nozzles:
-#if defined(FOOTER_HAS_TOOL_NR)
-        return N_("All nozzles");
-#else
-        break;
-#endif
-    case Item::f_sensor_side:
-#if HAS_SIDE_FSENSOR()
-        return N_("FSensor side");
-#else
-        break;
-#endif /*HAS_SIDE_FSENSOR()*/
-    case Item::enclosure_temp:
-#if XL_ENCLOSURE_SUPPORT()
-        return N_("Enclosure temperature");
-#else
-        break;
-#endif
-    case Item::none:
-        return N_("None");
-    case Item::_count:
-        break;
-    }
-    bsod("Nonexistent footer item");
-    return "";
-}
+const char *to_string(Item item);
 
 using Record = std::array<Item, FOOTER_ITEMS_PER_LINE__>;
 

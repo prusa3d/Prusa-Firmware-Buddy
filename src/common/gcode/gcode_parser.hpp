@@ -44,7 +44,7 @@ public:
     }
 
     /// Tries to parse option \param key as type \param T.
-    /// Returns the parsed value on success or \p OptionError if the option is not present or parsing fails.
+    ///  \returns the parsed value on success or \p OptionError if the option is not present or parsing fails.
     template <typename T, typename... Args>
     [[nodiscard]] std::expected<T, OptionError> option(char key, Args &&...args) const {
         T val {};
@@ -54,6 +54,19 @@ public:
         }
 
         return val;
+    }
+
+    /// \returns `(value, key)` for the first key from \param keys for which parsing succeeds as \param T
+    template <typename T, typename... Args>
+    [[nodiscard]] std::optional<std::pair<T, char>> option_multikey(std::initializer_list<char> keys, Args &&...args) const {
+        T val {};
+        for (const char key : keys) {
+            if (store_option(key, val, args...)) {
+                return { { val, key } };
+            }
+        }
+
+        return std::nullopt;
     }
 
     /**
