@@ -586,11 +586,10 @@ void Planner::action_done(ActionResult result) {
             } else if (planned_event->type == EventType::StateChanged) {
                 state_info.mark_clean();
             }
-#if !WEBSOCKET()
             // Enforce telemetry now. We may get a new command with it.
-            // Websocket doesn't need this, commands can come independently from telemetry.
+            // Websocket still need this, even tho commands can come independently from telemetry,
+            // because the telemetry might change as a result of the event, that was finished.
             last_telemetry = nullopt;
-#endif
         } else {
             const Timestamp n = now();
             last_telemetry = n;
