@@ -20,8 +20,8 @@ void MI_SHEET_OFFSET::printExtension(Rect16 extension_rect, Color color_text, Co
 }
 
 MI_SHEET_OFFSET::MI_SHEET_OFFSET()
-    : WI_LAMBDA_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::yes, [this](char *buffer) {
-        snprintf(buffer, GuiDefaults::infoDefaultLen, "%.3f mm", static_cast<double>(this->offset));
+    : WI_LAMBDA_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::yes, [this](const std::span<char> &buffer) {
+        snprintf(buffer.data(), buffer.size(), "%.3f mm", static_cast<double>(this->offset));
     }) {
 }
 

@@ -60,8 +60,8 @@ I_MI_FOOTER::I_MI_FOOTER(const char *const label, int item_n)
         ftrstd::to_underlying(footer::Item::_count) - std::size(footer::disabled_items), // Count of available footers, "None" included
         nullptr, is_enabled_t::yes, is_hidden_t::no,
         to_index(StatusFooter::GetSlotInit(item_n)), // Currently selected item
-        [&](char *buffer) {
-            strlcpy(buffer, footer::to_string(to_footer_item(GetIndex())), GuiDefaults::infoDefaultLen);
+        [&](const std::span<char> &buffer) {
+            strlcpy(buffer.data(), footer::to_string(to_footer_item(GetIndex())), buffer.size());
         }) {
     // There is a bug that when a printer with 'disabled' Item in eeprom gets loaded, upon entering Footer Settings menu it shows 'None' (because of if in to_index) but doesn't update the footer accordingly...
     // After several attempts to fix this, I've decided that rather than updating the eeprom value & then not redrawing the footer, it's better to not even update the eeprom value.

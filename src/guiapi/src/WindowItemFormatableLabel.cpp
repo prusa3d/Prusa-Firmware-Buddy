@@ -5,10 +5,8 @@ WI_LAMBDA_LABEL_t::WI_LAMBDA_LABEL_t(const string_view_utf8 &label, const img::R
     , printAs(printAs) {}
 
 void WI_LAMBDA_LABEL_t::printExtension(Rect16 extension_rect, [[maybe_unused]] Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const {
-    char text[GuiDefaults::infoDefaultLen];
-    string_view_utf8 stringView;
+    std::array<char, GuiDefaults::infoDefaultLen> text;
     printAs(text);
-    stringView = string_view_utf8::MakeRAM((uint8_t *)text);
-    render_text_align(extension_rect, stringView, InfoFont, color_back,
+    render_text_align(extension_rect, string_view_utf8::MakeRAM(text.data()), InfoFont, color_back,
         (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter(), false);
 }

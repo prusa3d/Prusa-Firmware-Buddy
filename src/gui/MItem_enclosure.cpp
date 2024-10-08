@@ -42,11 +42,11 @@ void MI_ENCLOSURE_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
 }
 
 MI_ENCLOSURE_TEMP::MI_ENCLOSURE_TEMP()
-    : WI_FORMATABLE_LABEL_t<int>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
+    : WI_FORMATABLE_LABEL_t<int>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
         if (const auto temp = xl_enclosure.getEnclosureTemperature()) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%u\xC2\xB0\x43", (uint8_t)std::clamp<buddy::Temperature>(*temp, 0, 99));
+            snprintf(buffer.data(), buffer.size(), "%u\xC2\xB0\x43", (uint8_t)std::clamp<buddy::Temperature>(*temp, 0, 99));
         } else {
-            strlcpy(buffer, "--", GuiDefaults::infoDefaultLen);
+            strlcpy(buffer.data(), "--", buffer.size());
         }
     }) {
 }

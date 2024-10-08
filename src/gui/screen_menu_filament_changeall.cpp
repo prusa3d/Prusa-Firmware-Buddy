@@ -21,7 +21,7 @@
 using namespace multi_filament_change;
 
 MI_ActionSelect::MI_ActionSelect(uint8_t tool_ix)
-    : WI_LAMBDA_SPIN({}, 1, nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [this](char *buffer) { get_item_text(GetIndex(), { buffer, GuiDefaults::infoDefaultLen }); })
+    : WI_LAMBDA_SPIN({}, 1, nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [this](const std::span<char> &buffer) { get_item_text(GetIndex(), buffer); })
     , tool_ix(tool_ix) //
 {
     has_filament_loaded = (config_store().get_filament_type(tool_ix) != FilamentType::none);

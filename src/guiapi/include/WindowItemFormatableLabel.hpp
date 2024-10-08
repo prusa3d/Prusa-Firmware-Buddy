@@ -4,7 +4,10 @@
  */
 
 #pragma once
+
 #include "i_window_menu_item.hpp"
+
+#include <span>
 #include <functional>
 
 class WI_LAMBDA_LABEL_t : public IWindowMenuItem {
@@ -12,7 +15,7 @@ protected:
     static constexpr Font InfoFont = GuiDefaults::FontMenuSpecial;
     static constexpr uint16_t icon_width = 16;
 
-    using PrintFunction = stdext::inplace_function<void(char *)>;
+    using PrintFunction = stdext::inplace_function<void(const std::span<char> &)>;
     const PrintFunction printAs;
 
 protected:

@@ -30,7 +30,7 @@ void MI_LOADCELL_SCALE::OnClick() {
 // MI_INFO_LOADCELL
 MI_INFO_LOADCELL::MI_INFO_LOADCELL()
     : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f", (double)value);
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
+            snprintf(buffer.data(), buffer.size(), "%.1f", (double)value);
         }) {
 }
