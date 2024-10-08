@@ -12,13 +12,14 @@ protected:
     static constexpr Font InfoFont = GuiDefaults::FontMenuSpecial;
     static constexpr uint16_t icon_width = 16;
 
-    const stdext::inplace_function<void(char *)> printAs;
+    using PrintFunction = stdext::inplace_function<void(char *)>;
+    const PrintFunction printAs;
 
 protected:
     void printExtension(Rect16 extension_rect, [[maybe_unused]] Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const override;
 
 public:
-    WI_LAMBDA_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, stdext::inplace_function<void(char *)> printAs);
+    WI_LAMBDA_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, const PrintFunction &printAs);
 };
 
 /// This WI has lambda function for formatting the extension
@@ -31,7 +32,7 @@ protected:
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
 
 public:
-    WI_FORMATABLE_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, stdext::inplace_function<void(char *)> printAs)
+    WI_FORMATABLE_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, const PrintFunction &printAs)
         : WI_LAMBDA_LABEL_t(label, icon, enabled, hidden, printAs)
         , value(initVal) {
     }

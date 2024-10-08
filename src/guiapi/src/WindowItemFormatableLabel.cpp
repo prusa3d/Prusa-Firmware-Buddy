@@ -1,6 +1,6 @@
 #include <guiapi/include/WindowItemFormatableLabel.hpp>
 
-WI_LAMBDA_LABEL_t::WI_LAMBDA_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, stdext::inplace_function<void(char *)> printAs)
+WI_LAMBDA_LABEL_t::WI_LAMBDA_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, const PrintFunction &printAs)
     : IWindowMenuItem(label, icon ? icon_width : GuiDefaults::infoDefaultLen * width(InfoFont), icon, enabled, hidden)
     , printAs(printAs) {}
 
