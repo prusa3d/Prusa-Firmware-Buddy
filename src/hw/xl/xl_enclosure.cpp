@@ -36,8 +36,8 @@ Enclosure::Enclosure()
     , print_end_sec(0)
     , filter_postpone_sec(0)
     , fan_presence_test_sec(0)
-    , previous_print_state(marlin_server::State::Idle)
-    , active_dwarf_board_temp(INVALID_TEMPERATURE) {
+    , previous_print_state(marlin_server::State::Idle) //
+{
 
     // Set up timers
     last_timer_update_sec = last_sec = ticks_s();
@@ -91,11 +91,11 @@ void Enclosure::setPostPrintFiltration(bool enable) {
     }
 }
 
-int Enclosure::getEnclosureTemperature() {
-    if (isTemperatureValid() && active_dwarf_board_temp != INVALID_TEMPERATURE) {
-        return active_dwarf_board_temp + dwarf_board_temp_model_difference;
+std::optional<buddy::Temperature> Enclosure::getEnclosureTemperature() {
+    if (const auto temp = active_dwarf_board_temp.load(); isTemperatureValid() && temp.has_value()) {
+        return *temp + dwarf_board_temp_model_difference;
     }
-    return INVALID_TEMPERATURE;
+    return std::nullopt;
 }
 
 void Enclosure::resetFilterTimer() {

@@ -9,6 +9,7 @@
 #include <array>
 #include <general_response.hpp>
 
+#include <temperature.hpp>
 #include "marlin_server_shared.h"
 #include "client_fsm_types.h"
 #include <general_response.hpp>
@@ -35,13 +36,12 @@
 
 class Enclosure {
 public:
-    static constexpr const int INVALID_TEMPERATURE = std::numeric_limits<int>::min();
     static constexpr int64_t expiration_deadline_sec = 600 * 3600;
     static constexpr int64_t expiration_warning_sec = 500 * 3600;
     static constexpr const int MIN_FAN_PWM = 50;
 
     Enclosure();
-    int getEnclosureTemperature();
+    std::optional<buddy::Temperature> getEnclosureTemperature();
 
     void setEnabled(bool enable); // enable enclosure
     void setPrintFiltration(bool enable); /** Fan is spinning with manual rpm (80% power on default) for the whole print */
@@ -207,7 +207,7 @@ private:
     uint32_t fan_presence_test_sec;
     marlin_server::State previous_print_state;
 
-    std::atomic<int> active_dwarf_board_temp; // is int because of footer's implementation
+    std::atomic<std::optional<buddy::Temperature>> active_dwarf_board_temp;
 };
 
 extern Enclosure xl_enclosure;
