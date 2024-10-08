@@ -39,6 +39,7 @@
 #include "i_selftest.hpp"
 #include "i_selftest_part.hpp"
 #include "selftest_result_type.hpp"
+#include <option/has_switched_fan_test.h>
 
 using namespace selftest;
 
@@ -71,7 +72,10 @@ static consteval SelftestFansConfig make_fan_config(uint8_t index) {
         },
     };
 }
+
+#if HAS_SWITCHED_FAN_TEST()
 static_assert(make_fan_config(0).print_fan.rpm_max < make_fan_config(0).heatbreak_fan.rpm_min, "These cannot overlap for switched fan detection.");
+#endif /* HAS_SWITCHED_FAN_TEST() */
 
 static constexpr SelftestFansConfig fans_configs[] = {
     make_fan_config(0),
@@ -547,9 +551,7 @@ void CSelftest::phaseSelftestStart() {
     m_result = config_store().selftest_result.get(); // read previous result
     if (m_Mask & stmFans) {
         HOTEND_LOOP() {
-            m_result.tools[e].printFan = TestResult_Unknown;
-            m_result.tools[e].heatBreakFan = TestResult_Unknown;
-            m_result.tools[e].fansSwitched = TestResult_Unknown;
+            m_result.tools[e].reset_fan_tests();
         }
     }
     if (m_Mask & stmXAxis) {

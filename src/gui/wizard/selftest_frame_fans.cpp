@@ -13,6 +13,7 @@
 #if HAS_TOOLCHANGER()
     #include "module/prusa/toolchanger.h"
 #endif
+#include <option/has_switched_fan_test.h>
 
 static constexpr size_t col_texts = WizardDefaults::col_after_icon;
 static constexpr size_t col_results = WizardDefaults::status_icon_X_pos;
@@ -40,7 +41,9 @@ static constexpr const char *en_text_manual_check_hotend = N_("Is Hotend fan (le
 
 static constexpr const char *en_text_info = N_("Fan test in progress, please wait.");
 static constexpr const char *en_text_info_rpm_failed = N_("The RPM test has failed, check both fans are free to spin and connected correctly.");
+#if HAS_SWITCHED_FAN_TEST()
 static constexpr const char *en_text_info_switched = N_("Based on the test it looks like the fans connectors are switched. Double check your wiring and repeat the test.");
+#endif /* HAS_SWITCHED_FAN_TEST() */
 
 SelftestFrameFans::fan_state_t SelftestFrameFans::make_fan_row(size_t index) {
     constexpr static int16_t ICON_SPACING = 20;
@@ -63,9 +66,9 @@ SelftestFrameFans::fan_state_t SelftestFrameFans::make_fan_row(size_t index) {
         .icon_heatbreak_fan_state = WindowIcon_OkNg(this, { y, row_2 }),
         .icon_print_fan_state = WindowIcon_OkNg(this, { y, row_3 }),
 
-#if not PRINTER_IS_PRUSA_MINI()
+#if HAS_SWITCHED_FAN_TEST()
         .icon_fans_switched_state = WindowIcon_OkNg(this, { y, row_4 }),
-#endif
+#endif /* HAS_SWITCHED_FAN_TEST */
     };
 }
 
@@ -90,9 +93,9 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
     , text_hotend_fan(this, Rect16(col_texts, row_2, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_hotend_fan))
     , icon_print_fan(this, &img::turbine_16x16, point_i16_t({ WizardDefaults::col_0, row_3 }))
     , text_print_fan(this, Rect16(col_texts, row_3, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_print_fan))
-#if not PRINTER_IS_PRUSA_MINI()
+#if HAS_SWITCHED_FAN_TEST()
     , text_fans_switched(this, Rect16(col_texts, row_4, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_fans_switched))
-#endif
+#endif /* HAS_SWITCHED_FAN_TEST*/
 #if PRINTER_IS_PRUSA_MK3_5()
     // The question should cover whole text_info - so we should take the values from it
     , text_question(this, text_info.GetRect(), is_multiline::yes, is_closed_on_click_t::no, _(en_text_manual_check_hotend))
@@ -108,7 +111,9 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
         if (!prusa_toolchanger.is_tool_enabled(i)) {
             fan_states[i].icon_heatbreak_fan_state.Hide();
             fan_states[i].icon_print_fan_state.Hide();
+    #if HAS_SWITCHED_FAN_TEST()
             fan_states[i].icon_fans_switched_state.Hide();
+    #endif /* HAS_SWITCHED_FAN_TEST() */
         }
     }
 #endif
@@ -138,16 +143,21 @@ void SelftestFrameFans::change() {
 #endif
 
     if (FSMExtendedDataManager::get(result)) {
+#if HAS_SWITCHED_FAN_TEST()
         bool fan_switch_detected_on_at_least_one_hotend { false };
+#endif /* HAS_SWITCHED_FAN_TEST() */
         bool rpm_failed_on_at_least_one_hotend { false };
         bool rpm_test_still_in_progress { false };
         for (size_t i = 0; i < fan_states.size(); i++) {
             fan_states[i].icon_print_fan_state.SetState(result.hotend_results[i].print_fan_state);
             fan_states[i].icon_heatbreak_fan_state.SetState(result.hotend_results[i].heatbreak_fan_state);
 
-#if not PRINTER_IS_PRUSA_MINI()
+#if HAS_SWITCHED_FAN_TEST()
             fan_states[i].icon_fans_switched_state.SetState(result.hotend_results[i].fans_switched_state);
-#endif
+            if (result.hotend_results[i].fans_switched_state == SelftestSubtestState_t::not_good) {
+                fan_switch_detected_on_at_least_one_hotend = true;
+            }
+#endif /* HAS_SWITCHED_FAN_TEST */
 
             if (result.hotend_results[i].print_fan_state == SelftestSubtestState_t::running || result.hotend_results[i].heatbreak_fan_state == SelftestSubtestState_t::running) {
                 rpm_test_still_in_progress = true;
@@ -156,17 +166,16 @@ void SelftestFrameFans::change() {
             if (result.hotend_results[i].print_fan_state == SelftestSubtestState_t::not_good || result.hotend_results[i].heatbreak_fan_state == SelftestSubtestState_t::not_good) {
                 rpm_failed_on_at_least_one_hotend = true;
             }
-
-            if (result.hotend_results[i].fans_switched_state == SelftestSubtestState_t::not_good) {
-                fan_switch_detected_on_at_least_one_hotend = true;
-            }
         }
 
         if (rpm_failed_on_at_least_one_hotend && !rpm_test_still_in_progress) {
             text_info.SetText(_(en_text_info_rpm_failed));
-        } else if (fan_switch_detected_on_at_least_one_hotend) {
+        }
+#if HAS_SWITCHED_FAN_TEST()
+        else if (fan_switch_detected_on_at_least_one_hotend) {
             text_info.SetText(_(en_text_info_switched));
         }
+#endif /* HAS_SWITCHED_FAN_TEST() */
 
         progress.SetProgressPercent(result.progress);
     }

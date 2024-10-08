@@ -4,10 +4,12 @@
 #include <option/has_selftest.h>
 #include <option/has_sheet_profiles.h>
 #include <config_store/store_instance.hpp>
+#include <option/has_switched_fan_test.h>
+#include <option/has_toolchanger.h>
 
-#if PRINTER_IS_PRUSA_XL()
+#if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
-#endif
+#endif /* HAS_TOOLCHANGER() */
 
 #if HAS_SHEET_PROFILES()
     #include <common/SteelSheets.hpp>
@@ -18,15 +20,34 @@ bool selftest_warning_selftest_finished() {
     return true;
 #endif
 
-    [[maybe_unused]] SelftestResult sr = config_store().selftest_result.get();
+    const SelftestResult sr = config_store().selftest_result.get();
 
-    [[maybe_unused]] auto all_passed = [](std::same_as<TestResult> auto... results) -> bool {
+    const auto all_passed = [](std::same_as<TestResult> auto... results) -> bool {
         static_assert(sizeof...(results) > 0, "Pass at least one result");
 
         return ((results == TestResult_Passed) && ...); // all passed
     };
+
+    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
+        return false;
+    }
+
+#if HAS_SWITCHED_FAN_TEST()
+    HOTEND_LOOP() {
+    #if HAS_TOOLCHANGER()
+        if (!prusa_toolchanger.is_tool_enabled(e)) {
+            continue;
+        }
+    #endif /* HAS_TOOLCHANGER() */
+
+        if (sr.tools[e].fansSwitched != TestResult_Passed) {
+            return false;
+        }
+    }
+#endif /* HAS_SWITCHHED_FAN_TEST() */
+
 #if (PRINTER_IS_PRUSA_XL())
-    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed, config_store().selftest_result_phase_stepping.get())) {
+    if (!all_passed(config_store().selftest_result_phase_stepping.get())) {
         return false;
     }
     for (int8_t e = 0; e < HOTENDS; e++) {
@@ -34,8 +55,7 @@ bool selftest_warning_selftest_finished() {
             continue;
         }
         if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan,
-                sr.tools[e].nozzle, sr.tools[e].fsensor,
-                sr.tools[e].loadcell, sr.tools[e].fansSwitched)) {
+                sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell)) {
             return false;
         }
         if (prusa_toolchanger.is_toolchanger_enabled()) {
@@ -47,47 +67,32 @@ bool selftest_warning_selftest_finished() {
 
     return true;
 #elif (PRINTER_IS_PRUSA_MK4())
-    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
-        return false;
-    }
-
     if (sr.gears == TestResult_Failed) { // skipped/unknown gears are also OK
         return false;
     }
 
     HOTEND_LOOP()
-    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].fansSwitched)) {
+    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell)) {
         return false;
     }
 
     return true;
 #elif PRINTER_IS_PRUSA_iX()
-    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
-        return false;
-    }
 
     HOTEND_LOOP()
-    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].fansSwitched)) {
+    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell)) {
         return false;
     }
 
     return true;
 #elif PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
-    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
-        return false;
-    }
 
     if (!SteelSheets::IsSheetCalibrated(config_store().active_sheet.get())) {
         return false;
     }
 
     HOTEND_LOOP()
-    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle
-    #if not PRINTER_IS_PRUSA_MINI()
-            ,
-            sr.tools[e].fansSwitched
-    #endif
-            )) {
+    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle)) {
         return false;
     }
 

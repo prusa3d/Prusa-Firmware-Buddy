@@ -9,6 +9,7 @@
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
 #include <config_store/store_instance.hpp>
+#include <option/has_switched_fan_test.h>
 
 namespace selftest {
 
@@ -25,7 +26,7 @@ bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<
                 &CSelftestPart_Fan::state_start,
                 &CSelftestPart_Fan::state_wait_rpm_100_percent,
                 &CSelftestPart_Fan::state_measure_rpm_100_percent,
-#if PRINTER_IS_PRUSA_MK3_5()
+#if PRINTER_IS_PRUSA_MK3_5() && HAS_SWITCHED_FAN_TEST()
                 // Adding only for MK3.5 because selftest is unable to skip states. This seems to me as a cleaner choice than checking in every state for basically the same thing.
                 &CSelftestPart_Fan::state_manual_check_init,
                 &CSelftestPart_Fan::state_manual_check_wait_fan,
@@ -71,7 +72,9 @@ bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<
 
         eeres.tools[i].printFan = to_test_result(hr.print_fan_state);
         eeres.tools[i].heatBreakFan = to_test_result(hr.heatbreak_fan_state);
+#if HAS_SWITCHED_FAN_TEST()
         eeres.tools[i].fansSwitched = to_test_result(hr.fans_switched_state);
+#endif /* HAS_SWITCHED_FAN_TEST() */
     }
 
     config_store().selftest_result.set(eeres);

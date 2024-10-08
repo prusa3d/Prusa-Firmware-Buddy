@@ -1,6 +1,7 @@
 #include "selftest_result_type.hpp"
 #include <printers.h>
 
+#include <option/has_switched_fan_test.h>
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <Marlin/src/module/prusa/toolchanger.h>
@@ -24,11 +25,11 @@ bool passed_for_all_that_always_need_to_pass(const SelftestResult &results) {
         if (results.tools[e].heatBreakFan != TestResult_Passed) {
             return false;
         }
-#if not PRINTER_IS_PRUSA_MINI()
+#if HAS_SWITCHED_FAN_TEST()
         if (results.tools[e].fansSwitched != TestResult_Passed) {
             return false;
         }
-#endif
+#endif /* HAS_SWITCHED_FAN_TEST() */
         if (results.tools[e].nozzle != TestResult_Passed) {
             return false;
         }
@@ -98,11 +99,11 @@ bool SelftestResult_Failed(const SelftestResult &results) {
             return true;
         }
 
-#if not PRINTER_IS_PRUSA_MINI()
+#if HAS_SWITCHED_FAN_TEST()
         if (results.tools[e].fansSwitched == TestResult_Failed) {
             return true;
         }
-#endif
+#endif /* HAS_SWITCHED_FAN_TEST() */
         if (results.tools[e].nozzle == TestResult_Failed) {
             return true;
         }
@@ -142,7 +143,9 @@ void SelftestResult_Log(const SelftestResult &results) {
 
         log_info(Selftest, "Print fan %u result is %s", e, ToString(results.tools[e].printFan));
         log_info(Selftest, "Heatbreak fan %u result is %s", e, ToString(results.tools[e].heatBreakFan));
+#if HAS_SWITCHED_FAN_TEST()
         log_info(Selftest, "Fans switched %u result is %s", e, ToString(results.tools[e].fansSwitched));
+#endif /* HAS_SWITCHED_FAN_TEST() */
         log_info(Selftest, "Nozzle heater %u result is %s", e, ToString(results.tools[e].nozzle));
 #if FILAMENT_SENSOR_IS_ADC()
         log_info(Selftest, "Filament sensor %u result is %s", e, ToString(results.tools[e].fsensor));
