@@ -11,15 +11,18 @@
 #include <MItem_tools.hpp>
 #include "option/has_side_leds.h"
 #include "option/has_toolchanger.h"
+
 #include <device/board.h>
+#include <gui/menu_item/specific/menu_items_chamber.hpp>
 
 namespace detail {
 using ScreenMenuEnclosure = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
 #if XL_ENCLOSURE_SUPPORT()
     ,
-    MI_ENCLOSURE_ENABLE, MI_ENCLOSURE_TEMP, MI_ENCLOSURE_FILTER_COUNTER, MI_ENCLOSURE_FILTER_CHANGE, MI_ENCLOSURE_MANUAL_SETTINGS
+    MI_ENCLOSURE_ENABLE, MI_CHAMBER_TEMP, MI_ENCLOSURE_FILTER_COUNTER, MI_ENCLOSURE_FILTER_CHANGE, MI_ENCLOSURE_MANUAL_SETTINGS
 #endif
     >;
+
 using ScreenMenuManualSetting = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
 #if XL_ENCLOSURE_SUPPORT()
     ,
@@ -40,14 +43,7 @@ class ScreenMenuEnclosure : public detail::ScreenMenuEnclosure {
 
 public:
     constexpr static const char *label = N_("ENCLOSURE SETTINGS");
-    constexpr static const uint8_t loop_delay_s = 3;
     ScreenMenuEnclosure();
-
-private:
-    uint32_t last_ticks_s;
-
-protected:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class ScreenMenuManualSetting : public detail::ScreenMenuManualSetting {
