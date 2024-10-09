@@ -1,14 +1,11 @@
-/**
- * @file WindowItemFormatableLabel.hpp
- * @brief Derived from WI_LABEL/IWindowMenuItem
- */
-
 #pragma once
 
 #include "i_window_menu_item.hpp"
 
 #include <span>
 #include <functional>
+
+#include <timing.h>
 
 class WI_LAMBDA_LABEL_t : public IWindowMenuItem {
 protected:
@@ -56,4 +53,59 @@ public:
             InValidateExtension();
         }
     }
+};
+
+/// Menu item that automatically periodically calls \param getter in the specified interval, and if the value changes, udpates the label
+template <typename T>
+class MenuItemAutoUpdatingLabel : public WI_LAMBDA_LABEL_t {
+
+public:
+    using GetterFunction = stdext::inplace_function<T()>;
+
+    MenuItemAutoUpdatingLabel(const string_view_utf8 &label, const char *format, const GetterFunction &getter, uint32_t update_interval_ms = 1000)
+        : MenuItemAutoUpdatingLabel(label, print_function(format), getter, update_interval_ms) //
+    {}
+
+    MenuItemAutoUpdatingLabel(const string_view_utf8 &label, const PrintFunction &print_function, const GetterFunction &getter, uint32_t update_interval_ms = 1000)
+        : WI_LAMBDA_LABEL_t(label, print_function)
+        , getter_(getter)
+        , update_interval_ms_(update_interval_ms) //
+    {}
+
+    const T &value() const {
+        return value_;
+    }
+
+protected:
+    void Loop() override {
+        const auto now = ticks_ms();
+        if (ticks_diff(now, last_update_ms_) < update_interval_ms_) {
+            return;
+        }
+        last_update_ms_ = now;
+
+        const auto new_value = getter_();
+        if (value_ == new_value) {
+            return;
+        }
+        value_ = new_value;
+
+        InValidateExtension();
+    }
+
+private:
+    PrintFunction print_function(const char *format) const {
+        return [this, format](const std::span<char> &buffer) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+            snprintf(buffer.data(), buffer.size(), format, value_);
+#pragma GCC diagnostic pop
+        };
+    }
+
+private:
+    GetterFunction getter_;
+    uint32_t last_update_ms_ = 0;
+    uint16_t update_interval_ms_;
+    T value_ {};
 };
