@@ -29,10 +29,9 @@ public:
 /// \tparam ValueType must have not, equals, and assignment operators and copy constructor
 template <class ValueType>
 class WI_FORMATABLE_LABEL_t : public WI_LAMBDA_LABEL_t {
+
 protected:
     ValueType value;
-
-    virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
 
 public:
     WI_FORMATABLE_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, const PrintFunction &printAs)
