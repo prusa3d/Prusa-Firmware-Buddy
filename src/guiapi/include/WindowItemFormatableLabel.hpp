@@ -39,6 +39,16 @@ public:
         , value(initVal) {
     }
 
+    WI_FORMATABLE_LABEL_t(const string_view_utf8 &label, const char *format, ValueType init_value)
+        : WI_LAMBDA_LABEL_t(label, nullptr, is_enabled_t::yes, is_hidden_t::no, [this, format](const std::span<char> &buffer) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+            snprintf(buffer.data(), buffer.size(), format, value);
+#pragma GCC diagnostic pop
+        })
+        , value(init_value) {
+    }
+
     void UpdateValue(ValueType val) {
         if (value != val) {
             value = val;
