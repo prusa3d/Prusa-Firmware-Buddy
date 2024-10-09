@@ -9,9 +9,7 @@ TextErrorUrlWindow::TextErrorUrlWindow(window_t *parent, Rect16 rect, ErrCode ec
 }
 
 void TextErrorUrlWindow::set_error_code(ErrCode ec) {
-    uint16_t error_code = ftrstd::to_underlying(ec);
-    update_error_code(error_code);
-    StringBuilder { buffer }.append_printf("prusa.io/%05u", error_code);
+    StringBuilder { buffer }.append_printf("prusa.io/%05u", map_error_code(ec));
     SetText(string_view_utf8::MakeRAM(buffer.data()));
     Invalidate();
 }
