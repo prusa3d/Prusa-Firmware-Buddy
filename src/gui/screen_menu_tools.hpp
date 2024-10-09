@@ -25,41 +25,6 @@ public:
     MI_INFO_DWARF_MCU_TEMPERATURE();
 };
 
-class I_MI_INFO_HEATBREAK_N_TEMP : public WI_TEMP_LABEL_t {
-    static constexpr const char *const generic_label = N_("Heatbreak Temp"); // Generic string for single tool version
-
-public:
-    I_MI_INFO_HEATBREAK_N_TEMP(const char *const specific_label, int index);
-};
-
-template <int N>
-class MI_INFO_HEATBREAK_N_TEMP : public I_MI_INFO_HEATBREAK_N_TEMP {
-    static_assert(N >= 0 && N <= 4, "bad input");
-    static consteval const char *get_name() {
-        switch (N) {
-        case 0:
-            return N_("Heatbreak 1 temp");
-        case 1:
-            return N_("Heatbreak 2 temp");
-        case 2:
-            return N_("Heatbreak 3 temp");
-        case 3:
-            return N_("Heatbreak 4 temp");
-        case 4:
-            return N_("Heatbreak 5 temp");
-        }
-        consteval_assert_false();
-        return "";
-    }
-
-    static constexpr const char *const specific_label = get_name();
-
-public:
-    MI_INFO_HEATBREAK_N_TEMP()
-        : I_MI_INFO_HEATBREAK_N_TEMP(specific_label, N) {
-    }
-};
-
 class I_MI_INFO_NOZZLE_N_TEMP : public WI_TEMP_LABEL_t {
     static constexpr const char *const generic_label = N_("Nozzle Temperature"); // Generic string for single tool version
 

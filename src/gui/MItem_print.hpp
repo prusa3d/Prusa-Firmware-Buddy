@@ -6,6 +6,7 @@
 #include "option/has_toolchanger.h"
 #include <option/has_mmu2.h>
 #include <guiconfig/guiconfig.h>
+#include <WindowItemFormatableLabel.hpp>
 
 class MI_NOZZLE_ABSTRACT : public WiSpin {
     static constexpr const char *const generic_label =
@@ -53,6 +54,16 @@ public:
 
     MI_NOZZLE()
         : MI_NOZZLE_ABSTRACT(N, get_label()) {}
+};
+
+/// Nozzle current temperature (read only, auto updating)
+class MI_INFO_HEATBREAK_TEMP : public MenuItemAutoUpdatingLabel<float> {
+public:
+    MI_INFO_HEATBREAK_TEMP(uint8_t tool = 0);
+
+private:
+    std::array<char, 32> label_;
+    const uint8_t tool_;
 };
 
 class MI_HEATBED : public WiSpin {

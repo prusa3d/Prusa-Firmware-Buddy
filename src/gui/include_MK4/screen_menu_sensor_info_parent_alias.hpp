@@ -11,6 +11,7 @@
 #include "MItem_love_board.hpp"
 #include "screen_menu_no_tools.hpp"
 #include "MItem_mmu.hpp"
+#include <MItem_print.hpp>
 
 namespace detail {
 using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN

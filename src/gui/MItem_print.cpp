@@ -40,6 +40,24 @@ void MI_NOZZLE_ABSTRACT::OnClick() {
 }
 
 /*****************************************************************************/
+// MI_INFO_HEATBREAK_TEMP
+MI_INFO_HEATBREAK_TEMP::MI_INFO_HEATBREAK_TEMP(uint8_t tool)
+    : MenuItemAutoUpdatingLabel({}, standard_print_format::temp_c,
+        [this] { return marlin_vars().hotend(tool_).temp_heatbreak.get(); } //
+        )
+    , tool_(tool) //
+{
+    StringBuilder sb(label_);
+    sb.append_string_view(_("Heatbreak Temp"));
+#if HAS_TOOLCHANGER()
+    if (prusa_toolchanger.is_toolchanger_enabled()) {
+        sb.append_printf(" %i", tool + 1);
+    }
+#endif
+    SetLabel(string_view_utf8::MakeRAM(label_.data()));
+}
+
+/*****************************************************************************/
 // MI_HEATBED
 
 MI_HEATBED::MI_HEATBED()

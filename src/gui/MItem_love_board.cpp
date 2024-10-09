@@ -15,7 +15,3 @@ MI_INFO_SERIAL_NUM_LOVEBOARD::MI_INFO_SERIAL_NUM_LOVEBOARD()
     snprintf(tmp.data() + sizeof(LoveBoardEeprom::datamatrix), tmp.size() - sizeof(LoveBoardEeprom::datamatrix), "/%u", cnf.get_love_board().bomID);
     ChangeInformation(tmp.data());
 }
-
-MI_INFO_HEATBREAK_TEMP::MI_INFO_HEATBREAK_TEMP()
-    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}

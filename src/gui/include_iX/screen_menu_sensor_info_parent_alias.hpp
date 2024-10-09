@@ -11,6 +11,7 @@
 #include "MItem_loadcell.hpp"
 #include "screen_menu_no_tools.hpp"
 #include "screen_menu_modularbed.hpp"
+#include <MItem_print.hpp>
 
 namespace detail {
 using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
