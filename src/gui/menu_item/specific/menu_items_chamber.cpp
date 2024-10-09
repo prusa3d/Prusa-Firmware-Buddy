@@ -12,6 +12,8 @@ constexpr NumericInputConfig chamber_temperature_config = {
     .unit = Unit::celsius,
 };
 
+// MI_CHAMBER_TARGET_TEMP
+// ============================================
 MI_CHAMBER_TARGET_TEMP::MI_CHAMBER_TARGET_TEMP(const char *label)
     : WiSpin(
         chamber().target_temperature().value_or(*chamber_temperature_config.special_value),
@@ -20,7 +22,7 @@ MI_CHAMBER_TARGET_TEMP::MI_CHAMBER_TARGET_TEMP(const char *label)
         &img::enclosure_16x16 //
         ) //
 {
-    set_is_hidden(chamber().temperature_control() == Chamber::TemperatureControl {});
+    set_is_hidden(!chamber().capabilities().temperature_control());
 }
 
 void MI_CHAMBER_TARGET_TEMP::OnClick() {

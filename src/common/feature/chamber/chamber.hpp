@@ -13,21 +13,25 @@ namespace buddy {
 class Chamber {
 
 public: // Common/utilities
+    struct Capabilities {
+        bool temperature_reporting = false;
+
+        bool heating = false;
+        bool cooling = false;
+
+        inline bool temperature_control() const {
+            return heating || cooling;
+        }
+    };
+
+    /// \returns What capabilities the chamber has
+    Capabilities capabilities() const;
+
     /// Does the chamber control logic
     /// !!! Only to be called from the marlin thread
     void step();
 
 public: // Temperature control
-    struct TemperatureControl {
-        bool supports_heating = false;
-        bool supports_cooling = false;
-
-        bool operator==(const TemperatureControl &) const = default;
-    };
-
-    /// \returns What temperature control is the chamber capable of, if any
-    TemperatureControl temperature_control() const;
-
     std::optional<Temperature> current_temperature() const;
 
     std::optional<Temperature> target_temperature() const;

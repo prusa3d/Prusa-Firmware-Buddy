@@ -24,10 +24,16 @@ void Chamber::step() {
 #endif
 }
 
-Chamber::TemperatureControl Chamber::temperature_control() const {
+Chamber::Capabilities Chamber::capabilities() const {
     std::lock_guard _lg(mutex_);
 
-    return TemperatureControl {};
+#if PRINTER_IS_PRUSA_XL()
+    return Capabilities {
+        .temperature_reporting = xl_enclosure.isEnabled(),
+    };
+#endif
+
+    return Capabilities {};
 }
 
 std::optional<Temperature> Chamber::current_temperature() const {
