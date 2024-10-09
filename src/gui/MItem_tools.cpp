@@ -722,12 +722,7 @@ MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
 }
 
 MI_ODOMETER_MMU_CHANGES::MI_ODOMETER_MMU_CHANGES()
-    : WI_FORMATABLE_LABEL_t<uint32_t>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {},
-        [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%lu", value);
-        }) {
-}
+    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), "%lu", {}) {}
 
 MI_ODOMETER_TIME::MI_ODOMETER_TIME()
     : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [&](const std::span<char> &buffer) {
@@ -735,67 +730,29 @@ MI_ODOMETER_TIME::MI_ODOMETER_TIME()
     }) {}
 
 MI_INFO_HEATER_VOLTAGE::MI_INFO_HEATER_VOLTAGE()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.1f V", (double)value);
-        }) {
-}
-
+    : WI_FORMATABLE_LABEL_t<float>(_(label), "%.1f V", {}) {}
 MI_INFO_INPUT_VOLTAGE::MI_INFO_INPUT_VOLTAGE()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.1f V", (double)value);
-        }) {
-}
+    : WI_FORMATABLE_LABEL_t<float>(_(label), "%.1f V", {}) {}
 
 MI_INFO_5V_VOLTAGE::MI_INFO_5V_VOLTAGE()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.1f V", (double)value);
-        }) {
-}
+    : WI_FORMATABLE_LABEL_t<float>(_(label), "%.1f V", {}) {}
 
 MI_INFO_HEATER_CURRENT::MI_INFO_HEATER_CURRENT()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.1f A", (double)value);
-        }) {
-}
+    : WI_FORMATABLE_LABEL_t<float>(_(label), "%.1f A", {}) {}
 
 MI_INFO_INPUT_CURRENT::MI_INFO_INPUT_CURRENT()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.1f A", (double)value);
-        }) {
-}
-
+    : WI_FORMATABLE_LABEL_t<float>(_(label), "%.1f A", {}) {}
 MI_INFO_MMU_CURRENT::MI_INFO_MMU_CURRENT()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.1f A", (double)value);
-        }) {
-}
+    : WI_FORMATABLE_LABEL_t<float>(_(label), "%.1f A", {}) {}
 
 MI_INFO_SPLITTER_5V_CURRENT::MI_INFO_SPLITTER_5V_CURRENT()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.2f A", (double)value);
-        }) {
-}
+    : WI_FORMATABLE_LABEL_t<float>(_(label), "%.2f A", {}) {}
 
 MI_INFO_SANDWICH_5V_CURRENT::MI_INFO_SANDWICH_5V_CURRENT()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.2f A", (double)value);
-        }) {
-}
+    : WI_FORMATABLE_LABEL_t<float>(_(label), "%.2f A", {}) {}
 
 MI_INFO_BUDDY_5V_CURRENT::MI_INFO_BUDDY_5V_CURRENT()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.2f A", (double)value);
-        }) {
-}
+    : WI_FORMATABLE_LABEL_t<float>(_(label), "%.2f A", {}) {}
 
 MI_INFO_BOARD_TEMP::MI_INFO_BOARD_TEMP()
     : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
