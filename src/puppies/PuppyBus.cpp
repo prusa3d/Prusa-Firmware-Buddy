@@ -1,5 +1,6 @@
-
 #include "puppies/PuppyBus.hpp"
+
+#include <device/board.h>
 #include <device/peripherals.h>
 #include <device/peripherals_uart.hpp>
 #include "hwio_pindef.h"
@@ -30,10 +31,29 @@ namespace puppies {
     }
 
     void PuppyBus::HalfDuplexCallbackSwitch(bool transmit) {
+        // Some revisions of xBuddy board have pull-down resistor on receive pin.
+        // As soon as you set RS485 transceiver to transmit mode, it disconnects
+        // the receive pin and it gets pulled down on those xBuddy revisions.
+        // This means that the UART on STM32F4 starts seeing start-bit, 8 zero bits
+        // and missing stop bit and reports this as a framing error, which puts
+        // entire bus into invalid state.
+        //
+        // To workaround this issue, we disable receiver just before setting the pin
+        // high and and enable it just after setting the pin low.
+        //
+        // Correct solution will probably be to get rid of the BufferedSerial
+        // altogether, as we should always either be transmiting or receiving to idle,
+        // never doing both at the same time.
         if (transmit) {
+#if BOARD_IS_XBUDDY()
+            uart_for_puppies.disable_receive();
+#endif
             RS485FlowControlPuppies.write(Pin::State::high);
         } else {
             RS485FlowControlPuppies.write(Pin::State::low);
+#if BOARD_IS_XBUDDY()
+            uart_for_puppies.enable_receive();
+#endif
         }
     }
 

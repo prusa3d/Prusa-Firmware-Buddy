@@ -88,6 +88,12 @@ namespace hw {
             uint32_t idle_at_NDTR;
         };
 
+        /// Low-level function to enable receive, you shouldn't normally need this.
+        void enable_receive();
+
+        /// Low-level function to disable receive, you shouldn't normally need this.
+        void disable_receive();
+
     private:
         uint32_t readTimeoutMs;
         uint32_t writeTimeoutMs;

@@ -314,6 +314,14 @@ void BufferedSerial::ErrorRecovery() {
     }
 }
 
+void BufferedSerial::disable_receive() {
+    uart->Instance->CR1 &= ~USART_CR1_RE_Msk;
+}
+
+void BufferedSerial::enable_receive() {
+    uart->Instance->CR1 |= USART_CR1_RE_Msk;
+}
+
 void BufferedSerial::StartReceiving() {
     // Start receiving data
     assert(can_be_used_by_dma(rxBuf.buffer));
