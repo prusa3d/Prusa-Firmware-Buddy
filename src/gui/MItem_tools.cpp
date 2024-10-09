@@ -639,8 +639,9 @@ void MI_PRINT_PROGRESS_TIME::OnClick() {
 /*****************************************************************************/
 // MI_INFO_BED_TEMP
 MI_INFO_BED_TEMP::MI_INFO_BED_TEMP()
-    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+    : MenuItemAutoUpdatingLabel(_("Bed Temperature"), standard_print_format::temp_c,
+        [] { return marlin_vars().temp_bed.get(); } //
+    ) {}
 
 /*****************************************************************************/
 // MI_INFO_FILL_SENSOR
@@ -755,12 +756,15 @@ MI_INFO_BUDDY_5V_CURRENT::MI_INFO_BUDDY_5V_CURRENT()
     : WI_FORMATABLE_LABEL_t<float>(_(label), "%.2f A", {}) {}
 
 MI_INFO_BOARD_TEMP::MI_INFO_BOARD_TEMP()
-    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : MenuItemAutoUpdatingLabel(_("Board Temperature"), standard_print_format::temp_c,
+        [] { return sensor_data().boardTemp; } //
+    ) {
 }
 
 MI_INFO_MCU_TEMP::MI_INFO_MCU_TEMP()
-    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+    : MenuItemAutoUpdatingLabel(_("MCU Temperature"), standard_print_format::temp_c,
+        [] { return sensor_data().MCUTemp; } //
+    ) {}
 
 MI_FOOTER_RESET::MI_FOOTER_RESET()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {

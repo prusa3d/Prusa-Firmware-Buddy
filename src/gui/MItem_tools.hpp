@@ -403,9 +403,7 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_INFO_BED_TEMP : public WI_TEMP_LABEL_t {
-    static constexpr const char *const label = N_("Bed Temperature");
-
+class MI_INFO_BED_TEMP : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_BED_TEMP();
 };
@@ -479,6 +477,7 @@ public:
 protected:
     virtual void OnClick() override;
 };
+
 class MI_ODOMETER_DIST : public WI_FORMATABLE_LABEL_t<float> {
 public:
     MI_ODOMETER_DIST(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
@@ -599,16 +598,12 @@ public:
     MI_INFO_BUDDY_5V_CURRENT();
 };
 
-class MI_INFO_BOARD_TEMP : public WI_TEMP_LABEL_t {
-    static constexpr const char *const label = N_("Board Temperature");
-
+class MI_INFO_BOARD_TEMP : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_BOARD_TEMP();
 };
 
-class MI_INFO_MCU_TEMP : public WI_TEMP_LABEL_t {
-    static constexpr const char *const label = N_("MCU Temperature");
-
+class MI_INFO_MCU_TEMP final : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_MCU_TEMP();
 };

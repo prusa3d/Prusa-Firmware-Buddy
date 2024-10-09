@@ -19,9 +19,6 @@
 
 void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        Item<MI_INFO_BOARD_TEMP>().UpdateValue(sensor_data().boardTemp);
-        Item<MI_INFO_BED_TEMP>().UpdateValue(marlin_vars().temp_bed);
-        Item<MI_INFO_MCU_TEMP>().UpdateValue(sensor_data().MCUTemp);
         Item<MI_INFO_NOZZLE_TEMP>().UpdateValue(marlin_vars().hotend(0).temp_nozzle.get());
         Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(GetExtruderFSensor(marlin_vars().active_extruder.get()));
         Item<MI_INFO_FINDA>().UpdateValue(marlin_vars().mmu2_finda);

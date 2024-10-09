@@ -19,16 +19,11 @@
 
 void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-#if HAS_TEMP_BOARD
-        Item<MI_INFO_BOARD_TEMP>().UpdateValue(sensor_data().boardTemp);
-#endif
-        Item<MI_INFO_MCU_TEMP>().UpdateValue(sensor_data().MCUTemp);
         Item<MI_INFO_HEATBREAK_N_TEMP<0>>().UpdateValue(marlin_vars().hotend(0).temp_heatbreak.get());
         Item<MI_INFO_HEATBREAK_N_TEMP<1>>().UpdateValue(marlin_vars().hotend(1).temp_heatbreak.get());
         Item<MI_INFO_HEATBREAK_N_TEMP<2>>().UpdateValue(marlin_vars().hotend(2).temp_heatbreak.get());
         Item<MI_INFO_HEATBREAK_N_TEMP<3>>().UpdateValue(marlin_vars().hotend(3).temp_heatbreak.get());
         Item<MI_INFO_HEATBREAK_N_TEMP<4>>().UpdateValue(marlin_vars().hotend(4).temp_heatbreak.get());
-        Item<MI_INFO_BED_TEMP>().UpdateValue(marlin_vars().temp_bed);
         Item<MI_INFO_NOZZLE_N_TEMP<0>>().UpdateValue(marlin_vars().hotend(0).temp_nozzle.get());
         Item<MI_INFO_NOZZLE_N_TEMP<1>>().UpdateValue(marlin_vars().hotend(1).temp_nozzle.get());
         Item<MI_INFO_NOZZLE_N_TEMP<2>>().UpdateValue(marlin_vars().hotend(2).temp_nozzle.get());
