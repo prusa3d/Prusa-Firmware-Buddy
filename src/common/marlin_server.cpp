@@ -31,6 +31,7 @@
 #include <gcode/gcode_reader_restore_info.hpp>
 #include <dirent.h>
 #include <scope_guard.hpp>
+#include <tools_mapping.hpp>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -1860,12 +1861,24 @@ static void _server_print_loop(void) {
             planner.refresh_e_factor(e);
         }
 
+#if ENABLED(PRUSA_TOOL_MAPPING) && (HOTENDS > 1)
+        // Cooldown unused tools
+        // Ignore spool join - spool joined tools will get heated as spool join is activated
+        // BFW-5996
+        for (uint8_t physical_tool = 0; physical_tool < HOTENDS; physical_tool++) {
+            if (tool_mapper.to_gcode(physical_tool) == tools_mapping::no_tool) {
+                thermalManager.setTargetHotend(0, physical_tool);
+            }
+        }
+#endif
+
 #if ENABLED(CRASH_RECOVERY)
         crash_s.reset();
         crash_s.counters.reset();
         endstops.enable_globally(true);
         crash_s.set_state(Crash_s::PRINTING);
 #endif // ENABLED(CRASH_RECOVERY)
+
 #if ENABLED(CANCEL_OBJECTS)
         cancelable.reset();
         for (auto &cancel_object_name : marlin_vars().cancel_object_names) {
