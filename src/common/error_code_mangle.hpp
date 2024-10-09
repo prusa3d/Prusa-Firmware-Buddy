@@ -1,4 +1,8 @@
 #pragma once
+
 #include <cstdint>
 
-void update_error_code(uint16_t &error_code); ///< distinguish MK3.9 from MK4 and update error_code's printer prefix
+#include <error_codes.hpp>
+
+/// Map the error code from the enum to an actual error code for the printer (can differ based on the configured printer type)
+uint16_t map_error_code(ErrCode code);

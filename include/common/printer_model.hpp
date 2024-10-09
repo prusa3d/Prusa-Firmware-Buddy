@@ -94,6 +94,10 @@ public:
     /// String identifying the model for GCode checks
     const char *id_str;
 
+    inline uint16_t error_code_prefix() const {
+        return usb_pid;
+    }
+
 public:
     /// \returns model info of the specified printer model
     static const PrinterModelInfo &get(PrinterModel model);
