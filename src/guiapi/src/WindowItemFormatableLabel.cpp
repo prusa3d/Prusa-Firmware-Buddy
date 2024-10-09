@@ -4,6 +4,9 @@ WI_LAMBDA_LABEL_t::WI_LAMBDA_LABEL_t(const string_view_utf8 &label, const img::R
     : IWindowMenuItem(label, icon ? icon_width : GuiDefaults::infoDefaultLen * width(InfoFont), icon, enabled, hidden)
     , printAs(printAs) {}
 
+WI_LAMBDA_LABEL_t::WI_LAMBDA_LABEL_t(const string_view_utf8 &label, const PrintFunction &printAs)
+    : WI_LAMBDA_LABEL_t(label, nullptr, is_enabled_t::yes, is_hidden_t::no, printAs) {}
+
 void WI_LAMBDA_LABEL_t::printExtension(Rect16 extension_rect, [[maybe_unused]] Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const {
     std::array<char, GuiDefaults::infoDefaultLen> text;
     printAs(text);

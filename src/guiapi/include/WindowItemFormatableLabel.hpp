@@ -23,6 +23,7 @@ protected:
 
 public:
     WI_LAMBDA_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, const PrintFunction &printAs);
+    WI_LAMBDA_LABEL_t(const string_view_utf8 &label, const PrintFunction &printAs);
 };
 
 /// This WI has lambda function for formatting the extension
