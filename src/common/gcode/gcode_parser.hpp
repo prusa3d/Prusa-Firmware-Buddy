@@ -108,6 +108,14 @@ public:
         return {};
     }
 
+    /// Parses an enum
+    template <typename T>
+        requires(std::is_enum_v<T>)
+    StoreOptionResult store_option(char key, T &target, T enum_count) const {
+        using TB = std::underlying_type_t<T>;
+        return store_option<TB>(key, reinterpret_cast<TB &>(target), static_cast<TB>(0), static_cast<TB>(enum_count) - 1);
+    }
+
     /// Parses a float
     StoreOptionResult store_option(char key, float &target, float min_value = -std::numeric_limits<float>::infinity(), float max_value = std::numeric_limits<float>::infinity()) const;
 
