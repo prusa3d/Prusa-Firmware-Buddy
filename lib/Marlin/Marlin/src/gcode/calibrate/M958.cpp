@@ -22,6 +22,7 @@
 #include <limits>
 #include <bit>
 #include <utility_extensions.hpp>
+#include <marlin_server.hpp>
 
 #include <config_store/store_instance.hpp>
 #include <logging/log.hpp>
@@ -709,6 +710,7 @@ std::optional<VibrateMeasureResult> vibrate_measure_repeat(const VibrateMeasureP
     }
 
     SERIAL_ERROR_MSG("vibrate_measure_repeat: maximum attempts exhausted");
+    marlin_server::set_warning(WarningType::AccelerometerCommunicationFailed, PhasesWarning::Warning);
     return std::nullopt;
 }
 
@@ -914,7 +916,7 @@ void GcodeSuite::M958() {
     }
 
     serial_echo_header(args.klipper_mode);
-    vibrate_measure(args, frequency, idle_progress_hook);
+    vibrate_measure_repeat(args, frequency, idle_progress_hook);
 }
 
 /** @}*/
