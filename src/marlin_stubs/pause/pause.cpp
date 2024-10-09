@@ -43,6 +43,7 @@
 #include <scope_guard.hpp>
 #include <filament_to_load.hpp>
 #include <marlin_stubs/pause/G27.hpp>
+#include <common/marlin_client.hpp>
 
 #include <option/has_human_interactions.h>
 #include <option/has_mmu2.h>
@@ -1566,7 +1567,7 @@ Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
 
     const float min_layer_h = 0.05f;
     // do not unpark and wait for temp if not homed or z park len is 0
-    if (!axes_need_homing() && pause.settings.resume_pos.z != NAN && std::abs(current_position.z - pause.settings.resume_pos.z) >= min_layer_h) {
+    if (!axes_need_homing() && pause.settings.resume_pos.z != NAN && std::abs(current_position.z - pause.settings.resume_pos.z) >= min_layer_h && (marlin_client::is_printing() || marlin_client::is_paused())) {
         if (!pause.ensureSafeTemperatureNotifyProgress(0, 100)) {
             return;
         }
