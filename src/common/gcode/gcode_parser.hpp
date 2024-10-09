@@ -116,6 +116,17 @@ public:
         return store_option<TB>(key, reinterpret_cast<TB &>(target), static_cast<TB>(0), static_cast<TB>(enum_count) - 1);
     }
 
+    // Parses an optional
+    template <typename T, typename... Args>
+    StoreOptionResult store_option(char key, std::optional<T> &target, Args &&...args) const {
+        T val {};
+        const auto result = store_option(key, val, std::forward<Args>(args)...);
+        if (result) {
+            target = val;
+        }
+        return result;
+    }
+
     /// Parses a float
     StoreOptionResult store_option(char key, float &target, float min_value = -std::numeric_limits<float>::infinity(), float max_value = std::numeric_limits<float>::infinity()) const;
 
