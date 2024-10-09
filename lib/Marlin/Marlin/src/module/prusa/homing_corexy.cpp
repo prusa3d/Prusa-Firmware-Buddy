@@ -90,25 +90,22 @@ static int16_t axis_mscnt(const AxisEnum axis) {
 
 static int16_t phase_backoff_steps(const AxisEnum axis) {
     int16_t effectorBackoutDir; // Direction in which the effector mm coordinates move away from endstop.
-    int16_t stepperBackoutDir; // Direction in which the TMC µstep count(phase) move away from endstop.
+    int16_t stepperCountDir; // Direction in which the TMC µstep count(phase) increases.
     switch (axis) {
     case X_AXIS:
         effectorBackoutDir = -X_HOME_DIR;
-        stepperBackoutDir = IF_DISABLED(INVERT_X_DIR, -) effectorBackoutDir;
+        stepperCountDir = INVERT_X_DIR ? -1 : 1;
         break;
     case Y_AXIS:
         effectorBackoutDir = -Y_HOME_DIR;
-        stepperBackoutDir = IF_DISABLED(INVERT_Y_DIR, -) effectorBackoutDir;
+        stepperCountDir = INVERT_Y_DIR ? -1 : 1;
         break;
     default:
         bsod("invalid backoff axis");
     }
 
     int16_t phaseCurrent = axis_mscnt(axis); // The TMC µsteps(phase) count of the current position
-    int16_t phaseDelta = (0 - phaseCurrent) * stepperBackoutDir;
-    if (phaseDelta < 0) {
-        phaseDelta += 1024;
-    }
+    int16_t phaseDelta = ((stepperCountDir < 0) == (effectorBackoutDir < 0) ? phaseCurrent : 1024 - phaseCurrent);
     int16_t phasePerStep = phase_per_ustep(axis);
     return int16_t((phaseDelta + phasePerStep / 2) / phasePerStep) * effectorBackoutDir;
 }
