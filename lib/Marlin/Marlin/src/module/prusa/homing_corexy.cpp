@@ -329,7 +329,7 @@ bool refine_corexy_origin() {
 
     int32_t orig_cur = fixed_stepper.rms_current();
     float orig_hold = fixed_stepper.hold_multiplier();
-    fixed_stepper.rms_current(XY_HOMING_HOLDING_CURRENT_A, 1.);
+    fixed_stepper.rms_current(XY_HOMING_HOLDING_CURRENT, 1.);
 
     // measure from current origin
     int32_t c_dist_a = 0, c_dist_b = 0;
