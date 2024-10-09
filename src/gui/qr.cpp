@@ -26,11 +26,8 @@ QRErrorUrlWindow::QRErrorUrlWindow(window_t *parent, Rect16 rect, ErrCode ec)
 }
 
 void QRErrorUrlWindow::set_error_code(ErrCode ec) {
-    uint16_t error_code = ftrstd::to_underlying(ec);
-    update_error_code(error_code);
-
     StringBuilder builder { buffer };
-    builder.append_printf("https://prusa.io/%05d", error_code);
+    builder.append_printf("https://prusa.io/%05d", map_error_code(ec));
     if (config_store().devhash_in_qr.get()) {
         {
             char printer_code[10] = {};
