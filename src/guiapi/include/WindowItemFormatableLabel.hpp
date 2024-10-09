@@ -4,7 +4,10 @@
  */
 
 #pragma once
+
 #include "i_window_menu_item.hpp"
+
+#include <span>
 #include <functional>
 
 class WI_LAMBDA_LABEL_t : public IWindowMenuItem {
@@ -12,22 +15,14 @@ protected:
     static constexpr Font InfoFont = GuiDefaults::FontMenuSpecial;
     static constexpr uint16_t icon_width = 16;
 
-    const stdext::inplace_function<void(char *)> printAs;
+    using PrintFunction = stdext::inplace_function<void(const std::span<char> &)>;
+    const PrintFunction printAs;
 
 protected:
-    void printExtension(Rect16 extension_rect, [[maybe_unused]] Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const override {
-        char text[GuiDefaults::infoDefaultLen];
-        string_view_utf8 stringView;
-        printAs(text);
-        stringView = string_view_utf8::MakeRAM((uint8_t *)text);
-        render_text_align(extension_rect, stringView, InfoFont, color_back,
-            (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter(), false);
-    }
+    void printExtension(Rect16 extension_rect, [[maybe_unused]] Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const override;
 
 public:
-    WI_LAMBDA_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, stdext::inplace_function<void(char *)> printAs)
-        : IWindowMenuItem(label, icon ? icon_width : GuiDefaults::infoDefaultLen * width(InfoFont), icon, enabled, hidden)
-        , printAs(printAs) {}
+    WI_LAMBDA_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, const PrintFunction &printAs);
 };
 
 /// This WI has lambda function for formatting the extension
@@ -40,10 +35,11 @@ protected:
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
 
 public:
-    WI_FORMATABLE_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, stdext::inplace_function<void(char *)> printAs)
+    WI_FORMATABLE_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, const PrintFunction &printAs)
         : WI_LAMBDA_LABEL_t(label, icon, enabled, hidden, printAs)
         , value(initVal) {
     }
+
     void UpdateValue(ValueType val) {
         if (value != val) {
             value = val;

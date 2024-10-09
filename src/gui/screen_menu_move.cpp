@@ -95,9 +95,9 @@ bool DUMMY_AXIS_E::IsTargetTempOk() {
 DUMMY_AXIS_E::DUMMY_AXIS_E()
     : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), nullptr, is_enabled_t::yes, is_hidden_t::no, 0,
         // this lambda is used during print, but does require item to be invalidated
-        [&](char *buffer) {
+        [&](const std::span<char> &buffer) {
             const char *label_str = value ? N_("Heating") : N_("Low temp");
-            _(label_str).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
+            _(label_str).copyToRAM(buffer);
         }) {
     touch_extension_only_ = true;
 }

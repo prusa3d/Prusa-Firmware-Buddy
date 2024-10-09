@@ -292,18 +292,18 @@ void MI_MMU_NEXTRUDER_REWORK::OnChange([[maybe_unused]] size_t old_index) {
 // MI_INFO_FINDA
 MI_INFO_FINDA::MI_INFO_FINDA()
     : WI_FORMATABLE_LABEL_t<bool>(
-        _(label), nullptr, is_enabled_t::yes, MMU2::mmu2.Enabled() ? is_hidden_t::no : is_hidden_t::yes, false, [&](char *buffer) {
+        _(label), nullptr, is_enabled_t::yes, MMU2::mmu2.Enabled() ? is_hidden_t::no : is_hidden_t::yes, false, [&](const std::span<char> &buffer) {
             if (MMU2::mmu2.Enabled()) {
                 // TODO: change of visualization scheme is expected soon, some unification with fsensor visualization will happen as a result.
                 // For now, FINDA is visualized the same way like filament sensors' states
-                _(value ? N_(" INS / 1") : N_("NINS / 0")).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
+                _(value ? N_(" INS / 1") : N_("NINS / 0")).copyToRAM(buffer);
             } // else: when MMU is not active, the MI_INFO_FINDA item is hidden anyway, so no update is really needed
         }) {}
 
 /*****************************************************************************/
 // MI_INFO_FINDA
 
-static void MI_MMU_BOOTLOADER_RESULT_label(char *buffer) {
+static void MI_MMU_BOOTLOADER_RESULT_label(const std::span<char> &buffer) {
     string_view_utf8 result = [&] {
         if (!MMU2::mmu2.Enabled()) {
             return _("MMU off");
@@ -319,7 +319,7 @@ static void MI_MMU_BOOTLOADER_RESULT_label(char *buffer) {
         return _(mmu2_bootloader_result_texts[MMU2::mmu2.bootloader_result()]);
     }();
 
-    result.copyToRAM(buffer, GuiDefaults::infoDefaultLen);
+    result.copyToRAM(buffer);
 }
 
 MI_MMU_BOOTLOADER_RESULT::MI_MMU_BOOTLOADER_RESULT()

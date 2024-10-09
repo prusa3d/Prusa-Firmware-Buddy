@@ -488,7 +488,7 @@ uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, u
 
     // Again, 3 bytes per pixel + 2 extra bytes because of some read offset
     const auto read_bytes = (end_x - start_x + 1) * (end_y - start_y + 1) * 3 + 2;
-    assert(read_bytes <= sizeof(st7789v_buff));
+    assert(static_cast<size_t>(read_bytes) <= sizeof(st7789v_buff));
     st7789v_cmd_ramrd(st7789v_buff, read_bytes);
 
     // Revert back

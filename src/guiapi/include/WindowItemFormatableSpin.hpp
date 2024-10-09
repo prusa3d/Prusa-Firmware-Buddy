@@ -12,14 +12,14 @@ class WI_LAMBDA_SPIN : public WI_LAMBDA_LABEL_t {
     static constexpr padding_ui8_t Padding = GuiDefaults::MenuSwitchHasBrackets ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPaddingItems;
 
     size_t index; ///< Currently selected index
-    char text[GuiDefaults::infoDefaultLen]; ///< Buffer for switch text
+    std::array<char, GuiDefaults::infoDefaultLen> text; ///< Buffer for switch text
 
 public:
     /**
      * @brief Construct a spinner with different texts to choose from.
      * @param item_count number of valid indexes, valid are from 0 to index_n - 1
      */
-    WI_LAMBDA_SPIN(const string_view_utf8 &label, size_t item_count, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, size_t init_index, stdext::inplace_function<void(char *)> printAs);
+    WI_LAMBDA_SPIN(const string_view_utf8 &label, size_t item_count, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, size_t init_index, const PrintFunction &printAs);
 
     /**
      * @brief Get currently selected index.

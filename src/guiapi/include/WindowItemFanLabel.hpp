@@ -14,7 +14,7 @@ protected:
 
 public:
     WI_FAN_LABEL_t(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-        : WI_LAMBDA_LABEL_t(label, id_icon, enabled, hidden, [&](char *buffer) {
+        : WI_LAMBDA_LABEL_t(label, id_icon, enabled, hidden, [&](const std::span<char> &buffer) {
             const unsigned int raw_value = (pwm * 100 + PWM_MAX - 1) / PWM_MAX; // ceil div
             const int8_t percent = std::clamp(raw_value, 0u, 100u);
             const char *const format = [&]() -> const char * {
@@ -26,7 +26,7 @@ public:
                 }
                 return N_("%u %% / stopped");
             }();
-            snprintf(buffer, GuiDefaults::infoDefaultLen, format, percent, rpm);
+            snprintf(buffer.data(), buffer.size(), format, percent, rpm);
         }) {
     }
 

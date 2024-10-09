@@ -1,6 +1,6 @@
 #include "WindowItemFormatableSpin.hpp"
 
-WI_LAMBDA_SPIN::WI_LAMBDA_SPIN(const string_view_utf8 &label, size_t item_count, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, size_t init_index, stdext::inplace_function<void(char *)> printAs)
+WI_LAMBDA_SPIN::WI_LAMBDA_SPIN(const string_view_utf8 &label, size_t item_count, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, size_t init_index, const PrintFunction &printAs)
     : WI_LAMBDA_LABEL_t(label, icon, enabled, hidden, printAs)
     , index(init_index)
     , item_count(item_count) {
@@ -16,7 +16,7 @@ WI_LAMBDA_SPIN::WI_LAMBDA_SPIN(const string_view_utf8 &label, size_t item_count,
 void WI_LAMBDA_SPIN::UpdateText() {
     // Format switch text
     printAs(text);
-    string_view_utf8 stringView = string_view_utf8::MakeRAM((uint8_t *)text);
+    string_view_utf8 stringView = string_view_utf8::MakeRAM(text.data());
 
     // Calculate extension width
     const size_t len = stringView.computeNumUtf8Chars();
@@ -63,7 +63,7 @@ Rect16 WI_LAMBDA_SPIN::getRightBracketRect(Rect16 extension_rect) const {
  * @brief Print switch text and brackets.
  */
 void WI_LAMBDA_SPIN::printExtension(Rect16 extension_rect, Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const {
-    string_view_utf8 stringView = string_view_utf8::MakeRAM((uint8_t *)text);
+    string_view_utf8 stringView = string_view_utf8::MakeRAM(text.data());
 
     // Draw switch
     render_text_align(getSwitchRect(extension_rect), stringView, GuiDefaults::FontMenuItems, color_back,

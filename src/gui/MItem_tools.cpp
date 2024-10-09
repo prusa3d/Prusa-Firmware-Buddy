@@ -646,7 +646,7 @@ MI_INFO_BED_TEMP::MI_INFO_BED_TEMP()
 // MI_INFO_FILL_SENSOR
 MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(const string_view_utf8 &label)
     : WI_LAMBDA_LABEL_t(
-        label, nullptr, is_enabled_t::yes, is_hidden_t::no, [&](char *buffer) {
+        label, nullptr, is_enabled_t::yes, is_hidden_t::no, [&](const std::span<char> &buffer) {
             static constexpr EnumArray<FilamentSensorState, const char *, 6> texts {
                 { FilamentSensorState::NotInitialized, N_("uninitialized / %ld") },
                 { FilamentSensorState::NotCalibrated, N_("uncalibrated / %ld") }, // not calibrated would be too long
@@ -658,7 +658,7 @@ MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(const string_view_utf8 &label)
 
             StringViewUtf8Parameters<8> params;
             const auto orig_str = _(texts.get_fallback(state, FilamentSensorState::NotInitialized));
-            orig_str.formatted(params, value).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
+            orig_str.formatted(params, value).copyToRAM(buffer);
         }) {}
 
 void MI_INFO_FILL_SENSOR::UpdateValue(IFSensor *fsensor) {
@@ -697,12 +697,12 @@ MI_INFO_HBR_FAN::MI_INFO_HBR_FAN()
 }
 
 MI_ODOMETER_DIST::MI_ODOMETER_DIST(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
-    : WI_FORMATABLE_LABEL_t<float>(label, icon, enabled, hidden, initVal, [&](char *buffer) {
+    : WI_FORMATABLE_LABEL_t<float>(label, icon, enabled, hidden, initVal, [&](const std::span<char> &buffer) {
         float value_m = value / 1000; // change the unit from mm to m
         if (value_m > 999) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f km", (double)(value_m / 1000));
+            snprintf(buffer.data(), buffer.size(), "%.1f km", (double)(value_m / 1000));
         } else {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f m", (double)value_m);
+            snprintf(buffer.data(), buffer.size(), "%.1f m", (double)value_m);
         }
     }) {
 }
@@ -724,76 +724,76 @@ MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
 MI_ODOMETER_MMU_CHANGES::MI_ODOMETER_MMU_CHANGES()
     : WI_FORMATABLE_LABEL_t<uint32_t>(
         _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {},
-        [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%lu", value);
+        [&](const std::span<char> &buffer) {
+            snprintf(buffer.data(), buffer.size(), "%lu", value);
         }) {
 }
 
 MI_ODOMETER_TIME::MI_ODOMETER_TIME()
-    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
-        format_duration(std::span { buffer, GuiDefaults::infoDefaultLen }, value);
+    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [&](const std::span<char> &buffer) {
+        format_duration(buffer, value);
     }) {}
 
 MI_INFO_HEATER_VOLTAGE::MI_INFO_HEATER_VOLTAGE()
     : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f V", (double)value);
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
+            snprintf(buffer.data(), buffer.size(), "%.1f V", (double)value);
         }) {
 }
 
 MI_INFO_INPUT_VOLTAGE::MI_INFO_INPUT_VOLTAGE()
     : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f V", (double)value);
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
+            snprintf(buffer.data(), buffer.size(), "%.1f V", (double)value);
         }) {
 }
 
 MI_INFO_5V_VOLTAGE::MI_INFO_5V_VOLTAGE()
     : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f V", (double)value);
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
+            snprintf(buffer.data(), buffer.size(), "%.1f V", (double)value);
         }) {
 }
 
 MI_INFO_HEATER_CURRENT::MI_INFO_HEATER_CURRENT()
     : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f A", (double)value);
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
+            snprintf(buffer.data(), buffer.size(), "%.1f A", (double)value);
         }) {
 }
 
 MI_INFO_INPUT_CURRENT::MI_INFO_INPUT_CURRENT()
     : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f A", (double)value);
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
+            snprintf(buffer.data(), buffer.size(), "%.1f A", (double)value);
         }) {
 }
 
 MI_INFO_MMU_CURRENT::MI_INFO_MMU_CURRENT()
     : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f A", (double)value);
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
+            snprintf(buffer.data(), buffer.size(), "%.1f A", (double)value);
         }) {
 }
 
 MI_INFO_SPLITTER_5V_CURRENT::MI_INFO_SPLITTER_5V_CURRENT()
     : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.2f A", (double)value);
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
+            snprintf(buffer.data(), buffer.size(), "%.2f A", (double)value);
         }) {
 }
 
 MI_INFO_SANDWICH_5V_CURRENT::MI_INFO_SANDWICH_5V_CURRENT()
     : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.2f A", (double)value);
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
+            snprintf(buffer.data(), buffer.size(), "%.2f A", (double)value);
         }) {
 }
 
 MI_INFO_BUDDY_5V_CURRENT::MI_INFO_BUDDY_5V_CURRENT()
     : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%.2f A", (double)value);
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
+            snprintf(buffer.data(), buffer.size(), "%.2f A", (double)value);
         }) {
 }
 
