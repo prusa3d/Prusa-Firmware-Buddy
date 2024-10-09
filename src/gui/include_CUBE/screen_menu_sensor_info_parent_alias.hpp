@@ -12,6 +12,7 @@
 #include "screen_menu_no_tools.hpp"
 #include "screen_menu_modularbed.hpp"
 #include "MItem_mmu.hpp"
+#include <gui/menu_item/specific/menu_items_chamber.hpp>
 
 namespace detail {
 using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
@@ -29,6 +30,7 @@ using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
     MI_INFO_BED_TEMP,
     MI_INFO_MCU_TEMP,
     MI_INFO_NOZZLE_TEMP,
+    WithConstructorArgs<MI_CHAMBER_TEMP, N_("Chamber Temperature")>,
     MI_INFO_LOADCELL,
     MI_INFO_PRINTER_FILL_SENSOR,
 #if HAS_MMU2()
