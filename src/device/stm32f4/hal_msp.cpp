@@ -1316,7 +1316,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
         __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_TC);
 
         // Enable the ISR
-    #if (PRINTER_IS_PRUSA_iX())
+    #if (PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_CUBE())
         HAL_NVIC_SetPriority(USART6_IRQn, ISR_PRIORITY_PUPPIES_USART, 0);
     #else
         HAL_NVIC_SetPriority(USART6_IRQn, ISR_PRIORITY_DEFAULT, 0);
