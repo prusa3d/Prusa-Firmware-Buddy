@@ -57,7 +57,7 @@ void PrusaGcodeSuite::M191() {
 static void set_chamber_temperature(buddy::Temperature target, bool wait_for_heating, bool wait_for_cooling) {
     using buddy::Temperature;
 
-    if (chamber().temperature_control() == Chamber::TemperatureControl {}) {
+    if (!chamber().capabilities().temperature_control()) {
         SERIAL_ECHO("Chamber does not support temperature control");
         return;
     }
