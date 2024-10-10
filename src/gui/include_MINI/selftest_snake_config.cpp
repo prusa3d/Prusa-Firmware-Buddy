@@ -12,7 +12,7 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
     case Action::Fans:
         return merge_hotends_evaluations(
             [&](int8_t e) {
-                return evaluate_results(sr.tools[e].printFan, sr.tools[e].heatBreakFan);
+                return evaluate_results(sr.tools[e].evaluate_fans());
             });
     case Action::XYCheck:
         return evaluate_results(sr.xaxis, sr.yaxis);

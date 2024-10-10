@@ -23,13 +23,6 @@ protected:
     void OnChange(size_t old_index) override;
 };
 
-class MI_ENCLOSURE_TEMP : public WI_FORMATABLE_LABEL_t<int> {
-    static constexpr const char *const label = N_("Temperature");
-
-public:
-    MI_ENCLOSURE_TEMP();
-};
-
 class MI_ENCLOSURE_PRINT_FILTRATION : public WI_ICON_SWITCH_OFF_ON_t {
     static constexpr const char *const label = N_("Print Filtration");
 

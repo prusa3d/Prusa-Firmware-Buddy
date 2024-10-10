@@ -124,7 +124,7 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
         // as the nozzle selftest takes care of showing the dialog and this one
         // running in parallel would just make a mess.
         SelftestTool tool_res = config_store().selftest_result.get().tools[0];
-        if (tool_res.heatBreakFan != TestResult_Passed || tool_res.fansSwitched != TestResult_Passed) {
+        if (!tool_res.has_heatbreak_fan_passed()) {
             return;
         }
     }

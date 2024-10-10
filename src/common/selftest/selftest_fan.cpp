@@ -9,6 +9,7 @@
 #include "i_selftest.hpp"
 #include "algorithm_scale.hpp"
 #include <config_store/store_instance.hpp>
+#include <option/has_switched_fan_test.h>
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include "module/prusa/toolchanger.h"
@@ -128,9 +129,7 @@ LoopResult CSelftestPart_Fan::state_start() {
 #if HAS_TOOLCHANGER()
     if (!prusa_toolchanger.is_tool_enabled(config.tool_nr)) {
         start_time = end_time = SelftestInstance().GetTime();
-        result.print_fan_state = SelftestSubtestState_t::undef;
-        result.heatbreak_fan_state = SelftestSubtestState_t::undef;
-        result.fans_switched_state = SelftestSubtestState_t::undef;
+        result.ResetFanStates();
         return LoopResult::Abort;
     }
 #endif
@@ -194,13 +193,15 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_100_percent() {
     if (config_store().has_alt_fans.get()) {
         print_fan.evaluate(alt_config.print_fan, print_fan_rpm);
         heatbreak_fan.evaluate(alt_config.heatbreak_fan, heatbreak_fan_rpm);
+    #if HAS_SWITCHED_FAN_TEST()
         if (CSelftestPart_Fan::are_fans_switched(print_fan, heatbreak_fan, alt_config, print_fan_rpm, heatbreak_fan_rpm, result)) {
             return LoopResult::Fail;
         } else if (!heatbreak_fan.is_failed() && !print_fan.is_failed()) {
             result.fans_switched_state = SelftestSubtestState_t::ok;
         }
+    #endif /* HAS_SWITCHED_FAN_TEST() */
     }
-#else
+#elif HAS_SWITCHED_FAN_TEST()
     if (CSelftestPart_Fan::are_fans_switched(print_fan, heatbreak_fan, config, print_fan_rpm, heatbreak_fan_rpm, result)) {
         return LoopResult::Fail;
     }
@@ -212,6 +213,7 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_100_percent() {
     return LoopResult::RunNext;
 }
 
+#if HAS_SWITCHED_FAN_TEST()
 bool CSelftestPart_Fan::are_fans_switched(const FanHandler &print_fan, const FanHandler &heatbreak_fan, const SelftestFansConfig &config, const uint16_t print_fan_rpm, const uint16_t heatbreak_fan_rpm, SelftestFanHotendResult &result) {
     if (print_fan.is_failed() && heatbreak_fan.is_failed()) {
         // try if the rpms fit into the ranges when switched, if yes, fail the
@@ -227,8 +229,9 @@ bool CSelftestPart_Fan::are_fans_switched(const FanHandler &print_fan, const Fan
     }
     return false;
 }
+#endif /* HAS_SWITCHED_FAN_TEST() */
 
-#if PRINTER_IS_PRUSA_MK3_5()
+#if PRINTER_IS_PRUSA_MK3_5() && HAS_SWITCHED_FAN_TEST()
 LoopResult CSelftestPart_Fan::state_manual_check_init() {
     if (result.fans_switched_state != SelftestSubtestState_t::ok) {
         print_fan.set_pwm(0); // stop print fan since heatbreak is the critical one
@@ -325,7 +328,11 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_40_percent() {
         result.heatbreak_fan_state = SelftestSubtestState_t::ok;
     }
 
-    if (result.print_fan_state == SelftestSubtestState_t::not_good || result.heatbreak_fan_state == SelftestSubtestState_t::not_good || result.fans_switched_state == SelftestSubtestState_t::not_good) {
+    if (result.print_fan_state == SelftestSubtestState_t::not_good || result.heatbreak_fan_state == SelftestSubtestState_t::not_good
+#if HAS_SWITCHED_FAN_TEST()
+        || result.fans_switched_state == SelftestSubtestState_t::not_good
+#endif /* HAS_SWITCHED_FAN_TEST() */
+    ) {
         return LoopResult::Fail;
     }
 

@@ -12,6 +12,7 @@
 #include "selftest_sub_state.hpp"
 #include <limits>
 #include "inc/MarlinConfig.h"
+#include <option/has_switched_fan_test.h>
 
 #include <span>
 
@@ -19,10 +20,16 @@ struct SelftestFanHotendResult {
     uint8_t progress { 0 };
     SelftestSubtestState_t print_fan_state { SelftestSubtestState_t::undef };
     SelftestSubtestState_t heatbreak_fan_state { SelftestSubtestState_t::undef };
+#if HAS_SWITCHED_FAN_TEST()
     SelftestSubtestState_t fans_switched_state { SelftestSubtestState_t::undef };
+#endif /* HAS_SWITCHED_FAN_TEST() */
 
     constexpr bool operator==(SelftestFanHotendResult const &other) const {
-        return progress == other.progress && print_fan_state == other.print_fan_state && heatbreak_fan_state == other.heatbreak_fan_state && fans_switched_state == other.fans_switched_state;
+        return progress == other.progress && print_fan_state == other.print_fan_state && heatbreak_fan_state == other.heatbreak_fan_state
+#if HAS_SWITCHED_FAN_TEST()
+            && fans_switched_state == other.fans_switched_state
+#endif /* HAS_SWITCHED_FAN_TEST() */
+            ;
     }
 
     constexpr bool operator!=(const SelftestFanHotendResult &other) const {
@@ -36,6 +43,14 @@ struct SelftestFanHotendResult {
         progress = 100;
     }
     void Abort() {} // currently not needed
+
+    void ResetFanStates() {
+        print_fan_state = SelftestSubtestState_t::undef;
+        heatbreak_fan_state = SelftestSubtestState_t::undef;
+#if HAS_SWITCHED_FAN_TEST()
+        fans_switched_state = SelftestSubtestState_t::undef;
+#endif /* HAS_SWITCHED_FAN_TEST() */
+    }
 };
 
 struct SelftestFansResult : public FSMExtendedData {
