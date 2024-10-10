@@ -65,13 +65,17 @@ bool operator==(SelftestResult_pre_23 lhs, SelftestResult_pre_23 rhs);
 struct SelftestTool {
     TestResult printFan : 2;
     TestResult heatBreakFan : 2;
-    TestResult fansSwitched : 2;
+    TestResult fansSwitched : 2; // encapsuling with HAS_SWITCHED_FAN_TEST macro would introduce problems since selftest_result is saved on eeprom as a whole structure
     TestResult nozzle : 2;
     TestResult fsensor : 2;
     TestResult loadcell : 2;
     TestResult sideFsensor : 2;
     TestResult dockoffset : 2;
     TestResult tooloffset : 2;
+
+    bool has_heatbreak_fan_passed();
+    TestResult evaluate_fans();
+    void reset_fan_tests();
 };
 
 bool operator==(SelftestTool lhs, SelftestTool rhs);

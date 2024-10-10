@@ -41,16 +41,6 @@ void MI_ENCLOSURE_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
     }
 }
 
-MI_ENCLOSURE_TEMP::MI_ENCLOSURE_TEMP()
-    : WI_FORMATABLE_LABEL_t<int>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-        if (const auto temp = xl_enclosure.getEnclosureTemperature()) {
-            snprintf(buffer.data(), buffer.size(), "%u\xC2\xB0\x43", (uint8_t)std::clamp<buddy::Temperature>(*temp, 0, 99));
-        } else {
-            strlcpy(buffer.data(), "--", buffer.size());
-        }
-    }) {
-}
-
 MI_ENCLOSURE_PRINT_FILTRATION::MI_ENCLOSURE_PRINT_FILTRATION()
     : WI_ICON_SWITCH_OFF_ON_t(xl_enclosure.isPrintFiltrationEnabled(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }

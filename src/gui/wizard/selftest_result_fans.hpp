@@ -9,17 +9,17 @@
 
 #include "selftest_group.hpp"
 #include "selftest_result_type.hpp"
-#include <printers.h>
+#include <option/has_switched_fan_test.h>
 
 class ResultFans : public SelfTestGroup {
     SelfTestViewTextWithIconAndResult heatbreak;
     SelfTestViewTextWithIconAndResult print;
-#if not PRINTER_IS_PRUSA_MINI()
+#if HAS_SWITCHED_FAN_TEST()
     SelfTestViewTextWithIconAndResult fans_switched;
-#endif
+#endif /* HAS_SWITCHED_FAN_TEST */
 
 public:
     ResultFans();
 
-    void SetState(TestResult hb_fan, TestResult print_fan, TestResult fans_swtchd);
+    void SetState(SelftestTool &tool);
 };

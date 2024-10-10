@@ -15,9 +15,7 @@ int FooterItemChamberTemperature::static_readValue() {
     const HeatState state = [&] {
         static constexpr auto tolerance = 2;
 
-        const auto temp_control = chamber().temperature_control();
-
-        if (!current.has_value() || !target.has_value() || temp_control == Chamber::TemperatureControl {}) {
+        if (!current.has_value() || !target.has_value() || !chamber().capabilities().temperature_control()) {
             return HeatState::stable;
 
         } else if (*current > *target + tolerance) {
