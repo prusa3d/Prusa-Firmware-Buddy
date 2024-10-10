@@ -1677,7 +1677,9 @@ bool fan_checks() {
         };
 
         bool fan_failed = false;
+#if !PRINTER_IS_PRUSA_iX()
         fan_failed |= check_fan(Fans::heat_break(active_extruder), "Heatbreak");
+#endif
         fan_failed |= check_fan(Fans::print(active_extruder), "Print");
         return fan_failed;
     }
@@ -2506,8 +2508,10 @@ static void _server_print_loop(void) {
 
     if (marlin_vars().fan_check_enabled) {
         HOTEND_LOOP() {
+#if !PRINTER_IS_PRUSA_iX()
             const auto fan_state = Fans::heat_break(e).getState();
             hotendFanErrorChecker[e].checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting, WarningType::HotendFanError, true);
+#endif
         }
         const auto fan_state = Fans::print(active_extruder).getState();
         printFanErrorChecker.checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting, WarningType::PrintFanError, false);
