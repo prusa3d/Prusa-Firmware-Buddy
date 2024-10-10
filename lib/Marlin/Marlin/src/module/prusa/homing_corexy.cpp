@@ -90,25 +90,22 @@ static int16_t axis_mscnt(const AxisEnum axis) {
 
 static int16_t phase_backoff_steps(const AxisEnum axis) {
     int16_t effectorBackoutDir; // Direction in which the effector mm coordinates move away from endstop.
-    int16_t stepperBackoutDir; // Direction in which the TMC µstep count(phase) move away from endstop.
+    int16_t stepperCountDir; // Direction in which the TMC µstep count(phase) increases.
     switch (axis) {
     case X_AXIS:
         effectorBackoutDir = -X_HOME_DIR;
-        stepperBackoutDir = IF_DISABLED(INVERT_X_DIR, -) effectorBackoutDir;
+        stepperCountDir = INVERT_X_DIR ? -1 : 1;
         break;
     case Y_AXIS:
         effectorBackoutDir = -Y_HOME_DIR;
-        stepperBackoutDir = IF_DISABLED(INVERT_Y_DIR, -) effectorBackoutDir;
+        stepperCountDir = INVERT_Y_DIR ? -1 : 1;
         break;
     default:
         bsod("invalid backoff axis");
     }
 
     int16_t phaseCurrent = axis_mscnt(axis); // The TMC µsteps(phase) count of the current position
-    int16_t phaseDelta = (0 - phaseCurrent) * stepperBackoutDir;
-    if (phaseDelta < 0) {
-        phaseDelta += 1024;
-    }
+    int16_t phaseDelta = ((stepperCountDir < 0) == (effectorBackoutDir < 0) ? phaseCurrent : 1024 - phaseCurrent);
     int16_t phasePerStep = phase_per_ustep(axis);
     return int16_t((phaseDelta + phasePerStep / 2) / phasePerStep) * effectorBackoutDir;
 }
@@ -128,14 +125,16 @@ static bool phase_aligned(AxisEnum axis) {
  * @param orig_crash whether crash_s was active before temporarily disabling it
  * @return
  */
-static bool measure_b_axis_distance(xy_long_t origin_steps, int32_t dist, int32_t &m_steps, float &m_dist, const bool orig_crash) {
+static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t dist, int32_t &m_steps, float &m_dist, const bool orig_crash) {
     // full initial position
     xyze_long_t initial_steps = { origin_steps.a, origin_steps.b, stepper.position(C_AXIS), stepper.position(E_AXIS) };
     xyze_pos_t initial_mm;
     corexy_ab_to_xyze(initial_steps, initial_mm);
 
     // full target position
-    xyze_long_t target_steps = { initial_steps.a, initial_steps.b + dist, initial_steps.c, initial_steps.e };
+    xyze_long_t target_steps = initial_steps;
+    target_steps[axis] += dist;
+
     xyze_pos_t target_mm;
     xyze_long_t target_pos_msteps;
     corexy_ab_to_xy(target_steps, target_mm, target_pos_msteps);
@@ -148,9 +147,9 @@ static bool measure_b_axis_distance(xy_long_t origin_steps, int32_t dist, int32_
     }
 
     // move towards the endstop
-    sensorless_t stealth_states = start_sensorless_homing_per_axis(B_AXIS);
+    sensorless_t stealth_states = start_sensorless_homing_per_axis(axis);
     endstops.enable(true);
-    plan_raw_move(target_mm, target_pos_msteps, homing_feedrate(B_AXIS));
+    plan_raw_move(target_mm, target_pos_msteps, homing_feedrate(axis));
     uint8_t hit = endstops.trigger_state();
     endstops.not_homing();
 
@@ -166,23 +165,25 @@ static bool measure_b_axis_distance(xy_long_t origin_steps, int32_t dist, int32_
         hit_steps = target_steps;
         hit_mm = target_mm;
     }
-    end_sensorless_homing_per_axis(B_AXIS, stealth_states);
+    end_sensorless_homing_per_axis(axis, stealth_states);
 
     // move back to starting point
-    plan_raw_move(initial_mm, initial_pos_msteps, homing_feedrate(B_AXIS));
+    plan_raw_move(initial_mm, initial_pos_msteps, homing_feedrate(axis));
 
     // sanity checks
-    if (hit_steps.a != initial_steps.a || initial_steps.a != stepper.position(A_AXIS)) {
-        ui.status_printf_P(0, "A_AXIS didn't return");
+    if (initial_steps[axis] != stepper.position(axis)) {
+        ui.status_printf_P(0, "Measured axis didn't return");
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
     }
-    if (initial_steps.b != stepper.position(B_AXIS)) {
-        ui.status_printf_P(0, "B_AXIS didn't return");
+
+    AxisEnum fixed_axis = (axis == B_AXIS ? A_AXIS : B_AXIS);
+    if (hit_steps[fixed_axis] != initial_steps[fixed_axis] || initial_steps[fixed_axis] != stepper.position(fixed_axis)) {
+        ui.status_printf_P(0, "Fixed axis didn't return");
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
     }
 
     // result values
-    m_steps = hit_steps.b - initial_steps.b;
+    m_steps = hit_steps[axis] - initial_steps[axis];
     m_dist = hypotf(hit_mm[X_AXIS] - initial_mm[X_AXIS], hit_mm[Y_AXIS] - initial_mm[Y_AXIS]);
     return hit;
 }
@@ -205,8 +206,8 @@ struct measure_phase_cycles_ret {
  * @param orig_crash whether crash_s was active before temporarily disabling it
  * @return output validity and successfulness
  */
-static measure_phase_cycles_ret measure_phase_cycles(int32_t &c_dist_a, int32_t &c_dist_b, const bool orig_crash) {
-    const int32_t measure_max_dist = (XY_HOMING_ORIGIN_OFFSET * 4) / planner.mm_per_step[B_AXIS];
+static measure_phase_cycles_ret measure_phase_cycles(AxisEnum axis, int32_t &c_dist_a, int32_t &c_dist_b, const bool orig_crash) {
+    const int32_t measure_max_dist = (XY_HOMING_ORIGIN_OFFSET * 4) / planner.mm_per_step[axis];
     xy_long_t origin_steps = { stepper.position(A_AXIS), stepper.position(B_AXIS) };
     const int n = 2;
     xy_long_t m_steps[n] = { -1, -1 };
@@ -217,8 +218,8 @@ static measure_phase_cycles_ret measure_phase_cycles(int32_t &c_dist_a, int32_t 
         uint8_t slot2 = (retry - 1) % n;
 
         // measure distance B+/B-
-        if (!measure_b_axis_distance(origin_steps, measure_max_dist, m_steps[slot].b, m_dist[slot].b, orig_crash)
-            || !measure_b_axis_distance(origin_steps, -measure_max_dist, m_steps[slot].a, m_dist[slot].a, orig_crash)) {
+        if (!measure_axis_distance(axis, origin_steps, measure_max_dist, m_steps[slot].b, m_dist[slot].b, orig_crash)
+            || !measure_axis_distance(axis, origin_steps, -measure_max_dist, m_steps[slot].a, m_dist[slot].a, orig_crash)) {
             if (planner.draining()) {
                 return { false, true }; // Do not refine position but end succesfully
             } else {
@@ -282,8 +283,8 @@ bool refine_corexy_origin() {
     // reposition parallel to the origin
     float fr_mm_s = homing_feedrate(A_AXIS);
     xyze_pos_t origin_tmp = current_position;
-    origin_tmp[X_AXIS] = (base_home_pos(X_AXIS) + XY_HOMING_ORIGIN_OFFSET);
-    origin_tmp[Y_AXIS] = (base_home_pos(Y_AXIS) + XY_HOMING_ORIGIN_OFFSET);
+    origin_tmp[X_AXIS] = (base_home_pos(X_AXIS) - XY_HOMING_ORIGIN_OFFSET * X_HOME_DIR);
+    origin_tmp[Y_AXIS] = (base_home_pos(Y_AXIS) - XY_HOMING_ORIGIN_OFFSET * Y_HOME_DIR);
     planner.buffer_line(origin_tmp, fr_mm_s, active_extruder);
     planner.synchronize();
 
@@ -322,25 +323,29 @@ bool refine_corexy_origin() {
     }
 
     // increase current of the holding motor
-    int32_t orig_cur = stepperX.rms_current();
-    float orig_hold = stepperX.hold_multiplier();
-    stepperX.rms_current(XY_HOMING_HOLDING_CURRENT_A, 1.);
+    AxisEnum fixed_axis = (X_HOME_DIR == Y_HOME_DIR ? A_AXIS : B_AXIS);
+    AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
+    TMCStepper &fixed_stepper = stepper_axis(fixed_axis);
+
+    int32_t orig_cur = fixed_stepper.rms_current();
+    float orig_hold = fixed_stepper.hold_multiplier();
+    fixed_stepper.rms_current(XY_HOMING_HOLDING_CURRENT, 1.);
 
     // measure from current origin
     int32_t c_dist_a = 0, c_dist_b = 0;
-    auto ret = measure_phase_cycles(c_dist_a, c_dist_b, orig_crash);
+    auto ret = measure_phase_cycles(measured_axis, c_dist_a, c_dist_b, orig_crash);
     if (ret.output_valid) {
         // convert the full cycle back to steps
         xy_long_t c_ab = { c_dist_a * phase_cycle_steps(A_AXIS), c_dist_b * phase_cycle_steps(B_AXIS) };
         xy_pos_t c_mm;
         corexy_ab_to_xy(c_ab, c_mm);
-        current_position.x = c_mm[X_AXIS] + origin_tmp[X_AXIS] + XY_HOMING_ORIGIN_SHIFT_X;
-        current_position.y = c_mm[Y_AXIS] + origin_tmp[Y_AXIS] + XY_HOMING_ORIGIN_SHIFT_Y;
+        current_position.x = c_mm[X_AXIS] + origin_tmp[X_AXIS] - XY_HOMING_ORIGIN_SHIFT_X * X_HOME_DIR;
+        current_position.y = c_mm[Y_AXIS] + origin_tmp[Y_AXIS] - XY_HOMING_ORIGIN_SHIFT_Y * Y_HOME_DIR;
         planner.set_machine_position_mm(current_position);
     }
 
     // restore current
-    stepperX.rms_current(orig_cur, orig_hold);
+    fixed_stepper.rms_current(orig_cur, orig_hold);
 
     return ret.success;
 }
