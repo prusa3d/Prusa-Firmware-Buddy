@@ -39,6 +39,10 @@ add_subdirectory(host)
 add_subdirectory(feature)
 add_subdirectory(${PRINTER})
 
+if(HAS_NOZZLE_CLEANER)
+  target_sources(firmware PRIVATE G12.cpp)
+endif()
+
 if(HAS_SELFTEST)
   target_sources(firmware PRIVATE G162.cpp G163.cpp)
 endif()
