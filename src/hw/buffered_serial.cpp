@@ -308,7 +308,9 @@ void BufferedSerial::Flush() {
 }
 
 void BufferedSerial::ErrorRecovery() {
-    if (uart->ErrorCode != HAL_UART_ERROR_NONE) {
+    const bool error_occured = uart->ErrorCode != HAL_UART_ERROR_NONE;
+    const bool dma_stopped = (uart->Instance->CR3 & USART_CR3_DMAR) == 0;
+    if (error_occured || dma_stopped) {
         log_error(BufferedSerial, "BufferedSerial recovering from error");
         StartReceiving();
     }
