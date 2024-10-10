@@ -406,12 +406,19 @@ bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address addres
     }
 
     BootloaderProtocol::HwInfo hwinfo;
-    if (check_status(flasher.get_hwinfo(hwinfo)) == false) {
-        return false;
+    // TODO: allow getting hwinfo for xbuddy ext, when we are able to read otp from it
+    if (type != XBUDDY_EXTENSION) {
+        if (check_status(flasher.get_hwinfo(hwinfo)) == false) {
+            return false;
+        }
+    } else {
+        hwinfo.hw_type = get_puppy_info(type).hw_info_hwtype;
+        hwinfo.bl_version = MINIMAL_BOOTLOADER_VERSION;
     }
 
     // Here it is possible to read raw puppy's OTP before flashing, perhaps to flash a different firmware
-    if (protocol_version >= 0x0302) { // OTP read was added in protocol 0x0302
+    // TODO: allow reading otp from xbuddy ext board, when we are able to read it
+    if (protocol_version >= 0x0302 && type != XBUDDY_EXTENSION) { // OTP read was added in protocol 0x0302
 
         uint8_t otp[32]; // OTP v5 will fit to 32 Bytes
         if (check_status(flasher.read_otp_cmd(0, otp, 32)) == false) {
