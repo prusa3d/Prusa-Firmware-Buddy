@@ -299,6 +299,11 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         break;
     case 'G':
         switch (parser.codenum) {
+#if HAS_NOZZLE_CLEANER()
+        case 12:
+            PrusaGcodeSuite::G12();
+            break;
+#endif
         case 26:
             PrusaGcodeSuite::G26();
             break;
