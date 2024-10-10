@@ -751,6 +751,9 @@ int main() {
     // case this is a noboot build
     data_exchange_init();
 
+#if PRINTER_IS_PRUSA_iX()
+    hw_preinit_turbine_disable();
+#endif
     // define the startup task
     osThreadDef(startup, startup_task, TASK_PRIORITY_STARTUP, 0, 1024 + 512 + 256);
     osThreadCreate(osThread(startup), NULL);

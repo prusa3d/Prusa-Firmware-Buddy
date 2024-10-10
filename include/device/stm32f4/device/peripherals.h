@@ -255,6 +255,9 @@ extern RNG_HandleTypeDef hrng;
 //
 // Initialization
 //
+#if PRINTER_IS_PRUSA_iX()
+void hw_preinit_turbine_disable();
+#endif
 
 void hw_rtc_init();
 void hw_rng_init();
