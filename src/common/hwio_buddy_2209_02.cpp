@@ -33,6 +33,7 @@
 #include <option/has_modularbed.h>
 
 #include <Pin.hpp>
+#include <cmath>
 
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "../../lib/Marlin/Marlin/src/module/prusa/toolchanger.h"
@@ -94,6 +95,16 @@ static TIM_HandleTypeDef *_pwm_p_htim[] = {
 
 // buddy pwm output maximum values
 static constexpr int _pwm_max[] = { TIM3_default_Period, TIM3_default_Period, TIM1_default_Period, TIM1_default_Period };
+#if PRINTER_IS_PRUSA_iX()
+static_assert(std::clamp(MAX_HEATBREAK_TURBINE_POWER, 0, 100) == MAX_HEATBREAK_TURBINE_POWER);
+static_assert(std::clamp(MIN_HEATBREAK_TURBINE_POWER, 0, 100) == MIN_HEATBREAK_TURBINE_POWER);
+
+static_assert(MAX_HEATBREAK_TURBINE_POWER > MIN_HEATBREAK_TURBINE_POWER);
+
+// iX turbine PWM is inverted, minimum corresponds to maximum power and vice versa
+static constexpr int _pwm_turbine_min = static_cast<double>(_pwm_max[HWIO_PWM_TURBINE]) * (1 - (MAX_HEATBREAK_TURBINE_POWER / 100.0));
+static constexpr int _pwm_turbine_max = static_cast<double>(_pwm_max[HWIO_PWM_TURBINE]) * (1 - (MIN_HEATBREAK_TURBINE_POWER / 100.0));
+#endif
 
 static const TIM_OC_InitTypeDef sConfigOC_default = {
     TIM_OCMODE_PWM1, // OCMode
@@ -236,7 +247,20 @@ void _hwio_pwm_analogWrite_set_val(int i_pwm, int val) {
 
     if (_pwm_analogWrite_val[i_pwm] != val) {
         const int32_t pwm_max = hwio_pwm_get_max(i_pwm);
-        const uint32_t pulse = (val * pwm_max) / _pwm_analogWrite_max;
+        uint32_t pulse = (val * pwm_max) / _pwm_analogWrite_max;
+#if PRINTER_IS_PRUSA_iX()
+        if (i_pwm == HWIO_PWM_TURBINE) {
+            // iX turbine fan PWM is inversed
+            pulse = pwm_max - pulse;
+
+            if (pulse > _pwm_turbine_max) {
+                // if below minimum power, set power to 0 (equals max pwm when inversed)
+                pulse = pwm_max;
+            } else if (pulse < _pwm_turbine_min) {
+                pulse = _pwm_turbine_min;
+            }
+        }
+#endif
         hwio_pwm_set_val(i_pwm, pulse);
         _pwm_analogWrite_val[i_pwm] = val;
     }
@@ -536,6 +560,9 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
         switch (ulPin) {
         case MARLIN_PIN(FAN1):
             Fans::heat_break(0).setPWM(ulValue);
+#if PRINTER_IS_PRUSA_iX()
+            _hwio_pwm_analogWrite_set_val(HWIO_PWM_TURBINE, ulValue);
+#endif
             return;
         case MARLIN_PIN(FAN):
             Fans::print(0).setPWM(ulValue);

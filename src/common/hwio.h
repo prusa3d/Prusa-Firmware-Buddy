@@ -3,6 +3,7 @@
 #pragma once
 
 #include <device/board.h>
+#include <printers.h>
 #include <inttypes.h>
 
 // pwm outputs
@@ -11,6 +12,11 @@ enum {
     HWIO_PWM_HEATER_0, // NOZZLE PWM
     HWIO_PWM_FAN1, // PRINT FAN?
     HWIO_PWM_FAN, // NOZZLE FAN?
+#if BOARD_IS_XBUDDY()
+    #if PRINTER_IS_PRUSA_iX()
+    HWIO_PWM_TURBINE = HWIO_PWM_HEATER_BED
+    #endif
+#endif
 };
 
 #ifdef __cplusplus

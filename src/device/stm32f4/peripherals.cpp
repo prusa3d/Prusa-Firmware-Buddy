@@ -82,6 +82,25 @@ PCA9557 io_expander1(I2C_HANDLE_FOR(io_expander1), 0x1);
 // Initialization
 //
 
+#if PRINTER_IS_PRUSA_iX()
+// called at earliest possible time after system/core inits to set turbine PWM pin (heatbed PWM pin) high and disable it
+void hw_preinit_turbine_disable() {
+    uint32_t offset = 0;
+    uint32_t pin = BED_HEAT_Pin;
+    while (!(pin & 0x1)) {
+        pin >>= 1;
+        offset++;
+    }
+    uint32_t temp = BED_HEAT_GPIO_Port->MODER;
+    temp &= ~(GPIO_MODER_MODER0 << (offset * 2U));
+    temp |= ((GPIO_MODE_OUTPUT_PP) << (offset * 2U));
+    BED_HEAT_GPIO_Port->MODER = temp;
+    temp = BED_HEAT_GPIO_Port->ODR;
+    temp |= BED_HEAT_Pin;
+    BED_HEAT_GPIO_Port->ODR = temp;
+}
+#endif
+
 void hw_rtc_init() {
     hrtc.Instance = RTC;
     hrtc.Init.HourFormat = RTC_HOURFORMAT_24;

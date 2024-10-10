@@ -581,7 +581,8 @@
     #define HEATBREAK_FAN_ALWAYS_ON_NOZZLE_TEMPERATURE 45 // Never switch off heatbreak fan when nozzle temperature is over
     #define DEFAULT_HEATBREAK_TEMPERATURE 36
     #define HEATBREAK_FAN_ID 1  //fan id for autocontroll
-
+    #define MAX_HEATBREAK_TURBINE_POWER 60 // [%] maximum turbine power
+    #define MIN_HEATBREAK_TURBINE_POWER 25 // [%] minimum turbine power to get it spinning reliably
     #define HEATBREAK_PID_K1 0.995
     #define DEFAULT_heatbreakKp 25.50
     #define DEFAULT_heatbreakKi 5.00
