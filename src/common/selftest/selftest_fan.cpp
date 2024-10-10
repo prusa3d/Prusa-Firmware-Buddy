@@ -172,8 +172,14 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_100_percent() {
         result.print_fan_state = SelftestSubtestState_t::not_good;
     }
 
+#if PRINTER_IS_PRUSA_iX()
+    // iX currently has no tacho signal from heatbreak turbine so we're unable to perform the heatbreak test,
+    // this is a workaround to make it always pass
+    heatbreak_fan.evaluate(benevolent_fan_config, (config.heatbreak_fan.rpm_min + config.heatbreak_fan.rpm_max) / 2);
+#else
     const uint16_t heatbreak_fan_rpm = heatbreak_fan.calculate_avg_rpm();
     heatbreak_fan.evaluate(config.heatbreak_fan, heatbreak_fan_rpm);
+#endif
     if (heatbreak_fan.is_failed()) {
         result.heatbreak_fan_state = SelftestSubtestState_t::not_good;
     }
@@ -315,8 +321,14 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_40_percent() {
         result.print_fan_state = SelftestSubtestState_t::not_good;
     }
 
+#if PRINTER_IS_PRUSA_iX()
+    // iX currently has no tacho signal from heatbreak turbine so we're unable to perform the heatbreak test,
+    // this is a workaround to make it always pass
+    heatbreak_fan.evaluate(benevolent_fan_config, (benevolent_fan_config.rpm_min + benevolent_fan_config.rpm_max) / 2);
+#else
     const uint16_t heatbreak_fan_rpm = heatbreak_fan.calculate_avg_rpm();
     heatbreak_fan.evaluate(benevolent_fan_config, heatbreak_fan_rpm);
+#endif
     if (heatbreak_fan.is_failed()) {
         result.heatbreak_fan_state = SelftestSubtestState_t::not_good;
     }

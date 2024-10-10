@@ -30,7 +30,12 @@ static constexpr const char *en_text_hotend_fan = N_("Hotend fan");
 static constexpr const char *en_text_print_fan = N_("Print fan");
 static constexpr const char *en_text_fans_switched = N_("Switched fans");
 #else
+    #if PRINTER_IS_PRUSA_iX()
+// for iX with turbine, heatbreak fan eval always succeeds
+static constexpr const char *en_text_hotend_fan = N_("Hotend fan RPM test (disabled!)");
+    #else
 static constexpr const char *en_text_hotend_fan = N_("Hotend fan RPM test");
+    #endif
 static constexpr const char *en_text_print_fan = N_("Print fan RPM test");
 static constexpr const char *en_text_fans_switched = N_("Checking for switched fans");
 #endif
