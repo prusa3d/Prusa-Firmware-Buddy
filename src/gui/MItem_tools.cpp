@@ -698,12 +698,20 @@ MI_INFO_SIDE_FILL_SENSOR::MI_INFO_SIDE_FILL_SENSOR()
 // MI_INFO_PRINT_FAN
 
 MI_INFO_PRINT_FAN::MI_INFO_PRINT_FAN()
-    : WI_FAN_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+    : WI_FAN_LABEL_t(_("Print Fan"),
+        [] { return FanPWMAndRPM {
+                 .pwm = marlin_vars().print_fan_speed,
+                 .rpm = marlin_vars().active_hotend().print_fan_rpm,
+             }; } //
+    ) {}
 
 MI_INFO_HBR_FAN::MI_INFO_HBR_FAN()
-    : WI_FAN_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+    : WI_FAN_LABEL_t(PRINTER_IS_PRUSA_MK3_5() ? _("Hotend Fan") : _("Heatbreak Fan"),
+        [] { return FanPWMAndRPM {
+                 .pwm = static_cast<uint8_t>(sensor_data().hbrFan),
+                 .rpm = marlin_vars().active_hotend().heatbreak_fan_rpm,
+             }; } //
+    ) {}
 
 MI_ODOMETER_DIST::MI_ODOMETER_DIST(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
     : WI_FORMATABLE_LABEL_t<float>(label, icon, enabled, hidden, initVal, [&](const std::span<char> &buffer) {
