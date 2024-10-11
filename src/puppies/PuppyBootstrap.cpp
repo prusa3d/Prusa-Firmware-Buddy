@@ -541,7 +541,8 @@ void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, 
         wait_for_fingerprint(fingerprint_wait_start);
 
         // check fingerprint after flashing, to make sure it went well
-        if (!fingerprint_match(fw_fingerprints.get_fingerprint(dock))) {
+        // TODO: Allow checking fingerprints, when we build xbuddy ext fw in right format
+        if (puppy_type != XBUDDY_EXTENSION && !fingerprint_match(fw_fingerprints.get_fingerprint(dock))) {
             fatal_error(ErrCode::ERR_SYSTEM_PUPPY_FINGERPRINT_MISMATCH, get_puppy_info(puppy_type).name);
         }
     }
