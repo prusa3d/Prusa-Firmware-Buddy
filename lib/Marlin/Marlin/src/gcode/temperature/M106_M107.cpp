@@ -46,17 +46,22 @@
  */
 
 /**
- * M106: Set Fan Speed
+ *### M106: Set Fan Speed <a href="https://reprap.org/wiki/G-code#M106:_Fan_On">M106: Fan On</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `S<int>` - Speed between 0-255
- * - `P<index>` - Fan index, if more than one fan
- * - `T<int>` - Restore/Use/Set Temporary Speed: (With EXTRA_FAN_SPEED enabled:)
- *              1     = Restore previous speed after T2
- *              2     = Use temporary speed set with T3-255
- *              3-255 = Set the speed for use with T2
- *              Enclosure fan (index 3) don't support T parameter
+ *   M106 [ S | P | T ]
+ *
+ *#### Parameters
+ *
+ * - `S` - Speed between 0-255
+ * - `P` - Fan index, if more than one fan
+ * - `A` - ???
+ * - `T` - Restore/Use/Set Temporary Speed: (With EXTRA_FAN_SPEED enabled:)
+ *   - `1` - Restore previous speed after T2
+ *   - `2` - Use temporary speed set with T3-255
+ *   - `3-255`- Set the speed for use with T2
+ *Enclosure fan (index 3) don't support T parameter
  */
 void GcodeSuite::M106() {
     const uint8_t p = parser.byteval('P', _ALT_P);
@@ -93,11 +98,15 @@ void GcodeSuite::M106() {
 }
 
 /**
- * M107: Fan Off
+ *### M107: Fan Off <a href="https://reprap.org/wiki/G-code#M107:_Fan_Off">M107: Fan Off</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `P<index>` - fan index
+ *    M107 [ P ]
+ *
+ *#### Parameters
+ *
+ * - `P` - Fan index
  */
 void GcodeSuite::M107() {
   const uint8_t p = parser.byteval('P', _ALT_P);

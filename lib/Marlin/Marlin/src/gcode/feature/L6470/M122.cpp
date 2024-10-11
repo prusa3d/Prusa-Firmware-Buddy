@@ -55,7 +55,7 @@ void L6470_status_decode(const uint16_t status, const uint8_t axis) {
   SERIAL_EOL();
 }
 
-/**
+/*
  * M122: Debug L6470 drivers
  */
 void GcodeSuite::M122() {

@@ -32,13 +32,21 @@
  */
 
 /**
- * M403: Set filament type for MMU2
+ *### M403: Set filament type for MMU <a href="https://reprap.org/wiki/G-code#M403:_Set_filament_type_.28material.29_for_particular_extruder_and_notify_the_MMU">M403: Set filament type (material) for particular extruder and notify the MMU</a>
  *
- * Valid filament type values:
+ * Only MK3.5/S, MK3.9/S and MK4/S with MMU
  *
- *  0   Default
- *  1   Flexible
- *  2   PVA
+ *#### Usage
+ *
+ *    M403 [ E | F ]
+ *
+ *#### Parameters
+ *
+ * - `E` - Extruder
+ * - `F` - filament type
+ *   - `0` - Default
+ *   - `1` - Flexible
+ *   - `2` - PVA
  */
 void GcodeSuite::M403() {
     int8_t index = parser.intval('E', -1),

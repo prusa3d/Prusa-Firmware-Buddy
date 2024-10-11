@@ -8,11 +8,16 @@
  */
 
 /**
- * M46: Reports the assigned IP address to serial port
+ *### M46: Reports the assigned IP address to serial port <a href="https://reprap.org/wiki/G-code#M46:_Show_the_assigned_IP_address">M46: Show the assigned IP address</a>
  *
- * ## Parameters
+ *#### Usage
+ *
+ *    M46 [ M ]
+ *
+ *#### Parameters
  *
  * - `M` - Also print out MAC address to serial port
+ *
  */
 
 void GcodeSuite::M46() {

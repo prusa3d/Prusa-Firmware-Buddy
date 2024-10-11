@@ -50,17 +50,32 @@ void report_M92(const bool echo=true, const int8_t e=-1) {
  */
 
 /**
- * M92: Set axis steps-per-unit for one or more axes, X, Y, Z, and E.
- *      (Follows the same syntax as G92)
+ *### M92: Get/Set axis steps-per-unit <a href="https://reprap.org/wiki/G-code#M92:_Set_axis_steps_per_unit">M92: Set axis_steps_per_unit</a>
  *
- *      With multiple extruders use T to specify which one.
+ * With multiple extruders use T to specify which one.
  *
- *      If no argument is given print the current values.
+ * If no argument is given print the current values.
  *
- *    With MAGIC_NUMBERS_GCODE:
- *      Use 'H' and/or 'L' to get ideal layer-height information.
- *      'H' specifies micro-steps to use. We guess if it's not supplied.
- *      'L' specifies a desired layer height. Nearest good heights are shown.
+ * With MAGIC_NUMBERS_GCODE:
+ * Use 'H' and/or 'L' to get ideal layer-height information.
+ * 'H' specifies micro-steps to use. We guess if it's not supplied.
+ * 'L' specifies a desired layer height. Nearest good heights are shown.
+ *
+ *#### Usage
+ *
+ *    M92 [ X | Y | Z | E | T | H | L ]
+ *
+ *#### Parameters
+ *
+ *  - `X` - Set current position on X axis
+ *  - `Y` - Set current position on Y axis
+ *  - `Z` - Set current position on Z axis
+ *  - `E` - Set current position on E axis
+ *  - `T` - Set current position on E axis of tool
+ *  - `H` - Specifies micro-steps to use. We guess if it's not supplied.     (Not active by default)
+ *  - `L` - Specifies a desired layer height. Nearest good heights are shown (Not active by default)
+ *
+ * Without parameters prints the current steps-per-unit
  */
 void GcodeSuite::M92() {
 

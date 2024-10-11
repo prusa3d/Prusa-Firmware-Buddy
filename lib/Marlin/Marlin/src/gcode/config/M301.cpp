@@ -32,16 +32,20 @@
  */
 
 /**
- * M301: Set PID parameters P I D (and optionally C, L)
+ *### M301: Get/Set PID parameters <a href="https://reprap.org/wiki/G-code#M301:_Set_PID_parameters">M301: Set PID parameters</a>
  *
- *   P[float] Kp term
- *   I[float] Ki term (unscaled)
- *   D[float] Kd term (unscaled)
+ *#### Usage
  *
- * With PID_EXTRUSION_SCALING:
+ *    M301 [ P | I | D | C ]
  *
- *   C[float] Kc term
- *   L[int] LPQ length
+ *#### Parameters
+ *
+ * -`P` - Kp term
+ * -`I` - Ki term
+ * -`D` - Kd term
+ * -`C` - Kc term
+ *
+ * Without parameters prints the current PID parameters
  */
 void GcodeSuite::M301() {
 

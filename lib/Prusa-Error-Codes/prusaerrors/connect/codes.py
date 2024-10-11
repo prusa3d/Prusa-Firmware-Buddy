@@ -16,7 +16,8 @@ import yaml
 from prusaerrors.shared.codes import unique_codes, Codes, Printer, Code, Category
 
 
-BUDDY = ['MINI', 'MK4', 'IX', 'XL', 'MK35', 'MK39']
+BUDDY = ['MINI', 'MK4', 'IX', 'XL', 'MK3.5',
+         'MK4S', 'MK3.9', 'MK3.9S', 'MK3.5S']
 
 
 class PrinterCode(Code):
@@ -73,7 +74,9 @@ def yaml_codes(src_path: Path):
             if code_parts["printer"] == 'XX':
                 if printers := entry.get("printers"):
                     if 'MK4' in printers:
-                        printers.append('MK39')
+                        printers.extend(('MK4S', 'MK3.9', 'MK3.9S'))
+                    elif 'MK3.5' in printers:
+                        printers.append('MK3.5S')
                 else:  # if no printers specified code is valid for all buddy
                     printers = BUDDY
 

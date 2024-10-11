@@ -37,7 +37,7 @@ public:
 
     bool want_read() const;
     bool want_write() const;
-    Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
+    void step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, Step &out);
 };
 
 } // namespace nhttp::handler

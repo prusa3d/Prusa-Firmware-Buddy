@@ -53,9 +53,15 @@
    */
 
   /**
-   * M80   : Turn on the Power Supply
+   *### M80: Turn on the Power Supply <a href="https://reprap.org/wiki/G-code#M80:_ATX_Power_On">M80: ATX Power On</a>
    *
-   * ## Parameters
+   * Only MK3.5/S, MK3.9/S, MK4/S and iX
+   *
+   *#### Usage
+   *
+   *    M80 [ S ]
+   *
+   *#### Parameters
    *
    * - `S` - Report the current state and exit
    */
@@ -88,18 +94,17 @@
     #endif
   }
 
-  /** @}*/
-
 #endif // HAS_POWER_SWITCH
 
-/** \addtogroup G-Codes
- * @{
- */
-
 /**
- * M81: Turn off Power, including Power Supply, if there is one.
+ *### M81: Turn off Power <a href="https://reprap.org/wiki/G-code#M81:_ATX_Power_Off">M81: ATX Power Off</a>
  *
- *      This code should ALWAYS be available for FULL SHUTDOWN!
+ * This code should ALWAYS be available for FULL SHUTDOWN!
+ *
+ *#### Usage
+ *
+ *    M81
+ *
  */
 void GcodeSuite::M81() {
   thermalManager.disable_all_heaters();

@@ -47,20 +47,32 @@
  */
 
 /**
- * T0-T<n>: Switch tool, usually switching extruders
+ *### T: Select Tool <a href="https://reprap.org/wiki/G-code#T:_Select_Tool">T: Select Tool</a>
  *
- *   F[units/min] Set the movement feedrate
- *   S1           Don't move the tool in XY after change
- *   M0/1         Use tool mapping or not (default is yes)
- *   Lx           Z Lift settings
- *                 0 =- no lift, 1 = lift by max MBL diff, 2 = full lift(default)
- *   Dx           0 = do not return in Z after lift, 1 = normal return
+ *#### Usage
+ *
+ *    T [ F | S | M | L | D ]
+ *
+ *#### Parameters
+ *
+ * - `T<value>` - Tool
+ *   - `<number>` - Tool number starting with 0
+ * - `F` - Set the movement feedrate
+ * - `S` - Don't move the tool in XY after change
+ * - `M` - Use tool mapping or not (default is yes)
+ * - `L` - Z Lift settings
+ *   - `0` - no lift
+ *   - `1` - lift by max MBL diff
+ *   - `2` - full lift(default)
+ * - `D` - Z lift return settings
+ *   - `0` - Do not return in Z after lift
+ *   - `1` - Normal return
  *
  * For PRUSA_MMU2:
- *   T[n] Gcode to extrude at least 38.10 mm at feedrate 19.02 mm/s must follow immediately to load to extruder wheels.
- *   T?   Gcode to extrude shouldn't have to follow. Load to extruder wheels is done automatically.
- *   Tx   Same as T?, but nozzle doesn't have to be preheated. Tc requires a preheated nozzle to finish filament load.
- *   Tc   Load to nozzle after filament was prepared by Tc and nozzle is already heated.
+ * - `T[n]` - Gcode to extrude at least 38.10 mm at feedrate 19.02 mm/s must follow immediately to load to extruder wheels.
+ * - `T?` - Gcode to extrude shouldn't have to follow. Load to extruder wheels is done automatically.
+ * - `Tx` - Same as T?, but nozzle doesn't have to be preheated. Tc requires a preheated nozzle to finish filament load.
+ * - `Tc` - Load to nozzle after filament was prepared by Tc and nozzle is already heated.
  */
 void GcodeSuite::T(uint8_t tool_index) {
 

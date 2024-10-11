@@ -58,10 +58,25 @@ static void report_state() {
     M970_report();
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
- * @brief Set/enable phase stepping for axis
+ *### M970: Enable/Disable Phase Stepping <a href="https://reprap.org/wiki/G-code#M970:_Enable.2FDisable_Phase_Stepping">M970: Enable/Disable Phase Stepping</a>
  *
- * - valid axes X, Y
+ * Only XL and iX
+ *
+ *#### Usage
+ *
+ *    M970 [ X | Y ]
+ *
+ *#### Parameters
+ *
+ * - `X` - Phase steppring for X motor driver
+ * - `Y` - Phase steppring for Y motor driver
+ *
+ * Without parameters prints the current state of the phase stepping
  */
 void GcodeSuite::M970() {
     planner.synchronize();
@@ -77,10 +92,15 @@ void GcodeSuite::M970() {
 }
 
 /**
- * @brief Retrieve current correction
+ *### M972: Retrieve current correction <a href="https://reprap.org/wiki/G-code#M972:_Retrieve_Current_Correction">M972: Retrieve Current Correction</a>
  *
- * Outputs the current correction table in format: `<axis>, <direction>,
- * <index>, <mag>, <pha>` per line. Multiple axes can be specified.
+ * Only XL and iX
+ *
+ *#### Usage
+ *
+ *    M972 [ X | Y ]
+ *
+ * Outputs the current correction table in format: `<axis>, <direction>, <index>, <mag>, <pha>` per line. Multiple axes can be specified.
  **/
 void GcodeSuite::M972() {
     for (auto [axis, letter] : SUPPORTED_AXES) {
@@ -151,9 +171,23 @@ static std::vector<std::pair<float, float>> parse_pairs(std::string_view str) {
 }
 
 /**
- * @brief Set single entry for the current correction table.
+ *### M973: Set single entry for the current correction table <a href=" "> </a>
  *
- * Parameters: String argument in format: <X/Y><F/B><list of mag,phase pairs separated by space>
+ * Only XL and iX
+ *
+ *#### Usage
+ *
+ *    M973 [ X | Y | F | B ]
+ *
+ *#### Parameters
+ *
+ * - `X` - X axis
+ * - `Y` - Y axis
+ * - `F` - Forward direction
+ * - `B` - Backward direction
+ * - `<mag,phase>` - mag and phase
+ *
+ * String argument in format: <X/Y><F/B><list of mag,phase pairs separated by space>
  **/
 void GcodeSuite::M973() {
     std::string_view str_arg { parser.string_arg };
@@ -201,12 +235,20 @@ void GcodeSuite::M973() {
 }
 
 /**
- * @brief Measure print head resonance
+ *### M974: Measure print head resonance <a href="https://reprap.org/wiki/G-code#M974:_Measure_Print_Head_Resonance">M974: Measure Print Head Resonance</a>
  *
- * Parameters:
- * - X/Y - choose motor to use
- * - F   - motion speed in rev/sec
- * - R   - number of revolutions
+ * Only XL and iX
+ *
+ *#### Usage
+ *
+ *    M974 [ X | Y | F | R ]
+ *
+ *#### Parameters
+ *
+ * - `X` - X motor
+ * - `Y` - Y motor
+ * - `F` - motion speed in rev/sec
+ * - `R` - number of revolutions
  *
  * Outputs raw accelerometer sample <seq>, <X>, <Y>, <Z> per line and real
  * sampling frequency of the accelerometer as "sample freq: <freq>".
@@ -272,7 +314,13 @@ void GcodeSuite::M974() {
 }
 
 /**
- * @brief Measure dwarf accelerometer sampling frequency
+ *### M975: Measure dwarf accelerometer sampling frequency <a href="https://reprap.org/wiki/G-code#M975:_Measure_Dwarf_Accelerometer_Sampling_Frequency">M975: Measure Dwarf Accelerometer Sampling Frequency</a>
+ *
+ * Only XL and iX
+ *
+ *#### Usage
+ *
+ *    M975
  *
  * Outputs sampling frequency of the accelerometer as "sample freq: <freq>".
  **/
@@ -324,12 +372,20 @@ void GcodeSuite::M975() {
 }
 
 /**
- * @brief Measure print head resonance
+ *### M976: Measure print head resonance <a href="https://reprap.org/wiki/G-code#M976:_Measure_Print_Head_Resonance">M976: Measure Print Head Resonance</a>
  *
- * Parameters:
- * - X/Y - choose motor to use
- * - F   - motion speed in rev/sec
- * - R   - number of revolutions
+ * Only XL and iX
+ *
+ *#### Usage
+ *
+ *    M976 [ X | Y | F | R ]
+ *
+ *#### Parameters
+ *
+ * - `X` - X motor
+ * - `Y` - Y motor
+ * - `F` - motion speed in rev/sec
+ * - `R` - number of revolutions
  *
  * Outputs frequency response
  **/
@@ -458,10 +514,18 @@ public:
 };
 
 /**
- * @brief Calibrate motor
+ *### M977: Calibrate motor <a href="https://reprap.org/wiki/G-code#M977:_Calibrate_Motor">M977: Calibrate Motor</a>
  *
- * Parameters:
- * - X/Y - choose motor to use
+ * Only XL and iX
+ *
+ *#### Usage
+ *
+ *    M977 [ X | Y ]
+ *
+ *#### Parameters
+ *
+ * - `X` - X motor
+ * - `Y` - Y motor
  *
  * Calibrates given motor and sets the newly found compensation.
  **/
@@ -523,3 +587,5 @@ void GcodeSuite::M977() {
     }
     phase_stepping::save_to_persistent_storage_without_enabling(axis);
 }
+
+/** @}*/

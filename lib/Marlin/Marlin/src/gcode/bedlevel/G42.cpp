@@ -35,14 +35,22 @@
  */
 
 /**
- * G42: Move X & Y axes to mesh coordinates (I & J)
+ *### G42: Move to mesh coordinates <a href="https://reprap.org/wiki/G-code#G42:_Move_to_Grid_Point">G42: Move to Grid Point</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `I` - [int] Grid X index
- * - `J` - [int] Grid Y index
- * - `P` - Probe flag. Moves the probe to the grid point (instead of the nozzle).
- * - `F` - [mm/min] Feedrate
+ *    G42 [ I | J | P | F ]
+ *
+ *#### Parameters
+ *
+ *  - `I` - The column of the mesh coordinate
+ *  - `J` - The row of the mesh coordinate
+ *  - `P` - If there is a probe, move it to the given position.
+ *  - `F` - The maximum movement rate of the move between the start and end point. The feedrate set here applies to subsequent moves that omit this parameter.
+ *
+ *#### Examples
+ *
+ *    G42 I3 J4 P F3000 ; Move the probe to grid coordinate 3, 4
  */
 void GcodeSuite::G42() {
   if (MOTION_CONDITIONS) {

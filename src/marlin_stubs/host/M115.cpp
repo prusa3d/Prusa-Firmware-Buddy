@@ -46,7 +46,12 @@ static void cap_line(PGM_P const name, bool ena = false) {
  */
 
 /**
- * M115: Capabilities string
+ *### M115: Capabilities string <a href="https://reprap.org/wiki/G-code#M115:_Get_Firmware_Version_and_Capabilities">M115: Get Firmware Version and Capabilities</a>
+ *
+ *#### Usage
+ *
+ *    M115
+ *
  */
 void GcodeSuite::M115() {
     SERIAL_ECHOPGM("FIRMWARE_NAME:Prusa-Firmware-Buddy ");

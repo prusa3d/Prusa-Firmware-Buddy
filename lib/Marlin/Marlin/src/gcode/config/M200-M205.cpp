@@ -31,11 +31,19 @@
    */
 
   /**
-   * M200: Set filament diameter and set E axis units to cubic units
-   *
-   *    T<extruder> - Optional extruder number. Current extruder if omitted.
-   *    D<linear> - Diameter of the filament. Use "D0" to switch back to linear units on the E axis.
-   */
+  *### M200: Set filament diameter <a href="https://reprap.org/wiki/G-code#M200:_Set_filament_diameter">M200: Set filament diameter</a>
+  *
+  * and set E axis units to cubic units
+  *
+  *#### Usage
+  *
+  *    M200 [ T | D ]
+  *
+  *#### Parameters
+  *
+  * - `T` - Optional extruder number. Current extruder if omitted.
+  * - `D` - Diameter of the filament. Use "D0" to switch back to linear units on the E axis.
+  */
   void GcodeSuite::M200() {
 
     const int8_t target_extruder = get_target_extruder_from_command();
@@ -60,9 +68,21 @@
  */
 
 /**
- * M201: Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
+ *### M201: Set max acceleration <a href="https://reprap.org/wiki/G-code#M201:_Set_max_acceleration">M201: Set max acceleration</a>
  *
- *       With multiple extruders use T to specify which one.
+ * in units/s^2 for print moves
+ *
+ *#### Usage
+ *
+ *    M201 [ X | Y | Z | E | T ]
+ *
+ *#### Parameters
+ *
+ * - `X` - X axis max acceleration
+ * - `Y` - Y axis max acceleration
+ * - `Z` - Z axis max acceleration
+ * - `E` - E axis max acceleration
+ * - `T` - Tool. With multiple extruders use T to specify which one.
  */
 void GcodeSuite::M201() {
 
@@ -78,9 +98,21 @@ void GcodeSuite::M201() {
 }
 
 /**
- * M203: Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z300 E10000) in units/sec
+ *### M203: Set maximum feedrate <a href="https://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate">M203: Set maximum feedrate</a>
  *
- *       With multiple extruders use T to specify which one.
+ * that your machine can sustain in units/sec
+ *
+ *#### Usage
+ *
+ *    M203 [ X | Y | Z | E | T ]
+ *
+ *#### Parameters
+ *
+ * - `X` - X axis max acceleration
+ * - `Y` - Y axis max acceleration
+ * - `Z` - Z axis max acceleration
+ * - `E` - E axis max acceleration
+ * - `T` - Tool. With multiple extruders use T to specify which one.
  */
 void GcodeSuite::M203() {
 
@@ -95,11 +127,22 @@ void GcodeSuite::M203() {
 }
 
 /**
- * M204: Set Accelerations in units/sec^2 (M204 P1200 R3000 T3000)
+ *### M204: Get/Set Accelerations <a href="https://reprap.org/wiki/G-code#M204:_Set_default_acceleration">M204: Set default acceleration</a>
  *
- *    P = Printing moves
- *    R = Retract only (no X, Y, Z) moves
- *    T = Travel (non printing) moves
+ * in units/sec^2
+ *
+ *#### Usage
+ *
+ *    M204 [ S | P | R | T ]
+ *
+ *#### Parameters
+ *
+ * - `S` - Set acceleration
+ * - `P` - Printing moves
+ * - `R` - Retract only (no X, Y, Z) moves
+ * - `T` - Travel (non printing) moves
+ *
+ * Without parameters prints the current Accelerations
  */
 void GcodeSuite::M204() {
   if (!parser.seen("PRST")) {
@@ -121,7 +164,13 @@ void GcodeSuite::M204() {
 }
 
 /**
- * M205: Set Advanced Settings
+ *### M205: Set Advanced Settings <a href="https://reprap.org/wiki/G-code#M205:_Advanced_settings">M205: Advanced settings</a>
+ *
+ *#### Usage
+ *
+ *    M205 [ B | S | T | X | Y | Z | E | J ]
+ *
+ *#### Parameters
  *
  *    B = Min Segment Time (µs)
  *    S = Min Feed Rate (units/s)
@@ -152,7 +201,7 @@ void GcodeSuite::M205() {
     if (parser.seen('B')) s.min_segment_time_us = parser.value_ulong();
     if (parser.seen('S')) s.min_feedrate_mm_s = parser.value_linear_units();
     if (parser.seen('T')) s.min_travel_feedrate_mm_s = parser.value_linear_units();
-    
+
     planner.apply_settings(s);
   }
   #if DISABLED(CLASSIC_JERK)

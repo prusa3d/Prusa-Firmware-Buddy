@@ -3,12 +3,19 @@
 
 #include "PrusaGcodeSuite.hpp"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
- * @brief Reload Input Shaper settings from config store
- * Fix for BFW-5251
- * Beware, resets mass set by M74 - to fix that, larger refactoring is needed: BFW-5271
+ *### M9200: Reload Input Shaper settings from config store
  *
- * !!! For internal use only, can be changed or removed at any time
+ * Internal GCode
+ *
+ *#### Usage
+ *
+ *    M9200
+ *
  */
 void PrusaGcodeSuite::M9200() {
     // For now, we must ensure that all queues are empty before changing input shapers parameters.
@@ -17,3 +24,4 @@ void PrusaGcodeSuite::M9200() {
 
     input_shaper::init();
 }
+/** @}*/

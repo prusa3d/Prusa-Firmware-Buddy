@@ -32,9 +32,17 @@
  */
 
 /**
- * M211: Enable, Disable, and/or Report software endstops
+ * ### M211: Enable, Disable, and/or Report software endstops <a href="https://reprap.org/wiki/G-code#M211:_Disable.2FEnable_software_endstops">M211: Disable/Enable software endstops</a>
  *
- * Usage: M211 S1 to enable, M211 S0 to disable, M211 alone for report
+ *#### Usage
+ *
+ *    M211 [ S ]
+ *
+ *#### Parameters
+ *
+ * - `S` - enable = 1, disable = 0
+ *
+ * Without parameters prints the current software endstops
  */
 void GcodeSuite::M211() {
   const xyz_pos_t l_soft_min = soft_endstop.min.asLogical(),

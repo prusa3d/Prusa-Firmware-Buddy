@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -27,12 +27,12 @@
 #include "../gcode.h"
 #include "../../sd/cardreader.h"
 
-/**
+/*
  * M21: Init SD Card
  */
 void GcodeSuite::M21() { card.mount(); }
 
-/**
+/*
  * M22: Release SD Card
  */
 void GcodeSuite::M22() { card.release(); }

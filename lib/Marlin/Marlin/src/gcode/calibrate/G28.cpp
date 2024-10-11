@@ -292,33 +292,29 @@ static void reenable_wavetable(AxisEnum axis)
  */
 
 /**
- * G28: Home all axes according to settings
+ *###G28: Home all axes according to settings <a href="https://reprap.org/wiki/G-code#G28:_Move_to_Origin_.28Home.29">G28: Move to Origin (Home)</a>
  *
- * If PRECISE_HOMING is enabled, there are specific amount
- * of tries to home an X/Y axis. If it fails it runs re-calibration
- * (if it's not disabled by D).
+ *If `PRECISE_HOMING` is enabled, there are specific amount
+ *of tries to home an X/Y axis. If it fails it runs re-calibration
  *
- * Parameters
+ *Home to all axes with no parameters.
  *
- *  None  Home to all axes with no parameters.
- *        With QUICK_HOME enabled XY will home together, then Z.
+ *#### Usage
  *
- *  O         Home only if the position is not known and trusted
- *  R<linear> Raise by n mm/inches before homing
+ *    G28 [ X | Y | Z | I | N | O | P | R | S ]
  *
- * Cartesian/SCARA parameters
+ *#### Parameters
  *
- *  X   Home to the X endstop
- *  Y   Home to the Y endstop
- *  Z   Home to the Z endstop
- *
- * PRECISE_HOMING only:
- *
- *  D   Avoid home calibration
- *
- * DETECT_PRINT_SHEET only:
- *
- *  P   Do not check print sheet presence
+ * - `X` - Flag to go back to the X axis origin
+ * - `Y` - Flag to go back to the Y axis origin
+ * - `Z` - Flag to go back to the Z axis origin
+ * - `I` - Imprecise: do not perform precise refinement
+ * - `L` - Force leveling state ON (if possible) or OFF after homing (Requires `RESTORE_LEVELING_AFTER_G28` or `ENABLE_LEVELING_AFTER_G28`)
+ * - `N` - No-change mode (do not change any motion setting such as feedrate)
+ * - `O` - Home only if the position is not known and trusted
+ * - `P` - Do not check print sheet presence
+ * - `R` - <linear> Raise by n mm/inches before homing
+ * - `S` - Simulated homing only in `MARLIN_DEV_MODE`
  */
 void GcodeSuite::G28() {
 #if ENABLED(NOZZLE_LOAD_CELL)

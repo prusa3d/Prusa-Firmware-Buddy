@@ -76,19 +76,23 @@ void ClProgressData::mInit(void) {
  */
 
 /**
- * M73: Tell the firmware the current build progress (percentage/time to end/time to pause). The machine is expected to display this on its display.
+ *### M73: Set/Get build percentage <a href="https://reprap.org/wiki/G-code#M73:_Set.2FGet_build_percentage">M73: Set/Get build percentage</a>
  *
- * ## Parameters
+ * The machine is expected to display this on its display.
  *
- * - `P` - [percentage] Set percentage value
- * - `Q` - [percentage] Set percentage value in stealth mode
- * - `R` - [minutes] Set time to end / percentage done
- * - `S` - [minutes] Set time to end / percentage done in stealth mode
- * - `C` - [minutes] Set time to pause
- *   (historically also `T`, which is not documented anywhere and we couldn't
- *   track anyone producing it, but the code accepted it previously - probably
- *   a typo, but keeping it for backwards compatibility anyway).
- * - `D` - [minutes] Set time to pause in stealth mode
+ *#### Usage
+ *
+ *    M73 [ P | Q | R | S | C | D ]
+ *
+ *#### Parameters
+ *
+ *  - `P` - Set percentage value
+ *  - `Q` - Set percentage value in stealth mode
+ *  - `R` - Set time to end / percentage done [minutes]
+ *  - `S` - Set time to end / percentage done in stealth mode [minutes]
+ *  - `C` - Set time to pause [minutes]
+ *  - `D` - Set time to pause in stealth mode [minutes]
+ *  - `T` - Set time to pause [minutes] backwards compatibility
  */
 
 void GcodeSuite::M73_PE() {

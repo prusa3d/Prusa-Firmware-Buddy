@@ -36,14 +36,21 @@ static void M997_no_parser(uint module_number, [[maybe_unused]] uint address, bo
  */
 
 /**
- * Perform in-application firmware update
+ *### M997: Perform in-application firmware update <a href="https://reprap.org/wiki/G-code#M997:_Perform_in-application_firmware_update">M997: Perform in-application firmware update</a>
  *
- * ## Parameters
+ *#### Usage
+ *
+ *    M997 [ O | S | B ]
+ *
+ *#### Parameters
  *
  * - `O` - Update older or same firmware on restart == force reflash == from menu
  * - `S` - Firmware module number(s), default 0
- *       - 0 - main firmware.
- *       - 1 - 4 - Reserved, check reprap wiki
+ *   - `0` - main firmware.
+ *   - `1` - Reserved, check reprap wiki
+ *   - `2` - Reserved, check reprap wiki
+ *   - `3` - Reserved, check reprap wiki
+ *   - `4` - Reserved, check reprap wiki
  * - `B` - Expansion board address, default 0
  *       - Currently unused, defined just to be reprap compatible
  *

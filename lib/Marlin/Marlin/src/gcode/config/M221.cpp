@@ -30,11 +30,18 @@
  */
 
 /**
- * M221: Set extrusion percentage (M221 T0 S95)
- * 
- * ## Parameters
+ *### M221: Get/Set extrusion percentage <a href="https://reprap.org/wiki/G-code#M221:_Set_extrude_factor_override_percentage">M221: Set extrude factor override percentage</a>
  *
- * - `S` - [percentage] Flow percentage
+ *#### Usage
+ *
+ *    M221 [ S | T ]
+ *
+ *#### Parameters
+ *
+ * - `S` - Flow percentage
+ * - `T` - Tool
+ *
+ * Without parameters prints the current extrusion percentage
  */
 void GcodeSuite::M221() {
 

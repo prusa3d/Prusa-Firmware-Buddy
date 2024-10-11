@@ -15,23 +15,28 @@ using namespace filament_gcodes;
  */
 
 /**
- * M701: Load filament
+ *### M701: Load filament <a href="https://reprap.org/wiki/G-code#M701:_Load_filament">M701: Load filament</a>
  *
- *  T<extruder> - Extruder number. Required for mixing extruder.
- *                For non-mixing, current extruder if omitted.
- *  Z<distance> - Move the Z axis by this distance
- *  L<distance> - Extrude distance for insertion (positive value)
- *              - 0 == PURGE
- *  S"Filament" - save filament by name, for example S"PLA". RepRap compatible.
- *  P<mmu>      - MMU index of slot (zero based)
- *  W<value>    - Preheat
- *              - W255 - default without preheat
- *              - W0  - preheat no return no cool down
- *              - W1  - preheat with cool down option
- *              - W2  - preheat with return option
- *              - W3  - preheat with cool down and return options
- *  O<value>    - Color number corresponding to Color, RGB order
- *  R           - resume print if paused
+ *#### Usage
+ *
+ *    M701 [ T | Z | L | S | P | W | O | R ]
+ *
+ *#### Parameters
+ *
+ * - `T` - Extruder number
+ * - `Z` - Move the Z axis by this distance
+ * - `L` - Extrude distance for insertion (positive value)
+ *   - `0` - PURGE
+ * - `S"Filament"` - save filament by name, for example S"PLA". RepRap compatible.
+ * - `P<mmu>` - MMU index of slot (zero based)
+ * - `W<value>` - Preheat
+ *   - `W255` - default without preheat
+ *   - `W0` - preheat no return no cool down
+ *   - `W1` - preheat with cool down option
+ *   - `W2` - preheat with return option
+ *   - `W3` - preheat with cool down and return options
+ * - `O<value>` - Color number corresponding to Color, RGB order
+ * - `R` - resume print if paused
  *
  *  Default values are used for omitted arguments.
  */
@@ -66,20 +71,24 @@ void GcodeSuite::M701() {
 }
 
 /**
- * M702: Unload filament
+ *### M702: Unload filament <a href="https://reprap.org/wiki/G-code#M702:_Unload_filament">M702: Unload filament</a>
  *
- *  T<extruder> - Extruder number. Required for mixing extruder.
- *                For non-mixing, if omitted, current extruder
- *                (or ALL extruders with FILAMENT_UNLOAD_ALL_EXTRUDERS).
- *  Z<distance> - Move the Z axis by this distance
- *  U<distance> - Retract distance for removal (manual reload)
- *  W<value>    - Preheat
- *              - W255 - default without preheat
- *              - W0  - preheat no return no cool down
- *              - W1  - preheat with cool down option
- *              - W2  - preheat with return option
- *              - W3  - preheat with cool down and return options
- *  I           - ask successful unload
+ *#### Usage
+ *
+ *    M702 [ T | Z | U | W | I ]
+ *
+ *#### Parameters
+ *
+ * - `T` - Extruder number
+ * - `Z` - Move the Z axis by this distance
+ * - `U` - Retract distance for removal (manual reload)
+ * - `W` - Preheat
+ *   - `255` - default without preheat
+ *   - `0` - preheat no return no cool down
+ *   - `1` - preheat with cool down option
+ *   - `2` - preheat with return option
+ *   - `3` - preheat with cool down and return options
+ * - `I` - ask successful unload
  *
  *  Default values are used for omitted arguments.
  */

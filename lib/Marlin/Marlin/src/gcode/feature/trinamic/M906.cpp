@@ -33,16 +33,24 @@
  */
 
 /**
- * M906: Set motor current in milliamps.
+ *### M906: Get/Set motor current in milliamps <a href="https://reprap.org/wiki/G-code#M906:_Set_motor_currents">M906: Set motor currents</a>
  *
- * Parameters:
- *   X[current]  - Set mA current for X driver(s)
- *   Y[current]  - Set mA current for Y driver(s)
- *   Z[current]  - Set mA current for Z driver(s)
- *   E[current]  - Set mA current for E driver(s)
+ *#### Usage
  *
- *   I[index]    - Axis sub-index (Omit or 0 for X, Y, Z; 1 for X2, Y2, Z2; 2 for Z3.)
- *   T[index]    - Extruder index (Zero-based. Omit for E0 only.)
+ *    M906 [ X | Y | Z | E | I | X ]
+ *
+ *#### Parameters
+ *
+ * -` X` - Set mA current for X driver(s)
+ * -` Y` - Set mA current for Y driver(s)
+ * -` Z` - Set mA current for Z driver(s)
+ * -` E` - Set mA current for E driver(s)
+ *
+ * -` I` - Axis sub-index
+ *   - `0` - or Omit for X, Y, Z
+ *   - `1` - for X2, Y2, Z2
+ *   - `2` - for Z3
+ * -` T` - Extruder index (Zero-based. Omit for E0 only.)
  *
  * With no parameters report driver currents.
  */

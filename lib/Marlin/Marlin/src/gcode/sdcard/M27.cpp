@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -27,7 +27,7 @@
 #include "../gcode.h"
 #include "../../sd/cardreader.h"
 
-/**
+/*
  * M27: Get SD Card status
  *      OR, with 'S<seconds>' set the SD status auto-report interval. (Requires AUTO_REPORT_SD_STATUS)
  *      OR, with 'C' get the current filename.

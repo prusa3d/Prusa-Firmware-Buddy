@@ -32,13 +32,19 @@
  */
 
 /**
- * Sets Proportional, Integral and Derivative values for bed
+ *### M304: Set PID parameters - Bed <a href="https://reprap.org/wiki/G-code#M304:_Set_PID_parameters_-_Bed">M304: Set PID parameters - Bed</a>
  *
- * ## Parameters
+ * Not active on XL
  *
- * - `P` - [float] Proportional (Kp)
- * - `I` - [float] Integral (Ki)
- * - `D` - [float] Derivative (Kd)
+ *#### Usage
+ *
+ *    M304 [ P | I | D ]
+ *
+ *#### Parameters
+ *
+ * - `P` - Proportional (Kp)
+ * - `I` - Integral (Ki)
+ * - `D` - Derivative (Kd)
  */
 void GcodeSuite::M304() {
   if (parser.seen('P')) thermalManager.temp_bed.pid.Kp = parser.value_float();

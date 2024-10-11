@@ -10,12 +10,14 @@
  */
 
 /**
- * @brief reset MCU.
+ *### M999: Reset MCU <a href="https://reprap.org/wiki/G-code#M999:_Restart_after_being_stopped_by_error">M999: Restart after being stopped by error</a>
  *
- * Prusa STM32 platform specific
+ *#### Usage
  *
+ *    M999 [ R | Z ]
  *
- * ## Parameters
+ *#### Parameters
+ *
  * - `R` - reset MCU
  * - `Z` - Wait for finishing planned moves, save Z coordinate and restore it after reset.
  *       - Must be combined with R parameter, doesn't work otherwise.

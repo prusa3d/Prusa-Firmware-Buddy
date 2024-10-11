@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -20,7 +20,7 @@
  *
  */
 
-/**
+/*
  * M421.cpp - Mesh Bed Leveling
  */
 
@@ -32,7 +32,7 @@
 #include "../../../module/motion.h"
 #include "../../../feature/bedlevel/mbl/mesh_bed_leveling.h"
 
-/**
+/*
  * M421: Set a single Mesh Bed Leveling Z coordinate
  *
  * Usage:

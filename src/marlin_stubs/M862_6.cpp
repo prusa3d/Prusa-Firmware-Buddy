@@ -13,11 +13,16 @@
  */
 
 /**
- * M862.6: Check supported features
+ *### M862.6: Check supported features <a href="https://reprap.org/wiki/G-code#M862.6:_Firmware_features">M862.6: Firmware features</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `Q` - Print out current supported features
+ *    M [ Q | P "<string>" ]
+ *
+ *#### Parameters
+ *
+ * - `Q` - Print current supported features
+ * - `P "<string>"` - Check for feature
  */
 void PrusaGcodeSuite::M862_6() {
     // Handle only Q

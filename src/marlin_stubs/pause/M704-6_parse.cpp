@@ -10,36 +10,59 @@
  */
 
 /**
- * @brief Load filament to MMU
+ *### M704: Preload to MMU <a href="https://reprap.org/wiki/G-code#M704:_Preload_to_MMU">M704: Preload to MMU</a>
  *
- * ## Parameters
+ * Only MK3.5/S, MK3.9/S and MK4/S with MMU
  *
- * - `T` - Extruder number. Required for mixing extruder.
- *         For non-mixing, current extruder if omitted.
+ *#### Usage
+ *
+ *    M704 [ P ]
+ *
+ *#### Parameters
+ *
  * - `P` - MMU index of slot (zero based)
  *
- * Default values are used for omitted arguments.
+ *#### Examples
+ *
+ *    M704 P0 ; Start preload procedure at slot 0
  */
 void PrusaGcodeSuite::M704() {
     const uint8_t val = parser.byteval('P', 0);
     filament_gcodes::mmu_load(val);
 }
 
+/**
+ *### M1704: Test Load to MMU <a href=" "> </a>
+ *
+ * Only MK3.5/S, MK3.9/S and MK4/S with MMU
+ *
+ * Internal GCode
+ *
+ *#### Usage
+ *
+ *    M1704 [ P ]
+ *
+ *#### Parameters
+ *
+ * - `P` - MMU index of slot (zero based)
+ */
 void PrusaGcodeSuite::M1704() {
     const uint8_t val = parser.byteval('P', 0);
     filament_gcodes::mmu_load_test(val);
 }
 
 /**
- * @brief Eject filament from MMU
+ *### M705: Eject filament <a href="https://reprap.org/wiki/G-code#M705:_Eject_filament">M705: Eject filament</a>
  *
- * ## Parameters
+ * Only MK3.5/S, MK3.9/S and MK4/S with MMU
  *
- * - `T` - Extruder number. Required for mixing extruder.
- *         For non-mixing, current extruder if omitted.
+ *#### Usage
+ *
+ *    M [ P ]
+ *
+ *#### Parameters
+ *
  * - `P` - MMU index of slot (zero based)
- *
- * Default values are used for omitted arguments.
  */
 void PrusaGcodeSuite::M705() {
     const uint8_t val = parser.byteval('P', 0);
@@ -47,15 +70,18 @@ void PrusaGcodeSuite::M705() {
 }
 
 /**
- * @brief Cut filament by MMU
+ *### M706: Cut filament <a href="https://reprap.org/wiki/G-code#M706:_Cut_filament">M706: Cut filament</a>
  *
- * ## Parameters
+ * Only MK3.5/S, MK3.9/S and MK4/S with MMU
  *
- * - `T` - Extruder number. Required for mixing extruder.
- *         For non-mixing, current extruder if omitted.
+ *#### Usage
+ *
+ *    M706 [ P ]
+ *
+ *#### Parameters
+ *
  * - `P` - MMU index of slot (zero based)
  *
- * Default values are used for omitted arguments.
  */
 void PrusaGcodeSuite::M706() {
     const uint8_t val = parser.byteval('P', 0);

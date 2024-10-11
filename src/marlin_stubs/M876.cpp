@@ -29,10 +29,24 @@
     #include "marlin_server.hpp"
     #include "client_fsm_types.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
- * M876: Handle Prompt Response
+ *### M876: Handle Prompt Response <a href="https://reprap.org/wiki/G-code#M876:_Dialog_handling">M876: Dialog handling</a>
  *
- * E display error popup other parameters are ignored
+ * Only MINI
+ *
+ *#### Usage
+ *
+ *    M876 [ S | E ]
+ *
+ *#### Parameters
+ *
+ * - `S` - Response to prompt
+ * - `E` - Display error popup other parameters are ignored
+ *
  * E value must be smaller than WarningType::_count
  */
 void GcodeSuite::M876() {
@@ -52,3 +66,5 @@ void GcodeSuite::M876() {
 }
 
 #endif // HOST_PROMPT_SUPPORT && !EMERGENCY_PARSER
+
+/** @}*/

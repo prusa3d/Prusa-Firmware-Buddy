@@ -28,12 +28,26 @@
  */
 
 /**
- * M120: Enable endstops and set non-homing endstop state to "enabled"
+ *### M120: Enable endstops <a href="https://reprap.org/wiki/G-code#M120:_Enable_endstop_detection">M120: Enable endstop detection</a>
+ *
+ * and set non-homing endstop state to "enabled"
+ *
+ *#### Usage
+ *
+ *    M120
+ *
  */
 void GcodeSuite::M120() { endstops.enable_globally(true); }
 
 /**
- * M121: Disable endstops and set non-homing endstop state to "disabled"
+ *### M121: Disable endstops <a href="https://reprap.org/wiki/G-code#M121:_Disable_endstop_detection">M121: Disable endstop detection</a>
+ *
+ * and set non-homing endstop state to "disabled"
+ *
+ *#### Usage
+ *
+ *    M121
+ *
  */
 void GcodeSuite::M121() { endstops.enable_globally(false); }
 

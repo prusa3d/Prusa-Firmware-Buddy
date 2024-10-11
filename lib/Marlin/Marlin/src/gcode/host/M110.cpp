@@ -28,9 +28,13 @@
  */
 
 /**
- * M110: Set Current Line Number
+ *### M110: Set Current Line Number <a href="https://reprap.org/wiki/G-code#M110:_Set_Current_Line_Number">M110: Set Current Line Number</a>
  *
- * ## Parameters
+ *#### Usage
+ *
+ *    M110 [ N ]
+ *
+ *#### Parameters
  *
  * - `N` - Set queue's last line number
  */

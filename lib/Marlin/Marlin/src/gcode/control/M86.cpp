@@ -28,11 +28,16 @@
  */
 
 /**
- * M86: Set Safety Timer expiration time
+ *### M86: Set Safety Timer expiration time <a href="https://reprap.org/wiki/G-code#M86:_Set_Safety_Timeout">M86: Set Safety Timeout</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `S` - [seconds] Safety timer interval
+ *     M86 [ S ]
+ *
+ *#### Parameters
+ *
+ *  - `S` - Safety timer interval [seconds]
+ *
  */
 void GcodeSuite::M86() {
   if (parser.seen('S'))

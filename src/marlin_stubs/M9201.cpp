@@ -2,11 +2,21 @@
 
 #include "PrusaGcodeSuite.hpp"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
- * Reset motion parameters to defaults (feedrate, accelerations).
+ *### M9201: Reset motion parameters to defaults
  *
- * !!! For internal use only, can be changed or removed at any time
+ * Internal GCode
+ *
+ *#### Usage
+ *
+ *    9201
+ *
  */
 void PrusaGcodeSuite::M9201() {
     Motion_Parameters::reset();
 }
+/** @}*/

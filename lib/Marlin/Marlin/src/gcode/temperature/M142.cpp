@@ -44,11 +44,16 @@
  */
 
 /**
- * Set heatbreak cooling temperature
+ *### M142: Set heatbreak cooling temperature <a href="https://reprap.org/wiki/G-code#M142:_Set_Heatbreak_Temperature">M142: Set heatbreak cooling temperature</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `S` - [degree Celsius] Temperature to be set
+ *    M142 [ S | T ]
+ *
+ *#### Parameters
+ *
+ * - `S` - Set heatbreak temperature to be cooled
+ * - `T` - Tool
  */
 void GcodeSuite::M142() {
   if (DEBUGGING(DRYRUN)) return;
@@ -61,4 +66,4 @@ void GcodeSuite::M142() {
 
 /** @}*/
 
-#endif // HAS_HEATED_BED
+#endif // HAS_TEMP_HEATBREAK

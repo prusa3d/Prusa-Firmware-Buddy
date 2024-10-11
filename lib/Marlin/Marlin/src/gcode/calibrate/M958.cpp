@@ -856,22 +856,30 @@ static bool idle_progress_hook(const VibrateMeasureProgressHookParams &) {
  */
 
 /**
- * @brief Excite harmonic vibration
+ *### M958: Excite harmonic vibration <a href="https://reprap.org/wiki/G-code#M958:_Excite_harmonic_vibration">M958: Excite harmonic vibration</a>
  *
- * - X<direction> Vibrate with X motor, start in direction 1 or -1
- * - Y<direction> Vibrate with Y motor, start in direction 1 or -1
- * - Z<direction> Vibrate with Z motor, start in direction 1 or -1
- * - F<Hz>     Frequency
- * - A<mm/s-2> Acceleration
- * - N<cycles> Number of full periods at desired frequency.
+ * Only MK3.5/S, MK3.9/S, MK4/S, XL and iX
+ *
+ *#### Usage
+ *
+ *    M958 [ X | Y | Z | F | A | N | C | K | I ]
+ *
+ *#### Parameters
+ *
+ * - `X` - Vibrate with X motor, start in direction 1 or -1
+ * - `Y` - Vibrate with Y motor, start in direction 1 or -1
+ * - `Z` - Vibrate with Z motor, start in direction 1 or -1
+ * - `F` - Frequency
+ * - `A` - Acceleration
+ * - `N` - Number of full periods at desired frequency.
  *             In case there is no accelerometer measurement,
  *             exact number of periods is generated,
  *             in case there is accelerometer, it is
  *             number of periods of active measurement and
  *             some extra cycles can be generated.
- * - C         Calibrate accelerometer sample rate
- * - K         Klipper compatible report
- * - I<n>      Which harmonic frequency to measure
+ * - `C` - Calibrate accelerometer sample rate
+ * - `K` - Klipper compatible report
+ * - `I` - Which harmonic frequency to measure
  */
 void GcodeSuite::M958() {
     // phstep needs to be off _before_ getting the current ustep resolution
@@ -1289,22 +1297,30 @@ MicrostepRestorer::~MicrostepRestorer() {
  */
 
 /**
- * @brief Tune input shaper
+ *### M959: Tune input shaper <a href=" "> </a>
  *
- * - X<direction> Vibrate with X motor, start in direction 1 or -1
- * - Y<direction> Vibrate with Y motor, start in direction 1 or -1
- * - Z<direction> Vibrate with Z motor, start in direction 1 or -1
- * - K           select Klipper tune algorithm
- * - KM          select Klipper Marek modified tune algorithm
- * - F<Hz>       Start frequency
- * - G<Hz>       End frequency
- * - H<Hz>       Frequency step
- * - A<mm/s-2>   Acceleration
- * - D           Don't home and move to bed center before calibrating
- * - N<cycles>   Number of excitation signal periods
- *               of active measurement.
- * - W           Write the detected calibration to EEPROM
- * - I<n>        Which harmonic frequency to measure
+ * Only MK3.5/S, MK3.9/S, MK4/S, XL and iX
+ *
+ *#### Usage
+ *
+ *    M959 [ X | Y | Z | K | KM | F | G | H | A | D | N | W | I ]
+ *
+ *#### Parameters
+ *
+ *
+ * - `X` - Vibrate with X motor, start in direction 1 or -1
+ * - `Y` - Vibrate with Y motor, start in direction 1 or -1
+ * - `Z` - Vibrate with Z motor, start in direction 1 or -1
+ * - `K` - select Klipper tune algorithm
+ * - `KM` - select Klipper Marek modified tune algorithm
+ * - `F` - Start frequency
+ * - `G` - End frequency
+ * - `H` - Frequency step
+ * - `A` - Acceleration
+ * - `D` - Don't home and move to bed center before calibrating
+ * - `N` - Number of excitation signal periods of active measurement.
+ * - `W` - Write the detected calibration to EEPROM
+ * - `I` - Which harmonic frequency to measure
  */
 void GcodeSuite::M959() {
     SERIAL_ECHO_START();

@@ -11,12 +11,24 @@
  */
 
 /**
- * Play beep sound
+ *### M300: Play beep sound <a href="https://reprap.org/wiki/G-code#M300:_Play_beep_sound">M300: Play beep sound</a>
  *
- * ## Parameters
+ *#### Usage
+ *
+ *    M300 [ S | P | V ]
+ *
+ *#### Parameters
+ *
  *  - `S` - frequency Hz
  *  - `P` - duration ms
- *  - `V` - volume
+ *  - `V` - volume 0.0 to 1.0
+ *    - `0` - no sound played
+ *    - `1` - max volume
+ *
+ *#### Example
+ *
+ *    M300 P440 P2000 V1   ; Play 440Hz sound for 2000 ms / 2 seconds with 100% volume
+ *    M300 P440 P2000 V0.5 ; Play 440Hz sound for 2000 ms / 2 seconds with 50% volume
  */
 void PrusaGcodeSuite::M300() {
     uint16_t const frequency = parser.ushortval('S', 100);

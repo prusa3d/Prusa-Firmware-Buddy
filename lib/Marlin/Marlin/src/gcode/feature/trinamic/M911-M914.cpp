@@ -55,9 +55,15 @@
    */
 
   /**
-   * M911: Report TMC stepper driver overtemperature pre-warn flag
-   *       This flag is held by the library, persisting until cleared by M912
-   */
+   *### M911: Report TMC stepper driver overtemperature pre-warn flag <a href=" "> </a>
+  *
+  * Only MK3.5/S, MK3.9/S and MK4/S
+  *
+  *#### Usage
+  *
+  *    M911
+  *
+  */
   void GcodeSuite::M911() {
     #if M91x_USE(X)
       tmc_report_otpw(stepperX);
@@ -101,17 +107,31 @@
   }
 
   /**
-   * M912: Clear TMC stepper driver overtemperature pre-warn flag held by the library
-   *       Specify one or more axes with X, Y, Z, X1, Y1, Z1, X2, Y2, Z2, Z3 and E[index].
-   *       If no axes are given, clear all.
-   *
-   * Examples:
-   *       M912 X   ; clear X and X2
-   *       M912 X1  ; clear X1 only
-   *       M912 X2  ; clear X2 only
-   *       M912 X E ; clear X, X2, and all E
-   *       M912 E1  ; clear E1 only
-   */
+   *### M912: Clear TMC stepper driver overtemperature pre-warn flag held by the library <a href=" "> </a>
+  *
+  * Only MK3.5/S, MK3.9/S and MK4/S
+  *
+  *#### Usage
+  *
+  *    M912 [ X | Y | Z | E |  ]
+  *
+  *#### Parameters
+  *
+  * - `X` - X driver
+  * - `Y` - Y driver
+  * - `Z` - Z driver
+  * - `E` - all E drivers
+  *   -`E<number>` - Only E<number>
+  *
+  * Without parameters clear all
+  *
+  * #### Examples:
+  *       M912 X   ; clear X and X2
+  *       M912 X1  ; clear X1 only
+  *       M912 X2  ; clear X2 only
+  *       M912 X E ; clear X, X2, and all E
+  *       M912 E1  ; clear E1 only
+  */
   void GcodeSuite::M912() {
     #if M91x_SOME_X
       const bool hasX = parser.seen(axis_codes.x);
@@ -198,7 +218,26 @@
 #endif // MONITOR_DRIVER_STATUS
 
 /**
- * M913: Set HYBRID_THRESHOLD speed.
+ *### M913: Get/Set Set Hybrid Threshold Speed <a href=" "> </a>
+ *
+ * Only MK3.5/S, MK3.9/S and MK4/S
+ *
+ *#### Usage
+ *
+ *    M913 [ X | Y | Z | E | I ]
+ *
+ *#### Parameters
+ *
+ * - `X` - Set Hybrid Threshold for X to the given value
+ * - `Y` - Set Hybrid Threshold for Y to the given value
+ * - `Z` - Set Hybrid Threshold for Z to the given value
+ * - `E` - Set Hybrid Threshold for E to the given value
+ * - `I` - Index for multiple steppers
+ *   - `1` - for X2, Y2, Z2
+ *   - `2` - for Z3
+ *   - `3` - for Z4
+ *
+ * With no parameters report stealthCop max speeds
  */
 #if ENABLED(HYBRID_THRESHOLD)
   void GcodeSuite::M913() {
@@ -315,7 +354,23 @@
 #endif // HYBRID_THRESHOLD
 
 /**
- * M914: Set StallGuard sensitivity.
+ *### M914: Get/Set StallGuard sensitivity <a href=" "> </a>
+ *
+ *#### Usage
+ *
+ *    M914 [ X | Y | Z | I ]
+ *
+ *#### Parameters
+ *
+ * - `X` - Sensitivity of the X stepper driver
+ * - `Y` - Sensitivity of the Y stepper driver
+ * - `Z` - Sensitivity of the Z stepper driver
+ * - `I` - Index for multiple steppers
+ *   - `1` - for X2, Y2, Z2
+ *   - `2` - for Z3
+ *   - `3` - for Z4
+ *
+ * With no parameters report StallGuard homing sensitivities
  */
 #if USE_SENSORLESS
   void GcodeSuite::M914() {

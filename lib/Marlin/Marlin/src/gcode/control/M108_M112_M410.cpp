@@ -32,7 +32,14 @@
  */
 
 /**
- * M108: Stop the waiting for heaters in M109, M190, M303. Does not affect the target temperature.
+ *### M108: Cancel Heating <a href="https://reprap.org/wiki/G-code#M108:_Cancel_Heating">M108: Cancel Heating</a>
+ *
+ * Stop the waiting for heaters in M109, M190, M303. Does not affect the target temperature
+ *
+ *#### Usage
+ *
+ *    M108
+ *
  */
 void GcodeSuite::M108() {
   #if HAS_RESUME_CONTINUE
@@ -42,17 +49,27 @@ void GcodeSuite::M108() {
 }
 
 /**
- * M112: Full Shutdown
+ *### M112: Full Shutdown <a href="https://reprap.org/wiki/G-code#M112:_Full_.28Emergency.29_Stop">M112: Full (Emergency) Stop</a>
+ *
+ *#### Usage
+ *
+ *    M112
+ *
  */
 void GcodeSuite::M112() {
   kill(PSTR("Emergency stop (M112)"), nullptr, true);
 }
 
 /**
- * M410: Quickstop - Abort all planned moves
+ *### M410: Quickstop - Abort all planned moves <a href="https://reprap.org/wiki/G-code#M410:_Quick-Stop">M410: Quick-Stop</a>
  *
  * This will stop the carriages mid-move, so most likely they
  * will be out of sync with the stepper position after this.
+ *
+ *#### Usage
+ *
+ *    M410
+ *
  */
 void GcodeSuite::M410() {
   quickstop_stepper();

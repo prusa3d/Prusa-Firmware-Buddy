@@ -5,6 +5,7 @@
 #include "unique_file_ptr.hpp"
 #include <span>
 #include <puppies/puppy_constants.hpp>
+#include <common/utils/algorithm_extensions.hpp>
 #include <bit>
 
 namespace buddy::puppies {
@@ -106,11 +107,11 @@ private:
 
     public:
         uint32_t &get_salt(Dock dock) {
-            return salts[static_cast<uint8_t>(dock)];
+            return salts[stdext::index_of(DOCKS, dock)];
         }
 
         fingerprint_t &get_fingerprint(Dock dock) {
-            return fingerprints[static_cast<uint8_t>(dock)];
+            return fingerprints[stdext::index_of(DOCKS, dock)];
         }
     };
 

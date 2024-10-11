@@ -35,14 +35,24 @@
  */
 
 /**
- * M17: Enable stepper motors
+ *### M17: Enable stepper motors <a href="https://reprap.org/wiki/G-code#M17:_Enable.2FPower_all_stepper_motors">M17: Enable/Power all stepper motors</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `X` - Enable X axis stepper motor
- * - `Y` - Enable Y axis stepper motor
- * - `Z` - Enable Z axis stepper motor
- * - `E` - Enable E axis stepper motor
+ *    M17 [ X | Y | Z | E ]
+ *
+ *#### Parameters
+ *
+ *  - `X` - Enable X axis stepper motor
+ *  - `Y` - Enable Y axis stepper motor
+ *  - `Z` - Enable Z axis stepper motor
+ *  - `E` - Enable E axis stepper motor
+ *
+ *#### Examples
+ *
+ *    M17   ; enables all
+ *    M17 Z ; enables Z only
+ *
  */
 void GcodeSuite::M17() {
   if (parser.seen("XYZE")) {
@@ -64,15 +74,50 @@ void GcodeSuite::M17() {
 }
 
 /**
- * M18, M84: Disable stepper motors
+ *### M18: Disable stepper motors <a href="https://reprap.org/wiki/G-code#M18:_Disable_all_stepper_motors">M18: Disable all stepper motors</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `S` - [seconds] stepper inactive time
- * - `X` - Disable X axis stepper motor
- * - `Y` - Disable Y axis stepper motor
- * - `Z` - Disable Z axis stepper motor
- * - `E` - Disable E axis stepper motor
+ *    M18 [ X | Y | Z | E | S ]
+ *
+ *#### Parameters
+ *
+ *  - `X` - Disable X axis stepper motor
+ *  - `Y` - Disable Y axis stepper motor
+ *  - `Z` - Disable Z axis stepper motor
+ *  - `E` - Disable E axis stepper motor
+ *  - `S` - Stepper inactive time [seconds]
+ *
+ *#### Examples
+ *
+ *    M18      ; Disables all stepper motors and allows axes to move 'freely.'
+ *    M18 X E0 ; Disables X and E0 stepper motors and allows axes to move 'freely.'
+ *    M18 S10  ; Idle steppers after 10 seconds of inactivity
+ *    M18 S0   ; Disable idle timeout
+ *
+ */
+/**
+ *### M84: Disable stepper motors <a href="https://reprap.org/wiki/G-code#M18:_Disable_all_stepper_motors">M18: Disable all stepper motors</a>
+ *
+ *#### Usage
+ *
+ *    M84 [ X | Y | Z | E | S ]
+ *
+ *#### Parameters
+ *
+ *  - `X` - Disable X axis stepper motor
+ *  - `Y` - Disable Y axis stepper motor
+ *  - `Z` - Disable Z axis stepper motor
+ *  - `E` - Disable E axis stepper motor
+ *  - `S` - Stepper inactive time [seconds]
+ *
+ *#### Examples
+ *
+ *    M84      ; Disables all stepper motors and allows axes to move 'freely.'
+ *    M84 X E0 ; Disables X and E0 stepper motors and allows axes to move 'freely.'
+ *    M84 S10  ; Idle steppers after 10 seconds of inactivity
+ *    M84 S0   ; Disable idle timeout
+ *
  */
 void GcodeSuite::M18_M84() {
   if (parser.seenval('S')) {

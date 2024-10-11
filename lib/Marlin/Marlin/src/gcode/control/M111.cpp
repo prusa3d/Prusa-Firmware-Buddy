@@ -27,9 +27,13 @@
  */
 
 /**
- * M111: Set the debug level
+ *### M111: Set the debug level <a href="https://reprap.org/wiki/G-code#M111:_Set_Debug_Level">M111: Set Debug Level</a>
  *
- * ## Parameters
+ *### Usage
+ *
+ *    M111 [ S ]
+ *
+ *#### Parameters
  *
  * - `S` - Debug feature flag
  */

@@ -744,12 +744,24 @@ inline void calibrate_all_simple() {
 } // anonymous namespace
 
 /**
- * G425: Perform calibration with calibration object.
+ * \addtogroup G-Codes
+ */
+
+/**
+ *### G425: Perform calibration with calibration object <a href="https://reprap.org/wiki/G-code#G425:_Perform_auto-calibration_with_calibration_cube">G425: Perform auto-calibration with calibration cube</a>
  *
- *   B           - Perform calibration of backlash only.
- *   T<extruder> - Perform calibration of toolhead only.
- *   V           - Probe object and print position, error, backlash and hotend offset.
- *   U           - Uncertainty, how far to start probe away from the object (mm)
+ * Only XL
+ *
+ *#### Usage
+ *
+ *    G425 [ B | T | V | U ]
+ *
+ *#### Parameters
+ *
+ * - `B` - Perform calibration of backlash only.
+ * - `T` - Toolhead only.
+ * - `V` - Probe object and print position, error, backlash and hotend offset.
+ * - `U` - Uncertainty, how far to start probe away from the object (mm)
  *
  *   no args     - Perform entire calibration sequence (backlash + position on all toolheads)
  */
@@ -772,3 +784,4 @@ void GcodeSuite::G425() {
         calibrate_all_simple();
     }
 }
+/** @}*/

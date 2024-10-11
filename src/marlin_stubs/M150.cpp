@@ -29,29 +29,49 @@ std::optional<leds::ColorRGBW> parse_color() {
 }
 
 /**
- * \addtogroup G-Codes
- */
-
-/**
  * @brief Set display led animations
  *
  * Color input supports RGB and HSV format
  *
- * ## Parameters
+ */
+
+/**
+ * \addtogroup G-Codes
+ */
+/**
+ *### M150: Set LED color <a href="https://reprap.org/wiki/G-code#M150:_Set_LED_color">M150: Set LED color</a>
  *
- * ### RGB color space
- *  - `R` - Red intensity from 0 to 255
- *  - `G` - Green intensity from 0 to 255
- *  - `B` - Blue intensity from 0 to 255
+ *#### Usage
  *
- * ### HSV color space
- *  - `H` - Hue from 0 to 360
- *  - `S` - Saturation from 0 to 100
- *  - `V` - Saturation form 0 to 100
+ *    M150 [ R | B | G | H | S | V | A | S | P ]
  *
- * ### Effect
- *  - `A` - animation type
- *  - `S` - printer state
+ *#### Parameters
+ *
+ * RGB color space
+ * - `R` - Red intensity from 0 to 255
+ * - `G` - Green intensity from 0 to 255
+ * - `B` - Blue intensity from 0 to 255
+ *
+ * HSV color space
+ * - `H` - Hue from 0 to 360
+ * - `S` - Saturation from 0 to 100
+ * - `V` - Saturation form 0 to 100
+ *
+ * Effect
+ * - `A` - Animation type
+ *   - `0` - Solid color
+ *   - `1` - Fading
+ * - `S` - Printer state
+ *   - `0` - Idle
+ *   - `1` - Printing
+ *   - `2` - Pausing
+ *   - `3` - Resuming
+ *   - `4` - Aborting
+ *   - `5` - Finishing
+ *   - `6` - Warning
+ *   - `7` - PowerPanic
+ *
+ * - `P` - Period
  */
 void PrusaGcodeSuite::M150() {
     if (parser.seen('A') && parser.seen('S')) {
@@ -70,25 +90,29 @@ void PrusaGcodeSuite::M150() {
 }
 
 /**
- * @brief Set side strip
+ *### M151: Set LED strip <a href="https://reprap.org/wiki/G-code#M151:_Set_LED_strip">M151: Set LED strip</a>
  *
- * Color input supports RGB and HSV format
+ * Only XL and iX
  *
- * ## Parameters
+ *#### Usage
  *
- * ### RGB color space
- *  - `R` - Red intensity from 0 to 255
- *  - `G` - Green intensity from 0 to 255
- *  - `B` - Blue intensity from 0 to 255
+ *    M151 [ R | B | G | H | S | V | D | T ]
  *
- * ### HSV color space
- *  - `H` - Hue from 0 to 360
- *  - `S` - Saturation from 0 to 100
- *  - `V` - Saturation form 0 to 100
+ *#### Parameters
  *
- * ### Effect
- *  - `D` - duration in milliseconds, iX only: set to 0 for infinite duration
- *  - `T` - transition in milliseconds (fade in / fade out)
+ * RGB color space
+ * - `R` - Red intensity from 0 to 255
+ * - `G` - Green intensity from 0 to 255
+ * - `B` - Blue intensity from 0 to 255
+ *
+ * HSV color space
+ * - `H` - Hue from 0 to 360
+ * - `S` - Saturation from 0 to 100
+ * - `V` - Saturation form 0 to 100
+ *
+ * Effect
+ * - `D` - duration in milliseconds, iX only: set to 0 for infinite duration
+ * - `T` - transition in milliseconds (fade in / fade out)
  *
  * Fade in is counted toward duration,
  * so if duration is greater than 0 and less than transition,
