@@ -19,10 +19,6 @@
 
 void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        Item<MI_INFO_INPUT_VOLTAGE>().UpdateValue(sensor_data().inputVoltage);
-        Item<MI_INFO_5V_VOLTAGE>().UpdateValue(sensor_data().sandwich5VVoltage);
-        Item<MI_INFO_SANDWICH_5V_CURRENT>().UpdateValue(sensor_data().sandwich5VCurrent);
-        Item<MI_INFO_BUDDY_5V_CURRENT>().UpdateValue(sensor_data().buddy5VCurrent);
     }
 
     if (event == GUI_event_t::HELD_RELEASED) {

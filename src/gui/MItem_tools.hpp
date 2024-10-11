@@ -513,67 +513,48 @@ public:
     MI_ODOMETER_TIME();
 };
 
-class MI_INFO_HEATER_VOLTAGE : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Heater Voltage");
-
+#if BOARD_IS_XBUDDY()
+class MI_INFO_HEATER_VOLTAGE : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_HEATER_VOLTAGE();
 };
 
-class MI_INFO_INPUT_VOLTAGE : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Input Voltage");
-
-public:
-    MI_INFO_INPUT_VOLTAGE();
-};
-
-class MI_INFO_5V_VOLTAGE : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("5V Voltage");
-
-public:
-    MI_INFO_5V_VOLTAGE();
-};
-
-class MI_INFO_HEATER_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Heater Current");
-
+class MI_INFO_HEATER_CURRENT : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_HEATER_CURRENT();
 };
 
-class MI_INFO_INPUT_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Input Current");
-
+class MI_INFO_INPUT_CURRENT : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_INPUT_CURRENT();
 };
 
-class MI_INFO_MMU_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("MMU Current");
-
+class MI_INFO_MMU_CURRENT : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_MMU_CURRENT();
 };
+#endif
 
-class MI_INFO_SPLITTER_5V_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Splitter 5V Current");
-
+#if BOARD_IS_XLBUDDY()
+class MI_INFO_5V_VOLTAGE : public MenuItemAutoUpdatingLabel<float> {
 public:
-    MI_INFO_SPLITTER_5V_CURRENT();
+    MI_INFO_5V_VOLTAGE();
 };
 
-class MI_INFO_SANDWICH_5V_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Sandwich 5V Current");
-
+class MI_INFO_SANDWICH_5V_CURRENT : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_SANDWICH_5V_CURRENT();
 };
 
-class MI_INFO_BUDDY_5V_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("XL Buddy 5V Current");
-
+class MI_INFO_BUDDY_5V_CURRENT : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_BUDDY_5V_CURRENT();
+};
+#endif
+
+class MI_INFO_INPUT_VOLTAGE : public MenuItemAutoUpdatingLabel<float> {
+public:
+    MI_INFO_INPUT_VOLTAGE();
 };
 
 class MI_INFO_BOARD_TEMP : public MenuItemAutoUpdatingLabel<float> {

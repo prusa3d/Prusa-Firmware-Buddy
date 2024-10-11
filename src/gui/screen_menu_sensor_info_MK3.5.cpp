@@ -20,11 +20,6 @@
 void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
         Item<MI_INFO_FINDA>().UpdateValue(marlin_vars().mmu2_finda);
-        Item<MI_INFO_HEATER_VOLTAGE>().UpdateValue(sensor_data().heaterVoltage);
-        Item<MI_INFO_INPUT_VOLTAGE>().UpdateValue(sensor_data().inputVoltage);
-        Item<MI_INFO_HEATER_CURRENT>().UpdateValue(sensor_data().heaterCurrent);
-        Item<MI_INFO_INPUT_CURRENT>().UpdateValue(sensor_data().inputCurrent);
-        Item<MI_INFO_MMU_CURRENT>().UpdateValue(sensor_data().mmuCurrent);
         Item<MI_PINDA>().UpdateValue(buddy::hw::zMin.read() == buddy::hw::Pin::State::low);
     }
 
