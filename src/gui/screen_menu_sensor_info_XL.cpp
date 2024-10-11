@@ -19,11 +19,6 @@
 
 void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        Item<MI_INFO_NOZZLE_N_TEMP<0>>().UpdateValue(marlin_vars().hotend(0).temp_nozzle.get());
-        Item<MI_INFO_NOZZLE_N_TEMP<1>>().UpdateValue(marlin_vars().hotend(1).temp_nozzle.get());
-        Item<MI_INFO_NOZZLE_N_TEMP<2>>().UpdateValue(marlin_vars().hotend(2).temp_nozzle.get());
-        Item<MI_INFO_NOZZLE_N_TEMP<3>>().UpdateValue(marlin_vars().hotend(3).temp_nozzle.get());
-        Item<MI_INFO_NOZZLE_N_TEMP<4>>().UpdateValue(marlin_vars().hotend(4).temp_nozzle.get());
         Item<MI_INFO_DWARF_BOARD_TEMPERATURE>().UpdateValue(sensor_data().dwarfBoardTemperature);
         Item<MI_INFO_DWARF_MCU_TEMPERATURE>().UpdateValue(sensor_data().dwarfMCUTemperature);
         Item<MI_INFO_MODULAR_BED_MCU_TEMPERATURE>().UpdateValue(sensor_data().mbedMCUTemperature);

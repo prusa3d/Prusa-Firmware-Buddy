@@ -24,6 +24,7 @@ public:
     virtual void OnClick() override;
 };
 
+/// Nozzle target temperature (adjustable spin)
 template <uint8_t N>
 class MI_NOZZLE : public MI_NOZZLE_ABSTRACT {
 public:
@@ -54,6 +55,16 @@ public:
 
     MI_NOZZLE()
         : MI_NOZZLE_ABSTRACT(N, get_label()) {}
+};
+
+/// Nozzle current temperature (read only, auto updateing)
+class MI_INFO_NOZZLE_TEMP : public MenuItemAutoUpdatingLabel<float> {
+public:
+    MI_INFO_NOZZLE_TEMP(uint8_t tool = 0);
+
+private:
+    std::array<char, 32> label_;
+    const uint8_t tool_;
 };
 
 /// Nozzle current temperature (read only, auto updating)
