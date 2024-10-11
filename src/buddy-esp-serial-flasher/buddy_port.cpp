@@ -3,10 +3,8 @@
 #include <device/peripherals_uart.hpp>
 #include <device/peripherals.h>
 #include <esp_loader.h>
+#include <freertos/delay.hpp>
 #include <string.h>
-
-#include <FreeRTOS.h>
-#include <task.h>
 
 static uint32_t uart_dma_position = 0;
 static uint32_t s_time_end;
@@ -40,7 +38,7 @@ esp_loader_error_t loader_port_read(uint8_t *data, uint16_t size, uint32_t timeo
             return ESP_LOADER_ERROR_TIMEOUT;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1));
+        freertos::delay(1);
     }
 
     // Copy data from DMA buffer to output
@@ -77,9 +75,9 @@ esp_loader_error_t loader_port_change_transmission_rate(uint32_t baudrate) {
 void loader_port_enter_bootloader(void) {
     HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(ESP_GPIO0_GPIO_Port, ESP_GPIO0_Pin, GPIO_PIN_RESET);
-    vTaskDelay(pdMS_TO_TICKS(100));
+    freertos::delay(100);
     HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_SET);
-    vTaskDelay(pdMS_TO_TICKS(100));
+    freertos::delay(100);
     HAL_GPIO_WritePin(ESP_GPIO0_GPIO_Port, ESP_GPIO0_Pin, GPIO_PIN_SET);
 
     // Start receiving only after bootloader sends its message.
@@ -92,12 +90,12 @@ void loader_port_enter_bootloader(void) {
 
 void loader_port_reset_target(void) {
     HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_RESET);
-    vTaskDelay(pdMS_TO_TICKS(100));
+    freertos::delay(100);
     HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_SET);
 }
 
 void loader_port_delay_ms(uint32_t ms) {
-    vTaskDelay(pdMS_TO_TICKS(ms));
+    freertos::delay(ms);
 }
 
 void loader_port_start_timer(uint32_t ms) {
