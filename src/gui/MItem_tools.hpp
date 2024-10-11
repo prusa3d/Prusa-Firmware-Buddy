@@ -797,3 +797,11 @@ protected:
 #if HAS_BELT_TUNING()
 using MI_BELT_TUNING = WithConstructorArgs<MenuItemGcodeAction, N_("Belt Tuning"), "M960 W"_tstr>;
 #endif
+
+/// Useless menu item that is empty and always hidden.
+/// Used as an endstop for trailing commas
+class MI_ALWAYS_HIDDEN : public IWindowMenuItem {
+public:
+    MI_ALWAYS_HIDDEN()
+        : IWindowMenuItem({}, nullptr, is_enabled_t::no, is_hidden_t::yes) {}
+};
