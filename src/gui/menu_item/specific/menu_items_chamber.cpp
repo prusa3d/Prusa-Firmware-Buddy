@@ -18,7 +18,7 @@ MI_CHAMBER_TARGET_TEMP::MI_CHAMBER_TARGET_TEMP(const char *label)
     : WiSpin(
         chamber().target_temperature().value_or(*chamber_temperature_config.special_value),
         chamber_temperature_config,
-        _(label ?: (HAS_MINI_DISPLAY() ? N_("Target") : N_("Target Temperature"))),
+        _(label),
         &img::enclosure_16x16 //
         ) //
 {
@@ -32,8 +32,8 @@ void MI_CHAMBER_TARGET_TEMP::OnClick() {
 // MI_CHAMBER_TEMP
 // ============================================
 MI_CHAMBER_TEMP::MI_CHAMBER_TEMP(const char *label)
-    : MenuItemAutoUpdatingLabel(_(label ?: N_("Temperature")), standard_print_format::temp_c,
-        [] { return chamber().current_temperature().value_or(NAN); }) //
+    : MenuItemAutoUpdatingLabel(_(label), standard_print_format::temp_c,
+        [](auto) -> float { return chamber().current_temperature().value_or(NAN); }) //
 {
     set_is_hidden(!chamber().capabilities().temperature_reporting);
 }
