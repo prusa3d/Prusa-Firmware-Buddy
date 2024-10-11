@@ -408,35 +408,21 @@ public:
     MI_INFO_BED_TEMP();
 };
 
-class MI_INFO_FILL_SENSOR : public WI_LAMBDA_LABEL_t {
-private:
-    FilamentSensorState state;
-    int32_t value;
+class MI_INFO_FILAMENT_SENSOR : public MenuItemAutoUpdatingLabel<FilamentSensorStateAndValue> {
+public:
+    MI_INFO_FILAMENT_SENSOR(const string_view_utf8 &label, const GetterFunction &getter_function);
 
 protected:
-    virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
-
-public:
-    MI_INFO_FILL_SENSOR(const string_view_utf8 &label);
-
-    void UpdateValue(IFSensor *fsensor);
+    void print_val(const std::span<char> &buffer) const;
+    static FilamentSensorStateAndValue get_value(IFSensor *fsensor);
 };
 
-class MI_INFO_PRINTER_FILL_SENSOR : public MI_INFO_FILL_SENSOR {
-    static constexpr const char *label =
-#if PRINTER_IS_PRUSA_XL()
-        N_("Tool Filament sensor");
-#else
-        N_("Filament Sensor");
-#endif
-
+class MI_INFO_PRINTER_FILL_SENSOR : public MI_INFO_FILAMENT_SENSOR {
 public:
     MI_INFO_PRINTER_FILL_SENSOR();
 };
 
-class MI_INFO_SIDE_FILL_SENSOR : public MI_INFO_FILL_SENSOR {
-    static constexpr const char *label = N_("Side Filament Sensor");
-
+class MI_INFO_SIDE_FILL_SENSOR : public MI_INFO_FILAMENT_SENSOR {
 public:
     MI_INFO_SIDE_FILL_SENSOR();
 };

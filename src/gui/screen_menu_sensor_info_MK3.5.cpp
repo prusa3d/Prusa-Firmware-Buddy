@@ -19,7 +19,6 @@
 
 void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(GetExtruderFSensor(marlin_vars().active_extruder.get()));
         Item<MI_INFO_FINDA>().UpdateValue(marlin_vars().mmu2_finda);
         Item<MI_INFO_PRINT_FAN>().UpdateValue(
             marlin_vars().print_fan_speed,

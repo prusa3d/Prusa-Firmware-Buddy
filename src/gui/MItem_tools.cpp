@@ -644,47 +644,55 @@ MI_INFO_BED_TEMP::MI_INFO_BED_TEMP()
     ) {}
 
 /*****************************************************************************/
-// MI_INFO_FILL_SENSOR
-MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(const string_view_utf8 &label)
-    : WI_LAMBDA_LABEL_t(
-        label, nullptr, is_enabled_t::yes, is_hidden_t::no, [&](const std::span<char> &buffer) {
-            static constexpr EnumArray<FilamentSensorState, const char *, 6> texts {
-                { FilamentSensorState::NotInitialized, N_("uninitialized / %ld") },
-                { FilamentSensorState::NotCalibrated, N_("uncalibrated / %ld") }, // not calibrated would be too long
-                { FilamentSensorState::HasFilament, N_(" INS / %7ld") },
-                { FilamentSensorState::NoFilament, N_("NINS / %7ld") },
-                { FilamentSensorState::NotConnected, N_("disconnected / %ld") },
-                { FilamentSensorState::Disabled, N_("disabled / %ld") },
-            };
+// MI_INFO_FILAMENT_SENSOR
+MI_INFO_FILAMENT_SENSOR::MI_INFO_FILAMENT_SENSOR(const string_view_utf8 &label, const GetterFunction &getter_function)
+    : MenuItemAutoUpdatingLabel(
+        label, [this](auto &buf) { print_val(buf); }, getter_function) {}
 
-            StringViewUtf8Parameters<8> params;
-            const auto orig_str = _(texts.get_fallback(state, FilamentSensorState::NotInitialized));
-            orig_str.formatted(params, value).copyToRAM(buffer);
-        }) {}
+void MI_INFO_FILAMENT_SENSOR::print_val(const std::span<char> &buffer) const {
+    static constexpr EnumArray<FilamentSensorState, const char *, 6> texts {
+        { FilamentSensorState::NotInitialized, N_("uninitialized / %ld") },
+        { FilamentSensorState::NotCalibrated, N_("uncalibrated / %ld") }, // not calibrated would be too long
+        { FilamentSensorState::HasFilament, N_(" INS / %7ld") },
+        { FilamentSensorState::NoFilament, N_("NINS / %7ld") },
+        { FilamentSensorState::NotConnected, N_("disconnected / %ld") },
+        { FilamentSensorState::Disabled, N_("disabled / %ld") },
+    };
 
-void MI_INFO_FILL_SENSOR::UpdateValue(IFSensor *fsensor) {
-    FilamentSensorState state = FilamentSensorState::NotInitialized;
-    int32_t value = 0;
-    if (fsensor) {
-        state = fsensor->get_state();
-        value = fsensor->GetFilteredValue();
+    const auto val = value();
+    StringViewUtf8Parameters<8> params;
+    const auto orig_str = _(texts.get_fallback(val.state, FilamentSensorState::NotInitialized));
+    orig_str.formatted(params, val.value).copyToRAM(buffer);
+}
+
+FilamentSensorStateAndValue MI_INFO_FILAMENT_SENSOR::get_value(IFSensor *fsensor) {
+    if (!fsensor) {
+        return {};
     }
-    if (this->state != state || this->value != value) {
-        this->state = state;
-        this->value = value;
-        InValidateExtension();
-    }
+
+    return FilamentSensorStateAndValue {
+        .state = fsensor->get_state(),
+        .value = fsensor->GetFilteredValue(),
+    };
 }
 
 /*****************************************************************************/
 // MI_INFO_PRINTER_FILL_SENSOR
 MI_INFO_PRINTER_FILL_SENSOR::MI_INFO_PRINTER_FILL_SENSOR()
-    : MI_INFO_FILL_SENSOR(_(label)) {}
+    : MI_INFO_FILAMENT_SENSOR(
+        PRINTER_IS_PRUSA_XL() ? _("Tool Filament sensor") : _("Filament Sensor"),
+        [] { return get_value(GetExtruderFSensor(marlin_vars().active_extruder.get())); } //
+    ) {}
 
 /*****************************************************************************/
 // MI_INFO_SIDE_FILL_SENSOR
 MI_INFO_SIDE_FILL_SENSOR::MI_INFO_SIDE_FILL_SENSOR()
-    : MI_INFO_FILL_SENSOR(_(label)) {}
+    : MI_INFO_FILAMENT_SENSOR(
+        _("Side Filament sensor"),
+        [] { return get_value(GetSideFSensor(marlin_vars().active_extruder.get())); } //
+    ) {
+    set_is_hidden(GetSideFSensor(marlin_vars().active_extruder.get()) == nullptr);
+}
 
 /*****************************************************************************/
 // MI_INFO_PRINT_FAN
