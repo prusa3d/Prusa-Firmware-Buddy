@@ -7,6 +7,7 @@
 #include <option/has_dwarf.h>
 #include <option/has_modularbed.h>
 #include <option/has_puppies.h>
+#include <option/has_xbuddy_extension.h>
 
 namespace buddy::puppies {
 
@@ -29,6 +30,7 @@ enum class Dock : uint8_t {
     DWARF_4,
     DWARF_5,
     DWARF_6,
+    XBUDDY_EXTENSION,
 };
 
 constexpr auto DOCKS = std::to_array({
@@ -42,6 +44,9 @@ constexpr auto DOCKS = std::to_array({
         Dock::DWARF_4,
         Dock::DWARF_5,
         Dock::DWARF_6,
+#endif
+#if HAS_XBUDDY_EXTENSION()
+        Dock::XBUDDY_EXTENSION,
 #endif
 });
 
@@ -184,6 +189,12 @@ inline constexpr DockInfo get_dock_info(Dock dock) {
     case Dock::DWARF_6:
         return {
             "/internal/dump_dwarf6.dmp",
+        };
+#endif
+#if HAS_XBUDDY_EXTENSION()
+    case Dock::XBUDDY_EXTENSION:
+        return {
+            "/internal/dump_xbuddy_extension.dmp",
         };
 #endif
     default:

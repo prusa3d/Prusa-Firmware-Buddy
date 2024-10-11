@@ -73,7 +73,9 @@ bool PuppyBootstrap::attempt_crash_dump_download(Dock dock, BootloaderProtocol::
         get_dock_info(dock).crash_dump_path);
 }
 
-PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapResult minimal_config, unsigned int max_attempts) {
+PuppyBootstrap::BootstrapResult PuppyBootstrap::run(
+    [[maybe_unused]] PuppyBootstrap::BootstrapResult minimal_config,
+    [[maybe_unused]] unsigned int max_attempts) {
     PuppyBootstrap::BootstrapResult result;
 #if HAS_DWARF()
     progressHook({ 0, FlashingStage::START, PuppyType::DWARF });
