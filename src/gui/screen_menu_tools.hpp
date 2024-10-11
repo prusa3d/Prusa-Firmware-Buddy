@@ -9,7 +9,6 @@
 #include "MItem_tools.hpp"
 #include "selftest_frame.hpp"
 #include "MItem_hardware.hpp"
-#include "WindowItemTempLabel.hpp"
 
 class MI_INFO_DWARF_BOARD_TEMPERATURE : public MenuItemAutoUpdatingLabel<float> {
 public:

@@ -6,7 +6,6 @@
 #include "filament.hpp"
 #include "WindowItemFormatableLabel.hpp"
 #include "WindowItemFanLabel.hpp"
-#include "WindowItemTempLabel.hpp"
 #include "config.h"
 #include <common/filament_sensor.hpp>
 #include <common/filament_sensor_states.hpp>

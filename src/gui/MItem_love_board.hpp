@@ -4,7 +4,6 @@
 #pragma once
 
 #include "WindowMenuItems.hpp"
-#include "WindowItemTempLabel.hpp"
 #include "i18n.h"
 #include "otp_types.hpp"
 
