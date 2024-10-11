@@ -126,6 +126,8 @@ public:
     /// !!! This disregards ad-hoc filament types
     static FilamentType from_name(const std::string_view &name);
 
+    static std::optional<FilamentType> from_gcode_param(const std::string_view &value);
+
     /// \returns whether the filament type is of the specified name.
     /// !!! Prefer using "loaded_filament.matches(b_name)" over "loaded_filament == FilamentType::from_name(b_name)" where it makes sense.
     /// !!! This is because "loaded_filament" could be an ad-hoc filament, which is never returned from FilamentType::from_name.

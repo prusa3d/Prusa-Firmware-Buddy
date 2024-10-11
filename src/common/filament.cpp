@@ -146,6 +146,11 @@ FilamentType FilamentType::from_name(const std::string_view &name) {
     return FilamentType::none;
 }
 
+std::optional<FilamentType> FilamentType::from_gcode_param(const std::string_view &value) {
+    const FilamentType r = from_name(value);
+    return (r != FilamentType::none) ? std::optional(r) : std::nullopt;
+}
+
 bool FilamentType::matches(const std::string_view &name) const {
     return parameters().name == name;
 }
