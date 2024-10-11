@@ -64,7 +64,7 @@ template <typename T>
 class MenuItemAutoUpdatingLabel : public WI_LAMBDA_LABEL_t {
 
 public:
-    using GetterFunction = stdext::inplace_function<T()>;
+    using GetterFunction = T (*)(MenuItemAutoUpdatingLabel<T> *item);
 
     MenuItemAutoUpdatingLabel(const string_view_utf8 &label, const char *format, const GetterFunction &getter, uint32_t update_interval_ms = 1000)
         : MenuItemAutoUpdatingLabel(label, print_function(format), getter, update_interval_ms) //
@@ -88,7 +88,7 @@ protected:
         }
         last_update_ms_ = now;
 
-        const auto new_value = getter_();
+        const auto new_value = getter_(this);
         if (value_ == new_value) {
             return;
         }

@@ -43,7 +43,7 @@ void MI_NOZZLE_ABSTRACT::OnClick() {
 // MI_INFO_NOZZLE_TEMP
 MI_INFO_NOZZLE_TEMP::MI_INFO_NOZZLE_TEMP(uint8_t tool)
     : MenuItemAutoUpdatingLabel({}, standard_print_format::temp_c,
-        [this] { return marlin_vars().hotend(tool_).temp_nozzle.get(); } //
+        [](auto *item) { return marlin_vars().hotend(reinterpret_cast<MI_INFO_NOZZLE_TEMP *>(item)->tool_).temp_nozzle.get(); } //
         )
     , tool_(tool) //
 {
@@ -61,7 +61,7 @@ MI_INFO_NOZZLE_TEMP::MI_INFO_NOZZLE_TEMP(uint8_t tool)
 // MI_INFO_HEATBREAK_TEMP
 MI_INFO_HEATBREAK_TEMP::MI_INFO_HEATBREAK_TEMP(uint8_t tool)
     : MenuItemAutoUpdatingLabel({}, standard_print_format::temp_c,
-        [this] { return marlin_vars().hotend(tool_).temp_heatbreak.get(); } //
+        [](auto *item) { return marlin_vars().hotend(reinterpret_cast<MI_INFO_HEATBREAK_TEMP *>(item)->tool_).temp_heatbreak.get(); } //
         )
     , tool_(tool) //
 {

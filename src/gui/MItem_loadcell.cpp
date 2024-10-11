@@ -31,5 +31,5 @@ void MI_LOADCELL_SCALE::OnClick() {
 MI_INFO_LOADCELL::MI_INFO_LOADCELL()
     : MenuItemAutoUpdatingLabel(
         _("Loadcell Value"), "%.1f",
-        []() { return sensor_data().loadCell; } //
+        [](auto) { return sensor_data().loadCell; } //
     ) {}

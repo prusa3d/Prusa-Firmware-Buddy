@@ -10,7 +10,7 @@
 #include "fonts.hpp"
 
 MI_MINDA::MI_MINDA()
-    : MenuItemAutoUpdatingLabel(_("M.I.N.D.A."), "%i", [] {
+    : MenuItemAutoUpdatingLabel(_("M.I.N.D.A."), "%i", [](auto) {
         return buddy::hw::zMin.read() == buddy::hw::Pin::State::high;
     }) //
 {}

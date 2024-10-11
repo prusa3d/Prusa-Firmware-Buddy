@@ -18,5 +18,5 @@ void MI_HEAT_ENTIRE_BED::OnChange([[maybe_unused]] size_t old_index) {
 
 MI_INFO_MODULAR_BED_MCU_TEMPERATURE::MI_INFO_MODULAR_BED_MCU_TEMPERATURE()
     : MenuItemAutoUpdatingLabel(_("MBed MCU Temp"), standard_print_format::temp_c,
-        [] { return sensor_data().mbedMCUTemperature; } //
+        [](auto) { return sensor_data().mbedMCUTemperature; } //
     ) {}

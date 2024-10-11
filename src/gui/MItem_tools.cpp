@@ -640,7 +640,7 @@ void MI_PRINT_PROGRESS_TIME::OnClick() {
 // MI_INFO_BED_TEMP
 MI_INFO_BED_TEMP::MI_INFO_BED_TEMP()
     : MenuItemAutoUpdatingLabel(_("Bed Temperature"), standard_print_format::temp_c,
-        [] { return marlin_vars().temp_bed.get(); } //
+        [](auto) { return marlin_vars().temp_bed.get(); } //
     ) {}
 
 /*****************************************************************************/
@@ -681,7 +681,7 @@ FilamentSensorStateAndValue MI_INFO_FILAMENT_SENSOR::get_value(IFSensor *fsensor
 MI_INFO_PRINTER_FILL_SENSOR::MI_INFO_PRINTER_FILL_SENSOR()
     : MI_INFO_FILAMENT_SENSOR(
         PRINTER_IS_PRUSA_XL() ? _("Tool Filament sensor") : _("Filament Sensor"),
-        [] { return get_value(GetExtruderFSensor(marlin_vars().active_extruder.get())); } //
+        [](auto) { return get_value(GetExtruderFSensor(marlin_vars().active_extruder.get())); } //
     ) {}
 
 /*****************************************************************************/
@@ -689,7 +689,7 @@ MI_INFO_PRINTER_FILL_SENSOR::MI_INFO_PRINTER_FILL_SENSOR()
 MI_INFO_SIDE_FILL_SENSOR::MI_INFO_SIDE_FILL_SENSOR()
     : MI_INFO_FILAMENT_SENSOR(
         _("Side Filament sensor"),
-        [] { return get_value(GetSideFSensor(marlin_vars().active_extruder.get())); } //
+        [](auto) { return get_value(GetSideFSensor(marlin_vars().active_extruder.get())); } //
     ) {
     set_is_hidden(GetSideFSensor(marlin_vars().active_extruder.get()) == nullptr);
 }
@@ -699,18 +699,18 @@ MI_INFO_SIDE_FILL_SENSOR::MI_INFO_SIDE_FILL_SENSOR()
 
 MI_INFO_PRINT_FAN::MI_INFO_PRINT_FAN()
     : WI_FAN_LABEL_t(_("Print Fan"),
-        [] { return FanPWMAndRPM {
-                 .pwm = marlin_vars().print_fan_speed,
-                 .rpm = marlin_vars().active_hotend().print_fan_rpm,
-             }; } //
+        [](auto) { return FanPWMAndRPM {
+                       .pwm = marlin_vars().print_fan_speed,
+                       .rpm = marlin_vars().active_hotend().print_fan_rpm,
+                   }; } //
     ) {}
 
 MI_INFO_HBR_FAN::MI_INFO_HBR_FAN()
     : WI_FAN_LABEL_t(PRINTER_IS_PRUSA_MK3_5() ? _("Hotend Fan") : _("Heatbreak Fan"),
-        [] { return FanPWMAndRPM {
-                 .pwm = static_cast<uint8_t>(sensor_data().hbrFan),
-                 .rpm = marlin_vars().active_hotend().heatbreak_fan_rpm,
-             }; } //
+        [](auto) { return FanPWMAndRPM {
+                       .pwm = static_cast<uint8_t>(sensor_data().hbrFan),
+                       .rpm = marlin_vars().active_hotend().heatbreak_fan_rpm,
+                   }; } //
     ) {}
 
 MI_ODOMETER_DIST::MI_ODOMETER_DIST(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
@@ -749,56 +749,56 @@ MI_ODOMETER_TIME::MI_ODOMETER_TIME()
 #if BOARD_IS_XBUDDY()
 MI_INFO_HEATER_VOLTAGE::MI_INFO_HEATER_VOLTAGE()
     : MenuItemAutoUpdatingLabel(_("Heater Voltage"), "%.1f V",
-        [] { return sensor_data().heaterVoltage; } //
+        [](auto) { return sensor_data().heaterVoltage; } //
     ) {}
 
 MI_INFO_HEATER_CURRENT::MI_INFO_HEATER_CURRENT()
     : MenuItemAutoUpdatingLabel(_("Heater Current"), "%.1f A",
-        [] { return sensor_data().heaterCurrent; } //
+        [](auto) { return sensor_data().heaterCurrent; } //
     ) {}
 
 MI_INFO_INPUT_CURRENT::MI_INFO_INPUT_CURRENT()
     : MenuItemAutoUpdatingLabel(_("Input Current"), "%.1f A",
-        [] { return sensor_data().inputCurrent; } //
+        [](auto) { return sensor_data().inputCurrent; } //
     ) {}
 
 MI_INFO_MMU_CURRENT::MI_INFO_MMU_CURRENT()
     : MenuItemAutoUpdatingLabel(_("MMU Current"), "%.1f A",
-        [] { return sensor_data().mmuCurrent; } //
+        [](auto) { return sensor_data().mmuCurrent; } //
     ) {}
 #endif
 
 #if BOARD_IS_XLBUDDY()
 MI_INFO_5V_VOLTAGE::MI_INFO_5V_VOLTAGE()
     : MenuItemAutoUpdatingLabel(_("5V Voltage"), "%.1f V",
-        [] { return sensor_data().sandwich5VVoltage; } //
+        [](auto) { return sensor_data().sandwich5VVoltage; } //
     ) {}
 
 MI_INFO_SANDWICH_5V_CURRENT::MI_INFO_SANDWICH_5V_CURRENT()
     : MenuItemAutoUpdatingLabel(_("Sandwich 5V Current"), "%.2f A",
-        [] { return sensor_data().sandwich5VCurrent; } //
+        [](auto) { return sensor_data().sandwich5VCurrent; } //
     ) {}
 
 MI_INFO_BUDDY_5V_CURRENT::MI_INFO_BUDDY_5V_CURRENT()
     : MenuItemAutoUpdatingLabel(_("XL Buddy 5V Current"), "%.2f A",
-        [] { return sensor_data().buddy5VCurrent; } //
+        [](auto) { return sensor_data().buddy5VCurrent; } //
     ) {}
 #endif
 
 MI_INFO_INPUT_VOLTAGE::MI_INFO_INPUT_VOLTAGE()
     : MenuItemAutoUpdatingLabel(_("Input Voltage"), "%.1f V",
-        [] { return sensor_data().inputVoltage; } //
+        [](auto) { return sensor_data().inputVoltage; } //
     ) {}
 
 MI_INFO_BOARD_TEMP::MI_INFO_BOARD_TEMP()
     : MenuItemAutoUpdatingLabel(_("Board Temperature"), standard_print_format::temp_c,
-        [] { return sensor_data().boardTemp; } //
+        [](auto) { return sensor_data().boardTemp; } //
     ) {
 }
 
 MI_INFO_MCU_TEMP::MI_INFO_MCU_TEMP()
     : MenuItemAutoUpdatingLabel(_("MCU Temperature"), standard_print_format::temp_c,
-        [] { return sensor_data().MCUTemp; } //
+        [](auto) { return sensor_data().MCUTemp; } //
     ) {}
 
 MI_FOOTER_RESET::MI_FOOTER_RESET()

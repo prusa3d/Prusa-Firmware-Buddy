@@ -298,7 +298,7 @@ MI_INFO_FINDA::MI_INFO_FINDA()
             // For now, FINDA is visualized the same way like filament sensors' states
             _(value() ? N_(" INS / 1") : N_("NINS / 0")).copyToRAM(buffer);
         },
-        [] {
+        [](auto) -> bool {
             return marlin_vars().mmu2_finda.get();
         } //
     ) {

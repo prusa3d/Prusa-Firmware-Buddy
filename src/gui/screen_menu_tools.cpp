@@ -19,7 +19,7 @@
 /*****************************************************************************/
 MI_INFO_DWARF_BOARD_TEMPERATURE::MI_INFO_DWARF_BOARD_TEMPERATURE()
     : MenuItemAutoUpdatingLabel(_("Dwarf Board Temp"), standard_print_format::temp_c,
-        [] { return sensor_data().dwarfBoardTemperature; } //
+        [](auto) { return sensor_data().dwarfBoardTemperature; } //
     ) {}
 
 /*****************************************************************************/
@@ -27,7 +27,7 @@ MI_INFO_DWARF_BOARD_TEMPERATURE::MI_INFO_DWARF_BOARD_TEMPERATURE()
 /*****************************************************************************/
 MI_INFO_DWARF_MCU_TEMPERATURE::MI_INFO_DWARF_MCU_TEMPERATURE()
     : MenuItemAutoUpdatingLabel(_("Dwarf MCU Temp"), standard_print_format::temp_c,
-        [] { return sensor_data().dwarfMCUTemperature; } //
+        [](auto) { return sensor_data().dwarfMCUTemperature; } //
     ) {}
 
 MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E(const char *const label, int index)
