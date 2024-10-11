@@ -1,10 +1,7 @@
-/**
- * @file
- */
-
 #include "screen_menu_modularbed.hpp"
 #include "marlin_client.hpp"
 #include <config_store/store_instance.hpp>
+#include <sensor_data.hpp>
 
 /**********************************************************************************************/
 // MI_HEAT_ENTIRE_BED
@@ -20,5 +17,6 @@ void MI_HEAT_ENTIRE_BED::OnChange([[maybe_unused]] size_t old_index) {
 }
 
 MI_INFO_MODULAR_BED_MCU_TEMPERATURE::MI_INFO_MODULAR_BED_MCU_TEMPERATURE()
-    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+    : MenuItemAutoUpdatingLabel(_("MBed MCU Temp"), standard_print_format::temp_c,
+        [] { return sensor_data().mbedMCUTemperature; } //
+    ) {}

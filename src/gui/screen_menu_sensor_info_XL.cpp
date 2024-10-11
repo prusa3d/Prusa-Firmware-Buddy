@@ -19,9 +19,6 @@
 
 void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        Item<MI_INFO_DWARF_BOARD_TEMPERATURE>().UpdateValue(sensor_data().dwarfBoardTemperature);
-        Item<MI_INFO_DWARF_MCU_TEMPERATURE>().UpdateValue(sensor_data().dwarfMCUTemperature);
-        Item<MI_INFO_MODULAR_BED_MCU_TEMPERATURE>().UpdateValue(sensor_data().mbedMCUTemperature);
         Item<MI_INFO_LOADCELL>().UpdateValue(sensor_data().loadCell);
         Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(GetExtruderFSensor(marlin_vars().active_extruder.get()));
         Item<MI_INFO_SIDE_FILL_SENSOR>().UpdateValue(GetSideFSensor(marlin_vars().active_extruder.get()));
