@@ -183,7 +183,15 @@
  */
 
 /**
- * M114: Report current position to host
+ *### M114: Report current position to host <a href="https://reprap.org/wiki/G-code#M114:_Get_Current_Position">M114: Get Current Position</a>
+ *
+ *#### Usage
+ *
+ *    M114 [ D ]
+ *
+ *#### Parameters
+ *
+ * - `D` - Detailed (not active)
  */
 void GcodeSuite::M114() {
 

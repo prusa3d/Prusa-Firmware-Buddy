@@ -72,13 +72,19 @@ void GcodeSuite::set_coordinate_system_offset(int8_t system, AxisEnum axis, floa
  */
 
 /**
- * G53: Apply native workspace to the current move (ONLY FOR iX)
+ *### G53: Apply native workspace to the current move <a href="https://reprap.org/wiki/G-code#G53..59:_Coordinate_System_Select_.28CNC_specific.29">Coordinate System Select (CNC specific)</a>
+ *
+ * Only iX
  *
  * In CNC G-code G53 is a modifier.
  * It precedes a movement command (or other modifiers) on the same line.
  * This is the first command to use parser.chain() to make this possible.
  *
  * Marlin also uses G53 on a line by itself to go back to native space.
+ *
+ *#### Usage
+ *
+ *    G53
  */
 void GcodeSuite::G53() {
   const int8_t old_system = active_coordinate_system;
@@ -99,13 +105,27 @@ void GcodeSuite::G53() {
 }
 
 /**
- * G54-G59.3: Select a new workspace (ONLY FOR iX)
+ *### G54-G59.3: Select a new workspace <a href="https://reprap.org/wiki/G-code#G53..59:_Coordinate_System_Select_.28CNC_specific.29">Coordinate System Select (CNC specific)</a>
+ *
+ * Only iX
  *
  * A workspace is an XYZ offset to the machine native space.
  * All workspaces default to 0,0,0 at start, or with EEPROM
  * support they may be restored from a previous session.
  *
  * G92 is used to set the current workspace's offset.
+ *
+ *#### Usage
+ *
+ *    G54 - use coordinate system 1
+ *    G55 - use coordinate system 2
+ *    G56 - use coordinate system 3
+ *    G57 - use coordinate system 4
+ *    G58 - use coordinate system 5
+ *    G59 - use coordinate system 6
+ *    G59.1 - use coordinate system 7
+ *    G59.2 - use coordinate system 8
+ *    G59.3 - use coordinate system 9
  */
 void G54_59(uint8_t subcode=0) {
   const int8_t _space = parser.codenum - 54 + subcode;

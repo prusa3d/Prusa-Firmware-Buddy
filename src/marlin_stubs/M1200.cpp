@@ -6,7 +6,14 @@
  */
 
 /**
- * @brief Set printer ready for printing.
+ *### M1200: Set printer ready for printing
+ *
+ * Internal GCode
+ *
+ *#### Usage
+ *
+ *    M1200
+ *
  */
 void PrusaGcodeSuite::M1200() {
     if (connect_client::MarlinPrinter::is_printer_ready()) {

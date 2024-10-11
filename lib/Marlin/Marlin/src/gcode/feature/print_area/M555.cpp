@@ -30,14 +30,28 @@
  */
 
 /**
- * M555: Set print area
+ *### M555: Set print area <a href="https://reprap.org/wiki/G-code#M555:_Set_Bounding_Box">M555: Set Bounding Box</a>
  *
- * ## Parameters
+ * Tells the printer about the size of the model.
+ * The XL uses this information to save power for smaller models by only heating the area under it.
  *
- * - `X` - [float] Set print area X coordinate
- * - `Y` - [float] Set print area Y coordinate
- * - `W` - [float] Set print width
- * - `H` - [float] Set print height
+ *#### Usage
+ *
+ *    M555 [ X | Y | W | H ]
+ *
+ *
+ *#### Parameters
+ *
+ * - `X` - Set print area X coordinate
+ * - `Y` - Set print area Y coordinate
+ * - `W` - Set print width
+ * - `H` - Set print height
+ *
+ *#### Examples
+ *
+ *    M555 X10 Y20 W30 H40 ; Defines the print area to `X` =10 and `Y` =20 with a `W`idth of 30 and `H`eight of 40.
+ *                           X 10 to X 40
+ *                           Y 20 to Y 60
  */
 void GcodeSuite::M555() {
   auto area = PrintArea::rect_t::max();

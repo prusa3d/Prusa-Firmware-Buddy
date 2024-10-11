@@ -28,7 +28,18 @@
  */
 
 /**
- * M105: Read hot end and bed temperature
+ *### M105: Read hot end and bed temperature <a href="https://reprap.org/wiki/G-code#M105:_Get_Extruder_Temperature">M105: Get Extruder Temperature</a>
+ *
+ * Request a temperature report to be sent to the host as soon as possible.
+ *
+ *#### Usage
+ *
+ *    M105 [ T | R ]
+ *
+ *#### Parameters
+ *
+ * - `T` - Tool
+ * - `R` - Include the Redundant temperature sensor (not active)
  */
 void GcodeSuite::M105() {
 

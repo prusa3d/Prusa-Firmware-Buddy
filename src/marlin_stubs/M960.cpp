@@ -6,28 +6,30 @@
 #include <gcode/gcode_parser.hpp>
 
 /**
- * Belt tuning. Measures belt resonant frequency to determine their tensioning force.
+ *### M960: Belt tuning <a href="https://reprap.org/wiki/G-code#M960:_Belt_tuning">M960: Belt tuning</a>
  *
- * See MeasureBeltTensionParams for explanation of the parameters
+ * Measures belt resonant frequency to determine their tensioning force.
  *
- * ## Parameters
+ * Only XL and iX
+ *
+ *#### Usage
+ *
+ *    M960 [ B | A | F | G | H | I | J | K | M | C | S | X | W ]
+ *
+ *#### Parameters
+ *
  * - `B` - Belt system (CoreXY -> only 0)
  * - `A` - Excitation amplitude (in meters)
- *
  * - `F` - Scan start frequency (Hz)
  * - `G` - Scan end frequency (Hz)
  * - `H` - Frequency step (Hz)
- *
  * - `I` - Number of excitation cycles
  * - `J` - Number of wait cycles
  * - `K` - Number of measurement cycles
- *
  * - `M` - Measured harmonic
- *
  * - `C` - Calibrate accelerometer
  * - `S` - Skip tuning (only do setup)
  * - `X` - Skip setup (only do tuning)
- *
  * - `W` - Wizard mode (GUI)
  */
 void PrusaGcodeSuite::M960() {

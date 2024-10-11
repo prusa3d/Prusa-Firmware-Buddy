@@ -8,12 +8,18 @@ namespace PrusaGcodeSuite {
  */
 
 /**
- * Run wi-fi setup wizard
+ *### M1703: Run wi-fi setup wizard
  *
- * ## Parameters
+ * Internal GCode
  *
- * - `A` - (Internal) run the wizard as if part of the initial setup
- * - `I` - (Internal) run only loading INI file
+ *#### Usage
+ *
+ *    M1703 [ A | I ]
+ *
+ *#### Parameters
+ *
+ * - `A` - Run the wizard as if part of the initial setup
+ * - `I` - Run only loading INI file
  */
 void M1703() {
     if (parser.seen('A')) {

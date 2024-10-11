@@ -12,12 +12,16 @@
  */
 
 /**
- * M340: Syslog host and port configuration
+ *### M340: Syslog host <a href="https://reprap.org/wiki/G-code#M340:_Syslog_host">M340: Syslog host</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - <ip_address> - Configures the syslog handler to send all the enabled metrics to the given IP address.
- * - <port> - Configures the syslog handler to send all the enabled metrics to the given port.
+ *    M340 [ <ip_address> | <port> ]
+ *
+ *#### Parameters
+ *
+ * - `<ip_address>` - Configures the syslog handler to send all the enabled metrics to the given IP address.
+ * - `<port>` - Configures the syslog handler to send all the enabled metrics to the given port.
  */
 
 void PrusaGcodeSuite::M340() {

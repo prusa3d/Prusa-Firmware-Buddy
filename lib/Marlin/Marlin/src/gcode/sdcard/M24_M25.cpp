@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -42,7 +42,7 @@
   #include "../../feature/power_loss_recovery.h"
 #endif
 
-/**
+/*
  * M24: Start or Resume SD Print
  */
 void GcodeSuite::M24() {
@@ -82,7 +82,7 @@ void GcodeSuite::M24() {
   ui.reset_status();
 }
 
-/**
+/*
  * M25: Pause SD Print
  */
 void GcodeSuite::M25() {

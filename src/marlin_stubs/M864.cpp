@@ -11,13 +11,24 @@
  */
 
 /**
- * Spool join settings gcode
+ *### M864: Spool join <a href="https://reprap.org/wiki/G-code#M864_Spool_join">M864 Spool join</a>
  *
- * ## Examples
+ * Only MK3.5/S, MK3.9/S, MK4/S with MMU and XL
  *
- * - `M864 J A1 B2` - When tool 1 runs out of filament, continue with tool 2
- * - `M864 R` - reset any settings
- * - `M864` - Print current join settings
+ *#### Usage
+ *
+ *    M864 [ J | A | B | R ]
+ *
+ *#### Parameters
+ *
+ *
+ *#### Examples
+ *
+ *    M864 J A1 B2 ; When tool 1 runs out of filament, continue with tool 2
+ *    M864 R       ; reset any settings
+ *    M864         ; Print current join settings
+ *
+ * Without parameters prints the current Spool join mapping
  */
 void PrusaGcodeSuite::M864() {
     if (parser.seen('J') && parser.seen("A") && parser.seen("B")) {

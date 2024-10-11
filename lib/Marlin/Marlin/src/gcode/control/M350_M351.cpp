@@ -32,12 +32,23 @@
  */
 
 /**
- * M350: Set axis microstepping modes. S sets mode for all drivers.
+ *### M350: Get/Set axis microstepping modes <a href="https://reprap.org/wiki/G-code#M350:_Set_microstepping_mode">M350: Set microstepping mode</a>
  *
- * ## Parameters
+ *#### Usage
  *
+ *    M350 [ X | Y | Z | E | S | B ]
+ *
+ *#### Parameters
+ *
+ * - `X` - X axis
+ * - `Y` - Y axis
+ * - `Z` - Z axis
+ * - `E` - E axis
  * - `S` - Mode for all drivers
- * - `B` - Set stepping mode for Extruder 1 
+ * - `B` - Set stepping mode for Extruder 1
+ *
+ * Without parameters prints the current microstepping modes
+ *
  * Warning: Steps-per-unit remains unchanged.
  */
 void GcodeSuite::M350() {

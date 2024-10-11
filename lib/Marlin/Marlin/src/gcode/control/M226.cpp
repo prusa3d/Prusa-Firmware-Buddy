@@ -29,9 +29,13 @@
  */
 
 /**
- * M226: Wait until the specified pin reaches the state required
+ *### M226: Wait for Pin State <a href="https://reprap.org/wiki/G-code#M226:_Wait_for_Pin_State">M226: Wait for Pin State</a>
  *
- * ## Parameters
+ *#### Usage
+ *
+ *    M226 [ P | S ]
+ *
+ *#### Parameters
  *
  * - `P` - Pin
  * - `S` - State

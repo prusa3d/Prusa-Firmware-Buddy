@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -27,7 +27,7 @@
 #include "../gcode.h"
 #include "../../sd/cardreader.h"
 
-/**
+/*
  * M26: Set SD Card file index
  */
 void GcodeSuite::M26() {

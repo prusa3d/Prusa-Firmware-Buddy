@@ -38,12 +38,17 @@
  */
 
 /**
- * M603: Configure filament change
+ *### M603: Configure filament change <a href="https://reprap.org/wiki/G-code#M603:_Configure_Filament_Change">M603: Configure Filament Change</a>
  *
- *  T[toolhead] - Select extruder to configure, active extruder if not specified
- *  U[distance] - Retract distance for removal, for the specified extruder
- *  L[distance] - Extrude distance for insertion, for the specified extruder
+ *#### Usage
  *
+ *    M603 [ T | U | L ]
+ *
+ *#### Parameters
+ *
+ * - `T` - Target extruder
+ * - `U` - Amount of retraction for unload (negative)
+ * - `L` - Load length, longer for bowden (positive)
  */
 void GcodeSuite::M603() {
 

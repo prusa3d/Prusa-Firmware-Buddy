@@ -28,7 +28,19 @@
  */
 
 /**
- * M117: Set LCD Status Message
+ *### M117: Set LCD Status Message <a href="https://reprap.org/wiki/G-code#M117:_Display_Message">M117: Display Message</a>
+ *
+ *#### Usage
+ *
+ *    M117 [string]
+ *
+ *#### Parameters
+ *
+ * - `[string]` - Message string.
+ *
+ *#### Examples
+ *
+ *    M117 Hello World ; Displays on LCD the message "Hello World"
  */
 void GcodeSuite::M117() {
 

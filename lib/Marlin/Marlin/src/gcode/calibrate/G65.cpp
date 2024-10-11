@@ -150,10 +150,6 @@ constexpr bool ENDSTOP_INVERTING[] = {
   #endif
 };
 
-/** \addtogroup G-Codes
- * @{
- */
-
 /**
  * Advanced homing/part measurement (ONLY FOR iX)
  * Homing to any endstop.
@@ -180,8 +176,6 @@ void GcodeSuite::G65(){
     restore_feedrate_and_scaling();
     report_current_position();
 }
-
-/** @}*/
 
 /*Create home positions arrays*/
 constexpr AxisEnum endstop_axis_mapping[] = ENDSTOP_AXIS_MAPPING;

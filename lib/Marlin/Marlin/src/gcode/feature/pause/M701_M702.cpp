@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -46,15 +46,23 @@
   #include "../../../feature/mixing.h"
 #endif
 
-/**
- * M701: Load filament
+/*
+Replaced by PRUSA specific gcodes in /src/marlin_stubs/
+*/
+/*
+ *### M701: Load filament <a href="https://reprap.org/wiki/G-code#M701:_Load_filament">M701: Load filament</a>
  *
- *  T<extruder> - Extruder number. Required for mixing extruder.
- *                For non-mixing, current extruder if omitted.
- *  Z<distance> - Move the Z axis by this distance
- *  L<distance> - Extrude distance for insertion (positive value) (manual reload)
+ *#### Usage
  *
- *  Default values are used for omitted arguments.
+ *    M701 [ T | Z | L ]
+ *
+ *#### Parameters
+ *
+ * - `T` - Extruder number
+ * - `Z` - Move the Z axis by this distance
+ * - `L` - Extrude distance for insertion (positive value)
+ *
+ * Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
   xyz_pos_t park_point = {{XYZ_NOZZLE_PARK_POINT}};
@@ -139,14 +147,21 @@ void GcodeSuite::M701() {
   #endif
 }
 
-/**
- * M702: Unload filament
+/*
+Replaced by PRUSA specific gcodes in /src/marlin_stubs/
+*/
+/*
+ *### M702: Unload filament <a href="https://reprap.org/wiki/G-code#M702:_Unload_filament">M702: Unload filament</a>
  *
- *  T<extruder> - Extruder number. Required for mixing extruder.
- *                For non-mixing, if omitted, current extruder
- *                (or ALL extruders with FILAMENT_UNLOAD_ALL_EXTRUDERS).
- *  Z<distance> - Move the Z axis by this distance
- *  U<distance> - Retract distance for removal (manual reload)
+ *#### Usage
+ *
+ *    M702 [ T | Z | U ]
+ *
+ *#### Parameters
+ *
+ * - `T` - Extruder number
+ * - `Z` - Move the Z axis by this distance
+ * - `U` - Retract distance for removal (manual reload)
  *
  *  Default values are used for omitted arguments.
  */

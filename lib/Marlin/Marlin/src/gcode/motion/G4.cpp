@@ -29,7 +29,17 @@
  */
 
 /**
- * G4: Dwell S<seconds> or P<milliseconds>
+ * ### G4: Dwell <a href="https://reprap.org/wiki/G-code#G4:_Dwell">G4: Dwell</a>
+ * Pause the machine for a period of time.
+ *
+ * #### Usage
+ *
+ *     G4 [ P | S ]
+ *
+ * #### Parameters
+ *
+ *  - `P` - Time to wait, in milliseconds
+ *  - `S` - Time to wait, in seconds
  */
 void GcodeSuite::G4() {
   millis_t dwell_ms = 0;

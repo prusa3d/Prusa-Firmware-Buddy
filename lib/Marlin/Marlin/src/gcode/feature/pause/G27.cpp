@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -29,7 +29,7 @@
 #include "../../../libs/nozzle.h"
 #include "../../../module/motion.h"
 
-/**
+/*
  * G27: Park the nozzle
  */
 void GcodeSuite::G27() {

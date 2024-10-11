@@ -542,7 +542,14 @@ namespace PrusaGcodeSuite {
  */
 
 /**
- *  Input Shaper Calibration Wizard. Prusa BUDDY FW specific.
+ *### M1959: Input Shaper Calibration Wizard
+ *
+ * Internal GCode
+ *
+ *#### Usage
+ *
+ *    M1959
+ *
  */
 
 void M1959() {

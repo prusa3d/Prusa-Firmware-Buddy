@@ -13,20 +13,26 @@
  */
 
 /**
- * Preheat
+ *### M1700: Preheat
+ *
+ * Internal GCode
  *
  * not meant to be used during print
  *
- * ## Parameters
+ *#### Usage
  *
- * - `T`- Extruder number. Required for mixing extruder.
+ *    M [ T | W | S | E | B0 ]
+ *
+ *#### Parameters
+ *
+ * - `T` - Extruder number. Required for mixing extruder.
  *       For non-mixing, current extruder if omitted.
- *      - T-1 - all extruders
+ *   - `T-1` - all extruders
  * - `W` - Preheat
- *       - `W0`  - preheat no return no cool down
- *       - `W1`  - preheat with cool down option
- *       - `W2`  - preheat with return option
- *       - `W3`  - preheat with cool down and return options - default
+ *   - `W0` - preheat no return no cool down
+ *   - `W1` - preheat with cool down option
+ *   - `W2` - preheat with return option
+ *   - `W3` - preheat with cool down and return options - default
  * - `S` - Set filament
  * - `E` - Enforce target temperature
  * - `B0`- Do not preheat bed, default preheat bed
@@ -49,13 +55,19 @@ void PrusaGcodeSuite::M1700() {
 }
 
 /**
- * Autoload
+ *### M1701: Autoload
+ *
+ * Internal GCode
  *
  * not meant to be used during print
  *
- * ## Parameters
+ *#### Usage
  *
- * - `T`- Extruder number. Required for mixing extruder.
+ *    M1701 [ T | Z | L ]
+ *
+ *#### Parameters
+ *
+ * - `T` - Extruder number. Required for mixing extruder.
  *        For non-mixing, current extruder if omitted.
  * - `Z` - Move the Z axis by this distance
  * - `L` - Extrude distance for insertion (positive value) (manual reload)
@@ -76,20 +88,26 @@ void PrusaGcodeSuite::M1701() {
 }
 
 /**
- * non-print filament change
+ *### M1600: non-print filament change <a href=" "> </a>
+ *
+ * Internal GCode
  *
  * not meant to be used during print
  *
- * ## Parameters
+ *#### Usage
  *
- * - `T`- Extruder number. Required for mixing extruder.
- * - `R`           - Preheat Return option
+ *    M1600 [ T | R | U | S | O ]
+ *
+ *#### Parameters
+ *
+ * - `T` - Extruder number. Required for mixing extruder.
+ * - `R` -  Preheat Return option
  * - `U` - Ask Unload type
- *       - `U0` - return if filament unknown (default)
- *       - `U1` - ask only if filament unknown
- *       - `U2` - always ask
+ *   - `U0` - return if filament unknown (default)
+ *   - `U1` - ask only if filament unknown
+ *   - `U2` - always ask
  * - `S"Filament"` - change to filament by name, for example `S"PLA"`
- *  O<value>       - Color number corresponding to Color, RGB order
+ * - `O<value>` - Color number corresponding to Color, RGB order
  */
 void PrusaGcodeSuite::M1600() {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();

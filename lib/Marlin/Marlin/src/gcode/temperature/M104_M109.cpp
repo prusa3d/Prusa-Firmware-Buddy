@@ -46,12 +46,17 @@
  */
 
 /**
- * M104: Set hot end temperature
+ *### M104: Set hot end temperature <a href="https://reprap.org/wiki/G-code#M104:_Set_Extruder_Temperature">M104: Set Extruder Temperature</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `S` - [degree Celsius] Temperature to be set
- * - `D` - [degree Celsius] Temperature to be displayed (otherwise actual temp will be displayed)
+ *    M104 [ S | D | T ]
+ *
+ * #### Parameters
+ *
+ * - `S` - Set temperature
+ * - `D` - Display temperature (otherwise actual temp will be displayed)
+ * - `T` - Tool
  */
 void GcodeSuite::M104() {
 
@@ -80,7 +85,7 @@ void GcodeSuite::M104() {
     #endif
 
     #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
-      /**
+      /*
        * Stop the timer at the end of print. Start is managed by 'heat and wait' M109.
        * We use half EXTRUDE_MINTEMP here to allow nozzles to be put into hot
        * standby mode, for instance in a dual extruder setup, without affecting
@@ -101,8 +106,19 @@ void GcodeSuite::M104() {
 }
 
 /**
- * M109: Sxxx Wait for extruder(s) to reach temperature. Waits only when heating.
- *       Rxxx Wait for extruder(s) to reach temperature. Waits when heating and cooling.
+ *### M109: Set hot end temperature and wait <a href="https://reprap.org/wiki/G-code#M109:_Set_Extruder_Temperature_and_Wait">M109: Set Extruder Temperature and Wait</a>
+ *
+ *#### Usage
+ *
+ *    M109 [ S | R | D | F | T ]
+ *
+ * #### Parameters
+ *
+ * - `S` - Wait for extruder(s) to reach temperature. Waits only when heating.
+ * - `R` - Wait for extruder(s) to reach temperature. Waits when heating and cooling.
+ * - `D` - Display temperature (otherwise actual temp will be displayed)
+ * - `F` - Autotemp flag.
+ * - `T` - Tool
  */
 void GcodeSuite::M109() {
 
@@ -134,7 +150,7 @@ void GcodeSuite::M109() {
 
     #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
       // TODO: this doesn't work properly for multitool, temperature of last tool decides whenever printjob timer is started or not
-      /**
+      /*
        * Use half EXTRUDE_MINTEMP to allow nozzles to be put into hot
        * standby mode, (e.g., in a dual extruder setup) without affecting
        * the running print timer.

@@ -137,11 +137,15 @@ void selftest::calib_Z(bool move_down_after) {
  */
 
 /**
- * G162: Z Calibration
+ *### G162: Z Calibration <a href="https://reprap.org/wiki/G-code#G162:_Home_axes_to_maximum">G162: Home axes to maximum</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `Z` - Calibrate Z axis
+ *    G162 [ Z ]
+ *
+ *#### Parameters
+ *
+ *  - `Z` - Calibrate Z axis
  */
 
 void PrusaGcodeSuite::G162() {

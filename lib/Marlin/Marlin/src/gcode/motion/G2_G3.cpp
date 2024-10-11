@@ -389,8 +389,7 @@ void plan_arc(
  */
 
 /**
- * G2: Clockwise Arc
- * G3: Counterclockwise Arc
+ * ### G2: Clockwise Arc, G3: Counterclockwise Arc <a href="https://reprap.org/wiki/G-code#G2_.26_G3:_Controlled_Arc_Move">G2 & G3: Controlled Arc Move</a>
  *
  * This command has two forms: IJ-form (JK, KI) and R-form.
  *
@@ -410,10 +409,26 @@ void plan_arc(
  *  - P specifies the number of full circles to do
  *      before the specified arc move.
  *
- *  Examples:
+ * #### Usage
  *
- *    G2 I10           ; CW circle centered at X+10
- *    G3 X20 Y12 R14   ; CCW circle with r=14 ending at X20 Y12
+ *     G2 [ X | Y | Z | E | F | I | J | R ] (Clockwise Arc)
+ *     G3 [ X | Y | Z | E | F | I | J | R ] (Counter-Clockwise Arc)
+ *
+ * #### Parameters
+ *
+ *  - `X` - The position to move to on the X axis
+ *  - `Y` - The position to move to on the Y axis
+ *  - `Z` - The position to move to on the Z axis
+ *  - `E` - The amount to extrude between the starting point and ending point
+ *  - `F` - The feedrate per minute of the move between the starting point and ending point (if supplied)
+ *  - `I` - The point in X space from the current X position to maintain a constant distance from
+ *  - `J` - The point in Y space from the current Y position to maintain a constant distance from
+ *  - `R` - Constant radius from the current XY (YZ or ZX) position
+ *
+ *  #### Examples:
+ *
+ *      G2 I10           ; CW circle centered at X+10
+ *      G3 X20 Y12 R14   ; CCW circle with r=14 ending at X20 Y12
  */
 void GcodeSuite::G2_G3(const bool clockwise) {
   if (!MOTION_CONDITIONS) return;

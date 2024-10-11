@@ -28,11 +28,21 @@ static void dump_current_config() {
  */
 
 /**
- * @brief Set parameters for pressure advance.
+ *### M572: Set or report extruder pressure advance <a href="https://reprap.org/wiki/G-code#M572:_Set_or_report_extruder_pressure_advance">M572: Set or report extruder pressure advance</a>
  *
- * - D<value>     Set the extruder number.
- * - S<value>     Set the pressure advance value. If zero the pressure advance is disabled.
- * - W<time>      Set a time range in seconds used for calculating the average extruder velocity for pressure advance. Default value is 0.04.
+ *
+ *#### Usage
+ *
+ *    M [ D | S | W ]
+ *
+ *#### Parameters
+ *
+ *
+ * - `D` - Set the extruder number
+ * - `S` - Set the pressure advance value. Range is 0. to 1.0 seconds. If zero the pressure advance is disabled
+ * - `W` - Set a time range in seconds used for calculating the average extruder velocity for pressure advance. Range between 0. and 0.2 Default value is 0.04
+ *
+ * Without parameters prints the current pressure advance settings.
  */
 void GcodeSuite::M572() {
     const pressure_advance::Config &pa_config = pressure_advance::get_axis_e_config();

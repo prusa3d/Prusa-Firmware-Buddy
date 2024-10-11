@@ -15,11 +15,16 @@
  */
 
 /**
- * M331: Enable metric
+ *### M331: Enable metric <a href="https://reprap.org/wiki/G-code#M331:_Enable_metric">M331: Enable metric</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - <metric> - Enable `metric` for the currently selected `handler`
+ *    M331 [ <metric> ]
+ *
+ *#### Parameters
+ *
+ *
+ * - `<metric>` - Enable `metric` for the currently selected `handler`
  */
 
 void PrusaGcodeSuite::M331() {
@@ -41,11 +46,15 @@ void PrusaGcodeSuite::M331() {
 }
 
 /**
- * M332: Disable metric
+ *### M332: Disable metric <a href="https://reprap.org/wiki/G-code#M332:_Disable_metric">M332: Disable metric</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - <metric> - Disable `metric` for the currently selected `handler`
+ *    M [ <metric> ]
+ *
+ *#### Parameters
+ *
+ * - `<metric>` - Disable `metric` for the currently selected `handler`
  */
 
 void PrusaGcodeSuite::M332() {
@@ -67,7 +76,12 @@ void PrusaGcodeSuite::M332() {
 }
 
 /**
- * M333: List all metrics and whether they are enabled for the currently selected `handler`.
+ *### M333: List all metrics <a href="https://reprap.org/wiki/G-code#M333:_List_all_metrics">M333: List all metrics</a>
+ *
+ *#### Usage
+ *
+ *    M333
+ *
  */
 
 void PrusaGcodeSuite::M333() {
@@ -80,9 +94,18 @@ void PrusaGcodeSuite::M333() {
 }
 
 /**
- * M334: Metrics & syslog configuration
+ *### M334: Metrics & syslog configuration <a href="https://reprap.org/wiki/G-code#M334:_Metrics_.26_syslog_configuration">M334: Metrics & syslog configuration</a>
  *
- * Format: M334 (host) <metrics_port> <syslog_port>
+ *#### Usage
+ *
+ *    M [ <host> | <metrics_port> | <syslog_port> ]
+ *
+ *#### Parameters
+ *
+ * - `<host>` - Host IP
+ * - `<metrics_port>` - Metric port number
+ * - `<syslog_port>`- Syslog port number
+ *
  * Ports are optional
  * Also enables metrics.
  *

@@ -45,7 +45,16 @@ inline void plr_error(PGM_P const prefix) {
 }
 
 /**
- * M1000: Resume from power-loss (undocumented)
+ *### M1000: Resume from power-loss
+ *
+ * Internal GCode
+ *
+ *#### Usage
+ *
+ *    M [ ]
+ *
+ *#### Parameters
+ *
  *   - With 'S' go to the Resume/Cancel menu
  *   - With no parameters, run recovery commands
  */

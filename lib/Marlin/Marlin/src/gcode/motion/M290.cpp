@@ -59,17 +59,20 @@
  */
 
 /**
- * M290: Babystepping
+ *### M290: Babystepping <a href="https://reprap.org/wiki/G-code#M290:_Babystepping">M290: Babystepping</a>
  *
- * Send 'R' or no parameters for a report.
+ *#### Usage
  *
- *  X<linear> - Distance to step X
- *  Y<linear> - Distance to step Y
- *  Z<linear> - Distance to step Z
- *  S<linear> - Distance to step Z (alias for Z)
+ *    M290 [ S | X | Y | Z | R | P ]
  *
- * With BABYSTEP_ZPROBE_OFFSET:
- *  P0 - Don't adjust the Z probe offset
+ *#### Parameters
+ *
+ * - `S` - Alias for Z
+ * - `X` - A distance on the X axis
+ * - `Y` - A distance on the Y axis
+ * - `Z` - A distance on the Z axis
+ * - `R` - Read
+ * - `P` - Don't adjust the Z probe offset
  */
 void GcodeSuite::M290() {
   #if ENABLED(BABYSTEP_XY)

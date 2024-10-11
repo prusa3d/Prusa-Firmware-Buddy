@@ -33,14 +33,21 @@
  */
 
 /**
- * M556: Override modular bedled active
+ *### M556: Override modular bedled <a href="https://reprap.org/wiki/G-code#M556:_Override_modular_bedled">M556: Override modular bedled</a>
  *
- * ## Parameters
+ * Only iX and XL
  *
- * - `x` - [value] Coordinate on X axis
- * - `Y` - [value] Coordinate on Y axis
- * - `I` - [value] Betlet number
- * - '[A|D]` - activate/deactivate selected betlet
+ *#### Usage
+ *
+ *    M556 [ X | Y | I | A | D]
+ *
+ *#### Parameters
+ *
+ * - `X` - Coordinate on X axis
+ * - `Y` - Coordinate on Y axis
+ * - `I` - Betlet number
+ * - `A` - activate selected betlet
+ * - `D` - deactivate selected betlet
  */
 void GcodeSuite::M556() {
 

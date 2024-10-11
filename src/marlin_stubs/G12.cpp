@@ -11,7 +11,13 @@ LOG_COMPONENT_REF(PRUSA_GCODE);
  */
 
 /**
- * G12: Clean nozzle on Nozzle Cleaner
+ *### G12: Clean nozzle on Nozzle Cleaner <a href="https://reprap.org/wiki/G-code#G12:_Clean_Tool">G12: Clean Tool</a>
+ *
+ * Only iX
+ *
+ * #### Usage
+ *
+ *     G12
  *
  */
 

@@ -42,10 +42,15 @@ tmc_reg_t *text_cmd_to_register(const char *cmd_in, bool write, bool read) {
  */
 
 /**
- * M919: TMC Config Write. Writes a value to the TMC driver’s register.
+ *### M919: TMC Config Write <a href="https://reprap.org/wiki/G-code#M919:_TMC_Config_Write">M919: TMC Config Write</a>
  *
- * ## Parameters
+ * Writes a value to the TMC driver’s register.
  *
+ *#### Usage
+ *
+ *    M919 [ X | Y | Z | E | <TMC reg> | <data> ]
+ *
+ *#### Parameters
  * - `X` - Write a value to X axis TMC driver's register
  * - `Y` - Write a value to Y axis TMC driver's register
  * - `Z` - Write a value to Z axis TMC driver's register
@@ -99,15 +104,21 @@ void PrusaGcodeSuite::M919() {
 }
 
 /**
- * M919: TMC Config Read. Reads a value from the TMC driver’s register.
+ *### M920: TMC Config Read <a href="https://reprap.org/wiki/G-code#M920:_TMC_Config_Read">M920: TMC Config Read</a>
  *
- * ## Parameters
+ * Reads a value from the TMC driver’s register.
+ *
+ *#### Usage
+ *
+ *    M919 [ X | Y | Z | E | <TMC reg> ]
+ *
+ *#### Parameters
  *
  * - `X` - Read a value from X axis TMC driver's register
  * - `Y` - Read a value from Y axis TMC driver's register
  * - `Z` - Read a value from Z axis TMC driver's register
  * - `E` - Read a value from E axis TMC driver's register
- * - <TMC reg> - Select specific TMC driver's register
+ * - `<TMC reg>` - Select specific TMC driver's register
  */
 void PrusaGcodeSuite::M920() {
     char cmd[16] = { 0 };

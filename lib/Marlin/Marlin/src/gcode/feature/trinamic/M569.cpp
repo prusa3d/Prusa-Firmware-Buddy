@@ -163,11 +163,23 @@ static void say_stealth_status() {
  */
 
 /**
- * M569: Enable stealthChop on an axis
+ *### M569: Stepper driver control <a href="https://reprap.org/wiki/G-code#M569:_Stepper_driver_control">M569: Stepper driver control</a>
  *
- *   S[1|0] to enable or disable
- *   XYZE to target an axis
- *   No arguments reports the stealthChop status of all capable drivers.
+ *#### Usage
+ *
+ *    M569 [ S | X | Y | Z | E ]
+ *
+ *#### Parameters
+ *
+ * - `S` - Switch
+ *   - `0` - spreadCycle
+ *   - `1` - stealthChop
+ * - `X` - X axis
+ * - `Y` - Y axis
+ * - `Z` - Z axis
+ * - `E` - E axis
+ *
+ * Without parameters prints the current  stealthChop status of all capable drivers.
  */
 void GcodeSuite::M569() {
   if (parser.seen('S')){

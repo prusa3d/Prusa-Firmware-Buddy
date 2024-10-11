@@ -23,16 +23,25 @@ static std::optional<uint8_t> check_param(const char param, const char *gcode, u
  */
 
 /**
- *  M262: Configure pin on IO Expander.
+ *### M262: Configure IO Expander pin <a href="https://reprap.org/wiki/G-code#M262:_Configure_IO_Expander_pin">M262: Configure IO Expander pin</a>
  *
- *  ## Parameters
+ * Only MK3.5/S, MK3.9/S, MK4/S
+ *
+ *#### Usage
+ *
+ *    M262 [ P | B ]
+ *
+ *#### Parameters
  *
  * - `P` - Single pin <0;7> to be configured.
- * - `B` - Pin mode (0 == Output pin, 1 == Input pin)
+ * - `B` - Pin mode
+ *   - `0` - As output pin
+ *   - `1` - As input pin
  *
- *  ## Examples
+ *#### Examples
  *
- * - `M262 P0 B0` - Set pin0 as Output pin (0)
+ *    M262 P0 B0 ; Set pin0 as Output pin (0)
+ *
  */
 void PrusaGcodeSuite::M262() {
     static constexpr const char *gcode = "M262";
@@ -50,16 +59,23 @@ void PrusaGcodeSuite::M262() {
 }
 
 /**
- *  M263: Read from IO Expander's pin.
+ *### M263: Read IO Expander pin <a href="https://reprap.org/wiki/G-code#M263:_Read_IO_Expander_pin">M263: Read IO Expander pin</a>
  *
- *  ## Parameters
+ * Only MK3.5/S, MK3.9/S, MK4/S
  *
- * - `P` - Single pin to read from <0;7>.
+ *#### Usage
  *
- *  ## Examples
+ *    M263 [ P ]
  *
- * - `M263 P6` - read only from pin6, received value will be HIGH (binary 0010 0000 => dec 32) or LOW (binary 0000 0000 => dec 0)
- * - `M263` - read whole Input register (byte)
+ *#### Parameters
+ *
+ * - `P` - Single pin to read <0;7>.
+ *
+ *#### Examples
+ *
+ *    M263 P6 ; read only from pin6, received value will be HIGH (binary 0010 0000 => dec 32) or LOW (binary 0000 0000 => dec 0)
+ *    M263    ; read whole Input register (byte)
+ *
  */
 void PrusaGcodeSuite::M263() {
     static constexpr const char *gcode = "M263";
@@ -92,17 +108,27 @@ void PrusaGcodeSuite::M263() {
 }
 
 /**
- *  M264: Write to IO Expander's pin.
+ *### M264: Write IO Expander pin <a href="https://reprap.org/wiki/G-code#M264:_Write_IO_Expander_pin">M264: Write IO Expander pin</a>
  *
- *  ## Parameters
+ * Only MK3.5/S, MK3.9/S, MK4/S
+ *
+ *#### Usage
+ *
+ *    M264 [ P | B ]
+ *
+ *
+ *#### Parameters
  *
  * - `P` - Select single pin to write to <0;7>.
- * - `B` - [value] to write (0 or 1)
+ * - `B` - Set pin
+ *   - `1` - Set HIGH
+ *   - `0` - Set LOW
  *
- *  ## Examples
+ *#### Examples
  *
- * - `M264 P0 B1` - Set output pin0 to HIGH (1)
- * - `M264 P7 B0` - Set output pin7 to LOW (0)
+ *    M264 P0 B1 ; Set output pin0 to HIGH (1)
+ *    M264 P7 B0 ; Set output pin7 to LOW (0)
+ *
  */
 void PrusaGcodeSuite::M264() {
     static constexpr const char *gcode = "M264";
@@ -119,15 +145,25 @@ void PrusaGcodeSuite::M264() {
 }
 
 /**
- *  M265: Toggle IO Expander's output pin. This G-Code doesn't check if selected pin is configured as Output pin.
+ *### M265: Toggle IO Expander output pin <a href="https://reprap.org/wiki/G-code#M265:_Toggle_IO_Expander_output_pin">M265: Toggle IO Expander output pin</a>
  *
- *  ## Parameters
+ * Only MK3.5/S, MK3.9/S, MK4/S
+ *
+ *#### Usage
+ *
+ *    M265 [ P ]
+ *
+ *
+ * This G-Code doesn't check if selected pin is configured as Output pin.
+ *
+ *#### Parameters
  *
  *  - `P` - Select single pin to flip <0;7>.
  *
- *  ## Examples
+ *#### Examples
  *
- * - `M264 P0` - Flip pin0
+ *    M264 P0 ; Flip pin0
+ *
  */
 void PrusaGcodeSuite::M265() {
     static constexpr const char *gcode = "M265";
@@ -143,9 +179,17 @@ void PrusaGcodeSuite::M265() {
 }
 
 /**
- *  M267: Write to IO Expander's register. This overwrites whole byte. Configuration and Output registers are saved into persistent memory.
-
- *  ## Parameters
+ *### M267: Write IO Expander register <a href="https://reprap.org/wiki/G-code#M267:_Write_IO_Expander_register">M267: Write IO Expander register</a>
+ *
+ * This overwrites whole byte. Configuration and Output registers are saved into persistent memory.
+ *
+ * Only MK3.5/S, MK3.9/S, MK4/S
+ *
+ *#### Usage
+ *
+ *    M [ R | B ]
+ *
+ *#### Parameters
  *
  *  - `R` - Register
  *      - Output = 1,
@@ -154,9 +198,10 @@ void PrusaGcodeSuite::M265() {
  *
  *  - `B` - [value] to be set
  *
- *  ## Examples
+ *#### Examples
  *
- * - `M267 R3 B255` - Set up Config register to the value 255dec (1111 1111b)
+ *    M267 R3 B255 ; Set up Config register to the value 255dec (1111 1111b)
+ *
  */
 void PrusaGcodeSuite::M267() {
     static constexpr const char *gcode = "M267";
@@ -177,19 +222,27 @@ void PrusaGcodeSuite::M267() {
 }
 
 /**
- *  M268: Reads IO expander's register. This reads whole byte.
+ *### M268: Read IO expander register <a href="https://reprap.org/wiki/G-code#M268:_Read_IO_expander_register">M268: Read IO expander register</a>
  *
- *  ## Parameters
+ * Only MK3.5/S, MK3.9/S, MK4/S
  *
- *  - `R` - Register
- *      - Input = 0,
- *      - Output = 1,
- *      - Polarity = 2,
- *      - Config = 3
+ *#### Usage
  *
- *  ## Examples
+ *    M268 [ R ]
  *
- * - `M268 R3` - Reads Config register
+
+ *#### Parameters
+ *
+ * - `R` - Register
+ *   - `0` - Input register
+ *   - `1` - Output register
+ *   - `2` - Polarity register
+ *   - `3` - Config register
+ *
+ *#### Examples
+ *
+ *    M268 R3 ; Read Config register
+ *
  */
 void PrusaGcodeSuite::M268() {
     static constexpr const char *gcode = "M268";

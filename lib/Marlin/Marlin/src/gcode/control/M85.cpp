@@ -28,11 +28,16 @@
  */
 
 /**
- * M85: Set inactivity shutdown timer with parameter S<seconds>. To disable set zero (default)
+ *### M85: Set inactivity shutdown timer <a href="https://reprap.org/wiki/G-code#M85:_Set_Inactivity_Shutdown_Timer">M85: Set Inactivity Shutdown Timer</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `S` - [seconds] Max inactive time
+ *    M85 [ S ]
+ *
+ *### Parameters
+ *
+ * - `S` - Max inactive time [seconds]. To disable set zero (default)
+ *
  */
 void GcodeSuite::M85() {
 

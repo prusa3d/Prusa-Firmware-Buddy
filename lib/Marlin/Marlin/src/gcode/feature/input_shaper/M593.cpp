@@ -147,18 +147,33 @@ static void M593_internal(const M593Params &params) {
  */
 
 /**
- * @brief Set parameters for input shapers.
+ *### M593: Configure Input Shaping  <a href="https://reprap.org/wiki/G-code#M593:_Configure_Input_Shaping">M593: Configure Input Shaping</a>
  *
- * - D<ratio>     Set the input shaper damping ratio. If axes (X, Y, etc.) are not specified, set it for all axes. Default value is 0.1.
- * - F<frequency> Set the input shaper frequency. If axes (X, Y, etc.) are not specified, set it for all axes. Default value is 0Hz - It means that the input shaper is disabled.
- * - T[map]       Set the input shaper type, 0:ZV, 1:ZVD, 2:MZV, 3:EI, 4:2HUMP_EI, and 5:3HUMP_EI. Default value is 0:ZV.
- * - R<reduction> Set the input shaper vibration reduction. This parameter is used just for 3:EI, 4:2HUMP_EI, and 5:3HUMP_EI. Default value is 20.
- * - X<1>         Set the input shaper parameters only for the X axis.
- * - Y<1>         Set the input shaper parameters only for the Y axis.
- * - Z<1>         Set the input shaper parameters only for the Z axis.
- * - A<frequency> Set the input shaper weight adjust frequency delta.
- * - M<mass>      Set the input shaper weight adjust mass limit.
- * - W<1>         Write current input shaper settings to EEPROM.
+ *#### Usage
+ *
+ *    M593 [ D | F | T | R | X | Y | Z | A | M | W ]
+ *
+ *#### Parameters
+ *
+ * - `D` - Set damping ratio. Range 0 to 1.
+ * - `F` - Set frequency. Greater or equal to 0.
+ *   - `0` - Default value is 0Hz = input shaper is disabled.
+ * - `T` - Set type. Range 0 to 5
+ *   - `0` - ZV Default
+ *   - `1` - ZVD
+ *   - `2` - MZV
+ *   - `3` - EI
+ *   - `4` - 2HUMP_EI
+ *   - `5` - 3HUMP_EI
+ * - `R` - Set vibration reduction. Greater than 0. Default value is 20.
+ * - `X` - X axis
+ * - `Y` - Y axis
+ * - `Z` - Z axis
+ * - `A` - Weight adjust frequency delta.
+ * - `M` - Weight adjust mass limit.
+ * - `W` - Write current input shaper settings to EEPROM.
+ *
+ * Without parameters prints the current Input Shaping settings
  */
 void GcodeSuite::M593() {
     input_shaper::M593Params params;

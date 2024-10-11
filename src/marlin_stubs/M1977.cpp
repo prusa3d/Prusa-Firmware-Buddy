@@ -276,7 +276,14 @@ namespace PrusaGcodeSuite {
  */
 
 /**
- *  Phase Stepping Calibration Dialog. Prusa BUDDY FW specific.
+ *### M1977: Phase Stepping Calibration Dialog
+ *
+ * Internal GCode
+ *
+ *#### Usage
+ *
+ *    M1977
+ *
  */
 void M1977() {
     PhasesPhaseStepping phase = PhasesPhaseStepping::intro;

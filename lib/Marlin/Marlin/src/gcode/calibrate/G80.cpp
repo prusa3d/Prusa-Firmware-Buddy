@@ -24,7 +24,13 @@ static void run_gcode(const char *fmt, ...) {
  */
 
 /**
- * G80: Mesh Bed Leveling (MK3)
+ *### G80: Mesh Bed Leveling (MK3.5, MK3.9, MK4/S) <a href="https://reprap.org/wiki/G-code#G80:_Mesh-based_Z_probe">G80: Mesh-based Z probe</a>
+ *
+ * MK3.5, MK3.9 and MK4 Only
+ *
+ *#### Usage
+ *
+ *    G80
  */
 void GcodeSuite::G80() {
     const int target_extruder =

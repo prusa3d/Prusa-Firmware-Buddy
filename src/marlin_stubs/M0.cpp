@@ -6,11 +6,7 @@
 #include "Marlin/src/gcode/gcode.h"
 #include "client_response.hpp"
 
-/** \addtogroup G-Codes
- * @{
- */
-
-/**
+/*
  * @brief M0
  *
  * Use M0 for Quick pause during printing - it pauses queue processing when g-code is read
@@ -40,5 +36,3 @@ void PrusaGcodeSuite::M0() {
         gcode.reset_stepper_timeout();
     }
 }
-
-/** @}*/

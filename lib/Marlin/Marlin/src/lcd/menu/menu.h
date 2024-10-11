@@ -319,7 +319,7 @@ class MenuItem_bool {
  *   draw_menu_item_<type>(sel, row, label, arg3...)
  *   MenuItem_<type>::action(arg3...)
  *
- * Examples:
+ * #### Examples:
  *   BACK_ITEM(MSG_WATCH)
  *   MENU_ITEM(back, MSG_WATCH)
  *     draw_menu_item_back(sel, row, GET_TEXT(MSG_WATCH))

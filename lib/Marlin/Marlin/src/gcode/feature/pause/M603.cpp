@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -33,7 +33,7 @@
   #include "../../../module/tool_change.h"
 #endif
 
-/**
+/*
  * M603: Configure filament change
  *
  *  T[toolhead] - Select extruder to configure, active extruder if not specified

@@ -46,15 +46,25 @@ static constexpr EnumArray<G27Params::ParkPosition, xyz_pos_t, G27Params::ParkPo
  */
 
 /**
- * G27: Park the nozzle
+ *### G27: Park the nozzle <a href="https://reprap.org/wiki/G-code#G27:_Park_toolhead">G27: Park toolhead</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `X` - Park nozzle on X axis
- * - `Y` - Park nozzle on X axis
- * - `Z` - Park nozzle on X axis
- * - `P` - [value] Z action
- * - 'W' - [0-2] Use pre-defined park position. Usable only if X, Y and Z are not present as they override pre-defined behaviour.
+ * G27 [ X | Y | Z | P ]
+ *
+ *#### Parameters
+ *
+ * - `X` - X park position
+ * - `Y` - Y park position
+ * - `Z` - Z park position
+ * - `P` - Z action
+ *   - `0` - (Default) Relative raise by NOZZLE_PARK_Z_RAISE_MIN before XY parking
+ *   - `1` - Absolute move to NOZZLE_PARK_POINT.z before XY parking. This may move the nozzle down, so use with caution!
+ *   - `2` - Relative raise by NOZZLE_PARK_POINT.z before XY parking.
+ * - `W` - Use pre-defined park position. Usable only if X, Y and Z are not present as they override pre-defined behaviour.
+ *   - `0` - Park
+ *   - `1` - Purge
+ *   - `2` - Load
  */
 void GcodeSuite::G27() {
     GCodeParser2 parser;

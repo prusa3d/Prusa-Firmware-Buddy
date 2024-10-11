@@ -14,11 +14,17 @@ uint32_t M123::fan_auto_report_delay = 0;
  */
 
 /**
- * M123: Print fan speed on serial port. Without any parameters means print out fan telemetry to serial port once.
+ *### M123: Print fan speed <a href="https://reprap.org/wiki/G-code#M123:_Tachometer_value_.28RepRap.2C_Prusa_.26_Marlin.29">M123: Tachometer value (RepRap, Prusa & Marlin)</a>
  *
- * ## Parameters
+ * Without any parameters means print out fan telemetry to serial port once.
  *
- * - `S` - [value] Set fan auto report delay
+ *#### Usage
+ *
+ *    M123 [ S ]
+ *
+ *#### Parameters
+ *
+ * - `S` - Set fan auto report delay in seconds
  */
 
 void PrusaGcodeSuite::M123() {

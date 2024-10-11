@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -28,7 +28,7 @@
 #include "../../sd/cardreader.h"
 #include "../../lcd/ultralcd.h"
 
-/**
+/*
  * M23: Open a file
  *
  * The path is relative to the root directory

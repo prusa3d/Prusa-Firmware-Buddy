@@ -33,7 +33,11 @@
  */
 
 /**
- * M401: Deploy and activate the Z probe
+ *### M401: Deploy and activate the Z probe <a href="https://reprap.org/wiki/G-code# "> </a>
+ *
+ *#### Usage
+ *
+ *    M401
  */
 void GcodeSuite::M401() {
   DEPLOY_PROBE();
@@ -41,7 +45,11 @@ void GcodeSuite::M401() {
 }
 
 /**
- * M402: Deactivate and stow the Z probe
+ *### M402: Deactivate and stow the Z probe <a href="https://reprap.org/wiki/G-code# "> </a>
+ *
+ *#### Usage
+ *
+ *    M402
  */
 void GcodeSuite::M402() {
   STOW_PROBE();

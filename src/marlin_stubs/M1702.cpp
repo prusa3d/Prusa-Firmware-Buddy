@@ -433,6 +433,21 @@ namespace {
 
 } // namespace
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
+/**
+ *### M1702: Prevent filament autoload during whole ColdPull workflow
+ *
+ * Internal GCode
+ *
+ *#### Usage
+ *
+ *    M1702
+ *
+ */
+
 void M1702() {
     // Prevent filament autoload during whole ColdPull workflow.
     FS_AutoloadAutolock lock;
@@ -463,3 +478,5 @@ void M1702() {}
 #endif
 
 } // namespace PrusaGcodeSuite
+
+/** @}*/

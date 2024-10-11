@@ -27,12 +27,22 @@
  */
 
 /**
- * M82: Set E codes absolute (default)
+ *### M82: Set E codes absolute (default) <a href="https://reprap.org/wiki/G-code#M82:_Set_extruder_to_absolute_mode">M82: Set extruder to absolute mode</a>
+ *
+ *#### Usage
+ *
+ *    M82
+ *
  */
 void GcodeSuite::M82() { set_e_absolute(); }
 
 /**
- * M83: Set E codes relative while in Absolute Coordinates (G90) mode
+ *### M83: Set E codes relative while in Absolute Coordinates (G90) mode <a href="https://reprap.org/wiki/G-code#M83:_Set_extruder_to_relative_mode">M83: Set extruder to relative mode</a>
+ *
+ *#### Usage
+ *
+ *    M83
+ *
  */
 void GcodeSuite::M83() { set_e_relative(); }
 

@@ -9,12 +9,15 @@
 using namespace buddy;
 
 static void set_chamber_temperature(buddy::Temperature target, bool wait_for_heating, bool wait_for_cooling);
-
 /**
- * \ingroup G-Codes
- * M141: Set chamber temperature
+ *### M141: Set chamber temperature <a href="https://reprap.org/wiki/G-code#M141:_Set_Chamber_Temperature_.28Fast.29">M141: Set Chamber Temperature (Fast)</a>
  *
- * ## Parameters
+ * #### Usage
+ *
+ *     M141 [ S ]
+ *
+ *#### Parameters
+ *
  * - `S` - Target temperature, in degrees Celsius. 0 = no target temperature
  */
 
@@ -32,10 +35,15 @@ void PrusaGcodeSuite::M141() {
 }
 
 /**
- * \ingroup G-Codes
- * M191: Wait for chamber temperature
  *
- * ## Parameters
+ *### M191: Wait for chamber temperature <a href="https://reprap.org/wiki/G-code#M191:_Wait_for_chamber_temperature_to_reach_target_temp">M191: Wait for chamber temperature to reach target temp</a>
+ *
+ * #### Usage
+ *
+ *     M191 [ S | R | C ]
+ *
+ *#### Parameters
+ *
  * - `S` - Target temperature in degrees Celsius. Wait only for heating.
  * - `R` - Target temperature in degrees Celsius. Wait for both cooling and heating.
  * - `C` - Target temperature in degrees Celsius. Wait only for cooling.

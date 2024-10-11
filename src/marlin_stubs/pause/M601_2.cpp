@@ -11,7 +11,11 @@
  */
 
 /**
- * G601: Pause the print
+ *### M601: Pause print <a href="https://reprap.org/wiki/G-code#M601:_Pause_print">M601: Pause print</a>
+ *
+ *#### Usage
+ *
+ *    M601
  */
 
 void GcodeSuite::M601() {
@@ -22,7 +26,11 @@ void GcodeSuite::M601() {
 }
 
 /**
- * G602: Resume the print
+ *### M602: Resume print <a href="https://reprap.org/wiki/G-code#M602:_Resume_print">M602: Resume print</a>
+ *
+ *#### Usage
+ *
+ *    M602
  */
 
 void GcodeSuite::M602() {
