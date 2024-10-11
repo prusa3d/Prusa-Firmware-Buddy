@@ -66,14 +66,13 @@ class MenuItemAutoUpdatingLabel : public WI_LAMBDA_LABEL_t {
 public:
     using GetterFunction = T (*)(MenuItemAutoUpdatingLabel<T> *item);
 
-    MenuItemAutoUpdatingLabel(const string_view_utf8 &label, const char *format, const GetterFunction &getter, uint32_t update_interval_ms = 1000)
-        : MenuItemAutoUpdatingLabel(label, print_function(format), getter, update_interval_ms) //
+    MenuItemAutoUpdatingLabel(const string_view_utf8 &label, const char *format, const GetterFunction &getter)
+        : MenuItemAutoUpdatingLabel(label, print_function(format), getter) //
     {}
 
-    MenuItemAutoUpdatingLabel(const string_view_utf8 &label, const PrintFunction &print_function, const GetterFunction &getter, uint32_t update_interval_ms = 1000)
+    MenuItemAutoUpdatingLabel(const string_view_utf8 &label, const PrintFunction &print_function, const GetterFunction &getter)
         : WI_LAMBDA_LABEL_t(label, print_function)
-        , getter_(getter)
-        , update_interval_ms_(update_interval_ms) //
+        , getter_(getter) //
     {}
 
     const T &value() const {
@@ -108,8 +107,9 @@ private:
     }
 
 private:
+    static constexpr uint16_t update_interval_ms_ = 1000;
+
     GetterFunction getter_;
     uint32_t last_update_ms_ = 0;
-    uint16_t update_interval_ms_;
     T value_ {};
 };
