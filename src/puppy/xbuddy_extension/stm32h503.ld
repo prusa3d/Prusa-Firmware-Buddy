@@ -41,11 +41,21 @@ _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
 _Min_Heap_Size = 0x200; /* required amount of heap */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
+TOTAL_FLASH_SIZE = 128K;
+FLASH_ONE_PAGE = 8K;
+FW_ORIGIN = 0x8000000;
+
+BL_SIZE = 8K;
+DESCRIPTOR_SIZE = 128;
+APP_SIZE = TOTAL_FLASH_SIZE - BL_SIZE - DESCRIPTOR_SIZE;
+
 /* Memories definition */
 MEMORY
 {
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 32K
-  FLASH    (rx)    : ORIGIN = 0x08000000,   LENGTH = 128K
+  FLASH_BOOTLOADER (rx) : ORIGIN = FW_ORIGIN, LENGTH = BL_SIZE
+  FLASH    (rx)    : ORIGIN = FW_ORIGIN + BL_SIZE,   LENGTH = APP_SIZE
+  FW_DESCRIPTOR (r) : ORIGIN = FW_ORIGIN + TOTAL_FLASH_SIZE - DESCRIPTOR_SIZE, LENGTH = DESCRIPTOR_SIZE
 }
 
 /* Sections */
