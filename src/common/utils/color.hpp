@@ -29,6 +29,10 @@ public:
     /// If the \p str is not in the color table, interprets it as a decimal string and tries to construct a color from that
     static std::optional<Color> from_string(const std::string_view &str);
 
+    static std::optional<Color> from_gcode_param(const std::string_view &value) {
+        return from_string(value);
+    }
+
     /// Converts RGB colour to grayscale luminosity. 255 == all white, 0 == all black
     uint8_t to_grayscale() const {
         return std::min<uint16_t>((77 * static_cast<uint16_t>(r) + 150 * static_cast<uint16_t>(g) + 29 * static_cast<uint16_t>(b)) >> 8, 255);
