@@ -10,5 +10,5 @@
 #include "MItem_MINI.hpp"
 
 namespace detail {
-using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_FILAMENT_SENSOR_STATE, MI_MINDA, MI_INFO_MCU_TEMP>;
+using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_INFO_PRINTER_FILL_SENSOR, MI_MINDA, MI_INFO_MCU_TEMP>;
 } // namespace detail
