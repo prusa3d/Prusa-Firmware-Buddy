@@ -49,7 +49,7 @@ TEST_CASE("gcode_parser::gcode_parser::params_tests") {
         CHECK(execution_failed(p, [&] { std::ignore = p.option<int>('F'); }));
         CHECK(p.option<std::string_view>('F', buf) == "");
 
-        CHECK(p.option<std::string_view>('G', buf) == std::unexpected(GCodeParser2::OptionError::not_present));
+        CHECK(p.option_expected<std::string_view>('G', buf) == std::unexpected(GCodeParser2::OptionError::not_present));
     }
 
     SECTION("2") {
@@ -92,7 +92,7 @@ TEST_CASE("gcode_parser::gcode_parser::params_tests") {
         CHECK(p.option<bool>('F') == true);
         CHECK(p.option<bool>('G') == false);
         CHECK(p.option<bool>('H') == true);
-        CHECK(p.option<bool>('I') == std::unexpected(GCodeParser2::OptionError::not_present));
+        CHECK(p.option_expected<bool>('I') == std::unexpected(GCodeParser2::OptionError::not_present));
     }
 
     SECTION("escaping_test") {

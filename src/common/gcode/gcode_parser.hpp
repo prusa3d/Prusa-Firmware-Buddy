@@ -44,12 +44,24 @@ public:
     }
 
     /// Tries to parse option \param key as type \param T.
-    ///  \returns the parsed value on success or \p OptionError if the option is not present or parsing fails.
+    ///  \returns the parsed value on success or \p std::nullopt if the option is not present or parsing fails.
     template <typename T, typename... Args>
-    [[nodiscard]] std::expected<T, OptionError> option(char key, Args &&...args) const {
+    [[nodiscard]] std::optional<T> option(char key, Args &&...args) const {
         T val {};
         const auto result = store_option(key, val, std::forward<Args>(args)...);
-        if (!result) {
+        if (!result.has_value()) {
+            return std::nullopt;
+        }
+
+        return val;
+    }
+
+    /// Same as \p option, but returns an error, too
+    template <typename T, typename... Args>
+    [[nodiscard]] std::expected<T, OptionError> option_expected(char key, Args &&...args) const {
+        T val {};
+        const auto result = store_option(key, val, std::forward<Args>(args)...);
+        if (!result.has_value()) {
             return std::unexpected(result.error());
         }
 
