@@ -96,17 +96,14 @@ DUMMY_AXIS_E::DUMMY_AXIS_E()
     : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), nullptr, is_enabled_t::yes, is_hidden_t::no, 0,
         // this lambda is used during print, but does require item to be invalidated
         [&](const std::span<char> &buffer) {
-            const char *label_str = value ? N_("Heating") : N_("Low temp");
+            const char *label_str = value() ? N_("Heating") : N_("Low temp");
             _(label_str).copyToRAM(buffer);
         }) {
     touch_extension_only_ = true;
 }
 
 void DUMMY_AXIS_E::Update() {
-    if (value != IsTargetTempOk()) {
-        value = IsTargetTempOk();
-        InValidateExtension();
-    }
+    UpdateValue(IsTargetTempOk());
 }
 
 void ScreenMenuMove::checkNozzleTemp() {

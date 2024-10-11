@@ -715,7 +715,7 @@ MI_INFO_HBR_FAN::MI_INFO_HBR_FAN()
 
 MI_ODOMETER_DIST::MI_ODOMETER_DIST(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
     : WI_FORMATABLE_LABEL_t<float>(label, icon, enabled, hidden, initVal, [&](const std::span<char> &buffer) {
-        float value_m = value / 1000; // change the unit from mm to m
+        float value_m = value() / 1000; // change the unit from mm to m
         if (value_m > 999) {
             snprintf(buffer.data(), buffer.size(), "%.1f km", (double)(value_m / 1000));
         } else {
@@ -743,7 +743,7 @@ MI_ODOMETER_MMU_CHANGES::MI_ODOMETER_MMU_CHANGES()
 
 MI_ODOMETER_TIME::MI_ODOMETER_TIME()
     : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [&](const std::span<char> &buffer) {
-        format_duration(buffer, value);
+        format_duration(buffer, value());
     }) {}
 
 #if BOARD_IS_XBUDDY()

@@ -28,31 +28,35 @@ public:
 template <class ValueType>
 class WI_FORMATABLE_LABEL_t : public WI_LAMBDA_LABEL_t {
 
-protected:
-    ValueType value;
-
 public:
     WI_FORMATABLE_LABEL_t(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, const PrintFunction &printAs)
         : WI_LAMBDA_LABEL_t(label, icon, enabled, hidden, printAs)
-        , value(initVal) {
+        , value_(initVal) {
     }
 
     WI_FORMATABLE_LABEL_t(const string_view_utf8 &label, const char *format, ValueType init_value)
         : WI_LAMBDA_LABEL_t(label, nullptr, is_enabled_t::yes, is_hidden_t::no, [this, format](const std::span<char> &buffer) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdouble-promotion"
-            snprintf(buffer.data(), buffer.size(), format, value);
+            snprintf(buffer.data(), buffer.size(), format, value_);
 #pragma GCC diagnostic pop
         })
-        , value(init_value) {
+        , value_(init_value) {
+    }
+
+    const ValueType &value() const {
+        return value_;
     }
 
     void UpdateValue(ValueType val) {
-        if (value != val) {
-            value = val;
+        if (value_ != val) {
+            value_ = val;
             InValidateExtension();
         }
     }
+
+private:
+    ValueType value_;
 };
 
 /// Menu item that automatically periodically calls \param getter in the specified interval, and if the value changes, udpates the label
