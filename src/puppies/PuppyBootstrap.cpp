@@ -69,8 +69,8 @@ bool PuppyBootstrap::attempt_crash_dump_download(Dock dock, BootloaderProtocol::
     std::array<uint8_t, BootloaderProtocol::MAX_RESPONSE_DATA_LEN> buffer;
 
     return crash_dump::download_dump_into_file(buffer, flasher,
-        puppy_info[to_puppy_type(dock)].name,
-        dock_info[to_info_idx(dock)].crash_dump_path);
+        get_puppy_info(to_puppy_type(dock)).name,
+        get_dock_info(dock).crash_dump_path);
 }
 
 PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapResult minimal_config, unsigned int max_attempts) {
@@ -103,7 +103,7 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
                 {
                     // signal to user that puppy is not connected properly
                     auto get_first_missing_dock_string = [minimal_config, result]() -> const char * {
-                        for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
+                        for (const auto dock : DOCKS) {
                             if (minimal_config.is_dock_occupied(dock) && !result.is_dock_occupied(dock)) {
                                 return to_string(dock);
                             }
@@ -130,13 +130,13 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
     #endif
     #if HAS_DWARF()
     fingerprints.get_salt(Dock::DWARF_1) = rand_u();
-    for (Dock dock = Dock::DWARF_1; dock <= Dock::LAST; dock = dock + 1) {
+    for (const auto dock : DWARFS) {
         fingerprints.get_salt(dock) = fingerprints.get_salt(Dock::DWARF_1); // Copy salt to all dwarfs
     }
     #endif
 
     // Ask puppies to compute fw fingerprint
-    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
+    for (const auto dock : DOCKS) {
         if (!result.is_dock_occupied(dock)) {
             // puppy not detected here, nothing to bootstrap
             continue;
@@ -161,7 +161,7 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
         unique_file_ptr fw_file = get_firmware(DWARF);
         off_t fw_size = get_firmware_size(DWARF);
         calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(Dock::DWARF_1), fingerprints.get_salt(Dock::DWARF_1));
-        for (Dock dock = Dock::DWARF_1; dock <= Dock::LAST; dock = dock + 1) {
+        for (Dock dock : DWARFS) {
             fingerprints.get_fingerprint(dock) = fingerprints.get_fingerprint(Dock::DWARF_1); // Copy fingerprint to all dwarfs
         }
         #endif
@@ -169,7 +169,7 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
     #endif /* PUPPY_FLASH_FW() */
 
     // Check puppies if they finished fingerprint calculations
-    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
+    for (const auto dock : DOCKS) {
         if (!result.is_dock_occupied(dock)) {
             // puppy not detected here, nothing to check
             continue;
@@ -189,7 +189,7 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
     }
 
     // Check fingerprints and flash firmware
-    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
+    for (const auto dock : DOCKS) {
         if (!result.is_dock_occupied(dock)) {
             // puppy not detected here, nothing to bootstrap
             continue;
@@ -222,7 +222,7 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
     #endif
 
     // Start application
-    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
+    for (const auto dock : DOCKS) {
         if (!result.is_dock_occupied(dock)) {
             // puppy not detected here, nothing to start
             continue;
@@ -249,15 +249,15 @@ bool PuppyBootstrap::is_puppy_config_ok(PuppyBootstrap::BootstrapResult result, 
 PuppyBootstrap::BootstrapResult PuppyBootstrap::run_address_assignment() {
     BootstrapResult result = {};
 
-    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1U) {
-        auto address = get_boot_address_for_dock(dock);
-        auto puppy_type = to_puppy_type(dock);
+    for (auto dock = DOCKS.begin(); dock != DOCKS.end(); ++dock) {
+        auto puppy_type = to_puppy_type(*dock);
+        auto address = get_boot_address_for_dock(*dock);
 
-        progressHook({ (int)dock, FlashingStage::START, puppy_type });
+        progressHook({ std::to_underlying(*dock), FlashingStage::START, puppy_type });
 
         progressHook({ 0, FlashingStage::DISCOVERY, puppy_type });
         log_info(Puppies, "Discovering whats in dock %s %d",
-            puppy_info[puppy_type].name, static_cast<int>(dock));
+            get_puppy_info(puppy_type).name, std::to_underlying(*dock));
 
         // Wait for puppy to boot up
         osDelay(5);
@@ -270,15 +270,15 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run_address_assignment() {
         osDelay(50);
 
         // reset, all the not-bootstrapped-yet puppies which we don't care about now
-        reset_puppies_range(dock + 1U, Dock::LAST);
+        reset_puppies_range(std::next(dock), DOCKS.end());
 
         bool status = discover(puppy_type, address);
         if (status) {
             log_info(Puppies, "Dock %d: discovered puppy %s, assigned address: %d",
-                static_cast<int>(dock), puppy_info[puppy_type].name, address);
-            result.set_dock_occupied(dock);
+                std::to_underlying(*dock), get_puppy_info(puppy_type).name, address);
+            result.set_dock_occupied(*dock);
         } else {
-            log_info(Puppies, "Dock %d: no puppy discovered", static_cast<int>(dock));
+            log_info(Puppies, "Dock %d: no puppy discovered", std::to_underlying(*dock));
         }
     }
 
@@ -298,9 +298,9 @@ void PuppyBootstrap::assign_address(BootloaderProtocol::Address current_address,
 
 void PuppyBootstrap::verify_address_assignment(BootstrapResult result) {
     // reset every puppy that is supposed to be empty
-    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1U) {
-        if (!result.is_dock_occupied(dock)) {
-            reset_puppies_range(dock, dock);
+    for (auto dock = DOCKS.begin(); dock != DOCKS.end(); ++dock) {
+        if (!result.is_dock_occupied(*dock)) {
+            reset_puppies_range(dock, std::next(dock));
         }
     }
 
@@ -314,33 +314,68 @@ void PuppyBootstrap::verify_address_assignment(BootstrapResult result) {
 }
 
 void PuppyBootstrap::reset_all_puppies() {
-    reset_puppies_range(Dock::FIRST, Dock::LAST);
+    reset_puppies_range(DOCKS.begin(), DOCKS.end());
 }
 
-void PuppyBootstrap::reset_puppies_range([[maybe_unused]] Dock from, [[maybe_unused]] Dock to) {
-#if HAS_DWARF() || HAS_MODULARBED()
-    const auto write_puppies_reset_pin = [](Dock dockFrom, Dock dockTo, Pin::State state) {
-        static const decltype(buddy::hw::modularBedReset) *const reset_pins[] = {
-    #if HAS_MODULARBED()
-            &buddy::hw::modularBedReset,
-    #endif
+#define HAS_PIN_RESETABLE_PUPPIES() HAS_DWARF() || HAS_MODULARBED()
+
+#if HAS_PIN_RESETABLE_PUPPIES()
+constexpr bool is_pin_resetable(Dock dock) {
+    const auto type = to_puppy_type(dock);
+    switch (type) {
     #if HAS_DWARF()
-            &buddy::hw::dwarf1Reset,
-            &buddy::hw::dwarf2Reset,
-            &buddy::hw::dwarf3Reset,
-            &buddy::hw::dwarf4Reset,
-            &buddy::hw::dwarf5Reset,
-            &buddy::hw::dwarf6Reset,
+    case DWARF:
+        return true;
     #endif
-        };
-        for (Dock k = dockFrom; k <= dockTo; k = k + 1U) {
-            reset_pins[static_cast<uint8_t>(k)]->write(state);
+    #if HAS_MODULARBED()
+    case MODULARBED:
+        return true;
+    #endif
+    default:
+        return false;
+    }
+}
+
+// FIXME: This decltype is ugly
+inline decltype(buddy::hw::modularBedReset) &get_reset_pin(Dock dock) {
+    switch (dock) {
+    #if HAS_DWARF()
+    case Dock::DWARF_1:
+        return buddy::hw::dwarf1Reset;
+    case Dock::DWARF_2:
+        return buddy::hw::dwarf2Reset;
+    case Dock::DWARF_3:
+        return buddy::hw::dwarf3Reset;
+    case Dock::DWARF_4:
+        return buddy::hw::dwarf4Reset;
+    case Dock::DWARF_5:
+        return buddy::hw::dwarf5Reset;
+    case Dock::DWARF_6:
+        return buddy::hw::dwarf6Reset;
+    #endif
+    #if HAS_MODULARBED()
+    case Dock::MODULAR_BED:
+        return buddy::hw::modularBedReset;
+    #endif
+    default:
+        std::abort();
+    }
+    std::unreachable();
+}
+
+#endif
+
+void PuppyBootstrap::reset_puppies_range([[maybe_unused]] DockIterator begin, [[maybe_unused]] DockIterator end) {
+#if HAS_PIN_RESETABLE_PUPPIES()
+    const auto write_puppies_reset_pin = [](DockIterator dockFrom, DockIterator dockTo, Pin::State state) {
+        for (auto dock = dockFrom; dock != dockTo; dock = std::next(dock)) {
+            get_reset_pin(*dock).write(state);
         }
     };
 
-    write_puppies_reset_pin(from, to, Pin::State::high);
+    write_puppies_reset_pin(begin, end, Pin::State::high);
     osDelay(1);
-    write_puppies_reset_pin(from, to, Pin::State::low);
+    write_puppies_reset_pin(begin, end, Pin::State::low);
 #endif
 }
 
@@ -388,7 +423,7 @@ bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address addres
         }
     } // else - older bootloader has revision 0
 
-    if (hwinfo.hw_type != puppy_info[type].hw_info_hwtype) {
+    if (hwinfo.hw_type != get_puppy_info(type).hw_info_hwtype) {
         fatal_error(ErrCode::ERR_SYSTEM_PUPPY_UNKNOWN_TYPE);
     }
     if (hwinfo.bl_version < MINIMAL_BOOTLOADER_VERSION) {
@@ -411,12 +446,12 @@ void PuppyBootstrap::start_app([[maybe_unused]] PuppyType type, BootloaderProtoc
 }
 
 unique_file_ptr PuppyBootstrap::get_firmware(PuppyType type) {
-    const char *fw_path = puppy_info[type].fw_path;
+    const char *fw_path = get_puppy_info(type).fw_path;
     return unique_file_ptr(fopen(fw_path, "rb"));
 }
 
 off_t PuppyBootstrap::get_firmware_size(PuppyType type) {
-    const char *fw_path = puppy_info[type].fw_path;
+    const char *fw_path = get_puppy_info(type).fw_path;
 
     struct stat fs;
     bool success = stat(fw_path, &fs) == 0;
@@ -434,7 +469,7 @@ void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, 
     off_t fw_size = get_firmware_size(puppy_type);
 
     if (fw_size == 0 || fw_file.get() == nullptr) {
-        fatal_error(ErrCode::ERR_SYSTEM_PUPPY_FW_NOT_FOUND, puppy_info[puppy_type].name);
+        fatal_error(ErrCode::ERR_SYSTEM_PUPPY_FW_NOT_FOUND, get_puppy_info(puppy_type).name);
         return;
     }
 
@@ -443,7 +478,7 @@ void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, 
     progressHook({ percent_offset, FlashingStage::CHECK_FINGERPRINT, puppy_type });
 
     bool match = fingerprint_match(fw_fingerprints.get_fingerprint(dock), chunk_offset, chunk_size);
-    log_info(Puppies, "Puppy %d-%s fingerprint %s", static_cast<int>(dock), puppy_info[puppy_type].name, match ? "matched" : "didn't match");
+    log_info(Puppies, "Puppy %d-%s fingerprint %s", static_cast<int>(dock), get_puppy_info(puppy_type).name, match ? "matched" : "didn't match");
 
     // if application firmware fingerprint doesn't match, flash it
     if (!match) {
@@ -465,7 +500,7 @@ void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, 
         BootloaderProtocol::status_t result = flasher.write_flash(fw_size, [this, &params](uint32_t offset, size_t size, uint8_t *out_data) -> bool {
             // update GUI progress bar
             this->progressHook({ static_cast<int>(params.percent_offset + offset * params.percent_span / params.fw_size), FlashingStage::FLASHING, params.puppy_type });
-            log_info(Puppies, "Flashing puppy %s offset %" PRIu32 "/%ld", puppy_info[params.puppy_type].name, offset, params.fw_size);
+            log_info(Puppies, "Flashing puppy %s offset %" PRIu32 "/%ld", get_puppy_info(params.puppy_type).name, offset, params.fw_size);
 
             // get data
             assert(offset + size <= static_cast<size_t>(params.fw_size));
@@ -480,7 +515,7 @@ void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, 
         });
 
         if (result != BootloaderProtocol::COMMAND_OK) {
-            fatal_error(ErrCode::ERR_SYSTEM_PUPPY_WRITE_FLASH_ERR, puppy_info[puppy_type].name);
+            fatal_error(ErrCode::ERR_SYSTEM_PUPPY_WRITE_FLASH_ERR, get_puppy_info(puppy_type).name);
         }
 
         progressHook({ percent_offset + percent_span, FlashingStage::CHECK_FINGERPRINT, puppy_type });
@@ -498,7 +533,7 @@ void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, 
 
         // check fingerprint after flashing, to make sure it went well
         if (!fingerprint_match(fw_fingerprints.get_fingerprint(dock))) {
-            fatal_error(ErrCode::ERR_SYSTEM_PUPPY_FINGERPRINT_MISMATCH, puppy_info[puppy_type].name);
+            fatal_error(ErrCode::ERR_SYSTEM_PUPPY_FINGERPRINT_MISMATCH, get_puppy_info(puppy_type).name);
         }
     }
 }

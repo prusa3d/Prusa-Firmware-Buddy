@@ -208,8 +208,8 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
         modular_bed.set_enabled(bootstrap_result.is_dock_occupied(Dock::MODULAR_BED));
 #endif
 #if HAS_DWARF()
-        for (int i = 0; i < DWARF_MAX_COUNT; i++) {
-            dwarfs[i].set_enabled(bootstrap_result.is_dock_occupied(Dock::DWARF_1 + i));
+        for (const auto dwarf_dock : DWARFS) {
+            dwarfs[to_dwarf_index(dwarf_dock)].set_enabled(bootstrap_result.is_dock_occupied(dwarf_dock));
         }
 #endif
 
