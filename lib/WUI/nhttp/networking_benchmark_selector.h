@@ -6,7 +6,7 @@ namespace nhttp::handler {
 
 class NetworkingBenchmarkSelector final : public Selector {
 public:
-    virtual std::optional<handler::ConnectionState> accept(const handler::RequestParser &parser) const override;
+    virtual Accepted accept(const handler::RequestParser &parser, Step &out) const override;
 };
 
 extern const NetworkingBenchmarkSelector networking_benchmark_selector;

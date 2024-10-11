@@ -6,21 +6,25 @@ namespace nhttp::handler {
 
 const NetworkingBenchmarkSelector networking_benchmark_selector;
 
-std::optional<handler::ConnectionState> NetworkingBenchmarkSelector::accept(const handler::RequestParser &parser) const {
+Selector::Accepted NetworkingBenchmarkSelector::accept(const handler::RequestParser &parser, Step &out) const {
     if (parser.uri() == "/networking-benchmark") {
         switch (parser.method) {
         case http::Method::Put:
             if (parser.content_length.has_value()) {
-                return NetworkingBenchmark(NetworkingBenchmark::Mode::Put, *parser.content_length);
+                out.next = NetworkingBenchmark(NetworkingBenchmark::Mode::Put, *parser.content_length);
+            } else {
+                out.next = StatusPage(http::Status::LengthRequired, parser);
             }
-            return StatusPage(http::Status::LengthRequired, parser);
+            return Accepted::Accepted;
         case http::Method::Get:
-            return NetworkingBenchmark(NetworkingBenchmark::Mode::Get, 1024 * 1024);
+            out.next = NetworkingBenchmark(NetworkingBenchmark::Mode::Get, 1024 * 1024);
+            return Accepted::Accepted;
         default:
-            return StatusPage(http::Status::MethodNotAllowed, parser);
+            out.next = StatusPage(http::Status::MethodNotAllowed, parser);
+            return Accepted::Accepted;
         }
     }
-    return std::nullopt;
+    return Accepted::NextSelector;
 }
 
 } // namespace nhttp::handler

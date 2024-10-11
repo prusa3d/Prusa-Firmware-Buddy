@@ -8,12 +8,12 @@ namespace nhttp::handler {
 
 namespace {
 
-    Step step_error(http::Status status) {
-        return { 0, 0, StatusPage { status, StatusPage::CloseHandling::ErrorClose, true } };
+    void step_error(http::Status status, Step &out) {
+        out = Step { 0, 0, StatusPage { status, StatusPage::CloseHandling::ErrorClose, true } };
     }
 
-    Step step_continue(size_t read, size_t written) {
-        return { read, written, Continue {} };
+    void step_continue(size_t read, size_t written, Step &out) {
+        out = Step { read, written, Continue {} };
     }
 
 } // namespace
@@ -53,31 +53,35 @@ bool NetworkingBenchmark::want_write() const {
     return false;
 }
 
-Step NetworkingBenchmark::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size) {
+void NetworkingBenchmark::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, Step &out) {
     update_stats();
 
     switch (mode) {
     case Mode::Get:
         if (!output) {
-            return step_continue(0, 0);
+            step_continue(0, 0, out);
+            return;
         }
         if (!headers_sent) {
             const size_t written = write_headers(output, output_size, http::Status::Ok, http::ContentType::ApplicationOctetStream, http::ConnectionHandling::Close);
             headers_sent = true;
-            return step_continue(0, written);
+            step_continue(0, written, out);
+            return;
         }
         if (size_rest > 0) {
             const size_t written = std::min(output_size, size_rest);
             std::fill(output, output + written, ' ');
             size_rest -= written;
-            return step_continue(0, written);
+            return step_continue(0, written, out);
         } else {
             const size_t written = print_stats(output, output_size);
-            return Step { 0, written, Terminating { false, Done::Close } };
+            out = Step { 0, written, Terminating { false, Done::Close } };
+            return;
         }
     case Mode::Put:
         if (terminated_by_client && size_rest > 0) {
-            return step_error(http::Status::BadRequest);
+            step_error(http::Status::BadRequest, out);
+            return;
         }
         if (size_rest > 0) {
             const size_t read = std::min(input.size(), size_rest);
@@ -87,18 +91,20 @@ Step NetworkingBenchmark::step(std::string_view input, bool terminated_by_client
             }
             (void)dummy_write;
             size_rest -= read;
-            return step_continue(read, 0);
+            step_continue(read, 0, out);
         }
         if (!headers_sent) {
             const size_t written = write_headers(output, output_size, http::Status::Ok, http::ContentType::ApplicationOctetStream, http::ConnectionHandling::Close);
             headers_sent = true;
-            return step_continue(0, written);
+            step_continue(0, written, out);
+            return;
         } else {
             const size_t written = print_stats(output, output_size);
-            return Step { 0, written, Terminating { false, Done::Close } };
+            out = Step { 0, written, Terminating { false, Done::Close } };
+            return;
         }
     }
-    return step_error(http::Status::InternalServerError);
+    step_error(http::Status::InternalServerError, out);
 }
 
 } // namespace nhttp::handler
