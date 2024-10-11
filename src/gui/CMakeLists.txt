@@ -126,8 +126,6 @@ if(HAS_TOOLCHANGER)
     firmware PRIVATE screen_menu_filament_changeall.cpp screen_menu_tools.cpp
                      screen_tools_mapping.cpp
     )
-else()
-  target_sources(firmware PRIVATE screen_menu_no_tools.cpp)
 endif()
 
 if(HAS_MODULARBED)
