@@ -281,9 +281,7 @@ protected:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_INFO_FINDA : public WI_FORMATABLE_LABEL_t<bool> {
-    static constexpr const char *label = N_("FINDA");
-
+class MI_INFO_FINDA : public MenuItemAutoUpdatingLabel<bool> {
 public:
     MI_INFO_FINDA();
 };

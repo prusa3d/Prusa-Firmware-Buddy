@@ -19,8 +19,6 @@
 
 void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        Item<MI_INFO_FINDA>().UpdateValue(marlin_vars().mmu2_finda);
-        Item<MI_PINDA>().UpdateValue(buddy::hw::zMin.read() == buddy::hw::Pin::State::low);
     }
 
     if (event == GUI_event_t::HELD_RELEASED) {
