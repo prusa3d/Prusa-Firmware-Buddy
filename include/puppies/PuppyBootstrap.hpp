@@ -101,8 +101,8 @@ private:
 
     /// Helper to index fingerprints by the dock
     class fingerprints_t {
-        std::array<fingerprint_t, static_cast<uint8_t>(Dock::LAST) + 1> fingerprints;
-        std::array<uint32_t, static_cast<uint8_t>(Dock::LAST) + 1> salts;
+        std::array<fingerprint_t, DOCKS.size()> fingerprints;
+        std::array<uint32_t, DOCKS.size()> salts;
 
     public:
         uint32_t &get_salt(Dock dock) {
@@ -117,7 +117,7 @@ private:
     BootloaderProtocol flasher;
     ProgressHook progressHook; // Hook for bootstrap progress bar, expecting percentages from 0 - 100, which will be adjusted in guimain to fit max_bootstrap_perc constant
     void reset_all_puppies();
-    void reset_puppies_range(Dock from, Dock to);
+    void reset_puppies_range(DockIterator begin, DockIterator end);
 
     /**
      * @brief Test if puppy bootloader is there and check some info.
