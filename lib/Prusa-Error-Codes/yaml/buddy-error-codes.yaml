@@ -12,6 +12,11 @@
 # BOOTLOADER     xx6xx   #
 # WARNINGS       xx7xx   # Category-less warnings
 # CONNECT        xx8xx   # Remote Dialogs for Connect (unlike xx4xx which includes things like "Can't register to Connect")
+#
+# "printers" is a list of firmware flavours (not actual printer models),
+# e.g. MK4 covers all printers running MK4 firmware: MK4, MK4S, MK3.9
+# currently supported list: MINI, MK4, XL, iX, MK3.5
+# if no printers list exists, the error is applicable to all printers running Buddy FW.
 
 Errors:
   - code: "XX101"
@@ -615,7 +620,7 @@ Errors:
   - code: "XX523"
     printers: [MK4, iX, XL, MK3.5]
     title: "LOADCELL NOT CALIBRATED"
-    text: "Loadcell calibration is incomplete. Restart the printer and callibrate loadcell."
+    text: "Loadcell calibration is incomplete. Restart the printer and calibrate loadcell."
     id: "LOADCELL_INCOMPLETE_CONFIGURATION_ERROR"
     approved: true
 
@@ -697,7 +702,7 @@ Errors:
     approved: false
 
   - code: "XX601"
-    title: ""
+    title: "UNKNOWN ERROR"
     text: "This error code is not found\nin our database.\nContact the support."
     id: "UNKNOWN_ERROR_CODE"
     approved: true
@@ -746,14 +751,14 @@ Errors:
 
   - code: "XX609"
     printers: [MINI]
-    title: ""
+    title: "FIRMWARExPRINTER MISMATCH"
     text: "Firmware and hardware\nversions do not\nmatch. Make sure\nyou have the right\nfirmware file for\nyour printer."
     id: "HW_VERSION_ERR"
     approved: true
 
   - code: "XX609"
     printers: [MK4, iX, XL, MK3.5]
-    title: ""
+    title: "FIRMWARExPRINTER MISMATCH"
     text: "Firmware and hardware versions do\nnot match. Make sure you have\nthe right firmware file for\nyour printer."
     id: "HW_VERSION_ERR"
     approved: true
@@ -876,38 +881,38 @@ Errors:
     type: "CONNECT"
 
   - code: "XX808"
-    title: ""
+    title: "Warning"
     text: "The heatbed cooled down during the power outage, printed object might have detached. Inspect it before continuing."
     id: "POWER_PANIC_COLD_BED"
     type: "CONNECT"
 
   - code: "XX809"
-    title: ""
+    title: "CRASH DETECTED"
     text: "Length of an axis is too long.\nMotor current is too low, probably.\nRetry check, pause or resume the print?"
     id: "CRASH_RECOVERY_AXIS_LONG"
     type: "CONNECT"
 
   - code: "XX810"
-    title: ""
+    title: "CRASH DETECTED"
     text: "Length of an axis is too short.\nThere's an obstacle or bearing issue.\nRetry check, pause or resume the print?"
     id: "CRASH_RECOVERY_AXIS_SHORT"
     type: "CONNECT"
 
   - code: "XX811"
-    title: ""
+    title: "CRASH DETECTED"
     text: "Repeated collision has been detected.\nDo you want to resume or pause the print?"
     id: "CRASH_RECOVERY_REPEATED_CRASH"
     type: "CONNECT"
 
   - code: "XX812"
-    title: ""
+    title: "CRASH DETECTED"
     text: "Unable to home the printer.\nDo you want to try again?"
     id: "CRASH_RECOVERY_HOME_FAIL"
     type: "CONNECT"
     
   - code: "XX813"
     printers: [XL]
-    title: ""
+    title: "CRASH DETECTED"
     text: "Toolchanger problem has been detected.\nPark all tools to docks\nand leave the carriage free."
     id: "CRASH_RECOVERY_TOOL_PICKUP"
     type: "CONNECT"
@@ -921,136 +926,140 @@ Errors:
     
   - code: "XX815"
     printers: [MK4, MK3.5]
-    title: ""
+    title: "MMU Error" # This is a generic error for any MMU error, so we use generic title, until we send mmu errors directly
     text: "Waiting for user input"
     id: "MMU_LOAD_UNLOAD_ERROR"
     type: "CONNECT"
     
   - code: "XX816"
-    title: ""
+    title: "Warning"
     text: "Print fan not spinning. Check it for possible debris, then inspect the wiring."
     id: "PRINT_FAN_ERROR"
     type: "CONNECT"
 
   - code: "XX817"
-    title: ""
+    title: "Warning"
     text: "Heating disabled due to 30 minutes of inactivity."
     id: "HEATERS_TIMEOUT"
     type: "CONNECT"
 
   - code: "XX818"
-    title: ""
+    title: "Warning"
     text: "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
     id: "HOTEND_TEMP_DISCREPANCY"
     type: "CONNECT"
 
   - code: "XX819"
-    title: ""
+    title: "Warning"
     text: "Heating disabled due to 30 minutes of inactivity."
     id: "NOZZLE_TIMEOUT"
     type: "CONNECT"
 
   - code: "XX820"
-    title: ""
+    title: "Warning"
     text: "Steppers disabled due to inactivity."
     id: "STEPPERS_TIMEOUT"
     type: "CONNECT"
 
   - code: "XX821"
-    title: ""
+    title: "Warning"
     text: "USB drive or file error, the print is now paused. Reconnect the drive."
     id: "USB_FLASH_DISK_ERROR"
     type: "CONNECT"
 
   - code: "XX822"
-    title: ""
+    title: "Warning"
     text: "Heatbreak thermistor is disconnected. Inspect the wiring."
     id: "HEATBREAK_THERMISTOR_FAIL"
     type: "CONNECT"
 
   - code: "XX823"
     printers: [XL, MK3.5]
-    title: ""
+    title: "Warning"
     text: "Nozzle doesn't seem to have round cross section. Make sure it is clean and perpendicular to the bed."
     id: "NOZZLE_DOES_NOT_HAVE_ROUND_SECTION"
     type: "CONNECT"
 
   - code: "XX824"
-    title: ""
+    title: "Warning"
     text: "G-Code transfer running too slow. Check your network for issues or use different USB drive. Press Continue to resume printing."
     id: "NOT_DOWNLOADED"
     type: "CONNECT"
 
   - code: "XX825"
-    title: ""
+    title: "Warning"
     text: "MCU in Buddy is overheated, likely due to exceeding the printer's operating temperature. Prevent overheating for optimal performance."
     id: "BUDDY_MCU_MAX_TEMP"
     type: "CONNECT"
 
   - code: "XX826"
     printers: [XL]
-    title: ""
+    title: "Warning"
     text: "MCU in Dwarf is overheated, likely due to exceeding the printer's operating temperature. Prevent overheating for optimal performance."
     id: "DWARF_MCU_MAX_TEMP"
     type: "CONNECT"
 
   - code: "XX827"
     printers: [iX, XL]
-    title: ""
+    title: "Warning"
     text: "MCU in Modular Bed is overheated, likely due to exceeding the printer's operating temperature. Prevent overheating for optimal performance."
     id: "MOD_BED_MCU_MAX_TEMP"
     type: "CONNECT"
-    
+
   - code: "XX828"
-    title: ""
+    title: "Warning"
     text: "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
     id: "HOTEND_FAN_ERROR"
     type: "CONNECT"
 
   - code: "XX829"
-    title: "Filament runout"
-    text: "Filament runout during print, please insert new one."
+    # Unfortunately, the printer doesn't know if it is out of filament because
+    # it just run out of it, or because it was unloaded in case of a stuck
+    # filament or for some other reason. So, the message needs to be slightly
+    # generic and simply ask for the filament to be inserted.
+    title: "Replace filament"
+    text: "Please replace filament."
     id: "FILAMENT_RUNOUT"
     type: "CONNECT"
 
   - code: "XX830"
     printers: [XL]
-    title: ""
+    title: "Warning"
     text: "Enclosure fan not spinning. Check it for possible debris, then inspect the wiring."
     id: "ENCLOSURE_FAN_ERROR"
     type: "CONNECT"
 
   - code: "XX831"
     printers: [XL]
-    title: ""
+    title: "Warning"
     text: "The HEPA filter is nearing the end of its life span (100 hours of printing time remaining). We recommend purchasing a new one. Visit prusa.io/xl-filter for more information."
     id: "ENCLOSURE_FILTER_EXPIRATION_WARNING"
     type: "CONNECT"
 
   - code: "XX832"
     printers: [XL]
-    title: ""
+    title: "Warning"
     text: "The HEPA filter has expired. Change the HEPA filter before your next print. Visit prusa.io/xl-filter for more information."
     id: "ENCLOSURE_FILTER_EXPIRATION"
     type: "CONNECT"
 
   - code: "XX833"
     printers: [iX, MK4, MK3.5, MINI, XL]
-    title: ""
+    title: "Warning"
     text: "Bed leveling failed. Try again?"
     id: "PROBING_FAILED"
     type: "CONNECT"
 
   - code: "XX834"
     printers: [iX, MK4, XL]
-    title: ""
+    title: "Warning"
     text: "Nozzle cleaning failed."
     id: "NOZZLE_CLEANING_FAILED"
     type: "CONNECT"
 
   - code: "XX835"
     printers: [iX, MK4, MK3.5, MINI, XL]
-    title: ""
+    title: "Quick Pause"
     text: "Waiting for the user. Press \"Resume\" once the printer is ready."
     id: "QUICK_PAUSE"
     type: "CONNECT"
