@@ -7,6 +7,11 @@
 
 #include "gcode_basic_parser.hpp"
 
+template <typename T>
+concept GCodeParser2CompatibleType = requires(T) {
+    { T::from_gcode_param };
+};
+
 /// Currently, this is just a nicer wrapper over the Marlin parser.
 /// In the future, it will be a proper, encapsulated class
 class GCodeParser2 : public GCodeBasicParser {
@@ -126,6 +131,25 @@ public:
     StoreOptionResult store_option(char key, T &target, T enum_count) const {
         using TB = std::underlying_type_t<T>;
         return store_option<TB>(key, reinterpret_cast<TB &>(target), static_cast<TB>(0), static_cast<TB>(enum_count) - 1);
+    }
+
+    /// Parses a compatible type (see GCodeParser2CopatibleType)
+    template <GCodeParser2CompatibleType T, typename... Args>
+    StoreOptionResult store_option(char key, T &target, Args &&...args) const {
+        std::array<char, 64> buffer;
+        const auto str = option_expected<std::string_view>(key, buffer);
+        if (!str.has_value()) {
+            return std::unexpected(str.error());
+        }
+
+        // We don't want the type to need to include this header at all, so we're just using a plain optional
+        const std::optional<T> val = T::from_gcode_param(*str, std::forward<Args>(args)...);
+        if (!val.has_value()) {
+            return std::unexpected(OptionError::parse_error);
+        }
+
+        target = *val;
+        return {};
     }
 
     // Parses an optional
