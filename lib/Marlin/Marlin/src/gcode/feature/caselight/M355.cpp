@@ -27,18 +27,25 @@
 #if HAS_CASE_LIGHT
   #include "../../../feature/caselight.h"
 
-  /**
-   * M355: Turn case light on/off and set brightness
-   *
-   *   P<byte>  Set case light brightness (PWM pin required - ignored otherwise)
-   *
-   *   S<bool>  Set case light on/off
-   *
-   *   When S turns on the light on a PWM pin then the current brightness level is used/restored
-   *
-   *   M355 P200 S0 turns off the light & sets the brightness level
-   *   M355 S1 turns on the light with a brightness of 200 (assuming a PWM pin)
-   */
+ /**
+ *### M355: Turn case light on/off and set brightness <a href="https://reprap.org/wiki/G-code#M355:_Turn_case_lights_on.2Foff">M355: Turn case lights on/off</a>
+ *
+ *#### Usage
+ *
+ *    M355 [ P | S ]
+ *
+ *#### Parameters
+ *
+ * - `P` - Set case light brightness (PWM pin required - ignored otherwise)
+ * - `S` - Set case light on/off
+ *
+ *   When S turns on the light on a PWM pin then the current brightness level is used/restored
+ *
+ *#### Examples
+ *
+ *    M355 P200 S0 ; turns off the light & sets the brightness level
+ *    M355 S1      ;turns on the light with a brightness of 200 (assuming a PWM pin)
+ */
   void GcodeSuite::M355() {
     uint8_t args = 0;
     if (parser.seenval('P')) {

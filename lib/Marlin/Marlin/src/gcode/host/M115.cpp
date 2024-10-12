@@ -32,7 +32,7 @@
   }
 #endif
 
-/**
+/*
  * M115: Capabilities string
  */
 void GcodeSuite::M115() {

@@ -13,15 +13,25 @@
  */
 
 /**
- * M104.1: Early Set Hotend Temperature (preheat, and with stealth mode support)
+ *### M104.1: Early Set Hotend Temperature <a href="https://reprap.org/wiki/G-code#M104.1:_Early_Set_Hotend_Temperature">M104.1: Early Set Hotend Temperature</a>
  *
  * This GCode is used to tell the XL printer the time estimate when a tool will be used next,
  * so that the printer can start preheating the tool in advance.
  *
- * ## Parameters
- * - `P` - <number> - time in seconds till the temperature S is required (in standard mode)
- * - `Q` - <number> - time in seconds till the temperature S is required (in stealth mode)
- * The rest is same as M104
+ *#### Usage
+ *
+ *   M104.1 [ S | R | D | F | T | P | Q ]
+ *
+ *#### Parameters
+ *
+ * - `S` - Wait for extruder(s) to reach temperature. Waits only when heating.
+ * - `R` - Wait for extruder(s) to reach temperature. Waits when heating and cooling.
+ * - `D` - Display temperature (otherwise actual temp will be displayed)
+ * - `F` - Autotemp flag.
+ * - `T` - Tool
+ * - `P` - Time in seconds till the temperature S is required (in standard mode)
+ * - `Q` - Time in seconds till the temperature S is required (in stealth mode)
+ *
  */
 void PrusaGcodeSuite::M104_1() {
     const bool is_stealth_mode = marlin_vars().stealth_mode.get();

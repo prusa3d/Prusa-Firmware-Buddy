@@ -17,11 +17,15 @@ LOG_COMPONENT_REF(PRUSA_GCODE);
  */
 
 /**
- * G64: Measure Z-Axis height
+ *### G64: Measure Z-Axis height <a href="https://reprap.org/wiki/G-code#G64:_Measure_Z-Axis_height">G64: Measure Z-Axis height</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `D` - [float] additional offset
+ *    G64 [ D ]
+ *
+ *#### Parameters
+ *
+ *  - `D` - additional offset
  */
 
 void PrusaGcodeSuite::G64() {

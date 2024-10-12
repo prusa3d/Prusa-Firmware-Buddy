@@ -15,14 +15,19 @@
  */
 
 /**
- * M862.1: Check nozzle properties
+ *### M862.1: Check nozzle properties <a href="https://reprap.org/wiki/G-code#M862.1:_Check_nozzle_diameter">M862.1: Check nozzle diameter</a>
  *
- * ## Parameters
- * - 'Q' - If preset, prints the current HW configuration of a tool T to the serial line
- * - `T` - <number> - specific tool, default to currently active nozzle
- * - 'P' - <number> - expected diameter of the nozzle
- * - 'A' - <0/1> - whether the nozzle should be hardened (the material is abrasive)
- * - 'F' - <0/1> - whether the nozzle should be high-flow
+ *#### Usage
+ *
+ *    M862.1 [ Q | T | P | A | F ]
+ *
+ *#### Parameters
+ *
+ * - `Q` - Print the current nozzle configuration
+ * - `T` - Target extruder
+ * - `P` - Check diameter of the nozzle
+ * - `A` - Abrasive resistent / hardened nozzle
+ * - `F` - High-Flow nozzle
  */
 void PrusaGcodeSuite::M862_1() {
     // Handle only Q

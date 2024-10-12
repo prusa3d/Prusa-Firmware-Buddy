@@ -34,17 +34,28 @@
  */
 
 /**
- * M486: A simple interface to cancel objects
+ *### M486: Cancel Object <a href="https://reprap.org/wiki/G-code#M486:_Cancel_Object">M486: Cancel Object</a>
  *
- *   T[count] : Reset objects and/or set the count
- *   S<index> : Start an object with the given index
- *   P<index> : Cancel the object with the given index
- *   U<index> : Un-cancel object with the given index
- *   C        : Cancel the current object (the last index given by S<index>)
- *   S-1      : Start a non-object like a brim or purge tower that should always print
+ * Not active on iX
  *
- *   Aname    : Name the current object
- *   Nname    : Legacy, same as Aname
+ *#### Usage
+ *
+ *    M486 [ T | S | P | U | C | A | N]
+ *
+ *#### Parameters
+ *
+ * - `T` - Reset the state and set the number of objects.
+ * - `S` - Set the index of the current object
+ *   - `-1` - The value -1 is used to indicate something that isn’t an object and shouldn’t be skipped.
+ * - `P` - Cancel the object with the given index
+ * - `U` - Un-cancel the object with the given index.
+ *    - This command will be ignored if the object has already been skipped.
+ *    - Start a non-object like a brim or purge tower that should always print
+ * - `C` - Cancel the current object
+ * - `S-1      : Start a non-object like a brim or purge tower that should always print
+ * - `A` - Name the current object
+ * - `N` - Legacy, same as A
+
  *   A and N need to be alone in the G-code line, use "M486 S1\nM486 AMyAwesomeObject".
  *   Spaces in name can get consumed by meatpack.
  */

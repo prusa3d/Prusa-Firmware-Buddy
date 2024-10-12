@@ -46,7 +46,20 @@ extern xyze_pos_t destination;
  */
 
 /**
- * G0, G1: Coordinated movement of X Y Z E axes
+ *### G0, G1: Coordinated movement of X Y Z E axes <a href="https://reprap.org/wiki/G-code#G0_.26_G1:_Move">G0 & G1: Move</a>
+ *
+ *#### Usage
+ *
+ *    G0 [ X | Y | Z | E | F ]
+ *    G1 [ X | Y | Z | E | F ]
+ *
+ *#### Parameters
+ *
+ *  - `X` - The position to move to on the X axis
+ *  - `Y` - The position to move to on the Y axis
+ *  - `Z` - The position to move to on the Z axis
+ *  - `E` - The amount to extrude between the starting point and ending point
+ *  - `F` - The feedrate per minute of the move between the starting point and ending point (if supplied)
  */
 void GcodeSuite::G0_G1(TERN_(HAS_FAST_MOVES, const bool fast_move/*=false*/)) {
   if (!MOTION_CONDITIONS) return;

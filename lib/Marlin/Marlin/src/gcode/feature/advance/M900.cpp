@@ -38,11 +38,20 @@
  */
 
 /**
- * M900: Get or Set Linear Advance K-factor
- *  T<tool>     Which tool to address
- *  K<factor>   Set current advance K factor (Slot 0).
- *  L<factor>   Set secondary advance K factor (Slot 1). Requires EXTRA_LIN_ADVANCE_K.
- *  S<0/1>      Activate slot 0 or 1. Requires EXTRA_LIN_ADVANCE_K.
+ *### M900: Get/Set Linear Advance K-factor <a href="https://reprap.org/wiki/G-code#M900:_Set_Linear_Advance_Scaling_Factors">M900: Set Linear Advance Scaling Factors</a>
+ *
+ *#### Usage
+ *
+ *    M900 [ T | K | L | S ]
+ *
+ *#### Parameters
+ *
+ * - `T` - Tool
+ * - `K` - Set current advance K factor (Slot 0)
+ * - `L` - Set secondary advance K factor (Slot 1)
+ * - `S` - Activate slot 0 or 1
+ *
+ * With no parameters report Linear Advance K-factor(s)
  */
 void GcodeSuite::M900() {
 

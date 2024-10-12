@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -20,7 +20,7 @@
  *
  */
 
-/**
+/*
  * G29.cpp - Mesh Bed Leveling
  */
 
@@ -45,7 +45,7 @@
 // Save 130 bytes with non-duplication of PSTR
 inline void echo_not_entered(const char c) { SERIAL_CHAR(c); SERIAL_ECHOLNPGM(" not entered."); }
 
-/**
+/*
  * G29: Mesh-based Z probe, probes a grid and produces a
  *      mesh to compensate for variable bed height
  *

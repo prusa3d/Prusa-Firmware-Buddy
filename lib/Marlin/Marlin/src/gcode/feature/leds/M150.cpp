@@ -34,7 +34,7 @@
  * Always sets all 3 or 4 components. If a component is left out, set to 0.
  *                                    If brightness is left out, no value changed
  *
- * Examples:
+ * #### Examples:
  *
  *   M150 R255       ; Turn LED red
  *   M150 R255 U127  ; Turn LED orange (PWM only)

@@ -28,21 +28,30 @@
 #include "../../module/temperature.h"
 
 /**
- * M305: Set (or report) custom thermistor parameters
+ *### M305: Set/Get custom thermistor parameters <a href="https://reprap.org/wiki/G-code#M305:_Set_thermistor_and_ADC_parameters">M305: Set thermistor and ADC parameters</a>
  *
- *   P[index]  Thermistor table index
- *   R[ohms]   Pullup resistor value
- *   T[ohms]   Resistance at 25C
- *   B[beta]   Thermistor "beta" value
- *   C[coeff]  Steinhart-Hart Coefficient 'C'
+ * Not active on iX
  *
- *   Format: M305 P[tbl_index] R[pullup_resistor_val] T[therm_25C_resistance] B[therm_beta] C[Steinhart_Hart_C_coeff]
+ *#### Usage
  *
- * Examples: M305 P0 R4700 T100000 B3950 C0.0
- *           M305 P0 R4700
- *           M305 P0 T100000
- *           M305 P0 B3950
- *           M305 P0 C0.0
+ *    M305 [ P | R | T | B | C ]
+ *
+ *#### Parameters
+ *
+ *
+ * - `P` - Thermistor table index
+ * - `R` - Pullup resistor value
+ * - `T` - Resistance at 25C
+ * - `B` - Thermistor "beta" value
+ * - `C` - Steinhart-Hart Coefficient 'C'
+ *
+ *#### Examples:
+ *
+ *    M305 P0 R4700 T100000 B3950 C0.0
+ *    M305 P0 R4700
+ *    M305 P0 T100000
+ *    M305 P0 B3950
+ *    M305 P0 C0.0
  */
 void GcodeSuite::M305() {
   const int8_t t_index = parser.intval('P', -1);

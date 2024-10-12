@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -29,10 +29,10 @@
 #include "../../module/printcounter.h"
 #include "../../module/planner.h"
 
-/**
+/*
  * M32: Select file and start SD Print
  *
- * Examples:
+ * #### Examples:
  *
  *    M32 !PATH/TO/FILE.GCO#      ; Start FILE.GCO
  *    M32 P !PATH/TO/FILE.GCO#    ; Start FILE.GCO as a procedure

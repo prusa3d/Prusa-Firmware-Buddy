@@ -28,7 +28,14 @@
  */
 
 /**
- * M400: Finish all moves
+ *### M400: Finish all moves <a href="https://reprap.org/wiki/G-code#M400:_Wait_for_current_moves_to_finish">M400: Wait for current moves to finish</a>
+ *
+ *This command causes G-code processing to pause and wait in a loop until all moves in the planner are completed.
+ *
+ *#### Usage
+ *
+ *    M400
+
  */
 void GcodeSuite::M400() {
 

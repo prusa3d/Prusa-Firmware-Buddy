@@ -35,7 +35,31 @@ static void setup_gcode_compatibility(const PrinterModelInfo *gcode_printer) {
  */
 
 /**
- * M862.2: Check model code
+ *### M862.2: Check model code <a href="https://reprap.org/wiki/G-code#M862.2:_Check_model_code">M862.2: Check model code</a>
+ *
+ *#### Usage
+ *
+ *    M862.2 [ Q | P ]
+ *
+ *#### Parameters
+ *
+ * - `Q` - Print the current nozzle configuration
+ * - `P` - Check printer model number
+ *   - `120` - MINI
+ *   - `230` - MK3.5
+ *     - `30230` - MK3.5MMU3
+ *   - `280` - MK3.5S
+ *     - `30280` - MK3.5SMMU3
+ *   - `210` - MK3.9
+ *     - `30210` - MK3.9MMU3
+ *   - `270` - MK3.9S
+ *     - `30270` - MK3.9SMMU3
+ *   - `130` - MK4
+ *     - `30130` - MK4MMU3
+ *   - `260` - MK4S
+ *     - `30260` - MK4SMMU3
+ *   - `170` - XL
+ *   - `160` - iX
  */
 void PrusaGcodeSuite::M862_2() {
     // Handle only Q
@@ -54,7 +78,31 @@ void PrusaGcodeSuite::M862_2() {
 }
 
 /**
- * M862.3: Check model name
+ *### M862.3: Check model name <a href="https://reprap.org/wiki/G-code#M862.3:_Model_name">M862.3: Model name</a>
+ *
+ *#### Usage
+ *
+ *    M862.3 [ Q | P"<string>" ]
+ *
+ *#### Parameters
+ *
+ * - `Q` - Print the current nozzle configuration
+ * - `P"<string>"` - Check printer model name
+ *   - `MINI`
+ *   - `MK3.5`
+ *     - `MK3.5MMU3`
+ *   - `MK3.5S`
+ *     - `MK3.5SMMU3`
+ *   - `MK3.9`
+ *     - `MK3.9MMU3`
+ *   - `MK3.9S`
+ *     - `MK3.9SMMU3`
+ *   - `MK4`
+ *     - `MK4MMU3`
+ *   - `MK4S`
+ *     - `MK4SMMU3`
+ *   - `XL`
+ *   - `iX`
  */
 void PrusaGcodeSuite::M862_3() {
     // Handle only Q

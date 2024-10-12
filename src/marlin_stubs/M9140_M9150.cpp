@@ -8,7 +8,13 @@
  */
 
 /**
- * Disable stealth mode (switch to standard mode)
+ *### M9140: Disable stealth mode
+ *
+ * Internal GCode
+ *
+ *#### Usage
+ *
+ *    M9140
  *
  * This affects time estimation and machine motion limits
  */
@@ -21,7 +27,16 @@ void PrusaGcodeSuite::M9140() {
 }
 
 /**
- * Enable stealth mode
+ *### M9150: Enable stealth mode
+ *
+ * Internal GCode
+ *
+ *#### Usage
+ *
+ *    M9150
+ *
+ *#### Parameters
+ *
  *
  * This affects time estimation and machine motion limits
  */

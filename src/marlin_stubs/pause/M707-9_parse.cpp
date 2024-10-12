@@ -8,11 +8,19 @@
  */
 
 /**
- * Read variable from MMU and print on the serial line.
+ *### M707 - Read from MMU register <a href="https://reprap.org/wiki/G-code#M707:_Read_from_MMU_register">M707: Read from MMU register</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `A` - Address of register to read from in hexadecimal.
+ *    M707 [ A ]
+ *
+ *#### Parameters
+ *
+ * - `A` - Address of register in hexidecimal.
+ *
+ *#### Example
+ *
+ *    M707 A0x1b - Read a 8bit integer from register 0x1b and prints the result onto the serial line.
  */
 void PrusaGcodeSuite::M707() {
     if (!parser.seen('A')) {
@@ -25,12 +33,20 @@ void PrusaGcodeSuite::M707() {
 }
 
 /**
- * @brief Write variable to MMU
+ *### M708 - Write to MMU register <a href="https://reprap.org/wiki/G-code#M708:_Write_to_MMU_register">M707: Write to MMU register</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `A` - Address of register to write to in hexadecimal.
- * - `X` - The value to write (in decimal).
+ *    M708 [ A | X ]
+ *
+ *#### Parameters
+ *
+ * - `A` - Address of register in hexidecimal.
+ * - `X` - Data to write (16-bit integer). Default value 0.
+ *
+ *#### Example
+ *
+ *    M708 A0x1b X05 - Write to register 0x1b the value 05.
  */
 void PrusaGcodeSuite::M708() {
     if (!parser.seen('A') || !parser.seen('X')) {
@@ -44,23 +60,25 @@ void PrusaGcodeSuite::M708() {
 }
 
 /**
- * @brief MMU turn on/off/reset
+ * ### M709 - MMU power & reset <a href="https://reprap.org/wiki/G-code#M709:_MMU_power_&_reset">M709: MMU power & reset</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * -`T` - Extruder number. Required for mixing extruder.
- *        For non-mixing, current extruder if omitted.
- * -`X` - reset type
- *      - 0 command via communication into the MMU (soft reset)
- *      - 1 hard reset via MMU's reset pin
- *      - 2 power cycle reset
- * -`S` - power off/on
- *      - 0 turn off MMU's power supply
- *      - 1 power up the MMU after being turned off
+ *    M709 [ S | X ]
+ *
+ * #### Parameters
+ *
+ * - `X` - reset type
+ *   - `0` - command via communication into the MMU (soft reset)
+ *   - `1` - hard reset via MMU's reset pin
+ *   - `2` - power cycle reset
+ *   - `42` - erase MMU eeprom
+ * - `S` - power off/on
+ *   - `0`- turn off MMU's power supply
+ *   - `1` - power up the MMU after being turned off
  *
  *  without any parameter returns 0 or 1 for current state
  *
- * Default values are used for omitted arguments.
  */
 void PrusaGcodeSuite::M709() {
     const int16_t reset_val = parser.byteval('X', -1);

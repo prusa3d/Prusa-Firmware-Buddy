@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -20,7 +20,7 @@
  *
  */
 
-/**
+/*
  * G29.cpp - Auto Bed Leveling
  */
 
@@ -79,7 +79,7 @@
   #define G29_RETURN(b) return;
 #endif
 
-/**
+/*
  * G29: Detailed Z probe, probes the bed at 3 or more points.
  *      Will fail if the printer has not been homed with G28.
  *

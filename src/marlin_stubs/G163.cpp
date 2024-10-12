@@ -35,14 +35,18 @@ static SelftestSubtestState_t axis_length_ok_fsm(AxisEnum axis, float length) {
  */
 
 /**
- * G163: Measure length of axis
+ *### G163: Measure length of axis <a href="https://reprap.org/wiki/G-code#G163:_Measure_length_of_axis">G163: Measure length of axis</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `X` - Measure the length on X axis
- * - `Y` - Measure the length on Y axis
- * - `S` - [int] Set sensitivity
- * - `P` - [int] Set measurement period.
+ *    G163 [ X | Y | S | P ]
+ *
+ *#### Parameters
+ *
+ *  - `X` - Measure the length on X axis
+ *  - `Y` - Measure the length on Y axis
+ *  - `S` - Set sensitivity
+ *  - `P` - Set measurement period.
  */
 
 void PrusaGcodeSuite::G163() {
@@ -79,7 +83,7 @@ void PrusaGcodeSuite::G163() {
 
     while (ma.state() != Measure_axis::FINISH) {
         idle(true);
-        ma.loop(); /// loop must be after idle so the length is processed here sooner than in marlin_server
+        ma.loop(); // loop must be after idle so the length is processed here sooner than in marlin_server
     }
 
     if (do_x) {

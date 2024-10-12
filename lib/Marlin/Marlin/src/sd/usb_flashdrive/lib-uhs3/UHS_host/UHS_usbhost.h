@@ -370,7 +370,7 @@ public:
          * Executed After driver polls.
          * Can be used when there is an important change detected during polling
          * and you want to handle it elsewhere.
-         * Examples:
+         * #### Examples:
          * Media status change for bulk, e.g. ready, not-ready, media changed, door opened.
          * Button state/joystick position/etc changes on a HID device.
          * Flow control status change on a communication device, e.g. CTS on serial

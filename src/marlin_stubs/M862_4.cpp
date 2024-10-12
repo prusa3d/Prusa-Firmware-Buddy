@@ -13,11 +13,16 @@
  */
 
 /**
- * M862.4: Check firmware version
+ *### M862.4: Check firmware version <a href="https://reprap.org/wiki/G-code#M862.4:_Firmware_version">M862.4: Firmware version</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `Q` - Print out current firmware version
+ *    M862.4 [ Q | P "<string>" ]
+ *
+ *#### Parameters
+ *
+ * - `Q` - Print the current firmware version
+ * - `P "<string>"` - Check current firmware version
  */
 void PrusaGcodeSuite::M862_4() {
     // Handle only Q

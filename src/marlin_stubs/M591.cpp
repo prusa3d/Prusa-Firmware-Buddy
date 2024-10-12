@@ -46,17 +46,24 @@ void m591_no_parser(std::optional<bool> opt_enable_e_stall, IsPermanent is_perma
  * @{
  */
 
-/// @brief Enable/Disable Filament stuck monitoring
-/// Prusa STM32 platform specific
-/// ## Parameters
-/// - `S` - 0 disable
-///       - 1 enable
-/// - `P` - change is permanent (saved in EEPROM)
-/// - `R` - restore, this parameter has priority over `S` and `P` and discards them
-///
-/// - without parameters prints the current state of Filament stuck monitoring (on/off)
-///
-/// - After the change or in case the `S` parameter is missing, it prints the state of EMotorStallDetector onto the serial line
+/**### M591: Enable/Disable Filament stuck monitoring <a href="https://reprap.org/wiki/G-code#M591:_Configure_filament_monitoring">M591: Configure filament monitoring</a>
+ *
+ * Only MK3.9/S, MK4/S, iX and XL
+ *
+ *#### Usage
+ *
+ *    M591 [ S | P | R ]
+ *
+ *#### Parameters
+ *
+ * - `S` - Enable / Disable
+ * - `P` - change is permanent
+ * - `R` - restore, this parameter has priority over `S` and `P` and discards them
+ *
+ * Without parameters prints the current state of Filament stuck monitoring (on/off)
+ *
+ * After the change or in case the `S` parameter is missing, it prints the state of EMotorStallDetector onto the serial line
+ */
 
 void PrusaGcodeSuite::M591() {
 #if HAS_LOADCELL()

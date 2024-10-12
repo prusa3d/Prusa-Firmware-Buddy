@@ -41,7 +41,18 @@
 #include "../../Marlin.h" // for wait_for_heatup and idle()
 
 /**
- * M141: Set chamber temperature
+ *### M141: Set chamber temperature <a href="https://reprap.org/wiki/G-code#M141:_Set_Chamber_Temperature_.28Fast.29">M141: Set Chamber Temperature (Fast)
+</a>
+ *
+ * Not active
+ *
+ *#### Usage
+ *
+ *    M141 [ S ]
+ *
+ *#### Parameters
+ *
+ * - `S` - Set target chamber temperature
  */
 void GcodeSuite::M141() {
   if (DEBUGGING(DRYRUN)) return;
@@ -49,8 +60,18 @@ void GcodeSuite::M141() {
 }
 
 /**
- * M191: Sxxx Wait for chamber current temp to reach target temp. Waits only when heating
- *       Rxxx Wait for chamber current temp to reach target temp. Waits when heating and cooling
+ *### M191: Wait for chamber temperature to reach target temp<a href="https://reprap.org/wiki/G-code#M191:_Wait_for_chamber_temperature_to_reach_target_temp">M191: Wait for chamber temperature to reach target temp</a>
+ *
+ * Not active
+ *
+ *#### Usage
+ *
+ *    M!91 [ S | R ]
+ *
+ *#### Parameters
+ *
+ * - `S` - Set chamber target temp and waits only when heating
+ * - `R` - Set chamber target temp and waits when heating and/or cooling
  */
 void GcodeSuite::M191() {
   if (DEBUGGING(DRYRUN)) return;

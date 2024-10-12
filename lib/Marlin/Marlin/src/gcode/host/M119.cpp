@@ -28,7 +28,12 @@
  */
 
 /**
- * M119: Output endstop states to serial output
+ *### M119: Output endstop states to serial output <a href="https://reprap.org/wiki/G-code#M119:_Get_Endstop_Status">M119: Get Endstop Status</a>
+ *
+ *#### Usage
+ *
+ *    M119
+ *
  */
 void GcodeSuite::M119() {
 

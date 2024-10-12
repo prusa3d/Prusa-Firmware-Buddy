@@ -74,22 +74,29 @@ static void M600_manual();
  */
 
 /**
- * M600: Pause for filament change
+ *### M600: Pause for filament change <a href="https://reprap.org/wiki/G-code#M600:_Filament_change_pause">M600: Filament change pause</a>
  *
- * Parameters:
- * - E[distance] - Retract the filament this far (initial retraction)
- * - Z[distance] - Move the Z axis by this distance
- * - X[position] - Move to this X position, with Y
- * - Y[position] - Move to this Y position, with X
- * - U[distance] - Retract distance for removal (manual reload)
- * - L[distance] - Extrude distance for insertion (manual reload)
- * - B[count]    - Number of times to beep, -1 for indefinite (if equipped with a buzzer)
- * - T[toolhead] - Select extruder for filament change
- * - A           - If automatic spool join is configured for this tool, do that instead, if not, do manual filament change
- * - C[color]    - Set color for filament change (color rgb value as integer)
- * - C"color"    - Set color for filament change (color name as string)
- * - S"filament" - Set filament type for filament change. RepRap compatible.
- * - N           - No return, don't return to previous position after fillament change
+ *
+ *#### Usage
+ *
+ *    M [ E | X | Y | Z | U | L | B | T | A | C | S | N ]
+ *
+ *#### Parameters
+ *
+ * - `E` - Retract before moving to change position
+ * - `Z` - Z relative lift for filament change position
+ * - `X` - X position for filament change
+ * - `Y` - Y position for filament change
+ * - `U` - Amount of retraction for unload (negative)
+ * - `L` - Load length, longer for bowden (positive)
+ * - `B` - Number of beeps to alert user of filament change
+ *   - `-1` - for indefinite
+ * - `T` - Target extruder
+ * - `A` - If automatic spool join is configured for this tool, do that instead, if not, do manual filament change
+ * - `C` - Set color for filament change (color rgb value as integer)
+ * - `C"color"` - Set color for filament change (color name as string)
+ * - `S"filament"` - Set filament type for filament change. RepRap compatible.
+ * - `N` - No return, don't return to previous position after fillament change
  *
  *  Default values are used for omitted arguments.
  */
@@ -322,13 +329,19 @@ void M600_execute(xyz_pos_t park_point, uint8_t target_extruder, xyze_float_t re
 #endif
 }
 
-/// Filament stuck detected during print
-///
-/// ## Parameters
-/// none so far
-///
-/// ## Notes
-/// Enabled for LoadCell equipped printers
+/**
+ *### M1601: Filament stuck detected during print <a href=" "> </a>
+ *
+ * Internal GCode
+ *
+ * Enabled for LoadCell equipped printers
+ *
+ * Only MK3.9/S, MK4/S and XL
+ *#### Usage
+ *
+ *    M1601
+ *
+ */
 #if HAS_LOADCELL()
 void PrusaGcodeSuite::M1601() {
     M600_execute(

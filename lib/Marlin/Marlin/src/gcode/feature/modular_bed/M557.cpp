@@ -33,13 +33,19 @@
  */
 
 /**
- * M557: Set modular bed parameters
+ *### M557: Set modular bed <a href="https://reprap.org/wiki/G-code#M557:_Set_modular_bed">M557: Set modular bed</a>
  *
- * ## Parameters
+ * Only iX and XL
  *
- * - `C` - [float] Set gradient cutoff
- * - `E` - [float] Set gradient exponent
- * - `S` - [bool] Expand to sides
+ *#### Usage
+ *
+ *    M557 [ C | E | S ]
+ *
+ *#### Parameters
+ *
+ * - `C` - Set gradient cutoff
+ * - `E` - Set gradient exponent
+ * - `S` - Expand to sides
  */
 void GcodeSuite::M557() {
 

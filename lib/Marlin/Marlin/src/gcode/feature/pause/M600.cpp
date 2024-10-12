@@ -1,4 +1,4 @@
-/**
+/*
  * Marlin 3D Printer Firmware
  * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -45,7 +45,7 @@
   #include "../../../feature/mixing.h"
 #endif
 
-/**
+/*
  * M600: Pause for filament change
  *
  *  E[distance] - Retract the filament this far

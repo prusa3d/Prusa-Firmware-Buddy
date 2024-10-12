@@ -34,11 +34,17 @@
  */
 
 /**
- * M206: Set Additional Homing Offset (X Y Z). SCARA aliases T=X, P=Y
+ *### M206: Get/Set Homing Offset (X Y Z) <a href="https://reprap.org/wiki/G-code#M206:_Offset_axes">M206: Offset axes</a>
  *
- * *** @thinkyhead: I recommend deprecating M206 for SCARA in favor of M665.
- * ***              M206 for SCARA will remain enabled in 1.1.x for compatibility.
- * ***              In the 2.0 release, it will simply be disabled by default.
+ *#### Usage
+ *
+ *    M206 [ X | Y | Z ]
+ *
+ *#### Parameters
+ *
+ * - `X` - X axis offset
+ * - `Y` - Y axis offset
+ * - `Z` - Z axis offset
  */
 void GcodeSuite::M206() {
   LOOP_XYZ(i)
@@ -54,15 +60,25 @@ void GcodeSuite::M206() {
 }
 
 /**
- * M428: Set home_offset based on the distance between the
- *       current_position and the nearest "reference point."
- *       If an axis is past center its endstop position
- *       is the reference-point. Otherwise it uses 0. This allows
- *       the Z offset to be set near the bed when using a max endstop.
+ *### M428: Set home offset based on distance <a href="https://reprap.org/wiki/G-code#M428:_Set_home_offset_based_on_distance">M428: Set home_offset based on distance</a>
  *
- *       M428 can't be used more than 2cm away from 0 or an endstop.
+ * Set home_offset based on the distance between the current_position and the nearest "reference point."
+ * If an axis is past center its endstop position is the reference-point. Otherwise it uses 0.
+ * This allows the Z offset to be set near the bed when using a max endstop.
  *
- *       Use M206 to set these values directly.
+ * M428 can't be used more than 2cm away from 0 or an endstop.
+ *
+ * Use M206 to set these values directly.
+ *
+ *#### Usage
+ *
+ *    M428 [ X | Y | Z ]
+ *
+ *#### Parameters
+ *
+ * - `X` - X axis offset distance
+ * - `Y` - Y axis offset distance
+ * - `Z` - Z axis offset distance
  */
 void GcodeSuite::M428() {
   if (axis_unhomed_error()) return;

@@ -44,11 +44,15 @@
  */
 
 /**
- * M140: Set bed temperature
+ *### M140: Set bed temperature <a href="https://reprap.org/wiki/G-code#M140:_Set_Bed_Temperature_.28Fast.29">M140: Set Bed Temperature (Fast)</a>
  *
- * ## Parameters
+ *#### Usage
  *
- * - `S` - [degree Celsius] Temperature to be set
+ *    M140 [ S ]
+ *
+ * #### Parameters
+ *
+ * - `S` - Set target bed temperature
  */
 void GcodeSuite::M140() {
   if (DEBUGGING(DRYRUN)) return;
@@ -56,8 +60,16 @@ void GcodeSuite::M140() {
 }
 
 /**
- * M190: Sxxx Wait for bed current temp to reach target temp. Waits only when heating
- *       Rxxx Wait for bed current temp to reach target temp. Waits when heating and cooling
+ *### M190: Wait for bed current temp to reach target temp <a href="https://reprap.org/wiki/G-code#M190:_Wait_for_bed_temperature_to_reach_target_temp">M190: Wait for bed temperature to reach target temp</a>
+ *
+ *#### Usage
+ *
+ *    M190 [ S | R ]
+ *
+ *#### Parameters
+ *
+ * - `S` - Set target bed temperature and waits only when heating
+ * - `R` - Set target bed temperature and waits when heating and/or cooling
  */
 void GcodeSuite::M190() {
   if (DEBUGGING(DRYRUN)) return;

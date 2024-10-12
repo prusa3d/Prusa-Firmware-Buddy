@@ -31,7 +31,12 @@
  */
 
 /**
- * M31: Get the time since the start of SD Print (or last M109)
+ *### M31: Get the time since the start of SD Print (or last M109) <a href="https://reprap.org/wiki/G-code#M31:_Output_time_since_last_M109_or_SD_card_start_to_serial">M31: Output time since last M109 or SD card start to serial</a>
+ *
+ *#### Usage
+ *
+ *    M31
+ *
  */
 void GcodeSuite::M31() {
   char buffer[22];

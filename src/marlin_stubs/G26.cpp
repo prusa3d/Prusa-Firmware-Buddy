@@ -350,16 +350,25 @@ void FirstLayer::print_shape_2() {
     finish_printing();
 }
 
-/** \addtogroup G-Codes
- * @{
- */
-
 /**
  * @brief gcode to draw a first layer on bed
  *
  * does not take any parameters
  * meant to be called from selftest
  */
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
+/**
+ *### G26: First layer calibration <a href="https://reprap.org/wiki/G-code#G26:_Mesh_Validation_Pattern">G26: Mesh Validation Pattern</a>
+ *
+ *#### Usage
+ *
+ *    G26
+ */
+
 void PrusaGcodeSuite::G26() {
     // is filament selected
     auto filament = config_store().get_filament_type(active_extruder);

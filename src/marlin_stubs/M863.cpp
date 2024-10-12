@@ -12,14 +12,32 @@
  */
 
 /**
- * @brief Tool remapping gcode
+ *### M863: Tool remapping <a href="https://reprap.org/wiki/G-code#M863_Tool_remapping">M863 Tool remapping</a>
  *
- * ## Example
+ * Only MK3.5/S, MK3.9/S, MK4/S with MMU and XL
  *
- * - `M863 M P0 L1` - Instead of tool 0, use tool 1
- * - `M863 E1/0` - Enable/disable tool remapping
- * - `M863 R` - Reset tool remapping
- * - `M863` - Print current tool mapping
+ *#### Usage
+ *
+ *    M863 [ M | L | P | E | R ]
+ *
+ *#### Parameters
+ *
+ * - `M` - Map needs `P' and `L`
+ *   - `P` - Physical tool
+ *   - `L` - Logical tool
+ * - `E` - Set
+ *    - `1` - enable
+ *    - `0` - disable
+ * - `R` - Reset to default
+ *
+ *#### Examples
+ *
+ *    M863 M P0 L1 ; Use tool 0 while in gcode tool 1 is selected
+ *    M863 E1      ; Enable tool remapping
+ *    M863 R       ; Reset tool remapping
+ *    M863         ; Print current tool mapping
+ *
+ * Without parameters prints the current Tool mapping
  */
 void PrusaGcodeSuite::M863() {
     if (parser.seen('M') && parser.seen("P") && parser.seen("L")) {

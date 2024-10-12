@@ -32,19 +32,27 @@
  */
 
 /**
- * M302: Allow cold extrudes, or set the minimum extrude temperature
+ *### M302: Allow cold extrudes <a href="https://reprap.org/wiki/G-code#M302:_Allow_cold_extrudes">M302: Allow cold extrudes</a>
  *
- *       S<temperature> sets the minimum extrude temperature
- *       P<bool> enables (1) or disables (0) cold extrusion
+ *#### Usage
  *
- *  Examples:
+ *    M302 [ S | P ]
  *
- *       M302         ; report current cold extrusion state
- *       M302 P0      ; enable cold extrusion checking
- *       M302 P1      ; disables cold extrusion checking
- *       M302 S0      ; always allow extrusion (disables checking)
- *       M302 S170    ; only allow extrusion above 170
- *       M302 S170 P1 ; set min extrude temp to 170 but leave disabled
+ *#### Parameters
+ *
+ * - `S` - Set the minimum extrude temperature
+ * - `P` - Allow cold extrusion
+ *   -`0` - enable cold extrusion
+ *   -`1` - disables cold extrusion
+ *
+ *#### Examples:
+ *
+ *    M302         ; report current cold extrusion state
+ *    M302 P0      ; enable cold extrusion checking
+ *    M302 P1      ; disables cold extrusion checking
+ *    M302 S0      ; always allow extrusion (disables checking)
+ *    M302 S170    ; only allow extrusion above 170
+ *    M302 S170 P1 ; set min extrude temp to 170 but leave disabled
  */
 void GcodeSuite::M302() {
   const bool seen_S = parser.seen('S');

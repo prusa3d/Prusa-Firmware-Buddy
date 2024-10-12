@@ -43,9 +43,19 @@ void M74_internal(const M74Params &params) {
  */
 
 /**
- * @brief Set mass.
+ *### M74: Set weight on print bed <a href="https://reprap.org/wiki/G-code#M74:_Set_weight_on_print_bed">M74: Set weight on print bed</a>
  *
- * - W<mass>      Set the total mass in grams of everything that is currently sitting on the bed.
+ *#### Usage
+ *
+ *    M74 [ W ]
+ *
+ *#### Parameters
+ *
+ *  - `W` - Set the total mass in grams of everything that is currently sitting on the bed.
+ *
+ *#### Examples
+ *
+ *     M74 W100 ; Tell the firmware the current weight of 100g on the bed.
  */
 void GcodeSuite::M74() {
     input_shaper::M74Params params;

@@ -28,16 +28,17 @@
  */
 
 /**
- * M220: Set speed percentage factor, aka "Feed Rate"
+ *### M220: Set speed percentage factor <a href="https://reprap.org/wiki/G-code#M220:_Set_speed_factor_override_percentage">M220: Set speed factor override percentage</a>
  *
- * Parameters
- *   S<percent> : Set the feed rate percentage factor
+ *#### Usage
  *
- * Report the current speed percentage factor if no parameter is specified
+ *    M220 [ S | B | R ]
  *
- * For MMU2 and MMU2S devices...
- *   B : Flag to back up the current factor
- *   R : Flag to restore the last-saved factor
+ *#### Parameters
+ *
+ * - `S` - Set the feed rate percentage factor
+ * - `B` - Flag to back up the current factor (MMU)
+ * - `R` - Flag to restore the last-saved factor (MMU)
  */
 void GcodeSuite::M220() {
 
