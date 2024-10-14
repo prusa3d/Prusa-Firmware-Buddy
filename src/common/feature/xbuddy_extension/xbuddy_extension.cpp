@@ -4,7 +4,6 @@
 
 static uint8_t fan1_2_pwm = 0;
 static uint8_t fan3_pwm = 0;
-static uint8_t chamber_leds_pwm = 0;
 static leds::ColorRGBW bed_leds_color;
 
 namespace buddy {
@@ -42,11 +41,11 @@ void XBuddyExtension::set_bed_leds_color(leds::ColorRGBW set) {
 }
 
 uint8_t XBuddyExtension::chamber_leds_pwm() {
-    return ::chamber_leds_pwm;
+    return config_store().xbuddy_extension_chamber_leds_pwm.get();
 }
 
 void XBuddyExtension::set_chamber_leds_pwm(uint8_t set) {
-    ::chamber_leds_pwm = set;
+    config_store().xbuddy_extension_chamber_leds_pwm.set(set);
 }
 
 std::optional<uint8_t> XBuddyExtension::chamber_temperature() {

@@ -34,6 +34,7 @@
 #include <option/has_selftest.h>
 #include <option/has_phase_stepping.h>
 #include <option/has_i2c_expander.h>
+#include <option/has_xbuddy_extension.h>
 #include <common/extended_printer_type.hpp>
 #include <common/hw_check.hpp>
 
@@ -541,6 +542,10 @@ struct CurrentStore
     StoreItem<uint8_t, 0, journal::hash("IO Expander's Output Register")> io_expander_output_register;
     StoreItem<uint8_t, 0, journal::hash("IO Expander's Polarity Register")> io_expander_polarity_register;
 #endif // HAS_I2C_EXPANDER()
+
+#if HAS_XBUDDY_EXTENSION()
+    StoreItem<uint8_t, 0, journal::hash("XBuddy Extension Chamber LEDs PWM")> xbuddy_extension_chamber_leds_pwm;
+#endif
 };
 
 /**
