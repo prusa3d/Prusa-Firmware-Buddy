@@ -553,10 +553,10 @@
 //#define DEFAULT_bedKi 1.41
 //#define DEFAULT_bedKd 1675.16
 
-//24V Prusa MK3 bed
-#define DEFAULT_bedKp 160.97
-#define DEFAULT_bedKi 14.07
-#define DEFAULT_bedKd 460.39
+//24V Prusa MK3 bed (MK4)
+#define DEFAULT_bedKp 126.13
+#define DEFAULT_bedKi 4.30
+#define DEFAULT_bedKd 924.76
 
 // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
 #endif // PIDTEMPBED
