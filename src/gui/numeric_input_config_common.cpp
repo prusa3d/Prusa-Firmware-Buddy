@@ -25,3 +25,10 @@ const NumericInputConfig numeric_input_config::percent_with_off = {
     .special_value = 0,
     .unit = Unit::percent,
 };
+
+const NumericInputConfig numeric_input_config::percent_with_auto = {
+    .max_value = 100,
+    .special_value = -1,
+    .special_value_str = N_("Auto"),
+    .unit = Unit::percent,
+};
