@@ -498,9 +498,9 @@
     #define PID_FUNCTIONAL_RANGE 500
 
     // RING
-    #define DEFAULT_Kp 17.00
-    #define DEFAULT_Ki 0.5
-    #define DEFAULT_Kd 90.00
+    #define DEFAULT_Kp 14.00
+    #define DEFAULT_Ki 1.00
+    #define DEFAULT_Kd 100.00
 
     #define STEADY_STATE_HOTEND // Enable support for STEADY_STATE_HOTEND (feed-forward thermal management)
     #define STEADY_STATE_HOTEND_LINEAR_COOLING_TERM 0.322
