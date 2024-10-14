@@ -29,6 +29,11 @@
 #include "../../module/temperature.h"
 #include "fanctl.hpp"
 #include <device/board.h>
+#include <option/has_xbuddy_extension.h>
+
+#if HAS_XBUDDY_EXTENSION()
+  #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+#endif
 
 #if ENABLED(SINGLENOZZLE)
   #define _ALT_P active_extruder
@@ -48,6 +53,14 @@ static bool set_special_fan_speed(uint8_t fan, uint8_t speed) {
         Fans::enclosure().setPWM(speed);
         return true;
     }
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+  static_assert(FAN_COUNT < 3, "Fan 3 is dedicated to extboard");
+  if(fan == 3) {
+    buddy::xbuddy_extension().set_fan1_fan2_pwm(speed);
+    return true;
+  }
 #endif
 
   return false;
