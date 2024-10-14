@@ -47,6 +47,11 @@ const char *PuppyBootstrap::Progress::description() {
         return "Verifying modularbed";
     }
 #endif
+#if HAS_XBUDDY_EXTENSION()
+    else if (stage == PuppyBootstrap::FlashingStage::CHECK_FINGERPRINT && puppy_type == PuppyType::XBUDDY_EXTENSION) {
+        return "Verifying xbuddy extension";
+    }
+#endif
 #if HAS_DWARF()
     else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::DWARF) {
         return "Flashing dwarf";
@@ -55,6 +60,11 @@ const char *PuppyBootstrap::Progress::description() {
 #if HAS_MODULARBED()
     else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::MODULARBED) {
         return "Flashing modularbed";
+    }
+#endif
+#if HAS_XBUDDY_EXTENSION()
+    else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::XBUDDY_EXTENSION) {
+        return "Flashing xbuddy extension";
     }
 #endif
     else if (stage == PuppyBootstrap::FlashingStage::DONE) {
@@ -81,6 +91,8 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(
     progressHook({ 0, FlashingStage::START, PuppyType::DWARF });
 #elif HAS_MODULARBED()
     progressHook({ 0, FlashingStage::START, PuppyType::MODULARBED });
+#elif HAS_XBUDDY_EXTENSION()
+    progressHook({ 0, FlashingStage::START, PuppyType::XBUDDY_EXTENSION });
 #endif
     auto guard = buddy::puppies::PuppyBus::LockGuard();
 
@@ -121,6 +133,8 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(
     progressHook({ 10, FlashingStage::CALCULATE_FINGERPRINT, PuppyType::DWARF });
     #elif HAS_MODULARBED()
     progressHook({ 10, FlashingStage::CALCULATE_FINGERPRINT, PuppyType::MODULARBED });
+    #elif HAS_XBUDDY_EXTENSION()
+    progressHook({ 10, FlashingStage::CALCULATE_FINGERPRINT, PuppyType::XBUDDY_EXTENSION });
     #endif
     int percent_per_puppy = 80 / result.discovered_num();
     int percent_base = 20;
@@ -264,15 +278,17 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run_address_assignment() {
         // Wait for puppy to boot up
         osDelay(5);
 
-        // assign address to all of them
-        // this request is no-reply, so there is no issue in sending to multiple puppies
-        assign_address(BootloaderProtocol::Address::DEFAULT_ADDRESS, address);
+        if (is_dynamicly_addressable(puppy_type)) {
+            // assign address to all of them
+            // this request is no-reply, so there is no issue in sending to multiple puppies
+            assign_address(BootloaderProtocol::Address::DEFAULT_ADDRESS, address);
 
-        // delay to make sure that command was sent fully before reset
-        osDelay(50);
+            // delay to make sure that command was sent fully before reset
+            osDelay(50);
 
-        // reset, all the not-bootstrapped-yet puppies which we don't care about now
-        reset_puppies_range(std::next(dock), DOCKS.end());
+            // reset, all the not-bootstrapped-yet puppies which we don't care about now
+            reset_puppies_range(std::next(dock), DOCKS.end());
+        }
 
         bool status = discover(puppy_type, address);
         if (status) {

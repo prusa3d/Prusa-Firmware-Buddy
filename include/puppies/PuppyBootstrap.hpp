@@ -95,6 +95,9 @@ public:
 #if HAS_DWARF()
             | 1 << static_cast<uint8_t>(Dock::DWARF_1)
 #endif
+#if HAS_XBUDDY_EXTENSION()
+            | 1 << std::to_underlying(Dock::XBUDDY_EXTENSION)
+#endif
     };
 
 private:
