@@ -11,14 +11,20 @@
 #include "MItem_mmu.hpp"
 #include <device/board.h>
 #include "config_features.h"
+#include <option/has_chamber_api.h>
 #include <option/has_loadcell.h>
 #include <option/has_toolchanger.h>
 #include <option/developer_mode.h>
 #include <option/has_mmu2.h>
 #include <device/board.h>
+
 #if XL_ENCLOSURE_SUPPORT()
     #include "MItem_enclosure.hpp"
 #endif
+#if HAS_CHAMBER_API()
+    #include <gui/menu_item/specific/menu_items_chamber.hpp>
+#endif
+
 /*****************************************************************************/
 // parent alias
 using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
@@ -34,7 +40,11 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #if HAS_TOOLCHANGER()
     MI_NOZZLE<1>, MI_NOZZLE<2>, MI_NOZZLE<3>, MI_NOZZLE<4>,
 #endif
-    MI_HEATBED, MI_PRINTFAN,
+    MI_HEATBED,
+#if HAS_CHAMBER_API()
+    MI_CHAMBER_TARGET_TEMP,
+#endif
+    MI_PRINTFAN,
 #if HAS_LOADCELL()
     MI_LIVE_ADJUST_Z, // position with loadcell
 #endif
