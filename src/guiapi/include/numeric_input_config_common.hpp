@@ -19,4 +19,7 @@ extern const NumericInputConfig bed_temperature;
 /// 0-100 %, 0 % = off
 extern const NumericInputConfig percent_with_off;
 
+/// 0-100 %, -1 = auto
+extern const NumericInputConfig percent_with_auto;
+
 } // namespace numeric_input_config
