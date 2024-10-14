@@ -210,7 +210,7 @@ void M600_manual() {
     park_point += hotend_offset[active_extruder];
 #endif
 
-    static const xyze_float_t no_return = { { { NAN, NAN, NAN, current_position.e } } };
+    const xyze_float_t no_return = { { { NAN, NAN, NAN, current_position.e } } };
 
     M600_execute(park_point,
         target_extruder,
