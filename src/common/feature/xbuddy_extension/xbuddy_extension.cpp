@@ -12,26 +12,30 @@ XBuddyExtension::Status XBuddyExtension::status() const {
 }
 
 void XBuddyExtension::step() {
+    std::lock_guard _lg(mutex_);
+
     if (status() != Status::ready) {
         return;
     }
 
-    // Dummy, untested implementation.
-    const auto temp = chamber_temperature();
-    const auto target_temp = chamber().target_temperature();
+    if (fan1_fan2_auto_control_) {
+        // Dummy, untested implementation.
+        const auto temp = chamber_temperature();
+        const auto target_temp = chamber().target_temperature();
 
-    /// Target-current temperature difference at which the fans go on full
-    static constexpr int fans_max_temp_diff = 10;
-    const auto target_fan_pwm = //
-        (!temp.has_value() || !target_temp.has_value())
+        /// Target-current temperature difference at which the fans go on full
+        static constexpr int fans_max_temp_diff = 10;
+        const auto target_fan_pwm = //
+            (!temp.has_value() || !target_temp.has_value())
 
-        // We don't know a temperature or don't have a target set -> do not cool
-        ? 0
+            // We don't know a temperature or don't have a target set -> do not cool
+            ? 0
 
-        // Linearly increase fans up to the fans_max_temp_diff temperature difference
-        : std::clamp<int>(static_cast<int>(*temp - *target_temp) * 255 / fans_max_temp_diff, 0, 255);
+            // Linearly increase fans up to the fans_max_temp_diff temperature difference
+            : std::clamp<int>(static_cast<int>(*temp - *target_temp) * 255 / fans_max_temp_diff, 0, 255);
 
-    set_fan1_fan2_pwm(target_fan_pwm);
+        set_fan1_fan2_pwm_nocheck_nolock(target_fan_pwm);
+    }
 }
 
 std::optional<uint16_t> XBuddyExtension::fan1_rpm() const {
@@ -42,9 +46,26 @@ std::optional<uint16_t> XBuddyExtension::fan2_rpm() const {
     return puppies::xbuddy_extension.get_fan_rpm(1);
 }
 
+uint8_t XBuddyExtension::fan1_fan2_pwm() const {
+    std::lock_guard _lg(mutex_);
+    return fan1_fan2_pwm_;
+}
+
 void XBuddyExtension::set_fan1_fan2_pwm(uint8_t pwm) {
-    puppies::xbuddy_extension.set_fan_pwm(0, pwm);
-    puppies::xbuddy_extension.set_fan_pwm(1, pwm);
+    std::lock_guard _lg(mutex_);
+    fan1_fan2_auto_control_ = false;
+    fan1_fan2_pwm_ = pwm;
+    set_fan1_fan2_pwm_nocheck_nolock(pwm);
+}
+
+bool XBuddyExtension::has_fan1_fan2_auto_control() const {
+    std::lock_guard _lg(mutex_);
+    return fan1_fan2_auto_control_;
+}
+
+void XBuddyExtension::set_fan1_fan2_auto_control() {
+    std::lock_guard _lg(mutex_);
+    fan1_fan2_auto_control_ = true;
 }
 
 std::optional<uint16_t> XBuddyExtension::fan3_rpm() const {
@@ -84,6 +105,12 @@ void XBuddyExtension::update_registers() {
 XBuddyExtension &xbuddy_extension() {
     static XBuddyExtension instance;
     return instance;
+}
+
+void XBuddyExtension::set_fan1_fan2_pwm_nocheck_nolock(uint8_t pwm) {
+    fan1_fan2_pwm_ = pwm;
+    puppies::xbuddy_extension.set_fan_pwm(0, pwm);
+    puppies::xbuddy_extension.set_fan_pwm(1, pwm);
 }
 
 } // namespace buddy

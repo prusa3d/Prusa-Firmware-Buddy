@@ -44,7 +44,7 @@ Chamber::Capabilities Chamber::capabilities() const {
 #if HAS_XBUDDY_EXTENSION()
     return Capabilities {
         .temperature_reporting = true,
-        .cooling = true,
+        .cooling = xbuddy_extension().has_fan1_fan2_auto_control(),
     };
 #endif
 

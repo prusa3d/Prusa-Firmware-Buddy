@@ -3,6 +3,7 @@
 #include <optional>
 #include <span>
 
+#include <freertos/mutex.hpp>
 #include <leds/color.hpp>
 
 namespace buddy {
@@ -27,9 +28,19 @@ public: // Fans
     /// \returns measured RPM of the fan2 (chamber cooling)
     std::optional<uint16_t> fan2_rpm() const;
 
+    /// \returns shared target PWM for fan1/fan2
+    uint8_t fan1_fan2_pwm() const;
+
     /// Sets PWM for fan 1 and fan 2 (chamber cooling fans; 0-255)
     /// The fans have a single shared PWM line, so they can only be set both at once
+    /// Disables \p has_fan1_fan2_auto_control control
     void set_fan1_fan2_pwm(uint8_t pwm);
+
+    /// \returns whether the fan1 & fan2 are in auto control mode (or values set explicitly by set_XX_pwm)
+    bool has_fan1_fan2_auto_control() const;
+
+    /// See \p has_fan1_fan2_auto_control
+    void set_fan1_fan2_auto_control();
 
     /// \returns measured RPM of the fan3 (in-chamber filtration)
     std::optional<uint16_t> fan3_rpm() const;
@@ -59,6 +70,16 @@ protected:
     /// To be called right after the connection is established with the board
     /// TODO: call this function from the right place
     void update_registers();
+
+    void set_fan1_fan2_pwm_nocheck_nolock(uint8_t pwm);
+
+private:
+    mutable freertos::Mutex mutex_;
+
+    uint8_t fan1_fan2_pwm_ = 0;
+
+    /// If set to true, fans are controlled automatically by the temperature control mechanism
+    bool fan1_fan2_auto_control_ = true;
 };
 
 XBuddyExtension &xbuddy_extension();
