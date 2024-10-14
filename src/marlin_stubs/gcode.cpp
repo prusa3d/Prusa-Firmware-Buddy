@@ -61,6 +61,10 @@ FilamentType PrusaGcodeSuite::get_filament_type_from_command(char parameter, con
     return FilamentType::from_name(std::string_view(text_begin, text_end));
 }
 
+int8_t PrusaGcodeSuite::get_target_extruder_from_command(const GCodeParser2 &p) {
+    return GcodeSuite::get_target_extruder_from_option_value(p.option<uint8_t>('T'));
+}
+
 bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
     record_pre_gcode_metrics();
     bool processed = true;

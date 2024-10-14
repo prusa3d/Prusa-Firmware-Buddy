@@ -12,6 +12,8 @@
 #include <option/has_nozzle_cleaner.h>
 #include <option/buddy_enable_connect.h>
 
+#include <gcode/gcode_parser.hpp>
+
 /// the version of the g-code that the printer supports
 #define GCODE_LEVEL 2
 
@@ -24,6 +26,8 @@ namespace PrusaGcodeSuite {
 /// The expected format is S"Filament name" (where S = \p parameter)
 /// If \param string_begin_ptr is provided, it is set to the begining of the filament string name
 FilamentType get_filament_type_from_command(char parameter, const char **string_begin_ptr = nullptr);
+
+int8_t get_target_extruder_from_command(const GCodeParser2 &p);
 
 /** \defgroup G-Codes G-Code Commands
  * @{

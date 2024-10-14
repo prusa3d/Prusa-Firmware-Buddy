@@ -102,13 +102,9 @@ uint8_t GcodeSuite::axis_relative = (
   xyz_pos_t GcodeSuite::coordinate_system[MAX_COORDINATE_SYSTEMS];
 #endif
 
-/**
- * Get the target extruder from the T parameter or the active_extruder
- * Return -1 if the T parameter is out of range
- */
-int8_t GcodeSuite::get_target_extruder_from_command() {
-  if (parser.seenval('T')) {
-    uint8_t e = parser.value_byte();
+int8_t GcodeSuite::get_target_extruder_from_option_value(std::optional<uint8_t> extruder) {
+  if (extruder.has_value()) {
+    uint8_t e = *extruder;
 
     #if ENABLED(PRUSA_TOOL_MAPPING)
       // map logical tool to physical tool if mapping is enabled
@@ -128,7 +124,16 @@ int8_t GcodeSuite::get_target_extruder_from_command() {
     SERIAL_ECHOLNPAIR(" " MSG_INVALID_EXTRUDER " ", int(e));
     return -1;
   }
+
   return active_extruder;
+}
+
+/**
+ * Get the target extruder from the T parameter or the active_extruder
+ * Return -1 if the T parameter is out of range
+ */
+int8_t GcodeSuite::get_target_extruder_from_command() {
+  return get_target_extruder_from_option_value(parser.seenval('T') ? std::optional(parser.value_byte()) : std::nullopt);
 }
 
 /**
