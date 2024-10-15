@@ -1578,12 +1578,18 @@
 #define NOZZLE_PARK_FEATURE
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
+
+    #define X_WASTEBIN_POINT 267.4
+    #define Y_WASTEBIN_POINT 305
+    #define XY_WASTEBIN_POINT \
+        {X_WASTEBIN_POINT, Y_WASTEBIN_POINT}
+
     #define Z_AXIS_LOAD_POS  5
     #define Z_AXIS_UNLOAD_POS 20
     #define Y_AXIS_LOAD_POS    10
-    #define Y_AXIS_UNLOAD_POS  283.95
     #define X_AXIS_LOAD_POS  258.6
-    #define X_AXIS_UNLOAD_POS  258.6
+    #define X_AXIS_UNLOAD_POS  X_WASTEBIN_POINT
+    #define Y_AXIS_UNLOAD_POS  Y_WASTEBIN_POINT
     // Specify a park position as { X, Y, Z }
     #define X_NOZZLE_PARK_POINT 208.75
     #define Y_NOZZLE_PARK_POINT 305
