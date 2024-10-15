@@ -67,7 +67,9 @@ void screen_printing_data_t::tuneAction() {
         break;
     case printing_state_t::PRINTED:
         if (is_waiting_for_connect_set_ready()) {
+#if BUDDY_ENABLE_CONNECT()
             connect_client::MarlinPrinter::set_printer_ready(true);
+#endif
             set_tune_icon_and_label(); // Disable Set Ready button
         }
     default:

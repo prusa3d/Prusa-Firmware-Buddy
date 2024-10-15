@@ -485,6 +485,10 @@ using Frames = FrameDefinitionList<ScreenNetworkSetup::FrameStorage,
     FrameDefinition<Phase::wait_for_nfc, FrameWaitForNFC>,
     FrameDefinition<Phase::nfc_confirm, FrameConfirmNFC>,
 #endif
+#if BUDDY_ENABLE_CONNECT()
+    FrameDefinition<Phase::ask_setup_prusa_connect, FrameAskSetupPrusaConnect>,
+    FrameDefinition<Phase::prusa_conect_setup, FramePrusaConnectSetup>,
+#endif
     FrameDefinition<Phase::ask_switch_to_wifi, FrameAskSwitchToWifi>,
     FrameDefinition<Phase::action_select, FrameActionSelect>,
     FrameDefinition<Phase::wifi_scan, FrameWifiScan>,
@@ -495,9 +499,7 @@ using Frames = FrameDefinitionList<ScreenNetworkSetup::FrameStorage,
     FrameDefinition<Phase::no_interface_error, FrameESPError>,
     FrameDefinition<Phase::connection_error, FrameError>,
     FrameDefinition<Phase::help_qr, FrameHelpQR>,
-    FrameDefinition<Phase::connected, FrameConnected>,
-    FrameDefinition<Phase::ask_setup_prusa_connect, FrameAskSetupPrusaConnect>,
-    FrameDefinition<Phase::prusa_conect_setup, FramePrusaConnectSetup> //
+    FrameDefinition<Phase::connected, FrameConnected> //
     >;
 
 } // namespace network_wizard

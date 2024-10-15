@@ -8,7 +8,11 @@
 #include <common/marlin_server.hpp>
 #include <sys/stat.h>
 #include <option/has_nfc.h>
-#include <connect/connect.hpp>
+
+#include <option/buddy_enable_connect.h>
+#if BUDDY_ENABLE_CONNECT()
+    #include <connect/connect.hpp>
+#endif
 
 #if HAS_NFC()
     #include <nfc.hpp>
@@ -371,12 +375,12 @@ private:
         switch (args.response.value_or<Response>(Response::_none)) {
 
         case Response::Ok:
+#if BUDDY_ENABLE_CONNECT()
             if (mode_ == WizardMode::initial_setup && std::get<0>(connect_client::last_status()) != connect_client::ConnectionStatus::Ok) {
                 return Phase::ask_setup_prusa_connect;
-
-            } else {
-                return Phase::finish;
             }
+#endif
+            return Phase::finish;
 
         default:
             return std::nullopt;
