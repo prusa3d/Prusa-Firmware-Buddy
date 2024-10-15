@@ -29,7 +29,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2024-07-17 09:43+0200\n"
+"POT-Creation-Date: 2024-10-15 12:24+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,7 +38,6 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#. c=20 r=4
 #: src/gui/version_info_ST7789V.cpp:61
 #, c-format
 msgid ""
@@ -51,35 +50,47 @@ msgid ""
 "%s"
 msgstr ""
 
-#: src/gui/MItem_menus.cpp:361
+#: src/gui/MItem_tools.cpp:940
 msgid ""
 "\n"
 "Loading settings finished.\n"
 "\n"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:252
+#: src/gui/screen_menu_tools.hpp:109
 msgid "  Tool 1"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:254
+#: src/gui/screen_menu_tools.hpp:111
 msgid "  Tool 2"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:256
+#: src/gui/screen_menu_tools.hpp:113
 msgid "  Tool 3"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:258
+#: src/gui/screen_menu_tools.hpp:115
 msgid "  Tool 4"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:260
+#: src/gui/screen_menu_tools.hpp:117
 msgid "  Tool 5"
 msgstr ""
 
+#: src/common/filament.cpp:172
+msgid " (Custom)"
+msgstr ""
+
+#: src/common/filament.cpp:166
+msgid " (Preset)"
+msgstr ""
+
+#: src/common/filament.cpp:169
+msgid " (User)"
+msgstr ""
+
 #. not calibrated would be too long
-#: src/gui/MItem_tools.cpp:639
+#: src/gui/MItem_tools.cpp:653
 #, c-format
 msgid " INS / %7ld"
 msgstr ""
@@ -94,113 +105,107 @@ msgstr ""
 msgid "!! Careful, tools are hot !!"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:128
+#: src/gui/include_XL/selftest_snake_config.hpp:127
 #, c-format
 msgid "%d Bed Heater Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:122
+#: src/gui/include_XL/selftest_snake_config.hpp:121
 #, c-format
 msgid "%d Dock Position Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:118
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:78
+#: src/gui/include_XL/selftest_snake_config.hpp:117
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:77
 #: src/gui/include_MINI/selftest_snake_config.hpp:76
-#: src/gui/include_iX/selftest_snake_config.hpp:79
-#: src/gui/include_MK4/selftest_snake_config.hpp:80
+#: src/gui/include_iX/selftest_snake_config.hpp:80
+#: src/gui/include_MK4/selftest_snake_config.hpp:79
 #, c-format
 msgid "%d Fan Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:127
-#: src/gui/include_iX/selftest_snake_config.hpp:86
-#: src/gui/include_MK4/selftest_snake_config.hpp:87
+#: src/gui/include_XL/selftest_snake_config.hpp:126
+#: src/gui/include_iX/selftest_snake_config.hpp:87
+#: src/gui/include_MK4/selftest_snake_config.hpp:86
 #, c-format
 msgid "%d Filament Sensor Calibration"
 msgstr ""
 
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:83
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:82
 #: src/gui/include_MINI/selftest_snake_config.hpp:80
 #, c-format
 msgid "%d First Layer Calibration"
 msgstr ""
 
-#: src/gui/include_MK4/selftest_snake_config.hpp:86
+#: src/gui/include_MK4/selftest_snake_config.hpp:85
 #, c-format
 msgid "%d Gears Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:126
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:82
+#: src/gui/include_XL/selftest_snake_config.hpp:125
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:81
 #: src/gui/include_MINI/selftest_snake_config.hpp:79
-#: src/gui/include_iX/selftest_snake_config.hpp:85
-#: src/gui/include_MK4/selftest_snake_config.hpp:85
+#: src/gui/include_iX/selftest_snake_config.hpp:86
+#: src/gui/include_MK4/selftest_snake_config.hpp:84
 #, c-format
 msgid "%d Heater Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:131
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:84
-#: src/gui/include_MK4/selftest_snake_config.hpp:88
-#, c-format
-msgid "%d Input Shaper Calibration"
-msgstr ""
-
-#: src/gui/include_XL/selftest_snake_config.hpp:123
-#: src/gui/include_iX/selftest_snake_config.hpp:83
-#: src/gui/include_MK4/selftest_snake_config.hpp:83
+#: src/gui/include_XL/selftest_snake_config.hpp:122
+#: src/gui/include_iX/selftest_snake_config.hpp:84
+#: src/gui/include_MK4/selftest_snake_config.hpp:82
 #, c-format
 msgid "%d Loadcell Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:129
+#: src/gui/include_XL/selftest_snake_config.hpp:128
 #, c-format
 msgid "%d Nozzle Heaters Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:130
+#: src/gui/include_XL/selftest_snake_config.hpp:129
+#: src/gui/include_iX/selftest_snake_config.hpp:88
 #, c-format
 msgid "%d Phase Stepping Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:124
+#: src/gui/include_XL/selftest_snake_config.hpp:123
 #, c-format
 msgid "%d Tool Offset Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:121
-#: src/gui/include_iX/selftest_snake_config.hpp:82
+#: src/gui/include_XL/selftest_snake_config.hpp:120
+#: src/gui/include_iX/selftest_snake_config.hpp:83
 #, c-format
 msgid "%d X Axis Test"
 msgstr ""
 
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:80
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:79
 #: src/gui/include_MINI/selftest_snake_config.hpp:77
-#: src/gui/include_MK4/selftest_snake_config.hpp:82
+#: src/gui/include_MK4/selftest_snake_config.hpp:81
 #, c-format
 msgid "%d XY Axis Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:120
-#: src/gui/include_iX/selftest_snake_config.hpp:81
+#: src/gui/include_XL/selftest_snake_config.hpp:119
+#: src/gui/include_iX/selftest_snake_config.hpp:82
 #, c-format
 msgid "%d Y Axis Test"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:119
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:79
-#: src/gui/include_iX/selftest_snake_config.hpp:80
-#: src/gui/include_MK4/selftest_snake_config.hpp:81
+#: src/gui/include_XL/selftest_snake_config.hpp:118
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:78
+#: src/gui/include_iX/selftest_snake_config.hpp:81
+#: src/gui/include_MK4/selftest_snake_config.hpp:80
 #, c-format
 msgid "%d Z Alignment Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:125
-#: src/gui/include_MK3.5/selftest_snake_config.hpp:81
+#: src/gui/include_XL/selftest_snake_config.hpp:124
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:80
 #: src/gui/include_MINI/selftest_snake_config.hpp:78
-#: src/gui/include_iX/selftest_snake_config.hpp:84
-#: src/gui/include_MK4/selftest_snake_config.hpp:84
+#: src/gui/include_iX/selftest_snake_config.hpp:85
+#: src/gui/include_MK4/selftest_snake_config.hpp:83
 #, c-format
 msgid "%d Z Axis Test"
 msgstr ""
@@ -210,19 +215,25 @@ msgstr ""
 msgid "%s Check hotend heater and control electronics for possible damage"
 msgstr ""
 
-#: src/guiapi/include/WindowItemFanLabel.hpp:20
+#: src/guiapi/include/WindowItemFanLabel.hpp:22
 #, c-format
 msgid "%u %% / %li RPM"
 msgstr ""
 
-#: src/guiapi/include/WindowItemFanLabel.hpp:25
+#: src/guiapi/include/WindowItemFanLabel.hpp:27
 #, c-format
 msgid "%u %% / stopped"
 msgstr ""
 
-#: src/guiapi/include/WindowItemFanLabel.hpp:23
+#: src/guiapi/include/WindowItemFanLabel.hpp:25
 #, c-format
 msgid "%u %% / stuck"
+msgstr ""
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:19
+#: src/gui/screen/toolhead/screen_toolhead_settings_fs.cpp:16
+#: src/gui/screen/toolhead/screen_toolhead_settings_fs.cpp:22
+msgid "-"
 msgstr ""
 
 #: src/gui/screen_menu_network_status.hpp:39
@@ -249,74 +260,74 @@ msgid ""
 "- Install calibration pin."
 msgstr ""
 
-#: src/gui/screen_menu_connect.cpp:68
+#: src/gui/screen_menu_connect.cpp:68 src/gui/screen/screen_preheat.cpp:186
 msgid "---"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:290
+#: src/gui/MItem_tools.hpp:312
 msgid "00 min"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:456
+#: src/gui/screen_network_setup.cpp:438
 msgid ""
-"1. Open Prusa Connect app on your mobile device.\n"
+"1. Open Prusa app on your mobile device.\n"
 "\n"
 "2. Go to in-app Menu and select \"Set up Printer Wi-Fi.\"\n"
 "\n"
 "3. Follow on-screen instructions."
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:39
+#: src/gui/wizard/selftest_frame_dock.hpp:40
 msgid ""
 "1. Please park current tool manually. Move the tool changing mechanism to "
 "the rear and align it with pins"
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:128
+#: src/gui/dialogs/DialogConnectReg.cpp:129
 msgid ""
-"1. Scan the QR code or visit prusa.io/add.\n"
-"2. Log in.\n"
-"3. Add printer with code:\n"
+"1. Scan the QR code using the Prusa app or camera, or visit prusa.io/add\n"
+"\n"
+"2. Log in"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:311
+#: src/gui/MItem_tools.hpp:333
 msgid "12h"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:40
+#: src/gui/wizard/selftest_frame_dock.hpp:41
 msgid ""
 "2. Now move the tool changing mechanism to the right, the tool will be "
 "locked in the dock"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:310
+#: src/gui/MItem_tools.hpp:332
 msgid "24h"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:41
+#: src/gui/wizard/selftest_frame_dock.hpp:42
 msgid ""
 "3. The tool changing mechanism can now move freely.\n"
 "Move it a little bit to the front."
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:291
+#: src/gui/MItem_tools.hpp:313
 msgid "30 min"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:292
+#: src/gui/MItem_tools.hpp:314
 msgid "45 min"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:662
+#: src/gui/MItem_tools.hpp:554
 msgid "5V Voltage"
 msgstr ""
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:281
+#: src/gui/MItem_tools.cpp:365
 msgid "A crash dump is being saved."
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:285
+#: src/gui/MItem_tools.cpp:369
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
 msgstr ""
 
@@ -338,7 +349,7 @@ msgstr ""
 msgid "ABORT"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:602
+#: src/gui/screen_printing.cpp:629
 msgid "ABORTING ..."
 msgstr ""
 
@@ -346,16 +357,16 @@ msgstr ""
 msgid "ALL"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:133
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:183
+msgid "ALL TOOLS"
+msgstr ""
+
+#: src/gui/screen_input_shaper_calibration.cpp:141
 msgid ""
 "Accelerometer is not responding. Turn off the printer and make sure the "
 "accelerometer cable is connected to the main board. You can also abort the "
 "input shaper calibration and continue using the printer with default "
 "settings."
-msgstr ""
-
-#: src/gui/dialogs/DialogConnectReg.cpp:45
-msgid "Acquiring registration code, please wait..."
 msgstr ""
 
 #: src/gui/MItem_network.hpp:68
@@ -380,18 +391,22 @@ msgstr ""
 msgid "Adjust the nozzle height above the heatbed by turning the knob"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:219
+#: src/gui/MItem_menus.hpp:105
 msgid "Advanced"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:44
+#: src/gui/wizard/selftest_frame_dock.hpp:45
 msgid ""
 "Align the tool changing mechanism with the tool and lock it by sliding both "
 "metal bars to the right."
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.cpp:209
+#: src/gui/wizard/selftest_frame_dock.cpp:207
 msgid "Aligning tool"
+msgstr ""
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:240
+msgid "All Tools"
 msgstr ""
 
 #: src/gui/screen_menu_filament_sensors.cpp:90
@@ -418,20 +433,26 @@ msgstr ""
 msgid "Always"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:52
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:28
+msgid ""
+"An error occurred during the belt tuning procedure.\n"
+"Try running the calibration again."
+msgstr ""
+
+#: src/gui/wizard/selftest_frame_dock.hpp:53
 #, c-format
 msgid "Approx. %d min"
 msgstr ""
 
-#: src/gui/screen_printing_serial.cpp:80 src/gui/screen_printing.cpp:99
+#: src/gui/screen_printing_serial.cpp:80 src/gui/screen_printing.cpp:118
 msgid "Are you sure to stop this printing?"
 msgstr ""
 
-#: src/gui/screen_tools_mapping.cpp:670
+#: src/gui/screen_tools_mapping.cpp:677
 msgid "Assigned tool(s) without filament"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:232
+#: src/gui/MItem_tools.hpp:254
 msgid "Assist"
 msgstr ""
 
@@ -444,7 +465,7 @@ msgid ""
 "bar."
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.hpp:21
+#: src/gui/dialogs/DialogConnectReg.cpp:196
 #, c-format
 msgid "Attempt %d/%d"
 msgstr ""
@@ -457,13 +478,19 @@ msgid ""
 "Do you want to revise your printer configuration?"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:91
+#: src/gui/screen_input_shaper_calibration.cpp:113
+msgid ""
+"Attention: Ensure the accelerometer is properly connected. Follow the step-"
+"by-step guide in the link below:"
+msgstr ""
+
+#: src/gui/MItem_tools.hpp:101
 msgid "Auto Home"
 msgstr ""
 
 #. //MSG_PROGRESS_FEED_NOZZLE c=20
 #: src/mmu2/mmu2_progress_converter.cpp:15
-#: src/gui/dialogs/DialogLoadUnload.cpp:80
+#: src/gui/dialogs/DialogLoadUnload.cpp:72
 msgid "Avoiding grind"
 msgstr ""
 
@@ -511,6 +538,10 @@ msgstr ""
 msgid "BED LEVEL CORRECTION"
 msgstr ""
 
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:218
+msgid "BELT TUNING"
+msgstr ""
+
 #: src/gui/dialogs/resolution_480x320/radio_button_preview.cpp:15
 msgid "Back"
 msgstr ""
@@ -529,11 +560,16 @@ msgstr ""
 msgid "Bed"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:500
+#: src/gui/MItem_menus.hpp:182
 msgid "Bed Level Correction"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:524
+#: src/gui/screen/filament/screen_filament_detail.cpp:98
+msgid "Bed Temp"
+msgstr ""
+
+#: src/gui/MItem_tools.hpp:407
+#: src/gui/screen/filament/screen_filament_detail.cpp:98
 msgid "Bed Temperature"
 msgstr ""
 
@@ -553,25 +589,25 @@ msgstr ""
 msgid "Bed leveling failed. Try again?"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:242
+#: src/gui/screen_cold_pull.cpp:235
 msgid ""
 "Before you continue,\n"
 "make sure that PLA filament is loaded."
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:232
+#: src/gui/screen_cold_pull.cpp:225
 msgid ""
 "Before you continue, make sure PLA filament is loaded directly into the "
 "extruder."
 msgstr ""
 
 #. Now show always, bed heater selftest can fail if there is no sheet on the bed
-#: src/gui/screen_menu_selftest_snake.cpp:402
+#: src/gui/screen_menu_selftest_snake.cpp:396
 msgid ""
 "Before you continue, make sure the print sheet is installed on the heatbed."
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:223
+#: src/gui/screen_cold_pull.cpp:216
 msgid ""
 "Before you continue, unload the filament. Then press down the blue part on "
 "the fitting and pull the PTFE tube from the tool head."
@@ -581,20 +617,28 @@ msgstr ""
 msgid "Before you proceed, make sure filament is unloaded from the Nextruder."
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:711
+#: src/gui/MItem_tools.hpp:798
+msgid "Belt Tuning"
+msgstr ""
+
+#: src/gui/MItem_tools.hpp:603
 msgid "Board Temperature"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:488
+#: src/gui/MItem_tools.hpp:371
 msgid "Bootloader Version"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:502
+#: src/gui/MItem_tools.hpp:385
 msgid "Buddy Board"
 msgstr ""
 
 #: src/gui/screen_menu_connect.cpp:74
 msgid "Bug"
+msgstr ""
+
+#: src/gui/screen_menu_selftest_snake.hpp:97
+msgid "CALIBRATIONS & TESTS"
 msgstr ""
 
 #: src/common/client_response_texts.hpp:23
@@ -613,7 +657,7 @@ msgstr ""
 msgid "CHECKS"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:28
+#: src/gui/screen_cold_pull.cpp:30
 msgid "COLD PULL"
 msgstr ""
 
@@ -633,7 +677,7 @@ msgstr ""
 msgid "CONTINUE"
 msgstr ""
 
-#: src/gui/screen_menu_control.hpp:68
+#: src/gui/screen_menu_control.hpp:72
 msgid "CONTROL"
 msgstr ""
 
@@ -646,8 +690,12 @@ msgid "CPU load"
 msgstr ""
 
 #. don't close on menu timeout
-#: src/gui/screen_crash_recovery.cpp:257
+#: src/gui/screen_crash_recovery.cpp:266
 msgid "CRASH DETECTED"
+msgstr ""
+
+#: src/gui/screen/filament/screen_filament_detail.cpp:171
+msgid "CUSTOM PARAMETERS"
 msgstr ""
 
 #: src/guiapi/include/window_tool_action_box.hpp:94
@@ -670,23 +718,33 @@ msgstr ""
 msgid "Calibrate Dock 5"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:91 src/gui/MItem_menus.hpp:459
+#: src/gui/MItem_tools.hpp:787
+#: src/gui/screen/toolhead/screen_toolhead_settings_dock.cpp:50
 msgid "Calibrate Dock Position"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:100
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:155
 msgid "Calibrate Filament Sensor"
 msgstr ""
 
-#: src/gui/screen_phase_stepping.cpp:24
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:155
+msgid "Calibrate Filament Sensors"
+msgstr ""
+
+#: src/gui/screen_phase_stepping.cpp:27
 msgid "Calibrating X motor"
 msgstr ""
 
-#: src/gui/screen_phase_stepping.cpp:25
+#: src/gui/screen_phase_stepping.cpp:28
 msgid "Calibrating Y motor"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:191
+#. TODO: Maybe add progress bar?
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:24
+msgid "Calibrating accelerometer"
+msgstr ""
+
+#: src/gui/screen_input_shaper_calibration.cpp:62
 msgid "Calibrating accelerometer..."
 msgstr ""
 
@@ -710,11 +768,11 @@ msgstr ""
 msgid "Calibration data saved successfully"
 msgstr ""
 
-#: src/gui/screen_phase_stepping.cpp:27
+#: src/gui/screen_phase_stepping.cpp:30
 msgid "Calibration failed with error."
 msgstr ""
 
-#: src/gui/screen_phase_stepping.cpp:26
+#: src/gui/screen_phase_stepping.cpp:29
 #, c-format
 msgid ""
 "Calibration of motor %c failed.\n"
@@ -727,19 +785,20 @@ msgid ""
 "Calibration pin has not been reached. Please check the pin installation."
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:469
+#: src/gui/MItem_menus.hpp:176
 msgid "Calibrations & Tests"
 msgstr ""
 
 #: src/gui/MItem_mmu.cpp:230
-msgid "Can't enable MMU: enable the printer's filament sensor first."
+msgid ""
+"Can't enable MMU: calibrate and enable the printer's filament sensor first."
 msgstr ""
 
 #: src/gui/screen_menu_cancel_object.hpp:62
 msgid "Cancel Current"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:735
+#: src/gui/MItem_tools.hpp:627
 msgid "Cancel Object"
 msgstr ""
 
@@ -752,7 +811,7 @@ msgstr ""
 msgid "Cannot perform the action, filament is already loaded. Unload it first."
 msgstr ""
 
-#: src/gui/screen_menu_filament_changeall.cpp:83
+#: src/gui/screen_menu_filament_changeall.cpp:88
 msgid "Carry Out the Changes"
 msgstr ""
 
@@ -760,7 +819,7 @@ msgstr ""
 msgid "Center N and Fewer Items"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:193 src/gui/MItem_filament.hpp:28
+#: src/gui/MItem_tools.hpp:215 src/gui/MItem_filament.hpp:28
 msgid "Change Filament"
 msgstr ""
 
@@ -772,11 +831,11 @@ msgstr ""
 msgid "Change Filter"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:211
+#: src/gui/MItem_tools.hpp:703
 msgid "Change Wave Table XYZ"
 msgstr ""
 
-#: src/gui/screen_menu_filament_changeall.cpp:74
+#: src/gui/screen_menu_filament_changeall.cpp:79
 msgid "Change to"
 msgstr ""
 
@@ -788,11 +847,11 @@ msgid ""
 "the print with defaults."
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:501
+#: src/gui/dialogs/DialogLoadUnload.cpp:483
 msgid "Changing filament"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:50
+#: src/gui/dialogs/DialogLoadUnload.cpp:42
 msgid "Changing tool"
 msgstr ""
 
@@ -891,28 +950,33 @@ msgid ""
 "Close the idler door and secure it with the swivel. The calibration is done!"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:783 tmp_error_headers/error_list_xl.hpp:687
+#: src/gui/dialogs/DialogConnectReg.cpp:118
+#, c-format
+msgid "Code: %s"
+msgstr ""
+
+#: src/gui/MItem_tools.hpp:675 tmp_error_headers/error_list_xl.hpp:687
 #: tmp_error_headers/error_list_mk4.hpp:484
 #: tmp_error_headers/error_list_mk35.hpp:442
 msgid "Cold Pull"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:320
+#: src/gui/screen_cold_pull.cpp:313
 msgid "Cold Pull successfully completed"
 msgstr ""
 
 #. for XL only, enabled now because of translations
-#: src/gui/screen_cold_pull.cpp:324
+#: src/gui/screen_cold_pull.cpp:317
 msgid ""
 "Cold Pull successfully completed. Insert PTFE tube back in the fitting. You "
 "can continue printing. If the issue persists, repeat this procedure again."
 msgstr ""
 
-#: src/gui/MItem_mmu.cpp:320
+#: src/gui/MItem_mmu.cpp:317
 msgid "Comm err"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:318
+#: src/gui/screen_input_shaper_calibration.cpp:307
 #, c-format
 msgid ""
 "Computed shapers:\n"
@@ -921,11 +985,15 @@ msgid ""
 "Store and use computed values?"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:244
+#: src/gui/screen_input_shaper_calibration.cpp:233
 msgid "Computing best shaper..."
 msgstr ""
 
-#: src/gui/MItem_menus.cpp:370 src/gui/screen_menu_network_status.hpp:39
+#: src/gui/screen/filament/screen_filament_detail.cpp:159
+msgid "Confirm"
+msgstr ""
+
+#: src/gui/MItem_tools.cpp:949 src/gui/screen_menu_network_status.hpp:39
 msgid "Connect"
 msgstr ""
 
@@ -946,7 +1014,7 @@ msgstr ""
 msgid "Connecting"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:357
+#: src/gui/screen_network_setup.cpp:318 src/gui/screen_network_setup.cpp:325
 msgid "Connecting to:"
 msgstr ""
 
@@ -963,7 +1031,7 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: src/gui/screen_menu_selftest_snake.cpp:210
+#: src/gui/screen_menu_selftest_snake.cpp:204
 msgid "Continue running Calibrations & Tests?"
 msgstr ""
 
@@ -979,7 +1047,7 @@ msgstr ""
 msgid "Cooling down. Do not touch the nozzle!"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:269
+#: src/gui/screen_cold_pull.cpp:262
 msgid "Cooling the nozzle"
 msgstr ""
 
@@ -995,7 +1063,7 @@ msgstr ""
 msgid "Crash Sensitivity XY"
 msgstr ""
 
-#: src/gui/screen_home.cpp:269
+#: src/gui/screen_home.cpp:280
 msgid ""
 "Crash detected. Save it to USB?\n"
 "\n"
@@ -1011,11 +1079,11 @@ msgstr ""
 msgid "Crashes on Y Axis"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:393
+#: src/gui/screen_network_setup.cpp:361
 msgid "Credentials from INI"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:456 src/gui/screen_network_setup.cpp:464
+#: src/gui/screen_network_setup.cpp:437 src/gui/screen_network_setup.cpp:447
 msgid "Credentials via NFC"
 msgstr ""
 
@@ -1023,15 +1091,19 @@ msgstr ""
 msgid "Current tool"
 msgstr ""
 
-#: src/gui/screen_menu_mmu_cut_filament.hpp:21 src/gui/MItem_mmu.hpp:60
+#: src/gui/screen/screen_preheat.cpp:125
+msgid "Custom"
+msgstr ""
+
+#: src/gui/screen_menu_mmu_cut_filament.hpp:21 src/gui/MItem_mmu.hpp:61
 msgid "Cut Filament"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:219
+#: src/gui/MItem_mmu.hpp:220
 msgid "Cutter"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:513
+#: src/gui/dialogs/DialogLoadUnload.cpp:495
 msgid "Cutting filament"
 msgstr ""
 
@@ -1067,6 +1139,10 @@ msgstr ""
 msgid "DNS error"
 msgstr ""
 
+#: src/gui/screen/toolhead/screen_toolhead_settings_dock.cpp:59
+msgid "DOCK CONFIGURATION"
+msgstr ""
+
 #: tmp_error_headers/error_list_xl.hpp:22
 msgid "DOCK POSITION OUT OF BOUNDS"
 msgstr ""
@@ -1084,11 +1160,11 @@ msgstr ""
 msgid "DWARF ERROR"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:401
+#: src/gui/screen_network_setup.cpp:369
 msgid "Delete INI file"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:401
+#: src/gui/screen_network_setup.cpp:369
 msgid "Delete credentials INI file? (Recommended)"
 msgstr ""
 
@@ -1096,27 +1172,27 @@ msgstr ""
 #. - it is yet to be decided how shall we set filament types and work with them in the FW.
 #. Contrary to the XL, the MMU is rarely used to switch among different filament types
 #. in the same print due to filament mixing in the melt zone.
-#: src/gui/screen_tools_mapping.cpp:1164
+#: src/gui/screen_tools_mapping.cpp:1171
 msgid ""
 "Detected mismatching loaded filament types, this could ruin the print.\n"
 "Print anyway?"
 msgstr ""
 
-#: src/gui/screen_tools_mapping.cpp:1167
+#: src/gui/screen_tools_mapping.cpp:1174
 msgid ""
 "Detected mismatching nozzle diameters, this could ruin the print.\n"
 "Print anyway?"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:193
+#: src/gui/MItem_tools.hpp:695
 msgid "Device Hash in QR"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:111
+#: src/gui/MItem_tools.hpp:121
 msgid "Disable Motors"
 msgstr ""
 
-#: src/gui/footer/footer_item_input_shaper.cpp:8
+#: src/gui/footer/footer_item_input_shaper.cpp:8 src/gui/MItem_MINI.cpp:19
 msgid "Disabled"
 msgstr ""
 
@@ -1126,7 +1202,7 @@ msgstr ""
 
 #. //MSG_PROGRESS_ENGAGE_IDLER c=20
 #: src/mmu2/mmu2_progress_converter.cpp:9
-#: src/gui/dialogs/DialogLoadUnload.cpp:74
+#: src/gui/dialogs/DialogLoadUnload.cpp:66
 msgid "Disengaging idler"
 msgstr ""
 
@@ -1134,13 +1210,13 @@ msgstr ""
 msgid "Divide by Zero"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:46
+#: src/gui/wizard/selftest_frame_dock.hpp:47
 msgid ""
 "Do not touch the printer!\n"
 "The printer is moving while measuring dock position."
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:49
+#: src/gui/wizard/selftest_frame_dock.hpp:50
 msgid ""
 "Do not touch the printer!\n"
 "The printer is performing the parking test. Be careful around the moving "
@@ -1148,12 +1224,26 @@ msgid ""
 msgstr ""
 
 #. Intentionally without translation
-#: src/gui/wizard/selftest_frame_dock.hpp:38
+#: src/gui/wizard/selftest_frame_dock.hpp:39
 msgid "Do not touch the printer. Be careful around the moving parts."
+msgstr ""
+
+#: src/gui/screen/filament/screen_filaments_reorder.cpp:153
+msgid "Do you really want to restore default filament ordering?"
 msgstr ""
 
 #: src/gui/MItem_input_shaper.cpp:127
 msgid "Do you really want to restore default input shaper configuration?"
+msgstr ""
+
+#: src/gui/screen_network_setup.cpp:466
+msgid "Do you want to add your printer to Prusa Connect?"
+msgstr ""
+
+#: src/gui/screen_network_setup.cpp:427
+msgid ""
+"Do you want to connect to the Wi-Fi with the Prusa app on your phone using "
+"NFC?"
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:64
@@ -1162,8 +1252,16 @@ msgid ""
 "nozzle and heatbed?"
 msgstr ""
 
-#: src/gui/MItem_mmu.cpp:337
+#: src/gui/MItem_mmu.cpp:335
 msgid "Do you want to reset the Nextruder main-plate maintenance reminder?"
+msgstr ""
+
+#: src/gui/MItem_mmu.cpp:337
+msgid "Do you want to reset the extruder maintenance reminder?"
+msgstr ""
+
+#: src/gui/screen_menu_experimental_settings.hpp:15
+msgid "Do you want to save changes and reboot the printer?"
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:18
@@ -1179,7 +1277,7 @@ msgstr ""
 msgid "Do you wish to retry the failed selftest?"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.cpp:117
+#: src/gui/wizard/selftest_frame_dock.cpp:122
 #, c-format
 msgid "Dock %d calibration"
 msgstr ""
@@ -1189,47 +1287,51 @@ msgstr ""
 msgid "Dock %d position differs too much from expected values."
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:83
+#: src/gui/include_XL/selftest_snake_config.hpp:82
 msgid "Dock 1 Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:84
+#: src/gui/include_XL/selftest_snake_config.hpp:83
 msgid "Dock 2 Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:85
+#: src/gui/include_XL/selftest_snake_config.hpp:84
 msgid "Dock 3 Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:86
+#: src/gui/include_XL/selftest_snake_config.hpp:85
 msgid "Dock 4 Calibration"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:87
+#: src/gui/include_XL/selftest_snake_config.hpp:86
 msgid "Dock 5 Calibration"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.cpp:21
+#: src/gui/wizard/selftest_frame_dock.cpp:22
 msgid "Dock Calibration"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:30
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:101
+msgid "Dock Position"
+msgstr ""
+
+#: src/gui/screen/toolhead/screen_toolhead_settings_dock.cpp:14
 msgid "Dock X"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:40
+#: src/gui/screen/toolhead/screen_toolhead_settings_dock.cpp:32
 msgid "Dock Y"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:51
+#: src/gui/wizard/selftest_frame_dock.hpp:52
 msgid "Dock successfully calibrated."
 msgstr ""
 
-#: src/gui/screen_menu_filament_changeall.cpp:65
+#: src/gui/screen_menu_filament_changeall.cpp:70
 msgid "Don't change"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:270
+#: src/gui/screen_cold_pull.cpp:263
 msgid "Don't touch the extruder."
 msgstr ""
 
@@ -1237,14 +1339,14 @@ msgstr ""
 msgid "Done"
 msgstr ""
 
-#: src/gui/screen_help_fw_update.cpp:32
+#: src/gui/screen_help_fw_update.cpp:31
 msgid ""
 "Download and copy the firmware (.bbf) file to the USB flash drive. Insert "
 "the drive into the printer and turn it on or restart it. Confirm the "
 "installation of the new firmware."
 msgstr ""
 
-#: src/gui/screen_help_fw_update.cpp:47
+#: src/gui/screen_help_fw_update.cpp:46
 msgid "Download the firmware (.bbf) file to the USB flash drive."
 msgstr ""
 
@@ -1252,7 +1354,7 @@ msgstr ""
 msgid "Downloading..."
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:204
+#: src/gui/MItem_tools.hpp:226
 msgid "Dry run (no extrusion)"
 msgstr ""
 
@@ -1263,11 +1365,11 @@ msgid ""
 "Printer may vibrate and be noisier during homing."
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:158
+#: src/gui/screen_menu_tools.hpp:15
 msgid "Dwarf Board Temp"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:165
+#: src/gui/screen_menu_tools.hpp:22
 msgid "Dwarf MCU Temp"
 msgstr ""
 
@@ -1283,12 +1385,20 @@ msgid ""
 "%s"
 msgstr ""
 
+#: src/gui/screen_menu_footer_settings.hpp:85
+msgid "Dynamic"
+msgstr ""
+
 #: tmp_error_headers/error_list_mini.hpp:247
 #: tmp_error_headers/error_list_xl.hpp:387
 #: tmp_error_headers/error_list_ix.hpp:366
 #: tmp_error_headers/error_list_mk4.hpp:261
 #: tmp_error_headers/error_list_mk35.hpp:254
 msgid "Dynamic allocation failed - out of memory. Reset the printer."
+msgstr ""
+
+#: src/gui/MItem_menus.hpp:99
+msgid "EEPROM"
 msgstr ""
 
 #: src/gui/screen_menu_mmu_eject_filament.hpp:21
@@ -1303,11 +1413,11 @@ msgstr ""
 msgid "EMERGENCY STOP"
 msgstr ""
 
-#: src/gui/screen_menu_enclosure.hpp:41
+#: src/gui/screen_menu_enclosure.hpp:42
 msgid "ENCLOSURE SETTINGS"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:105
+#: src/gui/dialogs/DialogLoadUnload.cpp:97
 msgid "ERR HW test failed"
 msgstr ""
 
@@ -1316,19 +1426,19 @@ msgstr ""
 msgid "ERR Help filament"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:83
+#: src/gui/dialogs/DialogLoadUnload.cpp:75
 msgid "ERR Helping filament"
 msgstr ""
 
 #. //MSG_PROGRESS_WAIT_USER c=20
 #: src/mmu2/mmu2_progress_converter.cpp:18
-#: src/gui/dialogs/DialogLoadUnload.cpp:82
+#: src/gui/dialogs/DialogLoadUnload.cpp:74
 msgid "ERR Internal"
 msgstr ""
 
 #. //MSG_PROGRESS_ERR_HELP_FIL c=20
 #: src/mmu2/mmu2_progress_converter.cpp:20
-#: src/gui/dialogs/DialogLoadUnload.cpp:84
+#: src/gui/dialogs/DialogLoadUnload.cpp:76
 msgid "ERR TMC failed"
 msgstr ""
 
@@ -1337,7 +1447,7 @@ msgstr ""
 msgid "ERR Wait for User"
 msgstr ""
 
-#: src/gui/screen_qr_error.cpp:27
+#: src/gui/screen_qr_error.cpp:28
 msgid "ERROR"
 msgstr ""
 
@@ -1399,8 +1509,12 @@ msgstr ""
 msgid "ETHERNET SETTINGS"
 msgstr ""
 
-#: src/gui/screen_sysinf.cpp:90
+#: src/gui/screen_sysinf.cpp:86
 msgid "EXIT"
+msgstr ""
+
+#: src/gui/screen_menu_experimental_settings.hpp:16
+msgid "EXPERIMENTAL SETTINGS"
 msgstr ""
 
 #: src/gui/MItem_enclosure.hpp:55
@@ -1435,18 +1549,22 @@ msgstr ""
 msgid "EXTRUDER THERMAL RUNAWAY"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:50 src/gui/MItem_mmu.hpp:115
+#: src/gui/MItem_menus.hpp:48
+msgid "Edit Filaments"
+msgstr ""
+
+#: src/gui/MItem_mmu.hpp:51 src/gui/MItem_mmu.hpp:116
 msgid "Eject From MMU"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:64
+#: src/gui/dialogs/DialogLoadUnload.cpp:56
 msgid "Ejecting"
 msgstr ""
 
 #. //MSG_PROGRESS_PARK_SELECTOR c=20
 #: src/mmu2/mmu2_progress_converter.cpp:29
-#: src/gui/dialogs/DialogLoadUnload.cpp:93
-#: src/gui/dialogs/DialogLoadUnload.cpp:515
+#: src/gui/dialogs/DialogLoadUnload.cpp:85
+#: src/gui/dialogs/DialogLoadUnload.cpp:497
 msgid "Ejecting filament"
 msgstr ""
 
@@ -1466,11 +1584,15 @@ msgstr ""
 msgid "Enable Editing"
 msgstr ""
 
+#: src/gui/MItem_menus.hpp:54
+msgid "Enable Filaments"
+msgstr ""
+
 #: src/gui/screen_menu_metrics.cpp:60
 msgid "Enable Metrics"
 msgstr ""
 
-#: src/gui/screen_menu_connect.hpp:12 src/gui/screen_prusa_link.hpp:29
+#: src/gui/screen_menu_connect.hpp:12 src/gui/screen_prusa_link.hpp:30
 msgid "Enabled"
 msgstr ""
 
@@ -1492,35 +1614,37 @@ msgstr ""
 msgid "Enclosure temperature"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.cpp:219
+#: src/gui/wizard/selftest_frame_dock.cpp:217
 msgid "End of test"
 msgstr ""
 
 #. //MSG_PROGRESS_OK c=4
 #. MMU-related
 #: src/mmu2/mmu2_progress_converter.cpp:8
-#: src/gui/dialogs/DialogLoadUnload.cpp:73
+#: src/gui/dialogs/DialogLoadUnload.cpp:65
 msgid "Engaging idler"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:81
+#: src/gui/screen_network_setup.cpp:85
 msgid "Enter credentials manually"
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:216
+#: src/gui/MItem_tools.cpp:254
 msgid ""
 "Erasing configuration,\n"
 "it will take some time..."
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:216
+#: src/gui/MItem_tools.cpp:254
 msgid ""
 "Erasing everything,\n"
 "it will take some time..."
 msgstr ""
 
-#: src/guiapi/src/window_msgbox.cpp:264 src/gui/screen_menu_connect.cpp:51
-#: src/gui/screen_menu_connect.hpp:35 src/gui/screen_network_setup.cpp:372
+#: src/guiapi/src/window_msgbox.cpp:266 src/gui/screen_menu_connect.cpp:51
+#: src/gui/screen_menu_connect.hpp:35
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:28
+#: src/gui/screen_network_setup.cpp:340
 msgid "Error"
 msgstr ""
 
@@ -1540,13 +1664,13 @@ msgstr ""
 msgid "Error invalid selftest state"
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:287
+#: src/gui/MItem_tools.cpp:371
 msgid ""
 "Error saving crash dump report to the USB drive. Please reinsert the USB "
 "drive and try again."
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:143 src/gui/screen_network_setup.cpp:382
+#: src/gui/MItem_menus.hpp:84 src/gui/screen_network_setup.cpp:350
 msgid "Ethernet"
 msgstr ""
 
@@ -1558,16 +1682,36 @@ msgstr ""
 msgid "Ethernet connection"
 msgstr ""
 
-#: src/guiapi/include/WindowMenuItems.hpp:82
+#: src/guiapi/include/WindowMenuItems.hpp:81
 msgid "Exit"
 msgstr ""
 
+#: src/gui/MItem_menus.hpp:108
+msgid "Experimental Settings"
+msgstr ""
+
 #. for MK3.5 we call this option simply "Extruder"
-#: src/gui/MItem_mmu.hpp:271
+#: src/gui/MItem_mmu.hpp:272
 msgid "Extruder"
 msgstr ""
 
-#: src/gui/screen_menu_factory_reset.hpp:12
+#: src/gui/MItem_mmu.hpp:302
+msgid "Extruder Maintenance"
+msgstr ""
+
+#: src/gui/MItem_experimental_tools.hpp:170
+msgid "Extruder current"
+msgstr ""
+
+#: src/gui/MItem_experimental_tools.hpp:128
+msgid "Extruder direction"
+msgstr ""
+
+#: src/gui/MItem_experimental_tools.hpp:77
+msgid "Extruder steps per unit"
+msgstr ""
+
+#: src/gui/screen_menu_factory_reset.hpp:18
 msgid "FACTORY RESET"
 msgstr ""
 
@@ -1579,23 +1723,32 @@ msgstr ""
 msgid "FIL. ALREADY LOADED"
 msgstr ""
 
-#: src/common/client_response_texts.hpp:37 src/gui/screen_menu_filament.hpp:20
+#: src/common/client_response_texts.hpp:37 src/gui/screen_menu_filament.hpp:24
 msgid "FILAMENT"
 msgstr ""
 
-#: src/gui/screen_menu_filament_changeall.cpp:231
+#: src/gui/screen_menu_filament_changeall.cpp:234
 msgid "FILAMENT CHANGE"
+msgstr ""
+
+#: src/gui/screen/filament/screen_filament_detail.cpp:171
+msgid "FILAMENT DETAIL"
 msgstr ""
 
 #: tmp_error_headers/error_list_mmu.hpp:311
 msgid "FILAMENT EJECTED"
 msgstr ""
 
+#: src/gui/screen/filament/screen_filament_management_list.cpp:78
+#: src/gui/screen/filament/screen_filament_management.cpp:4
+msgid "FILAMENT MANAGEMENT"
+msgstr ""
+
 #: src/gui/screen_print_preview.cpp:170
 msgid "FILAMENT MAPPING"
 msgstr ""
 
-#: src/gui/screen_menu_filament_mmu.hpp:30
+#: src/gui/screen_menu_filament_mmu.hpp:32
 msgid "FILAMENT MMU"
 msgstr ""
 
@@ -1603,15 +1756,20 @@ msgstr ""
 msgid "FILAMENT REMOVED"
 msgstr ""
 
+#: src/gui/screen/toolhead/screen_toolhead_settings_fs.cpp:85
 #: src/gui/screen_menu_filament_sensors.hpp:83
 msgid "FILAMENT SENSORS"
+msgstr ""
+
+#: src/gui/screen/filament/screen_filaments_visibility.cpp:47
+msgid "FILAMENTS VISIBILITY"
 msgstr ""
 
 #: src/gui/screen_change_filter.cpp:44
 msgid "FILTER CHANGE"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:284
+#: src/gui/MItem_mmu.hpp:285
 msgid "FINDA"
 msgstr ""
 
@@ -1639,7 +1797,7 @@ msgstr ""
 msgid "FINISH"
 msgstr ""
 
-#: src/gui/screen_menu_selftest_snake.cpp:207
+#: src/gui/screen_menu_selftest_snake.cpp:201
 msgid ""
 "FINISH remaining calibrations without proceeding to other tests, or perform "
 "ALL Calibrations and Tests?\n"
@@ -1647,7 +1805,7 @@ msgid ""
 "If you QUIT, all data up to this point is saved."
 msgstr ""
 
-#: src/gui/screen_printing.cpp:608
+#: src/gui/screen_printing.cpp:635
 msgid "FINISHED"
 msgstr ""
 
@@ -1681,54 +1839,6 @@ msgstr ""
 
 #: src/common/footer_def.hpp:140
 msgid "FS Value"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:446
-msgid "FS not inserted ref 1"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:448
-msgid "FS not inserted ref 2"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:450
-msgid "FS not inserted ref 3"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:452
-msgid "FS not inserted ref 4"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:454
-msgid "FS not inserted ref 5"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:456
-msgid "FS not inserted ref 6"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:377
-msgid "FS span 1"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:379
-msgid "FS span 2"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:381
-msgid "FS span 3"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:383
-msgid "FS span 4"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:385
-msgid "FS span 5"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:387
-msgid "FS span 6"
 msgstr ""
 
 #: tmp_error_headers/error_list_mmu.hpp:24
@@ -1767,11 +1877,11 @@ msgstr ""
 msgid "FW UPDATE"
 msgstr ""
 
-#: src/gui/screen_menu_fw_update.hpp:38 src/gui/MItem_menus.hpp:123
+#: src/gui/screen_menu_fw_update.hpp:38 src/gui/MItem_menus.hpp:78
 msgid "FW Update"
 msgstr ""
 
-#: src/gui/MItem_mmu.cpp:317
+#: src/gui/MItem_mmu.cpp:314
 msgid "FW ok"
 msgstr ""
 
@@ -1779,19 +1889,19 @@ msgstr ""
 msgid "FW update"
 msgstr ""
 
-#: src/gui/MItem_mmu.cpp:318
+#: src/gui/MItem_mmu.cpp:315
 msgid "FW updated"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:479
+#: src/gui/MItem_menus.hpp:138
 msgid "Factory Reset"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:67
+#: src/gui/MItem_menus.hpp:69
 msgid "Fail Stats"
 msgstr ""
 
-#: src/gui/MItem_menus.cpp:356
+#: src/gui/MItem_tools.cpp:935
 msgid "Failed"
 msgstr ""
 
@@ -1860,7 +1970,7 @@ msgstr ""
 msgid "Failed to save calibration data"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:470
+#: src/gui/MItem_tools.hpp:353
 msgid "Fan Check"
 msgstr ""
 
@@ -1872,7 +1982,7 @@ msgstr ""
 msgid "Fan Test"
 msgstr ""
 
-#: src/gui/window_msgbox_wrong_printer.cpp:30
+#: src/gui/window_msgbox_wrong_printer.cpp:32
 msgid "Fan speeds will be adjusted"
 msgstr ""
 
@@ -1884,13 +1994,13 @@ msgstr ""
 msgid "Fans check"
 msgstr ""
 
-#: src/gui/window_msgbox_wrong_printer.cpp:38
+#: src/gui/window_msgbox_wrong_printer.cpp:40
 msgid "Features required:"
 msgstr ""
 
 #. //MSG_PROGRESS_UNLOAD_PULLEY c=20
 #: src/mmu2/mmu2_progress_converter.cpp:12
-#: src/gui/dialogs/DialogLoadUnload.cpp:77
+#: src/gui/dialogs/DialogLoadUnload.cpp:69
 msgid "Feeding to FINDA"
 msgstr ""
 
@@ -1899,7 +2009,7 @@ msgstr ""
 msgid "Feeding to FSensor"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:78
+#: src/gui/dialogs/DialogLoadUnload.cpp:70
 msgid "Feeding to drive gear"
 msgstr ""
 
@@ -1908,38 +2018,50 @@ msgstr ""
 msgid "Feeding to extruder"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:97
+#: src/gui/dialogs/DialogLoadUnload.cpp:89
 msgid "Feeding to fsensor"
 msgstr ""
 
 #. //MSG_PROGRESS_FEED_EXTRUDER c=20
 #: src/mmu2/mmu2_progress_converter.cpp:14
-#: src/gui/dialogs/DialogLoadUnload.cpp:79
+#: src/gui/dialogs/DialogLoadUnload.cpp:71
 msgid "Feeding to nozzle"
 msgstr ""
 
-#: src/common/footer_def.hpp:136 src/gui/MItem_tools.hpp:616
-#: src/gui/MItem_menus.hpp:47 src/gui/screen_home.cpp:134
+#: src/common/footer_def.hpp:136 src/gui/MItem_tools.hpp:508
+#: src/gui/screen/filament/screen_filaments_loaded.cpp:30
+#: src/gui/screen_home.cpp:134
 msgid "Filament"
 msgstr ""
 
-#: src/gui/screen_menu_filament_changeall.cpp:26
+#: src/gui/screen_menu_filament_changeall.cpp:29
 #, c-format
 msgid "Filament %u"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:516
+#: src/gui/screen/screen_preheat.cpp:32
+#, c-format
+msgid ""
+"Filament '%s' is abrasive, but you don't have a hardened nozzle installed. "
+"Do you really want to continue?"
+msgstr ""
+
+#: src/gui/MItem_tools.hpp:399
 msgid "Filament Autoloading"
 msgstr ""
 
 #. If the printer has filament sensors menu, this item is inside it and is supposed to be called differently (BFW-4973)
-#: src/gui/MItem_tools.hpp:46
+#: src/gui/MItem_tools.hpp:56
 msgid "Filament Sensing"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:46 src/gui/MItem_tools.hpp:540
-#: src/gui/MItem_MINI.hpp:11
+#: src/gui/MItem_tools.hpp:56 src/gui/MItem_tools.hpp:432
+#: src/gui/MItem_MINI.hpp:13
 msgid "Filament Sensor"
+msgstr ""
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:141
+msgid "Filament Sensors Tuning"
 msgstr ""
 
 #: src/gui/MItem_filament.hpp:11
@@ -1948,7 +2070,7 @@ msgid ""
 "anyway?"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:241
+#: src/gui/screen_cold_pull.cpp:234
 msgid "Filament check"
 msgstr ""
 
@@ -1967,6 +2089,10 @@ msgstr ""
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:122
 msgid "Filament inserted, press continue."
+msgstr ""
+
+#: src/gui/screen/filament/screen_filament_detail.cpp:39
+msgid "Filament name is not valid"
 msgstr ""
 
 #: tmp_error_headers/error_list_mini.hpp:436
@@ -2038,7 +2164,7 @@ msgid ""
 "isn't anything stuck in PTFE tube. Check that sensor reads properly."
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:428
+#: src/gui/MItem_menus.hpp:170
 msgid "Filament sensors"
 msgstr ""
 
@@ -2048,6 +2174,18 @@ msgstr ""
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:44
 msgid "Filament sensors calibration"
+msgstr ""
+
+#: src/gui/screen/filament/screen_filament_detail.cpp:53
+msgid "Filament with this name already exists"
+msgstr ""
+
+#: src/common/gcode/gcode_reader_binary.cpp:635
+msgid "File corrupt"
+msgstr ""
+
+#: src/common/gcode/gcode_reader_binary.cpp:632
+msgid "File doesn't contain any print instructions"
 msgstr ""
 
 #: tmp_error_headers/error_list_mini.hpp:449
@@ -2067,7 +2205,7 @@ msgstr ""
 msgid "File read error"
 msgstr ""
 
-#: src/common/gcode/gcode_info.cpp:104
+#: src/common/gcode/gcode_info.cpp:64
 msgid "File removed or transfer aborted"
 msgstr ""
 
@@ -2093,24 +2231,26 @@ msgstr ""
 msgid "Finda"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:49
+#. ***************************************************************************
+#. clang-format off
+#: src/gui/dialogs/DialogLoadUnload.cpp:41
 msgid "Finishing buffered gcodes"
 msgstr ""
 
 #. //MSG_PROGRESS_AVOID_GRIND c=20
 #: src/mmu2/mmu2_progress_converter.cpp:16
-#: src/gui/dialogs/DialogLoadUnload.cpp:81
+#: src/gui/dialogs/DialogLoadUnload.cpp:73
 msgid "Finishing moves"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:170
+#: src/gui/screen_input_shaper_calibration.cpp:178
 msgid ""
 "Firmly attach the accelerometer to the extruder (remove silicone sock if "
 "necessary). In the next step, extruder will start vibrating and resonance "
 "will be measured."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:200
+#: src/gui/screen_input_shaper_calibration.cpp:189
 msgid ""
 "Firmly attach the accelerometer to the heatbed. In the next step, heatbed "
 "will start vibrating and resonance will be measured."
@@ -2121,12 +2261,11 @@ msgstr ""
 msgid "Firmware Update Required"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:480
+#: src/gui/MItem_tools.hpp:363
 msgid "Firmware Version"
 msgstr ""
 
-#. r=1 c=20
-#: src/gui/version_info_ST7789V.cpp:37
+#: src/gui/version_info_ST7789V.cpp:38
 msgid "Firmware Version\n"
 msgstr ""
 
@@ -2263,7 +2402,7 @@ msgstr ""
 msgid "FlashErr"
 msgstr ""
 
-#: src/gui/MItem_mmu.cpp:319
+#: src/gui/MItem_mmu.cpp:316
 msgid "Flashing err"
 msgstr ""
 
@@ -2271,20 +2410,20 @@ msgstr ""
 msgid "Flow Factor"
 msgstr ""
 
-#: src/gui/window_msgbox_wrong_printer.cpp:38
+#: src/gui/window_msgbox_wrong_printer.cpp:40
 msgid "Following features are required:"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:201
+#: src/gui/MItem_menus.hpp:102
 msgid "Footer"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:745
+#: src/gui/MItem_tools.hpp:637
 msgid "For Filament Change, Preheat"
 msgstr ""
 
 #. abbreviated Friday - max 3 characters
-#: src/lang/format_print_will_end.cpp:53
+#: src/lang/format_print_will_end.cpp:52
 msgid "Fri"
 msgstr ""
 
@@ -2304,7 +2443,7 @@ msgstr ""
 msgid "G-CODE METRICS CONFIG CHANGE"
 msgstr ""
 
-#: src/gui/MItem_hardware.hpp:44
+#: src/gui/MItem_hardware.hpp:22
 msgid "G-Code Checks"
 msgstr ""
 
@@ -2332,7 +2471,7 @@ msgid ""
 "result, it might have beet not executed correctly."
 msgstr ""
 
-#: src/gui/window_msgbox_wrong_printer.cpp:25
+#: src/gui/window_msgbox_wrong_printer.cpp:27
 msgid "G-code version doesn't match"
 msgstr ""
 
@@ -2383,11 +2522,11 @@ msgstr ""
 msgid "Gearbox alignment in progress, please wait (approx. 20 seconds)"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:249
+#: src/gui/MItem_mmu.hpp:250
 msgid "General Fails in Print"
 msgstr ""
 
-#: src/gui/screen_prusa_link.hpp:17
+#: src/gui/screen_prusa_link.hpp:18
 msgid "Generate Password"
 msgstr ""
 
@@ -2460,7 +2599,7 @@ msgid "HAL detected an I2C undefined error when sending data via I2C."
 msgstr ""
 
 #: src/gui/screen_menu_hardware_tune.hpp:24
-#: src/gui/screen_menu_hardware.hpp:130
+#: src/gui/screen_menu_hardware.hpp:102
 msgid "HARDWARE"
 msgstr ""
 
@@ -2472,7 +2611,7 @@ msgstr ""
 msgid "HASH VERIFICATION FAILED"
 msgstr ""
 
-#: src/gui/screen_sysinf.cpp:79
+#: src/gui/screen_sysinf.cpp:77
 msgid "HB Fan RPM"
 msgstr ""
 
@@ -2512,7 +2651,7 @@ msgid "HEPA Filter Check"
 msgstr ""
 
 #. regular home screen
-#: src/gui/screen_home.cpp:193
+#: src/gui/screen_home.cpp:192
 msgid "HOME"
 msgstr ""
 
@@ -2544,48 +2683,48 @@ msgstr ""
 msgid "HOTEND HEATER OVERCURRENT"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:178
+#: src/gui/MItem_mmu.hpp:179
 msgid "HW Reset"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:98
+#: src/gui/dialogs/DialogLoadUnload.cpp:90
 msgid "HW test begin"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:102
+#: src/gui/dialogs/DialogLoadUnload.cpp:94
 msgid "HW test cleanup"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:104
+#: src/gui/dialogs/DialogLoadUnload.cpp:96
 msgid "HW test display"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:103
+#: src/gui/dialogs/DialogLoadUnload.cpp:95
 msgid "HW test exec"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:99
+#: src/gui/dialogs/DialogLoadUnload.cpp:91
 msgid "HW test idler"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:101
+#: src/gui/dialogs/DialogLoadUnload.cpp:93
 msgid "HW test pulley"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:100
+#: src/gui/dialogs/DialogLoadUnload.cpp:92
 msgid "HW test selector"
 msgstr ""
 
-#: src/gui/screen_menu_selftest_snake.cpp:417
+#: src/gui/screen_menu_selftest_snake.cpp:411
 #: src/gui/wizard/selftest_frame_wizard_epilogue.cpp:55
 msgid "Happy printing!"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:131
+#: src/gui/MItem_tools.hpp:141
 msgid "Hard Reset (USB with FW needed)"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:300 src/gui/MItem_menus.hpp:310
+#: src/gui/MItem_menus.hpp:123 src/gui/MItem_menus.hpp:126
 msgid "Hardware"
 msgstr ""
 
@@ -2677,31 +2816,31 @@ msgstr ""
 msgid "Heatbreak"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:184
+#: src/gui/screen_menu_tools.hpp:41
 msgid "Heatbreak 1 temp"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:186
+#: src/gui/screen_menu_tools.hpp:43
 msgid "Heatbreak 2 temp"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:188
+#: src/gui/screen_menu_tools.hpp:45
 msgid "Heatbreak 3 temp"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:190
+#: src/gui/screen_menu_tools.hpp:47
 msgid "Heatbreak 4 temp"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:192
+#: src/gui/screen_menu_tools.hpp:49
 msgid "Heatbreak 5 temp"
 msgstr ""
 
-#: src/common/footer_def.hpp:157 src/gui/MItem_tools.hpp:565
+#: src/common/footer_def.hpp:157 src/gui/MItem_tools.hpp:457
 msgid "Heatbreak Fan"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:172 src/gui/MItem_love_board.hpp:22
+#: src/gui/screen_menu_tools.hpp:29 src/gui/MItem_love_board.hpp:22
 msgid "Heatbreak Temp"
 msgstr ""
 
@@ -2717,11 +2856,11 @@ msgstr ""
 msgid "Heatbreak thermistor is disconnected. Inspect the wiring."
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:669
+#: src/gui/MItem_tools.hpp:561
 msgid "Heater Current"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:648
+#: src/gui/MItem_tools.hpp:540
 msgid "Heater Voltage"
 msgstr ""
 
@@ -2733,7 +2872,7 @@ msgstr ""
 msgid "Heaters check"
 msgstr ""
 
-#: src/gui/screen_menu_move.cpp:15
+#: src/gui/screen_menu_move.cpp:99
 msgid "Heating"
 msgstr ""
 
@@ -2750,7 +2889,7 @@ msgstr ""
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:289
+#: src/gui/screen_cold_pull.cpp:282
 msgid "Heating up the nozzle"
 msgstr ""
 
@@ -2758,7 +2897,7 @@ msgstr ""
 msgid "Heating..."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:51
+#: src/gui/screen_network_setup.cpp:53
 msgid "Help"
 msgstr ""
 
@@ -2823,8 +2962,8 @@ msgid "Home"
 msgstr ""
 
 #. //MSG_PROGRESS_RETRACT_FINDA c=20
-#: src/mmu2/mmu2_progress_converter.cpp:31
-#: src/gui/dialogs/DialogLoadUnload.cpp:95 src/gui/screen_crash_recovery.cpp:93
+#: src/mmu2/mmu2_progress_converter.cpp:31 src/gui/screen_phase_stepping.cpp:25
+#: src/gui/dialogs/DialogLoadUnload.cpp:87 src/gui/screen_crash_recovery.cpp:93
 msgid "Homing"
 msgstr ""
 
@@ -2846,11 +2985,11 @@ msgid ""
 "- Not starting with '-'"
 msgstr ""
 
-#: src/common/footer_def.hpp:155 src/gui/MItem_tools.hpp:563
+#: src/common/footer_def.hpp:155 src/gui/MItem_tools.hpp:455
 msgid "Hotend Fan"
 msgstr ""
 
-#: src/gui/MItem_hardware.hpp:56
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:53
 msgid "Hotend Type"
 msgstr ""
 
@@ -2873,7 +3012,7 @@ msgid ""
 "wiring."
 msgstr ""
 
-#: src/gui/screen_help_fw_update.cpp:51
+#: src/gui/screen_help_fw_update.cpp:50
 msgid "How to update firmware?"
 msgstr ""
 
@@ -2969,7 +3108,7 @@ msgstr ""
 msgid "INPUT SHAPER"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:10
+#: src/gui/screen_input_shaper_calibration.cpp:11
 msgid "INPUT SHAPER CALIBRATION"
 msgstr ""
 
@@ -3021,19 +3160,19 @@ msgstr ""
 msgid "Inactive"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:352 src/gui/screen_home.cpp:137
+#: src/gui/MItem_menus.hpp:135 src/gui/screen_home.cpp:137
 msgid "Info"
 msgstr ""
 
-#: src/guiapi/src/window_msgbox.cpp:288 src/gui/MItem_tools.cpp:50
+#: src/guiapi/src/window_msgbox.cpp:290 src/gui/MItem_tools.cpp:76
 msgid "Information"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:676
+#: src/gui/MItem_tools.hpp:568
 msgid "Input Current"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:489
+#: src/gui/MItem_menus.hpp:141
 msgid "Input Shaper"
 msgstr ""
 
@@ -3045,7 +3184,7 @@ msgstr ""
 msgid "Input Shaper Y"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:655
+#: src/gui/MItem_tools.hpp:547
 msgid "Input Voltage"
 msgstr ""
 
@@ -3061,7 +3200,7 @@ msgid ""
 "during the boot. This will install the MK4/MK3.9 firmware."
 msgstr ""
 
-#: src/gui/screen_help_fw_update.cpp:48
+#: src/gui/screen_help_fw_update.cpp:47
 msgid ""
 "Insert the drive into the printer and turn it on or restart it. Confirm the "
 "installation."
@@ -3078,18 +3217,22 @@ msgid ""
 "the tool filament sensor detects the filament."
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:62
+#: src/gui/dialogs/DialogLoadUnload.cpp:54
 msgid "Inserting"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:48
+#: src/gui/wizard/selftest_frame_dock.hpp:49
 msgid ""
 "Install and tighten the dock pins.\n"
 "\n"
 "Be careful in next step the printer will be moving."
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.cpp:212
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:26
+msgid "Install belt dampeners"
+msgstr ""
+
+#: src/gui/wizard/selftest_frame_dock.cpp:210
 msgid "Install pins"
 msgstr ""
 
@@ -3105,15 +3248,19 @@ msgstr ""
 msgid "Invalid BGCODE file header"
 msgstr ""
 
+#: src/gui/screen/filament/screen_filament_detail.cpp:128
+msgid "Is Abrasive"
+msgstr ""
+
 #: src/gui/wizard/selftest_frame_fans.cpp:38
 msgid "Is Hotend fan (left) spinning?"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:67
+#: src/gui/dialogs/DialogLoadUnload.cpp:59
 msgid "Is color correct?"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:63
+#: src/gui/dialogs/DialogLoadUnload.cpp:55
 msgid "Is filament in extruder gear?"
 msgstr ""
 
@@ -3209,11 +3356,15 @@ msgstr ""
 msgid "LOADCELL TIMEOUT"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:260
+#: src/gui/screen/filament/screen_filaments_loaded.cpp:52
+msgid "LOADED FILAMENTS"
+msgstr ""
+
+#: src/gui/MItem_menus.hpp:158
 msgid "Language"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:249
+#: src/gui/MItem_menus.hpp:114
 msgid "Language & Time"
 msgstr ""
 
@@ -3226,7 +3377,7 @@ msgid "Last Print Crashes on Y Axis"
 msgstr ""
 
 #. TODO: How does this thing get translated/marked for translation?
-#: src/gui/dialogs/DialogConnectReg.cpp:18
+#: src/gui/dialogs/DialogConnectReg.cpp:19
 msgid "Leave"
 msgstr ""
 
@@ -3269,7 +3420,7 @@ msgid ""
 "Link is valid only if you are connected to the same network as the printer."
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:81
+#: src/gui/MItem_tools.hpp:91
 msgid "Live Adjust Z"
 msgstr ""
 
@@ -3277,7 +3428,11 @@ msgstr ""
 msgid "Live Z"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:235
+#: src/gui/screen_menu_filament_changeall.cpp:79
+msgid "Load"
+msgstr ""
+
+#: src/gui/MItem_mmu.hpp:236
 msgid "Load Fails in Print"
 msgstr ""
 
@@ -3289,19 +3444,19 @@ msgstr ""
 msgid "Load Settings"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:271
+#: src/gui/MItem_tools.hpp:711
 msgid "Load Settings from File"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:58
+#: src/gui/screen_network_setup.cpp:60
 msgid "Load config from file"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:231
+#: src/gui/screen_cold_pull.cpp:224
 msgid "Load filament"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:40 src/gui/screen_menu_mmu_load_to_nozzle.hpp:21
+#: src/gui/MItem_mmu.hpp:41 src/gui/screen_menu_mmu_load_to_nozzle.hpp:21
 msgid "Load to Nozzle"
 msgstr ""
 
@@ -3344,6 +3499,19 @@ msgstr ""
 msgid "Loadcell test passed OK."
 msgstr ""
 
+#. Longer text doesn't fit well on the mini display
+#: src/gui/screen/filament/screen_filaments_loaded.cpp:25
+msgid "Loaded"
+msgstr ""
+
+#: src/gui/screen/filament/screen_filaments_loaded.cpp:27
+msgid "Loaded filament"
+msgstr ""
+
+#: src/gui/screen/filament/screen_filaments_loaded.cpp:16
+msgid "Loaded filaments"
+msgstr ""
+
 #: src/gui/screen_menu_connect.cpp:100
 msgid "Loaded successfully. Connect will activate shortly."
 msgstr ""
@@ -3352,14 +3520,14 @@ msgstr ""
 msgid "Loaded successfully. Enable Connect to activate."
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:30
+#: src/gui/MItem_mmu.hpp:31
 msgid "Loading Test"
 msgstr ""
 
 #. //MSG_PROGRESS_UNLOADING_FILAMENT c=20
 #: src/mmu2/mmu2_progress_converter.cpp:22
-#: src/gui/dialogs/DialogLoadUnload.cpp:86
-#: src/gui/dialogs/DialogLoadUnload.cpp:503
+#: src/gui/dialogs/DialogLoadUnload.cpp:78
+#: src/gui/dialogs/DialogLoadUnload.cpp:485
 msgid "Loading filament"
 msgstr ""
 
@@ -3373,7 +3541,7 @@ msgid ""
 "sensor calibration, if needed."
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:65
+#: src/gui/dialogs/DialogLoadUnload.cpp:57
 msgid "Loading to nozzle"
 msgstr ""
 
@@ -3381,25 +3549,25 @@ msgstr ""
 msgid "Loading..."
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.cpp:202
+#: src/gui/wizard/selftest_frame_dock.cpp:200
 msgid "Lock the tool"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.cpp:200
+#: src/gui/wizard/selftest_frame_dock.cpp:198
 msgid "Loosen pins"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.cpp:198
+#: src/gui/wizard/selftest_frame_dock.cpp:196
 msgid "Loosen screws"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:43
+#: src/gui/wizard/selftest_frame_dock.hpp:44
 msgid ""
 "Loosen the two screws on the right side of the dock pillar (marked in "
 "orange) using the uni-wrench."
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:230
+#: src/gui/MItem_tools.hpp:252
 msgid "Loud"
 msgstr ""
 
@@ -3411,11 +3579,11 @@ msgstr ""
 msgid "Low"
 msgstr ""
 
-#: src/gui/screen_menu_move.cpp:16
+#: src/gui/screen_menu_move.cpp:99
 msgid "Low temp"
 msgstr ""
 
-#: src/gui/MItem_MINI.hpp:21
+#: src/gui/MItem_MINI.hpp:25
 msgid "M.I.N.D.A."
 msgstr ""
 
@@ -3427,7 +3595,7 @@ msgstr ""
 msgid "MAC Address"
 msgstr ""
 
-#: src/gui/screen_menu_enclosure.hpp:55
+#: src/gui/screen_menu_enclosure.hpp:56
 msgid "MANUAL SETTINGS"
 msgstr ""
 
@@ -3462,7 +3630,7 @@ msgstr ""
 msgid "MCU MAXTEMP ERROR"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:718
+#: src/gui/MItem_tools.hpp:610
 msgid "MCU Temperature"
 msgstr ""
 
@@ -3499,7 +3667,7 @@ msgid ""
 msgstr ""
 
 #. Rect16(10, 28, 11 * 20, 18 * 16))
-#: src/gui/screen_messages.cpp:23
+#: src/gui/screen_messages.cpp:24
 msgid "MESSAGES"
 msgstr ""
 
@@ -3522,19 +3690,19 @@ msgstr ""
 msgid "MINTEMP ERROR"
 msgstr ""
 
-#: src/gui/window_msgbox_wrong_printer.cpp:27
+#: src/gui/window_msgbox_wrong_printer.cpp:29
 msgid "MK3 compatibility mode"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:274
+#: src/gui/MItem_mmu.hpp:275
 msgid "MMU"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:291
+#: src/gui/MItem_mmu.hpp:292
 msgid "MMU BL Status"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:683
+#: src/gui/MItem_tools.hpp:575
 msgid "MMU Current"
 msgstr ""
 
@@ -3578,11 +3746,11 @@ msgstr ""
 msgid "MMU SELFTEST FAILED"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:211
+#: src/gui/MItem_mmu.hpp:212
 msgid "MMU Unit"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:495
+#: src/gui/MItem_tools.hpp:378
 msgid "MMU Version"
 msgstr ""
 
@@ -3596,7 +3764,7 @@ msgstr ""
 msgid "MMU filament"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:634
+#: src/gui/MItem_tools.hpp:526
 msgid "MMU filament loads"
 msgstr ""
 
@@ -3612,7 +3780,7 @@ msgstr ""
 msgid "MMU not responding. Check the wiring and connectors."
 msgstr ""
 
-#: src/gui/MItem_mmu.cpp:312
+#: src/gui/MItem_mmu.cpp:309
 msgid "MMU off"
 msgstr ""
 
@@ -3668,23 +3836,33 @@ msgstr ""
 msgid "MORE"
 msgstr ""
 
-#: src/gui/screen_menu_move.hpp:83
+#: src/gui/screen_menu_move.hpp:73
 msgid "MOVE AXIS"
 msgstr ""
 
-#: src/gui/screen_menu_filament_changeall.cpp:231
+#: src/gui/screen_menu_filament_changeall.cpp:234
 msgid "MULTITOOL FILAMENT CHANGE"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:328
+#: src/gui/screen_printing.cpp:354
+msgid ""
+"Maintenance Reminder. Filament changes have reached 30k. Inspect and clean "
+"the extruder. Visit prusa.io/mmu-care"
+msgstr ""
+
+#: src/gui/screen_printing.cpp:352
 msgid ""
 "Maintenance Reminder. Filament changes have reached main-plate lifespan. "
 "Inspect the part and ensure you have a spare plate available. Visit prusa.io/"
 "mmu-care"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:61
+#: src/gui/dialogs/DialogLoadUnload.cpp:53
 msgid "Make sure the filament is inserted through the sensor."
+msgstr ""
+
+#: src/gui/MItem_menus.hpp:45
+msgid "Manage Filaments"
 msgstr ""
 
 #: src/gui/MItem_enclosure.hpp:82
@@ -3740,16 +3918,20 @@ msgid ""
 "in contact with hotend. In case of damage, replace it."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:330
+#: src/gui/screen_input_shaper_calibration.cpp:319
 msgid "Measurement failed."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:209
+#: src/gui/screen_input_shaper_calibration.cpp:198
 msgid "Measuring X resonance..."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:217
+#: src/gui/screen_input_shaper_calibration.cpp:206
 msgid "Measuring Y resonance..."
+msgstr ""
+
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:88
+msgid "Measuring belt tension"
 msgstr ""
 
 #: src/gui/MItem_crash.hpp:55
@@ -3763,19 +3945,19 @@ msgstr ""
 msgid "Memory allocation failed for scheduled LED animation"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:214
+#: src/gui/MItem_tools.hpp:236
 msgid "Menu Timeout"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:101
+#: src/gui/MItem_tools.hpp:111
 msgid "Mesh Bed Leveling"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:163
+#: src/gui/MItem_menus.hpp:90
 msgid "Message History"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:133
+#: src/gui/MItem_menus.hpp:81
 msgid "Metrics & Log"
 msgstr ""
 
@@ -3787,30 +3969,30 @@ msgstr ""
 msgid "Metrics Port"
 msgstr ""
 
-#: src/gui/screen_tools_mapping.cpp:673
+#: src/gui/screen_tools_mapping.cpp:680
 msgid "Mismatching filament types"
 msgstr ""
 
-#: src/gui/screen_tools_mapping.cpp:671
+#: src/gui/screen_tools_mapping.cpp:678
 msgid "Mismatching nozzle diameters"
 msgstr ""
 
 #. abbreviated Monday - max 3 characters
-#: src/lang/format_print_will_end.cpp:45
+#: src/lang/format_print_will_end.cpp:44
 msgid "Mon"
 msgstr ""
 
-#: src/gui/screen_qr_error.cpp:28 src/gui/screen_fatal_warning.cpp:30
-#: src/gui/dialogs/DialogConnectReg.hpp:20
+#: src/gui/screen_qr_error.cpp:29 src/gui/screen_fatal_warning.cpp:31
+#: src/gui/dialogs/DialogConnectReg.hpp:23
 msgid "More detail at"
 msgstr ""
 
-#: src/gui/screen_phase_stepping.cpp:209
+#: src/gui/screen_phase_stepping.cpp:212
 #, c-format
 msgid "Motor %c vibration reduced by %2d%%"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:87
+#: src/gui/MItem_menus.hpp:75
 msgid "Move Axis"
 msgstr ""
 
@@ -3840,7 +4022,7 @@ msgstr ""
 
 #. //MSG_PROGRESS_HOMING c=20
 #: src/mmu2/mmu2_progress_converter.cpp:32
-#: src/gui/dialogs/DialogLoadUnload.cpp:96
+#: src/gui/dialogs/DialogLoadUnload.cpp:88
 msgid "Moving selector"
 msgstr ""
 
@@ -3848,8 +4030,7 @@ msgstr ""
 msgid "Moving up"
 msgstr ""
 
-#: src/guiapi/include/WindowItemFormatableLabel.hpp:18
-#: src/gui/screen_printing.cpp:115
+#: src/gui/screen_printing.cpp:134
 msgid "N/A"
 msgstr ""
 
@@ -3869,7 +4050,7 @@ msgstr ""
 msgid "NETWORK"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:501
+#: src/gui/screen_network_setup.cpp:508
 msgid "NETWORK SETUP"
 msgstr ""
 
@@ -3889,12 +4070,12 @@ msgstr ""
 msgid "NINIT "
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:640
+#: src/gui/MItem_tools.cpp:654
 #, c-format
 msgid "NINS / %7ld"
 msgstr ""
 
-#: src/gui/MItem_mmu.cpp:300
+#: src/gui/MItem_mmu.cpp:299
 msgid "NINS / 0"
 msgstr ""
 
@@ -3918,10 +4099,6 @@ msgstr ""
 msgid "NOW"
 msgstr ""
 
-#: src/gui/screen_printer_setup.cpp:83
-msgid "NOZZLE DIAMETER"
-msgstr ""
-
 #: tmp_error_headers/error_list_mini.hpp:134
 #: tmp_error_headers/error_list_ix.hpp:225
 #: tmp_error_headers/error_list_mk4.hpp:141
@@ -3929,7 +4106,12 @@ msgstr ""
 msgid "NOZZLE HEATER OVERCURRENT"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:262
+#: src/gui/screen/toolhead/screen_toolhead_settings_nozzle_offset.cpp:50
+msgid "NOZZLE_OFFSET"
+msgstr ""
+
+#: src/gui/MItem_tools.hpp:284
+#: src/gui/screen/filament/screen_filament_detail.cpp:21
 msgid "Name"
 msgstr ""
 
@@ -3937,11 +4119,11 @@ msgstr ""
 msgid "Net fail"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:280 src/gui/MItem_menus.cpp:367
+#: src/gui/MItem_menus.hpp:117 src/gui/MItem_tools.cpp:946
 msgid "Network"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:290
+#: src/gui/MItem_menus.hpp:120
 msgid "Network Status"
 msgstr ""
 
@@ -3956,29 +4138,29 @@ msgstr ""
 msgid "New firmware available"
 msgstr ""
 
-#: src/gui/window_msgbox_wrong_printer.cpp:33
+#: src/gui/window_msgbox_wrong_printer.cpp:35
 #, c-format
 msgid "Newer FW req.: %s"
 msgstr ""
 
-#: src/gui/window_msgbox_wrong_printer.cpp:33
+#: src/gui/window_msgbox_wrong_printer.cpp:35
 #, c-format
 msgid "Newer firmware is required: %s"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:511
+#: src/gui/screen_printing.cpp:538
 msgid "Next change in"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:268
+#: src/gui/MItem_mmu.hpp:269
 msgid "Nextruder"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:298
+#: src/gui/MItem_mmu.hpp:300
 msgid "Nextruder Maintenance"
 msgstr ""
 
-#: src/gui/MItem_hardware.hpp:60
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:57
 msgid "Nextruder Silicone Sock"
 msgstr ""
 
@@ -3994,7 +4176,7 @@ msgstr ""
 msgid "No USB"
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:283
+#: src/gui/MItem_tools.cpp:367
 msgid "No crash dump to save."
 msgstr ""
 
@@ -4011,11 +4193,11 @@ msgid ""
 "first!"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:364
+#: src/gui/screen_network_setup.cpp:332
 msgid "No network interface"
 msgstr ""
 
-#: src/common/footer_def.hpp:208 src/gui/MItem_hardware.cpp:19
+#: src/common/footer_def.hpp:208 src/gui/MItem_hardware.cpp:20
 msgid "None"
 msgstr ""
 
@@ -4023,7 +4205,7 @@ msgstr ""
 msgid "Not Calib"
 msgstr ""
 
-#: src/gui/MItem_mmu.cpp:316
+#: src/gui/MItem_mmu.cpp:313
 msgid "Not detected"
 msgstr ""
 
@@ -4045,55 +4227,72 @@ msgid ""
 "with the electronics. Check the wiring and connectors."
 msgstr ""
 
-#: src/guiapi/include/WindowItemFormatableLabel.hpp:19
-msgid "Not initialized"
-msgstr ""
-
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:54
 msgid ""
 "Now, let's calibrate the distance between the tip of the nozzle and the "
 "print sheet."
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:747
+#: src/gui/MItem_tools.hpp:639
 msgid "Noz&Bed"
 msgstr ""
 
-#: src/common/footer_def.hpp:128 src/gui/MItem_tools.hpp:746
+#: src/common/footer_def.hpp:128 src/gui/MItem_tools.hpp:638
 #: src/gui/MItem_print.hpp:13 src/gui/MItem_print.hpp:47
 #: src/gui/wizard/selftest_result_heaters.cpp:13
 msgid "Nozzle"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:219 src/gui/MItem_print.hpp:34
+#: src/gui/screen_menu_tools.hpp:76 src/gui/MItem_print.hpp:34
 msgid "Nozzle 1 Temperature"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:221 src/gui/MItem_print.hpp:36
+#: src/gui/screen_menu_tools.hpp:78 src/gui/MItem_print.hpp:36
 msgid "Nozzle 2 Temperature"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:223 src/gui/MItem_print.hpp:38
+#: src/gui/screen_menu_tools.hpp:80 src/gui/MItem_print.hpp:38
 msgid "Nozzle 3 Temperature"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:225 src/gui/MItem_print.hpp:40
+#: src/gui/screen_menu_tools.hpp:82 src/gui/MItem_print.hpp:40
 msgid "Nozzle 4 Temperature"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:227 src/gui/MItem_print.hpp:42
+#: src/gui/screen_menu_tools.hpp:84 src/gui/MItem_print.hpp:42
 msgid "Nozzle 5 Temperature"
 msgstr ""
 
-#: src/gui/MItem_hardware.hpp:22 src/gui/screen_printer_setup.cpp:70
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:25
 msgid "Nozzle Diameter"
+msgstr ""
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:66
+msgid "Nozzle Hardened"
+msgstr ""
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:83
+msgid "Nozzle High-flow"
+msgstr ""
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:169
+msgid "Nozzle Offset"
 msgstr ""
 
 #: src/common/footer_def.hpp:132
 msgid "Nozzle PWM"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:207 src/gui/screen_menu_no_tools.hpp:10
+#: src/gui/screen/filament/screen_filament_detail.cpp:83
+msgid "Nozzle Preheat Temperature"
+msgstr ""
+
+#: src/gui/screen/filament/screen_filament_detail.cpp:68
+msgid "Nozzle Temp"
+msgstr ""
+
+#: src/gui/screen_menu_tools.hpp:64 src/gui/screen_menu_no_tools.hpp:10
+#: src/gui/screen/filament/screen_filament_detail.cpp:68
 #: src/gui/MItem_print.hpp:15 src/gui/MItem_print.hpp:49
 msgid "Nozzle Temperature"
 msgstr ""
@@ -4131,13 +4330,20 @@ msgstr ""
 msgid "Nozzle heater check"
 msgstr ""
 
+#: src/gui/window_msgbox_wrong_printer.cpp:24
+msgid "Nozzle is not hardened"
+msgstr ""
+
+#: src/gui/window_msgbox_wrong_printer.cpp:25
+msgid "Nozzle is not high-flow"
+msgstr ""
+
 #: src/gui/screen_menu_odometer.hpp:33
 msgid "ODOMETER"
 msgstr ""
 
-#. filament present
 #: src/gui/footer/footer_item_fsensor.cpp:49
-#: src/gui/footer/footer_item_multitool.cpp:29
+#: src/gui/footer/footer_item_multitool.cpp:28
 msgid "OFF "
 msgstr ""
 
@@ -4182,19 +4388,12 @@ msgstr ""
 msgid "Offset"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:55
-msgid "Offset X"
+#: src/gui/screen/toolhead/screen_toolhead_settings_nozzle_offset.cpp:36
+#, c-format
+msgid "Offset %c"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:64
-msgid "Offset Y"
-msgstr ""
-
-#: src/gui/screen_menu_tools.hpp:73
-msgid "Offset Z"
-msgstr ""
-
-#: src/gui/MItem_menus.cpp:356
+#: src/gui/MItem_tools.cpp:935
 msgid "Ok"
 msgstr ""
 
@@ -4202,7 +4401,7 @@ msgstr ""
 msgid "On Restart"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:229
+#: src/gui/MItem_tools.hpp:251
 msgid "Once"
 msgstr ""
 
@@ -4270,15 +4469,15 @@ msgstr ""
 msgid "PAUSE"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:599
+#: src/gui/screen_printing.cpp:626
 msgid "PAUSED"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:595
+#: src/gui/screen_printing.cpp:622
 msgid "PAUSING ..."
 msgstr ""
 
-#: src/gui/screen_phase_stepping.cpp:20
+#: src/gui/screen_phase_stepping.cpp:23
 msgid "PHASE STEPPING CALIBRATION"
 msgstr ""
 
@@ -4326,8 +4525,12 @@ msgstr ""
 msgid "PRINT STATISTICS"
 msgstr ""
 
-#: src/gui/screen_printer_setup.cpp:90
+#: src/gui/screen_printer_setup.cpp:39
 msgid "PRINTER SETUP"
+msgstr ""
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:190
+msgid "PRINTHEAD"
 msgstr ""
 
 #: src/gui/screen_printing.hpp:38
@@ -4339,7 +4542,7 @@ msgid "PROJECTS"
 msgstr ""
 
 #. TODO: Doesn't fit
-#: src/gui/screen_menu_connect.hpp:79 src/gui/dialogs/DialogConnectReg.hpp:19
+#: src/gui/screen_menu_connect.hpp:79 src/gui/dialogs/DialogConnectReg.hpp:22
 msgid "PRUSA CONNECT"
 msgstr ""
 
@@ -4387,38 +4590,42 @@ msgid "PURGE MORE"
 msgstr ""
 
 #: src/guiapi/include/window_tool_action_box.hpp:99
-#: src/gui/screen_menu_tools.hpp:139
 msgid "Park Current Tool"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:51
-#: src/gui/screen_input_shaper_calibration.cpp:124
+#. Do not show "Pick Tool" at all for all_toolheads, only "Park Tool" that gets disabled when no tool is selected
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:118
+msgid "Park Tool"
+msgstr ""
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:43
+#: src/gui/screen_input_shaper_calibration.cpp:132
 msgid "Parking"
 msgstr ""
 
 #. //MSG_PROGRESS_RETURN_SELECTOR c=20
 #: src/mmu2/mmu2_progress_converter.cpp:28
-#: src/gui/dialogs/DialogLoadUnload.cpp:92
+#: src/gui/dialogs/DialogLoadUnload.cpp:84
 msgid "Parking selector"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.cpp:216
+#: src/gui/wizard/selftest_frame_dock.cpp:214
 msgid "Parking test"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:50
+#: src/gui/wizard/selftest_frame_dock.hpp:51
 msgid ""
 "Parking test failed.\n"
 "\n"
 "Please try again."
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.cpp:195
+#: src/gui/wizard/selftest_frame_dock.cpp:193
 msgid "Parking tool"
 msgstr ""
 
-#: src/gui/screen_prusa_link.hpp:39 src/gui/screen_prusa_link.hpp:52
-#: src/gui/screen_network_setup.cpp:30
+#: src/gui/screen_prusa_link.hpp:40 src/gui/screen_prusa_link.hpp:53
+#: src/gui/screen_network_setup.cpp:32
 msgid "Password"
 msgstr ""
 
@@ -4430,24 +4637,32 @@ msgstr ""
 msgid "Pausing..."
 msgstr ""
 
-#: src/gui/screen_menu_tools.cpp:129
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:182
+msgid "Perfect!"
+msgstr ""
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:159
 msgid ""
 "Perform filament sensors calibration? This discards previous filament "
-"sensors calibration. The extruder will be replaced during calibration"
+"sensors calibration."
 msgstr ""
 
 #. //MSG_PROGRESS_PUSH_FILAMENT c=20
 #: src/mmu2/mmu2_progress_converter.cpp:26
-#: src/gui/dialogs/DialogLoadUnload.cpp:90
+#: src/gui/dialogs/DialogLoadUnload.cpp:82
 msgid "Performing cut"
 msgstr ""
 
-#: src/gui/screen_phase_stepping.cpp:201
+#: src/gui/screen_phase_stepping.cpp:204
 msgid "Phase stepping calibration completed"
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:874
+#: src/gui/MItem_tools.cpp:866
 msgid "Phase stepping not ready: perform calibration first."
+msgstr ""
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:118
+msgid "Pick Tool"
 msgstr ""
 
 #: src/guiapi/include/window_tool_action_box.hpp:79
@@ -4495,27 +4710,19 @@ msgstr ""
 msgid "Pick Tool 5 (Current)"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:449
+#: src/gui/MItem_tools.hpp:777
 msgid "Pick/Park Tool"
-msgstr ""
-
-#: src/gui/screen_phase_stepping.cpp:22
-msgid "Picking Tool"
-msgstr ""
-
-#: src/gui/screen_menu_tools.hpp:82
-msgid "Pickup Tool"
 msgstr ""
 
 #: src/gui/screen_menu_network_status.hpp:15
 msgid "Ping | Loss"
 msgstr ""
 
-#: src/gui/screen_tools_mapping.cpp:667
+#: src/gui/screen_tools_mapping.cpp:674
 msgid "Please assign a tool to the filament"
 msgstr ""
 
-#: src/gui/box_unfinished_selftest.cpp:100
+#: src/gui/box_unfinished_selftest.cpp:104
 #: tmp_error_headers/error_list_mini.hpp:415
 #: tmp_error_headers/error_list_xl.hpp:695
 #: tmp_error_headers/error_list_ix.hpp:667
@@ -4524,11 +4731,20 @@ msgstr ""
 msgid "Please complete Calibrations & Tests before using the printer."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:393
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:20
+msgid "Please follow the XY gantry alignment process in the manual."
+msgstr ""
+
+#: src/gui/screen_network_setup.cpp:361
 msgid ""
 "Please insert a flash drive with a network configuration file.\n"
 "\n"
 "The configuration file can be generated in PrusaSlicer."
+msgstr ""
+
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:26
+msgid ""
+"Please install the belt dampeners to the left and right side of the printer."
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:96
@@ -4539,25 +4755,33 @@ msgid ""
 "You will need filament to finish this test later."
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:59
+#: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Please open idler and remove filament manually"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:58
+#: src/gui/dialogs/DialogLoadUnload.cpp:50
 msgid "Please remove filament from filament sensor."
 msgstr ""
 
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:27
+msgid "Please remove the belt dampeners."
+msgstr ""
+
 #. precondition: icons are properly updated
-#: src/gui/screen_tools_mapping.cpp:665
+#: src/gui/screen_tools_mapping.cpp:672
 msgid "Please select a filament."
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:189 src/gui/dialogs/window_dlg_wait.cpp:20
+#: src/gui/screen_cold_pull.cpp:182 src/gui/dialogs/window_dlg_wait.cpp:20
 msgid "Please wait"
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:91
 msgid "Please wait until a tool is picked"
+msgstr ""
+
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:24
+msgid "Please wait."
 msgstr ""
 
 #: src/gui/MItem_enclosure.hpp:44
@@ -4568,7 +4792,7 @@ msgstr ""
 msgid "Post Print Filtration Duration"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:186
+#: src/gui/MItem_mmu.hpp:187
 msgid "Power Cycle"
 msgstr ""
 
@@ -4601,37 +4825,48 @@ msgstr ""
 msgid "Preheat Error"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_preheat.cpp:15
+#: src/gui/screen/filament/screen_filament_detail.cpp:83
+msgid "Preheat Temp"
+msgstr ""
+
+#: src/gui/screen/screen_preheat.cpp:171
+msgid "Preheating"
+msgstr ""
+
+#. use load caption, not a bug
+#: src/gui/screen/screen_preheat.cpp:176
 msgid "Preheating for load"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_preheat.cpp:17
+#: src/gui/screen/screen_preheat.cpp:183
 msgid "Preheating for purge"
 msgstr ""
 
-#: src/gui/dialogs/window_dlg_preheat.cpp:16
+#. use unload caption, not a bug
+#: src/gui/screen/screen_preheat.cpp:180
 msgid "Preheating for unload"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:70
+#: src/gui/MItem_mmu.hpp:71
 msgid "Preload All"
 msgstr ""
 
-#: src/gui/screen_menu_mmu_preload_to_mmu.hpp:18 src/gui/MItem_mmu.hpp:20
+#: src/gui/screen_menu_mmu_preload_to_mmu.hpp:18 src/gui/MItem_mmu.hpp:21
 msgid "Preload to MMU"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:10
+#: src/gui/MItem_mmu.hpp:11
 msgid "Preload to MMU Advanced"
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_temp.cpp:59
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:21
 msgid "Preparing"
 msgstr ""
 
 #. //MSG_PROGRESS_SELECT_SLOT c=20
 #: src/mmu2/mmu2_progress_converter.cpp:24
-#: src/gui/dialogs/DialogLoadUnload.cpp:88
+#: src/gui/dialogs/DialogLoadUnload.cpp:80
 msgid "Preparing blade"
 msgstr ""
 
@@ -4639,15 +4874,15 @@ msgstr ""
 msgid "Preparing for calibration pin installation."
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:54
+#: src/gui/dialogs/DialogLoadUnload.cpp:46
 msgid "Preparing to ram"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:106
+#: src/gui/dialogs/DialogLoadUnload.cpp:98
 msgid "Press CONTINUE and push filament into MMU."
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:60
+#: src/gui/dialogs/DialogLoadUnload.cpp:52
 msgid "Press CONTINUE and push filament into the extruder."
 msgstr ""
 
@@ -4665,7 +4900,7 @@ msgstr ""
 msgid "Print"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:555 src/gui/MItem_print.hpp:74
+#: src/gui/MItem_tools.hpp:447 src/gui/MItem_print.hpp:74
 msgid "Print Fan"
 msgstr ""
 
@@ -4677,7 +4912,7 @@ msgstr ""
 msgid "Print Filtration"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:575
+#: src/gui/MItem_tools.hpp:467
 msgid "Print Progress Screen"
 msgstr ""
 
@@ -4685,12 +4920,12 @@ msgstr ""
 msgid "Print Speed"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:342
+#: src/gui/MItem_menus.hpp:132
 msgid "Print Statistics"
 msgstr ""
 
 #. First line - Print Time
-#: src/gui/MItem_tools.hpp:641 src/gui/gcode_description.cpp:142
+#: src/gui/MItem_tools.hpp:533 src/gui/gcode_description.cpp:142
 msgid "Print Time"
 msgstr ""
 
@@ -4733,11 +4968,15 @@ msgstr ""
 msgid "Print will end"
 msgstr ""
 
-#: src/gui/screen_sysinf.cpp:75
+#: src/gui/screen_sysinf.cpp:74
 msgid "PrintFan RPM"
 msgstr ""
 
-#: src/gui/MItem_hardware.hpp:87 src/gui/MItem_hardware.hpp:97
+#: src/gui/MItem_menus.hpp:147
+msgid "Printer Setup"
+msgstr ""
+
+#: src/gui/MItem_hardware.cpp:64 src/gui/MItem_hardware.hpp:54
 msgid "Printer Type"
 msgstr ""
 
@@ -4745,26 +4984,36 @@ msgstr ""
 msgid "Printer doesn't have enough tools"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:325
+#: src/gui/screen_printing.cpp:345
 msgid ""
 "Printer has detected multiple consecutive filament loading errors. We "
 "recommend checking Nextruder main-plate. Visit prusa.io/mmu-care"
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:57
+#: src/gui/screen_printing.cpp:347
+msgid ""
+"Printer has detected multiple consecutive filament loading errors. We "
+"recommend checking the extruder. Visit prusa.io/mmu-care"
+msgstr ""
+
+#: src/gui/MItem_tools.cpp:83
 msgid "Printer is busy. Please try repeating the action later."
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:56
+#: src/gui/MItem_tools.cpp:82
 msgid "Printer may vibrate and be noisier during homing."
 msgstr ""
 
-#: src/gui/window_msgbox_wrong_printer.cpp:24
+#: src/gui/window_msgbox_wrong_printer.cpp:26
 msgid "Printer model doesn't match"
 msgstr ""
 
 #: src/gui/screen_tools_mapping.cpp:319
 msgid "Printer tools"
+msgstr ""
+
+#: src/gui/MItem_menus.cpp:156
+msgid "Printhead"
 msgstr ""
 
 #. /< "Object <number>", needs to have exactly one "%i" in it
@@ -4792,7 +5041,7 @@ msgstr ""
 msgid "Protocol err"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:173
+#: src/gui/MItem_menus.hpp:93
 msgid "Prusa Connect"
 msgstr ""
 
@@ -4800,10 +5049,14 @@ msgstr ""
 msgid "Prusa Connect - printer setup"
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:87
+#: src/gui/dialogs/DialogConnectReg.cpp:85
 msgid ""
 "Prusa Connect setup is not finished. Do you want to exit and abort the "
 "process?"
+msgstr ""
+
+#: src/gui/MItem_menus.hpp:96
+msgid "PrusaLink"
 msgstr ""
 
 #: tmp_error_headers/error_list_mmu.hpp:39
@@ -4850,21 +5103,21 @@ msgstr ""
 msgid "Purge Filament"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:66
+#: src/gui/dialogs/DialogLoadUnload.cpp:58
 msgid "Purging"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:509
+#: src/gui/dialogs/DialogLoadUnload.cpp:491
 msgid "Purging filament"
 msgstr ""
 
 #. //MSG_PROGRESS_PREPARE_BLADE c=20
 #: src/mmu2/mmu2_progress_converter.cpp:25
-#: src/gui/dialogs/DialogLoadUnload.cpp:89
+#: src/gui/dialogs/DialogLoadUnload.cpp:81
 msgid "Pushing filament"
 msgstr ""
 
-#: src/gui/screen_prusa_link.hpp:69
+#: src/gui/screen_prusa_link.hpp:70
 msgid "QR Code"
 msgstr ""
 
@@ -4876,7 +5129,7 @@ msgstr ""
 msgid "QUIT"
 msgstr ""
 
-#: src/guiapi/src/window_msgbox.cpp:272
+#: src/guiapi/src/window_msgbox.cpp:274
 msgid "Question"
 msgstr ""
 
@@ -4886,6 +5139,10 @@ msgstr ""
 
 #: src/common/client_response_texts.hpp:79
 msgid "REMOVE"
+msgstr ""
+
+#: src/gui/screen/filament/screen_filaments_reorder.cpp:187
+msgid "REORDER FILAMENTS"
 msgstr ""
 
 #: src/common/client_response_texts.hpp:77
@@ -4904,15 +5161,15 @@ msgstr ""
 msgid "RETRY"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:390
+#: src/gui/MItem_tools.hpp:739
 msgid "RGB Side Strip"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:398
+#: src/gui/MItem_tools.hpp:747
 msgid "RGB Side Strip Dimming"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:380
+#: src/gui/MItem_tools.hpp:729
 msgid "RGB Status Bar"
 msgstr ""
 
@@ -4920,7 +5177,7 @@ msgstr ""
 msgid "RIGHT"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:55
+#: src/gui/dialogs/DialogLoadUnload.cpp:47
 msgid "Ramming"
 msgstr ""
 
@@ -4933,7 +5190,7 @@ msgid "Reading ESP firmware failed."
 msgstr ""
 
 #. Currently unreachable, always overriden by unassigned gcodes
-#: src/gui/screen_tools_mapping.cpp:666
+#: src/gui/screen_tools_mapping.cpp:673
 msgid "Ready to print"
 msgstr ""
 
@@ -4945,11 +5202,11 @@ msgstr ""
 msgid "Rear Side [um]"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:257
+#: src/gui/screen_input_shaper_calibration.cpp:246
 msgid "Recommended shaper frequency for X axis: "
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:258
+#: src/gui/screen_input_shaper_calibration.cpp:247
 msgid "Recommended shaper frequency for Y axis: "
 msgstr ""
 
@@ -4973,7 +5230,11 @@ msgstr ""
 msgid "Registering"
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:134
+#: src/gui/dialogs/DialogConnectReg.cpp:45
+msgid "Registering the printer to Prusa Connect..."
+msgstr ""
+
+#: src/gui/dialogs/DialogConnectReg.cpp:136
 msgid "Registration successful, continue at connect.prusa3d.com"
 msgstr ""
 
@@ -4985,12 +5246,16 @@ msgstr ""
 msgid "Registration to Prusa Connect failed due to:"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:507
+#: src/gui/dialogs/DialogLoadUnload.cpp:489
 msgid "Reloading filament"
 msgstr ""
 
 #: src/gui/print_time_module.hpp:26
 msgid "Remaining time"
+msgstr ""
+
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:27
+msgid "Remove belt dampeners"
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:130
@@ -5004,12 +5269,16 @@ msgid ""
 "Tip: Filament is automatically ejected when the end of the spool is reached."
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:310
+#: src/gui/screen_cold_pull.cpp:303
 msgid "Remove the filament manually"
 msgstr ""
 
 #: src/gui/screen_menu_steel_sheets.hpp:51
 msgid "Rename"
+msgstr ""
+
+#: src/gui/MItem_menus.hpp:51
+msgid "Reorder Filaments"
 msgstr ""
 
 #: tmp_error_headers/error_list_mini.hpp:478
@@ -5032,20 +5301,40 @@ msgid ""
 "for tool index out of range (T0-T4)."
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:725 src/gui/screen_menu_steel_sheets.hpp:61
+#: src/gui/screen/filament/screen_filament_detail.cpp:113
+msgid "Requires Filtration"
+msgstr ""
+
+#: src/gui/MItem_tools.hpp:617 src/gui/screen_menu_steel_sheets.hpp:61
 #: src/gui/screen_menu_bed_level_correction.hpp:92
 msgid "Reset"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:121
+#: src/gui/MItem_tools.hpp:131
 msgid "Reset Settings & Calibrations"
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:232
+#: src/gui/MItem_experimental_tools.hpp:43
+msgid "Reset Z-length"
+msgstr ""
+
+#: src/gui/MItem_tools.cpp:249
 msgid "Reset complete. The system will now restart."
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:208
+#: src/gui/MItem_experimental_tools.hpp:178
+msgid "Reset currents"
+msgstr ""
+
+#: src/gui/MItem_experimental_tools.hpp:136
+msgid "Reset directions"
+msgstr ""
+
+#: src/gui/MItem_experimental_tools.hpp:85
+msgid "Reset steps per unit"
+msgstr ""
+
+#: src/gui/screen_cold_pull.cpp:201
 msgid "Restarting MMU"
 msgstr ""
 
@@ -5054,6 +5343,7 @@ msgid "Restore Calibration from USB"
 msgstr ""
 
 #: src/gui/MItem_input_shaper.hpp:93
+#: src/gui/screen/filament/screen_filaments_reorder.cpp:162
 #: src/gui/screen_menu_filament_sensors.hpp:13
 msgid "Restore Defaults"
 msgstr ""
@@ -5071,21 +5361,20 @@ msgstr ""
 msgid "Retract from FINDA"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:94
+#: src/gui/dialogs/DialogLoadUnload.cpp:86
 msgid "Retracting from FINDA"
 msgstr ""
 
-#: src/guiapi/include/WindowMenuItems.hpp:72
+#: src/guiapi/include/WindowMenuItems.hpp:71
 #: src/guiapi/include/window_tool_action_box.hpp:100
-#: src/gui/screen_network_setup.cpp:31 src/gui/screen_network_setup.cpp:37
-#: src/gui/screen_network_setup.cpp:142
-#: src/gui/dialogs/window_dlg_preheat.hpp:40
+#: src/gui/screen/screen_preheat.cpp:93 src/gui/screen_network_setup.cpp:33
+#: src/gui/screen_network_setup.cpp:39 src/gui/screen_network_setup.cpp:143
 msgid "Return"
 msgstr ""
 
 #. //MSG_PROGRESS_PERFORM_CUT c=20
 #: src/mmu2/mmu2_progress_converter.cpp:27
-#: src/gui/dialogs/DialogLoadUnload.cpp:91
+#: src/gui/dialogs/DialogLoadUnload.cpp:83
 msgid "Returning selector"
 msgstr ""
 
@@ -5103,11 +5392,11 @@ msgid ""
 "flush with the cover. Unlock and open the idler."
 msgstr ""
 
-#: src/gui/screen_menu_selftest_snake.cpp:396
+#: src/gui/screen_menu_selftest_snake.cpp:390
 msgid "Run selftests and calibrations now?"
 msgstr ""
 
-#: src/gui/screen_phase_stepping.cpp:23
+#: src/gui/screen_phase_stepping.cpp:26
 msgid ""
 "Running the phase stepping calibration to reduce vibrations. Please wait..."
 msgstr ""
@@ -5128,7 +5417,7 @@ msgstr ""
 msgid "SELFTEST"
 msgstr ""
 
-#: src/gui/screen_menu_sensor_info.hpp:17
+#: src/gui/screen_menu_sensor_info.hpp:16
 msgid "SENSOR INFO"
 msgstr ""
 
@@ -5152,7 +5441,7 @@ msgstr ""
 msgid "SPOOL JOIN"
 msgstr ""
 
-#: src/gui/MItem_network.hpp:51 src/gui/screen_network_setup.cpp:86
+#: src/gui/MItem_network.hpp:51 src/gui/screen_network_setup.cpp:90
 msgid "SSID"
 msgstr ""
 
@@ -5160,7 +5449,7 @@ msgstr ""
 msgid "STOP"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:605
+#: src/gui/screen_printing.cpp:632
 msgid "STOPPED"
 msgstr ""
 
@@ -5169,7 +5458,7 @@ msgstr ""
 msgid "STUCK FILAMENT DETECTED"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:170
+#: src/gui/MItem_mmu.hpp:171
 msgid "SW Reset"
 msgstr ""
 
@@ -5177,29 +5466,33 @@ msgstr ""
 msgid "SYSTEM"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:697
+#: src/gui/MItem_tools.hpp:589
 msgid "Sandwich 5V Current"
 msgstr ""
 
 #. abbreviated Saturday - max 3 characters
-#: src/lang/format_print_will_end.cpp:55
+#: src/lang/format_print_will_end.cpp:54
 msgid "Sat"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:153
+#: src/gui/MItem_tools.hpp:175
 msgid "Save Crash Dump"
 msgstr ""
 
-#: src/gui/screen_home.cpp:285
+#: src/gui/MItem_experimental_tools.hpp:188
+msgid "Save and return"
+msgstr ""
+
+#: src/gui/screen_home.cpp:296
 msgid "Saving to USB"
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:126
-msgid "Scan QR or visit prusa.io/add, log in and add printer code:"
+#: src/gui/screen_network_setup.cpp:78
+msgid "Scan networks"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:74
-msgid "Scan networks"
+#: src/gui/dialogs/DialogConnectReg.cpp:127
+msgid "Scan the QR code using the Prusa app or camera, or visit prusa.io/add"
 msgstr ""
 
 #. Wifi module is scanning for Access points
@@ -5207,11 +5500,11 @@ msgstr ""
 msgid "Scanning"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:209
+#: src/gui/screen_network_setup.cpp:210
 msgid "Scanning for networks..."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:209
+#: src/gui/screen_network_setup.cpp:210
 msgid "Scanning..."
 msgstr ""
 
@@ -5230,7 +5523,7 @@ msgstr ""
 msgid "Selecting fil. slot"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:87
+#: src/gui/dialogs/DialogLoadUnload.cpp:79
 msgid "Selecting filament slot"
 msgstr ""
 
@@ -5267,20 +5560,31 @@ msgid ""
 "Details below, use knob to scroll"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:27
+#: src/gui/MItem_menus.hpp:60
 msgid "Sensor Info"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:509
+#: src/gui/MItem_tools.hpp:392
 msgid "Serial Number"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:97
-msgid "Service"
+#: src/gui/MItem_menus.hpp:186
+msgid "Serial Printing Screen"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:759
+#: src/gui/MItem_tools.hpp:651 src/gui/ScreenPrintingModel.cpp:27
 msgid "Set Ready"
+msgstr ""
+
+#: src/gui/screen_network_setup.cpp:466
+msgid "Set up Prusa Connect?"
+msgstr ""
+
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:21
+msgid ""
+"Setting the printer up for the calibration.\n"
+"\n"
+"Please wait."
 msgstr ""
 
 #: tmp_error_headers/error_list_xl.hpp:506
@@ -5293,7 +5597,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:66
+#: src/gui/screen_network_setup.cpp:68
 msgid "Setup via NFC"
 msgstr ""
 
@@ -5311,6 +5615,20 @@ msgstr ""
 
 #: src/common/footer_def.hpp:173
 msgid "Sheets"
+msgstr ""
+
+#: src/gui/MItem_tools.hpp:152
+msgid "Shipping Preparation"
+msgstr ""
+
+#. a dummy comment to break line by force
+#: src/gui/MItem_tools.cpp:273
+msgid ""
+"Shipping preparation\n"
+"\n"
+"Erasing configuration\n"
+"(but keeping Nextruder type)\n"
+"it will take some time..."
 msgstr ""
 
 #: tmp_error_headers/error_list_mmu.hpp:214
@@ -5331,59 +5649,15 @@ msgid ""
 "If the issue persists contact support."
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:428
-msgid "Side FS not inserted ref 1"
+#: src/gui/screen/screen_preheat.cpp:109
+msgid "Show All"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:430
-msgid "Side FS not inserted ref 2"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:432
-msgid "Side FS not inserted ref 3"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:434
-msgid "Side FS not inserted ref 4"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:436
-msgid "Side FS not inserted ref 5"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:438
-msgid "Side FS not inserted ref 6"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:359
-msgid "Side FS span 1"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:361
-msgid "Side FS span 2"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:363
-msgid "Side FS span 3"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:365
-msgid "Side FS span 4"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:367
-msgid "Side FS span 5"
-msgstr ""
-
-#: src/gui/MItem_tools.hpp:369
-msgid "Side FS span 6"
-msgstr ""
-
-#: src/gui/MItem_hardware.hpp:73
+#: src/gui/MItem_hardware.hpp:33
 msgid "Side FSensor Remap"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:548 src/gui/screen_menu_filament_sensors.hpp:41
+#: src/gui/MItem_tools.hpp:440 src/gui/screen_menu_filament_sensors.hpp:41
 msgid "Side Filament Sensor"
 msgstr ""
 
@@ -5406,7 +5680,7 @@ msgstr ""
 msgid "Side filament sensor not connected, check wiring."
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:231
+#: src/gui/MItem_tools.hpp:253
 msgid "Silent"
 msgstr ""
 
@@ -5414,7 +5688,7 @@ msgstr ""
 msgid "Skip"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:44
+#: src/gui/screen_network_setup.cpp:46
 msgid "Skip network setup"
 msgstr ""
 
@@ -5425,15 +5699,15 @@ msgid ""
 "having passed."
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:260
+#: src/gui/MItem_tools.hpp:282
 msgid "Sort Files"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:227
+#: src/gui/MItem_tools.hpp:249
 msgid "Sound Mode"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:271
+#: src/gui/MItem_tools.hpp:293
 msgid "Sound Volume"
 msgstr ""
 
@@ -5451,7 +5725,7 @@ msgstr ""
 msgid "Speed"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:690
+#: src/gui/MItem_tools.hpp:582
 msgid "Splitter 5V Current"
 msgstr ""
 
@@ -5463,7 +5737,15 @@ msgstr ""
 msgid "Stack Overflow"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:37
+#: src/gui/screen_menu_footer_settings.hpp:83
+msgid "Static"
+msgstr ""
+
+#: src/gui/screen_menu_footer_settings.hpp:84
+msgid "Static-left"
+msgstr ""
+
+#: src/gui/MItem_menus.hpp:63
 msgid "Statistics"
 msgstr ""
 
@@ -5471,11 +5753,11 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:71 src/gui/MItem_mmu.hpp:227
+#: src/gui/MItem_tools.hpp:81 src/gui/MItem_mmu.hpp:228
 msgid "Stealth Mode"
 msgstr ""
 
-#: src/gui/screen_menu_steel_sheets.hpp:115 src/gui/MItem_menus.hpp:321
+#: src/gui/screen_menu_steel_sheets.hpp:115 src/gui/MItem_menus.hpp:164
 msgid "Steel Sheets"
 msgstr ""
 
@@ -5487,7 +5769,7 @@ msgstr ""
 msgid "Steppers disabled due to inactivity."
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:273
+#: src/gui/MItem_mmu.hpp:274
 msgid "Stock"
 msgstr ""
 
@@ -5495,24 +5777,24 @@ msgstr ""
 msgid "Stop"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:199
+#: src/gui/screen_cold_pull.cpp:192
 msgid "Stopping MMU"
 msgstr ""
 
-#: src/gui/MItem_hardware.cpp:19
+#: src/gui/MItem_hardware.cpp:20
 msgid "Strict"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:59
+#: src/gui/MItem_tools.hpp:69
 msgid "Stuck Filament Detection"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:380
+#: src/gui/screen_network_setup.cpp:348
 msgid "Successfully connected to:"
 msgstr ""
 
 #. abbreviated Sunday - max 3 characters
-#: src/lang/format_print_will_end.cpp:43
+#: src/lang/format_print_will_end.cpp:42
 msgid "Sun"
 msgstr ""
 
@@ -5522,7 +5804,7 @@ msgid ""
 "properly."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:327
+#: src/gui/screen_network_setup.cpp:288
 msgid "Switch to Wi-Fi"
 msgstr ""
 
@@ -5534,35 +5816,35 @@ msgstr ""
 msgid "Syslog Port"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:332
+#: src/gui/MItem_menus.hpp:129
 msgid "System"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:57
+#: src/gui/MItem_menus.hpp:66
 msgid "System Info"
 msgstr ""
 
-#: src/gui/screen_crash_recovery.cpp:213
+#: src/gui/screen_crash_recovery.cpp:224
 msgid "T1"
 msgstr ""
 
-#: src/gui/screen_crash_recovery.cpp:214
+#: src/gui/screen_crash_recovery.cpp:225
 msgid "T2"
 msgstr ""
 
-#: src/gui/screen_crash_recovery.cpp:215
+#: src/gui/screen_crash_recovery.cpp:226
 msgid "T3"
 msgstr ""
 
-#: src/gui/screen_crash_recovery.cpp:216
+#: src/gui/screen_crash_recovery.cpp:227
 msgid "T4"
 msgstr ""
 
-#: src/gui/screen_crash_recovery.cpp:217
+#: src/gui/screen_crash_recovery.cpp:228
 msgid "T5"
 msgstr ""
 
-#: src/gui/screen_crash_recovery.cpp:218
+#: src/gui/screen_crash_recovery.cpp:229
 msgid "T6"
 msgstr ""
 
@@ -5704,24 +5986,9 @@ msgid ""
 "with the electronics. Check the wiring and connectors."
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:116
-msgid "TOOL 1"
-msgstr ""
-
-#: src/gui/screen_menu_tools.hpp:116
-msgid "TOOL 2"
-msgstr ""
-
-#: src/gui/screen_menu_tools.hpp:116
-msgid "TOOL 3"
-msgstr ""
-
-#: src/gui/screen_menu_tools.hpp:116
-msgid "TOOL 4"
-msgstr ""
-
-#: src/gui/screen_menu_tools.hpp:116
-msgid "TOOL 5"
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:185
+#, c-format
+msgid "TOOL %d"
 msgstr ""
 
 #: tmp_error_headers/error_list_xl.hpp:29
@@ -5732,19 +5999,23 @@ msgstr ""
 msgid "TOOLCHANGER ERROR"
 msgstr ""
 
-#: src/gui/screen_menu_tools.hpp:153
-msgid "TOOLS"
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:187
+msgid "TOOLHEAD"
 msgstr ""
 
 #: src/gui/screen_print_preview.cpp:168
 msgid "TOOLS MAPPING"
 msgstr ""
 
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:259
+msgid "TOOLS SETTINGS"
+msgstr ""
+
 #: src/gui/screen_menu_tune.hpp:92
 msgid "TUNE"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:271
+#: src/gui/screen_cold_pull.cpp:264
 msgid "Takes too long, will skip soon."
 msgstr ""
 
@@ -5756,6 +6027,10 @@ msgstr ""
 msgid "Tap the nozzle on beep"
 msgstr ""
 
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:189
+msgid "Target"
+msgstr ""
+
 #: src/gui/screen_menu_footer_settings.hpp:93
 msgid "Temp. show zero"
 msgstr ""
@@ -5764,15 +6039,15 @@ msgstr ""
 msgid "Temp. style"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:77 src/gui/MItem_enclosure.hpp:27
+#: src/gui/MItem_menus.hpp:72 src/gui/MItem_enclosure.hpp:27
 msgid "Temperature"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:160
+#: src/gui/MItem_mmu.hpp:161
 msgid "Test All"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:112
+#: src/gui/MItem_menus.hpp:152
 msgid "Test Errors"
 msgstr ""
 
@@ -5796,7 +6071,7 @@ msgstr ""
 msgid "Testing enclosure fan"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:511
+#: src/gui/dialogs/DialogLoadUnload.cpp:493
 msgid "Testing filament"
 msgstr ""
 
@@ -5855,14 +6130,14 @@ msgid ""
 "the wiring is correct."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:364
+#: src/gui/screen_network_setup.cpp:332
 msgid ""
 "The Wi-Fi module is not working properly or is missing.\n"
 "\n"
 "Insert the module, try restarting the printer, or use the ethernet cable."
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:42
+#: src/gui/wizard/selftest_frame_dock.hpp:43
 msgid ""
 "The calibrated dock is illuminated at the bottom and front side is flashing "
 "with white color.\n"
@@ -5885,12 +6160,18 @@ msgid ""
 "again."
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:290
+#: src/gui/screen_cold_pull.cpp:283
 msgid "The filament will be unloaded automatically."
 msgstr ""
 
 #: src/transfers/transfer_recovery.cpp:237
 msgid "The file disappeared"
+msgstr ""
+
+#. This is a bit hacky way, but the error reporting is done through gcode_info, so we gotta put the error there.
+#: src/common/marlin_print_preview.cpp:449
+#: src/common/marlin_print_preview.cpp:487
+msgid "The file is corrupt."
 msgstr ""
 
 #: src/common/gcode/gcode_reader_binary.cpp:553
@@ -5948,14 +6229,14 @@ msgid ""
 "Then restart the Selftest."
 msgstr ""
 
-#: src/gui/screen_tools_mapping.cpp:1157
+#: src/gui/screen_tools_mapping.cpp:1164
 msgid ""
 "There are printing tools with no filament loaded, this could ruin the "
 "print.\n"
 "Disable filament sensor and print anyway?"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:311
+#: src/gui/screen_cold_pull.cpp:304
 msgid ""
 "There might be a slight resistance.\n"
 "If the filament is stuck, open the idler lever."
@@ -5969,7 +6250,7 @@ msgid ""
 "action."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:372
+#: src/gui/screen_network_setup.cpp:340
 msgid "There was an error connecting to the Wi-Fi."
 msgstr ""
 
@@ -5990,6 +6271,10 @@ msgstr ""
 msgid "This G-code was set up for another filament type."
 msgstr ""
 
+#: src/gui/screen/toolhead/screen_toolhead_settings_common.cpp:16
+msgid "This change will apply to all toolheads. Do you want to continue?"
+msgstr ""
+
 #: tmp_error_headers/error_list_mini.hpp:310
 #: tmp_error_headers/error_list_xl.hpp:583
 #: tmp_error_headers/error_list_ix.hpp:562
@@ -6008,7 +6293,7 @@ msgid ""
 "Be careful, it can send unencrypted data to the internet."
 msgstr ""
 
-#: src/gui/screen_tools_mapping.cpp:1090
+#: src/gui/screen_tools_mapping.cpp:1097
 msgid ""
 "This filament already has a tool assigned.\n"
 "\n"
@@ -6017,7 +6302,14 @@ msgid ""
 msgstr ""
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:252
+#: src/gui/MItem_tools.cpp:340
+msgid ""
+"This operation cannot be undone. Current configuration will be lost!\n"
+"Do you want to perform the Factory Shipping Preparation procedure?"
+msgstr ""
+
+#. window_menu
+#: src/gui/MItem_tools.cpp:324
 #, c-format
 msgid ""
 "This operation cannot be undone. Current configuration will be lost!\n"
@@ -6027,7 +6319,7 @@ msgid ""
 msgstr ""
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:242
+#: src/gui/MItem_tools.cpp:314
 msgid ""
 "This operation cannot be undone. Current user configuration and passwords "
 "will be lost!\n"
@@ -6043,12 +6335,12 @@ msgstr ""
 
 #. trying to assign to oneself again
 #. ask about unassign
-#: src/gui/screen_tools_mapping.cpp:1079
+#: src/gui/screen_tools_mapping.cpp:1086
 msgid "This tool is already assigned to this filament."
 msgstr ""
 
 #. if clicking on right that is spool joined to this left already
-#: src/gui/screen_tools_mapping.cpp:1088
+#: src/gui/screen_tools_mapping.cpp:1095
 msgid ""
 "This tool is already spool joined to this filament.\n"
 "\n"
@@ -6062,15 +6354,15 @@ msgid ""
 msgstr ""
 
 #. abbreviated Thursday - max 3 characters
-#: src/lang/format_print_will_end.cpp:51
+#: src/lang/format_print_will_end.cpp:50
 msgid "Thr"
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:47
+#: src/gui/wizard/selftest_frame_dock.hpp:48
 msgid "Tighten only the bottom screw on the right side of the dock pillar."
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.cpp:206
+#: src/gui/wizard/selftest_frame_dock.cpp:204
 msgid "Tighten screw"
 msgstr ""
 
@@ -6080,30 +6372,30 @@ msgid ""
 "below the surface. Do not over-tighten."
 msgstr ""
 
-#: src/gui/wizard/selftest_frame_dock.hpp:45
+#: src/gui/wizard/selftest_frame_dock.hpp:46
 msgid ""
 "Tighten the top dock screw at the right side of the pillar\n"
 "\n"
 "Be careful in next step the printer will be moving"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:263 src/gui/MItem_tools.hpp:324
+#: src/gui/MItem_tools.hpp:285 src/gui/MItem_tools.hpp:346
 msgid "Time"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:308
+#: src/gui/MItem_tools.hpp:330
 msgid "Time Format"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:280
+#: src/gui/MItem_tools.hpp:302
 msgid "Time Zone Hour Offset"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:288
+#: src/gui/MItem_tools.hpp:310
 msgid "Time Zone Minute Offset"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:300
+#: src/gui/MItem_tools.hpp:322
 msgid "Time Zone Summertime"
 msgstr ""
 
@@ -6125,27 +6417,36 @@ msgid ""
 "prusa.io/xl-filter"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:94
-msgid ""
-"To learn more about the input shaper calibration process, visit our website:"
-msgstr ""
-
-#: src/gui/screen_phase_stepping.cpp:21
+#: src/gui/screen_phase_stepping.cpp:24
 msgid ""
 "To learn more about the phase stepping calibration process, read the article:"
 msgstr ""
 
-#: src/gui/screen_help_fw_update.cpp:84
+#: src/gui/screen_help_fw_update.cpp:82
 msgid "To learn more including firmware downgrade, please visit:\n"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:432
+#: src/gui/screen_network_setup.cpp:418
 msgid "To setup or troubleshoot your Wi-Fi, please visit:"
 msgstr ""
 
 #. Used in "The print will end:", keep it up to 10 characters
-#: src/lang/format_print_will_end.cpp:29
+#. here the "at" will be inconsistent with FormatMsgPrintWillEndOnDay_i18n @@TODO
+#: src/lang/format_print_will_end.cpp:30
 msgid "Today at"
+msgstr ""
+
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:181
+msgid "Too loose"
+msgstr ""
+
+#: src/gui/wizard/screen_belt_tuning_wizard.cpp:183
+msgid "Too tight"
+msgstr ""
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:244
+#, c-format
+msgid "Tool %d"
 msgstr ""
 
 #: tmp_error_headers/error_list_xl.hpp:30
@@ -6153,16 +6454,16 @@ msgstr ""
 msgid "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
 msgstr ""
 
-#: src/gui/screen_menu_filament_changeall.cpp:26
+#: src/gui/screen_menu_filament_changeall.cpp:29
 #, c-format
 msgid "Tool %u Filament"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:21
+#: src/gui/MItem_tools.hpp:31
 msgid "Tool 1"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:93
+#: src/gui/include_XL/selftest_snake_config.hpp:92
 msgid "Tool 1 Filament Sensor Calibration"
 msgstr ""
 
@@ -6170,15 +6471,15 @@ msgstr ""
 msgid "Tool 1 Flow Factor"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:88
+#: src/gui/include_XL/selftest_snake_config.hpp:87
 msgid "Tool 1 Loadcell Test"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:23
+#: src/gui/MItem_tools.hpp:33
 msgid "Tool 2"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:94
+#: src/gui/include_XL/selftest_snake_config.hpp:93
 msgid "Tool 2 Filament Sensor Calibration"
 msgstr ""
 
@@ -6186,15 +6487,15 @@ msgstr ""
 msgid "Tool 2 Flow Factor"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:89
+#: src/gui/include_XL/selftest_snake_config.hpp:88
 msgid "Tool 2 Loadcell Test"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:25
+#: src/gui/MItem_tools.hpp:35
 msgid "Tool 3"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:95
+#: src/gui/include_XL/selftest_snake_config.hpp:94
 msgid "Tool 3 Filament Sensor Calibration"
 msgstr ""
 
@@ -6202,15 +6503,15 @@ msgstr ""
 msgid "Tool 3 Flow Factor"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:90
+#: src/gui/include_XL/selftest_snake_config.hpp:89
 msgid "Tool 3 Loadcell Test"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:27
+#: src/gui/MItem_tools.hpp:37
 msgid "Tool 4"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:96
+#: src/gui/include_XL/selftest_snake_config.hpp:95
 msgid "Tool 4 Filament Sensor Calibration"
 msgstr ""
 
@@ -6218,15 +6519,15 @@ msgstr ""
 msgid "Tool 4 Flow Factor"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:91
+#: src/gui/include_XL/selftest_snake_config.hpp:90
 msgid "Tool 4 Loadcell Test"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:29
+#: src/gui/MItem_tools.hpp:39
 msgid "Tool 5"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:97
+#: src/gui/include_XL/selftest_snake_config.hpp:96
 msgid "Tool 5 Filament Sensor Calibration"
 msgstr ""
 
@@ -6234,15 +6535,15 @@ msgstr ""
 msgid "Tool 5 Flow Factor"
 msgstr ""
 
-#: src/gui/include_XL/selftest_snake_config.hpp:92
+#: src/gui/include_XL/selftest_snake_config.hpp:91
 msgid "Tool 5 Loadcell Test"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:538
+#: src/gui/MItem_tools.hpp:430
 msgid "Tool Filament sensor"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:408
+#: src/gui/MItem_tools.hpp:757
 msgid "Tool Light"
 msgstr ""
 
@@ -6263,23 +6564,27 @@ msgid ""
 "and leave the carriage free."
 msgstr ""
 
+#: src/gui/MItem_menus.cpp:154
+msgid "Toolhead"
+msgstr ""
+
 #: src/gui/screen_menu_filament_sensors.hpp:49
 msgid "Toolhead Filament Sensor"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:416
+#: src/gui/MItem_menus.cpp:154
 msgid "Tools"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:625
+#: src/gui/MItem_tools.hpp:517
 msgid "Tools Changed"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:257
+#: src/gui/MItem_mmu.hpp:258
 msgid "Total General Fails"
 msgstr ""
 
-#: src/gui/MItem_mmu.hpp:242
+#: src/gui/MItem_mmu.hpp:243
 msgid "Total Load Fails"
 msgstr ""
 
@@ -6299,7 +6604,7 @@ msgstr ""
 msgid "Touch driver failed to initialize, touch functionality disabled"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:439
+#: src/gui/MItem_tools.hpp:766
 msgid "Trigger Power Panic"
 msgstr ""
 
@@ -6326,12 +6631,16 @@ msgid ""
 msgstr ""
 
 #. abbreviated Tuesday - max 3 characters
-#: src/lang/format_print_will_end.cpp:47
+#: src/lang/format_print_will_end.cpp:46
 msgid "Tue"
 msgstr ""
 
 #: src/gui/ScreenPrintingModel.cpp:16
 msgid "Tune"
+msgstr ""
+
+#: src/gui/MItem_tools.cpp:859
+msgid "Turn on Phase stepping uncalibrated?"
 msgstr ""
 
 #: src/gui/dialogs/DialogMoveZ.hpp:19
@@ -6476,7 +6785,7 @@ msgstr ""
 msgid "Unable to verify the extruder type, check the wiring and connectors."
 msgstr ""
 
-#: src/gui/screen_tools_mapping.cpp:669
+#: src/gui/screen_tools_mapping.cpp:676
 msgid "Unassigned G-Code filament(s)"
 msgstr ""
 
@@ -6502,8 +6811,12 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
-#: src/gui/screen_qr_error.cpp:29 src/gui/screen_fatal_warning.cpp:31
+#: src/gui/screen_qr_error.cpp:30 src/gui/screen_fatal_warning.cpp:32
 msgid "Unknown Error"
+msgstr ""
+
+#: src/common/gcode/gcode_reader_binary.cpp:638
+msgid "Unknown file error"
 msgstr ""
 
 #: tmp_error_headers/error_list_xl.hpp:443
@@ -6511,42 +6824,42 @@ msgstr ""
 msgid "Unknown puppy type"
 msgstr ""
 
-#: src/gui/screen_menu_filament_changeall.cpp:69
+#: src/gui/screen_menu_filament_changeall.cpp:74
 msgid "Unload"
 msgstr ""
 
-#: src/gui/MItem_filament.hpp:19 src/gui/MItem_mmu.hpp:152
+#: src/gui/MItem_filament.hpp:19 src/gui/MItem_mmu.hpp:153
 msgid "Unload Filament"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:222
+#: src/gui/screen_cold_pull.cpp:215
 msgid "Unload filament"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:301 src/gui/dialogs/DialogLoadUnload.cpp:56
+#: src/gui/screen_cold_pull.cpp:294 src/gui/dialogs/DialogLoadUnload.cpp:48
 msgid "Unloading"
 msgstr ""
 
 #. //MSG_PROGRESS_ERR_TMC c=20
 #: src/mmu2/mmu2_progress_converter.cpp:21
-#: src/gui/dialogs/DialogLoadUnload.cpp:85
-#: src/gui/dialogs/DialogLoadUnload.cpp:505
+#: src/gui/dialogs/DialogLoadUnload.cpp:77
+#: src/gui/dialogs/DialogLoadUnload.cpp:487
 msgid "Unloading filament"
 msgstr ""
 
 #. //MSG_PROGRESS_DISENGAGE_IDLER c=20
 #: src/mmu2/mmu2_progress_converter.cpp:10
-#: src/gui/dialogs/DialogLoadUnload.cpp:75
+#: src/gui/dialogs/DialogLoadUnload.cpp:67
 msgid "Unloading to FINDA"
 msgstr ""
 
 #. //MSG_PROGRESS_UNLOAD_FINDA c=20
 #: src/mmu2/mmu2_progress_converter.cpp:11
-#: src/gui/dialogs/DialogLoadUnload.cpp:76
+#: src/gui/dialogs/DialogLoadUnload.cpp:68
 msgid "Unloading to pulley"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:52
+#: src/gui/dialogs/DialogLoadUnload.cpp:44
 msgid "Unparking"
 msgstr ""
 
@@ -6555,11 +6868,11 @@ msgstr ""
 msgid "Used Amount"
 msgstr ""
 
-#: src/gui/screen_prusa_link.hpp:62
+#: src/gui/screen_prusa_link.hpp:63
 msgid "User"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:239
+#: src/gui/MItem_menus.hpp:111
 msgid "User Interface"
 msgstr ""
 
@@ -6572,12 +6885,16 @@ msgstr ""
 msgid "Validity check"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:511
+#: src/gui/MItem_tools.hpp:687
 msgid "Verify GCode"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:17
+#: src/gui/MItem_menus.hpp:57
 msgid "Version Info"
+msgstr ""
+
+#: src/gui/screen/filament/screen_filament_detail.cpp:143
+msgid "Visible"
 msgstr ""
 
 #: tmp_error_headers/error_list_mmu.hpp:94
@@ -6611,7 +6928,7 @@ msgstr ""
 msgid "Waiting for hotends to stabilize at calibration temperature:"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:153
+#: src/gui/screen_input_shaper_calibration.cpp:161
 msgid "Waiting for nozzle to cool down"
 msgstr ""
 
@@ -6620,7 +6937,7 @@ msgstr ""
 msgid "Waiting for puppies to start timed out"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:53
+#: src/gui/dialogs/DialogLoadUnload.cpp:45
 msgid "Waiting for temperature"
 msgstr ""
 
@@ -6637,11 +6954,11 @@ msgstr ""
 msgid "Waiting for user input"
 msgstr ""
 
-#: src/gui/MItem_hardware.cpp:19
+#: src/gui/MItem_hardware.cpp:20
 msgid "Warn"
 msgstr ""
 
-#: src/guiapi/src/window_msgbox.cpp:280
+#: src/guiapi/src/window_msgbox.cpp:282
 #: tmp_error_headers/error_list_mini.hpp:414
 #: tmp_error_headers/error_list_mini.hpp:421
 #: tmp_error_headers/error_list_mini.hpp:428
@@ -6672,7 +6989,7 @@ msgstr ""
 msgid "Warning"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:57
+#: src/gui/dialogs/DialogLoadUnload.cpp:49
 msgid "Was filament unload successful?"
 msgstr ""
 
@@ -6688,7 +7005,7 @@ msgid ""
 msgstr ""
 
 #. One dock takes approximately 1:45 to calibrate if you know what you are doing
-#: src/gui/wizard/selftest_frame_dock.hpp:36
+#: src/gui/wizard/selftest_frame_dock.hpp:37
 msgid "We suggest opening the online guide for the first-time calibration."
 msgstr ""
 
@@ -6706,7 +7023,7 @@ msgid ""
 msgstr ""
 
 #. abbreviated Wednesday - max 3 characters
-#: src/lang/format_print_will_end.cpp:49
+#: src/lang/format_print_will_end.cpp:48
 msgid "Wed"
 msgstr ""
 
@@ -6727,11 +7044,11 @@ msgstr ""
 msgid "What is this?"
 msgstr ""
 
-#: src/gui/screen_printer_setup.cpp:39
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:39
 msgid "What nozzle diameter do I have?"
 msgstr ""
 
-#: src/gui/MItem_menus.hpp:153
+#: src/gui/MItem_menus.hpp:87
 msgid "Wi-Fi"
 msgstr ""
 
@@ -6743,13 +7060,13 @@ msgstr ""
 msgid "Wi-Fi Wizard"
 msgstr ""
 
-#: src/gui/screen_home.cpp:378
+#: src/gui/screen_home.cpp:386
 msgid ""
 "Wi-Fi credentials (SSID and password) discovered on the USB flash drive. "
 "Would you like to connect your printer to Wi-Fi now?"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:465
+#: src/gui/screen_network_setup.cpp:448
 #, c-format
 msgid ""
 "Wi-Fi credentials loaded via NFC.\n"
@@ -6771,7 +7088,16 @@ msgstr ""
 msgid "Wipe tower %dg"
 msgstr ""
 
-#: src/gui/screen_fatal_warning.cpp:29
+#: src/gui/screen_menu_selftest_snake.hpp:106
+msgid "Wizard"
+msgstr ""
+
+#. Wrong direction
+#: src/gui/MItem_experimental_tools.hpp:97
+msgid "Wrong"
+msgstr ""
+
+#: src/gui/screen_fatal_warning.cpp:30
 msgid "Wrong hardware"
 msgstr ""
 
@@ -6779,8 +7105,12 @@ msgstr ""
 msgid "X"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:596
+#: src/gui/MItem_tools.hpp:488
 msgid "X Axis"
+msgstr ""
+
+#: src/gui/MItem_experimental_tools.hpp:146
+msgid "X current (0 default)"
 msgstr ""
 
 #: src/gui/MItem_input_shaper.hpp:15 src/gui/screen_crash_recovery.cpp:94
@@ -6795,7 +7125,15 @@ msgstr ""
 msgid "X-axis Freq."
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:704
+#: src/gui/MItem_experimental_tools.hpp:104
+msgid "X-axis direction"
+msgstr ""
+
+#: src/gui/MItem_experimental_tools.hpp:53
+msgid "X-axis steps per unit"
+msgstr ""
+
+#: src/gui/MItem_tools.hpp:596
 msgid "XL Buddy 5V Current"
 msgstr ""
 
@@ -6815,12 +7153,16 @@ msgstr ""
 msgid "Y"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:602
+#: src/gui/MItem_tools.hpp:494
 msgid "Y Axis"
 msgstr ""
 
 #: src/gui/MItem_input_shaper.hpp:72
 msgid "Y Weight Compensation"
+msgstr ""
+
+#: src/gui/MItem_experimental_tools.hpp:154
+msgid "Y current (0 default)"
 msgstr ""
 
 #: src/gui/MItem_input_shaper.hpp:25 src/gui/screen_crash_recovery.cpp:95
@@ -6835,17 +7177,25 @@ msgstr ""
 msgid "Y-axis Freq."
 msgstr ""
 
+#: src/gui/MItem_experimental_tools.hpp:112
+msgid "Y-axis direction"
+msgstr ""
+
+#: src/gui/MItem_experimental_tools.hpp:61
+msgid "Y-axis steps per unit"
+msgstr ""
+
 #: src/common/client_response_texts.hpp:99
 msgid "YES"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:321
+#: src/gui/screen_cold_pull.cpp:314
 msgid ""
 "You can continue printing. If the issue persists,\n"
 "repeat this procedure again."
 msgstr ""
 
-#: src/gui/screen_printer_setup.cpp:43
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:43
 msgid ""
 "You can determine the nozzle diameter by counting the markings (dots) on the "
 "nozzle:\n"
@@ -6855,11 +7205,11 @@ msgid ""
 "For more information, visit prusa.io/nozzle-types"
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:380
+#: src/gui/screen_network_setup.cpp:348
 msgid "You can now fully use all network features of the printer."
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:357
+#: src/gui/screen_network_setup.cpp:318
 msgid "You can press 'Finish' to continue connecting on the background."
 msgstr ""
 
@@ -6870,7 +7220,7 @@ msgid ""
 " "
 msgstr ""
 
-#: src/gui/screen_network_setup.cpp:327
+#: src/gui/screen_network_setup.cpp:288
 msgid ""
 "You're already successfully connected through the ethernet cable.\n"
 "Switch to Wi-Fi and continue?"
@@ -6884,8 +7234,12 @@ msgstr ""
 msgid "Z AXIS MOVE"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:608
+#: src/gui/MItem_tools.hpp:500
 msgid "Z Axis"
+msgstr ""
+
+#: src/gui/MItem_experimental_tools.hpp:162
+msgid "Z current"
 msgstr ""
 
 #: src/common/footer_def.hpp:150
@@ -6904,6 +7258,18 @@ msgstr ""
 msgid "Z-axis calibration"
 msgstr ""
 
+#: src/gui/MItem_experimental_tools.hpp:120
+msgid "Z-axis direction"
+msgstr ""
+
+#: src/gui/MItem_experimental_tools.hpp:35
+msgid "Z-axis length"
+msgstr ""
+
+#: src/gui/MItem_experimental_tools.hpp:69
+msgid "Z-axis steps per unit"
+msgstr ""
+
 #: src/gui/wizard/selftest_result_axis.cpp:14
 #: src/gui/wizard/selftest_result_axis.cpp:15
 #: src/gui/wizard/selftest_result_axis.cpp:16
@@ -6913,25 +7279,25 @@ msgstr ""
 msgid "axis"
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:256
+#: src/gui/screen_input_shaper_calibration.cpp:245
 msgid ""
 "axis frequency is too high.\n"
 "Please check your HW setup.\n"
 "If the problem prevails, contact the customer support."
 msgstr ""
 
-#: src/gui/screen_input_shaper_calibration.cpp:255
+#: src/gui/screen_input_shaper_calibration.cpp:244
 msgid ""
 "axis frequency is too low.\n"
 "Please tighten the belt."
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:641
+#: src/gui/MItem_tools.cpp:656
 #, c-format
 msgid "disabled / %ld"
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:637
+#: src/gui/MItem_tools.cpp:655
 #, c-format
 msgid "disconnected / %ld"
 msgstr ""
@@ -6944,16 +7310,16 @@ msgstr ""
 msgid "please wait"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:626
+#: src/gui/MItem_tools.hpp:518
 msgid "times"
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:638
+#: src/gui/MItem_tools.cpp:652
 #, c-format
 msgid "uncalibrated / %ld"
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:642
+#: src/gui/MItem_tools.cpp:651
 #, c-format
 msgid "uninitialized / %ld"
 msgstr ""
