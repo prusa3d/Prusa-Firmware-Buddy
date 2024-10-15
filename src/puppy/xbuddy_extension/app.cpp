@@ -8,48 +8,53 @@
 
 class ModbusCallbacks final : public modbus::Callbacks {
 public:
-    uint16_t read_register(const uint16_t address) final {
+    Status read_register(uint8_t, const uint16_t address, uint16_t &out) final {
         switch (address) {
         case 0x8000:
-            return hal::fan1::get_raw();
+            out = hal::fan1::get_raw();
+            return Status::Ok;
         case 0x8001:
-            return hal::fan2::get_raw();
+            out = hal::fan2::get_raw();
+            return Status::Ok;
         case 0x8002:
-            return hal::fan3::get_raw();
+            out = hal::fan3::get_raw();
+            return Status::Ok;
         case 0x8003:
             // Note: Mainboard expects this in decidegree Celsius.
-            return 10 * temperature::raw_to_celsius(hal::temperature::get_raw());
+            out = 10 * temperature::raw_to_celsius(hal::temperature::get_raw());
+            return Status::Ok;
         }
-        return 0;
+        return Status::IllegalAddress;
     }
 
-    void write_register(const uint16_t address, const uint16_t value) final {
+    Status write_register(uint8_t, const uint16_t address, const uint16_t value) final {
         switch (address) {
         case 0x9000:
             hal::fan1::set_pwm(value);
-            break;
+            return Status::Ok;
         case 0x9001:
             hal::fan2::set_pwm(value);
-            break;
+            return Status::Ok;
         case 0x9002:
             hal::fan3::set_pwm(value);
-            break;
+            return Status::Ok;
         case 0x9003:
             hal::w_led::set_pwm(value);
-            break;
+            return Status::Ok;
         case 0x9004:
             hal::rgbw_led::set_r_pwm(value);
-            break;
+            return Status::Ok;
         case 0x9005:
             hal::rgbw_led::set_g_pwm(value);
-            break;
+            return Status::Ok;
         case 0x9006:
             hal::rgbw_led::set_b_pwm(value);
-            break;
+            return Status::Ok;
         case 0x9007:
             hal::rgbw_led::set_w_pwm(value);
-            break;
+            return Status::Ok;
         }
+        return Status::IllegalAddress;
     }
 };
 
