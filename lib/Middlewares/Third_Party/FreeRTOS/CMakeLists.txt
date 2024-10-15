@@ -13,7 +13,6 @@ endif()
 add_library(
   FreeRTOS
   ${port_subdir}/port.c
-  Source/CMSIS_RTOS/cmsis_os.c
   Source/croutine.c
   Source/event_groups.c
   Source/list.c
@@ -23,7 +22,15 @@ add_library(
   Source/timers.c
   )
 
-target_include_directories(FreeRTOS PUBLIC Source/include Source/CMSIS_RTOS ${port_subdir})
+target_include_directories(FreeRTOS PUBLIC Source/include ${port_subdir})
+
+# TODO start disabling for some builds where CMSIS RTOS is not needed.
+set(HAS_CMSIS_RTOS ON)
+
+if(HAS_CMSIS_RTOS)
+  target_sources(FreeRTOS PRIVATE Source/CMSIS_RTOS/cmsis_os.c)
+  target_include_directories(FreeRTOS PUBLIC Source/CMSIS_RTOS)
+endif()
 
 target_link_libraries(FreeRTOS PUBLIC FreeRTOS_Config)
 
