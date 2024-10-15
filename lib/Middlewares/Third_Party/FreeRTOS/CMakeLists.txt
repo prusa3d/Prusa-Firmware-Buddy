@@ -18,6 +18,7 @@ add_library(
   Source/event_groups.c
   Source/list.c
   Source/queue.c
+  Source/stream_buffer.c
   Source/tasks.c
   Source/timers.c
   )
