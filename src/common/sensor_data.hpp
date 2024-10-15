@@ -18,8 +18,8 @@ public:
     float MCUTemp;
     float boardTemp;
     float hbrFan;
-#if BOARD_IS_XLBUDDY()
     float inputVoltage;
+#if BOARD_IS_XLBUDDY()
     float sandwich5VVoltage;
     float sandwich5VCurrent;
     float buddy5VCurrent;
@@ -27,7 +27,6 @@ public:
     float dwarfMCUTemperature;
 #elif BOARD_IS_XBUDDY()
     float heaterVoltage;
-    float inputVoltage;
     float heaterCurrent;
     float inputCurrent;
     float mmuCurrent;

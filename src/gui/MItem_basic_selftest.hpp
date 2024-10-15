@@ -10,7 +10,6 @@
 #include "i18n.h"
 #include "WindowItemFormatableLabel.hpp"
 #include "WindowItemFanLabel.hpp"
-#include "WindowItemTempLabel.hpp"
 #include <option/has_toolchanger.h>
 
 #if HAS_TOOLCHANGER()

@@ -23,9 +23,6 @@ class ScreenMenuEthernetSettings final : public ScreenMenuEthernetSettings_ {
 
 public:
     ScreenMenuEthernetSettings();
-
-protected:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 // ------------------------ WIFI -----------------------------------
@@ -45,7 +42,4 @@ class ScreenMenuWifiSettings final : public ScreenMenuWifiSettings_ {
 
 public:
     ScreenMenuWifiSettings();
-
-protected:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

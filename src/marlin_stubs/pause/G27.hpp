@@ -9,10 +9,8 @@ struct G27Params {
     };
 
     ParkPosition where_to_park { ParkPosition::park };
-    bool do_x { false };
-    bool do_y { false };
-    bool do_z { false };
-    xyz_pos_t park_position {};
+    xyz_pos_t park_position { NAN, NAN, NAN };
+
     /// Defines how freely will Z move. For documentation see nozzle.cpp::park() or G27 marlin documentation for P parameter;
     uint16_t z_action { 0 };
 };

@@ -14,12 +14,11 @@ class MI_CONNECT_ENABLED : public WI_ICON_SWITCH_OFF_ON_t {
 public:
     MI_CONNECT_ENABLED();
 
-    void update();
+    void Loop() override;
 
 protected:
     virtual void OnChange(size_t old_index) override;
 };
-static_assert(UpdatableMenuItem<MI_CONNECT_ENABLED>);
 
 class MI_CONNECT_STATUS : public WI_INFO_t {
     constexpr static const char *const label = N_("Status");
@@ -27,9 +26,8 @@ class MI_CONNECT_STATUS : public WI_INFO_t {
 public:
     MI_CONNECT_STATUS();
 
-    void update();
+    void Loop() override;
 };
-static_assert(UpdatableMenuItem<MI_CONNECT_STATUS>);
 
 class MI_CONNECT_ERROR : public WI_INFO_t {
     constexpr static const char *const label = N_("Error");
@@ -37,9 +35,8 @@ class MI_CONNECT_ERROR : public WI_INFO_t {
 public:
     MI_CONNECT_ERROR();
 
-    void update();
+    void Loop() override;
 };
-static_assert(UpdatableMenuItem<MI_CONNECT_ERROR>);
 
 class MI_CONNECT_HOST : public WiInfo<32> {
     static constexpr const char *label = N_("Hostname");
@@ -47,9 +44,8 @@ class MI_CONNECT_HOST : public WiInfo<32> {
 public:
     MI_CONNECT_HOST();
 
-    void update();
+    void Loop();
 };
-static_assert(UpdatableMenuItem<MI_CONNECT_HOST>);
 
 class MI_CONNECT_LOAD_SETTINGS : public IWindowMenuItem {
     static constexpr const char *const label = N_("Load Settings");
@@ -78,7 +74,4 @@ class ScreenMenuConnect : public ScreenMenuConnect__ {
 public:
     constexpr static const char *label = N_("PRUSA CONNECT");
     ScreenMenuConnect();
-
-protected:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

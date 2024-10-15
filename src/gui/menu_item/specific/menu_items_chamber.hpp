@@ -1,19 +1,17 @@
 #pragma once
 
-#include <WindowItemTempLabel.hpp>
+#include <WindowItemFormatableLabel.hpp>
 #include <WindowMenuSpin.hpp>
 
 class MI_CHAMBER_TARGET_TEMP : public WiSpin {
 public:
-    MI_CHAMBER_TARGET_TEMP(const char *label = nullptr);
+    MI_CHAMBER_TARGET_TEMP(const char *label = N_("Chamber Temperature"));
+
+protected:
     virtual void OnClick() override;
 };
 
-class MI_CHAMBER_TEMP : public WI_TEMP_LABEL_t {
+class MI_CHAMBER_TEMP : public MenuItemAutoUpdatingLabel<float> {
 public:
-    MI_CHAMBER_TEMP(const char *label = nullptr);
-    void Loop() override;
-
-private:
-    std::optional<uint32_t> last_update_ms_;
+    MI_CHAMBER_TEMP(const char *label = N_("Chamber Temperature"));
 };

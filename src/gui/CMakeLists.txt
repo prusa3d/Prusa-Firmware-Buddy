@@ -72,7 +72,7 @@ target_sources(
           screen_menu_network_settings.cpp
           screen_menu_network_status.cpp
           screen_menu_odometer.cpp
-          screen_menu_sensor_info_${PRINTER}.cpp
+          screen_menu_sensor_info.cpp
           screen_menu_settings.cpp
           screen_menu_statistics.cpp
           screen_menu_system.cpp
@@ -126,8 +126,6 @@ if(HAS_TOOLCHANGER)
     firmware PRIVATE screen_menu_filament_changeall.cpp screen_menu_tools.cpp
                      screen_tools_mapping.cpp
     )
-else()
-  target_sources(firmware PRIVATE screen_menu_no_tools.cpp)
 endif()
 
 if(HAS_MODULARBED)
