@@ -32,6 +32,7 @@
 #include <dirent.h>
 #include <scope_guard.hpp>
 #include <tools_mapping.hpp>
+#include <RAII.hpp>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -855,13 +856,16 @@ void loop() {
 #endif
 }
 
+static bool idle_running = false;
+
 static void idle(void) {
-    // TODO: avoid a re-entrant cycle caused by:
     // cycle -> loop -> idle -> MarlinUI::update() -> ExtUI::onIdle -> idle -> cycle
     // This is only a work-around: this should be avoided at a higher level
-    if (planner.draining()) {
+    if (idle_running) {
         return;
     }
+
+    AutoRestore _ar(idle_running, true);
 
     if (server.idle_cnt < MARLIN_IDLE_CNT_BUSY) {
         server.idle_cnt++;

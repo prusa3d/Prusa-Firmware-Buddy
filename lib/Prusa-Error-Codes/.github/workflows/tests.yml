@@ -27,10 +27,13 @@ jobs:
         pip install pyyaml
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with pylint
+      id: pylint
       run: |
         python3 -m pylint --version
         python3 -m pylint --persistent=n --jobs 0 --max-line-length=120 prusaerrors
     - name: Test
+      # Run the step even if the pylint step has failed
+      if: success() || (failure() && steps.pylint.conclusion == 'failure')
       run: |
         export PATH="${PATH}:$(pwd)"
         coverage run -m unittest discover --failfast --verbose tests
