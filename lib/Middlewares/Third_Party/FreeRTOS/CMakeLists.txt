@@ -2,17 +2,8 @@ if(NOT TARGET FreeRTOS_Config)
   message(FATAL_ERROR "Target FreeRTOS_Config does not exist.")
 endif()
 
-if(MCU MATCHES "STM32F4")
-  set(port_subdir "Source/portable/GCC/ARM_CM4F")
-elseif(MCU MATCHES "STM32G0")
-  set(port_subdir "Source/portable/GCC/ARM_CM0")
-else()
-  message(FATAL_ERROR "Unknown HW platform of mcu \"${MCU}\"")
-endif()
-
 add_library(
   FreeRTOS
-  ${port_subdir}/port.c
   Source/croutine.c
   Source/event_groups.c
   Source/list.c
@@ -22,7 +13,17 @@ add_library(
   Source/timers.c
   )
 
-target_include_directories(FreeRTOS PUBLIC Source/include ${port_subdir})
+target_include_directories(FreeRTOS PUBLIC Source/include)
+
+if(MCU MATCHES "STM32F4")
+  target_sources(FreeRTOS PRIVATE Source/portable/GCC/ARM_CM4F/port.c)
+  target_include_directories(FreeRTOS PUBLIC Source/portable/GCC/ARM_CM4F)
+elseif(MCU MATCHES "STM32G0")
+  target_sources(FreeRTOS PRIVATE Source/portable/GCC/ARM_CM0/port.c)
+  target_include_directories(FreeRTOS PUBLIC Source/portable/GCC/ARM_CM0)
+else()
+  message(FATAL_ERROR "Unknown HW platform of mcu \"${MCU}\"")
+endif()
 
 # TODO start disabling for some builds where CMSIS RTOS is not needed.
 set(HAS_CMSIS_RTOS ON)
