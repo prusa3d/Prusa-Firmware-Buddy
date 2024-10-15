@@ -1,7 +1,6 @@
 # This file is part of the SL1 firmware
 # Copyright (C) 2020 Prusa Research a.s. - www.prusa3d.com
 # SPDX-License-Identifier: GPL-3.0-or-later
-
 """
 All printer type error/attention codes
 
@@ -12,12 +11,12 @@ from pathlib import Path
 from typing import Optional
 
 import yaml
+from prusaerrors.shared.codes import (Category, Code, Codes, Printer,
+                                      unique_codes)
 
-from prusaerrors.shared.codes import unique_codes, Codes, Printer, Code, Category
-
-
-BUDDY = ['MINI', 'MK4', 'IX', 'XL', 'MK3.5',
-         'MK4S', 'MK3.9', 'MK3.9S', 'MK3.5S']
+BUDDY = [
+    'MINI', 'MK4', 'IX', 'XL', 'MK3.5', 'MK4S', 'MK3.9', 'MK3.9S', 'MK3.5S'
+]
 
 
 class PrinterCode(Code):
@@ -27,18 +26,23 @@ class PrinterCode(Code):
     """
 
     # pylint: disable = too-many-arguments
+    # pylint: disable = too-many-positional-arguments
     def __init__(
-            self,
-            printer: Printer,
-            category: Category,
-            error: int,
-            title: str,
-            message: str,
-            approved: bool,
-            id_: str,
+        self,
+        printer: Printer,
+        category: Category,
+        error: int,
+        title: str,
+        message: str,
+        approved: bool,
+        id_: str,
     ):
-        super().__init__(printer=printer, category=category, error=error,
-                         title=title, message=message, approved=approved)
+        super().__init__(printer=printer,
+                         category=category,
+                         error=error,
+                         title=title,
+                         message=message,
+                         approved=approved)
         self.id = id_
 
     @property
@@ -61,10 +65,9 @@ def yaml_codes(src_path: Path):
             data = yaml.safe_load(src_file)
         assert "Errors" in data
 
-        code_re = re.compile(
-            r"^(?P<printer>([0-9][0-9]|XX))"
-            r"(?P<category>[0-9])"
-            r"(?P<error>[0-9][0-9])$")
+        code_re = re.compile(r"^(?P<printer>([0-9][0-9]|XX))"
+                             r"(?P<category>[0-9])"
+                             r"(?P<error>[0-9][0-9])$")
         for entry in data["Errors"]:
             code_parts = code_re.match(entry["code"]).groupdict()
             category = Category(int(code_parts["category"]))
@@ -82,18 +85,18 @@ def yaml_codes(src_path: Path):
 
                 for printer in printers:
                     printer = Printer[printer.upper().replace(".", "")]
-                    code = PrinterCode(
-                        printer, category, error, entry["title"],
-                        entry["text"], entry.get("approved", False),
-                        entry["id"])
+                    code = PrinterCode(printer, category, error,
+                                       entry["title"], entry["text"],
+                                       entry.get("approved",
+                                                 False), entry["id"])
                     setattr(cls, str(code), code)
 
             # code contains printer number
             else:
                 printer = Printer(int(code_parts["printer"]))
-                code = PrinterCode(printer, category, error, entry["title"],
-                            entry["text"],  entry.get("approved", False),
-                            entry["id"])
+                code = PrinterCode(printer, category, error,
+                                   entry["title"], entry["text"],
+                                   entry.get("approved", False), entry["id"])
                 setattr(cls, str(code), code)
         return cls
 
