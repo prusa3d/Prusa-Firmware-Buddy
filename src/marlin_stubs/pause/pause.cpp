@@ -384,53 +384,8 @@ void Pause::loop_load_purge(Response response) {
     }
 }
 
-void Pause::loop_load_not_blocking([[maybe_unused]] Response response) {
-    const float purge_ln = settings.purge_length();
-
-    // transitions
-    switch (getLoadPhase()) {
-
-    case LoadPhases_t::_init:
-        set(LoadPhases_t::load_in_gear);
-        break;
-
-    case LoadPhases_t::load_in_gear: // slow load
-        config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
-        set(LoadPhases_t::wait_temp);
-        break;
-
-    case LoadPhases_t::wait_temp:
-        if (ensureSafeTemperatureNotifyProgress(30, 50)) {
-            set(LoadPhases_t::long_load);
-        }
-        break;
-
-    case LoadPhases_t::error_temp:
-        set(LoadPhases_t::_finish);
-        break;
-
-    case LoadPhases_t::long_load: {
-        {
-            auto s = planner.user_settings;
-            s.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
-            planner.apply_settings(s);
-        }
-
-        setPhase(PhasesLoadUnload::Loading_stoppable, 50);
-        do_e_move_notify_progress_hotextrude(settings.fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 50, 70);
-        set(LoadPhases_t::purge);
-        break;
-    }
-    case LoadPhases_t::purge:
-        // Extrude filament to get into hotend
-        setPhase(PhasesLoadUnload::Purging_stoppable, 70);
-        do_e_move_notify_progress_hotextrude(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
-        set(LoadPhases_t::_finish);
-        break;
-
-    default:
-        set(LoadPhases_t::_finish);
-    }
+void Pause::loop_load_not_blocking(Response response) {
+    loop_load_common(response, CommonLoadType::not_blocking);
 }
 
 #if ENABLED(PRUSA_MMU2)
@@ -468,6 +423,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
 
     case CommonLoadType::filament_change:
     case CommonLoadType::filament_stuck:
+    case CommonLoadType::not_blocking:
     case CommonLoadType::mmu: // Let's make MMU ejection unstoppable for now - it probably is
     case CommonLoadType::mmu_change:
         is_unstoppable = true;
@@ -487,6 +443,9 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             } else {
                 set(LoadPhases_t::load_in_gear);
             }
+            break;
+        case CommonLoadType::not_blocking:
+            set_timed(LoadPhases_t::assist_filament_insertion);
             break;
         case CommonLoadType::autoload:
             // if filament is not present we want to break and not set loaded filament
@@ -565,7 +524,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         break;
 
     case LoadPhases_t::assist_filament_insertion: {
-        setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
+        setPhase(is_unstoppable ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
 
         // Filament is in Extruder autoload assistance si done.
         if (FSensors_instance().has_filament_surely()) {
@@ -715,6 +674,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
 
         switch (load_type) {
         case CommonLoadType::load_to_gear:
+        case CommonLoadType::not_blocking:
 #if !HAS_HUMAN_INTERACTIONS()
             // This state should be unreachable for printers without Human interaction and could be unrecoverable. We need to finish the FSM in order to not block interactions from Connect.
             set(LoadPhases_t::_finish);
