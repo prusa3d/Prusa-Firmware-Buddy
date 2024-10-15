@@ -13,9 +13,14 @@
 #include <option/has_toolchanger.h>
 #include <option/has_leds.h>
 #include <option/has_touch.h>
+#include <option/has_xbuddy_extension.h>
 
 #if HAS_TOUCH()
     #include "MItem_touch.hpp"
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    #include <menu_item/specific/menu_items_xbuddy_extension.hpp>
 #endif
 
 using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
@@ -37,6 +42,9 @@ using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #if HAS_TOOLCHANGER()
     MI_TOOL_LEDS_ENABLE,
 #endif /*HAS_TOOLCHANGER()*/
+#if HAS_XBUDDY_EXTENSION()
+    MI_XBUDDY_EXTENSION_LIGHTS,
+#endif
 #if HAS_TOUCH()
     MI_ENABLE_TOUCH, TOUCH_SIG_WORKAROUND, MI_TOUCH_PLAYGROUND,
 #endif

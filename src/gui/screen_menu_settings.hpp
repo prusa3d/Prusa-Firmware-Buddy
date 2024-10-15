@@ -12,14 +12,9 @@
 #include "Configuration_adv.h"
 #include <option/has_mmu2.h>
 #include <option/developer_mode.h>
-#include <option/has_xbuddy_extension.h>
 
 #if HAS_MMU2()
     #include "MItem_mmu.hpp"
-#endif
-
-#if HAS_XBUDDY_EXTENSION()
-    #include <menu_item/specific/menu_items_xbuddy_extension.hpp>
 #endif
 
 class MI_HELP_FW_UPDATE : public IWindowMenuItem {
@@ -35,9 +30,6 @@ protected:
 /*****************************************************************************/
 
 using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-#if HAS_XBUDDY_EXTENSION()
-    MI_XBUDDY_EXTENSION_LIGHTS,
-#endif
 #if HAS_FILAMENT_SENSORS_MENU()
     MI_FILAMENT_SENSORS,
 #else
