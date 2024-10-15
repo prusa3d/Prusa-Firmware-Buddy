@@ -18,6 +18,8 @@ public: // General things, status
 
     Status status() const;
 
+    void step();
+
 public: // Fans
     /// \returns measured RPM of the fan1 (chamber cooling)
     std::optional<uint16_t> fan1_rpm() const;

@@ -94,6 +94,7 @@
 #include <option/has_sheet_profiles.h>
 #include <option/has_i2c_expander.h>
 #include <option/has_chamber_api.h>
+#include <option/has_xbuddy_extension.h>
 
 #if HAS_DWARF()
     #include <puppies/Dwarf.hpp>
@@ -143,6 +144,10 @@
 
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
 
 #include <wui.h>
@@ -718,6 +723,10 @@ static void cycle() {
 
 #if HAS_CHAMBER_API()
     buddy::chamber().step();
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    buddy::xbuddy_extension().step();
 #endif
 
     if (call_print_loop) {

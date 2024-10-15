@@ -29,20 +29,6 @@ void Chamber::step() {
 #elif HAS_XBUDDY_EXTENSION()
     // Dummy, untested implementation.
     current_temperature_ = xbuddy_extension().chamber_temperature();
-
-    /// Target-current temperature difference at which the fans go on full
-    static constexpr int fans_max_temp_diff = 10;
-    const auto target_fan_pwm = //
-        (!current_temperature_.has_value() || !target_temperature_.has_value())
-
-        // We don't know a temperature or don't have a target set -> do not cool
-        ? 0
-
-        // Linearly increase fans up to the fans_max_temp_diff temperature difference
-        : std::clamp<int>(static_cast<int>(*current_temperature_ - *target_temperature_) * 255 / fans_max_temp_diff, 0, 255);
-
-    xbuddy_extension().set_fan1_fan2_pwm(target_fan_pwm);
-
 #endif
 }
 

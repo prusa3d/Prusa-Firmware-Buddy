@@ -1,6 +1,7 @@
 #include "xbuddy_extension.hpp"
 
 #include <puppies/xbuddy_extension.hpp>
+#include <feature/chamber/chamber.hpp>
 
 static leds::ColorRGBW bed_leds_color;
 
@@ -8,6 +9,29 @@ namespace buddy {
 
 XBuddyExtension::Status XBuddyExtension::status() const {
     return Status::ready;
+}
+
+void XBuddyExtension::step() {
+    if (status() != Status::ready) {
+        return;
+    }
+
+    // Dummy, untested implementation.
+    const auto temp = chamber_temperature();
+    const auto target_temp = chamber().target_temperature();
+
+    /// Target-current temperature difference at which the fans go on full
+    static constexpr int fans_max_temp_diff = 10;
+    const auto target_fan_pwm = //
+        (!temp.has_value() || !target_temp.has_value())
+
+        // We don't know a temperature or don't have a target set -> do not cool
+        ? 0
+
+        // Linearly increase fans up to the fans_max_temp_diff temperature difference
+        : std::clamp<int>(static_cast<int>(*temp - *target_temp) * 255 / fans_max_temp_diff, 0, 255);
+
+    set_fan1_fan2_pwm(target_fan_pwm);
 }
 
 std::optional<uint16_t> XBuddyExtension::fan1_rpm() const {
