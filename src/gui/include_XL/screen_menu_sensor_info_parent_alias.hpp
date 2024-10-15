@@ -10,17 +10,18 @@
 #include "MItem_loadcell.hpp"
 #include "screen_menu_tools.hpp"
 #include "screen_menu_modularbed.hpp"
+#include <MItem_print.hpp>
 
 namespace detail {
 namespace internal {
     using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
 #if (TEMP_SENSOR_HEATBREAK > 0)
         ,
-        MI_INFO_HEATBREAK_N_TEMP<0>,
-        MI_INFO_HEATBREAK_N_TEMP<1>,
-        MI_INFO_HEATBREAK_N_TEMP<2>,
-        MI_INFO_HEATBREAK_N_TEMP<3>,
-        MI_INFO_HEATBREAK_N_TEMP<4>
+        WithConstructorArgs<MI_INFO_HEATBREAK_TEMP, 0>,
+        WithConstructorArgs<MI_INFO_HEATBREAK_TEMP, 1>,
+        WithConstructorArgs<MI_INFO_HEATBREAK_TEMP, 2>,
+        WithConstructorArgs<MI_INFO_HEATBREAK_TEMP, 3>,
+        WithConstructorArgs<MI_INFO_HEATBREAK_TEMP, 4>
 #endif
 
 #if HAS_TEMP_BOARD
@@ -31,11 +32,11 @@ namespace internal {
         ,
         MI_INFO_MCU_TEMP,
         MI_INFO_BED_TEMP,
-        MI_INFO_NOZZLE_N_TEMP<0>,
-        MI_INFO_NOZZLE_N_TEMP<1>,
-        MI_INFO_NOZZLE_N_TEMP<2>,
-        MI_INFO_NOZZLE_N_TEMP<3>,
-        MI_INFO_NOZZLE_N_TEMP<4>,
+        WithConstructorArgs<MI_INFO_NOZZLE_TEMP, 0>,
+        WithConstructorArgs<MI_INFO_NOZZLE_TEMP, 1>,
+        WithConstructorArgs<MI_INFO_NOZZLE_TEMP, 2>,
+        WithConstructorArgs<MI_INFO_NOZZLE_TEMP, 3>,
+        WithConstructorArgs<MI_INFO_NOZZLE_TEMP, 4>,
         MI_INFO_DWARF_BOARD_TEMPERATURE,
         MI_INFO_DWARF_MCU_TEMPERATURE,
         MI_INFO_MODULAR_BED_MCU_TEMPERATURE,

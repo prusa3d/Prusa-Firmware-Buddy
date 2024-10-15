@@ -639,66 +639,83 @@ void MI_PRINT_PROGRESS_TIME::OnClick() {
 /*****************************************************************************/
 // MI_INFO_BED_TEMP
 MI_INFO_BED_TEMP::MI_INFO_BED_TEMP()
-    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+    : MenuItemAutoUpdatingLabel(_("Bed Temperature"), standard_print_format::temp_c,
+        [](auto) { return marlin_vars().temp_bed.get(); } //
+    ) {}
 
 /*****************************************************************************/
-// MI_INFO_FILL_SENSOR
-MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(const string_view_utf8 &label)
-    : WI_LAMBDA_LABEL_t(
-        label, nullptr, is_enabled_t::yes, is_hidden_t::no, [&](const std::span<char> &buffer) {
-            static constexpr EnumArray<FilamentSensorState, const char *, 6> texts {
-                { FilamentSensorState::NotInitialized, N_("uninitialized / %ld") },
-                { FilamentSensorState::NotCalibrated, N_("uncalibrated / %ld") }, // not calibrated would be too long
-                { FilamentSensorState::HasFilament, N_(" INS / %7ld") },
-                { FilamentSensorState::NoFilament, N_("NINS / %7ld") },
-                { FilamentSensorState::NotConnected, N_("disconnected / %ld") },
-                { FilamentSensorState::Disabled, N_("disabled / %ld") },
-            };
+// MI_INFO_FILAMENT_SENSOR
+MI_INFO_FILAMENT_SENSOR::MI_INFO_FILAMENT_SENSOR(const string_view_utf8 &label, const GetterFunction &getter_function)
+    : MenuItemAutoUpdatingLabel(
+        label, [this](auto &buf) { print_val(buf); }, getter_function) {}
 
-            StringViewUtf8Parameters<8> params;
-            const auto orig_str = _(texts.get_fallback(state, FilamentSensorState::NotInitialized));
-            orig_str.formatted(params, value).copyToRAM(buffer);
-        }) {}
+void MI_INFO_FILAMENT_SENSOR::print_val(const std::span<char> &buffer) const {
+    static constexpr EnumArray<FilamentSensorState, const char *, 6> texts {
+        { FilamentSensorState::NotInitialized, N_("uninitialized / %ld") },
+        { FilamentSensorState::NotCalibrated, N_("uncalibrated / %ld") }, // not calibrated would be too long
+        { FilamentSensorState::HasFilament, N_(" INS / %7ld") },
+        { FilamentSensorState::NoFilament, N_("NINS / %7ld") },
+        { FilamentSensorState::NotConnected, N_("disconnected / %ld") },
+        { FilamentSensorState::Disabled, N_("disabled / %ld") },
+    };
 
-void MI_INFO_FILL_SENSOR::UpdateValue(IFSensor *fsensor) {
-    FilamentSensorState state = FilamentSensorState::NotInitialized;
-    int32_t value = 0;
-    if (fsensor) {
-        state = fsensor->get_state();
-        value = fsensor->GetFilteredValue();
+    const auto val = value();
+    StringViewUtf8Parameters<8> params;
+    const auto orig_str = _(texts.get_fallback(val.state, FilamentSensorState::NotInitialized));
+    orig_str.formatted(params, val.value).copyToRAM(buffer);
+}
+
+FilamentSensorStateAndValue MI_INFO_FILAMENT_SENSOR::get_value(IFSensor *fsensor) {
+    if (!fsensor) {
+        return {};
     }
-    if (this->state != state || this->value != value) {
-        this->state = state;
-        this->value = value;
-        InValidateExtension();
-    }
+
+    return FilamentSensorStateAndValue {
+        .state = fsensor->get_state(),
+        .value = fsensor->GetFilteredValue(),
+    };
 }
 
 /*****************************************************************************/
 // MI_INFO_PRINTER_FILL_SENSOR
 MI_INFO_PRINTER_FILL_SENSOR::MI_INFO_PRINTER_FILL_SENSOR()
-    : MI_INFO_FILL_SENSOR(_(label)) {}
+    : MI_INFO_FILAMENT_SENSOR(
+        PRINTER_IS_PRUSA_XL() ? _("Tool Filament sensor") : _("Filament Sensor"),
+        [](auto) { return get_value(GetExtruderFSensor(marlin_vars().active_extruder.get())); } //
+    ) {}
 
 /*****************************************************************************/
 // MI_INFO_SIDE_FILL_SENSOR
 MI_INFO_SIDE_FILL_SENSOR::MI_INFO_SIDE_FILL_SENSOR()
-    : MI_INFO_FILL_SENSOR(_(label)) {}
+    : MI_INFO_FILAMENT_SENSOR(
+        _("Side Filament sensor"),
+        [](auto) { return get_value(GetSideFSensor(marlin_vars().active_extruder.get())); } //
+    ) {
+    set_is_hidden(GetSideFSensor(marlin_vars().active_extruder.get()) == nullptr);
+}
 
 /*****************************************************************************/
 // MI_INFO_PRINT_FAN
 
 MI_INFO_PRINT_FAN::MI_INFO_PRINT_FAN()
-    : WI_FAN_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+    : WI_FAN_LABEL_t(_("Print Fan"),
+        [](auto) { return FanPWMAndRPM {
+                       .pwm = marlin_vars().print_fan_speed,
+                       .rpm = marlin_vars().active_hotend().print_fan_rpm,
+                   }; } //
+    ) {}
 
 MI_INFO_HBR_FAN::MI_INFO_HBR_FAN()
-    : WI_FAN_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+    : WI_FAN_LABEL_t(PRINTER_IS_PRUSA_MK3_5() ? _("Hotend Fan") : _("Heatbreak Fan"),
+        [](auto) { return FanPWMAndRPM {
+                       .pwm = static_cast<uint8_t>(sensor_data().hbrFan),
+                       .rpm = marlin_vars().active_hotend().heatbreak_fan_rpm,
+                   }; } //
+    ) {}
 
 MI_ODOMETER_DIST::MI_ODOMETER_DIST(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
     : WI_FORMATABLE_LABEL_t<float>(label, icon, enabled, hidden, initVal, [&](const std::span<char> &buffer) {
-        float value_m = value / 1000; // change the unit from mm to m
+        float value_m = value() / 1000; // change the unit from mm to m
         if (value_m > 999) {
             snprintf(buffer.data(), buffer.size(), "%.1f km", (double)(value_m / 1000));
         } else {
@@ -722,88 +739,67 @@ MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
 }
 
 MI_ODOMETER_MMU_CHANGES::MI_ODOMETER_MMU_CHANGES()
-    : WI_FORMATABLE_LABEL_t<uint32_t>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {},
-        [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%lu", value);
-        }) {
-}
+    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), "%lu", {}) {}
 
 MI_ODOMETER_TIME::MI_ODOMETER_TIME()
     : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [&](const std::span<char> &buffer) {
-        format_duration(buffer, value);
+        format_duration(buffer, value());
     }) {}
 
+#if BOARD_IS_XBUDDY()
 MI_INFO_HEATER_VOLTAGE::MI_INFO_HEATER_VOLTAGE()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.1f V", (double)value);
-        }) {
-}
-
-MI_INFO_INPUT_VOLTAGE::MI_INFO_INPUT_VOLTAGE()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.1f V", (double)value);
-        }) {
-}
-
-MI_INFO_5V_VOLTAGE::MI_INFO_5V_VOLTAGE()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.1f V", (double)value);
-        }) {
-}
+    : MenuItemAutoUpdatingLabel(_("Heater Voltage"), "%.1f V",
+        [](auto) { return sensor_data().heaterVoltage; } //
+    ) {}
 
 MI_INFO_HEATER_CURRENT::MI_INFO_HEATER_CURRENT()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.1f A", (double)value);
-        }) {
-}
+    : MenuItemAutoUpdatingLabel(_("Heater Current"), "%.1f A",
+        [](auto) { return sensor_data().heaterCurrent; } //
+    ) {}
 
 MI_INFO_INPUT_CURRENT::MI_INFO_INPUT_CURRENT()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.1f A", (double)value);
-        }) {
-}
+    : MenuItemAutoUpdatingLabel(_("Input Current"), "%.1f A",
+        [](auto) { return sensor_data().inputCurrent; } //
+    ) {}
 
 MI_INFO_MMU_CURRENT::MI_INFO_MMU_CURRENT()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.1f A", (double)value);
-        }) {
-}
+    : MenuItemAutoUpdatingLabel(_("MMU Current"), "%.1f A",
+        [](auto) { return sensor_data().mmuCurrent; } //
+    ) {}
+#endif
 
-MI_INFO_SPLITTER_5V_CURRENT::MI_INFO_SPLITTER_5V_CURRENT()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.2f A", (double)value);
-        }) {
-}
+#if BOARD_IS_XLBUDDY()
+MI_INFO_5V_VOLTAGE::MI_INFO_5V_VOLTAGE()
+    : MenuItemAutoUpdatingLabel(_("5V Voltage"), "%.1f V",
+        [](auto) { return sensor_data().sandwich5VVoltage; } //
+    ) {}
 
 MI_INFO_SANDWICH_5V_CURRENT::MI_INFO_SANDWICH_5V_CURRENT()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.2f A", (double)value);
-        }) {
-}
+    : MenuItemAutoUpdatingLabel(_("Sandwich 5V Current"), "%.2f A",
+        [](auto) { return sensor_data().sandwich5VCurrent; } //
+    ) {}
 
 MI_INFO_BUDDY_5V_CURRENT::MI_INFO_BUDDY_5V_CURRENT()
-    : WI_FORMATABLE_LABEL_t<float>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%.2f A", (double)value);
-        }) {
-}
+    : MenuItemAutoUpdatingLabel(_("XL Buddy 5V Current"), "%.2f A",
+        [](auto) { return sensor_data().buddy5VCurrent; } //
+    ) {}
+#endif
+
+MI_INFO_INPUT_VOLTAGE::MI_INFO_INPUT_VOLTAGE()
+    : MenuItemAutoUpdatingLabel(_("Input Voltage"), "%.1f V",
+        [](auto) { return sensor_data().inputVoltage; } //
+    ) {}
 
 MI_INFO_BOARD_TEMP::MI_INFO_BOARD_TEMP()
-    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : MenuItemAutoUpdatingLabel(_("Board Temperature"), standard_print_format::temp_c,
+        [](auto) { return sensor_data().boardTemp; } //
+    ) {
 }
 
 MI_INFO_MCU_TEMP::MI_INFO_MCU_TEMP()
-    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+    : MenuItemAutoUpdatingLabel(_("MCU Temperature"), standard_print_format::temp_c,
+        [](auto) { return sensor_data().MCUTemp; } //
+    ) {}
 
 MI_FOOTER_RESET::MI_FOOTER_RESET()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {

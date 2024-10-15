@@ -74,39 +74,39 @@ void GcodeSuite::G27() {
 
     G27Params params;
     parser.store_option('P', params.z_action);
+    parser.store_option('W', params.where_to_park, G27Params::ParkPosition::_cnt);
 
-    params.where_to_park = G27Params::ParkPosition { parser.option<uint8_t>('W').transform([](uint8_t val) -> uint8_t { return val < ftrstd::to_underlying(G27Params::ParkPosition::_cnt) ? val : 0; }).value_or(0) };
-
-    params.do_x = parser.store_option('X', params.park_position.x).has_value();
-    params.do_y = parser.store_option('Y', params.park_position.y).has_value();
-    params.do_z = parser.store_option('Z', params.park_position.z).has_value();
+    parser.store_option('X', params.park_position.x);
+    parser.store_option('Y', params.park_position.y);
+    parser.store_option('Z', params.park_position.z);
 
     G27_no_parser(params);
 }
 
 void G27_no_parser(const G27Params &params) {
-    xyz_pos_t park_position { params.park_position };
-    bool do_x { params.do_x };
-    bool do_y { params.do_y };
-    bool do_z { params.do_z };
+    xyz_pos_t park_position { park_positions[params.where_to_park] };
+    xyz_bool_t do_axis = { true, true, true };
 
-    if (!do_x && !do_y && !do_z) {
-        park_position = park_positions[params.where_to_park];
-        do_x = !isnan(park_position.x);
-        do_y = !isnan(park_position.y);
-        do_z = !isnan(park_position.z);
+    // If any park position was given, move only specified axes
+    if (params.park_position != xyz_pos_t { NAN, NAN, NAN }) {
+        for (uint8_t i = 0; i < 3; i++) {
+            do_axis.pos[i] = !isnan(params.park_position.pos[i]);
+            park_position.pos[i] = do_axis.pos[i] ? params.park_position.pos[i] : current_position.pos[i];
+        }
     }
 
     // If not homed and only Z clearance is requested, od just that, otherwise home and then park.
     if (axes_need_homing(X_AXIS | Y_AXIS | Z_AXIS)) {
-        if (!do_x && !do_y && do_z && params.z_action == 0) {
+        if (do_axis == xyz_bool_t { false, false, true } && params.z_action == 0) {
             // Only Z axis is given in P=0 mode, do Z clearance
             do_z_clearance(park_position.z);
             return;
-        } else {
-            GcodeSuite::G28_no_parser(true, 3, false, do_x, do_y, do_z);
         }
-    } // Regular park
+
+        GcodeSuite::G28_no_parser(true, 3, false, do_axis[X_AXIS], do_axis[Y_AXIS], do_axis[Z_AXIS]);
+    }
+
+    // Regular park
     nozzle.park(params.z_action, park_position);
 }
 

@@ -22,7 +22,7 @@ void MI_CONNECT_ENABLED::OnChange([[maybe_unused]] size_t old_index) {
     // Connect will catch up with new config in its next iteration
 }
 
-void MI_CONNECT_ENABLED::update() {
+void MI_CONNECT_ENABLED::Loop() {
     // Make sure that if the connect is enabled as part of the wizard, this
     // gets reflected on the toggle.
     //
@@ -37,10 +37,9 @@ void MI_CONNECT_ENABLED::update() {
 
 MI_CONNECT_STATUS::MI_CONNECT_STATUS()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-    update();
 }
 
-void MI_CONNECT_STATUS::update() {
+void MI_CONNECT_STATUS::Loop() {
     using S = connect_client::ConnectionStatus;
     static constexpr EnumArray<S, const char *, connect_client::connection_status_cnt> strings {
         { S::Unknown, N_("Unknown") },
@@ -62,7 +61,7 @@ MI_CONNECT_ERROR::MI_CONNECT_ERROR()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_CONNECT_ERROR::update() {
+void MI_CONNECT_ERROR::Loop() {
     using S = connect_client::OnlineError;
     static constexpr EnumArray<S, const char *, connect_client::online_error_cnt> strings {
         { S::NoError, N_("---") },
@@ -81,10 +80,9 @@ void MI_CONNECT_ERROR::update() {
 
 MI_CONNECT_HOST::MI_CONNECT_HOST()
     : WiInfo(_(label)) {
-    update();
 }
 
-void MI_CONNECT_HOST::update() {
+void MI_CONNECT_HOST::Loop() {
     std::array<char, GetInfoLen()> hostname;
     strlcpy(hostname.data(), config_store().connect_host.get_c_str(), hostname.size());
     connect_client::decompress_host(hostname.data(), hostname.size());
@@ -116,12 +114,4 @@ void MI_CONNECT_REGISTER::click([[maybe_unused]] IWindowMenu &window_menu) {
 
 ScreenMenuConnect::ScreenMenuConnect()
     : ScreenMenuConnect__(_(label)) {
-}
-
-void ScreenMenuConnect::windowEvent(window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::CHILD_CLICK || event == GUI_event_t::LOOP) {
-        update_all_updatable_items();
-    }
-
-    ScreenMenu::windowEvent(sender, event, param);
 }

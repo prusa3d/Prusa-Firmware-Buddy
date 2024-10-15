@@ -18,31 +18,17 @@
 // MI_INFO_DWARF_BOARD_TEMPERATURE
 /*****************************************************************************/
 MI_INFO_DWARF_BOARD_TEMPERATURE::MI_INFO_DWARF_BOARD_TEMPERATURE()
-    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+    : MenuItemAutoUpdatingLabel(_("Dwarf Board Temp"), standard_print_format::temp_c,
+        [](auto) { return sensor_data().dwarfBoardTemperature; } //
+    ) {}
 
 /*****************************************************************************/
 // MI_INFO_DWARF_MCU_TEMPERATURE
 /*****************************************************************************/
 MI_INFO_DWARF_MCU_TEMPERATURE::MI_INFO_DWARF_MCU_TEMPERATURE()
-    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-/*****************************************************************************/
-// MI_INFO_HEATBREAK_N_TEMP
-I_MI_INFO_HEATBREAK_N_TEMP::I_MI_INFO_HEATBREAK_N_TEMP(const char *const specific_label, int index)
-    : WI_TEMP_LABEL_t(prusa_toolchanger.is_toolchanger_enabled() ? _(specific_label) : _(generic_label), //< Toolchanger has specific labels
-        nullptr, is_enabled_t::yes,
-        ((index == 0) || (prusa_toolchanger.is_toolchanger_enabled() && buddy::puppies::dwarfs[index].is_enabled())) ? is_hidden_t::no : is_hidden_t::yes) { //< Index 0 is never hidden
-}
-
-/*****************************************************************************/
-// MI_INFO_NOZZLE_N_TEMP
-I_MI_INFO_NOZZLE_N_TEMP::I_MI_INFO_NOZZLE_N_TEMP(const char *const specific_label, int index)
-    : WI_TEMP_LABEL_t(prusa_toolchanger.is_toolchanger_enabled() ? _(specific_label) : _(generic_label), //< Toolchanger has specific labels
-        nullptr, is_enabled_t::yes,
-        ((index == 0) || (prusa_toolchanger.is_toolchanger_enabled() && buddy::puppies::dwarfs[index].is_enabled())) ? is_hidden_t::no : is_hidden_t::yes) { //< Index 0 is never hidden
-}
+    : MenuItemAutoUpdatingLabel(_("Dwarf MCU Temp"), standard_print_format::temp_c,
+        [](auto) { return sensor_data().dwarfMCUTemperature; } //
+    ) {}
 
 MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E(const char *const label, int index)
     : MI_ODOMETER_DIST(_(label), nullptr, is_enabled_t::yes,
@@ -53,7 +39,7 @@ MI_ODOMETER_TOOL::MI_ODOMETER_TOOL(const char *const label, int index)
     : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes,
         prusa_toolchanger.is_toolchanger_enabled() && prusa_toolchanger.is_tool_enabled(index) ? is_hidden_t::no : is_hidden_t::yes, 0,
         [&](const std::span<char> &buffer) {
-            snprintf(buffer.data(), buffer.size(), "%lu %s", value, times_label);
+            snprintf(buffer.data(), buffer.size(), "%lu %s", value(), times_label);
         }) {
 }
 

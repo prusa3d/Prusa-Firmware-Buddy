@@ -16,9 +16,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_INFO_LOADCELL : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Loadcell Value");
-
+class MI_INFO_LOADCELL : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_LOADCELL();
 };

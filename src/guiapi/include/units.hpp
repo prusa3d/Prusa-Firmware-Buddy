@@ -28,3 +28,7 @@ static constexpr EnumArray<Unit, const char *, Unit::_cnt> units_str {
     { Unit::milliamper, "mA" },
     { Unit::minute, "min" },
 };
+
+namespace standard_print_format {
+static constexpr const char *temp_c = "%.1f\xC2\xB0\x43";
+}

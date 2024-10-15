@@ -43,9 +43,8 @@ class MI_WIFI_STATUS_t : public WI_INFO_t {
 public:
     MI_WIFI_STATUS_t();
 
-    void update();
+    void Loop() override;
 };
-static_assert(UpdatableMenuItem<MI_WIFI_STATUS_t>);
 
 class MI_WIFI_SSID final : public WiInfoString {
     constexpr static const char *const label = N_("SSID");
@@ -82,12 +81,11 @@ class MI_HOSTNAME : public WiInfo<HAS_MINI_DISPLAY() ? 16 : config_store_ns::lan
 public:
     MI_HOSTNAME();
 
-    void update();
+    void Loop() override;
 
 protected:
     void click(IWindowMenu &menu) override;
 };
-static_assert(UpdatableMenuItem<MI_HOSTNAME>);
 
 /// Use WMI_NET as a wrapper to provide the device_id
 class MI_NET_IP : public WI_SWITCH_t<2> {
@@ -128,7 +126,7 @@ public:
 public:
     IMI_IP4_ADDR(const char *label, NetDeviceID device_id, AddrType addr);
 
-    void update();
+    void Loop() override;
 
 public:
     const NetDeviceID device_id;
@@ -138,7 +136,6 @@ protected:
     // Make destructor protected to indicate that we don't need to emit a vtable for this class
     ~IMI_IP4_ADDR() = default;
 };
-static_assert(UpdatableMenuItem<IMI_IP4_ADDR>);
 
 /// Use WMI_NET as a wrapper to provide the device_id
 class MI_IP4_ADDR : public IMI_IP4_ADDR {
@@ -174,9 +171,8 @@ class MI_IP4_DNS1 : public WiInfo<ADDR_LEN> {
 public:
     MI_IP4_DNS1();
 
-    void update();
+    void Loop() override;
 };
-static_assert(UpdatableMenuItem<MI_IP4_DNS1>);
 
 class MI_MAC_ADDR : public WiInfo<MAC_LEN> {
     static constexpr const char *const label = HAS_MINI_DISPLAY() ? N_("MAC") : N_("MAC Address");
@@ -184,9 +180,8 @@ class MI_MAC_ADDR : public WiInfo<MAC_LEN> {
 public:
     MI_MAC_ADDR(NetDeviceID device_id = {});
 
-    void update();
+    void Loop() override;
 
 public:
     const NetDeviceID device_id;
 };
-static_assert(UpdatableMenuItem<MI_MAC_ADDR>);

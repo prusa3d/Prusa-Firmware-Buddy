@@ -6,7 +6,6 @@
 #include "filament.hpp"
 #include "WindowItemFormatableLabel.hpp"
 #include "WindowItemFanLabel.hpp"
-#include "WindowItemTempLabel.hpp"
 #include "config.h"
 #include <common/filament_sensor.hpp>
 #include <common/filament_sensor_states.hpp>
@@ -403,60 +402,36 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_INFO_BED_TEMP : public WI_TEMP_LABEL_t {
-    static constexpr const char *const label = N_("Bed Temperature");
-
+class MI_INFO_BED_TEMP : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_BED_TEMP();
 };
 
-class MI_INFO_FILL_SENSOR : public WI_LAMBDA_LABEL_t {
-private:
-    FilamentSensorState state;
-    int32_t value;
+class MI_INFO_FILAMENT_SENSOR : public MenuItemAutoUpdatingLabel<FilamentSensorStateAndValue> {
+public:
+    MI_INFO_FILAMENT_SENSOR(const string_view_utf8 &label, const GetterFunction &getter_function);
 
 protected:
-    virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
-
-public:
-    MI_INFO_FILL_SENSOR(const string_view_utf8 &label);
-
-    void UpdateValue(IFSensor *fsensor);
+    void print_val(const std::span<char> &buffer) const;
+    static FilamentSensorStateAndValue get_value(IFSensor *fsensor);
 };
 
-class MI_INFO_PRINTER_FILL_SENSOR : public MI_INFO_FILL_SENSOR {
-    static constexpr const char *label =
-#if PRINTER_IS_PRUSA_XL()
-        N_("Tool Filament sensor");
-#else
-        N_("Filament Sensor");
-#endif
-
+class MI_INFO_PRINTER_FILL_SENSOR : public MI_INFO_FILAMENT_SENSOR {
 public:
     MI_INFO_PRINTER_FILL_SENSOR();
 };
 
-class MI_INFO_SIDE_FILL_SENSOR : public MI_INFO_FILL_SENSOR {
-    static constexpr const char *label = N_("Side Filament Sensor");
-
+class MI_INFO_SIDE_FILL_SENSOR : public MI_INFO_FILAMENT_SENSOR {
 public:
     MI_INFO_SIDE_FILL_SENSOR();
 };
 
 class MI_INFO_PRINT_FAN : public WI_FAN_LABEL_t {
-    static constexpr const char *const label = N_("Print Fan");
-
 public:
     MI_INFO_PRINT_FAN();
 };
 
 class MI_INFO_HBR_FAN : public WI_FAN_LABEL_t {
-#if PRINTER_IS_PRUSA_MK3_5()
-    static constexpr const char *const label = N_("Hotend Fan");
-#else
-    static constexpr const char *const label = N_("Heatbreak Fan");
-#endif
-
 public:
     MI_INFO_HBR_FAN();
 };
@@ -479,6 +454,7 @@ public:
 protected:
     virtual void OnClick() override;
 };
+
 class MI_ODOMETER_DIST : public WI_FORMATABLE_LABEL_t<float> {
 public:
     MI_ODOMETER_DIST(const string_view_utf8 &label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
@@ -536,79 +512,56 @@ public:
     MI_ODOMETER_TIME();
 };
 
-class MI_INFO_HEATER_VOLTAGE : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Heater Voltage");
-
+#if BOARD_IS_XBUDDY()
+class MI_INFO_HEATER_VOLTAGE : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_HEATER_VOLTAGE();
 };
 
-class MI_INFO_INPUT_VOLTAGE : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Input Voltage");
-
-public:
-    MI_INFO_INPUT_VOLTAGE();
-};
-
-class MI_INFO_5V_VOLTAGE : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("5V Voltage");
-
-public:
-    MI_INFO_5V_VOLTAGE();
-};
-
-class MI_INFO_HEATER_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Heater Current");
-
+class MI_INFO_HEATER_CURRENT : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_HEATER_CURRENT();
 };
 
-class MI_INFO_INPUT_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Input Current");
-
+class MI_INFO_INPUT_CURRENT : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_INPUT_CURRENT();
 };
 
-class MI_INFO_MMU_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("MMU Current");
-
+class MI_INFO_MMU_CURRENT : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_MMU_CURRENT();
 };
+#endif
 
-class MI_INFO_SPLITTER_5V_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Splitter 5V Current");
-
+#if BOARD_IS_XLBUDDY()
+class MI_INFO_5V_VOLTAGE : public MenuItemAutoUpdatingLabel<float> {
 public:
-    MI_INFO_SPLITTER_5V_CURRENT();
+    MI_INFO_5V_VOLTAGE();
 };
 
-class MI_INFO_SANDWICH_5V_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("Sandwich 5V Current");
-
+class MI_INFO_SANDWICH_5V_CURRENT : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_SANDWICH_5V_CURRENT();
 };
 
-class MI_INFO_BUDDY_5V_CURRENT : public WI_FORMATABLE_LABEL_t<float> {
-    static constexpr const char *const label = N_("XL Buddy 5V Current");
-
+class MI_INFO_BUDDY_5V_CURRENT : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_BUDDY_5V_CURRENT();
 };
+#endif
 
-class MI_INFO_BOARD_TEMP : public WI_TEMP_LABEL_t {
-    static constexpr const char *const label = N_("Board Temperature");
+class MI_INFO_INPUT_VOLTAGE : public MenuItemAutoUpdatingLabel<float> {
+public:
+    MI_INFO_INPUT_VOLTAGE();
+};
 
+class MI_INFO_BOARD_TEMP : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_BOARD_TEMP();
 };
 
-class MI_INFO_MCU_TEMP : public WI_TEMP_LABEL_t {
-    static constexpr const char *const label = N_("MCU Temperature");
-
+class MI_INFO_MCU_TEMP final : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_MCU_TEMP();
 };
@@ -797,3 +750,11 @@ protected:
 #if HAS_BELT_TUNING()
 using MI_BELT_TUNING = WithConstructorArgs<MenuItemGcodeAction, N_("Belt Tuning"), "M960 W"_tstr>;
 #endif
+
+/// Useless menu item that is empty and always hidden.
+/// Used as an endstop for trailing commas
+class MI_ALWAYS_HIDDEN : public IWindowMenuItem {
+public:
+    MI_ALWAYS_HIDDEN()
+        : IWindowMenuItem({}, nullptr, is_enabled_t::no, is_hidden_t::yes) {}
+};
