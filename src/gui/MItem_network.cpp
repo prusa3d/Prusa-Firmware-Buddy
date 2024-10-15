@@ -37,10 +37,9 @@ bool NetDeviceID::is_connected() const {
 
 MI_WIFI_STATUS_t::MI_WIFI_STATUS_t()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-    update();
 }
 
-void MI_WIFI_STATUS_t::update() {
+void MI_WIFI_STATUS_t::Loop() {
     const netdev_status_t status = netdev_get_status(NETDEV_ESP_ID);
     if (is_device_connected(status)) {
         ChangeInformation(status == NETDEV_NETIF_UP ? _("Connected") : _("Link down"));
@@ -128,10 +127,9 @@ void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
 
 MI_HOSTNAME::MI_HOSTNAME()
     : WiInfo(_(label)) {
-    update();
 }
 
-void MI_HOSTNAME::update() {
+void MI_HOSTNAME::Loop() {
     ChangeInformation(config_store().hostname.get().data());
 }
 
@@ -169,7 +167,7 @@ void MI_HOSTNAME::click(IWindowMenu &) {
     }
 
     config_store().hostname.set(hostname);
-    update();
+    ChangeInformation(config_store().hostname.get().data());
     notify_reconfigure();
 }
 
@@ -198,10 +196,9 @@ IMI_IP4_ADDR::IMI_IP4_ADDR(const char *label, NetDeviceID device_id, AddrType ad
     : WiInfo(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , device_id(device_id)
     , addr(addr) {
-    update();
 }
 
-void IMI_IP4_ADDR::update() {
+void IMI_IP4_ADDR::Loop() {
     if (!device_id.is_connected()) {
         ChangeInformation(UNKNOWN_ADDR);
         return;
@@ -217,10 +214,9 @@ void IMI_IP4_ADDR::update() {
 
 MI_IP4_DNS1::MI_IP4_DNS1()
     : WiInfo(_(label)) {
-    update();
 }
 
-void MI_IP4_DNS1::update() {
+void MI_IP4_DNS1::Loop() {
     std::array<char, ADDR_LEN> str;
     ip2str(*dns_getserver(0), str.data(), str.size());
     ChangeInformation(str.data());
@@ -229,10 +225,9 @@ void MI_IP4_DNS1::update() {
 MI_MAC_ADDR::MI_MAC_ADDR(NetDeviceID device_id)
     : WiInfo<MAC_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , device_id(device_id) {
-    update();
 }
 
-void MI_MAC_ADDR::update() {
+void MI_MAC_ADDR::Loop() {
     mac_address_t mac;
     get_MAC_address(&mac, device_id());
     ChangeInformation(mac);
