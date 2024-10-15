@@ -2,7 +2,7 @@
 
 #include <marlin_server_shared.h>
 
-#if PRINTER_IS_PRUSA_XL()
+#if XL_ENCLOSURE_SUPPORT()
     #include <hw/xl/xl_enclosure.hpp>
 #endif
 
@@ -18,7 +18,7 @@ void Chamber::step() {
 
     std::lock_guard _lg(mutex_);
 
-#if PRINTER_IS_PRUSA_XL()
+#if XL_ENCLOSURE_SUPPORT()
     current_temperature_ = xl_enclosure.getEnclosureTemperature();
 
 #endif
@@ -27,7 +27,7 @@ void Chamber::step() {
 Chamber::Capabilities Chamber::capabilities() const {
     std::lock_guard _lg(mutex_);
 
-#if PRINTER_IS_PRUSA_XL()
+#if XL_ENCLOSURE_SUPPORT()
     return Capabilities {
         .temperature_reporting = xl_enclosure.isEnabled(),
     };
