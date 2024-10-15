@@ -463,6 +463,12 @@ Errors:
     id: "HEATER_HOTEND_OVERCURRENT"
     approved: false
 
+  - code: "XX323"
+    title: "ACCELEROMETER COMMUNICATION FAILED"
+    text: "Check that the accelerometer cable is plugged in and not damaged."
+    id: "ACCELEROMETER_COMMUNICATION_FAILED"
+    approved: false
+
   - code: "XX401"
     title: "CONNECT REGISTRATION FAILED"
     text: "Registration to Prusa Connect failed due to:"
@@ -1062,4 +1068,11 @@ Errors:
     title: "Quick Pause"
     text: "Waiting for the user. Press \"Resume\" once the printer is ready."
     id: "QUICK_PAUSE"
+    type: "CONNECT"
+
+  - code: "XX836"
+    printers: [iX]
+    title: "Loading Timeout"
+    text: "Filament loading timed out."
+    id: "FILAMENT_LOADING_TIMEOUT"
     type: "CONNECT"
