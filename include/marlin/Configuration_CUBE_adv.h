@@ -1819,8 +1819,8 @@
             #define XY_HOMING_ORIGIN_OFFSET 5.f         // mm: parallel distance from initial origin
             #define XY_HOMING_ORIGIN_MAX_RETRIES 6      // count: maximum number of refinement attempts
             #define XY_HOMING_ORIGIN_BUMPS_MAX_ERR 0.15 // mm: max error between acceptable probes
-            #define XY_HOMING_ORIGIN_SHIFT_X -5.f       // mm: post-refinement X origin shift
-            #define XY_HOMING_ORIGIN_SHIFT_Y -5.f       // mm: post-refinement Y origin shift
+            #define XY_HOMING_ORIGIN_SHIFT_X 5.f       // mm: post-refinement X origin shift
+            #define XY_HOMING_ORIGIN_SHIFT_Y 5.f       // mm: post-refinement Y origin shift
         #endif
     #endif
 
