@@ -22,9 +22,6 @@
 
 LOG_COMPONENT_DEF(Puppies, logging::Severity::debug);
 
-// TODO Disallow this after we have functioning xbuddy_extension
-static constexpr bool allow_xbuddy_extension_failure = true;
-
 namespace buddy::puppies {
 
 osThreadId puppy_task_handle;
@@ -75,8 +72,7 @@ static void verify_puppies_running() {
 #endif
 
 #if HAS_XBUDDY_EXTENSION()
-        const bool xbuddy_extension_ping_ok = xbuddy_extension.ping() != CommunicationStatus::ERROR;
-        const bool xbuddy_extension_ok = xbuddy_extension_ping_ok || allow_xbuddy_extension_failure;
+        const bool xbuddy_extension_ok = xbuddy_extension.ping() != CommunicationStatus::ERROR;
 #else
         const bool xbuddy_extension_ok = true;
 #endif
@@ -214,7 +210,7 @@ static bool puppy_initial_scan() {
     // TODO: Eventually, there'll be printers that have the extension as
     // optional at runtime - we'll have to deal with that somehow.
     if (xbuddy_extension.initial_scan() == CommunicationStatus::ERROR) {
-        return false || allow_xbuddy_extension_failure;
+        return false;
     }
 #endif
     return true;
