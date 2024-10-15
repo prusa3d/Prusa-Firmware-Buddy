@@ -52,6 +52,10 @@ std::optional<uint8_t> XBuddyExtension::chamber_temperature() {
     return 50;
 }
 
+void XBuddyExtension::update_registers() {
+    // TODO: Update PWM and such
+}
+
 XBuddyExtension &xbuddy_extension() {
     static XBuddyExtension instance;
     return instance;

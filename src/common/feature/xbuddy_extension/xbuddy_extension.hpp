@@ -52,6 +52,12 @@ public: // LEDs
 public: // Other
     /// \returns chamber temperature measured through the thermistor connected to the board, in degrees Celsius
     std::optional<uint8_t> chamber_temperature();
+
+protected:
+    /// Updates all relevant target registers to match the current config of the printer
+    /// To be called right after the connection is established with the board
+    /// TODO: call this function from the right place
+    void update_registers();
 };
 
 XBuddyExtension &xbuddy_extension();
