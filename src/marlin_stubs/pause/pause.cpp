@@ -1448,6 +1448,10 @@ const RammingSequence &Pause::get_ramming_sequence(const RammingType type) const
 }
 
 bool Pause::check_user_stop() {
+    if (user_stop_pending) {
+        return true;
+    }
+
     const Response response = getResponse();
     if (response != Response::Stop) {
         return false;
