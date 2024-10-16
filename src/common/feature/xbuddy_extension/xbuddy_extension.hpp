@@ -11,6 +11,8 @@ namespace buddy {
 /// Thread-safe API, can be read/written to from any thread
 class XBuddyExtension {
 public: // General things, status
+    XBuddyExtension();
+
     enum class Status {
         disabled,
         not_connected,

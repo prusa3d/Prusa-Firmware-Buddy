@@ -5,6 +5,10 @@
 
 namespace buddy {
 
+XBuddyExtension::XBuddyExtension() {
+    update_registers_nolock();
+}
+
 XBuddyExtension::Status XBuddyExtension::status() const {
     return Status::ready;
 }
