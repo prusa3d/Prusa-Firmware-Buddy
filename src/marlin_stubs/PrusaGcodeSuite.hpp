@@ -32,11 +32,10 @@ FilamentType get_filament_type_from_command(char parameter, const char **string_
 #if HAS_NOZZLE_CLEANER()
 void G12(); ///< Nozzle Cleaning
 #endif
-
-void G26(); ///< first layer calibration
-void G64(); ///< Measure Z_AXIS height
-void G162(); ///< calibrate Z
-void G163(); ///< measure length of axis
+void G26(); //< first layer calibration
+void G64(); //< Measure Z_AXIS height
+void G162(); //< calibrate Z
+void G163(); //< measure length of axis
 
 void M0();
 
