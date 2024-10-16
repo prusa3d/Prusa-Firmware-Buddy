@@ -6,7 +6,12 @@
 #include "temperature.hpp"
 #include <freertos/delay.hpp>
 
-class ModbusCallbacks final : public modbus::Callbacks {
+namespace {
+
+constexpr uint16_t MY_MODBUS_ADDR = 7;
+constexpr uint16_t MMU_MODBUS_ADDR = 220;
+
+class Logic final : public modbus::Callbacks {
 public:
     Status read_register(uint8_t, const uint16_t address, uint16_t &out) final {
         switch (address) {
@@ -58,12 +63,54 @@ public:
     }
 };
 
+class MMU final : public modbus::Callbacks {
+public:
+    Status read_register(uint8_t, uint16_t, uint16_t &) {
+        // TODO: MMU not implemented yet, stubbed out for now.
+        return Status::GatewayPathUnavailable;
+    }
+    Status write_register(uint8_t, uint16_t, uint16_t) {
+        // TODO: MMU not implemented yet, stubbed out for now.
+        return Status::GatewayPathUnavailable;
+    }
+};
+
+class Dispatch final : public modbus::Callbacks {
+public:
+    // Do we want these to be some kind of number-value array, or is this hardcoded thing good enough?
+    Logic logic;
+    MMU mmu;
+    Status read_register(uint8_t device, uint16_t address, uint16_t &out) {
+        switch (device) {
+        case MY_MODBUS_ADDR:
+            return logic.read_register(device, address, out);
+        case MMU_MODBUS_ADDR:
+            return mmu.read_register(device, address, out);
+        default:
+            return Status::Ignore;
+        }
+    }
+
+    Status write_register(uint8_t device, uint16_t address, uint16_t value) {
+        switch (device) {
+        case MY_MODBUS_ADDR:
+            return logic.write_register(device, address, value);
+        case MMU_MODBUS_ADDR:
+            return mmu.write_register(device, address, value);
+        default:
+            return Status::Ignore;
+        }
+    }
+};
+
+} // namespace
+
 void app::run() {
     hal::fan1::set_enabled(true);
     hal::fan2::set_enabled(true);
     hal::fan3::set_enabled(true);
 
-    ModbusCallbacks modbus_callbacks;
+    Dispatch modbus_callbacks;
 
     std::byte response_buffer[32]; // is enough for now
     hal::rs485::start_receiving();
