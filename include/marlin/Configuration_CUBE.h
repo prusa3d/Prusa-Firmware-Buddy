@@ -1138,7 +1138,7 @@
 
 // Travel limits (mm) after homing, corresponding to endstop positions. defaul x -2.5 y -7.3
 #define X_MIN_POS -1
-#define Y_MIN_POS -29
+#define Y_MIN_POS -23
 #define Z_MIN_POS 0
 #define X_MAX_POS (X_BED_SIZE + 2)
 #define Y_MAX_PRINT_POS (Y_BED_SIZE) // maximal print area Y position
