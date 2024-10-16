@@ -69,9 +69,7 @@ protected:
     /// Updates all relevant target registers to match the current config of the printer
     /// To be called right after the connection is established with the board
     /// TODO: call this function from the right place
-    void update_registers();
-
-    void set_fan1_fan2_pwm_nocheck_nolock(uint8_t pwm);
+    void update_registers_nolock();
 
 private:
     mutable freertos::Mutex mutex_;
