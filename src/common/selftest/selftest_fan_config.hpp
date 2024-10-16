@@ -14,9 +14,10 @@ namespace selftest {
 struct FanConfig {
     uint16_t rpm_min;
     uint16_t rpm_max;
+    uint16_t ignore_min_overlap;
 };
 
-constexpr selftest::FanConfig benevolent_fan_config = { .rpm_min = 10, .rpm_max = 10000 };
+constexpr selftest::FanConfig benevolent_fan_config = { .rpm_min = 10, .rpm_max = 10000, .ignore_min_overlap = 0 };
 
 struct SelftestFansConfig {
     using type_evaluation = SelftestFanHotendResult;
