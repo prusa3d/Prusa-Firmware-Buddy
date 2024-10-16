@@ -80,6 +80,8 @@ private:
 
     /// If set to true, fans are controlled automatically by the temperature control mechanism
     bool fan1_fan2_auto_control_ = true;
+
+    leds::ColorRGBW bed_leds_color_;
 };
 
 XBuddyExtension &xbuddy_extension();

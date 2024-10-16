@@ -3,8 +3,6 @@
 #include <puppies/xbuddy_extension.hpp>
 #include <feature/chamber/chamber.hpp>
 
-static leds::ColorRGBW bed_leds_color;
-
 namespace buddy {
 
 XBuddyExtension::Status XBuddyExtension::status() const {
@@ -77,11 +75,13 @@ void XBuddyExtension::set_fan3_pwm(uint8_t pwm) {
 }
 
 leds::ColorRGBW XBuddyExtension::bed_leds_color() const {
-    return ::bed_leds_color;
+    std::lock_guard _lg(mutex_);
+    return bed_leds_color_;
 }
 
 void XBuddyExtension::set_bed_leds_color(leds::ColorRGBW set) {
-    ::bed_leds_color = set;
+    std::lock_guard _lg(mutex_);
+    bed_leds_color_ = set;
     puppies::xbuddy_extension.set_rgbw_led({ set.r, set.g, set.b, set.w });
 }
 
