@@ -1812,8 +1812,9 @@
     #ifdef IMPROVE_HOMING_RELIABILITY
         #define XY_HOMING_ACCELERATION 1250
         #define XY_HOMING_JERK 8
-        #define X_CURRENT_HOME X_CURRENT
-        #define Y_CURRENT_HOME Y_CURRENT
+        // Precise homing does not work with higher default currents - BFW-6192
+        #define X_CURRENT_HOME 300
+        #define Y_CURRENT_HOME 300
         #ifdef PRECISE_HOMING_COREXY
             #define XY_HOMING_HOLDING_CURRENT 900       // mA: holding current for fixed motor
             #define XY_HOMING_ORIGIN_OFFSET 5.f         // mm: parallel distance from initial origin
