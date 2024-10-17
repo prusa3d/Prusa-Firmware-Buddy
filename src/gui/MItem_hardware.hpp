@@ -6,6 +6,7 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_toolchanger.h>
 #include <common/extended_printer_type.hpp>
+#include <gui/menu_item/menu_item_select_menu.hpp>
 
 class MI_HARDWARE_CHECK : public MenuItemSwitch {
 public:
@@ -41,10 +42,15 @@ protected:
 #endif /*HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()*/
 
 #if HAS_EXTENDED_PRINTER_TYPE()
-class MI_EXTENDED_PRINTER_TYPE : public WiStoreEnumSwitch<&config_store_ns::CurrentStore::extended_printer_type> {
+class MI_EXTENDED_PRINTER_TYPE : public MenuItemSelectMenu {
 public:
     MI_EXTENDED_PRINTER_TYPE();
-    void OnChange(size_t diff) override;
+
+    int item_count() const final;
+    void build_item_text(int index, const std::span<char> &buffer) const final;
+
+protected:
+    bool on_item_selected(int old_index, int new_index) override;
 };
 
 #else
