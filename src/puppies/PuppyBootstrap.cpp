@@ -126,13 +126,10 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
     // Select random salt for modular bed and for dwarf
     fingerprints_t fingerprints;
     #if HAS_MODULARBED()
-    fingerprints.get_salt(Dock::MODULAR_BED) = rand_u();
+    fingerprints.get_salt(MODULARBED) = rand_u();
     #endif
     #if HAS_DWARF()
-    fingerprints.get_salt(Dock::DWARF_1) = rand_u();
-    for (const auto dock : DWARFS) {
-        fingerprints.get_salt(dock) = fingerprints.get_salt(Dock::DWARF_1); // Copy salt to all dwarfs
-    }
+    fingerprints.get_salt(DWARF) = rand_u();
     #endif
 
     // Ask puppies to compute fw fingerprint
@@ -142,7 +139,7 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
             continue;
         }
         auto address = get_boot_address_for_dock(dock);
-        start_fingerprint_computation(address, fingerprints.get_salt(dock));
+        start_fingerprint_computation(address, fingerprints.get_salt(to_puppy_type(dock)));
     }
 
     auto fingerprint_wait_start = ticks_ms();
@@ -153,17 +150,14 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
         #if HAS_MODULARBED()
         unique_file_ptr fw_file = get_firmware(MODULARBED);
         off_t fw_size = get_firmware_size(MODULARBED);
-        calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(Dock::MODULAR_BED), fingerprints.get_salt(Dock::MODULAR_BED));
+        calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(MODULAR_BED), fingerprints.get_salt(MODULAR_BED));
         #endif
     }
     { // Dwarf
         #if HAS_DWARF()
         unique_file_ptr fw_file = get_firmware(DWARF);
         off_t fw_size = get_firmware_size(DWARF);
-        calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(Dock::DWARF_1), fingerprints.get_salt(Dock::DWARF_1));
-        for (Dock dock : DWARFS) {
-            fingerprints.get_fingerprint(dock) = fingerprints.get_fingerprint(Dock::DWARF_1); // Copy fingerprint to all dwarfs
-        }
+        calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(DWARF), fingerprints.get_salt(DWARF));
         #endif
     }
     #endif /* PUPPY_FLASH_FW() */
@@ -228,9 +222,9 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
             continue;
         }
 
-        auto address = get_boot_address_for_dock(dock);
-        auto puppy_type = to_puppy_type(dock);
-        start_app(puppy_type, address, fingerprints.get_salt(dock), fingerprints.get_fingerprint(dock)); // Use last known salt that may already be calculated in puppy
+        const auto address = get_boot_address_for_dock(dock);
+        const auto puppy_type = to_puppy_type(dock);
+        start_app(puppy_type, address, fingerprints.get_salt(puppy_type), fingerprints.get_fingerprint(puppy_type)); // Use last known salt that may already be calculated in puppy
     }
 
 #else
@@ -477,7 +471,7 @@ void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, 
 
     progressHook({ percent_offset, FlashingStage::CHECK_FINGERPRINT, puppy_type });
 
-    bool match = fingerprint_match(fw_fingerprints.get_fingerprint(dock), chunk_offset, chunk_size);
+    bool match = fingerprint_match(fw_fingerprints.get_fingerprint(puppy_type), chunk_offset, chunk_size);
     log_info(Puppies, "Puppy %d-%s fingerprint %s", static_cast<int>(dock), get_puppy_info(puppy_type).name, match ? "matched" : "didn't match");
 
     // if application firmware fingerprint doesn't match, flash it
@@ -521,18 +515,18 @@ void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, 
         progressHook({ percent_offset + percent_span, FlashingStage::CHECK_FINGERPRINT, puppy_type });
 
         // Calculate new fingerprint, salt needs to be changed so the flashing cannot be faked
-        fw_fingerprints.get_salt(dock) = rand_u();
-        start_fingerprint_computation(get_boot_address_for_dock(dock), fw_fingerprints.get_salt(dock));
+        fw_fingerprints.get_salt(puppy_type) = rand_u();
+        start_fingerprint_computation(get_boot_address_for_dock(dock), fw_fingerprints.get_salt(puppy_type));
 
         auto fingerprint_wait_start = ticks_ms();
 
-        calculate_fingerprint(fw_file, fw_size, fw_fingerprints.get_fingerprint(dock), fw_fingerprints.get_salt(dock));
+        calculate_fingerprint(fw_file, fw_size, fw_fingerprints.get_fingerprint(puppy_type), fw_fingerprints.get_salt(puppy_type));
 
         // Check puppy if it finished fingerprint calculation
         wait_for_fingerprint(fingerprint_wait_start);
 
         // check fingerprint after flashing, to make sure it went well
-        if (!fingerprint_match(fw_fingerprints.get_fingerprint(dock))) {
+        if (!fingerprint_match(fw_fingerprints.get_fingerprint(puppy_type))) {
             fatal_error(ErrCode::ERR_SYSTEM_PUPPY_FINGERPRINT_MISMATCH, get_puppy_info(puppy_type).name);
         }
     }
