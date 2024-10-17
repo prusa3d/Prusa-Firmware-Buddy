@@ -52,15 +52,20 @@ std::span<std::byte> modbus::handle_transaction(
 
     auto status = Status::Ok;
 
+    auto get_word = [&](size_t offset) {
+        uint16_t high = static_cast<uint8_t>(request[offset]);
+        uint16_t low = static_cast<uint8_t>(request[offset + 1]);
+        return high << 8 | low;
+    };
+
     switch (function) {
     case read_holding_registers:
     case read_input_registers: {
         if (request.size() != 4) {
             return {};
         } else {
-            const uint16_t address = (uint8_t)request[0] << 8 | (uint8_t)request[1];
-            const uint16_t count = (uint8_t)request[2] << 8 | (uint8_t)request[3];
-            // TODO handle invalid address or count
+            const uint16_t address = get_word(0);
+            const uint16_t count = get_word(2);
 
             const uint8_t bytes = 2 * count;
             *response++ = std::byte { bytes };
@@ -79,15 +84,17 @@ std::span<std::byte> modbus::handle_transaction(
         if (request.size() < 5) {
             return {};
         } else {
-            const uint16_t address = (uint8_t)request[0] << 8 | (uint8_t)request[1];
-            const uint16_t count = (uint8_t)request[2] << 8 | (uint8_t)request[3];
+            const uint16_t address = get_word(0);
+            const uint16_t count = get_word(2);
             const uint8_t bytes = (uint8_t)request[4];
             request = request.subspan(5);
-            // TODO handle invalid address or count or bytes
-            (void)bytes;
+            if (request.size() < bytes) {
+                // Incomplete message.
+                return {};
+            }
 
             for (uint16_t i = 0; i < count; ++i) {
-                const uint16_t value = (uint8_t)request[0] << 8 | (uint8_t)request[1];
+                const uint16_t value = get_word(0);
                 request = request.subspan(2);
                 status = callbacks.write_register((uint8_t)device, address + i, value);
                 if (status != Status::Ok) {
