@@ -271,7 +271,7 @@ set(PRINTERS_WITH_EXTFLASH_TRANSLATIONS "MINI")
 set(PRINTERS_WITH_LOVE_BOARD "CUBE" "MK4" "iX")
 set(PRINTERS_WITH_TMC_UART "MINI")
 set(PRINTERS_WITH_XLCD "CUBE" "MK4" "MK3.5" "iX" "XL")
-set(PRINTERS_WITH_MMU2 "MK4" "MK3.5")
+set(PRINTERS_WITH_MMU2 "CUBE" "MK4" "MK3.5")
 set(PRINTERS_WITH_CONFIG_STORE_WITHOUT_BACKEND "XL_DEV_KIT")
 set(PRINTERS_WITH_CHAMBER_API "XL" "CUBE")
 set(PRINTERS_WITH_SWITCHED_FAN_TEST "MK4" "MK3.5" "CUBE")
@@ -610,6 +610,21 @@ else()
   set(HAS_PUPPIES NO)
 endif()
 define_boolean_option(HAS_PUPPIES ${HAS_PUPPIES})
+
+if(${BOARD} STREQUAL "XBUDDY" AND HAS_MMU2)
+  # for XBUDDY based printers, UART6 is being used either for puppies/MODBUS or directly for the MMU
+  if(HAS_PUPPIES)
+    # UART already occupied by the puppies/MODBUS
+    set(HAS_MMU2_OVER_UART NO)
+  else()
+    # UART used for the MMU
+    set(HAS_MMU2_OVER_UART YES)
+  endif()
+else()
+  # other boards: set to NO, whatever new edge cases that may bring...
+  set(HAS_MMU2_OVER_UART NO)
+endif()
+define_boolean_option(HAS_MMU2_OVER_UART ${HAS_MMU2_OVER_UART})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_LEDS)
   set(HAS_LEDS YES)

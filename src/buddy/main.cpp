@@ -382,7 +382,7 @@ extern "C" void main_cpp(void) {
     uart_init_esp();
 #endif
 
-#if HAS_MMU2()
+#if HAS_MMU2_OVER_UART()
     uart_init_mmu();
 #endif
 
@@ -474,7 +474,7 @@ extern "C" void main_cpp(void) {
     buddy::hw::MMUEnable.set();
 #endif
 
-#if HAS_MMU2()
+#if HAS_MMU2_OVER_UART()
     uart_for_mmu.Open();
     // mmu2 is normally serviced from the marlin thread
     // so execute it before the defaultTask is created to prevent race conditions

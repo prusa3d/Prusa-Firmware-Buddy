@@ -5,9 +5,33 @@
 #include <device/peripherals_uart.hpp>
 #include <option/has_mmu2.h>
 
-static_assert(HAS_MMU2());
-
 namespace MMU2 {
+
+#if HAS_PUPPIES() and HAS_MMU2()
+// @@TODO temporary empty implementation just to see what else needs to be split
+void MMU2Serial::begin() {
+}
+
+void MMU2Serial::close() {
+}
+
+int MMU2Serial::read() {
+    return -1;
+}
+
+void MMU2Serial::flush() {
+}
+
+size_t MMU2Serial::write(const uint8_t *buffer, size_t size) {
+    return 0;
+}
+
+void MMU2Serial::check_recovery() {
+}
+
+MMU2Serial mmu2Serial;
+
+#elif HAS_MMU2_OVER_UART()
 
 void MMU2Serial::begin() {
     uart_for_mmu.Open();
@@ -54,5 +78,7 @@ void MMU2Serial::check_recovery() {
 }
 
 MMU2Serial mmu2Serial;
+
+#endif
 
 } // namespace MMU2
