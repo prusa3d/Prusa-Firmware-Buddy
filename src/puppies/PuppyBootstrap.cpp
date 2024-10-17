@@ -125,12 +125,9 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
 
     // Select random salt for modular bed and for dwarf
     fingerprints_t fingerprints;
-    #if HAS_MODULARBED()
-    fingerprints.get_salt(MODULARBED) = rand_u();
-    #endif
-    #if HAS_DWARF()
-    fingerprints.get_salt(DWARF) = rand_u();
-    #endif
+    for (const auto puppy_type : PUPPY_TYPES) {
+        fingerprints.get_salt(puppy_type) = rand_u();
+    }
 
     // Ask puppies to compute fw fingerprint
     for (const auto dock : DOCKS) {
@@ -146,19 +143,10 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
 
     #if PUPPY_FLASH_FW()
     // Precompute firmware fingerprints
-    { // Modular bed
-        #if HAS_MODULARBED()
-        unique_file_ptr fw_file = get_firmware(MODULARBED);
-        off_t fw_size = get_firmware_size(MODULARBED);
-        calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(MODULAR_BED), fingerprints.get_salt(MODULAR_BED));
-        #endif
-    }
-    { // Dwarf
-        #if HAS_DWARF()
-        unique_file_ptr fw_file = get_firmware(DWARF);
-        off_t fw_size = get_firmware_size(DWARF);
-        calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(DWARF), fingerprints.get_salt(DWARF));
-        #endif
+    for (const auto puppy_type : PUPPY_TYPES) {
+        unique_file_ptr fw_file = get_firmware(puppy_type);
+        const off_t fw_size = get_firmware_size(puppy_type);
+        calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(puppy_type), fingerprints.get_salt(puppy_type));
     }
     #endif /* PUPPY_FLASH_FW() */
 
