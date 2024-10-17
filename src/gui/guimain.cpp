@@ -262,6 +262,12 @@ void gui_run(void) {
 
     TaskDeps::provide(TaskDeps::Dependency::gui_ready);
 
+    // Do one initial screen loop to close the screen_splash_t and open the screen_home_t
+    // Otherwise, some FSM dialogs might possibly open over the splash screen in  DialogHandler::Access().Loop();
+    // and then be immediately closed.
+    // BFW-6193
+    Screens::Access()->Loop();
+
     // TODO make some kind of registration
     while (1) {
         gui::StartLoop();
@@ -282,6 +288,7 @@ void gui_run(void) {
         }
 
         Screens::Access()->Loop();
+
         gui_loop();
         gui::EndLoop();
     }
