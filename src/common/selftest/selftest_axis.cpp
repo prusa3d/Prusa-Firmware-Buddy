@@ -178,7 +178,7 @@ LoopResult CSelftestPart_Axis::stateHomeXY() {
 
     // Trigger home on axis
     char gcode[std::size("G28 X")];
-    snprintf(gcode, std::size(gcode), "G28 %c", axis_to_letter(config.axis));
+    snprintf(gcode, std::size(gcode), "G28 %c", iaxis_codes[config.axis]);
     log_info(Selftest, "%s home single axis", config.partname);
     queue.enqueue_one_now(gcode);
 
@@ -296,8 +296,8 @@ LoopResult CSelftestPart_Axis::stateParkAxis() {
     if (config.park) {
         char gcode[15];
         endstops.enable(false);
-        log_info(Selftest, "%s park %c axis to %i", config.partname, axis_to_letter(config.axis), static_cast<int>(config.park_pos));
-        snprintf(gcode, std::size(gcode), "G1 %c%i F4200", axis_to_letter(config.axis), static_cast<int>(config.park_pos));
+        log_info(Selftest, "%s park %c axis to %i", config.partname, iaxis_codes[config.axis], static_cast<int>(config.park_pos));
+        snprintf(gcode, std::size(gcode), "G1 %c%i F4200", iaxis_codes[config.axis], static_cast<int>(config.park_pos));
         queue.enqueue_one_now(gcode); // Park Y
         parking_initiated = true;
         return LoopResult::RunCurrent;
