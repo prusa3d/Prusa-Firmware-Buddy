@@ -42,8 +42,8 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
         staticResults[2].state = to_SubtestState(eeres.zaxis);
 
         // Allocate selftest part
-        switch (axis_to_letter(config_axis.axis)) {
-        case 'Z':
+        switch (config_axis.axis) {
+        case Z_AXIS:
             // clang-format off
         m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis, staticResults[config_axis.axis],
             &CSelftestPart_Axis::stateHomeZ,
@@ -59,8 +59,8 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
             // clang-format on
             break;
 
-        case 'X':
-        case 'Y':
+        case X_AXIS:
+        case Y_AXIS:
             m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis, staticResults[config_axis.axis],
                 &CSelftestPart_Axis::stateActivateHomingReporter,
                 &CSelftestPart_Axis::stateHomeXY,
@@ -74,7 +74,9 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
                 &CSelftestPart_Axis::stateParkAxis,
                 &CSelftestPart_Axis::state_verify_coils //
             );
+            break;
 
+        default:
             break;
         }
     }
@@ -97,6 +99,9 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
         break;
     case Z_AXIS:
         eeres.zaxis = m_pAxis->GetResult();
+        break;
+
+    default:
         break;
     }
     config_store().selftest_result.set(eeres);
