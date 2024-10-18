@@ -476,6 +476,12 @@ void CSelftest::phaseSelftestStart() {
     if (m_Mask & stmYAxis) {
         m_result.yaxis = TestResult_Unknown;
     }
+    if (m_Mask & stmZAxis) {
+        m_result.zaxis = TestResult_Unknown;
+    }
+    if (m_Mask & stmZcalib) {
+        m_result.zalign = TestResult_Unknown;
+    }
     if (m_Mask & stmHeaters) {
         m_result.tools[0].nozzle = TestResult_Unknown;
         m_result.bed = TestResult_Unknown;
@@ -525,6 +531,7 @@ void CSelftest::next() {
         if (m_result.tools[0].loadcell == TestResult_Passed && m_result.xaxis == TestResult_Passed && m_result.yaxis == TestResult_Passed) {
             return; // current state can be run
         }
+        m_result.zaxis = TestResult_Unknown;
         break; // current state cannot be run
     default:
         return; // current state can be run
