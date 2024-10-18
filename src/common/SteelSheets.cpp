@@ -68,20 +68,16 @@ uint32_t SteelSheets::NumOfCalibrated() {
     return count;
 }
 
-uint32_t SteelSheets::ActiveSheetName(std::span<char, SHEET_NAME_BUFFER_SIZE> target) {
-    uint8_t index = GetActiveSheetIndex();
-    return SheetName(index, target);
+uint32_t SteelSheets::ActiveSheetName(const std::span<char> &target) {
+    return SheetName(GetActiveSheetIndex(), target);
 }
 
-uint32_t SteelSheets::SheetName(uint32_t index, std::span<char, SHEET_NAME_BUFFER_SIZE> target) {
+uint32_t SteelSheets::SheetName(uint32_t index, const std::span<char> &target) {
     if (index >= config_store_ns::sheets_num) {
         return 0;
     }
-    auto sheet = getSheet(index);
-    memcpy(target.data(), sheet.name, sizeof(sheet.name));
-    // Make sure the string is null terminated
-    target[target.size() - 1] = '\0';
-    return strlen(target.data());
+
+    return strlcpy(target.data(), getSheet(index).name, target.size());
 }
 
 uint32_t SteelSheets::RenameSheet(uint32_t index, const char *buffer, uint32_t length) {
