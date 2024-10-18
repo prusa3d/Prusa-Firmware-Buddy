@@ -52,34 +52,6 @@ protected:
     virtual void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
 };
 
-/// IWiSwitch implementation with fixed number of fixed items, stored in a buffer
-/// TODO: Most of the usage can be shifted to a nicer WiEnumSwitch
-template <size_t SZ>
-class WI_SWITCH_t : public IWiSwitch {
-
-public:
-    template <class... E>
-    WI_SWITCH_t(size_t index, const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
-        : IWiSwitch(label, id_icon, enabled, hidden)
-        , items_ { std::forward<E>(e)... } //
-    {
-        SetIndex(index);
-
-        // Items are initialized now, update extension width
-        changeExtentionWidth();
-    }
-
-    inline size_t item_count() const final {
-        return SZ;
-    }
-    inline string_view_utf8 current_item_text() const final {
-        return items_[index];
-    }
-
-private:
-    std::array<string_view_utf8, SZ> items_;
-};
-
 class MenuItemSwitch : public IWiSwitch {
 
 public:
