@@ -19,6 +19,35 @@ msgstr "00 min"
 msgid "12h"
 msgstr "12h"
 
+#. window_menu
+#: src/gui/MItem_tools.cpp:340
+msgid ""
+"This operation cannot be undone. Current configuration will be lost!\n"
+"Do you want to perform the Factory Shipping Preparation procedure?"
+msgstr ""
+"Cette opération ne peut pas être annulée. La configuration actuelle sera "
+"perdue !\n"
+"Voulez-vous effectuer la procédure de préparation à l'expédition en usine ?"
+
+#: src/gui/MItem_tools.hpp:152
+msgid "Shipping Preparation"
+msgstr "Préparation de l'expédition"
+
+#. a dummy comment to break line by force
+#: src/gui/MItem_tools.cpp:273
+msgid ""
+"Shipping preparation\n"
+"\n"
+"Erasing configuration\n"
+"(but keeping Nextruder type)\n"
+"it will take some time..."
+msgstr ""
+"Préparation de l'expédition\n"
+"\n"
+"Effacement de la configuration\n"
+"(mais conservation du type de Nextruder)\n"
+"cela prendra un certain temps..."
+
 #: src/gui/screen_network_setup.cpp:484
 msgid ""
 "1. Open Prusa app on your mobile device.\n"
