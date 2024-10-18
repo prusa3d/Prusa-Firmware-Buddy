@@ -50,7 +50,22 @@ void MI_NOZZLE_DIAMETER_HELP::click(IWindowMenu &) {
 #if HAS_HOTEND_TYPE_SUPPORT()
 // * MI_HOTEND_TYPE
 MI_HOTEND_TYPE::MI_HOTEND_TYPE()
-    : WiStoreEnumSwitch(_("Hotend Type"), hotend_type_names, true, hotend_type_supported) {}
+    : MenuItemSelectMenu(_("Hotend Type")) {
+    set_current_item(stdext::index_of(hotend_type_list, config_store().hotend_type.get()));
+}
+
+int MI_HOTEND_TYPE::item_count() const {
+    return hotend_type_list.size();
+}
+
+void MI_HOTEND_TYPE::build_item_text(int index, const std::span<char> &buffer) const {
+    _(hotend_type_names[index]).copyToRAM(buffer);
+}
+
+bool MI_HOTEND_TYPE::on_item_selected([[maybe_unused]] int old_index, int new_index) {
+    config_store().hotend_type.set(hotend_type_list[new_index]);
+    return true;
+}
 
 // * MI_NOZZLE_SOCK
 MI_NOZZLE_SOCK::MI_NOZZLE_SOCK()

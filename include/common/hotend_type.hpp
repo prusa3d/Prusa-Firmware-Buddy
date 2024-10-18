@@ -22,23 +22,25 @@ enum class HotendType : uint8_t {
     _cnt,
 };
 
-static constexpr auto hotend_type_count = ftrstd::to_underlying(HotendType::_cnt);
-
 static constexpr EnumArray<HotendType, const char *, HotendType::_cnt> hotend_type_names {
     { HotendType::stock, N_("Stock") },
     { HotendType::stock_with_sock, N_("With sock") },
     { HotendType::e3d_revo, N_("E3D Revo") },
 };
 
-/// Some hotend types are only supported by some printers, but the enum is the same for all -> hence this filtering array
-static constexpr EnumArray<HotendType, bool, HotendType::_cnt> hotend_type_supported {
-    { HotendType::stock, true },
-    { HotendType::stock_with_sock, !PRINTER_IS_PRUSA_MINI() },
-    { HotendType::e3d_revo, PRINTER_IS_PRUSA_MK3_5() },
+/// Filtered and ordered list of hotend types, for UI purposes
+static constexpr std::array hotend_type_list {
+    HotendType::stock,
+#if !PRINTER_IS_PRUSA_MINI()
+        HotendType::stock_with_sock,
+#endif
+#if PRINTER_IS_PRUSA_MK3_5()
+        HotendType::e3d_revo,
+#endif
 };
 
 /// Whether only the "stock" and "sock" options are supported
 /// This affects some texts and dialogs:
 /// true -> "Do you have nozzle sock installed?"
 /// false -> "What hotend do you have?"
-static constexpr bool hotend_type_only_sock = (std::count(hotend_type_supported.begin(), hotend_type_supported.end(), true) == 2 && hotend_type_supported[HotendType::stock] && hotend_type_supported[HotendType::stock_with_sock]);
+static constexpr bool hotend_type_only_sock = (hotend_type_list.size() == 2 && hotend_type_list[0] == HotendType::stock && hotend_type_list[1] == HotendType::stock_with_sock);
