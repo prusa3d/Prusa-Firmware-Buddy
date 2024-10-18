@@ -1,5 +1,7 @@
 #pragma once
 
+#include "cooling.hpp"
+
 #include <optional>
 #include <span>
 
@@ -76,12 +78,9 @@ protected:
 private:
     mutable freertos::Mutex mutex_;
 
-    uint8_t fan1_fan2_pwm_ = 0;
-
-    /// If set to true, fans are controlled automatically by the temperature control mechanism
-    bool fan1_fan2_auto_control_ = true;
-
     leds::ColorRGBW bed_leds_color_;
+
+    Cooling cooling;
 };
 
 XBuddyExtension &xbuddy_extension();

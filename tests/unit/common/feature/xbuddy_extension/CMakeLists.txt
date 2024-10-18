@@ -1,0 +1,3 @@
+add_executable(xbuddy_extension_tests cooling.cpp)
+target_include_directories(xbuddy_extension_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/common)
+add_catch_test(xbuddy_extension_tests)

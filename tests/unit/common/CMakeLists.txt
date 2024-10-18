@@ -6,6 +6,7 @@ add_subdirectory(http)
 add_subdirectory(utils)
 add_subdirectory(filament_sensor)
 add_subdirectory(freertos)
+add_subdirectory(feature)
 
 add_executable(
   support_utils_tests ${CMAKE_CURRENT_SOURCE_DIR}/support_utils_lib_test.cpp

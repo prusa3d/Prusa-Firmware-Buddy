@@ -1,5 +1,6 @@
 #include "xbuddy_extension.hpp"
 
+#include <common/temperature.hpp>
 #include <puppies/xbuddy_extension.hpp>
 #include <feature/chamber/chamber.hpp>
 
@@ -20,24 +21,7 @@ void XBuddyExtension::step() {
         return;
     }
 
-    if (fan1_fan2_auto_control_) {
-        // Dummy, untested implementation.
-        const auto temp = chamber_temperature();
-        const auto target_temp = chamber().target_temperature();
-
-        /// Target-current temperature difference at which the fans go on full
-        static constexpr int fans_max_temp_diff = 10;
-        fan1_fan2_pwm_ = //
-            (!temp.has_value() || !target_temp.has_value())
-
-            // We don't know a temperature or don't have a target set -> do not cool
-            ? 0
-
-            // Linearly increase fans up to the fans_max_temp_diff temperature difference
-            : std::clamp<int>(static_cast<int>(*temp - *target_temp) * 255 / fans_max_temp_diff, 0, 255);
-
-        update_registers_nolock();
-    }
+    update_registers_nolock();
 }
 
 std::optional<uint16_t> XBuddyExtension::fan1_rpm() const {
@@ -50,24 +34,24 @@ std::optional<uint16_t> XBuddyExtension::fan2_rpm() const {
 
 uint8_t XBuddyExtension::fan1_fan2_pwm() const {
     std::lock_guard _lg(mutex_);
-    return fan1_fan2_pwm_;
+    return cooling.require_pwm;
 }
 
 void XBuddyExtension::set_fan1_fan2_pwm(uint8_t pwm) {
     std::lock_guard _lg(mutex_);
-    fan1_fan2_auto_control_ = false;
-    fan1_fan2_pwm_ = pwm;
+    cooling.auto_control = false;
+    cooling.require_pwm = pwm;
     update_registers_nolock();
 }
 
 bool XBuddyExtension::has_fan1_fan2_auto_control() const {
     std::lock_guard _lg(mutex_);
-    return fan1_fan2_auto_control_;
+    return cooling.auto_control;
 }
 
 void XBuddyExtension::set_fan1_fan2_auto_control() {
     std::lock_guard _lg(mutex_);
-    fan1_fan2_auto_control_ = true;
+    cooling.auto_control = true;
 }
 
 std::optional<uint16_t> XBuddyExtension::fan3_rpm() const {
@@ -108,8 +92,21 @@ void XBuddyExtension::update_registers_nolock() {
     puppies::xbuddy_extension.set_rgbw_led({ bed_leds_color_.r, bed_leds_color_.g, bed_leds_color_.b, bed_leds_color_.w });
     puppies::xbuddy_extension.set_white_led(config_store().xbuddy_extension_chamber_leds_pwm.get());
 
-    puppies::xbuddy_extension.set_fan_pwm(0, fan1_fan2_pwm_);
-    puppies::xbuddy_extension.set_fan_pwm(1, fan1_fan2_pwm_);
+    const auto rpm0 = puppies::xbuddy_extension.get_fan_rpm(0);
+    const auto rpm1 = puppies::xbuddy_extension.get_fan_rpm(1);
+    const auto temp = chamber_temperature();
+
+    if (rpm0.has_value() && rpm1.has_value() && temp.has_value()) {
+        cooling.target = chamber().target_temperature();
+
+        const bool already_spinning = *rpm0 > 5 && *rpm1 > 5;
+
+        const uint8_t pwm = cooling.pwm(already_spinning, *temp);
+
+        puppies::xbuddy_extension.set_fan_pwm(0, pwm);
+        puppies::xbuddy_extension.set_fan_pwm(1, pwm);
+    } // else -> comm not working, we'll set it next time (instead of setting
+      // them to wrong value, keep them at what they are now).
 }
 
 XBuddyExtension &xbuddy_extension() {
