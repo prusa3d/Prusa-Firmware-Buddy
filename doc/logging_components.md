@@ -50,7 +50,7 @@ This file is generated automatically so don't edit it directly
 - USBMSC: logging::Severity::debug, src/buddy/usb_device_msc.cpp
 - W25X: logging::Severity::debug, src/common/w25x.cpp
 - WUI: logging::Severity::debug, lib/WUI/wui.cpp
-- connect: logging::Severity::info, src/connect/connect.cpp
+- connect: logging::Severity::debug, src/connect/connect.cpp
 - httpc: logging::Severity::debug, src/common/http/httpc.cpp
 - socket: logging::Severity::info, src/common/http/socket.cpp
 - transfers: logging::Severity::info, src/transfers/logging.cpp
