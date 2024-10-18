@@ -1,34 +1,30 @@
-/**
- * @file WindowMenuSwitch.cpp
- * @author Radek Vana
- * @date 2020-11-09
- */
-
 #include "WindowMenuSwitch.hpp"
 
-/*****************************************************************************/
-// IWiSwitch
-IWiSwitch::IWiSwitch(const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : IWindowMenuItem(label, 0, id_icon, enabled, hidden) //
+MenuItemSwitch::MenuItemSwitch(const string_view_utf8 &label, const std::span<const char *const> &items, size_t initial_index)
+    : IWindowMenuItem(label)
+    , index(initial_index)
+    , items_(items) //
 {
     touch_extension_only_ = true;
+
+    changeExtentionWidth();
 }
 
-invalidate_t IWiSwitch::change(int /*dif*/) {
+invalidate_t MenuItemSwitch::change(int /*dif*/) {
     if ((++index) >= item_count()) {
         index = 0;
     }
     return invalidate_t::yes;
 }
 
-void IWiSwitch::click(IWindowMenu & /*window_menu*/) {
-    size_t old_index = index;
+void MenuItemSwitch::click(IWindowMenu & /*window_menu*/) {
+    const size_t old_index = index;
     Change(0);
     OnChange(old_index);
     changeExtentionWidth();
 }
 
-void IWiSwitch::SetIndex(size_t idx) {
+void MenuItemSwitch::set_index(size_t idx) {
     if (idx == index || idx >= item_count()) {
         return;
     }
@@ -38,7 +34,7 @@ void IWiSwitch::SetIndex(size_t idx) {
     InValidateExtension();
 }
 
-Rect16 IWiSwitch::getSwitchRect(Rect16 extension_rect) const {
+Rect16 MenuItemSwitch::getSwitchRect(Rect16 extension_rect) const {
     if (!has_brackets) {
         return extension_rect;
     }
@@ -48,18 +44,18 @@ Rect16 IWiSwitch::getSwitchRect(Rect16 extension_rect) const {
     return extension_rect;
 }
 
-Rect16 IWiSwitch::getLeftBracketRect(Rect16 extension_rect) const {
+Rect16 MenuItemSwitch::getLeftBracketRect(Rect16 extension_rect) const {
     extension_rect = Rect16::Width_t(width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
     return extension_rect;
 }
 
-Rect16 IWiSwitch::getRightBracketRect(Rect16 extension_rect) const {
+Rect16 MenuItemSwitch::getRightBracketRect(Rect16 extension_rect) const {
     extension_rect += Rect16::Left_t(extension_rect.Width() - (width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right));
     extension_rect = Rect16::Width_t(width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
     return extension_rect;
 }
 
-void IWiSwitch::printExtension(Rect16 extension_rect, Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const {
+void MenuItemSwitch::printExtension(Rect16 extension_rect, Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const {
     // draw switch
     render_text_align(getSwitchRect(extension_rect), current_item_text(), GuiDefaults::FontMenuItems, color_back,
         (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text,
@@ -78,16 +74,21 @@ void IWiSwitch::printExtension(Rect16 extension_rect, Color color_text, Color co
     }
 }
 
-Rect16::Width_t IWiSwitch::calculateExtensionWidth() const {
+Rect16::Width_t MenuItemSwitch::calculateExtensionWidth() const {
     const size_t len = current_item_text().computeNumUtf8Chars();
     const size_t ret = width(GuiDefaults::FontMenuItems) * len + Padding.left + Padding.right + (GuiDefaults::MenuSwitchHasBrackets ? (width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right) * 2 : 0);
     return ret;
 }
 
-void IWiSwitch::changeExtentionWidth() {
+void MenuItemSwitch::changeExtentionWidth() {
     Rect16::Width_t new_extension_width = calculateExtensionWidth();
     if (extension_width != new_extension_width) {
         extension_width = new_extension_width;
         Invalidate();
     }
+}
+
+string_view_utf8 MenuItemSwitch::current_item_text() const {
+    const char *str = items_[index];
+    return translate_items_ ? _(str) : string_view_utf8::MakeRAM(str);
 }
