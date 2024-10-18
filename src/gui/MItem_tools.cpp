@@ -186,12 +186,12 @@ void MI_LIVE_ADJUST_Z::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_AUTO_HOME
 MI_AUTO_HOME::MI_AUTO_HOME()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_("Auto Home"), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
     marlin_client::event_clr(marlin_server::Event::CommandBegin);
-    marlin_client::gcode("G28");
+    marlin_client::gcode("G28 P");
     while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
         marlin_client::loop();
     }

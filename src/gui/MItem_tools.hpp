@@ -97,8 +97,6 @@ protected:
 };
 
 class MI_AUTO_HOME : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Auto Home");
-
 public:
     MI_AUTO_HOME();
 
