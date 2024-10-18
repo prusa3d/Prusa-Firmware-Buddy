@@ -78,12 +78,7 @@ public:
         : I_MI_FOOTER(label, N) {}
 };
 
-class MI_LEFT_ALIGN_TEMP : public WI_SWITCH_t<3> {
-    constexpr static const char *const label = N_("Temp. style");
-    constexpr static const char *str_0 = N_("Static");
-    constexpr static const char *str_1 = N_("Static-left");
-    constexpr static const char *str_2 = N_("Dynamic");
-
+class MI_LEFT_ALIGN_TEMP : public MenuItemSwitch {
 public:
     MI_LEFT_ALIGN_TEMP();
     virtual void OnChange(size_t /*old_index*/) override;
