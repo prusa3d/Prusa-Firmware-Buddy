@@ -63,12 +63,7 @@ protected:
     void click(IWindowMenu &window_menu) override;
 };
 
-class MI_NET_INTERFACE_t : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = N_("Active Interface");
-
-    constexpr static const char *str_eth = "Eth"; // do not translate
-    constexpr static const char *str_wifi = "Wi-Fi"; // do not translate
-
+class MI_NET_INTERFACE_t : public MenuItemSwitch {
 public:
     MI_NET_INTERFACE_t();
     virtual void OnChange(size_t old_index) override;
@@ -88,12 +83,7 @@ protected:
 };
 
 /// Use WMI_NET as a wrapper to provide the device_id
-class MI_NET_IP : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = "LAN"; // do not translate
-
-    constexpr static const char *str_static = "static"; // do not translate
-    constexpr static const char *str_DHCP = "DHCP"; // do not translate
-
+class MI_NET_IP : public MenuItemSwitch {
 public:
     MI_NET_IP(NetDeviceID device_id);
     virtual void OnChange(size_t old_index) override;
@@ -102,12 +92,7 @@ public:
     const NetDeviceID device_id;
 };
 
-class MI_NET_IP_VER_t : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = N_("Protocol");
-
-    constexpr static const char *str_v4 = "IPv4"; // do not translate
-    constexpr static const char *str_v6 = "IPv6"; // do not translate
-
+class MI_NET_IP_VER_t : public MenuItemSwitch {
 public:
     MI_NET_IP_VER_t();
     // virtual void OnChange(size_t old_index) override; //TODO
