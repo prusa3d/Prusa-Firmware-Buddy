@@ -100,10 +100,13 @@ void MI_RESET_STEPS_PER_UNIT::click([[maybe_unused]] IWindowMenu &window_menu) {
 
 /*****************************************************************************/
 // WiSwitchDirection
+static constexpr const char *switch_direction_items[] = {
+    N_("Prusa"),
+    N_("Wrong"),
+};
+
 WiSwitchDirection::WiSwitchDirection(bool current_direction_wrong, const string_view_utf8 &label_view)
-    : WI_SWITCH_t<2>(current_direction_wrong, label_view, nullptr, is_enabled_t::yes, is_hidden_t::no,
-        NOTRAN(str_prusa), NOTRAN(str_wrong)) {
-}
+    : MenuItemSwitch(label_view, switch_direction_items, current_direction_wrong) {}
 
 /*****************************************************************************/
 // MI_DIRECTION_X

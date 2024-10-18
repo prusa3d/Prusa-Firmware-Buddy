@@ -15,9 +15,14 @@
     #endif /*HAS_SIDE_FSENSOR()*/
 #endif /*HAS_TOOLCHANGER()*/
 
+static constexpr const char *hw_check_items[] = {
+    N_("None"),
+    N_("Warn"),
+    N_("Strict"),
+};
+
 MI_HARDWARE_CHECK::MI_HARDWARE_CHECK(HWCheckType check_type)
-    : WI_SWITCH_t(static_cast<int>(config_store().visit_hw_check(check_type, [](auto &item) { return item.get(); })), _(hw_check_type_names[check_type]), nullptr, is_enabled_t::yes, is_hidden_t::no,
-        _("None"), _("Warn"), _("Strict"))
+    : MenuItemSwitch(_(hw_check_type_names[check_type]), hw_check_items, static_cast<int>(config_store().visit_hw_check(check_type, [](auto &item) { return item.get(); })))
     , check_type(check_type) //
 {}
 

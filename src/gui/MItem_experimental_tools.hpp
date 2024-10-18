@@ -91,11 +91,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class WiSwitchDirection : public WI_SWITCH_t<2> {
-    constexpr static const char *const str_prusa = "Prusa";
-    // Wrong direction
-    constexpr static const char *const str_wrong = N_("Wrong");
-
+class WiSwitchDirection : public MenuItemSwitch {
 public:
     WiSwitchDirection(bool current_direction_negative, const string_view_utf8 &label_view);
 };
