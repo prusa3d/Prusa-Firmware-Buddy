@@ -177,10 +177,11 @@ LoopResult CSelftestPart_Axis::stateHomeXY() {
     set_axis_is_not_at_home(AxisEnum(config.axis));
 
     // Trigger home on axis
-    char gcode[std::size("G28 X")];
-    snprintf(gcode, std::size(gcode), "G28 %c", iaxis_codes[config.axis]);
+    ArrayStringBuilder<8> sb;
+    sb.append_printf("G28 %c P", iaxis_codes[config.axis]);
+    queue.enqueue_one_now(sb.str());
+
     log_info(Selftest, "%s home single axis", config.partname);
-    queue.enqueue_one_now(gcode);
 
     return LoopResult::RunNext;
 }
@@ -211,18 +212,14 @@ LoopResult CSelftestPart_Axis::stateEvaluateHomingXY() {
 }
 
 LoopResult CSelftestPart_Axis::stateHomeZ() {
-#if PRINTER_IS_PRUSA_iX() && ENABLED(DETECT_PRINT_SHEET)
-    queue.enqueue_one_now("G28 P");
-#else
     // we have Z safe homing enabled, so Z might need to home all axis
     if (!TEST(axis_known_position, X_AXIS) || !TEST(axis_known_position, Y_AXIS)) {
         log_info(Selftest, "%s home all axis", config.partname);
-        queue.enqueue_one_now("G28");
+        queue.enqueue_one_now("G28 P");
     } else {
         log_info(Selftest, "%s home single axis", config.partname);
-        queue.enqueue_one_now("G28 Z");
+        queue.enqueue_one_now("G28 Z P");
     }
-#endif
 
 #if HAS_TOOLCHANGER()
     // Z axis check needs to be done with a tool
