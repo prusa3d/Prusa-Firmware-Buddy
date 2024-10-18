@@ -11,10 +11,11 @@
 #include <dynamic_index_mapping.hpp>
 #include <meta_utils.hpp>
 #include <multi_filament_change.hpp>
+#include <gui/menu_item/menu_item_select_menu.hpp>
 
 namespace multi_filament_change {
 
-class MI_ActionSelect : public WI_LAMBDA_SPIN {
+class MI_ActionSelect : public MenuItemSelectMenu {
 
 public:
     MI_ActionSelect(uint8_t tool_ix);
@@ -22,8 +23,8 @@ public:
     void set_config(const ConfigItem &set);
     ConfigItem config() const;
 
-private:
-    void get_item_text(size_t index, std::span<char> buffer) const;
+    int item_count() const final;
+    void build_item_text(int index, const std::span<char> &buffer) const final;
 
 private:
     static constexpr auto items = std::to_array<DynamicIndexMappingRecord<Action>>({
