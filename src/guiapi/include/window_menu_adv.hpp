@@ -30,7 +30,7 @@ class WindowExtendedMenu : public window_frame_t {
 
 public:
     template <typename... Args>
-    WindowExtendedMenu(window_t *parent, Rect16 rect, Args... args)
+    WindowExtendedMenu(window_t *parent, Rect16 rect, Args &&...args)
         : window_frame_t(parent, rect)
         , menu(this, window_menu_frame_ns::calc_menu_rect(rect), std::forward<Args>(args)...)
         , scroll_bar(this, window_menu_frame_ns::calc_scroll_bar_rect(rect), menu) {
