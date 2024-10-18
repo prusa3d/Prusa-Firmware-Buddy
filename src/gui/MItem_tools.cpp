@@ -452,41 +452,26 @@ void MI_TIMEOUT::OnChange(size_t old_index) {
 
 /*****************************************************************************/
 // MI_SOUND_MODE
+static constexpr EnumArray<eSOUND_MODE, const char *, eSOUND_MODE::_count> sound_mode_values {
+    { eSOUND_MODE::ONCE, N_("Once") },
+    { eSOUND_MODE::LOUD, N_("Loud") },
+    { eSOUND_MODE::SILENT, N_("Silent") },
+    { eSOUND_MODE::ASSIST, N_("Assist") },
+#ifdef _DEBUG
+    { eSOUND_MODE::DEBUG, N_("Debug") },
+#endif
+};
+
 size_t MI_SOUND_MODE::init_index() const {
     eSOUND_MODE sound_mode = Sound_GetMode();
     return (size_t)(sound_mode > eSOUND_MODE::_last ? eSOUND_MODE::_default_sound : sound_mode);
 }
 MI_SOUND_MODE::MI_SOUND_MODE()
-    : WI_SWITCH_t<MI_SOUND_MODE_COUNT>(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no,
-        _(str_Once), _(str_Loud), _(str_Silent), _(str_Assist)
-#ifdef _DEBUG
-                                                     ,
-        string_view_utf8::MakeCPUFLASH((const uint8_t *)str_Debug)
-#endif
-    ) {
+    : MenuItemSwitch(_("Sound Mode"), sound_mode_values, init_index()) {
 }
 
 void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
     Sound_SetMode(static_cast<eSOUND_MODE>(index));
-}
-
-/*****************************************************************************/
-// MI_SOUND_TYPE
-MI_SOUND_TYPE::MI_SOUND_TYPE()
-    : WI_SWITCH_t<8>(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no,
-        _(str_ButtonEcho), _(str_StandardPrompt), _(str_StandardAlert), _(str_CriticalAlert),
-        _(str_EncoderMove), _(str_BlindAlert), _(str_Start), _(str_SingleBeep)) {}
-void MI_SOUND_TYPE::OnChange(size_t old_index) {
-    eSOUND_TYPE st = static_cast<eSOUND_TYPE>(old_index);
-    if (st == eSOUND_TYPE::StandardPrompt || st == eSOUND_TYPE::CriticalAlert) {
-        Sound_Play(eSOUND_TYPE::StandardPrompt);
-        // this is a debug-only menu item, intentionally not translated
-        static const uint8_t msg[] = "Continual beeps test\n press button to stop";
-        MsgBoxInfo(string_view_utf8::MakeCPUFLASH(msg), Responses_Ok);
-        Sound_Stop();
-    } else {
-        Sound_Play(st);
-    }
 }
 
 /*****************************************************************************/
@@ -505,8 +490,15 @@ void MI_SOUND_VOLUME::OnClick() {
 
 /*****************************************************************************/
 // MI_SORT_FILES
+
+static constexpr const char *sort_files_items[] = {
+    N_("Time"),
+    N_("Name"),
+};
+
 MI_SORT_FILES::MI_SORT_FILES()
-    : WI_SWITCH_t<2>(config_store().file_sort.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
+    : MenuItemSwitch(_("Sort Files"), sort_files_items, config_store().file_sort.get()) {}
+
 void MI_SORT_FILES::OnChange(size_t old_index) {
     if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
         GuiFileSort::Set(WF_SORT_BY_NAME);
@@ -532,8 +524,17 @@ void MI_TIMEZONE::OnClick() {
 
 /*****************************************************************************/
 // MI_TIMEZONE_MIN
+static constexpr EnumArray<time_tools::TimezoneOffsetMinutes, const char *, time_tools::TimezoneOffsetMinutes::_cnt> timezone_offset_values {
+    { time_tools::TimezoneOffsetMinutes::no_offset, "00 min" },
+    { time_tools::TimezoneOffsetMinutes::min30, "30 min" },
+    { time_tools::TimezoneOffsetMinutes::min45, "45 min" },
+};
+
 MI_TIMEZONE_MIN::MI_TIMEZONE_MIN()
-    : WI_SWITCH_t<3>(static_cast<uint8_t>(config_store().timezone_minutes.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_0min), _(str_30min), _(str_45min)) {}
+    : MenuItemSwitch(_("Time Zone Minute Offset"), timezone_offset_values, std::to_underlying(config_store().timezone_minutes.get())) //
+{
+    set_translate_items(false);
+}
 
 void MI_TIMEZONE_MIN::OnChange([[maybe_unused]] size_t old_index) {
     config_store().timezone_minutes.set(static_cast<time_tools::TimezoneOffsetMinutes>(index));
@@ -550,8 +551,16 @@ void MI_TIMEZONE_SUMMER::OnChange([[maybe_unused]] size_t old_index) {
 
 /*****************************************************************************/
 // MI_TIME_FORMAT
+static constexpr EnumArray<time_tools::TimeFormat, const char *, time_tools::TimeFormat::_cnt> time_format_values {
+    { time_tools::TimeFormat::_12h, "12h" },
+    { time_tools::TimeFormat::_24h, "24h" },
+};
+
 MI_TIME_FORMAT::MI_TIME_FORMAT()
-    : WI_SWITCH_t<2>(static_cast<uint8_t>(config_store().time_format.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
+    : MenuItemSwitch(_("Time Format"), time_format_values, std::to_underlying(config_store().time_format.get())) //
+{
+    set_translate_items(false);
+}
 
 void MI_TIME_FORMAT::OnChange([[maybe_unused]] size_t old_index) {
     config_store().time_format.set(static_cast<time_tools::TimeFormat>(index));
@@ -560,7 +569,9 @@ void MI_TIME_FORMAT::OnChange([[maybe_unused]] size_t old_index) {
 /*****************************************************************************/
 // MI_TIME_NOW
 MI_TIME_NOW::MI_TIME_NOW()
-    : WI_SWITCH_t<1>(0, _(label), nullptr, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeRAM((const uint8_t *)time_tools::get_time())) {
+    : WiInfo(_("Time")) //
+{
+    ChangeInformation(time_tools::get_time());
 }
 
 /*****************************************************************************/
@@ -821,8 +832,13 @@ void MI_FOOTER_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Close();
 }
 
+static constexpr const char *heatup_bed_values[] = {
+    N_("Nozzle"),
+    N_("Noz&Bed"),
+};
+
 MI_HEATUP_BED::MI_HEATUP_BED()
-    : WI_SWITCH_t<2>(config_store().heatup_bed.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(nozzle), _(nozzle_bed)) {
+    : MenuItemSwitch(_("For Filament Change, Preheat"), heatup_bed_values, config_store().heatup_bed.get()) {
 }
 void MI_HEATUP_BED::OnChange(size_t old_index) {
     config_store().heatup_bed.set(!old_index);
