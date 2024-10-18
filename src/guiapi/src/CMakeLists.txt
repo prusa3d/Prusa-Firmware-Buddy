@@ -37,7 +37,6 @@ target_sources(
           window_term.cpp
           window_text.cpp
           WindowItemFormatableLabel.cpp
-          WindowItemFormatableSpin.cpp
           WindowMenuInfo.cpp
           WindowMenuItems.cpp
           WindowMenuSpin.cpp

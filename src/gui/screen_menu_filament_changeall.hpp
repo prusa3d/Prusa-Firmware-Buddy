@@ -1,7 +1,6 @@
 #pragma once
 
 #include <MItem_menus.hpp>
-#include <WindowItemFormatableSpin.hpp>
 #include <WinMenuContainer.hpp>
 #include <window_menu_adv.hpp>
 #include <screen_menu.hpp>
