@@ -76,47 +76,66 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
     _count,
 };
 
-/**
- * @brief Holds all items that are not be available for specific configurations - see Item brief for why this exists
- * Note: if it were to happen that a specific configuration would have no items, ifdef it so that instead of std::to_array there's just plain std::array<Item,0>
- */
-inline constexpr std::array disabled_items {
-#if not defined(FOOTER_HAS_LIVE_Z)
-    Item::live_z,
-#endif
-#if !HAS_SHEET_PROFILES()
+/// Ordered and filtered list of footer items, for GUI list purposes
+inline constexpr std::array item_list {
+    Item::none,
+
+        // Profiles and such
+        Item::filament,
+#if HAS_SHEET_PROFILES()
         Item::sheets,
 #endif
-#if not HAS_MMU2()
-        Item::finda,
-#endif
-#if PRINTER_IS_PRUSA_MINI() || PRINTER_IS_PRUSA_MK3_5()
-        Item::heatbreak_temp,
-#endif
-#if not defined(FOOTER_HAS_TOOL_NR)
-        Item::current_tool,
+        Item::nozzle_diameter,
+
+        // Temps
+        Item::nozzle,
+        Item::nozzle_pwm,
+#if defined(FOOTER_HAS_TOOL_NR)
         Item::all_nozzles,
 #endif
-#if not _DEBUG
-        Item::input_shaper_x,
-        Item::input_shaper_y,
-        Item::f_s_value,
+        Item::bed,
+#if !(PRINTER_IS_PRUSA_MINI() || PRINTER_IS_PRUSA_MK3_5())
+        Item::heatbreak_temp,
 #endif
-#if not HAS_SIDE_FSENSOR()
-        Item::f_sensor_side,
-#endif
-#if not HAS_CHAMBER_API()
+#if HAS_CHAMBER_API()
         Item::chamber_temp,
 #endif
+
+    // Filament sensors
+#if _DEBUG
+        Item::f_s_value,
+#endif
+        Item::f_sensor,
+#if HAS_SIDE_FSENSOR()
+        Item::f_sensor_side,
+#endif
+#if HAS_MMU2()
+        Item::finda,
+#endif
+
+#if defined(FOOTER_HAS_TOOL_NR)
+        Item::current_tool,
+#endif
+
+        // Motion
+        Item::axis_x,
+        Item::axis_y,
+        Item::axis_z,
+        Item::z_height,
+#if defined(FOOTER_HAS_LIVE_Z)
+        Item::live_z,
+#endif
+
+        // Fans
+        Item::print_fan,
+        Item::heatbreak_fan,
+
+// Debug
+#if _DEBUG
+        Item::input_shaper_x,
+        Item::input_shaper_y,
+#endif
 };
-
-consteval bool all_disabled_items_are_unique() {
-    auto items_copy = disabled_items;
-    std::ranges::sort(items_copy);
-    return std::ranges::adjacent_find(items_copy) == std::end(items_copy);
-}
-
-static_assert(all_disabled_items_are_unique(), "All disabled items must be unique");
 
 /**
  * @brief Get name of an item.

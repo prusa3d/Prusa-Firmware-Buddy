@@ -10,73 +10,29 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
 #include "MItem_menus.hpp"
+#include <gui/menu_item/menu_item_select_menu.hpp>
 
 /**
  * @brief Selector of footer items, with label and item index in constructor.
  */
-class I_MI_FOOTER : public WI_LAMBDA_SPIN {
+class I_MI_FOOTER : public MenuItemSelectMenu {
+
+public:
+    I_MI_FOOTER(int item);
+
+    int item_count() const final;
+    void build_item_text(int index, const std::span<char> &buffer) const final;
+
 protected:
-    /**
-     * @brief Store spinner index as a selected footer type
-     * @param item_n which item of a footer
-     */
-    void store_footer_index(size_t item_n);
+    bool on_item_selected(int old_index, int new_index) override;
 
-    /**
-     * @brief Convert spinner index to footer type.
-     * @param index spinner index
-     * @return footer type
-     */
-    static footer::Item to_footer_item(size_t index);
-
-    /**
-     * @brief Convert footer type to spinner index.
-     * @param item footer type
-     * @return spinner index
-     */
-    static size_t to_index(footer::Item item);
-
-public:
-    /**
-     * @brief Construct spin footer item selector.
-     * @param label label for this particular item
-     * @param item_n which item of a footer
-     */
-    I_MI_FOOTER(const char *const label, int item_n);
+private:
+    const int item_;
+    StringViewUtf8Parameters<4> label_params_;
 };
 
-/**
- * @brief Template for selector of footer items that provides label.
- * @param N which item of a footer
- */
 template <size_t N>
-class MI_FOOTER : public I_MI_FOOTER {
-    virtual void OnChange() override { store_footer_index(N); } ///< Callback when spinner value changes
-
-    static_assert(N >= 0 && N <= 4, "bad input");
-    static consteval const char *get_name() {
-        switch (N) {
-        case 0:
-            return N_("Item 1");
-        case 1:
-            return N_("Item 2");
-        case 2:
-            return N_("Item 3");
-        case 3:
-            return N_("Item 4");
-        case 4:
-            return N_("Item 5");
-        }
-        consteval_assert_false();
-        return "";
-    }
-
-    static constexpr const char *label = get_name();
-
-public:
-    MI_FOOTER()
-        : I_MI_FOOTER(label, N) {}
-};
+using MI_FOOTER = WithConstructorArgs<I_MI_FOOTER, N>;
 
 class MI_LEFT_ALIGN_TEMP : public MenuItemSwitch {
 public:

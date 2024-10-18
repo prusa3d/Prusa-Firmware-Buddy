@@ -6,7 +6,7 @@
 
 const char *footer::to_string(Item item) {
     static constexpr EnumArray<Item, const char *, Item::_count> texts {
-        { Item::none, nullptr },
+        { Item::none, N_("(none)") },
         { Item::nozzle, N_("Nozzle") },
         { Item::bed, N_("Bed") },
         { Item::filament, N_("Filament") },
