@@ -1,7 +1,6 @@
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
-#include <window_menu_enum_switch.hpp>
 #include <config_store/store_instance.hpp>
 #include <option/has_side_fsensor.h>
 #include <option/has_toolchanger.h>

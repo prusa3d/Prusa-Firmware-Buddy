@@ -5,7 +5,6 @@
 
 #include "screen_toolhead_settings_common.hpp"
 
-#include <window_menu_enum_switch.hpp>
 #include <config_store/store_definition.hpp>
 #include <option/has_mmu2.h>
 #include <gui/menu_item/menu_item_select_menu.hpp>
