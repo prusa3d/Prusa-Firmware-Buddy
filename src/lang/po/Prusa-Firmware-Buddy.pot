@@ -5456,6 +5456,27 @@ msgstr ""
 msgid "Sheets"
 msgstr ""
 
+#: src/gui/MItem_tools.hpp:152
+msgid "Shipping Preparation"
+msgstr ""
+
+#. a dummy comment to break line by force
+#: src/gui/MItem_tools.cpp:273
+msgid ""
+"Shipping preparation\n"
+"\n"
+"Erasing configuration\n"
+"(but keeping Nextruder type)\n"
+"it will take some time..."
+msgstr ""
+
+#. window_menu
+#: src/gui/MItem_tools.cpp:340
+msgid ""
+"This operation cannot be undone. Current configuration will be lost!\n"
+"Do you want to perform the Factory Shipping Preparation procedure?"
+msgstr ""
+
 #: tmp_error_headers/error_list_mmu.hpp:214
 msgid ""
 "Short circuit on the Idler TMC driver. Check the wiring and connectors. If "
