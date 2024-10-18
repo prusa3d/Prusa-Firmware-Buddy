@@ -111,7 +111,7 @@ private:
 
 private:
     window_header_t header;
-    multi_filament_change::MenuMultiFilamentChange menu;
+    WindowExtendedMenu<multi_filament_change::MenuMultiFilamentChange> menu;
 
 private:
     bool exit_on_media = false;
