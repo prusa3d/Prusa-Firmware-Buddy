@@ -252,7 +252,17 @@ string_view_utf8 FooterItemNozzleDiameter::static_makeView(float value) {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-truncation"
-    snprintf(buff.data(), buff.size(), "%.1gmm", (double)value);
+    buff.fill('\0');
+    auto printed_chars = snprintf(buff.data(), buff.size(), "%.2f", (double)value);
+    for (int8_t i = printed_chars - 1; i >= 0; --i) {
+        if (buff[i] != '0' && buff[i] != '.') {
+            // append dimensions in mm
+            buff[++i] = 'm';
+            buff[++i] = 'm';
+            break;
+        }
+        buff[i] = '\0';
+    }
 #pragma GCC diagnostic pop
 
     return string_view_utf8::MakeRAM((const uint8_t *)(buff.data() + (buff[0] == '0' ? 1 : 0) /* if value ~ 0.xx, skip the 0 */));
