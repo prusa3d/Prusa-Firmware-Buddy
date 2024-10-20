@@ -1,7 +1,3 @@
-if(NOT TARGET FreeRTOS_Config)
-  message(FATAL_ERROR "Target FreeRTOS_Config does not exist.")
-endif()
-
 add_library(
   FreeRTOS
   Source/croutine.c

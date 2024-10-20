@@ -180,26 +180,6 @@ endif()
 # Configure STMicroelectronics Libraries
 #
 
-# HAL
-if(MCU MATCHES "STM32F4")
-  if(MCU MATCHES "STM32F40")
-    set(STM32F4_HAL_TARGET "STM32F407xx")
-  elseif(MCU MATCHES "STM32F42")
-    set(STM32F4_HAL_TARGET "STM32F427xx")
-  else()
-    message(FATAL_ERROR "Don't know how to configure STM32F4::HAL for mcu ${MCU}")
-  endif()
-  add_library(STM32F4_HAL_Config INTERFACE)
-  target_compile_definitions(STM32F4_HAL_Config INTERFACE ${STM32F4_HAL_TARGET} USE_HAL_DRIVER)
-  target_include_directories(STM32F4_HAL_Config INTERFACE include/stm32f4_hal)
-elseif(MCU MATCHES "STM32G0")
-  add_library(STM32G0_HAL_Config INTERFACE)
-  target_compile_definitions(STM32G0_HAL_Config INTERFACE STM32G070xx USE_HAL_DRIVER)
-  target_include_directories(STM32G0_HAL_Config INTERFACE include/stm32g0_hal)
-else()
-  message(FATAL_ERROR "Unknown hardware platform of mcu ${MCU}")
-endif()
-
 # STM32::USBHost
 add_library(STM32_USBHost_Config ALIAS BuddyHeaders)
 
@@ -212,13 +192,6 @@ add_library(STM32_Utilities_CPU_Config ALIAS BuddyHeaders)
 add_library(Segger_Config INTERFACE)
 target_include_directories(Segger_Config INTERFACE include/segger src/segger)
 target_link_libraries(Segger_Config INTERFACE BuddyHeaders)
-
-#
-# Configure FreeRTOS
-#
-
-add_library(FreeRTOS_Config INTERFACE)
-target_link_libraries(FreeRTOS_Config INTERFACE Segger BuddyHeaders)
 
 #
 # Configure LwIP
