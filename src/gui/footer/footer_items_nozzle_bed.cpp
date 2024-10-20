@@ -12,6 +12,8 @@
 #include "footer_eeprom.hpp"
 #include <option/has_toolchanger.h>
 #include <config_store/store_instance.hpp>
+#include <str_utils.hpp>
+#include <common/nozzle_diameter.hpp>
 
 #if ENABLED(MODULAR_HEATBED)
     #include <puppies/modular_bed.hpp>
@@ -252,20 +254,12 @@ string_view_utf8 FooterItemNozzleDiameter::static_makeView(float value) {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-truncation"
-    buff.fill('\0');
-    auto printed_chars = snprintf(buff.data(), buff.size(), "%.2f", (double)value);
-    for (int8_t i = printed_chars - 1; i >= 0; --i) {
-        if (buff[i] != '0' && buff[i] != '.') {
-            // append dimensions in mm
-            buff[++i] = 'm';
-            buff[++i] = 'm';
-            break;
-        }
-        buff[i] = '\0';
-    }
+    StringBuilder b(buff);
+    b.append_float((double)value, { .max_decimal_places = nozzle_diameter_spin_config.max_decimal_places, .skip_zero_before_dot = true });
+    b.append_string("mm");
 #pragma GCC diagnostic pop
 
-    return string_view_utf8::MakeRAM((const uint8_t *)(buff.data() + (buff[0] == '0' ? 1 : 0) /* if value ~ 0.xx, skip the 0 */));
+    return string_view_utf8::MakeRAM((const uint8_t *)(buff.data()));
 }
 
 string_view_utf8 FooterItemNozzlePWM::static_makeView(int value) {
