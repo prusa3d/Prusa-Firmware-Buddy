@@ -401,6 +401,16 @@ public:
         return char_count() + 1;
     }
 
+    /// Returns pointer to the first character in the builder buffer
+    inline const char *begin() const {
+        return buffer_start_;
+    }
+
+    /// Returns pointer behind the last character in the builder buffer (should always point to \0)
+    inline const char *end() const {
+        return current_pos_;
+    }
+
 public:
     StringBuilder &append_char(char ch);
 
