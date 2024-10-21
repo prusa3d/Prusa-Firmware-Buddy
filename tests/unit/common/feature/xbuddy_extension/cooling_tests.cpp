@@ -3,7 +3,7 @@
 #include <catch2/catch.hpp>
 
 TEST_CASE("Cooling PWM") {
-    buddy::Cooling cooling;
+    buddy::FanCooling cooling;
 
     SECTION("Manual, full pwm") {
         cooling.auto_control = false;
@@ -15,8 +15,8 @@ TEST_CASE("Cooling PWM") {
 
         SECTION("Without target temp") {}
 
-        REQUIRE(cooling.fan_pwm(true, 54) == 255);
-        REQUIRE(cooling.fan_pwm(false, 54) == 255);
+        REQUIRE(cooling.compute_pwm(true, 54) == 255);
+        REQUIRE(cooling.compute_pwm(false, 54) == 255);
     }
 
     SECTION("Manual, low PWM") {
@@ -24,25 +24,25 @@ TEST_CASE("Cooling PWM") {
         cooling.target_pwm = 5;
 
         SECTION("Already running") {
-            REQUIRE(cooling.fan_pwm(true, 54) == 70);
+            REQUIRE(cooling.compute_pwm(true, 54) == 70);
         }
 
         SECTION("Initial kick") {
-            REQUIRE(cooling.fan_pwm(false, 54) == 200);
+            REQUIRE(cooling.compute_pwm(false, 54) == 200);
         }
     }
 
     SECTION("Auto cooling, no target temp") {
         cooling.target_temperature = std::nullopt;
 
-        REQUIRE(cooling.fan_pwm(true, 45) == 0);
+        REQUIRE(cooling.compute_pwm(true, 45) == 0);
         REQUIRE(cooling.target_pwm == 0);
     }
 
     SECTION("Auto cooling, cold chamber") {
         cooling.target_temperature = 60;
 
-        REQUIRE(cooling.fan_pwm(false, 20) == 0);
+        REQUIRE(cooling.compute_pwm(false, 20) == 0);
         REQUIRE(cooling.target_pwm == 0);
     }
 
@@ -50,13 +50,13 @@ TEST_CASE("Cooling PWM") {
         cooling.target_temperature = 60;
 
         SECTION("Not running, don't start") {
-            REQUIRE(cooling.fan_pwm(false, 59) == 0);
+            REQUIRE(cooling.compute_pwm(false, 59) == 0);
             REQUIRE(cooling.target_pwm == 0);
         }
 
         SECTION("Already running, keep it up") {
             cooling.target_pwm = 70;
-            REQUIRE(cooling.fan_pwm(true, 59) == 70);
+            REQUIRE(cooling.compute_pwm(true, 59) == 70);
             REQUIRE(cooling.target_pwm == 70);
         }
     }
@@ -65,12 +65,12 @@ TEST_CASE("Cooling PWM") {
         cooling.target_temperature = 60;
 
         SECTION("Start") {
-            REQUIRE(cooling.fan_pwm(false, 60) == 200);
+            REQUIRE(cooling.compute_pwm(false, 60) == 200);
             REQUIRE(cooling.target_pwm == 70);
         }
 
         SECTION("Already running") {
-            REQUIRE(cooling.fan_pwm(true, 60) == 70);
+            REQUIRE(cooling.compute_pwm(true, 60) == 70);
             REQUIRE(cooling.target_pwm == 70);
         }
     }
@@ -78,7 +78,7 @@ TEST_CASE("Cooling PWM") {
     SECTION("Auto cooling, really hot") {
         cooling.target_temperature = 60;
 
-        REQUIRE(cooling.fan_pwm(true, 80) == 255);
+        REQUIRE(cooling.compute_pwm(true, 80) == 255);
         REQUIRE(cooling.target_pwm == 255);
     }
 
@@ -86,12 +86,12 @@ TEST_CASE("Cooling PWM") {
         cooling.target_temperature = 60;
 
         SECTION("Already running") {
-            REQUIRE(cooling.fan_pwm(true, 61) == 88);
+            REQUIRE(cooling.compute_pwm(true, 61) == 88);
             REQUIRE(cooling.target_pwm == 88);
         }
 
         SECTION("Kick up") {
-            REQUIRE(cooling.fan_pwm(false, 61) == 200);
+            REQUIRE(cooling.compute_pwm(false, 61) == 200);
             REQUIRE(cooling.target_pwm == 88);
         }
     }

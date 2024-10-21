@@ -80,7 +80,7 @@ private:
 
     leds::ColorRGBW bed_leds_color_;
 
-    Cooling cooling;
+    FanCooling chamber_cooling;
 };
 
 XBuddyExtension &xbuddy_extension();

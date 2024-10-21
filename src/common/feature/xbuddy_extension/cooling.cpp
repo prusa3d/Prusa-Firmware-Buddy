@@ -2,35 +2,42 @@
 
 namespace buddy {
 
-uint8_t Cooling::fan_pwm(bool already_spinning, Temperature current_temperature) {
-    // Phase 1: Decide what PWM we would like to run at
-    if (auto_control && !target_temperature.has_value()) {
-        // No temp set -> don't cool.
+void FanCooling::compute_auto(bool already_spinning, Temperature current_temperature) {
+    if (!target_temperature.has_value()) {
         target_pwm = 0;
-    } else if (auto_control) {
-        // Linear mapping from the allowed temp difference over the target to allowed RPM range
-        const int temp_diff = current_temperature - *target_temperature;
-        const int pwm_diff = max_pwm - min_pwm;
-        const int desired = temp_diff * pwm_diff / fans_max_temp_diff + min_pwm;
+        return;
+    }
 
-        if (desired > max_pwm) {
-            // Don't go over max.
-            target_pwm = max_pwm;
-        } else if (desired < min_pwm) {
-            const int below_by = *target_temperature - current_temperature;
-            const bool below_by_much = below_by > off_temp_below;
-            if (already_spinning && !below_by_much) {
-                // If the fan is already spinning, we keep it spinning until it
-                // falls below the target by the margin, so we don't go
-                // on-off-on-off too much.
-                target_pwm = min_pwm;
-            } else {
-                target_pwm = 0;
-            }
+    // Linear mapping from the allowed temp difference over the target to allowed RPM range
+    const int temp_diff = current_temperature - *target_temperature;
+    const int pwm_diff = max_pwm - min_pwm;
+    const int desired = temp_diff * pwm_diff / fans_max_temp_diff + min_pwm;
+
+    if (desired > max_pwm) {
+        // Don't go over max.
+        target_pwm = max_pwm;
+    } else if (desired < min_pwm) {
+        const int below_by = *target_temperature - current_temperature;
+        const bool below_by_much = below_by > off_temp_below;
+        if (already_spinning && !below_by_much) {
+            // If the fan is already spinning, we keep it spinning until it
+            // falls below the target by the margin, so we don't go
+            // on-off-on-off too much.
+            target_pwm = min_pwm;
         } else {
-            target_pwm = desired;
+            target_pwm = 0;
         }
-    } // else -> no auto_control -> keep target_pwm intact
+    } else {
+        target_pwm = desired;
+    }
+}
+
+uint8_t FanCooling::compute_pwm(bool already_spinning, Temperature current_temperature) {
+    // Phase 1: Make sure the target_pwm contains the value we would _like_ to
+    // run at.
+    if (auto_control) {
+        compute_auto(already_spinning, current_temperature);
+    } // else -> leave as is
 
     // Phase 2: adjust to minima and spinning up.
 

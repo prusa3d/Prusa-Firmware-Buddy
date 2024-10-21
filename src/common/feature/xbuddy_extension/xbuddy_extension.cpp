@@ -34,24 +34,24 @@ std::optional<uint16_t> XBuddyExtension::fan2_rpm() const {
 
 uint8_t XBuddyExtension::fan1_fan2_pwm() const {
     std::lock_guard _lg(mutex_);
-    return cooling.target_pwm;
+    return chamber_cooling.target_pwm;
 }
 
 void XBuddyExtension::set_fan1_fan2_pwm(uint8_t pwm) {
     std::lock_guard _lg(mutex_);
-    cooling.auto_control = false;
-    cooling.target_pwm = pwm;
+    chamber_cooling.auto_control = false;
+    chamber_cooling.target_pwm = pwm;
     update_registers_nolock();
 }
 
 bool XBuddyExtension::has_fan1_fan2_auto_control() const {
     std::lock_guard _lg(mutex_);
-    return cooling.auto_control;
+    return chamber_cooling.auto_control;
 }
 
 void XBuddyExtension::set_fan1_fan2_auto_control() {
     std::lock_guard _lg(mutex_);
-    cooling.auto_control = true;
+    chamber_cooling.auto_control = true;
 }
 
 std::optional<uint16_t> XBuddyExtension::fan3_rpm() const {
@@ -97,11 +97,11 @@ void XBuddyExtension::update_registers_nolock() {
     const auto temp = chamber_temperature();
 
     if (rpm0.has_value() && rpm1.has_value() && temp.has_value()) {
-        cooling.target_temperature = chamber().target_temperature();
+        chamber_cooling.target_temperature = chamber().target_temperature();
 
         const bool already_spinning = *rpm0 > 5 && *rpm1 > 5;
 
-        const uint8_t pwm = cooling.fan_pwm(already_spinning, *temp);
+        const uint8_t pwm = chamber_cooling.compute_pwm(already_spinning, *temp);
 
         puppies::xbuddy_extension.set_fan_pwm(0, pwm);
         puppies::xbuddy_extension.set_fan_pwm(1, pwm);
