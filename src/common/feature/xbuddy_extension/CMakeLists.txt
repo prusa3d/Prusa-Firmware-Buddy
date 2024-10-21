@@ -1,1 +1,1 @@
-target_sources(firmware PRIVATE xbuddy_extension.cpp)
+target_sources(firmware PRIVATE cooling.cpp xbuddy_extension.cpp)

@@ -34,13 +34,13 @@ std::optional<uint16_t> XBuddyExtension::fan2_rpm() const {
 
 uint8_t XBuddyExtension::fan1_fan2_pwm() const {
     std::lock_guard _lg(mutex_);
-    return cooling.require_pwm;
+    return cooling.target_pwm;
 }
 
 void XBuddyExtension::set_fan1_fan2_pwm(uint8_t pwm) {
     std::lock_guard _lg(mutex_);
     cooling.auto_control = false;
-    cooling.require_pwm = pwm;
+    cooling.target_pwm = pwm;
     update_registers_nolock();
 }
 
@@ -97,11 +97,11 @@ void XBuddyExtension::update_registers_nolock() {
     const auto temp = chamber_temperature();
 
     if (rpm0.has_value() && rpm1.has_value() && temp.has_value()) {
-        cooling.target = chamber().target_temperature();
+        cooling.target_temperature = chamber().target_temperature();
 
         const bool already_spinning = *rpm0 > 5 && *rpm1 > 5;
 
-        const uint8_t pwm = cooling.pwm(already_spinning, *temp);
+        const uint8_t pwm = cooling.fan_pwm(already_spinning, *temp);
 
         puppies::xbuddy_extension.set_fan_pwm(0, pwm);
         puppies::xbuddy_extension.set_fan_pwm(1, pwm);

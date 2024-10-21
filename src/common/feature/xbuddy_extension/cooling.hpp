@@ -23,58 +23,12 @@ private:
 public:
     bool auto_control = true;
     // Can be directly set if auto_control = false
-    uint8_t require_pwm = 0;
+    uint8_t target_pwm = 0;
     // The desired temperature; nullopt if no request (no cooling will happen in auto mode).
-    std::optional<Temperature> target;
+    std::optional<Temperature> target_temperature;
 
-    uint8_t pwm(bool already_spinning, Temperature temp) {
-        // Phase 1: Decide what PWM we would like to run at
-        if (auto_control && !target.has_value()) {
-            // No temp set -> don't cool.
-            require_pwm = 0;
-        } else if (auto_control) {
-            // Linear mapping from the allowed temp difference over the target to allowed RPM range
-            const int temp_diff = temp - *target;
-            const int pwm_diff = max_pwm - min_pwm;
-            int desired = temp_diff * pwm_diff / fans_max_temp_diff + min_pwm;
-
-            if (desired > max_pwm) {
-                // Don't go over max.
-                require_pwm = max_pwm;
-            } else if (desired < min_pwm) {
-                const bool below_target_by_much = *target - off_temp_below > temp;
-                if (already_spinning && !below_target_by_much) {
-                    // If it is already spinning, we keep it spinning until it
-                    // falls below the target by the margin, so we don't go
-                    // on-off-on-off too much.
-                    require_pwm = min_pwm;
-                } else {
-                    require_pwm = 0;
-                }
-            } else {
-                require_pwm = desired;
-            }
-        } // else -> no auto_control -> keep require_pwm intact
-
-        // Phase 2: adjust to minima and spinning up.
-
-        // If the fans are not spinning yet and should be, give them a bit of a
-        // kick to get turning. Unfortunately, we can't do that to each of them
-        // individually, they share the PWM, even though they have separate RPM
-        // measurement.
-        if (!already_spinning && require_pwm > 0 && require_pwm < spin_up_pwm) {
-            return spin_up_pwm;
-        }
-
-        if (require_pwm > 0 && require_pwm < min_pwm) {
-            // Even if the user sets it to some low %, keep them at least on the
-            // minimum (the auto thing never sets it between 0 and min, so it's
-            // only in the manual case).
-            return min_pwm;
-        }
-
-        return require_pwm;
-    }
+    // Compute at what PWM the fan(s) should be driven.
+    uint8_t fan_pwm(bool already_spinning, Temperature current_temperature);
 };
 
 } // namespace buddy
