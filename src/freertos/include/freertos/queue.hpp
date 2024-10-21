@@ -40,7 +40,7 @@ template <class T, size_t N>
 class Queue final : public QueueBase {
 public:
     Queue()
-        : QueueBase(N, sizeof(T), item_storage) {}
+        : QueueBase(N, sizeof(T), reinterpret_cast<uint8_t *>(item_storage.data())) {}
 
     void send(const T &payload) {
         QueueBase::send(&payload);
@@ -65,7 +65,7 @@ public:
     }
 
 private:
-    uint8_t item_storage[N * sizeof(T)];
+    std::array<std::byte, N * sizeof(T)> item_storage;
 };
 
 } // namespace freertos
