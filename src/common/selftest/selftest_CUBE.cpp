@@ -72,7 +72,7 @@ const AxisConfig_t selftest::Config_XAxis = {
     .length_max = X_MAX_LENGTH + X_END_GAP,
     .axis = X_AXIS,
     .steps = XYfr_table.size(),
-    .movement_dir = 1,
+    .movement_dir = -1,
     .park = true,
     .park_pos = 15,
 }; // MINI has movement_dir -1
