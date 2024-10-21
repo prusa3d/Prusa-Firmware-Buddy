@@ -204,7 +204,7 @@ if(GUI)
     )
 endif()
 
-if(NOT BOARD STREQUAL "DWARF" AND NOT BOARD STREQUAL "MODULARBED")
+if(BOARD IN_LIST BUDDY_BOARDS)
   if(HAS_SELFTEST)
     add_subdirectory(selftest)
   endif()
