@@ -14,6 +14,7 @@
     #else
         #include <Marlin/src/core/serial.h>
     #endif
+    #include <utility_extensions.hpp>
 #endif
 
 #include <string.h>
@@ -57,7 +58,12 @@ void ProtocolLogic::CheckAndReportAsyncEvents() {
 }
 
 void ProtocolLogic::SendQuery() {
+#if HAS_MMU2_OVER_UART()
     SendMsg(RequestMsg(RequestMsgCodes::Query, 0));
+#else
+    ext->post_query_mmu();
+    RecordUARTActivity();
+#endif
     scopeState = ScopeState::QuerySent;
 }
 
@@ -109,27 +115,52 @@ bool __attribute__((noinline)) ProtocolLogic::ProcessWritingInitRegister() {
 }
 
 void ProtocolLogic::SendAndUpdateFilamentSensor() {
+#if HAS_MMU2_OVER_UART()
+    // keep the old implementation for UART
     SendMsg(RequestMsg(RequestMsgCodes::FilamentSensor, lastFSensor = (uint8_t)WhereIsFilament()));
     scopeState = ScopeState::FilamentSensorStateSent;
+#else
+    SendWriteRegister((uint8_t)Register::FSensor_State, lastFSensor = (uint8_t)WhereIsFilament(), ScopeState::FilamentSensorStateSent);
+#endif
 }
 
 void ProtocolLogic::SendButton(uint8_t btn) {
+#if HAS_MMU2_OVER_UART()
     SendMsg(RequestMsg(RequestMsgCodes::Button, btn));
+#else
+    // @@TODO MODBUS
+    RecordUARTActivity();
+#endif
     scopeState = ScopeState::ButtonSent;
 }
 
 void ProtocolLogic::SendVersion(uint8_t stage) {
+#if HAS_MMU2_OVER_UART()
     SendMsg(RequestMsg(RequestMsgCodes::Version, stage));
+#else
+    ext->post_read_mmu_register(stage);
+    RecordUARTActivity();
+#endif
     scopeState = (ScopeState)((uint_fast8_t)ScopeState::S0Sent + stage);
 }
 
 void ProtocolLogic::SendReadRegister(uint8_t index, ScopeState nextState) {
+#if HAS_MMU2_OVER_UART()
     SendMsg(RequestMsg(RequestMsgCodes::Read, index));
+#else
+    ext->post_read_mmu_register(index);
+    RecordUARTActivity();
+#endif
     scopeState = nextState;
 }
 
 void ProtocolLogic::SendWriteRegister(uint8_t index, uint16_t value, ScopeState nextState) {
+#if HAS_MMU2_OVER_UART()
     SendWriteMsg(RequestMsg(RequestMsgCodes::Write, index, value));
+#else
+    ext->post_write_mmu_register(index, value);
+    RecordUARTActivity();
+#endif
     scopeState = nextState;
 }
 
@@ -157,6 +188,7 @@ struct OldMMUFWDetector {
     }
 };
 
+#if HAS_MMU2_OVER_UART()
 StepStatus ProtocolLogic::ExpectingMessage() {
     int bytesConsumed = 0;
     int c = -1;
@@ -200,13 +232,65 @@ StepStatus ProtocolLogic::ExpectingMessage() {
     }
     return Processing;
 }
+#else
+StepStatus ProtocolLogic::ExpectingMessage2(const buddy::puppies::XBuddyExtension::MMUModbusRequest &mmr, const buddy::puppies::XBuddyExtension::MMUQueryRegisters &mqr, ResponseMsg &rsp, const RequestMsg &rq) {
+    using namespace ftrstd;
+    using namespace buddy::puppies;
 
+    // Based on the request compose the response message.
+    // Note: no synchronized access to mmr is required here, because the MODBUS task already accomplished the request-response handshake
+    // and until this protocol_logic issues another one, nothing is touching mmr in any way.
+    switch (mmr.rw) {
+    case XBuddyExtension::MMUModbusRequest::RW::read_inactive: {
+        RequestMsgCodes rmc = (mmr.u.read.address <= 3) ? RequestMsgCodes::Version : RequestMsgCodes::Read;
+        ResponseMsgParamCodes rmpc = (mmr.u.read.accepted) ? ResponseMsgParamCodes::Accepted : ResponseMsgParamCodes::Rejected;
+        rsp = ResponseMsg(RequestMsg(rmc, mmr.u.read.address), rmpc, mmr.u.read.value);
+        return MessageReady;
+    }
+
+    case XBuddyExtension::MMUModbusRequest::RW::write_inactive: {
+        ResponseMsgParamCodes rmpc = (mmr.u.write.accepted) ? ResponseMsgParamCodes::Accepted : ResponseMsgParamCodes::Rejected;
+        rsp = ResponseMsg(RequestMsg(RequestMsgCodes::Write, mmr.u.write.address), rmpc, mmr.u.write.value);
+        return MessageReady;
+    }
+
+    case XBuddyExtension::MMUModbusRequest::RW::query_inactive:
+        rsp = ResponseMsg(
+            RequestMsg((RequestMsgCodes)mqr.value.cip.bytes[0], mqr.value.cip.bytes[1]),
+            (ResponseMsgParamCodes)mqr.value.commandStatus, mqr.value.pec);
+        return MessageReady;
+
+    case XBuddyExtension::MMUModbusRequest::RW::command_inactive:
+        rsp = ResponseMsg(
+            RequestMsg((RequestMsgCodes)mqr.value.cip.bytes[0], mqr.value.cip.bytes[1]),
+            (ResponseMsgParamCodes)mqr.value.commandStatus, mqr.value.pec // @@TODO pec is probably not ok unless we abuse it for 'L0 F1' - but that's not supported yet in the MMU code
+        );
+        return MessageReady;
+
+    default:
+        return ProtocolError;
+    }
+}
+
+StepStatus ProtocolLogic::ExpectingMessage() {
+    if (ext->mmu_response_received(lastUARTActivityMs)) {
+        return ExpectingMessage2(ext->mmu_modbus_rq(), ext->mmu_query_registers(), rsp, rq);
+    }
+    if (Elapsed(linkLayerTimeout) && currentScope != Scope::Stopped) {
+        return CommunicationTimeout;
+    } else {
+        return Processing;
+    }
+}
+#endif
+
+#if HAS_MMU2_OVER_UART()
 void ProtocolLogic::SendMsg(RequestMsg rq) {
-#ifdef __AVR__
+    #ifdef __AVR__
     // Buddy FW cannot use stack-allocated txbuff - DMA doesn't work with CCMRAM
     // No restrictions on MK3/S/+ though
     uint8_t txbuff[Protocol::MaxRequestSize()];
-#endif
+    #endif
     uint8_t len = Protocol::EncodeRequest(rq, txbuff);
     uart->write(txbuff, len);
     LogRequestMsg(txbuff, len);
@@ -214,16 +298,17 @@ void ProtocolLogic::SendMsg(RequestMsg rq) {
 }
 
 void ProtocolLogic::SendWriteMsg(RequestMsg rq) {
-#ifdef __AVR__
+    #ifdef __AVR__
     // Buddy FW cannot use stack-allocated txbuff - DMA doesn't work with CCMRAM
     // No restrictions on MK3/S/+ though
     uint8_t txbuff[Protocol::MaxRequestSize()];
-#endif
+    #endif
     uint8_t len = Protocol::EncodeWriteRequest(rq.value, rq.value2, txbuff);
     uart->write(txbuff, len);
     LogRequestMsg(txbuff, len);
     RecordUARTActivity();
 }
+#endif
 
 void ProtocolLogic::StartSeqRestart() {
     retries = maxRetries;
@@ -234,9 +319,25 @@ void ProtocolLogic::DelayedRestartRestart() {
     scopeState = ScopeState::RecoveringProtocolError;
 }
 
+void ProtocolLogic::SendCommand() {
+#if HAS_MMU2_OVER_UART()
+    SendMsg(rq);
+#else
+    // write into a virtual register on the ext board
+    union {
+        uint8_t bytes[2];
+        uint16_t word;
+    } msg;
+    msg.bytes[0] = ftrstd::to_underlying(rq.code);
+    msg.bytes[1] = rq.value;
+    ext->post_write_mmu_register(253, msg.word);
+    RecordUARTActivity();
+#endif
+}
+
 void ProtocolLogic::CommandRestart() {
     scopeState = ScopeState::CommandSent;
-    SendMsg(rq);
+    SendCommand();
 }
 
 void ProtocolLogic::IdleRestart() {
@@ -337,8 +438,12 @@ StepStatus ProtocolLogic::StartSeqStep() {
 
 StepStatus ProtocolLogic::DelayedRestartWait() {
     if (Elapsed(heartBeatPeriod)) { // this basically means, that we are waiting until there is some traffic on
+#if HAS_MMU2_OVER_UART()
         while (uart->read() != -1)
             ; // clear the input buffer
+#else
+        // @@TODO MODBUS
+#endif
         // switch to StartSeq
         Start();
     }
@@ -540,7 +645,13 @@ StepStatus ProtocolLogic::IdleStep() {
     return Finished;
 }
 
-ProtocolLogic::ProtocolLogic(MMU2Serial *uart, uint8_t extraLoadDistance, uint8_t pulleySlowFeedrate)
+ProtocolLogic::ProtocolLogic(
+#if HAS_MMU2_OVER_UART()
+    MMU2Serial *uart,
+#else
+    buddy::puppies::XBuddyExtension *ext,
+#endif
+    uint8_t extraLoadDistance, uint8_t pulleySlowFeedrate)
     : explicitPrinterError(ErrorCode::OK)
     , currentScope(Scope::Stopped)
     , scopeState(ScopeState::Ready)
@@ -549,8 +660,12 @@ ProtocolLogic::ProtocolLogic(MMU2Serial *uart, uint8_t extraLoadDistance, uint8_
     , dataTO()
     , rsp(RequestMsg(RequestMsgCodes::unknown, 0), ResponseMsgParamCodes::unknown, 0)
     , state(State::Stopped)
+#if HAS_MMU2_OVER_UART()
     , lrb(0)
     , uart(uart)
+#else
+    , ext(ext)
+#endif
     , errorCode(ErrorCode::OK)
     , progressCode(ProgressCode::OK)
     , buttonCode(Buttons::NoButton)
@@ -683,10 +798,12 @@ void ProtocolLogic::RecordUARTActivity() {
     lastUARTActivityMs = _millis();
 }
 
+#if HAS_MMU2_OVER_UART()
 void ProtocolLogic::RecordReceivedByte(uint8_t c) {
     lastReceivedBytes[lrb] = c;
     lrb = (lrb + 1) % lastReceivedBytes.size();
 }
+#endif
 
 constexpr char NibbleToChar(uint8_t c) {
     switch (c) {
@@ -713,6 +830,7 @@ constexpr char NibbleToChar(uint8_t c) {
     }
 }
 
+#if HAS_MMU2_OVER_UART()
 void ProtocolLogic::FormatLastReceivedBytes(char *dst) {
     for (uint8_t i = 0; i < lastReceivedBytes.size(); ++i) {
         uint8_t b = lastReceivedBytes[(lrb - i - 1) % lastReceivedBytes.size()];
@@ -762,21 +880,29 @@ void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
     }
     strncpy(lastMsg, tmp, rqs);
 }
+#else
+// MODBUS has it's own communication logging facilities
+#endif
 
 void ProtocolLogic::LogError(const char *reason_P) {
+#if HAS_MMU2_OVER_UART()
     char lrb[lastReceivedBytes.size() * 3];
     FormatLastReceivedBytes(lrb);
-
+#endif
     MMU2_ERROR_MSGRPGM(reason_P);
+#if HAS_MMU2_OVER_UART()
     SERIAL_ECHOPGM(", last bytes: ");
     SERIAL_ECHOLN(lrb);
+#endif
 }
 
+#if HAS_MMU2_OVER_UART()
 void ProtocolLogic::LogResponse() {
     char lrb[lastReceivedBytes.size()];
     FormatLastResponseMsgAndClearLRB(lrb);
     MMU2::LogResponseMsg(lrb);
 }
+#endif
 
 StepStatus ProtocolLogic::SuppressShortDropOuts(const char *msg_P, StepStatus ss) {
     if (dataTO.Record(ss)) {
@@ -789,14 +915,22 @@ StepStatus ProtocolLogic::SuppressShortDropOuts(const char *msg_P, StepStatus ss
 }
 
 StepStatus ProtocolLogic::HandleCommunicationTimeout() {
+#if HAS_MMU2_OVER_UART()
     uart->flush(); // clear the output buffer
+#else
+    // MODBUS does it's own cleanup in case of an error
+#endif
     protocol.ResetResponseDecoder();
     Start();
     return SuppressShortDropOuts(PSTR("Communication timeout"), CommunicationTimeout);
 }
 
 StepStatus ProtocolLogic::HandleProtocolError() {
+#if HAS_MMU2_OVER_UART()
     uart->flush(); // clear the output buffer
+#else
+    // MODBUS does it's own cleanup in case of an error
+#endif
     state = State::InitSequence;
     currentScope = Scope::DelayedRestart;
     DelayedRestartRestart();
