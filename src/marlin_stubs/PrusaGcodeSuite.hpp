@@ -107,6 +107,8 @@ void M863(); //< tool mapping control
 void M864(); //< spool join control
 #endif
 
+void M865(); //< Set up ad-hoc filament
+
 void M591(); //< configure Filament stuck monitoring
 
 #if HAS_BELT_TUNING()

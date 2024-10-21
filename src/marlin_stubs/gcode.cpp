@@ -198,6 +198,10 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             PrusaGcodeSuite::M864();
             break;
 #endif
+        case 865:
+            PrusaGcodeSuite::M865();
+            break;
+
         case 919:
             PrusaGcodeSuite::M919();
             break;
