@@ -252,14 +252,11 @@ string_view_utf8 FooterItemNozzle::static_makeView(int value) {
 string_view_utf8 FooterItemNozzleDiameter::static_makeView(float value) {
     static std::array<char, 7> buff;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"
     StringBuilder b(buff);
     b.append_float((double)value, { .max_decimal_places = nozzle_diameter_spin_config.max_decimal_places, .skip_zero_before_dot = true });
     b.append_string("mm");
-#pragma GCC diagnostic pop
 
-    return string_view_utf8::MakeRAM((const uint8_t *)(buff.data()));
+    return string_view_utf8::MakeRAM(buff.data());
 }
 
 string_view_utf8 FooterItemNozzlePWM::static_makeView(int value) {
