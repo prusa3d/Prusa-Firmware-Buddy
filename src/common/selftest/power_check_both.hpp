@@ -1,15 +1,13 @@
 #pragma once
-/**
- * @file power_check_both.hpp
- * @author Radek Vana
- * @brief Checks power consumption during selftest heater check
- * calculates with both heaters bed and nozzle
- * @date 2021-11-12
- */
 
 #include "power_check.hpp"
 #include "selftest_heaters_type.hpp"
 #include "selftest_heater.h"
+#include "selftest_heater_config.hpp"
+
+#if !HAS_SELFTEST_POWER_CHECK_BOTH()
+    #error This should have not been included
+#endif
 
 namespace selftest {
 // This singleton object is used to check power of linked heaters

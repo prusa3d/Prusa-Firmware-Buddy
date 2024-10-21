@@ -11,6 +11,19 @@
 #include "client_response.hpp"
 #include "selftest_heaters_type.hpp"
 
+#if PRINTER_IS_PRUSA_XL()
+    #define HAS_SELFTEST_POWER_CHECK()        1
+    #define HAS_SELFTEST_POWER_CHECK_SINGLE() 1
+    #define HAS_SELFTEST_POWER_CHECK_BOTH()   0
+
+#else
+    // POWER_CHECK_BOTH calculation produces nonsense values and is disabled.
+    // BFW-6195
+    #define HAS_SELFTEST_POWER_CHECK()        0
+    #define HAS_SELFTEST_POWER_CHECK_SINGLE() 0
+    #define HAS_SELFTEST_POWER_CHECK_BOTH()   0
+#endif
+
 namespace selftest {
 
 enum class heater_type_t {

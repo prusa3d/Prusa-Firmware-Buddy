@@ -3,6 +3,7 @@ target_include_directories(Marlin_Config INTERFACE include_${PRINTER})
 target_sources(
   firmware
   PRIVATE i_selftest.cpp
+          power_check.cpp
           selftest_${PRINTER}.cpp
           selftest_axis.cpp
           selftest_axis_interface.cpp
@@ -30,12 +31,6 @@ endif()
 
 if(PRINTER STREQUAL "MINI" OR PRINTER STREQUAL "MK3.5")
   target_sources(firmware PRIVATE selftest_firstlayer.cpp selftest_firstlayer_interface.cpp)
-endif()
-
-if(HAS_ADVANCED_POWER)
-  target_sources(firmware PRIVATE power_check.cpp power_check_both.cpp)
-else()
-  target_sources(firmware PRIVATE power_check.cpp power_check_both_dummy.cpp)
 endif()
 
 if(FILAMENT_SENSOR STREQUAL ADC)

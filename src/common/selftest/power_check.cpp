@@ -46,6 +46,7 @@ PowerCheck::status_t PowerCheck::EvaluateHeaterStatus(uint32_t current_pwm, cons
     return status_t::stable;
 }
 
+#if HAS_SELFTEST_POWER_CHECK()
 PowerCheck::load_t PowerCheck::EvaluateLoad(uint32_t current_pwm, float current_load_W, const HeaterConfig_t &config) {
     if (config.heater_full_load_min_W > config.heater_full_load_max_W) {
         log_error(Selftest, "%s invalid config file, max value of full load must be greater than min", config.partname);
@@ -72,3 +73,4 @@ PowerCheck::load_t PowerCheck::EvaluateLoad(uint32_t current_pwm, float current_
     }
     return load_t::in_range;
 }
+#endif

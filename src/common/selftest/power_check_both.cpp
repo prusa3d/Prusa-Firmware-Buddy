@@ -1,9 +1,3 @@
-/**
- * @file power_check_both.cpp
- * @author Radek Vana
- * @date 2021-11-12
- */
-
 #include "power_check_both.hpp"
 #include "selftest_log.hpp"
 #include "advanced_power.hpp"
@@ -58,6 +52,7 @@ void PowerCheckBoth::Callback([[maybe_unused]] CSelftestPart_Heater &part) {
         }
         LogDebugTimed(nozzle->check_log, "Noz %fV, %fA, %fW, pwm %" PRIu32, static_cast<double>(nozzle_voltage_V),
             static_cast<double>(nozzle_current_A), static_cast<double>(nozzle_power_W), nozzle_pwm);
+
         PowerCheck::load_t result = nozzle->check.EvaluateLoad(nozzle_pwm, nozzle_power_W, nozzle->m_config);
         if (result != PowerCheck::load_t::in_range) {
             nozzle->state_machine.Fail();

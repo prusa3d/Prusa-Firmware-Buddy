@@ -270,12 +270,14 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
     return LoopResult::RunNext;
 }
 
+#if HAS_SELFTEST_POWER_CHECK()
 LoopResult CSelftestPart_Heater::stateCheckLoadChecked() {
     if (!power_check_passed) {
         return LoopResult::Fail;
     }
     return LoopResult::RunNext;
 }
+#endif
 
 void CSelftestPart_Heater::actualizeProgress(float current, float progres_start, float progres_end) const {
     if (progres_start >= progres_end) {
@@ -286,7 +288,7 @@ void CSelftestPart_Heater::actualizeProgress(float current, float progres_start,
 }
 
 // Currently supported only by XL, others needs to implement sensor reading, MK4 uses PowerCheckBoth to check its linked heaters
-#if PRINTER_IS_PRUSA_XL()
+#if HAS_SELFTEST_POWER_CHECK_SINGLE()
 void CSelftestPart_Heater::single_check_callback() {
     assert(m_config.type == heater_type_t::Nozzle || m_config.type == heater_type_t::Bed);
 
