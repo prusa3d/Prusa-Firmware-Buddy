@@ -416,6 +416,8 @@ public:
 
     StringBuilder &append_string(const char *str);
 
+    StringBuilder &append_std_string_view(const std::string_view &view);
+
     StringBuilder &append_string_view(const string_view_utf8 &str);
 
     /// Appends text to the builder, using vsnprintf under the hood.
