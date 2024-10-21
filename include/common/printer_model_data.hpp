@@ -119,7 +119,7 @@ inline constexpr std::array printer_model_info {
     PrinterModelInfo {
         .model = PrinterModel::cube,
         .compatibility_group = PrinterModelCompatibilityGroup::cube,
-        .version = { 6, 1, 0 },
+        .version = { 7, 1, 0 },
         .help_url = "cube",
         .usb_pid = 30,
         .gcode_check_code = 300,

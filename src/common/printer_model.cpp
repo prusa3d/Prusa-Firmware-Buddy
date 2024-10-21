@@ -11,6 +11,8 @@ static constexpr const PrinterModelInfo &firmware_base_constexpr = *std::find_if
     return info.version == PrinterVersion { PRINTER_TYPE, PRINTER_VERSION, PRINTER_SUBVERSION };
 });
 
+static_assert(firmware_base_constexpr.version.type == PRINTER_TYPE, "Mismatch printer version");
+
 // Some checks about the printer data
 static_assert([] {
     for (size_t i = 0; i < printer_model_info.size(); i++) {
