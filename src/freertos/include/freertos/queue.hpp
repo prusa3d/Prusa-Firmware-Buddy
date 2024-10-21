@@ -25,7 +25,9 @@ protected:
     QueueBase(size_t item_count, size_t item_size, uint8_t *item_storage);
     ~QueueBase();
     QueueBase(const QueueBase &) = delete;
+    QueueBase(QueueBase &&) = delete;
     QueueBase &operator=(const QueueBase &) = delete;
+    QueueBase &operator=(QueueBase &&) = delete;
     void send(const void *payload);
     bool send_from_isr(const void *payload);
     void receive(void *payload);
