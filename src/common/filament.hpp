@@ -110,6 +110,8 @@ public:
     // For FilamentType::none
     static constexpr NoFilamentType none = {};
 
+    static constexpr const char *adhoc_filament_gcode_prefix = "#";
+
 public:
     // * Constructors
 
