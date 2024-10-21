@@ -5,6 +5,9 @@
 #include <array>
 #include <freertos/config.hpp>
 
+// We formward declare QueueDefinition here to not include all the freertos hell
+struct QueueDefinition;
+
 namespace freertos {
 
 // C++ wrapper for FreeRTOS queue.
@@ -16,6 +19,7 @@ public:
 
 private:
     alignas(queue_storage_align) Storage queue_storage;
+    QueueDefinition *queue_handle;
 
 protected:
     QueueBase(size_t item_count, size_t item_size, uint8_t *item_storage);
