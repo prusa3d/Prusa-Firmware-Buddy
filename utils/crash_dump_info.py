@@ -32,7 +32,8 @@ printer_name_by_code = {
     12: "MINI",
     17: "XL",
     16: "iX",
-    18: "XL_DEV_KIT"
+    18: "XL_DEV_KIT",
+    30: "CUBE",
 }
 
 translations = ["cs", "de", "es", "fr", "it", "pl", "ja"]
