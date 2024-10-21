@@ -37,9 +37,12 @@ private:
     // the hotend fan test not having passed
     bool nozzle_test_skipped = false;
 
+#if HAS_SELFTEST_POWER_CHECK()
     // Power check related stuff
     PowerCheck check;
     bool power_check_passed = false;
+#endif
+
     LogTimer check_log;
     float power_avg = 0;
     float pwm_avg = 0;
@@ -70,10 +73,15 @@ public:
     LoopResult stateTargetTemp();
     LoopResult stateWait();
     LoopResult stateMeasure();
-    LoopResult stateCheckLoadChecked();
 
+#if HAS_SELFTEST_POWER_CHECK()
+    LoopResult stateCheckLoadChecked();
+#endif
+
+#if HAS_SELFTEST_POWER_CHECK_SINGLE()
     // Simple check callback for independent heaters
     void single_check_callback();
+#endif
 };
 
 }; // namespace selftest

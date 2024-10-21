@@ -40,7 +40,7 @@ using std::string_view;
 using std::variant;
 using std::visit;
 
-LOG_COMPONENT_DEF(connect, logging::Severity::info);
+LOG_COMPONENT_DEF(connect, logging::Severity::debug);
 
 namespace connect_client {
 
@@ -576,6 +576,7 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
 
     if (conn_factory.is_valid() && !websocket.has_value()) {
         // Let's do the upgrade
+        log_debug(connect, "Starting WS handshake");
 
         WebSocketKey websocket_key;
         WebSocketAccept upgrade_hdrs(websocket_key);
@@ -593,6 +594,8 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
                 conn_factory.invalidate();
                 return OnlineError::Server;
             }
+
+            log_debug(connect, "WS complete");
 
             // Read and throw away the body, if any. Not interesting.
             uint8_t throw_away[128];
@@ -612,6 +615,7 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
             break;
         }
         default: {
+            log_info(connect, "Failed with %" PRIu16, static_cast<uint16_t>(resp.status));
             conn_factory.invalidate();
             planner().action_done(ActionResult::Refused);
             switch (resp.status) {
@@ -653,6 +657,8 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
         case JsonResult::Incomplete:
             break;
         }
+
+        log_info(connect, "Send %.*s", written_json, buffer);
 
         if (auto error = websocket->send(first ? WebSocket::Text : WebSocket::Continuation, !more, buffer, written_json); error.has_value()) {
             conn_factory.invalidate();

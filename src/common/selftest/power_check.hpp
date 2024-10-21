@@ -60,6 +60,9 @@ public:
         , log_status(3000) {}
 
     status_t EvaluateHeaterStatus(uint32_t current_pwm, const HeaterConfig_t &config);
+
+#if HAS_SELFTEST_POWER_CHECK()
     load_t EvaluateLoad(uint32_t current_pwm, float current_load_W, const HeaterConfig_t &config);
+#endif
 };
 } // namespace selftest

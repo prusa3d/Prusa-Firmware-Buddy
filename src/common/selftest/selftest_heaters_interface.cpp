@@ -9,30 +9,16 @@
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
 #include "selftest_log.hpp"
-#include "power_check_both.hpp"
 #include <config_store/store_instance.hpp>
 #include <printers.h>
 
-/**
- * The following #if override fakes advanced power to be not supported within this file
- * Definitely not a nice solution to disable power check, but it was inherited from original code.
- * Keep in mind that enabling this for printers that will use the PowerCheckBooth (MK4) will cause an
- * untested code path in PowerCheckBoth to be executed.
- */
-#if !PRINTER_IS_PRUSA_XL()
-    // disable power check, since measurement does not work
-    #include <option/has_advanced_power.h>
-    #if HAS_ADVANCED_POWER()
-        #undef HAS_ADVANCED_POWER
-        #define HAS_ADVANCED_POWER() 0
-    #endif
-#endif
-
+#include <option/has_advanced_power.h>
 #if HAS_ADVANCED_POWER()
     #include "advanced_power.hpp"
-    #if !PRINTER_IS_PRUSA_XL()
-        #include "power_check_both.hpp"
-    #endif
+#endif
+
+#if HAS_SELFTEST_POWER_CHECK_BOTH()
+    #include "power_check_both.hpp"
 #endif
 
 LOG_COMPONENT_REF(Selftest);
@@ -54,15 +40,17 @@ static void HeatbreakCorrelation(CSelftestPart_Heater &h) {
 static void HeatbreakCorrelation([[maybe_unused]] CSelftestPart_Heater &h) {}
 #endif // HAS_TEMP_HEATBREAK_CONTROL
 
+#if HAS_SELFTEST_POWER_CHECK()
 // Shared check callback
 // Splits implementation for printers with independent bed, nozzle measurement and others
-static inline void check_callback(CSelftestPart_Heater &part) {
-#if !PRINTER_IS_PRUSA_XL()
+static inline void power_check_callback(CSelftestPart_Heater &part) {
+    #if HAS_SELFTEST_POWER_CHECK_BOTH()
     PowerCheckBoth::Instance().Callback(part);
-#else
+    #else
     part.single_check_callback();
-#endif
+    #endif
 }
+#endif
 
 void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const std::span<const HeaterConfig_t> config_nozzle) {
     resultHeaters.tested_parts |= to_one_hot(SelftestHeaters_t::TestedParts::noz);
@@ -88,7 +76,7 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
                 &CSelftestPart_Heater::stateFansDeactivate,
                 &CSelftestPart_Heater::stateTargetTemp, &CSelftestPart_Heater::stateWait,
                 &CSelftestPart_Heater::stateMeasure
-#if HAS_ADVANCED_POWER()
+#if HAS_SELFTEST_POWER_CHECK()
                 ,
                 &CSelftestPart_Heater::stateCheckLoadChecked
 #endif
@@ -98,14 +86,18 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
             // add same hooks for both "states changes" and "does not change"
             pNoz->SetStateChangedHook([](CSelftestPart_Heater &part) {
                 HeatbreakCorrelation(part);
-                check_callback(part);
+#if HAS_SELFTEST_POWER_CHECK()
+                power_check_callback(part);
+#endif
             });
 
             pNoz->SetStateRemainedHook([](CSelftestPart_Heater &part) {
                 HeatbreakCorrelation(part);
-                check_callback(part);
+#if HAS_SELFTEST_POWER_CHECK()
+                power_check_callback(part);
+#endif
             });
-#if !PRINTER_IS_PRUSA_XL()
+#if HAS_SELFTEST_POWER_CHECK_BOTH()
             PowerCheckBoth::Instance().BindNozzle(&pNoz->GetInstance());
 #endif
         }
@@ -142,18 +134,20 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
             &CSelftestPart_Heater::stateCooldownInit, &CSelftestPart_Heater::stateCooldown,
             &CSelftestPart_Heater::stateTargetTemp, &CSelftestPart_Heater::stateWait,
             &CSelftestPart_Heater::stateMeasure
-#if HAS_ADVANCED_POWER()
+#if HAS_SELFTEST_POWER_CHECK()
             ,
             &CSelftestPart_Heater::stateCheckLoadChecked
 #endif
         );
 
         pBed = pBed_;
+#if HAS_SELFTEST_POWER_CHECK()
         // add same hooks for both "states changes" and "does not change"
-        pBed_->SetStateChangedHook(&check_callback);
-        pBed_->SetStateRemainedHook(&check_callback);
-#if !PRINTER_IS_PRUSA_XL()
+        pBed_->SetStateChangedHook(&power_check_callback);
+        pBed_->SetStateRemainedHook(&power_check_callback);
+    #if HAS_SELFTEST_POWER_CHECK_BOTH()
         PowerCheckBoth::Instance().BindBed(&pBed_->GetInstance());
+    #endif
 #endif
     }
 }
@@ -195,7 +189,7 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
 
     for (size_t i = 0; i < HOTENDS; i++) {
         if (just_finished_noz[i]) {
-#if !PRINTER_IS_PRUSA_XL()
+#if HAS_SELFTEST_POWER_CHECK_BOTH()
             PowerCheckBoth::Instance().UnBindNozzle();
 #endif
             delete pNozzles[i];
@@ -205,7 +199,7 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
 
     if (just_finished_bed) {
         assert(pBed && *pBed);
-#if !PRINTER_IS_PRUSA_XL()
+#if HAS_SELFTEST_POWER_CHECK_BOTH()
         PowerCheckBoth::Instance().UnBindBed();
 #endif
         delete *pBed;

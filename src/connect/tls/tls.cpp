@@ -91,10 +91,12 @@ tls::~tls() {
 
 std::optional<Error> tls::connection(const char *host, uint16_t port) {
 
+    log_debug(connect, "Starting SSL handshake");
     int status;
     InitContexts ctxs;
 
     if (!ctxs.is_valid()) {
+        log_error(connect, "Not enough mem for SSL");
         return Error::Memory;
     }
 
@@ -149,6 +151,7 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
             }
         }
     }
+    log_debug(connect, "Loaded certs");
 
     mbedtls_ssl_conf_ca_chain(&ssl_config, &ctxs.x509_certificate, NULL);
 
@@ -194,6 +197,7 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
         }
 
         if (net_context.timeout_happened) {
+            log_info(connect, "SSL timeout");
             // Timeouts are mapped to ERR_SSL_WANT_(READ|WRITE). But possibly
             // there are other things that are mapped to that too? Not sure.
             // Therefore, we smuggle the timeouts in this side channel.
@@ -205,8 +209,11 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
     }
 
     if ((status = mbedtls_ssl_get_verify_result(&ssl_context)) != 0) {
+        log_info(connect, "SSL error");
         return Error::Tls;
     }
+
+    log_debug(connect, "SSL done");
 
     return std::nullopt;
 }
