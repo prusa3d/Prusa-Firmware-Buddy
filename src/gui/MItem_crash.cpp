@@ -10,6 +10,7 @@
     #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
     #include "../Marlin/src/feature/phase_stepping/phase_stepping.hpp"
     #include <config_store/store_instance.hpp>
+    #include <common/utils/algorithm_extensions.hpp>
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()
     : WI_ICON_SWITCH_OFF_ON_t(crash_s.is_enabled(), _(label), nullptr, is_enabled_t::yes,
@@ -70,25 +71,23 @@ void MI_CRASH_SENSITIVITY_Y::OnClick() {
 }
 
     #if PRINTER_IS_PRUSA_XL()
-MI_CRASH_SENSITIVITY_XY::MI_CRASH_SENSITIVITY_XY()
-    : WI_SWITCH_t<3>(get_item_id_from_sensitivity(crash_s.get_sensitivity().x), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no,
-        _(ITEMS[0].name), _(ITEMS[1].name), _(ITEMS[2].name)) {}
+static constexpr const char *crash_sensitivity_items[] = {
+    N_("Low"),
+    N_("Medium"),
+    N_("High"),
+};
+static constexpr std::array<uint8_t, std::size(crash_sensitivity_items)> crash_sensitivity_item_values {
+    3,
+    2,
+    1,
+};
 
-constexpr size_t MI_CRASH_SENSITIVITY_XY::get_item_id_from_sensitivity(int32_t sensitivity) {
-    for (size_t i = 0; i <= std::size(ITEMS); i++) {
-        if (ITEMS[i].value == sensitivity) {
-            return i;
-        }
-    }
-    return 0;
-}
+MI_CRASH_SENSITIVITY_XY::MI_CRASH_SENSITIVITY_XY()
+    : MenuItemSwitch(_(label), crash_sensitivity_items, stdext::index_of(crash_sensitivity_item_values, crash_s.get_sensitivity().x)) {}
 
 void MI_CRASH_SENSITIVITY_XY::OnChange([[maybe_unused]] size_t old_index) {
-    int32_t sensitivity = ITEMS[index].value;
-    xy_long_t se = crash_s.get_sensitivity();
-    se.x = sensitivity;
-    se.y = sensitivity;
-    crash_s.set_sensitivity(se);
+    const int32_t sensitivity = crash_sensitivity_item_values[index];
+    crash_s.set_sensitivity({ .x = sensitivity, .y = sensitivity });
 }
     #else
 MI_CRASH_SENSITIVITY_XY::MI_CRASH_SENSITIVITY_XY()

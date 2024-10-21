@@ -254,7 +254,7 @@ DialogChangeAllFilaments::DialogChangeAllFilaments(const MultiFilamentChangeConf
     , menu(this, GuiDefaults::RectScreenNoHeader) //
 {
     CaptureNormalWindow(menu);
-    menu.set_configuration(initial_configuration);
+    menu.menu.set_configuration(initial_configuration);
 }
 
 void DialogChangeAllFilaments::windowEvent(window_t *sender, GUI_event_t event, void *param) {
@@ -262,7 +262,7 @@ void DialogChangeAllFilaments::windowEvent(window_t *sender, GUI_event_t event, 
         const MediaState_t media_state = MediaState_t(reinterpret_cast<int>(param));
         if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
             // USB was removed
-            if (exit_on_media && !menu.is_carrying_out_changes()) { // Blocked if filament change screens are open
+            if (exit_on_media && !menu.menu.is_carrying_out_changes()) { // Blocked if filament change screens are open
                 Screens::Access()->Close();
             }
             exited_by_media = true; // Mark exit by USB for return of the dialog box

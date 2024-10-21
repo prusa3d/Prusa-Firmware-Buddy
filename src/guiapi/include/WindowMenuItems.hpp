@@ -13,23 +13,6 @@
 #include "WindowMenuSwitch.hpp"
 #include "WindowMenuInfo.hpp"
 
-// not translated
-class WI_SWITCH_0_1_NA_t : public WI_SWITCH_t<3> {
-    constexpr static const char *str_0 = "0";
-    constexpr static const char *str_1 = "1";
-    constexpr static const char *str_NA = "N/A";
-
-public:
-    enum class state_t {
-        low,
-        high,
-        unknown
-    };
-
-    WI_SWITCH_0_1_NA_t(state_t index, const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-        : WI_SWITCH_t(size_t(index), label, id_icon, enabled, hidden, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_0), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_1), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_NA)) {}
-};
-
 class WI_ICON_SWITCH_OFF_ON_t : public IWindowMenuItem {
 
 public:

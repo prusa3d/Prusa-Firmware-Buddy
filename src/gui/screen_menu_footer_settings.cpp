@@ -73,12 +73,14 @@ void I_MI_FOOTER::store_footer_index(size_t item_n) {
     StatusFooter::SetSlotInit(item_n, to_footer_item(GetIndex())); // Store footer
 }
 
+static constexpr const char *temp_align_values[] = {
+    N_("Static"),
+    N_("Static-left"),
+    N_("Dynamic"),
+};
+
 MI_LEFT_ALIGN_TEMP::MI_LEFT_ALIGN_TEMP()
-    : WI_SWITCH_t(size_t(FooterItemHeater::GetDrawType()),
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no,
-        _(str_0),
-        _(str_1),
-        _(str_2)) {}
+    : MenuItemSwitch(_("Temp. style"), temp_align_values, size_t(FooterItemHeater::GetDrawType())) {}
 
 void MI_LEFT_ALIGN_TEMP::OnChange(size_t /*old_index*/) {
     FooterItemHeater::SetDrawType(footer::ItemDrawType(index));

@@ -7,7 +7,7 @@
 #include <option/has_toolchanger.h>
 #include <common/extended_printer_type.hpp>
 
-class MI_HARDWARE_CHECK : public WI_SWITCH_t<3> {
+class MI_HARDWARE_CHECK : public MenuItemSwitch {
 public:
     MI_HARDWARE_CHECK(HWCheckType check_type);
 

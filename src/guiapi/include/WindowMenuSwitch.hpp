@@ -11,7 +11,8 @@
 
 #include "i_window_menu_item.hpp"
 #include "window_icon.hpp" //CalculateMinimalSize
-#include <type_traits> //aligned_storage
+
+#include <span>
 
 /*****************************************************************************/
 // IWiSwitch
@@ -51,30 +52,32 @@ protected:
     virtual void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
 };
 
-/// IWiSwitch implementation with fixed number of fixed items, stored in a buffer
-/// TODO: Most of the usage can be shifted to a nicer WiEnumSwitch
-template <size_t SZ>
-class WI_SWITCH_t : public IWiSwitch {
+class MenuItemSwitch : public IWiSwitch {
 
 public:
-    template <class... E>
-    WI_SWITCH_t(size_t index, const string_view_utf8 &label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
-        : IWiSwitch(label, id_icon, enabled, hidden)
-        , items_ { std::forward<E>(e)... } //
+    MenuItemSwitch(const string_view_utf8 &label, const std::span<const char *const> &items, size_t current_index = 0)
+        : IWiSwitch(label)
+        , items_(items) //
     {
-        SetIndex(index);
+        SetIndex(current_index);
 
         // Items are initialized now, update extension width
         changeExtentionWidth();
     }
 
+    inline void set_translate_items(bool set) {
+        translate_items_ = set;
+    }
+
     inline size_t item_count() const final {
-        return SZ;
+        return items_.size();
     }
     inline string_view_utf8 current_item_text() const final {
-        return items_[index];
+        const char *str = items_[index];
+        return translate_items_ ? _(str) : string_view_utf8::MakeRAM(str);
     }
 
 private:
-    std::array<string_view_utf8, SZ> items_;
+    std::span<const char *const> items_;
+    bool translate_items_ = true;
 };

@@ -55,7 +55,7 @@ public:
     /// @param[in] length Size of the given buffer.
     /// @return Number of characters written to the buffer. Number will be
     ///        always less than MAX_SHEET_NAME_LENGTH
-    static uint32_t ActiveSheetName(std::span<char, SHEET_NAME_BUFFER_SIZE> target);
+    static uint32_t ActiveSheetName(const std::span<char> &target);
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Determine the name of the given print sheet profile.
     /// !!! DOES NOT APPEND TRAILING '\0'
@@ -64,7 +64,7 @@ public:
     /// @param[out] target Buffer to store the print sheet profile. The data will always be stored with a terminating null.
     /// @return Number of characters written to the buffer. Number will be
     ///        always less than MAX_SHEET_NAME_LENGTH
-    static uint32_t SheetName(uint32_t index, std::span<char, SHEET_NAME_BUFFER_SIZE> target);
+    static uint32_t SheetName(uint32_t index, const std::span<char> &target);
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Rename the given print sheet profile.
     ///

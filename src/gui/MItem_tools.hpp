@@ -97,8 +97,6 @@ protected:
 };
 
 class MI_AUTO_HOME : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Auto Home");
-
 public:
     MI_AUTO_HOME();
 
@@ -244,14 +242,8 @@ inline constexpr size_t MI_SOUND_MODE_COUNT = 5;
 #else
 inline constexpr size_t MI_SOUND_MODE_COUNT = 4;
 #endif
-class MI_SOUND_MODE : public WI_SWITCH_t<MI_SOUND_MODE_COUNT> {
+class MI_SOUND_MODE : public MenuItemSwitch {
     constexpr static const char *const label = N_("Sound Mode");
-
-    constexpr static const char *str_Once = N_("Once");
-    constexpr static const char *str_Loud = N_("Loud");
-    constexpr static const char *str_Silent = N_("Silent");
-    constexpr static const char *str_Assist = N_("Assist");
-    constexpr static const char *str_Debug = "Debug";
 
     size_t init_index() const;
 
@@ -260,29 +252,7 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_SOUND_TYPE : public WI_SWITCH_t<8> {
-    constexpr static const char *const label = "Sound Type";
-
-    constexpr static const char *str_ButtonEcho = "ButtonEcho";
-    constexpr static const char *str_StandardPrompt = "StandardPrompt";
-    constexpr static const char *str_StandardAlert = "StandardAlert";
-    constexpr static const char *str_CriticalAlert = "CriticalAlert";
-    constexpr static const char *str_EncoderMove = "EncoderMove";
-    constexpr static const char *str_BlindAlert = "BlindAlert";
-    constexpr static const char *str_Start = "Start";
-    constexpr static const char *str_SingleBeep = "SingleBeep";
-
-public:
-    MI_SOUND_TYPE();
-    virtual void OnChange(size_t old_index) override;
-};
-
-class MI_SORT_FILES : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = N_("Sort Files");
-
-    constexpr static const char *str_name = N_("Name");
-    constexpr static const char *str_time = N_("Time");
-
+class MI_SORT_FILES : public MenuItemSwitch {
 public:
     MI_SORT_FILES();
     virtual void OnChange(size_t old_index) override;
@@ -305,13 +275,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_TIMEZONE_MIN : public WI_SWITCH_t<3> {
-    constexpr static const char *const label = N_("Time Zone Minute Offset");
-
-    constexpr static const char *str_0min = N_("00 min");
-    constexpr static const char *str_30min = N_("30 min");
-    constexpr static const char *str_45min = N_("45 min");
-
+class MI_TIMEZONE_MIN : public MenuItemSwitch {
 public:
     MI_TIMEZONE_MIN();
     virtual void OnChange(size_t old_index) override;
@@ -325,11 +289,7 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_TIME_FORMAT : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = N_("Time Format");
-
-    constexpr static const char *str_24h = N_("24h");
-    constexpr static const char *str_12h = N_("12h");
+class MI_TIME_FORMAT : public MenuItemSwitch {
 
 public:
     MI_TIME_FORMAT();
@@ -341,9 +301,7 @@ public:
  * @warning This uses time_tools::get_time() which needs to be updated periodically.
  *     It needs to be done from the menu which has windowEvent() method.
  */
-class MI_TIME_NOW : public WI_SWITCH_t<1> {
-    static constexpr const char *label = N_("Time");
-
+class MI_TIME_NOW : public WiInfo<8> {
 public:
     MI_TIME_NOW();
 };
@@ -586,11 +544,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_HEATUP_BED : public WI_SWITCH_t<2> {
-    static constexpr const char *const label = N_("For Filament Change, Preheat");
-    static constexpr const char *const nozzle = N_("Nozzle");
-    static constexpr const char *const nozzle_bed = N_("Noz&Bed");
-
+class MI_HEATUP_BED : public MenuItemSwitch {
 public:
     MI_HEATUP_BED();
 

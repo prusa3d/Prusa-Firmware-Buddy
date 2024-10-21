@@ -112,13 +112,15 @@ void MI_WIFI_SETUP::click(IWindowMenu &) {
     marlin_client::gcode("M1703");
 }
 
+static constexpr const char *interface_items[] = {
+    "Eth",
+    "Wi-Fi",
+};
+
 MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
-    : WI_SWITCH_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_eth), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_wifi)) {
-    if (netdev_get_active_id() == NETDEV_ESP_ID) {
-        this->SetIndex(1);
-    } else {
-        this->SetIndex(0);
-    }
+    : MenuItemSwitch(_("Active Interface"), interface_items, netdev_get_active_id() == NETDEV_ESP_ID) //
+{
+    set_translate_items(false);
 }
 
 void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
@@ -171,10 +173,16 @@ void MI_HOSTNAME::click(IWindowMenu &) {
     notify_reconfigure();
 }
 
+static constexpr const char *net_ip_values[] = {
+    "DHCP",
+    "static",
+};
+
 MI_NET_IP::MI_NET_IP(NetDeviceID device_id)
-    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH(label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH(str_DHCP), string_view_utf8::MakeCPUFLASH(str_static))
+    : MenuItemSwitch(string_view_utf8::MakeCPUFLASH("LAN"), net_ip_values, 0)
     , device_id(device_id) //
 {
+    set_translate_items(false);
     index = netdev_get_ip_obtained_type(this->device_id());
 }
 
@@ -187,9 +195,16 @@ void MI_NET_IP::OnChange([[maybe_unused]] size_t old_index) {
     }
 }
 
+static constexpr const char *protocol_values[] = {
+    "IPv4",
+    "IPv6",
+};
+
 MI_NET_IP_VER_t::MI_NET_IP_VER_t()
-    : WI_SWITCH_t(0, _(label), nullptr, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeCPUFLASH(str_v4), string_view_utf8::MakeCPUFLASH(str_v6)) {
-    this->index = 0;
+    : MenuItemSwitch(_("Protocol"), protocol_values, 0) //
+{
+    set_translate_items(false);
+    set_is_enabled(false);
 }
 
 IMI_IP4_ADDR::IMI_IP4_ADDR(const char *label, NetDeviceID device_id, AddrType addr)

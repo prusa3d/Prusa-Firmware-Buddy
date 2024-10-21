@@ -23,10 +23,13 @@ void MI_CO_CANCEL_OBJECT::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuCancelObject>);
 }
 
+static constexpr const char *cancel_object_n_values[] = {
+    N_("Printing"),
+    N_("Canceled"),
+};
+
 MI_CO_OBJECT_N::MI_CO_OBJECT_N(int ObjectId_)
-    : WI_SWITCH_t(
-        0, string_view_utf8::MakeRAM((uint8_t *)label_buffer), nullptr,
-        is_enabled_t::yes, is_hidden_t::yes, _(str_printing), _(str_canceled))
+    : MenuItemSwitch({}, cancel_object_n_values)
     , ObjectId(ObjectId_) {
 
     UpdateName();
@@ -63,7 +66,7 @@ void MI_CO_OBJECT_N::UpdateName() {
         // Switch from object name to backup_label
         if (empty && !backup_label_used) {
             char temporary_buffer[sizeof(label_buffer) / sizeof(label_buffer[0])];
-            _(backup_label).copyToRAM(temporary_buffer, std::size(temporary_buffer));
+            _("Object %i").copyToRAM(temporary_buffer, std::size(temporary_buffer));
             snprintf(label_buffer, std::size(label_buffer), temporary_buffer, ObjectId); // Source string backup_label needs to have exactly one %i
             backup_label_used = true;
             Invalidate(); // The string memory is the same, so it needs to be invalidated manually

@@ -44,11 +44,7 @@ protected:
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {};
 };
 
-class MI_UPDATE : public WI_SWITCH_t<3> {
-    constexpr static const char *const str_0 = N_("Off");
-    constexpr static const char *const str_1 = N_("On Restart");
-    constexpr static const char *const str_2 = N_("Always");
-
+class MI_UPDATE : public MenuItemSwitch {
     size_t init_index() const;
 
 public:

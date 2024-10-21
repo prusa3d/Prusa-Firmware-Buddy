@@ -41,21 +41,9 @@ public:
 #if PRINTER_IS_PRUSA_XL()
 // XL set Crash Sensitivity in user friendly was (Low/Medium/High), whereas other printers set integer directly and its development menu only
 
-class MI_CRASH_SENSITIVITY_XY : public WI_SWITCH_t<3> {
+class MI_CRASH_SENSITIVITY_XY : public MenuItemSwitch {
 private:
     constexpr static const char *const label = N_("Crash Sensitivity XY");
-
-    struct item_t {
-        const char *name;
-        uint8_t value;
-    };
-
-    constexpr static item_t ITEMS[3] = {
-        { N_("Low"), 3 },
-        { N_("Medium"), 2 },
-        { N_("High"), 1 },
-    };
-    constexpr size_t get_item_id_from_sensitivity(int32_t sensitivity);
 
 public:
     MI_CRASH_SENSITIVITY_XY();

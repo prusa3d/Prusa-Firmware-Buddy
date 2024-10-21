@@ -11,6 +11,7 @@ namespace time_tools {
 enum class TimeFormat : uint8_t {
     _12h,
     _24h,
+    _cnt,
 };
 
 /**

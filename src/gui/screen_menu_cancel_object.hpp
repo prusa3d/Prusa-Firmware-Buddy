@@ -14,15 +14,11 @@
 /**
  * @brief Prototype object that can hide functionality in .cpp.
  */
-class MI_CO_OBJECT_N : public WI_SWITCH_t<2> {
+class MI_CO_OBJECT_N : public MenuItemSwitch {
     char label_buffer[marlin_vars_t::CANCEL_OBJECT_NAME_LEN] = {}; ///< Buffer for object name, start empty
 
     /// True if object name form G-code is valid, false if backup_label is used or if object name changed
     bool backup_label_used = false; ///< Write backup on first call to UpdateName()
-    constexpr static const char *backup_label = N_("Object %i"); ///< "Object <number>", needs to have exactly one "%i" in it
-
-    constexpr static const char *str_printing = N_("Printing"); ///< Object is being printed as normal
-    constexpr static const char *str_canceled = N_("Canceled"); ///< Object was canceled and is skipped during print
 
     const int ObjectId; ///< Id of object to cancel with this switch
 

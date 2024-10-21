@@ -10,18 +10,6 @@
 #include <printers.h>
 namespace selftest {
 
-inline constexpr char axis_to_letter(uint32_t axis) {
-    switch (axis) {
-    case X_AXIS:
-        return 'X';
-    case Y_AXIS:
-        return 'Y';
-    case Z_AXIS:
-        return 'Z';
-    }
-    return ' ';
-}
-
 class CSelftestPart_Axis {
     IPartHandler &state_machine;
     const AxisConfig_t &config;

@@ -125,7 +125,8 @@ enum class WarningType : uint32_t {
     GcodeCorruption,
     GcodeCropped,
     MetricsConfigChangePrompt,
-    _last = MetricsConfigChangePrompt
+    AccelerometerCommunicationFailed,
+    _last = AccelerometerCommunicationFailed
 };
 
 using message_cb_t = void (*)(char *);

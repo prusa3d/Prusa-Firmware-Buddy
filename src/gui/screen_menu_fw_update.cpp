@@ -49,8 +49,14 @@ size_t MI_UPDATE::init_index() const {
             : 0);
 }
 
+static constexpr const char *update_values[] = {
+    N_("Off"),
+    N_("On Restart"),
+    N_("Always"),
+};
+
 MI_UPDATE::MI_UPDATE()
-    : WI_SWITCH_t<3>(init_index(), string_view_utf8::MakeNULLSTR(), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_0), _(str_1), _(str_2)) {
+    : MenuItemSwitch({}, update_values, init_index()) {
 }
 
 void MI_UPDATE::OnChange(size_t /*old_index*/) {
