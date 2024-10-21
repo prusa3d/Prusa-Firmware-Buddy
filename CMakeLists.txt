@@ -108,6 +108,11 @@ elseif(MCU MATCHES "STM32F4")
     BuddyHeaders BEFORE INTERFACE include/stm32f4_hal include/device/stm32f4
     )
   target_link_libraries(BuddyHeaders INTERFACE STM32F4::HAL STM32F4xx::CMSIS)
+elseif(MCU MATCHES "STM32H5")
+  target_include_directories(
+    BuddyHeaders BEFORE INTERFACE include/stm32h5_hal include/device/stm32h5
+    )
+  target_link_libraries(BuddyHeaders INTERFACE STM32H5::HAL STM32H5xx::CMSIS)
 else()
   message(FATAL_ERROR "Undefined HAL for ${MCU}")
 endif()
@@ -175,6 +180,8 @@ if(MCU MATCHES "STM32F4")
   target_compile_definitions(BuddyHeaders INTERFACE STM32GENERIC STM32F4 STM32F4xx)
 elseif(MCU MATCHES "STM32G0")
   target_compile_definitions(BuddyHeaders INTERFACE STM32GENERIC STM32G0 STM32G0xx)
+elseif(MCU MATCHES "STM32H5")
+  target_compile_definitions(BuddyHeaders INTERFACE STM32GENERIC STM32H5 STM32H5xx)
 else()
   message(FATAL_ERROR "Undefined macros for ${MCU}")
 endif()
@@ -263,6 +270,8 @@ if(CMAKE_CROSSCOMPILING)
     list(APPEND MCU_FLAGS -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
   elseif(MCU MATCHES "STM32G0")
     list(APPEND MCU_FLAGS -mcpu=cortex-m0plus -mfloat-abi=soft)
+  elseif(MCU MATCHES "STM32H5")
+    list(APPEND MCU_FLAGS -mcpu=cortex-m33 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
   else()
     message(FATAL_ERROR "Unknown MCU_FLAGS for ${MCU}")
   endif()
@@ -319,7 +328,9 @@ add_subdirectory(lib)
 # Build Puppy Firmwares
 #
 
-if(BOARD IN_LIST BUDDY_BOARDS AND HAS_PUPPIES_BOOTLOADER)
+# TODO Remove this once we add CUBE to PRINTERS_WITH_PUPPIES_BOOTLOADER
+set(FORCE_PUPPY_BUILD YES)
+if(BOARD IN_LIST BUDDY_BOARDS AND (HAS_PUPPIES_BOOTLOADER OR FORCE_PUPPY_BUILD))
   string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower)
   string(TOLOWER "${PRINTER}" PRINTER_lower)
 
@@ -357,6 +368,30 @@ if(BOARD IN_LIST BUDDY_BOARDS AND HAS_PUPPIES_BOOTLOADER)
                  "${MODULARBED_BINARY_DIR}"
       INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "Skipping install step"
       BUILD_BYPRODUCTS "${MODULARBED_BINARY_PATH}" "${MODULARBED_BINARY_DIR}/firmware"
+      STEP_TARGETS build
+      USES_TERMINAL_BUILD TRUE
+      USES_TERMINAL_INSTALL FALSE
+      BUILD_ALWAYS TRUE
+      )
+  endif()
+
+  if(NOT XBUDDY_EXTENSION_BINARY_PATH AND HAS_XBUDDY_EXTENSION)
+    get_filename_component(
+      XBUDDY_EXTENSION_BINARY_DIR "${XBUDDY_EXTENSION_BINARY_DIR}" REALPATH BASE_DIR
+      "${CMAKE_SOURCE_DIR}"
+      )
+    get_filename_component(
+      XBUDDY_EXTENSION_BINARY_PATH "firmware.bin" REALPATH BASE_DIR
+      "${XBUDDY_EXTENSION_BINARY_DIR}"
+      )
+    ExternalProject_Add(
+      xbuddy_extension
+      SOURCE_DIR "${XBUDDY_EXTENSION_SOURCE_DIR}"
+      BINARY_DIR "${XBUDDY_EXTENSION_BINARY_DIR}"
+      CMAKE_ARGS --preset ${PRINTER_lower}-xbuddy-extension_${CMAKE_BUILD_TYPE_lower}_boot -B
+                 "${XBUDDY_EXTENSION_BINARY_DIR}"
+      INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "Skipping install step"
+      BUILD_BYPRODUCTS "${XBUDDY_EXTENSION_BINARY_PATH}" "${XBUDDY_EXTENSION_BINARY_DIR}/firmware"
       STEP_TARGETS build
       USES_TERMINAL_BUILD TRUE
       USES_TERMINAL_INSTALL FALSE
@@ -415,7 +450,8 @@ if(ENABLE_HW_STD_RAND)
 endif()
 
 # Appending fw descriptor (with calculated fingerprint) to the ELF
-if(BOARD STREQUAL "DWARF" OR BOARD STREQUAL "MODULARBED")
+if(BOARD STREQUAL "DWARF" OR BOARD STREQUAL "MODULARBED" # OR BOARD STREQUAL "XBUDDY_EXTENSION"
+   )
   add_custom_command(
     TARGET firmware
     POST_BUILD
@@ -569,6 +605,8 @@ elseif(BOARD STREQUAL "MODULARBED")
   target_link_libraries(
     firmware PRIVATE BuddyHeaders CrashCatcher error_codes freertos printf::printf
     )
+elseif(BOARD STREQUAL "XBUDDY_EXTENSION")
+  # let us manage the libraries where needed, not globally
 elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
   target_link_libraries(
     firmware

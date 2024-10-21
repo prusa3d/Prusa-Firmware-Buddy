@@ -17,8 +17,18 @@ set(PRINTER_VALID_OPTS
     "iX"
     "XL_DEV_KIT"
     )
-set(BOARD_VALID_OPTS "BUDDY" "XBUDDY" "XLBUDDY" "DWARF" "MODULARBED" "XL_DEV_KIT_XLB")
-set(MCU_VALID_OPTS "<default>" "STM32F407VG" "STM32F429VI" "STM32F427ZI" "STM32G070RBT6")
+set(BOARD_VALID_OPTS
+    "BUDDY"
+    "XBUDDY"
+    "XLBUDDY"
+    "DWARF"
+    "MODULARBED"
+    "XL_DEV_KIT_XLB"
+    "XBUDDY_EXTENSION"
+    )
+set(MCU_VALID_OPTS "<default>" "STM32F407VG" "STM32F429VI" "STM32F427ZI" "STM32G070RBT6"
+                   "STM32H503CBU7"
+    )
 set(BOOTLOADER_VALID_OPTS "NO" "EMPTY" "YES")
 set(TRANSLATIONS_ENABLED_VALID_OPTS "<default>" "NO" "YES")
 set(TOUCH_ENABLED_VALID_OPTS "<default>" "NO" "YES")
@@ -162,6 +172,8 @@ if(${MCU} STREQUAL "<default>")
     set(MCU "STM32G070RBT6")
   elseif(${BOARD} STREQUAL "MODULARBED")
     set(MCU "STM32G070RBT6")
+  elseif(${BOARD} STREQUAL "XBUDDY_EXTENSION")
+    set(MCU "STM32H503CBU7")
   else()
     message(FATAL_ERROR "Don't know what MCU to set as default for this board/version")
   endif()
@@ -173,6 +185,7 @@ define_enum_option(NAME MCU VALUE ${MCU} ALL_VALUES ${MCU_VALID_OPTS})
 # Set connect status/availability
 if(${BOARD} STREQUAL "DWARF"
    OR ${BOARD} STREQUAL "MODULARBED"
+   OR ${BOARD} STREQUAL "XBUDDY_EXTENSION"
    OR ${BOARD} STREQUAL "XL_DEV_KIT_XLB"
    )
   set(CONNECT
@@ -645,6 +658,23 @@ if(ENABLE_PUPPY_BOOTLOAD)
     set(MODULARBED_BINARY_DIR
         "${CMAKE_BINARY_DIR}/modularbed-build"
         CACHE PATH "Where to have build directory for the modular bed firmware."
+        )
+  endif()
+
+  set(XBUDDY_EXTENSION_BINARY_PATH
+      ""
+      CACHE
+        PATH
+        "Where to get the enclosure exention's binary from. If set, the project won't try to build anything."
+      )
+  if(NOT XBUDDY_EXTENSION_BINARY_PATH)
+    set(XBUDDY_EXTENSION_SOURCE_DIR
+        "${CMAKE_SOURCE_DIR}"
+        CACHE PATH "From which source directory to build the enclosure extension firmware."
+        )
+    set(XBUDDY_EXTENSION_BINARY_DIR
+        "${CMAKE_BINARY_DIR}/xbuddy_extension-build"
+        CACHE PATH "Where to have build directory for the enclosure extension firmware."
         )
   endif()
 endif()

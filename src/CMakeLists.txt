@@ -82,6 +82,8 @@ elseif(BOARD STREQUAL "MODULARBED")
   add_subdirectory(freertos)
   add_subdirectory(puppy/modularbed)
   add_subdirectory(puppy/shared)
+elseif(BOARD STREQUAL "XBUDDY_EXTENSION")
+  add_subdirectory(puppy/xbuddy_extension)
 elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
   target_include_directories(firmware PRIVATE .)
 

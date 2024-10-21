@@ -7,7 +7,11 @@
             "cacheVariables": {
                 "PRINTER": "CUBE",
                 "BOARD": "XBUDDY",
-                "BOARD_VERSION": "0.2.7"
+                "BOARD_VERSION": "0.2.7",
+                "XBUDDY_EXTENSION_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-xbuddy-extension"
+                }
             }
         },
         {
@@ -218,6 +222,15 @@
             "cacheVariables": {
                 "PRINTER": "iX",
                 "BOARD": "MODULARBED",
+                "BOARD_VERSION": "0.7.0"
+            }
+        },
+        {
+            "name": "cube-xbuddy-extension",
+            "description": "Original Prusa CUBE's Extension Board",
+            "cacheVariables": {
+                "PRINTER": "CUBE",
+                "BOARD": "XBUDDY_EXTENSION",
                 "BOARD_VERSION": "0.7.0"
             }
         }

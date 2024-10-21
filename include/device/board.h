@@ -36,12 +36,13 @@
 /// BOARD_VERSION_PATCH
 ///
 
-#define BOARD_BUDDY          1
-#define BOARD_XBUDDY         2
-#define BOARD_XLBUDDY        3
-#define BOARD_DWARF          4
-#define BOARD_MODULARBED     5
-#define BOARD_XL_DEV_KIT_XLB 6
+#define BOARD_BUDDY            1
+#define BOARD_XBUDDY           2
+#define BOARD_XLBUDDY          3
+#define BOARD_DWARF            4
+#define BOARD_MODULARBED       5
+#define BOARD_XL_DEV_KIT_XLB   6
+#define BOARD_XBUDDY_EXTENSION 7
 
 #if defined(BOARD) && BOARD == BOARD_BUDDY
     #define BOARD_IS_BUDDY() 1
@@ -63,6 +64,9 @@
     #define BOARD_IS_XLBUDDY()        1 // todo: remove, for now xl dev two  boards enabled
     #define BOARD_IS_XL_DEV_KIT_XLB() 1
     #define BOARD_STRING()            "XL_DEV_KIT_XLB"
+#elif defined(BOARD) && BOARD == BOARD_XBUDDY_EXTENSION
+    #define BOARD_IS_XBUDDY_EXTENSION() 1
+    #define BOARD_STRING()              "XBUDDY_EXTENSION"
 #else
     #error Please define the BOARD macro
 #endif
@@ -93,6 +97,10 @@
 
 #ifndef BOARD_IS_MODULARBED
     #define BOARD_IS_MODULARBED() 0
+#endif
+
+#ifndef BOARD_IS_XBUDDY_EXTENSION
+    #define BOARD_IS_XBUDDY_EXTENSION() 0
 #endif
 
 #if !defined(BOARD_VERSION_MAJOR) || !defined(BOARD_VERSION_MINOR) || !defined(BOARD_VERSION_PATCH)

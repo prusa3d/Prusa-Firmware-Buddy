@@ -82,7 +82,7 @@ HardwareInfo = namedtuple('HardwareInfo',
 class Hardware(Enum):
     MODULARBED = 43
     DWARF = 44
-    EXTENSION_BOARD = 45
+    XBUDDY_EXTENSION = 45
 
 
 class MessageId(Enum):
