@@ -85,7 +85,7 @@ Errors:
     approved: true
 
   - code: "XX109"
-    printers: [iX]
+    printers: [iX, CUBE]
     title: "STEEL SHEEL NOT DETECTED"
     text: "Steel sheet was not detected. Please put the sheet on to prevent printer damage."
     action: [Retry, Skip]
