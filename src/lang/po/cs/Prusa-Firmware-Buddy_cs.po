@@ -1260,7 +1260,7 @@ msgstr "Chcete obnovit výchozí konfiguraci Input Shaper?"
 
 #: src/gui/screen_network_setup.cpp:514
 msgid "Do you want to add your printer to Prusa Connect?"
-msgstr "Chcete přidat tiskárnu od Prusa Connect?"
+msgstr "Chcete přidat tiskárnu do Prusa Connect?"
 
 #: src/gui/screen_network_setup.cpp:473
 msgid ""
@@ -3030,7 +3030,7 @@ msgid ""
 "through the setup process."
 msgstr ""
 "Vítá vás tiskárna\n"
-"Origina Prusa!\n"
+"Original Prusa!\n"
 "Nyní vás provedu\n"
 "skrz úvodní nastavení."
 
