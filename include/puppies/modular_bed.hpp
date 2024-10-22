@@ -1,6 +1,7 @@
 #pragma once
 
 #include "puppies/PuppyModbus.hpp"
+#include <puppies/power_panic_mutex.hpp>
 #include "module/modular_heatbed.h"
 #include <modular_bed_errors.hpp>
 #include <modular_bed_registers.hpp>
@@ -79,10 +80,11 @@ public:
     void set_print_fan_active(bool active);
 
     // Combined heater current [A]
-    float get_heater_current() {
-        return (currents.value.A_measured + currents.value.B_measured) / 1000.0;
-    }
+    float get_heater_current();
 
+    uint16_t get_mcu_temperature();
+
+private:
     MODBUS_DISCRETE GeneralStatus {
         bool power_panic_status {};
         bool current_fault_status {};
@@ -146,6 +148,7 @@ protected:
     uint16_t expand_to_sides(uint16_t enabled_mask, float target_temp);
 
 private:
+    PowerPanicMutex mutex;
     static constexpr uint32_t MAX_UNREAD_MS = 1000;
 
     void set_target(const uint8_t idx, float target_temp);
