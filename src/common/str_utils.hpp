@@ -401,10 +401,22 @@ public:
         return char_count() + 1;
     }
 
+    /// Returns pointer to the first character in the builder buffer
+    inline const char *begin() const {
+        return buffer_start_;
+    }
+
+    /// Returns pointer behind the last character in the builder buffer (should always point to \0)
+    inline const char *end() const {
+        return current_pos_;
+    }
+
 public:
     StringBuilder &append_char(char ch);
 
     StringBuilder &append_string(const char *str);
+
+    StringBuilder &append_std_string_view(const std::string_view &view);
 
     StringBuilder &append_string_view(const string_view_utf8 &str);
 

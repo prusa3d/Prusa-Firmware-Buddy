@@ -676,6 +676,10 @@ TEST_CASE("StringBuilder", "[strbuilder]") {
         b.append_printf(" %s %i %g", "haha", 3, 5.0f);
         CHECK(b.is_ok());
         CHECK_THAT(b.str_nocheck(), Equals("test test2XYZ haha 3 5"));
+
+        b.append_std_string_view("posl");
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("test test2XYZ haha 3 5posl"));
     }
 
     SECTION("exact fill") {

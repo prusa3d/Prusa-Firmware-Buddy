@@ -5,6 +5,9 @@
 #include <array>
 #include <freertos/config.hpp>
 
+// We formward declare QueueDefinition here to not include all the freertos hell
+struct QueueDefinition;
+
 namespace freertos {
 
 // C++ wrapper for FreeRTOS queue.
@@ -16,12 +19,15 @@ public:
 
 private:
     alignas(queue_storage_align) Storage queue_storage;
+    QueueDefinition *queue_handle;
 
 protected:
     QueueBase(size_t item_count, size_t item_size, uint8_t *item_storage);
     ~QueueBase();
     QueueBase(const QueueBase &) = delete;
+    QueueBase(QueueBase &&) = delete;
     QueueBase &operator=(const QueueBase &) = delete;
+    QueueBase &operator=(QueueBase &&) = delete;
     void send(const void *payload);
     bool send_from_isr(const void *payload);
     void receive(void *payload);
@@ -34,7 +40,7 @@ template <class T, size_t N>
 class Queue final : public QueueBase {
 public:
     Queue()
-        : QueueBase(N, sizeof(T), item_storage) {}
+        : QueueBase(N, sizeof(T), reinterpret_cast<uint8_t *>(item_storage.data())) {}
 
     void send(const T &payload) {
         QueueBase::send(&payload);
@@ -59,7 +65,7 @@ public:
     }
 
 private:
-    uint8_t item_storage[N * sizeof(T)];
+    alignas(T) std::array<std::byte, N * sizeof(T)> item_storage;
 };
 
 } // namespace freertos
