@@ -7,6 +7,7 @@
 #include <option/has_puppies.h>
 #include <option/has_embedded_esp32.h>
 #include <option/has_toolchanger.h>
+#include <option/has_chamber_api.h>
 
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -37,6 +38,9 @@
 #endif
 #if ENABLED(PRUSA_SPOOL_JOIN)
     #include "module/prusa/spool_join.hpp"
+#endif
+#if HAS_CHAMBER_API()
+    #include <feature/chamber/chamber.hpp>
 #endif
 
 #include "../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
@@ -74,6 +78,12 @@
 
 #include <usb_host/usbh_async_diskio.hpp>
 #include <gcode/gcode_reader_restore_info.hpp>
+
+namespace {
+
+constexpr uint16_t chamber_temp_off = 0xffff;
+
+}
 
 // External thread handles required for suspension
 extern osThreadId defaultTaskHandle;
@@ -233,6 +243,11 @@ struct flash_data {
 #endif
 #if ENABLED(PRUSA_SPOOL_JOIN)
         SpoolJoin::serialized_state_t spool_join;
+#endif
+#if HAS_CHAMBER_API()
+        // The chamber API has it as optional, we map nullopt (disabled) to
+        // chamber_temp_off (0xffff), as optional is not guaranteed to be POD.
+        uint16_t chamber_target_temp;
 #endif
         GCodeReaderStreamRestoreInfo gcode_stream_restore_info;
         uint8_t invalid = true; // set to zero before writing, cleared on erase
@@ -580,6 +595,13 @@ void resume_loop() {
 #if ENABLED(PRUSA_SPOOL_JOIN)
         spool_join.deserialize(state_buf.spool_join);
 #endif
+#if HAS_CHAMBER_API()
+        if (state_buf.chamber_target_temp == chamber_temp_off) {
+            buddy::chamber().set_target_temperature(std::nullopt);
+        } else {
+            buddy::chamber().set_target_temperature(state_buf.chamber_target_temp);
+        }
+#endif
 
 #if HAS_TOOLCHANGER()
         if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL) { // Was in toolchange area
@@ -905,6 +927,9 @@ void panic_loop() {
 #endif
 #if ENABLED(PRUSA_SPOOL_JOIN)
         spool_join.serialize(state_buf.spool_join);
+#endif
+#if HAS_CHAMBER_API()
+        state_buf.chamber_target_temp = buddy::chamber().target_temperature().value_or(chamber_temp_off);
 #endif
         state_buf.gcode_stream_restore_info = marlin_server::stream_restore_info();
 #if HAS_TOOLCHANGER()
