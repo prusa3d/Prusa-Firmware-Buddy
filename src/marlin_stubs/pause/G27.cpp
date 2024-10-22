@@ -85,10 +85,10 @@ void GcodeSuite::G27() {
 
 void G27_no_parser(const G27Params &params) {
     xyz_pos_t park_position { park_positions[params.where_to_park] };
-    xyz_bool_t do_axis = { true, true, true };
+    xyz_bool_t do_axis = { { { true, true, true } } };
 
     // If any park position was given, move only specified axes
-    if (params.park_position != xyz_pos_t { NAN, NAN, NAN }) {
+    if (!(isnan(params.park_position.x) && isnan(params.park_position.y) && isnan(params.park_position.z))) {
         for (uint8_t i = 0; i < 3; i++) {
             do_axis.pos[i] = !isnan(params.park_position.pos[i]);
             park_position.pos[i] = do_axis.pos[i] ? params.park_position.pos[i] : current_position.pos[i];
@@ -97,13 +97,15 @@ void G27_no_parser(const G27Params &params) {
 
     // If not homed and only Z clearance is requested, od just that, otherwise home and then park.
     if (axes_need_homing(X_AXIS | Y_AXIS | Z_AXIS)) {
-        if (do_axis == xyz_bool_t { false, false, true } && params.z_action == 0) {
+        if (do_axis == xyz_bool_t { { { false, false, true } } } && params.z_action == 0) {
             // Only Z axis is given in P=0 mode, do Z clearance
             do_z_clearance(park_position.z);
             return;
         }
 
-        GcodeSuite::G28_no_parser(true, 3, false, do_axis[X_AXIS], do_axis[Y_AXIS], do_axis[Z_AXIS]);
+        if (do_axis.x || do_axis.y) {
+            GcodeSuite::G28_no_parser(true, 3, false, do_axis[X_AXIS], do_axis[Y_AXIS], do_axis[Z_AXIS]);
+        }
     }
 
     // Regular park
