@@ -13,6 +13,9 @@ namespace buddy {
 class Chamber {
 
 public: // Common/utilities
+    Chamber() {
+        reset();
+    }
     struct Capabilities {
         bool temperature_reporting = false;
 
@@ -30,6 +33,11 @@ public: // Common/utilities
     /// Does the chamber control logic
     /// !!! Only to be called from the marlin thread
     void step();
+
+    /// Set the chamber to initial setup.
+    ///
+    /// Currently, resets the target temperature to no cooling.
+    void reset();
 
 public: // Temperature control
     std::optional<Temperature> current_temperature() const;

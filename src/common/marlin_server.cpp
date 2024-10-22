@@ -784,6 +784,9 @@ void static finalize_print(bool finished) {
 #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
     GcodeSuite::fan_compatibility_mode = GcodeSuite::FanCompatibilityMode::NONE;
 #endif
+#if HAS_CHAMBER_API()
+    buddy::chamber().reset();
+#endif
     // Reset IS at the end of the print
     input_shaper::init();
 

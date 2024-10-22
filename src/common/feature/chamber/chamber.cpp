@@ -51,4 +51,9 @@ void Chamber::set_target_temperature(std::optional<Temperature> target) {
     target_temperature_ = target;
 }
 
+void Chamber::reset() {
+    std::lock_guard _lg(mutex_);
+    target_temperature_ = std::nullopt;
+}
+
 } // namespace buddy
