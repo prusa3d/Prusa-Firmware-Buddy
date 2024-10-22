@@ -177,12 +177,10 @@ static void puppy_task_loop() {
 #if HAS_XBUDDY_EXTENSION()
             {
                 // TODO: Deal with possibility of extension being optional
-                // FIXME: Until we don't have modbus support merged, don't try to communicate
-                /*CommunicationStatus status = xbuddy_extension.refresh();
-                if (false && status == CommunicationStatus::ERROR) {
+                CommunicationStatus status = xbuddy_extension.refresh();
+                if (status == CommunicationStatus::ERROR) {
                     return;
-                }*/
-                CommunicationStatus status = CommunicationStatus::OK;
+                }
 
                 worked |= status == CommunicationStatus::OK;
             }
