@@ -65,7 +65,7 @@ public:
     }
 
 private:
-    std::array<std::byte, N * sizeof(T)> item_storage;
+    alignas(T) std::array<std::byte, N * sizeof(T)> item_storage;
 };
 
 } // namespace freertos
