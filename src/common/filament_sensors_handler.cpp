@@ -13,6 +13,7 @@
 #include <option/has_selftest.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
+#include <stdio.h>
 
 #if HAS_SELFTEST()
     #include <ScreenHandler.hpp>
@@ -232,7 +233,9 @@ void FilamentSensors::process_events() {
         }
 
         autoload_sent = true;
-        marlin_client::inject("M1701 Z40"); // autoload with return option and minimal Z value of 40mm
+        char buffer[sizeof("M1701 ZXXXXX")];
+        snprintf(buffer, sizeof(buffer), "M1701 Z%.2f", static_cast<double>(Z_AXIS_LOAD_POS));
+        marlin_client::inject(buffer); // autoload with return option and minimal Z value of 40mm
         log_info(FSensor, "Injected autoload");
 
         return true;
