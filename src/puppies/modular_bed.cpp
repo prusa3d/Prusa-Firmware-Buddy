@@ -5,7 +5,7 @@
 #include "metric.h"
 #include "puppy/modularbed/PuppyConfig.hpp"
 #include "timing.h"
-#include "puppies/PuppyBootstrap.hpp"
+#include <puppies/PuppyBootstrap.hpp>
 #include "otp.hpp"
 #include "power_panic.hpp"
 #include "printers.h"
@@ -20,6 +20,8 @@
 #include <tuple>
 
 namespace buddy::puppies {
+
+using Lock = std::unique_lock<PowerPanicMutex>;
 
 LOG_COMPONENT_DEF(ModularBed, logging::Severity::info);
 
@@ -37,10 +39,12 @@ ModularBed::ModularBed(PuppyModbus &bus, uint8_t modbus_address)
     : ModbusDevice(bus, modbus_address) {}
 
 CommunicationStatus ModularBed::ping() {
+    Lock guard(mutex);
     return bus.read(unit, general_status);
 }
 
 CommunicationStatus ModularBed::initial_scan() {
+    Lock guard(mutex);
     // Update static values
     CommunicationStatus status = bus.read(unit, general_static);
     if (status != CommunicationStatus::ERROR) {
@@ -73,6 +77,7 @@ CommunicationStatus ModularBed::initial_scan() {
 }
 
 CommunicationStatus ModularBed::refresh() {
+    Lock guard(mutex);
     static uint32_t refresh_nr = 0;
 
     typedef CommunicationStatus (ModularBed::*MethodType)();
@@ -292,37 +297,45 @@ CommunicationStatus ModularBed::read_mcu_temperature() {
 }
 
 void ModularBed::clear_fault() {
+    Lock guard(mutex);
     clear_fault_status.value = true;
     clear_fault_status.dirty = true;
 }
 
 float ModularBed::get_temp(const uint16_t idx) {
+    Lock guard(mutex);
     return static_cast<float>(bedlet_data.value.measured_temperature[idx]) / MODBUS_TEMPERATURE_REGISTERS_SCALE;
 }
 
 void ModularBed::set_print_fan_active(bool value) {
+    Lock guard(mutex);
     print_fan_active.dirty = true;
     print_fan_active.value = value;
 }
 
 float ModularBed::get_temp(const uint8_t column, const uint8_t row) {
+    // Private, not locked.
     return get_temp(idx(column, row));
 }
 
 void ModularBed::set_target(const uint8_t column, const uint8_t row, const float temp) {
+    Lock guard(mutex);
     set_target(idx(column, row), temp);
 }
 
 void ModularBed::set_target(const uint8_t idx, const float temp) {
+    // Private, not locked
     bedlet_target_temp.value[idx] = temp * MODBUS_TEMPERATURE_REGISTERS_SCALE;
     bedlet_target_temp.dirty = true;
 }
 
 float ModularBed::get_target(const uint8_t idx) {
+    // Private, not locked
     return static_cast<float>(bedlet_target_temp.value[idx]) / MODBUS_TEMPERATURE_REGISTERS_SCALE;
 }
 
 float ModularBed::get_target(const uint8_t column, const uint8_t row) {
+    Lock guard(mutex);
     return get_target(idx(column, row));
 }
 
@@ -392,6 +405,7 @@ ModularBed::cost_and_enable_mask_t ModularBed::touch_side(uint16_t enabled_mask,
 }
 
 void ModularBed::update_bedlet_temps(uint16_t enabled_mask, float target_temp) {
+    Lock guard(mutex);
     // first calculate what bedlets to enable so that we heat towards two sides
     // this avoid bed warping, because when heated towards two sides, it can expand without making mountain in the middle
     if (expand_to_sides_enabled) {
@@ -428,7 +442,6 @@ uint16_t ModularBed::expand_to_sides(uint16_t enabled_mask, float target_temp) {
 }
 
 void ModularBed::update_gradients(uint16_t enabled_mask) {
-
     // first reset target of not enabled bedlets to zero
     for (uint8_t i = 0; i < BEDLET_COUNT; i++) {
         if ((enabled_mask & (1 << i)) == 0) {
@@ -465,6 +478,16 @@ void ModularBed::update_gradients(uint16_t enabled_mask) {
             }
         }
     }
+}
+
+float ModularBed::get_heater_current() {
+    Lock guard(mutex);
+    return (currents.value.A_measured + currents.value.B_measured) / 1000.0;
+}
+
+uint16_t ModularBed::get_mcu_temperature() {
+    Lock guard(mutex);
+    return mcu_temperature.value;
 }
 
 ModularBed modular_bed(puppyModbus, PuppyBootstrap::get_modbus_address_for_dock(Dock::MODULAR_BED));

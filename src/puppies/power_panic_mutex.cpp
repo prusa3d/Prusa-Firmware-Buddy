@@ -1,4 +1,4 @@
-#include <puppy_mutex.hpp>
+#include <puppies/power_panic_mutex.hpp>
 
 #include <cassert>
 #include <cstdlib>
