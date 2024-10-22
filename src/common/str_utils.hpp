@@ -29,6 +29,24 @@ int strshiftUnicode(uint32_t *str, size_t max_size, const size_t n = 1, const ui
 int strinsUnicode(uint32_t *str, size_t max_size, const uint32_t *const ins, size_t times = 1);
 int str2multilineUnicode(uint32_t *str, size_t max_size, const size_t line_width);
 
+/// Result of from_chars_light
+struct from_chars_light_result {
+    const char *ptr; // pointer to last character processed
+    std::errc ec; // error code
+};
+
+/**
+ * @brief from_chars_light functions are lightweight alternatives to std::from_char functions.
+ * @note Problem with std::from_chars in GCC is that it uses fastfloat library, which takes about 20KB of flash space.
+         from_chars_light functions aims to provide safe, but lightweight alternative. Note that this implementation surely has caveats and different behaviour
+         than std implementation, but its is better than any other std functions, because it checks bounds of input array and also some overflows.
+   @warning some overflows might not be detected, specifically for 64bit types, its limitation of strtoll function.
+ */
+template <typename T>
+    requires std::integral<T>
+from_chars_light_result from_chars_light(const char *first, const char *last, T &value, int base = 10); // from_chars for integers
+from_chars_light_result from_chars_light(const char *first, const char *last, float &value); // from_chars for flaoat
+
 /// A const char* that is guaranteed to have unlimited lifetime (thanks to the consteval constructor)
 struct ConstexprString {
     consteval ConstexprString() = default;
