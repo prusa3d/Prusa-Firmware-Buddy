@@ -888,7 +888,6 @@ void GcodeSuite::M958() {
     phase_stepping::EnsureDisabled phaseSteppingDisabler;
     MicrostepRestorer microstepRestorer;
 
-    PrusaAccelerometer accelerometer;
     VibrateMeasureParams args {
         .excitation_acceleration = 2.5f,
         .excitation_cycles = 50,
@@ -1341,7 +1340,6 @@ void GcodeSuite::M959() {
     // phstep needs to be off _before_ getting the current ustep resolution
     phase_stepping::EnsureDisabled phaseSteppingDisabler;
     MicrostepRestorer microstep_restorer;
-    PrusaAccelerometer accelerometer;
 
     VibrateMeasureParams args {
         .excitation_acceleration = 2.5f,
