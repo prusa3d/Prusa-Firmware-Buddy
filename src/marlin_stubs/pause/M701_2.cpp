@@ -233,7 +233,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         settings.SetParkPoint({ X_AXIS_LOAD_POS, Y_AXIS_LOAD_POS, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN });
 
         // catch filament in gear and then ask for temp
-        if (!Pause::Instance().perform(Pause::LoadType::load_to_gears, settings) || FSensors_instance().no_filament_surely()) {
+        if (!Pause::Instance().perform(Pause::LoadType::load_to_gears, settings) || FSensors_instance().no_filament_surely(LogicalFilamentSensor::current_extruder)) {
             // do not ask for filament type after stop was pressed or filament was removed from FS
             Pause::Instance().perform(Pause::LoadType::unload_from_gears, settings);
             M70X_process_user_response(PreheatStatus::Result::DoneNoFilament, target_extruder);
