@@ -53,13 +53,16 @@ PrusaAccelerometer::PrusaAccelerometer() {
  * Do nothing otherwise.
  */
 PrusaAccelerometer::~PrusaAccelerometer() {
-    std::lock_guard lock(s_buffer_mutex);
+    {
+        std::lock_guard lock(s_buffer_mutex);
 
-    if (&m_sample_buffer != s_sample_buffer) {
-        return;
+        if (&m_sample_buffer != s_sample_buffer) {
+            return;
+        }
+
+        s_sample_buffer = nullptr;
     }
-
-    s_sample_buffer = nullptr;
+    /// @note We need to exit mutex before calling Dwarf methods to prevent deadlock.
 
     switch (m_sample_buffer.error.get()) {
     case Error::none:
