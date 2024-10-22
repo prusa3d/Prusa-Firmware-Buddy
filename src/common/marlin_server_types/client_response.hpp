@@ -411,6 +411,11 @@ enum class PhasesWarning : PhaseUnderlyingType {
     /// Shown when the M334 is attempting to change metrics configuration, prompting the user to confirm the change (security reasons)
     MetricsConfigChangePrompt,
 
+#if ENABLED(DETECT_PRINT_SHEET)
+    /// Shown on failed print sheet detection. Custom handling.
+    SteelSheetNotDetected,
+#endif
+
     NozzleCleaningFailed,
     _last = NozzleCleaningFailed,
 };
@@ -816,6 +821,9 @@ class ClientResponses {
 #endif
             { PhasesWarning::ProbingFailed, { Response::Yes, Response::No } },
             { PhasesWarning::MetricsConfigChangePrompt, { Response::Yes, Response::No } },
+#if ENABLED(DETECT_PRINT_SHEET)
+            { PhasesWarning::SteelSheetNotDetected, { Response::Retry, Response::Ignore } },
+#endif
             { PhasesWarning::NozzleCleaningFailed, { Response::Retry, Response::Abort } },
     };
 

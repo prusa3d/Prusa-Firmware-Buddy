@@ -424,8 +424,13 @@ namespace {
 
         const auto phase = static_cast<PhasesWarning>(phase_opt->GetPhase());
 
-        if (phase == PhasesWarning::MetricsConfigChangePrompt) {
-            // Handled in M334, do not consume the response.
+        if (
+            phase == PhasesWarning::MetricsConfigChangePrompt
+#if ENABLED(DETECT_PRINT_SHEET)
+            || phase == PhasesWarning::SteelSheetNotDetected
+#endif
+        ) {
+            // Custom handling, do not consume the response.
             return;
         }
 
@@ -466,6 +471,9 @@ namespace {
             break;
 
         case PhasesWarning::MetricsConfigChangePrompt:
+#if ENABLED(DETECT_PRINT_SHEET)
+        case PhasesWarning::SteelSheetNotDetected:
+#endif
             // This should be unreachable
             std::terminate();
         }

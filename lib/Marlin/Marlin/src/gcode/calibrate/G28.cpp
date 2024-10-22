@@ -97,6 +97,7 @@
 #endif
 
 #include <scope_guard.hpp>
+#include <marlin_server.hpp>
 
 #if ENABLED(QUICK_HOME)
 
@@ -698,22 +699,40 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
               // Do multiple attempts of detect print sheet
               // The point is that we want to prevent false failures caused by a dirty nozzle (cold filament left hanging out)
               // BFW-5028
-              for(uint8_t attempt = 0;; attempt++) {
+              uint8_t attempt = 0;
+              while(true) {
                 // If detect_print_sheet, return success (failed -> false)
                 if(detect_print_sheet(z_homing_height)) {
                   return false;
                 }
 
-                // Ran out of attempts -> fail
-                if(attempt == 2) {
+                bool ignore_fail = false;
+
+                // Ran out of attempts -> report detect fail
+                if(++attempt == 3) {
+                  // Report missing bed sheet
+                  static constexpr auto warning_type = WarningType::SteelSheetNotDetected;
+                  static constexpr auto warning_phase = PhasesWarning::SteelSheetNotDetected;
+                  marlin_server::set_warning(warning_type, warning_phase);
+
                   // Move the bed to the bottom to give space for the user to insert the sheet
-                  do_blocking_move_to_z(DETECT_PRINT_SHEET_Z_AFTER_FAILURE, homing_feedrate(Z_AXIS));
+                  // Do this asynchronously so that we can process the response while moving
+                  current_position.z = DETECT_PRINT_SHEET_Z_AFTER_FAILURE;
+                  line_to_current_position(homing_feedrate(Z_AXIS));
 
-                  // Fall into red screen
-                  kill(GET_TEXT(MSG_LCD_MISSING_SHEET));
+                  // Continue after the user puts the print sheet on
+                  Response response;
+                  do {
+                    idle(true, false);
+                    response = marlin_server::get_response_from_phase(warning_phase);
+                  } while (response == Response::_none);
 
-                  // Return failure
-                  return true;
+                  marlin_server::clear_warning(warning_type);
+
+                  // Wait for the movement to finish
+                  planner.synchronize();
+                  ignore_fail = (response == Response::Ignore);
+                  attempt = 0;
                 }
 
                 // Raise the Z again to prevent crashing into the sheet
@@ -723,6 +742,10 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
                 if(!home_z_safely()) {
                   // Fail straight away if z homing fails, only repeat if detect_print_sheet fails
                   return true;
+                }
+
+                if(ignore_fail) {
+                  return false;
                 }
               }
             }();
