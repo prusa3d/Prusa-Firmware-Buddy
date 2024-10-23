@@ -3,7 +3,15 @@ target_compile_definitions(STM32H5_HAL_Config INTERFACE STM32H503xx USE_HAL_DRIV
 target_include_directories(STM32H5_HAL_Config INTERFACE config)
 
 target_compile_definitions(firmware PRIVATE STM32GENERIC STM32H5 STM32H5xx)
-target_set_linker_script(firmware "${CMAKE_CURRENT_SOURCE_DIR}/stm32h503.ld")
+
+target_link_options(firmware PUBLIC "-L" "${CMAKE_CURRENT_SOURCE_DIR}")
+if(BOOTLOADER STREQUAL "EMPTY" OR BOOTLOADER)
+  target_set_linker_script(firmware "${CMAKE_CURRENT_SOURCE_DIR}/stm32h503_boot.ld")
+  target_compile_definitions(firmware PRIVATE BOOTLOADER_SIZE=8192)
+else()
+  target_set_linker_script(firmware "${CMAKE_CURRENT_SOURCE_DIR}/stm32h503_noboot.ld")
+  target_compile_definitions(firmware PRIVATE BOOTLOADER_SIZE=0)
+endif()
 
 target_sources(
   firmware
