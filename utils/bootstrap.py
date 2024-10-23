@@ -211,15 +211,6 @@ def install_dependency(dependency):
     fix_executable_permissions(dependency, installation_directory)
 
 
-def install_openocd_config_template():
-    debug_dir = project_root_dir / 'utils' / 'debug'
-    custom_config_path = debug_dir / '10_custom_config.cfg'
-    custom_config_template_path = debug_dir / '10_custom_config_template.cfg'
-    if not custom_config_path.exists():
-        print(f'Installing openocd user-config to {custom_config_path}')
-        shutil.copy(custom_config_template_path, custom_config_path)
-
-
 def get_dependency_version(dependency):
     return dependencies[dependency]['version']
 
@@ -291,9 +282,6 @@ def bootstrap():
 
     prepare_venv_if_needed()
     install_pip_packages()
-
-    # also, install openocd config meant for customization
-    install_openocd_config_template()
 
 
 def main() -> int:
