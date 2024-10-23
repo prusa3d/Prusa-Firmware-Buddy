@@ -1,35 +1,31 @@
 /// @file
 #include <sys/reent.h>
 
+#include "hal.h"
+
 // For now, let's compile with stdlib and suffer these functions.
 // Buildsystem is not yet ready for -nostdlib
 
 int _close_r(struct _reent *, int) {
-    for (;;)
-        ;
+    hal_panic();
 }
 
 _off_t _lseek_r(struct _reent *, int, _off_t, int) {
-    for (;;)
-        ;
+    hal_panic();
 }
 
 _ssize_t _read_r(struct _reent *, int, void *, size_t) {
-    for (;;)
-        ;
+    hal_panic();
 }
 
 _ssize_t _write_r(struct _reent *, int, const void *, size_t) {
-    for (;;)
-        ;
+    hal_panic();
 }
 
 int _kill_r(struct _reent *, int, int) {
-    for (;;)
-        ;
+    hal_panic();
 }
 
 int _getpid_r(struct _reent *) {
-    for (;;)
-        ;
+    hal_panic();
 }
