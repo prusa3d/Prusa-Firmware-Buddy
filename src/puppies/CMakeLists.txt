@@ -5,6 +5,7 @@ target_sources(
   PUBLIC fifo_decoder.cpp
          modbus.cpp
          puppy_crash_dump.cpp
+         puppy_mutex.cpp
          puppy_task.cpp
          PuppyBootstrap.cpp
          PuppyBus.cpp
