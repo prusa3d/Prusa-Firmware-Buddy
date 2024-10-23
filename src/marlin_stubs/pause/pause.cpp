@@ -42,8 +42,8 @@
 #include <config_store/store_instance.hpp>
 #include <scope_guard.hpp>
 #include <filament_to_load.hpp>
-#include <marlin_stubs/pause/G27.hpp>
 #include <common/marlin_client.hpp>
+#include <common/mapi/parking.hpp>
 
 #include <option/has_human_interactions.h>
 #include <option/has_mmu2.h>
@@ -586,7 +586,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         break;
     case LoadPhases_t::move_to_purge:
         if (can_move_head_during_load()) {
-            G27_no_parser({ .where_to_park = G27Params::ParkPosition::purge, .z_action = 4 });
+            mapi::park_move_with_conditional_home(mapi::park_positions[mapi::ParkPosition::purge], mapi::ZAction::no_move);
         }
         if (load_type == CommonLoadType::load_to_gear) {
             set(LoadPhases_t::_finish);
