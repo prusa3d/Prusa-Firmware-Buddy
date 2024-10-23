@@ -28,19 +28,23 @@ dependencies_dir = project_root_dir / '.dependencies'
 # yapf: disable
 dependencies = {
     'ninja': {
-        'version': '1.10.2',
+        'version': '1.12.1',
         'url': {
-            'Linux': 'https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-linux.zip',
-            'Windows': 'https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-win.zip',
-            'Darwin': 'https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-mac.zip',
+            'Linux': 'https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux.zip',
+            'Linux-aarch64': 'https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux-aarch64.zip',
+            'Windows': 'https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip',
+            'Windows-arm64': 'https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-winarm64.zip',
+            'Darwin': 'https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-mac.zip',
         },
     },
     'cmake': {
-        'version': '3.22.5',
+        'version': '3.30.3',
         'url': {
-            'Linux': 'https://github.com/Kitware/CMake/releases/download/v3.22.5/cmake-3.22.5-linux-x86_64.tar.gz',
-            'Windows': 'https://github.com/Kitware/CMake/releases/download/v3.22.5/cmake-3.22.5-windows-x86_64.zip',
-            'Darwin': 'https://github.com/Kitware/CMake/releases/download/v3.22.5/cmake-3.22.5-macos-universal.tar.gz',
+            'Linux': 'https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3-linux-x86_64.tar.gz',
+            'Linux-aarch64': 'https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3-linux-aarch64.tar.gz',
+            'Windows': 'https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3-windows-x86_64.zip',
+            'Windows-arm64': 'https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3-windows-arm64.zip',
+            'Darwin': 'https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3-macos-universal.tar.gz',
         },
     },
     'avr-gcc': {
@@ -52,11 +56,12 @@ dependencies = {
         },
     },
     'clang-format': {
-        'version': '9.0.0-noext',
+        'version': '18.1.8',
         'url': {
-            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-9.0.0-linux.zip',
-            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-9.0.0-noext-win.zip',
-            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-9.0.0-darwin.zip',
+            'Linux': 'https://github.com/ysmilda/clang-llvm/releases/download/llvmorg-18.1.8/clang-format-18.1.8-x86_64-linux-gnu-ubuntu-18.04',
+            'Linux-aarch64': 'https://github.com/ysmilda/clang-llvm/releases/download/llvmorg-18.1.8/clang-format-18.1.8-aarch64-linux-gnu',
+            'Windows': 'https://github.com/ysmilda/clang-llvm/releases/download/llvmorg-18.1.8/clang-format-18.1.8-x86_64-pc-windows-msvc.exe',
+            'Darwin': 'https://github.com/ysmilda/clang-llvm/releases/download/llvmorg-18.1.8/clang-format-18.1.8-arm64-apple-macos11',
         }
     },
     'prusa3dboards': {
@@ -86,20 +91,34 @@ def find_single_subdir(path: Path):
         raise RuntimeError
 
 
-def download_and_unzip(url: str, directory: Path):
+def download_and_unzip(url: str, directory: Path, dependency: str):
     """Download a compressed file and extract it at `directory`."""
     extract_dir = directory.with_suffix('.temp')
     shutil.rmtree(directory, ignore_errors=True)
     shutil.rmtree(extract_dir, ignore_errors=True)
 
     print('Downloading ' + directory.name)
-    f, _ = urlretrieve(url, filename=None)
-    print('Extracting ' + directory.name)
-    if '.tar.bz2' in url or '.tar.gz' in url or '.tar.xz' in url:
-        obj = tarfile.open(f)
+
+    tarExtensions = (
+        '.tar.bz2',
+        '.tar.gz',
+        '.tar.xz',
+    )
+    zipExtensions = ('.zip')
+
+    if url.endswith(tarExtensions) or url.endswith(zipExtensions):
+        f, _ = urlretrieve(url, filename=None)
+        print('Extracting ' + directory.name)
+        if url.endswith(tarExtensions):
+            obj = tarfile.open(f)
+            obj.extractall(path=str(extract_dir), filter='fully_trusted')
+        else:
+            obj = zipfile.ZipFile(f, 'r')
+            obj.extractall(path=str(extract_dir))
+
     else:
-        obj = zipfile.ZipFile(f, 'r')
-    obj.extractall(path=str(extract_dir))
+        os.mkdir(extract_dir)
+        f, _ = urlretrieve(url, filename=os.path.join(extract_dir, dependency))
 
     subdir = find_single_subdir(extract_dir)
     shutil.move(str(subdir), str(directory))
@@ -144,7 +163,9 @@ def install_dependency(dependency):
     url = specs['url']
     if isinstance(url, dict):
         url = url[platform.system()]
-    download_and_unzip(url=url, directory=installation_directory)
+    download_and_unzip(url=url,
+                       directory=installation_directory,
+                       dependency=dependency)
     fix_executable_permissions(dependency, installation_directory)
 
 
