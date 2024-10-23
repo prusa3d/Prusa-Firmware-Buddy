@@ -410,6 +410,10 @@ void Pause::loop_autoload(Response response) {
     loop_load_common(response, CommonLoadType::autoload);
 }
 
+static bool hands_off_head_load() {
+    return FSensors_instance().sensor(LogicalFilamentSensor::current_side) && is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side));
+}
+
 void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     const float purge_ln = settings.purge_length();
 
@@ -440,7 +444,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     case LoadPhases_t::_init:
         switch (load_type) {
         case CommonLoadType::load_to_gear:
-            if (FSensors_instance().sensor(LogicalFilamentSensor::current_side) && is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side))) {
+            if (hands_off_head_load()) {
                 set_timed(LoadPhases_t::assist_filament_insertion);
             } else {
                 set(LoadPhases_t::load_in_gear);
@@ -450,7 +454,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             // If we are certain that filament has been inserted, we can skip after load_in_gears phase
             if (FSensors_instance().has_filament_surely()) {
                 set(LoadPhases_t::move_to_purge);
-            } else if (FSensors_instance().sensor(LogicalFilamentSensor::current_side) && is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side))) {
+            } else if (hands_off_head_load()) {
                 set_timed(LoadPhases_t::await_filament);
             } else {
                 set(LoadPhases_t::load_in_gear);
@@ -541,7 +545,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             break;
         }
 
-        if (!FSensors_instance().sensor(LogicalFilamentSensor::current_side) || !is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side)) // If SIDE sensor is not assigned or not working go directly to loading
+        if (!hands_off_head_load() // If SIDE sensor is not assigned or not working go directly to loading
             || FSensors_instance().sensor(LogicalFilamentSensor::current_side)->get_state() == FilamentSensorState::HasFilament) { // If filament arrived at SIDE sensor, we can start loading sequence.
             set_timed(LoadPhases_t::assist_filament_insertion);
             break;
@@ -585,7 +589,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::move_to_purge:
-        if (can_move_head_during_load()) {
+        if (hands_off_head_load()) {
             mapi::park_move_with_conditional_home(mapi::park_positions[mapi::ParkPosition::purge], mapi::ZAction::no_move);
         }
         if (load_type == CommonLoadType::load_to_gear) {
@@ -1314,10 +1318,6 @@ void Pause::unpark_nozzle_and_notify() {
     if (settings.retract) {
         plan_e_move(-settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
     }
-}
-
-inline bool Pause::can_move_head_during_load() {
-    return FSensors_instance().sensor(LogicalFilamentSensor::current_side) && is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side));
 }
 
 /**

@@ -247,8 +247,6 @@ private:
     bool process_stop();
     void handle_filament_removal(LoadPhases_t phase_to_set); //<checks if filament is present if not it sets different phase
 
-    bool can_move_head_during_load();
-
     enum class RammingType {
         unload,
         runout
