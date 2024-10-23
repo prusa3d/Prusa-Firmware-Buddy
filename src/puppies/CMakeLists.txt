@@ -6,6 +6,7 @@ target_sources(
          modbus.cpp
          modular_bed.cpp
          puppy_crash_dump.cpp
+         puppy_mutex.cpp
          puppy_task.cpp
          PuppyBootstrap.cpp
          PuppyBus.cpp
