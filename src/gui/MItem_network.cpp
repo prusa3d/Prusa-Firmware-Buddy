@@ -183,12 +183,12 @@ MI_NET_IP::MI_NET_IP(NetDeviceID device_id)
     , device_id(device_id) //
 {
     set_translate_items(false);
-    index = netdev_get_ip_obtained_type(this->device_id());
+    this->SetIndex(netdev_get_ip_obtained_type(this->device_id()));
 }
 
 void MI_NET_IP::OnChange([[maybe_unused]] size_t old_index) {
     const auto dev_id = device_id();
-    if (index == NETDEV_STATIC) {
+    if (this->GetIndex() == NETDEV_STATIC) {
         netdev_set_static(dev_id);
     } else {
         netdev_set_dhcp(dev_id);

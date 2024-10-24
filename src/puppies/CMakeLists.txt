@@ -4,6 +4,7 @@ target_sources(
   firmware
   PUBLIC fifo_decoder.cpp
          modbus.cpp
+         power_panic_mutex.cpp
          puppy_crash_dump.cpp
          puppy_task.cpp
          PuppyBootstrap.cpp

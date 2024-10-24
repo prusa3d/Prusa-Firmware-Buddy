@@ -82,6 +82,9 @@ const img::Resource *warning_dialog_icon(WarningType warning_type) {
             { WarningType::EnclosureFilterExpiration, &img::warning_48x48 },
             { WarningType::EnclosureFanError, &img::warning_48x48 },
 #endif
+#if ENABLED(DETECT_PRINT_SHEET)
+            { WarningType::SteelSheetNotDetected, &img::warning_48x48 },
+#endif
             { WarningType::NotDownloaded, &img::no_stream_48x48 },
             { WarningType::GcodeCorruption, &img::warning_48x48 },
             { WarningType::GcodeCropped, &img::warning_48x48 },

@@ -35,17 +35,17 @@ bool CFanCtlPuppy::selftestSetPWM(uint8_t pwm) {
 }
 
 uint8_t CFanCtlPuppy::getPWM() const {
-    return buddy::puppies::dwarfs[dwarf_nr].RegisterGeneralStatus.value.fan[fan_nr].pwm;
+    return buddy::puppies::dwarfs[dwarf_nr].get_fan_pwm(fan_nr);
 }
 
 uint16_t CFanCtlPuppy::getActualRPM() const {
-    return buddy::puppies::dwarfs[dwarf_nr].RegisterGeneralStatus.value.fan[fan_nr].rpm;
+    return buddy::puppies::dwarfs[dwarf_nr].get_fan_rpm(fan_nr);
 }
 
 bool CFanCtlPuppy::getRPMIsOk() {
-    return buddy::puppies::dwarfs[dwarf_nr].RegisterGeneralStatus.value.fan[fan_nr].is_rpm_ok;
+    return buddy::puppies::dwarfs[dwarf_nr].get_fan_rpm_ok(fan_nr);
 }
 
 CFanCtlCommon::FanState CFanCtlPuppy::getState() const {
-    return static_cast<FanState>(buddy::puppies::dwarfs[dwarf_nr].RegisterGeneralStatus.value.fan[fan_nr].state);
+    return static_cast<FanState>(buddy::puppies::dwarfs[dwarf_nr].get_fan_state(fan_nr));
 }

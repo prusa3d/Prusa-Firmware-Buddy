@@ -516,6 +516,12 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
     case WarningType::EnclosureFilterExpiration:
         return ErrCode::CONNECT_ENCLOSURE_FILTER_EXPIRATION;
 #endif // XL_ENCLOSURE_SUPPORT
+
+#if ENABLED(DETECT_PRINT_SHEET)
+    case WarningType::SteelSheetNotDetected:
+        return ErrCode::ERR_MECHANICAL_STEEL_SHEET_NOT_DETECTED;
+#endif
+
     case WarningType::GcodeCorruption:
         return ErrCode::ERR_SYSTEM_GCODE_CORRUPTION;
     case WarningType::GcodeCropped:

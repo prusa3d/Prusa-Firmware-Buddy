@@ -360,6 +360,7 @@ public:
     MarlinVariable<uint16_t> print_speed; // printing speed factor [%]
     MarlinVariable<uint16_t> job_id; // print job id incremented at every print start(for connect)
     MarlinVariable<uint16_t> enabled_bedlet_mask; // enabled bedlet mask 1 - enabled, 0 disabled
+    MarlinVariable<uint16_t> extrude_min_temp; // See marlin's cold extrusion temperature set via M302
 
     // 1B base types
     MarlinVariable<uint8_t> gqueue; // number of commands in gcode queue
@@ -371,6 +372,7 @@ public:
     MarlinVariable<uint8_t> mmu2_state; // Corresponds to MMU2::xState
     MarlinVariable<uint8_t> mmu2_finda; // FINDA pressed = 1, FINDA not pressed = 0 - shall be used as the main fsensor in case of mmu2State
     MarlinVariable<uint8_t> active_extruder; // See marlin's active_extruder. It will contain currently selected extruder (tool in case of XL, loaded filament nr in case of MMU2)
+    MarlinVariable<bool> allow_cold_extrude; // See if marlin's allows cold extrusion
 
     // TODO: prints fans should be in extruder struct, but we are not able to control multiple print fans yet
     MarlinVariable<uint8_t> print_fan_speed; // print fan speed [0..255]

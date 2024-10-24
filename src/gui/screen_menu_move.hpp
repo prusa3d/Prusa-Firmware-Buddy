@@ -49,8 +49,6 @@ public:
     DUMMY_AXIS_E();
 
 public:
-    static bool IsTargetTempOk();
-
     // TODO call automatically in men loop
     void Update();
 
@@ -71,7 +69,6 @@ class ScreenMenuMove : public ScreenMenuMove__ {
 
 public:
     constexpr static const char *label = N_("MOVE AXIS");
-    static constexpr int temp_ok = 170; ///< Allow moving extruder if temperature is above this value [degC]
     static bool IsTempOk();
 
     ScreenMenuMove();

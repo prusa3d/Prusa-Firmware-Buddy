@@ -85,13 +85,6 @@ void DUMMY_AXIS_E::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_client::gcode("M1700 S E W2 B0"); // set filament, preheat to target, do not heat bed, return option
 }
 
-bool DUMMY_AXIS_E::IsTargetTempOk() {
-    const auto current_filament = config_store().get_filament_type(marlin_vars().active_extruder);
-    auto current_filament_nozzle_target = current_filament.parameters().nozzle_temperature;
-    return (current_filament != FilamentType::none) // filament is selected
-        && (int(marlin_vars().active_hotend().target_nozzle + 0.9F) >= current_filament_nozzle_target); // target temperature is high enough - +0.9 to avoid float round error
-}
-
 DUMMY_AXIS_E::DUMMY_AXIS_E()
     : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), nullptr, is_enabled_t::yes, is_hidden_t::no, 0,
         // this lambda is used during print, but does require item to be invalidated
@@ -103,7 +96,7 @@ DUMMY_AXIS_E::DUMMY_AXIS_E()
 }
 
 void DUMMY_AXIS_E::Update() {
-    UpdateValue(IsTargetTempOk());
+    UpdateValue(marlin_vars().active_hotend().target_nozzle > 0);
 }
 
 void ScreenMenuMove::checkNozzleTemp() {
@@ -112,7 +105,7 @@ void ScreenMenuMove::checkNozzleTemp() {
     // MI_COOLDOWN is always visible on multitool
 #endif /*HAS_TOOLCHANGER()*/
     {
-        Item<MI_COOLDOWN>().set_is_enabled(DUMMY_AXIS_E::IsTargetTempOk());
+        Item<MI_COOLDOWN>().set_is_enabled(marlin_vars().active_hotend().target_nozzle > 0);
     }
 
     if (IsTempOk() == Item<MI_AXIS_E>().IsHidden()) {
@@ -174,8 +167,8 @@ void ScreenMenuMove::checkNozzleTemp() {
 #endif // 0 .. make unit test
 
 bool ScreenMenuMove::IsTempOk() {
-    return DUMMY_AXIS_E::IsTargetTempOk() // target correctly set
-        && (marlin_vars().active_hotend().temp_nozzle >= temp_ok); // Temperature is above coldextrusion
+    return marlin_vars().allow_cold_extrude // don't check cold extrusion temp if marlin doesn't
+        || marlin_vars().active_hotend().temp_nozzle >= marlin_vars().extrude_min_temp; //
 }
 
 ScreenMenuMove::ScreenMenuMove()

@@ -3,6 +3,7 @@
 #include <limits>
 #include <array>
 #include <atomic>
+#include <memory>
 
 #include "puppies/PuppyModbus.hpp"
 #include "puppies/fifo_decoder.hpp"
@@ -18,6 +19,8 @@
 using namespace common::puppies::fifo;
 
 namespace buddy::puppies {
+
+class PowerPanicMutex;
 
 class Dwarf final : public ModbusDevice, public Decoder::Callbacks {
 public:
@@ -289,6 +292,16 @@ void ToolsMappingBody::windowEvent([[maybe_unused]] window_t *sender, GUI_event_
     float get_heatbreak_temp();
     uint16_t get_heatbreak_fan_pwr();
 
+    inline uint8_t get_dwarf_nr() const {
+        return dwarf_nr;
+    }
+
+    uint16_t get_fan_pwm(uint8_t fan_nr) const;
+    uint16_t get_fan_rpm(uint8_t fan_nr) const;
+    bool get_fan_rpm_ok(uint8_t fan_nr) const;
+    uint16_t get_fan_state(uint8_t fan_nr) const;
+
+private:
     MODBUS_REGISTER GeneralStatic_t {
         uint16_t HwBomId {};
         uint32_t HwOtpTimestsamp {};
@@ -326,6 +339,8 @@ void ToolsMappingBody::windowEvent([[maybe_unused]] window_t *sender, GUI_event_
         uint16_t heater_current_mA {};
     };
     ModbusInputRegisterBlock<FAULT_STATUS_ADDR, RegisterGeneralStatus_t> RegisterGeneralStatus {};
+    // Cached from RegisterGeneralStatus.ToolFilamentSensor, for use from an interrupt (where we can't lock).
+    std::atomic<uint16_t> tool_filament_sensor = 0;
 
     MODBUS_REGISTER TimeSync_t {
         uint32_t dwarf_time_us {};
@@ -354,6 +369,8 @@ void ToolsMappingBody::windowEvent([[maybe_unused]] window_t *sender, GUI_event_
         } pid;
     };
     ModbusHoldingRegisterBlock<GENERAL_WRITE_REQUEST, GeneralWrite_t> GeneralWrite;
+    // Because they can be set from an interrupt.
+    std::array<std::atomic<uint16_t>, NUM_FANS> fan_pwm_desired { 0, 0 };
 
     MODBUS_REGISTER TmcWriteRequest_t {
         uint16_t address {};
@@ -382,11 +399,13 @@ void ToolsMappingBody::windowEvent([[maybe_unused]] window_t *sender, GUI_event_
     };
     ModbusInputRegisterBlock<MARLIN_ERROR_COMPONENT_START, MarlinErrorString_t> MarlinErrorString {};
 
-    inline uint8_t get_dwarf_nr() const {
-        return dwarf_nr;
-    }
-
 private:
+    // FIXME: Need to be forward-declared, because this header file is included
+    // from marlin and it seems virtually impossible to persuade the **** build
+    // system to set the include paths to the place where we hide the
+    // freertos/mutex.hpp.
+    std::unique_ptr<PowerPanicMutex> mutex;
+
     /// @brief Dwarf number (1-5)
     uint8_t dwarf_nr;
 
@@ -410,6 +429,7 @@ private:
 
     CommunicationStatus write_general();
     CommunicationStatus write_tmc_enable();
+    CommunicationStatus pull_fifo_nolock(bool &more);
     CommunicationStatus pull_log_fifo();
     CommunicationStatus pull_loadcell_fifo();
     bool dispatch_log_event();
@@ -418,6 +438,8 @@ private:
     CommunicationStatus read_discrete_general_status();
     CommunicationStatus read_general_status();
     void handle_dwarf_fault();
+    bool set_loadcell_nolock(bool active);
+    bool set_accelerometer_nolock(bool active);
     bool raw_set_loadcell(bool active); // Low level loadcell enable/disable, no dependencies
     bool raw_set_accelerometer(bool active); // Low level accelerometer enable/disable, no dependencies
     CommunicationStatus read_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo, size_t &read); // Handle fifo read retries

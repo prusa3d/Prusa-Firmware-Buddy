@@ -121,6 +121,9 @@ enum class WarningType : uint32_t {
     EnclosureFilterExpiration,
     EnclosureFanError,
     #endif
+    #if ENABLED(DETECT_PRINT_SHEET)
+    SteelSheetNotDetected,
+    #endif
     NotDownloaded,
     GcodeCorruption,
     GcodeCropped,

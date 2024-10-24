@@ -282,10 +282,6 @@ if(CMAKE_CROSSCOMPILING)
   # better FreeRTOS support
   add_link_options(-Wl,--undefined=init_task)
 
-  # split and gc sections
-  add_compile_options(-ffunction-sections -fdata-sections)
-  add_link_options(-Wl,--gc-sections)
-
   # disable exceptions and related metadata
   add_compile_options(-fno-exceptions -fno-unwind-tables)
   add_link_options(-Wl,--defsym,__exidx_start=0,--defsym,__exidx_end=0)
@@ -304,6 +300,10 @@ if(CMAKE_CROSSCOMPILING)
   # disable warnings about RWX sections due to CrashCatcher's "safe" page
   add_link_options(-Wl,--no-warn-rwx-segments)
 endif()
+
+# split and gc sections
+add_compile_options(-ffunction-sections -fdata-sections)
+add_link_options(-Wl,--gc-sections)
 
 # support _DEBUG macro (some code uses to recognize debug builds)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
