@@ -1,6 +1,8 @@
 /// @file
 #include "modbus.hpp"
 
+#include <cstdlib>
+
 using Status = modbus::Callbacks::Status;
 
 static constexpr const std::byte read_holding_registers { 0x03 };
@@ -40,15 +42,27 @@ std::span<std::byte> modbus::handle_transaction(
         return {};
     }
 
-    // have at least device, function and valid crc
-    std::byte *response = response_buffer.data();
+    auto response = response_buffer.begin();
+    const auto resp_end = response_buffer.end();
+    auto resp = [&](std::byte b) {
+        if (response < resp_end) {
+            *response++ = b;
+        } else {
+            // Short output buffer. Do we have a better strategy? As this is a
+            // result of a mismatch between our buffer (the extboard FW) and
+            // the printer, programmer needs to fix it, it's not some kind of
+            // external condition...
+            abort();
+        }
+    };
 
+    // have at least device, function and valid crc
     const auto device = request[0];
     const auto function = request[1];
     request = request.subspan(2, request.size() - 4);
 
-    *response++ = device;
-    *response++ = function;
+    resp(device);
+    resp(function);
 
     auto status = Status::Ok;
 
@@ -68,15 +82,15 @@ std::span<std::byte> modbus::handle_transaction(
             const uint16_t count = get_word(2);
 
             const uint8_t bytes = 2 * count;
-            *response++ = std::byte { bytes };
+            resp(std::byte { bytes });
             for (uint16_t i = 0; i < count; ++i) {
                 uint16_t value;
                 status = callbacks.read_register((uint8_t)device, address + i, value);
                 if (status != Status::Ok) {
                     break;
                 }
-                *response++ = modbus_byte_hi(value);
-                *response++ = modbus_byte_lo(value);
+                resp(modbus_byte_hi(value));
+                resp(modbus_byte_lo(value));
             }
         }
     } break;
@@ -101,10 +115,10 @@ std::span<std::byte> modbus::handle_transaction(
                     break;
                 }
             }
-            *response++ = modbus_byte_hi(address);
-            *response++ = modbus_byte_lo(address);
-            *response++ = modbus_byte_hi(count);
-            *response++ = modbus_byte_lo(count);
+            resp(modbus_byte_hi(address));
+            resp(modbus_byte_lo(address));
+            resp(modbus_byte_hi(count));
+            resp(modbus_byte_lo(count));
         }
     } break;
     default:
@@ -120,12 +134,12 @@ std::span<std::byte> modbus::handle_transaction(
         return {};
     default:
         response_buffer[1] |= std::byte { 0x80 };
-        response = &response_buffer[2];
-        *response++ = std::byte { static_cast<uint8_t>(status) };
+        response = response_buffer.begin() + 2;
+        resp(std::byte { static_cast<uint8_t>(status) });
     }
 
-    uint16_t crc = modbus_compute_crc(std::span { response_buffer.data(), (size_t)std::distance(response_buffer.data(), response) });
-    *response++ = modbus_byte_lo(crc);
-    *response++ = modbus_byte_hi(crc);
-    return { response_buffer.data(), response };
+    uint16_t crc = modbus_compute_crc(std::span { response_buffer.begin(), response });
+    resp(modbus_byte_lo(crc));
+    resp(modbus_byte_hi(crc));
+    return { response_buffer.begin(), response };
 }
