@@ -310,16 +310,22 @@ static void MX_ADC1_Init(void) {
         abort();
     }
 
+    static constexpr auto single_diff = ADC_SINGLE_ENDED;
+
     ADC_ChannelConfTypeDef sConfig = {};
     sConfig.Channel = ADC_CHANNEL_18;
     sConfig.Rank = ADC_REGULAR_RANK_1;
     sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
-    sConfig.SingleDiff = ADC_SINGLE_ENDED;
+    sConfig.SingleDiff = single_diff;
     sConfig.OffsetNumber = ADC_OFFSET_NONE;
     sConfig.Offset = 0;
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         abort();
     }
+
+    HAL_ADCEx_Calibration_Start(&hadc1, single_diff);
+    const auto calib_val = HAL_ADC_GetValue(&hadc1);
+    HAL_ADCEx_Calibration_SetValue(&hadc1, single_diff, calib_val);
 }
 
 void hal::init() {
