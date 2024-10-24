@@ -187,6 +187,24 @@ static void init_gpio_pin(GPIO_TypeDef *port, uint32_t pin, uint32_t mode = GPIO
     HAL_GPIO_Init(port, &GPIO_InitStruct);
 }
 
+static void tim2_postinit() {
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    /**TIM2 GPIO Configuration
+    PA0     ------> TIM2_CH1
+    PA1     ------> TIM2_CH2
+    PA2     ------> TIM2_CH3
+    PA3     ------> TIM2_CH4
+    */
+    constexpr GPIO_InitTypeDef GPIO_InitStruct {
+        .Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3,
+        .Mode = GPIO_MODE_AF_PP,
+        .Pull = GPIO_NOPULL,
+        .Speed = GPIO_SPEED_FREQ_LOW,
+        .Alternate = GPIO_AF1_TIM2,
+    };
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+
 static void tim3_postinit() {
     __HAL_RCC_GPIOA_CLK_ENABLE();
     /**TIM3 GPIO Configuration
@@ -202,6 +220,34 @@ static void tim3_postinit() {
         .Alternate = GPIO_AF2_TIM3,
     };
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+
+static void tim2_init() {
+    // reset peripheral
+    __HAL_RCC_TIM2_CLK_ENABLE();
+    __HAL_RCC_TIM2_FORCE_RESET();
+    __HAL_RCC_TIM2_RELEASE_RESET();
+
+    // channel 1 settings
+    TIM2->CCMR1 |= (TIM_OCMODE_PWM1 << 0) | TIM_CCMR1_OC1PE;
+
+    // channel 2 settings
+    TIM2->CCMR1 |= (TIM_OCMODE_PWM1 << 8) | TIM_CCMR1_OC2PE;
+
+    // channel 3 settings
+    TIM2->CCMR2 |= (TIM_OCMODE_PWM1 << 0) | TIM_CCMR2_OC3PE;
+
+    // channel 4 settings
+    TIM2->CCMR2 |= (TIM_OCMODE_PWM1 << 8) | TIM_CCMR2_OC4PE;
+
+    // enable output of channels
+    TIM2->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;
+
+    // auto-reload value
+    TIM2->ARR = 255;
+
+    // enable counter
+    TIM2->CR1 |= TIM_CR1_CEN;
 }
 
 static void tim3_init() {
@@ -280,7 +326,9 @@ void hal::init() {
     HAL_Init();
     SystemClock_Config();
     init_gpio_pins();
+    tim2_init();
     tim3_init();
+    tim2_postinit();
     tim3_postinit();
     MX_ADC1_Init();
     rs485_init();
@@ -377,23 +425,19 @@ void hal::w_led::set_pwm(DutyCycle duty_cycle) {
 }
 
 void hal::rgbw_led::set_r_pwm(DutyCycle duty_cycle) {
-    // TODO
-    (void)duty_cycle;
+    TIM2->CCR4 = duty_cycle;
 }
 
 void hal::rgbw_led::set_g_pwm(DutyCycle duty_cycle) {
-    // TODO
-    (void)duty_cycle;
+    TIM2->CCR3 = duty_cycle;
 }
 
 void hal::rgbw_led::set_b_pwm(DutyCycle duty_cycle) {
-    // TODO
-    (void)duty_cycle;
+    TIM2->CCR2 = duty_cycle;
 }
 
 void hal::rgbw_led::set_w_pwm(DutyCycle duty_cycle) {
-    // TODO
-    (void)duty_cycle;
+    TIM2->CCR1 = duty_cycle;
 }
 
 uint32_t hal::temperature::get_raw() {
