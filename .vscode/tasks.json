@@ -46,6 +46,10 @@
             "type": "shell",
             "command": "sleep 1",
             "hide": true,
+            "presentation": {
+                "reveal": "never",
+                "close": true
+            },
             "windows": {
                 "command": "ping 127.0.0.1 -n 1 > $null"
             }
@@ -55,6 +59,10 @@
             "type": "shell",
             "command": "sleep 2",
             "hide": true,
+            "presentation": {
+                "reveal": "never",
+                "close": true
+            },
             "windows": {
                 "command": "ping 127.0.0.1 -n 2 > $null"
             }
