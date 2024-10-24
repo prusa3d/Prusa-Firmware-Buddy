@@ -8,7 +8,8 @@
 
 namespace {
 
-constexpr uint16_t MY_MODBUS_ADDR = 7;
+// TODO decide how to handle weird indexing schizophrenia caused by PuppyBootstrap::get_modbus_address_for_dock()
+constexpr uint16_t MY_MODBUS_ADDR = 0x1a + 7;
 constexpr uint16_t MMU_MODBUS_ADDR = 220;
 
 class Logic final : public modbus::Callbacks {
