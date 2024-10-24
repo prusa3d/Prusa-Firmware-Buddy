@@ -1,4 +1,4 @@
-#include <freertos/delay.hpp>
+#include <freertos/timing.hpp>
 
 // FreeRTOS.h must be included before task.h
 #include <FreeRTOS.h>
@@ -13,6 +13,12 @@ void delay(size_t milliseconds) {
     static_assert(configTICK_RATE_HZ == 1000);
     static_assert(pdMS_TO_TICKS(42) == 42);
     vTaskDelay(milliseconds);
+}
+
+size_t millis() {
+    // See comment in freertos::delay()
+    static_assert(configTICK_RATE_HZ == 1000);
+    return xTaskGetTickCount();
 }
 
 } // namespace freertos
