@@ -5,7 +5,7 @@ add_library(
   critical_section.cpp
   mutex.cpp
   queue.cpp
-  delay.cpp
+  timing.cpp
   system_tasks.cpp
   wait_condition.cpp
   )

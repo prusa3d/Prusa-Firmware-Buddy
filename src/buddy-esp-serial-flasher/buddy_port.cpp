@@ -3,7 +3,7 @@
 #include <device/peripherals_uart.hpp>
 #include <device/peripherals.h>
 #include <esp_loader.h>
-#include <freertos/delay.hpp>
+#include <freertos/timing.hpp>
 #include <string.h>
 
 static uint32_t uart_dma_position = 0;
