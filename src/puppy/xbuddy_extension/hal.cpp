@@ -361,17 +361,23 @@ void hal::step() {
     HAL_ADC_Stop(&hadc1);
 }
 
+// The v1 board has 3-pin fans, reading fan's PWM is hard, so we stub it out
+// for now for this revision, based on if they should be spinning or not, so
+// the spin-up algorithm on the printer side does something sane.
+static bool fan1_enabled = false;
+static bool fan2_enabled = false;
+
 void hal::fan1::set_enabled(bool b) {
     HAL_GPIO_WritePin(D_FAN1_EN, b ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
 void hal::fan1::set_pwm(DutyCycle duty_cycle) {
     TIM3->CCR3 = duty_cycle;
+    fan1_enabled = duty_cycle >= 1;
 }
 
 uint32_t hal::fan1::get_raw() {
-    // TODO
-    return 0;
+    return fan1_enabled ? 500 : 0;
 }
 
 void hal::fan2::set_enabled(bool b) {
@@ -380,11 +386,11 @@ void hal::fan2::set_enabled(bool b) {
 
 void hal::fan2::set_pwm(DutyCycle duty_cycle) {
     TIM3->CCR2 = duty_cycle;
+    fan2_enabled = duty_cycle >= 1;
 }
 
 uint32_t hal::fan2::get_raw() {
-    // TODO
-    return 0;
+    return fan2_enabled ? 500 : 0;
 }
 
 void hal::fan3::set_enabled(bool b) {
