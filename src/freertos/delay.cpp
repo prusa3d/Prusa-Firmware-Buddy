@@ -15,4 +15,10 @@ void delay(size_t milliseconds) {
     vTaskDelay(milliseconds);
 }
 
+size_t millis() {
+    // See comment in freertos::delay()
+    static_assert(configTICK_RATE_HZ == 1000);
+    return xTaskGetTickCount();
+}
+
 } // namespace freertos
