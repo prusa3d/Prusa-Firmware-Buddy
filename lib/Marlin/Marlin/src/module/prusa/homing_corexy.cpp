@@ -325,7 +325,7 @@ bool refine_corexy_origin() {
     // increase current of the holding motor
     AxisEnum fixed_axis = (X_HOME_DIR == Y_HOME_DIR ? A_AXIS : B_AXIS);
     AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
-    TMCStepper &fixed_stepper = stepper_axis(fixed_axis);
+    auto &fixed_stepper = stepper_axis(fixed_axis);
 
     int32_t orig_cur = fixed_stepper.rms_current();
     float orig_hold = fixed_stepper.hold_multiplier();
