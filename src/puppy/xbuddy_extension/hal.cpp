@@ -187,68 +187,7 @@ static void init_gpio_pin(GPIO_TypeDef *port, uint32_t pin, uint32_t mode = GPIO
     HAL_GPIO_Init(port, &GPIO_InitStruct);
 }
 
-static TIM_HandleTypeDef htim3;
-
-extern "C" void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim_base) {
-    if (htim_base->Instance == TIM3) {
-        __HAL_RCC_TIM3_CLK_ENABLE();
-    }
-}
-
-static void MX_TIM3_Init(void) {
-    htim3.Instance = TIM3;
-    htim3.Init.Prescaler = 0;
-    htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim3.Init.Period = 255;
-    htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-    if (HAL_TIM_Base_Init(&htim3) != HAL_OK) {
-        abort();
-    }
-
-    constexpr TIM_ClockConfigTypeDef sClockSourceConfig = {
-        .ClockSource = TIM_CLOCKSOURCE_INTERNAL,
-        .ClockPolarity = 0,
-        .ClockPrescaler = 0,
-        .ClockFilter = 0,
-    };
-    if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK) {
-        abort();
-    }
-
-    if (HAL_TIM_PWM_Init(&htim3) != HAL_OK) {
-        abort();
-    }
-
-    constexpr TIM_MasterConfigTypeDef sMasterConfig = {
-        .MasterOutputTrigger = TIM_TRGO_RESET,
-        .MasterOutputTrigger2 = 0,
-        .MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE,
-    };
-    if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK) {
-        abort();
-    }
-
-    TIM_OC_InitTypeDef sConfigOC = {
-        .OCMode = TIM_OCMODE_PWM2,
-        .Pulse = 0,
-        .OCPolarity = TIM_OCPOLARITY_HIGH,
-        .OCNPolarity = 0,
-        .OCFastMode = TIM_OCFAST_DISABLE,
-        .OCIdleState = 0,
-        .OCNIdleState = 0,
-    };
-    if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK) {
-        abort();
-    }
-    if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK) {
-        abort();
-    }
-    sConfigOC.OCMode = TIM_OCMODE_PWM1;
-    if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
-        abort();
-    }
-
+static void tim3_postinit() {
     __HAL_RCC_GPIOA_CLK_ENABLE();
     /**TIM3 GPIO Configuration
     PA6     ------> TIM3_CH1
@@ -263,6 +202,31 @@ static void MX_TIM3_Init(void) {
         .Alternate = GPIO_AF2_TIM3,
     };
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+
+static void tim3_init() {
+    // reset peripheral
+    __HAL_RCC_TIM3_CLK_ENABLE();
+    __HAL_RCC_TIM3_FORCE_RESET();
+    __HAL_RCC_TIM3_RELEASE_RESET();
+
+    // channel 1 settings
+    TIM3->CCMR1 |= (TIM_OCMODE_PWM1 << 0) | TIM_CCMR1_OC1PE;
+
+    // channel 2 settings
+    TIM3->CCMR1 |= (TIM_OCMODE_PWM2 << 8) | TIM_CCMR1_OC2PE;
+
+    // channel 3 settings
+    TIM3->CCMR2 |= (TIM_OCMODE_PWM2 << 0) | TIM_CCMR2_OC3PE;
+
+    // enable output of channels
+    TIM3->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E;
+
+    // auto-reload value
+    TIM3->ARR = 255;
+
+    // enable counter
+    TIM3->CR1 |= TIM_CR1_CEN;
 }
 
 #define D_FAN2_EN            GPIOB, GPIO_PIN_10
@@ -316,10 +280,8 @@ void hal::init() {
     HAL_Init();
     SystemClock_Config();
     init_gpio_pins();
-    MX_TIM3_Init();
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+    tim3_init();
+    tim3_postinit();
     MX_ADC1_Init();
     rs485_init();
 }
