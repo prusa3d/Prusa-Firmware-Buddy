@@ -4,7 +4,7 @@
 #include "hal.hpp"
 #include "modbus.hpp"
 #include "temperature.hpp"
-#include <freertos/delay.hpp>
+#include <freertos/timing.hpp>
 
 namespace {
 

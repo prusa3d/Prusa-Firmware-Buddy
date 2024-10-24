@@ -3,7 +3,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include <utility>
-#include <freertos/delay.hpp>
+#include <freertos/timing.hpp>
 
 // The logic is inverted here. We explicitly mark data we don't want to be
 // shared and make all the other are shared between tasks.
