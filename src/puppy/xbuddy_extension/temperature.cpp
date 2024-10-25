@@ -45,7 +45,7 @@ constexpr float raw_to_celsius(uint16_t raw, const std::span<const ThermistorLoo
     return lo.temp + static_cast<float>(static_cast<int16_t>(raw) - lo.raw) * (hi.temp - lo.temp) / (hi.raw - lo.raw);
 }
 
-constexpr auto ntc_104nt_lookup = thermistor_lookup_table(4700, 4095,
+constexpr auto ntc_104nt_lookup = thermistor_lookup_table(33000, 4095,
     std::to_array<ThermistorTableRecord>({
         { -50, 8887 },
         { -30, 2156 },
@@ -66,12 +66,12 @@ constexpr auto ntc_104nt_lookup = thermistor_lookup_table(4700, 4095,
 
 // Some checks that we're calculating correctly
 static_assert(ntc_104nt_lookup[6].temp == 40);
-static_assert(ntc_104nt_lookup[6].raw == 3749);
+static_assert(ntc_104nt_lookup[6].raw == 2484);
 
 static_assert(raw_to_celsius(0, ntc_104nt_lookup) > 120);
-static_assert(std::abs(raw_to_celsius(2220, ntc_104nt_lookup) - 100) < 1);
-static_assert(std::abs(raw_to_celsius(3386, ntc_104nt_lookup) - 60) < 1);
-static_assert(std::abs(raw_to_celsius(3749, ntc_104nt_lookup) - 40) < 1);
+static_assert(std::abs(raw_to_celsius(591, ntc_104nt_lookup) - 100) < 1);
+static_assert(std::abs(raw_to_celsius(1659, ntc_104nt_lookup) - 60) < 1);
+static_assert(std::abs(raw_to_celsius(2484, ntc_104nt_lookup) - 40) < 1);
 static_assert(raw_to_celsius(5000, ntc_104nt_lookup) < -50);
 
 float temperature::raw_to_celsius(uint16_t raw) {

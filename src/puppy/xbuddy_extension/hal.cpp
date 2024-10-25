@@ -65,8 +65,6 @@ void SystemClock_Config(void) {
     __HAL_FLASH_SET_PROGRAM_DELAY(FLASH_PROGRAMMING_DELAY_0);
 }
 
-#define D_RS485_FLOW_CONTROL GPIOC, GPIO_PIN_14
-
 static UART_HandleTypeDef huart;
 static std::byte rx_buf[256];
 static volatile size_t rx_len;
@@ -77,29 +75,32 @@ static volatile size_t rx_len;
 struct Element {};
 static freertos::Queue<Element, 1> queue;
 
-extern "C" void USART1_IRQHandler(void) {
+extern "C" void USART3_IRQHandler(void) {
     HAL_UART_IRQHandler(&huart);
 }
 
 extern "C" void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
     GPIO_InitTypeDef GPIO_InitStruct {};
     RCC_PeriphCLKInitTypeDef PeriphClkInitStruct {};
-    if (huart->Instance == USART1) {
-        PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART1;
-        PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
+    if (huart->Instance == USART3) {
+        PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3;
+        PeriphClkInitStruct.Usart3ClockSelection = RCC_USART3CLKSOURCE_PCLK1;
         if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
             abort();
         }
-        __HAL_RCC_USART1_CLK_ENABLE();
+        __HAL_RCC_USART3_CLK_ENABLE();
         __HAL_RCC_GPIOB_CLK_ENABLE();
-        GPIO_InitStruct.Pin = GPIO_PIN_14 | GPIO_PIN_15;
+        GPIO_InitStruct.Pin = GPIO_PIN_7 | GPIO_PIN_8;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-        GPIO_InitStruct.Alternate = GPIO_AF4_USART1;
+        GPIO_InitStruct.Alternate = GPIO_AF13_USART3;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-        HAL_NVIC_SetPriority(USART1_IRQn, 5, 0);
-        HAL_NVIC_EnableIRQ(USART1_IRQn);
+        GPIO_InitStruct.Pin = GPIO_PIN_14;
+        GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+        HAL_NVIC_SetPriority(USART3_IRQn, 5, 0);
+        HAL_NVIC_EnableIRQ(USART3_IRQn);
     }
 }
 
@@ -119,12 +120,11 @@ extern "C" void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t s
 }
 
 extern "C" void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-    HAL_GPIO_WritePin(D_RS485_FLOW_CONTROL, GPIO_PIN_RESET);
     HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)rx_buf, sizeof(rx_buf));
 }
 
 void rs485_init() {
-    huart.Instance = USART1;
+    huart.Instance = USART3;
     huart.Init.BaudRate = 230'400;
     huart.Init.WordLength = UART_WORDLENGTH_8B;
     huart.Init.StopBits = UART_STOPBITS_1;
@@ -147,6 +147,9 @@ void rs485_init() {
     if (HAL_UARTEx_DisableFifoMode(&huart) != HAL_OK) {
         abort();
     }
+    if (HAL_RS485Ex_Init(&huart, UART_DE_POLARITY_HIGH, 0x1f, 0x1f) != HAL_OK) {
+        abort();
+    }
 }
 
 extern "C" void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc) {
@@ -164,27 +167,15 @@ extern "C" void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc) {
         /* Peripheral clock enable */
         __HAL_RCC_ADC_CLK_ENABLE();
 
-        __HAL_RCC_GPIOA_CLK_ENABLE();
+        __HAL_RCC_GPIOB_CLK_ENABLE();
         /**ADC1 GPIO Configuration
-        PA4     ------> ADC1_INP18
+        PB1     ------> ADC1_INP5
         */
-        GPIO_InitStruct.Pin = GPIO_PIN_4;
+        GPIO_InitStruct.Pin = GPIO_PIN_1;
         GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     }
-}
-
-static void init_gpio_pin(GPIO_TypeDef *port, uint32_t pin, uint32_t mode = GPIO_MODE_OUTPUT_PP) {
-    HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);
-    GPIO_InitTypeDef GPIO_InitStruct {
-        .Pin = pin,
-        .Mode = mode,
-        .Pull = GPIO_NOPULL,
-        .Speed = GPIO_SPEED_FREQ_LOW,
-        .Alternate = 0,
-    };
-    HAL_GPIO_Init(port, &GPIO_InitStruct);
 }
 
 static void tim2_postinit() {
@@ -207,19 +198,22 @@ static void tim2_postinit() {
 
 static void tim3_postinit() {
     __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
     /**TIM3 GPIO Configuration
     PA6     ------> TIM3_CH1
     PA7     ------> TIM3_CH2
-    PA8     ------> TIM3_CH3
+    PB0     ------> TIM3_CH3
     */
-    constexpr GPIO_InitTypeDef GPIO_InitStruct {
-        .Pin = GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_8,
+    GPIO_InitTypeDef GPIO_InitStruct {
+        .Pin = GPIO_PIN_6 | GPIO_PIN_7,
         .Mode = GPIO_MODE_AF_PP,
         .Pull = GPIO_NOPULL,
         .Speed = GPIO_SPEED_FREQ_LOW,
         .Alternate = GPIO_AF2_TIM3,
     };
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    GPIO_InitStruct.Pin = GPIO_PIN_0;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
 static void tim2_init() {
@@ -275,13 +269,6 @@ static void tim3_init() {
     TIM3->CR1 |= TIM_CR1_CEN;
 }
 
-#define D_RS485_FLOW_CONTROL GPIOC, GPIO_PIN_14
-
-static void init_gpio_pins() {
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    init_gpio_pin(D_RS485_FLOW_CONTROL);
-}
-
 ADC_HandleTypeDef hadc1;
 
 static void MX_ADC1_Init(void) {
@@ -308,7 +295,7 @@ static void MX_ADC1_Init(void) {
     static constexpr auto single_diff = ADC_SINGLE_ENDED;
 
     ADC_ChannelConfTypeDef sConfig = {};
-    sConfig.Channel = ADC_CHANNEL_18;
+    sConfig.Channel = ADC_CHANNEL_5;
     sConfig.Rank = ADC_REGULAR_RANK_1;
     sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
     sConfig.SingleDiff = single_diff;
@@ -323,23 +310,81 @@ static void MX_ADC1_Init(void) {
     HAL_ADCEx_Calibration_SetValue(&hadc1, single_diff, calib_val);
 }
 
+I2C_HandleTypeDef hi2c;
+
+extern "C" void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c) {
+    if (hi2c->Instance == I2C2) {
+        __HAL_RCC_I2C2_CONFIG(RCC_I2C2CLKSOURCE_PCLK1);
+        __HAL_RCC_GPIOB_CLK_ENABLE();
+        /**I2C2 GPIO Configuration
+        PB10     ------> I2C2_SCL
+        PB13     ------> I2C2_SDA
+        */
+        GPIO_InitTypeDef GPIO_InitStruct = {
+            .Pin = GPIO_PIN_10 | GPIO_PIN_13,
+            .Mode = GPIO_MODE_AF_OD,
+            .Pull = GPIO_NOPULL,
+            .Speed = GPIO_SPEED_FREQ_LOW,
+            .Alternate = GPIO_AF4_I2C2,
+        };
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+        /* Peripheral clock enable */
+        __HAL_RCC_I2C2_CLK_ENABLE();
+    }
+}
+
+static void i2c2_init() {
+    hi2c.Instance = I2C2;
+    hi2c.Init.OwnAddress1 = 0;
+    hi2c.Init.Timing = 0x00707CBB; // Generated by stm32 cube IDE when using default settings 🤷
+    hi2c.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+    hi2c.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+    hi2c.Init.OwnAddress2 = 0;
+    hi2c.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+    hi2c.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+    if (HAL_I2C_Init(&hi2c) != HAL_OK) {
+        abort();
+    }
+}
+
+namespace TCA6408A {
+
+enum class Register : uint8_t {
+    Input = 0,
+    Output = 1,
+    Polarity = 2,
+    Config = 3,
+};
+
+void write_register(Register reg, uint8_t value) {
+    uint16_t device_address = 0x40;
+    uint8_t data[2] = { uint8_t(reg), value };
+    if (HAL_I2C_Master_Transmit(&hi2c, device_address, data, sizeof(data), HAL_MAX_DELAY) != HAL_OK) {
+        abort();
+    }
+}
+
+} // namespace TCA6408A
+
 static void enable_fans() {
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    init_gpio_pin(GPIOB, GPIO_PIN_10);
-    init_gpio_pin(GPIOB, GPIO_PIN_13);
-    GPIOB->BSRR = GPIO_PIN_10 | GPIO_PIN_13;
+    // configure all pins as output
+    TCA6408A::write_register(TCA6408A::Register::Config, 0x00);
+
+    // set all pins, we don't need to enable them individually at the moment
+    TCA6408A::write_register(TCA6408A::Register::Output, 0xff);
 }
 
 void hal::init() {
     HAL_Init();
     SystemClock_Config();
-    init_gpio_pins();
     tim2_init();
     tim3_init();
     tim2_postinit();
     tim3_postinit();
     MX_ADC1_Init();
     rs485_init();
+    i2c2_init();
     enable_fans();
 }
 
@@ -380,34 +425,35 @@ void hal::step() {
     HAL_ADC_Stop(&hadc1);
 }
 
-// The v1 board has 3-pin fans, reading fan's PWM is hard, so we stub it out
-// for now for this revision, based on if they should be spinning or not, so
+// Until we implement reading fan tachometers,
+// we stub it out based on if they should be spinning or not, so
 // the spin-up algorithm on the printer side does something sane.
-static bool fan1_enabled = false;
-static bool fan2_enabled = false;
+static bool fan1_fan2_enabled = false;
+
+// fan1 and fan2 are connected to the same pwm signal
+static void fan1_fan2_set_pwm(hal::DutyCycle duty_cycle) {
+    TIM3->CCR2 = duty_cycle;
+    fan1_fan2_enabled = duty_cycle >= 1;
+}
 
 void hal::fan1::set_pwm(DutyCycle duty_cycle) {
-    TIM3->CCR3 = duty_cycle;
-    fan1_enabled = duty_cycle >= 1;
+    fan1_fan2_set_pwm(duty_cycle);
 }
 
 uint32_t hal::fan1::get_raw() {
-    return fan1_enabled ? 500 : 0;
+    return fan1_fan2_enabled ? 500 : 0;
 }
 
 void hal::fan2::set_pwm(DutyCycle duty_cycle) {
-    TIM3->CCR2 = duty_cycle;
-    fan2_enabled = duty_cycle >= 1;
+    fan1_fan2_set_pwm(duty_cycle);
 }
 
 uint32_t hal::fan2::get_raw() {
-    return fan2_enabled ? 500 : 0;
+    return fan1_fan2_enabled ? 500 : 0;
 }
 
 void hal::fan3::set_pwm(DutyCycle duty_cycle) {
-    // TODO
-    // xBuddyExtension rev.1 doesn't support fan3
-    (void)duty_cycle;
+    TIM3->CCR3 = duty_cycle;
 }
 
 uint32_t hal::fan3::get_raw() {
@@ -450,6 +496,5 @@ std::span<std::byte> hal::rs485::receive() {
 }
 
 void hal::rs485::transmit_and_then_start_receiving(std::span<std::byte> payload) {
-    HAL_GPIO_WritePin(D_RS485_FLOW_CONTROL, GPIO_PIN_SET);
     HAL_UART_Transmit_IT(&huart, (uint8_t *)payload.data(), payload.size());
 }
