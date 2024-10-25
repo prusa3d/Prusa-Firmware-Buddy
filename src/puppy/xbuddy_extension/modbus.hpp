@@ -76,4 +76,9 @@ std::span<std::byte> handle_transaction(
     std::span<const std::byte> request,
     std::span<std::byte> response_buffer);
 
+/// Computes the CRC based on modbus.
+///
+/// Exposed for unit tests, not needed in "real applications"
+uint16_t compute_crc(std::span<const std::byte> bytes);
+
 } // namespace modbus

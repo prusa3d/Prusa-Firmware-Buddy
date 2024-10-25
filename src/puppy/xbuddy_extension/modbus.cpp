@@ -9,7 +9,17 @@ static constexpr const std::byte read_holding_registers { 0x03 };
 static constexpr const std::byte read_input_registers { 0x04 };
 static constexpr const std::byte write_multiple_registers { 0x10 };
 
-static constexpr uint16_t modbus_compute_crc(std::span<const std::byte> bytes) {
+static constexpr std::byte modbus_byte_lo(uint16_t value) {
+    return std::byte(value & 0xff);
+}
+
+static constexpr std::byte modbus_byte_hi(uint16_t value) {
+    return std::byte(value >> 8);
+}
+
+namespace modbus {
+
+uint16_t compute_crc(std::span<const std::byte> bytes) {
     uint16_t crc = 0xffff;
     for (auto byte : bytes) {
         crc ^= uint16_t(byte);
@@ -25,20 +35,12 @@ static constexpr uint16_t modbus_compute_crc(std::span<const std::byte> bytes) {
     return crc;
 }
 
-static constexpr std::byte modbus_byte_lo(uint16_t value) {
-    return std::byte(value & 0xff);
-}
-
-static constexpr std::byte modbus_byte_hi(uint16_t value) {
-    return std::byte(value >> 8);
-}
-
-std::span<std::byte> modbus::handle_transaction(
+std::span<std::byte> handle_transaction(
     Callbacks &callbacks,
     std::span<const std::byte> request,
     std::span<std::byte> response_buffer) {
 
-    if (request.size() < 4 || modbus_compute_crc(request) != 0) {
+    if (request.size() < 4 || modbus::compute_crc(request) != 0) {
         return {};
     }
 
@@ -102,7 +104,7 @@ std::span<std::byte> modbus::handle_transaction(
             const uint16_t count = get_word(2);
             const uint8_t bytes = (uint8_t)request[4];
             request = request.subspan(5);
-            if (request.size() < bytes) {
+            if (request.size() < bytes || bytes < count * 2) {
                 // Incomplete message.
                 return {};
             }
@@ -138,8 +140,10 @@ std::span<std::byte> modbus::handle_transaction(
         resp(std::byte { static_cast<uint8_t>(status) });
     }
 
-    uint16_t crc = modbus_compute_crc(std::span { response_buffer.begin(), response });
+    uint16_t crc = compute_crc(std::span { response_buffer.begin(), response });
     resp(modbus_byte_lo(crc));
     resp(modbus_byte_hi(crc));
     return { response_buffer.begin(), response };
 }
+
+} // namespace modbus
