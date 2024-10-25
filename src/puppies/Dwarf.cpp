@@ -160,6 +160,9 @@ CommunicationStatus Dwarf::initial_scan() {
     selected = false;
 
     // Write coil values that are not written automatically
+    if (bus.write(unit, IsSelectedCoil) == CommunicationStatus::ERROR) {
+        return CommunicationStatus::ERROR;
+    }
     if (bus.write(unit, LoadcellEnableCoil) == CommunicationStatus::ERROR) {
         return CommunicationStatus::ERROR;
     }
@@ -568,6 +571,7 @@ void Dwarf::set_heatbreak_target_temp(int16_t target) {
 }
 
 void Dwarf::set_fan(uint8_t fan, uint16_t target) {
+    assert(fan < NUM_FANS);
     // FIXME:
     // Because this sometimes gets called from an interrupt, we need to just
     // store the value and handle it properly under a lock somewhere else.
