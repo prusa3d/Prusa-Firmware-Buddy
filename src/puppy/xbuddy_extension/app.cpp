@@ -5,6 +5,7 @@
 #include "modbus.hpp"
 #include "temperature.hpp"
 #include <freertos/timing.hpp>
+#include "mmu.hpp"
 
 namespace {
 
@@ -61,18 +62,6 @@ public:
             return Status::Ok;
         }
         return Status::IllegalAddress;
-    }
-};
-
-class MMU final : public modbus::Callbacks {
-public:
-    Status read_register(uint8_t, uint16_t, uint16_t &) {
-        // TODO: MMU not implemented yet, stubbed out for now.
-        return Status::GatewayPathUnavailable;
-    }
-    Status write_register(uint8_t, uint16_t, uint16_t) {
-        // TODO: MMU not implemented yet, stubbed out for now.
-        return Status::GatewayPathUnavailable;
     }
 };
 

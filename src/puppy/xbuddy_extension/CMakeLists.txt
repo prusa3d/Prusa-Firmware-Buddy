@@ -15,11 +15,13 @@ endif()
 
 target_sources(
   firmware
-  PRIVATE app.cpp
+  PRIVATE ${CMAKE_SOURCE_DIR}/lib/Prusa-Firmware-MMU/src/modules/protocol.cpp
+          app.cpp
           cmsis.cpp
           hal.cpp
           hal_clock.cpp
           main.cpp
+          mmu.cpp
           modbus.cpp
           stdlib.c
           stm32h503.s

@@ -22,7 +22,7 @@ int MMU2Serial::read() {
 void MMU2Serial::flush() {
 }
 
-size_t MMU2Serial::write(const uint8_t *buffer, size_t size) {
+size_t MMU2Serial::write(const uint8_t * /*buffer*/, size_t /*size*/) {
     return 0;
 }
 
