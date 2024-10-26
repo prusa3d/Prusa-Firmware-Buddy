@@ -151,10 +151,6 @@ namespace defaults {
 #endif // (( PRINTER_IS_PRUSA_MK4) || ( PRINTER_IS_PRUSA_MK3_5))
     };
 
-#if (PRINTER_IS_PRUSA_MK4)
-    inline constexpr float live_z { 0.00 };
-#endif
-
     inline constexpr int16_t crash_sens[2] =
 #if ENABLED(CRASH_RECOVERY)
         CRASH_STALL_GUARD;
