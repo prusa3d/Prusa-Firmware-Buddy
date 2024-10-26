@@ -514,7 +514,10 @@ static bool receive_and_process_client_message(marlin_client_t *client, TickType
         // not handled events
         // do not use default, i want all events listed here, so new event will generate warning, when not added
     case Event::MeshUpdate:
-    case Event::Startup:
+    case Event::Startup: {
+        // Set Z Offset on boot as I couldn't find any other place to put it.
+        set_z_offset(config_store().get_z_offset());
+    }
     case Event::StartProcessing:
     case Event::StopProcessing:
     case Event::PrinterKilled:

@@ -184,6 +184,8 @@ struct CurrentStore
     StoreItem<float, defaults::loadcell_threshold_continuous, journal::hash("Loadcell Threshold Continuous")> loadcell_threshold_continuous;
 #endif
 
+    StoreItem<float, 0.0f, journal::hash("Z-Offset")> z_offset;
+
     // filament sensor values:
     // ref value: value of filament sensor in moment of calibration (w/o filament present)
     // value span: minimal difference of raw values between the two states of the filament sensor
@@ -386,6 +388,9 @@ struct CurrentStore
 
     SelftestTool get_selftest_result_tool(uint8_t index);
     void set_selftest_result_tool(uint8_t index, SelftestTool value);
+
+    void set_z_offset(float offset);
+    float get_z_offset();
 
 #if HAS_SHEET_PROFILES()
     StoreItem<uint8_t, 0, journal::hash("Active Sheet")> active_sheet;
