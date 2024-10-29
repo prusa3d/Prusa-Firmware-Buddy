@@ -24,7 +24,7 @@ def main():
     with open(args.input_file, 'rb') as f:
         data = f.read()
         has_bootloader = len(data) <= MAX_FW_SIZE_WITH_BL
-        if (has_bootloader):
+        if has_bootloader:
             descriptor_start = MAX_FW_SIZE_WITH_BL - FW_DESCRIPTOR_SECTION_SIZE
         else:
             descriptor_start = MAX_FW_SIZE_WITHOUT_BL - FW_DESCRIPTOR_SECTION_SIZE
@@ -35,13 +35,16 @@ def main():
 
         m = hashlib.sha256()
         m.update(data)
-        fingerprint = int(m.hexdigest(), 16)
+        fingerprint = m.digest()
+        assert (len(fingerprint) == FINGERPRINT_SIZE)
+
+        print(f"Puppy fingerprint: {fingerprint.hex()}")
 
     with open(args.output_file, 'wb') as f:
         # order needs to match exactly the struct in include/puppies/crash_dump_shared.hpp
         f.write(FW_TYPE_CONSTANT.to_bytes(STORED_TYPE_SIZE, 'little'))
         f.write(int(0).to_bytes(DUMP_OFFSET_SIZE, 'little'))
-        f.write(fingerprint.to_bytes(FINGERPRINT_SIZE, 'big'))
+        f.write(fingerprint)
         f.write(int(0).to_bytes(DUMP_SIZE_SIZE, 'little'))
 
 
