@@ -15,8 +15,10 @@
 #include "marlin_server.hpp"
 #include "IPause.hpp"
 #include <array>
-#include <option/has_human_interactions.h>
 #include "Marlin/src/libs/stopwatch.h"
+
+#include <option/has_human_interactions.h>
+#include <option/has_side_fsensor.h>
 
 // @brief With Z unhomed, ensure that it is at least amount_mm above bed.
 void unhomed_z_lift(float amount_mm);
@@ -52,8 +54,10 @@ protected:
         _finish = intFinishVal,
         _init = int(UnloadPhases_t::_last) + 1,
         check_filament_sensor_and_user_push__ask, // must be one phase because of button click
+#if HAS_SIDE_FSENSOR()
         await_filament,
         assist_filament_insertion,
+#endif
         load_in_gear,
         move_to_purge,
         wait_temp,

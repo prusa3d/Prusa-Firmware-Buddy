@@ -410,10 +410,6 @@ void Pause::loop_autoload(Response response) {
     loop_load_common(response, CommonLoadType::autoload);
 }
 
-static bool hands_off_head_load() {
-    return FSensors_instance().sensor(LogicalFilamentSensor::current_side) && is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side));
-}
-
 void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     const float purge_ln = settings.purge_length();
 
@@ -444,20 +440,23 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     case LoadPhases_t::_init:
         switch (load_type) {
         case CommonLoadType::load_to_gear:
-            if (hands_off_head_load()) {
-                set_timed(LoadPhases_t::assist_filament_insertion);
-            } else {
-                set(LoadPhases_t::load_in_gear);
-            }
+#if HAS_SIDE_FSENSOR()
+            set_timed(LoadPhases_t::assist_filament_insertion);
+            break;
+#else
+            set(LoadPhases_t::load_in_gear);
+#endif
             break;
         case CommonLoadType::not_blocking:
             // If we are certain that filament has been inserted, we can skip after load_in_gears phase
             if (FSensors_instance().has_filament_surely()) {
                 set(LoadPhases_t::move_to_purge);
-            } else if (hands_off_head_load()) {
-                set_timed(LoadPhases_t::await_filament);
-            } else {
+            } else if constexpr (!option::has_side_fsensor) {
                 set(LoadPhases_t::load_in_gear);
+#if HAS_SIDE_FSENSOR()
+            } else {
+                set_timed(LoadPhases_t::await_filament);
+#endif
             }
             break;
         case CommonLoadType::autoload:
@@ -496,18 +495,28 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
 #endif
 
         default:
+#if HAS_SIDE_FSENSOR()
+            set_timed(LoadPhases_t::await_filament);
+#else
             set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+#endif
             break;
         }
         break;
 
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
-        if constexpr (!option::has_human_interactions) {
+        if constexpr (option::has_human_interactions) {
             setPhase(PhasesLoadUnload::Inserting_unstoppable);
-            if (FSensors_instance().has_filament_surely()) {
-                set_timed(LoadPhases_t::assist_filament_insertion);
-            }
 
+            if (FSensors_instance().has_filament_surely()) {
+                set(LoadPhases_t::move_to_purge);
+#if HAS_SIDE_FSENSOR()
+            } else if constexpr (option::has_side_fsensor) {
+                set_timed(LoadPhases_t::await_filament);
+#endif
+            } else {
+                set(LoadPhases_t::load_in_gear);
+            }
             break;
         }
 
@@ -527,8 +536,16 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             setPhase(is_unstoppable ? PhasesLoadUnload::UserPush_unstoppable : PhasesLoadUnload::UserPush_stoppable);
 
             if (response == Response::Continue || settings.extruder_mmu_rework) {
-                set(LoadPhases_t::load_in_gear);
+
+                if (FSensors_instance().has_filament_surely()) {
+                    set(LoadPhases_t::load_in_gear);
+#if HAS_SIDE_FSENSOR()
+                } else if constexpr (option::has_side_fsensor) {
+                    set_timed(LoadPhases_t::await_filament);
+#endif
+                }
             }
+            break;
         }
 
         if (response == Response::Stop) {
@@ -536,6 +553,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         }
         break;
 
+#if HAS_SIDE_FSENSOR()
     case LoadPhases_t::await_filament: {
         setPhase(PhasesLoadUnload::Inserting_stoppable);
         // If EXTRUDER sensor is not assigned or not working, or if the user fails to insert filament in time, show Warning and quit loading.
@@ -545,7 +563,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             break;
         }
 
-        if (!hands_off_head_load() // If SIDE sensor is not assigned or not working go directly to loading
+        if (!FSensors_instance().sensor(LogicalFilamentSensor::current_side) || !is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side)) // If SIDE sensor is not assigned or not working go directly to loading
             || FSensors_instance().sensor(LogicalFilamentSensor::current_side)->get_state() == FilamentSensorState::HasFilament) { // If filament arrived at SIDE sensor, we can start loading sequence.
             set_timed(LoadPhases_t::assist_filament_insertion);
             break;
@@ -569,7 +587,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         }
 
         // Load for at least 40 seconds before giving up. Alternatively, if filament is removed altogether, stop too.
-        auto sensor = FSensors_instance().sensor(LogicalFilamentSensor::autoload);
+        auto sensor = FSensors_instance().sensor(LogicalFilamentSensor::current_side);
         if (ticks_diff(ticks_ms(), start_time_ms) > 40000 /*Move for at least 40 seconds before giving up*/
             || (sensor && is_fsensor_working_state(sensor->get_state()) && sensor->get_state() != FilamentSensorState::HasFilament)) {
             settings.do_stop = true;
@@ -579,6 +597,8 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         do_e_move_notify_progress_coldextrude(FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 10);
         break;
     }
+#endif
+
     case LoadPhases_t::load_in_gear: // slow load
         setPhase(is_unstoppable ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
 
@@ -589,7 +609,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::move_to_purge:
-        if (hands_off_head_load()) {
+        if constexpr (option::has_side_fsensor) {
             mapi::park_move_with_conditional_home(mapi::park_positions[mapi::ParkPosition::purge], mapi::ZAction::no_move);
         }
         if (load_type == CommonLoadType::load_to_gear) {

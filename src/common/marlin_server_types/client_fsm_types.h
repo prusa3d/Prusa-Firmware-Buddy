@@ -9,6 +9,7 @@
 #include <option/has_coldpull.h>
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_belt_tuning.h>
+#include <option/has_side_fsensor.h>
 
 #include <inc/MarlinConfigPre.h>
 #include <device/board.h>
@@ -92,7 +93,9 @@ enum class WarningType : uint32_t {
     HeatersTimeout,
     HotendTempDiscrepancy,
     NozzleTimeout,
+    #if HAS_SIDE_FSENSOR()
     FilamentLoadingTimeout,
+    #endif
     #if _DEBUG
     SteppersTimeout,
     #endif

@@ -53,7 +53,9 @@ const img::Resource *warning_dialog_icon(WarningType warning_type) {
             { WarningType::HeatersTimeout, &img::exposure_times_48x48 },
             { WarningType::HotendTempDiscrepancy, &img::warning_48x48 },
             { WarningType::NozzleTimeout, &img::exposure_times_48x48 },
+#if HAS_SIDE_FSENSOR()
             { WarningType::FilamentLoadingTimeout, &img::warning_48x48 },
+#endif
 #if _DEBUG
             { WarningType::SteppersTimeout, &img::exposure_times_48x48 },
 #endif
