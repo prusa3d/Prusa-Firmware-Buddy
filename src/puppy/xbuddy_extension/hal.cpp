@@ -275,14 +275,9 @@ static void tim3_init() {
     TIM3->CR1 |= TIM_CR1_CEN;
 }
 
-#define D_FAN2_EN            GPIOB, GPIO_PIN_10
-#define D_FAN1_EN            GPIOB, GPIO_PIN_13
 #define D_RS485_FLOW_CONTROL GPIOC, GPIO_PIN_14
 
 static void init_gpio_pins() {
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    init_gpio_pin(D_FAN2_EN);
-    init_gpio_pin(D_FAN1_EN);
     __HAL_RCC_GPIOC_CLK_ENABLE();
     init_gpio_pin(D_RS485_FLOW_CONTROL);
 }
@@ -328,6 +323,13 @@ static void MX_ADC1_Init(void) {
     HAL_ADCEx_Calibration_SetValue(&hadc1, single_diff, calib_val);
 }
 
+static void enable_fans() {
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    init_gpio_pin(GPIOB, GPIO_PIN_10);
+    init_gpio_pin(GPIOB, GPIO_PIN_13);
+    GPIOB->BSRR = GPIO_PIN_10 | GPIO_PIN_13;
+}
+
 void hal::init() {
     HAL_Init();
     SystemClock_Config();
@@ -338,6 +340,7 @@ void hal::init() {
     tim3_postinit();
     MX_ADC1_Init();
     rs485_init();
+    enable_fans();
 }
 
 void hal::panic() {
@@ -383,10 +386,6 @@ void hal::step() {
 static bool fan1_enabled = false;
 static bool fan2_enabled = false;
 
-void hal::fan1::set_enabled(bool b) {
-    HAL_GPIO_WritePin(D_FAN1_EN, b ? GPIO_PIN_SET : GPIO_PIN_RESET);
-}
-
 void hal::fan1::set_pwm(DutyCycle duty_cycle) {
     TIM3->CCR3 = duty_cycle;
     fan1_enabled = duty_cycle >= 1;
@@ -396,10 +395,6 @@ uint32_t hal::fan1::get_raw() {
     return fan1_enabled ? 500 : 0;
 }
 
-void hal::fan2::set_enabled(bool b) {
-    HAL_GPIO_WritePin(D_FAN2_EN, b ? GPIO_PIN_SET : GPIO_PIN_RESET);
-}
-
 void hal::fan2::set_pwm(DutyCycle duty_cycle) {
     TIM3->CCR2 = duty_cycle;
     fan2_enabled = duty_cycle >= 1;
@@ -407,12 +402,6 @@ void hal::fan2::set_pwm(DutyCycle duty_cycle) {
 
 uint32_t hal::fan2::get_raw() {
     return fan2_enabled ? 500 : 0;
-}
-
-void hal::fan3::set_enabled(bool b) {
-    // TODO
-    // xBuddyExtension rev.1 doesn't support fan3
-    (void)b;
 }
 
 void hal::fan3::set_pwm(DutyCycle duty_cycle) {

@@ -30,19 +30,16 @@ void step();
 // Each peripheral gets its own namespace
 
 namespace fan1 {
-    void set_enabled(bool);
     void set_pwm(DutyCycle duty_cycle);
     uint32_t get_raw();
 } // namespace fan1
 
 namespace fan2 {
-    void set_enabled(bool);
     void set_pwm(DutyCycle duty_cycle);
     uint32_t get_raw();
 } // namespace fan2
 
 namespace fan3 {
-    void set_enabled(bool);
     void set_pwm(DutyCycle duty_cycle);
     uint32_t get_raw();
 } // namespace fan3

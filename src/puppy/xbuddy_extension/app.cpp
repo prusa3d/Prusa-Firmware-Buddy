@@ -107,10 +107,6 @@ public:
 } // namespace
 
 void app::run() {
-    hal::fan1::set_enabled(true);
-    hal::fan2::set_enabled(true);
-    hal::fan3::set_enabled(true);
-
     Dispatch modbus_callbacks;
 
     std::byte response_buffer[32]; // is enough for now
