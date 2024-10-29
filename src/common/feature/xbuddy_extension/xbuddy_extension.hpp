@@ -49,6 +49,9 @@ public: // Fans
     /// \returns measured RPM of the fan3 (in-chamber filtration)
     std::optional<uint16_t> fan3_rpm() const;
 
+    /// \returns target PWM for fan3
+    uint8_t fan3_pwm() const;
+
     /// Sets PRM for fan 3 (in-chamber filtration, 0-255)
     void set_fan3_pwm(uint8_t pwm);
 
@@ -82,7 +85,7 @@ private:
 
     FanCooling chamber_cooling;
 
-    uint8_t fan3_pwm = 0;
+    uint8_t fan3_pwm_ = 0;
 };
 
 XBuddyExtension &xbuddy_extension();

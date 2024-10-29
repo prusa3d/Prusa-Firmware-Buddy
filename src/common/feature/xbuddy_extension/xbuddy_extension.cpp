@@ -58,10 +58,15 @@ std::optional<uint16_t> XBuddyExtension::fan3_rpm() const {
     return puppies::xbuddy_extension.get_fan_rpm(2);
 }
 
+uint8_t XBuddyExtension::fan3_pwm() const {
+    std::lock_guard _lg(mutex_);
+    return fan3_pwm_;
+}
+
 void XBuddyExtension::set_fan3_pwm(uint8_t pwm) {
     std::lock_guard _lg(mutex_);
     puppies::xbuddy_extension.set_fan_pwm(2, pwm);
-    fan3_pwm = pwm;
+    fan3_pwm_ = pwm;
 }
 
 leds::ColorRGBW XBuddyExtension::bed_leds_color() const {
@@ -112,7 +117,7 @@ void XBuddyExtension::update_registers_nolock() {
         METRIC_DEF(chamber_fan_pwm, "chamber_fan_pwm", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
         static auto pwm_should_record = metrics::RunApproxEvery(1000);
         if (pwm_should_record()) {
-            metric_record_custom(&chamber_fan_pwm, "a=%" PRIu8 ",b=%" PRIu8 ",c=%" PRIu8, pwm, pwm, fan3_pwm);
+            metric_record_custom(&chamber_fan_pwm, "a=%" PRIu8 ",b=%" PRIu8 ",c=%" PRIu8, pwm, pwm, fan3_pwm_);
         }
     } // else -> comm not working, we'll set it next time (instead of setting
       // them to wrong value, keep them at what they are now).
