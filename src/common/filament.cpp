@@ -3,15 +3,15 @@
 
 #include <cassert>
 #include <cstring>
-#include <utility>
 
 #include "i18n.h"
-#include "client_response_texts.hpp"
 #include "../../include/printers.h"
-#include <Marlin/src/inc/MarlinConfigPre.h>
 #include <enum_array.hpp>
 #include <option/has_loadcell.h>
 #include <str_utils.hpp>
+#include <guiconfig/guiconfig.h>
+#include <config_store/store_instance.hpp>
+#include <Configuration.h>
 
 // !!! If these value change, you need to inspect usages and possibly write up some config store migrations
 static_assert(filament_name_buffer_size == 8);
