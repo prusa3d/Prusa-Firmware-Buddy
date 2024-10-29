@@ -5,7 +5,7 @@
 
 struct FanPWMAndRPM {
     uint8_t pwm = 0;
-    uint16_t rpm = 0;
+    std::optional<uint16_t> rpm = std::nullopt;
 
     bool operator==(const FanPWMAndRPM &) const = default;
 };
@@ -28,10 +28,11 @@ private:
         const int8_t percent = std::clamp(raw_value, 0u, 100u);
 
         const char *const format = //
-            val.rpm   ? N_("%u %% / %li RPM")
-            : val.pwm ? N_("%u %% / stuck")
-                      : N_("%u %% / stopped");
+            !val.rpm.has_value()      ? N_("%u %% / unknown")
+            : val.rpm.value_or(0) > 0 ? N_("%u %% / %li RPM")
+            : val.pwm                 ? N_("%u %% / stuck")
+                                      : N_("%u %% / stopped");
 
-        snprintf(buffer.data(), buffer.size(), format, percent, val.rpm);
+        snprintf(buffer.data(), buffer.size(), format, percent, val.rpm.value_or(0));
     }
 };
