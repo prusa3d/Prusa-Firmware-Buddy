@@ -5,6 +5,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp
   ${CMAKE_SOURCE_DIR}/src/persistent_stores/journal/backend.cpp
   ${CMAKE_SOURCE_DIR}/src/persistent_stores/storage_drivers/eeprom_storage.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
   ../mock/bsod.cpp
   ../mock/timing_dummy.cpp
   ../mock/crc32_sw.cpp

@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <cinttypes>
+#include <string_view_utf8.hpp>
 
 static word_buffer ram_word_buffer;
 
@@ -389,4 +390,109 @@ char *StringBuilder::alloc_chars(size_t cnt) {
     current_pos_ += cnt;
     *current_pos_ = '\0';
     return current_pos_ - cnt;
+}
+
+template <typename T, auto strtox_func>
+from_chars_light_result from_chars_light_common(const char *first, const char *last, T &value, int base) {
+    std::array<char, sizeof(value) * 8 + 2> buffer; // buffer where we'll copy the number with ending zero, size reserved is to fit base 2 number + sign, plus ending zero.
+
+    size_t len = std::distance(first, last);
+    if (len > buffer.size() - 1) {
+        // buffer is too small, or won't fit ending zero
+        return { first, std::errc::value_too_large };
+    }
+    std::copy(first, last, buffer.begin());
+    buffer[len] = '\0'; // make sure there is ending zero, to avoid strtoi reading beyond the buffer
+    char *out_end = nullptr;
+    errno = 0;
+    auto value_res = strtox_func(buffer.data(), &out_end, base);
+    if (errno != 0) {
+        return { out_end, std::errc::result_out_of_range };
+    }
+    if (out_end == buffer.data()) {
+        return { out_end, std::errc::invalid_argument };
+    }
+    if (value_res < std::numeric_limits<T>::min() || value_res > std::numeric_limits<T>::max()) {
+        return { out_end, std::errc::result_out_of_range };
+    }
+    value = value_res;
+
+    return { out_end, std::errc {} };
+}
+
+template <>
+from_chars_light_result from_chars_light(const char *first, const char *last, unsigned long long &value, int base) {
+    static_assert(sizeof(unsigned long long) >= sizeof(value));
+    return from_chars_light_common<unsigned long long, std::strtoull>(first, last, value, base);
+}
+
+template <>
+from_chars_light_result from_chars_light(const char *first, const char *last, unsigned long &value, int base) {
+    static_assert(sizeof(unsigned long) >= sizeof(value));
+    return from_chars_light_common<unsigned long, std::strtoul>(first, last, value, base);
+}
+
+template <>
+from_chars_light_result from_chars_light(const char *first, const char *last, unsigned int &value, int base) {
+    static_assert(sizeof(unsigned long) >= sizeof(value));
+    return from_chars_light_common<unsigned int, std::strtoul>(first, last, value, base);
+}
+
+template <>
+from_chars_light_result from_chars_light(const char *first, const char *last, unsigned short &value, int base) {
+    static_assert(sizeof(unsigned long) >= sizeof(value));
+    return from_chars_light_common<unsigned short, std::strtoul>(first, last, value, base);
+}
+
+template <>
+from_chars_light_result from_chars_light(const char *first, const char *last, unsigned char &value, int base) {
+    static_assert(sizeof(unsigned long) >= sizeof(value));
+    return from_chars_light_common<unsigned char, std::strtoul>(first, last, value, base);
+}
+
+template <>
+from_chars_light_result from_chars_light(const char *first, const char *last, long long &value, int base) {
+    static_assert(sizeof(long long) >= sizeof(value));
+    return from_chars_light_common<long long, std::strtoll>(first, last, value, base);
+}
+
+template <>
+from_chars_light_result from_chars_light(const char *first, const char *last, long &value, int base) {
+    static_assert(sizeof(long) >= sizeof(value));
+    return from_chars_light_common<long, std::strtol>(first, last, value, base);
+}
+
+template <>
+from_chars_light_result from_chars_light(const char *first, const char *last, int &value, int base) {
+    static_assert(sizeof(long) >= sizeof(value));
+    return from_chars_light_common<int, std::strtol>(first, last, value, base);
+}
+
+template <>
+from_chars_light_result from_chars_light(const char *first, const char *last, short &value, int base) {
+    static_assert(sizeof(long) >= sizeof(value));
+    return from_chars_light_common<short, std::strtol>(first, last, value, base);
+}
+
+template <>
+from_chars_light_result from_chars_light(const char *first, const char *last, signed char &value, int base) {
+    static_assert(sizeof(long) >= sizeof(value));
+    return from_chars_light_common<signed char, std::strtol>(first, last, value, base);
+}
+
+from_chars_light_result from_chars_light(const char *first, const char *last, float &value) {
+    std::array<char, 32> buffer; // buffer where we'll copy the number with ending zero
+
+    size_t len = std::distance(first, last);
+    if (len >= buffer.size() - 1) {
+        return { first, std::errc::value_too_large };
+    }
+    std::copy(first, last, buffer.begin());
+    buffer[len] = '\0'; // make sure there is ending zero, to avoid strtoi reading beyond the buffer
+    char *out_end = nullptr;
+    value = std::strtof(buffer.data(), &out_end);
+    if (out_end == buffer.data()) {
+        return { first, std::errc::invalid_argument };
+    }
+    return { out_end, std::errc {} };
 }

@@ -17,7 +17,6 @@ using json::Event;
 using json::Type;
 using std::array;
 using std::errc;
-using std::from_chars;
 using std::get_if;
 using std::make_shared;
 using std::min;
@@ -45,7 +44,7 @@ namespace {
 
     template <class R>
     optional<R> convert_num(std::string_view str) {
-        if (R result; from_chars(str.begin(), str.end(), result).ec == errc {}) {
+        if (R result; from_chars_light(str.begin(), str.end(), result).ec == errc {}) {
             return result;
         } else {
             return nullopt;
@@ -59,7 +58,7 @@ namespace {
         }
         const char *input = event.value->begin();
         for (size_t i = 0; i < dest.size(); i++) {
-            if (from_chars(input + 2 * i, input + 2 * (i + 1), dest[i], 16).ec != errc {}) {
+            if (from_chars_light(input + 2 * i, input + 2 * (i + 1), dest[i], 16).ec != errc {}) {
                 return false;
             }
         }

@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cstdarg>
 #include <cinttypes>
+#include <str_utils.hpp>
 
 GCodeParser2::StoreOptionResult GCodeParser2::store_option(char key, std::string_view &target, std::span<char> buffer) const {
     if (key < first_option_letter || key > last_option_letter) {
@@ -56,7 +57,7 @@ GCodeParser2::StoreOptionResult GCodeParser2::store_option(char key, LargestInte
     }
 
     LargestInteger val;
-    const auto err = std::from_chars(str->begin(), str->end(), val, 10);
+    const auto err = from_chars_light(str->begin(), str->end(), val, 10);
     if (err.ec != std::errc {}) {
         report_option_error(key, "Integer parsing failed");
         return std::unexpected(OptionError::parse_error);
@@ -79,7 +80,7 @@ GCodeParser2::StoreOptionResult GCodeParser2::store_option(char key, float &targ
     }
 
     float val;
-    const auto err = std::from_chars(str->begin(), str->end(), val);
+    const auto err = from_chars_light(str->begin(), str->end(), val);
     if (err.ec != std::errc {}) {
         report_option_error(key, "Float parsing failed");
         return std::unexpected(OptionError::parse_error);
@@ -199,7 +200,7 @@ std::optional<std::string_view> GCodeParser2::parse_option_value(GCodeParserHelp
         }
     } else {
         // Unquoted value -> basically we are expecting a number.
-        // Accept anything that might look like a number, let std::from_chars figure out the rest
+        // Accept anything that might look like a number, let from_chars_light figure out the rest
         while (p.ch() && strchr("0123456789+-.,", p.ch())) {
             if (!accumulate(p.ch())) {
                 return std::nullopt;

@@ -87,6 +87,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )
 target_include_directories(
@@ -106,6 +107,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src/common/gcode
           ${CMAKE_SOURCE_DIR}/src/persistent_stores
           ${CMAKE_SOURCE_DIR}/src
+          ${CMAKE_SOURCE_DIR}/src/lang
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/system

@@ -3,6 +3,7 @@
 
 #include <cstdarg>
 #include <cinttypes>
+#include <str_utils.hpp>
 
 GCodeParserHelper::GCodeParserHelper(const GCodeBasicParser &parent, const std::string_view &str)
     : parent(parent) //
@@ -54,13 +55,13 @@ void GCodeParserHelper::skip_whitespaces() {
 std::optional<GCodeParserHelper::ParseIntegerValue> GCodeParserHelper::parse_integer_impl(ParseIntegerValue min_value, ParseIntegerValue max_value) {
     const char *start = ch_ptr();
 
-    // Accept anything that might look like a number, let std::from_chars figure out the rest
+    // Accept anything that might look like a number, let std::from_chars_light figure out the rest
     while (isdigit(ch()) || ch() == '-') {
         advance();
     }
 
     ParseIntegerValue val;
-    const auto err = std::from_chars(start, ch_ptr(), val, 10);
+    const auto err = from_chars_light(start, ch_ptr(), val, 10);
 
     if (err.ec != std::errc {}) {
         report_error("Integer parsing failed");

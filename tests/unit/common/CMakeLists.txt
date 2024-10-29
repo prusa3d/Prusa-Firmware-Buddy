@@ -20,8 +20,8 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/str_utils.hpp ${CMAKE_SOURCE_DIR}/src/lang/string_view_utf8.cpp
   )
 target_include_directories(
-  str_utils_tests PUBLIC # ${CMAKE_SOURCE_DIR}/src/common
-                         ${CMAKE_SOURCE_DIR}/src
+  str_utils_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src
+                         ${CMAKE_SOURCE_DIR}/src/lang
   )
 
 add_executable(timing_tests timing_tests.cpp)
@@ -69,10 +69,13 @@ target_compile_definitions(otp_tests PUBLIC UNITTEST)
 target_include_directories(otp_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 
 add_executable(
-  url_decode_tests ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp
-                   ${CMAKE_CURRENT_SOURCE_DIR}/url_decode_tests.cpp
+  url_decode_tests
+  ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/url_decode_tests.cpp
   )
-target_include_directories(url_decode_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
+target_include_directories(
+  url_decode_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src/lang
+  )
 
 add_executable(
   json_tests

@@ -452,7 +452,7 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                         return ConnectionStatus::Ok;
                     }
                     CommandId command_id;
-                    auto id_result = std::from_chars(reinterpret_cast<const char *>(buffer + 1), reinterpret_cast<const char *>(buffer + 9), command_id, 16);
+                    auto id_result = from_chars_light(reinterpret_cast<const char *>(buffer + 1), reinterpret_cast<const char *>(buffer + 9), command_id, 16);
                     if (id_result.ec != std::errc {}) {
                         planner().command(Command {
                             0,
