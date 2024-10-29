@@ -1,5 +1,7 @@
 #pragma once
 
+#include <catch2/catch.hpp>
+
 #include <gcode_basic_parser.hpp>
 
 void fail_test_error_callback(const GCodeBasicParser::ErrorCallbackArgs &args, va_list va) {
