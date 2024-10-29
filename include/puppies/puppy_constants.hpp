@@ -30,6 +30,9 @@ constexpr std::array PUPPY_TYPES {
 #if HAS_DWARF()
         DWARF,
 #endif
+#if HAS_XBUDDY_EXTENSION()
+        XBUDDY_EXTENSION,
+#endif
 };
 
 /// Dock is a location where a Puppy can live
