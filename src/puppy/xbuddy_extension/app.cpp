@@ -18,13 +18,13 @@ public:
     Status read_register(uint8_t, const uint16_t address, uint16_t &out) final {
         switch (address) {
         case 0x8000:
-            out = hal::fan1::get_raw();
+            out = hal::fan1::get_rpm();
             return Status::Ok;
         case 0x8001:
-            out = hal::fan2::get_raw();
+            out = hal::fan2::get_rpm();
             return Status::Ok;
         case 0x8002:
-            out = hal::fan3::get_raw();
+            out = hal::fan3::get_rpm();
             return Status::Ok;
         case 0x8003:
             // Note: Mainboard expects this in decidegree Celsius.

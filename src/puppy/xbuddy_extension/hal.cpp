@@ -204,6 +204,28 @@ extern "C" void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc) {
     }
 }
 
+static void tim1_postinit() {
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    /**TIM2 GPIO Configuration
+    PA8     ------> TIM1_CH1
+    PA9     ------> TIM1_CH2
+    PA10    ------> TIM1_CH3
+    */
+    constexpr GPIO_InitTypeDef GPIO_InitStruct {
+        .Pin = GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10,
+        .Mode = GPIO_MODE_AF_PP,
+        .Pull = GPIO_NOPULL,
+        .Speed = GPIO_SPEED_FREQ_LOW,
+        .Alternate = GPIO_AF1_TIM1,
+    };
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    HAL_NVIC_SetPriority(TIM1_CC_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(TIM1_CC_IRQn);
+    HAL_NVIC_SetPriority(TIM1_UP_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);
+}
+
 static void tim2_postinit() {
     __HAL_RCC_GPIOA_CLK_ENABLE();
     /**TIM2 GPIO Configuration
@@ -242,6 +264,54 @@ static void tim3_postinit() {
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
+static void tim1_init() {
+    // reset peripheral
+    __HAL_RCC_TIM1_CLK_ENABLE();
+    __HAL_RCC_TIM1_FORCE_RESET();
+    __HAL_RCC_TIM1_RELEASE_RESET();
+
+    // input mode, without remapping
+    constexpr const uint32_t capture_compare_selection = 0b01;
+
+    // no filter, sampling is done at fDTS; this could be changed if we start getting false edges
+    constexpr const uint32_t input_capture_filter = 0b0000;
+
+    // no prescaler, capture is done each time an edge is detected on the capture input
+    constexpr const uint32_t input_capture_prescaler = 0b00;
+
+    // configure channel 1 & 2
+    TIM1->CCMR1 = 0
+        | (capture_compare_selection << TIM_CCMR1_CC1S_Pos)
+        | (input_capture_prescaler << TIM_CCMR1_IC1PSC_Pos)
+        | (input_capture_filter << TIM_CCMR1_IC1F_Pos)
+        | (capture_compare_selection << TIM_CCMR1_CC2S_Pos)
+        | (input_capture_prescaler << TIM_CCMR1_IC2PSC_Pos)
+        | (input_capture_filter << TIM_CCMR1_IC2F_Pos);
+
+    // configure channel 3 & 4
+    TIM1->CCMR2 = 0
+        | (capture_compare_selection << TIM_CCMR2_CC3S_Pos)
+        | (input_capture_prescaler << TIM_CCMR2_IC3PSC_Pos)
+        | (input_capture_filter << TIM_CCMR2_IC3F_Pos)
+        | (capture_compare_selection << TIM_CCMR2_CC4S_Pos)
+        | (input_capture_prescaler << TIM_CCMR2_IC4PSC_Pos)
+        | (input_capture_filter << TIM_CCMR2_IC4F_Pos);
+
+    // enable input of channels 1 & 2 & 3
+    TIM1->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E;
+
+    // enable interrupts on channels
+    TIM1->DIER = TIM_DIER_UIE | TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC3IE;
+
+    // 1 MHz clock (30 MHz peripheral clock, *2 to timer, /60 prescaler)
+    // This gives us 16-bit counter overflow every 65ms.
+    // Period is about 2ms at max RPM and 32ms at min RPM so we should be good.
+    TIM1->PSC = 60 - 1;
+
+    // enable counter
+    TIM1->CR1 = TIM_CR1_CEN | TIM_CR1_URS;
+}
+
 static void tim2_init() {
     // reset peripheral
     __HAL_RCC_TIM2_CLK_ENABLE();
@@ -264,7 +334,7 @@ static void tim2_init() {
     TIM2->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;
 
     // 6 MHz clock (30 MHz peripheral clock, *2 to timer, /10 prescaler)
-    TIM2->PSC = 10;
+    TIM2->PSC = 10 - 1;
 
     // auto-reload value
     // 6 MHz / 255 gives ~25 kHz for PWM which is super good enough.
@@ -294,7 +364,7 @@ static void tim3_init() {
     TIM3->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E;
 
     // 6 MHz clock (30 MHz peripheral clock, *2 to timer, /10 prescaler)
-    TIM3->PSC = 10;
+    TIM3->PSC = 10 - 1;
 
     // auto-reload value
     // 6 MHz / 255 gives ~25 kHz for PWM which is super good enough.
@@ -344,6 +414,70 @@ static void MX_ADC1_Init(void) {
     HAL_ADCEx_Calibration_Start(&hadc1, single_diff);
     const auto calib_val = HAL_ADC_GetValue(&hadc1);
     HAL_ADCEx_Calibration_SetValue(&hadc1, single_diff, calib_val);
+}
+
+static constexpr uint32_t diff32(uint32_t prev, uint32_t curr) {
+    return (curr >= prev)
+        ? (curr - prev)
+        : (0xffffffff - prev + curr);
+}
+static constexpr uint32_t diff16(uint32_t prev, uint32_t curr) {
+    return (curr >= prev)
+        ? (curr - prev)
+        : (0xffff - prev + curr);
+}
+static_assert(diff16(0x0000, 0x0000) == 0x0);
+static_assert(diff16(0x0000, 0x0008) == 0x8);
+static_assert(diff16(0x0008, 0x0008) == 0x0);
+static_assert(diff16(0x0008, 0x0010) == 0x8);
+static_assert(diff16(0x0008, 0x0010) == 0x8);
+static_assert(diff16(0xfff8, 0x0001) == 0x8);
+
+// This number is incremented whenever TIM1 overflows.
+static uint32_t tim1_generation = 0;
+
+extern "C" void TIM1_UP_IRQHandler() {
+    const uint32_t SR = TIM1->SR;
+    TIM1->SR = SR & ~(TIM_SR_UIF);
+    if (SR & TIM_SR_UIF) {
+        ++tim1_generation;
+    }
+}
+
+class Tim1ChannelData {
+private:
+    // Since TIM1 is a 16-bit timer, we can afford to store both previous
+    // and current values into a single machine word.
+    // This greatly simplifies IRQ handler.
+    uint32_t prev_curr = 0;
+    uint32_t generation = 0;
+
+public:
+    void update(uint32_t ccr) {
+        prev_curr = (prev_curr << 16) | ccr;
+        generation = tim1_generation;
+    }
+
+    uint32_t period() const {
+        return diff32(generation, tim1_generation) > 3 ? 0 : diff16(prev_curr >> 16, prev_curr & 0xffff);
+    }
+};
+Tim1ChannelData tim1_cc1;
+Tim1ChannelData tim1_cc2;
+Tim1ChannelData tim1_cc3;
+
+extern "C" void TIM1_CC_IRQHandler() {
+    const uint32_t SR = TIM1->SR;
+    TIM1->SR = SR & ~(TIM_SR_CC1IF | TIM_SR_CC2IF | TIM_SR_CC3IF);
+    if (SR & TIM_SR_CC1IF) {
+        tim1_cc1.update(TIM1->CCR1);
+    }
+    if (SR & TIM_SR_CC2IF) {
+        tim1_cc2.update(TIM1->CCR2);
+    }
+    if (SR & TIM_SR_CC3IF) {
+        tim1_cc3.update(TIM1->CCR3);
+    }
 }
 
 I2C_HandleTypeDef hi2c;
@@ -436,8 +570,10 @@ void usb_pins_init() {
 void hal::init() {
     HAL_Init();
     hal::overclock();
+    tim1_init();
     tim2_init();
     tim3_init();
+    tim1_postinit();
     tim2_postinit();
     tim3_postinit();
     MX_ADC1_Init();
@@ -488,40 +624,45 @@ void hal::step() {
     HAL_ADC_Stop(&hadc1);
 }
 
-// Until we implement reading fan tachometers,
-// we stub it out based on if they should be spinning or not, so
-// the spin-up algorithm on the printer side does something sane.
-static bool fan1_fan2_enabled = false;
+static uint32_t tim1_period_to_rpm(uint32_t period) {
+    if (period == 0) {
+        return 0;
+    }
+    // 60 seconds in minute, 1 MHZ timer, 2 rising edges per revolution
+    return (60 * 1'000'000 / 2) / period;
+}
 
 // fan1 and fan2 are connected to the same pwm signal
 static void fan1_fan2_set_pwm(hal::DutyCycle duty_cycle) {
     TIM3->CCR2 = duty_cycle;
-    fan1_fan2_enabled = duty_cycle >= 1;
 }
 
 void hal::fan1::set_pwm(DutyCycle duty_cycle) {
     fan1_fan2_set_pwm(duty_cycle);
 }
 
-uint32_t hal::fan1::get_raw() {
-    return fan1_fan2_enabled ? 500 : 0;
+uint32_t hal::fan1::get_rpm() {
+    return tim1_period_to_rpm(tim1_cc1.period());
 }
 
 void hal::fan2::set_pwm(DutyCycle duty_cycle) {
     fan1_fan2_set_pwm(duty_cycle);
 }
 
-uint32_t hal::fan2::get_raw() {
-    return fan1_fan2_enabled ? 500 : 0;
+uint32_t hal::fan2::get_rpm() {
+    // When debugging with just one fan, it might be useful to uncomment
+    // following line because pwm is shared and motherboard goes crazy
+    // when only one of the fans is spinning...
+    // return fan1::get_rpm();
+    return tim1_period_to_rpm(tim1_cc2.period());
 }
 
 void hal::fan3::set_pwm(DutyCycle duty_cycle) {
     TIM3->CCR3 = duty_cycle;
 }
 
-uint32_t hal::fan3::get_raw() {
-    // TODO
-    return 0;
+uint32_t hal::fan3::get_rpm() {
+    return tim1_period_to_rpm(tim1_cc3.period());
 }
 
 void hal::w_led::set_pwm(DutyCycle duty_cycle) {

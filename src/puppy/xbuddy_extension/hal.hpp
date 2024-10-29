@@ -31,17 +31,17 @@ void step();
 
 namespace fan1 {
     void set_pwm(DutyCycle duty_cycle);
-    uint32_t get_raw();
+    uint32_t get_rpm();
 } // namespace fan1
 
 namespace fan2 {
     void set_pwm(DutyCycle duty_cycle);
-    uint32_t get_raw();
+    uint32_t get_rpm();
 } // namespace fan2
 
 namespace fan3 {
     void set_pwm(DutyCycle duty_cycle);
-    uint32_t get_raw();
+    uint32_t get_rpm();
 } // namespace fan3
 
 namespace w_led {
