@@ -72,12 +72,6 @@ public: // Other
     /// \returns chamber temperature measured through the thermistor connected to the board, in degrees Celsius
     std::optional<float> chamber_temperature();
 
-protected:
-    /// Updates all relevant target registers to match the current config of the printer
-    /// To be called right after the connection is established with the board
-    /// TODO: call this function from the right place
-    void update_registers_nolock();
-
 private:
     mutable freertos::Mutex mutex_;
 
