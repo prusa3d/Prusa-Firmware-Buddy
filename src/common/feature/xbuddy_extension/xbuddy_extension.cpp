@@ -1,6 +1,7 @@
 #include "xbuddy_extension.hpp"
 
 #include <common/temperature.hpp>
+#include <common/app_metrics.h>
 #include <puppies/xbuddy_extension.hpp>
 #include <feature/chamber/chamber.hpp>
 
@@ -58,7 +59,9 @@ std::optional<uint16_t> XBuddyExtension::fan3_rpm() const {
 }
 
 void XBuddyExtension::set_fan3_pwm(uint8_t pwm) {
+    std::lock_guard _lg(mutex_);
     puppies::xbuddy_extension.set_fan_pwm(2, pwm);
+    fan3_pwm = pwm;
 }
 
 leds::ColorRGBW XBuddyExtension::bed_leds_color() const {
@@ -93,6 +96,7 @@ void XBuddyExtension::update_registers_nolock() {
 
     const auto rpm0 = puppies::xbuddy_extension.get_fan_rpm(0);
     const auto rpm1 = puppies::xbuddy_extension.get_fan_rpm(1);
+    const auto rpm2 = puppies::xbuddy_extension.get_fan_rpm(2);
     const auto temp = chamber_temperature();
 
     if (rpm0.has_value() && rpm1.has_value() && temp.has_value()) {
@@ -104,8 +108,20 @@ void XBuddyExtension::update_registers_nolock() {
 
         puppies::xbuddy_extension.set_fan_pwm(0, pwm);
         puppies::xbuddy_extension.set_fan_pwm(1, pwm);
+
+        METRIC_DEF(chamber_fan_pwm, "chamber_fan_pwm", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
+        static auto pwm_should_record = metrics::RunApproxEvery(1000);
+        if (pwm_should_record()) {
+            metric_record_custom(&chamber_fan_pwm, "a=%" PRIu8 ",b=%" PRIu8 ",c=%" PRIu8, pwm, pwm, fan3_pwm);
+        }
     } // else -> comm not working, we'll set it next time (instead of setting
       // them to wrong value, keep them at what they are now).
+
+    METRIC_DEF(chamber_fan_rpm, "chamber_fan_rpm", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
+    static auto rpm_should_record = metrics::RunApproxEvery(1000);
+    if (rpm0.has_value() && rpm1.has_value() && rpm2.has_value() && rpm_should_record()) {
+        metric_record_custom(&chamber_fan_rpm, "a=%" PRIu16 ",b=%" PRIu16 ",c=%" PRIu16, *rpm0, *rpm1, *rpm2);
+    }
 }
 
 XBuddyExtension &xbuddy_extension() {

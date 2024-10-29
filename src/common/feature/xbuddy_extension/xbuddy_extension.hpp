@@ -81,6 +81,8 @@ private:
     leds::ColorRGBW bed_leds_color_;
 
     FanCooling chamber_cooling;
+
+    uint8_t fan3_pwm = 0;
 };
 
 XBuddyExtension &xbuddy_extension();
