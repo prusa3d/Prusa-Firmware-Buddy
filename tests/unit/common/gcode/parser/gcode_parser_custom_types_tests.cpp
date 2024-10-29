@@ -23,3 +23,15 @@ TEST_CASE("gcode_parser::custom_type::filament") {
         CHECK(p.option<FilamentType>('O') == AdHocFilamentType(2));
     }
 }
+
+TEST_CASE("gcode_parser::custom_type::color") {
+    SECTION("1") {
+        GCodeParser2 p(fail_test_error_callback);
+        REQUIRE(p.parse("A1 A\"TERRACOTTA\" C\"#112233\" B0 D65535"));
+
+        CHECK(p.option<Color>('A') == Color::from_raw(0xB87F6A));
+        CHECK(p.option<Color>('B') == COLOR_BLACK);
+        CHECK(p.option<Color>('C') == Color::from_rgb(0x11, 0x22, 0x33));
+        CHECK(p.option<Color>('D') == Color::from_rgb(0, 255, 255));
+    }
+}

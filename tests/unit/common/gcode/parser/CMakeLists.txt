@@ -34,6 +34,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_parser_helper.cpp
   ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filament.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/utils/color.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/gcode_parser_custom_types_tests.cpp
   )
 target_include_directories(
