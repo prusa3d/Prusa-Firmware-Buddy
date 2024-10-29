@@ -212,5 +212,19 @@ SECTIONS
     *(.ARM.extab* .gnu.linkonce.armextab.*)
   }
 
+  .fw_descriptor : {
+    . = ALIGN(4);
+    KEEP(*(*.fw_descriptor*));
+  } >FW_DESCRIPTOR
+
+     /* Section that will fill the fw descriptor flash with defined pattern,
+        needed for fingerprint calculation in bootloader */
+   .fw_descriptor_fill :
+   {
+     FILL(0xAA);
+     . = ORIGIN(FLASH) + LENGTH(FLASH) + LENGTH(FW_DESCRIPTOR) - 1;
+     BYTE(0xAA)
+   } > FW_DESCRIPTOR
+
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }
