@@ -58,7 +58,7 @@ void PrusaGcodeSuite::M191() {
     }
 
     if (const auto opt = p.option_multikey<Temperature>({ 'S', 'R', 'C' })) {
-        set_chamber_temperature(opt->first, (opt->second) != 'C', (opt->second) != 'R');
+        set_chamber_temperature(opt->first, (opt->second) != 'C', (opt->second) != 'S');
     }
 }
 
