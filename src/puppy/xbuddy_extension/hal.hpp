@@ -82,4 +82,26 @@ namespace rs485 {
 
 } // namespace rs485
 
+namespace mmu {
+    /**
+     * Transmit bytes on MMU UART.
+     * Blocks until all bytes are transmitted.
+     */
+    void transmit(std::span<const std::byte>);
+
+    /**
+     * Receive bytes from MMU UART.
+     * Bytes are received into supplied buffer.
+     * Returns view into that buffer.
+     * Does not block.
+     */
+    std::span<std::byte> receive(std::span<std::byte>);
+
+    /**
+     * Flush the receive buffer, discarding its contents.
+     */
+    void flush();
+
+} // namespace mmu
+
 } // namespace hal
