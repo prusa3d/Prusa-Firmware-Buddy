@@ -43,6 +43,16 @@ namespace deprecated_ids {
         decltype(DeprecatedStore::lan_hostname)::hashed_id,
         decltype(DeprecatedStore::wifi_hostname)::hashed_id,
     };
+    inline constexpr std::array loaded_filament_type {
+        decltype(DeprecatedStore::filament_type_0)::hashed_id,
+#if EXTRUDERS > 1
+            decltype(DeprecatedStore::filament_type_1)::hashed_id,
+            decltype(DeprecatedStore::filament_type_2)::hashed_id,
+            decltype(DeprecatedStore::filament_type_3)::hashed_id,
+            decltype(DeprecatedStore::filament_type_4)::hashed_id,
+            decltype(DeprecatedStore::filament_type_5)::hashed_id,
+#endif
+    };
 } // namespace deprecated_ids
 
 namespace migrations {
@@ -62,6 +72,7 @@ namespace migrations {
 #endif
 
     void hostname(journal::Backend &backend);
+    void loaded_filament_type(journal::Backend &backend);
 } // namespace migrations
 
 /**
@@ -86,6 +97,7 @@ inline constexpr journal::Backend::MigrationFunction migration_functions[] {
 #endif
 
         { migrations::hostname, deprecated_ids::hostname },
+        { migrations::loaded_filament_type, deprecated_ids::loaded_filament_type },
 };
 
 // Span of migration versions to simplify passing it around
