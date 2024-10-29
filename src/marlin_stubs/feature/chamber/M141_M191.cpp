@@ -80,6 +80,8 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
         return;
     }
 
+    uint32_t last_report_time = 0;
+
     while (true) {
         if (planner.draining()) {
             // We're aborting -> stop waiting
@@ -89,7 +91,11 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
         const auto current = chamber().current_temperature();
         static const Temperature tolerance = 3;
 
-        ui.set_status("Waiting for chamber temperature");
+        const auto now = ticks_ms();
+        if (ticks_diff(now, last_report_time) > 1000) {
+            ui.set_status("Waiting for chamber temperature");
+            last_report_time = now;
+        }
 
         if (!current.has_value()) {
             // We don't know chamber temperature -> wait until we do
