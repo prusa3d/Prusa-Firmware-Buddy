@@ -566,6 +566,15 @@ void safely_unload_filament_from_nozzle_to_mmu() {
 }
 #endif
 
+void print_sd_report() {
+    static uint32_t last_sd_report = 0;
+    uint32_t current_time = ticks_s();
+    if (M27_handler::sd_auto_report_delay && (current_time - last_sd_report) >= M27_handler::sd_auto_report_delay) {
+        M27_handler::print_sd_status();
+        last_sd_report = current_time;
+    }
+}
+
 #ifdef MINDA_BROKEN_CABLE_DETECTION
 static void print_Z_probe_cnt() {
     if (DEBUGGING(INFO)) {
@@ -640,6 +649,10 @@ static void cycle() {
     FSM_notifier::SendNotification();
 
     print_fan_spd();
+
+#if ENABLED(SDSUPPORT) || ENABLED(SDCARD_GCODES)
+    print_sd_report();
+#endif
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
