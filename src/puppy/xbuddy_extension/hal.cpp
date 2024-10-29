@@ -65,13 +65,13 @@ void SystemClock_Config(void) {
     __HAL_FLASH_SET_PROGRAM_DELAY(FLASH_PROGRAMMING_DELAY_0);
 }
 
-static UART_HandleTypeDef huart;
-static std::byte rx_buf[256];
-static volatile size_t rx_len;
-static freertos::BinarySemaphore tx_semaphore;
+static UART_HandleTypeDef huart_rs485;
+static std::byte rx_buf_rs485[256];
+static volatile size_t rx_len_rs485;
+static freertos::BinarySemaphore tx_semaphore_rs485;
 
 extern "C" void USART3_IRQHandler(void) {
-    HAL_UART_IRQHandler(&huart);
+    HAL_UART_IRQHandler(&huart_rs485);
 }
 
 extern "C" void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
@@ -106,44 +106,44 @@ extern "C" void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 
 extern "C" void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size) {
     if (size == 0) {
-        HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)rx_buf, sizeof(rx_buf));
+        HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)rx_buf_rs485, sizeof(rx_buf_rs485));
     } else {
-        rx_len = size;
-        long task_woken = tx_semaphore.release_from_isr();
+        rx_len_rs485 = size;
+        long task_woken = tx_semaphore_rs485.release_from_isr();
         // TODO We could wake up correct task here, but there is no freertos:: wrapper at the moment
         (void)task_woken;
     }
 }
 
 extern "C" void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-    HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)rx_buf, sizeof(rx_buf));
+    HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)rx_buf_rs485, sizeof(rx_buf_rs485));
 }
 
 void rs485_init() {
-    huart.Instance = USART3;
-    huart.Init.BaudRate = 230'400;
-    huart.Init.WordLength = UART_WORDLENGTH_8B;
-    huart.Init.StopBits = UART_STOPBITS_1;
-    huart.Init.Parity = UART_PARITY_NONE;
-    huart.Init.Mode = UART_MODE_TX_RX;
-    huart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart.Init.OverSampling = UART_OVERSAMPLING_16;
-    huart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    huart.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-    huart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-    if (HAL_UART_Init(&huart) != HAL_OK) {
+    huart_rs485.Instance = USART3;
+    huart_rs485.Init.BaudRate = 230'400;
+    huart_rs485.Init.WordLength = UART_WORDLENGTH_8B;
+    huart_rs485.Init.StopBits = UART_STOPBITS_1;
+    huart_rs485.Init.Parity = UART_PARITY_NONE;
+    huart_rs485.Init.Mode = UART_MODE_TX_RX;
+    huart_rs485.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart_rs485.Init.OverSampling = UART_OVERSAMPLING_16;
+    huart_rs485.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+    huart_rs485.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+    huart_rs485.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    if (HAL_UART_Init(&huart_rs485) != HAL_OK) {
         abort();
     }
-    if (HAL_UARTEx_SetTxFifoThreshold(&huart, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK) {
+    if (HAL_UARTEx_SetTxFifoThreshold(&huart_rs485, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK) {
         abort();
     }
-    if (HAL_UARTEx_SetRxFifoThreshold(&huart, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK) {
+    if (HAL_UARTEx_SetRxFifoThreshold(&huart_rs485, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK) {
         abort();
     }
-    if (HAL_UARTEx_DisableFifoMode(&huart) != HAL_OK) {
+    if (HAL_UARTEx_DisableFifoMode(&huart_rs485) != HAL_OK) {
         abort();
     }
-    if (HAL_RS485Ex_Init(&huart, UART_DE_POLARITY_HIGH, 0x1f, 0x1f) != HAL_OK) {
+    if (HAL_RS485Ex_Init(&huart_rs485, UART_DE_POLARITY_HIGH, 0x1f, 0x1f) != HAL_OK) {
         abort();
     }
 }
@@ -482,14 +482,14 @@ uint32_t hal::temperature::get_raw() {
 }
 
 void hal::rs485::start_receiving() {
-    HAL_UART_TxCpltCallback(&huart);
+    HAL_UART_TxCpltCallback(&huart_rs485);
 }
 
 std::span<std::byte> hal::rs485::receive() {
-    tx_semaphore.acquire();
-    return { rx_buf, rx_len };
+    tx_semaphore_rs485.acquire();
+    return { rx_buf_rs485, rx_len_rs485 };
 }
 
 void hal::rs485::transmit_and_then_start_receiving(std::span<std::byte> payload) {
-    HAL_UART_Transmit_IT(&huart, (uint8_t *)payload.data(), payload.size());
+    HAL_UART_Transmit_IT(&huart_rs485, (uint8_t *)payload.data(), payload.size());
 }
