@@ -42,3 +42,39 @@ void MI_XBUDDY_EXTENSION_COOLING_FANS::OnClick() {
         exb.set_fan1_fan2_pwm(value() * 255 / 100);
     }
 }
+
+// MI_INFO_XBUDDY_EXTENSION_FAN1
+// =============================================
+MI_INFO_XBUDDY_EXTENSION_FAN1::MI_INFO_XBUDDY_EXTENSION_FAN1()
+    : WI_FAN_LABEL_t(_("Cooling Fan 1"),
+        [](auto) { return FanPWMAndRPM {
+                       .pwm = xbuddy_extension().fan1_fan2_pwm(),
+                       .rpm = xbuddy_extension().fan1_rpm(),
+                   }; } //
+    ) {
+    set_is_hidden(xbuddy_extension().status() == XBuddyExtension::Status::disabled);
+}
+
+// MI_INFO_XBUDDY_EXTENSION_FAN2
+// =============================================
+MI_INFO_XBUDDY_EXTENSION_FAN2::MI_INFO_XBUDDY_EXTENSION_FAN2()
+    : WI_FAN_LABEL_t(_("Cooling Fan 2"),
+        [](auto) { return FanPWMAndRPM {
+                       .pwm = xbuddy_extension().fan1_fan2_pwm(),
+                       .rpm = xbuddy_extension().fan2_rpm(),
+                   }; } //
+    ) {
+    set_is_hidden(xbuddy_extension().status() == XBuddyExtension::Status::disabled);
+}
+
+// MI_INFO_XBUDDY_EXTENSION_FAN3
+// =============================================
+MI_INFO_XBUDDY_EXTENSION_FAN3::MI_INFO_XBUDDY_EXTENSION_FAN3()
+    : WI_FAN_LABEL_t(_("Filtration Fan"),
+        [](auto) { return FanPWMAndRPM {
+                       .pwm = xbuddy_extension().fan3_pwm(),
+                       .rpm = xbuddy_extension().fan3_rpm(),
+                   }; } //
+    ) {
+    set_is_hidden(xbuddy_extension().status() == XBuddyExtension::Status::disabled);
+}
