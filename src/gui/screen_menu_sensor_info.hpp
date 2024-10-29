@@ -5,6 +5,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_modularbed.h>
 #include <option/has_chamber_api.h>
+#include <option/has_xbuddy_extension.h>
 
 #include <Configuration_adv.h>
 #include <fs_autoload_autolock.hpp>
@@ -29,6 +30,9 @@
 #endif
 #if HAS_CHAMBER_API()
     #include <gui/menu_item/specific/menu_items_chamber.hpp>
+#endif
+#if HAS_XBUDDY_EXTENSION()
+    #include <gui/menu_item/specific/menu_items_xbuddy_extension.hpp>
 #endif
 
 #if PRINTER_IS_PRUSA_MK3_5()
@@ -92,6 +96,11 @@ struct ScreenMenuSensorInfo__<std::index_sequence<hotend...>> {
 
         MI_INFO_PRINT_FAN,
         MI_INFO_HBR_FAN,
+    #if HAS_XBUDDY_EXTENSION()
+        MI_INFO_XBUDDY_EXTENSION_FAN1,
+        MI_INFO_XBUDDY_EXTENSION_FAN2,
+        MI_INFO_XBUDDY_EXTENSION_FAN3,
+    #endif
 
     #if BOARD_IS_XBUDDY()
         MI_INFO_HEATER_VOLTAGE,
