@@ -6,6 +6,7 @@
 #include <config_store/backend_instance.hpp>
 #include <journal/store.hpp>
 #include <footer_eeprom.hpp>
+#include <str_utils.hpp>
 
 namespace config_store_ns::old_eeprom {
 void eeprom_init_ram_mirror(eeprom_data &eeprom_ram_mirror) {
@@ -93,7 +94,7 @@ bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
 
     char buffer[15];
     version::fill_project_version_no_dots(buffer, sizeof(buffer));
-    std::from_chars(buffer, buffer + strlen(buffer), data.head.FWVERSION);
+    from_chars_light(buffer, buffer + strlen(buffer), data.head.FWVERSION);
 
     // if update was successful, version will be current
     return version == EEPROM_VERSION;

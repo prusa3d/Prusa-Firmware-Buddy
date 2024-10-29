@@ -58,6 +58,7 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/include
          ${CMAKE_BINARY_DIR}/include
          ${CMAKE_SOURCE_DIR}/src/common/utils
+         ${CMAKE_SOURCE_DIR}/src/lang
   )
 
 target_include_directories(
@@ -73,6 +74,7 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/src/gui
          ${CMAKE_BINARY_DIR}/include
          ${CMAKE_SOURCE_DIR}/include
+         ${CMAKE_SOURCE_DIR}/src/lang
   )
 
 target_link_libraries(window_tests SG14)

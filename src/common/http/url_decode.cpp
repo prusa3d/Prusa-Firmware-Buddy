@@ -1,4 +1,5 @@
 #include "url_decode.h"
+#include <str_utils.hpp>
 
 namespace http {
 bool url_decode(std::string_view url, char *decoded_url, size_t decoded_url_len) {
@@ -18,7 +19,7 @@ bool url_decode(std::string_view url, char *decoded_url, size_t decoded_url_len)
             }
             int ascii_value;
             auto curr_iter = url.begin() + i;
-            auto result = std::from_chars(curr_iter + 1, curr_iter + 3, ascii_value, 16);
+            auto result = from_chars_light(curr_iter + 1, curr_iter + 3, ascii_value, 16);
             if (result.ec != std::errc {}) {
                 return false;
             }

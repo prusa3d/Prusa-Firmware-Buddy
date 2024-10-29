@@ -40,7 +40,7 @@ using transfers::ChangedPath;
 namespace {
     optional<int> get_job_id(string_view str) {
         int ret;
-        auto result = std::from_chars(str.begin(), str.end(), ret);
+        auto result = from_chars_light(str.begin(), str.end(), ret);
         if (result.ec != std::errc {}) {
             return nullopt;
         }

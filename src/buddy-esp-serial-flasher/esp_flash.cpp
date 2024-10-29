@@ -15,6 +15,7 @@ extern "C" {
 #include <tasks.hpp>
 #include <charconv>
 #include <array>
+#include <str_utils.hpp>
 
 LOG_COMPONENT_REF(Buddy);
 
@@ -127,7 +128,7 @@ static Result verify_checksum(const Part &part) {
     // Convert hex string to MD5 data
     std::array<uint8_t, 16> checksum;
     for (uint8_t i = 0; i < 16; ++i) {
-        const auto result = std::from_chars(checksum_string.data() + 2 * i, checksum_string.data() + 2 * i + 2, checksum.at(i), 16);
+        const auto result = from_chars_light(checksum_string.data() + 2 * i, checksum_string.data() + 2 * i + 2, checksum.at(i), 16);
         if (result.ec != std::errc {}) {
             return Result::hal_error;
         }
