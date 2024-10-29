@@ -449,7 +449,9 @@ if(ENABLE_HW_STD_RAND)
 endif()
 
 # Appending fw descriptor (with calculated fingerprint) to the ELF
-if(BOARD STREQUAL "DWARF" OR BOARD STREQUAL "MODULARBED" # OR BOARD STREQUAL "XBUDDY_EXTENSION"
+if(BOARD STREQUAL "DWARF"
+   OR BOARD STREQUAL "MODULARBED"
+   OR BOARD STREQUAL "XBUDDY_EXTENSION"
    )
   add_custom_command(
     TARGET firmware

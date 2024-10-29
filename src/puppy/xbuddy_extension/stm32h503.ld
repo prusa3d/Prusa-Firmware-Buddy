@@ -226,5 +226,9 @@ SECTIONS
      BYTE(0xAA)
    } > FW_DESCRIPTOR
 
+  __fw_descriptor_start = ORIGIN(FW_DESCRIPTOR);
+  __fw_descriptor_length = LENGTH(FW_DESCRIPTOR);
+  __flash_start = ORIGIN(FLASH);
+
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }
