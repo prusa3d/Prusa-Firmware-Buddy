@@ -297,15 +297,7 @@ struct CurrentStore
     void set_tool_offset(uint8_t index, ToolOffset value);
 #endif
 
-    // Filament types loaded in extruders
-    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 0")> filament_type_0;
-#if EXTRUDERS > 1 // for now only doing one ifdef for simplicity
-    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 1")> filament_type_1;
-    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 2")> filament_type_2;
-    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 3")> filament_type_3;
-    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 4")> filament_type_4;
-    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 5")> filament_type_5;
-#endif
+    StoreItemArray<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Loaded Filament"), 8, EXTRUDERS> loaded_filament_type;
 
     /// User-defined filament ordering. Does not need to contain all the filaments - the rest will be appended to the back using the standard rules
     StoreItem<std::array<FilamentType, max_total_filament_count>, FilamentType::none, journal::hash("Filament Order")> filament_order;
@@ -582,6 +574,16 @@ struct DeprecatedStore
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 4
     StoreItem<footer::Item, defaults::footer_setting_4, journal::hash("Footer Setting 4")> footer_setting_4_v2;
+#endif
+
+    // Filament types loaded in extruders
+    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 0")> filament_type_0;
+#if EXTRUDERS > 1 // for now only doing one ifdef for simplicity
+    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 1")> filament_type_1;
+    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 2")> filament_type_2;
+    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 3")> filament_type_3;
+    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 4")> filament_type_4;
+    StoreItem<EncodedFilamentType, EncodedFilamentType {}, journal::hash("Filament Type 5")> filament_type_5;
 #endif
 
     // There was wrong default value for XL, so V2 version was introduced to reset it to proper default value
