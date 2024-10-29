@@ -21,10 +21,11 @@ window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, const string_view_utf8 &txt)
 void window_dlg_popup_t::Show(Rect16 rect, const string_view_utf8 &txt, uint32_t time) {
     static window_dlg_popup_t dlg(rect, txt);
 
+    window_t *parent = Screens::Access()->Get();
+
     // hide the dialog if shown already (it is static)
-    if (dlg.GetParent()) {
+    if (dlg.GetParent() && dlg.GetParent() != parent) {
         dlg.GetParent()->UnregisterSubWin(dlg);
-        dlg.SetParent(nullptr);
     }
 
     dlg.open_time = gui::GetTick();
@@ -33,11 +34,8 @@ void window_dlg_popup_t::Show(Rect16 rect, const string_view_utf8 &txt, uint32_t
     dlg.text.Invalidate(); // invalidation is needed here because we are using the same static array for the text and text will invalidate only when the memory address is different
     dlg.SetRect(rect);
 
-    if (!dlg.GetParent()) {
-        window_t *parent = Screens::Access()->Get();
-        if (parent) {
-            parent->RegisterSubWin(dlg);
-        }
+    if (!dlg.GetParent() && parent) {
+        parent->RegisterSubWin(dlg);
     }
 }
 
