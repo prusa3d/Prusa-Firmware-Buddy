@@ -200,7 +200,7 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
 
         const auto address = get_boot_address_for_dock(dock);
         const auto puppy_type = to_puppy_type(dock);
-        start_app(puppy_type, address, fingerprints.get_salt(puppy_type), fingerprints.get_fingerprint(puppy_type)); // Use last known salt that may already be calculated in puppy
+        start_app(puppy_type, address, fingerprints);
     }
 
 #else
@@ -405,11 +405,13 @@ bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address addres
     return true;
 }
 
-void PuppyBootstrap::start_app([[maybe_unused]] PuppyType type, BootloaderProtocol::Address address, uint32_t salt, const fingerprint_t &fingerprint) {
+void PuppyBootstrap::start_app(PuppyType type, BootloaderProtocol::Address address, fingerprints_t &fw_fingerprints) {
     // start app
     log_info(Puppies, "Starting puppy app");
     flasher.set_address(address);
-    BootloaderProtocol::status_t status = flasher.run_app(salt, fingerprint);
+    BootloaderProtocol::status_t status = flasher.run_app(
+        fw_fingerprints.get_salt(type),
+        fw_fingerprints.get_fingerprint(type));
     if (status != BootloaderProtocol::COMMAND_OK) {
         fatal_error(ErrCode::ERR_SYSTEM_PUPPY_START_APP_ERR);
     }

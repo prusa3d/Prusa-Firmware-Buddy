@@ -145,10 +145,9 @@ private:
      * @brief Tell puppy to check fingerprint and start application.
      * @param type not used now
      * @param address puppy's modbus address
-     * @param salt use this salt for fingerprint calculation
-     * @param fingerprint puppy will check this fingerprint before starting the app
+     * @param fw_fingerprints fingerprint storage
      */
-    void start_app(PuppyType type, BootloaderProtocol::Address address, uint32_t salt, const fingerprint_t &fingerprint);
+    void start_app(PuppyType type, BootloaderProtocol::Address address, fingerprints_t &fw_fingerprints);
 
     /**
      * @brief Wait for puppy to finish fingerprint calculation.
