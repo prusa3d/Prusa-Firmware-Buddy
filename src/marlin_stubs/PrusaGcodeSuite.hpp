@@ -22,11 +22,6 @@
  */
 namespace PrusaGcodeSuite {
 
-/// \returns FilamentType read from the gcode parser under \p parameter.
-/// The expected format is S"Filament name" (where S = \p parameter)
-/// If \param string_begin_ptr is provided, it is set to the begining of the filament string name
-FilamentType get_filament_type_from_command(char parameter, const char **string_begin_ptr = nullptr);
-
 int8_t get_target_extruder_from_command(const GCodeParser2 &p);
 
 /** \defgroup G-Codes G-Code Commands
