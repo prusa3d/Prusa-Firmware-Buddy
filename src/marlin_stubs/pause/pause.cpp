@@ -633,6 +633,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     case LoadPhases_t::long_load: {
         setPhase(is_unstoppable ? PhasesLoadUnload::Loading_unstoppable : PhasesLoadUnload::Loading_stoppable, 50);
 
+        const float saved_acceleration = planner.user_settings.retract_acceleration;
         {
             auto s = planner.user_settings;
             s.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
@@ -640,6 +641,13 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         }
 
         do_e_move_notify_progress_hotextrude(settings.fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 50, 70);
+
+        {
+            auto s = planner.user_settings;
+            s.retract_acceleration = saved_acceleration;
+            planner.apply_settings(s);
+        }
+
         set(LoadPhases_t::purge);
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
@@ -876,9 +884,6 @@ bool Pause::filamentLoad(loop_fn fn) {
     if (!is_target_temperature_safe() && fn != &Pause::loop_load_to_gear) {
         return false;
     }
-
-    const auto orig_settings = planner.user_settings;
-    ScopeGuard _sg([&] { planner.apply_settings(orig_settings); });
 
     set(LoadPhases_t::_init);
     return invoke_loop(fn);
