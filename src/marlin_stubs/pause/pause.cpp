@@ -848,10 +848,6 @@ bool Pause::LoadToGear(const pause::Settings &settings_) {
  * Returns 'true' if unload was completed, 'false' for abort
  */
 bool Pause::filamentUnload(loop_fn fn) {
-    if (process_stop()) { // What is this doing here?
-        return false;
-    }
-
     // loop_unload_mmu has it's own preheating sequence, use that one for better progress reporting
     if (fn != &Pause::loop_unload_mmu && !ensureSafeTemperatureNotifyProgress(0, 50) && fn != &Pause::loop_unloadFromGear) {
         return false;
