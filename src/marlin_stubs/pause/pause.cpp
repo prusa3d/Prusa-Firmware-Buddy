@@ -344,46 +344,7 @@ void Pause::loop_load(Response response) {
 }
 
 void Pause::loop_load_purge(Response response) {
-    const float purge_ln = settings.purge_length();
-
-    // transitions
-    switch (getLoadPhase()) {
-
-    case LoadPhases_t::_init:
-        set(LoadPhases_t::wait_temp);
-        break;
-
-    case LoadPhases_t::wait_temp:
-        if (ensureSafeTemperatureNotifyProgress(30, 50)) {
-            set(LoadPhases_t::purge);
-        }
-        break;
-
-    case LoadPhases_t::error_temp:
-        set(LoadPhases_t::_finish);
-        break;
-
-    case LoadPhases_t::purge:
-        // Extrude filament to get into hotend
-        setPhase(PhasesLoadUnload::Purging_stoppable, 70);
-        do_e_move_notify_progress_hotextrude(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
-        setPhase(PhasesLoadUnload::IsColorPurge, 99);
-        set(LoadPhases_t::ask_is_color_correct);
-        break;
-
-    case LoadPhases_t::ask_is_color_correct: {
-        if (response == Response::Purge_more) {
-            set(LoadPhases_t::purge);
-        }
-        if (response == Response::Yes) {
-            set(LoadPhases_t::_finish);
-        }
-        break;
-    }
-
-    default:
-        set(LoadPhases_t::_finish);
-    }
+    loop_load_common(response, CommonLoadType::load_purge);
 }
 
 void Pause::loop_load_not_blocking(Response response) {
@@ -420,6 +381,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
 
     case CommonLoadType::standard:
     case CommonLoadType::autoload:
+    case CommonLoadType::load_purge:
         is_unstoppable = false;
         break;
 
@@ -465,6 +427,9 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
             set(LoadPhases_t::wait_temp);
             handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+            break;
+        case CommonLoadType::load_purge:
+            set(LoadPhases_t::wait_temp);
             break;
 
 #if HAS_MMU2()
@@ -621,7 +586,11 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         break;
     case LoadPhases_t::wait_temp:
         if (ensureSafeTemperatureNotifyProgress(30, 50)) {
-            set(LoadPhases_t::long_load);
+            if (load_type == CommonLoadType::load_purge) {
+                set(LoadPhases_t::purge);
+            } else {
+                set(LoadPhases_t::long_load);
+            }
         }
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
@@ -757,6 +726,8 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         case CommonLoadType::standard:
         case CommonLoadType::autoload:
             set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+            break;
+        case CommonLoadType::load_purge:
             break;
         }
         break;

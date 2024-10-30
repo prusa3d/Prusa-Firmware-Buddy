@@ -212,6 +212,7 @@ private:
         filament_change,
         filament_stuck,
         not_blocking,
+        load_purge,
         mmu, ///< MMU load to nozzle
         mmu_change, ///< MMU filament change (for example filament runout)
     };
