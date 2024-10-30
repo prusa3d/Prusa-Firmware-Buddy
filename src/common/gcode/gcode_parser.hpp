@@ -128,7 +128,7 @@ public:
     /// Parses an enum
     template <typename T>
         requires(std::is_enum_v<T>)
-    StoreOptionResult store_option(char key, T &target, T enum_count) const {
+    StoreOptionResult store_option(char key, T &target, auto enum_count) const {
         using TB = std::underlying_type_t<T>;
         return store_option<TB>(key, reinterpret_cast<TB &>(target), static_cast<TB>(0), static_cast<TB>(enum_count) - 1);
     }
