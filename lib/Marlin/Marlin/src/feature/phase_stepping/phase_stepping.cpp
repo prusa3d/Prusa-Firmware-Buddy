@@ -488,6 +488,21 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     stepper.intpol(axis_state.had_interpolation);
     stepper.rms_current(stepper.rms_current(), axis_state.initial_hold_multiplier);
 
+    // Resynchronize driver direction to last known direction
+    switch (axis_num) {
+    case X_AXIS:
+        buddy::hw::xDir.writeb(!(Stepper::motor_direction(axis_num) ^ INVERT_X_DIR));
+        break;
+    case Y_AXIS:
+        buddy::hw::yDir.writeb(!(Stepper::motor_direction(axis_num) ^ INVERT_Y_DIR));
+        break;
+    case Z_AXIS:
+        buddy::hw::zDir.writeb(!(Stepper::motor_direction(axis_num) ^ INVERT_Z_DIR));
+        break;
+    default:
+        break;
+    }
+
     // Disable and shutdown timer if we're the last axis
     axis_state.enabled = false;
     if (!any_axis_enabled()) {
