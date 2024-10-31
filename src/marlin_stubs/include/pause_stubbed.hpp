@@ -189,6 +189,7 @@ private:
     enum class CommonUnloadType : uint8_t {
         standard,
         ask_unloaded,
+        unload_from_gears,
         filament_change,
         filament_stuck,
     };

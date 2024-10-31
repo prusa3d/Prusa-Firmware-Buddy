@@ -909,6 +909,7 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
 
     case CommonUnloadType::standard:
     case CommonUnloadType::ask_unloaded:
+    case CommonUnloadType::unload_from_gears:
         is_unstoppable = false;
         ramming_type = RammingType::unload;
         break;
@@ -933,6 +934,10 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
             setPhase(PhasesLoadUnload::ManualUnload, 100);
             set(UnloadPhases_t::manual_unload);
 #endif
+            break;
+
+        case CommonUnloadType::unload_from_gears:
+            set(UnloadPhases_t::unload_from_gear);
             break;
 
         default:
@@ -982,6 +987,8 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
             set(UnloadPhases_t::unloaded__ask);
 
             break;
+        case CommonUnloadType::unload_from_gears:
+            break;
         }
         break;
 
@@ -995,6 +1002,12 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
             disable_e_stepper(active_extruder);
             set(UnloadPhases_t::manual_unload);
         }
+        break;
+
+    case UnloadPhases_t::unload_from_gear:
+        setPhase(PhasesLoadUnload::Unloading_stoppable, 0);
+        do_e_move_notify_progress_coldextrude(-settings.slow_load_length * (float)1.5, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 0, 100);
+        set(UnloadPhases_t::_finish);
         break;
 
     case UnloadPhases_t::filament_not_in_fs:
@@ -1079,22 +1092,7 @@ void Pause::loop_unload_mmu_change([[maybe_unused]] Response response) {
 #endif
 
 void Pause::loop_unloadFromGear([[maybe_unused]] Response response) {
-    // transitions
-    switch (getUnloadPhase()) {
-
-    case UnloadPhases_t::_init:
-        set(UnloadPhases_t::unload_from_gear);
-        break;
-
-    case UnloadPhases_t::unload_from_gear:
-        setPhase(PhasesLoadUnload::Unloading_stoppable, 0);
-        do_e_move_notify_progress_coldextrude(-settings.slow_load_length * (float)1.5, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 0, 100);
-        set(UnloadPhases_t::_finish);
-        break;
-
-    default:
-        set(UnloadPhases_t::_finish);
-    }
+    loop_unload_common(response, CommonUnloadType::unload_from_gears);
 }
 
 void Pause::loop_unload_change(Response response) {
