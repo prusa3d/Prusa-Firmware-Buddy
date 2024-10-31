@@ -37,10 +37,10 @@ consteval auto thermistor_lookup_table(uint16_t r_pullup, uint16_t raw_max, cons
 }
 
 constexpr float raw_to_celsius(uint16_t raw, const std::span<const ThermistorLookupRecord> &lookup) {
-    // Limit to end - 2 so that we are guaranteed to have 2 samples to deduce the slope from
-    const auto it = std::lower_bound(lookup.begin(), lookup.end() - 2, raw, [](auto a, auto val) { return a.raw < val; });
-    const auto lo = *it;
-    const auto hi = *(it + 1);
+    // Limit the scanned range - we want to make sure that lo and hi are always valid
+    const auto it = std::lower_bound(lookup.begin() + 1, lookup.end() - 1, raw, [](auto a, auto val) { return a.raw < val; });
+    const auto lo = *(it - 1);
+    const auto hi = *it;
 
     return lo.temp + static_cast<float>(static_cast<int16_t>(raw) - lo.raw) * (hi.temp - lo.temp) / (hi.raw - lo.raw);
 }
