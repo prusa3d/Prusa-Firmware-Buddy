@@ -62,8 +62,6 @@ constexpr auto ntc_104nt_lookup = thermistor_lookup_table(33000, 4095,
         { 120, 3.058 },
     }));
 
-} // namespace
-
 // Some checks that we're calculating correctly
 static_assert(ntc_104nt_lookup[6].temp == 40);
 static_assert(ntc_104nt_lookup[6].raw == 2484);
@@ -73,6 +71,32 @@ static_assert(std::abs(raw_to_celsius(591, ntc_104nt_lookup) - 100) < 1);
 static_assert(std::abs(raw_to_celsius(1659, ntc_104nt_lookup) - 60) < 1);
 static_assert(std::abs(raw_to_celsius(2484, ntc_104nt_lookup) - 40) < 1);
 static_assert(raw_to_celsius(5000, ntc_104nt_lookup) < -50);
+
+struct TestResult {
+    uint16_t raw;
+    float c;
+    float prev_c;
+
+    bool operator==(const TestResult &) const = default;
+};
+
+static constexpr TestResult test_result = [] {
+    float prev_c = raw_to_celsius(0, ntc_104nt_lookup);
+    for (uint16_t raw = 1; raw < 4096; raw++) {
+        const auto c = raw_to_celsius(raw, ntc_104nt_lookup);
+        if (c > prev_c) {
+            return TestResult(raw, c, prev_c);
+        }
+
+        prev_c = c;
+    }
+
+    return TestResult { 0, -1, 0 };
+}();
+
+static_assert(test_result.raw == 0 && test_result.c < test_result.prev_c);
+
+} // namespace
 
 float temperature::raw_to_celsius(uint16_t raw) {
     return raw_to_celsius(raw, ntc_104nt_lookup);
