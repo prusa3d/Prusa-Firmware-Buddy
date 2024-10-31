@@ -400,6 +400,13 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     // transitions
     switch (getLoadPhase()) {
     case LoadPhases_t::_init:
+        // TODO: this shouldn't be needed here
+        // actual temperature does not matter, only target
+        if (!is_target_temperature_safe() && load_type != CommonLoadType::load_to_gear) {
+            settings.do_stop = true;
+            break;
+        }
+
         switch (load_type) {
         case CommonLoadType::load_to_gear:
 #if HAS_SIDE_FSENSOR()
@@ -844,12 +851,6 @@ bool Pause::filamentUnload(loop_fn fn) {
  * Returns 'true' if load was completed, 'false' for abort
  */
 bool Pause::filamentLoad(loop_fn fn) {
-
-    // actual temperature does not matter, only target
-    if (!is_target_temperature_safe() && fn != &Pause::loop_load_to_gear) {
-        return false;
-    }
-
     set(LoadPhases_t::_init);
     return invoke_loop(fn);
 }
