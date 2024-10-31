@@ -549,11 +549,6 @@ class Stepper {
         last_direction_bits &= ~axis_mask;
     }
 
-    // Return last physical direction of an axis
-    static bool last_axis_direction(AxisEnum a) {
-      return last_direction_bits & _BV(a);
-    }
-
     // Return true if the physical axis direction is inverted
     static bool is_axis_inverted(AxisEnum a);
 
