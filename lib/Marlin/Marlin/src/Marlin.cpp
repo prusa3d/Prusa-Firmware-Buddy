@@ -741,7 +741,16 @@ void idle(
     if( EMotorStallDetector::Instance().Evaluate(stepper.axis_is_moving(E_AXIS), ! stepper.motor_direction(E_AXIS))){
         // E-motor stall has been detected, issue a modified M600
         SERIAL_ECHOLNPGM("E-motor stall detected");
+#if PRINTER_IS_PRUSA_CUBE()
+        // do not issue an M600 on cube for now. Instead, clear the flag after 1s to allow reporting future issues like this
+        static uint32_t last_report_ms = 0;
+        if( ticks_diff(ticks_ms(), last_report_ms) > 1000 ){
+            EMotorStallDetector::Instance().ClearReported();
+            last_report_ms = ticks_ms();
+        }
+#else
         queue.inject_P(PSTR("M1601"));
+#endif
     }
   #endif
 
