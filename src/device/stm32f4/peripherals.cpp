@@ -791,6 +791,7 @@ void hw_tim1_init() {
     if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK) {
         Error_Handler();
     }
+    __HAL_TIM_ENABLE(&htim1);
 }
 
 void hw_tim2_init() {
@@ -870,6 +871,7 @@ void hw_tim3_init() {
     }
 
     HAL_TIM_MspPostInit(&htim3);
+    __HAL_TIM_ENABLE(&htim3);
 }
 
 void hw_tim8_init() {
