@@ -3,14 +3,15 @@
 
 #include <cassert>
 #include <cstring>
-#include <utility>
 
 #include "i18n.h"
-#include "client_response_texts.hpp"
 #include "../../include/printers.h"
-#include <Marlin/src/inc/MarlinConfigPre.h>
 #include <enum_array.hpp>
 #include <option/has_loadcell.h>
+#include <str_utils.hpp>
+#include <guiconfig/guiconfig.h>
+#include <config_store/store_instance.hpp>
+#include <Configuration.h>
 
 // !!! If these value change, you need to inspect usages and possibly write up some config store migrations
 static_assert(filament_name_buffer_size == 8);
@@ -144,6 +145,21 @@ FilamentType FilamentType::from_name(const std::string_view &name) {
     }
 
     return FilamentType::none;
+}
+
+std::optional<FilamentType> FilamentType::from_gcode_param(const std::string_view &value) {
+    if (const FilamentType r = from_name(value); r != FilamentType::none) {
+        return r;
+    }
+
+    static constexpr std::string_view adhoc_prefix_view = adhoc_filament_gcode_prefix;
+    if (value.starts_with(adhoc_prefix_view)) {
+        if (uint8_t ix = 0; from_chars_light(value.begin() + adhoc_prefix_view.size(), value.end(), ix).ec == std::errc {} && ix < adhoc_filament_type_count) {
+            return AdHocFilamentType { .tool = ix };
+        }
+    }
+
+    return std::nullopt;
 }
 
 bool FilamentType::matches(const std::string_view &name) const {

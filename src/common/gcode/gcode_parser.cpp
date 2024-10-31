@@ -30,7 +30,7 @@ GCodeParser2::StoreOptionResult GCodeParser2::store_option(char key, std::string
 
 GCodeParser2::StoreOptionResult GCodeParser2::store_option(char key, bool &target) const {
     std::array<char, 2> buffer;
-    const auto str = option<std::string_view>(key, buffer);
+    const auto str = option_expected<std::string_view>(key, buffer);
     if (!str) {
         return std::unexpected(str.error());
     }
@@ -51,7 +51,7 @@ GCodeParser2::StoreOptionResult GCodeParser2::store_option(char key, bool &targe
 
 GCodeParser2::StoreOptionResult GCodeParser2::store_option(char key, LargestInteger &target, LargestInteger min_value, LargestInteger max_value) const {
     std::array<char, 32> buffer;
-    const auto str = option<std::string_view>(key, buffer);
+    const auto str = option_expected<std::string_view>(key, buffer);
     if (!str) {
         return std::unexpected(str.error());
     }
@@ -74,7 +74,7 @@ GCodeParser2::StoreOptionResult GCodeParser2::store_option(char key, LargestInte
 
 GCodeParser2::StoreOptionResult GCodeParser2::store_option(char key, float &target, float min_value, float max_value) const {
     std::array<char, 32> buffer;
-    const auto str = option<std::string_view>(key, buffer);
+    const auto str = option_expected<std::string_view>(key, buffer);
     if (!str) {
         return std::unexpected(str.error());
     }

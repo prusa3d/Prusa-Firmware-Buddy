@@ -41,31 +41,24 @@ using namespace filament_gcodes;
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
-    const char *text_begin = nullptr;
-    const FilamentType filament_to_be_loaded = PrusaGcodeSuite::get_filament_type_from_command('S', &text_begin);
-
-    std::optional<Color> color_to_be_loaded = { std::nullopt };
-    if (parser.seen('O')) {
-        color_to_be_loaded = Color::from_raw(parser.longval('O'));
+    GCodeParser2 p;
+    if (!p.parse_marlin_command()) {
+        return;
     }
-    const bool isL = (parser.seen('L') && (!text_begin || strchr(parser.string_arg, 'L') < text_begin));
-    const std::optional<float> fast_load_length = isL ? std::optional<float>(::abs(parser.value_axis_units(E_AXIS))) : std::nullopt;
-    const float min_Z_pos = parser.linearval('Z', Z_AXIS_LOAD_POS);
-    const uint8_t preheat = parser.byteval('W', 255);
 
-    const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
+    const FilamentType filament_to_be_loaded = p.option<FilamentType>('S').value_or(NoFilamentType());
+    std::optional<Color> color_to_be_loaded = p.option<Color>('O');
+    const std::optional<float> fast_load_length = p.option<float>('L').transform(fabsf);
+    const float min_Z_pos = p.option<float>('Z').value_or(Z_AXIS_LOAD_POS);
+    const auto op_preheat = p.option<RetAndCool_t>('W', std::to_underlying(RetAndCool_t::last_) + 1);
+
+    const int8_t target_extruder = PrusaGcodeSuite::get_target_extruder_from_command(p);
     if (target_extruder < 0) {
         return;
     }
 
-    // TODO colision with "PLA" string
-    const float mmu_slot = parser.intval('P', -1);
-
-    std::optional<RetAndCool_t> op_preheat = std::nullopt;
-    if (preheat <= uint8_t(RetAndCool_t::last_)) {
-        op_preheat = RetAndCool_t(preheat);
-    }
-    const ResumePrint_t resume_print = static_cast<ResumePrint_t>(parser.seen('R'));
+    const int8_t mmu_slot = p.option<int8_t>('P').value_or(-1);
+    const ResumePrint_t resume_print = static_cast<ResumePrint_t>(p.option<bool>('R').value_or(false));
 
     M701_no_parser(filament_to_be_loaded, fast_load_length, min_Z_pos, op_preheat, target_extruder, mmu_slot, color_to_be_loaded, resume_print);
 }

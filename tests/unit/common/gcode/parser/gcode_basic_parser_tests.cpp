@@ -1,9 +1,4 @@
-#include <catch2/catch.hpp>
-#include <format>
-
 #include "gcode_parser_test_common.hpp"
-
-#include <gcode_basic_parser.hpp>
 
 TEST_CASE("gcode_parser::gcode_basic_parser") {
     SECTION("1") {

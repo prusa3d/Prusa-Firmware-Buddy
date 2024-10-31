@@ -49,6 +49,8 @@ LOG_COMPONENT_REF(PRUSA_GCODE);
 #include <cmath>
 #include "filament_sensors_handler.hpp"
 #include "filament.hpp"
+#include <gcode/gcode_parser.hpp>
+
 #include <option/has_leds.h>
 #if HAS_LEDS()
     #include "led_animations/printer_animation_state.hpp"
@@ -65,7 +67,7 @@ LOG_COMPONENT_REF(PRUSA_GCODE);
     #include "Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #endif
 
-static void M600_manual();
+static void M600_manual(const GCodeParser2 &);
 
 #include <config_store/store_instance.hpp>
 
@@ -102,7 +104,12 @@ static void M600_manual();
  */
 
 void GcodeSuite::M600() {
-    const bool is_auto_m600 = parser.seen('A');
+    GCodeParser2 p;
+    if (!p.parse_marlin_command()) {
+        return;
+    }
+
+    const bool is_auto_m600 = p.option<bool>('A').value_or(false);
 
     bool do_manual_m600 = true;
 
@@ -126,7 +133,7 @@ void GcodeSuite::M600() {
 #endif
 
     if (do_manual_m600) {
-        M600_manual();
+        M600_manual(p);
     }
 
     if (is_auto_m600) {
@@ -141,44 +148,12 @@ void M600_execute(xyz_pos_t park_point, uint8_t target_extruder,
     std::optional<float> retractLength, std::optional<Color> filament_colour,
     std::optional<FilamentType> filament_type, pause::Settings::CalledFrom);
 
-void M600_manual() {
-    char colourtype[16] = { '\0' };
-
-    const auto filament_to_be_loaded = PrusaGcodeSuite::get_filament_type_from_command('S');
-
-    if (parser.seen('C')) {
-        const char *colourtype_ptr = nullptr;
-        if ((colourtype_ptr = strstr(parser.string_arg, "C\"")) != nullptr) {
-            const char *text_begin = strchr(colourtype_ptr, '"');
-            if (text_begin) {
-                ++text_begin;
-                strlcpy(colourtype, text_begin, sizeof(colourtype));
-                for (char *fn = colourtype; *fn; ++fn) {
-                    if (*fn == '"') {
-                        *fn = '\0';
-                        break;
-                    }
-                }
-            }
-        } else if ((colourtype_ptr = strstr(parser.string_arg, "C ")) != nullptr) {
-            const char *text_begin = strchr(colourtype_ptr, ' ');
-            if (text_begin) {
-                ++text_begin;
-                strlcpy(colourtype, text_begin, sizeof(colourtype));
-                for (char *fn = colourtype; *fn; ++fn) {
-                    if (*fn == ' ') {
-                        *fn = '\0';
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
+void M600_manual(const GCodeParser2 &p) {
+    const int8_t target_extruder = PrusaGcodeSuite::get_target_extruder_from_command(p);
     if (target_extruder < 0) {
         return;
     }
+
 #if HAS_LEDS()
     auto guard = PrinterStateAnimation::force_printer_state(PrinterState::Warning);
 #endif
@@ -191,18 +166,15 @@ void M600_manual() {
 #endif
 
     // Lift Z axis
-    if (parser.seenval('Z')) {
-        park_point.z = parser.linearval('Z');
+    if (p.store_option('Z', park_point.z)) {
         park_point.z = LOGICAL_TO_NATIVE(park_point.z, Z_AXIS);
     }
 
     // Move XY axes to filament change position or given position
-    if (parser.seenval('X')) {
-        park_point.x = parser.linearval('X');
+    if (p.store_option('X', park_point.x)) {
         park_point.x = LOGICAL_TO_NATIVE(park_point.x, X_AXIS);
     }
-    if (parser.seenval('Y')) {
-        park_point.y = parser.linearval('Y');
+    if (p.store_option('Y', park_point.y)) {
         park_point.y = LOGICAL_TO_NATIVE(park_point.y, Y_AXIS);
     }
 
@@ -210,16 +182,16 @@ void M600_manual() {
     park_point += hotend_offset[active_extruder];
 #endif
 
-    static const xyze_float_t no_return = { { { NAN, NAN, NAN, current_position.e } } };
+    const xyze_float_t no_return = { { { NAN, NAN, NAN, current_position.e } } };
 
     M600_execute(park_point,
         target_extruder,
-        parser.seen('N') ? no_return : current_position,
-        parser.seen('U') ? std::make_optional(parser.value_axis_units(E_AXIS)) : std::nullopt,
-        parser.seen('L') ? std::make_optional(parser.value_axis_units(E_AXIS)) : std::nullopt,
-        parser.seen('E') ? std::make_optional(std::abs(parser.value_axis_units(E_AXIS))) : std::nullopt,
-        parser.seen('C') ? Color::from_string(colourtype) : std::nullopt,
-        parser.seen('S') ? std::make_optional(filament_to_be_loaded) : std::nullopt,
+        p.option<bool>('N') ? no_return : current_position,
+        p.option<float>('U'),
+        p.option<float>('L'),
+        p.option<float>('E').transform(fabsf),
+        p.option<Color>('C'),
+        p.option<FilamentType>('S'),
         pause::Settings::CalledFrom::Pause);
 }
 

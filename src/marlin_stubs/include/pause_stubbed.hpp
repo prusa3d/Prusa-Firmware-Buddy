@@ -15,8 +15,10 @@
 #include "marlin_server.hpp"
 #include "IPause.hpp"
 #include <array>
-#include <option/has_human_interactions.h>
 #include "Marlin/src/libs/stopwatch.h"
+
+#include <option/has_human_interactions.h>
+#include <option/has_side_fsensor.h>
 
 // @brief With Z unhomed, ensure that it is at least amount_mm above bed.
 void unhomed_z_lift(float amount_mm);
@@ -52,8 +54,12 @@ protected:
         _finish = intFinishVal,
         _init = int(UnloadPhases_t::_last) + 1,
         check_filament_sensor_and_user_push__ask, // must be one phase because of button click
+#if HAS_SIDE_FSENSOR()
+        await_filament,
         assist_filament_insertion,
+#endif
         load_in_gear,
+        move_to_purge,
         wait_temp,
         error_temp,
         long_load,
@@ -195,15 +201,17 @@ private:
     void loop_load_mmu(Response response);
     void loop_load_mmu_change(Response response);
     void loop_autoload(Response response); // todo force remove filament in retry
-    void loop_loadToGear(Response response);
+    void loop_load_to_gear(Response response);
     void loop_load_change(Response response);
     void loop_load_filament_stuck(Response response);
 
     enum class CommonLoadType : uint8_t {
+        load_to_gear,
         standard,
         autoload,
         filament_change,
         filament_stuck,
+        not_blocking,
         mmu, ///< MMU load to nozzle
         mmu_change, ///< MMU filament change (for example filament runout)
     };
@@ -261,7 +269,7 @@ private:
         void unbindFromSafetyTimer();
         static bool active; // we currently support only 1 instance
     public:
-        FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode);
+        FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode, bool park);
         ~FSM_HolderLoadUnload();
         friend class Pause;
     };

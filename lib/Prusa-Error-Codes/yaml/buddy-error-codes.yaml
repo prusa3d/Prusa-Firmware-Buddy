@@ -1079,7 +1079,7 @@ Errors:
     type: "CONNECT"
 
   - code: "XX836"
-    printers: [iX]
+    printers: [iX, XL]
     title: "Loading Timeout"
     text: "Filament loading timed out."
     id: "FILAMENT_LOADING_TIMEOUT"
