@@ -466,13 +466,13 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     int current_phase = normalize_motor_phase(axis_state.last_phase);
     while (current_phase != stepper.MSCNT()) {
         switch (axis_num) {
-        case 0:
+        case X_AXIS:
             XStep->toggle();
             break;
-        case 1:
+        case Y_AXIS:
             YStep->toggle();
             break;
-        case 2:
+        case Z_AXIS:
             zStep.toggle();
             break;
         default:
