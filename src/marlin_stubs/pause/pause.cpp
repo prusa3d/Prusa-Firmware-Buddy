@@ -827,13 +827,7 @@ bool Pause::LoadToGear(const pause::Settings &settings_) {
  * Returns 'true' if unload was completed, 'false' for abort
  */
 bool Pause::filamentUnload(loop_fn fn) {
-    // loop_unload_mmu has it's own preheating sequence, use that one for better progress reporting
-    if (!(fn == &Pause::loop_unload && FSensors_instance().HasMMU()) && !ensureSafeTemperatureNotifyProgress(0, 50) && fn != &Pause::loop_unloadFromGear) {
-        return false;
-    }
-
     set(UnloadPhases_t::_init);
-
     return invoke_loop(fn);
 }
 
@@ -930,6 +924,12 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
             set(UnloadPhases_t::_finish);
         }
 #endif
+
+        // loop_unload_mmu has it's own preheating sequence, use that one for better progress reporting
+        if (!(unload_type == CommonUnloadType::standard && FSensors_instance().HasMMU()) && !ensureSafeTemperatureNotifyProgress(0, 50) && unload_type != CommonUnloadType::unload_from_gears) {
+            settings.do_stop = true;
+            break;
+        }
 
         switch (unload_type) {
 
