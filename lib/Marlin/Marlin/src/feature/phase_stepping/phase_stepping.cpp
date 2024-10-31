@@ -688,8 +688,8 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
         Stepper::set_axis_steps_from_startup(axis_enum, axis_state.initial_count_position_from_startup + steps_made);
 
         // flag axis movement (if any)
-        if (speed != 0.f) {
-            Stepper::report_axis_movement(axis_enum, speed);
+        if (physical_speed != 0.f) {
+            Stepper::report_axis_movement(axis_enum, physical_speed);
         }
 
         axis_state.last_position = position;
