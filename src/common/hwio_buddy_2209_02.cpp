@@ -201,36 +201,31 @@ void _hwio_pwm_set_val(int i_pwm, int val) // write pwm output
 
 void __pwm_set_val(TIM_HandleTypeDef *htim, uint32_t pchan, int val) // write pwm output
 {
-    // assuming arguments to this function are valid
-    volatile uint32_t *ccreg = nullptr;
-    volatile uint8_t *ccenable = nullptr;
-    switch (pchan) {
-    case TIM_CHANNEL_1:
-        ccreg = &(htim->Instance->CCR1);
-        ccenable = BITBAND_PERIPH(&htim->Instance->CCER, TIM_CCER_CC1E_Pos);
-        break;
-    case TIM_CHANNEL_2:
-        ccreg = &(htim->Instance->CCR2);
-        ccenable = BITBAND_PERIPH(&htim->Instance->CCER, TIM_CCER_CC2E_Pos);
-        break;
-    case TIM_CHANNEL_3:
-        ccreg = &(htim->Instance->CCR3);
-        ccenable = BITBAND_PERIPH(&htim->Instance->CCER, TIM_CCER_CC3E_Pos);
-        break;
-    case TIM_CHANNEL_4:
-        ccreg = &(htim->Instance->CCR4);
-        ccenable = BITBAND_PERIPH(&htim->Instance->CCER, TIM_CCER_CC4E_Pos);
-        break;
-    default:
-        bsod("__pwm_set_val: Invalid timer CC channel!");
-        break;
-    }
-
-    if (val) {
-        *ccreg = val;
-        *ccenable = 0x1;
+    if (htim->Init.Period) {
+        TIM_OC_InitTypeDef sConfigOC = sConfigOC_default;
+        if (val) {
+            sConfigOC.Pulse = val;
+        } else {
+            sConfigOC.Pulse = htim->Init.Period;
+            if (sConfigOC.OCPolarity == TIM_OCPOLARITY_HIGH) {
+                sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
+            } else {
+                sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+            }
+        }
+        if (HAL_TIM_PWM_Stop(htim, pchan) != HAL_OK) {
+            Error_Handler();
+        }
+        if (HAL_TIM_PWM_ConfigChannel(htim, &sConfigOC, pchan) != HAL_OK) {
+            Error_Handler();
+        }
+        if (HAL_TIM_PWM_Start(htim, pchan) != HAL_OK) {
+            Error_Handler();
+        }
     } else {
-        *ccenable = 0;
+        if (HAL_TIM_PWM_Stop(htim, pchan) != HAL_OK) {
+            Error_Handler();
+        }
     }
 }
 
