@@ -197,8 +197,6 @@ private:
     void loop_load(Response response);
     void loop_load_purge(Response response);
     void loop_load_not_blocking(Response response); // no buttons at all - printer without GUI etc
-    void loop_load_mmu(Response response);
-    void loop_load_mmu_change(Response response);
     void loop_autoload(Response response); // todo force remove filament in retry
     void loop_load_to_gear(Response response);
     void loop_load_change(Response response);
@@ -212,8 +210,6 @@ private:
         filament_stuck,
         not_blocking,
         load_purge,
-        mmu, ///< MMU load to nozzle
-        mmu_change, ///< MMU filament change (for example filament runout)
     };
     void loop_load_common(Response response, CommonLoadType load_type);
     // TODO loop_load_change_mmu

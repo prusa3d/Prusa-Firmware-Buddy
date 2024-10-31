@@ -351,22 +351,6 @@ void Pause::loop_load_not_blocking(Response response) {
     loop_load_common(response, CommonLoadType::not_blocking);
 }
 
-#if ENABLED(PRUSA_MMU2)
-// This method is only called when the MMU is active (which implies the printer is in MMU mode)
-void Pause::loop_load_mmu(Response response) {
-    loop_load_common(response, CommonLoadType::mmu);
-}
-
-void Pause::loop_load_mmu_change(Response response) {
-    loop_load_common(response, CommonLoadType::mmu_change);
-}
-#else
-void Pause::loop_load_mmu([[maybe_unused]] Response response) {
-}
-void Pause::loop_load_mmu_change([[maybe_unused]] Response response) {
-}
-#endif
-
 void Pause::loop_autoload(Response response) {
     loop_load_common(response, CommonLoadType::autoload);
 }
@@ -380,6 +364,12 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     switch (load_type) {
 
     case CommonLoadType::standard:
+        if (FSensors_instance().HasMMU()) {
+            is_unstoppable = true;
+        } else {
+            is_unstoppable = false;
+        }
+        break;
     case CommonLoadType::autoload:
     case CommonLoadType::load_purge:
         is_unstoppable = false;
@@ -388,8 +378,6 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     case CommonLoadType::filament_change:
     case CommonLoadType::filament_stuck:
     case CommonLoadType::not_blocking:
-    case CommonLoadType::mmu: // Let's make MMU ejection unstoppable for now - it probably is
-    case CommonLoadType::mmu_change:
         is_unstoppable = true;
         break;
     case CommonLoadType::load_to_gear:
@@ -406,6 +394,36 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             settings.do_stop = true;
             break;
         }
+
+#if HAS_MMU2()
+        if (FSensors_instance().HasMMU()) {
+            if (load_type == CommonLoadType::standard) {
+                if (!MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load)) {
+                    // TODO tell user that he has already loaded filament if he really wants to continue
+                    // TODO check fsensor .. how should I behave if filament is not detected ???
+                    // some error?
+                    set(LoadPhases_t::_finish);
+                    break;
+                }
+
+                config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
+
+                setPhase(PhasesLoadUnload::IsColor, 99);
+                set(LoadPhases_t::ask_is_color_correct);
+                break;
+
+            } else if (load_type == CommonLoadType::filament_change) {
+                if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
+                    set(LoadPhases_t::_finish);
+                    break;
+                }
+
+                setPhase(PhasesLoadUnload::LoadFilamentIntoMMU);
+                set(LoadPhases_t::ask_mmu_load_filament);
+                break;
+            }
+        }
+#endif
 
         switch (load_type) {
         case CommonLoadType::load_to_gear:
@@ -438,33 +456,6 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         case CommonLoadType::load_purge:
             set(LoadPhases_t::wait_temp);
             break;
-
-#if HAS_MMU2()
-        case CommonLoadType::mmu:
-            if (!MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load)) {
-                // TODO tell user that he has already loaded filament if he really wants to continue
-                // TODO check fsensor .. how should I behave if filament is not detected ???
-                // some error?
-                set(LoadPhases_t::_finish);
-                break;
-            }
-
-            config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
-
-            setPhase(PhasesLoadUnload::IsColor, 99);
-            set(LoadPhases_t::ask_is_color_correct);
-            break;
-
-        case CommonLoadType::mmu_change:
-            if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-                set(LoadPhases_t::_finish);
-                break;
-            }
-
-            setPhase(PhasesLoadUnload::LoadFilamentIntoMMU);
-            set(LoadPhases_t::ask_mmu_load_filament);
-            break;
-#endif
 
         default:
 #if HAS_SIDE_FSENSOR()
@@ -661,7 +652,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
 
         default:
             // This doesn't make sense with the MMU on
-            if (load_type != CommonLoadType::mmu) {
+            if (!FSensors_instance().HasMMU()) {
                 handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
             }
             break;
@@ -692,25 +683,25 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
 #endif
 
     case LoadPhases_t::eject:
-        switch (load_type) {
-
 #if HAS_MMU2()
-        case CommonLoadType::mmu:
-        case CommonLoadType::mmu_change:
+        if (FSensors_instance().HasMMU()) {
             MMU2::mmu2.unload();
-            break;
-#endif
-
-        default:
-            setPhase(is_unstoppable ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 98);
-            ram_filament(RammingType::unload);
-
-            planner.synchronize(); // do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
-
-            setPhase(is_unstoppable ? PhasesLoadUnload::Ejecting_unstoppable : PhasesLoadUnload::Ejecting_stoppable, 99);
-            unload_filament(RammingType::unload);
+            if (load_type == CommonLoadType::filament_change) {
+                set(LoadPhases_t::mmu_load_filament);
+            } else {
+                set(LoadPhases_t::_init);
+            }
             break;
         }
+#endif
+
+        setPhase(is_unstoppable ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 98);
+        ram_filament(RammingType::unload);
+
+        planner.synchronize(); // do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
+
+        setPhase(is_unstoppable ? PhasesLoadUnload::Ejecting_unstoppable : PhasesLoadUnload::Ejecting_stoppable, 99);
+        unload_filament(RammingType::unload);
 
         switch (load_type) {
         case CommonLoadType::load_to_gear:
@@ -722,12 +713,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
 #endif
         case CommonLoadType::filament_change:
         case CommonLoadType::filament_stuck:
-        case CommonLoadType::mmu:
             set(LoadPhases_t::_init);
-            break;
-
-        case CommonLoadType::mmu_change:
-            set(LoadPhases_t::mmu_load_filament);
             break;
 
         case CommonLoadType::standard:
@@ -800,7 +786,7 @@ bool Pause::FilamentLoad(const pause::Settings &settings_) {
     settings = settings_;
     // Parking is used for better access to print/toolhead, therefore in case of purging no parking is necessary.
     FSM_HolderLoadUnload holder(*this, settings.fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge, settings.fast_load_length > 0);
-    return filamentLoad(FSensors_instance().HasMMU() ? &Pause::loop_load_mmu : (settings.fast_load_length ? &Pause::loop_load : &Pause::loop_load_purge));
+    return filamentLoad(settings.fast_load_length ? &Pause::loop_load : &Pause::loop_load_purge);
 }
 
 bool Pause::FilamentLoadNotBlocking(const pause::Settings &settings_) {
@@ -1344,7 +1330,7 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
             filamentUnload(&Pause::loop_unload_change);
         }
         // Feed a little bit of filament to stabilize pressure in nozzle
-        if (filamentLoad(FSensors_instance().HasMMU() ? &Pause::loop_load_mmu_change : &Pause::loop_load_change)) {
+        if (filamentLoad(&Pause::loop_load_change)) {
 
             // Last poop after user clicked color - yes
             plan_e_move(5, 10);
