@@ -920,9 +920,24 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
 
     case UnloadPhases_t::_init:
 #if HAS_MMU2()
-        if (unload_type == CommonUnloadType::standard && FSensors_instance().HasMMU()) {
-            MMU2::mmu2.unload();
-            set(UnloadPhases_t::_finish);
+        if (FSensors_instance().HasMMU()) {
+            if (unload_type == CommonUnloadType::standard) {
+                MMU2::mmu2.unload();
+                set(UnloadPhases_t::_finish);
+            } else if (unload_type == CommonUnloadType::filament_change) {
+                settings.mmu_filament_to_load = MMU2::mmu2.get_current_tool();
+
+                // No filament loaded in MMU, we can't continue, as we don't know what slot to load
+                if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
+                    set(UnloadPhases_t::_finish);
+                    break;
+                }
+
+                MMU2::mmu2.unload();
+                MMU2::mmu2.eject_filament(settings.mmu_filament_to_load);
+                set(UnloadPhases_t::_finish);
+                break;
+            }
         }
 #endif
 
@@ -1053,33 +1068,6 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
         set(UnloadPhases_t::_finish);
     }
 }
-
-#if ENABLED(PRUSA_MMU2)
-void Pause::loop_unload_mmu_change([[maybe_unused]] Response response) {
-    switch (getUnloadPhase()) {
-
-    case UnloadPhases_t::_init:
-        settings.mmu_filament_to_load = MMU2::mmu2.get_current_tool();
-
-        // No filament loaded in MMU, we can't continue, as we don't know what slot to load
-        if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-            set(UnloadPhases_t::_finish);
-            break;
-        }
-
-        MMU2::mmu2.unload();
-        MMU2::mmu2.eject_filament(settings.mmu_filament_to_load);
-        set(UnloadPhases_t::_finish);
-        break;
-
-    default:
-        set(UnloadPhases_t::_finish);
-    }
-}
-#else
-void Pause::loop_unload_mmu_change([[maybe_unused]] Response response) {
-}
-#endif
 
 void Pause::loop_unloadFromGear([[maybe_unused]] Response response) {
     loop_unload_common(response, CommonUnloadType::unload_from_gears);
@@ -1353,7 +1341,7 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
         FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Change, true);
 
         if (settings.unload_length) { // Unload the filament
-            filamentUnload(FSensors_instance().HasMMU() ? &Pause::loop_unload_mmu_change : &Pause::loop_unload_change);
+            filamentUnload(&Pause::loop_unload_change);
         }
         // Feed a little bit of filament to stabilize pressure in nozzle
         if (filamentLoad(FSensors_instance().HasMMU() ? &Pause::loop_load_mmu_change : &Pause::loop_load_change)) {
