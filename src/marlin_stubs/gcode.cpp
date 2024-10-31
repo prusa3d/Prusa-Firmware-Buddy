@@ -37,28 +37,8 @@ LOG_COMPONENT_DEF(PRUSA_GCODE, logging::Severity::info);
 
 static void record_pre_gcode_metrics();
 
-FilamentType PrusaGcodeSuite::get_filament_type_from_command(char parameter, const char **string_begin_ptr) {
-    if (!parser.seen(parameter)) {
-        return FilamentType::none;
-    }
-
-    const char *text_begin = strchr(parser.string_arg, '"');
-    if (!text_begin) {
-        return FilamentType::none;
-    }
-
-    text_begin++; // move pointer from '"' to first letter
-
-    const char *text_end = strchr(text_begin, '"');
-    if (!text_end) {
-        return FilamentType::none;
-    }
-
-    if (string_begin_ptr) {
-        *string_begin_ptr = text_begin;
-    }
-
-    return FilamentType::from_name(std::string_view(text_begin, text_end));
+int8_t PrusaGcodeSuite::get_target_extruder_from_command(const GCodeParser2 &p) {
+    return GcodeSuite::get_target_extruder_from_option_value(p.option<uint8_t>('T'));
 }
 
 bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
@@ -218,6 +198,10 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             PrusaGcodeSuite::M864();
             break;
 #endif
+        case 865:
+            PrusaGcodeSuite::M865();
+            break;
+
         case 919:
             PrusaGcodeSuite::M919();
             break;

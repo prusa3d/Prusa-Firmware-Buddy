@@ -110,6 +110,8 @@ public:
     // For FilamentType::none
     static constexpr NoFilamentType none = {};
 
+    static constexpr const char *adhoc_filament_gcode_prefix = "#";
+
 public:
     // * Constructors
 
@@ -125,6 +127,8 @@ public:
     /// \returns filament type with the corresponding name
     /// !!! This disregards ad-hoc filament types
     static FilamentType from_name(const std::string_view &name);
+
+    static std::optional<FilamentType> from_gcode_param(const std::string_view &value);
 
     /// \returns whether the filament type is of the specified name.
     /// !!! Prefer using "loaded_filament.matches(b_name)" over "loaded_filament == FilamentType::from_name(b_name)" where it makes sense.

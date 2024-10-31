@@ -222,20 +222,13 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         M701_no_parser(FilamentType::none, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0, std::nullopt, ResumePrint_t::No);
     } else {
 
-#if ENABLED(NOZZLE_PARK_FEATURE) && PRINTER_IS_PRUSA_iX()
-        // iX wants to park as the the filament is pushed through the PTFE tube
-        G27_no_parser(
-            {
-                .where_to_park = G27Params::ParkPosition::load,
-                .z_action = 4,
-            });
-#endif
-
         pause::Settings settings;
         settings.SetExtruder(target_extruder);
         settings.SetFastLoadLength(fast_load_length);
         settings.SetRetractLength(0.f);
         float e_pos_to_restore = current_position.e;
+
+        settings.SetParkPoint({ X_AXIS_LOAD_POS, Y_AXIS_LOAD_POS, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN });
 
         // catch filament in gear and then ask for temp
         if (!Pause::Instance().LoadToGear(settings) || FSensors_instance().no_filament_surely()) {
@@ -245,15 +238,6 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
             FSensors_instance().ClrAutoloadSent();
             return;
         }
-
-#if HAS_WASTEBIN()
-        // Passing LoadToGear() (above ^) means that filament is successfully caught in gear and head should move over to wastebin for purge
-        G27_no_parser(
-            {
-                .where_to_park = G27Params::ParkPosition::purge,
-                .z_action = 4,
-            });
-#endif
 
         if constexpr (option::has_human_interactions) {
             PreheatData data = PreheatData::make(PreheatMode::Autoload, target_extruder, RetAndCool_t::Return);

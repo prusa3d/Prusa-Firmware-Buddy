@@ -1,5 +1,7 @@
 #include "chamber.hpp"
 
+#include <cmath>
+
 #include <marlin_server_shared.h>
 #include <option/has_xbuddy_extension.h>
 
@@ -30,6 +32,13 @@ void Chamber::step() {
     // Dummy, untested implementation.
     current_temperature_ = xbuddy_extension().chamber_temperature();
 #endif
+
+    METRIC_DEF(metric_chamber_temp, "chamber_temp", METRIC_VALUE_FLOAT, 1000, METRIC_DISABLED);
+    if (current_temperature_.has_value()) {
+        metric_record_float(&metric_chamber_temp, current_temperature_.value());
+    } else {
+        metric_record_float(&metric_chamber_temp, NAN);
+    }
 }
 
 Chamber::Capabilities Chamber::capabilities() const {
@@ -64,6 +73,12 @@ std::optional<Temperature> Chamber::target_temperature() const {
 void Chamber::set_target_temperature(std::optional<Temperature> target) {
     std::lock_guard _lg(mutex_);
     target_temperature_ = target;
+    METRIC_DEF(metric_chamber_ttemp, "chamber_ttemp", METRIC_VALUE_FLOAT, 1000, METRIC_DISABLED);
+    if (target_temperature_.has_value()) {
+        metric_record_float(&metric_chamber_ttemp, target_temperature_.value());
+    } else {
+        metric_record_float(&metric_chamber_ttemp, NAN);
+    }
 }
 
 void Chamber::reset() {

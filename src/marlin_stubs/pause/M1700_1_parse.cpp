@@ -110,20 +110,20 @@ void PrusaGcodeSuite::M1701() {
  * - `O<value>` - Color number corresponding to Color, RGB order
  */
 void PrusaGcodeSuite::M1600() {
-    const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
+    GCodeParser2 p;
+    if (!p.parse_marlin_command()) {
+        return;
+    }
+
+    const int8_t target_extruder = PrusaGcodeSuite::get_target_extruder_from_command(p);
     if (target_extruder < 0) {
         return;
     }
 
-    const FilamentType filament_to_be_loaded = PrusaGcodeSuite::get_filament_type_from_command('S');
-
-    std::optional<Color> color_to_be_loaded = { std::nullopt };
-    if (parser.seen('O')) {
-        color_to_be_loaded = Color::from_raw(parser.longval('O'));
-    }
-
-    const filament_gcodes::AskFilament_t ask_unload = filament_gcodes::AskFilament_t(parser.byteval('U', 0));
-    const bool hasReturn = parser.seen('R');
+    const FilamentType filament_to_be_loaded = p.option<FilamentType>('S').value_or(NoFilamentType());
+    std::optional<Color> color_to_be_loaded = p.option<Color>('O');
+    const filament_gcodes::AskFilament_t ask_unload = filament_gcodes::AskFilament_t(p.option<int>('U').value_or(0));
+    const bool hasReturn = p.option<bool>('R').value_or(false);
 
     filament_gcodes::M1600_no_parser(filament_to_be_loaded, target_extruder, hasReturn ? RetAndCool_t::Return : RetAndCool_t::Neither, ask_unload, color_to_be_loaded);
 }

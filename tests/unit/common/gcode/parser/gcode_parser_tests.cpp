@@ -1,21 +1,4 @@
-#include <catch2/catch.hpp>
-
-#include <format>
-#include <functional>
-
-#include <gcode_parser.hpp>
-
-#include "gcode_parser_test_common.hpp"
-
-std::string option_list(GCodeParser2 &p) {
-    std::string result;
-    for (int ch = 0; ch < 256; ch++) {
-        if (p.has_option(static_cast<char>(ch))) {
-            result.push_back(static_cast<char>(ch));
-        }
-    }
-    return result;
-}
+#include "gcode_parser2_test_common.hpp"
 
 TEST_CASE("gcode_parser::gcode_parser::params_tests") {
     std::array<char, 64> buf;
@@ -49,7 +32,7 @@ TEST_CASE("gcode_parser::gcode_parser::params_tests") {
         CHECK(execution_failed(p, [&] { std::ignore = p.option<int>('F'); }));
         CHECK(p.option<std::string_view>('F', buf) == "");
 
-        CHECK(p.option<std::string_view>('G', buf) == std::unexpected(GCodeParser2::OptionError::not_present));
+        CHECK(p.option_expected<std::string_view>('G', buf) == std::unexpected(GCodeParser2::OptionError::not_present));
     }
 
     SECTION("2") {
@@ -92,7 +75,7 @@ TEST_CASE("gcode_parser::gcode_parser::params_tests") {
         CHECK(p.option<bool>('F') == true);
         CHECK(p.option<bool>('G') == false);
         CHECK(p.option<bool>('H') == true);
-        CHECK(p.option<bool>('I') == std::unexpected(GCodeParser2::OptionError::not_present));
+        CHECK(p.option_expected<bool>('I') == std::unexpected(GCodeParser2::OptionError::not_present));
     }
 
     SECTION("escaping_test") {

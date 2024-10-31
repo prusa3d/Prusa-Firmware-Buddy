@@ -12,6 +12,8 @@
 #include <option/has_nozzle_cleaner.h>
 #include <option/buddy_enable_connect.h>
 
+#include <gcode/gcode_parser.hpp>
+
 /// the version of the g-code that the printer supports
 #define GCODE_LEVEL 2
 
@@ -20,10 +22,7 @@
  */
 namespace PrusaGcodeSuite {
 
-/// \returns FilamentType read from the gcode parser under \p parameter.
-/// The expected format is S"Filament name" (where S = \p parameter)
-/// If \param string_begin_ptr is provided, it is set to the begining of the filament string name
-FilamentType get_filament_type_from_command(char parameter, const char **string_begin_ptr = nullptr);
+int8_t get_target_extruder_from_command(const GCodeParser2 &p);
 
 /** \defgroup G-Codes G-Code Commands
  * @{
@@ -107,6 +106,8 @@ void M863(); //< tool mapping control
 #if ENABLED(PRUSA_SPOOL_JOIN)
 void M864(); //< spool join control
 #endif
+
+void M865(); //< Set up ad-hoc filament
 
 void M591(); //< configure Filament stuck monitoring
 

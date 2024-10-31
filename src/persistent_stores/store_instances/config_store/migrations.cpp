@@ -1,4 +1,5 @@
 #include "migrations.hpp"
+#include <common/utils/algorithm_extensions.hpp>
 #include <footer_def.hpp>
 #include <footer_eeprom.hpp>
 
@@ -181,6 +182,32 @@ namespace migrations {
 
         if (strlen(hostname.data()) > 0) {
             backend.save_migration_item<NewItem::value_type>(NewItem::hashed_id, hostname);
+        }
+    }
+
+    void loaded_filament_type(journal::Backend &backend) {
+        // See BFW-6236
+        using NewItem = decltype(CurrentStore::loaded_filament_type);
+
+        std::array<NewItem::value_type, EXTRUDERS> filament_types;
+
+        auto callback = [&](journal::Backend::ItemHeader header, std::array<uint8_t, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
+            const auto ix = stdext::index_of(deprecated_ids::loaded_filament_type, static_cast<uint16_t>(header.id));
+            if (ix >= filament_types.size()) {
+                return;
+            }
+
+            EncodedFilamentType ft;
+            assert(header.len == sizeof(ft));
+            memcpy(&ft, buffer.data(), sizeof(ft));
+            filament_types[ix] = ft;
+        };
+        backend.read_items_for_migrations(callback);
+
+        for (uint8_t i = 0; i < filament_types.size(); i++) {
+            if (filament_types[i] != EncodedFilamentType {}) {
+                backend.save_migration_item<NewItem::value_type>(NewItem::hashed_id_first + i, filament_types[i]);
+            }
         }
     }
 } // namespace migrations
