@@ -102,6 +102,15 @@ namespace mmu {
      */
     void flush();
 
+    /**
+     * Control the power pin of the MMU.
+     */
+    void power_pin_set(bool);
+
+    /**
+     * Control the nreset pin of the MMU.
+     */
+    void nreset_pin_set(bool);
 } // namespace mmu
 
 } // namespace hal

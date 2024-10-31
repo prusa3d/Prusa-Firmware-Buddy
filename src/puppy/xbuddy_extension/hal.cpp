@@ -461,6 +461,17 @@ static void enable_fans() {
     TCA6408A::write_register(TCA6408A::Register::Output, 0xff);
 }
 
+static void mmu_pins_init() {
+    GPIO_InitTypeDef GPIO_InitStruct;
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    GPIO_InitStruct.Pin = GPIO_PIN_13 | GPIO_PIN_14;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = 0;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+}
+
 void hal::init() {
     HAL_Init();
     SystemClock_Config();
@@ -473,6 +484,9 @@ void hal::init() {
     mmu_init();
     i2c2_init();
     enable_fans();
+    mmu_pins_init();
+    mmu::nreset_pin_set(false);
+    mmu::power_pin_set(true);
 }
 
 void hal::panic() {
@@ -598,4 +612,12 @@ void hal::mmu::flush() {
     std::byte buf[8];
     while (!receive(buf).empty()) {
     }
+}
+
+void hal::mmu::power_pin_set(bool b) {
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, b ? GPIO_PIN_SET : GPIO_PIN_RESET);
+}
+
+void hal::mmu::nreset_pin_set(bool b) {
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, b ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }

@@ -37,6 +37,8 @@ constexpr const size_t hal_task_stack_size = 100;
 alignas(32) NON_SHARED_DATA static StackType_t hal_task_stack[hal_task_stack_size];
 NON_SHARED_DATA static StaticTask_t hal_task_control_block;
 static void hal_task_code(void *) {
+    freertos::delay(200); // is it needed?
+    hal::mmu::nreset_pin_set(true);
     for (;;) {
         hal::step();
         freertos::delay(1);
