@@ -180,7 +180,6 @@ private:
     using loop_fn = void (Pause::*)(Response response);
     void loop_unload(Response response);
     void loop_unload_AskUnloaded(Response response);
-    void loop_unload_mmu(Response response);
     void loop_unload_mmu_change(Response response);
     void loop_unloadFromGear(Response response); // autoload abort
     void loop_unload_change(Response response);

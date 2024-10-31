@@ -779,7 +779,7 @@ bool Pause::UnloadFromGear() {
 bool Pause::FilamentUnload(const pause::Settings &settings_) {
     settings = settings_;
     FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Unload, true);
-    return filamentUnload(FSensors_instance().HasMMU() ? &Pause::loop_unload_mmu : &Pause::loop_unload);
+    return filamentUnload(&Pause::loop_unload);
 }
 
 bool Pause::FilamentUnload_AskUnloaded(const pause::Settings &settings_) {
@@ -828,7 +828,7 @@ bool Pause::LoadToGear(const pause::Settings &settings_) {
  */
 bool Pause::filamentUnload(loop_fn fn) {
     // loop_unload_mmu has it's own preheating sequence, use that one for better progress reporting
-    if (fn != &Pause::loop_unload_mmu && !ensureSafeTemperatureNotifyProgress(0, 50) && fn != &Pause::loop_unloadFromGear) {
+    if (!(fn == &Pause::loop_unload && FSensors_instance().HasMMU()) && !ensureSafeTemperatureNotifyProgress(0, 50) && fn != &Pause::loop_unloadFromGear) {
         return false;
     }
 
@@ -924,6 +924,13 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
     switch (getUnloadPhase()) {
 
     case UnloadPhases_t::_init:
+#if HAS_MMU2()
+        if (unload_type == CommonUnloadType::standard && FSensors_instance().HasMMU()) {
+            MMU2::mmu2.unload();
+            set(UnloadPhases_t::_finish);
+        }
+#endif
+
         switch (unload_type) {
 
         case CommonUnloadType::filament_stuck:
@@ -1047,22 +1054,6 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
 }
 
 #if ENABLED(PRUSA_MMU2)
-void Pause::loop_unload_mmu([[maybe_unused]] Response response) {
-    // transitions
-    switch (getUnloadPhase()) {
-
-    case UnloadPhases_t::_init:
-        if constexpr (option::has_mmu2) {
-            MMU2::mmu2.unload();
-        }
-        set(UnloadPhases_t::_finish);
-        break;
-
-    default:
-        set(UnloadPhases_t::_finish);
-    }
-}
-
 void Pause::loop_unload_mmu_change([[maybe_unused]] Response response) {
     switch (getUnloadPhase()) {
 
@@ -1085,8 +1076,6 @@ void Pause::loop_unload_mmu_change([[maybe_unused]] Response response) {
     }
 }
 #else
-void Pause::loop_unload_mmu([[maybe_unused]] Response response) {
-}
 void Pause::loop_unload_mmu_change([[maybe_unused]] Response response) {
 }
 #endif
