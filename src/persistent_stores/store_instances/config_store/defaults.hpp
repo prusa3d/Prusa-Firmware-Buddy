@@ -139,7 +139,7 @@ namespace defaults {
 #endif /*DEVELOPMENT_ITEMS()*/
 
     inline constexpr bool crash_enabled {
-#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_XL())
+#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_CUBE())
         false
 #else
         true
