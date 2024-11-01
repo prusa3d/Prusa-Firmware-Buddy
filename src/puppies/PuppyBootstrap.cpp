@@ -75,7 +75,11 @@ bool PuppyBootstrap::attempt_crash_dump_download(Dock dock, BootloaderProtocol::
 
 PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapResult minimal_config, unsigned int max_attempts) {
     PuppyBootstrap::BootstrapResult result;
-    progressHook({ 0, FlashingStage::START, PUPPY_TYPES.front() });
+#if HAS_DWARF()
+    progressHook({ 0, FlashingStage::START, PuppyType::DWARF });
+#elif HAS_MODULARBED()
+    progressHook({ 0, FlashingStage::START, PuppyType::MODULARBED });
+#endif
     auto guard = buddy::puppies::PuppyBus::LockGuard();
 
 #if HAS_PUPPIES_BOOTLOADER()
@@ -111,7 +115,11 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
             }
         }
     }
-    progressHook({ 10, FlashingStage::CALCULATE_FINGERPRINT, PUPPY_TYPES.front() });
+    #if HAS_DWARF()
+    progressHook({ 10, FlashingStage::CALCULATE_FINGERPRINT, PuppyType::DWARF });
+    #elif HAS_MODULARBED()
+    progressHook({ 10, FlashingStage::CALCULATE_FINGERPRINT, PuppyType::MODULARBED });
+    #endif
     int percent_per_puppy = 80 / result.discovered_num();
     int percent_base = 20;
 
@@ -189,7 +197,11 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
     #endif
         percent_base += percent_per_puppy;
     }
-    progressHook({ 100, FlashingStage::DONE, PUPPY_TYPES.back() });
+    #if HAS_DWARF()
+    progressHook({ 100, FlashingStage::DONE, PuppyType::DWARF });
+    #elif HAS_MODULARBED()
+    progressHook({ 100, FlashingStage::DONE, PuppyType::MODULARBED });
+    #endif
 
     // Start application
     for (const auto dock : DOCKS) {
