@@ -102,16 +102,16 @@ private:
 
     /// Helper to index fingerprints by the dock
     class fingerprints_t {
-        std::array<fingerprint_t, PUPPY_TYPES.size()> fingerprints;
-        std::array<uint32_t, PUPPY_TYPES.size()> salts;
+        std::array<fingerprint_t, DOCKS.size()> fingerprints;
+        std::array<uint32_t, DOCKS.size()> salts;
 
     public:
-        uint32_t &get_salt(PuppyType puppy_type) {
-            return salts[stdext::index_of(PUPPY_TYPES, puppy_type)];
+        uint32_t &get_salt(Dock dock) {
+            return salts[stdext::index_of(DOCKS, dock)];
         }
 
-        fingerprint_t &get_fingerprint(PuppyType puppy_type) {
-            return fingerprints[stdext::index_of(PUPPY_TYPES, puppy_type)];
+        fingerprint_t &get_fingerprint(Dock dock) {
+            return fingerprints[stdext::index_of(DOCKS, dock)];
         }
     };
 
