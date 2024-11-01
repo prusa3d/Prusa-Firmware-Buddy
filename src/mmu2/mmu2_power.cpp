@@ -2,6 +2,7 @@
 #include <device/board.h>
 #include "timing_precise.hpp"
 #include <option/has_mmu2.h>
+#include <option/has_mmu2_over_uart.h>
 
 #if HAS_MMU2()
 
@@ -16,6 +17,8 @@
 namespace MMU2 {
 
 using namespace buddy::hw;
+
+    #if HAS_MMU2_OVER_UART()
 
 // The code below pulse-charges the MMU capacitors, as the current inrush
 // would due to an inferior HW design cause overcurrent on the xBuddy board.
@@ -80,5 +83,24 @@ void reset() {
     deactivate_reset();
     HAL_Delay(5);
 }
+
+    #else
+void power_on() {
+    // @@TODO do nothing for now, keep the ext board powered!
+    // Later, we'll write to some modbus power register which will trigger the MMU on the extboard
+}
+
+void power_off() {
+    // @@TODO do nothing for now, keep the ext board powered!
+    // Later, we'll write to some modbus power register which will trigger the MMU on the extboard
+}
+
+void reset() {
+    // @@TODO do nothing for now, keep the ext board powered!
+    // Later, we'll write to some modbus power register which will trigger the MMU on the extboard
+}
+
+    #endif
+
 } // namespace MMU2
 #endif
