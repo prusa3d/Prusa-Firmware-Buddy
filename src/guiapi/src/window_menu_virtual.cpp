@@ -6,22 +6,26 @@
 void WindowMenuVirtualBase::setup_items() {
     const auto scroll_offset = this->scroll_offset();
     const auto item_count = this->item_count();
+    const auto prev_items_set_up = items_set_up_;
 
     for (int buffer_slot = 0; buffer_slot < item_buffer_size; buffer_slot++) {
         const auto index = buffer_slot_index(buffer_slot, scroll_offset);
         setup_buffer_slot(buffer_slot, index < item_count ? index : std::nullopt);
     }
 
-    if (!items_set_up_ && should_focus_item_on_init()) {
+    items_set_up_ = true;
+
+    if (!prev_items_set_up && should_focus_item_on_init()) {
         move_focus_to_index(0);
     }
 
     Invalidate();
-
-    items_set_up_ = true;
 }
 
 IWindowMenuItem *WindowMenuVirtualBase::item_at(int index) {
+    // If you're getting this assert, you probably forgot to call setup_items() in the subclass constructor
+    assert(items_set_up_);
+
     const auto scroll_offset = this->scroll_offset();
     if (index < scroll_offset || index >= scroll_offset + item_buffer_size) {
         return nullptr;
