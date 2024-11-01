@@ -17,6 +17,9 @@
  * - `A` - Is abrasive
  * - `F` - Requries filtration
  * - `N"<string>"` - Filament name
+ *
+ * Ad-hoc/custom filaments can the be referenced in other gcodes using adhoc_filament_gcode_prefix.
+ * For example `M600 S"#0"` will load ad-hoc filament previously set with `M865 I0`.
  */
 void PrusaGcodeSuite::M865() {
     GCodeParser2 p;

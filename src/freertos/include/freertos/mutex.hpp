@@ -34,6 +34,7 @@ public:
     using Storage = std::array<std::byte, mutex_storage_size>;
 
 private:
+    void *handle;
     alignas(mutex_storage_align) Storage mutex_storage;
 
 public:

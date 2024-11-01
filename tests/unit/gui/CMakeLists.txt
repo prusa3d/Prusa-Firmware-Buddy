@@ -61,10 +61,13 @@ add_catch_test(mini_text_input_layout_tests)
 
 # color_tests
 add_executable(
-  color_tests ${CMAKE_CURRENT_SOURCE_DIR}/color_tests.cpp
-              ${CMAKE_SOURCE_DIR}/src/common/utils/color.cpp
+  color_tests
+  ${CMAKE_CURRENT_SOURCE_DIR}/color_tests.cpp ${CMAKE_SOURCE_DIR}/src/common/utils/color.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
   )
-target_include_directories(color_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
+target_include_directories(
+  color_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src/lang
+  )
 add_catch_test(color_tests)
 
 add_subdirectory(lazyfilelist)

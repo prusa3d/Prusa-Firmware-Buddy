@@ -105,16 +105,16 @@ private:
 
     /// Helper to index fingerprints by the dock
     class fingerprints_t {
-        std::array<fingerprint_t, PUPPY_TYPES.size()> fingerprints;
-        std::array<uint32_t, PUPPY_TYPES.size()> salts;
+        std::array<fingerprint_t, DOCKS.size()> fingerprints;
+        std::array<uint32_t, DOCKS.size()> salts;
 
     public:
-        uint32_t &get_salt(PuppyType puppy_type) {
-            return salts[stdext::index_of(PUPPY_TYPES, puppy_type)];
+        uint32_t &get_salt(Dock dock) {
+            return salts[stdext::index_of(DOCKS, dock)];
         }
 
-        fingerprint_t &get_fingerprint(PuppyType puppy_type) {
-            return fingerprints[stdext::index_of(PUPPY_TYPES, puppy_type)];
+        fingerprint_t &get_fingerprint(Dock dock) {
+            return fingerprints[stdext::index_of(DOCKS, dock)];
         }
     };
 
@@ -148,9 +148,10 @@ private:
      * @brief Tell puppy to check fingerprint and start application.
      * @param type not used now
      * @param address puppy's modbus address
-     * @param fw_fingerprints fingerprint storage
+     * @param salt use this salt for fingerprint calculation
+     * @param fingerprint puppy will check this fingerprint before starting the app
      */
-    void start_app(PuppyType type, BootloaderProtocol::Address address, fingerprints_t &fw_fingerprints);
+    void start_app(PuppyType type, BootloaderProtocol::Address address, uint32_t salt, const fingerprint_t &fingerprint);
 
     /**
      * @brief Wait for puppy to finish fingerprint calculation.

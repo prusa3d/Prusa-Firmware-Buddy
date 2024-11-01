@@ -53,7 +53,7 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
     using UniquePtrMapping = static_unique_ptr<ToolsMappingBody>;
     UniquePtrMapping tools_mapping;
 
-    using MsgBoxMemSpace = std::array<uint8_t, 1608>;
+    using MsgBoxMemSpace = std::array<uint8_t, 1616>;
 #else
     using MsgBoxMemSpace = std::array<uint8_t, 896>;
 #endif
