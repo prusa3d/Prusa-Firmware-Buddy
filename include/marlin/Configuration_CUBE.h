@@ -1598,8 +1598,7 @@
     #define XYZ_NOZZLE_PARK_POINT \
         {X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, Z_NOZZLE_PARK_POINT}
 
-    // Load/unload pos on the front left - the least bend on the bowden
-    #define X_AXIS_LOAD_POS X_MIN_POS
+    #define X_AXIS_LOAD_POS X_NOZZLE_PARK_POINT
     #define Y_AXIS_LOAD_POS Y_NOZZLE_PARK_POINT
     #define Z_AXIS_LOAD_POS  40
 
