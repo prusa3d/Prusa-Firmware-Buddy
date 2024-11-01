@@ -1,8 +1,8 @@
 #include "color.hpp"
 
 #include <array>
-#include <string>
-#include <cinttypes>
+
+#include <str_utils.hpp>
 
 struct ColorPreset {
     std::string_view name;
@@ -43,7 +43,7 @@ std::optional<Color> Color::from_string(const std::string_view &str) {
         return std::nullopt;
     }
 
-    if (Color c; str.starts_with('#') && sscanf(str.data(), "#%06" PRIX32, &c.raw) == 1) {
+    if (Color c; str.starts_with('#') && from_chars_light(str.begin() + 1, str.end(), c.raw, 16).ec == std::errc {}) {
         return c;
     }
 
@@ -55,7 +55,7 @@ std::optional<Color> Color::from_string(const std::string_view &str) {
     }
 
     // Otherwise treat as number for legacy reasons
-    if (Color c; sscanf(str.data(), "%" PRIu32, &c.raw) == 1) {
+    if (Color c; from_chars_light(str.begin(), str.end(), c.raw).ec == std::errc {}) {
         return c;
     }
 
