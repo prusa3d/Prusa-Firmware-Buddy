@@ -2,7 +2,7 @@
 #include "hal.hpp"
 
 #include <stm32h5xx_hal.h>
-#include <freertos/queue.hpp>
+#include <freertos/binary_semaphore.hpp>
 
 void SystemClock_Config(void) {
     /** Configure the main internal regulator output voltage
@@ -68,12 +68,7 @@ void SystemClock_Config(void) {
 static UART_HandleTypeDef huart;
 static std::byte rx_buf[256];
 static volatile size_t rx_len;
-
-// FIXME: Use freertos::BinarySemaphore after we fix the handle issue
-//        when using MPU, as we did for the queue. We are always having
-//        only one receive in flight.
-struct Element {};
-static freertos::Queue<Element, 1> queue;
+static freertos::BinarySemaphore tx_semaphore;
 
 extern "C" void USART3_IRQHandler(void) {
     HAL_UART_IRQHandler(&huart);
@@ -114,8 +109,9 @@ extern "C" void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t s
         HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)rx_buf, sizeof(rx_buf));
     } else {
         rx_len = size;
-        Element payload;
-        queue.send_from_isr(payload);
+        long task_woken = tx_semaphore.release_from_isr();
+        // TODO We could wake up correct task here, but there is no freertos:: wrapper at the moment
+        (void)task_woken;
     }
 }
 
@@ -490,8 +486,7 @@ void hal::rs485::start_receiving() {
 }
 
 std::span<std::byte> hal::rs485::receive() {
-    Element payload;
-    queue.receive(payload);
+    tx_semaphore.acquire();
     return { rx_buf, rx_len };
 }
 
