@@ -491,13 +491,13 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     // Resynchronize driver direction to last known direction
     switch (axis_num) {
     case X_AXIS:
-        buddy::hw::xDir.writeb(!(Stepper::motor_direction(axis_num) ^ INVERT_X_DIR));
+        buddy::hw::xDir.write(static_cast<buddy::hw::Pin::State>(!(Stepper::motor_direction(axis_num) ^ INVERT_X_DIR)));
         break;
     case Y_AXIS:
-        buddy::hw::yDir.writeb(!(Stepper::motor_direction(axis_num) ^ INVERT_Y_DIR));
+        buddy::hw::yDir.write(static_cast<buddy::hw::Pin::State>(!(Stepper::motor_direction(axis_num) ^ INVERT_Y_DIR)));
         break;
     case Z_AXIS:
-        buddy::hw::zDir.writeb(!(Stepper::motor_direction(axis_num) ^ INVERT_Z_DIR));
+        buddy::hw::zDir.write(static_cast<buddy::hw::Pin::State>(!(Stepper::motor_direction(axis_num) ^ INVERT_Z_DIR)));
         break;
     default:
         break;
