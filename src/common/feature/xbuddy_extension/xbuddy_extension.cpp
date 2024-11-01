@@ -15,6 +15,11 @@ XBuddyExtension::Status XBuddyExtension::status() const {
 }
 
 void XBuddyExtension::step() {
+    // Obtain these values before locking the mutex.
+    // Chamber API is accessing XBuddyExtension in some methods as well, so we might cause a deadlock otherwise.
+    // BFW-6274
+    const auto target_temp = chamber().target_temperature();
+
     std::lock_guard _lg(mutex_);
 
     if (status() != Status::ready) {
@@ -30,8 +35,7 @@ void XBuddyExtension::step() {
     const auto temp = chamber_temperature();
 
     if (rpm0.has_value() && rpm1.has_value() && temp.has_value()) {
-        chamber_cooling.target_temperature = chamber().target_temperature();
-
+        chamber_cooling.target_temperature = target_temp;
         const bool already_spinning = *rpm0 > 5 && *rpm1 > 5;
 
         const uint8_t pwm = chamber_cooling.compute_pwm(already_spinning, *temp);
