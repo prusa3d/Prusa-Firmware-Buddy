@@ -395,7 +395,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     assert(!axis_state.current_target.has_value() && axis_state.pending_targets.isEmpty());
 
     axis_state.last_position = 0;
-    axis_state.direction = Stepper::last_axis_direction(axis_num);
+    axis_state.direction = Stepper::motor_direction(axis_num);
 
     // switch off interpolation first to ensure position is settled
     axis_state.had_interpolation = stepper.intpol();
@@ -466,13 +466,13 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     int current_phase = normalize_motor_phase(axis_state.last_phase);
     while (current_phase != stepper.MSCNT()) {
         switch (axis_num) {
-        case 0:
+        case X_AXIS:
             XStep->toggle();
             break;
-        case 1:
+        case Y_AXIS:
             YStep->toggle();
             break;
-        case 2:
+        case Z_AXIS:
             zStep.toggle();
             break;
         default:
@@ -487,6 +487,21 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     stepper.microsteps(axis_state.original_microsteps);
     stepper.intpol(axis_state.had_interpolation);
     stepper.rms_current(stepper.rms_current(), axis_state.initial_hold_multiplier);
+
+    // Resynchronize driver direction to last known direction
+    switch (axis_num) {
+    case X_AXIS:
+        buddy::hw::xDir.writeb(!(Stepper::motor_direction(axis_num) ^ INVERT_X_DIR));
+        break;
+    case Y_AXIS:
+        buddy::hw::yDir.writeb(!(Stepper::motor_direction(axis_num) ^ INVERT_Y_DIR));
+        break;
+    case Z_AXIS:
+        buddy::hw::zDir.writeb(!(Stepper::motor_direction(axis_num) ^ INVERT_Z_DIR));
+        break;
+    default:
+        break;
+    }
 
     // Disable and shutdown timer if we're the last axis
     axis_state.enabled = false;
@@ -673,8 +688,8 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
         Stepper::set_axis_steps_from_startup(axis_enum, axis_state.initial_count_position_from_startup + steps_made);
 
         // flag axis movement (if any)
-        if (speed != 0.f) {
-            Stepper::report_axis_movement(axis_enum, speed);
+        if (physical_speed != 0.f) {
+            Stepper::report_axis_movement(axis_enum, physical_speed);
         }
 
         axis_state.last_position = position;

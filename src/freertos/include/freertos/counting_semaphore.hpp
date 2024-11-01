@@ -14,6 +14,7 @@ public:
     using Storage = std::array<std::byte, semaphore_storage_size>;
 
 private:
+    void *handle;
     alignas(semaphore_storage_align) Storage semaphore_storage;
 
 public:

@@ -15,7 +15,7 @@ private:
     static bool DialogShown;
     constexpr static const char *const headerLabel = N_("Z AXIS MOVE");
     constexpr static const char *const axisLabel = N_("Z-axis");
-#if (PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_iX()) // XL moves bed down while Z goes up
+#if ENABLED(COREXY) // CoreXY moves bed down while Z goes up
     constexpr static const char *const infoTextContent = N_("Turn the knob to move Heatbed");
 #else /*PRINTER_TYPE*/
     constexpr static const char *const infoTextContent = N_("Turn the knob to move Z-axis");
