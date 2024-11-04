@@ -10,6 +10,83 @@ union UINtnt16Bytes {
     uint16_t word;
 };
 
+// #define SIMULATE_MMU
+#ifdef SIMULATE_MMU
+modbus::Callbacks::Status MMU::read_register(uint8_t, uint16_t address, uint16_t &out) {
+    switch (address) {
+    case 0: // first registers need to be read via the 'S' query. MMU FW would handle the 'R' query as well, but the bootloader wouldn't
+        out = 3;
+        break;
+    case 1:
+        out = 0;
+        break;
+    case 2:
+        out = 3;
+        break;
+    case 3:
+        out = 0;
+        break;
+    case 4:
+    case 8:
+    case 0x1a:
+    case 0x1b:
+    case 0x1c:
+        out = 0;
+        break;
+    case 253: {
+        UINtnt16Bytes msg;
+        msg.bytes[0] = (uint8_t)'X';
+        msg.bytes[1] = 0;
+
+        out = msg.word; // that's the current command in progress
+    } break;
+    case 254:
+        out = 'F'; // for now, let's consider X0 as finished ;)
+        break;
+    case 255:
+        out = 0;
+        break;
+    default:
+        break;
+    }
+    return Status::Ok;
+}
+
+modbus::Callbacks::Status MMU::write_register(uint8_t, uint16_t address, uint16_t) {
+    switch (address) {
+    case 7:
+    case 9:
+    case 11:
+    case 12:
+    case 23:
+    case 24:
+    case 25:
+    case 29:
+    case 35:
+        return Status::Ok;
+    case 4:
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+    case 18:
+    case 19:
+    case 20:
+    case 21:
+    case 22:
+    case 27:
+    case 28:
+    case 30:
+    case 31:
+    case 32:
+    case 34:
+        return Status::Ok;
+    }
+    return Status::IllegalAddress;
+}
+#else
+
 modbus::Callbacks::Status MMU::read_register(uint8_t, uint16_t address, uint16_t &out) {
     uint8_t txbuff[32];
     switch (address) {
@@ -158,6 +235,7 @@ modbus::Callbacks::Status MMU::write_register(uint8_t, uint16_t address, uint16_
         return modbus::Callbacks::Status::IllegalAddress;
     }
 }
+#endif
 
 MMU::StepStatus MMU::ExpectingMessage() {
     int bytesConsumed = 0;
