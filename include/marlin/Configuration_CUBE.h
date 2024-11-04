@@ -469,6 +469,11 @@
 #define CHAMBER_MAXTEMP 100
 #define BOARD_MAXTEMP 120
 
+// Bed temperature compensation settings
+#define BED_OFFSET 10
+#define BED_OFFSET_START 40
+#define BED_OFFSET_CENTER 50
+
 //===========================================================================
 //============================= PID Settings ================================
 //===========================================================================
