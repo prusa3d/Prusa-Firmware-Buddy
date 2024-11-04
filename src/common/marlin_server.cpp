@@ -95,6 +95,7 @@
 #include <option/has_i2c_expander.h>
 #include <option/has_chamber_api.h>
 #include <option/has_xbuddy_extension.h>
+#include <option/has_emergency_stop.h>
 
 #if HAS_DWARF()
     #include <puppies/Dwarf.hpp>
@@ -148,6 +149,9 @@
 
 #if HAS_XBUDDY_EXTENSION()
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+#endif
+#if HAS_EMERGENCY_STOP()
+    #include <feature/emergency_stop/emergency_stop.hpp>
 #endif
 
 #include <wui.h>
@@ -735,6 +739,9 @@ static void cycle() {
 
 #if HAS_XBUDDY_EXTENSION()
     buddy::xbuddy_extension().step();
+#endif
+#if HAS_EMERGENCY_STOP()
+    buddy::emergency_stop().step();
 #endif
 
     if (call_print_loop) {
