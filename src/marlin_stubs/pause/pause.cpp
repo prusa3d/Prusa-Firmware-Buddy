@@ -1326,9 +1326,8 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
     case pause::Settings::CalledFrom::Pause: {
         FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Change, true);
 
-        if (settings.unload_length) { // Unload the filament
-            filamentUnload(&Pause::loop_unload_change);
-        }
+        filamentUnload(&Pause::loop_unload_change);
+
         // Feed a little bit of filament to stabilize pressure in nozzle
         if (filamentLoad(&Pause::loop_load_change)) {
 
