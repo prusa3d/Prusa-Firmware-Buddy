@@ -270,3 +270,24 @@ bool MMU::Elapsed(uint32_t timeout) const {
 void MMU::RecordUARTActivity() {
     lastUARTActivityMs = freertos::millis();
 }
+
+int MMU2Serial::read() {
+    std::byte b;
+    std::span s { &b, 1 };
+    auto r = hal::mmu::receive(s);
+    return r.empty() ? -1 : (int)r[0];
+}
+
+void MMU2Serial::flush() {
+    for (;;) {
+        if (read() == -1) {
+            break;
+        }
+    }
+}
+
+size_t MMU2Serial::write(const uint8_t *buffer, size_t size) {
+    flush();
+    hal::mmu::transmit(std::span<const std::byte> { (const std::byte *)buffer, size });
+    return size; // a bit speculative
+}

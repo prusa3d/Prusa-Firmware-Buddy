@@ -3,17 +3,15 @@
 #include <cstdint>
 #include "modbus.hpp"
 #include "../../../lib/Prusa-Firmware-MMU/src/modules/protocol.h"
+#include "hal.hpp"
 
 /// A minimal serial interface for the MMU
 class MMU2Serial {
 public:
     MMU2Serial() = default;
-    int read() { return -1; }
-    void flush() {}
-    size_t write(const uint8_t * /*buffer*/, size_t /*size*/) { return 0; }
-
-private:
-    uint32_t recovery_start_ms = 0;
+    int read();
+    void flush();
+    size_t write(const uint8_t *buffer, size_t size);
 };
 
 class MMU final : public modbus::Callbacks {
