@@ -3,6 +3,7 @@
 #include <screen_menu_selftest_snake_result_parsing.hpp>
 #include <config_store/store_instance.hpp>
 
+#include <option/has_switched_fan_test.h>
 namespace SelftestSnake {
 TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
 
@@ -12,7 +13,8 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
     case Action::Fans:
         return merge_hotends_evaluations(
             [&](int8_t e) {
-                return evaluate_results(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].fansSwitched);
+                return evaluate_results(
+                    sr.tools[e].printFan, sr.tools[e].heatBreakFan, option::has_switched_fan_test ? sr.tools[e].fansSwitched : TestResult::TestResult_Passed);
             });
     case Action::ZAlign:
         return evaluate_results(sr.zalign);
