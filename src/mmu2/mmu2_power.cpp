@@ -8,6 +8,7 @@
 #endif
 
 #if HAS_MMU2()
+
     #include <buddy/mmu_port.hpp>
 
 namespace MMU2 {
