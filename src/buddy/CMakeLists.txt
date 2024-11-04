@@ -29,6 +29,10 @@ else()
   target_sources(firmware PRIVATE esp_flash_task_trivial.cpp)
 endif()
 
+if(HAS_MMU2)
+  target_sources(firmware PRIVATE mmu_port.cpp)
+endif()
+
 set_property(
   SOURCE src/main.cpp
   APPEND
