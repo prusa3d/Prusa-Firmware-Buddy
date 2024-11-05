@@ -1295,7 +1295,7 @@ void Pause::unpark_nozzle_and_notify() {
  * - Send host action for resume, if configured
  * - Resume the current SD print job, if any
  */
-void Pause::FilamentChange(const pause::Settings &settings_) {
+void Pause::FilamentChange(const pause::Settings &settings_, bool is_filament_stuck) {
     settings = settings_;
     settings.can_stop = false;
     if (did_pause_print) {
@@ -1322,14 +1322,13 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
     thermalManager.set_fans_paused(true);
 #endif
 
-    switch (settings.called_from) {
-    case pause::Settings::CalledFrom::Pause: {
-        FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Change, true);
+    {
+        FSM_HolderLoadUnload holder(*this, is_filament_stuck ? LoadUnloadMode::FilamentStuck : LoadUnloadMode::Change, true);
 
-        filamentUnload(&Pause::loop_unload_change);
+        filamentUnload(is_filament_stuck ? &Pause::loop_unload_filament_stuck : &Pause::loop_unload_change);
 
         // Feed a little bit of filament to stabilize pressure in nozzle
-        if (filamentLoad(&Pause::loop_load_change)) {
+        if (filamentLoad(is_filament_stuck ? &Pause::loop_load_filament_stuck : &Pause::loop_load_change)) {
 
             // Last poop after user clicked color - yes
             plan_e_move(5, 10);
@@ -1342,17 +1341,6 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
             planner.synchronize();
             delay(500);
         }
-    } break;
-    case pause::Settings::CalledFrom::FilamentStuck: {
-        FSM_HolderLoadUnload holder(*this, LoadUnloadMode::FilamentStuck, true); //@@TODO how to start in a different state? We need FilamentStuck...
-        // @@TODO how to disable heating after the timer runs out?
-        filamentUnload(&Pause::loop_unload_filament_stuck);
-        if (filamentLoad(&Pause::loop_load_filament_stuck)) { // @@TODO force load filament ... what happens if the user decides to stop it? We cannot continue without the filament
-            plan_e_move(5, 10);
-            planner.synchronize();
-            delay(500);
-        }
-    } break;
     }
 
 // Intelligent resuming

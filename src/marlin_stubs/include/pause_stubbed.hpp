@@ -166,7 +166,7 @@ public:
     bool UnloadFromGear(); // does not need config
     bool FilamentLoad(const pause::Settings &settings_);
     bool FilamentLoadNotBlocking(const pause::Settings &settings_);
-    void FilamentChange(const pause::Settings &settings_);
+    void FilamentChange(const pause::Settings &settings_, bool is_filament_stuck);
 
     void finalize_user_stop();
 
