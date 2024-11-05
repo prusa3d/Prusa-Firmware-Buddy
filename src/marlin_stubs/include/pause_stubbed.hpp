@@ -187,8 +187,6 @@ private:
     void loop_load_not_blocking(Response response); // no buttons at all - printer without GUI etc
     void loop_autoload(Response response); // todo force remove filament in retry
     void loop_load_to_gear(Response response);
-    void loop_load_change(Response response);
-    void loop_load_filament_stuck(Response response);
 
     void loop_load_common(Response response, LoadType load_type);
     // TODO loop_load_change_mmu
@@ -197,6 +195,8 @@ private:
     bool invoke_loop(loop_fn fn); // shared load/unload code
     bool filamentUnload(loop_fn fn);
     bool filamentLoad(loop_fn fn);
+
+    void set_unload_next_phase(LoadType load_type);
 
     // park moves calculations
     uint32_t parkMoveZPercent(float z_move_len, float xy_move_len) const;

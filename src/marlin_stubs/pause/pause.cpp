@@ -389,6 +389,14 @@ void Pause::loop_autoload(Response response) {
     loop_load_common(response, LoadType::autoload);
 }
 
+void Pause::set_unload_next_phase(LoadType load_type) {
+    if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
+        set(LoadPhase::load_init);
+    } else {
+        set(LoadPhase::_finish);
+    }
+}
+
 void Pause::loop_load_common(Response response, LoadType load_type) {
     switch (getLoadPhase()) {
     case LoadPhase::load_init:
@@ -740,13 +748,13 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
 
                 // No filament loaded in MMU, we can't continue, as we don't know what slot to load
                 if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-                    set(LoadPhase::_finish);
+                    set_unload_next_phase(load_type);
                     break;
                 }
 
                 MMU2::mmu2.unload();
                 MMU2::mmu2.eject_filament(settings.mmu_filament_to_load);
-                set(LoadPhase::_finish);
+                set_unload_next_phase(load_type);
                 break;
             }
         }
@@ -805,7 +813,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
 
         case LoadType::unload:
 #if HAS_HUMAN_INTERACTIONS()
-            set(LoadPhase::_finish);
+            set_unload_next_phase(load_type);
             break;
 #endif
         case LoadType::ask_unloaded:
@@ -841,7 +849,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
     case LoadPhase::unload_from_gear:
         setPhase(PhasesLoadUnload::Unloading_stoppable, 0);
         do_e_move_notify_progress_coldextrude(-settings.slow_load_length * (float)1.5, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 0, 100);
-        set(LoadPhase::_finish);
+        set_unload_next_phase(load_type);
         break;
 
     case LoadPhase::filament_not_in_fs:
@@ -856,7 +864,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
                 break;
             }
 #endif
-            set(LoadPhase::_finish);
+            set_unload_next_phase(load_type);
         } else {
 #if !HAS_HUMAN_INTERACTIONS()
             runout_timer_ms = ticks_ms();
@@ -868,7 +876,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         if (response == Response::Continue
             && !FSensors_instance().has_filament_surely()) { // Allow to continue when nothing remains in filament sensor
             enable_e_steppers();
-            set(LoadPhase::_finish);
+            set_unload_next_phase(load_type);
         } else if (response == Response::Retry) { // Retry unloading
             enable_e_steppers();
             set(LoadPhase::ram_sequence);
@@ -876,20 +884,12 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         break;
 
     default:
-        set(LoadPhase::_finish);
+        set_unload_next_phase(load_type);
     }
 }
 
 void Pause::loop_load_to_gear(Response response) {
     loop_load_common(response, LoadType::load_to_gear);
-}
-
-void Pause::loop_load_change(Response response) {
-    loop_load_common(response, LoadType::filament_change);
-}
-
-void Pause::loop_load_filament_stuck(Response response) {
-    loop_load_common(response, LoadType::filament_stuck);
 }
 
 bool Pause::ToolChange([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]] LoadUnloadMode mode,
@@ -1306,10 +1306,8 @@ void Pause::FilamentChange(const pause::Settings &settings_, bool is_filament_st
     {
         FSM_HolderLoadUnload holder(*this, is_filament_stuck ? LoadUnloadMode::FilamentStuck : LoadUnloadMode::Change, true);
 
-        filamentUnload(is_filament_stuck ? &Pause::loop_unload_filament_stuck : &Pause::loop_unload_change);
-
-        // Feed a little bit of filament to stabilize pressure in nozzle
-        if (filamentLoad(is_filament_stuck ? &Pause::loop_load_filament_stuck : &Pause::loop_load_change)) {
+        if (filamentUnload(is_filament_stuck ? &Pause::loop_unload_filament_stuck : &Pause::loop_unload_change)) {
+            // Feed a little bit of filament to stabilize pressure in nozzle
 
             // Last poop after user clicked color - yes
             plan_e_move(5, 10);
