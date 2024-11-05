@@ -152,6 +152,13 @@ namespace state {
     PhasesPhaseStepping intro() {
         switch (wait_for_response(PhasesPhaseStepping::intro)) {
         case Response::Continue:
+            if (!axes_need_homing(X_AXIS | Y_AXIS)) {
+#if PRINTER_IS_PRUSA_CUBE()
+                return PhasesPhaseStepping::reattach_meter;
+#else
+                return PhasesPhaseStepping::calib_x;
+#endif
+            }
 #if PRINTER_IS_PRUSA_CUBE()
             return PhasesPhaseStepping::remove_meter;
 #else
