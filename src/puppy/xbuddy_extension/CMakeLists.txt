@@ -18,6 +18,7 @@ target_sources(
   PRIVATE app.cpp
           cmsis.cpp
           hal.cpp
+          hal_clock.cpp
           main.cpp
           modbus.cpp
           stdlib.c

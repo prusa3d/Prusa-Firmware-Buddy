@@ -1,70 +1,10 @@
 ///@file
 #include "hal.hpp"
 
+#include "hal_clock.hpp"
 #include <stm32h5xx_hal.h>
 #include <freertos/binary_semaphore.hpp>
 #include <freertos/stream_buffer.hpp>
-
-void SystemClock_Config(void) {
-    /** Configure the main internal regulator output voltage
-     */
-    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
-
-    while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {
-    }
-
-    /** Initializes the RCC Oscillators according to the specified parameters
-     * in the RCC_OscInitTypeDef structure.
-     */
-    constexpr RCC_OscInitTypeDef RCC_OscInitStruct = {
-        .OscillatorType = RCC_OSCILLATORTYPE_HSI,
-        .HSEState = 0,
-        .LSEState = 0,
-        .HSIState = RCC_HSI_ON,
-        .HSIDiv = RCC_HSI_DIV2,
-        .HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT,
-        .LSIState = 0,
-        .CSIState = 0,
-        .CSICalibrationValue = 0,
-        .HSI48State = 0,
-        .PLL = {
-            .PLLState = RCC_PLL_NONE,
-            .PLLSource = 0,
-            .PLLM = 0,
-            .PLLN = 0,
-            .PLLP = 0,
-            .PLLQ = 0,
-            .PLLR = 0,
-            .PLLRGE = 0,
-            .PLLVCOSEL = 0,
-            .PLLFRACN = 0,
-        },
-    };
-    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-        abort();
-    }
-
-    /** Initializes the CPU, AHB and APB buses clocks
-     */
-    RCC_ClkInitTypeDef RCC_ClkInitStruct = {
-        .ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-            | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2
-            | RCC_CLOCKTYPE_PCLK3,
-        .SYSCLKSource = RCC_SYSCLKSOURCE_HSI,
-        .AHBCLKDivider = RCC_SYSCLK_DIV1,
-        .APB1CLKDivider = RCC_HCLK_DIV1,
-        .APB2CLKDivider = RCC_HCLK_DIV1,
-        .APB3CLKDivider = RCC_HCLK_DIV1,
-    };
-
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) {
-        abort();
-    }
-
-    /** Configure the programming delay
-     */
-    __HAL_FLASH_SET_PROGRAM_DELAY(FLASH_PROGRAMMING_DELAY_0);
-}
 
 static UART_HandleTypeDef huart_rs485;
 static std::byte rx_buf_rs485[256];
@@ -474,7 +414,7 @@ static void mmu_pins_init() {
 
 void hal::init() {
     HAL_Init();
-    SystemClock_Config();
+    hal::overclock();
     tim2_init();
     tim3_init();
     tim2_postinit();
