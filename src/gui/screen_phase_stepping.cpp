@@ -25,6 +25,10 @@ constexpr const char *ADDR_IN_TEXT = "prusa.io/cube-phstep";
 #endif
 constexpr const char *txt_header { N_("PHASE STEPPING CALIBRATION") };
 constexpr const char *txt_learn_more { N_("To learn more about the phase stepping calibration process, read the article:") };
+#if PRINTER_IS_PRUSA_CUBE()
+constexpr const char *txt_warn { N_("Before you continue, please make sure the accelerometer is NOT attached to the head.") };
+constexpr const char *txt_reattach { N_("Before you continue, please attach accelerometer onto the head.") };
+#endif
 constexpr const char *txt_homing { N_("Homing") };
 constexpr const char *txt_calibrating { N_("Running the phase stepping calibration to reduce vibrations. Please wait...") };
 constexpr const char *txt_calibrating_x { N_("Calibrating X motor") };
@@ -147,6 +151,46 @@ namespace frame {
         void update(const fsm::PhaseData &) {}
     };
 
+#if PRINTER_IS_PRUSA_CUBE()
+    class Warning final {
+        window_text_t text;
+
+        static constexpr uint16_t padding = 20;
+
+        static constexpr Rect16 text_rect {
+            ScreenPhaseStepping::get_inner_frame_rect().Left() + padding,
+            ScreenPhaseStepping::get_inner_frame_rect().Top() + padding,
+            ScreenPhaseStepping::get_inner_frame_rect().Width() - 2 * padding,
+            3 * height(GuiDefaults::DefaultFont),
+        };
+
+    public:
+        explicit Warning(window_t *parent)
+            : text { parent, text_rect, is_multiline::yes, is_closed_on_click_t::no, _(txt_warn) } {
+        }
+        void update(const fsm::PhaseData &) {}
+    };
+
+    class Reattach final {
+        window_text_t text;
+
+        static constexpr uint16_t padding = 20;
+
+        static constexpr Rect16 text_rect {
+            ScreenPhaseStepping::get_inner_frame_rect().Left() + padding,
+            ScreenPhaseStepping::get_inner_frame_rect().Top() + padding,
+            ScreenPhaseStepping::get_inner_frame_rect().Width() - 2 * padding,
+            3 * height(GuiDefaults::DefaultFont),
+        };
+
+    public:
+        explicit Reattach(window_t *parent)
+            : text { parent, text_rect, is_multiline::yes, is_closed_on_click_t::no, _(txt_reattach) } {
+        }
+        void update(const fsm::PhaseData &) {}
+    };
+#endif
+
     class Homing final : public CenteredStaticText {
     public:
         explicit Homing(window_t *parent)
@@ -241,7 +285,13 @@ namespace frame {
 
 using Frames = FrameDefinitionList<ScreenPhaseStepping::FrameStorage,
     FrameDefinition<PhasesPhaseStepping::intro, frame::Introduction>,
+#if PRINTER_IS_PRUSA_CUBE()
+    FrameDefinition<PhasesPhaseStepping::remove_meter, frame::Warning>,
+#endif
     FrameDefinition<PhasesPhaseStepping::home, frame::Homing>,
+#if PRINTER_IS_PRUSA_CUBE()
+    FrameDefinition<PhasesPhaseStepping::reattach_meter, frame::Reattach>,
+#endif
     FrameDefinition<PhasesPhaseStepping::calib_x, frame::CalibratingX>,
     FrameDefinition<PhasesPhaseStepping::calib_y, frame::CalibratingY>,
     FrameDefinition<PhasesPhaseStepping::calib_x_nok, frame::CalibrationXNOK>,
