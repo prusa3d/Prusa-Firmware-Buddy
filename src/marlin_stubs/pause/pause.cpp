@@ -167,7 +167,7 @@ constexpr RammingSequence unloadRammingSequence = RammingSequence(ramUnloadSeqIt
 
 PausePrivatePhase::PausePrivatePhase()
     : phase(PhasesLoadUnload::initial)
-    , load_unload_shared_phase(int(UnloadPhases_t::_init))
+    , load_unload_shared_phase(LoadPhase::unload_init)
     , bed_restore_temp(NAN) {
     HOTEND_LOOP() {
         nozzle_restore_temp[e] = NAN;
@@ -247,6 +247,40 @@ bool PausePrivatePhase::HasTempToRestore() const {
 Pause &Pause::Instance() {
     static Pause s;
     return s;
+}
+
+bool Pause::is_unstoppable(LoadType load_type) {
+    switch (load_type) {
+    case LoadType::load:
+        return FSensors_instance().HasMMU();
+    case LoadType::load_to_gear:
+        return !option::has_human_interactions;
+    case LoadType::autoload:
+    case LoadType::load_purge:
+    case LoadType::unload:
+    case LoadType::ask_unloaded:
+    case LoadType::unload_from_gears:
+        return false;
+    case LoadType::not_blocking:
+    case LoadType::filament_change:
+    case LoadType::filament_stuck:
+        return true;
+    }
+}
+
+Pause::RammingType Pause::get_ramming_type(LoadType load_type) {
+    switch (load_type) {
+    case LoadType::unload:
+    case LoadType::ask_unloaded:
+    case LoadType::unload_from_gears:
+        return RammingType::unload;
+    case LoadType::filament_change:
+    case LoadType::filament_stuck:
+        return RammingType::runout;
+    default:
+        // TODO: Irrelevant for the other types, how to handle?
+        return RammingType::unload;
+    }
 }
 
 bool Pause::is_target_temperature_safe() {
@@ -356,36 +390,8 @@ void Pause::loop_autoload(Response response) {
 }
 
 void Pause::loop_load_common(Response response, LoadType load_type) {
-    // Provide default values just in case, the following switch should cover everything
-    bool is_unstoppable = true;
-
-    switch (load_type) {
-
-    case LoadType::load:
-        if (FSensors_instance().HasMMU()) {
-            is_unstoppable = true;
-        } else {
-            is_unstoppable = false;
-        }
-        break;
-    case LoadType::autoload:
-    case LoadType::load_purge:
-        is_unstoppable = false;
-        break;
-
-    case LoadType::filament_change:
-    case LoadType::filament_stuck:
-    case LoadType::not_blocking:
-        is_unstoppable = true;
-        break;
-    case LoadType::load_to_gear:
-        is_unstoppable = !option::has_human_interactions;
-        break;
-    }
-
-    // transitions
     switch (getLoadPhase()) {
-    case LoadPhases_t::_init:
+    case LoadPhase::load_init:
         // TODO: this shouldn't be needed here
         // actual temperature does not matter, only target
         if (!is_target_temperature_safe() && load_type != LoadType::load_to_gear) {
@@ -400,24 +406,24 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
                     // TODO tell user that he has already loaded filament if he really wants to continue
                     // TODO check fsensor .. how should I behave if filament is not detected ???
                     // some error?
-                    set(LoadPhases_t::_finish);
+                    set(LoadPhase::_finish);
                     break;
                 }
 
                 config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
 
                 setPhase(PhasesLoadUnload::IsColor, 99);
-                set(LoadPhases_t::ask_is_color_correct);
+                set(LoadPhase::ask_is_color_correct);
                 break;
 
             } else if (load_type == LoadType::filament_change) {
                 if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-                    set(LoadPhases_t::_finish);
+                    set(LoadPhase::_finish);
                     break;
                 }
 
                 setPhase(PhasesLoadUnload::LoadFilamentIntoMMU);
-                set(LoadPhases_t::ask_mmu_load_filament);
+                set(LoadPhase::ask_mmu_load_filament);
                 break;
             }
         }
@@ -426,21 +432,21 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         switch (load_type) {
         case LoadType::load_to_gear:
 #if HAS_SIDE_FSENSOR()
-            set_timed(LoadPhases_t::assist_filament_insertion);
+            set_timed(LoadPhase::assist_filament_insertion);
             break;
 #else
-            set(LoadPhases_t::load_in_gear);
+            set(LoadPhase::load_in_gear);
 #endif
             break;
         case LoadType::not_blocking:
             // If we are certain that filament has been inserted, we can skip after load_in_gears phase
             if (FSensors_instance().has_filament_surely()) {
-                set(LoadPhases_t::move_to_purge);
+                set(LoadPhase::move_to_purge);
             } else if constexpr (!option::has_side_fsensor) {
-                set(LoadPhases_t::load_in_gear);
+                set(LoadPhase::load_in_gear);
 #if HAS_SIDE_FSENSOR()
             } else {
-                set_timed(LoadPhases_t::await_filament);
+                set_timed(LoadPhase::await_filament);
 #endif
             }
             break;
@@ -448,41 +454,41 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
             // if filament is not present we want to break and not set loaded filament
             // we have already loaded the filament in gear, now just wait for temperature to rise
             config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
-            set(LoadPhases_t::wait_temp);
-            handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+            set(LoadPhase::wait_temp);
+            handle_filament_removal(LoadPhase::check_filament_sensor_and_user_push__ask);
             break;
         case LoadType::load_purge:
-            set(LoadPhases_t::wait_temp);
+            set(LoadPhase::wait_temp);
             break;
 
         default:
 #if HAS_SIDE_FSENSOR()
-            set_timed(LoadPhases_t::await_filament);
+            set_timed(LoadPhase::await_filament);
 #else
-            set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+            set(LoadPhase::check_filament_sensor_and_user_push__ask);
 #endif
             break;
         }
         break;
 
-    case LoadPhases_t::check_filament_sensor_and_user_push__ask:
+    case LoadPhase::check_filament_sensor_and_user_push__ask:
         if constexpr (option::has_human_interactions) {
             setPhase(PhasesLoadUnload::Inserting_unstoppable);
 
             if (FSensors_instance().has_filament_surely()) {
-                set(LoadPhases_t::move_to_purge);
+                set(LoadPhase::move_to_purge);
 #if HAS_SIDE_FSENSOR()
             } else if constexpr (option::has_side_fsensor) {
-                set_timed(LoadPhases_t::await_filament);
+                set_timed(LoadPhase::await_filament);
 #endif
             } else {
-                set(LoadPhases_t::load_in_gear);
+                set(LoadPhase::load_in_gear);
             }
             break;
         }
 
         if (FSensors_instance().no_filament_surely()) {
-            setPhase(is_unstoppable ? PhasesLoadUnload::MakeSureInserted_unstoppable : PhasesLoadUnload::MakeSureInserted_stoppable);
+            setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::MakeSureInserted_unstoppable : PhasesLoadUnload::MakeSureInserted_stoppable);
 
             // With extruder MMU rework, we gotta assist the user with inserting the filament
             // BFW-5134
@@ -494,15 +500,15 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
             }
 
         } else {
-            setPhase(is_unstoppable ? PhasesLoadUnload::UserPush_unstoppable : PhasesLoadUnload::UserPush_stoppable);
+            setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::UserPush_unstoppable : PhasesLoadUnload::UserPush_stoppable);
 
             if (response == Response::Continue || settings.extruder_mmu_rework) {
 
                 if (FSensors_instance().has_filament_surely()) {
-                    set(LoadPhases_t::load_in_gear);
+                    set(LoadPhase::load_in_gear);
 #if HAS_SIDE_FSENSOR()
                 } else if constexpr (option::has_side_fsensor) {
-                    set_timed(LoadPhases_t::await_filament);
+                    set_timed(LoadPhase::await_filament);
 #endif
                 }
             }
@@ -515,30 +521,30 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         break;
 
 #if HAS_SIDE_FSENSOR()
-    case LoadPhases_t::await_filament: {
+    case LoadPhase::await_filament: {
         setPhase(PhasesLoadUnload::Inserting_stoppable);
         // If EXTRUDER sensor is not assigned or not working, or if the user fails to insert filament in time, show Warning and quit loading.
         if (!FSensors_instance().sensor(LogicalFilamentSensor::current_extruder) || !is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_extruder)) || ticks_diff(ticks_ms(), start_time_ms) > 10 * 60 * 1000) {
             marlin_server::set_warning(WarningType::FilamentLoadingTimeout);
-            set(LoadPhases_t::_finish);
+            set(LoadPhase::_finish);
             break;
         }
 
         if (!FSensors_instance().sensor(LogicalFilamentSensor::current_side) || !is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side)) // If SIDE sensor is not assigned or not working go directly to loading
             || FSensors_instance().sensor(LogicalFilamentSensor::current_side)->get_state() == FilamentSensorState::HasFilament) { // If filament arrived at SIDE sensor, we can start loading sequence.
-            set_timed(LoadPhases_t::assist_filament_insertion);
+            set_timed(LoadPhase::assist_filament_insertion);
             break;
         }
 
         break;
     }
 
-    case LoadPhases_t::assist_filament_insertion: {
-        setPhase(is_unstoppable ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
+    case LoadPhase::assist_filament_insertion: {
+        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
 
         // Filament is in Extruder autoload assistance si done.
         if (FSensors_instance().has_filament_surely()) {
-            set(LoadPhases_t::load_in_gear);
+            set(LoadPhase::load_in_gear);
             break;
         }
 
@@ -560,43 +566,43 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
     }
 #endif
 
-    case LoadPhases_t::load_in_gear: // slow load
-        setPhase(is_unstoppable ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
+    case LoadPhase::load_in_gear: // slow load
+        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
 
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
 
         // if filament is not present we want to break and not set loaded filament
-        set(LoadPhases_t::move_to_purge);
-        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+        set(LoadPhase::move_to_purge);
+        handle_filament_removal(LoadPhase::check_filament_sensor_and_user_push__ask);
         break;
-    case LoadPhases_t::move_to_purge:
+    case LoadPhase::move_to_purge:
         if constexpr (option::has_side_fsensor) {
             mapi::park_move_with_conditional_home(mapi::park_positions[mapi::ParkPosition::purge], mapi::ZAction::no_move);
         }
         if (load_type == LoadType::load_to_gear) {
-            set(LoadPhases_t::_finish);
+            set(LoadPhase::_finish);
             break;
         } else {
-            set(LoadPhases_t::wait_temp);
+            set(LoadPhase::wait_temp);
         }
         break;
-    case LoadPhases_t::wait_temp:
+    case LoadPhase::wait_temp:
         if (ensureSafeTemperatureNotifyProgress(30, 50)) {
             if (load_type == LoadType::load_purge) {
-                set(LoadPhases_t::purge);
+                set(LoadPhase::purge);
             } else {
-                set(LoadPhases_t::long_load);
+                set(LoadPhase::long_load);
             }
         }
-        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+        handle_filament_removal(LoadPhase::check_filament_sensor_and_user_push__ask);
         break;
 
-    case LoadPhases_t::error_temp:
-        set(LoadPhases_t::_finish);
+    case LoadPhase::error_temp:
+        set(LoadPhase::_finish);
         break;
 
-    case LoadPhases_t::long_load: {
-        setPhase(is_unstoppable ? PhasesLoadUnload::Loading_unstoppable : PhasesLoadUnload::Loading_stoppable, 50);
+    case LoadPhase::long_load: {
+        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Loading_unstoppable : PhasesLoadUnload::Loading_stoppable, 50);
 
         const float saved_acceleration = planner.user_settings.retract_acceleration;
         {
@@ -613,61 +619,61 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
             planner.apply_settings(s);
         }
 
-        set(LoadPhases_t::purge);
-        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+        set(LoadPhase::purge);
+        handle_filament_removal(LoadPhase::check_filament_sensor_and_user_push__ask);
         break;
     }
 
-    case LoadPhases_t::purge:
+    case LoadPhase::purge:
         // Extrude filament to get into hotend
-        setPhase(is_unstoppable ? PhasesLoadUnload::Purging_unstoppable : PhasesLoadUnload::Purging_stoppable, 70);
+        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Purging_unstoppable : PhasesLoadUnload::Purging_stoppable, 70);
         do_e_move_notify_progress_hotextrude(settings.purge_length(), ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         if constexpr (!option::has_human_interactions) {
-            set(LoadPhases_t::_finish);
+            set(LoadPhase::_finish);
             break;
         }
 
         setPhase(PhasesLoadUnload::IsColor, 99);
-        set(LoadPhases_t::ask_is_color_correct);
-        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+        set(LoadPhase::ask_is_color_correct);
+        handle_filament_removal(LoadPhase::check_filament_sensor_and_user_push__ask);
         break;
 
-    case LoadPhases_t::ask_is_color_correct:
+    case LoadPhase::ask_is_color_correct:
         switch (response) {
 
         case Response::Purge_more:
-            set(LoadPhases_t::purge);
+            set(LoadPhase::purge);
             break;
 
         case Response::Retry:
-            set(LoadPhases_t::eject);
+            set(LoadPhase::eject);
             break;
 
         case Response::Yes:
-            set(LoadPhases_t::_finish);
+            set(LoadPhase::_finish);
             break;
 
         default:
             // This doesn't make sense with the MMU on
             if (!FSensors_instance().HasMMU()) {
-                handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+                handle_filament_removal(LoadPhase::check_filament_sensor_and_user_push__ask);
             }
             break;
         }
         break;
 
 #if HAS_MMU2()
-    case LoadPhases_t::ask_mmu_load_filament: {
+    case LoadPhase::ask_mmu_load_filament: {
         if (response == Response::Continue) {
-            set(LoadPhases_t::mmu_load_filament);
+            set(LoadPhase::mmu_load_filament);
         }
         break;
     }
 
-    case LoadPhases_t::mmu_load_filament: {
+    case LoadPhase::mmu_load_filament: {
         if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-            set(LoadPhases_t::_finish);
+            set(LoadPhase::_finish);
             break;
         }
 
@@ -675,30 +681,30 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load);
 
         setPhase(PhasesLoadUnload::IsColor, 99);
-        set(LoadPhases_t::ask_is_color_correct);
+        set(LoadPhase::ask_is_color_correct);
         break;
     }
 #endif
 
-    case LoadPhases_t::eject:
+    case LoadPhase::eject:
 #if HAS_MMU2()
         if (FSensors_instance().HasMMU()) {
             MMU2::mmu2.unload();
             if (load_type == LoadType::filament_change) {
-                set(LoadPhases_t::mmu_load_filament);
+                set(LoadPhase::mmu_load_filament);
             } else {
-                set(LoadPhases_t::_init);
+                set(LoadPhase::load_init);
             }
             break;
         }
 #endif
 
-        setPhase(is_unstoppable ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 98);
+        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 98);
         ram_filament(RammingType::unload);
 
         planner.synchronize(); // do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
 
-        setPhase(is_unstoppable ? PhasesLoadUnload::Ejecting_unstoppable : PhasesLoadUnload::Ejecting_stoppable, 99);
+        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Ejecting_unstoppable : PhasesLoadUnload::Ejecting_stoppable, 99);
         unload_filament(RammingType::unload);
 
         switch (load_type) {
@@ -706,17 +712,17 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         case LoadType::not_blocking:
 #if !HAS_HUMAN_INTERACTIONS()
             // This state should be unreachable for printers without Human interaction and could be unrecoverable. We need to finish the FSM in order to not block interactions from Connect.
-            set(LoadPhases_t::_finish);
+            set(LoadPhase::_finish);
             break;
 #endif
         case LoadType::filament_change:
         case LoadType::filament_stuck:
-            set(LoadPhases_t::_init);
+            set(LoadPhase::load_init);
             break;
 
         case LoadType::load:
         case LoadType::autoload:
-            set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+            set(LoadPhase::check_filament_sensor_and_user_push__ask);
             break;
         case LoadType::load_purge:
             break;
@@ -724,7 +730,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         break;
 
     default:
-        set(LoadPhases_t::_finish);
+        set(LoadPhase::_finish);
     }
 }
 
@@ -823,7 +829,7 @@ bool Pause::LoadToGear(const pause::Settings &settings_) {
  * Returns 'true' if unload was completed, 'false' for abort
  */
 bool Pause::filamentUnload(loop_fn fn) {
-    set(UnloadPhases_t::_init);
+    set(LoadPhase::unload_init);
     return invoke_loop(fn);
 }
 
@@ -840,7 +846,7 @@ bool Pause::filamentUnload(loop_fn fn) {
  * Returns 'true' if load was completed, 'false' for abort
  */
 bool Pause::filamentLoad(loop_fn fn) {
-    set(LoadPhases_t::_init);
+    set(LoadPhase::load_init);
     return invoke_loop(fn);
 }
 
@@ -857,14 +863,14 @@ bool Pause::invoke_loop(loop_fn fn) {
             const Response response = getResponse();
             std::invoke(fn, *this, response);
         } else {
-            set(intFinishVal);
+            set(LoadPhase::_finish);
             continue;
         }
         ret = !process_stop(); // why is this 2nd call here ???, some workaround ???
         if (ret) {
             idle(true, true); // idle loop to prevent wdt and manage heaters etc, true == do not shutdown steppers
         } else {
-            set(intFinishVal);
+            set(LoadPhase::_finish);
             continue;
         }
     };
@@ -885,46 +891,26 @@ void Pause::loop_unload_AskUnloaded(Response response) {
 }
 
 void Pause::loop_unload_common(Response response, LoadType load_type) {
-    // Provide default values just in case, the following switch should cover everything
-    bool is_unstoppable = true;
-    RammingType ramming_type = RammingType::unload;
+    switch (getLoadPhase()) {
 
-    switch (load_type) {
-
-    case LoadType::unload:
-    case LoadType::ask_unloaded:
-    case LoadType::unload_from_gears:
-        is_unstoppable = false;
-        ramming_type = RammingType::unload;
-        break;
-
-    case LoadType::filament_change:
-    case LoadType::filament_stuck:
-        is_unstoppable = true;
-        ramming_type = RammingType::runout;
-        break;
-    }
-
-    switch (getUnloadPhase()) {
-
-    case UnloadPhases_t::_init:
+    case LoadPhase::unload_init:
 #if HAS_MMU2()
         if (FSensors_instance().HasMMU()) {
             if (load_type == LoadType::unload) {
                 MMU2::mmu2.unload();
-                set(UnloadPhases_t::_finish);
+                set(LoadPhase::_finish);
             } else if (load_type == LoadType::filament_change) {
                 settings.mmu_filament_to_load = MMU2::mmu2.get_current_tool();
 
                 // No filament loaded in MMU, we can't continue, as we don't know what slot to load
                 if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-                    set(UnloadPhases_t::_finish);
+                    set(LoadPhase::_finish);
                     break;
                 }
 
                 MMU2::mmu2.unload();
                 MMU2::mmu2.eject_filament(settings.mmu_filament_to_load);
-                set(UnloadPhases_t::_finish);
+                set(LoadPhase::_finish);
                 break;
             }
         }
@@ -941,38 +927,38 @@ void Pause::loop_unload_common(Response response, LoadType load_type) {
         case LoadType::filament_stuck:
 #if HAS_LOADCELL()
             setPhase(PhasesLoadUnload::FilamentStuck);
-            set(UnloadPhases_t::filament_stuck_wait_user);
+            set(LoadPhase::filament_stuck_wait_user);
 #else
             setPhase(PhasesLoadUnload::ManualUnload, 100);
-            set(UnloadPhases_t::manual_unload);
+            set(LoadPhase::manual_unload);
 #endif
             break;
 
         case LoadType::unload_from_gears:
-            set(UnloadPhases_t::unload_from_gear);
+            set(LoadPhase::unload_from_gear);
             break;
 
         default:
-            set(UnloadPhases_t::ram_sequence);
+            set(LoadPhase::ram_sequence);
             break;
         }
         break;
 
-    case UnloadPhases_t::filament_stuck_wait_user:
+    case LoadPhase::filament_stuck_wait_user:
         if (response == Response::Unload) {
-            set(UnloadPhases_t::ram_sequence);
+            set(LoadPhase::ram_sequence);
         }
         break;
 
-    case UnloadPhases_t::ram_sequence:
-        setPhase(is_unstoppable ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 50);
-        ram_filament(ramming_type);
-        set(UnloadPhases_t::unload);
+    case LoadPhase::ram_sequence:
+        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 50);
+        ram_filament(get_ramming_type(load_type));
+        set(LoadPhase::unload);
         break;
 
-    case UnloadPhases_t::unload:
-        setPhase(is_unstoppable ? PhasesLoadUnload::Unloading_unstoppable : PhasesLoadUnload::Unloading_stoppable, 51);
-        unload_filament(ramming_type);
+    case LoadPhase::unload:
+        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Unloading_unstoppable : PhasesLoadUnload::Unloading_stoppable, 51);
+        unload_filament(get_ramming_type(load_type));
         if (settings.do_stop) {
             break;
         }
@@ -983,7 +969,7 @@ void Pause::loop_unload_common(Response response, LoadType load_type) {
 
         case LoadType::unload:
 #if HAS_HUMAN_INTERACTIONS()
-            set(UnloadPhases_t::_finish);
+            set(LoadPhase::_finish);
             break;
 #endif
         case LoadType::ask_unloaded:
@@ -991,12 +977,12 @@ void Pause::loop_unload_common(Response response, LoadType load_type) {
         case LoadType::filament_stuck:
 #if !HAS_HUMAN_INTERACTIONS()
             runout_timer_ms = ticks_ms();
-            set(UnloadPhases_t::filament_not_in_fs);
+            set(LoadPhase::filament_not_in_fs);
             break;
 #endif
 
             setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
-            set(UnloadPhases_t::unloaded__ask);
+            set(LoadPhase::unloaded__ask);
 
             break;
         case LoadType::unload_from_gears:
@@ -1004,25 +990,25 @@ void Pause::loop_unload_common(Response response, LoadType load_type) {
         }
         break;
 
-    case UnloadPhases_t::unloaded__ask:
+    case LoadPhase::unloaded__ask:
         if (response == Response::Yes) {
-            set(UnloadPhases_t::filament_not_in_fs);
+            set(LoadPhase::filament_not_in_fs);
             break;
         }
         if (response == Response::No) {
             setPhase(PhasesLoadUnload::ManualUnload, 100);
             disable_e_stepper(active_extruder);
-            set(UnloadPhases_t::manual_unload);
+            set(LoadPhase::manual_unload);
         }
         break;
 
-    case UnloadPhases_t::unload_from_gear:
+    case LoadPhase::unload_from_gear:
         setPhase(PhasesLoadUnload::Unloading_stoppable, 0);
         do_e_move_notify_progress_coldextrude(-settings.slow_load_length * (float)1.5, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 0, 100);
-        set(UnloadPhases_t::_finish);
+        set(LoadPhase::_finish);
         break;
 
-    case UnloadPhases_t::filament_not_in_fs:
+    case LoadPhase::filament_not_in_fs:
         setPhase(PhasesLoadUnload::FilamentNotInFS);
         if (!FSensors_instance().has_filament_surely()) { // Either no filament in FS or unknown (FS off)
 #if !HAS_HUMAN_INTERACTIONS()
@@ -1034,7 +1020,7 @@ void Pause::loop_unload_common(Response response, LoadType load_type) {
                 break;
             }
 #endif
-            set(UnloadPhases_t::_finish);
+            set(LoadPhase::_finish);
         } else {
 #if !HAS_HUMAN_INTERACTIONS()
             runout_timer_ms = ticks_ms();
@@ -1042,19 +1028,19 @@ void Pause::loop_unload_common(Response response, LoadType load_type) {
         }
         break;
 
-    case UnloadPhases_t::manual_unload:
+    case LoadPhase::manual_unload:
         if (response == Response::Continue
             && !FSensors_instance().has_filament_surely()) { // Allow to continue when nothing remains in filament sensor
             enable_e_steppers();
-            set(UnloadPhases_t::_finish);
+            set(LoadPhase::_finish);
         } else if (response == Response::Retry) { // Retry unloading
             enable_e_steppers();
-            set(UnloadPhases_t::ram_sequence);
+            set(LoadPhase::ram_sequence);
         }
         break;
 
     default:
-        set(UnloadPhases_t::_finish);
+        set(LoadPhase::_finish);
     }
 }
 
@@ -1472,7 +1458,7 @@ void Pause::finalize_user_stop() {
     current_position = real_current_position;
     planner.set_position_mm(current_position);
 }
-void Pause::handle_filament_removal(LoadPhases_t phase_to_set) {
+void Pause::handle_filament_removal(LoadPhase phase_to_set) {
     // only if there is no filament present and we are sure (FS on and sees no filament)
     if (FSensors_instance().no_filament_surely()) {
         set(phase_to_set);

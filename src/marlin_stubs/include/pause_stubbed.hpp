@@ -24,20 +24,10 @@
 void unhomed_z_lift(float amount_mm);
 
 class PausePrivatePhase : public IPause {
-    PhasesLoadUnload phase; // needed for CanSafetyTimerExpire
-    int load_unload_shared_phase; // shared variable for UnloadPhases_t and LoadPhases_t
-    std::optional<LoadUnloadMode> load_unload_mode = std::nullopt;
-
-    float nozzle_restore_temp[HOTENDS];
-    float bed_restore_temp;
-
-public:
-    static constexpr int intFinishVal = INT_MAX;
-
 protected:
-    enum class UnloadPhases_t {
-        _finish = intFinishVal,
-        _init = 0,
+    enum class LoadPhase {
+        _finish = INT_MAX,
+        unload_init = 0,
         filament_stuck_wait_user,
         ram_sequence,
         unload,
@@ -46,13 +36,7 @@ protected:
         filament_not_in_fs,
         unload_from_gear,
         run_mmu_eject,
-        _last = run_mmu_eject,
-
-    };
-
-    enum class LoadPhases_t {
-        _finish = intFinishVal,
-        _init = int(UnloadPhases_t::_last) + 1,
+        load_init,
         check_filament_sensor_and_user_push__ask, // must be one phase because of button click
 #if HAS_SIDE_FSENSOR()
         await_filament,
@@ -67,12 +51,20 @@ protected:
         ask_is_color_correct,
         eject,
         unloaded_ask,
-        manual_unload,
         ask_mmu_load_filament,
         mmu_load_filament,
         _last = mmu_load_filament,
     };
 
+private:
+    PhasesLoadUnload phase; // needed for CanSafetyTimerExpire
+    LoadPhase load_unload_shared_phase; // shared variable for UnloadPhases_t and LoadPhases_t
+    std::optional<LoadUnloadMode> load_unload_mode = std::nullopt;
+
+    float nozzle_restore_temp[HOTENDS];
+    float bed_restore_temp;
+
+protected:
     PausePrivatePhase();
     void setPhase(PhasesLoadUnload ph, uint8_t progress = 0);
     PhasesLoadUnload getPhase() const;
@@ -82,32 +74,16 @@ protected:
     // cannot guarante that SafetyTimer will happen first, so have to do it on both places
     Response getResponse();
 
-    // use UnloadPhases_t or LoadPhases_t
-    template <class ENUM>
-    ENUM get() {
-        if (load_unload_shared_phase < int(ENUM::_init)) {
-            return ENUM::_finish;
-        }
-        if (load_unload_shared_phase > int(ENUM::_last)) {
-            return ENUM::_finish;
-        }
-        return ENUM(load_unload_shared_phase);
+    LoadPhase getLoadPhase() {
+        return load_unload_shared_phase;
     }
 
-    LoadPhases_t getLoadPhase() {
-        return get<LoadPhases_t>();
-    }
-    UnloadPhases_t getUnloadPhase() {
-        return get<UnloadPhases_t>();
-    }
-
-    template <class ENUM>
-    void set(ENUM en) {
-        load_unload_shared_phase = int(en);
+    void set(LoadPhase phase) {
+        load_unload_shared_phase = phase;
     }
 
     // use only when necessary
-    bool finished() { return load_unload_shared_phase == intFinishVal; }
+    bool finished() { return load_unload_shared_phase == LoadPhase::_finish; }
 
     void clrRestoreTemp();
 
@@ -191,6 +167,14 @@ public:
     }
 
 private:
+    enum class RammingType {
+        unload,
+        runout
+    };
+
+    static RammingType get_ramming_type(LoadType load_type);
+    static bool is_unstoppable(LoadType load_type);
+
     using loop_fn = void (Pause::*)(Response response);
     void loop_unload(Response response);
     void loop_unload_AskUnloaded(Response response);
@@ -243,12 +227,7 @@ private:
     bool check_user_stop(); //< stops motion and fsm and returns true it user triggered stop
     bool wait_for_motion_finish_or_user_stop(); //< waits until motion is finished; if stop is triggered then returns true
     bool process_stop();
-    void handle_filament_removal(LoadPhases_t phase_to_set); //<checks if filament is present if not it sets different phase
-
-    enum class RammingType {
-        unload,
-        runout
-    };
+    void handle_filament_removal(LoadPhase phase_to_set); //<checks if filament is present if not it sets different phase
 
     void ram_filament(const RammingType sequence);
     void unload_filament(const RammingType sequence);
