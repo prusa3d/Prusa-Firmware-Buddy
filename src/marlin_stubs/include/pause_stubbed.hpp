@@ -146,6 +146,19 @@ class Pause : public PausePrivatePhase {
     static constexpr const float heating_phase_min_hotend_diff = 5.0F;
 
 public:
+    enum class LoadType : uint8_t {
+        load,
+        autoload,
+        load_to_gear,
+        not_blocking,
+        load_purge,
+        unload,
+        ask_unloaded,
+        unload_from_gears,
+        filament_change,
+        filament_stuck,
+    };
+
     static constexpr const float minimal_purge = 1;
     static Pause &Instance();
 
@@ -185,14 +198,7 @@ private:
     void loop_unload_change(Response response);
     void loop_unload_filament_stuck(Response response);
 
-    enum class CommonUnloadType : uint8_t {
-        standard,
-        ask_unloaded,
-        unload_from_gears,
-        filament_change,
-        filament_stuck,
-    };
-    void loop_unload_common(Response response, CommonUnloadType unload_type);
+    void loop_unload_common(Response response, LoadType unload_type);
     // TODO loop_unload_change_mmu
 
     void loop_load(Response response);
@@ -203,16 +209,7 @@ private:
     void loop_load_change(Response response);
     void loop_load_filament_stuck(Response response);
 
-    enum class CommonLoadType : uint8_t {
-        load_to_gear,
-        standard,
-        autoload,
-        filament_change,
-        filament_stuck,
-        not_blocking,
-        load_purge,
-    };
-    void loop_load_common(Response response, CommonLoadType load_type);
+    void loop_load_common(Response response, LoadType load_type);
     // TODO loop_load_change_mmu
 
     // does not create FSM_HolderLoadUnload
