@@ -182,9 +182,6 @@ private:
     void loop_unload_change(Response response);
     void loop_unload_filament_stuck(Response response);
 
-    void loop_unload_common(Response response, LoadType unload_type);
-    // TODO loop_unload_change_mmu
-
     void loop_load(Response response);
     void loop_load_purge(Response response);
     void loop_load_not_blocking(Response response); // no buttons at all - printer without GUI etc
