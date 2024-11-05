@@ -784,9 +784,14 @@ bool Pause::FilamentUnload_AskUnloaded(const pause::Settings &settings_) {
 
 bool Pause::FilamentLoad(const pause::Settings &settings_) {
     settings = settings_;
-    // Parking is used for better access to print/toolhead, therefore in case of purging no parking is necessary.
-    FSM_HolderLoadUnload holder(*this, settings.fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge, settings.fast_load_length > 0);
-    return filamentLoad(settings.fast_load_length ? &Pause::loop_load : &Pause::loop_load_purge);
+    FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Load, true);
+    return filamentLoad(&Pause::loop_load);
+}
+
+bool Pause::FilamentPurge(const pause::Settings &settings_) {
+    settings = settings_;
+    FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Purge, false);
+    return filamentLoad(&Pause::loop_load_purge);
 }
 
 bool Pause::FilamentLoadNotBlocking(const pause::Settings &settings_) {

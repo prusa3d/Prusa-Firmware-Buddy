@@ -70,9 +70,11 @@ void filament_gcodes::M701_no_parser(FilamentType filament_to_be_loaded, const s
         marlin_server::unpause_nozzle(target_extruder);
     }
 
+    const bool do_purge_only = fast_load_length.has_value() && fast_load_length <= 0.0f;
+
     if (op_preheat) {
         if (filament_to_be_loaded == FilamentType::none) {
-            PreheatData data = PreheatData::make(!fast_load_length.has_value() || fast_load_length > 0.F ? PreheatMode::Load : PreheatMode::Purge, target_extruder, *op_preheat);
+            PreheatData data = PreheatData::make(do_purge_only ? PreheatMode::Purge : PreheatMode::Load, target_extruder, *op_preheat);
             auto preheat_ret = data.mode == PreheatMode::Load ? preheat_for_change_load(data, target_extruder) : preheat(data, target_extruder);
             if (preheat_ret.first) {
                 // canceled
@@ -111,7 +113,7 @@ void filament_gcodes::M701_no_parser(FilamentType filament_to_be_loaded, const s
 
     const bool do_resume_print = static_cast<bool>(resume_print_request) && marlin_server::printer_paused();
     // Load
-    if (load_unload(LoadUnloadMode::Load, option::has_human_interactions ? &Pause::FilamentLoad : &Pause::FilamentLoadNotBlocking, settings)) {
+    if (load_unload(LoadUnloadMode::Load, option::has_human_interactions ? (do_purge_only ? &Pause::FilamentPurge : &Pause::FilamentLoad) : &Pause::FilamentLoadNotBlocking, settings)) {
         if (!do_resume_print) {
             M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
         }
