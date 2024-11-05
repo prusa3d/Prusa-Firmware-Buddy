@@ -356,8 +356,6 @@ void Pause::loop_autoload(Response response) {
 }
 
 void Pause::loop_load_common(Response response, LoadType load_type) {
-    const float purge_ln = settings.purge_length();
-
     // Provide default values just in case, the following switch should cover everything
     bool is_unstoppable = true;
 
@@ -623,7 +621,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
     case LoadPhases_t::purge:
         // Extrude filament to get into hotend
         setPhase(is_unstoppable ? PhasesLoadUnload::Purging_unstoppable : PhasesLoadUnload::Purging_stoppable, 70);
-        do_e_move_notify_progress_hotextrude(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
+        do_e_move_notify_progress_hotextrude(settings.purge_length(), ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         if constexpr (!option::has_human_interactions) {
             set(LoadPhases_t::_finish);
