@@ -271,7 +271,7 @@ namespace defaults {
     inline constexpr int16_t homing_sens_y { stallguard_sensitivity_unset };
 
     inline constexpr HotendType hotend_type {
-#if PRINTER_IS_PRUSA_iX()
+#if PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_CUBE()
         HotendType::stock_with_sock
 #else
         HotendType::stock

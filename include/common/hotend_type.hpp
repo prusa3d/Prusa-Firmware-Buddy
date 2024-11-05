@@ -6,7 +6,7 @@
 #include <i18n.h>
 #include <printers.h>
 
-#define HAS_HOTEND_TYPE_SUPPORT() (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX())
+#define HAS_HOTEND_TYPE_SUPPORT() (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_CUBE())
 
 /// Shared for all printers.
 /// !!! Never change order, never remove items - this is used in config store
