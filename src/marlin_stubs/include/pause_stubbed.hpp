@@ -174,27 +174,12 @@ private:
 
     static RammingType get_ramming_type(LoadType load_type);
     static bool is_unstoppable(LoadType load_type);
-
-    using loop_fn = void (Pause::*)(Response response);
-    void loop_unload(Response response);
-    void loop_unload_AskUnloaded(Response response);
-    void loop_unloadFromGear(Response response); // autoload abort
-    void loop_unload_change(Response response);
-    void loop_unload_filament_stuck(Response response);
-
-    void loop_load(Response response);
-    void loop_load_purge(Response response);
-    void loop_load_not_blocking(Response response); // no buttons at all - printer without GUI etc
-    void loop_autoload(Response response); // todo force remove filament in retry
-    void loop_load_to_gear(Response response);
+    static LoadPhase get_start_phase(LoadType load_type);
 
     void loop_load_common(Response response, LoadType load_type);
-    // TODO loop_load_change_mmu
 
     // does not create FSM_HolderLoadUnload
-    bool invoke_loop(loop_fn fn); // shared load/unload code
-    bool filamentUnload(loop_fn fn);
-    bool filamentLoad(loop_fn fn);
+    bool invoke_loop(LoadType load_type); // shared load/unload code
 
     void set_unload_next_phase(LoadType load_type);
 

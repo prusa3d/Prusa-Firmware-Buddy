@@ -283,6 +283,23 @@ Pause::RammingType Pause::get_ramming_type(LoadType load_type) {
     }
 }
 
+Pause::LoadPhase Pause::get_start_phase(LoadType load_type) {
+    switch (load_type) {
+    case LoadType::load:
+    case LoadType::autoload:
+    case LoadType::load_to_gear:
+    case LoadType::not_blocking:
+    case LoadType::load_purge:
+        return LoadPhase::load_init;
+    case LoadType::unload:
+    case LoadType::ask_unloaded:
+    case LoadType::unload_from_gears:
+    case LoadType::filament_change:
+    case LoadType::filament_stuck:
+        return LoadPhase::unload_init;
+    }
+}
+
 bool Pause::is_target_temperature_safe() {
     if (!DEBUGGING(DRYRUN) && thermalManager.targetTooColdToExtrude(active_extruder)) {
         SERIAL_ECHO_MSG(MSG_ERR_HOTEND_TOO_COLD);
@@ -371,22 +388,6 @@ bool Pause::process_stop() {
 
     settings.do_stop = false;
     return true;
-}
-
-void Pause::loop_load(Response response) {
-    loop_load_common(response, LoadType::load);
-}
-
-void Pause::loop_load_purge(Response response) {
-    loop_load_common(response, LoadType::load_purge);
-}
-
-void Pause::loop_load_not_blocking(Response response) {
-    loop_load_common(response, LoadType::not_blocking);
-}
-
-void Pause::loop_autoload(Response response) {
-    loop_load_common(response, LoadType::autoload);
 }
 
 void Pause::set_unload_next_phase(LoadType load_type) {
@@ -888,10 +889,6 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
     }
 }
 
-void Pause::loop_load_to_gear(Response response) {
-    loop_load_common(response, LoadType::load_to_gear);
-}
-
 bool Pause::ToolChange([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]] LoadUnloadMode mode,
     [[maybe_unused]] const pause::Settings &settings_) {
 #if HAS_TOOLCHANGER()
@@ -916,98 +913,67 @@ bool Pause::ToolChange([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]
 
 bool Pause::UnloadFromGear() {
     FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Unload, true);
-    return filamentUnload(&Pause::loop_unloadFromGear);
+    return invoke_loop(LoadType::unload_from_gears);
 }
 
 bool Pause::FilamentUnload(const pause::Settings &settings_) {
     settings = settings_;
     FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Unload, true);
-    return filamentUnload(&Pause::loop_unload);
+    return invoke_loop(LoadType::unload);
 }
 
 bool Pause::FilamentUnload_AskUnloaded(const pause::Settings &settings_) {
     settings = settings_;
     FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Unload, true);
-    return filamentUnload(&Pause::loop_unload_AskUnloaded);
-    // TODO specify behavior for FSensors_instance().HasMMU()
+    return invoke_loop(LoadType::ask_unloaded);
 }
 
 bool Pause::FilamentLoad(const pause::Settings &settings_) {
     settings = settings_;
     FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Load, true);
-    return filamentLoad(&Pause::loop_load);
+    return invoke_loop(LoadType::load);
 }
 
 bool Pause::FilamentPurge(const pause::Settings &settings_) {
     settings = settings_;
     FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Purge, false);
-    return filamentLoad(&Pause::loop_load_purge);
+    return invoke_loop(LoadType::load_purge);
 }
 
 bool Pause::FilamentLoadNotBlocking(const pause::Settings &settings_) {
     settings = settings_;
     // Check if filament is present in gears. In case it is, no parking is needed, just heat and finish loading. If we are unsure, parking is the safer option.
     FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Load, !FSensors_instance().has_filament_surely());
-    return filamentLoad(&Pause::loop_load_not_blocking);
+    return invoke_loop(LoadType::not_blocking);
 }
 
 bool Pause::FilamentAutoload(const pause::Settings &settings_) {
     settings = settings_;
     // Print/Toolhead should be already parked and if not it should not move in case user has head within it's area of movement
     FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Load, false);
-    return filamentLoad(&Pause::loop_autoload);
+    return invoke_loop(LoadType::autoload);
 }
 
 bool Pause::LoadToGear(const pause::Settings &settings_) {
     settings = settings_;
     FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Load, !FSensors_instance().has_filament_surely());
-    return filamentLoad(&Pause::loop_load_to_gear);
+    return invoke_loop(LoadType::load_to_gear);
 }
 
-/**
- * Unload filament from the hotend
- *
- * - Fail if the a safe temperature was not reached
- * - Show "wait for unload" placard
- * - Retract, pause, then unload filament
- * - Disable E stepper (on most machines)
- *
- * Returns 'true' if unload was completed, 'false' for abort
- */
-bool Pause::filamentUnload(loop_fn fn) {
-    set(LoadPhase::unload_init);
-    return invoke_loop(fn);
-}
-
-/**
- * Load filament into the hotend
- *
- * - Fail if the a safe temperature was not reached
- * - If pausing for confirmation, wait for a click or M108
- * - Show "wait for load" placard
- * - Load and purge filament
- * - Show "Purge more" / "Continue" menu
- * - Return when "Continue" is selected
- *
- * Returns 'true' if load was completed, 'false' for abort
- */
-bool Pause::filamentLoad(loop_fn fn) {
-    set(LoadPhase::load_init);
-    return invoke_loop(fn);
-}
-
-bool Pause::invoke_loop(loop_fn fn) {
+bool Pause::invoke_loop(LoadType load_type) {
 #if ENABLED(PID_EXTRUSION_SCALING)
     bool extrusionScalingEnabled = thermalManager.getExtrusionScalingEnabled();
     thermalManager.setExtrusionScalingEnabled(false);
 #endif // ENABLED(PID_EXTRUSION_SCALING)
+
+    set(get_start_phase(load_type));
 
     bool ret = true;
     while (!finished()) {
         ret = !process_stop();
         if (ret) {
             const Response response = getResponse();
-            std::invoke(fn, *this, response);
+            loop_load_common(response, load_type);
         } else {
             set(LoadPhase::_finish);
             continue;
@@ -1026,26 +992,6 @@ bool Pause::invoke_loop(loop_fn fn) {
 #endif // ENABLED(PID_EXTRUSION_SCALING)
 
     return ret;
-}
-
-void Pause::loop_unload(Response response) {
-    loop_load_common(response, LoadType::unload);
-}
-
-void Pause::loop_unload_AskUnloaded(Response response) {
-    loop_load_common(response, LoadType::ask_unloaded);
-}
-
-void Pause::loop_unloadFromGear([[maybe_unused]] Response response) {
-    loop_load_common(response, LoadType::unload_from_gears);
-}
-
-void Pause::loop_unload_change(Response response) {
-    loop_load_common(response, LoadType::filament_change);
-}
-
-void Pause::loop_unload_filament_stuck(Response response) {
-    loop_load_common(response, LoadType::filament_stuck);
 }
 
 /*****************************************************************************/
@@ -1306,7 +1252,7 @@ void Pause::FilamentChange(const pause::Settings &settings_, bool is_filament_st
     {
         FSM_HolderLoadUnload holder(*this, is_filament_stuck ? LoadUnloadMode::FilamentStuck : LoadUnloadMode::Change, true);
 
-        if (filamentUnload(is_filament_stuck ? &Pause::loop_unload_filament_stuck : &Pause::loop_unload_change)) {
+        if (invoke_loop(is_filament_stuck ? LoadType::filament_stuck : LoadType::filament_change)) {
             // Feed a little bit of filament to stabilize pressure in nozzle
 
             // Last poop after user clicked color - yes
