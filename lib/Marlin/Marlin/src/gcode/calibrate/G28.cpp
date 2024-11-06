@@ -670,6 +670,9 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
     // absolute refinement requires both axes to be already probed
     if (!failed && ( doX || ENABLED(CODEPENDENT_XY_HOMING)) && doY && precise) {
       failed = !refine_corexy_origin();
+      if (failed && !planner.draining()) {
+        homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); });
+      }
     }
   #endif
 
