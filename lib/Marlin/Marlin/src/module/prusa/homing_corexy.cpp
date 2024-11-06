@@ -13,8 +13,9 @@
     #include "feature/prusa/crash_recovery.hpp"
 #endif
 
-#include "bsod.h"
-#include "feature/phase_stepping/phase_stepping.hpp"
+#include <bsod.h>
+#include <scope_guard.hpp>
+#include <feature/phase_stepping/phase_stepping.hpp>
 
 // convert raw AB steps to XY mm
 void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm) {
@@ -190,11 +191,24 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
 
 /**
  * @brief Part of precise homing.
+ * @param axis Physical axis to measure
  * @param c_dist_a
  * @param c_dist_b
  * @return True on success
  */
 static bool measure_phase_cycles(AxisEnum axis, int32_t &c_dist_a, int32_t &c_dist_b) {
+    // increase current of the holding motor
+    AxisEnum other_axis = (axis == B_AXIS ? A_AXIS : B_AXIS);
+    auto &other_stepper = stepper_axis(other_axis);
+
+    int32_t orig_cur = other_stepper.rms_current();
+    float orig_hold = other_stepper.hold_multiplier();
+    other_stepper.rms_current(XY_HOMING_HOLDING_CURRENT, 1.);
+
+    ScopeGuard current_restorer([&]() {
+        other_stepper.rms_current(orig_cur, orig_hold);
+    });
+
     const int32_t measure_max_dist = (XY_HOMING_ORIGIN_OFFSET * 4) / planner.mm_per_step[axis];
     xy_long_t origin_steps = { stepper.position(A_AXIS), stepper.position(B_AXIS) };
     const int n = 2;
@@ -300,23 +314,10 @@ bool refine_corexy_origin() {
         bsod("phase alignment failed");
     }
 
-    // increase current of the holding motor
-    AxisEnum fixed_axis = (X_HOME_DIR == Y_HOME_DIR ? A_AXIS : B_AXIS);
-    AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
-    auto &fixed_stepper = stepper_axis(fixed_axis);
-
-    int32_t orig_cur = fixed_stepper.rms_current();
-    float orig_hold = fixed_stepper.hold_multiplier();
-    fixed_stepper.rms_current(XY_HOMING_HOLDING_CURRENT, 1.);
-
     // measure from current origin
     int32_t c_dist_a = 0, c_dist_b = 0;
-    bool ret = measure_phase_cycles(measured_axis, c_dist_a, c_dist_b);
-
-    // always restore current
-    fixed_stepper.rms_current(orig_cur, orig_hold);
-
-    if (!ret) {
+    AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
+    if (!measure_phase_cycles(measured_axis, c_dist_a, c_dist_b)) {
         return false;
     }
 
