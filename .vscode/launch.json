@@ -14,7 +14,7 @@
             ],
             "configFiles": [
                 "${workspaceRoot}/utils/debug/00_common.cfg",
-                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config_defaults.cfg",
                 "${workspaceRoot}/utils/debug/20_board_buddy.cfg",
                 "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
             ],
@@ -58,7 +58,7 @@
             ],
             "configFiles": [
                 "${workspaceRoot}/utils/debug/00_common.cfg",
-                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config_defaults.cfg",
                 "${workspaceRoot}/utils/debug/20_board_buddy.cfg",
                 "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
             ],
@@ -100,7 +100,7 @@
             ],
             "configFiles": [
                 "${workspaceRoot}/utils/debug/00_common.cfg",
-                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config_defaults.cfg",
                 "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
                 "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
             ],
@@ -142,7 +142,7 @@
             ],
             "configFiles": [
                 "${workspaceRoot}/utils/debug/00_common.cfg",
-                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config_defaults.cfg",
                 "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
                 "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
             ],
@@ -180,7 +180,7 @@
             ],
             "configFiles": [
                 "${workspaceRoot}/utils/debug/00_common.cfg",
-                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config_defaults.cfg",
                 "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
                 "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
             ],
@@ -206,7 +206,7 @@
             ],
             "configFiles": [
                 "${workspaceRoot}/utils/debug/00_common.cfg",
-                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config_defaults.cfg",
                 "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
                 "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
             ],
