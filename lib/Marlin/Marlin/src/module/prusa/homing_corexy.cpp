@@ -265,10 +265,7 @@ static measure_phase_cycles_ret measure_phase_cycles(AxisEnum axis, int32_t &c_d
     return { true, true }; // Success
 }
 
-/**
- * @brief Precise homing on core-XY.
- * @return true on success
- */
+// Refine home origin precisely on core-XY.
 bool refine_corexy_origin() {
     // finish previous moves and disable main endstop/crash recovery handling
     planner.synchronize();
