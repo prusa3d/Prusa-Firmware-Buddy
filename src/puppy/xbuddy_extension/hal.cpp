@@ -571,3 +571,11 @@ void hal::mmu::power_pin_set(bool b) {
 void hal::mmu::nreset_pin_set(bool b) {
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, b ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
+
+bool hal::mmu::power_pin_get() {
+    return HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_SET;
+}
+
+bool hal::mmu::nreset_pin_get() {
+    return HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET;
+}

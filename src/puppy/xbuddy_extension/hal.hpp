@@ -111,6 +111,17 @@ namespace mmu {
      * Control the nreset pin of the MMU.
      */
     void nreset_pin_set(bool);
+
+    /**
+     * Read the power pin of the MMU.
+     */
+    bool power_pin_get();
+
+    /**
+     * Read the nreset pin of the MMU.
+     */
+    bool nreset_pin_get();
+
 } // namespace mmu
 
 } // namespace hal
