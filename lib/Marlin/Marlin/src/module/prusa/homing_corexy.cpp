@@ -67,7 +67,7 @@ static void plan_corexy_raw_move(const xy_long_t &target_steps_ab, const feedRat
 }
 
 // TMC µsteps(phase) per Marlin µsteps
-static int16_t phase_per_ustep(const AxisEnum axis) {
+static constexpr int16_t phase_per_ustep(const AxisEnum axis) {
     // Originally, we read the microstep configuration from the driver; this no
     // longer make sense with 256 microsteps.
     // Thus, we use the printer defaults instead of stepper_axis(axis).microsteps();
@@ -77,7 +77,7 @@ static int16_t phase_per_ustep(const AxisEnum axis) {
 };
 
 // TMC full cycle µsteps per Marlin µsteps
-static int16_t phase_cycle_steps(const AxisEnum axis) {
+static constexpr int16_t phase_cycle_steps(const AxisEnum axis) {
     return 1024 / phase_per_ustep(axis);
 }
 
