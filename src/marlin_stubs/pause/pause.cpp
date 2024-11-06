@@ -927,7 +927,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
     }
 }
 
-bool Pause::ToolChange([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]] LoadType load_type,
+bool Pause::tool_change([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]] LoadType load_type,
     [[maybe_unused]] const pause::Settings &settings_) {
 #if HAS_TOOLCHANGER()
     if (target_extruder != active_extruder) {
@@ -949,46 +949,9 @@ bool Pause::ToolChange([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]
     return true;
 }
 
-bool Pause::UnloadFromGear(const pause::Settings &settings_) {
+bool Pause::perform(LoadType load_type, const pause::Settings &settings_) {
     settings = settings_;
-    return invoke_loop(LoadType::unload_from_gears);
-}
-
-bool Pause::FilamentUnload(const pause::Settings &settings_) {
-    settings = settings_;
-    return invoke_loop(LoadType::unload);
-}
-
-bool Pause::FilamentUnload_AskUnloaded(const pause::Settings &settings_) {
-    settings = settings_;
-    return invoke_loop(LoadType::ask_unloaded);
-}
-
-bool Pause::FilamentLoad(const pause::Settings &settings_) {
-    settings = settings_;
-    return invoke_loop(LoadType::load);
-}
-
-bool Pause::FilamentPurge(const pause::Settings &settings_) {
-    settings = settings_;
-    return invoke_loop(LoadType::load_purge);
-}
-
-bool Pause::FilamentLoadNotBlocking(const pause::Settings &settings_) {
-    settings = settings_;
-    // Check if filament is present in gears. In case it is, no parking is needed, just heat and finish loading. If we are unsure, parking is the safer option.
-    return invoke_loop(LoadType::not_blocking);
-}
-
-bool Pause::FilamentAutoload(const pause::Settings &settings_) {
-    settings = settings_;
-    // Print/Toolhead should be already parked and if not it should not move in case user has head within it's area of movement
-    return invoke_loop(LoadType::autoload);
-}
-
-bool Pause::LoadToGear(const pause::Settings &settings_) {
-    settings = settings_;
-    return invoke_loop(LoadType::load_to_gear);
+    return invoke_loop(load_type);
 }
 
 bool Pause::invoke_loop(LoadType load_type) {
@@ -1255,7 +1218,7 @@ void Pause::unpark_nozzle_and_notify() {
  * - Send host action for resume, if configured
  * - Resume the current SD print job, if any
  */
-void Pause::FilamentChange(const pause::Settings &settings_, bool is_filament_stuck) {
+void Pause::filament_change(const pause::Settings &settings_, bool is_filament_stuck) {
     settings = settings_;
     settings.can_stop = false;
     if (did_pause_print) {

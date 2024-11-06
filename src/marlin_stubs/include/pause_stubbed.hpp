@@ -138,10 +138,7 @@ public:
     static constexpr const float minimal_purge = 1;
     static Pause &Instance();
 
-    bool FilamentUnload(const pause::Settings &settings_);
-    bool FilamentUnload_AskUnloaded(const pause::Settings &settings_);
-    bool FilamentAutoload(const pause::Settings &settings_);
-    bool LoadToGear(const pause::Settings &settings_);
+    bool perform(LoadType load_type, const pause::Settings &settings);
 
     /**
      * @brief Change tool before load/unload.
@@ -150,13 +147,9 @@ public:
      * @param settings_ config for park and othe Pause stuff
      * @return true on success
      */
-    bool ToolChange(uint8_t target_extruder, LoadType load_type, const pause::Settings &settings_);
+    bool tool_change(uint8_t target_extruder, LoadType load_type, const pause::Settings &settings_);
 
-    bool UnloadFromGear(const pause::Settings &settings_);
-    bool FilamentLoad(const pause::Settings &settings_);
-    bool FilamentPurge(const pause::Settings &settings_);
-    bool FilamentLoadNotBlocking(const pause::Settings &settings_);
-    void FilamentChange(const pause::Settings &settings_, bool is_filament_stuck);
+    void filament_change(const pause::Settings &settings_, bool is_filament_stuck);
 
     void finalize_user_stop();
 

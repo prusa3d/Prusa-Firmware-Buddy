@@ -274,7 +274,7 @@ void M600_execute(xyz_pos_t park_point, uint8_t target_extruder, xyze_float_t re
 
     filament::set_type_to_load(config_store().get_filament_type(target_extruder));
     filament::set_color_to_load(filament_colour);
-    Pause::Instance().FilamentChange(settings, is_filament_stuck);
+    Pause::Instance().filament_change(settings, is_filament_stuck);
 
     marlin_server::nozzle_timeout_on();
     if (disp_temp > targ_temp) {
