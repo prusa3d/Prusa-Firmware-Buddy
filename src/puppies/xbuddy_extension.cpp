@@ -65,6 +65,24 @@ void XBuddyExtension::set_usb_power(bool enabled) {
     }
 }
 
+void XBuddyExtension::set_mmu_power(bool enabled) {
+    Lock lock(mutex);
+
+    if (enabled != requirement.value.mmu_power_enable) {
+        requirement.value.mmu_power_enable = enabled;
+        requirement.dirty = true;
+    }
+}
+
+void XBuddyExtension::set_mmu_nreset(bool enabled) {
+    Lock lock(mutex);
+
+    if (enabled != requirement.value.mmu_nreset) {
+        requirement.value.mmu_nreset = enabled;
+        requirement.dirty = true;
+    }
+}
+
 std::optional<uint16_t> XBuddyExtension::get_fan_rpm(size_t fan_idx) {
     Lock lock(mutex);
 

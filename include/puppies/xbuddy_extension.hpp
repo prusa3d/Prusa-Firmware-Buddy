@@ -16,6 +16,8 @@ public:
     void set_white_led(uint8_t intensity);
     void set_rgbw_led(std::array<uint8_t, 4> rgbw);
     void set_usb_power(bool enabled);
+    void set_mmu_power(bool enabled);
+    void set_mmu_nreset(bool enabled);
     std::optional<uint16_t> get_fan_rpm(size_t fan_idx);
     std::optional<float> get_chamber_temp();
 
@@ -132,8 +134,14 @@ private:
         uint16_t white_led = 0;
         // Split into components, each 0-255, for convenience.
         std::array<uint16_t, 4> rgbw_led = { 0, 0, 0, 0 };
+
         // technicaly a boolean - enables power for usb port
         uint16_t usb_power_enable = true;
+
+        // technicaly a boolean - enables power for the MMU port
+        uint16_t mmu_power_enable = true;
+        // technicaly a boolean - sets the MMU port non-reset pin
+        uint16_t mmu_nreset = true;
     };
     ModbusHoldingRegisterBlock<0x9000, Requiremnt> requirement;
 
@@ -141,6 +149,8 @@ private:
         uint16_t fan_rpm[FAN_CNT] = { 0, 0, 0 };
         // In degrees * 10 (eg. 23.5°C = 235 in the register)
         uint16_t chamber_temp = 0;
+        uint16_t mmu_power_enable = true;
+        uint16_t mmu_nreset = true;
     };
     ModbusInputRegisterBlock<0x8000, Status> status;
 

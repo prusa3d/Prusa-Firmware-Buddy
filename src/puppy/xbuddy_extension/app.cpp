@@ -30,6 +30,12 @@ public:
             // Note: Mainboard expects this in decidegree Celsius.
             out = 10 * temperature::raw_to_celsius(hal::temperature::get_raw());
             return Status::Ok;
+        case 0x8004: // MMU power
+            out = hal::mmu::power_pin_get();
+            return Status::Ok;
+        case 0x8005: // MMU non-reset (inverted logic)
+            out = hal::mmu::nreset_pin_get();
+            return Status::Ok;
         }
         return Status::IllegalAddress;
     }
@@ -62,6 +68,12 @@ public:
             return Status::Ok;
         case 0x9008:
             hal::usb::power_pin_set(static_cast<bool>(value));
+            return Status::Ok;
+        case 0x9009: // MMU power register - controls the power pin of the MMU connector (1 = powered, 0 = not powered)
+            hal::mmu::power_pin_set(static_cast<bool>(value));
+            return Status::Ok;
+        case 0x900a: // MMU non-reset - controls the reset pin of the MMU connector (1 = running, 0 = holding the reset of the MMU)
+            hal::mmu::nreset_pin_set(static_cast<bool>(value));
             return Status::Ok;
         }
         return Status::IllegalAddress;

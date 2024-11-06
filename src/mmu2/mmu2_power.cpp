@@ -4,6 +4,11 @@
 #include <option/has_mmu2.h>
 #include <option/has_mmu2_over_uart.h>
 
+#if not HAS_MMU2_OVER_UART()
+    #include <puppies/xbuddy_extension.hpp>
+    #include <freertos/timing.hpp>
+#endif
+
 #if HAS_MMU2()
 
     #include "inttypes.h"
@@ -86,18 +91,18 @@ void reset() {
 
     #else
 void power_on() {
-    // @@TODO do nothing for now, keep the ext board powered!
-    // Later, we'll write to some modbus power register which will trigger the MMU on the extboard
+    buddy::puppies::xbuddy_extension.set_mmu_power(true);
 }
 
 void power_off() {
-    // @@TODO do nothing for now, keep the ext board powered!
-    // Later, we'll write to some modbus power register which will trigger the MMU on the extboard
+    buddy::puppies::xbuddy_extension.set_mmu_power(false);
 }
 
 void reset() {
-    // @@TODO do nothing for now, keep the ext board powered!
-    // Later, we'll write to some modbus power register which will trigger the MMU on the extboard
+    buddy::puppies::xbuddy_extension.set_mmu_nreset(false);
+    freertos::delay(5);
+    buddy::puppies::xbuddy_extension.set_mmu_nreset(true);
+    freertos::delay(5);
 }
 
     #endif
