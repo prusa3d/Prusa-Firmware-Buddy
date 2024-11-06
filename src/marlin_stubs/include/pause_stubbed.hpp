@@ -25,40 +25,38 @@ void unhomed_z_lift(float amount_mm);
 
 class PausePrivatePhase : public IPause {
 protected:
-    enum class LoadPhase {
+    enum class LoadState {
         _finish = INT_MAX,
         unload_init = 0,
-        filament_stuck_wait_user,
+        filament_stuck_ask,
         ram_sequence,
         unload,
-        unloaded__ask,
+        unloaded_ask,
         manual_unload,
         filament_not_in_fs,
-        unload_from_gear,
-        run_mmu_eject,
+        unload_from_gears,
         load_init,
-        check_filament_sensor_and_user_push__ask, // must be one phase because of button click
+        filament_push_ask, // must be one phase because of button click
 #if HAS_SIDE_FSENSOR()
         await_filament,
-        assist_filament_insertion,
+        assist_insertion,
 #endif
-        load_in_gear,
+        load_to_gears,
         move_to_purge,
         wait_temp,
         error_temp,
         long_load,
         purge,
-        ask_is_color_correct,
+        color_correct_ask,
         eject,
-        unloaded_ask,
-        ask_mmu_load_filament,
-        mmu_load_filament,
-        _last = mmu_load_filament,
+        mmu_load_ask,
+        mmu_load,
+        _last = mmu_load,
     };
 
 private:
     PhasesLoadUnload phase; // needed for CanSafetyTimerExpire
-    LoadPhase load_unload_shared_phase; // shared variable for UnloadPhases_t and LoadPhases_t
+    LoadState state;
     std::optional<LoadUnloadMode> load_unload_mode = std::nullopt;
 
     float nozzle_restore_temp[HOTENDS];
@@ -74,16 +72,16 @@ protected:
     // cannot guarante that SafetyTimer will happen first, so have to do it on both places
     Response getResponse();
 
-    LoadPhase getLoadPhase() {
-        return load_unload_shared_phase;
+    LoadState get_state() {
+        return state;
     }
 
-    void set(LoadPhase phase) {
-        load_unload_shared_phase = phase;
+    void set(LoadState s) {
+        state = s;
     }
 
     // use only when necessary
-    bool finished() { return load_unload_shared_phase == LoadPhase::_finish; }
+    bool finished() { return state == LoadState::_finish; }
 
     void clrRestoreTemp();
 
@@ -125,11 +123,11 @@ public:
     enum class LoadType : uint8_t {
         load,
         autoload,
-        load_to_gear,
-        not_blocking,
+        load_to_gears,
+        non_blocking_load,
         load_purge,
         unload,
-        ask_unloaded,
+        unload_confirm,
         unload_from_gears,
         filament_change,
         filament_stuck,
@@ -169,7 +167,7 @@ private:
 
     RammingType get_ramming_type();
     bool is_unstoppable();
-    LoadPhase get_start_phase();
+    LoadState get_start_state();
     LoadUnloadMode get_load_unload_mode();
     bool should_park();
 
@@ -206,7 +204,7 @@ private:
     bool check_user_stop(); //< stops motion and fsm and returns true it user triggered stop
     bool wait_for_motion_finish_or_user_stop(); //< waits until motion is finished; if stop is triggered then returns true
     bool process_stop();
-    void handle_filament_removal(LoadPhase phase_to_set); //<checks if filament is present if not it sets different phase
+    void handle_filament_removal(LoadState state_to_set); //<checks if filament is present if not it sets a different state
 
     void ram_filament(const RammingType sequence);
     void unload_filament(const RammingType sequence);
