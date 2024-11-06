@@ -150,7 +150,7 @@ public:
      * @param settings_ config for park and othe Pause stuff
      * @return true on success
      */
-    bool ToolChange(uint8_t target_extruder, LoadUnloadMode mode, const pause::Settings &settings_);
+    bool ToolChange(uint8_t target_extruder, LoadType load_type, const pause::Settings &settings_);
 
     bool UnloadFromGear(); // does not need config
     bool FilamentLoad(const pause::Settings &settings_);
@@ -175,6 +175,8 @@ private:
     static RammingType get_ramming_type(LoadType load_type);
     static bool is_unstoppable(LoadType load_type);
     static LoadPhase get_start_phase(LoadType load_type);
+    static LoadUnloadMode get_load_unload_mode(LoadType load_type);
+    static bool should_park(LoadType load_type);
 
     void loop_load_common(Response response, LoadType load_type);
 
@@ -224,7 +226,7 @@ private:
         void unbindFromSafetyTimer();
         static bool active; // we currently support only 1 instance
     public:
-        FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode, bool park);
+        FSM_HolderLoadUnload(Pause &p, LoadType mode);
         ~FSM_HolderLoadUnload();
         friend class Pause;
     };

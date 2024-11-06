@@ -102,7 +102,7 @@ void filament_gcodes::M701_no_parser(FilamentType filament_to_be_loaded, const s
     xyze_pos_t current_position_tmp = current_position;
 
     // Pick the right tool
-    if (!Pause::Instance().ToolChange(target_extruder, LoadUnloadMode::Load, settings)) {
+    if (!Pause::Instance().ToolChange(target_extruder, Pause::LoadType::load, settings)) {
         return;
     }
 
@@ -154,7 +154,7 @@ void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z
     xyze_pos_t current_position_tmp = current_position;
 
     // Pick the right tool
-    if (!Pause::Instance().ToolChange(target_extruder, LoadUnloadMode::Unload, settings)) {
+    if (!Pause::Instance().ToolChange(target_extruder, Pause::LoadType::unload, settings)) {
         return;
     }
 
@@ -305,7 +305,7 @@ void filament_gcodes::M1600_no_parser(FilamentType filament_to_be_loaded, uint8_
     settings.SetRetractLength(0.f);
 
     // Pick the right tool
-    if (!Pause::Instance().ToolChange(target_extruder, LoadUnloadMode::Unload, settings)) {
+    if (!Pause::Instance().ToolChange(target_extruder, Pause::LoadType::unload, settings)) {
         return;
     }
 
