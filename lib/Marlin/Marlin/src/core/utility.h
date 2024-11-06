@@ -92,3 +92,10 @@ const xyze_char_t axis_codes LOGICAL_AXIS_ARRAY('E', 'X', 'Y', 'Z', AXIS4_NAME, 
   #define AXIS_CHAR(A) axis_codes[A]
   #define IAXIS_CHAR(A) iaxis_codes[A]
 #endif
+
+// Physical axis names
+#ifdef COREXY
+  const xyze_char_t physical_axis_codes LOGICAL_AXIS_ARRAY('E', 'A', 'B', 'Z', AXIS4_NAME, AXIS5_NAME, AXIS6_NAME, AXIS7_NAME, AXIS8_NAME, AXIS9_NAME);
+#else
+  const xyze_char_t physical_axis_codes = axis_codes;
+#endif
