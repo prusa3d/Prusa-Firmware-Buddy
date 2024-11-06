@@ -649,19 +649,21 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
   }
   #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
 
+  bool can_calibrate = !parser.seen('D');
+
   // Home Y (before X)
   if (ENABLED(HOME_Y_BEFORE_X) && !failed && (doY || TERN0(CODEPENDENT_XY_HOMING, doX))) {
-    failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y OPTARG(PRECISE_HOMING, !parser.seen('D')));
+    failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y, can_calibrate);
   }
 
   // Home X
   if (!failed && (doX || (doY && ENABLED(CODEPENDENT_XY_HOMING) && DISABLED(HOME_Y_BEFORE_X)))) {
-    failed = !homeaxis(X_AXIS, fr_mm_s, false, reenable_wt_X OPTARG(PRECISE_HOMING, !parser.seen('D')));
+    failed = !homeaxis(X_AXIS, fr_mm_s, false, reenable_wt_X, can_calibrate);
   }
 
   // Home Y (after X)
   if (DISABLED(HOME_Y_BEFORE_X) && !failed && doY) {
-    failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y  OPTARG(PRECISE_HOMING, !parser.seen('D')));
+    failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y, can_calibrate);
   }
 
   #if ENABLED(PRECISE_HOMING_COREXY)

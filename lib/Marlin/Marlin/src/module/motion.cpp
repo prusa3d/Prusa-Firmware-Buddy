@@ -1805,7 +1805,8 @@ void homing_failed(std::function<void()> fallback_error, [[maybe_unused]] bool c
  * @param homing_z_with_probe default true, set to false to home without using probe (useful to calibrate Z on XL)
  * @return true on success
  */
-bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_dir, void (*enable_wavetable)(AxisEnum), [[maybe_unused]] bool can_calibrate, bool homing_z_with_probe) {
+bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_dir,
+  void (*enable_wavetable)(AxisEnum), [[maybe_unused]] bool can_calibrate, bool homing_z_with_probe) {
 
   // clear the axis state while running
   CBI(axis_known_position, axis);
