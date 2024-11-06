@@ -90,6 +90,7 @@ public:
     /// because protocol_logic doesn't issue any other request until this one has been processed
     const MMUModbusRequest &mmu_modbus_rq() const { return mmuModbusRq; }
 
+    static constexpr uint8_t mmuButtonRegisterAddress = 252; // shall be extracted elsewhere because the ext board must use it as well
     static constexpr uint8_t mmuCommandInProgressRegisterAddress = 253; // shall be extracted elsewhere because the ext board must use it as well
     static constexpr uint8_t mmuCommandStatusRegisterAddress = 254; // shall be extracted elsewhere because the ext board must use it as well
     static constexpr uint8_t mmuCommandProgressOrErrorCodeRegisterAddress = 255; // shall be extracted elsewhere because the ext board must use it as well

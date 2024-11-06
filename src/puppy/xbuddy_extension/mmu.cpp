@@ -82,6 +82,9 @@ modbus::Callbacks::Status MMU::write_register(uint8_t, uint16_t address, uint16_
     case 32:
     case 34:
         return Status::Ok;
+    case 252: { // button register
+        return Status : Ok;
+    }
     }
     return Status::IllegalAddress;
 }
@@ -217,6 +220,16 @@ modbus::Callbacks::Status MMU::write_register(uint8_t, uint16_t address, uint16_
         return WaitForMMUResponse([&]() { ; });
     }
 
+    // virtual button register - for now write-only
+    case 252: {
+        RequestMsg rq(RequestMsgCodes::Button, value);
+        uint8_t size = protocol.EncodeRequest(rq, txbuff);
+        uart.write(txbuff, size);
+        RecordUARTActivity();
+        // blocking wait for response
+        return WaitForMMUResponse([&]() { ; }); // response is not important, only needs to be valid
+        break;
+    }
     // virtual registers ... actually only 253 is RW for now
     case 253: {
         // issue a command

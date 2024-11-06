@@ -127,11 +127,10 @@ void ProtocolLogic::SendAndUpdateFilamentSensor() {
 void ProtocolLogic::SendButton(uint8_t btn) {
 #if HAS_MMU2_OVER_UART()
     SendMsg(RequestMsg(RequestMsgCodes::Button, btn));
-#else
-    // @@TODO MODBUS
-    RecordUARTActivity();
-#endif
     scopeState = ScopeState::ButtonSent;
+#else
+    SendWriteRegister(buddy::puppies::XBuddyExtension::mmuButtonRegisterAddress, btn, ScopeState::ButtonSent);
+#endif
 }
 
 void ProtocolLogic::SendVersion(uint8_t stage) {
