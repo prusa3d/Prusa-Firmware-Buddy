@@ -152,7 +152,7 @@ public:
      */
     bool ToolChange(uint8_t target_extruder, LoadType load_type, const pause::Settings &settings_);
 
-    bool UnloadFromGear(); // does not need config
+    bool UnloadFromGear(const pause::Settings &settings_);
     bool FilamentLoad(const pause::Settings &settings_);
     bool FilamentPurge(const pause::Settings &settings_);
     bool FilamentLoadNotBlocking(const pause::Settings &settings_);

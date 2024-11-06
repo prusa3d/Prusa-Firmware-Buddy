@@ -235,7 +235,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         // catch filament in gear and then ask for temp
         if (!Pause::Instance().LoadToGear(settings) || FSensors_instance().no_filament_surely()) {
             // do not ask for filament type after stop was pressed or filament was removed from FS
-            Pause::Instance().UnloadFromGear();
+            Pause::Instance().UnloadFromGear(settings);
             M70X_process_user_response(PreheatStatus::Result::DoneNoFilament, target_extruder);
             FSensors_instance().ClrAutoloadSent();
             return;
@@ -247,7 +247,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
 
             if (preheat_ret.first) {
                 // canceled
-                Pause::Instance().UnloadFromGear();
+                Pause::Instance().UnloadFromGear(settings);
                 M70X_process_user_response(PreheatStatus::Result::DoneNoFilament, target_extruder);
                 FSensors_instance().ClrAutoloadSent();
                 return;

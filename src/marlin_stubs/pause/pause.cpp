@@ -949,7 +949,8 @@ bool Pause::ToolChange([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]
     return true;
 }
 
-bool Pause::UnloadFromGear() {
+bool Pause::UnloadFromGear(const pause::Settings &settings_) {
+    settings = settings_;
     return invoke_loop(LoadType::unload_from_gears);
 }
 
