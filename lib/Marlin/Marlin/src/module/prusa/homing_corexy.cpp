@@ -212,16 +212,17 @@ static bool measure_phase_cycles(AxisEnum axis, int32_t &c_dist_a, int32_t &c_di
     const int32_t measure_max_dist = (XY_HOMING_ORIGIN_OFFSET * 4) / planner.mm_per_step[axis];
     xy_long_t origin_steps = { stepper.position(A_AXIS), stepper.position(B_AXIS) };
     const int n = 2;
-    xy_long_t m_steps[n] = { -1, -1 };
-    xy_pos_t m_dist[n] = { -1.f, -1.f };
+    xy_long_t m_steps[n];
+    xy_pos_t m_dist[n] = { -XY_HOMING_ORIGIN_BUMPS_MAX_ERR, -XY_HOMING_ORIGIN_BUMPS_MAX_ERR };
+
     uint8_t retry;
     for (retry = 0; retry != XY_HOMING_ORIGIN_MAX_RETRIES; ++retry) {
-        uint8_t slot = retry % n;
-        uint8_t slot2 = (retry - 1) % n;
+        uint8_t slot0 = retry % n;
+        uint8_t slot1 = (retry + 1) % n;
 
         // measure distance B+/B-
-        if (!measure_axis_distance(axis, origin_steps, measure_max_dist, m_steps[slot].b, m_dist[slot].b)
-            || !measure_axis_distance(axis, origin_steps, -measure_max_dist, m_steps[slot].a, m_dist[slot].a)) {
+        if (!measure_axis_distance(axis, origin_steps, measure_max_dist, m_steps[slot1][1], m_dist[slot1][1])
+            || !measure_axis_distance(axis, origin_steps, -measure_max_dist, m_steps[slot1][0], m_dist[slot1][0])) {
             if (!planner.draining()) {
                 ui.status_printf_P(0, "Endstop not reached");
             }
@@ -229,11 +230,11 @@ static bool measure_phase_cycles(AxisEnum axis, int32_t &c_dist_a, int32_t &c_di
         }
 
         // keep signs positive
-        m_steps[slot].a = -m_steps[slot].a;
-        m_dist[slot].a = -m_dist[slot].a;
+        m_steps[slot1][0] = -m_steps[slot1][0];
+        m_dist[slot1][0] = -m_dist[slot1][0];
 
-        if (ABS(m_dist[slot].a - m_dist[slot2].a) < XY_HOMING_ORIGIN_BUMPS_MAX_ERR
-            && ABS(m_dist[slot].b - m_dist[slot2].b) < XY_HOMING_ORIGIN_BUMPS_MAX_ERR) {
+        if (ABS(m_dist[slot0][0] - m_dist[slot1][0]) < XY_HOMING_ORIGIN_BUMPS_MAX_ERR
+            && ABS(m_dist[slot0][1] - m_dist[slot1][1]) < XY_HOMING_ORIGIN_BUMPS_MAX_ERR) {
             break;
         }
     }
