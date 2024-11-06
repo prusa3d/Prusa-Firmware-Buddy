@@ -1615,7 +1615,7 @@
 
     // Specify a park position as { X, Y, Z }
     // Park at the back of XL
-    #define X_NOZZLE_PARK_POINT (X_MAX_POS - 10)
+    #define X_NOZZLE_PARK_POINT (X_MIN_POS + 10)
     #define Y_NOZZLE_PARK_POINT (Y_MAX_POS - 110)
     #define Z_NOZZLE_PARK_POINT 20
     #define XYZ_NOZZLE_PARK_POINT \
