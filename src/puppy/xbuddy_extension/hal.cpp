@@ -263,7 +263,12 @@ static void tim2_init() {
     // enable output of channels
     TIM2->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;
 
+    // 6 MHz clock (30 MHz peripheral clock, *2 to timer, /10 prescaler)
+    TIM2->PSC = 10;
+
     // auto-reload value
+    // 6 MHz / 255 gives ~25 kHz for PWM which is super good enough.
+    // It also simplifies set_pwm() functions a lot.
     TIM2->ARR = 255;
 
     // enable counter
@@ -288,7 +293,12 @@ static void tim3_init() {
     // enable output of channels
     TIM3->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E;
 
+    // 6 MHz clock (30 MHz peripheral clock, *2 to timer, /10 prescaler)
+    TIM3->PSC = 10;
+
     // auto-reload value
+    // 6 MHz / 255 gives ~25 kHz for PWM which is super good enough.
+    // It also simplifies set_pwm() functions a lot.
     TIM3->ARR = 255;
 
     // enable counter
