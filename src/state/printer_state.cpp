@@ -535,6 +535,10 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
     case WarningType::FilamentLoadingTimeout:
         return ErrCode::CONNECT_FILAMENT_LOADING_TIMEOUT;
 #endif
+#if HAS_EMERGENCY_STOP()
+    case WarningType::DoorOpen:
+        return ErrCode::ERR_MECHANICAL_DOOR_OPEN;
+#endif
     }
 
     assert(false);

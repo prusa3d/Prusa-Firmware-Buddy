@@ -483,6 +483,9 @@ namespace {
 #if ENABLED(DETECT_PRINT_SHEET)
         case PhasesWarning::SteelSheetNotDetected:
 #endif
+#if HAS_EMERGENCY_STOP()
+        case PhasesWarning::DoorOpen: // No buttons present
+#endif
             // This should be unreachable
             std::terminate();
         }
@@ -1138,6 +1141,12 @@ void print_start(const char *filename, const GCodeReaderPosition &resume_pos, ma
 
     set_media_position(resume_pos.offset);
     print_state.media_restore_info = resume_pos.restore_info;
+
+#if HAS_EMERGENCY_STOP()
+    // Wait for door closed
+    inject(GCodeLiteral("M9202"));
+#endif
+
     media_prefetch_start();
 
     server.print_state = State::WaitGui;
@@ -1506,6 +1515,10 @@ void update_sfn() {
 void print_resume(void) {
     if (server.print_state == State::Paused) {
         update_sfn();
+
+#if HAS_EMERGENCY_STOP()
+        inject(GCodeLiteral("M9202"));
+#endif
 
         server.print_state = State::Resuming_Begin;
 
@@ -2645,6 +2658,11 @@ void resuming_begin(void) {
 #endif
         server.print_state = State::Resuming_Reheating;
     }
+
+#if HAS_EMERGENCY_STOP()
+    // Wait for door closed
+    inject(GCodeLiteral("M9202"));
+#endif
 
     if (!server.print_is_serial) {
         media_prefetch_start();

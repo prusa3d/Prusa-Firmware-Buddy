@@ -25,6 +25,7 @@
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_nfc.h>
 #include <option/has_belt_tuning.h>
+#include <option/has_emergency_stop.h>
 #include <common/hotend_type.hpp>
 
 /// number of bits used to encode response
@@ -401,6 +402,9 @@ enum class PhasesWarning : PhaseUnderlyingType {
     SteelSheetNotDetected,
 #endif
 
+#if HAS_EMERGENCY_STOP()
+    DoorOpen,
+#endif
     NozzleCleaningFailed,
     _last = NozzleCleaningFailed,
 };
@@ -794,6 +798,9 @@ class ClientResponses {
             { PhasesWarning::MetricsConfigChangePrompt, { Response::Yes, Response::No } },
 #if ENABLED(DETECT_PRINT_SHEET)
             { PhasesWarning::SteelSheetNotDetected, { Response::Retry, Response::Ignore } },
+#endif
+#if HAS_EMERGENCY_STOP()
+            { PhasesWarning::DoorOpen, {} },
 #endif
             { PhasesWarning::NozzleCleaningFailed, { Response::Retry, Response::Abort } },
     };

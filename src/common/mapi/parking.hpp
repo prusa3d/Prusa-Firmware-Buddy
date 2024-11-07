@@ -20,6 +20,7 @@ enum class ParkPosition : uint8_t {
     park,
     purge,
     load,
+    emergency_stop,
     _cnt,
 };
 
@@ -31,6 +32,7 @@ static constexpr EnumArray<ParkPosition, xyz_pos_t, ParkPosition::_cnt> park_pos
         { ParkPosition::purge, xyz_pos_t({ X_AXIS_LOAD_POS, Y_AXIS_LOAD_POS, Z_NOZZLE_PARK_POINT }) },
 #endif
         { ParkPosition::load, xyz_pos_t({ X_AXIS_LOAD_POS, Y_AXIS_LOAD_POS, Z_NOZZLE_PARK_POINT }) },
+        { ParkPosition::emergency_stop, xyz_pos_t({ X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, 0.5 }) },
 };
 
 void park_move_with_conditional_home(const xyz_pos_t &park_position, ZAction z_action);

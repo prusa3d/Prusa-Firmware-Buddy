@@ -10,6 +10,7 @@
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_belt_tuning.h>
 #include <option/has_side_fsensor.h>
+#include <option/has_emergency_stop.h>
 
 #include <inc/MarlinConfigPre.h>
 #include <device/board.h>
@@ -132,8 +133,11 @@ enum class WarningType : uint32_t {
     GcodeCorruption,
     GcodeCropped,
     MetricsConfigChangePrompt,
+    #if HAS_EMERGENCY_STOP()
+    DoorOpen,
+    #endif
     AccelerometerCommunicationFailed,
-    _last = AccelerometerCommunicationFailed
+    _last = AccelerometerCommunicationFailed,
 };
 
 using message_cb_t = void (*)(char *);

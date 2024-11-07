@@ -92,6 +92,14 @@ Errors:
     id: "STEEL_SHEET_NOT_DETECTED"
     approved: false
 
+  - code: "XX110"
+    printers: [CUBE]
+    title: "DOOR OPEN"
+    text: "Close the door to prevent air drafts, burns and other undesirable effects."
+    action: []
+    id: "DOOR_OPEN"
+    approved: false
+
   # TEMPERATURE    xx2xx
 
   - code: "XX201"

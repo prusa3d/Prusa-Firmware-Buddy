@@ -2,6 +2,7 @@
 #include <config_store/store_c_api.h>
 #include <common/power_panic.hpp>
 #include <module/stepper.h>
+#include <marlin_server.hpp>
 
 namespace buddy {
 
@@ -32,6 +33,15 @@ namespace {
         }
     }
 
+    void emergency_start() {
+        // TODO: Do we need to "unpark"? Or does that happen automatically?
+        if (!marlin_server::printer_idle()) {
+            if (!marlin_server::inject(GCodeLiteral("G27 W3\nM9202"))) {
+                invoke_emergency();
+            }
+        }
+    }
+
 } // namespace
 
 void EmergencyStop::step() {
@@ -52,6 +62,7 @@ void EmergencyStop::step() {
             }
         } else {
             start_z = current_z();
+            emergency_start();
         }
     } else {
         start_z.reset();

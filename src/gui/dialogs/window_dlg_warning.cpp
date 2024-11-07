@@ -92,6 +92,9 @@ const img::Resource *warning_dialog_icon(WarningType warning_type) {
             { WarningType::GcodeCorruption, &img::warning_48x48 },
             { WarningType::GcodeCropped, &img::warning_48x48 },
             { WarningType::MetricsConfigChangePrompt, &img::warning_48x48 },
+#if HAS_EMERGENCY_STOP()
+            { WarningType::DoorOpen, &img::warning_48x48 },
+#endif
             { WarningType::AccelerometerCommunicationFailed, &img::warning_48x48 },
     };
     return data[warning_type];
