@@ -428,10 +428,34 @@ public:
    * @brief Home.
    * @param * see GcodeSuite::G28() for details
    * @return true on success
+   * @deprecated Use the alternate overload with G28Flags instead of calling this function!
    */
   static bool G28_no_parser(bool only_if_needed = false, float z_raise = NAN, bool S = false, bool X = false, bool Y = false, bool Z = false
     , bool no_change = false OPTARG(PRECISE_HOMING_COREXY, bool precise = true) OPTARG(DETECT_PRINT_SHEET, bool check_sheet = false));
-  
+
+  struct G28Flags {
+      bool only_if_needed = false;
+      float z_raise = NAN;
+      bool no_change = false;
+      bool can_calibrate = true;
+      #if ENABLED(MARLIN_DEV_MODE)
+        bool simulate = false;
+      #endif
+      #if ENABLED(PRECISE_HOMING_COREXY)
+        bool precise = true;
+      #endif
+      #if ENABLED(DETECT_PRINT_SHEET)
+        bool check_sheet = false;
+      #endif
+  };
+
+  /**
+   * @brief Home.
+   * @param flags @see G28Flags
+   * @return true on success
+   */
+  static bool G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags);
+
   static void T(const uint8_t tool_index);
 
 private:

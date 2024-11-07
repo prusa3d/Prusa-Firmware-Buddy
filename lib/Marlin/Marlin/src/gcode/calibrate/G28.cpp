@@ -312,6 +312,7 @@ static void reenable_wavetable(AxisEnum axis)
  * - `P` - Do not check print sheet presence
  * - `R` - <linear> Raise by n mm/inches before homing
  * - `S` - Simulated homing only in `MARLIN_DEV_MODE`
+ * - `D` - Disallow homing self-calibration
  */
 void GcodeSuite::G28() {
 #if ENABLED(NOZZLE_LOAD_CELL)
@@ -320,32 +321,50 @@ void GcodeSuite::G28() {
 
   marlin_server::FSM_Holder fsm_holder(PhaseWait::homing);
 
-  bool S = false;
-  #if ENABLED(MARLIN_DEV_MODE)
-    S = parser.seen('S')
-  #endif
-
-  bool O = parser.boolval('O');
-  #if ENABLED(DETECT_PRINT_SHEET)
-    bool check_sheet = !parser.boolval('P');
-  #endif
   bool X = parser.seen('X');
   bool Y = parser.seen('Y');
   bool Z = parser.seen('Z');
-  bool no_change = parser.seen('N'); // no-change mode (do not change any motion setting such as feedrate)
-  #if ENABLED(PRECISE_HOMING_COREXY)
-    bool precise = !parser.seen('I'); // imprecise: do not perform precise refinement
+
+  G28Flags flags;
+  flags.only_if_needed = parser.boolval('O');
+  flags.z_raise = parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT;
+  flags.no_change = parser.seen('N');
+  flags.can_calibrate = !parser.seen('D');
+  #if ENABLED(MARLIN_DEV_MODE)
+    flags.simulate = parser.seen('S')
   #endif
-  float R = parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT;
+  #if ENABLED(DETECT_PRINT_SHEET)
+    flags.check_sheet = !parser.boolval('P');
+  #endif
+  #if ENABLED(PRECISE_HOMING_COREXY)
+    flags.precise = !parser.seen('I'); // imprecise: do not perform precise refinement
+  #endif
 
-  G28_no_parser(O, R, S, X, Y, Z, no_change OPTARG(PRECISE_HOMING_COREXY, precise) OPTARG(DETECT_PRINT_SHEET, check_sheet));
+  G28_no_parser(X, Y, Z, flags);
 }
-
 /** @}*/
 
 bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate_homing, bool X, bool Y, bool Z
   , bool no_change OPTARG(PRECISE_HOMING_COREXY, bool precise) OPTARG(DETECT_PRINT_SHEET, bool check_sheet)) {
 
+  G28Flags flags;
+  flags.only_if_needed = only_if_needed;
+  flags.z_raise = z_raise;
+  flags.no_change = no_change;
+  #if ENABLED(MARLIN_DEV_MODE)
+    flags.simulate = simulate;
+  #endif
+  #if ENABLED(PRECISE_HOMING_COREXY)
+    flags.precise = precise;
+  #endif
+  #if ENABLED(DETECT_PRINT_SHEET)
+    flags.check_sheet = check_sheet;
+  #endif
+
+  return G28_no_parser(X, Y, Z, flags);
+}
+
+bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
   HomingReporter reporter;
 
   DEBUG_SECTION(log_G28, "G28", DEBUGGING(LEVELING));
@@ -381,7 +400,7 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
     SBI(required_axis_bits, Y_AXIS);
     SBI(required_axis_bits, Z_AXIS);
   }
-  if (!axes_should_home(required_axis_bits) && only_if_needed) {
+  if (!axes_should_home(required_axis_bits) && flags.only_if_needed) {
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("> homing not needed, skip");
     return true;
   }
@@ -433,7 +452,7 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
     };
     #if HAS_CURRENT_HOME(X)
       const int16_t tmc_save_current_X = stepperX.getMilliamps();
-      if(!no_change) {
+      if(!flags.no_change) {
         stepperX.rms_current(X_CURRENT_HOME);
         if (DEBUGGING(LEVELING)) debug_current(F(STR_X), tmc_save_current_X, X_CURRENT_HOME);
       }
@@ -447,7 +466,7 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
     #endif
     #if HAS_CURRENT_HOME(Y)
       const int16_t tmc_save_current_Y = stepperY.getMilliamps();
-      if(!no_change) {
+      if(!flags.no_change) {
         stepperY.rms_current(Y_CURRENT_HOME);
         if (DEBUGGING(LEVELING)) debug_current(F(STR_Y), tmc_save_current_Y, Y_CURRENT_HOME);
       }
@@ -520,7 +539,7 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
     ScopeGuard restore_motion_state_guard = [&] {
       saved_motion_state.load();
     };
-    if (!no_change) {
+    if (!flags.no_change) {
       // Reset default feedrate and acceleration limits during homing
       Motion_Parameters::reset();
 
@@ -552,7 +571,7 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
   phase_stepping::EnsureSuitableForHoming phstep_disabler;
 
   // Homing feedrate
-  float fr_mm_s = no_change ? feedrate_mm_s : 0.0f;
+  float fr_mm_s = flags.no_change ? feedrate_mm_s : 0.0f;
   remember_feedrate_scaling_off();
   ScopeGuard resatore_feedrate_scaling = [] {
     restore_feedrate_and_scaling();
@@ -595,8 +614,8 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
 
   TERN_(HOME_Z_FIRST, if (!failed && doZ) failed = !homeaxis(Z_AXIS));
 
-  const bool seenR = !isnan(z_raise);
-  const float z_homing_height = seenR ? z_raise : Z_HOMING_HEIGHT;
+  const bool seenR = !isnan(flags.z_raise);
+  const float z_homing_height = seenR ? flags.z_raise : Z_HOMING_HEIGHT;
 
   if (!failed && z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
     // Raise Z before homing any other axes and z is not already high enough (never lower z)
@@ -649,26 +668,24 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
   }
   #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
 
-  bool can_calibrate = !parser.seen('D');
-
   // Home Y (before X)
   if (ENABLED(HOME_Y_BEFORE_X) && !failed && (doY || TERN0(CODEPENDENT_XY_HOMING, doX))) {
-    failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y, can_calibrate);
+    failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y, flags.can_calibrate);
   }
 
   // Home X
   if (!failed && (doX || (doY && ENABLED(CODEPENDENT_XY_HOMING) && DISABLED(HOME_Y_BEFORE_X)))) {
-    failed = !homeaxis(X_AXIS, fr_mm_s, false, reenable_wt_X, can_calibrate);
+    failed = !homeaxis(X_AXIS, fr_mm_s, false, reenable_wt_X, flags.can_calibrate);
   }
 
   // Home Y (after X)
   if (DISABLED(HOME_Y_BEFORE_X) && !failed && doY) {
-    failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y, can_calibrate);
+    failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y, flags.can_calibrate);
   }
 
   #if ENABLED(PRECISE_HOMING_COREXY)
     // absolute refinement requires both axes to be already probed
-    if (!failed && ( doX || ENABLED(CODEPENDENT_XY_HOMING)) && doY && precise) {
+    if (!failed && ( doX || ENABLED(CODEPENDENT_XY_HOMING)) && doY && flags.precise) {
       failed = !refine_corexy_origin();
       if (failed && !planner.draining()) {
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); });
@@ -697,7 +714,7 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
           failed = !home_z_safely();
 
           #if ENABLED(DETECT_PRINT_SHEET)
-          if (!failed && check_sheet) {
+          if (!failed && flags.check_sheet) {
             failed = [&] {
               // Do multiple attempts of detect print sheet
               // The point is that we want to prevent false failures caused by a dirty nozzle (cold filament left hanging out)
