@@ -49,20 +49,25 @@ protected:
         purge,
         color_correct_ask,
         eject,
+#if HAS_MMU2()
         mmu_load_ask,
         mmu_load,
         _last = mmu_load,
+#else
+        _last = eject,
+#endif
     };
 
 private:
     PhasesLoadUnload phase; // needed for CanSafetyTimerExpire
-    LoadState state;
     std::optional<LoadUnloadMode> load_unload_mode = std::nullopt;
 
     float nozzle_restore_temp[HOTENDS];
     float bed_restore_temp;
 
 protected:
+    LoadState state { LoadState::unload_init };
+
     PausePrivatePhase();
     void setPhase(PhasesLoadUnload ph, uint8_t progress = 0);
     PhasesLoadUnload getPhase() const;
@@ -171,7 +176,62 @@ private:
     LoadUnloadMode get_load_unload_mode();
     bool should_park();
 
-    void loop_load_common(Response response);
+    void unload_init_process(Response response);
+    void filament_stuck_ask_process(Response response);
+    void ram_sequence_process(Response response);
+    void unload_process(Response response);
+    void unloaded_ask_process(Response response);
+    void manual_unload_process(Response response);
+    void filament_not_in_fs_process(Response response);
+    void unload_from_gears_process(Response response);
+    void load_init_process(Response response);
+    void filament_push_ask_process(Response response);
+#if HAS_SIDE_FSENSOR()
+    void await_filament_process(Response response);
+    void assist_insertion_process(Response response);
+#endif
+    void load_to_gears_process(Response response);
+    void move_to_purge_process(Response response);
+    void wait_temp_process(Response response);
+    void error_temp_process(Response response);
+    void long_load_process(Response response);
+    void purge_process(Response response);
+    void color_correct_ask_process(Response response);
+    void eject_process(Response response);
+#if HAS_MMU2()
+    void mmu_load_ask_process(Response response);
+    void mmu_load_process(Response response);
+#endif
+
+    using StateHandler = void (Pause::*)(Response response);
+    static constexpr EnumArray<LoadState, StateHandler, static_cast<int>(LoadState::_last) + 1> state_handlers {
+        { LoadState::unload_init, &Pause::unload_init_process },
+            { LoadState::filament_stuck_ask, &Pause::filament_stuck_ask_process },
+            { LoadState::ram_sequence, &Pause::ram_sequence_process },
+            { LoadState::unload, &Pause::unload_process },
+            { LoadState::unloaded_ask, &Pause::unloaded_ask_process },
+            { LoadState::manual_unload, &Pause::manual_unload_process },
+            { LoadState::filament_not_in_fs, &Pause::filament_not_in_fs_process },
+            { LoadState::unload_from_gears, &Pause::unload_from_gears_process },
+            { LoadState::load_init, &Pause::load_init_process },
+            { LoadState::filament_push_ask, &Pause::filament_push_ask_process },
+#if HAS_SIDE_FSENSOR()
+            { LoadState::await_filament, &Pause::await_filament_process },
+            { LoadState::assist_insertion, &Pause::assist_insertion_process },
+#endif
+            { LoadState::load_to_gears, &Pause::load_to_gears_process },
+            { LoadState::move_to_purge, &Pause::move_to_purge_process },
+            { LoadState::wait_temp, &Pause::wait_temp_process },
+            { LoadState::error_temp, &Pause::error_temp_process },
+            { LoadState::long_load, &Pause::long_load_process },
+            { LoadState::purge, &Pause::purge_process },
+            { LoadState::color_correct_ask, &Pause::color_correct_ask_process },
+            { LoadState::eject, &Pause::eject_process },
+#if HAS_MMU2()
+            { LoadState::mmu_load_ask, &Pause::mmu_load_ask_process },
+            { LoadState::mmu_load, &Pause::mmu_load_process },
+#endif
+    };
 
     // does not create FSM_HolderLoadUnload
     bool invoke_loop(); // shared load/unload code
