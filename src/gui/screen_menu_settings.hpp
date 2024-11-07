@@ -12,6 +12,7 @@
 #include "Configuration_adv.h"
 #include <option/has_mmu2.h>
 #include <option/developer_mode.h>
+#include <option/has_xbuddy_extension.h>
 
 #if HAS_MMU2()
     #include "MItem_mmu.hpp"
@@ -42,6 +43,9 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_MMU_ENABLE,
     MI_MMU_BOOTLOADER_RESULT,
     MI_MMU_CUTTER,
+#endif
+#if HAS_XBUDDY_EXTENSION()
+    MI_CAM_USB_PWR,
 #endif
     MI_STEALTH_MODE,
     MI_FAN_CHECK,

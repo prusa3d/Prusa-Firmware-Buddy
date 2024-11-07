@@ -71,6 +71,11 @@
     #include <connect/marlin_printer.hpp>
 #endif
 
+#include <option/has_xbuddy_extension.h>
+#if HAS_XBUDDY_EXTENSION()
+    #include <puppies/xbuddy_extension.hpp>
+#endif
+
 namespace {
 void MsgBoxNonBlockInfo(const string_view_utf8 &txt) {
     constexpr static const char *title = N_("Information");
@@ -635,6 +640,18 @@ MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
 void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
     marlin_client::set_fs_autoload(!old_index);
     config_store().fs_autoload_enabled.set(static_cast<bool>(marlin_vars().fs_autoload_enabled));
+}
+
+/*****************************************************************************/
+// MI_CAM_USB_PWR
+MI_CAM_USB_PWR::MI_CAM_USB_PWR()
+    : WI_ICON_SWITCH_OFF_ON_t(true, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_CAM_USB_PWR::OnChange([[maybe_unused]] size_t old_index) {
+#if HAS_XBUDDY_EXTENSION()
+    // FIXME: Don't interact with xbuddy_extension directly, but use some common interface, like we have for Chamber API
+    buddy::puppies::xbuddy_extension.set_usb_power(!old_index);
+#endif
 }
 
 /*****************************************************************************/
