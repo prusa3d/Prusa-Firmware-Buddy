@@ -56,6 +56,15 @@ void XBuddyExtension::set_rgbw_led(std::array<uint8_t, 4> color) {
     requirement.dirty = true;
 }
 
+void XBuddyExtension::set_usb_power(bool enabled) {
+    Lock lock(mutex);
+
+    if (enabled != requirement.value.usb_power_enable) {
+        requirement.value.usb_power_enable = enabled;
+        requirement.dirty = true;
+    }
+}
+
 std::optional<uint16_t> XBuddyExtension::get_fan_rpm(size_t fan_idx) {
     Lock lock(mutex);
 

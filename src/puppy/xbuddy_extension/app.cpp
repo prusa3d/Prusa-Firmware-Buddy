@@ -60,6 +60,9 @@ public:
         case 0x9007:
             hal::rgbw_led::set_w_pwm(value);
             return Status::Ok;
+        case 0x9008:
+            hal::usb::power_pin_set(static_cast<bool>(value));
+            return Status::Ok;
         }
         return Status::IllegalAddress;
     }
