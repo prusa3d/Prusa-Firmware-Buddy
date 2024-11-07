@@ -46,6 +46,10 @@
     #include <common/sheet.hpp>
 #endif
 
+#if ENABLED(PRECISE_HOMING_COREXY)
+    #include <Marlin/src/module/prusa/homing_corexy_config.hpp>
+#endif
+
 namespace config_store_ns {
 /**
  * @brief Holds all current store items -> there is a RAM mirror of this data which is loaded upon device restart from eeprom.
@@ -557,6 +561,10 @@ struct CurrentStore
 
 #if HAS_ILI9488_DISPLAY()
     StoreItem<bool, false, journal::hash("Reduce Display Baudrate")> reduce_display_baudrate;
+#endif
+
+#ifdef PRECISE_HOMING_COREXY
+    StoreItem<CoreXYGridOrigin, COREXY_NO_GRID_ORIGIN, journal::hash("CoreXY calibrated grid origin")> corexy_grid_origin;
 #endif
 };
 

@@ -16,6 +16,7 @@
 #include <bsod.h>
 #include <scope_guard.hpp>
 #include <feature/phase_stepping/phase_stepping.hpp>
+#include <config_store/store_instance.hpp>
 
 // convert raw AB steps to XY mm
 void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm) {
@@ -192,11 +193,10 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
 /**
  * @brief Part of precise homing.
  * @param axis Physical axis to measure
- * @param c_dist_a
- * @param c_dist_b
+ * @param c_dist AB cycle distance from the endstop
  * @return True on success
  */
-static bool measure_phase_cycles(AxisEnum axis, int32_t &c_dist_a, int32_t &c_dist_b) {
+static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist) {
     // increase current of the holding motor
     AxisEnum other_axis = (axis == B_AXIS ? A_AXIS : B_AXIS);
     auto &other_stepper = stepper_axis(other_axis);
@@ -211,14 +211,14 @@ static bool measure_phase_cycles(AxisEnum axis, int32_t &c_dist_a, int32_t &c_di
 
     const int32_t measure_max_dist = (XY_HOMING_ORIGIN_OFFSET * 4) / planner.mm_per_step[axis];
     xy_long_t origin_steps = { stepper.position(A_AXIS), stepper.position(B_AXIS) };
-    const int n = 2;
-    xy_long_t m_steps[n];
-    xy_pos_t m_dist[n] = { -XY_HOMING_ORIGIN_BUMPS_MAX_ERR, -XY_HOMING_ORIGIN_BUMPS_MAX_ERR };
+    constexpr int probe_n = 2; // note the following code assumes always two probes per retry
+    xy_long_t m_steps[probe_n];
+    xy_pos_t m_dist[probe_n] = { -XY_HOMING_ORIGIN_BUMPS_MAX_ERR, -XY_HOMING_ORIGIN_BUMPS_MAX_ERR };
 
     uint8_t retry;
     for (retry = 0; retry != XY_HOMING_ORIGIN_MAX_RETRIES; ++retry) {
-        uint8_t slot0 = retry % n;
-        uint8_t slot1 = (retry + 1) % n;
+        uint8_t slot0 = retry % probe_n;
+        uint8_t slot1 = (retry + 1) % probe_n;
 
         // measure distance B+/B-
         if (!measure_axis_distance(axis, origin_steps, measure_max_dist, m_steps[slot1][1], m_dist[slot1][1])
@@ -244,28 +244,67 @@ static bool measure_phase_cycles(AxisEnum axis, int32_t &c_dist_a, int32_t &c_di
     }
 
     // calculate the absolute cycle coordinates
-    const int32_t c_steps_a = phase_cycle_steps(A_AXIS);
-    const int32_t c_steps_b = phase_cycle_steps(B_AXIS);
+    float d1 = (m_steps[0][0] + m_steps[1][0]) / 2.f;
+    float d2 = (m_steps[0][1] + m_steps[1][1]) / 2.f;
+    float d = d1 + d2;
+    float a = d / 2.;
+    float b = d1 - a;
 
-    int32_t d = (m_steps[0].a + m_steps[1].a + m_steps[0].b + m_steps[1].b) / 2;
-    c_dist_a = (d + c_steps_a) / (2 * c_steps_a);
-    int32_t d_y = d - (m_steps[0].b + m_steps[1].b);
-    int32_t d_y2 = abs(d_y) + c_steps_b;
-    if (d_y < 0) {
-        d_y2 = -d_y2;
-    }
-    c_dist_b = d_y2 / (2 * c_steps_b);
+    c_dist[other_axis] = a / float(phase_cycle_steps(A_AXIS));
+    c_dist[axis] = b / float(phase_cycle_steps(B_AXIS));
 
     if (DEBUGGING(LEVELING)) {
         // measured distance and cycle
-        SERIAL_ECHOLNPAIR("home B+ steps 1: ", m_steps[0].a, " 2: ", m_steps[1].a, " cycle:", c_dist_a);
-        SERIAL_ECHOLNPAIR("home B- steps 1: ", m_steps[0].b, " 2: ", m_steps[1].b, " cycle:", c_dist_b);
+        SERIAL_ECHOLNPAIR("home ", physical_axis_codes[axis], "+ steps 0:", m_steps[0][1], " 1:", m_steps[1][1],
+            " cycle ", physical_axis_codes[other_axis], ":", c_dist[other_axis]);
+        SERIAL_ECHOLNPAIR("home ", physical_axis_codes[axis], "- steps 0:", m_steps[0][0], " 1:", m_steps[1][0],
+            " cycle ", physical_axis_codes[axis], ":", c_dist[axis]);
+    }
+    return true;
+}
+
+bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_steps, xy_pos_t &origin) {
+    // scramble probing sequence to improve belt redistribution when estimating the centroid
+    static constexpr int8_t point_sequence[][2] = {
+        { 1, 0 },
+        { -1, 0 },
+        { 0, 1 },
+        { 0, -1 },
+        { -1, -1 },
+        { 1, 1 },
+        { 1, -1 },
+        { -1, 1 },
+        { 0, 0 },
+    };
+
+    const float fr_mm_s = homing_feedrate(A_AXIS);
+    xy_pos_t c_acc = { 0, 0 };
+
+    for (const auto &seq : point_sequence) {
+        xy_long_t point_steps = {
+            origin_steps[A_AXIS] + phase_cycle_steps(A_AXIS) * seq[A_AXIS],
+            origin_steps[B_AXIS] + phase_cycle_steps(B_AXIS) * seq[B_AXIS]
+        };
+
+        plan_corexy_raw_move(point_steps, fr_mm_s);
+
+        xy_pos_t c_dist;
+        if (!measure_phase_cycles(axis, c_dist)) {
+            return false;
+        }
+
+        c_acc += c_dist;
+    }
+    origin = c_acc / float(std::size(point_sequence));
+
+    if (DEBUGGING(LEVELING)) {
+        SERIAL_ECHOLNPAIR("home grid origin A:", origin[A_AXIS], " B:", origin[B_AXIS]);
     }
     return true;
 }
 
 // Refine home origin precisely on core-XY.
-bool refine_corexy_origin() {
+bool refine_corexy_origin(bool can_calibrate) {
     // finish previous moves and disable main endstop/crash recovery handling
     planner.synchronize();
     endstops.not_homing();
@@ -315,20 +354,46 @@ bool refine_corexy_origin() {
         bsod("phase alignment failed");
     }
 
-    // measure from current origin
-    int32_t c_dist_a = 0, c_dist_b = 0;
     AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
-    if (!measure_phase_cycles(measured_axis, c_dist_a, c_dist_b)) {
+
+    // calibrate if not done already
+    CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
+    if (can_calibrate && calibrated_origin.uninitialized()) {
+        SERIAL_ECHOLN("recalibrating homing origin");
+        ui.status_printf_P(0, "Recalibrating home. Printer may vibrate and be noisier.");
+
+        xy_pos_t origin;
+        if (!measure_origin_multipoint(measured_axis, origin_steps, origin)) {
+            return false;
+        }
+        calibrated_origin = { origin[A_AXIS], origin[B_AXIS] };
+        config_store().corexy_grid_origin.set(calibrated_origin);
+    }
+
+    // measure from current origin
+    xy_pos_t c_dist;
+    if (!measure_phase_cycles(measured_axis, c_dist)) {
         return false;
     }
 
-    // convert the full cycle back to steps
-    xy_long_t c_ab = { c_dist_a * phase_cycle_steps(A_AXIS), c_dist_b * phase_cycle_steps(B_AXIS) };
+    // offset and convert the AB cycle coordinates back to steps
+    xy_long_t c_ab;
+    LOOP_XY(axis) {
+        float o_fract = calibrated_origin.origin[axis];
+        long o_int = long(roundf(o_fract));
+        c_ab[axis] = long(roundf(c_dist[axis] - o_fract)) + o_int;
+    };
+
+    xy_long_t c_ab_steps = { c_ab[A_AXIS] * phase_cycle_steps(A_AXIS), c_ab[B_AXIS] * phase_cycle_steps(B_AXIS) };
     xy_pos_t c_mm;
-    corexy_ab_to_xy(c_ab, c_mm);
+    corexy_ab_to_xy(c_ab_steps, c_mm);
     current_position.x = c_mm[X_AXIS] + origin_tmp[X_AXIS] - XY_HOMING_ORIGIN_SHIFT_X * X_HOME_DIR;
     current_position.y = c_mm[Y_AXIS] + origin_tmp[Y_AXIS] - XY_HOMING_ORIGIN_SHIFT_Y * Y_HOME_DIR;
     planner.set_machine_position_mm(current_position);
+
+    if (DEBUGGING(LEVELING)) {
+        SERIAL_ECHOLNPAIR("calibrated home cycle A:", c_ab[A_AXIS], " B:", c_ab[B_AXIS]);
+    }
 
     return true;
 }

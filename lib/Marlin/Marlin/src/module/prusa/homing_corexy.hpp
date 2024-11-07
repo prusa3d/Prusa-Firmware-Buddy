@@ -14,6 +14,7 @@ void corexy_ab_to_xyze(const xy_long_t &steps, xyze_pos_t &mm);
 
 /**
  * @brief Refine home origin precisely on core-XY.
+ * @param can_calibrate Allow origin self-calibration to occur
  * @return true on success
  */
-bool refine_corexy_origin();
+bool refine_corexy_origin(bool can_calibrate);
