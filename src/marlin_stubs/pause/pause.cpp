@@ -744,6 +744,12 @@ void Pause::eject_process([[maybe_unused]] Response response) {
 }
 
 void Pause::unload_init_process([[maybe_unused]] Response response) {
+    // loop_unload_mmu has it's own preheating sequence, use that one for better progress reporting
+    if (!(load_type == LoadType::unload && FSensors_instance().HasMMU()) && !ensureSafeTemperatureNotifyProgress(0, 50) && load_type != LoadType::unload_from_gears) {
+        settings.do_stop = true;
+        return;
+    }
+
 #if HAS_MMU2()
     if (FSensors_instance().HasMMU()) {
         if (load_type == LoadType::unload) {
@@ -765,12 +771,6 @@ void Pause::unload_init_process([[maybe_unused]] Response response) {
         }
     }
 #endif
-
-    // loop_unload_mmu has it's own preheating sequence, use that one for better progress reporting
-    if (!(load_type == LoadType::unload && FSensors_instance().HasMMU()) && !ensureSafeTemperatureNotifyProgress(0, 50) && load_type != LoadType::unload_from_gears) {
-        settings.do_stop = true;
-        return;
-    }
 
     switch (load_type) {
 
