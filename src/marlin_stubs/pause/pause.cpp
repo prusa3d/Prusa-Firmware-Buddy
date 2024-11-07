@@ -254,16 +254,12 @@ bool Pause::is_unstoppable() {
         return FSensors_instance().HasMMU();
     case LoadType::load_to_gears:
         return !option::has_human_interactions;
-    case LoadType::autoload:
-    case LoadType::load_purge:
-    case LoadType::unload:
-    case LoadType::unload_confirm:
-    case LoadType::unload_from_gears:
-        return false;
     case LoadType::non_blocking_load:
     case LoadType::filament_change:
     case LoadType::filament_stuck:
         return true;
+    default:
+        return false;
     }
 }
 
@@ -282,6 +278,8 @@ Pause::LoadState Pause::get_start_state() {
     case LoadType::filament_stuck:
         return LoadState::unload_init;
     }
+
+    bsod("Unhandled LoadType");
 }
 
 LoadUnloadMode Pause::get_load_unload_mode() {
@@ -302,23 +300,20 @@ LoadUnloadMode Pause::get_load_unload_mode() {
     case Pause::LoadType::filament_stuck:
         return LoadUnloadMode::FilamentStuck;
     }
+
+    bsod("Unhandled LoadType");
 }
 
 bool Pause::should_park() {
     switch (load_type) {
-    case Pause::LoadType::load:
-    case Pause::LoadType::unload:
-    case Pause::LoadType::unload_confirm:
-    case Pause::LoadType::unload_from_gears:
-    case Pause::LoadType::filament_change:
-    case Pause::LoadType::filament_stuck:
-        return true;
     case Pause::LoadType::autoload:
     case Pause::LoadType::load_purge:
         return false;
     case Pause::LoadType::load_to_gears:
     case Pause::LoadType::non_blocking_load:
         return !FSensors_instance().has_filament_surely();
+    default:
+        return true;
     }
 }
 
@@ -739,12 +734,11 @@ void Pause::eject_process([[maybe_unused]] Response response) {
     case LoadType::filament_stuck:
         set(LoadState::load_init);
         break;
-
     case LoadType::load:
     case LoadType::autoload:
         set(LoadState::filament_push_ask);
         break;
-    case LoadType::load_purge:
+    default:
         break;
     }
 }
@@ -822,7 +816,6 @@ void Pause::unload_process([[maybe_unused]] Response response) {
     config_store().set_filament_type(settings.GetExtruder(), FilamentType::none);
 
     switch (load_type) {
-
     case LoadType::unload:
 #if HAS_HUMAN_INTERACTIONS()
         set_unload_next_phase();
@@ -839,9 +832,8 @@ void Pause::unload_process([[maybe_unused]] Response response) {
 
         setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
         set(LoadState::unloaded_ask);
-
         break;
-    case LoadType::unload_from_gears:
+    default:
         break;
     }
 }
