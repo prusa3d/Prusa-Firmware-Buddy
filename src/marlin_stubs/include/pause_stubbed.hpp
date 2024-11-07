@@ -160,23 +160,25 @@ public:
     }
 
 private:
+    LoadType load_type {};
+
     enum class RammingType {
         unload,
         runout
     };
 
-    static RammingType get_ramming_type(LoadType load_type);
-    static bool is_unstoppable(LoadType load_type);
-    static LoadPhase get_start_phase(LoadType load_type);
-    static LoadUnloadMode get_load_unload_mode(LoadType load_type);
-    static bool should_park(LoadType load_type);
+    RammingType get_ramming_type();
+    bool is_unstoppable();
+    LoadPhase get_start_phase();
+    LoadUnloadMode get_load_unload_mode();
+    bool should_park();
 
-    void loop_load_common(Response response, LoadType load_type);
+    void loop_load_common(Response response);
 
     // does not create FSM_HolderLoadUnload
-    bool invoke_loop(LoadType load_type); // shared load/unload code
+    bool invoke_loop(); // shared load/unload code
 
-    void set_unload_next_phase(LoadType load_type);
+    void set_unload_next_phase();
 
     // park moves calculations
     uint32_t parkMoveZPercent(float z_move_len, float xy_move_len) const;
@@ -219,7 +221,7 @@ private:
         void unbindFromSafetyTimer();
         static bool active; // we currently support only 1 instance
     public:
-        FSM_HolderLoadUnload(Pause &p, LoadType mode);
+        FSM_HolderLoadUnload(Pause &p);
         ~FSM_HolderLoadUnload();
         friend class Pause;
     };

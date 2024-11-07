@@ -249,7 +249,7 @@ Pause &Pause::Instance() {
     return s;
 }
 
-bool Pause::is_unstoppable(LoadType load_type) {
+bool Pause::is_unstoppable() {
     switch (load_type) {
     case LoadType::load:
         return FSensors_instance().HasMMU();
@@ -268,7 +268,7 @@ bool Pause::is_unstoppable(LoadType load_type) {
     }
 }
 
-Pause::RammingType Pause::get_ramming_type(LoadType load_type) {
+Pause::RammingType Pause::get_ramming_type() {
     switch (load_type) {
     case LoadType::unload:
     case LoadType::ask_unloaded:
@@ -283,7 +283,7 @@ Pause::RammingType Pause::get_ramming_type(LoadType load_type) {
     }
 }
 
-Pause::LoadPhase Pause::get_start_phase(LoadType load_type) {
+Pause::LoadPhase Pause::get_start_phase() {
     switch (load_type) {
     case LoadType::load:
     case LoadType::autoload:
@@ -300,7 +300,7 @@ Pause::LoadPhase Pause::get_start_phase(LoadType load_type) {
     }
 }
 
-LoadUnloadMode Pause::get_load_unload_mode(Pause::LoadType load_type) {
+LoadUnloadMode Pause::get_load_unload_mode() {
     switch (load_type) {
     case Pause::LoadType::load:
     case Pause::LoadType::autoload:
@@ -320,7 +320,7 @@ LoadUnloadMode Pause::get_load_unload_mode(Pause::LoadType load_type) {
     }
 }
 
-bool Pause::should_park(Pause::LoadType load_type) {
+bool Pause::should_park() {
     switch (load_type) {
     case Pause::LoadType::load:
     case Pause::LoadType::unload:
@@ -428,7 +428,7 @@ bool Pause::process_stop() {
     return true;
 }
 
-void Pause::set_unload_next_phase(LoadType load_type) {
+void Pause::set_unload_next_phase() {
     if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
         set(LoadPhase::load_init);
     } else {
@@ -436,7 +436,7 @@ void Pause::set_unload_next_phase(LoadType load_type) {
     }
 }
 
-void Pause::loop_load_common(Response response, LoadType load_type) {
+void Pause::loop_load_common(Response response) {
     switch (getLoadPhase()) {
     case LoadPhase::load_init:
         // TODO: this shouldn't be needed here
@@ -535,7 +535,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         }
 
         if (FSensors_instance().no_filament_surely()) {
-            setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::MakeSureInserted_unstoppable : PhasesLoadUnload::MakeSureInserted_stoppable);
+            setPhase(is_unstoppable() ? PhasesLoadUnload::MakeSureInserted_unstoppable : PhasesLoadUnload::MakeSureInserted_stoppable);
 
             // With extruder MMU rework, we gotta assist the user with inserting the filament
             // BFW-5134
@@ -547,7 +547,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
             }
 
         } else {
-            setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::UserPush_unstoppable : PhasesLoadUnload::UserPush_stoppable);
+            setPhase(is_unstoppable() ? PhasesLoadUnload::UserPush_unstoppable : PhasesLoadUnload::UserPush_stoppable);
 
             if (response == Response::Continue || settings.extruder_mmu_rework) {
 
@@ -587,7 +587,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
     }
 
     case LoadPhase::assist_filament_insertion: {
-        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
+        setPhase(is_unstoppable() ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
 
         // Filament is in Extruder autoload assistance si done.
         if (FSensors_instance().has_filament_surely()) {
@@ -614,7 +614,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
 #endif
 
     case LoadPhase::load_in_gear: // slow load
-        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
+        setPhase(is_unstoppable() ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
 
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
 
@@ -649,7 +649,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         break;
 
     case LoadPhase::long_load: {
-        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Loading_unstoppable : PhasesLoadUnload::Loading_stoppable, 50);
+        setPhase(is_unstoppable() ? PhasesLoadUnload::Loading_unstoppable : PhasesLoadUnload::Loading_stoppable, 50);
 
         const float saved_acceleration = planner.user_settings.retract_acceleration;
         {
@@ -673,7 +673,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
 
     case LoadPhase::purge:
         // Extrude filament to get into hotend
-        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Purging_unstoppable : PhasesLoadUnload::Purging_stoppable, 70);
+        setPhase(is_unstoppable() ? PhasesLoadUnload::Purging_unstoppable : PhasesLoadUnload::Purging_stoppable, 70);
         do_e_move_notify_progress_hotextrude(settings.purge_length(), ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         if constexpr (!option::has_human_interactions) {
@@ -746,12 +746,12 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         }
 #endif
 
-        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 98);
+        setPhase(is_unstoppable() ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 98);
         ram_filament(RammingType::unload);
 
         planner.synchronize(); // do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
 
-        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Ejecting_unstoppable : PhasesLoadUnload::Ejecting_stoppable, 99);
+        setPhase(is_unstoppable() ? PhasesLoadUnload::Ejecting_unstoppable : PhasesLoadUnload::Ejecting_stoppable, 99);
         unload_filament(RammingType::unload);
 
         switch (load_type) {
@@ -834,14 +834,14 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         break;
 
     case LoadPhase::ram_sequence:
-        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 50);
-        ram_filament(get_ramming_type(load_type));
+        setPhase(is_unstoppable() ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 50);
+        ram_filament(get_ramming_type());
         set(LoadPhase::unload);
         break;
 
     case LoadPhase::unload:
-        setPhase(is_unstoppable(load_type) ? PhasesLoadUnload::Unloading_unstoppable : PhasesLoadUnload::Unloading_stoppable, 51);
-        unload_filament(get_ramming_type(load_type));
+        setPhase(is_unstoppable() ? PhasesLoadUnload::Unloading_unstoppable : PhasesLoadUnload::Unloading_stoppable, 51);
+        unload_filament(get_ramming_type());
         if (settings.do_stop) {
             break;
         }
@@ -852,7 +852,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
 
         case LoadType::unload:
 #if HAS_HUMAN_INTERACTIONS()
-            set_unload_next_phase(load_type);
+            set_unload_next_phase();
             break;
 #endif
         case LoadType::ask_unloaded:
@@ -888,7 +888,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
     case LoadPhase::unload_from_gear:
         setPhase(PhasesLoadUnload::Unloading_stoppable, 0);
         do_e_move_notify_progress_coldextrude(-settings.slow_load_length * (float)1.5, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 0, 100);
-        set_unload_next_phase(load_type);
+        set_unload_next_phase();
         break;
 
     case LoadPhase::filament_not_in_fs:
@@ -903,7 +903,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
                 break;
             }
 #endif
-            set_unload_next_phase(load_type);
+            set_unload_next_phase();
         } else {
 #if !HAS_HUMAN_INTERACTIONS()
             runout_timer_ms = ticks_ms();
@@ -915,7 +915,7 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         if (response == Response::Continue
             && !FSensors_instance().has_filament_surely()) { // Allow to continue when nothing remains in filament sensor
             enable_e_steppers();
-            set_unload_next_phase(load_type);
+            set_unload_next_phase();
         } else if (response == Response::Retry) { // Retry unloading
             enable_e_steppers();
             set(LoadPhase::ram_sequence);
@@ -923,22 +923,23 @@ void Pause::loop_load_common(Response response, LoadType load_type) {
         break;
 
     default:
-        set_unload_next_phase(load_type);
+        set_unload_next_phase();
     }
 }
 
-bool Pause::tool_change([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]] LoadType load_type,
+bool Pause::tool_change([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]] LoadType load_type_,
     [[maybe_unused]] const pause::Settings &settings_) {
 #if HAS_TOOLCHANGER()
     if (target_extruder != active_extruder) {
         settings = settings_;
+        load_type = load_type_;
 
         // Remove XY park position before toolchange, it will park in next operation
         settings.park_pos.x = std::numeric_limits<float>::quiet_NaN();
         settings.park_pos.y = std::numeric_limits<float>::quiet_NaN();
 
         // Park Z and show toolchange screen
-        FSM_HolderLoadUnload holder(*this, load_type);
+        FSM_HolderLoadUnload holder(*this);
         setPhase(PhasesLoadUnload::ChangingTool);
 
         // Change tool, don't lift or return Z as it was done by parking
@@ -949,27 +950,28 @@ bool Pause::tool_change([[maybe_unused]] uint8_t target_extruder, [[maybe_unused
     return true;
 }
 
-bool Pause::perform(LoadType load_type, const pause::Settings &settings_) {
+bool Pause::perform(LoadType load_type_, const pause::Settings &settings_) {
+    load_type = load_type_;
     settings = settings_;
-    return invoke_loop(load_type);
+    return invoke_loop();
 }
 
-bool Pause::invoke_loop(LoadType load_type) {
+bool Pause::invoke_loop() {
 #if ENABLED(PID_EXTRUSION_SCALING)
     bool extrusionScalingEnabled = thermalManager.getExtrusionScalingEnabled();
     thermalManager.setExtrusionScalingEnabled(false);
 #endif // ENABLED(PID_EXTRUSION_SCALING)
 
-    FSM_HolderLoadUnload holder(*this, load_type);
+    FSM_HolderLoadUnload holder(*this);
 
-    set(get_start_phase(load_type));
+    set(get_start_phase());
 
     bool ret = true;
     while (!finished()) {
         ret = !process_stop();
         if (ret) {
             const Response response = getResponse();
-            loop_load_common(response, load_type);
+            loop_load_common(response);
         } else {
             set(LoadPhase::_finish);
             continue;
@@ -1221,6 +1223,9 @@ void Pause::unpark_nozzle_and_notify() {
 void Pause::filament_change(const pause::Settings &settings_, bool is_filament_stuck) {
     settings = settings_;
     settings.can_stop = false;
+
+    load_type = is_filament_stuck ? LoadType::filament_stuck : LoadType::filament_change;
+
     if (did_pause_print) {
         return; // already paused
     }
@@ -1246,7 +1251,7 @@ void Pause::filament_change(const pause::Settings &settings_, bool is_filament_s
 #endif
 
     {
-        if (invoke_loop(is_filament_stuck ? LoadType::filament_stuck : LoadType::filament_change)) {
+        if (invoke_loop()) {
             // Feed a little bit of filament to stabilize pressure in nozzle
 
             // Last poop after user clicked color - yes
@@ -1409,13 +1414,13 @@ void Pause::FSM_HolderLoadUnload::unbindFromSafetyTimer() {
     SafetyTimer::Instance().UnbindPause(pause);
 }
 
-Pause::FSM_HolderLoadUnload::FSM_HolderLoadUnload(Pause &p, LoadType load_type)
+Pause::FSM_HolderLoadUnload::FSM_HolderLoadUnload(Pause &p)
     : FSM_Holder(PhasesLoadUnload::initial)
     , pause(p) {
-    pause.set_mode(get_load_unload_mode(load_type));
+    pause.set_mode(pause.get_load_unload_mode());
     pause.clrRestoreTemp();
     bindToSafetyTimer();
-    if (should_park(load_type)) {
+    if (pause.should_park()) {
         pause.park_nozzle_and_notify();
     }
     active = true;
