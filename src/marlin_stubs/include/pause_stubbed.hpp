@@ -164,12 +164,6 @@ public:
 private:
     LoadType load_type {};
 
-    enum class RammingType {
-        unload,
-        runout
-    };
-
-    RammingType get_ramming_type();
     bool is_unstoppable();
     LoadState get_start_state();
     LoadUnloadMode get_load_unload_mode();
@@ -263,9 +257,9 @@ private:
     bool process_stop();
     void handle_filament_removal(LoadState state_to_set); //<checks if filament is present if not it sets a different state
 
-    void ram_filament(const RammingType sequence);
-    void unload_filament(const RammingType sequence);
-    const RammingSequence &get_ramming_sequence(const RammingType type) const;
+    void ram_filament();
+    void unload_filament();
+    const RammingSequence &get_ramming_sequence() const;
 
     // create finite state machine and automatically destroy it at the end of scope
     // parks in ctor and unparks in dtor

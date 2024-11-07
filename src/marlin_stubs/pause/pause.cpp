@@ -267,21 +267,6 @@ bool Pause::is_unstoppable() {
     }
 }
 
-Pause::RammingType Pause::get_ramming_type() {
-    switch (load_type) {
-    case LoadType::unload:
-    case LoadType::unload_confirm:
-    case LoadType::unload_from_gears:
-        return RammingType::unload;
-    case LoadType::filament_change:
-    case LoadType::filament_stuck:
-        return RammingType::runout;
-    default:
-        // TODO: Irrelevant for the other types, how to handle?
-        return RammingType::unload;
-    }
-}
-
 Pause::LoadState Pause::get_start_state() {
     switch (load_type) {
     case LoadType::load:
@@ -735,12 +720,12 @@ void Pause::eject_process([[maybe_unused]] Response response) {
 #endif
 
     setPhase(is_unstoppable() ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 98);
-    ram_filament(RammingType::unload);
+    ram_filament();
 
     planner.synchronize(); // do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
 
     setPhase(is_unstoppable() ? PhasesLoadUnload::Ejecting_unstoppable : PhasesLoadUnload::Ejecting_stoppable, 99);
-    unload_filament(RammingType::unload);
+    unload_filament();
 
     switch (load_type) {
     case LoadType::load_to_gears:
@@ -823,13 +808,13 @@ void Pause::filament_stuck_ask_process(Response response) {
 
 void Pause::ram_sequence_process([[maybe_unused]] Response response) {
     setPhase(is_unstoppable() ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 50);
-    ram_filament(get_ramming_type());
+    ram_filament();
     set(LoadState::unload);
 }
 
 void Pause::unload_process([[maybe_unused]] Response response) {
     setPhase(is_unstoppable() ? PhasesLoadUnload::Unloading_unstoppable : PhasesLoadUnload::Unloading_stoppable, 51);
-    unload_filament(get_ramming_type());
+    unload_filament();
     if (settings.do_stop) {
         return;
     }
@@ -1280,8 +1265,8 @@ void Pause::filament_change(const pause::Settings &settings_, bool is_filament_s
     ui.reset_status();
 #endif
 }
-void Pause::ram_filament(const Pause::RammingType type) {
-    const RammingSequence &sequence = get_ramming_sequence(type);
+void Pause::ram_filament() {
+    const RammingSequence &sequence = get_ramming_sequence();
 
     constexpr float mm_per_minute = 1 / 60.f;
     // ram filament
@@ -1293,8 +1278,8 @@ void Pause::ram_filament(const Pause::RammingType type) {
     }
 }
 
-void Pause::unload_filament(const Pause::RammingType type) {
-    const RammingSequence &sequence = get_ramming_sequence(type);
+void Pause::unload_filament() {
+    const RammingSequence &sequence = get_ramming_sequence();
 
     const float saved_acceleration = planner.user_settings.retract_acceleration;
     {
@@ -1317,14 +1302,14 @@ void Pause::unload_filament(const Pause::RammingType type) {
         planner.apply_settings(s);
     }
 }
-const RammingSequence &Pause::get_ramming_sequence(const RammingType type) const {
-    switch (type) {
-    case Pause::RammingType::runout:
+const RammingSequence &Pause::get_ramming_sequence() const {
+    switch (load_type) {
+    case LoadType::filament_change:
+    case LoadType::filament_stuck:
         return runoutRammingSequence;
-    case Pause::RammingType::unload:
+    default:
         return unloadRammingSequence;
     }
-    return unloadRammingSequence;
 }
 
 bool Pause::check_user_stop() {
