@@ -304,7 +304,7 @@ bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_steps, xy_
 }
 
 // Refine home origin precisely on core-XY.
-bool refine_corexy_origin(bool can_calibrate) {
+bool refine_corexy_origin(CoreXYCalibrationMode mode) {
     // finish previous moves and disable main endstop/crash recovery handling
     planner.synchronize();
     endstops.not_homing();
@@ -358,7 +358,8 @@ bool refine_corexy_origin(bool can_calibrate) {
 
     // calibrate if not done already
     CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
-    if (can_calibrate && calibrated_origin.uninitialized()) {
+    if ((mode == CoreXYCalibrationMode::Force)
+        || ((mode == CoreXYCalibrationMode::OnDemand) && calibrated_origin.uninitialized())) {
         SERIAL_ECHOLN("recalibrating homing origin");
         ui.status_printf_P(0, "Recalibrating home. Printer may vibrate and be noisier.");
 

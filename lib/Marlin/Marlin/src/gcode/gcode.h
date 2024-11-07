@@ -438,6 +438,7 @@ public:
       float z_raise = NAN;
       bool no_change = false;
       bool can_calibrate = true;
+      bool force_calibrate = false;
       #if ENABLED(MARLIN_DEV_MODE)
         bool simulate = false;
       #endif

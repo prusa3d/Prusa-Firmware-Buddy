@@ -313,6 +313,7 @@ static void reenable_wavetable(AxisEnum axis)
  * - `R` - <linear> Raise by n mm/inches before homing
  * - `S` - Simulated homing only in `MARLIN_DEV_MODE`
  * - `D` - Disallow homing self-calibration
+ * - `C` - Force homing self-calibration
  */
 void GcodeSuite::G28() {
 #if ENABLED(NOZZLE_LOAD_CELL)
@@ -330,6 +331,7 @@ void GcodeSuite::G28() {
   flags.z_raise = parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT;
   flags.no_change = parser.seen('N');
   flags.can_calibrate = !parser.seen('D');
+  flags.force_calibrate = parser.seen('C');
   #if ENABLED(MARLIN_DEV_MODE)
     flags.simulate = parser.seen('S')
   #endif
@@ -686,7 +688,11 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
   #if ENABLED(PRECISE_HOMING_COREXY)
     // absolute refinement requires both axes to be already probed
     if (!failed && ( doX || ENABLED(CODEPENDENT_XY_HOMING)) && doY && flags.precise) {
-      failed = !refine_corexy_origin(flags.can_calibrate);
+      CoreXYCalibrationMode mode =
+        ( flags.force_calibrate ? CoreXYCalibrationMode::Force
+        : flags.can_calibrate ? CoreXYCalibrationMode::OnDemand
+        : CoreXYCalibrationMode::Disallow );
+      failed = !refine_corexy_origin(mode);
       if (failed && !planner.draining()) {
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); });
       }
