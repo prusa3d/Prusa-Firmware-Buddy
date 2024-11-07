@@ -787,8 +787,9 @@ void Pause::unload_init_process([[maybe_unused]] Response response) {
             MMU2::mmu2.unload();
             MMU2::mmu2.eject_filament(settings.mmu_filament_to_load);
             set_unload_next_phase();
-            return;
         }
+
+        return;
     }
 #endif
 
