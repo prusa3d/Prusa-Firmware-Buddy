@@ -430,7 +430,7 @@ void Pause::load_init_process([[maybe_unused]] Response response) {
                 // TODO tell user that he has already loaded filament if he really wants to continue
                 // TODO check fsensor .. how should I behave if filament is not detected ???
                 // some error?
-                set(LoadState::_finish);
+                set(LoadState::load_finish);
                 return;
             }
 
@@ -440,7 +440,7 @@ void Pause::load_init_process([[maybe_unused]] Response response) {
             set(LoadState::color_correct_ask);
         } else if (load_type == LoadType::filament_change) {
             if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-                set(LoadState::_finish);
+                set(LoadState::load_finish);
                 return;
             }
 
@@ -647,8 +647,9 @@ void Pause::purge_process([[maybe_unused]] Response response) {
     setPhase(is_unstoppable() ? PhasesLoadUnload::Purging_unstoppable : PhasesLoadUnload::Purging_stoppable, 70);
     do_e_move_notify_progress_hotextrude(settings.purge_length(), ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
     config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
+
     if constexpr (!option::has_human_interactions) {
-        set(LoadState::_finish);
+        set(LoadState::load_finish);
         return;
     }
 
@@ -669,7 +670,7 @@ void Pause::color_correct_ask_process(Response response) {
         break;
 
     case Response::Yes:
-        set(LoadState::_finish);
+        set(LoadState::load_finish);
         break;
 
     default:
@@ -689,7 +690,7 @@ void Pause::mmu_load_ask_process(Response response) {
 
 void Pause::mmu_load_process([[maybe_unused]] Response response) {
     if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-        set(LoadState::_finish);
+        set(LoadState::load_finish);
         return;
     }
 
@@ -741,6 +742,25 @@ void Pause::eject_process([[maybe_unused]] Response response) {
     default:
         break;
     }
+}
+
+void Pause::load_finish_process([[maybe_unused]] Response response) {
+    if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
+        // Feed a little bit of filament to stabilize pressure in nozzle
+
+        // Last poop after user clicked color - yes
+        plan_e_move(5, 10);
+
+        // Retract again, it will be unretracted at the end of unpark
+        if (settings.retract) {
+            plan_e_move(settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
+        }
+
+        planner.synchronize();
+        delay(500);
+    }
+
+    set(LoadState::_finish);
 }
 
 void Pause::unload_init_process([[maybe_unused]] Response response) {
@@ -1209,22 +1229,7 @@ void Pause::filament_change(const pause::Settings &settings_, bool is_filament_s
     thermalManager.set_fans_paused(true);
 #endif
 
-    {
-        if (invoke_loop()) {
-            // Feed a little bit of filament to stabilize pressure in nozzle
-
-            // Last poop after user clicked color - yes
-            plan_e_move(5, 10);
-
-            // Retract again, it will be unretracted at the end of unpark
-            if (settings.retract) {
-                plan_e_move(settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
-            }
-
-            planner.synchronize();
-            delay(500);
-        }
-    }
+    invoke_loop();
 
 // Intelligent resuming
 #if ENABLED(FWRETRACT)

@@ -51,10 +51,9 @@ protected:
 #if HAS_MMU2()
         mmu_load_ask,
         mmu_load,
-        _last = mmu_load,
-#else
-        _last = eject,
 #endif
+        load_finish,
+        _last = load_finish,
     };
 
 private:
@@ -194,6 +193,7 @@ private:
     void mmu_load_ask_process(Response response);
     void mmu_load_process(Response response);
 #endif
+    void load_finish_process(Response response);
 
     using StateHandler = void (Pause::*)(Response response);
     static constexpr EnumArray<LoadState, StateHandler, static_cast<int>(LoadState::_last) + 1> state_handlers {
@@ -222,6 +222,7 @@ private:
             { LoadState::mmu_load_ask, &Pause::mmu_load_ask_process },
             { LoadState::mmu_load, &Pause::mmu_load_process },
 #endif
+            { LoadState::load_finish, &Pause::load_finish_process },
     };
 
     // does not create FSM_HolderLoadUnload
