@@ -640,10 +640,6 @@ void Pause::wait_temp_process([[maybe_unused]] Response response) {
     handle_filament_removal(LoadState::filament_push_ask);
 }
 
-void Pause::error_temp_process([[maybe_unused]] Response response) {
-    set(LoadState::_finish);
-}
-
 void Pause::long_load_process([[maybe_unused]] Response response) {
     setPhase(is_unstoppable() ? PhasesLoadUnload::Loading_unstoppable : PhasesLoadUnload::Loading_stoppable, 50);
 
