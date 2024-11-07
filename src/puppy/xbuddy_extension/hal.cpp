@@ -422,6 +422,17 @@ static void mmu_pins_init() {
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 }
 
+void usb_pins_init() {
+    constexpr GPIO_InitTypeDef GPIO_InitStruct {
+        .Pin = GPIO_PIN_2,
+        .Mode = GPIO_MODE_OUTPUT_PP,
+        .Pull = GPIO_NOPULL,
+        .Speed = GPIO_SPEED_FREQ_LOW,
+        .Alternate = 0,
+    };
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+}
+
 void hal::init() {
     HAL_Init();
     hal::overclock();
@@ -437,6 +448,7 @@ void hal::init() {
     mmu_pins_init();
     mmu::nreset_pin_set(false);
     mmu::power_pin_set(true);
+    usb_pins_init();
 }
 
 void hal::panic() {
@@ -578,4 +590,8 @@ bool hal::mmu::power_pin_get() {
 
 bool hal::mmu::nreset_pin_get() {
     return HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET;
+}
+
+void hal::usb::power_pin_set(bool enabled) {
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, enabled ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
