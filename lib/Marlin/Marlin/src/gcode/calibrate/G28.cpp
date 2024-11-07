@@ -759,7 +759,7 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
 
                 // Raise the Z again to prevent crashing into the sheet
                 do_z_clearance(z_homing_height);
-                
+
                 // Return to the XY homing position over the printbed and try rehoming z
                 if(!home_z_safely()) {
                   // Fail straight away if z homing fails, only repeat if detect_print_sheet fails
