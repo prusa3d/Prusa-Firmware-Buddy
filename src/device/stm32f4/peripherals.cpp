@@ -355,7 +355,11 @@ void hw_adc3_init() {
     config_adc_ch(&hadc3, ADC_CHANNEL_8, AdcChannel::board_T);
     config_adc_ch(&hadc3, ADC_CHANNEL_9, AdcChannel::hotend_I);
     config_adc_ch(&hadc3, ADC_CHANNEL_14, AdcChannel::board_I);
+        #if PRINTER_IS_PRUSA_iX()
     config_adc_ch(&hadc3, ADC_CHANNEL_15, AdcChannel::case_T);
+        #elif PRINTER_IS_PRUSA_CUBE()
+    config_adc_ch(&hadc3, ADC_CHANNEL_15, AdcChannel::door_sensor);
+        #endif
     #elif BOARD_IS_XLBUDDY()
     config_adc_ch(&hadc3, ADC_CHANNEL_8, AdcChannel::board_T);
     config_adc_ch(&hadc3, ADC_CHANNEL_4, AdcChannel::mux2_y);

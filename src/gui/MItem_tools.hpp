@@ -527,6 +527,13 @@ public:
     MI_INFO_BOARD_TEMP();
 };
 
+#if PRINTER_IS_PRUSA_CUBE()
+class MI_INFO_DOOR_SENSOR : public MenuItemAutoUpdatingLabel<uint32_t> {
+public:
+    MI_INFO_DOOR_SENSOR();
+};
+#endif
+
 class MI_INFO_MCU_TEMP final : public MenuItemAutoUpdatingLabel<float> {
 public:
     MI_INFO_MCU_TEMP();

@@ -82,6 +82,9 @@ struct ScreenMenuSensorInfo__<std::index_sequence<hotend...>> {
     #if HAS_LOADCELL()
         MI_INFO_LOADCELL,
     #endif
+    #if PRINTER_IS_PRUSA_CUBE()
+        MI_INFO_DOOR_SENSOR,
+    #endif
         MI_INFO_PRINTER_FILL_SENSOR,
         MI_INFO_SIDE_FILL_SENSOR,
     #if PRINTER_IS_PRUSA_MK3_5()

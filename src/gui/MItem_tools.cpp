@@ -824,6 +824,14 @@ MI_INFO_BOARD_TEMP::MI_INFO_BOARD_TEMP()
     ) {
 }
 
+#if PRINTER_IS_PRUSA_CUBE()
+MI_INFO_DOOR_SENSOR::MI_INFO_DOOR_SENSOR()
+    : MenuItemAutoUpdatingLabel(_("Door Sensor"), "%d",
+        [](auto) { return sensor_data().door_sensor; } //
+    ) {
+}
+#endif
+
 MI_INFO_MCU_TEMP::MI_INFO_MCU_TEMP()
     : MenuItemAutoUpdatingLabel(_("MCU Temperature"), standard_print_format::temp_c,
         [](auto) { return sensor_data().MCUTemp; } //

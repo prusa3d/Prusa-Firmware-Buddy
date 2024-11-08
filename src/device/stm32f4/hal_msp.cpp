@@ -171,6 +171,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc) {
          */
         /*Initialize GPIOF pins as analog input*/
     #if BOARD_IS_XBUDDY()
+        // Note: when PRINTER_IS_PRUSA_CUBE() this also initializes door sensor (THERM3_Pin == GPIO_PIN_5)
         analog_gpio_init(GPIOF, HEATER_CURRENT_Pin | INPUT_CURRENT_Pin | THERM3_Pin | MMU_CURRENT_Pin | THERM_2_Pin);
     #elif BOARD_IS_XLBUDDY()
         analog_gpio_init(GPIOF, GPIO_PIN_10);
