@@ -97,7 +97,7 @@ struct AdHocFilamentType {
 
 /// Ad-hoc filament type that is pending load. Fully adjustable, not listed in all_filament_types.
 /// Useful for filament changes, where we want to change loaded filament parameters only after the previous filament is unloaded.
-/// In that case, we would configure the pending custom filament type using `M865 X` and the load using `M600 F'#<adhoc_pending_gcode_code>'`
+/// In that case, we would configure the pending custom filament type using `M865 X` and the load using `M600 F'#'`
 /// Only stored in RAM
 struct PendingAdHocFilamentType {
     inline constexpr bool operator==(const PendingAdHocFilamentType &) const = default;
@@ -122,8 +122,7 @@ public:
     // For FilamentType::none
     static constexpr NoFilamentType none = {};
 
-    static constexpr const char *adhoc_pending_gcode_code = "##";
-    static constexpr const char *adhoc_filament_gcode_prefix = "#";
+    static constexpr const char *adhoc_pending_gcode_code = "#";
 
 public:
     // * Constructors

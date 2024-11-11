@@ -8,7 +8,7 @@ TEST_CASE("gcode_parser::custom_type::filament") {
 
     SECTION("1") {
         GCodeParser2 p(fail_test_error_callback);
-        REQUIRE(p.parse("M1 C\"PETG\" A\"PLA\" G\"X\" O\"#2\""));
+        REQUIRE(p.parse("M1 C\"PETG\" A\"PLA\" G\"X\" O\"#\""));
 
         CHECK(p.option<std::string_view>('G', buf) == "X");
         CHECK(p.option<FilamentType>('G') == std::nullopt);
@@ -19,8 +19,8 @@ TEST_CASE("gcode_parser::custom_type::filament") {
         CHECK(p.option<std::string_view>('A', buf) == "PLA");
         CHECK(p.option<FilamentType>('A') == PresetFilamentType::PLA);
 
-        CHECK(p.option<std::string_view>('O', buf) == "#2");
-        CHECK(p.option<FilamentType>('O') == AdHocFilamentType(2));
+        CHECK(p.option<std::string_view>('O', buf) == "#");
+        CHECK(p.option<FilamentType>('O') == PendingAdHocFilamentType());
     }
 }
 

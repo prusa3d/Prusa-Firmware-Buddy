@@ -159,12 +159,6 @@ std::optional<FilamentType> FilamentType::from_gcode_param(const std::string_vie
         return PendingAdHocFilamentType {};
     }
 
-    if (static constexpr std::string_view view = adhoc_filament_gcode_prefix; value.starts_with(view)) {
-        if (uint8_t ix = 0; from_chars_light(value.begin() + view.size(), value.end(), ix).ec == std::errc {} && ix < adhoc_filament_type_count) {
-            return AdHocFilamentType { .tool = ix };
-        }
-    }
-
     return std::nullopt;
 }
 
