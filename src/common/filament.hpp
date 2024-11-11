@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cstdint>
 #include <variant>
+#include <expected>
 
 #include <str_utils.hpp>
 
@@ -157,6 +158,10 @@ public:
     inline bool is_customizable() const {
         return std::holds_alternative<UserFilamentType>(*this) || std::holds_alternative<AdHocFilamentType>(*this);
     }
+
+    /// \returns whether the filament name can be changed to \param new_name or a translatable error string.
+    /// The filament must be customizable and the name must not collide (or it must be an ad-hoc filament)
+    std::expected<void, const char *> can_be_renamed_to(const std::string_view &new_name) const;
 
     /// \returns whether the filament is visible - shown in standard filament lists
     bool is_visible() const;

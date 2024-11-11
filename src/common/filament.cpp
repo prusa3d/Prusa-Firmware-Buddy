@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <algorithm>
 
 #include "i18n.h"
 #include "../../include/printers.h"
@@ -218,6 +219,8 @@ FilamentTypeParameters FilamentType::parameters() const {
 }
 
 void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
+    assert(can_be_renamed_to(set.name));
+
     std::visit([&]<typename T>(const T &v) {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {
             assert(false);
@@ -236,6 +239,44 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
         }
     },
         *this);
+}
+
+std::expected<void, const char *> FilamentType::can_be_renamed_to(const std::string_view &new_name) const {
+    if (!is_customizable()) {
+        return std::unexpected(N_("Filament is not customizable"));
+    }
+
+    // Name must not be empty
+    if (new_name.size() == 0) {
+        return std::unexpected(N_("Name must not be empty"));
+    }
+
+    // Name must not be "---"
+    if (new_name == "---") {
+        return std::unexpected(N_("Name must not be '---'"));
+    }
+
+    // Check for valid symbols
+    if (!std::ranges::all_of(new_name, [](char ch) {
+            return (isalnum(ch) && toupper(ch) == ch) || strchr("_-", ch);
+        })) {
+        return std::unexpected(N_("Name must contain only 'A-Z0-9_-' characters"));
+    }
+
+    // Check for name collisions
+    if (
+        // Ad-hoc filaments can "override" standard ones, so we allow name collisions for them
+        !std::holds_alternative<AdHocFilamentType>(*this)
+
+        && std::ranges::any_of(all_filament_types, [&](FilamentType ft) {
+               return (ft != *this) && (new_name == ft.parameters().name);
+           })
+
+    ) {
+        return std::unexpected(N_("Filament with this name already exists"));
+    }
+
+    return {};
 }
 
 bool FilamentType::is_visible() const {
