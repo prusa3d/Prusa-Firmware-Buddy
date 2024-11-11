@@ -495,7 +495,7 @@ void Pause::load_init_process([[maybe_unused]] Response response) {
 }
 
 void Pause::filament_push_ask_process(Response response) {
-    if constexpr (option::has_human_interactions) {
+    if constexpr (!option::has_human_interactions) {
         setPhase(PhasesLoadUnload::Inserting_unstoppable);
 
         if (FSensors_instance().has_filament_surely()) {
