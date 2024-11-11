@@ -13,6 +13,8 @@
  * - `I<ix>` - Configure parameters of a Custom filament config for the specified tool (indexed from 0)
  * - `U<ix>` - Configure parameters of a User filament (indexed from 0)
  *
+ * - `R` - Reset parameters not specified in this gcode to defaults
+ *
  * - `T` - Nozzle temperature
  * - `P` - Nozzle preheat temperature
  * - `B` - Bed temperature
@@ -43,6 +45,10 @@ void PrusaGcodeSuite::M865() {
     }
 
     FilamentTypeParameters params = filament_type.parameters();
+
+    if (p.option<bool>('R').value_or(false)) {
+        params = {};
+    }
 
     // We cannot use store_option here because FilamentTypeParameters is packed :(
     if (const auto opt = p.option<decltype(FilamentTypeParameters::nozzle_temperature)>('T')) {
