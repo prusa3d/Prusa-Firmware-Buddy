@@ -31,7 +31,6 @@ void XBuddyExtension::step() {
 
     const auto rpm0 = puppies::xbuddy_extension.get_fan_rpm(0);
     const auto rpm1 = puppies::xbuddy_extension.get_fan_rpm(1);
-    const auto rpm2 = puppies::xbuddy_extension.get_fan_rpm(2);
     const auto temp = chamber_temperature();
 
     if (rpm0.has_value() && rpm1.has_value() && temp.has_value()) {
@@ -42,19 +41,17 @@ void XBuddyExtension::step() {
 
         puppies::xbuddy_extension.set_fan_pwm(0, pwm);
         puppies::xbuddy_extension.set_fan_pwm(1, pwm);
-
-        METRIC_DEF(chamber_fan_pwm, "chamber_fan_pwm", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
-        static auto pwm_should_record = metrics::RunApproxEvery(1000);
-        if (pwm_should_record()) {
-            metric_record_custom(&chamber_fan_pwm, "a=%" PRIu8 ",b=%" PRIu8 ",c=%" PRIu8, pwm, pwm, fan3_pwm_);
-        }
     } // else -> comm not working, we'll set it next time (instead of setting
       // them to wrong value, keep them at what they are now).
 
-    METRIC_DEF(chamber_fan_rpm, "chamber_fan_rpm", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
-    static auto rpm_should_record = metrics::RunApproxEvery(1000);
-    if (rpm0.has_value() && rpm1.has_value() && rpm2.has_value() && rpm_should_record()) {
-        metric_record_custom(&chamber_fan_rpm, "a=%" PRIu16 ",b=%" PRIu16 ",c=%" PRIu16, *rpm0, *rpm1, *rpm2);
+    METRIC_DEF(xbe_fan, "xbe_fan", METRIC_VALUE_CUSTOM, 0, METRIC_DISABLED);
+    static auto fan_should_record = metrics::RunApproxEvery(1000);
+    if (fan_should_record()) {
+        for (int fan = 0; fan < 3; ++fan) {
+            const uint16_t pwm = puppies::xbuddy_extension.get_requested_fan_pwm(fan);
+            const uint16_t rpm = puppies::xbuddy_extension.get_fan_rpm(fan).value_or(0);
+            metric_record_custom(&xbe_fan, ",fan=%d pwm=%ui,rpm=%ui", fan + 1, pwm, rpm);
+        }
     }
 }
 

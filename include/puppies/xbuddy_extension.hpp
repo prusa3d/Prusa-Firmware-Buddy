@@ -21,6 +21,8 @@ public:
     std::optional<uint16_t> get_fan_rpm(size_t fan_idx);
     std::optional<float> get_chamber_temp();
 
+    uint8_t get_requested_fan_pwm(size_t fan_idx);
+
     // These are called from the puppy task.
     CommunicationStatus refresh();
     CommunicationStatus initial_scan();

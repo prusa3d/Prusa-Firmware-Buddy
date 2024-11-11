@@ -24,6 +24,14 @@ void XBuddyExtension::set_fan_pwm(size_t fan_idx, uint8_t pwm) {
     }
 }
 
+uint8_t XBuddyExtension::get_requested_fan_pwm(size_t fan_idx) {
+    Lock lock(mutex);
+
+    assert(fan_idx < FAN_CNT);
+
+    return requirement.value.fan_pwm[fan_idx];
+}
+
 void XBuddyExtension::set_white_led(uint8_t intensity) {
     Lock lock(mutex);
 
