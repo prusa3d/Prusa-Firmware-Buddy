@@ -29,6 +29,11 @@ public:
             } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
                 return v.tool + adhoc_filaments_offset;
 
+            } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
+                // Should never get encoded
+                assert(0);
+                return 0;
+
             } else if constexpr (std::is_same_v<T, NoFilamentType>) {
                 return 0;
             }

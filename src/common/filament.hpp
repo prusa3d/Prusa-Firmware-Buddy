@@ -95,12 +95,23 @@ struct AdHocFilamentType {
     inline constexpr bool operator!=(const AdHocFilamentType &) const = default;
 };
 
+/// Ad-hoc filament type that is pending load. Fully adjustable, not listed in all_filament_types.
+/// Useful for filament changes, where we want to change loaded filament parameters only after the previous filament is unloaded.
+/// In that case, we would configure the pending custom filament type using `M865 X` and the load using `M600 F'#<adhoc_pending_gcode_code>'`
+/// Only stored in RAM
+struct PendingAdHocFilamentType {
+    inline constexpr bool operator==(const PendingAdHocFilamentType &) const = default;
+    inline constexpr bool operator!=(const PendingAdHocFilamentType &) const = default;
+};
+
+extern FilamentTypeParameters pending_adhoc_filament_parameters;
+
 struct NoFilamentType {
     inline constexpr bool operator==(const NoFilamentType &) const = default;
     inline constexpr bool operator!=(const NoFilamentType &) const = default;
 };
 
-using FilamentType_ = std::variant<NoFilamentType, PresetFilamentType, UserFilamentType, AdHocFilamentType>;
+using FilamentType_ = std::variant<NoFilamentType, PresetFilamentType, UserFilamentType, AdHocFilamentType, PendingAdHocFilamentType>;
 
 /// Count of all filament types
 constexpr size_t total_filament_type_count = preset_filament_type_count + user_filament_type_count;
@@ -111,6 +122,7 @@ public:
     // For FilamentType::none
     static constexpr NoFilamentType none = {};
 
+    static constexpr const char *adhoc_pending_gcode_code = "##";
     static constexpr const char *adhoc_filament_gcode_prefix = "#";
 
 public:
@@ -156,7 +168,7 @@ public:
 
     /// \returns whether the filaments parameters can be adjusted by the user
     inline bool is_customizable() const {
-        return std::holds_alternative<UserFilamentType>(*this) || std::holds_alternative<AdHocFilamentType>(*this);
+        return std::holds_alternative<UserFilamentType>(*this) || std::holds_alternative<AdHocFilamentType>(*this) || std::holds_alternative<PendingAdHocFilamentType>(*this);
     }
 
     /// \returns whether the filament name can be changed to \param new_name or a translatable error string.

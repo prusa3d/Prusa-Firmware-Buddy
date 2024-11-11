@@ -134,6 +134,8 @@ constexpr bool temperatures_are_within_spec(const FilamentTypeParameters &filame
 }
 static_assert(std::ranges::all_of(preset_filament_parameters, temperatures_are_within_spec));
 
+FilamentTypeParameters pending_adhoc_filament_parameters;
+
 FilamentType FilamentType::from_name(const std::string_view &name) {
     if (name.length() >= filament_name_buffer_size) {
         return FilamentType::none;
@@ -153,9 +155,12 @@ std::optional<FilamentType> FilamentType::from_gcode_param(const std::string_vie
         return r;
     }
 
-    static constexpr std::string_view adhoc_prefix_view = adhoc_filament_gcode_prefix;
-    if (value.starts_with(adhoc_prefix_view)) {
-        if (uint8_t ix = 0; from_chars_light(value.begin() + adhoc_prefix_view.size(), value.end(), ix).ec == std::errc {} && ix < adhoc_filament_type_count) {
+    if (value == adhoc_pending_gcode_code) {
+        return PendingAdHocFilamentType {};
+    }
+
+    if (static constexpr std::string_view view = adhoc_filament_gcode_prefix; value.starts_with(view)) {
+        if (uint8_t ix = 0; from_chars_light(value.begin() + view.size(), value.end(), ix).ec == std::errc {} && ix < adhoc_filament_type_count) {
             return AdHocFilamentType { .tool = ix };
         }
     }
@@ -188,6 +193,10 @@ void FilamentType::build_name_with_info(StringBuilder &builder) const {
             } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
                 return N_(" (Custom)");
 
+            } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
+                assert(0); // Should never be in GUI
+                return N_(" (Custom)");
+
             } else {
                 static_assert(false);
             }
@@ -211,6 +220,9 @@ FilamentTypeParameters FilamentType::parameters() const {
         } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
             return config_store().adhoc_filament_parameters.get(v.tool);
 
+        } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
+            return pending_adhoc_filament_parameters;
+
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
             return none_filament_parameters;
         }
@@ -230,6 +242,9 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
 
         } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
             config_store().adhoc_filament_parameters.set(v.tool, set);
+
+        } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
+            pending_adhoc_filament_parameters = set;
 
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
             assert(false);
@@ -290,6 +305,9 @@ bool FilamentType::is_visible() const {
         } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
             return false;
 
+        } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
+            return false;
+
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
             return false;
         }
@@ -310,6 +328,10 @@ void FilamentType::set_visible(bool set) const {
             });
 
         } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
+            // Should never happen
+            assert(0);
+
+        } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
             // Should never happen
             assert(0);
 

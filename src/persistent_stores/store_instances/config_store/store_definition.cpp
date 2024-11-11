@@ -524,6 +524,11 @@ FilamentType CurrentStore::get_filament_type([[maybe_unused]] uint8_t index) {
 }
 
 void CurrentStore::set_filament_type(uint8_t index, FilamentType value) {
+    if (value == PendingAdHocFilamentType {}) {
+        value = AdHocFilamentType { .tool = index };
+        adhoc_filament_parameters.set(index, pending_adhoc_filament_parameters);
+    }
+
     loaded_filament_type.set(index, value);
 }
 
