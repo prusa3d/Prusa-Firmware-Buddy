@@ -225,7 +225,8 @@ private:
     void SendWriteMsg(RequestMsg rq);
 #else
     static StepStatus ExpectingMessage2(const buddy::puppies::XBuddyExtension::MMUModbusRequest &mmr,
-        const buddy::puppies::XBuddyExtension::MMUQueryRegisters &mqr, ResponseMsg &rsp, const RequestMsg &rq);
+        const buddy::puppies::XBuddyExtension::MMUQueryRegisters &mqr, ResponseMsg &rsp,
+        const RequestMsg &rq, uint8_t *rawMsg, uint8_t &rawMsgLen);
 #endif
     void SwitchToIdle();
     StepStatus SuppressShortDropOuts(const char *msg_P, StepStatus ss);
@@ -233,9 +234,13 @@ private:
     StepStatus HandleProtocolError();
     bool Elapsed(uint32_t timeout) const;
     void RecordUARTActivity();
+#if HAS_MMU2_OVER_UART()
     void RecordReceivedByte(uint8_t c);
     void FormatLastReceivedBytes(char *dst);
     void FormatLastResponseMsgAndClearLRB(char *dst);
+#else
+    void FormatLastResponseMsg(char *dst, const uint8_t *msg, uint8_t len);
+#endif
     void LogRequestMsg(const uint8_t *txbuff, uint8_t size);
     void LogError(const char *reason_P);
     void LogResponse();
@@ -377,6 +382,7 @@ private:
     };
     ProtocolModbus protocol;
     buddy::puppies::XBuddyExtension *ext;
+    void LogRequestMsgModbus(const RequestMsg rq);
 #endif
     ErrorCode errorCode; ///< last received error code from the MMU
     ProgressCode progressCode; ///< last received progress code from the MMU

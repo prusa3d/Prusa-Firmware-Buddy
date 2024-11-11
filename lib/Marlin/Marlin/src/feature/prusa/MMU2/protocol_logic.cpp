@@ -62,6 +62,7 @@ void ProtocolLogic::SendQuery() {
     SendMsg(RequestMsg(RequestMsgCodes::Query, 0));
 #else
     ext->post_query_mmu();
+    LogRequestMsgModbus(RequestMsg(RequestMsgCodes::Query, 0));
     RecordUARTActivity();
 #endif
     scopeState = ScopeState::QuerySent;
@@ -124,13 +125,24 @@ void ProtocolLogic::SendAndUpdateFilamentSensor() {
 #endif
 }
 
+#if not HAS_MMU2_OVER_UART()
+void ProtocolLogic::LogRequestMsgModbus(const RequestMsg rq) {
+    // Emulate logging of MMU protocol's RequestMsg
+    uint8_t tmp[Protocol::MaxRequestSize()];
+    uint8_t len = Protocol::EncodeRequest(rq, tmp);
+    LogRequestMsg(tmp, len);
+}
+#endif
+
 void ProtocolLogic::SendButton(uint8_t btn) {
 #if HAS_MMU2_OVER_UART()
     SendMsg(RequestMsg(RequestMsgCodes::Button, btn));
-    scopeState = ScopeState::ButtonSent;
 #else
-    SendWriteRegister(buddy::puppies::XBuddyExtension::mmuButtonRegisterAddress, btn, ScopeState::ButtonSent);
+    ext->post_write_mmu_register(buddy::puppies::XBuddyExtension::mmuButtonRegisterAddress, btn);
+    LogRequestMsgModbus(RequestMsg(RequestMsgCodes::Button, btn));
+    RecordUARTActivity();
 #endif
+    scopeState = ScopeState::ButtonSent;
 }
 
 void ProtocolLogic::SendVersion(uint8_t stage) {
@@ -138,6 +150,7 @@ void ProtocolLogic::SendVersion(uint8_t stage) {
     SendMsg(RequestMsg(RequestMsgCodes::Version, stage));
 #else
     ext->post_read_mmu_register(stage);
+    LogRequestMsgModbus(RequestMsg(RequestMsgCodes::Version, stage));
     RecordUARTActivity();
 #endif
     scopeState = (ScopeState)((uint_fast8_t)ScopeState::S0Sent + stage);
@@ -148,6 +161,7 @@ void ProtocolLogic::SendReadRegister(uint8_t index, ScopeState nextState) {
     SendMsg(RequestMsg(RequestMsgCodes::Read, index));
 #else
     ext->post_read_mmu_register(index);
+    LogRequestMsgModbus(RequestMsg(RequestMsgCodes::Read, index));
     RecordUARTActivity();
 #endif
     scopeState = nextState;
@@ -158,6 +172,7 @@ void ProtocolLogic::SendWriteRegister(uint8_t index, uint16_t value, ScopeState 
     SendWriteMsg(RequestMsg(RequestMsgCodes::Write, index, value));
 #else
     ext->post_write_mmu_register(index, value);
+    LogRequestMsgModbus(RequestMsg(RequestMsgCodes::Write, index, value));
     RecordUARTActivity();
 #endif
     scopeState = nextState;
@@ -232,7 +247,9 @@ StepStatus ProtocolLogic::ExpectingMessage() {
     return Processing;
 }
 #else
-StepStatus ProtocolLogic::ExpectingMessage2(const buddy::puppies::XBuddyExtension::MMUModbusRequest &mmr, const buddy::puppies::XBuddyExtension::MMUQueryRegisters &mqr, ResponseMsg &rsp, const RequestMsg &rq) {
+
+StepStatus ProtocolLogic::ExpectingMessage2(const buddy::puppies::XBuddyExtension::MMUModbusRequest &mmr,
+    const buddy::puppies::XBuddyExtension::MMUQueryRegisters &mqr, ResponseMsg &rsp, const RequestMsg &rq, uint8_t *rawMsg, uint8_t &rawMsgLen) {
     using namespace ftrstd;
     using namespace buddy::puppies;
 
@@ -244,36 +261,59 @@ StepStatus ProtocolLogic::ExpectingMessage2(const buddy::puppies::XBuddyExtensio
         RequestMsgCodes rmc = (mmr.u.read.address <= 3) ? RequestMsgCodes::Version : RequestMsgCodes::Read;
         ResponseMsgParamCodes rmpc = (mmr.u.read.accepted) ? ResponseMsgParamCodes::Accepted : ResponseMsgParamCodes::Rejected;
         rsp = ResponseMsg(RequestMsg(rmc, mmr.u.read.address), rmpc, mmr.u.read.value);
-        return MessageReady;
+
+        rawMsgLen = Protocol::EncodeResponseRead(rsp.request, mmr.u.read.accepted, mmr.u.read.value, rawMsg);
+        break;
     }
 
     case XBuddyExtension::MMUModbusRequest::RW::write_inactive: {
         ResponseMsgParamCodes rmpc = (mmr.u.write.accepted) ? ResponseMsgParamCodes::Accepted : ResponseMsgParamCodes::Rejected;
         rsp = ResponseMsg(RequestMsg(RequestMsgCodes::Write, mmr.u.write.address), rmpc, mmr.u.write.value);
-        return MessageReady;
+
+        rawMsgLen = Protocol::EncodeResponseCmdAR(rsp.request, rsp.paramCode, rawMsg);
+        break;
     }
 
-    case XBuddyExtension::MMUModbusRequest::RW::query_inactive:
+    case XBuddyExtension::MMUModbusRequest::RW::query_inactive: {
         rsp = ResponseMsg(
             RequestMsg((RequestMsgCodes)mqr.value.cip.bytes[0], mqr.value.cip.bytes[1]),
             (ResponseMsgParamCodes)mqr.value.commandStatus, mqr.value.pec);
-        return MessageReady;
 
-    case XBuddyExtension::MMUModbusRequest::RW::command_inactive:
+        rawMsgLen = Protocol::EncodeResponseQueryOperation(rsp.request, ResponseCommandStatus((ResponseMsgParamCodes)mqr.value.commandStatus, mqr.value.pec), rawMsg);
+        break;
+    }
+
+    case XBuddyExtension::MMUModbusRequest::RW::command_inactive: {
         rsp = ResponseMsg(
             RequestMsg((RequestMsgCodes)mqr.value.cip.bytes[0], mqr.value.cip.bytes[1]),
             (ResponseMsgParamCodes)mqr.value.commandStatus, mqr.value.pec // @@TODO pec is probably not ok unless we abuse it for 'L0 F1' - but that's not supported yet in the MMU code
         );
-        return MessageReady;
+
+        rawMsgLen = Protocol::EncodeResponseCmdAR(rsp.request, rsp.paramCode, rawMsg);
+        break;
+    }
 
     default:
-        return ProtocolError;
+        return ProtocolError; // not sure how to log an error when no raw bytes can be extracted anywhere ... probably just rely on MODBUS error logging?
     }
+
+    return MessageReady;
 }
 
 StepStatus ProtocolLogic::ExpectingMessage() {
     if (ext->mmu_response_received(lastUARTActivityMs)) {
-        return ExpectingMessage2(ext->mmu_modbus_rq(), ext->mmu_query_registers(), rsp, rq);
+        // Emulate logging of MMU protocol's ResponseMsg by reconstructing its bytes
+        // Unfortunately, there is not a single function for encoding - needs to be distinguished by ResponseMsg type
+        uint8_t rawMsg[Protocol::MaxResponseSize()];
+        uint8_t rawMsgLen = 0;
+
+        auto rv = ExpectingMessage2(ext->mmu_modbus_rq(), ext->mmu_query_registers(), rsp, rq, rawMsg, rawMsgLen);
+
+        char logMsg[Protocol::MaxResponseSize() + 2]; // +2 = '<' and the null terminator
+        FormatLastResponseMsg(logMsg, rawMsg, rawMsgLen);
+        LogResponseMsg(logMsg);
+
+        return rv;
     }
     if (Elapsed(linkLayerTimeout) && currentScope != Scope::Stopped) {
         return CommunicationTimeout;
@@ -330,6 +370,7 @@ void ProtocolLogic::SendCommand() {
     msg.bytes[0] = ftrstd::to_underlying(rq.code);
     msg.bytes[1] = rq.value;
     ext->post_write_mmu_register(253, msg.word);
+    LogRequestMsgModbus(rq);
     RecordUARTActivity();
 #endif
 }
@@ -853,9 +894,23 @@ void ProtocolLogic::FormatLastResponseMsgAndClearLRB(char *dst) {
     *dst = 0; // terminate properly
     lrb = 0; // reset the input buffer index in case of a clean message
 }
+#else
+void ProtocolLogic::FormatLastResponseMsg(char *dst, const uint8_t *msg, uint8_t len) {
+    *dst++ = '<';
+    for (uint8_t i = 0; i < len; ++i) {
+        uint8_t b = msg[i];
+        // Check for printable character, including space
+        if (b < 32 || b > 127) {
+            b = '.';
+        }
+        *dst++ = b;
+    }
+    *dst = 0; // terminate properly
+}
+#endif
 
 void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
-    constexpr uint_fast8_t rqs = modules::protocol::Protocol::MaxRequestSize() + 1;
+    constexpr uint_fast8_t rqs = Protocol::MaxRequestSize() + 1;
     char tmp[rqs] = ">";
     static char lastMsg[rqs] = "";
     for (uint8_t i = 0; i < size; ++i) {
@@ -879,9 +934,6 @@ void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
     }
     strncpy(lastMsg, tmp, rqs);
 }
-#else
-// MODBUS has it's own communication logging facilities
-#endif
 
 void ProtocolLogic::LogError(const char *reason_P) {
 #if HAS_MMU2_OVER_UART()

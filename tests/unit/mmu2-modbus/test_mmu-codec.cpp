@@ -3,6 +3,10 @@
 
 #include <catch2/catch.hpp>
 
+namespace MMU2 {
+void LogResponseMsg(const char *) {}
+} // namespace MMU2
+
 namespace buddy::puppies {
 PuppyModbus puppyModbus;
 
@@ -69,7 +73,9 @@ void CheckReadRegister(uint8_t address, uint16_t expectedRead) {
 
     // now run ExpectingMessage a couple of times to make sure a valid response got recoded into MMU protocol messages
     ResponseMsg rsp(RequestMsg(RequestMsgCodes::unknown, 0), ResponseMsgParamCodes::unknown, 0);
-    MMU2::ProtocolLogic::ExpectingMessage2(xbuddy_extension.mmuModbusRq, xbuddy_extension.mmuQuery, rsp, rq);
+    uint8_t rawMsg[Protocol::MaxResponseSize()];
+    uint8_t rawMsgLen = 0;
+    MMU2::ProtocolLogic::ExpectingMessage2(xbuddy_extension.mmuModbusRq, xbuddy_extension.mmuQuery, rsp, rq, rawMsg, rawMsgLen);
 
     if (address < 4) {
         CHECK(rsp.request.code == RequestMsgCodes::Version);
@@ -108,7 +114,9 @@ void CheckWriteRegister(uint8_t address, uint16_t value) {
 
     // now run ExpectingMessage a couple of times to make sure a valid response got recoded into MMU protocol messages
     ResponseMsg rsp(RequestMsg(RequestMsgCodes::unknown, 0), ResponseMsgParamCodes::unknown, 0);
-    MMU2::ProtocolLogic::ExpectingMessage2(xbuddy_extension.mmuModbusRq, xbuddy_extension.mmuQuery, rsp, rq);
+    uint8_t rawMsg[Protocol::MaxResponseSize()];
+    uint8_t rawMsgLen = 0;
+    MMU2::ProtocolLogic::ExpectingMessage2(xbuddy_extension.mmuModbusRq, xbuddy_extension.mmuQuery, rsp, rq, rawMsg, rawMsgLen);
 
     CHECK(rsp.request.code == RequestMsgCodes::Write);
     CHECK(rsp.request.value == address);
@@ -155,7 +163,9 @@ void CheckQuery(uint8_t command, uint8_t param, uint16_t commandStatus, uint16_t
 
     // now run ExpectingMessage a couple of times to make sure a valid response got recoded into MMU protocol messages
     ResponseMsg rsp(RequestMsg(RequestMsgCodes::unknown, 0), ResponseMsgParamCodes::unknown, 0);
-    MMU2::ProtocolLogic::ExpectingMessage2(xbuddy_extension.mmuModbusRq, xbuddy_extension.mmuQuery, rsp, rq);
+    uint8_t rawMsg[Protocol::MaxResponseSize()];
+    uint8_t rawMsgLen = 0;
+    MMU2::ProtocolLogic::ExpectingMessage2(xbuddy_extension.mmuModbusRq, xbuddy_extension.mmuQuery, rsp, rq, rawMsg, rawMsgLen);
 
     CHECK(rsp.request.code == (RequestMsgCodes)command);
     CHECK(rsp.request.value == param);
@@ -189,7 +199,9 @@ void CheckFailedWriteRegister(uint8_t address, uint16_t value) {
     // now run ExpectingMessage a couple of times to make sure a valid response got recoded into MMU protocol messages
     // this should end up into either rejected or timeout - and that needs to be distinguished properly
     ResponseMsg rsp(RequestMsg(RequestMsgCodes::unknown, 0), ResponseMsgParamCodes::unknown, 0);
-    MMU2::ProtocolLogic::ExpectingMessage2(xbuddy_extension.mmuModbusRq, xbuddy_extension.mmuQuery, rsp, rq);
+    uint8_t rawMsg[Protocol::MaxResponseSize()];
+    uint8_t rawMsgLen = 0;
+    MMU2::ProtocolLogic::ExpectingMessage2(xbuddy_extension.mmuModbusRq, xbuddy_extension.mmuQuery, rsp, rq, rawMsg, rawMsgLen);
 
     CHECK(rsp.request.code == RequestMsgCodes::Write);
     CHECK(rsp.request.value == address);
