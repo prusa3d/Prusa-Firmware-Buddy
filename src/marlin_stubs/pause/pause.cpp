@@ -536,8 +536,6 @@ void Pause::filament_push_ask_process(Response response) {
 #endif
             }
         }
-
-        return;
     }
 
     if (response == Response::Stop) {
