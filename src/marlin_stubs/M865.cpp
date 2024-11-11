@@ -7,10 +7,12 @@
  */
 
 /**
- *### M865: Configure ad-hoc filament
+ *### M865: Configure filament parameters
  *
  *#### Parameters
- * - `I` - Ad-hoc filament slot (indexed from 0)
+ * - `I<ix>` - Configure parameters of a Custom filament config for the specified tool (indexed from 0)
+ * - `U<ix>` - Configure parameters of a User filament (indexed from 0)
+ *
  * - `T` - Nozzle temperature
  * - `P` - Nozzle preheat temperature
  * - `B` - Bed temperature
@@ -27,12 +29,18 @@ void PrusaGcodeSuite::M865() {
         return;
     }
 
-    const auto slot = p.option<uint8_t>('I', static_cast<uint8_t>(0), static_cast<uint8_t>(adhoc_filament_type_count - 1));
-    if (!slot) {
+    FilamentType filament_type;
+
+    if (const auto slot = p.option<uint8_t>('I', static_cast<uint8_t>(0), static_cast<uint8_t>(adhoc_filament_type_count - 1))) {
+        filament_type = AdHocFilamentType { .tool = *slot };
+
+    } else if (const auto slot = p.option<uint8_t>('U', static_cast<uint8_t>(0), static_cast<uint8_t>(user_filament_type_count - 1))) {
+        filament_type = UserFilamentType { .index = *slot };
+
+    } else {
+        SERIAL_ERROR_MSG("Filament type invalid or not specified.");
         return;
     }
-
-    const FilamentType filament_type = AdHocFilamentType { .tool = *slot };
 
     FilamentTypeParameters params = filament_type.parameters();
 
