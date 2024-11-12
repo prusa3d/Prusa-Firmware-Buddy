@@ -539,7 +539,7 @@ struct CurrentStore
 #endif // HAS_I2C_EXPANDER()
 
 #if HAS_XBUDDY_EXTENSION()
-    StoreItem<uint8_t, 0, journal::hash("XBuddy Extension Chamber LEDs PWM")> xbuddy_extension_chamber_leds_pwm;
+    StoreItem<uint8_t, 255, journal::hash("XBuddy Extension Chamber LEDs PWM")> xbuddy_extension_chamber_leds_pwm;
 #endif
 };
 
