@@ -1,5 +1,6 @@
 #include "emergency_stop.hpp"
 #include <config_store/store_c_api.h>
+#include <common/adc.hpp>
 #include <common/power_panic.hpp>
 #include <module/stepper.h>
 #include <marlin_server.hpp>
@@ -45,7 +46,15 @@ namespace {
 } // namespace
 
 void EmergencyStop::step() {
-    const bool emergency = do_stop.load();
+    const auto sensor_value = AdcGet::door_sensor();
+    // The door sensor is returning approximate values of:
+    // 0: Door closed.
+    // 2048: Door open.
+    // 4096: Sensor missing.
+    //
+    // So, approximating door closed as < 1024 (middlepoint between optimal open vs close).
+    const bool emergency = sensor_value >= 1024;
+    do_stop.store(emergency);
     if (emergency) {
         if (start_z.has_value()) {
             const int32_t difference = std::abs(*start_z - current_z());
