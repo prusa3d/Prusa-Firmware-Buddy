@@ -4,31 +4,32 @@
 #include <Marlin/src/feature/input_shaper/input_shaper_config.hpp>
 #include <Marlin/src/feature/input_shaper/input_shaper.hpp>
 #include "WindowMenuItems.hpp"
-#include <window_menu_enum_switch.hpp>
+#include <gui/menu_item/menu_item_select_menu.hpp>
+#include <meta_utils.hpp>
 
 enum class InputShaperMenuItemChildClickParam {
     request_gui_update,
 };
 
-class MI_IS_X_TYPE : public WiEnumSwitch {
-    static constexpr const char *const label = N_("X-axis Filter");
+class MI_IS_TYPE : public MenuItemSelectMenu {
 
 public:
-    MI_IS_X_TYPE();
+    MI_IS_TYPE(AxisEnum axis);
+
+    void update();
+
+    int item_count() const final;
+    void build_item_text(int index, const std::span<char> &buffer) const final;
 
 protected:
-    void OnChange(size_t old_index) override;
+    bool on_item_selected(int old_index, int new_index) override;
+
+private:
+    const AxisEnum axis_;
 };
 
-class MI_IS_Y_TYPE : public WiEnumSwitch {
-    static constexpr const char *const label = N_("Y-axis Filter");
-
-public:
-    MI_IS_Y_TYPE();
-
-protected:
-    void OnChange(size_t old_index) override;
-};
+using MI_IS_X_TYPE = WithConstructorArgs<MI_IS_TYPE, X_AXIS>;
+using MI_IS_Y_TYPE = WithConstructorArgs<MI_IS_TYPE, Y_AXIS>;
 
 class MI_IS_X_FREQUENCY : public WiSpin {
     static constexpr const char *const label = N_("X-axis Freq.");

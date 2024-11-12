@@ -5,9 +5,9 @@
 
 #include "screen_toolhead_settings_common.hpp"
 
-#include <window_menu_enum_switch.hpp>
 #include <config_store/store_definition.hpp>
 #include <option/has_mmu2.h>
+#include <gui/menu_item/menu_item_select_menu.hpp>
 
 #if HAS_MMU2()
     #include <MItem_mmu.hpp>
@@ -30,9 +30,15 @@ public:
 
 #if HAS_HOTEND_TYPE_SUPPORT()
 // TODO: This should be migrated into MI_TOOLHEAD_SPECIFIC, but the config store stores it as a single flag, so no need for now
-class MI_HOTEND_TYPE : public WiStoreEnumSwitch<&config_store_ns::CurrentStore::hotend_type> {
+class MI_HOTEND_TYPE : public MenuItemSelectMenu {
 public:
     MI_HOTEND_TYPE();
+
+    int item_count() const final;
+    void build_item_text(int index, const std::span<char> &buffer) const final;
+
+protected:
+    bool on_item_selected(int old_index, int new_index) override;
 };
 
 // TODO: This should be migrated into MI_TOOLHEAD_SPECIFIC, but the config store stores it as a single flag, so no need for now

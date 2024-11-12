@@ -162,7 +162,7 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(
     for (const auto dock : DOCKS) {
         const auto puppy_type = to_puppy_type(dock);
         if (puppy_type == DWARF && dock != Dock::DWARF_1) {
-            fingerprints.get_fingerprint(dock) = fingerprints.get_fingerprint(dock);
+            fingerprints.get_fingerprint(dock) = fingerprints.get_fingerprint(Dock::DWARF_1);
         } else {
             unique_file_ptr fw_file = get_firmware(puppy_type);
             const off_t fw_size = get_firmware_size(puppy_type);

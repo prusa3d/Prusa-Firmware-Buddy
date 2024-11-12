@@ -47,14 +47,12 @@ static constexpr EnumArray<Type, const char *, ftrstd::to_underlying(Type::cnt)>
     { Type::null, "NUL" }
 };
 
-static constexpr EnumArray<Type, bool, ftrstd::to_underlying(Type::cnt)> enabled_filters {
-    { Type::zv, false },
-    { Type::zvd, true },
-    { Type::mzv, true },
-    { Type::ei, true },
-    { Type::ei_2hump, false },
-    { Type::ei_3hump, false },
-    { Type::null, true }
+/// Ordered and filtered filter list, for UI purposes
+static constexpr std::array filter_list {
+    Type::zvd,
+    Type::mzv,
+    Type::ei,
+    Type::null,
 };
 
 static constexpr uint8_t low_freq_limit_hz = 35;

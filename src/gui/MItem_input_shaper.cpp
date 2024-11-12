@@ -3,31 +3,42 @@
 #include "ScreenHandler.hpp"
 #include <MItem_tools.hpp>
 #include <window_msgbox.hpp>
+#include <common/utils/algorithm_extensions.hpp>
 
-MI_IS_X_TYPE::MI_IS_X_TYPE()
-    : WiEnumSwitch(/* index is set in ScreenMenuInputShaper::update_gui*/ _(label), input_shaper::filter_names, false, input_shaper::enabled_filters) {
+static constexpr std::array<const char *, 2> is_type_names {
+    N_("X-axis Filter"),
+    N_("Y-axis Filter"),
+};
+
+MI_IS_TYPE::MI_IS_TYPE(AxisEnum axis)
+    : MenuItemSelectMenu(_(is_type_names[axis]))
+    , axis_(axis) //
+{
+    update();
 }
 
-void MI_IS_X_TYPE::OnChange(size_t) {
-    auto axis_x = config_store().input_shaper_axis_x_config.get();
-    axis_x.type = static_cast<input_shaper::Type>(GetIndex());
-    config_store().input_shaper_axis_x_config.set(axis_x);
+void MI_IS_TYPE::update() {
+    const auto type = config_store().get_input_shaper_axis_config(axis_).type;
+    set_current_item(stdext::index_of(input_shaper::filter_list, type));
+}
+
+int MI_IS_TYPE::item_count() const {
+    return input_shaper::filter_list.size();
+}
+
+void MI_IS_TYPE::build_item_text(int index, const std::span<char> &buffer) const {
+    _(input_shaper::filter_names[input_shaper::filter_list[index]]).copyToRAM(buffer);
+}
+
+bool MI_IS_TYPE::on_item_selected([[maybe_unused]] int old_index, int new_index) {
+    auto config = config_store().get_input_shaper_axis_config(axis_);
+    config.type = input_shaper::filter_list[new_index];
+    config_store().set_input_shaper_axis_config(axis_, config);
 
     // Make the input shaper reload config from config_store
     gui_try_gcode_with_msg("M9200");
-}
 
-MI_IS_Y_TYPE::MI_IS_Y_TYPE()
-    : WiEnumSwitch(/* set in ScreenMenuInputShaper::update_gui*/ _(label), input_shaper::filter_names, false, input_shaper::enabled_filters) {
-}
-
-void MI_IS_Y_TYPE::OnChange(size_t) {
-    auto axis_y = config_store().input_shaper_axis_y_config.get();
-    axis_y.type = static_cast<input_shaper::Type>(GetIndex());
-    config_store().input_shaper_axis_y_config.set(axis_y);
-
-    // Make the input shaper reload config from config_store
-    gui_try_gcode_with_msg("M9200");
+    return true;
 }
 
 static constexpr NumericInputConfig is_frequency_spin_config {

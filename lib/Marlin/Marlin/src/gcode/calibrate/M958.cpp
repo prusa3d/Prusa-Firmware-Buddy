@@ -8,6 +8,8 @@
  */
 #include "M958.hpp"
 
+#include <algorithm>
+
 #include "../../inc/MarlinConfig.h"
 #include "../gcode.h"
 #include "../../module/planner.h"
@@ -35,7 +37,6 @@ static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 
 // #define M958_OUTPUT_SAMPLES
 // #define M958_VERBOSE
-
 
 LOG_COMPONENT_REF(Marlin);
 
@@ -1184,7 +1185,7 @@ static input_shaper::AxisConfig find_best_shaper(const FindBestShaperProgressHoo
     std::optional<Best_score> best_shaper;
 
     for (input_shaper::Type shaper_type = input_shaper::Type::first; shaper_type <= input_shaper::Type::last; ++shaper_type) {
-        if (shaper_type == input_shaper::Type::null || !input_shaper::enabled_filters[ftrstd::to_underlying(shaper_type)]) {
+        if (shaper_type == input_shaper::Type::null || !std::ranges::contains(input_shaper::filter_list, shaper_type)) {
             continue;
         }
 

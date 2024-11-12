@@ -47,6 +47,7 @@ target_sources(
           screen_dialog_does_not_exist.cpp
           screen_filebrowser.cpp
           screen_hardfault.cpp
+          screen_help_fw_update.cpp
           screen_home.cpp
           screen_menu.cpp
           screen_menu_cancel_object.cpp
@@ -167,14 +168,6 @@ if(HAS_MMU2)
             screen_menu_mmu_preload_to_mmu.cpp
             screen_tools_mapping.cpp
     )
-endif()
-
-if(PRINTER STREQUAL "MK4"
-   OR PRINTER STREQUAL "MK3.5"
-   OR PRINTER STREQUAL "XL"
-   OR PRINTER STREQUAL "MINI"
-   )
-  target_sources(firmware PRIVATE screen_help_fw_update.cpp)
 endif()
 
 if(PRINTER STREQUAL "MK4" OR PRINTER STREQUAL "MK3.5")

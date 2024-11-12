@@ -841,6 +841,36 @@ void CurrentStore::set_input_shaper_config(const input_shaper::Config &config) {
     }
 }
 
+input_shaper::AxisConfig CurrentStore::get_input_shaper_axis_config(AxisEnum axis) {
+    switch (axis) {
+
+    case X_AXIS:
+        return input_shaper_axis_x_config.get();
+
+    case Y_AXIS:
+        return input_shaper_axis_y_config.get();
+
+    default:
+        std::abort();
+    }
+}
+
+void CurrentStore::set_input_shaper_axis_config(AxisEnum axis, const input_shaper::AxisConfig &config) {
+    switch (axis) {
+
+    case X_AXIS:
+        input_shaper_axis_x_config.set(config);
+        break;
+
+    case Y_AXIS:
+        input_shaper_axis_y_config.set(config);
+        break;
+
+    default:
+        std::abort();
+    }
+}
+
 #if HAS_PHASE_STEPPING()
 bool CurrentStore::get_phase_stepping_enabled(AxisEnum axis) {
     switch (axis) {
@@ -870,4 +900,5 @@ void CurrentStore::set_phase_stepping_enabled(AxisEnum axis, bool new_state) {
     }
 }
 #endif
+
 } // namespace config_store_ns

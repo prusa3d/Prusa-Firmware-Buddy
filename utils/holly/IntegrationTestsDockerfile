@@ -14,7 +14,8 @@ RUN apt-get clean && \
 
 WORKDIR /work
 ADD utils/bootstrap.py utils/bootstrap.py
-ADD utils/debug/10_custom_config.cfg utils/debug/10_custom_config.cfg
+ADD utils/debug/10_custom_config_defaults.cfg utils/debug/10_custom_config_defaults.cfg
+RUN touch utils/debug/10_custom_config_overrides.cfg
 ADD requirements.txt requirements.txt
 ADD utils/debug utils/debug
 RUN python3 utils/bootstrap.py && rm -rf utils
