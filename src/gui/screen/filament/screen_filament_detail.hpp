@@ -105,7 +105,7 @@ public:
     };
 
     struct Params {
-        EncodedFilamentType filament_type;
+        FilamentType filament_type;
         Mode mode = Mode::standard;
     };
 

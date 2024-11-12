@@ -115,9 +115,9 @@ void WindowMenuPreheat::setup_item(ItemVariant &variant, int index) {
         break;
 
     case Item::adhoc_filament: {
-        const auto callback = [this] {
+        const auto callback = [] {
             const ScreenFilamentDetail::Params params {
-                .filament_type = FilamentType(AdHocFilamentType { .tool = extruder_index }),
+                .filament_type = FilamentType(PendingAdHocFilamentType {}),
                 .mode = ScreenFilamentDetail::Mode::preheat,
             };
             Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenFilamentDetail>(params));
