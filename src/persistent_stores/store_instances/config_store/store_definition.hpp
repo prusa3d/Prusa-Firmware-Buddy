@@ -495,6 +495,9 @@ struct CurrentStore
     input_shaper::Config get_input_shaper_config();
     void set_input_shaper_config(const input_shaper::Config &);
 
+    input_shaper::AxisConfig get_input_shaper_axis_config(AxisEnum axis);
+    void set_input_shaper_axis_config(AxisEnum axis, const input_shaper::AxisConfig &);
+
 #if PRINTER_IS_PRUSA_MK3_5()
     StoreItem<bool, false, journal::hash("Has Alt Fans")> has_alt_fans;
 #endif

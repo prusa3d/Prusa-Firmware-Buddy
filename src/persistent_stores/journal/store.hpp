@@ -5,7 +5,6 @@
  */
 
 #include <cstring>
-#include "common/extract_member_pointer.hpp"
 #include "store_item.hpp"
 #include <tuple>
 #include <algorithm>

@@ -14,7 +14,7 @@ LOG_COMPONENT_REF(connect);
 
 namespace {
 
-inline constexpr uint8_t SOCKET_TIMEOUT_SEC = 5;
+inline constexpr uint8_t SOCKET_TIMEOUT_SEC = 60;
 
 }
 

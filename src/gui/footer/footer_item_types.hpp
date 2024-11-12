@@ -77,7 +77,7 @@ using FooterItemMappings = TypeList< //
     //
     >;
 
-static_assert(FooterItemMappings::size == ftrstd::to_underlying(Item::_count) - 1 /* Item::none */ - disabled_items.size());
+static_assert(FooterItemMappings::size == item_list.size());
 
 template <typename... Rec>
 struct ItemVariantDef;

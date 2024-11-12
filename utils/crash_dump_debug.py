@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # This script makes it easier to debug crash dumps
 # It launches GDB and loads crash dump, then you can use GDB as you normally would to debug crash dump
 

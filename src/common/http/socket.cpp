@@ -127,12 +127,18 @@ std::variant<size_t, Error> socket_con::tx(const uint8_t *send_buffer, size_t da
     int status = lwip_send(fd, (const unsigned char *)send_buffer, data_len, 0);
 
     if (status < 0) {
-        log_info(socket, "lwip send failed with: %d", status);
-        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+        // Store errno, as the log_error may replace it.
+        int e = errno;
+        log_error(socket, "lwip send failed with: %d, errno: %d", status, e);
+#pragma GCC diagnostic push
+        // On some systems, EWOULDBLOCK and EAGAIN have the same value (and produce a warning), on some others they are different and need checking for both.
+#pragma GCC diagnostic ignored "-Wlogical-op"
+        if (e == EWOULDBLOCK || e == EAGAIN) {
             return Error::Timeout;
         } else {
             return Error::Network;
         }
+#pragma GCC diagnostic pop
     }
 
     bytes_sent = (size_t)status;
@@ -152,11 +158,18 @@ std::variant<size_t, Error> socket_con::rx(uint8_t *read_buffer, size_t buffer_l
     int status = lwip_recv(fd, (unsigned char *)read_buffer, buffer_len, flags);
 
     if (status < 0) {
-        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+        // Store errno, as the log_error may replace it.
+        int e = errno;
+        log_error(socket, "lwip recv failed with: %d, errno: %d", status, e);
+#pragma GCC diagnostic push
+        // On some systems, EWOULDBLOCK and EAGAIN have the same value (and produce a warning), on some others they are different and need checking for both.
+#pragma GCC diagnostic ignored "-Wlogical-op"
+        if (e == EWOULDBLOCK || e == EAGAIN) {
             return Error::Timeout;
         } else {
             return Error::Network;
         }
+#pragma GCC diagnostic pop
     }
 
     bytes_received = (size_t)status;

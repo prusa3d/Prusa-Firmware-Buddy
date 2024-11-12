@@ -29,7 +29,6 @@ target_sources(
           window_menu.cpp
           window_menu_adv.cpp
           window_menu_bar.cpp
-          window_menu_enum_switch.cpp
           window_menu_virtual.cpp
           window_msgbox.cpp
           window_numb.cpp
