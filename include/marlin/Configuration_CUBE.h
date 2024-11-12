@@ -1138,16 +1138,16 @@
 
 // The size of the print bed
 #define X_BED_SIZE 250
-#define Y_BED_SIZE 210
+#define Y_BED_SIZE 220
 #define Z_SIZE 275
 
 // Travel limits (mm) after homing, corresponding to endstop positions. defaul x -2.5 y -7.3
 #define X_MIN_POS -1
-#define Y_MIN_POS -23
+#define Y_MIN_POS -16
 #define Z_MIN_POS 0
 #define X_MAX_POS (X_BED_SIZE + 2)
 #define Y_MAX_PRINT_POS (Y_BED_SIZE) // maximal print area Y position
-#define Y_MAX_POS (Y_BED_SIZE + 2)
+#define Y_MAX_POS (Y_BED_SIZE + 1)
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     #define DEFAULT_Z_MAX_POS Z_SIZE
     #define Z_MIN_LEN_LIMIT 1
@@ -1456,7 +1456,7 @@
     #define DETECT_PRINT_SHEET
     #if ENABLED(DETECT_PRINT_SHEET)
         #define DETECT_PRINT_SHEET_X_POINT (245)
-        #define DETECT_PRINT_SHEET_Y_POINT (-5)
+        #define DETECT_PRINT_SHEET_Y_POINT (0)
         #define DETECT_PRINT_SHEET_Z_POINT (-1)
         #define DETECT_PRINT_SHEET_Z_AFTER_FAILURE (100)
     #endif
