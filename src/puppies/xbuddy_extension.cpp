@@ -231,8 +231,8 @@ XBuddyExtension::MMUModbusRequest XBuddyExtension::MMUModbusRequest::make_query(
 
 XBuddyExtension::MMUModbusRequest XBuddyExtension::MMUModbusRequest::make_command(uint8_t command, uint8_t param) {
     MMUModbusRequest request;
-    request.u.command.u.command = command;
-    request.u.command.u.param = param;
+    request.u.command.u.s.command = command;
+    request.u.command.u.s.param = param;
     request.rw = RW::command;
     return request;
 }
@@ -289,15 +289,28 @@ CommunicationStatus XBuddyExtension::refresh_mmu() {
         mmuModbusRq.rw = MMUModbusRequest::RW::command_inactive; // deactivate as it will be processed shortly
         bool dirty = true; // force send the MODBUS message
         log_info(MMU2, "command");
-        auto rv = bus.write_holding(mmuUnitNr, &mmuModbusRq.u.command.cp, 1, mmuCommandInProgressRegisterAddress, dirty);
+        auto rv = bus.write_holding(mmuUnitNr, &mmuModbusRq.u.command.u.cp, 1, mmuCommandInProgressRegisterAddress, dirty);
         if (rv != CommunicationStatus::OK) {
+            // log_info(MMU2, "command failed");
             return rv;
         }
 
-        // now read back command status - via the query registers
-        rv = bus.read(mmuUnitNr, mmuQuery, 0);
+        // log_info(MMU2, "command query result");
+
+        // This is an ugly hack:
+        // - First push sent command into local registers' copy - the MMU would respond with it anyway and protcol_logic expects it to be there.
+        // - Then read back just the command status (register 254).
+        //   Do not issue the Query directly (which would happen by querying register set 253-255)
+        //   as it would send a Q0 into the MMU which would replace the command accepted/rejected in register 254.
+        //
+        // Beware: this command's round-trip may span over 10-20 ms which is close to the MODBUS timeout which is being used for the MMU protocol_logic as well.
+        // If the round-trips become longer, MMU protocol_logic must get a larger timeout in mmu_response_received (should cause no harm afterall)
+        mmuQuery.value.cip.word = mmuModbusRq.u.command.u.cp;
+        rv = bus.read_holding(mmuUnitNr, &mmuQuery.value.commandStatus, 1, mmuCommandStatusRegisterAddress, mmuModbusRq.timestamp_ms, 0);
+
         if (rv == CommunicationStatus::OK) {
-            mmuModbusRq.timestamp_ms = mmuQuery.last_read_timestamp_ms;
+            // log_info(MMU2, "command query result ok");
+            // timestamp_ms has been updated by bus.read_holding
             mmuValidResponseReceived = true;
         } // otherwise ignore the timestamp, MMU state machinery will time out on its own
         return rv;
@@ -315,7 +328,9 @@ bool XBuddyExtension::mmu_response_received(uint32_t rqSentTimestamp_ms) const {
         td = ticks_diff(mmuModbusRq.timestamp_ms, rqSentTimestamp_ms);
     }
 
-    log_info(MMU2, "mmu_response_received mmr.ts=%" PRIu32 " rqst=%" PRIu32 " td=%" PRIi32, mmuModbusRq.timestamp_ms, rqSentTimestamp_ms, td);
+    if (td >= 0) {
+        log_info(MMU2, "mmu_response_received mmr.ts=%" PRIu32 " rqst=%" PRIu32 " td=%" PRIi32, mmuModbusRq.timestamp_ms, rqSentTimestamp_ms, td);
+    } // else drop negative time differences - avoid flooding the syslog
     return mmuValidResponseReceived && td >= 0 && td < PuppyModbus::MODBUS_READ_TIMEOUT_MS;
 }
 

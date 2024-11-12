@@ -63,10 +63,12 @@ public:
             } query;
             struct Command {
                 union {
-                    uint8_t command;
-                    uint8_t param;
+                    struct {
+                        uint8_t command;
+                        uint8_t param;
+                    } s;
+                    uint16_t cp; // command and param combined, because that's what's flying over the wire in a single register
                 } u;
-                uint16_t cp; // command and param combined, because that's what's flying over the wire in a single register
             } command;
         } u;
         enum class RW : uint8_t {

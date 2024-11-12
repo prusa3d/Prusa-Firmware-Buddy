@@ -289,7 +289,13 @@ StepStatus ProtocolLogic::ExpectingMessage2(const buddy::puppies::XBuddyExtensio
             (ResponseMsgParamCodes)mqr.value.commandStatus, mqr.value.pec // @@TODO pec is probably not ok unless we abuse it for 'L0 F1' - but that's not supported yet in the MMU code
         );
 
-        rawMsgLen = Protocol::EncodeResponseCmdAR(rsp.request, rsp.paramCode, rawMsg);
+        // just for the purpose of logging, match the command response to the emitted command
+        // otherwise it looks like this:
+        // >L0*73.
+        // <Wfd A*95.
+        // which is technically correct (a command is a write to register 253 when running over MODBUS)
+        // but incorrect in terms of the MMU protocol handshake -> would make later comm analyses harder
+        rawMsgLen = Protocol::EncodeResponseCmdAR(/*RequestMsg((RequestMsgCodes)mmr.u.command.u.command, mmr.u.command.u.param)*/ rsp.request, rsp.paramCode, rawMsg);
         break;
     }
 
@@ -362,14 +368,7 @@ void ProtocolLogic::SendCommand() {
 #if HAS_MMU2_OVER_UART()
     SendMsg(rq);
 #else
-    // write into a virtual register on the ext board
-    union {
-        uint8_t bytes[2];
-        uint16_t word;
-    } msg;
-    msg.bytes[0] = ftrstd::to_underlying(rq.code);
-    msg.bytes[1] = rq.value;
-    ext->post_write_mmu_register(253, msg.word);
+    ext->post_command_mmu(ftrstd::to_underlying(rq.code), rq.value);
     LogRequestMsgModbus(rq);
     RecordUARTActivity();
 #endif
