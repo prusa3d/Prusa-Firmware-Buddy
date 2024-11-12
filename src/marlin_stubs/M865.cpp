@@ -36,6 +36,9 @@ void PrusaGcodeSuite::M865() {
 
     if (const auto slot = p.option<uint8_t>('I', static_cast<uint8_t>(0), static_cast<uint8_t>(adhoc_filament_type_count - 1))) {
         filament_type = AdHocFilamentType { .tool = *slot };
+        if (config_store().get_filament_type(*slot) != filament_type) {
+            SERIAL_ERROR_MSG("The selected tool does not have the ad-hoc filament loaded. Changes will have no effect.");
+        }
 
     } else if (p.option<bool>('X').value_or(false)) {
         filament_type = PendingAdHocFilamentType {};
@@ -47,7 +50,6 @@ void PrusaGcodeSuite::M865() {
         SERIAL_ERROR_MSG("Filament type invalid or not specified.");
         return;
     }
-
     FilamentTypeParameters params = filament_type.parameters();
 
     if (p.option<bool>('R').value_or(false)) {
