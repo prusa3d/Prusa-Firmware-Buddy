@@ -41,7 +41,7 @@ const char project_firmware_name[] = "Buddy_MK3_5";
 #elif PRINTER_IS_PRUSA_iX()
 const char project_firmware_name[] = "Buddy_iX";
 #elif PRINTER_IS_PRUSA_CUBE()
-const char project_firmware_name[] = "Buddy_CUBE";
+const char project_firmware_name[] = "Buddy_CORE_ONE";
 #else
     #error "Unknown PRINTER_TYPE."
 #endif

@@ -24,7 +24,7 @@ enum {
 #elif PRINTER_IS_PRUSA_MINI()
     #define LAN_HOSTNAME_DEF "prusa-mini"
 #elif PRINTER_IS_PRUSA_CUBE()
-    #define LAN_HOSTNAME_DEF "prusa-cube"
+    #define LAN_HOSTNAME_DEF "prusa-core-one"
 #else
     #error Unsupported printer
 #endif

@@ -120,10 +120,10 @@ inline constexpr std::array printer_model_info {
         .model = PrinterModel::cube,
         .compatibility_group = PrinterModelCompatibilityGroup::cube,
         .version = { 7, 1, 0 },
-        .help_url = "cube",
+        .help_url = "core-one",
         .usb_pid = 31,
         .gcode_check_code = 310,
-        .id_str = "CUBE",
+        .id_str = "COREONE",
     },
 };
 
@@ -171,7 +171,7 @@ inline constexpr std::array printer_model_mmu_variant {
     PrinterModelMMUVariant {
         .model = PrinterModel::cube,
         .gcode_check_code = 30310,
-        .id_str = "CUBEMMU3",
+        .id_str = "COREONEMMU3",
     },
 };
 
