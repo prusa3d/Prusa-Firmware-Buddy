@@ -651,7 +651,7 @@ void Pause::purge_process([[maybe_unused]] Response response) {
         return;
     }
 
-    setPhase(PhasesLoadUnload::IsColor, 99);
+    setPhase(load_type == LoadType::load_purge ? PhasesLoadUnload::IsColorPurge : PhasesLoadUnload::IsColor, 99);
     set(LoadState::color_correct_ask);
     handle_filament_removal(LoadState::filament_push_ask);
 }
