@@ -583,7 +583,6 @@ void hal::init() {
     enable_fans();
     mmu_pins_init();
     mmu::nreset_pin_set(false);
-    mmu::power_pin_set(true);
     usb_pins_init();
 }
 
