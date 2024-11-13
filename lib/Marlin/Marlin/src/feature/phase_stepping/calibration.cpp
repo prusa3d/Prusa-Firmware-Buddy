@@ -721,6 +721,46 @@ PrinterCalibrationConfig phase_stepping::get_printer_calibration_config() {
         .calib_revs = 0.5f,
         .phases = std::vector(phases.begin(), phases.end()),
     };
+#elif PRINTER_IS_PRUSA_CUBE()
+    static constexpr std::array phases = {
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 1.f,
+            .pha = 0.f,
+            .pha_window = 3.f,
+            .mag = 0.01f,
+            .mag_window = 0.04f,
+            .iteration_count = 10,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 0.5f,
+            .pha = 0.f,
+            .pha_window = 6.f,
+            .mag = 0.0025f,
+            .mag_window = 0.0025f,
+            .iteration_count = 10,
+        },
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 1.f,
+            .pha_window = .5f,
+            .mag_window = 0.01f,
+            .iteration_count = 16,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 0.5f,
+            .pha_window = 0.5f,
+            .mag_window = 0.001f,
+            .iteration_count = 16,
+        },
+    };
+
+    return PrinterCalibrationConfig {
+        .calib_revs = 0.5f,
+        .phases = std::vector(phases.begin(), phases.end()),
+    };
 #else
     #error "Unsupported printer"
 #endif
