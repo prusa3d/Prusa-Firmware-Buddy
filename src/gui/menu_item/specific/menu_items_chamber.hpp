@@ -9,6 +9,7 @@ public:
 
 protected:
     virtual void OnClick() override;
+    virtual void Loop() override;
 };
 
 class MI_CHAMBER_TEMP : public MenuItemAutoUpdatingLabel<float> {

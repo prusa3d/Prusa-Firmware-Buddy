@@ -28,6 +28,8 @@ private:
     static bool ever_been_opened; // set by ctor
     static bool try_esp_flash; // we try this maximum once
 
+    std::array<char, 32> header_text;
+
     bool usbInserted;
     bool event_in_progress { false };
     bool first_event { true };

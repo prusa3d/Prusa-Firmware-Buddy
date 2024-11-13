@@ -10,8 +10,6 @@ target_sources(
           selftest_frame_result.cpp
           selftest_frame_revise_printer_setup.cpp
           selftest_frame_temp.cpp
-          selftest_frame_wizard_epilogue.cpp
-          selftest_frame_wizard_prologue.cpp
           selftest_group.cpp
           selftest_invalid_state.cpp
           selftest_result_axis.cpp
