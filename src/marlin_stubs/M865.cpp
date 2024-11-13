@@ -13,7 +13,9 @@
  * - `I<ix>` - Configure parameters of a Custom filament currently loaded to the specified tool (indexed from 0)
  * - `U<ix>` - Configure parameters of a User filament (indexed from 0)
  * - `X` - Configure parameters of a Custom filament type that will be loaded using `M600 F"##"` (or similar filament change gcode)
- * - `F"<preset>"` - Configure parameters of User filament with this name
+ * - `F"<preset>"` - Configure parameters of User filament with this name  (or select Preset filament for `L`)
+ *
+ * - `L<ix>` - Set currently loaded filament for the given tool to the selected filament
  *
  * - `R` - Reset parameters not specified in this gcode to defaults
  *
@@ -54,6 +56,7 @@ void PrusaGcodeSuite::M865() {
         SERIAL_ERROR_MSG("Filament type invalid or not specified.");
         return;
     }
+
     FilamentTypeParameters params = filament_type.parameters();
 
     if (p.option<bool>('R').value_or(false)) {
@@ -92,6 +95,10 @@ void PrusaGcodeSuite::M865() {
 
     if (filament_type.is_customizable()) {
         filament_type.set_parameters(params);
+    }
+
+    if (auto load = p.option<uint8_t>('L', static_cast<uint8_t>(0), static_cast<uint8_t>(EXTRUDERS))) {
+        config_store().set_filament_type(*load, filament_type);
     }
 }
 
