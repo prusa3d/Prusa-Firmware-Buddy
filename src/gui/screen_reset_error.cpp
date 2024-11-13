@@ -24,7 +24,7 @@ ScreenResetError::ScreenResetError(const Rect16 &fw_version_rect)
     /// (fw version full string) [fw signed][appendix]
     const char *signed_str = signature_exist() ? "[S]" : "";
     const char *apendix_str = appendix_exist() ? "[A]" : "";
-    StringBuilder(fw_version_str).append_printf("%s %s %s%s", version::project_version_full, PRINTER_MODEL, signed_str, apendix_str);
+    StringBuilder(fw_version_str).append_printf("%s %s %s%s", version::project_version_full, PrinterModelInfo::current().id_str, signed_str, apendix_str);
     fw_version_txt.SetText(string_view_utf8::MakeRAM(fw_version_str.data()));
 }
 
