@@ -13,6 +13,7 @@
  * - `I<ix>` - Configure parameters of a Custom filament currently loaded to the specified tool (indexed from 0)
  * - `U<ix>` - Configure parameters of a User filament (indexed from 0)
  * - `X` - Configure parameters of a Custom filament type that will be loaded using `M600 F"##"` (or similar filament change gcode)
+ * - `F"<preset>"` - Configure parameters of User filament with this name
  *
  * - `R` - Reset parameters not specified in this gcode to defaults
  *
@@ -21,7 +22,7 @@
  * - `B` - Bed temperature
  * - `A` - Is abrasive
  * - `F` - Requries filtration
- * - `N"<string>"` - Filament name
+ * - `N"<string>"` - New filament name
  *
  * Ad-hoc/custom filaments can the be referenced in other gcodes using adhoc_filament_gcode_prefix.
  * For example `M600 S"#0"` will load ad-hoc filament previously set with `M865 I0`.
@@ -45,6 +46,9 @@ void PrusaGcodeSuite::M865() {
 
     } else if (const auto slot = p.option<uint8_t>('U', static_cast<uint8_t>(0), static_cast<uint8_t>(user_filament_type_count - 1))) {
         filament_type = UserFilamentType { .index = *slot };
+
+    } else if (const auto ft = p.option<FilamentType>('F')) {
+        filament_type = *ft;
 
     } else {
         SERIAL_ERROR_MSG("Filament type invalid or not specified.");
@@ -86,9 +90,9 @@ void PrusaGcodeSuite::M865() {
         }
     }
 
-    filament_type.modify_parameters([&params](auto &target) {
-        target = params;
-    });
+    if (filament_type.is_customizable()) {
+        filament_type.set_parameters(params);
+    }
 }
 
 /** @}*/
