@@ -22,6 +22,10 @@ public: // Common/utilities
         bool heating = false;
         bool cooling = false;
 
+        /// Always show temperature control, even if temperature_control() == false
+        /// In that situation, the temperature control widgets will be visible, but disabled
+        bool always_show_temperature_control = false;
+
         inline bool temperature_control() const {
             return heating || cooling;
         }
