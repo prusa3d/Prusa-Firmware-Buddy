@@ -223,10 +223,6 @@ bool CSelftest::Start(const uint64_t test_mask, const TestData test_data) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
     }
 
-    // dont show message about footer and do not wait response
-    m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
-    m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo_wait_user)));
-
     if (std::holds_alternative<FirstLayerCalibrationData>(test_data)) {
         this->previous_sheet_index = std::get<FirstLayerCalibrationData>(test_data).previous_sheet;
     } else {
@@ -249,32 +245,8 @@ void CSelftest::Loop() {
     case stsStart:
         phaseStart();
         break;
-    case stsPrologueAskRun:
-        marlin_server::fsm_change(GuiDefaults::ShowDevelopmentTools ? PhasesSelftest::WizardPrologue_ask_run_dev : PhasesSelftest::WizardPrologue_ask_run);
-        break;
-    case stsPrologueAskRun_wait_user:
-        if (phaseWaitUser(GuiDefaults::ShowDevelopmentTools ? PhasesSelftest::WizardPrologue_ask_run_dev : PhasesSelftest::WizardPrologue_ask_run)) {
-            return;
-        }
-        break;
     case stsSelftestStart:
         phaseSelftestStart();
-        break;
-    case stsPrologueInfo:
-        marlin_server::fsm_change(PhasesSelftest::WizardPrologue_info);
-        break;
-    case stsPrologueInfo_wait_user:
-        if (phaseWaitUser(PhasesSelftest::WizardPrologue_info)) {
-            return;
-        }
-        break;
-    case stsPrologueInfoDetailed:
-        marlin_server::fsm_change(PhasesSelftest::WizardPrologue_info_detailed);
-        break;
-    case stsPrologueInfoDetailed_wait_user:
-        if (phaseWaitUser(PhasesSelftest::WizardPrologue_info_detailed)) {
-            return;
-        }
         break;
     case stsFans:
         if (selftest::phaseFans(pFans, fans_configs)) {
@@ -361,18 +333,6 @@ void CSelftest::Loop() {
     case stsDidSelftestPass:
         phaseDidSelftestPass();
         break;
-    case stsEpilogue_nok:
-        if (SelftestResult_Failed(m_result)) {
-            marlin_server::fsm_change(PhasesSelftest::WizardEpilogue_nok);
-        }
-        break;
-    case stsEpilogue_nok_wait_user:
-        if (SelftestResult_Failed(m_result)) {
-            if (phaseWaitUser(PhasesSelftest::WizardEpilogue_nok)) {
-                return;
-            }
-        }
-        break;
     case stsShow_result:
         phaseShowResult();
         break;
@@ -384,18 +344,6 @@ void CSelftest::Loop() {
     case stsResult_wait_user:
         if (phaseWaitUser(PhasesSelftest::Result)) {
             return;
-        }
-        break;
-    case stsEpilogue_ok:
-        if (SelftestResult_Passed_All(m_result)) {
-            marlin_server::fsm_change(PhasesSelftest::WizardEpilogue_ok);
-        }
-        break;
-    case stsEpilogue_ok_wait_user:
-        if (SelftestResult_Passed_All(m_result)) {
-            if (phaseWaitUser(PhasesSelftest::WizardEpilogue_ok)) {
-                return;
-            }
         }
         break;
     case stsFinish:

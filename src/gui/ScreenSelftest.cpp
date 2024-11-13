@@ -21,17 +21,12 @@
 #include "selftest_frame_firstlayer.hpp"
 #include "selftest_frame_firstlayer_questions.hpp"
 #include "selftest_frame_result.hpp"
-#include "selftest_frame_wizard_prologue.hpp"
-#include "selftest_frame_wizard_epilogue.hpp"
 #include "selftest_frame_dock.hpp"
 #include "selftest_frame_tool_offsets.hpp"
 #include "selftest_invalid_state.hpp"
 
 ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
     switch (part) {
-    case SelftestParts::WizardPrologue:
-        return creator<SelftestFrameWizardPrologue>;
-
     case SelftestParts::Axis:
         return creator<SelftestFrametAxis>;
 
@@ -75,10 +70,6 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
 
     case SelftestParts::Result:
         return creator<SelftestFrameResult>;
-
-    case SelftestParts::WizardEpilogue_ok:
-    case SelftestParts::WizardEpilogue_nok:
-        return creator<SelftestFrameWizardEpilogue>;
 
     case SelftestParts::RevisePrinterSetup:
         return creator<SelftestFrameRevisePrinterSetup>;
@@ -132,8 +123,6 @@ void ScreenSelftest::Change(fsm::BaseData data) {
 
 string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     switch (part) {
-    case SelftestParts::WizardPrologue:
-        return _(en_wizard);
     case SelftestParts::Axis:
     case SelftestParts::Fans:
 #if HAS_LOADCELL()
@@ -157,11 +146,6 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:
         return _(en_firstlay);
-    case SelftestParts::WizardEpilogue_ok:
-        return _(en_wizard_ok);
-    case SelftestParts::WizardEpilogue_nok:
-        return _(en_wizard_nok);
-
     case SelftestParts::_none:
         break;
     }
@@ -170,8 +154,6 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
 
 const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     switch (part) {
-    case SelftestParts::WizardPrologue:
-        return &img::wizard_16x16;
     case SelftestParts::Axis:
     case SelftestParts::Fans:
 #if HAS_LOADCELL()
@@ -194,9 +176,6 @@ const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     case SelftestParts::ToolOffsets:
 #endif
         return &img::selftest_16x16;
-    case SelftestParts::WizardEpilogue_ok:
-    case SelftestParts::WizardEpilogue_nok:
-        return &img::wizard_16x16;
     case SelftestParts::_none:
         break;
     }
@@ -207,14 +186,5 @@ void ScreenSelftest::InitState(screen_init_variant var) {
     auto val = var.GetSelftestMask();
     if (val) {
         marlin_client::test_start(*val);
-#if !HAS_SELFTEST()
-        // check mask if contains wizard prologue
-        // it is simplified method, but should work correctly for meaningful use
-        if ((*val) & stmWizardPrologue) {
-            header.SetIcon(&img::wizard_16x16);
-            header.SetText(_(en_wizard));
-        }
-        // no need for else, selftest is default
-#endif
     }
 }

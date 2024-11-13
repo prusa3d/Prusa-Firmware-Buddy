@@ -209,13 +209,6 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesPrintPreview) { return Cl
 enum class PhasesSelftest : PhaseUnderlyingType {
     _none,
 
-    WizardPrologue_ask_run,
-    WizardPrologue_ask_run_dev, // developer version has ignore button
-    WizardPrologue_info,
-    WizardPrologue_info_detailed,
-    _first_WizardPrologue = WizardPrologue_ask_run,
-    _last_WizardPrologue = WizardPrologue_info_detailed,
-
     Fans,
     #if PRINTER_IS_PRUSA_MK3_5()
     Fans_manual,
@@ -323,14 +316,6 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     Result,
     _first_Result = Result,
     _last_Result = Result,
-
-    WizardEpilogue_ok, // ok is after result
-    _first_WizardEpilogue_ok = WizardEpilogue_ok,
-    _last_WizardEpilogue_ok = WizardEpilogue_ok,
-
-    WizardEpilogue_nok, // nok is before result
-    _first_WizardEpilogue_nok = WizardEpilogue_nok,
-    _last_WizardEpilogue_nok = WizardEpilogue_nok,
 
     RevisePrinterStatus_ask_revise, ///< Notifies that a selftest part failed and asks if the user wants to revise the setup
     RevisePrinterStatus_revise, ///< ScreenPrinterSetup being shown, user revising the printer setup
@@ -662,16 +647,6 @@ class ClientResponses {
 
     static constexpr EnumArray<PhasesSelftest, PhaseResponses, CountPhases<PhasesSelftest>()> SelftestResponses {
         { PhasesSelftest::_none, {} },
-            { PhasesSelftest::WizardPrologue_ask_run, { Response::Continue, Response::Cancel } },
-            { PhasesSelftest::WizardPrologue_ask_run_dev, { Response::Continue, Response::Cancel
-#if not PRINTER_IS_PRUSA_MINI()
-                                                              ,
-                                                              Response::Ignore
-#endif
-                                                          } },
-            { PhasesSelftest::WizardPrologue_info, { Response::Continue, Response::Cancel } },
-            { PhasesSelftest::WizardPrologue_info_detailed, { Response::Continue, Response::Cancel } },
-
             { PhasesSelftest::Fans, {} },
 
 #if PRINTER_IS_PRUSA_MK3_5()
@@ -757,10 +732,6 @@ class ClientResponses {
             { PhasesSelftest::ToolOffsets_wait_move_away, {} },
             { PhasesSelftest::ToolOffsets_wait_user_remove_pin, { Response::Continue } },
             { PhasesSelftest::Result, { Response::Next } },
-
-            { PhasesSelftest::WizardEpilogue_ok, { Response::Continue } },
-            { PhasesSelftest::WizardEpilogue_nok, { Response::Continue } },
-
             { PhasesSelftest::RevisePrinterStatus_ask_revise, { Response::Adjust, Response::Skip } },
             { PhasesSelftest::RevisePrinterStatus_revise, { Response::Done } },
             { PhasesSelftest::RevisePrinterStatus_ask_retry, { Response::Yes, Response::No } },
@@ -984,7 +955,6 @@ public:
 };
 
 enum class SelftestParts {
-    WizardPrologue,
     Axis,
     Fans,
 #if HAS_LOADCELL()
@@ -1001,8 +971,6 @@ enum class SelftestParts {
     FirstLayer,
     FirstLayerQuestions,
     Result,
-    WizardEpilogue_ok,
-    WizardEpilogue_nok,
 #if HAS_TOOLCHANGER()
     Dock,
     ToolOffsets,
@@ -1014,8 +982,6 @@ enum class SelftestParts {
 
 static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part) {
     switch (part) {
-    case SelftestParts::WizardPrologue:
-        return PhasesSelftest::_first_WizardPrologue;
     case SelftestParts::Axis:
         return PhasesSelftest::_first_Axis;
     case SelftestParts::Fans:
@@ -1048,11 +1014,6 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
 #endif
     case SelftestParts::Result:
         return PhasesSelftest::_first_Result;
-    case SelftestParts::WizardEpilogue_ok:
-        return PhasesSelftest::_first_WizardEpilogue_ok;
-    case SelftestParts::WizardEpilogue_nok:
-        return PhasesSelftest::_first_WizardEpilogue_nok;
-
     case SelftestParts::RevisePrinterSetup:
         return PhasesSelftest::_first_RevisePrinterStatus;
 
@@ -1064,8 +1025,6 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
 
 static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part) {
     switch (part) {
-    case SelftestParts::WizardPrologue:
-        return PhasesSelftest::_last_WizardPrologue;
     case SelftestParts::Axis:
         return PhasesSelftest::_last_Axis;
     case SelftestParts::Fans:
@@ -1098,11 +1057,6 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
 #endif
     case SelftestParts::Result:
         return PhasesSelftest::_last_Result;
-    case SelftestParts::WizardEpilogue_ok:
-        return PhasesSelftest::_last_WizardEpilogue_ok;
-    case SelftestParts::WizardEpilogue_nok:
-        return PhasesSelftest::_last_WizardEpilogue_nok;
-
     case SelftestParts::RevisePrinterSetup:
         return PhasesSelftest::_last_RevisePrinterStatus;
 
@@ -1123,10 +1077,6 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
         if (SelftestPartContainsPhase(SelftestParts(i), ph)) {
             return SelftestParts(i);
         }
-    }
-
-    if (SelftestPartContainsPhase(SelftestParts::WizardPrologue, ph)) {
-        return SelftestParts::WizardPrologue;
     }
 
     if (SelftestPartContainsPhase(SelftestParts::Fans, ph)) {
@@ -1159,14 +1109,6 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 
     if (SelftestPartContainsPhase(SelftestParts::CalibZ, ph)) {
         return SelftestParts::CalibZ;
-    }
-
-    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue_ok, ph)) {
-        return SelftestParts::WizardEpilogue_ok;
-    }
-
-    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue_nok, ph)) {
-        return SelftestParts::WizardEpilogue_nok;
     }
 
     if (SelftestPartContainsPhase(SelftestParts::Result, ph)) {
