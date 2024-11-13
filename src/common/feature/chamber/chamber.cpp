@@ -53,7 +53,12 @@ Chamber::Capabilities Chamber::capabilities() const {
 #if HAS_XBUDDY_EXTENSION()
     return Capabilities {
         .temperature_reporting = true,
+
+        // The chamber can effectively control temperature only if the fans are in auto mode
         .cooling = xbuddy_extension().has_fan1_fan2_auto_control(),
+
+        // But always show temperature control menu items, even if disabled
+        .always_show_temperature_control = true,
     };
 #endif
 
