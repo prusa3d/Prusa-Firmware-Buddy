@@ -1,5 +1,7 @@
 #include "cooling.hpp"
 
+#include <algorithm>
+
 namespace buddy {
 
 void FanCooling::compute_auto(bool already_spinning, Temperature current_temperature) {
@@ -9,15 +11,15 @@ void FanCooling::compute_auto(bool already_spinning, Temperature current_tempera
     }
 
     // Linear mapping from the allowed temp difference over the target to allowed RPM range
-    const int temp_diff = current_temperature - *target_temperature;
-    const int pwm_diff = max_pwm - min_pwm;
-    const int desired = temp_diff * pwm_diff / fans_max_temp_diff + min_pwm;
+    const Temperature temp_diff = current_temperature - *target_temperature;
+    const FanPWM pwm_diff = max_pwm - min_pwm;
+    const FanPWM desired = static_cast<FanPWM>(std::clamp<int>(temp_diff * pwm_diff / fans_max_temp_diff + min_pwm, 0, max_pwm));
 
     if (desired > max_pwm) {
         // Don't go over max.
         target_pwm = max_pwm;
     } else if (desired < min_pwm) {
-        const int below_by = *target_temperature - current_temperature;
+        const Temperature below_by = *target_temperature - current_temperature;
         const bool below_by_much = below_by > off_temp_below;
         if (already_spinning && !below_by_much) {
             // If the fan is already spinning, we keep it spinning until it
@@ -32,8 +34,8 @@ void FanCooling::compute_auto(bool already_spinning, Temperature current_tempera
     }
 }
 
-uint8_t FanCooling::compute_pwm(bool already_spinning, Temperature current_temperature) {
-    // Phase 1: Make sure the target_pwm contains the value we would _like_ to
+FanCooling::FanPWM FanCooling::compute_pwm(bool already_spinning, Temperature current_temperature) {
+    // Make sure the target_pwm contains the value we would _like_ to
     // run at.
     if (auto_control) {
         compute_auto(already_spinning, current_temperature);
