@@ -162,7 +162,6 @@ void gui_bare_loop() {
 
     gui_handle_jogwheel();
 
-    gui_timers_cycle();
     gui_redraw();
 
     --guiloop_nesting;
@@ -194,7 +193,6 @@ void gui_loop(void) {
         }
     }
 
-    gui_timers_cycle();
     gui_redraw();
     marlin_client::loop();
     GuiMediaEventsHandler::Tick();

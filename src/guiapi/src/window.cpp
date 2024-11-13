@@ -4,7 +4,6 @@
 #include "gui_invalidate.hpp"
 #include <algorithm> // std::find
 #include "ScreenHandler.hpp"
-#include "gui_timer.h"
 #include "display.hpp"
 #include "marlin_client.hpp"
 #include "knob_event.hpp"

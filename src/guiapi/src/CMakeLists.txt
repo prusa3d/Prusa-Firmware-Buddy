@@ -3,7 +3,6 @@ target_sources(
   PRIVATE display_ex.cpp
           display_helper.cpp
           gui.cpp
-          gui_timer.cpp
           i_window_menu.cpp
           i_window_menu_container.cpp
           i_window_menu_item.cpp

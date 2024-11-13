@@ -6,7 +6,6 @@
 
 #include "display_helper.h"
 #include "display.hpp"
-#include "gui_timer.h"
 #include "window.hpp"
 #include "gui.hpp"
 #include "../lang/string_view_utf8.hpp"
