@@ -17,6 +17,9 @@ constexpr const char *ADDR_IN_TEXT = "prusa.io/xl-phstep";
 #elif PRINTER_IS_PRUSA_iX()
 constexpr const char *QR_ADDR = "prusa.io/ix-phstep-qr";
 constexpr const char *ADDR_IN_TEXT = "prusa.io/ix-phstep";
+#elif PRINTER_IS_PRUSA_CUBE()
+constexpr const char *QR_ADDR = "prusa.io/cube-phstep-qr";
+constexpr const char *ADDR_IN_TEXT = "prusa.io/cube-phstep";
 #else
     #error
 #endif
