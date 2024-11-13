@@ -53,7 +53,7 @@ void EmergencyStop::step() {
     // 4096: Sensor missing.
     //
     // So, approximating door closed as < 1024 (middlepoint between optimal open vs close).
-    const bool emergency = sensor_value >= 1024;
+    const bool emergency = sensor_value >= 1024 && config_store().emergency_stop_enable.get();
     do_stop.store(emergency);
     if (emergency) {
         if (start_z.has_value()) {

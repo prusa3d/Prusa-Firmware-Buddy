@@ -61,6 +61,9 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_CRASH_FILTERING,
     #endif
 #endif // ENABLED(CRASH_RECOVERY)
+#if HAS_EMERGENCY_STOP()
+    MI_EMERGENCY_STOP_ENABLE,
+#endif
 
 // ================================
 // Bed related

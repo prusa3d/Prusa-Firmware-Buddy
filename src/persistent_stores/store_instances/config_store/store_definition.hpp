@@ -35,6 +35,7 @@
 #include <option/has_phase_stepping.h>
 #include <option/has_i2c_expander.h>
 #include <option/has_xbuddy_extension.h>
+#include <option/has_emergency_stop.h>
 #include <common/extended_printer_type.hpp>
 #include <common/hw_check.hpp>
 
@@ -540,6 +541,10 @@ struct CurrentStore
 
 #if HAS_XBUDDY_EXTENSION()
     StoreItem<uint8_t, 255, journal::hash("XBuddy Extension Chamber LEDs PWM")> xbuddy_extension_chamber_leds_pwm;
+#endif
+
+#if HAS_EMERGENCY_STOP()
+    StoreItem<bool, true, journal::hash("Emergency stop enable")> emergency_stop_enable;
 #endif
 };
 
