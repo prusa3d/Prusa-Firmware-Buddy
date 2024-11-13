@@ -12,6 +12,7 @@
 #include "settings_ini.hpp"
 #include <str_utils.hpp>
 #include <wui_api.h>
+#include <version/version.hpp>
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -186,14 +187,22 @@ screen_home_data_t::screen_home_data_t()
 #if !HAS_MINI_DISPLAY()
     header.SetIcon(&img::home_shape_16x16);
 #endif
-#if !defined(_DEBUG) && !DEVELOPER_MODE()
-    // regular home screen
-    header.SetText(_("HOME"));
 
-#else
-    static const uint8_t msgHome[] = "HOME" TERN(DEVELOPER_MODE(), " - DEV", "") TERN(defined(_DEBUG), " - DEBUG", "");
-    header.SetText(string_view_utf8::MakeCPUFLASH(msgHome)); // intentionally not translated
+    {
+        StringBuilder sb(header_text);
+        sb.append_string("PRUSA ");
+        sb.append_string(PrinterModelInfo::current().id_str);
+        sb.append_string(" ");
+        sb.append_string(version::project_version);
+        sb.append_string(version::project_version_suffix_short);
+#if DEVELOPER_MODE()
+        sb.append_string(" DEV");
 #endif
+#ifdef _DEBUG
+        sb.append_string(" DBG");
+#endif
+        header.SetText(string_view_utf8::MakeCPUFLASH(header_text.data()));
+    }
 
     for (uint8_t row = 0; row < 2; row++) {
         for (uint8_t col = 0; col < 3; col++) {

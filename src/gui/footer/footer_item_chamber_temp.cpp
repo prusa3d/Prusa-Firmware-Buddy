@@ -11,17 +11,19 @@ FooterItemChamberTemperature::FooterItemChamberTemperature(window_t *parent)
 
 int FooterItemChamberTemperature::static_readValue() {
     const auto current = chamber().current_temperature();
-    const auto target = chamber().target_temperature();
+    const auto caps = chamber().capabilities();
+    const auto target = caps.temperature_control() ? chamber().target_temperature() : std::nullopt;
+
     const HeatState state = [&] {
         static constexpr auto tolerance = 2;
 
-        if (!current.has_value() || !target.has_value() || !chamber().capabilities().temperature_control()) {
+        if (!current.has_value() || !target.has_value()) {
             return HeatState::stable;
 
         } else if (*current > *target + tolerance) {
             return HeatState::cooling;
 
-        } else if (*current < *target - tolerance) {
+        } else if (caps.heating && *current < *target - tolerance) {
             return HeatState::heating;
 
         } else {

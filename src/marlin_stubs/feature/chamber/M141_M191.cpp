@@ -66,7 +66,7 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
     using buddy::Temperature;
 
     if (!chamber().capabilities().temperature_control()) {
-        SERIAL_ECHO("Chamber does not support temperature control");
+        SERIAL_ECHO("Chamber does not allow temperature control");
         return;
     }
 
