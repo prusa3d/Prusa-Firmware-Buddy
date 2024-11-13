@@ -33,8 +33,10 @@ public:
     }
 
     inline void set_value(float val) {
-        value_ = val;
-        Change(0);
+        if (value_ != val) {
+            value_ = val;
+            Change(0);
+        }
     }
 
     /// Deprecated legacy variant of value()
