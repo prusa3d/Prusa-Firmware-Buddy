@@ -477,7 +477,7 @@ extern "C" void main_cpp(void) {
 #if HAS_MMU2_OVER_UART()
     uart_for_mmu.Open();
     // mmu2 is normally serviced from the marlin thread
-    // so execute it before the defaultTask is created to prevent race conditions
+    // so execute it before the defaultTask is created to prevent race conditions while powering up
     if (config_store().mmu2_enabled.get()) {
         MMU2::mmu2.Start();
     }
@@ -500,6 +500,14 @@ extern "C" void main_cpp(void) {
 
 #if HAS_PUPPIES()
     buddy::puppies::start_puppy_task();
+    #if HAS_MMU2()
+    // for printers with MMU connected through MODBUS, the MMU implementation relies vaguely on MODBUS data structures
+    // -> better have the puppy task at least existent
+    TaskDeps::wait(TaskDeps::Tasks::puppy_task_start);
+    if (config_store().mmu2_enabled.get()) {
+        MMU2::mmu2.Start();
+    }
+    #endif
 #endif
 
 #if BUDDY_ENABLE_WUI()
