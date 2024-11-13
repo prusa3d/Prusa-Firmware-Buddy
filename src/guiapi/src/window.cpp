@@ -230,7 +230,6 @@ window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_
 }
 
 window_t::~window_t() {
-    gui_timers_delete_by_window(this);
     if (GetFocusedWindow() == this) {
         focused_ptr = nullptr;
     }
