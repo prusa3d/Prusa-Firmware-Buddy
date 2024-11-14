@@ -24,7 +24,7 @@ TEST_CASE("Cooling PWM") {
         cooling.target_pwm = 5;
 
         SECTION("Already running") {
-            REQUIRE(cooling.compute_pwm(true, 54) == 70);
+            REQUIRE(cooling.compute_pwm(true, 54) == cooling.min_pwm);
         }
 
         SECTION("Initial kick") {
@@ -56,7 +56,7 @@ TEST_CASE("Cooling PWM") {
 
         SECTION("Already running, keep it up") {
             cooling.target_pwm = 70;
-            REQUIRE(cooling.compute_pwm(true, 59) == 70);
+            REQUIRE(cooling.compute_pwm(true, 59) == cooling.min_pwm);
             REQUIRE(cooling.target_pwm == 1);
         }
     }
@@ -70,7 +70,7 @@ TEST_CASE("Cooling PWM") {
         }
 
         SECTION("Already running") {
-            REQUIRE(cooling.compute_pwm(true, 60) == 70);
+            REQUIRE(cooling.compute_pwm(true, 60) == cooling.min_pwm);
             REQUIRE(cooling.target_pwm == 1);
         }
     }
@@ -86,7 +86,7 @@ TEST_CASE("Cooling PWM") {
         cooling.target_temperature = 60;
 
         SECTION("Already running") {
-            REQUIRE(cooling.compute_pwm(true, 61) == 70);
+            REQUIRE(cooling.compute_pwm(true, 61) == cooling.min_pwm);
             REQUIRE(cooling.target_pwm == 25);
         }
 

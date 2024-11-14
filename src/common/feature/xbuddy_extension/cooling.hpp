@@ -8,7 +8,7 @@ namespace buddy {
 
 /// Algorithm for controlling the cooling on the xbuddy extension.
 class FanCooling {
-private:
+public:
     using FanPWM = uint8_t;
 
     /// Target-current temperature difference at which the fans go on full
@@ -20,12 +20,9 @@ private:
 
     // Numbers pulled out of thin air
     static constexpr FanPWM max_pwm = 255;
-    static constexpr FanPWM min_pwm = 70;
+    static constexpr FanPWM min_pwm = 40;
     static constexpr FanPWM spin_up_pwm = 200;
 
-    void compute_auto(bool already_spinning, Temperature current_temperature);
-
-public:
     bool auto_control = true;
 
     // Can be directly set if auto_control = false
@@ -36,6 +33,9 @@ public:
 
     // Compute at what PWM the fan(s) should be driven.
     FanPWM compute_pwm(bool already_spinning, Temperature current_temperature);
+
+private:
+    void compute_auto(bool already_spinning, Temperature current_temperature);
 };
 
 } // namespace buddy
