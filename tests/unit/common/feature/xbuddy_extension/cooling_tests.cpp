@@ -28,7 +28,7 @@ TEST_CASE("Cooling PWM") {
         }
 
         SECTION("Initial kick") {
-            REQUIRE(cooling.compute_pwm(false, 54) == 200);
+            REQUIRE(cooling.compute_pwm(false, 54) == cooling.spin_up_pwm);
         }
     }
 
@@ -91,7 +91,7 @@ TEST_CASE("Cooling PWM") {
         }
 
         SECTION("Kick up") {
-            REQUIRE(cooling.compute_pwm(false, 61) == 200);
+            REQUIRE(cooling.compute_pwm(false, 61) == cooling.spin_up_pwm);
             REQUIRE(cooling.target_pwm == 25);
         }
     }

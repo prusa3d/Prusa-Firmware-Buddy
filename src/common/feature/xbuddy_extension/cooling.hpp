@@ -21,7 +21,7 @@ public:
     // Numbers pulled out of thin air
     static constexpr FanPWM max_pwm = 255;
     static constexpr FanPWM min_pwm = 40;
-    static constexpr FanPWM spin_up_pwm = 200;
+    static constexpr FanPWM spin_up_pwm = 100;
 
     bool auto_control = true;
 
