@@ -27,7 +27,8 @@ class PausePrivatePhase : public IPause {
 protected:
     enum class LoadState {
         _finish = INT_MAX,
-        unload_init = 0,
+        start = 0,
+        unload_start,
         filament_stuck_ask,
         ram_sequence,
         unload,
@@ -35,7 +36,7 @@ protected:
         manual_unload,
         filament_not_in_fs,
         unload_from_gears,
-        load_init,
+        load_start,
         filament_push_ask, // must be one phase because of button click
 #if HAS_SIDE_FSENSOR()
         await_filament,
@@ -64,7 +65,7 @@ private:
     float bed_restore_temp;
 
 protected:
-    LoadState state { LoadState::unload_init };
+    LoadState state { LoadState::unload_start };
 
     PausePrivatePhase();
     void setPhase(PhasesLoadUnload ph, uint8_t progress = 0);
@@ -164,11 +165,11 @@ private:
     LoadType load_type {};
 
     bool is_unstoppable();
-    LoadState get_start_state();
     LoadUnloadMode get_load_unload_mode();
     bool should_park();
 
-    void unload_init_process(Response response);
+    void start_process(Response response);
+    void unload_start_process(Response response);
     void filament_stuck_ask_process(Response response);
     void ram_sequence_process(Response response);
     void unload_process(Response response);
@@ -176,7 +177,7 @@ private:
     void manual_unload_process(Response response);
     void filament_not_in_fs_process(Response response);
     void unload_from_gears_process(Response response);
-    void load_init_process(Response response);
+    void load_start_process(Response response);
     void filament_push_ask_process(Response response);
 #if HAS_SIDE_FSENSOR()
     void await_filament_process(Response response);
@@ -197,7 +198,8 @@ private:
 
     using StateHandler = void (Pause::*)(Response response);
     static constexpr EnumArray<LoadState, StateHandler, static_cast<int>(LoadState::_last) + 1> state_handlers {
-        { LoadState::unload_init, &Pause::unload_init_process },
+        { LoadState::start, &Pause::start_process },
+            { LoadState::unload_start, &Pause::unload_start_process },
             { LoadState::filament_stuck_ask, &Pause::filament_stuck_ask_process },
             { LoadState::ram_sequence, &Pause::ram_sequence_process },
             { LoadState::unload, &Pause::unload_process },
@@ -205,7 +207,7 @@ private:
             { LoadState::manual_unload, &Pause::manual_unload_process },
             { LoadState::filament_not_in_fs, &Pause::filament_not_in_fs_process },
             { LoadState::unload_from_gears, &Pause::unload_from_gears_process },
-            { LoadState::load_init, &Pause::load_init_process },
+            { LoadState::load_start, &Pause::load_start_process },
             { LoadState::filament_push_ask, &Pause::filament_push_ask_process },
 #if HAS_SIDE_FSENSOR()
             { LoadState::await_filament, &Pause::await_filament_process },

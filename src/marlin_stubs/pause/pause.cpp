@@ -263,25 +263,6 @@ bool Pause::is_unstoppable() {
     }
 }
 
-Pause::LoadState Pause::get_start_state() {
-    switch (load_type) {
-    case LoadType::load:
-    case LoadType::autoload:
-    case LoadType::load_to_gears:
-    case LoadType::non_blocking_load:
-    case LoadType::load_purge:
-        return LoadState::load_init;
-    case LoadType::unload:
-    case LoadType::unload_confirm:
-    case LoadType::unload_from_gears:
-    case LoadType::filament_change:
-    case LoadType::filament_stuck:
-        return LoadState::unload_init;
-    }
-
-    bsod("Unhandled LoadType");
-}
-
 LoadUnloadMode Pause::get_load_unload_mode() {
     switch (load_type) {
     case Pause::LoadType::load:
@@ -409,13 +390,32 @@ bool Pause::process_stop() {
 
 void Pause::set_unload_next_phase() {
     if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
-        set(LoadState::load_init);
+        set(LoadState::load_start);
     } else {
         set(LoadState::_finish);
     }
 }
 
-void Pause::load_init_process([[maybe_unused]] Response response) {
+void Pause::start_process([[maybe_unused]] Response response) {
+    switch (load_type) {
+    case LoadType::load:
+    case LoadType::autoload:
+    case LoadType::load_to_gears:
+    case LoadType::non_blocking_load:
+    case LoadType::load_purge:
+        set(LoadState::load_start);
+        break;
+    case LoadType::unload:
+    case LoadType::unload_confirm:
+    case LoadType::unload_from_gears:
+    case LoadType::filament_change:
+    case LoadType::filament_stuck:
+        set(LoadState::unload_start);
+        break;
+    }
+}
+
+void Pause::load_start_process([[maybe_unused]] Response response) {
     // TODO: this shouldn't be needed here
     // actual temperature does not matter, only target
     if (!is_target_temperature_safe() && load_type != LoadType::load_to_gears) {
@@ -707,7 +707,7 @@ void Pause::eject_process([[maybe_unused]] Response response) {
         if (load_type == LoadType::filament_change) {
             set(LoadState::mmu_load);
         } else {
-            set(LoadState::load_init);
+            set(LoadState::load_start);
         }
         return;
     }
@@ -731,7 +731,7 @@ void Pause::eject_process([[maybe_unused]] Response response) {
 #endif
     case LoadType::filament_change:
     case LoadType::filament_stuck:
-        set(LoadState::load_init);
+        set(LoadState::load_start);
         break;
     case LoadType::load:
     case LoadType::autoload:
@@ -761,7 +761,7 @@ void Pause::load_finish_process([[maybe_unused]] Response response) {
     set(LoadState::_finish);
 }
 
-void Pause::unload_init_process([[maybe_unused]] Response response) {
+void Pause::unload_start_process([[maybe_unused]] Response response) {
     // loop_unload_mmu has it's own preheating sequence, use that one for better progress reporting
     if (!(load_type == LoadType::unload && FSensors_instance().HasMMU()) && !is_target_temperature_safe() && load_type != LoadType::unload_from_gears) {
         settings.do_stop = true;
@@ -948,7 +948,7 @@ bool Pause::invoke_loop() {
 
     FSM_HolderLoadUnload holder(*this);
 
-    set(get_start_state());
+    set(LoadState::start);
 
     bool ret = true;
     while (!finished()) {
