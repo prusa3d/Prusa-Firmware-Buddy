@@ -536,6 +536,10 @@ struct CurrentStore
     StoreItem<uint8_t, 0, journal::hash("IO Expander's Output Register")> io_expander_output_register;
     StoreItem<uint8_t, 0, journal::hash("IO Expander's Polarity Register")> io_expander_polarity_register;
 #endif // HAS_I2C_EXPANDER()
+
+#if HAS_ILI9488_DISPLAY()
+    StoreItem<bool, false, journal::hash("Reduce Display Baudrate")> reduce_display_baudrate;
+#endif
 };
 
 /**

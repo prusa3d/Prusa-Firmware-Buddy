@@ -98,6 +98,8 @@ namespace {
 bool do_complete_lcd_reinit = false;
 }
 
+static bool reduce_display_baudrate = false;
+
 osThreadId ili9488_task_handle = 0;
 
 #define ILI9488_SIG_SPI_TX 0x0008
@@ -213,6 +215,9 @@ void ili9488_spi_rd_bytes(uint8_t *pb, uint16_t size) {
 }
 
 void ili9488_cmd(uint8_t cmd, const uint8_t *pdata, uint16_t size) {
+    // BFW-6328 Some displays possibly problematic with higher baudrate, reduce 40 -> 20 MHz
+    SPIBaudRatePrescalerGuard _g(&SPI_HANDLE_FOR(lcd), SPI_BAUDRATEPRESCALER_4, reduce_display_baudrate);
+
     ili9488_clr_cs(); // CS = L
     ili9488_clr_rs(); // RS = L
     ili9488_spi_wr_byte(cmd); // write command byte
@@ -253,6 +258,10 @@ void ili9488_wr(uint8_t *pdata, uint16_t size) {
     if (!(pdata && size)) {
         return; // null or empty data - return
     }
+
+    // BFW-6328 Some displays possibly problematic with higher baudrate, reduce 40 -> 20 MHz
+    SPIBaudRatePrescalerGuard _g(&SPI_HANDLE_FOR(lcd), SPI_BAUDRATEPRESCALER_4, reduce_display_baudrate);
+
     ili9488_clr_cs(); // CS = L
     ili9488_set_rs(); // RS = H
     ili9488_spi_wr_bytes(pdata, size); // write data bytes
@@ -321,6 +330,10 @@ void ili9488_cmd_ramrd(uint8_t *pdata, uint16_t size) {
 }
 
 bool ili9488_is_reset_required() {
+    // REMOVEME: This is a bit of hack to reduce config_store locks.
+    // This function is called in lcd::communication_check every 2 s.
+    reduce_display_baudrate = config_store().reduce_display_baudrate.get();
+
     uint8_t pdata[ILI9488_MAX_COMMAND_READ_LENGHT] = { 0x00 };
     ili9488_cmd_rd(CMD_MADCTLRD, pdata);
     if ((pdata[1] != 0xE0 && pdata[1] != 0xF0 && pdata[1] != 0xF8)) {
@@ -546,6 +559,9 @@ uint32_t ili9488_get_pixel_colorFormat666(uint16_t point_x, uint16_t point_y) {
 }
 
 void ili9488_fill_rect_colorFormat666(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t clr666) {
+    // BFW-6328 Some displays possibly problematic with higher baudrate, reduce 40 -> 20 MHz
+    SPIBaudRatePrescalerGuard _g(&SPI_HANDLE_FOR(lcd), SPI_BAUDRATEPRESCALER_4, reduce_display_baudrate);
+
     assert(!ili9488_buff_borrowed && "Buffer lent to someone");
 
     int i;
@@ -584,6 +600,9 @@ void ili9488_draw_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
 void ili9488_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, Color back_color, uint8_t rop, Rect16 subrect) {
     assert(!ili9488_buff_borrowed && "Buffer lent to someone");
     assert(pf);
+
+    // BFW-6328 Some displays possibly problematic with higher baudrate, reduce 40 -> 20 MHz
+    SPIBaudRatePrescalerGuard _g(&SPI_HANDLE_FOR(lcd), SPI_BAUDRATEPRESCALER_4, reduce_display_baudrate);
 
     // Current pixel position starts top-left where the image is placed
     point_i16_t pos = { static_cast<int16_t>(point_x), static_cast<int16_t>(point_y) };
