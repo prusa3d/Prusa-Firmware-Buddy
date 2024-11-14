@@ -1,6 +1,7 @@
 #pragma once
 #include "PuppyModbus.hpp"
 #include "PuppyBus.hpp"
+#include <puppies/xbuddy_extension_mmu.hpp>
 
 #include <freertos/mutex.hpp>
 #include <atomic>
@@ -62,13 +63,7 @@ public:
                 uint16_t pec; ///< progress and error code (mutually exclusive)
             } query;
             struct Command {
-                union {
-                    struct {
-                        uint8_t command;
-                        uint8_t param;
-                    } s;
-                    uint16_t cp; // command and param combined, because that's what's flying over the wire in a single register
-                } u;
+                uint16_t cp; // command and param combined, because that's what's flying over the wire in a single register
             } command;
         } u;
         enum class RW : uint8_t {
@@ -96,22 +91,12 @@ public:
     /// because protocol_logic doesn't issue any other request until this one has been processed
     const MMUModbusRequest &mmu_modbus_rq() const { return mmuModbusRq; }
 
-    static constexpr uint8_t mmuButtonRegisterAddress = 252; // shall be extracted elsewhere because the ext board must use it as well
-    static constexpr uint8_t mmuCommandInProgressRegisterAddress = 253; // shall be extracted elsewhere because the ext board must use it as well
-    static constexpr uint8_t mmuCommandStatusRegisterAddress = 254; // shall be extracted elsewhere because the ext board must use it as well
-    static constexpr uint8_t mmuCommandProgressOrErrorCodeRegisterAddress = 255; // shall be extracted elsewhere because the ext board must use it as well
-
-    union MMUCommandInProgress {
-        uint8_t bytes[2];
-        uint16_t word;
-    };
-
     MODBUS_REGISTER MMUQueryMultiRegister {
-        MMUCommandInProgress cip;
+        uint16_t cip; // command in progress
         uint16_t commandStatus; // accepted, rejected, progress, error - simply ResponseMsgParamCodes
         uint16_t pec; // either progressCode (x)or errorCode
     };
-    using MMUQueryRegisters = ModbusInputRegisterBlock<mmuCommandInProgressRegisterAddress, MMUQueryMultiRegister>;
+    using MMUQueryRegisters = ModbusInputRegisterBlock<puppy::xbuddy_extension::mmu::commandInProgressRegisterAddress, MMUQueryMultiRegister>;
 
     const MMUQueryRegisters &mmu_query_registers() const { return mmuQuery; }
 
@@ -164,8 +149,6 @@ private:
     MMUQueryRegisters mmuQuery;
 
     MMUModbusRequest mmuModbusRq;
-
-    static constexpr uint8_t mmuUnitNr = 220; // @@TODO hard coded on 2 spots for now!
 
     CommunicationStatus refresh_mmu();
 };

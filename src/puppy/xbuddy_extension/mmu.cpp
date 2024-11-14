@@ -1,14 +1,11 @@
 #include "mmu.hpp"
 #include "../../../lib/Prusa-Firmware-MMU/src/logic/progress_codes.h"
 #include "../../../lib/Prusa-Firmware-MMU/src/logic/error_codes.h"
+#include "../../../include/puppies/xbuddy_extension_mmu.hpp"
 #include <freertos/timing.hpp>
 
 using namespace modules::protocol;
-
-union UINtnt16Bytes {
-    uint8_t bytes[2];
-    uint16_t word;
-};
+using namespace puppy::xbuddy_extension::mmu;
 
 // #define SIMULATE_MMU
 #ifdef SIMULATE_MMU
@@ -34,20 +31,16 @@ modbus::Callbacks::Status MMU::read_register(uint8_t, uint16_t address, uint16_t
         out = 0;
         break;
 
-    case 252:
+    case buttonRegisterAddress:
         out = 0; // button is probably not interesting
         break;
-    case 253: {
-        UINtnt16Bytes msg;
-        msg.bytes[0] = (uint8_t)'X';
-        msg.bytes[1] = 0;
-
-        out = msg.word; // that's the current command in progress
-    } break;
-    case 254:
+    case commandInProgressRegisterAddress:
+        out = pack_command('X', 0); // that's the current command in progress
+        break;
+    case commandStatusRegisterAddress:
         out = 'F'; // for now, let's consider X0 as finished ;)
         break;
-    case 255:
+    case commandProgressOrErrorCodeRegisterAddress:
         out = 0;
         break;
     default:
@@ -87,7 +80,7 @@ modbus::Callbacks::Status MMU::write_register(uint8_t, uint16_t address, uint16_
     case 34:
         return Status::Ok;
 
-    case 252: { // button register
+    case buttonRegisterAddress: { // button register
         return Status::Ok;
     }
     }
@@ -114,7 +107,7 @@ modbus::Callbacks::Status MMU::read_register(uint8_t, uint16_t address, uint16_t
     // we'll get multiple calls per register, but this triplet is being handled as a single msg into the MMU
     // so we have to do some magic here to post just one MMU message but serve 3 consecutive read_registers
     // Beware: the code is optimized for queries, reading individual registers 254 and 255 separately will yield invalid results
-    case 253: {
+    case commandInProgressRegisterAddress: {
         // issue Query request
         RequestMsg rq(RequestMsgCodes::Query, 0);
         uint8_t len = protocol.EncodeRequest(rq, txbuff);
@@ -122,22 +115,19 @@ modbus::Callbacks::Status MMU::read_register(uint8_t, uint16_t address, uint16_t
         RecordUARTActivity();
         // blocking wait for response
         return WaitForMMUResponse([&]() {
-            UINtnt16Bytes msg;
-            msg.bytes[0] = (uint8_t)rsp.request.code;
-            msg.bytes[1] = rsp.request.value;
-            out = msg.word; // that's the current command in progress
+            out = pack_command((uint8_t)rsp.request.code, rsp.request.value); // that's the current command in progress
         });
     }
 
-    case 254:
+    case commandStatusRegisterAddress:
         // command status: accepted, rejected, processing, finished (raw values from the MMU protocol, correspond to ResponseMsgParamCodes
-        // beware - this read register call uses a pre-cached response from read register 253!
+        // beware - this read register call uses a pre-cached response from read register commandInProgressRegisterAddress(253)!
         out = (uint8_t)rsp.paramCode;
         return Status::Ok;
 
-    case 255:
+    case commandProgressOrErrorCodeRegisterAddress:
         // progress or error code (depends on what Query returns)
-        // beware - this read register call uses a pre-cached response from read register 253!
+        // beware - this read register call uses a pre-cached response from read register commandInProgressRegisterAddress(253)!
         out = rsp.paramValue;
         return Status::Ok;
 
@@ -226,7 +216,7 @@ modbus::Callbacks::Status MMU::write_register(uint8_t, uint16_t address, uint16_
     }
 
     // virtual button register - for now write-only
-    case 252: {
+    case buttonRegisterAddress: {
         RequestMsg rq(RequestMsgCodes::Button, value);
         uint8_t size = protocol.EncodeRequest(rq, txbuff);
         uart.write(txbuff, size);
@@ -235,11 +225,10 @@ modbus::Callbacks::Status MMU::write_register(uint8_t, uint16_t address, uint16_
         return WaitForMMUResponse([&]() { ; }); // response is not important, only needs to be valid
     }
     // virtual registers ... actually only 253 is RW for now
-    case 253: {
+    case commandInProgressRegisterAddress: {
         // issue a command
-        UINtnt16Bytes cmd;
-        cmd.word = value;
-        RequestMsg rq((RequestMsgCodes)cmd.bytes[0], cmd.bytes[1]);
+        const auto [command, param] = unpack_command(value);
+        RequestMsg rq((RequestMsgCodes)command, param);
         uint8_t len = Protocol::EncodeRequest(rq, txbuff);
         uart.write(txbuff, len);
         RecordUARTActivity();

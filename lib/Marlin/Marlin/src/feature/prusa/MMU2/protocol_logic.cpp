@@ -138,7 +138,7 @@ void ProtocolLogic::SendButton(uint8_t btn) {
 #if HAS_MMU2_OVER_UART()
     SendMsg(RequestMsg(RequestMsgCodes::Button, btn));
 #else
-    ext->post_write_mmu_register(buddy::puppies::XBuddyExtension::mmuButtonRegisterAddress, btn);
+    ext->post_write_mmu_register(puppy::xbuddy_extension::mmu::buttonRegisterAddress, btn);
     LogRequestMsgModbus(RequestMsg(RequestMsgCodes::Button, btn));
     RecordUARTActivity();
 #endif
@@ -275,8 +275,9 @@ StepStatus ProtocolLogic::ExpectingMessage2(const buddy::puppies::XBuddyExtensio
     }
 
     case XBuddyExtension::MMUModbusRequest::RW::query_inactive: {
+        const auto [command, param] = puppy::xbuddy_extension::mmu::unpack_command(mqr.value.cip);
         rsp = ResponseMsg(
-            RequestMsg((RequestMsgCodes)mqr.value.cip.bytes[0], mqr.value.cip.bytes[1]),
+            RequestMsg((RequestMsgCodes)command, param),
             (ResponseMsgParamCodes)mqr.value.commandStatus, mqr.value.pec);
 
         rawMsgLen = Protocol::EncodeResponseQueryOperation(rsp.request, ResponseCommandStatus((ResponseMsgParamCodes)mqr.value.commandStatus, mqr.value.pec), rawMsg);
@@ -284,8 +285,9 @@ StepStatus ProtocolLogic::ExpectingMessage2(const buddy::puppies::XBuddyExtensio
     }
 
     case XBuddyExtension::MMUModbusRequest::RW::command_inactive: {
+        const auto [command, param] = puppy::xbuddy_extension::mmu::unpack_command(mqr.value.cip);
         rsp = ResponseMsg(
-            RequestMsg((RequestMsgCodes)mqr.value.cip.bytes[0], mqr.value.cip.bytes[1]),
+            RequestMsg((RequestMsgCodes)command, param),
             (ResponseMsgParamCodes)mqr.value.commandStatus, mqr.value.pec // @@TODO pec is probably not ok unless we abuse it for 'L0 F1' - but that's not supported yet in the MMU code
         );
 

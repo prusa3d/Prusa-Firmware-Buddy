@@ -43,6 +43,7 @@ public:
     #include "mmu2_serial.h"
 #else
     #include <puppies/xbuddy_extension.hpp>
+    #include <puppies/xbuddy_extension_mmu.hpp>
 #endif
 
 /// New MMU2 protocol logic
