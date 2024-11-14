@@ -763,7 +763,7 @@ void Pause::load_finish_process([[maybe_unused]] Response response) {
 
 void Pause::unload_init_process([[maybe_unused]] Response response) {
     // loop_unload_mmu has it's own preheating sequence, use that one for better progress reporting
-    if (!(load_type == LoadType::unload && FSensors_instance().HasMMU()) && !ensureSafeTemperatureNotifyProgress(0, 50) && load_type != LoadType::unload_from_gears) {
+    if (!(load_type == LoadType::unload && FSensors_instance().HasMMU()) && !is_target_temperature_safe() && load_type != LoadType::unload_from_gears) {
         settings.do_stop = true;
         return;
     }
@@ -820,6 +820,11 @@ void Pause::filament_stuck_ask_process(Response response) {
 }
 
 void Pause::ram_sequence_process([[maybe_unused]] Response response) {
+    if (!ensureSafeTemperatureNotifyProgress(0, 50)) {
+        settings.do_stop = true;
+        return;
+    }
+
     setPhase(is_unstoppable() ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 50);
     ram_filament();
     set(LoadState::unload);
