@@ -1043,3 +1043,18 @@ void MI_CALIBRATE_DOCK::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Get()->Validate();
 }
 #endif
+
+/*****************************************************************************/
+#if HAS_ILI9488_DISPLAY()
+static constexpr const char *display_baudrate_items[] {
+    N_("High"), N_("Low")
+};
+
+MI_DISPLAY_BAUDRATE::MI_DISPLAY_BAUDRATE()
+    : MenuItemSwitch(_("Display Refresh Speed"), display_baudrate_items, config_store().reduce_display_baudrate.get()) {
+}
+
+void MI_DISPLAY_BAUDRATE::OnChange(size_t) {
+    config_store().reduce_display_baudrate.set(GetIndex());
+}
+#endif

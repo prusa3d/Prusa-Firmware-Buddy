@@ -797,3 +797,11 @@ protected:
 #if HAS_BELT_TUNING()
 using MI_BELT_TUNING = WithConstructorArgs<MenuItemGcodeAction, N_("Belt Tuning"), "M960 W"_tstr>;
 #endif
+
+#if HAS_ILI9488_DISPLAY()
+class MI_DISPLAY_BAUDRATE : public MenuItemSwitch {
+public:
+    MI_DISPLAY_BAUDRATE();
+    virtual void OnChange(size_t old_index) override;
+};
+#endif
