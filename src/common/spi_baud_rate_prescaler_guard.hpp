@@ -7,11 +7,17 @@ class [[nodiscard]] SPIBaudRatePrescalerGuard {
 private:
     SPI_HandleTypeDef *hspi;
     uint32_t old_prescaler;
+    bool enabled;
 
 public:
-    SPIBaudRatePrescalerGuard(SPI_HandleTypeDef *hspi, uint32_t new_prescaler)
+    SPIBaudRatePrescalerGuard(SPI_HandleTypeDef *hspi, uint32_t new_prescaler, bool enable = true)
         : hspi { hspi }
-        , old_prescaler { hspi->Init.BaudRatePrescaler } {
+        , old_prescaler { hspi->Init.BaudRatePrescaler }
+        , enabled { enable && old_prescaler < new_prescaler } {
+        if (!enabled) {
+            return;
+        }
+
         if (HAL_SPI_DeInit(hspi) != HAL_OK) {
             abort();
         }
@@ -22,6 +28,10 @@ public:
     }
 
     ~SPIBaudRatePrescalerGuard() {
+        if (!enabled) {
+            return;
+        }
+
         if (HAL_SPI_DeInit(hspi) != HAL_OK) {
             abort();
         }
