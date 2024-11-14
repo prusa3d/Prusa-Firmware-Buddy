@@ -199,14 +199,25 @@ static bool wait_for_accel_end(phase_stepping::AxisState &axis_state,
     });
 }
 
+#if !PRINTER_IS_PRUSA_CUBE()
 // Computes a pseudo-projection of one vector to another. The length of
 // direction vector is not normalized.
 static float pseudo_project(std::tuple<float, float> what, std::tuple<float, float> dir) {
     return std::get<0>(what) * std::get<0>(dir) + std::get<1>(what) * std::get<1>(dir);
 }
+#endif
 
 static float project_to_axis(AxisEnum axis, const PrusaAccelerometer::Acceleration &sample) {
-#ifdef COREXY
+#if PRINTER_IS_PRUSA_CUBE()
+    // TODO do this properly. Somehow.
+    if (axis == AxisEnum::X_AXIS) {
+        return sample.val[1];
+    } else if (axis == AxisEnum::Y_AXIS) {
+        return sample.val[0];
+    } else {
+        bsod("Unsupported axis");
+    }
+#elif ENABLED(COREXY)
     std::pair<float, float> proj_dir;
     if (axis == AxisEnum::X_AXIS) {
         proj_dir = { M_SQRT1_2, M_SQRT1_2 };
