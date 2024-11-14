@@ -18,6 +18,12 @@ public:
     // when we get below the target temperature by this much.
     static constexpr Temperature off_temp_below = 2;
 
+    /// Temperature at which the fans start spinning at full speed, no matter what
+    static constexpr Temperature emergency_cooling_temp = 70;
+
+    /// Maximum PWM for user and automatic control
+    static constexpr FanPWM soft_max_pwm = 100;
+
     // Numbers pulled out of thin air
     static constexpr FanPWM max_pwm = 255;
     static constexpr FanPWM min_pwm = 40;

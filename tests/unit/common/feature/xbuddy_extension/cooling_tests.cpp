@@ -7,7 +7,7 @@ TEST_CASE("Cooling PWM") {
 
     SECTION("Manual, full pwm") {
         cooling.auto_control = false;
-        cooling.target_pwm = 255;
+        cooling.target_pwm = cooling.max_pwm;
 
         SECTION("With target temp") {
             cooling.target_temperature = 60;
@@ -15,8 +15,8 @@ TEST_CASE("Cooling PWM") {
 
         SECTION("Without target temp") {}
 
-        REQUIRE(cooling.compute_pwm(true, 54) == 255);
-        REQUIRE(cooling.compute_pwm(false, 54) == 255);
+        REQUIRE(cooling.compute_pwm(true, 54) == cooling.max_pwm);
+        REQUIRE(cooling.compute_pwm(false, 54) == cooling.max_pwm);
     }
 
     SECTION("Manual, low PWM") {
@@ -78,8 +78,8 @@ TEST_CASE("Cooling PWM") {
     SECTION("Auto cooling, really hot") {
         cooling.target_temperature = 60;
 
-        REQUIRE(cooling.compute_pwm(true, 80) == 255);
-        REQUIRE(cooling.target_pwm == 255);
+        REQUIRE(cooling.compute_pwm(true, 80) == cooling.soft_max_pwm);
+        REQUIRE(cooling.target_pwm == cooling.soft_max_pwm);
     }
 
     SECTION("Auto cooling, slightly hot") {
@@ -87,12 +87,12 @@ TEST_CASE("Cooling PWM") {
 
         SECTION("Already running") {
             REQUIRE(cooling.compute_pwm(true, 61) == cooling.min_pwm);
-            REQUIRE(cooling.target_pwm == 25);
+            REQUIRE(cooling.target_pwm == 10);
         }
 
         SECTION("Kick up") {
             REQUIRE(cooling.compute_pwm(false, 61) == cooling.spin_up_pwm);
-            REQUIRE(cooling.target_pwm == 25);
+            REQUIRE(cooling.target_pwm == 10);
         }
     }
 }

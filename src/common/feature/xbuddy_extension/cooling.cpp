@@ -23,31 +23,34 @@ FanCooling::FanPWM FanCooling::compute_pwm(bool already_spinning, Temperature cu
     // Make sure the target_pwm contains the value we would _like_ to
     // run at.
     if (auto_control && target_temperature) {
-        target_pwm = compute_ramp(already_spinning, current_temperature, *target_temperature, *target_temperature + fans_max_temp_diff, max_pwm);
+        target_pwm = compute_ramp(already_spinning, current_temperature, *target_temperature, *target_temperature + fans_max_temp_diff, soft_max_pwm);
 
     } else if (auto_control) {
         target_pwm = 0;
 
     } // else -> leave as is
 
-    // Phase 2: adjust to minima and spinning up.
+    // Prevent cropping off 1 during the restaling
+    FanPWM result = target_pwm;
+
+    if (result == 0) {
+        return 0;
+    }
 
     // If the fans are not spinning yet and should be, give them a bit of a
     // kick to get turning. Unfortunately, we can't do that to each of them
     // individually, they share the PWM, even though they have separate RPM
     // measurement.
-    if (!already_spinning && target_pwm > 0 && target_pwm < spin_up_pwm) {
-        return spin_up_pwm;
+    if (!already_spinning) {
+        result = std::max(result, spin_up_pwm);
     }
 
-    if (target_pwm > 0 && target_pwm < min_pwm) {
-        // Even if the user sets it to some low %, keep them at least on the
-        // minimum (the auto thing never sets it between 0 and min, so it's
-        // only in the manual case).
-        return min_pwm;
-    }
+    // Even if the user sets it to some low %, keep them at least on the
+    // minimum (the auto thing never sets it between 0 and min, so it's
+    // only in the manual case).
+    result = std::max(result, min_pwm);
 
-    return target_pwm;
+    return result;
 }
 
 } // namespace buddy
