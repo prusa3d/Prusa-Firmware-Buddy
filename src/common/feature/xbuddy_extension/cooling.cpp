@@ -33,6 +33,10 @@ FanCooling::FanPWM FanCooling::compute_pwm(bool already_spinning, Temperature cu
     // Prevent cropping off 1 during the restaling
     FanPWM result = target_pwm;
 
+    // Emergency cooling - overrides any other control, goes at full power
+    const FanPWM emergency_cooling = compute_ramp(already_spinning, current_temperature, emergency_cooling_temp - fans_max_temp_diff, emergency_cooling_temp, max_pwm);
+    result = std::max(result, emergency_cooling);
+
     if (result == 0) {
         return 0;
     }

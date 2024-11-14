@@ -76,9 +76,9 @@ TEST_CASE("Cooling PWM") {
     }
 
     SECTION("Auto cooling, really hot") {
-        cooling.target_temperature = 60;
+        cooling.target_temperature = 30;
 
-        REQUIRE(cooling.compute_pwm(true, 80) == cooling.soft_max_pwm);
+        REQUIRE(cooling.compute_pwm(true, 60) == cooling.soft_max_pwm);
         REQUIRE(cooling.target_pwm == cooling.soft_max_pwm);
     }
 
@@ -94,5 +94,22 @@ TEST_CASE("Cooling PWM") {
             REQUIRE(cooling.compute_pwm(false, 61) == cooling.spin_up_pwm);
             REQUIRE(cooling.target_pwm == 10);
         }
+    }
+
+    SECTION("Emergency cooling") {
+        SECTION("Full power") {
+            REQUIRE(cooling.compute_pwm(true, cooling.emergency_cooling_temp) == cooling.max_pwm);
+        }
+
+        SECTION("Half power") {
+            REQUIRE(cooling.compute_pwm(true, cooling.emergency_cooling_temp - cooling.fans_max_temp_diff / 2) == cooling.max_pwm / 2);
+        }
+
+        SECTION("No emergency cooling") {
+            REQUIRE(cooling.compute_pwm(true, cooling.emergency_cooling_temp - cooling.fans_max_temp_diff) == cooling.min_pwm);
+            REQUIRE(cooling.compute_pwm(false, cooling.emergency_cooling_temp - cooling.fans_max_temp_diff) == 0);
+        }
+
+        REQUIRE(cooling.target_pwm == 0);
     }
 }
