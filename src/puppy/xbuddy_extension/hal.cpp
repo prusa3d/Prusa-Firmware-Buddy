@@ -567,6 +567,22 @@ void usb_pins_init() {
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
+static void pub_init() {
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    constexpr GPIO_InitTypeDef GPIO_InitStruct {
+        .Pin = GPIO_PIN_15,
+        .Mode = GPIO_MODE_OUTPUT_PP,
+        .Pull = GPIO_NOPULL,
+        .Speed = GPIO_SPEED_FREQ_LOW,
+        .Alternate = 0,
+    };
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+}
+
+static void pub_enable() {
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);
+}
+
 void hal::init() {
     HAL_Init();
     hal::overclock();
@@ -584,6 +600,8 @@ void hal::init() {
     mmu_pins_init();
     mmu::nreset_pin_set(false);
     usb_pins_init();
+    pub_init();
+    pub_enable();
 }
 
 void hal::panic() {
