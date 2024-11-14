@@ -4,43 +4,30 @@
 
 namespace buddy {
 
-void FanCooling::compute_auto(bool already_spinning, Temperature current_temperature) {
-    if (!target_temperature.has_value()) {
-        target_pwm = 0;
-        return;
-    }
-
+FanCooling::FanPWM FanCooling::compute_ramp(bool already_spinning, Temperature current_temperature, Temperature temp_ramp_start, Temperature temp_ramp_end, FanPWM max_pwm) {
     // Linear mapping from the allowed temp difference over the target to allowed RPM range
-    const Temperature temp_diff = current_temperature - *target_temperature;
-    const FanPWM desired = static_cast<FanPWM>(std::clamp<int>(temp_diff * max_pwm / fans_max_temp_diff, 0, max_pwm));
+    const int temp_diff = current_temperature - temp_ramp_start;
+    const FanPWM desired = static_cast<FanPWM>(std::clamp<int>(temp_diff * max_pwm / (temp_ramp_end - temp_ramp_start), 0, max_pwm));
 
-    if (desired > max_pwm) {
-        // Don't go over max.
-        target_pwm = max_pwm;
-
-    } else if (desired == 0) {
-        const Temperature below_by = *target_temperature - current_temperature;
-        const bool below_by_much = below_by > off_temp_below;
-        if (already_spinning && !below_by_much) {
-            // If the fan is already spinning, we keep it spinning until it
-            // falls below the target by the margin, so we don't go
-            // on-off-on-off too much.
-            target_pwm = 1;
-
-        } else {
-            target_pwm = 0;
-        }
-
-    } else {
-        target_pwm = desired;
+    // If the fan is already spinning, we keep it spinning until it
+    // falls below the target by the margin, so we don't go
+    // on-off-on-off too much.
+    if (desired == 0 && already_spinning && current_temperature >= temp_ramp_start - off_temp_below) {
+        return 1;
     }
+
+    return desired;
 }
 
 FanCooling::FanPWM FanCooling::compute_pwm(bool already_spinning, Temperature current_temperature) {
     // Make sure the target_pwm contains the value we would _like_ to
     // run at.
-    if (auto_control) {
-        compute_auto(already_spinning, current_temperature);
+    if (auto_control && target_temperature) {
+        target_pwm = compute_ramp(already_spinning, current_temperature, *target_temperature, *target_temperature + fans_max_temp_diff, max_pwm);
+
+    } else if (auto_control) {
+        target_pwm = 0;
+
     } // else -> leave as is
 
     // Phase 2: adjust to minima and spinning up.

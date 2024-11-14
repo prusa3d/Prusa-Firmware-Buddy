@@ -35,7 +35,8 @@ public:
     FanPWM compute_pwm(bool already_spinning, Temperature current_temperature);
 
 private:
-    void compute_auto(bool already_spinning, Temperature current_temperature);
+    /// Computes a PWM ramping function
+    static FanPWM compute_ramp(bool already_spinning, Temperature current_temperature, Temperature temp_ramp_start, Temperature temp_ramp_end, FanPWM max_pwm);
 };
 
 } // namespace buddy
