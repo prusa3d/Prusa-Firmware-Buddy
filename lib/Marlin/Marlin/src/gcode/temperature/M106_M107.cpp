@@ -41,6 +41,18 @@
   #define _CNT_P FAN_COUNT
 #endif
 
+static bool set_special_fan_speed(uint8_t fan, uint8_t speed) {
+#if XL_ENCLOSURE_SUPPORT()
+    static_assert(FAN_COUNT < 3, "Fan index 3 is reserved for Enclosure fan and should not be set by thermalManager");
+    if (fan == 3) {
+        Fans::enclosure().setPWM(speed);
+        return true;
+    }
+#endif
+
+  return false;
+}
+
 /** \addtogroup G-Codes
  * @{
  */
@@ -66,15 +78,10 @@
 void GcodeSuite::M106() {
     const uint8_t p = parser.byteval('P', _ALT_P);
 
-#if XL_ENCLOSURE_SUPPORT()
-    static_assert(FAN_COUNT < 3, "Fan index 3 is reserved for Enclosure fan and should not be set by thermalManager");
-    if (p == 3) {
-        // Enclosure fan does not support T parameter
-        uint16_t s = parser.ushortval('S', 255);
-        Fans::enclosure().setPWM(s);
-        return;
+    if(set_special_fan_speed(p, std::clamp<uint16_t>(parser.ushortval('S', 255), 0, 255))) {
+      return;
     }
-#endif
+
     if (p < _CNT_P) {
 
     #if ENABLED(EXTRA_FAN_SPEED)
@@ -111,13 +118,9 @@ void GcodeSuite::M106() {
 void GcodeSuite::M107() {
   const uint8_t p = parser.byteval('P', _ALT_P);
 
-#if XL_ENCLOSURE_SUPPORT()
-  static_assert(FAN_COUNT < 3, "Fan index 3 is reserved for Enclosure fan and should not be set by thermalManager");
-  if (p == 3) {
-    Fans::enclosure().setPWM(0);
+  if(set_special_fan_speed(p, 0)) {
     return;
   }
-#endif
 
   thermalManager.set_fan_speed(p, 0);
 }
