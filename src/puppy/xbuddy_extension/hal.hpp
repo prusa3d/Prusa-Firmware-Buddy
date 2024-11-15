@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <span>
 
+#include <xbuddy_extension_shared/xbuddy_extension_shared_enums.hpp>
+
 namespace hal {
 
 using DutyCycle = uint8_t;
@@ -58,6 +60,12 @@ namespace rgbw_led {
 namespace temperature {
     uint32_t get_raw();
 }
+
+namespace filament_sensor {
+    using State = xbuddy_extension_shared::FilamentSensorState;
+
+    State get();
+} // namespace filament_sensor
 
 namespace rs485 {
 

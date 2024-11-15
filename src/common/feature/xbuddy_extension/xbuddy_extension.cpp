@@ -123,6 +123,10 @@ std::optional<Temperature> XBuddyExtension::chamber_temperature() {
     return puppies::xbuddy_extension.get_chamber_temp();
 }
 
+std::optional<XBuddyExtension::FilamentSensorState> XBuddyExtension::filament_sensor() {
+    return puppies::xbuddy_extension.get_filament_sensor_state().transform([](auto val) { return static_cast<FilamentSensorState>(val); });
+}
+
 XBuddyExtension &xbuddy_extension() {
     static XBuddyExtension instance;
     return instance;

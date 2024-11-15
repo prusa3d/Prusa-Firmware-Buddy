@@ -27,7 +27,9 @@ target_sources(
           stm32h503.s
           temperature.cpp
   )
-target_link_libraries(firmware PRIVATE printf::printf STM32H5::HAL STM32H5_HAL_Config freertos)
+target_link_libraries(
+  firmware PRIVATE printf::printf STM32H5::HAL STM32H5_HAL_Config freertos XBuddyExtensionShared
+  )
 
 # TODO For now, we need to also explicitly depend on `FreeRTOS::FreeRTOS` because we are using
 # functions that are not wrapped by `freertos`.

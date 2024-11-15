@@ -274,3 +274,7 @@ target_link_libraries(
                 SG14
   )
 target_link_libraries(Marlin PRIVATE CppStdExtensions logging freertos)
+
+if(HAS_XBUDDY_EXTENSION)
+  target_link_libraries(Marlin PUBLIC XBuddyExtensionShared)
+endif()

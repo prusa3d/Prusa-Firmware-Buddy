@@ -2,9 +2,6 @@
 #include <stdint.h>
 #include <avr/pgmspace.h>
 
-#include <option/has_mmu2_over_uart.h>
-#include <option/has_xbuddy_extension.h>
-
 #ifdef __AVR__
     #include "mmu2/error_codes.h"
     #include "mmu2/progress_codes.h"
@@ -40,6 +37,7 @@ public:
     #include "buttons.h"
     #include "registers.h"
     #include <option/has_mmu2_over_uart.h>
+    #include <option/has_xbuddy_extension.h>
 #endif
 
 #if HAS_MMU2_OVER_UART()

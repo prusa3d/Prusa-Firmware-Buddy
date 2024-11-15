@@ -15,8 +15,9 @@ set_target_properties(
   )
 
 target_include_directories(
-  mmu2-modbus_tests PRIVATE include ${CMAKE_SOURCE_DIR}/include
-                            ${CMAKE_SOURCE_DIR}/src/common/utils
+  mmu2-modbus_tests
+  PRIVATE include ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src/common/utils
+          ${CMAKE_SOURCE_DIR}/src/puppy/xbuddy_extension_shared
   )
 
 add_catch_test(mmu2-modbus_tests)

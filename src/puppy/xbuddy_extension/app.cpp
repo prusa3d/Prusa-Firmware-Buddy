@@ -37,6 +37,9 @@ public:
         case 0x8005: // MMU non-reset (inverted logic)
             out = hal::mmu::nreset_pin_get();
             return Status::Ok;
+        case 0x8006:
+            out = hal::filament_sensor::get();
+            return Status::Ok;
         }
         return Status::IllegalAddress;
     }

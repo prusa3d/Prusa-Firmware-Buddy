@@ -100,10 +100,7 @@ std::optional<uint16_t> XBuddyExtension::get_fan_rpm(size_t fan_idx) {
         return std::nullopt;
     }
 
-    // For some arcane C++ reasons, it doesn't compile with just return
-    // status.value..., so the intermediate variable.
-    const uint16_t result = status.value.fan_rpm[fan_idx];
-    return result;
+    return static_cast<uint16_t>(status.value.fan_rpm[fan_idx]);
 }
 
 std::optional<float> XBuddyExtension::get_chamber_temp() {
@@ -114,6 +111,16 @@ std::optional<float> XBuddyExtension::get_chamber_temp() {
     }
 
     return static_cast<float>(status.value.chamber_temp) / 10.0f;
+}
+
+std::optional<XBuddyExtension::FilamentSensorState> XBuddyExtension::get_filament_sensor_state() {
+    Lock lock(mutex);
+
+    if (!valid) {
+        return std::nullopt;
+    }
+
+    return static_cast<FilamentSensorState>(status.value.filament_sensor_state);
 }
 
 CommunicationStatus XBuddyExtension::refresh_input(uint32_t max_age) {

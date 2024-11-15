@@ -6,5 +6,8 @@ add_executable(
   modbus_tests.cpp
   modbus-mmu_tests.cpp
   )
-target_include_directories(xbuddy_extension_modbus_tests PRIVATE include ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(
+  xbuddy_extension_modbus_tests PRIVATE include ${CMAKE_SOURCE_DIR}/src
+                                        ${CMAKE_SOURCE_DIR}/src/puppy/xbuddy_extension_shared
+  )
 add_catch_test(xbuddy_extension_modbus_tests)

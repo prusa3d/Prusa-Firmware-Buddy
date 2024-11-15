@@ -3,6 +3,8 @@
 #include "PuppyBus.hpp"
 #include <puppies/xbuddy_extension_mmu.hpp>
 
+#include <xbuddy_extension_shared/xbuddy_extension_shared_enums.hpp>
+
 #include <freertos/mutex.hpp>
 #include <atomic>
 
@@ -10,6 +12,8 @@ namespace buddy::puppies {
 
 class XBuddyExtension final : public ModbusDevice {
 public:
+    using FilamentSensorState = xbuddy_extension_shared::FilamentSensorState;
+
     XBuddyExtension(PuppyModbus &bus, const uint8_t modbus_address);
 
     // These are called from whatever task that needs them.
@@ -21,6 +25,7 @@ public:
     void set_mmu_nreset(bool enabled);
     std::optional<uint16_t> get_fan_rpm(size_t fan_idx);
     std::optional<float> get_chamber_temp();
+    std::optional<FilamentSensorState> get_filament_sensor_state();
 
     uint8_t get_requested_fan_pwm(size_t fan_idx);
 
@@ -140,6 +145,7 @@ private:
         uint16_t chamber_temp = 0;
         uint16_t mmu_power_enable = true;
         uint16_t mmu_nreset = true;
+        uint16_t filament_sensor_state = 0;
     };
     ModbusInputRegisterBlock<0x8000, Status> status;
 

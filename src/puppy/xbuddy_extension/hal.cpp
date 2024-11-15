@@ -3,8 +3,12 @@
 
 #include "hal_clock.hpp"
 #include <stm32h5xx_hal.h>
+#include <stm32h5xx_ll_gpio.h>
 #include <freertos/binary_semaphore.hpp>
 #include <freertos/stream_buffer.hpp>
+#include <freertos/timing.hpp>
+
+#include <bitset>
 
 static UART_HandleTypeDef huart_rs485;
 static std::byte rx_buf_rs485[256];
@@ -581,6 +585,17 @@ static void pub_enable() {
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);
 }
 
+static void filament_sensor_pins_init() {
+    constexpr GPIO_InitTypeDef GPIO_InitStruct {
+        .Pin = GPIO_PIN_5,
+        .Mode = GPIO_MODE_INPUT,
+        .Pull = GPIO_PULLDOWN,
+        .Speed = GPIO_SPEED_FREQ_LOW,
+        .Alternate = 0,
+    };
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+
 void hal::init() {
     HAL_Init();
     hal::overclock();
@@ -600,6 +615,7 @@ void hal::init() {
     usb_pins_init();
     pub_init();
     pub_enable();
+    filament_sensor_pins_init();
 }
 
 void hal::panic() {
@@ -629,14 +645,63 @@ ISR_HANDLER(DebugMon_Handler)
 // HAL_IncTick() but that is OK since we should not be using HAL functions
 // which perform busy-waiting anyway.
 
-uint32_t temperature_raw = 0;
+static uint32_t temperature_raw = 0;
 
-void hal::step() {
+static uint8_t filament_sensor_measuring_phase = 0;
+
+/// FS readout at each phase
+static std::bitset<4> filament_sensor_raw;
+
+static hal::filament_sensor::State filament_sensor_state = hal::filament_sensor::State::disconnected;
+
+static size_t filament_sensor_last_millis = 0;
+
+static void step_temperature_adc() {
     // Until we have a non-blocking DMA or interrupt based ADC, we do this
     HAL_ADC_Start(&hadc1);
     HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
     temperature_raw = HAL_ADC_GetValue(&hadc1);
     HAL_ADC_Stop(&hadc1);
+}
+
+static void step_filament_sensor() {
+    const auto now = freertos::millis();
+
+    // Don't update that often, the pin readouts takes some serious time to stabilize
+    if (now - filament_sensor_last_millis <= 10) {
+        return;
+    }
+
+    filament_sensor_last_millis = now;
+    filament_sensor_raw[filament_sensor_measuring_phase] = (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5) == GPIO_PIN_SET);
+    filament_sensor_measuring_phase = (filament_sensor_measuring_phase + 1) % 4;
+
+    // Set up the pull for the next phase, use the time between phases to stabilize the readout
+    LL_GPIO_SetPinPull(GPIOA, GPIO_PIN_5, filament_sensor_measuring_phase % 2 ? GPIO_PULLUP : GPIO_PULLDOWN);
+
+    switch (filament_sensor_raw.to_ulong()) {
+    case 0b1111:
+        filament_sensor_state = hal::filament_sensor::State::has_filament;
+        break;
+
+    case 0b0000:
+        filament_sensor_state = hal::filament_sensor::State::no_filament;
+        break;
+
+    case 0b0101:
+        // The readout followed exactly the pullup changes -> there's nothing connected
+        filament_sensor_state = hal::filament_sensor::State::disconnected;
+        break;
+
+    default:
+        // The filament could have been inserted/removed between the phases, wait for definitive values
+        break;
+    }
+}
+
+void hal::step() {
+    step_temperature_adc();
+    step_filament_sensor();
 }
 
 static uint32_t tim1_period_to_rpm(uint32_t period) {
@@ -702,6 +767,10 @@ void hal::rgbw_led::set_w_pwm(DutyCycle duty_cycle) {
 
 uint32_t hal::temperature::get_raw() {
     return temperature_raw;
+}
+
+hal::filament_sensor::State hal::filament_sensor::get() {
+    return filament_sensor_state;
 }
 
 void hal::rs485::start_receiving() {

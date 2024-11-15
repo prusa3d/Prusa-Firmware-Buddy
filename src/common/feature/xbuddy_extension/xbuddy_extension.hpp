@@ -9,6 +9,8 @@
 #include <leds/color.hpp>
 #include <temperature.hpp>
 
+#include <xbuddy_extension_shared/xbuddy_extension_shared_enums.hpp>
+
 namespace buddy {
 
 /// Thread-safe API, can be read/written to from any thread
@@ -21,6 +23,8 @@ public: // General things, status
         not_connected,
         ready,
     };
+
+    using FilamentSensorState = xbuddy_extension_shared::FilamentSensorState;
 
     Status status() const;
 
@@ -72,6 +76,9 @@ public: // LEDs
 public: // Other
     /// \returns chamber temperature measured through the thermistor connected to the board, in degrees Celsius
     std::optional<Temperature> chamber_temperature();
+
+    /// \returns state of the filament sensor
+    std::optional<FilamentSensorState> filament_sensor();
 
 private:
     mutable freertos::Mutex mutex_;
