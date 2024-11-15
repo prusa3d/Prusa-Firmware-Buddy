@@ -689,7 +689,7 @@ static void step_filament_sensor() {
         filament_sensor_state = hal::filament_sensor::State::no_filament;
         break;
 
-    case 0b0101:
+    case 0b1010:
         // The readout followed exactly the pullup changes -> there's nothing connected
         filament_sensor_state = hal::filament_sensor::State::disconnected;
         break;
