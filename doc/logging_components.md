@@ -16,6 +16,7 @@ This file is generated automatically so don't edit it directly
 - Dwarf_6: logging::Severity::info, src/puppies/Dwarf.cpp
 - EEPROM: logging::Severity::info, src/persistent_stores/store_instances/config_store/store_c_api.cpp
 - ESPIF: logging::Severity::info, lib/WUI/espif.cpp
+- EmergencyStop: logging::Severity::debug, src/common/feature/emergency_stop/emergency_stop.cpp
 - FSensor: logging::Severity::info, src/common/filament_sensors_handler.cpp
 - FileSystem: logging::Severity::info, src/buddy/filesystem.cpp
 - Fsm: logging::Severity::debug, src/common/fsm_states.cpp

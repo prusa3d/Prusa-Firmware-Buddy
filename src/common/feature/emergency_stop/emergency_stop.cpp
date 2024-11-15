@@ -5,6 +5,10 @@
 #include <module/stepper.h>
 #include <marlin_server.hpp>
 
+#include <logging/log.hpp>
+
+LOG_COMPONENT_DEF(EmergencyStop, logging::Severity::debug);
+
 namespace buddy {
 
 namespace {
@@ -27,6 +31,7 @@ namespace {
 
     // Try to do some desperate measures to stop moving in Z (currently implemented as power panic).
     void invoke_emergency() {
+        log_info(EmergencyStop, "Emergency stop");
         // Do a "synthetic" power panic. Should stop _right now_ and reboot, then we'll deal with the consequences.
         if (!power_panic::ac_fault_triggered) {
             // this is normally supposed to be called from ISR, but since disables IRQ so it works fine even outside of ISR
@@ -35,9 +40,12 @@ namespace {
     }
 
     void emergency_start() {
+        log_info(EmergencyStop, "Emergency start");
         // TODO: Do we need to "unpark"? Or does that happen automatically?
         if (!marlin_server::printer_idle()) {
+            log_info(EmergencyStop, "Issue wait");
             if (!marlin_server::inject(GCodeLiteral("G27 W3\nM9202"))) {
+                log_error(EmergencyStop, "Failed to inject");
                 invoke_emergency();
             }
         }
@@ -73,7 +81,8 @@ void EmergencyStop::step() {
             start_z = current_z();
             emergency_start();
         }
-    } else {
+    } else if (start_z.has_value()) {
+        log_info(EmergencyStop, "Emergency over");
         start_z.reset();
     }
 }
