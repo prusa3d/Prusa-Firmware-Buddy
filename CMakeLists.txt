@@ -241,7 +241,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
      OR PRINTER STREQUAL "XL"
      OR PRINTER STREQUAL "iX"
      )
-    add_compile_options(-Og)
+    add_compile_options(-Og -ggdb3)
   else()
     # O0 should be compiled with -fomit-frame-pointer to make sure there is enough registers for asm
     # functions
