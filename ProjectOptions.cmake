@@ -208,6 +208,36 @@ message(STATUS "Connect client: ${CONNECT}")
 message(STATUS "Resources: ${RESOURCES}")
 
 # Set printer features
+function(set_feature_for_printers FEATURE_NAME)
+  set(FEATURE_PRINTER_LIST ${ARGV})
+  list(REMOVE_AT FEATURE_PRINTER_LIST 0) # First argument is the feature name
+  if(${PRINTER} IN_LIST FEATURE_PRINTER_LIST)
+    set(FEATURE_VALUE YES)
+  else()
+    set(FEATURE_VALUE NO)
+  endif()
+  set(${FEATURE_NAME}
+      ${FEATURE_VALUE}
+      PARENT_SCOPE
+      )
+  define_boolean_option(${FEATURE_NAME} ${FEATURE_VALUE})
+endfunction()
+
+function(set_feature_for_printers_master_board FEATURE_NAME)
+  set(FEATURE_PRINTER_LIST ${ARGV})
+  list(REMOVE_AT FEATURE_PRINTER_LIST 0) # First argument is the feature name
+  if(BOARD_IS_MASTER_BOARD AND ${PRINTER} IN_LIST FEATURE_PRINTER_LIST)
+    set(FEATURE_VALUE YES)
+  else()
+    set(FEATURE_VALUE NO)
+  endif()
+  set(${FEATURE_NAME}
+      ${FEATURE_VALUE}
+      PARENT_SCOPE
+      )
+  define_boolean_option(${FEATURE_NAME} ${FEATURE_VALUE})
+endfunction()
+
 set(PRINTERS_WITH_FILAMENT_SENSOR_BINARY "MINI" "MK3.5")
 set(PRINTERS_WITH_FILAMENT_SENSOR_ADC "MK4" "XL" "iX" "XL_DEV_KIT")
 set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY "MINI" "MK4" "MK3.5" "XL" "iX")
