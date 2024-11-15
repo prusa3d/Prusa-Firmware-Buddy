@@ -101,12 +101,17 @@ struct Config {
 inline constexpr AxisConfig axis_x_default {
     // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
 
-    .type = Type::mzv,
 #if PRINTER_IS_PRUSA_MINI()
+    .type = Type::mzv,
     .frequency = 118.2,
 #elif PRINTER_IS_PRUSA_XL()
+    .type = Type::mzv,
     .frequency = 35.8,
+#elif PRINTER_IS_PRUSA_CUBE()
+    .type = Type::ei,
+    .frequency = 60.0,
 #else
+    .type = Type::mzv,
     .frequency = 50.7f,
 #endif
     .damping_ratio = 0.1f,
@@ -115,12 +120,17 @@ inline constexpr AxisConfig axis_x_default {
 inline constexpr AxisConfig axis_y_default {
     // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
 
-    .type = Type::mzv,
 #if PRINTER_IS_PRUSA_MINI()
+    .type = Type::mzv,
     .frequency = 32.8,
 #elif PRINTER_IS_PRUSA_XL()
+    .type = Type::mzv,
     .frequency = 35.4,
+#elif PRINTER_IS_PRUSA_CUBE()
+    .type = Type::ei,
+    .frequency = 50.0,
 #else
+    .type = Type::mzv,
     .frequency = 40.6f,
 #endif
     .damping_ratio = 0.1f,
