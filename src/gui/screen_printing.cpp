@@ -552,7 +552,7 @@ void screen_printing_data_t::updateTimes() {
     }
 
     if (value_available) {
-        w_etime_value.SetText(_(w_etime_value_buffer.data()));
+        w_etime_value.SetText(string_view_utf8::MakeRAM(w_etime_value_buffer.data()));
         w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_VALID);
     } else {
         w_etime_value.SetText(_("N/A"));
