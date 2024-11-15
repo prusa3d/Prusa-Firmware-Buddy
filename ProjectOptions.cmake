@@ -287,6 +287,7 @@ set_feature_for_printers(HAS_MMU2 "MK4" "MK3.5")
 set_feature_for_printers(HAS_CONFIG_STORE_WO_BACKEND "XL_DEV_KIT")
 set_feature_for_printers_master_board(HAS_CHAMBER_API "XL")
 set_feature_for_printers(HAS_SWITCHED_FAN_TEST "MK4" "MK3.5")
+set_feature_for_printers(HAS_HOTEND_TYPE_SUPPORT "MK4" "MK3.5" "iX")
 
 # Set GUI settings
 set(PRINTERS_WITH_GUI "MINI" "MK4" "MK3.5" "XL" "iX")
