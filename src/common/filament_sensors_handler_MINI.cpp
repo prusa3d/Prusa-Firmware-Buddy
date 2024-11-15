@@ -18,3 +18,7 @@ static FSensorPhotoElectric *getExtruderFSensor(uint8_t index) {
 IFSensor *GetExtruderFSensor(uint8_t index) {
     return getExtruderFSensor(index);
 }
+
+IFSensor *GetSideFSensor([[maybe_unused]] uint8_t index) {
+    return nullptr;
+}

@@ -163,9 +163,6 @@ if(FILAMENT_SENSOR)
   if(HAS_MMU2)
     target_sources(firmware PRIVATE filament_sensor_mmu.cpp)
   endif()
-  if(PRINTER STREQUAL "iX")
-    target_sources(firmware PRIVATE filament_sensor_ix_side.cpp)
-  endif()
 endif()
 
 if(HAS_LOADCELL)
@@ -178,22 +175,18 @@ if(HAS_LOADCELL AND HAS_LOADCELL_HX717)
   target_sources(firmware PRIVATE hx717mux.cpp)
 endif()
 
-if((BOARD STREQUAL "XBUDDY") OR (BOARD STREQUAL "BUDDY"))
-  if(HAS_MMU2)
-    target_sources(firmware PRIVATE filament_sensors_handler_mmu.cpp)
-  elseif(PRINTER STREQUAL "iX")
-    # iX has a side sensor, set up in filament_sensors_handler_iX.cpp
+if(BOARD_IS_MASTER_BOARD)
+  if(PRINTER STREQUAL "iX")
+    target_sources(firmware PRIVATE filament_sensor_ix_side.cpp filament_sensors_handler_iX.cpp)
+  elseif(PRINTER STREQUAL "XL")
+    target_sources(
+      firmware PRIVATE filament_sensors_handler_XL.cpp filament_sensors_handler_XL_remap.cpp
+      )
+  elseif(PRINTER STREQUAL "XL_DEV_KIT")
+    target_sources(firmware PRIVATE filament_sensors_handler_XL_DEV_KIT.cpp)
   else()
-    target_sources(firmware PRIVATE filament_sensors_handler_no_side_sensor.cpp)
+    target_sources(firmware PRIVATE filament_sensors_handler_default.cpp)
   endif()
-endif()
-
-if(NOT BOARD STREQUAL "DWARF" AND NOT BOARD STREQUAL "MODULARBED")
-  if(PRINTER STREQUAL "XL")
-    target_sources(firmware PRIVATE filament_sensors_handler_XL_remap.cpp)
-  endif()
-
-  target_sources(firmware PRIVATE filament_sensors_handler_${PRINTER}.cpp)
 endif()
 
 if(GUI)
