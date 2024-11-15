@@ -184,8 +184,9 @@ public:
         }
     };
 
-private:
     static constexpr auto MODBUS_READ_TIMEOUT_MS = 30;
+
+private:
     static constexpr uint16_t INVALID_REGISTER_VALUE = 0;
 
     ModbusMaster master;
@@ -204,8 +205,12 @@ private:
     ModbusError data_callback(const ModbusDataCallbackArgs *args);
     void log_internal_error(ModbusErrorInfo error);
     CommunicationStatus read_input(uint8_t unit, uint16_t *data, uint16_t count, uint16_t address, RequestTiming *const timing, uint32_t &timestamp_ms, uint32_t max_age_ms);
+
+public:
     CommunicationStatus read_holding(uint8_t unit, uint16_t *data, uint16_t count, uint16_t address, uint32_t &timestamp_ms, uint32_t max_age_ms);
     CommunicationStatus write_holding(uint8_t unit, const uint16_t *data, uint16_t count, uint16_t address, bool &dirty);
+
+private:
     CommunicationStatus read_input(uint8_t unit, bool *data, uint16_t count, uint16_t address, uint32_t &timestamp_ms, uint32_t max_age_ms);
     CommunicationStatus write_coil(uint8_t unit, bool value, uint16_t address, bool &dirty);
 };

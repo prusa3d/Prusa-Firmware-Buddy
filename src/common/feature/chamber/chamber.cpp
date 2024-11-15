@@ -1,12 +1,12 @@
 #include "chamber.hpp"
 
+#include <cmath>
+
 #include <marlin_server_shared.h>
 
 #if XL_ENCLOSURE_SUPPORT()
     #include <hw/xl/xl_enclosure.hpp>
 #endif
-
-#include <cmath>
 
 namespace buddy {
 

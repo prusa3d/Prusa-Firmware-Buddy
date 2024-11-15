@@ -16,11 +16,15 @@
     #include "loadcell.hpp"
 #endif
 
+#include <option/has_toolchanger.h>
+#if HAS_TOOLCHANGER()
+    #include <module/prusa/toolchanger.h>
+#endif /* HAS_TOOLCHANGER() */
+
 static constexpr feedRate_t Z_CALIB_ALIGN_AXIS_FEEDRATE = 15.f; // mm/s
 static constexpr float Z_CALIB_EXTRA_HIGHT = 5.f; // mm
 
 #if PRINTER_IS_PRUSA_XL()
-    #include <module/prusa/toolchanger.h>
 
 void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
     marlin_server::fsm_change(PhasesSelftest::CalibZ);
@@ -44,7 +48,12 @@ void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
     line_to_current_position();
     planner.synchronize();
 
-    const bool z_probe = prusa_toolchanger.is_any_tool_active(); // Use loadcell probe as well as stall if there is a tool picked
+    const bool z_probe =
+    #if HAS_TOOLCHANGER()
+        prusa_toolchanger.is_any_tool_active(); // Use loadcell probe as well as stall if there is a tool picked
+    #else
+        true;
+    #endif
 
     // Home the axis
     endstops.enable(true); // Stall endstops need to be enabled manually as in G28

@@ -10,13 +10,14 @@
 #include <algorithm>
 #include "neopixel.hpp"
 #include <option/has_side_leds.h>
-#if HAS_SIDE_LEDS()
-    #include "leds/side_strip_control.hpp"
-#endif
 #include "ili9488.hpp"
 #include "led_animations/animator.hpp"
 #include <device/peripherals.h>
 #include <config_store/store_instance.hpp>
+
+#if HAS_SIDE_LEDS()
+    #include "leds/side_strip_control.hpp"
+#endif
 
 using namespace leds;
 

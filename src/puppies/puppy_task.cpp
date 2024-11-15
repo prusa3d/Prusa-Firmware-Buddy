@@ -6,8 +6,8 @@
 #include "cmsis_os.h"
 #include <logging/log.hpp>
 #include <buddy/main.h>
-#include "puppies/modular_bed.hpp"
-#include "puppies/Dwarf.hpp"
+#include <puppies/modular_bed.hpp>
+#include <puppies/Dwarf.hpp>
 #include "puppies/PuppyBootstrap.hpp"
 #include "timing.h"
 #include "Marlin/src/module/stepper.h"
