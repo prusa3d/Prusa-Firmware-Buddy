@@ -359,17 +359,22 @@ inline decltype(buddy::hw::modularBedReset) &get_reset_pin(Dock dock) {
 #endif
 
 void PuppyBootstrap::reset_puppies_range([[maybe_unused]] DockIterator begin, [[maybe_unused]] DockIterator end) {
+    for (auto dock = begin; dock < end; ++dock) {
 #if HAS_PIN_RESETABLE_PUPPIES()
-    const auto write_puppies_reset_pin = [](DockIterator dockFrom, DockIterator dockTo, Pin::State state) {
-        for (auto dock = dockFrom; dock != dockTo; dock = std::next(dock)) {
-            get_reset_pin(*dock).write(state);
+        if (is_pin_resetable(*dock)) {
+            get_reset_pin(*dock).write(Pin::State::high);
         }
-    };
-
-    write_puppies_reset_pin(begin, end, Pin::State::high);
-    osDelay(1);
-    write_puppies_reset_pin(begin, end, Pin::State::low);
 #endif
+    }
+    osDelay(1000);
+    for (auto dock = begin; dock < end; ++dock) {
+#if HAS_PIN_RESETABLE_PUPPIES()
+        if (is_pin_resetable(*dock)) {
+            get_reset_pin(*dock).write(Pin::State::low);
+        }
+#endif
+    }
+    osDelay(200);
 }
 
 bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address address) {
