@@ -106,7 +106,7 @@ target_sources(
           window_thumbnail.cpp
   )
 
-if(PRINTER IN_LIST PRINTERS_WITH_CRASH_DETECTION)
+if(HAS_CRASH_DETECTION)
   target_sources(firmware PRIVATE screen_crash_recovery.cpp)
 endif()
 

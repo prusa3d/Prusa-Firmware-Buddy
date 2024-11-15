@@ -207,7 +207,7 @@ if(BOARD_IS_MASTER_BOARD)
       )
   endif()
 
-  if(PRINTER IN_LIST PRINTERS_WITH_POWER_PANIC OR PRINTER IN_LIST PRINTERS_WITH_CRASH_DETECTION)
+  if(HAS_POWER_PANIC OR HAS_CRASH_DETECTION)
     # Power panic/crash detection module
     target_sources(
       Marlin PRIVATE Marlin/Marlin/src/feature/prusa/crash_recovery.cpp
@@ -215,7 +215,7 @@ if(BOARD_IS_MASTER_BOARD)
       )
   endif()
 
-  if(PRINTER IN_LIST PRINTERS_WITH_PRECISE_HOMING)
+  if(HAS_PRECISE_HOMING)
     # cartesian precise homing
     target_sources(
       Marlin PRIVATE Marlin/Marlin/src/module/prusa/homing_cart.cpp
@@ -223,7 +223,7 @@ if(BOARD_IS_MASTER_BOARD)
       )
   endif()
 
-  if(PRINTER IN_LIST PRINTERS_WITH_PRECISE_HOMING_COREXY)
+  if(HAS_PRECISE_HOMING_COREXY)
     # corexy precise homing
     target_sources(Marlin PRIVATE Marlin/Marlin/src/module/prusa/homing_corexy.cpp)
   endif()

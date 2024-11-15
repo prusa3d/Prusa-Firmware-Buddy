@@ -240,14 +240,25 @@ endfunction()
 
 set(PRINTERS_WITH_FILAMENT_SENSOR_BINARY "MINI" "MK3.5")
 set(PRINTERS_WITH_FILAMENT_SENSOR_ADC "MK4" "XL" "iX" "XL_DEV_KIT")
-set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY "MINI" "MK4" "MK3.5" "XL" "iX")
-set(PRINTERS_WITH_ADVANCED_PAUSE "MINI" "MK4" "MK3.5" "iX" "XL" "XL_DEV_KIT")
-set(PRINTERS_WITH_CRASH_DETECTION "MINI" "MK4" "MK3.5" "iX" "XL") # this does require selftest to
-                                                                  # work
-set(PRINTERS_WITH_POWER_PANIC "MK4" "MK3.5" "iX" "XL") # this does require selftest and crash
-                                                       # detection to work
-set(PRINTERS_WITH_PRECISE_HOMING "MK4" "MK3.5")
-set(PRINTERS_WITH_PRECISE_HOMING_COREXY "iX" "XL" "XL_DEV_KIT")
+
+set_feature_for_printers(INIT_TRINAMIC_FROM_MARLIN_ONLY "MINI" "MK4" "MK3.5" "XL" "iX")
+set_feature_for_printers(
+  HAS_PAUSE
+  "MINI"
+  "MK4"
+  "MK3.5"
+  "iX"
+  "XL"
+  "XL_DEV_KIT"
+  )
+set_feature_for_printers(HAS_CRASH_DETECTION "MINI" "MK4" "MK3.5" "iX" "XL") # this does require
+                                                                             # selftest to
+# work
+set_feature_for_printers(HAS_POWER_PANIC "MK4" "MK3.5" "iX" "XL") # this does require selftest and
+                                                                  # crash
+# detection to work
+set_feature_for_printers(HAS_PRECISE_HOMING "MK4" "MK3.5")
+set_feature_for_printers(HAS_PRECISE_HOMING_COREXY "iX" "XL" "XL_DEV_KIT")
 set(PRINTERS_WITH_PHASE_STEPPING "XL" "iX")
 set(PRINTERS_WITH_BURST_STEPPING "XL")
 set(PRINTERS_WITH_INPUT_SHAPER_CALIBRATION "MK4" "MK3.5" "XL" "XL_DEV_KIT")
@@ -419,13 +430,6 @@ endif()
 message(STATUS "Graphical User Interface: ${GUI}")
 define_boolean_option(HAS_GUI ${GUI})
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
-  set(INIT_TRINAMIC_FROM_MARLIN_ONLY YES)
-else()
-  set(INIT_TRINAMIC_FROM_MARLIN_ONLY NO)
-endif()
-define_boolean_option(INIT_TRINAMIC_FROM_MARLIN_ONLY ${INIT_TRINAMIC_FROM_MARLIN_ONLY})
-
 if(${PRINTER} IN_LIST PRINTERS_WITH_SELFTEST)
   set(HAS_SELFTEST YES)
 else()
@@ -557,13 +561,6 @@ else()
   set(HAS_XLCD_TOUCH_DRIVER NO)
 endif()
 message(STATUS "XLCD_TOUCH_DRIVER: ${HAS_XLCD_TOUCH_DRIVER}")
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_ADVANCED_PAUSE)
-  set(HAS_PAUSE YES)
-else()
-  set(HAS_PAUSE NO)
-endif()
-message(STATUS "ADVANCED PAUSE: ${HAS_PAUSE}")
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_BOWDEN_EXTRUDER)
   set(HAS_BOWDEN YES)
