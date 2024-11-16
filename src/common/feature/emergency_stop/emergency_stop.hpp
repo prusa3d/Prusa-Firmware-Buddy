@@ -15,6 +15,8 @@ private:
 public:
     std::atomic<bool> do_stop = false;
     void step();
+    // Should be used only from the Marlin thread.
+    static bool stop_scheduled;
 };
 
 EmergencyStop &emergency_stop();

@@ -42,8 +42,9 @@ namespace {
     void emergency_start() {
         log_info(EmergencyStop, "Emergency start");
         // TODO: Something outside of the print too. But, should we block moves then, or what?
-        if (!marlin_server::printer_idle()) {
+        if (!marlin_server::printer_idle() && !EmergencyStop::stop_scheduled) {
             log_info(EmergencyStop, "Issue wait");
+            EmergencyStop::stop_scheduled = true;
             if (!marlin_server::inject(GCodeLiteral("M9202"))) {
                 log_error(EmergencyStop, "Failed to inject");
                 invoke_emergency();
@@ -91,5 +92,7 @@ EmergencyStop &emergency_stop() {
     static EmergencyStop instance;
     return instance;
 }
+
+bool EmergencyStop::stop_scheduled = false;
 
 } // namespace buddy

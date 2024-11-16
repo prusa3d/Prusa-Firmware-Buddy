@@ -39,6 +39,8 @@ void PrusaGcodeSuite::M9202() {
         idle(true, true);
     }
 
+    buddy::EmergencyStop::stop_scheduled = false;
+
     if (do_move) {
         do_blocking_move_to_xy(old.x, old.y);
     }
