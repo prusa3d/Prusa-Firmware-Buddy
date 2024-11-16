@@ -41,10 +41,10 @@ namespace {
 
     void emergency_start() {
         log_info(EmergencyStop, "Emergency start");
-        // TODO: Do we need to "unpark"? Or does that happen automatically?
+        // TODO: Something outside of the print too. But, should we block moves then, or what?
         if (!marlin_server::printer_idle()) {
             log_info(EmergencyStop, "Issue wait");
-            if (!marlin_server::inject(GCodeLiteral("G27 W3\nM9202"))) {
+            if (!marlin_server::inject(GCodeLiteral("M9202"))) {
                 log_error(EmergencyStop, "Failed to inject");
                 invoke_emergency();
             }

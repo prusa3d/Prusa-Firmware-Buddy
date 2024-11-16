@@ -56,7 +56,6 @@
  *   - `0` - Park
  *   - `1` - Purge
  *   - `2` - Load
- *   - `3` - Emergency stop
  */
 void GcodeSuite::G27() {
     GCodeParser2 parser;
