@@ -189,6 +189,9 @@ void app_run(void) {
 
 #if HAS_GUI()
     LangEEPROM::getInstance();
+    Translations::Instance().gettext_hook = []([[maybe_unused]] const char *f) {
+        assert(IS_FLASH_ADDRESS(reinterpret_cast<uintptr_t>(f)));
+    };
 #endif
 
     app_setup();

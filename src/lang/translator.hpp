@@ -44,6 +44,9 @@ public:
         // does not cause signed bit extension
         return uint16_t(lcu[1] << 8) + lcu[0];
     }
+
+    using GetTextHook = void (*)(const char *);
+    GetTextHook gettext_hook = nullptr;
 };
 
 struct ProviderRegistrator {
