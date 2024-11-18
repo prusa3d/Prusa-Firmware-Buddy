@@ -17,9 +17,9 @@ enum class FaultStatusMask : uint16_t {
 };
 
 inline bool is_tmc_error(uint16_t err) {
-#define B(NAME) static_cast<uint16_t>(FaultStatusMask::NAME)
-    return err & (B(TMC_RESET) | B(TMC_UNDERVOLTAGE) | B(TMC_SHORT) | B(TMC_OVERHEAT) | B(TMC_OTHER));
-#undef B
+#define BB(NAME) static_cast<uint16_t>(FaultStatusMask::NAME)
+    return err & (BB(TMC_RESET) | BB(TMC_UNDERVOLTAGE) | BB(TMC_SHORT) | BB(TMC_OVERHEAT) | BB(TMC_OTHER));
+#undef BB
 }
 
 } // namespace dwarf_shared::errors
