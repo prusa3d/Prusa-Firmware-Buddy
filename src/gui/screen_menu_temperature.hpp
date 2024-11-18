@@ -20,14 +20,19 @@
 
 /*****************************************************************************/
 // parent alias
-using ScreenMenuTemperature__ = ScreenMenu<
+namespace screen_menu_temperature {
+#if HAS_CHAMBER_API()
+using MI_CHAMBER_TARGET_TEMP = WithConstructorArgs<::MI_CHAMBER_TARGET_TEMP, HAS_MINI_DISPLAY() ? N_("Chamber") : N_("Chamber Temperature")>;
+#endif
+
+using ScreenBase = ScreenMenu<
     EFooter::On, MI_RETURN, MI_NOZZLE<0>,
 #if HAS_TOOLCHANGER()
     MI_NOZZLE<1>, MI_NOZZLE<2>, MI_NOZZLE<3>, MI_NOZZLE<4>,
 #endif
     MI_HEATBED,
 #if HAS_CHAMBER_API()
-    WithConstructorArgs<MI_CHAMBER_TARGET_TEMP, HAS_MINI_DISPLAY() ? N_("Chamber") : N_("Chamber Temperature")>,
+    MI_CHAMBER_TARGET_TEMP,
 #endif
     MI_PRINTFAN,
 #if HAS_XBUDDY_EXTENSION()
@@ -35,7 +40,9 @@ using ScreenMenuTemperature__ = ScreenMenu<
 #endif
     MI_COOLDOWN>;
 
-class ScreenMenuTemperature : public ScreenMenuTemperature__ {
+} // namespace screen_menu_temperature
+
+class ScreenMenuTemperature : public screen_menu_temperature::ScreenBase {
 public:
     constexpr static const char *label = N_("TEMPERATURE");
     ScreenMenuTemperature();

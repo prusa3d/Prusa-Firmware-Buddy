@@ -1,19 +1,18 @@
 #pragma once
 
-#include <i_window_menu_item.hpp>
+#include <gui/menu_item/menu_item_select_menu.hpp>
 
-class MI_CURRENT_SHEET_PROFILE : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Sheet Profile");
-
-    static constexpr Font font = GuiDefaults::FontMenuItems;
-    static constexpr auto extension_width = Rect16::W_t((MAX_SHEET_NAME_LENGTH + 2) * width(font) + GuiDefaults::MenuPaddingItems.left + GuiDefaults::MenuPaddingItems.right);
-
-    std::array<char, MAX_SHEET_NAME_LENGTH + 3> extension_str;
-
+class MI_CURRENT_SHEET_PROFILE : public MenuItemSelectMenu {
 public:
     MI_CURRENT_SHEET_PROFILE();
 
+    int item_count() const final;
+    void build_item_text(int index, const std::span<char> &buffer) const final;
+
 protected:
-    void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
-    void click(IWindowMenu &) override;
+    bool on_item_selected(int old_index, int new_index) override;
+
+protected:
+    int item_count_ = 0;
+    std::array<int, config_store_ns::sheets_num> items_;
 };

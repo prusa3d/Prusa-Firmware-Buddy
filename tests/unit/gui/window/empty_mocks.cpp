@@ -13,7 +13,6 @@
 #include "img_resources.hpp"
 #include <memory>
 
-void gui_timers_delete_by_window(window_t *pWin) {}
 void gui_invalidate(void) {}
 void Sound_Play(eSOUND_TYPE eSoundType) {}
 void gui_loop() {}

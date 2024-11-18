@@ -8,9 +8,14 @@
 #include "DialogMoveZ.hpp"
 #include "img_resources.hpp"
 #include <option/has_toolchanger.h>
+#include <option/has_chamber_api.h>
+
+#if HAS_CHAMBER_API()
+    #include <feature/chamber/chamber.hpp>
+#endif
 
 ScreenMenuTemperature::ScreenMenuTemperature()
-    : ScreenMenuTemperature__(_(label)) {
+    : screen_menu_temperature::ScreenBase(_(label)) {
     EnableLongHoldScreenAction();
 
 #if (!PRINTER_IS_PRUSA_MINI())
@@ -35,6 +40,11 @@ void ScreenMenuTemperature::windowEvent(window_t *sender, GUI_event_t event, voi
 #endif
         Item<MI_HEATBED>().SetVal(0);
         Item<MI_PRINTFAN>().SetVal(0);
+#if HAS_CHAMBER_API()
+        if (buddy::chamber().capabilities().heating) {
+            Item<screen_menu_temperature::MI_CHAMBER_TARGET_TEMP>().SetVal(0);
+        }
+#endif
     } else {
         ScreenMenu::windowEvent(sender, event, param);
     }

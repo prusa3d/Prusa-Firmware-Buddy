@@ -6,7 +6,6 @@
  */
 
 #include "window_roll_text.hpp"
-#include "gui_timer.h"
 #include "stm32f4xx_hal.h"
 
 void window_roll_text_t::unconditionalDraw() {

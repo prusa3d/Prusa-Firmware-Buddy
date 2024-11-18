@@ -4,7 +4,6 @@
 #include "gui_invalidate.hpp"
 #include <algorithm> // std::find
 #include "ScreenHandler.hpp"
-#include "gui_timer.h"
 #include "display.hpp"
 #include "marlin_client.hpp"
 #include "knob_event.hpp"
@@ -230,7 +229,6 @@ window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_
 }
 
 window_t::~window_t() {
-    gui_timers_delete_by_window(this);
     if (GetFocusedWindow() == this) {
         focused_ptr = nullptr;
     }

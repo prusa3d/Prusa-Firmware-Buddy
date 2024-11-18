@@ -51,6 +51,7 @@ static const constexpr uint32_t GUI_DELAY_MAX = 10;
 static const constexpr uint8_t GUI_DELAY_LOOP = 100;
 static const constexpr uint32_t GUI_DELAY_REDRAW = 40; // 40 ms => 25 fps
 
+static Sw_Timer<uint32_t> gui_roll_timer(txtroll_t::GetBaseTick());
 static Sw_Timer<uint32_t> gui_loop_timer(GUI_DELAY_LOOP);
 static Sw_Timer<uint32_t> gui_redraw_timer(GUI_DELAY_REDRAW);
 
@@ -123,7 +124,16 @@ void gui_handle_touch() {
 #endif
 
 void gui_redraw(void) {
-    uint32_t now = ticks_ms();
+    const uint32_t now = ticks_ms();
+
+    if (gui_loop_timer.RestartIfIsOver(now)) {
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
+    }
+
+    if (txtroll_t::HasInstance() && gui_roll_timer.RestartIfIsOver(now)) {
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::TEXT_ROLL, nullptr);
+    }
+
     bool should_sleep = true;
     if (gui_invalid) {
         if (gui_redraw_timer.RestartIfIsOver(now)) {
@@ -152,12 +162,7 @@ void gui_bare_loop() {
 
     gui_handle_jogwheel();
 
-    gui_timers_cycle();
     gui_redraw();
-
-    if (gui_loop_timer.RestartIfIsOver(gui::GetTick())) {
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
-    }
 
     --guiloop_nesting;
 }
@@ -188,12 +193,8 @@ void gui_loop(void) {
         }
     }
 
-    gui_timers_cycle();
     gui_redraw();
     marlin_client::loop();
     GuiMediaEventsHandler::Tick();
-    if (gui_loop_timer.RestartIfIsOver(gui::GetTick())) {
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
-    }
     --guiloop_nesting;
 }

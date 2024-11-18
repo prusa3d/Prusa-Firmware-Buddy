@@ -2,7 +2,6 @@
 #pragma once
 
 #include "guitypes.hpp"
-#include "gui_timer.h"
 #include "display_helper.h"
 #include <guiconfig/GuiDefaults.hpp>
 

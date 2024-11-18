@@ -21,7 +21,7 @@
 using namespace multi_filament_change;
 
 MI_ActionSelect::MI_ActionSelect(uint8_t tool_ix)
-    : WI_LAMBDA_SPIN({}, 1, nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [this](const std::span<char> &buffer) { get_item_text(GetIndex(), buffer); })
+    : MenuItemSelectMenu({})
     , tool_ix(tool_ix) //
 {
     has_filament_loaded = (config_store().get_filament_type(tool_ix) != FilamentType::none);
@@ -34,10 +34,9 @@ void MI_ActionSelect::set_config(const ConfigItem &set) {
     // By using enforce_first_item, we make sure the target filament is in the list (it might be hidden otherwise) and that it's on the first place (which is a welcome bonus)
     const size_t filament_list_size = generate_filament_list(filament_list, { .enforce_first_item = set.new_filament });
     index_mapping.set_section_size<Action::change>(filament_list_size);
-    item_count = index_mapping.total_item_count();
 
     color = set.color;
-    SetIndex([&] -> size_t {
+    set_current_item([&] -> size_t {
         switch (set.action) {
         case Action::keep:
             return index_mapping.to_index<Action::keep>();
@@ -54,7 +53,7 @@ void MI_ActionSelect::set_config(const ConfigItem &set) {
 }
 
 ConfigItem MI_ActionSelect::config() const {
-    const auto mapping = index_mapping.from_index(GetIndex());
+    const auto mapping = index_mapping.from_index(current_item());
     return ConfigItem {
         .action = mapping.item,
         .new_filament = (mapping.item == Action::change) ? filament_list[mapping.pos_in_section] : FilamentType::none,
@@ -62,7 +61,11 @@ ConfigItem MI_ActionSelect::config() const {
     };
 }
 
-void MI_ActionSelect::get_item_text(size_t index, std::span<char> buffer) const {
+int MI_ActionSelect::item_count() const {
+    return index_mapping.total_item_count();
+}
+
+void MI_ActionSelect::build_item_text(int index, const std::span<char> &buffer) const {
     const auto mapping = index_mapping.from_index(index);
     switch (mapping.item) {
 

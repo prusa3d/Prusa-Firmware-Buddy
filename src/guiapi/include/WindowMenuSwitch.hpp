@@ -1,12 +1,3 @@
-/**
- * @file WindowMenuSwitch.hpp
- * @author Radek Vana
- * @brief WI_SWITCH == text version of WI_SPIN (non-numeric)
- * unlike WI_SPIN cannot be selected
- * todo try to inherit from WI_SPIN<const char**> lot of code could be reused
- * @date 2020-11-09
- */
-
 #pragma once
 
 #include "i_window_menu_item.hpp"
@@ -14,68 +5,52 @@
 
 #include <span>
 
-/*****************************************************************************/
-// IWiSwitch
-class IWiSwitch : public IWindowMenuItem {
+// TODO: Create a utility subclass of MenuItemSelectMenu and move SZ > 3 use cases of this there
+class MenuItemSwitch : public IWindowMenuItem {
 public:
     static constexpr Font BracketFont = GuiDefaults::FontMenuSpecial;
     static constexpr bool has_brackets = GuiDefaults::MenuSwitchHasBrackets;
     static constexpr padding_ui8_t Padding = GuiDefaults::MenuSwitchHasBrackets ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPaddingItems;
 
-protected:
-    size_t index = 0;
-
 public:
-    // !!! Call changeExtentionWidth() after the items are initialized in the child
-    IWiSwitch(const string_view_utf8 &label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
-
-    void SetIndex(size_t idx);
-
-    inline size_t GetIndex() const {
-        return index;
-    }
-
-    virtual size_t item_count() const = 0;
-    virtual string_view_utf8 current_item_text() const = 0;
-
-protected:
-    Rect16::Width_t calculateExtensionWidth() const;
-    void changeExtentionWidth();
-
-    Rect16 getSwitchRect(Rect16 extension_rect) const;
-    Rect16 getLeftBracketRect(Rect16 extension_rect) const;
-    Rect16 getRightBracketRect(Rect16 extension_rect) const;
-
-    virtual invalidate_t change(int dif) override;
-    virtual void OnChange([[maybe_unused]] size_t old_index) {};
-    virtual void click(IWindowMenu &window_menu) final;
-    virtual void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
-};
-
-class MenuItemSwitch : public IWiSwitch {
-
-public:
-    MenuItemSwitch(const string_view_utf8 &label, const std::span<const char *const> &items, size_t current_index = 0)
-        : IWiSwitch(label)
-        , items_(items) //
-    {
-        SetIndex(current_index);
-
-        // Items are initialized now, update extension width
-        changeExtentionWidth();
-    }
+    MenuItemSwitch(const string_view_utf8 &label, const std::span<const char *const> &items, size_t initial_index = 0);
 
     inline void set_translate_items(bool set) {
         translate_items_ = set;
     }
 
-    inline size_t item_count() const final {
+    void set_index(size_t set);
+
+    inline size_t item_count() const {
         return items_.size();
     }
-    inline string_view_utf8 current_item_text() const final {
-        const char *str = items_[index];
-        return translate_items_ ? _(str) : string_view_utf8::MakeRAM(str);
+
+    string_view_utf8 current_item_text() const;
+
+    inline size_t GetIndex() const {
+        return index;
     }
+
+    /// DEPRECATED
+    inline void SetIndex(size_t set) {
+        set_index(set);
+    }
+
+protected:
+    Rect16 getSwitchRect(Rect16 extension_rect) const;
+    Rect16 getLeftBracketRect(Rect16 extension_rect) const;
+    Rect16 getRightBracketRect(Rect16 extension_rect) const;
+
+    Rect16::Width_t calculateExtensionWidth() const;
+    void changeExtentionWidth();
+
+    virtual invalidate_t change(int dif) override;
+    virtual void OnChange([[maybe_unused]] size_t old_index) {};
+    virtual void click(IWindowMenu &window_menu) final;
+    virtual void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
+
+protected:
+    size_t index = 0;
 
 private:
     std::span<const char *const> items_;
