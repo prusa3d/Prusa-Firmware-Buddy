@@ -20,16 +20,6 @@ extern void sys_pll_disable(void);
 
 extern void sys_pll_enable(void);
 
-extern int sys_sscg_is_enabled(void);
-
-extern void sys_sscg_disable(void);
-
-extern void sys_sscg_enable(void);
-
-extern void sys_sscg_set_config(int freq, int depth);
-
-extern int sys_sscg_get_config(float *pfreq, float *pdepth);
-
 extern int sys_fw_update_is_enabled(void);
 
 extern void sys_fw_update_enable(void);
