@@ -228,7 +228,7 @@ if(BOARD_IS_MASTER_BOARD)
     target_sources(Marlin PRIVATE Marlin/Marlin/src/module/prusa/homing_corexy.cpp)
   endif()
 
-  if(PRINTER IN_LIST PRINTERS_WITH_TOOLCHANGER)
+  if(HAS_TOOLCHANGER)
     target_sources(
       Marlin
       PRIVATE Marlin/Marlin/src/gcode/control/T.cpp
