@@ -17,7 +17,7 @@ public:
     void do_click(IWindowMenu &window_menu, Action action);
 
 private:
-    char *get_filled_menu_item_label(Action action);
+    string_view_utf8 get_filled_menu_item_label(Action action);
     char label_buffer[max_label_len];
 };
 
