@@ -26,11 +26,5 @@ extern void sys_fw_update_enable(void);
 
 extern void sys_fw_update_disable(void);
 
-extern int sys_flash_is_empty(void *ptr, int size);
-
-extern int sys_flash_write(void *dst, void *src, int size);
-
-extern int sys_flash_erase_sector(unsigned int sector);
-
 /// @return true if version a < (major, minor, patch)
 extern bool version_less_than(const version_t *a, const uint8_t major, const uint8_t minor, const uint8_t patch);

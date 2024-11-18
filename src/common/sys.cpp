@@ -165,65 +165,6 @@ void sys_fw_update_disable(void) {
     st25dv64k_user_write(FW_UPDATE_FLAG_ADDRESS, ftrstd::to_underlying(FwAutoUpdate::off));
 }
 
-int sys_flash_is_empty(void *ptr, int size) {
-    uint8_t *p = (uint8_t *)ptr;
-    for (; size > 0; size--) {
-        if (*(p++) != 0xff) {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-int sys_flash_write(void *dst, void *src, int size) {
-    uint8_t *pd = (uint8_t *)dst;
-    uint8_t *ps = (uint8_t *)src;
-    int i = 0;
-    HAL_StatusTypeDef status;
-    status = HAL_FLASH_Unlock();
-    if (status == HAL_OK) {
-        __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR | FLASH_FLAG_BSY);
-        for (; i < size; i++) {
-            if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, (uint32_t)(pd++), *(ps++)) != HAL_OK) {
-                break;
-            }
-        }
-    }
-    HAL_FLASH_Lock();
-    return i;
-}
-
-// erase single sector (0..11)
-// sector  size  start       end
-//  0      16kb  0x08000000  0x08003FFF
-//  1      16kb  0x08004000  0x08007FFF
-//  2      16kb  0x08008000  0x0800BFFF
-//  3      16kb  0x0800c000  0x0800FFFF
-//  4      64kb  0x08010000  0x0801FFFF
-//  5     128kb  0x08020000  0x0803FFFF
-//  6     128kb  0x08040000  0x0805FFFF
-//  7     128kb  0x08060000  0x0807FFFF
-//  8     128kb  0x08080000  0x0809FFFF
-//  9     128kb  0x080A0000  0x080BFFFF
-//  1     128kb  0x080C0000  0x080DFFFF
-// 11     128kb  0x080E0000  0x080FFFFF
-int sys_flash_erase_sector(unsigned int sector) {
-    HAL_StatusTypeDef status;
-    if (
-#if FLASH_SECTOR_0 > 0
-        (sector < FLASH_SECTOR_0) ||
-#endif
-        (sector > FLASH_SECTOR_11))
-        return 0;
-    status = HAL_FLASH_Unlock();
-    if (status == HAL_OK) {
-        __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGSERR);
-        FLASH_Erase_Sector(sector, VOLTAGE_RANGE_3);
-    }
-    HAL_FLASH_Lock();
-    return (status == HAL_OK) ? 1 : 0;
-}
-
 bool version_less_than(const version_t *a, const uint8_t major, const uint8_t minor, const uint8_t patch) {
     if (a->major != major) {
         return a->major < major;
