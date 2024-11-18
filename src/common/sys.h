@@ -14,12 +14,6 @@ extern bool sys_dfu_requested(void);
 
 extern void sys_dfu_boot_enter(void) __attribute__((noreturn));
 
-extern int sys_pll_is_enabled(void);
-
-extern void sys_pll_disable(void);
-
-extern void sys_pll_enable(void);
-
 extern int sys_fw_update_is_enabled(void);
 
 extern void sys_fw_update_enable(void);
