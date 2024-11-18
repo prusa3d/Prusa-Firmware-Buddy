@@ -254,7 +254,7 @@ if(BOARD_IS_MASTER_BOARD)
       )
   endif()
 
-  if(PRINTER IN_LIST PRINTERS_WITH_PHASE_STEPPING)
+  if(HAS_PHASE_STEPPING)
     target_sources(
       Marlin
       PRIVATE Marlin/Marlin/src/feature/phase_stepping/calibration.cpp
