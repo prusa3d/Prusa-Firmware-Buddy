@@ -196,7 +196,7 @@ if(BOARD STREQUAL "XLBUDDY")
   target_sources(firmware PRIVATE MItem_enclosure.cpp)
 endif()
 
-if(PRINTER IN_LIST PRINTERS_WITH_LOVE_BOARD)
+if(HAS_LOVE_BOARD)
   target_sources(firmware PRIVATE MItem_love_board.cpp)
 endif()
 

@@ -1,4 +1,4 @@
-/// \file Filament sensors configuration menu for PRINTERS_WITH_SIDE_FSENSOR
+/// \file Filament sensors configuration menu for HAS_SIDE_FSENSOR
 /// Introduced in BFW-4973
 
 #pragma once
