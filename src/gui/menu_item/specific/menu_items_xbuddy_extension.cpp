@@ -31,7 +31,7 @@ MI_XBUDDY_EXTENSION_COOLING_FANS::MI_XBUDDY_EXTENSION_COOLING_FANS()
     set_value(
         exb.has_fan1_fan2_auto_control()
             ? *config().special_value
-            : static_cast<int>(exb.fan1_fan2_pwm()) * 100 / buddy::FanCooling::soft_max_pwm);
+            : static_cast<int>(exb.fan1_fan2_pwm()) * 100 / buddy::FanCooling::max_pwm);
 }
 
 void MI_XBUDDY_EXTENSION_COOLING_FANS::OnClick() {
@@ -39,7 +39,7 @@ void MI_XBUDDY_EXTENSION_COOLING_FANS::OnClick() {
     if (value() == config().special_value) {
         exb.set_fan1_fan2_auto_control();
     } else {
-        exb.set_fan1_fan2_pwm(value() * buddy::FanCooling::soft_max_pwm / 100);
+        exb.set_fan1_fan2_pwm(value() * buddy::FanCooling::max_pwm / 100);
     }
 }
 
