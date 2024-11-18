@@ -165,8 +165,7 @@ target_compile_definitions(
 
 target_compile_definitions(
   BuddyHeaders
-  INTERFACE PRINTER_MODEL="${PRINTER}"
-            PRINTER_CODE=${PRINTER_CODE}
+  INTERFACE PRINTER_CODE=${PRINTER_CODE}
             BOARD=BOARD_${BOARD}
             BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
             BOARD_VERSION_MINOR=${BOARD_VERSION_MINOR}

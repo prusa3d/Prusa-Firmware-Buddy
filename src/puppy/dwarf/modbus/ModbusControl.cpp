@@ -2,6 +2,7 @@
 #include "ModbusRegisters.hpp"
 #include <cstring>
 #include <logging/log.hpp>
+#include <bitset>
 #include "Marlin/src/module/temperature.h"
 #include "Marlin/src/module/stepper/trinamic.h"
 #include "../loadcell.hpp"
@@ -301,6 +302,32 @@ static inline int16_t clamp_to_int16(float temperature) {
     return std::clamp(temperature, float(INT16_MIN), float(INT16_MAX));
 }
 
+static void update_fault_status() {
+    // Inspired by TMC2130::CheckForErrors from MMU code
+    const uint16_t orig_fault_status = ModbusRegisters::GetRegValue(ModbusRegisters::SystemInputRegister::fault_status);
+    std::bitset<16> fault_status = orig_fault_status;
+    const uint32_t gstat = stepperE0.read(0x01);
+    const uint32_t drv_status = stepperE0.read(0x6F);
+    using dwarf_shared::errors::FaultStatusMask;
+    auto bt = [&](FaultStatusMask mask, uint32_t source, uint32_t selector) {
+        const bool value = source & (1U << selector);
+        fault_status[static_cast<size_t>(mask)] = value;
+    };
+    bt(FaultStatusMask::TMC_RESET, gstat, 0);
+    bt(FaultStatusMask::TMC_UNDERVOLTAGE, gstat, 2);
+    bt(FaultStatusMask::TMC_SHORT, drv_status, 27);
+    // This one is not fatal and we handle all errors as fatal now, we wouldn't
+    // know what to do with it...
+    // bt(FaultStatusMask::TMC_OVERHEAT_WARNING, drv_status, 26);
+    bt(FaultStatusMask::TMC_OVERHEAT, drv_status, 25);
+    bt(FaultStatusMask::TMC_OTHER, (gstat & ~1) != 0, 0);
+
+    const uint16_t new_fault_status = fault_status.to_ulong();
+    if (orig_fault_status != new_fault_status) {
+        ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::fault_status, new_fault_status);
+    }
+}
+
 void UpdateRegisters() {
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::hotend_measured_temperature, clamp_to_int16(Temperature::degHotend(0)));
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::hotend_pwm_state, Temperature::getHeaterPower(H_E0));
@@ -330,6 +357,8 @@ void UpdateRegisters() {
 
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::system_24V_mV, advancedpower.Get24VVoltage() * 1000);
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::heater_current_mA, advancedpower.GetDwarfNozzleCurrent() * 1000);
+
+    update_fault_status();
 }
 
 void TriggerMarlinKillFault(dwarf_shared::errors::FaultStatusMask fault, const char *component, const char *message) {

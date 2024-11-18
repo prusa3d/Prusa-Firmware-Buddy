@@ -133,8 +133,6 @@ void screen_printing_data_t::stopAction() {
 /******************************************************************************/
 
 namespace {
-constexpr const char *txt_na { N_("N/A") };
-
 constexpr size_t column_left { 30 };
 
 constexpr size_t row_0 { 104 };
@@ -556,10 +554,10 @@ void screen_printing_data_t::updateTimes() {
     }
 
     if (value_available) {
-        w_etime_value.SetText(_(w_etime_value_buffer.data()));
+        w_etime_value.SetText(string_view_utf8::MakeRAM(w_etime_value_buffer.data()));
         w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_VALID);
     } else {
-        w_etime_value.SetText(_(txt_na));
+        w_etime_value.SetText(_("N/A"));
         w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
     }
     w_etime_value.Invalidate(); // just to make sure

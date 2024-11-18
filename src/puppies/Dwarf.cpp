@@ -639,6 +639,14 @@ void Dwarf::handle_dwarf_fault() {
         // this calls generic fatal error
         // any marlin fault on dwarf will be decoded based on error string and converted to propper ErrCode, or displayed as-is if no error code matches
         fatal_error(message_span.data(), module);
+    } else if (dwarf_shared::errors::is_tmc_error(fault_int)) {
+        // TODO: This is temporary. After discussing with Product what to do
+        // about the error, we may introduce either attempt to reboot the
+        // Dwarf, reinit the trinamic, show a final redscreen with a link for
+        // help article...
+        char msg[30];
+        snprintf(msg, sizeof(msg), "TMC error %" PRIu16 " on %" PRIu8, fault_int, dwarf_nr);
+        fatal_error(msg, "dwarf");
     } else {
         fatal_error(ErrCode::ERR_SYSTEM_DWARF_UNKNOWN_ERR, dwarf_nr);
     }

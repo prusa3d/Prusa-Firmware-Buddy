@@ -1,26 +1,34 @@
 #include "MItem_steel_sheets.hpp"
 
 #include <common/SteelSheets.hpp>
+#include <common/utils/algorithm_extensions.hpp>
 
 /*****************************************************************************/
 // MI_CURRENT_PROFILE
 MI_CURRENT_SHEET_PROFILE::MI_CURRENT_SHEET_PROFILE()
-    : IWindowMenuItem(_(label), extension_width, nullptr, is_enabled_t::yes, SteelSheets::NumOfCalibrated() > 1 ? is_hidden_t::no : is_hidden_t::yes) {
+    : MenuItemSelectMenu(_("Sheet Profile")) //
+{
+    for (size_t i = 0; i < items_.size(); i++) {
+        if (i != SteelSheets::GetActiveSheetIndex() && !SteelSheets::IsSheetCalibrated(i)) {
+            continue;
+        }
+
+        items_[item_count_] = i;
+        item_count_++;
+    }
+
+    set_current_item(stdext::index_of(items_, SteelSheets::GetActiveSheetIndex()));
 }
 
-void MI_CURRENT_SHEET_PROFILE::printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn) const {
-    std::array<char, SHEET_NAME_BUFFER_SIZE + 2> nameBuf;
-    char *name = nameBuf.data();
-    *(name++) = '[';
-    name += SteelSheets::ActiveSheetName(std::span(nameBuf).subspan<1, SHEET_NAME_BUFFER_SIZE>());
-    *(name++) = ']';
-    *(name++) = '\0';
-
-    render_text_align(extension_rect, string_view_utf8::MakeRAM((uint8_t *)nameBuf.data()), font, color_back,
-        is_focused() ? COLOR_ORANGE : color_text, GuiDefaults::MenuPaddingItems, Align_t::RightCenter(), false);
+int MI_CURRENT_SHEET_PROFILE::item_count() const {
+    return item_count_;
 }
 
-void MI_CURRENT_SHEET_PROFILE::click(IWindowMenu &) {
-    SteelSheets::NextSheet();
-    InValidateExtension();
+void MI_CURRENT_SHEET_PROFILE::build_item_text(int index, const std::span<char> &buffer) const {
+    SteelSheets::SheetName(items_[index], buffer);
+}
+
+bool MI_CURRENT_SHEET_PROFILE::on_item_selected([[maybe_unused]] int old_index, int new_index) {
+    SteelSheets::SelectSheet(items_[new_index]);
+    return true;
 }

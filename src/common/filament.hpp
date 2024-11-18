@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cstdint>
 #include <variant>
+#include <expected>
 
 #include <str_utils.hpp>
 
@@ -94,12 +95,23 @@ struct AdHocFilamentType {
     inline constexpr bool operator!=(const AdHocFilamentType &) const = default;
 };
 
+/// Ad-hoc filament type that is pending load. Fully adjustable, not listed in all_filament_types.
+/// Useful for filament changes, where we want to change loaded filament parameters only after the previous filament is unloaded.
+/// In that case, we would configure the pending custom filament type using `M865 X` and the load using `M600 F'#'`
+/// Only stored in RAM
+struct PendingAdHocFilamentType {
+    inline constexpr bool operator==(const PendingAdHocFilamentType &) const = default;
+    inline constexpr bool operator!=(const PendingAdHocFilamentType &) const = default;
+};
+
+extern FilamentTypeParameters pending_adhoc_filament_parameters;
+
 struct NoFilamentType {
     inline constexpr bool operator==(const NoFilamentType &) const = default;
     inline constexpr bool operator!=(const NoFilamentType &) const = default;
 };
 
-using FilamentType_ = std::variant<NoFilamentType, PresetFilamentType, UserFilamentType, AdHocFilamentType>;
+using FilamentType_ = std::variant<NoFilamentType, PresetFilamentType, UserFilamentType, AdHocFilamentType, PendingAdHocFilamentType>;
 
 /// Count of all filament types
 constexpr size_t total_filament_type_count = preset_filament_type_count + user_filament_type_count;
@@ -110,7 +122,7 @@ public:
     // For FilamentType::none
     static constexpr NoFilamentType none = {};
 
-    static constexpr const char *adhoc_filament_gcode_prefix = "#";
+    static constexpr const char *adhoc_pending_gcode_code = "#";
 
 public:
     // * Constructors
@@ -155,8 +167,12 @@ public:
 
     /// \returns whether the filaments parameters can be adjusted by the user
     inline bool is_customizable() const {
-        return std::holds_alternative<UserFilamentType>(*this) || std::holds_alternative<AdHocFilamentType>(*this);
+        return std::holds_alternative<UserFilamentType>(*this) || std::holds_alternative<AdHocFilamentType>(*this) || std::holds_alternative<PendingAdHocFilamentType>(*this);
     }
+
+    /// \returns whether the filament name can be changed to \param new_name or a translatable error string.
+    /// The filament must be customizable and the name must not collide (or it must be an ad-hoc filament)
+    std::expected<void, const char *> can_be_renamed_to(const std::string_view &new_name) const;
 
     /// \returns whether the filament is visible - shown in standard filament lists
     bool is_visible() const;

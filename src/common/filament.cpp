@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <algorithm>
 
 #include "i18n.h"
 #include "../../include/printers.h"
@@ -133,6 +134,8 @@ constexpr bool temperatures_are_within_spec(const FilamentTypeParameters &filame
 }
 static_assert(std::ranges::all_of(preset_filament_parameters, temperatures_are_within_spec));
 
+FilamentTypeParameters pending_adhoc_filament_parameters;
+
 FilamentType FilamentType::from_name(const std::string_view &name) {
     if (name.length() >= filament_name_buffer_size) {
         return FilamentType::none;
@@ -152,11 +155,8 @@ std::optional<FilamentType> FilamentType::from_gcode_param(const std::string_vie
         return r;
     }
 
-    static constexpr std::string_view adhoc_prefix_view = adhoc_filament_gcode_prefix;
-    if (value.starts_with(adhoc_prefix_view)) {
-        if (uint8_t ix = 0; from_chars_light(value.begin() + adhoc_prefix_view.size(), value.end(), ix).ec == std::errc {} && ix < adhoc_filament_type_count) {
-            return AdHocFilamentType { .tool = ix };
-        }
+    if (value == adhoc_pending_gcode_code) {
+        return PendingAdHocFilamentType {};
     }
 
     return std::nullopt;
@@ -187,6 +187,10 @@ void FilamentType::build_name_with_info(StringBuilder &builder) const {
             } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
                 return N_(" (Custom)");
 
+            } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
+                assert(0); // Should never be in GUI
+                return N_(" (Custom)");
+
             } else {
                 static_assert(false);
             }
@@ -210,6 +214,9 @@ FilamentTypeParameters FilamentType::parameters() const {
         } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
             return config_store().adhoc_filament_parameters.get(v.tool);
 
+        } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
+            return pending_adhoc_filament_parameters;
+
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
             return none_filament_parameters;
         }
@@ -218,6 +225,8 @@ FilamentTypeParameters FilamentType::parameters() const {
 }
 
 void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
+    assert(can_be_renamed_to(set.name));
+
     std::visit([&]<typename T>(const T &v) {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {
             assert(false);
@@ -227,6 +236,9 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
 
         } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
             config_store().adhoc_filament_parameters.set(v.tool, set);
+
+        } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
+            pending_adhoc_filament_parameters = set;
 
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
             assert(false);
@@ -238,6 +250,44 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
         *this);
 }
 
+std::expected<void, const char *> FilamentType::can_be_renamed_to(const std::string_view &new_name) const {
+    if (!is_customizable()) {
+        return std::unexpected(N_("Filament is not customizable"));
+    }
+
+    // Name must not be empty
+    if (new_name.size() == 0) {
+        return std::unexpected(N_("Name must not be empty"));
+    }
+
+    // Name must not be "---"
+    if (new_name == "---") {
+        return std::unexpected(N_("Name must not be '---'"));
+    }
+
+    // Check for valid symbols
+    if (!std::ranges::all_of(new_name, [](char ch) {
+            return (isalnum(ch) && toupper(ch) == ch) || strchr("_-", ch);
+        })) {
+        return std::unexpected(N_("Name must contain only 'A-Z0-9_-' characters"));
+    }
+
+    // Check for name collisions
+    if (
+        // Ad-hoc filaments can "override" standard ones, so we allow name collisions for them
+        !std::holds_alternative<AdHocFilamentType>(*this)
+
+        && std::ranges::any_of(all_filament_types, [&](FilamentType ft) {
+               return (ft != *this) && (new_name == ft.parameters().name);
+           })
+
+    ) {
+        return std::unexpected(N_("Filament with this name already exists"));
+    }
+
+    return {};
+}
+
 bool FilamentType::is_visible() const {
     return std::visit([]<typename T>(const T &v) -> bool {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {
@@ -247,6 +297,9 @@ bool FilamentType::is_visible() const {
             return config_store().visible_user_filament_types.get().test(v.index);
 
         } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
+            return false;
+
+        } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
             return false;
 
         } else if constexpr (std::is_same_v<T, NoFilamentType>) {
@@ -269,6 +322,10 @@ void FilamentType::set_visible(bool set) const {
             });
 
         } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
+            // Should never happen
+            assert(0);
+
+        } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
             // Should never happen
             assert(0);
 

@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "WindowItemFormatableSpin.hpp"
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"

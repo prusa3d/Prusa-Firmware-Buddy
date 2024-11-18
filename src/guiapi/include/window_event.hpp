@@ -26,7 +26,6 @@ enum class GUI_event_t : uint8_t {
     FOCUS1, ///< focus set
     CAPT_0, ///< capture lost
     CAPT_1, ///< capture set
-    TIMER, ///< gui timer
     TEXT_ROLL, ///< tick for text rolling classes
     MESSAGE, ///< onStatusChange() message notification
     MEDIA, ///< marlin media change
@@ -141,7 +140,6 @@ static constexpr const char *GUI_event_prt_data[GUI_event_t_count + 1] = {
     "focus set",
     "capture lost",
     "capture set",
-    "gui timer",
     "text roll base tick",
     "message notification",
     "Marlin media changed",

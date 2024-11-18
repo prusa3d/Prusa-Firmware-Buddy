@@ -126,7 +126,6 @@ void make_gui_ready_to_print() {
             && marlin_vars().print_state != marlin_server::State::Idle) { // Abort if print was not started (this function is called when State::WaitGui)
             // main thread is processing a print
             // wait for print screen to open, any fsm can break waiting (f.e.: Print Preview)
-            gui_timers_cycle(); // refresh GUI time
             marlin_client::loop(); // refresh fsm - required for dialog handler
             DialogHandler::Access().Loop();
         }

@@ -14,8 +14,4 @@ public:
     /// * Possibly sets up icon
     /// \param params must be alive for the whole lifespan of the \p item !
     static void setup_menu_item(FilamentType ft, const FilamentTypeParameters &params, IWindowMenuItem &item);
-
-    /// Converts the name to a valid filament name or fails (makes all uppercase)
-    /// \returns whether the provided filament name is valid for an user filament
-    static bool validate_user_filament_name(char *name);
 };
