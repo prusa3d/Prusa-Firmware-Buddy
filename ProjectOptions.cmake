@@ -307,10 +307,10 @@ set_feature_for_printers(HAS_SHEET_SUPPORT "MINI" "MK3.5")
 
 set_feature_for_printers(HAS_NFC "MK3.5" "MK4")
 
-set(PRINTERS_WITH_NOZZLE_CLEANER "iX")
-set(PRINTERS_WITH_BELT_TUNING "XL" "iX")
-set(PRINTERS_WITH_I2C_EXPANDER "MK3.5" "MK4")
-set(PRINTERS_WITH_WASTEBIN "iX")
+set_feature_for_printers(HAS_NOZZLE_CLEANER "iX")
+set_feature_for_printers(HAS_BELT_TUNING "XL" "iX")
+set_feature_for_printers_master_board(HAS_I2C_EXPANDER "MK3.5" "MK4")
+set_feature_for_printers(HAS_WASTEBIN "iX")
 
 # Set printer board
 set(BOARDS_WITH_ADVANCED_POWER "XBUDDY" "XLBUDDY" "DWARF")
@@ -581,33 +581,6 @@ else()
   set(DEBUG NO)
   define_boolean_option(NETWORKING_BENCHMARK_ENABLED NO)
 endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_NOZZLE_CLEANER)
-  define_boolean_option(HAS_NOZZLE_CLEANER YES)
-else()
-  define_boolean_option(HAS_NOZZLE_CLEANER NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_BELT_TUNING)
-  set(HAS_BELT_TUNING YES)
-else()
-  set(HAS_BELT_TUNING NO)
-endif()
-define_boolean_option(HAS_BELT_TUNING ${HAS_BELT_TUNING})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_I2C_EXPANDER AND BOARD_IS_MASTER_BOARD)
-  set(HAS_I2C_EXPANDER YES)
-else()
-  set(HAS_I2C_EXPANDER NO)
-endif()
-define_boolean_option(HAS_I2C_EXPANDER ${HAS_I2C_EXPANDER})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_WASTEBIN)
-  set(HAS_WASTEBIN YES)
-else()
-  set(HAS_WASTEBIN NO)
-endif()
-define_boolean_option(HAS_WASTEBIN ${HAS_WASTEBIN})
 
 # define enabled features
 
