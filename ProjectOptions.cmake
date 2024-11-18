@@ -296,16 +296,16 @@ set_feature_for_printers(HAS_LEDS "MK4" "MK3.5" "XL" "iX")
 # disable serial printing for MINI to save flash
 set_feature_for_printers(HAS_SERIAL_PRINT "MK4" "MK3.5" "XL" "iX" "MINI")
 
-set(PRINTERS_WITH_LOCAL_ACCELEROMETER "MK3.5" "MK4" "iX")
-set(PRINTERS_WITH_REMOTE_ACCELEROMETER "XL" "XL_DEV_KIT")
+set_feature_for_printers(HAS_LOCAL_ACCELEROMETER "MK3.5" "MK4" "iX")
+set_feature_for_printers(HAS_REMOTE_ACCELEROMETER "XL" "XL_DEV_KIT")
 
-set(PRINTERS_WITH_COLDPULL "MK3.5" "MK4" "XL")
+set_feature_for_printers(HAS_COLDPULL "MK3.5" "MK4" "XL")
 
-set(PRINTERS_WITH_BED_LEVEL_CORRECTION "MK3.5" "MINI")
+set_feature_for_printers(HAS_BED_LEVEL_CORRECTION "MK3.5" "MINI")
 
-set(PRINTERS_WITH_SHEET_SUPPORT "MINI" "MK3.5")
+set_feature_for_printers(HAS_SHEET_SUPPORT "MINI" "MK3.5")
 
-set(PRINTERS_WITH_NFC "MK3.5" "MK4")
+set_feature_for_printers(HAS_NFC "MK3.5" "MK4")
 
 set(PRINTERS_WITH_NOZZLE_CLEANER "iX")
 set(PRINTERS_WITH_BELT_TUNING "XL" "iX")
@@ -567,18 +567,6 @@ else()
   define_boolean_option(HAS_SIDE_LEDS NO)
 endif()
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_LOCAL_ACCELEROMETER)
-  define_boolean_option(HAS_LOCAL_ACCELEROMETER YES)
-else()
-  define_boolean_option(HAS_LOCAL_ACCELEROMETER NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_REMOTE_ACCELEROMETER)
-  define_boolean_option(HAS_REMOTE_ACCELEROMETER YES)
-else()
-  define_boolean_option(HAS_REMOTE_ACCELEROMETER NO)
-endif()
-
 if(HAS_TOOLCHANGER)
   set(HAS_FILAMENT_SENSORS_MENU YES)
 else()
@@ -586,30 +574,12 @@ else()
 endif()
 define_boolean_option(HAS_FILAMENT_SENSORS_MENU ${HAS_FILAMENT_SENSORS_MENU})
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_COLDPULL)
-  define_boolean_option(HAS_COLDPULL YES)
-else()
-  define_boolean_option(HAS_COLDPULL NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_SHEET_SUPPORT)
-  define_boolean_option(HAS_SHEET_SUPPORT YES)
-else()
-  define_boolean_option(HAS_SHEET_SUPPORT NO)
-endif()
-
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(DEBUG YES)
   define_boolean_option(NETWORKING_BENCHMARK_ENABLED YES)
 else()
   set(DEBUG NO)
   define_boolean_option(NETWORKING_BENCHMARK_ENABLED NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_NFC)
-  define_boolean_option(HAS_NFC YES)
-else()
-  define_boolean_option(HAS_NFC NO)
 endif()
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_NOZZLE_CLEANER)
