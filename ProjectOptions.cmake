@@ -282,19 +282,19 @@ set(PRINTERS_WITH_TRANSLATIONS "MK4" "MK3.5" "XL" "MINI")
 set(PRINTERS_WITH_EXTFLASH_TRANSLATIONS "MINI")
 set_feature_for_printers(HAS_LOVE_BOARD "MK4" "iX")
 set_feature_for_printers(HAS_TMC_UART "MINI")
-set(PRINTERS_WITH_XLCD "MK4" "MK3.5" "iX" "XL")
-set(PRINTERS_WITH_MMU2 "MK4" "MK3.5")
-set(PRINTERS_WITH_CONFIG_STORE_WITHOUT_BACKEND "XL_DEV_KIT")
-set(PRINTERS_WITH_CHAMBER_API "XL")
-set(PRINTERS_WITH_SWITCHED_FAN_TEST "MK4" "MK3.5")
+set_feature_for_printers(HAS_XLCD "MK4" "MK3.5" "iX" "XL")
+set_feature_for_printers(HAS_MMU2 "MK4" "MK3.5")
+set_feature_for_printers(HAS_CONFIG_STORE_WO_BACKEND "XL_DEV_KIT")
+set_feature_for_printers_master_board(HAS_CHAMBER_API "XL")
+set_feature_for_printers(HAS_SWITCHED_FAN_TEST "MK4" "MK3.5")
 
 # Set GUI settings
 set(PRINTERS_WITH_GUI "MINI" "MK4" "MK3.5" "XL" "iX")
 set(PRINTERS_WITH_GUI_W480H320 "MK4" "MK3.5" "XL" "iX")
 set(PRINTERS_WITH_GUI_W240H320 "MINI")
-set(PRINTERS_WITH_LEDS "MK4" "MK3.5" "XL" "iX")
+set_feature_for_printers(HAS_LEDS "MK4" "MK3.5" "XL" "iX")
 # disable serial printing for MINI to save flash
-set(PRINTERS_WITH_SERIAL_PRINTING "MK4" "MK3.5" "XL" "iX" "MINI")
+set_feature_for_printers(HAS_SERIAL_PRINT "MK4" "MK3.5" "XL" "iX" "MINI")
 
 set(PRINTERS_WITH_LOCAL_ACCELEROMETER "MK3.5" "MK4" "iX")
 set(PRINTERS_WITH_REMOTE_ACCELEROMETER "XL" "XL_DEV_KIT")
@@ -432,20 +432,6 @@ endif()
 message(STATUS "Graphical User Interface: ${GUI}")
 define_boolean_option(HAS_GUI ${GUI})
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_CONFIG_STORE_WITHOUT_BACKEND)
-  set(HAS_CONFIG_STORE_WO_BACKEND YES)
-else()
-  set(HAS_CONFIG_STORE_WO_BACKEND NO)
-endif()
-define_boolean_option(HAS_CONFIG_STORE_WO_BACKEND ${HAS_CONFIG_STORE_WO_BACKEND})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_SWITCHED_FAN_TEST)
-  set(HAS_SWITCHED_FAN_TEST YES)
-else()
-  set(HAS_SWITCHED_FAN_TEST NO)
-endif()
-define_boolean_option(HAS_SWITCHED_FAN_TEST ${HAS_SWITCHED_FAN_TEST})
-
 if(ENABLE_BURST
    AND ${PRINTER} IN_LIST PRINTERS_WITH_BURST_STEPPING
    AND BOARD_IS_MASTER_BOARD
@@ -455,13 +441,6 @@ else()
   set(HAS_BURST_STEPPING NO)
 endif()
 define_boolean_option(HAS_BURST_STEPPING ${HAS_BURST_STEPPING})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_CHAMBER_API AND BOARD_IS_MASTER_BOARD)
-  set(HAS_CHAMBER_API YES)
-else()
-  set(HAS_CHAMBER_API NO)
-endif()
-define_boolean_option(HAS_CHAMBER_API ${HAS_CHAMBER_API})
 
 if((${BOARD} STREQUAL "DWARF") OR (${BOARD} STREQUAL "XBUDDY" AND NOT PRINTER STREQUAL "MK3.5"))
   set(HAS_LOADCELL_HX717 YES)
@@ -484,34 +463,12 @@ else()
 endif()
 define_boolean_option(HAS_ACCELEROMETER ${HAS_ACCELEROMETER})
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_XLCD)
-  set(HAS_XLCD YES)
-else()
-  set(HAS_XLCD NO)
-endif()
-define_boolean_option(HAS_XLCD ${HAS_XLCD})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_MMU2)
-  set(HAS_MMU2 YES)
-else()
-  set(HAS_MMU2 NO)
-endif()
-define_boolean_option(HAS_MMU2 ${HAS_MMU2})
-message(STATUS "MMU2: ${HAS_MMU2}")
-
 if(${TOUCH_ENABLED})
   set(HAS_XLCD_TOUCH_DRIVER YES)
 else()
   set(HAS_XLCD_TOUCH_DRIVER NO)
 endif()
 message(STATUS "XLCD_TOUCH_DRIVER: ${HAS_XLCD_TOUCH_DRIVER}")
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_SERIAL_PRINTING)
-  set(HAS_SERIAL_PRINT YES)
-else()
-  set(HAS_SERIAL_PRINT NO)
-endif()
-define_boolean_option(HAS_SERIAL_PRINT ${HAS_SERIAL_PRINT})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_DWARF
    OR HAS_MODULARBED
@@ -529,13 +486,6 @@ else()
   set(HAS_DWARF NO)
 endif()
 define_boolean_option(HAS_DWARF ${HAS_DWARF})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_LEDS)
-  set(HAS_LEDS YES)
-else()
-  set(HAS_LEDS NO)
-endif()
-define_boolean_option(HAS_LEDS ${HAS_LEDS})
 
 if(HAS_PUPPIES)
   set(ENABLE_PUPPY_BOOTLOAD

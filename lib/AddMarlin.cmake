@@ -239,7 +239,7 @@ if(BOARD_IS_MASTER_BOARD)
       )
   endif()
 
-  if(PRINTER IN_LIST PRINTERS_WITH_MMU2)
+  if(HAS_MMU2)
     target_sources(
       Marlin
       PRIVATE Marlin/Marlin/src/feature/prusa/MMU2/mmu2_command_guard.cpp
