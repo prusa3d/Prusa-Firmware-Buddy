@@ -397,15 +397,15 @@ private:
 class FrameHelpQR : public FrameRadioQR {
 
 public:
-#if PRINTER_IS_PRUSA_MINI()
+#if BOARD_IS_BUDDY()
     static constexpr const char *qr_addr = "prusa.io/wifiminiqr";
     static constexpr const char *text_addr = "prusa.io/wifimini";
 
-#elif PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX()
+#elif BOARD_IS_XBUDDY()
     static constexpr const char *qr_addr = "prusa.io/wifimk4qr";
     static constexpr const char *text_addr = "prusa.io/wifimk4";
 
-#elif PRINTER_IS_PRUSA_XL()
+#elif BOARD_IS_XLBUDDY()
     static constexpr const char *qr_addr = "prusa.io/wifixlqr";
     static constexpr const char *text_addr = "prusa.io/wifixl";
 
