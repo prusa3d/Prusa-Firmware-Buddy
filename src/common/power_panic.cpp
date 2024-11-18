@@ -769,6 +769,9 @@ float distance_to_reset_point(const AxisEnum axis, uint8_t min_cycles) {
 uint8_t shutdown_state = 0;
 
 enum class ShutdownState {
+#if BOARD_IS_XBUDDY()
+    mmu,
+#endif
 #if HAS_LEDS()
     leds,
 #endif
@@ -781,6 +784,13 @@ enum class ShutdownState {
 bool shutdown_loop() {
     // shut off devices one-at-a-time in order of power-draw/time saved
     switch (static_cast<ShutdownState>(shutdown_state)) {
+
+#if BOARD_IS_XBUDDY()
+    case ShutdownState::mmu:
+        // Cut power to the MMU connector
+        buddy::hw::MMUEnable.reset();
+        break;
+#endif
 
 #if HAS_LEDS()
     case ShutdownState::leds:
