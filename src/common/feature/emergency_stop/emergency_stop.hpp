@@ -11,12 +11,21 @@ namespace buddy {
 class EmergencyStop {
 private:
     std::optional<int32_t> start_z;
+    // Is the gcode to block the print in queue / active anywhere?
+    bool gcode_scheduled = false;
+    bool active = false;
+
+    void emergency_start();
+    void emergency_over();
 
 public:
-    std::atomic<bool> do_stop = false;
     void step();
-    // Should be used only from the Marlin thread.
-    static bool stop_scheduled;
+    bool in_emergency() const { return active; }
+
+    // The actual "implementation" of the pause during print behavior, as
+    // called from the relevant gcode. Parks and waits for the emergency to
+    // pass.
+    void gcode_body();
 };
 
 EmergencyStop &emergency_stop();

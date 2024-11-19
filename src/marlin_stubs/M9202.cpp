@@ -21,33 +21,5 @@
  *
  */
 void PrusaGcodeSuite::M9202() {
-    if (!buddy::emergency_stop().do_stop) {
-        return;
-    }
-
-    marlin_server::set_warning(WarningType::DoorOpen, PhasesWarning::DoorOpen);
-
-    planner.synchronize();
-    const auto old = current_position;
-    // Don't park:
-    // * If parking would mean we have to home first (which'll look bad, but also move in Z, which'd do Bad Things).
-    // * If we are not actually printing.
-    // * If the door got closed already during the above planner.sychronize (which can take a bit of time).
-    const bool do_move = all_axes_homed() && !marlin_server::printer_idle() && buddy::emergency_stop().do_stop;
-
-    if (do_move) {
-        do_blocking_move_to_xy(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT);
-    }
-
-    while (buddy::emergency_stop().do_stop) {
-        idle(true, true);
-    }
-
-    buddy::EmergencyStop::stop_scheduled = false;
-
-    if (do_move) {
-        do_blocking_move_to_xy(old.x, old.y);
-    }
-
-    marlin_server::clear_warning(WarningType::DoorOpen);
+    buddy::emergency_stop().gcode_body();
 }

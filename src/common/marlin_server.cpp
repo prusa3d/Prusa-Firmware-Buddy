@@ -1508,7 +1508,7 @@ void update_sfn() {
 void print_resume(void) {
     if (server.print_state == State::Paused) {
 #if HAS_EMERGENCY_STOP()
-        if (buddy::emergency_stop().do_stop) {
+        if (buddy::emergency_stop().in_emergency()) {
             // TODO: How do we schedule another attempt to un-pause once it is closed?
             // TODO: Should the screen also disable the unpause button / change icon / something?
             inject(GCodeLiteral("M9202"));

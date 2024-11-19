@@ -38,21 +38,62 @@ namespace {
             power_panic::ac_fault_isr();
         }
     }
+} // namespace
 
-    void emergency_start() {
-        log_info(EmergencyStop, "Emergency start");
-        // TODO: Something outside of the print too. But, should we block moves then, or what?
-        if (!marlin_server::printer_idle() && !EmergencyStop::stop_scheduled) {
-            log_info(EmergencyStop, "Issue wait");
-            EmergencyStop::stop_scheduled = true;
-            if (!marlin_server::inject(GCodeLiteral("M9202"))) {
-                log_error(EmergencyStop, "Failed to inject");
-                invoke_emergency();
-            }
+void EmergencyStop::emergency_start() {
+    log_info(EmergencyStop, "Emergency start");
+    start_z = current_z();
+    // TODO: Something outside of the print too. But, should we block moves then, or what?
+    if (!marlin_server::printer_idle() && !gcode_scheduled) {
+        log_info(EmergencyStop, "Issue wait");
+        gcode_scheduled = true;
+        // TODO: It would be great if we could inject an object
+        // referencing us, not a textual representation :-|
+        //
+        // And it would be even greater if this wasn't really a gcode,
+        // but something somewhere near planner.
+        if (!marlin_server::inject(GCodeLiteral("M9202"))) {
+            log_error(EmergencyStop, "Failed to inject");
+            invoke_emergency();
         }
     }
+}
 
-} // namespace
+void EmergencyStop::emergency_over() {
+    log_info(EmergencyStop, "Emergency over");
+    start_z.reset();
+}
+
+void EmergencyStop::gcode_body() {
+    if (!active) {
+        gcode_scheduled = false;
+        return;
+    }
+
+    marlin_server::set_warning(WarningType::DoorOpen, PhasesWarning::DoorOpen);
+
+    const auto old = current_position;
+    // Don't park:
+    // * If parking would mean we have to home first (which'll look bad, but also move in Z, which'd do Bad Things).
+    // * If we are not actually printing.
+    const bool do_move = all_axes_homed() && !marlin_server::printer_idle();
+
+    if (do_move) {
+        do_blocking_move_to_xy(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT);
+    }
+
+    while (active) {
+        idle(true, true);
+    }
+
+    gcode_scheduled = false;
+
+    if (do_move) {
+        do_blocking_move_to_xy(old.x, old.y);
+    }
+
+    marlin_server::clear_warning(WarningType::DoorOpen);
+}
 
 void EmergencyStop::step() {
     const auto sensor_value = AdcGet::door_sensor();
@@ -63,7 +104,7 @@ void EmergencyStop::step() {
     //
     // So, approximating door closed as < 1024 (middlepoint between optimal open vs close).
     const bool emergency = sensor_value >= 1024 && config_store().emergency_stop_enable.get();
-    do_stop.store(emergency);
+    active = emergency;
     if (emergency) {
         if (start_z.has_value()) {
             const int32_t difference = std::abs(*start_z - current_z());
@@ -79,12 +120,10 @@ void EmergencyStop::step() {
                 }
             }
         } else {
-            start_z = current_z();
             emergency_start();
         }
     } else if (start_z.has_value()) {
-        log_info(EmergencyStop, "Emergency over");
-        start_z.reset();
+        emergency_over();
     }
 }
 
@@ -92,7 +131,5 @@ EmergencyStop &emergency_stop() {
     static EmergencyStop instance;
     return instance;
 }
-
-bool EmergencyStop::stop_scheduled = false;
 
 } // namespace buddy
