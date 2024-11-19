@@ -119,7 +119,7 @@ void XBuddyExtension::set_chamber_leds_pwm(uint8_t set) {
     config_store().xbuddy_extension_chamber_leds_pwm.set(set);
 }
 
-std::optional<float> XBuddyExtension::chamber_temperature() {
+std::optional<Temperature> XBuddyExtension::chamber_temperature() {
     return puppies::xbuddy_extension.get_chamber_temp();
 }
 

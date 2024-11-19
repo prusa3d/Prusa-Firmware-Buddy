@@ -7,6 +7,7 @@
 
 #include <freertos/mutex.hpp>
 #include <leds/color.hpp>
+#include <temperature.hpp>
 
 namespace buddy {
 
@@ -70,7 +71,7 @@ public: // LEDs
 
 public: // Other
     /// \returns chamber temperature measured through the thermistor connected to the board, in degrees Celsius
-    std::optional<float> chamber_temperature();
+    std::optional<Temperature> chamber_temperature();
 
 private:
     mutable freertos::Mutex mutex_;
