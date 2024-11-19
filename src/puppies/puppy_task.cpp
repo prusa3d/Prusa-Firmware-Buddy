@@ -8,7 +8,6 @@
 #include <buddy/main.h>
 #include <puppies/modular_bed.hpp>
 #include <puppies/Dwarf.hpp>
-#include <puppies/xbuddy_extension.hpp>
 #include <option/has_xbuddy_extension.h>
 #include "puppies/PuppyBootstrap.hpp"
 #include "timing.h"
@@ -19,6 +18,10 @@
 #include <buddy/ccm_thread.hpp>
 #include "bsod.h"
 #include "gui_bootstrap_screen.hpp"
+
+#if HAS_XBUDDY_EXTENSION()
+    #include <puppies/xbuddy_extension.hpp>
+#endif
 
 LOG_COMPONENT_DEF(Puppies, logging::Severity::debug);
 
