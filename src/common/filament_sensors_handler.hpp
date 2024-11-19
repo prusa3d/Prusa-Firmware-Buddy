@@ -12,7 +12,6 @@
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_fsensor.h" // MMU2::FilamentState
 #include <atomic>
 #include <bitset>
-#include <option/has_side_fsensor.h>
 #include "config_features.h"
 #include <option/has_toolchanger.h>
 

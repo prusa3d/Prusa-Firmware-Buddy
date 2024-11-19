@@ -12,7 +12,6 @@
 #include <climits>
 #include "../../Marlin/src/module/stepper.h"
 #include "M70X.hpp"
-#include <option/has_side_fsensor.h>
 #include <option/has_toolchanger.h>
 
 #include "common/RAII.hpp"
