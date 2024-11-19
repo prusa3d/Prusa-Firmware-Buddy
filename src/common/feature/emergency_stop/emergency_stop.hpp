@@ -27,6 +27,11 @@ private:
 
     // Is the gcode to block the print in queue / active anywhere?
     bool gcode_scheduled = false;
+    // A warning was shown _by us_.
+    //
+    // (Isn't set if it is shown by the gcode body; eventually, we want to
+    // somehow unify these, not sure in which direction yet).
+    bool warning_shown = false;
 
     void emergency_start();
     void emergency_over();

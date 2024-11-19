@@ -877,6 +877,27 @@ class Planner {
     FORCE_INLINE static bool processing() { return has_blocks_queued() || PreciseStepping::processing() || phase_stepping::processing(); }
 
     /**
+     * Prevents buffering new moves.
+     *
+     * Unlike draining and quick stop, it doesn't throw them away, but blocks
+     * in queueing them, until the plug is set to false again.
+     */
+    static void set_plug(bool plug) {
+        plugged = plug;
+    }
+
+    static bool is_plugged() {
+        return plugged;
+    }
+
+    /**
+     * Returns if it is plugged and any move is being blocked because of that.
+     */
+    static bool waiting_on_plug() {
+        return plug_holding;
+    }
+
+    /**
      * Returns the current block that PreciseStepping already processed and that is waiting for discarding,
      * nullptr if the queue is empty or none of blocks haven't already been processed.
      */
@@ -973,6 +994,8 @@ class Planner {
     static planner_settings_t working_settings_;
 
     static bool stealth_mode_;
+    static bool plugged;
+    static bool plug_holding;
 
   private:
     /**

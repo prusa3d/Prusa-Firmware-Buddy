@@ -47,7 +47,9 @@ void EmergencyStop::emergency_start() {
     extra_emergency_steps = extra_emergency_mm * steps;
     start_z = current_z();
     // TODO: Something outside of the print too. But, should we block moves then, or what?
-    if (!marlin_server::printer_idle() && !gcode_scheduled) {
+    if (marlin_server::printer_idle()) {
+        Planner::set_plug(true);
+    } else if (!gcode_scheduled) {
         log_info(EmergencyStop, "Issue wait");
         gcode_scheduled = true;
         // TODO: It would be great if we could inject an object
@@ -65,6 +67,11 @@ void EmergencyStop::emergency_start() {
 void EmergencyStop::emergency_over() {
     log_info(EmergencyStop, "Emergency over");
     start_z = no_emergency;
+    Planner::set_plug(false);
+    if (warning_shown) {
+        marlin_server::clear_warning(WarningType::DoorOpen);
+        warning_shown = false;
+    }
 }
 
 void EmergencyStop::gcode_body() {
@@ -126,6 +133,20 @@ void EmergencyStop::step() {
         emergency_start();
     } else if (!want_emergency && in_emergency()) {
         emergency_over();
+    }
+
+    if (in_emergency() && marlin_server::printer_idle() && !Planner::is_plugged()) {
+        // Special case. The print finished with open door and we need to
+        // transfer from one mode of blocking to the other.
+        //
+        // (The other direction is handled automatically by queueing M9202 at
+        // the start of print).
+        Planner::set_plug(true);
+    }
+
+    if (in_emergency() && !warning_shown && Planner::waiting_on_plug()) {
+        marlin_server::set_warning(WarningType::DoorOpen, PhasesWarning::DoorOpen);
+        warning_shown = true;
     }
 }
 
