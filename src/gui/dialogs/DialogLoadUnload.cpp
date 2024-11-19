@@ -277,22 +277,25 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     , progress_number(&progress_frame, get_progress_number_rect(GetRect()), 0, "%.0f%%", Font::big)
     , label(&progress_frame, get_label_rect(GetRect()), is_multiline::yes)
     , radio(&progress_frame, GuiDefaults::GetButtonRect_AvoidFooter(GetRect()), PhasesLoadUnload::initial)
-    , footer(this
+    , footer(
+          this
 #if FOOTER_ITEMS_PER_LINE__ >= 5
           ,
-          footer::Item::nozzle, footer::Item::bed, footer::Item::f_sensor
+          footer::Item::nozzle, footer::Item::bed, footer::Item::f_sensor, [] {
     #if HAS_MMU2()
-          ,
-          FSensors_instance().HasMMU() ? footer::Item::finda : footer::Item::none
-    #elif HAS_SIDE_FSENSOR()
-          ,
-          footer::Item::f_sensor_side
-    #else
-          ,
-          footer::Item::none
+              if (FSensors_instance().HasMMU()) {
+                  return footer::Item::finda;
+              }
     #endif
+
+    #if HAS_SIDE_FSENSOR()
+              return footer::Item::f_sensor_side;
+    #endif
+
+              return footer::Item::none;
+          }()
 #endif
-          )
+              )
     , notice_frame(this, get_frame_rect(GetRect()))
     , notice_title(&notice_frame, notice_title_rect, is_multiline::no)
     , notice_text(&notice_frame, notice_text_rect, is_multiline::yes)
