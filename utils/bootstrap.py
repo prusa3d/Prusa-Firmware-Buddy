@@ -117,6 +117,12 @@ dependencies = {
             'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd-data/40327a4d2dff0992682be2872aaa6e096f35d2f4/data/STMicro/STM32G07x.svd',
         ],
     },
+    'cmsis-svd': {
+        'version': 'c7e833e81e79e3396e1078832d936ae6578a8bc1',
+        'files': [
+            'https://raw.githubusercontent.com/modm-io/cmsis-svd-stm32/c7e833e81e79e3396e1078832d936ae6578a8bc1/stm32h5/STM32H503.svd',
+        ],
+    },
     'CrashDebug': {
         'version': '22acef8c6e248db2f04f65eebf4c2b470f4010c2',
         'url': 'https://github.com/prusa3d/CrashDebug/archive/22acef8c6e248db2f04f65eebf4c2b470f4010c2.zip',
