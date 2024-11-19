@@ -252,9 +252,6 @@
             "device": "STM32H503CBU7",
             "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-40327a4d2dff0992682be2872aaa6e096f35d2f4_2/STM32H750x.svd",
             "rtos": "FreeRTOS",
-            "presentation": {
-                "group": "XL Puppies",
-            },
             "preLaunchTask": "Wait 1", // this is needed when starting all puppies at once, because there is some issue when all of them start at once
             "rttConfig": {
                 "enabled": true,
@@ -294,9 +291,6 @@
             "device": "STM32H503CBU7",
             "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-40327a4d2dff0992682be2872aaa6e096f35d2f4_2/STM32H750x.svd",
             "rtos": "FreeRTOS",
-            "presentation": {
-                "group": "XL Puppies",
-            },
             "liveWatch": {
                 "enabled": true,
             },
