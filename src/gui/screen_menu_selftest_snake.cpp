@@ -260,7 +260,7 @@ constexpr IWindowMenuItem::ColorScheme not_yet_ready_scheme {
 } // namespace
 
 // returns the parameter, filled
-char *I_MI_STS::get_filled_menu_item_label(Action action) {
+string_view_utf8 I_MI_STS::get_filled_menu_item_label(Action action) {
     // holds menu indices, indexed by Action
     static const std::array<size_t, ftrstd::to_underlying(Action::_count)> action_indices {
         []() {
@@ -289,11 +289,11 @@ char *I_MI_STS::get_filled_menu_item_label(Action action) {
         assert(false && "Unable to find a label for this combination");
     }
 
-    return label_buffer;
+    return string_view_utf8::MakeRAM(label_buffer);
 }
 
 I_MI_STS::I_MI_STS(Action action)
-    : IWindowMenuItem(_(get_filled_menu_item_label(action)),
+    : IWindowMenuItem(get_filled_menu_item_label(action),
         get_icon(action, Tool::_all_tools), is_enabled_t::yes, get_mainitem_hidden_state(action), get_expands(action)) {
     if (is_multitool()) {
         set_icon_position(IconPosition::right);

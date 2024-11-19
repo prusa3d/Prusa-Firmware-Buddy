@@ -768,29 +768,46 @@ float distance_to_reset_point(const AxisEnum axis, uint8_t min_cycles) {
 
 uint8_t shutdown_state = 0;
 
+enum class ShutdownState {
+#if BOARD_IS_XBUDDY()
+    mmu,
+#endif
+#if HAS_LEDS()
+    leds,
+#endif
+    display,
+#if BOARD_IS_XLBUDDY()
+    hwio,
+#endif
+};
+
 bool shutdown_loop() {
     // shut off devices one-at-a-time in order of power-draw/time saved
-    switch (shutdown_state) {
-    case 0:
-#if HAS_SIDE_LEDS() || HAS_LEDS()
+    switch (static_cast<ShutdownState>(shutdown_state)) {
+
+#if BOARD_IS_XBUDDY()
+    case ShutdownState::mmu:
+        // Cut power to the MMU connector
+        buddy::hw::MMUEnable.reset();
+        break;
+#endif
+
+#if HAS_LEDS()
+    case ShutdownState::leds:
         leds::enter_power_panic();
         break;
-#else
-        ++shutdown_state;
-        [[fallthrough]];
-#endif /*HAS_SIDE_LEDS()*/
+#endif
 
-    case 1:
+    case ShutdownState::display:
         ili9488_power_down();
         break;
-    case 2:
+
 #if BOARD_IS_XLBUDDY()
+    case ShutdownState::hwio:
         hwio_low_power_state();
         break;
-#else
-        ++shutdown_state;
-        [[fallthrough]];
 #endif
+
     default:
         // no more devices to shutdown, do not increment the sequence
         return false;
