@@ -200,7 +200,7 @@ private:
     uint32_t fan_presence_test_sec;
     marlin_server::State previous_print_state;
 
-    std::atomic<std::optional<buddy::Temperature>> active_dwarf_board_temp;
+    std::atomic<std::optional<int16_t>> active_dwarf_board_temp;
 };
 
 extern Enclosure xl_enclosure;
