@@ -321,7 +321,7 @@ set(PRINTERS_WITH_DWARF "XL" "XL_DEV_KIT")
 set_feature_for_printers_master_board(HAS_MODULARBED "iX" "XL" "XL_DEV_KIT")
 set_feature_for_printers_master_board(HAS_XBUDDY_EXTENSION "CUBE")
 set_feature_for_printers(HAS_TOOLCHANGER "XL" "XL_DEV_KIT")
-set_feature_for_printers(HAS_SIDE_FSENSOR "iX" "XL")
+set_feature_for_printers(HAS_SIDE_FSENSOR "iX" "XL" "CUBE")
 set_feature_for_printers(HAS_ADC_SIDE_FSENSOR "XL")
 set_feature_for_printers(HAS_ESP_FLASH_TASK "MK4" "MK3.5" "XL" "MINI" "CUBE") # iX does not need ESP
 # flashing
