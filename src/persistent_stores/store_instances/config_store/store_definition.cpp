@@ -3,7 +3,7 @@
 #include <module/prusa/dock_position.hpp>
 #include <module/prusa/tool_offset.hpp>
 #include <option/development_items.h>
-#include <option/has_side_fsensor.h>
+#include <option/has_adc_side_fsensor.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
 #include <option/has_config_store_wo_backend.h>
@@ -285,7 +285,7 @@ void CurrentStore::set_extruder_fs_value_span([[maybe_unused]] uint8_t index, ui
 #endif
 }
 
-#if HAS_SIDE_FSENSOR()
+#if HAS_ADC_SIDE_FSENSOR()
 int32_t CurrentStore::get_side_fs_ref_nins_value(uint8_t index) {
     switch (index) {
     case 0:
