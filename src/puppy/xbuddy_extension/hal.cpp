@@ -412,8 +412,6 @@ static void MX_ADC1_Init(void) {
     }
 
     HAL_ADCEx_Calibration_Start(&hadc1, single_diff);
-    const auto calib_val = HAL_ADC_GetValue(&hadc1);
-    HAL_ADCEx_Calibration_SetValue(&hadc1, single_diff, calib_val);
 }
 
 static constexpr uint32_t diff32(uint32_t prev, uint32_t curr) {
