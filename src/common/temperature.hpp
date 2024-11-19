@@ -5,6 +5,6 @@
 namespace buddy {
 
 /// Temperature, in degrees Celsius
-using Temperature = int16_t;
+using Temperature = float;
 
 } // namespace buddy
