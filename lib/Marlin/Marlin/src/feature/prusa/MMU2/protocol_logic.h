@@ -2,6 +2,9 @@
 #include <stdint.h>
 #include <avr/pgmspace.h>
 
+#include <option/has_mmu2_over_uart.h>
+#include <option/has_xbuddy_extension.h>
+
 #ifdef __AVR__
     #include "mmu2/error_codes.h"
     #include "mmu2/progress_codes.h"
@@ -41,9 +44,11 @@ public:
 
 #if HAS_MMU2_OVER_UART()
     #include "mmu2_serial.h"
-#else
+#elif HAS_XBUDDY_EXTENSION()
     #include <puppies/xbuddy_extension.hpp>
     #include <puppies/xbuddy_extension_mmu.hpp>
+#else
+    #error
 #endif
 
 /// New MMU2 protocol logic
