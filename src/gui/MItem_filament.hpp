@@ -61,13 +61,3 @@ public:
 
     void UpdateEnableState();
 };
-
-class MI_COOLDOWN : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Cooldown");
-
-public:
-    MI_COOLDOWN();
-
-protected:
-    virtual void click(IWindowMenu & /*window_menu*/) override;
-};
