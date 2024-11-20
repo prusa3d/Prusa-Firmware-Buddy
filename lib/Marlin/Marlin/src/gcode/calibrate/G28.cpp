@@ -322,6 +322,8 @@ void GcodeSuite::G28() {
   BlockEStallDetection block_e_stall_detection;
 #endif
 
+  marlin_server::FSM_Holder fsm_holder(PhaseWait::homing);
+
   bool S = false;
   #if ENABLED(MARLIN_DEV_MODE)
     S = parser.seen('S')

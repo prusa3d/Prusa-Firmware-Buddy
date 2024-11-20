@@ -36,6 +36,8 @@
     #include "../../../feature/prusa/crash_recovery.hpp"
 #endif
 
+#include <marlin_server.hpp>
+
 /** \addtogroup G-Codes
  * @{
  */
@@ -253,6 +255,8 @@
  *   features of all three systems combined.
  */
 void GcodeSuite::G29() {
+    marlin_server::FSM_Holder fsm_holder(PhaseWait::generic);
+
     BlockEStallDetection block_e_stall_detection;
     #if ANY(CRASH_RECOVERY, POWER_PANIC)
       // G29 requires a full restart: inhibit partial replay

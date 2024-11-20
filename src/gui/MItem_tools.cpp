@@ -195,12 +195,13 @@ MI_AUTO_HOME::MI_AUTO_HOME()
 }
 
 void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
-    marlin_client::event_clr(marlin_server::Event::CommandBegin);
-    marlin_client::gcode("G28 P");
-    while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
-        marlin_client::loop();
+    // Only issue if there are no gcodes in the queue yet
+    if (marlin_vars().gqueue != 0) {
+        MsgBoxWarning(_(printer_busy_text), Responses_Ok);
+        return;
     }
-    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, _(homing_text_info));
+
+    marlin_client::gcode("G28 P");
 }
 
 /*****************************************************************************/
@@ -210,20 +211,14 @@ MI_MESH_BED::MI_MESH_BED()
 }
 
 void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
-    if (!marlin_server::all_axes_homed()) {
-        marlin_client::event_clr(marlin_server::Event::CommandBegin);
-        marlin_client::gcode("G28");
-        while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
-            marlin_client::loop();
-        }
-        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, _(homing_text_info));
+    // Only issue if there are no gcodes in the queue yet
+    if (marlin_vars().gqueue != 0) {
+        MsgBoxWarning(_(printer_busy_text), Responses_Ok);
+        return;
     }
-    marlin_client::event_clr(marlin_server::Event::CommandBegin);
+
+    marlin_client::gcode("G28 O");
     marlin_client::gcode("G29");
-    while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
-        marlin_client::loop();
-    }
-    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 }
 
 /*****************************************************************************/
