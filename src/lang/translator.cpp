@@ -2,6 +2,9 @@
 #include "translation_provider_empty.hpp"
 
 string_view_utf8 gettext(const char *src) {
+    if (!src) {
+        return string_view_utf8::MakeNULLSTR();
+    }
     if (auto f = Translations::Instance().gettext_hook) {
         f(src);
     }
