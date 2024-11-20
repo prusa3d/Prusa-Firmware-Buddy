@@ -27,24 +27,17 @@ struct Request {
         KnobMove,
         KnobClick,
         FSM,
-        Move,
         PrintReady,
         GuiCantPrint,
         CancelObjectID,
         UncancelObjectID,
         CancelCurrentObject,
-        MoveMultiple,
         SetWarning,
         ClearWarning,
     };
 
     union {
         uint64_t event_mask = 0; // Type::EventMask
-        struct {
-            float position;
-            float feedrate;
-            uint8_t axis;
-        } move; // Type::Move
         int cancel_object_id; // Type::CancelObjectID
         int uncancel_object_id; // Type::UncancelObjectID
         struct {
@@ -59,12 +52,6 @@ struct Request {
             size_t test_data_index;
             uint32_t test_data_data;
         } test_start; // Type::TestStart
-        struct {
-            float x;
-            float y;
-            float z;
-            float feedrate;
-        } move_multiple; // Type::MoveMultiple
         char gcode[MARLIN_MAX_REQUEST + 1]; // Type::Gcode
         InjectQueueRecord inject; // Type::Inject
         EncodedFSMResponse encoded_fsm_response; // Type::FSM

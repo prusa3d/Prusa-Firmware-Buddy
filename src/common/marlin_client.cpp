@@ -286,25 +286,6 @@ void do_babysteps_Z(float offs) {
     _send_request_to_server_and_wait(request);
 }
 
-void move_axis(float logical_pos, float feedrate, uint8_t axis) {
-    Request request;
-    request.type = Request::Type::Move;
-    request.move.position = LOGICAL_TO_NATIVE(logical_pos, axis);
-    request.move.feedrate = feedrate;
-    request.move.axis = axis;
-    _send_request_to_server_and_wait(request);
-}
-
-void move_xyz_axes_to(const xyz_float_t &position, float feedrate) {
-    Request request;
-    request.type = Request::Type::MoveMultiple;
-    request.move_multiple.x = LOGICAL_TO_NATIVE(position.x, X_AXIS);
-    request.move_multiple.y = LOGICAL_TO_NATIVE(position.y, Y_AXIS);
-    request.move_multiple.z = LOGICAL_TO_NATIVE(position.z, Z_AXIS);
-    request.move_multiple.feedrate = feedrate;
-    _send_request_to_server_and_wait(request);
-}
-
 #if HAS_SELFTEST()
 void test_start_with_data(const uint64_t test_mask, const ::selftest::TestData test_data) {
     Request request;

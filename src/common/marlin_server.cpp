@@ -3140,15 +3140,6 @@ bool _process_server_valid_request(const Request &request, int client_id) {
     case Request::Type::TestAbort:
         test_abort();
         return true;
-    case Request::Type::Move:
-        move_axis(request.move.position, MMM_TO_MMS(request.move.feedrate), request.move.axis);
-        return true;
-    case Request::Type::MoveMultiple: {
-        xyz_float_t position = { .pos = { request.move_multiple.x, request.move_multiple.y, request.move_multiple.z } };
-        float feedrate = request.move_multiple.feedrate;
-        move_xyz_axes_to(position, MMM_TO_MMS(feedrate));
-        return true;
-    }
     }
     bsod("Unknown request %d", ftrstd::to_underlying(request.type));
 }
