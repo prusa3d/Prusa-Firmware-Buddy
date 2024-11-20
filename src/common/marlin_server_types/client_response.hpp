@@ -85,6 +85,13 @@ public:
     PhaseUnderlyingType phase;
 };
 
+enum class PhaseWait : PhaseUnderlyingType {
+    generic,
+    _cnt,
+    _last = _cnt - 1,
+};
+constexpr inline ClientFSM client_fsm_from_phase(PhaseWait) { return ClientFSM::Wait; }
+
 // define enum classes for responses here
 // and YES phase can have 0 responses
 // every enum must have "_last"
@@ -902,6 +909,7 @@ class ClientResponses {
 #if HAS_BELT_TUNING()
             { ClientFSM::BeltTuning, belt_tuning_responses },
 #endif
+            { ClientFSM::Wait, {} },
     };
 
 public:
