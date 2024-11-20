@@ -486,8 +486,8 @@ static void commit_fsm_states() {
     fsm_states.log();
 }
 
-void fsm_create_internal(ClientFSM type, fsm::BaseData data) {
-    fsm_states[type] = data;
+void fsm_create(FSMAndPhase fsm_and_phase, fsm::PhaseData data) {
+    fsm_states[fsm_and_phase.fsm] = fsm::BaseData(fsm_and_phase.phase, data);
     commit_fsm_states();
 }
 
@@ -496,9 +496,11 @@ void fsm_destroy(ClientFSM type) {
     commit_fsm_states();
 }
 
-void fsm_change_internal(ClientFSM type, fsm::BaseData data) {
-    if (fsm_states[type] != data) {
-        fsm_states[type] = data;
+void fsm_change(FSMAndPhase fsm_and_phase, fsm::PhaseData data) {
+    const auto base_data = fsm::BaseData(fsm_and_phase.phase, data);
+
+    if (fsm_states[fsm_and_phase.fsm] != base_data) {
+        fsm_states[fsm_and_phase.fsm] = base_data;
         commit_fsm_states();
     }
 }
@@ -3337,7 +3339,7 @@ void FSM_notifier::SendNotification() {
     // no value: comparison returns true
     if (progress > s_data.last_progress_sent) {
         s_data.last_progress_sent = progress;
-        fsm_change_internal(s_data.type, fsm::BaseData(s_data.phase, activeInstance->serialize(progress)));
+        fsm_change(FSMAndPhase(s_data.type, s_data.phase), activeInstance->serialize(progress));
     }
 }
 
