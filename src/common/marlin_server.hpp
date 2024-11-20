@@ -261,38 +261,29 @@ public:
     virtual fsm::PhaseData serialize(uint8_t progress) = 0;
 };
 
-template <class T>
-void fsm_create(T phase, fsm::PhaseData data = {}) {
-    void fsm_create_internal(ClientFSM, fsm::BaseData);
-    fsm_create_internal(client_fsm_from_phase(phase), fsm::BaseData(GetPhaseIndex(phase), data));
-}
+void fsm_create(FSMAndPhase fsm_and_phase, fsm::PhaseData data = {});
 
-template <class T>
-void fsm_change(T phase, fsm::PhaseData data = {}) {
-    void fsm_change_internal(ClientFSM, fsm::BaseData);
-    fsm_change_internal(client_fsm_from_phase(phase), fsm::BaseData(GetPhaseIndex(phase), data));
-}
+void fsm_change(FSMAndPhase fsm_and_phase, fsm::PhaseData data = {});
 
 void fsm_destroy(ClientFSM type);
 
-template <class T, FSMExtendedDataSubclass DATA_TYPE>
-void fsm_change_extended(T phase, DATA_TYPE data) {
+template <FSMExtendedDataSubclass DATA_TYPE>
+void fsm_change_extended(FSMAndPhase fsm_and_phase, DATA_TYPE data) {
     FSMExtendedDataManager::store(data);
     // TODO Investigate if this hack is still needed since we have fsm::States::generation
     //  We use this ugly hack that we increment fsm_change_data[0] every time data changed, to force redraw of GUI
     static std::array<uint8_t, 4> fsm_change_data = { 0 };
     fsm_change_data[0]++;
-    fsm_change(phase, fsm_change_data);
+    fsm_change(fsm_and_phase, fsm_change_data);
 }
 
 class FSM_Holder {
     ClientFSM type;
 
 public:
-    template <class T>
-    FSM_Holder(T phase, fsm::PhaseData data = fsm::PhaseData())
-        : type { client_fsm_from_phase(phase) } {
-        fsm_create(phase, data);
+    FSM_Holder(FSMAndPhase fsm_and_phase, fsm::PhaseData data = fsm::PhaseData())
+        : type { fsm_and_phase.fsm } {
+        fsm_create(fsm_and_phase, data);
     }
 
     ~FSM_Holder() {
