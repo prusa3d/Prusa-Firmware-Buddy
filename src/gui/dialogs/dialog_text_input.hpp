@@ -37,6 +37,10 @@ protected:
 
 private:
     void setup_ui();
+
+    /// Updates what buttons are enabled and disabled
+    void update_ui_enabled();
+
     void set_keyboard_layout(const ButtonsLayout &layout);
 
     void button_callback(window_t &button);

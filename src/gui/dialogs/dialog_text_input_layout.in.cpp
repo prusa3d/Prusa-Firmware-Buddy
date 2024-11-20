@@ -41,6 +41,9 @@ struct ButtonRec : std::array<char, 5> {
     constexpr SpecialButton to_special_button() const {
         return is_special() ? static_cast<SpecialButton>(at(1)) : SpecialButton::_cnt;
     }
+    constexpr bool is_character_emitting() const {
+        return !is_special() || to_special_button() == SpecialButton::space;
+    }
 };
 
 using ButtonsRow = std::array<ButtonRec, button_cols>;
