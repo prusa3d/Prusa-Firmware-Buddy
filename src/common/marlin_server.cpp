@@ -3315,9 +3315,13 @@ void set_warning(WarningType type, PhasesWarning phase) {
 }
 
 void clear_warning(WarningType type) {
-    if (fsm_states.is_active(ClientFSM::Warning) && type == std::bit_cast<WarningType>(fsm_states[ClientFSM::Warning]->GetData())) {
+    if (is_warning_active(type)) {
         fsm_destroy(ClientFSM::Warning);
     }
+}
+
+bool is_warning_active(WarningType type) {
+    return fsm_states.is_active(ClientFSM::Warning) && type == std::bit_cast<WarningType>(fsm_states[ClientFSM::Warning]->GetData());
 }
 
 /*****************************************************************************/

@@ -302,6 +302,7 @@ public:
 
 void set_warning(WarningType type, PhasesWarning phase = PhasesWarning::Warning);
 void clear_warning(WarningType type);
+bool is_warning_active(WarningType type);
 
 #if ENABLED(AXIS_MEASURE)
 // Sets length of X and Y axes for crash recovery
