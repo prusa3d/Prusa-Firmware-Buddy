@@ -13,10 +13,13 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
     // TODO In the future, we could impose a total ordering based
     //      on the underlying value of the enum.
     switch (fsm_type) {
+    case ClientFSM::Wait:
+        return 0;
+
     case ClientFSM::Serial_printing:
     case ClientFSM::Printing:
     case ClientFSM::Selftest:
-        return 0;
+        return 1;
 
     case ClientFSM::Load_unload:
     case ClientFSM::Preheat:
@@ -38,10 +41,10 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
 #if HAS_BELT_TUNING()
     case ClientFSM::BeltTuning:
 #endif
-        return 1;
+        return 2;
 
     case ClientFSM::Warning:
-        return 2;
+        return 3;
 
     case ClientFSM::_none:
         break;

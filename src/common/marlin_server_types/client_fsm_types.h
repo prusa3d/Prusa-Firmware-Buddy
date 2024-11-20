@@ -50,6 +50,7 @@ enum class ClientFSM : uint8_t {
     #if HAS_BELT_TUNING()
     BeltTuning,
     #endif
+    Wait, ///< FSM that only blocks the screen with a "please wait" text
     _none, // cannot be created, must have same index as _count
     _count = _none
 };
