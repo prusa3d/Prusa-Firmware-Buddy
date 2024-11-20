@@ -112,6 +112,7 @@ struct FSMWaitDef {
 
     static constexpr EnumArray<PhaseWait, const char *, PhaseWait::_cnt> phase_texts {
         { PhaseWait::generic, nullptr },
+        { PhaseWait::homing, N_("Printer may vibrate and be noisier during homing.") },
     };
 
     static void open(fsm::BaseData data) {

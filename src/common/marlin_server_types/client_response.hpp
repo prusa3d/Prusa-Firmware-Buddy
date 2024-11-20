@@ -87,6 +87,7 @@ public:
 
 enum class PhaseWait : PhaseUnderlyingType {
     generic,
+    homing,
     _cnt,
     _last = _cnt - 1,
 };
