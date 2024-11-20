@@ -9,6 +9,7 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_print.hpp"
 #include "MItem_filament.hpp"
+#include <window_menu_callback_item.hpp>
 
 #if HAS_CHAMBER_API()
     #include <gui/menu_item/specific/menu_items_chamber.hpp>
@@ -20,6 +21,8 @@ namespace screen_menu_temperature {
 #if HAS_CHAMBER_API()
 using MI_CHAMBER_TARGET_TEMP = WithConstructorArgs<::MI_CHAMBER_TARGET_TEMP, HAS_MINI_DISPLAY() ? N_("Chamber") : N_("Chamber Temperature")>;
 #endif
+
+using MI_COOLDOWN = WithConstructorArgs<WindowMenuCallbackItem, N_("Cooldown"), nullptr>;
 
 using ScreenBase = ScreenMenu<
     EFooter::On, MI_RETURN, MI_NOZZLE<0>,
@@ -36,9 +39,5 @@ using ScreenBase = ScreenMenu<
 
 class ScreenMenuTemperature : public screen_menu_temperature::ScreenBase {
 public:
-    constexpr static const char *label = N_("TEMPERATURE");
     ScreenMenuTemperature();
-
-protected:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

@@ -14,17 +14,17 @@
     #include <feature/chamber/chamber.hpp>
 #endif
 
+using namespace screen_menu_temperature;
+
 ScreenMenuTemperature::ScreenMenuTemperature()
-    : screen_menu_temperature::ScreenBase(_(label)) {
+    : ScreenBase(_("TEMPERATURE")) {
     EnableLongHoldScreenAction();
 
 #if (!PRINTER_IS_PRUSA_MINI())
     header.SetIcon(&img::temperature_white_16x16);
 #endif // PRINTER_IS_PRUSA_MINI()
-}
 
-void ScreenMenuTemperature::windowEvent(window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::CHILD_CLICK) {
+    Item<screen_menu_temperature::MI_COOLDOWN>().callback = [this] {
         HOTEND_LOOP() {
             marlin_client::set_target_nozzle(0, e);
             marlin_client::set_display_nozzle(0, e);
@@ -45,7 +45,5 @@ void ScreenMenuTemperature::windowEvent(window_t *sender, GUI_event_t event, voi
             Item<screen_menu_temperature::MI_CHAMBER_TARGET_TEMP>().SetVal(0);
         }
 #endif
-    } else {
-        ScreenMenu::windowEvent(sender, event, param);
-    }
+    };
 }
