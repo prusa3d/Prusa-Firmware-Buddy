@@ -62,8 +62,10 @@ DialogTextInput::DialogTextInput(const string_view_utf8 &prompt, std::span<char>
     : buffer_(buffer) {
     ui.txt_prompt.SetText(prompt);
     setup_ui();
-    update_result();
     set_keyboard_layout(layout_text_lowercase);
+
+    update_result();
+    update_ui_enabled();
 
     CaptureNormalWindow(*this);
 
@@ -179,6 +181,18 @@ void DialogTextInput::setup_ui() {
     Invalidate();
 }
 
+void DialogTextInput::update_ui_enabled() {
+    const bool is_buffer_full = (strlen(buffer_.data()) >= buffer_.size() - 1);
+
+    for (int i = 0; i < button_count; i++) {
+        auto &btn = ui.btn_matrix[i];
+        const ButtonRec &rec = (*current_layout_)[i / button_cols][i % button_cols];
+
+        // We're using shadowing instead of disabling because it would screw up focusing & knob control
+        btn.set_shadow(is_buffer_full && rec.is_character_emitting());
+    }
+}
+
 void DialogTextInput::set_keyboard_layout(const ButtonsLayout &layout) {
     current_layout_ = &layout;
 
@@ -201,9 +215,16 @@ void DialogTextInput::set_keyboard_layout(const ButtonsLayout &layout) {
             btn.SetText(string_view_utf8::MakeCPUFLASH(rec.data()));
         }
     }
+
+    update_ui_enabled();
 }
 
 void dialog_text_input::DialogTextInput::button_callback(window_t &button) {
+    // We're using shadowing instead of disabling because it would screw up focusing & knob control
+    if (button.IsShadowed()) {
+        return;
+    }
+
     // Determine which button from the array the user pressed
     int button_ix = reinterpret_cast<window_text_button_t *>(&button) - ui.btn_matrix;
     assert(button_ix >= 0 && button_ix < button_count);
@@ -309,12 +330,12 @@ void dialog_text_input::DialogTextInput::flush_edit_char() {
     edit_char_buffer_[0] = '\0';
     ui.txt_edit_char.Invalidate();
 
-    if (ch == '\0') {
+    const size_t pos = strlen(buffer_.data());
+
+    if (ch == '\0' || pos >= buffer_.size() - 1) {
         return;
     }
 
-    // If we've reached the maximum length, keep overwriting the last character
-    const size_t pos = std::min(strlen(buffer_.data()), buffer_.size() - 2);
     buffer_[pos] = ch;
     buffer_[pos + 1] = '\0';
 
@@ -328,4 +349,6 @@ void dialog_text_input::DialogTextInput::update_result() {
     const size_t text_len = strlen(buffer_.data());
     ui.txt_result.SetText(string_view_utf8::MakeRAM(buffer_.data() + text_len - std::min<size_t>(text_len, max_visible_characters)));
     ui.txt_result.Invalidate();
+
+    update_ui_enabled();
 }
