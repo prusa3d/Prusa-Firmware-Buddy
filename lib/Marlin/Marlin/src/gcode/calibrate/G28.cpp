@@ -692,7 +692,7 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
         ( flags.force_calibrate ? CoreXYCalibrationMode::Force
         : flags.can_calibrate ? CoreXYCalibrationMode::OnDemand
         : CoreXYCalibrationMode::Disallow );
-      failed = !refine_corexy_origin(mode);
+      failed = !corexy_home_refine(mode);
       if (failed && !planner.draining()) {
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); });
       }

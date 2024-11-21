@@ -417,7 +417,7 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
 }
 
 // Refine home origin precisely on core-XY.
-bool refine_corexy_origin(CoreXYCalibrationMode mode) {
+bool corexy_home_refine(CoreXYCalibrationMode mode) {
     // finish previous moves and disable main endstop/crash recovery handling
     planner.synchronize();
 #if ENABLED(CRASH_RECOVERY)
@@ -557,4 +557,14 @@ bool refine_corexy_origin(CoreXYCalibrationMode mode) {
     }
 
     return true;
+}
+
+bool corexy_home_calibrated() {
+    CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
+    return !calibrated_origin.uninitialized();
+}
+
+bool corexy_home_is_unstable() {
+    CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
+    return calibrated_origin.uninitialized() || COREXY_HOME_UNSTABLE;
 }

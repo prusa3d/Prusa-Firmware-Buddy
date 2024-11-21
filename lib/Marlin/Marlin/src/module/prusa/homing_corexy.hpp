@@ -23,4 +23,16 @@ enum class CoreXYCalibrationMode {
  * @param can_calibrate Allow origin self-calibration to occur
  * @return true on success
  */
-bool refine_corexy_origin(CoreXYCalibrationMode mode);
+bool corexy_home_refine(CoreXYCalibrationMode mode);
+
+/**
+ * @brief Return the calibration status of the home origin
+ * @return true if already calibrated
+ */
+bool corexy_home_calibrated();
+
+/**
+ * @brief Return the validity of the last refinement attempt
+ * @return true if the current home is unstable and requires re-calibration
+ */
+bool corexy_home_is_unstable();
