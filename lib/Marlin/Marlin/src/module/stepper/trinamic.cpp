@@ -794,7 +794,7 @@ tmc_init(stepperE0, get_default_rms_current_ma_e(), get_microsteps_e(), E0_HYBRI
   stepper.set_directions();
 }
 
-TMCStepper &stepper_axis(const AxisEnum axis)
+TMCStepperType &stepper_axis(const AxisEnum axis)
 {
   switch (axis) {
   #if AXIS_IS_TMC(X)
@@ -875,7 +875,7 @@ bool stepper_wait_for_standstill(uint8_t axis_mask, millis_t max_delay) {
         bool stst = true;
         LOOP_L_N(i, XYZE_N) {
             if (TEST(axis_mask, i)) {
-                if (!static_cast<TMC2130Stepper &>(stepper_axis((AxisEnum)i)).stst()) {
+                if (!stepper_axis((AxisEnum)i).stst()) {
                     stst = false;
                     break;
                 }

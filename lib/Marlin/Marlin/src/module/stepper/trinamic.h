@@ -45,6 +45,27 @@
   #define TMC_CLASS_E(I) TMC_CLASS(E##I, E)
 #endif
 
+// To simplify code structure, we want to have only drivers of the same type in the same
+// configuration. Pick the first declared DRV driver type to be set it as the common type
+#if AXIS_IS_TMC(X)
+    #define TMC_DRIVER_TYPE X_DRIVER_TYPE
+#elif AXIS_IS_TMC(Y)
+    #define TMC_DRIVER_TYPE Y_DRIVER_TYPE
+#elif AXIS_IS_TMC(Z)
+    #define TMC_DRIVER_TYPE Y_DRIVER_TYPE
+#elif AXIS_IS_TMC(E0)
+    #define TMC_DRIVER_TYPE E0_DRIVER_TYPE
+#else
+    #error "Common TMC type not detected"
+#endif
+
+#if ((AXIS_IS_TMC(X) && !AXIS_DRIVER_TYPE(X, TMC_DRIVER_TYPE))   \
+    || (AXIS_IS_TMC(Y) && !AXIS_DRIVER_TYPE(Y, TMC_DRIVER_TYPE)) \
+    || (AXIS_IS_TMC(Z) && !AXIS_DRIVER_TYPE(Z, TMC_DRIVER_TYPE)) \
+    || (AXIS_IS_TMC(E0) && !AXIS_DRIVER_TYPE(E0, TMC_DRIVER_TYPE)))
+    #error "TMC drivers of different type on the same configuration are not supported"
+#endif
+
 typedef struct {
   uint8_t toff;
   int8_t hend;
@@ -231,8 +252,11 @@ void reset_trinamic_drivers();
   #endif
 #endif
 
+// Common type for all stepper types
+using TMCStepperType = TMC_CLASS(X, X);
+
 // Return the stepper instance of an axis
-TMCStepper &stepper_axis(const AxisEnum axis);
+TMCStepperType &stepper_axis(const AxisEnum axis);
 
 // Set the microstep resolution of an axis, returning the previous
 uint16_t stepper_microsteps(const AxisEnum axis, uint16_t new_microsteps = 0);
