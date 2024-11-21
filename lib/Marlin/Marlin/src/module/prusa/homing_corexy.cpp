@@ -21,6 +21,8 @@
 
 #pragma GCC diagnostic warning "-Wdouble-promotion"
 
+static bool COREXY_HOME_UNSTABLE = false;
+
 // convert raw AB steps to XY mm
 void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm) {
     float x = static_cast<float>(steps.a + steps.b) / 2.f;
@@ -301,6 +303,27 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     return true;
 }
 
+// return true if the point is too close to the phase grid halfway point
+static bool point_is_unstable(const xy_pos_t &c_dist, const xy_pos_t &origin) {
+    static constexpr float threshold = 1. / 4;
+    LOOP_XY(axis) {
+        if (abs(fmod(c_dist[axis] - origin[axis], 1.f) - 0.5f) < threshold) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// translate fractional cycle distance by origin and round to final AB grid
+static xy_long_t cdist_translate(const xy_pos_t &c_dist, const xy_pos_t &origin) {
+    xy_long_t c_ab;
+    LOOP_XY(axis) {
+        long o_int = long(roundf(origin[axis]));
+        c_ab[axis] = long(roundf(c_dist[axis] - origin[axis])) + o_int;
+    }
+    return c_ab;
+}
+
 /**
  * @brief plan a relative move by full AB cycles around origin_steps
  * @param ab_off full AB cycles away from homing corner
@@ -333,25 +356,59 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
         { 0, 0 },
     };
 
+    struct point_data {
+        xy_pos_t c_dist;
+        xy_pos_t m_dist;
+    };
+
     xy_pos_t c_acc = { 0, 0 };
     xy_pos_t m_acc = { 0, 0 };
+    point_data points[std::size(point_sequence)];
 
-    for (const auto &seq : point_sequence) {
+    // cycle through grid points and calculate centroid
+    for (size_t i = 0; i != std::size(point_sequence); ++i) {
+        const auto &seq = point_sequence[i];
+        auto &data = points[i];
+
         plan_corexy_abgrid_move(origin_steps, seq, fr_mm_s);
         if (planner.draining()) {
             return false;
         }
 
-        xy_pos_t c_dist, m_dist;
-        if (!measure_phase_cycles(axis, c_dist, m_dist)) {
+        if (!measure_phase_cycles(axis, data.c_dist, data.m_dist)) {
             return false;
         }
 
-        c_acc += c_dist;
-        m_acc += m_dist;
+        c_acc += data.c_dist;
+        m_acc += data.m_dist;
     }
     origin = c_acc / float(std::size(point_sequence));
     distance = m_acc / float(std::size(point_sequence));
+
+    // verify each probed point with the current centroid
+    xy_long_t o_int = { long(roundf(origin[A_AXIS])), long(roundf(origin[B_AXIS])) };
+    for (size_t i = 0; i != std::size(point_sequence); ++i) {
+        const auto &seq = point_sequence[i];
+        auto &data = points[i];
+
+        if (point_is_unstable(data.c_dist, origin)) {
+            COREXY_HOME_UNSTABLE = true;
+            SERIAL_ECHOLNPAIR("home calibration point (", seq[A_AXIS], ",", seq[B_AXIS],
+                ") unstable A:", data.c_dist[A_AXIS], " B:", data.c_dist[B_AXIS],
+                " with origin A:", origin[A_AXIS], " B:", origin[B_AXIS]);
+            return false;
+        }
+
+        xy_long_t c_ab = cdist_translate(data.c_dist, origin);
+        xy_long_t c_diff = c_ab - seq - o_int;
+        if (c_diff[A_AXIS] || c_diff[B_AXIS]) {
+            COREXY_HOME_UNSTABLE = true;
+            SERIAL_ECHOLNPAIR("home calibration point (", seq[A_AXIS], ",", seq[B_AXIS],
+                ") invalid A:", c_diff[A_AXIS], " B:", c_diff[B_AXIS],
+                " with origin A:", o_int[A_AXIS], " B:", o_int[B_AXIS]);
+            return false;
+        }
+    }
 
     if (DEBUGGING(LEVELING)) {
         SERIAL_ECHOLNPAIR("home grid origin A:", origin[A_AXIS], " B:", origin[B_AXIS]);
@@ -373,6 +430,10 @@ bool refine_corexy_origin(CoreXYCalibrationMode mode) {
         endstops.enable(endstops_enabled);
     });
     endstops.not_homing();
+
+    // reset previous home state
+    COREXY_HOME_UNSTABLE = false;
+
     // reposition parallel to the origin
     float fr_mm_s = homing_feedrate(A_AXIS);
     xyze_pos_t origin_tmp = current_position;
@@ -436,6 +497,7 @@ bool refine_corexy_origin(CoreXYCalibrationMode mode) {
         }
         config_store().corexy_grid_origin.set(calibrated_origin);
     }
+    xy_pos_t calibrated_origin_xy = { calibrated_origin.origin[A_AXIS], calibrated_origin.origin[B_AXIS] };
 
     // measure from current origin
     xy_pos_t c_dist, _;
@@ -443,14 +505,43 @@ bool refine_corexy_origin(CoreXYCalibrationMode mode) {
         return false;
     }
 
-    // offset and convert the AB cycle coordinates back to steps
-    xy_long_t c_ab;
-    LOOP_XY(axis) {
-        float o_fract = calibrated_origin.origin[axis];
-        long o_int = long(roundf(o_fract));
-        c_ab[axis] = long(roundf(c_dist[axis] - o_fract)) + o_int;
-    };
+    // validate current origin
+    if (point_is_unstable(c_dist, calibrated_origin_xy)) {
+        COREXY_HOME_UNSTABLE = true;
+        SERIAL_ECHOLNPAIR("home point is unstable");
+    }
 
+    // validate from another point in the AB grid
+    xy_long_t v_ab_off = { 1, 1 };
+    plan_corexy_abgrid_move(origin_steps, v_ab_off, fr_mm_s);
+    if (planner.draining()) {
+        return false;
+    }
+
+    xy_pos_t v_c_dist;
+    if (!measure_phase_cycles(measured_axis, v_c_dist, _)) {
+        return false;
+    }
+    if (point_is_unstable(v_c_dist, calibrated_origin_xy)) {
+        COREXY_HOME_UNSTABLE = true;
+        SERIAL_ECHOLNPAIR("home validation point is unstable");
+    }
+
+    xy_long_t c_ab = cdist_translate(c_dist, calibrated_origin_xy);
+    xy_long_t v_c_ab = cdist_translate(v_c_dist, calibrated_origin_xy);
+    if (v_c_ab - v_ab_off != c_ab) {
+        COREXY_HOME_UNSTABLE = true;
+        SERIAL_ECHOLNPAIR("home validation point is invalid");
+        return false;
+    }
+
+    // move back to origin
+    plan_corexy_raw_move(origin_steps, fr_mm_s);
+    if (planner.draining()) {
+        return false;
+    }
+
+    // set machine origin
     xy_long_t c_ab_steps = {
         c_ab[X_HOME_DIR == Y_HOME_DIR ? A_AXIS : B_AXIS] * phase_cycle_steps(A_AXIS) * -Y_HOME_DIR,
         c_ab[X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS] * phase_cycle_steps(B_AXIS) * -X_HOME_DIR
