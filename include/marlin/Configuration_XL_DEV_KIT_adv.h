@@ -1802,12 +1802,11 @@
         #define X_CURRENT_HOME 750
         #define Y_CURRENT_HOME 750
         #ifdef PRECISE_HOMING_COREXY
-            #define XY_HOMING_HOLDING_CURRENT 950       // mA: holding current for fixed motor
-            #define XY_HOMING_ORIGIN_OFFSET 5.f         // mm: parallel distance from initial origin
-            #define XY_HOMING_ORIGIN_MAX_RETRIES 6      // count: maximum number of refinement attempts
-            #define XY_HOMING_ORIGIN_BUMPS_MAX_ERR 0.15 // mm: max error between acceptable probes
-            #define XY_HOMING_ORIGIN_SHIFT_X -5.f       // mm: post-refinement X origin shift
-            #define XY_HOMING_ORIGIN_SHIFT_Y -5.f       // mm: post-refinement Y origin shift
+            #define PRECISE_HOMING_COREXY_RETRIES 3    // count: maximum number of refinement attempts
+            #define XY_HOMING_HOLDING_CURRENT 950      // mA: holding current for fixed motor
+            #define XY_HOMING_ORIGIN_OFFSET 5.f        // mm: parallel distance from initial origin
+            #define XY_HOMING_ORIGIN_BUMP_RETRIES 6    // count: maximum number of measurement attempts
+            #define XY_HOMING_ORIGIN_BUMP_MAX_ERR 0.15 // mm: max error between acceptable probes
         #endif
     #endif
 
