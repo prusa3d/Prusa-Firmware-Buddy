@@ -77,6 +77,8 @@ float tmc_period_to_feedrate(AxisEnum axis_id, uint16_t msteps, const uint32_t p
  */
 uint32_t tmc_feedrate_to_period(AxisEnum axis_id, uint16_t msteps, const float feedrate, const uint32_t steps_per_mm);
 
+uint32_t get_homing_stall_threshold(AxisEnum axis_id);
+
 class TMCStorage {
   protected:
     // Only a child class has access to constructor => Don't create on its own! "Poor man's abstract class"

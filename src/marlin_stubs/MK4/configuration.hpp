@@ -39,5 +39,3 @@ inline constexpr float axis_home_invert_max_diff(uint8_t axis_num) {
     float arr[] = { 1, 1, 1 };
     return arr[axis_num];
 }
-
-uint32_t get_homing_stall_threshold(AxisEnum axis_id);

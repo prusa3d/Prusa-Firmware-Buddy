@@ -34,6 +34,7 @@
 #include "../gcode/gcode.h"
 
 #include "printers.h"
+#include "bsod.h"
 
 #if ENABLED(TMC_DEBUG)
   #include "../module/planner.h"
@@ -47,12 +48,8 @@
   #include "../module/stepper.h"
 #endif
 
-#include "bsod.h"
-
-#ifndef STALL_THRESHOLD_TMC2130
-#if !(BOARD_IS_DWARF())
-#include "configuration.hpp"
-#endif
+#if !defined(STALL_THRESHOLD_TMC2130) && !BOARD_IS_DWARF()
+  #include <config_store/store_instance.hpp>
 #endif
 
 #include <device/board.h>
@@ -1032,6 +1029,24 @@ uint32_t tmc_feedrate_to_period(AxisEnum axis_id, uint16_t msteps, const float f
 #if USE_SENSORLESS
 
 #if HAS_DRIVER(TMC2130)
+  #if !BOARD_IS_DWARF()
+  uint32_t get_homing_stall_threshold(AxisEnum axis_id) {
+      switch (axis_id) {
+      case X_AXIS:
+      case Y_AXIS:
+  #ifdef STALL_THRESHOLD_TMC2130
+          return STALL_THRESHOLD_TMC2130;
+  #else
+          return tmc_period_to_feedrate(X_AXIS, get_microsteps_x(), HOMING_FEEDRATE_XY / 60 * 0.8, get_steps_per_unit_x());
+  #endif
+      case Z_AXIS:
+          return 400;
+      default:
+          bsod("Wrong axis for homing stall threshold");
+      }
+  }
+  #endif
+
   bool tmc_enable_stallguard(TMCMarlin<TMC2130Stepper> &st) {
     bool stealthchop_was_enabled = st.en_pwm_mode();
 #ifdef STALL_THRESHOLD_TMC2130
