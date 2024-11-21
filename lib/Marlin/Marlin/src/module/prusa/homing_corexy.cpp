@@ -408,8 +408,8 @@ bool refine_corexy_origin(CoreXYCalibrationMode mode) {
     };
     xy_pos_t c_mm;
     corexy_ab_to_xy(c_ab_steps, c_mm);
-    current_position.x = c_mm[X_AXIS] + origin_tmp[X_AXIS] - XY_HOMING_ORIGIN_SHIFT_X * X_HOME_DIR;
-    current_position.y = c_mm[Y_AXIS] + origin_tmp[Y_AXIS] - XY_HOMING_ORIGIN_SHIFT_Y * Y_HOME_DIR;
+    current_position.x = c_mm[X_AXIS] + origin_tmp[X_AXIS] + XY_HOMING_ORIGIN_OFFSET * X_HOME_DIR;
+    current_position.y = c_mm[Y_AXIS] + origin_tmp[Y_AXIS] + XY_HOMING_ORIGIN_OFFSET * Y_HOME_DIR;
     planner.set_machine_position_mm(current_position);
 
     if (DEBUGGING(LEVELING)) {
