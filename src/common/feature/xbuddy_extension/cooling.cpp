@@ -6,7 +6,7 @@ namespace buddy {
 
 FanCooling::FanPWM FanCooling::compute_ramp(bool already_spinning, Temperature current_temperature, Temperature temp_ramp_start, Temperature temp_ramp_end, FanPWM max_pwm) {
     // Linear mapping from the allowed temp difference over the target to allowed RPM range
-    const int temp_diff = current_temperature - temp_ramp_start;
+    const Temperature temp_diff = current_temperature - temp_ramp_start;
     const FanPWM desired = static_cast<FanPWM>(std::clamp<int>(temp_diff * max_pwm / (temp_ramp_end - temp_ramp_start), 0, max_pwm));
 
     // If the fan is already spinning, we keep it spinning until it
