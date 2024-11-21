@@ -170,18 +170,17 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
 
     // move back to starting point
     plan_raw_move(initial_mm, initial_pos_msteps, homing_feedrate(axis));
+    if (planner.draining()) {
+        return false;
+    }
 
     // sanity checks
     AxisEnum fixed_axis = (axis == B_AXIS ? A_AXIS : B_AXIS);
     if (hit_steps[fixed_axis] != initial_steps[fixed_axis] || initial_steps[fixed_axis] != stepper.position(fixed_axis)) {
         bsod("fixed axis moved unexpectedly");
     }
-
     if (initial_steps[axis] != stepper.position(axis)) {
-        if (!planner.draining()) {
-            bsod("measured axis didn't return");
-        }
-        return false;
+        bsod("measured axis didn't return");
     }
 
     // result values
