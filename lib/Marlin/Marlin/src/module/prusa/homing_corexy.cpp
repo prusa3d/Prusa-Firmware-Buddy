@@ -352,11 +352,16 @@ bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_steps, xy_
 bool refine_corexy_origin(CoreXYCalibrationMode mode) {
     // finish previous moves and disable main endstop/crash recovery handling
     planner.synchronize();
-    endstops.not_homing();
 #if ENABLED(CRASH_RECOVERY)
     Crash_Temporary_Deactivate ctd;
 #endif /*ENABLED(CRASH_RECOVERY)*/
 
+    // disable endstops locally
+    bool endstops_enabled = endstops.is_enabled();
+    ScopeGuard endstop_restorer([&]() {
+        endstops.enable(endstops_enabled);
+    });
+    endstops.not_homing();
     // reposition parallel to the origin
     float fr_mm_s = homing_feedrate(A_AXIS);
     xyze_pos_t origin_tmp = current_position;
