@@ -19,6 +19,8 @@
 #include <feature/input_shaper/input_shaper_config.hpp>
 #include <config_store/store_instance.hpp>
 
+#pragma GCC diagnostic warning "-Wdouble-promotion"
+
 // convert raw AB steps to XY mm
 void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm) {
     float x = static_cast<float>(steps.a + steps.b) / 2.f;
@@ -266,8 +268,8 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
         p_steps[slot1][1] = abs(p_steps[slot1][1]);
         p_dist[slot1][1] = abs(p_dist[slot1][1]);
 
-        if (ABS(p_dist[slot0][0] - p_dist[slot1][0]) < XY_HOMING_ORIGIN_BUMPS_MAX_ERR
-            && ABS(p_dist[slot0][1] - p_dist[slot1][1]) < XY_HOMING_ORIGIN_BUMPS_MAX_ERR) {
+        if (abs(p_dist[slot0][0] - p_dist[slot1][0]) < float(XY_HOMING_ORIGIN_BUMPS_MAX_ERR)
+            && abs(p_dist[slot0][1] - p_dist[slot1][1]) < float(XY_HOMING_ORIGIN_BUMPS_MAX_ERR)) {
             break;
         }
     }
@@ -280,7 +282,7 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     float d1 = (p_steps[0][0] + p_steps[1][0]) / 2.f;
     float d2 = (p_steps[0][1] + p_steps[1][1]) / 2.f;
     float d = d1 + d2;
-    float a = d / 2.;
+    float a = d / 2.f;
     float b = d1 - a;
 
     c_dist[0] = a / float(phase_cycle_steps(other_axis));
