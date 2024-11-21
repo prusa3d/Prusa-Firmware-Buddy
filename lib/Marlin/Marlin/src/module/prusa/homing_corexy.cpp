@@ -210,6 +210,7 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     });
 
     const int32_t measure_max_dist = (XY_HOMING_ORIGIN_OFFSET * 4) / planner.mm_per_step[axis];
+    const int32_t measure_dir = (axis == B_AXIS ? -X_HOME_DIR : -Y_HOME_DIR);
     xy_long_t origin_steps = { stepper.position(A_AXIS), stepper.position(B_AXIS) };
     constexpr int probe_n = 2; // note the following code assumes always two probes per retry
     xy_long_t p_steps[probe_n];
@@ -221,8 +222,8 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
         uint8_t slot1 = (retry + 1) % probe_n;
 
         // measure distance B+/B-
-        if (!measure_axis_distance(axis, origin_steps, measure_max_dist, p_steps[slot1][1], p_dist[slot1][1])
-            || !measure_axis_distance(axis, origin_steps, -measure_max_dist, p_steps[slot1][0], p_dist[slot1][0])) {
+        if (!measure_axis_distance(axis, origin_steps, measure_max_dist * measure_dir, p_steps[slot1][1], p_dist[slot1][1])
+            || !measure_axis_distance(axis, origin_steps, measure_max_dist * -measure_dir, p_steps[slot1][0], p_dist[slot1][0])) {
             if (!planner.draining()) {
                 ui.status_printf_P(0, "Endstop not reached");
             }
@@ -230,8 +231,10 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
         }
 
         // keep signs positive
-        p_steps[slot1][0] = -p_steps[slot1][0];
-        p_dist[slot1][0] = -p_dist[slot1][0];
+        p_steps[slot1][0] = abs(p_steps[slot1][0]);
+        p_dist[slot1][0] = abs(p_dist[slot1][0]);
+        p_steps[slot1][1] = abs(p_steps[slot1][1]);
+        p_dist[slot1][1] = abs(p_dist[slot1][1]);
 
         if (ABS(p_dist[slot0][0] - p_dist[slot1][0]) < XY_HOMING_ORIGIN_BUMPS_MAX_ERR
             && ABS(p_dist[slot0][1] - p_dist[slot1][1]) < XY_HOMING_ORIGIN_BUMPS_MAX_ERR) {
@@ -250,8 +253,8 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     float a = d / 2.;
     float b = d1 - a;
 
-    c_dist[other_axis] = a / float(phase_cycle_steps(A_AXIS));
-    c_dist[axis] = b / float(phase_cycle_steps(B_AXIS));
+    c_dist[0] = a / float(phase_cycle_steps(other_axis));
+    c_dist[1] = b / float(phase_cycle_steps(axis));
 
     m_dist[0] = (p_dist[0][0] + p_dist[1][0]) / 2.f;
     m_dist[1] = (p_dist[0][1] + p_dist[1][1]) / 2.f;
@@ -259,15 +262,16 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     if (DEBUGGING(LEVELING)) {
         // measured distance and cycle
         SERIAL_ECHOLNPAIR("home ", physical_axis_codes[axis], "+ steps 0:", p_steps[0][1], " 1:", p_steps[1][1],
-            " cycle ", physical_axis_codes[other_axis], ":", c_dist[other_axis], " mm:", m_dist[1]);
+            " cycle A:", c_dist[0], " mm:", m_dist[1]);
         SERIAL_ECHOLNPAIR("home ", physical_axis_codes[axis], "- steps 0:", p_steps[0][0], " 1:", p_steps[1][0],
-            " cycle ", physical_axis_codes[axis], ":", c_dist[axis], " mm:", m_dist[0]);
+            " cycle B:", c_dist[1], " mm:", m_dist[0]);
     }
     return true;
 }
 
 bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_steps, xy_pos_t &origin, xy_pos_t &distance) {
     // scramble probing sequence to improve belt redistribution when estimating the centroid
+    // unit is full AB cycles away from homing corner
     static constexpr int8_t point_sequence[][2] = {
         { 1, 0 },
         { -1, 0 },
@@ -285,9 +289,12 @@ bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_steps, xy_
     xy_pos_t m_acc = { 0, 0 };
 
     for (const auto &seq : point_sequence) {
+        long a = seq[X_HOME_DIR == Y_HOME_DIR ? A_AXIS : B_AXIS] * -Y_HOME_DIR;
+        long b = seq[X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS] * -X_HOME_DIR;
+
         xy_long_t point_steps = {
-            origin_steps[A_AXIS] + phase_cycle_steps(A_AXIS) * seq[A_AXIS],
-            origin_steps[B_AXIS] + phase_cycle_steps(B_AXIS) * seq[B_AXIS]
+            origin_steps[A_AXIS] + phase_cycle_steps(A_AXIS) * a,
+            origin_steps[B_AXIS] + phase_cycle_steps(B_AXIS) * b
         };
 
         plan_corexy_raw_move(point_steps, fr_mm_s);
@@ -395,7 +402,10 @@ bool refine_corexy_origin(CoreXYCalibrationMode mode) {
         c_ab[axis] = long(roundf(c_dist[axis] - o_fract)) + o_int;
     };
 
-    xy_long_t c_ab_steps = { c_ab[A_AXIS] * phase_cycle_steps(A_AXIS), c_ab[B_AXIS] * phase_cycle_steps(B_AXIS) };
+    xy_long_t c_ab_steps = {
+        c_ab[X_HOME_DIR == Y_HOME_DIR ? A_AXIS : B_AXIS] * phase_cycle_steps(A_AXIS) * -Y_HOME_DIR,
+        c_ab[X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS] * phase_cycle_steps(B_AXIS) * -X_HOME_DIR
+    };
     xy_pos_t c_mm;
     corexy_ab_to_xy(c_ab_steps, c_mm);
     current_position.x = c_mm[X_AXIS] + origin_tmp[X_AXIS] - XY_HOMING_ORIGIN_SHIFT_X * X_HOME_DIR;
