@@ -1,6 +1,7 @@
 target_sources(
   firmware
-  PRIVATE G26.cpp
+  PRIVATE G123.cpp
+          G26.cpp
           G64.cpp
           gcode.cpp
           M104_1.cpp
