@@ -174,6 +174,7 @@ void set_config_for_m74(const std::optional<WeightAdjustConfig> &next_config);
 Config get_config_for_m74();
 
 void init();
+std::optional<AxisConfig> get_axis_config(const AxisEnum axis);
 void set_axis_config(const AxisEnum axis, std::optional<AxisConfig> axis_config);
 void set_axis_y_weight_adjust(std::optional<WeightAdjustConfig> wa_config);
 

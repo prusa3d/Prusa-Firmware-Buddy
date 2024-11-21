@@ -16,6 +16,7 @@
 #include <bsod.h>
 #include <scope_guard.hpp>
 #include <feature/phase_stepping/phase_stepping.hpp>
+#include <feature/input_shaper/input_shaper_config.hpp>
 #include <config_store/store_instance.hpp>
 
 // convert raw AB steps to XY mm
@@ -197,16 +198,27 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
  * @return True on success
  */
 static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_dist) {
-    // increase current of the holding motor
+    // adjust current of the holding motor
     AxisEnum other_axis = (axis == B_AXIS ? A_AXIS : B_AXIS);
     auto &other_stepper = stepper_axis(other_axis);
 
-    int32_t orig_cur = other_stepper.rms_current();
-    float orig_hold = other_stepper.hold_multiplier();
+    int32_t other_orig_cur = other_stepper.rms_current();
+    float other_orig_hold = other_stepper.hold_multiplier();
     other_stepper.rms_current(XY_HOMING_HOLDING_CURRENT, 1.);
 
-    ScopeGuard current_restorer([&]() {
-        other_stepper.rms_current(orig_cur, orig_hold);
+    // disable IS on AB axes to ensure _only_ the measured axis is being moved
+    // (cartesian IS mixing can cause both to move, triggering an invalid endstop)
+    std::optional<input_shaper::AxisConfig> is_config_orig[2] = {
+        input_shaper::get_axis_config(A_AXIS),
+        input_shaper::get_axis_config(B_AXIS)
+    };
+    input_shaper::set_axis_config(A_AXIS, std::nullopt);
+    input_shaper::set_axis_config(B_AXIS, std::nullopt);
+
+    ScopeGuard state_restorer([&]() {
+        other_stepper.rms_current(other_orig_cur, other_orig_hold);
+        input_shaper::set_axis_config(A_AXIS, is_config_orig[A_AXIS]);
+        input_shaper::set_axis_config(B_AXIS, is_config_orig[B_AXIS]);
     });
 
     const int32_t measure_max_dist = (XY_HOMING_ORIGIN_OFFSET * 4) / planner.mm_per_step[axis];

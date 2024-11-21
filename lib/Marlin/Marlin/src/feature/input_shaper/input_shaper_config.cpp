@@ -124,6 +124,10 @@ void init() {
     config_for_m74 = {};
 }
 
+std::optional<AxisConfig> get_axis_config(const AxisEnum axis) {
+    return current_config().axis[axis];
+}
+
 void set_axis_config(const AxisEnum axis, std::optional<AxisConfig> axis_config) {
     if (axis_config) {
         axis_config->frequency = clamp_frequency_to_safe_values(axis_config->frequency);
