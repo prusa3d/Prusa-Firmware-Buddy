@@ -150,8 +150,17 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
 
     // move towards the endstop
     sensorless_t stealth_states = start_sensorless_homing_per_axis(axis);
+#ifdef XY_HOMING_MEASURE_SENS
+    // this will be reset to default implicitly by end_sensorless_homing_per_axis()
+    stepper_axis(axis).sgt(XY_HOMING_MEASURE_SENS);
+#endif
     endstops.enable(true);
-    plan_raw_move(target_mm, target_pos_msteps, homing_feedrate(axis));
+#ifdef XY_HOMING_MEASURE_FR
+    float measure_fr = XY_HOMING_MEASURE_FR;
+#else
+    float measure_fr = homing_feedrate(axis);
+#endif
+    plan_raw_move(target_mm, target_pos_msteps, measure_fr);
     uint8_t hit = endstops.trigger_state();
     endstops.not_homing();
 
@@ -206,6 +215,14 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     float other_orig_hold = other_stepper.hold_multiplier();
     other_stepper.rms_current(XY_HOMING_HOLDING_CURRENT, 1.);
 
+    // adjust current of the measured motor
+    auto &axis_stepper = stepper_axis(axis);
+    int32_t axis_orig_cur = axis_stepper.rms_current();
+    float axis_orig_hold = axis_stepper.hold_multiplier();
+#ifdef XY_HOMING_MEASURE_CURRENT
+    axis_stepper.rms_current(XY_HOMING_MEASURE_CURRENT, 1.);
+#endif
+
     // disable IS on AB axes to ensure _only_ the measured axis is being moved
     // (cartesian IS mixing can cause both to move, triggering an invalid endstop)
     std::optional<input_shaper::AxisConfig> is_config_orig[2] = {
@@ -217,6 +234,7 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
 
     ScopeGuard state_restorer([&]() {
         other_stepper.rms_current(other_orig_cur, other_orig_hold);
+        axis_stepper.rms_current(axis_orig_cur, axis_orig_hold);
         input_shaper::set_axis_config(A_AXIS, is_config_orig[A_AXIS]);
         input_shaper::set_axis_config(B_AXIS, is_config_orig[B_AXIS]);
     });
