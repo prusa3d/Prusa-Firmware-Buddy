@@ -387,7 +387,7 @@ bool refine_corexy_origin(CoreXYCalibrationMode mode) {
     };
     if (raw_move_diff[A_AXIS] != 0 || raw_move_diff[B_AXIS] != 0) {
         if (planner.draining()) {
-            return true;
+            return false;
         }
         SERIAL_ECHOLN("raw move failed");
         SERIAL_ECHOLNPAIR("diff A:", raw_move_diff[A_AXIS], " B:", raw_move_diff[B_AXIS]);
@@ -397,7 +397,7 @@ bool refine_corexy_origin(CoreXYCalibrationMode mode) {
     stepper_wait_for_standstill(_BV(A_AXIS) | _BV(B_AXIS));
     if (!phase_aligned(A_AXIS) || !phase_aligned(B_AXIS)) {
         if (planner.draining()) {
-            return true;
+            return false;
         }
         SERIAL_ECHOLN("phase alignment failed");
         SERIAL_ECHOLNPAIR("phase A:", axis_mscnt(A_AXIS), " B:", axis_mscnt(B_AXIS));
