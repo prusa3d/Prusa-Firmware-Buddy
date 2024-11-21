@@ -301,7 +301,8 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     return true;
 }
 
-bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_steps, xy_pos_t &origin, xy_pos_t &distance) {
+static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_steps,
+    xy_pos_t &origin, xy_pos_t &distance, const float fr_mm_s) {
     // scramble probing sequence to improve belt redistribution when estimating the centroid
     // unit is full AB cycles away from homing corner
     static constexpr int8_t point_sequence[][2] = {
@@ -316,7 +317,6 @@ bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_steps, xy_
         { 0, 0 },
     };
 
-    const float fr_mm_s = homing_feedrate(A_AXIS);
     xy_pos_t c_acc = { 0, 0 };
     xy_pos_t m_acc = { 0, 0 };
 
@@ -414,7 +414,8 @@ bool refine_corexy_origin(CoreXYCalibrationMode mode) {
         ui.status_printf_P(0, "Recalibrating home. Printer may vibrate and be noisier.");
 
         xy_pos_t origin, distance;
-        if (!measure_origin_multipoint(measured_axis, origin_steps, origin, distance)) {
+        if (!measure_origin_multipoint(measured_axis, origin_steps, origin, distance, fr_mm_s)) {
+            SERIAL_ECHOLNPAIR("home origin calibration failed");
             return false;
         }
 
