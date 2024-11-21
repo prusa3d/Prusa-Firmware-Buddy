@@ -465,7 +465,7 @@
 
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
 #define X_HOME_BUMP_MM 10
-#define Y_HOME_BUMP_MM 20
+#define Y_HOME_BUMP_MM 10
 #define Z_HOME_BUMP_MM 2
 #define HOMING_BUMP_DIVISOR \
     { 1, 1, 4 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
@@ -1814,13 +1814,16 @@
         #define X_CURRENT_HOME 550
         #define Y_CURRENT_HOME 550
         #ifdef PRECISE_HOMING_COREXY
-            #define XY_HOMING_HOLDING_CURRENT 900        // mA: holding current for fixed motor
-            #define XY_HOMING_MEASURE_CURRENT 650        // mA: holding current for the measured motor
-            #define XY_HOMING_MEASURE_SENS -4            // sensitivity threshold for measured motor
-            #define XY_HOMING_MEASURE_FR 70.f            // mm/s: bumping feedrate
-            #define XY_HOMING_ORIGIN_OFFSET 5.f          // mm: parallel distance from initial origin
-            #define XY_HOMING_ORIGIN_MAX_RETRIES 6       // count: maximum number of refinement attempts
-            #define XY_HOMING_ORIGIN_BUMPS_MAX_ERR 0.075 // mm: max error between acceptable probes
+            #define PRECISE_HOMING_COREXY_RETRIES 6     // count: maximum number of refinement attempts
+            #define PRECISE_HOMING_SENS_TRY_RECAL 5     // count: recalibrate sensitivity at [x] failed attempts
+            #define XY_HOMING_HOLDING_CURRENT 900       // mA: holding current for fixed motor
+            #define XY_HOMING_MEASURE_CURRENT 650       // mA: holding current for the measured motor
+            #define XY_HOMING_MEASURE_SENS_MIN -6       // minimum sensitivity threshold for measured motor
+            #define XY_HOMING_MEASURE_SENS_MAX -4       // maximum sensitivity threshold for measured motor
+            #define XY_HOMING_MEASURE_FR 70.f           // mm/s: bumping feedrate
+            #define XY_HOMING_ORIGIN_OFFSET 5.f         // mm: parallel distance from initial origin
+            #define XY_HOMING_ORIGIN_BUMP_RETRIES 10    // count: maximum number of measurement attempts
+            #define XY_HOMING_ORIGIN_BUMP_MAX_ERR 0.075 // mm: max error between acceptable probes
         #endif
     #endif
 

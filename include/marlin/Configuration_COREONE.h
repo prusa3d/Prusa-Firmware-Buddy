@@ -650,6 +650,13 @@
 
 // @section homing
 
+//! Move in opposite direction as first homing move
+//! Required for sensorless homing under most circumstances
+#define MOVE_BACK_BEFORE_HOMING
+#if ENABLED(MOVE_BACK_BEFORE_HOMING)
+    #define MOVE_BACK_BEFORE_HOMING_DISTANCE 3.f
+#endif
+
 // Specify here all the endstop connectors that are connected to any endstop or probe.
 // Almost all printers will be using one per axis. Probes will use one or more of the
 // extra connectors. Leave undefined any used for non-endstop and non-probe purposes.
