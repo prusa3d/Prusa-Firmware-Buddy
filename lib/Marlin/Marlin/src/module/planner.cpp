@@ -2473,6 +2473,5 @@ void Motion_Parameters::load() const {
 
 void Motion_Parameters::reset() {
   MarlinSettings::reset_motion();
-  planner.refresh_acceleration_rates();
 }
 
