@@ -301,11 +301,27 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     return true;
 }
 
+/**
+ * @brief plan a relative move by full AB cycles around origin_steps
+ * @param ab_off full AB cycles away from homing corner
+ */
+static void plan_corexy_abgrid_move(const xy_long_t &origin_steps, const xy_long_t &ab_off, const float fr_mm_s) {
+    long a = ab_off[X_HOME_DIR == Y_HOME_DIR ? A_AXIS : B_AXIS] * -Y_HOME_DIR;
+    long b = ab_off[X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS] * -X_HOME_DIR;
+
+    xy_long_t point_steps = {
+        origin_steps[A_AXIS] + phase_cycle_steps(A_AXIS) * a,
+        origin_steps[B_AXIS] + phase_cycle_steps(B_AXIS) * b
+    };
+
+    plan_corexy_raw_move(point_steps, fr_mm_s);
+}
+
 static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_steps,
     xy_pos_t &origin, xy_pos_t &distance, const float fr_mm_s) {
     // scramble probing sequence to improve belt redistribution when estimating the centroid
-    // unit is full AB cycles away from homing corner
-    static constexpr int8_t point_sequence[][2] = {
+    // unit is full AB cycles away from homing corner as given to plan_corexy_abgrid_move()
+    static constexpr xy_long_t point_sequence[] = {
         { 1, 0 },
         { -1, 0 },
         { 0, 1 },
@@ -321,15 +337,10 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
     xy_pos_t m_acc = { 0, 0 };
 
     for (const auto &seq : point_sequence) {
-        long a = seq[X_HOME_DIR == Y_HOME_DIR ? A_AXIS : B_AXIS] * -Y_HOME_DIR;
-        long b = seq[X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS] * -X_HOME_DIR;
-
-        xy_long_t point_steps = {
-            origin_steps[A_AXIS] + phase_cycle_steps(A_AXIS) * a,
-            origin_steps[B_AXIS] + phase_cycle_steps(B_AXIS) * b
-        };
-
-        plan_corexy_raw_move(point_steps, fr_mm_s);
+        plan_corexy_abgrid_move(origin_steps, seq, fr_mm_s);
+        if (planner.draining()) {
+            return false;
+        }
 
         xy_pos_t c_dist, m_dist;
         if (!measure_phase_cycles(axis, c_dist, m_dist)) {
