@@ -6,8 +6,6 @@
 
 #include "gui_config_printer.hpp"
 
-std::array<int, MenuVars::AXIS_CNT> MenuVars::GetManualFeedrate() { return { MANUAL_FEEDRATE }; };
-
 const std::pair<int, int> MenuVars::crash_sensitivity_range = {
 #if AXIS_DRIVER_TYPE_X(TMC2209)
     0, 255
