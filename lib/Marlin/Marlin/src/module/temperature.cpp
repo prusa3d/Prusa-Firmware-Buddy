@@ -44,6 +44,11 @@
 #include "MarlinPin.h"
 #include "../../../../src/common/adc.hpp"
 
+#include <option/has_emergency_stop.h>
+#if HAS_EMERGENCY_STOP()
+#include <feature/emergency_stop/emergency_stop.hpp>
+#endif
+
 #define MAX6675_SEPARATE_SPI (EITHER(HEATER_0_USES_MAX6675, HEATER_1_USES_MAX6675) && PINS_EXIST(MAX6675_SCK, MAX6675_DO))
 
 #if MAX6675_SEPARATE_SPI
@@ -3707,6 +3712,10 @@ void Temperature::isr() {
 
   // Periodically call the planner timer
   planner.tick();
+
+#if HAS_EMERGENCY_STOP()
+  buddy::emergency_stop().check_z_limits();
+#endif
 }
 
 #if HAS_TEMP_SENSOR

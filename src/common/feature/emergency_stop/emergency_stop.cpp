@@ -42,6 +42,9 @@ namespace {
 
 void EmergencyStop::emergency_start() {
     log_info(EmergencyStop, "Emergency start");
+    const auto steps = get_steps_per_unit_z();
+    allowed_steps = allowed_mm * steps;
+    extra_emergency_steps = extra_emergency_mm * steps;
     start_z = current_z();
     // TODO: Something outside of the print too. But, should we block moves then, or what?
     if (!marlin_server::printer_idle() && !gcode_scheduled) {
@@ -61,11 +64,11 @@ void EmergencyStop::emergency_start() {
 
 void EmergencyStop::emergency_over() {
     log_info(EmergencyStop, "Emergency over");
-    start_z.reset();
+    start_z = no_emergency;
 }
 
 void EmergencyStop::gcode_body() {
-    if (!active) {
+    if (!in_emergency()) {
         gcode_scheduled = false;
         return;
     }
@@ -82,7 +85,7 @@ void EmergencyStop::gcode_body() {
         do_blocking_move_to_xy(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT);
     }
 
-    while (active) {
+    while (in_emergency()) {
         idle(true, true);
     }
 
@@ -95,6 +98,21 @@ void EmergencyStop::gcode_body() {
     marlin_server::clear_warning(WarningType::DoorOpen);
 }
 
+void EmergencyStop::check_z_limits() {
+    const int32_t emergency_start_z = start_z.load();
+    if (emergency_start_z != no_emergency) {
+        const int32_t difference = std::abs(emergency_start_z - current_z());
+        if (difference > allowed_steps) {
+            if (difference > extra_emergency_steps) {
+                // Didn't work the first time around? What??
+                bsod("Emergency stop failed, last-resort stop");
+            } else {
+                invoke_emergency();
+            }
+        }
+    }
+}
+
 void EmergencyStop::step() {
     const auto sensor_value = AdcGet::door_sensor();
     // The door sensor is returning approximate values of:
@@ -103,26 +121,10 @@ void EmergencyStop::step() {
     // 4096: Sensor missing.
     //
     // So, approximating door closed as < 1024 (middlepoint between optimal open vs close).
-    const bool emergency = sensor_value >= 1024 && config_store().emergency_stop_enable.get();
-    active = emergency;
-    if (emergency) {
-        if (start_z.has_value()) {
-            const int32_t difference = std::abs(*start_z - current_z());
-            const float steps_per_mm = get_steps_per_unit_z();
-            const int32_t allowed_steps = allowed_mm * steps_per_mm;
-            const int32_t extra_emergency_steps = extra_emergency_mm * steps_per_mm;
-            if (difference > allowed_steps) {
-                if (difference > extra_emergency_steps) {
-                    // Didn't work the first time around? What??
-                    bsod("Emergency stop failed, last-resort stop");
-                } else {
-                    invoke_emergency();
-                }
-            }
-        } else {
-            emergency_start();
-        }
-    } else if (start_z.has_value()) {
+    const bool want_emergency = sensor_value >= 1024 && config_store().emergency_stop_enable.get();
+    if (want_emergency && !in_emergency()) {
+        emergency_start();
+    } else if (!want_emergency && in_emergency()) {
         emergency_over();
     }
 }
