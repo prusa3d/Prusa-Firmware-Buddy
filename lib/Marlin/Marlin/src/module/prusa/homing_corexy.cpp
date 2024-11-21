@@ -248,10 +248,10 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     xy_long_t origin_steps = { stepper.position(A_AXIS), stepper.position(B_AXIS) };
     constexpr int probe_n = 2; // note the following code assumes always two probes per retry
     xy_long_t p_steps[probe_n];
-    xy_pos_t p_dist[probe_n] = { -XY_HOMING_ORIGIN_BUMPS_MAX_ERR, -XY_HOMING_ORIGIN_BUMPS_MAX_ERR };
+    xy_pos_t p_dist[probe_n] = { -XY_HOMING_ORIGIN_BUMP_MAX_ERR, -XY_HOMING_ORIGIN_BUMP_MAX_ERR };
 
     uint8_t retry;
-    for (retry = 0; retry != XY_HOMING_ORIGIN_MAX_RETRIES; ++retry) {
+    for (retry = 0; retry != XY_HOMING_ORIGIN_BUMP_RETRIES; ++retry) {
         uint8_t slot0 = retry % probe_n;
         uint8_t slot1 = (retry + 1) % probe_n;
 
@@ -270,13 +270,13 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
         p_steps[slot1][1] = abs(p_steps[slot1][1]);
         p_dist[slot1][1] = abs(p_dist[slot1][1]);
 
-        if (abs(p_dist[slot0][0] - p_dist[slot1][0]) < float(XY_HOMING_ORIGIN_BUMPS_MAX_ERR)
-            && abs(p_dist[slot0][1] - p_dist[slot1][1]) < float(XY_HOMING_ORIGIN_BUMPS_MAX_ERR)) {
+        if (abs(p_dist[slot0][0] - p_dist[slot1][0]) < float(XY_HOMING_ORIGIN_BUMP_MAX_ERR)
+            && abs(p_dist[slot0][1] - p_dist[slot1][1]) < float(XY_HOMING_ORIGIN_BUMP_MAX_ERR)) {
             break;
         }
     }
-    if (retry == XY_HOMING_ORIGIN_MAX_RETRIES) {
-        ui.status_printf_P(0, "Precise refinement failed");
+    if (retry == XY_HOMING_ORIGIN_BUMP_RETRIES) {
+        ui.status_printf_P(0, "Axis measurement failed");
         return false;
     }
 

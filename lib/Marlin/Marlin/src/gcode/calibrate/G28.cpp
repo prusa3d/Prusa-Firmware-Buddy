@@ -688,11 +688,35 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
   #if ENABLED(PRECISE_HOMING_COREXY)
     // absolute refinement requires both axes to be already probed
     if (!failed && ( doX || ENABLED(CODEPENDENT_XY_HOMING)) && doY && flags.precise) {
-      CoreXYCalibrationMode mode =
-        ( flags.force_calibrate ? CoreXYCalibrationMode::Force
-        : flags.can_calibrate ? CoreXYCalibrationMode::OnDemand
-        : CoreXYCalibrationMode::Disallow );
-      failed = !corexy_home_refine(mode);
+      for (size_t retry = 0;
+           retry != PRECISE_HOMING_COREXY_RETRIES && !planner.draining();
+           ++retry) {
+
+        CoreXYCalibrationMode mode =
+          ( flags.force_calibrate ? CoreXYCalibrationMode::Force
+            : flags.can_calibrate ? CoreXYCalibrationMode::OnDemand
+            : CoreXYCalibrationMode::Disallow );
+
+        #if !ENABLED(PRUSA_TOOLCHANGER)
+          if (mode == CoreXYCalibrationMode::OnDemand && corexy_home_is_unstable()) {
+            // automatically recalibrate when unstable when we don't have tool offsets
+            mode = CoreXYCalibrationMode::Force;
+          }
+        #endif
+
+        failed = !corexy_home_refine(mode);
+        if (!failed && !corexy_home_is_unstable()) {
+          // successfully homed
+          break;
+        }
+
+        // instead of blindly retrying internally on the same location, move the gantry
+        if (!homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y, flags.can_calibrate)
+          || !homeaxis(X_AXIS, fr_mm_s, false, reenable_wt_X, flags.can_calibrate)) {
+          failed = true;
+          break;
+        }
+      }
       if (failed && !planner.draining()) {
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); });
       }
