@@ -1,6 +1,5 @@
 
 #include "DialogMoveZ.hpp"
-#include "screen_menu_move_utils.hpp"
 #include "ScreenHandler.hpp"
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
@@ -29,8 +28,6 @@ DialogMoveZ::DialogMoveZ()
     , icon(this, icon_rc, &img::turn_knob_81x55) {
     DialogShown = true;
 
-    prev_accel = marlin_vars().travel_acceleration;
-    marlin_client::gcode("M204 T200");
     /// using window_t 1bit flag
     flags.close_on_click = is_closed_on_click_t::yes;
     header.SetIcon(&img::z_axis_16x16);
@@ -107,7 +104,11 @@ void DialogMoveZ::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t eve
     }
 
     case GUI_event_t::LOOP: {
-        jog_axis(lastQueuedPos, value, Z_AXIS);
+        // Only enqueue if there is no other gcode
+        if (value != lastQueuedPos) {
+            lastQueuedPos = value;
+            marlin_client::gcode_printf("G123 Z%f", (double)value);
+        }
         return;
     }
 
@@ -130,8 +131,8 @@ void DialogMoveZ::change(int diff) {
 
 DialogMoveZ::~DialogMoveZ() {
     DialogShown = false;
-    marlin_client::gcode_printf("M204 T%f", (double)prev_accel);
 }
+
 void DialogMoveZ::Show() {
     // checking nesting to not open over some other blocking dialog
     // when blocking dialog is open, the nesting is larger than one
