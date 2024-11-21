@@ -1744,11 +1744,11 @@
  */
 #define CRASH_RECOVERY
 #ifdef CRASH_RECOVERY
-    #define CRASH_STALL_GUARD { 2, 2 } // internal value representing sensitivity
-    #define CRASH_MAX_PERIOD { STALL_THRESHOLD_TMC2130, STALL_THRESHOLD_TMC2130 }
-    #define CRASH_FILTER (false)       // Stallguard filtering for crash detection
-    #define CRASH_TIMER 45             // seconds before counter reset
-    #define CRASH_COUNTER_MAX 3        // max crashes with automatic recovery
+    #define CRASH_STALL_GUARD { 2, 2 }    // internal value representing sensitivity
+    #define CRASH_MAX_PERIOD { 210, 210 } // (steps per tick) - reciprocal value of minimal speed
+    #define CRASH_FILTER (false)          // Stallguard filtering for crash detection
+    #define CRASH_TIMER 45                // seconds before counter reset
+    #define CRASH_COUNTER_MAX 3           // max crashes with automatic recovery
 #endif
 
 /**
@@ -1805,8 +1805,7 @@
         #define Y_STALL_SENSITIVITY  -3
         #define Z_STALL_SENSITIVITY  4
 
-        // TODO: this is just a ballpark value
-        #define STALL_THRESHOLD_TMC2130 400 // (steps per tick) - reciprocal value of minimal speed
+        // #define STALL_THRESHOLD_TMC2130 400 // Instead determined by get_homing_stall_threshold
     #endif
 
     #ifdef IMPROVE_HOMING_RELIABILITY
@@ -1815,12 +1814,13 @@
         #define X_CURRENT_HOME 550
         #define Y_CURRENT_HOME 550
         #ifdef PRECISE_HOMING_COREXY
-            #define XY_HOMING_HOLDING_CURRENT 900       // mA: holding current for fixed motor
-            #define XY_HOMING_ORIGIN_OFFSET 5.f         // mm: parallel distance from initial origin
-            #define XY_HOMING_ORIGIN_MAX_RETRIES 6      // count: maximum number of refinement attempts
-            #define XY_HOMING_ORIGIN_BUMPS_MAX_ERR 0.15 // mm: max error between acceptable probes
-            #define XY_HOMING_ORIGIN_SHIFT_X 5.f       // mm: post-refinement X origin shift
-            #define XY_HOMING_ORIGIN_SHIFT_Y -5.f       // mm: post-refinement Y origin shift
+            #define XY_HOMING_HOLDING_CURRENT 900        // mA: holding current for fixed motor
+            #define XY_HOMING_MEASURE_CURRENT 650        // mA: holding current for the measured motor
+            #define XY_HOMING_MEASURE_SENS -4            // sensitivity threshold for measured motor
+            #define XY_HOMING_MEASURE_FR 70.f            // mm/s: bumping feedrate
+            #define XY_HOMING_ORIGIN_OFFSET 5.f          // mm: parallel distance from initial origin
+            #define XY_HOMING_ORIGIN_MAX_RETRIES 6       // count: maximum number of refinement attempts
+            #define XY_HOMING_ORIGIN_BUMPS_MAX_ERR 0.075 // mm: max error between acceptable probes
         #endif
     #endif
 
