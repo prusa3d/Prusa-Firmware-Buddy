@@ -36,6 +36,7 @@ void G26(); //< first layer calibration
 void G64(); //< Measure Z_AXIS height
 void G162(); //< calibrate Z
 void G163(); //< measure length of axis
+void G123(); //< Manual move
 
 void M0();
 

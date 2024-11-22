@@ -146,7 +146,7 @@ elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
 endif()
 
 if(NOT BOARD STREQUAL "DWARF" AND NOT BOARD STREQUAL "MODULARBED")
-  if(PRINTER IN_LIST PRINTERS_WITH_POWER_PANIC)
+  if(HAS_POWER_PANIC)
     target_sources(firmware PRIVATE power_panic.cpp)
   endif()
 endif()

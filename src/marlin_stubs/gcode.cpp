@@ -297,6 +297,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 26:
             PrusaGcodeSuite::G26();
             break;
+        case 123:
+            PrusaGcodeSuite::G123();
+            break;
         case 64:
             PrusaGcodeSuite::G64();
             break;

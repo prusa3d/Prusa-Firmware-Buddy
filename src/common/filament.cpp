@@ -184,11 +184,7 @@ void FilamentType::build_name_with_info(StringBuilder &builder) const {
             } else if constexpr (std::is_same_v<T, UserFilamentType>) {
                 return N_(" (User)");
 
-            } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
-                return N_(" (Custom)");
-
-            } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
-                assert(0); // Should never be in GUI
+            } else if constexpr (std::is_same_v<T, AdHocFilamentType> || std::is_same_v<T, PendingAdHocFilamentType>) {
                 return N_(" (Custom)");
 
             } else {

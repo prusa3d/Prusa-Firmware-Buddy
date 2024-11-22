@@ -23,7 +23,6 @@ private:
     constexpr static const char *const closeTextContent = N_("Click the knob to close");
     constexpr static const char *const upTextContent = N_("UP");
     constexpr static const char *const downTextContent = N_("DOWN");
-    float prev_accel;
 
     int32_t value;
     float lastQueuedPos;
