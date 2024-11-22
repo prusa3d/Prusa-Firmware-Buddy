@@ -296,8 +296,8 @@ namespace {
             marlin_server::fsm_change(PhasesColdPull::cool_down, data.fsm_data);
         };
 
-        const auto fan_speed_stored = Temperature::fan_speed[active_extruder];
-        thermalManager.set_fan_speed(active_extruder, 240);
+        const auto fan_speed_stored = Temperature::fan_speed[0];
+        thermalManager.set_fan_speed(0, 240);
 
         switch (wait_while_with_progress(PhasesColdPull::cool_down, COOLING_TIMEOUT_MILLIS, too_hot, progress)) {
         case Response::Abort:
@@ -307,7 +307,7 @@ namespace {
         default:
             bsod("Invalid phase encountered.");
         }
-        thermalManager.set_fan_speed(active_extruder, fan_speed_stored);
+        thermalManager.set_fan_speed(0, fan_speed_stored);
         return PhasesColdPull::heat_up;
     }
 

@@ -479,6 +479,8 @@ bool PrusaToolChanger::purge_tool(Dwarf &dwarf) {
 
     // fan to 100% for better sopel
     // use fanctl interface directly, without modifing marlin's value. This will prevent restoring wrong fan value on power panic or failed toolchange.
+    // !!! Note: This does not work if you're purging the currently selected tool - see BFW-6365
+    const auto prev_pwm = Fans::print(tool_nr).getPWM();
     Fans::print(tool_nr).setPWM(255);
 
     // go to purge location
@@ -509,7 +511,7 @@ bool PrusaToolChanger::purge_tool(Dwarf &dwarf) {
     (void)wait([]() { return false; }, 5000);
 
     // restore fan speed
-    Fans::print(tool_nr).setPWM(thermalManager.fan_speed[tool_nr]);
+    Fans::print(tool_nr).setPWM(prev_pwm);
 
     if (!park(dwarf)) {
         return false;
