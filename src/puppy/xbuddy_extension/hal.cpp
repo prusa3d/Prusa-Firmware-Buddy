@@ -653,7 +653,7 @@ static uint8_t filament_sensor_measuring_phase = 0;
 /// FS readout at each phase
 static std::bitset<4> filament_sensor_raw;
 
-static hal::filament_sensor::State filament_sensor_state = hal::filament_sensor::State::disconnected;
+static hal::filament_sensor::State filament_sensor_state = hal::filament_sensor::State::uninitialized;
 
 static size_t filament_sensor_last_millis = 0;
 
