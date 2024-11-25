@@ -394,14 +394,6 @@ bool Pause::process_stop() {
     return true;
 }
 
-void Pause::set_unload_next_phase() {
-    if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
-        set(LoadState::load_start);
-    } else {
-        set(LoadState::_finish);
-    }
-}
-
 void Pause::start_process([[maybe_unused]] Response response) {
     switch (load_type) {
     case LoadType::load:
@@ -784,13 +776,13 @@ void Pause::unload_start_process([[maybe_unused]] Response response) {
 
             // No filament loaded in MMU, we can't continue, as we don't know what slot to load
             if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-                set_unload_next_phase();
+                set(LoadState::unload_finish_or_change);
                 return;
             }
 
             MMU2::mmu2.unload();
             MMU2::mmu2.eject_filament(settings.mmu_filament_to_load);
-            set_unload_next_phase();
+            set(LoadState::unload_finish_or_change);
         }
 
         return;
@@ -848,7 +840,7 @@ void Pause::unload_process([[maybe_unused]] Response response) {
     switch (load_type) {
     case LoadType::unload:
 #if HAS_HUMAN_INTERACTIONS()
-        set_unload_next_phase();
+        set(LoadState::unload_finish_or_change);
         break;
 #endif
     case LoadType::unload_confirm:
@@ -883,7 +875,15 @@ void Pause::unloaded_ask_process(Response response) {
 void Pause::unload_from_gears_process([[maybe_unused]] Response response) {
     setPhase(PhasesLoadUnload::Unloading_stoppable, 0);
     do_e_move_notify_progress_coldextrude(-settings.slow_load_length * (float)1.5, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 0, 100);
-    set_unload_next_phase();
+    set(LoadState::unload_finish_or_change);
+}
+
+void Pause::unload_finish_or_change_process([[maybe_unused]] Response response) {
+    if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
+        set(LoadState::load_start);
+    } else {
+        set(LoadState::_finish);
+    }
 }
 
 void Pause::filament_not_in_fs_process([[maybe_unused]] Response response) {
@@ -898,7 +898,7 @@ void Pause::filament_not_in_fs_process([[maybe_unused]] Response response) {
             return;
         }
 #endif
-        set_unload_next_phase();
+        set(LoadState::unload_finish_or_change);
     } else {
 #if !HAS_HUMAN_INTERACTIONS()
         runout_timer_ms = ticks_ms();
@@ -910,7 +910,7 @@ void Pause::manual_unload_process(Response response) {
     if (response == Response::Continue
         && !FSensors_instance().has_filament_surely()) { // Allow to continue when nothing remains in filament sensor
         enable_e_steppers();
-        set_unload_next_phase();
+        set(LoadState::unload_finish_or_change);
     } else if (response == Response::Retry) { // Retry unloading
         enable_e_steppers();
         set(LoadState::ram_sequence);

@@ -36,6 +36,7 @@ protected:
         manual_unload,
         filament_not_in_fs,
         unload_from_gears,
+        unload_finish_or_change,
         load_start,
         filament_push_ask, // must be one phase because of button click
 #if HAS_SIDE_FSENSOR()
@@ -177,6 +178,7 @@ private:
     void manual_unload_process(Response response);
     void filament_not_in_fs_process(Response response);
     void unload_from_gears_process(Response response);
+    void unload_finish_or_change_process(Response response);
     void load_start_process(Response response);
     void filament_push_ask_process(Response response);
 #if HAS_SIDE_FSENSOR()
@@ -207,6 +209,7 @@ private:
             { LoadState::manual_unload, &Pause::manual_unload_process },
             { LoadState::filament_not_in_fs, &Pause::filament_not_in_fs_process },
             { LoadState::unload_from_gears, &Pause::unload_from_gears_process },
+            { LoadState::unload_finish_or_change, &Pause::unload_finish_or_change_process },
             { LoadState::load_start, &Pause::load_start_process },
             { LoadState::filament_push_ask, &Pause::filament_push_ask_process },
 #if HAS_SIDE_FSENSOR()
@@ -229,8 +232,6 @@ private:
 
     // does not create FSM_HolderLoadUnload
     bool invoke_loop(); // shared load/unload code
-
-    void set_unload_next_phase();
 
     // park moves calculations
     uint32_t parkMoveZPercent(float z_move_len, float xy_move_len) const;
