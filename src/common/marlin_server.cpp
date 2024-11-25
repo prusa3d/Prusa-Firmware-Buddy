@@ -197,11 +197,6 @@ namespace {
         uint32_t knob_move_counter;
         uint16_t flags; // server flags (MARLIN_SFLG)
         uint8_t idle_cnt; // idle call counter
-        uint8_t pqueue_head; // copy of planner.block_buffer_head
-        uint8_t pqueue_tail; // copy of planner.block_buffer_tail
-        uint8_t pqueue; // calculated number of records in planner queue
-        uint8_t gqueue; // copy of queue.length - number of commands in gcode queue
-                        // Motion_Parameters motion_param;
 
 #if ENABLED(AXIS_MEASURE)
         /// length of axes measured after crash
@@ -556,8 +551,6 @@ void _add_status_msg(const char *const popup_msg) {
 static void _server_print_loop(void);
 static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue, uint64_t evt_msk);
 static uint8_t _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16);
-static void _server_update_gqueue(void);
-static void _server_update_pqueue(void);
 static void _server_update_vars();
 static bool _process_server_request(const Request &);
 static void _server_set_var(const Request &);
@@ -769,10 +762,7 @@ static void cycle() {
     if (Request request; server_queue.try_receive(request, 0)) {
         _process_server_request(request);
     }
-    // update gqueue (gcode queue)
-    _server_update_gqueue();
-    // update pqueue (planner queue)
-    _server_update_pqueue();
+
     // update variables
     send_notifications_to_clients();
     server_update_vars();
@@ -2953,28 +2943,12 @@ static uint8_t _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16) 
     return client_msk;
 }
 
-static void _server_update_gqueue(void) {
-    if (server.gqueue != queue.length) {
-        server.gqueue = queue.length;
-        //		_dbg("gqueue: %2d", server.gqueue);
-    }
-}
-
-static void _server_update_pqueue(void) {
-    if ((server.pqueue_head != planner.block_buffer_head) || (server.pqueue_tail != planner.block_buffer_tail)) {
-        server.pqueue_head = planner.block_buffer_head;
-        server.pqueue_tail = planner.block_buffer_tail;
-        server.pqueue = (server.pqueue_head >= server.pqueue_tail) ? (server.pqueue_head - server.pqueue_tail) : (BLOCK_BUFFER_SIZE + server.pqueue_head - server.pqueue_tail);
-        //		_dbg("pqueue: %2d", server.pqueue);
-    }
-}
-
 // update all server variables
 static void _server_update_vars() {
     const auto prefetch_metrics = media_prefetch.get_metrics();
 
-    marlin_vars().gqueue = server.gqueue;
-    marlin_vars().pqueue = server.pqueue;
+    marlin_vars().gqueue = queue.length;
+    marlin_vars().pqueue = planner.movesplanned();
 
     // Get native position
     xyze_pos_t pos_mm, curr_pos_mm;

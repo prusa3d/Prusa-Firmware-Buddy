@@ -106,7 +106,7 @@ target_sources(
           window_thumbnail.cpp
   )
 
-if(PRINTER IN_LIST PRINTERS_WITH_CRASH_DETECTION)
+if(HAS_CRASH_DETECTION)
   target_sources(firmware PRIVATE screen_crash_recovery.cpp)
 endif()
 
@@ -196,7 +196,7 @@ if(BOARD STREQUAL "XLBUDDY")
   target_sources(firmware PRIVATE MItem_enclosure.cpp)
 endif()
 
-if(PRINTER IN_LIST PRINTERS_WITH_LOVE_BOARD)
+if(HAS_LOVE_BOARD)
   target_sources(firmware PRIVATE MItem_love_board.cpp)
 endif()
 
@@ -230,6 +230,6 @@ if(HAS_LEDS)
   add_subdirectory(led_animations)
 endif()
 
-if(PRINTER IN_LIST PRINTERS_WITH_BED_LEVEL_CORRECTION)
+if(HAS_BED_LEVEL_CORRECTION)
   target_sources(firmware PRIVATE screen_menu_bed_level_correction.cpp)
 endif()

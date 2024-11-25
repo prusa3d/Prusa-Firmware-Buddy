@@ -229,77 +229,145 @@ message(STATUS "Connect client: ${CONNECT}")
 message(STATUS "Resources: ${RESOURCES}")
 
 # Set printer features
+function(set_feature_for_printers FEATURE_NAME)
+  set(FEATURE_PRINTER_LIST ${ARGV})
+  list(REMOVE_AT FEATURE_PRINTER_LIST 0) # First argument is the feature name
+  if(${PRINTER} IN_LIST FEATURE_PRINTER_LIST)
+    set(FEATURE_VALUE YES)
+  else()
+    set(FEATURE_VALUE NO)
+  endif()
+  set(${FEATURE_NAME}
+      ${FEATURE_VALUE}
+      PARENT_SCOPE
+      )
+  define_boolean_option(${FEATURE_NAME} ${FEATURE_VALUE})
+endfunction()
+
+function(set_feature_for_printers_master_board FEATURE_NAME)
+  set(FEATURE_PRINTER_LIST ${ARGV})
+  list(REMOVE_AT FEATURE_PRINTER_LIST 0) # First argument is the feature name
+  if(BOARD_IS_MASTER_BOARD AND ${PRINTER} IN_LIST FEATURE_PRINTER_LIST)
+    set(FEATURE_VALUE YES)
+  else()
+    set(FEATURE_VALUE NO)
+  endif()
+  set(${FEATURE_NAME}
+      ${FEATURE_VALUE}
+      PARENT_SCOPE
+      )
+  define_boolean_option(${FEATURE_NAME} ${FEATURE_VALUE})
+endfunction()
+
 set(PRINTERS_WITH_FILAMENT_SENSOR_BINARY "MINI" "MK3.5")
-set(PRINTERS_WITH_FILAMENT_SENSOR_ADC "CUBE" "MK4" "XL" "iX" "XL_DEV_KIT")
-set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY "CUBE" "MINI" "MK4" "MK3.5" "XL" "iX")
-set(PRINTERS_WITH_ADVANCED_PAUSE
-    "CUBE"
-    "MINI"
-    "MK4"
-    "MK3.5"
-    "iX"
-    "XL"
-    "XL_DEV_KIT"
-    )
-set(PRINTERS_WITH_CRASH_DETECTION "CUBE" "MINI" "MK4" "MK3.5" "iX" "XL") # this does require
-                                                                         # selftest to
-# work
-set(PRINTERS_WITH_POWER_PANIC "CUBE" "MK4" "MK3.5" "iX" "XL") # this does require selftest and crash
-# detection to work
-set(PRINTERS_WITH_PRECISE_HOMING "MK4" "MK3.5")
-set(PRINTERS_WITH_PRECISE_HOMING_COREXY "iX" "XL" "XL_DEV_KIT" "CUBE")
-set(PRINTERS_WITH_PHASE_STEPPING "XL" "iX" "CUBE")
+set(PRINTERS_WITH_FILAMENT_SENSOR_ADC "MK4" "XL" "iX" "XL_DEV_KIT" "CUBE")
+
+set_feature_for_printers(
+  INIT_TRINAMIC_FROM_MARLIN_ONLY
+  "MINI"
+  "MK4"
+  "MK3.5"
+  "XL"
+  "iX"
+  "CUBE"
+  )
+set_feature_for_printers(
+  HAS_PAUSE
+  "MINI"
+  "MK4"
+  "MK3.5"
+  "iX"
+  "XL"
+  "XL_DEV_KIT"
+  "CUBE"
+  )
+set_feature_for_printers(
+  HAS_CRASH_DETECTION
+  "MINI"
+  "MK4"
+  "MK3.5"
+  "iX"
+  "XL"
+  "CUBE"
+  ) # this does require
+# selftest to work
+set_feature_for_printers(HAS_POWER_PANIC "MK4" "MK3.5" "iX" "XL" "CUBE") # this does require
+                                                                         # selftest and
+# crash detection to work
+set_feature_for_printers(HAS_PRECISE_HOMING "MK4" "MK3.5")
+set_feature_for_printers(HAS_PRECISE_HOMING_COREXY "iX" "XL" "XL_DEV_KIT" "CUBE")
+set_feature_for_printers_master_board(HAS_PHASE_STEPPING "XL" "iX" "CUBE")
 set(PRINTERS_WITH_BURST_STEPPING "XL")
-set(PRINTERS_WITH_INPUT_SHAPER_CALIBRATION "CUBE" "MK4" "MK3.5" "XL" "XL_DEV_KIT")
-set(PRINTERS_WITH_SELFTEST "CUBE" "MK4" "MK3.5" "XL" "iX" "MINI")
-set(PRINTERS_WITH_HUMAN_INTERACTIONS "CUBE" "MINI" "MK4" "MK3.5" "XL")
-set(PRINTERS_WITH_LOADCELL "CUBE" "MK4" "iX" "XL" "XL_DEV_KIT")
-set(PRINTERS_WITH_HEATBREAK_TEMP "CUBE" "MK4" "iX" "XL" "XL_DEV_KIT")
-set(PRINTERS_WITH_RESOURCES "CUBE" "MINI" "MK4" "MK3.5" "XL" "iX")
-set(PRINTERS_WITH_BOWDEN_EXTRUDER "MINI")
-set(PRINTERS_WITH_PUPPIES_BOOTLOADER "CUBE" "XL" "iX" "XL_DEV_KIT")
+set_feature_for_printers_master_board(
+  HAS_INPUT_SHAPER_CALIBRATION "MK4" "MK3.5" "XL" "XL_DEV_KIT" "CUBE"
+  )
+set_feature_for_printers(
+  HAS_SELFTEST
+  "MK4"
+  "MK3.5"
+  "XL"
+  "iX"
+  "MINI"
+  "CUBE"
+  )
+set_feature_for_printers(HAS_HUMAN_INTERACTIONS "MINI" "MK4" "MK3.5" "XL" "CUBE")
+set_feature_for_printers_master_board(HAS_LOADCELL "MK4" "iX" "XL" "XL_DEV_KIT" "CUBE")
+set_feature_for_printers_master_board(HAS_SHEET_PROFILES "MK3.5" "MINI")
+set_feature_for_printers_master_board(HAS_HEATBREAK_TEMP "MK4" "iX" "XL" "XL_DEV_KIT" "CUBE")
+set(PRINTERS_WITH_RESOURCES "MINI" "MK4" "MK3.5" "XL" "iX" "CUBE")
+set_feature_for_printers(HAS_BOWDEN "MINI")
+set(PRINTERS_WITH_PUPPIES_BOOTLOADER "XL" "iX" "XL_DEV_KIT" "CUBE")
 set(PRINTERS_WITH_DWARF "XL" "XL_DEV_KIT")
-set(PRINTERS_WITH_MODULARBED "iX" "XL" "XL_DEV_KIT")
-set(PRINTERS_WITH_XBUDDY_EXTENSION "CUBE")
-set(PRINTERS_WITH_TOOLCHANGER "XL" "XL_DEV_KIT")
-set(PRINTERS_WITH_SIDE_FSENSOR "iX" "XL")
-set(PRINTERS_WITH_ESP_FLASH_TASK "CUBE" "MK4" "MK3.5" "XL" "MINI") # iX does not need ESP flashing
-set(PRINTERS_WITH_EMBEDDED_ESP32 "XL")
+set_feature_for_printers_master_board(HAS_MODULARBED "iX" "XL" "XL_DEV_KIT")
+set_feature_for_printers_master_board(HAS_XBUDDY_EXTENSION "CUBE")
+set_feature_for_printers(HAS_TOOLCHANGER "XL" "XL_DEV_KIT")
+set_feature_for_printers(HAS_SIDE_FSENSOR "iX" "XL")
+set_feature_for_printers(HAS_ESP_FLASH_TASK "MK4" "MK3.5" "XL" "MINI" "CUBE") # iX does not need ESP
+# flashing
+set_feature_for_printers(HAS_EMBEDDED_ESP32 "XL")
 set(PRINTERS_WITH_SIDE_LEDS "XL" "iX")
 set(PRINTERS_WITH_TRANSLATIONS "CUBE" "MK4" "MK3.5" "XL" "MINI")
 set(PRINTERS_WITH_EXTFLASH_TRANSLATIONS "MINI")
-set(PRINTERS_WITH_LOVE_BOARD "CUBE" "MK4" "iX")
-set(PRINTERS_WITH_TMC_UART "MINI")
-set(PRINTERS_WITH_XLCD "CUBE" "MK4" "MK3.5" "iX" "XL")
-set(PRINTERS_WITH_MMU2 "CUBE" "MK4" "MK3.5")
-set(PRINTERS_WITH_CONFIG_STORE_WITHOUT_BACKEND "XL_DEV_KIT")
-set(PRINTERS_WITH_CHAMBER_API "XL" "CUBE")
-set(PRINTERS_WITH_SWITCHED_FAN_TEST "MK4" "MK3.5" "CUBE")
-set(PRINTERS_WITH_EMERGENCY_STOP "CUBE")
+set_feature_for_printers(HAS_LOVE_BOARD "MK4" "iX" "CUBE")
+set_feature_for_printers(HAS_TMC_UART "MINI")
+set_feature_for_printers(HAS_XLCD "MK4" "MK3.5" "iX" "XL" "CUBE")
+set_feature_for_printers(HAS_MMU2 "MK4" "MK3.5" "CUBE")
+set_feature_for_printers(HAS_CONFIG_STORE_WO_BACKEND "XL_DEV_KIT")
+set_feature_for_printers_master_board(HAS_CHAMBER_API "XL" "CUBE")
+set_feature_for_printers(HAS_SWITCHED_FAN_TEST "MK4" "MK3.5" "CUBE")
+set_feature_for_printers(HAS_EMERGENCY_STOP "CUBE")
 
 # Set GUI settings
 set(PRINTERS_WITH_GUI "CUBE" "MINI" "MK4" "MK3.5" "XL" "iX")
 set(PRINTERS_WITH_GUI_W480H320 "CUBE" "MK4" "MK3.5" "XL" "iX")
 set(PRINTERS_WITH_GUI_W240H320 "MINI")
-set(PRINTERS_WITH_LEDS "CUBE" "MK4" "MK3.5" "XL" "iX")
+set_feature_for_printers(HAS_LEDS "MK4" "MK3.5" "XL" "iX" "CUBE")
 # disable serial printing for MINI to save flash
-set(PRINTERS_WITH_SERIAL_PRINTING "CUBE" "MK4" "MK3.5" "XL" "iX" "MINI")
+set_feature_for_printers(
+  HAS_SERIAL_PRINT
+  "MK4"
+  "MK3.5"
+  "XL"
+  "iX"
+  "MINI"
+  "CUBE"
+  )
 
-set(PRINTERS_WITH_LOCAL_ACCELEROMETER "CUBE" "MK3.5" "MK4" "iX")
-set(PRINTERS_WITH_REMOTE_ACCELEROMETER "XL" "XL_DEV_KIT")
+set_feature_for_printers(HAS_LOCAL_ACCELEROMETER "MK3.5" "MK4" "iX" "CUBE")
+set_feature_for_printers(HAS_REMOTE_ACCELEROMETER "XL" "XL_DEV_KIT")
 
-set(PRINTERS_WITH_COLDPULL "MK3.5" "MK4" "XL")
+set_feature_for_printers(HAS_COLDPULL "MK3.5" "MK4" "XL")
 
-set(PRINTERS_WITH_BED_LEVEL_CORRECTION "MK3.5" "MINI")
+set_feature_for_printers(HAS_BED_LEVEL_CORRECTION "MK3.5" "MINI")
 
-set(PRINTERS_WITH_SHEET_SUPPORT "MINI" "MK3.5")
+set_feature_for_printers(HAS_SHEET_SUPPORT "MINI" "MK3.5")
 
-set(PRINTERS_WITH_NFC "MK3.5" "MK4" "CUBE")
+set_feature_for_printers(HAS_NFC "MK3.5" "MK4" "CUBE")
 
-set(PRINTERS_WITH_NOZZLE_CLEANER "iX")
-set(PRINTERS_WITH_BELT_TUNING "XL" "iX")
-set(PRINTERS_WITH_I2C_EXPANDER "MK3.5" "MK4" "CUBE")
-set(PRINTERS_WITH_WASTEBIN "iX")
+set_feature_for_printers(HAS_NOZZLE_CLEANER "iX")
+set_feature_for_printers(HAS_BELT_TUNING "XL" "iX")
+set_feature_for_printers_master_board(HAS_I2C_EXPANDER "MK3.5" "MK4" "CUBE")
+set_feature_for_printers(HAS_WASTEBIN "iX")
 
 # Set printer board
 set(BOARDS_WITH_ADVANCED_POWER "XBUDDY" "XLBUDDY" "DWARF")
@@ -421,47 +489,6 @@ endif()
 message(STATUS "Graphical User Interface: ${GUI}")
 define_boolean_option(HAS_GUI ${GUI})
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
-  set(INIT_TRINAMIC_FROM_MARLIN_ONLY YES)
-else()
-  set(INIT_TRINAMIC_FROM_MARLIN_ONLY NO)
-endif()
-define_boolean_option(INIT_TRINAMIC_FROM_MARLIN_ONLY ${INIT_TRINAMIC_FROM_MARLIN_ONLY})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_SELFTEST)
-  set(HAS_SELFTEST YES)
-else()
-  set(HAS_SELFTEST NO)
-endif()
-define_boolean_option(HAS_SELFTEST ${HAS_SELFTEST})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_CONFIG_STORE_WITHOUT_BACKEND)
-  set(HAS_CONFIG_STORE_WO_BACKEND YES)
-else()
-  set(HAS_CONFIG_STORE_WO_BACKEND NO)
-endif()
-define_boolean_option(HAS_CONFIG_STORE_WO_BACKEND ${HAS_CONFIG_STORE_WO_BACKEND})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_SWITCHED_FAN_TEST)
-  set(HAS_SWITCHED_FAN_TEST YES)
-else()
-  set(HAS_SWITCHED_FAN_TEST NO)
-endif()
-define_boolean_option(HAS_SWITCHED_FAN_TEST ${HAS_SWITCHED_FAN_TEST})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_HUMAN_INTERACTIONS)
-  define_boolean_option(HAS_HUMAN_INTERACTIONS YES)
-else()
-  define_boolean_option(HAS_HUMAN_INTERACTIONS NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_PHASE_STEPPING AND BOARD_IS_MASTER_BOARD)
-  set(HAS_PHASE_STEPPING YES)
-else()
-  set(HAS_PHASE_STEPPING NO)
-endif()
-define_boolean_option(HAS_PHASE_STEPPING ${HAS_PHASE_STEPPING})
-
 if(ENABLE_BURST
    AND ${PRINTER} IN_LIST PRINTERS_WITH_BURST_STEPPING
    AND BOARD_IS_MASTER_BOARD
@@ -471,44 +498,6 @@ else()
   set(HAS_BURST_STEPPING NO)
 endif()
 define_boolean_option(HAS_BURST_STEPPING ${HAS_BURST_STEPPING})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_INPUT_SHAPER_CALIBRATION AND BOARD_IS_MASTER_BOARD)
-  set(HAS_INPUT_SHAPER_CALIBRATION YES)
-else()
-  set(HAS_INPUT_SHAPER_CALIBRATION NO)
-endif()
-define_boolean_option(HAS_INPUT_SHAPER_CALIBRATION ${HAS_INPUT_SHAPER_CALIBRATION})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_LOADCELL AND BOARD_IS_MASTER_BOARD)
-  set(HAS_LOADCELL YES)
-  set(HAS_SHEET_PROFILES NO)
-else()
-  set(HAS_LOADCELL NO)
-  set(HAS_SHEET_PROFILES YES)
-endif()
-define_boolean_option(HAS_LOADCELL ${HAS_LOADCELL})
-define_boolean_option(HAS_SHEET_PROFILES ${HAS_SHEET_PROFILES})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_HEATBREAK_TEMP AND BOARD_IS_MASTER_BOARD)
-  set(HAS_HEATBREAK_TEMP YES)
-else()
-  set(HAS_HEATBREAK_TEMP NO)
-endif()
-define_boolean_option(HAS_HEATBREAK_TEMP ${HAS_HEATBREAK_TEMP})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_CHAMBER_API AND BOARD_IS_MASTER_BOARD)
-  set(HAS_CHAMBER_API YES)
-else()
-  set(HAS_CHAMBER_API NO)
-endif()
-define_boolean_option(HAS_CHAMBER_API ${HAS_CHAMBER_API})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_EMERGENCY_STOP AND BOARD_IS_MASTER_BOARD)
-  set(HAS_EMERGENCY_STOP YES)
-else()
-  set(HAS_EMERGENCY_STOP NO)
-endif()
-define_boolean_option(HAS_EMERGENCY_STOP ${HAS_EMERGENCY_STOP})
 
 if((${BOARD} STREQUAL "DWARF") OR (${BOARD} STREQUAL "XBUDDY" AND NOT PRINTER STREQUAL "MK3.5"))
   set(HAS_LOADCELL_HX717 YES)
@@ -531,83 +520,12 @@ else()
 endif()
 define_boolean_option(HAS_ACCELEROMETER ${HAS_ACCELEROMETER})
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_LOVE_BOARD)
-  set(HAS_LOVE_BOARD YES)
-else()
-  set(HAS_LOVE_BOARD NO)
-endif()
-define_boolean_option(HAS_LOVE_BOARD ${HAS_LOVE_BOARD})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_TMC_UART)
-  set(HAS_TMC_UART YES)
-else()
-  set(HAS_TMC_UART NO)
-endif()
-define_boolean_option(HAS_TMC_UART ${HAS_TMC_UART})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_XLCD)
-  set(HAS_XLCD YES)
-else()
-  set(HAS_XLCD NO)
-endif()
-define_boolean_option(HAS_XLCD ${HAS_XLCD})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_MMU2)
-  set(HAS_MMU2 YES)
-else()
-  set(HAS_MMU2 NO)
-endif()
-define_boolean_option(HAS_MMU2 ${HAS_MMU2})
-message(STATUS "MMU2: ${HAS_MMU2}")
-
 if(${TOUCH_ENABLED})
   set(HAS_XLCD_TOUCH_DRIVER YES)
 else()
   set(HAS_XLCD_TOUCH_DRIVER NO)
 endif()
 message(STATUS "XLCD_TOUCH_DRIVER: ${HAS_XLCD_TOUCH_DRIVER}")
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_ADVANCED_PAUSE)
-  set(HAS_PAUSE YES)
-else()
-  set(HAS_PAUSE NO)
-endif()
-message(STATUS "ADVANCED PAUSE: ${HAS_PAUSE}")
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_BOWDEN_EXTRUDER)
-  set(HAS_BOWDEN YES)
-else()
-  set(HAS_BOWDEN NO)
-endif()
-define_boolean_option(HAS_BOWDEN ${HAS_BOWDEN})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_SERIAL_PRINTING)
-  set(HAS_SERIAL_PRINT YES)
-else()
-  set(HAS_SERIAL_PRINT NO)
-endif()
-define_boolean_option(HAS_SERIAL_PRINT ${HAS_SERIAL_PRINT})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_DWARF AND BOARD_IS_MASTER_BOARD)
-  set(HAS_DWARF YES)
-else()
-  set(HAS_DWARF NO)
-endif()
-define_boolean_option(HAS_DWARF ${HAS_DWARF})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_MODULARBED AND BOARD_IS_MASTER_BOARD)
-  set(HAS_MODULARBED YES)
-else()
-  set(HAS_MODULARBED NO)
-endif()
-define_boolean_option(HAS_MODULARBED ${HAS_MODULARBED})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_XBUDDY_EXTENSION AND BOARD_IS_MASTER_BOARD)
-  set(HAS_XBUDDY_EXTENSION YES)
-else()
-  set(HAS_XBUDDY_EXTENSION NO)
-endif()
-define_boolean_option(HAS_XBUDDY_EXTENSION ${HAS_XBUDDY_EXTENSION})
 
 if(HAS_DWARF
    OR HAS_MODULARBED
@@ -618,6 +536,13 @@ else()
   set(HAS_PUPPIES NO)
 endif()
 define_boolean_option(HAS_PUPPIES ${HAS_PUPPIES})
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_DWARF AND BOARD_IS_MASTER_BOARD)
+  set(HAS_DWARF YES)
+else()
+  set(HAS_DWARF NO)
+endif()
+define_boolean_option(HAS_DWARF ${HAS_DWARF})
 
 if(${BOARD} STREQUAL "XBUDDY" AND HAS_MMU2)
   # for XBUDDY based printers, UART6 is being used either for puppies/MODBUS or directly for the MMU
@@ -633,13 +558,6 @@ else()
   set(HAS_MMU2_OVER_UART NO)
 endif()
 define_boolean_option(HAS_MMU2_OVER_UART ${HAS_MMU2_OVER_UART})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_LEDS)
-  set(HAS_LEDS YES)
-else()
-  set(HAS_LEDS NO)
-endif()
-define_boolean_option(HAS_LEDS ${HAS_LEDS})
 
 if(HAS_PUPPIES)
   set(ENABLE_PUPPY_BOOTLOAD
@@ -732,48 +650,10 @@ else()
 endif()
 define_boolean_option(PUPPY_FLASH_FW ${PUPPY_FLASH_FW})
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_TOOLCHANGER)
-  set(HAS_TOOLCHANGER YES)
-else()
-  set(HAS_TOOLCHANGER NO)
-endif()
-define_boolean_option(HAS_TOOLCHANGER ${HAS_TOOLCHANGER})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_SIDE_FSENSOR)
-  set(HAS_SIDE_FSENSOR YES)
-else()
-  set(HAS_SIDE_FSENSOR NO)
-endif()
-define_boolean_option(HAS_SIDE_FSENSOR ${HAS_SIDE_FSENSOR})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_ESP_FLASH_TASK)
-  define_boolean_option(HAS_ESP_FLASH_TASK YES)
-else()
-  define_boolean_option(HAS_ESP_FLASH_TASK NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_EMBEDDED_ESP32)
-  define_boolean_option(HAS_EMBEDDED_ESP32 YES)
-else()
-  define_boolean_option(HAS_EMBEDDED_ESP32 NO)
-endif()
-
 if(${PRINTER} IN_LIST PRINTERS_WITH_SIDE_LEDS AND NOT IS_KNOBLET)
   define_boolean_option(HAS_SIDE_LEDS YES)
 else()
   define_boolean_option(HAS_SIDE_LEDS NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_LOCAL_ACCELEROMETER)
-  define_boolean_option(HAS_LOCAL_ACCELEROMETER YES)
-else()
-  define_boolean_option(HAS_LOCAL_ACCELEROMETER NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_REMOTE_ACCELEROMETER)
-  define_boolean_option(HAS_REMOTE_ACCELEROMETER YES)
-else()
-  define_boolean_option(HAS_REMOTE_ACCELEROMETER NO)
 endif()
 
 if(HAS_TOOLCHANGER)
@@ -783,18 +663,6 @@ else()
 endif()
 define_boolean_option(HAS_FILAMENT_SENSORS_MENU ${HAS_FILAMENT_SENSORS_MENU})
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_COLDPULL)
-  define_boolean_option(HAS_COLDPULL YES)
-else()
-  define_boolean_option(HAS_COLDPULL NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_SHEET_SUPPORT)
-  define_boolean_option(HAS_SHEET_SUPPORT YES)
-else()
-  define_boolean_option(HAS_SHEET_SUPPORT NO)
-endif()
-
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(DEBUG YES)
   define_boolean_option(NETWORKING_BENCHMARK_ENABLED YES)
@@ -802,39 +670,6 @@ else()
   set(DEBUG NO)
   define_boolean_option(NETWORKING_BENCHMARK_ENABLED NO)
 endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_NFC)
-  define_boolean_option(HAS_NFC YES)
-else()
-  define_boolean_option(HAS_NFC NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_NOZZLE_CLEANER)
-  define_boolean_option(HAS_NOZZLE_CLEANER YES)
-else()
-  define_boolean_option(HAS_NOZZLE_CLEANER NO)
-endif()
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_BELT_TUNING)
-  set(HAS_BELT_TUNING YES)
-else()
-  set(HAS_BELT_TUNING NO)
-endif()
-define_boolean_option(HAS_BELT_TUNING ${HAS_BELT_TUNING})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_I2C_EXPANDER AND BOARD_IS_MASTER_BOARD)
-  set(HAS_I2C_EXPANDER YES)
-else()
-  set(HAS_I2C_EXPANDER NO)
-endif()
-define_boolean_option(HAS_I2C_EXPANDER ${HAS_I2C_EXPANDER})
-
-if(${PRINTER} IN_LIST PRINTERS_WITH_WASTEBIN)
-  set(HAS_WASTEBIN YES)
-else()
-  set(HAS_WASTEBIN NO)
-endif()
-define_boolean_option(HAS_WASTEBIN ${HAS_WASTEBIN})
 
 # define enabled features
 
