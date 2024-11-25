@@ -6,7 +6,6 @@
 #include "DialogMoveZ.hpp"
 #include "footer_def.hpp"
 #include "utility_extensions.hpp"
-#include <option/has_side_fsensor.h>
 
 #include <common/utils/algorithm_extensions.hpp>
 

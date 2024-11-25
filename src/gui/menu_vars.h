@@ -29,8 +29,6 @@ struct MenuVars {
     constexpr static const size_t AXIS_CNT = 4;
     constexpr static const size_t RANGE_SZ = 3;
     constexpr static const char *const labels[] = { N_("Move X"), N_("Move Y"), N_("Move Z"), N_("Move E") };
-    // TODO This is not a feedrate, it is a print speed. And it does not make any sense.
-    static std::array<int, AXIS_CNT> GetManualFeedrate();
 
     static const std::pair<int, int> crash_sensitivity_range;
 

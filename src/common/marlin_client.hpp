@@ -113,21 +113,6 @@ void cancel_current_object();
 
 #endif
 
-/**
- * @brief Move axis to a logical position.
- * @param logical_pos requested axis position in [mm] (logical coordinates)
- * @param feedrate requested feedrate in [mm/min]
- * @param axis axis number (0=X, 1=Y, 2=Z, 3=E)
- */
-void move_axis(float logical_pos, float feedrate, uint8_t axis);
-
-/**
- * @brief Move XYZ axes to a logical position.
- * @param position requested target position in mm
- * @param feedrate requested feedrate in mm/min
- */
-void move_xyz_axes_to(const xyz_float_t &position, float feedrate);
-
 #if HAS_SELFTEST()
 void test_start_with_data(const uint64_t test_mask, const selftest::TestData test_data);
 void test_start(const uint64_t test_mask);

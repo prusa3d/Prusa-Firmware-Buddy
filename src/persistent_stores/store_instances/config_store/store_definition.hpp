@@ -27,7 +27,7 @@
 #include <feature/prusa/restore_z_storage.h>
 #include <option/has_loadcell.h>
 #include <option/has_sheet_profiles.h>
-#include <option/has_side_fsensor.h>
+#include <option/has_adc_side_fsensor.h>
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
@@ -212,7 +212,7 @@ struct CurrentStore
     StoreItem<uint32_t, defaults::extruder_fs_value_span, journal::hash("Extruder FS Value Span 5")> extruder_fs_value_span_5;
 #endif
 
-#if HAS_SIDE_FSENSOR() // for now not ifdefing per-extruder as well for simplicity
+#if HAS_ADC_SIDE_FSENSOR() // for now not ifdefing per-extruder as well for simplicity
     StoreItem<int32_t, defaults::side_fs_ref_nins_value, journal::hash("Side FS Ref Value 0")> side_fs_ref_nins_value_0;
     StoreItem<int32_t, defaults::side_fs_ref_ins_value, journal::hash("Side FS Ref INS Value 0")> side_fs_ref_ins_value_0;
     StoreItem<uint32_t, defaults::side_fs_value_span, journal::hash("Side FS Value Span 0")> side_fs_value_span_0;
@@ -247,7 +247,7 @@ struct CurrentStore
     uint32_t get_extruder_fs_value_span(uint8_t index);
     void set_extruder_fs_value_span(uint8_t index, uint32_t value);
 
-#if HAS_SIDE_FSENSOR()
+#if HAS_ADC_SIDE_FSENSOR()
     int32_t get_side_fs_ref_nins_value(uint8_t index);
     int32_t get_side_fs_ref_ins_value(uint8_t index);
     void set_side_fs_ref_nins_value(uint8_t index, int32_t value);
