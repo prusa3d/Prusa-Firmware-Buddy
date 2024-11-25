@@ -1587,7 +1587,7 @@
     #define Z_AXIS_LOAD_POS  5
     #define Z_AXIS_UNLOAD_POS 20
     #define Y_AXIS_LOAD_POS    10
-    #define X_AXIS_LOAD_POS  258.6
+    #define X_AXIS_LOAD_POS X_WASTEBIN_POINT
     #define X_AXIS_UNLOAD_POS  X_WASTEBIN_POINT
     #define Y_AXIS_UNLOAD_POS  Y_WASTEBIN_POINT
     // Specify a park position as { X, Y, Z }
