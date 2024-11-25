@@ -322,6 +322,7 @@ set_feature_for_printers_master_board(HAS_MODULARBED "iX" "XL" "XL_DEV_KIT")
 set_feature_for_printers_master_board(HAS_XBUDDY_EXTENSION "CUBE")
 set_feature_for_printers(HAS_TOOLCHANGER "XL" "XL_DEV_KIT")
 set_feature_for_printers(HAS_SIDE_FSENSOR "iX" "XL")
+set_feature_for_printers(HAS_ADC_SIDE_FSENSOR "XL")
 set_feature_for_printers(HAS_ESP_FLASH_TASK "MK4" "MK3.5" "XL" "MINI" "CUBE") # iX does not need ESP
 # flashing
 set_feature_for_printers(HAS_EMBEDDED_ESP32 "XL")
@@ -335,6 +336,7 @@ set_feature_for_printers(HAS_MMU2 "MK4" "MK3.5" "CUBE")
 set_feature_for_printers(HAS_CONFIG_STORE_WO_BACKEND "XL_DEV_KIT")
 set_feature_for_printers_master_board(HAS_CHAMBER_API "XL" "CUBE")
 set_feature_for_printers(HAS_SWITCHED_FAN_TEST "MK4" "MK3.5" "CUBE")
+set_feature_for_printers(HAS_HOTEND_TYPE_SUPPORT "MK4" "MK3.5" "iX" "CUBE")
 set_feature_for_printers(HAS_EMERGENCY_STOP "CUBE")
 
 # Set GUI settings
@@ -368,6 +370,7 @@ set_feature_for_printers(HAS_NOZZLE_CLEANER "iX")
 set_feature_for_printers(HAS_BELT_TUNING "XL" "iX")
 set_feature_for_printers_master_board(HAS_I2C_EXPANDER "MK3.5" "MK4" "CUBE")
 set_feature_for_printers(HAS_WASTEBIN "iX")
+set_feature_for_printers(HAS_GEARS_CALIBRATION "MK4" "CUBE")
 
 # Set printer board
 set(BOARDS_WITH_ADVANCED_POWER "XBUDDY" "XLBUDDY" "DWARF")

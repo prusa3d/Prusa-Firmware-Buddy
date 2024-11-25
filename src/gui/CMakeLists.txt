@@ -68,7 +68,6 @@ target_sources(
           screen_menu_metrics.cpp
           screen_menu_metrics_list.cpp
           screen_menu_move.cpp
-          screen_menu_move_utils.cpp
           screen_menu_network.cpp
           screen_menu_network_settings.cpp
           screen_menu_network_status.cpp

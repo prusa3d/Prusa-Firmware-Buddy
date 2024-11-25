@@ -26,6 +26,7 @@
 #include <option/has_nfc.h>
 #include <option/has_belt_tuning.h>
 #include <option/has_emergency_stop.h>
+#include <option/has_gears_calibration.h>
 #include <common/hotend_type.hpp>
 
 /// number of bits used to encode response
@@ -251,6 +252,7 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     _first_FSensor = FSensor_ask_unload,
     _last_FSensor = FSensor_fail,
 
+    #if HAS_GEARS_CALIBRATION()
     GearsCalib_filament_check,
     GearsCalib_filament_loaded_ask_unload,
     GearsCalib_filament_unknown_ask_unload,
@@ -260,6 +262,7 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     GearsCalib_done,
     _first_GearsCalib = GearsCalib_filament_check,
     _last_GearsCalib = GearsCalib_done,
+    #endif
 
     CalibZ,
     _first_CalibZ = CalibZ,
@@ -695,6 +698,7 @@ class ClientResponses {
             { PhasesSelftest::FSensor_done, {} },
             { PhasesSelftest::FSensor_fail, {} },
 
+#if HAS_GEARS_CALIBRATION()
             { PhasesSelftest::GearsCalib_filament_check, { Response::Continue, Response::Skip } },
             { PhasesSelftest::GearsCalib_filament_loaded_ask_unload, { Response::Unload, Response::Abort } },
             { PhasesSelftest::GearsCalib_filament_unknown_ask_unload, { Response::Continue, Response::Unload, Response::Abort } },
@@ -702,6 +706,7 @@ class ClientResponses {
             { PhasesSelftest::GearsCalib_alignment, {} },
             { PhasesSelftest::GearsCalib_tighten, { Response::Continue } },
             { PhasesSelftest::GearsCalib_done, { Response::Continue } },
+#endif
 
             { PhasesSelftest::CalibZ, {} },
 
@@ -993,7 +998,7 @@ enum class SelftestParts {
 #if FILAMENT_SENSOR_IS_ADC()
     FSensor,
 #endif
-#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_CUBE()
+#if HAS_GEARS_CALIBRATION()
     GearsCalib,
 #endif
     FirstLayer,
@@ -1022,7 +1027,7 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     case SelftestParts::FSensor:
         return PhasesSelftest::_first_FSensor;
 #endif
-#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_CUBE()
+#if HAS_GEARS_CALIBRATION()
     case SelftestParts::GearsCalib:
         return PhasesSelftest::_first_GearsCalib;
 #endif
@@ -1065,7 +1070,7 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
     case SelftestParts::FSensor:
         return PhasesSelftest::_last_FSensor;
 #endif
-#if PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_CUBE()
+#if HAS_GEARS_CALIBRATION()
     case SelftestParts::GearsCalib:
         return PhasesSelftest::_last_GearsCalib;
 #endif
@@ -1122,7 +1127,7 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
         return SelftestParts::FSensor;
     }
 #endif
-#if PRINTER_IS_PRUSA_MK4()
+#if HAS_GEARS_CALIBRATION()
     if (SelftestPartContainsPhase(SelftestParts::GearsCalib, ph)) {
         return SelftestParts::GearsCalib;
     }

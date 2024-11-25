@@ -50,7 +50,7 @@ void MI_FS_REF::store_value_impl(ToolheadIndex ix, float set) {
     config_store().set_extruder_fs_ref_nins_value(ix, set);
 }
 
-#if HAS_SIDE_FSENSOR()
+#if HAS_ADC_SIDE_FSENSOR()
 // * MI_SIDE_FS_SPAN
 MI_SIDE_FS_SPAN::MI_SIDE_FS_SPAN(Toolhead toolhead)
     : MI_TOOLHEAD_SPECIFIC_SPIN(toolhead, 0, fs_span_spin_config, string_view_utf8::MakeCPUFLASH("Side FS Span")) {

@@ -8,7 +8,6 @@
 #include "footer_positioning.hpp"
 #include "ScreenHandler.hpp"
 #include "footer_eeprom.hpp"
-#include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 
 FooterLine::FooterLine(window_t *parent, size_t line_no)

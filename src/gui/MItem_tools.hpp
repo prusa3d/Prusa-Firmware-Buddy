@@ -11,7 +11,6 @@
 #include <common/filament_sensor_states.hpp>
 #include <utility_extensions.hpp>
 #include <option/has_dwarf.h>
-#include <option/has_side_fsensor.h>
 #include <option/has_filament_sensors_menu.h>
 #include <option/has_coldpull.h>
 #include <option/has_leds.h>

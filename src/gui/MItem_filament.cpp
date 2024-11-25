@@ -158,12 +158,3 @@ void MI_PURGE::UpdateEnableState() {
         Enable();
     }
 }
-
-/*****************************************************************************/
-// MI_COOLDOWN
-MI_COOLDOWN::MI_COOLDOWN()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
-
-void MI_COOLDOWN::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)this);
-}

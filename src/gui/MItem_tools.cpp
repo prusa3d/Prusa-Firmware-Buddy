@@ -36,7 +36,6 @@
 #include <option/bootloader.h>
 #include <option/filament_sensor.h>
 #include <option/has_phase_stepping.h>
-#include <option/has_side_fsensor.h>
 #include <option/has_side_leds.h>
 #include <option/has_coldpull.h>
 #include <RAII.hpp>
