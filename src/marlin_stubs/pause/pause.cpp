@@ -248,7 +248,7 @@ Pause &Pause::Instance() {
     return s;
 }
 
-bool Pause::is_unstoppable() {
+bool Pause::is_unstoppable() const {
     switch (load_type) {
     case LoadType::load:
         return FSensors_instance().HasMMU();
@@ -258,9 +258,15 @@ bool Pause::is_unstoppable() {
     case LoadType::filament_change:
     case LoadType::filament_stuck:
         return true;
-    default:
+    case LoadType::autoload:
+    case LoadType::load_purge:
+    case LoadType::unload:
+    case LoadType::unload_confirm:
+    case LoadType::unload_from_gears:
         return false;
     }
+
+    bsod("Unhandled LoadType");
 }
 
 LoadUnloadMode Pause::get_load_unload_mode() {

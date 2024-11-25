@@ -164,7 +164,7 @@ public:
 private:
     LoadType load_type {};
 
-    bool is_unstoppable();
+    bool is_unstoppable() const;
     LoadUnloadMode get_load_unload_mode();
     bool should_park();
 
