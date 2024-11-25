@@ -598,6 +598,7 @@ static void filament_sensor_pins_init() {
 
 void hal::init() {
     HAL_Init();
+    HAL_ICACHE_Enable();
     hal::overclock();
     tim1_init();
     tim2_init();
