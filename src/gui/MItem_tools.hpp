@@ -799,7 +799,7 @@ using MI_BELT_TUNING = WithConstructorArgs<MenuItemGcodeAction, N_("Belt Tuning"
 #endif
 
 #if HAS_ILI9488_DISPLAY()
-class MI_DISPLAY_BAUDRATE : public MenuItemSwitch {
+class MI_DISPLAY_BAUDRATE : public WI_SWITCH_t<2> {
 public:
     MI_DISPLAY_BAUDRATE();
     virtual void OnChange(size_t old_index) override;
