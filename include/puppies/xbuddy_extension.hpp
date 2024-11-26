@@ -133,7 +133,7 @@ private:
         uint16_t usb_power_enable = true;
 
         // technicaly a boolean - enables power for the MMU port
-        uint16_t mmu_power_enable = true;
+        uint16_t mmu_power_enable = false;
         // technicaly a boolean - sets the MMU port non-reset pin
         uint16_t mmu_nreset = true;
     };
@@ -143,7 +143,7 @@ private:
         uint16_t fan_rpm[FAN_CNT] = { 0, 0, 0 };
         // In degrees * 10 (eg. 23.5°C = 235 in the register)
         uint16_t chamber_temp = 0;
-        uint16_t mmu_power_enable = true;
+        uint16_t mmu_power_enable = false;
         uint16_t mmu_nreset = true;
         uint16_t filament_sensor_state = 0;
     };
