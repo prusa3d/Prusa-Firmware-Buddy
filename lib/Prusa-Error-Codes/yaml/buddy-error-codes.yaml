@@ -715,6 +715,13 @@ Errors:
     id: "GCODE_CROPPED"
     approved: false
 
+  - code: "XX536"
+    printers: [XL]
+    title: "DWARF ERROR"
+    text: "TMC error on dwarf %d"
+    id: "DWARF_TMC"
+    approved: false
+
   - code: "XX601"
     title: "UNKNOWN ERROR"
     text: "This error code is not found\nin our database.\nContact the support."
