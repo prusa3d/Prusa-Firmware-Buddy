@@ -11,4 +11,5 @@ enum class ButtonOperations : uint8_t {
     Unload = 4,	
     StopPrint = 5,	
     DisableMMU = 6,	
+    Skip = 7,
 };
