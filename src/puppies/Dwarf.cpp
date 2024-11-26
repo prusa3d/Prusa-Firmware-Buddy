@@ -639,6 +639,8 @@ void Dwarf::handle_dwarf_fault() {
         // this calls generic fatal error
         // any marlin fault on dwarf will be decoded based on error string and converted to propper ErrCode, or displayed as-is if no error code matches
         fatal_error(message_span.data(), module);
+    } else if (fault_int & ftrstd::to_underlying(dwarf_shared::errors::FaultStatusMask::TMC_FAULT)) {
+        fatal_error(ErrCode::ERR_SYSTEM_DWARF_TMC, dwarf_nr);
     } else {
         fatal_error(ErrCode::ERR_SYSTEM_DWARF_UNKNOWN_ERR, dwarf_nr);
     }

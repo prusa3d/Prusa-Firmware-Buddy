@@ -301,6 +301,13 @@ static inline int16_t clamp_to_int16(float temperature) {
     return std::clamp(temperature, float(INT16_MIN), float(INT16_MAX));
 }
 
+static void update_fault_status() {
+    const uint32_t gstat = stepperE0.read(0x01);
+    if (gstat != 0) {
+        ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::fault_status, static_cast<uint16_t>(dwarf_shared::errors::FaultStatusMask::TMC_FAULT));
+    }
+}
+
 void UpdateRegisters() {
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::hotend_measured_temperature, clamp_to_int16(Temperature::degHotend(0)));
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::hotend_pwm_state, Temperature::getHeaterPower(H_E0));
@@ -330,6 +337,8 @@ void UpdateRegisters() {
 
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::system_24V_mV, advancedpower.Get24VVoltage() * 1000);
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::heater_current_mA, advancedpower.GetDwarfNozzleCurrent() * 1000);
+
+    update_fault_status();
 }
 
 void TriggerMarlinKillFault(dwarf_shared::errors::FaultStatusMask fault, const char *component, const char *message) {
