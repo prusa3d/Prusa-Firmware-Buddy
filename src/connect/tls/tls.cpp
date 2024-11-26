@@ -7,6 +7,7 @@
 #include <logging/log.hpp>
 #include <unique_file_ptr.hpp>
 #include <common/heap.h>
+#include <common/conserve_cpu.hpp>
 
 #include <lwip/mem.h>
 
@@ -94,6 +95,13 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
     log_debug(connect, "Starting SSL handshake");
     int status;
     InitContexts ctxs;
+
+    // Ask for other subsystems to save CPU if possible until we are done with
+    // TLS handshake. That's CPU intensive and there's a risk we won't make it
+    // in time for the server not to close the connection.
+    //
+    // (for example, prevents rolling texts from rolling).
+    buddy::ConserveCpu::Guard request_cpu_limiting;
 
     if (!ctxs.is_valid()) {
         log_error(connect, "Not enough mem for SSL");
