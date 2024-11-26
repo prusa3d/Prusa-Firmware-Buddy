@@ -538,18 +538,29 @@ void write_register(Register reg, uint8_t value) {
 
 } // namespace TCA6408A
 
-static void enable_fans() {
+static constexpr const uint8_t expander_pin_mmu_power = 1 << 2;
+static constexpr const uint8_t expander_pin_fan3 = 1 << 3;
+static constexpr const uint8_t expander_pin_fan2 = 1 << 4;
+static constexpr const uint8_t expander_pin_fan1 = 1 << 5;
+static uint8_t expander_pins = 0;
+
+static void init_expander() {
+    // setup all signals before configuring pins as output
+    TCA6408A::write_register(TCA6408A::Register::Output, expander_pins);
+
     // configure all pins as output
     TCA6408A::write_register(TCA6408A::Register::Config, 0x00);
+}
 
-    // set all pins, we don't need to enable them individually at the moment
-    TCA6408A::write_register(TCA6408A::Register::Output, 0xff);
+static void enable_fans() {
+    expander_pins |= expander_pin_fan1 | expander_pin_fan2 | expander_pin_fan3;
+    TCA6408A::write_register(TCA6408A::Register::Output, expander_pins);
 }
 
 static void mmu_pins_init() {
     GPIO_InitTypeDef GPIO_InitStruct;
     __HAL_RCC_GPIOC_CLK_ENABLE();
-    GPIO_InitStruct.Pin = GPIO_PIN_13 | GPIO_PIN_14;
+    GPIO_InitStruct.Pin = GPIO_PIN_13;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -609,6 +620,7 @@ void hal::init() {
     rs485_init();
     mmu_init();
     i2c2_init();
+    init_expander();
     enable_fans();
     mmu_pins_init();
     mmu::nreset_pin_set(false);
@@ -802,7 +814,12 @@ void hal::mmu::flush() {
 }
 
 void hal::mmu::power_pin_set(bool b) {
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, b ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    if (b) {
+        expander_pins |= expander_pin_mmu_power;
+    } else {
+        expander_pins &= ~expander_pin_mmu_power;
+    }
+    TCA6408A::write_register(TCA6408A::Register::Output, expander_pins);
 }
 
 void hal::mmu::nreset_pin_set(bool b) {
@@ -810,7 +827,7 @@ void hal::mmu::nreset_pin_set(bool b) {
 }
 
 bool hal::mmu::power_pin_get() {
-    return HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_SET;
+    return expander_pins | expander_pin_mmu_power;
 }
 
 bool hal::mmu::nreset_pin_get() {
