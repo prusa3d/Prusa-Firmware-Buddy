@@ -37,6 +37,8 @@
 #include "../feature/precise_stepping/precise_stepping.hpp"
 #include "../feature/phase_stepping/phase_stepping.hpp"
 
+#include <option/has_emergency_stop.h>
+
 // Value by which steps are multiplied to increase the precision of the Planner.
 constexpr const int PLANNER_STEPS_MULTIPLIER = 4;
 
@@ -876,6 +878,7 @@ class Planner {
      */
     FORCE_INLINE static bool processing() { return has_blocks_queued() || PreciseStepping::processing() || phase_stepping::processing(); }
 
+#if HAS_EMERGENCY_STOP()
     /**
      * Prevents buffering new moves.
      *
@@ -896,6 +899,7 @@ class Planner {
     static bool waiting_on_plug() {
         return plug_holding;
     }
+#endif
 
     /**
      * Returns the current block that PreciseStepping already processed and that is waiting for discarding,
@@ -994,8 +998,10 @@ class Planner {
     static planner_settings_t working_settings_;
 
     static bool stealth_mode_;
+#if HAS_EMERGENCY_STOP()
     static bool plugged;
     static bool plug_holding;
+#endif
 
   private:
     /**

@@ -139,8 +139,10 @@ const planner_settings_t &Planner::settings = working_settings_;
 const user_planner_settings_t &Planner::user_settings = user_settings_;
 
 bool Planner::stealth_mode_ = false;
+#if HAS_EMERGENCY_STOP()
 bool Planner::plugged = false;
 bool Planner::plug_holding = false;
+#endif
 
 void Planner::apply_settings(const user_planner_settings_t &settings) {
   static constexpr planner_settings_t standard_limits = {
@@ -2101,12 +2103,14 @@ bool Planner::buffer_segment(const abce_pos_t &abce
   // If we are aborting, do not accept queuing of movements
   if (draining_buffer || PreciseStepping::stopping()) return false;
 
+#if HAS_EMERGENCY_STOP()
   while (plugged) {
       plug_holding = true;
       idle(true);
   }
 
   plug_holding = false;
+#endif
 
   #if ENABLED(CRASH_RECOVERY)
   // Hints for the current segments might be reset during recovery
