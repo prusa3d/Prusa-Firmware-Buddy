@@ -586,7 +586,7 @@ static void pub_enable() {
 
 static void filament_sensor_pins_init() {
     constexpr GPIO_InitTypeDef GPIO_InitStruct {
-        .Pin = GPIO_PIN_4,
+        .Pin = GPIO_PIN_5,
         .Mode = GPIO_MODE_INPUT,
         .Pull = GPIO_PULLDOWN,
         .Speed = GPIO_SPEED_FREQ_LOW,
@@ -673,11 +673,11 @@ static void step_filament_sensor() {
     }
 
     filament_sensor_last_millis = now;
-    filament_sensor_raw[filament_sensor_measuring_phase] = (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4) == GPIO_PIN_SET);
+    filament_sensor_raw[filament_sensor_measuring_phase] = (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5) == GPIO_PIN_SET);
     filament_sensor_measuring_phase = (filament_sensor_measuring_phase + 1) % 4;
 
     // Set up the pull for the next phase, use the time between phases to stabilize the readout
-    LL_GPIO_SetPinPull(GPIOA, GPIO_PIN_4, filament_sensor_measuring_phase % 2 ? GPIO_PULLUP : GPIO_PULLDOWN);
+    LL_GPIO_SetPinPull(GPIOA, GPIO_PIN_5, filament_sensor_measuring_phase % 2 ? GPIO_PULLUP : GPIO_PULLDOWN);
 
     switch (filament_sensor_raw.to_ulong()) {
     case 0b1111:
