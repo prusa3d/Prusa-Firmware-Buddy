@@ -8,6 +8,7 @@ if(BOARD MATCHES ".*BUDDY")
             appmain.cpp
             base64_stream_decoder.cpp
             bbf.cpp
+            conserve_cpu.cpp
             crc32.cpp
             crc32_zlib.cpp
             data_exchange.cpp
