@@ -23,7 +23,7 @@ void MI_XBUDDY_EXTENSION_LIGHTS::OnClick() {
 // MI_XBUDDY_EXTENSION_CHAMBER_FANS
 // =============================================
 MI_XBUDDY_EXTENSION_COOLING_FANS::MI_XBUDDY_EXTENSION_COOLING_FANS()
-    : WiSpin(0, numeric_input_config::percent_with_auto, _("Cooling Fans")) //
+    : WiSpin(0, numeric_input_config::percent_with_auto, _("Chamber Fans")) //
 {
     auto &exb = xbuddy_extension();
     set_is_hidden(exb.status() == XBuddyExtension::Status::disabled);
