@@ -178,7 +178,6 @@ protected:
     void phaseSelftestStart();
     void restoreAfterSelftest();
     virtual void next() override;
-    void phaseShowResult();
     bool phaseWaitUser(PhasesSelftest phase);
     void phaseDidSelftestPass();
 
@@ -374,16 +373,8 @@ void CSelftest::Loop() {
     case stsDidSelftestPass:
         phaseDidSelftestPass();
         break;
-    case stsShow_result:
-        phaseShowResult();
-        break;
     case stsFirstLayer:
         if (selftest::phaseFirstLayer(pFirstLayer, previous_sheet_index)) {
-            return;
-        }
-        break;
-    case stsResult_wait_user:
-        if (phaseWaitUser(PhasesSelftest::Result)) {
             return;
         }
         break;
@@ -395,11 +386,6 @@ void CSelftest::Loop() {
         return;
     }
     next();
-}
-
-void CSelftest::phaseShowResult() {
-    m_result = config_store().selftest_result.get();
-    marlin_server::fsm_change(PhasesSelftest::Result, FsmSelftestResult().Serialize());
 }
 
 void CSelftest::phaseDidSelftestPass() {

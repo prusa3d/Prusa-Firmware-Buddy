@@ -7,7 +7,6 @@ target_sources(
           selftest_frame_fans.cpp
           selftest_frame_firstlayer.cpp
           selftest_frame_firstlayer_questions.cpp
-          selftest_frame_result.cpp
           selftest_frame_revise_printer_setup.cpp
           selftest_frame_temp.cpp
           selftest_group.cpp
@@ -20,7 +19,6 @@ target_sources(
           selftest_view_item.cpp
           selftest_view_item_separator.cpp
           selftest_view_item_text.cpp
-          test_of_selftest_result.cpp
           window_wizard_icon.cpp
   )
 

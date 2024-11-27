@@ -26,8 +26,6 @@ typedef enum {
     stsSelftestStop,
     stsDidSelftestPass,
     stsFirstLayer,
-    stsShow_result,
-    stsResult_wait_user,
     stsFinish,
     stsFinished,
     stsAborted,
@@ -55,7 +53,6 @@ enum SelftestMask_t : uint32_t {
     stmSelftestStart = to_one_hot(stsSelftestStart),
     stmSelftestStop = to_one_hot(stsSelftestStop),
     stmNet_status = to_one_hot(stsNet_status),
-    stmShow_result = to_one_hot(stsShow_result) | to_one_hot(stsResult_wait_user),
-    stmFullSelftest = stmFans | stmXYZAxis | stmHeaters | stmNet_status | stmShow_result | to_one_hot(stsDidSelftestPass),
+    stmFullSelftest = stmXYZAxis | stmHeaters | stmNet_status | to_one_hot(stsDidSelftestPass),
     stmFirstLayer = to_one_hot(stsFirstLayer),
 };

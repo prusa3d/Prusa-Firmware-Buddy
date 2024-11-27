@@ -20,7 +20,6 @@
 #include "selftest_frame_temp.hpp"
 #include "selftest_frame_firstlayer.hpp"
 #include "selftest_frame_firstlayer_questions.hpp"
-#include "selftest_frame_result.hpp"
 #include "selftest_frame_dock.hpp"
 #include "selftest_frame_tool_offsets.hpp"
 #include "selftest_invalid_state.hpp"
@@ -67,9 +66,6 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
 
     case SelftestParts::FirstLayerQuestions:
         return creator<SelftestFrameFirstLayerQuestions>;
-
-    case SelftestParts::Result:
-        return creator<SelftestFrameResult>;
 
     case SelftestParts::RevisePrinterSetup:
         return creator<SelftestFrameRevisePrinterSetup>;
@@ -136,7 +132,6 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
 #endif
     case SelftestParts::Heaters:
     case SelftestParts::CalibZ:
-    case SelftestParts::Result:
     case SelftestParts::RevisePrinterSetup:
 #if BOARD_IS_XLBUDDY()
     case SelftestParts::Dock:
@@ -169,7 +164,6 @@ const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     case SelftestParts::CalibZ:
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:
-    case SelftestParts::Result:
     case SelftestParts::RevisePrinterSetup:
 #if BOARD_IS_XLBUDDY()
     case SelftestParts::Dock:
