@@ -742,7 +742,7 @@ void idle(
         // E-motor stall has been detected, issue a modified M600
         SERIAL_ECHOLNPGM("E-motor stall detected");
 #if PRINTER_IS_PRUSA_COREONE()
-        // do not issue an M600 on cube for now. Instead, clear the flag after 1s to allow reporting future issues like this
+        // do not issue an M600 on CORE One for now. Instead, clear the flag after 1s to allow reporting future issues like this
         static uint32_t last_report_ms = 0;
         if( ticks_diff(ticks_ms(), last_report_ms) > 1000 ){
             EMotorStallDetector::Instance().ClearReported();

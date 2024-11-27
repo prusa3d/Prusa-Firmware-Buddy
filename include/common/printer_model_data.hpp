@@ -117,8 +117,8 @@ inline constexpr std::array printer_model_info {
         .id_str = "iX",
     },
     PrinterModelInfo {
-        .model = PrinterModel::cube,
-        .compatibility_group = PrinterModelCompatibilityGroup::cube,
+        .model = PrinterModel::coreone,
+        .compatibility_group = PrinterModelCompatibilityGroup::coreone,
         .version = { 7, 1, 0 },
         .help_url = "core-one",
         .usb_pid = 31,
@@ -169,7 +169,7 @@ inline constexpr std::array printer_model_mmu_variant {
         .id_str = "MK4SMMU3",
     },
     PrinterModelMMUVariant {
-        .model = PrinterModel::cube,
+        .model = PrinterModel::coreone,
         .gcode_check_code = 30310,
         .id_str = "COREONEMMU3",
     },

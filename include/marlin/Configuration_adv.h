@@ -19,7 +19,7 @@
 #elif PRINTER_IS_PRUSA_iX()
     #include "Configuration_iX_adv.h"
 #elif PRINTER_IS_PRUSA_COREONE()
-    #include "Configuration_CUBE_adv.h"
+    #include "Configuration_COREONE_adv.h"
 #else
     #error "Unknown PRINTER_TYPE!"
 #endif

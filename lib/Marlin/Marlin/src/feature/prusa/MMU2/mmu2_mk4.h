@@ -27,7 +27,7 @@ struct E_Step;
     // Only MK4 with MMU over UART may try to talk to the bootloader on the serial
     #define MMU_USE_BOOTLOADER() 1
 #else
-    // Cube with MMU over MODBUS - avoid talking to the bootloader on the serial
+    // CORE One with MMU over MODBUS - avoid talking to the bootloader on the serial
     #define MMU_USE_BOOTLOADER() 0
 #endif
 

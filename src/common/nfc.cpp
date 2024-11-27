@@ -309,7 +309,7 @@ bool has_nfc_probably() {
     case PrinterModel::mk4s:
     case PrinterModel::mk3_9s:
     case PrinterModel::mk3_5s:
-    case PrinterModel::cube:
+    case PrinterModel::coreone:
         return true;
 
     default:

@@ -558,7 +558,7 @@
 //#define DEFAULT_bedKi 1.41
 //#define DEFAULT_bedKd 1675.16
 
-//24V Prusa CUBE
+//24V Prusa CORE One
 #define DEFAULT_bedKp 51.40
 #define DEFAULT_bedKi 3.87
 #define DEFAULT_bedKd 455.07
