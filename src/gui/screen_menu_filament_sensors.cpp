@@ -14,13 +14,14 @@ IMI_AnySensor::IMI_AnySensor(uint8_t sensor_index, bool is_side, const char *lab
 
     // Format label
     {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-        typeof(label) tmp;
-        _(label_base).copyToRAM(tmp.data(), tmp.size());
-        snprintf(label.data(), label.size(), "%s %i", tmp.data(), sensor_index + 1);
+        StringBuilder sb(label);
+        sb.append_string_view(_(label_base));
+
+        if constexpr (toolhead_count > 1) {
+            sb.append_printf(" %i", sensor_index + 1);
+        }
+
         SetLabel(string_view_utf8::MakeRAM(label.data()));
-#pragma GCC diagnostic pop
     }
 }
 
@@ -108,7 +109,7 @@ void ScreenMenuFilamentSensors::windowEvent(window_t *sender, GUI_event_t event,
 #if HAS_SIDE_FSENSOR()
             (Item<MI_SideSensor<i>>().update(), ...);
 #endif
-        }(std::make_index_sequence<EXTRUDERS>());
+        }(std::make_index_sequence<toolhead_count>());
         break;
 
     default:
