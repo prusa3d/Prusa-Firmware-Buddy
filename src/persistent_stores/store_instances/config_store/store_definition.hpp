@@ -546,6 +546,10 @@ struct CurrentStore
 #if HAS_EMERGENCY_STOP()
     StoreItem<bool, true, journal::hash("Emergency stop enable")> emergency_stop_enable;
 #endif
+
+#if HAS_ILI9488_DISPLAY()
+    StoreItem<bool, false, journal::hash("Reduce Display Baudrate")> reduce_display_baudrate;
+#endif
 };
 
 /**

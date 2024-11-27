@@ -23,7 +23,7 @@ uint32_t SteelSheets::NextSheet() {
 
 bool SteelSheets::IsSheetCalibrated(uint32_t index) {
     auto sheet = getSheet(index);
-    return std::isfinite(sheet.z_offset) && sheet.z_offset < zOffsetMax && sheet.z_offset > zOffsetMin;
+    return std::isfinite(sheet.z_offset) && sheet.z_offset <= zOffsetMax && sheet.z_offset >= zOffsetMin;
 }
 
 bool SteelSheets::SelectSheet(uint32_t index) {

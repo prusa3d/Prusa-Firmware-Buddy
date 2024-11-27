@@ -146,7 +146,7 @@ void GcodeSuite::M600() {
 void M600_execute(xyz_pos_t park_point, uint8_t target_extruder,
     xyze_float_t resume_point, std::optional<float> unloadLength, std::optional<float> fastLoadLength,
     std::optional<float> retractLength, std::optional<Color> filament_colour,
-    std::optional<FilamentType> filament_type, pause::Settings::CalledFrom);
+    std::optional<FilamentType> filament_type, bool);
 
 void M600_manual(const GCodeParser2 &p) {
     const int8_t target_extruder = PrusaGcodeSuite::get_target_extruder_from_command(p);
@@ -192,13 +192,13 @@ void M600_manual(const GCodeParser2 &p) {
         p.option<float>('E').transform(fabsf),
         p.option<Color>('C'),
         p.option<FilamentType>('S'),
-        pause::Settings::CalledFrom::Pause);
+        false);
 }
 
 void M600_execute(xyz_pos_t park_point, uint8_t target_extruder, xyze_float_t resume_point,
     std::optional<float> unloadLength, std::optional<float> fastLoadLength, std::optional<float> retractLength,
     std::optional<Color> filament_colour, std::optional<FilamentType> filament_type,
-    pause::Settings::CalledFrom called_from) {
+    bool is_filament_stuck) {
 
     // Ignore estalls during filament change
     BlockEStallDetection estall_blocker;
@@ -253,7 +253,6 @@ void M600_execute(xyz_pos_t park_point, uint8_t target_extruder, xyze_float_t re
     if (retractLength.has_value()) {
         settings.SetRetractLength(retractLength.value());
     } // Initial retract before move to filament change position
-    settings.SetCalledFrom(called_from);
     settings.SetExtruder(target_extruder);
 
     // If paused restore nozzle temperature from pre-paused state
@@ -275,7 +274,7 @@ void M600_execute(xyz_pos_t park_point, uint8_t target_extruder, xyze_float_t re
 
     filament::set_type_to_load(config_store().get_filament_type(target_extruder));
     filament::set_color_to_load(filament_colour);
-    Pause::Instance().FilamentChange(settings);
+    Pause::Instance().filament_change(settings, is_filament_stuck);
 
     marlin_server::nozzle_timeout_on();
     if (disp_temp > targ_temp) {
@@ -322,7 +321,7 @@ void PrusaGcodeSuite::M1601() {
         current_position,
         std::nullopt, std::nullopt, std::nullopt,
         std::nullopt, std::nullopt,
-        pause::Settings::CalledFrom::FilamentStuck);
+        true);
 
     EMotorStallDetector::Instance().ClearReported();
 }
