@@ -189,7 +189,9 @@ Temperature thermalManager;
   #endif
 
   /**
-   * Set the print fan speed for a target extruder
+   * Set the print fan speed for a target FAN
+   * !!! NOT EXTRUDER !!! THERMAL MANAGER DOES NOT WORK WITH NON-ACTIVE EXTRUDER FANS
+   * See BFW-6365
    */
   void Temperature::set_fan_speed(uint8_t target, uint16_t speed) {
 
@@ -3944,7 +3946,7 @@ void Temperature::isr() {
       bool wants_to_cool = false;
       wait_for_heatup = true;
       millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
-      uint8_t fan_speed_at_start = fan_speed[target_extruder];
+      uint8_t fan_speed_at_start = fan_speed[0];
       bool fan_cools = false;
 
       if (isCoolingHotend(target_extruder) && fan_cooling) {

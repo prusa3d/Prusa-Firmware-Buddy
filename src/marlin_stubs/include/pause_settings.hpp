@@ -14,11 +14,6 @@ namespace pause {
 
 class Settings {
 public:
-    enum class CalledFrom : uint_least8_t {
-        Pause,
-        FilamentStuck
-    };
-
     Settings();
     static constexpr const float minimal_purge = 1;
 
@@ -43,9 +38,6 @@ public:
     void SetExtruder(uint8_t target) { target_extruder = target; }
     uint8_t GetExtruder() const { return target_extruder; }
 
-    void SetCalledFrom(CalledFrom cf) { called_from = cf; }
-    CalledFrom GetCalledFrom() const { return called_from; }
-
     float purge_length() const;
 
 private:
@@ -69,8 +61,6 @@ private:
 
     // Preloaded from the config_store to prevent querying it each loop
     bool extruder_mmu_rework : 1 = false;
-
-    CalledFrom called_from = CalledFrom::Pause;
 };
 
 } // namespace pause

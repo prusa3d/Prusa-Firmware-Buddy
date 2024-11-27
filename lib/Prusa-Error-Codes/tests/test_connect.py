@@ -68,6 +68,15 @@ class TestErrors(unittest.TestCase):
         assert code.message
         assert code.id
 
+    def test_COREONE(self):
+        code = PrinterCodes.get("31701")
+        assert code.printer == Printer.COREONE
+        assert code.category == Category(7)
+        assert code.error == 1
+        assert code.title
+        assert code.message
+        assert code.id
+
     def test_no_MK35S(self):
         """MK35S doesn't have puppies."""
         code = PrinterCodes.get("28512")

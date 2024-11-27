@@ -8,11 +8,26 @@
 #include "../lang/string_view_utf8.hpp"
 #include "../common/str_utils.hpp"
 #include "ScreenHandler.hpp"
+#include <common/conserve_cpu.hpp>
 
 size_t txtroll_t::instance_counter = 0;
 
 // invalidate at phase change
 invalidate_t txtroll_t::Tick() {
+    if (buddy::conserve_cpu().is_requested()) {
+        // We are being asked to limit CPU, so we won't do rolling for a while.
+        switch (phase) {
+        case phase_t::uninitialized:
+        case phase_t::idle:
+        case phase_t::paused:
+        case phase_t::wait_before_roll:
+            return invalidate_t::no;
+        default:
+            phase = phase_t::init_roll;
+            break;
+        }
+    }
+
     invalidate_t ret = invalidate_t::no;
     switch (phase) {
     case phase_t::uninitialized:

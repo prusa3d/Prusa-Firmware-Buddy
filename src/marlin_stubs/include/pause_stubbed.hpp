@@ -24,54 +24,49 @@
 void unhomed_z_lift(float amount_mm);
 
 class PausePrivatePhase : public IPause {
+protected:
+    enum class LoadState {
+        _finish = INT_MAX,
+        start = 0,
+        unload_start,
+        filament_stuck_ask,
+        ram_sequence,
+        unload,
+        unloaded_ask,
+        manual_unload,
+        filament_not_in_fs,
+        unload_from_gears,
+        unload_finish_or_change,
+        load_start,
+        filament_push_ask, // must be one phase because of button click
+#if HAS_SIDE_FSENSOR()
+        await_filament,
+        assist_insertion,
+#endif
+        load_to_gears,
+        move_to_purge,
+        wait_temp,
+        long_load,
+        purge,
+        color_correct_ask,
+        eject,
+#if HAS_MMU2()
+        mmu_load_ask,
+        mmu_load,
+#endif
+        load_finish,
+        _last = load_finish,
+    };
+
+private:
     PhasesLoadUnload phase; // needed for CanSafetyTimerExpire
-    int load_unload_shared_phase; // shared variable for UnloadPhases_t and LoadPhases_t
     std::optional<LoadUnloadMode> load_unload_mode = std::nullopt;
 
     float nozzle_restore_temp[HOTENDS];
     float bed_restore_temp;
 
-public:
-    static constexpr int intFinishVal = INT_MAX;
-
 protected:
-    enum class UnloadPhases_t {
-        _finish = intFinishVal,
-        _init = 0,
-        filament_stuck_wait_user,
-        ram_sequence,
-        unload,
-        unloaded__ask,
-        manual_unload,
-        filament_not_in_fs,
-        unload_from_gear,
-        run_mmu_eject,
-        _last = run_mmu_eject,
-
-    };
-
-    enum class LoadPhases_t {
-        _finish = intFinishVal,
-        _init = int(UnloadPhases_t::_last) + 1,
-        check_filament_sensor_and_user_push__ask, // must be one phase because of button click
-#if HAS_SIDE_FSENSOR()
-        await_filament,
-        assist_filament_insertion,
-#endif
-        load_in_gear,
-        move_to_purge,
-        wait_temp,
-        error_temp,
-        long_load,
-        purge,
-        ask_is_color_correct,
-        eject,
-        unloaded_ask,
-        manual_unload,
-        ask_mmu_load_filament,
-        mmu_load_filament,
-        _last = mmu_load_filament,
-    };
+    LoadState state { LoadState::unload_start };
 
     PausePrivatePhase();
     void setPhase(PhasesLoadUnload ph, uint8_t progress = 0);
@@ -82,32 +77,16 @@ protected:
     // cannot guarante that SafetyTimer will happen first, so have to do it on both places
     Response getResponse();
 
-    // use UnloadPhases_t or LoadPhases_t
-    template <class ENUM>
-    ENUM get() {
-        if (load_unload_shared_phase < int(ENUM::_init)) {
-            return ENUM::_finish;
-        }
-        if (load_unload_shared_phase > int(ENUM::_last)) {
-            return ENUM::_finish;
-        }
-        return ENUM(load_unload_shared_phase);
+    LoadState get_state() {
+        return state;
     }
 
-    LoadPhases_t getLoadPhase() {
-        return get<LoadPhases_t>();
-    }
-    UnloadPhases_t getUnloadPhase() {
-        return get<UnloadPhases_t>();
-    }
-
-    template <class ENUM>
-    void set(ENUM en) {
-        load_unload_shared_phase = int(en);
+    void set(LoadState s) {
+        state = s;
     }
 
     // use only when necessary
-    bool finished() { return load_unload_shared_phase == intFinishVal; }
+    bool finished() { return state == LoadState::_finish; }
 
     void clrRestoreTemp();
 
@@ -146,13 +125,23 @@ class Pause : public PausePrivatePhase {
     static constexpr const float heating_phase_min_hotend_diff = 5.0F;
 
 public:
+    enum class LoadType : uint8_t {
+        load,
+        autoload,
+        load_to_gears,
+        non_blocking_load,
+        load_purge,
+        unload,
+        unload_confirm,
+        unload_from_gears,
+        filament_change,
+        filament_stuck,
+    };
+
     static constexpr const float minimal_purge = 1;
     static Pause &Instance();
 
-    bool FilamentUnload(const pause::Settings &settings_);
-    bool FilamentUnload_AskUnloaded(const pause::Settings &settings_);
-    bool FilamentAutoload(const pause::Settings &settings_);
-    bool LoadToGear(const pause::Settings &settings_);
+    bool perform(LoadType load_type, const pause::Settings &settings);
 
     /**
      * @brief Change tool before load/unload.
@@ -161,12 +150,9 @@ public:
      * @param settings_ config for park and othe Pause stuff
      * @return true on success
      */
-    bool ToolChange(uint8_t target_extruder, LoadUnloadMode mode, const pause::Settings &settings_);
+    bool tool_change(uint8_t target_extruder, LoadType load_type, const pause::Settings &settings_);
 
-    bool UnloadFromGear(); // does not need config
-    bool FilamentLoad(const pause::Settings &settings_);
-    bool FilamentLoadNotBlocking(const pause::Settings &settings_);
-    void FilamentChange(const pause::Settings &settings_);
+    void filament_change(const pause::Settings &settings_, bool is_filament_stuck);
 
     void finalize_user_stop();
 
@@ -177,51 +163,75 @@ public:
     }
 
 private:
-    using loop_fn = void (Pause::*)(Response response);
-    void loop_unload(Response response);
-    void loop_unload_AskUnloaded(Response response);
-    void loop_unload_mmu(Response response);
-    void loop_unload_mmu_change(Response response);
-    void loop_unloadFromGear(Response response); // autoload abort
-    void loop_unload_change(Response response);
-    void loop_unload_filament_stuck(Response response);
+    LoadType load_type {};
 
-    enum class CommonUnloadType : uint8_t {
-        standard,
-        ask_unloaded,
-        filament_change,
-        filament_stuck,
+    bool is_unstoppable() const;
+    LoadUnloadMode get_load_unload_mode();
+    bool should_park();
+
+    void start_process(Response response);
+    void unload_start_process(Response response);
+    void filament_stuck_ask_process(Response response);
+    void ram_sequence_process(Response response);
+    void unload_process(Response response);
+    void unloaded_ask_process(Response response);
+    void manual_unload_process(Response response);
+    void filament_not_in_fs_process(Response response);
+    void unload_from_gears_process(Response response);
+    void unload_finish_or_change_process(Response response);
+    void load_start_process(Response response);
+    void filament_push_ask_process(Response response);
+#if HAS_SIDE_FSENSOR()
+    void await_filament_process(Response response);
+    void assist_insertion_process(Response response);
+#endif
+    void load_to_gears_process(Response response);
+    void move_to_purge_process(Response response);
+    void wait_temp_process(Response response);
+    void long_load_process(Response response);
+    void purge_process(Response response);
+    void color_correct_ask_process(Response response);
+    void eject_process(Response response);
+#if HAS_MMU2()
+    void mmu_load_ask_process(Response response);
+    void mmu_load_process(Response response);
+#endif
+    void load_finish_process(Response response);
+
+    using StateHandler = void (Pause::*)(Response response);
+    static constexpr EnumArray<LoadState, StateHandler, static_cast<int>(LoadState::_last) + 1> state_handlers {
+        { LoadState::start, &Pause::start_process },
+            { LoadState::unload_start, &Pause::unload_start_process },
+            { LoadState::filament_stuck_ask, &Pause::filament_stuck_ask_process },
+            { LoadState::ram_sequence, &Pause::ram_sequence_process },
+            { LoadState::unload, &Pause::unload_process },
+            { LoadState::unloaded_ask, &Pause::unloaded_ask_process },
+            { LoadState::manual_unload, &Pause::manual_unload_process },
+            { LoadState::filament_not_in_fs, &Pause::filament_not_in_fs_process },
+            { LoadState::unload_from_gears, &Pause::unload_from_gears_process },
+            { LoadState::unload_finish_or_change, &Pause::unload_finish_or_change_process },
+            { LoadState::load_start, &Pause::load_start_process },
+            { LoadState::filament_push_ask, &Pause::filament_push_ask_process },
+#if HAS_SIDE_FSENSOR()
+            { LoadState::await_filament, &Pause::await_filament_process },
+            { LoadState::assist_insertion, &Pause::assist_insertion_process },
+#endif
+            { LoadState::load_to_gears, &Pause::load_to_gears_process },
+            { LoadState::move_to_purge, &Pause::move_to_purge_process },
+            { LoadState::wait_temp, &Pause::wait_temp_process },
+            { LoadState::long_load, &Pause::long_load_process },
+            { LoadState::purge, &Pause::purge_process },
+            { LoadState::color_correct_ask, &Pause::color_correct_ask_process },
+            { LoadState::eject, &Pause::eject_process },
+#if HAS_MMU2()
+            { LoadState::mmu_load_ask, &Pause::mmu_load_ask_process },
+            { LoadState::mmu_load, &Pause::mmu_load_process },
+#endif
+            { LoadState::load_finish, &Pause::load_finish_process },
     };
-    void loop_unload_common(Response response, CommonUnloadType unload_type);
-    // TODO loop_unload_change_mmu
-
-    void loop_load(Response response);
-    void loop_load_purge(Response response);
-    void loop_load_not_blocking(Response response); // no buttons at all - printer without GUI etc
-    void loop_load_mmu(Response response);
-    void loop_load_mmu_change(Response response);
-    void loop_autoload(Response response); // todo force remove filament in retry
-    void loop_load_to_gear(Response response);
-    void loop_load_change(Response response);
-    void loop_load_filament_stuck(Response response);
-
-    enum class CommonLoadType : uint8_t {
-        load_to_gear,
-        standard,
-        autoload,
-        filament_change,
-        filament_stuck,
-        not_blocking,
-        mmu, ///< MMU load to nozzle
-        mmu_change, ///< MMU filament change (for example filament runout)
-    };
-    void loop_load_common(Response response, CommonLoadType load_type);
-    // TODO loop_load_change_mmu
 
     // does not create FSM_HolderLoadUnload
-    bool invoke_loop(loop_fn fn); // shared load/unload code
-    bool filamentUnload(loop_fn fn);
-    bool filamentLoad(loop_fn fn);
+    bool invoke_loop(); // shared load/unload code
 
     // park moves calculations
     uint32_t parkMoveZPercent(float z_move_len, float xy_move_len) const;
@@ -249,16 +259,11 @@ private:
     bool check_user_stop(); //< stops motion and fsm and returns true it user triggered stop
     bool wait_for_motion_finish_or_user_stop(); //< waits until motion is finished; if stop is triggered then returns true
     bool process_stop();
-    void handle_filament_removal(LoadPhases_t phase_to_set); //<checks if filament is present if not it sets different phase
+    void handle_filament_removal(LoadState state_to_set); //<checks if filament is present if not it sets a different state
 
-    enum class RammingType {
-        unload,
-        runout
-    };
-
-    void ram_filament(const RammingType sequence);
-    void unload_filament(const RammingType sequence);
-    const RammingSequence &get_ramming_sequence(const RammingType type) const;
+    void ram_filament();
+    void unload_filament();
+    const RammingSequence &get_ramming_sequence() const;
 
     // create finite state machine and automatically destroy it at the end of scope
     // parks in ctor and unparks in dtor
@@ -269,7 +274,7 @@ private:
         void unbindFromSafetyTimer();
         static bool active; // we currently support only 1 instance
     public:
-        FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode, bool park);
+        FSM_HolderLoadUnload(Pause &p);
         ~FSM_HolderLoadUnload();
         friend class Pause;
     };

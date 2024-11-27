@@ -719,6 +719,14 @@ protected:
 using MI_BELT_TUNING = WithConstructorArgs<MenuItemGcodeAction, N_("Belt Tuning"), "M960 W"_tstr>;
 #endif
 
+#if HAS_ILI9488_DISPLAY()
+class MI_DISPLAY_BAUDRATE : public MenuItemSwitch {
+public:
+    MI_DISPLAY_BAUDRATE();
+    virtual void OnChange(size_t old_index) override;
+};
+#endif
+
 /// Useless menu item that is empty and always hidden.
 /// Used as an endstop for trailing commas
 class MI_ALWAYS_HIDDEN : public IWindowMenuItem {

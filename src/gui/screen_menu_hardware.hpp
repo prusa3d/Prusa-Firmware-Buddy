@@ -79,6 +79,9 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     // Other
     // ================================
     MI_HARDWARE_G_CODE_CHECKS,
+#if HAS_ILI9488_DISPLAY()
+    MI_DISPLAY_BAUDRATE,
+#endif
 
     // ================================
     // Dev-only items
