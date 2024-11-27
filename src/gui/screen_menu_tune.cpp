@@ -18,7 +18,11 @@ ScreenMenuTune::ScreenMenuTune()
 #if HAS_MMU2()
     // Do not allow disabling filament sensor
     if (config_store().mmu2_enabled.get()) {
+    #if HAS_FILAMENT_SENSORS_MENU()
+        Item<MI_FILAMENT_SENSORS>().hide();
+    #else
         Item<MI_FILAMENT_SENSOR>().hide();
+    #endif
     }
 #endif
 }
