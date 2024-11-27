@@ -36,6 +36,7 @@ class Printer(IntEnum):
     MK39S = 0x001B
     MK35S = 0x001C
     M1 = 0x001D
+    COREONE = 0x001F
 
 
 @unique
