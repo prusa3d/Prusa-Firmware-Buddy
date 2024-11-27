@@ -778,25 +778,19 @@
     { 100, 100, 400, 380 }
 
 
-/// HW limits of feed rate
-#define HWLIMIT_NORMAL_MAX_FEEDRATE \
-    { 4000, 4000, 20, 1000 }
-#define HWLIMIT_STEALTH_MAX_FEEDRATE \
-    { 1400, 1400, 12, 1000 }
-
 /**
  * Default Max Feed Rate (mm/s)
  * Override with M203
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
 #define DEFAULT_MAX_FEEDRATE \
-    { 2000, 2000, 12, 600 }
+    { 350, 350, 30, 50 }
 
-/// HW limits of max acceleration
-#define HWLIMIT_NORMAL_MAX_ACCELERATION \
-    { 15000, 15000, 200, 12000 }
-#define HWLIMIT_STEALTH_MAX_ACCELERATION \
-    { 2500, 2500, 200, 2500 }
+/// HW limits of feed rate
+#define HWLIMIT_NORMAL_MAX_FEEDRATE \
+    { 350, 350, 30, 100 }
+#define HWLIMIT_STEALTH_MAX_FEEDRATE \
+    { 160, 160, 30, 100 }
 
 /**
  * Default Max Acceleration (change/s) change = mm/s
@@ -805,7 +799,13 @@
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
 #define DEFAULT_MAX_ACCELERATION \
-    { 1500, 1500, 1000, 5000 }
+    { 10000, 10000, 1000, 1500 }
+
+/// HW limits of max acceleration
+#define HWLIMIT_NORMAL_MAX_ACCELERATION \
+    { 10000, 10000, 1000, 6000 }
+#define HWLIMIT_STEALTH_MAX_ACCELERATION \
+    { 2500, 2500, 200, 2500 }
 
 /**
  * Default Acceleration (change/s) change = mm/s
