@@ -1,11 +1,11 @@
 #include "mmu.hpp"
 #include "../../../lib/Prusa-Firmware-MMU/src/logic/progress_codes.h"
 #include "../../../lib/Prusa-Firmware-MMU/src/logic/error_codes.h"
-#include "../../../include/puppies/xbuddy_extension_mmu.hpp"
+#include <xbuddy_extension_shared/mmu_bridge.hpp>
 #include <freertos/timing.hpp>
 
 using namespace modules::protocol;
-using namespace puppy::xbuddy_extension::mmu;
+using namespace xbuddy_extension_shared::mmu_bridge;
 
 // #define SIMULATE_MMU
 #ifdef SIMULATE_MMU

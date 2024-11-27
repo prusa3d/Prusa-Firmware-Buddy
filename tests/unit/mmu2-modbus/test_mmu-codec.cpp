@@ -1,4 +1,4 @@
-#include <puppies/xbuddy_extension.hpp>
+#include <xbuddy_extension_shared/mmu_bridge.hpp>
 #include "../../../lib/Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.h"
 
 #include <catch2/catch.hpp>
@@ -35,7 +35,7 @@ uint16_t returnedQuery[3] = { 0, 0, 0 };
 
 CommunicationStatus PuppyModbus::read_input(uint8_t unit, uint16_t *data, uint16_t count, uint16_t address, RequestTiming *const timing, uint32_t &timestamp_ms, uint32_t max_age_ms) {
     switch (address) {
-    case puppy::xbuddy_extension::mmu::commandInProgressRegisterAddress:
+    case xbuddy_extension_shared::mmu_bridge::commandInProgressRegisterAddress:
         data[0] = returnedQuery[0];
         data[1] = returnedQuery[1];
         data[2] = returnedQuery[2];
@@ -131,18 +131,18 @@ TEST_CASE("MMU2-MODBUS write register") {
 }
 
 TEST_CASE("MMU2-MODBUS pack-unpack-command") {
-    REQUIRE(puppy::xbuddy_extension::mmu::pack_command('X', 0) == 'X');
-    REQUIRE(puppy::xbuddy_extension::mmu::pack_command('X', 1) == 256U + 'X');
-    REQUIRE(puppy::xbuddy_extension::mmu::pack_command('T', 4) == 4 * 256U + 'T');
+    REQUIRE(xbuddy_extension_shared::mmu_bridge::pack_command('X', 0) == 'X');
+    REQUIRE(xbuddy_extension_shared::mmu_bridge::pack_command('X', 1) == 256U + 'X');
+    REQUIRE(xbuddy_extension_shared::mmu_bridge::pack_command('T', 4) == 4 * 256U + 'T');
 
     {
-        const auto [command, param] = puppy::xbuddy_extension::mmu::unpack_command(256U + 'X');
+        const auto [command, param] = xbuddy_extension_shared::mmu_bridge::unpack_command(256U + 'X');
         REQUIRE(command == 'X');
         REQUIRE(param == 1);
     }
 
     {
-        const auto [command, param] = puppy::xbuddy_extension::mmu::unpack_command(512U + 'T');
+        const auto [command, param] = xbuddy_extension_shared::mmu_bridge::unpack_command(512U + 'T');
         REQUIRE(command == 'T');
         REQUIRE(param == 2);
     }
@@ -156,7 +156,7 @@ void CheckQuery(uint8_t command, uint8_t param, uint16_t commandStatus, uint16_t
 
     // prepare simulated modbus comm
     returnedStatus = CommunicationStatus::OK;
-    returnedQuery[0] = puppy::xbuddy_extension::mmu::pack_command(command, param);
+    returnedQuery[0] = xbuddy_extension_shared::mmu_bridge::pack_command(command, param);
     returnedQuery[1] = commandStatus;
     returnedQuery[2] = pec;
 
@@ -164,7 +164,7 @@ void CheckQuery(uint8_t command, uint8_t param, uint16_t commandStatus, uint16_t
     CHECK(xbuddy_extension.refresh_mmu() == returnedStatus);
 
     // check control structures - response registers are located aside from this structure
-    const auto [rvCommand, rvParam] = puppy::xbuddy_extension::mmu::unpack_command(xbuddy_extension.mmuQuery.value.cip);
+    const auto [rvCommand, rvParam] = xbuddy_extension_shared::mmu_bridge::unpack_command(xbuddy_extension.mmuQuery.value.cip);
     CHECK(rvCommand == command);
     CHECK(rvParam == param);
     CHECK(xbuddy_extension.mmuQuery.value.commandStatus == commandStatus);

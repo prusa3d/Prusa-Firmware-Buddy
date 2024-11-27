@@ -6,13 +6,13 @@
 #include "temperature.hpp"
 #include <freertos/timing.hpp>
 #include "mmu.hpp"
-#include "../../../include/puppies/xbuddy_extension_mmu.hpp"
+#include <xbuddy_extension_shared/mmu_bridge.hpp>
 
 namespace {
 
 // TODO decide how to handle weird indexing schizophrenia caused by PuppyBootstrap::get_modbus_address_for_dock()
 constexpr uint16_t MY_MODBUS_ADDR = 0x1a + 7;
-constexpr uint16_t MMU_MODBUS_ADDR = puppy::xbuddy_extension::mmu::modbusUnitNr;
+constexpr uint16_t MMU_MODBUS_ADDR = xbuddy_extension_shared::mmu_bridge::modbusUnitNr;
 
 class Logic final : public modbus::Callbacks {
 public:

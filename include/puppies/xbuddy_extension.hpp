@@ -1,12 +1,12 @@
+///@file
 #pragma once
+
 #include "PuppyModbus.hpp"
 #include "PuppyBus.hpp"
-#include <puppies/xbuddy_extension_mmu.hpp>
-
-#include <xbuddy_extension_shared/xbuddy_extension_shared_enums.hpp>
-
-#include <freertos/mutex.hpp>
 #include <atomic>
+#include <freertos/mutex.hpp>
+#include <xbuddy_extension_shared/mmu_bridge.hpp>
+#include <xbuddy_extension_shared/xbuddy_extension_shared_enums.hpp>
 
 namespace buddy::puppies {
 
@@ -101,7 +101,7 @@ public:
         uint16_t commandStatus; // accepted, rejected, progress, error - simply ResponseMsgParamCodes
         uint16_t pec; // either progressCode (x)or errorCode
     };
-    using MMUQueryRegisters = ModbusInputRegisterBlock<puppy::xbuddy_extension::mmu::commandInProgressRegisterAddress, MMUQueryMultiRegister>;
+    using MMUQueryRegisters = ModbusInputRegisterBlock<xbuddy_extension_shared::mmu_bridge::commandInProgressRegisterAddress, MMUQueryMultiRegister>;
 
     const MMUQueryRegisters &mmu_query_registers() const { return mmuQuery; }
 
