@@ -105,7 +105,9 @@ void ScreenMenuFilamentSensors::windowEvent(window_t *sender, GUI_event_t event,
         [&]<size_t... i>(std::index_sequence<i...>) {
             Item<MI_FILAMENT_SENSOR>().update();
             (Item<MI_ExtruderSensor<i>>().update(), ...);
+#if HAS_SIDE_FSENSOR()
             (Item<MI_SideSensor<i>>().update(), ...);
+#endif
         }(std::make_index_sequence<EXTRUDERS>());
         break;
 
