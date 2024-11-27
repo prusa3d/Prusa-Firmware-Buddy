@@ -250,16 +250,6 @@ void FilamentSensors::process_events() {
         if (!has_mmu && check_runout(LogicalFilamentSensor::secondary_runout)) {
             return;
         }
-
-#if PRINTER_IS_PRUSA_iX()
-        // On filament runout on iX, the filament gets unloaded and the printer paused.
-        // So when the user inserts a filament during a pause, we want the autoload to trigger,
-        // because it's part of the filament change sequence.
-        // BFW-5106
-        if (marlin_vars().print_state.get() == marlin_server::State::Paused && check_autoload()) {
-            return;
-        }
-#endif
     } else {
         // During MMU standard operation, there is no filament loaded to the nozzle when not printing.
         // So it's not a good idea to reset what filament types we have stored.
