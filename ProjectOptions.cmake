@@ -323,6 +323,7 @@ set_feature_for_printers_master_board(HAS_DOOR_SENSOR "COREONE")
 set_feature_for_printers(HAS_TOOLCHANGER "XL" "XL_DEV_KIT")
 set_feature_for_printers(HAS_SIDE_FSENSOR "iX" "XL" "COREONE")
 set_feature_for_printers(HAS_ADC_SIDE_FSENSOR "XL")
+set_feature_for_printers(HAS_FILAMENT_SENSORS_MENU "XL" "COREONE")
 set_feature_for_printers(HAS_ESP_FLASH_TASK "MK4" "MK3.5" "XL" "MINI" "COREONE") # iX does not need
                                                                                  # ESP
 # flashing
@@ -659,13 +660,6 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_SIDE_LEDS AND NOT IS_KNOBLET)
 else()
   define_boolean_option(HAS_SIDE_LEDS NO)
 endif()
-
-if(HAS_TOOLCHANGER)
-  set(HAS_FILAMENT_SENSORS_MENU YES)
-else()
-  set(HAS_FILAMENT_SENSORS_MENU NO)
-endif()
-define_boolean_option(HAS_FILAMENT_SENSORS_MENU ${HAS_FILAMENT_SENSORS_MENU})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(DEBUG YES)
