@@ -526,7 +526,7 @@ public:
     MI_INFO_BOARD_TEMP();
 };
 
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
 class MI_INFO_DOOR_SENSOR : public MenuItemAutoUpdatingLabel<uint32_t> {
 public:
     MI_INFO_DOOR_SENSOR();

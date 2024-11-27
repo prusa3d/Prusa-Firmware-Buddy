@@ -78,7 +78,7 @@ dependencies = {
         'version': '2.3.5',
         'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.5-11516FDF-4631-4AF6-A161-1A91BDAB4A2B.zip',
     },
-    'bootloader-cube': {
+    'bootloader-coreone': {
         'version': '2.3.5',
         'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.5-11516FDF-4631-4AF6-A161-1A91BDAB4A2B.zip',
     },

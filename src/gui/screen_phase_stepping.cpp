@@ -17,7 +17,7 @@ constexpr const char *ADDR_IN_TEXT = "prusa.io/xl-phstep";
 #elif PRINTER_IS_PRUSA_iX()
 constexpr const char *QR_ADDR = "prusa.io/ix-phstep-qr";
 constexpr const char *ADDR_IN_TEXT = "prusa.io/ix-phstep";
-#elif PRINTER_IS_PRUSA_CUBE()
+#elif PRINTER_IS_PRUSA_COREONE()
 constexpr const char *QR_ADDR = "prusa.io/cube-phstep-qr";
 constexpr const char *ADDR_IN_TEXT = "prusa.io/cube-phstep";
 #else
@@ -25,7 +25,7 @@ constexpr const char *ADDR_IN_TEXT = "prusa.io/cube-phstep";
 #endif
 constexpr const char *txt_header { N_("PHASE STEPPING CALIBRATION") };
 constexpr const char *txt_learn_more { N_("To learn more about the phase stepping calibration process, read the article:") };
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
 constexpr const char *txt_warn { N_("Before you continue, please make sure the accelerometer is NOT attached to the head.") };
 constexpr const char *txt_reattach { N_("Before you continue, please attach accelerometer onto the head.") };
 #endif
@@ -151,7 +151,7 @@ namespace frame {
         void update(const fsm::PhaseData &) {}
     };
 
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
     class Warning final {
         window_text_t text;
 
@@ -285,11 +285,11 @@ namespace frame {
 
 using Frames = FrameDefinitionList<ScreenPhaseStepping::FrameStorage,
     FrameDefinition<PhasesPhaseStepping::intro, frame::Introduction>,
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
     FrameDefinition<PhasesPhaseStepping::remove_meter, frame::Warning>,
 #endif
     FrameDefinition<PhasesPhaseStepping::home, frame::Homing>,
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
     FrameDefinition<PhasesPhaseStepping::reattach_meter, frame::Reattach>,
 #endif
     FrameDefinition<PhasesPhaseStepping::calib_x, frame::CalibratingX>,

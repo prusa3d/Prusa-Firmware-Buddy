@@ -37,8 +37,8 @@ printer_name_by_code = {
     18: "XL_DEV_KIT",
 
     # Cube was originally 30, then changed to 31 due to g-code collisions with MK3
-    30: "CUBE",
-    31: "CUBE",
+    30: "COREONE",
+    31: "COREONE",
 }
 
 translations = ["cs", "de", "es", "fr", "it", "pl", "ja"]

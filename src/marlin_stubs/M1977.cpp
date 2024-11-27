@@ -153,13 +153,13 @@ namespace state {
         switch (wait_for_response(PhasesPhaseStepping::intro)) {
         case Response::Continue:
             if (!axes_need_homing(X_AXIS | Y_AXIS)) {
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
                 return PhasesPhaseStepping::reattach_meter;
 #else
                 return PhasesPhaseStepping::calib_x;
 #endif
             }
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
             return PhasesPhaseStepping::remove_meter;
 #else
             return PhasesPhaseStepping::home;
@@ -172,7 +172,7 @@ namespace state {
         }
     }
 
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
     PhasesPhaseStepping warn() {
         marlin_server::fsm_change(PhasesPhaseStepping::remove_meter);
         switch (wait_for_response(PhasesPhaseStepping::remove_meter)) {
@@ -198,14 +198,14 @@ namespace state {
         tool_change(/*tool_index=*/0, tool_return_t::no_return, tool_change_lift_t::no_lift, /*z_down=*/false);
 #endif
         Planner::synchronize();
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
         return PhasesPhaseStepping::reattach_meter;
 #else
         return PhasesPhaseStepping::calib_x;
 #endif
     }
 
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
     PhasesPhaseStepping reattach() {
 
         do_blocking_move_to_xy_z(xy_pos_t { X_MAX_POS / 2, Y_MAX_POS / 2 }, std::max(20.f, current_position.z));
@@ -292,13 +292,13 @@ PhasesPhaseStepping get_next_phase(Context &context, const PhasesPhaseStepping p
     switch (phase) {
     case PhasesPhaseStepping::intro:
         return state::intro();
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
     case PhasesPhaseStepping::remove_meter:
         return state::warn();
 #endif
     case PhasesPhaseStepping::home:
         return state::home();
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
     case PhasesPhaseStepping::reattach_meter:
         return state::reattach();
 #endif

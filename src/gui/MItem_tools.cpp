@@ -817,7 +817,7 @@ MI_INFO_BOARD_TEMP::MI_INFO_BOARD_TEMP()
     ) {
 }
 
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
 MI_INFO_DOOR_SENSOR::MI_INFO_DOOR_SENSOR()
     : MenuItemAutoUpdatingLabel(_("Door Sensor"), "%d",
         [](auto) { return sensor_data().door_sensor; } //
@@ -885,7 +885,7 @@ void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
     }
 
     if (index && (config_store().selftest_result_phase_stepping.get() != TestResult_Passed)) {
-    #if PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_CUBE()
+    #if PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_COREONE()
         if (MsgBoxQuestion(_("Turn on Phase stepping uncalibrated?"), Responses_YesNo) == Response::No) {
             AutoRestore ar(event_in_progress, true);
             set_value(old_index, false);

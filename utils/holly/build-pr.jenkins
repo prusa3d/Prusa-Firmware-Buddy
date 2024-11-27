@@ -150,7 +150,7 @@ pipeline {
                     axis {
                         name 'configuration'
                         // preset,build_type,bootloader(yesboot|noboot|emptyboot)
-                        values 'cube,release,yesboot',
+                        values 'coreone,release,yesboot',
                             'mini-en-cs,release,yesboot',
                             'mini-en-de,release,yesboot',
                             'mini-en-es,release,yesboot',

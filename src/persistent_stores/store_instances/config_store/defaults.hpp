@@ -139,7 +139,7 @@ namespace defaults {
 #endif /*DEVELOPMENT_ITEMS()*/
 
     inline constexpr bool crash_enabled {
-#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_CUBE())
+#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_COREONE())
         false
 #else
         true
@@ -271,7 +271,7 @@ namespace defaults {
     inline constexpr int16_t homing_sens_y { stallguard_sensitivity_unset };
 
     inline constexpr HotendType hotend_type {
-#if PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_COREONE()
         HotendType::stock_with_sock
 #else
         HotendType::stock

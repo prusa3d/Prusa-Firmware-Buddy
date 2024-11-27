@@ -32,7 +32,7 @@ class PrinterType(Enum):
     iX = 4
     MK3point5 = 5
     # 6 taken by HT90
-    CUBE = 7
+    COREONE = 7
 
 
 class TLVType(Enum):
@@ -185,20 +185,20 @@ def main():
         bin_data += write_version(version,
                                   build_number=build_number)  # 10 bytes
         bin_data += args.board.to_bytes(1, 'little')
-        was_cube = False
-        if printer_type == PrinterType.CUBE:
+        was_coreone = False
+        if printer_type == PrinterType.COREONE:
             printer_type = PrinterType.MK4
-            was_cube = True
+            was_coreone = True
         bin_data += printer_type.value.to_bytes(1, 'little')
-        if was_cube:
-            printer_type = PrinterType.CUBE
+        if was_coreone:
+            printer_type = PrinterType.COREONE
         if args.bbf_version == 1:
             bin_data += args.printer_version.to_bytes(1, 'little')
             bin_data += args.printer_subversion.to_bytes(1, 'little')
             bin_data += bytes(1)
         elif args.bbf_version == 2:
             bin_data += args.bbf_version.to_bytes(1, 'little')
-            if printer_type == PrinterType.CUBE:
+            if printer_type == PrinterType.COREONE:
                 bin_data += (0).to_bytes(1, 'little')
                 bin_data += (4).to_bytes(1, 'little')
             else:

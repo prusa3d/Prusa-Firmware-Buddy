@@ -77,7 +77,7 @@ bool selftest_warning_selftest_finished() {
     }
 
     return true;
-#elif (PRINTER_IS_PRUSA_CUBE())
+#elif (PRINTER_IS_PRUSA_COREONE())
     if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
         return false;
     }

@@ -9,7 +9,7 @@
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(PRINTER_VALID_OPTS
-    "CUBE"
+    "COREONE"
     "MINI"
     "MK4"
     "MK3.5"
@@ -260,7 +260,7 @@ function(set_feature_for_printers_master_board FEATURE_NAME)
 endfunction()
 
 set(PRINTERS_WITH_FILAMENT_SENSOR_BINARY "MINI" "MK3.5")
-set(PRINTERS_WITH_FILAMENT_SENSOR_ADC "MK4" "XL" "iX" "XL_DEV_KIT" "CUBE")
+set(PRINTERS_WITH_FILAMENT_SENSOR_ADC "MK4" "XL" "iX" "XL_DEV_KIT" "COREONE")
 
 set_feature_for_printers(
   INIT_TRINAMIC_FROM_MARLIN_ONLY
@@ -269,7 +269,7 @@ set_feature_for_printers(
   "MK3.5"
   "XL"
   "iX"
-  "CUBE"
+  "COREONE"
   )
 set_feature_for_printers(
   HAS_PAUSE
@@ -279,7 +279,7 @@ set_feature_for_printers(
   "iX"
   "XL"
   "XL_DEV_KIT"
-  "CUBE"
+  "COREONE"
   )
 set_feature_for_printers(
   HAS_CRASH_DETECTION
@@ -288,18 +288,17 @@ set_feature_for_printers(
   "MK3.5"
   "iX"
   "XL"
-  "CUBE"
+  "COREONE"
   ) # this does require
 # selftest to work
-set_feature_for_printers(HAS_POWER_PANIC "MK4" "MK3.5" "iX" "XL" "CUBE") # this does require
-                                                                         # selftest and
-# crash detection to work
+set_feature_for_printers(HAS_POWER_PANIC "MK4" "MK3.5" "iX" "XL" "COREONE") # this does require
+# selftest and crash detection to work
 set_feature_for_printers(HAS_PRECISE_HOMING "MK4" "MK3.5")
-set_feature_for_printers(HAS_PRECISE_HOMING_COREXY "iX" "XL" "XL_DEV_KIT" "CUBE")
-set_feature_for_printers_master_board(HAS_PHASE_STEPPING "XL" "iX" "CUBE")
+set_feature_for_printers(HAS_PRECISE_HOMING_COREXY "iX" "XL" "XL_DEV_KIT" "COREONE")
+set_feature_for_printers_master_board(HAS_PHASE_STEPPING "XL" "iX" "COREONE")
 set(PRINTERS_WITH_BURST_STEPPING "XL")
 set_feature_for_printers_master_board(
-  HAS_INPUT_SHAPER_CALIBRATION "MK4" "MK3.5" "XL" "XL_DEV_KIT" "CUBE"
+  HAS_INPUT_SHAPER_CALIBRATION "MK4" "MK3.5" "XL" "XL_DEV_KIT" "COREONE"
   )
 set_feature_for_printers(
   HAS_SELFTEST
@@ -308,42 +307,43 @@ set_feature_for_printers(
   "XL"
   "iX"
   "MINI"
-  "CUBE"
+  "COREONE"
   )
-set_feature_for_printers(HAS_HUMAN_INTERACTIONS "MINI" "MK4" "MK3.5" "XL" "CUBE")
-set_feature_for_printers_master_board(HAS_LOADCELL "MK4" "iX" "XL" "XL_DEV_KIT" "CUBE")
+set_feature_for_printers(HAS_HUMAN_INTERACTIONS "MINI" "MK4" "MK3.5" "XL" "COREONE")
+set_feature_for_printers_master_board(HAS_LOADCELL "MK4" "iX" "XL" "XL_DEV_KIT" "COREONE")
 set_feature_for_printers_master_board(HAS_SHEET_PROFILES "MK3.5" "MINI")
-set_feature_for_printers_master_board(HAS_HEATBREAK_TEMP "MK4" "iX" "XL" "XL_DEV_KIT" "CUBE")
-set(PRINTERS_WITH_RESOURCES "MINI" "MK4" "MK3.5" "XL" "iX" "CUBE")
+set_feature_for_printers_master_board(HAS_HEATBREAK_TEMP "MK4" "iX" "XL" "XL_DEV_KIT" "COREONE")
+set(PRINTERS_WITH_RESOURCES "MINI" "MK4" "MK3.5" "XL" "iX" "COREONE")
 set_feature_for_printers(HAS_BOWDEN "MINI")
-set(PRINTERS_WITH_PUPPIES_BOOTLOADER "XL" "iX" "XL_DEV_KIT" "CUBE")
+set(PRINTERS_WITH_PUPPIES_BOOTLOADER "XL" "iX" "XL_DEV_KIT" "COREONE")
 set(PRINTERS_WITH_DWARF "XL" "XL_DEV_KIT")
 set_feature_for_printers_master_board(HAS_MODULARBED "iX" "XL" "XL_DEV_KIT")
-set_feature_for_printers_master_board(HAS_XBUDDY_EXTENSION "CUBE")
+set_feature_for_printers_master_board(HAS_XBUDDY_EXTENSION "COREONE")
 set_feature_for_printers(HAS_TOOLCHANGER "XL" "XL_DEV_KIT")
-set_feature_for_printers(HAS_SIDE_FSENSOR "iX" "XL" "CUBE")
+set_feature_for_printers(HAS_SIDE_FSENSOR "iX" "XL" "COREONE")
 set_feature_for_printers(HAS_ADC_SIDE_FSENSOR "XL")
-set_feature_for_printers(HAS_ESP_FLASH_TASK "MK4" "MK3.5" "XL" "MINI" "CUBE") # iX does not need ESP
+set_feature_for_printers(HAS_ESP_FLASH_TASK "MK4" "MK3.5" "XL" "MINI" "COREONE") # iX does not need
+                                                                                 # ESP
 # flashing
 set_feature_for_printers(HAS_EMBEDDED_ESP32 "XL")
 set(PRINTERS_WITH_SIDE_LEDS "XL" "iX")
-set(PRINTERS_WITH_TRANSLATIONS "CUBE" "MK4" "MK3.5" "XL" "MINI")
+set(PRINTERS_WITH_TRANSLATIONS "COREONE" "MK4" "MK3.5" "XL" "MINI")
 set(PRINTERS_WITH_EXTFLASH_TRANSLATIONS "MINI")
-set_feature_for_printers(HAS_LOVE_BOARD "MK4" "iX" "CUBE")
+set_feature_for_printers(HAS_LOVE_BOARD "MK4" "iX" "COREONE")
 set_feature_for_printers(HAS_TMC_UART "MINI")
-set_feature_for_printers(HAS_XLCD "MK4" "MK3.5" "iX" "XL" "CUBE")
-set_feature_for_printers(HAS_MMU2 "MK4" "MK3.5" "CUBE")
+set_feature_for_printers(HAS_XLCD "MK4" "MK3.5" "iX" "XL" "COREONE")
+set_feature_for_printers(HAS_MMU2 "MK4" "MK3.5" "COREONE")
 set_feature_for_printers(HAS_CONFIG_STORE_WO_BACKEND "XL_DEV_KIT")
-set_feature_for_printers_master_board(HAS_CHAMBER_API "XL" "CUBE")
-set_feature_for_printers(HAS_SWITCHED_FAN_TEST "MK4" "MK3.5" "CUBE")
-set_feature_for_printers(HAS_HOTEND_TYPE_SUPPORT "MK4" "MK3.5" "iX" "CUBE")
-set_feature_for_printers(HAS_EMERGENCY_STOP "CUBE")
+set_feature_for_printers_master_board(HAS_CHAMBER_API "XL" "COREONE")
+set_feature_for_printers(HAS_SWITCHED_FAN_TEST "MK4" "MK3.5" "COREONE")
+set_feature_for_printers(HAS_HOTEND_TYPE_SUPPORT "MK4" "MK3.5" "iX" "COREONE")
+set_feature_for_printers(HAS_EMERGENCY_STOP "COREONE")
 
 # Set GUI settings
-set(PRINTERS_WITH_GUI "CUBE" "MINI" "MK4" "MK3.5" "XL" "iX")
-set(PRINTERS_WITH_GUI_W480H320 "CUBE" "MK4" "MK3.5" "XL" "iX")
+set(PRINTERS_WITH_GUI "COREONE" "MINI" "MK4" "MK3.5" "XL" "iX")
+set(PRINTERS_WITH_GUI_W480H320 "COREONE" "MK4" "MK3.5" "XL" "iX")
 set(PRINTERS_WITH_GUI_W240H320 "MINI")
-set_feature_for_printers(HAS_LEDS "MK4" "MK3.5" "XL" "iX" "CUBE")
+set_feature_for_printers(HAS_LEDS "MK4" "MK3.5" "XL" "iX" "COREONE")
 # disable serial printing for MINI to save flash
 set_feature_for_printers(
   HAS_SERIAL_PRINT
@@ -352,10 +352,10 @@ set_feature_for_printers(
   "XL"
   "iX"
   "MINI"
-  "CUBE"
+  "COREONE"
   )
 
-set_feature_for_printers(HAS_LOCAL_ACCELEROMETER "MK3.5" "MK4" "iX" "CUBE")
+set_feature_for_printers(HAS_LOCAL_ACCELEROMETER "MK3.5" "MK4" "iX" "COREONE")
 set_feature_for_printers(HAS_REMOTE_ACCELEROMETER "XL" "XL_DEV_KIT")
 
 set_feature_for_printers(HAS_COLDPULL "MK3.5" "MK4" "XL")
@@ -364,13 +364,13 @@ set_feature_for_printers(HAS_BED_LEVEL_CORRECTION "MK3.5" "MINI")
 
 set_feature_for_printers(HAS_SHEET_SUPPORT "MINI" "MK3.5")
 
-set_feature_for_printers(HAS_NFC "MK3.5" "MK4" "CUBE")
+set_feature_for_printers(HAS_NFC "MK3.5" "MK4" "COREONE")
 
 set_feature_for_printers(HAS_NOZZLE_CLEANER "iX")
 set_feature_for_printers(HAS_BELT_TUNING "XL" "iX")
-set_feature_for_printers_master_board(HAS_I2C_EXPANDER "MK3.5" "MK4" "CUBE")
+set_feature_for_printers_master_board(HAS_I2C_EXPANDER "MK3.5" "MK4" "COREONE")
 set_feature_for_printers(HAS_WASTEBIN "iX")
-set_feature_for_printers(HAS_GEARS_CALIBRATION "MK4" "CUBE")
+set_feature_for_printers(HAS_GEARS_CALIBRATION "MK4" "COREONE")
 
 # Set printer board
 set(BOARDS_WITH_ADVANCED_POWER "XBUDDY" "XLBUDDY" "DWARF")
@@ -677,7 +677,7 @@ endif()
 # define enabled features
 
 if(BOOTLOADER STREQUAL "YES"
-   AND (PRINTER STREQUAL "CUBE"
+   AND (PRINTER STREQUAL "COREONE"
         OR PRINTER STREQUAL "MINI"
         OR PRINTER STREQUAL "MK4"
         OR PRINTER STREQUAL "MK3.5"

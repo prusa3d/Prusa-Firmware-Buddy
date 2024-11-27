@@ -228,7 +228,7 @@ void hw_dma_init() {
     HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
     // DMA2_Stream7_IRQn interrupt configuration
-    #if PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_CUBE()
+    #if PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_COREONE()
     HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, ISR_PRIORITY_PUPPIES_USART, 0);
     #else
     HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, ISR_PRIORITY_DEFAULT, 0);
@@ -262,7 +262,7 @@ void hw_dma_init() {
     HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
 // DMA2_Stream2_IRQn interrupt configuration
-#if (PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_CUBE())
+#if (PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_COREONE())
     HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, ISR_PRIORITY_PUPPIES_USART, 0);
 #else
     HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, ISR_PRIORITY_DEFAULT, 0);
@@ -357,7 +357,7 @@ void hw_adc3_init() {
     config_adc_ch(&hadc3, ADC_CHANNEL_14, AdcChannel::board_I);
         #if PRINTER_IS_PRUSA_iX()
     config_adc_ch(&hadc3, ADC_CHANNEL_15, AdcChannel::case_T);
-        #elif PRINTER_IS_PRUSA_CUBE()
+        #elif PRINTER_IS_PRUSA_COREONE()
     config_adc_ch(&hadc3, ADC_CHANNEL_15, AdcChannel::door_sensor);
         #endif
     #elif BOARD_IS_XLBUDDY()

@@ -17,7 +17,7 @@
     #include "Configuration_MK3.5.h"
 #elif PRINTER_IS_PRUSA_iX()
     #include "Configuration_iX.h"
-#elif PRINTER_IS_PRUSA_CUBE()
+#elif PRINTER_IS_PRUSA_COREONE()
     #include "Configuration_CUBE.h"
 #else
     #error "Unknown PRINTER_TYPE!"

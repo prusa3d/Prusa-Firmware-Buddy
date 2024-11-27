@@ -199,7 +199,7 @@ static bool wait_for_accel_end(phase_stepping::AxisState &axis_state,
     });
 }
 
-#if !PRINTER_IS_PRUSA_CUBE()
+#if !PRINTER_IS_PRUSA_COREONE()
 // Computes a pseudo-projection of one vector to another. The length of
 // direction vector is not normalized.
 static float pseudo_project(std::tuple<float, float> what, std::tuple<float, float> dir) {
@@ -208,7 +208,7 @@ static float pseudo_project(std::tuple<float, float> what, std::tuple<float, flo
 #endif
 
 static float project_to_axis(AxisEnum axis, const PrusaAccelerometer::Acceleration &sample) {
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
     // TODO do this properly. Somehow.
     if (axis == AxisEnum::X_AXIS) {
         return sample.val[1];
@@ -721,7 +721,7 @@ PrinterCalibrationConfig phase_stepping::get_printer_calibration_config() {
         .calib_revs = 0.5f,
         .phases = std::vector(phases.begin(), phases.end()),
     };
-#elif PRINTER_IS_PRUSA_CUBE()
+#elif PRINTER_IS_PRUSA_COREONE()
     static constexpr std::array phases = {
         CalibrationPhase {
             .harmonic = 2,

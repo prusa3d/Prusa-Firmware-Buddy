@@ -7,7 +7,7 @@
     },
     "configurePresets": [
         {
-            "name": "cube_debug_boot",
+            "name": "coreone_debug_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -17,7 +17,7 @@
                 },
                 "PRINTER": {
                     "type": "STRING",
-                    "value": "CUBE"
+                    "value": "COREONE"
                 },
                 "BOARD": {
                     "type": "STRING",
@@ -62,7 +62,7 @@
             }
         },
         {
-            "name": "cube_debug_noboot",
+            "name": "coreone_debug_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -72,7 +72,7 @@
                 },
                 "PRINTER": {
                     "type": "STRING",
-                    "value": "CUBE"
+                    "value": "COREONE"
                 },
                 "BOARD": {
                     "type": "STRING",
@@ -117,7 +117,7 @@
             }
         },
         {
-            "name": "cube_release_boot",
+            "name": "coreone_release_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -127,7 +127,7 @@
                 },
                 "PRINTER": {
                     "type": "STRING",
-                    "value": "CUBE"
+                    "value": "COREONE"
                 },
                 "BOARD": {
                     "type": "STRING",
@@ -172,7 +172,7 @@
             }
         },
         {
-            "name": "cube_release_noboot",
+            "name": "coreone_release_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -182,7 +182,7 @@
                 },
                 "PRINTER": {
                     "type": "STRING",
-                    "value": "CUBE"
+                    "value": "COREONE"
                 },
                 "BOARD": {
                     "type": "STRING",
@@ -4347,7 +4347,7 @@
             }
         },
         {
-            "name": "cube-xbuddy-extension_debug_boot",
+            "name": "coreone-xbuddy-extension_debug_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-xbuddy-extension",
             "cacheVariables": {
@@ -4357,7 +4357,7 @@
                 },
                 "PRINTER": {
                     "type": "STRING",
-                    "value": "CUBE"
+                    "value": "COREONE"
                 },
                 "BOARD": {
                     "type": "STRING",
@@ -4398,7 +4398,7 @@
             }
         },
         {
-            "name": "cube-xbuddy-extension_debug_noboot",
+            "name": "coreone-xbuddy-extension_debug_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-xbuddy-extension",
             "cacheVariables": {
@@ -4408,7 +4408,7 @@
                 },
                 "PRINTER": {
                     "type": "STRING",
-                    "value": "CUBE"
+                    "value": "COREONE"
                 },
                 "BOARD": {
                     "type": "STRING",
@@ -4449,7 +4449,7 @@
             }
         },
         {
-            "name": "cube-xbuddy-extension_release_boot",
+            "name": "coreone-xbuddy-extension_release_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-xbuddy-extension",
             "cacheVariables": {
@@ -4459,7 +4459,7 @@
                 },
                 "PRINTER": {
                     "type": "STRING",
-                    "value": "CUBE"
+                    "value": "COREONE"
                 },
                 "BOARD": {
                     "type": "STRING",
@@ -4500,7 +4500,7 @@
             }
         },
         {
-            "name": "cube-xbuddy-extension_release_noboot",
+            "name": "coreone-xbuddy-extension_release_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-xbuddy-extension",
             "cacheVariables": {
@@ -4510,7 +4510,7 @@
                 },
                 "PRINTER": {
                     "type": "STRING",
-                    "value": "CUBE"
+                    "value": "COREONE"
                 },
                 "BOARD": {
                     "type": "STRING",

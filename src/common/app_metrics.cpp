@@ -244,7 +244,7 @@ void buddy::metrics::RecordMarlinVariables() {
     metric_record_float(&temp_ambient, thermalManager.deg_ambient());
 #endif
 
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
     {
         METRIC_DEF(door_sensor, "door_sensor", METRIC_VALUE_INTEGER, 1100, METRIC_ENABLED);
         const uint32_t value = AdcGet::door_sensor();

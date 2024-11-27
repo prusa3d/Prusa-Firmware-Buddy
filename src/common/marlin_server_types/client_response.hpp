@@ -453,11 +453,11 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesColdPull) { return Client
 #if HAS_PHASE_STEPPING()
 enum class PhasesPhaseStepping : PhaseUnderlyingType {
     intro,
-    #if PRINTER_IS_PRUSA_CUBE()
+    #if PRINTER_IS_PRUSA_COREONE()
     remove_meter,
     #endif
     home,
-    #if PRINTER_IS_PRUSA_CUBE()
+    #if PRINTER_IS_PRUSA_COREONE()
     reattach_meter,
     #endif
     calib_x,
@@ -855,11 +855,11 @@ class ClientResponses {
 #if HAS_PHASE_STEPPING()
     static constexpr PhaseResponses PhaseSteppingResponses[] = {
         { Response::Continue, Response::Abort }, // PhasesPhaseStepping::intro
-    #if PRINTER_IS_PRUSA_CUBE()
+    #if PRINTER_IS_PRUSA_COREONE()
         { Response::Continue, Response::Abort }, // PhasesPhaseStepping::remove_meter
     #endif
         {}, // PhasesPhaseStepping::home
-    #if PRINTER_IS_PRUSA_CUBE()
+    #if PRINTER_IS_PRUSA_COREONE()
         { Response::Continue, Response::Abort }, // PhasesPhaseStepping::reattach_meter
     #endif
         { Response::Abort }, // PhasesPhaseStepping::calib_x

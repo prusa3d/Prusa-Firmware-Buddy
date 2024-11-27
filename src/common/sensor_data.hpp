@@ -32,7 +32,7 @@ public:
     float mmuCurrent;
 #else
 #endif
-#if PRINTER_IS_PRUSA_CUBE()
+#if PRINTER_IS_PRUSA_COREONE()
     uint32_t door_sensor;
 #endif
 #if HAS_LOADCELL()
