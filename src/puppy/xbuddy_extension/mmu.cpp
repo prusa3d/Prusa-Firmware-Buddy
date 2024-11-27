@@ -1,8 +1,9 @@
+/// @file
 #include "mmu.hpp"
-#include "../../../lib/Prusa-Firmware-MMU/src/logic/progress_codes.h"
-#include "../../../lib/Prusa-Firmware-MMU/src/logic/error_codes.h"
-#include <xbuddy_extension_shared/mmu_bridge.hpp>
+
+#include "hal.hpp"
 #include <freertos/timing.hpp>
+#include <xbuddy_extension_shared/mmu_bridge.hpp>
 
 using namespace modules::protocol;
 using namespace xbuddy_extension_shared::mmu_bridge;

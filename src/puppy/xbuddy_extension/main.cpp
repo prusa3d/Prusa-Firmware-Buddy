@@ -1,8 +1,7 @@
 #include "app.hpp"
-#include "hal.hpp"
 #include "FreeRTOS.h"
+#include "hal.hpp"
 #include "task.h"
-#include <utility>
 #include <freertos/timing.hpp>
 
 // The logic is inverted here. We explicitly mark data we don't want to be

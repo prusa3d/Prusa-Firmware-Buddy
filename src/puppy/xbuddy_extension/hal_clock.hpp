@@ -1,4 +1,4 @@
-///@file
+/// @file
 #pragma once
 
 namespace hal {

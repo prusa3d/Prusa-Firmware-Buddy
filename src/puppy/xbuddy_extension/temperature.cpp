@@ -1,10 +1,10 @@
 /// @file
 #include "temperature.hpp"
 
-#include <array>
-#include <cstddef>
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstddef>
 #include <span>
 
 // Thermistor: 104NT-4-R025H42G

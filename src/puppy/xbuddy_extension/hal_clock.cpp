@@ -1,4 +1,4 @@
-///@file
+/// @file
 #include "hal_clock.hpp"
 
 #include <stm32h503xx.h>

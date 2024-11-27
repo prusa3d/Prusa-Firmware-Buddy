@@ -1,9 +1,9 @@
-///@file
+/// @file
 #pragma once
-#include <cstdint>
+
 #include "modbus.hpp"
+#include <cstdint>
 #include <modules/protocol.h>
-#include "hal.hpp"
 
 /// A minimal serial interface for the MMU
 class MMU2Serial {

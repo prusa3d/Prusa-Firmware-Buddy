@@ -1,10 +1,9 @@
-///@file
+/// @file
 #pragma once
 
 #include <cstddef>
 #include <cstdint>
 #include <span>
-
 #include <xbuddy_extension_shared/xbuddy_extension_shared_enums.hpp>
 
 namespace hal {

@@ -1,14 +1,13 @@
-///@file
+/// @file
 #include "hal.hpp"
 
 #include "hal_clock.hpp"
-#include <stm32h5xx_hal.h>
-#include <stm32h5xx_ll_gpio.h>
+#include <bitset>
 #include <freertos/binary_semaphore.hpp>
 #include <freertos/stream_buffer.hpp>
 #include <freertos/timing.hpp>
-
-#include <bitset>
+#include <stm32h5xx_hal.h>
+#include <stm32h5xx_ll_gpio.h>
 
 static UART_HandleTypeDef huart_rs485;
 static std::byte rx_buf_rs485[256];

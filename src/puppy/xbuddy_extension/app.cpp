@@ -1,11 +1,11 @@
-///@file
+/// @file
 #include "app.hpp"
 
 #include "hal.hpp"
+#include "mmu.hpp"
 #include "modbus.hpp"
 #include "temperature.hpp"
 #include <freertos/timing.hpp>
-#include "mmu.hpp"
 #include <xbuddy_extension_shared/mmu_bridge.hpp>
 
 namespace {
