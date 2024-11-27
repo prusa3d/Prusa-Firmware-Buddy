@@ -75,7 +75,7 @@ uint64_t get_test_mask(Action action) {
     case Action::ZAlign:
         return stmZcalib;
     case Action::PhaseSteppingCalibration:
-        return stmPhaseStepping;
+        bsod("get_test_mask");
     case Action::_count:
         break;
     }
