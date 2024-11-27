@@ -1608,7 +1608,7 @@
     #define Y_AXIS_UNLOAD_POS Y_WASTEBIN_POINT
     #define Z_AXIS_UNLOAD_POS Z_NOZZLE_PARK_POINT
 
-    #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
+    #define NOZZLE_PARK_XY_FEEDRATE 200 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
     #define NOZZLE_PARK_Z_FEEDRATE 5 // (mm/s) Z axis feedrate (not used for delta printers)
 
     /**
