@@ -1584,7 +1584,7 @@
 
     #define X_NOZZLE_PARK_POINT 208.75
     #define Y_NOZZLE_PARK_POINT 305
-    #define Z_NOZZLE_PARK_POINT 20
+    #define Z_NOZZLE_PARK_POINT 10
     #define XYZ_NOZZLE_PARK_POINT \
         {X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, Z_NOZZLE_PARK_POINT}
 
@@ -1601,11 +1601,11 @@
 
     #define Y_AXIS_LOAD_POS 10
     #define X_AXIS_LOAD_POS X_WASTEBIN_POINT
-    #define Z_AXIS_LOAD_POS 5
+    #define Z_AXIS_LOAD_POS Z_NOZZLE_PARK_POINT
 
     #define X_AXIS_UNLOAD_POS X_WASTEBIN_POINT
     #define Y_AXIS_UNLOAD_POS Y_WASTEBIN_POINT
-    #define Z_AXIS_UNLOAD_POS 20
+    #define Z_AXIS_UNLOAD_POS Z_NOZZLE_PARK_POINT
 
     #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
     #define NOZZLE_PARK_Z_FEEDRATE 5 // (mm/s) Z axis feedrate (not used for delta printers)
