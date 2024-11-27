@@ -26,6 +26,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_modularbed.h>
 #include <option/has_loadcell.h>
+#include <Marlin/src/core/macros.h>
 
 // clang-format off
 
