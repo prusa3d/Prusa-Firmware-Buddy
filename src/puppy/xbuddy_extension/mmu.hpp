@@ -2,7 +2,7 @@
 #pragma once
 #include <cstdint>
 #include "modbus.hpp"
-#include "../../../lib/Prusa-Firmware-MMU/src/modules/protocol.h"
+#include <modules/protocol.h>
 #include "hal.hpp"
 
 /// A minimal serial interface for the MMU

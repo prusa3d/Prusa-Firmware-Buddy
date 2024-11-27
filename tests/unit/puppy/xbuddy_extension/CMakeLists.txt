@@ -7,7 +7,8 @@ add_executable(
   modbus-mmu_tests.cpp
   )
 target_include_directories(
-  xbuddy_extension_modbus_tests PRIVATE include ${CMAKE_SOURCE_DIR}/src
-                                        ${CMAKE_SOURCE_DIR}/src/puppy/xbuddy_extension_shared
+  xbuddy_extension_modbus_tests
+  PRIVATE include ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/puppy/xbuddy_extension_shared
+          ${CMAKE_SOURCE_DIR}/lib/Prusa-Firmware-MMU/src
   )
 add_catch_test(xbuddy_extension_modbus_tests)
