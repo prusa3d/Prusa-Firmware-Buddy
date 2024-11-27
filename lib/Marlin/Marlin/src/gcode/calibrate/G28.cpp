@@ -200,13 +200,9 @@
 #if ENABLED(PRUSA_TOOLCHANGER)
       do_blocking_move_to_xy(destination, PrusaToolChanger::limit_stealth_feedrate(XY_PROBE_FEEDRATE_MM_S));
 #elif HAS_NOZZLE_CLEANER()
-  #if AVOID_NOZZLE_CLEANER_Y_FIRST
+    // with nozzle cleaner (iX), move in Y first to avoid going over the cleaner
     do_blocking_move_to_xy(current_position.x, destination.y);
     do_blocking_move_to_xy(destination.x, destination.y);
-  #else
-    do_blocking_move_to_xy(destination.x, current_position.y);
-    do_blocking_move_to_xy(destination.x, destination.y);
-  #endif
 #else
       do_blocking_move_to_xy(destination);
 #endif
