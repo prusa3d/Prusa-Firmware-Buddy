@@ -213,12 +213,12 @@ namespace {
 #if PRINTER_IS_PRUSA_iX()
                 params.slots[i].temp_heatbreak = hotend.temp_heatbreak;
 
-                if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::current_extruder)) {
+                if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::extruder)) {
                     params.slots[i].extruder_fs_state = sensor->get_state();
                 } else {
                     params.slots[i].extruder_fs_state.reset();
                 }
-                if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::current_side)) {
+                if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::side)) {
                     params.slots[i].remote_fs_state = sensor->get_state();
                 } else {
                     params.slots[i].remote_fs_state.reset();

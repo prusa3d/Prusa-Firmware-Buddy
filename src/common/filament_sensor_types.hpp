@@ -10,23 +10,19 @@
 #include <array>
 
 enum class LogicalFilamentSensor : uint8_t {
-    /// Sensor that triggers during runout as first - the one further from the extruder
-    /// XL: side sensor | MK4+MMU: MMU sensor | OTHER: extruder sensor
-    primary_runout,
-
-    /// Runout sensor that triggers the latest during runout - the one closest to the extruder
-    /// XL,MK4+MMU: extruder sensor | OTHER: none
-    secondary_runout,
-
-    /// Filament sensor that is used to detect autoload
-    autoload,
-
     /// Filament sensor on the current extruder
-    current_extruder,
-
+    extruder,
     /// Side sensor for the current extruder
     /// MK4+MMU: MMU sensor | XL: current side sensor | OTHER: none
-    current_side,
+    side,
+    /// The first runout filament sensor - the one further from the extruder
+    /// XL: side sensor | MK4+MMU: MMU sensor | OTHER: extruder sensor
+    primary_runout,
+    /// The second runout filament sensor - the one closer to the extruder
+    /// XL,MK4+MMU: extruder sensor | OTHER: none
+    secondary_runout,
+    /// Filament sensor that is used to detect autoload
+    autoload,
 };
 
 static constexpr size_t logical_filament_sensor_count = 5;
