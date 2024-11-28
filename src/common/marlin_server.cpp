@@ -686,11 +686,12 @@ void io_expander_read_loop() {
 #endif // HAS_I2C_EXPANDER()
 
 static void cycle() {
-    static int processing = 0;
-    if (processing) {
+    static bool is_nested = false;
+    if (is_nested) {
         return;
     }
-    processing = 1;
+    AutoRestore _nr(is_nested, true);
+
     bool call_print_loop = true;
 #if HAS_SELFTEST()
     if (SelftestInstance().IsInProgress()) {
@@ -747,8 +748,6 @@ static void cycle() {
     // update variables
     send_notifications_to_clients();
     server_update_vars();
-
-    processing = 0;
 }
 
 void static finalize_print(bool finished) {
