@@ -33,6 +33,8 @@
   #include "../../../module/delta.h"
 #endif
 
+#include <option/has_emergency_stop.h>
+
 #include "../../../Marlin.h"
 #include <math.h>
 
@@ -343,13 +345,42 @@
     const float cart_xy_mm_2 = HYPOT2(total.x, total.y),
                 cart_xy_mm = SQRT(cart_xy_mm_2);                                     // Total XY distance
 
-    #if IS_KINEMATIC
+    #if IS_KINEMATIC || HAS_EMERGENCY_STOP()
       const float seconds = cart_xy_mm / scaled_fr_mm_s;                             // Duration of XY move at requested rate
+    #endif
+
+    #if IS_KINEMATIC
       uint16_t segments = LROUND(delta_segments_per_second * seconds),               // Preferred number of segments for distance @ feedrate
                seglimit = LROUND(cart_xy_mm * RECIPROCAL(DELTA_SEGMENT_MIN_LENGTH)); // Number of segments at minimum segment length
       NOMORE(segments, seglimit);                                                    // Limit to minimum segment length (fewer segments)
     #else
       uint16_t segments = LROUND(cart_xy_mm * RECIPROCAL(DELTA_SEGMENT_MIN_LENGTH)); // Cartesian fixed segment length
+    #endif
+
+    /*
+     * The idea here is that for emergency stop to work nicely, we don't want
+     * the planner to contain too long moves (either in matter of Z or in
+     * matter of time).
+     *
+     * For that reason, we try to split long moves into smaller ones.
+     *
+     * This needs a counter-part of liming the planner/stepper queue for some
+     * maxima of these too.
+     *
+     * TODO: A nicer place for this might be somewhere inside the
+     * Planner::buffer_segment; however refactoring it to accomodate the
+     * changes is currently postponed (possibly out of abundance of caution).
+     *
+     * We assume that long Z moves are slow anyway, so we can afford to segment
+     * them _a lot_.
+     */
+    #if HAS_EMERGENCY_STOP()
+      // TODO: Fine-tune constants.
+      const float segments_for_z = total.z / 0.05;
+      NOLESS(segments, LROUND(segments_for_z));
+
+      const float segments_for_time = seconds / 0.1;
+      NOLESS(segments, LROUND(segments_for_time));
     #endif
 
     NOLESS(segments, 1U);                                                      // Must have at least one segment
