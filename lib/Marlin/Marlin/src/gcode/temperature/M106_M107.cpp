@@ -46,7 +46,7 @@
         #define _CNT_P FAN_COUNT
     #endif
 
-static bool set_special_fan_speed(uint8_t fan, uint8_t speed) {
+static bool set_special_fan_speed(uint8_t fan, uint8_t speed, bool set_auto) {
     #if XL_ENCLOSURE_SUPPORT()
     static_assert(FAN_COUNT < 3, "Fan index 3 is reserved for Enclosure fan and should not be set by thermalManager");
     if (fan == 3) {
@@ -58,7 +58,11 @@ static bool set_special_fan_speed(uint8_t fan, uint8_t speed) {
     #if HAS_XBUDDY_EXTENSION()
     static_assert(FAN_COUNT < 3, "Fan 3 is dedicated to extboard");
     if (fan == 3) {
-        buddy::xbuddy_extension().set_fan1_fan2_pwm(speed);
+        if (set_auto) {
+            buddy::xbuddy_extension().set_fan1_fan2_auto_control();
+        } else {
+            buddy::xbuddy_extension().set_fan1_fan2_pwm(speed);
+        }
         return true;
     }
     #endif
@@ -81,6 +85,7 @@ static bool set_special_fan_speed(uint8_t fan, uint8_t speed) {
  *
  * - `S` - Speed between 0-255
  * - `P` - Fan index, if more than one fan
+ * - `R` - Set the to auto control (if supported by the fan)
  * - `A` - ???
  * - `T` - Restore/Use/Set Temporary Speed: (With EXTRA_FAN_SPEED enabled:)
  *   - `1` - Restore previous speed after T2
@@ -91,7 +96,7 @@ static bool set_special_fan_speed(uint8_t fan, uint8_t speed) {
 void GcodeSuite::M106() {
     const uint8_t p = parser.byteval('P', _ALT_P);
 
-    if (set_special_fan_speed(p, std::clamp<uint16_t>(parser.ushortval('S', 255), 0, 255))) {
+    if (set_special_fan_speed(p, std::clamp<uint16_t>(parser.ushortval('S', 255), 0, 255), parser.seen('R'))) {
         return;
     }
 
@@ -130,7 +135,7 @@ void GcodeSuite::M106() {
 void GcodeSuite::M107() {
     const uint8_t p = parser.byteval('P', _ALT_P);
 
-    if (set_special_fan_speed(p, 0)) {
+    if (set_special_fan_speed(p, 0, false)) {
         return;
     }
 
