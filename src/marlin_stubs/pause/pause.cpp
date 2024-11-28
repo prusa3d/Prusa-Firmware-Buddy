@@ -887,7 +887,7 @@ void Pause::unload_finish_or_change_process([[maybe_unused]] Response response) 
 
 void Pause::filament_not_in_fs_process([[maybe_unused]] Response response) {
     setPhase(PhasesLoadUnload::FilamentNotInFS);
-    if (!FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) { // Either no filament in FS or unknown (FS off)
+    if (!FSensors_instance().has_filament_surely(LogicalFilamentSensor::autoload)) {
 #if !HAS_HUMAN_INTERACTIONS()
         // In case of no human interactions, require no filament being
         // detected for at least 1s to avoid FS flicking off and on due
