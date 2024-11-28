@@ -817,11 +817,25 @@ MI_INFO_BOARD_TEMP::MI_INFO_BOARD_TEMP()
     ) {
 }
 
-#if PRINTER_IS_PRUSA_COREONE()
+#if HAS_DOOR_SENSOR()
 MI_INFO_DOOR_SENSOR::MI_INFO_DOOR_SENSOR()
-    : MenuItemAutoUpdatingLabel(_("Door Sensor"), "%d",
-        [](auto) { return sensor_data().door_sensor; } //
+    : MenuItemAutoUpdatingLabel(
+        _("Door Sensor"),
+        [this](const std::span<char> &buffer) { print_val(buffer); },
+        [](auto) { return sensor_data().door_sensor_detailed_state; } //
     ) {
+}
+
+void MI_INFO_DOOR_SENSOR::print_val(const std::span<char> &buffer) const {
+    static constexpr EnumArray<buddy::DoorSensor::State, const char *, 3> texts {
+        { buddy::DoorSensor::State::sensor_detached, N_("detached") },
+        { buddy::DoorSensor::State::door_open, N_("open") },
+        { buddy::DoorSensor::State::door_closed, N_("closed") },
+    };
+    const auto detailed_state = value();
+    StringBuilder sb(buffer);
+    sb.append_string_view(_(texts[detailed_state.state]));
+    sb.append_printf(" / 0x%04x", detailed_state.raw_data);
 }
 #endif
 

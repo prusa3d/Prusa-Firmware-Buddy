@@ -7,9 +7,11 @@
 #include "WindowItemFormatableLabel.hpp"
 #include "WindowItemFanLabel.hpp"
 #include "config.h"
+#include <buddy/door_sensor.hpp>
 #include <common/filament_sensor.hpp>
 #include <common/filament_sensor_states.hpp>
 #include <utility_extensions.hpp>
+#include <option/has_door_sensor.h>
 #include <option/has_dwarf.h>
 #include <option/has_filament_sensors_menu.h>
 #include <option/has_coldpull.h>
@@ -526,8 +528,11 @@ public:
     MI_INFO_BOARD_TEMP();
 };
 
-#if PRINTER_IS_PRUSA_COREONE()
-class MI_INFO_DOOR_SENSOR : public MenuItemAutoUpdatingLabel<uint32_t> {
+#if HAS_DOOR_SENSOR()
+class MI_INFO_DOOR_SENSOR : public MenuItemAutoUpdatingLabel<buddy::DoorSensor::DetailedState> {
+private:
+    void print_val(const std::span<char> &buffer) const;
+
 public:
     MI_INFO_DOOR_SENSOR();
 };

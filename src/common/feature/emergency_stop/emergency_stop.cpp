@@ -1,6 +1,6 @@
 #include "emergency_stop.hpp"
+#include <buddy/door_sensor.hpp>
 #include <config_store/store_c_api.h>
-#include <common/adc.hpp>
 #include <common/power_panic.hpp>
 #include <module/stepper.h>
 #include <marlin_server.hpp>
@@ -121,14 +121,9 @@ void EmergencyStop::check_z_limits() {
 }
 
 void EmergencyStop::step() {
-    const auto sensor_value = AdcGet::door_sensor();
-    // The door sensor is returning approximate values of:
-    // 0: Door closed.
-    // 2048: Door open.
-    // 4096: Sensor missing.
-    //
-    // So, approximating door closed as < 1024 (middlepoint between optimal open vs close).
-    const bool want_emergency = sensor_value >= 1024 && config_store().emergency_stop_enable.get();
+    const bool is_door_closed = door_sensor().state() == DoorSensor::State::door_closed;
+    const bool is_emergency_stop_enabled = config_store().emergency_stop_enable.get();
+    const bool want_emergency = !is_door_closed && is_emergency_stop_enabled;
     if (want_emergency && !in_emergency()) {
         emergency_start();
     } else if (!want_emergency && in_emergency()) {

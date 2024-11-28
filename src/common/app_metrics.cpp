@@ -9,6 +9,7 @@
 #include "malloc.h"
 #include "heap.h"
 #include <adc.hpp>
+#include <option/has_door_sensor.h>
 #include <option/has_advanced_power.h>
 #if HAS_ADVANCED_POWER()
     #include "advanced_power.hpp"
@@ -244,12 +245,12 @@ void buddy::metrics::RecordMarlinVariables() {
     metric_record_float(&temp_ambient, thermalManager.deg_ambient());
 #endif
 
-#if PRINTER_IS_PRUSA_COREONE()
+#if HAS_DOOR_SENSOR()
     {
         METRIC_DEF(door_sensor, "door_sensor", METRIC_VALUE_INTEGER, 1100, METRIC_ENABLED);
-        const uint32_t value = AdcGet::door_sensor();
-        metric_record_integer(&door_sensor, value);
-        sensor_data().door_sensor = value;
+        const auto door_sensor_detailed_state = buddy::door_sensor().detailed_state();
+        metric_record_integer(&door_sensor, door_sensor_detailed_state.raw_data);
+        sensor_data().door_sensor_detailed_state = door_sensor_detailed_state;
     }
 #endif
 

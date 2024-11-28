@@ -1,5 +1,6 @@
 #pragma once
 
+#include <option/has_door_sensor.h>
 #include <option/has_mmu2.h>
 #include <option/has_loadcell.h>
 #include <option/has_toolchanger.h>
@@ -82,7 +83,7 @@ struct ScreenMenuSensorInfo__<std::index_sequence<hotend...>> {
     #if HAS_LOADCELL()
         MI_INFO_LOADCELL,
     #endif
-    #if PRINTER_IS_PRUSA_COREONE()
+    #if HAS_DOOR_SENSOR()
         MI_INFO_DOOR_SENSOR,
     #endif
         MI_INFO_PRINTER_FILL_SENSOR,
