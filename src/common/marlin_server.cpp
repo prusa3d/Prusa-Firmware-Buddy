@@ -703,6 +703,10 @@ static void cycle() {
     buddy::chamber().step();
 #endif
 
+#if HAS_EMERGENCY_STOP()
+    buddy::emergency_stop().step();
+#endif
+
     static bool is_nested = false;
     if (is_nested) {
         return;
@@ -739,9 +743,6 @@ static void cycle() {
 
 #if HAS_XBUDDY_EXTENSION()
     buddy::xbuddy_extension().step();
-#endif
-#if HAS_EMERGENCY_STOP()
-    buddy::emergency_stop().step();
 #endif
 
     if (call_print_loop) {
