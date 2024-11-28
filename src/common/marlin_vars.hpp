@@ -39,7 +39,7 @@ public:
     }
 
     /**
-     * @brief Assignemnt operator, only default task is allowed to write this variable.
+     * @brief Assignment operator, only default task is allowed to write this variable.
      */
     T operator=(const T &other) {
         if (osThreadGetId() != marlin_server::server_task) {
