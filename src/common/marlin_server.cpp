@@ -686,6 +686,11 @@ void io_expander_read_loop() {
 #endif // HAS_I2C_EXPANDER()
 
 static void cycle() {
+    // Some things are somewhat time-sensitive and should be updated even in nested loops
+#if HAS_CHAMBER_API()
+    buddy::chamber().step();
+#endif
+
     static bool is_nested = false;
     if (is_nested) {
         return;
@@ -718,10 +723,6 @@ static void cycle() {
         set_warning(*notif, *notif == WarningType::EnclosureFilterExpiration ? PhasesWarning::EnclosureFilterExpiration : PhasesWarning::Warning); // Notify the GUI about the warning
     }
 
-#endif
-
-#if HAS_CHAMBER_API()
-    buddy::chamber().step();
 #endif
 
     if (call_print_loop) {
