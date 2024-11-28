@@ -276,12 +276,6 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             PrusaGcodeSuite::M9201();
             break;
 
-#if HAS_EMERGENCY_STOP()
-        case 9202:
-            PrusaGcodeSuite::M9202();
-            break;
-#endif
-
         default:
             processed = false;
             break;

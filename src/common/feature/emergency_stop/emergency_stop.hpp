@@ -25,16 +25,15 @@ private:
     std::atomic<int32_t> allowed_steps;
     std::atomic<int32_t> extra_emergency_steps;
 
-    // Is the gcode to block the print in queue / active anywhere?
-    bool gcode_scheduled = false;
-    // A warning was shown _by us_.
-    //
-    // (Isn't set if it is shown by the gcode body; eventually, we want to
-    // somehow unify these, not sure in which direction yet).
-    bool warning_shown = false;
-
     void emergency_start();
     void emergency_over();
+    
+    enum class MaybeBlockState {
+        not_running,
+        running,
+        executing_move,
+    };
+    MaybeBlockState maybe_block_state = MaybeBlockState::not_running;
 
 public:
     // Maximum "sizes" of a move segment.
@@ -50,15 +49,17 @@ public:
     //
     // Can be called from ISR, should be called often enough.
     void check_z_limits();
+
     // To be called from loop, in userspace (in Marlin thread).
     void step();
+
     // Are we in emergency mode right now?
     bool in_emergency() const { return start_z != no_emergency; }
 
-    // The actual "implementation" of the pause during print behavior, as
-    // called from the relevant gcode. Parks and waits for the emergency to
-    // pass.
-    void gcode_body();
+    /// Checks for emergency and if there is one, blocks until it is over (also possibly parking the toolhead).
+    /// This is intended to be called on various places in the marlin task, where want to prevent the user from taking action
+    /// until the emergency is over
+    void maybe_block();
 };
 
 EmergencyStop &emergency_stop();

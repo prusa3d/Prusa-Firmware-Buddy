@@ -138,10 +138,6 @@ void M9150(); //< Set stealth mode
 void M9200(); //< Re-load IS settings from config store
 void M9201(); //< Reset to default motion parameters (accelerations, feedrates, ...)
 
-#if HAS_EMERGENCY_STOP()
-void M9202(); //< Wait for emergency stop conditions to pass.
-#endif
-
 #if HAS_TOOLCHANGER()
 void P0(); //< Tool park
 #endif

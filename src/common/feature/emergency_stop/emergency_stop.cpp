@@ -6,6 +6,8 @@
 #include <marlin_server.hpp>
 
 #include <logging/log.hpp>
+#include <RAII.hpp>
+#include <scope_guard.hpp>
 
 LOG_COMPONENT_DEF(EmergencyStop, logging::Severity::debug);
 
@@ -46,65 +48,61 @@ void EmergencyStop::emergency_start() {
     allowed_steps = allowed_mm * steps;
     extra_emergency_steps = extra_emergency_mm * steps;
     start_z = current_z();
-    // TODO: Something outside of the print too. But, should we block moves then, or what?
-    if (marlin_server::printer_idle()) {
-        Planner::set_plug(true);
-    } else if (!gcode_scheduled) {
-        log_info(EmergencyStop, "Issue wait");
-        gcode_scheduled = true;
-        // TODO: It would be great if we could inject an object
-        // referencing us, not a textual representation :-|
-        //
-        // And it would be even greater if this wasn't really a gcode,
-        // but something somewhere near planner.
-        if (!marlin_server::inject(GCodeLiteral("M9202"))) {
-            log_error(EmergencyStop, "Failed to inject");
-            invoke_emergency();
-        }
-    }
 }
 
 void EmergencyStop::emergency_over() {
     log_info(EmergencyStop, "Emergency over");
     start_z = no_emergency;
-    Planner::set_plug(false);
-    if (warning_shown) {
-        marlin_server::clear_warning(WarningType::DoorOpen);
-        warning_shown = false;
-    }
 }
 
-void EmergencyStop::gcode_body() {
+void EmergencyStop::maybe_block() {
     if (!in_emergency()) {
-        gcode_scheduled = false;
         return;
     }
 
-    marlin_server::set_warning(WarningType::DoorOpen, PhasesWarning::DoorOpen);
+    switch (maybe_block_state) {
 
-    const auto old = current_position;
+    case MaybeBlockState::not_running:
+        break;
+
+    case MaybeBlockState::running:
+        // We should never get maybe_block called while executing maybe_block (maybe_block -> idle -> maybe_block).
+        // That would mean that we are trying to do moves during emergency blocking that have not beed issued by this function.
+        bsod("Nested EmergencyStop::maybe_block");
+
+    case MaybeBlockState::executing_move:
+        // We're currently parking/unparking from within this function - prevent nesting and exit.
+        return;
+    }
+
+    AutoRestore _ar(maybe_block_state, MaybeBlockState::running);
+    marlin_server::set_warning(WarningType::DoorOpen, PhasesWarning::DoorOpen);
+    ScopeGuard warning_guard = [] {
+        marlin_server::clear_warning(WarningType::DoorOpen);
+    };
+
     // Don't park:
     // * If parking would mean we have to home first (which'll look bad, but also move in Z, which'd do Bad Things).
     // * If we are not actually printing.
     const bool do_move = all_axes_homed() && !marlin_server::printer_idle();
-
+    const auto old_pos = current_position;
     if (do_move) {
+        AutoRestore _ar(maybe_block_state, MaybeBlockState::executing_move);
         do_blocking_move_to_xy(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT);
     }
+    auto unpark = [this, old_pos] {
+        AutoRestore _ar(maybe_block_state, MaybeBlockState::executing_move);
+        do_blocking_move_to_xy(old_pos.x, old_pos.y);
+    };
+    ScopeGuard unpark_guard(std::move(unpark), do_move);
 
+    // Wait for the emergency to be over
     while (in_emergency()) {
         idle(true, true);
     }
 
-    gcode_scheduled = false;
-
-    if (do_move) {
-        do_blocking_move_to_xy(old.x, old.y);
-    }
-
-    marlin_server::clear_warning(WarningType::DoorOpen);
+    // Trigger the scope guards: unpark, clear the warning
 }
-
 void EmergencyStop::check_z_limits() {
     const int32_t emergency_start_z = start_z.load();
     if (emergency_start_z != no_emergency) {
@@ -128,20 +126,6 @@ void EmergencyStop::step() {
         emergency_start();
     } else if (!want_emergency && in_emergency()) {
         emergency_over();
-    }
-
-    if (in_emergency() && marlin_server::printer_idle() && !Planner::is_plugged()) {
-        // Special case. The print finished with open door and we need to
-        // transfer from one mode of blocking to the other.
-        //
-        // (The other direction is handled automatically by queueing M9202 at
-        // the start of print).
-        Planner::set_plug(true);
-    }
-
-    if (in_emergency() && !warning_shown && Planner::waiting_on_plug()) {
-        marlin_server::set_warning(WarningType::DoorOpen, PhasesWarning::DoorOpen);
-        warning_shown = true;
     }
 }
 

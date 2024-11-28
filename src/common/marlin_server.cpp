@@ -872,6 +872,13 @@ void loop() {
     server.idle_cnt = 0;
     cycle();
 
+#if HAS_EMERGENCY_STOP()
+    // During printing, possibly block anytime
+    if (server.print_state == State::Printing) {
+        buddy::emergency_stop().maybe_block();
+    }
+#endif
+
 #if HAS_NFC()
     if (printer_idle() && !fsm_states.get_top().has_value()) {
         handle_nfc();
@@ -921,6 +928,14 @@ static void idle(void) {
             _send_notify_event(Event::CommandBegin, server.command, 0);
         }
     }
+
+#if HAS_EMERGENCY_STOP()
+    // During printing, possibly block anytime
+    if (server.print_state == State::Printing) {
+        buddy::emergency_stop().maybe_block();
+    }
+#endif
+
     cycle();
 }
 
@@ -1500,14 +1515,6 @@ void update_sfn() {
 
 void print_resume(void) {
     if (server.print_state == State::Paused) {
-#if HAS_EMERGENCY_STOP()
-        if (buddy::emergency_stop().in_emergency()) {
-            // TODO: How do we schedule another attempt to un-pause once it is closed?
-            // TODO: Should the screen also disable the unpause button / change icon / something?
-            inject(GCodeLiteral("M9202"));
-            return;
-        }
-#endif
         update_sfn();
 
         server.print_state = State::Resuming_Begin;
@@ -1935,11 +1942,6 @@ static void _server_print_loop(void) {
         probe_offset.z = 0;
         marlin_vars().z_offset = 0;
 #endif // HAS_LOADCELL()
-
-#if HAS_EMERGENCY_STOP()
-        // Wait for door closed
-        inject(GCodeLiteral("M9202"));
-#endif
 
         media_prefetch_start();
         print_job_timer.start();
@@ -2654,11 +2656,6 @@ void resuming_begin(void) {
 #endif
         server.print_state = State::Resuming_Reheating;
     }
-
-#if HAS_EMERGENCY_STOP()
-    // Wait for door closed
-    inject(GCodeLiteral("M9202"));
-#endif
 
     if (!server.print_is_serial) {
         media_prefetch_start();

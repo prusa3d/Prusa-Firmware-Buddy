@@ -104,6 +104,11 @@
 #include "../feature/phase_stepping/phase_stepping.hpp"
 #endif // HAS_PHASE_STEPPING()
 
+#include <option/has_emergency_stop.h>
+#if HAS_EMERGENCY_STOP()
+  #include <feature/emergency_stop/emergency_stop.hpp>
+#endif
+
 #include "configuration_store.h"
 
 constexpr const int32_t MIN_MSTEPS_PER_SEGMENT = MIN_STEPS_PER_SEGMENT * PLANNER_STEPS_MULTIPLIER;
@@ -139,10 +144,6 @@ const planner_settings_t &Planner::settings = working_settings_;
 const user_planner_settings_t &Planner::user_settings = user_settings_;
 
 bool Planner::stealth_mode_ = false;
-#if HAS_EMERGENCY_STOP()
-bool Planner::plugged = false;
-bool Planner::plug_holding = false;
-#endif
 
 void Planner::apply_settings(const user_planner_settings_t &settings) {
   static constexpr planner_settings_t standard_limits = {
@@ -2104,12 +2105,7 @@ bool Planner::buffer_segment(const abce_pos_t &abce
   if (draining_buffer || PreciseStepping::stopping()) return false;
 
 #if HAS_EMERGENCY_STOP()
-  while (plugged) {
-      plug_holding = true;
-      idle(true);
-  }
-
-  plug_holding = false;
+  buddy::emergency_stop().maybe_block();
 #endif
 
   #if ENABLED(CRASH_RECOVERY)
