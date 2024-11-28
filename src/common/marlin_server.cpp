@@ -707,6 +707,10 @@ static void cycle() {
     buddy::emergency_stop().step();
 #endif
 
+#if HAS_XBUDDY_EXTENSION()
+    buddy::xbuddy_extension().step();
+#endif
+
     static bool is_nested = false;
     if (is_nested) {
         return;
@@ -739,10 +743,6 @@ static void cycle() {
         set_warning(*notif, *notif == WarningType::EnclosureFilterExpiration ? PhasesWarning::EnclosureFilterExpiration : PhasesWarning::Warning); // Notify the GUI about the warning
     }
 
-#endif
-
-#if HAS_XBUDDY_EXTENSION()
-    buddy::xbuddy_extension().step();
 #endif
 
     if (call_print_loop) {
