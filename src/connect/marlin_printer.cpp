@@ -23,6 +23,7 @@
 #endif
 #if PRINTER_IS_PRUSA_COREONE()
     #include <feature/chamber/chamber.hpp>
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
 #include <client_response.hpp>
 
@@ -275,7 +276,13 @@ Printer::Params MarlinPrinter::params() const {
 #endif
 #if PRINTER_IS_PRUSA_COREONE()
     params.chamber_info = {
-        .target_temp = (uint32_t)buddy::chamber().target_temperature().value_or(connect_client::Printer::ChamberInfo::target_temp_unset)
+        .target_temp = (uint32_t)buddy::chamber().target_temperature().value_or(connect_client::Printer::ChamberInfo::target_temp_unset),
+        .fan_1_rpm = buddy::xbuddy_extension().fan1_rpm().value_or(0), // @@TODO locking modbus may slow down things?
+        .fan_2_rpm = buddy::xbuddy_extension().fan2_rpm().value_or(0),
+        .fan_pwm_target = static_cast<int8_t>(buddy::xbuddy_extension().has_fan1_fan2_auto_control() // check for autocontrol
+                ? (int8_t)-1 // autocontrol
+                : (int8_t)((uint16_t)buddy::xbuddy_extension().fan1_fan2_pwm() * 100 / 255) // convert from PWM into percentage
+            )
     };
 #endif
     params.print_duration = marlin_vars().print_duration;

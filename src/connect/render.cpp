@@ -197,7 +197,10 @@ namespace {
 #endif
 #if PRINTER_IS_PRUSA_COREONE()
                 JSON_FIELD_OBJ("chamber");
-                    JSON_FIELD_INT("target_temp", params.chamber_info.target_temp);
+                    JSON_FIELD_INT("target_temp", params.chamber_info.target_temp) JSON_COMMA;
+                    JSON_FIELD_INT("fan_1_rpm", params.chamber_info.fan_1_rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_2_rpm", params.chamber_info.fan_2_rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_pwm_target", params.chamber_info.fan_pwm_target);
                 JSON_OBJ_END JSON_COMMA;
 #endif
                 if (!params.has_job) {

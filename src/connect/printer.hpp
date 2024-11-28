@@ -81,6 +81,10 @@ public:
     struct ChamberInfo {
         static constexpr int target_temp_unset = 0U; // agreed with the Connect team, that 0 maps to unset values
         uint32_t target_temp = target_temp_unset;
+        uint16_t fan_1_rpm = 0;
+        uint16_t fan_2_rpm = 0;
+        static constexpr int8_t fan_pwm_target_unset = -1; // -1 means auto control, 0-100 is pwm percentage for manual control
+        int8_t fan_pwm_target = fan_pwm_target_unset;
     };
 #endif
 

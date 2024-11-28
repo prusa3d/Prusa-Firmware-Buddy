@@ -405,6 +405,8 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
 #if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
         } else if (is_arg("chamber.target_temp", Type::Primitive)) {
             SET_VALUE_ARG(PropertyName::ChamberTargetTemp, uint32_t);
+        } else if (is_arg("chamber.fan_pwm_target", Type::Primitive)) {
+            SET_VALUE_ARG(PropertyName::ChamberFanPwmTarget, int8_t);
 #endif
         }
     });

@@ -16,6 +16,7 @@
 #endif
 #if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
     #include <feature/chamber/chamber.hpp>
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
 #include <alloca.h>
 #include <algorithm>
@@ -980,6 +981,14 @@ void Planner::command(const Command &command, const SetValue &params) {
         auto target_temp = get<uint32_t>(params.value);
         buddy::chamber().set_target_temperature(target_temp == connect_client::Printer::ChamberInfo::target_temp_unset ? nullopt : std::make_optional(target_temp));
     } break;
+    case connect_client::PropertyName::ChamberFanPwmTarget:
+        int8_t pwm = get<int8_t>(params.value);
+        if (pwm < 0) {
+            buddy::xbuddy_extension().set_fan1_fan2_auto_control();
+        } else {
+            buddy::xbuddy_extension().set_fan1_fan2_pwm(buddy::XBuddyExtension::pct2pwm(pwm)); // convert from percentage to PWM
+        }
+        break;
 #endif
     }
     if (err != nullptr) {
