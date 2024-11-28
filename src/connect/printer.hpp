@@ -77,6 +77,13 @@ public:
     };
 #endif
 
+#if PRINTER_IS_PRUSA_COREONE()
+    struct ChamberInfo {
+        static constexpr int target_temp_unset = 0U; // agreed with the Connect team, that 0 maps to unset values
+        uint32_t target_temp = target_temp_unset;
+    };
+#endif
+
     static constexpr size_t X_AXIS_POS = 0;
     static constexpr size_t Y_AXIS_POS = 1;
     static constexpr size_t Z_AXIS_POS = 2;
@@ -102,6 +109,9 @@ public:
         std::array<SlotInfo, NUMBER_OF_SLOTS> slots;
 #if XL_ENCLOSURE_SUPPORT()
         EnclosureInfo enclosure_info;
+#endif
+#if PRINTER_IS_PRUSA_COREONE()
+        ChamberInfo chamber_info;
 #endif
 #if HAS_MMU2()
         MMU2::Version mmu_version = { 0, 0, 0 };

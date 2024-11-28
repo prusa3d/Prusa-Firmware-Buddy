@@ -106,6 +106,11 @@ enum class PropertyName {
     NozzleDiameter,
     NozzleHighFlow,
     NozzleHardened,
+#if PRINTER_IS_PRUSA_COREONE()
+    // Note: for now we only want to support the chamber features on Core One.
+    // Therefore option HAS_CHAMBER_API is NOT used yet.
+    ChamberTargetTemp,
+#endif
 };
 
 #undef NOZZLE_NAMES

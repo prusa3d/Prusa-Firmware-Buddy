@@ -21,7 +21,9 @@
     #include <xl_enclosure.hpp>
     #include <fanctl.hpp>
 #endif
-
+#if PRINTER_IS_PRUSA_COREONE()
+    #include <feature/chamber/chamber.hpp>
+#endif
 #include <client_response.hpp>
 
 #include <cassert>
@@ -269,6 +271,11 @@ Printer::Params MarlinPrinter::params() const {
         .temp = static_cast<int>(xl_enclosure.getEnclosureTemperature().value_or(0)),
         .fan_rpm = Fans::enclosure().getActualRPM(),
         .time_in_use = std::min(config_store().xl_enclosure_filter_timer.get(), Enclosure::expiration_deadline_sec)
+    };
+#endif
+#if PRINTER_IS_PRUSA_COREONE()
+    params.chamber_info = {
+        .target_temp = (uint32_t)buddy::chamber().target_temperature().value_or(connect_client::Printer::ChamberInfo::target_temp_unset)
     };
 #endif
     params.print_duration = marlin_vars().print_duration;

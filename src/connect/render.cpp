@@ -195,6 +195,11 @@ namespace {
                     JSON_OBJ_END JSON_COMMA;
                 }
 #endif
+#if PRINTER_IS_PRUSA_COREONE()
+                JSON_FIELD_OBJ("chamber");
+                    JSON_FIELD_INT("target_temp", params.chamber_info.target_temp);
+                JSON_OBJ_END JSON_COMMA;
+#endif
                 if (!params.has_job) {
                     // To avoid spamming the DB, connect doesn't want positions during printing
                     JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
