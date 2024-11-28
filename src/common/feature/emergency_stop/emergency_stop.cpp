@@ -42,19 +42,6 @@ namespace {
     }
 } // namespace
 
-void EmergencyStop::emergency_start() {
-    log_info(EmergencyStop, "Emergency start");
-    const auto steps = get_steps_per_unit_z();
-    allowed_steps = allowed_mm * steps;
-    extra_emergency_steps = extra_emergency_mm * steps;
-    start_z = current_z();
-}
-
-void EmergencyStop::emergency_over() {
-    log_info(EmergencyStop, "Emergency over");
-    start_z = no_emergency;
-}
-
 void EmergencyStop::maybe_block() {
     if (!in_emergency()) {
         return;
@@ -122,10 +109,17 @@ void EmergencyStop::step() {
     const bool is_door_closed = door_sensor().state() == DoorSensor::State::door_closed;
     const bool is_emergency_stop_enabled = config_store().emergency_stop_enable.get();
     const bool want_emergency = !is_door_closed && is_emergency_stop_enabled;
+
     if (want_emergency && !in_emergency()) {
-        emergency_start();
+        log_info(EmergencyStop, "Emergency start");
+        const auto steps = get_steps_per_unit_z();
+        allowed_steps = allowed_mm * steps;
+        extra_emergency_steps = extra_emergency_mm * steps;
+        start_z = current_z();
+
     } else if (!want_emergency && in_emergency()) {
-        emergency_over();
+        log_info(EmergencyStop, "Emergency over");
+        start_z = no_emergency;
     }
 }
 

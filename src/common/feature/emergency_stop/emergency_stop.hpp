@@ -25,9 +25,6 @@ private:
     std::atomic<int32_t> allowed_steps;
     std::atomic<int32_t> extra_emergency_steps;
 
-    void emergency_start();
-    void emergency_over();
-    
     enum class MaybeBlockState {
         not_running,
         running,
