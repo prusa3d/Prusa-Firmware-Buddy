@@ -29,7 +29,7 @@
 static constexpr feedRate_t Z_CALIB_ALIGN_AXIS_FEEDRATE = 15.f; // mm/s
 static constexpr float Z_CALIB_EXTRA_HIGHT = 5.f; // mm
 
-#if PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_COREONE()
+#if PRINTER_IS_PRUSA_XL()
 
 void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
     marlin_server::fsm_change(PhasesSelftest::CalibZ);
