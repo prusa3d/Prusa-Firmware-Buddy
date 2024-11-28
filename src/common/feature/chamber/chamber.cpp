@@ -89,6 +89,10 @@ void Chamber::set_target_temperature(std::optional<Temperature> target) {
 void Chamber::reset() {
     std::lock_guard _lg(mutex_);
     target_temperature_ = std::nullopt;
+
+#if HAS_XBUDDY_EXTENSION()
+    xbuddy_extension().set_fan1_fan2_auto_control();
+#endif
 }
 
 } // namespace buddy
