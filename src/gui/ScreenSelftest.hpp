@@ -15,7 +15,7 @@ class ScreenSelftest : public screen_t {
 #if PRINTER_IS_PRUSA_XL()
     static constexpr size_t storage_size = 2048;
 #else
-    static constexpr size_t storage_size = 1536;
+    static constexpr size_t storage_size = 1560;
 #endif
     alignas(std::max_align_t) std::array<uint8_t, storage_size> storage;
 
