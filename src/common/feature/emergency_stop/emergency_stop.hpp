@@ -37,6 +37,15 @@ private:
     void emergency_over();
 
 public:
+    // Maximum "sizes" of a move segment.
+    //
+    // Used for limiting the sizes of segments submited to the planner,
+    // allowing finer/sooner pause.
+    //
+    // Hopefully a compromise between being able to act fast and not spamming
+    // the planner with too many too small segments.
+    static constexpr float max_segment_time_s = 0.1;
+    static constexpr float max_segment_z_mm = 0.05;
     // Check the z limits (how far did we move during an emergency situation).
     //
     // Can be called from ISR, should be called often enough.

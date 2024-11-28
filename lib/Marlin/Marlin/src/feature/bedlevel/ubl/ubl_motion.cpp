@@ -34,6 +34,9 @@
 #endif
 
 #include <option/has_emergency_stop.h>
+#if HAS_EMERGENCY_STOP()
+#include <feature/emergency_stop/emergency_stop.hpp>
+#endif
 
 #include "../../../Marlin.h"
 #include <math.h>
@@ -376,10 +379,10 @@
      */
     #if HAS_EMERGENCY_STOP()
       // TODO: Fine-tune constants.
-      const float segments_for_z = total.z / 0.05;
+      const float segments_for_z = total.z / buddy::EmergencyStop::max_segment_z_mm;
       NOLESS(segments, LROUND(segments_for_z));
 
-      const float segments_for_time = seconds / 0.1;
+      const float segments_for_time = seconds / buddy::EmergencyStop::max_segment_time_s;
       NOLESS(segments, LROUND(segments_for_time));
     #endif
 
