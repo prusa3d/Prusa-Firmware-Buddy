@@ -17,9 +17,6 @@ WindowIconOkNgArray::WindowIconOkNgArray(window_t *parent, const point_i16_t pt,
     , animation_stage(0) {
     assert(icon_cnt <= max_icon_cnt);
     states.fill(state);
-    for (uint8_t i = icon_cnt; i < max_icon_cnt; i++) {
-        hidden.set(i);
-    }
 }
 
 void WindowIconOkNgArray::SetIconHidden(const size_t idx, const bool set_hidden) {
@@ -41,8 +38,8 @@ void WindowIconOkNgArray::SetState(const SelftestSubtestState_t state, const siz
 }
 
 void WindowIconOkNgArray::unconditionalDraw() {
-    size_t visible_left = hidden.size() - hidden.count();
-    for (size_t i = 0; i < max_icon_cnt; i++) {
+    size_t visible_left = icon_cnt - hidden.count();
+    for (size_t i = 0; i < icon_cnt; i++) {
         if (hidden[i]) {
             continue;
         }
