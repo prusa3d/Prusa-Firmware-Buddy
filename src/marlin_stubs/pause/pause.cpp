@@ -553,6 +553,7 @@ void Pause::await_filament_process([[maybe_unused]] Response response) {
 
     // Either side sensor not working or it has filament, go to loading
     if (!FSensors_instance().no_filament_surely(LogicalFilamentSensor::side)) {
+        mapi::park_move_with_conditional_home(mapi::park_positions[mapi::ParkPosition::load], mapi::ZAction::no_move);
         set_timed(LoadState::assist_insertion);
         return;
     }
