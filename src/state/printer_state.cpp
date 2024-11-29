@@ -6,8 +6,8 @@
 #include <option/has_mmu2.h>
 #include <option/has_dwarf.h>
 #include <option/has_input_shaper_calibration.h>
+#include <option/xl_enclosure_support.h>
 #include <config_store/store_instance.hpp>
-#include <device/board.h>
 
 using namespace marlin_server;
 using namespace printer_state;

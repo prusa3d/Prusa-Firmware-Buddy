@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include <marlin_server_shared.h>
+#include <option/xl_enclosure_support.h>
 
 #if XL_ENCLOSURE_SUPPORT()
     #include <hw/xl/xl_enclosure.hpp>

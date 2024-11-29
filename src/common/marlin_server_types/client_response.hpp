@@ -26,7 +26,9 @@
 #include <option/has_nfc.h>
 #include <option/has_belt_tuning.h>
 #include <option/has_gears_calibration.h>
+#include <option/xl_enclosure_support.h>
 #include <common/hotend_type.hpp>
+#include <device/board.h>
 
 /// number of bits used to encode response
 // TODO: Make 2 everywhere: BFW-6028

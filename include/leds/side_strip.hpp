@@ -4,7 +4,7 @@
 #include <hw/neopixel.hpp>
 #include "led_lcd_cs_selector.hpp"
 #include "printers.h"
-#include <device/board.h>
+#include <option/xl_enclosure_support.h>
 
 namespace leds {
 

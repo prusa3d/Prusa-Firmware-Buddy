@@ -10,9 +10,9 @@
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_belt_tuning.h>
 #include <option/has_side_fsensor.h>
+#include <option/xl_enclosure_support.h>
 
 #include <inc/MarlinConfigPre.h>
-#include <device/board.h>
 
 #include <stdint.h>
 #include <utils/utility_extensions.hpp>

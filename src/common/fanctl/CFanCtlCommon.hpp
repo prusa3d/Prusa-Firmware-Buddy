@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <printers.h>
-#include <device/board.h>
+#include <option/xl_enclosure_support.h>
 
 class CFanCtlCommon {
 public:
