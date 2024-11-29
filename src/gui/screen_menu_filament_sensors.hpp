@@ -4,10 +4,12 @@
 #pragma once
 
 #include "screen_menu.hpp"
-#include <option/has_toolchanger.h>
+#include <option/has_side_fsensor.h>
 #include "MItem_tools.hpp"
 
 namespace NScreenMenuFilamentSensors {
+
+static constexpr size_t toolhead_count = HOTENDS;
 
 class MI_RestoreDefaults final : public IWindowMenuItem {
     static constexpr const char *label = N_("Restore Defaults");
@@ -37,14 +39,6 @@ protected:
     const bool is_side;
 };
 
-class IMI_SideSensor : public IMI_AnySensor {
-    static constexpr const char *label_base = N_("Side Filament Sensor");
-
-protected:
-    inline IMI_SideSensor(uint8_t sensor_index)
-        : IMI_AnySensor(sensor_index, true, label_base) {}
-};
-
 class IMI_ExtruderSensor : public IMI_AnySensor {
     static constexpr const char *label_base = N_("Toolhead Filament Sensor");
 
@@ -54,28 +48,42 @@ protected:
 };
 
 template <size_t sensor_index_>
-class MI_SideSensor final : public IMI_SideSensor {
-public:
-    MI_SideSensor()
-        : IMI_SideSensor(sensor_index_) {}
-};
-
-template <size_t sensor_index_>
 class MI_ExtruderSensor final : public IMI_ExtruderSensor {
 public:
     MI_ExtruderSensor()
         : IMI_ExtruderSensor(sensor_index_) {}
 };
 
+#if HAS_SIDE_FSENSOR()
+class IMI_SideSensor : public IMI_AnySensor {
+    static constexpr const char *label_base = N_("Side Filament Sensor");
+
+protected:
+    inline IMI_SideSensor(uint8_t sensor_index)
+        : IMI_AnySensor(sensor_index, true, label_base) {}
+};
+
+template <size_t sensor_index_>
+class MI_SideSensor final : public IMI_SideSensor {
+public:
+    MI_SideSensor()
+        : IMI_SideSensor(sensor_index_) {}
+};
+#endif
+
 template <typename I>
 struct MenuBase_;
 
 template <size_t... i>
 struct MenuBase_<std::index_sequence<i...>> {
-    using T = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_FILAMENT_SENSOR, MI_SideSensor<i>..., MI_ExtruderSensor<i>..., MI_RestoreDefaults>;
+    using T = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_FILAMENT_SENSOR,
+#if HAS_SIDE_FSENSOR()
+        MI_SideSensor<i>...,
+#endif
+        MI_ExtruderSensor<i>..., MI_RestoreDefaults>;
 };
 
-using MenuBase = MenuBase_<std::make_index_sequence<EXTRUDERS>>::T;
+using MenuBase = MenuBase_<std::make_index_sequence<toolhead_count>>::T;
 
 } // namespace NScreenMenuFilamentSensors
 

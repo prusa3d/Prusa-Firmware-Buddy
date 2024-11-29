@@ -214,6 +214,7 @@ class MI_MMU_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
 public:
     MI_MMU_ENABLE();
     virtual void OnChange(size_t old_index) override;
+    virtual void Loop() override;
 };
 
 class MI_MMU_CUTTER : public WI_ICON_SWITCH_OFF_ON_t {

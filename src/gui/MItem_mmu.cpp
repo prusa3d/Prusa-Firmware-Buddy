@@ -209,7 +209,9 @@ static bool flip_mmu_rework([[maybe_unused]] bool flip_mmu_at_the_end) {
 /**********************************************************************************************/
 // MI_MMU_ENABLE
 MI_MMU_ENABLE::MI_MMU_ENABLE()
-    : WI_ICON_SWITCH_OFF_ON_t(FSensors_instance().HasMMU(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().mmu2_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
 void MI_MMU_ENABLE::OnChange(size_t old_index) {
     if (!index) {
         // Disale MMU
@@ -234,6 +236,10 @@ void MI_MMU_ENABLE::OnChange(size_t old_index) {
 
         marlin_client::gcode("M709 S1");
     }
+}
+
+void MI_MMU_ENABLE::Loop() {
+    set_value(config_store().mmu2_enabled.get(), 0);
 }
 
 /**********************************************************************************************/
