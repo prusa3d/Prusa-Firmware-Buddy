@@ -4,6 +4,7 @@
 #include <planner.hpp>
 #include <transfers/monitor.hpp>
 #include <transfers/changed_path.hpp>
+#include <feature/chamber/chamber.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -416,3 +417,28 @@ TEST_CASE("FileChanged after multiple fs changes") {
     REQUIRE(event->incident == ChangedPath::Incident::Combined);
 }
 // TODO: Tests for unknown commands and such
+
+TEST_CASE("Command Set value - chamber.target_temp set/unset logic") {
+    SECTION("0") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberTargetTemp, 0, uint32_t(0) } };
+        test.planner.command(command);
+        REQUIRE_FALSE(buddy::chamber().target_temperature().has_value());
+    }
+
+    SECTION("35") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberTargetTemp, 0, uint32_t(35) } };
+        test.planner.command(command);
+        REQUIRE(buddy::chamber().target_temperature().has_value());
+        REQUIRE(buddy::chamber().target_temperature().value() == 35);
+    }
+
+    SECTION("55") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberTargetTemp, 0, uint32_t(55) } };
+        test.planner.command(command);
+        REQUIRE(buddy::chamber().target_temperature().has_value());
+        REQUIRE(buddy::chamber().target_temperature().value() == 55);
+    }
+}

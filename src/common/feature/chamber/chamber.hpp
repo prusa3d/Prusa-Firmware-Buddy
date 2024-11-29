@@ -3,6 +3,7 @@
 #include <optional>
 
 #include <common/temperature.hpp>
+#include <freertos/mutex.hpp>
 
 // TODO: Migrate XL Enclosure to use this API (& unify)
 // TODO: Add support for controlling MK4 enclosure through GPIO expander

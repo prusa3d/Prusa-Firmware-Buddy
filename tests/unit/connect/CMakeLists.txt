@@ -50,6 +50,7 @@ add_executable(
   printer.cpp
   partial_file_mock.cpp
   gui_media_events_mock.cpp
+  buddy_chamber_mock.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
@@ -166,6 +167,7 @@ add_executable(
   planner.cpp
   partial_file_mock.cpp
   gui_media_events_mock.cpp
+  buddy_chamber_mock.cpp
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aes.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aesni.c
   # LwIP parts

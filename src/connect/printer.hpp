@@ -77,7 +77,7 @@ public:
     };
 #endif
 
-#if PRINTER_IS_PRUSA_COREONE()
+#if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
     struct ChamberInfo {
         static constexpr int target_temp_unset = 0U; // agreed with the Connect team, that 0 maps to unset values
         uint32_t target_temp = target_temp_unset;
@@ -110,7 +110,7 @@ public:
 #if XL_ENCLOSURE_SUPPORT()
         EnclosureInfo enclosure_info;
 #endif
-#if PRINTER_IS_PRUSA_COREONE()
+#if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
         ChamberInfo chamber_info;
 #endif
 #if HAS_MMU2()

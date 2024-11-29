@@ -14,7 +14,7 @@
 #if XL_ENCLOSURE_SUPPORT()
     #include <xl_enclosure.hpp>
 #endif
-#if PRINTER_IS_PRUSA_COREONE()
+#if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
     #include <feature/chamber/chamber.hpp>
 #endif
 #include <alloca.h>
@@ -975,7 +975,7 @@ void Planner::command(const Command &command, const SetValue &params) {
             slot.nozzle_diameter = get<float>(params.value);
         });
         break;
-#if PRINTER_IS_PRUSA_COREONE()
+#if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
     case connect_client::PropertyName::ChamberTargetTemp: {
         auto target_temp = get<uint32_t>(params.value);
         buddy::chamber().set_target_temperature(target_temp == connect_client::Printer::ChamberInfo::target_temp_unset ? nullopt : std::make_optional(target_temp));
