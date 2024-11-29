@@ -24,46 +24,46 @@
 
 #if FAN_COUNT > 0
 
-#include "../gcode.h"
-#include "../../module/motion.h"
-#include "../../module/temperature.h"
-#include "fanctl.hpp"
-#include <device/board.h>
-#include <option/has_xbuddy_extension.h>
+    #include "../gcode.h"
+    #include "../../module/motion.h"
+    #include "../../module/temperature.h"
+    #include "fanctl.hpp"
+    #include <device/board.h>
+    #include <option/has_xbuddy_extension.h>
 
-#if HAS_XBUDDY_EXTENSION()
-  #include <feature/xbuddy_extension/xbuddy_extension.hpp>
-#endif
+    #if HAS_XBUDDY_EXTENSION()
+        #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+    #endif
 
-#if ENABLED(SINGLENOZZLE)
-  #define _ALT_P active_extruder
-  #define _CNT_P EXTRUDERS
-#elif ENABLED(PRUSA_TOOLCHANGER)
-  #define _ALT_P 0
-  #define _CNT_P FAN_COUNT
-#else
-  #define _ALT_P _MIN(active_extruder, FAN_COUNT - 1)
-  #define _CNT_P FAN_COUNT
-#endif
+    #if ENABLED(SINGLENOZZLE)
+        #define _ALT_P active_extruder
+        #define _CNT_P EXTRUDERS
+    #elif ENABLED(PRUSA_TOOLCHANGER)
+        #define _ALT_P 0
+        #define _CNT_P FAN_COUNT
+    #else
+        #define _ALT_P _MIN(active_extruder, FAN_COUNT - 1)
+        #define _CNT_P FAN_COUNT
+    #endif
 
 static bool set_special_fan_speed(uint8_t fan, uint8_t speed) {
-#if XL_ENCLOSURE_SUPPORT()
+    #if XL_ENCLOSURE_SUPPORT()
     static_assert(FAN_COUNT < 3, "Fan index 3 is reserved for Enclosure fan and should not be set by thermalManager");
     if (fan == 3) {
         Fans::enclosure().setPWM(speed);
         return true;
     }
-#endif
+    #endif
 
-#if HAS_XBUDDY_EXTENSION()
-  static_assert(FAN_COUNT < 3, "Fan 3 is dedicated to extboard");
-  if(fan == 3) {
-    buddy::xbuddy_extension().set_fan1_fan2_pwm(speed);
-    return true;
-  }
-#endif
+    #if HAS_XBUDDY_EXTENSION()
+    static_assert(FAN_COUNT < 3, "Fan 3 is dedicated to extboard");
+    if (fan == 3) {
+        buddy::xbuddy_extension().set_fan1_fan2_pwm(speed);
+        return true;
+    }
+    #endif
 
-  return false;
+    return false;
 }
 
 /** \addtogroup G-Codes
@@ -91,8 +91,8 @@ static bool set_special_fan_speed(uint8_t fan, uint8_t speed) {
 void GcodeSuite::M106() {
     const uint8_t p = parser.byteval('P', _ALT_P);
 
-    if(set_special_fan_speed(p, std::clamp<uint16_t>(parser.ushortval('S', 255), 0, 255))) {
-      return;
+    if (set_special_fan_speed(p, std::clamp<uint16_t>(parser.ushortval('S', 255), 0, 255))) {
+        return;
     }
 
     if (p < _CNT_P) {
@@ -112,7 +112,6 @@ void GcodeSuite::M106() {
         }
     #endif
 
-
         thermalManager.set_fan_speed(p, s);
     }
 }
@@ -129,13 +128,13 @@ void GcodeSuite::M106() {
  * - `P` - Fan index
  */
 void GcodeSuite::M107() {
-  const uint8_t p = parser.byteval('P', _ALT_P);
+    const uint8_t p = parser.byteval('P', _ALT_P);
 
-  if(set_special_fan_speed(p, 0)) {
-    return;
-  }
+    if (set_special_fan_speed(p, 0)) {
+        return;
+    }
 
-  thermalManager.set_fan_speed(p, 0);
+    thermalManager.set_fan_speed(p, 0);
 }
 
 /** @}*/
