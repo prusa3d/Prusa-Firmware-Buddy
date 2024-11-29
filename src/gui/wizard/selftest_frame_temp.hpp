@@ -34,19 +34,12 @@ class ScreenSelftestTemp : public SelftestFrameWithRadio {
     window_text_t text_dialog;
 
     // result per each HOTEND
-    struct hotend_result_t {
-        WindowIcon_OkNg icon_noz_prep;
-        WindowIcon_OkNg icon_noz_heat;
+
+    WindowIconOkNgArray icons_noz_prep;
+    WindowIconOkNgArray icons_noz_heat;
 #if HAS_HEATBREAK_TEMP()
-        WindowIcon_OkNg icon_heatbreak;
+    WindowIconOkNgArray icons_heatbreak;
 #endif
-    };
-
-    std::array<hotend_result_t, HOTENDS> hotend_results;
-
-    hotend_result_t make_hotend_result_row(size_t index);
-    template <size_t... Is>
-    std::array<hotend_result_t, sizeof...(Is)> make_hotend_result_array(std::index_sequence<Is...> index_sequence);
 
 protected:
     virtual void change() override;

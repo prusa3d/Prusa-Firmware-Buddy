@@ -16,6 +16,8 @@ constexpr size_t text_w = WizardDefaults::status_text_w;
 constexpr size_t col_0 = WizardDefaults::MarginLeft;
 constexpr size_t col_1 = WizardDefaults::status_icon_X_pos;
 
+constexpr int16_t tool_icons_x = int16_t(col_1 - HOTENDS * WindowIconOkNgArray::icon_space_width);
+
 constexpr size_t txt_h = WizardDefaults::txt_h;
 constexpr size_t row_h = WizardDefaults::row_h;
 
@@ -65,38 +67,6 @@ constexpr const char *en_text_dialog_noz_disabled = N_("The heater test will be 
 constexpr const char *en_text_info_noz_disabled = N_("Some nozzle heater checks were disabled due to their hotend fan checks not having passed.");
 } // namespace
 
-ScreenSelftestTemp::hotend_result_t ScreenSelftestTemp::make_hotend_result_row(size_t index) {
-    constexpr static int16_t ICON_SPACING = 20;
-
-    [[maybe_unused]] unsigned int disabled = 0;
-#if HAS_TOOLCHANGER()
-    // when toolchanger is enabled, count how many tools after this one are disabled, and shift icons to the right over the hidden ones
-
-    for (size_t i = index; i < HOTENDS; i++) {
-        if (!prusa_toolchanger.is_tool_enabled(i)) {
-            ++disabled;
-        }
-    }
-#endif
-
-    // Align it to the right (to the col_1), omit disabled tools
-    const int16_t y = col_1 - HOTENDS * ICON_SPACING + (index + 1 + disabled) * ICON_SPACING;
-
-    return {
-        .icon_noz_prep = WindowIcon_OkNg(&test_frame, { y, row_noz_2 }),
-        .icon_noz_heat = WindowIcon_OkNg(&test_frame, { y, row_noz_3 }),
-#if HAS_HEATBREAK_TEMP()
-        .icon_heatbreak = WindowIcon_OkNg(&test_frame, { y, row_heatbreak }),
-#endif
-    };
-}
-
-template <size_t... Is>
-std::array<ScreenSelftestTemp::hotend_result_t, sizeof...(Is)> ScreenSelftestTemp::make_hotend_result_array(std::index_sequence<Is...>) {
-    //  this is just fancy template way to init array in constructor initializer_list
-    return { (make_hotend_result_row(Is))... };
-}
-
 static bool is_tested(SelftestHeaters_t &dt, SelftestHeaters_t::TestedParts part) {
     return dt.tested_parts & to_one_hot(part);
 }
@@ -129,16 +99,22 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
     , text_info(&test_frame, info_text_rect, is_multiline::yes)
     , text_dialog(this, GetRect() + Rect16::X_t(WizardDefaults::MarginLeft) + Rect16::Y_t(GuiDefaults::FramePadding) - Rect16::H_t(80) - Rect16::W_t(2 * WizardDefaults::MarginLeft), is_multiline::yes, is_closed_on_click_t::no, {})
     // results
-    , hotend_results(make_hotend_result_array(std::make_index_sequence<HOTENDS>())) {
+    , icons_noz_prep(&test_frame, { .x = tool_icons_x, .y = row_noz_2 }, HOTENDS)
+    , icons_noz_heat(&test_frame, { .x = tool_icons_x, .y = row_noz_3 }, HOTENDS)
+#if HAS_HEATBREAK_TEMP()
+    , icons_heatbreak(&test_frame, { .x = tool_icons_x, .y = row_heatbreak }, HOTENDS)
+#endif
+{
 
 #if HAS_TOOLCHANGER()
     // when toolchanger enabled, hide results of tools that are not connected
     for (size_t i = 0; i < HOTENDS; i++) {
-
         if (!prusa_toolchanger.is_tool_enabled(i)) {
-            hotend_results[i].icon_noz_prep.Hide();
-            hotend_results[i].icon_noz_heat.Hide();
-            hotend_results[i].icon_heatbreak.Hide();
+            icons_noz_prep.SetIconHidden(i, true);
+            icons_noz_heat.SetIconHidden(i, true);
+    #if HAS_HEATBREAK_TEMP()
+            icons_heatbreak.SetIconHidden(i, true);
+    #endif
         }
     }
 #endif
@@ -194,10 +170,10 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
                 if (prusa_toolchanger.is_tool_enabled(i))
 #endif
                 {
-                    hotend_results[i].icon_noz_prep.Show();
-                    hotend_results[i].icon_noz_heat.Show();
+                    icons_noz_prep.SetIconHidden(i, false);
+                    icons_noz_heat.SetIconHidden(i, false);
 #if HAS_HEATBREAK_TEMP()
-                    hotend_results[i].icon_heatbreak.Show();
+                    icons_heatbreak.SetIconHidden(i, false);
 #endif
                 }
             }
@@ -214,10 +190,10 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
                 if (prusa_toolchanger.is_tool_enabled(i))
 #endif
                 {
-                    hotend_results[i].icon_noz_prep.Hide();
-                    hotend_results[i].icon_noz_heat.Hide();
+                    icons_noz_prep.SetIconHidden(i, true);
+                    icons_noz_heat.SetIconHidden(i, true);
 #if HAS_HEATBREAK_TEMP()
-                    hotend_results[i].icon_heatbreak.Hide();
+                    icons_heatbreak.SetIconHidden(i, true);
 #endif
                 }
             }
@@ -298,10 +274,10 @@ void ScreenSelftestTemp::change() {
                     if (prusa_toolchanger.is_tool_enabled(i))
 #endif
                     {
-                        hotend_results[i].icon_noz_prep.SetState(dt.noz[i].prep_state);
-                        hotend_results[i].icon_noz_heat.SetState(dt.noz[i].heat_state);
+                        icons_noz_prep.SetState(dt.noz[i].prep_state, i);
+                        icons_noz_heat.SetState(dt.noz[i].heat_state, i);
 #if HAS_HEATBREAK_TEMP()
-                        hotend_results[i].icon_heatbreak.SetState(dt.noz[i].heatbreak_error ? SelftestSubtestState_t::not_good : SelftestSubtestState_t::ok);
+                        icons_heatbreak.SetState(dt.noz[i].heatbreak_error ? SelftestSubtestState_t::not_good : SelftestSubtestState_t::ok, i);
 #endif
                         progress = std::min(progress, dt.noz[i].progress);
                     }

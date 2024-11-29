@@ -325,10 +325,6 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     _first_Tool_Offsets = ToolOffsets_wait_user_confirm_start,
     _last_Tool_Offsets = ToolOffsets_wait_user_remove_pin,
 
-    Result,
-    _first_Result = Result,
-    _last_Result = Result,
-
     RevisePrinterStatus_ask_revise, ///< Notifies that a selftest part failed and asks if the user wants to revise the setup
     RevisePrinterStatus_revise, ///< ScreenPrinterSetup being shown, user revising the printer setup
     RevisePrinterStatus_ask_retry, ///< After revision, ask the user to retry the selftest
@@ -754,7 +750,6 @@ class ClientResponses {
             { PhasesSelftest::ToolOffsets_wait_calibrate, {} },
             { PhasesSelftest::ToolOffsets_wait_move_away, {} },
             { PhasesSelftest::ToolOffsets_wait_user_remove_pin, { Response::Continue } },
-            { PhasesSelftest::Result, { Response::Next } },
             { PhasesSelftest::RevisePrinterStatus_ask_revise, { Response::Adjust, Response::Skip } },
             { PhasesSelftest::RevisePrinterStatus_revise, { Response::Done } },
             { PhasesSelftest::RevisePrinterStatus_ask_retry, { Response::Yes, Response::No } },
@@ -1003,7 +998,6 @@ enum class SelftestParts {
 #endif
     FirstLayer,
     FirstLayerQuestions,
-    Result,
 #if HAS_TOOLCHANGER()
     Dock,
     ToolOffsets,
@@ -1045,8 +1039,6 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     case SelftestParts::ToolOffsets:
         return PhasesSelftest::_first_Tool_Offsets;
 #endif
-    case SelftestParts::Result:
-        return PhasesSelftest::_first_Result;
     case SelftestParts::RevisePrinterSetup:
         return PhasesSelftest::_first_RevisePrinterStatus;
 
@@ -1088,8 +1080,6 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
     case SelftestParts::ToolOffsets:
         return PhasesSelftest::_last_Tool_Offsets;
 #endif
-    case SelftestParts::Result:
-        return PhasesSelftest::_last_Result;
     case SelftestParts::RevisePrinterSetup:
         return PhasesSelftest::_last_RevisePrinterStatus;
 
@@ -1142,10 +1132,6 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 
     if (SelftestPartContainsPhase(SelftestParts::CalibZ, ph)) {
         return SelftestParts::CalibZ;
-    }
-
-    if (SelftestPartContainsPhase(SelftestParts::Result, ph)) {
-        return SelftestParts::Result;
     }
 
 #if BOARD_IS_XLBUDDY()

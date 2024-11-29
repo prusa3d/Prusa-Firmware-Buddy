@@ -4,21 +4,32 @@
 
 #pragma once
 
-#include "window_icon.hpp"
-#include "selftest_sub_state.hpp"
+#include <window.hpp>
+#include <selftest_sub_state.hpp>
+#include <config_store/constants.hpp>
+#include <bitset>
+#include <array>
 
-class WindowIcon_OkNg : public window_aligned_t {
-    enum { ANIMATION_STEP_MS = 128 };
+class WindowIconOkNgArray : public window_t {
+    constexpr static uint8_t max_icon_cnt = config_store_ns::max_tool_count;
 
 public:
-    WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state = SelftestSubtestState_t::undef, padding_ui8_t padding = { 0, 0, 0, 0 });
-    SelftestSubtestState_t GetState() const;
-    void SetState(SelftestSubtestState_t s);
+    constexpr static uint8_t icon_space_width = 20;
+
+    WindowIconOkNgArray(window_t *parent, const point_i16_t pt, uint8_t icon_cnt = 1, const SelftestSubtestState_t state = SelftestSubtestState_t::undef);
+    SelftestSubtestState_t GetState(const size_t idx = 0) const { return states[idx]; }
+    void SetState(const SelftestSubtestState_t s, const size_t idx = 0);
+    void SetIconHidden(const size_t idx, const bool hidden);
 
 protected:
     virtual void unconditionalDraw() override;
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 private:
-    SelftestSubtestState_t state;
+    std::array<SelftestSubtestState_t, max_icon_cnt> states;
+    std::bitset<max_icon_cnt> hidden;
+    uint8_t icon_cnt;
+    uint8_t animation_stage;
 };
+
+using WindowIcon_OkNg = WindowIconOkNgArray;

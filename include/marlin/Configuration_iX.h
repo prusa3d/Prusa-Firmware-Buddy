@@ -26,6 +26,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_modularbed.h>
 #include <option/has_loadcell.h>
+#include <Marlin/src/core/macros.h>
 
 // clang-format off
 
@@ -1578,38 +1579,36 @@
 #define NOZZLE_PARK_FEATURE
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
-
     #define X_WASTEBIN_POINT 267.4
     #define Y_WASTEBIN_POINT 305
-    #define XY_WASTEBIN_POINT \
-        {X_WASTEBIN_POINT, Y_WASTEBIN_POINT}
+    #define Y_V_BLADE_POINT 284.75
 
-    #define Z_AXIS_LOAD_POS  5
-    #define Z_AXIS_UNLOAD_POS 20
-    #define Y_AXIS_LOAD_POS    10
-    #define X_AXIS_LOAD_POS  258.6
-    #define X_AXIS_UNLOAD_POS  X_WASTEBIN_POINT
-    #define Y_AXIS_UNLOAD_POS  Y_WASTEBIN_POINT
-    // Specify a park position as { X, Y, Z }
     #define X_NOZZLE_PARK_POINT 208.75
     #define Y_NOZZLE_PARK_POINT 305
-    #define Z_NOZZLE_PARK_POINT 20
+    #define Z_NOZZLE_PARK_POINT 10
     #define XYZ_NOZZLE_PARK_POINT \
         {X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, Z_NOZZLE_PARK_POINT}
 
-    #define X_NOZZLE_PRE_PARK_POINT 208.75
-    #define Y_NOZZLE_PRE_PARK_POINT 305
+    #define X_NOZZLE_PRE_PARK_POINT X_NOZZLE_PARK_POINT
+    #define Y_NOZZLE_PRE_PARK_POINT Y_V_BLADE_POINT
     #define XY_NOZZLE_PRE_PARK_POINT \
         {X_NOZZLE_PRE_PARK_POINT, Y_NOZZLE_PRE_PARK_POINT}
 
-
-    #define X_NOZZLE_PARK_POINT_M600    30
-    #define Y_NOZZLE_PARK_POINT_M600    15
-    #define Z_NOZZLE_PARK_POINT_M600    20
+    #define X_NOZZLE_PARK_POINT_M600 X_WASTEBIN_POINT
+    #define Y_NOZZLE_PARK_POINT_M600 Y_WASTEBIN_POINT
+    #define Z_NOZZLE_PARK_POINT_M600 Z_NOZZLE_PARK_POINT
     #define XYZ_NOZZLE_PARK_POINT_M600 \
         {X_NOZZLE_PARK_POINT_M600, Y_NOZZLE_PARK_POINT_M600, Z_NOZZLE_PARK_POINT_M600}
 
-    #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
+    #define Y_AXIS_LOAD_POS 10
+    #define X_AXIS_LOAD_POS X_WASTEBIN_POINT
+    #define Z_AXIS_LOAD_POS Z_NOZZLE_PARK_POINT
+
+    #define X_AXIS_UNLOAD_POS X_WASTEBIN_POINT
+    #define Y_AXIS_UNLOAD_POS Y_WASTEBIN_POINT
+    #define Z_AXIS_UNLOAD_POS Z_NOZZLE_PARK_POINT
+
+    #define NOZZLE_PARK_XY_FEEDRATE 200 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
     #define NOZZLE_PARK_Z_FEEDRATE 5 // (mm/s) Z axis feedrate (not used for delta printers)
 
     /**

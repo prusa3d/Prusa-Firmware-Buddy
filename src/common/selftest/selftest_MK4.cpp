@@ -227,7 +227,6 @@ protected:
     void phaseSelftestStart();
     void restoreAfterSelftest();
     virtual void next() override;
-    void phaseShowResult();
     void phaseDidSelftestPass();
 
 protected:
@@ -486,11 +485,6 @@ void CSelftest::Loop() {
         return;
     }
     next();
-}
-
-void CSelftest::phaseShowResult() {
-    m_result = config_store().selftest_result.get();
-    marlin_server::fsm_change(PhasesSelftest::Result, FsmSelftestResult().Serialize());
 }
 
 void CSelftest::phaseDidSelftestPass() {
