@@ -58,9 +58,7 @@
 #define EEPROM_OFFSET 100
 #endif
 
-#if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
-    #include "config_store/store_c_api.h"
-#endif // USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
+#include "config_store/store_c_api.h"
 
 #if EITHER(EEPROM_SETTINGS, SD_FIRMWARE_UPDATE)
   #include "../HAL/shared/persistent_store_api.h"

@@ -23,6 +23,7 @@
 
 #define MOTHERBOARD BOARD_XLBUDDY_V1
 
+#include <config_store/store_c_api.h>
 #include <option/has_toolchanger.h>
 #include <option/has_loadcell.h>
 
@@ -44,11 +45,7 @@
  *
  */
 #define CONFIGURATION_H_VERSION 020000
-#define USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 
-#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
-    #include "config_store/store_c_api.h"
-#endif
 //===========================================================================
 //============================= Getting Started =============================
 //===========================================================================
@@ -1098,22 +1095,13 @@
 #define DEFAULT_INVERT_Z_DIR true
 #define DEFAULT_INVERT_E0_DIR false
 
-#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
-    //this part if header is accesible only from C++ because of bool
-    #define INVERT_X_DIR  has_inverted_x()
-    #define INVERT_Y_DIR  has_inverted_y()
-    #define INVERT_Z_DIR  has_inverted_z()
-    #define INVERT_E0_DIR has_inverted_e()
-#else // !USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
-    // @section machine
-    // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
-    #define INVERT_X_DIR DEFAULT_INVERT_X_DIR
-    #define INVERT_Y_DIR DEFAULT_INVERT_Y_DIR
-    #define INVERT_Z_DIR DEFAULT_INVERT_Z_DIR
+// potentially changed values from EEPROM
+#define INVERT_X_DIR  has_inverted_x()
+#define INVERT_Y_DIR  has_inverted_y()
+#define INVERT_Z_DIR  has_inverted_z()
+#define INVERT_E0_DIR has_inverted_e()
 
-    // @section extruder
-    #define INVERT_E0_DIR DEFAULT_INVERT_E0_DIR
-#endif // USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
+//remaining extruders are not stored in eeprom, thus cannot be changed
 #define INVERT_E1_DIR false
 #define INVERT_E2_DIR false
 #define INVERT_E3_DIR false
@@ -1161,14 +1149,10 @@
 #define Y_MAX_PRINT_POS (Y_BED_SIZE - Y_MIN_OFFSET) // maximal print area Y position (excluding toolchanger area)
 #define Y_MAX_POS (Y_MAX_PRINT_POS + 100) // extra distance in Y to reach toolchanger
 #define PROBE_MAX_Y Y_BED_SIZE // limit maximal Y probe position (so that tool doesn't hit toolchanger with high tool offsets)
-#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
-    #define DEFAULT_Z_MAX_POS Z_SIZE
-    #define Z_MIN_LEN_LIMIT 1
-    #define Z_MAX_LEN_LIMIT 10000
-    #define Z_MAX_POS (get_z_max_pos_mm())
-#else
-    #define Z_MAX_POS Z_SIZE
-#endif
+#define DEFAULT_Z_MAX_POS Z_SIZE
+#define Z_MIN_LEN_LIMIT 1
+#define Z_MAX_LEN_LIMIT 10000
+#define Z_MAX_POS (get_z_max_pos_mm())
 
 /// Distance between start of the axis to the position where ordinary movement is allowed
 #define X_HOME_GAP 0.5f

@@ -7,15 +7,11 @@ LOG_COMPONENT_DEF(EEPROM, logging::Severity::info);
 
 extern "C" float get_z_max_pos_mm() {
     float ret = 0.F;
-#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     ret = config_store().axis_z_max_pos_mm.get();
     if ((ret > Z_MAX_LEN_LIMIT) || (ret < Z_MIN_LEN_LIMIT)) {
         ret = DEFAULT_Z_MAX_POS;
     }
     log_debug(EEPROM, "%s returned %f", __PRETTY_FUNCTION__, double(ret));
-#else
-    log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
-#endif
     return ret;
 }
 
@@ -24,14 +20,10 @@ extern "C" uint16_t get_z_max_pos_mm_rounded() {
 }
 
 extern "C" void set_z_max_pos_mm(float max_pos) {
-#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     if ((max_pos >= Z_MIN_LEN_LIMIT) && (max_pos <= Z_MAX_LEN_LIMIT)) {
         config_store().axis_z_max_pos_mm.set(max_pos);
     }
     log_debug(EEPROM, "%s set %f", __PRETTY_FUNCTION__, double(max_pos));
-#else
-    log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
-#endif
 }
 
 /*****************************************************************************/
@@ -80,7 +72,6 @@ extern "C" bool has_inverted_axis(const uint8_t axis) {
     }
 }
 
-#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 extern "C" bool has_wrong_x() {
     return has_inverted_x() != DEFAULT_INVERT_X_DIR;
 }
@@ -100,25 +91,6 @@ extern "C" bool has_wrong_e() {
 extern "C" bool get_print_area_based_heating_enabled() {
     return config_store().heat_entire_bed.get() == false;
 }
-
-#else
-extern "C" bool has_wrong_x() {
-    log_info(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
-    return false;
-}
-extern "C" bool has_wrong_y() {
-    log_info(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
-    return false;
-}
-extern "C" bool has_wrong_z() {
-    log_info(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
-    return false;
-}
-extern "C" bool has_wrong_e() {
-    log_info(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
-    return false;
-}
-#endif
 
 extern "C" uint16_t get_steps_per_unit_x_rounded() {
     return static_cast<uint16_t>(std::lround(get_steps_per_unit_x()));
@@ -194,7 +166,6 @@ static void set_negative_direction_e() {
     config_store().axis_steps_per_unit_e0.set(-steps);
 }
 
-#ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 extern "C" void set_wrong_direction_x() {
     (!DEFAULT_INVERT_X_DIR) ? set_negative_direction_x() : set_positive_direction_x();
 }
@@ -219,16 +190,6 @@ extern "C" void set_PRUSA_direction_z() {
 extern "C" void set_PRUSA_direction_e() {
     DEFAULT_INVERT_E0_DIR ? set_negative_direction_e() : set_positive_direction_e();
 }
-#else
-extern "C" void set_wrong_direction_x() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
-extern "C" void set_wrong_direction_y() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
-extern "C" void set_wrong_direction_z() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
-extern "C" void set_wrong_direction_e() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
-extern "C" void set_PRUSA_direction_x() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
-extern "C" void set_PRUSA_direction_y() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
-extern "C" void set_PRUSA_direction_z() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
-extern "C" void set_PRUSA_direction_e() { log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__); }
-#endif
 
 /*****************************************************************************/
 // AXIS_MICROSTEPS
