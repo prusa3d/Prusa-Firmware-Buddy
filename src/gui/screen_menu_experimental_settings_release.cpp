@@ -20,6 +20,11 @@ void ScreenMenuExperimentalSettings::clicked_return() {
 
     switch (MsgBoxQuestion(_(save_and_reboot), Responses_YesNoCancel)) {
     case Response::Yes:
+// Huge thank you to the moron who made me spend an hour of my life trying to figure why
+// the value is not stored.
+#if PRINTER_IS_PRUSA_COREONE() && DEVELOPMENT_ITEMS()
+        Item<MI_DIRECTION_Z>().Store();
+#endif
         Item<MI_Z_AXIS_LEN>().Store();
         Item<MI_STEPS_PER_UNIT_E>().Store();
         Item<MI_DIRECTION_E>().Store();
