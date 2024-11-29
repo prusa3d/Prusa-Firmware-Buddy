@@ -484,7 +484,7 @@
 #define CODEPENDENT_XY_HOMING true
 #include <option/has_nozzle_cleaner.h>
 #if HAS_NOZZLE_CLEANER()
-    #define AVOID_NOZZLE_CLEANER_Y_FIRST true
+    #define AVOID_NOZZLE_CLEANER_Y_FIRST false
 #endif
 
 
@@ -1362,7 +1362,7 @@
             { -72, 2400 }, \
             { 40, 700 }, \
             { -55, 400 }, \
-            { 85, 6000},\
+            { 81, 6000},\
             { 3, 3000},\
             { -25, 6000},\
             { -20, 300},\
