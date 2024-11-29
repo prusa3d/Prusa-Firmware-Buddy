@@ -85,6 +85,7 @@ public:
         uint16_t fan_2_rpm = 0;
         static constexpr int8_t fan_pwm_target_unset = -1; // -1 means auto control, 0-100 is pwm percentage for manual control
         int8_t fan_pwm_target = fan_pwm_target_unset;
+        int8_t led_intensity = 0;
     };
 #endif
 

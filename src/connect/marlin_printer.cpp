@@ -284,7 +284,8 @@ Printer::Params MarlinPrinter::params() const {
             .fan_pwm_target = (xbe.fan12autocontrol // check for autocontrol
                     ? connect_client::Printer::ChamberInfo::fan_pwm_target_unset // autocontrol
                     : (int8_t)(xbe.fan12pct) // percentage
-                )
+                ),
+            .led_intensity = static_cast<int8_t>(buddy::XBuddyExtension::led_pwm2pct(buddy::xbuddy_extension().chamber_leds_pwm()))
         };
     }
 #endif

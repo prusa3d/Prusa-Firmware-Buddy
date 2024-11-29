@@ -111,6 +111,7 @@ enum class PropertyName {
     // Therefore option HAS_CHAMBER_API is NOT used yet.
     ChamberTargetTemp,
     ChamberFanPwmTarget,
+    ChamberLedIntensity,
 #endif
 };
 

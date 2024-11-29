@@ -83,6 +83,18 @@ public: // LEDs
     /// Sets PWM for the white led strip thas is in the chamber (0-255)
     void set_chamber_leds_pwm(uint8_t set);
 
+    /// @returns percentage 0-100% converted from PWM value (0-max_pwm)
+    /// @note in the future, non-linear mapping between intensity pct and PWM shall be implemented here
+    static constexpr uint8_t led_pwm2pct(uint8_t pwm) {
+        return static_cast<uint8_t>(((uint16_t)pwm) * 100U / 255U);
+    }
+
+    /// @returns PWM value (0-max_pwm) from percentage 0-100%
+    /// @note in the future, non-linear mapping between intensity pct and PWM shall be implemented here
+    static constexpr uint8_t led_pct2pwm(uint8_t pct) {
+        return static_cast<uint8_t>(((uint16_t)pct) * 255U / 100U);
+    }
+
 public: // Other
     /// \returns chamber temperature measured through the thermistor connected to the board, in degrees Celsius
     std::optional<Temperature> chamber_temperature();
