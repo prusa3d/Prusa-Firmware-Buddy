@@ -1168,7 +1168,7 @@ void setup() {
     #if ENABLED(PRUSA_DWARF)
       test_tmc_connection(false, false, false, true); // we have the extruder only
     #else
-      test_tmc_connection(true, true, true, true);
+      initial_test_tmc_connection();
     #endif
   #endif
 

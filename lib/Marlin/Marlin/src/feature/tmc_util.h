@@ -304,6 +304,9 @@ void tmc_print_current(TMC &st) {
 void monitor_tmc_driver();
 void test_tmc_connection(const bool test_x, const bool test_y, const bool test_z, const bool test_e);
 
+/** Similar to test_tmc_connection(true, true, true, true) but with more detailed error reporting. */
+void initial_test_tmc_connection();
+
 #if ENABLED(TMC_DEBUG)
   #if ENABLED(MONITOR_DRIVER_STATUS)
     void tmc_set_report_interval(const uint16_t update_interval);
