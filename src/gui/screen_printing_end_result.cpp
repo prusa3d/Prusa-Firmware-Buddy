@@ -134,7 +134,7 @@ void EndResultBody::Show() {
 
     printing_time_label.Show();
     printing_time_value.Show();
-    printing_time_value.SetText(_(printing_time_value_buffer.data()));
+    printing_time_value.SetText(string_view_utf8::MakeRAM(printing_time_value_buffer.data()));
 
     print_started_label.Show();
     print_ended_label.Show();
