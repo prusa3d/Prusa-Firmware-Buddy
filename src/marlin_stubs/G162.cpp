@@ -6,10 +6,11 @@
 #include "PrusaGcodeSuite.hpp"
 #include <stdint.h>
 #include "bsod.h"
-#include "z_calibration_fsm.hpp"
 #include "calibration_z.hpp"
 #include "client_response.hpp"
 #include "printers.h"
+#include <marlin_server.hpp>
+#include <RAII.hpp>
 
 #include <option/has_loadcell.h>
 #if HAS_LOADCELL()
@@ -89,7 +90,11 @@ static void safe_move_down() {
 
     // Move to AFTER_Z_CALIB_Z_POS with Z endstop enabled
     float target_Z = AFTER_Z_CALIB_Z_POS - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z);
-    Z_Calib_FSM N(ClientFSM::Selftest, GetPhaseIndex(PhasesSelftest::CalibZ), current_position.z, target_Z, 0, 100);
+
+    AutoRestore _se(soft_endstops_enabled, false);
+    TemporaryGlobalEndstopsState _ess(true);
+    marlin_server::FSM_notifier _fsmn(ClientFSM::Selftest, GetPhaseIndex(PhasesSelftest::CalibZ), current_position.z, target_Z, 0, 100, marlin_vars().native_pos[MARLIN_VAR_INDEX_Z]);
+
     if (do_homing_move(AxisEnum::Z_AXIS, target_Z - current_position.z, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z))) {
         // endstop triggered, raise the nozzle
         current_position.z = Z_MIN_POS;

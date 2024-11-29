@@ -258,7 +258,9 @@ public:
 
     static void SendNotification();
 
-    virtual fsm::PhaseData serialize(uint8_t progress) = 0;
+    virtual fsm::PhaseData serialize(uint8_t progress) {
+        return { { progress } };
+    }
 };
 
 void fsm_create(FSMAndPhase fsm_and_phase, fsm::PhaseData data = {});
