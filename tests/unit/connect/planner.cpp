@@ -419,7 +419,7 @@ TEST_CASE("FileChanged after multiple fs changes") {
 // TODO: Tests for unknown commands and such
 
 TEST_CASE("Command Set value - chamber.target_temp set/unset logic") {
-    SECTION("0") {
+    SECTION("unset") {
         Test test;
         auto command = Command { CommandId(0), SetValue { PropertyName::ChamberTargetTemp, 0, uint32_t(0) } };
         test.planner.command(command);
@@ -440,5 +440,30 @@ TEST_CASE("Command Set value - chamber.target_temp set/unset logic") {
         test.planner.command(command);
         REQUIRE(buddy::chamber().target_temperature().has_value());
         REQUIRE(buddy::chamber().target_temperature().value() == 55);
+    }
+}
+
+namespace buddy {
+extern std::optional<uint8_t> fan12pwm;
+} // namespace buddy
+
+TEST_CASE("Command Set value - xbuddy_extension fan1, 2 set/unset logic") {
+    SECTION("unset") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberFanPwmTarget, 0, int8_t(-1) } };
+        test.planner.command(command);
+        REQUIRE_FALSE(buddy::fan12pwm.has_value());
+    }
+    SECTION("0%") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberFanPwmTarget, 0, int8_t(0) } };
+        test.planner.command(command);
+        REQUIRE(buddy::fan12pwm.value() == 0);
+    }
+    SECTION("100%") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberFanPwmTarget, 0, int8_t(100) } };
+        test.planner.command(command);
+        REQUIRE(buddy::fan12pwm.value() == 255);
     }
 }

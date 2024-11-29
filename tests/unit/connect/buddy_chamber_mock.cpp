@@ -11,6 +11,7 @@ std::optional<Temperature> Chamber::target_temperature() const {
 }
 
 void Chamber::reset() {
+    target_temperature_.reset();
 }
 
 Chamber &chamber() {
