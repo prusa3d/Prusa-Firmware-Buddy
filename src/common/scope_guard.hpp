@@ -13,8 +13,9 @@ private:
     bool armed = true;
 
 public:
-    ScopeGuard(Cback &&cback)
-        : cback(std::move(cback)) {}
+    ScopeGuard(Cback &&cback, bool arm = true)
+        : cback(std::move(cback))
+        , armed(arm) {}
     ScopeGuard(const ScopeGuard &other) = delete;
     ScopeGuard(ScopeGuard &&other) = delete;
     ScopeGuard &operator=(const ScopeGuard &other) = delete;
