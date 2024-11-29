@@ -14,10 +14,6 @@ using ScreenMenuExperimentalSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_
 #if PRINTER_IS_PRUSA_MK3_5()
     MI_ALT_FAN,
 #endif
-// TODO remove this once everyone has StepperSplitter rev.2
-#if PRINTER_IS_PRUSA_COREONE() && DEVELOPMENT_ITEMS()
-    MI_DIRECTION_Z,
-#endif
     MI_Z_AXIS_LEN, MI_RESET_Z_AXIS_LEN, MI_STEPS_PER_UNIT_E, MI_RESET_STEPS_PER_UNIT, MI_DIRECTION_E, MI_RESET_DIRECTION, MI_SERIAL_PRINTING_SCREEN_ENABLE>;
 
 struct ExperimentalSettingsValues {
