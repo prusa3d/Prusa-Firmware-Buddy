@@ -68,6 +68,12 @@ void EmergencyStop::maybe_block() {
         marlin_server::clear_warning(WarningType::DoorOpen);
     };
 
+    // If the emergency ended before we've finished the planned moves, there's no point in parking the head -> exit now
+    planner.synchronize();
+    if (!in_emergency()) {
+        return;
+    }
+
     // Don't park:
     // * If parking would mean we have to home first (which'll look bad, but also move in Z, which'd do Bad Things).
     // * If we are not actually printing.
