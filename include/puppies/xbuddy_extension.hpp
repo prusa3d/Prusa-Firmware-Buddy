@@ -11,6 +11,8 @@
 namespace buddy::puppies {
 
 class XBuddyExtension final : public ModbusDevice {
+    static constexpr size_t FAN_CNT = 3;
+
 public:
     using FilamentSensorState = xbuddy_extension_shared::FilamentSensorState;
 
@@ -23,9 +25,17 @@ public:
     void set_usb_power(bool enabled);
     void set_mmu_power(bool enabled);
     void set_mmu_nreset(bool enabled);
-    std::optional<uint16_t> get_fan_rpm(size_t fan_idx);
-    std::optional<float> get_chamber_temp();
-    std::optional<FilamentSensorState> get_filament_sensor_state();
+    std::optional<uint16_t> get_fan_rpm(size_t fan_idx) const;
+
+    /// A convenience function returning a snapshot of all fans' RPMs at once.
+    /// Primarily used in feeding the Connect interface with a set of telemetry readings
+    /// @returns known measured RPM of all fans at once (access mutex locked only once)
+    /// If an data is not valid, returned readings are zeroed - that's what the Connect interface expects
+    /// -> no need to play with std::optional which only makes usage much harded.
+    std::array<uint16_t, FAN_CNT> get_fans_rpm() const;
+
+    std::optional<float> get_chamber_temp() const;
+    std::optional<FilamentSensorState> get_filament_sensor_state() const;
 
     uint8_t get_requested_fan_pwm(size_t fan_idx);
 
@@ -109,8 +119,6 @@ public:
 private:
 #endif
 
-    static constexpr size_t FAN_CNT = 3;
-
     // The registers cached here are accessed from different tasks.
     mutable freertos::Mutex mutex;
 
@@ -140,7 +148,7 @@ private:
     ModbusHoldingRegisterBlock<0x9000, Requiremnt> requirement;
 
     MODBUS_REGISTER Status {
-        uint16_t fan_rpm[FAN_CNT] = { 0, 0, 0 };
+        std::array<uint16_t, FAN_CNT> fan_rpm = { 0, 0, 0 };
         // In degrees * 10 (eg. 23.5°C = 235 in the register)
         uint16_t chamber_temp = 0;
         uint16_t mmu_power_enable = false;

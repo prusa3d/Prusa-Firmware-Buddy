@@ -4,6 +4,7 @@
 #include <common/app_metrics.h>
 #include <puppies/xbuddy_extension.hpp>
 #include <feature/chamber/chamber.hpp>
+#include <feature/xbuddy_extension/cooling.hpp>
 
 namespace buddy {
 
@@ -97,6 +98,17 @@ void XBuddyExtension::set_fan3_pwm(uint8_t pwm) {
     std::lock_guard _lg(mutex_);
     puppies::xbuddy_extension.set_fan_pwm(2, pwm);
     fan3_pwm_ = pwm;
+}
+
+buddy::XBuddyExtension::FanState buddy::XBuddyExtension::get_fan12_state() const {
+    std::lock_guard _lg(mutex_);
+    auto fanrpms = puppies::xbuddy_extension.get_fans_rpm();
+    return FanState {
+        .fan1rpm = fanrpms[0],
+        .fan2rpm = fanrpms[1],
+        .fan12pct = buddy::FanCooling::pwm2pct(chamber_cooling.target_pwm),
+        .fan12autocontrol = chamber_cooling.auto_control,
+    };
 }
 
 leds::ColorRGBW XBuddyExtension::bed_leds_color() const {

@@ -275,15 +275,18 @@ Printer::Params MarlinPrinter::params() const {
     };
 #endif
 #if PRINTER_IS_PRUSA_COREONE()
-    params.chamber_info = {
-        .target_temp = (uint32_t)buddy::chamber().target_temperature().value_or(connect_client::Printer::ChamberInfo::target_temp_unset),
-        .fan_1_rpm = buddy::xbuddy_extension().fan1_rpm().value_or(0), // @@TODO locking modbus may slow down things?
-        .fan_2_rpm = buddy::xbuddy_extension().fan2_rpm().value_or(0),
-        .fan_pwm_target = static_cast<int8_t>(buddy::xbuddy_extension().has_fan1_fan2_auto_control() // check for autocontrol
-                ? (int8_t)-1 // autocontrol
-                : (int8_t)((uint16_t)buddy::xbuddy_extension().fan1_fan2_pwm() * 100 / 255) // convert from PWM into percentage
-            )
-    };
+    {
+        auto xbe = buddy::xbuddy_extension().get_fan12_state(); // avoid locking 2 mutexes just to read a single value (and we are reading 4 values)
+        params.chamber_info = {
+            .target_temp = (uint32_t)buddy::chamber().target_temperature().value_or(connect_client::Printer::ChamberInfo::target_temp_unset),
+            .fan_1_rpm = xbe.fan1rpm,
+            .fan_2_rpm = xbe.fan2rpm,
+            .fan_pwm_target = (xbe.fan12autocontrol // check for autocontrol
+                    ? connect_client::Printer::ChamberInfo::fan_pwm_target_unset // autocontrol
+                    : (int8_t)(xbe.fan12pct) // percentage
+                )
+        };
+    }
 #endif
     params.print_duration = marlin_vars().print_duration;
     params.time_to_end = marlin_vars().time_to_end;

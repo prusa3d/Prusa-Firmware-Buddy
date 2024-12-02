@@ -60,6 +60,16 @@ public: // Fans
     /// Sets PRM for fan 3 (in-chamber filtration, 0-255)
     void set_fan3_pwm(uint8_t pwm);
 
+    /// A convenience function returning a structure of data to be used in the Connect interface
+    /// The key idea here is to avoid locking the internal mutex for every member while providing a consistent state of values.
+    struct FanState {
+        uint16_t fan1rpm, fan2rpm;
+        uint8_t fan12pct;
+        bool fan12autocontrol;
+    };
+
+    FanState get_fan12_state() const;
+
 public: // LEDs
     /// \returns color set for the bed LED strip
     leds::ColorRGBW bed_leds_color() const;

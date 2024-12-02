@@ -17,6 +17,7 @@
 #if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
     #include <feature/chamber/chamber.hpp>
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+    #include <feature/xbuddy_extension/cooling.hpp>
 #endif
 #include <alloca.h>
 #include <algorithm>
@@ -986,7 +987,7 @@ void Planner::command(const Command &command, const SetValue &params) {
         if (pwm < 0) {
             buddy::xbuddy_extension().set_fan1_fan2_auto_control();
         } else {
-            buddy::xbuddy_extension().set_fan1_fan2_pwm(buddy::XBuddyExtension::pct2pwm(pwm)); // convert from percentage to PWM
+            buddy::xbuddy_extension().set_fan1_fan2_pwm(buddy::FanCooling::pct2pwm(pwm)); // convert from percentage to PWM
         }
         break;
 #endif

@@ -91,7 +91,7 @@ void XBuddyExtension::set_mmu_nreset(bool enabled) {
     }
 }
 
-std::optional<uint16_t> XBuddyExtension::get_fan_rpm(size_t fan_idx) {
+std::optional<uint16_t> XBuddyExtension::get_fan_rpm(size_t fan_idx) const {
     Lock lock(mutex);
 
     assert(fan_idx < FAN_CNT);
@@ -103,7 +103,17 @@ std::optional<uint16_t> XBuddyExtension::get_fan_rpm(size_t fan_idx) {
     return static_cast<uint16_t>(status.value.fan_rpm[fan_idx]);
 }
 
-std::optional<float> XBuddyExtension::get_chamber_temp() {
+std::array<uint16_t, XBuddyExtension::FAN_CNT> XBuddyExtension::get_fans_rpm() const {
+    Lock lock(mutex);
+
+    if (!valid) {
+        return std::array<uint16_t, FAN_CNT> { 0, 0, 0 };
+    }
+
+    return status.value.fan_rpm;
+}
+
+std::optional<float> XBuddyExtension::get_chamber_temp() const {
     Lock lock(mutex);
 
     if (!valid) {
@@ -113,7 +123,7 @@ std::optional<float> XBuddyExtension::get_chamber_temp() {
     return static_cast<float>(status.value.chamber_temp) / 10.0f;
 }
 
-std::optional<XBuddyExtension::FilamentSensorState> XBuddyExtension::get_filament_sensor_state() {
+std::optional<XBuddyExtension::FilamentSensorState> XBuddyExtension::get_filament_sensor_state() const {
     Lock lock(mutex);
 
     if (!valid) {
