@@ -862,6 +862,8 @@ void loop() {
 static bool idle_running = false;
 
 static void idle(void) {
+    cycle();
+
     // cycle -> loop -> idle -> MarlinUI::update() -> ExtUI::onIdle -> idle -> cycle
     // This is only a work-around: this should be avoided at a higher level
     if (idle_running) {
@@ -901,7 +903,6 @@ static void idle(void) {
             _send_notify_event(Event::CommandBegin, server.command, 0);
         }
     }
-    cycle();
 }
 
 void do_babystep_Z(float offs) {
