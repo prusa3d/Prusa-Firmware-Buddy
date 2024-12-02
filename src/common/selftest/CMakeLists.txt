@@ -9,6 +9,7 @@ target_sources(
           selftest_axis_interface.cpp
           selftest_data.cpp
           selftest_fan.cpp
+          selftest_fans.cpp
           selftest_fans_interface.cpp
           selftest_heater.cpp
           selftest_heaters_interface.cpp

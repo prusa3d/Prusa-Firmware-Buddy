@@ -460,6 +460,18 @@ enum class PhasesPhaseStepping : PhaseUnderlyingType {
 constexpr inline ClientFSM client_fsm_from_phase(PhasesPhaseStepping) { return ClientFSM::PhaseStepping; }
 #endif
 
+enum class PhasesFansSelftest : PhaseUnderlyingType {
+    test_100_percent,
+#if PRINTER_IS_PRUSA_MK3_5()
+    manual_check,
+#endif
+    test_40_percent,
+    results,
+    _last = results,
+};
+
+constexpr inline ClientFSM client_fsm_from_phase(PhasesFansSelftest) { return ClientFSM::FansSelftest; }
+
 #if HAS_INPUT_SHAPER_CALIBRATION()
 enum class PhasesInputShaperCalibration : PhaseUnderlyingType {
     info,
@@ -851,6 +863,16 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::PhaseSteppingResponses) == CountPhases<PhasesPhaseStepping>());
 #endif
 
+    static constexpr PhaseResponses FanSelftestResponses[] = {
+        {}, // PhasesFanSelftest::test_100_percent
+#if PRINTER_IS_PRUSA_MK3_5()
+        { Response::Yes, Response::No }, // PhasesFanSelftest::manual_check
+#endif
+        {}, // PhasesFanSelftest::test_40_percent
+        {}, // PhasesFanSelftest::results
+    };
+    static_assert(std::size(ClientResponses::FanSelftestResponses) == CountPhases<PhasesFansSelftest>());
+
 #if HAS_INPUT_SHAPER_CALIBRATION()
     static constexpr EnumArray<PhasesInputShaperCalibration, PhaseResponses, CountPhases<PhasesInputShaperCalibration>()> input_shaper_calibration_responses {
         { PhasesInputShaperCalibration::info, { Response::Continue, Response::Abort } },
@@ -892,6 +914,7 @@ class ClientResponses {
 #if HAS_SELFTEST()
             { ClientFSM::Selftest, SelftestResponses },
 #endif
+            { ClientFSM::FansSelftest, FanSelftestResponses },
             { ClientFSM::NetworkSetup, network_setup_responses },
             { ClientFSM::Printing, {} },
 #if ENABLED(CRASH_RECOVERY)

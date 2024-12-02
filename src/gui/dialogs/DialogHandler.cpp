@@ -10,6 +10,7 @@
 #include "window_dlg_wait.hpp"
 #include "window_dlg_warning.hpp"
 #include <screen_network_setup.hpp>
+#include <screen_fan_selftest.hpp>
 #include <option/has_phase_stepping.h>
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_coldpull.h>
@@ -181,6 +182,7 @@ using FSMDisplayConfig = FSMDisplayConfigDef<
 #if HAS_SELFTEST()
     FSMScreenDef<ClientFSM::Selftest, ScreenSelftest>,
 #endif
+    FSMScreenDef<ClientFSM::FansSelftest, ScreenFanSelftest>,
     FSMScreenDef<ClientFSM::NetworkSetup, ScreenNetworkSetup>,
     FSMPrintDef<ClientFSM::Printing>,
 #if ENABLED(CRASH_RECOVERY)

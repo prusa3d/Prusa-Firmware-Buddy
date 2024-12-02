@@ -29,6 +29,7 @@ enum class ClientFSM : uint8_t {
     #if HAS_SELFTEST()
     Selftest,
     #endif
+    FansSelftest,
     NetworkSetup,
     Printing, // not a dialog
     #if ENABLED(CRASH_RECOVERY)

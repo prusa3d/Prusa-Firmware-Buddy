@@ -2,7 +2,8 @@ target_include_directories(firmware PRIVATE .)
 
 target_sources(
   firmware
-  PRIVATE selftest_frame_axis.cpp
+  PRIVATE screen_fan_selftest.cpp
+          selftest_frame_axis.cpp
           selftest_frame_calib_z.cpp
           selftest_frame_fans.cpp
           selftest_frame_firstlayer.cpp
