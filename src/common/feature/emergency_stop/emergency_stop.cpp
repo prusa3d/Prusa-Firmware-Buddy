@@ -43,6 +43,9 @@ namespace {
 } // namespace
 
 void EmergencyStop::maybe_block() {
+    // The default step might not be called often/fast enough - we want to check we're having up-to-date data when deciding whether we should block
+    step();
+
     if (!in_emergency()) {
         return;
     }
