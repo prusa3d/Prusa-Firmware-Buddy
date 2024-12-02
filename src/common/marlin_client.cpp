@@ -163,17 +163,6 @@ static void _send_request_to_server_and_wait(Request &request) {
     fatal_error(ErrCode::ERR_SYSTEM_MARLIN_CLIENT_SERVER_REQUEST_TIMEOUT);
 }
 
-/// send the request to the marlin server and don't ask for acknowledgement
-static void _send_request_to_server_noreply(Request &request) {
-    marlin_client_t *client = _client_ptr();
-    if (client == nullptr) {
-        return;
-    }
-    request.client_id = client->id;
-    request.response_required = 0;
-    server_queue.send(request);
-}
-
 void set_event_notify(uint64_t event_mask) {
     Request request;
     request.type = Request::Type::EventMask;
@@ -404,30 +393,12 @@ void try_recover_from_media_error() {
     _send_request_id_to_server_and_wait(Request::Type::TryRecoverFromMediaError);
 }
 
-void park_head() {
-    _send_request_id_to_server_and_wait(Request::Type::Park);
-}
-
 void notify_server_about_encoder_move() {
     _send_request_id_to_server_and_wait(Request::Type::KnobMove);
 }
 
 void notify_server_about_knob_click() {
     _send_request_id_to_server_and_wait(Request::Type::KnobClick);
-}
-
-void set_warning(WarningType type) {
-    Request request;
-    request.type = Request::Type::SetWarning;
-    request.warning_type = type;
-    _send_request_to_server_noreply(request);
-}
-
-void clear_warning(WarningType type) {
-    Request request;
-    request.type = Request::Type::ClearWarning;
-    request.warning_type = type;
-    _send_request_to_server_noreply(request);
 }
 
 //-----------------------------------------------------------------------------

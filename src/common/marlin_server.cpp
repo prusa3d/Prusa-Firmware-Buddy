@@ -3104,17 +3104,8 @@ bool _process_server_valid_request(const Request &request, int client_id) {
     case Request::Type::PrintExit:
         print_exit();
         return true;
-    case Request::Type::Park:
-        park_head();
-        return true;
     case Request::Type::KnobMove:
         ++server.knob_move_counter;
-        return true;
-    case Request::Type::SetWarning:
-        set_warning(request.warning_type);
-        return true;
-    case Request::Type::ClearWarning:
-        clear_warning(request.warning_type);
         return true;
     case Request::Type::KnobClick:
         ++server.knob_click_counter;
