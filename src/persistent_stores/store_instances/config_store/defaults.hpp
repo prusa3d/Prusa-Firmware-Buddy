@@ -317,6 +317,9 @@ namespace defaults {
         .nozzle_temperature = 215,
         .nozzle_preheat_temperature = 170,
     };
+
+    inline constexpr bool phase_stepping_enabled_x = PRINTER_IS_PRUSA_iX();
+    inline constexpr bool phase_stepping_enabled_y = PRINTER_IS_PRUSA_iX();
 } // namespace defaults
 
 } // namespace config_store_ns
