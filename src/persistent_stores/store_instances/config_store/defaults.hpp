@@ -318,8 +318,11 @@ namespace defaults {
         .nozzle_preheat_temperature = 170,
     };
 
-    inline constexpr bool phase_stepping_enabled_x = PRINTER_IS_PRUSA_iX();
-    inline constexpr bool phase_stepping_enabled_y = PRINTER_IS_PRUSA_iX();
+    // Prusa CORE One has phase stepping enabled by default.
+    // Due to its 400-step motors and CoreXY kinematics, the classic stepping
+    // algorithm can't keep up with the increased demands caused by larger speeds.
+    inline constexpr bool phase_stepping_enabled_x = PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_COREONE();
+    inline constexpr bool phase_stepping_enabled_y = PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_COREONE();
 } // namespace defaults
 
 } // namespace config_store_ns
