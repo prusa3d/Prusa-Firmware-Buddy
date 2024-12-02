@@ -50,22 +50,12 @@ void EmergencyStop::maybe_block() {
         return;
     }
 
-    switch (maybe_block_state) {
-
-    case MaybeBlockState::not_running:
-        break;
-
-    case MaybeBlockState::running:
-        // We should never get maybe_block called while executing maybe_block (maybe_block -> idle -> maybe_block).
-        // That would mean that we are trying to do moves during emergency blocking that have not beed issued by this function.
-        bsod("Nested EmergencyStop::maybe_block");
-
-    case MaybeBlockState::executing_move:
-        // We're currently parking/unparking from within this function - prevent nesting and exit.
+    // Prevent maybe_block nested calls
+    if (maybe_block_running) {
         return;
     }
 
-    AutoRestore _ar(maybe_block_state, MaybeBlockState::running);
+    AutoRestore _ar(maybe_block_running, true);
     marlin_server::set_warning(WarningType::DoorOpen, PhasesWarning::DoorOpen);
     ScopeGuard warning_guard = [] {
         marlin_server::clear_warning(WarningType::DoorOpen);
@@ -83,11 +73,9 @@ void EmergencyStop::maybe_block() {
     const bool do_move = all_axes_homed() && !marlin_server::printer_idle();
     const auto old_pos = current_position;
     if (do_move) {
-        AutoRestore _ar(maybe_block_state, MaybeBlockState::executing_move);
         do_blocking_move_to_xy(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT);
     }
-    auto unpark = [this, old_pos] {
-        AutoRestore _ar(maybe_block_state, MaybeBlockState::executing_move);
+    auto unpark = [old_pos] {
         do_blocking_move_to_xy(old_pos.x, old_pos.y);
     };
     ScopeGuard unpark_guard(std::move(unpark), do_move);

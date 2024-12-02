@@ -25,12 +25,8 @@ private:
     std::atomic<int32_t> allowed_steps;
     std::atomic<int32_t> extra_emergency_steps;
 
-    enum class MaybeBlockState {
-        not_running,
-        running,
-        executing_move,
-    };
-    MaybeBlockState maybe_block_state = MaybeBlockState::not_running;
+    /// Stores whether the maybe_block() function is currently running
+    bool maybe_block_running = false;
 
 public:
     // Maximum "sizes" of a move segment.
