@@ -68,7 +68,7 @@ void handle_timestamp_text_item(MarlinVariableLocked<time_t> &time_holder, EndRe
 
     FormatMsgPrintWillEnd::Date(buffer.data(), buffer.size(), &print_tm, time_format == time_tools::TimeFormat::_24h, FormatMsgPrintWillEnd::ISO);
 
-    text_value.SetText(_(buffer.data()));
+    text_value.SetText(string_view_utf8::MakeRAM(buffer.data()));
     text_value.Show();
 }
 
@@ -172,7 +172,7 @@ void EndResultBody::handle_consumed_material_showing(const GCodeInfo &gcode) {
     if (num_extruders_with_valid_grams == 0 && !has_valid_wipe_tower_grams) {
         auto &buff { consumed_material_values_buffers[0] };
         snprintf(buff.data(), buff.size(), "---");
-        consumed_material_values[0].SetText(_(buff.data()));
+        consumed_material_values[0].SetText(string_view_utf8::MakeRAM(buff.data()));
         consumed_material_values[0].Show();
     } else {
         handle_consumed_tool_fields(gcode, num_extruders_with_valid_grams);
@@ -237,7 +237,7 @@ void EndResultBody::handle_consumed_tool_fields(const GCodeInfo &gcode, size_t n
                 snprintf(buff.data(), buff.size(), "%s %dg", print_fname(), used_g);
             }
 
-            consumed_material_values[consumed_material_line_idx].SetText(_(buff.data()));
+            consumed_material_values[consumed_material_line_idx].SetText(string_view_utf8::MakeRAM(buff.data()));
             consumed_material_values[consumed_material_line_idx].Show();
             ++consumed_material_line_idx;
         }
