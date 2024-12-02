@@ -3,7 +3,6 @@
 #include "printer_selftest.hpp"
 #include <fcntl.h>
 #include <unistd.h>
-#include "selftest_fan.h"
 #include "selftest_axis.h"
 #include "selftest_heater.h"
 #include "selftest_loadcell.h"
@@ -15,11 +14,9 @@
 #include <guiconfig/wizard_config.hpp>
 #include "../../Marlin/src/module/stepper.h"
 #include "../../Marlin/src/module/temperature.h"
-#include "selftest_fans_type.hpp"
 #include "selftest_axis_type.hpp"
 #include "selftest_heaters_type.hpp"
 #include "selftest_heaters_interface.hpp"
-#include "selftest_fans_interface.hpp"
 #include "selftest_loadcell_interface.hpp"
 #include "selftest_fsensor_interface.hpp"
 #include "selftest_axis_interface.hpp"
@@ -39,14 +36,12 @@
 #include "i_selftest.hpp"
 #include "i_selftest_part.hpp"
 #include "selftest_result_type.hpp"
-#include <option/has_switched_fan_test.h>
 
 using namespace selftest;
 
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at opposite side to home position
 static constexpr feedRate_t maxFeedrates[] = DEFAULT_MAX_FEEDRATE;
 
-static constexpr const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 /// These speeds create major chord
 /// https://en.wikipedia.org/wiki/Just_intonation
 
@@ -55,37 +50,6 @@ static constexpr size_t xy_fr_table_size = sizeof(XYfr_table) / sizeof(XYfr_tabl
 static constexpr float Zfr_table_fw[] = { maxFeedrates[Z_AXIS] }; // up
 static constexpr float Zfr_table_bw[] = { HOMING_FEEDRATE_Z / 60 };
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]);
-
-static consteval SelftestFansConfig make_fan_config(uint8_t index) {
-    return {
-        .tool_nr = index,
-        .print_fan = {
-            ///@note Datasheet says 5900 +-10%, but that is without any fan shroud.
-            ///  Blocked fan increases its RPMs over 7000.
-            ///  With XL shroud the values can be 6200 - 6600 depending on fan shroud version.
-            .rpm_min = 5300,
-            .rpm_max = 7000,
-        },
-        .heatbreak_fan = {
-            .rpm_min = 6500,
-            .rpm_max = 8700,
-        },
-    };
-}
-
-#if HAS_SWITCHED_FAN_TEST()
-static_assert(make_fan_config(0).print_fan.rpm_max < make_fan_config(0).heatbreak_fan.rpm_min, "These cannot overlap for switched fan detection.");
-#endif /* HAS_SWITCHED_FAN_TEST() */
-
-static constexpr SelftestFansConfig fans_configs[] = {
-    make_fan_config(0),
-    make_fan_config(1),
-    make_fan_config(2),
-    make_fan_config(3),
-    make_fan_config(4),
-    make_fan_config(5),
-};
-static_assert(std::size(fans_configs) == HOTENDS);
 
 // reads data from eeprom, cannot be constexpr
 //  FIXME: remove fixed lengths once the printer specs are finalized
@@ -274,7 +238,6 @@ protected:
     SelftestState_t m_State;
     SelftestMask_t m_Mask;
     ToolMask tool_mask = ToolMask::AllTools;
-    std::array<selftest::IPartHandler *, HOTENDS> pFans;
     selftest::IPartHandler *pXAxis;
     selftest::IPartHandler *pYAxis;
     selftest::IPartHandler *pZAxis;
@@ -310,9 +273,6 @@ bool CSelftest::IsAborted() const {
 bool CSelftest::Start(const uint64_t test_mask, const selftest::TestData test_data) {
     m_result = config_store().selftest_result.get();
     m_Mask = SelftestMask_t(test_mask);
-    if (m_Mask & stmFans) {
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_fans));
-    }
     if (m_Mask & (stmXAxis | stmYAxis | stmZAxis)) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_axes));
         if (m_result.zaxis != TestResult_Passed) {
@@ -362,16 +322,6 @@ void CSelftest::Loop() {
         break;
     case stsToolOffsets:
         if ((ret = selftest::phaseToolOffsets(tool_mask, pToolOffsets, Config_ToolOffsets))) {
-            return;
-        }
-        break;
-    case stsFans:
-        if (selftest::phaseFans(pFans, fans_configs)) {
-            return;
-        }
-        break;
-    case stsWait_fans:
-        if (phaseWait()) {
             return;
         }
         break;
@@ -499,9 +449,6 @@ bool CSelftest::Abort() {
     if (!IsInProgress()) {
         return false;
     }
-    for (auto &pFan : pFans) {
-        abort_part(&pFan);
-    }
     abort_part((selftest::IPartHandler **)&pXAxis);
     abort_part((selftest::IPartHandler **)&pYAxis);
     abort_part((selftest::IPartHandler **)&pZAxis);
@@ -543,11 +490,6 @@ void CSelftest::phaseSelftestStart() {
     }
 
     m_result = config_store().selftest_result.get(); // read previous result
-    if (m_Mask & stmFans) {
-        HOTEND_LOOP() {
-            m_result.tools[e].reset_fan_tests();
-        }
-    }
     if (m_Mask & stmXAxis) {
         m_result.xaxis = TestResult_Unknown;
     }
@@ -578,10 +520,6 @@ void CSelftest::restoreAfterSelftest() {
         thermalManager.setTargetHotend(0, 0);
         marlin_server::set_temp_to_display(0, 0);
     }
-
-    // restore fan behavior
-    Fans::print(0).exitSelftestMode();
-    Fans::heat_break(0).exitSelftestMode();
 
     thermalManager.disable_all_heaters();
 

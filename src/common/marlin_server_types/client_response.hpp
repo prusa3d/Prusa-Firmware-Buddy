@@ -220,14 +220,6 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesPrintPreview) { return Cl
 enum class PhasesSelftest : PhaseUnderlyingType {
     _none,
 
-    Fans,
-    #if PRINTER_IS_PRUSA_MK3_5()
-    Fans_manual,
-    #endif
-    Fans_second,
-    _first_Fans = Fans,
-    _last_Fans = Fans_second,
-
     Loadcell_prepare,
     Loadcell_move_away,
     Loadcell_tool_select,
@@ -668,14 +660,6 @@ class ClientResponses {
 
     static constexpr EnumArray<PhasesSelftest, PhaseResponses, CountPhases<PhasesSelftest>()> SelftestResponses {
         { PhasesSelftest::_none, {} },
-            { PhasesSelftest::Fans, {} },
-
-#if PRINTER_IS_PRUSA_MK3_5()
-            { PhasesSelftest::Fans_manual, { Response::Yes, Response::No } },
-#endif
-
-            { PhasesSelftest::Fans_second, {} },
-
             { PhasesSelftest::Loadcell_prepare, {} },
             { PhasesSelftest::Loadcell_move_away, {} },
             { PhasesSelftest::Loadcell_tool_select, {} },
@@ -990,7 +974,6 @@ public:
 
 enum class SelftestParts {
     Axis,
-    Fans,
 #if HAS_LOADCELL()
     Loadcell,
 #endif
@@ -1017,8 +1000,6 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     switch (part) {
     case SelftestParts::Axis:
         return PhasesSelftest::_first_Axis;
-    case SelftestParts::Fans:
-        return PhasesSelftest::_first_Fans;
 #if HAS_LOADCELL()
     case SelftestParts::Loadcell:
         return PhasesSelftest::_first_Loadcell;
@@ -1058,8 +1039,6 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
     switch (part) {
     case SelftestParts::Axis:
         return PhasesSelftest::_last_Axis;
-    case SelftestParts::Fans:
-        return PhasesSelftest::_last_Fans;
 #if HAS_LOADCELL()
     case SelftestParts::Loadcell:
         return PhasesSelftest::_last_Loadcell;
@@ -1106,10 +1085,6 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
         if (SelftestPartContainsPhase(SelftestParts(i), ph)) {
             return SelftestParts(i);
         }
-    }
-
-    if (SelftestPartContainsPhase(SelftestParts::Fans, ph)) {
-        return SelftestParts::Fans;
     }
 
 #if HAS_LOADCELL()

@@ -12,7 +12,6 @@
 
 #include "selftest_frame_revise_printer_setup.hpp"
 #include "selftest_frame_axis.hpp"
-#include "selftest_frame_fans.hpp"
 #include "selftest_frame_fsensor.hpp"
 #include "selftest_frame_gears_calib.hpp"
 #include "selftest_frame_loadcell.hpp"
@@ -28,9 +27,6 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
     switch (part) {
     case SelftestParts::Axis:
         return creator<SelftestFrametAxis>;
-
-    case SelftestParts::Fans:
-        return creator<SelftestFrameFans>;
 
 #if HAS_LOADCELL()
     case SelftestParts::Loadcell:
@@ -120,7 +116,6 @@ void ScreenSelftest::Change(fsm::BaseData data) {
 string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     switch (part) {
     case SelftestParts::Axis:
-    case SelftestParts::Fans:
 #if HAS_LOADCELL()
     case SelftestParts::Loadcell:
 #endif
@@ -150,7 +145,6 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
 const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     switch (part) {
     case SelftestParts::Axis:
-    case SelftestParts::Fans:
 #if HAS_LOADCELL()
     case SelftestParts::Loadcell:
 #endif

@@ -8,7 +8,6 @@
 #include "i18n.h"
 #include "fonts.hpp"
 #include <guiconfig/wizard_config.hpp>
-#include "selftest_fans_type.hpp"
 
 static constexpr size_t row_2 = 140;
 static constexpr size_t row_3 = 200;
