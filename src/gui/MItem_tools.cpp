@@ -887,8 +887,18 @@ void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 #if HAS_PHASE_STEPPING()
+// Prusa CORE One has phase stepping enabled by default.
+// Due to its 400-step motors and CoreXY kinematics, the classic stepping
+// algorithm can't keep up with the increased demands caused by larger speeds.
+// It makes no sense to let users disable it and start experiencing step queue
+// starvations and other troubles.
+static constexpr const is_hidden_t phase_stepping_visibility
+    = PRINTER_IS_PRUSA_COREONE()
+    ? is_hidden_t::dev
+    : is_hidden_t::no;
+
 MI_PHASE_STEPPING::MI_PHASE_STEPPING()
-    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, phase_stepping_visibility) {
     bool phstep_enabled = config_store().phase_stepping_enabled_x.get() || config_store().phase_stepping_enabled_y.get();
     set_value(phstep_enabled, false);
 }
