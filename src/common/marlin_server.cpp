@@ -1149,6 +1149,7 @@ void print_start(const char *filename, const GCodeReaderPosition &resume_pos, ma
 
     set_media_position(resume_pos.offset);
     print_state.media_restore_info = resume_pos.restore_info;
+    media_prefetch_start();
 
     server.print_state = State::WaitGui;
 
@@ -1943,7 +1944,6 @@ static void _server_print_loop(void) {
         marlin_vars().z_offset = 0;
 #endif // HAS_LOADCELL()
 
-        media_prefetch_start();
         print_job_timer.start();
         marlin_vars().time_to_end = TIME_TO_END_INVALID;
         marlin_vars().time_to_pause = TIME_TO_END_INVALID;
