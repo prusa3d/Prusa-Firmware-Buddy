@@ -77,7 +77,6 @@ if(BOARD IN_LIST BUDDY_BOARDS)
             w25x.cpp
             w25x_communication.cpp
             wdt.cpp
-            z_calibration_fsm.cpp
     )
   add_subdirectory(async_job)
 
@@ -142,7 +141,6 @@ elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
             tools_mapping.cpp
             trinamic.cpp
             wdt.cpp
-            z_calibration_fsm.cpp
     )
 endif()
 
