@@ -160,36 +160,36 @@ extern "C" void set_steps_per_unit_e(float steps) {
 }
 
 // by write functions, cannot read startup variables, must read current value from eeprom
-extern "C" void set_positive_direction_x() {
+static void set_positive_direction_x() {
     float steps = std::abs(config_store().axis_steps_per_unit_x.get());
     config_store().axis_steps_per_unit_x.set(steps);
 }
-extern "C" void set_positive_direction_y() {
+static void set_positive_direction_y() {
     float steps = std::abs(config_store().axis_steps_per_unit_y.get());
     config_store().axis_steps_per_unit_y.set(steps);
 }
-extern "C" void set_positive_direction_z() {
+static void set_positive_direction_z() {
     float steps = std::abs(config_store().axis_steps_per_unit_z.get());
     config_store().axis_steps_per_unit_z.set(steps);
 }
-extern "C" void set_positive_direction_e() {
+static void set_positive_direction_e() {
     float steps = std::abs(config_store().axis_steps_per_unit_e0.get());
     config_store().axis_steps_per_unit_e0.set(steps);
 }
 
-extern "C" void set_negative_direction_x() {
+static void set_negative_direction_x() {
     float steps = std::abs(config_store().axis_steps_per_unit_x.get());
     config_store().axis_steps_per_unit_x.set(-steps);
 }
-extern "C" void set_negative_direction_y() {
+static void set_negative_direction_y() {
     float steps = std::abs(config_store().axis_steps_per_unit_y.get());
     config_store().axis_steps_per_unit_y.set(-steps);
 }
-extern "C" void set_negative_direction_z() {
+static void set_negative_direction_z() {
     float steps = std::abs(config_store().axis_steps_per_unit_z.get());
     config_store().axis_steps_per_unit_z.set(-steps);
 }
-extern "C" void set_negative_direction_e() {
+static void set_negative_direction_e() {
     float steps = std::abs(config_store().axis_steps_per_unit_e0.get());
     config_store().axis_steps_per_unit_e0.set(-steps);
 }
