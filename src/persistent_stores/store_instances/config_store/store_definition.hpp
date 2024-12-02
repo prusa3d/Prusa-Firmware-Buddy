@@ -503,8 +503,8 @@ struct CurrentStore
 #endif
 
 #if HAS_PHASE_STEPPING()
-    StoreItem<bool, PRINTER_IS_PRUSA_iX(), journal::hash("Phase Stepping Enabled X")> phase_stepping_enabled_x;
-    StoreItem<bool, PRINTER_IS_PRUSA_iX(), journal::hash("Phase Stepping Enabled Y")> phase_stepping_enabled_y;
+    StoreItem<bool, defaults::phase_stepping_enabled_x, journal::hash("Phase Stepping Enabled X")> phase_stepping_enabled_x;
+    StoreItem<bool, defaults::phase_stepping_enabled_y, journal::hash("Phase Stepping Enabled Y")> phase_stepping_enabled_y;
 
     bool get_phase_stepping_enabled(AxisEnum axis);
     void set_phase_stepping_enabled(AxisEnum axis, bool new_state);
