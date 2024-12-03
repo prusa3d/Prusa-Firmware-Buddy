@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include <option/xl_enclosure_support.h>
 #include <common/temperature.hpp>
 
 // TODO: Migrate XL Enclosure to use this API (& unify)
@@ -16,6 +17,7 @@ public: // Common/utilities
     Chamber() {
         reset();
     }
+
     struct Capabilities {
         bool temperature_reporting = false;
 
@@ -33,6 +35,16 @@ public: // Common/utilities
 
     /// \returns What capabilities the chamber has
     Capabilities capabilities() const;
+
+    enum class Backend {
+        none,
+#if XL_ENCLOSURE_SUPPORT()
+        xl_enclosure,
+#endif
+    };
+
+    /// \returns the current backend that the chamber is using
+    Backend backend() const;
 
     /// Does the chamber control logic
     /// !!! Only to be called from the marlin thread

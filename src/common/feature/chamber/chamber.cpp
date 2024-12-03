@@ -3,7 +3,6 @@
 #include <cmath>
 
 #include <marlin_server_shared.h>
-#include <option/xl_enclosure_support.h>
 
 #if XL_ENCLOSURE_SUPPORT()
     #include <hw/xl/xl_enclosure.hpp>
@@ -37,13 +36,30 @@ void Chamber::step() {
 Chamber::Capabilities Chamber::capabilities() const {
     std::lock_guard _lg(mutex_);
 
+    switch (backend()) {
+
 #if XL_ENCLOSURE_SUPPORT()
-    return Capabilities {
-        .temperature_reporting = xl_enclosure.isEnabled(),
-    };
+    case Backend::xl_enclosure:
+        return Capabilities {
+            .temperature_reporting = true,
+        };
 #endif
 
+    case Backend::none:
+        break;
+    }
+
     return Capabilities {};
+}
+
+Chamber::Backend Chamber::backend() const {
+#if XL_ENCLOSURE_SUPPORT()
+    if (xl_enclosure.isEnabled()) {
+        return Backend::xl_enclosure;
+    }
+#endif
+
+    return Backend::none;
 }
 
 std::optional<Temperature> Chamber::current_temperature() const {
