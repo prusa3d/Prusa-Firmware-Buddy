@@ -486,3 +486,22 @@ TEST_CASE("Command Set value - xbuddy_extension LED intensity logic") {
         REQUIRE(buddy::ledpwm == 255);
     }
 }
+
+namespace buddy {
+extern bool usbpower;
+} // namespace buddy
+
+TEST_CASE("Command Set value - xbuddy_extension usb addon power logic") {
+    SECTION("true") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::AddonPower, 0, true } };
+        test.planner.command(command);
+        REQUIRE(buddy::usbpower);
+    }
+    SECTION("false") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::AddonPower, 0, false } };
+        test.planner.command(command);
+        REQUIRE_FALSE(buddy::usbpower);
+    }
+}

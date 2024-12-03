@@ -30,4 +30,14 @@ void XBuddyExtension::set_chamber_leds_pwm(uint8_t set) {
     ledpwm = set;
 }
 
+bool usbpower = false;
+
+bool XBuddyExtension::usb_power() const {
+    return usbpower;
+}
+
+void XBuddyExtension::set_usb_power(bool set) {
+    usbpower = set;
+}
+
 } // namespace buddy
