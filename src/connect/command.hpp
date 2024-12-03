@@ -112,6 +112,7 @@ enum class PropertyName {
     ChamberTargetTemp,
     ChamberFanPwmTarget,
     ChamberLedIntensity,
+    AddonPower, // not a very descriptive name, but the Connect team understands this property name as USB power output on the XBE
 #endif
 };
 

@@ -993,6 +993,9 @@ void Planner::command(const Command &command, const SetValue &params) {
     case connect_client::PropertyName::ChamberLedIntensity:
         buddy::xbuddy_extension().set_chamber_leds_pwm(buddy::XBuddyExtension::led_pct2pwm(get<int8_t>(params.value)));
         break;
+    case connect_client::PropertyName::AddonPower:
+        buddy::xbuddy_extension().set_usb_power(get<bool>(params.value));
+        break;
 #endif
     }
     if (err != nullptr) {

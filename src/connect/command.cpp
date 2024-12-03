@@ -409,6 +409,8 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             SET_VALUE_ARG(PropertyName::ChamberFanPwmTarget, int8_t);
         } else if (is_arg("chamber.led_intensity", Type::Primitive)) {
             SET_VALUE_ARG(PropertyName::ChamberLedIntensity, int8_t);
+        } else if (is_arg("addon_power", Type::Primitive)) {
+            set_value_bool_arg(PropertyName::AddonPower);
 #endif
         }
     });
