@@ -78,7 +78,6 @@ public:
     bool IsCaptured() const;
     bool IsCapturable() const;
     bool HasEnforcedCapture() const;
-    bool HasTimer() const;
     bool HasIcon() const;
     win_type_t GetType() const;
     bool IsDialog() const;
@@ -92,8 +91,6 @@ public:
     void ClrEnforceCapture();
     void EnableLongHoldScreenAction();
     void DisableLongHoldScreenAction();
-    void SetHasTimer();
-    void ClrHasTimer();
     void SetFocus();
 
     inline bool IsEnabled() const {
