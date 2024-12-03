@@ -84,6 +84,10 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         .add(int(enclosure_info.temp))
         .add(enclosure_info.fan_rpm / 500)
 #endif
+#if PRINTER_IS_PRUSA_COREONE()
+        .add(int(chamber_info.fan_1_rpm / 500))
+        .add(int(chamber_info.fan_2_rpm / 500))
+#endif
         .done();
 }
 
