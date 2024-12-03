@@ -139,6 +139,14 @@ std::optional<XBuddyExtension::FilamentSensorState> XBuddyExtension::filament_se
     return puppies::xbuddy_extension.get_filament_sensor_state().transform([](auto val) { return static_cast<FilamentSensorState>(val); });
 }
 
+void XBuddyExtension::set_usb_power(bool enabled) {
+    puppies::xbuddy_extension.set_usb_power(enabled);
+}
+
+bool XBuddyExtension::usb_power() const {
+    return puppies::xbuddy_extension.get_usb_power();
+}
+
 XBuddyExtension &xbuddy_extension() {
     static XBuddyExtension instance;
     return instance;

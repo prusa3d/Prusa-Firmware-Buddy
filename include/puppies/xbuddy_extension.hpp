@@ -39,6 +39,8 @@ public:
 
     uint8_t get_requested_fan_pwm(size_t fan_idx);
 
+    bool get_usb_power() const;
+
     // These are called from the puppy task.
     CommunicationStatus refresh();
     CommunicationStatus initial_scan();

@@ -32,6 +32,11 @@ uint8_t XBuddyExtension::get_requested_fan_pwm(size_t fan_idx) {
     return requirement.value.fan_pwm[fan_idx];
 }
 
+bool XBuddyExtension::get_usb_power() const {
+    Lock lock(mutex);
+    return requirement.value.usb_power_enable;
+}
+
 void XBuddyExtension::set_white_led(uint8_t intensity) {
     Lock lock(mutex);
 
