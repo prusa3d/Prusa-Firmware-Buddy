@@ -158,6 +158,9 @@ uint32_t Printer::info_fingerprint() const {
         .add(parameters.enclosure_info.post_print)
         .add(parameters.enclosure_info.post_print_filtration_time)
 #endif
+#if PRINTER_IS_PRUSA_COREONE()
+        .add(parameters.addon_power)
+#endif
         .done();
 }
 
