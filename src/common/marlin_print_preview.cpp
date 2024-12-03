@@ -238,7 +238,7 @@ bool PrintPreview::check_correct_filament_type(uint8_t physical_extruder, uint8_
     const FilamentTypeParameters loaded_filament_params = loaded_filament_type.parameters();
 
     // when filament type not known, return that filament type is OK
-    return strcmp(extruder_info.filament_name->data(), "---") == 0 || strcmp(extruder_info.filament_name->data(), loaded_filament_params.name) == 0;
+    return strcmp(extruder_info.filament_name->data(), "---") == 0 || strcmp(extruder_info.filament_name->data(), loaded_filament_params.name.data()) == 0;
 }
 
 static bool check_correct_filament_type_tools_mapping(uint8_t physical_extruder) {

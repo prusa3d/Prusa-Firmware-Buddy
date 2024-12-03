@@ -29,7 +29,7 @@ static_assert(EXTRUDERS <= adhoc_filament_type_count);
 static_assert(BED_MAXTEMP <= 255);
 
 static constexpr FilamentTypeParameters none_filament_parameters {
-    .name = "---",
+    .name = FilamentTypeParameters::name_from_str("---"),
     .nozzle_temperature = 0,
     .nozzle_preheat_temperature = 0,
     .heatbed_temperature = 0,
@@ -40,7 +40,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
     {
         PresetFilamentType::PLA,
         {
-            .name = "PLA",
+            .name = FilamentTypeParameters::name_from_str("PLA"),
             .nozzle_temperature = 215,
             .heatbed_temperature = 60,
         },
@@ -48,7 +48,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
     {
         PresetFilamentType::PETG,
         {
-            .name = "PETG",
+            .name = FilamentTypeParameters::name_from_str("PETG"),
             .nozzle_temperature = 230,
             .heatbed_temperature = 85,
         },
@@ -56,7 +56,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
     {
         PresetFilamentType::ASA,
         {
-            .name = "ASA",
+            .name = FilamentTypeParameters::name_from_str("ASA"),
             .nozzle_temperature = 260,
             .heatbed_temperature = 100,
             .requires_filtration = true,
@@ -65,7 +65,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
     {
         PresetFilamentType::PC,
         {
-            .name = "PC",
+            .name = FilamentTypeParameters::name_from_str("PC"),
             .nozzle_temperature = 275,
             .nozzle_preheat_temperature = HAS_LOADCELL() ? 170 : 275 - 25,
             .heatbed_temperature = 100,
@@ -75,7 +75,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
     {
         PresetFilamentType::PVB,
         {
-            .name = "PVB",
+            .name = FilamentTypeParameters::name_from_str("PVB"),
             .nozzle_temperature = 215,
             .heatbed_temperature = 75,
         },
@@ -83,7 +83,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
     {
         PresetFilamentType::ABS,
         {
-            .name = "ABS",
+            .name = FilamentTypeParameters::name_from_str("ABS"),
             .nozzle_temperature = 255,
             .heatbed_temperature = 100,
             .requires_filtration = true,
@@ -92,7 +92,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
     {
         PresetFilamentType::HIPS,
         {
-            .name = "HIPS",
+            .name = FilamentTypeParameters::name_from_str("HIPS"),
             .nozzle_temperature = 220,
             .heatbed_temperature = 100,
             .requires_filtration = true,
@@ -101,7 +101,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
     {
         PresetFilamentType::PP,
         {
-            .name = "PP",
+            .name = FilamentTypeParameters::name_from_str("PP"),
             .nozzle_temperature = 240,
             .heatbed_temperature = 100,
             .requires_filtration = true,
@@ -110,7 +110,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
     {
         PresetFilamentType::FLEX,
         {
-            .name = "FLEX",
+            .name = FilamentTypeParameters::name_from_str("FLEX"),
             .nozzle_temperature = 240,
             .nozzle_preheat_temperature = HAS_LOADCELL() ? 170 : 210,
             .heatbed_temperature = 50,
@@ -120,7 +120,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
     {
         PresetFilamentType::PA,
         {
-            .name = "PA",
+            .name = FilamentTypeParameters::name_from_str("PA"),
             // MINI has slightly lower max nozzle temperature but it is still OK for polyamid
             .nozzle_temperature = PRINTER_IS_PRUSA_MINI() ? 280 : 285,
             .heatbed_temperature = 100,
@@ -142,7 +142,7 @@ FilamentType FilamentType::from_name(const std::string_view &name) {
     }
 
     for (const FilamentType filament_type : all_filament_types) {
-        if (name == filament_type.parameters().name) {
+        if (name == filament_type.parameters().name.data()) {
             return filament_type;
         }
     }
@@ -163,11 +163,11 @@ std::optional<FilamentType> FilamentType::from_gcode_param(const std::string_vie
 }
 
 bool FilamentType::matches(const std::string_view &name) const {
-    return parameters().name == name;
+    return parameters().name.data() == name;
 }
 
 void FilamentType::build_name_with_info(StringBuilder &builder) const {
-    builder.append_string(parameters().name);
+    builder.append_string(parameters().name.data());
 
     const char *suffix =
 #if HAS_MINI_DISPLAY()
@@ -221,7 +221,7 @@ FilamentTypeParameters FilamentType::parameters() const {
 }
 
 void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
-    assert(can_be_renamed_to(set.name));
+    assert(can_be_renamed_to(set.name.data()));
 
     std::visit([&]<typename T>(const T &v) {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {
@@ -274,7 +274,7 @@ std::expected<void, const char *> FilamentType::can_be_renamed_to(const std::str
         !std::holds_alternative<AdHocFilamentType>(*this)
 
         && std::ranges::any_of(all_filament_types, [&](FilamentType ft) {
-               return (ft != *this) && (new_name == ft.parameters().name);
+               return (ft != *this) && (new_name == ft.parameters().name.data());
            })
 
     ) {

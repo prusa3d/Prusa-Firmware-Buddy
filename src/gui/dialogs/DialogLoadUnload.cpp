@@ -521,11 +521,11 @@ void DialogLoadUnload::phaseEnter() {
 
     if (has_filament_to_load) {
         filament_type_parameters = filament_to_load.parameters();
-        filament_type_text.SetText(string_view_utf8::MakeRAM(filament_type_parameters.name));
+        filament_type_text.SetText(string_view_utf8::MakeRAM(filament_type_parameters.name.data()));
     }
 
     if (has_color_to_load) {
-        const int16_t left_pos = (GuiDefaults::ScreenWidth - (width(Font::normal) + 1) * (strlen(filament_type_parameters.name) + 1 + 1) - color_size) / 2; // make the pos to be on the left of the text (+ one added space to the left of the text, + additional one for some reason makes it work )
+        const int16_t left_pos = (GuiDefaults::ScreenWidth - (width(Font::normal) + 1) * (strlen(filament_type_parameters.name.data()) + 1 + 1) - color_size) / 2; // make the pos to be on the left of the text (+ one added space to the left of the text, + additional one for some reason makes it work )
         const auto rect = filament_color_icon_rect + Rect16::X_t { static_cast<int16_t>(left_pos) };
 
         const auto col = filament::get_color_to_load().value();

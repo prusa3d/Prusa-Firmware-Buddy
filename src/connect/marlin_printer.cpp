@@ -216,7 +216,7 @@ namespace {
                 auto &hotend = marlin_vars().active_hotend();
                 const size_t nozzle = 0;
 #endif
-                params.slots[i].material = std::to_array(config_store().get_filament_type(i).parameters().name);
+                params.slots[i].material = config_store().get_filament_type(i).parameters().name;
                 params.slots[i].temp_nozzle = hotend.temp_nozzle;
 #if PRINTER_IS_PRUSA_iX()
                 params.slots[i].temp_heatbreak = hotend.temp_heatbreak;

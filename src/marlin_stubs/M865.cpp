@@ -83,10 +83,10 @@ void PrusaGcodeSuite::M865() {
 
     std::array<char, filament_name_buffer_size - 1> name_buf;
     if (const auto opt = p.option<std::string_view>('N', name_buf)) {
-        StringBuilder b = StringBuilder::from_ptr(params.name, filament_name_buffer_size);
+        StringBuilder b(params.name);
         b.append_std_string_view(*opt);
 
-        if (const auto r = filament_type.can_be_renamed_to(params.name); !r) {
+        if (const auto r = filament_type.can_be_renamed_to(params.name.data()); !r) {
             SERIAL_ERROR_START();
             SERIAL_ECHOLN(r.error());
             return;

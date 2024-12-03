@@ -81,7 +81,7 @@ void MI_ActionSelect::build_item_text(int index, const std::span<char> &buffer) 
         StringBuilder sb(buffer);
         sb.append_string_view(_(has_filament_loaded ? N_("Change to") : N_("Load")));
         sb.append_char(' ');
-        sb.append_string(filament_list[mapping.pos_in_section].parameters().name);
+        sb.append_string(filament_list[mapping.pos_in_section].parameters().name.data());
         break;
     }
     }
@@ -203,7 +203,7 @@ void MenuMultiFilamentChange::carry_out_changes() {
 
             // M1600 - filament change (doesn't ask for unload)
             // M701 - filament load
-            command_builder.append_printf((config.old_filament != FilamentType::none) ? "M1600 S\"%s\" T%d R" : "M701 S\"%s\" T%d W2", config.new_filament.parameters().name, tool);
+            command_builder.append_printf((config.old_filament != FilamentType::none) ? "M1600 S\"%s\" T%d R" : "M701 S\"%s\" T%d W2", config.new_filament.parameters().name.data(), tool);
 
             if (config.color.has_value()) {
                 command_builder.append_printf(" O%" PRIu32, config.color->raw);

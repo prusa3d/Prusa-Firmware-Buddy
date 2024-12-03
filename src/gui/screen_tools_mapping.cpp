@@ -147,7 +147,7 @@ void print_right_tool_into_buffer(size_t idx, std::array<std::array<char, ToolsM
     // IDX here means REAL
 
     const FilamentType loaded_filament_type = config_store().get_filament_type(idx);
-    std::array<char, filament_name_buffer_size> loaded_filament_name = std::to_array(loaded_filament_type.parameters().name);
+    FilamentTypeParameters::Name loaded_filament_name = loaded_filament_type.parameters().name;
 
 #if HAS_MMU2()
     static constexpr std::array unknown_filament_names = {

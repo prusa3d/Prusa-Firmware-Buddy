@@ -146,7 +146,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
             JSON_FIELD_INT("print-speed", vars.print_speed) JSON_COMMA;
             // XYZE, mm
             JSON_FIELD_FFIXED("z-height", vars.logical_pos[2], 1) JSON_COMMA;
-            JSON_FIELD_STR("material", filament_material.name);
+            JSON_FIELD_STR("material", filament_material.name.data());
         JSON_OBJ_END JSON_COMMA;
 
         JSON_FIELD_OBJ("temperature");

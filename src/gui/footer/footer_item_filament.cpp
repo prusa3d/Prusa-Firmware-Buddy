@@ -48,5 +48,5 @@ string_view_utf8 FooterItemFilament::static_makeView(int value) {
 
     static FilamentTypeParameters filament;
     filament = EncodedFilamentType::from_data(value).decode().parameters();
-    return string_view_utf8::MakeCPUFLASH(filament.name);
+    return string_view_utf8::MakeCPUFLASH(filament.name.data());
 }

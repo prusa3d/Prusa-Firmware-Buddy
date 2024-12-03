@@ -28,7 +28,7 @@ void MI_FILAMENT_NAME::update() {
 }
 
 void MI_FILAMENT_NAME::click(IWindowMenu &) {
-    std::array<char, filament_name_buffer_size> buf = std::to_array(filament_type.parameters().name);
+    FilamentTypeParameters::Name buf = filament_type.parameters().name;
 
     while (true) {
         if (!DialogTextInput::exec(GetLabel(), buf)) {
@@ -47,7 +47,7 @@ void MI_FILAMENT_NAME::click(IWindowMenu &) {
         break;
     }
 
-    filament_type.modify_parameters([&](auto &p) { memcpy(p.name, buf.data(), buf.size()); });
+    filament_type.modify_parameters([&](auto &p) { memcpy(p.name.data(), buf.data(), buf.size()); });
     update();
 }
 

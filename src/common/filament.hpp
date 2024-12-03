@@ -32,9 +32,10 @@ constexpr size_t adhoc_filament_type_count = 6;
 struct __attribute__((packed)) FilamentTypeParameters {
 
 public:
+    using Name = std::array<char, filament_name_buffer_size>;
+
     /// Name of the filament (zero terminated).
-    /// Keeping this as not array for ease of assignment and reading using snprintf
-    char name[filament_name_buffer_size] = "";
+    Name name { '\0' };
 
     /// Nozzle temperature for the filament, in degrees Celsius
     uint16_t nozzle_temperature;
@@ -57,6 +58,18 @@ public:
 public:
     constexpr bool operator==(const FilamentTypeParameters &) const = default;
     constexpr bool operator!=(const FilamentTypeParameters &) const = default;
+
+    consteval static Name name_from_str(const char *str) {
+        Name result;
+
+        // This is a consteval function, strlcpy doesn't work
+        for (auto r = result.begin(), re = result.end(); r != re && *str; r++, str++) {
+            *r = *str;
+        }
+
+        result[result.size() - 1] = '\0';
+        return result;
+    }
 };
 
 // !!! DO NOT REORDER, DO NOT CHANGE - this is used in config store
