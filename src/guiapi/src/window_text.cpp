@@ -105,29 +105,27 @@ WindowBlinkingText::WindowBlinkingText(window_t *parent, Rect16 rect, const stri
 void WindowBlinkingText::unconditionalDraw() {
     // blink_enable handled in event (better invalidation)
     Color backup_clr = GetTextColor();
-    if (flags.blink0) {
+    if (blink_phase) {
         SetTextColor(color_blink);
     }
 
     window_text_t::unconditionalDraw();
 
-    if (flags.blink0) {
+    if (blink_phase) {
         SetTextColor(backup_clr);
     }
 }
 
 void WindowBlinkingText::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+    const uint8_t prev_blink_phase = blink_phase;
     if (blink_enable && blink_step) {
-        bool b = (gui::GetTick() / uint32_t(blink_step)) & 0x01;
-        if (flags.blink0 != b) {
-            flags.blink0 = b;
-            Invalidate();
-        }
+        blink_phase = (gui::GetTick() / uint32_t(blink_step)) & 0b1;
     } else {
-        if (flags.blink0) {
-            flags.blink0 = false;
-            Invalidate();
-        }
+        blink_phase = 0;
+    }
+
+    if (blink_phase != prev_blink_phase) {
+        Invalidate();
     }
 
     window_text_t::windowEvent(sender, event, param);
