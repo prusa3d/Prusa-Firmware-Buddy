@@ -494,10 +494,8 @@ void Pause::filament_push_ask_process(Response response) {
 
         if (FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) {
             set(LoadState::move_to_purge);
-#if HAS_SIDE_FSENSOR()
         } else if constexpr (option::has_side_fsensor) {
             set_timed(LoadState::await_filament);
-#endif
         } else {
             set(LoadState::load_to_gears);
         }
@@ -823,21 +821,20 @@ void Pause::unload_process([[maybe_unused]] Response response) {
 
     switch (load_type) {
     case LoadType::unload:
-#if HAS_HUMAN_INTERACTIONS()
-        set(LoadState::unload_finish_or_change);
-        break;
-#endif
+        if constexpr (option::has_human_interactions) {
+            set(LoadState::unload_finish_or_change);
+            break;
+        }
     case LoadType::unload_confirm:
     case LoadType::filament_change:
     case LoadType::filament_stuck:
-#if !HAS_HUMAN_INTERACTIONS()
-        runout_timer_ms = ticks_ms();
-        set(LoadState::filament_not_in_fs);
-        break;
-#endif
-
-        setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
-        set(LoadState::unloaded_ask);
+        if constexpr (!option::has_human_interactions) {
+            runout_timer_ms = ticks_ms();
+            set(LoadState::filament_not_in_fs);
+        } else {
+            setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
+            set(LoadState::unloaded_ask);
+        }
         break;
     default:
         break;
@@ -873,20 +870,21 @@ void Pause::unload_finish_or_change_process([[maybe_unused]] Response response) 
 void Pause::filament_not_in_fs_process([[maybe_unused]] Response response) {
     setPhase(PhasesLoadUnload::FilamentNotInFS);
     if (!FSensors_instance().has_filament_surely(LogicalFilamentSensor::autoload)) {
-#if !HAS_HUMAN_INTERACTIONS()
-        // In case of no human interactions, require no filament being
-        // detected for at least 1s to avoid FS flicking off and on due
-        // to filament movement and reloading the just-unloaded
-        // filament remnant back in.
-        if (ticks_diff(ticks_ms(), runout_timer_ms) < 1000) {
-            return;
+        if constexpr (!option::has_human_interactions) {
+            // In case of no human interactions, require no filament being
+            // detected for at least 1s to avoid FS flicking off and on due
+            // to filament movement and reloading the just-unloaded
+            // filament remnant back in.
+            if (ticks_diff(ticks_ms(), runout_timer_ms) < 1000) {
+                return;
+            }
         }
-#endif
+
         set(LoadState::unload_finish_or_change);
     } else {
-#if !HAS_HUMAN_INTERACTIONS()
-        runout_timer_ms = ticks_ms();
-#endif
+        if constexpr (!option::has_human_interactions) {
+            runout_timer_ms = ticks_ms();
+        }
     }
 }
 

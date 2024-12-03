@@ -111,9 +111,7 @@ class Pause : public PausePrivatePhase {
     bool user_stop_pending = false;
 
     uint32_t start_time_ms { 0 };
-#if !HAS_HUMAN_INTERACTIONS()
     uint32_t runout_timer_ms { 0 };
-#endif
 
     // singleton
     Pause() = default;
