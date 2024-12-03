@@ -27,7 +27,7 @@ void MI_CRASH_DETECTION::Loop() {
     // Enable or disable according to the current phase stepping state. We can't really use
     // invalidation to reduce calls to config_store, as Print() happens and resets the state before
     // we can trap it here. At the same time, Print is not virtual.
-    bool phstep_enabled = (config_store().phase_stepping_enabled_x.get() || config_store().phase_stepping_enabled_y.get());
+    const bool phstep_enabled = config_store().get_phase_stepping_enabled();
     if (phstep_enabled) {
         set_value(false, false);
         Disable();
