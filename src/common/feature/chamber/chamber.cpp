@@ -44,25 +44,49 @@ void Chamber::step() {
 Chamber::Capabilities Chamber::capabilities() const {
     std::lock_guard _lg(mutex_);
 
+    switch (backend()) {
+
 #if XL_ENCLOSURE_SUPPORT()
-    return Capabilities {
-        .temperature_reporting = xl_enclosure.isEnabled(),
-    };
+    case Backend::xl_enclosure:
+        return Capabilities {
+            .temperature_reporting = true,
+        };
 #endif
 
 #if HAS_XBUDDY_EXTENSION()
-    return Capabilities {
-        .temperature_reporting = true,
+    case Backend::xbuddy_extension:
+        return Capabilities {
+            .temperature_reporting = true,
 
-        // The chamber can effectively control temperature only if the fans are in auto mode
-        .cooling = xbuddy_extension().has_fan1_fan2_auto_control(),
+            // The chamber can effectively control temperature only if the fans are in auto mode
+            .cooling = xbuddy_extension().has_fan1_fan2_auto_control(),
 
-        // But always show temperature control menu items, even if disabled
-        .always_show_temperature_control = true,
-    };
+            // But always show temperature control menu items, even if disabled
+            .always_show_temperature_control = true,
+        };
 #endif
 
+    case Backend::none:
+        break;
+    }
+
     return Capabilities {};
+}
+
+Chamber::Backend Chamber::backend() const {
+#if XL_ENCLOSURE_SUPPORT()
+    if (xl_enclosure.isEnabled()) {
+        return Backend::xl_enclosure;
+    }
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    if (xbuddy_extension().status() != XBuddyExtension::Status::disabled) {
+        return Backend::xbuddy_extension;
+    }
+#endif
+
+    return Backend::none;
 }
 
 std::optional<Temperature> Chamber::current_temperature() const {

@@ -27,7 +27,9 @@
 #include <option/has_belt_tuning.h>
 #include <option/has_emergency_stop.h>
 #include <option/has_gears_calibration.h>
+#include <option/xl_enclosure_support.h>
 #include <common/hotend_type.hpp>
+#include <device/board.h>
 
 /// number of bits used to encode response
 // TODO: Make 2 everywhere: BFW-6028
@@ -218,14 +220,6 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesPrintPreview) { return Cl
 // a limitation that only first item with same value is exported.
 enum class PhasesSelftest : PhaseUnderlyingType {
     _none,
-
-    Fans,
-    #if PRINTER_IS_PRUSA_MK3_5()
-    Fans_manual,
-    #endif
-    Fans_second,
-    _first_Fans = Fans,
-    _last_Fans = Fans_second,
 
     Loadcell_prepare,
     Loadcell_move_away,
@@ -468,6 +462,18 @@ enum class PhasesPhaseStepping : PhaseUnderlyingType {
 constexpr inline ClientFSM client_fsm_from_phase(PhasesPhaseStepping) { return ClientFSM::PhaseStepping; }
 #endif
 
+enum class PhasesFansSelftest : PhaseUnderlyingType {
+    test_100_percent,
+#if PRINTER_IS_PRUSA_MK3_5()
+    manual_check,
+#endif
+    test_40_percent,
+    results,
+    _last = results,
+};
+
+constexpr inline ClientFSM client_fsm_from_phase(PhasesFansSelftest) { return ClientFSM::FansSelftest; }
+
 #if HAS_INPUT_SHAPER_CALIBRATION()
 enum class PhasesInputShaperCalibration : PhaseUnderlyingType {
     info,
@@ -664,14 +670,6 @@ class ClientResponses {
 
     static constexpr EnumArray<PhasesSelftest, PhaseResponses, CountPhases<PhasesSelftest>()> SelftestResponses {
         { PhasesSelftest::_none, {} },
-            { PhasesSelftest::Fans, {} },
-
-#if PRINTER_IS_PRUSA_MK3_5()
-            { PhasesSelftest::Fans_manual, { Response::Yes, Response::No } },
-#endif
-
-            { PhasesSelftest::Fans_second, {} },
-
             { PhasesSelftest::Loadcell_prepare, {} },
             { PhasesSelftest::Loadcell_move_away, {} },
             { PhasesSelftest::Loadcell_tool_select, {} },
@@ -868,6 +866,16 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::PhaseSteppingResponses) == CountPhases<PhasesPhaseStepping>());
 #endif
 
+    static constexpr PhaseResponses FanSelftestResponses[] = {
+        {}, // PhasesFanSelftest::test_100_percent
+#if PRINTER_IS_PRUSA_MK3_5()
+        { Response::Yes, Response::No }, // PhasesFanSelftest::manual_check
+#endif
+        {}, // PhasesFanSelftest::test_40_percent
+        {}, // PhasesFanSelftest::results
+    };
+    static_assert(std::size(ClientResponses::FanSelftestResponses) == CountPhases<PhasesFansSelftest>());
+
 #if HAS_INPUT_SHAPER_CALIBRATION()
     static constexpr EnumArray<PhasesInputShaperCalibration, PhaseResponses, CountPhases<PhasesInputShaperCalibration>()> input_shaper_calibration_responses {
         { PhasesInputShaperCalibration::info, { Response::Continue, Response::Abort } },
@@ -909,6 +917,7 @@ class ClientResponses {
 #if HAS_SELFTEST()
             { ClientFSM::Selftest, SelftestResponses },
 #endif
+            { ClientFSM::FansSelftest, FanSelftestResponses },
             { ClientFSM::NetworkSetup, network_setup_responses },
             { ClientFSM::Printing, {} },
 #if ENABLED(CRASH_RECOVERY)
@@ -984,7 +993,6 @@ public:
 
 enum class SelftestParts {
     Axis,
-    Fans,
 #if HAS_LOADCELL()
     Loadcell,
 #endif
@@ -1011,8 +1019,6 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     switch (part) {
     case SelftestParts::Axis:
         return PhasesSelftest::_first_Axis;
-    case SelftestParts::Fans:
-        return PhasesSelftest::_first_Fans;
 #if HAS_LOADCELL()
     case SelftestParts::Loadcell:
         return PhasesSelftest::_first_Loadcell;
@@ -1052,8 +1058,6 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
     switch (part) {
     case SelftestParts::Axis:
         return PhasesSelftest::_last_Axis;
-    case SelftestParts::Fans:
-        return PhasesSelftest::_last_Fans;
 #if HAS_LOADCELL()
     case SelftestParts::Loadcell:
         return PhasesSelftest::_last_Loadcell;
@@ -1100,10 +1104,6 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
         if (SelftestPartContainsPhase(SelftestParts(i), ph)) {
             return SelftestParts(i);
         }
-    }
-
-    if (SelftestPartContainsPhase(SelftestParts::Fans, ph)) {
-        return SelftestParts::Fans;
     }
 
 #if HAS_LOADCELL()

@@ -260,7 +260,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             PrusaGcodeSuite::M1977();
             break;
 #endif
-
+        case 1978:
+            PrusaGcodeSuite::M1978();
+            break;
         case 9140:
             PrusaGcodeSuite::M9140();
             break;

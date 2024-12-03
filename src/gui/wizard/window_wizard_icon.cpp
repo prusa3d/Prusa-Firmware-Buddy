@@ -37,6 +37,17 @@ void WindowIconOkNgArray::SetState(const SelftestSubtestState_t state, const siz
     }
 }
 
+void WindowIconOkNgArray::SetIconCount(const size_t new_icon_cnt, const Rect16 new_rect) {
+    assert(icon_cnt <= max_icon_cnt);
+    if (icon_cnt == new_icon_cnt) {
+        return;
+    }
+
+    icon_cnt = new_icon_cnt;
+    SetRect(new_rect);
+    Invalidate();
+}
+
 void WindowIconOkNgArray::unconditionalDraw() {
     size_t visible_left = icon_cnt - hidden.count();
     for (size_t i = 0; i < icon_cnt; i++) {

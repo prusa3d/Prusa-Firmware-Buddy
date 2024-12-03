@@ -61,7 +61,7 @@ struct FrameDefinitionList {
 };
 
 class ScreenFSM : public screen_t {
-    static constexpr size_t frame_static_storage_size = 1060;
+    static constexpr size_t frame_static_storage_size = 1324;
 
 public:
     using FrameStorage = StaticStorage<frame_static_storage_size>;

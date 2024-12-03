@@ -147,7 +147,9 @@ void do_snake(Action action, Tool tool = Tool::_first) {
             marlin_client::gcode("M1977");
             break;
 #endif
-
+        case Action::Fans:
+            marlin_client::gcode("M1978");
+            break;
         default:
             has_test_special_handling = false;
             break;

@@ -37,8 +37,6 @@ ToolMask get_tool_mask([[maybe_unused]] Tool tool) {
 
 uint64_t get_test_mask(Action action) {
     switch (action) {
-    case Action::Fans:
-        return stmFans;
     case Action::XYCheck:
         return stmXYAxis;
     case Action::ZCheck:
@@ -47,6 +45,9 @@ uint64_t get_test_mask(Action action) {
         return stmHeaters;
     case Action::FirstLayer:
         return stmFirstLayer;
+    case Action::Fans:
+        bsod("get_test_mask");
+        break;
     case Action::_count:
         break;
     }

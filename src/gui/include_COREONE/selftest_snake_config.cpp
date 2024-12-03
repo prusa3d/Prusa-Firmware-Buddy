@@ -65,7 +65,7 @@ ToolMask get_tool_mask([[maybe_unused]] Tool tool) {
 uint64_t get_test_mask(Action action) {
     switch (action) {
     case Action::Fans:
-        return stmFans;
+        bsod("This should be gcode");
     case Action::YCheck:
         return stmYAxis;
     case Action::XCheck:

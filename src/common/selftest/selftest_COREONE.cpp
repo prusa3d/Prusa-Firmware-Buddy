@@ -8,7 +8,6 @@
 #include "selftest_axis.h"
 #include "selftest_axis_config.hpp"
 #include "selftest_axis_interface.hpp"
-#include "selftest_fans_interface.hpp"
 #include "selftest_fsensor_config.hpp"
 #include "selftest_fsensor_interface.hpp"
 #include "selftest_gears.hpp"
@@ -45,22 +44,6 @@ static constexpr size_t z_fr_tables_size = Zfr_table_fw.size();
 #else
 static constexpr size_t z_fr_tables_size = Zfr_table_fw.size() + Zfr_table_bw.size();
 #endif
-
-static constexpr SelftestFansConfig fans_configs[] = {
-    {
-        .print_fan = {
-            ///@note Datasheet says 5900 +-10%, but that is without any fan shroud.
-            ///  Blocked fan increases its RPMs over 7000.
-            ///  With MK4 shroud the values can be 6400 or so.
-            .rpm_min = 5300,
-            .rpm_max = 6799,
-        },
-        .heatbreak_fan = {
-            .rpm_min = 6800,
-            .rpm_max = 8700,
-        },
-    },
-};
 
 // reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = {
@@ -213,7 +196,6 @@ protected:
 protected:
     SelftestState_t m_State;
     SelftestMask_t m_Mask;
-    std::array<selftest::IPartHandler *, HOTENDS> pFans;
     selftest::IPartHandler *pXAxis;
     selftest::IPartHandler *pYAxis;
     selftest::IPartHandler *pZAxis;
@@ -245,9 +227,6 @@ bool CSelftest::IsAborted() const {
 
 bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const TestData test_data) {
     m_Mask = SelftestMask_t(test_mask);
-    if (m_Mask & stmFans) {
-        m_Mask = static_cast<SelftestMask_t>(m_Mask | uint64_t(stmWait_fans));
-    }
     if (m_Mask & (stmXAxis | stmYAxis | stmZAxis)) {
         m_Mask = static_cast<SelftestMask_t>(m_Mask | uint64_t(stmWait_axes));
         if (m_result.zaxis != TestResult_Passed) {
@@ -279,16 +258,6 @@ void CSelftest::Loop() {
         break;
     case stsSelftestStart:
         phaseSelftestStart();
-        break;
-    case stsFans:
-        if (selftest::phaseFans(pFans, fans_configs)) {
-            return;
-        }
-        break;
-    case stsWait_fans:
-        if (phaseWait()) {
-            return;
-        }
         break;
     case stsLoadcell:
         if (selftest::phaseLoadcell(ToolMask::AllTools, m_pLoadcell, Config_Loadcell)) {
@@ -426,9 +395,6 @@ bool CSelftest::Abort() {
     if (!IsInProgress()) {
         return false;
     }
-    for (auto &pFan : pFans) {
-        abort_part(&pFan);
-    }
     abort_part((selftest::IPartHandler **)&pXAxis);
     abort_part((selftest::IPartHandler **)&pYAxis);
     abort_part((selftest::IPartHandler **)&pZAxis);
@@ -459,11 +425,6 @@ void CSelftest::phaseSelftestStart() {
     }
 
     m_result = config_store().selftest_result.get(); // read previous result
-    if (m_Mask & stmFans) {
-        m_result.tools[0].printFan = TestResult_Unknown;
-        m_result.tools[0].heatBreakFan = TestResult_Unknown;
-        m_result.tools[0].fansSwitched = TestResult_Unknown;
-    }
     if (m_Mask & stmXAxis) {
         m_result.xaxis = TestResult_Unknown;
     }

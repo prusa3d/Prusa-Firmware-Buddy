@@ -4,6 +4,11 @@
 #include <config_store/store_instance.hpp>
 
 #include <option/has_side_fsensor.h>
+#include <option/has_chamber_api.h>
+#if HAS_CHAMBER_API()
+    #include <feature/chamber/chamber.hpp>
+#endif
+#include <option/xl_enclosure_support.h>
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -17,11 +22,24 @@ TestResult get_test_result(Action action, Tool tool) {
     SelftestResult sr = config_store().selftest_result.get();
 
     switch (action) {
-    case Action::Fans:
-        return merge_hotends_evaluations(
+    case Action::Fans: {
+        TestResult res = merge_hotends_evaluations(
             [&](int8_t e) {
                 return evaluate_results(sr.tools[e].evaluate_fans());
             });
+#if HAS_CHAMBER_API()
+        switch (buddy::chamber().backend()) {
+    #if XL_ENCLOSURE_SUPPORT()
+        case buddy::Chamber::Backend::xl_enclosure:
+            res = evaluate_results(res, config_store().xl_enclosure_fan_selftest_result.get());
+            break;
+    #endif /* XL_ENCLOSURE_SUPPORT() */
+        case buddy::Chamber::Backend::none:
+            break;
+        }
+#endif /* HAS_CHAMBER_API() */
+        return res;
+    }
     case Action::ZAlign:
         return evaluate_results(sr.zalign);
     case Action::YCheck:
@@ -104,8 +122,6 @@ ToolMask get_tool_mask(Tool tool) {
 
 uint64_t get_test_mask(Action action) {
     switch (action) {
-    case Action::Fans:
-        return stmFans;
     case Action::YCheck:
         return stmYAxis;
     case Action::XCheck:
@@ -128,6 +144,7 @@ uint64_t get_test_mask(Action action) {
         return stmDocks;
     case Action::ToolOffsetsCalibration:
         return stmToolOffsets;
+    case Action::Fans:
     case Action::PhaseSteppingCalibration:
         bsod("get_test_mask");
         break;

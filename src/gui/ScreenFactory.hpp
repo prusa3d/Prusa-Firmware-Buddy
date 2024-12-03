@@ -13,7 +13,7 @@ class ScreenFactory {
 #if PRINTER_IS_PRUSA_XL()
     using Storage = std::array<uint8_t, 4096>;
 #elif PRINTER_IS_PRUSA_MINI()
-    using Storage = std::array<uint8_t, 3080>;
+    using Storage = std::array<uint8_t, 3344>;
 #else
     using Storage = std::array<uint8_t, 4096>;
 #endif

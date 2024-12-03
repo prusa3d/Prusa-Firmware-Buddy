@@ -19,6 +19,7 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
     case ClientFSM::Serial_printing:
     case ClientFSM::Printing:
     case ClientFSM::Selftest:
+    case ClientFSM::FansSelftest:
         return 1;
 
     case ClientFSM::Load_unload:

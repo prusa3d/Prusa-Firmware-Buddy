@@ -27,46 +27,6 @@ LOG_COMPONENT_DEF(PreciseStepping, logging::Severity::debug);
     #include <sound.hpp>
 #endif
 
-#if BOARD_IS_DWARF()
-    #define X_APPLY_DIR(v) X_DIR_WRITE(v)
-    #define Y_APPLY_DIR(v) Y_DIR_WRITE(v)
-    #define Z_APPLY_DIR(v) Z_DIR_WRITE(v)
-    #define E_APPLY_DIR(v) E0_DIR_WRITE(v)
-#else
-    #define X_APPLY_DIR(v) buddy::hw::xDir.writeb(v)
-    #define Y_APPLY_DIR(v) buddy::hw::yDir.writeb(v)
-    #define Z_APPLY_DIR(v) buddy::hw::zDir.writeb(v)
-    #define E_APPLY_DIR(v) buddy::hw::e0Dir.writeb(v)
-#endif
-
-#ifdef SQUARE_WAVE_STEPPING
-    #if PRINTER_IS_PRUSA_XL() && !BOARD_IS_DWARF()
-        // on XLBuddy the XY pin assignment is dynamic depending on board revision
-        #define X_STEP_SET() buddy::hw::XStep->toggle();
-        #define Y_STEP_SET() buddy::hw::YStep->toggle();
-    #else
-        #define X_STEP_SET() buddy::hw::xStep.toggle();
-        #define Y_STEP_SET() buddy::hw::yStep.toggle();
-    #endif
-    #define Z_STEP_SET() buddy::hw::zStep.toggle();
-    #define E_STEP_SET() buddy::hw::e0Step.toggle();
-
-    #define X_STEP_RESET()
-    #define Y_STEP_RESET()
-    #define Z_STEP_RESET()
-    #define E_STEP_RESET()
-#else
-    #define X_STEP_SET() X_STEP_WRITE(1)
-    #define Y_STEP_SET() Y_STEP_WRITE(1)
-    #define Z_STEP_SET() Z_STEP_WRITE(1)
-    #define E_STEP_SET() E0_STEP_WRITE(1)
-
-    #define X_STEP_RESET() X_STEP_WRITE(0)
-    #define Y_STEP_RESET() Y_STEP_WRITE(0)
-    #define Z_STEP_RESET() Z_STEP_WRITE(0)
-    #define E_STEP_RESET() E0_STEP_WRITE(0)
-#endif
-
 move_segment_queue_t PreciseStepping::move_segment_queue;
 step_event_queue_t PreciseStepping::step_event_queue;
 

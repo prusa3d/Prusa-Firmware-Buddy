@@ -66,14 +66,6 @@ void set_steps_per_unit_x(float steps);
 void set_steps_per_unit_y(float steps);
 void set_steps_per_unit_z(float steps);
 void set_steps_per_unit_e(float steps);
-void set_positive_direction_x();
-void set_positive_direction_y();
-void set_positive_direction_z();
-void set_positive_direction_e();
-void set_negative_direction_x();
-void set_negative_direction_y();
-void set_negative_direction_z();
-void set_negative_direction_e();
 // wrong motor direction != Prusa default
 void set_wrong_direction_x();
 void set_wrong_direction_y();

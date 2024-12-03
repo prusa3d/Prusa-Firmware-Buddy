@@ -12,11 +12,9 @@ enum SelftestState_t : uint8_t {
     stsIdle,
     stsStart,
     stsSelftestStart,
-    stsFans,
 #if HAS_PHASE_STEPPING()
     stsPhaseStepping,
 #endif
-    stsWait_fans,
     stsEnsureZAway,
     stsYAxis,
     stsXAxis,
@@ -44,8 +42,6 @@ consteval uint32_t to_one_hot(SelftestState_t state) {
 
 enum SelftestMask_t : uint32_t {
     stmNone = 0,
-    stmFans = to_one_hot(stsFans),
-    stmWait_fans = to_one_hot(stsWait_fans),
     stmLoadcell = to_one_hot(stsLoadcell),
     stmWait_loadcell = to_one_hot(stsWait_loadcell),
     stmZcalib = to_one_hot(stsZcalib),

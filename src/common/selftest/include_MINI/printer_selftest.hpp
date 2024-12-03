@@ -10,8 +10,6 @@ typedef enum {
     stsIdle,
     stsStart,
     stsSelftestStart,
-    stsFans,
-    stsWait_fans,
     stsXAxis,
     stsYAxis,
     stsZAxis, // could not be first, printer can't home at front edges without steelsheet on
@@ -37,8 +35,6 @@ consteval uint32_t to_one_hot(SelftestState_t state) {
 
 enum SelftestMask_t : uint32_t {
     stmNone = 0,
-    stmFans = to_one_hot(stsFans),
-    stmWait_fans = to_one_hot(stsWait_fans),
     stmXAxis = to_one_hot(stsXAxis),
     stmYAxis = to_one_hot(stsYAxis),
     stmZAxis = to_one_hot(stsZAxis),

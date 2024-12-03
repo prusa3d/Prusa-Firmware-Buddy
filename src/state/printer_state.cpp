@@ -6,8 +6,8 @@
 #include <option/has_mmu2.h>
 #include <option/has_dwarf.h>
 #include <option/has_input_shaper_calibration.h>
+#include <option/xl_enclosure_support.h>
 #include <config_store/store_instance.hpp>
-#include <device/board.h>
 
 using namespace marlin_server;
 using namespace printer_state;
@@ -186,6 +186,7 @@ DeviceState get_state(bool ready) {
     case ClientFSM::QuickPause:
         return DeviceState::Paused;
     case ClientFSM::Selftest:
+    case ClientFSM::FansSelftest:
     case ClientFSM::NetworkSetup:
 #if HAS_COLDPULL()
     case ClientFSM::ColdPull:
@@ -373,6 +374,7 @@ StateWithDialog get_state_with_dialog(bool ready) {
         break;
 
     case ClientFSM::Selftest:
+    case ClientFSM::FansSelftest:
     case ClientFSM::NetworkSetup:
 #if HAS_COLDPULL()
     case ClientFSM::ColdPull:
