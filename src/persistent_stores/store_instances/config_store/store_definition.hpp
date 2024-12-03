@@ -322,9 +322,11 @@ struct CurrentStore
 
     // We cannot use the constant in StoreItemArray, because it is scanned by a script and it would not be able to parse it
     static_assert(max_user_filament_type_count == 32);
-    StoreItemArray<FilamentTypeParameters, defaults::user_filament_parameters, journal::hash("User Filament Parameters"), 32, user_filament_type_count> user_filament_parameters;
+    StoreItemArray<FilamentTypeParameters_EEPROM1, defaults::user_filament_parameters, journal::hash("User Filament Parameters"), 32, user_filament_type_count> user_filament_parameters;
+    StoreItemArray<FilamentTypeParameters_EEPROM2, FilamentTypeParameters_EEPROM2 {}, journal::hash("User Filament Parameters 2"), 32, user_filament_type_count> user_filament_parameters_2;
 
-    StoreItemArray<FilamentTypeParameters, defaults::adhoc_filament_parameters, journal::hash("Adhoc Filament Parameters"), 8, adhoc_filament_type_count> adhoc_filament_parameters;
+    StoreItemArray<FilamentTypeParameters_EEPROM1, defaults::adhoc_filament_parameters, journal::hash("Adhoc Filament Parameters"), 8, adhoc_filament_type_count> adhoc_filament_parameters;
+    StoreItemArray<FilamentTypeParameters_EEPROM2, FilamentTypeParameters_EEPROM2 {}, journal::hash("Adhoc Filament Parameters 2"), 8, adhoc_filament_type_count> adhoc_filament_parameters_2;
 
     StoreItem<std::bitset<max_user_filament_type_count>, defaults::visible_user_filament_types, journal::hash("Visible User Filament Types")> visible_user_filament_types;
 

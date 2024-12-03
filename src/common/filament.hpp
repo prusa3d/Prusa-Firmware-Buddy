@@ -8,6 +8,8 @@
 
 #include <str_utils.hpp>
 
+#include <option/has_chamber_api.h>
+
 // !!! DO NOT CHANGE - this is used in config store
 /// Maximum length of a filament name, including the terminating zero
 constexpr size_t filament_name_buffer_size = 8;
@@ -28,8 +30,7 @@ constexpr size_t user_filament_type_count = 8;
 /// Hardcoded to prevent dependency pollution
 constexpr size_t adhoc_filament_type_count = 6;
 
-// !!! DO NOT CHANGE - this is used in config store
-struct __attribute__((packed)) FilamentTypeParameters {
+struct FilamentTypeParameters {
 
 public:
     using Name = std::array<char, filament_name_buffer_size>;
@@ -46,14 +47,22 @@ public:
     /// Bed temperature for the filament, in degrees Celsius
     uint8_t heatbed_temperature;
 
+#if HAS_CHAMBER_API()
+    /// Minimum temperature at which it's recommended to print this material
+    std::optional<uint8_t> chamber_min_temperature = std::nullopt;
+
+    /// Maximum temperature at which it's recommended to print this material
+    std::optional<uint8_t> chamber_max_temperature = std::nullopt;
+
+    /// Ideal chamber temperature we would like to keep during printing
+    std::optional<uint8_t> chamber_target_temperature = std::nullopt;
+#endif
+
     /// Whether the filament requires filtration (used in XL enclosure)
     bool requires_filtration : 1 = false;
 
     /// Whether the filament is abrasive and requires hardened (abrasive-resistant) nozzle
     bool is_abrasive : 1 = false;
-
-    // Keeping the remaining bits of the bitfield unused, but zero initizliazed, for future proofing
-    uint8_t _unused : 6 = 0;
 
 public:
     constexpr bool operator==(const FilamentTypeParameters &) const = default;

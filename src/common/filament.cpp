@@ -1,5 +1,6 @@
 #include "filament.hpp"
 #include "filament_list.hpp"
+#include "filament_eeprom.hpp"
 
 #include <cassert>
 #include <cstring>
@@ -19,7 +20,11 @@ static_assert(filament_name_buffer_size == 8);
 static_assert(max_preset_filament_type_count == 32);
 static_assert(max_user_filament_type_count == 32);
 static_assert(max_total_filament_count == 64);
-static_assert(sizeof(FilamentTypeParameters) == 14);
+static_assert(sizeof(FilamentTypeParameters_EEPROM1) == 14);
+
+#if HAS_CHAMBER_API()
+static_assert(sizeof(FilamentTypeParameters_EEPROM2) == 3);
+#endif
 
 static_assert(preset_filament_type_count <= max_preset_filament_type_count);
 static_assert(user_filament_type_count <= max_user_filament_type_count);
@@ -43,6 +48,11 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .name = FilamentTypeParameters::name_from_str("PLA"),
             .nozzle_temperature = 215,
             .heatbed_temperature = 60,
+#if HAS_CHAMBER_API()
+            .chamber_min_temperature = std::nullopt,
+            .chamber_max_temperature = 40,
+            .chamber_target_temperature = 20,
+#endif
         },
     },
     {
@@ -51,6 +61,11 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .name = FilamentTypeParameters::name_from_str("PETG"),
             .nozzle_temperature = 230,
             .heatbed_temperature = 85,
+#if HAS_CHAMBER_API()
+            .chamber_min_temperature = std::nullopt,
+            .chamber_max_temperature = 45,
+            .chamber_target_temperature = 30,
+#endif
         },
     },
     {
@@ -59,6 +74,11 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .name = FilamentTypeParameters::name_from_str("ASA"),
             .nozzle_temperature = 260,
             .heatbed_temperature = 100,
+#if HAS_CHAMBER_API()
+            .chamber_min_temperature = 45,
+            .chamber_max_temperature = std::nullopt,
+            .chamber_target_temperature = 60,
+#endif
             .requires_filtration = true,
         },
     },
@@ -69,6 +89,11 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_temperature = 275,
             .nozzle_preheat_temperature = HAS_LOADCELL() ? 170 : 275 - 25,
             .heatbed_temperature = 100,
+#if HAS_CHAMBER_API()
+            .chamber_min_temperature = 45,
+            .chamber_max_temperature = std::nullopt,
+            .chamber_target_temperature = 60,
+#endif
             .requires_filtration = true,
         },
     },
@@ -86,6 +111,11 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .name = FilamentTypeParameters::name_from_str("ABS"),
             .nozzle_temperature = 255,
             .heatbed_temperature = 100,
+#if HAS_CHAMBER_API()
+            .chamber_min_temperature = 45,
+            .chamber_max_temperature = std::nullopt,
+            .chamber_target_temperature = 60,
+#endif
             .requires_filtration = true,
         },
     },
@@ -200,15 +230,45 @@ void FilamentType::build_name_with_info(StringBuilder &builder) const {
 }
 
 FilamentTypeParameters FilamentType::parameters() const {
+    static const auto build_eeprom = [](const FilamentTypeParameters_EEPROM1 &e1,
+#if HAS_CHAMBER_API()
+                                         const FilamentTypeParameters_EEPROM2 &e2,
+#endif
+                                         std::monostate) {
+        return FilamentTypeParameters {
+            .name = e1.name,
+            .nozzle_temperature = e1.nozzle_temperature,
+            .nozzle_preheat_temperature = e1.nozzle_preheat_temperature,
+            .heatbed_temperature = e1.heatbed_temperature,
+#if HAS_CHAMBER_API()
+            .chamber_min_temperature = e2.decode_chamber_temp(e2.chamber_min_temperature),
+            .chamber_max_temperature = e2.decode_chamber_temp(e2.chamber_max_temperature),
+            .chamber_target_temperature = e2.decode_chamber_temp(e2.chamber_target_temperature),
+#endif
+            .requires_filtration = e1.requires_filtration,
+            .is_abrasive = e1.is_abrasive,
+        };
+    };
+
     return std::visit([]<typename T>(const T &v) -> FilamentTypeParameters {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {
             return preset_filament_parameters[v];
 
         } else if constexpr (std::is_same_v<T, UserFilamentType>) {
-            return config_store().user_filament_parameters.get(v.index);
+            return build_eeprom(
+                config_store().user_filament_parameters.get(v.index),
+#if HAS_CHAMBER_API()
+                config_store().user_filament_parameters_2.get(v.index),
+#endif
+                std::monostate());
 
         } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
-            return config_store().adhoc_filament_parameters.get(v.tool);
+            return build_eeprom(
+                config_store().adhoc_filament_parameters.get(v.tool),
+#if HAS_CHAMBER_API()
+                config_store().adhoc_filament_parameters_2.get(v.tool),
+#endif
+                std::monostate());
 
         } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
             return pending_adhoc_filament_parameters;
@@ -223,15 +283,37 @@ FilamentTypeParameters FilamentType::parameters() const {
 void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
     assert(can_be_renamed_to(set.name.data()));
 
+    const FilamentTypeParameters_EEPROM1 e1 {
+        .name = set.name,
+        .nozzle_temperature = set.nozzle_temperature,
+        .nozzle_preheat_temperature = set.nozzle_preheat_temperature,
+        .heatbed_temperature = set.heatbed_temperature,
+        .requires_filtration = set.requires_filtration,
+        .is_abrasive = set.is_abrasive,
+    };
+#if HAS_CHAMBER_API()
+    const FilamentTypeParameters_EEPROM2 e2 {
+        .chamber_min_temperature = e2.encode_chamber_temp(set.chamber_min_temperature),
+        .chamber_max_temperature = e2.encode_chamber_temp(set.chamber_max_temperature),
+        .chamber_target_temperature = e2.encode_chamber_temp(set.chamber_target_temperature),
+    };
+#endif
+
     std::visit([&]<typename T>(const T &v) {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {
             assert(false);
 
         } else if constexpr (std::is_same_v<T, UserFilamentType>) {
-            config_store().user_filament_parameters.set(v.index, set);
+            config_store().user_filament_parameters.set(v.index, e1);
+#if HAS_CHAMBER_API()
+            config_store().user_filament_parameters_2.set(v.index, e2);
+#endif
 
         } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
-            config_store().adhoc_filament_parameters.set(v.tool, set);
+            config_store().adhoc_filament_parameters.set(v.tool, e1);
+#if HAS_CHAMBER_API()
+            config_store().adhoc_filament_parameters_2.set(v.tool, e2);
+#endif
 
         } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
             pending_adhoc_filament_parameters = set;

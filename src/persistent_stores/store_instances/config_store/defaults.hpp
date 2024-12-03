@@ -14,7 +14,7 @@
 #include <filament_sensors_remap_data.hpp>
 #include <printers.h>
 #include <common/hw_check.hpp>
-#include <filament.hpp>
+#include <filament_eeprom.hpp>
 
 #include "constants.hpp"
 #include <common/hotend_type.hpp>
@@ -302,10 +302,10 @@ namespace defaults {
     inline constexpr uint8_t visible_user_filament_types = 0;
 
     inline constexpr auto user_filament_parameters = [] {
-        std::array<FilamentTypeParameters, user_filament_type_count> result;
+        std::array<FilamentTypeParameters_EEPROM1, user_filament_type_count> result;
         for (size_t i = 0; i < result.size(); i++) {
             const size_t display_ix = i + 1;
-            result[i] = FilamentTypeParameters {
+            result[i] = FilamentTypeParameters_EEPROM1 {
                 .name = {
                     'U', 'S', 'E', 'R',
                     static_cast<char>('0' + (display_ix >= 10 ? display_ix / 10 : display_ix % 10)),
@@ -320,7 +320,7 @@ namespace defaults {
         return result;
     }();
 
-    inline constexpr FilamentTypeParameters adhoc_filament_parameters = {
+    inline constexpr FilamentTypeParameters_EEPROM1 adhoc_filament_parameters = {
         .name = "NAME",
         .nozzle_temperature = 215,
         .nozzle_preheat_temperature = 170,
