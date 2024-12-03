@@ -28,6 +28,9 @@ private:
     /// Stores whether the maybe_block() function is currently running
     bool maybe_block_running = false;
 
+    /// A safety check for not allowing planning any movements during emergency
+    bool allow_planning_movements = true;
+
 public:
     // Maximum "sizes" of a move segment.
     //
@@ -53,6 +56,9 @@ public:
     /// This is intended to be called on various places in the marlin task, where want to prevent the user from taking action
     /// until the emergency is over
     void maybe_block();
+
+    /// To be called from within Planner.buffer_segment. BSODs if the movement planning is not allowed
+    void assert_can_plan_movement();
 };
 
 EmergencyStop &emergency_stop();

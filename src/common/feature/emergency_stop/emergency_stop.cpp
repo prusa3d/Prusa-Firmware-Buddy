@@ -55,9 +55,13 @@ void EmergencyStop::maybe_block() {
         return;
     }
 
-    AutoRestore _ar(maybe_block_running, true);
     marlin_server::set_warning(WarningType::DoorOpen, PhasesWarning::DoorOpen);
-    ScopeGuard warning_guard = [] {
+    maybe_block_running = true;
+    allow_planning_movements = false;
+
+    ScopeGuard _sg = [this] {
+        maybe_block_running = false;
+        allow_planning_movements = true;
         marlin_server::clear_warning(WarningType::DoorOpen);
     };
 
@@ -73,9 +77,11 @@ void EmergencyStop::maybe_block() {
     const bool do_move = all_axes_homed() && !marlin_server::printer_idle();
     const auto old_pos = current_position;
     if (do_move) {
+        AutoRestore _ar(allow_planning_movements, true);
         do_blocking_move_to_xy(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT);
     }
-    auto unpark = [old_pos] {
+    auto unpark = [this, old_pos] {
+        AutoRestore _ar(allow_planning_movements, true);
         do_blocking_move_to_xy(old_pos.x, old_pos.y);
     };
     ScopeGuard unpark_guard(std::move(unpark), do_move);
@@ -125,4 +131,9 @@ EmergencyStop &emergency_stop() {
     return instance;
 }
 
+void EmergencyStop::assert_can_plan_movement() {
+    if (!allow_planning_movements) {
+        bsod("Unexpected movement request");
+    }
+}
 } // namespace buddy
