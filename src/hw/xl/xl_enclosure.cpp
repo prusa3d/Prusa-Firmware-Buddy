@@ -10,6 +10,9 @@
 #include "filament.hpp"
 #include <ctime>
 #include <tools_mapping.hpp>
+#include <option/xl_enclosure_support.h>
+
+static_assert(XL_ENCLOSURE_SUPPORT());
 
 static constexpr uint32_t footer_temp_delay_sec = 5 * 60;
 static constexpr int64_t expiration_5day_reminder_period_sec = 5 * 24 * 3600;

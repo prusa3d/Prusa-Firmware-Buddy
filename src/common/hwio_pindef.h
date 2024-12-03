@@ -556,11 +556,6 @@ inline Pin::State xyProbeReadFn() {
 }
 #endif
 
-#if HAS_PHASE_STEPPING()
-extern const OutputPin *XStep;
-extern const OutputPin *YStep;
-#endif
-
 /**
  * @brief Convert IoPort and IoPin pair into marlinPin (uint32_t)
  *

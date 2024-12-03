@@ -448,6 +448,44 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     HAL_TIM_Base_Start_IT(&TIM_HANDLE_FOR(phase_stepping));
 }
 
+#if !HAS_BURST_STEPPING()
+static inline void single_step_axis(AxisEnum axis) {
+    switch (axis) {
+    case X_AXIS:
+        X_STEP_SET();
+    #if ENABLED(SQUARE_WAVE_STEPPING)
+        delay_us_precise<MINIMUM_STEPPER_PULSE>();
+        X_STEP_RESET();
+    #endif
+        break;
+    case Y_AXIS:
+        Y_STEP_SET();
+    #if ENABLED(SQUARE_WAVE_STEPPING)
+        delay_us_precise<MINIMUM_STEPPER_PULSE>();
+        Y_STEP_RESET();
+    #endif
+        break;
+    case Z_AXIS:
+        Z_STEP_SET();
+    #if ENABLED(SQUARE_WAVE_STEPPING)
+        delay_us_precise<MINIMUM_STEPPER_PULSE>();
+        Z_STEP_RESET();
+    #endif
+        break;
+    default:
+        break;
+    }
+}
+
+static void step_to_phase(AxisEnum axis, int phase) {
+    auto &stepper = stepper_axis(axis);
+    while (phase != stepper.MSCNT()) {
+        single_step_axis(axis);
+        delay_us_precise(20);
+    }
+}
+#endif
+
 void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
     assert(!planner.processing());
@@ -464,22 +502,7 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     // In order to avoid glitch in motor motion, we have to first, make steps to
     // get MSCNT into sync and then we disable XDirect mode
     int current_phase = normalize_motor_phase(axis_state.last_phase);
-    while (current_phase != stepper.MSCNT()) {
-        switch (axis_num) {
-        case X_AXIS:
-            XStep->toggle();
-            break;
-        case Y_AXIS:
-            YStep->toggle();
-            break;
-        case Z_AXIS:
-            zStep.toggle();
-            break;
-        default:
-            break;
-        }
-        delay_us_precise(20);
-    }
+    step_to_phase(axis_num, current_phase);
     stepper.direct_mode(false);
 #endif
 

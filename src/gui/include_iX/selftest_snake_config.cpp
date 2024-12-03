@@ -58,8 +58,6 @@ ToolMask get_tool_mask([[maybe_unused]] Tool tool) {
 
 uint64_t get_test_mask(Action action) {
     switch (action) {
-    case Action::Fans:
-        return stmFans;
     case Action::YCheck:
         return stmYAxis;
     case Action::XCheck:
@@ -74,6 +72,7 @@ uint64_t get_test_mask(Action action) {
         return stmLoadcell;
     case Action::ZAlign:
         return stmZcalib;
+    case Action::Fans:
     case Action::PhaseSteppingCalibration:
         bsod("get_test_mask");
     case Action::_count:

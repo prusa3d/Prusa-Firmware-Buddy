@@ -23,7 +23,6 @@ struct Request {
         PrintResume,
         TryRecoverFromMediaError,
         PrintExit,
-        Park,
         KnobMove,
         KnobClick,
         FSM,
@@ -32,8 +31,6 @@ struct Request {
         CancelObjectID,
         UncancelObjectID,
         CancelCurrentObject,
-        SetWarning,
-        ClearWarning,
     };
 
     union {
@@ -60,7 +57,6 @@ struct Request {
             marlin_server::PreviewSkipIfAble skip_preview;
             char filename[FILE_PATH_BUFFER_LEN];
         } print_start; // Type::PrintStart
-        WarningType warning_type;
     };
 
     /// if it is set to 1, then the marlin server sends an acknowledge (default)

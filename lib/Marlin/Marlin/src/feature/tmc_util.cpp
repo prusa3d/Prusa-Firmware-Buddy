@@ -1200,4 +1200,29 @@ void test_tmc_connection(const bool test_x, const bool test_y, const bool test_z
   }
 }
 
+template<class T>
+constexpr bool is_supported(T& stepper) {
+  return false
+    || std::is_same_v<T, TMCMarlin<TMC2130Stepper>>
+    || std::is_same_v<T, TMCMarlin<TMC2209Stepper>>;
+}
+
+void initial_test_tmc_connection() {
+  static_assert(is_supported(stepperX));
+  static_assert(is_supported(stepperY));
+  static_assert(is_supported(stepperZ));
+  static_assert(is_supported(stepperE0));
+
+  const uint32_t x = stepperX.DRV_STATUS();
+  const uint32_t y = stepperY.DRV_STATUS();
+  const uint32_t z = stepperZ.DRV_STATUS();
+  const uint32_t e = stepperE0.DRV_STATUS();
+  const auto nok = [] (uint32_t reg) {
+    return reg == 0xFFFFFFFF || reg == 0;
+  };
+  if (nok(x) || nok(y) || nok(z) || nok(e)) {
+    bsod("TMC error (0x%08lx,0x%08lx,0x%08lx,0x%08lx)", x, y, z, e);
+  }
+}
+
 #endif // HAS_TRINAMIC

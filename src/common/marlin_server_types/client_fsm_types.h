@@ -11,9 +11,9 @@
 #include <option/has_belt_tuning.h>
 #include <option/has_side_fsensor.h>
 #include <option/has_emergency_stop.h>
+#include <option/xl_enclosure_support.h>
 
 #include <inc/MarlinConfigPre.h>
-#include <device/board.h>
 
 #include <stdint.h>
 #include <utils/utility_extensions.hpp>
@@ -30,6 +30,7 @@ enum class ClientFSM : uint8_t {
     #if HAS_SELFTEST()
     Selftest,
     #endif
+    FansSelftest,
     NetworkSetup,
     Printing, // not a dialog
     #if ENABLED(CRASH_RECOVERY)

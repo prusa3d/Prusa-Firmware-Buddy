@@ -104,8 +104,6 @@ ToolMask get_tool_mask(Tool tool) {
 
 uint64_t get_test_mask(Action action) {
     switch (action) {
-    case Action::Fans:
-        return stmFans;
     case Action::YCheck:
         return stmYAxis;
     case Action::XCheck:
@@ -128,6 +126,7 @@ uint64_t get_test_mask(Action action) {
         return stmDocks;
     case Action::ToolOffsetsCalibration:
         return stmToolOffsets;
+    case Action::Fans:
     case Action::PhaseSteppingCalibration:
         bsod("get_test_mask");
         break;
