@@ -18,6 +18,14 @@
 #if HAS_TOOLCHANGER()
     #include <Marlin/src/module/prusa/toolchanger.h>
 #endif
+#include <option/xl_enclosure_support.h>
+#if XL_ENCLOSURE_SUPPORT()
+    #include <xl_enclosure.hpp>
+#endif
+#include <option/has_chamber_api.h>
+#if HAS_CHAMBER_API()
+    #include <feature/chamber/chamber.hpp>
+#endif
 #include <logging/log.hpp>
 
 LOG_COMPONENT_REF(Selftest);
@@ -268,6 +276,18 @@ private:
             tool.fansSwitched = TestResult_Unknown;
         }
         config_store().selftest_result.set(result);
+
+#if HAS_CHAMBER_API()
+        switch (buddy::chamber().backend()) {
+    #if XL_ENCLOSURE_SUPPORT()
+        case buddy::Chamber::Backend::xl_enclosure:
+            config_store().xl_enclosure_fan_selftest_result.set(TestResult_Unknown);
+            break;
+    #endif /* XL_ENCLOSURE_SUPPORT() */
+        case buddy::Chamber::Backend::none:
+            break;
+        }
+#endif /* HAS_CHAMBER_API() */
     }
 
     void set_benevolent_fan_range() {
@@ -288,6 +308,10 @@ private:
 #endif
             } else if (fan->get_type() == FanType::heatbreak) {
                 result.tools[fan->get_desc_num()].heatBreakFan = fan->test_result();
+#if XL_ENCLOSURE_SUPPORT()
+            } else if (fan->get_type() == FanType::xl_enclosure) {
+                config_store().xl_enclosure_fan_selftest_result.set(fan->test_result());
+#endif
             } else {
                 assert(false);
             }
@@ -297,7 +321,6 @@ private:
                 failed = true;
             }
         }
-
         config_store().selftest_result.set(result);
         return !failed;
     }
@@ -344,7 +367,7 @@ void M1978() {
         };
     }(std::make_index_sequence<HOTENDS>());
 
-    std::array<FanHandler *, HOTENDS * 2> fan_container;
+    std::array<FanHandler *, HOTENDS * 2 + 1 /* enclosure fan */> fan_container;
     std::array<std::pair<FanHandler *, FanHandler *>, HOTENDS> tool_fan_pairs;
 
     size_t container_index = 0;
@@ -359,6 +382,23 @@ void M1978() {
         fan_container[container_index++] = &heatbreak_fans[i];
         tool_fan_pairs[pairs++] = std::make_pair(&print_fans[i], &heatbreak_fans[i]);
     }
+
+#if XL_ENCLOSURE_SUPPORT()
+    CommonFanHandler xl_enclosure_fan(FanType::xl_enclosure, 0, benevolent_fan_range, &Fans::enclosure());
+#endif
+
+#if HAS_CHAMBER_API()
+    switch (buddy::chamber().backend()) {
+    #if XL_ENCLOSURE_SUPPORT()
+    case buddy::Chamber::Backend::xl_enclosure: {
+        fan_container[container_index++] = &xl_enclosure_fan;
+        break;
+    }
+    #endif /* XL_ENCLOSURE_SUPPORT() */
+    case buddy::Chamber::Backend::none:
+        break;
+    }
+#endif /* HAS_CHAMBER_API() */
 
     assert(container_index && container_index <= fan_container.size());
 

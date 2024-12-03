@@ -6,18 +6,25 @@
 #include <span>
 #include <selftest_fans_config.hpp>
 #include <enum_array.hpp>
+#include <option/xl_enclosure_support.h>
 
 namespace fan_selftest {
 
 enum class FanType {
     print = 0,
     heatbreak,
+#if XL_ENCLOSURE_SUPPORT()
+    xl_enclosure,
+#endif
     _count,
 };
 
 static constexpr EnumArray<FanType, const char *, FanType::_count> fan_type_names {
     { FanType::print, N_("Print") },
-    { FanType::heatbreak, N_("Heatbreak") },
+        { FanType::heatbreak, N_("Heatbreak") },
+#if XL_ENCLOSURE_SUPPORT()
+        { FanType::xl_enclosure, N_("XL Enclosure") },
+#endif
 };
 
 /**
