@@ -877,6 +877,10 @@ void CurrentStore::set_input_shaper_axis_config(AxisEnum axis, const input_shape
 }
 
 #if HAS_PHASE_STEPPING()
+bool CurrentStore::get_phase_stepping_enabled() {
+    return get_phase_stepping_enabled(AxisEnum::X_AXIS) || get_phase_stepping_enabled(AxisEnum::Y_AXIS);
+}
+
 bool CurrentStore::get_phase_stepping_enabled(AxisEnum axis) {
     switch (axis) {
     case AxisEnum::X_AXIS:
