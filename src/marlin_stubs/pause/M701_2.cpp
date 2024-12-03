@@ -113,7 +113,7 @@ void filament_gcodes::M701_no_parser(FilamentType filament_to_be_loaded, const s
 
     const bool do_resume_print = static_cast<bool>(resume_print_request) && marlin_server::printer_paused();
     // Load
-    if (load_unload(option::has_human_interactions ? (do_purge_only ? Pause::LoadType::load_purge : Pause::LoadType::load) : Pause::LoadType::non_blocking_load, settings)) {
+    if (load_unload(do_purge_only ? Pause::LoadType::load_purge : Pause::LoadType::load, settings)) {
         if (!do_resume_print) {
             M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
         }
@@ -340,7 +340,7 @@ void filament_gcodes::M1600_no_parser(FilamentType filament_to_be_loaded, uint8_
     settings.SetResumePoint(current_position_tmp);
 #endif
 
-    if (load_unload(PRINTER_IS_PRUSA_iX() ? Pause::LoadType::non_blocking_load : Pause::LoadType::load, settings)) {
+    if (load_unload(Pause::LoadType::load, settings)) {
         M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);

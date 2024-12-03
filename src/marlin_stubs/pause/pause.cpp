@@ -249,12 +249,14 @@ Pause &Pause::Instance() {
 }
 
 bool Pause::is_unstoppable() const {
+    if constexpr (!option::has_human_interactions) {
+        return true;
+    }
+
     switch (load_type) {
     case LoadType::load:
         return FSensors_instance().HasMMU();
     case LoadType::load_to_gears:
-        return !option::has_human_interactions;
-    case LoadType::non_blocking_load:
     case LoadType::filament_change:
     case LoadType::filament_stuck:
         return true;
@@ -274,7 +276,6 @@ LoadUnloadMode Pause::get_load_unload_mode() {
     case Pause::LoadType::load:
     case Pause::LoadType::autoload:
     case Pause::LoadType::load_to_gears:
-    case Pause::LoadType::non_blocking_load:
         return LoadUnloadMode::Load;
     case Pause::LoadType::load_purge:
         return LoadUnloadMode::Purge;
@@ -297,8 +298,9 @@ bool Pause::should_park() {
     case Pause::LoadType::load_purge:
         return false;
     case Pause::LoadType::load_to_gears:
-    case Pause::LoadType::non_blocking_load:
         return !FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder);
+    case Pause::LoadType::load:
+        return option::has_human_interactions || !FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder);
     default:
         return true;
     }
@@ -399,7 +401,6 @@ void Pause::start_process([[maybe_unused]] Response response) {
     case LoadType::load:
     case LoadType::autoload:
     case LoadType::load_to_gears:
-    case LoadType::non_blocking_load:
     case LoadType::load_purge:
         set(LoadState::load_start);
         break;
@@ -452,23 +453,15 @@ void Pause::load_start_process([[maybe_unused]] Response response) {
 
     switch (load_type) {
     case LoadType::load_to_gears:
-#if HAS_SIDE_FSENSOR()
-        set_timed(LoadState::assist_insertion);
-        break;
-#else
-        set(LoadState::load_to_gears);
-#endif
-        break;
-    case LoadType::non_blocking_load:
-        // If we are certain that filament has been inserted, we can skip after load_to_gears phase
-        if (FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) {
-            set(LoadState::move_to_purge);
-        } else if constexpr (!option::has_side_fsensor) {
-            set(LoadState::load_to_gears);
-#if HAS_SIDE_FSENSOR()
+        // Both parts of the condition below need to be true:
+        // XL has side sensor, but not having gears FS means the "else" workflow is needed.
+        // MK4 with MMU rework doesn't have side sensor (for this case, the unofficial
+        // non-ergonomic autoload workflow would be: user pushes filament into the extruder
+        // and activates the FS by hand by moving the lever to trigger the autoload).
+        if (option::has_side_fsensor && settings.extruder_mmu_rework) {
+            set_timed(LoadState::assist_insertion);
         } else {
-            set_timed(LoadState::await_filament);
-#endif
+            set(LoadState::load_to_gears);
         }
         break;
     case LoadType::autoload:
@@ -481,13 +474,16 @@ void Pause::load_start_process([[maybe_unused]] Response response) {
     case LoadType::load_purge:
         set(LoadState::wait_temp);
         break;
-
     default:
-#if HAS_SIDE_FSENSOR()
-        set_timed(LoadState::await_filament);
-#else
-        set(LoadState::filament_push_ask);
-#endif
+        if (option::has_side_fsensor && settings.extruder_mmu_rework) {
+            if (FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) {
+                set(LoadState::move_to_purge);
+            } else {
+                set_timed(LoadState::await_filament);
+            }
+        } else {
+            set(LoadState::filament_push_ask);
+        }
         break;
     }
 }
@@ -528,10 +524,6 @@ void Pause::filament_push_ask_process(Response response) {
 
             if (FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) {
                 set(LoadState::load_to_gears);
-#if HAS_SIDE_FSENSOR()
-            } else if constexpr (option::has_side_fsensor) {
-                set_timed(LoadState::await_filament);
-#endif
             }
         }
     }
@@ -541,7 +533,6 @@ void Pause::filament_push_ask_process(Response response) {
     }
 }
 
-#if HAS_SIDE_FSENSOR()
 void Pause::await_filament_process([[maybe_unused]] Response response) {
     setPhase(PhasesLoadUnload::Inserting_stoppable);
     // If EXTRUDER sensor is not assigned or not working, or if the user fails to insert filament in time, show Warning and quit loading.
@@ -582,7 +573,6 @@ void Pause::assist_insertion_process([[maybe_unused]] Response response) {
 
     do_e_move_notify_progress_coldextrude(FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 10);
 }
-#endif
 
 void Pause::load_to_gears_process([[maybe_unused]] Response response) { // slow load
     setPhase(is_unstoppable() ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
@@ -721,12 +711,6 @@ void Pause::eject_process([[maybe_unused]] Response response) {
 
     switch (load_type) {
     case LoadType::load_to_gears:
-    case LoadType::non_blocking_load:
-#if !HAS_HUMAN_INTERACTIONS()
-        // This state should be unreachable for printers without Human interaction and could be unrecoverable. We need to finish the FSM in order to not block interactions from Connect.
-        set(LoadState::_finish);
-        break;
-#endif
     case LoadType::filament_change:
     case LoadType::filament_stuck:
         set(LoadState::load_start);

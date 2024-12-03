@@ -39,10 +39,8 @@ protected:
         unload_finish_or_change,
         load_start,
         filament_push_ask, // must be one phase because of button click
-#if HAS_SIDE_FSENSOR()
         await_filament,
         assist_insertion,
-#endif
         load_to_gears,
         move_to_purge,
         wait_temp,
@@ -129,7 +127,6 @@ public:
         load,
         autoload,
         load_to_gears,
-        non_blocking_load,
         load_purge,
         unload,
         unload_confirm,
@@ -181,10 +178,8 @@ private:
     void unload_finish_or_change_process(Response response);
     void load_start_process(Response response);
     void filament_push_ask_process(Response response);
-#if HAS_SIDE_FSENSOR()
     void await_filament_process(Response response);
     void assist_insertion_process(Response response);
-#endif
     void load_to_gears_process(Response response);
     void move_to_purge_process(Response response);
     void wait_temp_process(Response response);
@@ -212,10 +207,8 @@ private:
             { LoadState::unload_finish_or_change, &Pause::unload_finish_or_change_process },
             { LoadState::load_start, &Pause::load_start_process },
             { LoadState::filament_push_ask, &Pause::filament_push_ask_process },
-#if HAS_SIDE_FSENSOR()
             { LoadState::await_filament, &Pause::await_filament_process },
             { LoadState::assist_insertion, &Pause::assist_insertion_process },
-#endif
             { LoadState::load_to_gears, &Pause::load_to_gears_process },
             { LoadState::move_to_purge, &Pause::move_to_purge_process },
             { LoadState::wait_temp, &Pause::wait_temp_process },
