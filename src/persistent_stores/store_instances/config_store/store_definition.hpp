@@ -33,6 +33,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_selftest.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_phase_stepping_toggle.h>
 #include <option/has_i2c_expander.h>
 #include <option/xl_enclosure_support.h>
 #include <common/extended_printer_type.hpp>
@@ -503,8 +504,14 @@ struct CurrentStore
 #endif
 
 #if HAS_PHASE_STEPPING()
-    StoreItem<bool, defaults::phase_stepping_enabled_x, journal::hash("Phase Stepping Enabled X")> phase_stepping_enabled_x;
-    StoreItem<bool, defaults::phase_stepping_enabled_y, journal::hash("Phase Stepping Enabled Y")> phase_stepping_enabled_y;
+    #if HAS_PHASE_STEPPING_TOGGLE()
+        #define PhaseSteppingStoreItem StoreItem
+    #else
+        #define PhaseSteppingStoreItem RuntimeStoreItem
+    #endif
+    PhaseSteppingStoreItem<bool, defaults::phase_stepping_enabled_x, journal::hash("Phase Stepping Enabled X")> phase_stepping_enabled_x;
+    PhaseSteppingStoreItem<bool, defaults::phase_stepping_enabled_y, journal::hash("Phase Stepping Enabled Y")> phase_stepping_enabled_y;
+    #undef PhaseSteppingStoreItem
 
     bool get_phase_stepping_enabled();
     bool get_phase_stepping_enabled(AxisEnum axis);

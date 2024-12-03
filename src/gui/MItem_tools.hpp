@@ -14,6 +14,7 @@
 #include <option/has_filament_sensors_menu.h>
 #include <option/has_coldpull.h>
 #include <option/has_leds.h>
+#include <option/has_phase_stepping_toggle.h>
 #include <option/has_side_leds.h>
 #include <option/buddy_enable_connect.h>
 #include <option/has_belt_tuning.h>
@@ -563,6 +564,8 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+#if HAS_PHASE_STEPPING_TOGGLE()
+
 class MI_PHASE_STEPPING : public WI_ICON_SWITCH_OFF_ON_t {
     static constexpr const char *label = "Phase Stepping";
     bool event_in_progress { false };
@@ -573,6 +576,8 @@ public:
 protected:
     void OnChange(size_t old_index) override;
 };
+
+#endif
 
 /******************************************************************/
 #if HAS_COLDPULL()

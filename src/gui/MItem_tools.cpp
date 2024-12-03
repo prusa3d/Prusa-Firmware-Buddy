@@ -35,7 +35,7 @@
 #include <feature/prusa/e-stall_detector.h>
 #include <option/bootloader.h>
 #include <option/filament_sensor.h>
-#include <option/has_phase_stepping.h>
+#include <option/has_phase_stepping_toggle.h>
 #include <option/has_side_leds.h>
 #include <option/has_coldpull.h>
 #include <RAII.hpp>
@@ -847,7 +847,7 @@ void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
     }
 }
 
-#if HAS_PHASE_STEPPING()
+#if HAS_PHASE_STEPPING_TOGGLE()
 MI_PHASE_STEPPING::MI_PHASE_STEPPING()
     : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
     bool phstep_enabled = config_store().get_phase_stepping_enabled();

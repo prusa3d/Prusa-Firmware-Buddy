@@ -16,7 +16,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_side_fsensor.h>
 #include <option/has_modularbed.h>
-#include <option/has_phase_stepping.h>
+#include <option/has_phase_stepping_toggle.h>
 #include <common/extended_printer_type.hpp>
 #include "MItem_basic_selftest.hpp"
 #include "printers.h"
@@ -52,7 +52,7 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 // ================================
 // Motion related
 // ================================
-#if HAS_PHASE_STEPPING()
+#if HAS_PHASE_STEPPING_TOGGLE()
     MI_PHASE_STEPPING,
 #endif
 #if ENABLED(CRASH_RECOVERY)

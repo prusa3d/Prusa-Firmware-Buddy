@@ -260,6 +260,7 @@ set_feature_for_printers(HAS_POWER_PANIC "MK4" "MK3.5" "iX" "XL") # this does re
 set_feature_for_printers(HAS_PRECISE_HOMING "MK4" "MK3.5")
 set_feature_for_printers(HAS_PRECISE_HOMING_COREXY "iX" "XL" "XL_DEV_KIT")
 set_feature_for_printers_master_board(HAS_PHASE_STEPPING "XL" "iX")
+set_feature_for_printers_master_board(HAS_PHASE_STEPPING_TOGGLE "XL")
 set(PRINTERS_WITH_BURST_STEPPING "XL")
 set_feature_for_printers_master_board(HAS_INPUT_SHAPER_CALIBRATION "MK4" "MK3.5" "XL" "XL_DEV_KIT")
 set_feature_for_printers(HAS_SELFTEST "MK4" "MK3.5" "XL" "iX" "MINI")
