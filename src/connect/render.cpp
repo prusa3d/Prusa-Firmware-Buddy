@@ -428,6 +428,9 @@ namespace {
                         JSON_FIELD_STR_FORMAT("version", "%d.%d.%d", params.mmu_version.major, params.mmu_version.minor, params.mmu_version.build);
                     JSON_OBJ_END JSON_COMMA;
 #endif
+#if PRINTER_IS_PRUSA_COREONE()
+                    JSON_FIELD_BOOL("addon_power", params.addon_power) JSON_COMMA;
+#endif
                     JSON_FIELD_INT("slots", params.enabled_tool_cnt());
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::JobInfo) {

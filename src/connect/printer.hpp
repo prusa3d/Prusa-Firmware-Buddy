@@ -117,6 +117,7 @@ public:
 #endif
 #if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
         ChamberInfo chamber_info;
+        bool addon_power;
 #endif
 #if HAS_MMU2()
         MMU2::Version mmu_version = { 0, 0, 0 };

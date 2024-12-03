@@ -287,6 +287,7 @@ Printer::Params MarlinPrinter::params() const {
                 ),
             .led_intensity = static_cast<int8_t>(buddy::XBuddyExtension::led_pwm2pct(buddy::xbuddy_extension().chamber_leds_pwm()))
         };
+        params.addon_power = buddy::xbuddy_extension().usb_power();
     }
 #endif
     params.print_duration = marlin_vars().print_duration;
