@@ -11,15 +11,16 @@
 #include <array>
 
 class WindowIconOkNgArray : public window_t {
-    constexpr static uint8_t max_icon_cnt = config_store_ns::max_tool_count;
 
 public:
+    constexpr static uint8_t max_icon_cnt = config_store_ns::max_tool_count;
     constexpr static uint8_t icon_space_width = 20;
 
     WindowIconOkNgArray(window_t *parent, const point_i16_t pt, uint8_t icon_cnt = 1, const SelftestSubtestState_t state = SelftestSubtestState_t::undef);
     SelftestSubtestState_t GetState(const size_t idx = 0) const { return states[idx]; }
     void SetState(const SelftestSubtestState_t s, const size_t idx = 0);
     void SetIconHidden(const size_t idx, const bool hidden);
+    void SetIconCount(const size_t new_icon_cnt, const Rect16 new_rect);
 
 protected:
     virtual void unconditionalDraw() override;

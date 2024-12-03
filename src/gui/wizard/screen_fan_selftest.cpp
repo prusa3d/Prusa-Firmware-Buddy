@@ -13,6 +13,14 @@
 #include <timing.h>
 #include <config_store/store_instance.hpp>
 #include <selftest_fans.hpp>
+#include <option/xl_enclosure_support.h>
+#if XL_ENCLOSURE_SUPPORT()
+    #include <xl_enclosure.hpp>
+#endif
+#include <option/has_chamber_api.h>
+#if HAS_CHAMBER_API()
+    #include <feature/chamber/chamber.hpp>
+#endif
 
 using namespace fan_selftest;
 
@@ -34,6 +42,9 @@ static constexpr const char *en_text_fan_test = N_("Fan Test");
 static constexpr const char *en_text_hotend_fan = N_("Hotend fan");
 static constexpr const char *en_text_print_fan = N_("Print fan");
 static constexpr const char *en_text_fans_switched = N_("Switched fans");
+    #if HAS_CHAMBER_API()
+static constexpr const char *en_text_enclosure_fan = N_("Enclosure fan");
+    #endif
 #else
     #if PRINTER_IS_PRUSA_iX()
 // for iX with turbine, heatbreak fan eval always succeeds
@@ -43,7 +54,10 @@ static constexpr const char *en_text_hotend_fan = N_("Hotend fan RPM test");
     #endif
 static constexpr const char *en_text_print_fan = N_("Print fan RPM test");
 static constexpr const char *en_text_fans_switched = N_("Checking for switched fans");
-#endif
+    #if HAS_CHAMBER_API()
+static constexpr const char *en_text_enclosure_fan = N_("Enclosure fan RPM test");
+    #endif /* HAS_CHAMBER_API() */
+#endif /* HAS_XXXX_DISPLAY() */
 
 #if PRINTER_IS_PRUSA_MK3_5()
 static constexpr const char *en_text_manual_check_hotend = N_("Is Hotend fan (left) spinning?");
@@ -76,6 +90,12 @@ namespace frame {
 
         WindowIconOkNgArray print_icons;
         WindowIconOkNgArray heatbreak_icons;
+
+#if HAS_CHAMBER_API()
+        window_text_t enclosure_label;
+        window_icon_t enclosure_label_icon;
+        WindowIconOkNgArray enclosure_icons;
+#endif
 
 #if HAS_SWITCHED_FAN_TEST()
         WindowIconOkNgArray switched_fan_icons;
@@ -113,6 +133,26 @@ namespace frame {
                 process_fan_result(result.tools[i].heatBreakFan, heatbreak_icons, i);
             }
 
+#if HAS_CHAMBER_API()
+            switch (buddy::chamber().backend()) {
+
+    #if XL_ENCLOSURE_SUPPORT()
+            case buddy::Chamber::Backend::xl_enclosure:
+                process_fan_result(config_store().xl_enclosure_fan_selftest_result.get(), enclosure_icons, 0);
+                break;
+    #endif /* XL_ENCLOSURE_SUPPORT() */
+
+    #if HAS_XBUDDY_EXTENSION()
+            case buddy::Chamber::Backend::xbuddy_extension:
+                // TODO
+                break;
+    #endif
+
+            case buddy::Chamber::Backend::none:
+                break;
+            }
+#endif /* HAS_CHAMBER_API() */
+
 #if HAS_SWITCHED_FAN_TEST()
             if (switched_fans) {
                 info.SetText(_(en_text_fans_switched));
@@ -143,6 +183,11 @@ namespace frame {
             , info { this, Rect16(col_texts, row_6, col_texts_w, WizardDefaults::txt_h * 2), is_multiline::yes, is_closed_on_click_t::no }
             , print_icons { make_fan_icon_array(this, row_2, HOTENDS) }
             , heatbreak_icons { make_fan_icon_array(this, row_3, HOTENDS) }
+#if HAS_CHAMBER_API()
+            , enclosure_label { this, Rect16(col_texts, row_4, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_enclosure_fan) }
+            , enclosure_label_icon { this, &img::fan_16x16, point_i16_t({ WizardDefaults::col_0, row_4 }) }
+            , enclosure_icons { make_fan_icon_array(this, row_4, 1) }
+#endif
 #if HAS_SWITCHED_FAN_TEST()
             , switched_fan_icons { make_fan_icon_array(this, row_5, HOTENDS) }
             , switched_fan_label { parent, Rect16(col_texts, row_5, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_fans_switched) }
@@ -160,6 +205,30 @@ namespace frame {
                 }
             }
 #endif
+
+#if HAS_CHAMBER_API()
+            switch (buddy::chamber().backend()) {
+
+            case buddy::Chamber::Backend::none:
+                enclosure_label.Hide();
+                enclosure_label_icon.Hide();
+                enclosure_icons.Hide();
+                break;
+
+    #if XL_ENCLOSURE_SUPPORT()
+            case buddy::Chamber::Backend::xl_enclosure:
+                // Set correctly by default in the initializer list (1 fan)
+                break;
+    #endif /* XL_ENCLOSURE_SUPPORT() */
+
+    #if HAS_XBUDDY_EXTENSION()
+            case buddy::Chamber::Backend::xbuddy_extension:
+                // TODO
+                break;
+    #endif
+            }
+#endif /* HAS_CHAMBER_API() */
+
             switch (phase) {
             case PhasesFansSelftest::test_100_percent:
                 info.SetText(_(en_text_test_100_info));

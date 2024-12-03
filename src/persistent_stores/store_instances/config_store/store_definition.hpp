@@ -36,6 +36,7 @@
 #include <option/has_i2c_expander.h>
 #include <option/has_xbuddy_extension.h>
 #include <option/has_emergency_stop.h>
+#include <option/xl_enclosure_support.h>
 #include <common/extended_printer_type.hpp>
 #include <common/hw_check.hpp>
 
@@ -511,11 +512,12 @@ struct CurrentStore
     void set_phase_stepping_enabled(AxisEnum axis, bool new_state);
 #endif
 
-#if PRINTER_IS_PRUSA_XL()
+#if XL_ENCLOSURE_SUPPORT()
     StoreItem<uint8_t, 6, journal::hash("XL Enclosure Flags")> xl_enclosure_flags;
     StoreItem<int64_t, defaults::int64_zero, journal::hash("XL Enclosure Filter Timer")> xl_enclosure_filter_timer;
     StoreItem<uint8_t, defaults::uint8_percentage_80, journal::hash("XL Enclosure Fan Manual Setting")> xl_enclosure_fan_manual;
     StoreItem<uint8_t, 10, journal::hash("XL Enclosure Post Print Duration")> xl_enclosure_post_print_duration;
+    StoreItem<TestResult, defaults::test_result_unknown, journal::hash("XL Enclosure Fan Selftest Result")> xl_enclosure_fan_selftest_result;
 #endif
 
 #if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
