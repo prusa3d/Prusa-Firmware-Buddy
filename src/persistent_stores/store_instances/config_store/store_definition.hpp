@@ -40,6 +40,7 @@
 #include <option/xl_enclosure_support.h>
 #include <common/extended_printer_type.hpp>
 #include <common/hw_check.hpp>
+#include <puppies/xbuddy_extension_fan_results.hpp>
 
 #if HAS_SHEET_PROFILES()
     #include <common/sheet.hpp>
@@ -551,6 +552,7 @@ struct CurrentStore
 
 #if HAS_XBUDDY_EXTENSION()
     StoreItem<uint8_t, 255, journal::hash("XBuddy Extension Chamber LEDs PWM")> xbuddy_extension_chamber_leds_pwm;
+    StoreItem<XBEFanTestResults, XBEFanTestResults {}, journal::hash("XBE Chamber fan selftest results")> xbe_fan_test_results;
 #endif
 
 #if HAS_EMERGENCY_STOP()
