@@ -15,7 +15,7 @@ namespace journal {
 template <typename DataT>
 concept StoreItemDataC = std::equality_comparable<DataT> && std::default_initializable<DataT> && std::is_trivially_copyable_v<DataT>;
 
-template <StoreItemDataC DataT, auto backend>
+template <StoreItemDataC DataT, auto backend, bool ram_only>
 struct JournalItemBase {
 protected:
     DataT data;
@@ -59,11 +59,13 @@ public:
     }
 
     void init(const std::span<uint8_t> &raw_data) {
-        if (raw_data.size() != sizeof(value_type)) {
-            std::terminate();
-        }
+        if constexpr (!ram_only) {
+            if (raw_data.size() != sizeof(value_type)) {
+                std::terminate();
+            }
 
-        memcpy(&data, raw_data.data(), sizeof(value_type));
+            memcpy(&data, raw_data.data(), sizeof(value_type));
+        }
     }
 
 protected:
@@ -99,18 +101,22 @@ protected:
     }
 
     void do_save(uint16_t hashed_id) {
-        backend().save(hashed_id, { reinterpret_cast<const uint8_t *>(&data), sizeof(DataT) });
+        if constexpr (!ram_only) {
+            backend().save(hashed_id, { reinterpret_cast<const uint8_t *>(&data), sizeof(DataT) });
+        }
     }
 };
 
-template <StoreItemDataC DataT, auto DefaultVal, auto &(*backend)(), uint16_t HashedID>
-struct JournalItem : public JournalItemBase<DataT, backend> {
+// hash_alloc_range is used by the gen_journal_hashes.py and is expected after journal::hash. The argument is added here to prevent clashes with ram_only
+template <StoreItemDataC DataT, auto DefaultVal, auto &(*backend)(), uint16_t HashedID, uint8_t hash_alloc_range, bool ram_only>
+struct JournalItem : public JournalItemBase<DataT, backend, ram_only> {
+    static_assert(hash_alloc_range >= 1);
 
 public:
     static constexpr DataT default_val { DefaultVal };
     static constexpr uint16_t hashed_id { HashedID };
 
-    using Base = JournalItemBase<DataT, backend>;
+    using Base = JournalItemBase<DataT, backend, ram_only>;
 
 public:
     constexpr JournalItem()
@@ -193,7 +199,7 @@ public:
     static_assert(std::is_same_v<DefaultVal, std::array<DataT, item_count>> || std::is_same_v<DefaultVal, DataT>);
     static_assert(item_count > 0);
 
-    using DataArg = JournalItemBase<DataT, backend>::DataArg;
+    using DataArg = JournalItemBase<DataT, backend, false>::DataArg;
 
     static constexpr uint16_t hashed_id_first { hashed_id };
     static constexpr uint16_t hashed_id_last { hashed_id + item_count - 1 };
