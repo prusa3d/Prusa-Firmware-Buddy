@@ -13,6 +13,7 @@
 #include "config_features.h"
 #include <option/has_chamber_api.h>
 #include <option/has_loadcell.h>
+#include <option/has_phase_stepping_toggle.h>
 #include <option/has_toolchanger.h>
 #include <option/developer_mode.h>
 #include <option/has_mmu2.h>
@@ -77,7 +78,7 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
     MI_SOUND_VOLUME,
 #endif
     MI_INPUT_SHAPER,
-#if HAS_PHASE_STEPPING()
+#if HAS_PHASE_STEPPING_TOGGLE()
     MI_PHASE_STEPPING,
 #endif
     MI_FAN_CHECK,

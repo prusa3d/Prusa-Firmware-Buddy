@@ -35,7 +35,7 @@
 #include <feature/prusa/e-stall_detector.h>
 #include <option/bootloader.h>
 #include <option/filament_sensor.h>
-#include <option/has_phase_stepping.h>
+#include <option/has_phase_stepping_toggle.h>
 #include <option/has_side_leds.h>
 #include <option/has_coldpull.h>
 #include <RAII.hpp>
@@ -886,20 +886,10 @@ void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
     }
 }
 
-#if HAS_PHASE_STEPPING()
-// Prusa CORE One has phase stepping enabled by default.
-// Due to its 400-step motors and CoreXY kinematics, the classic stepping
-// algorithm can't keep up with the increased demands caused by larger speeds.
-// It makes no sense to let users disable it and start experiencing step queue
-// starvations and other troubles.
-static constexpr const is_hidden_t phase_stepping_visibility
-    = PRINTER_IS_PRUSA_COREONE()
-    ? is_hidden_t::dev
-    : is_hidden_t::no;
-
+#if HAS_PHASE_STEPPING_TOGGLE()
 MI_PHASE_STEPPING::MI_PHASE_STEPPING()
-    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, phase_stepping_visibility) {
-    bool phstep_enabled = config_store().phase_stepping_enabled_x.get() || config_store().phase_stepping_enabled_y.get();
+    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    bool phstep_enabled = config_store().get_phase_stepping_enabled();
     set_value(phstep_enabled, false);
 }
 
@@ -932,7 +922,7 @@ void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
     // we need to wait until the action actually takes place so that when returning
     // to the menu (if any) the new state is already reflected
     gui_dlg_wait([&]() {
-        if (index == config_store().phase_stepping_enabled_x.get()) {
+        if (index == config_store().get_phase_stepping_enabled()) {
             Screens::Access()->Close();
         }
     });
