@@ -504,14 +504,9 @@ struct CurrentStore
 #endif
 
 #if HAS_PHASE_STEPPING()
-    #if HAS_PHASE_STEPPING_TOGGLE()
-        #define PhaseSteppingStoreItem StoreItem
-    #else
-        #define PhaseSteppingStoreItem RuntimeStoreItem
-    #endif
-    PhaseSteppingStoreItem<bool, defaults::phase_stepping_enabled_x, journal::hash("Phase Stepping Enabled X")> phase_stepping_enabled_x;
-    PhaseSteppingStoreItem<bool, defaults::phase_stepping_enabled_y, journal::hash("Phase Stepping Enabled Y")> phase_stepping_enabled_y;
-    #undef PhaseSteppingStoreItem
+    static constexpr bool phase_stepping_ram_only = !HAS_PHASE_STEPPING_TOGGLE();
+    StoreItem<bool, defaults::phase_stepping_enabled_x, journal::hash("Phase Stepping Enabled X"), 1, phase_stepping_ram_only> phase_stepping_enabled_x;
+    StoreItem<bool, defaults::phase_stepping_enabled_y, journal::hash("Phase Stepping Enabled Y"), 1, phase_stepping_ram_only> phase_stepping_enabled_y;
 
     bool get_phase_stepping_enabled();
     bool get_phase_stepping_enabled(AxisEnum axis);
