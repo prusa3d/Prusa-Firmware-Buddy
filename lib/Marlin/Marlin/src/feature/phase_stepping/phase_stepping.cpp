@@ -487,7 +487,7 @@ static void step_to_phase(AxisEnum axis, int phase) {
     auto &stepper = stepper_axis(axis);
     while (phase != stepper.MSCNT()) {
         single_step_axis(axis);
-        delay_us_precise(20);
+        delay_us_precise<MINIMUM_STEPPER_PULSE>();
     }
 }
 #endif
