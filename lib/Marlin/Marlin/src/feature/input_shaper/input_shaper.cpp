@@ -358,14 +358,25 @@ bool logical_axis_input_shaper_t::update(const input_shaper_state_t &axis_is) {
         m_start_v += 2. * half_velocity_diff + weighted_velocity_discontinuity; // a * t
         m_half_accel = this->calc_half_accel();
 
+        // Change small accelerations to zero as prevention for numeric issues.
+        if (std::abs(m_half_accel) <= INPUT_SHAPER_ACCELERATION_EPSILON) {
+            const bool start_v_prev_sign = std::signbit(m_start_v);
+
+            // Adjust start_v to compensate for zeroed acceleration.
+            m_start_v += m_half_accel * move_elapsed_time;
+            if (std::signbit(m_start_v) != start_v_prev_sign) {
+                // When we cross zero velocity, set the start velocity to zero.
+                // Typically, when zero velocity is crossed, it will be a very small value.
+                // So setting the start velocity to zero should be ok.
+                m_start_v = 0.f;
+            }
+
+            m_half_accel = 0.;
+        }
+
         // Change small velocities to zero as prevention for numeric issues.
         if (std::abs(m_start_v) <= INPUT_SHAPER_VELOCITY_EPSILON) {
             m_start_v = 0.;
-        }
-
-        // Change small accelerations to zero as prevention for numeric issues.
-        if (std::abs(m_half_accel) <= INPUT_SHAPER_ACCELERATION_EPSILON) {
-            m_half_accel = 0.;
         }
     }
 
@@ -440,14 +451,25 @@ bool input_shaper_state_update(input_shaper_state_t &is_state, const int axis) {
         fatal_error("Invalid axis", "input_shaper_state_update");
     }
 
+    // Change small accelerations to zero as prevention for numeric issues.
+    if (std::abs(is_state.half_accel) <= INPUT_SHAPER_ACCELERATION_EPSILON) {
+        const bool start_v_prev_sign = std::signbit(is_state.start_v);
+
+        // Adjust start_v to compensate for zeroed acceleration.
+        is_state.start_v += is_state.half_accel * (is_state.nearest_next_change - is_state.print_time);
+        if (std::signbit(is_state.start_v) != start_v_prev_sign) {
+            // When we cross zero velocity, set the start velocity to zero.
+            // Typically, when zero velocity is crossed, it will be a very small value.
+            // So setting the start velocity to zero should be ok.
+            is_state.start_v = 0.f;
+        }
+
+        is_state.half_accel = 0.;
+    }
+
     // Change small velocities to zero as prevention for numeric issues.
     if (std::abs(is_state.start_v) <= INPUT_SHAPER_VELOCITY_EPSILON) {
         is_state.start_v = 0.;
-    }
-
-    // Change small accelerations to zero as prevention for numeric issues.
-    if (std::abs(is_state.half_accel) <= INPUT_SHAPER_ACCELERATION_EPSILON) {
-        is_state.half_accel = 0.;
     }
 
     is_state.step_dir = input_shaper_state_step_dir(is_state);

@@ -19,7 +19,7 @@
 constexpr const uint8_t MAX_INPUT_SHAPER_PULSES = 5;
 
 constexpr const double INPUT_SHAPER_VELOCITY_EPSILON = 0.0001;
-constexpr const double INPUT_SHAPER_ACCELERATION_EPSILON = 0.01;
+constexpr const double INPUT_SHAPER_ACCELERATION_EPSILON = 0.1;
 
 namespace input_shaper {
 
