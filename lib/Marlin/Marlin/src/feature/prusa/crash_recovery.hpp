@@ -177,7 +177,7 @@ public:
     /// Deactivates crash detection during G-Code processing.
     void deactivate() { active = false; }
 
-    /// \returns true if currently active
+    /// Return true if crash is currently active
     bool is_active() { return active; }
 
     /// Return true if trigger() was called (valid saved state is present)
