@@ -512,7 +512,7 @@ bool corexy_home_refine(CoreXYCalibrationMode mode) {
     }
 
     // validate from another point in the AB grid
-    xy_long_t v_ab_off = { 1, 1 };
+    xy_long_t v_ab_off = { -1, 3 };
     plan_corexy_abgrid_move(origin_steps, v_ab_off, fr_mm_s);
     if (planner.draining()) {
         return false;
