@@ -486,10 +486,6 @@ bool input_shaper_state_update(input_shaper_state_t &is_state, const int axis) {
     return true;
 }
 
-FORCE_INLINE float calc_time_for_distance(const input_shaper_step_generator_t &step_generator, const float distance) {
-    return std::max(calc_time_for_distance(step_generator.start_v, step_generator.accel, distance, step_generator.is_state->step_dir), 0.f);
-}
-
 FORCE_INLINE void input_shaper_step_generator_update(input_shaper_step_generator_t &step_generator) {
     step_generator.start_v = float(step_generator.is_state->start_v);
     step_generator.accel = 2.f * float(step_generator.is_state->half_accel);
@@ -501,7 +497,6 @@ step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_
     assert(step_generator.is_state != nullptr);
     step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
 
-    const bool step_dir = step_generator.is_state->step_dir;
     const float half_step_dist = Planner::mm_per_half_step[step_generator.axis];
     const float next_target = float(step_generator_state.current_distance[step_generator.axis] + (step_generator.step_dir ? 0 : -1)) * Planner::mm_per_step[step_generator.axis] + half_step_dist;
     const float next_distance = next_target - step_generator.start_pos;
@@ -523,18 +518,19 @@ step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_
             next_step_event.time = step_generator.is_state->nearest_next_change;
         }
 
+        input_shaper_step_generator_update(step_generator);
+
         // Update the direction and activity flags for the entire next move
         step_generator.move_step_flags = 0;
-        step_generator.move_step_flags |= (!step_generator.is_state->step_dir) * (STEP_EVENT_FLAG_X_DIR << step_generator.axis);
-        step_generator.move_step_flags |= (step_generator.is_state->start_v != 0. || step_generator.is_state->half_accel != 0.) * (STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis);
+        step_generator.move_step_flags |= (!step_generator.step_dir) * (STEP_EVENT_FLAG_X_DIR << step_generator.axis);
+        step_generator.move_step_flags |= (step_generator.start_v != 0.f || step_generator.accel != 0.f) * (STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis);
 
-        input_shaper_step_generator_update(step_generator);
         PreciseStepping::move_segment_processed_handler();
     } else {
         next_step_event.time = elapsed_time;
         next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
         next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_VALID;
-        step_generator_state.current_distance[step_generator.axis] += (step_dir ? 1 : -1);
+        step_generator_state.current_distance[step_generator.axis] += (step_generator.step_dir ? 1 : -1);
     }
 
     return next_step_event;
