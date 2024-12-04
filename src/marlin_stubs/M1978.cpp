@@ -408,7 +408,7 @@ void M1978() {
 #if HAS_XBUDDY_EXTENSION()
     auto xbe_fans = [&]<size_t... ix>(std::index_sequence<ix...>) {
         return std::array {
-            XBEFanHandler(FanType::xbe_chamber, ix, benevolent_fan_range)...
+            XBEFanHandler(FanType::xbe_chamber, ix, chamber_fan_range)...
         };
     }(std::make_index_sequence<buddy::puppies::XBuddyExtension::FAN_CNT>());
 #endif
@@ -427,6 +427,7 @@ void M1978() {
     case buddy::Chamber::Backend::xbuddy_extension:
         fan_container[container_index++] = &xbe_fans[0];
         fan_container[container_index++] = &xbe_fans[1];
+        // Third fan is not yet implemented
         break;
     #endif
 
