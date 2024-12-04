@@ -688,10 +688,7 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
   #if ENABLED(PRECISE_HOMING_COREXY)
     // absolute refinement requires both axes to be already probed
     if (!failed && ( doX || ENABLED(CODEPENDENT_XY_HOMING)) && doY && flags.precise) {
-      for (size_t retry = 0;
-           retry != PRECISE_HOMING_COREXY_RETRIES && !planner.draining();
-           ++retry) {
-
+      for (size_t retry = 0; !planner.draining(); ++retry) {
         CoreXYCalibrationMode mode =
           ( flags.force_calibrate ? CoreXYCalibrationMode::Force
             : flags.can_calibrate ? CoreXYCalibrationMode::OnDemand
@@ -707,6 +704,10 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
         failed = !corexy_home_refine(mode);
         if (!failed && !corexy_home_is_unstable()) {
           // successfully homed
+          break;
+        }
+        if (retry >= PRECISE_HOMING_COREXY_RETRIES) {
+          // allow homing to continue after enough retries even if the home is unstable
           break;
         }
 
