@@ -638,10 +638,15 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
 
   // Only allow wavetable change if homing performs a backoff. This backoff is made in the way that it ends on stepper zero-position, so that re-enabling wavetable is safe.
   bool wavetable_off_X = false, wavetable_off_Y = false;
-  #if defined(HOMING_BACKOFF_POST_MM) && defined(HAS_TMC_WAVETABLE)
-    constexpr xyz_float_t homing_backoff = HOMING_BACKOFF_POST_MM;
-    wavetable_off_X = (homing_backoff[X] > 0.0f) && doX;
-    wavetable_off_Y = (homing_backoff[Y] > 0.0f) && doY;
+  #ifdef HAS_TMC_WAVETABLE
+    #if ENABLED(PRECISE_HOMING_COREXY)
+      #error "wavetable switching currently not compatible with PRECISE_HOMING_COREXY"
+    #endif
+    #ifdef HOMING_BACKOFF_POST_MM
+      constexpr xyz_float_t homing_backoff = HOMING_BACKOFF_POST_MM;
+      wavetable_off_X = (homing_backoff[X] > 0.0f) && doX;
+      wavetable_off_Y = (homing_backoff[Y] > 0.0f) && doY;
+    #endif
   #endif
   void (*reenable_wt_X)(AxisEnum) = wavetable_off_X ? reenable_wavetable : NULL;
   void (*reenable_wt_Y)(AxisEnum) = wavetable_off_Y ? reenable_wavetable : NULL;
