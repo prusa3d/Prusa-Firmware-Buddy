@@ -298,7 +298,7 @@ bool Pause::should_park() {
         return false;
     case Pause::LoadType::load_to_gears:
     case Pause::LoadType::non_blocking_load:
-        return !FSensors_instance().has_filament_surely();
+        return !FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder);
     default:
         return true;
     }
@@ -461,7 +461,7 @@ void Pause::load_start_process([[maybe_unused]] Response response) {
         break;
     case LoadType::non_blocking_load:
         // If we are certain that filament has been inserted, we can skip after load_to_gears phase
-        if (FSensors_instance().has_filament_surely()) {
+        if (FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) {
             set(LoadState::move_to_purge);
         } else if constexpr (!option::has_side_fsensor) {
             set(LoadState::load_to_gears);
@@ -496,7 +496,7 @@ void Pause::filament_push_ask_process(Response response) {
     if constexpr (!option::has_human_interactions) {
         setPhase(PhasesLoadUnload::Inserting_unstoppable);
 
-        if (FSensors_instance().has_filament_surely()) {
+        if (FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) {
             set(LoadState::move_to_purge);
 #if HAS_SIDE_FSENSOR()
         } else if constexpr (option::has_side_fsensor) {
@@ -509,7 +509,7 @@ void Pause::filament_push_ask_process(Response response) {
         return;
     }
 
-    if (FSensors_instance().no_filament_surely()) {
+    if (FSensors_instance().no_filament_surely(LogicalFilamentSensor::extruder)) {
         setPhase(is_unstoppable() ? PhasesLoadUnload::MakeSureInserted_unstoppable : PhasesLoadUnload::MakeSureInserted_stoppable);
 
         // With extruder MMU rework, we gotta assist the user with inserting the filament
@@ -526,7 +526,7 @@ void Pause::filament_push_ask_process(Response response) {
 
         if (response == Response::Continue || settings.extruder_mmu_rework) {
 
-            if (FSensors_instance().has_filament_surely()) {
+            if (FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) {
                 set(LoadState::load_to_gears);
 #if HAS_SIDE_FSENSOR()
             } else if constexpr (option::has_side_fsensor) {
@@ -545,14 +545,15 @@ void Pause::filament_push_ask_process(Response response) {
 void Pause::await_filament_process([[maybe_unused]] Response response) {
     setPhase(PhasesLoadUnload::Inserting_stoppable);
     // If EXTRUDER sensor is not assigned or not working, or if the user fails to insert filament in time, show Warning and quit loading.
-    if (!FSensors_instance().sensor(LogicalFilamentSensor::current_extruder) || !is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_extruder)) || ticks_diff(ticks_ms(), start_time_ms) > 10 * 60 * 1000) {
+    if (!FSensors_instance().is_working(LogicalFilamentSensor::extruder) || ticks_diff(ticks_ms(), start_time_ms) > 10 * 60 * 1000) {
         marlin_server::set_warning(WarningType::FilamentLoadingTimeout);
         set(LoadState::_finish);
         return;
     }
 
-    if (!FSensors_instance().sensor(LogicalFilamentSensor::current_side) || !is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_side)) // If SIDE sensor is not assigned or not working go directly to loading
-        || FSensors_instance().sensor(LogicalFilamentSensor::current_side)->get_state() == FilamentSensorState::HasFilament) { // If filament arrived at SIDE sensor, we can start loading sequence.
+    // Either side sensor not working or it has filament, go to loading
+    if (!FSensors_instance().no_filament_surely(LogicalFilamentSensor::side)) {
+        mapi::park_move_with_conditional_home(mapi::park_positions[mapi::ParkPosition::load], mapi::ZAction::no_move);
         set_timed(LoadState::assist_insertion);
         return;
     }
@@ -562,7 +563,7 @@ void Pause::assist_insertion_process([[maybe_unused]] Response response) {
     setPhase(is_unstoppable() ? PhasesLoadUnload::Inserting_unstoppable : PhasesLoadUnload::Inserting_stoppable, 10);
 
     // Filament is in Extruder autoload assistance si done.
-    if (FSensors_instance().has_filament_surely()) {
+    if (FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) {
         set(LoadState::load_to_gears);
         return;
     }
@@ -573,9 +574,8 @@ void Pause::assist_insertion_process([[maybe_unused]] Response response) {
     }
 
     // Load for at least 40 seconds before giving up. Alternatively, if filament is removed altogether, stop too.
-    auto sensor = FSensors_instance().sensor(LogicalFilamentSensor::current_side);
     if (ticks_diff(ticks_ms(), start_time_ms) > 40000 /*Move for at least 40 seconds before giving up*/
-        || (sensor && is_fsensor_working_state(sensor->get_state()) && sensor->get_state() != FilamentSensorState::HasFilament)) {
+        || FSensors_instance().no_filament_surely(LogicalFilamentSensor::side)) {
         settings.do_stop = true;
         return;
     }
@@ -888,7 +888,7 @@ void Pause::unload_finish_or_change_process([[maybe_unused]] Response response) 
 
 void Pause::filament_not_in_fs_process([[maybe_unused]] Response response) {
     setPhase(PhasesLoadUnload::FilamentNotInFS);
-    if (!FSensors_instance().has_filament_surely()) { // Either no filament in FS or unknown (FS off)
+    if (!FSensors_instance().has_filament_surely(LogicalFilamentSensor::autoload)) {
 #if !HAS_HUMAN_INTERACTIONS()
         // In case of no human interactions, require no filament being
         // detected for at least 1s to avoid FS flicking off and on due
@@ -908,7 +908,7 @@ void Pause::filament_not_in_fs_process([[maybe_unused]] Response response) {
 
 void Pause::manual_unload_process(Response response) {
     if (response == Response::Continue
-        && !FSensors_instance().has_filament_surely()) { // Allow to continue when nothing remains in filament sensor
+        && !FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) { // Allow to continue when nothing remains in filament sensor
         enable_e_steppers();
         set(LoadState::unload_finish_or_change);
     } else if (response == Response::Retry) { // Retry unloading
@@ -1369,7 +1369,7 @@ void Pause::finalize_user_stop() {
 }
 void Pause::handle_filament_removal(LoadState state_to_set) {
     // only if there is no filament present and we are sure (FS on and sees no filament)
-    if (FSensors_instance().no_filament_surely()) {
+    if (FSensors_instance().no_filament_surely(LogicalFilamentSensor::extruder)) {
         set(state_to_set);
         config_store().set_filament_type(settings.GetExtruder(), FilamentType::none);
         return;

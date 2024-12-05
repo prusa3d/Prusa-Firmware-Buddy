@@ -2693,8 +2693,18 @@ void retract() {
 
 void lift_head() {
 #if ENABLED(NOZZLE_PARK_FEATURE)
-    const constexpr xyz_pos_t park = XYZ_NOZZLE_PARK_POINT;
-    plan_move_by(NOZZLE_PARK_Z_FEEDRATE, 0, 0, _MIN(park.z, Z_MAX_POS - current_position.z));
+    TemporaryGlobalEndstopsState _es(true);
+    const float distance = std::min<float>(Z_NOZZLE_PARK_POINT, Z_MAX_POS - current_position.z);
+    static_assert(Z_NOZZLE_PARK_POINT > 0);
+
+    // do_homing_move does not update current position, we have to do it manually
+    // have to use HOMING_FEEDRATE, otherwise the stallguards might not trigger
+    if (do_homing_move(Z_AXIS, distance, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z))) {
+        current_position.z = Z_MAX_POS;
+    } else {
+        current_position.z += distance;
+    }
+    sync_plan_position();
 #endif // ENABLED(NOZZLE_PARK_FEATURE)
 }
 

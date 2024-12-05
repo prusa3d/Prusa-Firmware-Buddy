@@ -312,26 +312,32 @@ private:
         bool failed = false;
         SelftestResult result = config_store().selftest_result.get();
         for (auto *fan : fans) {
-            if (fan->get_type() == FanType::print) {
+            switch (fan->get_type()) {
+            case FanType::print:
                 result.tools[fan->get_desc_num()].printFan = fan->test_result();
 #if HAS_SWITCHED_FAN_TEST()
                 // Also save fanSwitched
                 result.tools[fan->get_desc_num()].fansSwitched = fans_switched[fan->get_desc_num()] ? TestResult_Failed : TestResult_Passed;
 #endif
-            } else if (fan->get_type() == FanType::heatbreak) {
+                break;
+            case FanType::heatbreak:
                 result.tools[fan->get_desc_num()].heatBreakFan = fan->test_result();
+                break;
 #if XL_ENCLOSURE_SUPPORT()
-            } else if (fan->get_type() == FanType::xl_enclosure) {
+            case FanType::xl_enclosure:
                 config_store().xl_enclosure_fan_selftest_result.set(fan->test_result());
+                break;
 #endif
 #if HAS_XBUDDY_EXTENSION()
-            } else if (fan->get_type() == FanType::xbe_chamber) {
-                assert(fan->get_desc_num() < buddy::puppies::XBoardExtension::FAN_CNT);
+            case FanType::xbe_chamber: {
+                assert(fan->get_desc_num() < buddy::puppies::XBuddyExtension::FAN_CNT);
                 auto res = config_store().xbe_fan_test_results.get();
                 res.fans[fan->get_desc_num()] = fan->test_result();
                 config_store().xbe_fan_test_results.set(res);
+                break;
+            }
 #endif
-            } else {
+            case FanType::_count:
                 assert(false);
             }
 

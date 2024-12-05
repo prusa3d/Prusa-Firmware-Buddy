@@ -24,29 +24,12 @@ template <BackendC BackendT, auto backend>
 struct CurrentStoreConfig {
     static inline BackendT &get_backend() { return backend(); };
     using Backend = BackendT;
-    template <StoreItemDataC DataT, auto default_val, typename BackendT::Id id>
-    using StoreItem = JournalItem<DataT, default_val, backend, id>;
+
+    template <StoreItemDataC DataT, auto default_val, typename BackendT::Id id, uint8_t hash_alloc_range = 1, bool ram_only = false>
+    using StoreItem = JournalItem<DataT, default_val, backend, id, hash_alloc_range, ram_only>;
+
     template <StoreItemDataC DataT, auto default_val, typename BackendT::Id id, uint8_t max_item_count, uint8_t item_count>
     using StoreItemArray = JournalItemArray<DataT, default_val, backend, id, max_item_count, item_count>;
-
-    template <class Value, Value default_value, typename BackendT::Id id>
-    class RuntimeStoreItem {
-    private:
-        Value value { default_value };
-
-    public:
-        void set(Value new_value) {
-            auto l = backend().lock();
-            value = new_value;
-        }
-        Value get() const {
-            auto l = backend().lock();
-            return value;
-        }
-        static constexpr auto hashed_id { id };
-        void ram_dump() {}
-        void init(const std::span<uint8_t> &) { value = default_value; }
-    };
 };
 
 template <BackendC BackendT>

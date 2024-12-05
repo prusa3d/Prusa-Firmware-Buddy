@@ -20,7 +20,7 @@ public:
     SelftestSubtestState_t GetState(const size_t idx = 0) const { return states[idx]; }
     void SetState(const SelftestSubtestState_t s, const size_t idx = 0);
     void SetIconHidden(const size_t idx, const bool hidden);
-    void SetIconCount(const size_t new_icon_cnt, const Rect16 new_rect);
+    void SetIconCount(const size_t new_icon_cnt);
 
 protected:
     virtual void unconditionalDraw() override;
