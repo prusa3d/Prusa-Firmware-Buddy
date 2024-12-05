@@ -555,12 +555,7 @@ void GcodeSuite::M977() {
     SERIAL_ECHO("Axis: ");
     SERIAL_ECHOLN(axis);
 
-    G28_no_parser( // home
-        true, // home only if needed,
-        3, // raise Z by 3 mm
-        false, // S-parameter,
-        true, true, false // home X, Y but not Z
-    );
+    G28_no_parser(true, true, false, { .only_if_needed = true, .z_raise = 3 });
     Planner::synchronize();
 
     CalibrateAxisHooks hooks;

@@ -43,7 +43,7 @@ std::optional<MeasureBeltTensionResult> measure_belt_tension(const MeasureBeltTe
         };
 
         // Make sure we're homed
-        if (!GcodeSuite::G28_no_parser(true, 5, false, true, true, true)) {
+        if (!GcodeSuite::G28_no_parser(true, true, true, { .only_if_needed = true, .z_raise = 5 })) {
             return std::nullopt;
         }
 

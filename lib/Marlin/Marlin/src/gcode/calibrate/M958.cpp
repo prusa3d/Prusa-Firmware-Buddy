@@ -388,10 +388,10 @@ bool VibrateMeasureParams::setup(const MicrostepRestorer &microstep_restorer) {
  * @param advance time in seconds
  * @param period in seconds
  */
-static void advance_and_wrap_time_within_period(float& time, const float advance, const float period) {
+static void advance_and_wrap_time_within_period(float &time, const float advance, const float period) {
     time += advance;
     if (time > period) {
-    	time -= period;
+        time -= period;
     }
 }
 
@@ -485,12 +485,11 @@ std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &
     SERIAL_ECHOLN("Yraw  sinf cosf");
 #endif
 
-
     const auto get_progress_measuring = [&]() {
-    	VibrateMeasureProgressHookParams progress_hook_params {
-    	        .phase = VibrateMeasureProgressHookParams::Phase::measuring,
-    	        .progress = std::min<float>(static_cast<float>(fourier.get_samples_num()) / samples_to_collect, 1),
-    	    };
+        VibrateMeasureProgressHookParams progress_hook_params {
+            .phase = VibrateMeasureProgressHookParams::Phase::measuring,
+            .progress = std::min<float>(static_cast<float>(fourier.get_samples_num()) / samples_to_collect, 1),
+        };
         return progress_hook_params;
     };
 
@@ -1328,7 +1327,7 @@ void GcodeSuite::M959() {
     SERIAL_ECHOLNPAIR("Running: ", parser.get_command());
 
     if (!parser.seen('D')) {
-        GcodeSuite::G28_no_parser(true, NAN, false, true, true, true);
+        GcodeSuite::G28_no_parser(true, true, true, { .only_if_needed = true });
 
         current_position[X_AXIS] = X_BED_SIZE / 2;
         current_position[Y_AXIS] = Y_BED_SIZE / 2;

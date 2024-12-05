@@ -176,7 +176,7 @@ static PhasesInputShaperCalibration parking(Context &context) {
 
     // Home if not homed
     if (!all_axes_known()) {
-        GcodeSuite::G28_no_parser(true, 0, false, true, true, true);
+        GcodeSuite::G28_no_parser(true, true, true, { .only_if_needed = true, .z_raise = 0 });
     }
 
 #if HAS_REMOTE_ACCELEROMETER()

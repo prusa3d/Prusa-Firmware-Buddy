@@ -162,7 +162,7 @@ bool PrusaToolChanger::can_move_safely() {
 bool PrusaToolChanger::ensure_safe_move() {
     if (!can_move_safely()) {
         // in case XY is not homed, home it first
-        if (!GcodeSuite::G28_no_parser(false, 0, false, true, true, false)) {
+        if (!GcodeSuite::G28_no_parser(true, true, false, { .z_raise = 0 })) {
             return false;
         }
     }

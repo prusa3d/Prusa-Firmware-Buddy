@@ -348,26 +348,6 @@ void GcodeSuite::G28() {
 }
 /** @}*/
 
-bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate_homing, bool X, bool Y, bool Z
-  , bool no_change OPTARG(PRECISE_HOMING_COREXY, bool precise) OPTARG(DETECT_PRINT_SHEET, bool check_sheet)) {
-
-  G28Flags flags;
-  flags.only_if_needed = only_if_needed;
-  flags.z_raise = z_raise;
-  flags.no_change = no_change;
-  #if ENABLED(MARLIN_DEV_MODE)
-    flags.simulate = simulate;
-  #endif
-  #if ENABLED(PRECISE_HOMING_COREXY)
-    flags.precise = precise;
-  #endif
-  #if ENABLED(DETECT_PRINT_SHEET)
-    flags.check_sheet = check_sheet;
-  #endif
-
-  return G28_no_parser(X, Y, Z, flags);
-}
-
 bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
   HomingReporter reporter;
 

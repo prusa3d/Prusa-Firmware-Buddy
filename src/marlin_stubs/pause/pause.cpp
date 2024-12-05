@@ -1137,7 +1137,7 @@ void Pause::park_nozzle_and_notify() {
     if (XY_len != 0) {
 #if CORE_IS_XY
         if (axes_need_homing(_BV(X_AXIS) | _BV(Y_AXIS))) {
-            GcodeSuite::G28_no_parser(false, 0, false, true, true, false);
+            GcodeSuite::G28_no_parser(true, true, false, { .z_raise = 0 });
 
             // We have moved both axes, go to park position if not requested otherwise
     #ifdef XYZ_NOZZLE_PARK_POINT_M600
@@ -1164,7 +1164,7 @@ void Pause::park_nozzle_and_notify() {
         LOOP_XY(axis) {
             // TODO: make homeaxis non-blocking to allow quick_stop
             if (!isnan(settings.park_pos.pos[axis]) && axes_need_homing(_BV(axis))) {
-                GcodeSuite::G28_no_parser(false, 0, false, axis == X_AXIS, axis == Y_AXIS, false);
+                GcodeSuite::G28_no_parser(axis == X_AXIS, axis == Y_AXIS, false, { .z_raise = 0 });
             }
             if (check_user_stop()) {
                 return;
@@ -1211,7 +1211,7 @@ void Pause::unpark_nozzle_and_notify() {
     // we can move only one axis during parking and not home the other one and then unpark and move the not homed one, so we need to home it
     LOOP_XY(axis) {
         if (!isnan(settings.park_pos.pos[axis]) && axes_need_homing(_BV(axis))) {
-            GcodeSuite::G28_no_parser(false, 0, false, axis == X_AXIS, axis == Y_AXIS, false);
+            GcodeSuite::G28_no_parser(axis == X_AXIS, axis == Y_AXIS, false, { .z_raise = 0 });
         }
     }
 

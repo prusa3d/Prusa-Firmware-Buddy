@@ -184,12 +184,7 @@ namespace state {
 #endif
 
         if (axes_need_homing(X_AXIS | Y_AXIS)) {
-            GcodeSuite::G28_no_parser( // home
-                true, // home only if needed,
-                3, // raise Z by 3 mm
-                false, // S-parameter,
-                true, true, false // home X, Y but not Z
-            );
+            GcodeSuite::G28_no_parser(true, true, false, { .only_if_needed = true, .z_raise = 3 }); // XY only
 #if HAS_TOOLCHANGER()
             tool_change(/*tool_index=*/0, tool_return_t::no_return, tool_change_lift_t::no_lift, /*z_down=*/false);
 #endif
