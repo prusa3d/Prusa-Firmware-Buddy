@@ -427,7 +427,7 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
 }
 
 // Refine home origin precisely on core-XY.
-bool corexy_home_refine(CoreXYCalibrationMode mode) {
+bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     // finish previous moves and disable main endstop/crash recovery handling
     planner.synchronize();
 #if ENABLED(CRASH_RECOVERY)
@@ -445,7 +445,6 @@ bool corexy_home_refine(CoreXYCalibrationMode mode) {
     COREXY_HOME_UNSTABLE = false;
 
     // reposition parallel to the origin
-    float fr_mm_s = homing_feedrate(A_AXIS);
     xyze_pos_t origin_tmp = current_position;
     origin_tmp[X_AXIS] = (base_home_pos(X_AXIS) - XY_HOMING_ORIGIN_OFFSET * X_HOME_DIR);
     origin_tmp[Y_AXIS] = (base_home_pos(Y_AXIS) - XY_HOMING_ORIGIN_OFFSET * Y_HOME_DIR);

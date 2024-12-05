@@ -693,6 +693,9 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
   #if ENABLED(PRECISE_HOMING_COREXY)
     // absolute refinement requires both axes to be already probed
     if (!failed && ( doX || ENABLED(CODEPENDENT_XY_HOMING)) && doY && flags.precise) {
+      // Do not handle feedrate defaults again within precise homing: do it here
+      const float xy_mm_s = fr_mm_s ? fr_mm_s : homing_feedrate(A_AXIS);
+
       for (size_t retry = 0; !planner.draining(); ++retry) {
         CoreXYCalibrationMode mode =
           ( flags.force_calibrate ? CoreXYCalibrationMode::Force
@@ -706,7 +709,7 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
           }
         #endif
 
-        failed = !corexy_home_refine(mode);
+        failed = !corexy_home_refine(xy_mm_s, mode);
         if (!failed && !corexy_home_is_unstable()) {
           // successfully homed
           break;

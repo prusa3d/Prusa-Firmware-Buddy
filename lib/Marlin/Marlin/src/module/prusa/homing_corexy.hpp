@@ -20,10 +20,11 @@ enum class CoreXYCalibrationMode {
 
 /**
  * @brief Refine home origin precisely on core-XY.
+ * @param fr_mm_s Homing (and service moves) feedrate
  * @param can_calibrate Allow origin self-calibration to occur
  * @return true on success
  */
-bool corexy_home_refine(CoreXYCalibrationMode mode);
+bool corexy_home_refine(const float fr_mm_s, CoreXYCalibrationMode mode);
 
 /**
  * @brief Return the calibration status of the home origin
