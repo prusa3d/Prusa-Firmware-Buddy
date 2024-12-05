@@ -35,7 +35,6 @@ namespace {
     int32_t current_z() {
         return stepper.position_from_startup(Z_AXIS);
     }
-
 } // namespace
 
 // Try to do some desperate measures to stop moving in Z (currently implemented as power panic).
@@ -94,14 +93,34 @@ void EmergencyStop::maybe_block() {
     // * If parking would mean we have to home first (which'll look bad, but also move in Z, which'd do Bad Things).
     // * If we are not actually printing.
     const bool do_move = all_axes_homed() && !marlin_server::printer_idle();
-    const auto old_pos = current_position;
+    // We are manipulating the moves "under the hands" of other stuff, and "in
+    // the middle" of other stuff.
+    //
+    // Make sure to take what's current in _planner_ (because motion adjust
+    // current_position only after the whole, possibly multi-segmented move
+    // gets submitted, which we possibly interrupt). Also, make sure we return
+    // to the original position in all places (because we are not 100% sure
+    // which positions are with or without MBL).
+    const auto old_pos = planner.get_machine_position_mm();
+    [[maybe_unused]] const auto old_pos_msteps = planner.get_position_msteps();
+    const auto old_pos_motion = current_position;
     if (do_move) {
         AutoRestore _ar(allow_planning_movements, true);
-        do_blocking_move_to_xy(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT);
+        do_blocking_move_to(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, old_pos.z);
     }
-    auto unpark = [this, old_pos] {
+    auto unpark = [this, old_pos, old_pos_motion, old_pos_msteps] {
         AutoRestore _ar(allow_planning_movements, true);
-        do_blocking_move_to_xy(old_pos.x, old_pos.y);
+        do_blocking_move_to(old_pos.x, old_pos.y, old_pos.z);
+        current_position = old_pos_motion;
+        // Note: The extruder can still endup in a different position because
+        // of pressure advance (probably); eliminate false assert on these, we
+        // worry about X, Y, Z here.
+        assert(planner.position_float.x == old_pos.x);
+        assert(planner.position_float.y == old_pos.y);
+        assert(planner.position_float.z == old_pos.z);
+        assert(planner.position.x == old_pos_msteps.x);
+        assert(planner.position.y == old_pos_msteps.y);
+        assert(planner.position.z == old_pos_msteps.z);
     };
     ScopeGuard unpark_guard(std::move(unpark), do_move);
 
