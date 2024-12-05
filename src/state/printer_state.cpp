@@ -478,6 +478,8 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
         return ErrCode::CONNECT_NOZZLE_TIMEOUT;
     case WarningType::USBFlashDiskError:
         return ErrCode::CONNECT_USB_FLASH_DISK_ERROR;
+    case WarningType::USBDriveUnsupportedFileSystem:
+        return ErrCode::WARNING_USB_DRIVE_UNSUPPORTED_FILE_SYSTEM;
     case WarningType::HeatBreakThermistorFail:
         return ErrCode::CONNECT_HEATBREAK_THERMISTOR_FAIL;
 #if ENABLED(POWER_PANIC)

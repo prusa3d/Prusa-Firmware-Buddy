@@ -102,6 +102,7 @@ enum class WarningType : uint32_t {
     SteppersTimeout,
     #endif
     USBFlashDiskError,
+    USBDriveUnsupportedFileSystem,
     #if ENABLED(POWER_PANIC)
     HeatbedColdAfterPP,
     #endif

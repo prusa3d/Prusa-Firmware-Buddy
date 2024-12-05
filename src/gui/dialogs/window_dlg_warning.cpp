@@ -60,6 +60,7 @@ const img::Resource *warning_dialog_icon(WarningType warning_type) {
             { WarningType::SteppersTimeout, &img::exposure_times_48x48 },
 #endif
             { WarningType::USBFlashDiskError, &img::usb_error_48x48 },
+            { WarningType::USBDriveUnsupportedFileSystem, &img::usb_error_48x48 },
 #if ENABLED(POWER_PANIC)
             { WarningType::HeatbedColdAfterPP, &img::warning_48x48 },
 #endif
