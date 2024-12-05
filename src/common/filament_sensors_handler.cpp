@@ -182,8 +182,8 @@ void FilamentSensors::reconfigure_sensors_if_needed(bool force) {
     const auto extruder_fs = GetExtruderFSensor(tool_index);
     const auto side_fs = GetSideFSensor(tool_index);
 
-    ls[LFS::current_extruder] = extruder_fs;
-    ls[LFS::current_side] = side_fs;
+    ls[LFS::extruder] = extruder_fs;
+    ls[LFS::side] = side_fs;
     ls[LFS::primary_runout] = side_fs ?: extruder_fs;
     ls[LFS::secondary_runout] = side_fs ? extruder_fs : nullptr;
 #if PRINTER_IS_PRUSA_iX()
@@ -263,7 +263,7 @@ void FilamentSensors::process_events() {
     } else {
         // During MMU standard operation, there is no filament loaded to the nozzle when not printing.
         // So it's not a good idea to reset what filament types we have stored.
-        if (!has_mmu && sensor(LogicalFilamentSensor::current_extruder)->get_state() == FilamentSensorState::NoFilament) {
+        if (!has_mmu && sensor(LogicalFilamentSensor::extruder)->get_state() == FilamentSensorState::NoFilament) {
             config_store().set_filament_type(tool_index, FilamentType::none);
         }
 

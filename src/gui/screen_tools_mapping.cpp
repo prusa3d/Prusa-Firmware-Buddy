@@ -173,7 +173,7 @@ window_text_t make_right_phys_text(size_t idx, window_t *parent,
     std::array<std::array<char, ToolsMappingBody::max_item_text_width>, ToolsMappingBody::max_item_rows> &text_buffers, bool drawing_nozzles) {
 
     print_right_tool_into_buffer(idx, text_buffers, drawing_nozzles);
-    window_text_t wtxt { parent, get_right_phys_rect(idx), is_multiline::no, is_closed_on_click_t::no, _(text_buffers[idx].data()) };
+    window_text_t wtxt { parent, get_right_phys_rect(idx), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeRAM(text_buffers[idx].data()) };
     if (!is_tool_enabled(idx)) {
         wtxt.Hide();
     }
@@ -202,7 +202,7 @@ window_text_t make_left_gcode_text(size_t idx, window_t *parent,
         }
     }
 
-    window_text_t wtxt { parent, get_left_gcode_rect(idx), is_multiline::no, is_closed_on_click_t::no, _(text_buffers[idx].data()) };
+    window_text_t wtxt { parent, get_left_gcode_rect(idx), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeRAM(text_buffers[idx].data()) };
     if (!gcode.get_extruder_info(idx).used()) {
         wtxt.Hide();
     }
@@ -329,7 +329,7 @@ ToolsMappingBody::ToolsMappingBody(window_t *parent, GCodeInfo &gcode_info)
     , left_gcode_colors(make_left_gcode_color(std::make_index_sequence<max_item_rows>(), parent, gcode_info))
     , left_gcode_icons(make_left_gcode_icon(std::make_index_sequence<max_item_rows>(), parent))
     , right_phys_icons(make_right_phys_icon(std::make_index_sequence<max_item_rows>(), parent))
-    , bottom_guide(parent, bottom_guide_rect, is_multiline::no, is_closed_on_click_t::no, _(""))
+    , bottom_guide(parent, bottom_guide_rect, is_multiline::no, is_closed_on_click_t::no, {})
     , bottom_icon(parent, bottom_icon_rect, nullptr)
     , bottom_radio(parent, bottom_radio_rect, responses_with_print)
     , gcode(gcode_info) {
@@ -663,7 +663,7 @@ MultiFilamentChangeConfig ToolsMappingBody::build_changeall_config() {
 void ToolsMappingBody::refresh_physical_tool_filament_labels() {
     for (const auto &real : right_phys_pos_to_real) {
         print_right_tool_into_buffer(real, right_phys_label_buffers, drawing_nozzles);
-        right_phys_texts[real].SetText(_(right_phys_label_buffers[real].data()));
+        right_phys_texts[real].SetText(string_view_utf8::MakeRAM(right_phys_label_buffers[real].data()));
     }
 }
 

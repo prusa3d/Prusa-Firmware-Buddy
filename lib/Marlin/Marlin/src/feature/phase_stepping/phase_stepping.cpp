@@ -452,22 +452,28 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
 static inline void single_step_axis(AxisEnum axis) {
     switch (axis) {
     case X_AXIS:
-        X_STEP_SET();
     #if ENABLED(SQUARE_WAVE_STEPPING)
+        X_STEP_SET();
+    #else
+        X_STEP_SET();
         delay_us_precise<MINIMUM_STEPPER_PULSE>();
         X_STEP_RESET();
     #endif
         break;
     case Y_AXIS:
-        Y_STEP_SET();
     #if ENABLED(SQUARE_WAVE_STEPPING)
+        Y_STEP_SET();
+    #else
+        Y_STEP_SET();
         delay_us_precise<MINIMUM_STEPPER_PULSE>();
         Y_STEP_RESET();
     #endif
         break;
     case Z_AXIS:
-        Z_STEP_SET();
     #if ENABLED(SQUARE_WAVE_STEPPING)
+        Z_STEP_SET();
+    #else
+        Z_STEP_SET();
         delay_us_precise<MINIMUM_STEPPER_PULSE>();
         Z_STEP_RESET();
     #endif
@@ -481,7 +487,7 @@ static void step_to_phase(AxisEnum axis, int phase) {
     auto &stepper = stepper_axis(axis);
     while (phase != stepper.MSCNT()) {
         single_step_axis(axis);
-        delay_us_precise(20);
+        delay_us_precise<MINIMUM_STEPPER_PULSE>();
     }
 }
 #endif

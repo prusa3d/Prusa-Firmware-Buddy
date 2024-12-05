@@ -37,13 +37,16 @@ void WindowIconOkNgArray::SetState(const SelftestSubtestState_t state, const siz
     }
 }
 
-void WindowIconOkNgArray::SetIconCount(const size_t new_icon_cnt, const Rect16 new_rect) {
+void WindowIconOkNgArray::SetIconCount(const size_t new_icon_cnt) {
     assert(icon_cnt <= max_icon_cnt);
     if (icon_cnt == new_icon_cnt) {
         return;
     }
-
     icon_cnt = new_icon_cnt;
+
+    Rect16 new_rect = GetRect();
+    new_rect = Rect16::Left_t(new_rect.Right() - new_icon_cnt * icon_space_width);
+    new_rect = Rect16::Width_t(new_icon_cnt * icon_space_width);
     SetRect(new_rect);
     Invalidate();
 }

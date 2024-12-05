@@ -8,7 +8,7 @@ FooterItemFSValue::FooterItemFSValue(window_t *parent)
 }
 
 int FooterItemFSValue::static_readValue() {
-    if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::current_extruder)) {
+    if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::extruder)) {
         return sensor->GetFilteredValue();
     }
     return no_tool_value;

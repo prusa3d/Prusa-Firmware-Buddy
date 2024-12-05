@@ -225,11 +225,7 @@ namespace frame {
 
     #if HAS_XBUDDY_EXTENSION()
             case buddy::Chamber::Backend::xbuddy_extension: {
-                Rect16 new_rect = enclosure_icons.GetRect();
-                // Third chamber fan is not implemented yet
-                new_rect = Rect16::Left_t(col_results - WindowIconOkNgArray::icon_space_width);
-                new_rect = Rect16::Width_t(WindowIconOkNgArray::icon_space_width * 2);
-                enclosure_icons.SetIconCount(2, new_rect);
+                enclosure_icons.SetIconCount(2); // Third chamber fan is not implemented yet
                 break;
             }
     #endif
