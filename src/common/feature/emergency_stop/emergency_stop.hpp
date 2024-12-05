@@ -31,6 +31,15 @@ private:
     /// A safety check for not allowing planning any movements during emergency
     bool allow_planning_movements = true;
 
+    // Check the Z limits.
+    //
+    // This does more extensive handling than check_z_limits, but doesn't run
+    // from ISR, therefore isn't guaranteed to run as soon as we would like it
+    // to (though usually it does).
+    void check_z_limits_soft();
+
+    void invoke_emergency();
+
 public:
     // Maximum "sizes" of a move segment.
     //

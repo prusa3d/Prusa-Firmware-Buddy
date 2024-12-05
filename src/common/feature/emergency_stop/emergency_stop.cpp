@@ -31,16 +31,30 @@ namespace {
         return stepper.position_from_startup(Z_AXIS);
     }
 
-    // Try to do some desperate measures to stop moving in Z (currently implemented as power panic).
-    void invoke_emergency() {
-        log_info(EmergencyStop, "Emergency stop");
-        // Do a "synthetic" power panic. Should stop _right now_ and reboot, then we'll deal with the consequences.
-        if (!power_panic::ac_fault_triggered) {
-            // this is normally supposed to be called from ISR, but since disables IRQ so it works fine even outside of ISR
-            power_panic::ac_fault_isr();
-        }
-    }
 } // namespace
+
+// Try to do some desperate measures to stop moving in Z (currently implemented as power panic).
+void EmergencyStop::invoke_emergency() {
+    log_info(EmergencyStop, "Emergency stop");
+    // TODO: We would really like to include the last parking moves after a
+    // finished print too, because power panic is no longer ready at that
+    // point.
+    if (marlin_server::printer_idle()) {
+        planner.quick_stop();
+        while (PreciseStepping::stopping()) {
+            PreciseStepping::loop();
+        }
+        planner.clear_block_buffer();
+        planner.resume_queuing();
+        // We've lost the homing by the quick-stop
+        set_all_unhomed();
+    } else if (!power_panic::ac_fault_triggered) {
+        // Do a "synthetic" power panic. Should stop _right now_ and reboot, then we'll deal with the consequences.
+
+        // this is normally supposed to be called from ISR, but since disables IRQ so it works fine even outside of ISR
+        power_panic::ac_fault_isr();
+    }
+}
 
 void EmergencyStop::maybe_block() {
     // The default step might not be called often/fast enough - we want to check we're having up-to-date data when deciding whether we should block
@@ -93,17 +107,25 @@ void EmergencyStop::maybe_block() {
 
     // Trigger the scope guards: unpark, clear the warning
 }
+
 void EmergencyStop::check_z_limits() {
     const int32_t emergency_start_z = start_z.load();
     if (emergency_start_z != no_emergency) {
         const int32_t difference = std::abs(emergency_start_z - current_z());
+        if (difference > extra_emergency_steps) {
+            // Didn't work the first time around? What??
+            // (see check_z_limits_soft)
+            bsod("Emergency stop failed, last-resort stop");
+        }
+    }
+}
+
+void EmergencyStop::check_z_limits_soft() {
+    const int32_t emergency_start_z = start_z.load();
+    if (emergency_start_z != no_emergency) {
+        const int32_t difference = std::abs(emergency_start_z - current_z());
         if (difference > allowed_steps) {
-            if (difference > extra_emergency_steps) {
-                // Didn't work the first time around? What??
-                bsod("Emergency stop failed, last-resort stop");
-            } else {
-                invoke_emergency();
-            }
+            invoke_emergency();
         }
     }
 }
@@ -124,6 +146,8 @@ void EmergencyStop::step() {
         log_info(EmergencyStop, "Emergency over");
         start_z = no_emergency;
     }
+
+    check_z_limits_soft();
 }
 
 EmergencyStop &emergency_stop() {
