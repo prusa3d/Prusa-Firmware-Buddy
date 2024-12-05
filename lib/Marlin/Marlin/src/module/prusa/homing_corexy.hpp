@@ -19,6 +19,13 @@ enum class CoreXYCalibrationMode {
 };
 
 /**
+ * @brief Rehome XY axes without refinement or retries
+ * @param fr_mm_s Homing feedrate
+ * @return true on success
+ */
+bool corexy_rehome_xy(const float fr_mm_s);
+
+/**
  * @brief Refine home origin precisely on core-XY.
  * @param fr_mm_s Homing (and service moves) feedrate
  * @param can_calibrate Allow origin self-calibration to occur

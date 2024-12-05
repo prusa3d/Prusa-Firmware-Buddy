@@ -426,6 +426,30 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
     return true;
 }
 
+bool corexy_rehome_xy(float fr_mm_s) {
+    // enable endstops locally
+    bool endstops_enabled = endstops.is_enabled();
+    ScopeGuard endstop_restorer([&]() {
+        endstops.enable(endstops_enabled);
+    });
+    endstops.enable(true);
+
+    if (ENABLED(HOME_Y_BEFORE_X)) {
+        if (!homeaxis(Y_AXIS, fr_mm_s, false, nullptr, false)) {
+            return false;
+        }
+    }
+    if (!homeaxis(X_AXIS, fr_mm_s, false, nullptr, false)) {
+        return false;
+    }
+    if (DISABLED(HOME_Y_BEFORE_X)) {
+        if (!homeaxis(Y_AXIS, fr_mm_s, false, nullptr, false)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // Refine home origin precisely on core-XY.
 bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     // finish previous moves and disable main endstop/crash recovery handling

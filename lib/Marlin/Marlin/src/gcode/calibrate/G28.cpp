@@ -720,8 +720,7 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
         }
 
         // instead of blindly retrying internally on the same location, move the gantry
-        if (!homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y, flags.can_calibrate)
-          || !homeaxis(X_AXIS, fr_mm_s, false, reenable_wt_X, flags.can_calibrate)) {
+        if (!corexy_rehome_xy(xy_mm_s)) {
           failed = true;
           break;
         }
