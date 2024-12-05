@@ -330,7 +330,9 @@ void GcodeSuite::G28() {
   flags.only_if_needed = parser.boolval('O');
   flags.z_raise = parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT;
   flags.no_change = parser.seen('N');
-  flags.can_calibrate = !parser.seen('D');
+  #if DISABLED(PRUSA_TOOLCHANGER)
+    flags.can_calibrate = !parser.seen('D');
+  #endif
   flags.force_calibrate = parser.seen('C');
   #if ENABLED(MARLIN_DEV_MODE)
     flags.simulate = parser.seen('S')
@@ -702,12 +704,10 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
             : flags.can_calibrate ? CoreXYCalibrationMode::OnDemand
             : CoreXYCalibrationMode::Disallow );
 
-        #if !ENABLED(PRUSA_TOOLCHANGER)
-          if (mode == CoreXYCalibrationMode::OnDemand && corexy_home_is_unstable()) {
-            // automatically recalibrate when unstable when we don't have tool offsets
-            mode = CoreXYCalibrationMode::Force;
-          }
-        #endif
+        if (mode == CoreXYCalibrationMode::OnDemand && corexy_home_is_unstable()) {
+          // automatically recalibrate when allowed and unstable
+          mode = CoreXYCalibrationMode::Force;
+        }
 
         failed = !corexy_home_refine(xy_mm_s, mode);
         if (!failed && !corexy_home_is_unstable()) {
