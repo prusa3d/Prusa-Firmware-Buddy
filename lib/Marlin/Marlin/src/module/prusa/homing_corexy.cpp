@@ -369,60 +369,86 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
     struct point_data {
         xy_pos_t c_dist;
         xy_pos_t m_dist;
+        bool revalidate;
     };
 
-    xy_pos_t c_acc = { 0, 0 };
-    xy_pos_t m_acc = { 0, 0 };
     point_data points[std::size(point_sequence)];
 
-    // cycle through grid points and calculate centroid
+    // allow single-point revalidation on instability to speed-up retries
+    // start by forcing whole-grid revalidation
     for (size_t i = 0; i != std::size(point_sequence); ++i) {
-        const auto &seq = point_sequence[i];
-        auto &data = points[i];
-
-        plan_corexy_abgrid_move(origin_steps, seq, fr_mm_s);
-        if (planner.draining()) {
-            return false;
-        }
-
-        if (!measure_phase_cycles(axis, data.c_dist, data.m_dist)) {
-            return false;
-        }
-
-        c_acc += data.c_dist;
-        m_acc += data.m_dist;
-    }
-    origin = c_acc / float(std::size(point_sequence));
-    distance = m_acc / float(std::size(point_sequence));
-
-    // verify each probed point with the current centroid
-    xy_long_t o_int = { long(roundf(origin[A_AXIS])), long(roundf(origin[B_AXIS])) };
-    for (size_t i = 0; i != std::size(point_sequence); ++i) {
-        const auto &seq = point_sequence[i];
-        auto &data = points[i];
-
-        xy_long_t c_ab = cdist_translate(data.c_dist, origin);
-        xy_long_t c_diff = c_ab - seq - o_int;
-        if (c_diff[A_AXIS] || c_diff[B_AXIS]) {
-            COREXY_HOME_UNSTABLE = true;
-            SERIAL_ECHOLNPAIR("home calibration point (", seq[A_AXIS], ",", seq[B_AXIS],
-                ") invalid A:", c_diff[A_AXIS], " B:", c_diff[B_AXIS],
-                " with origin A:", o_int[A_AXIS], " B:", o_int[B_AXIS]);
-            return false;
-        }
-
-        if (point_is_unstable(data.c_dist, origin)) {
-            COREXY_HOME_UNSTABLE = true;
-            SERIAL_ECHOLNPAIR("home calibration point (", seq[A_AXIS], ",", seq[B_AXIS],
-                ") unstable A:", data.c_dist[A_AXIS], " B:", data.c_dist[B_AXIS],
-                " with origin A:", origin[A_AXIS], " B:", origin[B_AXIS]);
-            return false;
-        }
+        points[i].revalidate = true;
     }
 
-    if (DEBUGGING(LEVELING)) {
-        SERIAL_ECHOLNPAIR("home grid origin A:", origin[A_AXIS], " B:", origin[B_AXIS]);
+    // keep track of points to revalidate
+    size_t rev_cnt = std::size(point_sequence);
+    for (size_t revcount = 0; revcount < std::size(point_sequence) / 2; ++revcount) {
+        xy_pos_t c_acc = { 0, 0 };
+        xy_pos_t m_acc = { 0, 0 };
+        size_t new_rev_cnt = 0;
+
+        // cycle through grid points and calculate centroid
+        for (size_t i = 0; i != std::size(point_sequence); ++i) {
+            const auto &seq = point_sequence[i];
+            auto &data = points[i];
+
+            if (data.revalidate) {
+                plan_corexy_abgrid_move(origin_steps, seq, fr_mm_s);
+                if (planner.draining()) {
+                    return false;
+                }
+
+                if (!measure_phase_cycles(axis, data.c_dist, data.m_dist)) {
+                    return false;
+                }
+            }
+
+            c_acc += data.c_dist;
+            m_acc += data.m_dist;
+        }
+        origin = c_acc / float(std::size(point_sequence));
+        distance = m_acc / float(std::size(point_sequence));
+
+        // verify each probed point with the current centroid
+        xy_long_t o_int = { long(roundf(origin[A_AXIS])), long(roundf(origin[B_AXIS])) };
+        for (size_t i = 0; i != std::size(point_sequence); ++i) {
+            const auto &seq = point_sequence[i];
+            auto &data = points[i];
+
+            xy_long_t c_ab = cdist_translate(data.c_dist, origin);
+            xy_long_t c_diff = c_ab - seq - o_int;
+            if (c_diff[A_AXIS] || c_diff[B_AXIS]) {
+                COREXY_HOME_UNSTABLE = true;
+                SERIAL_ECHOLNPAIR("home calibration point (", seq[A_AXIS], ",", seq[B_AXIS],
+                    ") invalid A:", c_diff[A_AXIS], " B:", c_diff[B_AXIS],
+                    " with origin A:", o_int[A_AXIS], " B:", o_int[B_AXIS]);
+                // when even just a point is invalid, we likely have skipped or have a false centroid:
+                // no point in revalidating, mark the calibration as an instant failure
+                return false;
+            }
+
+            data.revalidate = point_is_unstable(data.c_dist, origin);
+            if (data.revalidate) {
+                COREXY_HOME_UNSTABLE = true;
+                SERIAL_ECHOLNPAIR("home calibration point (", seq[A_AXIS], ",", seq[B_AXIS],
+                    ") unstable A:", data.c_dist[A_AXIS], " B:", data.c_dist[B_AXIS],
+                    " with origin A:", origin[A_AXIS], " B:", origin[B_AXIS]);
+                ++new_rev_cnt;
+            }
+        }
+
+        if (new_rev_cnt > rev_cnt) {
+            // we got worse, likely we have moved the centroid: give up
+            return false;
+        }
+        rev_cnt = new_rev_cnt;
     }
+    if (rev_cnt) {
+        // we left with unstable points, reject calibration
+        return false;
+    }
+
+    SERIAL_ECHOLNPAIR("home grid origin A:", origin[A_AXIS], " B:", origin[B_AXIS]);
     return true;
 }
 
