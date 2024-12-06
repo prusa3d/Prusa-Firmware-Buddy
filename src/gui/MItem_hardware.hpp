@@ -64,7 +64,7 @@ public:
 
 #if HAS_EMERGENCY_STOP()
 class MI_EMERGENCY_STOP_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Emergency stop");
+    static constexpr const char *const label = N_("Door Sensor");
 
 public:
     MI_EMERGENCY_STOP_ENABLE();
