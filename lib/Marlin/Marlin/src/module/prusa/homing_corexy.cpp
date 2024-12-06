@@ -133,15 +133,72 @@ static bool phase_aligned(AxisEnum axis) {
     return (phase_cur <= ustep_max || phase_cur >= (1024 - ustep_max));
 }
 
+// Helper class to adjust machine settings for AB measurements using measure_axis_distance().
+// Only the non-measured axis stepper is adjusted: the measured stepper is setup within
+// measure_axis_distance() itself.
+class SetupForMeasurement {
+    static unsigned setup; // helper to ensure machine settings are set exactly once
+
+    // "other" stepper original settings
+    decltype(stepperX) &other_stepper;
+    int32_t other_orig_cur;
+    float other_orig_hold;
+
+    // original IS settings
+    std::optional<input_shaper::AxisConfig> is_config_orig[2];
+
+public:
+    [[nodiscard]] SetupForMeasurement(AxisEnum other_axis)
+        : other_stepper(stepper_axis(other_axis)) {
+        ++setup;
+        assert(setup == 1);
+
+        other_orig_cur = other_stepper.rms_current();
+        other_orig_hold = other_stepper.hold_multiplier();
+#ifdef XY_HOMING_HOLDING_CURRENT
+        other_stepper.rms_current(XY_HOMING_HOLDING_CURRENT, 1.f);
+#endif
+
+        is_config_orig[A_AXIS] = input_shaper::get_axis_config(A_AXIS);
+        is_config_orig[B_AXIS] = input_shaper::get_axis_config(B_AXIS);
+        input_shaper::set_axis_config(A_AXIS, std::nullopt);
+        input_shaper::set_axis_config(B_AXIS, std::nullopt);
+    }
+
+    ~SetupForMeasurement() {
+        --setup;
+        other_stepper.rms_current(other_orig_cur, other_orig_hold);
+        input_shaper::set_axis_config(A_AXIS, is_config_orig[A_AXIS]);
+        input_shaper::set_axis_config(B_AXIS, is_config_orig[B_AXIS]);
+    }
+
+    static bool is_setup() {
+        return setup > 0;
+    }
+};
+
+unsigned SetupForMeasurement::setup = 0;
+
+// Axis measurement settings
+struct measure_axis_params {
+    float feedrate;
+    uint16_t current;
+#if HAS_TRINAMIC
+    int8_t sensitivity;
+#endif
+};
+
 /**
- * @brief Part of precise homing.
- * @param origin_steps
- * @param dist
- * @param m_steps
- * @param m_dist
+ * @brief Measure axis distance precisely
+ * @param axis Axis to measure
+ * @param origin_steps Initial stepper position
+ * @param dist Maximum distance/direction to travel to hit an endstop
+ * @param m_steps Measured steps
+ * @param m_dist Measured distance
+ * @param params Measured axis/stepper parameters
  * @return True on success
  */
-static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t dist, int32_t &m_steps, float &m_dist) {
+static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t dist, int32_t &m_steps, float &m_dist, const measure_axis_params &params) {
     // full initial position
     xyze_long_t initial_steps = { origin_steps.a, origin_steps.b, stepper.position(C_AXIS), stepper.position(E_AXIS) };
     xyze_pos_t initial_mm;
@@ -162,19 +219,27 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
         target_pos_msteps[i] = initial_pos_msteps[i];
     }
 
-    // move towards the endstop
+    // prepare stepper for the move
+    assert(SetupForMeasurement::is_setup());
     sensorless_t stealth_states = start_sensorless_homing_per_axis(axis);
-#ifdef XY_HOMING_MEASURE_SENS
-    // this will be reset to default implicitly by end_sensorless_homing_per_axis()
-    stepper_axis(axis).sgt(XY_HOMING_MEASURE_SENS);
+    auto &axis_stepper = stepper_axis(axis);
+    int32_t axis_orig_cur = axis_stepper.rms_current();
+    float axis_orig_hold = axis_stepper.hold_multiplier();
+    axis_stepper.rms_current(params.current, 1.f);
+#if HAS_TRINAMIC
+    int8_t axis_orig_sens = axis_stepper.sgt();
+    axis_stepper.sgt(params.sensitivity);
 #endif
+    ScopeGuard state_restorer([&]() {
+#if HAS_TRINAMIC
+        axis_stepper.sgt(axis_orig_sens);
+#endif
+        axis_stepper.rms_current(axis_orig_cur, axis_orig_hold);
+    });
+
+    // move towards the endstop
     endstops.enable(true);
-#ifdef XY_HOMING_MEASURE_FR
-    float measure_fr = XY_HOMING_MEASURE_FR;
-#else
-    float measure_fr = homing_feedrate(axis);
-#endif
-    plan_raw_move(target_mm, target_pos_msteps, measure_fr);
+    plan_raw_move(target_mm, target_pos_msteps, params.feedrate);
     uint8_t hit = endstops.trigger_state();
     endstops.not_homing();
 
@@ -213,6 +278,36 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
     return hit;
 }
 
+// Return measure axis default parameters
+static measure_axis_params measure_axis_defaults(const AxisEnum axis) {
+    measure_axis_params params;
+
+#if HAS_TRINAMIC
+    #ifdef XY_HOMING_MEASURE_SENS
+    params.sensitivity = XY_HOMING_MEASURE_SENS;
+    #else
+    params.sensitivity = (axis == A_AXIS ? X_STALL_SENSITIVITY : Y_STALL_SENSITIVITY);
+    #endif
+#endif
+#ifdef XY_HOMING_MEASURE_FR
+    params.feedrate = XY_HOMING_MEASURE_FR;
+#else
+    params.feedrate = homing_feedrate(axis);
+#endif
+#ifdef XY_HOMING_MEASURE_CURRENT
+    params.current = XY_HOMING_MEASURE_CURRENT;
+#else
+    params.current = (axis == A_AXIS ? X_CURRENT_HOME : Y_CURRENT_HOME);
+#endif
+
+    return params;
+}
+
+// Call measure_axis_distance() with calibrated or default parameters
+static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t dist, int32_t &m_steps, float &m_dist) {
+    return measure_axis_distance(axis, origin_steps, dist, m_steps, m_dist, measure_axis_defaults(axis));
+}
+
 /**
  * @brief Part of precise homing.
  * @param axis Physical axis to measure
@@ -221,37 +316,9 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
  * @return True on success
  */
 static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_dist) {
-    // adjust current of the holding motor
+    // prepare for repeated measurements
     AxisEnum other_axis = (axis == B_AXIS ? A_AXIS : B_AXIS);
-    auto &other_stepper = stepper_axis(other_axis);
-
-    int32_t other_orig_cur = other_stepper.rms_current();
-    float other_orig_hold = other_stepper.hold_multiplier();
-    other_stepper.rms_current(XY_HOMING_HOLDING_CURRENT, 1.);
-
-    // adjust current of the measured motor
-    auto &axis_stepper = stepper_axis(axis);
-    int32_t axis_orig_cur = axis_stepper.rms_current();
-    float axis_orig_hold = axis_stepper.hold_multiplier();
-#ifdef XY_HOMING_MEASURE_CURRENT
-    axis_stepper.rms_current(XY_HOMING_MEASURE_CURRENT, 1.);
-#endif
-
-    // disable IS on AB axes to ensure _only_ the measured axis is being moved
-    // (cartesian IS mixing can cause both to move, triggering an invalid endstop)
-    std::optional<input_shaper::AxisConfig> is_config_orig[2] = {
-        input_shaper::get_axis_config(A_AXIS),
-        input_shaper::get_axis_config(B_AXIS)
-    };
-    input_shaper::set_axis_config(A_AXIS, std::nullopt);
-    input_shaper::set_axis_config(B_AXIS, std::nullopt);
-
-    ScopeGuard state_restorer([&]() {
-        other_stepper.rms_current(other_orig_cur, other_orig_hold);
-        axis_stepper.rms_current(axis_orig_cur, axis_orig_hold);
-        input_shaper::set_axis_config(A_AXIS, is_config_orig[A_AXIS]);
-        input_shaper::set_axis_config(B_AXIS, is_config_orig[B_AXIS]);
-    });
+    SetupForMeasurement setup_guard(other_axis);
 
     const int32_t measure_max_dist = (XY_HOMING_ORIGIN_OFFSET * 4) / planner.mm_per_step[axis];
     const int32_t measure_dir = (axis == B_AXIS ? -X_HOME_DIR : -Y_HOME_DIR);
