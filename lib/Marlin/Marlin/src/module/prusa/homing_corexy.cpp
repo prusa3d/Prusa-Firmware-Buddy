@@ -401,14 +401,6 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
         const auto &seq = point_sequence[i];
         auto &data = points[i];
 
-        if (point_is_unstable(data.c_dist, origin)) {
-            COREXY_HOME_UNSTABLE = true;
-            SERIAL_ECHOLNPAIR("home calibration point (", seq[A_AXIS], ",", seq[B_AXIS],
-                ") unstable A:", data.c_dist[A_AXIS], " B:", data.c_dist[B_AXIS],
-                " with origin A:", origin[A_AXIS], " B:", origin[B_AXIS]);
-            return false;
-        }
-
         xy_long_t c_ab = cdist_translate(data.c_dist, origin);
         xy_long_t c_diff = c_ab - seq - o_int;
         if (c_diff[A_AXIS] || c_diff[B_AXIS]) {
@@ -416,6 +408,14 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
             SERIAL_ECHOLNPAIR("home calibration point (", seq[A_AXIS], ",", seq[B_AXIS],
                 ") invalid A:", c_diff[A_AXIS], " B:", c_diff[B_AXIS],
                 " with origin A:", o_int[A_AXIS], " B:", o_int[B_AXIS]);
+            return false;
+        }
+
+        if (point_is_unstable(data.c_dist, origin)) {
+            COREXY_HOME_UNSTABLE = true;
+            SERIAL_ECHOLNPAIR("home calibration point (", seq[A_AXIS], ",", seq[B_AXIS],
+                ") unstable A:", data.c_dist[A_AXIS], " B:", data.c_dist[B_AXIS],
+                " with origin A:", origin[A_AXIS], " B:", origin[B_AXIS]);
             return false;
         }
     }
@@ -550,14 +550,9 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     if (planner.draining()) {
         return false;
     }
-
     xy_pos_t v_c_dist;
     if (!measure_phase_cycles(measured_axis, v_c_dist, _)) {
         return false;
-    }
-    if (point_is_unstable(v_c_dist, calibrated_origin_xy)) {
-        COREXY_HOME_UNSTABLE = true;
-        SERIAL_ECHOLNPAIR("home validation point is unstable");
     }
 
     xy_long_t c_ab = cdist_translate(c_dist, calibrated_origin_xy);
@@ -566,6 +561,10 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
         COREXY_HOME_UNSTABLE = true;
         SERIAL_ECHOLNPAIR("home validation point is invalid");
         return false;
+    }
+    if (point_is_unstable(v_c_dist, calibrated_origin_xy)) {
+        COREXY_HOME_UNSTABLE = true;
+        SERIAL_ECHOLNPAIR("home validation point is unstable");
     }
 
     // move back to origin
