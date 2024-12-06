@@ -543,37 +543,30 @@ bool corexy_rehome_xy(float fr_mm_s) {
     return true;
 }
 
-// Refine home origin precisely on core-XY.
-bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
-    // finish previous moves and disable main endstop/crash recovery handling
-    planner.synchronize();
-#if ENABLED(CRASH_RECOVERY)
-    Crash_Temporary_Deactivate ctd;
-#endif /*ENABLED(CRASH_RECOVERY)*/
-
-    // disable endstops locally
-    bool endstops_enabled = endstops.is_enabled();
-    ScopeGuard endstop_restorer([&]() {
-        endstops.enable(endstops_enabled);
-    });
-    endstops.not_homing();
-
-    // reset previous home state
-    COREXY_HOME_UNSTABLE = false;
+/**
+ * @brief Rehome, move into position, align to phase and return current position
+ * @param origin_pos Final/current home position
+ * @param origin_steps Final/current stepper position
+ * @param fr_mm_s Service move feedrate
+ * @param rehome If true, also perform initial home
+ */
+static bool corexy_rehome_and_phase(xyze_pos_t &origin_pos, xy_long_t &origin_steps, float fr_mm_s, bool rehome) {
+    // ignore starting position if requested, otherwise assume to be already homed
+    if (rehome) {
+        corexy_rehome_xy(fr_mm_s);
+    }
 
     // reposition parallel to the origin
-    xyze_pos_t origin_tmp = current_position;
-    origin_tmp[X_AXIS] = (base_home_pos(X_AXIS) - XY_HOMING_ORIGIN_OFFSET * X_HOME_DIR);
-    origin_tmp[Y_AXIS] = (base_home_pos(Y_AXIS) - XY_HOMING_ORIGIN_OFFSET * Y_HOME_DIR);
-    planner.buffer_line(origin_tmp, fr_mm_s, active_extruder);
+    origin_pos = current_position;
+    origin_pos[X_AXIS] = (base_home_pos(X_AXIS) - XY_HOMING_ORIGIN_OFFSET * X_HOME_DIR);
+    origin_pos[Y_AXIS] = (base_home_pos(Y_AXIS) - XY_HOMING_ORIGIN_OFFSET * Y_HOME_DIR);
+    planner.buffer_line(origin_pos, fr_mm_s, active_extruder);
     planner.synchronize();
 
     // align both motors to a full phase
     stepper_wait_for_standstill(_BV(A_AXIS) | _BV(B_AXIS));
-    xy_long_t origin_steps = {
-        stepper.position(A_AXIS) + phase_backoff_steps(A_AXIS),
-        stepper.position(B_AXIS) + phase_backoff_steps(B_AXIS)
-    };
+    origin_steps[A_AXIS] = (stepper.position(A_AXIS) + phase_backoff_steps(A_AXIS));
+    origin_steps[B_AXIS] = (stepper.position(B_AXIS) + phase_backoff_steps(B_AXIS));
 
     // sanity checks: don't remove these! Issues in repositioning are a result of planner/stepper
     // calculation issues which will show up elsewhere and are NOT just mechanical issues. We need
@@ -602,9 +595,37 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
         bsod("phase alignment failed");
     }
 
-    AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
+    return true;
+}
 
-    // calibrate if not done already
+// Refine home origin precisely on core-XY.
+bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
+    const AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
+
+    // finish previous moves and disable main endstop/crash recovery handling
+    planner.synchronize();
+#if ENABLED(CRASH_RECOVERY)
+    Crash_Temporary_Deactivate ctd;
+#endif /*ENABLED(CRASH_RECOVERY)*/
+
+    // disable endstops locally
+    bool endstops_enabled = endstops.is_enabled();
+    ScopeGuard endstop_restorer([&]() {
+        endstops.enable(endstops_enabled);
+    });
+    endstops.not_homing();
+
+    // reset previous home state
+    COREXY_HOME_UNSTABLE = false;
+
+    // reposition parallel to the origin to our probing point
+    xyze_pos_t origin_pos;
+    xy_long_t origin_steps;
+    if (!corexy_rehome_and_phase(origin_pos, origin_steps, fr_mm_s, false)) {
+        return false;
+    }
+
+    // calibrate origin if not done already
     CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
     if ((mode == CoreXYCalibrationMode::Force)
         || ((mode == CoreXYCalibrationMode::OnDemand) && calibrated_origin.uninitialized())) {
@@ -673,14 +694,11 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     };
     xy_pos_t c_mm;
     corexy_ab_to_xy(c_ab_steps, c_mm);
-    current_position.x = c_mm[X_AXIS] + origin_tmp[X_AXIS] + XY_HOMING_ORIGIN_OFFSET * X_HOME_DIR;
-    current_position.y = c_mm[Y_AXIS] + origin_tmp[Y_AXIS] + XY_HOMING_ORIGIN_OFFSET * Y_HOME_DIR;
+    current_position.x = c_mm[X_AXIS] + origin_pos[X_AXIS] + XY_HOMING_ORIGIN_OFFSET * X_HOME_DIR;
+    current_position.y = c_mm[Y_AXIS] + origin_pos[Y_AXIS] + XY_HOMING_ORIGIN_OFFSET * Y_HOME_DIR;
     planner.set_machine_position_mm(current_position);
 
-    if (DEBUGGING(LEVELING)) {
-        SERIAL_ECHOLNPAIR("calibrated home cycle A:", c_ab[A_AXIS], " B:", c_ab[B_AXIS]);
-    }
-
+    SERIAL_ECHOLNPAIR("calibrated home cycle A:", c_ab[A_AXIS], " B:", c_ab[B_AXIS]);
     return true;
 }
 
