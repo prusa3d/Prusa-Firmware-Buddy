@@ -60,7 +60,7 @@ private:
     bool do_stop : 1; // part of settings just o be resetted
 
     // Preloaded from the config_store to prevent querying it each loop
-    bool extruder_mmu_rework : 1 = false;
+    bool extruder_mmu_rework : 1 = PRINTER_IS_PRUSA_iX();
 };
 
 } // namespace pause

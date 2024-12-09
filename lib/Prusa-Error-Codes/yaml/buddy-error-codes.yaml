@@ -849,6 +849,11 @@ Errors:
     id: "COLD_PULL_INTRO"
     approved: true
 
+  - code: "XX703"
+    title: "Unknown file system"
+    text: "FAT32 is the only supported file system, use different USB drive or reformat this drive."
+    id: "USB_DRIVE_UNSUPPORTED_FILE_SYSTEM"
+    
   - code: "XX801"
     title: "Warning"
     text: "Please complete Calibrations & Tests before using the printer."
