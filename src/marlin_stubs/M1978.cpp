@@ -392,7 +392,7 @@ void M1978() {
         };
     }(std::make_index_sequence<HOTENDS>());
 
-    std::array<FanHandler *, HOTENDS * 2 + 1 /* enclosure fan */> fan_container;
+    std::array<FanHandler *, HOTENDS * 2 + 5 /* enclosure/chamber fans with reserve */> fan_container;
     std::array<std::pair<FanHandler *, FanHandler *>, HOTENDS> tool_fan_pairs;
 
     size_t container_index = 0;
