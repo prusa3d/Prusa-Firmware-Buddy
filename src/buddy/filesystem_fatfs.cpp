@@ -11,6 +11,8 @@
 #include <buddy/filesystem.h>
 #include <buddy/filesystem_fatfs.h>
 #include <logging/log.hpp>
+#include <marlin_client.hpp>
+#include <usb_host.h>
 
 // #define FATFS_FSTAT 1
 
@@ -237,6 +239,11 @@ static int open_r(struct _reent *r, void *fileStruct, const char *path, int flag
     r->_errno = get_errno(result);
 
     if (result != FR_OK) {
+        if (result == FR_NO_FILESYSTEM) {
+            // Displays exact message that file system on usb disk is not supported
+            marlin_client::set_warning(WarningType::USBDriveUnsupportedFileSystem);
+            usb_host::disable_media();
+        }
         return -1;
     }
 

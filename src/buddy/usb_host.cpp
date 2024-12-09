@@ -29,6 +29,10 @@ bool is_media_inserted_since_startup() {
     return media_inserted_since_startup;
 }
 
+void disable_media() {
+    media_inserted = false;
+}
+
 } // namespace usb_host
 
 namespace usbh_power_cycle {
