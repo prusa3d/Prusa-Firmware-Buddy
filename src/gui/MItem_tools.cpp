@@ -1024,8 +1024,7 @@ MI_TRIGGER_POWER_PANIC::MI_TRIGGER_POWER_PANIC()
 }
 
 void MI_TRIGGER_POWER_PANIC::click([[maybe_unused]] IWindowMenu &windowMenu) {
-    // this is normally supposed to be called from ISR, but since disables IRQ so it works fine even outside of ISR
-    power_panic::ac_fault_isr();
+    buddy::hw::acFault.triggerIT();
 }
 
 #if ENABLED(PRUSA_TOOLCHANGER)
