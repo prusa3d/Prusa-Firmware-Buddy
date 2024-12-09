@@ -37,34 +37,25 @@ static constexpr size_t row_5 = row_4 + WizardDefaults::row_h;
 static constexpr size_t row_6 = row_5 + WizardDefaults::row_h + 20;
 
 static constexpr const char *en_text_header = N_("SELFTEST");
-static constexpr const char *en_text_fan_test = N_("Fan Test");
-#if HAS_MINI_DISPLAY()
+static constexpr const char *en_text_fan_test = N_("Fan RPM tests");
+#if PRINTER_IS_PRUSA_iX()
+// for iX with turbine, heatbreak fan eval always succeeds
+static constexpr const char *en_text_hotend_fan = N_("Hotend fan (test disabled)");
+#else
 static constexpr const char *en_text_hotend_fan = N_("Hotend fan");
+#endif
 static constexpr const char *en_text_print_fan = N_("Print fan");
 static constexpr const char *en_text_fans_switched = N_("Switched fans");
-    #if HAS_CHAMBER_API()
+#if HAS_CHAMBER_API()
 static constexpr const char *en_text_enclosure_fan = N_("Enclosure fan");
-    #endif
-#else
-    #if PRINTER_IS_PRUSA_iX()
-// for iX with turbine, heatbreak fan eval always succeeds
-static constexpr const char *en_text_hotend_fan = N_("Hotend fan RPM test (disabled!)");
-    #else
-static constexpr const char *en_text_hotend_fan = N_("Hotend fan RPM test");
-    #endif
-static constexpr const char *en_text_print_fan = N_("Print fan RPM test");
-static constexpr const char *en_text_fans_switched = N_("Checking for switched fans");
-    #if HAS_CHAMBER_API()
-static constexpr const char *en_text_enclosure_fan = N_("Enclosure fan RPM test");
-    #endif /* HAS_CHAMBER_API() */
-#endif /* HAS_XXXX_DISPLAY() */
+#endif
 
 #if PRINTER_IS_PRUSA_MK3_5()
 static constexpr const char *en_text_manual_check_hotend = N_("Is Hotend fan (left) spinning?");
 #endif
 
-static constexpr const char *en_text_test_100_info = N_("Testing fans on 100% RPM, please wait.");
-static constexpr const char *en_text_test_40_info = N_("Testing fans on 40% RPM, please wait.");
+static constexpr const char *en_text_test_100_info = N_("Testing fan rotation on 100% power, please wait.");
+static constexpr const char *en_text_test_40_info = N_("Testing fan rotation on 40% power, please wait.");
 static constexpr const char *en_text_result_ok = N_("All tests passed successfully.");
 static constexpr const char *en_text_info_rpm_failed = N_("The RPM test has failed, check both fans are free to spin and connected correctly.");
 #if HAS_SWITCHED_FAN_TEST()
@@ -167,7 +158,7 @@ namespace frame {
 #else
             , footer(this, 0, footer::Item::print_fan, footer::Item::heatbreak_fan)
 #endif
-            , test_title { this, Rect16(col_texts, WizardDefaults::row_0, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_fan_test) }
+            , test_title { this, Rect16(WizardDefaults::col_0, WizardDefaults::row_0, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_fan_test) }
             , print_label { this, Rect16(col_texts, row_2, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_print_fan) }
             , print_label_icon { this, &img::turbine_16x16, point_i16_t({ WizardDefaults::col_0, row_2 }) }
             , heatbreak_label { this, Rect16(col_texts, row_3, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_hotend_fan) }
