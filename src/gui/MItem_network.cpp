@@ -1,6 +1,7 @@
 #include <guiconfig/guiconfig.h>
 
 #include "MItem_network.hpp"
+#include "MItem_tools.hpp"
 #include <espif.h>
 #include <dns.h>
 #include "wui_api.h"
@@ -110,7 +111,7 @@ MI_WIFI_SETUP::MI_WIFI_SETUP()
 }
 
 void MI_WIFI_SETUP::click(IWindowMenu &) {
-    marlin_client::gcode("M1703");
+    gui_try_gcode_with_msg("M1703");
 }
 
 MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
