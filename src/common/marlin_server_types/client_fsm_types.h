@@ -96,9 +96,7 @@ enum class WarningType : uint32_t {
     HeatersTimeout,
     HotendTempDiscrepancy,
     NozzleTimeout,
-    #if HAS_SIDE_FSENSOR()
     FilamentLoadingTimeout,
-    #endif
     #if _DEBUG
     SteppersTimeout,
     #endif
