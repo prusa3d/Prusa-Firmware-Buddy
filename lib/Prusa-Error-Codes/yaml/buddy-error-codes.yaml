@@ -851,7 +851,7 @@ Errors:
 
   - code: "XX703"
     title: "Unknown file system"
-    text: "FAT32 is the only supported file system, use different USB drive or reformat this drive."
+    text: "Use a different USB drive or reformat this one to the supported FAT32 file system."
     id: "USB_DRIVE_UNSUPPORTED_FILE_SYSTEM"
     
   - code: "XX801"
