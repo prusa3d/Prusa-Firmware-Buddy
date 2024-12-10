@@ -166,6 +166,5 @@ protected:
     CFanCtlPWM m_pwm;
     CFanCtlTach m_tach;
 
-    uint8_t selftest_initial_pwm;
     skip_tacho_t m_skip_tacho; // skip tacho measure
 };
