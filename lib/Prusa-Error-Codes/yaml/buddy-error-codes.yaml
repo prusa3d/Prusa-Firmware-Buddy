@@ -851,7 +851,7 @@ Errors:
 
   - code: "XX703"
     title: "Unknown file system"
-    text: "FAT32 is the only supported file system, use different USB drive or reformat this drive."
+    text: "Use a different USB drive or reformat this one to the supported FAT32 file system."
     id: "USB_DRIVE_UNSUPPORTED_FILE_SYSTEM"
     
   - code: "XX801"
@@ -972,6 +972,14 @@ Errors:
     type: "CONNECT"
 
   - code: "XX817"
+    printers: [iX]
+    title: "Warning"
+    text: "Heating disabled due to 10 minutes of inactivity."
+    id: "HEATERS_TIMEOUT"
+    type: "CONNECT"
+
+  - code: "XX817"
+    printers: [MINI, MK3.5, MK4, XL, COREONE]
     title: "Warning"
     text: "Heating disabled due to 30 minutes of inactivity."
     id: "HEATERS_TIMEOUT"
@@ -984,6 +992,14 @@ Errors:
     type: "CONNECT"
 
   - code: "XX819"
+    printers: [iX]
+    title: "Warning"
+    text: "Heating disabled due to 10 minutes of inactivity."
+    id: "NOZZLE_TIMEOUT"
+    type: "CONNECT"
+
+  - code: "XX819"
+    printers: [MINI, MK3.5, MK4, XL, COREONE]
     title: "Warning"
     text: "Heating disabled due to 30 minutes of inactivity."
     id: "NOZZLE_TIMEOUT"

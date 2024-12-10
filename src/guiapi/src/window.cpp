@@ -13,7 +13,6 @@ bool window_t::HasVisibleFlag() const { return flags.visible; };
 bool window_t::IsHiddenBehindDialog() const { return flags.hidden_behind_dialog; }
 bool window_t::IsInvalid() const { return flags.invalid; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
-bool window_t::HasTimer() const { return flags.timer; }
 win_type_t window_t::GetType() const { return win_type_t(flags.type); }
 bool window_t::IsDialog() const { return GetType() == win_type_t::dialog; }
 bool window_t::ClosedOnTimeout() const { return flags.timeout_close == is_closed_on_timeout_t::yes; }
@@ -112,9 +111,6 @@ bool window_t::HasValidBackground() const {
 window_t *window_t::GetCapturedWindow() {
     return HasVisibleFlag() ? this : nullptr;
 }
-
-void window_t::SetHasTimer() { flags.timer = true; }
-void window_t::ClrHasTimer() { flags.timer = false; }
 
 void window_t::set_enabled(bool set) { flags.enabled = set; }
 void window_t::SetEnforceCapture() { flags.enforce_capture_when_not_visible = true; }

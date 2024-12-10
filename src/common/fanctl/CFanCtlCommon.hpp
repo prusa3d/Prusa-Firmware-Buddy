@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <printers.h>
 #include <option/xl_enclosure_support.h>
+#include <atomic>
 
 class CFanCtlCommon {
 public:
@@ -44,7 +45,8 @@ public:
 protected:
     const uint16_t min_rpm; // minimum rpm value (set in constructor)
     const uint16_t max_rpm; // maximum rpm value (set in constructor)
-    bool selftest_mode;
+    bool selftest_mode { false };
+    std::atomic<uint8_t> selftest_initial_pwm { 0 };
 };
 
 extern void record_fanctl_metrics();

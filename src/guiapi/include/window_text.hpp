@@ -59,6 +59,7 @@ using window_text_button_t = WindowButton;
 class WindowBlinkingText : public window_text_t {
     Color color_blink;
     uint16_t blink_step;
+    uint8_t blink_phase = 0;
     bool blink_enable;
 
 public:

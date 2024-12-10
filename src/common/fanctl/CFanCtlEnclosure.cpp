@@ -78,3 +78,37 @@ bool CFanCtlEnclosure::Tachometer::tick() {
     }
     return edge;
 }
+
+bool CFanCtlEnclosure::setPWM(uint16_t pwm) {
+    if (selftest_mode) {
+        selftest_initial_pwm = pwm > 255 ? 255 : static_cast<uint8_t>(pwm);
+    } else {
+        desired_pwm = pwm > 255 ? 255 : static_cast<uint8_t>(pwm);
+    }
+    return true;
+}
+
+void CFanCtlEnclosure::enterSelftestMode() {
+    if (selftest_mode) {
+        return;
+    }
+    selftest_mode = true;
+    selftest_initial_pwm = getPWM();
+}
+
+void CFanCtlEnclosure::exitSelftestMode() {
+    if (!selftest_mode) {
+        return;
+    }
+    selftest_mode = false;
+    setPWM(selftest_initial_pwm.load());
+    selftest_initial_pwm = 0;
+}
+
+bool CFanCtlEnclosure::selftestSetPWM(uint8_t pwm) {
+    if (!selftest_mode) {
+        return false;
+    }
+    desired_pwm = pwm; // Set PWM directly without setPWM function
+    return true;
+}

@@ -3155,6 +3155,9 @@ bool _process_server_valid_request(const Request &request, int client_id) {
     case Request::Type::KnobClick:
         ++server.knob_click_counter;
         return true;
+    case Request::Type::SetWarning:
+        set_warning(request.warning_type);
+        return true;
     case Request::Type::FSM:
         server_side_encoded_fsm_response = request.encoded_fsm_response;
         return true;

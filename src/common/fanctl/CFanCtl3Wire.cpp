@@ -160,7 +160,6 @@ CFanCtl3Wire::CFanCtl3Wire(const OutputPin &pinOut, const InputPin &pinTach,
     , is_autofan(autofan)
     , m_pwm(pinOut, minPWM, maxPWM, thrPWM)
     , m_tach(pinTach)
-    , selftest_initial_pwm(0)
     , m_skip_tacho(skip_tacho) {
 }
 
@@ -302,7 +301,7 @@ void CFanCtl3Wire::exitSelftestMode() {
         // if this is autofan, turn fan off and let marlin turn it back on in case it is needed
         pwm_to_restore = 0;
     } else {
-        pwm_to_restore = selftest_initial_pwm;
+        pwm_to_restore = selftest_initial_pwm.load();
     }
 
     setPWM(pwm_to_restore);

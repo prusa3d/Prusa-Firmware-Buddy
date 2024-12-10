@@ -11,6 +11,8 @@ bool is_media_inserted();
 /// \returns whether there is a USB drive connected since startup
 bool is_media_inserted_since_startup();
 
+// In case media is invalid, this will disable it until reconnection
+void disable_media();
 } // namespace usb_host
 
 namespace usbh_power_cycle {
