@@ -13,8 +13,20 @@ LOG_COMPONENT_REF(MarlinServer);
 
 void InjectQueue::load_gcodes_from_file_callback(AsyncJobExecutionControl &control) {
     AnyGcodeFormatReader reader(inject_queue.get_buffer().data());
+
+    // gcode_stream_buffer is used to store filepath & then the gcode stream itself
+    // Filepath doesn't need separate buffer - file is opened and after that buffer is no longer needed and is overwritten here
+    StringBuilder str_builder(inject_queue.get_buffer());
+
     // Error conditions
     if (!reader.is_open()) {
+        const char *fallback = inject_queue.get_fallback();
+        if (fallback != nullptr) {
+            str_builder.append_string(fallback);
+            log_info(MarlinServer, "InjectQueue: file not found, using fallback");
+            inject_queue.change_buffer_state(InjectQueue::BufferState::ready);
+            return;
+        }
         inject_queue.change_buffer_state(InjectQueue::BufferState::error);
         log_error(MarlinServer, "InjectQueue: fail to open file");
         return;
@@ -33,9 +45,6 @@ void InjectQueue::load_gcodes_from_file_callback(AsyncJobExecutionControl &contr
         osDelay(1);
     }
 
-    // gcode_stream_buffer is used to store filepath & then the gcode stream itself
-    // Filepath doesn't need separate buffer - file is opened and after that buffer is no longer needed and is overwritten here
-    StringBuilder str_builder(inject_queue.get_buffer());
     bool first_line = true;
     while (true) {
         if (control.is_discarded()) {
@@ -137,6 +146,7 @@ std::expected<const char *, InjectQueue::GetGCodeError> InjectQueue::get_gcode()
             filepath.append_printf("btn_%hu", v.button);
         } else if constexpr (std::is_same_v<T, GCodeFilename>) {
             filepath.append_string(v.name);
+            gcode_fallback = v.fallback;
         } else if constexpr (std::is_same_v<T, InjectPresetMacro>) {
             assert(0); // handled earlier
         } else if constexpr (std::is_same_v<T, GCodeLiteral>) {

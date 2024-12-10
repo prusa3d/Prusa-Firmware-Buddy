@@ -13,6 +13,7 @@ struct InjectPresetMacro {
 
 struct GCodeFilename {
     const char *name;
+    const char *fallback { nullptr };
 };
 
 struct GCodeLiteral {

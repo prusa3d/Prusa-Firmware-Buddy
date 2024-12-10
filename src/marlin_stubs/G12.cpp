@@ -1,5 +1,6 @@
 #include "PrusaGcodeSuite.hpp"
 
+#include <nozzle_cleaner.hpp>
 #include <logging/log.hpp>
 #include "common/gcode/inject_queue_actions.hpp"
 #include "marlin_server.hpp"
@@ -22,8 +23,7 @@ LOG_COMPONENT_REF(PRUSA_GCODE);
  */
 
 void PrusaGcodeSuite::G12() {
-    // TODO: Check file exists and if not, execute a hard-coded default cleaning sequence.
-    marlin_server::inject({ GCodeFilename("nozzle_cleaning_sequence") });
+    marlin_server::inject({ GCodeFilename("nozzle_cleaning_sequence", nozzle_cleaner::cleaning_sequence) });
 }
 
 /** @}*/

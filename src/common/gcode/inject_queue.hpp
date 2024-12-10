@@ -44,6 +44,7 @@ public:
     std::expected<const char *, GetGCodeError> get_gcode();
 
     inline std::span<char> get_buffer() { return gcode_stream_buffer; }
+    inline const char *get_fallback() { return gcode_fallback; }
     inline void change_buffer_state(const BufferState new_state) { buffer_state = new_state; }
 
 private:
@@ -51,6 +52,7 @@ private:
 
     std::atomic<BufferState> buffer_state = BufferState::idle;
     char gcode_stream_buffer[gcode_stream_buffer_size]; //!< buffer for temporary storing gcode filepath & compiling gcode stream from a file
+    const char *gcode_fallback { nullptr }; //!< fallback gcode to use in case the file is not found
     CircularBuffer<InjectQueueRecord, queue_size> queue; //!< Queue (real size is queue_size - 1)
     AsyncJob worker_job; //!< Used for asynchronous buffering of gcode stream from a file or callback execution
 };
