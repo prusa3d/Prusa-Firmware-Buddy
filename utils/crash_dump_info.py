@@ -1,9 +1,13 @@
+#!/usr/bin/env python3
+
 import argparse
 import mmap
 import sys
 import struct
 import subprocess
 import re
+import os
+import subprocess
 from pathlib import Path
 
 parser = argparse.ArgumentParser(
@@ -14,6 +18,15 @@ parser.add_argument("-c",
                     "--checkout",
                     action="store_true",
                     help="Checks out the corresponding commit")
+
+parser.add_argument(
+    "-d",
+    "--debug",
+    type=str,
+    metavar="ELFDIR",
+    help=
+    "Looks up an appropriate ELF file in ELFDIR. Starts GDB through crash_dump_debug.py. The idea here is that the programmer would keep a directory with all releases ELFs somewhere. Also checks out the corresponding commit."
+)
 
 printer_name_by_code = {
     13: "MK4",
@@ -27,6 +40,9 @@ printer_name_by_code = {
 translations = ["cs", "de", "es", "fr", "it", "pl", "ja"]
 
 args = parser.parse_args()
+if args.debug is not None:
+    args.checkout = True
+
 file = open(args.dumpfile, "rb")
 
 # Map the file into a bytes-like object
@@ -54,8 +70,14 @@ except:
 commit_hash = commit_hash.decode("utf-8").split('\0')[0]
 project_version = project_version.decode("utf-8").split('\0')[0]
 printer_str = printer_name_by_code.get(printer_code, f"#{printer_code}")
-bootloader_str = ("boot" if has_bootloader else "noboot")
 dirty_str = (" DIRTY" if commit_dirty else "")
+
+# There was a bug in older versions of the FW that the bootloader flag was not properly set
+# For those versions, we assume that the dumps are always with the bootloader
+if any(project_version.startswith(x) for x in ["6.1", "6.2"]):
+    has_bootloader = True
+
+bootloader_str = ("boot" if has_bootloader else "noboot")
 
 # Determine enabled translations
 enabled_translations = [
@@ -80,15 +102,41 @@ print(f"Filename: {build_filename}")
 
 # Check that the commit_hash is actually a commit hash. Some nasty dumps might try to do injection attacks here.
 if re.fullmatch(r"^[0-9a-f]+$", commit_hash) is None:
-    sys.exit("!!! Invalid commit hash")
+    sys.exit("Invalid commit hash")
 
 # Print newline separating the info header
 print()
 
-if args.checkout:
+current_commit = subprocess.check_output(["git", "rev-parse",
+                                          "HEAD"]).decode().strip()
+if args.checkout and current_commit != commit_hash:
     if subprocess.check_output(["git", "status", "-s"]) != b"":
-        sys.exit("!!! Checkout refused, you have uncommited changes")
+        sys.exit(f"Checkout refused, you have uncommited changes")
 
     print(f"Checking out...")
     subprocess.call(["git", "checkout", commit_hash])
-    print(f"Check out.")
+
+    # Apply fixes for the CrashDebug debugger. They were not merged yet in some versions.
+    if any(project_version.startswith(x) for x in ["6.1"]):
+        subprocess.call(
+            ["git", "cherry-pick", "696e68fd9dcdf7188c47af2568e9cf375c0ad5b0"])
+        subprocess.call(
+            ["git", "cherry-pick", "66558da8f0db86e6c17516ae082464bd5882a88f"])
+
+    print(f"Checked out.")
+
+if args.debug:
+    elf_file = os.path.join(args.debug, build_filename)
+    if not os.path.isfile(elf_file):
+        sys.exit(
+            f"ELF file '{elf_file}' not found. Please download it from Holly.")
+
+    dbg_args = [
+        "python3",
+        os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                     "crash_dump_debug.py"), "--dump",
+        str(args.dumpfile), "--elf", elf_file
+    ]
+    print("Launching crash_dump_debug...")
+    print(dbg_args)
+    subprocess.call(dbg_args)
