@@ -1018,7 +1018,8 @@ void MI_TOOL_LEDS_ENABLE::OnChange(size_t old_index) {
 }
 #endif
 
-// MI_TRIGGER_POWER_PANIC
+/*****************************************************************************/
+#if ENABLED(POWER_PANIC)
 MI_TRIGGER_POWER_PANIC::MI_TRIGGER_POWER_PANIC()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::no) {
 }
@@ -1026,6 +1027,7 @@ MI_TRIGGER_POWER_PANIC::MI_TRIGGER_POWER_PANIC()
 void MI_TRIGGER_POWER_PANIC::click([[maybe_unused]] IWindowMenu &windowMenu) {
     buddy::hw::acFault.triggerIT();
 }
+#endif
 
 #if ENABLED(PRUSA_TOOLCHANGER)
 /*****************************************************************************/
