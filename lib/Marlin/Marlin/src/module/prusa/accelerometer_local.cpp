@@ -36,17 +36,19 @@ PrusaAccelerometer::GetSampleResult PrusaAccelerometer::get_sample(Acceleration 
     }
 
     bool overrun;
-    if (!m_sample_buffer.buffer.get(acceleration, overrun)) {
-        return GetSampleResult::buffer_empty;
-    }
+    int result = m_sample_buffer.buffer.get(acceleration, overrun);
 
-    m_sampling_rate = m_sample_buffer.buffer.get_sampling_rate();
     if (overrun) {
         m_sample_buffer.error.set(Error::overflow_sensor);
         return GetSampleResult::error;
     }
 
-    return GetSampleResult::ok;
+    if (result) {
+        m_sampling_rate = m_sample_buffer.buffer.get_sampling_rate();
+        return GetSampleResult::ok;
+    } else {
+        return GetSampleResult::buffer_empty;
+    }
 }
 
 float PrusaAccelerometer::m_sampling_rate = 0;
