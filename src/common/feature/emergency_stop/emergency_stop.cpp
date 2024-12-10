@@ -4,6 +4,7 @@
 #include <common/power_panic.hpp>
 #include <module/stepper.h>
 #include <marlin_server.hpp>
+#include <Configuration.h>
 
 #include <logging/log.hpp>
 #include <RAII.hpp>
@@ -26,6 +27,10 @@ namespace {
     // If we travel even more before any of the above measures had a chance to
     // stop it, we do a BSOD as a last resort.
     constexpr float extra_emergency_mm = 4.0;
+
+#ifdef INCH_MODE_SUPPORT
+    #error "Implement unit conversion here."
+#endif
 
     int32_t current_z() {
         return stepper.position_from_startup(Z_AXIS);
