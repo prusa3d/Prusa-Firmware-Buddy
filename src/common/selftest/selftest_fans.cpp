@@ -1,8 +1,9 @@
 #include <selftest_fans.hpp>
 #include <option/has_xbuddy_extension.h>
 #if HAS_XBUDDY_EXTENSION()
-    #include <puppies/xbuddy_extension.hpp>
-    #include <puppies/xbuddy_extension_fan_results.hpp>
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+    #include <feature/xbuddy_extension/xbuddy_extension_fan_results.hpp>
+    #include <puppies/xbuddy_extension.hpp> // For FAN_CNT
 #endif
 #include <logging/log.hpp>
 
@@ -65,14 +66,39 @@ static_assert(buddy::puppies::XBuddyExtension::FAN_CNT == XBEFanTestResults::fan
 
 XBEFanHandler::XBEFanHandler(const FanType type, uint8_t desc_num, FanRPMRange fan_range)
     : FanHandler(type, fan_range, desc_num) {
+    if ((desc_num == 0 || desc_num == 1) && buddy::xbuddy_extension().has_fan1_fan2_auto_control()) {
+        has_auto_mode = true;
+    }
+}
+
+XBEFanHandler::~XBEFanHandler() {
+    if ((desc_num == 0 || desc_num == 1) && has_auto_mode) {
+        buddy::xbuddy_extension().set_fan1_fan2_auto_control(); // They are tested separately so this will be called twice
+    }
 }
 
 void XBEFanHandler::set_pwm(uint8_t pwm) {
-    buddy::puppies::xbuddy_extension.set_fan_pwm(desc_num, pwm);
+    if (desc_num == 0 || desc_num == 1) {
+        buddy::xbuddy_extension().set_fan1_fan2_pwm(pwm); // They are tested separately so this will be called twice
+    } else if (desc_num == 2) {
+        buddy::xbuddy_extension().set_fan3_pwm(pwm);
+    } else {
+        assert(false);
+    }
 }
 
 void XBEFanHandler::record_sample() {
-    const auto rpm = buddy::puppies::xbuddy_extension.get_fan_rpm(desc_num);
+    std::optional<uint16_t> rpm;
+    if (desc_num == 0) {
+        rpm = buddy::xbuddy_extension().fan1_rpm();
+    } else if (desc_num == 1) {
+        rpm = buddy::xbuddy_extension().fan2_rpm();
+    } else if (desc_num == 2) {
+        rpm = buddy::xbuddy_extension().fan3_rpm();
+    } else {
+        assert(false);
+    }
+
     if (rpm.has_value()) {
         sample_count++;
         sample_sum += rpm.value();

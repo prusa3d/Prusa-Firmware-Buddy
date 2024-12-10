@@ -28,7 +28,8 @@
 #endif
 #include <option/has_xbuddy_extension.h>
 #if HAS_XBUDDY_EXTENSION()
-    #include <puppies/xbuddy_extension.hpp>
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+    #include <puppies/xbuddy_extension.hpp> // For FAN_CNT
 #endif
 #include <logging/log.hpp>
 

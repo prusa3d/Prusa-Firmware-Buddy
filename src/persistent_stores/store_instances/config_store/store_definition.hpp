@@ -40,7 +40,7 @@
 #include <option/xl_enclosure_support.h>
 #include <common/extended_printer_type.hpp>
 #include <common/hw_check.hpp>
-#include <puppies/xbuddy_extension_fan_results.hpp>
+#include <feature/xbuddy_extension/xbuddy_extension_fan_results.hpp>
 
 #if HAS_SHEET_PROFILES()
     #include <common/sheet.hpp>

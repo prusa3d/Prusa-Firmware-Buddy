@@ -95,9 +95,13 @@ private:
 class XBEFanHandler : public FanHandler {
 public:
     XBEFanHandler(const FanType type, const uint8_t desc_nr, const FanRPMRange fan_range);
+    ~XBEFanHandler();
 
     virtual void set_pwm(const uint8_t pwm) override;
     virtual void record_sample() override;
+
+private:
+    bool has_auto_mode { false };
 };
 #endif
 
