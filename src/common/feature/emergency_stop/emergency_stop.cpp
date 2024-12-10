@@ -106,11 +106,11 @@ void EmergencyStop::maybe_block() {
     const auto old_pos_motion = current_position;
     if (do_move) {
         AutoRestore _ar(allow_planning_movements, true);
-        do_blocking_move_to(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, old_pos.z);
+        do_blocking_move_to(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, old_pos.z, feedRate_t(NOZZLE_PARK_XY_FEEDRATE));
     }
     auto unpark = [this, old_pos, old_pos_motion, old_pos_msteps] {
         AutoRestore _ar(allow_planning_movements, true);
-        do_blocking_move_to(old_pos.x, old_pos.y, old_pos.z);
+        do_blocking_move_to(old_pos.x, old_pos.y, old_pos.z, feedRate_t(NOZZLE_PARK_XY_FEEDRATE));
         current_position = old_pos_motion;
         // Note: The extruder can still endup in a different position because
         // of pressure advance (probably); eliminate false assert on these, we
