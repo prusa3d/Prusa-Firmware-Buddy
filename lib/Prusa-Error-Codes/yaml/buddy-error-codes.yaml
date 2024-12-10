@@ -972,6 +972,14 @@ Errors:
     type: "CONNECT"
 
   - code: "XX817"
+    printers: [iX]
+    title: "Warning"
+    text: "Heating disabled due to 10 minutes of inactivity."
+    id: "HEATERS_TIMEOUT"
+    type: "CONNECT"
+
+  - code: "XX817"
+    printers: [MINI, MK3.5, MK4, XL, COREONE]
     title: "Warning"
     text: "Heating disabled due to 30 minutes of inactivity."
     id: "HEATERS_TIMEOUT"
@@ -984,6 +992,14 @@ Errors:
     type: "CONNECT"
 
   - code: "XX819"
+    printers: [iX]
+    title: "Warning"
+    text: "Heating disabled due to 10 minutes of inactivity."
+    id: "NOZZLE_TIMEOUT"
+    type: "CONNECT"
+
+  - code: "XX819"
+    printers: [MINI, MK3.5, MK4, XL, COREONE]
     title: "Warning"
     text: "Heating disabled due to 30 minutes of inactivity."
     id: "NOZZLE_TIMEOUT"
