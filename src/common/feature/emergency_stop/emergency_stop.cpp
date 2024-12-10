@@ -28,6 +28,9 @@ namespace {
     // stop it, we do a BSOD as a last resort.
     constexpr float extra_emergency_mm = 4.0;
 
+    // Don't park below this position.
+    constexpr float min_park_z = 0.6;
+
 #ifdef INCH_MODE_SUPPORT
     #error "Implement unit conversion here."
 #endif
@@ -105,8 +108,12 @@ void EmergencyStop::maybe_block() {
     [[maybe_unused]] const auto old_pos_msteps = planner.get_position_msteps();
     const auto old_pos_motion = current_position;
     if (do_move) {
+        // Make sure to not park too low. As the do_blocking_move_to doesn't
+        // consider MBL (and we may not have that part mapped anyway), we could
+        // scratch the bed.
+        const auto park_z = std::max(old_pos.z, min_park_z);
         AutoRestore _ar(allow_planning_movements, true);
-        do_blocking_move_to(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, old_pos.z, feedRate_t(NOZZLE_PARK_XY_FEEDRATE));
+        do_blocking_move_to(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, park_z, feedRate_t(NOZZLE_PARK_XY_FEEDRATE));
     }
     auto unpark = [this, old_pos, old_pos_motion, old_pos_msteps] {
         AutoRestore _ar(allow_planning_movements, true);
