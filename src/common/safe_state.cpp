@@ -9,7 +9,6 @@
 #include <device/board.h>
 #include "printers.h"
 #include "fanctl.hpp"
-#include <option/has_puppies.h>
 #include <option/has_dwarf.h>
 #include "CFanCtl3Wire.hpp"
 
