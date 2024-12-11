@@ -26,6 +26,8 @@ static SemaphoreHandle_t handle_cast(Mutex::Storage &mutex_storage) {
     return static_cast<SemaphoreHandle_t>(static_cast<void *>(mutex_storage.data()));
 }
 
+std::atomic<bool> Mutex::power_panic_mode_removeme = false;
+
 Mutex::Mutex() {
     SemaphoreHandle_t semaphore = xSemaphoreCreateMutexStatic(reinterpret_cast<StaticSemaphore_t *>(&mutex_storage));
     // We are creating static FreeRTOS object here, supplying our own buffer
@@ -45,9 +47,22 @@ Mutex::~Mutex() {
 }
 
 void Mutex::unlock() {
-    if (xSemaphoreGive(handle_cast(mutex_storage)) != pdTRUE) {
-        // Since the semaphore was obtained correctly, this should never happen.
-        std::abort();
+    SemaphoreHandle_t handle = handle_cast(mutex_storage);
+
+    // REMOVEME BFW-6418
+    if (power_panic_mode_removeme) {
+        // Only attempt unlock if we're the owning thread - could have been for example locked before PP by a different one
+        // and we might have gotten here sooner due to task switching and lock failing
+        if (xQueueGetMutexHolder(handle) == xTaskGetCurrentTaskHandle() && xSemaphoreGive(handle) != pdTRUE) {
+            // Since the semaphore was obtained correctly, this should never happen.
+            std::abort();
+        }
+
+    } else {
+        if (xSemaphoreGive(handle) != pdTRUE) {
+            // Since the semaphore was obtained correctly, this should never happen.
+            std::abort();
+        }
     }
 }
 
@@ -56,10 +71,17 @@ bool Mutex::try_lock() {
 }
 
 void Mutex::lock() {
-    if (xSemaphoreTake(handle_cast(mutex_storage), portMAX_DELAY) != pdTRUE) {
-        static_assert(INCLUDE_vTaskSuspend);
-        // Since we are waiting forever and have task suspension, this should never happen.
-        std::abort();
+    // REMOVEME BFW-6418
+    if (power_panic_mode_removeme) {
+        // In power panic mode, the defaultTask gets delays periodically aborted, which can result in mutexes takes failing
+        xSemaphoreTake(handle_cast(mutex_storage), portMAX_DELAY);
+
+    } else {
+        if (xSemaphoreTake(handle_cast(mutex_storage), portMAX_DELAY) != pdTRUE) {
+            static_assert(INCLUDE_vTaskSuspend);
+            // Since we are waiting forever and have task suspension, this should never happen.
+            std::abort();
+        }
     }
 }
 

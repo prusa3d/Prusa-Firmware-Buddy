@@ -103,6 +103,11 @@ void ac_fault_task_main([[maybe_unused]] void const *argument) {
 
     // switch into reaping mode: break out of any delay/signal wait until suspended
     osThreadSetPriority(NULL, osPriorityIdle);
+
+    // BFW-6419 REMOVEME
+    // xTaskAbortDelay is interrupting waiting for mutexes
+    freertos::Mutex::power_panic_mode_removeme = true;
+
     for (;;) {
         osSignalSet(defaultTaskHandle, ~0UL);
         xTaskAbortDelay(defaultTaskHandle);

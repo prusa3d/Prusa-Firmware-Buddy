@@ -22,6 +22,7 @@
 #include <array>
 #include <stddef.h>
 #include <cstdint>
+#include <atomic>
 
 // As tempting as that may be, do not #include <mutex> here because it pulls in
 // a bunch of std::crap which breaks XL debug build due to FLASH inflation.
@@ -41,6 +42,9 @@ public:
 #endif
 
     using Storage = std::array<uint8_t, storage_size>;
+
+    /// REMOVEME BFW-6418
+    static std::atomic<bool> power_panic_mode_removeme;
 
 private:
     alignas(storage_align) Storage mutex_storage;
