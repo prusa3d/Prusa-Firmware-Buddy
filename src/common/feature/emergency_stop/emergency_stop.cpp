@@ -47,7 +47,8 @@ void EmergencyStop::invoke_emergency() {
     // TODO: We would really like to include the last parking moves after a
     // finished print too, because power panic is no longer ready at that
     // point.
-    if (marlin_server::printer_idle()) {
+    if (marlin_server::printer_idle() || !marlin_server::all_axes_homed()) {
+        log_info(EmergencyStop, "Quickstop");
         planner.quick_stop();
         while (PreciseStepping::stopping()) {
             PreciseStepping::loop();
@@ -55,12 +56,20 @@ void EmergencyStop::invoke_emergency() {
         planner.clear_block_buffer();
         planner.resume_queuing();
         // We've lost the homing by the quick-stop
-        set_all_unhomed();
+        //
+        // In case we are in print, we are here because we are still homing /
+        // aren't homed yet, so that's fine to keep (and to keep partial
+        // homing, because until then, we move slowly and in straight lines
+        // anyway).
+        if (marlin_server::printer_idle()) {
+            set_all_unhomed();
+        }
     } else if (!power_panic::ac_fault_triggered) {
+        log_info(EmergencyStop, "PP");
         // Do a "synthetic" power panic. Should stop _right now_ and reboot, then we'll deal with the consequences.
-
-        // this is normally supposed to be called from ISR, but since disables IRQ so it works fine even outside of ISR
-        power_panic::ac_fault_isr();
+        buddy::hw::acFault.triggerIT();
+    } else {
+        log_info(EmergencyStop, "Out of options");
     }
 }
 
@@ -74,6 +83,12 @@ void EmergencyStop::maybe_block() {
 
     // Prevent maybe_block nested calls
     if (maybe_block_running) {
+        return;
+    }
+
+    // If a power panic happened (either caused by us or by a real one), we do
+    // _not_ want to block it.
+    if (power_panic::ac_fault_triggered) {
         return;
     }
 
@@ -106,7 +121,6 @@ void EmergencyStop::maybe_block() {
     // to the original position in all places (because we are not 100% sure
     // which positions are with or without MBL).
     const auto old_pos = planner.get_machine_position_mm();
-    [[maybe_unused]] const auto old_pos_msteps = planner.get_position_msteps();
     const auto old_pos_motion = current_position;
     if (do_move) {
         // Make sure to not park too low. As the do_blocking_move_to doesn't
@@ -116,24 +130,18 @@ void EmergencyStop::maybe_block() {
         AutoRestore _ar(allow_planning_movements, true);
         do_blocking_move_to(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, park_z, feedRate_t(NOZZLE_PARK_XY_FEEDRATE));
     }
-    auto unpark = [this, old_pos, old_pos_motion, old_pos_msteps] {
+    auto unpark = [this, old_pos, old_pos_motion] {
         AutoRestore _ar(allow_planning_movements, true);
         do_blocking_move_to(old_pos.x, old_pos.y, old_pos.z, feedRate_t(NOZZLE_PARK_XY_FEEDRATE));
         current_position = old_pos_motion;
-        // Note: The extruder can still endup in a different position because
-        // of pressure advance (probably); eliminate false assert on these, we
-        // worry about X, Y, Z here.
-        assert(planner.position_float.x == old_pos.x);
-        assert(planner.position_float.y == old_pos.y);
-        assert(planner.position_float.z == old_pos.z);
-        assert(planner.position.x == old_pos_msteps.x);
-        assert(planner.position.y == old_pos_msteps.y);
-        assert(planner.position.z == old_pos_msteps.z);
     };
     ScopeGuard unpark_guard(std::move(unpark), do_move);
 
-    // Wait for the emergency to be over
-    while (in_emergency()) {
+    // Wait for the emergency to be over.
+    //
+    // If the power panic started the draining, we shall quit from inside of
+    // the planner as fast as possible.
+    while (in_emergency() && !planner.draining() && !PreciseStepping::stopping() && !power_panic::ac_fault_triggered) {
         idle(true, true);
     }
 

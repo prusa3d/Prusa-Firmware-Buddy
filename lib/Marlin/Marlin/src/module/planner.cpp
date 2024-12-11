@@ -2107,6 +2107,9 @@ bool Planner::buffer_segment(const abce_pos_t &abce
 #if HAS_EMERGENCY_STOP()
   buddy::emergency_stop().maybe_block();
   buddy::emergency_stop().assert_can_plan_movement();
+
+  // Check once more (this could have changed during the maybe_block)
+  if (draining_buffer || PreciseStepping::stopping()) return false;
 #endif
 
   #if ENABLED(CRASH_RECOVERY)
