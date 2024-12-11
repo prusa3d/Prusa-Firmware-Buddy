@@ -3,7 +3,7 @@
 
 #include <puppies/Dwarf.hpp>
 #include <puppies/fifo_decoder.hpp>
-#include <puppies/power_panic_mutex.hpp>
+#include <freertos/mutex.hpp>
 
 #include "bsod.h"
 #include <logging/log.hpp>
@@ -21,13 +21,12 @@
 #include "adc.hpp"
 #include <config_store/store_instance.hpp>
 #include "Marlin/src/module/prusa/accelerometer.h"
-#include <freertos/mutex.hpp>
 
 using namespace common::puppies::fifo;
 
 namespace buddy::puppies {
 
-using Lock = std::unique_lock<PowerPanicMutex>;
+using Lock = std::unique_lock<freertos::Mutex>;
 
 LOG_COMPONENT_DEF(Dwarf_1, logging::Severity::info);
 LOG_COMPONENT_DEF(Dwarf_2, logging::Severity::info);
@@ -50,7 +49,7 @@ METRIC_DEF(metric_dwarf_heater_pwm, "dwarf_heat_pwm", METRIC_VALUE_CUSTOM, 100, 
 
 Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
     : ModbusDevice(bus, modbus_address)
-    , mutex(new PowerPanicMutex)
+    , mutex(new freertos::Mutex)
     , dwarf_nr(dwarf_nr)
     , log_component(get_log_component(dwarf_nr))
     , selected(false)

@@ -16,11 +16,13 @@
 #include <filament_sensor.hpp>
 #include <timing.h>
 
+namespace freertos {
+class Mutex;
+}
+
 using namespace common::puppies::fifo;
 
 namespace buddy::puppies {
-
-class PowerPanicMutex;
 
 class Dwarf final : public ModbusDevice, public Decoder::Callbacks {
 public:
@@ -404,7 +406,7 @@ private:
     // from marlin and it seems virtually impossible to persuade the **** build
     // system to set the include paths to the place where we hide the
     // freertos/mutex.hpp.
-    std::unique_ptr<PowerPanicMutex> mutex;
+    std::unique_ptr<freertos::Mutex> mutex;
 
     /// @brief Dwarf number (1-5)
     uint8_t dwarf_nr;

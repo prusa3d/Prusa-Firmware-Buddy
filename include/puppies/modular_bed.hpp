@@ -1,7 +1,7 @@
 #pragma once
 
 #include "puppies/PuppyModbus.hpp"
-#include <puppies/power_panic_mutex.hpp>
+#include <freertos/mutex.hpp>
 #include "module/modular_heatbed.h"
 #include <modular_bed_errors.hpp>
 #include <modular_bed_registers.hpp>
@@ -146,7 +146,7 @@ protected:
     uint16_t expand_to_sides(uint16_t enabled_mask, float target_temp);
 
 private:
-    PowerPanicMutex mutex;
+    freertos::Mutex mutex;
     static constexpr uint32_t MAX_UNREAD_MS = 1000;
 
     void set_target(const uint8_t idx, float target_temp);
