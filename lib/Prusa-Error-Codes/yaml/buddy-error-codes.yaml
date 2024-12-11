@@ -726,7 +726,7 @@ Errors:
   - code: "XX536"
     printers: [XL]
     title: "EXTRUDER ERROR"
-    text: "Extruder motor is not spinning on Tool %d"
+    text: "Extruder motor is not spinning on tool %d"
     id: "DWARF_TMC"
     approved: false
 
