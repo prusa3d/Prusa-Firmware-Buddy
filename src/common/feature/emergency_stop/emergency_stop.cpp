@@ -43,6 +43,7 @@ namespace {
 // Try to do some desperate measures to stop moving in Z (currently implemented as power panic).
 void EmergencyStop::invoke_emergency() {
     log_info(EmergencyStop, "Emergency stop");
+    emergency_invoked = true;
     // TODO: We would really like to include the last parking moves after a
     // finished print too, because power panic is no longer ready at that
     // point.
@@ -155,7 +156,7 @@ void EmergencyStop::check_z_limits_soft() {
     const int32_t emergency_start_z = start_z.load();
     if (emergency_start_z != no_emergency) {
         const int32_t difference = std::abs(emergency_start_z - current_z());
-        if (difference > allowed_steps) {
+        if (difference > allowed_steps && !emergency_invoked) {
             invoke_emergency();
         }
     }
@@ -172,10 +173,10 @@ void EmergencyStop::step() {
         allowed_steps = allowed_mm * steps;
         extra_emergency_steps = extra_emergency_mm * steps;
         start_z = current_z();
-
     } else if (!want_emergency && in_emergency()) {
         log_info(EmergencyStop, "Emergency over");
         start_z = no_emergency;
+        emergency_invoked = false;
     }
 
     check_z_limits_soft();

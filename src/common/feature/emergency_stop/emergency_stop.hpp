@@ -25,6 +25,9 @@ private:
     std::atomic<int32_t> allowed_steps;
     std::atomic<int32_t> extra_emergency_steps;
 
+    /// Make sure we call invoke_emergency just once in each emergency.
+    bool emergency_invoked = false;
+
     /// Stores whether the maybe_block() function is currently running
     bool maybe_block_running = false;
 
