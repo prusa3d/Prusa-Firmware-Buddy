@@ -673,6 +673,7 @@ public:
 };
 #endif /*HAS_TOOLCHANGER()*/
 
+#if ENABLED(POWER_PANIC)
 class MI_TRIGGER_POWER_PANIC : public IWindowMenuItem {
     static constexpr const char *const label = N_("Trigger Power Panic");
 
@@ -682,6 +683,7 @@ public:
 protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
+#endif
 
 #if HAS_TOOLCHANGER()
 class MI_PICK_PARK_TOOL : public IWindowMenuItem {
