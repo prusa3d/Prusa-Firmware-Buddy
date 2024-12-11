@@ -20,7 +20,7 @@
 
 Errors:
   - code: "XX101"
-    printers: [MK4, iX]
+    printers: [MK4, COREONE, iX]
     title: "STUCK FILAMENT DETECTED"
     text: "The filament seems to be stuck, please unload it from nextruder and load it again."
     action: [Unload]
@@ -35,7 +35,7 @@ Errors:
     approved: true
 
   - code: "XX102"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PRECISE REFINEMENT FAILED"
     text: "Consider adjusting belt tension."
     id: "PRECISE_REFINEMENT_FAILED"
@@ -85,24 +85,32 @@ Errors:
     approved: true
 
   - code: "XX109"
-    printers: [iX]
+    printers: [iX, COREONE]
     title: "STEEL SHEEL NOT DETECTED"
     text: "Steel sheet was not detected. Please put the sheet on to prevent printer damage."
     action: [Retry, Skip]
     id: "STEEL_SHEET_NOT_DETECTED"
     approved: false
 
+  - code: "XX110"
+    printers: [COREONE]
+    title: "DOOR OPEN"
+    text: "Close the door to prevent air drafts, burns and other undesirable effects."
+    action: []
+    id: "DOOR_OPEN"
+    approved: false
+
   # TEMPERATURE    xx2xx
 
   - code: "XX201"
-    printers: [MINI, MK4, iX, MK3.5]
+    printers: [MINI, MK4, COREONE, iX, MK3.5]
     title: "PREHEAT ERROR"
     text: "Check the heatbed heater & thermistor wiring for possible damage."
     id: "BED_PREHEAT_ERROR"
     approved: true
 
   - code: "XX202"
-    printers: [MINI, MK4, iX, MK3.5]
+    printers: [MINI, MK4, COREONE, iX, MK3.5]
     title: "PREHEAT ERROR"
     text: "Check the print head heater & thermistor wiring for possible damage."
     id: "HOTEND_PREHEAT_ERROR"
@@ -122,7 +130,7 @@ Errors:
     approved: true
 
   - code: "XX204"
-    printers: [MINI, MK4, iX, MK3.5]
+    printers: [MINI, MK4, COREONE, iX, MK3.5]
     title: "THERMAL RUNAWAY"
     text: "Check the print head thermistor wiring for possible damage."
     id: "HOTEND_THERMAL_RUNAWAY"
@@ -136,14 +144,14 @@ Errors:
     approved: true
 
   - code: "XX205"
-    printers: [MINI, MK4, iX, MK3.5]
+    printers: [MINI, MK4, COREONE, iX, MK3.5]
     title: "MAXTEMP ERROR"
     text: "Check the heatbed thermistor wiring for possible damage."
     id: "BED_MAXTEMP_ERROR"
     approved: true
 
   - code: "XX206"
-    printers: [MINI, MK4, iX, MK3.5]
+    printers: [MINI, MK4, COREONE, iX, MK3.5]
     title: "MAXTEMP ERROR"
     text: "Check the print head thermistor wiring for possible damage."
     id: "HOTEND_MAXTEMP_ERROR"
@@ -157,14 +165,14 @@ Errors:
     approved: true
 
   - code: "XX207"
-    printers: [MINI, MK4, iX, MK3.5]
+    printers: [MINI, MK4, COREONE, iX, MK3.5]
     title: "MINTEMP ERROR"
     text: "Check the heatbed thermistor wiring for possible damage."
     id: "BED_MINTEMP_ERROR"
     approved: true
 
   - code: "XX208"
-    printers: [MINI, MK4, iX, MK3.5]
+    printers: [MINI, MK4, COREONE, iX, MK3.5]
     title: "MINTEMP ERROR"
     text: "Check the print head thermistor wiring for possible damage."
     id: "HOTEND_MINTEMP_ERROR"
@@ -184,7 +192,7 @@ Errors:
     approved: true
 
   - code: "XX210"
-    printers: [MINI, MK4, iX, MK3.5]
+    printers: [MINI, MK4, COREONE, iX, MK3.5]
     title: "TEMP NOT MATCHING"
     text: "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
     id: "HOTEND_TEMP_NOT_MATCHING"
@@ -288,7 +296,7 @@ Errors:
     approved: true
 
   - code: "XX301"
-    printers: [MK4, iX]
+    printers: [MK4, COREONE, iX]
     title: "HOMING ERROR Z"
     text: "Failed to home the extruder in Z-axis, make sure the loadcell is working."
     id: "HOMING_ERROR_Z"
@@ -323,7 +331,7 @@ Errors:
     approved: false
 
   - code: "XX304"
-    printers: [MINI, MK4, iX, MK3.5]
+    printers: [MINI, MK4, COREONE, iX, MK3.5]
     title: "HOMING ERROR X"
     text: "Failed to home the extruder in X-axis, make sure there is no obstacle on X-axis."
     id: "HOMING_ERROR_X"
@@ -337,7 +345,7 @@ Errors:
     approved: true
 
   - code: "XX305"
-    printers: [MINI, MK4, MK3.5]
+    printers: [MINI, MK4, COREONE, MK3.5]
     title: "HOMING ERROR Y"
     text: "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
     id: "HOMING_ERROR_Y"
@@ -370,7 +378,7 @@ Errors:
     approved: true
 
   - code: "XX308"
-    printers: [MINI, MK4, iX, MK3.5]
+    printers: [MINI, MK4, COREONE, iX, MK3.5]
     title: "NOZZLE HEATER OVERCURRENT"
     text: "Overcurrent detected on nozzle heater."
     id: "NOZZLE_OVERCURRENT"
@@ -384,7 +392,7 @@ Errors:
     approved: true
 
   - code: "XX309"
-    printers: [MK4, MK3.5, iX]
+    printers: [MK4, COREONE, MK3.5, iX]
     title: "HEATBED PORT OVERCURRENT"
     text: "Overcurrent detected on xBuddy heatbed port, disconnect the device."
     id: "INPUT_OVERCURRENT"
@@ -458,7 +466,7 @@ Errors:
     approved: true
 
   - code: "XX321"
-    printers: [MK4, iX, XL, MK3.5]
+    printers: [MK4, COREONE, iX, XL, MK3.5]
     title: "POWER PANIC"
     text: "Power panic detected on startup. Check power panic cable."
     id: "ACF_AT_INIT"
@@ -548,133 +556,133 @@ Errors:
     approved: true
 
   - code: "XX511"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PUPPY ERROR"
     text: "Address assignment error"
     id: "PUPPY_ADDR_ASSIGN_ERR"
     approved: false
 
   - code: "XX512"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PUPPY ERROR"
     text: "Unassigned puppy found"
     id: "PUPPY_NO_ADDR"
     approved: false
 
   - code: "XX513"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PUPPY ERROR"
     text: "Puppy discovery error. No puppy found"
     id: "PUPPY_DISCOVER_ERR"
     approved: false
 
   - code: "XX514"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PUPPY ERROR"
     text: "Puppy %s not responding"
     id: "PUPPY_NOT_RESPONDING"
     approved: false
 
   - code: "XX515"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PUPPY ERROR"
     text: "Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
     id: "PUPPY_INCOMPATIBLE_BOOTLODER"
     approved: false
 
   - code: "XX516"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PUPPY ERROR"
     text: "Unknown puppy type"
     id: "PUPPY_UNKNOWN_TYPE"
     approved: false
 
   - code: "XX517"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PUPPY ERROR"
     text: "Unable to start puppy application"
     id: "PUPPY_START_APP_ERR"
     approved: false
 
   - code: "XX518"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PUPPY ERROR"
     text: "Puppy %s firmware not found"
     id: "PUPPY_FW_NOT_FOUND"
     approved: false
 
   - code: "XX519"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PUPPY ERROR"
     text: "Puppy %s flash writing failed"
     id: "PUPPY_WRITE_FLASH_ERR"
     approved: false
 
   - code: "XX520"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PUPPY ERROR"
     text: "Puppy %s firmware fingerprint mismatch"
     id: "PUPPY_FINGERPRINT_MISMATCH"
     approved: false
 
   - code: "XX521"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PUPPY ERROR"
     text: "Waiting for fingerprint timed out"
     id: "PUPPY_FINGERPRINT_TIMEOUT"
     approved: false
 
   - code: "XX522"
-    printers: [iX, XL]
+    printers: [iX, XL, COREONE]
     title: "PUPPY ERROR"
     text: "Waiting for puppies to start timed out"
     id: "PUPPY_RUN_TIMEOUT"
     approved: false
 
   - code: "XX523"
-    printers: [MK4, iX, XL, MK3.5]
+    printers: [MK4, COREONE, iX, XL, MK3.5]
     title: "LOADCELL NOT CALIBRATED"
     text: "Loadcell calibration is incomplete. Restart the printer and calibrate loadcell."
     id: "LOADCELL_INCOMPLETE_CONFIGURATION_ERROR"
     approved: true
 
   - code: "XX524"
-    printers: [MK4, iX, XL]
+    printers: [MK4, COREONE, iX, XL]
     title: "LOADCELL TARE ERROR"
     text: "There was an error requesting the tare for loadcell."
     id: "LOADCELL_TARE_ALREADY_REQUESTED"
     approved: true
 
   - code: "XX525"
-    printers: [MK4, iX, XL]
+    printers: [MK4, COREONE, iX, XL]
     title: "LOADCELL TARE FAILED"
     text: "Setting the tare failed. Check the loadcell wiring and connection."
     id: "LOADCELL_TARE_FAILED"
     approved: true
 
   - code: "XX526"
-    printers: [MK4, iX, XL]
+    printers: [MK4, COREONE, iX, XL]
     title: "LOADCELL MEASURE FAILED"
     text: "Loadcell measured an inifinite or undefined load value."
     id: "LOADCELL_INFINITE_LOAD"
     approved: true
 
   - code: "XX527"
-    printers: [MK4, iX, XL]
+    printers: [MK4, COREONE, iX, XL]
     title: "LOADCELL BAD CONFIGURATION"
     text: "The loadcell configuration is incorrect."
     id: "LOADCELL_BAD_CONFIGURATION"
     approved: true
 
   - code: "XX528"
-    printers: [MK4, iX, XL]
+    printers: [MK4, COREONE, iX, XL]
     title: "LOADCELL TIMEOUT"
     text: "There was a timeout while waiting for measurement sample, please repeat the action."
     id: "LOADCELL_TIMEOUT"
     approved: true
 
   - code: "XX529"
-    printers: [MK4, iX, XL, MK3.5]
+    printers: [MK4, COREONE, iX, XL, MK3.5]
     title: "LED MEMORY ERROR"
     text: "Memory allocation failed for scheduled LED animation"
     id: "LED_ANIMATION_BAD_SPACE_MANAGEMENT"
@@ -717,8 +725,8 @@ Errors:
 
   - code: "XX536"
     printers: [XL]
-    title: "DWARF ERROR"
-    text: "TMC error on dwarf %d"
+    title: "EXTRUDER ERROR"
+    text: "Extruder motor is not spinning on tool %d"
     id: "DWARF_TMC"
     approved: false
 
@@ -778,7 +786,7 @@ Errors:
     approved: true
 
   - code: "XX609"
-    printers: [MK4, iX, XL, MK3.5]
+    printers: [MK4, COREONE, iX, XL, MK3.5]
     title: "FIRMWARExPRINTER MISMATCH"
     text: "Firmware and hardware versions do\nnot match. Make sure you have\nthe right firmware file for\nyour printer."
     id: "HW_VERSION_ERR"
@@ -821,7 +829,7 @@ Errors:
     approved: true
 
   - code: "XX701"
-    printers: [MK4]
+    printers: [MK4, COREONE]
     title: "Firmware Update Required"
     text: "Insert the bundled USB drive, restart the printer and click the knob once during the boot. This will install the MK3.5 firmware."
     id: "DIFFERENT_FW_REQUIRED"
@@ -835,12 +843,17 @@ Errors:
     approved: true
 
   - code: "XX702"
-    printers: [MK3.5, MK4, XL]
+    printers: [MK3.5, MK4, COREONE, XL]
     title: "Cold Pull"
     text: "Welcome to the Cold Pull wizard. Prepare a 30cm piece of PLA filament and follow the instructions. For more details, visit:"
     id: "COLD_PULL_INTRO"
     approved: true
 
+  - code: "XX703"
+    title: "Unknown file system"
+    text: "Use a different USB drive or reformat this one to the supported FAT32 file system."
+    id: "USB_DRIVE_UNSUPPORTED_FILE_SYSTEM"
+    
   - code: "XX801"
     title: "Warning"
     text: "Please complete Calibrations & Tests before using the printer."
@@ -855,7 +868,7 @@ Errors:
     type: "CONNECT"
 
   - code: "XX802"
-    printers: [MK4, XL, MK3.5, iX]
+    printers: [MK4, COREONE, XL, MK3.5, iX]
     title: "Warning"
     text: "New firmware available"
     id: "PRINT_PREVIEW_NEW_FW"
@@ -881,14 +894,14 @@ Errors:
     type: "CONNECT"
 
   - code: "XX805"
-    printers: [MK4, XL, MK3.5, iX]
+    printers: [MK4, COREONE, XL, MK3.5, iX]
     title: "Warning"
     text: "A filament specified in the G-code is either not loaded or wrong type."
     id: "PRINT_PREVIEW_WRONG_FILAMENT"
     type: "CONNECT"
     
   - code: "XX806"
-    printers: [MK4, MK3.5]
+    printers: [MK4, COREONE, MK3.5]
     title: "Warning"
     text: "Filament detected. Unload filament now? Select NO to start the print with the currently loaded filament."
     id: "PRINT_PREVIEW_MMU_FILAMENT_INSERTED"
@@ -939,14 +952,14 @@ Errors:
     type: "CONNECT"
 
   - code: "XX814"
-    printers: [MK4, XL, MK3.5]
+    printers: [MK4, COREONE, XL, MK3.5]
     title: "Tool mapping"
     text: "Changes of mapping available only in the Printer UI. Select Print to start the print with defaults."
     id: "PRINT_PREVIEW_TOOLS_MAPPING"
     type: "CONNECT"
     
   - code: "XX815"
-    printers: [MK4, MK3.5]
+    printers: [MK4, COREONE, MK3.5]
     title: "MMU Error" # This is a generic error for any MMU error, so we use generic title, until we send mmu errors directly
     text: "Waiting for user input"
     id: "MMU_LOAD_UNLOAD_ERROR"
@@ -959,6 +972,14 @@ Errors:
     type: "CONNECT"
 
   - code: "XX817"
+    printers: [iX]
+    title: "Warning"
+    text: "Heating disabled due to 10 minutes of inactivity."
+    id: "HEATERS_TIMEOUT"
+    type: "CONNECT"
+
+  - code: "XX817"
+    printers: [MINI, MK3.5, MK4, XL, COREONE]
     title: "Warning"
     text: "Heating disabled due to 30 minutes of inactivity."
     id: "HEATERS_TIMEOUT"
@@ -971,6 +992,14 @@ Errors:
     type: "CONNECT"
 
   - code: "XX819"
+    printers: [iX]
+    title: "Warning"
+    text: "Heating disabled due to 10 minutes of inactivity."
+    id: "NOZZLE_TIMEOUT"
+    type: "CONNECT"
+
+  - code: "XX819"
+    printers: [MINI, MK3.5, MK4, XL, COREONE]
     title: "Warning"
     text: "Heating disabled due to 30 minutes of inactivity."
     id: "NOZZLE_TIMEOUT"
@@ -1065,28 +1094,27 @@ Errors:
     type: "CONNECT"
 
   - code: "XX833"
-    printers: [iX, MK4, MK3.5, MINI, XL]
+    printers: [iX, MK4, COREONE, MK3.5, MINI, XL]
     title: "Warning"
     text: "Bed leveling failed. Try again?"
     id: "PROBING_FAILED"
     type: "CONNECT"
 
   - code: "XX834"
-    printers: [iX, MK4, XL]
+    printers: [iX, MK4, COREONE, XL]
     title: "Warning"
     text: "Nozzle cleaning failed."
     id: "NOZZLE_CLEANING_FAILED"
     type: "CONNECT"
 
   - code: "XX835"
-    printers: [iX, MK4, MK3.5, MINI, XL]
+    printers: [iX, MK4, COREONE, MK3.5, MINI, XL]
     title: "Quick Pause"
     text: "Waiting for the user. Press \"Resume\" once the printer is ready."
     id: "QUICK_PAUSE"
     type: "CONNECT"
 
   - code: "XX836"
-    printers: [iX, XL]
     title: "Loading Timeout"
     text: "Filament loading timed out."
     id: "FILAMENT_LOADING_TIMEOUT"
