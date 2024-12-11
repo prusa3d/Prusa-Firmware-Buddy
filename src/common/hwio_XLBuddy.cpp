@@ -25,7 +25,7 @@
 #include "appmain.hpp"
 #include "Marlin.h"
 #include "MarlinPin.hpp"
-#include <option/has_puppies.h>
+#include <option/has_dwarf.h>
 #include <option/has_loadcell.h>
 #include <option/has_gui.h>
 #include <option/debug_with_beeps.h>
@@ -48,7 +48,7 @@ LOG_COMPONENT_REF(Buddy);
     #error This file is for XL buddy only
 #endif
 
-#if HAS_PUPPIES()
+#if HAS_DWARF()
     #include "puppies/Dwarf.hpp"
 #endif
 

@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include <option/has_puppies.h>
+#include <option/has_dwarf.h>
 #include <option/has_embedded_esp32.h>
 #include <option/has_toolchanger.h>
 #include <option/has_chamber_api.h>
@@ -69,7 +70,6 @@
 #if HAS_SIDE_LEDS()
     #include <leds/side_strip_control.hpp>
 #endif /*HAS_SIDE_LEDS()*/
-#include <option/has_puppies.h>
 #if HAS_PUPPIES()
     #include "puppies/puppy_task.hpp"
 #endif
@@ -861,9 +861,9 @@ void panic_loop() {
         stepperY.rms_current(POWER_PANIC_X_CURRENT, 1);
 #endif /*ENABLED(COREXY)*/
 
-#if !HAS_PUPPIES() // Extruders are on puppy boards and dwarf MCUs are reset in powerpanic
+#if !HAS_DWARF() // Extruders are on puppy boards and dwarf MCUs are reset in powerpanic
         stepperE0.rms_current(POWER_PANIC_E_CURRENT, 1);
-#endif /*HAS_PUPPIES()*/
+#endif
 
         // extend XY endstops so that we can still retract/park within an interrupted homing move
         soft_endstop.min.x = X_MIN_POS - (X_MAX_POS - X_MIN_POS);
@@ -876,11 +876,11 @@ void panic_loop() {
         planner.refresh_acceleration_rates();
 
         if (!state_buf.nested_fault && !state_buf.planner.was_paused && !state_buf.planner.was_crashed && all_axes_homed()) {
-#if !HAS_PUPPIES()
+#if !HAS_DWARF()
             // retract if we were printing
             plan_move_by(PAUSE_PARK_RETRACT_FEEDRATE, 0, 0, 0, -PAUSE_PARK_RETRACT_LENGTH / planner.e_factor[active_extruder]);
             stepper.start_moving();
-#endif /*HAS_PUPPIES()*/
+#endif
 
             // start powering off complex devices
             shutdown_loop_checked();
@@ -895,9 +895,9 @@ void panic_loop() {
             break;
         }
 
-#if !HAS_PUPPIES()
+#if !HAS_DWARF()
         disable_e_steppers();
-#endif /*HAS_PUPPIES()*/
+#endif
 
         // align the Z axis by lifting as little as sensibly possible
         if (TEST(state_buf.orig_axis_known_position, Z_AXIS) && TEST(state_buf.crash.axis_known_position, Z_AXIS)) {
@@ -1256,7 +1256,7 @@ void ac_fault_isr() {
     // heaters are *already* disabled via HW, but stop temperature and fan regulation too
     thermalManager.disable_all_heaters();
     thermalManager.zero_fan_speeds();
-    #if !HAS_PUPPIES() && HAS_TEMP_HEATBREAK && HAS_TEMP_HEATBREAK_CONTROL
+    #if !HAS_DWARF() && HAS_TEMP_HEATBREAK && HAS_TEMP_HEATBREAK_CONTROL
     thermalManager.suspend_heatbreak_fan(2000);
     #endif
 #endif
