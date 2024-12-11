@@ -25,6 +25,8 @@
 #include "../inc/MarlinConfig.h"
 #include "../lcd/ultralcd.h"
 
+#include <option/has_puppies.h>
+
 #if HAS_TRINAMIC
 
 #include <TMCStepper.h>
