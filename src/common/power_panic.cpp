@@ -1202,11 +1202,16 @@ void ac_fault_isr() {
         == true);
     state_buf.planner.marlin_debug_flags = marlin_debug_flags;
 
+    // Disabling heaters & fans on dwarves wouldn't be even done before the dwarvers are disabled altogether soon
+    // We're in the ISR and Dwarf functions lock mutexes, which we cannot do here - so the simplest thing is to just skip this step altogether.
+    // BFW-6419
+#if !HAS_DWARF()
     // heaters are *already* disabled via HW, but stop temperature and fan regulation too
     thermalManager.disable_all_heaters();
     thermalManager.zero_fan_speeds();
-#if !HAS_PUPPIES() && HAS_TEMP_HEATBREAK && HAS_TEMP_HEATBREAK_CONTROL
+    #if !HAS_PUPPIES() && HAS_TEMP_HEATBREAK && HAS_TEMP_HEATBREAK_CONTROL
     thermalManager.suspend_heatbreak_fan(2000);
+    #endif
 #endif
 
     // stop & disable endstops
