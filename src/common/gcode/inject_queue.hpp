@@ -3,20 +3,11 @@
 #include "inject_queue_actions.hpp"
 #include <common/circular_buffer.hpp>
 #include <expected>
-#include <atomic>
 #include <file_list_defs.h>
-#include <async_job/async_job.hpp>
 
 class InjectQueue {
 public:
-    enum class BufferState {
-        idle,
-        buffering,
-        ready,
-        error,
-    };
-
-    enum GetGCodeError {
+    enum class GetGCodeError {
         /// There is no gcode to be injected, you can continue with processing the standard gcode
         empty,
         /// There is gcode to be injected, but it's being loaded and is not available yet
@@ -27,7 +18,6 @@ public:
 
     };
 
-    static constexpr size_t gcode_stream_buffer_size = 1024;
     static constexpr size_t queue_size = 8;
 
     /**
@@ -43,18 +33,7 @@ public:
      */
     std::expected<const char *, GetGCodeError> get_gcode();
 
-    inline std::span<char> get_buffer() { return gcode_stream_buffer; }
-    inline const char *get_fallback() { return gcode_fallback; }
-    inline void change_buffer_state(const BufferState new_state) { buffer_state = new_state; }
-
-private:
-    static void load_gcodes_from_file_callback(AsyncJobExecutionControl &control);
-
-    std::atomic<BufferState> buffer_state = BufferState::idle;
-    char gcode_stream_buffer[gcode_stream_buffer_size]; //!< buffer for temporary storing gcode filepath & compiling gcode stream from a file
-    const char *gcode_fallback { nullptr }; //!< fallback gcode to use in case the file is not found
     CircularBuffer<InjectQueueRecord, queue_size> queue; //!< Queue (real size is queue_size - 1)
-    AsyncJob worker_job; //!< Used for asynchronous buffering of gcode stream from a file or callback execution
 };
 
 extern InjectQueue inject_queue;

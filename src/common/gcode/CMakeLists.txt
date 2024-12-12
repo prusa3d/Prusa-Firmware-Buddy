@@ -5,6 +5,7 @@ target_sources(
          gcode_buffer.cpp
          gcode_info.cpp
          gcode_info_scan.cpp
+         gcode_loader.cpp
          gcode_parser.cpp
          gcode_parser_helper.cpp
          gcode_reader_any.cpp
