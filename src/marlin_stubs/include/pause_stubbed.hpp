@@ -18,6 +18,7 @@
 #include "Marlin/src/libs/stopwatch.h"
 
 #include <option/has_human_interactions.h>
+#include <option/has_nozzle_cleaner.h>
 #include <option/has_side_fsensor.h>
 
 // @brief With Z unhomed, ensure that it is at least amount_mm above bed.
@@ -36,6 +37,9 @@ protected:
         manual_unload,
         filament_not_in_fs,
         unload_from_gears,
+#if HAS_NOZZLE_CLEANER()
+        unload_nozzle_clean,
+#endif
         unload_finish_or_change,
         load_start,
         filament_push_ask, // must be one phase because of button click
@@ -52,8 +56,11 @@ protected:
         mmu_load_ask,
         mmu_load,
 #endif
-        load_finish,
-        _last = load_finish,
+#if HAS_NOZZLE_CLEANER()
+        load_nozzle_clean,
+#endif
+        load_prime,
+        _last = load_prime,
     };
 
 private:
@@ -173,6 +180,9 @@ private:
     void manual_unload_process(Response response);
     void filament_not_in_fs_process(Response response);
     void unload_from_gears_process(Response response);
+#if HAS_NOZZLE_CLEANER()
+    void unload_nozzle_clean_process(Response response);
+#endif
     void unload_finish_or_change_process(Response response);
     void load_start_process(Response response);
     void filament_push_ask_process(Response response);
@@ -189,7 +199,10 @@ private:
     void mmu_load_ask_process(Response response);
     void mmu_load_process(Response response);
 #endif
-    void load_finish_process(Response response);
+#if HAS_NOZZLE_CLEANER()
+    void load_nozzle_clean_process(Response response);
+#endif
+    void load_prime_process(Response response);
 
     using StateHandler = void (Pause::*)(Response response);
     static constexpr EnumArray<LoadState, StateHandler, static_cast<int>(LoadState::_last) + 1> state_handlers {
@@ -202,6 +215,9 @@ private:
             { LoadState::manual_unload, &Pause::manual_unload_process },
             { LoadState::filament_not_in_fs, &Pause::filament_not_in_fs_process },
             { LoadState::unload_from_gears, &Pause::unload_from_gears_process },
+#if HAS_NOZZLE_CLEANER()
+            { LoadState::unload_nozzle_clean, &Pause::unload_nozzle_clean_process },
+#endif
             { LoadState::unload_finish_or_change, &Pause::unload_finish_or_change_process },
             { LoadState::load_start, &Pause::load_start_process },
             { LoadState::filament_push_ask, &Pause::filament_push_ask_process },
@@ -218,7 +234,10 @@ private:
             { LoadState::mmu_load_ask, &Pause::mmu_load_ask_process },
             { LoadState::mmu_load, &Pause::mmu_load_process },
 #endif
-            { LoadState::load_finish, &Pause::load_finish_process },
+#if HAS_NOZZLE_CLEANER()
+            { LoadState::load_nozzle_clean, &Pause::load_nozzle_clean_process },
+#endif
+            { LoadState::load_prime, &Pause::load_prime_process },
     };
 
     // does not create FSM_HolderLoadUnload

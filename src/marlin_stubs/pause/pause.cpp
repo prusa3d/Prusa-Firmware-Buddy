@@ -6,6 +6,8 @@
  * @date 2020-12-18
  */
 
+#include "pause_stubbed.hpp"
+
 #include "Marlin/src/Marlin.h"
 #include "Marlin/src/gcode/gcode.h"
 #include "Marlin/src/module/endstops.h"
@@ -26,10 +28,14 @@
 #include "Marlin/src/core/language.h"
 #include "Marlin/src/lcd/ultralcd.h"
 
+#if HAS_NOZZLE_CLEANER()
+    #include <nozzle_cleaner.hpp>
+    #include <gcode_loader.hpp>
+#endif
+
 #include "Marlin/src/libs/nozzle.h"
 #include "Marlin/src/feature/pause.h"
 #include "filament_sensors_handler.hpp"
-#include "pause_stubbed.hpp"
 #include "safety_timer_stubbed.hpp"
 #include "marlin_server.hpp"
 #include "fs_event_autolock.hpp"
@@ -39,6 +45,7 @@
 #include "RAII.hpp"
 #include "mapi/motion.hpp"
 #include <cmath>
+#include <logging/log.hpp>
 #include <config_store/store_instance.hpp>
 #include <scope_guard.hpp>
 #include <filament_to_load.hpp>
@@ -49,8 +56,14 @@
 #include <option/has_mmu2.h>
 #include <option/has_wastebin.h>
 
+LOG_COMPONENT_REF(MarlinServer);
+
 #ifndef NOZZLE_UNPARK_XY_FEEDRATE
     #define NOZZLE_UNPARK_XY_FEEDRATE NOZZLE_PARK_XY_FEEDRATE
+#endif
+
+#if HAS_NOZZLE_CLEANER()
+GCodeLoader nozzle_cleaner_gcode_loader;
 #endif
 
 // private:
@@ -432,7 +445,7 @@ void Pause::load_start_process([[maybe_unused]] Response response) {
                 // TODO tell user that he has already loaded filament if he really wants to continue
                 // TODO check fsensor .. how should I behave if filament is not detected ???
                 // some error?
-                set(LoadState::load_finish);
+                set(LoadState::load_prime);
                 return;
             }
 
@@ -442,7 +455,7 @@ void Pause::load_start_process([[maybe_unused]] Response response) {
             set(LoadState::color_correct_ask);
         } else if (load_type == LoadType::filament_change) {
             if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-                set(LoadState::load_finish);
+                set(LoadState::load_prime);
                 return;
             }
 
@@ -639,7 +652,7 @@ void Pause::purge_process([[maybe_unused]] Response response) {
     config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
 
     if constexpr (!option::has_human_interactions) {
-        set(LoadState::load_finish);
+        set(LoadState::load_prime);
         return;
     }
 
@@ -660,7 +673,7 @@ void Pause::color_correct_ask_process(Response response) {
         break;
 
     case Response::Yes:
-        set(LoadState::load_finish);
+        set(LoadState::load_prime);
         break;
 
     default:
@@ -680,7 +693,7 @@ void Pause::mmu_load_ask_process(Response response) {
 
 void Pause::mmu_load_process([[maybe_unused]] Response response) {
     if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-        set(LoadState::load_finish);
+        set(LoadState::load_prime);
         return;
     }
 
@@ -728,7 +741,7 @@ void Pause::eject_process([[maybe_unused]] Response response) {
     }
 }
 
-void Pause::load_finish_process([[maybe_unused]] Response response) {
+void Pause::load_prime_process([[maybe_unused]] Response response) {
     if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
         // Feed a little bit of filament to stabilize pressure in nozzle
 
@@ -744,8 +757,41 @@ void Pause::load_finish_process([[maybe_unused]] Response response) {
         delay(500);
     }
 
+#if HAS_NOZZLE_CLEANER()
+    switch (load_type) {
+    case LoadType::load:
+    case LoadType::autoload:
+    case LoadType::load_to_gears:
+    case LoadType::load_purge:
+        nozzle_cleaner_gcode_loader.load_gcode(nozzle_cleaner::load_filename, nozzle_cleaner::load_sequence);
+        break;
+    case LoadType::filament_change:
+    case LoadType::filament_stuck:
+        nozzle_cleaner_gcode_loader.load_gcode(nozzle_cleaner::runout_filename, nozzle_cleaner::runout_sequence);
+        break;
+    default:
+        break;
+    }
+
+    set(LoadState::load_nozzle_clean);
+    return;
+#endif
+
     set(LoadState::_finish);
 }
+
+#if HAS_NOZZLE_CLEANER()
+void Pause::load_nozzle_clean_process([[maybe_unused]] Response response) {
+    auto loader_result = nozzle_cleaner_gcode_loader.get_result();
+
+    if (loader_result.has_value()) {
+        GcodeSuite::process_subcommands_now(loader_result.value());
+        set(LoadState::_finish);
+    } else if (loader_result.error() != GCodeLoader::BufferState::buffering) {
+        set(LoadState::_finish);
+    }
+}
+#endif
 
 void Pause::unload_start_process([[maybe_unused]] Response response) {
     // loop_unload_mmu has it's own preheating sequence, use that one for better progress reporting
@@ -834,11 +880,17 @@ void Pause::unload_process([[maybe_unused]] Response response) {
     case LoadType::unload_confirm:
     case LoadType::filament_change:
     case LoadType::filament_stuck:
+#if HAS_NOZZLE_CLEANER()
+        nozzle_cleaner_gcode_loader.load_gcode(nozzle_cleaner::unload_filename, nozzle_cleaner::unload_sequence);
+
+        set(LoadState::unload_nozzle_clean);
+        return;
+#endif
+
         if constexpr (!option::has_human_interactions) {
             runout_timer_ms = ticks_ms();
             set(LoadState::filament_not_in_fs);
         } else {
-            setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
             set(LoadState::unloaded_ask);
         }
         break;
@@ -848,6 +900,8 @@ void Pause::unload_process([[maybe_unused]] Response response) {
 }
 
 void Pause::unloaded_ask_process(Response response) {
+    setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
+
     if (response == Response::Yes) {
         set(LoadState::filament_not_in_fs);
         return;
@@ -864,6 +918,25 @@ void Pause::unload_from_gears_process([[maybe_unused]] Response response) {
     do_e_move_notify_progress_coldextrude(-settings.slow_load_length * (float)1.5, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 0, 100);
     set(LoadState::unload_finish_or_change);
 }
+
+#if HAS_NOZZLE_CLEANER()
+void Pause::unload_nozzle_clean_process([[maybe_unused]] Response response) {
+    auto loader_result = nozzle_cleaner_gcode_loader.get_result();
+
+    if (loader_result.has_value()) {
+        GcodeSuite::process_subcommands_now(loader_result.value());
+    }
+
+    if (loader_result.has_value() || loader_result.error() != GCodeLoader::BufferState::buffering) {
+        if constexpr (!option::has_human_interactions) {
+            runout_timer_ms = ticks_ms();
+            set(LoadState::filament_not_in_fs);
+        } else {
+            set(LoadState::unloaded_ask);
+        }
+    }
+}
+#endif
 
 void Pause::unload_finish_or_change_process([[maybe_unused]] Response response) {
     if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
