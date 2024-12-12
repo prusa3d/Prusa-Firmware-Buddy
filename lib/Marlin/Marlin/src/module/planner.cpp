@@ -2104,12 +2104,24 @@ bool Planner::buffer_segment(const abce_pos_t &abce
   // If we are aborting, do not accept queuing of movements
   if (draining_buffer || PreciseStepping::stopping()) return false;
 
-#if HAS_EMERGENCY_STOP()
-  buddy::emergency_stop().maybe_block();
-  buddy::emergency_stop().assert_can_plan_movement();
+  // The target position of the tool in absolute mini-steps
+  // Calculate target position in absolute mini-steps
+  const abce_long_t target = {
+    int32_t(LROUND(abce.a * settings.axis_msteps_per_mm[A_AXIS])),
+    int32_t(LROUND(abce.b * settings.axis_msteps_per_mm[B_AXIS])),
+    int32_t(LROUND(abce.c * settings.axis_msteps_per_mm[C_AXIS])),
+    int32_t(LROUND(abce.e * settings.axis_msteps_per_mm[E_AXIS_N(extruder)]))
+  };
 
-  // Check once more (this could have changed during the maybe_block)
-  if (draining_buffer || PreciseStepping::stopping()) return false;
+#if HAS_EMERGENCY_STOP()
+  // E-moves alone are always allowed
+  if (target.x != position.x || target.y != position.y || target.z != position.z) {
+    buddy::emergency_stop().maybe_block();
+    buddy::emergency_stop().assert_can_plan_movement();
+
+    // Check once more (this could have changed during the maybe_block)
+    if (draining_buffer || PreciseStepping::stopping()) return false;
+  }
 #endif
 
   #if ENABLED(CRASH_RECOVERY)
@@ -2159,15 +2171,6 @@ bool Planner::buffer_segment(const abce_pos_t &abce
       last_extruder = extruder;
     }
   #endif
-
-  // The target position of the tool in absolute mini-steps
-  // Calculate target position in absolute mini-steps
-  const abce_long_t target = {
-    int32_t(LROUND(abce.a * settings.axis_msteps_per_mm[A_AXIS])),
-    int32_t(LROUND(abce.b * settings.axis_msteps_per_mm[B_AXIS])),
-    int32_t(LROUND(abce.c * settings.axis_msteps_per_mm[C_AXIS])),
-    int32_t(LROUND(abce.e * settings.axis_msteps_per_mm[E_AXIS_N(extruder)]))
-  };
 
   // DRYRUN prevents E moves from taking place
   if (DEBUGGING(DRYRUN) || TERN0(CANCEL_OBJECTS, cancelable.skipping)) {
