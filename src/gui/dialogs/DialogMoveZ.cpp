@@ -107,7 +107,9 @@ void DialogMoveZ::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t eve
         // Only enqueue if there is no other gcode
         if (value != lastQueuedPos) {
             lastQueuedPos = value;
-            marlin_client::gcode_printf("G123 Z%f", (double)value);
+            ArrayStringBuilder<15> str_build; // We dont need decimal places here
+            str_build.append_printf("G123 Z%.0f", (double)value);
+            marlin_client::gcode_try(str_build.str());
         }
         return;
     }
