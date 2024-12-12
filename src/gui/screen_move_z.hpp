@@ -1,18 +1,16 @@
 #pragma once
-#include "gui.hpp"
-#include "IDialog.hpp"
-#include "window_header.hpp"
 #include "screen.hpp"
+#include "window_header.hpp"
 #include "window_text.hpp"
 #include "window_numb.hpp"
-#include "window_menu_adv.hpp"
-#include "WinMenuContainer.hpp"
 #include "window_arrows.hpp"
 #include <guiconfig/guiconfig.h>
 
-class DialogMoveZ : public IDialog {
+class ScreenMoveZ : public screen_t {
+public:
+    ScreenMoveZ();
+
 private:
-    static bool DialogShown;
     constexpr static const char *const headerLabel = N_("Z AXIS MOVE");
     constexpr static const char *const axisLabel = N_("Z-axis");
 #if ENABLED(COREXY) // CoreXY moves bed down while Z goes up
@@ -67,15 +65,10 @@ private:
     static constexpr Rect16 numb_rc { 243, 240, 237, 22 };
     static constexpr Rect16 arrows_rc { 236, 240, 8, 22 };
 #endif
-    void change(int diff);
-    Rect16 getNumbRect(Rect16 rect) const;
-
-    DialogMoveZ();
+    void process_enc_move(int diff);
 
 protected:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
-
-public:
-    static void Show();
-    ~DialogMoveZ();
 };
+
+void open_move_z_screen();

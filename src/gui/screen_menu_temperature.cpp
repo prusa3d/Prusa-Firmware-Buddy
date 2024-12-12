@@ -5,7 +5,6 @@
 #include "screen_menu_temperature.hpp"
 #include "marlin_client.hpp"
 #include "ScreenHandler.hpp"
-#include "DialogMoveZ.hpp"
 #include "img_resources.hpp"
 #include <option/has_toolchanger.h>
 #include <option/has_chamber_api.h>

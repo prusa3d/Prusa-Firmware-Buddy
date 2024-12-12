@@ -2,7 +2,7 @@
  * @file screen_menu_statistics.cpp
  */
 #include "screen_menu_statistics.hpp"
-#include "DialogMoveZ.hpp"
+#include "screen_move_z.hpp"
 #include "img_resources.hpp"
 
 ScreenMenuStatistics::ScreenMenuStatistics()
@@ -13,7 +13,7 @@ ScreenMenuStatistics::ScreenMenuStatistics()
 
 void ScreenMenuStatistics::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::HELD_RELEASED) {
-        DialogMoveZ::Show();
+        open_move_z_screen();
         return;
     }
 

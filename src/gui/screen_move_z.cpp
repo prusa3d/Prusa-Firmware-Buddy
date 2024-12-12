@@ -1,15 +1,13 @@
+#include <screen_move_z.hpp>
+#include <img_resources.hpp>
+#include <marlin_client.hpp>
+#include <ScreenHandler.hpp>
+#include <ScreenFactory.hpp>
+#include <menu_vars.h>
+#include <sound.hpp>
 
-#include "DialogMoveZ.hpp"
-#include "ScreenHandler.hpp"
-#include "img_resources.hpp"
-#include "marlin_client.hpp"
-#include "menu_vars.h"
-#include "sound.hpp"
-
-bool DialogMoveZ::DialogShown = false;
-
-DialogMoveZ::DialogMoveZ()
-    : IDialog(GuiDefaults::EnableDialogBigLayout ? GuiDefaults::RectScreen : GuiDefaults::RectScreenNoFoot)
+ScreenMoveZ::ScreenMoveZ()
+    : screen_t()
     , value(round(marlin_vars().logical_pos[2]))
     , lastQueuedPos(value)
     , axisText(this, text_rc, is_multiline::no, is_closed_on_click_t::no, _(axisLabel))
@@ -26,12 +24,8 @@ DialogMoveZ::DialogMoveZ()
     , numb(this, numb_rc, value, "%d mm", font)
     , header(this, _(headerLabel))
     , icon(this, icon_rc, &img::turn_knob_81x55) {
-    DialogShown = true;
 
-    /// using window_t 1bit flag
-    flags.close_on_click = is_closed_on_click_t::yes;
     header.SetIcon(&img::z_axis_16x16);
-
     constexpr static padding_ui8_t padding({ 6, 0, 6, 0 });
 
     //  info text
@@ -64,47 +58,31 @@ DialogMoveZ::DialogMoveZ()
     arrows.SetState(WindowArrows::State_t::undef);
 };
 
-void DialogMoveZ::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
+void ScreenMoveZ::process_enc_move(int diff) {
+    int32_t val = diff + value;
+    auto range = MenuVars::axis_range(Z_AXIS);
+    value = std::clamp<int32_t>(val, range.first, range.second);
+    numb.SetValue(value);
+#if ENABLED(COREXY) // CoreXY moves bed down while Z goes up
+    arrows.SetState(diff < 0 ? WindowArrows::State_t::up : WindowArrows::State_t::down);
+#else /*PRINTER_TYPE*/
+    arrows.SetState(diff < 0 ? WindowArrows::State_t::down : WindowArrows::State_t::up);
+#endif /*PRINTER_TYPE*/
+}
+
+void ScreenMoveZ::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
-    case GUI_event_t::CLICK: {
-        /// has set is_closed_on_click_t
-        /// todo
-        /// GUI_event_t::CLICK could bubble into window_t::windowEvent and close dialog
-        /// so CLICK could be left unhandled here
-        /// but there is a problem with focus !!!parrent window of this dialog has it!!!
-        if (flags.close_on_click == is_closed_on_click_t::yes) {
-            Screens::Access()->Close();
-        }
-        return;
-    }
+    case GUI_event_t::CLICK:
+        Screens::Access()->Close();
+        break;
 
-    case GUI_event_t::ENC_DN: {
-        const int enc_change = int(param);
-        change(-enc_change);
-        numb.SetValue(value);
-#if ENABLED(COREXY) // CoreXY moves bed down while Z goes up
-        arrows.SetState(WindowArrows::State_t::up);
-#else /*PRINTER_TYPE*/
-        arrows.SetState(WindowArrows::State_t::down);
-#endif /*PRINTER_TYPE*/
-        return;
-    }
+    case GUI_event_t::ENC_UP:
+    case GUI_event_t::ENC_DN:
+        process_enc_move(event == GUI_event_t::ENC_DN ? (int)param * -1 : (int)param);
+        break;
 
-    case GUI_event_t::ENC_UP: {
-        const int enc_change = int(param);
-        change(enc_change);
-        numb.SetValue(value);
-#if ENABLED(COREXY) // CoreXY moves bed down while Z goes up
-        arrows.SetState(WindowArrows::State_t::down);
-#else /*PRINTER_TYPE*/
-        arrows.SetState(WindowArrows::State_t::up);
-#endif /*PRINTER_TYPE*/
-        return;
-    }
-
-    case GUI_event_t::LOOP: {
-        // Only enqueue if there is no other gcode
+    case GUI_event_t::LOOP:
         if (value != lastQueuedPos) {
             ArrayStringBuilder<16> str_build; // We dont need decimal places here
             str_build.append_printf("G123 Z%.0f", (double)value);
@@ -112,35 +90,22 @@ void DialogMoveZ::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t eve
                 lastQueuedPos = value;
             }
         }
-        return;
-    }
+        break;
 
     case GUI_event_t::TOUCH_SWIPE_LEFT:
     case GUI_event_t::TOUCH_SWIPE_RIGHT:
         Sound_Play(eSOUND_TYPE::ButtonEcho);
         Screens::Access()->Close();
-        return;
+        break;
 
     default:
-        return;
+        GetParent()->WindowEvent(sender, event, param);
+        break;
     }
 }
 
-void DialogMoveZ::change(int diff) {
-    int32_t val = diff + value;
-    auto range = MenuVars::axis_range(Z_AXIS);
-    value = std::clamp<int32_t>(val, range.first, range.second);
-}
-
-DialogMoveZ::~DialogMoveZ() {
-    DialogShown = false;
-}
-
-void DialogMoveZ::Show() {
-    // checking nesting to not open over some other blocking dialog
-    // when blocking dialog is open, the nesting is larger than one
-    if (!DialogShown && gui_get_nesting() <= 1) {
-        DialogMoveZ moveZ;
-        Screens::Access()->gui_loop_until_dialog_closed();
+void open_move_z_screen() {
+    if (!Screens::Access()->IsScreenOpened(ScreenFactory::Screen<ScreenMoveZ>) && gui_get_nesting() <= 1) {
+        Screens::Access()->Open(ScreenFactory::Screen<ScreenMoveZ>);
     }
 }

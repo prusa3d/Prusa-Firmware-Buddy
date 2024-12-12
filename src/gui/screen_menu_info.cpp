@@ -4,11 +4,11 @@
 
 #include "screen_menu_info.hpp"
 #include "img_resources.hpp"
-#include "DialogMoveZ.hpp"
+#include "screen_move_z.hpp"
 
 void ScreenMenuInfo::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::HELD_RELEASED) {
-        DialogMoveZ::Show();
+        open_move_z_screen();
         return;
     }
 
