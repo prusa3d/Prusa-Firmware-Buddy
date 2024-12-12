@@ -709,11 +709,7 @@ void screen_printing_data_t::change_print_state() {
         st = printing_state_t::INITIAL;
         break;
     case State::Printing:
-        if (skippable_gcode().is_running()) {
-            st = printing_state_t::SKIPPABLE_OPERATION;
-        } else {
-            st = printing_state_t::PRINTING;
-        }
+        st = printing_state_t::PRINTING;
         break;
     case State::PowerPanic_AwaitingResume:
     case State::Paused:
@@ -786,6 +782,9 @@ void screen_printing_data_t::change_print_state() {
     }
     if (stop_pressed) {
         st = printing_state_t::ABORTING;
+    }
+    if (skippable_gcode().is_running()) {
+        st = printing_state_t::SKIPPABLE_OPERATION;
     }
     if (state__readonly__use_change_print_state != st) {
         state__readonly__use_change_print_state = st;
