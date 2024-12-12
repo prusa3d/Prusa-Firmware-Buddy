@@ -95,7 +95,10 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
 
         const auto now = ticks_ms();
         if (ticks_diff(now, last_report_time) > 1000) {
-            ui.set_status("Waiting for chamber temperature");
+            ArrayStringBuilder<64> sb;
+            sb.append_string_view(_("Waiting for chamber temperature"));
+            sb.append_printf(" %i/%i °C", int(current.value_or(0)), int(target));
+            ui.set_status(sb.str());
             last_report_time = now;
         }
 
@@ -121,4 +124,6 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
 
         idle(true);
     }
+
+    MarlinUI::reset_status();
 }
