@@ -29,6 +29,10 @@
 #include <feature/input_shaper/input_shaper_config.hpp>
 #include <config_store/store_instance.hpp>
 
+#if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
+    #include <configuration.hpp>
+#endif
+
 #pragma GCC diagnostic warning "-Wdouble-promotion"
 
 static bool COREXY_HOME_UNSTABLE = false;
@@ -303,9 +307,27 @@ static measure_axis_params measure_axis_defaults(const AxisEnum axis) {
     return params;
 }
 
-// Call measure_axis_distance() with calibrated or default parameters
+// Call measure_axis_distance() with calibrated parameters
+// (or defaults in printers without measurement calibration)
 static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t dist, int32_t &m_steps, float &m_dist) {
-    return measure_axis_distance(axis, origin_steps, dist, m_steps, m_dist, measure_axis_defaults(axis));
+    measure_axis_params params;
+
+#if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
+    // get paramers from calibration
+    CoreXYHomeTMCSens calibrated_sens = config_store().corexy_home_tmc_sens.get();
+    if (calibrated_sens.uninitialized()) {
+        bsod("axis measurement without calibration");
+    }
+
+    params.sensitivity = calibrated_sens.sensitivity;
+    params.feedrate = calibrated_sens.feedrate;
+    params.current = calibrated_sens.current;
+#else
+    // static defaults
+    params = measure_axis_defaults(axis);
+#endif
+
+    return measure_axis_distance(axis, origin_steps, dist, m_steps, m_dist, params);
 }
 
 /**
@@ -404,8 +426,9 @@ static xy_long_t cdist_translate(const xy_pos_t &c_dist, const xy_pos_t &origin)
 /**
  * @brief plan a relative move by full AB cycles around origin_steps
  * @param ab_off full AB cycles away from homing corner
+ * @return new step position
  */
-static void plan_corexy_abgrid_move(const xy_long_t &origin_steps, const xy_long_t &ab_off, const float fr_mm_s) {
+static xy_long_t plan_corexy_abgrid_move(const xy_long_t &origin_steps, const xy_long_t &ab_off, const float fr_mm_s) {
     long a = ab_off[X_HOME_DIR == Y_HOME_DIR ? A_AXIS : B_AXIS] * -Y_HOME_DIR;
     long b = ab_off[X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS] * -X_HOME_DIR;
 
@@ -415,6 +438,7 @@ static void plan_corexy_abgrid_move(const xy_long_t &origin_steps, const xy_long
     };
 
     plan_corexy_raw_move(point_steps, fr_mm_s);
+    return point_steps;
 }
 
 static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_steps,
@@ -598,6 +622,140 @@ static bool corexy_rehome_and_phase(xyze_pos_t &origin_pos, xy_long_t &origin_st
     return true;
 }
 
+#if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
+static bool measure_calibrate_walk(float &score, AxisEnum measured_axis,
+    const xy_long_t origin_steps, const float fr_mm_s, const measure_axis_params &params) {
+    // prepare for repeated measurements
+    AxisEnum other_axis = (measured_axis == B_AXIS ? A_AXIS : B_AXIS);
+    SetupForMeasurement setup_guard(other_axis);
+
+    // calculate maximum reliable number of cycles to move towards the endstop
+    constexpr AxisEnum walk_axis = X_HOME_DIR == Y_HOME_DIR ? X_AXIS : Y_AXIS;
+    constexpr float walk_dist = XY_HOMING_ORIGIN_OFFSET - axis_home_max_diff(walk_axis) * 2;
+    static_assert(walk_dist >= 0);
+    const size_t walk_cycles = floor(walk_dist / (phase_cycle_steps(walk_axis) * planner.mm_per_step[walk_axis] * float(M_SQRT2)));
+    const size_t walk_period = walk_cycles * 2;
+    const size_t measure_probes = std::max<size_t>(walk_period, XY_HOMING_ORIGIN_BUMP_RETRIES * 2);
+    assert(measure_probes >= 3 && measure_probes < 128);
+
+    // absolute measure limit distances
+    static_assert(XY_HOMING_ORIGIN_OFFSET > axis_home_max_diff(walk_axis) * 2);
+    constexpr AxisEnum walk_ortho_axis = walk_axis == X_AXIS ? Y_AXIS : X_AXIS;
+    constexpr int32_t measure_min_dist_mm = (XY_HOMING_ORIGIN_OFFSET - axis_home_max_diff(walk_ortho_axis) * 2) * float(M_SQRT2);
+    constexpr int32_t measure_max_dist_mm = (XY_HOMING_ORIGIN_OFFSET * 4);
+    const int32_t measure_min_dist = measure_min_dist_mm / planner.mm_per_step[measured_axis];
+    const int32_t measure_max_dist = measure_max_dist_mm / planner.mm_per_step[measured_axis];
+    const int32_t measure_dir = (measured_axis == B_AXIS ? -X_HOME_DIR : -Y_HOME_DIR);
+
+    score = 0.f;
+    for (int32_t a_dir = 1; a_dir >= -1; a_dir -= 2) {
+        // start from the lowest possible probing position, then zig-zag along the centerpoint to
+        // test for weaker positions in the holding rotor and take those into account in addition to
+        // testing repeatibility
+        int32_t p_steps_buf[measure_probes];
+        size_t p_steps_cnt = 0;
+        float p_dist;
+        int32_t p_steps;
+
+        for (size_t probe = 0; probe != measure_probes; ++probe) {
+            const long cycle = probe / walk_period;
+            const long n = probe % walk_period;
+            const long d = -long(walk_cycles) + (cycle % 2 ? walk_period - n : n);
+
+            xy_long_t temp_origin = plan_corexy_abgrid_move(origin_steps, { d * a_dir, d }, fr_mm_s);
+            if (planner.draining()) {
+                return false;
+            }
+
+            bool valid = measure_axis_distance(measured_axis, temp_origin,
+                measure_max_dist * measure_dir * a_dir, p_steps, p_dist, params);
+            if (!valid) {
+                if (planner.draining()) {
+                    return false;
+                }
+            } else {
+                p_steps = abs(p_steps);
+                if (p_steps >= measure_min_dist && p_steps <= measure_max_dist) {
+                    p_steps_buf[p_steps_cnt++] = p_steps;
+                }
+            }
+        }
+
+        if (p_steps_cnt >= 3) {
+            // calculate a score based on central phase deviation independently per-direction
+            std::sort(&p_steps_buf[0], &p_steps_buf[p_steps_cnt]);
+            int32_t steps_med = p_steps_buf[p_steps_cnt / 2];
+            for (size_t i = 0; i != p_steps_cnt; ++i) {
+                int32_t p_off = abs(steps_med - p_steps_buf[i]) * 4 / phase_cycle_steps(measured_axis);
+                float p_score = 1.f / std::pow(1.f + p_off, 3.f);
+                score += p_score;
+            }
+        }
+    }
+
+    return true;
+}
+
+static bool measure_calibrate_sens(CoreXYHomeTMCSens &calibrated_sens,
+    AxisEnum measured_axis, const float fr_mm_s) {
+    measure_axis_params params = measure_axis_defaults(measured_axis);
+    bool rehome = false; // initial home state
+
+    // limits are inclusive
+    static_assert(XY_HOMING_MEASURE_SENS_MAX > XY_HOMING_MEASURE_SENS_MIN);
+    constexpr size_t slots = (XY_HOMING_MEASURE_SENS_MAX - XY_HOMING_MEASURE_SENS_MIN) + 1;
+    static_assert(slots > 1 && slots < 16);
+    std::pair<int8_t, float> scores[slots];
+    size_t score_cnt = 0;
+
+    for (int8_t sens = XY_HOMING_MEASURE_SENS_MIN; sens <= XY_HOMING_MEASURE_SENS_MAX; ++sens) {
+        xyze_pos_t origin_pos;
+        xy_long_t origin_steps;
+
+        // reposition parallel to the origin to our probing point
+        if (!corexy_rehome_and_phase(origin_pos, origin_steps, fr_mm_s, rehome)) {
+            return false;
+        }
+
+        // adjust sensitivity and calculate score
+        params.sensitivity = sens;
+        float score;
+        if (!measure_calibrate_walk(score, measured_axis, origin_steps, fr_mm_s, params)) {
+            if (planner.draining()) {
+                return false;
+            }
+        } else if (score > 0.f) {
+            scores[score_cnt].first = sens;
+            scores[score_cnt].second = score;
+            ++score_cnt;
+        }
+
+        // always rehome to ignore any undetected skip
+        rehome = true;
+    }
+    if (!score_cnt) {
+        return false;
+    }
+
+    // pick the best result
+    size_t best_idx = 0;
+    SERIAL_ECHOLN("sensitivity calibration");
+    for (size_t i = 0; i != score_cnt; ++i) {
+        SERIAL_ECHOLNPAIR(" sens:", scores[i].first, " score:", scores[i].second);
+        if (scores[i].second > scores[best_idx].second) {
+            best_idx = i;
+        }
+    }
+    SERIAL_ECHOLNPAIR(" selected:", scores[best_idx].first);
+
+    // we currently only calibrate sensitivity, but save all effective parameters
+    calibrated_sens.feedrate = params.feedrate;
+    calibrated_sens.current = params.current;
+    calibrated_sens.sensitivity = scores[best_idx].first;
+    return true;
+}
+#endif
+
 // Refine home origin precisely on core-XY.
 bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     const AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
@@ -617,6 +775,25 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
 
     // reset previous home state
     COREXY_HOME_UNSTABLE = false;
+
+#if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
+    // calibrate optimal measurement sensitivity first
+    CoreXYHomeTMCSens calibrated_sens = config_store().corexy_home_tmc_sens.get();
+    if ((mode == CoreXYCalibrationMode::Force)
+        || ((mode == CoreXYCalibrationMode::OnDemand) && calibrated_sens.uninitialized())) {
+        SERIAL_ECHOLN("recalibrating homing sensitivity");
+        ui.status_printf_P(0, "Recalibrating home. Printer may vibrate and be noisier.");
+
+        if (!measure_calibrate_sens(calibrated_sens, measured_axis, fr_mm_s)) {
+            SERIAL_ECHOLNPAIR("home sensitivity calibration failed");
+            return false;
+        }
+
+        // save and reset to initial state
+        config_store().corexy_home_tmc_sens.set(calibrated_sens);
+        corexy_rehome_xy(fr_mm_s);
+    }
+#endif
 
     // reposition parallel to the origin to our probing point
     xyze_pos_t origin_pos;

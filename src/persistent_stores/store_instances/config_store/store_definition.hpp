@@ -566,6 +566,9 @@ struct CurrentStore
 #ifdef PRECISE_HOMING_COREXY
     StoreItem<CoreXYGridOrigin, COREXY_NO_GRID_ORIGIN, journal::hash("CoreXY calibrated grid origin")> corexy_grid_origin;
 #endif
+#if defined(PRECISE_HOMING_COREXY) && HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
+    StoreItem<CoreXYHomeTMCSens, COREXY_NO_HOME_TMC_SENS, journal::hash("CoreXY home TMC calibration")> corexy_home_tmc_sens;
+#endif
 };
 
 /**
