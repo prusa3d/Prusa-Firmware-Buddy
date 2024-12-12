@@ -66,6 +66,7 @@ exclude: |
         Marlin/src/gcode/calibrate/M958.cpp
         Marlin/src/gcode/calibrate/M958.hpp
         Marlin/src/gcode/temperature/M106_M107.cpp
+        Marlin/src/gcode/bedlevel/ubl/G29.cpp
       )|
     ^lib/Middlewares/Third_Party/FatFs/|
     ^lib/Middlewares/Third_Party/FreeRTOS/|

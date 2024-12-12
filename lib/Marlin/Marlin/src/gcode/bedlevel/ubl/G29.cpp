@@ -28,15 +28,15 @@
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
 
-#include "../../gcode.h"
-#include "../../../feature/bedlevel/bedlevel.h"
-#include "../../../feature/prusa/e-stall_detector.h"
+    #include "../../gcode.h"
+    #include "../../../feature/bedlevel/bedlevel.h"
+    #include "../../../feature/prusa/e-stall_detector.h"
 
-#if ENABLED(CRASH_RECOVERY)
-    #include "../../../feature/prusa/crash_recovery.hpp"
-#endif
+    #if ENABLED(CRASH_RECOVERY)
+        #include "../../../feature/prusa/crash_recovery.hpp"
+    #endif
 
-#include <marlin_server.hpp>
+    #include <marlin_server.hpp>
 
 /** \addtogroup G-Codes
  * @{
@@ -259,8 +259,8 @@ void GcodeSuite::G29() {
 
     BlockEStallDetection block_e_stall_detection;
     #if ANY(CRASH_RECOVERY, POWER_PANIC)
-      // G29 requires a full restart: inhibit partial replay
-      crash_s.inhibit_gcode_replay();
+    // G29 requires a full restart: inhibit partial replay
+    crash_s.inhibit_gcode_replay();
     #endif
 
     ubl.G29();
