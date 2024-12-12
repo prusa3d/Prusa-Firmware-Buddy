@@ -103,6 +103,10 @@
     #include <nfc.hpp>
 #endif
 
+#if HAS_XBUDDY_EXTENSION()
+    #include <buddy/mmu_port.hpp>
+#endif
+
 using namespace crash_dump;
 
 LOG_COMPONENT_REF(Buddy);
@@ -469,6 +473,7 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if HAS_XBUDDY_EXTENSION()
+    mmu_port::setup_reset_pin();
     // Yes, this is intentional.
     // MMUEnable is probably a misnomer now that we have xBuddyExtension.
     buddy::hw::MMUEnable.set();
