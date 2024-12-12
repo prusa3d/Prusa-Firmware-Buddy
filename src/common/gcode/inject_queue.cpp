@@ -128,12 +128,6 @@ std::expected<const char *, InjectQueue::GetGCodeError> InjectQueue::get_gcode()
     }
 
     assert(!worker_job.is_active());
-    // If item is a Preset Macro -> Execute callback on async thread
-    if (const auto macro = std::get_if<InjectPresetMacro>(&item)) {
-        change_buffer_state(BufferState::buffering);
-        worker_job.issue(macro->callback);
-        return std::unexpected(GetGCodeError::buffering);
-    }
 
     // Otherwise, the item is a file, we need to start buffering
 
@@ -147,8 +141,6 @@ std::expected<const char *, InjectQueue::GetGCodeError> InjectQueue::get_gcode()
         } else if constexpr (std::is_same_v<T, GCodeFilename>) {
             filepath.append_string(v.name);
             gcode_fallback = v.fallback;
-        } else if constexpr (std::is_same_v<T, InjectPresetMacro>) {
-            assert(0); // handled earlier
         } else if constexpr (std::is_same_v<T, GCodeLiteral>) {
             assert(0); // handled earlier
         } else {
