@@ -91,6 +91,9 @@ const img::Resource *warning_dialog_icon(WarningType warning_type) {
             { WarningType::GcodeCorruption, &img::warning_48x48 },
             { WarningType::GcodeCropped, &img::warning_48x48 },
             { WarningType::MetricsConfigChangePrompt, &img::warning_48x48 },
+#if HAS_CHAMBER_API()
+            { WarningType::FailedToReachChamberTemperature, &img::warning_48x48 },
+#endif
             { WarningType::AccelerometerCommunicationFailed, &img::warning_48x48 },
     };
     return data[warning_type];

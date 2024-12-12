@@ -456,6 +456,9 @@ namespace {
             break;
 
         case PhasesWarning::MetricsConfigChangePrompt:
+#if HAS_CHAMBER_API()
+        case PhasesWarning::FailedToReachChamberTemperature: // Should be within a gcode loop where handle_warnings is not called
+#endif
 #if ENABLED(DETECT_PRINT_SHEET)
         case PhasesWarning::SteelSheetNotDetected:
 #endif

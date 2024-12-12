@@ -28,6 +28,7 @@
 #include <option/has_selftest.h>
 #include <option/has_toolchanger.h>
 #include <option/xl_enclosure_support.h>
+#include <option/has_chamber_api.h>
 #include <common/hotend_type.hpp>
 #include <device/board.h>
 
@@ -401,6 +402,10 @@ enum class PhasesWarning : PhaseUnderlyingType {
 #if ENABLED(DETECT_PRINT_SHEET)
     /// Shown on failed print sheet detection. Custom handling.
     SteelSheetNotDetected,
+#endif
+
+#if HAS_CHAMBER_API()
+    FailedToReachChamberTemperature,
 #endif
 
     NozzleCleaningFailed,
@@ -803,6 +808,9 @@ class ClientResponses {
             { PhasesWarning::MetricsConfigChangePrompt, { Response::Yes, Response::No } },
 #if ENABLED(DETECT_PRINT_SHEET)
             { PhasesWarning::SteelSheetNotDetected, { Response::Retry, Response::Ignore } },
+#endif
+#if HAS_CHAMBER_API()
+            { PhasesWarning::FailedToReachChamberTemperature, { Response::Ok, Response::Skip } },
 #endif
             { PhasesWarning::NozzleCleaningFailed, { Response::Retry, Response::Abort } },
     };
