@@ -71,13 +71,9 @@ bool Mutex::try_lock() {
 }
 
 void Mutex::lock() {
-    // REMOVEME BFW-6418
-    if (power_panic_mode_removeme) {
-        // In power panic mode, the defaultTask gets delays periodically aborted, which can result in mutexes takes failing
-        xSemaphoreTake(handle_cast(mutex_storage), portMAX_DELAY);
-
-    } else {
-        if (xSemaphoreTake(handle_cast(mutex_storage), portMAX_DELAY) != pdTRUE) {
+    if (xSemaphoreTake(handle_cast(mutex_storage), portMAX_DELAY) != pdTRUE) {
+        // REMOVEME BFW-6418
+        if (!power_panic_mode_removeme) {
             static_assert(INCLUDE_vTaskSuspend);
             // Since we are waiting forever and have task suspension, this should never happen.
             std::abort();
