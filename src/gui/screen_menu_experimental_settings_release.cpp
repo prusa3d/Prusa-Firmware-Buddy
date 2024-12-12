@@ -52,7 +52,7 @@ void ScreenMenuExperimentalSettings::windowEvent(window_t *sender, GUI_event_t e
         Invalidate();
         break;
     case ClickCommand::Reset_steps:
-        Item<MI_STEPS_PER_UNIT_E>().SetVal(config_store().axis_steps_per_unit_e0.default_val);
+        Item<MI_STEPS_PER_UNIT_E>().SetVal(std::abs(config_store().axis_steps_per_unit_e0.default_val));
         Invalidate();
         break;
     case ClickCommand::Reset_directions:
