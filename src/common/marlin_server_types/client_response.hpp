@@ -15,17 +15,18 @@
 #include <array>
 #include <span>
 #include "printers.h"
-#include "option/has_loadcell.h"
-#include "option/filament_sensor.h"
-#include "option/has_toolchanger.h"
-#include <option/has_mmu2.h>
-#include <option/has_selftest.h>
-#include <option/has_phase_stepping.h>
-#include <option/has_coldpull.h>
-#include <option/has_input_shaper_calibration.h>
-#include <option/has_nfc.h>
+#include <option/filament_sensor.h>
+#include <option/has_attachable_accelerometer.h>
 #include <option/has_belt_tuning.h>
+#include <option/has_coldpull.h>
 #include <option/has_gears_calibration.h>
+#include <option/has_input_shaper_calibration.h>
+#include <option/has_loadcell.h>
+#include <option/has_mmu2.h>
+#include <option/has_nfc.h>
+#include <option/has_phase_stepping.h>
+#include <option/has_selftest.h>
+#include <option/has_toolchanger.h>
 #include <option/xl_enclosure_support.h>
 #include <common/hotend_type.hpp>
 #include <device/board.h>
@@ -468,11 +469,13 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesFansSelftest) { return Cl
 enum class PhasesInputShaperCalibration : PhaseUnderlyingType {
     info,
     parking,
+    #if HAS_ATTACHABLE_ACCELEROMETER()
     connect_to_board,
     wait_for_extruder_temperature,
     attach_to_extruder,
-    measuring_x_axis,
     attach_to_bed,
+    #endif
+    measuring_x_axis,
     measuring_y_axis,
     measurement_failed,
     computing,
@@ -860,18 +863,20 @@ class ClientResponses {
 #if HAS_INPUT_SHAPER_CALIBRATION()
     static constexpr EnumArray<PhasesInputShaperCalibration, PhaseResponses, CountPhases<PhasesInputShaperCalibration>()> input_shaper_calibration_responses {
         { PhasesInputShaperCalibration::info, { Response::Continue, Response::Abort } },
-        { PhasesInputShaperCalibration::parking, {} },
-        { PhasesInputShaperCalibration::connect_to_board, { Response::Abort } },
-        { PhasesInputShaperCalibration::wait_for_extruder_temperature, { Response::Abort } },
-        { PhasesInputShaperCalibration::attach_to_extruder, { Response::Continue, Response::Abort } },
-        { PhasesInputShaperCalibration::measuring_x_axis, { Response::Abort } },
-        { PhasesInputShaperCalibration::attach_to_bed, { Response::Continue, Response::Abort } },
-        { PhasesInputShaperCalibration::measuring_y_axis, { Response::Abort } },
-        { PhasesInputShaperCalibration::measurement_failed, { Response::Retry, Response::Abort } },
-        { PhasesInputShaperCalibration::computing, { Response::Abort } },
-        { PhasesInputShaperCalibration::bad_results, { Response::Ok } },
-        { PhasesInputShaperCalibration::results, { Response::Yes, Response::No } },
-        { PhasesInputShaperCalibration::finish, {} },
+            { PhasesInputShaperCalibration::parking, {} },
+    #if HAS_ATTACHABLE_ACCELEROMETER()
+            { PhasesInputShaperCalibration::connect_to_board, { Response::Abort } },
+            { PhasesInputShaperCalibration::wait_for_extruder_temperature, { Response::Abort } },
+            { PhasesInputShaperCalibration::attach_to_extruder, { Response::Continue, Response::Abort } },
+            { PhasesInputShaperCalibration::attach_to_bed, { Response::Continue, Response::Abort } },
+    #endif
+            { PhasesInputShaperCalibration::measuring_x_axis, { Response::Abort } },
+            { PhasesInputShaperCalibration::measuring_y_axis, { Response::Abort } },
+            { PhasesInputShaperCalibration::measurement_failed, { Response::Retry, Response::Abort } },
+            { PhasesInputShaperCalibration::computing, { Response::Abort } },
+            { PhasesInputShaperCalibration::bad_results, { Response::Ok } },
+            { PhasesInputShaperCalibration::results, { Response::Yes, Response::No } },
+            { PhasesInputShaperCalibration::finish, {} },
     };
 #endif
 

@@ -300,8 +300,12 @@ set_feature_for_printers(HAS_LEDS "MK4" "MK3.5" "XL" "iX")
 # disable serial printing for MINI to save flash
 set_feature_for_printers(HAS_SERIAL_PRINT "MK4" "MK3.5" "XL" "iX" "MINI")
 
+# Local accelerometer communicates directly over SPI
 set_feature_for_printers(HAS_LOCAL_ACCELEROMETER "MK3.5" "MK4" "iX")
+# Remote accelerometer communicates indirectly over MODBUS
 set_feature_for_printers(HAS_REMOTE_ACCELEROMETER "XL" "XL_DEV_KIT")
+# Some printers require manual mounting of accelerometer to the board, nozzle or bed
+set_feature_for_printers(HAS_ATTACHABLE_ACCELEROMETER "MK3.5" "MK4")
 
 set_feature_for_printers(HAS_COLDPULL "MK3.5" "MK4" "XL")
 

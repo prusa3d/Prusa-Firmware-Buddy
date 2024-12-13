@@ -4,6 +4,7 @@
 #include <gui/qr.hpp>
 #include <gui/frame_qr_layout.hpp>
 #include <img_resources.hpp>
+#include <option/has_attachable_accelerometer.h>
 #include <str_utils.hpp>
 
 static ScreenInputShaperCalibration *instance = nullptr;
@@ -132,6 +133,8 @@ public:
     static constexpr const char *text_parking = N_("Parking");
 };
 
+#if HAS_ATTACHABLE_ACCELEROMETER()
+
 class FrameConnectToBoard final : public FrameInstructions {
 public:
     explicit FrameConnectToBoard(window_t *parent)
@@ -189,6 +192,8 @@ public:
         "Firmly attach the accelerometer to the heatbed. "
         "In the next step, heatbed will start vibrating and resonance will be measured.");
 };
+
+#endif
 
 class FrameMeasuringExtruder final : public FrameMeasurement {
 public:
@@ -322,11 +327,13 @@ public:
 using Frames = FrameDefinitionList<ScreenInputShaperCalibration::FrameStorage,
     FrameDefinition<PhasesInputShaperCalibration::info, FrameInfo>,
     FrameDefinition<PhasesInputShaperCalibration::parking, FrameParking>,
+#if HAS_ATTACHABLE_ACCELEROMETER()
     FrameDefinition<PhasesInputShaperCalibration::connect_to_board, FrameConnectToBoard>,
     FrameDefinition<PhasesInputShaperCalibration::wait_for_extruder_temperature, FrameWaitForExtruderTemperature>,
     FrameDefinition<PhasesInputShaperCalibration::attach_to_extruder, FrameAttachToExtruder>,
-    FrameDefinition<PhasesInputShaperCalibration::measuring_x_axis, FrameMeasuringExtruder>,
     FrameDefinition<PhasesInputShaperCalibration::attach_to_bed, FrameAttachToBed>,
+#endif
+    FrameDefinition<PhasesInputShaperCalibration::measuring_x_axis, FrameMeasuringExtruder>,
     FrameDefinition<PhasesInputShaperCalibration::measuring_y_axis, FrameMeasuringBed>,
     FrameDefinition<PhasesInputShaperCalibration::measurement_failed, FrameMeasurementFailed>,
     FrameDefinition<PhasesInputShaperCalibration::computing, FrameComputing>,
