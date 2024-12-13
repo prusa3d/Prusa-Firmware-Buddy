@@ -275,6 +275,10 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
         Status tail_status;
 
         {
+            // Destroying the reader may talk to USB (closing the file). That
+            // could block the default task - therefore, postpone closing after
+            // we unlock the mutex.
+            AnyGcodeFormatReader destroy_reader;
             std::lock_guard mutex_guard(mutex);
 
             if (control.is_discarded()) {
@@ -292,6 +296,7 @@ void MediaPrefetchManager::fetch_routine(AsyncJobExecutionControl &control) {
                 stream_restore_info = shared_state.read_tail.gcode_pos.restore_info;
 
                 // Reset the worker state to the read_tail
+                destroy_reader = std::move(s.gcode_reader);
                 s = {};
                 s.gcode_reader_pos = shared_state.read_tail.gcode_pos.offset;
                 s.write_tail.buffer_pos = shared_state.read_tail.buffer_pos;
