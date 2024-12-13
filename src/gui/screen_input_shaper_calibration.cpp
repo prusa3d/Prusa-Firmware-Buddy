@@ -3,6 +3,7 @@
 #include "window_wizard_progress.hpp"
 #include <gui/qr.hpp>
 #include <gui/frame_qr_layout.hpp>
+#include <gui/frame_calibration_common.hpp>
 #include <img_resources.hpp>
 #include <option/has_attachable_accelerometer.h>
 #include <str_utils.hpp>
@@ -11,44 +12,11 @@ static ScreenInputShaperCalibration *instance = nullptr;
 
 static const char *text_header = N_("INPUT SHAPER CALIBRATION");
 
-static constexpr auto rect_screen = WizardDefaults::RectSelftestFrame;
-static constexpr auto rect_radio = WizardDefaults::RectRadioButton(0);
-static constexpr auto rect_frame = Rect16 {
-    rect_screen.Left() + WizardDefaults::MarginLeft,
-    rect_screen.Top() + WizardDefaults::row_0,
-    rect_screen.Width() - (WizardDefaults::MarginLeft + WizardDefaults::MarginRight),
-    rect_radio.Top() - rect_screen.Top() - WizardDefaults::row_0
-};
-static constexpr auto rect_frame_top = Rect16 {
-    rect_frame.Left(),
-    rect_frame.Top(),
-    rect_frame.Width(),
-    WizardDefaults::row_h,
-};
-static constexpr auto rect_frame_bottom = Rect16 {
-    rect_frame.Left(),
-    rect_frame.Top() + WizardDefaults::progress_row_h + WizardDefaults::row_h,
-    rect_frame.Width(),
-    WizardDefaults::row_h,
-};
 static constexpr auto center_frame_bottom = point_i16_t {
     rect_frame_bottom.Left() + rect_frame_bottom.Width() / 2,
     rect_frame_bottom.Top() + rect_frame_bottom.Height() / 2,
 };
 static constexpr auto progress_top = Rect16::Top_t { 100 };
-
-class FrameInstructions {
-private:
-    window_text_t text;
-
-protected:
-    FrameInstructions(window_t *parent, const string_view_utf8 &txt)
-        : text(parent, rect_frame, is_multiline::yes, is_closed_on_click_t::no, txt) {
-    }
-
-public:
-    void update(fsm::PhaseData) {}
-};
 
 class FrameMeasurement {
 private:
@@ -132,68 +100,6 @@ public:
 
     static constexpr const char *text_parking = N_("Parking");
 };
-
-#if HAS_ATTACHABLE_ACCELEROMETER()
-
-class FrameConnectToBoard final : public FrameInstructions {
-public:
-    explicit FrameConnectToBoard(window_t *parent)
-        : FrameInstructions(parent, _(text_connect_to_board)) {}
-
-    static constexpr const char *text_connect_to_board = N_(
-        "Accelerometer is not responding. "
-        "Turn off the printer and make sure the accelerometer cable is connected to the main board. "
-        "You can also abort the input shaper calibration and continue using the printer with default settings.");
-};
-
-class FrameWaitForExtruderTemperature final {
-    window_text_t text_above;
-    WindowBlinkingText text_below;
-    std::array<char, sizeof("NNN°C")> text_below_buffer;
-
-public:
-    explicit FrameWaitForExtruderTemperature(window_t *parent)
-        : text_above { parent, rect_frame_top, is_multiline::no, is_closed_on_click_t::no, _(text_wait_for_extruder_temperature) }
-        , text_below { parent, rect_frame_bottom } {
-        text_above.SetAlignment(Align_t::CenterTop());
-        text_below.SetAlignment(Align_t::CenterTop());
-        text_below.SetBlinkColor(COLOR_AZURE);
-    }
-
-    static constexpr const char *text_wait_for_extruder_temperature = N_(
-        "Waiting for nozzle to cool down");
-
-    void update(fsm::PhaseData data) {
-        const auto current_temperature = ((data[0] << 8) | data[1]) % 1000;
-
-        snprintf(text_below_buffer.data(), text_below_buffer.size(), "%3d°C", current_temperature);
-        text_below.SetText(string_view_utf8::MakeRAM(text_below_buffer.data()));
-        text_below.Invalidate();
-    }
-};
-
-class FrameAttachToExtruder final : public FrameInstructions {
-public:
-    explicit FrameAttachToExtruder(window_t *parent)
-        : FrameInstructions(parent, _(text_attach_to_extruder)) {}
-
-    static constexpr const char *text_attach_to_extruder = N_(
-        "Firmly attach the accelerometer to the extruder "
-        "(remove silicone sock if necessary). "
-        "In the next step, extruder will start vibrating and resonance will be measured.");
-};
-
-class FrameAttachToBed final : public FrameInstructions {
-public:
-    explicit FrameAttachToBed(window_t *parent)
-        : FrameInstructions(parent, _(text_attach_to_bed)) {}
-
-    static constexpr const char *text_attach_to_bed = N_(
-        "Firmly attach the accelerometer to the heatbed. "
-        "In the next step, heatbed will start vibrating and resonance will be measured.");
-};
-
-#endif
 
 class FrameMeasuringExtruder final : public FrameMeasurement {
 public:

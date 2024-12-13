@@ -141,15 +141,35 @@ PhasesPhaseStepping fail_helper(PhasesPhaseStepping phase) {
     }
 }
 
+static PhasesPhaseStepping intro_helper() {
+#if HAS_REMOTE_ACCELEROMETER()
+    // Do not check accelerometer here, because XL needs to pick up
+    // the tool before having valid samples, which is performed in the home
+    // state.
+    return PhasesPhaseStepping::home;
+#endif
+#if HAS_ATTACHABLE_ACCELEROMETER()
+    // Check the accelerometer now. It would be annoying to do all the homing
+    // and parking moves and then tell the user to turn off the printer, just
+    // to do all the moves after the reboot again.
+    PrusaAccelerometer accelerometer;
+    if (PrusaAccelerometer::Error::none == accelerometer.get_error()) {
+        return PhasesPhaseStepping::home;
+    }
+    return PhasesPhaseStepping::connect_to_board;
+#else
+    // Proceed straight to parking stage, any accelerometer error will be reported
+    // after it happens.
+    return PhasesPhaseStepping::home;
+#endif
+}
+
 namespace state {
 
     PhasesPhaseStepping intro() {
         switch (wait_for_response(PhasesPhaseStepping::intro)) {
         case Response::Continue:
-            if (!axes_need_homing(X_AXIS | Y_AXIS)) {
-                return PhasesPhaseStepping::calib_x;
-            }
-            return PhasesPhaseStepping::home;
+            return intro_helper();
         case Response::Abort:
             // No need to invalidate test result here
             return PhasesPhaseStepping::finish;
@@ -158,20 +178,109 @@ namespace state {
         }
     }
 
+    // Note: This is only relevant for printers which HAS_ATTACHABLE_ACCELEROMETER()
+    //       which coincidentally only have one hotend.
+    constexpr uint8_t hotend = 0;
+    constexpr float safe_temperature = 50;
+
     PhasesPhaseStepping home() {
         marlin_server::fsm_change(PhasesPhaseStepping::home);
-        GcodeSuite::G28_no_parser( // home
-            true, // home only if needed,
-            3, // raise Z by 3 mm
-            false, // S-parameter,
-            true, true, false // home X, Y but not Z
-        );
-#if HAS_TOOLCHANGER()
-        tool_change(/*tool_index=*/0, tool_return_t::no_return, tool_change_lift_t::no_lift, /*z_down=*/false);
+
+#if HAS_ATTACHABLE_ACCELEROMETER()
+        // Start cooling the hotend even before parking to save some time
+        Temperature::disable_hotend();
+        if (Temperature::degHotend(hotend) > safe_temperature) {
+            Temperature::set_fan_speed(0, 255);
+        }
 #endif
+
+        if (axes_need_homing(X_AXIS | Y_AXIS)) {
+            GcodeSuite::G28_no_parser( // home
+                true, // home only if needed,
+                3, // raise Z by 3 mm
+                false, // S-parameter,
+                true, true, false // home X, Y but not Z
+            );
+#if HAS_TOOLCHANGER()
+            tool_change(/*tool_index=*/0, tool_return_t::no_return, tool_change_lift_t::no_lift, /*z_down=*/false);
+#endif
+        }
         Planner::synchronize();
+#if HAS_ATTACHABLE_ACCELEROMETER()
+        return PhasesPhaseStepping::wait_for_extruder_temperature;
+#else
         return PhasesPhaseStepping::calib_x;
+#endif
     }
+
+#if HAS_ATTACHABLE_ACCELEROMETER()
+
+    PhasesPhaseStepping connect_to_board(Context &) {
+        marlin_server::fsm_change(PhasesPhaseStepping::connect_to_board);
+        switch (wait_for_response(PhasesPhaseStepping::connect_to_board)) {
+        case Response::Abort:
+            return PhasesPhaseStepping::finish;
+        default:
+            break;
+        }
+        BUDDY_UNREACHABLE();
+    }
+
+    PhasesPhaseStepping wait_for_extruder_temperature(Context &) {
+        for (;;) {
+            switch (marlin_server::get_response_from_phase(PhasesPhaseStepping::wait_for_extruder_temperature)) {
+            case Response::Abort:
+                return PhasesPhaseStepping::finish;
+            case Response::_none:
+                if (const float temperature = Temperature::degHotend(hotend); temperature > safe_temperature) {
+                    const uint16_t uint16_temperature = temperature;
+                    const fsm::PhaseData data = {
+                        static_cast<uint8_t>((uint16_temperature >> 8) & 0xff),
+                        static_cast<uint8_t>((uint16_temperature >> 0) & 0xff),
+                        0,
+                        0,
+                    };
+                    marlin_server::fsm_change(PhasesPhaseStepping::wait_for_extruder_temperature, data);
+                    idle(true);
+                } else {
+                    Temperature::zero_fan_speeds();
+                    return PhasesPhaseStepping::attach_to_extruder;
+                }
+                break;
+            default:
+                BUDDY_UNREACHABLE();
+            }
+        }
+        BUDDY_UNREACHABLE();
+    }
+
+    PhasesPhaseStepping attach_to_extruder(Context &) {
+        marlin_server::fsm_change(PhasesPhaseStepping::attach_to_extruder);
+        switch (wait_for_response(PhasesPhaseStepping::attach_to_extruder)) {
+        case Response::Abort:
+            return PhasesPhaseStepping::finish;
+        case Response::Continue:
+            return PhasesPhaseStepping::calib_x;
+        default:
+            break;
+        }
+        BUDDY_UNREACHABLE();
+    }
+
+    PhasesPhaseStepping attach_to_bed(Context &) {
+        marlin_server::fsm_change(PhasesPhaseStepping::attach_to_bed);
+        switch (wait_for_response(PhasesPhaseStepping::attach_to_bed)) {
+        case Response::Abort:
+            return PhasesPhaseStepping::finish;
+        case Response::Continue:
+            return PhasesPhaseStepping::calib_y;
+        default:
+            break;
+        }
+        BUDDY_UNREACHABLE();
+    }
+
+#endif
 
     PhasesPhaseStepping calib_x(Context &context) {
         CalibrateAxisHooks hooks { PhasesPhaseStepping::calib_x };
@@ -246,6 +355,16 @@ PhasesPhaseStepping get_next_phase(Context &context, const PhasesPhaseStepping p
         return state::intro();
     case PhasesPhaseStepping::home:
         return state::home();
+#if HAS_ATTACHABLE_ACCELEROMETER()
+    case PhasesPhaseStepping::connect_to_board:
+        return state::connect_to_board(context);
+    case PhasesPhaseStepping::wait_for_extruder_temperature:
+        return state::wait_for_extruder_temperature(context);
+    case PhasesPhaseStepping::attach_to_extruder:
+        return state::attach_to_extruder(context);
+    case PhasesPhaseStepping::attach_to_bed:
+        return state::attach_to_bed(context);
+#endif
     case PhasesPhaseStepping::calib_x:
         return state::calib_x(context);
     case PhasesPhaseStepping::calib_y:

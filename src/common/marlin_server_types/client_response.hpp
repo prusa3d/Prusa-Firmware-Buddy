@@ -451,6 +451,12 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesColdPull) { return Client
 enum class PhasesPhaseStepping : PhaseUnderlyingType {
     intro,
     home,
+    #if HAS_ATTACHABLE_ACCELEROMETER()
+    connect_to_board,
+    wait_for_extruder_temperature,
+    attach_to_extruder,
+    attach_to_bed,
+    #endif
     calib_x,
     calib_y,
     calib_x_nok,
@@ -854,14 +860,20 @@ class ClientResponses {
 #if HAS_PHASE_STEPPING()
     static constexpr EnumArray<PhasesPhaseStepping, PhaseResponses, CountPhases<PhasesPhaseStepping>()> phase_stepping_calibration_responses {
         { PhasesPhaseStepping::intro, { Response::Continue, Response::Abort } },
-        { PhasesPhaseStepping::home, {} },
-        { PhasesPhaseStepping::calib_x, { Response::Abort } },
-        { PhasesPhaseStepping::calib_y, { Response::Abort } },
-        { PhasesPhaseStepping::calib_x_nok, { Response::Ok } },
-        { PhasesPhaseStepping::calib_y_nok, { Response::Ok } },
-        { PhasesPhaseStepping::calib_error, { Response::Ok } },
-        { PhasesPhaseStepping::calib_ok, { Response::Ok } },
-        { PhasesPhaseStepping::finish, {} },
+            { PhasesPhaseStepping::home, {} },
+    #if HAS_ATTACHABLE_ACCELEROMETER()
+            { PhasesPhaseStepping::connect_to_board, { Response::Abort } },
+            { PhasesPhaseStepping::wait_for_extruder_temperature, { Response::Abort } },
+            { PhasesPhaseStepping::attach_to_extruder, { Response::Continue, Response::Abort } },
+            { PhasesPhaseStepping::attach_to_bed, { Response::Continue, Response::Abort } },
+    #endif
+            { PhasesPhaseStepping::calib_x, { Response::Abort } },
+            { PhasesPhaseStepping::calib_y, { Response::Abort } },
+            { PhasesPhaseStepping::calib_x_nok, { Response::Ok } },
+            { PhasesPhaseStepping::calib_y_nok, { Response::Ok } },
+            { PhasesPhaseStepping::calib_error, { Response::Ok } },
+            { PhasesPhaseStepping::calib_ok, { Response::Ok } },
+            { PhasesPhaseStepping::finish, {} },
     };
 #endif
 

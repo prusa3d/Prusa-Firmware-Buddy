@@ -15,6 +15,7 @@ target_sources(
           box_unfinished_selftest.cpp
           file_sort.cpp
           fonts.cpp
+          frame_calibration_common.cpp
           frame_qr_layout.cpp
           gcode_description.cpp
           gui_bootstrap_screen.cpp

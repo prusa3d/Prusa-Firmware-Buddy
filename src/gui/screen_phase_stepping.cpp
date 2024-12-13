@@ -4,6 +4,7 @@
 #include "i18n.h"
 #include "img_resources.hpp"
 #include <array>
+#include <gui/frame_calibration_common.hpp>
 #include <gui/qr.hpp>
 #include <guiconfig/wizard_config.hpp>
 #include <window_icon.hpp>
@@ -242,6 +243,12 @@ namespace frame {
 using Frames = FrameDefinitionList<ScreenPhaseStepping::FrameStorage,
     FrameDefinition<PhasesPhaseStepping::intro, frame::Introduction>,
     FrameDefinition<PhasesPhaseStepping::home, frame::Homing>,
+#if HAS_ATTACHABLE_ACCELEROMETER()
+    FrameDefinition<PhasesPhaseStepping::connect_to_board, FrameConnectToBoard>,
+    FrameDefinition<PhasesPhaseStepping::wait_for_extruder_temperature, FrameWaitForExtruderTemperature>,
+    FrameDefinition<PhasesPhaseStepping::attach_to_extruder, FrameAttachToExtruder>,
+    FrameDefinition<PhasesPhaseStepping::attach_to_bed, FrameAttachToBed>,
+#endif
     FrameDefinition<PhasesPhaseStepping::calib_x, frame::CalibratingX>,
     FrameDefinition<PhasesPhaseStepping::calib_y, frame::CalibratingY>,
     FrameDefinition<PhasesPhaseStepping::calib_x_nok, frame::CalibrationXNOK>,
