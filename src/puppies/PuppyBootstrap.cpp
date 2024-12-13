@@ -322,7 +322,7 @@ void PuppyBootstrap::reset_all_puppies() {
     reset_puppies_range(DOCKS.begin(), DOCKS.end());
 }
 
-inline void write_dock_reset_pin(Dock dock, buddy::hw::Pin::State state) {
+inline void write_dock_reset_pin([[maybe_unused]] Dock dock, [[maybe_unused]] buddy::hw::Pin::State state) {
     using namespace buddy::hw;
     switch (dock) {
 #if HAS_DWARF()
