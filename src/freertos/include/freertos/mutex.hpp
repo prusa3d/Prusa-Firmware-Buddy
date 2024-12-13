@@ -19,6 +19,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <cstddef>
 #include <freertos/config.hpp>
 
@@ -32,6 +33,9 @@ public:
     // We use erased storage in order to not pollute the scope with FreeRTOS internals.
     // The actual size and alignment are statically asserted in implementation file.
     using Storage = std::array<std::byte, mutex_storage_size>;
+
+    /// REMOVEME BFW-6418
+    static std::atomic<bool> power_panic_mode_removeme;
 
 private:
     void *handle;

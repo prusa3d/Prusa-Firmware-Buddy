@@ -13,12 +13,7 @@ public:
 
     void wait_for_preheat();
 
-    bool is_waiting();
-
-    void skip_preheat();
-
 private:
-    std::atomic<bool> waiting = false;
     std::atomic<bool> preheated = false;
     bool can_preheat = false;
     uint16_t last_enabled_bedlets = 0;

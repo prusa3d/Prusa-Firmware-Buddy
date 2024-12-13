@@ -230,6 +230,8 @@ void PausePrivatePhase::RestoreTemp() {
         thermalManager.setTargetBed(bed_restore_temp);
         bed_restore_temp = NAN;
     }
+    marlin_server::clear_warning(WarningType::NozzleTimeout);
+    marlin_server::clear_warning(WarningType::HeatersTimeout);
 }
 
 bool PausePrivatePhase::HasTempToRestore() const {
@@ -417,7 +419,7 @@ void Pause::start_process([[maybe_unused]] Response response) {
 void Pause::load_start_process([[maybe_unused]] Response response) {
     // TODO: this shouldn't be needed here
     // actual temperature does not matter, only target
-    if (!is_target_temperature_safe() && load_type != LoadType::load_to_gears) {
+    if (!is_target_temperature_safe() && load_type != LoadType::load_to_gears && (option::has_human_interactions || !HasTempToRestore())) {
         settings.do_stop = true;
         return;
     }
@@ -542,6 +544,8 @@ void Pause::await_filament_process([[maybe_unused]] Response response) {
 
     // Either side sensor not working or it has filament, go to loading
     if (!FSensors_instance().no_filament_surely(LogicalFilamentSensor::side)) {
+        RestoreTemp();
+
         mapi::park_move_with_conditional_home(mapi::park_positions[mapi::ParkPosition::load], mapi::ZAction::no_move);
         set_timed(LoadState::assist_insertion);
         return;
@@ -583,6 +587,7 @@ void Pause::load_to_gears_process([[maybe_unused]] Response response) { // slow 
 }
 
 void Pause::move_to_purge_process([[maybe_unused]] Response response) {
+    RestoreTemp();
     if constexpr (option::has_side_fsensor) {
         mapi::park_move_with_conditional_home(mapi::park_positions[mapi::ParkPosition::purge], mapi::ZAction::no_move);
     }

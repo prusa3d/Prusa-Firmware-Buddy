@@ -4,6 +4,7 @@
 #include "../../module/temperature.h"
 #include "../../gcode/gcode.h"
 #include "../../lcd/ultralcd.h"
+#include "../../../marlin_stubs/skippable_gcode.hpp"
 
 #if HAS_HEATED_BED
 
@@ -56,12 +57,12 @@ uint32_t BedPreheat::remaining_preheat_time() {
 }
 
 void BedPreheat::wait_for_preheat() {
-    assert(waiting == false);
-    waiting = true;
+    SkippableGCode::Guard skippable_operation;
+
     static constexpr uint32_t message_interval = 1000;
     uint32_t last_message_timestamp = millis() - message_interval;
 
-    while (can_preheat && !preheated) {
+    while (can_preheat && !preheated && !skippable_operation.is_skip_requested()) {
         idle(true);
 
         // make sure we don't turn off the motors
@@ -77,17 +78,6 @@ void BedPreheat::wait_for_preheat() {
     }
 
     MarlinUI::reset_status();
-    waiting = false;
-}
-
-bool BedPreheat::is_waiting() {
-    return waiting;
-}
-
-void BedPreheat::skip_preheat() {
-    if (can_preheat) {
-        preheated = true;
-    }
 }
 
 BedPreheat bed_preheat;

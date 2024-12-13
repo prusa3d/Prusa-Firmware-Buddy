@@ -1,6 +1,7 @@
 #include "marlin_server.hpp"
 
 #include <freertos/critical_section.hpp>
+#include <marlin_stubs/skippable_gcode.hpp>
 #include "marlin_client_queue.hpp"
 #include "marlin_server_request.hpp"
 #include <inttypes.h>
@@ -2112,10 +2113,8 @@ static void _server_print_loop(void) {
             break; // Wait for homing to end
         }
 
-#if HAS_HEATED_BED
-        // Unstuck absorbing heat
-        bed_preheat.skip_preheat();
-#endif /*HAS_HEATED_BED*/
+        // Unstuck any operation that is skippable
+        skippable_gcode().request_skip();
 
         media_prefetch.stop();
         queue.clear();

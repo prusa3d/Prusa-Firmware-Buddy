@@ -1,4 +1,5 @@
 #include <marlin_stubs/PrusaGcodeSuite.hpp>
+#include <marlin_stubs/skippable_gcode.hpp>
 
 #include <feature/chamber/chamber.hpp>
 #include <gcode/gcode_parser.hpp>
@@ -81,6 +82,7 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
     }
 
     uint32_t last_report_time = 0;
+    SkippableGCode::Guard skippable_operation;
 
     while (true) {
         if (planner.draining()) {
@@ -97,7 +99,11 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
             last_report_time = now;
         }
 
-        if (!current.has_value()) {
+        if (skippable_operation.is_skip_requested()) {
+            // Skip requested -> exit
+            break;
+
+        } else if (!current.has_value()) {
             // We don't know chamber temperature -> wait until we do
 
         } else if (std::abs(*current - target) <= tolerance) {
@@ -109,7 +115,7 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
             break;
 
         } else if (*current > target - tolerance && !wait_for_cooling) {
-            // We're hot and not waiting for cooling ->done
+            // We're hot and not waiting for cooling -> done
             break;
         }
 

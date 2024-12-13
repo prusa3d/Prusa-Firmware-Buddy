@@ -18,10 +18,11 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <tuple>
+#include <freertos/mutex.hpp>
 
 namespace buddy::puppies {
 
-using Lock = std::unique_lock<PowerPanicMutex>;
+using Lock = std::unique_lock<freertos::Mutex>;
 
 LOG_COMPONENT_DEF(ModularBed, logging::Severity::info);
 

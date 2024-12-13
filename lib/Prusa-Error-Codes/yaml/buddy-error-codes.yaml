@@ -286,6 +286,13 @@ Errors:
     id: "MB_HEATER_CONNECTED"
     approved: false
 
+  - code: "XX259"
+    printers: [COREONE, XL]
+    title: "FAILED TO REACH CHAMBER TEMPERATURE"
+    text: "Failing to reach target chamber temperature. Keep waiting?"
+    id: "CHAMBER_FAILED_TO_REACH_TEMP"
+    approved: false
+
   # ELECTRICAL     xx3xx
 
   - code: "XX301"
@@ -719,14 +726,14 @@ Errors:
 
   - code: "XX535"
     title: "Gcode Cropped"
-    text: "G-code command was too long and did not fit in the internal buffers. As a result, it might have beet not executed correctly."
+    text: "G-code command was too long and did not fit in the internal buffers. As a result, it may have been executed incorrectly."
     id: "GCODE_CROPPED"
     approved: false
 
   - code: "XX536"
     printers: [XL]
-    title: "DWARF ERROR"
-    text: "TMC error on dwarf %d"
+    title: "EXTRUDER ERROR"
+    text: "Extruder motor is not spinning on tool %d"
     id: "DWARF_TMC"
     approved: false
 

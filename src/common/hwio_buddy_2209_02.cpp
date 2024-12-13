@@ -27,7 +27,6 @@
 #include "MarlinPin.hpp"
 #include <Marlin/src/module/temperature.h>
 
-#include <option/has_puppies.h>
 #include <option/has_loadcell.h>
 #include <option/has_gui.h>
 #include <option/has_modularbed.h>
@@ -44,10 +43,6 @@
 
 #if (BOARD_IS_XBUDDY())
     #include "hw_configuration.hpp"
-#endif
-
-#if HAS_PUPPIES()
-    #include "puppies/Dwarf.hpp"
 #endif
 
 namespace {

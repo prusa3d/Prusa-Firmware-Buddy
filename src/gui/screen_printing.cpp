@@ -1,6 +1,7 @@
 // screen_printing.cpp
 #include "screen_printing.hpp"
 #include "marlin_client.hpp"
+#include <marlin_stubs/skippable_gcode.hpp>
 #include "print_utils.hpp"
 #include <buddy/ffconf.h>
 #include "ScreenHandler.hpp"
@@ -26,7 +27,6 @@
 #endif
 
 #include "Marlin/src/module/motion.h"
-#include "Marlin/src/feature/bed_preheat.hpp"
 
 #if ENABLED(CRASH_RECOVERY)
     #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
@@ -61,7 +61,7 @@ void screen_printing_data_t::tuneAction() {
     }
     switch (GetState()) {
     case printing_state_t::PRINTING:
-    case printing_state_t::ABSORBING_HEAT:
+    case printing_state_t::SKIPPABLE_OPERATION:
     case printing_state_t::PAUSED:
         Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuTune>);
         break;
@@ -86,8 +86,8 @@ void screen_printing_data_t::pauseAction() {
         marlin_client::print_pause();
         change_print_state();
         break;
-    case printing_state_t::ABSORBING_HEAT:
-        bed_preheat.skip_preheat();
+    case printing_state_t::SKIPPABLE_OPERATION:
+        skippable_gcode().request_skip();
         change_print_state();
         break;
     case printing_state_t::PAUSED:
@@ -583,7 +583,7 @@ void screen_printing_data_t::set_pause_icon_and_label() {
         EnableButton(BtnSocket::Middle);
         SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Pause, LabelRes::Pause);
         break;
-    case printing_state_t::ABSORBING_HEAT:
+    case printing_state_t::SKIPPABLE_OPERATION:
         EnableButton(BtnSocket::Middle);
         SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Resume, LabelRes::Skip);
         break;
@@ -645,7 +645,7 @@ void screen_printing_data_t::set_tune_icon_and_label() {
 
     switch (GetState()) {
     case printing_state_t::PRINTING:
-    case printing_state_t::ABSORBING_HEAT:
+    case printing_state_t::SKIPPABLE_OPERATION:
     case printing_state_t::PAUSED:
         EnableButton(BtnSocket::Left);
         break;
@@ -709,11 +709,7 @@ void screen_printing_data_t::change_print_state() {
         st = printing_state_t::INITIAL;
         break;
     case State::Printing:
-        if (bed_preheat.is_waiting()) {
-            st = printing_state_t::ABSORBING_HEAT;
-        } else {
-            st = printing_state_t::PRINTING;
-        }
+        st = printing_state_t::PRINTING;
         break;
     case State::PowerPanic_AwaitingResume:
     case State::Paused:
@@ -786,6 +782,9 @@ void screen_printing_data_t::change_print_state() {
     }
     if (stop_pressed) {
         st = printing_state_t::ABORTING;
+    }
+    if (skippable_gcode().is_running()) {
+        st = printing_state_t::SKIPPABLE_OPERATION;
     }
     if (state__readonly__use_change_print_state != st) {
         state__readonly__use_change_print_state = st;

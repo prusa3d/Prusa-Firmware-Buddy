@@ -4,6 +4,7 @@
 #include <device/hal.h>
 #include <device/peripherals_uart.hpp>
 #include <option/has_mmu2.h>
+#include <option/has_puppies.h>
 
 namespace MMU2 {
 
