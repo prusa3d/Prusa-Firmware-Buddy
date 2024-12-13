@@ -68,10 +68,6 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
         } else {
             return evaluate_results(sr.tools[ftrstd::to_underlying(tool)].fsensor);
         }
-#if HAS_PHASE_STEPPING()
-    case Action::PhaseSteppingCalibration:
-        return evaluate_results(config_store().selftest_result_phase_stepping.get());
-#endif
     case Action::_count:
         break;
     }
@@ -102,10 +98,6 @@ uint64_t get_test_mask(Action action) {
         return stmZcalib;
     case Action::Gears:
         return stmGears;
-#if HAS_PHASE_STEPPING()
-    case Action::PhaseSteppingCalibration:
-        return stmPhaseStepping;
-#endif
     case Action::_count:
         break;
     }

@@ -24,9 +24,6 @@ enum class Action {
     Heaters,
     Gears,
     FilamentSensorCalibration,
-#if HAS_PHASE_STEPPING()
-    PhaseSteppingCalibration,
-#endif
     _count,
     _last = _count - 1,
     _first = Fans,
@@ -81,17 +78,14 @@ struct MenuItemText {
 // could have been done with an array of texts directly, but there would be an order dependancy
 inline constexpr MenuItemText blank_item_texts[] {
     { Action::Fans, N_("%d Fan Test") },
-        { Action::ZAlign, N_("%d Z Alignment Calibration") },
-        { Action::YCheck, N_("%d Y Axis Test") },
-        { Action::XCheck, N_("%d X Axis Test") },
-        { Action::Loadcell, N_("%d Loadcell Test") },
-        { Action::ZCheck, N_("%d Z Axis Test") },
-        { Action::Heaters, N_("%d Heater Test") },
-        { Action::Gears, N_("%d Gears Calibration") },
-        { Action::FilamentSensorCalibration, N_("%d Filament Sensor Calibration") },
-#if HAS_PHASE_STEPPING()
-        { Action::PhaseSteppingCalibration, N_("%d Phase Stepping Calibration") },
-#endif
+    { Action::ZAlign, N_("%d Z Alignment Calibration") },
+    { Action::YCheck, N_("%d Y Axis Test") },
+    { Action::XCheck, N_("%d X Axis Test") },
+    { Action::Loadcell, N_("%d Loadcell Test") },
+    { Action::ZCheck, N_("%d Z Axis Test") },
+    { Action::Heaters, N_("%d Heater Test") },
+    { Action::Gears, N_("%d Gears Calibration") },
+    { Action::FilamentSensorCalibration, N_("%d Filament Sensor Calibration") },
 };
 
 TestResult get_test_result(Action action, Tool tool);

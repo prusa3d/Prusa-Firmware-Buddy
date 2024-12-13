@@ -1,20 +1,10 @@
-/**
- * @file
- * @author Radek Vana
- * @brief iX selftest header in special iX directory
- * @date 2021-09-30
- */
+/// @file
 #pragma once
-
-#include <option/has_mmu2.h>
 
 enum SelftestState_t : uint8_t {
     stsIdle,
     stsStart,
     stsSelftestStart,
-#if HAS_PHASE_STEPPING()
-    stsPhaseStepping,
-#endif
     stsEnsureZAway,
     stsYAxis,
     stsXAxis,
@@ -59,7 +49,4 @@ enum SelftestMask_t : uint32_t {
     stmGears = to_one_hot(stsGears),
     stmSelftestStart = to_one_hot(stsSelftestStart),
     stmSelftestStop = to_one_hot(stsSelftestStop),
-#if HAS_PHASE_STEPPING()
-    stmPhaseStepping = to_one_hot(stsPhaseStepping),
-#endif
 };
