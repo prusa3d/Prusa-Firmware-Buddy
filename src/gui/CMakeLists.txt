@@ -132,6 +132,10 @@ if(HAS_MODULARBED)
   target_sources(firmware PRIVATE screen_menu_modularbed.cpp)
 endif()
 
+if(HAS_XBUDDY_EXTENSION) # TODO: HAS_IP_CAMERA
+  target_sources(firmware PRIVATE MItem_camera.cpp)
+endif()
+
 if(DEBUG)
   target_sources(firmware PRIVATE screen_menu_experimental_settings_debug.cpp)
 else()

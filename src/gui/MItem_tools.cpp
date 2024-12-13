@@ -636,18 +636,6 @@ void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
 }
 
 /*****************************************************************************/
-// MI_CAM_USB_PWR
-MI_CAM_USB_PWR::MI_CAM_USB_PWR()
-    : WI_ICON_SWITCH_OFF_ON_t(true, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
-
-void MI_CAM_USB_PWR::OnChange([[maybe_unused]] size_t old_index) {
-#if HAS_XBUDDY_EXTENSION()
-    // FIXME: Don't interact with xbuddy_extension directly, but use some common interface, like we have for Chamber API
-    buddy::puppies::xbuddy_extension.set_usb_power(!old_index);
-#endif
-}
-
-/*****************************************************************************/
 // MI_PRINT_PROGRESS_TIME
 MI_PRINT_PROGRESS_TIME::MI_PRINT_PROGRESS_TIME()
     : WiSpin(config_store().print_progress_time.get(),

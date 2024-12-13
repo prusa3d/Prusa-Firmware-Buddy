@@ -19,6 +19,10 @@
     #include "MItem_mmu.hpp"
 #endif
 
+#if HAS_XBUDDY_EXTENSION()
+    #include "MItem_camera.hpp"
+#endif
+
 class MI_HELP_FW_UPDATE : public IWindowMenuItem {
     static constexpr const char *const label = N_("FW update");
 
