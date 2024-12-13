@@ -177,9 +177,7 @@ static void app_setup(void) {
     loadcell.SetThreshold(config_store().loadcell_threshold_continuous.get(), Loadcell::TareMode::Continuous);
     loadcell.SetHysteresis(config_store().loadcell_hysteresis.get());
 
-    if (config_store().stuck_filament_detection.get()) {
-        EMotorStallDetector::Instance().SetEnabled();
-    } // else keep it disabled (which is the default)
+    EMotorStallDetector::Instance().SetEnabled();
 
     #if HAS_LOADCELL_HX717()
     buddy::hw::hx717mux.init();

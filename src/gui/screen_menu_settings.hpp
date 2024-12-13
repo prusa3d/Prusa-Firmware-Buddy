@@ -53,9 +53,6 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #else
     MI_FILAMENT_SENSOR,
 #endif
-#if HAS_LOADCELL()
-    MI_STUCK_FILAMENT_DETECTION,
-#endif
 #if HAS_MMU2()
     MI_MMU_ENABLE,
     MI_MMU_BOOTLOADER_RESULT,

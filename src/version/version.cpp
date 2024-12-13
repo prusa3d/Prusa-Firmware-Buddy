@@ -18,6 +18,9 @@ namespace version {
 
 const char project_version[] = STR(FW_VERSION);
 
+static_assert(FW_VERSION_MAJOR == 6 && FW_VERSION_MINOR == 3 && FW_VERSION_PATCH == 0,
+    "BFW-6463: E-stall: force enable for data acquisition: shall be reverted into production FW");
+
 constexpr const uint16_t project_version_major = FW_VERSION_MAJOR;
 constexpr const uint16_t project_version_minor = FW_VERSION_MINOR;
 constexpr const uint16_t project_version_patch = FW_VERSION_PATCH;
