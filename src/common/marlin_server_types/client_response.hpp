@@ -852,18 +852,17 @@ class ClientResponses {
 #endif
 
 #if HAS_PHASE_STEPPING()
-    static constexpr PhaseResponses PhaseSteppingResponses[] = {
-        { Response::Continue, Response::Abort }, // PhasesPhaseStepping::intro
-        {}, // PhasesPhaseStepping::home
-        { Response::Abort }, // PhasesPhaseStepping::calib_x
-        { Response::Abort }, // PhasesPhaseStepping::calib_y
-        { Response::Ok }, // PhasesPhaseStepping::calib_x_nok
-        { Response::Ok }, // PhasesPhaseStepping::calib_y_nok
-        { Response::Ok }, // PhasesPhaseStepping::calib_error
-        { Response::Ok }, // case PhasesPhaseStepping::calib_ok
-        {}, // PhasesPhaseStepping::finish
+    static constexpr EnumArray<PhasesPhaseStepping, PhaseResponses, CountPhases<PhasesPhaseStepping>()> phase_stepping_calibration_responses {
+        { PhasesPhaseStepping::intro, { Response::Continue, Response::Abort } },
+        { PhasesPhaseStepping::home, {} },
+        { PhasesPhaseStepping::calib_x, { Response::Abort } },
+        { PhasesPhaseStepping::calib_y, { Response::Abort } },
+        { PhasesPhaseStepping::calib_x_nok, { Response::Ok } },
+        { PhasesPhaseStepping::calib_y_nok, { Response::Ok } },
+        { PhasesPhaseStepping::calib_error, { Response::Ok } },
+        { PhasesPhaseStepping::calib_ok, { Response::Ok } },
+        { PhasesPhaseStepping::finish, {} },
     };
-    static_assert(std::size(ClientResponses::PhaseSteppingResponses) == CountPhases<PhasesPhaseStepping>());
 #endif
 
     static constexpr PhaseResponses FanSelftestResponses[] = {
@@ -932,7 +931,7 @@ class ClientResponses {
             { ClientFSM::ColdPull, ColdPullResponses },
 #endif
 #if HAS_PHASE_STEPPING()
-            { ClientFSM::PhaseStepping, PhaseSteppingResponses },
+            { ClientFSM::PhaseStepping, phase_stepping_calibration_responses },
 #endif
 #if HAS_INPUT_SHAPER_CALIBRATION()
             { ClientFSM::InputShaperCalibration, input_shaper_calibration_responses },
