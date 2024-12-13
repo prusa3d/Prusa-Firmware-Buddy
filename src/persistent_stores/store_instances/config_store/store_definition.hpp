@@ -548,6 +548,7 @@ struct CurrentStore
 #if HAS_XBUDDY_EXTENSION()
     StoreItem<uint8_t, 255, journal::hash("XBuddy Extension Chamber LEDs PWM")> xbuddy_extension_chamber_leds_pwm;
     StoreItem<XBEFanTestResults, XBEFanTestResults {}, journal::hash("XBE Chamber fan selftest results")> xbe_fan_test_results;
+    StoreItem<bool, true, journal::hash("XBE USB Host power")> xbe_usb_power;
 #endif
 
 #if HAS_EMERGENCY_STOP()

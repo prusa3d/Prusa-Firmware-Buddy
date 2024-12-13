@@ -29,6 +29,7 @@ void XBuddyExtension::step() {
 
     puppies::xbuddy_extension.set_rgbw_led({ bed_leds_color_.r, bed_leds_color_.g, bed_leds_color_.b, bed_leds_color_.w });
     puppies::xbuddy_extension.set_white_led(config_store().xbuddy_extension_chamber_leds_pwm.get());
+    puppies::xbuddy_extension.set_usb_power(config_store().xbe_usb_power.get());
 
     const auto rpm0 = puppies::xbuddy_extension.get_fan_rpm(0);
     const auto rpm1 = puppies::xbuddy_extension.get_fan_rpm(1);
@@ -140,11 +141,11 @@ std::optional<XBuddyExtension::FilamentSensorState> XBuddyExtension::filament_se
 }
 
 void XBuddyExtension::set_usb_power(bool enabled) {
-    puppies::xbuddy_extension.set_usb_power(enabled);
+    config_store().xbe_usb_power.set(enabled);
 }
 
 bool XBuddyExtension::usb_power() const {
-    return puppies::xbuddy_extension.get_usb_power();
+    return config_store().xbe_usb_power.get();
 }
 
 XBuddyExtension &xbuddy_extension() {
