@@ -292,7 +292,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
     }
     if (event == GUI_event_t::HELD_RELEASED) {
         if (marlin_vars().logical_curr_pos[2 /* Z Axis */] <= 1.0f && p_state == printing_state_t::PRINTING) {
-            LiveAdjustZ::Show();
+            open_live_adjust_z_screen();
         } else if (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED) {
             open_move_z_screen();
         }

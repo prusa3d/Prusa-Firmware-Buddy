@@ -1,7 +1,7 @@
 // liveadjustz.hpp
 #pragma once
 
-#include "IDialog.hpp"
+#include <screen.hpp>
 #include "window_text.hpp"
 #include "window_numb.hpp"
 #include "window_icon.hpp"
@@ -79,19 +79,18 @@ protected:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
-class LiveAdjustZ : public IDialog {
+class ScreenLiveAdjustZ : public screen_t {
     window_text_t text;
     window_icon_t nozzle_icon;
     WindowLiveAdjustZ adjuster;
     WindowScale scale;
 
-    LiveAdjustZ(); // created by static Show method
-
 public:
-    static void Show();
+    ScreenLiveAdjustZ();
 
 protected:
     void moveNozzle();
-
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
+
+void open_live_adjust_z_screen();
