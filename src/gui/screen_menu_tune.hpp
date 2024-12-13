@@ -97,7 +97,10 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #if (!PRINTER_IS_PRUSA_MINI()) || defined(_DEBUG) // Save space in MINI release
     MI_HARDWARE_TUNE,
 #endif /*(!PRINTER_IS_PRUSA_MINI()) || defined(_DEBUG)*/
-    MI_TIMEZONE, MI_TIMEZONE_MIN, MI_TIMEZONE_SUMMER, MI_INFO, MI_TRIGGER_POWER_PANIC,
+    MI_TIMEZONE, MI_TIMEZONE_MIN, MI_TIMEZONE_SUMMER, MI_INFO,
+#if ENABLED(POWER_PANIC)
+    MI_TRIGGER_POWER_PANIC,
+#endif
 
 /* MI_FOOTER_SETTINGS,*/ // currently experimental, but we want it in future
 #if DEVELOPER_MODE()

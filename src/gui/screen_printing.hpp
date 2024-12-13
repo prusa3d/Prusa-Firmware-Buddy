@@ -18,7 +18,7 @@
 enum class printing_state_t : uint8_t {
     INITIAL,
     PRINTING,
-    ABSORBING_HEAT,
+    SKIPPABLE_OPERATION,
     PAUSING,
     PAUSED,
     RESUMING,

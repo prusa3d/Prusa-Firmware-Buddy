@@ -12,7 +12,6 @@
 #include "TCA6408A.hpp"
 #include <logging/log.hpp>
 #include "timing_precise.hpp"
-#include <option/has_puppies.h>
 #include <option/has_burst_stepping.h>
 #include <option/has_i2c_expander.h>
 #include <printers.h>

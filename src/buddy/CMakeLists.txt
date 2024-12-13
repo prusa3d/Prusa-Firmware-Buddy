@@ -33,6 +33,10 @@ if(HAS_DOOR_SENSOR)
   target_sources(firmware PRIVATE door_sensor.cpp)
 endif()
 
+if(HAS_MMU2)
+  target_sources(firmware PRIVATE mmu_port.cpp)
+endif()
+
 set_property(
   SOURCE src/main.cpp
   APPEND

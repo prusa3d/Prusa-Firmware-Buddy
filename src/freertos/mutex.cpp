@@ -9,6 +9,8 @@
 
 namespace freertos {
 
+std::atomic<bool> Mutex::power_panic_mode_removeme = false;
+
 Mutex::Mutex() {
     // If these asserts start failing, go fix the constants.
     static_assert(mutex_storage_size == sizeof(StaticSemaphore_t));
@@ -25,21 +27,40 @@ Mutex::~Mutex() {
 }
 
 void Mutex::unlock() {
-    if (xSemaphoreGive(SemaphoreHandle_t(handle)) != pdTRUE) {
-        // Since the semaphore was obtained correctly, this should never happen.
-        std::abort();
+    SemaphoreHandle_t handle = SemaphoreHandle_t(this->handle);
+
+    // REMOVEME BFW-6418
+    if (power_panic_mode_removeme) {
+        // Only attempt unlock if we're the owning thread - could have been for example locked before PP by a different one
+        // and we might have gotten here sooner due to task switching and lock failing
+        if (xQueueGetMutexHolder(handle) == xTaskGetCurrentTaskHandle() && xSemaphoreGive(handle) != pdTRUE) {
+            // Since the semaphore was obtained correctly, this should never happen.
+            std::abort();
+        }
+
+    } else {
+        if (xSemaphoreGive(handle) != pdTRUE) {
+            // Since the semaphore was obtained correctly, this should never happen.
+            std::abort();
+        }
     }
 }
 
 bool Mutex::try_lock() {
+    // Works the same regardless on the PP mode
+    (void)power_panic_mode_removeme;
+
     return xSemaphoreTake(SemaphoreHandle_t(handle), 0) == pdTRUE;
 }
 
 void Mutex::lock() {
     if (xSemaphoreTake(SemaphoreHandle_t(handle), portMAX_DELAY) != pdTRUE) {
-        static_assert(INCLUDE_vTaskSuspend);
-        // Since we are waiting forever and have task suspension, this should never happen.
-        std::abort();
+        // REMOVEME BFW-6418
+        if (!power_panic_mode_removeme) {
+            static_assert(INCLUDE_vTaskSuspend);
+            // Since we are waiting forever and have task suspension, this should never happen.
+            std::abort();
+        }
     }
 }
 

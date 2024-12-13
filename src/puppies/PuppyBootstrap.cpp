@@ -322,81 +322,49 @@ void PuppyBootstrap::reset_all_puppies() {
     reset_puppies_range(DOCKS.begin(), DOCKS.end());
 }
 
-#define HAS_PIN_RESETABLE_PUPPIES() HAS_DWARF() || HAS_MODULARBED()
-
-#if HAS_PIN_RESETABLE_PUPPIES()
-constexpr bool is_pin_resetable(Dock dock) {
-    const auto type = to_puppy_type(dock);
-    switch (type) {
-    #if HAS_DWARF()
-    case DWARF:
-        return true;
-    #endif
-    #if HAS_MODULARBED()
-    case MODULARBED:
-        return true;
-    #endif
-    default:
-        return false;
-    }
-}
-
-// FIXME: This decltype is ugly
-inline decltype(buddy::hw::modularBedReset) &get_reset_pin(Dock dock) {
+inline void write_dock_reset_pin([[maybe_unused]] Dock dock, [[maybe_unused]] buddy::hw::Pin::State state) {
+    using namespace buddy::hw;
     switch (dock) {
-    #if HAS_DWARF()
+#if HAS_DWARF()
     case Dock::DWARF_1:
-        return buddy::hw::dwarf1Reset;
+        dwarf1Reset.write(state);
+        break;
     case Dock::DWARF_2:
-        return buddy::hw::dwarf2Reset;
+        dwarf2Reset.write(state);
+        break;
     case Dock::DWARF_3:
-        return buddy::hw::dwarf3Reset;
+        dwarf3Reset.write(state);
+        break;
     case Dock::DWARF_4:
-        return buddy::hw::dwarf4Reset;
+        dwarf4Reset.write(state);
+        break;
     case Dock::DWARF_5:
-        return buddy::hw::dwarf5Reset;
+        dwarf5Reset.write(state);
+        break;
     case Dock::DWARF_6:
-        return buddy::hw::dwarf6Reset;
-    #endif
-    #if HAS_MODULARBED()
+        dwarf6Reset.write(state);
+        break;
+#endif
+#if HAS_MODULARBED()
     case Dock::MODULAR_BED:
-        return buddy::hw::modularBedReset;
-    #endif
+        modularBedReset.write(state);
+        break;
+#endif
     default:
         std::abort();
     }
-    std::unreachable();
 }
 
-#endif
+void PuppyBootstrap::reset_puppies_range(DockIterator begin, DockIterator end) {
+    const auto write_puppies_reset_pin = [](DockIterator dockFrom, DockIterator dockTo, Pin::State state) {
+        for (auto dock = dockFrom; dock != dockTo; dock = std::next(dock)) {
+            write_dock_reset_pin(*dock, state);
+        }
+    };
 
-void PuppyBootstrap::reset_puppies_range([[maybe_unused]] DockIterator begin, [[maybe_unused]] DockIterator end) {
-    for (auto dock = begin; dock < end; ++dock) {
-#if HAS_PIN_RESETABLE_PUPPIES()
-        if (is_pin_resetable(*dock)) {
-            get_reset_pin(*dock).write(Pin::State::high);
-        }
-#endif
-#if HAS_XBUDDY_EXTENSION()
-        if (*dock == Dock::XBUDDY_EXTENSION) {
-            buddy::hw::MMUEnable.reset();
-        }
-#endif
-    }
-    osDelay(1000);
-    for (auto dock = begin; dock < end; ++dock) {
-#if HAS_PIN_RESETABLE_PUPPIES()
-        if (is_pin_resetable(*dock)) {
-            get_reset_pin(*dock).write(Pin::State::low);
-        }
-#endif
-#if HAS_XBUDDY_EXTENSION()
-        if (*dock == Dock::XBUDDY_EXTENSION) {
-            buddy::hw::MMUEnable.set();
-        }
-#endif
-    }
-    osDelay(200);
+    write_puppies_reset_pin(begin, end, Pin::State::high);
+    osDelay(1);
+    write_puppies_reset_pin(begin, end, Pin::State::low);
 }
 
 bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address address) {

@@ -4,7 +4,6 @@
 #include <device/peripherals_uart.hpp>
 #include <option/buddy_enable_wui.h>
 #include <option/has_burst_stepping.h>
-#include <option/has_puppies.h>
 
 #if BUDDY_ENABLE_WUI()
     #include "espif.h"

@@ -26,6 +26,7 @@ target_sources(
           M9201.cpp
           M997.cpp
           M999.cpp
+          skippable_gcode.cpp
   )
 
 if(NOT BOARD STREQUAL "XL_DEV_KIT_XLB")
