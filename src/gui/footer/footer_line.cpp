@@ -41,6 +41,9 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
 
     if (item_id >= footer::Item::_count) {
         item_id = footer::Item::none;
+    } else if (item_id == footer::Item::none) {
+        unregister(index);
+        return false;
     }
 
     auto &item = items[index];
