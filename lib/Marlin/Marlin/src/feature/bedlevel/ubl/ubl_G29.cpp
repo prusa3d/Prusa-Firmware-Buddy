@@ -2025,7 +2025,7 @@
       uint32_t bitmap[GRID_MAX_POINTS_X] = { 0 };
       struct linear_fit_data lsf_results;
 
-      SERIAL_ECHOPGM("Extrapolating mesh...");
+      SERIAL_ECHOLNPGM("Extrapolating mesh...");
 
       const float weight_scaled = weight_factor * _MAX(MESH_X_DIST, MESH_Y_DIST);
 
