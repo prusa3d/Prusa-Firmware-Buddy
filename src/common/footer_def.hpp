@@ -72,6 +72,7 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
     nozzle_diameter = 22,
     nozzle_pwm = 23,
     enclosure_temp = 24,
+    ready = 25,
     _count,
 };
 
@@ -204,6 +205,8 @@ constexpr const char *to_string(Item item) {
 #else
         break;
 #endif
+    case Item::ready:
+        return N_("Ready status");
     case Item::none:
         return N_("None");
     case Item::_count:

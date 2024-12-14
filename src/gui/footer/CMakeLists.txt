@@ -12,6 +12,7 @@ target_sources(
           footer_item_input_shaper.cpp
           footer_item_live_z.cpp
           footer_item_printspeed.cpp
+          footer_item_ready_status.cpp
           footer_items_heaters.cpp
           footer_items_nozzle_bed.cpp
           footer_line.cpp

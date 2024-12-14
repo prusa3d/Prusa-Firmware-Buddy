@@ -14,6 +14,7 @@
 #include "footer_item_fsvalue.hpp"
 #include "footer_item_input_shaper.hpp"
 #include "footer_item_enclosure.hpp"
+#include "footer_item_ready_status.hpp"
 #include <option/has_mmu2.h>
 #include <option/has_sheet_profiles.h>
 #include <meta_utils.hpp>
@@ -72,6 +73,7 @@ using FooterItemMappings = TypeList< //
 #if XL_ENCLOSURE_SUPPORT()
     FooterItemMappingRec<FooterItemEnclosure, Item::enclosure_temp>,
 #endif
+    FooterItemMappingRec<FooterItemReadyStatus, Item::ready>,
     FooterItemMappingRec<FooterItemNozzle, Item::nozzle>
     //
     >;

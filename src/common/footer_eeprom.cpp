@@ -210,9 +210,10 @@ static_assert(ftrstd::to_underlying(Item::none) == 0
         && ftrstd::to_underlying(Item::nozzle_diameter) == 22
         && ftrstd::to_underlying(Item::nozzle_pwm) == 23
         && ftrstd::to_underlying(Item::enclosure_temp) == 24
+        && ftrstd::to_underlying(Item::ready) == 25
         && true, // So that we don't have to move the ',' around
     "Numbers assigned to items should never change and always be available (not ifdefed)!!");
 
-static_assert(ftrstd::to_underlying(Item::_count) == 25, "When adding a new item, increment this counter and add it to the static_assert above");
+static_assert(ftrstd::to_underlying(Item::_count) == 26, "When adding a new item, increment this counter and add it to the static_assert above");
 
 } // namespace footer::eeprom
