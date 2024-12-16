@@ -15,6 +15,8 @@ static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
     #include <freertos/mutex.hpp>
     #include <common/circular_buffer.hpp>
     #include <puppies/fifo_coder.hpp>
+#else
+    #error "Why do you #include me?"
 #endif
 
 /**

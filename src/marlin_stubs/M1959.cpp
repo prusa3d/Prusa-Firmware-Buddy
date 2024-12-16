@@ -7,7 +7,7 @@
 #include <Marlin/src/module/tool_change.h>
 #include <option/development_items.h>
 #include <option/has_input_shaper_calibration.h>
-#include <option/has_local_accelerometer.h>
+#include <option/has_attachable_accelerometer.h>
 #include <option/has_remote_accelerometer.h>
 
 static_assert(HAS_INPUT_SHAPER_CALIBRATION());
@@ -137,7 +137,8 @@ static PhasesInputShaperCalibration info_proceed() {
     // the tool before having valid samples, which is performed in the parking
     // state.
     return PhasesInputShaperCalibration::parking;
-#else
+#endif
+#if HAS_ATTACHABLE_ACCELEROMETER()
     // Check the accelerometer now. It would be annoying to do all the homing
     // and parking moves and then tell the user to turn off the printer, just
     // to do all the moves after the reboot again.
@@ -146,6 +147,10 @@ static PhasesInputShaperCalibration info_proceed() {
         return PhasesInputShaperCalibration::parking;
     }
     return PhasesInputShaperCalibration::connect_to_board;
+#else
+    // Proceed straight to parking stage, any accelerometer error will be reported
+    // after it happens.
+    return PhasesInputShaperCalibration::parking;
 #endif
 }
 
@@ -167,7 +172,7 @@ static PhasesInputShaperCalibration info() {
 #endif
 }
 
-// Note: This is only relevant for printers which HAS_LOCAL_ACCELEROMETER()
+// Note: This is only relevant for printers which HAS_ATTACHABLE_ACCELEROMETER()
 //       which coincidentally only have one hotend.
 static constexpr uint8_t hotend = 0;
 static constexpr float safe_temperature = 50;
@@ -175,7 +180,7 @@ static constexpr float safe_temperature = 50;
 static PhasesInputShaperCalibration parking(Context &context) {
     marlin_server::fsm_change(PhasesInputShaperCalibration::parking);
 
-#if HAS_LOCAL_ACCELEROMETER()
+#if HAS_ATTACHABLE_ACCELEROMETER()
     // Start cooling the hotend even before parking to save some time
     Temperature::disable_hotend();
     if (Temperature::degHotend(hotend) > safe_temperature) {
@@ -208,12 +213,14 @@ static PhasesInputShaperCalibration parking(Context &context) {
 
     // Carry on the changes
     planner.synchronize();
-#if HAS_LOCAL_ACCELEROMETER()
+#if HAS_ATTACHABLE_ACCELEROMETER()
     return PhasesInputShaperCalibration::wait_for_extruder_temperature;
 #else
     return PhasesInputShaperCalibration::measuring_x_axis;
 #endif
 }
+
+#if HAS_ATTACHABLE_ACCELEROMETER()
 
 static PhasesInputShaperCalibration connect_to_board(Context &) {
     marlin_server::fsm_change(PhasesInputShaperCalibration::connect_to_board);
@@ -266,6 +273,21 @@ static PhasesInputShaperCalibration attach_to_extruder(Context &) {
     }
     bsod(__FUNCTION__);
 }
+
+static PhasesInputShaperCalibration attach_to_bed(Context &) {
+    marlin_server::fsm_change(PhasesInputShaperCalibration::attach_to_bed);
+    switch (wait_for_response(PhasesInputShaperCalibration::attach_to_bed)) {
+    case Response::Abort:
+        return PhasesInputShaperCalibration::finish;
+    case Response::Continue:
+        return PhasesInputShaperCalibration::measuring_y_axis;
+    default:
+        break;
+    }
+    bsod(__FUNCTION__);
+}
+
+#endif
 
 // helper
 static PhasesInputShaperCalibration measuring_axis(
@@ -360,9 +382,16 @@ static PhasesInputShaperCalibration measuring_axis(
 
 static PhasesInputShaperCalibration measuring_x_axis(Context &context) {
 #if ENABLED(COREXY)
+    // corexy doesn't need to attach_to_bed even with attachable accelerometer
+    (void)HAS_ATTACHABLE_ACCELEROMETER();
     constexpr auto next_phase = PhasesInputShaperCalibration::measuring_y_axis;
 #else
+    #if HAS_ATTACHABLE_ACCELEROMETER()
     constexpr auto next_phase = PhasesInputShaperCalibration::attach_to_bed;
+    #else
+    // there is no bedslinger with permanent accelerometer at the moment, but we can dream...
+    constexpr auto next_phase = PhasesInputShaperCalibration::measuring_y_axis;
+    #endif
 #endif
     return measuring_axis(
         PhasesInputShaperCalibration::measuring_x_axis,
@@ -370,19 +399,6 @@ static PhasesInputShaperCalibration measuring_x_axis(Context &context) {
         X_AXIS,
         StepEventFlag::STEP_EVENT_FLAG_STEP_X,
         context.spectrum_x);
-}
-
-static PhasesInputShaperCalibration attach_to_bed(Context &) {
-    marlin_server::fsm_change(PhasesInputShaperCalibration::attach_to_bed);
-    switch (wait_for_response(PhasesInputShaperCalibration::attach_to_bed)) {
-    case Response::Abort:
-        return PhasesInputShaperCalibration::finish;
-    case Response::Continue:
-        return PhasesInputShaperCalibration::measuring_y_axis;
-    default:
-        break;
-    }
-    bsod(__FUNCTION__);
 }
 
 static PhasesInputShaperCalibration measuring_y_axis(Context &context) {
@@ -510,16 +526,18 @@ static PhasesInputShaperCalibration get_next_phase(Context &context, const Phase
         return info();
     case PhasesInputShaperCalibration::parking:
         return parking(context);
+#if HAS_ATTACHABLE_ACCELEROMETER()
     case PhasesInputShaperCalibration::connect_to_board:
         return connect_to_board(context);
     case PhasesInputShaperCalibration::wait_for_extruder_temperature:
         return wait_for_extruder_temperature(context);
     case PhasesInputShaperCalibration::attach_to_extruder:
         return attach_to_extruder(context);
-    case PhasesInputShaperCalibration::measuring_x_axis:
-        return measuring_x_axis(context);
     case PhasesInputShaperCalibration::attach_to_bed:
         return attach_to_bed(context);
+#endif
+    case PhasesInputShaperCalibration::measuring_x_axis:
+        return measuring_x_axis(context);
     case PhasesInputShaperCalibration::measuring_y_axis:
         return measuring_y_axis(context);
     case PhasesInputShaperCalibration::measurement_failed:
