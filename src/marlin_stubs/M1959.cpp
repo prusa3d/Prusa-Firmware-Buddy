@@ -124,12 +124,6 @@ struct Context {
 };
 
 static PhasesInputShaperCalibration info_proceed() {
-#if HAS_REMOTE_ACCELEROMETER()
-    // Do not check accelerometer here, because XL needs to pick up
-    // the tool before having valid samples, which is performed in the parking
-    // state.
-    return PhasesInputShaperCalibration::parking;
-#endif
 #if HAS_ATTACHABLE_ACCELEROMETER()
     // Check the accelerometer now. It would be annoying to do all the homing
     // and parking moves and then tell the user to turn off the printer, just
