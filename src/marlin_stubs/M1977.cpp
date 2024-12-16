@@ -1,5 +1,6 @@
 #include <marlin_stubs/M1977.hpp>
 
+#include <buddy/unreachable.hpp>
 #include <client_response.hpp>
 #include <common/fsm_base_types.hpp>
 #include <common/marlin_server.hpp>
@@ -136,7 +137,7 @@ PhasesPhaseStepping fail_helper(PhasesPhaseStepping phase) {
         config_store().selftest_result_phase_stepping.set(TestResult::TestResult_Failed);
         return PhasesPhaseStepping::finish;
     default:
-        bsod(__FUNCTION__);
+        BUDDY_UNREACHABLE();
     }
 }
 
@@ -150,7 +151,7 @@ namespace state {
             // No need to invalidate test result here
             return PhasesPhaseStepping::finish;
         default:
-            bsod(__FUNCTION__);
+            BUDDY_UNREACHABLE();
         }
     }
 
@@ -183,7 +184,7 @@ namespace state {
         case State::aborted:
             return PhasesPhaseStepping::finish;
         }
-        bsod(__FUNCTION__);
+        BUDDY_UNREACHABLE();
     }
 
     PhasesPhaseStepping calib_y(Context &context) {
@@ -200,7 +201,7 @@ namespace state {
         case State::aborted:
             return PhasesPhaseStepping::finish;
         }
-        bsod(__FUNCTION__);
+        BUDDY_UNREACHABLE();
     }
 
     PhasesPhaseStepping calib_ok(Context &context) {
@@ -215,7 +216,7 @@ namespace state {
         case Response::Ok:
             return PhasesPhaseStepping::finish;
         default:
-            bsod(__FUNCTION__);
+            BUDDY_UNREACHABLE();
         }
     }
 
@@ -257,7 +258,7 @@ PhasesPhaseStepping get_next_phase(Context &context, const PhasesPhaseStepping p
     case PhasesPhaseStepping::finish:
         return PhasesPhaseStepping::finish;
     }
-    bsod(__FUNCTION__);
+    BUDDY_UNREACHABLE();
 }
 
 } // namespace
