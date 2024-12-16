@@ -8,7 +8,6 @@
 #include <option/has_modularbed.h>
 #include <option/has_xbuddy_extension.h>
 #include <option/has_puppies.h>
-#include <option/has_xbuddy_extension.h>
 
 namespace buddy::puppies {
 
