@@ -43,6 +43,16 @@ void MI_XBUDDY_EXTENSION_COOLING_FANS::OnClick() {
     }
 }
 
+// MI_XBE_FILTRATION_FAN
+// =============================================
+MI_XBE_FILTRATION_FAN::MI_XBE_FILTRATION_FAN()
+    : WiSpin(xbuddy_extension().fan3_pwm() * 100 / 255, numeric_input_config::percent_with_off, _("Filtration Fan")) //
+{
+}
+void MI_XBE_FILTRATION_FAN::OnClick() {
+    xbuddy_extension().set_fan3_pwm(value() * 255 / 100);
+}
+
 // MI_INFO_XBUDDY_EXTENSION_FAN1
 // =============================================
 MI_INFO_XBUDDY_EXTENSION_FAN1::MI_INFO_XBUDDY_EXTENSION_FAN1()
