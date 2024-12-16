@@ -719,11 +719,7 @@ bool GcodeSuite::G28_no_parser(bool only_if_needed, float z_raise, bool simulate
                   line_to_current_position(homing_feedrate(Z_AXIS));
 
                   // Continue after the user puts the print sheet on
-                  Response response;
-                  do {
-                    idle(true, false);
-                    response = marlin_server::get_response_from_phase(warning_phase);
-                  } while (response == Response::_none);
+                  const Response response = marlin_server::wait_for_response(warning_phase);
 
                   marlin_server::clear_warning(warning_type);
 

@@ -3332,6 +3332,16 @@ FSMResponseVariant get_response_variant_from_phase(FSMAndPhase fsm_and_phase) {
     }
 }
 
+Response wait_for_response(FSMAndPhase fsm_and_phase) {
+    while (true) {
+        if (auto r = get_response_from_phase(fsm_and_phase); r != Response::_none) {
+            return r;
+        }
+
+        ::idle(true);
+    }
+}
+
 } // namespace marlin_server
 
 #if _DEBUG

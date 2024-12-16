@@ -224,6 +224,9 @@ inline Response get_response_from_phase(FSMAndPhase fsm_and_phase) {
     return get_response_variant_from_phase(fsm_and_phase).value_or<Response>(Response::_none);
 }
 
+/// idles() for FSM response for the given phase and then \returns it
+Response wait_for_response(FSMAndPhase fsm_and_phase);
+
 // FSM_notifier
 class FSM_notifier {
     struct data { // used floats - no need to retype

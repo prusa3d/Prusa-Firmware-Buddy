@@ -54,14 +54,7 @@ fsm::PhaseData serialize_ok(const Scores &scores_x, const Scores &scores_y) {
     return data;
 }
 
-Response wait_for_response(const PhasesPhaseStepping phase) {
-    for (;;) {
-        if (Response response = marlin_server::get_response_from_phase(phase); response != Response::_none) {
-            return response;
-        }
-        idle(true);
-    }
-}
+using marlin_server::wait_for_response;
 
 class CalibrateAxisHooks final : public phase_stepping::CalibrateAxisHooks {
 private:

@@ -31,16 +31,7 @@ static void set_test_result(TestResult test_result) {
     config_store().selftest_result_input_shaper_calibration.set(test_result);
 }
 
-static Response wait_for_response(const PhasesInputShaperCalibration phase) {
-    for (;;) {
-        const Response response = marlin_server::get_response_from_phase(phase);
-        if (response == Response::_none) {
-            idle(true); // prevent watchdog reset
-        } else {
-            return response;
-        }
-    }
-}
+using marlin_server::wait_for_response;
 
 static bool was_abort_requested(PhasesInputShaperCalibration phase) {
     switch (marlin_server::get_response_from_phase(phase)) {
