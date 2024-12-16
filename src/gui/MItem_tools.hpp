@@ -738,3 +738,9 @@ public:
     MI_ALWAYS_HIDDEN()
         : IWindowMenuItem({}, nullptr, is_enabled_t::no, is_hidden_t::yes) {}
 };
+
+class MI_LOG_TO_TXT : public WI_ICON_SWITCH_OFF_ON_t {
+public:
+    MI_LOG_TO_TXT();
+    void OnChange(size_t) final;
+};
