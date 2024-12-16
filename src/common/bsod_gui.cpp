@@ -178,27 +178,6 @@ void fatal_error(const char *error, const char *module) {
 }
 
 /**
- * @brief Cut path from long filename.
- * @todo When our GCC can do __FILE_NAME__, remove this and modify bsod() macro to use __FILE_NAME__.
- * @param path_and_file file including full path, __FILE__ macro
- * @return pointer to file without path
- */
-static const char *cut_path(const char *path_and_file) {
-    if (path_and_file == nullptr) {
-        return "Unknown File";
-    }
-
-    // Find last "/" or "\" and put pointer there
-    if (const char *pc = strrchr(path_and_file, '/'); pc != nullptr) {
-        path_and_file = pc + 1;
-    }
-    if (const char *pc = strrchr(path_and_file, '\\'); pc != nullptr) {
-        path_and_file = pc + 1;
-    }
-    return path_and_file;
-}
-
-/**
  * @brief Put HW into safe state, activate display safe mode and initialize it twice
  * @note Cannot be done from high priority ISR.
  */
@@ -238,7 +217,7 @@ static void fallback_bsod(const char *fmt, const char *file_name, int line_numbe
 
     // Add filename to buffer
     size_t consumed = snprintf(fallback_bsod_text, std::size(fallback_bsod_text), "Fallback BSOD\n(possibly BSODception)\n%s\n%s:%d\n",
-        version::project_version_full, cut_path(file_name), line_number);
+        version::project_version_full, file_name, line_number);
 
     // Add message to buffer
     if (consumed < std::size(fallback_bsod_text)) {
@@ -273,7 +252,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
     // Get file and line as title
     char title[crash_dump::MSG_TITLE_MAX_LEN];
-    snprintf(title, std::size(title), "%s:%d", cut_path(file_name), line_number);
+    snprintf(title, std::size(title), "%s:%d", file_name, line_number);
 
     // Get message
     char msg[crash_dump::MSG_MAX_LEN];
