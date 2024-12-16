@@ -20,7 +20,7 @@
 #endif
 
 #if HAS_XBUDDY_EXTENSION()
-    #include "MItem_camera.hpp"
+    #include <gui/menu_item/specific/menu_items_xbuddy_extension.hpp>
 #endif
 
 class MI_HELP_FW_UPDATE : public IWindowMenuItem {

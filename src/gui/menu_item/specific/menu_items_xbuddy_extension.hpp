@@ -2,6 +2,7 @@
 
 #include <WindowItemFanLabel.hpp>
 #include <WindowMenuSpin.hpp>
+#include <WindowMenuItems.hpp>
 
 /// Automatically hidden if the extboard is disabled
 class MI_XBUDDY_EXTENSION_LIGHTS : public WiSpin {
@@ -37,4 +38,12 @@ public:
 class MI_INFO_XBUDDY_EXTENSION_FAN3 : public WI_FAN_LABEL_t {
 public:
     MI_INFO_XBUDDY_EXTENSION_FAN3();
+};
+
+/// USB power control (for camera)
+class MI_CAM_USB_PWR : public WI_ICON_SWITCH_OFF_ON_t {
+public:
+    MI_CAM_USB_PWR();
+    void OnChange(size_t old_index) final;
+    void Loop() final;
 };
