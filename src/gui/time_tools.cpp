@@ -1,6 +1,5 @@
 #include "time_tools.hpp"
 #include <config_store/store_instance.hpp>
-#include <ctime>
 
 namespace time_tools {
 
@@ -47,15 +46,24 @@ namespace {
     TimeFormat last_format = TimeFormat::_12h; ///< Last time format used to print to text_buffer
 } // namespace
 
-bool update_time() {
+time_t get_local_time() {
     time_t t = time(nullptr);
 
     // Check if time is initialized in RTC (from sNTP)
-    if (t == static_cast<time_t>(-1)) {
-        return false;
+    if (t == invalid_time) {
+        return invalid_time;
     }
 
     t += calculate_total_timezone_offset_minutes() * 60;
+
+    return t;
+}
+
+bool update_time() {
+    time_t t = get_local_time();
+    if (t == invalid_time) {
+        return false;
+    }
 
     struct tm now;
     localtime_r(&t, &now);

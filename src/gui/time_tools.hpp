@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <ctime>
 
 namespace time_tools {
 
@@ -44,6 +45,11 @@ int32_t calculate_total_timezone_offset_minutes();
 
 /// @return current time format
 TimeFormat get_time_format();
+
+static constexpr time_t invalid_time = static_cast<time_t>(-1);
+
+/// \returns current time adjusted for the timezone offset
+time_t get_local_time();
 
 /**
  * @brief Update time string with current time.

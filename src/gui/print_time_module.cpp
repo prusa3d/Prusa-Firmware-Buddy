@@ -38,15 +38,14 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
         }
 
         // Countdown (unknown wall time or in a short time)
-        const time_t curr_sec = time(nullptr);
-        if (curr_sec == -1 || time_to_end < COUNTDOWN_TIME_S) {
+        const time_t local_cur_sec = time_tools::get_local_time();
+        if (local_cur_sec == time_tools::invalid_time || time_to_end < COUNTDOWN_TIME_S) {
             time_end_format = PT_t::countdown;
             generate_countdown_string(time_to_end);
             return GuiDefaults::COLOR_VALUE_VALID;
         }
 
         // Timestamp
-        const time_t local_cur_sec = curr_sec + time_tools::calculate_total_timezone_offset_minutes() * 60;
         generate_timestamp_string(local_cur_sec, time_to_end);
 
         time_end_format = PT_t::timestamp;
@@ -101,12 +100,10 @@ void PrintTime::print_timestamp_string_to_buffer(const time_t curr_sec, const ui
 }
 
 bool PrintTime::print_end_time(const uint32_t time_to_end, std::span<char> buffer) {
-    time_t curr_sec = time(nullptr);
-    if (curr_sec == -1) { // unable to fetch time
+    const time_t curr_sec = time_tools::get_local_time();
+    if (curr_sec == time_tools::invalid_time) { // unable to fetch time
         return false;
     }
-
-    curr_sec += time_tools::calculate_total_timezone_offset_minutes() * 60;
 
     print_timestamp_string_to_buffer(curr_sec, time_to_end, buffer);
     return true;
