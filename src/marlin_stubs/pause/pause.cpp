@@ -474,11 +474,7 @@ void Pause::load_start_process([[maybe_unused]] Response response) {
         handle_filament_removal(LoadState::filament_push_ask);
         break;
     case LoadType::load_purge:
-        if constexpr (option::has_wastebin) {
-            set(LoadState::move_to_purge);
-        } else {
-            set(LoadState::wait_temp);
-        }
+        set(LoadState::wait_temp);
         break;
     default:
         if (option::has_side_fsensor && settings.extruder_mmu_rework) {
