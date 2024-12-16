@@ -278,6 +278,7 @@ enum class PPState : uint8_t {
 };
 
 std::atomic_bool ac_fault_triggered = false;
+std::atomic_bool should_beep = true;
 static PPState power_panic_state = PPState::Inactive;
 
 // Temporary buffer for state filled at the time of the acFault trigger
@@ -1017,7 +1018,9 @@ void panic_loop() {
         }
 
         log_info(PowerPanic, "powerpanic complete");
-        Sound_Play(eSOUND_TYPE::CriticalAlert);
+        if (should_beep) {
+            Sound_Play(eSOUND_TYPE::CriticalAlert);
+        }
         power_panic_state = PPState::WaitingToDie;
         break;
     }
