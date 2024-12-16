@@ -44,10 +44,7 @@ namespace {
 void EmergencyStop::invoke_emergency() {
     log_info(EmergencyStop, "Emergency stop");
     emergency_invoked = true;
-    // TODO: We would really like to include the last parking moves after a
-    // finished print too, because power panic is no longer ready at that
-    // point.
-    if (marlin_server::printer_idle() || !marlin_server::all_axes_homed()) {
+    if (marlin_server::printer_idle() || marlin_server::aborting_or_aborted() || !marlin_server::all_axes_homed()) {
         log_info(EmergencyStop, "Quickstop");
         planner.quick_stop();
         while (PreciseStepping::stopping()) {
