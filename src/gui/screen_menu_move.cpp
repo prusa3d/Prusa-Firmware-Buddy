@@ -36,7 +36,7 @@ static const NumericInputConfig &axis_ranges_spin_config(uint8_t axis) {
 }
 
 I_MI_AXIS::I_MI_AXIS(size_t index)
-    : WiSpin(marlin_vars().logical_curr_pos[index].get(),
+    : WiSpin(marlin_vars().native_pos[index].get(),
         axis_ranges_spin_config(index), _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no) //
 {}
 
