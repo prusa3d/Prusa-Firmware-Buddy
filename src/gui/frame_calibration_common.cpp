@@ -29,7 +29,7 @@ FrameWaitForExtruderTemperature::FrameWaitForExtruderTemperature(window_t *paren
 void FrameWaitForExtruderTemperature::update(fsm::PhaseData data) {
     const auto current_temperature = ((data[0] << 8) | data[1]) % 1000;
 
-    snprintf(text_below_buffer.data(), text_below_buffer.size(), "%3d°C", current_temperature);
+    snprintf(text_below_buffer.data(), text_below_buffer.size(), "%3d °C", current_temperature);
     text_below.SetText(string_view_utf8::MakeRAM(text_below_buffer.data()));
     text_below.Invalidate();
 }

@@ -48,7 +48,7 @@ public:
 class FrameWaitForExtruderTemperature final {
     window_text_t text_above;
     WindowBlinkingText text_below;
-    std::array<char, sizeof("NNN°C")> text_below_buffer;
+    std::array<char, sizeof("NNN °C")> text_below_buffer;
 
 public:
     explicit FrameWaitForExtruderTemperature(window_t *parent);
