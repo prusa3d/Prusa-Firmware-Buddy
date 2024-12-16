@@ -56,7 +56,7 @@ void MI_XBE_FILTRATION_FAN::OnClick() {
 // MI_INFO_XBUDDY_EXTENSION_FAN1
 // =============================================
 MI_INFO_XBUDDY_EXTENSION_FAN1::MI_INFO_XBUDDY_EXTENSION_FAN1()
-    : WI_FAN_LABEL_t(_("Cooling Fan 1"),
+    : WI_FAN_LABEL_t(_("Chamber Fan 1"),
         [](auto) { return FanPWMAndRPM {
                        .pwm = xbuddy_extension().fan1_fan2_pwm(),
                        .rpm = xbuddy_extension().fan1_rpm(),
@@ -68,7 +68,7 @@ MI_INFO_XBUDDY_EXTENSION_FAN1::MI_INFO_XBUDDY_EXTENSION_FAN1()
 // MI_INFO_XBUDDY_EXTENSION_FAN2
 // =============================================
 MI_INFO_XBUDDY_EXTENSION_FAN2::MI_INFO_XBUDDY_EXTENSION_FAN2()
-    : WI_FAN_LABEL_t(_("Cooling Fan 2"),
+    : WI_FAN_LABEL_t(_("Chamber Fan 2"),
         [](auto) { return FanPWMAndRPM {
                        .pwm = xbuddy_extension().fan1_fan2_pwm(),
                        .rpm = xbuddy_extension().fan2_rpm(),
