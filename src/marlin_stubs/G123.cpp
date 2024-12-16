@@ -86,8 +86,11 @@ void PrusaGcodeSuite::G123() {
             return;
         }
 
-        current_position += segment_dir * feedrate * segment_duration;
-        line_to_current_position(segment_feedrate);
+        const auto dir_feedrate = segment_dir * feedrate;
+        current_position += dir_feedrate * segment_duration;
+
+        // Use dir_feedrate - excludes axes that we're not moving
+        line_to_current_position(std::max(segment_feedrate, dir_feedrate.magnitude()));
     }
 }
 
