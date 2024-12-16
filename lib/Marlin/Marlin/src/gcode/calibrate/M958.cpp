@@ -30,7 +30,6 @@
 #include <logging/log.hpp>
 
 #include <option/has_local_accelerometer.h>
-#include <option/has_dwarf.h>
 #include <option/has_remote_accelerometer.h>
 
 static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
