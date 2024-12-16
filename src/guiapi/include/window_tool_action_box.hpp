@@ -263,7 +263,7 @@ public:
                 if constexpr (requires { menu_item.TOOL; } && menu_item.TOOL != Tool::None_Any) {
                     if (!is_tool_enabled(ftrstd::to_underlying(menu_item.TOOL))) {
                         // if is_tool_enabled returns false for this particular tool, hide this menu item
-                        menu_item.Disable();
+                        menu_item.set_is_enabled(false);
                     }
                 }
             }(menu_items));

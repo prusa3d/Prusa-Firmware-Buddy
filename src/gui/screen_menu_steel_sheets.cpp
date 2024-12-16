@@ -66,13 +66,13 @@ SheetProfileMenuScreen::SheetProfileMenuScreen(uint32_t value)
     : SheetProfileMenuScreen__({})
     , value(value) {
     if (SteelSheets::IsSheetCalibrated(value)) {
-        Item<MI_SHEET_SELECT>().Enable();
-        Item<MI_SHEET_RESET>().Enable();
+        Item<MI_SHEET_SELECT>().set_is_enabled(true);
+        Item<MI_SHEET_RESET>().set_is_enabled(true);
         Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
         Item<MI_SHEET_OFFSET>().set_is_hidden(false);
     }
     if (value == 0) {
-        Item<MI_SHEET_RESET>().Disable();
+        Item<MI_SHEET_RESET>().set_is_enabled(false);
     }
 
     update_title();
@@ -96,8 +96,8 @@ void SheetProfileMenuScreen::windowEvent(window_t *sender, GUI_event_t ev, void 
 
     case profile_action::Reset:
         if (SteelSheets::ResetSheet(value)) {
-            Item<MI_SHEET_RESET>().Disable();
-            Item<MI_SHEET_SELECT>().Disable();
+            Item<MI_SHEET_RESET>().set_is_enabled(false);
+            Item<MI_SHEET_SELECT>().set_is_enabled(false);
             Item<MI_SHEET_OFFSET>().Reset();
         }
         break;

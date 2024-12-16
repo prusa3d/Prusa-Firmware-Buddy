@@ -28,13 +28,8 @@ void MI_CRASH_DETECTION::Loop() {
     // invalidation to reduce calls to config_store, as Print() happens and resets the state before
     // we can trap it here. At the same time, Print is not virtual.
     const bool phstep_enabled = config_store().get_phase_stepping_enabled();
-    if (phstep_enabled) {
-        set_value(false, false);
-        Disable();
-    } else {
-        set_value(crash_s.is_enabled(), false);
-        Enable();
-    }
+    set_is_enabled(phstep_enabled);
+    set_value(phstep_enabled && crash_s.is_enabled(), false);
     #endif
     return WI_ICON_SWITCH_OFF_ON_t::Loop();
 }

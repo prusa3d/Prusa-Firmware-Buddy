@@ -190,16 +190,6 @@ public:
     bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
     void set_is_enabled(bool set = true);
 
-    /// Deprecated. Use set_enabled
-    inline void Enable() {
-        set_is_enabled(true);
-    }
-
-    /// Deprecated. Use set_enabled
-    inline void Disable() {
-        set_is_enabled(false);
-    }
-
     bool DoesShowDisabledExtension() const { return show_disabled_extension == show_disabled_extension_t::yes; }
 
     /// Sets whether the item should show the extension (value) when disabled
