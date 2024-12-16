@@ -805,3 +805,9 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 #endif
+
+class MI_LOG_TO_TXT : public WI_ICON_SWITCH_OFF_ON_t {
+public:
+    MI_LOG_TO_TXT();
+    void OnChange(size_t) final;
+};

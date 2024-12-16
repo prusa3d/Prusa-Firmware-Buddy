@@ -50,6 +50,7 @@
 #include <netdev.h>
 #include <wui.h>
 #include <power_panic.hpp>
+#include <logging/log_dest_file.hpp>
 
 #include <type_traits>
 
@@ -1054,3 +1055,33 @@ void MI_DISPLAY_BAUDRATE::OnChange(size_t) {
     config_store().reduce_display_baudrate.set(GetIndex());
 }
 #endif
+
+/*****************************************************************************/
+MI_LOG_TO_TXT::MI_LOG_TO_TXT()
+    : WI_ICON_SWITCH_OFF_ON_t(logging::file_log_is_enabled(), _("Save Logs To File")) {}
+
+void MI_LOG_TO_TXT::OnChange(size_t) {
+    if (!value()) {
+        logging::file_log_disable();
+        MsgBoxInfo(_("Logging has been turned off. You can now safely remove the USB drive."), Responses_Ok);
+        return;
+    }
+
+    static constexpr const char *location = "/usb/";
+    static constexpr const char *filename = "log.txt";
+
+    ArrayStringBuilder<FILE_PATH_BUFFER_LEN> filepath;
+    filepath.append_string(location);
+    filepath.append_string(filename);
+
+    StringViewUtf8Parameters<FILE_NAME_BUFFER_LEN> fmt_buf;
+
+    if (!logging::file_log_enable(filepath.str())) {
+        MsgBoxError(_("Failed to open file '%s' for writing.").formatted(fmt_buf, filename), Responses_Ok);
+        set_value(false, false);
+        return;
+    }
+
+    MsgBoxInfo(_("The printer will now save all logs to file until restart.\n\nLog file: %s").formatted(fmt_buf, filename), Responses_Ok);
+    MsgBoxWarning(_("Turn the logging off before disconnecting the USB drive, or you risk damaging the filesystem!"), Responses_Ok);
+}
