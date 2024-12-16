@@ -37,6 +37,8 @@
     #endif
 
     #include <marlin_server.hpp>
+    #include <calibration_z.hpp>
+    #include <option/has_uneven_bed_prompt.h>
 
 /** \addtogroup G-Codes
  * @{
@@ -263,7 +265,37 @@ void GcodeSuite::G29() {
     crash_s.inhibit_gcode_replay();
     #endif
 
-    ubl.G29();
+    while (true) {
+        ubl.g29_min_max_measured_z = std::nullopt;
+        ubl.G29();
+
+    #if HAS_UNEVEN_BED_PROMPT()
+        // If we've done some measuring in this phase and it is too uneven, offer running Z calib
+        if (
+            ubl.g29_min_max_measured_z.has_value()
+            && ubl.g29_min_max_measured_z->second - ubl.g29_min_max_measured_z->first >= MBL_Z_DIFF_CALIB_WARNING_THRESHOLD
+
+            // Hack for the supplemenary "probe near purge place" - that is done after print area MBL and we don't want to offer Z align after that
+            && !parser.seenval('C') //
+        ) {
+            marlin_server::set_warning(WarningType::BedUnevenAlignmentPrompt, PhasesWarning::BedUnevenAlignmentPrompt);
+            const Response response = marlin_server::wait_for_response(PhasesWarning::BedUnevenAlignmentPrompt);
+            marlin_server::clear_warning(WarningType::BedUnevenAlignmentPrompt);
+
+            if (response == Response::Yes) {
+                // calib_Z does not have its own holder - we have to handle that
+                marlin_server::FSM_Holder _fsm(PhasesSelftest::CalibZ);
+                selftest::calib_Z(true);
+                assert(!TEST(axis_homed, Z_AXIS));
+                continue;
+            }
+        }
+    #elif defined(MBL_Z_DIFF_CALIB_WARNING_THRESHOLD)
+        #error "MBL_Z_DIFF_CALIB_WARNING_THRESHOLD defined but HAS_UNEVEN_BED_PROMPT is false"
+    #endif
+
+        break;
+    }
 }
 
 /** @}*/

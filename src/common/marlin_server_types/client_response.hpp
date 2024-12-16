@@ -30,6 +30,7 @@
 #include <option/has_toolchanger.h>
 #include <option/xl_enclosure_support.h>
 #include <option/has_chamber_api.h>
+#include <option/has_uneven_bed_prompt.h>
 #include <common/hotend_type.hpp>
 #include <device/board.h>
 
@@ -411,6 +412,11 @@ enum class PhasesWarning : PhaseUnderlyingType {
 
 #if HAS_CHAMBER_API()
     FailedToReachChamberTemperature,
+#endif
+
+#if HAS_UNEVEN_BED_PROMPT()
+    /// A prompt offering Z align calibration when uneven bed is detected
+    BedUnevenAlignmentPrompt,
 #endif
 
     NozzleCleaningFailed,
@@ -825,6 +831,9 @@ class ClientResponses {
 #endif
 #if HAS_CHAMBER_API()
             { PhasesWarning::FailedToReachChamberTemperature, { Response::Ok, Response::Skip } },
+#endif
+#if HAS_UNEVEN_BED_PROMPT()
+            { PhasesWarning::BedUnevenAlignmentPrompt, { Response::Yes, Response::No } },
 #endif
             { PhasesWarning::NozzleCleaningFailed, { Response::Retry, Response::Abort } },
     };

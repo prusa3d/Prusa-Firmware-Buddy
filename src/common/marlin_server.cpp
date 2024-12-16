@@ -97,6 +97,7 @@
 #include <option/has_chamber_api.h>
 #include <option/has_xbuddy_extension.h>
 #include <option/has_emergency_stop.h>
+#include <option/has_uneven_bed_prompt.h>
 
 #if HAS_DWARF()
     #include <puppies/Dwarf.hpp>
@@ -467,6 +468,9 @@ namespace {
         case PhasesWarning::MetricsConfigChangePrompt:
 #if HAS_CHAMBER_API()
         case PhasesWarning::FailedToReachChamberTemperature:
+#endif
+#if HAS_UNEVEN_BED_PROMPT()
+        case PhasesWarning::BedUnevenAlignmentPrompt:
 #endif
 #if ENABLED(DETECT_PRINT_SHEET)
         case PhasesWarning::SteelSheetNotDetected:

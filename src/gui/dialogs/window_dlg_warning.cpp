@@ -6,6 +6,7 @@
 #include <common/fsm_base_types.hpp>
 #include <option/has_dwarf.h>
 #include <option/has_modularbed.h>
+#include <option/has_uneven_bed_prompt.h>
 #include <state/printer_state.hpp>
 
 static constexpr int16_t icon_size = 48;
@@ -96,6 +97,9 @@ const img::Resource *warning_dialog_icon(WarningType warning_type) {
 #endif
 #if HAS_CHAMBER_API()
             { WarningType::FailedToReachChamberTemperature, &img::warning_48x48 },
+#endif
+#if HAS_UNEVEN_BED_PROMPT()
+            { WarningType::BedUnevenAlignmentPrompt, &img::warning_48x48 },
 #endif
             { WarningType::AccelerometerCommunicationFailed, &img::warning_48x48 },
     };

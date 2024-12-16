@@ -13,6 +13,7 @@
 #include <option/has_emergency_stop.h>
 #include <option/xl_enclosure_support.h>
 #include <option/has_chamber_api.h>
+#include <option/has_uneven_bed_prompt.h>
 
 #include <inc/MarlinConfigPre.h>
 
@@ -140,6 +141,9 @@ enum class WarningType : uint32_t {
     #endif
     #if HAS_CHAMBER_API()
     FailedToReachChamberTemperature,
+    #endif
+    #if HAS_UNEVEN_BED_PROMPT()
+    BedUnevenAlignmentPrompt,
     #endif
     AccelerometerCommunicationFailed,
     _last = AccelerometerCommunicationFailed,

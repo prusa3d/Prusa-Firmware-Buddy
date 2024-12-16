@@ -121,6 +121,9 @@ class unified_bed_leveling {
 
     static volatile int encoder_diff; // Volatile because it's changed at interrupt time.
 
+    /// Tracked on probe_major_points. You have to reset it yourself before the procedure
+    static std::optional<std::pair<float, float>> g29_min_max_measured_z;
+
     unified_bed_leveling();
 
     FORCE_INLINE static void set_z(const int8_t px, const int8_t py, const float &z) { z_values[px][py] = z; }

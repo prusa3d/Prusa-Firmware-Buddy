@@ -7,6 +7,7 @@
 #include <option/has_dwarf.h>
 #include <option/has_input_shaper_calibration.h>
 #include <option/xl_enclosure_support.h>
+#include <option/has_uneven_bed_prompt.h>
 #include <config_store/store_instance.hpp>
 
 using namespace marlin_server;
@@ -548,6 +549,11 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
 #if HAS_CHAMBER_API()
     case WarningType::FailedToReachChamberTemperature:
         return ErrCode::ERR_TEMPERATURE_CHAMBER_FAILED_TO_REACH_TEMP;
+#endif
+
+#if HAS_UNEVEN_BED_PROMPT()
+    case WarningType::BedUnevenAlignmentPrompt:
+        return ErrCode::ERR_MECHANICAL_UNEVEN_BED_ALIGN_PROMPT;
 #endif
     }
 
