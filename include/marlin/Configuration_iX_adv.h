@@ -1385,7 +1385,7 @@
      * For direct drive, the full length of the nozzle.
      * Set to 0 for manual unloading.
      */
-    #define FILAMENT_CHANGE_UNLOAD_LENGTH 105
+    #define FILAMENT_CHANGE_UNLOAD_LENGTH 110
     #define FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE 6 // (mm/s) Slow move when starting load.
     /**
      * (mm) Slow length, to allow time to insert material.
