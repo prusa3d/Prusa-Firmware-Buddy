@@ -288,7 +288,7 @@ namespace {
         bool started = false;
         CommResult flush(const uint8_t *buffer, size_t size, bool) {
             const char *fmt = started ? "Msg from server: %.*s" : "Msg from server (cont): %.*s";
-            log_info(connect, fmt, static_cast<int>(size), reinterpret_cast<const char *>(buffer));
+            log_debug(connect, fmt, static_cast<int>(size), reinterpret_cast<const char *>(buffer));
             started = true;
             return monostate {};
         }
@@ -658,7 +658,7 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
             break;
         }
 
-        log_info(connect, "Send %.*s", written_json, buffer);
+        log_debug(connect, "Send %.*s", written_json, buffer);
 
         if (auto error = websocket->send(first ? WebSocket::Text : WebSocket::Continuation, !more, buffer, written_json); error.has_value()) {
             conn_factory.invalidate();

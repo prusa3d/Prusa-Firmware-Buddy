@@ -106,7 +106,7 @@ Command Command::gcode_command(CommandId id, const string_view &body, SharedBuff
 }
 
 Command Command::parse_json_command(CommandId id, char *body, size_t body_size, SharedBuffer::Borrow buff) {
-    log_info(connect, "Received commad %.*s", body_size, body);
+    log_debug(connect, "Received commad %.*s", body_size, body);
     jsmntok_t tokens[MAX_TOKENS];
 
     int parse_result;
