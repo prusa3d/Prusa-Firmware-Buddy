@@ -15,15 +15,8 @@ ScreenMenuFilamentMMU::ScreenMenuFilamentMMU()
     header.SetIcon(&img::spool_white_16x16);
 }
 
-void ScreenMenuFilamentMMU::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::CLICK) {
-        MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
-        if (item->IsEnabled()) {
-            item->Do(); // do action (load filament ...)
-            header.SetText(_(label)); // restore label
-        }
-        return;
-    } else if (event == GUI_event_t::LOOP) {
+void ScreenMenuFilamentMMU::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::LOOP) {
         bool filament_in_nozzle = FSensors_instance().WhereIsFilament() == MMU2::FilamentState::AT_FSENSOR;
 
         // Some operations are not available when filament is loaded all the
@@ -36,4 +29,6 @@ void ScreenMenuFilamentMMU::windowEvent([[maybe_unused]] window_t *sender, GUI_e
         Item<MI_MMU_PRELOAD>().set_is_enabled(!filament_in_nozzle);
         Item<MI_MMU_PRELOAD_ADVANCED>().set_is_enabled(!filament_in_nozzle);
     }
+
+    ScreenMenu::windowEvent(sender, event, param);
 }

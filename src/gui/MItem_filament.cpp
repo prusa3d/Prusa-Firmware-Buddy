@@ -46,9 +46,9 @@
 /*****************************************************************************/
 // MI_LOAD
 MI_LOAD::MI_LOAD()
-    : MI_event_dispatcher(_(label)) {}
+    : IWindowMenuItem(_(label)) {}
 
-void MI_LOAD::Do() {
+void MI_LOAD::click(IWindowMenu &) {
 #if HAS_TOOLCHANGER()
     if (show_tool_selector_dialog() == ToolBox::DialogResult::Return) {
         return;
@@ -63,9 +63,9 @@ void MI_LOAD::Do() {
 /*****************************************************************************/
 // MI_UNLOAD
 MI_UNLOAD::MI_UNLOAD()
-    : MI_event_dispatcher(_(label)) {}
+    : IWindowMenuItem(_(label)) {}
 
-void MI_UNLOAD::Do() {
+void MI_UNLOAD::click(IWindowMenu &) {
 #if HAS_TOOLCHANGER()
     if (show_tool_selector_dialog() == ToolBox::DialogResult::Return) {
         return;
@@ -78,7 +78,7 @@ void MI_UNLOAD::Do() {
 /*****************************************************************************/
 // MI_CHANGE
 MI_CHANGE::MI_CHANGE()
-    : MI_event_dispatcher(_(label)) {}
+    : IWindowMenuItem(_(label)) {}
 
 bool MI_CHANGE::AvailableForTool(uint8_t tool) {
     bool has_filament_eeprom = config_store().get_filament_type(tool) != FilamentType::none;
@@ -102,7 +102,7 @@ void MI_CHANGE::UpdateEnableState() {
     }
 }
 
-void MI_CHANGE::Do() {
+void MI_CHANGE::click(IWindowMenu &) {
 #if HAS_TOOLCHANGER()
     if (show_tool_selector_dialog(AvailableForTool) == ToolBox::DialogResult::Return) {
         return;
@@ -118,7 +118,7 @@ void MI_CHANGE::Do() {
 MI_CHANGEALL::MI_CHANGEALL()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {}
 
-void MI_CHANGEALL::click(IWindowMenu & /*window_menu*/) {
+void MI_CHANGEALL::click(IWindowMenu &) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenChangeAllFilaments>);
 }
 #endif /*HAS_TOOLCHANGER()*/
@@ -126,9 +126,9 @@ void MI_CHANGEALL::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_PURGE
 MI_PURGE::MI_PURGE()
-    : MI_event_dispatcher(_(label)) {}
+    : IWindowMenuItem(_(label)) {}
 
-void MI_PURGE::Do() {
+void MI_PURGE::click(IWindowMenu &) {
 #if HAS_TOOLCHANGER()
     if (show_tool_selector_dialog(AvailableForTool) == ToolBox::DialogResult::Return) {
         return;

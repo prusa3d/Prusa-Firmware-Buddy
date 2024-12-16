@@ -8,7 +8,6 @@
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
-#include "menu_item_event_dispatcher.hpp"
 #include "MItem_mmu.hpp"
 #include "MItem_filament.hpp"
 #include <gui/screen/filament/screen_filament_management.hpp>

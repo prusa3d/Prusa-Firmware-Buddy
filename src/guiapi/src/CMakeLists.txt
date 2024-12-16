@@ -9,7 +9,6 @@ target_sources(
           i_window_text.cpp
           Jogwheel.cpp
           knob_event.cpp
-          menu_item_event_dispatcher.cpp
           numeric_input_config.cpp
           Rect16.cpp
           screen.cpp

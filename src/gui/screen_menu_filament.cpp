@@ -32,19 +32,6 @@ void ScreenMenuFilament::windowEvent(window_t *sender, GUI_event_t event, void *
     // If it manifests invalidation bugs like blinking - fix GUI or don't execute when dialog is open
     deactivate_item();
 
-    if (event == GUI_event_t::CLICK) {
-        MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
-        if (item->IsEnabled()) {
-            auto menu_index = menu.menu.focused_item_index();
-
-            item->Do(); // do action (load filament ...)
-
-            menu.menu.move_focus_to_index(menu_index.value_or(0)); // restore menu index
-            header.SetText(_(label)); // restore label
-        }
-        return;
-    }
-
     ScreenMenu::windowEvent(sender, event, param);
 }
 
