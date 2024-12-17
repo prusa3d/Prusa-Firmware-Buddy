@@ -30,7 +30,6 @@ constexpr const char *txt_homing { N_("Homing") };
 constexpr const char *txt_calibrating { N_("Running the phase stepping calibration to reduce vibrations. Please wait...") };
 constexpr const char *txt_calibrating_x { N_("Calibrating X motor") };
 constexpr const char *txt_calibrating_y { N_("Calibrating Y motor") };
-constexpr const char *txt_calibration_nok { N_("Calibration of motor %c failed.") };
 constexpr const char *txt_calibration_error { N_("Calibration failed with error.") };
 
 namespace frame {
@@ -50,23 +49,6 @@ namespace frame {
     public:
         using CenteredText::CenteredText;
         void update(const fsm::PhaseData &) {}
-    };
-
-    class CalibrationNOK : public CenteredText {
-    private:
-        StringViewUtf8Parameters<32> params;
-        char motor;
-
-    public:
-        explicit CalibrationNOK(window_t *parent, char motor)
-            : CenteredText { parent, string_view_utf8::MakeNULLSTR() }
-            , motor { motor } {
-        }
-
-        void update(const fsm::PhaseData &) {
-            const string_view_utf8 str = _(txt_calibration_nok).formatted(params, motor);
-            text.SetText(str);
-        }
     };
 
     class CalibratingMotor {
@@ -229,16 +211,14 @@ namespace frame {
         }
     };
 
-    class CalibrationXNOK final : public CalibrationNOK {
+    class CalibrationNOK final : public CenteredStaticText {
     public:
-        explicit CalibrationXNOK(window_t *parent)
-            : CalibrationNOK { parent, 'X' } {}
-    };
-
-    class CalibrationYNOK final : public CalibrationNOK {
-    public:
-        explicit CalibrationYNOK(window_t *parent)
-            : CalibrationNOK { parent, 'Y' } {}
+        explicit CalibrationNOK(window_t *parent)
+            : CenteredStaticText {
+                parent,
+                _("Calibration failed to find corrections to motor current."),
+            } {
+        }
     };
 
 } // namespace frame
@@ -254,8 +234,7 @@ using Frames = FrameDefinitionList<ScreenPhaseStepping::FrameStorage,
 #endif
     FrameDefinition<PhasesPhaseStepping::calib_x, frame::CalibratingX>,
     FrameDefinition<PhasesPhaseStepping::calib_y, frame::CalibratingY>,
-    FrameDefinition<PhasesPhaseStepping::calib_x_nok, frame::CalibrationXNOK>,
-    FrameDefinition<PhasesPhaseStepping::calib_y_nok, frame::CalibrationYNOK>,
+    FrameDefinition<PhasesPhaseStepping::calib_nok, frame::CalibrationNOK>,
     FrameDefinition<PhasesPhaseStepping::calib_error, frame::CalibrationError>,
     FrameDefinition<PhasesPhaseStepping::calib_ok, frame::CalibrationOK>>;
 

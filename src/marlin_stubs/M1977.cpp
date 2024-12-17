@@ -18,8 +18,7 @@ struct Scores {
 
 enum class State {
     error,
-    ok,
-    nok,
+    finished,
     aborted,
 };
 
@@ -108,7 +107,7 @@ public:
             .p2f = p2_f * p4_f,
             .p2b = p2_b * p4_b,
         };
-        state = is_ok(scores) ? State::ok : State::nok;
+        state = State::finished;
     }
 
     ContinueOrAbort on_idle() override {
@@ -279,11 +278,9 @@ namespace state {
         switch (hooks.state) {
         case State::error:
             return PhasesPhaseStepping::calib_error;
-        case State::ok:
+        case State::finished:
             context.scores_x = hooks.scores;
             return PhasesPhaseStepping::calib_y;
-        case State::nok:
-            return PhasesPhaseStepping::calib_x_nok;
         case State::aborted:
             return PhasesPhaseStepping::finish;
         }
@@ -296,11 +293,12 @@ namespace state {
         switch (hooks.state) {
         case State::error:
             return PhasesPhaseStepping::calib_error;
-        case State::ok:
+        case State::finished:
             context.scores_y = hooks.scores;
-            return PhasesPhaseStepping::calib_ok;
-        case State::nok:
-            return PhasesPhaseStepping::calib_y_nok;
+            if (is_ok(context.scores_x) && is_ok(context.scores_y)) {
+                return PhasesPhaseStepping::calib_ok;
+            }
+            return PhasesPhaseStepping::calib_nok;
         case State::aborted:
             return PhasesPhaseStepping::finish;
         }
@@ -323,14 +321,9 @@ namespace state {
         }
     }
 
-    PhasesPhaseStepping calib_x_nok() {
-        marlin_server::fsm_change(PhasesPhaseStepping::calib_x_nok);
-        return fail_helper(PhasesPhaseStepping::calib_x_nok);
-    }
-
-    PhasesPhaseStepping calib_y_nok() {
-        marlin_server::fsm_change(PhasesPhaseStepping::calib_y_nok);
-        return fail_helper(PhasesPhaseStepping::calib_y_nok);
+    PhasesPhaseStepping calib_nok() {
+        marlin_server::fsm_change(PhasesPhaseStepping::calib_nok);
+        return fail_helper(PhasesPhaseStepping::calib_nok);
     }
 
     PhasesPhaseStepping calib_error() {
@@ -360,12 +353,10 @@ PhasesPhaseStepping get_next_phase(Context &context, const PhasesPhaseStepping p
         return state::calib_x(context);
     case PhasesPhaseStepping::calib_y:
         return state::calib_y(context);
-    case PhasesPhaseStepping::calib_x_nok:
-        return state::calib_x_nok();
-    case PhasesPhaseStepping::calib_y_nok:
-        return state::calib_y_nok();
     case PhasesPhaseStepping::calib_error:
         return state::calib_error();
+    case PhasesPhaseStepping::calib_nok:
+        return state::calib_nok();
     case PhasesPhaseStepping::calib_ok:
         return state::calib_ok(context);
     case PhasesPhaseStepping::finish:

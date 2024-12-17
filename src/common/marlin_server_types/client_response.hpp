@@ -465,9 +465,8 @@ enum class PhasesPhaseStepping : PhaseUnderlyingType {
     #endif
     calib_x,
     calib_y,
-    calib_x_nok,
-    calib_y_nok,
     calib_error,
+    calib_nok,
     calib_ok,
     finish,
     _last = finish,
@@ -878,9 +877,8 @@ class ClientResponses {
     #endif
             { PhasesPhaseStepping::calib_x, { Response::Abort } },
             { PhasesPhaseStepping::calib_y, { Response::Abort } },
-            { PhasesPhaseStepping::calib_x_nok, { Response::Ok } },
-            { PhasesPhaseStepping::calib_y_nok, { Response::Ok } },
             { PhasesPhaseStepping::calib_error, { Response::Ok } },
+            { PhasesPhaseStepping::calib_nok, { Response::Ok } },
             { PhasesPhaseStepping::calib_ok, { Response::Ok } },
             { PhasesPhaseStepping::finish, {} },
     };
