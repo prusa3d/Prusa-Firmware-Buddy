@@ -4,6 +4,7 @@
 #include <client_response.hpp>
 #include <common/fsm_base_types.hpp>
 #include <common/marlin_server.hpp>
+#include <Marlin/src/feature/phase_stepping/calibration_config.hpp>
 #include <Marlin/src/feature/phase_stepping/calibration.hpp>
 #include <Marlin/src/gcode/gcode.h>
 
@@ -22,19 +23,43 @@ enum class State {
     aborted,
 };
 
+static constexpr const size_t calibration_phase_count = phase_stepping::printer_calibration_config.phases.size();
+struct CalibrationPhaseResult {
+    float forward;
+    float backward;
+};
+using CalibrationResult = std::array<CalibrationPhaseResult, calibration_phase_count>;
+
+Scores calibration_results_to_scores(const CalibrationResult &calibration_results) {
+    auto [p1_f, p1_b] = calibration_results[0];
+    auto [p3_f, p3_b] = calibration_results[2];
+    auto [p2_f, p2_b] = calibration_results[1];
+    auto [p4_f, p4_b] = calibration_results[3];
+    return Scores {
+        .p1f = p1_f * p3_f,
+        .p1b = p1_b * p3_b,
+        .p2f = p2_f * p4_f,
+        .p2b = p2_b * p4_b,
+    };
+}
+
 struct Context {
-    Scores scores_x;
-    Scores scores_y;
+    CalibrationResult calibration_result_x;
+    CalibrationResult calibration_result_y;
 };
 
-constexpr bool is_ok(const Scores &scores) {
+constexpr bool is_ok(const CalibrationResult &calibration_result) {
+    const Scores scores = calibration_results_to_scores(calibration_result);
     return scores.p1f < 1.f
         && scores.p1b < 1.f
         && scores.p2f < 1.f
         && scores.p2b < 1.f;
 }
 
-fsm::PhaseData serialize_ok(const Scores &scores_x, const Scores &scores_y) {
+fsm::PhaseData serialize_ok(const CalibrationResult &calibration_results_x, const CalibrationResult &calibration_results_y) {
+    const Scores scores_x = calibration_results_to_scores(calibration_results_x);
+    const Scores scores_y = calibration_results_to_scores(calibration_results_y);
+
     // take the worst of forward and backward, subtract from 1 to get reduction and scale up to percents
     const uint8_t p1x = 100 - 100 * std::max(scores_x.p1f, scores_x.p1b);
     const uint8_t p2x = 100 - 100 * std::max(scores_x.p2f, scores_x.p2b);
@@ -58,23 +83,19 @@ private:
     PhasesPhaseStepping phase;
     fsm::PhaseData data;
     int current_calibration_phase = 0;
-    std::array<std::tuple<float, float>, 4> calibration_results;
 
 public:
-    Scores scores;
+    CalibrationResult calibration_result;
     State state = State::error;
 
     explicit CalibrateAxisHooks(PhasesPhaseStepping phase)
         : phase { phase } {
         data[0] = 0;
-        data[1] = calibration_results.size();
+        data[1] = calibration_phase_count;
         data[2] = 0;
     }
 
-    void set_calibration_phases_count(int phases) override {
-        if (static_cast<size_t>(phases) != calibration_results.size()) {
-            bsod("phase count mismatch");
-        }
+    void set_calibration_phases_count(int) override {
     }
 
     void on_enter_calibration_phase(int calibration_phase) override {
@@ -93,20 +114,10 @@ public:
     }
 
     void on_calibration_phase_result(float forward_score, float backward_score) override {
-        calibration_results[current_calibration_phase] = { forward_score, backward_score };
-    };
+        calibration_result[current_calibration_phase] = { forward_score, backward_score };
+    }
 
     void on_termination() override {
-        auto [p1_f, p1_b] = calibration_results[0];
-        auto [p3_f, p3_b] = calibration_results[2];
-        auto [p2_f, p2_b] = calibration_results[1];
-        auto [p4_f, p4_b] = calibration_results[3];
-        scores = Scores {
-            .p1f = p1_f * p3_f,
-            .p1b = p1_b * p3_b,
-            .p2f = p2_f * p4_f,
-            .p2b = p2_b * p4_b,
-        };
         state = State::finished;
     }
 
@@ -279,7 +290,7 @@ namespace state {
         case State::error:
             return PhasesPhaseStepping::calib_error;
         case State::finished:
-            context.scores_x = hooks.scores;
+            context.calibration_result_x = hooks.calibration_result;
             return PhasesPhaseStepping::calib_y;
         case State::aborted:
             return PhasesPhaseStepping::finish;
@@ -294,8 +305,8 @@ namespace state {
         case State::error:
             return PhasesPhaseStepping::calib_error;
         case State::finished:
-            context.scores_y = hooks.scores;
-            if (is_ok(context.scores_x) && is_ok(context.scores_y)) {
+            context.calibration_result_y = hooks.calibration_result;
+            if (is_ok(context.calibration_result_x) && is_ok(context.calibration_result_y)) {
                 return PhasesPhaseStepping::calib_ok;
             }
             return PhasesPhaseStepping::calib_nok;
@@ -306,7 +317,8 @@ namespace state {
     }
 
     PhasesPhaseStepping calib_ok(Context &context) {
-        marlin_server::fsm_change(PhasesPhaseStepping::calib_ok, serialize_ok(context.scores_x, context.scores_y));
+        fsm::PhaseData data = serialize_ok(context.calibration_result_x, context.calibration_result_y);
+        marlin_server::fsm_change(PhasesPhaseStepping::calib_ok, data);
         Planner::synchronize();
         phase_stepping::enable(X_AXIS, true);
         config_store().set_phase_stepping_enabled(X_AXIS, true);
