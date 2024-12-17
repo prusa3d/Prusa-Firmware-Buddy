@@ -205,7 +205,7 @@ MI_NET_IP_VER_t::MI_NET_IP_VER_t()
     : MenuItemSwitch(_("Protocol"), protocol_values, 0) //
 {
     set_translate_items(false);
-    set_is_enabled(false);
+    set_enabled(false);
 }
 
 IMI_IP4_ADDR::IMI_IP4_ADDR(const char *label, NetDeviceID device_id, AddrType addr)

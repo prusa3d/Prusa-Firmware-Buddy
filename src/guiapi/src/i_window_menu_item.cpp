@@ -51,7 +51,7 @@ IWindowMenuItem::~IWindowMenuItem() {
     }
 }
 
-void IWindowMenuItem::set_is_enabled(bool set) {
+void IWindowMenuItem::set_enabled(bool set) {
     if (IsEnabled() == set) {
         return;
     }

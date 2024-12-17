@@ -35,7 +35,7 @@ MI_LOADED_FILAMENT::MI_LOADED_FILAMENT(DisplayFormat display_format, uint8_t too
         filament_type_.build_name_with_info(sb);
 
         SetLabel(string_view_utf8::MakeRAM(label_buffer_.data()));
-        set_is_enabled(filament_type_ != FilamentType::none);
+        set_enabled(filament_type_ != FilamentType::none);
         set_is_hidden(!is_tool_enabled(tool));
     }
 }

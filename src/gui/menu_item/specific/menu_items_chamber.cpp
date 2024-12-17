@@ -38,7 +38,7 @@ void MI_CHAMBER_TARGET_TEMP::Loop() {
     const auto new_val = (temp_ctrl ? chamber().target_temperature() : std::nullopt).value_or(*chamber_temperature_config.special_value);
 
     set_is_hidden(!caps.always_show_temperature_control && !temp_ctrl);
-    set_is_enabled(temp_ctrl);
+    set_enabled(temp_ctrl);
     set_value(new_val);
 }
 

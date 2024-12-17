@@ -133,7 +133,7 @@ void MI_PICK_PARK::update(bool) {
     SetLabel(_(is_picked || (toolhead() == all_toolheads) ? N_("Park Tool") : N_("Pick Tool")));
 
     // If we're in all toolheads mode, allow only unpicking the tool
-    set_is_enabled((toolhead() != all_toolheads) || is_picked);
+    set_enabled((toolhead() != all_toolheads) || is_picked);
 }
 
 void MI_PICK_PARK::click(IWindowMenu &) {

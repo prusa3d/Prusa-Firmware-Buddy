@@ -103,7 +103,7 @@ void ScreenMenuMove::loop() {
     Item<DUMMY_AXIS_E>().UpdateValue(is_temp_set);
 
     // Update whether MI_COOLDOWN is enabled
-    Item<screen_menu_move::MI_COOLDOWN>().set_is_enabled(is_temp_set
+    Item<screen_menu_move::MI_COOLDOWN>().set_enabled(is_temp_set
 #if HAS_TOOLCHANGER()
         || prusa_toolchanger.is_toolchanger_enabled() // MI_COOLDOWN is always visible on multitool
 #endif

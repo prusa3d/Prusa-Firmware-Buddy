@@ -870,7 +870,7 @@ MI_SET_READY::MI_SET_READY()
 
 void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
     if (connect_client::MarlinPrinter::set_printer_ready(true)) {
-        set_is_enabled(false);
+        set_enabled(false);
     }
 }
 

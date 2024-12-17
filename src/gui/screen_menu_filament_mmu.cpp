@@ -24,10 +24,10 @@ void ScreenMenuFilamentMMU::windowEvent(window_t *sender, GUI_event_t event, voi
         //
         // Update the status ‒ both because it can change from a submenu and in
         // theory by a gcode sent remotely from eg. Connect.
-        Item<MI_MMU_CUT_FILAMENT>().set_is_enabled(!filament_in_nozzle);
-        Item<MI_MMU_EJECT_FILAMENT>().set_is_enabled(!filament_in_nozzle);
-        Item<MI_MMU_PRELOAD>().set_is_enabled(!filament_in_nozzle);
-        Item<MI_MMU_PRELOAD_ADVANCED>().set_is_enabled(!filament_in_nozzle);
+        Item<MI_MMU_CUT_FILAMENT>().set_enabled(!filament_in_nozzle);
+        Item<MI_MMU_EJECT_FILAMENT>().set_enabled(!filament_in_nozzle);
+        Item<MI_MMU_PRELOAD>().set_enabled(!filament_in_nozzle);
+        Item<MI_MMU_PRELOAD_ADVANCED>().set_enabled(!filament_in_nozzle);
     }
 
     ScreenMenu::windowEvent(sender, event, param);

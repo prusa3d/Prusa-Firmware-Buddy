@@ -24,7 +24,7 @@ void MI_FILAMENT_NAME::update() {
     ArrayStringBuilder<GetInfoLen()> sb;
     filament_type.build_name_with_info(sb);
     ChangeInformation(sb.str());
-    set_is_enabled(filament_type.is_customizable());
+    set_enabled(filament_type.is_customizable());
 }
 
 void MI_FILAMENT_NAME::click(IWindowMenu &) {
@@ -59,7 +59,7 @@ MI_FILAMENT_NOZZLE_TEMPERATURE::MI_FILAMENT_NOZZLE_TEMPERATURE()
 
 void MI_FILAMENT_NOZZLE_TEMPERATURE::update() {
     set_value(filament_type.parameters().nozzle_temperature);
-    set_is_enabled(filament_type.is_customizable());
+    set_enabled(filament_type.is_customizable());
 }
 
 void MI_FILAMENT_NOZZLE_TEMPERATURE::OnClick() {
@@ -74,7 +74,7 @@ MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE()
 
 void MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::update() {
     set_value(filament_type.parameters().nozzle_preheat_temperature);
-    set_is_enabled(filament_type.is_customizable());
+    set_enabled(filament_type.is_customizable());
 }
 
 void MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::OnClick() {
@@ -89,7 +89,7 @@ MI_FILAMENT_BED_TEMPERATURE::MI_FILAMENT_BED_TEMPERATURE()
 
 void MI_FILAMENT_BED_TEMPERATURE::update() {
     set_value(filament_type.parameters().heatbed_temperature);
-    set_is_enabled(filament_type.is_customizable());
+    set_enabled(filament_type.is_customizable());
 }
 
 void MI_FILAMENT_BED_TEMPERATURE::OnClick() {
@@ -104,7 +104,7 @@ MI_FILAMENT_REQUIRES_FILTRATION::MI_FILAMENT_REQUIRES_FILTRATION()
 
 void MI_FILAMENT_REQUIRES_FILTRATION::update() {
     set_value(filament_type.parameters().requires_filtration, false);
-    set_is_enabled(filament_type.is_customizable());
+    set_enabled(filament_type.is_customizable());
 }
 
 void MI_FILAMENT_REQUIRES_FILTRATION::OnChange(size_t) {
@@ -119,7 +119,7 @@ MI_FILAMENT_IS_ABRASIVE::MI_FILAMENT_IS_ABRASIVE()
 
 void MI_FILAMENT_IS_ABRASIVE::update() {
     set_value(filament_type.parameters().is_abrasive, false);
-    set_is_enabled(filament_type.is_customizable());
+    set_enabled(filament_type.is_customizable());
 }
 
 void MI_FILAMENT_IS_ABRASIVE::OnChange(size_t) {

@@ -229,7 +229,7 @@ protected:
 
         if (ap_info_result != ERR_OK) {
             item.SetLabel(string_view_utf8::MakeCPUFLASH("##ERROR##"));
-            item.set_is_enabled(false);
+            item.set_enabled(false);
         }
     }
 

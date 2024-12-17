@@ -95,7 +95,7 @@ bool MI_CHANGE::AvailableForAnyTool() {
 }
 
 void MI_CHANGE::UpdateEnableState() {
-    set_is_enabled(AvailableForAnyTool());
+    set_enabled(AvailableForAnyTool());
 }
 
 void MI_CHANGE::click(IWindowMenu &) {
@@ -148,5 +148,5 @@ bool MI_PURGE::AvailableForAnyTool() {
 }
 
 void MI_PURGE::UpdateEnableState() {
-    set_is_enabled(AvailableForAnyTool());
+    set_enabled(AvailableForAnyTool());
 }

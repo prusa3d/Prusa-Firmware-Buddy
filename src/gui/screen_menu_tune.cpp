@@ -31,7 +31,7 @@ void ScreenMenuTune::windowEvent(window_t *sender, GUI_event_t event, void *para
     switch (event) {
     case GUI_event_t::LOOP: {
         const auto current_command = marlin_client::get_command();
-        Item<MI_M600>().set_is_enabled( //
+        Item<MI_M600>().set_enabled( //
             marlin_server::all_axes_homed()
             && marlin_server::all_axes_known()
             && (current_command != marlin_server::Cmd::G28)
@@ -60,7 +60,7 @@ void ScreenMenuTune::windowEvent(window_t *sender, GUI_event_t event, void *para
 
 #if ENABLED(CANCEL_OBJECTS)
         // Enable cancel object menu
-        Item<MI_CO_CANCEL_OBJECT>().set_is_enabled(marlin_vars().cancel_object_count > 0);
+        Item<MI_CO_CANCEL_OBJECT>().set_enabled(marlin_vars().cancel_object_count > 0);
 #endif /* ENABLED(CANCEL_OBJECTS) */
         break;
     }

@@ -188,7 +188,7 @@ public:
     IWindowMenuItem(const IWindowMenuItem &) = delete;
 
     bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
-    void set_is_enabled(bool set = true);
+    void set_enabled(bool set = true);
 
     bool DoesShowDisabledExtension() const { return show_disabled_extension == show_disabled_extension_t::yes; }
 
