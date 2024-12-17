@@ -10,13 +10,6 @@
 
 namespace {
 
-struct Scores {
-    float p1f;
-    float p1b;
-    float p2f;
-    float p2b;
-};
-
 enum class State {
     error,
     finished,
@@ -30,51 +23,12 @@ struct CalibrationPhaseResult {
 };
 using CalibrationResult = std::array<CalibrationPhaseResult, calibration_phase_count>;
 
-Scores calibration_results_to_scores(const CalibrationResult &calibration_results) {
-    auto [p1_f, p1_b] = calibration_results[0];
-    auto [p3_f, p3_b] = calibration_results[2];
-    auto [p2_f, p2_b] = calibration_results[1];
-    auto [p4_f, p4_b] = calibration_results[3];
-    return Scores {
-        .p1f = p1_f * p3_f,
-        .p1b = p1_b * p3_b,
-        .p2f = p2_f * p4_f,
-        .p2b = p2_b * p4_b,
-    };
-}
-
 struct Context {
     CalibrationResult calibration_result_x;
     CalibrationResult calibration_result_y;
+    uint8_t reduction_x;
+    uint8_t reduction_y;
 };
-
-constexpr bool is_ok(const CalibrationResult &calibration_result) {
-    const Scores scores = calibration_results_to_scores(calibration_result);
-    return scores.p1f < 1.f
-        && scores.p1b < 1.f
-        && scores.p2f < 1.f
-        && scores.p2b < 1.f;
-}
-
-fsm::PhaseData serialize_ok(const CalibrationResult &calibration_results_x, const CalibrationResult &calibration_results_y) {
-    const Scores scores_x = calibration_results_to_scores(calibration_results_x);
-    const Scores scores_y = calibration_results_to_scores(calibration_results_y);
-
-    // take the worst of forward and backward, subtract from 1 to get reduction and scale up to percents
-    const uint8_t p1x = 100 - 100 * std::max(scores_x.p1f, scores_x.p1b);
-    const uint8_t p2x = 100 - 100 * std::max(scores_x.p2f, scores_x.p2b);
-    const uint8_t p1y = 100 - 100 * std::max(scores_y.p1f, scores_y.p1b);
-    const uint8_t p2y = 100 - 100 * std::max(scores_y.p2f, scores_y.p2b);
-
-    // display average of reduction in all phases per motor
-    const uint8_t reduction_x = (p1x + p2x) / 2;
-    const uint8_t reduction_y = (p1y + p2y) / 2;
-
-    fsm::PhaseData data;
-    data[0] = reduction_x;
-    data[1] = reduction_y;
-    return data;
-}
 
 using marlin_server::wait_for_response;
 
@@ -163,6 +117,44 @@ static PhasesPhaseStepping intro_helper() {
     // after it happens.
     return PhasesPhaseStepping::home;
 #endif
+}
+
+std::optional<uint8_t> evaluate_calibration_result(const CalibrationResult &calibration_result) {
+    const auto [p1_f, p1_b] = calibration_result[0];
+    const auto [p3_f, p3_b] = calibration_result[2];
+    const auto [p2_f, p2_b] = calibration_result[1];
+    const auto [p4_f, p4_b] = calibration_result[3];
+    const auto p1f = p1_f * p3_f;
+    const auto p1b = p1_b * p3_b;
+    const auto p2f = p2_f * p4_f;
+    const auto p2b = p2_b * p4_b;
+
+    const bool is_ok = true
+        && p1f < 1.f
+        && p1b < 1.f
+        && p2f < 1.f
+        && p2b < 1.f;
+
+    if (is_ok) {
+        // take the worst of forward and backward, subtract from 1 to get reduction and scale up to percents
+        const uint8_t p1 = 100 - 100 * std::max(p1f, p1b);
+        const uint8_t p2 = 100 - 100 * std::max(p2f, p2b);
+
+        // display average of reduction in all phases per motor
+        return (p1 + p2) / 2;
+    }
+    return std::nullopt;
+}
+
+PhasesPhaseStepping evaluate_result(Context &context) {
+    const auto reduction_x = evaluate_calibration_result(context.calibration_result_x);
+    const auto reduction_y = evaluate_calibration_result(context.calibration_result_y);
+    if (reduction_x && reduction_y) {
+        context.reduction_x = *reduction_x;
+        context.reduction_y = *reduction_y;
+        return PhasesPhaseStepping::calib_ok;
+    }
+    return PhasesPhaseStepping::calib_nok;
 }
 
 namespace state {
@@ -306,10 +298,7 @@ namespace state {
             return PhasesPhaseStepping::calib_error;
         case State::finished:
             context.calibration_result_y = hooks.calibration_result;
-            if (is_ok(context.calibration_result_x) && is_ok(context.calibration_result_y)) {
-                return PhasesPhaseStepping::calib_ok;
-            }
-            return PhasesPhaseStepping::calib_nok;
+            return evaluate_result(context);
         case State::aborted:
             return PhasesPhaseStepping::finish;
         }
@@ -317,7 +306,9 @@ namespace state {
     }
 
     PhasesPhaseStepping calib_ok(Context &context) {
-        fsm::PhaseData data = serialize_ok(context.calibration_result_x, context.calibration_result_y);
+        fsm::PhaseData data;
+        data[0] = context.reduction_x;
+        data[1] = context.reduction_y;
         marlin_server::fsm_change(PhasesPhaseStepping::calib_ok, data);
         Planner::synchronize();
         phase_stepping::enable(X_AXIS, true);
