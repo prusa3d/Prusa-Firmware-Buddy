@@ -2141,14 +2141,20 @@ static void _server_print_loop(void) {
         sync_plan_position();
         report_current_position();
 
-        if (axes_need_homing()
+#if HAS_EMERGENCY_STOP()
+        if (!buddy::emergency_stop().in_emergency()) {
+#else
+        {
+#endif
+            if (axes_need_homing()
 #if ENABLED(CRASH_RECOVERY)
-            || server.aborting_did_crash_trigger
+                || server.aborting_did_crash_trigger
 #endif /*ENABLED(CRASH_RECOVERY)*/
-        )
-            lift_head(); // It would be dangerous to move XY
-        else {
-            park_head();
+            )
+                lift_head(); // It would be dangerous to move XY
+            else {
+                park_head();
+            }
         }
 
         thermalManager.disable_all_heaters();

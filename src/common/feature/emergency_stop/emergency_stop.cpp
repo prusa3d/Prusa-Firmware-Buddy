@@ -40,7 +40,7 @@ namespace {
     }
 } // namespace
 
-// Try to do some desperate measures to stop moving in Z (currently implemented as power panic).
+// Try to do some desperate measures to stop moving in Z (currently implemented as power panic or quick_stop).
 void EmergencyStop::invoke_emergency() {
     log_info(EmergencyStop, "Emergency stop");
     emergency_invoked = true;
@@ -58,7 +58,7 @@ void EmergencyStop::invoke_emergency() {
         // aren't homed yet, so that's fine to keep (and to keep partial
         // homing, because until then, we move slowly and in straight lines
         // anyway).
-        if (marlin_server::printer_idle()) {
+        if (marlin_server::printer_idle() || marlin_server::aborting_or_aborted()) {
             set_all_unhomed();
         }
     } else if (!power_panic::ac_fault_triggered) {
