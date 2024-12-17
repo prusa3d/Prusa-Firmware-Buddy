@@ -345,7 +345,7 @@ set_feature_for_printers(HAS_HOTEND_TYPE_SUPPORT "MK4" "MK3.5" "iX" "COREONE")
 set_feature_for_printers(HAS_EMERGENCY_STOP "COREONE")
 
 # Checks for bed evenness during G29 and if it's too uneven, offers Z alignment calibration
-set_feature_for_printers(HAS_UNEVEN_BED_PROMPT)
+set_feature_for_printers(HAS_UNEVEN_BED_PROMPT "COREONE")
 
 # Set GUI settings
 set(PRINTERS_WITH_GUI "COREONE" "MINI" "MK4" "MK3.5" "XL" "iX")

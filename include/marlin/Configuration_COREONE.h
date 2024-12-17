@@ -1303,6 +1303,9 @@
     #define SEGMENT_LEVELED_MOVES
     #define LEVELED_SEGMENT_LENGTH 5.0 // (mm) Length of all segments (except the last one)
 
+    /// (mm) If distance between min and max Z during probing exceeds this value, we offer a Z alignment calibration
+    #define MBL_Z_DIFF_CALIB_WARNING_THRESHOLD 2
+
     /**
    * Enable the G26 Mesh Validation Pattern tool.
    */
