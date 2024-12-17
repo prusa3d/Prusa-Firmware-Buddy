@@ -44,3 +44,19 @@ bool corexy_home_calibrated();
  * @return true if the current home is unstable and requires re-calibration
  */
 bool corexy_home_is_unstable();
+
+#if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
+/**
+ * @brief Calibrate homing sensitivity on TMC
+ * @warning Must be called *at* home position
+ * @param fr_mm_s Homing (and service moves) feedrate
+ * @return true on success
+ */
+bool corexy_sens_calibrate(const float fr_mm_s);
+
+/**
+ * @brief Return the TMC sensitivity calibration status
+ * @return true if already calibrated
+ */
+bool corexy_sens_calibrated();
+#endif

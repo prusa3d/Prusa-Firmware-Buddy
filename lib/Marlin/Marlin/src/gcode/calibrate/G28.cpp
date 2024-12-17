@@ -679,6 +679,21 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
       const float xy_mm_s = fr_mm_s ? fr_mm_s : homing_feedrate(A_AXIS);
 
       for (size_t retry = 0; !planner.draining(); ++retry) {
+        #if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
+        // re/calibrate optimal measurement sensitivity first
+        if (flags.force_calibrate || !corexy_sens_calibrated()
+          || (retry && (retry % PRECISE_HOMING_SENS_TRY_RECAL) == 0)) {
+          if (!corexy_sens_calibrate(xy_mm_s)) {
+            failed = true;
+            break;
+          }
+          if (!corexy_rehome_xy(xy_mm_s)) {
+            failed = true;
+            break;
+          }
+        }
+        #endif
+
         CoreXYCalibrationMode mode =
           ( flags.force_calibrate ? CoreXYCalibrationMode::Force
             : flags.can_calibrate ? CoreXYCalibrationMode::OnDemand

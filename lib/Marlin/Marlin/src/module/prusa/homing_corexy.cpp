@@ -761,6 +761,40 @@ static bool measure_calibrate_sens(CoreXYHomeTMCSens &calibrated_sens,
     calibrated_sens.score = scores[best_idx].second;
     return true;
 }
+
+bool corexy_sens_calibrate(const float fr_mm_s) {
+    const AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
+
+    // finish previous moves and disable main endstop/crash recovery handling
+    planner.synchronize();
+    #if ENABLED(CRASH_RECOVERY)
+    Crash_Temporary_Deactivate ctd;
+    #endif /*ENABLED(CRASH_RECOVERY)*/
+
+    // disable endstops locally
+    bool endstops_enabled = endstops.is_enabled();
+    ScopeGuard endstop_restorer([&]() {
+        endstops.enable(endstops_enabled);
+    });
+    endstops.not_homing();
+
+    SERIAL_ECHOLN("recalibrating homing sensitivity");
+    ui.status_printf_P(0, "Recalibrating home. Printer may vibrate and be noisier.");
+
+    CoreXYHomeTMCSens calibrated_sens;
+    if (!measure_calibrate_sens(calibrated_sens, measured_axis, fr_mm_s)) {
+        SERIAL_ECHOLNPAIR("home sensitivity calibration failed");
+        return false;
+    }
+
+    config_store().corexy_home_tmc_sens.set(calibrated_sens);
+    return true;
+}
+
+bool corexy_sens_calibrated() {
+    CoreXYHomeTMCSens calibrated_sens = config_store().corexy_home_tmc_sens.get();
+    return !calibrated_sens.uninitialized();
+}
 #endif
 
 // Refine home origin precisely on core-XY.
@@ -782,25 +816,6 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
 
     // reset previous home state
     COREXY_HOME_UNSTABLE = false;
-
-#if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
-    // calibrate optimal measurement sensitivity first
-    CoreXYHomeTMCSens calibrated_sens = config_store().corexy_home_tmc_sens.get();
-    if ((mode == CoreXYCalibrationMode::Force)
-        || ((mode == CoreXYCalibrationMode::OnDemand) && calibrated_sens.uninitialized())) {
-        SERIAL_ECHOLN("recalibrating homing sensitivity");
-        ui.status_printf_P(0, "Recalibrating home. Printer may vibrate and be noisier.");
-
-        if (!measure_calibrate_sens(calibrated_sens, measured_axis, fr_mm_s)) {
-            SERIAL_ECHOLNPAIR("home sensitivity calibration failed");
-            return false;
-        }
-
-        // save and reset to initial state
-        config_store().corexy_home_tmc_sens.set(calibrated_sens);
-        corexy_rehome_xy(fr_mm_s);
-    }
-#endif
 
     // reposition parallel to the origin to our probing point
     xyze_pos_t origin_pos;
