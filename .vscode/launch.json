@@ -229,6 +229,90 @@
             "request": "launch",
         },
         {
+            "name": "Launch XBuddyExtension",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode-xbuddy-extension/firmware",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
+            "openOCDPreConfigLaunchCommands": [
+                "set PUPPY_TYPE xbuddy_extension"
+            ],
+            "postLaunchCommands": [
+                "set $pc = &Reset_Handler"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config_defaults.cfg",
+                "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
+            "toolchainPrefix": "arm-none-eabi",
+            "device": "STM32H503CBU7",
+            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-c7e833e81e79e3396e1078832d936ae6578a8bc1/STM32H503.svd",
+            "rtos": "FreeRTOS",
+            "preLaunchTask": "Wait 1", // this is needed when starting all puppies at once, because there is some issue when all of them start at once
+            "rttConfig": {
+                "enabled": true,
+                "address": "auto",
+                "searchSize": 16,
+                "searchId": "SEGGER RTT",
+                "clearSearch": true,
+                "polling_interval": 10,
+                "decoders": [
+                    {
+                        "label": "Logging",
+                        "port": 0,
+                        "noprompt": true,
+                        "type": "console"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Attach to XBuddyExtension",
+            "cwd": "${workspaceRoot}",
+            "executable": "${workspaceRoot}/build-vscode-xbuddy-extension/firmware",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
+            "openOCDPreConfigLaunchCommands": [
+                "set PUPPY_TYPE xbuddy_extension"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config_defaults.cfg",
+                "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
+            "toolchainPrefix": "arm-none-eabi",
+            "device": "STM32H503CBU7",
+            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-c7e833e81e79e3396e1078832d936ae6578a8bc1/STM32H503.svd",
+            "rtos": "FreeRTOS",
+            "liveWatch": {
+                "enabled": true,
+            },
+            "preLaunchTask": "Wait 1", // this is needed when starting all puppies at once, because there is some issue when all of them start at once
+            "rttConfig": {
+                "enabled": true,
+                "address": "auto",
+                "searchSize": 16,
+                "searchId": "SEGGER RTT",
+                "clearSearch": true,
+                "polling_interval": 10,
+                "decoders": [
+                    {
+                        "label": "Logging",
+                        "port": 0,
+                        "noprompt": true,
+                        "type": "console"
+                    }
+                ]
+            }
+        },
+        {
             "name": "Launch Simulator Scripted",
             // This is the same as "Launch Simulator", but it also opens TCP port to control hardware
             // Use 'telnet localhost 50001' immediatelly after launching this

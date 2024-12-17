@@ -106,6 +106,14 @@ enum class PropertyName {
     NozzleDiameter,
     NozzleHighFlow,
     NozzleHardened,
+#if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
+    // Note: for now we only want to support the chamber features on Core One.
+    // Therefore option HAS_CHAMBER_API is NOT used yet.
+    ChamberTargetTemp,
+    ChamberFanPwmTarget,
+    ChamberLedIntensity,
+    AddonPower, // not a very descriptive name, but the Connect team understands this property name as USB power output on the XBE
+#endif
 };
 
 #undef NOZZLE_NAMES
@@ -114,7 +122,7 @@ struct SetValue {
     PropertyName name;
     // For names that relate to stuff we have more of… like nozzles.
     size_t idx;
-    std::variant<bool, uint32_t, float, SharedBorrow> value;
+    std::variant<bool, uint32_t, float, int8_t, SharedBorrow> value;
 };
 struct CancelObject {
     uint8_t id;

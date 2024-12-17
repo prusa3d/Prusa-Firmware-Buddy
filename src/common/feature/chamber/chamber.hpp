@@ -3,7 +3,9 @@
 #include <optional>
 
 #include <option/xl_enclosure_support.h>
+#include <option/has_xbuddy_extension.h>
 #include <common/temperature.hpp>
+#include <freertos/mutex.hpp>
 
 // TODO: Migrate XL Enclosure to use this API (& unify)
 // TODO: Add support for controlling MK4 enclosure through GPIO expander
@@ -40,6 +42,9 @@ public: // Common/utilities
         none,
 #if XL_ENCLOSURE_SUPPORT()
         xl_enclosure,
+#endif
+#if HAS_XBUDDY_EXTENSION()
+        xbuddy_extension,
 #endif
     };
 

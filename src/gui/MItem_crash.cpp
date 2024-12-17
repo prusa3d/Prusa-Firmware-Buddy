@@ -14,7 +14,7 @@
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()
     : WI_ICON_SWITCH_OFF_ON_t(crash_s.is_enabled(), _(label), nullptr, is_enabled_t::yes,
-    #if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5())
+    #if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_COREONE())
         is_hidden_t::dev
     #else
         is_hidden_t::no

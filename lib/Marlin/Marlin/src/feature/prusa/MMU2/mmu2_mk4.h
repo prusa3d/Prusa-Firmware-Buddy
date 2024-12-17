@@ -15,14 +15,20 @@ typedef float feedRate_t;
     #include "protocol_logic.h"
     #include <atomic>
     #include <memory>
+    #include <option/has_mmu2_over_uart.h>
 #endif
 
 struct E_Step;
 
 #ifdef UNITTEST
+    // Unit tests - avoid talking to the bootloader on the serial
     #define MMU_USE_BOOTLOADER() 0
-#else
+#elif HAS_MMU2_OVER_UART()
+    // Only MK4 with MMU over UART may try to talk to the bootloader on the serial
     #define MMU_USE_BOOTLOADER() 1
+#else
+    // CORE One with MMU over MODBUS - avoid talking to the bootloader on the serial
+    #define MMU_USE_BOOTLOADER() 0
 #endif
 
 namespace MMU2 {

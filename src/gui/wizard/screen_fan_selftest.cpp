@@ -126,11 +126,21 @@ namespace frame {
 
 #if HAS_CHAMBER_API()
             switch (buddy::chamber().backend()) {
+
     #if XL_ENCLOSURE_SUPPORT()
             case buddy::Chamber::Backend::xl_enclosure:
                 process_fan_result(config_store().xl_enclosure_fan_selftest_result.get(), enclosure_icons, 0);
                 break;
     #endif /* XL_ENCLOSURE_SUPPORT() */
+
+    #if HAS_XBUDDY_EXTENSION()
+            case buddy::Chamber::Backend::xbuddy_extension:
+                process_fan_result(config_store().xbe_fan_test_results.get().fans[0], enclosure_icons, 0);
+                process_fan_result(config_store().xbe_fan_test_results.get().fans[1], enclosure_icons, 1);
+                // Third chamber fan is not yet implemented
+                break;
+    #endif
+
             case buddy::Chamber::Backend::none:
                 break;
             }
@@ -191,16 +201,25 @@ namespace frame {
 
 #if HAS_CHAMBER_API()
             switch (buddy::chamber().backend()) {
+
             case buddy::Chamber::Backend::none:
                 enclosure_label.Hide();
                 enclosure_label_icon.Hide();
                 enclosure_icons.Hide();
                 break;
+
     #if XL_ENCLOSURE_SUPPORT()
             case buddy::Chamber::Backend::xl_enclosure:
                 // Set correctly by default in the initializer list (1 fan)
                 break;
     #endif /* XL_ENCLOSURE_SUPPORT() */
+
+    #if HAS_XBUDDY_EXTENSION()
+            case buddy::Chamber::Backend::xbuddy_extension: {
+                enclosure_icons.SetIconCount(2); // Third chamber fan is not implemented yet
+                break;
+            }
+    #endif
             }
 #endif /* HAS_CHAMBER_API() */
 

@@ -48,6 +48,7 @@
 #include <option/has_side_leds.h>
 #include <option/has_phase_stepping.h>
 #include <option/has_burst_stepping.h>
+#include <option/has_xbuddy_extension.h>
 #include <option/buddy_enable_wui.h>
 #include <option/has_touch.h>
 #include <option/has_nfc.h>
@@ -100,6 +101,10 @@
 
 #if HAS_NFC()
     #include <nfc.hpp>
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    #include <buddy/mmu_port.hpp>
 #endif
 
 using namespace crash_dump;
@@ -381,7 +386,7 @@ extern "C" void main_cpp(void) {
     uart_init_esp();
 #endif
 
-#if HAS_MMU2()
+#if HAS_MMU2_OVER_UART()
     uart_init_mmu();
 #endif
 
@@ -467,10 +472,17 @@ extern "C" void main_cpp(void) {
     uart_for_tmc.Open();
 #endif
 
-#if HAS_MMU2()
+#if HAS_XBUDDY_EXTENSION()
+    mmu_port::setup_reset_pin();
+    // Yes, this is intentional.
+    // MMUEnable is probably a misnomer now that we have xBuddyExtension.
+    buddy::hw::MMUEnable.set();
+#endif
+
+#if HAS_MMU2_OVER_UART()
     uart_for_mmu.Open();
     // mmu2 is normally serviced from the marlin thread
-    // so execute it before the defaultTask is created to prevent race conditions
+    // so execute it before the defaultTask is created to prevent race conditions while powering up
     if (config_store().mmu2_enabled.get()) {
         MMU2::mmu2.Start();
     }
@@ -493,6 +505,14 @@ extern "C" void main_cpp(void) {
 
 #if HAS_PUPPIES()
     buddy::puppies::start_puppy_task();
+    #if HAS_MMU2()
+    // for printers with MMU connected through MODBUS, the MMU implementation relies vaguely on MODBUS data structures
+    // -> better have the puppy task at least existent
+    TaskDeps::wait(TaskDeps::Tasks::puppy_task_start);
+    if (config_store().mmu2_enabled.get()) {
+        MMU2::mmu2.Start();
+    }
+    #endif
 #endif
 
 #if BUDDY_ENABLE_WUI()

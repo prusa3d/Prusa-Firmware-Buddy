@@ -1,6 +1,8 @@
 #pragma once
 
+#include <buddy/door_sensor.hpp>
 #include <device/board.h>
+#include <option/has_door_sensor.h>
 #include <option/has_loadcell.h>
 #include <option/has_modularbed.h>
 
@@ -31,6 +33,9 @@ public:
     float inputCurrent;
     float mmuCurrent;
 #else
+#endif
+#if HAS_DOOR_SENSOR()
+    buddy::DoorSensor::DetailedState door_sensor_detailed_state;
 #endif
 #if HAS_LOADCELL()
     float loadCell;

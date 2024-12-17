@@ -38,7 +38,7 @@ static uint16_t hal_status_to_retval(HAL_StatusTypeDef status) {
     }
 }
 
-// following six methods is empty because all configuration is done with Cube
+// following six methods is empty because all configuration is done with stm32cube
 SPISettings::SPISettings() {}
 SPISettings::SPISettings(uint32_t clock, BitOrder bitOrder, uint8_t dataMode) {}
 SPIClass::SPIClass() {}

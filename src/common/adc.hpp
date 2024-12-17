@@ -124,7 +124,11 @@ enum AD3 { // ADC3 channels
     board_T,
     hotend_I,
     board_I,
+    #if PRINTER_IS_PRUSA_iX()
     case_T,
+    #elif PRINTER_IS_PRUSA_COREONE()
+    door_sensor,
+    #endif
     ADC3_CH_CNT
 };
 
@@ -475,12 +479,13 @@ inline uint16_t inputVoltage() {
     #if PRINTER_IS_PRUSA_iX()
 inline uint16_t psu_temp() { return adcDma1.get_and_shift_channel(AdcChannel::heatbed_T); }
 inline uint16_t ambient_temp() { return adcDma3.get_and_shift_channel(AdcChannel::case_T); }
+    #elif PRINTER_IS_PRUSA_COREONE()
+inline uint16_t door_sensor() { return adcDma3.get_channel(AdcChannel::door_sensor); }
     #endif
 
 inline uint16_t MMUCurrent() { return adcDma3.get_and_shift_channel(AdcChannel::MMU_I); }
 inline uint16_t heaterCurrent() { return adcDma3.get_and_shift_channel(AdcChannel::hotend_I); }
 inline uint16_t inputCurrent() { return adcDma3.get_and_shift_channel(AdcChannel::board_I); }
-inline uint16_t ambientTemp() { return adcDma3.get_and_shift_channel(AdcChannel::case_T); }
 inline uint16_t vref() { return adcDma1.get_channel(AdcChannel::vref); } ///< Internal reference necessary for mcu_temperature
 inline uint16_t mcuTemperature() { return adcDma1.get_channel(AdcChannel::mcu_temperature); } ///< Raw sensor, use getMCUTemp() instead
 #endif

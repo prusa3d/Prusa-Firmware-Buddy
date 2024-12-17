@@ -3,6 +3,7 @@
 
 #include <option/filament_sensor.h>
 #include <option/has_mmu2.h>
+#include <option/has_xbuddy_extension.h>
 
 #include "filament_sensors_handler.hpp"
 #include <config_store/store_definition.hpp>
@@ -21,6 +22,11 @@
 
 #if HAS_MMU2()
     #include "filament_sensor_mmu.hpp"
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    #include "filament_sensor_xbuddy_extension.hpp"
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
 
 using namespace buddy;
@@ -47,6 +53,13 @@ IFSensor *GetSideFSensor([[maybe_unused]] uint8_t index) {
     if (index == 0 && config_store().mmu2_enabled.get()) {
         static FSensorMMU mmu_filament_sensor;
         return &mmu_filament_sensor;
+    }
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    if (index == 0 && xbuddy_extension().status() != XBuddyExtension::Status::disabled) {
+        static FSensorXBuddyExtension xbe_filament_sensor;
+        return &xbe_filament_sensor;
     }
 #endif
 

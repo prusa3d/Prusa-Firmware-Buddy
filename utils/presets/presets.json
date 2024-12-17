@@ -2,6 +2,19 @@
     "$schema": "./presets_schema.json",
     "presets": [
         {
+            "name": "coreone",
+            "description": "Original Prusa CORE One",
+            "cacheVariables": {
+                "PRINTER": "COREONE",
+                "BOARD": "XBUDDY",
+                "BOARD_VERSION": "0.2.7",
+                "XBUDDY_EXTENSION_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-xbuddy-extension"
+                }
+            }
+        },
+        {
             "name": "mini",
             "description": "Original Prusa MINI",
             "cacheVariables": {
@@ -209,6 +222,15 @@
             "cacheVariables": {
                 "PRINTER": "iX",
                 "BOARD": "MODULARBED",
+                "BOARD_VERSION": "0.7.0"
+            }
+        },
+        {
+            "name": "coreone-xbuddy-extension",
+            "description": "Original Prusa CORE One Extension Board",
+            "cacheVariables": {
+                "PRINTER": "COREONE",
+                "BOARD": "XBUDDY_EXTENSION",
                 "BOARD_VERSION": "0.7.0"
             }
         }

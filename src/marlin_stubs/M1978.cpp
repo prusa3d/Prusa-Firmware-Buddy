@@ -26,6 +26,11 @@
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
 #endif
+#include <option/has_xbuddy_extension.h>
+#if HAS_XBUDDY_EXTENSION()
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+    #include <puppies/xbuddy_extension.hpp> // For FAN_CNT
+#endif
 #include <logging/log.hpp>
 
 LOG_COMPONENT_REF(Selftest);
@@ -271,11 +276,19 @@ private:
 
 #if HAS_CHAMBER_API()
         switch (buddy::chamber().backend()) {
+
     #if XL_ENCLOSURE_SUPPORT()
         case buddy::Chamber::Backend::xl_enclosure:
             config_store().xl_enclosure_fan_selftest_result.set(TestResult_Unknown);
             break;
     #endif /* XL_ENCLOSURE_SUPPORT() */
+
+    #if HAS_XBUDDY_EXTENSION()
+        case buddy::Chamber::Backend::xbuddy_extension:
+            config_store().xbe_fan_test_results.set({});
+            break;
+    #endif
+
         case buddy::Chamber::Backend::none:
             break;
         }
@@ -307,6 +320,15 @@ private:
             case FanType::xl_enclosure:
                 config_store().xl_enclosure_fan_selftest_result.set(fan->test_result());
                 break;
+#endif
+#if HAS_XBUDDY_EXTENSION()
+            case FanType::xbe_chamber: {
+                assert(fan->get_desc_num() < buddy::puppies::XBuddyExtension::FAN_CNT);
+                auto res = config_store().xbe_fan_test_results.get();
+                res.fans[fan->get_desc_num()] = fan->test_result();
+                config_store().xbe_fan_test_results.set(res);
+                break;
+            }
 #endif
             case FanType::_count:
                 assert(false);
@@ -363,7 +385,7 @@ void M1978() {
         };
     }(std::make_index_sequence<HOTENDS>());
 
-    std::array<FanHandler *, HOTENDS * 2 + 1 /* enclosure fan */> fan_container;
+    std::array<FanHandler *, HOTENDS * 2 + 5 /* enclosure/chamber fans with reserve */> fan_container;
     std::array<std::pair<FanHandler *, FanHandler *>, HOTENDS> tool_fan_pairs;
 
     size_t container_index = 0;
@@ -382,15 +404,32 @@ void M1978() {
 #if XL_ENCLOSURE_SUPPORT()
     CommonFanHandler xl_enclosure_fan(FanType::xl_enclosure, 0, benevolent_fan_range, &Fans::enclosure());
 #endif
+#if HAS_XBUDDY_EXTENSION()
+    auto xbe_fans = [&]<size_t... ix>(std::index_sequence<ix...>) {
+        return std::array {
+            XBEFanHandler(FanType::xbe_chamber, ix, chamber_fan_range)...
+        };
+    }(std::make_index_sequence<buddy::puppies::XBuddyExtension::FAN_CNT>());
+#endif
 
 #if HAS_CHAMBER_API()
     switch (buddy::chamber().backend()) {
+
     #if XL_ENCLOSURE_SUPPORT()
     case buddy::Chamber::Backend::xl_enclosure: {
         fan_container[container_index++] = &xl_enclosure_fan;
         break;
     }
     #endif /* XL_ENCLOSURE_SUPPORT() */
+
+    #if HAS_XBUDDY_EXTENSION()
+    case buddy::Chamber::Backend::xbuddy_extension:
+        fan_container[container_index++] = &xbe_fans[0];
+        fan_container[container_index++] = &xbe_fans[1];
+        // Third fan is not yet implemented
+        break;
+    #endif
+
     case buddy::Chamber::Backend::none:
         break;
     }

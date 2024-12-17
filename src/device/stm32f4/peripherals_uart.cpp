@@ -5,6 +5,7 @@
 #include <device/hal.h>
 #include <espif.h>
 #include <option/has_mmu2.h>
+#include <option/has_mmu2_over_uart.h>
 #include <option/has_puppies.h>
 #include <option/has_tmc_uart.h>
 
@@ -16,11 +17,12 @@
     #define UART_TMC USART2
     #define UART_ESP USART6
 #elif BOARD_IS_XBUDDY()
-    #if HAS_PUPPIES() && HAS_MMU2()
+    #if HAS_PUPPIES() and HAS_MMU2_OVER_UART()
         #error "Can't have both puppies and mmu2 on the same UART"
     #elif HAS_PUPPIES()
         #define UART_PUPPIES USART6
-    #elif HAS_MMU2()
+    #endif
+    #if HAS_MMU2_OVER_UART()
         #define UART_MMU USART6
     #endif
     #define UART_ESP UART8
@@ -82,7 +84,7 @@ void uart_init_puppies() {
 }
 #endif
 
-#if HAS_MMU2()
+#if HAS_MMU2_OVER_UART()
 UART_HandleTypeDef uart_handle_for_mmu;
 static uint8_t uart_for_mmu_rx_data[32];
 buddy::hw::BufferedSerial uart_for_mmu {
@@ -139,7 +141,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     }
 #endif
 
-#if HAS_MMU2()
+#if HAS_MMU2_OVER_UART()
     if (huart == &uart_handle_for_mmu) {
         uart_for_mmu.WriteFinishedISR();
     }
@@ -163,7 +165,7 @@ void HAL_UART_RxHalfCpltCallback([[maybe_unused]] UART_HandleTypeDef *huart) {
     }
 #endif
 
-#if HAS_MMU2()
+#if HAS_MMU2_OVER_UART()
     if (huart == &uart_handle_for_mmu) {
         uart_for_mmu.FirstHalfReachedISR();
     }
@@ -183,7 +185,7 @@ void HAL_UART_RxCpltCallback([[maybe_unused]] UART_HandleTypeDef *huart) {
     }
 #endif
 
-#if HAS_MMU2()
+#if HAS_MMU2_OVER_UART()
     if (huart == &uart_handle_for_mmu) {
         uart_for_mmu.SecondHalfReachedISR();
     }

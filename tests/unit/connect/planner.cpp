@@ -4,6 +4,7 @@
 #include <planner.hpp>
 #include <transfers/monitor.hpp>
 #include <transfers/changed_path.hpp>
+#include <feature/chamber/chamber.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -416,3 +417,91 @@ TEST_CASE("FileChanged after multiple fs changes") {
     REQUIRE(event->incident == ChangedPath::Incident::Combined);
 }
 // TODO: Tests for unknown commands and such
+
+TEST_CASE("Command Set value - chamber.target_temp set/unset logic") {
+    SECTION("unset") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberTargetTemp, 0, uint32_t(0) } };
+        test.planner.command(command);
+        REQUIRE_FALSE(buddy::chamber().target_temperature().has_value());
+    }
+
+    SECTION("35") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberTargetTemp, 0, uint32_t(35) } };
+        test.planner.command(command);
+        REQUIRE(buddy::chamber().target_temperature().has_value());
+        REQUIRE(buddy::chamber().target_temperature().value() == 35);
+    }
+
+    SECTION("55") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberTargetTemp, 0, uint32_t(55) } };
+        test.planner.command(command);
+        REQUIRE(buddy::chamber().target_temperature().has_value());
+        REQUIRE(buddy::chamber().target_temperature().value() == 55);
+    }
+}
+
+namespace buddy {
+extern std::optional<uint8_t> fan12pwm;
+} // namespace buddy
+
+TEST_CASE("Command Set value - xbuddy_extension fan1, 2 set/unset logic") {
+    SECTION("unset") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberFanPwmTarget, 0, int8_t(-1) } };
+        test.planner.command(command);
+        REQUIRE_FALSE(buddy::fan12pwm.has_value());
+    }
+    SECTION("0%") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberFanPwmTarget, 0, int8_t(0) } };
+        test.planner.command(command);
+        REQUIRE(buddy::fan12pwm.value() == 0);
+    }
+    SECTION("100%") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberFanPwmTarget, 0, int8_t(100) } };
+        test.planner.command(command);
+        REQUIRE(buddy::fan12pwm.value() == 255);
+    }
+}
+
+namespace buddy {
+extern uint8_t ledpwm;
+} // namespace buddy
+
+TEST_CASE("Command Set value - xbuddy_extension LED intensity logic") {
+    SECTION("0%") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberLedIntensity, 0, int8_t(0) } };
+        test.planner.command(command);
+        REQUIRE(buddy::ledpwm == 0);
+    }
+    SECTION("100%") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::ChamberLedIntensity, 0, int8_t(100) } };
+        test.planner.command(command);
+        REQUIRE(buddy::ledpwm == 255);
+    }
+}
+
+namespace buddy {
+extern bool usbpower;
+} // namespace buddy
+
+TEST_CASE("Command Set value - xbuddy_extension usb addon power logic") {
+    SECTION("true") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::AddonPower, 0, true } };
+        test.planner.command(command);
+        REQUIRE(buddy::usbpower);
+    }
+    SECTION("false") {
+        Test test;
+        auto command = Command { CommandId(0), SetValue { PropertyName::AddonPower, 0, false } };
+        test.planner.command(command);
+        REQUIRE_FALSE(buddy::usbpower);
+    }
+}

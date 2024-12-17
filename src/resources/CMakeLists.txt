@@ -105,6 +105,9 @@ if(PUPPY_FLASH_FW)
   if(HAS_MODULARBED)
     add_resource("${MODULARBED_BINARY_PATH}" "/puppies/fw-modularbed.bin")
   endif()
+  if(HAS_XBUDDY_EXTENSION)
+    add_resource("${XBUDDY_EXTENSION_BINARY_PATH}" "/puppies/fw-xbuddy-extension.bin")
+  endif()
 endif()
 
 # /web directory

@@ -145,6 +145,9 @@ screen_splash_data_t::screen_splash_data_t()
 #elif PRINTER_IS_PRUSA_iX()
             N_("Hi, this is your\nOriginal Prusa iX printer.\n"
                "I would like to guide you\nthrough the setup process.");
+#elif PRINTER_IS_PRUSA_COREONE()
+            N_("Hi, this is your\nOriginal Prusa CORE One printer.\n"
+               "I would like to guide you\nthrough the setup process.");
 #else
     #error unknown config
 #endif

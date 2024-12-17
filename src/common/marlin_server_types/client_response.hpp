@@ -19,6 +19,7 @@
 #include <option/has_attachable_accelerometer.h>
 #include <option/has_belt_tuning.h>
 #include <option/has_coldpull.h>
+#include <option/has_emergency_stop.h>
 #include <option/has_gears_calibration.h>
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_loadcell.h>
@@ -402,6 +403,10 @@ enum class PhasesWarning : PhaseUnderlyingType {
 #if ENABLED(DETECT_PRINT_SHEET)
     /// Shown on failed print sheet detection. Custom handling.
     SteelSheetNotDetected,
+#endif
+
+#if HAS_EMERGENCY_STOP()
+    DoorOpen,
 #endif
 
 #if HAS_CHAMBER_API()
@@ -808,6 +813,9 @@ class ClientResponses {
             { PhasesWarning::MetricsConfigChangePrompt, { Response::Yes, Response::No } },
 #if ENABLED(DETECT_PRINT_SHEET)
             { PhasesWarning::SteelSheetNotDetected, { Response::Retry, Response::Ignore } },
+#endif
+#if HAS_EMERGENCY_STOP()
+            { PhasesWarning::DoorOpen, {} },
 #endif
 #if HAS_CHAMBER_API()
             { PhasesWarning::FailedToReachChamberTemperature, { Response::Ok, Response::Skip } },

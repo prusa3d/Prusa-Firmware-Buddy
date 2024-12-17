@@ -84,5 +84,5 @@ TEST_CASE("printer_model::compatibilities") {
     CHECK(compatibility(PrinterModel::mk3_9s, PrinterModel::mk3) == Compatibility { .is_compatible = true, .mk3_compatibility_mode = true, .mk4s_fan_compatibility_mode = true });
     CHECK(compatibility(PrinterModel::mk4s, PrinterModel::mk3) == Compatibility { .is_compatible = true, .mk3_compatibility_mode = true, .mk4s_fan_compatibility_mode = true });
 
-    static_assert(std::to_underlying(PrinterModel::_cnt) == 12);
+    static_assert(std::to_underlying(PrinterModel::_cnt) == 13);
 }

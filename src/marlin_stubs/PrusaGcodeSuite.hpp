@@ -10,6 +10,7 @@
 #include <option/has_i2c_expander.h>
 #include <option/has_chamber_api.h>
 #include <option/has_nozzle_cleaner.h>
+#include <option/has_emergency_stop.h>
 #include <option/buddy_enable_connect.h>
 
 #include <gcode/gcode_parser.hpp>

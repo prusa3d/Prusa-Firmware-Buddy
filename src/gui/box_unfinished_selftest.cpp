@@ -77,6 +77,21 @@ bool selftest_warning_selftest_finished() {
     }
 
     return true;
+#elif (PRINTER_IS_PRUSA_COREONE())
+    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
+        return false;
+    }
+
+    if (sr.gears == TestResult_Failed) { // skipped/unknown gears are also OK
+        return false;
+    }
+
+    HOTEND_LOOP()
+    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].fansSwitched)) {
+        return false;
+    }
+
+    return true;
 #elif PRINTER_IS_PRUSA_iX()
 
     HOTEND_LOOP()

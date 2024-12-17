@@ -21,7 +21,10 @@
     #include <xl_enclosure.hpp>
     #include <fanctl.hpp>
 #endif
-
+#if PRINTER_IS_PRUSA_COREONE()
+    #include <feature/chamber/chamber.hpp>
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+#endif
 #include <client_response.hpp>
 
 #include <cassert>
@@ -270,6 +273,22 @@ Printer::Params MarlinPrinter::params() const {
         .fan_rpm = Fans::enclosure().getActualRPM(),
         .time_in_use = std::min(config_store().xl_enclosure_filter_timer.get(), Enclosure::expiration_deadline_sec)
     };
+#endif
+#if PRINTER_IS_PRUSA_COREONE()
+    {
+        auto xbe = buddy::xbuddy_extension().get_fan12_state(); // avoid locking 2 mutexes just to read a single value (and we are reading 4 values)
+        params.chamber_info = {
+            .target_temp = (uint32_t)buddy::chamber().target_temperature().value_or(connect_client::Printer::ChamberInfo::target_temp_unset),
+            .fan_1_rpm = xbe.fan1rpm,
+            .fan_2_rpm = xbe.fan2rpm,
+            .fan_pwm_target = (xbe.fan12autocontrol // check for autocontrol
+                    ? connect_client::Printer::ChamberInfo::fan_pwm_target_unset // autocontrol
+                    : (int8_t)(xbe.fan12pct) // percentage
+                ),
+            .led_intensity = static_cast<int8_t>(buddy::XBuddyExtension::led_pwm2pct(buddy::xbuddy_extension().chamber_leds_pwm()))
+        };
+        params.addon_power = buddy::xbuddy_extension().usb_power();
+    }
 #endif
     params.print_duration = marlin_vars().print_duration;
     params.time_to_end = marlin_vars().time_to_end;

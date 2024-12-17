@@ -23,6 +23,10 @@
 #include <random.h>
 #include "bsod.h"
 
+#if HAS_XBUDDY_EXTENSION()
+    #include <buddy/mmu_port.hpp>
+#endif
+
 LOG_COMPONENT_REF(Puppies);
 
 namespace buddy::puppies {
@@ -47,6 +51,11 @@ const char *PuppyBootstrap::Progress::description() {
         return "Verifying modularbed";
     }
 #endif
+#if HAS_XBUDDY_EXTENSION()
+    else if (stage == PuppyBootstrap::FlashingStage::CHECK_FINGERPRINT && puppy_type == PuppyType::XBUDDY_EXTENSION) {
+        return "Verifying xbuddy extension";
+    }
+#endif
 #if HAS_DWARF()
     else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::DWARF) {
         return "Flashing dwarf";
@@ -55,6 +64,11 @@ const char *PuppyBootstrap::Progress::description() {
 #if HAS_MODULARBED()
     else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::MODULARBED) {
         return "Flashing modularbed";
+    }
+#endif
+#if HAS_XBUDDY_EXTENSION()
+    else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::XBUDDY_EXTENSION) {
+        return "Flashing xbuddy extension";
     }
 #endif
     else if (stage == PuppyBootstrap::FlashingStage::DONE) {
@@ -255,15 +269,17 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run_address_assignment() {
         // Wait for puppy to boot up
         osDelay(5);
 
-        // assign address to all of them
-        // this request is no-reply, so there is no issue in sending to multiple puppies
-        assign_address(BootloaderProtocol::Address::DEFAULT_ADDRESS, address);
+        if (is_dynamicly_addressable(puppy_type)) {
+            // assign address to all of them
+            // this request is no-reply, so there is no issue in sending to multiple puppies
+            assign_address(BootloaderProtocol::Address::DEFAULT_ADDRESS, address);
 
-        // delay to make sure that command was sent fully before reset
-        osDelay(50);
+            // delay to make sure that command was sent fully before reset
+            osDelay(50);
 
-        // reset, all the not-bootstrapped-yet puppies which we don't care about now
-        reset_puppies_range(std::next(dock), DOCKS.end());
+            // reset, all the not-bootstrapped-yet puppies which we don't care about now
+            reset_puppies_range(std::next(dock), DOCKS.end());
+        }
 
         bool status = discover(puppy_type, address);
         if (status) {
@@ -338,6 +354,17 @@ inline void write_dock_reset_pin(Dock dock, buddy::hw::Pin::State state) {
         modularBedReset.write(state);
         break;
 #endif
+#if HAS_XBUDDY_EXTENSION()
+    case Dock::XBUDDY_EXTENSION: {
+        // Soooooo the reset pin is inverted on XBE, ...
+        // so when we want to activate reset on XBE we need to deactivate reset pin in the mmu port
+        if (state == Pin::State::high) {
+            mmu_port::deactivate_reset();
+        } else {
+            mmu_port::activate_reset();
+        }
+    } break;
+#endif
     default:
         std::abort();
     }
@@ -380,12 +407,19 @@ bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address addres
     }
 
     BootloaderProtocol::HwInfo hwinfo;
-    if (check_status(flasher.get_hwinfo(hwinfo)) == false) {
-        return false;
+    // TODO: allow getting hwinfo for xbuddy ext, when we are able to read otp from it
+    if (type != XBUDDY_EXTENSION) {
+        if (check_status(flasher.get_hwinfo(hwinfo)) == false) {
+            return false;
+        }
+    } else {
+        hwinfo.hw_type = get_puppy_info(type).hw_info_hwtype;
+        hwinfo.bl_version = MINIMAL_BOOTLOADER_VERSION;
     }
 
     // Here it is possible to read raw puppy's OTP before flashing, perhaps to flash a different firmware
-    if (protocol_version >= 0x0302) { // OTP read was added in protocol 0x0302
+    // TODO: allow reading otp from xbuddy ext board, when we are able to read it
+    if (protocol_version >= 0x0302 && type != XBUDDY_EXTENSION) { // OTP read was added in protocol 0x0302
 
         uint8_t otp[32]; // OTP v5 will fit to 32 Bytes
         if (check_status(flasher.read_otp_cmd(0, otp, 32)) == false) {

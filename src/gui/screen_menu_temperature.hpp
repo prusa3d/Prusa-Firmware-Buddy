@@ -4,6 +4,7 @@
 #pragma once
 
 #include <option/has_chamber_api.h>
+#include <option/has_xbuddy_extension.h>
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
@@ -13,6 +14,9 @@
 
 #if HAS_CHAMBER_API()
     #include <gui/menu_item/specific/menu_items_chamber.hpp>
+#endif
+#if HAS_XBUDDY_EXTENSION()
+    #include <gui/menu_item/specific/menu_items_xbuddy_extension.hpp>
 #endif
 
 /*****************************************************************************/
@@ -33,7 +37,11 @@ using ScreenBase = ScreenMenu<
 #if HAS_CHAMBER_API()
     MI_CHAMBER_TARGET_TEMP,
 #endif
-    MI_PRINTFAN, MI_COOLDOWN>;
+    MI_PRINTFAN,
+#if HAS_XBUDDY_EXTENSION()
+    MI_XBUDDY_EXTENSION_COOLING_FANS,
+#endif
+    MI_COOLDOWN>;
 
 } // namespace screen_menu_temperature
 

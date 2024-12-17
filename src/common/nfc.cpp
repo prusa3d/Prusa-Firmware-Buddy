@@ -301,7 +301,7 @@ void turn_off() {
 
 bool has_nfc_probably() {
     // Please revise this function when adding a new printer model
-    static_assert(std::to_underlying(PrinterModel::_cnt) == 12);
+    static_assert(std::to_underlying(PrinterModel::_cnt) == 13);
 
     // MK 3.xS/4S are the only printers that has the antenna in the package.
     // So if this is a MK4S, it probably has an NFC, if not, then it probably doesn't.
@@ -309,6 +309,7 @@ bool has_nfc_probably() {
     case PrinterModel::mk4s:
     case PrinterModel::mk3_9s:
     case PrinterModel::mk3_5s:
+    case PrinterModel::coreone:
         return true;
 
     default:
