@@ -3,7 +3,6 @@
 #include <printers.h>
 
 #include <optional>
-#include <vector>
 #include <array>
 
 namespace phase_stepping {
@@ -21,11 +20,128 @@ struct CalibrationPhase {
     int iteration_count = 18;
 };
 
+template <size_t N>
 struct PrinterCalibrationConfig {
     float calib_revs;
-    std::vector<CalibrationPhase> phases;
+    std::array<CalibrationPhase, N> phases;
 };
 
-PrinterCalibrationConfig get_printer_calibration_config();
+#if PRINTER_IS_PRUSA_XL()
+static inline constexpr const PrinterCalibrationConfig<4> printer_calibration_config {
+    .calib_revs = 0.5f,
+    .phases = {
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 3.f,
+            .pha = 3.14f,
+            .pha_window = 4.f,
+            .mag = 0.02f,
+            .mag_window = 0.05f,
+            .iteration_count = 10,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 1.5f,
+            .pha = 0.f,
+            .pha_window = 4.f,
+            .mag = 0.015f,
+            .mag_window = 0.04f,
+            .iteration_count = 10,
+        },
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 3.f,
+            .pha_window = 1.f,
+            .mag_window = 0.02f,
+            .iteration_count = 16,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 1.5f,
+            .pha_window = 1.5f,
+            .mag_window = 0.02f,
+            .iteration_count = 16,
+        },
+    },
+};
+#elif PRINTER_IS_PRUSA_iX() // TODO for now it is just copy-paste of XL values; needs changes when iX specific values are measured
+static inline constexpr const PrinterCalibrationConfig<4> printer_calibration_config {
+    .calib_revs = 0.5f,
+    .phases = {
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 3.f,
+            .pha = 3.14f,
+            .pha_window = 4.f,
+            .mag = 0.02f,
+            .mag_window = 0.05f,
+            .iteration_count = 10,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 1.5f,
+            .pha = 0.f,
+            .pha_window = 4.f,
+            .mag = 0.015f,
+            .mag_window = 0.04f,
+            .iteration_count = 10,
+        },
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 3.f,
+            .pha_window = 1.f,
+            .mag_window = 0.02f,
+            .iteration_count = 16,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 1.5f,
+            .pha_window = 1.5f,
+            .mag_window = 0.02f,
+            .iteration_count = 16,
+        },
+    },
+};
+#elif PRINTER_IS_PRUSA_COREONE()
+static inline constexpr const PrinterCalibrationConfig<4> printer_calibration_config {
+    .calib_revs = 0.5f,
+    .phases = {
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 1.f,
+            .pha = 0.f,
+            .pha_window = 3.f,
+            .mag = 0.01f,
+            .mag_window = 0.04f,
+            .iteration_count = 10,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 0.5f,
+            .pha = 0.f,
+            .pha_window = 6.f,
+            .mag = 0.0025f,
+            .mag_window = 0.0025f,
+            .iteration_count = 10,
+        },
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 1.f,
+            .pha_window = .5f,
+            .mag_window = 0.01f,
+            .iteration_count = 16,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 0.5f,
+            .pha_window = 0.5f,
+            .mag_window = 0.001f,
+            .iteration_count = 16,
+        },
+    },
+};
+#else
+    #error "Unsupported printer"
+#endif
 
 }; // namespace phase_stepping

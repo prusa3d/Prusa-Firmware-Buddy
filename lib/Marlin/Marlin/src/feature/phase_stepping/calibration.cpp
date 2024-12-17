@@ -266,8 +266,10 @@ static std::tuple<float, float> sample_capture_revs(float revs, float speed) {
     };
 }
 
-static void move_to_calibration_start(AxisEnum axis, const PrinterCalibrationConfig &config) {
-    auto [measurement_revs, _] = sample_capture_revs(config.calib_revs, config.phases[0].speed);
+static void move_to_calibration_start(AxisEnum axis) {
+    auto [measurement_revs, _] = sample_capture_revs(
+        printer_calibration_config.calib_revs,
+        printer_calibration_config.phases[0].speed);
 
     float a_revs = axis == AxisEnum::A_AXIS ? measurement_revs : 0;
     float b_revs = axis == AxisEnum::B_AXIS ? measurement_revs : 0;
@@ -430,7 +432,6 @@ class CalibrationPhaseExecutor {
     static constexpr int RETRY_COUNT = 4;
 
     AxisEnum _axis;
-    const PrinterCalibrationConfig &_printer_config;
     const CalibrationPhase &_phase_config;
     CalibrateAxisHooks &_hooks;
     int _progress = 0;
@@ -484,16 +485,16 @@ class CalibrationPhaseExecutor {
                     return std::nullopt;
                 }
                 if (retries != 0) {
-                    move_to_calibration_start(_axis, _printer_config);
+                    move_to_calibration_start(_axis);
                 }
 
                 auto b_res = phase_stepping::analyze_resonance(_axis,
-                    _phase_config.speed, _printer_config.calib_revs, { _phase_config.harmonic });
+                    _phase_config.speed, printer_calibration_config.calib_revs, { _phase_config.harmonic });
 
                 IDLE();
 
                 auto f_res = phase_stepping::analyze_resonance(_axis,
-                    _phase_config.speed, -_printer_config.calib_revs, { _phase_config.harmonic });
+                    _phase_config.speed, -printer_calibration_config.calib_revs, { _phase_config.harmonic });
 
                 IDLE();
 
@@ -534,19 +535,18 @@ class CalibrationPhaseExecutor {
 
 public:
     CalibrationPhaseExecutor(
-        AxisEnum axis, const PrinterCalibrationConfig &printer_config,
+        AxisEnum axis,
         const CalibrationPhase &phase_config, CalibrateAxisHooks &hooks)
         : _axis(axis)
-        , _printer_config(printer_config)
         , _phase_config(phase_config)
         , _hooks(hooks) {}
 
     std::optional<std::tuple<float, float>> baseline() {
         for (int retries = 0; retries != RETRY_COUNT; retries++) {
             auto b_res = phase_stepping::analyze_resonance(_axis,
-                _phase_config.speed, _printer_config.calib_revs, { { _phase_config.harmonic } });
+                _phase_config.speed, printer_calibration_config.calib_revs, { { _phase_config.harmonic } });
             auto f_res = phase_stepping::analyze_resonance(_axis,
-                _phase_config.speed, -_printer_config.calib_revs, { { _phase_config.harmonic } });
+                _phase_config.speed, -printer_calibration_config.calib_revs, { { _phase_config.harmonic } });
 
             if (!f_res.empty() && !b_res.empty()) {
                 return { { f_res[0], b_res[0] } };
@@ -601,23 +601,21 @@ std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>>
 phase_stepping::calibrate_axis(AxisEnum axis, CalibrateAxisHooks &hooks) {
     std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>> r;
 
-    const auto config = get_printer_calibration_config();
-
     reset_compensation(axis);
 
     phase_stepping::EnsureEnabled _;
 
     hooks.on_initial_movement();
-    move_to_calibration_start(axis, config);
+    move_to_calibration_start(axis);
     Planner::synchronize();
 
-    hooks.set_calibration_phases_count(config.phases.size());
-    for (std::size_t phase_i = 0; phase_i != config.phases.size(); phase_i++) {
-        const CalibrationPhase &calib_phase = config.phases[phase_i];
+    hooks.set_calibration_phases_count(printer_calibration_config.phases.size());
+    for (std::size_t phase_i = 0; phase_i != printer_calibration_config.phases.size(); phase_i++) {
+        const CalibrationPhase &calib_phase = printer_calibration_config.phases[phase_i];
 
         hooks.on_enter_calibration_phase(phase_i);
 
-        auto executor = CalibrationPhaseExecutor(axis, config, calib_phase, hooks);
+        auto executor = CalibrationPhaseExecutor(axis, calib_phase, hooks);
         auto baseline_res = executor.baseline();
         if (!baseline_res.has_value()) {
             return r;
@@ -638,130 +636,4 @@ phase_stepping::calibrate_axis(AxisEnum axis, CalibrateAxisHooks &hooks) {
     std::get<0>(*r) = phase_stepping::axis_states[axis].forward_current.get_correction();
     std::get<1>(*r) = phase_stepping::axis_states[axis].backward_current.get_correction();
     return r;
-}
-
-PrinterCalibrationConfig phase_stepping::get_printer_calibration_config() {
-#if PRINTER_IS_PRUSA_XL()
-    static constexpr std::array phases = {
-        CalibrationPhase {
-            .harmonic = 2,
-            .speed = 3.f,
-            .pha = 3.14f,
-            .pha_window = 4.f,
-            .mag = 0.02f,
-            .mag_window = 0.05f,
-            .iteration_count = 10,
-        },
-        CalibrationPhase {
-            .harmonic = 4,
-            .speed = 1.5f,
-            .pha = 0.f,
-            .pha_window = 4.f,
-            .mag = 0.015f,
-            .mag_window = 0.04f,
-            .iteration_count = 10,
-        },
-        CalibrationPhase {
-            .harmonic = 2,
-            .speed = 3.f,
-            .pha_window = 1.f,
-            .mag_window = 0.02f,
-            .iteration_count = 16,
-        },
-        CalibrationPhase {
-            .harmonic = 4,
-            .speed = 1.5f,
-            .pha_window = 1.5f,
-            .mag_window = 0.02f,
-            .iteration_count = 16,
-        },
-    };
-
-    return PrinterCalibrationConfig {
-        .calib_revs = 0.5f,
-        .phases = std::vector(phases.begin(), phases.end()),
-    };
-#elif PRINTER_IS_PRUSA_iX() // TODO for now it is just copy-paste of XL values; needs changes when iX specific values are measured
-    static constexpr std::array phases = {
-        CalibrationPhase {
-            .harmonic = 2,
-            .speed = 3.f,
-            .pha = 3.14f,
-            .pha_window = 4.f,
-            .mag = 0.02f,
-            .mag_window = 0.05f,
-            .iteration_count = 10,
-        },
-        CalibrationPhase {
-            .harmonic = 4,
-            .speed = 1.5f,
-            .pha = 0.f,
-            .pha_window = 4.f,
-            .mag = 0.015f,
-            .mag_window = 0.04f,
-            .iteration_count = 10,
-        },
-        CalibrationPhase {
-            .harmonic = 2,
-            .speed = 3.f,
-            .pha_window = 1.f,
-            .mag_window = 0.02f,
-            .iteration_count = 16,
-        },
-        CalibrationPhase {
-            .harmonic = 4,
-            .speed = 1.5f,
-            .pha_window = 1.5f,
-            .mag_window = 0.02f,
-            .iteration_count = 16,
-        },
-    };
-
-    return PrinterCalibrationConfig {
-        .calib_revs = 0.5f,
-        .phases = std::vector(phases.begin(), phases.end()),
-    };
-#elif PRINTER_IS_PRUSA_COREONE()
-    static constexpr std::array phases = {
-        CalibrationPhase {
-            .harmonic = 2,
-            .speed = 1.f,
-            .pha = 0.f,
-            .pha_window = 3.f,
-            .mag = 0.01f,
-            .mag_window = 0.04f,
-            .iteration_count = 10,
-        },
-        CalibrationPhase {
-            .harmonic = 4,
-            .speed = 0.5f,
-            .pha = 0.f,
-            .pha_window = 6.f,
-            .mag = 0.0025f,
-            .mag_window = 0.0025f,
-            .iteration_count = 10,
-        },
-        CalibrationPhase {
-            .harmonic = 2,
-            .speed = 1.f,
-            .pha_window = .5f,
-            .mag_window = 0.01f,
-            .iteration_count = 16,
-        },
-        CalibrationPhase {
-            .harmonic = 4,
-            .speed = 0.5f,
-            .pha_window = 0.5f,
-            .mag_window = 0.001f,
-            .iteration_count = 16,
-        },
-    };
-
-    return PrinterCalibrationConfig {
-        .calib_revs = 0.5f,
-        .phases = std::vector(phases.begin(), phases.end()),
-    };
-#else
-    #error "Unsupported printer"
-#endif
 }
