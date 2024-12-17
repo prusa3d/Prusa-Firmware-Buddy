@@ -213,9 +213,12 @@ namespace frame {
         }
 
         void update(const fsm::PhaseData &data) {
+            const uint8_t reduction_x = data[0];
+            const uint8_t reduction_y = data[1];
+
             static constexpr const char *motor_vibration_txt = N_("Motor %c vibration reduced by %2d%%");
-            motor_x.SetText(_(motor_vibration_txt).formatted(motor_x_params, 'X', (data[0] + data[1]) / 2));
-            motor_y.SetText(_(motor_vibration_txt).formatted(motor_y_params, 'Y', (data[2] + data[3]) / 2));
+            motor_x.SetText(_(motor_vibration_txt).formatted(motor_x_params, 'X', reduction_x));
+            motor_y.SetText(_(motor_vibration_txt).formatted(motor_y_params, 'Y', reduction_y));
         }
     };
 

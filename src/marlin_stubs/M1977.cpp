@@ -47,11 +47,18 @@ fsm::PhaseData serialize_axis_nok(const Scores &scores) {
 
 fsm::PhaseData serialize_ok(const Scores &scores_x, const Scores &scores_y) {
     // take the worst of forward and backward, subtract from 1 to get reduction and scale up to percents
+    const uint8_t p1x = 100 - 100 * std::max(scores_x.p1f, scores_x.p1b);
+    const uint8_t p2x = 100 - 100 * std::max(scores_x.p2f, scores_x.p2b);
+    const uint8_t p1y = 100 - 100 * std::max(scores_y.p1f, scores_y.p1b);
+    const uint8_t p2y = 100 - 100 * std::max(scores_y.p2f, scores_y.p2b);
+
+    // display average of reduction in all phases per motor
+    const uint8_t reduction_x = (p1x + p2x) / 2;
+    const uint8_t reduction_y = (p1y + p2y) / 2;
+
     fsm::PhaseData data;
-    data[0] = 100 - 100 * std::max(scores_x.p1f, scores_x.p1b);
-    data[1] = 100 - 100 * std::max(scores_x.p2f, scores_x.p2b);
-    data[2] = 100 - 100 * std::max(scores_y.p1f, scores_y.p1b);
-    data[3] = 100 - 100 * std::max(scores_y.p2f, scores_y.p2b);
+    data[0] = reduction_x;
+    data[1] = reduction_y;
     return data;
 }
 
