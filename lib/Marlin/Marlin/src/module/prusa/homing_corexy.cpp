@@ -648,6 +648,9 @@ static bool measure_calibrate_walk(float &score, AxisEnum measured_axis,
     const int32_t measure_dir = (measured_axis == B_AXIS ? -X_HOME_DIR : -Y_HOME_DIR);
 
     score = 0.f;
+    constexpr float score_exp = 3.f;
+    float score_acc = 0;
+
     for (int32_t a_dir = 1; a_dir >= -1; a_dir -= 2) {
         // start from the lowest possible probing position, then zig-zag along the centerpoint to
         // test for weaker positions in the holding rotor and take those into account in addition to
@@ -687,11 +690,14 @@ static bool measure_calibrate_walk(float &score, AxisEnum measured_axis,
             int32_t steps_med = p_steps_buf[p_steps_cnt / 2];
             for (size_t i = 0; i != p_steps_cnt; ++i) {
                 int32_t p_off = abs(steps_med - p_steps_buf[i]) * 4 / phase_cycle_steps(measured_axis);
-                float p_score = 1.f / std::pow(1.f + p_off, 3.f);
-                score += p_score;
+                float p_score = 1.f / std::pow(1.f + p_off, score_exp);
+                score_acc += p_score;
             }
         }
     }
+
+    // normalize the score by absolute maximum
+    score = score_acc / (measure_probes * 2 * std::pow(2.f, score_exp));
 
     return true;
 }
@@ -752,6 +758,7 @@ static bool measure_calibrate_sens(CoreXYHomeTMCSens &calibrated_sens,
     calibrated_sens.feedrate = params.feedrate;
     calibrated_sens.current = params.current;
     calibrated_sens.sensitivity = scores[best_idx].first;
+    calibrated_sens.score = scores[best_idx].second;
     return true;
 }
 #endif

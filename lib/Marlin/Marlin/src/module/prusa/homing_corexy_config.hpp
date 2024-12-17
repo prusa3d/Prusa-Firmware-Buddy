@@ -30,11 +30,12 @@ struct __attribute__((packed)) CoreXYHomeTMCSens {
     float feedrate;
     int8_t sensitivity;
     uint16_t current;
+    float score;
 
     friend auto operator<=>(const CoreXYHomeTMCSens &, const CoreXYHomeTMCSens &) = default;
 
     bool uninitialized() const {
-        return std::isnan(feedrate) || current == 0 || sensitivity == INT8_MIN;
+        return std::isnan(feedrate) || current == 0 || sensitivity == INT8_MIN || std::isnan(score);
     }
 };
 
@@ -42,5 +43,6 @@ static constexpr CoreXYHomeTMCSens COREXY_NO_HOME_TMC_SENS = CoreXYHomeTMCSens {
     .feedrate = NAN,
     .sensitivity = INT8_MIN,
     .current = 0,
+    .score = NAN,
 };
 #endif
