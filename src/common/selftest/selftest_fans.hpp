@@ -7,6 +7,7 @@
 #include <selftest_fans_config.hpp>
 #include <enum_array.hpp>
 #include <option/xl_enclosure_support.h>
+#include <option/has_xbuddy_extension.h>
 
 namespace fan_selftest {
 
@@ -16,6 +17,9 @@ enum class FanType {
 #if XL_ENCLOSURE_SUPPORT()
     xl_enclosure,
 #endif
+#if HAS_XBUDDY_EXTENSION()
+    xbe_chamber,
+#endif
     _count,
 };
 
@@ -24,6 +28,9 @@ static constexpr EnumArray<FanType, const char *, FanType::_count> fan_type_name
         { FanType::heatbreak, N_("Heatbreak") },
 #if XL_ENCLOSURE_SUPPORT()
         { FanType::xl_enclosure, N_("XL Enclosure") },
+#endif
+#if HAS_XBUDDY_EXTENSION()
+        { FanType::xbe_chamber, N_("Chamber") },
 #endif
 };
 
@@ -83,5 +90,19 @@ public:
 private:
     CFanCtlCommon *fan;
 };
+
+#if HAS_XBUDDY_EXTENSION()
+class XBEFanHandler : public FanHandler {
+public:
+    XBEFanHandler(const FanType type, const uint8_t desc_nr, const FanRPMRange fan_range);
+    ~XBEFanHandler();
+
+    virtual void set_pwm(const uint8_t pwm) override;
+    virtual void record_sample() override;
+
+private:
+    bool has_auto_mode { false };
+};
+#endif
 
 } // namespace fan_selftest

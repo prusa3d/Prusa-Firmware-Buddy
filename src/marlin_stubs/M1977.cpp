@@ -146,6 +146,9 @@ namespace state {
     PhasesPhaseStepping intro() {
         switch (wait_for_response(PhasesPhaseStepping::intro)) {
         case Response::Continue:
+            if (!axes_need_homing(X_AXIS | Y_AXIS)) {
+                return PhasesPhaseStepping::calib_x;
+            }
             return PhasesPhaseStepping::home;
         case Response::Abort:
             // No need to invalidate test result here

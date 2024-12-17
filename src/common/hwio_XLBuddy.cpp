@@ -360,7 +360,7 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
 }
 
 void pinMode([[maybe_unused]] uint32_t ulPin, [[maybe_unused]] uint32_t ulMode) {
-    // not supported, all pins are configured with Cube
+    // not supported, all pins are configured with stm32cube
 }
 
 void buddy::hw::hwio_configure_board_revision_changed_pins() {

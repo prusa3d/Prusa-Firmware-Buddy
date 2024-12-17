@@ -3,9 +3,14 @@
 #include <cmath>
 
 #include <marlin_server_shared.h>
+#include <option/has_xbuddy_extension.h>
 
 #if XL_ENCLOSURE_SUPPORT()
     #include <hw/xl/xl_enclosure.hpp>
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
 
 namespace buddy {
@@ -23,6 +28,9 @@ void Chamber::step() {
 #if XL_ENCLOSURE_SUPPORT()
     current_temperature_ = xl_enclosure.getEnclosureTemperature();
 
+#elif HAS_XBUDDY_EXTENSION()
+    // Dummy, untested implementation.
+    current_temperature_ = xbuddy_extension().chamber_temperature();
 #endif
 
     METRIC_DEF(metric_chamber_temp, "chamber_temp", METRIC_VALUE_FLOAT, 1000, METRIC_DISABLED);
@@ -45,6 +53,19 @@ Chamber::Capabilities Chamber::capabilities() const {
         };
 #endif
 
+#if HAS_XBUDDY_EXTENSION()
+    case Backend::xbuddy_extension:
+        return Capabilities {
+            .temperature_reporting = true,
+
+            // The chamber can effectively control temperature only if the fans are in auto mode
+            .cooling = xbuddy_extension().has_fan1_fan2_auto_control(),
+
+            // But always show temperature control menu items, even if disabled
+            .always_show_temperature_control = true,
+        };
+#endif
+
     case Backend::none:
         break;
     }
@@ -56,6 +77,12 @@ Chamber::Backend Chamber::backend() const {
 #if XL_ENCLOSURE_SUPPORT()
     if (xl_enclosure.isEnabled()) {
         return Backend::xl_enclosure;
+    }
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    if (xbuddy_extension().status() != XBuddyExtension::Status::disabled) {
+        return Backend::xbuddy_extension;
     }
 #endif
 
@@ -86,6 +113,10 @@ void Chamber::set_target_temperature(std::optional<Temperature> target) {
 void Chamber::reset() {
     std::lock_guard _lg(mutex_);
     target_temperature_ = std::nullopt;
+
+#if HAS_XBUDDY_EXTENSION()
+    xbuddy_extension().set_fan1_fan2_auto_control();
+#endif
 }
 
 } // namespace buddy

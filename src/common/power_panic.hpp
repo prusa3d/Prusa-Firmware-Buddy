@@ -39,6 +39,9 @@ bool is_power_panic_resuming();
 // ac_fault_triggered is set in all cases of AC power failure (it is used to disable EEPROM writing)
 extern std::atomic_bool ac_fault_triggered;
 
+/// Whether we should beep during the PP
+extern std::atomic_bool should_beep;
+
 // Current acFault pin status
 bool is_ac_fault_active();
 

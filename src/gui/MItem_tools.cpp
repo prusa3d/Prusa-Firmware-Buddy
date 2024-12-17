@@ -69,6 +69,11 @@
     #include <connect/marlin_printer.hpp>
 #endif
 
+#include <option/has_xbuddy_extension.h>
+#if HAS_XBUDDY_EXTENSION()
+    #include <puppies/xbuddy_extension.hpp>
+#endif
+
 namespace {
 void MsgBoxNonBlockInfo(const string_view_utf8 &txt) {
     constexpr static const char *title = N_("Information");
@@ -800,6 +805,28 @@ MI_INFO_BOARD_TEMP::MI_INFO_BOARD_TEMP()
     ) {
 }
 
+#if HAS_DOOR_SENSOR()
+MI_INFO_DOOR_SENSOR::MI_INFO_DOOR_SENSOR()
+    : MenuItemAutoUpdatingLabel(
+        _("Door Sensor"),
+        [this](const std::span<char> &buffer) { print_val(buffer); },
+        [](auto) { return sensor_data().door_sensor_detailed_state; } //
+    ) {
+}
+
+void MI_INFO_DOOR_SENSOR::print_val(const std::span<char> &buffer) const {
+    static constexpr EnumArray<buddy::DoorSensor::State, const char *, 3> texts {
+        { buddy::DoorSensor::State::sensor_detached, N_("detached") },
+        { buddy::DoorSensor::State::door_open, N_("open") },
+        { buddy::DoorSensor::State::door_closed, N_("closed") },
+    };
+    const auto detailed_state = value();
+    StringBuilder sb(buffer);
+    sb.append_string_view(_(texts[detailed_state.state]));
+    sb.append_printf(" / 0x%04x", detailed_state.raw_data);
+}
+#endif
+
 MI_INFO_MCU_TEMP::MI_INFO_MCU_TEMP()
     : MenuItemAutoUpdatingLabel(_("MCU Temperature"), standard_print_format::temp_c,
         [](auto) { return sensor_data().MCUTemp; } //
@@ -860,7 +887,7 @@ void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
     }
 
     if (index && (config_store().selftest_result_phase_stepping.get() != TestResult_Passed)) {
-    #if PRINTER_IS_PRUSA_iX()
+    #if PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_COREONE()
         if (MsgBoxQuestion(_("Turn on Phase stepping uncalibrated?"), Responses_YesNo) == Response::No) {
             AutoRestore ar(event_in_progress, true);
             set_value(old_index, false);

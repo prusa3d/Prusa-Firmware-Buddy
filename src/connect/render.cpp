@@ -195,6 +195,15 @@ namespace {
                     JSON_OBJ_END JSON_COMMA;
                 }
 #endif
+#if PRINTER_IS_PRUSA_COREONE()
+                JSON_FIELD_OBJ("chamber");
+                    JSON_FIELD_INT("target_temp", params.chamber_info.target_temp) JSON_COMMA;
+                    JSON_FIELD_INT("fan_1_rpm", params.chamber_info.fan_1_rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_2_rpm", params.chamber_info.fan_2_rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_pwm_target", params.chamber_info.fan_pwm_target) JSON_COMMA;
+                    JSON_FIELD_INT("led_intensity", params.chamber_info.led_intensity);
+                JSON_OBJ_END JSON_COMMA;
+#endif
                 if (!params.has_job) {
                     // To avoid spamming the DB, connect doesn't want positions during printing
                     JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
@@ -418,6 +427,9 @@ namespace {
                         JSON_FIELD_BOOL("enabled", params.enabled_tool_cnt() > 1) JSON_COMMA;
                         JSON_FIELD_STR_FORMAT("version", "%d.%d.%d", params.mmu_version.major, params.mmu_version.minor, params.mmu_version.build);
                     JSON_OBJ_END JSON_COMMA;
+#endif
+#if PRINTER_IS_PRUSA_COREONE()
+                    JSON_FIELD_BOOL("addon_power", params.addon_power) JSON_COMMA;
 #endif
                     JSON_FIELD_INT("slots", params.enabled_tool_cnt());
                 JSON_OBJ_END JSON_COMMA;

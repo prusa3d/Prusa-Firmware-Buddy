@@ -5,6 +5,7 @@
 #include <ScreenHandler.hpp>
 #include <selftest_types.hpp>
 #include <RAII.hpp>
+#include <option/has_phase_stepping_selftest.h>
 #include <option/has_toolchanger.h>
 #include "queue.h"
 #include "Marlin/src/gcode/queue.h"
@@ -142,7 +143,7 @@ void do_snake(Action action, Tool tool = Tool::_first) {
 
         switch (action) {
 
-#if HAS_PHASE_STEPPING()
+#if HAS_PHASE_STEPPING_SELFTEST()
         case Action::PhaseSteppingCalibration:
             marlin_client::gcode("M1977");
             break;

@@ -77,6 +77,18 @@ public:
     };
 #endif
 
+#if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
+    struct ChamberInfo {
+        static constexpr int target_temp_unset = 0U; // agreed with the Connect team, that 0 maps to unset values
+        uint32_t target_temp = target_temp_unset;
+        uint16_t fan_1_rpm = 0;
+        uint16_t fan_2_rpm = 0;
+        static constexpr int8_t fan_pwm_target_unset = -1; // -1 means auto control, 0-100 is pwm percentage for manual control
+        int8_t fan_pwm_target = fan_pwm_target_unset;
+        int8_t led_intensity = 0;
+    };
+#endif
+
     static constexpr size_t X_AXIS_POS = 0;
     static constexpr size_t Y_AXIS_POS = 1;
     static constexpr size_t Z_AXIS_POS = 2;
@@ -102,6 +114,10 @@ public:
         std::array<SlotInfo, NUMBER_OF_SLOTS> slots;
 #if XL_ENCLOSURE_SUPPORT()
         EnclosureInfo enclosure_info;
+#endif
+#if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
+        ChamberInfo chamber_info;
+        bool addon_power;
 #endif
 #if HAS_MMU2()
         MMU2::Version mmu_version = { 0, 0, 0 };

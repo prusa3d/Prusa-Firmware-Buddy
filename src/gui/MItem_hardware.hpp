@@ -4,6 +4,7 @@
 #include <config_store/store_instance.hpp>
 #include <option/has_side_fsensor.h>
 #include <option/has_toolchanger.h>
+#include <option/has_emergency_stop.h>
 #include <common/extended_printer_type.hpp>
 #include <gui/menu_item/menu_item_select_menu.hpp>
 
@@ -59,4 +60,16 @@ public:
         : IWiInfo(string_view_utf8::MakeCPUFLASH(PrinterModelInfo::current().id_str), _("Printer Type")) {}
 };
 
+#endif
+
+#if HAS_EMERGENCY_STOP()
+class MI_EMERGENCY_STOP_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Door Sensor");
+
+public:
+    MI_EMERGENCY_STOP_ENABLE();
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
 #endif

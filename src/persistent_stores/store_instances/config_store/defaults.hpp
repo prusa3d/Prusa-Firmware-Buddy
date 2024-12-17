@@ -139,7 +139,7 @@ namespace defaults {
 #endif /*DEVELOPMENT_ITEMS()*/
 
     inline constexpr bool crash_enabled {
-#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_XL())
+#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_COREONE())
         false
 #else
         true
@@ -271,7 +271,7 @@ namespace defaults {
     inline constexpr int16_t homing_sens_y { stallguard_sensitivity_unset };
 
     inline constexpr HotendType hotend_type {
-#if PRINTER_IS_PRUSA_iX()
+#if PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_COREONE()
         HotendType::stock_with_sock
 #else
         HotendType::stock
@@ -318,8 +318,11 @@ namespace defaults {
         .nozzle_preheat_temperature = 170,
     };
 
-    inline constexpr bool phase_stepping_enabled_x = PRINTER_IS_PRUSA_iX();
-    inline constexpr bool phase_stepping_enabled_y = PRINTER_IS_PRUSA_iX();
+    // Prusa CORE One has phase stepping enabled by default.
+    // Due to its 400-step motors and CoreXY kinematics, the classic stepping
+    // algorithm can't keep up with the increased demands caused by larger speeds.
+    inline constexpr bool phase_stepping_enabled_x = PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_COREONE();
+    inline constexpr bool phase_stepping_enabled_y = PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_COREONE();
 } // namespace defaults
 
 } // namespace config_store_ns

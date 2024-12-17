@@ -75,8 +75,12 @@ dependencies = {
         'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-2.3.5-3B618C23-C32F-4B7B-BBAB-050E3A3FC7D0.zip',
     },
     'bootloader-mk4': {
-        'version': '2.3.5',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.5-11516FDF-4631-4AF6-A161-1A91BDAB4A2B.zip',
+        'version': '2.4.0',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.4.0-2C891669-4233-4AD9-8DDC-3F6CCCE5CEAE.zip',
+    },
+    'bootloader-coreone': {
+        'version': '2.4.0',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.4.0-2C891669-4233-4AD9-8DDC-3F6CCCE5CEAE.zip',
     },
     'bootloader-mk3.5': {
         'version': '2.3.5',
@@ -111,6 +115,12 @@ dependencies = {
         'files': [
             'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd-data/40327a4d2dff0992682be2872aaa6e096f35d2f4/data/STMicro/STM32F427.svd',
             'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd-data/40327a4d2dff0992682be2872aaa6e096f35d2f4/data/STMicro/STM32G07x.svd',
+        ],
+    },
+    'cmsis-svd': {
+        'version': 'c7e833e81e79e3396e1078832d936ae6578a8bc1',
+        'files': [
+            'https://raw.githubusercontent.com/modm-io/cmsis-svd-stm32/c7e833e81e79e3396e1078832d936ae6578a8bc1/stm32h5/STM32H503.svd',
         ],
     },
     'CrashDebug': {

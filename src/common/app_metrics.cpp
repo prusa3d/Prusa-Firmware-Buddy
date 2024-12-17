@@ -9,6 +9,7 @@
 #include "malloc.h"
 #include "heap.h"
 #include <adc.hpp>
+#include <option/has_door_sensor.h>
 #include <option/has_advanced_power.h>
 #if HAS_ADVANCED_POWER()
     #include "advanced_power.hpp"
@@ -242,6 +243,15 @@ void buddy::metrics::RecordMarlinVariables() {
 
     METRIC_DEF(temp_ambient, "temp_ambient", METRIC_VALUE_FLOAT, 1100, METRIC_ENABLED);
     metric_record_float(&temp_ambient, thermalManager.deg_ambient());
+#endif
+
+#if HAS_DOOR_SENSOR()
+    {
+        METRIC_DEF(door_sensor, "door_sensor", METRIC_VALUE_INTEGER, 1100, METRIC_ENABLED);
+        const auto door_sensor_detailed_state = buddy::door_sensor().detailed_state();
+        metric_record_integer(&door_sensor, door_sensor_detailed_state.raw_data);
+        sensor_data().door_sensor_detailed_state = door_sensor_detailed_state;
+    }
 #endif
 
 #if FAN_COUNT >= 1

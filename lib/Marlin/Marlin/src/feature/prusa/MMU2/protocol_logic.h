@@ -36,9 +36,18 @@ public:
     #include "../../../../../../Prusa-Firmware-MMU/src/modules/protocol.h"
     #include "buttons.h"
     #include "registers.h"
+    #include <option/has_mmu2_over_uart.h>
+    #include <option/has_xbuddy_extension.h>
 #endif
 
-#include "mmu2_serial.h"
+#if HAS_MMU2_OVER_UART()
+    #include "mmu2_serial.h"
+#elif HAS_XBUDDY_EXTENSION()
+    #include <puppies/xbuddy_extension.hpp>
+    #include <xbuddy_extension_shared/mmu_bridge.hpp>
+#else
+    #error
+#endif
 
 /// New MMU2 protocol logic
 namespace MMU2 {
@@ -95,7 +104,13 @@ private:
 /// Logic layer of the MMU vs. printer communication protocol
 class ProtocolLogic {
 public:
-    ProtocolLogic(MMU2Serial *uart, uint8_t extraLoadDistance, uint8_t pulleySlowFeedrate);
+    ProtocolLogic(
+#if HAS_MMU2_OVER_UART()
+        MMU2Serial *uart,
+#else
+        buddy::puppies::XBuddyExtension *ext,
+#endif
+        uint8_t extraLoadDistance, uint8_t pulleySlowFeedrate);
 
     /// Start/Enable communication with the MMU
     void Start();
@@ -209,17 +224,27 @@ public:
 private:
 #endif
     StepStatus ExpectingMessage();
+#if HAS_MMU2_OVER_UART()
     void SendMsg(RequestMsg rq);
     void SendWriteMsg(RequestMsg rq);
+#else
+    static StepStatus ExpectingMessage2(const buddy::puppies::XBuddyExtension::MMUModbusRequest &mmr,
+        const buddy::puppies::XBuddyExtension::MMUQueryRegisters &mqr, ResponseMsg &rsp,
+        const RequestMsg &rq, uint8_t *rawMsg, uint8_t &rawMsgLen);
+#endif
     void SwitchToIdle();
     StepStatus SuppressShortDropOuts(const char *msg_P, StepStatus ss);
     StepStatus HandleCommunicationTimeout();
     StepStatus HandleProtocolError();
     bool Elapsed(uint32_t timeout) const;
     void RecordUARTActivity();
+#if HAS_MMU2_OVER_UART()
     void RecordReceivedByte(uint8_t c);
     void FormatLastReceivedBytes(char *dst);
     void FormatLastResponseMsgAndClearLRB(char *dst);
+#else
+    void FormatLastResponseMsg(char *dst, const uint8_t *msg, uint8_t len);
+#endif
     void LogRequestMsg(const uint8_t *txbuff, uint8_t size);
     void LogError(const char *reason_P);
     void LogResponse();
@@ -273,21 +298,19 @@ private:
 
     ScopeState scopeState; ///< internal state of the sub-automaton
 
-    /// @returns the status of processing of the FINDA query response
-    /// @param finishedRV returned value in case the message was successfully received and processed
-    /// @param nextState is a state where the state machine should transfer to after the message was successfully received and processed
-    // StepStatus ProcessFINDAReqSent(StepStatus finishedRV, State nextState);
-
-    /// @returns the status of processing of the statistics query response
-    /// @param finishedRV returned value in case the message was successfully received and processed
-    /// @param nextState is a state where the state machine should transfer to after the message was successfully received and processed
-    // StepStatus ProcessStatisticsReqSent(StepStatus finishedRV, State nextState);
-
     /// Called repeatedly while waiting for a query (Q0) period.
     /// All event checks to report immediately from the printer to the MMU shall be done in this method.
     /// So far, the only such a case is the filament sensor, but there can be more like this in the future.
     void CheckAndReportAsyncEvents();
+
+    /// The following methods are protocol specific (somehow) - their implementation differs for MODBUS and the MMU protocol.
     void SendQuery();
+    void SendVersion(uint8_t stage);
+    void SendReadRegister(uint8_t index, ScopeState nextState);
+    void SendWriteRegister(uint8_t index, uint16_t value, ScopeState nextState);
+    void SendButton(uint8_t btn);
+    void SendCommand();
+
     void StartReading8bitRegisters();
     void ProcessRead8bitRegister();
     void StartReading16bitRegisters();
@@ -296,10 +319,6 @@ private:
     /// @returns true when all registers have been written into the MMU
     bool ProcessWritingInitRegister();
     void SendAndUpdateFilamentSensor();
-    void SendButton(uint8_t btn);
-    void SendVersion(uint8_t stage);
-    void SendReadRegister(uint8_t index, ScopeState nextState);
-    void SendWriteRegister(uint8_t index, uint16_t value, ScopeState nextState);
 
     StepStatus ProcessVersionResponse(uint8_t stage);
 
@@ -354,13 +373,21 @@ private:
 
     State state; ///< internal state of ProtocolLogic
 
+#if HAS_MMU2_OVER_UART()
     Protocol protocol; ///< protocol codec
 
     std::array<uint8_t, 16> lastReceivedBytes; ///< remembers the last few bytes of incoming communication for diagnostic purposes
     uint8_t lrb;
 
     MMU2Serial *uart; ///< UART interface
-
+#else
+    struct ProtocolModbus {
+        void ResetResponseDecoder() {}
+    };
+    ProtocolModbus protocol;
+    buddy::puppies::XBuddyExtension *ext;
+    void LogRequestMsgModbus(const RequestMsg rq);
+#endif
     ErrorCode errorCode; ///< last received error code from the MMU
     ProgressCode progressCode; ///< last received progress code from the MMU
     Buttons buttonCode; ///< Last received button from the MMU.

@@ -48,9 +48,9 @@ TRACED_ISR(DMA2_Stream7_IRQHandler, HAL_DMA_IRQHandler, uart_handle_for_puppies.
 
 #endif
 
-#if HAS_MMU2()
+#if HAS_MMU2_OVER_UART()
 
-// UART for MMU
+// UART for MMU in case there are no puppies
 void uart_for_mmu_idle_isr() {
     uart_for_mmu.IdleISR();
 }

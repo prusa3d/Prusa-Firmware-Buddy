@@ -581,6 +581,10 @@ void phase_stepping::clear_targets() {
     float BREAKPOINT = 6.f;
     float ENDPOINT = 10.f;
     int REDUCTION_TO = 150;
+#elif PRINTER_IS_PRUSA_COREONE() // TODO simple copy-paste of XL values. To be removed as soon as iX values are measured
+    float BREAKPOINT = 20.f;
+    float ENDPOINT = 10.f;
+    int REDUCTION_TO = 255;
 #else
     #error "Unsupported printer"
 #endif

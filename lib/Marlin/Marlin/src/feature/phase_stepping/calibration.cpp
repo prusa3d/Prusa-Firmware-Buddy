@@ -199,14 +199,25 @@ static bool wait_for_accel_end(phase_stepping::AxisState &axis_state,
     });
 }
 
+#if !PRINTER_IS_PRUSA_COREONE()
 // Computes a pseudo-projection of one vector to another. The length of
 // direction vector is not normalized.
 static float pseudo_project(std::tuple<float, float> what, std::tuple<float, float> dir) {
     return std::get<0>(what) * std::get<0>(dir) + std::get<1>(what) * std::get<1>(dir);
 }
+#endif
 
 static float project_to_axis(AxisEnum axis, const PrusaAccelerometer::Acceleration &sample) {
-#ifdef COREXY
+#if PRINTER_IS_PRUSA_COREONE()
+    // TODO do this properly. Somehow.
+    if (axis == AxisEnum::X_AXIS) {
+        return sample.val[1];
+    } else if (axis == AxisEnum::Y_AXIS) {
+        return sample.val[0];
+    } else {
+        bsod("Unsupported axis");
+    }
+#elif ENABLED(COREXY)
     std::pair<float, float> proj_dir;
     if (axis == AxisEnum::X_AXIS) {
         proj_dir = { M_SQRT1_2, M_SQRT1_2 };
@@ -702,6 +713,46 @@ PrinterCalibrationConfig phase_stepping::get_printer_calibration_config() {
             .speed = 1.5f,
             .pha_window = 1.5f,
             .mag_window = 0.02f,
+            .iteration_count = 16,
+        },
+    };
+
+    return PrinterCalibrationConfig {
+        .calib_revs = 0.5f,
+        .phases = std::vector(phases.begin(), phases.end()),
+    };
+#elif PRINTER_IS_PRUSA_COREONE()
+    static constexpr std::array phases = {
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 1.f,
+            .pha = 0.f,
+            .pha_window = 3.f,
+            .mag = 0.01f,
+            .mag_window = 0.04f,
+            .iteration_count = 10,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 0.5f,
+            .pha = 0.f,
+            .pha_window = 6.f,
+            .mag = 0.0025f,
+            .mag_window = 0.0025f,
+            .iteration_count = 10,
+        },
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 1.f,
+            .pha_window = .5f,
+            .mag_window = 0.01f,
+            .iteration_count = 16,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 0.5f,
+            .pha_window = 0.5f,
+            .mag_window = 0.001f,
             .iteration_count = 16,
         },
     };

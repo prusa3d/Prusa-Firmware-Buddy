@@ -14,7 +14,11 @@
 #if XL_ENCLOSURE_SUPPORT()
     #include <xl_enclosure.hpp>
 #endif
-
+#if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
+    #include <feature/chamber/chamber.hpp>
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+    #include <feature/xbuddy_extension/cooling.hpp>
+#endif
 #include <alloca.h>
 #include <algorithm>
 #include <cassert>
@@ -973,8 +977,27 @@ void Planner::command(const Command &command, const SetValue &params) {
             slot.nozzle_diameter = get<float>(params.value);
         });
         break;
+#if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
+    case connect_client::PropertyName::ChamberTargetTemp: {
+        auto target_temp = get<uint32_t>(params.value);
+        buddy::chamber().set_target_temperature(target_temp == connect_client::Printer::ChamberInfo::target_temp_unset ? nullopt : std::make_optional(target_temp));
+    } break;
+    case connect_client::PropertyName::ChamberFanPwmTarget: {
+        int8_t pwm = get<int8_t>(params.value);
+        if (pwm < 0) {
+            buddy::xbuddy_extension().set_fan1_fan2_auto_control();
+        } else {
+            buddy::xbuddy_extension().set_fan1_fan2_pwm(buddy::FanCooling::pct2pwm(pwm)); // convert from percentage to PWM
+        }
+    } break;
+    case connect_client::PropertyName::ChamberLedIntensity:
+        buddy::xbuddy_extension().set_chamber_leds_pwm(buddy::XBuddyExtension::led_pct2pwm(get<int8_t>(params.value)));
+        break;
+    case connect_client::PropertyName::AddonPower:
+        buddy::xbuddy_extension().set_usb_power(get<bool>(params.value));
+        break;
+#endif
     }
-
     if (err != nullptr) {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, err };
     } else {

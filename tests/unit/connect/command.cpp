@@ -2,6 +2,7 @@
 
 #include <module/prusa/tool_mapper.hpp>
 #include <cstring>
+#include <format>
 #include <catch2/catch.hpp>
 
 using namespace connect_client;
@@ -193,6 +194,102 @@ TEST_CASE("Set value - high flow") {
     REQUIRE(cmd.idx == 3);
     REQUIRE(holds_alternative<bool>(cmd.value));
     REQUIRE(get<bool>(cmd.value));
+}
+
+void set_value_chamber_target_temp(uint32_t temperature) {
+    std::string json = std::format(R"({{"command":"SET_VALUE","kwargs":{{"chamber.target_temp": {}}}}})", temperature);
+
+    auto cmd = command_test<SetValue>(json.c_str());
+    REQUIRE(cmd.name == PropertyName::ChamberTargetTemp);
+    REQUIRE(holds_alternative<uint32_t>(cmd.value));
+    REQUIRE(get<uint32_t>(cmd.value) == temperature);
+}
+
+TEST_CASE("Set value - chamber.target_temp") {
+    // Note: for value logic verification see related TEST_CASE("Command Set value - chamber.target_temp set/unset logic")
+    // in connect_planner unit test suite.
+    SECTION("0") { // 0 is a special case - target_temp off. However, on the level of Set value, it is no different from any other value
+        set_value_chamber_target_temp(0);
+    }
+
+    SECTION("35") { // some normal target temp
+        set_value_chamber_target_temp(35);
+    }
+
+    SECTION("55") { // 55 is the limit value specified by the Connect protocol. However, we are not checking the range
+        set_value_chamber_target_temp(55);
+    }
+}
+
+void set_value_chamber_fan_pwm_target(int8_t pwm) {
+    std::string json = std::format(R"({{"command":"SET_VALUE","kwargs":{{"chamber.fan_pwm_target": {}}}}})", pwm);
+
+    auto cmd = command_test<SetValue>(json.c_str());
+    REQUIRE(cmd.name == PropertyName::ChamberFanPwmTarget);
+    REQUIRE(holds_alternative<int8_t>(cmd.value));
+    REQUIRE(get<int8_t>(cmd.value) == pwm);
+}
+
+TEST_CASE("Set value - chamber.fan_pwm_target") {
+    // Note: for value logic verification see related TEST_CASE("Command Set value - xbuddy_extension fan1, 2 set/unset logic")
+    // in connect_planner unit test suite.
+    SECTION("0") {
+        set_value_chamber_fan_pwm_target(0);
+    }
+
+    SECTION("35") {
+        set_value_chamber_fan_pwm_target(35);
+    }
+
+    SECTION("100") {
+        set_value_chamber_fan_pwm_target(100);
+    }
+}
+
+void set_value_chamber_led_intensity(int8_t pwm) {
+    std::string json = std::format(R"({{"command":"SET_VALUE","kwargs":{{"chamber.led_intensity": {}}}}})", pwm);
+
+    auto cmd = command_test<SetValue>(json.c_str());
+    REQUIRE(cmd.name == PropertyName::ChamberLedIntensity);
+    REQUIRE(holds_alternative<int8_t>(cmd.value));
+    REQUIRE(get<int8_t>(cmd.value) == pwm);
+}
+
+TEST_CASE("Set value - chamber.led_intensity") {
+    // Note: for value logic verification see related TEST_CASE("Command Set value - xbuddy_extension LED intensity logic")
+    // in connect_planner unit test suite.
+    SECTION("0") {
+        set_value_chamber_led_intensity(0);
+    }
+
+    SECTION("35") {
+        set_value_chamber_led_intensity(35);
+    }
+
+    SECTION("100") {
+        set_value_chamber_led_intensity(100);
+    }
+}
+
+void set_value_addon_power(bool b) {
+    std::string json = std::format(R"({{"command":"SET_VALUE","kwargs":{{"addon_power": {}}}}})", b);
+
+    auto cmd = command_test<SetValue>(json.c_str());
+    REQUIRE(cmd.name == PropertyName::AddonPower);
+    REQUIRE(holds_alternative<bool>(cmd.value));
+    REQUIRE(get<bool>(cmd.value) == b);
+}
+
+TEST_CASE("Set value - addon_power") {
+    // Note: for value logic verification see related TEST_CASE("Command Set value - xbuddy_extension usb addon power logic")
+    // in connect_planner unit test suite.
+    SECTION("true") {
+        set_value_addon_power(true);
+    }
+
+    SECTION("false") {
+        set_value_addon_power(false);
+    }
 }
 
 TEST_CASE("Set value - hostname too long") {

@@ -22,6 +22,10 @@ if(HAS_MODULARBED)
   target_sources(firmware PUBLIC modular_bed.cpp)
 endif()
 
+if(HAS_XBUDDY_EXTENSION)
+  target_sources(firmware PUBLIC xbuddy_extension.cpp)
+endif()
+
 if(HAS_PUPPIES_BOOTLOADER)
   target_sources(firmware PUBLIC BootloaderProtocol.cpp)
 endif()

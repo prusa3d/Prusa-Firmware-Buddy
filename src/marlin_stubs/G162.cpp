@@ -16,6 +16,10 @@
 #if HAS_LOADCELL()
     #include "loadcell.hpp"
 #endif
+#include <option/has_toolchanger.h>
+#if HAS_TOOLCHANGER()
+    #include <module/prusa/toolchanger.h>
+#endif /* HAS_TOOLCHANGER() */
 
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()

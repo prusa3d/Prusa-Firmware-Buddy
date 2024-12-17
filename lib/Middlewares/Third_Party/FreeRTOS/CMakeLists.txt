@@ -29,8 +29,11 @@ else()
   message(FATAL_ERROR "Unknown HW platform of mcu \"${MCU}\"")
 endif()
 
-# TODO start disabling for some builds where CMSIS RTOS is not needed.
-set(HAS_CMSIS_RTOS ON)
+if(BOARD STREQUAL "XBUDDY_EXTENSION")
+  set(HAS_CMSIS_RTOS OFF)
+else()
+  set(HAS_CMSIS_RTOS ON)
+endif()
 
 if(HAS_CMSIS_RTOS)
   target_sources(FreeRTOS PRIVATE Source/CMSIS_RTOS/cmsis_os.c)

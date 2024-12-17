@@ -255,6 +255,12 @@ void init_tmc_bare_minimum(void) {
 /// This implements a weak symbol declared within the TMCStepper library
 bool tmc_serial_lock_acquire(void) {
     auto res = osMutexWait(tmc_mutex_id, osWaitForever) == osOK;
+
+    // If there is a problem in RTOS due to memory corruption, the code will early return and the
+    // CommunicationGuard which is calling it will do an abort -> we know something broke hard in memory.
+    if (!res) {
+        return false;
+    }
     // We have taken the mutex, now let's try to take over the lock from ISR in
     // busy waiting. We will wait at most one period of phase stepping (~25 µs)
     BusOwner owner = BusOwner::NOBODY;
@@ -263,12 +269,14 @@ bool tmc_serial_lock_acquire(void) {
     while (!tmc_bus_owner.compare_exchange_weak(owner, BusOwner::TASK,
         std::memory_order_relaxed,
         std::memory_order_relaxed)) {
-        owner = BusOwner::NOBODY;
         if (ticks_diff(ticks_ms(), start) > 100) {
             bsod("Couldn't acquire TMC bus within 100ms");
         }
+        // When the SPI bus cannot be taken for some reason, the owner will remain in the owner variable
+        // and we'll know if it was the ISR or another task. Therefore, owner is reset after the potential BSOD call above
+        owner = BusOwner::NOBODY;
     }
-    return res;
+    return true;
 }
 
 /// Release lock for mutual exclusive access to the trinamic's serial port

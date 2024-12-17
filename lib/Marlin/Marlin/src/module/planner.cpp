@@ -104,6 +104,11 @@
 #include "../feature/phase_stepping/phase_stepping.hpp"
 #endif // HAS_PHASE_STEPPING()
 
+#include <option/has_emergency_stop.h>
+#if HAS_EMERGENCY_STOP()
+  #include <feature/emergency_stop/emergency_stop.hpp>
+#endif
+
 #include "configuration_store.h"
 
 constexpr const int32_t MIN_MSTEPS_PER_SEGMENT = MIN_STEPS_PER_SEGMENT * PLANNER_STEPS_MULTIPLIER;
@@ -2098,6 +2103,14 @@ bool Planner::buffer_segment(const abce_pos_t &abce
 
   // If we are aborting, do not accept queuing of movements
   if (draining_buffer || PreciseStepping::stopping()) return false;
+
+#if HAS_EMERGENCY_STOP()
+  buddy::emergency_stop().maybe_block();
+  buddy::emergency_stop().assert_can_plan_movement();
+
+  // Check once more (this could have changed during the maybe_block)
+  if (draining_buffer || PreciseStepping::stopping()) return false;
+#endif
 
   #if ENABLED(CRASH_RECOVERY)
   // Hints for the current segments might be reset during recovery

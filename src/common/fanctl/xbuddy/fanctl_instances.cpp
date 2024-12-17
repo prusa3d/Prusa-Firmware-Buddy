@@ -4,8 +4,8 @@
 #include "CFanCtl3Wire.hpp"
 #include "CFanCtl3WireDynamic.hpp"
 
-#if !PRINTER_IS_PRUSA_MK4()
-    #error "Dynamic PWM is only for MK4, fix your CMakeLists.txt!"
+#if !PRINTER_IS_PRUSA_MK4() && !PRINTER_IS_PRUSA_COREONE()
+    #error "Dynamic PWM is only for MK4/COREONE, fix your CMakeLists.txt!"
 #endif
 
 CFanCtlCommon &Fans::print(size_t index) {

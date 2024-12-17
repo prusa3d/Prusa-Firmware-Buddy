@@ -75,6 +75,11 @@ LOG_COMPONENT_REF(Marlin);
     #include "power_panic.hpp"
 #endif
 
+#include <option/has_emergency_stop.h>
+#if HAS_EMERGENCY_STOP()
+    #include <feature/emergency_stop/emergency_stop.hpp>
+#endif
+
 #include "probe_position_lookback.hpp"
 #include <config_store/store_instance.hpp>
 #include <option/init_trinamic_from_marlin_only.h>
@@ -322,6 +327,10 @@ void app_tim14_tick(void) {
     if (touchscreen.is_enabled()) {
         touchscreen.update();
     }
+#endif
+
+#if HAS_EMERGENCY_STOP()
+    buddy::emergency_stop().check_z_limits();
 #endif
 
     adc_tick_1ms();

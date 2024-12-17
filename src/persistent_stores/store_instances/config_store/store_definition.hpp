@@ -35,9 +35,12 @@
 #include <option/has_phase_stepping.h>
 #include <option/has_phase_stepping_toggle.h>
 #include <option/has_i2c_expander.h>
+#include <option/has_xbuddy_extension.h>
+#include <option/has_emergency_stop.h>
 #include <option/xl_enclosure_support.h>
 #include <common/extended_printer_type.hpp>
 #include <common/hw_check.hpp>
+#include <feature/xbuddy_extension/xbuddy_extension_fan_results.hpp>
 
 #if HAS_SHEET_PROFILES()
     #include <common/sheet.hpp>
@@ -541,6 +544,16 @@ struct CurrentStore
     StoreItem<uint8_t, 0, journal::hash("IO Expander's Output Register")> io_expander_output_register;
     StoreItem<uint8_t, 0, journal::hash("IO Expander's Polarity Register")> io_expander_polarity_register;
 #endif // HAS_I2C_EXPANDER()
+
+#if HAS_XBUDDY_EXTENSION()
+    StoreItem<uint8_t, 255, journal::hash("XBuddy Extension Chamber LEDs PWM")> xbuddy_extension_chamber_leds_pwm;
+    StoreItem<XBEFanTestResults, XBEFanTestResults {}, journal::hash("XBE Chamber fan selftest results")> xbe_fan_test_results;
+    StoreItem<bool, true, journal::hash("XBE USB Host power")> xbe_usb_power;
+#endif
+
+#if HAS_EMERGENCY_STOP()
+    StoreItem<bool, true, journal::hash("Emergency stop enable")> emergency_stop_enable;
+#endif
 
 #if HAS_ILI9488_DISPLAY()
     StoreItem<bool, false, journal::hash("Reduce Display Baudrate")> reduce_display_baudrate;

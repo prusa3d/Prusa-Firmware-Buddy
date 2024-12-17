@@ -12,9 +12,15 @@
 #include "Configuration_adv.h"
 #include <option/has_mmu2.h>
 #include <option/developer_mode.h>
+#include <option/has_xbuddy_extension.h>
+#include <option/has_phase_stepping.h>
 
 #if HAS_MMU2()
     #include "MItem_mmu.hpp"
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    #include <gui/menu_item/specific/menu_items_xbuddy_extension.hpp>
 #endif
 
 class MI_HELP_FW_UPDATE : public IWindowMenuItem {
@@ -26,6 +32,18 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+#if HAS_PHASE_STEPPING()
+class MI_PS_CALIB : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Phase Stepping Calibration");
+
+public:
+    MI_PS_CALIB();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+#endif
 
 /*****************************************************************************/
 
@@ -43,6 +61,9 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_MMU_BOOTLOADER_RESULT,
     MI_MMU_CUTTER,
 #endif
+#if HAS_XBUDDY_EXTENSION()
+    MI_CAM_USB_PWR,
+#endif
     MI_STEALTH_MODE,
     MI_FAN_CHECK,
     MI_GCODE_VERIFY,
@@ -54,6 +75,9 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_TOOLHEAD_SETTINGS,
 #endif
     MI_INPUT_SHAPER,
+#if HAS_PHASE_STEPPING()
+    MI_PS_CALIB,
+#endif
 #if DEVELOPER_MODE()
     MI_ERROR_TEST,
 #endif

@@ -9,7 +9,11 @@
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 #include "../common/otp.hpp"
 #include "common/filament_sensors_handler.hpp"
-#include "Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
+#include <option/has_mmu2.h>
+
+#if HAS_MMU2()
+    #include "Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
+#endif
 
 #include <str_utils.hpp>
 
@@ -38,7 +42,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
         Item<MI_INFO_BOOTLOADER>().ChangeInformation(sb.str());
     }
 
-#if HAS_MMU
+#if HAS_MMU2()
     if (FSensors_instance().HasMMU()) {
         const auto mmu_version = MMU2::mmu2.GetMMUFWVersion();
         if (mmu_version.major != 0) {

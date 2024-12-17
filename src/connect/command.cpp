@@ -221,6 +221,18 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         }                                                                    \
     }
 
+#define SET_VALUE_ARG(name_, type)                              \
+    if (auto *cmd = get_if<SetValue>(&data); cmd != nullptr) {  \
+        seen_args |= ArgSetValue;                               \
+        cmd->name = name_;                                      \
+        auto value = convert_num<type>(event.value.value());    \
+        if (value.has_value()) {                                \
+            cmd->value = value.value();                         \
+        } else {                                                \
+            data = BrokenCommand { "Invalid " #type " value" }; \
+        }                                                       \
+    }
+
         auto set_value_bool_arg = [&](PropertyName name, size_t idx = 0) {
             if (auto *cmd = get_if<SetValue>(&data); cmd != nullptr) {
                 seen_args |= ArgSetValue;
@@ -390,6 +402,16 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         } else if (is_arg("id", Type::Primitive)) {
             INT_ARG(CancelObject, uint8_t, id, ArgId)
             INT_ARG(UncancelObject, uint8_t, id, ArgId)
+#if PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
+        } else if (is_arg("chamber.target_temp", Type::Primitive)) {
+            SET_VALUE_ARG(PropertyName::ChamberTargetTemp, uint32_t);
+        } else if (is_arg("chamber.fan_pwm_target", Type::Primitive)) {
+            SET_VALUE_ARG(PropertyName::ChamberFanPwmTarget, int8_t);
+        } else if (is_arg("chamber.led_intensity", Type::Primitive)) {
+            SET_VALUE_ARG(PropertyName::ChamberLedIntensity, int8_t);
+        } else if (is_arg("addon_power", Type::Primitive)) {
+            set_value_bool_arg(PropertyName::AddonPower);
+#endif
         }
     });
 

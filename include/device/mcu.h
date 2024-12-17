@@ -13,6 +13,8 @@
     #define MCU_IS_STM32F4() 1
 #elif MCU_IS_STM32G070RBT6()
     #define MCU_IS_STM32G0() 1
+#elif MCU_IS_STM32H503CBU7()
+    #define MCU_IS_STM32H5() 1
 #else
     #error Unknown MCU
 #endif
@@ -23,4 +25,8 @@
 
 #ifndef MCU_IS_STM32F4
     #define MCU_IS_STM32F4() 0
+#endif
+
+#ifndef MCU_IS_STM32H5
+    #define MCU_IS_STM32H5() 0
 #endif

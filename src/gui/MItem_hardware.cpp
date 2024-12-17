@@ -108,3 +108,17 @@ bool MI_EXTENDED_PRINTER_TYPE::on_item_selected([[maybe_unused]] int old_index, 
     return true;
 }
 #endif
+
+#if HAS_EMERGENCY_STOP()
+MI_EMERGENCY_STOP_ENABLE::MI_EMERGENCY_STOP_ENABLE()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().emergency_stop_enable.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
+
+void MI_EMERGENCY_STOP_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
+    if (!value() && MsgBoxWarning(_("Caution! Disabling the door sensor may lead to injury or printer damage. Proceeding means you accept full responsibility. We are not liable for any harm or damages."), { Response::Disable, Response::Cancel }) != Response::Disable) {
+        set_value(true, false);
+        return;
+    }
+
+    config_store().emergency_stop_enable.set(value());
+}
+#endif

@@ -6,6 +6,7 @@
 #include <utility>
 #include <option/has_dwarf.h>
 #include <option/has_modularbed.h>
+#include <option/has_xbuddy_extension.h>
 #include <option/has_puppies.h>
 
 namespace buddy::puppies {
@@ -18,6 +19,7 @@ inline constexpr int max_bootstrap_perc { 90 };
 enum PuppyType : size_t {
     DWARF,
     MODULARBED,
+    XBUDDY_EXTENSION,
 };
 
 /// Dock is a location where a Puppy can live
@@ -29,7 +31,10 @@ enum class Dock : uint8_t {
     DWARF_4,
     DWARF_5,
     DWARF_6,
+    XBUDDY_EXTENSION,
 };
+
+static_assert(std::to_underlying(Dock::XBUDDY_EXTENSION) == 7, "Must stay 8th puppy, because we are unable to do dynamic address assignemnt on startup on xBuddy");
 
 constexpr auto DOCKS = std::to_array({
 #if HAS_MODULARBED()
@@ -42,6 +47,9 @@ constexpr auto DOCKS = std::to_array({
         Dock::DWARF_4,
         Dock::DWARF_5,
         Dock::DWARF_6,
+#endif
+#if HAS_XBUDDY_EXTENSION()
+        Dock::XBUDDY_EXTENSION,
 #endif
 });
 
@@ -67,6 +75,10 @@ constexpr const char *to_string(Dock k) {
     case Dock::DWARF_6:
         return "DWARF_6";
 #endif
+#if HAS_XBUDDY_EXTENSION()
+    case Dock::XBUDDY_EXTENSION:
+        return "XBUDDY_EXTENSION";
+#endif
     default:
         std::abort();
     }
@@ -87,6 +99,30 @@ constexpr PuppyType to_puppy_type(Dock dock) {
     case Dock::DWARF_5:
     case Dock::DWARF_6:
         return DWARF;
+#endif
+#if HAS_XBUDDY_EXTENSION()
+    case Dock::XBUDDY_EXTENSION:
+        return XBUDDY_EXTENSION;
+#endif
+    default:
+        std::abort();
+    }
+    std::unreachable();
+}
+
+constexpr bool is_dynamicly_addressable(PuppyType puppy) {
+    switch (puppy) {
+#if HAS_MODULARBED()
+    case MODULARBED:
+        return true;
+#endif
+#if HAS_DWARF()
+    case DWARF:
+        return true;
+#endif
+#if HAS_XBUDDY_EXTENSION()
+    case XBUDDY_EXTENSION:
+        return false;
 #endif
     default:
         std::abort();
@@ -138,6 +174,14 @@ inline constexpr PuppyInfo get_puppy_info(PuppyType puppy) {
             43,
         };
 #endif
+#if HAS_XBUDDY_EXTENSION()
+    case XBUDDY_EXTENSION:
+        return {
+            "xbuddy extension",
+            "/internal/res/puppies/fw-xbuddy-extension.bin",
+            44,
+        };
+#endif
     default:
         std::abort();
     }
@@ -184,6 +228,12 @@ inline constexpr DockInfo get_dock_info(Dock dock) {
     case Dock::DWARF_6:
         return {
             "/internal/dump_dwarf6.dmp",
+        };
+#endif
+#if HAS_XBUDDY_EXTENSION()
+    case Dock::XBUDDY_EXTENSION:
+        return {
+            "/internal/dump_xbuddy_extension.dmp",
         };
 #endif
     default:

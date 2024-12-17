@@ -95,6 +95,8 @@
 #include <option/has_sheet_profiles.h>
 #include <option/has_i2c_expander.h>
 #include <option/has_chamber_api.h>
+#include <option/has_xbuddy_extension.h>
+#include <option/has_emergency_stop.h>
 
 #if HAS_DWARF()
     #include <puppies/Dwarf.hpp>
@@ -144,6 +146,13 @@
 
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+#endif
+#if HAS_EMERGENCY_STOP()
+    #include <feature/emergency_stop/emergency_stop.hpp>
 #endif
 
 #include <wui.h>
@@ -457,10 +466,13 @@ namespace {
 
         case PhasesWarning::MetricsConfigChangePrompt:
 #if HAS_CHAMBER_API()
-        case PhasesWarning::FailedToReachChamberTemperature: // Should be within a gcode loop where handle_warnings is not called
+        case PhasesWarning::FailedToReachChamberTemperature:
 #endif
 #if ENABLED(DETECT_PRINT_SHEET)
         case PhasesWarning::SteelSheetNotDetected:
+#endif
+#if HAS_EMERGENCY_STOP()
+        case PhasesWarning::DoorOpen: // No buttons present
 #endif
             // These errors should be within a gcode loop where handle_warnings is not called
             std::terminate();
@@ -684,6 +696,14 @@ static void cycle() {
     buddy::chamber().step();
 #endif
 
+#if HAS_EMERGENCY_STOP()
+    buddy::emergency_stop().step();
+#endif
+
+#if HAS_XBUDDY_EXTENSION()
+    buddy::xbuddy_extension().step();
+#endif
+
     static bool is_nested = false;
     if (is_nested) {
         return;
@@ -845,6 +865,13 @@ void loop() {
     server.idle_cnt = 0;
     cycle();
 
+#if HAS_EMERGENCY_STOP()
+    // During printing, possibly block anytime
+    if (server.print_state == State::Printing) {
+        buddy::emergency_stop().maybe_block();
+    }
+#endif
+
 #if HAS_NFC()
     if (printer_idle() && !fsm_states.get_top().has_value()) {
         handle_nfc();
@@ -896,6 +923,13 @@ static void idle(void) {
             _send_notify_event(Event::CommandBegin, server.command, 0);
         }
     }
+
+#if HAS_EMERGENCY_STOP()
+    // During printing, possibly block anytime
+    if (server.print_state == State::Printing) {
+        buddy::emergency_stop().maybe_block();
+    }
+#endif
 }
 
 void do_babystep_Z(float offs) {

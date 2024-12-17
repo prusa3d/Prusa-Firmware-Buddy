@@ -18,6 +18,11 @@
 #include "mmu2_reporting.h"
 #include "../e-stall_detector.h"
 #include <printers.h>
+#include <option/has_mmu2_over_uart.h>
+#if not HAS_MMU2_OVER_UART()
+    #include <puppies/xbuddy_extension.hpp>
+#endif
+
 #ifndef UNITTEST
     // because it brings in whole Marlin and the unit tests commit suicide ...
     #include "../../../module/prusa/spool_join.hpp"
@@ -128,7 +133,11 @@ MMU2 mmu2;
 MMU2::MMU2()
     : logic(
 #if ENABLED(PRUSA_MMU2)
+    #if HAS_MMU2_OVER_UART()
         &mmu2Serial
+    #else
+        &buddy::puppies::xbuddy_extension
+    #endif
 #else
         nullptr
 #endif

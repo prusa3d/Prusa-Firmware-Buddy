@@ -240,8 +240,20 @@ bool is_microstep_value_valid(uint16_t microsteps) {
 bool get_has_400step_xy_motors() {
 #if PRINTER_IS_PRUSA_MK4()
     return extended_printer_type_has_400step_motors[config_store().extended_printer_type.get()];
-#else
+#elif PRINTER_IS_PRUSA_MINI()
     return false;
+#elif PRINTER_IS_PRUSA_XL()
+    return false;
+#elif PRINTER_IS_PRUSA_iX()
+    return false;
+#elif PRINTER_IS_PRUSA_XL_DEV_KIT()
+    return false;
+#elif PRINTER_IS_PRUSA_MK3_5()
+    return false;
+#elif PRINTER_IS_PRUSA_COREONE()
+    return true;
+#else
+    #error
 #endif
 }
 
