@@ -100,6 +100,14 @@ Errors:
     id: "DOOR_OPEN"
     approved: false
 
+  - code: "XX111"
+    printers: [COREONE]
+    title: "UNEVEN BED"
+    text: "The bed doesn't seem to be aligned properly. Run Z alignment procedure?"
+    action: []
+    id: "UNEVEN_BED_ALIGN_PROMPT"
+    approved: false
+
   # TEMPERATURE    xx2xx
 
   - code: "XX201"
