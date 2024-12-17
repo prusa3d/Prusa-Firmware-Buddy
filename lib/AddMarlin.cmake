@@ -29,6 +29,8 @@ add_library(
   Marlin/Marlin/src/module/temperature.cpp
   )
 
+target_compile_options(Marlin PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-psabi>)
+
 if(BOARD_IS_MASTER_BOARD)
   # Full Marlin configuration for printing (*BUDDY boards)
   target_sources(

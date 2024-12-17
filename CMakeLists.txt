@@ -435,6 +435,7 @@ target_compile_options(
           $<$<COMPILE_LANGUAGE:CXX>:-Wnull-dereference>
           $<$<COMPILE_LANGUAGE:CXX>:-Wshadow=compatible-local>
           $<$<COMPILE_LANGUAGE:CXX>:-Wvla>
+          $<$<COMPILE_LANGUAGE:CXX>:-Wno-psabi>
           -Wdouble-promotion
   )
 
