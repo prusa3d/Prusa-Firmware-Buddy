@@ -36,6 +36,7 @@
 LOG_COMPONENT_REF(Selftest);
 
 using namespace fan_selftest;
+using marlin_server::wait_for_response;
 
 namespace {
 
@@ -245,15 +246,6 @@ private:
     void manual_check_init() {
         // stop print_fan since heatbreak_fan is the critical one
         fans[0]->set_pwm(0);
-    }
-
-    static Response wait_for_response(const PhasesFansSelftest phase) {
-        for (;;) {
-            if (Response response = marlin_server::get_response_from_phase(phase); response != Response::_none) {
-                return response;
-            }
-            idle(true);
-        }
     }
 
     bool manual_check_ask() {

@@ -3,7 +3,7 @@
 #include "status_footer.hpp"
 #include "WindowMenuSpin.hpp"
 #include "footer_eeprom.hpp"
-#include "DialogMoveZ.hpp"
+#include <screen_move_z.hpp>
 #include "footer_def.hpp"
 #include "utility_extensions.hpp"
 
@@ -68,7 +68,7 @@ void MI_FOOTER_CENTER_N::OnClick() {
 
 void ScreenMenuFooterSettings::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::HELD_RELEASED) {
-        DialogMoveZ::Show();
+        open_move_z_screen();
         return;
     }
 

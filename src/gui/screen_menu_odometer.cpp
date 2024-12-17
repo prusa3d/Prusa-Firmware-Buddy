@@ -6,13 +6,13 @@
 #include "screen_menu.hpp"
 #include "odometer.hpp"
 #include "MItem_tools.hpp"
-#include "DialogMoveZ.hpp"
+#include "screen_move_z.hpp"
 #include <option/has_toolchanger.h>
 #include <option/has_mmu2.h>
 
 void ScreenMenuOdometer::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::HELD_RELEASED) {
-        DialogMoveZ::Show();
+        open_move_z_screen();
         return;
     }
 

@@ -29,6 +29,7 @@
 #include <option/has_selftest.h>
 #include <option/has_toolchanger.h>
 #include <option/xl_enclosure_support.h>
+#include <option/has_chamber_api.h>
 #include <common/hotend_type.hpp>
 #include <device/board.h>
 
@@ -407,6 +408,11 @@ enum class PhasesWarning : PhaseUnderlyingType {
 #if HAS_EMERGENCY_STOP()
     DoorOpen,
 #endif
+
+#if HAS_CHAMBER_API()
+    FailedToReachChamberTemperature,
+#endif
+
     NozzleCleaningFailed,
     _last = NozzleCleaningFailed,
 };
@@ -810,6 +816,9 @@ class ClientResponses {
 #endif
 #if HAS_EMERGENCY_STOP()
             { PhasesWarning::DoorOpen, {} },
+#endif
+#if HAS_CHAMBER_API()
+            { PhasesWarning::FailedToReachChamberTemperature, { Response::Ok, Response::Skip } },
 #endif
             { PhasesWarning::NozzleCleaningFailed, { Response::Retry, Response::Abort } },
     };

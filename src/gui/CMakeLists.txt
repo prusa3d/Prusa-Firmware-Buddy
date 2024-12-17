@@ -80,6 +80,7 @@ target_sources(
           screen_menu_tune.cpp
           screen_menu_user_interface.cpp
           screen_messages.cpp
+          screen_move_z.cpp
           screen_network_setup.cpp
           screen_print_preview.cpp
           screen_printer_setup.cpp

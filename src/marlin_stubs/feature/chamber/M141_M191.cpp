@@ -6,6 +6,7 @@
 #include <common/temperature.hpp>
 #include <module/planner.h>
 #include <lcd/ultralcd.h> // Some marlin garbage dunno
+#include <marlin_server.hpp>
 
 using namespace buddy;
 
@@ -67,8 +68,7 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
     using buddy::Temperature;
 
     if (!chamber().capabilities().temperature_control()) {
-        SERIAL_ECHO("Chamber does not allow temperature control");
-        return;
+        SERIAL_ERROR_MSG("Chamber does not allow temperature control");
     }
 
     if (target == 0) {
@@ -81,7 +81,11 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
         return;
     }
 
+    /// How long we should wait until displaying a warning that we're failing to reach the temperature
+    static constexpr int32_t warning_timeout_ms = 10 * 60 * 1000;
+
     uint32_t last_report_time = 0;
+    uint32_t warning_timeout_start = ticks_ms();
     SkippableGCode::Guard skippable_operation;
 
     while (true) {
@@ -95,8 +99,31 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
 
         const auto now = ticks_ms();
         if (ticks_diff(now, last_report_time) > 1000) {
-            ui.set_status("Waiting for chamber temperature");
+            ArrayStringBuilder<64> sb;
+            sb.append_string_view(_("Waiting for chamber temperature"));
+            sb.append_printf(" %i/%i °C", int(current.value_or(0)), int(target));
+            ui.set_status(sb.str());
             last_report_time = now;
+        }
+
+        // Show a heat failure warning if we're waiting for too long
+        if (ticks_diff(now, warning_timeout_start) >= warning_timeout_ms && !marlin_server::is_warning_active(WarningType::FailedToReachChamberTemperature)) {
+            marlin_server::set_warning(WarningType::FailedToReachChamberTemperature, PhasesWarning::FailedToReachChamberTemperature);
+        }
+
+        switch (marlin_server::get_response_from_phase(PhasesWarning::FailedToReachChamberTemperature)) {
+
+        case Response::Ok:
+            marlin_server::clear_warning(WarningType::FailedToReachChamberTemperature);
+            warning_timeout_start = now;
+            break;
+
+        case Response::Skip:
+            skippable_gcode().request_skip();
+            break;
+
+        default:
+            break;
         }
 
         if (skippable_operation.is_skip_requested()) {
@@ -121,4 +148,7 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
 
         idle(true);
     }
+
+    MarlinUI::reset_status();
+    marlin_server::clear_warning(WarningType::FailedToReachChamberTemperature);
 }

@@ -94,6 +94,9 @@ const img::Resource *warning_dialog_icon(WarningType warning_type) {
 #if HAS_EMERGENCY_STOP()
             { WarningType::DoorOpen, &img::warning_48x48 },
 #endif
+#if HAS_CHAMBER_API()
+            { WarningType::FailedToReachChamberTemperature, &img::warning_48x48 },
+#endif
             { WarningType::AccelerometerCommunicationFailed, &img::warning_48x48 },
     };
     return data[warning_type];

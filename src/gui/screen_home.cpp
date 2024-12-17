@@ -19,9 +19,9 @@
 #endif
 
 #include "ScreenHandler.hpp"
+#include "screen_move_z.hpp"
 #include "ScreenFactory.hpp"
 #include "gui_media_events.hpp"
-#include "DialogMoveZ.hpp"
 #include "DialogHandler.hpp"
 #include "img_resources.hpp"
 #include "tasks.hpp"
@@ -478,7 +478,7 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
 
 #if !HAS_LOADCELL()
     if (event == GUI_event_t::HELD_RELEASED) {
-        DialogMoveZ::Show();
+        open_move_z_screen();
         return;
     }
 #endif

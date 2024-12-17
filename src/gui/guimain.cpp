@@ -20,7 +20,7 @@
 #include "DialogHandler.hpp"
 #include "sound.hpp"
 #include "knob_event.hpp"
-#include "DialogMoveZ.hpp"
+#include "screen_move_z.hpp"
 #include "ScreenShot.hpp"
 #include "screen_home.hpp"
 #include "gcode_info.hpp"
@@ -214,7 +214,7 @@ void gui_run(void) {
     gui_init();
 
     gui::knob::RegisterHeldLeftAction(TakeAScreenshot);
-    gui::knob::RegisterLongPressScreenAction(DialogMoveZ::Show);
+    gui::knob::RegisterLongPressScreenAction([]() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMoveZ>); });
 
     screen_node screen_initializer[] {
         ScreenFactory::Screen<screen_splash_data_t>, // splash

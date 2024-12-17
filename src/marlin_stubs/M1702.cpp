@@ -47,14 +47,7 @@ namespace {
 
     bool was_success { false };
 
-    Response wait_for_response(const PhasesColdPull phase) {
-        for (;;) {
-            if (Response response = marlin_server::get_response_from_phase(phase); response != Response::_none) {
-                return response;
-            }
-            idle(true);
-        }
-    }
+    using marlin_server::wait_for_response;
 
     template <typename CMP, typename CBK>
     Response wait_while_with_progress(

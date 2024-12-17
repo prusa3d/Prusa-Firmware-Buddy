@@ -26,6 +26,7 @@
 #include <filament_to_load.hpp>
 #include <Marlin/src/gcode/gcode.h>
 #include <marlin_stubs/pause/G27.hpp>
+#include <mapi/parking.hpp>
 
 #include <option/has_bowden.h>
 #include <option/has_human_interactions.h>
@@ -96,7 +97,10 @@ void filament_gcodes::M701_no_parser(FilamentType filament_to_be_loaded, const s
     settings.SetRetractLength(0.f);
     settings.SetMmuFilamentToLoad(mmu_slot);
 
-    xyz_pos_t park_position = { X_AXIS_LOAD_POS, Y_AXIS_LOAD_POS, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN };
+    xyz_pos_t park_position = mapi::park_positions[do_purge_only ? mapi::ParkPosition::purge : mapi::ParkPosition::load];
+    if (z_min_pos > 0) {
+        park_position.z = std::max(current_position.z, z_min_pos);
+    }
 
     settings.SetParkPoint(park_position);
     xyze_pos_t current_position_tmp = current_position;

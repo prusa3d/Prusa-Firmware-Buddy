@@ -1,5 +1,6 @@
 #include "M1959.hpp"
 
+#include <buddy/unreachable.hpp>
 #include <common/marlin_server.hpp>
 #include <common/str_utils.hpp>
 #include <Marlin/src/gcode/calibrate/M958.hpp>
@@ -31,16 +32,7 @@ static void set_test_result(TestResult test_result) {
     config_store().selftest_result_input_shaper_calibration.set(test_result);
 }
 
-static Response wait_for_response(const PhasesInputShaperCalibration phase) {
-    for (;;) {
-        const Response response = marlin_server::get_response_from_phase(phase);
-        if (response == Response::_none) {
-            idle(true); // prevent watchdog reset
-        } else {
-            return response;
-        }
-    }
-}
+using marlin_server::wait_for_response;
 
 static bool was_abort_requested(PhasesInputShaperCalibration phase) {
     switch (marlin_server::get_response_from_phase(phase)) {
@@ -230,7 +222,7 @@ static PhasesInputShaperCalibration connect_to_board(Context &) {
     default:
         break;
     }
-    bsod(__FUNCTION__);
+    BUDDY_UNREACHABLE();
 }
 
 static PhasesInputShaperCalibration wait_for_extruder_temperature(Context &) {
@@ -255,10 +247,10 @@ static PhasesInputShaperCalibration wait_for_extruder_temperature(Context &) {
             }
             break;
         default:
-            bsod(__FUNCTION__);
+            BUDDY_UNREACHABLE();
         }
     }
-    bsod(__FUNCTION__);
+    BUDDY_UNREACHABLE();
 }
 
 static PhasesInputShaperCalibration attach_to_extruder(Context &) {
@@ -271,7 +263,7 @@ static PhasesInputShaperCalibration attach_to_extruder(Context &) {
     default:
         break;
     }
-    bsod(__FUNCTION__);
+    BUDDY_UNREACHABLE();
 }
 
 static PhasesInputShaperCalibration attach_to_bed(Context &) {
@@ -284,7 +276,7 @@ static PhasesInputShaperCalibration attach_to_bed(Context &) {
     default:
         break;
     }
-    bsod(__FUNCTION__);
+    BUDDY_UNREACHABLE();
 }
 
 #endif
@@ -426,7 +418,7 @@ static PhasesInputShaperCalibration measurement_failed(Context &context) {
     default:
         std::terminate();
     }
-    bsod(__FUNCTION__);
+    BUDDY_UNREACHABLE();
 }
 
 static PhasesInputShaperCalibration check_result(Context &context) {
@@ -508,7 +500,7 @@ static PhasesInputShaperCalibration results(Context &context) {
     default:
         break;
     }
-    bsod(__FUNCTION__);
+    BUDDY_UNREACHABLE();
 }
 
 static PhasesInputShaperCalibration finish(Context &context) {

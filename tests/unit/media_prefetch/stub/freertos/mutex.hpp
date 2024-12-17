@@ -6,10 +6,10 @@ namespace freertos {
 
 class Mutex {
 public:
-    void lock() {
-    }
-    void unlock() {
-    }
+    static thread_local int locked_mutex_count;
+
+    void lock();
+    void unlock();
 };
 
 } // namespace freertos

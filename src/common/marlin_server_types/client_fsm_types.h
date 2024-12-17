@@ -12,6 +12,7 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_emergency_stop.h>
 #include <option/xl_enclosure_support.h>
+#include <option/has_chamber_api.h>
 
 #include <inc/MarlinConfigPre.h>
 
@@ -136,6 +137,9 @@ enum class WarningType : uint32_t {
     MetricsConfigChangePrompt,
     #if HAS_EMERGENCY_STOP()
     DoorOpen,
+    #endif
+    #if HAS_CHAMBER_API()
+    FailedToReachChamberTemperature,
     #endif
     AccelerometerCommunicationFailed,
     _last = AccelerometerCommunicationFailed,

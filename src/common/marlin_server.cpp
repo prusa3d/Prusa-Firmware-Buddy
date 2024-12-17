@@ -428,17 +428,6 @@ namespace {
         }
 
         const auto phase = static_cast<PhasesWarning>(phase_opt->GetPhase());
-
-        if (
-            phase == PhasesWarning::MetricsConfigChangePrompt
-#if ENABLED(DETECT_PRINT_SHEET)
-            || phase == PhasesWarning::SteelSheetNotDetected
-#endif
-        ) {
-            // Custom handling, do not consume the response.
-            return;
-        }
-
         const auto response = get_response_from_phase(phase);
         if (response == Response::_none) {
             return;
@@ -476,13 +465,16 @@ namespace {
             break;
 
         case PhasesWarning::MetricsConfigChangePrompt:
+#if HAS_CHAMBER_API()
+        case PhasesWarning::FailedToReachChamberTemperature:
+#endif
 #if ENABLED(DETECT_PRINT_SHEET)
         case PhasesWarning::SteelSheetNotDetected:
 #endif
 #if HAS_EMERGENCY_STOP()
         case PhasesWarning::DoorOpen: // No buttons present
 #endif
-            // This should be unreachable
+            // These errors should be within a gcode loop where handle_warnings is not called
             std::terminate();
         }
     }
@@ -3363,6 +3355,16 @@ FSMResponseVariant get_response_variant_from_phase(FSMAndPhase fsm_and_phase) {
         return value.response;
     } else {
         return {};
+    }
+}
+
+Response wait_for_response(FSMAndPhase fsm_and_phase) {
+    while (true) {
+        if (auto r = get_response_from_phase(fsm_and_phase); r != Response::_none) {
+            return r;
+        }
+
+        ::idle(true);
     }
 }
 

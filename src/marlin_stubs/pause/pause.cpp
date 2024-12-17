@@ -297,8 +297,9 @@ LoadUnloadMode Pause::get_load_unload_mode() {
 bool Pause::should_park() {
     switch (load_type) {
     case Pause::LoadType::autoload:
-    case Pause::LoadType::load_purge:
         return false;
+    case Pause::LoadType::load_purge:
+        return true;
     case Pause::LoadType::load_to_gears:
         return !FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder);
     case Pause::LoadType::load:

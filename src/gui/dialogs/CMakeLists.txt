@@ -5,7 +5,6 @@ target_sources(
   PRIVATE dialog_text_input.cpp
           DialogHandler.cpp
           DialogLoadUnload.cpp
-          DialogMoveZ.cpp
           DialogTimed.cpp
           i_radio_button.cpp
           IDialog.cpp

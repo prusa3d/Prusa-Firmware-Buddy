@@ -35,8 +35,9 @@ public:
 
     AnyGcodeFormatReader() = default;
     AnyGcodeFormatReader(const char *filename);
-    AnyGcodeFormatReader(const AnyGcodeFormatReader &) = default;
-    AnyGcodeFormatReader &operator=(const AnyGcodeFormatReader &) = default;
+    AnyGcodeFormatReader(const AnyGcodeFormatReader &) = delete;
+    AnyGcodeFormatReader &operator=(AnyGcodeFormatReader &&);
+    ~AnyGcodeFormatReader();
 
     IGcodeReader *operator->() { return this; }
 

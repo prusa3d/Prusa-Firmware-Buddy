@@ -539,9 +539,15 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
         return ErrCode::ERR_ELECTRO_ACCELEROMETER_COMMUNICATION_FAILED;
     case WarningType::FilamentLoadingTimeout:
         return ErrCode::CONNECT_FILAMENT_LOADING_TIMEOUT;
+
 #if HAS_EMERGENCY_STOP()
     case WarningType::DoorOpen:
         return ErrCode::ERR_MECHANICAL_DOOR_OPEN;
+#endif
+
+#if HAS_CHAMBER_API()
+    case WarningType::FailedToReachChamberTemperature:
+        return ErrCode::ERR_TEMPERATURE_CHAMBER_FAILED_TO_REACH_TEMP;
 #endif
     }
 

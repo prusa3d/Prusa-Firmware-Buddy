@@ -7,7 +7,6 @@
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
 #include "ScreenHandler.hpp"
-#include "DialogMoveZ.hpp"
 #include "img_resources.hpp"
 
 MI_LangBase::MI_LangBase(const char *label, const char *lang_code, const img::Resource *icon, is_hidden_t hidden)

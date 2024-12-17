@@ -3,6 +3,7 @@
 #include "liveadjust_z.hpp"
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
+#include <ScreenFactory.hpp>
 #include <guiconfig/GuiDefaults.hpp>
 #include "marlin_client.hpp"
 #include "display.hpp"
@@ -13,6 +14,7 @@
 #include "gui_config_printer.hpp"
 #include <guiconfig/guiconfig.h>
 #include <menu_vars.h>
+#include <gui.hpp>
 
 #if HAS_SHEET_PROFILES()
     #include "SteelSheets.hpp"
@@ -189,15 +191,12 @@ static constexpr const point_i16_t adjuster_pt = point_i16_t(210, 205);
 static constexpr const point_i16_t scale_pt = point_i16_t(180, 125);
 #endif
 
-LiveAdjustZ::LiveAdjustZ()
-    : IDialog(GuiDefaults::RectScreenBody)
+ScreenLiveAdjustZ::ScreenLiveAdjustZ()
+    : screen_t()
     , text(this, textRect, is_multiline::yes, is_closed_on_click_t::no)
     , nozzle_icon(this, nozzleRect, &img::nozzle_shape_48x48)
     , adjuster(this, adjuster_pt)
     , scale(this, scale_pt) {
-
-    /// using window_t 1bit flag
-    flags.close_on_click = is_closed_on_click_t::yes;
 
     /// title text
     text.SetText(_("Adjust the nozzle height above the heatbed by turning the knob"));
@@ -207,7 +206,7 @@ LiveAdjustZ::LiveAdjustZ()
     moveNozzle();
 }
 
-void LiveAdjustZ::moveNozzle() {
+void ScreenLiveAdjustZ::moveNozzle() {
     uint16_t old_top = nozzle_icon.Top();
     Rect16 moved_rect = nozzleRect; // starting position - 0%
     float relative = (z_offset_max - adjuster.GetValue()) / (z_offset_max - z_offset_min); // relative z_offset value
@@ -222,7 +221,7 @@ void LiveAdjustZ::moveNozzle() {
     }
 }
 
-void LiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *param) {
+void ScreenLiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::ENC_UP:
@@ -233,31 +232,22 @@ void LiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *param) 
         break;
 
     case GUI_event_t::CLICK:
-        /// has set is_closed_on_click_t
-        /// destructor of WindowLiveAdjustZ stores new z offset value into a marlin_vars & EEPROM
-        /// todo
-        /// GUI_event_t::CLICK could bubble into window_t::windowEvent and close dialog
-        /// so CLICK could be left unhandled here
-        /// but there is a problem with focus !!!parrent window of this dialog has it!!!
-        if (flags.close_on_click == is_closed_on_click_t::yes) {
-            Screens::Access()->Close();
-        }
+        Screens::Access()->Close();
         break;
 
     case GUI_event_t::TOUCH_SWIPE_LEFT:
-    case GUI_event_t::TOUCH_SWIPE_RIGHT: {
+    case GUI_event_t::TOUCH_SWIPE_RIGHT:
         Sound_Play(eSOUND_TYPE::ButtonEcho);
         Screens::Access()->Close();
-        return;
-    }
+        break;
 
     default:
-        IDialog::windowEvent(sender, event, param);
+        break;
     }
 }
 
-/// static
-void LiveAdjustZ::Show() {
-    LiveAdjustZ liveadjust;
-    Screens::Access()->gui_loop_until_dialog_closed();
+void open_live_adjust_z_screen() {
+    if (!Screens::Access()->IsScreenOpened(ScreenFactory::Screen<ScreenLiveAdjustZ>) && gui_get_nesting() <= 1) {
+        Screens::Access()->Open(ScreenFactory::Screen<ScreenLiveAdjustZ>);
+    }
 }
