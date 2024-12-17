@@ -35,16 +35,6 @@ constexpr bool is_ok(const Scores &scores) {
         && scores.p2b < 1.f;
 }
 
-fsm::PhaseData serialize_axis_nok(const Scores &scores) {
-    // TODO maybe these should be saturated at 255?
-    fsm::PhaseData data;
-    data[0] = 100 * scores.p1f;
-    data[1] = 100 * scores.p1b;
-    data[2] = 100 * scores.p2f;
-    data[3] = 100 * scores.p2b;
-    return data;
-}
-
 fsm::PhaseData serialize_ok(const Scores &scores_x, const Scores &scores_y) {
     // take the worst of forward and backward, subtract from 1 to get reduction and scale up to percents
     const uint8_t p1x = 100 - 100 * std::max(scores_x.p1f, scores_x.p1b);
@@ -333,13 +323,13 @@ namespace state {
         }
     }
 
-    PhasesPhaseStepping calib_x_nok(Context &context) {
-        marlin_server::fsm_change(PhasesPhaseStepping::calib_x_nok, serialize_axis_nok(context.scores_x));
+    PhasesPhaseStepping calib_x_nok() {
+        marlin_server::fsm_change(PhasesPhaseStepping::calib_x_nok);
         return fail_helper(PhasesPhaseStepping::calib_x_nok);
     }
 
-    PhasesPhaseStepping calib_y_nok(Context &context) {
-        marlin_server::fsm_change(PhasesPhaseStepping::calib_y_nok, serialize_axis_nok(context.scores_y));
+    PhasesPhaseStepping calib_y_nok() {
+        marlin_server::fsm_change(PhasesPhaseStepping::calib_y_nok);
         return fail_helper(PhasesPhaseStepping::calib_y_nok);
     }
 
@@ -371,9 +361,9 @@ PhasesPhaseStepping get_next_phase(Context &context, const PhasesPhaseStepping p
     case PhasesPhaseStepping::calib_y:
         return state::calib_y(context);
     case PhasesPhaseStepping::calib_x_nok:
-        return state::calib_x_nok(context);
+        return state::calib_x_nok();
     case PhasesPhaseStepping::calib_y_nok:
-        return state::calib_y_nok(context);
+        return state::calib_y_nok();
     case PhasesPhaseStepping::calib_error:
         return state::calib_error();
     case PhasesPhaseStepping::calib_ok:

@@ -30,7 +30,7 @@ constexpr const char *txt_homing { N_("Homing") };
 constexpr const char *txt_calibrating { N_("Running the phase stepping calibration to reduce vibrations. Please wait...") };
 constexpr const char *txt_calibrating_x { N_("Calibrating X motor") };
 constexpr const char *txt_calibrating_y { N_("Calibrating Y motor") };
-constexpr const char *txt_calibration_nok { N_("Calibration of motor %c failed.\nParameter 1: forward %3d%%, backward %3d%%\nParameter 2: forward %3d%%, backward %3d%%") };
+constexpr const char *txt_calibration_nok { N_("Calibration of motor %c failed.") };
 constexpr const char *txt_calibration_error { N_("Calibration failed with error.") };
 
 namespace frame {
@@ -63,8 +63,8 @@ namespace frame {
             , motor { motor } {
         }
 
-        void update(const fsm::PhaseData &data) {
-            const string_view_utf8 str = _(txt_calibration_nok).formatted(params, motor, data[0], data[1], data[2], data[3]);
+        void update(const fsm::PhaseData &) {
+            const string_view_utf8 str = _(txt_calibration_nok).formatted(params, motor);
             text.SetText(str);
         }
     };
