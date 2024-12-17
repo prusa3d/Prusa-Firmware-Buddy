@@ -99,7 +99,7 @@ void ScreenMoveZ::windowEvent(window_t *sender, GUI_event_t event, void *param) 
         break;
 
     default:
-        GetParent()->WindowEvent(sender, event, param);
+        screen_t::windowEvent(sender, event, param);
         break;
     }
 }
