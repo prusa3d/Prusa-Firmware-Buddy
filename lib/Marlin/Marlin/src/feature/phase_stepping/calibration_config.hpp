@@ -144,4 +144,19 @@ static inline constexpr const PrinterCalibrationConfig<4> printer_calibration_co
     #error "Unsupported printer"
 #endif
 
+consteval inline bool is_valid(auto config) {
+    const size_t size = config.phases.size();
+    const size_t halfsize = size / 2;
+    if (2 * halfsize != size) {
+        return false && "require odd number of phases";
+    }
+    for (size_t i = 0; i < halfsize; ++i) {
+        if (config.phases[i].harmonic != config.phases[i + halfsize].harmonic) {
+            return false && "harmonic mismatch";
+        }
+    }
+    return true;
+}
+static_assert(is_valid(printer_calibration_config));
+
 }; // namespace phase_stepping
