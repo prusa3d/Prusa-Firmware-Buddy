@@ -62,6 +62,7 @@ public:
 
 private:
     [[nodiscard]] uint8_t to_gcode_unlocked(uint8_t physical) const;
+    bool set_unassigned_unlocked(uint8_t logical);
 
     mutable freertos::Mutex mutex;
     bool enabled;
