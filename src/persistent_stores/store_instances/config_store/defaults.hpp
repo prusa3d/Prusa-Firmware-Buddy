@@ -22,7 +22,10 @@
 
 namespace config_store_ns {
 
-// Holds default constants so they can be referenced by store item. Placing these constants in another header where it's more meaningful is welcome. These defaults could be passed directly as template parameter to store items from gcc 11 onwards (and store items would accept them as value instead of as a const ref).
+// Holds default constants so they can be referenced by store item.
+// Placing these constants in another header where it's more meaningful is welcome.
+// These defaults could be passed directly as template parameter to store items from
+// gcc 11 onwards (and store items would accept them as value instead of as a const ref).
 namespace defaults {
     // default values for variables that have distinct requirements
     inline constexpr float pid_nozzle_p {
@@ -237,6 +240,8 @@ namespace defaults {
     inline constexpr SelftestResult selftest_result {};
     inline constexpr SelftestResult_pre_gears selftest_result_pre_gears {};
     inline constexpr SelftestResult_pre_23 selftest_result_pre_23 {};
+
+    inline constexpr float z_offset { 0.0f };
 
 #if (HAS_SHEET_SUPPORT())
     static_assert(!HAS_LOADCELL(), "This caused major issues on XL.");
