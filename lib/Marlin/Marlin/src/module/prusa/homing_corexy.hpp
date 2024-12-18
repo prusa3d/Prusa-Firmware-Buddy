@@ -38,7 +38,7 @@ bool corexy_home_refine(const float fr_mm_s, CoreXYCalibrationMode mode);
  * @brief Return the calibration status of the home origin
  * @return true if already calibrated
  */
-bool corexy_home_calibrated();
+bool corexy_home_is_calibrated();
 
 /**
  * @brief Return the validity of the last refinement attempt
@@ -59,5 +59,5 @@ bool corexy_sens_calibrate(const float fr_mm_s);
  * @brief Return the TMC sensitivity calibration status
  * @return true if already calibrated
  */
-bool corexy_sens_calibrated();
+bool corexy_sens_is_calibrated();
 #endif

@@ -791,7 +791,7 @@ bool corexy_sens_calibrate(const float fr_mm_s) {
     return true;
 }
 
-bool corexy_sens_calibrated() {
+bool corexy_sens_is_calibrated() {
     CoreXYHomeTMCSens calibrated_sens = config_store().corexy_home_tmc_sens.get();
     return !calibrated_sens.uninitialized();
 }
@@ -901,7 +901,7 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     return true;
 }
 
-bool corexy_home_calibrated() {
+bool corexy_home_is_calibrated() {
     CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
     return !calibrated_origin.uninitialized();
 }

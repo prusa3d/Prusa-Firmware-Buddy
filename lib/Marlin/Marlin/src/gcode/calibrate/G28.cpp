@@ -681,7 +681,7 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
       for (size_t retry = 0; !planner.draining(); ++retry) {
         #if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
         // re/calibrate optimal measurement sensitivity first
-        if (flags.force_calibrate || !corexy_sens_calibrated()
+        if (flags.force_calibrate || !corexy_sens_is_calibrated()
           || (retry && (retry % PRECISE_HOMING_SENS_TRY_RECAL) == 0)) {
           if (!corexy_sens_calibrate(xy_mm_s)) {
             failed = true;
