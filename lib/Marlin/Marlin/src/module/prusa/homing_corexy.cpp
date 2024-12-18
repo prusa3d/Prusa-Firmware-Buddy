@@ -331,6 +331,24 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
 }
 
 /**
+ * @brief Sum "axis" along the XY*val<> sequence "seq"
+ * @tparam T Sequence type (normally deducted)
+ * @tparam S sum type (normally deducted)
+ * @param seq Sequence of XY*val
+ * @param size Size of the sequence
+ * @param axis Axis to sum
+ * @return Resulting sum
+ */
+template <typename T, typename S = decltype(T::x)>
+S sum_along(const T *seq, const size_t size, const size_t axis) {
+    S sum = 0;
+    for (size_t i = 0; i != size; ++i) {
+        sum += seq[i][axis];
+    }
+    return sum;
+}
+
+/**
  * @brief Part of precise homing.
  * @param axis Physical axis to measure
  * @param c_dist AB cycle distance from the endstop
@@ -345,7 +363,7 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     const int32_t measure_max_dist = (XY_HOMING_ORIGIN_OFFSET * 4) / planner.mm_per_step[axis];
     const int32_t measure_dir = (axis == B_AXIS ? -X_HOME_DIR : -Y_HOME_DIR);
     xy_long_t origin_steps = { stepper.position(A_AXIS), stepper.position(B_AXIS) };
-    constexpr int probe_n = 2; // note the following code assumes always two probes per retry
+    constexpr int probe_n = 2;
     xy_long_t p_steps[probe_n];
     xy_pos_t p_dist[probe_n] = { -XY_HOMING_ORIGIN_BUMP_MAX_ERR, -XY_HOMING_ORIGIN_BUMP_MAX_ERR };
 
@@ -364,10 +382,10 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
         }
 
         // keep signs positive
-        p_steps[slot1][0] = abs(p_steps[slot1][0]);
-        p_dist[slot1][0] = abs(p_dist[slot1][0]);
-        p_steps[slot1][1] = abs(p_steps[slot1][1]);
-        p_dist[slot1][1] = abs(p_dist[slot1][1]);
+        LOOP_XY(i) {
+            p_steps[slot1][i] = abs(p_steps[slot1][i]);
+            p_dist[slot1][i] = abs(p_dist[slot1][i]);
+        }
 
         if (abs(p_dist[slot0][0] - p_dist[slot1][0]) < float(XY_HOMING_ORIGIN_BUMP_MAX_ERR)
             && abs(p_dist[slot0][1] - p_dist[slot1][1]) < float(XY_HOMING_ORIGIN_BUMP_MAX_ERR)) {
@@ -380,8 +398,8 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     }
 
     // calculate the absolute cycle coordinates
-    float d1 = (p_steps[0][0] + p_steps[1][0]) / 2.f;
-    float d2 = (p_steps[0][1] + p_steps[1][1]) / 2.f;
+    float d1 = sum_along(p_steps, probe_n, 0) / float(probe_n);
+    float d2 = sum_along(p_steps, probe_n, 1) / float(probe_n);
     float d = d1 + d2;
     float a = d / 2.f;
     float b = d1 - a;
@@ -389,8 +407,8 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     c_dist[0] = a / float(phase_cycle_steps(other_axis));
     c_dist[1] = b / float(phase_cycle_steps(axis));
 
-    m_dist[0] = (p_dist[0][0] + p_dist[1][0]) / 2.f;
-    m_dist[1] = (p_dist[0][1] + p_dist[1][1]) / 2.f;
+    m_dist[0] = sum_along(p_dist, probe_n, 0) / float(probe_n);
+    m_dist[1] = sum_along(p_dist, probe_n, 1) / float(probe_n);
 
     if (DEBUGGING(LEVELING)) {
         // measured distance and cycle
