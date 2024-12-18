@@ -57,6 +57,10 @@ bool ToolMapper::set_mapping(uint8_t logical, uint8_t physical) {
 
 bool ToolMapper::set_unassigned(uint8_t logical) {
     std::unique_lock lock(mutex);
+    return set_unassigned_unlocked(logical);
+}
+
+bool ToolMapper::set_unassigned_unlocked(uint8_t logical) {
     // check that logical tool is valid
     if (logical >= EXTRUDERS || logical == get_invalid_tool_number()) {
         return false;
@@ -103,8 +107,8 @@ void ToolMapper::reset() {
 
 void ToolMapper::set_all_unassigned() {
     std::unique_lock lock(mutex);
-    for (auto &elem : gcode_to_physical) {
-        elem = NO_TOOL_MAPPED;
+    EXTRUDER_LOOP() {
+        set_unassigned_unlocked(e);
     }
 }
 
