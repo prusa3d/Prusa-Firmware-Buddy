@@ -53,22 +53,22 @@ protected:
     void OnChange([[maybe_unused]] size_t old_index) override {
         switch (HWCheck) {
         case HWCheckType::nozzle:
-            config_store().hw_check_nozzle.set(static_cast<HWCheckSeverity>(index));
+            config_store().hw_check_nozzle.set(static_cast<HWCheckSeverity>(GetIndex()));
             break;
         case HWCheckType::model:
-            config_store().hw_check_model.set(static_cast<HWCheckSeverity>(index));
+            config_store().hw_check_model.set(static_cast<HWCheckSeverity>(GetIndex()));
             break;
         case HWCheckType::firmware:
-            config_store().hw_check_firmware.set(static_cast<HWCheckSeverity>(index));
+            config_store().hw_check_firmware.set(static_cast<HWCheckSeverity>(GetIndex()));
             break;
         case HWCheckType::gcode:
-            config_store().hw_check_gcode.set(static_cast<HWCheckSeverity>(index));
+            config_store().hw_check_gcode.set(static_cast<HWCheckSeverity>(GetIndex()));
             break;
         case HWCheckType::gcode_compatibility:
-            config_store().hw_check_compatibility.set(static_cast<HWCheckSeverity>(index));
+            config_store().hw_check_compatibility.set(static_cast<HWCheckSeverity>(GetIndex()));
             break;
         case HWCheckType::fan_compatibility:
-            config_store().hw_check_fan_compatibility.set(static_cast<HWCheckSeverity>(index));
+            config_store().hw_check_fan_compatibility.set(static_cast<HWCheckSeverity>(GetIndex()));
             break;
         default:
             assert(false);

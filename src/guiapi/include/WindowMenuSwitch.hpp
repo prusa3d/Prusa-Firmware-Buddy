@@ -78,4 +78,5 @@ public:
 
 private:
     std::array<string_view_utf8, SZ> items_;
+    size_t index;
 };

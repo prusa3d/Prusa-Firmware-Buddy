@@ -81,7 +81,7 @@ MI_LEFT_ALIGN_TEMP::MI_LEFT_ALIGN_TEMP()
         string_view_utf8::MakeCPUFLASH((const uint8_t *)str_2)) {}
 
 void MI_LEFT_ALIGN_TEMP::OnChange(size_t /*old_index*/) {
-    FooterItemHeater::SetDrawType(footer::ItemDrawType(index));
+    FooterItemHeater::SetDrawType(footer::ItemDrawType(GetIndex()));
 }
 
 MI_SHOW_ZERO_TEMP_TARGET::MI_SHOW_ZERO_TEMP_TARGET()
