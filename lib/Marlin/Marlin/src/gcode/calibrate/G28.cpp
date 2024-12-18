@@ -695,13 +695,13 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
         #endif
 
         CoreXYCalibrationMode mode =
-          ( flags.force_calibrate ? CoreXYCalibrationMode::Force
-            : flags.can_calibrate ? CoreXYCalibrationMode::OnDemand
-            : CoreXYCalibrationMode::Disallow );
+          ( flags.force_calibrate ? CoreXYCalibrationMode::force
+            : flags.can_calibrate ? CoreXYCalibrationMode::on_demand
+            : CoreXYCalibrationMode::disallow );
 
-        if (mode == CoreXYCalibrationMode::OnDemand && corexy_home_is_unstable()) {
+        if (mode == CoreXYCalibrationMode::on_demand && corexy_home_is_unstable()) {
           // automatically recalibrate when allowed and unstable
-          mode = CoreXYCalibrationMode::Force;
+          mode = CoreXYCalibrationMode::force;
         }
 
         failed = !corexy_home_refine(xy_mm_s, mode);

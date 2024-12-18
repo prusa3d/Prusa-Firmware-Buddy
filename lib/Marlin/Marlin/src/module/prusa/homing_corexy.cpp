@@ -826,8 +826,8 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
 
     // calibrate origin if not done already
     CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
-    if ((mode == CoreXYCalibrationMode::Force)
-        || ((mode == CoreXYCalibrationMode::OnDemand) && calibrated_origin.uninitialized())) {
+    if ((mode == CoreXYCalibrationMode::force)
+        || ((mode == CoreXYCalibrationMode::on_demand) && calibrated_origin.uninitialized())) {
         SERIAL_ECHOLN("recalibrating homing origin");
         ui.status_printf_P(0, "Recalibrating home. Printer may vibrate and be noisier.");
 

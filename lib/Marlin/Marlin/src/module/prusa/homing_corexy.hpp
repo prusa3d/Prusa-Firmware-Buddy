@@ -13,9 +13,9 @@ void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm);
 void corexy_ab_to_xyze(const xy_long_t &steps, xyze_pos_t &mm);
 
 enum class CoreXYCalibrationMode {
-    OnDemand, // Allow automatic calibration
-    Force, // Force re-calibration
-    Disallow // Disallow re-calibration
+    on_demand, // Allow automatic calibration
+    force, // Force re-calibration
+    disallow // Disallow re-calibration
 };
 
 /**
