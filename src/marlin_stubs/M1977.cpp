@@ -120,30 +120,26 @@ static PhasesPhaseStepping intro_helper() {
 }
 
 std::optional<uint8_t> evaluate_calibration_result(const CalibrationResult &calibration_result) {
-    const auto [p1_f, p1_b] = calibration_result[0];
-    const auto [p3_f, p3_b] = calibration_result[2];
-    const auto [p2_f, p2_b] = calibration_result[1];
-    const auto [p4_f, p4_b] = calibration_result[3];
-    const auto p1f = p1_f * p3_f;
-    const auto p1b = p1_b * p3_b;
-    const auto p2f = p2_f * p4_f;
-    const auto p2b = p2_b * p4_b;
-
-    const bool is_ok = true
-        && p1f < 1.f
-        && p1b < 1.f
-        && p2f < 1.f
-        && p2b < 1.f;
-
-    if (is_ok) {
-        // take the worst of forward and backward, subtract from 1 to get reduction and scale up to percents
-        const uint8_t p1 = 100 - 100 * std::max(p1f, p1b);
-        const uint8_t p2 = 100 - 100 * std::max(p2f, p2b);
-
-        // display average of reduction in all phases per motor
-        return (p1 + p2) / 2;
+    for (const auto &res : calibration_result) {
+        log_info(Marlin, "res %f %f", (double)res.backward, (double)res.forward);
     }
-    return std::nullopt;
+    constexpr const size_t halfsize = calibration_phase_count / 2;
+    float reduction = 0.0f;
+    for (size_t i = 0; i < halfsize; ++i) {
+        const auto [coarse_forward, coarse_backward] = calibration_result[i];
+        const auto [fine_forward, fine_backward] = calibration_result[i + halfsize];
+        const float forward = coarse_forward * fine_forward;
+        const float backward = coarse_backward * fine_backward;
+
+        if (forward >= 1.f || backward >= 1.f) {
+            return std::nullopt;
+        }
+
+        // take the worst of forward and backward, subtract from 1 to get reduction and add to accumulator
+        reduction += 1.f - std::max(forward, backward);
+    }
+    // average + scale to percent
+    return 100 * reduction / halfsize;
 }
 
 PhasesPhaseStepping evaluate_result(Context &context) {
