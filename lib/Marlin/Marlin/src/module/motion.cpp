@@ -1960,8 +1960,6 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
  * @param homing_z_with_probe default true, set to false to home without using probe (useful to calibrate Z on XL)
  */
 float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s, bool invert_home_dir, bool homing_z_with_probe) {
-  int steps;
-
   // Homing Z towards the bed? Deploy the Z probe or endstop.
   #if HOMING_Z_WITH_PROBE
     if (axis == Z_AXIS && homing_z_with_probe && DEPLOY_PROBE()) {
@@ -2009,8 +2007,6 @@ float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const fe
     #endif
       ) * axis_home_dir, fr_mm_s, false, homing_z_with_probe);
 
-  steps = stepper.position_from_startup(axis);
-
   #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
     if (axis == Z_AXIS && homing_z_with_probe) {
       bltouch.stow(); // Intermediate STOW (in LOW SPEED MODE)
@@ -2026,7 +2022,11 @@ float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const fe
   );
 
   // If a second homing move is configured...
-  if (bump) {
+  const uint8_t bump_count = (bump == 0) ? 0 : (axis == Z_AXIS) ? 2 : 1;
+  const int steps_before_bump = stepper.position_from_startup(axis);
+  int steps_after_bump[2];
+
+  for(uint8_t i = 0; i < bump_count; i++) {
     // Move away from the endstop by the axis HOME_BUMP_MM
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Move Away:");
     do_blocking_move_axis(axis, -bump, fr_mm_s);
@@ -2040,10 +2040,12 @@ float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const fe
       }
     #endif
 
+    feedRate_t bump_feedrate;
+
     #if HOMING_Z_WITH_PROBE
     if (axis == Z_AXIS) {
       if (axis_home_dir < 0) {
-        bump_feedrate = fr_mm_s;
+        bump_feedrate = MMM_TO_MMS(Z_PROBE_SPEED_SLOW);
       } else {
         // moving away from the bed
         bump_feedrate = MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z);
@@ -2056,7 +2058,7 @@ float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const fe
 
     do_homing_move(axis, 2 * bump, bump_feedrate, false, homing_z_with_probe);
 
-    steps -= stepper.position_from_startup(axis);
+    steps_after_bump[i] = stepper.position_from_startup(axis);
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
       if (axis == Z_AXIS && homing_z_with_probe) {
@@ -2211,8 +2213,25 @@ float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const fe
 
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< homeaxis(", axis_codes[axis], ")");
 
-  if (bump) return static_cast<float>(steps) * planner.mm_per_step[axis];
-  return 0;
+  switch(bump_count) {
+
+  case 0:
+    // We've only done one bump - no way to validate precision/repeatibility
+    return 0;
+
+  case 1:
+    // One extra bump - compare original homing pos vs after bump
+    return (steps_after_bump[0] - steps_before_bump) * planner.mm_per_step[axis];
+
+  case 2:
+    // Doing two bumps (presumably slower than original homing) - compare precision between the bumps
+    return (steps_after_bump[1] - steps_after_bump[0]) * planner.mm_per_step[axis];
+
+  default:
+    // Should never happen
+    std::abort();
+
+  }
 } // homeaxis()
 
 #if HAS_WORKSPACE_OFFSET
