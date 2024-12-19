@@ -72,6 +72,10 @@ static bool is_rpm_within_bounds(const FanConfig &fan_config, uint16_t rpm) {
     return rpm > fan_config.rpm_min && rpm < fan_config.rpm_max;
 }
 
+static bool is_rpm_within_non_overlap_bounds(const FanConfig &fan_config, uint16_t rpm) {
+    return rpm > (fan_config.rpm_min + fan_config.ignore_min_overlap) && rpm < fan_config.rpm_max;
+}
+
 uint16_t FanHandler::calculate_avg_rpm() const {
     return sample_count ? (sample_sum / sample_count) : 0;
 }
@@ -190,7 +194,7 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_100_percent() {
     }
 
     // Create config specifically for alt fans presence of which cannot be done compile-time.
-    SelftestFansConfig alt_config { .print_fan = { .rpm_min = 3000, .rpm_max = 4500 }, .heatbreak_fan = { .rpm_min = 7000, .rpm_max = 10000 } };
+    SelftestFansConfig alt_config { .print_fan = { .rpm_min = 3000, .rpm_max = 4500, .ignore_min_overlap = 0 }, .heatbreak_fan = { .rpm_min = 7000, .rpm_max = 10000, .ignore_min_overlap = 0 } };
 
     if (config_store().has_alt_fans.get()) {
         print_fan.evaluate(alt_config.print_fan, print_fan_rpm);
@@ -217,7 +221,7 @@ bool CSelftestPart_Fan::are_fans_switched(const FanHandler &print_fan, const Fan
     if (print_fan.is_failed() && heatbreak_fan.is_failed()) {
         // try if the rpms fit into the ranges when switched, if yes, fail the
         // "fans switched" test and pass the RPM tests
-        if (is_rpm_within_bounds(config.heatbreak_fan, print_fan_rpm) && is_rpm_within_bounds(config.print_fan, heatbreak_fan_rpm)) {
+        if (is_rpm_within_non_overlap_bounds(config.heatbreak_fan, print_fan_rpm) && is_rpm_within_non_overlap_bounds(config.print_fan, heatbreak_fan_rpm)) {
             log_error(Selftest, "Fans test %u print and hotend fan appear to be switched (the RPM of each fits into the range of the other)", config.tool_nr);
             // Since fans switched isn't the last check, it cannot tell whether the fans are ok or not. All that is certain at this point is that they are switched. They still can fail on 20 % test.
             result.print_fan_state = SelftestSubtestState_t::undef;

@@ -58,17 +58,26 @@ static consteval SelftestFansConfig make_fan_config(uint8_t index) {
         .print_fan = {
             ///@note Datasheet says 5900 +-10%, but that is without any fan shroud.
             ///  Blocked fan increases its RPMs over 7000.
-            ///  With XL shroud the values can be 6200 - 6600 depending on fan shroud version.
+            ///  With XL shroud the values can be 6200 - 7200 depending on fan shroud version.
+            /// and altitude, as reported by users in forums.
+            /// ignore_min_overlap has been added for switched fan detection and indicates the amount
+            /// of potential minimum overlap on the other fan.  IE a min overlap of 500 on the
+            /// heatbreak fan indicates that switched fan detection is not effective until the
+            /// print fan exceeds the heatbreak minimum by 500 rpm - so in the instances where
+            /// both fans are spinning within 500RPM of heatbreak fan minimum, switched fan
+            /// detection is not possible (which, is reality in some cases)
             .rpm_min = 5300,
-            .rpm_max = 6799,
+            .rpm_max = 7299,
+            .ignore_min_overlap = 0,
         },
         .heatbreak_fan = {
             .rpm_min = 6800,
             .rpm_max = 8700,
+            .ignore_min_overlap = 500,
         },
     };
 }
-static_assert(make_fan_config(0).print_fan.rpm_max < make_fan_config(0).heatbreak_fan.rpm_min, "These cannot overlap for switched fan detection.");
+static_assert(make_fan_config(0).print_fan.rpm_max < (make_fan_config(0).heatbreak_fan.rpm_min + make_fan_config(0).heatbreak_fan.ignore_min_overlap), "Parameters cannot overlap more than min_ignore_overlap for proper switched fan detection.");
 
 static constexpr SelftestFansConfig fans_configs[] = {
     make_fan_config(0),
