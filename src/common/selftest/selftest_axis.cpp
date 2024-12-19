@@ -177,7 +177,7 @@ LoopResult CSelftestPart_Axis::stateHomeXY() {
     set_axis_is_not_at_home(AxisEnum(config.axis));
 
     // Trigger home on axis
-    ArrayStringBuilder<8> sb;
+    ArrayStringBuilder<10> sb;
     sb.append_printf("G28 %c D P", iaxis_codes[config.axis]);
     queue.enqueue_one_now(sb.str());
 
