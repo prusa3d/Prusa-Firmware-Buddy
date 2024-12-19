@@ -345,7 +345,7 @@ struct CurrentStore
     StoreItem<std::bitset<8>, 0, journal::hash("Nozzle is Hardened")> nozzle_is_hardened;
 
     /// Stores whether a nozzle is high-flow (supports high-flow print profile) or not. One bit per each hotend
-    StoreItem<std::bitset<8>, 0, journal::hash("Nozzle is High-Flow")> nozzle_is_high_flow;
+    StoreItem<std::bitset<8>, defaults::nozzle_is_high_flow, journal::hash("Nozzle is High-Flow")> nozzle_is_high_flow;
 
     StoreItem<float, 0.0f, journal::hash("Homing Bump Divisor X")> homing_bump_divisor_x;
     StoreItem<float, 0.0f, journal::hash("Homing Bump Divisor Y")> homing_bump_divisor_y;

@@ -230,6 +230,14 @@ namespace defaults {
 #endif
     };
 
+    inline constexpr uint8_t nozzle_is_high_flow {
+#if PRINTER_IS_PRUSA_COREONE()
+        1 << 0, // Bitset -> first and only nozzle
+#else
+        0,
+#endif
+    };
+
     inline constexpr HWCheckSeverity hw_check_severity { HWCheckSeverity::Warning };
     inline constexpr SelftestResult selftest_result {};
     inline constexpr SelftestResult_pre_gears selftest_result_pre_gears {};
