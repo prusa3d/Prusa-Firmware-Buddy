@@ -12,6 +12,7 @@
 #include <wui.h>
 #include <str_utils.hpp>
 #include <window_msgbox.hpp>
+#include <marlin_client.hpp>
 
 namespace {
 bool is_device_connected(netdev_status_t status) {
@@ -107,6 +108,7 @@ MI_WIFI_SSID::MI_WIFI_SSID()
 // ===================================================
 MI_WIFI_SETUP::MI_WIFI_SETUP()
     : IWindowMenuItem(_(label)) {
+    set_enabled(!marlin_client::is_printing());
 }
 
 void MI_WIFI_SETUP::click(IWindowMenu &) {
