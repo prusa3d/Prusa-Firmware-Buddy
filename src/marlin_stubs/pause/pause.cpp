@@ -786,8 +786,10 @@ void Pause::load_nozzle_clean_process([[maybe_unused]] Response response) {
 
     if (loader_result.has_value()) {
         GcodeSuite::process_subcommands_now(loader_result.value());
-        set(LoadState::_finish);
-    } else if (loader_result.error() != GCodeLoader::BufferState::buffering) {
+    }
+
+    if (loader_result.has_value() || loader_result.error() != GCodeLoader::BufferState::buffering) {
+        nozzle_cleaner_gcode_loader.reset();
         set(LoadState::_finish);
     }
 }
@@ -928,6 +930,7 @@ void Pause::unload_nozzle_clean_process([[maybe_unused]] Response response) {
     }
 
     if (loader_result.has_value() || loader_result.error() != GCodeLoader::BufferState::buffering) {
+        nozzle_cleaner_gcode_loader.reset();
         if constexpr (!option::has_human_interactions) {
             runout_timer_ms = ticks_ms();
             set(LoadState::filament_not_in_fs);
