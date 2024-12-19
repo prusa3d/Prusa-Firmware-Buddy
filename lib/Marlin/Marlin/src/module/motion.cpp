@@ -2043,16 +2043,19 @@ float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const fe
     #if HOMING_Z_WITH_PROBE
     if (axis == Z_AXIS) {
       if (axis_home_dir < 0) {
-        do_homing_move(axis, 2 * bump, fr_mm_s, false, homing_z_with_probe);
+        bump_feedrate = fr_mm_s;
       } else {
         // moving away from the bed
-        do_homing_move(axis, 2 * bump, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z), false, homing_z_with_probe);
+        bump_feedrate = MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z);
       }
     } else
     #endif //HOMING_Z_WITH_PROBE
     {
-      do_homing_move(axis, 2 * bump, fr_mm_s ? fr_mm_s : get_homing_bump_feedrate(axis), false, homing_z_with_probe);
+      bump_feedrate = fr_mm_s ?: get_homing_bump_feedrate(axis);
     }  
+
+    do_homing_move(axis, 2 * bump, bump_feedrate, false, homing_z_with_probe);
+
     steps -= stepper.position_from_startup(axis);
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
