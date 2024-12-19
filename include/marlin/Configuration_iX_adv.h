@@ -1816,6 +1816,8 @@
         #endif
     #endif
 
+    #define SQUARE_WAVE_STEPPING
+
     /**
    * Enable M122 debugging command for TMC stepper drivers.
    * M122 S0/1 will enable continous reporting.
