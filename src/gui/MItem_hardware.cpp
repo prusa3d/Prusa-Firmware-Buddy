@@ -110,15 +110,30 @@ bool MI_EXTENDED_PRINTER_TYPE::on_item_selected([[maybe_unused]] int old_index, 
 #endif
 
 #if HAS_EMERGENCY_STOP()
+static bool user_made_informed_decision_to_disable_door_sensor() {
+    const Response response = MsgBoxWarning(
+        _(
+            "Caution! Disabling the door sensor may lead to injury or printer damage. "
+            "Proceeding means you accept full responsibility. "
+            "We are not liable for any harm or damages."),
+        { Response::Disable, Response::Cancel },
+        1 /* default is to cancel in order to prevent double clicks */);
+    return response == Response::Disable;
+}
+
 MI_EMERGENCY_STOP_ENABLE::MI_EMERGENCY_STOP_ENABLE()
     : WI_ICON_SWITCH_OFF_ON_t(config_store().emergency_stop_enable.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
 
 void MI_EMERGENCY_STOP_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
-    if (!value() && MsgBoxWarning(_("Caution! Disabling the door sensor may lead to injury or printer damage. Proceeding means you accept full responsibility. We are not liable for any harm or damages."), { Response::Disable, Response::Cancel }) != Response::Disable) {
-        set_value(true, false);
-        return;
+    if (value()) {
+        config_store().emergency_stop_enable.set(true);
+    } else {
+        if (user_made_informed_decision_to_disable_door_sensor()) {
+            config_store().emergency_stop_enable.set(false);
+        } else {
+            // revert the change in GUI and keep config store intact
+            set_value(true, false);
+        }
     }
-
-    config_store().emergency_stop_enable.set(value());
 }
 #endif
