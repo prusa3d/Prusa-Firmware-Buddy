@@ -95,7 +95,6 @@ class screen_printing_data_t : public ScreenPrintingModel {
     printing_state_t state__readonly__use_change_print_state;
 
     float last_e_axis_position;
-    const Rect16 popup_rect;
 
 #if HAS_MINI_DISPLAY()
     PrintTime print_time;
@@ -117,6 +116,10 @@ class screen_printing_data_t : public ScreenPrintingModel {
     CurrentlyShowing currently_showing { CurrentlyShowing::remaining_time }; // what item is currently shown
     uint32_t last_update_time_s { 0 }; // helper needed to properly rotate
 #endif
+
+    window_text_t message_popup;
+    uint32_t message_popup_close_time = 0;
+    std::array<char, 64> message_buffer;
 
 public:
     screen_printing_data_t();
@@ -143,5 +146,6 @@ private:
 
 public:
     printing_state_t GetState() const;
-    virtual Rect16 GetPopUpRect() override { return popup_rect; }
+
+    virtual void on_message(const char *msg) override;
 };

@@ -64,13 +64,8 @@ Jogwheel jogwheel;
 inline constexpr size_t MSG_MAX_LENGTH = 63; // status message max length
 
 void MsgCircleBuffer_cb(char *txt) {
-    // cannot open == already opened
-    IScreenPrinting *const prt_screen = IScreenPrinting::GetInstance();
-    if (prt_screen && (!prt_screen->GetPopUpRect().IsEmpty())) {
-        // message for MakeRAM must exist at least as long as string_view_utf8 exists
-        static std::array<uint8_t, MSG_MAX_LENGTH> msg;
-        strlcpy((char *)msg.data(), txt, MSG_MAX_LENGTH);
-        window_dlg_popup_t::Show(prt_screen->GetPopUpRect(), string_view_utf8::MakeRAM(msg.data()), POPUP_MSG_DUR_MS);
+    if (auto screen = IScreenPrinting::GetInstance()) {
+        screen->on_message(txt);
     }
     screen_messages_data_t::message_buffer.put(txt);
 }

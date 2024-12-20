@@ -190,15 +190,20 @@ screen_printing_data_t::screen_printing_data_t()
     , waiting_for_abort(false)
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
 #if HAS_MINI_DISPLAY()
-    , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.GetRect(), w_time_value.GetRect(), w_etime_label.GetRect(), w_etime_value.GetRect() })))
     , time_end_format(PT_t::init)
+    , message_popup(this, Rect16::Merge(std::array<Rect16, 4>({ w_time_label.GetRect(), w_time_value.GetRect(), w_etime_label.GetRect(), w_etime_value.GetRect() })), is_multiline::yes)
 #elif HAS_LARGE_DISPLAY()
-    , popup_rect(Rect16(30, get_row(0), 250, 70)) // Rect for printing messages from marlin.
     , end_result_body(this, end_result_body_rect) // safe to pass even if order changes because EndScreen constructor doesn't use it (therefore guaranteed to be valid)
+    , message_popup(this, Rect16(30, get_row(0), 250, 70), is_multiline::yes) // Rect for printing messages from marlin.
 #endif // USE_<display>
 {
     // we will handle HELD_RELEASED event in this window
     DisableLongHoldScreenAction();
+
+    // Hide popup, only show it when we have a message to show
+    message_popup.set_visible(false);
+    message_popup.SetAlignment(Align_t::LeftTop());
+    message_popup.SetPadding({ 0, 2, 0, 2 });
 
     strlcpy(text_filament.data(), "999m", text_filament.size());
 
@@ -312,6 +317,12 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
         }
     }
 #endif
+
+    if (event == GUI_event_t::LOOP) {
+        if (message_popup.IsVisible() && ticks_diff(ticks_ms(), message_popup_close_time) > 0) {
+            message_popup.Hide();
+        }
+    }
 
     if (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED) {
 #if HAS_LARGE_DISPLAY()
@@ -496,6 +507,11 @@ void screen_printing_data_t::updateTimes() {
         return;
     }
 
+    // Message popup is rendered over the times -> do not invalidate, do not compute
+    if (message_popup.IsVisible()) {
+        return;
+    }
+
     if (auto now = ticks_s(); now - last_update_time_s > rotation_time_s) {
         // do rotation
 
@@ -560,6 +576,7 @@ void screen_printing_data_t::updateTimes() {
         w_etime_value.SetText(_("N/A"));
         w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
     }
+
     w_etime_value.Invalidate(); // just to make sure
 
 #endif
@@ -795,4 +812,15 @@ void screen_printing_data_t::change_print_state() {
     if (st == printing_state_t::PRINTED || st == printing_state_t::STOPPED || st == printing_state_t::PAUSED) {
         Odometer_s::instance().force_to_eeprom();
     }
+}
+
+void screen_printing_data_t::on_message(const char *msg) {
+    if (strcmp(msg, message_buffer.data()) != 0) {
+        strlcpy(message_buffer.data(), msg, message_buffer.size());
+        message_popup.SetText(string_view_utf8::MakeRAM(message_buffer.data()));
+        message_popup.Invalidate();
+    }
+
+    message_popup.set_visible(true);
+    message_popup_close_time = ticks_ms() + POPUP_MSG_DUR_MS;
 }

@@ -23,7 +23,7 @@ public:
     ~IScreenPrinting();
     static IScreenPrinting *GetInstance();
     static void NotifyMarlinStart();
-    virtual Rect16 GetPopUpRect() { return Rect16(); }
+    virtual void on_message(const char *) {}
 
 private:
     virtual void notifyMarlinStart() {};
