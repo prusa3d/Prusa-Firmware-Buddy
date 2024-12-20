@@ -49,8 +49,8 @@ struct MockScreen : public screen_t {
         , w_last(this, GuiDefaults::RectHeader) {} // header is not hidden behind dialog
 
     void ParrentCheck() const;
-    void LinkedListCheck(size_t popup_cnt = 0, size_t dialog_cnt = 0) const;
-    void BasicCheck(size_t popup_cnt = 0, size_t dialog_cnt = 0) const;
+    void LinkedListCheck(size_t dialog_cnt = 0) const;
+    void BasicCheck(size_t dialog_cnt = 0) const;
 
     template <class... E>
     void CheckOrderAndVisibility(E *...e);
@@ -84,16 +84,12 @@ void MockScreen::CheckOrderAndVisibility(E *...e) {
     constexpr size_t sz = sizeof...(e);
     std::array<window_t *, sz> extra_windows = { e... };
 
-    size_t popup_cnt = 0;
     size_t dialog_cnt = 0;
 
     for (size_t i = 0; i < sz; ++i) {
         switch (extra_windows[i]->GetType()) {
         case win_type_t::dialog:
             ++dialog_cnt;
-            break;
-        case win_type_t::popup:
-            ++popup_cnt;
             break;
         default:
             break;
@@ -104,7 +100,7 @@ void MockScreen::CheckOrderAndVisibility(E *...e) {
     ParrentCheck();
 
     // check linked list
-    LinkedListCheck(popup_cnt, dialog_cnt);
+    LinkedListCheck(dialog_cnt);
 
     // hidden check of normal windows
     REQUIRE_FALSE(getFirstNormal() == nullptr);

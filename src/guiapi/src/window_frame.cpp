@@ -22,17 +22,7 @@ window_frame_t::window_frame_t(window_t *parent, Rect16 rect, positioning sub_wi
     flags.has_relative_subwins = sub_win_pos == positioning::relative;
 }
 
-// popup windows are static and must be unregistred
-// other windows does not need unregistration
-// because dialog/strong dialog from marlin thread will consume close flag so screen cannot be closed before it
-// msgbox-like dialogs exist within events and screen cannot be closed inside an event
-// normal windows are already unregistered by their destructors
 window_frame_t::~window_frame_t() {
-    WinFilterPopUp filter;
-    window_t *popup;
-    while ((popup = findFirst(first_normal, nullptr, filter)) != nullptr) {
-        UnregisterSubWin(*popup);
-    }
 }
 
 void window_frame_t::SetMenuTimeoutClose() { flags.timeout_close = is_closed_on_timeout_t::yes; }
@@ -70,7 +60,7 @@ window_t *window_frame_t::findLast(window_t *begin, window_t *end, const WinFilt
 }
 
 // register sub win
-// structure: popups - than normal windows - than dialogs - than strong dialogs
+// structure:  normal windows - then dialogs
 bool window_frame_t::registerSubWin(window_t &win) {
     // only normal windows can be registered
     // screen_t handles advanced window registration
@@ -119,8 +109,8 @@ void window_frame_t::clearAllHiddenBehindDialogFlags() {
     }
 }
 
-bool window_frame_t::HasDialogOrPopup() {
-    WinFilterDialogOrPopUp filter;
+bool window_frame_t::HasDialog() {
+    WinFilterDialog filter;
     return findFirst(first_normal, nullptr, filter) != nullptr;
 }
 

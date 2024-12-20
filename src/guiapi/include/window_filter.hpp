@@ -28,34 +28,6 @@ public:
     }
 };
 
-// filter popup windows
-class WinFilterPopUp : public WinFilter {
-public:
-    virtual bool operator()(const window_t &win) const override { return win.GetType() == win_type_t::popup; };
-};
-
-class WinFilterIntersectingPopUp : public WinFilter {
-    Rect16 rect;
-
-public:
-    constexpr WinFilterIntersectingPopUp(Rect16 rc)
-        : rect(rc) {}
-    virtual bool operator()(const window_t &win) const override {
-        return ((win.GetType() == win_type_t::popup) && rect.HasIntersection(win.GetRect()));
-    };
-};
-
-class WinFilterIntersectingNonPopUp : public WinFilter {
-    Rect16 rect;
-
-public:
-    constexpr WinFilterIntersectingNonPopUp(Rect16 rc)
-        : rect(rc) {}
-    virtual bool operator()(const window_t &win) const override {
-        return ((win.GetType() != win_type_t::popup) && rect.HasIntersection(win.GetRect()));
-    };
-};
-
 // filter dialog windows
 class WinFilterDialog : public WinFilter {
 public:
@@ -105,10 +77,4 @@ public:
 class WinFilterCapturable : public WinFilter {
 public:
     virtual bool operator()(const window_t &win) const override { return win.IsCapturable(); };
-};
-
-// filter dialog or popup windows
-class WinFilterDialogOrPopUp : public WinFilter {
-public:
-    virtual bool operator()(const window_t &win) const override { return win.IsDialog() || win.GetType() == win_type_t::popup; };
 };

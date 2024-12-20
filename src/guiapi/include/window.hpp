@@ -146,8 +146,6 @@ public:
     enum class ChildDialogParam : uint8_t {
         first_dialog,
         last_dialog,
-        first_popup,
-        last_popup,
     };
 
     virtual window_t *get_child_dialog([[maybe_unused]] ChildDialogParam param) const {
@@ -156,9 +154,6 @@ public:
 
     inline window_t *GetFirstDialog() const { return get_child_dialog(ChildDialogParam::first_dialog); }
     inline window_t *GetLastDialog() const { return get_child_dialog(ChildDialogParam::last_dialog); }
-
-    inline window_t *GetFirstPopUp() const { return get_child_dialog(ChildDialogParam::first_popup); }
-    inline window_t *GetLastPopUp() const { return get_child_dialog(ChildDialogParam::last_popup); }
 
 protected:
     // Make the destructor protected to prevent accidentally calling this through a base class now that it's non-virtual (for flash saving reasons - BFW-5031)

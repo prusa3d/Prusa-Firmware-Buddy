@@ -22,7 +22,7 @@ TEST_CASE("Window registration tests", "[window]") {
 
     SECTION("msgbox with no rectangle") {
         MockMsgBox msgbox(Rect16(0, 0, 0, 0));
-        screen.BasicCheck(0, 1); // basic check must pass, because rect is empty
+        screen.BasicCheck(1); // basic check must pass, because rect is empty
         REQUIRE(msgbox.GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &msgbox); // msgbox does claim capture
         screen.CheckOrderAndVisibility(&msgbox);

@@ -17,7 +17,7 @@ void MockScreen::ParrentCheck() const {
     REQUIRE(w3.GetParent() == this);
 }
 
-void MockScreen::LinkedListCheck(size_t popup_cnt, size_t dialog_cnt) const {
+void MockScreen::LinkedListCheck(size_t dialog_cnt) const {
     // check linked list
     REQUIRE(getFirstNormal() == &(w_first));
     REQUIRE(getLastNormal() == &(w_last));
@@ -30,12 +30,11 @@ void MockScreen::LinkedListCheck(size_t popup_cnt, size_t dialog_cnt) const {
     window_t *pLast = getLastNormal();
 
     checkPtrRange(pLast, dialog_cnt, GetFirstDialog(), GetLastDialog());
-    checkPtrRange(pLast, popup_cnt, GetFirstPopUp(), GetLastPopUp());
 
     REQUIRE(pLast->GetNext() == nullptr);
 }
 
-void MockScreen::BasicCheck(size_t popup_cnt, size_t dialog_cnt) const {
+void MockScreen::BasicCheck(size_t dialog_cnt) const {
     // check parrent
     ParrentCheck();
 
@@ -48,7 +47,7 @@ void MockScreen::BasicCheck(size_t popup_cnt, size_t dialog_cnt) const {
     REQUIRE_FALSE(w3.IsHiddenBehindDialog());
 
     // check linked list
-    LinkedListCheck(popup_cnt, dialog_cnt);
+    LinkedListCheck(dialog_cnt);
 }
 
 Rect16 MockScreen::GetInvalidationRect() const {

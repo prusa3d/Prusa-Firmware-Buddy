@@ -17,9 +17,6 @@ class screen_t : public window_frame_t {
     CompactRAMPointer<window_t> first_dialog;
     CompactRAMPointer<window_t> last_dialog;
 
-    CompactRAMPointer<window_t> first_popup;
-    CompactRAMPointer<window_t> last_popup;
-
 public:
     screen_t(window_t *parent = nullptr, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_printing_t close_on_print = is_closed_on_printing_t::yes);
 
@@ -36,8 +33,6 @@ protected:
     virtual bool registerSubWin(window_t &win) override;
     virtual void unregisterSubWin(window_t &win) override;
 
-    void unregisterConflictingPopUps(Rect16 rect, window_t *end);
-    bool canRegisterPopup(window_t &win);
     void hideSubwinsBehindDialogs();
     window_t *findCaptured_first_last(window_t *first, window_t *last) const; // does not use begin - end like normal find
 

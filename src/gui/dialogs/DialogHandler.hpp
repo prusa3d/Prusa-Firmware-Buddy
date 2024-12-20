@@ -26,7 +26,7 @@ public:
     static DialogHandler &Access();
 
     void Loop(); // synchronization loop, call it outside event
-    bool IsOpen() const; // returns true if any dialog is active (we dont want popups)
+    bool IsOpen() const; // returns true if any dialog is active
 
     bool IsAnyOpen() const;
 };

@@ -18,55 +18,14 @@ bool screen_t::registerSubWin(window_t &win) {
         registerAnySubWin(win, first_dialog, last_dialog);
         if (&win == first_dialog && last_normal) { // connect to list
             last_normal->SetNext(&win);
-            win.SetNext(first_popup);
-        }
-        break;
-    case win_type_t::popup:
-        if (!canRegisterPopup(win)) {
-            return false;
-        }
-        registerAnySubWin(win, first_popup, last_popup);
-        // connect to list
-        if (&win == first_popup) {
-            if (last_dialog) {
-                last_dialog->SetNext(&win);
-            } else if (last_normal) {
-                last_normal->SetNext(&win);
-            }
         }
         break;
     default:
         return false;
     }
 
-    unregisterConflictingPopUps(win.GetRect(), win.GetType() == win_type_t::popup ? &win : nullptr);
-
     clearAllHiddenBehindDialogFlags();
     hideSubwinsBehindDialogs();
-    return true;
-}
-
-void screen_t::unregisterConflictingPopUps(Rect16 rect, window_t *end) {
-
-    if (!GetFirstPopUp()) {
-        return;
-    }
-    WinFilterIntersectingPopUp filter_popup(rect);
-    window_t *popup;
-    // find intersecting popups and close them
-    while ((popup = findFirst(GetFirstPopUp(), end, filter_popup)) != end) {
-        UnregisterSubWin(*popup);
-    }
-}
-
-bool screen_t::canRegisterPopup(window_t &win) {
-    WinFilterIntersectingDialog filter(win.GetRect());
-    // find intersecting non popup
-    if (findFirst(first_normal, nullptr, filter)) {
-        // registration failed
-        win.SetParent(nullptr);
-        return false;
-    }
     return true;
 }
 
@@ -74,7 +33,7 @@ void screen_t::hideSubwinsBehindDialogs() {
     if ((!first_normal) || (!last_normal)) {
         return; // error, must have normal window
     }
-    window_t *pBeginAbnormal = first_popup;
+    window_t *pBeginAbnormal = nullptr;
     if (first_dialog) {
         pBeginAbnormal = first_dialog;
     }
@@ -106,9 +65,6 @@ void screen_t::unregisterSubWin(window_t &win) {
     case win_type_t::dialog:
         unregisterAnySubWin(win, first_dialog, last_dialog);
         break;
-    case win_type_t::popup:
-        unregisterAnySubWin(win, first_popup, last_popup);
-        break;
     }
 
     clearAllHiddenBehindDialogFlags();
@@ -121,11 +77,6 @@ window_t *screen_t::get_child_dialog(ChildDialogParam param) const {
         return first_dialog;
     case ChildDialogParam::last_dialog:
         return last_dialog;
-
-    case ChildDialogParam::first_popup:
-        return first_popup;
-    case ChildDialogParam::last_popup:
-        return last_popup;
     }
 
     return nullptr;
@@ -170,7 +121,7 @@ void screen_t::ChildVisibilityChanged(window_t &child) {
 }
 
 void screen_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
-    // GUI touch events (SWIPE) are to be distributed only to the first active popup/dialog
+    // GUI touch events (SWIPE) are to be distributed only to the first active dialog
     if (GUI_event_is_touch_event(event)) {
         const auto checkList = [&](window_t *start, window_t *end) {
             for (auto w = start; w; w = w->GetNext()) {
@@ -188,9 +139,6 @@ void screen_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
             return false;
         };
 
-        if (checkList(GetFirstPopUp(), GetLastPopUp())) {
-            return;
-        }
         if (checkList(GetFirstDialog(), GetLastDialog())) {
             return;
         }

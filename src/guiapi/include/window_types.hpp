@@ -38,9 +38,6 @@ enum class show_disabled_extension_t : bool { no,
 enum class win_type_t : uint8_t {
     normal, // single normal window in screen can have capture, registered in ctor, registration must succedd
     dialog, // can have capture, child of IDialog - modal window - multiple supported
-    popup, // can't have capture, similar to dialog, but does not claim capture, cannot overlap or be overlapped
-           //   by dialog (not registered / auto destroyed).
-           // destroyed when any window tries to overlap it
 };
 
 // todo add can capture flag (needed in frame event and SetCapture)

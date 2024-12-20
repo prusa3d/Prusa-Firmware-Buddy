@@ -205,7 +205,7 @@ void Screens::Loop() {
     /// menu timeout logic:
     /// when timeout is expired on current screen,
     /// we iterate through whole stack and close every screen that should be closed
-    if (menu_timeout_enabled && Get() && Get()->ClosedOnTimeout() && (!Get()->HasDialogOrPopup())) {
+    if (menu_timeout_enabled && Get() && Get()->ClosedOnTimeout() && (!Get()->HasDialog())) {
         if (gui::GetTick() - timeout_tick > MENU_TIMEOUT_MS) {
             while (Get() && Get()->ClosedOnTimeout() && stack_iterator != stack.begin()) {
                 close = true;
