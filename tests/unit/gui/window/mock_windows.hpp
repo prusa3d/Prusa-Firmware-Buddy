@@ -8,7 +8,6 @@
 #pragma once
 #include "catch2/catch.hpp"
 #include "screen.hpp"
-#include "window_dlg_popup.hpp"
 #include "IDialog.hpp"
 #include "DialogTimed.hpp"
 #include "guitypes.hpp"

@@ -12,7 +12,6 @@ target_sources(
           print_progress.cpp
           radio_button.cpp
           radio_button_fsm.cpp
-          window_dlg_popup.cpp
           window_dlg_quickpause.cpp
           window_dlg_wait.cpp
           window_dlg_warning.cpp

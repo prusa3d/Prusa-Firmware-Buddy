@@ -8,7 +8,6 @@
 #include <ctime>
 #include "../lang/format_print_will_end.hpp"
 #include "utility_extensions.hpp"
-#include "window_dlg_popup.hpp"
 #include "odometer.hpp"
 #include "liveadjust_z.hpp"
 #include "screen_move_z.hpp"
