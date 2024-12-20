@@ -409,6 +409,12 @@ void Crash_s::reset() {
     homefail_z = false;
 }
 
+void Crash_s::not_for_replay() {
+    if (state == REPLAY && crash_s.segments_finished) {
+        bsod("partial replay of unsupported call");
+    }
+}
+
 void Crash_s::set_homing_sensitivity(const AxisEnum axis) {
     // If XY_STALL_SENSITIVITY_MIN is defined, we have stallguard sensitivity
     // calibration (currently on MK4). In that case, the sensitivity in

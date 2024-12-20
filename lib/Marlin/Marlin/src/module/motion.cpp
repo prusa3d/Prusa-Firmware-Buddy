@@ -1812,6 +1812,7 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
   CBI(axis_known_position, axis);
 
   #if ENABLED(CRASH_RECOVERY)
+    crash_s.not_for_replay();
     Crash_Temporary_Deactivate ctd;
     const bool orig_crash [[maybe_unused]] = ctd.get_orig_state();
   #else /*ENABLED(CRASH_RECOVERY)*/

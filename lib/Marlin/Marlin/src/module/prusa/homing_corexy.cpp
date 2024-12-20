@@ -786,6 +786,7 @@ bool corexy_sens_calibrate(const float fr_mm_s) {
     // finish previous moves and disable main endstop/crash recovery handling
     planner.synchronize();
     #if ENABLED(CRASH_RECOVERY)
+    crash_s.not_for_replay();
     Crash_Temporary_Deactivate ctd;
     #endif /*ENABLED(CRASH_RECOVERY)*/
 
@@ -822,6 +823,7 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     // finish previous moves and disable main endstop/crash recovery handling
     planner.synchronize();
 #if ENABLED(CRASH_RECOVERY)
+    crash_s.not_for_replay();
     Crash_Temporary_Deactivate ctd;
 #endif /*ENABLED(CRASH_RECOVERY)*/
 

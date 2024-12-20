@@ -245,6 +245,13 @@ public:
      */
     bool is_homefail_z() const { return homefail_z; }
 
+    /**
+     * @brief Ensure the current call is never affected by replay.
+     * Some functions need to ensure that all further planned moves are performed entirely, without being
+     * affected by replay and fail silently. Call this function to ensure this is the case, or fail loudly.
+     */
+    void not_for_replay();
+
 private:
     void update_machine();
     void stop_and_save(); ///< Stop the planner and update the crash state
