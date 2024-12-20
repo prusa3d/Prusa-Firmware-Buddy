@@ -7,6 +7,7 @@
 #include <module/planner.h>
 #include <lcd/ultralcd.h> // Some marlin garbage dunno
 #include <marlin_server.hpp>
+#include <gcode/gcode.h>
 
 using namespace buddy;
 
@@ -147,6 +148,7 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
         }
 
         idle(true);
+        gcode.reset_stepper_timeout();
     }
 
     MarlinUI::reset_status();
