@@ -493,8 +493,11 @@ public:
 
 public:
     inline const char *str() const {
-        assert(is_ok());
-        return array.data();
+        if (is_ok()) {
+            return str_nocheck();
+        } else {
+            abort();
+        }
     }
     inline const char *str_nocheck() const {
         return array.data();
