@@ -62,6 +62,9 @@
 
   #include <math.h>
   #include <algorithm>
+  #include <logging/log.hpp>
+
+  LOG_COMPONENT_REF(Marlin);
 
   #define UBL_G29_P31
 
@@ -994,6 +997,7 @@
 
           const auto prev_measured_z = g29_min_max_measured_z.value_or(std::make_pair(measured_z, measured_z));
           g29_min_max_measured_z = { std::min(prev_measured_z.first, measured_z), std::max(prev_measured_z.second, measured_z) };
+          log_info(Marlin, "Measured z: %f", (double) measured_z);
           
           #if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
             //apply bed level correction on each probed point

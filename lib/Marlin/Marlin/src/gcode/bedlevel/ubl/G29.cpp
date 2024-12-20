@@ -278,6 +278,8 @@ void GcodeSuite::G29() {
             // Hack for the supplemenary "probe near purge place" - that is done after print area MBL and we don't want to offer Z align after that
             && !parser.seenval('C') //
         ) {
+            log_warning(Marlin, "Uneven bet detected: %f - %f", (double) ubl.g29_min_max_measured_z->first, (double)ubl.g29_min_max_measured_z->second);
+
             marlin_server::set_warning(WarningType::BedUnevenAlignmentPrompt, PhasesWarning::BedUnevenAlignmentPrompt);
             const Response response = marlin_server::wait_for_response(PhasesWarning::BedUnevenAlignmentPrompt);
             marlin_server::clear_warning(WarningType::BedUnevenAlignmentPrompt);
