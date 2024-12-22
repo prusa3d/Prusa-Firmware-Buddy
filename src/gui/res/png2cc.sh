@@ -79,7 +79,7 @@ else
 	stripFileType | png2indexed
 	stripFileType | convertToCC
 
-	../../../.dependencies/clang-format-9.0.0-noext/clang-format $CC_DIR/* -i
+	../../../.dependencies/clang-format-18.1.8/clang-format $CC_DIR/* -i
 
 		rm -rf $PAL_DIR
 
