@@ -27,6 +27,7 @@
 #include <option/has_modularbed.h>
 #include <option/has_loadcell.h>
 #include <Marlin/src/core/macros.h>
+#include <option/has_precise_homing_corexy.h>
 
 // clang-format off
 
@@ -1150,7 +1151,7 @@
 #define Z_END_GAP 10
 
 // Refine homing XY offsets on COREXY
-#define PRECISE_HOMING_COREXY
+#define PRECISE_HOMING_COREXY HAS_PRECISE_HOMING_COREXY()
 
 // Improve homing reliability by fixing motion parameters while homing
 #define IMPROVE_HOMING_RELIABILITY

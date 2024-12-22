@@ -1813,7 +1813,7 @@
         #define XY_HOMING_JERK 8
         #define X_CURRENT_HOME 550
         #define Y_CURRENT_HOME 550
-        #ifdef PRECISE_HOMING_COREXY
+        #if ENABLED(PRECISE_HOMING_COREXY)
             #define PRECISE_HOMING_COREXY_RETRIES 6     // count: maximum number of refinement attempts
             #define PRECISE_HOMING_SENS_TRY_RECAL 5     // count: recalibrate sensitivity at [x] failed attempts
             #define XY_HOMING_HOLDING_CURRENT 900       // mA: holding current for fixed motor
