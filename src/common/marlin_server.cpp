@@ -491,8 +491,7 @@ static void commit_fsm_states() {
 }
 
 void fsm_create(FSMAndPhase fsm_and_phase, fsm::PhaseData data) {
-    fsm_states[fsm_and_phase.fsm] = fsm::BaseData(fsm_and_phase.phase, data);
-    commit_fsm_states();
+    fsm_change(fsm_and_phase, data);
 }
 
 void fsm_destroy(ClientFSM type) {
