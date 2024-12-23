@@ -5,10 +5,8 @@
 
     #include <array>
     #include <optional>
-    #include <algorithm>
 
     #include "../../module/planner.h"
-    #include "bsod.h"
     #include "crash_recovery_counters.hpp"
 
     /// sanity check
