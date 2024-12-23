@@ -101,24 +101,8 @@ void IPrintPreview::ChangeState(State s) {
 }
 
 void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
-    FSM_action action = IsFSM_action_needed(phase, wantedPhase);
-    switch (action) {
-
-    case FSM_action::no_action:
-        break;
-
-    case FSM_action::create:
-        marlin_server::fsm_create(wantedPhase.value_or(PhasesPrintPreview::loading));
-        break;
-
-    case FSM_action::destroy:
-        // do not call marlin_server::fsm_destroy(ClientFSM::PrintPreview);
-        // we need to call it manually later to be atomic
-        break;
-
-    case FSM_action::change:
-        marlin_server::fsm_change(*wantedPhase); // wantedPhase is not nullopt, FSM_action would not be change otherwise
-        break;
+    if (wantedPhase.has_value()) {
+        marlin_server::fsm_change(*wantedPhase);
     }
     phase = wantedPhase;
 }
