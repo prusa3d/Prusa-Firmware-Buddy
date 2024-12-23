@@ -32,10 +32,6 @@
     #include "../../../feature/bedlevel/bedlevel.h"
     #include "../../../feature/prusa/e-stall_detector.h"
 
-    #if ENABLED(CRASH_RECOVERY)
-        #include "../../../feature/prusa/crash_recovery.hpp"
-    #endif
-
     #include <marlin_server.hpp>
     #include <calibration_z.hpp>
     #include <option/has_uneven_bed_prompt.h>
@@ -260,10 +256,6 @@ void GcodeSuite::G29() {
     marlin_server::FSM_Holder fsm_holder(PhaseWait::generic);
 
     BlockEStallDetection block_e_stall_detection;
-    #if ANY(CRASH_RECOVERY, POWER_PANIC)
-    // G29 requires a full restart: inhibit partial replay
-    crash_s.inhibit_gcode_replay();
-    #endif
 
     while (true) {
         ubl.g29_min_max_measured_z = std::nullopt;

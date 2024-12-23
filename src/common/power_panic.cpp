@@ -189,7 +189,7 @@ struct flash_crash_t {
     uint8_t leveling_active; /// state of MBL before crashing
     feedRate_t fr_mm_s; /// current move feedrate
     Crash_s_Counters::Data counters;
-    Crash_s::InhibitFlags inhibit_flags; /// inhibit instruction replay flags
+    Crash_s::RecoverFlags recover_flags; /// instruction replay flags
 
     uint8_t _padding[1]; // silence warning
 };
@@ -620,13 +620,15 @@ void resume_loop() {
         }
 #endif /*HAS_TOOLCHANGER()*/
 
-        // lift and rehome
-        if (TEST(state_buf.crash.axis_known_position, X_AXIS) || TEST(state_buf.crash.axis_known_position, Y_AXIS)) {
-            float z_dist = current_position[Z_AXIS] - state_buf.crash.crash_current_position[Z_AXIS];
-            float z_lift = z_dist < Z_HOMING_HEIGHT ? Z_HOMING_HEIGHT - z_dist : 0;
-            char cmd_buf[24];
-            snprintf(cmd_buf, sizeof(cmd_buf), "G28 X Y D R%f", (double)z_lift);
-            marlin_server::enqueue_gcode(cmd_buf);
+        if (state_buf.crash.recover_flags & Crash_s::RECOVER_AXIS_STATE) {
+            // lift and rehome
+            if (TEST(state_buf.crash.axis_known_position, X_AXIS) || TEST(state_buf.crash.axis_known_position, Y_AXIS)) {
+                float z_dist = current_position[Z_AXIS] - state_buf.crash.crash_current_position[Z_AXIS];
+                float z_lift = z_dist < Z_HOMING_HEIGHT ? Z_HOMING_HEIGHT - z_dist : 0;
+                char cmd_buf[24];
+                snprintf(cmd_buf, sizeof(cmd_buf), "G28 X Y D R%f", (double)z_lift);
+                marlin_server::enqueue_gcode(cmd_buf);
+            }
         }
 
         if (state_buf.planner.was_paused) {
@@ -665,10 +667,13 @@ void resume_loop() {
         }
 
         // forget the XYZ resume position if requested
-        if (state_buf.crash.inhibit_flags & Crash_s::INHIBIT_XYZ_REPOSITIONING) {
-            LOOP_XYZ(i) {
+        if (!(state_buf.crash.recover_flags & Crash_s::RECOVER_XY_POSITION)) {
+            LOOP_XY(i) {
                 state_buf.crash.crash_current_position[i] = current_position[i];
             }
+        }
+        if (!(state_buf.crash.recover_flags & Crash_s::RECOVER_Z_POSITION)) {
+            state_buf.crash.crash_current_position[Z_AXIS] = current_position[Z_AXIS];
         }
 
         // unpark only if the position was known
@@ -736,7 +741,7 @@ void resume_loop() {
             crash_s.crash_position = d.crash_position;
             crash_s.segments_finished = d.segments_finished;
             crash_s.leveling_active = d.leveling_active;
-            crash_s.inhibit_flags = d.inhibit_flags;
+            crash_s.recover_flags = d.recover_flags;
             crash_s.fr_mm_s = d.fr_mm_s;
             crash_s.counters.restore_data(d.counters);
         }
@@ -1148,7 +1153,7 @@ void ac_fault_isr() {
         state_buf.crash.segments_finished = crash_s.segments_finished;
         state_buf.crash.axis_known_position = crash_s.crash_axis_known_position;
         state_buf.crash.leveling_active = crash_s.leveling_active;
-        state_buf.crash.inhibit_flags = crash_s.inhibit_flags;
+        state_buf.crash.recover_flags = crash_s.recover_flags;
         state_buf.crash.fr_mm_s = crash_s.fr_mm_s;
 
         crash_s.counters.increment(Crash_s::Counter::power_panic);

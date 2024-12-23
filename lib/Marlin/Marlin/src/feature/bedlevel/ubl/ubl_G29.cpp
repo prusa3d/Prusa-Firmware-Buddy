@@ -56,6 +56,9 @@
     #include "../../../lcd/extensible_ui/ui_api.h"
   #endif
 
+  #if ENABLED(CRASH_RECOVERY)
+    #include <feature/prusa/crash_recovery.hpp>
+  #endif
   #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
   #endif
@@ -481,6 +484,11 @@
               SERIAL_ECHOLNPGM("Mesh invalidated. Probing mesh.");
             }
 
+            #if ENABLED(CRASH_RECOVERY)
+              // we're going to move to an absolute position: inhibit XYZ repositioning
+              crash_s.set_gcode_replay_flags(Crash_s::RECOVER_AXIS_STATE);
+            #endif
+
             if (xy_seen && g29_size_seen) {
               probe_major_points(g29_pos, g29_pos + g29_size, parser.seen('T'), parser.seen('E'));
             } else {
@@ -631,6 +639,10 @@
         #if ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
           case 9: {
             if (g29_size_seen && xy_seen) {
+              #if ENABLED(CRASH_RECOVERY)
+                // we're going to move to an absolute position: inhibit XYZ repositioning
+                crash_s.set_gcode_replay_flags(Crash_s::RECOVER_AXIS_STATE);
+              #endif
               cleanup_probe(g29_pos, g29_pos + g29_size);
             } else {
               SERIAL_ECHOLNPGM("G29 P9 requires X, Y, W and H arguments");

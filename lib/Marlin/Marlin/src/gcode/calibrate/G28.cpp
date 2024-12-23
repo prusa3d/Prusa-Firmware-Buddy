@@ -344,6 +344,17 @@ void GcodeSuite::G28() {
     flags.precise = !parser.seen('I'); // imprecise: do not perform precise refinement
   #endif
 
+  #if ENABLED(CRASH_RECOVERY)
+    bool all_axes = (!X && !Y && !Z) || (X && Y && Z);
+    if (all_axes) {
+      // Skip all recovery when homing all axes
+      crash_s.set_gcode_replay_flags(Crash_s::RECOVER_NONE);
+    } else if (X && Y) {
+      // Skip the extra axis/position recovery if both XY are being rehomed
+      crash_s.set_gcode_replay_flags(Crash_s::RECOVER_AXIS_STATE | Crash_s::RECOVER_Z_POSITION);
+    }
+  #endif
+
   G28_no_parser(X, Y, Z, flags);
 }
 /** @}*/

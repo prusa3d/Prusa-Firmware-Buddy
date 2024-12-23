@@ -2031,10 +2031,13 @@ static void _server_print_loop(void) {
     #endif
 
         // forget the XYZ resume position if requested
-        if (crash_s.inhibit_flags & Crash_s::INHIBIT_XYZ_REPOSITIONING) {
-            LOOP_XYZ(i) {
+        if (!(crash_s.recover_flags & Crash_s::RECOVER_XY_POSITION)) {
+            LOOP_XY(i) {
                 server.resume.pos[i] = current_position[i];
             }
+        }
+        if (!(crash_s.recover_flags & Crash_s::RECOVER_Z_POSITION)) {
+            server.resume.pos[Z_AXIS] = current_position[Z_AXIS];
         }
 #endif
         resuming_begin();
@@ -2441,6 +2444,7 @@ static void _server_print_loop(void) {
             break;
         }
 
+        // TODO: this doesn't respect Crash_s::REPLAY_NONE which should prevent re-home as well
         if (axis_unhomed_error(_BV(X_AXIS) | _BV(Y_AXIS)
                 | (crash_s.is_homefail_z() ? _BV(Z_AXIS) : 0))) { // Needs homing
             TemporaryBedLevelingState tbs(false); // Disable for the additional homing, keep previous state after homing

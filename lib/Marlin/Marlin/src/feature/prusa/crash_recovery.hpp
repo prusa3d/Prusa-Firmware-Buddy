@@ -43,11 +43,19 @@ public:
         SELFTEST, /// Selftest is running, do not interfere
     } state_t;
 
-    /// Recovery inhibition types
-    typedef uint8_t InhibitFlags;
-    static const InhibitFlags INHIBIT_PARTIAL_REPLAY = 0b01;
-    static const InhibitFlags INHIBIT_XYZ_REPOSITIONING = 0b10;
-    static const InhibitFlags INHIBIT_ALL = ~0;
+    /// Instruction recovery flags
+    typedef uint8_t RecoverFlags;
+    static constexpr RecoverFlags RECOVER_NONE = 0; // don't recover *any* axis state if instruction is aborted
+    static constexpr RecoverFlags RECOVER_AXIS_STATE = 0b1; // recover XYZ axis state (rehome if needed)
+    static constexpr RecoverFlags RECOVER_XY_POSITION = 0b10; // recover XY head position on recovery
+    static constexpr RecoverFlags RECOVER_Z_POSITION = 0b100; // recover Z head position on recovery
+    static constexpr RecoverFlags RECOVER_PARTIAL_REPLAY = 0b1000; // allow partial segment replay on recovery
+    static constexpr RecoverFlags RECOVER_FULL = ~0; // full instruction recovery
+
+    /// Default recovery flags for new instructions
+    static constexpr RecoverFlags RECOVER_XYZ_POSITION = RECOVER_XY_POSITION | RECOVER_Z_POSITION;
+    static constexpr RecoverFlags RECOVER_XYZ = RECOVER_AXIS_STATE | RECOVER_XYZ_POSITION;
+    static constexpr RecoverFlags RECOVER_DEFAULT_FLAGS = RECOVER_XYZ;
 
     struct crash_block_t {
         xyze_pos_t start_current_position; /// Starting logical position of the G-code
@@ -55,7 +63,7 @@ public:
         int32_t e_msteps; /// Length of the extrusion in mini-steps
         uint32_t sdpos; /// Media location of the interrupted G-code
         uint16_t segment_idx; /// Aborted segment index
-        InhibitFlags inhibit_flags; /// Inhibit instruction replay flags
+        RecoverFlags recover_flags; /// Instruction recovery flags
         feedRate_t fr_mm_s; /// Move feedrate
     };
 
@@ -74,7 +82,7 @@ public:
     struct {
         uint32_t sdpos; /// Current media location of the G-code
         uint16_t segment_idx; /// Current segment index
-        InhibitFlags inhibit_flags; /// Inhibit instruction replay flags
+        RecoverFlags recover_flags; /// Instruction recovery flags
     } gcode_state;
 
     uint32_t sdpos = GCodeQueue::SDPOS_INVALID; ///< sdpos of the gcode instruction being aborted
@@ -105,14 +113,15 @@ public:
     uint16_t segments_finished;
     uint8_t crash_axis_known_position; /// axis state before crashing
     bool leveling_active; /// state of MBL before crashing
-    InhibitFlags inhibit_flags; /// instruction replay flags before crashing
+    RecoverFlags recover_flags; /// instruction replay flags before crashing
     feedRate_t fr_mm_s; /// Replay feedrate
 
-    /// Inhibit partial gcode instruction replay for the current instruction
-    void inhibit_gcode_replay(InhibitFlags flags = INHIBIT_ALL) {
-        // ensure flags are set before any movement instruction
-        assert(gcode_state.segment_idx == 0);
-        gcode_state.inhibit_flags = flags;
+    /**
+     * @brief Set gcode instruction replay flags for the current instruction
+     * @param flags Replay flags to set for the current instruction
+     */
+    void set_gcode_replay_flags(RecoverFlags flags) {
+        gcode_state.recover_flags = flags;
     }
 
     bool vars_locked;
@@ -187,7 +196,7 @@ public:
     void start_new_gcode(const uint32_t sdpos) {
         gcode_state.sdpos = sdpos;
         gcode_state.segment_idx = 0;
-        gcode_state.inhibit_flags = 0;
+        gcode_state.recover_flags = RECOVER_DEFAULT_FLAGS;
     };
 
     void set_sensitivity(xy_long_t sens);

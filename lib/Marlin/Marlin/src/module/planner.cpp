@@ -2039,7 +2039,7 @@ bool Planner::_populate_block(block_t * const block,
     crash_block.e_msteps = de;
     crash_block.sdpos = move_start.sdpos;
     crash_block.segment_idx = crash_s.gcode_state.segment_idx;
-    crash_block.inhibit_flags = crash_s.gcode_state.inhibit_flags;
+    crash_block.recover_flags = crash_s.gcode_state.recover_flags;
     crash_block.fr_mm_s = fr_mm_s;
   }
   #endif

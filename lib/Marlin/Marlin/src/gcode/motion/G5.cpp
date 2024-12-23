@@ -31,6 +31,10 @@
 #include "../../module/motion.h"
 #include "../../module/planner_bezier.h"
 
+#if ENABLED(CRASH_RECOVERY)
+  #include <feature/prusa/crash_recovery.hpp>
+#endif
+
 /**
  * Parameters interpreted according to:
  * https://linuxcnc.org/docs/2.7/html/gcode/g-code.html#gcode:g5
@@ -52,6 +56,11 @@ void GcodeSuite::G5() {
         SERIAL_ERROR_MSG(STR_ERR_BAD_PLANE_MODE);
         return;
       }
+    #endif
+
+    #if ENABLED(CRASH_RECOVERY)
+      // allow full instruction recovery
+      crash_s.set_gcode_replay_flags(Crash_s::RECOVER_FULL);
     #endif
 
     get_destination_from_command();

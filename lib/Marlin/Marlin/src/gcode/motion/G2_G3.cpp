@@ -40,6 +40,10 @@
   #include "../../module/scara.h"
 #endif
 
+#if ENABLED(CRASH_RECOVERY)
+  #include <feature/prusa/crash_recovery.hpp>
+#endif
+
 #if N_ARC_CORRECTION < 1
   #undef N_ARC_CORRECTION
   #define N_ARC_CORRECTION 1
@@ -434,6 +438,11 @@ void GcodeSuite::G2_G3(const bool clockwise) {
   if (!MOTION_CONDITIONS) return;
 
   TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(M_RUNNING));
+
+  #if ENABLED(CRASH_RECOVERY)
+    // allow full instruction recovery
+    crash_s.set_gcode_replay_flags(Crash_s::RECOVER_FULL);
+  #endif
 
   #if ENABLED(SF_ARC_FIX)
     const bool relative_mode_backup = relative_mode;

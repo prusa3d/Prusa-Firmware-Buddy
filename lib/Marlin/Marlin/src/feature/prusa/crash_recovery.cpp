@@ -55,7 +55,7 @@ void Crash_s::stop_and_save() {
         // save current_block state
         check_and_set_sdpos(crash_block.sdpos);
         segments_finished = crash_block.segment_idx;
-        inhibit_flags = crash_block.inhibit_flags;
+        recover_flags = crash_block.recover_flags;
         fr_mm_s = crash_block.fr_mm_s;
     #if ENABLED(LIN_ADVANCE)
         advance_mm = stepper.get_LA_steps() * Planner::mm_per_step[E_AXIS];
@@ -70,7 +70,7 @@ void Crash_s::stop_and_save() {
         // no block, get state from the queue & planner
         check_and_set_sdpos(queue.get_current_sdpos());
         segments_finished = 0;
-        inhibit_flags = gcode_state.inhibit_flags;
+        recover_flags = gcode_state.recover_flags;
         fr_mm_s = feedrate_mm_s;
     #if ENABLED(LIN_ADVANCE)
         advance_mm = 0;
@@ -136,16 +136,20 @@ void Crash_s::resume_movement() {
 }
 
 void Crash_s::restore_state() {
-    if (inhibit_flags & INHIBIT_PARTIAL_REPLAY) {
+    if (!(recover_flags & RECOVER_PARTIAL_REPLAY)) {
         segments_finished = 0;
     }
 
-    if (inhibit_flags & INHIBIT_XYZ_REPOSITIONING) {
-        // also reset internal crash locations to current_position
-        LOOP_XYZ(i) {
+    // also reset internal crash locations to current_position when requested
+    if (!(recover_flags & RECOVER_XY_POSITION)) {
+        LOOP_XY(i) {
             start_current_position[i] = current_position[i];
             crash_position[i] = current_position[i];
         }
+    }
+    if (!(recover_flags & RECOVER_Z_POSITION)) {
+        start_current_position[Z_AXIS] = current_position[Z_AXIS];
+        crash_position[Z_AXIS] = current_position[Z_AXIS];
     }
 
     // order is important here!
@@ -401,7 +405,7 @@ void Crash_s::reset() {
     repeated_crash = false;
     toolchange_in_progress = false;
     segments_finished = 0;
-    inhibit_flags = 0;
+    recover_flags = RECOVER_DEFAULT_FLAGS;
     state = IDLE;
     vars_locked = false;
     active = false;
