@@ -846,7 +846,7 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
     if ((mode == CoreXYCalibrationMode::force)
         || ((mode == CoreXYCalibrationMode::on_demand) && calibrated_origin.uninitialized())) {
-        SERIAL_ECHOLN("recalibrating homing origin");
+        SERIAL_ECHOLN("recalibrating home origin");
         ui.status_printf_P(0, "Recalibrating home. Printer may vibrate and be noisier.");
 
         xy_pos_t origin, distance;
@@ -860,6 +860,11 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
             calibrated_origin.distance[axis] = distance[axis];
         }
         config_store().corexy_grid_origin.set(calibrated_origin);
+    } else if (calibrated_origin.uninitialized()) {
+        // we have no origin, but calibration was explicitly disabled: continue without
+        SERIAL_ECHOLN("homing without calibrated origin");
+        calibrated_origin.origin[A_AXIS] = 0.f;
+        calibrated_origin.origin[B_AXIS] = 0.f;
     }
     xy_pos_t calibrated_origin_xy = { calibrated_origin.origin[A_AXIS], calibrated_origin.origin[B_AXIS] };
 
