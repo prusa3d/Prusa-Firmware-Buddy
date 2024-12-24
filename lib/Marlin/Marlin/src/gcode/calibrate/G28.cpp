@@ -705,7 +705,7 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
         }
 
         failed = !corexy_home_refine(xy_mm_s, mode);
-        if (!failed && !corexy_home_is_unstable()) {
+        if (!failed && (!corexy_home_is_unstable() || !corexy_home_is_calibrated())) {
           // successfully homed
           break;
         }
