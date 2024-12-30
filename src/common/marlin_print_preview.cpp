@@ -520,7 +520,7 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::unfinished_selftest_wait_user:
         switch (response) {
 
-        case Response::Continue:
+        case Response::Ignore:
             ChangeState(stateFromUpdateCheck());
             break;
 
