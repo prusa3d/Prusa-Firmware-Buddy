@@ -11,6 +11,7 @@ constexpr std::pair<Response, const char *> response_str[] = {
     R(Adjust),
     R(All),
     R(Back),
+    R(Calibrate),
     R(Cancel),
     R(Help),
     R(Change),

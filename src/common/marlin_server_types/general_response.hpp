@@ -17,6 +17,7 @@ enum class Response : uint8_t {
     Adjust,
     All,
     Back,
+    Calibrate,
     Cancel,
     Help,
     Change,
