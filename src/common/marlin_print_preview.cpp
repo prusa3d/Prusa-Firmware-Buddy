@@ -529,9 +529,6 @@ PrintPreview::Result PrintPreview::Loop() {
             // There is currently no way to keep the FSM open while GUI screen
             // such as `Calibrations & Tests` is being shown.
             // Let's just close the FSM and be done with it.
-            [[fallthrough]];
-
-        case Response::Abort:
             ChangeState(State::inactive);
             return Result::Abort;
 

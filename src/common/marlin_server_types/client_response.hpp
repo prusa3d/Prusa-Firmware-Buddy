@@ -668,7 +668,6 @@ class ClientResponses {
             { PhasesPrintPreview::unfinished_selftest, {
                                                            Response::Calibrate,
                                                            Response::Ignore,
-                                                           Response::Abort,
                                                        } },
             { PhasesPrintPreview::new_firmware_available, {
                                                               Response::Continue,
