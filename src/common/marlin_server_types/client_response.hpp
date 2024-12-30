@@ -650,37 +650,64 @@ class ClientResponses {
         { PhasesPreheat::UserTempSelection, { Response::Abort, Response::Cooldown } },
     };
 
-    static constexpr PhaseResponses PrintPreviewResponses[] = {
-        {}, // loading
-        { Response::Quit }, // download_wait
-        {
+    static constexpr EnumArray<PhasesPrintPreview, PhaseResponses, CountPhases<PhasesPrintPreview>()> PrintPreviewResponses {
+        { PhasesPrintPreview::loading, {} },
+            { PhasesPrintPreview::download_wait, {
+                                                     Response::Quit,
+                                                 } },
+            { PhasesPrintPreview::main_dialog, {
 #if PRINTER_IS_PRUSA_XL()
-            Response::Continue,
+                                                   Response::Continue,
 #elif PRINTER_IS_PRUSA_MINI()
-            Response::PRINT,
+                                                   Response::PRINT,
 #else
-            Response::Print,
+                                                   Response::Print,
 #endif
-            Response::Back }, // main_dialog,
-        { Response::Continue, Response::Abort }, // unfinished_selftest
-        { Response::Continue }, // new_firmware_available
-        { Response::Abort, Response::PRINT }, // wrong_printer
-        { Response::Abort }, // wrong_printer_abort
-        { Response::Yes, Response::No, Response::FS_disable }, // filament_not_inserted
+                                                   Response::Back,
+                                               } },
+            { PhasesPrintPreview::unfinished_selftest, {
+                                                           Response::Continue,
+                                                           Response::Abort,
+                                                       } },
+            { PhasesPrintPreview::new_firmware_available, {
+                                                              Response::Continue,
+                                                          } },
+            { PhasesPrintPreview::wrong_printer, {
+                                                     Response::Abort,
+                                                     Response::PRINT,
+                                                 } },
+            { PhasesPrintPreview::wrong_printer_abort, {
+                                                           Response::Abort,
+                                                       } },
+            { PhasesPrintPreview::filament_not_inserted, {
+                                                             Response::Yes,
+                                                             Response::No,
+                                                             Response::FS_disable,
+                                                         } },
 #if HAS_MMU2()
-        { Response::Yes, Response::No }, // mmu_filament_inserted
+            { PhasesPrintPreview::mmu_filament_inserted, {
+                                                             Response::Yes,
+                                                             Response::No,
+                                                         } },
 #endif
 #if HAS_TOOLCHANGER() || HAS_MMU2()
-        { Response::Back, Response::Filament, Response::PRINT }, // tools_mapping
+            { PhasesPrintPreview::tools_mapping, {
+                                                     Response::Back,
+                                                     Response::Filament,
+                                                     Response::PRINT,
+                                                 } },
 #endif
-        {
+            { PhasesPrintPreview::wrong_filament, {
 #if !PRINTER_IS_PRUSA_XL()
-            Response::Change,
+                                                      Response::Change,
 #endif
-            Response::Ok, Response::Abort }, // wrong_filament
-        { Response::Abort }, // file_error
+                                                      Response::Ok,
+                                                      Response::Abort,
+                                                  } },
+            { PhasesPrintPreview::file_error, {
+                                                  Response::Abort,
+                                              } },
     };
-    static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 
     static constexpr EnumArray<PhasesSelftest, PhaseResponses, CountPhases<PhasesSelftest>()> SelftestResponses {
         { PhasesSelftest::_none, {} },
