@@ -29,6 +29,7 @@
 
 #include <config_store/store_instance.hpp>
 #include "tools_mapping.hpp"
+#include <buddy/unreachable.hpp>
 #include <module/prusa/tool_mapper.hpp>
 #include <module/prusa/spool_join.hpp>
 #include <mmu2_toolchanger_common.hpp>
@@ -527,8 +528,11 @@ PrintPreview::Result PrintPreview::Loop() {
             ChangeState(State::inactive);
             return Result::Abort;
 
-        default:
+        case Response::_none:
             break;
+
+        default:
+            BUDDY_UNREACHABLE();
         }
         break;
 
