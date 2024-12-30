@@ -2895,6 +2895,7 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
             case Event::LoadSettings:
             case Event::StoreSettings:
             case Event::MeshUpdate:
+            case Event::RequestCalibrationsScreen:
             // StatusChanged event - one string argument
             case Event::StatusChanged:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0)) {
@@ -3550,3 +3551,7 @@ void onMeshUpdate([[maybe_unused]] const uint8_t xpos, [[maybe_unused]] const ui
 
 alignas(std::max_align_t) uint8_t FSMExtendedDataManager::extended_data_buffer[FSMExtendedDataManager::buffer_size] = { 0 };
 size_t FSMExtendedDataManager::identifier = { 0 };
+
+void marlin_server::request_calibrations_screen() {
+    _send_notify_event(marlin_server::Event::RequestCalibrationsScreen, 0, 0);
+}

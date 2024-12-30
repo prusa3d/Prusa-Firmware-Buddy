@@ -310,4 +310,6 @@ void powerpanic_finish_recovery();
 void powerpanic_finish_pause();
 void powerpanic_finish_toolcrash();
 
+void request_calibrations_screen();
+
 } // namespace marlin_server

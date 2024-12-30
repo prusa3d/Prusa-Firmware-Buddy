@@ -666,6 +666,7 @@ class ClientResponses {
                                                    Response::Back,
                                                } },
             { PhasesPrintPreview::unfinished_selftest, {
+                                                           Response::Calibrate,
                                                            Response::Ignore,
                                                            Response::Abort,
                                                        } },

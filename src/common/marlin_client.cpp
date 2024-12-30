@@ -509,6 +509,7 @@ static bool receive_and_process_client_message(marlin_client_t *client, size_t m
     case Event::FactoryReset:
     case Event::LoadSettings:
     case Event::StoreSettings:
+    case Event::RequestCalibrationsScreen:
         break;
     case Event::_count:
         assert(false);

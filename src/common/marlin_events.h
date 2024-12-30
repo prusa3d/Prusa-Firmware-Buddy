@@ -28,6 +28,7 @@ enum class Event : uint8_t {
     CommandBegin, //
     CommandEnd, //
     Message, //
+    RequestCalibrationsScreen, //
     Acknowledge, // onAcknowledge - lowest priority
     NotAcknowledge, // onNotAcknowledge - lowest priority
 
