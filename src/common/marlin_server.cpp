@@ -2887,14 +2887,6 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
             case Event::MediaInserted:
             case Event::MediaError:
             case Event::MediaRemoved:
-            case Event::PrintTimerStarted:
-            case Event::PrintTimerPaused:
-            case Event::PrintTimerStopped:
-            case Event::FilamentRunout:
-            case Event::FactoryReset:
-            case Event::LoadSettings:
-            case Event::StoreSettings:
-            case Event::MeshUpdate:
             case Event::RequestCalibrationsScreen:
             // StatusChanged event - one string argument
             case Event::StatusChanged:
@@ -2920,9 +2912,6 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
                 }
                 break;
             // unused events
-            case Event::PrinterKilled:
-            case Event::PlayTone:
-            case Event::UserConfirmRequired:
             case Event::Message:
                 sent |= msk; // fake event sent for unused and forced events
                 break;
@@ -3420,49 +3409,20 @@ void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     fatal_error(msg, component);
 }
 
-void onMediaInserted() {
-    log_info(MarlinServer, "ExtUI: onMediaInserted");
-    _send_notify_event(Event::MediaInserted, 0, 0);
-}
-
-void onMediaError() {
-    log_info(MarlinServer, "ExtUI: onMediaError");
-    _send_notify_event(Event::MediaError, 0, 0);
-}
-
-void onMediaRemoved() {
-    log_info(MarlinServer, "ExtUI: onMediaRemoved");
-    _send_notify_event(Event::MediaRemoved, 0, 0);
-}
-
-void onPlayTone(const uint16_t frequency, const uint16_t duration) {
-    log_info(MarlinServer, "ExtUI: onPlayTone");
-    _send_notify_event(Event::PlayTone, frequency, duration);
-}
-
 void onPrintTimerStarted() {
     log_info(MarlinServer, "ExtUI: onPrintTimerStarted");
-    _send_notify_event(Event::PrintTimerStarted, 0, 0);
 }
 
 void onPrintTimerPaused() {
     log_info(MarlinServer, "ExtUI: onPrintTimerPaused");
-    _send_notify_event(Event::PrintTimerPaused, 0, 0);
 }
 
 void onPrintTimerStopped() {
     log_info(MarlinServer, "ExtUI: onPrintTimerStopped");
-    _send_notify_event(Event::PrintTimerStopped, 0, 0);
-}
-
-void onFilamentRunout([[maybe_unused]] const extruder_t extruder) {
-    log_info(MarlinServer, "ExtUI: onFilamentRunout");
-    _send_notify_event(Event::FilamentRunout, 0, 0);
 }
 
 void onUserConfirmRequired(const char *const msg) {
     log_info(MarlinServer, "ExtUI: onUserConfirmRequired: %s", msg);
-    _send_notify_event(Event::UserConfirmRequired, 0, 0);
 }
 
 #if HAS_BED_PROBE || HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
@@ -3521,17 +3481,14 @@ void onStatusChanged(const char *const msg) {
 
 void onFactoryReset() {
     log_info(MarlinServer, "ExtUI: onFactoryReset");
-    _send_notify_event(Event::FactoryReset, 0, 0);
 }
 
 void onLoadSettings(char const *) {
     log_info(MarlinServer, "ExtUI: onLoadSettings");
-    _send_notify_event(Event::LoadSettings, 0, 0);
 }
 
 void onStoreSettings(char *) {
     log_info(MarlinServer, "ExtUI: onStoreSettings");
-    _send_notify_event(Event::StoreSettings, 0, 0);
 }
 
 void onConfigurationStoreWritten([[maybe_unused]] bool success) {
@@ -3544,7 +3501,6 @@ void onConfigurationStoreRead([[maybe_unused]] bool success) {
 
 void onMeshUpdate([[maybe_unused]] const uint8_t xpos, [[maybe_unused]] const uint8_t ypos, [[maybe_unused]] const float zval) {
     log_debug(MarlinServer, "ExtUI: onMeshUpdate x: %u, y: %u, z: %.2f", xpos, ypos, (double)zval);
-    _send_notify_event(Event::MeshUpdate, 0, 0);
 }
 
 } // namespace ExtUI

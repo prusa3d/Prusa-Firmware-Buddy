@@ -494,21 +494,10 @@ static bool receive_and_process_client_message(marlin_client_t *client, size_t m
     }
         // not handled events
         // do not use default, i want all events listed here, so new event will generate warning, when not added
-    case Event::MeshUpdate:
-    case Event::PrinterKilled:
     case Event::MediaInserted:
     case Event::MediaError:
     case Event::MediaRemoved:
-    case Event::PlayTone:
-    case Event::PrintTimerStarted:
-    case Event::PrintTimerPaused:
-    case Event::PrintTimerStopped:
-    case Event::FilamentRunout:
-    case Event::UserConfirmRequired:
     case Event::StatusChanged:
-    case Event::FactoryReset:
-    case Event::LoadSettings:
-    case Event::StoreSettings:
     case Event::RequestCalibrationsScreen:
         break;
     case Event::_count:

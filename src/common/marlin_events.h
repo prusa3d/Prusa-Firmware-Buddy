@@ -9,21 +9,10 @@ namespace marlin_server {
 
 enum class Event : uint8_t {
     // Marlin events - UIAPI
-    PrinterKilled, // onPrinterKilled(PGM_P const msg)
     MediaInserted, // onMediaInserted();
     MediaError, // onMediaError();
     MediaRemoved, // onMediaRemoved();
-    PlayTone, // onPlayTone(const uint16_t frequency, const uint16_t duration)
-    PrintTimerStarted, // onPrintTimerStarted()
-    PrintTimerPaused, // onPrintTimerPaused()
-    PrintTimerStopped, // onPrintTimerStopped()
-    FilamentRunout, // onFilamentRunout()
-    UserConfirmRequired, // onUserConfirmRequired(const char * const msg)
     StatusChanged, // onStatusChanged(const char * const msg)
-    FactoryReset, // onFactoryReset()
-    LoadSettings, // onLoadSettings()
-    StoreSettings, // onStoreSettings()
-    MeshUpdate, // onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval)
     // Marlin events - other
     CommandBegin, //
     CommandEnd, //
@@ -46,7 +35,7 @@ constexpr EventMask make_mask(Event id) {
 }
 
 inline constexpr EventMask EVENT_MSK_ALL = std::numeric_limits<EventMask>::max();
-inline constexpr EventMask EVENT_MSK_DEF = EVENT_MSK_ALL & ~make_mask(Event::PrinterKilled);
+inline constexpr EventMask EVENT_MSK_DEF = EVENT_MSK_ALL;
 
 // commands
 enum class Cmd : uint32_t {
