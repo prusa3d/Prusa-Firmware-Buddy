@@ -14,7 +14,7 @@ public:
     template <typename Phase>
     FSMMenuItem(Phase phase, FSMResponseVariant response, const string_view_utf8 &text, const img::Resource *icon = nullptr)
         : IWindowMenuItem(text, icon)
-        , encoded_response(EncodedFSMResponse { .response = FSMResponseVariant::make(response), .fsm_and_phase = phase }) //
+        , encoded_response(EncodedFSMResponse { .response = response, .fsm_and_phase = phase }) //
     {}
 
 protected:
