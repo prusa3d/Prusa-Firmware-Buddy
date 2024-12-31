@@ -94,6 +94,7 @@ public:
     /// Sets the variant to a given value
     template <typename T>
     constexpr void set(const T &value) {
+        static_assert(sizeof(T) <= max_size);
         type = PrimitiveAnyRTTI::get_for_type<T>();
         new (data.data()) T(value);
     }
@@ -126,7 +127,7 @@ public:
     constexpr inline PrimitiveAny &operator=(const PrimitiveAny<other_size> &other) {
         static_assert(max_size >= other_size);
         type = other.type;
-        memcpy(data.data(), other.data.data(), max_size);
+        memcpy(data.data(), other.data.data(), std::min(max_size, other_size));
         return *this;
     }
 
