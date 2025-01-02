@@ -50,5 +50,5 @@ private:
 
 private:
     xyze_float_t queued_pos { { NAN, NAN, NAN, NAN } };
-    float e_axis_offset;
+    float e_axis_offset = 0;
 };

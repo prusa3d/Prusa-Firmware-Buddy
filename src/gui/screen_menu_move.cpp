@@ -65,6 +65,7 @@ ScreenMenuMove::ScreenMenuMove()
 
     // Either MI_AXIS_E or DUMMY_AXIS_E must be hidden for swap to work
     Item<MI_AXIS_E>().set_is_hidden(true);
+    Item<MI_AXIS_E>().set_value(0);
 
     Item<screen_menu_move::MI_COOLDOWN>().callback = [] {
         HOTEND_LOOP() {
