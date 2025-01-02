@@ -69,6 +69,7 @@ class TestErrors(unittest.TestCase):
         assert code.id
 
     def test_COREONE(self):
+        # unique code for COREONE
         code = PrinterCodes.get("31701")
         assert code.printer == Printer.COREONE
         assert code.category == Category(7)
@@ -76,6 +77,10 @@ class TestErrors(unittest.TestCase):
         assert code.title
         assert code.message
         assert code.id
+        # common code for buddy printers
+        code = PrinterCodes.get("31801")
+        assert code.printer == Printer.COREONE
+
 
     def test_no_MK35S(self):
         """MK35S doesn't have puppies."""

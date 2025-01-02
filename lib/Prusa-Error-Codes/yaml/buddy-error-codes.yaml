@@ -301,6 +301,18 @@ Errors:
     id: "CHAMBER_FAILED_TO_REACH_TEMP"
     approved: false
 
+  - code: "XX260"
+    printers: [COREONE]
+    title: "Chamber Overheating"
+    text: "Chamber temperature above safety limit. Ensure better ventilation."
+    id: "CHAMBER_OVERHEATING_TEMP"
+
+  - code: "XX261"
+    printers: [COREONE]
+    title: "Chamber Temperature Is Critical"
+    text: "Chmaber temperature critical. Aborting print to prevent printer damage."
+    id: "CHAMBER_CRITICAL_TEMP"
+
   # ELECTRICAL     xx3xx
 
   - code: "XX301"
