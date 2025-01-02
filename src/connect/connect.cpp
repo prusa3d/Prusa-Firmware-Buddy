@@ -288,7 +288,7 @@ namespace {
         bool started = false;
         CommResult flush(const uint8_t *buffer, size_t size, bool) {
             const char *fmt = started ? "Msg from server: %.*s" : "Msg from server (cont): %.*s";
-            log_debug(connect, fmt, static_cast<int>(size), reinterpret_cast<const char *>(buffer));
+            log_info(connect, fmt, static_cast<int>(size), reinterpret_cast<const char *>(buffer));
             started = true;
             return monostate {};
         }
