@@ -1166,6 +1166,12 @@ bool Planner::transfer_chunk(const Download::InlineChunk &chunk) {
     }
 }
 
+void Planner::transfer_checkpoint() {
+    if (transfer.has_value()) {
+        transfer->update_backup(true);
+    }
+}
+
 void Planner::transfer_reset() {
     if (transfer.has_value()) {
         transfer->recoverable_failure(printer.is_printing());

@@ -266,6 +266,7 @@ public:
     void transfer_cleanup_finished(bool success);
 
     bool transfer_chunk(const transfers::Download::InlineChunk &chunk);
+    void transfer_checkpoint();
     void transfer_reset();
 
     // ID of a command being executed in the background, if any.

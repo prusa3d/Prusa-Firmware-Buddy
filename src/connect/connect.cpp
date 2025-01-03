@@ -318,6 +318,12 @@ namespace {
                 return monostate {};
             }
 
+            // Try to update backup file before going into a command, to make
+            // sure we see as much data as possible there. For the command to
+            // see and also for the case if the command / sending of the
+            // response takes a long time.
+            planner->transfer_checkpoint();
+
             auto command = parser(id, buffer, size, move(this->buffer));
             planner->command(command);
             return monostate {};

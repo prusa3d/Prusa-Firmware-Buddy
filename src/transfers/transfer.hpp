@@ -289,10 +289,6 @@ private:
     /// This creates it if needed.
     void init_download_order_if_needed();
 
-    /// Updates the backup file if needed
-    /// Can be forced (in case we want to make sure we backup the current state).
-    void update_backup(bool force = false);
-
     /// Enqueue a notification about the file being successfuly created.
     void notify_created();
 
@@ -360,6 +356,10 @@ public:
 
     /// Counts retries and either aborts or schedules a next attempt.
     void recoverable_failure(bool is_printing);
+
+    /// Updates the backup file if needed
+    /// Can be forced (in case we want to make sure we backup the current state).
+    void update_backup(bool force = false);
 };
 
 } // namespace transfers
