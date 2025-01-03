@@ -32,18 +32,9 @@
 
 using namespace selftest;
 
-#define Z_AXIS_DO_NOT_TEST_MOVE_DOWN
-#define HOMING_TIME 15000 // ~15s when X and Y axes are at opposite side to home position
 static constexpr auto maxFeedrates = std::to_array<feedRate_t>(DEFAULT_MAX_FEEDRATE);
-
 static constexpr auto XYfr_table = std::to_array<float>({ HOMING_FEEDRATE_XY / 60 });
-static constexpr auto Zfr_table_fw = std::to_array<float>({ maxFeedrates[Z_AXIS] }); // up
-static constexpr auto Zfr_table_bw = std::to_array<float>({ HOMING_FEEDRATE_Z / 60 });
-#ifdef Z_AXIS_DO_NOT_TEST_MOVE_DOWN
-static constexpr size_t z_fr_tables_size = Zfr_table_fw.size();
-#else
-static constexpr size_t z_fr_tables_size = Zfr_table_fw.size() + Zfr_table_bw.size();
-#endif
+static constexpr auto Zfr_table = std::to_array<float>({ HOMING_FEEDRATE_Z / 60 });
 
 // reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = {
@@ -77,12 +68,12 @@ const AxisConfig_t selftest::Config_YAxis = {
 static const AxisConfig_t Config_ZAxis = {
     .partname = "Z-Axis",
     .length = get_z_max_pos_mm(),
-    .fr_table_fw = Zfr_table_fw.data(),
-    .fr_table_bw = Zfr_table_bw.data(),
+    .fr_table_fw = Zfr_table.data(),
+    .fr_table_bw = Zfr_table.data(),
     .length_min = get_z_max_pos_mm() - 5,
     .length_max = get_z_max_pos_mm() + 6,
     .axis = Z_AXIS,
-    .steps = z_fr_tables_size,
+    .steps = Zfr_table.size(),
     .movement_dir = 1,
     .park = false,
     .park_pos = 0,
