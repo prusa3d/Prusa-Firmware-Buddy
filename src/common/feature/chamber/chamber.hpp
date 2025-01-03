@@ -30,6 +30,8 @@ public: // Common/utilities
         /// In that situation, the temperature control widgets will be visible, but disabled
         bool always_show_temperature_control = false;
 
+        std::optional<Temperature> max_temp = std::nullopt;
+
         inline bool temperature_control() const {
             return heating || cooling;
         }
@@ -73,6 +75,8 @@ private:
 
     std::optional<Temperature> current_temperature_;
     std::optional<Temperature> target_temperature_;
+
+    Capabilities capabilities_nolock(Backend backend) const;
 };
 
 Chamber &chamber();

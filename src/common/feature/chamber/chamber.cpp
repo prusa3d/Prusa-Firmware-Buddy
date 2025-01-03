@@ -4,6 +4,7 @@
 
 #include <marlin_server_shared.h>
 #include <option/has_xbuddy_extension.h>
+#include <buddy/unreachable.hpp>
 
 #if XL_ENCLOSURE_SUPPORT()
     #include <hw/xl/xl_enclosure.hpp>
@@ -41,10 +42,8 @@ void Chamber::step() {
     }
 }
 
-Chamber::Capabilities Chamber::capabilities() const {
-    std::lock_guard _lg(mutex_);
-
-    switch (backend()) {
+Chamber::Capabilities Chamber::capabilities_nolock(Chamber::Backend backend) const {
+    switch (backend) {
 
 #if XL_ENCLOSURE_SUPPORT()
     case Backend::xl_enclosure:
@@ -59,18 +58,27 @@ Chamber::Capabilities Chamber::capabilities() const {
             .temperature_reporting = true,
 
             // The chamber can effectively control temperature only if the fans are in auto mode
-            .cooling = xbuddy_extension().has_fan1_fan2_auto_control(),
+                .cooling = xbuddy_extension().has_fan1_fan2_auto_control(),
 
             // But always show temperature control menu items, even if disabled
-            .always_show_temperature_control = true,
+                .always_show_temperature_control = true,
+
+    #if PRINTER_IS_PRUSA_COREONE()
+            .max_temp = 55,
+    #endif
         };
 #endif
 
     case Backend::none:
-        break;
+        return Capabilities {};
     }
+    BUDDY_UNREACHABLE();
+}
 
-    return Capabilities {};
+Chamber::Capabilities Chamber::capabilities() const {
+    std::lock_guard _lg(mutex_);
+
+    return capabilities_nolock(backend());
 }
 
 Chamber::Backend Chamber::backend() const {
@@ -102,6 +110,12 @@ std::optional<Temperature> Chamber::target_temperature() const {
 void Chamber::set_target_temperature(std::optional<Temperature> target) {
     std::lock_guard _lg(mutex_);
     target_temperature_ = target;
+
+    const auto max_temp = capabilities_nolock(backend()).max_temp;
+    if (max_temp.has_value() && target_temperature_.has_value()) {
+        target_temperature_ = std::min(*target_temperature_, *max_temp);
+    }
+
     METRIC_DEF(metric_chamber_ttemp, "chamber_ttemp", METRIC_VALUE_FLOAT, 1000, METRIC_DISABLED);
     if (target_temperature_.has_value()) {
         metric_record_float(&metric_chamber_ttemp, target_temperature_.value());
