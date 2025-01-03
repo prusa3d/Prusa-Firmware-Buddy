@@ -1475,7 +1475,7 @@
 
 // Homing speeds (mm/m)
 #define HOMING_FEEDRATE_XY (70 * 60)
-#define HOMING_FEEDRATE_Z (1400)
+#define HOMING_FEEDRATE_Z (19 * 60)
 #define HOMING_FEEDRATE_INVERTED_Z (30 * 60)
 
 // Validate that endstops are triggered on homing moves
