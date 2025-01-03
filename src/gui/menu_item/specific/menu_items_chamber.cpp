@@ -6,7 +6,7 @@
 
 using namespace buddy;
 
-constexpr NumericInputConfig chamber_temperature_config = {
+static NumericInputConfig chamber_temperature_config = {
     .max_value = 100,
     .special_value = 0,
     .unit = Unit::celsius,
@@ -22,6 +22,8 @@ MI_CHAMBER_TARGET_TEMP::MI_CHAMBER_TARGET_TEMP(const char *label)
         &img::enclosure_16x16 //
         ) //
 {
+    const auto max_temp = chamber().capabilities().max_temp;
+    chamber_temperature_config.max_value = max_temp.value_or(chamber_temperature_config.max_value);
 }
 
 void MI_CHAMBER_TARGET_TEMP::OnClick() {
@@ -35,7 +37,7 @@ void MI_CHAMBER_TARGET_TEMP::Loop() {
 
     const auto caps = chamber().capabilities();
     const bool temp_ctrl = caps.temperature_control();
-    const auto new_val = (temp_ctrl ? chamber().target_temperature() : std::nullopt).value_or(*chamber_temperature_config.special_value);
+    const auto new_val = (temp_ctrl ? chamber().target_temperature() : std::nullopt).value_or(*config().special_value);
 
     set_is_hidden(!caps.always_show_temperature_control && !temp_ctrl);
     set_enabled(temp_ctrl);
