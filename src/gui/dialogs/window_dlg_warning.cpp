@@ -40,12 +40,11 @@ static constexpr Rect16 qr_rect = {
     qr_size,
 };
 
-static constexpr Rect16 text_rect = {
+static constexpr Rect16 text_rect = Rect16::fromLTRB(
     padding,
     padding + top_row_height + padding,
-    screen_rect.Width() - padding * 2,
-    screen_rect.Height() - (padding + top_row_height + padding),
-};
+    screen_rect.Width() - padding,
+    GuiDefaults::GetButtonRect(screen_rect).Top());
 
 const img::Resource *warning_dialog_icon(WarningType warning_type) {
     static constexpr EnumArray<WarningType, const img::Resource *, static_cast<int>(WarningType::_last) + 1> data {
