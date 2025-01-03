@@ -159,7 +159,11 @@ inline constexpr Record default_items = { { Item::speed,
 inline constexpr Record default_items = { { Item::nozzle,
     Item::bed,
     Item::filament,
+    #if PRINTER_IS_PRUSA_COREONE()
+    Item::chamber_temp,
+    #else
     Item::none,
+    #endif // PRINTER_IS_PRUSA_COREONE()
     Item::none } };
 #endif // FOOTER_LINES__ == 1 && FOOTER_ITEMS_PER_LINE__ == 5
 
