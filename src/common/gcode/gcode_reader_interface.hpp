@@ -131,6 +131,11 @@ public:
      */
     virtual void update_validity(const char *filename) = 0;
 
+    /**
+     * Is the file valid in full - completely downloaded?
+     */
+    virtual bool fully_valid() const = 0;
+
     /// Returns whether the reader is in an (unrecoverable) error state
     virtual bool has_error() const = 0;
 
@@ -160,6 +165,10 @@ protected:
 public:
     void set_validity(std::optional<transfers::PartialFile::State> validity) {
         this->validity = validity;
+    }
+
+    bool fully_valid() const override {
+        return !validity.has_value() || validity->fully_valid();
     }
 
     Result_t stream_getc(char &out) override {
