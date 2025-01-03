@@ -218,6 +218,7 @@ public:
     //
 
     static constexpr uint32_t BackupUpdateIntervalMs = 10000;
+    static constexpr size_t BackupUpdateIntervalBytes = 1024 * 256;
 
 private:
     /// Slot of the transfer
@@ -242,13 +243,11 @@ private:
     /// Prevents from going to "orange" error when it's just seeking.
     bool restart_requested_by_jump = false;
 
-    /// Force an update at reaching some initial size.
-    ///
-    /// In an effort to speed up print start / preview. The size is just a guess.
-    bool initial_part_done = false;
-
     /// Timestamp of the last time the backup file was updated (used to throttle the updates)
     std::optional<uint32_t> last_backup_update_ms;
+
+    /// Number of downloaded bytes on last update (similar as above).
+    size_t last_backup_update_bytes = 0;
 
     /// Allow at most this many retries for network errors.
     size_t retries_left = MAX_RETRIES;
