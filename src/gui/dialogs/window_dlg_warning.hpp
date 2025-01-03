@@ -15,9 +15,8 @@ class DialogWarning : public IDialogMarlin {
     window_text_t text;
     RadioButtonFSM button;
 
-    DialogWarning(PhasesWarning, WarningType);
-    DialogWarning(PhasesWarning, WarningType, const ErrDesc &);
-
 public:
     DialogWarning(fsm::BaseData);
+
+    void Change(fsm::BaseData data) override;
 };

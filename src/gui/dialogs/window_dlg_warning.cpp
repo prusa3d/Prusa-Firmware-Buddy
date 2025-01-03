@@ -110,27 +110,27 @@ const img::Resource *warning_dialog_icon(WarningType warning_type) {
     return data[warning_type];
 }
 
-static ErrDesc warning_type_to_error_desc(WarningType warning_type) {
-    return find_error(printer_state::warning_type_to_error_code(warning_type));
-}
-
 DialogWarning::DialogWarning(fsm::BaseData data)
-    : DialogWarning {
-        GetEnumFromPhaseIndex<PhasesWarning>(data.GetPhase()),
-        static_cast<WarningType>(*data.GetData().data())
-    } {
-}
-
-DialogWarning::DialogWarning(PhasesWarning phase, WarningType warning_type)
-    : DialogWarning { phase, warning_type, warning_type_to_error_desc(warning_type) } {
-}
-
-DialogWarning::DialogWarning(PhasesWarning data, WarningType warning_type, const ErrDesc &error_desc)
     : IDialogMarlin(screen_rect)
-    , icon(this, icon_rect, warning_dialog_icon(warning_type))
+    , icon(this, icon_rect, nullptr)
     , phone(this, phone_rect, phone_resource)
-    , qr(this, qr_rect, error_desc.err_code)
-    , text(this, text_rect, is_multiline::yes, is_closed_on_click_t::yes, _(error_desc.err_text))
-    , button(this, GuiDefaults::GetButtonRect(screen_rect), data) {
+    , qr(this, qr_rect, ErrCode::ERR_UNDEF)
+    , text(this, text_rect, is_multiline::yes, is_closed_on_click_t::yes, {})
+    , button(this, GuiDefaults::GetButtonRect(screen_rect), PhasesWarning::_last) {
     CaptureNormalWindow(button);
+    Change(data);
+}
+
+void DialogWarning::Change(fsm::BaseData data) {
+    const auto phase = GetEnumFromPhaseIndex<PhasesWarning>(data.GetPhase());
+    const auto warning_type = static_cast<WarningType>(*data.GetData().data());
+    const auto err_desc = find_error(printer_state::warning_type_to_error_code(warning_type));
+
+    icon.SetRes(warning_dialog_icon(warning_type));
+    qr.set_error_code(err_desc.err_code);
+    text.SetText(_(err_desc.err_text));
+    button.set_fsm_and_phase(phase);
+
+    // Reset selection to default on phase change
+    button.SetBtnIndex(0);
 }
