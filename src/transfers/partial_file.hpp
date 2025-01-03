@@ -85,6 +85,10 @@ public:
             return bytes_head + bytes_tail - bytes_overlap;
         }
 
+        bool fully_valid() const {
+            return get_valid_size() == total_size;
+        }
+
         size_t get_percent_valid() const {
             // Needs to be calculated in float because (100 * size) overflows size_t
             return total_size ? static_cast<float>(get_valid_size()) * 100.0f / total_size : 0;

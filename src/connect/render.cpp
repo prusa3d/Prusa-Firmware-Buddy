@@ -1057,7 +1057,19 @@ RenderState::RenderState(const Printer &printer, const Action &action, optional<
 
             if (auto reader = std::make_unique<AnyGcodeFormatReader>(path); reader->is_open()) {
                 // AnyGcodeFormatReader also handles partial files - so if this is actualy directory with partial file, it will be handled here
-                file_extra = FileExtra(std::move(reader));
+                if ((*reader)->fully_valid()) {
+                    file_extra = FileExtra(std::move(reader));
+                } else {
+                    // Avoid trying to send metadata/previews from partially transfered files, because:
+                    // * We are not sure this'll succeed, maybe we don't have
+                    //   enough downloaded. In that case we would abort sending
+                    //   the data, kill the connection and do other ugly things.
+                    // * Sending the data is very expensive and competes for
+                    //   resources with the download. By postponing the send of
+                    //   the data _after_ it was fully downloaded (which we
+                    //   trigger on our own), we try to avoid some of it.
+                    file_extra = FileExtra();
+                }
             } else if (unique_dir_ptr d(opendir(path)); d.get() != nullptr) {
                 file_extra = FileExtra(path, std::move(d));
             } else if (unique_file_ptr f(fopen(path, "r")); f != nullptr) {

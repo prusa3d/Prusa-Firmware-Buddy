@@ -37,6 +37,9 @@ class ClosedReader final : public IGcodeReader {
     }
     void update_validity(const char *) override {
     }
+    bool fully_valid() const override {
+        return false;
+    }
     bool has_error() const override {
         return true;
     }
