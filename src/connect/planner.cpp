@@ -1159,7 +1159,10 @@ bool Planner::transfer_chunk(const Download::InlineChunk &chunk) {
     if (transfer.has_value() && transfer->download.has_value()) {
         return transfer->download->inline_chunk(chunk);
     } else {
-        return false;
+        // If we have no transfer, it is probably just a stray chunk from
+        // before aborting. Blackhole it silently, but don't kill the
+        // connection.
+        return true;
     }
 }
 
