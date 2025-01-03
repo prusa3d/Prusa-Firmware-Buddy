@@ -381,7 +381,7 @@ static constexpr bool is_notice(PhasesLoadUnload phase) {
     return is_notice_mmu(phase) || is_notice_fstuck(phase);
 }
 
-bool DialogLoadUnload::Change(fsm::BaseData base_data) {
+void DialogLoadUnload::Change(fsm::BaseData base_data) {
     PhasesLoadUnload phase = GetEnumFromPhaseIndex<PhasesLoadUnload>(base_data.GetPhase());
     fsm::PhaseData data = base_data.GetData();
     LoadUnloadMode new_mode = ProgressSerializerLoadUnload(data).mode;
@@ -428,7 +428,7 @@ bool DialogLoadUnload::Change(fsm::BaseData base_data) {
     #endif
         current_phase = phase;
 
-        return true;
+        return;
     }
 
     // was notice (or uninitialized), is normal
@@ -446,7 +446,6 @@ bool DialogLoadUnload::Change(fsm::BaseData base_data) {
     }
 
     set_progress_percent(deserialize_progress(data));
-    return true;
 }
 
 void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, ErrType type) {

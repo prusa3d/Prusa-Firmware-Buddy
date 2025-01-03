@@ -56,7 +56,7 @@ private:
     void set_progress_percent(uint8_t val);
 
 public:
-    bool Change(fsm::BaseData data) override final;
+    void Change(fsm::BaseData data) override final;
 
     static constexpr uint8_t MaxErrorCodeDigits = 10;
 

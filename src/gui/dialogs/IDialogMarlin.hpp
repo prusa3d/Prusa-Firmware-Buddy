@@ -12,5 +12,5 @@ public:
     IDialogMarlin(Rect16 rect)
         : IDialog(rect) {}
 
-    virtual bool Change(fsm::BaseData) { return true; }
+    virtual void Change(fsm::BaseData) {}
 };
