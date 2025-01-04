@@ -1356,10 +1356,17 @@
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
     #define FILAMENT_UNLOAD_RAMMING_SEQUENCE \
         { \
-            { 20, 1500 }, \
-            { -50, 2700 }, \
-            { -5, 50 }, \
-            { -50, 1500 }, \
+            { 8, 995 }, \
+            { -43, 6000 }, \
+            { -8, 3000 }, \
+            { -4, 1800 }, \
+            { 20, 600 }, \
+            { -20, 470 }, \
+            { 55, 1740 }, \
+            { -55, 6000 }, \
+            { 20, 340 }, \
+            { -20, 210 }, \
+            { -50, 2000 }, \
         }
     #define FILAMENT_RUNOUT_RAMMING_SEQUENCE \
         { \
