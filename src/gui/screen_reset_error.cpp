@@ -10,8 +10,8 @@
 
 ScreenResetError::ScreenResetError(const Rect16 &fw_version_rect)
     : screen_t()
-    , fw_version_txt(this, fw_version_rect, is_multiline::no)
-    , sound_started(false) {
+    , sound_started(false)
+    , fw_version_txt(this, fw_version_rect, is_multiline::no) {
 
     ClrMenuTimeoutClose();
     ClrOnSerialClose();
@@ -22,9 +22,9 @@ ScreenResetError::ScreenResetError(const Rect16 &fw_version_rect)
     fw_version_txt.SetAlignment(GuiDefaults::EnableDialogBigLayout ? Align_t::LeftTop() : Align_t::CenterTop());
 
     /// (fw version full string) [fw signed][appendix]
-    const char *signed_str = signature_exist() ? "[S]" : "";
-    const char *apendix_str = appendix_exist() ? "[A]" : "";
-    StringBuilder(fw_version_str).append_printf("%s %s %s%s", version::project_version_full, PrinterModelInfo::current().id_str, signed_str, apendix_str);
+    const char *signed_str = signature_exist() ? " [S]" : "";
+    const char *apendix_str = appendix_exist() ? " [A]" : "";
+    StringBuilder(fw_version_str).append_printf("%s %s%s%s", PrinterModelInfo::current().id_str, version::project_version_full, signed_str, apendix_str);
     fw_version_txt.SetText(string_view_utf8::MakeRAM(fw_version_str.data()));
 }
 
