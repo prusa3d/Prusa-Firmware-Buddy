@@ -502,8 +502,10 @@ void fsm_create(FSMAndPhase fsm_and_phase, fsm::PhaseData data) {
 }
 
 void fsm_destroy(ClientFSM type) {
-    fsm_states[type] = std::nullopt;
-    commit_fsm_states();
+    if (fsm_states[type].has_value()) {
+        fsm_states[type] = std::nullopt;
+        commit_fsm_states();
+    }
 }
 
 void fsm_change(FSMAndPhase fsm_and_phase, fsm::PhaseData data) {
