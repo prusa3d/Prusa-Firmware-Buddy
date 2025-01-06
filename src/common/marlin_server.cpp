@@ -3328,26 +3328,40 @@ static void _server_set_var(const Request &request) {
     bsod("unimplemented _server_set_var for var_id %i", (int)variable_identifier);
 }
 
-void set_warning(WarningType type) {
-    log_warning(MarlinServer, "Warning type %d set", (int)type);
-    log_info(MarlinServer, "WARNING: %" PRIu32, ftrstd::to_underlying(type));
+static std::bitset<static_cast<size_t>(WarningType::_last) + 1> warning_flags;
 
-    // We are just creating it here, it is then handled in handle_warning in cycle function
-    fsm::PhaseData data;
-    memcpy(data.data(), &type, sizeof(data));
-    // We don't want to overlay two warnings and the new one is likely more important.
-    clear_warnings();
-    fsm_create(warning_type_phase(type), data);
-}
+static void update_warning_fsm() {
+    if (warning_flags.any()) {
+        size_t i = 0;
+        for (; !warning_flags.test(i); i++)
+            ;
+        const WarningType type = static_cast<WarningType>(i);
 
-void clear_warning(WarningType type) {
-    if (is_warning_active(type)) {
+        fsm::PhaseData data;
+        memcpy(data.data(), &type, sizeof(data));
+
+        fsm_create(warning_type_phase(type), data);
+
+    } else {
         fsm_destroy(ClientFSM::Warning);
     }
 }
 
+void set_warning(WarningType type) {
+    log_warning(MarlinServer, "Warning type %d set", (int)type);
+    log_info(MarlinServer, "WARNING: %" PRIu32, ftrstd::to_underlying(type));
+
+    warning_flags.set(std::to_underlying(type));
+    update_warning_fsm();
+}
+
+void clear_warning(WarningType type) {
+    warning_flags.reset(std::to_underlying(type));
+    update_warning_fsm();
+}
+
 bool is_warning_active(WarningType type) {
-    return fsm_states.is_active(ClientFSM::Warning) && type == std::bit_cast<WarningType>(fsm_states[ClientFSM::Warning]->GetData());
+    return warning_flags.test(std::to_underlying(type));
 }
 
 /*****************************************************************************/
