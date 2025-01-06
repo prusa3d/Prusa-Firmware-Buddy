@@ -37,6 +37,16 @@
  */
 #define CONFIGURATION_ADV_H_VERSION 020000
 
+/**
+ * Cancel Objects
+ *
+ * Implement M486 to allow Marlin to skip objects
+ */
+#define CANCEL_OBJECTS
+#ifdef CANCEL_OBJECTS
+  #define CANCEL_OBJECTS_REPORTING // Emit the current object as a status message
+#endif
+
 // @section temperature
 
 //===========================================================================
