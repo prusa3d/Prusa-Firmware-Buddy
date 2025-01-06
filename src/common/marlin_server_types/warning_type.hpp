@@ -58,3 +58,5 @@ enum class WarningType : uint32_t {
     AccelerometerCommunicationFailed,
     _last = AccelerometerCommunicationFailed,
 };
+
+PhasesWarning warning_type_phase(WarningType warning);

@@ -161,14 +161,9 @@ void PrusaGcodeSuite::M334() {
 }
 
 bool PrusaGcodeSuite::metrics_config_change_prompt() {
-    marlin_server::set_warning(WarningType::MetricsConfigChangePrompt, PhasesWarning::MetricsConfigChangePrompt);
-
-    Response r;
-    while ((r = marlin_server::get_response_from_phase(PhasesWarning::MetricsConfigChangePrompt)) == Response::_none) {
-        idle(true);
-    }
-
-    marlin_server::fsm_destroy(ClientFSM::Warning);
+    marlin_server::set_warning(WarningType::MetricsConfigChangePrompt);
+    Response r = marlin_server::wait_for_response(warning_type_phase(WarningType::MetricsConfigChangePrompt));
+    marlin_server::clear_warning(WarningType::MetricsConfigChangePrompt);
     return r == Response::Yes;
 }
 

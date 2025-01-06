@@ -1,3 +1,4 @@
+
 #include <marlin_stubs/PrusaGcodeSuite.hpp>
 #include <marlin_stubs/skippable_gcode.hpp>
 
@@ -109,10 +110,10 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
 
         // Show a heat failure warning if we're waiting for too long
         if (ticks_diff(now, warning_timeout_start) >= warning_timeout_ms && !marlin_server::is_warning_active(WarningType::FailedToReachChamberTemperature)) {
-            marlin_server::set_warning(WarningType::FailedToReachChamberTemperature, PhasesWarning::FailedToReachChamberTemperature);
+            marlin_server::set_warning(WarningType::FailedToReachChamberTemperature);
         }
 
-        switch (marlin_server::get_response_from_phase(PhasesWarning::FailedToReachChamberTemperature)) {
+        switch (marlin_server::get_response_from_phase(warning_type_phase(WarningType::FailedToReachChamberTemperature))) {
 
         case Response::Ok:
             marlin_server::clear_warning(WarningType::FailedToReachChamberTemperature);

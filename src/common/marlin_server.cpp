@@ -743,7 +743,7 @@ static void cycle() {
 
     // Filter expiration, expiration warning, 5 day postponed reminder
     if (notif.has_value()) {
-        set_warning(*notif, *notif == WarningType::EnclosureFilterExpiration ? PhasesWarning::EnclosureFilterExpiration : PhasesWarning::Warning); // Notify the GUI about the warning
+        set_warning(*notif); // Notify the GUI about the warning
     }
 
 #endif
@@ -3326,7 +3326,7 @@ static void _server_set_var(const Request &request) {
     bsod("unimplemented _server_set_var for var_id %i", (int)variable_identifier);
 }
 
-void set_warning(WarningType type, PhasesWarning phase) {
+void set_warning(WarningType type) {
     log_warning(MarlinServer, "Warning type %d set", (int)type);
     log_info(MarlinServer, "WARNING: %" PRIu32, ftrstd::to_underlying(type));
 
@@ -3335,7 +3335,7 @@ void set_warning(WarningType type, PhasesWarning phase) {
     memcpy(data.data(), &type, sizeof(data));
     // We don't want to overlay two warnings and the new one is likely more important.
     clear_warnings();
-    fsm_create(phase, data);
+    fsm_create(warning_type_phase(type), data);
 }
 
 void clear_warning(WarningType type) {
@@ -3487,7 +3487,7 @@ void onUserConfirmRequired(const char *const msg) {
 }
 
 #if HAS_BED_PROBE || HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
-static void mbl_error(WarningType warning, PhasesWarning phase) {
+static void mbl_error(WarningType warning) {
     if (server.print_state != State::Printing && server.print_state != State::Pausing_Begin) {
         return;
     }
@@ -3496,7 +3496,7 @@ static void mbl_error(WarningType warning, PhasesWarning phase) {
     /// pause immediatelly to save current file position
     pause_print(Pause_Type::Repeat_Last_Code);
     server.mbl_failed = true;
-    set_warning(warning, phase);
+    set_warning(warning);
 }
 #endif
 
@@ -3522,13 +3522,13 @@ void onStatusChanged(const char *const msg) {
 /// FIXME: Message through Marlin's UI could be delayed and we won't pause print at the MBL command
 #if HAS_BED_PROBE
             if (strcmp(msg, MSG_ERR_PROBING_FAILED) == 0) {
-                mbl_error(WarningType::ProbingFailed, PhasesWarning::ProbingFailed);
+                mbl_error(WarningType::ProbingFailed);
                 pending_err_msg = true;
             }
 #endif
 #if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
             if (strcmp(msg, MSG_ERR_NOZZLE_CLEANING_FAILED) == 0) {
-                mbl_error(WarningType::NozzleCleaningFailed, PhasesWarning::NozzleCleaningFailed);
+                mbl_error(WarningType::NozzleCleaningFailed);
                 pending_err_msg = true;
             }
 #endif

@@ -776,8 +776,7 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
                 if(++attempt == 3) {
                   // Report missing bed sheet
                   static constexpr auto warning_type = WarningType::SteelSheetNotDetected;
-                  static constexpr auto warning_phase = PhasesWarning::SteelSheetNotDetected;
-                  marlin_server::set_warning(warning_type, warning_phase);
+                  marlin_server::set_warning(warning_type);
 
                   // Move the bed to the bottom to give space for the user to insert the sheet
                   // Do this asynchronously so that we can process the response while moving
@@ -785,7 +784,7 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
                   line_to_current_position(homing_feedrate(Z_AXIS));
 
                   // Continue after the user puts the print sheet on
-                  const Response response = marlin_server::wait_for_response(warning_phase);
+                  const Response response = marlin_server::wait_for_response(warning_type_phase(warning_type));
 
                   marlin_server::clear_warning(warning_type);
 

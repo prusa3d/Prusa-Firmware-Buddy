@@ -709,7 +709,7 @@ std::optional<VibrateMeasureResult> vibrate_measure_repeat(const VibrateMeasureP
     }
 
     SERIAL_ERROR_MSG("vibrate_measure_repeat: maximum attempts exhausted");
-    marlin_server::set_warning(WarningType::AccelerometerCommunicationFailed, PhasesWarning::Warning);
+    marlin_server::set_warning(WarningType::AccelerometerCommunicationFailed);
     return std::nullopt;
 }
 
