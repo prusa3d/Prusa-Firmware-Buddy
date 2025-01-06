@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IDialogMarlin.hpp"
-#include "client_response.hpp"
+#include <warning_type.hpp>
 #include "window_icon.hpp"
 #include "window_text.hpp"
 #include "radio_button_fsm.hpp"

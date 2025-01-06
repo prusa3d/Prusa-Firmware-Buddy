@@ -13,6 +13,7 @@
 #include "marlin_server_shared.h"
 #include "client_fsm_types.h"
 #include <general_response.hpp>
+#include <warning_type.hpp>
 
 /*
  *  Timers    - description                                - measuring time during

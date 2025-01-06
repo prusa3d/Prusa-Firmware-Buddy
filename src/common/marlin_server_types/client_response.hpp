@@ -8,12 +8,14 @@
 
 #pragma once
 
-#include "client_fsm_types.h"
-#include "general_response.hpp"
 #include <cstdint>
 #include <cstddef>
 #include <array>
 #include <span>
+#include <utility>
+
+#include "client_fsm_types.h"
+#include "general_response.hpp"
 #include "printers.h"
 #include <option/filament_sensor.h>
 #include <option/has_attachable_accelerometer.h>

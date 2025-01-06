@@ -1,6 +1,7 @@
 #include "marlin_server_state.h"
 #include "client_fsm_types.h"
 #include "client_response.hpp"
+#include <warning_type.hpp>
 #include <option/has_selftest.h>
 #if HAS_SELFTEST()
     #include "selftest_types.hpp"

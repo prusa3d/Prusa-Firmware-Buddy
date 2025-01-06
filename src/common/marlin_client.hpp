@@ -3,6 +3,7 @@
 #include "marlin_events.h"
 #include "marlin_server_types/client_fsm_types.h"
 #include "encoded_fsm_response.hpp"
+#include <warning_type.hpp>
 #include "marlin_vars.hpp"
 #include "client_response.hpp"
 #include <option/has_selftest.h>
