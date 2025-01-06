@@ -182,8 +182,8 @@
  * M226 - Wait until a pin is in a given state: "M226 P<pin> S<state>"
  * M240 - Trigger a camera to take a photograph. (Requires PHOTO_GCODE)
  * M250 - Set LCD contrast: "M250 C<contrast>" (0-63). (Requires LCD support)
- * M260 - i2c Send Data (Requires EXPERIMENTAL_I2CBUS)
- * M261 - i2c Request Data (Requires EXPERIMENTAL_I2CBUS)
+ * M260 - i2c Send Data
+ * M261 - i2c Request Data
  * M280 - Set servo position absolute: "M280 P<index> S<angle|µs>". (Requires servos)
  * M281 - Set servo min|max position: "M281 P<index> L<min> U<max>". (Requires EDITABLE_SERVO_ANGLES)
  * M290 - Babystepping (Requires BABYSTEPPING)
@@ -293,6 +293,7 @@
 
 #include "../inc/MarlinConfig.h"
 #include "parser.h"
+#include <option/has_i2c_expander.h>
 #include <option/has_local_accelerometer.h>
 #include <option/has_remote_accelerometer.h>
 
@@ -804,7 +805,7 @@ private:
     static void M250();
   #endif
 
-  #if ENABLED(EXPERIMENTAL_I2CBUS)
+  #if HAS_I2C_EXPANDER()
     static void M260();
     static void M261();
   #endif

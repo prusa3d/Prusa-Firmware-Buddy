@@ -1810,17 +1810,6 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 #endif
 
 /**
- * I2C bus
- */
-#if ENABLED(EXPERIMENTAL_I2CBUS) && I2C_SLAVE_ADDRESS > 0
-  #if I2C_SLAVE_ADDRESS < 8
-    #error "I2C_SLAVE_ADDRESS can't be less than 8. (Addresses 0 - 7 are reserved.)"
-  #elif I2C_SLAVE_ADDRESS > 127
-    #error "I2C_SLAVE_ADDRESS can't be over 127. (Only 7 bits allowed.)"
-  #endif
-#endif
-
-/**
  * G38 Probe Target
  */
 #if ENABLED(G38_PROBE_TARGET)

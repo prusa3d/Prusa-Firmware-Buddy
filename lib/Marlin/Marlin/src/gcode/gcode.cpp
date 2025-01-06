@@ -66,6 +66,7 @@ GcodeSuite gcode;
   #include "module/prusa/tool_mapper.hpp"
 #endif
 
+#include <option/has_i2c_expander.h>
 #include <option/has_local_accelerometer.h>
 #include <option/has_remote_accelerometer.h>
 
@@ -698,7 +699,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 250: M250(); break;                                  // M250: Set LCD contrast
       #endif
 
-      #if ENABLED(EXPERIMENTAL_I2CBUS)
+      #if HAS_I2C_EXPANDER()
         case 260: M260(); break;                                  // M260: Send data to an i2c slave
         case 261: M261(); break;                                  // M261: Request data from an i2c slave
       #endif

@@ -22,12 +22,13 @@
 
 #include "../inc/MarlinConfig.h"
 
-#if ENABLED(EXPERIMENTAL_I2CBUS)
+#include <option/has_i2c_expander.h>
+
+#if HAS_I2C_EXPANDER()
 
 #include "twibus.h"
 #include "hwio_pindef.h"
 #include "i2c.hpp"
-#include <option/has_i2c_expander.h>
 
 static constexpr uint16_t i2c_timeout_ms = 100;
 
@@ -120,12 +121,10 @@ void TWIBus::addstring(char str[]) {
 void TWIBus::send() {
   debug(F("send"), addr);
   
-  #if HAS_I2C_EXPANDER()
   if (addr == buddy::hw::io_expander2.fixed_addr) [[unlikely]] {
     // Only full byte can be written here
     buddy::hw::io_expander2.write(buffer[0]);
   } else [[likely]] 
-  #endif // HAS_I2C_EXPANDER()
   {
     i2c::Result ret = i2c::Transmit(I2C_HANDLE_FOR(gcode), addr << 1, buffer, buffer_s, i2c_timeout_ms);
     check_hal_response(ret);
@@ -211,7 +210,6 @@ bool TWIBus::request(const uint8_t bytes) {
 
   flush();
 
-#if HAS_I2C_EXPANDER()  
   if (addr == buddy::hw::io_expander2.fixed_addr) [[unlikely]] {
     const auto byte = buddy::hw::io_expander2.read();
     if (!byte.has_value()) {
@@ -224,7 +222,6 @@ bool TWIBus::request(const uint8_t bytes) {
       read_buffer[i] = 0;
     }
   } else [[likely]]
-#endif // HAS_I2C_EXPANDER()
   {
     i2c::Result ret = i2c::Receive(I2C_HANDLE_FOR(gcode), addr << 1 | 0x1, read_buffer, bytes, i2c_timeout_ms);
 
@@ -278,4 +275,4 @@ void TWIBus::flush() {
 
 #endif
 
-#endif // EXPERIMENTAL_I2CBUS
+#endif

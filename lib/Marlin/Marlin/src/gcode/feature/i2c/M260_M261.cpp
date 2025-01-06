@@ -22,7 +22,9 @@
 
 #include "../../../inc/MarlinConfig.h"
 
-#if ENABLED(EXPERIMENTAL_I2CBUS)
+#include <option/has_i2c_expander.h>
+
+#if HAS_I2C_EXPANDER()
 
 #include "../../gcode.h"
 

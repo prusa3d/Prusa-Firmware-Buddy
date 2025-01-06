@@ -1118,11 +1118,6 @@ void setup() {
     I2CPEM.init();
   #endif
 
-  #if ENABLED(EXPERIMENTAL_I2CBUS) && I2C_SLAVE_ADDRESS > 0
-    i2c.onReceive(i2c_on_receive);
-    i2c.onRequest(i2c_on_request);
-  #endif
-
   #if DO_SWITCH_EXTRUDER
     move_extruder_servo(0);   // Initialize extruder servo
   #endif
