@@ -417,11 +417,6 @@ namespace {
 #endif
     }
 
-    void clear_warnings() {
-        if (fsm_states.is_active(ClientFSM::Warning)) {
-            fsm_destroy(ClientFSM::Warning);
-        }
-    }
     void handle_warnings() {
         const auto phase_opt = fsm_states[ClientFSM::Warning];
         if (!phase_opt.has_value()) {
@@ -1129,7 +1124,7 @@ void print_start(const char *filename, const GCodeReaderPosition &resume_pos, ma
     }
 
     // Clear warnings before print, like heaters disabled after 30 minutes.
-    clear_warnings();
+    clear_warning(WarningType::HeatersTimeout);
 
     switch (server.print_state) {
 
