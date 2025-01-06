@@ -306,6 +306,9 @@ void set_warning(WarningType type);
 void clear_warning(WarningType type);
 bool is_warning_active(WarningType type);
 
+/// Displays a warning and blockingly waits for the response
+Response prompt_warning(WarningType type);
+
 #if ENABLED(AXIS_MEASURE)
 // Sets length of X and Y axes for crash recovery
 void set_axes_length(xy_float_t xy);

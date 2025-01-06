@@ -3376,6 +3376,13 @@ bool is_warning_active(WarningType type) {
     return warning_flags.test(std::to_underlying(type));
 }
 
+Response prompt_warning(WarningType type) {
+    set_warning(type);
+    const Response r = wait_for_response(warning_type_phase(type));
+    clear_warning(type);
+    return r;
+}
+
 /*****************************************************************************/
 // FSM_notifier
 FSM_notifier::data FSM_notifier::s_data;

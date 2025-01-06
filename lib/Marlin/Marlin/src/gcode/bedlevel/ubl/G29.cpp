@@ -272,11 +272,7 @@ void GcodeSuite::G29() {
         ) {
             log_warning(Marlin, "Uneven bet detected: %f - %f", (double) ubl.g29_min_max_measured_z->first, (double)ubl.g29_min_max_measured_z->second);
 
-            marlin_server::set_warning(WarningType::BedUnevenAlignmentPrompt);
-            const Response response = marlin_server::wait_for_response(warning_type_phase(WarningType::BedUnevenAlignmentPrompt));
-            marlin_server::clear_warning(WarningType::BedUnevenAlignmentPrompt);
-
-            if (response == Response::Yes) {
+            if (marlin_server::prompt_warning(WarningType::BedUnevenAlignmentPrompt) == Response::Yes) {
                 // calib_Z does not have its own holder - we have to handle that
                 marlin_server::FSM_Holder _fsm(PhasesSelftest::CalibZ);
                 selftest::calib_Z(true);

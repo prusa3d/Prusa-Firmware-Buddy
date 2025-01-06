@@ -1,11 +1,11 @@
 #include <gcode/gcode.h>
 
 #include "M340.h"
-#include "M330.h"
 #include <logging/log_dest_syslog.hpp>
 #include <stdint.h>
 #include <config_store/store_instance.hpp>
 #include <metric_handlers.h>
+#include <marlin_server.hpp>
 
 /** \addtogroup G-Codes
  * @{
@@ -50,7 +50,7 @@ void PrusaGcodeSuite::M340() {
     }
 
     // Prompt the user if he wants to allow the metrics change
-    if (!metrics_config_change_prompt()) {
+    if (marlin_server::prompt_warning(WarningType::MetricsConfigChangePrompt) != Response::Yes) {
         return;
     }
 
