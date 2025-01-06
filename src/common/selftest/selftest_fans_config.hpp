@@ -19,7 +19,7 @@ constexpr FanRPMRange benevolent_fan_range = { .rpm_min = 10, .rpm_max = 10000 }
 constexpr FanRPMRange print_fan_range = { .rpm_min = 5300, .rpm_max = 7000 };
 constexpr FanRPMRange heatbreak_fan_range = { .rpm_min = 6500, .rpm_max = 8700 };
 #elif PRINTER_IS_PRUSA_MK4()
-constexpr FanRPMRange print_fan_range = { .rpm_min = 5300, .rpm_max = 6799 };
+constexpr FanRPMRange print_fan_range = { .rpm_min = 5130, .rpm_max = 6799 }; // MK4S (5700+-10%) & MK4 (5900+-10%) - union limits
 constexpr FanRPMRange heatbreak_fan_range = { .rpm_min = 6800, .rpm_max = 8700 };
 #elif PRINTER_IS_PRUSA_COREONE()
 constexpr FanRPMRange print_fan_range = { .rpm_min = 5130, .rpm_max = 6799 };
