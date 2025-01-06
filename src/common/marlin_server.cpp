@@ -429,57 +429,64 @@ namespace {
         }
 
         const auto phase = static_cast<PhasesWarning>(phase_opt->GetPhase());
-        const auto response = get_response_from_phase(phase);
-        if (response == Response::_none) {
-            return;
-        }
 
-        // Destroy the FSM in any case
-        fsm_destroy(ClientFSM::Warning);
+        const auto consume_response = [&]() {
+            const auto response = get_response_from_phase(phase);
+            if (response != Response::_none) {
+                const WarningType warning_type = static_cast<WarningType>(*phase_opt->GetData().data());
+                clear_warning(warning_type);
+            }
+
+            return response;
+        };
 
         switch (phase) {
 
         case PhasesWarning::Warning:
-            // Just destroying is enough
+            consume_response();
             break;
 
 #if XL_ENCLOSURE_SUPPORT()
         case PhasesWarning::EnclosureFilterExpiration:
-            xl_enclosure.setUpReminder(response);
+            if (auto r = consume_response(); r != Response::_none) {
+                xl_enclosure.setUpReminder(r);
+            }
             break;
 #endif
 
         case PhasesWarning::ProbingFailed:
-            if (response == Response::Yes) {
+            switch (consume_response()) {
+            case Response::Yes:
                 print_resume();
-            } else {
+                break;
+
+            case Response::No:
                 print_abort();
+                break;
+
+            default:
+                break;
             }
             break;
 
         case PhasesWarning::NozzleCleaningFailed:
-            if (response == Response::Retry) {
+            switch (consume_response()) {
+            case Response::Retry:
                 print_resume();
-            } else {
+                break;
+
+            case Response::No:
                 print_abort();
+                break;
+
+            default:
+                break;
             }
             break;
 
-        case PhasesWarning::MetricsConfigChangePrompt:
-#if HAS_CHAMBER_API()
-        case PhasesWarning::FailedToReachChamberTemperature:
-#endif
-#if HAS_UNEVEN_BED_PROMPT()
-        case PhasesWarning::BedUnevenAlignmentPrompt:
-#endif
-#if ENABLED(DETECT_PRINT_SHEET)
-        case PhasesWarning::SteelSheetNotDetected:
-#endif
-#if HAS_EMERGENCY_STOP()
-        case PhasesWarning::DoorOpen: // No buttons present
-#endif
-            // These errors should be within a gcode loop where handle_warnings is not called
-            std::terminate();
+        default:
+            // Most warnings are handled somewhere else and we shouldn't consume and process the responses
+            break;
         }
     }
 } // end anonymous namespace
