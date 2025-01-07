@@ -49,8 +49,8 @@ from_chars_light_result from_chars_light(const char *first, const char *last, fl
 
 /// A const char* that is guaranteed to have unlimited lifetime (thanks to the consteval constructor)
 struct ConstexprString {
-    consteval ConstexprString() = default;
-    consteval ConstexprString(const ConstexprString &) = default;
+    constexpr ConstexprString() = default;
+    constexpr ConstexprString(const ConstexprString &) = default;
     consteval ConstexprString(const char *str)
         : str_(str) {}
 
