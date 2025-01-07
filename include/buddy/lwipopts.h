@@ -41,16 +41,21 @@ extern "C" {
 #endif
 #define MEMP_NUM_SYS_TIMEOUT 9 + MDNS_EXTRA_TIMEOUTS
 
-#define TCP_MSS                1024
-#define TCP_WND                (8 * TCP_MSS)
-#define TCP_SND_BUF            (2 * TCP_MSS)
-#define LWIP_WND_SCALE         0
-#define TCP_RCV_SCALE          0
-#define PBUF_POOL_SIZE         10
-#define PBUF_POOL_SMALL_SIZE   12
-#define IP_REASS_MAX_PBUFS     15
-#define TCPIP_THREAD_STACKSIZE 1248
-#define TCPIP_MBOX_SIZE        PBUF_POOL_SIZE + PBUF_POOL_SMALL_SIZE
+#define TCP_MSS        1024
+#define TCP_WND        (8 * TCP_MSS)
+#define TCP_SND_BUF    (2 * TCP_MSS)
+#define LWIP_WND_SCALE 0
+#define TCP_RCV_SCALE  0
+// Note: We replaced the use of this pool by our own mechanism.
+#define PBUF_POOL_SIZE                 0
+#define LWIP_DISABLE_TCP_SANITY_CHECKS 1
+#define IP_REASS_MAX_PBUFS             15
+#define TCPIP_THREAD_STACKSIZE         1248
+// Before moving to our own allocator, we had 10 "big" pbufs and 12 "small"
+// ones and this summed up into this. Now we are a bit more flexible and under
+// some circumstances can produce more pbufs, so we add a little bit of
+// additional headroom.
+#define TCPIP_MBOX_SIZE 30
 
 #define DEFAULT_UDP_RECVMBOX_SIZE TCPIP_MBOX_SIZE
 #define DEFAULT_TCP_RECVMBOX_SIZE TCPIP_MBOX_SIZE
