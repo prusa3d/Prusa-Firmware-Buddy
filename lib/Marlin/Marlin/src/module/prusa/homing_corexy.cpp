@@ -877,8 +877,8 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     }
 
     // validate current origin
-    if (point_is_unstable(c_dist, calibrated_origin_xy)) {
-        COREXY_HOME_UNSTABLE = true;
+    bool home_unstable = point_is_unstable(c_dist, calibrated_origin_xy);
+    if (home_unstable) {
         SERIAL_ECHOLNPAIR("home point is unstable");
     }
 
@@ -900,9 +900,13 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
         SERIAL_ECHOLNPAIR("home validation point is invalid");
         return false;
     }
-    if (point_is_unstable(v_c_dist, calibrated_origin_xy)) {
-        COREXY_HOME_UNSTABLE = true;
+    bool v_home_unstable = point_is_unstable(v_c_dist, calibrated_origin_xy);
+    if (v_home_unstable) {
         SERIAL_ECHOLNPAIR("home validation point is unstable");
+    }
+    if (home_unstable && v_home_unstable) {
+        // mark home as unstable only if both points are
+        COREXY_HOME_UNSTABLE = true;
     }
 
     // move back to origin
