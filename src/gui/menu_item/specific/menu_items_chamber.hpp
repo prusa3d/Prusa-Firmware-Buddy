@@ -5,7 +5,7 @@
 
 class MI_CHAMBER_TARGET_TEMP : public WiSpin {
 public:
-    MI_CHAMBER_TARGET_TEMP(const char *label = N_("Chamber Temperature"));
+    MI_CHAMBER_TARGET_TEMP(const char *label = N_("Max Chamber Temperature"));
 
 protected:
     virtual void OnClick() override;
