@@ -90,7 +90,7 @@ public:
    * Aborts the current queue, if any.
    * Note: process_injected_command() will process them.
    */
-  static void inject_P(PGM_P const pgcode);
+  static void inject_P(ConstexprString pgcode);
 
   /**
    * Enqueue action to inject_queue, if inject_queue isn't already full

@@ -44,6 +44,8 @@
 
 #include "../../inc/MarlinConfig.h"
 
+#include <str_utils.hpp>
+
 namespace ExtUI {
 
   // The ExtUI implementation can store up to this many bytes
@@ -72,7 +74,7 @@ namespace ExtUI {
   bool isMachineHomed(); // Axis position most likely correct, steppers may have deactivated
   bool canMove(const axis_t);
   bool canMove(const extruder_t);
-  void injectCommands_P(PGM_P const);
+  void injectCommands_P(ConstexprString);
   bool commandsInQueue();
 
   bool isHeaterIdle(const heater_t);

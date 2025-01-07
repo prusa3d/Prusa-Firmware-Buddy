@@ -59,7 +59,7 @@ gcode_printf(const char *format, ...);
 void inject(InjectQueueRecord record);
 
 // inject gcode directly - thread-safe version
-inline void inject(const char *gcode) { inject(GCodeLiteral(gcode)); };
+inline void inject(ConstexprString gcode) { inject(GCodeLiteral(gcode)); };
 
 // returns current event status for evt_id
 int event(marlin_server::Event evt_id);

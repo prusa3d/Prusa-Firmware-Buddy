@@ -1,5 +1,7 @@
 #pragma once
+
 #include <variant>
+#include <str_utils.hpp>
 
 struct GCodeFilename {
     const char *name;
@@ -7,7 +9,7 @@ struct GCodeFilename {
 };
 
 struct GCodeLiteral {
-    const char *gcode;
+    ConstexprString gcode;
 };
 
 struct GCodeMacroButton {

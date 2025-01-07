@@ -881,7 +881,7 @@ namespace ExtUI {
 
   float getFeedrate_percent() { return feedrate_percentage; }
 
-  void injectCommands_P(PGM_P const gcode) {
+  void injectCommands_P(ConstexprString gcode) {
     queue.inject_P(gcode);
   }
 

@@ -229,7 +229,7 @@ bool GCodeQueue::process_injected_command() {
  * G-Codes are enqueued only if inject_queue is not already full
  * Note: process_injected_command() will be called to drain any commands afterwards
  */
-void GCodeQueue::inject_P(PGM_P const pgcode) { inject(GCodeLiteral(pgcode)); }
+void GCodeQueue::inject_P(ConstexprString pgcode) { inject(GCodeLiteral(pgcode)); }
 
 /**
  * Enqueue action to inject_queue, if inject_queue isn't already full
