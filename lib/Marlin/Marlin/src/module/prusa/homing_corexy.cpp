@@ -679,7 +679,7 @@ static bool measure_calibrate_walk(float &score, AxisEnum measured_axis,
         int32_t p_steps;
 
         for (size_t probe = 0; probe != measure_probes; ++probe) {
-            const long cycle = probe / walk_period;
+            const long cycle = probe / walk_period + (a_dir >= 0 ? 0 : 1);
             const long n = probe % walk_period;
             const long d = -long(walk_cycles) + (cycle % 2 ? walk_period - n : n);
 
