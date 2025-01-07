@@ -4,8 +4,8 @@
 #include <str_utils.hpp>
 
 struct GCodeFilename {
-    const char *name;
-    const char *fallback { nullptr };
+    ConstexprString name;
+    ConstexprString fallback { nullptr };
 };
 
 struct GCodeLiteral {
