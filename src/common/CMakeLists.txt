@@ -52,6 +52,7 @@ if(BOARD MATCHES ".*BUDDY")
             printer_model.cpp
             probe_analysis.cpp
             random_hw.cpp
+            ring_allocator.cpp
             rw_mutex.cpp
             safe_state.cpp
             segmented_json.cpp
