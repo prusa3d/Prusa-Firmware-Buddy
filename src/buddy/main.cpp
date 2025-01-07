@@ -427,8 +427,12 @@ extern "C" void main_cpp(void) {
 
     config_store_ns::InitResult status = config_store_init_result();
     if (status == config_store_ns::InitResult::cold_start || status == config_store_ns::InitResult::migrated_from_old) {
-        // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
+        // this means we are either starting from defaults or after a FW upgrade -> invalidate the
+        // XFLASH dump and power-panic data, since it is not relevant anymore
         dump_reset();
+#if ENABLED(POWER_PANIC)
+        power_panic::reset();
+#endif
     }
 
     // Restore sound settings from eeprom

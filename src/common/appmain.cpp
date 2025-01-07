@@ -206,13 +206,6 @@ void app_run(void) {
     advancedpower.ResetOvercurrentFault();
 #endif
 
-    if (config_store_init_result() == config_store_ns::InitResult::cold_start) {
-        settings.reset();
-#if ENABLED(POWER_PANIC)
-        power_panic::reset();
-#endif
-    }
-
     TaskDeps::provide(TaskDeps::Dependency::default_task_ready);
 
     while (1) {
