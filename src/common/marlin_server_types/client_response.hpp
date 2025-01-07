@@ -1129,7 +1129,7 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
         return PhasesSelftest::_last_FirstLayer;
     case SelftestParts::FirstLayerQuestions:
         return PhasesSelftest::_last_FirstLayerQuestions;
-#if BOARD_IS_XLBUDDY()
+#if HAS_TOOLCHANGER()
     case SelftestParts::Dock:
         return PhasesSelftest::_last_Dock;
     case SelftestParts::ToolOffsets:
