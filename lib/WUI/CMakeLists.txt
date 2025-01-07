@@ -34,7 +34,7 @@ target_sources(
             nhttp/status_page.cpp
             nhttp/status_renderer.cpp
             nhttp/transfer_renderer.cpp
-            pbuf_rx.c
+            pbuf_rx.cpp
             sntp/sntp.c
             sntp/sntp_client.c
             wui.cpp
