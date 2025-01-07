@@ -784,6 +784,9 @@ void static finalize_print(bool finished) {
 
     marlin_vars().print_end_time = time(nullptr);
     marlin_vars().add_job_result(job_id, finished ? marlin_vars_t::JobInfo::JobResult::finished : marlin_vars_t::JobInfo::JobResult::aborted);
+
+    // Do not remove, needed for 3rd party tools such as octoprint to get status that the gcode file printing has finished
+    SERIAL_ECHOLNPGM(MSG_FILE_PRINTED);
 }
 
 static const uint8_t MARLIN_IDLE_CNT_BUSY = 1;
