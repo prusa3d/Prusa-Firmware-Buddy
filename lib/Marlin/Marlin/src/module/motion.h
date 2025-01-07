@@ -293,7 +293,8 @@ void homing_failed(std::function<void()> fallback_error, bool crash_was_active =
   void (*enable_wavetable)(AxisEnum) = NULL, bool can_calibrate = true, bool homing_z_with_probe = true);
 
 // Perform a single homing probe on a logical axis
-float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s = 0.0, bool invert_home_dir = false, bool homing_z_with_probe = true);
+float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s = 0.0,
+  bool invert_home_dir = false, bool homing_z_with_probe = true, const int attempt = 0);
 
 // Perform a single homing move on a logical axis
 uint8_t do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0, bool can_move_back_before_homing = false, bool homing_z_with_probe = true);

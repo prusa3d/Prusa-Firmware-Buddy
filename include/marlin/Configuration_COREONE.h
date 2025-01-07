@@ -655,7 +655,8 @@
 //! Required for sensorless homing under most circumstances
 #define MOVE_BACK_BEFORE_HOMING
 #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-    #define MOVE_BACK_BEFORE_HOMING_DISTANCE 3.f
+    #define MOVE_BACK_BEFORE_HOMING_DISTANCE_FIRST  0.5f // minimal distance to avoid skip at -HOME edge position
+    #define MOVE_BACK_BEFORE_HOMING_DISTANCE       10.0f // increased distance for subsequent attempts
 #endif
 
 // Specify here all the endstop connectors that are connected to any endstop or probe.

@@ -1886,7 +1886,7 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
             planner.synchronize();
           }
 
-          probe_offset = homeaxis_single_run(axis, axis_home_dir, fr_mm_s, invert_home_dir, homing_z_with_probe) * static_cast<float>(axis_home_dir);
+          probe_offset = homeaxis_single_run(axis, axis_home_dir, fr_mm_s, invert_home_dir, homing_z_with_probe, attempt) * static_cast<float>(axis_home_dir);
         }
       if (planner.draining()) {
         // move intentionally aborted, do not retry/kill
@@ -1960,7 +1960,8 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
  * return distance between fast and slow probe
  * @param homing_z_with_probe default true, set to false to home without using probe (useful to calibrate Z on XL)
  */
-float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s, bool invert_home_dir, bool homing_z_with_probe) {
+float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s,
+  bool invert_home_dir, bool homing_z_with_probe, const int attempt) {
   // Homing Z towards the bed? Deploy the Z probe or endstop.
   #if HOMING_Z_WITH_PROBE
     if (axis == Z_AXIS && homing_z_with_probe && DEPLOY_PROBE()) {
@@ -1995,8 +1996,12 @@ float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const fe
   #endif
 
   #if ENABLED(MOVE_BACK_BEFORE_HOMING)
+    #ifndef MOVE_BACK_BEFORE_HOMING_DISTANCE_FIRST
+      #define MOVE_BACK_BEFORE_HOMING_DISTANCE_FIRST MOVE_BACK_BEFORE_HOMING_DISTANCE
+    #endif
     if ((axis == X_AXIS) || (axis == Y_AXIS)) {
-      do_blocking_move_axis(axis, axis_home_dir * -MOVE_BACK_BEFORE_HOMING_DISTANCE, fr_mm_s);
+      const float move_back_distance = attempt ? MOVE_BACK_BEFORE_HOMING_DISTANCE : MOVE_BACK_BEFORE_HOMING_DISTANCE_FIRST;
+      do_blocking_move_axis(axis, axis_home_dir * -move_back_distance, fr_mm_s);
     }
   #endif // ENABLED(MOVE_BACK_BEFORE_HOMING)
 
