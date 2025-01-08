@@ -455,6 +455,7 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesColdPull) { return Client
 
 #if HAS_PHASE_STEPPING()
 enum class PhasesPhaseStepping : PhaseUnderlyingType {
+    restore_defaults,
     intro,
     home,
     #if HAS_ATTACHABLE_ACCELEROMETER()
@@ -894,7 +895,8 @@ class ClientResponses {
 
 #if HAS_PHASE_STEPPING()
     static constexpr EnumArray<PhasesPhaseStepping, PhaseResponses, CountPhases<PhasesPhaseStepping>()> phase_stepping_calibration_responses {
-        { PhasesPhaseStepping::intro, { Response::Continue, Response::Abort } },
+        { PhasesPhaseStepping::restore_defaults, { Response::Ok } },
+            { PhasesPhaseStepping::intro, { Response::Continue, Response::Abort } },
             { PhasesPhaseStepping::home, {} },
     #if HAS_ATTACHABLE_ACCELEROMETER()
             { PhasesPhaseStepping::connect_to_board, { Response::Abort } },

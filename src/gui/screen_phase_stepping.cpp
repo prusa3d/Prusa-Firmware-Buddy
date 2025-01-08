@@ -221,9 +221,20 @@ namespace frame {
         }
     };
 
+    class RestoreDefaults final : public CenteredStaticText {
+    public:
+        explicit RestoreDefaults(window_t *parent)
+            : CenteredStaticText {
+                parent,
+                _("Phase stepping defaults have been successfully restored."),
+            } {
+        }
+    };
+
 } // namespace frame
 
 using Frames = FrameDefinitionList<ScreenPhaseStepping::FrameStorage,
+    FrameDefinition<PhasesPhaseStepping::restore_defaults, frame::RestoreDefaults>,
     FrameDefinition<PhasesPhaseStepping::intro, frame::Introduction>,
     FrameDefinition<PhasesPhaseStepping::home, frame::Homing>,
 #if HAS_ATTACHABLE_ACCELEROMETER()

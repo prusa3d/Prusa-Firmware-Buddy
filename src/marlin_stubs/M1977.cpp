@@ -7,6 +7,7 @@
 #include <Marlin/src/feature/phase_stepping/calibration_config.hpp>
 #include <Marlin/src/feature/phase_stepping/calibration.hpp>
 #include <Marlin/src/gcode/gcode.h>
+#include <sys/unistd.h>
 
 namespace {
 
@@ -153,7 +154,36 @@ PhasesPhaseStepping evaluate_result(Context &context) {
     return PhasesPhaseStepping::calib_nok;
 }
 
+void unlink_or_else(const char *path) {
+    if (unlink(path) != 0) {
+        if (errno == ENOENT) {
+            return; // file may not exist and that's ok
+        }
+        bsod("unlink");
+    }
+}
+
+void restore_axis_defaults(AxisEnum axis) {
+    phase_stepping::disable_phase_stepping(axis);
+    unlink_or_else(phase_stepping::get_correction_file_path(axis, phase_stepping::CorrectionType::backward));
+    unlink_or_else(phase_stepping::get_correction_file_path(axis, phase_stepping::CorrectionType::forward));
+    phase_stepping::reset_compensation(axis);
+    phase_stepping::enable_phase_stepping(axis);
+}
+
 namespace state {
+
+    PhasesPhaseStepping restore_defaults() {
+        Planner::synchronize();
+        restore_axis_defaults(X_AXIS);
+        restore_axis_defaults(Y_AXIS);
+        switch (wait_for_response(PhasesPhaseStepping::restore_defaults)) {
+        case Response::Ok:
+            return PhasesPhaseStepping::finish;
+        default:
+            BUDDY_UNREACHABLE();
+        }
+    }
 
     PhasesPhaseStepping intro() {
         switch (wait_for_response(PhasesPhaseStepping::intro)) {
@@ -329,6 +359,8 @@ namespace state {
 
 PhasesPhaseStepping get_next_phase(Context &context, const PhasesPhaseStepping phase) {
     switch (phase) {
+    case PhasesPhaseStepping::restore_defaults:
+        return state::restore_defaults();
     case PhasesPhaseStepping::intro:
         return state::intro();
     case PhasesPhaseStepping::home:
@@ -378,7 +410,8 @@ namespace PrusaGcodeSuite {
  *
  */
 void M1977() {
-    PhasesPhaseStepping phase = PhasesPhaseStepping::intro;
+    const bool D = parser.seen('D');
+    PhasesPhaseStepping phase = D ? PhasesPhaseStepping::restore_defaults : PhasesPhaseStepping::intro;
     Context context {};
     marlin_server::FSM_Holder holder { phase };
     do {
