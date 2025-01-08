@@ -7,7 +7,7 @@
 
 #include "footer_items_heaters.hpp"
 
-class FooterItemChamberTemperature : public FooterItemHeater {
+class FooterItemChamberTemperature final : public FooterItemHeater {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
 

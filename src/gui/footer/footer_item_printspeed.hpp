@@ -7,7 +7,7 @@
 #include "ifooter_item.hpp"
 #include "filament.hpp"
 
-class FooterItemSpeed : public FooterIconText_IntVal {
+class FooterItemSpeed final : public FooterIconText_IntVal {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
 

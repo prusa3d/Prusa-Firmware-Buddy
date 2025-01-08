@@ -8,7 +8,7 @@
 #include "config_features.h"
 #include <option/has_toolchanger.h>
 
-class FooterItemNozzle : public FooterItemHeater {
+class FooterItemNozzle final : public FooterItemHeater {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
 
@@ -16,7 +16,7 @@ public:
     FooterItemNozzle(window_t *parent);
 };
 
-class FooterItemNozzleDiameter : public FooterIconText_FloatVal {
+class FooterItemNozzleDiameter final : public FooterIconText_FloatVal {
     static string_view_utf8 static_makeView(float value);
     static float static_readValue();
 
@@ -24,7 +24,7 @@ public:
     FooterItemNozzleDiameter(window_t *parent);
 };
 
-class FooterItemNozzlePWM : public FooterIconText_IntVal {
+class FooterItemNozzlePWM final : public FooterIconText_IntVal {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
 
@@ -32,7 +32,7 @@ public:
     FooterItemNozzlePWM(window_t *parent);
 };
 
-class FooterItemBed : public FooterItemHeater {
+class FooterItemBed final : public FooterItemHeater {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
 
@@ -53,7 +53,7 @@ protected:
 /**
  * @brief Show all temperatures, cycle all nozzles.
  */
-class FooterItemAllNozzles : public FooterIconText_IntVal {
+class FooterItemAllNozzles final : public FooterIconText_IntVal {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
     static footer::ItemDrawType GetDrawType();

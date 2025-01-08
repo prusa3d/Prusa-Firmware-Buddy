@@ -7,7 +7,7 @@
 #include "ifooter_item.hpp"
 #include "filament.hpp"
 
-class FooterItemFSensor : public FooterIconText_IntVal {
+class FooterItemFSensor final : public FooterIconText_IntVal {
     static int static_readValue();
 
 public:
@@ -18,7 +18,7 @@ public:
 /**
  * @brief Variant of filament sensor for side sensor.
  */
-class FooterItemFSensorSide : public FooterIconText_IntVal {
+class FooterItemFSensorSide final : public FooterIconText_IntVal {
 
     /**
      * @brief Reuse makeView from tool filament sensor.

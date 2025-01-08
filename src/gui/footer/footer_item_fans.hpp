@@ -21,7 +21,7 @@ public:
 /**
  * @brief print fan rpm footer item
  */
-class FooterItemPrintFan : public IFooterItemFan {
+class FooterItemPrintFan final : public IFooterItemFan {
     static int static_readValue();
     static buffer_t buffer;
     static string_view_utf8 static_makeView(int value) {
@@ -35,7 +35,7 @@ public:
 /**
  * @brief heatbreak fan rpm footer item
  */
-class FooterItemHeatBreakFan : public IFooterItemFan {
+class FooterItemHeatBreakFan final : public IFooterItemFan {
     static int static_readValue();
     static buffer_t buffer;
     static string_view_utf8 static_makeView(int value) {
