@@ -42,9 +42,6 @@ using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #if HAS_TOOLCHANGER()
     MI_TOOL_LEDS_ENABLE,
 #endif /*HAS_TOOLCHANGER()*/
-#if HAS_XBUDDY_EXTENSION()
-    MI_XBUDDY_EXTENSION_LIGHTS,
-#endif
 #if HAS_TOUCH()
     MI_ENABLE_TOUCH, TOUCH_SIG_WORKAROUND, MI_TOUCH_PLAYGROUND,
 #endif

@@ -49,6 +49,7 @@
 #include <wui.h>
 #include <power_panic.hpp>
 #include <logging/log_dest_file.hpp>
+#include <numeric_input_config_common.hpp>
 
 #include <type_traits>
 
@@ -1012,11 +1013,14 @@ void MI_LEDS_ENABLE::OnChange(size_t old_index) {
 /**********************************************************************************************/
 // MI_SIDE_LEDS_ENABLE
 MI_SIDE_LEDS_ENABLE::MI_SIDE_LEDS_ENABLE()
-    : WI_ICON_SWITCH_OFF_ON_t(config_store().side_leds_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WiSpin(
+        static_cast<float>(config_store().side_leds_max_brightness.get()) * 100 / 255,
+        numeric_input_config::percent_with_off,
+        _(label)) {
 }
-void MI_SIDE_LEDS_ENABLE::OnChange(size_t old_index) {
-    leds::side_strip_control.SetEnable(!old_index);
-    config_store().side_leds_enabled.set(!old_index);
+
+void MI_SIDE_LEDS_ENABLE::OnClick() {
+    leds::side_strip_control.set_max_brightness(static_cast<uint8_t>(value() * 255 / 100));
 }
 #endif
 

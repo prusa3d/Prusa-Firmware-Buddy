@@ -20,6 +20,7 @@ void SideStripControl::PresentColor(ColorRGBW color, uint32_t duration_ms, uint3
 }
 
 void SideStripControl::TransitionToColor(ColorRGBW color, uint32_t transition_ms) {
+    color.w = std::min(color.w, max_brightness_);
     current_transition.emplace(side_strip.GetColor(0), color, transition_ms);
 }
 
@@ -122,6 +123,7 @@ void SideStripControl::Tick() {
     if (current_transition.has_value()) {
         bool finished = current_transition->IsFinished();
         auto color = current_transition->GetCurrentColor();
+
         side_strip.SetColor(color);
         side_strip.Update();
         if (finished) {
@@ -213,14 +215,25 @@ SideStripControl::HsvColor SideStripControl::RgbToHsv(ColorRGBW rgb) {
     return hsv;
 }
 
-void SideStripControl::SetEnable(bool isEnable) {
+void SideStripControl::set_max_brightness(uint8_t set) {
+    config_store().side_leds_max_brightness.set(set);
+
     std::unique_lock lock(mutex);
-    if (isEnable == true) {
-        state = State::Startup;
-    } else {
-        state = State::SetOff;
+
+    if (max_brightness_ == set) {
+        return;
     }
+
+    // Force startup state so that the control is woken up and does the transition
+    state = (set > 0) ? State::Startup : State::SetOff;
+    max_brightness_ = set;
 }
+
+uint8_t SideStripControl::max_brightness() {
+    std::unique_lock lock(mutex);
+    return max_brightness_;
+}
+
 void SideStripControl::set_dimming_enabled(bool set) {
     std::unique_lock lock(mutex);
     dimming_enabled = set;

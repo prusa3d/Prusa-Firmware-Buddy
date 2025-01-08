@@ -350,7 +350,8 @@ struct CurrentStore
     StoreItem<float, 0.0f, journal::hash("Homing Bump Divisor X")> homing_bump_divisor_x;
     StoreItem<float, 0.0f, journal::hash("Homing Bump Divisor Y")> homing_bump_divisor_y;
 
-    StoreItem<bool, true, journal::hash("Enable Side LEDs")> side_leds_enabled;
+    /// 0-255; 0 = disabled. Decreases when dimming is enabled
+    StoreItem<uint8_t, 255, journal::hash("XBuddy Extension Chamber LEDs PWM")> side_leds_max_brightness;
 
     StoreItem<bool, true, journal::hash("Enable Serial Printing Screen")> serial_print_screen_enabled;
 
@@ -550,7 +551,6 @@ struct CurrentStore
 #endif // HAS_I2C_EXPANDER()
 
 #if HAS_XBUDDY_EXTENSION()
-    StoreItem<uint8_t, 255, journal::hash("XBuddy Extension Chamber LEDs PWM")> xbuddy_extension_chamber_leds_pwm;
     StoreItem<XBEFanTestResults, XBEFanTestResults {}, journal::hash("XBE Chamber fan selftest results")> xbe_fan_test_results;
     StoreItem<bool, true, journal::hash("XBE USB Host power")> xbe_usb_power;
 #endif
@@ -646,6 +646,8 @@ struct DeprecatedStore
     StoreItem<bool, true, journal::hash("Run First Layer")> run_first_layer;
 
     StoreItem<uint8_t, 0, journal::hash("Nozzle Type")> nozzle_type;
+
+    StoreItem<bool, true, journal::hash("Enable Side LEDs")> side_leds_enabled;
 };
 
 } // namespace config_store_ns

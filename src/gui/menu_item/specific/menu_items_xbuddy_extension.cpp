@@ -5,21 +5,6 @@
 
 using namespace buddy;
 
-// MI_XBUDDY_EXTENSION_LIGHTS
-// =============================================
-MI_XBUDDY_EXTENSION_LIGHTS::MI_XBUDDY_EXTENSION_LIGHTS()
-    : WiSpin(0, // TODO
-        numeric_input_config::percent_with_off,
-        _("Chamber Lights") //
-    ) {
-
-    set_is_hidden(xbuddy_extension().status() == XBuddyExtension::Status::disabled);
-}
-
-void MI_XBUDDY_EXTENSION_LIGHTS::OnClick() {
-    // TODO xbuddy_extension().set_chamber_leds_pwm(value() * 255 / 100);
-}
-
 // MI_XBUDDY_EXTENSION_CHAMBER_FANS
 // =============================================
 MI_XBUDDY_EXTENSION_COOLING_FANS::MI_XBUDDY_EXTENSION_COOLING_FANS()

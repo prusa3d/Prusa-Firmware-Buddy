@@ -40,7 +40,7 @@ void leds::Init() {
     leds::TickLoop();
 
 #if HAS_SIDE_LEDS()
-    leds::side_strip_control.SetEnable(config_store().side_leds_enabled.get());
+    leds::side_strip_control.set_max_brightness(config_store().side_leds_max_brightness.get());
     leds::side_strip_control.set_dimming_enabled(config_store().side_leds_dimming_enabled.get());
 #endif
 }

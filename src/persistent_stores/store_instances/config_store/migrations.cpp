@@ -210,5 +210,23 @@ namespace migrations {
             }
         }
     }
+
+#if HAS_SIDE_LEDS()
+    void side_leds_enable(journal::Backend &backend) {
+        using NewItem = decltype(CurrentStore::side_leds_max_brightness);
+        std::optional<NewItem::value_type> val;
+
+        auto callback = [&](journal::Backend::ItemHeader header, std::array<uint8_t, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
+            if (header.id == decltype(DeprecatedStore::side_leds_enabled)::hashed_id) {
+                val = static_cast<bool>(buffer[0]) ? 255 : 0;
+            }
+        };
+        backend.read_items_for_migrations(callback);
+
+        if (val.has_value()) {
+            backend.save_migration_item<NewItem::value_type>(NewItem::hashed_id, *val);
+        }
+    }
+#endif
 } // namespace migrations
 } // namespace config_store_ns

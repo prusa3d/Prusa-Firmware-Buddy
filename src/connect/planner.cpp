@@ -29,6 +29,11 @@
 #include "stat_retry.hpp"
 #include <unistd.h>
 
+#include <option/has_side_leds.h>
+#if HAS_SIDE_LEDS()
+    #include <leds/side_strip_control.hpp>
+#endif
+
 using http::HeaderOut;
 using std::holds_alternative;
 using std::is_same_v;
@@ -991,7 +996,8 @@ void Planner::command(const Command &command, const SetValue &params) {
         }
     } break;
     case connect_client::PropertyName::ChamberLedIntensity:
-        // TODO buddy::xbuddy_extension().set_chamber_leds_pwm(buddy::XBuddyExtension::led_pct2pwm(get<int8_t>(params.value)));
+        leds::side_strip_control.set_max_brightness(static_cast<uint16_t>(get<int8_t>(params.value)) * 255 / 100);
+        leds::side_strip_control.ActivityPing();
         break;
     case connect_client::PropertyName::AddonPower:
         buddy::xbuddy_extension().set_usb_power(get<bool>(params.value));

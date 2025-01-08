@@ -658,12 +658,12 @@ public:
 #endif
 
 #if HAS_SIDE_LEDS()
-class MI_SIDE_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
+class MI_SIDE_LEDS_ENABLE : public WiSpin {
     static constexpr const char *const label = N_("RGB Side Strip");
 
 public:
     MI_SIDE_LEDS_ENABLE();
-    virtual void OnChange(size_t old_index) override;
+    virtual void OnClick() override;
 };
 
 class MI_SIDE_LEDS_DIMMING : public WI_ICON_SWITCH_OFF_ON_t {

@@ -44,6 +44,11 @@
     #include <mmu2/mmu2_fsm.hpp>
 #endif
 
+#include <option/has_side_leds.h>
+#if HAS_SIDE_LEDS()
+    #include <leds/side_strip_control.hpp>
+#endif
+
 using marlin_client::GcodeTryResult;
 using printer_state::DeviceState;
 using printer_state::get_state;
@@ -286,7 +291,7 @@ Printer::Params MarlinPrinter::params() const {
                     ? connect_client::Printer::ChamberInfo::fan_pwm_target_unset // autocontrol
                     : (int8_t)(xbe.fan12pct) // percentage
                 ),
-            // TODO .led_intensity = static_cast<int8_t>(static_cast<uint16_t>(leds::side_strip_control.max_brightness()) * 100 / 255)
+            .led_intensity = static_cast<int8_t>(static_cast<uint16_t>(leds::side_strip_control.max_brightness()) * 100 / 255),
         };
         params.addon_power = buddy::xbuddy_extension().usb_power();
     }

@@ -4,6 +4,7 @@
 #include <printers.h>
 #include <option/has_selftest.h>
 #include <option/has_gui.h>
+#include <option/has_side_leds.h>
 
 namespace config_store_ns {
 namespace deprecated_ids {
@@ -53,6 +54,11 @@ namespace deprecated_ids {
             decltype(DeprecatedStore::filament_type_5)::hashed_id,
 #endif
     };
+#if HAS_SIDE_LEDS()
+    inline constexpr uint16_t side_leds_enable[] {
+        decltype(DeprecatedStore::side_leds_enabled)::hashed_id,
+    };
+#endif
 } // namespace deprecated_ids
 
 namespace migrations {
@@ -73,6 +79,10 @@ namespace migrations {
 
     void hostname(journal::Backend &backend);
     void loaded_filament_type(journal::Backend &backend);
+
+#if HAS_SIDE_LEDS()
+    void side_leds_enable(journal::Backend &backend);
+#endif
 } // namespace migrations
 
 /**
@@ -98,6 +108,9 @@ inline constexpr journal::Backend::MigrationFunction migration_functions[] {
 
         { migrations::hostname, deprecated_ids::hostname },
         { migrations::loaded_filament_type, deprecated_ids::loaded_filament_type },
+#if HAS_SIDE_LEDS()
+        { migrations::side_leds_enable, deprecated_ids::side_leds_enable },
+#endif
 };
 
 // Span of migration versions to simplify passing it around

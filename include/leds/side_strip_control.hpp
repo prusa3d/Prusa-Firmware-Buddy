@@ -31,7 +31,11 @@ public:
 
     void Tick();
 
-    void SetEnable(bool isEnable);
+    /// Set maximum brightness of the side leds white channel. The W brightness is limited to this value.
+    /// 0 = disable side leds completely (even RGB status blinking), 255 = full
+    void set_max_brightness(uint8_t set);
+    uint8_t max_brightness();
+
     void set_dimming_enabled(bool set);
 
     /**
@@ -142,6 +146,7 @@ private:
     void TransitionToColor(ColorRGBW color, uint32_t transition_ms);
     State state = State::Startup;
     bool dimming_enabled = false;
+    uint8_t max_brightness_ = 0;
     freertos::Mutex mutex;
 
     // Active State
