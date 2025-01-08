@@ -20,13 +20,6 @@ public:
 #endif
     }
 
-    SideStrip()
-        : current_color()
-        , enclosure_fan_pwm(0)
-        , needs_update(true)
-        , leds() {
-    }
-
     int GetLedCount() {
         return 1;
     }
@@ -63,7 +56,7 @@ public:
 
 private:
     ColorRGBW current_color;
-    std::atomic<uint8_t> enclosure_fan_pwm;
+    std::atomic<uint8_t> enclosure_fan_pwm = 0;
     std::atomic<bool> needs_update = false;
 
 #if PRINTER_IS_PRUSA_XL()
