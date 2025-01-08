@@ -556,7 +556,7 @@ struct CurrentStore
 #endif
 
 #if HAS_EMERGENCY_STOP()
-    StoreItem<bool, true, journal::hash("Emergency stop enable")> emergency_stop_enable;
+    StoreItem<bool, false, journal::hash("Emergency stop enable")> emergency_stop_enable;
 #endif
 
 #if HAS_ILI9488_DISPLAY()
