@@ -16,7 +16,7 @@ public:
 public:
     static_unique_ptr() = default;
 
-    static_unique_ptr(nullptr_t) {}
+    static_unique_ptr(std::nullptr_t) {}
 
     template <typename T2, typename = std::enable_if_t<std::is_convertible_v<T2 *, T *>>>
     static_unique_ptr(static_unique_ptr<T2> &&o)
@@ -44,7 +44,7 @@ public:
         ptr = o.release();
     }
 
-    void reset(nullptr_t = nullptr) {
+    void reset(std::nullptr_t = nullptr) {
         if (ptr) {
             deleter(ptr);
         }
@@ -82,7 +82,7 @@ public:
         return ptr == o.get();
     }
 
-    bool operator==(nullptr_t) const {
+    bool operator==(std::nullptr_t) const {
         return ptr == nullptr;
     }
 
@@ -91,11 +91,11 @@ public:
         return ptr != o.get();
     }
 
-    bool operator!=(nullptr_t) const {
+    bool operator!=(std::nullptr_t) const {
         return ptr != nullptr;
     }
 
-    static_unique_ptr &operator=(nullptr_t) {
+    static_unique_ptr &operator=(std::nullptr_t) {
         reset();
         return *this;
     }
