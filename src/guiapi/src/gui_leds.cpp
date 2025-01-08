@@ -103,8 +103,11 @@ void leds::enter_power_panic() {
 
     // 4. Reinitialize SPI, so that we terminate any ongoing transfers to display or leds
     // 5. turn off actual leds
-#if HAS_SIDE_LEDS()
+#if BOARD_IS_XLBUDDY()
     hw_init_spi_side_leds();
+#endif
+
+#if HAS_SIDE_LEDS()
     side_strip.SetColor(ColorRGBW());
     side_strip.Update();
 #endif

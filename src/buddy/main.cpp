@@ -394,7 +394,7 @@ extern "C" void main_cpp(void) {
     hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on XL. Not needed without display.
 #endif
 
-#if HAS_SIDE_LEDS()
+#if BOARD_IS_XLBUDDY()
     hw_init_spi_side_leds();
 #endif
 

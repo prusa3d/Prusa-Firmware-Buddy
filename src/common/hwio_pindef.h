@@ -83,8 +83,6 @@ void hw_init_spi_side_leds();
 #else // Not special board with separate pin definition file.
 
     #if PRINTER_IS_PRUSA_iX()
-inline void hw_init_spi_side_leds() {}
-
 inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
     return &SPI_HANDLE_FOR(led);
 }
