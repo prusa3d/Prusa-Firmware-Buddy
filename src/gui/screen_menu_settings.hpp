@@ -23,6 +23,10 @@
     #include <gui/menu_item/specific/menu_items_xbuddy_extension.hpp>
 #endif
 
+#if HAS_PHASE_STEPPING()
+    #include "screen_menu_phase_stepping.hpp"
+#endif
+
 class MI_HELP_FW_UPDATE : public IWindowMenuItem {
     static constexpr const char *const label = N_("FW update");
 
@@ -32,18 +36,6 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
-
-#if HAS_PHASE_STEPPING()
-class MI_PS_CALIB : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Phase Stepping Calibration");
-
-public:
-    MI_PS_CALIB();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-#endif
 
 /*****************************************************************************/
 
@@ -76,7 +68,7 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #endif
     MI_INPUT_SHAPER,
 #if HAS_PHASE_STEPPING()
-    MI_PS_CALIB,
+    MI_PHASE_STEPPING_SCREEN,
 #endif
 #if DEVELOPER_MODE()
     MI_ERROR_TEST,

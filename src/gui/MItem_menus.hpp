@@ -6,6 +6,7 @@
 #include <option/has_side_leds.h>
 #include <option/has_filament_sensors_menu.h>
 #include <option/has_leds.h>
+#include <option/has_phase_stepping.h>
 #include <option/has_sheet_profiles.h>
 #include <option/developer_mode.h>
 #include <option/has_translations.h>
@@ -156,6 +157,11 @@ using MI_ERROR_TEST
 
 using MI_LANGUAGE
     = MI_SCREEN<N_("Language"), class ScreenMenuLanguages, &img::language_16x16>;
+#endif
+
+#if HAS_PHASE_STEPPING()
+using MI_PHASE_STEPPING_SCREEN
+    = MI_SCREEN<N_("Phase Stepping"), class ScreenMenuPhaseStepping>;
 #endif
 
 #if HAS_SHEET_PROFILES()

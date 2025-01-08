@@ -122,6 +122,10 @@ template struct MI_SCREEN_CTOR<ScreenMenuErrorTest>;
 template struct MI_SCREEN_CTOR<ScreenMenuLanguages>;
 #endif
 
+#if HAS_PHASE_STEPPING()
+template struct MI_SCREEN_CTOR<ScreenMenuPhaseStepping>;
+#endif
+
 #if HAS_SHEET_PROFILES()
 template struct MI_SCREEN_CTOR<ScreenMenuSteelSheets>;
 #endif

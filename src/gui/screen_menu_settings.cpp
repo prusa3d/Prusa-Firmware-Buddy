@@ -22,16 +22,6 @@ void MI_HELP_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenHelpFWUpdate>);
 }
 
-#if HAS_PHASE_STEPPING()
-MI_PS_CALIB::MI_PS_CALIB()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_PS_CALIB::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::gcode("M1977");
-}
-#endif
-
 ScreenMenuSettings::ScreenMenuSettings()
     : ScreenMenuSettings__(_(label))
     , old_action(gui::knob::GetLongPressScreenAction()) { // backup hold action
