@@ -435,6 +435,11 @@ void save_to_persistent_storage(AxisEnum axis);
 void load_from_persistent_storage(AxisEnum axis);
 
 /**
+ * @brief Call to remove state from persistent media (ie eeprom/xflash)
+ */
+void remove_from_persistent_storage(AxisEnum axis, CorrectionType lut_type);
+
+/**
  * Return if some processing is still pending.
  */
 bool processing();

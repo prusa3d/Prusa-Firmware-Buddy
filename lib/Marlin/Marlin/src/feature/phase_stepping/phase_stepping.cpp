@@ -24,6 +24,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <sys/unistd.h>
 
 #include <timing_precise.hpp>
 
@@ -889,6 +890,16 @@ void load_from_persistent_storage(AxisEnum axis) {
     load_correction_from_file(axis_states[axis].backward_current, get_correction_file_path(axis, CorrectionType::backward));
 
     phase_stepping::enable(axis, config_store().get_phase_stepping_enabled(axis));
+}
+
+void remove_from_persistent_storage(AxisEnum axis, CorrectionType lut_type) {
+    assert(axis < SUPPORTED_AXIS_COUNT);
+    if (unlink(get_correction_file_path(axis, lut_type)) != 0) {
+        if (errno == ENOENT) {
+            return; // file may not exist and that's ok
+        }
+        bsod("unlink");
+    }
 }
 
 } // namespace phase_stepping
