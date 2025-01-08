@@ -279,6 +279,7 @@ Printer::Params MarlinPrinter::params() const {
         auto xbe = buddy::xbuddy_extension().get_fan12_state(); // avoid locking 2 mutexes just to read a single value (and we are reading 4 values)
         params.chamber_info = {
             .target_temp = (uint32_t)buddy::chamber().target_temperature().value_or(connect_client::Printer::ChamberInfo::target_temp_unset),
+            .current_temp = buddy::chamber().current_temperature().value_or(0), /* Missing that would be rare, so we just always render something for simplicity */
             .fan_1_rpm = xbe.fan1rpm,
             .fan_2_rpm = xbe.fan2rpm,
             .fan_pwm_target = (xbe.fan12autocontrol // check for autocontrol
