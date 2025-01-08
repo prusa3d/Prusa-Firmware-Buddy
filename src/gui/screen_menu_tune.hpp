@@ -82,17 +82,14 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
     MI_PHASE_STEPPING,
 #endif
     MI_FAN_CHECK,
-    MI_GCODE_VERIFY
+    MI_GCODE_VERIFY,
 #if HAS_MMU2()
-    ,
-    MI_MMU_CUTTER
+    MI_MMU_CUTTER,
 #endif
 #if ENABLED(CRASH_RECOVERY)
-    ,
     MI_CRASH_DETECTION,
-    MI_CRASH_SENSITIVITY_XY
+    MI_CRASH_SENSITIVITY_XY,
 #endif // ENABLED(CRASH_RECOVERY)
-    ,
     MI_USER_INTERFACE, MI_NETWORK,
 #if (!PRINTER_IS_PRUSA_MINI()) || defined(_DEBUG) // Save space in MINI release
     MI_HARDWARE_TUNE,
