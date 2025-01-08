@@ -283,7 +283,7 @@ static void move_to_calibration_start(AxisEnum axis) {
     do_blocking_move_to_xy(target_x, target_y);
 }
 
-static void reset_compensation(AxisEnum axis) {
+void phase_stepping::reset_compensation(AxisEnum axis) {
     phase_stepping::axis_states[axis].forward_current.clear();
     phase_stepping::axis_states[axis].backward_current.clear();
 }

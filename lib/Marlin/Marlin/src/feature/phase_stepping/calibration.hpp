@@ -91,4 +91,9 @@ public:
 std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>>
 calibrate_axis(AxisEnum axis, CalibrateAxisHooks &hooks);
 
+/**
+ * Reset runtime current lookup tables for axis.
+ */
+void reset_compensation(AxisEnum axis);
+
 } // namespace phase_stepping
