@@ -659,7 +659,13 @@ public:
 
 #if HAS_SIDE_LEDS()
 class MI_SIDE_LEDS_ENABLE : public WiSpin {
-    static constexpr const char *const label = N_("RGB Side Strip");
+
+    static constexpr const char *const label =
+    #if PRINTER_IS_PRUSA_COREONE()
+        N_("Chamber Lights");
+    #else
+        N_("RGB Side Strip");
+    #endif
 
 public:
     MI_SIDE_LEDS_ENABLE();
@@ -667,7 +673,12 @@ public:
 };
 
 class MI_SIDE_LEDS_DIMMING : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("RGB Side Strip Dimming");
+    static constexpr const char *const label =
+    #if PRINTER_IS_PRUSA_COREONE()
+        N_("Chamber Dimming");
+    #else
+        N_("RGB Side Strip Dimming");
+    #endif
 
 public:
     MI_SIDE_LEDS_DIMMING();
