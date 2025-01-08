@@ -8,7 +8,7 @@ using namespace buddy;
 // MI_XBUDDY_EXTENSION_LIGHTS
 // =============================================
 MI_XBUDDY_EXTENSION_LIGHTS::MI_XBUDDY_EXTENSION_LIGHTS()
-    : WiSpin(static_cast<int>(xbuddy_extension().chamber_leds_pwm()) * 100 / 255,
+    : WiSpin(0, // TODO
         numeric_input_config::percent_with_off,
         _("Chamber Lights") //
     ) {
@@ -17,7 +17,7 @@ MI_XBUDDY_EXTENSION_LIGHTS::MI_XBUDDY_EXTENSION_LIGHTS()
 }
 
 void MI_XBUDDY_EXTENSION_LIGHTS::OnClick() {
-    xbuddy_extension().set_chamber_leds_pwm(value() * 255 / 100);
+    // TODO xbuddy_extension().set_chamber_leds_pwm(value() * 255 / 100);
 }
 
 // MI_XBUDDY_EXTENSION_CHAMBER_FANS

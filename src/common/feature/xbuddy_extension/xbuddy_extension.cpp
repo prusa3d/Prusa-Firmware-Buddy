@@ -5,6 +5,7 @@
 #include <puppies/xbuddy_extension.hpp>
 #include <feature/chamber/chamber.hpp>
 #include <feature/xbuddy_extension/cooling.hpp>
+#include <leds/side_strip.hpp>
 
 namespace buddy {
 
@@ -20,6 +21,7 @@ void XBuddyExtension::step() {
     // Chamber API is accessing XBuddyExtension in some methods as well, so we might cause a deadlock otherwise.
     // BFW-6274
     const auto target_temp = chamber().target_temperature();
+    const auto chamber_leds_pwm = leds::side_strip.GetColor(0).w;
 
     std::lock_guard _lg(mutex_);
 
@@ -28,7 +30,7 @@ void XBuddyExtension::step() {
     }
 
     puppies::xbuddy_extension.set_rgbw_led({ bed_leds_color_.r, bed_leds_color_.g, bed_leds_color_.b, bed_leds_color_.w });
-    puppies::xbuddy_extension.set_white_led(config_store().xbuddy_extension_chamber_leds_pwm.get());
+    puppies::xbuddy_extension.set_white_led(chamber_leds_pwm);
     puppies::xbuddy_extension.set_usb_power(config_store().xbe_usb_power.get());
 
     const auto rpm0 = puppies::xbuddy_extension.get_fan_rpm(0);
@@ -120,16 +122,6 @@ leds::ColorRGBW XBuddyExtension::bed_leds_color() const {
 void XBuddyExtension::set_bed_leds_color(leds::ColorRGBW set) {
     std::lock_guard _lg(mutex_);
     bed_leds_color_ = set;
-}
-
-uint8_t XBuddyExtension::chamber_leds_pwm() {
-    return config_store().xbuddy_extension_chamber_leds_pwm.get();
-}
-
-void XBuddyExtension::set_chamber_leds_pwm(uint8_t set) {
-    std::lock_guard _lg(mutex_);
-
-    config_store().xbuddy_extension_chamber_leds_pwm.set(set);
 }
 
 std::optional<Temperature> XBuddyExtension::chamber_temperature() {

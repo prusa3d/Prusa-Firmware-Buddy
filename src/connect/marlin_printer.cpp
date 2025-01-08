@@ -286,7 +286,7 @@ Printer::Params MarlinPrinter::params() const {
                     ? connect_client::Printer::ChamberInfo::fan_pwm_target_unset // autocontrol
                     : (int8_t)(xbe.fan12pct) // percentage
                 ),
-            .led_intensity = static_cast<int8_t>(buddy::XBuddyExtension::led_pwm2pct(buddy::xbuddy_extension().chamber_leds_pwm()))
+            // TODO .led_intensity = static_cast<int8_t>(static_cast<uint16_t>(leds::side_strip_control.max_brightness()) * 100 / 255)
         };
         params.addon_power = buddy::xbuddy_extension().usb_power();
     }

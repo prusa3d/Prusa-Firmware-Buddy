@@ -77,12 +77,6 @@ public: // LEDs
     /// Sets PWM for the led strip that is under the bed
     void set_bed_leds_color(leds::ColorRGBW set);
 
-    /// \returns PWM for the white led strip thas is in the chamber (0-255)
-    uint8_t chamber_leds_pwm();
-
-    /// Sets PWM for the white led strip thas is in the chamber (0-255)
-    void set_chamber_leds_pwm(uint8_t set);
-
     /// @returns percentage 0-100% converted from PWM value (0-max_pwm)
     /// @note in the future, non-linear mapping between intensity pct and PWM shall be implemented here
     static constexpr uint8_t led_pwm2pct(uint8_t pwm) {

@@ -50,7 +50,7 @@ void GuiLedsWriter::write(uint8_t *pb, uint16_t size) {
     displayCs.reset();
 }
 
-#if HAS_SIDE_LEDS()
+#if BOARD_IS_XLBUDDY() || PRINTER_IS_PRUSA_iX()
 void SideStripWriter::write(uint8_t *pb, uint16_t size) {
     SPI_HandleTypeDef *hspi = hw_get_spi_side_strip();
 

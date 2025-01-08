@@ -70,11 +70,13 @@ extern "C" void hx717_soft(); // low-priority soft read interrupt
 } // namespace buddy::hw
 #endif
 
+#if BOARD_IS_XLBUDDY()
 /**
  * @brief Init SPI for side leds
  * @note They use different SPIs depending on HW revision, so this is optional initialization
  */
 void hw_init_spi_side_leds();
+#endif
 
 #if (PRINTER_IS_PRUSA_XL() && BOARD_IS_DWARF())
     #include "hwio_pindef_XL_dwarf.h"

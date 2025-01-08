@@ -330,7 +330,7 @@ set_feature_for_printers(HAS_ESP_FLASH_TASK "MK4" "MK3.5" "XL" "MINI" "COREONE")
                                                                                  # ESP
 # flashing
 set_feature_for_printers(HAS_EMBEDDED_ESP32 "XL")
-set(PRINTERS_WITH_SIDE_LEDS "XL" "iX")
+set(PRINTERS_WITH_SIDE_LEDS "XL" "iX" "COREONE")
 set(PRINTERS_WITH_TRANSLATIONS "COREONE" "MK4" "MK3.5" "XL" "MINI")
 set(PRINTERS_WITH_EXTFLASH_TRANSLATIONS "MINI")
 set_feature_for_printers(HAS_LOVE_BOARD "MK4" "iX" "COREONE")

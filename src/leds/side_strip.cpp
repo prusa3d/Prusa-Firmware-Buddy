@@ -14,6 +14,10 @@ void SideStrip::Update() {
     }
     needs_update = false;
 
+#if PRINTER_IS_PRUSA_COREONE()
+    // Polled in XBuddyExtension::step()
+
+#else
     // !!! The indexes here are INVERSED compared to actual LED driver daisy-chain order
     // because of wrong neopixel.hpp::LedsSPI_MSB implementation
     // BFW-5067
@@ -33,4 +37,5 @@ void SideStrip::Update() {
     }
 
     leds.Tick();
+#endif
 }
