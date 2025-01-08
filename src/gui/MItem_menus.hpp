@@ -161,7 +161,12 @@ using MI_LANGUAGE
 
 #if HAS_PHASE_STEPPING()
 using MI_PHASE_STEPPING_SCREEN
-    = MI_SCREEN<N_("Phase Stepping"), class ScreenMenuPhaseStepping>;
+    = MI_SCREEN<
+        N_("Phase Stepping"),
+        class ScreenMenuPhaseStepping,
+        nullptr,
+        // CORE One support is experimental
+        PRINTER_IS_PRUSA_COREONE() ? is_hidden_t::dev : is_hidden_t::no>;
 #endif
 
 #if HAS_SHEET_PROFILES()
