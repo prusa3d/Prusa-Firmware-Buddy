@@ -52,7 +52,18 @@ struct ConstexprString {
     constexpr ConstexprString() = default;
     constexpr ConstexprString(const ConstexprString &) = default;
     consteval ConstexprString(const char *str)
-        : str_(str) {}
+        : str_(str) {
+        // Make sure the pointer contents is also accessible at compile time
+        [[maybe_unused]] const auto ch = str ? str[0] : '\0';
+    }
+
+    /// Constructor where the contents of the pointer does not have to be constexpr
+    /// !!! Unsafe, use only when you know what you're doing
+    static consteval ConstexprString from_str_unsafe(const char *str) {
+        ConstexprString r;
+        r.str_ = str;
+        return r;
+    }
 
     constexpr operator const char *() const {
         return str_;
