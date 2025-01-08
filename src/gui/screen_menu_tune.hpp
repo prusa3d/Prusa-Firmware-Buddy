@@ -4,6 +4,7 @@
 #pragma once
 
 #include "screen_menu.hpp"
+#include "MItem_hardware.hpp"
 #include "MItem_print.hpp"
 #include "MItem_tools.hpp"
 #include "MItem_crash.hpp"
@@ -11,6 +12,7 @@
 #include "MItem_mmu.hpp"
 #include <device/board.h>
 #include "config_features.h"
+#include <option/has_emergency_stop.h>
 #include <option/has_chamber_api.h>
 #include <option/has_loadcell.h>
 #include <option/has_phase_stepping_toggle.h>
@@ -83,6 +85,9 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #endif
     MI_FAN_CHECK,
     MI_GCODE_VERIFY,
+#if HAS_EMERGENCY_STOP()
+    MI_EMERGENCY_STOP_ENABLE,
+#endif
 #if HAS_MMU2()
     MI_MMU_CUTTER,
 #endif
