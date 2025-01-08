@@ -233,9 +233,12 @@ void FilamentSensors::process_events() {
         }
 
         autoload_sent = true;
-        char buffer[sizeof("M1701 ZXXXXX")];
+        static char buffer[sizeof("M1701 ZXXXXX")];
         snprintf(buffer, sizeof(buffer), "M1701 Z%.2f", static_cast<double>(Z_AXIS_LOAD_POS));
-        marlin_client::inject(buffer); // autoload with return option and minimal Z value of 40mm
+        // autoload with return option and minimal Z value of 40mm
+        // This is a hack, but there is currently no nice way to do snprintf at compile  time
+        // We're always writing the same string to the buffer, so there is no race condition
+        marlin_client::inject(ConstexprString::from_str_unsafe(buffer));
         log_info(FSensor, "Injected autoload");
 
         return true;
