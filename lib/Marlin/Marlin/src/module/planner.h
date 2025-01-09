@@ -251,8 +251,6 @@ struct PlannerHints {
                                       // would calculate if it knew the as-yet-unbuffered path
   #endif
   bool raw_block = false;             // Enqueue block without further modifications
-
-  PlannerHints(const_float_t mm=0.0f) : millimeters(mm) {}
 };
 
 class Planner {
