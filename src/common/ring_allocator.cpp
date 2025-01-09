@@ -1,6 +1,10 @@
 #include "ring_allocator.hpp"
 
+#include <logging/log.hpp>
+
 #include <cassert>
+
+LOG_COMPONENT_DEF(RingAllocator, logging::Severity::info);
 
 constexpr size_t alignment = 4;
 
@@ -19,6 +23,7 @@ RingAllocator::RingAllocator(size_t size)
 }
 
 void RingAllocator::free(void *ptr) {
+    log_debug(RingAllocator, "Free %p", ptr);
     // Pointer to "bytes", because that actually has pointer arithmetics well-defined.
     uint8_t *ptr_b = reinterpret_cast<uint8_t *>(ptr);
     ptr_b -= sizeof(Record);
@@ -29,6 +34,10 @@ void RingAllocator::free(void *ptr) {
     assert(rec->in_use);
 
     rec->in_use = false;
+#ifdef EXTRA_RING_ALLOCATOR_LOGGING
+    used_records--;
+    used_bytes -= available_size(rec);
+#endif
 
     // If there's an unused section before or after, make it into one big
     // chunk.
@@ -47,6 +56,8 @@ void RingAllocator::merge(Record *l, Record *r) {
         return;
     }
 
+    log_debug(RingAllocator, "Merge %p with %p", l, r);
+
     // r is disappearing, so if it is the one we are pointing at, just rewind
     // it towards the left one (which will be the new "complete" thing)
     if (r == alloc_head) {
@@ -58,9 +69,17 @@ void RingAllocator::merge(Record *l, Record *r) {
         r->next->prev = l;
     }
     l->next = r->next;
+#ifdef EXTRA_RING_ALLOCATOR_LOGGING
+    records--;
+#endif
 }
 
 void *RingAllocator::allocate(size_t size) {
+#ifdef EXTRA_RING_ALLOCATOR_LOGGING
+    log_debug(RingAllocator, "Allocate %zu (used: %zu, records %zu/%zu)", size, used_bytes, used_records, records);
+#else
+    log_debug(RingAllocator, "Allocate %zu", size);
+#endif
     // Include the record header
     size += sizeof(Record);
     // Make sure to round it up to multiple of alignment
@@ -71,14 +90,21 @@ void *RingAllocator::allocate(size_t size) {
     do {
         size_t record_size = available_size(alloc_head);
         if (!alloc_head->in_use && record_size >= size) {
+            log_debug(RingAllocator, "Found record %p of %zu", alloc_head, record_size);
             split(alloc_head, record_size, size);
             alloc_head->in_use = true;
+#ifdef EXTRA_RING_ALLOCATOR_LOGGING
+            used_records++;
+            used_bytes += available_size(alloc_head);
+#endif
             // Note: +1 means +1 _record_, not byte - point just after the record header.
             // Note: Leaving alloc_head at the current record for simplicity
             // (not having to deal with the last record at multiple places,
             // besides we may free it before we do another allocation).
             return reinterpret_cast<void *>(alloc_head + 1);
         }
+
+        log_debug(RingAllocator, "Skip %p", alloc_head);
 
         // This record didn't work (either used or too small). Move to the next one.
         alloc_head = alloc_head->next;
@@ -87,6 +113,8 @@ void *RingAllocator::allocate(size_t size) {
             alloc_head = reinterpret_cast<Record *>(buffer.get());
         }
     } while (alloc_head != stop);
+
+    log_debug(RingAllocator, "Couldn't find");
 
     // Didn't fit in any "gap"
     return nullptr;
@@ -109,6 +137,9 @@ void RingAllocator::split(Record *record, size_t current_size, size_t new_size) 
     new_record->prev = record;
     record->next->prev = new_record;
     record->next = new_record;
+#ifdef EXTRA_RING_ALLOCATOR_LOGGING
+    records++;
+#endif
 }
 
 size_t RingAllocator::available_size(Record *record) {

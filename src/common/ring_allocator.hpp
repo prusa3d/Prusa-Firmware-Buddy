@@ -2,6 +2,10 @@
 
 #include <memory>
 
+// Adds extra computations and space for debug logging, we probably don't want
+// that in general.
+// #define EXTRA_RING_ALLOCATOR_LOGGING
+
 namespace buddy {
 
 class RingAllocator {
@@ -17,6 +21,12 @@ private:
         Record *next;
         bool in_use;
     };
+
+#ifdef EXTRA_RING_ALLOCATOR_LOGGING
+    size_t used_bytes = 0;
+    size_t used_records = 0;
+    size_t records = 1;
+#endif
 
     std::unique_ptr<uint8_t[]> buffer;
     size_t size;
