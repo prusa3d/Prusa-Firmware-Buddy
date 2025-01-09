@@ -35,7 +35,7 @@
 typedef void (*twiReceiveFunc_t)(int bytes);
 typedef void (*twiRequestFunc_t)();
 
-#define TWIBUS_BUFFER_SIZE 32
+#define TWIBUS_BUFFER_SIZE 256
 
 /**
  * TWIBUS class
@@ -44,7 +44,7 @@ typedef void (*twiRequestFunc_t)();
  * Marlin to send and request data from any slave device on the bus.
  *
  * The two main consumers of this class are M260 and M261. M260 provides a way
- * to send an I2C packet to a device (no repeated starts) by caching up to 32
+ * to send an I2C packet to a device (no repeated starts) by caching up to 256
  * bytes in a buffer and then sending the buffer.
  * M261 requests data from a device. The received data is relayed to serial out
  * for the host to interpret.
