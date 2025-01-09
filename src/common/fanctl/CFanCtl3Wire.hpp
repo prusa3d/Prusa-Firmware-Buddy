@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "Pin.hpp"
 #include "CFanCtlCommon.hpp"
+#include <option/has_love_board.h>
 
 enum {
     FANCTL_MAX_FANS = 2, // maximum number of fans for C wrapper functions
@@ -127,8 +128,17 @@ public:
     { return m_State; }
     virtual uint8_t getPWM() const override // get PWM value
     { return unscalePWM(m_PWMValue); }
-    virtual uint16_t getActualRPM() const override // get actual (measured) RPM
-    { return m_tach.getRPM(); }
+    uint16_t getActualRPM() const final // get actual (measured) RPM
+    {
+#if HAS_LOVE_BOARD() && !PRINTER_IS_PRUSA_iX()
+        if (autocontrol_enabled) {
+            return m_tach.getRPM();
+        }
+        return 8669;
+#else
+        return m_tach.getRPM();
+#endif
+    }
     CFanCtlPWM::PhaseShiftMode getPhaseShiftMode() const // get PhaseShiftMode
     { return m_pwm.get_PhaseShiftMode(); }
     virtual bool getRPMIsOk() override;
