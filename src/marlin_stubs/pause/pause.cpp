@@ -643,10 +643,21 @@ void Pause::long_load_process([[maybe_unused]] Response response) {
     handle_filament_removal(LoadState::filament_push_ask);
 }
 
+// Retract just a tiny bit to prevent oozing for a while.
+// Note: current slicer default printer settings for ramming:
+// MINI 2.5mm @ 70mm/s
+// MK3 0.8mm @ 35mm/s
+// MK4* 0.7mm @ 35mm/s
+static constexpr float retract_distance = -2.f; // mm
+static constexpr feedRate_t retract_feedrate = 35; // mm/s
+
 void Pause::purge_process([[maybe_unused]] Response response) {
     // Extrude filament to get into hotend
     setPhase(is_unstoppable() ? PhasesLoadUnload::Purging_unstoppable : PhasesLoadUnload::Purging_stoppable, 70);
-    do_e_move_notify_progress_hotextrude(settings.purge_length(), ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
+    do_e_move_notify_progress_hotextrude(settings.purge_length(), ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 98);
+
+    do_e_move_notify_progress_hotextrude(retract_distance, retract_feedrate, 98, 99);
+
     config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
 
     if constexpr (!option::has_human_interactions) {
@@ -744,7 +755,7 @@ void Pause::load_prime_process([[maybe_unused]] Response response) {
         // Feed a little bit of filament to stabilize pressure in nozzle
 
         // Last poop after user clicked color - yes
-        plan_e_move(5, 10);
+        plan_e_move(5 - retract_distance, 10);
 
         // Retract again, it will be unretracted at the end of unpark
         if (settings.retract) {
