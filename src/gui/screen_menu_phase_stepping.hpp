@@ -4,6 +4,7 @@
 #include "menu_item/menu_item_gcode_action.hpp"
 #include "screen_menu.hpp"
 #include <option/has_phase_stepping.h>
+#include <option/has_phase_stepping_toggle.h>
 
 static_assert(HAS_PHASE_STEPPING(), "Do not #include me if you are not using me");
 
@@ -18,6 +19,9 @@ using MI_PHASE_STEPPING_RESTORE_DEFAULTS = WithConstructorArgs<
 using ScreenMenuPhaseSteppingBase = ScreenMenu<
     GuiDefaults::MenuFooter,
     MI_RETURN,
+#if HAS_PHASE_STEPPING_TOGGLE()
+    MI_PHASE_STEPPING_TOGGLE,
+#endif
     MI_PHASE_STEPPING_CALIBRATION,
     MI_PHASE_STEPPING_RESTORE_DEFAULTS>;
 
