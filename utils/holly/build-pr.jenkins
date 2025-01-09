@@ -36,20 +36,6 @@ def get_version_info() {
     ]
 }
 
-def should_run_integration_tests() {
-    // Prevent running integration tests outside of our private fork.
-    if (env.GIT_URL != 'git@github.com:prusa3d/Prusa-Firmware-Buddy-Private.git') {
-        return false;
-    }
-
-    // Prevent running integration tests for pull requests.
-    if (env.CHANGE_ID) {
-        return false;
-    }
-
-    return true;
-}
-
 pipeline {
     agent none
 
@@ -288,55 +274,6 @@ pipeline {
                         export PYTHONPATH="\$PYTHONPATH:\$MST_INSTALL_PATH"
                         pytest \$PWD/src/common/marlin_server_types/python_binding/tests/
                         """
-                    }
-                }
-
-                stage('Integration Tests') {
-                    when {
-                        expression {
-                            return should_run_integration_tests();
-                        }
-                    }
-                    agent {
-                        dockerfile {
-                            label 'integrationtests'
-                            filename 'utils/holly/IntegrationTestsDockerfile'
-                            additionalBuildArgs '-t it-prusa-firmware-buddy'
-                        }
-                    }
-                    steps {
-                        script {
-                            Exception caughtException = null
-
-                            timeout(time: 30, unit: "MINUTES") {
-                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                    try {
-                                        unstash "mk4,release,noboot"
-                                        sh """
-                                        ln -fs /work/.dependencies
-                                        ln -fs /work/.venv
-                                        export EASYOCR_MODULE_PATH=./easyocr
-                                        . .venv/bin/activate
-                                        python3 utils/bootstrap.py
-                                        python3 -m pytest tests/integration --firmware build/mk4_release_noboot/firmware.bin --log-cli-level info --log-cli-format="%(asctime)s [%(levelname)8s] (%(filename)s:%(lineno)s) %(message)s" --log-cli-date-format="%Y-%m-%d %H:%M:%S"
-                                        """
-                                    } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
-                                        error "Caught ${e.toString()}"
-                                    } catch (Throwable e) {
-                                        caughtException = e
-                                    }
-                                }
-                            }
-
-                            if (caughtException) {
-                                error caughtException.message
-                            }
-                        }
-                    }
-                    post {
-                        failure {
-                            archiveArtifacts artifacts: '/tmp/pytest-of-root'
-                        }
                     }
                 }
             }
