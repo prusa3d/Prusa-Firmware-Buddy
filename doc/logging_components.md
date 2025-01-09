@@ -44,6 +44,7 @@ This file is generated automatically so don't edit it directly
 - PrusaToolChanger: logging::Severity::debug, lib/Marlin/Marlin/src/module/prusa/toolchanger_utils.cpp
 - Puppies: logging::Severity::debug, src/puppies/puppy_task.cpp
 - Resources: logging::Severity::debug, src/resources/bootstrap.cpp
+- RingAllocator: logging::Severity::info, src/common/ring_allocator.cpp
 - Selftest: logging::Severity::debug, src/common/selftest/i_selftest.cpp
 - Touch: logging::Severity::info, src/hw/touchscreen/touchscreen_common.cpp
 - USBDevice: logging::Severity::info, src/buddy/usb_device.cpp
