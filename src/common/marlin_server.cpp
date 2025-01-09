@@ -2040,6 +2040,7 @@ static void _server_print_loop(void) {
         server.print_is_serial = false;
         server.was_print_time_saved = false;
         feedrate_percentage = 100;
+        planner.max_printed_z = 0;
 #if HAS_MMU2()
         server.mmu_maintenance_checked = false;
 #endif

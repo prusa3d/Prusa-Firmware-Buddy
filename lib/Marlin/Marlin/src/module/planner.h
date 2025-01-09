@@ -251,6 +251,7 @@ struct PlannerHints {
                                       // would calculate if it knew the as-yet-unbuffered path
   #endif
   bool raw_block = false;             // Enqueue block without further modifications
+  MoveHints move;
 };
 
 class Planner {
@@ -325,6 +326,9 @@ class Planner {
     #endif
 
     static xyze_pos_t position_float;
+
+    /// Maximum Z position at which we printed so far for
+    static float max_printed_z;
 
     xyze_long_t get_position_msteps() const { return position; };
 

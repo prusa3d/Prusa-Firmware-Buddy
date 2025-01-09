@@ -41,6 +41,10 @@
   #include "scara.h"
 #endif
 
+struct MoveHints {
+  bool is_printing_move = false;      // The move is a printing move and should possibly count into max printed Z
+};
+
 // Axis homed and known-position states
 extern uint8_t axis_homed, axis_known_position;
 static constexpr uint8_t xyz_bits = _BV(X_AXIS) | _BV(Y_AXIS) | _BV(Z_AXIS);
@@ -193,8 +197,7 @@ void line_to_current_position(const feedRate_t &fr_mm_s=feedrate_mm_s);
 /// is suitable with UBL.
 void plan_move_by(const feedRate_t fr, const float dx, const float dy = 0, const float dz = 0, const float de = 0);
 
-void prepare_move_to_destination();
-static inline void prepare_line_to_destination() { prepare_move_to_destination(); } // stub
+void prepare_move_to_destination(const MoveHints &hints = {});
 
 void _internal_move_to_destination(const feedRate_t &fr_mm_s=0.0f
   #if IS_KINEMATIC

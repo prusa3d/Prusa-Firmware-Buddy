@@ -932,7 +932,7 @@ void restore_feedrate_and_scaling() {
    *
    * Return true if 'current_position' was set to 'destination'
    */
-  inline bool prepare_move_to_destination_cartesian() {
+  inline bool prepare_move_to_destination_cartesian(const PlannerHints &hints) {
     const float scaled_fr_mm_s = MMS_SCALED(feedrate_mm_s);
     #if HAS_MESH
       if (planner.leveling_active && planner.leveling_active_at_z(destination.z)) {
@@ -965,7 +965,7 @@ void restore_feedrate_and_scaling() {
       }
     #endif // HAS_MESH
 
-    planner.buffer_line(destination, scaled_fr_mm_s, active_extruder);
+    planner.buffer_line(destination, scaled_fr_mm_s, active_extruder, hints);
     return false; // caller will update current_position
   }
 
@@ -1095,7 +1095,7 @@ void plan_move_by(const feedRate_t fr, const float dx, const float dy, const flo
  *
  * Before exit, current_position is set to destination.
  */
-void prepare_move_to_destination() {
+void prepare_move_to_destination(const MoveHints &hints) {
   apply_motion_limits(destination);
 
   #if EITHER(PREVENT_COLD_EXTRUSION, PREVENT_LENGTHY_EXTRUDE)
@@ -1140,12 +1140,12 @@ void prepare_move_to_destination() {
       #if IS_KINEMATIC // UBL using Kinematic / Cartesian cases as a workaround for now.
         ubl.line_to_destination_segmented(MMS_SCALED(feedrate_mm_s))
       #else
-        prepare_move_to_destination_cartesian()
+        prepare_move_to_destination_cartesian({.move = hints})
       #endif
     #elif IS_KINEMATIC
       line_to_destination_kinematic()
     #else
-      prepare_move_to_destination_cartesian()
+      prepare_move_to_destination_cartesian({.move = hints})
     #endif
   ) return;
 

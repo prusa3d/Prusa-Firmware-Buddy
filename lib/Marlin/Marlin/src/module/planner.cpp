@@ -267,6 +267,8 @@ float Planner::previous_nominal_speed;
 
 xyze_pos_t Planner::position_float; // Needed for accurate maths. Steps cannot be used!
 
+float Planner::max_printed_z = 0;
+
 /**
  * Class and Instance Methods
  */
@@ -2473,6 +2475,10 @@ bool Planner::buffer_segment(const abce_pos_t &abce
 
   // If we are aborting, do not accept queuing of movements
   if (draining_buffer || PreciseStepping::stopping()) return false;
+
+  if(hints.move.is_printing_move && abce.e > position_float.e) {
+    max_printed_z = std::max(max_printed_z, abce.z);
+  }
 
   // The target position of the tool in absolute mini-steps
   // Calculate target position in absolute mini-steps
