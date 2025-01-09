@@ -40,6 +40,13 @@
   #include "../../../libs/least_squares_fit.h"
   #include "../../../feature/print_area.h"
   #include "../../../feature/bed_preheat.hpp"
+  #include <fanctl.hpp>
+  #include <option/has_love_board.h>
+  #include <scope_guard.hpp>
+
+  #if BOARD_IS_XBUDDY()
+    #include <hw_configuration.hpp>
+  #endif
 
   #if ENABLED(NOZZLE_LOAD_CELL)
     #include "loadcell.hpp"
@@ -334,6 +341,23 @@
   #endif
 
   void unified_bed_leveling::G29() {
+    // Setting pwm on heatbreak fan on coreone causes electrical and mechanical noise on loadcell.
+    // To make sure that the MBL is perfect as possible we turn the fan on without pwm modulation.
+    // This is potentionaly a problem on all the xBuddy boards with love board.
+    //
+    // NOTE: We can't turn the fan off, because some filaments can start get runny in the whole tube that goes to the nozzle.
+    #if HAS_LOVE_BOARD() && !PRINTER_IS_PRUSA_iX()
+    auto &fan = Fans::heat_break(0);
+    fan.disable_autocontrol();
+    if (buddy::hw::Configuration::Instance().has_inverted_fans()) {
+        buddy::hw::fanHeatBreakPwm.write(buddy::hw::Pin::State::low);
+    } else {
+        buddy::hw::fanHeatBreakPwm.write(buddy::hw::Pin::State::high);
+    }
+    ScopeGuard restore_fan_autocontrol([&]() {
+        fan.enable_autocontrol();
+    });
+    #endif
 
     bool probe_deployed = false;
     if (g29_parameter_parsing()) return; // Abort on parameter error
