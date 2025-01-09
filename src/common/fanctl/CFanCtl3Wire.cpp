@@ -164,6 +164,9 @@ CFanCtl3Wire::CFanCtl3Wire(const OutputPin &pinOut, const InputPin &pinTach,
 }
 
 void CFanCtl3Wire::tick() {
+    if (!autocontrol_enabled) {
+        return;
+    }
     // PWM control
     int8_t pwm_on = m_pwm.tick();
     // RPM measurement

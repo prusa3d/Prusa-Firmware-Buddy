@@ -36,6 +36,8 @@ public:
     virtual bool setPWM(uint16_t pwm) = 0;
 
     inline bool isSelftest() { return selftest_mode; }
+    constexpr void disable_autocontrol() { autocontrol_enabled = false; }
+    constexpr void enable_autocontrol() { autocontrol_enabled = true; }
     virtual void enterSelftestMode() = 0;
     virtual void exitSelftestMode() = 0;
     virtual bool selftestSetPWM(uint8_t pwm) = 0;
@@ -46,6 +48,7 @@ protected:
     const uint16_t min_rpm; // minimum rpm value (set in constructor)
     const uint16_t max_rpm; // maximum rpm value (set in constructor)
     bool selftest_mode { false };
+    bool autocontrol_enabled { true };
     std::atomic<uint8_t> selftest_initial_pwm { 0 };
 };
 
