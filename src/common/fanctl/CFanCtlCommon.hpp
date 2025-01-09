@@ -60,10 +60,12 @@ inline constexpr uint16_t FANCTLPRINT_RPM_MIN = 90; // Dynamic PWM enables lower
 inline constexpr uint16_t FANCTLPRINT_RPM_MIN = 150;
 #endif
 inline constexpr uint16_t FANCTLPRINT_RPM_MAX =
-#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_XL())
+#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_COREONE())
     6850
-#else
+#elif PRINTER_IS_PRUSA_MINI()
     5000
+#else
+    #error "You need to specify printfans max RPM"
 #endif
     ;
 inline constexpr uint8_t FANCTLPRINT_PWM_THR = 20;
@@ -87,10 +89,12 @@ inline constexpr uint8_t FANCTLHEATBREAK_PWM_MIN = 0;
 inline constexpr uint8_t FANCTLHEATBREAK_PWM_MAX = 50;
 inline constexpr uint16_t FANCTLHEATBREAK_RPM_MIN = 1000;
 inline constexpr uint16_t FANCTLHEATBREAK_RPM_MAX =
-#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_XL())
+#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_COREONE())
     15180
-#else
+#elif PRINTER_IS_PRUSA_MINI()
     8000
+#else
+    #error "You need to specify printfans max RPM"
 #endif
     ;
 inline constexpr uint8_t FANCTLHEATBREAK_PWM_THR = 20;
