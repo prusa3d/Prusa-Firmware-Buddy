@@ -1,10 +1,14 @@
 /// @file
 #pragma once
-#include "../printers.h"
-#include <leds/side_strip.hpp>
+
+#include <algorithm>
 #include <math.h>
 #include <timing.h>
 #include <optional>
+#include <atomic>
+
+#include "../printers.h"
+#include <leds/side_strip.hpp>
 #include <freertos/mutex.hpp>
 
 #if PRINTER_IS_PRUSA_iX()
@@ -24,7 +28,7 @@ namespace leds {
 /// 2) We need to control side strip asap :)
 class SideStripControl {
 public:
-    SideStripControl();
+    SideStripControl() = default;
 
     void ActivityPing();
     void PresentColor(ColorRGBW color, uint32_t duration_ms, uint32_t transition_ms);

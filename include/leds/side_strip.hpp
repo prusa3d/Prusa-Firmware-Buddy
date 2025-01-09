@@ -2,9 +2,12 @@
 #include "led_strip.hpp"
 #include <assert.h>
 #include <hw/neopixel.hpp>
-#include "led_lcd_cs_selector.hpp"
 #include "printers.h"
 #include <option/xl_enclosure_support.h>
+
+#ifndef UNITTESTS
+    #include "led_lcd_cs_selector.hpp"
+#endif
 
 namespace leds {
 
@@ -16,6 +19,8 @@ public:
 #elif PRINTER_IS_PRUSA_iX()
         return false;
 #elif PRINTER_IS_PRUSA_COREONE()
+        return true;
+#elif defined(UNITTESTS)
         return true;
 #else
     #error "Not defined for this printer."
@@ -73,7 +78,7 @@ private:
     static constexpr size_t led_drivers_count = 18;
     neopixel::SPI_10M5Hz<led_drivers_count, SideStripWriter::write> leds;
 
-#elif PRINTER_IS_PRUSA_COREONE()
+#elif PRINTER_IS_PRUSA_COREONE() || defined(UNITTESTS)
     // Single white-only driver
 
 #else

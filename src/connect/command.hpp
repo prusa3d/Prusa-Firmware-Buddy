@@ -3,6 +3,7 @@
 #include "printer.hpp"
 
 #include <common/shared_buffer.hpp>
+#include <option/has_side_leds.h>
 
 #include <cstdint>
 #include <string_view>
@@ -111,8 +112,10 @@ enum class PropertyName {
     // Therefore option HAS_CHAMBER_API is NOT used yet.
     ChamberTargetTemp,
     ChamberFanPwmTarget,
-    ChamberLedIntensity,
     AddonPower, // not a very descriptive name, but the Connect team understands this property name as USB power output on the XBE
+#endif
+#if HAS_SIDE_LEDS() || defined(UNITTESTS)
+    ChamberLedIntensity,
 #endif
 };
 

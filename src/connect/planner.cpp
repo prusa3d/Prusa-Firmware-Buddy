@@ -30,7 +30,7 @@
 #include <unistd.h>
 
 #include <option/has_side_leds.h>
-#if HAS_SIDE_LEDS()
+#if HAS_SIDE_LEDS() || defined(UNITTESTS)
     #include <leds/side_strip_control.hpp>
 #endif
 
@@ -995,12 +995,14 @@ void Planner::command(const Command &command, const SetValue &params) {
             buddy::xbuddy_extension().set_fan1_fan2_pwm(buddy::FanCooling::pct2pwm(pwm)); // convert from percentage to PWM
         }
     } break;
+    case connect_client::PropertyName::AddonPower:
+        buddy::xbuddy_extension().set_usb_power(get<bool>(params.value));
+        break;
+#endif
+#if HAS_SIDE_LEDS() || defined(UNITTESTS)
     case connect_client::PropertyName::ChamberLedIntensity:
         leds::side_strip_control.set_max_brightness(static_cast<uint16_t>(get<int8_t>(params.value)) * 255 / 100);
         leds::side_strip_control.ActivityPing();
-        break;
-    case connect_client::PropertyName::AddonPower:
-        buddy::xbuddy_extension().set_usb_power(get<bool>(params.value));
         break;
 #endif
     }

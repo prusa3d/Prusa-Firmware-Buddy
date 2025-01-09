@@ -6,9 +6,6 @@ using namespace leds;
 
 SideStripControl leds::side_strip_control;
 
-SideStripControl::SideStripControl() {
-}
-
 void SideStripControl::ActivityPing() {
     std::unique_lock lock(mutex);
     active_start_timestamp.emplace(ticks_ms());

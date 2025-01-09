@@ -20,16 +20,6 @@ void XBuddyExtension::set_fan1_fan2_auto_control() {
     fan12pwm.reset();
 }
 
-uint8_t ledpwm = 0;
-
-uint8_t XBuddyExtension::chamber_leds_pwm() {
-    return ledpwm;
-}
-
-void XBuddyExtension::set_chamber_leds_pwm(uint8_t set) {
-    ledpwm = set;
-}
-
 bool usbpower = false;
 
 bool XBuddyExtension::usb_power() const {
