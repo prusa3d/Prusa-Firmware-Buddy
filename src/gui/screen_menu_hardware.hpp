@@ -53,7 +53,7 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 // Motion related
 // ================================
 #if HAS_PHASE_STEPPING_TOGGLE()
-    MI_PHASE_STEPPING,
+    MI_PHASE_STEPPING_TOGGLE,
 #endif
 #if ENABLED(CRASH_RECOVERY)
     MI_CRASH_SENSITIVITY_XY, MI_CRASH_MAX_PERIOD_X, MI_CRASH_MAX_PERIOD_Y,

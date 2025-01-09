@@ -81,7 +81,7 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #endif
     MI_INPUT_SHAPER,
 #if HAS_PHASE_STEPPING_TOGGLE()
-    MI_PHASE_STEPPING,
+    MI_PHASE_STEPPING_TOGGLE,
 #endif
     MI_FAN_CHECK,
     MI_GCODE_VERIFY,

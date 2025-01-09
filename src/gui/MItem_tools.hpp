@@ -578,12 +578,12 @@ protected:
 
 #if HAS_PHASE_STEPPING_TOGGLE()
 
-class MI_PHASE_STEPPING : public WI_ICON_SWITCH_OFF_ON_t {
+class MI_PHASE_STEPPING_TOGGLE : public WI_ICON_SWITCH_OFF_ON_t {
     static constexpr const char *label = "Phase Stepping";
     bool event_in_progress { false };
 
 public:
-    MI_PHASE_STEPPING();
+    MI_PHASE_STEPPING_TOGGLE();
 
 protected:
     void OnChange(size_t old_index) override;

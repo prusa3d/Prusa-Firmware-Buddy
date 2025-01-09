@@ -876,13 +876,13 @@ void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 #if HAS_PHASE_STEPPING_TOGGLE()
-MI_PHASE_STEPPING::MI_PHASE_STEPPING()
+MI_PHASE_STEPPING_TOGGLE::MI_PHASE_STEPPING_TOGGLE()
     : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
     bool phstep_enabled = config_store().get_phase_stepping_enabled();
     set_value(phstep_enabled, false);
 }
 
-void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
+void MI_PHASE_STEPPING_TOGGLE::OnChange([[maybe_unused]] size_t old_index) {
     if (event_in_progress) {
         return;
     }
