@@ -86,6 +86,11 @@ float Loadcell::Tare(TareMode mode) {
         idle(true, true);
     }
 
+    // We might have exited the loop prematurely because of planner.draining()
+    // In that case, reset tare count to 0.
+    // This is safe - the tareCount is consumed from the ISR, which has a higher priority
+    tareCount = 0;
+
     if (!planner.draining()) {
         if (tareMode == TareMode::Continuous) {
             // double-check filters are ready after the tare
