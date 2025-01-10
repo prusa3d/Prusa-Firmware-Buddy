@@ -341,6 +341,10 @@ class Planner {
      */
     static xyze_long_t position;
 
+    /// Increased with every quick stop
+    /// Useful for tracking whether a quick stop occured during a procedure
+    static uint32_t quick_stop_count;
+
   private:
     /**
      * Speed of previous path line segment
@@ -777,9 +781,6 @@ class Planner {
     // a Full Shutdown is required, or when endstops are hit).
     // Will implicitly call drain().
     static void quick_stop();
-
-    // Drop new moves and abort any pending one until release()
-    static void drain() { draining_buffer = true; }
 
     // Return the draining status
     static bool draining() { return draining_buffer; }

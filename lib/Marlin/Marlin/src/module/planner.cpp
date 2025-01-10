@@ -241,6 +241,8 @@ skew_factor_t Planner::skew_factor; // Initialized by settings.load()
 
 xyze_long_t Planner::position{0};
 
+uint32_t Planner::quick_stop_count = 0;
+
 uint32_t Planner::cutoff_long;
 
 xyze_float_t Planner::previous_speed;
@@ -1031,7 +1033,9 @@ void Planner::quick_stop() {
   PreciseStepping::quick_stop();
 
   // Start draining the planner (requires one full marlin loop to complete!)
-  drain();
+  draining_buffer = true;
+
+  quick_stop_count ++;
 
   // Restart the block delay for the first movement - As the queue was
   // forced to empty, there's no risk the ISR will touch this.
