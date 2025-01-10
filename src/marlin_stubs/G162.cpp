@@ -137,6 +137,9 @@ void selftest::calib_Z(bool move_down_after) {
     current_position.z = Z_MAX_POS;
     sync_plan_position();
 
+    // move a little bit back to stabilize the motors
+    do_blocking_move_to_z(Z_MAX_POS - 1, Z_CALIB_ALIGN_AXIS_FEEDRATE);
+
     if (move_down_after) {
         safe_move_down();
     }
