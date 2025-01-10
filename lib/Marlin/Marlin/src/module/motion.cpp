@@ -1969,6 +1969,8 @@ float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const fe
     }
   #endif
 
+  const auto initial_quick_stop_count = planner.quick_stop_count;
+
   // Set flags for X, Y, Z motor locking
   #if HAS_EXTRA_ENDSTOPS
     switch (axis) {
@@ -2033,12 +2035,17 @@ float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const fe
   int steps_after_bump[2];
 
   for(uint8_t i = 0; i < bump_count; i++) {
+
     // Move away from the endstop by the axis HOME_BUMP_MM
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Move Away:");
     do_blocking_move_axis(axis, -bump, fr_mm_s);
 
     // Slow move towards endstop until triggered
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Home 2 Slow:");
+
+    // Early abort if a quick stop was issued
+    if (planner.quick_stop_count != initial_quick_stop_count)
+      return NAN;
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
       if (axis == Z_AXIS && homing_z_with_probe && bltouch.deploy()) {
@@ -2172,7 +2179,7 @@ float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const fe
   #endif
 
     // Check if any of the moves were aborted and avoid setting any state
-    if (planner.draining())
+    if (planner.quick_stop_count != initial_quick_stop_count)
       return NAN;
 
   #if IS_SCARA
