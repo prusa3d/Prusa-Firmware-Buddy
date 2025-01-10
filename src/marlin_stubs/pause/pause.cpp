@@ -533,12 +533,10 @@ void Pause::filament_push_ask_process(Response response) {
 
     } else {
         setPhase(is_unstoppable() ? PhasesLoadUnload::UserPush_unstoppable : PhasesLoadUnload::UserPush_stoppable);
-
-        if (response == Response::Continue || settings.extruder_mmu_rework) {
-
-            if (FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) {
-                set(LoadState::load_to_gears);
-            }
+        const bool has_filament = FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder);
+        const bool is_mmu_rework_and_has_filament = settings.extruder_mmu_rework && has_filament;
+        if (response == Response::Continue || is_mmu_rework_and_has_filament) {
+            set(LoadState::load_to_gears);
         }
     }
 
