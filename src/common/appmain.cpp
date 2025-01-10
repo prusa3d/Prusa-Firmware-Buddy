@@ -233,6 +233,7 @@ void app_run(void) {
             loop();
         }
         marlin_server::loop();
+        buddy::metrics::RecordUptime(); // Pa465
     }
 }
 
