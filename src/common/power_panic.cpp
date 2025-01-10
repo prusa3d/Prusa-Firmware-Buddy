@@ -991,7 +991,6 @@ void panic_loop() {
 #if ENABLED(SKEW_CORRECTION)
             planner.skew_factor.xy = 0; // avoid triggering Y due to XY skew correction
 #endif
-            feedrate_mm_s = POWER_PANIC_X_FEEDRATE;
             destination = current_position;
             const PrintArea::rect_t print_rect = print_area.get_bounding_rect(); // We need to get out of print area
 #if HAS_TOOLCHANGER()
@@ -1006,18 +1005,18 @@ void panic_loop() {
                     if (std::min(current_position.x - print_rect.a.x, print_rect.b.x - current_position.x)
                         > std::min(current_position.y - print_rect.a.y, print_rect.b.y - current_position.y)) {
                         // Move to Y edge of printer in direction of nearest Y end of print area
-                        destination.y = (current_position.y < (print_rect.a.y + print_rect.b.y) / 2 ? Y_MIN_POS : Y_MAX_PRINT_POS);
+                        current_position.y = (current_position.y < (print_rect.a.y + print_rect.b.y) / 2 ? Y_MIN_POS : Y_MAX_PRINT_POS);
                     } else
 #endif /*ENABLED(COREXY)*/
                     {
                         // Move to X edge of printer in direction of nearest X end of print area
-                        destination.x = (current_position.x < (print_rect.a.x + print_rect.b.x) / 2 ? X_MIN_POS : X_MAX_POS);
+                        current_position.x = (current_position.x < (print_rect.a.x + print_rect.b.x) / 2 ? X_MIN_POS : X_MAX_POS);
                     }
                 } else {
                     // we might be anywhere, plan some move towards the endstop
-                    destination.x = current_position.x - (X_MAX_POS - X_MIN_POS);
+                    current_position.x = current_position.x - (X_MAX_POS - X_MIN_POS);
                 }
-                prepare_move_to_destination();
+                line_to_current_position(POWER_PANIC_X_FEEDRATE);
                 stepper.start_moving();
             }
         }
