@@ -1039,8 +1039,8 @@
  */
 #define Z_CLEARANCE_BEFORE_PROBING 5 // Z Clearance before first MBL probe
 #define Z_CLEARANCE_DEPLOY_PROBE 0 // Z Clearance for Deploy/Stow
-#define Z_CLEARANCE_BETWEEN_PROBES 0.5 // Z Clearance between probe points 1
-#define Z_CLEARANCE_MULTI_PROBE 0.5 // Z Clearance between multiple probes
+#define Z_CLEARANCE_BETWEEN_PROBES 0.3 // Z Clearance between probe points 1
+#define Z_CLEARANCE_MULTI_PROBE 0.3 // Z Clearance between multiple probes
 #define Z_AFTER_PROBING 2 // Z position after probing is done 2
 
 #define Z_PROBE_LOW_POINT -5 // Farthest distance below the trigger-point to go before stopping
@@ -1371,11 +1371,11 @@
 //#define MESH_EDIT_GFX_OVERLAY   // Display a graphics overlay while editing the mesh
 
     #define GRID_BORDER 1 // border we are never gonna probe, only border of size 1 is currently supported
-    #define GRID_MAJOR_STEP 5 // the offset between major points
-    #define GRID_MAJOR_POINTS_X 5 // number of major probes on the X axis
-    #define GRID_MAJOR_POINTS_Y 5 // number of major probes on the Y axis
-    #define GRID_MAX_POINTS_X 23
-    #define GRID_MAX_POINTS_Y 23
+    #define GRID_MAJOR_STEP 3 // the offset between major points
+    #define GRID_MAJOR_POINTS_X 7 // number of major probes on the X axis
+    #define GRID_MAJOR_POINTS_Y 7 // number of major probes on the Y axis
+    #define GRID_MAX_POINTS_X 21
+    #define GRID_MAX_POINTS_Y 21
     //#define GRID_MAX_POINTS_X (GRID_BORDER * 2 + GRID_MAJOR_POINTS_X + ((GRID_MAJOR_POINTS_X - 1) * (GRID_MAJOR_STEP - 1))) // full resolution of the grid (X axis)
     //#define GRID_MAX_POINTS_Y (GRID_BORDER * 2 + GRID_MAJOR_POINTS_Y + ((GRID_MAJOR_POINTS_Y - 1) * (GRID_MAJOR_STEP - 1))) // full resolution of the grid (X axis)
 
