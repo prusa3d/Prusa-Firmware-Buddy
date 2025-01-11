@@ -4,6 +4,7 @@ add_subdirectory(Leds)
 add_subdirectory(gcode)
 add_subdirectory(http)
 add_subdirectory(utils)
+add_subdirectory(ring_allocator)
 add_subdirectory(filament_sensor)
 add_subdirectory(freertos)
 

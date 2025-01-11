@@ -85,6 +85,11 @@ public:
     void *allocate(size_t size);
     /// Like free.
     void free(void *ptr);
+
+#ifdef UNITTESTS
+    /// To be used in tests. Asserts if something seems wrong.
+    void sanity_check();
+#endif
 };
 
 } // namespace buddy

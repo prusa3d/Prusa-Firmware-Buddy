@@ -6,6 +6,10 @@
 
 LOG_COMPONENT_DEF(RingAllocator, logging::Severity::info);
 
+// Note: The alignment is possibly wrong on the 64bit system where tests run
+// (it's fine on the real printer). However, that system also supports
+// unaligned pointer access and all that, so for unit tests, that's fine
+// enough.
 constexpr size_t alignment = 4;
 
 namespace buddy {
@@ -135,7 +139,9 @@ void RingAllocator::split(Record *record, size_t current_size, size_t new_size) 
     new_record->in_use = false;
     new_record->next = record->next;
     new_record->prev = record;
-    record->next->prev = new_record;
+    if (record->next != nullptr) {
+        record->next->prev = new_record;
+    }
     record->next = new_record;
 #ifdef EXTRA_RING_ALLOCATOR_LOGGING
     records++;
@@ -150,5 +156,42 @@ size_t RingAllocator::available_size(Record *record) {
     assert(next_pos <= end_pos);
     return next_pos - rec_pos;
 }
+
+#ifdef UNITTESTS
+void RingAllocator::sanity_check() {
+    Record *r = reinterpret_cast<Record *>(buffer.get());
+    assert(r != nullptr);
+
+    bool seen_head = false;
+    bool first = true;
+    bool last_in_use = true;
+
+    while (r != nullptr) {
+        if (r == alloc_head) {
+            assert(!seen_head);
+            seen_head = true;
+        }
+
+        if (r->next != nullptr) {
+            assert(r->next > r);
+            r->next->prev = r;
+        }
+
+        if (first) {
+            first = false;
+        } else {
+            assert(r->prev != nullptr);
+            assert(r->prev->next == r);
+        }
+
+        assert(last_in_use || r->in_use);
+        last_in_use = r->in_use;
+
+        r = r->next;
+    }
+
+    assert(seen_head);
+}
+#endif
 
 } // namespace buddy
