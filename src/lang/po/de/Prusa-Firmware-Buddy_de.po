@@ -4853,7 +4853,7 @@ msgstr "Vorladen zur MMU"
 
 #: src/gui/MItem_mmu.hpp:10
 msgid "Preload to MMU Advanced"
-msgstr "Vorladen zur MMU Fortgeschritten"
+msgstr "Vorladen zur MMU Erweitert"
 
 #: src/gui/wizard/selftest_frame_temp.cpp:58
 msgid "Preparing"
