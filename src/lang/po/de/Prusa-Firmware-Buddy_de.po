@@ -5251,7 +5251,7 @@ msgstr "Vorladen zur MMU"
 
 #: src/gui/MItem_mmu.hpp:11
 msgid "Preload to MMU Advanced"
-msgstr "Vorladen zur MMU Fortgeschritten"
+msgstr "Vorladen zur MMU Erweitert"
 
 #: src/gui/wizard/selftest_frame_temp.cpp:59
 #: src/gui/wizard/screen_belt_tuning_wizard.cpp:21
