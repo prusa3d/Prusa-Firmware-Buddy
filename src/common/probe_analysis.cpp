@@ -351,7 +351,7 @@ float ProbeAnalysisBase::InterpolateFinalZCoordinate(Features &features) {
     float loadAtDecompressionEnd = features.decompressionLine.GetY(features.decompressionEndTime);
     float middleTimestamp = features.decompressionLine.GetTime(loadAtDecompressionEnd - 120 + 70);
     float zDecompressionMiddle = features.riseLine.GetY(middleTimestamp);
-    return (zDecompressionEnd + zDecompressionMiddle) / 2;
+    return (zDecompressionEnd + zDecompressionMiddle) / 2 + 0.01f;
 }
 
 int ProbeAnalysisBase::Classify(Features &features) {
