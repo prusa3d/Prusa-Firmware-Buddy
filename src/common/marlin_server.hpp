@@ -115,6 +115,9 @@ void quick_resume();
 // return true if the printer is not moving (idle, paused, aborted or finished)
 bool printer_idle();
 
+// returns true if printer is printing, else false;
+bool is_printing();
+
 /**
  * @brief Know if any print preview state is active.
  * @return true if print preview is on

@@ -1073,6 +1073,22 @@ bool print_preview() {
         || server.print_state == State::WaitGui;
 }
 
+bool is_printing() {
+    switch (marlin_vars().print_state) {
+    case State::Aborted:
+    case State::Idle:
+    case State::Finished:
+    case State::PrintPreviewInit:
+    case State::PrintPreviewImage:
+#if HAS_TOOLCHANGER() || HAS_MMU2()
+    case State::PrintPreviewToolsMapping:
+#endif
+        return false;
+    default:
+        return true;
+    }
+}
+
 bool aborting_or_aborted() {
     return (server.print_state >= State::Aborting_Begin && server.print_state <= State::Aborted);
 }

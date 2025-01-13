@@ -427,20 +427,9 @@ void FSM_encoded_response(EncodedFSMResponse encoded_fsm_response) {
     request.encoded_fsm_response = encoded_fsm_response;
     _send_request_to_server_and_wait(request);
 }
+
 bool is_printing() {
-    switch (marlin_vars().print_state) {
-    case State::Aborted:
-    case State::Idle:
-    case State::Finished:
-    case State::PrintPreviewInit:
-    case State::PrintPreviewImage:
-#if HAS_TOOLCHANGER() || HAS_MMU2()
-    case State::PrintPreviewToolsMapping:
-#endif
-        return false;
-    default:
-        return true;
-    }
+    return marlin_server::is_printing();
 }
 
 bool is_paused() {
