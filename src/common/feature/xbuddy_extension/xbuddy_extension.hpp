@@ -108,6 +108,9 @@ private:
     FanCooling chamber_cooling;
 
     uint8_t fan3_pwm_ = 0;
+
+    // keeps the last timestamp of Fan PWM update
+    uint32_t last_fan_update_ms;
 };
 
 XBuddyExtension &xbuddy_extension();

@@ -37,7 +37,12 @@ void XBuddyExtension::step() {
     const auto rpm1 = puppies::xbuddy_extension.get_fan_rpm(1);
     const auto temp = chamber_temperature();
 
-    if (rpm0.has_value() && rpm1.has_value() && temp.has_value()) {
+    // execute control loop only once per defined period
+    const auto now_ms = ticks_ms();
+    const bool fan_update_pending = (ticks_diff(now_ms, last_fan_update_ms) >= static_cast<int32_t>(chamber_cooling.dt_s * 1000));
+
+    if (fan_update_pending && rpm0.has_value() && rpm1.has_value() && temp.has_value()) {
+        last_fan_update_ms = now_ms;
         chamber_cooling.target_temperature = target_temp;
         const bool already_spinning = *rpm0 > 5 && *rpm1 > 5;
 

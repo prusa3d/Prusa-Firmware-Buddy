@@ -29,6 +29,9 @@ public:
     static constexpr FanPWM min_pwm = 40;
     static constexpr FanPWM spin_up_pwm = 100;
 
+    // time step for regulation loop
+    static constexpr float dt_s = 1.0f;
+
     bool auto_control = true;
 
     // Can be directly set if auto_control = false
