@@ -6,6 +6,7 @@
 #include <feature/chamber/chamber.hpp>
 #include <feature/xbuddy_extension/cooling.hpp>
 #include <leds/side_strip.hpp>
+#include <marlin_server.hpp>
 
 namespace buddy {
 
@@ -46,10 +47,30 @@ void XBuddyExtension::step() {
         chamber_cooling.target_temperature = target_temp;
         const bool already_spinning = *rpm0 > 5 && *rpm1 > 5;
 
-        const uint8_t pwm = chamber_cooling.compute_pwm(already_spinning, *temp);
+        const uint8_t pwm = chamber_cooling.compute_pwm_step(already_spinning, *temp);
 
         puppies::xbuddy_extension.set_fan_pwm(0, pwm);
         puppies::xbuddy_extension.set_fan_pwm(1, pwm);
+
+        if (chamber_cooling.get_critical_temp_flag()) {
+            // executed from task marlin_server, marlin_server must be called directly
+            if (!critical_warning_shown || marlin_server::is_printing()) {
+                marlin_server::print_abort();
+                thermalManager.disable_all_heaters();
+                marlin_server::set_warning(WarningType::ChamberCriticalTemperature);
+                critical_warning_shown = true;
+            }
+        } else if (chamber_cooling.get_overheating_temp_flag()) {
+            // executed from task marlin_server, marlin_server must be called directly
+            if (!marlin_server::is_warning_active(WarningType::ChamberOverheatingTemperature) && !overheating_warning_shown) {
+                marlin_server::set_warning(WarningType::ChamberOverheatingTemperature);
+                overheating_warning_shown = true;
+            }
+        } else {
+            overheating_warning_shown = false;
+            critical_warning_shown = false;
+        }
+
     } // else -> comm not working, we'll set it next time (instead of setting
       // them to wrong value, keep them at what they are now).
 
@@ -79,18 +100,18 @@ uint8_t XBuddyExtension::fan1_fan2_pwm() const {
 
 void XBuddyExtension::set_fan1_fan2_pwm(uint8_t pwm) {
     std::lock_guard _lg(mutex_);
-    chamber_cooling.auto_control = false;
+    chamber_cooling.set_auto_control(false);
     chamber_cooling.target_pwm = pwm;
 }
 
 bool XBuddyExtension::has_fan1_fan2_auto_control() const {
     std::lock_guard _lg(mutex_);
-    return chamber_cooling.auto_control;
+    return chamber_cooling.get_auto_control();
 }
 
 void XBuddyExtension::set_fan1_fan2_auto_control() {
     std::lock_guard _lg(mutex_);
-    chamber_cooling.auto_control = true;
+    chamber_cooling.set_auto_control(true);
 }
 
 std::optional<uint16_t> XBuddyExtension::fan3_rpm() const {
@@ -115,7 +136,7 @@ buddy::XBuddyExtension::FanState buddy::XBuddyExtension::get_fan12_state() const
         .fan1rpm = fanrpms[0],
         .fan2rpm = fanrpms[1],
         .fan12pct = buddy::FanCooling::pwm2pct(chamber_cooling.target_pwm),
-        .fan12autocontrol = chamber_cooling.auto_control,
+        .fan12autocontrol = chamber_cooling.get_auto_control(),
     };
 }
 

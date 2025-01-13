@@ -1,30 +1,30 @@
 #include "cooling.hpp"
 
 #include <algorithm>
-
 namespace buddy {
 
-FanCooling::FanPWM FanCooling::compute_ramp(bool already_spinning, Temperature current_temperature, Temperature temp_ramp_start, Temperature temp_ramp_end, FanPWM max_pwm) {
-    // Linear mapping from the allowed temp difference over the target to allowed RPM range
-    const Temperature temp_diff = current_temperature - temp_ramp_start;
-    const FanPWM desired = static_cast<FanPWM>(std::clamp<int>(temp_diff * max_pwm / (temp_ramp_end - temp_ramp_start), 0, max_pwm));
+FanCooling::FanPWM FanCooling::compute_auto_regulation_step(Temperature current_temperature) {
+    FanPWM desired = 0;
 
-    // If the fan is already spinning, we keep it spinning until it
-    // falls below the target by the margin, so we don't go
-    // on-off-on-off too much.
-    if (desired == 0 && already_spinning && current_temperature >= temp_ramp_start - off_temp_below) {
-        return 1;
-    }
+    const float error = current_temperature - *target_temperature;
+
+    // Simple P-regulation calculation
+    float regulation_output = last_regulation_output + (proportional_constant * error);
+
+    regulation_output = std::clamp<float>(regulation_output, 0.0f, static_cast<float>(soft_max_pwm));
+
+    // convert float result to integer, while keeping the range of float for next loop
+    desired = static_cast<FanPWM>(regulation_output);
+    last_regulation_output = regulation_output;
 
     return desired;
 }
 
-FanCooling::FanPWM FanCooling::compute_pwm(bool already_spinning, Temperature current_temperature) {
+FanCooling::FanPWM FanCooling::compute_pwm_step(bool already_spinning, Temperature current_temperature) {
     // Make sure the target_pwm contains the value we would _like_ to
     // run at.
     if (auto_control && target_temperature) {
-        target_pwm = compute_ramp(already_spinning, current_temperature, *target_temperature, *target_temperature + fans_max_temp_diff, soft_max_pwm);
-
+        target_pwm = compute_auto_regulation_step(current_temperature);
     } else if (auto_control) {
         target_pwm = 0;
 
@@ -33,28 +33,45 @@ FanCooling::FanPWM FanCooling::compute_pwm(bool already_spinning, Temperature cu
     // Prevent cropping off 1 during the restaling
     FanPWM result = target_pwm;
 
-    // Emergency cooling - overrides any other control, goes at full power
-    const FanPWM emergency_cooling = compute_ramp(already_spinning, current_temperature, emergency_cooling_temp - fans_max_temp_diff, emergency_cooling_temp, max_pwm);
-    result = std::max(result, emergency_cooling);
-
-    if (result == 0) {
-        return 0;
+    if (current_temperature >= critical_temp) {
+        // Critical cooling - overrides any other control, goes at full power
+        critical_temp_flag = true;
+    } else if ((current_temperature >= overheating_temp) && (!critical_temp_flag)) {
+        // Emergency cooling - overrides other control, goes at full power
+        overheating_temp_flag = true;
     }
 
-    // If the fans are not spinning yet and should be, give them a bit of a
-    // kick to get turning. Unfortunately, we can't do that to each of them
-    // individually, they share the PWM, even though they have separate RPM
-    // measurement.
-    if (!already_spinning) {
-        result = std::max(result, spin_up_pwm);
+    if (overheating_temp_flag || critical_temp_flag) {
+        // Max cooling after temperature overshoot
+        result = max_pwm;
+        if (current_temperature < recovery_temp) {
+            overheating_temp_flag = false;
+            critical_temp_flag = false;
+        }
+    } else if (result > 0) {
+        if (!already_spinning) {
+            // If the fans are not spinning yet and should be, give them a bit of a
+            // kick to get turning. Unfortunately, we can't do that to each of them
+            // individually, they share the PWM, even though they have separate RPM
+            // measurement.
+            result = std::max(result, spin_up_pwm);
+        } else {
+            // Even if the user sets it to some low %, keep them at least on the
+            // minimum (the auto thing never sets it between 0 and min, so it's
+            // only in the manual case).
+            result = std::max(result, min_pwm);
+        }
     }
-
-    // Even if the user sets it to some low %, keep them at least on the
-    // minimum (the auto thing never sets it between 0 and min, so it's
-    // only in the manual case).
-    result = std::max(result, min_pwm);
-
     return result;
+}
+
+void FanCooling::set_auto_control(bool ac) {
+    if (ac && !auto_control) {
+        // reset regulator only if auto_control is set true for the first time
+        target_pwm = 0;
+        last_regulation_output = 0.0f;
+    }
+    auto_control = ac;
 }
 
 } // namespace buddy

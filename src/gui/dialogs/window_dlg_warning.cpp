@@ -101,6 +101,10 @@ const img::Resource *warning_dialog_icon(WarningType warning_type) {
 #if HAS_UNEVEN_BED_PROMPT()
             { WarningType::BedUnevenAlignmentPrompt, &img::warning_48x48 },
 #endif
+#if HAS_CHAMBER_API()
+            { WarningType::ChamberOverheatingTemperature, &img::warning_48x48 },
+            { WarningType::ChamberCriticalTemperature, &img::warning_48x48 },
+#endif
             { WarningType::AccelerometerCommunicationFailed, &img::warning_48x48 },
     };
     return data[warning_type];

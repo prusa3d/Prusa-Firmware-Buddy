@@ -111,6 +111,9 @@ private:
 
     // keeps the last timestamp of Fan PWM update
     uint32_t last_fan_update_ms;
+
+    bool overheating_warning_shown = false;
+    bool critical_warning_shown = false;
 };
 
 XBuddyExtension &xbuddy_extension();

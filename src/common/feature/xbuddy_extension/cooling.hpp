@@ -11,15 +11,14 @@ class FanCooling {
 public:
     using FanPWM = uint8_t;
 
-    /// Target-current temperature difference at which the fans go on full
-    static constexpr Temperature fans_max_temp_diff = 10;
-
-    // We spin up the fans at the target temperature, but turn them off
-    // when we get below the target temperature by this much.
-    static constexpr Temperature off_temp_below = 2;
-
     /// Temperature at which the fans start spinning at full speed, no matter what
-    static constexpr Temperature emergency_cooling_temp = 70;
+    static constexpr Temperature overheating_temp = 70.0f;
+
+    /// Temperature at which the print is stopped and fans at full power, not matter what
+    static constexpr Temperature critical_temp = 75.0f;
+
+    /// Temperature at which the normal fan control may be restored, after emergency temperature
+    static constexpr Temperature recovery_temp = 60.0f;
 
     /// Maximum PWM for user and automatic control
     static constexpr FanPWM soft_max_pwm = 100;
@@ -32,7 +31,7 @@ public:
     // time step for regulation loop
     static constexpr float dt_s = 1.0f;
 
-    bool auto_control = true;
+    static constexpr float proportional_constant = 1.5f * dt_s;
 
     // Can be directly set if auto_control = false
     FanPWM target_pwm = 0;
@@ -40,8 +39,9 @@ public:
     // The desired temperature; nullopt if no request (no cooling will happen in auto mode).
     std::optional<Temperature> target_temperature;
 
-    // Compute at what PWM the fan(s) should be driven.
-    FanPWM compute_pwm(bool already_spinning, Temperature current_temperature);
+    // Compute at what PWM the fan(s) should be driven
+    // !!!!!!!! this function should be called in regular time intervals given by dt_s !!!!!!!!
+    FanPWM compute_pwm_step(bool already_spinning, Temperature current_temperature);
 
     /// @returns percentage 0-100% converted from PWM value (0-max_pwm)
     /// @note For now PWM range is 0-max_pwm. In the future, other ranges may appear if HW changes.
@@ -55,9 +55,20 @@ public:
         return static_cast<uint8_t>(((uint16_t)pct) * max_pwm / 100U);
     }
 
+    constexpr bool get_overheating_temp_flag() { return overheating_temp_flag; };
+    constexpr bool get_critical_temp_flag() { return critical_temp_flag; };
+
+    void set_auto_control(bool ac);
+    constexpr bool get_auto_control() const { return auto_control; };
+
 private:
+    bool auto_control = true;
     /// Computes a PWM ramping function
-    static FanPWM compute_ramp(bool already_spinning, Temperature current_temperature, Temperature temp_ramp_start, Temperature temp_ramp_end, FanPWM max_pwm);
+    FanPWM compute_auto_regulation_step(Temperature current_temperature);
+    float last_regulation_output = 0.0f;
+
+    bool overheating_temp_flag = false;
+    bool critical_temp_flag = false;
 };
 
 } // namespace buddy

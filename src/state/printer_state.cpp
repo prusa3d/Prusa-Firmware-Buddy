@@ -545,7 +545,6 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
     case WarningType::DoorOpen:
         return ErrCode::ERR_MECHANICAL_DOOR_OPEN;
 #endif
-
 #if HAS_CHAMBER_API()
     case WarningType::FailedToReachChamberTemperature:
         return ErrCode::ERR_TEMPERATURE_CHAMBER_FAILED_TO_REACH_TEMP;
@@ -554,6 +553,12 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
 #if HAS_UNEVEN_BED_PROMPT()
     case WarningType::BedUnevenAlignmentPrompt:
         return ErrCode::ERR_MECHANICAL_UNEVEN_BED_ALIGN_PROMPT;
+#endif
+#if HAS_CHAMBER_API()
+    case WarningType::ChamberOverheatingTemperature:
+        return ErrCode::ERR_TEMPERATURE_CHAMBER_OVERHEATING_TEMP;
+    case WarningType::ChamberCriticalTemperature:
+        return ErrCode::ERR_TEMPERATURE_CHAMBER_CRITICAL_TEMP;
 #endif
     }
 
