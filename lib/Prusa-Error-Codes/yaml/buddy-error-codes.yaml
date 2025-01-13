@@ -302,13 +302,13 @@ Errors:
     approved: false
 
   - code: "XX260"
-    printers: [COREONE]
+    printers: [COREONE, XL]
     title: "Chamber Overheating"
     text: "Chamber temperature above safety limit. Ensure better ventilation."
     id: "CHAMBER_OVERHEATING_TEMP"
 
   - code: "XX261"
-    printers: [COREONE]
+    printers: [COREONE, XL]
     title: "Chamber Temperature Is Critical"
     text: "Chmaber temperature critical. Aborting print to prevent printer damage."
     id: "CHAMBER_CRITICAL_TEMP"
