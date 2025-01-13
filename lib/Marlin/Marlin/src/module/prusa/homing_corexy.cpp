@@ -748,7 +748,7 @@ static bool measure_calibrate_sens(CoreXYHomeTMCSens &calibrated_sens,
             if (planner.draining()) {
                 return false;
             }
-        } else if (score > 0.f) {
+        } else {
             scores[score_cnt].first = sens;
             scores[score_cnt].second = score;
             ++score_cnt;
