@@ -125,7 +125,9 @@ FwAutoUpdate get_auto_update_flag(void) {
         case FwAutoUpdate::off:
         case FwAutoUpdate::older:
         case FwAutoUpdate::specified:
-        case FwAutoUpdate::tester_mode:
+        case FwAutoUpdate::tester_mode_1:
+        case FwAutoUpdate::tester_mode_2:
+        case FwAutoUpdate::tester_mode_3:
             return ram_data_exchange.fw_update_flag;
         }
     }
@@ -213,5 +215,16 @@ bool has_apendix() {
 } // namespace data_exchange
 
 bool running_in_tester_mode() {
-    return get_auto_update_flag() == FwAutoUpdate::tester_mode;
+    switch (get_auto_update_flag()) {
+    case FwAutoUpdate::on:
+    case FwAutoUpdate::off:
+    case FwAutoUpdate::older:
+    case FwAutoUpdate::specified:
+        break;
+    case FwAutoUpdate::tester_mode_1:
+    case FwAutoUpdate::tester_mode_2:
+    case FwAutoUpdate::tester_mode_3:
+        return true;
+    }
+    return false;
 }

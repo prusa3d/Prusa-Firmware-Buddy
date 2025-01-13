@@ -12,7 +12,9 @@ enum class FwAutoUpdate : uint8_t {
     off = 0x00,
     older = 0x55,
     specified = 0xBB,
-    tester_mode = 0xCC,
+    tester_mode_1 = 0xCA,
+    tester_mode_2 = 0xCB,
+    tester_mode_3 = 0xCC,
 };
 
 struct __attribute__((packed)) version_t {

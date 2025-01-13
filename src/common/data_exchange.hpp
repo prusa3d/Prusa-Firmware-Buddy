@@ -12,7 +12,7 @@ FwAutoUpdate get_auto_update_flag(void);
  */
 void data_exchange_init();
 
-/// wrapper around get_auto_update_flag() == FwAutoUpdate::tester_mode
+/// wrapper around get_auto_update_flag() == FwAutoUpdate::tester_mode_{1,2,3}
 bool running_in_tester_mode();
 
 /*!****************************************************************************
