@@ -96,6 +96,7 @@
 
 #include <option/has_nozzle_cleaner.h>
 #include <option/has_wastebin.h>
+#include <option/has_dwarf.h>
 
 #define XYZ_CONSTS(T, NAME, OPT) const PROGMEM XYZval<T> NAME##_P = { X_##OPT, Y_##OPT, Z_##OPT }
 
@@ -2053,7 +2054,16 @@ float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const fe
     #if HOMING_Z_WITH_PROBE
     if (axis == Z_AXIS) {
       if (axis_home_dir < 0) {
+#if HAS_DWARF()
+        // Note: for XL (and possibly anything else with dwarf, but we don't
+        // really have anything like that) has a "remote" loadcell and needed
+        // very fine tuning. That tuning works only on that default feedrate,
+        // not on the slow one (on the slow one, the touch is not actually
+        // detected).
+        bump_feedrate = fr_mm_s;
+#else
         bump_feedrate = MMM_TO_MMS(Z_PROBE_SPEED_SLOW);
+#endif
       } else {
         // moving away from the bed
         bump_feedrate = MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z);
