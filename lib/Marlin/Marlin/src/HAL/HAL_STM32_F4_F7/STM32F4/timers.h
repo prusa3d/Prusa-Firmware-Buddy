@@ -43,7 +43,7 @@
 #define TEMP_TIMER_FREQUENCY    1000 // temperature interrupt frequency
 
 #define MOVE_TIMER_PRESCALE     1000 // prescaler for setting Move timer, 72Khz
-#define MOVE_TIMER_FREQUENCY    400 // move interrupt frequency
+#define MOVE_TIMER_FREQUENCY    1000 // move interrupt frequency
 
 #define STEPPER_TIMER_PRESCALE (SYSTEM_CORE_CLOCK / 2 / 1000000)
 #define STEPPER_TIMER_RATE     1000000   // frequency of stepper timer
