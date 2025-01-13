@@ -719,7 +719,7 @@ void PreciseStepping::step_isr() {
     constexpr uint32_t min_delay = 11; // fuse isr for steps below this threshold (us)
 #endif
     constexpr uint16_t min_reserve = 5; // minimum interval for isr re-entry (us)
-    constexpr uint16_t max_ticks = (UINT16_MAX / 2); // maximum isr interval for skip detection (us)
+    constexpr uint16_t max_ticks = (UINT16_MAX / 4); // maximum isr interval for skip detection (us)
 
 #ifdef ISR_DEADLINE_TRACKING
     // in addition to checking for forward misses, check for past ones
@@ -763,18 +763,32 @@ void PreciseStepping::step_isr() {
 
         const uint32_t counter = __HAL_TIM_GET_COUNTER(&TimerHandle[STEP_TIMER_NUM].handle);
         timer_remaining_time = next - counter;
-    } while (timer_remaining_time < min_reserve || (timer_remaining_time & 0xFFFF) > max_ticks);
+
+        // Be aware that the difference between 'next' and 'counter' and the value
+        // of 'timer_remaining_time' could exceed max_tick.
+        // Because of it, we need to be conservative about the value of 'max_ticks'
+        // to ensure that their values never exceed (UINT16_MAX / 2). Otherwise,
+        // the value returned by counter_signed_diff() will be incorrect.
+        assert(timer_remaining_time <= (UINT16_MAX / 2));
+    } while (timer_remaining_time < min_reserve);
 
     // What follows is a not-straightforward scheduling of the next step ISR
     // time event. If this ISR is interrupted by another routine, we might
     // schedule an event that is in the past from the perspective of the step
     // timer. Thus, we check if this is the case and possibly adjust the time.
     // On the next ISR we will pick up the slack.
+    // The difference of values passed into counter_signed_diff always has to be smaller
+    // or equal to (UINT16_MAX / 2). Otherwise, the value returned by counter_signed_diff()
+    // will be incorrect.
     const auto timer_handle_ptr = &TimerHandle[STEP_TIMER_NUM].handle;
     uint32_t adjusted_next = next - last_step_isr_delay;
     __disable_irq();
     int32_t tim_counter = __HAL_TIM_GET_COUNTER(timer_handle_ptr);
     int32_t diff = counter_signed_diff(adjusted_next, tim_counter);
+    // We should miss the next deadline just by a couple of ticks. When the value of 'diff'
+    // is a big negative number, the difference between 'adjusted_next' and 'tim_counter'
+    // is bigger than (UINT16_MAX / 2), or something interrupts the stepper routine for a very long time.
+    assert(diff >= 0 || diff >= -max_ticks);
     if (diff < min_reserve) {
         adjusted_next = tim_counter + min_reserve;
     }
