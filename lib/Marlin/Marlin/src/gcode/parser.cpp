@@ -245,6 +245,10 @@ void GCodeParser::parse(char *p) {
    */
   string_arg = nullptr;
   while (const char code = *p++) {              // Get the next parameter. A NUL ends the loop
+    if (code == ';') {
+      // on comments marker skip the rest
+      break;
+    }
 
     // Special handling for M32 [P] !/path/to/file.g#
     // The path must be the last parameter
