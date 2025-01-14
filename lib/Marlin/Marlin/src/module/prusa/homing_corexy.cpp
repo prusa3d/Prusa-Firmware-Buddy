@@ -551,6 +551,10 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
             return false;
         }
         rev_cnt = new_rev_cnt;
+        if (!rev_cnt) {
+            // stop if all points are valid
+            break;
+        }
     }
     if (rev_cnt) {
         // we left with unstable points, reject calibration
