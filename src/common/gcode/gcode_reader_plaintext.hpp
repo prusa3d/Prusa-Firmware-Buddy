@@ -25,8 +25,8 @@ public:
 
 private:
     // Size of header that have to be valid before we start printing
-    // One big file was observed to have header with size of 428 kB, so this adds some headroom
-    static constexpr const size_t header_metadata_size = 512 * 1024;
+    // One big file was observed to have header with size of 740 kB, so this adds some headroom
+    static constexpr const size_t header_metadata_size = 1024 * 1024;
 
     // when reading metadata and we encounter this number of gcodes, skip to end of file to search further
     static constexpr const uint32_t stop_metadata_after_gcodes_num = 1;
