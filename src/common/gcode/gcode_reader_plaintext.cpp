@@ -50,6 +50,11 @@ bool PlainGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint16_t 
 }
 
 PlainGcodeReader::Result_t PlainGcodeReader::stream_getc_impl(char &out) {
+    auto pos = ftell(file.get());
+    if (!range_valid(pos, pos + 1)) {
+        return Result_t::RESULT_OUT_OF_RANGE;
+    }
+
     int iout = fgetc(file.get());
     if (iout == EOF) {
         return feof(file.get()) ? Result_t::RESULT_EOF : Result_t::RESULT_ERROR;
