@@ -36,10 +36,14 @@
 
 #pragma GCC diagnostic warning "-Wdouble-promotion"
 
-static bool COREXY_HOME_UNSTABLE = false; ///< Last homing stability state
-static uint8_t COREXY_HOME_PROBE_ID = 0; ///< Probe id for metric cross-referencing
-static uint8_t COREXY_HOME_REFINE_ID = 0; ///< Refine count for metric cross-referencing
-static uint8_t COREXY_HOME_CAL_ID = 0; ///< Calibration count for metric cross-referencing
+namespace internal {
+namespace {
+    bool home_unstable = false; ///< Last homing stability state
+    uint8_t probe_id = 0; ///< Probe id for metric cross-referencing
+    uint8_t refine_id = 0; ///< Refine count for metric cross-referencing
+    uint8_t cal_id = 0; ///< Calibration count for metric cross-referencing
+} // namespace
+} // namespace internal
 
 METRIC_DEF(metric_phxy_meas, "phxy_meas", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
 METRIC_DEF(metric_phxy_probe, "phxy_probe", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
@@ -291,7 +295,7 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
     m_dist = hypotf(hit_mm[X_AXIS] - initial_mm[X_AXIS], hit_mm[Y_AXIS] - initial_mm[Y_AXIS]);
 
     metric_record_custom(&metric_phxy_meas, ",a=%u,dir=%i p=%u,s=%li,d=%.3f",
-        axis, dist >= 0 ? 1 : -1, COREXY_HOME_PROBE_ID, (long)m_steps, (double)m_dist);
+        axis, dist >= 0 ? 1 : -1, internal::probe_id, (long)m_steps, (double)m_dist);
 
     return hit;
 }
@@ -373,7 +377,7 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     // prepare for repeated measurements
     AxisEnum other_axis = (axis == B_AXIS ? A_AXIS : B_AXIS);
     SetupForMeasurement setup_guard(other_axis);
-    ++COREXY_HOME_PROBE_ID;
+    ++internal::probe_id;
 
     const int32_t measure_max_dist = (XY_HOMING_ORIGIN_OFFSET * 4) / planner.mm_per_step[axis];
     const int32_t measure_dir = (axis == B_AXIS ? -X_HOME_DIR : -Y_HOME_DIR);
@@ -408,7 +412,7 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
         };
 
         metric_record_custom(&metric_phxy_probe, ",a=%u p=%u,r=%u,d0=%.3f,d1=%.3f",
-            axis, COREXY_HOME_PROBE_ID, retry, (double)p_diff[0], (double)p_diff[1]);
+            axis, internal::probe_id, retry, (double)p_diff[0], (double)p_diff[1]);
 
         if (p_diff[0] < float(XY_HOMING_ORIGIN_BUMP_MAX_ERR) && p_diff[1] < float(XY_HOMING_ORIGIN_BUMP_MAX_ERR)) {
             break;
@@ -541,11 +545,11 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
         distance = m_acc / float(std::size(point_sequence));
 
         metric_record_custom(&metric_phxy_orig, ",a=%u,t=\"s\" c=%u,p=%u,i=%u,r=%u",
-            axis, COREXY_HOME_CAL_ID, COREXY_HOME_PROBE_ID, revcount, (unsigned)rev_cnt);
+            axis, internal::cal_id, internal::probe_id, revcount, (unsigned)rev_cnt);
         metric_record_custom(&metric_phxy_orig, ",a=%u,t=\"o\" c=%u,o0=%.3f,o1=%.3f",
-            axis, COREXY_HOME_CAL_ID, (double)origin[0], (double)origin[1]);
+            axis, internal::cal_id, (double)origin[0], (double)origin[1]);
         metric_record_custom(&metric_phxy_orig, ",a=%u,t=\"d\" c=%u,d0=%.3f,d1=%.3f",
-            axis, COREXY_HOME_CAL_ID, (double)distance[0], (double)distance[1]);
+            axis, internal::cal_id, (double)distance[0], (double)distance[1]);
 
         // verify each probed point with the current centroid
         xy_long_t o_int = { long(roundf(origin[A_AXIS])), long(roundf(origin[B_AXIS])) };
@@ -559,13 +563,13 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
             bool c_invalid = c_diff[A_AXIS] || c_diff[B_AXIS];
 
             metric_record_custom(&metric_phxy_orig, ",a=%u,t=\"p\" c=%u,p=%u,c0=%li,c1=%li,s=%u",
-                axis, COREXY_HOME_CAL_ID, i, (long)c_ab[0], (long)c_ab[1], c_unstable);
+                axis, internal::cal_id, i, (long)c_ab[0], (long)c_ab[1], c_unstable);
             metric_record_custom(&metric_phxy_orig, ",a=%u,t=\"p\" c=%u,p=%u,d0=%li,d1=%li,v=%u",
-                axis, COREXY_HOME_CAL_ID, i, (long)c_diff[0], (long)c_diff[1], c_invalid);
+                axis, internal::cal_id, i, (long)c_diff[0], (long)c_diff[1], c_invalid);
             idle(true, true); // allow some time to flush the metrics buffer
 
             if (c_invalid) {
-                COREXY_HOME_UNSTABLE = true;
+                internal::home_unstable = true;
                 SERIAL_ECHOLNPAIR("home calibration point (", seq[A_AXIS], ",", seq[B_AXIS],
                     ") invalid A:", c_diff[A_AXIS], " B:", c_diff[B_AXIS],
                     " with origin A:", o_int[A_AXIS], " B:", o_int[B_AXIS]);
@@ -576,7 +580,7 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
 
             data.revalidate = c_unstable;
             if (data.revalidate) {
-                COREXY_HOME_UNSTABLE = true;
+                internal::home_unstable = true;
                 SERIAL_ECHOLNPAIR("home calibration point (", seq[A_AXIS], ",", seq[B_AXIS],
                     ") unstable A:", data.c_dist[A_AXIS], " B:", data.c_dist[B_AXIS],
                     " with origin A:", origin[A_AXIS], " B:", origin[B_AXIS]);
@@ -688,7 +692,7 @@ static bool measure_calibrate_walk(float &score, AxisEnum measured_axis,
     // prepare for repeated measurements
     AxisEnum other_axis = (measured_axis == B_AXIS ? A_AXIS : B_AXIS);
     SetupForMeasurement setup_guard(other_axis);
-    ++COREXY_HOME_PROBE_ID;
+    ++internal::probe_id;
 
     // calculate maximum reliable number of cycles to move towards the endstop
     constexpr AxisEnum walk_axis = X_HOME_DIR == Y_HOME_DIR ? X_AXIS : Y_AXIS;
@@ -881,8 +885,8 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     endstops.not_homing();
 
     // reset previous home state
-    COREXY_HOME_UNSTABLE = false;
-    ++COREXY_HOME_REFINE_ID;
+    internal::home_unstable = false;
+    ++internal::refine_id;
 
     // reposition parallel to the origin to our probing point
     xyze_pos_t origin_pos;
@@ -897,7 +901,7 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
         || ((mode == CoreXYCalibrationMode::on_demand) && calibrated_origin.uninitialized())) {
         SERIAL_ECHOLN("recalibrating home origin");
         ui.status_printf_P(0, "Recalibrating home. Printer may vibrate and be noisier.");
-        ++COREXY_HOME_CAL_ID;
+        ++internal::cal_id;
 
         xy_pos_t origin, distance;
         if (!measure_origin_multipoint(measured_axis, origin_steps, origin, distance, fr_mm_s)) {
@@ -918,7 +922,7 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     }
     xy_pos_t calibrated_origin_xy = { calibrated_origin.origin[A_AXIS], calibrated_origin.origin[B_AXIS] };
     metric_record_custom(&metric_phxy_home, ",t=\"o\" h=%u,o0=%.2f,o1=%.3f",
-        COREXY_HOME_REFINE_ID, (double)calibrated_origin_xy[0], (double)calibrated_origin_xy[1]);
+        internal::refine_id, (double)calibrated_origin_xy[0], (double)calibrated_origin_xy[1]);
 
     // measure from current origin
     xy_pos_t c_dist, _;
@@ -934,7 +938,7 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
 
     xy_long_t c_ab = cdist_translate(c_dist, calibrated_origin_xy);
     metric_record_custom(&metric_phxy_home, ",t=\"h\" h=%u,c0=%.3f,c1=%.3f,s=%u",
-        COREXY_HOME_REFINE_ID, (double)c_ab[0], (double)c_ab[1], home_unstable);
+        internal::refine_id, (double)c_ab[0], (double)c_ab[1], home_unstable);
 
     // validate from another point in the AB grid
     xy_long_t v_ab_off = { -1, 3 };
@@ -953,10 +957,10 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     bool v_c_invalid = v_c_diff != c_ab;
 
     metric_record_custom(&metric_phxy_home, ",t=\"v\" h=%u,c0=%.3f,c1=%.3f,s=%u,v=%u",
-        COREXY_HOME_REFINE_ID, (double)v_c_ab[0], (double)v_c_ab[1], v_home_unstable, v_c_invalid);
+        internal::refine_id, (double)v_c_ab[0], (double)v_c_ab[1], v_home_unstable, v_c_invalid);
 
     if (v_c_invalid) {
-        COREXY_HOME_UNSTABLE = true;
+        internal::home_unstable = true;
         SERIAL_ECHOLNPAIR("home validation point is invalid");
         return false;
     }
@@ -965,7 +969,7 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     }
     if (home_unstable && v_home_unstable) {
         // mark home as unstable only if both points are
-        COREXY_HOME_UNSTABLE = true;
+        internal::home_unstable = true;
     }
 
     // move back to origin
@@ -996,5 +1000,5 @@ bool corexy_home_is_calibrated() {
 
 bool corexy_home_is_unstable() {
     CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
-    return calibrated_origin.uninitialized() || COREXY_HOME_UNSTABLE;
+    return calibrated_origin.uninitialized() || internal::home_unstable;
 }
