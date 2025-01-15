@@ -22,6 +22,7 @@ static DMA_HandleTypeDef hdma_adc1;
 static DMA_HandleTypeDef hdma_tim8;
 #elif BOARD_IS_XBUDDY()
 static DMA_HandleTypeDef hdma_spi2_rx;
+static DMA_HandleTypeDef hdma_spi2_tx;
 static DMA_HandleTypeDef hdma_spi3_rx;
 static DMA_HandleTypeDef hdma_spi3_tx;
 static DMA_HandleTypeDef hdma_spi4_tx;
@@ -433,6 +434,24 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
         }
 
         __HAL_LINKDMA(hspi, hdmarx, hdma_spi2_rx);
+
+        /* SPI2 DMA Init */
+        /* SPI2_TX Init */
+        hdma_spi2_tx.Instance = DMA1_Stream4;
+        hdma_spi2_tx.Init.Channel = DMA_CHANNEL_0;
+        hdma_spi2_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+        hdma_spi2_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+        hdma_spi2_tx.Init.MemInc = DMA_MINC_ENABLE;
+        hdma_spi2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+        hdma_spi2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+        hdma_spi2_tx.Init.Mode = DMA_NORMAL;
+        hdma_spi2_tx.Init.Priority = DMA_PRIORITY_MEDIUM;
+        hdma_spi2_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+        if (HAL_DMA_Init(&hdma_spi2_tx) != HAL_OK) {
+            Error_Handler();
+        }
+
+        __HAL_LINKDMA(hspi, hdmatx, hdma_spi2_tx);
     #endif
 
     } else if (hspi->Instance == SPI3) {
@@ -872,6 +891,12 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim_base) {
     } else if (htim_base->Instance == TIM8) {
         /* Peripheral clock enable */
         __HAL_RCC_TIM8_CLK_ENABLE();
+    } else if (htim_base->Instance == TIM9) {
+        /* Peripheral clock enable */
+        __HAL_RCC_TIM9_CLK_ENABLE();
+
+        HAL_NVIC_SetPriority(TIM1_BRK_TIM9_IRQn, ISR_PRIORITY_DEFAULT, 0);
+        HAL_NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
     } else if (htim_base->Instance == TIM13) {
         /* Peripheral clock enable */
         __HAL_RCC_TIM13_CLK_ENABLE();
@@ -953,6 +978,10 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim_base) {
     } else if (htim_base->Instance == TIM3) {
         /* Peripheral clock disable */
         __HAL_RCC_TIM3_CLK_DISABLE();
+    } else if (htim_base->Instance == TIM9) {
+        /* Peripheral clock disable */
+        __HAL_RCC_TIM9_CLK_DISABLE();
+        HAL_NVIC_DisableIRQ(TIM1_BRK_TIM9_IRQn);
     } else if (htim_base->Instance == TIM13) {
         __HAL_RCC_TIM13_CLK_DISABLE();
         HAL_NVIC_DisableIRQ(TIM8_UP_TIM13_IRQn);

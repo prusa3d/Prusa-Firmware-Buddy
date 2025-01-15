@@ -45,6 +45,7 @@ extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim8;
+extern TIM_HandleTypeDef htim9;
 extern TIM_HandleTypeDef htim13;
 extern TIM_HandleTypeDef htim14;
 
@@ -297,6 +298,7 @@ void hw_tim1_init();
 void hw_tim2_init();
 void hw_tim3_init();
 void hw_tim8_init();
+void hw_tim9_init();
 void hw_tim13_init();
 void hw_tim14_init();
 

@@ -36,6 +36,13 @@ TRACED_ISR(DMA2_Stream6_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(flash).hd
 // SPI for LCD
 TRACED_ISR(DMA2_Stream5_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(lcd).hdmatx);
 
+// TIM for accelerometer polling
+TRACED_ISR(TIM1_BRK_TIM9_IRQHandler, HAL_TIM_IRQHandler, &htim9);
+
+// DMA for accelerometer
+TRACED_ISR(DMA1_Stream3_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(accelerometer).hdmarx);
+TRACED_ISR(DMA1_Stream4_IRQHandler, HAL_DMA_IRQHandler, SPI_HANDLE_FOR(accelerometer).hdmatx);
+
 #if HAS_PUPPIES()
 
 // UART for puppies on iX

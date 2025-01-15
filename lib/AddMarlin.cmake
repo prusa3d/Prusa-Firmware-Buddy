@@ -201,6 +201,7 @@ if(BOARD_IS_MASTER_BOARD)
   endif()
   if(HAS_LOCAL_ACCELEROMETER)
     target_sources(Marlin PRIVATE Marlin/Marlin/src/module/prusa/accelerometer_local.cpp)
+    target_link_libraries(Marlin PRIVATE LIS2DH12)
   endif()
   if(HAS_REMOTE_ACCELEROMETER)
     target_sources(

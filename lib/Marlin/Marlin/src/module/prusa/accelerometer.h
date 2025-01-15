@@ -10,7 +10,7 @@
 static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 
 #if HAS_LOCAL_ACCELEROMETER()
-    #include "SparkFunLIS2DH.h"
+    #include <hwio_pindef.h>
 #elif HAS_REMOTE_ACCELEROMETER()
     #include <freertos/mutex.hpp>
     #include <common/circular_buffer.hpp>
@@ -25,13 +25,9 @@ static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
  */
 class PrusaAccelerometer {
 public:
-#if HAS_LOCAL_ACCELEROMETER()
-    using Acceleration = Fifo::Acceleration;
-#else
     struct Acceleration {
         float val[3];
     };
-#endif
 
     enum class Error {
         none,
@@ -67,14 +63,14 @@ public:
     /// Obtains one sample from the buffer and puts it to \param acceleration (if the results is ok).
     GetSampleResult get_sample(Acceleration &acceleration);
 
-    float get_sampling_rate() const { return m_sampling_rate; }
+    float get_sampling_rate() const;
     /**
      * @brief Get error
      *
      * Check after PrusaAccelerometer construction.
      * Check after measurement to see if it was valid.
      */
-    Error get_error() const { return m_sample_buffer.error.get(); }
+    Error get_error() const;
 
     /// \returns string describing the error or \p nullptr
     const char *error_str() const;
@@ -137,17 +133,9 @@ private:
     };
 
     void set_enabled(bool enable);
-#if HAS_LOCAL_ACCELEROMETER()
-    struct SampleBuffer {
-        Fifo buffer;
-        ErrorImpl error;
-    };
-    SampleBuffer m_sample_buffer;
-    #if PRINTER_IS_PRUSA_MK3_5()
+#if HAS_LOCAL_ACCELEROMETER() && PRINTER_IS_PRUSA_MK3_5()
     buddy::hw::OutputEnabler output_enabler;
     buddy::hw::OutputPin output_pin;
-    #endif
-    LIS2DH accelerometer;
 #elif HAS_REMOTE_ACCELEROMETER()
     // Mutex is very RAM (80B) consuming for this fast operation, consider switching to critical section
     static freertos::Mutex s_buffer_mutex;
@@ -157,6 +145,6 @@ private:
     };
     static SampleBuffer *s_sample_buffer;
     SampleBuffer m_sample_buffer;
-#endif
     static float m_sampling_rate;
+#endif
 };
