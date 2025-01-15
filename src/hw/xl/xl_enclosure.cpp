@@ -11,6 +11,7 @@
 #include <ctime>
 #include <tools_mapping.hpp>
 #include "option/development_items.h"
+#include <marlin_server.hpp>
 
 static constexpr uint32_t footer_temp_delay_sec = 5 * 60;
 static constexpr int64_t expiration_5day_reminder_period_sec = 5 * 24 * 3600;
@@ -145,30 +146,29 @@ bool Enclosure::updatePostPrintFiltrationTimer(uint32_t curr_sec) {
 
 // Expiration timer + Expiration warning timer
 // expiration_shown flag and xl_enclosure_filter_timer EEPROM value are reused for 5 day reminder
-std::optional<WarningType> Enclosure::updateFilterExpirationTimer(uint32_t delta_sec) {
-    std::optional<WarningType> ret = std::nullopt;
+void Enclosure::checkFilterExpiration() {
+    if (!isEnabled()) {
+        return;
+    }
     int64_t expiration_timer = config_store().xl_enclosure_filter_timer.get();
 
     if (isExpirationShown()) {
         // 5 day reminder after filter already expired (RTC time)
         if (isReminderSet() && time(nullptr) - expiration_timer >= expiration_5day_reminder_period_sec) {
-            ret = { WarningType::EnclosureFilterExpiration };
+            marlin_server::set_warning(WarningType::EnclosureFilterExpiration);
         }
-        return ret;
+        return;
     }
 
     // check filter expiration
-    if (!isWarningShown() && expiration_timer + delta_sec >= expiration_warning_sec) {
+    if (!isWarningShown() && expiration_timer >= expiration_warning_sec) {
         setPersistentFlg(PERSISTENT::WARNING_SHOWN);
-        ret = { WarningType::EnclosureFilterExpirWarning };
-    } else if (!isExpirationShown() && expiration_timer + delta_sec >= expiration_deadline_sec) {
-        setPersistentFlg(PERSISTENT::EXPIRATION_SHOWN);
-        return { WarningType::EnclosureFilterExpiration };
+        marlin_server::set_warning(WarningType::EnclosureFilterExpirWarning);
     }
-
-    expiration_timer += delta_sec;
-    config_store().xl_enclosure_filter_timer.set(expiration_timer);
-    return ret;
+    if (!isExpirationShown() && expiration_timer >= expiration_deadline_sec) {
+        setPersistentFlg(PERSISTENT::EXPIRATION_SHOWN);
+        marlin_server::set_warning(WarningType::EnclosureFilterExpiration);
+    }
 }
 
 bool Enclosure::isPostPrintFiltrationNeeded() {
@@ -391,9 +391,8 @@ std::optional<WarningType> Enclosure::loop(int32_t MCU_modular_bed_temp, int16_t
     // Check timer every minute of active fan - longer period because it writes to EEPROM
     if (curr_sec - last_timer_update_sec >= timers_update_period_sec) {
         // Filter expiration notification
-        std::optional<WarningType> expir_warning = updateFilterExpirationTimer(curr_sec - last_timer_update_sec);
-        if (expir_warning.has_value()) {
-            warning_opt = expir_warning;
+        if (!isReminderSet()) {
+            config_store().xl_enclosure_filter_timer.set(config_store().xl_enclosure_filter_timer.get() + (curr_sec - last_timer_update_sec));
         }
         last_timer_update_sec = curr_sec;
     }
