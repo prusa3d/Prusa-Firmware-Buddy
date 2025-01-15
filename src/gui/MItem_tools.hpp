@@ -14,6 +14,7 @@
 #include <option/has_dwarf.h>
 #include <option/has_side_fsensor.h>
 #include <option/has_filament_sensors_menu.h>
+#include <option/has_file_log.h>
 #include <option/has_coldpull.h>
 #include <option/has_leds.h>
 #include <option/has_side_leds.h>
@@ -806,8 +807,10 @@ public:
 };
 #endif
 
+#if HAS_FILE_LOG()
 class MI_LOG_TO_TXT : public WI_ICON_SWITCH_OFF_ON_t {
 public:
     MI_LOG_TO_TXT();
     void OnChange(size_t) final;
 };
+#endif

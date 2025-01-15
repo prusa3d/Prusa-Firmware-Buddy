@@ -50,7 +50,10 @@
 #include <netdev.h>
 #include <wui.h>
 #include <power_panic.hpp>
-#include <logging/log_dest_file.hpp>
+#include <option/has_file_log.h>
+#if HAS_FILE_LOG()
+    #include <logging/log_dest_file.hpp>
+#endif
 
 #include <type_traits>
 
@@ -1057,6 +1060,7 @@ void MI_DISPLAY_BAUDRATE::OnChange(size_t) {
 #endif
 
 /*****************************************************************************/
+#if HAS_FILE_LOG()
 MI_LOG_TO_TXT::MI_LOG_TO_TXT()
     : WI_ICON_SWITCH_OFF_ON_t(logging::file_log_is_enabled(), _("Save Logs To File")) {}
 
@@ -1085,3 +1089,4 @@ void MI_LOG_TO_TXT::OnChange(size_t) {
     MsgBoxInfo(_("The printer will now save all logs to file until restart.\n\nLog file: %s").formatted(fmt_buf, filename), Responses_Ok);
     MsgBoxWarning(_("Turn the logging off before disconnecting the USB drive, or you risk damaging the filesystem!"), Responses_Ok);
 }
+#endif

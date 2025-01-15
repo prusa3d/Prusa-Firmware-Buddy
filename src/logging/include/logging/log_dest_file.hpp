@@ -1,6 +1,9 @@
 #pragma once
 
 #include <logging/log.hpp>
+#include <option/has_file_log.h>
+
+static_assert(HAS_FILE_LOG(), "Why do you include me?");
 
 namespace logging {
 

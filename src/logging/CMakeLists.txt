@@ -1,14 +1,14 @@
 add_library(logging OBJECT log.cpp log_dest_rtt.cpp log_dest_shared.cpp log_platform.cpp)
 
 if(BOARD MATCHES ".*BUDDY")
-  target_sources(
-    logging PRIVATE log_buddy.cpp log_dest_file.cpp log_dest_syslog.cpp log_dest_usb.cpp
-                    log_task.cpp
-    )
+  target_sources(logging PRIVATE log_buddy.cpp log_dest_syslog.cpp log_dest_usb.cpp log_task.cpp)
   target_link_libraries(
     logging PRIVATE LwIP # log_dest_syslog.cpp
                     tinyusb::tinyusb # log_dest_usb.cpp
     )
+  if(HAS_FILE_LOG)
+    target_sources(logging PRIVATE log_dest_file.cpp)
+  endif()
 endif()
 
 if(BOARD STREQUAL "DWARF" OR BOARD STREQUAL "XL_DEV_KIT_XLB")

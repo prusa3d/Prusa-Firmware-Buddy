@@ -6,7 +6,10 @@
 #include <logging/log_dest_rtt.hpp>
 #include <logging/log_dest_syslog.hpp>
 #include <logging/log_dest_usb.hpp>
-#include <logging/log_dest_file.hpp>
+#include <option/has_file_log.h>
+#if HAS_FILE_LOG()
+    #include <logging/log_dest_file.hpp>
+#endif
 #include <logging/log.hpp>
 
 void logging_init() {
@@ -31,10 +34,12 @@ void logging_init() {
     };
     log_destination_register(&log_destination_usb);
 
+#if HAS_FILE_LOG()
     static logging::Destination log_destination_file = {
         .lowest_severity = logging::Severity::debug,
         .log_event_fn = logging::file_log_event,
         .next = NULL,
     };
     log_destination_register(&log_destination_file);
+#endif
 }

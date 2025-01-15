@@ -778,3 +778,12 @@ set(MDNS
     CACHE BOOL "Enable MDNS responder"
     )
 define_boolean_option(MDNS ${MDNS})
+
+# MINI + JA ran out of FLASH so we sacrifice file log facility. This will be hopefully fixed in next
+# version.
+if(PRINTER STREQUAL "MINI" AND TRANSLATIONS_LIST STREQUAL "ja")
+  set(HAS_FILE_LOG NO)
+else()
+  set(HAS_FILE_LOG YES)
+endif()
+define_boolean_option(HAS_FILE_LOG ${HAS_FILE_LOG})
