@@ -53,16 +53,16 @@ METRIC_DEF(metric_phxy_orig, "phxy_orig", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED
 
 // convert raw AB steps to XY mm
 void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm) {
-    float x = static_cast<float>(steps.a + steps.b) / 2.f;
-    float y = static_cast<float>(CORESIGN(steps.a - steps.b)) / 2.f;
+    const float x = static_cast<float>(steps.a + steps.b) / 2.f;
+    const float y = static_cast<float>(CORESIGN(steps.a - steps.b)) / 2.f;
     mm.x = x * planner.mm_per_step[X_AXIS];
     mm.y = y * planner.mm_per_step[Y_AXIS];
 }
 
 // convert raw AB steps to XY mm and position in mini-steps
 static void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm, xy_long_t &pos_msteps) {
-    float x = static_cast<float>(steps.a + steps.b) / 2.f;
-    float y = static_cast<float>(CORESIGN(steps.a - steps.b)) / 2.f;
+    const float x = static_cast<float>(steps.a + steps.b) / 2.f;
+    const float y = static_cast<float>(CORESIGN(steps.a - steps.b)) / 2.f;
     mm.x = x * planner.mm_per_step[X_AXIS];
     mm.y = y * planner.mm_per_step[Y_AXIS];
     pos_msteps.x = LROUND(x * PLANNER_STEPS_MULTIPLIER);
@@ -139,15 +139,15 @@ static int16_t phase_backoff_steps(const AxisEnum axis) {
         bsod("invalid backoff axis");
     }
 
-    int16_t phaseCurrent = axis_mscnt(axis); // The TMC µsteps(phase) count of the current position
-    int16_t phaseDelta = ((stepperCountDir < 0) == (effectorBackoutDir < 0) ? phaseCurrent : 1024 - phaseCurrent);
-    int16_t phasePerStep = phase_per_ustep(axis);
+    const int16_t phaseCurrent = axis_mscnt(axis); // The TMC µsteps(phase) count of the current position
+    const int16_t phaseDelta = ((stepperCountDir < 0) == (effectorBackoutDir < 0) ? phaseCurrent : 1024 - phaseCurrent);
+    const int16_t phasePerStep = phase_per_ustep(axis);
     return int16_t((phaseDelta + phasePerStep / 2) / phasePerStep) * effectorBackoutDir;
 }
 
 static bool phase_aligned(AxisEnum axis) {
-    int16_t phase_cur = axis_mscnt(axis);
-    int16_t ustep_max = phase_per_ustep(axis) / 2;
+    const int16_t phase_cur = axis_mscnt(axis);
+    const int16_t ustep_max = phase_per_ustep(axis) / 2;
     return (phase_cur <= ustep_max || phase_cur >= (1024 - ustep_max));
 }
 
@@ -218,7 +218,7 @@ struct measure_axis_params {
  */
 static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t dist, int32_t &m_steps, float &m_dist, const measure_axis_params &params) {
     // full initial position
-    xyze_long_t initial_steps = { origin_steps.a, origin_steps.b, stepper.position(C_AXIS), stepper.position(E_AXIS) };
+    const xyze_long_t initial_steps = { origin_steps.a, origin_steps.b, stepper.position(C_AXIS), stepper.position(E_AXIS) };
     xyze_pos_t initial_mm;
     corexy_ab_to_xyze(initial_steps, initial_mm);
 
@@ -232,20 +232,20 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
     LOOP_S_L_N(i, C_AXIS, XYZE_N) {
         target_mm[i] = initial_mm[i];
     }
-    xyze_long_t initial_pos_msteps = planner.get_position_msteps();
+    const xyze_long_t initial_pos_msteps = planner.get_position_msteps();
     LOOP_S_L_N(i, C_AXIS, XYZE_N) {
         target_pos_msteps[i] = initial_pos_msteps[i];
     }
 
     // prepare stepper for the move
     assert(SetupForMeasurement::is_setup());
-    sensorless_t stealth_states = start_sensorless_homing_per_axis(axis);
+    const sensorless_t stealth_states = start_sensorless_homing_per_axis(axis);
     auto &axis_stepper = stepper_axis(axis);
-    int32_t axis_orig_cur = axis_stepper.rms_current();
-    float axis_orig_hold = axis_stepper.hold_multiplier();
+    const int32_t axis_orig_cur = axis_stepper.rms_current();
+    const float axis_orig_hold = axis_stepper.hold_multiplier();
     axis_stepper.rms_current(params.current, 1.f);
 #if HAS_TRINAMIC
-    int8_t axis_orig_sens = axis_stepper.sgt();
+    const int8_t axis_orig_sens = axis_stepper.sgt();
     axis_stepper.sgt(params.sensitivity);
 #endif
     ScopeGuard state_restorer([&]() {
@@ -258,7 +258,7 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
     // move towards the endstop
     endstops.enable(true);
     plan_raw_move(target_mm, target_pos_msteps, params.feedrate);
-    uint8_t hit = endstops.trigger_state();
+    const uint8_t hit = endstops.trigger_state();
     endstops.not_homing();
 
     xyze_long_t hit_steps;
@@ -282,7 +282,7 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
     }
 
     // sanity checks
-    AxisEnum fixed_axis = (axis == B_AXIS ? A_AXIS : B_AXIS);
+    const AxisEnum fixed_axis = (axis == B_AXIS ? A_AXIS : B_AXIS);
     if (hit_steps[fixed_axis] != initial_steps[fixed_axis] || initial_steps[fixed_axis] != stepper.position(fixed_axis)) {
         bsod("fixed axis moved unexpectedly");
     }
@@ -332,7 +332,7 @@ static bool measure_axis_distance(AxisEnum axis, xy_long_t origin_steps, int32_t
 
 #if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
     // get paramers from calibration
-    CoreXYHomeTMCSens calibrated_sens = config_store().corexy_home_tmc_sens.get();
+    const CoreXYHomeTMCSens calibrated_sens = config_store().corexy_home_tmc_sens.get();
     if (calibrated_sens.uninitialized()) {
         bsod("axis measurement without calibration");
     }
@@ -375,21 +375,21 @@ S sum_along(const T *seq, const size_t size, const size_t axis) {
  */
 static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_dist) {
     // prepare for repeated measurements
-    AxisEnum other_axis = (axis == B_AXIS ? A_AXIS : B_AXIS);
+    const AxisEnum other_axis = (axis == B_AXIS ? A_AXIS : B_AXIS);
     SetupForMeasurement setup_guard(other_axis);
     ++internal::probe_id;
 
     const int32_t measure_max_dist = (XY_HOMING_ORIGIN_OFFSET * 4) / planner.mm_per_step[axis];
     const int32_t measure_dir = (axis == B_AXIS ? -X_HOME_DIR : -Y_HOME_DIR);
-    xy_long_t origin_steps = { stepper.position(A_AXIS), stepper.position(B_AXIS) };
+    const xy_long_t origin_steps = { stepper.position(A_AXIS), stepper.position(B_AXIS) };
     constexpr int probe_n = 2;
     xy_long_t p_steps[probe_n];
     xy_pos_t p_dist[probe_n] = { -XY_HOMING_ORIGIN_BUMP_MAX_ERR, -XY_HOMING_ORIGIN_BUMP_MAX_ERR };
 
     uint8_t retry;
     for (retry = 0; retry != XY_HOMING_ORIGIN_BUMP_RETRIES; ++retry) {
-        uint8_t slot0 = retry % probe_n;
-        uint8_t slot1 = (retry + 1) % probe_n;
+        const uint8_t slot0 = retry % probe_n;
+        const uint8_t slot1 = (retry + 1) % probe_n;
 
         // measure distance B+/B-
         if (!measure_axis_distance(axis, origin_steps, measure_max_dist * measure_dir, p_steps[slot1][1], p_dist[slot1][1])
@@ -406,7 +406,7 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
             p_dist[slot1][i] = abs(p_dist[slot1][i]);
         }
 
-        float p_diff[2] = {
+        const float p_diff[2] = {
             abs(p_dist[slot0][0] - p_dist[slot1][0]),
             abs(p_dist[slot0][1] - p_dist[slot1][1])
         };
@@ -424,11 +424,11 @@ static bool measure_phase_cycles(AxisEnum axis, xy_pos_t &c_dist, xy_pos_t &m_di
     }
 
     // calculate the absolute cycle coordinates
-    float d1 = sum_along(p_steps, probe_n, 0) / float(probe_n);
-    float d2 = sum_along(p_steps, probe_n, 1) / float(probe_n);
-    float d = d1 + d2;
-    float a = d / 2.f;
-    float b = d1 - a;
+    const float d1 = sum_along(p_steps, probe_n, 0) / float(probe_n);
+    const float d2 = sum_along(p_steps, probe_n, 1) / float(probe_n);
+    const float d = d1 + d2;
+    const float a = d / 2.f;
+    const float b = d1 - a;
 
     c_dist[0] = a / float(phase_cycle_steps(other_axis));
     c_dist[1] = b / float(phase_cycle_steps(axis));
@@ -473,8 +473,8 @@ static xy_long_t cdist_translate(const xy_pos_t &c_dist, const xy_pos_t &origin)
  * @return new step position
  */
 static xy_long_t plan_corexy_abgrid_move(const xy_long_t &origin_steps, const xy_long_t &ab_off, const float fr_mm_s) {
-    long a = ab_off[X_HOME_DIR == Y_HOME_DIR ? A_AXIS : B_AXIS] * -Y_HOME_DIR;
-    long b = ab_off[X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS] * -X_HOME_DIR;
+    const long a = ab_off[X_HOME_DIR == Y_HOME_DIR ? A_AXIS : B_AXIS] * -Y_HOME_DIR;
+    const long b = ab_off[X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS] * -X_HOME_DIR;
 
     xy_long_t point_steps = {
         origin_steps[A_AXIS] + phase_cycle_steps(A_AXIS) * a,
@@ -557,10 +557,10 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
             const auto &seq = point_sequence[i];
             auto &data = points[i];
 
-            xy_long_t c_ab = cdist_translate(data.c_dist, origin);
-            xy_long_t c_diff = c_ab - seq - o_int;
-            bool c_unstable = point_is_unstable(data.c_dist, origin);
-            bool c_invalid = c_diff[A_AXIS] || c_diff[B_AXIS];
+            const xy_long_t c_ab = cdist_translate(data.c_dist, origin);
+            const xy_long_t c_diff = c_ab - seq - o_int;
+            const bool c_unstable = point_is_unstable(data.c_dist, origin);
+            const bool c_invalid = c_diff[A_AXIS] || c_diff[B_AXIS];
 
             metric_record_custom(&metric_phxy_orig, ",a=%u,t=\"p\" c=%u,p=%u,c0=%li,c1=%li,s=%u",
                 axis, internal::cal_id, i, (long)c_ab[0], (long)c_ab[1], c_unstable);
@@ -609,7 +609,7 @@ static bool measure_origin_multipoint(AxisEnum axis, const xy_long_t &origin_ste
 
 bool corexy_rehome_xy(float fr_mm_s) {
     // enable endstops locally
-    bool endstops_enabled = endstops.is_enabled();
+    const bool endstops_enabled = endstops.is_enabled();
     ScopeGuard endstop_restorer([&]() {
         endstops.enable(endstops_enabled);
     });
@@ -660,7 +660,7 @@ static bool corexy_rehome_and_phase(xyze_pos_t &origin_pos, xy_long_t &origin_st
     // calculation issues which will show up elsewhere and are NOT just mechanical issues. We need
     // step-accuracy while homing! ask @wavexx when in doubt regarding these
     plan_corexy_raw_move(origin_steps, fr_mm_s);
-    xy_long_t raw_move_diff = {
+    const xy_long_t raw_move_diff = {
         stepper.position(A_AXIS) - origin_steps[A_AXIS],
         stepper.position(B_AXIS) - origin_steps[B_AXIS]
     };
@@ -690,7 +690,7 @@ static bool corexy_rehome_and_phase(xyze_pos_t &origin_pos, xy_long_t &origin_st
 static bool measure_calibrate_walk(float &score, AxisEnum measured_axis,
     const xy_long_t origin_steps, const float fr_mm_s, const measure_axis_params &params) {
     // prepare for repeated measurements
-    AxisEnum other_axis = (measured_axis == B_AXIS ? A_AXIS : B_AXIS);
+    const AxisEnum other_axis = (measured_axis == B_AXIS ? A_AXIS : B_AXIS);
     SetupForMeasurement setup_guard(other_axis);
     ++internal::probe_id;
 
@@ -730,12 +730,12 @@ static bool measure_calibrate_walk(float &score, AxisEnum measured_axis,
             const long n = probe % walk_period;
             const long d = -long(walk_cycles) + (cycle % 2 ? walk_period - n : n);
 
-            xy_long_t temp_origin = plan_corexy_abgrid_move(origin_steps, { d * a_dir, d }, fr_mm_s);
+            const xy_long_t temp_origin = plan_corexy_abgrid_move(origin_steps, { d * a_dir, d }, fr_mm_s);
             if (planner.draining()) {
                 return false;
             }
 
-            bool valid = measure_axis_distance(measured_axis, temp_origin,
+            const bool valid = measure_axis_distance(measured_axis, temp_origin,
                 measure_max_dist * measure_dir * a_dir, p_steps, p_dist, params);
             if (!valid) {
                 if (planner.draining()) {
@@ -752,10 +752,10 @@ static bool measure_calibrate_walk(float &score, AxisEnum measured_axis,
         if (p_steps_cnt >= 3) {
             // calculate a score based on central phase deviation independently per-direction
             std::sort(&p_steps_buf[0], &p_steps_buf[p_steps_cnt]);
-            int32_t steps_med = p_steps_buf[p_steps_cnt / 2];
+            const int32_t steps_med = p_steps_buf[p_steps_cnt / 2];
             for (size_t i = 0; i != p_steps_cnt; ++i) {
-                int32_t p_off = abs(steps_med - p_steps_buf[i]) * 4 / phase_cycle_steps(measured_axis);
-                float p_score = 1.f / std::pow(1.f + p_off, score_exp);
+                const int32_t p_off = abs(steps_med - p_steps_buf[i]) * 4 / phase_cycle_steps(measured_axis);
+                const float p_score = 1.f / std::pow(1.f + p_off, score_exp);
                 score_acc += p_score;
             }
         }
@@ -841,7 +841,7 @@ bool corexy_sens_calibrate(const float fr_mm_s) {
     #endif /*ENABLED(CRASH_RECOVERY)*/
 
     // disable endstops locally
-    bool endstops_enabled = endstops.is_enabled();
+    const bool endstops_enabled = endstops.is_enabled();
     ScopeGuard endstop_restorer([&]() {
         endstops.enable(endstops_enabled);
     });
@@ -861,7 +861,7 @@ bool corexy_sens_calibrate(const float fr_mm_s) {
 }
 
 bool corexy_sens_is_calibrated() {
-    CoreXYHomeTMCSens calibrated_sens = config_store().corexy_home_tmc_sens.get();
+    const CoreXYHomeTMCSens calibrated_sens = config_store().corexy_home_tmc_sens.get();
     return !calibrated_sens.uninitialized();
 }
 #endif
@@ -878,7 +878,7 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
 #endif /*ENABLED(CRASH_RECOVERY)*/
 
     // disable endstops locally
-    bool endstops_enabled = endstops.is_enabled();
+    const bool endstops_enabled = endstops.is_enabled();
     ScopeGuard endstop_restorer([&]() {
         endstops.enable(endstops_enabled);
     });
@@ -920,7 +920,10 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
         calibrated_origin.origin[A_AXIS] = 0.f;
         calibrated_origin.origin[B_AXIS] = 0.f;
     }
-    xy_pos_t calibrated_origin_xy = { calibrated_origin.origin[A_AXIS], calibrated_origin.origin[B_AXIS] };
+    const xy_pos_t calibrated_origin_xy = {
+        calibrated_origin.origin[A_AXIS],
+        calibrated_origin.origin[B_AXIS]
+    };
     metric_record_custom(&metric_phxy_home, ",t=\"o\" h=%u,o0=%.2f,o1=%.3f",
         internal::refine_id, (double)calibrated_origin_xy[0], (double)calibrated_origin_xy[1]);
 
@@ -931,17 +934,17 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     }
 
     // validate current origin
-    bool home_unstable = point_is_unstable(c_dist, calibrated_origin_xy);
+    const bool home_unstable = point_is_unstable(c_dist, calibrated_origin_xy);
     if (home_unstable) {
         SERIAL_ECHOLNPAIR("home point is unstable");
     }
 
-    xy_long_t c_ab = cdist_translate(c_dist, calibrated_origin_xy);
+    const xy_long_t c_ab = cdist_translate(c_dist, calibrated_origin_xy);
     metric_record_custom(&metric_phxy_home, ",t=\"h\" h=%u,c0=%.3f,c1=%.3f,s=%u",
         internal::refine_id, (double)c_ab[0], (double)c_ab[1], home_unstable);
 
     // validate from another point in the AB grid
-    xy_long_t v_ab_off = { -1, 3 };
+    const xy_long_t v_ab_off = { -1, 3 };
     plan_corexy_abgrid_move(origin_steps, v_ab_off, fr_mm_s);
     if (planner.draining()) {
         return false;
@@ -951,10 +954,10 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
         return false;
     }
 
-    xy_long_t v_c_ab = cdist_translate(v_c_dist, calibrated_origin_xy);
-    xy_long_t v_c_diff = v_c_ab - v_ab_off;
-    bool v_home_unstable = point_is_unstable(v_c_dist, calibrated_origin_xy);
-    bool v_c_invalid = v_c_diff != c_ab;
+    const xy_long_t v_c_ab = cdist_translate(v_c_dist, calibrated_origin_xy);
+    const xy_long_t v_c_diff = v_c_ab - v_ab_off;
+    const bool v_home_unstable = point_is_unstable(v_c_dist, calibrated_origin_xy);
+    const bool v_c_invalid = v_c_diff != c_ab;
 
     metric_record_custom(&metric_phxy_home, ",t=\"v\" h=%u,c0=%.3f,c1=%.3f,s=%u,v=%u",
         internal::refine_id, (double)v_c_ab[0], (double)v_c_ab[1], v_home_unstable, v_c_invalid);
@@ -979,7 +982,7 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
     }
 
     // set machine origin
-    xy_long_t c_ab_steps = {
+    const xy_long_t c_ab_steps = {
         c_ab[X_HOME_DIR == Y_HOME_DIR ? A_AXIS : B_AXIS] * phase_cycle_steps(A_AXIS) * -Y_HOME_DIR,
         c_ab[X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS] * phase_cycle_steps(B_AXIS) * -X_HOME_DIR
     };
@@ -994,11 +997,11 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
 }
 
 bool corexy_home_is_calibrated() {
-    CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
+    const CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
     return !calibrated_origin.uninitialized();
 }
 
 bool corexy_home_is_unstable() {
-    CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
+    const CoreXYGridOrigin calibrated_origin = config_store().corexy_grid_origin.get();
     return calibrated_origin.uninitialized() || internal::home_unstable;
 }
