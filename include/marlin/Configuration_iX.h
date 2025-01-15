@@ -23,11 +23,13 @@
 
 #define MOTHERBOARD BOARD_BUDDY_2209_02
 
-#include <option/has_toolchanger.h>
-#include <option/has_modularbed.h>
-#include <option/has_loadcell.h>
+#include "hw_configuration.hpp"
 #include <Marlin/src/core/macros.h>
+#include <option/has_loadcell.h>
+#include <option/has_mmu2.h>
+#include <option/has_modularbed.h>
 #include <option/has_precise_homing_corexy.h>
+#include <option/has_toolchanger.h>
 
 // clang-format off
 
@@ -52,6 +54,7 @@
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     #include "config_store/store_c_api.h"
 #endif
+
 //===========================================================================
 //============================= Getting Started =============================
 //===========================================================================
@@ -153,7 +156,11 @@
 
 // This defines the number of extruders
 // :[1, 2, 3, 4, 5, 6]
+#if HAS_MMU2()
+#define EXTRUDERS 5
+#else
 #define EXTRUDERS 1
+#endif
 
 // Generally expected filament diameter (1.75, 2.85, 3.0, ...). Used for Volumetric, Filament Width Sensor, etc.
 #define DEFAULT_NOMINAL_FILAMENT_DIA 1.75
@@ -162,7 +169,7 @@
 //#define SINGLENOZZLE
 
 /**
- * Prusa MK2 Single Nozzle Multi-Material Multiplexer, and variants.
+ * Průša MK2 Single Nozzle Multi-Material Multiplexer, and variants.
  *
  * This device allows one stepper driver on a control board to drive
  * two to eight stepper motors, one at a time, in a manner suitable
@@ -188,7 +195,26 @@
  *
  * For additional configuration see Configuration_adv.h
  */
-//#define PRUSA_MMU2
+#if HAS_MMU2()
+#define MMU_MODEL PRUSA_MMU2S
+#endif
+
+/**
+ * Tool mapping and spool join - adopted from XL's toolchange, reimplemented for MMU2
+ */
+#if HAS_MMU2()
+#define PRUSA_TOOL_MAPPING
+#define PRUSA_SPOOL_JOIN
+#endif
+
+/**
+ *  Compatibility mode with gcode's slided for the MK3
+ *
+ *  When switched on and the compatibility mode is turned on at runtime,
+ *  some gcodes (like G80) can have a different meaning.
+ */
+//#define GCODE_COMPATIBILITY_MK3
+//#define FAN_COMPATIBILITY_MK4_MK3
 
 // A dual extruder that uses a single stepper motor
 //#define SWITCHING_EXTRUDER
@@ -388,6 +414,7 @@
  *   999 : Dummy Table that ALWAYS reads 100°C or the temperature defined below.
  *
  *  2000 : 100k TDK NTC Chip Thermistor 100K NTCG104LH104JT1 thermistor (4k7 pullup) board thermistor
+ *  2005 : 100k NTCG NTC Chip Thermistor (104NT-4-R025H42G)
  *
  * :{ '0': "Not used", '1':"100k / 4.7k - EPCOS", '2':"200k / 4.7k - ATC Semitec 204GT-2", '3':"Mendel-parts / 4.7k", '4':"10k !! do not use for a hotend. Bad resolution at high temp. !!", '5':"100K / 4.7k - ATC Semitec 104GT-2 (Used in ParCan & J-Head)", '501':"100K Zonestar (Tronxy X3A)", '6':"100k / 4.7k EPCOS - Not as accurate as Table 1", '7':"100k / 4.7k Honeywell 135-104LAG-J01", '8':"100k / 4.7k 0603 SMD Vishay NTCS0603E3104FXT", '9':"100k / 4.7k GE Sensing AL03006-58.2K-97-G1", '10':"100k / 4.7k RS 198-961", '11':"100k / 4.7k beta 3950 1%", '12':"100k / 4.7k 0603 SMD Vishay NTCS0603E3104FXT (calibrated for Makibox hot bed)", '13':"100k Hisens 3950  1% up to 300°C for hotend 'Simple ONE ' & hotend 'All In ONE'", '20':"PT100 (Ultimainboard V2.x)", '51':"100k / 1k - EPCOS", '52':"200k / 1k - ATC Semitec 204GT-2", '55':"100k / 1k - ATC Semitec 104GT-2 (Used in ParCan & J-Head)", '60':"100k Maker's Tool Works Kapton Bed Thermistor beta=3950", '61':"100k Formbot / Vivedino 3950 350C thermistor 4.7k pullup", '66':"Dyze Design 4.7M High Temperature thermistor", '67':"Slice Engineering 450C High Temperature thermistor", '70':"the 100K thermistor found in the bq Hephestos 2", '71':"100k / 4.7k Honeywell 135-104LAF-J01", '147':"Pt100 / 4.7k", '1047':"Pt1000 / 4.7k", '110':"Pt100 / 1k (non-standard)", '1010':"Pt1000 / 1k (non standard)", '-4':"Thermocouple + AD8495", '-3':"Thermocouple + MAX31855 (only for sensor 0)", '-2':"Thermocouple + MAX6675 (only for sensor 0)", '-1':"Thermocouple + AD595",'998':"Dummy 1", '999':"Dummy 2", '2000':"100k / 4k7" }
  */
@@ -398,15 +425,11 @@
 #define TEMP_SENSOR_4 0
 #define TEMP_SENSOR_5 0
 #define TEMP_SENSOR_BED 5
+#define TEMP_SENSOR_HEATBREAK 2008
 
-#ifdef HAS_PT100_LOVEBOARD
-    #define TEMP_SENSOR_HEATBREAK 0
-#else
-    #define TEMP_SENSOR_HEATBREAK 2008
-#endif
+#define TEMP_SENSOR_BOARD 2000
 #define TEMP_SENSOR_CHAMBER 0
 #define HEATER_CHAMBER_PIN -1 // On/off pin for enclosure heating system
-#define TEMP_SENSOR_BOARD 2000
 
 // Dummy thermistor constant temperature readings, for use with 998 and 999
 #define DUMMY_THERMISTOR_998_VALUE 25
@@ -456,6 +479,11 @@
 #define CHAMBER_MAXTEMP 100
 #define BOARD_MAXTEMP 120
 
+// Bed temperature compensation settings
+//#define BED_OFFSET 10
+//#define BED_OFFSET_START 40
+//#define BED_OFFSET_CENTER 50
+
 //===========================================================================
 //============================= PID Settings ================================
 //===========================================================================
@@ -472,12 +500,9 @@
     //#define PID_DEBUG             // Sends debug data to the serial port.
     //#define PID_OPENLOOP 1        // Puts PID in open loop. M104/M140 sets the output power from 0 to PID_MAX
     //#define SLOW_PWM_HEATERS      // PWM with very low frequency (roughly 0.125Hz=8s) and minimum state time of approximately 1s useful for heaters driven by a relay
-
-    /**
-     * Uses separate PID parameters for each extruder (useful for mismatched extruders)
-     * Set/get with gcode: M301 E[extruder number, 0-2]
-     */
-    //#define PID_PARAMS_PER_HOTEND
+    //#define HW_PWM_HEATERS          // PWM with hardware PWM output
+    //#define PID_PARAMS_PER_HOTEND // Uses separate PID parameters for each extruder (useful for mismatched extruders)
+    // Set/get with gcode: M301 E[extruder number, 0-2]
     /**
      * If the temperature difference between the target temperature and the actual temperature
      * is more than PID_FUNCTIONAL_RANGE then the PID will be shut off and the heater will be set to min/max.
@@ -526,24 +551,24 @@
 
 #if ENABLED(PIDTEMPBED)
 
-//#define PID_BED_DEBUG // Sends debug data to the serial port.
+    //#define PID_BED_DEBUG // Sends debug data to the serial port.
 
-//120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
-//from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
-//#define DEFAULT_bedKp 10.00
-//#define DEFAULT_bedKi .023
-//#define DEFAULT_bedKd 305.4
+    //120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
+    //from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
+    //#define DEFAULT_bedKp 10.00
+    //#define DEFAULT_bedKi .023
+    //#define DEFAULT_bedKd 305.4
 
-//120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
-//from pidautotune
-//#define DEFAULT_bedKp 97.1
-//#define DEFAULT_bedKi 1.41
-//#define DEFAULT_bedKd 1675.16
+    //120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
+    //from pidautotune
+    //#define DEFAULT_bedKp 97.1
+    //#define DEFAULT_bedKi 1.41
+    //#define DEFAULT_bedKd 1675.16
 
-//24V Prusa MK3 bed
-//#define DEFAULT_bedKp 160.97
-//#define DEFAULT_bedKi 14.07
-//#define DEFAULT_bedKd 460.39
+    //24V Prusa MK3 bed
+    //#define DEFAULT_bedKp 160.97
+    //#define DEFAULT_bedKi 14.07
+    //#define DEFAULT_bedKd 460.39
 
 // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
 #endif // PIDTEMPBED
@@ -755,17 +780,8 @@
  * Override with M92
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
-
-// 200 step motors
 #define DEFAULT_AXIS_STEPS_PER_UNIT \
     { 100, 100, 800, 380 }
-
-
-/// HW limits of feed rate
-#define HWLIMIT_NORMAL_MAX_FEEDRATE \
-    { 700, 700, 20, 100 }
-#define HWLIMIT_STEALTH_MAX_FEEDRATE \
-    { 140, 140, 12, 100 }
 
 /**
  * Default Max Feed Rate (mm/s)
@@ -775,11 +791,11 @@
 #define DEFAULT_MAX_FEEDRATE \
     { 500, 500, 12, 60 }
 
-/// HW limits of max acceleration
-#define HWLIMIT_NORMAL_MAX_ACCELERATION \
-    { 15000, 15000, 200, 6000 }
-#define HWLIMIT_STEALTH_MAX_ACCELERATION \
-    { 2500, 2500, 200, 2500 }
+/// HW limits of feed rate
+#define HWLIMIT_NORMAL_MAX_FEEDRATE \
+    { 700, 700, 20, 100 }
+#define HWLIMIT_STEALTH_MAX_FEEDRATE \
+    { 140, 140, 12, 100 }
 
 /**
  * Default Max Acceleration (change/s) change = mm/s
@@ -789,6 +805,12 @@
  */
 #define DEFAULT_MAX_ACCELERATION \
     { 7500, 7500, 1000, 5000 }
+
+/// HW limits of max acceleration
+#define HWLIMIT_NORMAL_MAX_ACCELERATION \
+    { 15000, 15000, 200, 6000 }
+#define HWLIMIT_STEALTH_MAX_ACCELERATION \
+    { 2500, 2500, 200, 2500 }
 
 /**
  * Default Acceleration (change/s) change = mm/s
@@ -969,6 +991,9 @@
 // Certain types of probes need to stay away from edges
 #define MIN_PROBE_EDGE 0
 
+// X and Y axis travel speed (mm/m) to get to the first probe location
+//#define XY_PROBE_SPEED_INITIAL
+
 // X and Y axis travel speed (mm/m) between probes
 #define XY_PROBE_SPEED 180 * 44
 
@@ -1124,7 +1149,7 @@
 #define Y_BED_SIZE 260
 #define Z_SIZE 185
 
-// Travel limits (mm) after homing, corresponding to endstop positions. defaul x -2.5 y -7.3
+// Travel limits (mm) after homing, corresponding to endstop positions.
 #define X_MIN_POS -14
 #define Y_MIN_POS -2
 #define Z_MIN_POS 0
@@ -1285,6 +1310,9 @@
     // contours of the bed more closely than edge-to-edge straight moves.
     #define SEGMENT_LEVELED_MOVES
     #define LEVELED_SEGMENT_LENGTH 5.0 // (mm) Length of all segments (except the last one)
+
+    /// (mm) If distance between min and max Z during probing exceeds this value, we offer a Z alignment calibration
+    //#define MBL_Z_DIFF_CALIB_WARNING_THRESHOLD 2
 
     /**
    * Enable the G26 Mesh Validation Pattern tool.
@@ -1603,6 +1631,9 @@
     #define XYZ_NOZZLE_PARK_POINT_M600 \
         {X_NOZZLE_PARK_POINT_M600, Y_NOZZLE_PARK_POINT_M600, Z_NOZZLE_PARK_POINT_M600}
 
+    #define NOZZLE_PARK_XY_FEEDRATE 200 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
+    #define NOZZLE_PARK_Z_FEEDRATE 5 // (mm/s) Z axis feedrate (not used for delta printers)
+
     #define Y_AXIS_LOAD_POS 10
     #define X_AXIS_LOAD_POS X_WASTEBIN_POINT
     #define Z_AXIS_LOAD_POS Z_NOZZLE_PARK_POINT
@@ -1610,9 +1641,6 @@
     #define X_AXIS_UNLOAD_POS X_WASTEBIN_POINT
     #define Y_AXIS_UNLOAD_POS Y_WASTEBIN_POINT
     #define Z_AXIS_UNLOAD_POS Z_NOZZLE_PARK_POINT
-
-    #define NOZZLE_PARK_XY_FEEDRATE 200 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
-    #define NOZZLE_PARK_Z_FEEDRATE 5 // (mm/s) Z axis feedrate (not used for delta printers)
 
     /**
      * Park the nozzle after print is finished

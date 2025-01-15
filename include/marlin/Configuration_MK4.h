@@ -24,7 +24,12 @@
 #define MOTHERBOARD BOARD_BUDDY_2209_02
 
 #include "hw_configuration.hpp"
+#include <Marlin/src/core/macros.h>
 #include <option/has_loadcell.h>
+#include <option/has_mmu2.h>
+#include <option/has_modularbed.h>
+#include <option/has_precise_homing_corexy.h>
+#include <option/has_toolchanger.h>
 
 // clang-format off
 
@@ -151,7 +156,6 @@
 
 // This defines the number of extruders
 // :[1, 2, 3, 4, 5, 6]
-#include <option/has_mmu2.h>
 #if HAS_MMU2()
 #define EXTRUDERS 5
 #else
@@ -308,6 +312,43 @@
     #if ENABLED(GRADIENT_MIX)
     //#define GRADIENT_VTOOL       // Add M166 T to use a V-tool index as a Gradient alias
     #endif
+#endif
+
+/**
+ * Modular heatbed(MHB)
+ *
+ *  Heatbed composed of multiple smaller heatbedlets.
+ *  Allows separate temperature controll of individual heatbedlets(HBL).
+ */
+#if HAS_MODULARBED()
+    #define MODULAR_HEATBED
+#endif
+#if ENABLED(MODULAR_HEATBED)
+    #define X_HBL_COUNT 3   // Number of heatbedlets in X direction
+    #define Y_HBL_COUNT 3   // Number of heatbedlets in Y direction
+    #define X_HBL_SIZE  90  // Size of single heatbedlet in X direction including gap between heatbedlets(mm)
+    #define Y_HBL_SIZE  90  // Size of single heatbedlet in Y direction including gap between heatbedlets(mm)
+    #define PRINT_AREA_BASED_HEATING_ENABLED get_print_area_based_heating_enabled()
+
+
+    // Bedlet temperature gradient calculation, uses this equation:
+    // BEDLET_TEMP = NEAREST_ACTIVE_BEDLET_TEMPERATURE - NEAREST_ACTIVE_BEDLET_TEMPERATURE * ( 1 / HBL_GRADIENT_CUTOFF * ACTIVE_BEDLET_DISTANCE)^HBL_GRADIENT_EXPONENT;
+    #define HBL_GRADIENT_EXPONENT 2.0f // Exponent used in equation to calculate heatbedlets temperature gradient
+    #define HBL_GRADIENT_CUTOFF 2.0f // Bedlet this far apart from active bedlet will have zero target temperature
+    #define HBL_EXPAND_TO_SIDES true // Enable expansion of heated area to sides in order to prevent warping from bed material thermal expansion
+
+#endif //MODULAR_HEATBED
+
+/**
+ * Prusa Toolchanger
+ *
+ *  Multiple semi-independent extruders.
+ *  Connected by shared bus and shared step/dir.
+ *  Stepping done by marlin.
+ *  PID and fan controll done by extruder.
+ */
+#if HAS_TOOLCHANGER()
+    #define PRUSA_TOOLCHANGER
 #endif
 
 // Offset of the extruders (uncomment if using more than one and relying on firmware to position when changing).
@@ -551,7 +592,6 @@
 #define PREVENT_LENGTHY_EXTRUDE
 #define EXTRUDE_MAXLENGTH 200
 
-
 //===========================================================================
 //===============+=== PID > Heatbreak autocooling Control ===================
 //===========================================================================
@@ -574,7 +614,6 @@
     #define DEFAULT_heatbreakKi 5.00
     #define DEFAULT_heatbreakKd 300.00
 #endif
-
 
 //===========================================================================
 //======================== Thermal Runaway Protection =======================
@@ -619,11 +658,10 @@
 // @section homing
 
 //! Move in opposite direction as first homing move
-//! useful for sensor-less homing to avoid clicking noise
-//! implemented only for Cartesian kinematics
+//! Required for sensorless homing under most circumstances
 #define MOVE_BACK_BEFORE_HOMING
 #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-    #define MOVE_BACK_BEFORE_HOMING_DISTANCE 10.0f
+    #define MOVE_BACK_BEFORE_HOMING_DISTANCE       10.0f // increased distance for subsequent attempts
 #endif
 
 // Specify here all the endstop connectors that are connected to any endstop or probe.
@@ -748,10 +786,9 @@
  * Override with M92
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
-#define DEFAULT_AXIS_STEPS_PER_UNIT_E0 380
-
 #define DEFAULT_AXIS_STEPS_PER_UNIT \
-    { 100, 100, 400, DEFAULT_AXIS_STEPS_PER_UNIT_E0 } //E0 280 295 420
+    { 100, 100, 400, 380 }
+
 /**
  * Default Max Feed Rate (mm/s)
  * Override with M203
@@ -781,7 +818,6 @@
 #define HWLIMIT_STEALTH_MAX_ACCELERATION \
     { 2500, 2500, 200, 2500 }
 
-
 /**
  * Default Acceleration (change/s) change = mm/s
  * Override with M204
@@ -797,6 +833,7 @@
 //
 // Use Junction Deviation instead of traditional Jerk Limiting
 //
+//#define JUNCTION_DEVIATION
 #define CLASSIC_JERK
 #if DISABLED(CLASSIC_JERK)
     #define JUNCTION_DEVIATION_MM 0.02 // (mm) Distance from real junction edge
@@ -819,8 +856,8 @@
 #define DEFAULT_EJERK 5 // May be used by Linear Advance
 
 /// HW limits of Jerk
-#define HWLIMIT_NORMAL_JERK { 10, 10, 2, 10 }
-#define HWLIMIT_STEALTH_JERK { 8, 8, 2, 10 }
+#define HWLIMIT_NORMAL_JERK {10, 10, 2, 10}
+#define HWLIMIT_STEALTH_JERK {8, 8, 2, 10}
 
 /**
  * S-Curve Acceleration
@@ -889,9 +926,6 @@
 #if HAS_LOADCELL()
   #define NOZZLE_LOAD_CELL
 #endif
-
-// Display heatbreak temperature as FILAMENT on LCD status screen footer
-#define LCD_HEATBREAK_TO_FILAMENT
 
 /**
  * Z Servo Probe, such as an endstop switch on a rotating arm.
@@ -1142,7 +1176,6 @@
 #define Z_HOME_GAP 0
 
 /// Space after allowed end of axis where axis should end
-/// Don't use until printer specs are finalized
 #define X_END_GAP 5
 #define Y_END_GAP 5
 #define Z_END_GAP 10
@@ -1290,6 +1323,9 @@
     // contours of the bed more closely than edge-to-edge straight moves.
     #define SEGMENT_LEVELED_MOVES
     #define LEVELED_SEGMENT_LENGTH 5.0 // (mm) Length of all segments (except the last one)
+
+    /// (mm) If distance between min and max Z during probing exceeds this value, we offer a Z alignment calibration
+    //#define MBL_Z_DIFF_CALIB_WARNING_THRESHOLD 2
 
     /**
    * Enable the G26 Mesh Validation Pattern tool.
@@ -1440,11 +1476,18 @@
 #if ENABLED(Z_SAFE_HOMING)
     #define Z_SAFE_HOMING_X_POINT (14) // X point for Z homing when homing all axes (G28).
     #define Z_SAFE_HOMING_Y_POINT (-4) // Y point for Z homing when homing all axes (G28).
+
+    //#define DETECT_PRINT_SHEET
+    #if ENABLED(DETECT_PRINT_SHEET)
+        #define DETECT_PRINT_SHEET_X_POINT (245)
+        #define DETECT_PRINT_SHEET_Y_POINT (0)
+        #define DETECT_PRINT_SHEET_Z_POINT (-1)
+        #define DETECT_PRINT_SHEET_Z_AFTER_FAILURE (100)
+    #endif
 #endif
 
+// Homing speeds (mm/m)
 #define HOMING_FEEDRATE_XY (62 * 60)
-
-// beware - experimentally tuned on a high volume of MK4 and MK4S to prevent resonances in Z while homing
 #define HOMING_FEEDRATE_Z 1150
 #define HOMING_FEEDRATE_INVERTED_Z (buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (60 * 60) : (30 * 60))
 
@@ -1578,13 +1621,6 @@
 #define NOZZLE_PARK_FEATURE
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
-    #define Z_AXIS_LOAD_POS  40
-    #define Z_AXIS_UNLOAD_POS 20
-    #define Y_AXIS_LOAD_POS    (std::numeric_limits<float>::quiet_NaN())
-    #define Y_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
-    #define X_AXIS_LOAD_POS  (std::numeric_limits<float>::quiet_NaN())
-    #define X_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
-
     // Specify a park position as { X, Y, Z }
     #define X_NOZZLE_PARK_POINT (X_MAX_POS - 10)
     #define Y_NOZZLE_PARK_POINT 170
@@ -1602,6 +1638,14 @@
 
     #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
     #define NOZZLE_PARK_Z_FEEDRATE 5 // (mm/s) Z axis feedrate (not used for delta printers)
+
+    #define X_AXIS_LOAD_POS (std::numeric_limits<float>::quiet_NaN())
+    #define Y_AXIS_LOAD_POS (std::numeric_limits<float>::quiet_NaN())
+    #define Z_AXIS_LOAD_POS 40
+
+    #define X_AXIS_UNLOAD_POS (std::numeric_limits<float>::quiet_NaN())
+    #define Y_AXIS_UNLOAD_POS (std::numeric_limits<float>::quiet_NaN())
+    #define Z_AXIS_UNLOAD_POS 20
 
     /**
      * Park the nozzle after print is finished
