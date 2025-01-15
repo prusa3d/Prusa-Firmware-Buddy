@@ -101,7 +101,7 @@ public:
         Time FindIntersection(Line other) const;
 
         /// Return the angle in degrees between this line and the other
-        float CalculateAngle(Line other) const;
+        float CalculateAngle(Line other, bool normalize = true) const;
     };
 
     struct SegmentedR2s {

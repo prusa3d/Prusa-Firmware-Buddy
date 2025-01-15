@@ -153,7 +153,7 @@ ProbeAnalysisBase::Time ProbeAnalysisBase::Line::FindIntersection(Line other) co
     return static_cast<Time>(num / denom);
 }
 
-float ProbeAnalysisBase::Line::CalculateAngle(Line other) const {
+float ProbeAnalysisBase::Line::CalculateAngle(Line other, bool normalize) const {
     if (!IsValid() || !other.IsValid()) {
         return std::numeric_limits<float>::quiet_NaN();
     }
@@ -163,7 +163,11 @@ float ProbeAnalysisBase::Line::CalculateAngle(Line other) const {
     float thisA = this->a / normalizationFactor;
     float otherA = other.a / normalizationFactor;
     float angle = atanf((otherA - thisA) / (1 + thisA * otherA)) * toDegrees;
-    return angle < 0 ? 180 + angle : angle;
+    if (normalize) {
+        return angle < 0 ? 180 + angle : angle;
+    } else {
+        return angle;
+    }
 }
 
 ProbeAnalysisBase::Sample ProbeAnalysisBase::ClosestSample(Time time, SearchDirection direction) {
@@ -356,6 +360,12 @@ void ProbeAnalysisBase::CalculateLoadAngles(Features &features) const {
     features.loadAngleCompressionEnd = features.compressedLine.CalculateAngle(features.compressionLine);
     features.loadAngleDecompressionStart = features.decompressionLine.CalculateAngle(features.compressedLine);
     features.loadAngleDecompressionEnd = features.decompressionLine.CalculateAngle(features.afterDecompressionLine);
+    {
+        auto compressedVsDecompressedAngleBefore = features.compressedLine.CalculateAngle(features.beforeCompressionLine, false);
+        auto compressedvsDecompressedAngleAfter = features.compressedLine.CalculateAngle(features.afterDecompressionLine, false);
+        METRIC_DEF(probe_angle_metric, "probe_angle", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
+        metric_record_custom(&probe_angle_metric, " b=%0.3f,a=%0.3f", (double)compressedVsDecompressedAngleBefore, (double)compressedvsDecompressedAngleAfter);
+    }
 }
 
 ProbeAnalysisBase::VarianceInfo ProbeAnalysisBase::CalculateVariance(SamplesRange samples, Line regression) {
@@ -579,7 +589,7 @@ bool ProbeAnalysisBase::HasOutOfRangeFeature(Features &features, const char **fe
         *value = features.r2_60ms.decompressionEnd;
         return true;
     }
-    auto compressedvsDecompressedAngleAfter = features.compressedLine.CalculateAngle(features.afterDecompressionLine);
+    auto compressedvsDecompressedAngleAfter = features.compressedLine.CalculateAngle(features.afterDecompressionLine, false);
     if (std::abs(compressedvsDecompressedAngleAfter) > 40) {
         *feature = "angle_after";
         *value = compressedvsDecompressedAngleAfter;
