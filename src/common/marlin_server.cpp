@@ -2724,7 +2724,15 @@ void retract() {
 void lift_head() {
 #if ENABLED(NOZZLE_PARK_FEATURE)
     TemporaryGlobalEndstopsState _es(true);
-    const float distance = std::min<float>(Z_NOZZLE_PARK_POINT, Z_MAX_POS - current_position.z);
+    const float distance = std::min<float>(
+                               std::max<float>({
+                                   Z_NOZZLE_PARK_POINT + current_position.z,
+    #ifdef Z_NOZZLE_PARK_POINT_MIN
+                                   Z_NOZZLE_PARK_POINT_MIN,
+    #endif
+                               }),
+                               Z_MAX_POS)
+        - current_position.z;
     static_assert(Z_NOZZLE_PARK_POINT > 0);
 
     // do_homing_move does not update current position, we have to do it manually

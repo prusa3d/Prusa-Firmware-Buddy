@@ -1586,7 +1586,9 @@
 
     #define X_NOZZLE_PARK_POINT 208.75
     #define Y_NOZZLE_PARK_POINT 305
-    #define Z_NOZZLE_PARK_POINT 10
+    #define Z_NOZZLE_PARK_POINT 10 // !!! THESE ARE NOT ABSOLUTE COORDINATES, BUT A RAISE VALUE (HOPEFULLY EVERYWHERE)
+    // #define Z_NOZZLE_PARK_POINT_MIN 10 // Always raise the nozzle by this amount when parking on print end
+
     #define XYZ_NOZZLE_PARK_POINT \
         {X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, Z_NOZZLE_PARK_POINT}
 
