@@ -100,7 +100,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
       if (HAL_TIM_OC_Init(&TimerHandle[timer_num].handle) == HAL_OK) {
         TIM_OC_InitTypeDef sConfig = {0};
         sConfig.OCMode     = TIM_OCMODE_TIMING;
-        sConfig.Pulse      = 65535; // By default, the stepper routine will be called every 0.065536s until the queue is filled.
+        sConfig.Pulse      = (STEPPER_TIMER_RATE / 1000); // The first call of the stepper routine will be after 1ms.
 
         if (HAL_TIM_OC_ConfigChannel(&TimerHandle[timer_num].handle, &sConfig, TIM_CHANNEL_1) == HAL_OK) {
             if (HAL_TIM_OC_Start_IT(&TimerHandle[timer_num].handle, TIM_CHANNEL_1) != HAL_OK)
