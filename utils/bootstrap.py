@@ -21,7 +21,8 @@ import zipfile
 import stat
 from argparse import ArgumentParser
 from pathlib import Path
-from urllib.request import urlretrieve
+from urllib.parse import urlparse
+import requests
 
 assert sys.version_info >= (3, 8), 'Python 3.8+ is required.'
 is_windows = platform.system() == 'Windows'
@@ -143,24 +144,52 @@ def find_single_subdir(path: Path):
         raise RuntimeError
 
 
+def download_url(url: str, filename: Path):
+    """Download file from url and write it to given filename"""
+    with requests.get(url, stream=True) as response:
+        response.raise_for_status()
+        with open(filename, 'wb') as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    file.write(chunk)
+
+
 def download_and_unzip(url: str, directory: Path):
     """Download a compressed file and extract it at `directory`."""
     extract_dir = directory.with_suffix('.temp')
     shutil.rmtree(directory, ignore_errors=True)
     shutil.rmtree(extract_dir, ignore_errors=True)
 
-    print('Downloading ' + directory.name)
-    f, _ = urlretrieve(url, filename=None)
-    print('Extracting ' + directory.name)
-    if '.tar.bz2' in url or '.tar.gz' in url or '.tar.xz' in url:
-        obj = tarfile.open(f)
+    print('Downloading ' + directory.name, end=" ")
+
+    # temporary local filepath
+    parsed_url = urlparse(url)
+    file = Path(parsed_url.path).name
+    filename = Path(dependencies_dir) / file
+
+    download_url(url=url, filename=filename)
+
+    print('done')
+    print('Extracting ' + file, end=" ")
+
+    # Check if tar or zip
+    if any(url.endswith(ext) for ext in ['.tar.bz2', '.tar.gz', '.tar.xz']):
+        with tarfile.open(filename) as obj:
+            obj.extractall(path=extract_dir)
     else:
-        obj = zipfile.ZipFile(f, 'r')
-    obj.extractall(path=str(extract_dir))
+        with zipfile.ZipFile(filename, 'r') as obj:
+            obj.extractall(path=extract_dir)
 
     subdir = find_single_subdir(extract_dir)
-    shutil.move(str(subdir), str(directory))
+    shutil.move(subdir, directory)
+
+    print('done')
+
+    # remove temp unzip folder
     shutil.rmtree(extract_dir, ignore_errors=True)
+
+    # remove downloaded zip
+    os.remove(filename)
 
 
 def run(*cmd):
@@ -212,7 +241,7 @@ def install_dependency(dependency):
         os.mkdir(installation_directory)
         for file in files:
             basename = file.split('/')[-1]
-            urlretrieve(file, installation_directory / basename)
+            download_url(url=file, filename=installation_directory / basename)
     else:
         raise ('dependency is missing payload')
 
@@ -294,6 +323,10 @@ def install_pip_packages():
 
 
 def bootstrap():
+    # create dependency directory if not exists
+    if not os.path.exists(dependencies_dir):
+        os.makedirs(dependencies_dir)
+
     for dependency in dependencies:
         if recommended_version_is_available(dependency):
             continue
