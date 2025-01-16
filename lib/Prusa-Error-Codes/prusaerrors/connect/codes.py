@@ -15,7 +15,8 @@ from prusaerrors.shared.codes import (Category, Code, Codes, Printer,
                                       unique_codes)
 
 BUDDY = [
-    'MINI', 'MK4', 'IX', 'XL', 'MK3.5', 'MK4S', 'MK3.9', 'MK3.9S', 'MK3.5S'
+    'MINI', 'MK4', 'IX', 'XL', 'MK3.5', 'MK4S', 'MK3.9', 'MK3.9S', 'MK3.5S',
+    'COREONE'
 ]
 
 
