@@ -10,6 +10,8 @@
 #include <string_view>
 #include <config_store/store_instance.hpp>
 
+#include <USBSerial.h>
+
 using namespace std::literals;
 using phase_stepping::opts::SERIAL_DECIMALS;
 
@@ -300,13 +302,13 @@ void GcodeSuite::M974() {
         parser.floatval('F'),
         parser.floatval('R'),
         [sampleNum = 0](const PrusaAccelerometer::Acceleration &sample) mutable {
-            SERIAL_ECHO(sampleNum);
-            SERIAL_ECHO(", ");
-            SERIAL_ECHO(sample.val[0]);
-            SERIAL_ECHO(", ");
-            SERIAL_ECHO(sample.val[1]);
-            SERIAL_ECHO(", ");
-            SERIAL_ECHOLN(sample.val[2]);
+            char buff[64];
+            snprintf(buff, sizeof(buff), "%d, %.5f, %.5f, %.5f\n", sampleNum, sample.val[0], sample.val[1], sample.val[2]);
+            int len = strlen(buff);
+            // We use cdc_write_sync intentionally to bypass the pipe into the
+            // logging infrastructure which is not fast enough and useless for
+            // us.
+            SerialUSB.cdc_write_sync(reinterpret_cast<uint8_t *>(buff), len);
             sampleNum++;
         });
     SERIAL_ECHO("sample freq: ");
