@@ -2134,27 +2134,7 @@
  * Enables G53 and G54-G59.3 commands to select coordinate systems
  * and G92.1 to reset the workspace to native machine space.
  */
-#define CNC_COORDINATE_SYSTEMS
-
-
-
-/**
- * Z Axis height calibration.
- *
- *
- */
-
-#define Z_AXIS_CALIBRATION //Enable G64 - measure Z axis size and save it to eeprom
-
-#ifdef Z_AXIS_CALIBRATION
-    #ifdef CNC_COORDINATE_SYSTEMS
-        #define Z_SHIFTED_COOR_SYS 0    //Load Z axis size from eeprom to CNC_COORDINATE_SYSTEMS 0=G54 ... 9=G59.3
-        #define MIN_SAVE_DIFFERENCE 0.5 //Don't save new Z_HEIGHT if difference between new and old Z_HEIGHT is lower than MIN_SAVE_DIFFERENCE. Used to extend EEPROM lifetime.
-    #else
-        #error This feature is useless without CNC_COORDINATE_SYSTEMS. Better disable it completly.
-    #endif
-
-#endif
+//#define CNC_COORDINATE_SYSTEMS
 
 /**
  * Auto-report temperatures with M155 S<seconds>
