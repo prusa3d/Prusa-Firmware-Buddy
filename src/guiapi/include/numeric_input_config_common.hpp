@@ -1,5 +1,7 @@
 #include "numeric_input_config.hpp"
 
+#include <option/has_chamber_api.h>
+
 namespace numeric_input_config {
 
 /// Config for entering a TCP/UDP port
@@ -21,5 +23,15 @@ extern const NumericInputConfig percent_with_off;
 
 /// 0-100 %, -1 = auto
 extern const NumericInputConfig percent_with_auto;
+
+#if HAS_CHAMBER_API()
+/// Degrees celsius.
+/// This is a function because the config is dynamic and can change based on what chamber backend is currently running.
+const NumericInputConfig &chamber_temp_with_off();
+
+/// Degrees celsius.
+/// This is a function because the config is dynamic and can change based on what chamber backend is currently running.
+const NumericInputConfig &chamber_temp_with_none();
+#endif
 
 } // namespace numeric_input_config
