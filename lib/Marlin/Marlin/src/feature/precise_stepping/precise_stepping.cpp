@@ -762,14 +762,13 @@ void PreciseStepping::step_isr() {
         next = compare + time_increment;
 
         const uint32_t counter = __HAL_TIM_GET_COUNTER(&TimerHandle[STEP_TIMER_NUM].handle);
-        timer_remaining_time = (next - counter) & 0xFFFF;
 
-        // Be aware that the difference between 'next' and 'counter' and the value
-        // of 'timer_remaining_time' could exceed max_tick.
-        // Because of it, we need to be conservative about the value of 'max_ticks'
-        // to ensure that their values never exceed (UINT16_MAX / 2). Otherwise,
-        // the value returned by counter_signed_diff() will be incorrect.
-        assert(timer_remaining_time <= (UINT16_MAX / 2));
+        // truncate timer_remaining_time to the effective 16bit res required by
+        // counter_signed_diff() to correctly check for overflow later. However, if that happens
+        // (timer_remaining_time is >= U16/2), it means we already blew past the new event. Instead
+        // of ticking it immediately, reschedule on a new isr. We check for the size of the overflow
+        // just below.
+        timer_remaining_time = (next - counter) & 0xFFFF;
     } while (timer_remaining_time < min_reserve);
 
     // What follows is a not-straightforward scheduling of the next step ISR
