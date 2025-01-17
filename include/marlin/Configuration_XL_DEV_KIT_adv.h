@@ -1823,10 +1823,7 @@
         #define CRASH_COUNTER_MAX 3        // max crashes with automatic recovery
     #endif
 
-    /**
-     * Beta feature!
-     * Create a 50/50 square wave step pulse optimal for stepper drivers.
-     */
+    // Create a 50/50 square wave step pulse optimal for stepper drivers.
     #define SQUARE_WAVE_STEPPING
 
     /**
