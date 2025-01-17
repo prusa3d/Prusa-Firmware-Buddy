@@ -212,7 +212,7 @@ void buddy::metrics::RecordMarlinVariables() {
 
 #if !HAS_MODULARBED()
     METRIC_DEF(metric_bed_pwm, "bed_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_DISABLED);
-    metric_record_integer(&metric_nozzle_pwm, thermalManager.bed_pwm);
+    metric_record_integer(&metric_bed_pwm, thermalManager.bed_pwm);
 #endif
 
     METRIC_DEF(bed, "temp_bed", METRIC_VALUE_FLOAT, 2000 + 23, METRIC_DISABLED);
