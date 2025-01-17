@@ -7,6 +7,11 @@
 #include <dialog_text_input.hpp>
 #include <ScreenHandler.hpp>
 
+#if HAS_CHAMBER_API()
+    #include <feature/chamber/chamber.hpp>
+#endif
+
+using namespace buddy;
 using namespace screen_filament_detail;
 
 // *MI_TOGGLE
@@ -70,6 +75,33 @@ MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE()
 // * MI_FILAMENT_BED_TEMPERATURE
 MI_FILAMENT_BED_TEMPERATURE::MI_FILAMENT_BED_TEMPERATURE()
     : MI_SPIN(&FilamentTypeParameters::heatbed_temperature, numeric_input_config::bed_temperature, HAS_MINI_DISPLAY() ? N_("Bed Temp") : N_("Bed Temperature")) {}
+
+#if HAS_CHAMBER_API()
+namespace {
+void setup_chamber_temp_item(IWindowMenuItem &item) {
+    const auto caps = chamber().capabilities();
+    item.set_is_hidden(!caps.temperature_control() && !caps.always_show_temperature_control);
+}
+} // namespace
+
+// * MI_FILAMENT_MIN_CHAMBER_TEMPERATURE
+MI_FILAMENT_MIN_CHAMBER_TEMPERATURE::MI_FILAMENT_MIN_CHAMBER_TEMPERATURE()
+    : MI_SPIN(&FilamentTypeParameters::chamber_min_temperature, numeric_input_config::chamber_temp_with_none(), N_("Minimum Chamber Temperature")) {
+    setup_chamber_temp_item(*this);
+}
+
+// * MI_FILAMENT_MAX_CHAMBER_TEMPERATURE
+MI_FILAMENT_MAX_CHAMBER_TEMPERATURE::MI_FILAMENT_MAX_CHAMBER_TEMPERATURE()
+    : MI_SPIN(&FilamentTypeParameters::chamber_max_temperature, numeric_input_config::chamber_temp_with_none(), N_("Maximum Chamber Temperature")) {
+    setup_chamber_temp_item(*this);
+}
+
+// * MI_FILAMENT_TARGET_CHAMBER_TEMPERATURE
+MI_FILAMENT_TARGET_CHAMBER_TEMPERATURE::MI_FILAMENT_TARGET_CHAMBER_TEMPERATURE()
+    : MI_SPIN(&FilamentTypeParameters::chamber_target_temperature, numeric_input_config::chamber_temp_with_none(), N_("Nominal Chamber Temperature")) {
+    setup_chamber_temp_item(*this);
+}
+#endif
 
 // * MI_FILAMENT_REQUIRES_FILTRATION
 #if HAS_CHAMBER_API()

@@ -7,6 +7,7 @@
 #include <WindowMenuSpin.hpp>
 #include <MItem_tools.hpp>
 #include <screen_menu.hpp>
+#include <numeric_input_config.hpp>
 
 #include <option/has_chamber_api.h>
 
@@ -84,6 +85,27 @@ public:
 };
 
 #if HAS_CHAMBER_API()
+class MI_FILAMENT_MIN_CHAMBER_TEMPERATURE final : public MI_SPIN<decltype(FilamentTypeParameters::chamber_min_temperature)> {
+public:
+    MI_FILAMENT_MIN_CHAMBER_TEMPERATURE();
+};
+#endif
+
+#if HAS_CHAMBER_API()
+class MI_FILAMENT_MAX_CHAMBER_TEMPERATURE final : public MI_SPIN<decltype(FilamentTypeParameters::chamber_max_temperature)> {
+public:
+    MI_FILAMENT_MAX_CHAMBER_TEMPERATURE();
+};
+#endif
+
+#if HAS_CHAMBER_API()
+class MI_FILAMENT_TARGET_CHAMBER_TEMPERATURE final : public MI_SPIN<decltype(FilamentTypeParameters::chamber_target_temperature)> {
+public:
+    MI_FILAMENT_TARGET_CHAMBER_TEMPERATURE();
+};
+#endif
+
+#if HAS_CHAMBER_API()
 class MI_FILAMENT_REQUIRES_FILTRATION final : public MI_TOGGLE {
 public:
     MI_FILAMENT_REQUIRES_FILTRATION();
@@ -122,6 +144,11 @@ using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
     MI_FILAMENT_NOZZLE_TEMPERATURE,
     MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE,
     MI_FILAMENT_BED_TEMPERATURE,
+#if HAS_CHAMBER_API()
+    MI_FILAMENT_TARGET_CHAMBER_TEMPERATURE,
+    MI_FILAMENT_MIN_CHAMBER_TEMPERATURE,
+    MI_FILAMENT_MAX_CHAMBER_TEMPERATURE,
+#endif
     MI_FILAMENT_IS_ABRASIVE,
 #if HAS_CHAMBER_API()
     MI_FILAMENT_REQUIRES_FILTRATION,
