@@ -7,6 +7,8 @@
 #include <MItem_tools.hpp>
 #include <screen_menu.hpp>
 
+#include <option/has_chamber_api.h>
+
 namespace screen_filament_detail {
 
 template <typename Child, typename Parent>
