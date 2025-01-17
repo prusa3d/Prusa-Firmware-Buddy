@@ -359,6 +359,7 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
             break;
 
         case GetSampleResult::buffer_empty:
+            idle(true, true);
             break;
 
         case GetSampleResult::error: {
@@ -368,6 +369,13 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
         }
         }
     }
+    const PrusaAccelerometer::Error error = accelerometer.get_error();
+
+    if (error != PrusaAccelerometer::Error::none) {
+        log_error(PhaseStepping, "Accelerometer reading failed %u", static_cast<unsigned>(error));
+        return 0;
+    }
+
     return accelerometer.get_sampling_rate();
 }
 
