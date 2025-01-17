@@ -58,11 +58,11 @@ public:
     std::optional<uint8_t> chamber_target_temperature = std::nullopt;
 
     /// Whether the filament requires filtration (used in XL enclosure)
-    bool requires_filtration : 1 = false;
+    bool requires_filtration = false;
 #endif
 
     /// Whether the filament is abrasive and requires hardened (abrasive-resistant) nozzle
-    bool is_abrasive : 1 = false;
+    bool is_abrasive = false;
 
 public:
     constexpr bool operator==(const FilamentTypeParameters &) const = default;

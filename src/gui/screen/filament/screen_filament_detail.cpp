@@ -9,6 +9,20 @@
 
 using namespace screen_filament_detail;
 
+// *MI_TOGGLE
+MI_TOGGLE::MI_TOGGLE(Parameter param, const char *label)
+    : WI_ICON_SWITCH_OFF_ON_t(false, _(label))
+    , param_(param) {
+}
+void MI_TOGGLE::set_filament_type(FilamentType set) {
+    filament_type = set;
+    set_value(filament_type.parameters().*param_, false);
+    set_enabled(filament_type.is_customizable());
+}
+void MI_TOGGLE::OnChange(size_t) {
+    filament_type.modify_parameters([&](auto &p) { p.*param_ = value(); });
+}
+
 // * MI_FILAMENT_NAME
 MI_FILAMENT_NAME::MI_FILAMENT_NAME()
     : MI_COMMON(_("Name"), nullptr, is_enabled_t(filament_type.is_customizable())) {}
@@ -59,30 +73,13 @@ MI_FILAMENT_BED_TEMPERATURE::MI_FILAMENT_BED_TEMPERATURE()
 // * MI_FILAMENT_REQUIRES_FILTRATION
 #if HAS_CHAMBER_API()
 MI_FILAMENT_REQUIRES_FILTRATION::MI_FILAMENT_REQUIRES_FILTRATION()
-    : MI_COMMON(false, _("Requires Filtration")) {}
+    : MI_TOGGLE(&FilamentTypeParameters::requires_filtration, N_("Requires Filtration")) {}
 
-void MI_FILAMENT_REQUIRES_FILTRATION::update() {
-    set_value(filament_type.parameters().requires_filtration, false);
-    set_enabled(filament_type.is_customizable());
-}
-
-void MI_FILAMENT_REQUIRES_FILTRATION::OnChange(size_t) {
-    filament_type.modify_parameters([&](auto &p) { p.requires_filtration = value(); });
-}
 #endif
 
 // * MI_FILAMENT_IS_ABRASIVE
 MI_FILAMENT_IS_ABRASIVE::MI_FILAMENT_IS_ABRASIVE()
-    : MI_COMMON(false, _("Is Abrasive")) {}
-
-void MI_FILAMENT_IS_ABRASIVE::update() {
-    set_value(filament_type.parameters().is_abrasive, false);
-    set_enabled(filament_type.is_customizable());
-}
-
-void MI_FILAMENT_IS_ABRASIVE::OnChange(size_t) {
-    filament_type.modify_parameters([&](auto &p) { p.is_abrasive = value(); });
-}
+    : MI_TOGGLE(&FilamentTypeParameters::is_abrasive, N_("Is Abrasive")) {}
 
 // * MI_FILAMENT_VISIBLE
 MI_FILAMENT_VISIBLE::MI_FILAMENT_VISIBLE()

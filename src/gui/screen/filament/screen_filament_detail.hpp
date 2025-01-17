@@ -58,6 +58,21 @@ private:
     FilamentType filament_type;
 };
 
+class MI_TOGGLE : public WI_ICON_SWITCH_OFF_ON_t {
+
+public:
+    using Parameter = bool FilamentTypeParameters::*;
+
+    MI_TOGGLE(Parameter param, const char *label);
+
+    void set_filament_type(FilamentType set);
+    void OnChange(size_t) override;
+
+private:
+    Parameter param_;
+    FilamentType filament_type;
+};
+
 class MI_FILAMENT_NAME final : public MI_COMMON<MI_FILAMENT_NAME, WI_INFO_t> {
 public:
     MI_FILAMENT_NAME();
@@ -81,19 +96,15 @@ public:
 };
 
 #if HAS_CHAMBER_API()
-class MI_FILAMENT_REQUIRES_FILTRATION final : public MI_COMMON<MI_FILAMENT_REQUIRES_FILTRATION, WI_ICON_SWITCH_OFF_ON_t> {
+class MI_FILAMENT_REQUIRES_FILTRATION final : public MI_TOGGLE {
 public:
     MI_FILAMENT_REQUIRES_FILTRATION();
-    void update();
-    void OnChange(size_t) override;
 };
 #endif
 
-class MI_FILAMENT_IS_ABRASIVE final : public MI_COMMON<MI_FILAMENT_IS_ABRASIVE, WI_ICON_SWITCH_OFF_ON_t> {
+class MI_FILAMENT_IS_ABRASIVE final : public MI_TOGGLE {
 public:
     MI_FILAMENT_IS_ABRASIVE();
-    void update();
-    void OnChange(size_t) override;
 };
 
 class MI_FILAMENT_VISIBLE final : public MI_COMMON<MI_FILAMENT_VISIBLE, WI_ICON_SWITCH_OFF_ON_t> {
