@@ -1791,7 +1791,7 @@
     #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
 #endif
 
-#define REBOOT_RESTORE_Z
+//#define REBOOT_RESTORE_Z
 
 /**
    * TMC2130, TMC2160, TMC2660, TMC5130, and TMC5160 only
