@@ -295,7 +295,7 @@ set_feature_for_printers(HAS_POWER_PANIC "MK4" "MK3.5" "iX" "XL" "COREONE") # th
 # selftest and crash detection to work
 set_feature_for_printers(HAS_PRECISE_HOMING "MK4" "MK3.5")
 set_feature_for_printers(HAS_PRECISE_HOMING_COREXY "iX" "XL" "XL_DEV_KIT" "COREONE")
-set_feature_for_printers_master_board(HAS_PHASE_STEPPING "XL" "iX" "COREONE")
+set_feature_for_printers_master_board(HAS_PHASE_STEPPING "XL" "iX" "COREONE" "MK4")
 set_feature_for_printers_master_board(HAS_PHASE_STEPPING_TOGGLE "XL")
 set_feature_for_printers_master_board(HAS_PHASE_STEPPING_SELFTEST "iX" "XL")
 set(PRINTERS_WITH_BURST_STEPPING "XL")
