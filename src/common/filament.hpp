@@ -45,7 +45,7 @@ public:
     uint16_t nozzle_preheat_temperature = 170;
 
     /// Bed temperature for the filament, in degrees Celsius
-    uint8_t heatbed_temperature;
+    uint16_t heatbed_temperature;
 
 #if HAS_CHAMBER_API()
     /// Minimum temperature at which it's recommended to print this material

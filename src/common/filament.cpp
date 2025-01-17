@@ -293,7 +293,7 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
         .name = set.name,
         .nozzle_temperature = set.nozzle_temperature,
         .nozzle_preheat_temperature = set.nozzle_preheat_temperature,
-        .heatbed_temperature = set.heatbed_temperature,
+        .heatbed_temperature = static_cast<uint8_t>(set.heatbed_temperature),
 #if HAS_CHAMBER_API()
         .requires_filtration = set.requires_filtration,
 #endif
