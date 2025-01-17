@@ -2446,15 +2446,6 @@
 // Enable Marlin dev mode which adds some special commands
 //#define MARLIN_DEV_MODE
 
-
-
-
-
-/**
- * M999 reset MCU. Prusa STM32 platform specific
- */
-#define M999_MCU_RESET
-
 /**
  * M862.x support for print checking Q commands (P are always supported)
  */
