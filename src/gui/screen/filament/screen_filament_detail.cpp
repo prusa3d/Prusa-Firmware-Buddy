@@ -25,9 +25,10 @@ void MI_TOGGLE::OnChange(size_t) {
 
 // * MI_FILAMENT_NAME
 MI_FILAMENT_NAME::MI_FILAMENT_NAME()
-    : MI_COMMON(_("Name"), nullptr, is_enabled_t(filament_type.is_customizable())) {}
+    : WiInfo(_("Name")) {}
 
-void MI_FILAMENT_NAME::update() {
+void MI_FILAMENT_NAME::set_filament_type(FilamentType set) {
+    filament_type = set;
     ArrayStringBuilder<GetInfoLen()> sb;
     filament_type.build_name_with_info(sb);
     ChangeInformation(sb.str());
@@ -55,7 +56,7 @@ void MI_FILAMENT_NAME::click(IWindowMenu &) {
     }
 
     filament_type.modify_parameters([&](auto &p) { memcpy(p.name.data(), buf.data(), buf.size()); });
-    update();
+    set_filament_type(filament_type);
 }
 
 // * MI_FILAMENT_NOZZLE_TEMPERATURE
@@ -83,10 +84,11 @@ MI_FILAMENT_IS_ABRASIVE::MI_FILAMENT_IS_ABRASIVE()
 
 // * MI_FILAMENT_VISIBLE
 MI_FILAMENT_VISIBLE::MI_FILAMENT_VISIBLE()
-    : MI_COMMON(false, _("Visible")) {
+    : WI_ICON_SWITCH_OFF_ON_t(false, _("Visible")) {
 }
 
-void MI_FILAMENT_VISIBLE::update() {
+void MI_FILAMENT_VISIBLE::set_filament_type(FilamentType set) {
+    filament_type = set;
     set_value(filament_type.is_visible(), false);
     set_is_hidden(filament_type.is_visibility_customizable());
 }
@@ -97,9 +99,10 @@ void MI_FILAMENT_VISIBLE::OnChange(size_t) {
 
 // * MI_PREHEAT_CONFIRM
 MI_PREHEAT_CONFIRM::MI_PREHEAT_CONFIRM()
-    : MI_COMMON(_("Confirm"), &img::ok_16x16) {}
+    : IWindowMenuItem(_("Confirm"), &img::ok_16x16) {}
 
-void MI_PREHEAT_CONFIRM::update() {
+void MI_PREHEAT_CONFIRM::set_filament_type(FilamentType set) {
+    filament_type = set;
 }
 
 void MI_PREHEAT_CONFIRM::click(IWindowMenu &) {

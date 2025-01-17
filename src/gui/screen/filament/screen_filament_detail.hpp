@@ -13,21 +13,6 @@
 
 namespace screen_filament_detail {
 
-template <typename Child, typename Parent>
-class MI_COMMON : public Parent {
-
-public:
-    using Parent::Parent;
-
-    void set_filament_type(FilamentType set) {
-        filament_type = set;
-        static_cast<Child *>(this)->update();
-    }
-
-protected:
-    FilamentType filament_type;
-};
-
 template <typename T>
 class MI_SPIN : public WiSpin {
 
@@ -73,11 +58,14 @@ private:
     FilamentType filament_type;
 };
 
-class MI_FILAMENT_NAME final : public MI_COMMON<MI_FILAMENT_NAME, WI_INFO_t> {
+class MI_FILAMENT_NAME final : public WI_INFO_t {
 public:
     MI_FILAMENT_NAME();
-    void update();
+    void set_filament_type(FilamentType set);
     void click(IWindowMenu &) override;
+
+protected:
+    FilamentType filament_type;
 };
 
 class MI_FILAMENT_NOZZLE_TEMPERATURE final : public MI_SPIN<decltype(FilamentTypeParameters::nozzle_temperature)> {
@@ -107,18 +95,24 @@ public:
     MI_FILAMENT_IS_ABRASIVE();
 };
 
-class MI_FILAMENT_VISIBLE final : public MI_COMMON<MI_FILAMENT_VISIBLE, WI_ICON_SWITCH_OFF_ON_t> {
+class MI_FILAMENT_VISIBLE final : public WI_ICON_SWITCH_OFF_ON_t {
 public:
     MI_FILAMENT_VISIBLE();
-    void update();
+    void set_filament_type(FilamentType set);
     void OnChange(size_t) final;
+
+protected:
+    FilamentType filament_type;
 };
 
-class MI_PREHEAT_CONFIRM final : public MI_COMMON<MI_PREHEAT_CONFIRM, IWindowMenuItem> {
+class MI_PREHEAT_CONFIRM final : public IWindowMenuItem {
 public:
     MI_PREHEAT_CONFIRM();
-    void update();
+    void set_filament_type(FilamentType set);
     void click(IWindowMenu &) override;
+
+protected:
+    FilamentType filament_type;
 };
 
 using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
