@@ -32,12 +32,13 @@ public:
         return value_;
     }
 
-    inline void set_value(float val) {
-        if (value_ != val) {
-            value_ = val;
-            Change(0);
-        }
+    /// \returns value_ or std::nullopt if value == special_value
+    std::optional<float> value_opt() const {
+        return (value_ == config_.special_value) ? std::optional<float>() : value_;
     }
+
+    /// Sets either value or special_value if \param val std::nullopt
+    void set_value(std::optional<float> val);
 
     /// Deprecated legacy variant of value()
     inline float GetVal() const {

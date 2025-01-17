@@ -21,6 +21,14 @@ WiSpin::WiSpin(float value, const NumericInputConfig &config, const string_view_
     update();
 }
 
+void WiSpin::set_value(std::optional<float> val) {
+    if (value_ != val) {
+        assert(val.has_value() || config_.special_value.has_value());
+        value_ = val.value_or(config_.special_value.value_or(0));
+        Change(0);
+    }
+}
+
 void WiSpin::click(IWindowMenu & /*window_menu*/) {
     if (is_edited()) {
         OnClick();

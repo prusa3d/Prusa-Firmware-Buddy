@@ -1,7 +1,6 @@
 #pragma once
 
 #include <type_traits>
-
 #include <filament.hpp>
 
 #include <WindowMenuInfo.hpp>
@@ -34,6 +33,7 @@ public:
         if constexpr (std::is_arithmetic_v<T>) {
             filament_type.modify_parameters([&](auto &p) { p.*param_ = this->value(); });
         } else {
+            // If T is std::optional, we use utilize the optional support of the spin as well
             filament_type.modify_parameters([&](auto &p) { p.*param_ = this->value_opt(); });
         }
     }

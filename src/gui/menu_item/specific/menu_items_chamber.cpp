@@ -30,7 +30,7 @@ MI_CHAMBER_TARGET_TEMP::MI_CHAMBER_TARGET_TEMP(const char *label)
 }
 
 void MI_CHAMBER_TARGET_TEMP::OnClick() {
-    chamber().set_target_temperature(value() != config().special_value ? std::make_optional<buddy::Temperature>(value()) : std::nullopt);
+    chamber().set_target_temperature(value_opt());
 }
 
 void MI_CHAMBER_TARGET_TEMP::Loop() {
@@ -38,8 +38,9 @@ void MI_CHAMBER_TARGET_TEMP::Loop() {
         return;
     }
 
-    const bool temp_ctrl = chamber().capabilities().temperature_control();
-    const auto new_val = (temp_ctrl ? chamber().target_temperature() : std::nullopt).value_or(*config().special_value);
+    const auto caps = chamber().capabilities();
+    const bool temp_ctrl = caps.temperature_control();
+    const auto new_val = (temp_ctrl ? chamber().target_temperature() : std::nullopt);
 
     set_enabled(temp_ctrl);
     set_value(new_val);
