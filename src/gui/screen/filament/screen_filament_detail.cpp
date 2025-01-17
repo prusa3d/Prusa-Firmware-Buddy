@@ -9,14 +9,7 @@
 
 using namespace screen_filament_detail;
 
-template <typename T>
-concept CMI_COMMON = requires(T a, FilamentType ft) {
-    { a.set_filament_type(ft) };
-};
-
 // * MI_FILAMENT_NAME
-static_assert(UpdatableMenuItem<MI_FILAMENT_NAME>);
-
 MI_FILAMENT_NAME::MI_FILAMENT_NAME()
     : MI_COMMON(_("Name"), nullptr, is_enabled_t(filament_type.is_customizable())) {}
 
@@ -52,8 +45,6 @@ void MI_FILAMENT_NAME::click(IWindowMenu &) {
 }
 
 // * MI_FILAMENT_NOZZLE_TEMPERATURE
-static_assert(UpdatableMenuItem<MI_FILAMENT_NOZZLE_TEMPERATURE>);
-
 MI_FILAMENT_NOZZLE_TEMPERATURE::MI_FILAMENT_NOZZLE_TEMPERATURE()
     : MI_COMMON(0, numeric_input_config::filament_nozzle_temperature, HAS_MINI_DISPLAY() ? _("Nozzle Temp") : _("Nozzle Temperature")) {}
 
@@ -67,8 +58,6 @@ void MI_FILAMENT_NOZZLE_TEMPERATURE::OnClick() {
 }
 
 // * MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE
-static_assert(UpdatableMenuItem<MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE>);
-
 MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE()
     : MI_COMMON(0, numeric_input_config::nozzle_temperature, HAS_MINI_DISPLAY() ? _("Preheat Temp") : _("Nozzle Preheat Temperature")) {}
 
@@ -82,8 +71,6 @@ void MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::OnClick() {
 }
 
 // * MI_FILAMENT_BED_TEMPERATURE
-static_assert(UpdatableMenuItem<MI_FILAMENT_BED_TEMPERATURE>);
-
 MI_FILAMENT_BED_TEMPERATURE::MI_FILAMENT_BED_TEMPERATURE()
     : MI_COMMON(0, numeric_input_config::bed_temperature, HAS_MINI_DISPLAY() ? _("Bed Temp") : _("Bed Temperature")) {}
 
@@ -98,8 +85,6 @@ void MI_FILAMENT_BED_TEMPERATURE::OnClick() {
 
 // * MI_FILAMENT_REQUIRES_FILTRATION
 #if HAS_CHAMBER_API()
-static_assert(UpdatableMenuItem<MI_FILAMENT_REQUIRES_FILTRATION>);
-
 MI_FILAMENT_REQUIRES_FILTRATION::MI_FILAMENT_REQUIRES_FILTRATION()
     : MI_COMMON(false, _("Requires Filtration")) {}
 
@@ -114,8 +99,6 @@ void MI_FILAMENT_REQUIRES_FILTRATION::OnChange(size_t) {
 #endif
 
 // * MI_FILAMENT_IS_ABRASIVE
-static_assert(UpdatableMenuItem<MI_FILAMENT_IS_ABRASIVE>);
-
 MI_FILAMENT_IS_ABRASIVE::MI_FILAMENT_IS_ABRASIVE()
     : MI_COMMON(false, _("Is Abrasive")) {}
 
@@ -129,8 +112,6 @@ void MI_FILAMENT_IS_ABRASIVE::OnChange(size_t) {
 }
 
 // * MI_FILAMENT_VISIBLE
-static_assert(UpdatableMenuItem<MI_FILAMENT_VISIBLE>);
-
 MI_FILAMENT_VISIBLE::MI_FILAMENT_VISIBLE()
     : MI_COMMON(false, _("Visible")) {
 }
@@ -161,7 +142,7 @@ ScreenFilamentDetail::ScreenFilamentDetail(Params params)
     : ScreenMenu(params.mode == Mode::preheat ? _("CUSTOM PARAMETERS") : _("FILAMENT DETAIL")) {
 
     stdext::visit_tuple(container.menu_items, [&]<typename T>(T &item) {
-        if constexpr (CMI_COMMON<T>) {
+        if constexpr (!std::is_same_v<T, MI_RETURN>) {
             item.set_filament_type(params.filament_type);
         };
     });
