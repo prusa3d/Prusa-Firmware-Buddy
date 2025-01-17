@@ -46,42 +46,15 @@ void MI_FILAMENT_NAME::click(IWindowMenu &) {
 
 // * MI_FILAMENT_NOZZLE_TEMPERATURE
 MI_FILAMENT_NOZZLE_TEMPERATURE::MI_FILAMENT_NOZZLE_TEMPERATURE()
-    : MI_COMMON(0, numeric_input_config::filament_nozzle_temperature, HAS_MINI_DISPLAY() ? _("Nozzle Temp") : _("Nozzle Temperature")) {}
-
-void MI_FILAMENT_NOZZLE_TEMPERATURE::update() {
-    set_value(filament_type.parameters().nozzle_temperature);
-    set_enabled(filament_type.is_customizable());
-}
-
-void MI_FILAMENT_NOZZLE_TEMPERATURE::OnClick() {
-    filament_type.modify_parameters([&](auto &p) { p.nozzle_temperature = value(); });
-}
+    : MI_SPIN(&FilamentTypeParameters::nozzle_temperature, numeric_input_config::filament_nozzle_temperature, HAS_MINI_DISPLAY() ? N_("Nozzle Temp") : N_("Nozzle Temperature")) {}
 
 // * MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE
 MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE()
-    : MI_COMMON(0, numeric_input_config::nozzle_temperature, HAS_MINI_DISPLAY() ? _("Preheat Temp") : _("Nozzle Preheat Temperature")) {}
-
-void MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::update() {
-    set_value(filament_type.parameters().nozzle_preheat_temperature);
-    set_enabled(filament_type.is_customizable());
-}
-
-void MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::OnClick() {
-    filament_type.modify_parameters([&](auto &p) { p.nozzle_preheat_temperature = value(); });
-}
+    : MI_SPIN(&FilamentTypeParameters::nozzle_preheat_temperature, numeric_input_config::nozzle_temperature, HAS_MINI_DISPLAY() ? N_("Preheat Temp") : N_("Nozzle Preheat Temperature")) {}
 
 // * MI_FILAMENT_BED_TEMPERATURE
 MI_FILAMENT_BED_TEMPERATURE::MI_FILAMENT_BED_TEMPERATURE()
-    : MI_COMMON(0, numeric_input_config::bed_temperature, HAS_MINI_DISPLAY() ? _("Bed Temp") : _("Bed Temperature")) {}
-
-void MI_FILAMENT_BED_TEMPERATURE::update() {
-    set_value(filament_type.parameters().heatbed_temperature);
-    set_enabled(filament_type.is_customizable());
-}
-
-void MI_FILAMENT_BED_TEMPERATURE::OnClick() {
-    filament_type.modify_parameters([&](auto &p) { p.heatbed_temperature = value(); });
-}
+    : MI_SPIN(&FilamentTypeParameters::heatbed_temperature, numeric_input_config::bed_temperature, HAS_MINI_DISPLAY() ? N_("Bed Temp") : N_("Bed Temperature")) {}
 
 // * MI_FILAMENT_REQUIRES_FILTRATION
 #if HAS_CHAMBER_API()

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include <filament.hpp>
 
 #include <WindowMenuInfo.hpp>
@@ -26,6 +28,36 @@ protected:
     FilamentType filament_type;
 };
 
+template <typename T>
+class MI_SPIN : public WiSpin {
+
+public:
+    using Parameter = T FilamentTypeParameters::*;
+
+    MI_SPIN(Parameter param, const NumericInputConfig &config, const char *label)
+        : WiSpin(0, config, _(label))
+        , param_(param) {
+    }
+
+    void set_filament_type(FilamentType set) {
+        filament_type = set;
+        set_value(filament_type.parameters().*param_);
+        set_enabled(filament_type.is_customizable());
+    }
+
+    void OnClick() override {
+        if constexpr (std::is_arithmetic_v<T>) {
+            filament_type.modify_parameters([&](auto &p) { p.*param_ = this->value(); });
+        } else {
+            filament_type.modify_parameters([&](auto &p) { p.*param_ = this->value_opt(); });
+        }
+    }
+
+private:
+    Parameter param_;
+    FilamentType filament_type;
+};
+
 class MI_FILAMENT_NAME final : public MI_COMMON<MI_FILAMENT_NAME, WI_INFO_t> {
 public:
     MI_FILAMENT_NAME();
@@ -33,25 +65,19 @@ public:
     void click(IWindowMenu &) override;
 };
 
-class MI_FILAMENT_NOZZLE_TEMPERATURE final : public MI_COMMON<MI_FILAMENT_NOZZLE_TEMPERATURE, WiSpin> {
+class MI_FILAMENT_NOZZLE_TEMPERATURE final : public MI_SPIN<decltype(FilamentTypeParameters::nozzle_temperature)> {
 public:
     MI_FILAMENT_NOZZLE_TEMPERATURE();
-    void update();
-    void OnClick() override;
 };
 
-class MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE final : public MI_COMMON<MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE, WiSpin> {
+class MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE final : public MI_SPIN<decltype(FilamentTypeParameters::nozzle_preheat_temperature)> {
 public:
     MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE();
-    void update();
-    void OnClick() override;
 };
 
-class MI_FILAMENT_BED_TEMPERATURE final : public MI_COMMON<MI_FILAMENT_BED_TEMPERATURE, WiSpin> {
+class MI_FILAMENT_BED_TEMPERATURE final : public MI_SPIN<decltype(FilamentTypeParameters::heatbed_temperature)> {
 public:
     MI_FILAMENT_BED_TEMPERATURE();
-    void update();
-    void OnClick() override;
 };
 
 #if HAS_CHAMBER_API()
