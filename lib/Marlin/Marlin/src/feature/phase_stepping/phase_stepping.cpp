@@ -509,6 +509,7 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     auto &axis_state = axis_states[axis_num];
 
     axis_state.active = false;
+    tmc_serial_lock_clear_isr_starved();
     auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis_num;
     PreciseStepping::physical_axis_step_generator_types &= ~enable_mask;
 
@@ -646,6 +647,7 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
         // If the ISR handler was delayed, we don't have enough time to process
         // the update. Abort the update so we can catch up.
         mark_missed_transaction(axis_state);
+        tmc_serial_lock_mark_isr_starved();
         return;
     }
 
@@ -778,6 +780,12 @@ FORCE_OFAST void phase_stepping::handle_periodic_refresh() {
             axis_num_to_refresh = 0;
         }
         refresh_axis(axis_states[axis_num_to_refresh], now, old_tick);
+    }
+    if (std::ranges::all_of(axis_states, [](const auto &state) -> bool {
+            return state.missed_tx_cnt == 0;
+        })) {
+        // Only if all axes have refreshed, we can let tasks to run
+        tmc_serial_lock_clear_isr_starved();
     }
 #endif
 }

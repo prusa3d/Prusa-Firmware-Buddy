@@ -110,6 +110,7 @@ enum class BusOwner {
 
 std::atomic<BusOwner> tmc_bus_owner = BusOwner::NOBODY;
 std::atomic<bool> tmc_bus_requested = false;
+std::atomic<bool> tmc_bus_isr_starved = false;
 
 extern "C" {
 
@@ -250,6 +251,16 @@ void init_tmc_bare_minimum(void) {
 #endif
 }
 
+static void tmc_serial_lock_let_isr_run() {
+    int repetition = 0;
+    while (tmc_bus_isr_starved.load()) {
+        if (repetition++ > 100) {
+            bsod("phstep starved");
+        }
+        delay_us(2);
+    }
+}
+
 /// Acquire lock for mutual exclusive access to the trinamic's serial port
 ///
 /// This implements a weak symbol declared within the TMCStepper library
@@ -261,11 +272,18 @@ bool tmc_serial_lock_acquire(void) {
     if (!res) {
         return false;
     }
+
+    uint32_t start = ticks_ms();
     // We have taken the mutex, now let's try to take over the lock from ISR in
-    // busy waiting. We will wait at most one period of phase stepping (~25 µs)
+    // busy waiting. First, we do not want to starve the ISR, so we will wait
+    // for it catch up from any hiccup caused by a previous lock acquisition in
+    // a task. This shouldn't take longer than a number of axis ISR periods (~50
+    // µs):
+    tmc_serial_lock_let_isr_run();
+
+    // Then, we will try to atomically take the lock:
     BusOwner owner = BusOwner::NOBODY;
     tmc_bus_requested = true;
-    uint32_t start = ticks_ms();
     while (!tmc_bus_owner.compare_exchange_weak(owner, BusOwner::TASK,
         std::memory_order_relaxed,
         std::memory_order_relaxed)) {
@@ -305,6 +323,14 @@ bool tmc_serial_lock_held_by_isr(void) {
 
 bool tmc_serial_lock_requested_by_task(void) {
     return tmc_bus_requested;
+}
+
+void tmc_serial_lock_mark_isr_starved(void) {
+    tmc_bus_isr_starved.store(true);
+}
+
+void tmc_serial_lock_clear_isr_starved(void) {
+    tmc_bus_isr_starved.store(false);
 }
 
 /// Called when an error occurs when communicating with the TMC over serial
