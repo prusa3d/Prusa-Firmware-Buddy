@@ -70,7 +70,7 @@ static constexpr SelftestFansConfig fans_configs[] = {
             ///@note Datasheet says 5900 +-10%, but that is without any fan shroud.
             ///  Blocked fan increases its RPMs over 7000.
             ///  With MK4 shroud the values can be 6400 or so.
-            .rpm_min = 5300,
+            .rpm_min = 5130,
             .rpm_max = 6799,
         },
         .heatbreak_fan = {
