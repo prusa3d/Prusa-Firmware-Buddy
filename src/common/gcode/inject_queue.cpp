@@ -5,7 +5,7 @@
 
 InjectQueue inject_queue; // instance
 
-GCodeLoader loader; // loader instance for async gcode loading from the InjectQueue
+static GCodeLoader loader; // loader instance for async gcode loading from the InjectQueue
 
 bool InjectQueue::try_push(InjectQueueRecord record) {
     return queue.try_put(record);
