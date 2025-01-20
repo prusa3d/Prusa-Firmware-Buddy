@@ -7,6 +7,10 @@ InjectQueue inject_queue; // instance
 
 static GCodeLoader loader; // loader instance for async gcode loading from the InjectQueue
 
+bool InjectQueue::is_empty() const {
+    return queue.size() == 0 && loader.is_idle();
+}
+
 bool InjectQueue::try_push(InjectQueueRecord record) {
     return queue.try_put(record);
 }

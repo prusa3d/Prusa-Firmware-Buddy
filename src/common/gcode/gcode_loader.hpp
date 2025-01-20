@@ -16,6 +16,8 @@ public:
 
     static constexpr size_t gcode_stream_buffer_size = 1024;
 
+    bool is_idle() const;
+
     void load_gcode(const char *filename, const char *fallback = nullptr);
 
     std::expected<char *, BufferState> get_result();

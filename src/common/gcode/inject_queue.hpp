@@ -20,6 +20,9 @@ public:
 
     static constexpr size_t queue_size = 8;
 
+    /// \returns true if the inject queue has nothing in the queue and is not loading anything
+    bool is_empty() const;
+
     /**
      *  Checks record validity and queue space
      *  @retval true - record was injected

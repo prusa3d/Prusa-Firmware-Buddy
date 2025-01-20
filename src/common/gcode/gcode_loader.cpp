@@ -7,6 +7,10 @@
 
 LOG_COMPONENT_REF(MarlinServer);
 
+bool GCodeLoader::is_idle() const {
+    return state == BufferState::idle;
+}
+
 void GCodeLoader::load_gcode_callback(AsyncJobExecutionControl &control) {
     AnyGcodeFormatReader reader(gcode_buffer);
 
