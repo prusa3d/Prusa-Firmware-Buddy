@@ -17,8 +17,10 @@ std::expected<const char *, InjectQueue::GetGCodeError> InjectQueue::get_gcode()
     if (loader_result.has_value()) {
         loader.reset();
         return loader_result.value();
+
     } else if (loader_result.error() == GCodeLoader::BufferState::buffering) {
         return std::unexpected(GetGCodeError::buffering);
+
     } else if (loader_result.error() == GCodeLoader::BufferState::error) {
         loader.reset();
         return std::unexpected(GetGCodeError::loading_aborted);
