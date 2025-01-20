@@ -10,6 +10,7 @@ namespace phase_stepping {
 struct CalibrationPhase {
     int harmonic;
     float speed;
+    float revs = 0.5f;
 
     std::optional<float> pha = {}; // Optionally force starting point
     float pha_window = 0.1f;
@@ -22,13 +23,11 @@ struct CalibrationPhase {
 
 template <size_t N>
 struct PrinterCalibrationConfig {
-    float calib_revs;
     std::array<CalibrationPhase, N> phases;
 };
 
 #if PRINTER_IS_PRUSA_XL()
 static inline constexpr const PrinterCalibrationConfig<4> printer_calibration_config {
-    .calib_revs = 0.5f,
     .phases = {
         CalibrationPhase {
             .harmonic = 2,
@@ -66,7 +65,6 @@ static inline constexpr const PrinterCalibrationConfig<4> printer_calibration_co
 };
 #elif PRINTER_IS_PRUSA_iX() // TODO for now it is just copy-paste of XL values; needs changes when iX specific values are measured
 static inline constexpr const PrinterCalibrationConfig<4> printer_calibration_config {
-    .calib_revs = 0.5f,
     .phases = {
         CalibrationPhase {
             .harmonic = 2,
@@ -104,11 +102,11 @@ static inline constexpr const PrinterCalibrationConfig<4> printer_calibration_co
 };
 #elif PRINTER_IS_PRUSA_MK4()
 static inline constexpr const PrinterCalibrationConfig<6> printer_calibration_config {
-    .calib_revs = 0.5f,
     .phases = {
         CalibrationPhase {
             .harmonic = 1,
             .speed = 2.f,
+            .revs = 2.f,
             .pha = 3.14f,
             .pha_window = 4.f,
             .mag = 0.016f,
@@ -118,6 +116,7 @@ static inline constexpr const PrinterCalibrationConfig<6> printer_calibration_co
         CalibrationPhase {
             .harmonic = 2,
             .speed = 1.f,
+            .revs = 1.f,
             .pha = 3.14f,
             .pha_window = 3.f,
             .mag = 0.015f,
@@ -127,6 +126,7 @@ static inline constexpr const PrinterCalibrationConfig<6> printer_calibration_co
         CalibrationPhase {
             .harmonic = 4,
             .speed = 0.5f,
+            .revs = 0.5f,
             .pha = 0.f,
             .pha_window = 3.f,
             .mag = 0.015f,
@@ -136,13 +136,15 @@ static inline constexpr const PrinterCalibrationConfig<6> printer_calibration_co
         CalibrationPhase {
             .harmonic = 1,
             .speed = 2.f,
-            .pha_window = 1.f,
+            .revs = 2.f,
+            .pha_window = 0.5f,
             .mag_window = 0.005f,
             .iteration_count = 12,
         },
         CalibrationPhase {
             .harmonic = 2,
             .speed = 1.f,
+            .revs = 1.f,
             .pha_window = .5f,
             .mag_window = 0.005f,
             .iteration_count = 12,
@@ -150,6 +152,7 @@ static inline constexpr const PrinterCalibrationConfig<6> printer_calibration_co
         CalibrationPhase {
             .harmonic = 4,
             .speed = 0.5f,
+            .revs = 0.5f,
             .pha_window = 0.5f,
             .mag_window = 0.005f,
             .iteration_count = 12,
@@ -158,7 +161,6 @@ static inline constexpr const PrinterCalibrationConfig<6> printer_calibration_co
 };
 #elif PRINTER_IS_PRUSA_COREONE()
 static inline constexpr const PrinterCalibrationConfig<6> printer_calibration_config {
-    .calib_revs = 0.5f,
     .phases = {
         CalibrationPhase {
             .harmonic = 1,

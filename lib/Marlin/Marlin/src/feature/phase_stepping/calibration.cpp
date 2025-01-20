@@ -266,10 +266,8 @@ static std::tuple<float, float> sample_capture_revs(float revs, float speed) {
     };
 }
 
-static void move_to_calibration_start(AxisEnum axis) {
-    auto [measurement_revs, _] = sample_capture_revs(
-        printer_calibration_config.calib_revs,
-        printer_calibration_config.phases[0].speed);
+static void move_to_calibration_start(AxisEnum axis, const CalibrationPhase &phase_config) {
+    auto [measurement_revs, _] = sample_capture_revs(phase_config.revs, phase_config.speed);
 
     float a_revs = axis == AxisEnum::A_AXIS ? measurement_revs : 0;
     float b_revs = axis == AxisEnum::B_AXIS ? measurement_revs : 0;
@@ -493,16 +491,16 @@ class CalibrationPhaseExecutor {
                     return std::nullopt;
                 }
                 if (retries != 0) {
-                    move_to_calibration_start(_axis);
+                    move_to_calibration_start(_axis, _phase_config);
                 }
 
                 auto b_res = phase_stepping::analyze_resonance(_axis,
-                    _phase_config.speed, printer_calibration_config.calib_revs, { _phase_config.harmonic });
+                    _phase_config.speed, _phase_config.revs, { _phase_config.harmonic });
 
                 IDLE();
 
                 auto f_res = phase_stepping::analyze_resonance(_axis,
-                    _phase_config.speed, -printer_calibration_config.calib_revs, { _phase_config.harmonic });
+                    _phase_config.speed, -_phase_config.revs, { _phase_config.harmonic });
 
                 IDLE();
 
@@ -552,9 +550,9 @@ public:
     std::optional<std::tuple<float, float>> baseline() {
         for (int retries = 0; retries != RETRY_COUNT; retries++) {
             auto b_res = phase_stepping::analyze_resonance(_axis,
-                _phase_config.speed, printer_calibration_config.calib_revs, { { _phase_config.harmonic } });
+                _phase_config.speed, _phase_config.revs, { { _phase_config.harmonic } });
             auto f_res = phase_stepping::analyze_resonance(_axis,
-                _phase_config.speed, -printer_calibration_config.calib_revs, { { _phase_config.harmonic } });
+                _phase_config.speed, -_phase_config.revs, { { _phase_config.harmonic } });
 
             if (!f_res.empty() && !b_res.empty()) {
                 return { { f_res[0], b_res[0] } };
@@ -614,7 +612,7 @@ phase_stepping::calibrate_axis(AxisEnum axis, CalibrateAxisHooks &hooks) {
     phase_stepping::EnsureEnabled _;
 
     hooks.on_initial_movement();
-    move_to_calibration_start(axis);
+    move_to_calibration_start(axis, printer_calibration_config.phases[0]);
     Planner::synchronize();
 
     hooks.set_calibration_phases_count(printer_calibration_config.phases.size());
