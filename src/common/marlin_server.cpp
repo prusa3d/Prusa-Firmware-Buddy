@@ -34,6 +34,7 @@
 #include <scope_guard.hpp>
 #include <tools_mapping.hpp>
 #include <RAII.hpp>
+#include <inject_queue.hpp>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -1108,6 +1109,14 @@ bool is_printing() {
     default:
         return true;
     }
+}
+
+bool is_processing() {
+    return queue.has_commands_queued()
+        || planner.processing()
+        || gcode.busy_state != GcodeSuite::NOT_BUSY // We might be still in the gcode (while no commands are queued)
+        || !inject_queue.is_empty() //
+        ;
 }
 
 bool aborting_or_aborted() {

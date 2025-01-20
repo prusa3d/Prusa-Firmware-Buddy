@@ -874,6 +874,8 @@ class Planner {
 
     /**
      * Return if some processing is still pending before all queues are flushed
+     * 
+     * !!! Consider using marlin_server::is_processing() instead, it's usually the right choice
      */
     FORCE_INLINE static bool processing() { return has_blocks_queued() || PreciseStepping::processing() || phase_stepping::processing(); }
 

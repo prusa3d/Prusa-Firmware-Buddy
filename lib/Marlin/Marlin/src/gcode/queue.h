@@ -110,6 +110,8 @@ public:
 
   /**
    * Check whether there are any commands yet to be executed
+   * 
+   * !!! Consider using marlin_server::is_processing() instead, it's usually the right choice
    */
   static bool has_commands_queued();
 

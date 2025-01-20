@@ -119,6 +119,9 @@ bool printer_idle();
 // returns true if printer is printing, else false;
 bool is_printing();
 
+/// \returns whether the server is currently processing or has queued any gcodes, motion and such
+bool is_processing();
+
 /**
  * @brief Know if any print preview state is active.
  * @return true if print preview is on
