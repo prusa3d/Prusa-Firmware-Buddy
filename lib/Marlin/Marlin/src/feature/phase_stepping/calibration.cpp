@@ -199,7 +199,7 @@ static bool wait_for_accel_end(phase_stepping::AxisState &axis_state,
     });
 }
 
-#if !PRINTER_IS_PRUSA_COREONE()
+#if !PRINTER_IS_PRUSA_COREONE() && !PRINTER_IS_PRUSA_MK4()
 // Computes a pseudo-projection of one vector to another. The length of
 // direction vector is not normalized.
 static float pseudo_project(std::tuple<float, float> what, std::tuple<float, float> dir) {
