@@ -84,32 +84,48 @@ static GpioEventBuffer<GPIO_BUFFER_SIZE>
     *fire_buffer = &porta_event_buffers[1];
 static std::atomic<bool> burst_busy = false;
 
-static void setup_pinout_1() {
+[[maybe_unused]] static void setup_xl_pinout_1() {
     step_gpio_port = GPIOA;
     step_masks = { { 1 << 0, 1 << 3 } };
 }
 
-static void setup_pinout_2() {
+[[maybe_unused]] static void setup_xl_pinout_2() {
+    step_gpio_port = GPIOD;
+    step_masks = { { 1 << 7, 1 << 5 } };
+}
+
+[[maybe_unused]] static void setup_xbuddy_pinout() {
     step_gpio_port = GPIOD;
     step_masks = { { 1 << 7, 1 << 5 } };
 }
 
 void burst_stepping::init() {
+#if BOARD_IS_XBUDDY()
+    setup_xbuddy_pinout();
+#elif BOARD_IS_XLBUDDY()
     auto otp_bom_id = otp_get_bom_id();
     if (!otp_bom_id.has_value()) {
         bsod("Unable to determine board BOM ID");
     }
     auto board_bom_id = *otp_bom_id;
-
     if (board_bom_id >= 9 || board_bom_id == 4) {
-        setup_pinout_2();
+        setup_xl_pinout_2();
     } else {
-        setup_pinout_1();
+        setup_xl_pinout_1();
     }
+#else
+    #error "Unsupported printer"
+#endif
 
-    // initial step state
+// initial step state
+#if BOARD_IS_XLBUDDY()
     step_signals[X_AXIS] = buddy::hw::XStep;
     step_signals[Y_AXIS] = buddy::hw::YStep;
+#else
+    step_signals[X_AXIS] = &buddy::hw::xStep;
+    step_signals[Y_AXIS] = &buddy::hw::yStep;
+#endif
+
     for (int axis = 0; axis != SUPPORTED_AXIS_COUNT; ++axis) {
         axis_step_state[axis] = (step_signals[axis]->read() == Pin::State::high);
         axis_direction[axis] = (dir_signals[axis].read() == Pin::State::high);

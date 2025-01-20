@@ -361,9 +361,15 @@ public:
         : StateRestorer(false) {}
 };
 
+    #if PRINTER_IS_PRUSA_MK4()
+// MK4 has homing sensitivity recalibration not compatible with burst
+// stepping.
+using EnsureSuitableForHoming = EnsureDisabled;
+    #else
 using EnsureSuitableForHoming = std::conditional_t<
     option::has_burst_stepping,
     EnsureNoChange, EnsureDisabled>;
+    #endif
 
 enum class CorrectionType {
     forward,

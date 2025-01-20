@@ -298,7 +298,7 @@ set_feature_for_printers(HAS_PRECISE_HOMING_COREXY "iX" "XL" "XL_DEV_KIT" "COREO
 set_feature_for_printers_master_board(HAS_PHASE_STEPPING "XL" "iX" "COREONE" "MK4")
 set_feature_for_printers_master_board(HAS_PHASE_STEPPING_TOGGLE "XL")
 set_feature_for_printers_master_board(HAS_PHASE_STEPPING_SELFTEST "iX" "XL")
-set(PRINTERS_WITH_BURST_STEPPING "XL")
+set(PRINTERS_WITH_BURST_STEPPING "XL" "MK4" "iX" "COREONE")
 set_feature_for_printers_master_board(
   HAS_INPUT_SHAPER_CALIBRATION "MK4" "MK3.5" "XL" "XL_DEV_KIT" "COREONE"
   )

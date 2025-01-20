@@ -112,6 +112,16 @@
             }
         },
         {
+            "name": "mk4-burst",
+            "description": "Original Prusa MK4 with xBuddy 0.2.7c or newer fw compatible, 400-step motors and planetary gearbox",
+            "cacheVariables": {
+                "PRINTER": "MK4",
+                "BOARD": "XBUDDY",
+                "BOARD_VERSION": "0.2.7",
+                "ENABLE_BURST":true
+            }
+        },
+        {
             "name": "mk3.5",
             "description": "Original Prusa MK3.5 with xBuddy 0.2.7c or newer fw compatible, 200-step motors and MK3 extruder",
             "cacheVariables": {
