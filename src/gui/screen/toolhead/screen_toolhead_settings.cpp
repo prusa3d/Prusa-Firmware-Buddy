@@ -232,9 +232,6 @@ ScreenToolheadDetail::ScreenToolheadDetail(Toolhead toolhead)
 #if HAS_TOOLCHANGER()
         // Nozzle offset is always relative to the first tool, so it does not make sense to calibrate it for tool 0
         container.Item<MI_NOZZLE_OFFSET>().set_is_hidden();
-
-        // There is no dock on single-tool XL
-        container.Item<MI_DOCK>().set_is_hidden();
 #endif
     }
 
@@ -242,6 +239,7 @@ ScreenToolheadDetail::ScreenToolheadDetail(Toolhead toolhead)
     // Some options don't make sense if a toolchanger is disabled (single-tool XL)
     if (!prusa_toolchanger.is_toolchanger_enabled()) {
         container.Item<MI_PICK_PARK>().set_is_hidden();
+        container.Item<MI_DOCK>().set_is_hidden();
     }
 #endif
 }
