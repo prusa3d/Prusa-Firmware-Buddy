@@ -839,7 +839,7 @@ void hw_tim3_init() {
     TIM_OC_InitTypeDef sConfigOC {};
 
     htim3.Instance = TIM3;
-#if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX())
+#if BOARD_IS_XBUDDY()
     htim3.Init.Prescaler = 11; // 36us, 33.0kHz
 #else
     htim3.Init.Prescaler = TIM3_default_Prescaler; // 49ms, 20.3Hz
