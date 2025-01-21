@@ -1,10 +1,13 @@
-# define the test executable add_executable(probe_analysis_tests
-# ${CMAKE_SOURCE_DIR}/src/common/probe_analysis.cpp tests.cpp)
+# define the test executable
+add_executable(probe_analysis_tests ${CMAKE_SOURCE_DIR}/src/common/probe_analysis.cpp tests.cpp)
 
-# define required search paths target_include_directories( probe_analysis_tests PUBLIC .
-# ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/include )
+# define required search paths
+target_include_directories(
+  probe_analysis_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/include
+  )
 
-# tell build system about the test case add_catch_test(probe_analysis_tests)
+# tell build system about the test case
+add_catch_test(probe_analysis_tests)
 
 # define the test executable
 add_executable(
