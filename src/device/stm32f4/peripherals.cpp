@@ -1,3 +1,4 @@
+#include <buddy/unreachable.hpp>
 #include <device/board.h>
 #include <device/peripherals.h>
 #include <buddy/phase_stepping_opts.h>
@@ -839,10 +840,15 @@ void hw_tim3_init() {
     TIM_OC_InitTypeDef sConfigOC {};
 
     htim3.Instance = TIM3;
-#if BOARD_IS_XBUDDY()
-    htim3.Init.Prescaler = 11; // 36us, 33.0kHz
-#else
+#if BOARD_IS_BUDDY()
     htim3.Init.Prescaler = TIM3_default_Prescaler; // 49ms, 20.3Hz
+#elif BOARD_IS_XBUDDY()
+    htim3.Init.Prescaler = 11; // 36us, 33.0kHz
+#elif BOARD_IS_XLBUDDY()
+    BUDDY_UNREACHABLE();
+#else
+    // If there ever is another board, this needs to fail loudly.
+    #error "Unsupported board"
 #endif
     htim3.Init.CounterMode = TIM_COUNTERMODE_DOWN;
     htim3.Init.Period = TIM3_default_Period; // 0xff was 42000
