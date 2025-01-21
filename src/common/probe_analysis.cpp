@@ -1,8 +1,11 @@
 #include "probe_analysis.hpp"
 #include "scope_guard.hpp"
 #include "metric.h"
+#include "timing.h"
 #include <printers.h>
-#include <Marlin.h>
+#ifdef PROBE_ANALYSIS_WITH_METRICS
+    #include <Marlin.h>
+#endif
 
 using namespace buddy;
 
@@ -63,6 +66,7 @@ ProbeAnalysisBase::Result ProbeAnalysisBase::Analyse() {
     features.r2_50ms = CalculateSegmentedR2s(features, 0.050);
     features.r2_60ms = CalculateSegmentedR2s(features, 0.060);
 
+#ifdef PROBE_ANALYSIS_WITH_METRICS
     {
         // log the load line to metrics
         METRIC_DEF(probe_ll_metric, "probe_load_line", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
@@ -121,6 +125,7 @@ ProbeAnalysisBase::Result ProbeAnalysisBase::Analyse() {
             metric_record_custom_at_time(&probe_ll_metric, timestamp, " v=%0.3f", (double)load);
         }
     }
+#endif
 
     // Check all features are within expected range
     {
@@ -360,12 +365,14 @@ void ProbeAnalysisBase::CalculateLoadAngles(Features &features) const {
     features.loadAngleCompressionEnd = features.compressedLine.CalculateAngle(features.compressionLine);
     features.loadAngleDecompressionStart = features.decompressionLine.CalculateAngle(features.compressedLine);
     features.loadAngleDecompressionEnd = features.decompressionLine.CalculateAngle(features.afterDecompressionLine);
+#ifdef PROBE_ANALYSIS_WITH_METRICS
     {
         auto compressedVsDecompressedAngleBefore = features.compressedLine.CalculateAngle(features.beforeCompressionLine, false);
         auto compressedvsDecompressedAngleAfter = features.compressedLine.CalculateAngle(features.afterDecompressionLine, false);
         METRIC_DEF(probe_angle_metric, "probe_angle", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
         metric_record_custom(&probe_angle_metric, " b=%0.3f,a=%0.3f", (double)compressedVsDecompressedAngleBefore, (double)compressedvsDecompressedAngleAfter);
     }
+#endif
 }
 
 ProbeAnalysisBase::VarianceInfo ProbeAnalysisBase::CalculateVariance(SamplesRange samples, Line regression) {

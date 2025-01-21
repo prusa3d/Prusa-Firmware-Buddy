@@ -10,6 +10,10 @@
 
 using namespace buddy;
 
+extern "C" uint32_t ticks_us() {
+    return 0;
+}
+
 template <typename AnalysisType>
 void StoreSamples(AnalysisType &analysis, int simulate_delay, std::initializer_list<std::tuple<float, float>> samples) {
     std::size_t idx = 0;
