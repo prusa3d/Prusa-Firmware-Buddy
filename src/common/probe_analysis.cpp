@@ -1,8 +1,8 @@
 #include "probe_analysis.hpp"
-#include <vector>
-#include <scope_guard.hpp>
+#include "scope_guard.hpp"
+#include "metric.h"
 #include <printers.h>
-#include "Marlin.h"
+#include <Marlin.h>
 
 using namespace buddy;
 
@@ -67,7 +67,7 @@ ProbeAnalysisBase::Result ProbeAnalysisBase::Analyse() {
         // log the load line to metrics
         METRIC_DEF(probe_ll_metric, "probe_load_line", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
 
-        std::vector<std::tuple<uint32_t, float>> load_line_points;
+        std::array<std::tuple<uint32_t, float>, 6> load_line_points;
 
         auto timestamp_for_time = [this](Time time) -> uint32_t {
             return ClosestSample(time, SearchDirection::Both)->timestamp;
@@ -78,42 +78,42 @@ ProbeAnalysisBase::Result ProbeAnalysisBase::Analyse() {
             idle(true);
             auto time = TimeOfSample(features.analysisStart);
             auto load = features.beforeCompressionLine.GetY(time);
-            load_line_points.push_back({ timestamp_for_time(time), load });
+            load_line_points.at(0) = { timestamp_for_time(time), load };
         }
 
         // compression start
         {
             auto time = features.compressionStartTime;
             auto load = features.compressionLine.GetY(time);
-            load_line_points.push_back({ timestamp_for_time(time), load });
+            load_line_points.at(1) = { timestamp_for_time(time), load };
         }
 
         // compression end
         {
             auto time = features.compressionEndTime;
             auto load = features.compressedLine.GetY(time);
-            load_line_points.push_back({ timestamp_for_time(time), load });
+            load_line_points.at(2) = { timestamp_for_time(time), load };
         }
 
         // decompression start
         {
             auto time = features.decompressionStartTime;
             auto load = features.compressedLine.GetY(time);
-            load_line_points.push_back({ timestamp_for_time(time), load });
+            load_line_points.at(3) = { timestamp_for_time(time), load };
         }
 
         // decompression end
         {
             auto time = features.decompressionEndTime;
             auto load = features.decompressionLine.GetY(time);
-            load_line_points.push_back({ timestamp_for_time(time), load });
+            load_line_points.at(4) = { timestamp_for_time(time), load };
         }
 
         // analysis end
         {
             auto time = TimeOfSample(features.analysisEnd);
             auto load = features.afterDecompressionLine.GetY(time);
-            load_line_points.push_back({ timestamp_for_time(time), load });
+            load_line_points.at(5) = { timestamp_for_time(time), load };
         }
 
         for (auto [timestamp, load] : load_line_points) {
