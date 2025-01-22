@@ -29,7 +29,9 @@ using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_PRINT_PROGRESS_TIME,
 #endif
     MI_TIMEOUT, MI_SOUND_MODE, MI_HEATUP_BED,
-#if (!PRINTER_IS_PRUSA_XL() && !PRINTER_IS_PRUSA_MK4() && !PRINTER_IS_PRUSA_MK3_5())
+#if HAS_ST7789_DISPLAY()
+    // We could potentionally have MINI display without buzzer.
+    // So we only allow sound control for ST7789
     MI_SOUND_VOLUME,
 #endif
 #if HAS_LEDS()
