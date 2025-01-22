@@ -17,11 +17,11 @@ msgstr "-"
 msgid "---"
 msgstr "---"
 
-#: src/gui/MItem_tools.hpp:312
+#: src/gui/MItem_tools.hpp:313
 msgid "00 min"
 msgstr "00 min"
 
-#: src/gui/MItem_tools.hpp:333
+#: src/gui/MItem_tools.hpp:334
 msgid "12h"
 msgstr "12h"
 
@@ -58,7 +58,7 @@ msgstr ""
 "\n"
 "2. Anmelden"
 
-#: src/gui/MItem_tools.hpp:332
+#: src/gui/MItem_tools.hpp:333
 msgid "24h"
 msgstr "24h"
 
@@ -70,7 +70,7 @@ msgstr ""
 "2. Bewegen Sie nun den Werkzeugwechselmechanismus nach rechts, das Werkzeug "
 "wird im Dock verriegelt"
 
-#: src/gui/MItem_tools.hpp:313
+#: src/gui/MItem_tools.hpp:314
 msgid "30 min"
 msgstr "30 min"
 
@@ -82,11 +82,11 @@ msgstr ""
 "3. Der Werkzeugwechselmechanismus kann sich nun frei bewegen.\n"
 "Schieben Sie ihn ein wenig nach vorne."
 
-#: src/gui/MItem_tools.hpp:314
+#: src/gui/MItem_tools.hpp:315
 msgid "45 min"
 msgstr "45 min"
 
-#: src/gui/MItem_tools.hpp:554
+#: src/gui/MItem_tools.hpp:555
 msgid "5V Voltage"
 msgstr "5V Spannung"
 
@@ -100,7 +100,7 @@ msgid "ABORTING ..."
 msgstr "ABBRUCH ..."
 
 #: tmp_error_headers/error_list_mini.hpp:211
-#: tmp_error_headers/error_list_xl.hpp:330
+#: tmp_error_headers/error_list_xl.hpp:351
 #: tmp_error_headers/error_list_ix.hpp:330
 #: tmp_error_headers/error_list_mk4.hpp:225
 #: tmp_error_headers/error_list_mk35.hpp:218
@@ -120,11 +120,11 @@ msgstr ""
 "und den Drucker mit den Standardeinstellungen weiter verwenden."
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:365
+#: src/gui/MItem_tools.cpp:369
 msgid "A crash dump is being saved."
 msgstr "Es wird ein Crash Dump gespeichert."
 
-#: src/gui/MItem_tools.cpp:369
+#: src/gui/MItem_tools.cpp:373
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
 msgstr ""
 "Ein Crash-Dump-Bericht (Datei dump.bin) wurde auf dem USB-Laufwerk "
@@ -138,7 +138,7 @@ msgstr "Aktive Schnittstelle"
 msgid "Add Printer to Connect"
 msgstr "Drucker zu Connect hinzufügen"
 
-#: tmp_error_headers/error_list_xl.hpp:415
+#: tmp_error_headers/error_list_xl.hpp:436
 #: tmp_error_headers/error_list_ix.hpp:401
 msgid "Address assignment error"
 msgstr "Adresszuweisungsfehler"
@@ -156,10 +156,10 @@ msgstr "Stellen Sie die Düsenhöhe zum Heizbett durch drehen des Knopfes ein"
 msgid "Advanced"
 msgstr "Fortgeschritten"
 
-#: tmp_error_headers/error_list_xl.hpp:737
-#: tmp_error_headers/error_list_ix.hpp:709
-#: tmp_error_headers/error_list_mk4.hpp:527
-#: tmp_error_headers/error_list_mk35.hpp:485
+#: tmp_error_headers/error_list_xl.hpp:765
+#: tmp_error_headers/error_list_ix.hpp:716
+#: tmp_error_headers/error_list_mk4.hpp:534
+#: tmp_error_headers/error_list_mk35.hpp:492
 msgid "A filament specified in the G-code is either not loaded or wrong type."
 msgstr ""
 "Ein im G-Code angegebenes Filament ist entweder nicht geladen oder vom "
@@ -190,7 +190,7 @@ msgid "All nozzles"
 msgstr "Alle Düsen"
 
 #: tmp_error_headers/error_list_mini.hpp:261
-#: tmp_error_headers/error_list_xl.hpp:401
+#: tmp_error_headers/error_list_xl.hpp:422
 #: tmp_error_headers/error_list_ix.hpp:387
 #: tmp_error_headers/error_list_mk4.hpp:275
 #: tmp_error_headers/error_list_mk35.hpp:268
@@ -244,7 +244,7 @@ msgstr "Druck wirklich beenden?"
 msgid "Assigned tool(s) without filament"
 msgstr "Zugeordnete(s) Werkzeug(e) ohne Filament"
 
-#: src/gui/MItem_tools.hpp:254
+#: src/gui/MItem_tools.hpp:255
 msgid "Assist"
 msgstr "Assist"
 
@@ -289,7 +289,7 @@ msgstr ""
 "Nach dem Test können Sie die Parameter auswählen, die in der Statusleiste "
 "angezeigt werden sollen."
 
-#: src/gui/MItem_tools.hpp:101
+#: src/gui/MItem_tools.hpp:102
 msgid "Auto Home"
 msgstr "Auto Home"
 
@@ -359,7 +359,7 @@ msgstr ""
 "sind. Überprüfen Sie Ihre Verkabelung und wiederholen Sie den Test."
 
 #: tmp_error_headers/error_list_mini.hpp:281
-#: tmp_error_headers/error_list_xl.hpp:554
+#: tmp_error_headers/error_list_xl.hpp:575
 #: tmp_error_headers/error_list_ix.hpp:540
 #: tmp_error_headers/error_list_mk4.hpp:344
 #: tmp_error_headers/error_list_mk35.hpp:302
@@ -367,7 +367,7 @@ msgid "BBF ALLOCATION FAILED"
 msgstr "BBF-Zuweisung fehlgeschlagen"
 
 #: tmp_error_headers/error_list_mini.hpp:288
-#: tmp_error_headers/error_list_xl.hpp:561
+#: tmp_error_headers/error_list_xl.hpp:582
 #: tmp_error_headers/error_list_ix.hpp:547
 #: tmp_error_headers/error_list_mk4.hpp:351
 #: tmp_error_headers/error_list_mk35.hpp:309
@@ -375,7 +375,7 @@ msgid "BBF INITIALIZATION FAILED"
 msgstr "BBF-Initialisierung fehlgeschlagen"
 
 #: tmp_error_headers/error_list_mini.hpp:289
-#: tmp_error_headers/error_list_xl.hpp:562
+#: tmp_error_headers/error_list_xl.hpp:583
 #: tmp_error_headers/error_list_ix.hpp:548
 #: tmp_error_headers/error_list_mk4.hpp:352
 #: tmp_error_headers/error_list_mk35.hpp:310
@@ -408,11 +408,11 @@ msgstr "Druckbett-Nivellierung"
 msgid "BED LEVEL CORRECTION"
 msgstr "Druckbett-Nivellierung"
 
-#: tmp_error_headers/error_list_mini.hpp:576
-#: tmp_error_headers/error_list_xl.hpp:919
-#: tmp_error_headers/error_list_ix.hpp:842
-#: tmp_error_headers/error_list_mk4.hpp:674
-#: tmp_error_headers/error_list_mk35.hpp:639
+#: tmp_error_headers/error_list_mini.hpp:583
+#: tmp_error_headers/error_list_xl.hpp:947
+#: tmp_error_headers/error_list_ix.hpp:849
+#: tmp_error_headers/error_list_mk4.hpp:681
+#: tmp_error_headers/error_list_mk35.hpp:646
 msgid "Bed leveling failed. Try again?"
 msgstr "Bettnivellierung fehlgeschlagen. Nochmals versuchen?"
 
@@ -420,7 +420,7 @@ msgstr "Bettnivellierung fehlgeschlagen. Nochmals versuchen?"
 msgid "Bed Temp"
 msgstr "Bett-Temp."
 
-#: src/gui/MItem_tools.hpp:407
+#: src/gui/MItem_tools.hpp:408
 #: src/gui/screen/filament/screen_filament_detail.cpp:98
 msgid "Bed Temperature"
 msgstr "Temperatur Heizbett"
@@ -464,7 +464,7 @@ msgstr ""
 "Bevor Sie fortfahren, stellen Sie sicher, dass das Filament aus dem "
 "Nextruder entnommen wurde."
 
-#: src/gui/MItem_tools.hpp:798
+#: src/gui/MItem_tools.hpp:799
 msgid "Belt Tuning"
 msgstr "Riemen-Tuning"
 
@@ -472,11 +472,11 @@ msgstr "Riemen-Tuning"
 msgid "BELT TUNING"
 msgstr "BELT TUNING"
 
-#: src/gui/MItem_tools.hpp:603
+#: src/gui/MItem_tools.hpp:604
 msgid "Board Temperature"
 msgstr "Temperatur Board"
 
-#: src/gui/MItem_tools.hpp:371
+#: src/gui/MItem_tools.hpp:372
 msgid "Bootloader Version"
 msgstr "Bootloader Version"
 
@@ -499,7 +499,7 @@ msgstr ""
 "%d\n"
 "%s"
 
-#: src/gui/MItem_tools.hpp:385
+#: src/gui/MItem_tools.hpp:386
 msgid "Buddy Board"
 msgstr "Buddy Board"
 
@@ -527,7 +527,7 @@ msgstr "Kalibrierung Dock 4"
 msgid "Calibrate Dock 5"
 msgstr "Kalibrierung Dock 5"
 
-#: src/gui/MItem_tools.hpp:787
+#: src/gui/MItem_tools.hpp:788
 #: src/gui/screen/toolhead/screen_toolhead_settings_dock.cpp:50
 msgid "Calibrate Dock Position"
 msgstr "Kalibrieren der Dockposition"
@@ -620,7 +620,7 @@ msgstr "Aktuelles abbrechen"
 msgid "Canceled"
 msgstr "Abgebrochen"
 
-#: src/gui/MItem_tools.hpp:627
+#: src/gui/MItem_tools.hpp:628
 msgid "Cancel Object"
 msgstr "Objekt abbrechen"
 
@@ -649,11 +649,25 @@ msgstr "Änderungen durchführen"
 msgid "Center N and Fewer Items"
 msgstr "N und weniger Elemente zentrieren"
 
+#: tmp_error_headers/error_list_xl.hpp:197
+msgid "Chamber Overheating"
+msgstr "Kammer-Überhitzung"
+
+#: tmp_error_headers/error_list_xl.hpp:198
+msgid "Chamber temperature above safety limit. Ensure better ventilation."
+msgstr ""
+"Die Kammertemperatur ist über der Sicherheitsgrenze. Sorgen Sie für bessere "
+"Belüftung."
+
+#: tmp_error_headers/error_list_xl.hpp:204
+msgid "Chamber Temperature Is Critical"
+msgstr "Kammertemperatur ist kritisch"
+
 #: src/common/client_response_texts.hpp:27
 msgid "CHANGE"
 msgstr "WECHSELN"
 
-#: src/gui/MItem_tools.hpp:215 src/gui/MItem_filament.hpp:28
+#: src/gui/MItem_tools.hpp:216 src/gui/MItem_filament.hpp:28
 msgid "Change Filament"
 msgstr "Filament wechseln"
 
@@ -669,9 +683,9 @@ msgstr "Filament in allen Werkzeugen wechseln"
 msgid "Change Filter"
 msgstr "Filter wechseln"
 
-#: tmp_error_headers/error_list_xl.hpp:793
-#: tmp_error_headers/error_list_mk4.hpp:583
-#: tmp_error_headers/error_list_mk35.hpp:541
+#: tmp_error_headers/error_list_xl.hpp:821
+#: tmp_error_headers/error_list_mk4.hpp:590
+#: tmp_error_headers/error_list_mk35.hpp:548
 msgid ""
 "Changes of mapping available only in the Printer UI. Select Print to start "
 "the print with defaults."
@@ -683,7 +697,7 @@ msgstr ""
 msgid "Change to"
 msgstr "Ändern auf"
 
-#: src/gui/MItem_tools.hpp:703
+#: src/gui/MItem_tools.hpp:704
 msgid "Change Wave Table XYZ"
 msgstr "Wave Table XYZ ändern"
 
@@ -716,7 +730,7 @@ msgid "CHECKS"
 msgstr "CHECKS"
 
 #: tmp_error_headers/error_list_mini.hpp:212
-#: tmp_error_headers/error_list_xl.hpp:331
+#: tmp_error_headers/error_list_xl.hpp:352
 #: tmp_error_headers/error_list_ix.hpp:331
 #: tmp_error_headers/error_list_mk4.hpp:226
 #: tmp_error_headers/error_list_mk35.hpp:219
@@ -802,6 +816,12 @@ msgstr ""
 msgid "Check the thermistor wiring for potential damage."
 msgstr "Überprüfen Sie die Verkabelung des Thermistors auf mögliche Schäden."
 
+#: tmp_error_headers/error_list_xl.hpp:205
+msgid "Chmaber temperature critical. Aborting print to prevent printer damage."
+msgstr ""
+"Die Kammertemperatur ist kritisch. Abbruch des Drucks um Druckerschaden zu "
+"vermeiden."
+
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:68
 msgid "Clean steel sheet."
 msgstr "Stahlblech reinigen."
@@ -822,7 +842,7 @@ msgstr ""
 msgid "Code: %s"
 msgstr "Code: %s"
 
-#: src/gui/MItem_tools.hpp:675 tmp_error_headers/error_list_xl.hpp:701
+#: src/gui/MItem_tools.hpp:676 tmp_error_headers/error_list_xl.hpp:722
 #: tmp_error_headers/error_list_mk4.hpp:491
 #: tmp_error_headers/error_list_mk35.hpp:449
 msgid "Cold Pull"
@@ -879,7 +899,7 @@ msgstr "Bestätigen"
 msgid "- Connect"
 msgstr "- Verbindung"
 
-#: src/gui/MItem_tools.cpp:949 src/gui/screen_menu_network_status.hpp:39
+#: src/gui/MItem_tools.cpp:953 src/gui/screen_menu_network_status.hpp:39
 msgid "Connect"
 msgstr "Verbindung"
 
@@ -905,7 +925,7 @@ msgid "Connect IP"
 msgstr "Verbindung IP"
 
 #: tmp_error_headers/error_list_mini.hpp:218
-#: tmp_error_headers/error_list_xl.hpp:337
+#: tmp_error_headers/error_list_xl.hpp:358
 #: tmp_error_headers/error_list_ix.hpp:337
 #: tmp_error_headers/error_list_mk4.hpp:232
 #: tmp_error_headers/error_list_mk35.hpp:225
@@ -963,27 +983,27 @@ msgstr "CPU Auslastung"
 
 #. don't close on menu timeout
 #: src/gui/screen_crash_recovery.cpp:266
-#: tmp_error_headers/error_list_mini.hpp:470
 #: tmp_error_headers/error_list_mini.hpp:477
 #: tmp_error_headers/error_list_mini.hpp:484
 #: tmp_error_headers/error_list_mini.hpp:491
-#: tmp_error_headers/error_list_xl.hpp:757
-#: tmp_error_headers/error_list_xl.hpp:764
-#: tmp_error_headers/error_list_xl.hpp:771
-#: tmp_error_headers/error_list_xl.hpp:778
+#: tmp_error_headers/error_list_mini.hpp:498
 #: tmp_error_headers/error_list_xl.hpp:785
-#: tmp_error_headers/error_list_ix.hpp:729
+#: tmp_error_headers/error_list_xl.hpp:792
+#: tmp_error_headers/error_list_xl.hpp:799
+#: tmp_error_headers/error_list_xl.hpp:806
+#: tmp_error_headers/error_list_xl.hpp:813
 #: tmp_error_headers/error_list_ix.hpp:736
 #: tmp_error_headers/error_list_ix.hpp:743
 #: tmp_error_headers/error_list_ix.hpp:750
-#: tmp_error_headers/error_list_mk4.hpp:554
+#: tmp_error_headers/error_list_ix.hpp:757
 #: tmp_error_headers/error_list_mk4.hpp:561
 #: tmp_error_headers/error_list_mk4.hpp:568
 #: tmp_error_headers/error_list_mk4.hpp:575
-#: tmp_error_headers/error_list_mk35.hpp:512
+#: tmp_error_headers/error_list_mk4.hpp:582
 #: tmp_error_headers/error_list_mk35.hpp:519
 #: tmp_error_headers/error_list_mk35.hpp:526
 #: tmp_error_headers/error_list_mk35.hpp:533
+#: tmp_error_headers/error_list_mk35.hpp:540
 msgid "CRASH DETECTED"
 msgstr "CRASH ERKANNT"
 
@@ -1095,7 +1115,7 @@ msgstr ""
 "Erkannte nicht passende Düsendurchmesser, könnte dies den Druck ruinieren.\n"
 "Trotzdem drucken?"
 
-#: src/gui/MItem_tools.hpp:695
+#: src/gui/MItem_tools.hpp:696
 msgid "Device Hash in QR"
 msgstr "Geräte-Hash im QR"
 
@@ -1147,7 +1167,7 @@ msgstr "ABSCHALTEN"
 msgid "Disabled"
 msgstr "Deaktiviert"
 
-#: src/gui/MItem_tools.cpp:656
+#: src/gui/MItem_tools.cpp:660
 #, c-format
 msgid "disabled / %ld"
 msgstr "nicht aktiv / %ld"
@@ -1160,7 +1180,7 @@ msgstr "FS ABSCHALTEN"
 msgid "DISABLE MMU"
 msgstr "MMU ABSCHALTEN"
 
-#: src/gui/MItem_tools.hpp:121
+#: src/gui/MItem_tools.hpp:122
 msgid "Disable Motors"
 msgstr "Motoren abschalten"
 
@@ -1168,7 +1188,7 @@ msgstr "Motoren abschalten"
 msgid "Disconnect"
 msgstr "Trennen"
 
-#: src/gui/MItem_tools.cpp:655
+#: src/gui/MItem_tools.cpp:659
 #, c-format
 msgid "disconnected / %ld"
 msgstr "getrennt / %ld"
@@ -1179,7 +1199,7 @@ msgstr "getrennt / %ld"
 msgid "Disengaging idler"
 msgstr "Spannrol. auskuppeln"
 
-#: src/gui/MItem_tools.cpp:1050
+#: src/gui/MItem_tools.cpp:1054
 msgid "Display Refresh Speed"
 msgstr "Aktualisierungsrate Anzeige"
 
@@ -1407,7 +1427,7 @@ msgstr "Möchten Sie den fehlgeschlagenen Selbsttest wiederholen?"
 msgid "%d Phase Stepping Calibration"
 msgstr "%d Phase Stepping Kalibrierung"
 
-#: src/gui/MItem_tools.hpp:226
+#: src/gui/MItem_tools.hpp:227
 msgid "Dry run (no extrusion)"
 msgstr "Trockenlauf (keine Extrusion)"
 
@@ -1427,12 +1447,12 @@ msgstr ""
 "\n"
 "Der Drucker kann während des Homing vibrieren und lauter sein."
 
-#: tmp_error_headers/error_list_xl.hpp:366
+#: tmp_error_headers/error_list_xl.hpp:387
 #, c-format
 msgid "Dwarf board %d fault: %s"
 msgstr "Dwarf-Platine %d Fehler: %s"
 
-#: tmp_error_headers/error_list_xl.hpp:359
+#: tmp_error_headers/error_list_xl.hpp:380
 #, c-format
 msgid ""
 "Dwarf board encountered the following problem: \n"
@@ -1445,9 +1465,8 @@ msgstr ""
 msgid "Dwarf Board Temp"
 msgstr "Dwarf Board Temp"
 
-#: tmp_error_headers/error_list_xl.hpp:358
-#: tmp_error_headers/error_list_xl.hpp:365
-#: tmp_error_headers/error_list_xl.hpp:589
+#: tmp_error_headers/error_list_xl.hpp:379
+#: tmp_error_headers/error_list_xl.hpp:386
 msgid "DWARF ERROR"
 msgstr "DWARF FEHLER"
 
@@ -1479,7 +1498,7 @@ msgid "Dynamic"
 msgstr "Dynamisch"
 
 #: tmp_error_headers/error_list_mini.hpp:254
-#: tmp_error_headers/error_list_xl.hpp:394
+#: tmp_error_headers/error_list_xl.hpp:415
 #: tmp_error_headers/error_list_ix.hpp:380
 #: tmp_error_headers/error_list_mk4.hpp:268
 #: tmp_error_headers/error_list_mk35.hpp:261
@@ -1533,7 +1552,7 @@ msgid "Ejecting filament"
 msgstr "Fil. auswerfend"
 
 #: tmp_error_headers/error_list_mini.hpp:267
-#: tmp_error_headers/error_list_xl.hpp:407
+#: tmp_error_headers/error_list_xl.hpp:428
 #: tmp_error_headers/error_list_ix.hpp:393
 #: tmp_error_headers/error_list_mk4.hpp:281
 #: tmp_error_headers/error_list_mk35.hpp:274
@@ -1541,7 +1560,7 @@ msgid "EMERGENCY STOP"
 msgstr "Notstopp"
 
 #: tmp_error_headers/error_list_mini.hpp:268
-#: tmp_error_headers/error_list_xl.hpp:408
+#: tmp_error_headers/error_list_xl.hpp:429
 #: tmp_error_headers/error_list_ix.hpp:394
 #: tmp_error_headers/error_list_mk4.hpp:282
 #: tmp_error_headers/error_list_mk35.hpp:275
@@ -1572,7 +1591,7 @@ msgstr "Kennzahlen aktivieren"
 msgid "Enclosure"
 msgstr "Enclosure"
 
-#: tmp_error_headers/error_list_xl.hpp:898
+#: tmp_error_headers/error_list_xl.hpp:926
 msgid ""
 "Enclosure fan not spinning. Check it for possible debris, then inspect the "
 "wiring."
@@ -1607,7 +1626,7 @@ msgstr "Spannrol. einkuppeln"
 msgid "Enter credentials manually"
 msgstr "Zugangsdaten manuell eingeben"
 
-#: src/gui/MItem_tools.cpp:254
+#: src/gui/MItem_tools.cpp:258
 msgid ""
 "Erasing configuration,\n"
 "it will take some time..."
@@ -1615,7 +1634,7 @@ msgstr ""
 "Löschen der Konfiguration,\n"
 "es wird einige Zeit dauern..."
 
-#: src/gui/MItem_tools.cpp:254
+#: src/gui/MItem_tools.cpp:258
 msgid ""
 "Erasing everything,\n"
 "it will take some time..."
@@ -1654,7 +1673,7 @@ msgid "ERROR"
 msgstr "FEHLER"
 
 #: tmp_error_headers/error_list_mini.hpp:345
-#: tmp_error_headers/error_list_xl.hpp:625
+#: tmp_error_headers/error_list_xl.hpp:646
 #: tmp_error_headers/error_list_ix.hpp:604
 #: tmp_error_headers/error_list_mk4.hpp:408
 #: tmp_error_headers/error_list_mk35.hpp:366
@@ -1673,7 +1692,7 @@ msgstr ""
 msgid "Error invalid selftest state"
 msgstr "Fehler ungültiger Selftest-Status"
 
-#: src/gui/MItem_tools.cpp:371
+#: src/gui/MItem_tools.cpp:375
 msgid ""
 "Error saving crash dump report to the USB drive. Please reinsert the USB "
 "drive and try again."
@@ -1693,7 +1712,7 @@ msgid "ERR Wait for User"
 msgstr "FEHLER WarteBenutzer"
 
 #: tmp_error_headers/error_list_mini.hpp:240
-#: tmp_error_headers/error_list_xl.hpp:380
+#: tmp_error_headers/error_list_xl.hpp:401
 #: tmp_error_headers/error_list_ix.hpp:366
 #: tmp_error_headers/error_list_mk4.hpp:254
 #: tmp_error_headers/error_list_mk35.hpp:247
@@ -1701,7 +1720,7 @@ msgid "ESP detected command error."
 msgstr "ESP hat einen Befehlsfehler entdeckt."
 
 #: tmp_error_headers/error_list_mini.hpp:247
-#: tmp_error_headers/error_list_xl.hpp:387
+#: tmp_error_headers/error_list_xl.hpp:408
 #: tmp_error_headers/error_list_ix.hpp:373
 #: tmp_error_headers/error_list_mk4.hpp:261
 #: tmp_error_headers/error_list_mk35.hpp:254
@@ -1709,7 +1728,7 @@ msgid "ESP detected unknown error."
 msgstr "ESP hat unbekannten Fehler entdeckt."
 
 #: tmp_error_headers/error_list_mini.hpp:296
-#: tmp_error_headers/error_list_xl.hpp:569
+#: tmp_error_headers/error_list_xl.hpp:590
 #: tmp_error_headers/error_list_ix.hpp:555
 #: tmp_error_headers/error_list_mk4.hpp:359
 #: tmp_error_headers/error_list_mk35.hpp:317
@@ -1723,9 +1742,9 @@ msgstr "ESP Fehler"
 #: tmp_error_headers/error_list_mini.hpp:232
 #: tmp_error_headers/error_list_mini.hpp:239
 #: tmp_error_headers/error_list_mini.hpp:246
-#: tmp_error_headers/error_list_xl.hpp:372
-#: tmp_error_headers/error_list_xl.hpp:379
-#: tmp_error_headers/error_list_xl.hpp:386
+#: tmp_error_headers/error_list_xl.hpp:393
+#: tmp_error_headers/error_list_xl.hpp:400
+#: tmp_error_headers/error_list_xl.hpp:407
 #: tmp_error_headers/error_list_ix.hpp:358
 #: tmp_error_headers/error_list_ix.hpp:365
 #: tmp_error_headers/error_list_ix.hpp:372
@@ -1739,7 +1758,7 @@ msgid "ESP ERROR"
 msgstr "ESP Fehler"
 
 #: tmp_error_headers/error_list_mini.hpp:295
-#: tmp_error_headers/error_list_xl.hpp:568
+#: tmp_error_headers/error_list_xl.hpp:589
 #: tmp_error_headers/error_list_ix.hpp:554
 #: tmp_error_headers/error_list_mk4.hpp:358
 #: tmp_error_headers/error_list_mk35.hpp:316
@@ -1795,6 +1814,10 @@ msgstr "Extruder Strom"
 msgid "Extruder direction"
 msgstr "Extruder Richtung"
 
+#: tmp_error_headers/error_list_xl.hpp:610
+msgid "EXTRUDER ERROR"
+msgstr "EXTRUDER FEHLER"
+
 #: src/gui/MItem_mmu.hpp:302
 msgid "Extruder Maintenance"
 msgstr "Extruder Wartung"
@@ -1807,8 +1830,13 @@ msgstr "EXTRUDER MAXTEMP FEHLER"
 msgid "EXTRUDER MINTEMP ERROR"
 msgstr "EXTRUDER MINTEMP FEHLER"
 
+#: tmp_error_headers/error_list_xl.hpp:611
+#, c-format
+msgid "Extruder motor is not spinning on tool %d"
+msgstr "Extrudermotor dreht sich nicht auf Werkzeug %d"
+
 #: tmp_error_headers/error_list_mini.hpp:414
-#: tmp_error_headers/error_list_xl.hpp:694
+#: tmp_error_headers/error_list_xl.hpp:715
 #: tmp_error_headers/error_list_ix.hpp:673
 #: tmp_error_headers/error_list_mk4.hpp:477
 #: tmp_error_headers/error_list_mk35.hpp:435
@@ -1839,7 +1867,7 @@ msgstr "Werkseinstellung"
 msgid "FACTORY RESET"
 msgstr "Werkseinstellung"
 
-#: src/gui/MItem_tools.cpp:935
+#: src/gui/MItem_tools.cpp:939
 msgid "Failed"
 msgstr "Fehlgeschlagen"
 
@@ -1874,7 +1902,7 @@ msgstr ""
 "Homing des Extruders in der Z-Achse fehlgeschlagen, stellen Sie sicher, dass "
 "die Wägezelle funktioniert."
 
-#: tmp_error_headers/error_list_xl.hpp:212
+#: tmp_error_headers/error_list_xl.hpp:233
 msgid ""
 "Failed to home the X-axis, make sure there is no obstacle on X-axis or Y-"
 "axis."
@@ -1882,7 +1910,7 @@ msgstr ""
 "Homing der X-Achse fehlgeschlagen, sicherstellen, dass sich kein Hindernis "
 "auf der X oder Y-Achse befindet."
 
-#: tmp_error_headers/error_list_xl.hpp:219
+#: tmp_error_headers/error_list_xl.hpp:240
 msgid ""
 "Failed to home the Y-axis, make sure there is no obstacle on X-axis or Y-"
 "axis."
@@ -1898,7 +1926,7 @@ msgstr ""
 "Homing der Y-Achse fehlgeschlagen, stellen Sie sicher, dass sich kein "
 "Hindernis auf der Y-Achse befindet."
 
-#: tmp_error_headers/error_list_xl.hpp:191
+#: tmp_error_headers/error_list_xl.hpp:212
 msgid "Failed to home the Z-axis, make sure the loadcell is working."
 msgstr ""
 "Homing der Z-Achse fehlgeschlagen, sicherstellen, dass die Wägezelle "
@@ -1917,6 +1945,15 @@ msgstr ""
 msgid "Failed to open file"
 msgstr "Datei konnte nicht geöffnet werden"
 
+#: src/gui/MItem_tools.cpp:1084
+#, c-format
+msgid "Failed to open file '%s' for writing."
+msgstr "Fehler beim Öffnen der Datei '%s' zum Schreiben."
+
+#: tmp_error_headers/error_list_xl.hpp:190
+msgid "FAILED TO REACH CHAMBER TEMPERATURE"
+msgstr "KAMMERTEMPERATUR NICHT ERREICHT"
+
 #: src/gui/MItem_basic_selftest.cpp:55
 msgid "Failed to restore calibration data"
 msgstr "Kalibrierdaten wiederherstellen fehlgeschlagen"
@@ -1924,6 +1961,10 @@ msgstr "Kalibrierdaten wiederherstellen fehlgeschlagen"
 #: src/gui/MItem_basic_selftest.cpp:125
 msgid "Failed to save calibration data"
 msgstr "Kalibrierdaten sichern fehlgeschlagen"
+
+#: tmp_error_headers/error_list_xl.hpp:191
+msgid "Failing to reach target chamber temperature. Keep waiting?"
+msgstr "Die Solltemperatur der Kammer wird nicht erreicht. Weiter warten?"
 
 #: src/gui/MItem_menus.hpp:69
 msgid "Fail Stats"
@@ -1933,7 +1974,7 @@ msgstr "Fehlerstatistik"
 msgid "FAILURE STATISTICS"
 msgstr "FEHLERSTATISTIK"
 
-#: src/gui/MItem_tools.hpp:353
+#: src/gui/MItem_tools.hpp:354
 msgid "Fan Check"
 msgstr "Lüfterkontrolle"
 
@@ -1995,7 +2036,7 @@ msgstr "Zufuhr zur Düse"
 msgid "FIL. ALREADY LOADED"
 msgstr "FIL. BEREITS GEL."
 
-#: src/common/footer_def.hpp:136 src/gui/MItem_tools.hpp:508
+#: src/common/footer_def.hpp:136 src/gui/MItem_tools.hpp:509
 #: src/gui/screen/filament/screen_filaments_loaded.cpp:30
 #: src/gui/screen_home.cpp:134
 msgid "Filament"
@@ -2013,7 +2054,7 @@ msgstr ""
 "Das Filament scheint bereits geladen zu sein, sind Sie sicher, dass Sie es "
 "trotzdem laden möchten?"
 
-#: src/gui/MItem_tools.hpp:399
+#: src/gui/MItem_tools.hpp:400
 msgid "Filament Autoloading"
 msgstr "Filament automatisch laden"
 
@@ -2037,8 +2078,8 @@ msgstr ""
 "Unerwartetes Filament erkannt. Stellen Sie sicher, dass kein Filament "
 "geladen ist. Überprüfen Sie die Sensoren und die Verkabelung."
 
-#: tmp_error_headers/error_list_mk4.hpp:534
-#: tmp_error_headers/error_list_mk35.hpp:492
+#: tmp_error_headers/error_list_mk4.hpp:541
+#: tmp_error_headers/error_list_mk35.hpp:499
 msgid ""
 "Filament detected. Unload filament now? Select NO to start the print with "
 "the currently loaded filament."
@@ -2054,8 +2095,11 @@ msgstr "Filament ausgeworfen"
 msgid "Filament inserted, press continue."
 msgstr "Filament eingelegt, drücken Sie Weiter."
 
-#: tmp_error_headers/error_list_xl.hpp:940
-#: tmp_error_headers/error_list_ix.hpp:863
+#: tmp_error_headers/error_list_mini.hpp:597
+#: tmp_error_headers/error_list_xl.hpp:968
+#: tmp_error_headers/error_list_ix.hpp:870
+#: tmp_error_headers/error_list_mk4.hpp:702
+#: tmp_error_headers/error_list_mk35.hpp:660
 msgid "Filament loading timed out."
 msgstr "Filament laden Zeit überschritten."
 
@@ -2076,11 +2120,11 @@ msgstr "FILAMENT MMU"
 msgid "Filament name is not valid"
 msgstr "Filament-Name ist unzulässig"
 
-#: tmp_error_headers/error_list_mini.hpp:443
-#: tmp_error_headers/error_list_xl.hpp:730
-#: tmp_error_headers/error_list_ix.hpp:702
-#: tmp_error_headers/error_list_mk4.hpp:520
-#: tmp_error_headers/error_list_mk35.hpp:478
+#: tmp_error_headers/error_list_mini.hpp:450
+#: tmp_error_headers/error_list_xl.hpp:758
+#: tmp_error_headers/error_list_ix.hpp:709
+#: tmp_error_headers/error_list_mk4.hpp:527
+#: tmp_error_headers/error_list_mk35.hpp:485
 msgid ""
 "Filament not detected. Load filament now?\n"
 "Select NO to cancel the print.\n"
@@ -2096,7 +2140,7 @@ msgid "FILAMENT REMOVED"
 msgstr "FILAMENT ENTFERNT"
 
 #. If the printer has filament sensors menu, this item is inside it and is supposed to be called differently (BFW-4973)
-#: src/gui/MItem_tools.hpp:56
+#: src/gui/MItem_tools.hpp:57
 msgid "Filament Sensing"
 msgstr "Filament Sensorik"
 
@@ -2104,7 +2148,7 @@ msgstr "Filament Sensorik"
 msgid "Filament sensor"
 msgstr "Filamentsensor"
 
-#: src/gui/MItem_tools.hpp:56 src/gui/MItem_tools.hpp:432
+#: src/gui/MItem_tools.hpp:57 src/gui/MItem_tools.hpp:433
 #: src/gui/MItem_MINI.hpp:13
 msgid "Filament Sensor"
 msgstr "Filamentsensor"
@@ -2206,16 +2250,16 @@ msgstr "Datei beschädigt"
 msgid "File doesn't contain any print instructions"
 msgstr "Die Datei enthält keine Druckanweisungen."
 
-#: tmp_error_headers/error_list_mini.hpp:456
-#: tmp_error_headers/error_list_mini.hpp:457
-#: tmp_error_headers/error_list_xl.hpp:743
-#: tmp_error_headers/error_list_xl.hpp:744
-#: tmp_error_headers/error_list_ix.hpp:715
-#: tmp_error_headers/error_list_ix.hpp:716
-#: tmp_error_headers/error_list_mk4.hpp:540
-#: tmp_error_headers/error_list_mk4.hpp:541
-#: tmp_error_headers/error_list_mk35.hpp:498
-#: tmp_error_headers/error_list_mk35.hpp:499
+#: tmp_error_headers/error_list_mini.hpp:463
+#: tmp_error_headers/error_list_mini.hpp:464
+#: tmp_error_headers/error_list_xl.hpp:771
+#: tmp_error_headers/error_list_xl.hpp:772
+#: tmp_error_headers/error_list_ix.hpp:722
+#: tmp_error_headers/error_list_ix.hpp:723
+#: tmp_error_headers/error_list_mk4.hpp:547
+#: tmp_error_headers/error_list_mk4.hpp:548
+#: tmp_error_headers/error_list_mk35.hpp:505
+#: tmp_error_headers/error_list_mk35.hpp:506
 msgid "File error"
 msgstr "Datei-Fehler"
 
@@ -2228,7 +2272,7 @@ msgid "File removed or transfer aborted"
 msgstr "Datei entfernt oder Übertragung abgebrochen"
 
 #: tmp_error_headers/error_list_mini.hpp:401
-#: tmp_error_headers/error_list_xl.hpp:681
+#: tmp_error_headers/error_list_xl.hpp:702
 #: tmp_error_headers/error_list_ix.hpp:660
 #: tmp_error_headers/error_list_mk4.hpp:464
 #: tmp_error_headers/error_list_mk35.hpp:422
@@ -2354,7 +2398,7 @@ msgstr ""
 "richtige Firmware-Datei\n"
 "für Ihren Drucker haben."
 
-#: tmp_error_headers/error_list_xl.hpp:653
+#: tmp_error_headers/error_list_xl.hpp:674
 #: tmp_error_headers/error_list_ix.hpp:632
 #: tmp_error_headers/error_list_mk4.hpp:436
 #: tmp_error_headers/error_list_mk35.hpp:394
@@ -2370,7 +2414,7 @@ msgstr ""
 "Ihren Drucker haben."
 
 #: tmp_error_headers/error_list_mini.hpp:331
-#: tmp_error_headers/error_list_xl.hpp:611
+#: tmp_error_headers/error_list_xl.hpp:632
 #: tmp_error_headers/error_list_ix.hpp:590
 #: tmp_error_headers/error_list_mk4.hpp:394
 #: tmp_error_headers/error_list_mk35.hpp:352
@@ -2388,7 +2432,7 @@ msgstr ""
 "und neu versuchen."
 
 #: tmp_error_headers/error_list_mini.hpp:338
-#: tmp_error_headers/error_list_xl.hpp:618
+#: tmp_error_headers/error_list_xl.hpp:639
 #: tmp_error_headers/error_list_ix.hpp:597
 #: tmp_error_headers/error_list_mk4.hpp:401
 #: tmp_error_headers/error_list_mk35.hpp:359
@@ -2402,7 +2446,7 @@ msgstr ""
 "Stick!"
 
 #: tmp_error_headers/error_list_mini.hpp:359
-#: tmp_error_headers/error_list_xl.hpp:639
+#: tmp_error_headers/error_list_xl.hpp:660
 #: tmp_error_headers/error_list_ix.hpp:618
 #: tmp_error_headers/error_list_mk4.hpp:422
 #: tmp_error_headers/error_list_mk35.hpp:380
@@ -2424,7 +2468,7 @@ msgstr ""
 "USB-Stick kopieren."
 
 #: tmp_error_headers/error_list_mini.hpp:366
-#: tmp_error_headers/error_list_xl.hpp:646
+#: tmp_error_headers/error_list_xl.hpp:667
 #: tmp_error_headers/error_list_ix.hpp:625
 #: tmp_error_headers/error_list_mk4.hpp:429
 #: tmp_error_headers/error_list_mk35.hpp:387
@@ -2442,7 +2486,7 @@ msgstr ""
 "neu flashen."
 
 #: tmp_error_headers/error_list_mini.hpp:393
-#: tmp_error_headers/error_list_xl.hpp:673
+#: tmp_error_headers/error_list_xl.hpp:694
 #: tmp_error_headers/error_list_ix.hpp:652
 #: tmp_error_headers/error_list_mk4.hpp:456
 #: tmp_error_headers/error_list_mk35.hpp:414
@@ -2450,7 +2494,7 @@ msgid "FIRMWARE MISSING"
 msgstr "FIRMWARE FEHLT"
 
 #: tmp_error_headers/error_list_mini.hpp:380
-#: tmp_error_headers/error_list_xl.hpp:660
+#: tmp_error_headers/error_list_xl.hpp:681
 #: tmp_error_headers/error_list_ix.hpp:639
 #: tmp_error_headers/error_list_mk4.hpp:443
 #: tmp_error_headers/error_list_mk35.hpp:401
@@ -2471,7 +2515,7 @@ msgstr ""
 "Drucker haben."
 
 #: tmp_error_headers/error_list_mini.hpp:387
-#: tmp_error_headers/error_list_xl.hpp:667
+#: tmp_error_headers/error_list_xl.hpp:688
 #: tmp_error_headers/error_list_ix.hpp:646
 #: tmp_error_headers/error_list_mk4.hpp:450
 #: tmp_error_headers/error_list_mk35.hpp:408
@@ -2493,7 +2537,7 @@ msgstr ""
 "zu flashen."
 
 #: tmp_error_headers/error_list_mini.hpp:352
-#: tmp_error_headers/error_list_xl.hpp:632
+#: tmp_error_headers/error_list_xl.hpp:653
 #: tmp_error_headers/error_list_ix.hpp:611
 #: tmp_error_headers/error_list_mk4.hpp:415
 #: tmp_error_headers/error_list_mk35.hpp:373
@@ -2516,7 +2560,7 @@ msgstr ""
 msgid "Firmware Update Required"
 msgstr "Firmware Update erforderlich"
 
-#: src/gui/MItem_tools.hpp:363
+#: src/gui/MItem_tools.hpp:364
 msgid "Firmware Version"
 msgstr "Firmware Version"
 
@@ -2525,7 +2569,7 @@ msgid "Firmware Version\n"
 msgstr "Firmware Version\n"
 
 #: tmp_error_headers/error_list_mini.hpp:372
-#: tmp_error_headers/error_list_xl.hpp:652
+#: tmp_error_headers/error_list_xl.hpp:673
 #: tmp_error_headers/error_list_ix.hpp:631
 #: tmp_error_headers/error_list_mk4.hpp:435
 #: tmp_error_headers/error_list_mk35.hpp:393
@@ -2546,7 +2590,7 @@ msgid "FlashConn"
 msgstr "FlashConn"
 
 #: tmp_error_headers/error_list_mini.hpp:344
-#: tmp_error_headers/error_list_xl.hpp:624
+#: tmp_error_headers/error_list_xl.hpp:645
 #: tmp_error_headers/error_list_ix.hpp:603
 #: tmp_error_headers/error_list_mk4.hpp:407
 #: tmp_error_headers/error_list_mk35.hpp:365
@@ -2586,7 +2630,7 @@ msgstr "FOOTER"
 msgid "FOOTER ADVANCED"
 msgstr "FOOTER ADVANCED"
 
-#: src/gui/MItem_tools.hpp:637
+#: src/gui/MItem_tools.hpp:638
 msgid "For Filament Change, Preheat"
 msgstr "Vorheizen zum Filamentwechsel"
 
@@ -2628,7 +2672,7 @@ msgid "FS Value"
 msgstr "FS Wert"
 
 #: tmp_error_headers/error_list_mini.hpp:365
-#: tmp_error_headers/error_list_xl.hpp:645
+#: tmp_error_headers/error_list_xl.hpp:666
 #: tmp_error_headers/error_list_ix.hpp:624
 #: tmp_error_headers/error_list_mk4.hpp:428
 #: tmp_error_headers/error_list_mk35.hpp:386
@@ -2672,19 +2716,19 @@ msgid "G-Code Checks"
 msgstr "G-Code Checks"
 
 #: tmp_error_headers/error_list_mini.hpp:310
-#: tmp_error_headers/error_list_xl.hpp:583
+#: tmp_error_headers/error_list_xl.hpp:604
 #: tmp_error_headers/error_list_ix.hpp:569
 #: tmp_error_headers/error_list_mk4.hpp:373
 #: tmp_error_headers/error_list_mk35.hpp:331
 msgid ""
 "G-code command was too long and did not fit in the internal buffers. As a "
-"result, it might have beet not executed correctly."
+"result, it may have been executed incorrectly."
 msgstr ""
 "Der G-Code-Befehl war zu lang und passte nicht in die internen Puffer. "
-"Infolgedessen wurde er möglicherweise nicht korrekt ausgeführt."
+"Infolgedessen wurde er möglicherweise falsch ausgeführt."
 
 #: tmp_error_headers/error_list_mini.hpp:302
-#: tmp_error_headers/error_list_xl.hpp:575
+#: tmp_error_headers/error_list_xl.hpp:596
 #: tmp_error_headers/error_list_ix.hpp:561
 #: tmp_error_headers/error_list_mk4.hpp:365
 #: tmp_error_headers/error_list_mk35.hpp:323
@@ -2692,7 +2736,7 @@ msgid "Gcode Corruption"
 msgstr "G-Code Korruption"
 
 #: tmp_error_headers/error_list_mini.hpp:309
-#: tmp_error_headers/error_list_xl.hpp:582
+#: tmp_error_headers/error_list_xl.hpp:603
 #: tmp_error_headers/error_list_ix.hpp:568
 #: tmp_error_headers/error_list_mk4.hpp:372
 #: tmp_error_headers/error_list_mk35.hpp:330
@@ -2704,7 +2748,7 @@ msgid "G-Code filaments"
 msgstr "G-Code Filamente"
 
 #: tmp_error_headers/error_list_mini.hpp:226
-#: tmp_error_headers/error_list_xl.hpp:345
+#: tmp_error_headers/error_list_xl.hpp:366
 #: tmp_error_headers/error_list_ix.hpp:345
 #: tmp_error_headers/error_list_mk4.hpp:240
 #: tmp_error_headers/error_list_mk35.hpp:233
@@ -2718,7 +2762,7 @@ msgstr ""
 "Erlauben Sie die Änderungen?"
 
 #: tmp_error_headers/error_list_mini.hpp:225
-#: tmp_error_headers/error_list_xl.hpp:344
+#: tmp_error_headers/error_list_xl.hpp:365
 #: tmp_error_headers/error_list_ix.hpp:344
 #: tmp_error_headers/error_list_mk4.hpp:239
 #: tmp_error_headers/error_list_mk35.hpp:232
@@ -2726,7 +2770,7 @@ msgid "G-CODE METRICS CONFIG CHANGE"
 msgstr "G-CODE METRIK-KONFIGURATIONSÄNDERUNG"
 
 #: tmp_error_headers/error_list_mini.hpp:303
-#: tmp_error_headers/error_list_xl.hpp:576
+#: tmp_error_headers/error_list_xl.hpp:597
 #: tmp_error_headers/error_list_ix.hpp:562
 #: tmp_error_headers/error_list_mk4.hpp:366
 #: tmp_error_headers/error_list_mk35.hpp:324
@@ -2735,11 +2779,11 @@ msgstr ""
 "Der G-Code auf dem USB-Stick ist fehlerhaft. Korrigieren Sie ihn manuell, "
 "bevor Sie fortfahren."
 
-#: tmp_error_headers/error_list_mini.hpp:548
-#: tmp_error_headers/error_list_xl.hpp:856
-#: tmp_error_headers/error_list_ix.hpp:807
-#: tmp_error_headers/error_list_mk4.hpp:646
-#: tmp_error_headers/error_list_mk35.hpp:611
+#: tmp_error_headers/error_list_mini.hpp:555
+#: tmp_error_headers/error_list_xl.hpp:884
+#: tmp_error_headers/error_list_ix.hpp:814
+#: tmp_error_headers/error_list_mk4.hpp:653
+#: tmp_error_headers/error_list_mk35.hpp:618
 msgid ""
 "G-Code transfer running too slow. Check your network for issues or use "
 "different USB drive. Press Continue to resume printing."
@@ -2773,7 +2817,7 @@ msgid "Gone"
 msgstr "Verschwunden"
 
 #: tmp_error_headers/error_list_mini.hpp:191
-#: tmp_error_headers/error_list_xl.hpp:282
+#: tmp_error_headers/error_list_xl.hpp:303
 #: tmp_error_headers/error_list_ix.hpp:289
 #: tmp_error_headers/error_list_mk4.hpp:198
 #: tmp_error_headers/error_list_mk35.hpp:191
@@ -2781,7 +2825,7 @@ msgid "HAL detected an I2C busy state when receiving data via I2C."
 msgstr "HAL hat beim Empfang von Daten über I2C einen I2C-Busy erkannt."
 
 #: tmp_error_headers/error_list_mini.hpp:163
-#: tmp_error_headers/error_list_xl.hpp:254
+#: tmp_error_headers/error_list_xl.hpp:275
 #: tmp_error_headers/error_list_ix.hpp:261
 #: tmp_error_headers/error_list_mk4.hpp:170
 #: tmp_error_headers/error_list_mk35.hpp:163
@@ -2789,7 +2833,7 @@ msgid "HAL detected an I2C busy state when sending data via I2C."
 msgstr "HAL hat beim Senden von Daten über I2C einen I2C Busy entdeckt."
 
 #: tmp_error_headers/error_list_mini.hpp:184
-#: tmp_error_headers/error_list_xl.hpp:275
+#: tmp_error_headers/error_list_xl.hpp:296
 #: tmp_error_headers/error_list_ix.hpp:282
 #: tmp_error_headers/error_list_mk4.hpp:191
 #: tmp_error_headers/error_list_mk35.hpp:184
@@ -2797,7 +2841,7 @@ msgid "HAL detected an I2C error when receiving data via I2C."
 msgstr "HAL hat beim Empfang von Daten über I2C einen I2C-Fehler entdeckt."
 
 #: tmp_error_headers/error_list_mini.hpp:156
-#: tmp_error_headers/error_list_xl.hpp:247
+#: tmp_error_headers/error_list_xl.hpp:268
 #: tmp_error_headers/error_list_ix.hpp:254
 #: tmp_error_headers/error_list_mk4.hpp:163
 #: tmp_error_headers/error_list_mk35.hpp:156
@@ -2805,7 +2849,7 @@ msgid "HAL detected an I2C error when sending data via I2C."
 msgstr "HAL hat einen I2C-Fehler beim Senden von Daten über I2C entdeckt."
 
 #: tmp_error_headers/error_list_mini.hpp:198
-#: tmp_error_headers/error_list_xl.hpp:289
+#: tmp_error_headers/error_list_xl.hpp:310
 #: tmp_error_headers/error_list_ix.hpp:296
 #: tmp_error_headers/error_list_mk4.hpp:205
 #: tmp_error_headers/error_list_mk35.hpp:198
@@ -2815,7 +2859,7 @@ msgstr ""
 "festgestellt."
 
 #: tmp_error_headers/error_list_mini.hpp:170
-#: tmp_error_headers/error_list_xl.hpp:261
+#: tmp_error_headers/error_list_xl.hpp:282
 #: tmp_error_headers/error_list_ix.hpp:268
 #: tmp_error_headers/error_list_mk4.hpp:177
 #: tmp_error_headers/error_list_mk35.hpp:170
@@ -2825,7 +2869,7 @@ msgstr ""
 "festgestellt."
 
 #: tmp_error_headers/error_list_mini.hpp:205
-#: tmp_error_headers/error_list_xl.hpp:296
+#: tmp_error_headers/error_list_xl.hpp:317
 #: tmp_error_headers/error_list_ix.hpp:303
 #: tmp_error_headers/error_list_mk4.hpp:212
 #: tmp_error_headers/error_list_mk35.hpp:205
@@ -2835,7 +2879,7 @@ msgstr ""
 "entdeckt."
 
 #: tmp_error_headers/error_list_mini.hpp:177
-#: tmp_error_headers/error_list_xl.hpp:268
+#: tmp_error_headers/error_list_xl.hpp:289
 #: tmp_error_headers/error_list_ix.hpp:275
 #: tmp_error_headers/error_list_mk4.hpp:184
 #: tmp_error_headers/error_list_mk35.hpp:177
@@ -2849,7 +2893,7 @@ msgstr ""
 msgid "Happy printing!"
 msgstr "Frohes Drucken!"
 
-#: src/gui/MItem_tools.hpp:141
+#: src/gui/MItem_tools.hpp:142
 msgid "Hard Reset (USB with FW needed)"
 msgstr "Hard Reset (USB mit FW nötig)"
 
@@ -2863,7 +2907,7 @@ msgid "HARDWARE"
 msgstr "HARDWARE"
 
 #: tmp_error_headers/error_list_mini.hpp:358
-#: tmp_error_headers/error_list_xl.hpp:638
+#: tmp_error_headers/error_list_xl.hpp:659
 #: tmp_error_headers/error_list_ix.hpp:617
 #: tmp_error_headers/error_list_mk4.hpp:421
 #: tmp_error_headers/error_list_mk35.hpp:379
@@ -2968,7 +3012,7 @@ msgstr ""
 "Heizbett-Kachel Nr. %d:\n"
 "Unerwartete Temperaturspitze entdeckt."
 
-#: tmp_error_headers/error_list_xl.hpp:352
+#: tmp_error_headers/error_list_xl.hpp:373
 #: tmp_error_headers/error_list_ix.hpp:352
 #, c-format
 msgid ""
@@ -3002,7 +3046,7 @@ msgstr "Heatbreak 4 Temp"
 msgid "Heatbreak 5 temp"
 msgstr "Heatbreak 5 Temp"
 
-#: src/common/footer_def.hpp:157 src/gui/MItem_tools.hpp:457
+#: src/common/footer_def.hpp:157 src/gui/MItem_tools.hpp:458
 msgid "Heatbreak Fan"
 msgstr "Heatbreak-Lüfter"
 
@@ -3030,11 +3074,11 @@ msgstr "Heatbreak-Status"
 msgid "Heatbreak Temp"
 msgstr "Temperatur Heatbreak"
 
-#: tmp_error_headers/error_list_mini.hpp:541
-#: tmp_error_headers/error_list_xl.hpp:842
-#: tmp_error_headers/error_list_ix.hpp:800
-#: tmp_error_headers/error_list_mk4.hpp:639
-#: tmp_error_headers/error_list_mk35.hpp:597
+#: tmp_error_headers/error_list_mini.hpp:548
+#: tmp_error_headers/error_list_xl.hpp:870
+#: tmp_error_headers/error_list_ix.hpp:807
+#: tmp_error_headers/error_list_mk4.hpp:646
+#: tmp_error_headers/error_list_mk35.hpp:604
 msgid "Heatbreak thermistor is disconnected. Inspect the wiring."
 msgstr "Heatbreak-Thermistor abgeklemmt. Verkabelung überprüfen."
 
@@ -3042,7 +3086,7 @@ msgstr "Heatbreak-Thermistor abgeklemmt. Verkabelung überprüfen."
 msgid "Heat Entire Bed"
 msgstr "Gesamtes Bett heizen"
 
-#: src/gui/MItem_tools.hpp:561
+#: src/gui/MItem_tools.hpp:562
 msgid "Heater Current"
 msgstr "Heizelemente Strom"
 
@@ -3054,7 +3098,7 @@ msgstr "Heizungen Check"
 msgid "Heater testing"
 msgstr "Heizungsprüfung"
 
-#: src/gui/MItem_tools.hpp:540
+#: src/gui/MItem_tools.hpp:541
 msgid "Heater Voltage"
 msgstr "Heizelemente Spannung"
 
@@ -3066,16 +3110,19 @@ msgstr "Aufheizen"
 msgid "Heating..."
 msgstr "Aufheizen..."
 
-#: tmp_error_headers/error_list_mini.hpp:506
-#: tmp_error_headers/error_list_mini.hpp:520
-#: tmp_error_headers/error_list_xl.hpp:807
-#: tmp_error_headers/error_list_xl.hpp:821
-#: tmp_error_headers/error_list_ix.hpp:765
-#: tmp_error_headers/error_list_ix.hpp:779
-#: tmp_error_headers/error_list_mk4.hpp:604
-#: tmp_error_headers/error_list_mk4.hpp:618
-#: tmp_error_headers/error_list_mk35.hpp:562
-#: tmp_error_headers/error_list_mk35.hpp:576
+#: tmp_error_headers/error_list_ix.hpp:772
+#: tmp_error_headers/error_list_ix.hpp:786
+msgid "Heating disabled due to 10 minutes of inactivity."
+msgstr "Heizung wurde wegen 10 Minuten Inaktivität deaktiviert."
+
+#: tmp_error_headers/error_list_mini.hpp:513
+#: tmp_error_headers/error_list_mini.hpp:527
+#: tmp_error_headers/error_list_xl.hpp:835
+#: tmp_error_headers/error_list_xl.hpp:849
+#: tmp_error_headers/error_list_mk4.hpp:611
+#: tmp_error_headers/error_list_mk4.hpp:625
+#: tmp_error_headers/error_list_mk35.hpp:569
+#: tmp_error_headers/error_list_mk35.hpp:583
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Heizung wurde wegen 30 Minuten Inaktivität deaktiviert."
 
@@ -3099,7 +3146,7 @@ msgstr "HILFE"
 msgid "HEPA Filter Check"
 msgstr "HEPA Filter Check"
 
-#: src/gui/MItem_crash.hpp:56 src/gui/MItem_tools.cpp:1050
+#: src/gui/MItem_crash.hpp:56 src/gui/MItem_tools.cpp:1054
 msgid "High"
 msgstr "Hoch"
 
@@ -3195,7 +3242,7 @@ msgid "Homing"
 msgstr "Referenzfahrt"
 
 #: tmp_error_headers/error_list_mini.hpp:106
-#: tmp_error_headers/error_list_xl.hpp:211
+#: tmp_error_headers/error_list_xl.hpp:232
 #: tmp_error_headers/error_list_ix.hpp:204
 #: tmp_error_headers/error_list_mk4.hpp:113
 #: tmp_error_headers/error_list_mk35.hpp:106
@@ -3203,7 +3250,7 @@ msgid "HOMING ERROR X"
 msgstr "Homing Fehler X"
 
 #: tmp_error_headers/error_list_mini.hpp:113
-#: tmp_error_headers/error_list_xl.hpp:218
+#: tmp_error_headers/error_list_xl.hpp:239
 #: tmp_error_headers/error_list_ix.hpp:211
 #: tmp_error_headers/error_list_mk4.hpp:120
 #: tmp_error_headers/error_list_mk35.hpp:113
@@ -3211,7 +3258,7 @@ msgid "HOMING ERROR Y"
 msgstr "Homing Fehler Y"
 
 #: tmp_error_headers/error_list_mini.hpp:99
-#: tmp_error_headers/error_list_xl.hpp:190
+#: tmp_error_headers/error_list_xl.hpp:211
 #: tmp_error_headers/error_list_ix.hpp:183
 #: tmp_error_headers/error_list_mk4.hpp:106
 #: tmp_error_headers/error_list_mk35.hpp:99
@@ -3245,15 +3292,15 @@ msgstr ""
 msgid "Hotend fan"
 msgstr "Hotend-Lüfter"
 
-#: src/common/footer_def.hpp:155 src/gui/MItem_tools.hpp:455
+#: src/common/footer_def.hpp:155 src/gui/MItem_tools.hpp:456
 msgid "Hotend Fan"
 msgstr "Hotend Lüfter"
 
-#: tmp_error_headers/error_list_mini.hpp:562
-#: tmp_error_headers/error_list_xl.hpp:884
-#: tmp_error_headers/error_list_ix.hpp:828
-#: tmp_error_headers/error_list_mk4.hpp:660
-#: tmp_error_headers/error_list_mk35.hpp:625
+#: tmp_error_headers/error_list_mini.hpp:569
+#: tmp_error_headers/error_list_xl.hpp:912
+#: tmp_error_headers/error_list_ix.hpp:835
+#: tmp_error_headers/error_list_mk4.hpp:667
+#: tmp_error_headers/error_list_mk35.hpp:632
 msgid ""
 "Hotend fan not spinning. Check it for possible debris, then inspect the "
 "wiring."
@@ -3265,7 +3312,7 @@ msgstr ""
 msgid "Hotend fan RPM test"
 msgstr "Hotend-Lüfter Drehzahltest"
 
-#: tmp_error_headers/error_list_xl.hpp:323
+#: tmp_error_headers/error_list_xl.hpp:344
 msgid "HOTEND HEATER OVERCURRENT"
 msgstr "HOTEND HEIZUNG ÜBERSTROM"
 
@@ -3310,7 +3357,7 @@ msgid "HW test selector"
 msgstr "HW Test Selektor"
 
 #: tmp_error_headers/error_list_mini.hpp:190
-#: tmp_error_headers/error_list_xl.hpp:281
+#: tmp_error_headers/error_list_xl.hpp:302
 #: tmp_error_headers/error_list_ix.hpp:288
 #: tmp_error_headers/error_list_mk4.hpp:197
 #: tmp_error_headers/error_list_mk35.hpp:190
@@ -3318,7 +3365,7 @@ msgid "I2C RECEIVE BUSY"
 msgstr "I2C Empfang Busy"
 
 #: tmp_error_headers/error_list_mini.hpp:183
-#: tmp_error_headers/error_list_xl.hpp:274
+#: tmp_error_headers/error_list_xl.hpp:295
 #: tmp_error_headers/error_list_ix.hpp:281
 #: tmp_error_headers/error_list_mk4.hpp:190
 #: tmp_error_headers/error_list_mk35.hpp:183
@@ -3326,7 +3373,7 @@ msgid "I2C RECEIVE FAILED"
 msgstr "I2C Empfang fehlgeschlagen"
 
 #: tmp_error_headers/error_list_mini.hpp:197
-#: tmp_error_headers/error_list_xl.hpp:288
+#: tmp_error_headers/error_list_xl.hpp:309
 #: tmp_error_headers/error_list_ix.hpp:295
 #: tmp_error_headers/error_list_mk4.hpp:204
 #: tmp_error_headers/error_list_mk35.hpp:197
@@ -3334,7 +3381,7 @@ msgid "I2C RECEIVE TIMEOUT"
 msgstr "I2C Empfang Timeout"
 
 #: tmp_error_headers/error_list_mini.hpp:204
-#: tmp_error_headers/error_list_xl.hpp:295
+#: tmp_error_headers/error_list_xl.hpp:316
 #: tmp_error_headers/error_list_ix.hpp:302
 #: tmp_error_headers/error_list_mk4.hpp:211
 #: tmp_error_headers/error_list_mk35.hpp:204
@@ -3342,7 +3389,7 @@ msgid "I2C RECEIVE UNDEFINED"
 msgstr "I2C Empfang undefiniert"
 
 #: tmp_error_headers/error_list_mini.hpp:162
-#: tmp_error_headers/error_list_xl.hpp:253
+#: tmp_error_headers/error_list_xl.hpp:274
 #: tmp_error_headers/error_list_ix.hpp:260
 #: tmp_error_headers/error_list_mk4.hpp:169
 #: tmp_error_headers/error_list_mk35.hpp:162
@@ -3350,7 +3397,7 @@ msgid "I2C SEND BUSY"
 msgstr "I2C Send Busy"
 
 #: tmp_error_headers/error_list_mini.hpp:155
-#: tmp_error_headers/error_list_xl.hpp:246
+#: tmp_error_headers/error_list_xl.hpp:267
 #: tmp_error_headers/error_list_ix.hpp:253
 #: tmp_error_headers/error_list_mk4.hpp:162
 #: tmp_error_headers/error_list_mk35.hpp:155
@@ -3358,7 +3405,7 @@ msgid "I2C SEND FAILED"
 msgstr "I2C Senden fehlgeschlagen"
 
 #: tmp_error_headers/error_list_mini.hpp:169
-#: tmp_error_headers/error_list_xl.hpp:260
+#: tmp_error_headers/error_list_xl.hpp:281
 #: tmp_error_headers/error_list_ix.hpp:267
 #: tmp_error_headers/error_list_mk4.hpp:176
 #: tmp_error_headers/error_list_mk35.hpp:169
@@ -3366,7 +3413,7 @@ msgid "I2C SEND TIMEOUT"
 msgstr "I2C Send Timeout"
 
 #: tmp_error_headers/error_list_mini.hpp:176
-#: tmp_error_headers/error_list_xl.hpp:267
+#: tmp_error_headers/error_list_xl.hpp:288
 #: tmp_error_headers/error_list_ix.hpp:274
 #: tmp_error_headers/error_list_mk4.hpp:183
 #: tmp_error_headers/error_list_mk35.hpp:176
@@ -3394,7 +3441,7 @@ msgid "IGNORE"
 msgstr "IGNORIEREN"
 
 #: tmp_error_headers/error_list_mini.hpp:351
-#: tmp_error_headers/error_list_xl.hpp:631
+#: tmp_error_headers/error_list_xl.hpp:652
 #: tmp_error_headers/error_list_ix.hpp:610
 #: tmp_error_headers/error_list_mk4.hpp:414
 #: tmp_error_headers/error_list_mk35.hpp:372
@@ -3413,7 +3460,7 @@ msgstr "Info"
 msgid "INFO"
 msgstr "INFO"
 
-#: src/guiapi/src/window_msgbox.cpp:290 src/gui/MItem_tools.cpp:76
+#: src/guiapi/src/window_msgbox.cpp:290 src/gui/MItem_tools.cpp:80
 msgid "Information"
 msgstr "Informationen"
 
@@ -3421,7 +3468,7 @@ msgstr "Informationen"
 msgid "in progress"
 msgstr "läuft"
 
-#: src/gui/MItem_tools.hpp:568
+#: src/gui/MItem_tools.hpp:569
 msgid "Input Current"
 msgstr "Eingangs-Strom"
 
@@ -3445,7 +3492,7 @@ msgstr "Input Shaper X"
 msgid "Input Shaper Y"
 msgstr "Input Shaper Y"
 
-#: src/gui/MItem_tools.hpp:547
+#: src/gui/MItem_tools.hpp:548
 msgid "Input Voltage"
 msgstr "Eingangs-Spannung"
 
@@ -3456,7 +3503,7 @@ msgid " INS / 1"
 msgstr "INS / 1"
 
 #. not calibrated would be too long
-#: src/gui/MItem_tools.cpp:653
+#: src/gui/MItem_tools.cpp:657
 #, c-format
 msgid " INS / %7ld"
 msgstr "INS / %7ld"
@@ -3551,7 +3598,7 @@ msgid "Invalid BGCODE file header"
 msgstr "Ungültiger BGCODE-Dateikopf"
 
 #: tmp_error_headers/error_list_mini.hpp:330
-#: tmp_error_headers/error_list_xl.hpp:610
+#: tmp_error_headers/error_list_xl.hpp:631
 #: tmp_error_headers/error_list_ix.hpp:589
 #: tmp_error_headers/error_list_mk4.hpp:393
 #: tmp_error_headers/error_list_mk35.hpp:351
@@ -3652,7 +3699,7 @@ msgstr "letzter Druck Kollisionen Y-Achse"
 msgid "Leave"
 msgstr "Verlassen"
 
-#: tmp_error_headers/error_list_xl.hpp:540
+#: tmp_error_headers/error_list_xl.hpp:561
 #: tmp_error_headers/error_list_ix.hpp:526
 #: tmp_error_headers/error_list_mk4.hpp:330
 #: tmp_error_headers/error_list_mk35.hpp:288
@@ -3671,11 +3718,11 @@ msgstr "Linke Seite"
 msgid "Left Side [um]"
 msgstr "Linke Seite [um]"
 
-#: tmp_error_headers/error_list_mini.hpp:471
-#: tmp_error_headers/error_list_xl.hpp:758
-#: tmp_error_headers/error_list_ix.hpp:730
-#: tmp_error_headers/error_list_mk4.hpp:555
-#: tmp_error_headers/error_list_mk35.hpp:513
+#: tmp_error_headers/error_list_mini.hpp:478
+#: tmp_error_headers/error_list_xl.hpp:786
+#: tmp_error_headers/error_list_ix.hpp:737
+#: tmp_error_headers/error_list_mk4.hpp:562
+#: tmp_error_headers/error_list_mk35.hpp:520
 msgid ""
 "Length of an axis is too long.\n"
 "Motor current is too low, probably.\n"
@@ -3685,11 +3732,11 @@ msgstr ""
 "Der Motorstrom ist wahrscheinlich zu niedrig.\n"
 "Erneut prüfen, den Druck anhalten oder fortsetzen?"
 
-#: tmp_error_headers/error_list_mini.hpp:478
-#: tmp_error_headers/error_list_xl.hpp:765
-#: tmp_error_headers/error_list_ix.hpp:737
-#: tmp_error_headers/error_list_mk4.hpp:562
-#: tmp_error_headers/error_list_mk35.hpp:520
+#: tmp_error_headers/error_list_mini.hpp:485
+#: tmp_error_headers/error_list_xl.hpp:793
+#: tmp_error_headers/error_list_ix.hpp:744
+#: tmp_error_headers/error_list_mk4.hpp:569
+#: tmp_error_headers/error_list_mk35.hpp:527
 msgid ""
 "Length of an axis is too short.\n"
 "There's an obstacle or bearing issue.\n"
@@ -3710,7 +3757,7 @@ msgstr ""
 "Link ist nur gültig, wenn Sie mit demselben Netzwerk wie der Drucker "
 "verbunden sind."
 
-#: src/gui/MItem_tools.hpp:91
+#: src/gui/MItem_tools.hpp:92
 msgid "Live Adjust Z"
 msgstr "Live Z Anpassen"
 
@@ -3730,13 +3777,13 @@ msgstr "LADEN"
 msgid "Loadcell"
 msgstr "Wägezelle"
 
-#: tmp_error_headers/error_list_xl.hpp:526
+#: tmp_error_headers/error_list_xl.hpp:547
 #: tmp_error_headers/error_list_ix.hpp:512
 #: tmp_error_headers/error_list_mk4.hpp:316
 msgid "LOADCELL BAD CONFIGURATION"
 msgstr "Wägezelle falsch konfiguriert"
 
-#: tmp_error_headers/error_list_xl.hpp:499
+#: tmp_error_headers/error_list_xl.hpp:520
 #: tmp_error_headers/error_list_ix.hpp:485
 #: tmp_error_headers/error_list_mk4.hpp:289
 #: tmp_error_headers/error_list_mk35.hpp:282
@@ -3751,33 +3798,33 @@ msgstr ""
 msgid "Loadcell check"
 msgstr "Wägezellen Check"
 
-#: tmp_error_headers/error_list_xl.hpp:520
+#: tmp_error_headers/error_list_xl.hpp:541
 #: tmp_error_headers/error_list_ix.hpp:506
 #: tmp_error_headers/error_list_mk4.hpp:310
 msgid "Loadcell measured an inifinite or undefined load value."
 msgstr ""
 "Die Wägezelle hat einen unbestimmten oder undefinierten Lastwert gemessen."
 
-#: tmp_error_headers/error_list_xl.hpp:519
+#: tmp_error_headers/error_list_xl.hpp:540
 #: tmp_error_headers/error_list_ix.hpp:505
 #: tmp_error_headers/error_list_mk4.hpp:309
 msgid "LOADCELL MEASURE FAILED"
 msgstr "Messung Wägezelle fehlgeschlagen"
 
-#: tmp_error_headers/error_list_xl.hpp:498
+#: tmp_error_headers/error_list_xl.hpp:519
 #: tmp_error_headers/error_list_ix.hpp:484
 #: tmp_error_headers/error_list_mk4.hpp:288
 #: tmp_error_headers/error_list_mk35.hpp:281
 msgid "LOADCELL NOT CALIBRATED"
 msgstr "Wägezelle nicht kalibriert"
 
-#: tmp_error_headers/error_list_xl.hpp:505
+#: tmp_error_headers/error_list_xl.hpp:526
 #: tmp_error_headers/error_list_ix.hpp:491
 #: tmp_error_headers/error_list_mk4.hpp:295
 msgid "LOADCELL TARE ERROR"
 msgstr "Tara-Fehler Wägezelle"
 
-#: tmp_error_headers/error_list_xl.hpp:512
+#: tmp_error_headers/error_list_xl.hpp:533
 #: tmp_error_headers/error_list_ix.hpp:498
 #: tmp_error_headers/error_list_mk4.hpp:302
 msgid "LOADCELL TARE FAILED"
@@ -3795,7 +3842,7 @@ msgstr "Wägezellentest fehlgeschlagen."
 msgid "Loadcell test passed OK."
 msgstr "Wägezellentest OK."
 
-#: tmp_error_headers/error_list_xl.hpp:533
+#: tmp_error_headers/error_list_xl.hpp:554
 #: tmp_error_headers/error_list_ix.hpp:519
 #: tmp_error_headers/error_list_mk4.hpp:323
 msgid "LOADCELL TIMEOUT"
@@ -3857,7 +3904,7 @@ msgstr "Lade..."
 msgid "Loading filament"
 msgstr "Filament lädt"
 
-#: src/gui/MItem_tools.cpp:940
+#: src/gui/MItem_tools.cpp:944
 msgid ""
 "\n"
 "Loading settings finished.\n"
@@ -3875,8 +3922,11 @@ msgstr "Lade-Test"
 msgid "Loading Test"
 msgstr "Lade-Test"
 
-#: tmp_error_headers/error_list_xl.hpp:939
-#: tmp_error_headers/error_list_ix.hpp:862
+#: tmp_error_headers/error_list_mini.hpp:596
+#: tmp_error_headers/error_list_xl.hpp:967
+#: tmp_error_headers/error_list_ix.hpp:869
+#: tmp_error_headers/error_list_mk4.hpp:701
+#: tmp_error_headers/error_list_mk35.hpp:659
 msgid "Loading Timeout"
 msgstr "Laden Timeout"
 
@@ -3896,7 +3946,7 @@ msgstr "Zur Düse laden"
 msgid "Load Settings"
 msgstr "Einstellungen laden"
 
-#: src/gui/MItem_tools.hpp:711
+#: src/gui/MItem_tools.hpp:712
 msgid "Load Settings from File"
 msgstr "Einstellungen aus Datei laden"
 
@@ -3911,6 +3961,12 @@ msgstr "In Düse laden"
 #: src/gui/wizard/selftest_frame_dock.cpp:200
 msgid "Lock the tool"
 msgstr "Werkzeug verriegeln"
+
+#: src/gui/MItem_tools.cpp:1070
+msgid "Logging has been turned off. You can now safely remove the USB drive."
+msgstr ""
+"Die Protokollierung wurde deaktiviert. Sie können den USB-Stick jetzt sicher "
+"entfernen."
 
 #: src/gui/wizard/selftest_frame_dock.cpp:198
 msgid "Loosen pins"
@@ -3928,7 +3984,7 @@ msgstr ""
 "Lösen Sie die beiden Schrauben auf der rechten Seite der Docksäule (orange "
 "markiert) mit Hilfe des Einheitsschlüssels."
 
-#: src/gui/MItem_tools.hpp:252
+#: src/gui/MItem_tools.hpp:253
 msgid "Loud"
 msgstr "Laut"
 
@@ -3936,7 +3992,7 @@ msgstr "Laut"
 msgid "Love Board"
 msgstr "Love Board"
 
-#: src/gui/MItem_crash.hpp:54 src/gui/MItem_tools.cpp:1050
+#: src/gui/MItem_crash.hpp:54 src/gui/MItem_tools.cpp:1054
 msgid "Low"
 msgstr "Niedrig"
 
@@ -3987,7 +4043,7 @@ msgid "MANUAL SETTINGS"
 msgstr "MANUELLE EINSTELLUNGEN"
 
 #: tmp_error_headers/error_list_mini.hpp:275
-#: tmp_error_headers/error_list_xl.hpp:548
+#: tmp_error_headers/error_list_xl.hpp:569
 #: tmp_error_headers/error_list_ix.hpp:534
 #: tmp_error_headers/error_list_mk4.hpp:338
 #: tmp_error_headers/error_list_mk35.hpp:296
@@ -3999,7 +4055,7 @@ msgstr ""
 "Zeitüberschreitung wurde erreicht."
 
 #: tmp_error_headers/error_list_mini.hpp:274
-#: tmp_error_headers/error_list_xl.hpp:547
+#: tmp_error_headers/error_list_xl.hpp:568
 #: tmp_error_headers/error_list_ix.hpp:533
 #: tmp_error_headers/error_list_mk4.hpp:337
 #: tmp_error_headers/error_list_mk35.hpp:295
@@ -4030,11 +4086,11 @@ msgstr "MAXTEMP FEHLER"
 msgid "MBed MCU Temp"
 msgstr "MBett MCU Temp"
 
-#: tmp_error_headers/error_list_mini.hpp:555
-#: tmp_error_headers/error_list_xl.hpp:863
-#: tmp_error_headers/error_list_ix.hpp:814
-#: tmp_error_headers/error_list_mk4.hpp:653
-#: tmp_error_headers/error_list_mk35.hpp:618
+#: tmp_error_headers/error_list_mini.hpp:562
+#: tmp_error_headers/error_list_xl.hpp:891
+#: tmp_error_headers/error_list_ix.hpp:821
+#: tmp_error_headers/error_list_mk4.hpp:660
+#: tmp_error_headers/error_list_mk35.hpp:625
 msgid ""
 "MCU in Buddy is overheated, likely due to exceeding the printer's operating "
 "temperature. Prevent overheating for optimal performance."
@@ -4043,7 +4099,7 @@ msgstr ""
 "der Betriebstemperatur des Druckers. Verhindern Sie eine Überhitzung für "
 "eine optimale Leistung."
 
-#: tmp_error_headers/error_list_xl.hpp:870
+#: tmp_error_headers/error_list_xl.hpp:898
 msgid ""
 "MCU in Dwarf is overheated, likely due to exceeding the printer's operating "
 "temperature. Prevent overheating for optimal performance."
@@ -4052,8 +4108,8 @@ msgstr ""
 "der Betriebstemperatur des Druckers. Verhindern Sie eine Überhitzung für "
 "eine optimale Leistung."
 
-#: tmp_error_headers/error_list_xl.hpp:877
-#: tmp_error_headers/error_list_ix.hpp:821
+#: tmp_error_headers/error_list_xl.hpp:905
+#: tmp_error_headers/error_list_ix.hpp:828
 msgid ""
 "MCU in Modular Bed is overheated, likely due to exceeding the printer's "
 "operating temperature. Prevent overheating for optimal performance."
@@ -4079,7 +4135,7 @@ msgstr "MCU in %s ist überhitzt."
 msgid "MCU MAXTEMP ERROR"
 msgstr "MCU MAXTEMP FEHLER"
 
-#: src/gui/MItem_tools.hpp:610
+#: src/gui/MItem_tools.hpp:611
 msgid "MCU Temperature"
 msgstr "MCU Temperatur"
 
@@ -4106,14 +4162,14 @@ msgstr ""
 "beschädigt ist, ersetzen Sie ihn."
 
 #: tmp_error_headers/error_list_mini.hpp:72
-#: tmp_error_headers/error_list_mini.hpp:513
-#: tmp_error_headers/error_list_xl.hpp:814
+#: tmp_error_headers/error_list_mini.hpp:520
+#: tmp_error_headers/error_list_xl.hpp:842
 #: tmp_error_headers/error_list_ix.hpp:93
-#: tmp_error_headers/error_list_ix.hpp:772
+#: tmp_error_headers/error_list_ix.hpp:779
 #: tmp_error_headers/error_list_mk4.hpp:79
-#: tmp_error_headers/error_list_mk4.hpp:611
+#: tmp_error_headers/error_list_mk4.hpp:618
 #: tmp_error_headers/error_list_mk35.hpp:72
-#: tmp_error_headers/error_list_mk35.hpp:569
+#: tmp_error_headers/error_list_mk35.hpp:576
 msgid ""
 "Measured temperature is not matching expected value. Check the thermistor is "
 "in contact with hotend. In case of damage, replace it."
@@ -4142,18 +4198,18 @@ msgstr "Messen der Y-Resonanz..."
 msgid "Medium"
 msgstr "Medium"
 
-#: tmp_error_headers/error_list_xl.hpp:541
+#: tmp_error_headers/error_list_xl.hpp:562
 #: tmp_error_headers/error_list_ix.hpp:527
 #: tmp_error_headers/error_list_mk4.hpp:331
 #: tmp_error_headers/error_list_mk35.hpp:289
 msgid "Memory allocation failed for scheduled LED animation"
 msgstr "Speicherzuweisung für geplante LED-Animation fehlgeschlagen."
 
-#: src/gui/MItem_tools.hpp:236
+#: src/gui/MItem_tools.hpp:237
 msgid "Menu Timeout"
 msgstr "Menü Timeout"
 
-#: src/gui/MItem_tools.hpp:111
+#: src/gui/MItem_tools.hpp:112
 msgid "Mesh Bed Leveling"
 msgstr "Bettnivellierung"
 
@@ -4221,7 +4277,7 @@ msgstr "MMU"
 msgid "MMU BL Status"
 msgstr "MMU BL Status"
 
-#: src/gui/MItem_tools.hpp:575
+#: src/gui/MItem_tools.hpp:576
 msgid "MMU Current"
 msgstr "MMU Strom"
 
@@ -4234,8 +4290,8 @@ msgstr ""
 "die Verkabelung und die Anschlüsse. Wenn das Problem weiterhin besteht, "
 "wenden Sie sich an den Support."
 
-#: tmp_error_headers/error_list_mk4.hpp:589
-#: tmp_error_headers/error_list_mk35.hpp:547
+#: tmp_error_headers/error_list_mk4.hpp:596
+#: tmp_error_headers/error_list_mk35.hpp:554
 msgid "MMU Error"
 msgstr "MMU Fehler"
 
@@ -4243,7 +4299,7 @@ msgstr "MMU Fehler"
 msgid "MMU filament"
 msgstr "MMU Filament"
 
-#: src/gui/MItem_tools.hpp:526
+#: src/gui/MItem_tools.hpp:527
 msgid "MMU filament loads"
 msgstr "MMU Filament-Ladungen"
 
@@ -4296,7 +4352,7 @@ msgid "MMU off"
 msgstr "MMU aus"
 
 #: tmp_error_headers/error_list_mini.hpp:148
-#: tmp_error_headers/error_list_xl.hpp:239
+#: tmp_error_headers/error_list_xl.hpp:260
 #: tmp_error_headers/error_list_ix.hpp:246
 #: tmp_error_headers/error_list_mk4.hpp:155
 #: tmp_error_headers/error_list_mk35.hpp:148
@@ -4340,7 +4396,7 @@ msgstr ""
 msgid "MMU Unit"
 msgstr "MMU3 Einheit"
 
-#: src/gui/MItem_tools.hpp:378
+#: src/gui/MItem_tools.hpp:379
 msgid "MMU Version"
 msgstr "MMU Version"
 
@@ -4352,11 +4408,11 @@ msgstr "MMU Version"
 #: tmp_error_headers/error_list_xl.hpp:169
 #: tmp_error_headers/error_list_xl.hpp:176
 #: tmp_error_headers/error_list_xl.hpp:183
-#: tmp_error_headers/error_list_xl.hpp:197
-#: tmp_error_headers/error_list_xl.hpp:204
-#: tmp_error_headers/error_list_xl.hpp:302
-#: tmp_error_headers/error_list_xl.hpp:309
-#: tmp_error_headers/error_list_xl.hpp:351
+#: tmp_error_headers/error_list_xl.hpp:218
+#: tmp_error_headers/error_list_xl.hpp:225
+#: tmp_error_headers/error_list_xl.hpp:323
+#: tmp_error_headers/error_list_xl.hpp:330
+#: tmp_error_headers/error_list_xl.hpp:372
 #: tmp_error_headers/error_list_ix.hpp:120
 #: tmp_error_headers/error_list_ix.hpp:127
 #: tmp_error_headers/error_list_ix.hpp:134
@@ -4447,7 +4503,7 @@ msgstr "NV"
 msgid "N/A "
 msgstr "NV "
 
-#: src/gui/MItem_tools.hpp:284
+#: src/gui/MItem_tools.hpp:285
 #: src/gui/screen/filament/screen_filament_detail.cpp:21
 msgid "Name"
 msgstr "Name"
@@ -4464,7 +4520,7 @@ msgstr "NCAL "
 msgid "Net fail"
 msgstr "Netzfehler"
 
-#: src/gui/MItem_menus.hpp:117 src/gui/MItem_tools.cpp:946
+#: src/gui/MItem_menus.hpp:117 src/gui/MItem_tools.cpp:950
 msgid "Network"
 msgstr "Netzwerk"
 
@@ -4498,14 +4554,14 @@ msgstr "Neuere Firmware ist erforderlich: %s"
 msgid "Newer FW req.: %s"
 msgstr "Neuere FW erf.: %s"
 
-#: tmp_error_headers/error_list_xl.hpp:716
-#: tmp_error_headers/error_list_ix.hpp:688
-#: tmp_error_headers/error_list_mk4.hpp:506
-#: tmp_error_headers/error_list_mk35.hpp:464
+#: tmp_error_headers/error_list_xl.hpp:744
+#: tmp_error_headers/error_list_ix.hpp:695
+#: tmp_error_headers/error_list_mk4.hpp:513
+#: tmp_error_headers/error_list_mk35.hpp:471
 msgid "New firmware available"
 msgstr "Neue Firmware verfügbar"
 
-#: tmp_error_headers/error_list_mini.hpp:429
+#: tmp_error_headers/error_list_mini.hpp:436
 msgid "New FW available"
 msgstr "Neue FW verfügbar"
 
@@ -4537,7 +4593,7 @@ msgstr "NINIT "
 msgid "NINS / 0"
 msgstr "NINS / 0"
 
-#: src/gui/MItem_tools.cpp:654
+#: src/gui/MItem_tools.cpp:658
 #, c-format
 msgid "NINS / %7ld"
 msgstr "NINS / %7ld"
@@ -4554,12 +4610,12 @@ msgstr "Kein AP"
 msgid "No Config"
 msgstr "Keine Konfig"
 
-#: src/gui/MItem_tools.cpp:367
+#: src/gui/MItem_tools.cpp:371
 msgid "No crash dump to save."
 msgstr "Kein Crash Dump zum Speichern"
 
 #: tmp_error_headers/error_list_mini.hpp:394
-#: tmp_error_headers/error_list_xl.hpp:674
+#: tmp_error_headers/error_list_xl.hpp:695
 #: tmp_error_headers/error_list_ix.hpp:653
 #: tmp_error_headers/error_list_mk4.hpp:457
 #: tmp_error_headers/error_list_mk35.hpp:415
@@ -4577,7 +4633,7 @@ msgstr ""
 "Firmware zuerst!"
 
 #: tmp_error_headers/error_list_mini.hpp:337
-#: tmp_error_headers/error_list_xl.hpp:617
+#: tmp_error_headers/error_list_xl.hpp:638
 #: tmp_error_headers/error_list_ix.hpp:596
 #: tmp_error_headers/error_list_mk4.hpp:400
 #: tmp_error_headers/error_list_mk35.hpp:358
@@ -4646,11 +4702,11 @@ msgstr ""
 "Jetzt kalibrieren wir die Entfernung zwischen der Spitze der Düse und dem "
 "Druckblech."
 
-#: src/gui/MItem_tools.hpp:639
+#: src/gui/MItem_tools.hpp:640
 msgid "Noz&Bed"
 msgstr "Düse&Bett"
 
-#: src/common/footer_def.hpp:128 src/gui/MItem_tools.hpp:638
+#: src/common/footer_def.hpp:128 src/gui/MItem_tools.hpp:639
 #: src/gui/MItem_print.hpp:13 src/gui/MItem_print.hpp:47
 #: src/gui/wizard/selftest_result_heaters.cpp:13
 msgid "Nozzle"
@@ -4676,9 +4732,9 @@ msgstr "Düse 4 Temperatur"
 msgid "Nozzle 5 Temperature"
 msgstr "Düse 5 Temperatur"
 
-#: tmp_error_headers/error_list_xl.hpp:926
-#: tmp_error_headers/error_list_ix.hpp:849
-#: tmp_error_headers/error_list_mk4.hpp:681
+#: tmp_error_headers/error_list_xl.hpp:954
+#: tmp_error_headers/error_list_ix.hpp:856
+#: tmp_error_headers/error_list_mk4.hpp:688
 msgid "Nozzle cleaning failed."
 msgstr "Düsenreinigung fehlgeschlagen."
 
@@ -4694,8 +4750,8 @@ msgstr "Düsendurchmesser"
 msgid "Nozzle diameter doesn't match"
 msgstr "Düsendurchmesser stimmt nicht überein"
 
-#: tmp_error_headers/error_list_xl.hpp:849
-#: tmp_error_headers/error_list_mk35.hpp:604
+#: tmp_error_headers/error_list_xl.hpp:877
+#: tmp_error_headers/error_list_mk35.hpp:611
 msgid ""
 "Nozzle doesn't seem to have round cross section. Make sure it is clean and "
 "perpendicular to the bed."
@@ -4800,7 +4856,7 @@ msgstr "Offset"
 msgid "Offset %c"
 msgstr "Offset %c"
 
-#: src/gui/MItem_tools.cpp:935
+#: src/gui/MItem_tools.cpp:939
 msgid "Ok"
 msgstr "Ok"
 
@@ -4819,7 +4875,7 @@ msgstr "OK"
 msgid "ON "
 msgstr "AN "
 
-#: src/gui/MItem_tools.hpp:251
+#: src/gui/MItem_tools.hpp:252
 msgid "Once"
 msgstr "Einmal"
 
@@ -4840,14 +4896,14 @@ msgid "On Restart"
 msgstr "Beim Neustart"
 
 #: tmp_error_headers/error_list_mini.hpp:253
-#: tmp_error_headers/error_list_xl.hpp:393
+#: tmp_error_headers/error_list_xl.hpp:414
 #: tmp_error_headers/error_list_ix.hpp:379
 #: tmp_error_headers/error_list_mk4.hpp:267
 #: tmp_error_headers/error_list_mk35.hpp:260
 msgid "OUT OF MEMORY"
 msgstr "Nicht genügend Speicherplatz"
 
-#: tmp_error_headers/error_list_xl.hpp:198
+#: tmp_error_headers/error_list_xl.hpp:219
 #: tmp_error_headers/error_list_ix.hpp:191
 msgid "Overcurrent detected."
 msgstr "Überstrom erkannt."
@@ -4865,7 +4921,7 @@ msgid "Overcurrent detected on nozzle heater."
 msgstr "Überstrom an der Düsenheizung erkannt."
 
 #: tmp_error_headers/error_list_mini.hpp:128
-#: tmp_error_headers/error_list_xl.hpp:233
+#: tmp_error_headers/error_list_xl.hpp:254
 #: tmp_error_headers/error_list_ix.hpp:226
 #: tmp_error_headers/error_list_mk4.hpp:135
 #: tmp_error_headers/error_list_mk35.hpp:128
@@ -4873,7 +4929,7 @@ msgid "Overcurrent detected on the connected USB device, disconnect it."
 msgstr "Überstrom am angeschlossenen USB-Gerät erkannt, entfernen Sie es."
 
 #: tmp_error_headers/error_list_mini.hpp:149
-#: tmp_error_headers/error_list_xl.hpp:240
+#: tmp_error_headers/error_list_xl.hpp:261
 #: tmp_error_headers/error_list_ix.hpp:247
 #: tmp_error_headers/error_list_mk4.hpp:156
 #: tmp_error_headers/error_list_mk35.hpp:149
@@ -4883,7 +4939,7 @@ msgstr ""
 "Gerät."
 
 #: tmp_error_headers/error_list_mini.hpp:121
-#: tmp_error_headers/error_list_xl.hpp:226
+#: tmp_error_headers/error_list_xl.hpp:247
 #: tmp_error_headers/error_list_ix.hpp:219
 #: tmp_error_headers/error_list_mk4.hpp:128
 #: tmp_error_headers/error_list_mk35.hpp:121
@@ -4986,12 +5042,12 @@ msgstr "PHASE STEPPING KALIBRIERUNG"
 msgid "Phase stepping calibration completed"
 msgstr "Phase Stepping Kalibrierung abgeschlossen"
 
-#: src/gui/MItem_tools.cpp:866
+#: src/gui/MItem_tools.cpp:870
 msgid "Phase stepping not ready: perform calibration first."
 msgstr ""
 "Phase Stepping ist nicht bereit: Führen Sie zuerst eine Kalibrierung durch."
 
-#: src/gui/MItem_tools.hpp:777
+#: src/gui/MItem_tools.hpp:778
 msgid "Pick/Park Tool"
 msgstr "Aufn./Parken Werkzeug"
 
@@ -5061,11 +5117,11 @@ msgid "Please assign a tool to the filament"
 msgstr "Bitte ordnen Sie dem Filament ein Werkzeug zu"
 
 #: src/gui/box_unfinished_selftest.cpp:109
-#: tmp_error_headers/error_list_mini.hpp:422
-#: tmp_error_headers/error_list_xl.hpp:709
-#: tmp_error_headers/error_list_ix.hpp:681
-#: tmp_error_headers/error_list_mk4.hpp:499
-#: tmp_error_headers/error_list_mk35.hpp:457
+#: tmp_error_headers/error_list_mini.hpp:429
+#: tmp_error_headers/error_list_xl.hpp:737
+#: tmp_error_headers/error_list_ix.hpp:688
+#: tmp_error_headers/error_list_mk4.hpp:506
+#: tmp_error_headers/error_list_mk35.hpp:464
 msgid "Please complete Calibrations & Tests before using the printer."
 msgstr ""
 "Bitte führen Sie die Kalibrierungen und Tests durch, bevor Sie den Drucker "
@@ -5117,11 +5173,11 @@ msgstr "Bitte entfernen Sie das Filament aus dem Filamentsensor."
 msgid "Please remove the belt dampeners."
 msgstr "Bitte Riemen-Dämpfer entfernen."
 
-#: tmp_error_headers/error_list_mini.hpp:569
-#: tmp_error_headers/error_list_xl.hpp:891
-#: tmp_error_headers/error_list_ix.hpp:835
-#: tmp_error_headers/error_list_mk4.hpp:667
-#: tmp_error_headers/error_list_mk35.hpp:632
+#: tmp_error_headers/error_list_mini.hpp:576
+#: tmp_error_headers/error_list_xl.hpp:919
+#: tmp_error_headers/error_list_ix.hpp:842
+#: tmp_error_headers/error_list_mk4.hpp:674
+#: tmp_error_headers/error_list_mk35.hpp:639
 msgid "Please replace filament."
 msgstr "Bitte Filament ersetzen."
 
@@ -5147,7 +5203,7 @@ msgid "Please wait until a tool is picked"
 msgstr "Bitte warten Sie, bis ein Werkzeug ausgewählt wird"
 
 #: tmp_error_headers/error_list_mini.hpp:260
-#: tmp_error_headers/error_list_xl.hpp:400
+#: tmp_error_headers/error_list_xl.hpp:421
 #: tmp_error_headers/error_list_ix.hpp:386
 #: tmp_error_headers/error_list_mk4.hpp:274
 #: tmp_error_headers/error_list_mk35.hpp:267
@@ -5166,7 +5222,7 @@ msgstr "Filtrationsdauer nach dem Druck"
 msgid "Power Cycle"
 msgstr "Einschaltzyklen"
 
-#: tmp_error_headers/error_list_xl.hpp:303
+#: tmp_error_headers/error_list_xl.hpp:324
 #: tmp_error_headers/error_list_ix.hpp:310
 msgid "Power failure"
 msgstr "Netzfehler"
@@ -5175,19 +5231,19 @@ msgstr "Netzfehler"
 msgid "Power Failures"
 msgstr "Netzfehler"
 
-#: tmp_error_headers/error_list_xl.hpp:310
+#: tmp_error_headers/error_list_xl.hpp:331
 #: tmp_error_headers/error_list_ix.hpp:317
 msgid "Power panic"
 msgstr "Power Panic"
 
-#: tmp_error_headers/error_list_xl.hpp:316
+#: tmp_error_headers/error_list_xl.hpp:337
 #: tmp_error_headers/error_list_ix.hpp:323
 #: tmp_error_headers/error_list_mk4.hpp:218
 #: tmp_error_headers/error_list_mk35.hpp:211
 msgid "POWER PANIC"
 msgstr "Power Panic"
 
-#: tmp_error_headers/error_list_xl.hpp:317
+#: tmp_error_headers/error_list_xl.hpp:338
 #: tmp_error_headers/error_list_ix.hpp:324
 #: tmp_error_headers/error_list_mk4.hpp:219
 #: tmp_error_headers/error_list_mk35.hpp:212
@@ -5331,13 +5387,13 @@ msgstr ""
 "festgestellt. Wir empfehlen, den Extruder zu überprüfen. Besuchen Sie prusa."
 "io/mmu-care"
 
-#: src/gui/MItem_tools.cpp:83
+#: src/gui/MItem_tools.cpp:87
 msgid "Printer is busy. Please try repeating the action later."
 msgstr ""
 "Der Drucker ist beschäftigt. Bitte versuchen Sie, die Aktion später zu "
 "wiederholen."
 
-#: src/gui/MItem_tools.cpp:82
+#: src/gui/MItem_tools.cpp:86
 msgid "Printer may vibrate and be noisier during homing."
 msgstr "Der Drucker kann während des Homing vibrieren und lauter sein."
 
@@ -5366,15 +5422,15 @@ msgstr "Druckertyp"
 msgid "Print fan"
 msgstr "Drucklüfter"
 
-#: src/gui/MItem_tools.hpp:447 src/gui/MItem_print.hpp:74
+#: src/gui/MItem_tools.hpp:448 src/gui/MItem_print.hpp:74
 msgid "Print Fan"
 msgstr "Drucklüfter"
 
-#: tmp_error_headers/error_list_mini.hpp:499
-#: tmp_error_headers/error_list_xl.hpp:800
-#: tmp_error_headers/error_list_ix.hpp:758
-#: tmp_error_headers/error_list_mk4.hpp:597
-#: tmp_error_headers/error_list_mk35.hpp:555
+#: tmp_error_headers/error_list_mini.hpp:506
+#: tmp_error_headers/error_list_xl.hpp:828
+#: tmp_error_headers/error_list_ix.hpp:765
+#: tmp_error_headers/error_list_mk4.hpp:604
+#: tmp_error_headers/error_list_mk35.hpp:562
 msgid ""
 "Print fan not spinning. Check it for possible debris, then inspect the "
 "wiring."
@@ -5424,7 +5480,7 @@ msgstr "DRUCKE ..."
 msgid "Printing time"
 msgstr "Druckzeit"
 
-#: src/gui/MItem_tools.hpp:467
+#: src/gui/MItem_tools.hpp:468
 msgid "Print Progress Screen"
 msgstr "Druckfortschritt Timeout"
 
@@ -5449,7 +5505,7 @@ msgid "Print stopped"
 msgstr "Druck gestoppt"
 
 #. First line - Print Time
-#: src/gui/MItem_tools.hpp:533 src/gui/gcode_description.cpp:142
+#: src/gui/MItem_tools.hpp:534 src/gui/gcode_description.cpp:142
 msgid "Print Time"
 msgstr "Druckzeit"
 
@@ -5517,14 +5573,11 @@ msgstr ""
 "Der Riemenscheiben-Motor ist blockiert. Sicherstellen, dass er sich bewegen "
 "kann und die Verkabelung überprüfen."
 
-#: tmp_error_headers/error_list_xl.hpp:429
+#: tmp_error_headers/error_list_xl.hpp:450
 #: tmp_error_headers/error_list_ix.hpp:415
 msgid "Puppy discovery error. No puppy found"
 msgstr "Puppy-Erkennungsfehler. Kein Puppy gefunden"
 
-#: tmp_error_headers/error_list_xl.hpp:414
-#: tmp_error_headers/error_list_xl.hpp:421
-#: tmp_error_headers/error_list_xl.hpp:428
 #: tmp_error_headers/error_list_xl.hpp:435
 #: tmp_error_headers/error_list_xl.hpp:442
 #: tmp_error_headers/error_list_xl.hpp:449
@@ -5534,6 +5587,9 @@ msgstr "Puppy-Erkennungsfehler. Kein Puppy gefunden"
 #: tmp_error_headers/error_list_xl.hpp:477
 #: tmp_error_headers/error_list_xl.hpp:484
 #: tmp_error_headers/error_list_xl.hpp:491
+#: tmp_error_headers/error_list_xl.hpp:498
+#: tmp_error_headers/error_list_xl.hpp:505
+#: tmp_error_headers/error_list_xl.hpp:512
 #: tmp_error_headers/error_list_ix.hpp:400
 #: tmp_error_headers/error_list_ix.hpp:407
 #: tmp_error_headers/error_list_ix.hpp:414
@@ -5549,31 +5605,31 @@ msgstr "Puppy-Erkennungsfehler. Kein Puppy gefunden"
 msgid "PUPPY ERROR"
 msgstr "PUPPY FEHLER"
 
-#: tmp_error_headers/error_list_xl.hpp:478
+#: tmp_error_headers/error_list_xl.hpp:499
 #: tmp_error_headers/error_list_ix.hpp:464
 #, c-format
 msgid "Puppy %s firmware fingerprint mismatch"
 msgstr "Puppy %s Firmware Fingerprint stimmt nicht überein"
 
-#: tmp_error_headers/error_list_xl.hpp:464
+#: tmp_error_headers/error_list_xl.hpp:485
 #: tmp_error_headers/error_list_ix.hpp:450
 #, c-format
 msgid "Puppy %s firmware not found"
 msgstr "Puppy %s Firmware nicht gefunden"
 
-#: tmp_error_headers/error_list_xl.hpp:471
+#: tmp_error_headers/error_list_xl.hpp:492
 #: tmp_error_headers/error_list_ix.hpp:457
 #, c-format
 msgid "Puppy %s flash writing failed"
 msgstr "Puppy %s Flash-Schreiben fehlgeschlagen"
 
-#: tmp_error_headers/error_list_xl.hpp:436
+#: tmp_error_headers/error_list_xl.hpp:457
 #: tmp_error_headers/error_list_ix.hpp:422
 #, c-format
 msgid "Puppy %s not responding"
 msgstr "Puppy %s antwortet nicht"
 
-#: tmp_error_headers/error_list_xl.hpp:443
+#: tmp_error_headers/error_list_xl.hpp:464
 #: tmp_error_headers/error_list_ix.hpp:429
 #, c-format
 msgid ""
@@ -5620,11 +5676,11 @@ msgstr "Frage"
 msgid "QUEUE FULL"
 msgstr "QUEUE VOLL"
 
-#: tmp_error_headers/error_list_mini.hpp:582
-#: tmp_error_headers/error_list_xl.hpp:932
-#: tmp_error_headers/error_list_ix.hpp:855
-#: tmp_error_headers/error_list_mk4.hpp:687
-#: tmp_error_headers/error_list_mk35.hpp:645
+#: tmp_error_headers/error_list_mini.hpp:589
+#: tmp_error_headers/error_list_xl.hpp:960
+#: tmp_error_headers/error_list_ix.hpp:862
+#: tmp_error_headers/error_list_mk4.hpp:694
+#: tmp_error_headers/error_list_mk35.hpp:652
 msgid "Quick Pause"
 msgstr "Kurze Pause"
 
@@ -5637,7 +5693,7 @@ msgid "Ramming"
 msgstr "Ramme"
 
 #: tmp_error_headers/error_list_mini.hpp:233
-#: tmp_error_headers/error_list_xl.hpp:373
+#: tmp_error_headers/error_list_xl.hpp:394
 #: tmp_error_headers/error_list_ix.hpp:359
 #: tmp_error_headers/error_list_mk4.hpp:247
 #: tmp_error_headers/error_list_mk35.hpp:240
@@ -5694,7 +5750,7 @@ msgid "Registration successful, continue at connect.prusa3d.com"
 msgstr "Registrierung erfolgreich, weiter bei connect.prusa3d.com"
 
 #: tmp_error_headers/error_list_mini.hpp:219
-#: tmp_error_headers/error_list_xl.hpp:338
+#: tmp_error_headers/error_list_xl.hpp:359
 #: tmp_error_headers/error_list_ix.hpp:338
 #: tmp_error_headers/error_list_mk4.hpp:233
 #: tmp_error_headers/error_list_mk35.hpp:226
@@ -5768,11 +5824,11 @@ msgstr "Neu ordnen Filamente"
 msgid "REORDER FILAMENTS"
 msgstr "REORDER FILAMENTS"
 
-#: tmp_error_headers/error_list_mini.hpp:485
-#: tmp_error_headers/error_list_xl.hpp:772
-#: tmp_error_headers/error_list_ix.hpp:744
-#: tmp_error_headers/error_list_mk4.hpp:569
-#: tmp_error_headers/error_list_mk35.hpp:527
+#: tmp_error_headers/error_list_mini.hpp:492
+#: tmp_error_headers/error_list_xl.hpp:800
+#: tmp_error_headers/error_list_ix.hpp:751
+#: tmp_error_headers/error_list_mk4.hpp:576
+#: tmp_error_headers/error_list_mk35.hpp:534
 msgid ""
 "Repeated collision has been detected.\n"
 "Do you want to resume or pause the print?"
@@ -5784,11 +5840,11 @@ msgstr ""
 msgid "REPLACE"
 msgstr "ERSETZEN"
 
-#: tmp_error_headers/error_list_mini.hpp:568
-#: tmp_error_headers/error_list_xl.hpp:890
-#: tmp_error_headers/error_list_ix.hpp:834
-#: tmp_error_headers/error_list_mk4.hpp:666
-#: tmp_error_headers/error_list_mk35.hpp:631
+#: tmp_error_headers/error_list_mini.hpp:575
+#: tmp_error_headers/error_list_xl.hpp:918
+#: tmp_error_headers/error_list_ix.hpp:841
+#: tmp_error_headers/error_list_mk4.hpp:673
+#: tmp_error_headers/error_list_mk35.hpp:638
 msgid "Replace filament"
 msgstr "Filament ersetzen"
 
@@ -5808,12 +5864,12 @@ msgstr ""
 msgid "Requires Filtration"
 msgstr "Erfordert Filtration"
 
-#: src/gui/MItem_tools.hpp:617 src/gui/screen_menu_steel_sheets.hpp:61
+#: src/gui/MItem_tools.hpp:618 src/gui/screen_menu_steel_sheets.hpp:61
 #: src/gui/screen_menu_bed_level_correction.hpp:92
 msgid "Reset"
 msgstr "Reset"
 
-#: src/gui/MItem_tools.cpp:249
+#: src/gui/MItem_tools.cpp:253
 msgid "Reset complete. The system will now restart."
 msgstr "Zurücksetzen abgeschlossen. Das System wird nun neu gestartet."
 
@@ -5825,7 +5881,7 @@ msgstr "Zurücksetzen Ströme"
 msgid "Reset directions"
 msgstr "Zurücksetzen Richtungen"
 
-#: src/gui/MItem_tools.hpp:131
+#: src/gui/MItem_tools.hpp:132
 msgid "Reset Settings & Calibrations"
 msgstr "Einstellungen & Kalibrierungen zurücksetzen"
 
@@ -5893,15 +5949,15 @@ msgstr "Zurück"
 msgid "Returning selector"
 msgstr "Selektor zurückfahr."
 
-#: src/gui/MItem_tools.hpp:739
+#: src/gui/MItem_tools.hpp:740
 msgid "RGB Side Strip"
 msgstr "RGB Seitenstreifen"
 
-#: src/gui/MItem_tools.hpp:747
+#: src/gui/MItem_tools.hpp:748
 msgid "RGB Side Strip Dimming"
 msgstr "RGB Seitenstreifen Dimmen"
 
-#: src/gui/MItem_tools.hpp:729
+#: src/gui/MItem_tools.hpp:730
 msgid "RGB Status Bar"
 msgstr "RGB-Statusleiste"
 
@@ -5937,7 +5993,7 @@ msgstr ""
 msgid "Run selftests and calibrations now?"
 msgstr "Selbsttests und Kalibrierungen jetzt durchführen?"
 
-#: src/gui/MItem_tools.hpp:589
+#: src/gui/MItem_tools.hpp:590
 msgid "Sandwich 5V Current"
 msgstr "Sandwich 5V Strom"
 
@@ -5950,9 +6006,13 @@ msgstr "Sa."
 msgid "Save and return"
 msgstr "Speichern und zurück"
 
-#: src/gui/MItem_tools.hpp:175
+#: src/gui/MItem_tools.hpp:176
 msgid "Save Crash Dump"
 msgstr "Crash Dump speichern"
+
+#: src/gui/MItem_tools.cpp:1065
+msgid "Save Logs To File"
+msgstr "Protokolle in Datei speichern"
 
 #: src/gui/screen_home.cpp:296
 msgid "Saving to USB"
@@ -5981,7 +6041,7 @@ msgstr ""
 "Scannen Sie den QR-Code mit der Prusa-App oder der Kamera oder besuchen Sie "
 "prusa.io/add"
 
-#: tmp_error_headers/error_list_xl.hpp:324
+#: tmp_error_headers/error_list_xl.hpp:345
 #, c-format
 msgid "%s Check hotend heater and control electronics for possible damage"
 msgstr ""
@@ -6077,7 +6137,7 @@ msgstr "Sensor Info"
 msgid "SENSOR INFO"
 msgstr "SENSOR INFO"
 
-#: src/gui/MItem_tools.hpp:392
+#: src/gui/MItem_tools.hpp:393
 msgid "Serial Number"
 msgstr "Seriennummer"
 
@@ -6089,7 +6149,7 @@ msgstr "SERIELLE SCHNITTSTELLE"
 msgid "Serial Printing Screen"
 msgstr "Serieller Druck Bildschirm"
 
-#: src/gui/MItem_tools.hpp:651 src/gui/ScreenPrintingModel.cpp:27
+#: src/gui/MItem_tools.hpp:652 src/gui/ScreenPrintingModel.cpp:27
 msgid "Set Ready"
 msgstr "Bereit setzen"
 
@@ -6111,7 +6171,7 @@ msgstr ""
 "\n"
 "Bitte warten Sie."
 
-#: tmp_error_headers/error_list_xl.hpp:513
+#: tmp_error_headers/error_list_xl.hpp:534
 #: tmp_error_headers/error_list_ix.hpp:499
 #: tmp_error_headers/error_list_mk4.hpp:303
 msgid "Setting the tare failed. Check the loadcell wiring and connection."
@@ -6143,12 +6203,12 @@ msgstr "Blechprofil"
 msgid "Sheets"
 msgstr "Bleche"
 
-#: src/gui/MItem_tools.hpp:152
+#: src/gui/MItem_tools.hpp:153
 msgid "Shipping Preparation"
 msgstr "Versandvorbereitung"
 
 #. a dummy comment to break line by force
-#: src/gui/MItem_tools.cpp:273
+#: src/gui/MItem_tools.cpp:277
 msgid ""
 "Shipping preparation\n"
 "\n"
@@ -6193,7 +6253,7 @@ msgstr ""
 msgid "Show All"
 msgstr "Zeige alle"
 
-#: src/gui/MItem_tools.hpp:440 src/gui/screen_menu_filament_sensors.hpp:41
+#: src/gui/MItem_tools.hpp:441 src/gui/screen_menu_filament_sensors.hpp:41
 msgid "Side Filament Sensor"
 msgstr "Seiten-Filamentsensor"
 
@@ -6229,7 +6289,7 @@ msgstr ""
 msgid "Side FSensor Remap"
 msgstr "Seitlicher FSensor Umstellen"
 
-#: src/gui/MItem_tools.hpp:253
+#: src/gui/MItem_tools.hpp:254
 msgid "Silent"
 msgstr "Leise"
 
@@ -6258,20 +6318,20 @@ msgstr ""
 "Einige Düsenheizungsprüfungen wurden deaktiviert, weil die Prüfungen der "
 "Hotend-Lüfter nicht bestanden wurden."
 
-#: src/gui/MItem_tools.hpp:282
+#: src/gui/MItem_tools.hpp:283
 msgid "Sort Files"
 msgstr "Dateien sortieren nach"
 
-#: src/gui/MItem_tools.hpp:249
+#: src/gui/MItem_tools.hpp:250
 msgid "Sound Mode"
 msgstr "Ton Modus"
 
-#: src/gui/MItem_tools.hpp:293
+#: src/gui/MItem_tools.hpp:294
 msgid "Sound Volume"
 msgstr "Lautstärke"
 
 #: tmp_error_headers/error_list_mini.hpp:282
-#: tmp_error_headers/error_list_xl.hpp:555
+#: tmp_error_headers/error_list_xl.hpp:576
 #: tmp_error_headers/error_list_ix.hpp:541
 #: tmp_error_headers/error_list_mk4.hpp:345
 #: tmp_error_headers/error_list_mk35.hpp:303
@@ -6286,7 +6346,7 @@ msgstr ""
 msgid "Speed"
 msgstr "Geschwindigkeit"
 
-#: src/gui/MItem_tools.hpp:582
+#: src/gui/MItem_tools.hpp:583
 msgid "Splitter 5V Current"
 msgstr "Splitter 5V Strom"
 
@@ -6322,7 +6382,7 @@ msgstr "Statistiken"
 msgid "Status"
 msgstr "Status"
 
-#: src/gui/MItem_tools.hpp:81 src/gui/MItem_mmu.hpp:228
+#: src/gui/MItem_tools.hpp:82 src/gui/MItem_mmu.hpp:228
 msgid "Stealth Mode"
 msgstr "Stealth Modus"
 
@@ -6342,11 +6402,11 @@ msgstr ""
 "Druckblech wurde nicht erkannt. Bitte legen Sie das Blech auf, um Schäden am "
 "Drucker zu vermeiden."
 
-#: tmp_error_headers/error_list_mini.hpp:527
-#: tmp_error_headers/error_list_xl.hpp:828
-#: tmp_error_headers/error_list_ix.hpp:786
-#: tmp_error_headers/error_list_mk4.hpp:625
-#: tmp_error_headers/error_list_mk35.hpp:583
+#: tmp_error_headers/error_list_mini.hpp:534
+#: tmp_error_headers/error_list_xl.hpp:856
+#: tmp_error_headers/error_list_ix.hpp:793
+#: tmp_error_headers/error_list_mk4.hpp:632
+#: tmp_error_headers/error_list_mk35.hpp:590
 msgid "Steppers disabled due to inactivity."
 msgstr "Motoren aufgrund von Inaktivität deaktiviert."
 
@@ -6379,7 +6439,7 @@ msgstr "Strikt"
 msgid "STUCK FILAMENT DETECTED"
 msgstr "FESTSTECKENDES FILAMENT ERKANNT"
 
-#: src/gui/MItem_tools.hpp:69
+#: src/gui/MItem_tools.hpp:70
 msgid "Stuck Filament Detection"
 msgstr "Erkennung festsitzendes Filament"
 
@@ -6420,7 +6480,7 @@ msgstr "Syslog Port"
 msgid "System"
 msgstr "System"
 
-#: src/gui/screen_menu_system.hpp:18
+#: src/gui/screen_menu_system.hpp:23
 msgid "SYSTEM"
 msgstr "SYSTEM"
 
@@ -6582,7 +6642,7 @@ msgstr "Datei beschädigt."
 msgid "The file is not a valid bgcode file."
 msgstr "Die Datei ist keine gültige Bgcode-Datei."
 
-#: src/common/gcode/gcode_reader_plaintext.cpp:206
+#: src/common/gcode/gcode_reader_plaintext.cpp:211
 msgid "The file seems to be a binary gcode with a wrong suffix."
 msgstr ""
 "Die Datei scheint ein binärer G-Code mit einem falschen Suffix zu sein."
@@ -6596,11 +6656,11 @@ msgstr ""
 "Verkabelung, Düse und Achsen des Druckers überprüfen und starten Sie dann "
 "die Kalibrierung erneut."
 
-#: tmp_error_headers/error_list_mini.hpp:436
-#: tmp_error_headers/error_list_xl.hpp:723
-#: tmp_error_headers/error_list_ix.hpp:695
-#: tmp_error_headers/error_list_mk4.hpp:513
-#: tmp_error_headers/error_list_mk35.hpp:471
+#: tmp_error_headers/error_list_mini.hpp:443
+#: tmp_error_headers/error_list_xl.hpp:751
+#: tmp_error_headers/error_list_ix.hpp:702
+#: tmp_error_headers/error_list_mk4.hpp:520
+#: tmp_error_headers/error_list_mk35.hpp:478
 msgid "The G-code isn't fully compatible"
 msgstr "Der G-Code ist nicht vollständig kompatibel"
 
@@ -6613,11 +6673,11 @@ msgstr ""
 "Getrieben erforderlich. Andernfalls können Sie diesen Schritt einfach "
 "überspringen."
 
-#: tmp_error_headers/error_list_mini.hpp:464
-#: tmp_error_headers/error_list_xl.hpp:751
-#: tmp_error_headers/error_list_ix.hpp:723
-#: tmp_error_headers/error_list_mk4.hpp:548
-#: tmp_error_headers/error_list_mk35.hpp:506
+#: tmp_error_headers/error_list_mini.hpp:471
+#: tmp_error_headers/error_list_xl.hpp:779
+#: tmp_error_headers/error_list_ix.hpp:730
+#: tmp_error_headers/error_list_mk4.hpp:555
+#: tmp_error_headers/error_list_mk35.hpp:513
 msgid ""
 "The heatbed cooled down during the power outage, printed object might have "
 "detached. Inspect it before continuing."
@@ -6637,7 +6697,7 @@ msgstr ""
 "Lüfters übersprungen. Sie können fortfahren, aber wir empfehlen dringend, "
 "dieses Problem zu beheben, bevor Sie mit dem Drucken beginnen."
 
-#: tmp_error_headers/error_list_xl.hpp:912
+#: tmp_error_headers/error_list_xl.hpp:940
 msgid ""
 "The HEPA filter has expired. Change the HEPA filter before your next print. "
 "Visit prusa.io/xl-filter for more information."
@@ -6646,7 +6706,7 @@ msgstr ""
 "nächsten Druck aus. Besuchen Sie prusa.io/xl-filter für weitere "
 "Informationen."
 
-#: tmp_error_headers/error_list_xl.hpp:905
+#: tmp_error_headers/error_list_xl.hpp:933
 msgid ""
 "The HEPA filter is nearing the end of its life span (100 hours of printing "
 "time remaining). We recommend purchasing a new one. Visit prusa.io/xl-filter "
@@ -6671,7 +6731,7 @@ msgstr ""
 "Die Spannrolle kann sich nicht richtig bewegen. Prüfen Sie, ob irgendetwas "
 "ihre Bewegung blockiert. Prüfen Sie die Verkabelung."
 
-#: tmp_error_headers/error_list_xl.hpp:527
+#: tmp_error_headers/error_list_xl.hpp:548
 #: tmp_error_headers/error_list_ix.hpp:513
 #: tmp_error_headers/error_list_mk4.hpp:317
 msgid "The loadcell configuration is incorrect."
@@ -6688,6 +6748,17 @@ msgstr ""
 #: src/transfers/transfer_recovery.cpp:209
 msgid "The path does not exist"
 msgstr "Der Pfad existiert nicht"
+
+#: src/gui/MItem_tools.cpp:1089
+#, c-format
+msgid ""
+"The printer will now save all logs to file until restart.\n"
+"\n"
+"Log file: %s"
+msgstr ""
+"Der Drucker speichert nun alle Protokolle bis zum Neustart in einer Datei.\n"
+"\n"
+"Protokolldatei: %s"
 
 #: src/gui/screen_tools_mapping.cpp:1164
 msgid ""
@@ -6711,13 +6782,13 @@ msgstr ""
 msgid "There was an error connecting to the Wi-Fi."
 msgstr "Es ist ein Fehler bei der Verbindung mit dem Wi-Fi aufgetreten."
 
-#: tmp_error_headers/error_list_xl.hpp:506
+#: tmp_error_headers/error_list_xl.hpp:527
 #: tmp_error_headers/error_list_ix.hpp:492
 #: tmp_error_headers/error_list_mk4.hpp:296
 msgid "There was an error requesting the tare for loadcell."
 msgstr "Es gab einen Fehler bei der Abfrage der Tara für die Wägezelle."
 
-#: tmp_error_headers/error_list_xl.hpp:534
+#: tmp_error_headers/error_list_xl.hpp:555
 #: tmp_error_headers/error_list_ix.hpp:520
 #: tmp_error_headers/error_list_mk4.hpp:324
 msgid ""
@@ -6798,7 +6869,7 @@ msgstr ""
 "Diese Änderung wird für alle Werkzeugköpfe gelten. Möchten Sie fortfahren?"
 
 #: tmp_error_headers/error_list_mini.hpp:317
-#: tmp_error_headers/error_list_xl.hpp:597
+#: tmp_error_headers/error_list_xl.hpp:618
 #: tmp_error_headers/error_list_ix.hpp:576
 #: tmp_error_headers/error_list_mk4.hpp:380
 #: tmp_error_headers/error_list_mk35.hpp:338
@@ -6835,12 +6906,12 @@ msgstr ""
 "Möchten Sie das zugewiesene Werkzeug durch das ausgewählte Werkzeug ERSETZEN "
 "oder das ausgewählte Werkzeug für die Funktion SPOOL JOIN hinzufügen?"
 
-#: tmp_error_headers/error_list_mini.hpp:450
+#: tmp_error_headers/error_list_mini.hpp:457
 msgid "This G-code was set up for another filament type."
 msgstr "Dieser G-Code ist für einen anderen Filamenttyp."
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:340
+#: src/gui/MItem_tools.cpp:344
 msgid ""
 "This operation cannot be undone. Current configuration will be lost!\n"
 "Do you want to perform the Factory Shipping Preparation procedure?"
@@ -6850,7 +6921,7 @@ msgstr ""
 "Möchten Sie das Verfahren zur Vorbereitung des Werksrückversands durchführen?"
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:324
+#: src/gui/MItem_tools.cpp:328
 #, c-format
 msgid ""
 "This operation cannot be undone. Current configuration will be lost!\n"
@@ -6865,7 +6936,7 @@ msgstr ""
 "Möchten Sie wirklich fortfahren?"
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:314
+#: src/gui/MItem_tools.cpp:318
 msgid ""
 "This operation cannot be undone. Current user configuration and passwords "
 "will be lost!\n"
@@ -6941,27 +7012,27 @@ msgstr ""
 "\n"
 "Seien Sie beim nächsten Schritt vorsichtig. Der Drucker wird sich bewegen."
 
-#: src/gui/MItem_tools.hpp:285 src/gui/MItem_tools.hpp:346
+#: src/gui/MItem_tools.hpp:286 src/gui/MItem_tools.hpp:347
 msgid "Time"
 msgstr "Zeit"
 
-#: src/gui/MItem_tools.hpp:330
+#: src/gui/MItem_tools.hpp:331
 msgid "Time Format"
 msgstr "Zeitformat"
 
-#: src/gui/MItem_tools.hpp:518
+#: src/gui/MItem_tools.hpp:519
 msgid "times"
 msgstr "mal"
 
-#: src/gui/MItem_tools.hpp:302
+#: src/gui/MItem_tools.hpp:303
 msgid "Time Zone Hour Offset"
 msgstr "Zeitzonen Stundenversatz"
 
-#: src/gui/MItem_tools.hpp:310
+#: src/gui/MItem_tools.hpp:311
 msgid "Time Zone Minute Offset"
 msgstr "Zeitzonen Minutenversatz"
 
-#: src/gui/MItem_tools.hpp:322
+#: src/gui/MItem_tools.hpp:323
 msgid "Time Zone Summertime"
 msgstr "Zeitzone Sommerzeit"
 
@@ -7092,11 +7163,6 @@ msgstr "TMC TREIBER RESET"
 msgid "TMC DRIVER SHORTED"
 msgstr "TMC KURZSCHLUSS"
 
-#: tmp_error_headers/error_list_xl.hpp:590
-#, c-format
-msgid "TMC error on dwarf %d"
-msgstr "TMC Fehler auf Dwarf %d"
-
 #: tmp_error_headers/error_list_mmu.hpp:115
 #: tmp_error_headers/error_list_mmu.hpp:122
 #: tmp_error_headers/error_list_mmu.hpp:129
@@ -7156,7 +7222,7 @@ msgstr ""
 msgid "  Tool 1"
 msgstr "Werkzeug 1"
 
-#: src/gui/MItem_tools.hpp:31
+#: src/gui/MItem_tools.hpp:32
 msgid "Tool 1"
 msgstr "Werkzeug 1"
 
@@ -7176,7 +7242,7 @@ msgstr "Werkzeug 1 Wägezellentest"
 msgid "  Tool 2"
 msgstr "Werkzeug 2"
 
-#: src/gui/MItem_tools.hpp:33
+#: src/gui/MItem_tools.hpp:34
 msgid "Tool 2"
 msgstr "Werkzeug 2"
 
@@ -7196,7 +7262,7 @@ msgstr "Werkzeug 2 Wägezellentest"
 msgid "  Tool 3"
 msgstr "Werkzeug 3"
 
-#: src/gui/MItem_tools.hpp:35
+#: src/gui/MItem_tools.hpp:36
 msgid "Tool 3"
 msgstr "Werkzeug 3"
 
@@ -7216,7 +7282,7 @@ msgstr "Werkzeug 3 Wägezellentest"
 msgid "  Tool 4"
 msgstr "Werkzeug 4"
 
-#: src/gui/MItem_tools.hpp:37
+#: src/gui/MItem_tools.hpp:38
 msgid "Tool 4"
 msgstr "Werkzeug 4"
 
@@ -7236,7 +7302,7 @@ msgstr "Werkzeug 4 Wägezellentest"
 msgid "  Tool 5"
 msgstr "Werkzeug 5"
 
-#: src/gui/MItem_tools.hpp:39
+#: src/gui/MItem_tools.hpp:40
 msgid "Tool 5"
 msgstr "Werkzeug 5"
 
@@ -7256,7 +7322,7 @@ msgstr "Werkzeug 5 Wägezellentest"
 msgid "TOOLCHANGER ERROR"
 msgstr "Werkzeugwechsler FEHLER"
 
-#: tmp_error_headers/error_list_xl.hpp:786
+#: tmp_error_headers/error_list_xl.hpp:814
 msgid ""
 "Toolchanger problem has been detected.\n"
 "Park all tools to docks\n"
@@ -7280,7 +7346,7 @@ msgstr "WERKZEUG %d"
 msgid "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
 msgstr "Werkzeug %d Offset %c: %.3f außerhalb der Grenzen [%.3f, %.3f]."
 
-#: src/gui/MItem_tools.hpp:430
+#: src/gui/MItem_tools.hpp:431
 msgid "Tool Filament sensor"
 msgstr "Filamentsensor Werkzeug"
 
@@ -7296,13 +7362,13 @@ msgstr "Werkzeugkopf"
 msgid "Toolhead Filament Sensor"
 msgstr "Filamentsensor Werkzeugkopf"
 
-#: src/gui/MItem_tools.hpp:757
+#: src/gui/MItem_tools.hpp:758
 msgid "Tool Light"
 msgstr "Werkzeug Licht"
 
-#: tmp_error_headers/error_list_xl.hpp:792
-#: tmp_error_headers/error_list_mk4.hpp:582
-#: tmp_error_headers/error_list_mk35.hpp:540
+#: tmp_error_headers/error_list_xl.hpp:820
+#: tmp_error_headers/error_list_mk4.hpp:589
+#: tmp_error_headers/error_list_mk35.hpp:547
 msgid "Tool mapping"
 msgstr "Werkzeug Zuordnen"
 
@@ -7322,7 +7388,7 @@ msgstr "Zu lose"
 msgid "Tools"
 msgstr "Werkzeuge"
 
-#: src/gui/MItem_tools.hpp:517
+#: src/gui/MItem_tools.hpp:518
 msgid "Tools Changed"
 msgstr "Werkzeugwechsel"
 
@@ -7371,7 +7437,7 @@ msgstr ""
 msgid "Touch Sig Workaround"
 msgstr "Touch Sig Workaround"
 
-#: src/gui/MItem_tools.hpp:766
+#: src/gui/MItem_tools.hpp:767
 msgid "Trigger Power Panic"
 msgstr "Trigger Power Panic"
 
@@ -7416,7 +7482,7 @@ msgstr "Anpassen"
 msgid "TUNE"
 msgstr "ANPASSEN"
 
-#: src/gui/MItem_tools.cpp:859
+#: src/gui/MItem_tools.cpp:863
 msgid "Turn on Phase stepping uncalibrated?"
 msgstr "Phase Stepping unkalibriert einschalten?"
 
@@ -7428,16 +7494,24 @@ msgstr "Knopf drehen, um das Heizbett zu bewegen"
 msgid "Turn the knob to move Z-axis"
 msgstr "Zum Z-Achse Bewegen Knopf drehen"
 
+#: src/gui/MItem_tools.cpp:1090
+msgid ""
+"Turn the logging off before disconnecting the USB drive, or you risk "
+"damaging the filesystem!"
+msgstr ""
+"Schalten Sie die Protokollierung aus, bevor Sie den USB-Stick abziehen, da "
+"sonst das Dateisystem beschädigt werden kann!"
+
 #: src/guiapi/include/WindowItemFanLabel.hpp:22
 #, c-format
 msgid "%u %% / %li RPM"
 msgstr "%u %% / %li UPM"
 
-#: tmp_error_headers/error_list_mini.hpp:492
-#: tmp_error_headers/error_list_xl.hpp:779
-#: tmp_error_headers/error_list_ix.hpp:751
-#: tmp_error_headers/error_list_mk4.hpp:576
-#: tmp_error_headers/error_list_mk35.hpp:534
+#: tmp_error_headers/error_list_mini.hpp:499
+#: tmp_error_headers/error_list_xl.hpp:807
+#: tmp_error_headers/error_list_ix.hpp:758
+#: tmp_error_headers/error_list_mk4.hpp:583
+#: tmp_error_headers/error_list_mk35.hpp:541
 msgid ""
 "Unable to home the printer.\n"
 "Do you want to try again?"
@@ -7445,13 +7519,13 @@ msgstr ""
 "Homing des Druckers nicht möglich.\n"
 "Möchten Sie es noch einmal versuchen?"
 
-#: tmp_error_headers/error_list_xl.hpp:457
+#: tmp_error_headers/error_list_xl.hpp:478
 #: tmp_error_headers/error_list_ix.hpp:443
 msgid "Unable to start puppy application"
 msgstr "Puppy Anwendung kann nicht gestartet werden"
 
 #: tmp_error_headers/error_list_mini.hpp:415
-#: tmp_error_headers/error_list_xl.hpp:695
+#: tmp_error_headers/error_list_xl.hpp:716
 #: tmp_error_headers/error_list_ix.hpp:674
 #: tmp_error_headers/error_list_mk4.hpp:478
 #: tmp_error_headers/error_list_mk35.hpp:436
@@ -7464,7 +7538,7 @@ msgstr ""
 msgid "Unassigned G-Code filament(s)"
 msgstr "Nicht zugeordnete G-Code Filament(e)"
 
-#: tmp_error_headers/error_list_xl.hpp:422
+#: tmp_error_headers/error_list_xl.hpp:443
 #: tmp_error_headers/error_list_ix.hpp:408
 msgid "Unassigned puppy found"
 msgstr "Nicht zugeordneter Puppy gefunden"
@@ -7473,7 +7547,7 @@ msgstr "Nicht zugeordneter Puppy gefunden"
 msgid "Unauthorized"
 msgstr "Nicht authorisiert"
 
-#: src/gui/MItem_tools.cpp:652
+#: src/gui/MItem_tools.cpp:656
 #, c-format
 msgid "uncalibrated / %ld"
 msgstr "unkalibriert / %ld"
@@ -7482,12 +7556,12 @@ msgstr "unkalibriert / %ld"
 msgid "Unexpected error occurred."
 msgstr "Unerwarteter Fehler aufgetreten."
 
-#: tmp_error_headers/error_list_xl.hpp:205
+#: tmp_error_headers/error_list_xl.hpp:226
 #: tmp_error_headers/error_list_ix.hpp:198
 msgid "Unexpected invalid current."
 msgstr "Unerwarteter ungültiger Strom."
 
-#: src/gui/MItem_tools.cpp:651
+#: src/gui/MItem_tools.cpp:655
 #, c-format
 msgid "uninitialized / %ld"
 msgstr "uninitialisiert / %ld"
@@ -7501,7 +7575,7 @@ msgid "Unknown Error"
 msgstr "Unbekannter Fehler"
 
 #: tmp_error_headers/error_list_mini.hpp:316
-#: tmp_error_headers/error_list_xl.hpp:596
+#: tmp_error_headers/error_list_xl.hpp:617
 #: tmp_error_headers/error_list_ix.hpp:575
 #: tmp_error_headers/error_list_mk4.hpp:379
 #: tmp_error_headers/error_list_mmu.hpp:318
@@ -7513,7 +7587,15 @@ msgstr "Unbekannter Fehler"
 msgid "Unknown file error"
 msgstr "Unbekannter Dateifehler"
 
-#: tmp_error_headers/error_list_xl.hpp:450
+#: tmp_error_headers/error_list_mini.hpp:421
+#: tmp_error_headers/error_list_xl.hpp:729
+#: tmp_error_headers/error_list_ix.hpp:680
+#: tmp_error_headers/error_list_mk4.hpp:498
+#: tmp_error_headers/error_list_mk35.hpp:456
+msgid "Unknown file system"
+msgstr "Unbekanntes Dateisystem"
+
+#: tmp_error_headers/error_list_xl.hpp:471
 #: tmp_error_headers/error_list_ix.hpp:436
 msgid "Unknown puppy type"
 msgstr "Unbekannter Puppy-Typ"
@@ -7570,7 +7652,7 @@ msgid "Unparking"
 msgstr "Ausparken"
 
 #: tmp_error_headers/error_list_mini.hpp:386
-#: tmp_error_headers/error_list_xl.hpp:666
+#: tmp_error_headers/error_list_xl.hpp:687
 #: tmp_error_headers/error_list_ix.hpp:645
 #: tmp_error_headers/error_list_mk4.hpp:449
 #: tmp_error_headers/error_list_mk35.hpp:407
@@ -7578,7 +7660,7 @@ msgid "UNSUPPORTED BUDDY FW"
 msgstr "NICHT UNTERSTÜTZTE BUDDY FW"
 
 #: tmp_error_headers/error_list_mini.hpp:407
-#: tmp_error_headers/error_list_xl.hpp:687
+#: tmp_error_headers/error_list_xl.hpp:708
 #: tmp_error_headers/error_list_ix.hpp:666
 #: tmp_error_headers/error_list_mk4.hpp:470
 #: tmp_error_headers/error_list_mk35.hpp:428
@@ -7586,7 +7668,7 @@ msgid "UNSUPPORTED FIRMWARE BBF FILE"
 msgstr "NICHT UNTERSTÜTZTE FIRMWARE BBF DATEI"
 
 #: tmp_error_headers/error_list_mini.hpp:379
-#: tmp_error_headers/error_list_xl.hpp:659
+#: tmp_error_headers/error_list_xl.hpp:680
 #: tmp_error_headers/error_list_ix.hpp:638
 #: tmp_error_headers/error_list_mk4.hpp:442
 #: tmp_error_headers/error_list_mk35.hpp:400
@@ -7598,7 +7680,7 @@ msgid "UP"
 msgstr "HOCH"
 
 #: tmp_error_headers/error_list_mini.hpp:127
-#: tmp_error_headers/error_list_xl.hpp:232
+#: tmp_error_headers/error_list_xl.hpp:253
 #: tmp_error_headers/error_list_ix.hpp:225
 #: tmp_error_headers/error_list_mk4.hpp:134
 #: tmp_error_headers/error_list_mk35.hpp:127
@@ -7606,7 +7688,7 @@ msgid "USB DEVICE OVERCURRENT"
 msgstr "USB-Gerät Überstrom"
 
 #: tmp_error_headers/error_list_mini.hpp:324
-#: tmp_error_headers/error_list_xl.hpp:604
+#: tmp_error_headers/error_list_xl.hpp:625
 #: tmp_error_headers/error_list_ix.hpp:583
 #: tmp_error_headers/error_list_mk4.hpp:387
 #: tmp_error_headers/error_list_mk35.hpp:345
@@ -7623,18 +7705,18 @@ msgstr ""
 "gültigen Firmware-\n"
 "datei einstecken."
 
-#: tmp_error_headers/error_list_mini.hpp:534
-#: tmp_error_headers/error_list_xl.hpp:835
-#: tmp_error_headers/error_list_ix.hpp:793
-#: tmp_error_headers/error_list_mk4.hpp:632
-#: tmp_error_headers/error_list_mk35.hpp:590
+#: tmp_error_headers/error_list_mini.hpp:541
+#: tmp_error_headers/error_list_xl.hpp:863
+#: tmp_error_headers/error_list_ix.hpp:800
+#: tmp_error_headers/error_list_mk4.hpp:639
+#: tmp_error_headers/error_list_mk35.hpp:597
 msgid "USB drive or file error, the print is now paused. Reconnect the drive."
 msgstr ""
 "USB-Stick oder Dateifehler, der Druck ist jetzt unterbrochen. Schließen Sie "
 "das Medium wieder an."
 
 #: tmp_error_headers/error_list_mini.hpp:408
-#: tmp_error_headers/error_list_xl.hpp:688
+#: tmp_error_headers/error_list_xl.hpp:709
 #: tmp_error_headers/error_list_ix.hpp:667
 #: tmp_error_headers/error_list_mk4.hpp:471
 #: tmp_error_headers/error_list_mk35.hpp:429
@@ -7644,7 +7726,7 @@ msgid ""
 msgstr "Der USB-Stick enthält eine nicht unterstützte BBF-Firmware-Datei."
 
 #: tmp_error_headers/error_list_mini.hpp:323
-#: tmp_error_headers/error_list_xl.hpp:603
+#: tmp_error_headers/error_list_xl.hpp:624
 #: tmp_error_headers/error_list_ix.hpp:582
 #: tmp_error_headers/error_list_mk4.hpp:386
 #: tmp_error_headers/error_list_mk35.hpp:344
@@ -7652,7 +7734,7 @@ msgid "USB FLASH DRIVE NOT CONNECTED"
 msgstr "USB-STICK NICHT VERBUNDEN"
 
 #: tmp_error_headers/error_list_mini.hpp:400
-#: tmp_error_headers/error_list_xl.hpp:680
+#: tmp_error_headers/error_list_xl.hpp:701
 #: tmp_error_headers/error_list_ix.hpp:659
 #: tmp_error_headers/error_list_mk4.hpp:463
 #: tmp_error_headers/error_list_mk35.hpp:421
@@ -7660,12 +7742,24 @@ msgid "USB FLASH ERROR"
 msgstr "USB FLASH FEHLER"
 
 #: tmp_error_headers/error_list_mini.hpp:120
-#: tmp_error_headers/error_list_xl.hpp:225
+#: tmp_error_headers/error_list_xl.hpp:246
 #: tmp_error_headers/error_list_ix.hpp:218
 #: tmp_error_headers/error_list_mk4.hpp:127
 #: tmp_error_headers/error_list_mk35.hpp:120
 msgid "USB PORT OVERCURRENT"
 msgstr "Überstrom USB-Port"
+
+#: tmp_error_headers/error_list_mini.hpp:422
+#: tmp_error_headers/error_list_xl.hpp:730
+#: tmp_error_headers/error_list_ix.hpp:681
+#: tmp_error_headers/error_list_mk4.hpp:499
+#: tmp_error_headers/error_list_mk35.hpp:457
+msgid ""
+"Use a different USB drive or reformat this one to the supported FAT32 file "
+"system."
+msgstr ""
+"Verwenden Sie einen anderen USB-Stick oder formatieren Sie diesen in das "
+"unterstützte FAT32-Dateisystem um."
 
 #. Third line - used filament in meters
 #: src/gui/gcode_description.cpp:166
@@ -7702,7 +7796,7 @@ msgstr "%u %% / blockiert"
 msgid "Validity check"
 msgstr "Gültigkeitsprüfung"
 
-#: src/gui/MItem_tools.hpp:687
+#: src/gui/MItem_tools.hpp:688
 msgid "Verify GCode"
 msgstr "GCode überprüfen"
 
@@ -7719,7 +7813,7 @@ msgstr "VERSION INFO"
 msgid "Visible"
 msgstr "Sichtbar"
 
-#: tmp_error_headers/error_list_xl.hpp:485
+#: tmp_error_headers/error_list_xl.hpp:506
 #: tmp_error_headers/error_list_ix.hpp:471
 msgid "Waiting for fingerprint timed out"
 msgstr "Wartezeit für Fingerprint ist abgelaufen"
@@ -7732,7 +7826,7 @@ msgstr "Warte auf die Stabilisierung der Hotends auf Kalibriertemperatur:"
 msgid "Waiting for nozzle to cool down"
 msgstr "Warte bis zur Abkühlung der Düse"
 
-#: tmp_error_headers/error_list_xl.hpp:492
+#: tmp_error_headers/error_list_xl.hpp:513
 #: tmp_error_headers/error_list_ix.hpp:478
 msgid "Waiting for puppies to start timed out"
 msgstr "Warten auf den Start von Puppies Zeit abgelaufen"
@@ -7741,18 +7835,18 @@ msgstr "Warten auf den Start von Puppies Zeit abgelaufen"
 msgid "Waiting for temperature"
 msgstr "Warte auf Temperatur"
 
-#: tmp_error_headers/error_list_mini.hpp:583
-#: tmp_error_headers/error_list_xl.hpp:933
-#: tmp_error_headers/error_list_ix.hpp:856
-#: tmp_error_headers/error_list_mk4.hpp:688
-#: tmp_error_headers/error_list_mk35.hpp:646
+#: tmp_error_headers/error_list_mini.hpp:590
+#: tmp_error_headers/error_list_xl.hpp:961
+#: tmp_error_headers/error_list_ix.hpp:863
+#: tmp_error_headers/error_list_mk4.hpp:695
+#: tmp_error_headers/error_list_mk35.hpp:653
 msgid "Waiting for the user. Press \"Resume\" once the printer is ready."
 msgstr ""
 "Wartet auf den Benutzer. Drücken Sie \"Fortsetzen\", sobald der Drucker "
 "bereit ist."
 
-#: tmp_error_headers/error_list_mk4.hpp:590
-#: tmp_error_headers/error_list_mk35.hpp:548
+#: tmp_error_headers/error_list_mk4.hpp:597
+#: tmp_error_headers/error_list_mk35.hpp:555
 msgid "Waiting for user input"
 msgstr "Warte auf Benutzer"
 
@@ -7761,13 +7855,12 @@ msgid "Warn"
 msgstr "Warnen"
 
 #: src/guiapi/src/window_msgbox.cpp:282
-#: tmp_error_headers/error_list_mini.hpp:421
 #: tmp_error_headers/error_list_mini.hpp:428
 #: tmp_error_headers/error_list_mini.hpp:435
 #: tmp_error_headers/error_list_mini.hpp:442
 #: tmp_error_headers/error_list_mini.hpp:449
-#: tmp_error_headers/error_list_mini.hpp:463
-#: tmp_error_headers/error_list_mini.hpp:498
+#: tmp_error_headers/error_list_mini.hpp:456
+#: tmp_error_headers/error_list_mini.hpp:470
 #: tmp_error_headers/error_list_mini.hpp:505
 #: tmp_error_headers/error_list_mini.hpp:512
 #: tmp_error_headers/error_list_mini.hpp:519
@@ -7777,17 +7870,14 @@ msgstr "Warnen"
 #: tmp_error_headers/error_list_mini.hpp:547
 #: tmp_error_headers/error_list_mini.hpp:554
 #: tmp_error_headers/error_list_mini.hpp:561
-#: tmp_error_headers/error_list_mini.hpp:575
-#: tmp_error_headers/error_list_xl.hpp:708
-#: tmp_error_headers/error_list_xl.hpp:715
-#: tmp_error_headers/error_list_xl.hpp:722
-#: tmp_error_headers/error_list_xl.hpp:729
+#: tmp_error_headers/error_list_mini.hpp:568
+#: tmp_error_headers/error_list_mini.hpp:582
 #: tmp_error_headers/error_list_xl.hpp:736
+#: tmp_error_headers/error_list_xl.hpp:743
 #: tmp_error_headers/error_list_xl.hpp:750
-#: tmp_error_headers/error_list_xl.hpp:799
-#: tmp_error_headers/error_list_xl.hpp:806
-#: tmp_error_headers/error_list_xl.hpp:813
-#: tmp_error_headers/error_list_xl.hpp:820
+#: tmp_error_headers/error_list_xl.hpp:757
+#: tmp_error_headers/error_list_xl.hpp:764
+#: tmp_error_headers/error_list_xl.hpp:778
 #: tmp_error_headers/error_list_xl.hpp:827
 #: tmp_error_headers/error_list_xl.hpp:834
 #: tmp_error_headers/error_list_xl.hpp:841
@@ -7797,18 +7887,21 @@ msgstr "Warnen"
 #: tmp_error_headers/error_list_xl.hpp:869
 #: tmp_error_headers/error_list_xl.hpp:876
 #: tmp_error_headers/error_list_xl.hpp:883
+#: tmp_error_headers/error_list_xl.hpp:890
 #: tmp_error_headers/error_list_xl.hpp:897
 #: tmp_error_headers/error_list_xl.hpp:904
 #: tmp_error_headers/error_list_xl.hpp:911
-#: tmp_error_headers/error_list_xl.hpp:918
 #: tmp_error_headers/error_list_xl.hpp:925
-#: tmp_error_headers/error_list_ix.hpp:680
+#: tmp_error_headers/error_list_xl.hpp:932
+#: tmp_error_headers/error_list_xl.hpp:939
+#: tmp_error_headers/error_list_xl.hpp:946
+#: tmp_error_headers/error_list_xl.hpp:953
 #: tmp_error_headers/error_list_ix.hpp:687
 #: tmp_error_headers/error_list_ix.hpp:694
 #: tmp_error_headers/error_list_ix.hpp:701
 #: tmp_error_headers/error_list_ix.hpp:708
-#: tmp_error_headers/error_list_ix.hpp:722
-#: tmp_error_headers/error_list_ix.hpp:757
+#: tmp_error_headers/error_list_ix.hpp:715
+#: tmp_error_headers/error_list_ix.hpp:729
 #: tmp_error_headers/error_list_ix.hpp:764
 #: tmp_error_headers/error_list_ix.hpp:771
 #: tmp_error_headers/error_list_ix.hpp:778
@@ -7819,16 +7912,16 @@ msgstr "Warnen"
 #: tmp_error_headers/error_list_ix.hpp:813
 #: tmp_error_headers/error_list_ix.hpp:820
 #: tmp_error_headers/error_list_ix.hpp:827
-#: tmp_error_headers/error_list_ix.hpp:841
+#: tmp_error_headers/error_list_ix.hpp:834
 #: tmp_error_headers/error_list_ix.hpp:848
-#: tmp_error_headers/error_list_mk4.hpp:498
+#: tmp_error_headers/error_list_ix.hpp:855
 #: tmp_error_headers/error_list_mk4.hpp:505
 #: tmp_error_headers/error_list_mk4.hpp:512
 #: tmp_error_headers/error_list_mk4.hpp:519
 #: tmp_error_headers/error_list_mk4.hpp:526
 #: tmp_error_headers/error_list_mk4.hpp:533
-#: tmp_error_headers/error_list_mk4.hpp:547
-#: tmp_error_headers/error_list_mk4.hpp:596
+#: tmp_error_headers/error_list_mk4.hpp:540
+#: tmp_error_headers/error_list_mk4.hpp:554
 #: tmp_error_headers/error_list_mk4.hpp:603
 #: tmp_error_headers/error_list_mk4.hpp:610
 #: tmp_error_headers/error_list_mk4.hpp:617
@@ -7838,16 +7931,16 @@ msgstr "Warnen"
 #: tmp_error_headers/error_list_mk4.hpp:645
 #: tmp_error_headers/error_list_mk4.hpp:652
 #: tmp_error_headers/error_list_mk4.hpp:659
-#: tmp_error_headers/error_list_mk4.hpp:673
+#: tmp_error_headers/error_list_mk4.hpp:666
 #: tmp_error_headers/error_list_mk4.hpp:680
-#: tmp_error_headers/error_list_mk35.hpp:456
+#: tmp_error_headers/error_list_mk4.hpp:687
 #: tmp_error_headers/error_list_mk35.hpp:463
 #: tmp_error_headers/error_list_mk35.hpp:470
 #: tmp_error_headers/error_list_mk35.hpp:477
 #: tmp_error_headers/error_list_mk35.hpp:484
 #: tmp_error_headers/error_list_mk35.hpp:491
-#: tmp_error_headers/error_list_mk35.hpp:505
-#: tmp_error_headers/error_list_mk35.hpp:554
+#: tmp_error_headers/error_list_mk35.hpp:498
+#: tmp_error_headers/error_list_mk35.hpp:512
 #: tmp_error_headers/error_list_mk35.hpp:561
 #: tmp_error_headers/error_list_mk35.hpp:568
 #: tmp_error_headers/error_list_mk35.hpp:575
@@ -7858,7 +7951,8 @@ msgstr "Warnen"
 #: tmp_error_headers/error_list_mk35.hpp:610
 #: tmp_error_headers/error_list_mk35.hpp:617
 #: tmp_error_headers/error_list_mk35.hpp:624
-#: tmp_error_headers/error_list_mk35.hpp:638
+#: tmp_error_headers/error_list_mk35.hpp:631
+#: tmp_error_headers/error_list_mk35.hpp:645
 msgid "Warning"
 msgstr "Warnung"
 
@@ -7877,7 +7971,7 @@ msgstr "Filamententladen erfolgreich?"
 msgid "Wed"
 msgstr "Mi."
 
-#: tmp_error_headers/error_list_xl.hpp:702
+#: tmp_error_headers/error_list_xl.hpp:723
 #: tmp_error_headers/error_list_mk4.hpp:492
 #: tmp_error_headers/error_list_mk35.hpp:450
 msgid ""
@@ -8023,7 +8117,7 @@ msgstr "X"
 msgid "X-axis"
 msgstr "X-Achse"
 
-#: src/gui/MItem_tools.hpp:488
+#: src/gui/MItem_tools.hpp:489
 msgid "X Axis"
 msgstr "X-Achse"
 
@@ -8047,7 +8141,7 @@ msgstr "X-Achse Schritte pro Einheit"
 msgid "X current (0 default)"
 msgstr "X Strom (0 Standard)"
 
-#: src/gui/MItem_tools.hpp:596
+#: src/gui/MItem_tools.hpp:597
 msgid "XL Buddy 5V Current"
 msgstr "XL Buddy 5V Strom"
 
@@ -8075,7 +8169,7 @@ msgstr "Y"
 msgid "Y-axis"
 msgstr "Y-Achse"
 
-#: src/gui/MItem_tools.hpp:494
+#: src/gui/MItem_tools.hpp:495
 msgid "Y Axis"
 msgstr "Y-Achse"
 
@@ -8165,7 +8259,7 @@ msgstr "Z"
 msgid "Z-axis"
 msgstr "Z-Achse"
 
-#: src/gui/MItem_tools.hpp:500
+#: src/gui/MItem_tools.hpp:501
 msgid "Z Axis"
 msgstr "Z-Achse"
 
