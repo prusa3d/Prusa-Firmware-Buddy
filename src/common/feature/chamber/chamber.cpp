@@ -14,6 +14,14 @@
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
 
+#if PRINTER_IS_PRUSA_COREONE()
+    #define HAS_CHAMBER_TEMPERATURE_THERMISTOR_POSITION_OFFSET() 1
+#elif PRINTER_IS_PRUSA_XL()
+    #define HAS_CHAMBER_TEMPERATURE_THERMISTOR_POSITION_OFFSET() 0
+#else
+    #error
+#endif
+
 namespace buddy {
 
 Chamber &chamber() {
@@ -27,16 +35,16 @@ void Chamber::step() {
     std::lock_guard _lg(mutex_);
 
 #if XL_ENCLOSURE_SUPPORT()
-    current_temperature_ = xl_enclosure.getEnclosureTemperature();
+    thermistor_temperature_ = xl_enclosure.getEnclosureTemperature();
 
 #elif HAS_XBUDDY_EXTENSION()
     // Dummy, untested implementation.
-    current_temperature_ = xbuddy_extension().chamber_temperature();
+    thermistor_temperature_ = xbuddy_extension().chamber_temperature();
 #endif
 
     METRIC_DEF(metric_chamber_temp, "chamber_temp", METRIC_VALUE_FLOAT, 1000, METRIC_DISABLED);
-    if (current_temperature_.has_value()) {
-        metric_record_float(&metric_chamber_temp, current_temperature_.value());
+    if (thermistor_temperature_.has_value()) {
+        metric_record_float(&metric_chamber_temp, thermistor_temperature_.value());
     } else {
         metric_record_float(&metric_chamber_temp, NAN);
     }
@@ -98,8 +106,27 @@ Chamber::Backend Chamber::backend() const {
 }
 
 std::optional<Temperature> Chamber::current_temperature() const {
+    const auto chamber_tempearture = thermistor_temperature();
+#if HAS_CHAMBER_TEMPERATURE_THERMISTOR_POSITION_OFFSET()
+    #if PRINTER_IS_PRUSA_COREONE()
+    const auto bed_temperature = thermalManager.degBed();
+    if (chamber_tempearture.has_value() && bed_temperature > *chamber_tempearture && *chamber_tempearture > 20.f) {
+        // FIXME: Use the correct values from the defines here
+        static constexpr float bed_max = 115.f;
+        static constexpr float chamber_max = 60.f;
+        static constexpr float magic_constant = 6.f / ((bed_max - 20.f) * std::sqrt(chamber_max - 20.f));
+        return chamber_tempearture.value() + magic_constant * (bed_temperature - chamber_tempearture.value()) * std::sqrt(chamber_tempearture.value() - 20.f);
+    }
+    #else
+        #error
+    #endif
+#endif
+    return chamber_tempearture;
+}
+
+std::optional<Temperature> Chamber::thermistor_temperature() const {
     std::lock_guard _lg(mutex_);
-    return current_temperature_;
+    return thermistor_temperature_;
 }
 
 std::optional<Temperature> Chamber::target_temperature() const {

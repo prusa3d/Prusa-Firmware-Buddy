@@ -65,6 +65,8 @@ public: // Common/utilities
 public: // Temperature control
     std::optional<Temperature> current_temperature() const;
 
+    std::optional<Temperature> thermistor_temperature() const;
+
     std::optional<Temperature> target_temperature() const;
 
     /// Sets the \param target temperature. Can be nullopt if we are not interested in controlling the temperature at all.
@@ -73,7 +75,7 @@ public: // Temperature control
 private:
     mutable freertos::Mutex mutex_;
 
-    std::optional<Temperature> current_temperature_;
+    std::optional<Temperature> thermistor_temperature_;
     std::optional<Temperature> target_temperature_;
 
     Capabilities capabilities_nolock(Backend backend) const;
