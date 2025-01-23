@@ -386,6 +386,10 @@ void phase_stepping::set_phase_origin(AxisEnum axis, float pos) {
 
 void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
+    if (axis_states[axis_num].enabled) {
+        return;
+    }
+
     assert(!planner.has_blocks_queued() && !PreciseStepping::processing());
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
@@ -494,6 +498,10 @@ static void step_to_phase(AxisEnum axis, int phase) {
 
 void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
+    if (!axis_states[axis_num].enabled) {
+        return;
+    }
+
     assert(!planner.processing());
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
