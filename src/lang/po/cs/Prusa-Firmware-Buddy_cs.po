@@ -3118,7 +3118,7 @@ msgid ""
 "through the setup process."
 msgstr ""
 "Vítá vás tiskárna\n"
-"Origina Prusa!\n"
+"Original Prusa!\n"
 "Nyní vás provedu\n"
 "skrz úvodní nastavení."
 
