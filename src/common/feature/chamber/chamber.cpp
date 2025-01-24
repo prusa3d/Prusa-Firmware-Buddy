@@ -22,6 +22,17 @@
     #error
 #endif
 
+#if HAS_CHAMBER_TEMPERATURE_THERMISTOR_POSITION_OFFSET()
+    #include <Configuration.h>
+#endif
+
+#if PRINTER_IS_PRUSA_COREONE()
+namespace {
+constexpr buddy::Temperature chamber_maxtemp = 60;
+constexpr buddy::Temperature chamber_maxtemp_safety_margin = 5;
+} // namespace
+#endif
+
 namespace buddy {
 
 Chamber &chamber() {
@@ -72,7 +83,7 @@ Chamber::Capabilities Chamber::capabilities_nolock(Chamber::Backend backend) con
                 .always_show_temperature_control = true,
 
     #if PRINTER_IS_PRUSA_COREONE()
-            .max_temp = 55,
+            .max_temp = { chamber_maxtemp - chamber_maxtemp_safety_margin },
     #endif
         };
 #endif
@@ -110,12 +121,12 @@ std::optional<Temperature> Chamber::current_temperature() const {
 #if HAS_CHAMBER_TEMPERATURE_THERMISTOR_POSITION_OFFSET()
     #if PRINTER_IS_PRUSA_COREONE()
     const auto bed_temperature = thermalManager.degBed();
-    if (chamber_tempearture.has_value() && bed_temperature > *chamber_tempearture && *chamber_tempearture > 20.f) {
-        // FIXME: Use the correct values from the defines here
-        static constexpr float bed_max = 115.f;
-        static constexpr float chamber_max = 60.f;
-        static constexpr float magic_constant = 6.f / ((bed_max - 20.f) * std::sqrt(chamber_max - 20.f));
-        return chamber_tempearture.value() + magic_constant * (bed_temperature - chamber_tempearture.value()) * std::sqrt(chamber_tempearture.value() - 20.f);
+    static constexpr Temperature min_temp = 20.f;
+    if (chamber_tempearture.has_value() && bed_temperature > *chamber_tempearture && *chamber_tempearture > min_temp) {
+        static constexpr Temperature bed_max = BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN;
+        static constexpr Temperature chamber_max = chamber_maxtemp;
+        static constexpr Temperature offset = 6.f / ((bed_max - min_temp) * std::sqrt(chamber_max - min_temp));
+        return chamber_tempearture.value() + offset * (bed_temperature - chamber_tempearture.value()) * std::sqrt(chamber_tempearture.value() - min_temp);
     }
     #else
         #error
