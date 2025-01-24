@@ -422,7 +422,7 @@ std::vector<float> phase_stepping::analyze_resonance(AxisEnum axis,
             float a1 = dft_n_mag(signal, n * motor_period_count - 1);
             float a2 = dft_n_mag(signal, n * motor_period_count);
             float a3 = dft_n_mag(signal, n * motor_period_count + 1);
-            res.push_back((a1 + a2 + a3) / 3.f);
+            res.push_back((a1 + a2 + a3) / 3.f / motor_period_count);
         }
 
         idle(true, true);
