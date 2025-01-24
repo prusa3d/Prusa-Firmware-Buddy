@@ -527,6 +527,12 @@ class CalibrationPhaseExecutor {
         });
         IDLE();
 
+#ifdef SERIAL_DEBUG
+        SERIAL_ECHO("Forward value: ");
+        SERIAL_ECHO(forward_search.min());
+        SERIAL_ECHO(", backward value: ");
+        SERIAL_ECHOLN(backward_search.min());
+#endif
         return { { forward_search.min(), backward_search.min() } };
 #undef IDLE
     }
@@ -555,6 +561,12 @@ public:
                 _phase_config.speed, -_phase_config.revs, { { _phase_config.harmonic } });
 
             if (!f_res.empty() && !b_res.empty()) {
+#ifdef SERIAL_DEBUG
+                SERIAL_ECHO("Baseline: ");
+                SERIAL_ECHO(f_res[0]);
+                SERIAL_ECHO(", ");
+                SERIAL_ECHOLN(b_res[0]);
+#endif
                 return { { f_res[0], b_res[0] } };
             }
         }
