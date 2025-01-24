@@ -183,6 +183,7 @@ uint32_t TMC2130Stepper::read(uint8_t addressByte) {
     SPI.endTransaction();
     switchCSpin(HIGH);
   }
+  lockGuard.release();
 
   tmc_register_read_hook(0, addressByte,out);
   return out;

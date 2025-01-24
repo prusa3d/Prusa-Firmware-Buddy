@@ -129,6 +129,13 @@ class TMCStepper {
 				if (lock)
 					tmc_serial_lock_release();
 			}
+
+			void release() {
+				if (lock) {
+					tmc_serial_lock_release();
+					lock = false;
+				}
+			}
 		};
 
 	protected:
