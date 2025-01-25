@@ -1,9 +1,11 @@
 #include <dirent.h>
 
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../src/common/print_utils.hpp"
 #include "marlin_server.hpp"
 #include <usb_host.h>
 #include "marlin_vars.hpp"
+#include <str_utils.hpp>
 
 /** \addtogroup G-Codes
  * @{
@@ -192,7 +194,15 @@ void GcodeSuite::M29() {
  *    M30 [filename]
  */
 void GcodeSuite::M30() {
-    // TODO
+    ArrayStringBuilder<FF_MAX_LFN> filepath;
+    filepath.append_printf("/usb/%s", parser.string_arg);
+    DeleteResult result = DeleteResult::GeneralError;
+    if (filepath.is_ok()) {
+        result = remove_file(filepath.str());
+    }
+    SERIAL_ECHOPGM(result == DeleteResult::Success ? "File deleted:" : "Deletion failed:");
+    SERIAL_ECHO(parser.string_arg);
+    SERIAL_ECHOLN(".");
 }
 
 //
