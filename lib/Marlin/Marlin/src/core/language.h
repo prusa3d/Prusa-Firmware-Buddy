@@ -225,6 +225,7 @@
 #define MSG_SD_VOL_INIT_FAIL                "volume.init failed"
 #define MSG_SD_OPENROOT_FAIL                "openRoot failed"
 #define MSG_SD_CARD_OK                      "SD card ok"
+#define MSG_SD_CARD_FAIL                    "No SD card"
 #define MSG_SD_WORKDIR_FAIL                 "workDir open failed"
 #define MSG_SD_OPEN_FILE_FAIL               "open failed, File: "
 #define MSG_SD_FILE_OPENED                  "File opened: "
