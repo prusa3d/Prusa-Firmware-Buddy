@@ -782,7 +782,7 @@ FORCE_OFAST void phase_stepping::handle_periodic_refresh() {
         refresh_axis(axis_states[axis_num_to_refresh], now, old_tick);
     }
     if (std::ranges::all_of(axis_states, [](const auto &state) -> bool {
-            return state.missed_tx_cnt == 0;
+            return !(state.enabled && state.active) || state.missed_tx_cnt == 0;
         })) {
         // Only if all axes have refreshed, we can let tasks to run
         tmc_serial_lock_clear_isr_starved();
