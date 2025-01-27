@@ -6,12 +6,15 @@ def replace_characters(file_path):
     # Define the mapping of characters to be replaced
     replacements = {
         '’': "'",  # RIGHT SINGLE QUOTATION MARK
+        '“': "'",  # quotation mark
+        '”': "'",  # quotation mark
         '…': '...',  # HORIZONTAL ELLIPSIS
         '\u00A0': ' ',  # NO BREAK SPACE
         'µ': 'u',  # MICRO SIGN
         'μ': 'u',  # Another micro sign
         '　': ' ',  # Japanese " "
         '！': '!',  # Japanese !
+        '％': '%',  # Japanese %
         '＆': '&',  # Japanese &
         '（': '(',  # Japanese (
         '）': ')',  # Japanese )
