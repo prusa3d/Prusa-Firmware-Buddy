@@ -1,12 +1,5 @@
-#include "config_features.h"
-#include "../PrusaGcodeSuite.hpp"
-#include "RAII.hpp"
 #include "M70X.hpp"
-#include "fs_event_autolock.hpp"
 #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../../lib/Marlin/Marlin/src/feature/prusa/e-stall_detector.h"
-#include "pause_stubbed.hpp"
-#include "pause_settings.hpp"
 
 using namespace filament_gcodes;
 

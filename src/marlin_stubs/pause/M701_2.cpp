@@ -1,5 +1,3 @@
-#include "config_features.h"
-
 // clang-format off
 #if (!ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)) || \
     HAS_LCD_MENU || \
@@ -9,8 +7,6 @@
 #endif
 // clang-format on
 
-#include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../../lib/Marlin/Marlin/src/Marlin.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../../lib/Marlin/Marlin/src/module/planner.h"
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
@@ -21,8 +17,6 @@
 #include <cmath>
 #include "task.h" //critical sections
 #include "filament_sensors_handler.hpp"
-#include "config_store/store_c_api.h"
-#include "RAII.hpp"
 #include "M70X.hpp"
 #include <config_store/store_instance.hpp>
 #include <option/has_bowden.h>

@@ -20,18 +20,10 @@
  *
  */
 
-#include "config_features.h"
-
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
     #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
     #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
-    #include "../../../lib/Marlin/Marlin/src/module/motion.h"
-    #include "../../../lib/Marlin/Marlin/src/module/printcounter.h"
-
-    #if EXTRUDERS > 1
-        #include "../../../lib/Marlin/Marlin/src/module/tool_change.h"
-    #endif
 
 /** \addtogroup G-Codes
  * @{

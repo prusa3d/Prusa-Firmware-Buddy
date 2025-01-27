@@ -10,7 +10,6 @@
 #include "MItem_menus.hpp"
 #include "MItem_mmu.hpp"
 #include <device/board.h>
-#include "config_features.h"
 #include <option/has_loadcell.h>
 #include <option/has_toolchanger.h>
 #include <option/developer_mode.h>

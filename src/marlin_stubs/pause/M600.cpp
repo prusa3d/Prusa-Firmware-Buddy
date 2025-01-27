@@ -20,9 +20,7 @@
  *
  */
 
-#include "config_features.h"
 #include "module/motion.h"
-#include "module/tool_change.h"
 #include "marlin_stubs/PrusaGcodeSuite.hpp"
 #include <logging/log.h>
 

@@ -3,7 +3,6 @@
  */
 
 #include "pause_settings.hpp"
-#include "config_features.h"
 #include "config_store/store_c_api.h"
 #include "../../../lib/Marlin/Marlin/src/core/types.h"
 #include "../../../lib/Marlin/Marlin/src/feature/pause.h"

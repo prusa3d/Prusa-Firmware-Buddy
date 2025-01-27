@@ -5,7 +5,6 @@
 
 #pragma once
 #include "footer_items_heaters.hpp"
-#include "config_features.h"
 #include <option/has_toolchanger.h>
 
 class FooterItemNozzle : public FooterItemHeater {

@@ -7,7 +7,6 @@
  *
  */
 
-#include "config_features.h"
 #include "img_resources.hpp"
 #include <guiconfig/guiconfig.h>
 #include <option/has_side_leds.h>

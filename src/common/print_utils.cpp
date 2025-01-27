@@ -10,7 +10,6 @@
 #include "unique_file_ptr.hpp"
 #include "timing.h"
 #include "unistd.h"
-#include "str_utils.hpp"
 #include "tasks.hpp"
 #include <state/printer_state.hpp>
 #include <transfers/transfer.hpp>

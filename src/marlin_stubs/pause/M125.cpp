@@ -20,8 +20,6 @@
  *
  */
 
-#include "config_features.h"
-
 #if ENABLED(PARK_HEAD_ON_PAUSE)
 
     #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"

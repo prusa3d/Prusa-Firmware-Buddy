@@ -10,7 +10,6 @@
 #include <cstdint>
 #include "config.h"
 #include "bsod.h"
-#include "ffconf.h"
 #include "log.h"
 #include "../lib/Marlin/Marlin/src/core/macros.h"
 #include <module/motion.h>
@@ -20,7 +19,6 @@
 
 #if HAS_SELFTEST()
     #include <selftest_types.hpp>
-    #include "printer_selftest.hpp"
 #endif
 
 using namespace marlin_server;

@@ -6,14 +6,8 @@
     #include <connect/marlin_printer.hpp>
 #endif
 #include "screen_sysinf.hpp"
-#include "screen_qr_error.hpp"
 #include "screen_messages.hpp"
-#include "marlin_client.hpp"
-#include "WindowMenuSpin.hpp"
-#include "filament_sensors_handler.hpp"
 #include "trinamic.h"
-#include "../../../lib/Marlin/Marlin/src/module/stepper.h"
-#include "Marlin/src/feature/bed_preheat.hpp"
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "../../../lib/Marlin/Marlin/src/module/prusa/toolchanger.h"
     #include "screen_menu_tools.hpp"
@@ -21,7 +15,6 @@
 #endif
 #include <netdev.h>
 #include <wui.h>
-#include "translator.hpp"
 #include <option/has_leds.h>
 #if HAS_LEDS()
     #include "led_animations/animator.hpp"
@@ -33,7 +26,6 @@
 #include "screen_menu_move.hpp"
 #include "screen_menu_sensor_info.hpp"
 #include "screen_menu_odometer.hpp"
-#include "screen_menu_version_info.hpp"
 #include "screen_menu_metrics.hpp"
 #include "screen_menu_fw_update.hpp"
 #include "screen_menu_network_status.hpp"
@@ -53,7 +45,6 @@
 #include "screen_menu_system.hpp"
 #include "screen_menu_statistics.hpp"
 #include "screen_menu_factory_reset.hpp"
-#include "screen_menu_error_test.hpp"
 #include "screen_menu_input_shaper.hpp"
 
 #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI

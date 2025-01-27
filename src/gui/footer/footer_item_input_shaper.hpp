@@ -5,8 +5,6 @@
 
 #pragma once
 #include "ifooter_item.hpp"
-#include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
-#include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper.hpp"
 
 class FooterItemInputShaperX : public FooterIconText_IntVal {
     using buffer_t = std::array<char, 11>;

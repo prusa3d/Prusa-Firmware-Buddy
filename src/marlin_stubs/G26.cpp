@@ -4,8 +4,6 @@
 #include <algorithm>
 
 #include "../../lib/Marlin/Marlin/src/module/temperature.h"
-#include "../../lib/Marlin/Marlin/src/gcode/lcd/M73_PE.h"
-#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "marlin_server.hpp"
 #include "PrusaGcodeSuite.hpp"
 #include "filament.hpp"

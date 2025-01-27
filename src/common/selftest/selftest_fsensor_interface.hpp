@@ -7,11 +7,8 @@
  * @date 2021-09-24
  */
 #pragma once
-#include <cstdint>
 #include "selftest_fsensor_config.hpp"
 #include "selftest_types.hpp"
-
-#include "config_features.h"
 
 class IPartHandler;
 class TestReturn;

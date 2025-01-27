@@ -6,7 +6,6 @@
 
 #include "selftest_loadcell.h"
 #include <guiconfig/wizard_config.hpp>
-#include "config_features.h" //EXTRUDER_AUTO_loadcell_TEMPERATURE
 #include "marlin_server.hpp"
 #include "selftest_log.hpp"
 #include "loadcell.hpp"

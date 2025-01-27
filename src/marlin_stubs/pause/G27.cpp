@@ -20,8 +20,6 @@
  *
  */
 
-#include "config_features.h"
-
 #if ENABLED(NOZZLE_PARK_FEATURE)
 
     #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"

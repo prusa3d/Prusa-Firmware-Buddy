@@ -1,6 +1,3 @@
-#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
-
-#include <stdio.h>
 #include "PrusaGcodeSuite.hpp"
 
 /**

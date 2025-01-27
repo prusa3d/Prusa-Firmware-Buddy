@@ -1,4 +1,3 @@
-#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_progress_converter.h"
 #include "../../lib/Prusa-Firmware-MMU/src/logic/progress_codes.h"
 #include <string.h>
 

@@ -4,7 +4,6 @@
 #include "IScreenPrinting.hpp"
 #include "ScreenHandler.hpp"
 #include "screen_printing.hpp"
-#include "config_features.h"
 #include "screen_print_preview.hpp"
 #include "window_dlg_preheat.hpp"
 #include "window_dlg_quickpause.hpp"

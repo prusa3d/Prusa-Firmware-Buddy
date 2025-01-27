@@ -2,14 +2,11 @@
 
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_reporting.h"
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp"
-#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/buttons.h"
-#include "../common/marlin_server.hpp"
 #include "../common/sound.hpp"
 #include "mmu2_error_converter.h"
 #include "mmu2_fsm.hpp"
 #include "mmu2_reporter.hpp"
 #include "fail_bucket.hpp"
-#include "pause_stubbed.hpp"
 #include "log.h"
 #include <config_store/store_instance.hpp>
 #include <odometer.hpp>

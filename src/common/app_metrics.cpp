@@ -16,13 +16,10 @@
 #include "timing.h"
 #include <stdint.h>
 #include <device/board.h>
-#include "printers.h"
-#include "MarlinPin.h"
 #include "otp.hpp"
 #include <array>
 #include "filament.hpp"
 #include "marlin_vars.hpp"
-#include "config_features.h"
 #include <option/has_mmu2.h>
 
 #include "../Marlin/src/module/temperature.h"

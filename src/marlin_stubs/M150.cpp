@@ -5,7 +5,6 @@
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
 #include "led_animations/led_types.h"
 #include "led_animations/printer_animation_state.hpp"
-#include "led_animations/animation.hpp"
 #if HAS_SIDE_LEDS()
     #include "leds/side_strip_control.hpp"
 #endif

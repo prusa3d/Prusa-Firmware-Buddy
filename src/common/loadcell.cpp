@@ -1,21 +1,14 @@
 #include "loadcell.hpp"
 #include "bsod.h"
 #include "error_codes.hpp"
-#include "gpio.h"
 #include "metric.h"
 #include "bsod.h"
 #include <cmath> //isnan
 #include <algorithm>
-#include <numeric>
-#include <limits>
 #include "timing.h"
 #include "log.h"
 #include "probe_position_lookback.hpp"
 #include "bsod.h"
-#include "config_features.h"
-#if ENABLED(POWER_PANIC)
-    #include "power_panic.hpp"
-#endif // POWER_PANIC
 #include "../Marlin/src/module/planner.h"
 #include "../Marlin/src/module/endstops.h"
 #include "feature/prusa/e-stall_detector.h"

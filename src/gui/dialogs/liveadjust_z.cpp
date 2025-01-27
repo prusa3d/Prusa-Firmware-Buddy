@@ -5,11 +5,8 @@
 #include "ScreenHandler.hpp"
 #include <guiconfig/GuiDefaults.hpp>
 #include "marlin_client.hpp"
-#include "display_helper.h"
 #include "img_resources.hpp"
 #include <option/has_sheet_profiles.h>
-#include "config_features.h"
-#include "gui_config_printer.hpp"
 #include <guiconfig/guiconfig.h>
 
 #if HAS_SHEET_PROFILES()

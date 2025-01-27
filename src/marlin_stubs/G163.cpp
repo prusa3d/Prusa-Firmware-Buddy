@@ -2,7 +2,6 @@
 #include "../../Marlin/src/feature/prusa/measure_axis.h"
 #include "selftest_sub_state.hpp"
 #include "crash_recovery_type.hpp"
-#include "client_fsm_types.h"
 #include "client_response.hpp"
 #include "marlin_server.hpp"
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"

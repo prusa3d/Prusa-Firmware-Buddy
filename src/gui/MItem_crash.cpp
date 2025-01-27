@@ -1,4 +1,3 @@
-#include "config_features.h"
 #include <gui/menu_vars.h>
 
 // TODO do it in cmake
@@ -6,9 +5,7 @@
 
     #include "MItem_crash.hpp"
     #include "WindowMenuSpin.hpp"
-    #include "../lib/Marlin/Marlin/src/module/stepper/trinamic.h"
     #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
-    #include "../Marlin/src/feature/phase_stepping/phase_stepping.hpp"
     #include <config_store/store_instance.hpp>
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()

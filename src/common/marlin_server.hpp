@@ -2,12 +2,10 @@
 #pragma once
 
 #include <optional>
-#include <atomic>
 #include "marlin_vars.hpp"
 
 #include "client_response.hpp"
 
-#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "marlin_events.h"
 #include "client_fsm_types.h"
 #include "marlin_server_extended_fsm_data.hpp"

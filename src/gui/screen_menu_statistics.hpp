@@ -7,8 +7,6 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_menus.hpp"
-#include "MItem_tools.hpp"
-#include "config_features.h"
 
 using ScreenMenuStatistics__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #if ANY(CRASH_RECOVERY, POWER_PANIC)

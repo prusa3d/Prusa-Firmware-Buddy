@@ -22,8 +22,6 @@
 #include "printers.h"
 #include "MarlinPin.h"
 #include "fanctl.hpp"
-#include "appmain.hpp"
-#include "Marlin.h"
 #include "MarlinPin.hpp"
 #include <option/has_puppies.h>
 #include <option/has_loadcell.h>

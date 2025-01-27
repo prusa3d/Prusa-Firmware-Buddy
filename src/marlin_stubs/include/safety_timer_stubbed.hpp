@@ -7,7 +7,6 @@
 #pragma once
 
 #include "IPause.hpp"
-#include "../../lib/Marlin/Marlin/src/core/utility.h"
 
 class SafetyTimer {
     static constexpr millis_t default_interval = 30 * 60 * 1000;

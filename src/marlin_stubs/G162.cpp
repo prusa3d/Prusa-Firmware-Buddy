@@ -4,7 +4,6 @@
 #include <module/endstops.h>
 
 #include "PrusaGcodeSuite.hpp"
-#include <stdint.h>
 #include "bsod.h"
 #include "z_calibration_fsm.hpp"
 #include "calibration_z.hpp"

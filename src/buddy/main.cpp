@@ -1,10 +1,8 @@
 #include "main.h"
 #include "buddy/esp_flash_task.hpp"
-#include "platform.h"
 #include <device/board.h>
 #include <device/peripherals.h>
 #include <guiconfig/guiconfig.h>
-#include "config_features.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
 #include "usb_device.hpp"

@@ -1,5 +1,3 @@
-#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
-#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "PrusaGcodeSuite.hpp"
 #include "../common/sys.h"
 #include "../../lib/Marlin/Marlin/src/module/planner.h"

@@ -1,7 +1,6 @@
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
-#include "config_features.h"
 #include "screen_menu.hpp"
 
 class MI_TRIGGER_BSOD : public IWindowMenuItem {

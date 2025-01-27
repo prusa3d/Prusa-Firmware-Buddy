@@ -10,7 +10,6 @@
 #include "window_dlg_calib_z.hpp"
 #include "window_file_list.hpp"
 #include "sound.hpp"
-#include "wui_api.h"
 #include "printers.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
@@ -18,19 +17,13 @@
 #include "filament_sensors_handler.hpp"
 #include "liveadjust_z.hpp"
 #include "filament_sensor.hpp"
-#include "main.h"
-#include "Pin.hpp"
-#include "hwio_pindef.h"
 #include "config.h"
 #include "WindowMenuSpin.hpp"
 #include "time_tools.hpp"
-#include "footer_eeprom.hpp"
 #include "version.h"
-#include "../../common/PersistentStorage.h"
 #include "sys.h"
 #include "w25x.h"
 #include <bootloader/bootloader.hpp>
-#include "config_features.h"
 #include <config_store/store_instance.hpp>
 #include "connect/marlin_printer.hpp"
 #include <crash_dump/dump.hpp>
@@ -42,7 +35,6 @@
 #include <option/has_coldpull.h>
 #include <RAII.hpp>
 #include <st25dv64k.h>
-#include <time.h>
 
 namespace {
 void MsgBoxNonBlockInfo(string_view_utf8 txt) {

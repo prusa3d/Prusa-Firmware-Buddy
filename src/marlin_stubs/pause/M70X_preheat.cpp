@@ -1,4 +1,3 @@
-#include "config_features.h"
 #include "filament_sensors_handler.hpp"
 #include <config_store/store_instance.hpp>
 

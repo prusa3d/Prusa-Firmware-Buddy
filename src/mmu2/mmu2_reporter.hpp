@@ -7,7 +7,6 @@
 
 #pragma once
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_reporting.h"
-#include <stdint.h>
 #include <optional>
 
 namespace MMU2 {

@@ -7,9 +7,6 @@
 #pragma once
 
 #include "i_selftest.hpp"
-#include "selftest_part.hpp"
-#include "selftest_result_type.hpp"
-#include "config_features.h"
 #include <option/has_mmu2.h>
 
 typedef enum {

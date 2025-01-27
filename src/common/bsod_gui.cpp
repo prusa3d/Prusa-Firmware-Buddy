@@ -11,21 +11,15 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
-#include "led_animations/animation.hpp"
 
 #include <iterator>
 #include <stdarg.h>
 
-#include "sound.hpp"
 #include "gui.hpp"
-#include "Jogwheel.hpp"
 #include "sys.h"
 #include "hwio.h"
 #include "version.h"
-#include "support_utils.h"
 #include "error_codes.hpp"
-#include "../../lib/Marlin/Marlin/src/core/language.h"
-#include "power_panic.hpp"
 #include "crash_dump/dump_parse.hpp"
 
 #include "str_utils.hpp"

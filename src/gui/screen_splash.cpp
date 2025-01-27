@@ -1,19 +1,15 @@
 #include "screen_splash.hpp"
 #include "ScreenHandler.hpp"
 
-#include "config.h"
-#include "config_features.h"
 #include "version.h"
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include <config_store/store_instance.hpp>
 
 #include "i18n.h"
-#include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
 #include "screen_menu_languages.hpp"
 #include <pseudo_screen_callback.hpp>
-#include "bsod.h"
 #include <guiconfig/guiconfig.h>
 
 #include <option/bootloader.h>

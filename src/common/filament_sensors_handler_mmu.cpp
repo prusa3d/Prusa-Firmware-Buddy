@@ -6,13 +6,7 @@
 
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor_mmu.hpp"
-#include "filament_sensor_adc.hpp"
-#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
-#include "marlin_client.hpp"
-#include "metric.h"
 #include <common/freertos_mutex.hpp>
-#include "filters/median_filter.hpp"
-#include <mutex>
 #include <config_store/store_instance.hpp>
 
 using namespace MMU2;

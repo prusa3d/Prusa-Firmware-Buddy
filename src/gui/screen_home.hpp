@@ -2,9 +2,7 @@
 #pragma once
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#include "gui.hpp"
 #include "screen.hpp"
-#include "gcode_info.hpp"
 #include "window_dlg_wait.hpp"
 #include <guiconfig/guiconfig.h>
 #include <option/has_mmu2.h>

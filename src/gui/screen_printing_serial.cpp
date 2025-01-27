@@ -1,19 +1,11 @@
 #include "screen_printing_serial.hpp"
-#include "config.h"
 #include "marlin_client.hpp"
-#include "filament.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
-#include "odometer.hpp"
-#include "config_features.h"
 #include "window_icon.hpp"
 #include "screen_menu_tune.hpp"
 #include "img_resources.hpp"
 #include <serial_printing.hpp>
-
-#if ENABLED(CRASH_RECOVERY)
-    #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
-#endif
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
     : ScreenPrintingModel(_(caption))

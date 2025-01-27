@@ -4,10 +4,7 @@
 
 #include "footer_items_nozzle_bed.hpp"
 #include "marlin_client.hpp"
-#include "filament.hpp"
 #include "img_resources.hpp"
-#include "i18n.h"
-#include "config_features.h"
 #include "printers.h"
 #include "footer_eeprom.hpp"
 #include <option/has_toolchanger.h>

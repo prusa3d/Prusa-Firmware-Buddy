@@ -1,7 +1,6 @@
 /**
  * @file
  */
-#include "../common/sound.hpp"
 #include "PrusaGcodeSuite.hpp"
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
 #include <version.h>

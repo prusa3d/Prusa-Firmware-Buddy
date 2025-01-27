@@ -5,7 +5,6 @@
 
 #pragma once
 #include <optional>
-#include "../../../lib/Marlin/Marlin/src/core/macros.h"
 #include "../../../lib/Marlin/Marlin/src/core/types.h"
 
 class Pause; // forward declaration, so Settings does not think Pause is member of pause namespace
