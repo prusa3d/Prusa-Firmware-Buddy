@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = git@github.com:prusa3d/Marlin.git
-	branch = buddy
-	commit = f00b48f9a8da77d0d603b74c843359b82ee306e3
-	parent = fd46d65e36d3ef556d6adc483994126aac5b1248
+	remote = git@github.com:bkerler/Marlin.git
+	branch = MarlinLight
+	commit = 45d058214d7221c60c32feed8141b25a7f15bfd0
+        parent = f00b48f9a8da77d0d603b74c843359b82ee306e3
 	method = merge
 	cmdver = 0.4.1
