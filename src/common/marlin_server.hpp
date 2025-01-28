@@ -124,14 +124,13 @@ bool is_printing();
  */
 bool print_preview();
 
-typedef struct
-{
-    xyze_pos_t pos; // resume position for unpark_head
-    float nozzle_temp[EXTRUDERS]; // resume nozzle temperature
-    bool nozzle_temp_paused; // True if nozzle_temp is valid and hotend cools down
-    uint8_t fan_speed; // resume fan speed
-    uint16_t print_speed; // resume printing speed
-} resume_state_t;
+struct resume_state_t {
+    xyze_pos_t pos = {}; // resume position for unpark_head
+    float nozzle_temp[EXTRUDERS] = {}; // resume nozzle temperature
+    bool nozzle_temp_paused = false; // True if nozzle_temp is valid and hotend cools down
+    uint8_t fan_speed = 0; // resume fan speed
+    uint16_t print_speed = 0; // resume printing speed
+};
 
 //
 void print_pause();
