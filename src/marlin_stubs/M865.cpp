@@ -23,7 +23,12 @@
  * - `P` - Nozzle preheat temperature
  * - `B` - Bed temperature
  * - `A` - Is abrasive
+ *
+ * - `C` - Target chamber temperature
+ * - `D` - Minimum chamber temperature
+ * - `E` - Maximum chamber temperature
  * - `F` - Requries filtration
+ *
  * - `N"<string>"` - New filament name
  *
  * Ad-hoc/custom filaments can the be referenced in other gcodes using adhoc_filament_gcode_prefix.
@@ -79,6 +84,16 @@ void PrusaGcodeSuite::M865() {
     }
 
 #if HAS_CHAMBER_API()
+    if (const auto opt = p.option<uint8_t>('C')) {
+        params.chamber_target_temperature = *opt;
+    }
+    if (const auto opt = p.option<uint8_t>('D')) {
+        params.chamber_min_temperature = *opt;
+    }
+    if (const auto opt = p.option<uint8_t>('E')) {
+        params.chamber_max_temperature = *opt;
+    }
+
     if (const auto opt = p.option<bool>('F')) {
         params.requires_filtration = *opt;
     }
