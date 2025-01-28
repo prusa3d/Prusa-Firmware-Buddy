@@ -269,6 +269,10 @@ static std::tuple<float, float> sample_capture_revs(float revs, float speed) {
 static void move_to_calibration_start(AxisEnum axis, const CalibrationPhase &phase_config) {
     auto [measurement_revs, _] = sample_capture_revs(phase_config.revs, phase_config.speed);
 
+    if (axis_states[axis].inverted) {
+        measurement_revs = -measurement_revs;
+    }
+
     float a_revs = axis == AxisEnum::A_AXIS ? measurement_revs : 0;
     float b_revs = axis == AxisEnum::B_AXIS ? measurement_revs : 0;
     const auto [d_rot_x, d_rot_y] = physical_to_logical(a_revs, b_revs);
@@ -315,6 +319,10 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
     // Find move target that corresponds to given number of revs
     auto [measurement_revs, vibration_delay] = sample_capture_revs(revs, speed);
     int direction = revs > 0 ? 1 : -1;
+    if (axis_state.inverted) {
+        direction = -direction;
+    }
+
     float axis_revs = direction * measurement_revs;
     float a_revs = axis == AxisEnum::X_AXIS ? axis_revs : 0;
     float b_revs = axis == AxisEnum::Y_AXIS ? axis_revs : 0;
