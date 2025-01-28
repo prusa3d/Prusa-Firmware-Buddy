@@ -77,9 +77,12 @@ void PrusaGcodeSuite::M865() {
     if (const auto opt = p.option<bool>('A')) {
         params.is_abrasive = *opt;
     }
+
+#if HAS_CHAMBER_API()
     if (const auto opt = p.option<bool>('F')) {
         params.requires_filtration = *opt;
     }
+#endif
 
     std::array<char, filament_name_buffer_size - 1> name_buf;
     if (const auto opt = p.option<std::string_view>('N', name_buf)) {

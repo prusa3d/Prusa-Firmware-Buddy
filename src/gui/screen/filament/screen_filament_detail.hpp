@@ -52,12 +52,14 @@ public:
     void OnClick() override;
 };
 
+#if HAS_CHAMBER_API()
 class MI_FILAMENT_REQUIRES_FILTRATION final : public MI_COMMON<MI_FILAMENT_REQUIRES_FILTRATION, WI_ICON_SWITCH_OFF_ON_t> {
 public:
     MI_FILAMENT_REQUIRES_FILTRATION();
     void update();
     void OnChange(size_t) override;
 };
+#endif
 
 class MI_FILAMENT_IS_ABRASIVE final : public MI_COMMON<MI_FILAMENT_IS_ABRASIVE, WI_ICON_SWITCH_OFF_ON_t> {
 public:
@@ -88,7 +90,9 @@ using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
     MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE,
     MI_FILAMENT_BED_TEMPERATURE,
     MI_FILAMENT_IS_ABRASIVE,
+#if HAS_CHAMBER_API()
     MI_FILAMENT_REQUIRES_FILTRATION,
+#endif
     MI_PREHEAT_CONFIRM //
     >;
 

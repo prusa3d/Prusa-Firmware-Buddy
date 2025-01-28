@@ -310,11 +310,12 @@ namespace defaults {
                     'U', 'S', 'E', 'R',
                     static_cast<char>('0' + (display_ix >= 10 ? display_ix / 10 : display_ix % 10)),
                     static_cast<char>(display_ix >= 10 ? ('0' + display_ix % 10) : '\0'),
-                    '\0' },
-                .nozzle_temperature = 215,
-                .nozzle_preheat_temperature = 170,
-                .heatbed_temperature = 0,
+                    '\0'
+                },
+                .nozzle_temperature = 215, .nozzle_preheat_temperature = 170, .heatbed_temperature = 0,
+#if HAS_CHAMBER_API()
                 .requires_filtration = false,
+#endif
             };
         }
         return result;

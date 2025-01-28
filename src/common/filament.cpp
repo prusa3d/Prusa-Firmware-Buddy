@@ -78,8 +78,8 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .chamber_min_temperature = 45,
             .chamber_max_temperature = std::nullopt,
             .chamber_target_temperature = 60,
-#endif
             .requires_filtration = true,
+#endif
         },
     },
     {
@@ -93,8 +93,8 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .chamber_min_temperature = 45,
             .chamber_max_temperature = std::nullopt,
             .chamber_target_temperature = 60,
-#endif
             .requires_filtration = true,
+#endif
         },
     },
     {
@@ -115,8 +115,8 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .chamber_min_temperature = 45,
             .chamber_max_temperature = std::nullopt,
             .chamber_target_temperature = 60,
-#endif
             .requires_filtration = true,
+#endif
         },
     },
     {
@@ -125,7 +125,9 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .name = FilamentTypeParameters::name_from_str("HIPS"),
             .nozzle_temperature = 220,
             .heatbed_temperature = 100,
+#if HAS_CHAMBER_API()
             .requires_filtration = true,
+#endif
         },
     },
     {
@@ -134,7 +136,9 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .name = FilamentTypeParameters::name_from_str("PP"),
             .nozzle_temperature = 240,
             .heatbed_temperature = 100,
+#if HAS_CHAMBER_API()
             .requires_filtration = true,
+#endif
         },
     },
     {
@@ -144,7 +148,9 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_temperature = 240,
             .nozzle_preheat_temperature = HAS_LOADCELL() ? 170 : 210,
             .heatbed_temperature = 50,
+#if HAS_CHAMBER_API()
             .requires_filtration = true,
+#endif
         },
     },
     {
@@ -244,8 +250,8 @@ FilamentTypeParameters FilamentType::parameters() const {
             .chamber_min_temperature = e2.decode_chamber_temp(e2.chamber_min_temperature),
             .chamber_max_temperature = e2.decode_chamber_temp(e2.chamber_max_temperature),
             .chamber_target_temperature = e2.decode_chamber_temp(e2.chamber_target_temperature),
-#endif
             .requires_filtration = e1.requires_filtration,
+#endif
             .is_abrasive = e1.is_abrasive,
         };
     };
@@ -288,7 +294,9 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
         .nozzle_temperature = set.nozzle_temperature,
         .nozzle_preheat_temperature = set.nozzle_preheat_temperature,
         .heatbed_temperature = set.heatbed_temperature,
+#if HAS_CHAMBER_API()
         .requires_filtration = set.requires_filtration,
+#endif
         .is_abrasive = set.is_abrasive,
     };
 #if HAS_CHAMBER_API()

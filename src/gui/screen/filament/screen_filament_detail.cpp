@@ -97,6 +97,7 @@ void MI_FILAMENT_BED_TEMPERATURE::OnClick() {
 }
 
 // * MI_FILAMENT_REQUIRES_FILTRATION
+#if HAS_CHAMBER_API()
 static_assert(UpdatableMenuItem<MI_FILAMENT_REQUIRES_FILTRATION>);
 
 MI_FILAMENT_REQUIRES_FILTRATION::MI_FILAMENT_REQUIRES_FILTRATION()
@@ -110,6 +111,7 @@ void MI_FILAMENT_REQUIRES_FILTRATION::update() {
 void MI_FILAMENT_REQUIRES_FILTRATION::OnChange(size_t) {
     filament_type.modify_parameters([&](auto &p) { p.requires_filtration = value(); });
 }
+#endif
 
 // * MI_FILAMENT_IS_ABRASIVE
 static_assert(UpdatableMenuItem<MI_FILAMENT_IS_ABRASIVE>);
