@@ -63,6 +63,10 @@ void MI_METRICS_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
     config_store().enable_metrics.set(index);
     logging::syslog_reconfigure();
     metrics_reconfigure();
+    if (value() && !config_store().enable_metrics.get()) {
+        MsgBoxWarning(_("Failed to enable metrics. Check your settings."), Responses_Ok);
+        set_value(false, false);
+    }
 }
 
 MI_METRICS_LIST::MI_METRICS_LIST()
