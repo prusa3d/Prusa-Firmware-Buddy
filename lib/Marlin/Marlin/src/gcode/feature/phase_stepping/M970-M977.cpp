@@ -207,7 +207,8 @@ void GcodeSuite::M973() {
     str_arg.remove_prefix(2);
     auto data = parse_pairs(str_arg);
 
-    if (data.empty()) {
+    if (data.size() && data.size() != lut.get_correction().size()) {
+        print_error("Invalid count (", data.size(), ") of <mag,phase> entries. Expected ", lut.get_correction().size());
         return;
     }
 
