@@ -29,7 +29,7 @@ static constexpr const char *cancel_object_n_values[] = {
 };
 
 MI_CO_OBJECT_N::MI_CO_OBJECT_N(int ObjectId_)
-    : MenuItemSwitch({}, cancel_object_n_values)
+    : MenuItemSwitch(string_view_utf8::MakeRAM(label_buffer), cancel_object_n_values)
     , ObjectId(ObjectId_) {
 
     UpdateName();
