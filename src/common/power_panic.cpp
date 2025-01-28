@@ -519,7 +519,8 @@ void resume_loop() {
         // Set bed temperature to prevent bed from cooling down
         thermalManager.setTargetBed(state_buf.planner.target_bed);
         break;
-    case ResumeState::Resume:
+
+    case ResumeState::Resume: {
         // setup the paused state
         // This applies for PowerPanic from paused AND from printing too
         // because printing after power up starts from pause
@@ -617,6 +618,7 @@ void resume_loop() {
             resume_state = ResumeState::WaitForHeaters;
         }
         break;
+    }
 
     case ResumeState::WaitForHeaters: {
         // enqueue a proper wait-for-temperature loop
