@@ -528,14 +528,12 @@ void resume_loop() {
         resume.pos = state_buf.crash.crash_current_position;
         resume.fan_speed = state_buf.planner.fan_speed;
         resume.print_speed = state_buf.planner.print_speed;
+        resume.nozzle_temp_paused = state_buf.planner.was_paused; // Nozzle temperatures are stored in resume
         HOTEND_LOOP() {
             resume.nozzle_temp[e] = state_buf.planner.target_nozzle[e];
             if (state_buf.planner.was_paused) {
                 marlin_server::set_temp_to_display(state_buf.planner.target_nozzle[e], e);
             }
-        }
-        if (state_buf.planner.was_paused) {
-            resume.nozzle_temp_paused = true; // Nozzle temperatures are stored in resume
         }
         marlin_server::set_resume_data(&resume);
 
