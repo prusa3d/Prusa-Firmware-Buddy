@@ -24,6 +24,11 @@
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
 
+#include <option/has_door_sensor.h>
+#if HAS_DOOR_SENSOR()
+    #include <buddy/door_sensor.hpp>
+#endif
+
 using namespace leds;
 
 using Neopixels = neopixel::SPI_10M5Hz<4, GuiLedsWriter::write>;
@@ -52,6 +57,11 @@ void leds::TickLoop() {
     getNeopixels().Tick();
 
 #if HAS_SIDE_LEDS()
+    #if HAS_DOOR_SENSOR()
+    if (buddy::door_sensor().state() == buddy::DoorSensor::State::door_open) {
+        leds::side_strip_control.ActivityPing();
+    }
+    #endif
     leds::side_strip_control.Tick();
 #endif
 }
