@@ -108,6 +108,14 @@ Errors:
     id: "UNEVEN_BED_ALIGN_PROMPT"
     approved: false
 
+  - code: "XX112"
+    printers: [COREONE]
+    title: "CEILING CLEARANCE VIOLATION"
+    text: "The printer queued a move that may crash the model into the ceiling."
+    action: []
+    id: "CEILING_CLEARANCE_VIOLATION"
+    approved: false
+
   # TEMPERATURE    xx2xx
 
   - code: "XX201"
@@ -310,7 +318,7 @@ Errors:
   - code: "XX261"
     printers: [COREONE, XL]
     title: "Chamber Temperature Is Critical"
-    text: "Chmaber temperature critical. Aborting print to prevent printer damage."
+    text: "Chamber temperature critical. Aborting print to prevent printer damage."
     id: "CHAMBER_CRITICAL_TEMP"
 
   # ELECTRICAL     xx3xx
