@@ -7,7 +7,7 @@ namespace {
 
 // TODO: The size (derive from somewhere)
 constexpr size_t mtu_size = 1024;
-constexpr size_t alloc_record = 12;
+constexpr size_t alloc_record = 4;
 constexpr size_t pbuf_head = LWIP_MEM_ALIGN_SIZE(sizeof(struct pbuf_custom));
 constexpr size_t mtu_cnt = 10;
 
