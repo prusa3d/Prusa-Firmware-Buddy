@@ -20,6 +20,8 @@ RingAllocator::RingAllocator(size_t size)
     // Check: All pointers are aligned to (at least) 4.
     assert(reinterpret_cast<uintptr_t>(buffer.get()) % alignment == 0);
     assert(size > sizeof(Record));
+    // Check: Buffer is smaller than our available offset (2^16)
+    assert(size < 65536);
     Record *head = reinterpret_cast<Record *>(buffer.get());
     head->next = head->prev = 0;
     head->in_use = false;
@@ -28,6 +30,7 @@ RingAllocator::RingAllocator(size_t size)
 
 void RingAllocator::free(void *ptr) {
     log_debug(RingAllocator, "Free %p", ptr);
+
     // Pointer to "bytes", because that actually has pointer arithmetics well-defined.
     uint8_t *ptr_b = reinterpret_cast<uint8_t *>(ptr);
     ptr_b -= sizeof(Record);
@@ -47,29 +50,6 @@ void RingAllocator::free(void *ptr) {
     // chunk.
     merge(rec, get_next(rec));
     merge(get_prev(rec), rec);
-}
-
-RingAllocator::Record *RingAllocator::get_next(Record *rec) {
-
-    if (rec->next == 0) {
-        return nullptr;
-    }
-
-    uint8_t *ptr = reinterpret_cast<uint8_t *>(rec);
-    ptr += rec->next;
-    Record *next = reinterpret_cast<Record *>(ptr);
-    return next;
-}
-
-RingAllocator::Record *RingAllocator::get_prev(Record *rec) {
-    if (rec->prev == 0) {
-        return nullptr;
-    }
-
-    uint8_t *ptr = reinterpret_cast<uint8_t *>(rec);
-    ptr -= rec->prev;
-    Record *prev = reinterpret_cast<Record *>(ptr);
-    return prev;
 }
 
 void RingAllocator::merge(Record *l, Record *r) {
@@ -92,17 +72,12 @@ void RingAllocator::merge(Record *l, Record *r) {
     }
 
     if (r->next) {
-        // assert(r->next->prev == r);
         assert(get_prev(get_next(r)) == r);
-
-        // r->next->prev = l;
-        get_next(r)->prev += r->prev;
-    }
-    // l->next = r->next;
-    if (r->next == 0) {
-        l->next = 0;
+        Record *r_next = get_next(r);
+        r_next->prev = offset_between(l, r_next);
+        l->next = offset_between(l, r_next);
     } else {
-        l->next += r->next;
+        l->next = 0;
     }
 
 #ifdef EXTRA_RING_ALLOCATOR_LOGGING
@@ -156,7 +131,7 @@ void *RingAllocator::allocate(size_t size) {
     return nullptr;
 }
 
-void RingAllocator::split(Record *record, uint16_t current_size, uint16_t new_size) {
+void RingAllocator::split(Record *record, size_t current_size, size_t new_size) {
     assert(current_size >= new_size);
     assert(new_size % alignment == 0);
     size_t extra = current_size - new_size;
@@ -169,29 +144,59 @@ void RingAllocator::split(Record *record, uint16_t current_size, uint16_t new_si
     Record *new_record = reinterpret_cast<Record *>(record_pos + new_size);
     assert(reinterpret_cast<uintptr_t>(new_record) % alignment == 0);
     new_record->in_use = false;
-    // new_record->next = record->next;
-    // new_record->prev = record;
-    new_record->prev = new_size;
+    new_record->prev = new_record->next = 0;
+    new_record->prev = encode_offset(new_size);
     if (record->next != 0) {
-        // record->next->prev = new_record;
-        new_record->next = extra;
-        get_next(record)->prev = extra;
+        new_record->next = encode_offset(extra);
+        get_next(record)->prev = encode_offset(extra);
     }
-    record->next = new_size;
+    record->next = encode_offset(new_size);
 #ifdef EXTRA_RING_ALLOCATOR_LOGGING
     records++;
 #endif
 }
 
-size_t RingAllocator::available_size(Record *record) {
+size_t RingAllocator::available_size(Record *record) const {
     const uintptr_t rec_pos = reinterpret_cast<uintptr_t>(record);
     const uintptr_t end_pos = reinterpret_cast<uintptr_t>(buffer.get()) + size;
-    //    const uintptr_t next_pos = record->next ? reinterpret_cast<uintptr_t>(record->next) : end_pos;
-    const uintptr_t next_pos = record->next ? reinterpret_cast<uintptr_t>(record) + record->next : end_pos;
+    const uintptr_t next_pos = record->next ? reinterpret_cast<uintptr_t>(record) + decode_offset(record->next) : end_pos;
 
     assert(next_pos >= rec_pos + sizeof(Record));
     assert(next_pos <= end_pos);
     return next_pos - rec_pos;
+}
+
+RingAllocator::Record *RingAllocator::get_next(Record *rec) const {
+    if (rec->next == 0) {
+        return nullptr;
+    }
+
+    uint8_t *ptr = reinterpret_cast<uint8_t *>(rec);
+    ptr += decode_offset(rec->next);
+    Record *next = reinterpret_cast<Record *>(ptr);
+    return next;
+}
+
+RingAllocator::Record *RingAllocator::get_prev(Record *rec) const {
+    if (rec->prev == 0) {
+        return nullptr;
+    }
+
+    uint8_t *ptr = reinterpret_cast<uint8_t *>(rec);
+    ptr -= decode_offset(rec->prev);
+    Record *prev = reinterpret_cast<Record *>(ptr);
+    return prev;
+}
+
+uint16_t RingAllocator::offset_between(const Record *from, const Record *to) const {
+    assert(from <= to);
+
+    // Compute the raw byte difference between two pointers:
+    auto diff = reinterpret_cast<const std::uint8_t *>(to)
+        - reinterpret_cast<const std::uint8_t *>(from);
+
+    // Then encode into 15-bit storage
+    return encode_offset(static_cast<std::uint16_t>(diff));
 }
 
 #ifdef UNITTESTS
@@ -209,22 +214,22 @@ void RingAllocator::sanity_check() {
             seen_head = true;
         }
 
-        if (r->next != nullptr) {
-            assert(r->next > r);
-            r->next->prev = r;
+        if (get_next(r) != nullptr) {
+            assert(get_next(r) > r);
+            get_next(r)->prev = r->next;
         }
 
         if (first) {
             first = false;
         } else {
-            assert(r->prev != nullptr);
-            assert(r->prev->next == r);
+            assert(r->prev != 0);
+            assert(get_next(get_prev(r)) == r);
         }
 
         assert(last_in_use || r->in_use);
         last_in_use = r->in_use;
 
-        r = r->next;
+        r = get_next(r);
     }
 
     assert(seen_head);

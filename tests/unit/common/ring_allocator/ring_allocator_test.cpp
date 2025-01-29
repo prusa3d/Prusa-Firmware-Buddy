@@ -82,13 +82,12 @@ TEST_CASE("Allocate and free success") {
 }
 
 TEST_CASE("Allocate doesn't fit") {
-    // Note: in the real deployment, the Record has 12 bytes, but on 64bit
-    // system where the test runs, it's 24.
+    // Note: the Record size is (2x 15-bit offsets + 1-bit in_use) - aligned to 4 bytes
     buddy::RingAllocator allocator(1048);
 
     std::vector<size_t> sizes;
     sizes.push_back(500); // Fits
-    sizes.push_back(500); // Fits (note: the overhead should be 12 bytes per allocation
+    sizes.push_back(500); // Fits (note: the overhead should be 4 bytes per allocation
     sizes.push_back(500); // Doesn't fit.
 
     for (size_t i = 0; i < 100; i++) {

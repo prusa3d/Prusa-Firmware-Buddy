@@ -48,17 +48,16 @@ namespace buddy {
 ///   where we started, we give up (we are full).
 class RingAllocator {
 private:
-    // TODO: This can be compressed.
+    // This is a compressed version of Record.
     //
-    // * We probably don't need actual pointers, 16-bit offsets should be fine.
-    // * The used flag could be embedded into odd/even bit (the lowest bit) of
-    //   one of them if we assume everything lives on even addresses (which it
-    //   does).
+    // * Instead of actual pointers (absolute path) it uses 15-bit offsets (relative path).
+    // * This is possible due to buffer_size < 2^16 bytes and addresses being aligned.
     struct Record {
-        uint16_t prev;
-        uint16_t next;
-        bool in_use;
+        bool in_use : 1;
+        uint16_t prev : 15;
+        uint16_t next : 15;
     };
+    static_assert(sizeof(Record) == 4);
 
 #ifdef EXTRA_RING_ALLOCATOR_LOGGING
     size_t used_bytes = 0;
@@ -73,14 +72,26 @@ private:
 
     void merge(Record *l, Record *r);
     /// Including the record header itself.
-    size_t available_size(Record *r);
+    size_t available_size(Record *r) const;
     /// Both size are including the record header.
     ///
     /// Splits only if the new header fits.
-    void split(Record *record, uint16_t current_size, uint16_t new_size);
 
-    Record *get_next(Record *rec);
-    Record *get_prev(Record *rec);
+    void split(Record *record, size_t current_size, size_t new_size);
+
+    // offset helper functions
+    Record *get_next(Record *rec) const;
+    Record *get_prev(Record *rec) const;
+    // Calculated relative offset between two Records
+    uint16_t offset_between(const Record *from, const Record *to) const;
+    // Compresses an even-aligned 16-bit offset into a 15-bit field by storing offset / 2.
+    inline uint16_t encode_offset(uint16_t value) const {
+        return (value >> 1); // store as value / 2
+    }
+    // Restores a 15-bit encoded offset to its full 16-bit even-aligned value.
+    inline uint16_t decode_offset(uint16_t value) const {
+        return (value << 1); // restore original value
+    }
 
 public:
     RingAllocator(size_t size);
