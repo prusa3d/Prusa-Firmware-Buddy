@@ -55,8 +55,8 @@ private:
     //   one of them if we assume everything lives on even addresses (which it
     //   does).
     struct Record {
-        Record *prev;
-        Record *next;
+        uint16_t prev;
+        uint16_t next;
         bool in_use;
     };
 
@@ -77,7 +77,10 @@ private:
     /// Both size are including the record header.
     ///
     /// Splits only if the new header fits.
-    void split(Record *record, size_t current_size, size_t new_size);
+    void split(Record *record, uint16_t current_size, uint16_t new_size);
+
+    Record *get_next(Record *rec);
+    Record *get_prev(Record *rec);
 
 public:
     RingAllocator(size_t size);

@@ -21,7 +21,7 @@ RingAllocator::RingAllocator(size_t size)
     assert(reinterpret_cast<uintptr_t>(buffer.get()) % alignment == 0);
     assert(size > sizeof(Record));
     Record *head = reinterpret_cast<Record *>(buffer.get());
-    head->next = head->prev = nullptr;
+    head->next = head->prev = 0;
     head->in_use = false;
     alloc_head = head;
 }
@@ -45,8 +45,31 @@ void RingAllocator::free(void *ptr) {
 
     // If there's an unused section before or after, make it into one big
     // chunk.
-    merge(rec, rec->next);
-    merge(rec->prev, rec);
+    merge(rec, get_next(rec));
+    merge(get_prev(rec), rec);
+}
+
+RingAllocator::Record *RingAllocator::get_next(Record *rec) {
+
+    if (rec->next == 0) {
+        return nullptr;
+    }
+
+    uint8_t *ptr = reinterpret_cast<uint8_t *>(rec);
+    ptr += rec->next;
+    Record *next = reinterpret_cast<Record *>(ptr);
+    return next;
+}
+
+RingAllocator::Record *RingAllocator::get_prev(Record *rec) {
+    if (rec->prev == 0) {
+        return nullptr;
+    }
+
+    uint8_t *ptr = reinterpret_cast<uint8_t *>(rec);
+    ptr -= rec->prev;
+    Record *prev = reinterpret_cast<Record *>(ptr);
+    return prev;
 }
 
 void RingAllocator::merge(Record *l, Record *r) {
@@ -69,10 +92,19 @@ void RingAllocator::merge(Record *l, Record *r) {
     }
 
     if (r->next) {
-        assert(r->next->prev == r);
-        r->next->prev = l;
+        // assert(r->next->prev == r);
+        assert(get_prev(get_next(r)) == r);
+
+        // r->next->prev = l;
+        get_next(r)->prev += r->prev;
     }
-    l->next = r->next;
+    // l->next = r->next;
+    if (r->next == 0) {
+        l->next = 0;
+    } else {
+        l->next += r->next;
+    }
+
 #ifdef EXTRA_RING_ALLOCATOR_LOGGING
     records--;
 #endif
@@ -111,7 +143,7 @@ void *RingAllocator::allocate(size_t size) {
         log_debug(RingAllocator, "Skip %p", alloc_head);
 
         // This record didn't work (either used or too small). Move to the next one.
-        alloc_head = alloc_head->next;
+        alloc_head = get_next(alloc_head);
         // Got past the last one, rewind to the beginning.
         if (!alloc_head) {
             alloc_head = reinterpret_cast<Record *>(buffer.get());
@@ -124,7 +156,7 @@ void *RingAllocator::allocate(size_t size) {
     return nullptr;
 }
 
-void RingAllocator::split(Record *record, size_t current_size, size_t new_size) {
+void RingAllocator::split(Record *record, uint16_t current_size, uint16_t new_size) {
     assert(current_size >= new_size);
     assert(new_size % alignment == 0);
     size_t extra = current_size - new_size;
@@ -137,12 +169,15 @@ void RingAllocator::split(Record *record, size_t current_size, size_t new_size) 
     Record *new_record = reinterpret_cast<Record *>(record_pos + new_size);
     assert(reinterpret_cast<uintptr_t>(new_record) % alignment == 0);
     new_record->in_use = false;
-    new_record->next = record->next;
-    new_record->prev = record;
-    if (record->next != nullptr) {
-        record->next->prev = new_record;
+    // new_record->next = record->next;
+    // new_record->prev = record;
+    new_record->prev = new_size;
+    if (record->next != 0) {
+        // record->next->prev = new_record;
+        new_record->next = extra;
+        get_next(record)->prev = extra;
     }
-    record->next = new_record;
+    record->next = new_size;
 #ifdef EXTRA_RING_ALLOCATOR_LOGGING
     records++;
 #endif
@@ -151,7 +186,9 @@ void RingAllocator::split(Record *record, size_t current_size, size_t new_size) 
 size_t RingAllocator::available_size(Record *record) {
     const uintptr_t rec_pos = reinterpret_cast<uintptr_t>(record);
     const uintptr_t end_pos = reinterpret_cast<uintptr_t>(buffer.get()) + size;
-    const uintptr_t next_pos = record->next ? reinterpret_cast<uintptr_t>(record->next) : end_pos;
+    //    const uintptr_t next_pos = record->next ? reinterpret_cast<uintptr_t>(record->next) : end_pos;
+    const uintptr_t next_pos = record->next ? reinterpret_cast<uintptr_t>(record) + record->next : end_pos;
+
     assert(next_pos >= rec_pos + sizeof(Record));
     assert(next_pos <= end_pos);
     return next_pos - rec_pos;
