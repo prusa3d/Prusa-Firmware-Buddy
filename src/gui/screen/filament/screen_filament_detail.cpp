@@ -135,9 +135,7 @@ MI_FILAMENT_VISIBLE::MI_FILAMENT_VISIBLE()
 
 void MI_FILAMENT_VISIBLE::update() {
     set_value(filament_type.is_visible(), false);
-
-    // Ad-hoc filament types don't have configurable visibility
-    set_is_hidden(std::holds_alternative<AdHocFilamentType>(filament_type));
+    set_is_hidden(filament_type.is_visibility_customizable());
 }
 
 void MI_FILAMENT_VISIBLE::OnChange(size_t) {
