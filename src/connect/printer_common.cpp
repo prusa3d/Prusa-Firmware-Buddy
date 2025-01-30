@@ -45,7 +45,7 @@ namespace {
         mbedtls_sha256_free(&ctx);
         const size_t offset = 4;
         for (size_t i = 0; i < 15; i++) {
-            // With 25 letters in the alphabet, this should provide us with nice
+            // With 26 letters in the alphabet, this should provide us with nice
             // readable characters.
             (*sn)[i + offset] = 'a' + (hash[i] & 0x0f);
         }
