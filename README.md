@@ -2,12 +2,12 @@
 This repository includes source code and firmware releases for the Original Prusa 3D printers based on the 32-bit ARM microcontrollers.
 
 The currently supported models are:
-- Original Prusa CORE One
 - Original Prusa MINI/MINI+
 - Original Prusa MK3.5
 - Original Prusa MK3.9
 - Original Prusa MK4
 - Original Prusa XL
+- Prusa CORE One
 
 ## Getting Started
 
