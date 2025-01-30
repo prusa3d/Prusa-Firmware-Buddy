@@ -70,14 +70,16 @@ static constexpr SelftestFansConfig fans_configs[] = {
             ///  With MK4 shroud the values can be 6400 or so.
             .rpm_min = 5300,
             .rpm_max = 6799,
+            .ignore_min_overlap = 0,
         },
         .heatbreak_fan = {
             .rpm_min = 6800,
             .rpm_max = 8700,
+            .ignore_min_overlap = 0,
         },
     },
 };
-static_assert(fans_configs[0].print_fan.rpm_max < fans_configs[0].heatbreak_fan.rpm_min, "These cannot overlap for switched fan detection.");
+static_assert(fans_configs[0].print_fan.rpm_max < (fans_configs[0].heatbreak_fan.rpm_min + fans_configs[0].heatbreak_fan.ignore_min_overlap), "Parameters cannot overlap more than ignore_min_overlap for proper switched fan detection.");
 
 // reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = {
