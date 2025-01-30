@@ -13,6 +13,7 @@ The currently supported models are:
 ### Requirements
 
 - Python 3.8 or newer
+- system installation of Python's `requests` package (use either pip or your system package manager)
 
 ### Cloning this repository
 
