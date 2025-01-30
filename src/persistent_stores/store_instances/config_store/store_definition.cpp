@@ -780,6 +780,14 @@ void CurrentStore::set_selftest_result_tool(uint8_t index, SelftestTool value) {
 }
 #endif
 
+void CurrentStore::set_z_offset(float offset) {
+    z_offset.set(offset);
+}
+
+float CurrentStore::get_z_offset() {
+    return z_offset.get();
+}
+
 #if HAS_SHEET_PROFILES()
 Sheet CurrentStore::get_sheet(uint8_t index) {
     assert(index < config_store_ns::sheets_num);

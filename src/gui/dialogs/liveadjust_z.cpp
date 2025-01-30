@@ -9,6 +9,7 @@
 #include "img_resources.hpp"
 #include <option/has_sheet_profiles.h>
 #include "config_features.h"
+#include <config_store/store_instance.hpp>
 #include "gui_config_printer.hpp"
 #include <guiconfig/guiconfig.h>
 
@@ -90,13 +91,16 @@ void WindowLiveAdjustZ::Save() {
     /// store new z offset value into a marlin_vars & EEPROM
     SteelSheets::SetZOffset(number.GetValue());
 #else
+    // config_store().set_z_offset(number.GetValue());
+    config_store().set_z_offset(number.GetValue());
     marlin_client::set_z_offset(number.GetValue());
 #endif
 }
 
 void WindowLiveAdjustZ::Change(int dif) {
     float old = number.GetValue();
-    float z_offset = number.GetValue();
+    // float z_offset = number.GetValue();
+    float z_offset = config_store().get_z_offset();
 
     z_offset += (float)dif * z_offset_step;
     z_offset = dif >= 0 ? std::max(z_offset, old) : std::min(z_offset, old); // check overflow/underflow
