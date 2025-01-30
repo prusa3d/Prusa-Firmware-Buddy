@@ -308,6 +308,13 @@
 
 enum AxisRelative : uint8_t { REL_X, REL_Y, REL_Z, REL_E, E_MODE_ABS, E_MODE_REL };
 
+#if ENABLED(SDSUPPORT) || ENABLED(SDCARD_GCODES)
+namespace M27_handler {
+  extern uint32_t sd_auto_report_delay;
+  void print_sd_status();
+} // namespace M27_handler
+#endif
+
 class GcodeSuite {
 public:
 

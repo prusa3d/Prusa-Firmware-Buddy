@@ -320,7 +320,7 @@ void media_print_start() {
         media_print_size_estimate = media_print_file->get_gcode_stream_size_estimate();
 
         // Do not remove, needed for 3rd party tools such as octoprint to get status about the gcode file being opened
-        SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, marlin_vars()->media_SFN_path.get_ptr(), " Size:", media_print_size_estimate);
+        SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, marlin_vars()->media_SFN_path.get_ptr(), MSG_SD_SIZE, media_print_size_estimate);
 
         gcode_filter.reset();
         osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
