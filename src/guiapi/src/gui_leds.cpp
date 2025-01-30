@@ -28,15 +28,28 @@ Neopixels &getNeopixels() {
 
 void leds::Init() {
     // Turn on LCD backlight
-    // TODO move SetBrightness to display
-    leds::SetBrightness(100);
+    // TODO move display_backlight_brightness to display
+    uint8_t value = leds::get_display_backlight_brightness();
+    // Safety: Make sure that the display is never turned off (value=0) on reboot/reset !
+    leds::display_backlight_brightness(value == 0 ? 100 : value);
     leds::TickLoop();
 
 #if HAS_SIDE_LEDS()
     leds::side_strip_control.SetEnable(config_store().side_leds_enabled.get());
     leds::side_strip_control.set_dimming_enabled(config_store().side_leds_dimming_enabled.get());
+    leds::side_strip_control.set_dimming_duration(config_store().side_leds_dimming_duration.get());
 #endif
 }
+
+uint8_t leds::get_display_backlight_brightness() {
+    return config_store().leds_display_backlight_brightness.get();
+}
+
+void leds::store_display_backlight_brightness(uint8_t percent) {
+    leds::display_backlight_brightness(percent);
+    return config_store().leds_display_backlight_brightness.set(percent);
+}
+
 void leds::ForceRefresh(size_t cnt) {
     getNeopixels().ForceRefresh(cnt);
 }
@@ -62,13 +75,23 @@ void leds::SetNth(Color clr, leds::index n) {
 // backlight is on WS2811 (RGB)
 // but color structure is meant for WS2812 (GRB)
 // so to set RED channel on WS2811 have to set GREEN
-void leds::SetBrightness(unsigned percent) {
+void leds::display_backlight_brightness(unsigned percent) {
     percent = std::min(100u, percent);
     percent *= 255;
     percent /= 100;
 
     SetNth(Color(0, percent, 0), index::backlight);
 }
+
+#if HAS_SIDE_LEDS()
+void SideStripControl::set_dimming_duration(int duration_sec) {
+    config_store().side_leds_dimming_duration.set(duration_sec);
+}
+
+int SideStripControl::get_dimming_duration() {
+    return config_store().side_leds_dimming_duration.get();
+}
+#endif
 
 extern osThreadId displayTaskHandle;
 
