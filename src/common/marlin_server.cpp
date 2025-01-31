@@ -2738,7 +2738,6 @@ void retract() {
 
 void lift_head() {
 #if ENABLED(NOZZLE_PARK_FEATURE)
-    TemporaryGlobalEndstopsState _es(true);
     const float distance = std::min<float>(
                                std::max<float>({
                                    Z_NOZZLE_PARK_POINT + current_position.z,
@@ -2750,14 +2749,27 @@ void lift_head() {
         - current_position.z;
     static_assert(Z_NOZZLE_PARK_POINT > 0);
 
-    // do_homing_move does not update current position, we have to do it manually
-    // have to use HOMING_FEEDRATE, otherwise the stallguards might not trigger
-    if (do_homing_move(Z_AXIS, distance, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z))) {
-        current_position.z = Z_MAX_POS;
+    if (TEST(axis_known_position, Z_AXIS)) {
+        // Do prepare_move_to_destination, as it segments the move and thus allows better emergency_stop
+        AutoRestore _ar(feedrate_mm_s, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z));
+        destination = current_position;
+        destination.z += distance;
+        prepare_move_to_destination({});
+        planner.synchronize();
+
     } else {
-        current_position.z += distance;
+        // If the Z is not homed, do a "homing" move with quickstops that will stop as soon as we hit the limits
+        TemporaryGlobalEndstopsState _es(true);
+
+        // do_homing_move does not update current position, we have to do it manually
+        // have to use HOMING_FEEDRATE, otherwise the stallguards might not trigger
+        if (do_homing_move(Z_AXIS, distance, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z))) {
+            current_position.z = Z_MAX_POS;
+        } else {
+            current_position.z += distance;
+        }
+        sync_plan_position();
     }
-    sync_plan_position();
 #endif // ENABLED(NOZZLE_PARK_FEATURE)
 }
 
