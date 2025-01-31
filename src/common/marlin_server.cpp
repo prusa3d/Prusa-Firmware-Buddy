@@ -2267,14 +2267,15 @@ static void _server_print_loop(void) {
             crash_s.reset();
 #endif // ENABLED(CRASH_RECOVERY)
 
+            // ! Must be before the park_head(), otherwise the head parking is still considered a print state
+            server.print_state = State::Finishing_UnloadFilament;
+
 #ifdef PARK_HEAD_ON_PRINT_FINISH
             if (!server.print_is_serial) {
                 // do not move head if printing via serial
                 park_head();
             }
 #endif // PARK_HEAD_ON_PRINT_FINISH
-
-            server.print_state = State::Finishing_UnloadFilament;
         }
         break;
     case State::Finishing_UnloadFilament:
