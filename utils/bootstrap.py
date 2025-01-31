@@ -22,7 +22,14 @@ import stat
 from argparse import ArgumentParser
 from pathlib import Path
 from urllib.parse import urlparse
-import requests
+try:
+    import requests
+except ModuleNotFoundError:
+    print(
+        f'Python executable ({sys.executable}) is missing the "requests" package.',
+        file=sys.stderr,
+        flush=True)
+    raise
 
 assert sys.version_info >= (3, 8), 'Python 3.8+ is required.'
 is_windows = platform.system() == 'Windows'
