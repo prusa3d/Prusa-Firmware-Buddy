@@ -23,4 +23,6 @@ public:
 
 private:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
+    void updateUptime();
+    IWindowMenuItem uptime_label;
 };

@@ -133,6 +133,8 @@ void buddy::metrics::RecordRuntimeStats() {
 
     METRIC_DEF(heap, "heap", METRIC_VALUE_CUSTOM, 503, METRIC_HANDLER_ENABLE_ALL);
     metric_record_custom(&heap, " free=%zui,total=%zui", xPortGetFreeHeapSize(), static_cast<size_t>(heap_total_size));
+
+    RecordUptime();
 }
 
 void buddy::metrics::RecordMarlinVariables() {
@@ -351,5 +353,10 @@ void buddy::metrics::record_dwarf_internal_temperatures() {
             metric_record_custom(&board, ",n=%i,a=%i value=%i", e, e == active_extruder_or_first, static_cast<int>(buddy::puppies::dwarfs[e].get_board_temperature()));
         }
     }
+}
+
+void buddy::metrics::RecordUptime() {
+    METRIC_DEF(uptime, "uptime", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_integer(&uptime, ticks_s() / 3600);
 }
 #endif
