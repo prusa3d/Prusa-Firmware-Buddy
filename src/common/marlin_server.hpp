@@ -140,6 +140,9 @@ void unpause_nozzle(const uint8_t extruder);
 // return true if the printer is currently aborting or already aborted the print
 bool aborting_or_aborted();
 
+// return true if the printer is currently finishing or already finished the print
+bool finishing_or_finished();
+
 // return true if the printer is in the paused and not moving state
 bool printer_paused();
 

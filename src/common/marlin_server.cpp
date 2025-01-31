@@ -1093,6 +1093,20 @@ bool aborting_or_aborted() {
     return (server.print_state >= State::Aborting_Begin && server.print_state <= State::Aborted);
 }
 
+bool finishing_or_finished() {
+    switch (server.print_state) {
+    case State::Finishing_UnloadFilament:
+    case State::Finishing_ParkHead:
+    case State::Finished:
+        return true;
+
+        // ! WaitIdle means the printer is waiting for the queued gcodes to finish, so it's still a printing state!
+    case State::Finishing_WaitIdle:
+    default:
+        return false;
+    }
+}
+
 bool printer_paused() {
     return server.print_state == State::Paused;
 }
