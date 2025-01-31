@@ -44,7 +44,9 @@ namespace {
 void EmergencyStop::invoke_emergency() {
     log_info(EmergencyStop, "Emergency stop");
     emergency_invoked = true;
-    if (marlin_server::printer_idle() || marlin_server::aborting_or_aborted() || !marlin_server::all_axes_homed()) {
+
+    const bool in_quickstoppable_state = marlin_server::printer_idle() || marlin_server::aborting_or_aborted() || marlin_server::finishing_or_finished();
+    if (in_quickstoppable_state || !marlin_server::all_axes_homed()) {
         log_info(EmergencyStop, "Quickstop");
         planner.quick_stop();
         while (PreciseStepping::stopping()) {
@@ -58,15 +60,17 @@ void EmergencyStop::invoke_emergency() {
         // aren't homed yet, so that's fine to keep (and to keep partial
         // homing, because until then, we move slowly and in straight lines
         // anyway).
-        if (marlin_server::printer_idle() || marlin_server::aborting_or_aborted()) {
+        if (in_quickstoppable_state) {
             set_all_unhomed();
         }
+
     } else if (!power_panic::ac_fault_triggered) {
         log_info(EmergencyStop, "PP");
         // Do a "synthetic" power panic. Should stop _right now_ and reboot, then we'll deal with the consequences.
         // Do not beep - BFW-6472
         power_panic::should_beep = false;
         buddy::hw::acFault.triggerIT();
+
     } else {
         log_info(EmergencyStop, "Out of options");
     }
