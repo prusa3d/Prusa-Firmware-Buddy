@@ -43,7 +43,7 @@ MI_LEFT_ALIGN_TEMP::MI_LEFT_ALIGN_TEMP()
     : MenuItemSwitch(_("Temp. style"), temp_align_values, size_t(FooterItemHeater::GetDrawType())) {}
 
 void MI_LEFT_ALIGN_TEMP::OnChange(size_t /*old_index*/) {
-    FooterItemHeater::SetDrawType(footer::ItemDrawType(GetIndex()));
+    FooterItemHeater::SetDrawType(footer::ItemDrawType(get_index()));
 }
 
 MI_SHOW_ZERO_TEMP_TARGET::MI_SHOW_ZERO_TEMP_TARGET()

@@ -38,8 +38,8 @@ MI_CO_OBJECT_N::MI_CO_OBJECT_N(int ObjectId_)
 
 void MI_CO_OBJECT_N::UpdateState() {
     size_t new_index = (marlin_vars().get_cancel_object_mask() & (static_cast<uint64_t>(1) << ObjectId)) ? 1 : 0;
-    if (GetIndex() != new_index) {
-        SetIndex(new_index);
+    if (get_index() != new_index) {
+        set_index(new_index);
     }
 }
 
@@ -88,7 +88,7 @@ void MI_CO_OBJECT_N::OnChange(size_t old_index) {
         marlin_client::uncancel_object(ObjectId);
     }
 
-    SetIndex(old_index); // Keep previous index and wait for UpdateState()
+    set_index(old_index); // Keep previous index and wait for UpdateState()
 }
 
 MI_CO_CANCEL_CURRENT::MI_CO_CANCEL_CURRENT()

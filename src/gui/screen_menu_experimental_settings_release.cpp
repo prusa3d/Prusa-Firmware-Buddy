@@ -56,7 +56,7 @@ void ScreenMenuExperimentalSettings::windowEvent(window_t *sender, GUI_event_t e
         Invalidate();
         break;
     case ClickCommand::Reset_directions:
-        Item<MI_DIRECTION_E>().SetIndex(0);
+        Item<MI_DIRECTION_E>().set_index(0);
         Invalidate();
         break;
     default:
@@ -73,6 +73,6 @@ bool ExperimentalSettingsValues::operator!=(const ExperimentalSettingsValues &ot
 
 ExperimentalSettingsValues::ExperimentalSettingsValues(ScreenMenuExperimentalSettings__ &parent)
     : z_len(parent.Item<MI_Z_AXIS_LEN>().GetVal())
-    , steps_per_unit_e(parent.Item<MI_STEPS_PER_UNIT_E>().GetVal() * ((parent.Item<MI_DIRECTION_E>().GetIndex() == 1) ? -1 : 1))
+    , steps_per_unit_e(parent.Item<MI_STEPS_PER_UNIT_E>().GetVal() * ((parent.Item<MI_DIRECTION_E>().get_index() == 1) ? -1 : 1))
 
 {}

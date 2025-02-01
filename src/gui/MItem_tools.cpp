@@ -123,15 +123,15 @@ MI_FILAMENT_SENSOR::MI_FILAMENT_SENSOR()
 }
 
 void MI_FILAMENT_SENSOR::update() {
-    SetIndex(config_store().fsensor_enabled.get());
+    set_index(config_store().fsensor_enabled.get());
 }
 
 void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
     // Enabling/disabling FS can generate gcodes (I'm looking at you, MMU!).
     // Fail the action if there's no space in the queue.
     if (!gui_check_space_in_gcode_queue_with_msg()) {
-        // SetIndex doesn't call OnChange
-        SetIndex(old_index);
+        // set_index doesn't call OnChange
+        set_index(old_index);
         return;
     }
 
@@ -140,7 +140,7 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
 
     if (index && !fss.gui_wait_for_init_with_msg()) {
         FSensors_instance().set_enabled_global(false);
-        SetIndex(old_index);
+        set_index(old_index);
     }
 
     // Signal to the parent to check for changed
@@ -471,7 +471,7 @@ MI_SOUND_MODE::MI_SOUND_MODE()
 }
 
 void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
-    Sound_SetMode(static_cast<eSOUND_MODE>(GetIndex()));
+    Sound_SetMode(static_cast<eSOUND_MODE>(get_index()));
 }
 
 /*****************************************************************************/
@@ -537,7 +537,7 @@ MI_TIMEZONE_MIN::MI_TIMEZONE_MIN()
 }
 
 void MI_TIMEZONE_MIN::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().timezone_minutes.set(static_cast<time_tools::TimezoneOffsetMinutes>(GetIndex()));
+    config_store().timezone_minutes.set(static_cast<time_tools::TimezoneOffsetMinutes>(get_index()));
 }
 
 /*****************************************************************************/
@@ -546,7 +546,7 @@ MI_TIMEZONE_SUMMER::MI_TIMEZONE_SUMMER()
     : WI_ICON_SWITCH_OFF_ON_t(static_cast<uint8_t>(config_store().timezone_summer.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_TIMEZONE_SUMMER::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().timezone_summer.set(static_cast<time_tools::TimezoneOffsetSummerTime>(GetIndex()));
+    config_store().timezone_summer.set(static_cast<time_tools::TimezoneOffsetSummerTime>(get_index()));
 }
 
 /*****************************************************************************/
@@ -563,7 +563,7 @@ MI_TIME_FORMAT::MI_TIME_FORMAT()
 }
 
 void MI_TIME_FORMAT::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().time_format.set(static_cast<time_tools::TimeFormat>(GetIndex()));
+    config_store().time_format.set(static_cast<time_tools::TimeFormat>(get_index()));
 }
 
 /*****************************************************************************/
@@ -1093,7 +1093,7 @@ MI_DISPLAY_BAUDRATE::MI_DISPLAY_BAUDRATE()
 }
 
 void MI_DISPLAY_BAUDRATE::OnChange(size_t) {
-    config_store().reduce_display_baudrate.set(GetIndex());
+    config_store().reduce_display_baudrate.set(get_index());
 }
 #endif
 

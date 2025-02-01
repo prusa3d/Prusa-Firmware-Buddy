@@ -35,7 +35,7 @@ public:
     std::optional<int> GetVisibleIndex(const IWindowMenuItem &item) const;
     int GetVisibleCount() const;
 
-    bool SetIndex(int visible_index);
+    bool set_index(int visible_index);
     std::optional<int> GetFocusedIndex() const;
     bool SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1);
 };

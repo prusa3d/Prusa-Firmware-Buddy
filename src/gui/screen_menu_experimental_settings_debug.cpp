@@ -72,18 +72,18 @@ void ScreenMenuExperimentalSettings::windowEvent(window_t *sender, GUI_event_t e
         Item<MI_STEPS_PER_UNIT_Z>().SetVal(std::abs(config_store().axis_steps_per_unit_z.default_val));
         Item<MI_STEPS_PER_UNIT_E>().SetVal(std::abs(config_store().axis_steps_per_unit_e0.default_val));
         // Set default axis direction
-        Item<MI_DIRECTION_X>().SetIndex(0);
-        Item<MI_DIRECTION_Y>().SetIndex(0);
-        Item<MI_DIRECTION_Z>().SetIndex(0);
-        Item<MI_DIRECTION_E>().SetIndex(0);
+        Item<MI_DIRECTION_X>().set_index(0);
+        Item<MI_DIRECTION_Y>().set_index(0);
+        Item<MI_DIRECTION_Z>().set_index(0);
+        Item<MI_DIRECTION_E>().set_index(0);
         Invalidate();
         break;
     case ClickCommand::Reset_directions:
         // set index to Prusa
-        Item<MI_DIRECTION_X>().SetIndex(0);
-        Item<MI_DIRECTION_Y>().SetIndex(0);
-        Item<MI_DIRECTION_Z>().SetIndex(0);
-        Item<MI_DIRECTION_E>().SetIndex(0);
+        Item<MI_DIRECTION_X>().set_index(0);
+        Item<MI_DIRECTION_Y>().set_index(0);
+        Item<MI_DIRECTION_Z>().set_index(0);
+        Item<MI_DIRECTION_E>().set_index(0);
         Invalidate();
         break;
     case ClickCommand::Reset_currents:
@@ -106,10 +106,10 @@ bool ExperimentalSettingsValues::operator!=(const ExperimentalSettingsValues &ot
 
 ExperimentalSettingsValues::ExperimentalSettingsValues(ScreenMenuExperimentalSettings__ &parent)
     : z_len(parent.Item<MI_Z_AXIS_LEN>().GetVal())
-    , steps_per_unit_x(parent.Item<MI_STEPS_PER_UNIT_X>().GetVal() * ((parent.Item<MI_DIRECTION_X>().GetIndex() == 1) ? -1 : 1))
-    , steps_per_unit_y(parent.Item<MI_STEPS_PER_UNIT_Y>().GetVal() * ((parent.Item<MI_DIRECTION_Y>().GetIndex() == 1) ? -1 : 1))
-    , steps_per_unit_z(parent.Item<MI_STEPS_PER_UNIT_Z>().GetVal() * ((parent.Item<MI_DIRECTION_Z>().GetIndex() == 1) ? -1 : 1))
-    , steps_per_unit_e(parent.Item<MI_STEPS_PER_UNIT_E>().GetVal() * ((parent.Item<MI_DIRECTION_E>().GetIndex() == 1) ? -1 : 1))
+    , steps_per_unit_x(parent.Item<MI_STEPS_PER_UNIT_X>().GetVal() * ((parent.Item<MI_DIRECTION_X>().get_index() == 1) ? -1 : 1))
+    , steps_per_unit_y(parent.Item<MI_STEPS_PER_UNIT_Y>().GetVal() * ((parent.Item<MI_DIRECTION_Y>().get_index() == 1) ? -1 : 1))
+    , steps_per_unit_z(parent.Item<MI_STEPS_PER_UNIT_Z>().GetVal() * ((parent.Item<MI_DIRECTION_Z>().get_index() == 1) ? -1 : 1))
+    , steps_per_unit_e(parent.Item<MI_STEPS_PER_UNIT_E>().GetVal() * ((parent.Item<MI_DIRECTION_E>().get_index() == 1) ? -1 : 1))
     , rms_current_ma_x(parent.Item<MI_CURRENT_X>().GetVal())
     , rms_current_ma_y(parent.Item<MI_CURRENT_Y>().GetVal())
     , rms_current_ma_z(parent.Item<MI_CURRENT_Z>().GetVal())
