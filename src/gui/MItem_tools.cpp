@@ -1026,6 +1026,22 @@ void MI_DISPLAY_BACKLIGHT_BRIGHTNESS::OnClick() {
 #endif
 
 #if HAS_SIDE_LEDS()
+// MI_SIDE_LEDS_DIMMING_DURATION
+static constexpr NumericInputConfig side_led_dimming_spin_config = {
+    .max_value = 60 * 60, // 60 Minutes
+};
+
+MI_SIDE_LEDS_DIMMING_DURATION::MI_SIDE_LEDS_DIMMING_DURATION()
+    : WiSpin(config_store().side_leds_dimming_duration.get(), side_led_dimming_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_SIDE_LEDS_DIMMING_DURATION::OnClick() {
+    config_store().side_leds_dimming_duration.set(GetVal());
+    leds::side_strip_control.set_dimming_duration(GetVal());
+}
+#endif
+
+#if HAS_SIDE_LEDS()
 /**********************************************************************************************/
 // MI_SIDE_LEDS_ENABLE
 MI_SIDE_LEDS_ENABLE::MI_SIDE_LEDS_ENABLE()

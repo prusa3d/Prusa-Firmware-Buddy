@@ -692,6 +692,15 @@ public:
     MI_SIDE_LEDS_DIMMING();
     virtual void OnChange(size_t old_index) override;
 };
+
+class MI_SIDE_LEDS_DIMMING_DURATION : public WiSpin {
+    static constexpr const char *const label = N_("RGB Side Strip Dimming Duration");
+
+public:
+    MI_SIDE_LEDS_DIMMING_DURATION();
+    virtual void OnClick() override;
+};
+
 #endif
 
 #if HAS_TOOLCHANGER()

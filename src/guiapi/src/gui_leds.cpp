@@ -49,6 +49,7 @@ void leds::Init() {
 #if HAS_SIDE_LEDS()
     leds::side_strip_control.set_max_brightness(config_store().side_leds_max_brightness.get());
     leds::side_strip_control.set_dimming_enabled(config_store().side_leds_dimming_enabled.get());
+    leds::side_strip_control.set_dimming_duration(config_store().side_leds_dimming_duration.get());
 #endif
 }
 void leds::ForceRefresh(size_t cnt) {
@@ -104,6 +105,16 @@ void leds::display_backlight_brightness(unsigned percent) {
 
     SetNth(ColorRGBW(0, percent, 0), index::backlight);
 }
+
+#if HAS_SIDE_LEDS()
+void SideStripControl::set_dimming_duration(int duration_sec) {
+    config_store().side_leds_dimming_duration.set(duration_sec);
+}
+
+int SideStripControl::get_dimming_duration() {
+    return config_store().side_leds_dimming_duration.get();
+}
+#endif
 
 extern osThreadId displayTaskHandle;
 
