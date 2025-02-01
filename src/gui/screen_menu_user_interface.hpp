@@ -36,6 +36,7 @@ using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #endif
 #if HAS_LEDS()
     MI_LEDS_ENABLE,
+    MI_DISPLAY_BACKLIGHT_BRIGHTNESS,
 #endif
 #if HAS_SIDE_LEDS()
     MI_SIDE_LEDS_ENABLE,

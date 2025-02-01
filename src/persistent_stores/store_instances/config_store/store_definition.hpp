@@ -357,7 +357,7 @@ struct CurrentStore
 
     /// Whether the side leds should dim down a bit when user is not interacting with the printer or stay on full power the whole time
     StoreItem<bool, true, journal::hash("Enable Side LEDs dimming")> side_leds_dimming_enabled;
-
+    StoreItem<uint8_t, 100, journal::hash("Display backlight brightness")> leds_display_backlight_brightness;
     StoreItem<bool, true, journal::hash("Enable Tool LEDs")> tool_leds_enabled;
 
     StoreItem<float, 0.0f, journal::hash("Odometer X")> odometer_x;

@@ -655,6 +655,14 @@ public:
     MI_LEDS_ENABLE();
     virtual void OnChange(size_t old_index) override;
 };
+
+class MI_DISPLAY_BACKLIGHT_BRIGHTNESS : public WiSpin {
+    static constexpr const char *const label = N_("Display Backlight Brightness");
+
+public:
+    MI_DISPLAY_BACKLIGHT_BRIGHTNESS();
+    virtual void OnClick() override;
+};
 #endif
 
 #if HAS_SIDE_LEDS()
