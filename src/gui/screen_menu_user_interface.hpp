@@ -44,6 +44,7 @@ using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #endif
 #if HAS_TOOLCHANGER()
     MI_TOOL_LEDS_ENABLE,
+    MI_TOOL_LEDS_BRIGHTNESS,
 #endif /*HAS_TOOLCHANGER()*/
 #if HAS_TOUCH()
     MI_ENABLE_TOUCH, TOUCH_SIG_WORKAROUND, MI_TOUCH_PLAYGROUND,

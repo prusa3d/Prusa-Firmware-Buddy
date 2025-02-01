@@ -713,6 +713,16 @@ public:
 };
 #endif /*HAS_TOOLCHANGER()*/
 
+#if HAS_TOOLCHANGER()
+class MI_TOOL_LEDS_BRIGHTNESS : public WiSpin {
+    static constexpr const char *const label = N_("Tool Light Brightness");
+
+public:
+    MI_TOOL_LEDS_BRIGHTNESS();
+    virtual void OnClick() override;
+};
+#endif /*HAS_TOOLCHANGER()*/
+
 #if ENABLED(POWER_PANIC)
 class MI_TRIGGER_POWER_PANIC : public IWindowMenuItem {
     static constexpr const char *const label = N_("Trigger Power Panic");

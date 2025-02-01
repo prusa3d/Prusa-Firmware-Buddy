@@ -34,7 +34,8 @@ using ScreenMenuManualSetting = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
 #endif
 #if HAS_TOOLCHANGER()
     ,
-    MI_TOOL_LEDS_ENABLE
+    MI_TOOL_LEDS_ENABLE,
+    MI_TOOL_LEDS_BRIGHTNESS
 #endif
     >;
 } // namespace detail

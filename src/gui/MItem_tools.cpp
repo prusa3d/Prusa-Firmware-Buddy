@@ -1082,6 +1082,21 @@ void MI_TOOL_LEDS_ENABLE::OnChange(size_t old_index) {
 }
 #endif
 
+/**********************************************************************************************/
+// MI_TOOL_LEDS_BRIGHTNESS
+static constexpr NumericInputConfig tool_leds_brightness_spin_config = {
+    .max_value = 100,
+};
+
+#if HAS_TOOLCHANGER()
+MI_TOOL_LEDS_BRIGHTNESS::MI_TOOL_LEDS_BRIGHTNESS()
+    : WiSpin(config_store().tool_leds_brightness.get(), tool_leds_brightness_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+void MI_TOOL_LEDS_BRIGHTNESS::OnClick() {
+    config_store().tool_leds_brightness.set(GetVal());
+}
+#endif
+
 /*****************************************************************************/
 #if ENABLED(POWER_PANIC)
 MI_TRIGGER_POWER_PANIC::MI_TRIGGER_POWER_PANIC()
