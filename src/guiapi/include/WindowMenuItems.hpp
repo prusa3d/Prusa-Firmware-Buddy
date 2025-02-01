@@ -26,12 +26,12 @@ public:
     }
 
     // TODO: Remove this legacy function
-    inline size_t GetIndex() const {
+    inline size_t get_index() const {
         return value_;
     }
 
     // TODO: Remove this legacy function
-    inline void SetIndex(size_t index) {
+    inline void set_index(size_t index) {
         set_value(index > 0, false);
     }
 

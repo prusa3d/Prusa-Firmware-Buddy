@@ -31,8 +31,8 @@ void MI_CONNECT_ENABLED::Loop() {
     // access to our items (AFAIK).
     //
     // It should be cheap anyway - both the eeprom access is cached in RAM and
-    // the SetIndex checks it is different before doing anything.
-    SetIndex(config_store().connect_enabled.get());
+    // the set_index checks it is different before doing anything.
+    set_index(config_store().connect_enabled.get());
 }
 
 MI_CONNECT_STATUS::MI_CONNECT_STATUS()

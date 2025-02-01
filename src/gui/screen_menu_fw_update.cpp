@@ -60,13 +60,13 @@ MI_UPDATE::MI_UPDATE()
 }
 
 void MI_UPDATE::OnChange(size_t /*old_index*/) {
-    if (GetIndex() == 1) {
+    if (get_index() == 1) {
         data_exchange::fw_update_on_restart_enable();
         sys_fw_update_disable();
-    } else if (GetIndex() == 2) {
+    } else if (get_index() == 2) {
         data_exchange::fw_update_on_restart_disable();
         sys_fw_update_enable();
-    } else if (GetIndex() == 0) {
+    } else if (get_index() == 0) {
         data_exchange::fw_update_on_restart_disable();
         sys_fw_update_disable();
     }

@@ -68,7 +68,7 @@ int IWinMenuContainer::GetVisibleCount() const {
     return ret;
 }
 
-bool IWinMenuContainer::SetIndex(int visible_index) {
+bool IWinMenuContainer::set_index(int visible_index) {
     if (IWindowMenuItem *item = GetItemByVisibleIndex(visible_index)) {
         return item->move_focus();
     }
