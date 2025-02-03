@@ -23,8 +23,9 @@ public:
     void click(IWindowMenu &) final;
 
     const FilamentType filament_type;
-    const FilamentTypeParameters filament_params;
     const uint8_t target_extruder;
+    FilamentTypeParameters::Name filament_name;
+    bool is_abrasive;
 };
 
 class WindowMenuPreheat : public WindowMenuVirtual<WindowMenuCallbackItem, MI_FILAMENT> {

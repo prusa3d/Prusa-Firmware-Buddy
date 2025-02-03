@@ -24,7 +24,7 @@ private:
     WindowMenuFilamentsReorder &menu;
     const size_t index;
     FilamentType filament_type;
-    FilamentTypeParameters filament_params;
+    FilamentTypeParameters::Name filament_name;
 };
 
 class WindowMenuFilamentsReorder final : public WindowMenuVirtual<WindowMenuCallbackItem, MI_RETURN, MI_FILAMENT> {

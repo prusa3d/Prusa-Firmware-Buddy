@@ -12,6 +12,6 @@ public:
     /// * Sets up label
     /// * Possibly changes color scheme
     /// * Possibly sets up icon
-    /// \param params must be alive for the whole lifespan of the \p item !
-    static void setup_menu_item(FilamentType ft, const FilamentTypeParameters &params, IWindowMenuItem &item);
+    /// \param name_buf must be alive for the whole lifespan of the \p item !
+    static void setup_menu_item(FilamentType ft, const FilamentTypeParameters::Name &name_buf, IWindowMenuItem &item);
 };

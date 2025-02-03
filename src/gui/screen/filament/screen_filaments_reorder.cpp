@@ -58,14 +58,14 @@ void MI_FILAMENT::update() {
 
     if (filament_type != new_filament_type) {
         filament_type = new_filament_type;
-        filament_params = filament_type.parameters();
+        filament_name = filament_type.parameters().name;
 
         // Setting text does not invalidate, because it is the same reference -> do it manually
         Invalidate();
     }
 
     // Setup the menu item anyway, to make sure we've cleared the focused overrides
-    FilamentTypeGUI::setup_menu_item(filament_type, filament_params, *this);
+    FilamentTypeGUI::setup_menu_item(filament_type, filament_name, *this);
 
     // Override looks if we're focused
     if (menu.moved_filament && is_focused()) {

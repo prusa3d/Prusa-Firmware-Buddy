@@ -17,7 +17,7 @@ protected:
 
 private:
     const FilamentType filament_type;
-    const FilamentTypeParameters filament_params;
+    const FilamentTypeParameters::Name filament_name;
 };
 
 class WindowMenuFilamentManagementList final : public WindowMenuVirtual<MI_RETURN, MI_FILAMENT> {

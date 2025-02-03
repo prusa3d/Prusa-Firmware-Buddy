@@ -30,9 +30,9 @@ static constexpr DynamicIndexMapping<items> index_mapping;
 MI_FILAMENT::MI_FILAMENT(FilamentType filament_type)
     : IWindowMenuItem({}, nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes)
     , filament_type(filament_type)
-    , filament_params(filament_type.parameters()) //
+    , filament_name(filament_type.parameters().name) //
 {
-    FilamentTypeGUI::setup_menu_item(filament_type, filament_params, *this);
+    FilamentTypeGUI::setup_menu_item(filament_type, filament_name, *this);
 }
 
 void MI_FILAMENT::click(IWindowMenu &) {

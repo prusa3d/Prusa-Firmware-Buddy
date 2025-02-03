@@ -11,15 +11,15 @@ using namespace screen_filaments_visibility;
 MI_FILAMENT::MI_FILAMENT(FilamentType filament_type)
     : WI_ICON_SWITCH_OFF_ON_t(false, {})
     , filament_type(filament_type)
-    , filament_params(filament_type.parameters()) //
+    , filament_name(filament_type.parameters().name) //
 {
-    FilamentTypeGUI::setup_menu_item(filament_type, filament_params, *this);
+    FilamentTypeGUI::setup_menu_item(filament_type, filament_name, *this);
     set_value(filament_type.is_visible(), false);
 }
 
 void MI_FILAMENT::OnChange(size_t) {
     filament_type.set_visible(value());
-    FilamentTypeGUI::setup_menu_item(filament_type, filament_params, *this);
+    FilamentTypeGUI::setup_menu_item(filament_type, filament_name, *this);
 }
 
 // * WindowMenuFilamentsVisibility

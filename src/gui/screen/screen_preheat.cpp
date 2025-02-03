@@ -16,10 +16,13 @@ using namespace preheat_menu;
 MI_FILAMENT::MI_FILAMENT(FilamentType filament_type, uint8_t target_extruder)
     : WiInfo({}, nullptr, is_enabled_t::yes, is_hidden_t::no)
     , filament_type(filament_type)
-    , filament_params(filament_type.parameters())
     , target_extruder(target_extruder) //
 {
-    FilamentTypeGUI::setup_menu_item(filament_type, filament_params, *this);
+    const auto filament_params = filament_type.parameters();
+    filament_name = filament_params.name;
+    is_abrasive = filament_params.is_abrasive;
+
+    FilamentTypeGUI::setup_menu_item(filament_type, filament_name, *this);
 
     ArrayStringBuilder<GetInfoLen()> sb;
     sb.append_printf("%3u/%-3u", filament_params.nozzle_temperature, filament_params.heatbed_temperature);
@@ -27,9 +30,9 @@ MI_FILAMENT::MI_FILAMENT(FilamentType filament_type, uint8_t target_extruder)
 }
 
 void MI_FILAMENT::click(IWindowMenu &) {
-    if (filament_params.is_abrasive && !config_store().nozzle_is_hardened.get().test(target_extruder)) {
+    if (is_abrasive && !config_store().nozzle_is_hardened.get().test(target_extruder)) {
         StringViewUtf8Parameters<filament_name_buffer_size + 1> params;
-        if (MsgBoxWarning(_("Filament '%s' is abrasive, but you don't have a hardened nozzle installed. Do you really want to continue?").formatted(params, filament_params.name), Responses_YesNo) != Response::Yes) {
+        if (MsgBoxWarning(_("Filament '%s' is abrasive, but you don't have a hardened nozzle installed. Do you really want to continue?").formatted(params, filament_name), Responses_YesNo) != Response::Yes) {
             return;
         }
     }
