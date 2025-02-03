@@ -58,19 +58,19 @@
 
 /** The maximum number of SNTP servers that can be set */
 #if !defined SNTP_MAX_SERVERS || defined __DOXYGEN__
-    #define SNTP_MAX_SERVERS LWIP_DHCP_MAX_NTP_SERVERS
+    #define SNTP_MAX_SERVERS 2
 #endif
 
 /** Set this to 1 to implement the callback function called by dhcp when
  * NTP servers are received. */
 #if !defined SNTP_GET_SERVERS_FROM_DHCP || defined __DOXYGEN__
-    #define SNTP_GET_SERVERS_FROM_DHCP LWIP_DHCP_GET_NTP_SRV
+    #define SNTP_GET_SERVERS_FROM_DHCP 1
 #endif
 
 /** Set this to 1 to implement the callback function called by dhcpv6 when
  * NTP servers are received. */
 #if !defined SNTP_GET_SERVERS_FROM_DHCPV6 || defined __DOXYGEN__
-    #define SNTP_GET_SERVERS_FROM_DHCPV6 LWIP_DHCP6_GET_NTP_SRV
+    #define SNTP_GET_SERVERS_FROM_DHCPV6 1
 #endif
 
 /** Set this to 1 to support DNS names (or IP address strings) to set sntp servers

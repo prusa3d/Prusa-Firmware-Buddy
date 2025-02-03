@@ -250,3 +250,18 @@ void MI_MAC_ADDR::Loop() {
     get_MAC_address(&mac, device_id());
     ChangeInformation(mac);
 }
+
+MI_NTP_ADDR::MI_NTP_ADDR()
+    : WiInfo<DNS_MAX_NAME_LENGTH - 68>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+/*****************************************************************************/
+// MI_NTP_VIA_DHCP
+MI_NTP_VIA_DHCP::MI_NTP_VIA_DHCP()
+    : WI_ICON_SWITCH_OFF_ON_t(bool(config_store().ntp_via_dhcp.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_NTP_VIA_DHCP::OnChange(size_t /*old_index*/) {
+    bool enabled = config_store().ntp_via_dhcp.get();
+    config_store().ntp_via_dhcp.set(!enabled);
+    notify_reconfigure();
+}

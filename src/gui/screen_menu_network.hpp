@@ -11,7 +11,7 @@
 #include "MItem_network.hpp"
 #include <option/buddy_enable_connect.h>
 
-using ScreenMenuNetwork__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_NET_INTERFACE_t, MI_NETWORK_STATUS, MI_WIFI_SETTINGS, MI_ETH_SETTINGS,
+using ScreenMenuNetwork__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_NET_INTERFACE_t, MI_NETWORK_STATUS, MI_WIFI_SETTINGS, MI_ETH_SETTINGS, MI_NTP_VIA_DHCP, MI_NTP_ADDR,
 #if BUDDY_ENABLE_CONNECT()
     MI_PRUSA_CONNECT,
 #endif
