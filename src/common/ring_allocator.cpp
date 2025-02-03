@@ -1,7 +1,7 @@
 #include "ring_allocator.hpp"
 
 #include <logging/log.hpp>
-
+#include <cstdint>
 #include <cassert>
 
 LOG_COMPONENT_DEF(RingAllocator, logging::Severity::info);
