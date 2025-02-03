@@ -2754,7 +2754,7 @@ void lift_head() {
         AutoRestore _ar(feedrate_mm_s, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z));
         destination = current_position;
         destination.z += distance;
-        prepare_move_to_destination({});
+        prepare_move_to_destination();
         planner.synchronize();
 
     } else {
