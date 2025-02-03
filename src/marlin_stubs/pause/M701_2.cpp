@@ -43,6 +43,11 @@ static bool load_unload(Pause::LoadType load_type, pause::Settings &rSettings) {
     float disp_temp = marlin_vars().active_hotend().display_nozzle;
     float targ_temp = Temperature::degTargetHotend(rSettings.GetExtruder());
 
+    float previous_filament_temp = config_store().get_previous_filament_temp(rSettings.GetExtruder());
+    if (previous_filament_temp > disp_temp) {
+        targ_temp = (float)((double)targ_temp + (((double)previous_filament_temp - (double)targ_temp) * 0.6));
+    }
+
     if (disp_temp > targ_temp) {
         thermalManager.setTargetHotend(disp_temp, rSettings.GetExtruder());
     }
@@ -197,6 +202,7 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res, uint
         const float disp_temp = config_store().get_filament_type(target_extruder).parameters().nozzle_preheat_temperature;
         thermalManager.setTargetHotend(disp_temp, target_extruder);
         marlin_server::set_temp_to_display(disp_temp, target_extruder);
+        config_store().set_previous_filament_temp(target_extruder, disp_temp);
         break;
     }
     case PreheatStatus::Result::CooledDown:
