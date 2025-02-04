@@ -124,25 +124,19 @@ if(${TRANSLATIONS_IN_EXTFLASH})
   endforeach()
 endif()
 
-# non-packed images, set the list of images to process
-set(NONPACKED_PNG_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/resources")
-
-# convert non-packed PNG->QOI, do all of them, even though not all will be used
-set(NONPACKED_PNGS "pre_bootstrap_pngs/prusa_mini_splash_207x47.png")
-
-foreach(NONPACKED_PNG ${NONPACKED_PNGS})
+# TODO Try to get rid of the pre-bootstrap images like rest of the printers
+if(PRINTER STREQUAL "MINI")
+  set(NONPACKED_PNG "pre_bootstrap_pngs/prusa_mini_splash_207x47.png")
   get_filename_component(NONPACKED_NAME ${NONPACKED_PNG} NAME_WE)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${NONPACKED_NAME}.qoi
     DEPENDS ${NONPACKED_PNG}
     COMMAND
-      "${Python3_EXECUTABLE}" "${qoi_generator_py}" "${NONPACKED_PNG_SOURCE_DIR}/${NONPACKED_PNG}"
+      "${Python3_EXECUTABLE}" "${qoi_generator_py}"
+      "${CMAKE_SOURCE_DIR}/src/resources/${NONPACKED_PNG}"
       "${CMAKE_CURRENT_BINARY_DIR}/nonpacked.res"
       "${CMAKE_CURRENT_BINARY_DIR}/${NONPACKED_NAME}.qoi"
     )
-endforeach()
-
-if(PRINTER STREQUAL "MINI")
   add_resource("${CMAKE_CURRENT_BINARY_DIR}/prusa_mini_splash_207x47.qoi" "printer_logo.qoi")
 endif()
 
