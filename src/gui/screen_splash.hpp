@@ -6,10 +6,7 @@
 class screen_splash_data_t : public screen_t {
 #if HAS_MINI_DISPLAY()
     img::ResourceSingleFile img_printer;
-    img::ResourceSingleFile img_marlin;
-
     window_icon_t icon_logo_printer;
-    window_icon_t icon_logo_marlin;
 #endif // USE_7789
 
     window_text_t text_progress;

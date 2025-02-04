@@ -63,9 +63,7 @@ screen_splash_data_t::screen_splash_data_t()
     : screen_t()
 #if HAS_MINI_DISPLAY()
     , img_printer("/internal/res/printer_logo.qoi") // dimensions are printer dependent
-    , img_marlin("/internal/res/marlin_logo_79x61.qoi")
     , icon_logo_printer(this, &img_printer, point_i16_t(0, 84), window_icon_t::Center::x, GuiDefaults::ScreenWidth)
-    , icon_logo_marlin(this, &img_marlin, point_i16_t(80, 225))
 #endif
     , text_progress(this, Rect16(0, SPLASHSCREEN_VERSION_Y, GuiDefaults::ScreenWidth, 18), is_multiline::no)
     , progress(this, Rect16(SPLASHSCREEN_PROGRESSBAR_X, SPLASHSCREEN_PROGRESSBAR_Y, SPLASHSCREEN_PROGRESSBAR_W, SPLASHSCREEN_PROGRESSBAR_H), COLOR_ORANGE, COLOR_GRAY, 6)

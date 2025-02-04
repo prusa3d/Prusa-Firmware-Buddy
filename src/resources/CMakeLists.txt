@@ -128,9 +128,7 @@ endif()
 set(NONPACKED_PNG_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/resources")
 
 # convert non-packed PNG->QOI, do all of them, even though not all will be used
-set(NONPACKED_PNGS "pre_bootstrap_pngs/marlin_logo_79x61.png"
-                   "pre_bootstrap_pngs/prusa_mini_splash_207x47.png"
-    )
+set(NONPACKED_PNGS "pre_bootstrap_pngs/prusa_mini_splash_207x47.png")
 
 foreach(NONPACKED_PNG ${NONPACKED_PNGS})
   get_filename_component(NONPACKED_NAME ${NONPACKED_PNG} NAME_WE)
@@ -144,7 +142,6 @@ foreach(NONPACKED_PNG ${NONPACKED_PNGS})
     )
 endforeach()
 
-add_resource("${CMAKE_CURRENT_BINARY_DIR}/marlin_logo_79x61.qoi" "marlin_logo_79x61.qoi")
 if(PRINTER STREQUAL "MINI")
   add_resource("${CMAKE_CURRENT_BINARY_DIR}/prusa_mini_splash_207x47.qoi" "printer_logo.qoi")
 endif()
