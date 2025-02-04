@@ -128,9 +128,8 @@ endif()
 set(NONPACKED_PNG_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/resources")
 
 # convert non-packed PNG->QOI, do all of them, even though not all will be used
-set(NONPACKED_PNGS
-    "pre_bootstrap_pngs/marlin_logo_79x61.png" "pre_bootstrap_pngs/prusa_mini_splash_207x47.png"
-    "pre_bootstrap_pngs/prusa_ix_splash_158x52.png" "pre_bootstrap_pngs/prusa_xl_splash_172x52.png"
+set(NONPACKED_PNGS "pre_bootstrap_pngs/marlin_logo_79x61.png"
+                   "pre_bootstrap_pngs/prusa_mini_splash_207x47.png"
     )
 
 foreach(NONPACKED_PNG ${NONPACKED_PNGS})
