@@ -99,11 +99,6 @@ void gui_handle_touch() {
     // we must notify serve to so it knows user is doing something and resets menu timeout, heater timeout ...
     Screens::Access()->ResetTimeout();
 
-    if (touch_event.type == GUI_event_t::TOUCH_CLICK) {
-        Sound_Play(eSOUND_TYPE::ButtonEcho);
-        marlin_client::notify_server_about_knob_click();
-    }
-
     event_conversion_union event_data {
         .point = {
             .x = touch_event.pos_x,
@@ -120,6 +115,11 @@ void gui_handle_touch() {
 
     else if (window_t *captured_window = Screens::Access()->Get()->GetCapturedWindow(); captured_window && captured_window->get_rect_for_touch().Contain(event_data.point)) {
         captured_window->WindowEvent(captured_window, touch_event.type, event_data.pvoid);
+    }
+
+    if (touch_event.type == GUI_event_t::TOUCH_CLICK) {
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        marlin_client::notify_server_about_knob_click();
     }
 }
 #endif

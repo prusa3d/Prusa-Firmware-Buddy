@@ -91,7 +91,6 @@ bool gui::knob::EventEncoder(int diff) {
 
 bool gui::knob::EventClick(BtnState_t state) {
     static bool dont_click_on_next_release = false;
-    marlin_client::notify_server_about_knob_click();
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
 
 #if HAS_SIDE_LEDS()
@@ -109,6 +108,11 @@ bool gui::knob::EventClick(BtnState_t state) {
             capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CLICK, 0);
         }
         dont_click_on_next_release = false;
+
+        // Only send after the click is processed on the GUI side - marlin might close some open warnigns as a result of user activity,
+        // we don't want the user to acidentally interact with something else
+        // BFW-6451
+        marlin_client::notify_server_about_knob_click();
         break;
     case BtnState_t::Held:
         Sound_Play(eSOUND_TYPE::ButtonEcho);
