@@ -160,7 +160,7 @@ screen_home_data_t::screen_home_data_t()
     , header(this)
     , footer(this)
 #if HAS_MINI_DISPLAY()
-    , logo(this, logoRect, &img::printer_logo)
+    , logo(this, logoRect, &img::prusa_mini_logo_153x40)
 #endif
     , w_buttons {
         { this, Rect16(), nullptr, [](window_t&) { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
