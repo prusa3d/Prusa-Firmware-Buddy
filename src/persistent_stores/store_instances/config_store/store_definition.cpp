@@ -77,7 +77,17 @@ namespace {
 void CurrentStore::perform_config_migrations() {
     // See the comment on the bottom of this function
 
-    // >> First migration function goes here <<
+#if PRINTER_IS_PRUSA_MK4()
+    if (should_migrate<1>()) {
+        // We've introduced nozzle_is_high_flow in 6.2.0
+        // If the user upgrades from previous FW versions, we need to guess the HF nozleness based on whether he has MK4S or not
+        // BFW-6727
+        const bool is_mk4s = (PrinterModelInfo::current().model == PrinterModel::mk4s);
+
+        // Bitset -> first and only nozzle
+        nozzle_is_high_flow.set(is_mk4s ? (1 << 0) : 0);
+    }
+#endif
 
     // To add a migration:
     // - increment newest_config_version
