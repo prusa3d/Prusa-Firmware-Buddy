@@ -50,6 +50,10 @@ static int calibrated_offset_mscnt(const AxisEnum axis, const int mscnt, bool &c
  * \returns offset [mm] to be subtracted from the current axis position to have correct position
  */
 float calibrated_home_offset(const AxisEnum axis) {
+    if (axis >= config_store_ns::CurrentStore::precise_homing_axis_count) {
+        return 0;
+    }
+
     bool calibrated;
     const int cal = get_calibrated_home(axis, calibrated);
     if (!calibrated) {
@@ -88,7 +92,7 @@ static int32_t home_and_get_calibration_offset(AxisEnum axis, int axis_home_dir,
         if ((probe_offset >= axis_home_min_diff(axis))
             && (probe_offset <= axis_home_max_diff(axis))
             && store_samples) {
-            PersistentStorage::pushHomeSample(mscnt, 255, axis); // todo board_temp
+            PersistentStorage::pushHomeSample(mscnt, axis);
         } else {
             break_loop = true;
         }

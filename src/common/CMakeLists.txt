@@ -46,7 +46,6 @@ if(BOARD MATCHES ".*BUDDY")
             odometer.cpp
             otp.cpp
             path_utils.cpp
-            PersistentStorage.cpp
             Pin.cpp
             ping_manager.cpp
             print_utils.cpp
@@ -233,6 +232,10 @@ endif()
 if(BOARD_IS_MASTER_BOARD)
   add_subdirectory(gcode)
   add_subdirectory(feature)
+endif()
+
+if(HAS_PRECISE_HOMING)
+  target_sources(firmware PRIVATE PersistentStorage.cpp)
 endif()
 
 add_subdirectory(utils)

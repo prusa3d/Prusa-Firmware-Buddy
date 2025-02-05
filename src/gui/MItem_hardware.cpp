@@ -3,7 +3,6 @@
 #include "WindowMenuSpin.hpp"
 #include <option/has_toolchanger.h>
 #include <option/has_side_fsensor.h>
-#include <PersistentStorage.h>
 #include <common/nozzle_diameter.hpp>
 #include <screen_menu_hardware_checks.hpp>
 #include <common/printer_model_data.hpp>
@@ -70,17 +69,18 @@ void MI_EXTENDED_PRINTER_TYPE::OnChange(size_t old_index) {
     #if EXTENDED_PRINTER_TYPE_DETERMINES_MOTOR_STEPS()
     // Reset motor configuration if the printer types have different motors
     if (extended_printer_type_has_400step_motors[old_index] != extended_printer_type_has_400step_motors[index]) {
-        // This code is copied over from MI_MK4_MK39
-        // This line looks absolutely terrible, I agree. It apparently just clears homing data.
-        PersistentStorage::erase();
-
         {
             auto &store = config_store();
             auto transaction = store.get_backend().transaction_guard();
-            store.homing_sens_x.set(store.homing_sens_x.default_val);
-            store.homing_sens_y.set(store.homing_sens_y.default_val);
-            store.homing_bump_divisor_x.set(store.homing_bump_divisor_x.default_val);
-            store.homing_bump_divisor_y.set(store.homing_bump_divisor_y.default_val);
+            store.homing_sens_x.set_to_default();
+            store.homing_sens_y.set_to_default();
+            store.homing_bump_divisor_x.set_to_default();
+            store.homing_bump_divisor_y.set_to_default();
+
+        #if ENABLED(PRECISE_HOMING)
+            store.precise_homing_sample_history.set_all_to_default();
+            store.precise_homing_sample_history_index.set_all_to_default();
+        #endif
         }
 
         // Reset XY homing sensitivity
