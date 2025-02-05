@@ -12,6 +12,14 @@ public:
     virtual void OnClick() override;
 };
 
+/// Manual control for chamber fans
+/// Automatically hidden if the extboard is disabled
+class MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX : public WiSpin {
+public:
+    MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX();
+    virtual void OnClick() override;
+};
+
 /// Manual control for chamber filtration fan
 class MI_XBE_FILTRATION_FAN : public WiSpin {
 public:

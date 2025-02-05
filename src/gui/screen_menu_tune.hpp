@@ -54,6 +54,7 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
     MI_PRINTFAN,
 #if HAS_XBUDDY_EXTENSION()
     MI_XBUDDY_EXTENSION_COOLING_FANS,
+    MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX,
 #endif
 #if HAS_LOADCELL()
     MI_LIVE_ADJUST_Z, // position with loadcell
