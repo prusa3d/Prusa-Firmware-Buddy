@@ -58,6 +58,38 @@ void CurrentStore::perform_config_check() {
     if constexpr (!option::development_items) {
         sys_fw_update_disable();
     }
+
+    // First run -> the config store is empty -> we don't need to do any migrations from older versions
+    if (!is_first_run && config_version.get() != newest_config_version) {
+        perform_config_migrations();
+    }
+
+    config_version.set(newest_config_version);
+}
+
+namespace {
+    template <size_t new_version>
+    bool should_migrate() {
+        static_assert(CurrentStore::newest_config_version >= new_version);
+        return config_store().config_version.get() < new_version;
+    }
+} // namespace
+
+void CurrentStore::perform_config_migrations() {
+    // See the comment on the bottom of this function
+
+    // >> First migration function goes here <<
+
+    // To add a migration:
+    // - increment newest_config_version
+    // - add if(should_migrate<X>) { your migration code } at the END of this function
+    //    - the migrations have to be in an increasing order
+    //    - the X shall be the new incremented newest_config_version value
+    // - keep this comment on the BOTTOM of this function, so that it's visible when reviewing every new migration
+    //
+    // Don't confuse this with the config_store migrations.
+    // - config_store migrations are migrations on store item level (when the item structure changes and so on). They do not have access to the whole config_store/printer state.
+    // - migrations here are for the higher abstraction level
 }
 
 footer::Item CurrentStore::get_footer_setting([[maybe_unused]] uint8_t index) {
