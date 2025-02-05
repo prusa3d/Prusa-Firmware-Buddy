@@ -62,6 +62,12 @@ struct CurrentStore
     /// This is an opportunity to check for invalid config combinations and such
     void perform_config_check();
 
+    /// Config store "version", gets incremented each time we need to add a new config migration
+    static constexpr uint8_t newest_config_version = 0;
+
+    /// Stores newest_migration_version of the previous firmware
+    StoreItem<uint8_t, 0, journal::hash("Config Version")> config_version;
+
     // wizard flags
     StoreItem<bool, true, journal::hash("Run Selftest")> run_selftest;
 
@@ -546,6 +552,9 @@ struct CurrentStore
     StoreItemArray<uint16_t, uint16_t { 0xffff }, journal::hash("Precise homing samples"), 32, precise_homing_axis_count * precise_homing_axis_sample_count> precise_homing_sample_history;
     StoreItemArray<uint8_t, uint8_t { 0 }, journal::hash("Precise homing samples index"), 3, precise_homing_axis_count> precise_homing_sample_history_index;
 #endif
+
+private:
+    void perform_config_migrations();
 };
 
 /**
