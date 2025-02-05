@@ -12,7 +12,6 @@
 #include "algorithm_scale.hpp"
 #include "printers.h"
 #include "homing_reporter.hpp"
-#include "PersistentStorage.h"
 #include "config_store/store_instance.hpp"
 
 #include <limits>

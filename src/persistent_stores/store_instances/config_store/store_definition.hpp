@@ -569,6 +569,14 @@ struct CurrentStore
 #if ENABLED(PRECISE_HOMING_COREXY) && HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
     StoreItem<CoreXYHomeTMCSens, COREXY_NO_HOME_TMC_SENS, journal::hash("CoreXY home TMC calibration")> corexy_home_tmc_sens;
 #endif
+#if ENABLED(PRECISE_HOMING)
+    static constexpr uint8_t precise_homing_axis_sample_count = 9;
+    static constexpr uint8_t precise_homing_axis_count = 2;
+
+    /// Per-axis circular buffer that keeps \p precise_homing_axis_sample_count latest hoing samples
+    StoreItemArray<uint16_t, uint16_t { 0xffff }, ournal::hash("Precise homing samples"), 32, precise_homing_axis_count * precise_homing_axis_sample_count> precise_homing_sample_history;
+    StoreItemArray<uint8_t, uint8_t { 0 }, journal::hash("Precise homing samples index"), 3, precise_homing_axis_count> precise_homing_sample_history_index;
+#endif
 };
 
 /**

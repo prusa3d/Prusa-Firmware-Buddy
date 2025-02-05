@@ -24,7 +24,6 @@
 #include "time_tools.hpp"
 #include "footer_eeprom.hpp"
 #include <version/version.hpp>
-#include "../../common/PersistentStorage.h"
 #include "sys.h"
 #include "w25x.h"
 #include <bootloader/bootloader.hpp>
