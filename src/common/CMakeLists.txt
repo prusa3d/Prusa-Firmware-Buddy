@@ -234,7 +234,7 @@ if(BOARD_IS_MASTER_BOARD)
   add_subdirectory(feature)
 endif()
 
-if(HAS_PRECISE_HOMING)
+if(PRINTER IN_LIST PRINTERS_WITH_PRECISE_HOMING)
   target_sources(firmware PRIVATE PersistentStorage.cpp)
 endif()
 

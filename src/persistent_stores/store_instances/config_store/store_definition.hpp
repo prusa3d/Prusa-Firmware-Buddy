@@ -543,7 +543,7 @@ struct CurrentStore
     static constexpr uint8_t precise_homing_axis_count = 2;
 
     /// Per-axis circular buffer that keeps \p precise_homing_axis_sample_count latest hoing samples
-    StoreItemArray<uint16_t, uint16_t { 0xffff }, ournal::hash("Precise homing samples"), 32, precise_homing_axis_count * precise_homing_axis_sample_count> precise_homing_sample_history;
+    StoreItemArray<uint16_t, uint16_t { 0xffff }, journal::hash("Precise homing samples"), 32, precise_homing_axis_count * precise_homing_axis_sample_count> precise_homing_sample_history;
     StoreItemArray<uint8_t, uint8_t { 0 }, journal::hash("Precise homing samples index"), 3, precise_homing_axis_count> precise_homing_sample_history_index;
 #endif
 };

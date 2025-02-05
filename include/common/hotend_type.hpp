@@ -5,6 +5,7 @@
 #include <enum_array.hpp>
 #include <i18n.h>
 #include <printers.h>
+#include <utility_extensions.hpp>
 
 #define HAS_HOTEND_TYPE_SUPPORT() (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_iX())
 
