@@ -55,6 +55,10 @@ enum class WarningType : uint32_t {
 #if HAS_UNEVEN_BED_PROMPT()
     BedUnevenAlignmentPrompt,
 #endif
+#if HAS_CHAMBER_API()
+    ChamberOverheatingTemperature,
+    ChamberCriticalTemperature,
+#endif
     AccelerometerCommunicationFailed,
     _last = AccelerometerCommunicationFailed,
 };
