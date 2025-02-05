@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <ctime>
+#include <utility_extensions.hpp>
 
 namespace time_tools {
 
