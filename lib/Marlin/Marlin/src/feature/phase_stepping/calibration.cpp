@@ -424,14 +424,7 @@ std::vector<float> phase_stepping::analyze_resonance(AxisEnum axis,
     for (auto n : requested_harmonics) {
         std::size_t harm = n * motor_period_count;
         assert(harm < signal.size());
-        if (harm <= 0 || harm >= signal.size() - 1) {
-            res.push_back(dft_n_mag(signal, n * motor_period_count));
-        } else {
-            float a1 = dft_n_mag(signal, n * motor_period_count - 1);
-            float a2 = dft_n_mag(signal, n * motor_period_count);
-            float a3 = dft_n_mag(signal, n * motor_period_count + 1);
-            res.push_back((a1 + a2 + a3) / 3.f / motor_period_count);
-        }
+        res.push_back(dft_n_mag(signal, harm) / motor_period_count);
 
         idle(true, true);
     }
