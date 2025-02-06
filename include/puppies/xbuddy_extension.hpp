@@ -12,7 +12,7 @@ namespace buddy::puppies {
 
 class XBuddyExtension final : public ModbusDevice {
 public:
-    static constexpr size_t FAN_CNT = 3;
+    static constexpr size_t FAN_CNT = xbuddy_extension_shared::fan_count;
     using FilamentSensorState = xbuddy_extension_shared::FilamentSensorState;
 
     XBuddyExtension(PuppyModbus &bus, const uint8_t modbus_address);
