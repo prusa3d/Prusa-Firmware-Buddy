@@ -5,6 +5,7 @@
 #include <transfers/monitor.hpp>
 #include <transfers/changed_path.hpp>
 #include <feature/chamber/chamber.hpp>
+#include <pwm_utils.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -444,7 +445,7 @@ TEST_CASE("Command Set value - chamber.target_temp set/unset logic") {
 }
 
 namespace buddy {
-extern std::optional<uint8_t> fan12pwm;
+extern PWM255OrAuto cооling_fans_pwm;
 } // namespace buddy
 
 TEST_CASE("Command Set value - xbuddy_extension fan1, 2 set/unset logic") {
@@ -452,19 +453,19 @@ TEST_CASE("Command Set value - xbuddy_extension fan1, 2 set/unset logic") {
         Test test;
         auto command = Command { CommandId(0), SetValue { PropertyName::ChamberFanPwmTarget, 0, int8_t(-1) } };
         test.planner.command(command);
-        REQUIRE_FALSE(buddy::fan12pwm.has_value());
+        REQUIRE(buddy::cооling_fans_pwm == pwm_auto);
     }
     SECTION("0%") {
         Test test;
         auto command = Command { CommandId(0), SetValue { PropertyName::ChamberFanPwmTarget, 0, int8_t(0) } };
         test.planner.command(command);
-        REQUIRE(buddy::fan12pwm.value() == 0);
+        REQUIRE(buddy::cооling_fans_pwm == PWM255 { 0 });
     }
     SECTION("100%") {
         Test test;
         auto command = Command { CommandId(0), SetValue { PropertyName::ChamberFanPwmTarget, 0, int8_t(100) } };
         test.planner.command(command);
-        REQUIRE(buddy::fan12pwm.value() == 255);
+        REQUIRE(buddy::cооling_fans_pwm == PWM255 { 255 });
     }
 }
 

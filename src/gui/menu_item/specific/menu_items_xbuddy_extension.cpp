@@ -6,27 +6,42 @@
 
 using namespace buddy;
 
+namespace {
+void setup_fan_item(WiSpin &item, XBuddyExtension::Fan fan) {
+    auto &exb = xbuddy_extension();
+    item.set_is_hidden(exb.status() == XBuddyExtension::Status::disabled);
+
+    const auto tgt = exb.fan_target_pwm(fan);
+    item.set_value(tgt.transform(XBuddyExtension::FanPWM::to_percent_static).value_or(*item.config().special_value));
+}
+
+void handle_fan_item_click(WiSpin &item, XBuddyExtension::Fan fan) {
+    XBuddyExtension::FanPWMOrAuto tgt = pwm_auto;
+    if (const auto val = item.value_opt()) {
+        tgt = XBuddyExtension::FanPWM::from_percent(*val);
+    }
+    xbuddy_extension().set_fan_target_pwm(fan, tgt);
+}
+
+template <XBuddyExtension::Fan fan>
+FanPWMAndRPM fan_info_function(auto) {
+    return FanPWMAndRPM {
+        .pwm = xbuddy_extension().fan_actual_pwm(fan).value,
+        .rpm = xbuddy_extension().fan_rpm(fan),
+    };
+}
+} // namespace
+
 // MI_XBUDDY_EXTENSION_CHAMBER_FANS
 // =============================================
 MI_XBUDDY_EXTENSION_COOLING_FANS::MI_XBUDDY_EXTENSION_COOLING_FANS()
     : WiSpin(0, numeric_input_config::percent_with_auto, _("Chamber Fans")) //
 {
-    auto &exb = xbuddy_extension();
-    set_is_hidden(exb.status() == XBuddyExtension::Status::disabled);
-
-    set_value(
-        exb.has_fan1_fan2_auto_control()
-            ? *config().special_value
-            : exb.fan1_fan2_pwm().to_percent());
+    setup_fan_item(*this, XBuddyExtension::Fan::cooling_fan_1);
 }
 
 void MI_XBUDDY_EXTENSION_COOLING_FANS::OnClick() {
-    auto &exb = xbuddy_extension();
-    if (value() == config().special_value) {
-        exb.set_fan1_fan2_auto_control();
-    } else {
-        exb.set_fan1_fan2_pwm(XBuddyExtension::FanPWM::from_percent(value()));
-    }
+    handle_fan_item_click(*this, XBuddyExtension::Fan::cooling_fan_1);
 }
 
 // MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX
@@ -52,46 +67,33 @@ void MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX::OnClick() {
 // MI_XBE_FILTRATION_FAN
 // =============================================
 MI_XBE_FILTRATION_FAN::MI_XBE_FILTRATION_FAN()
-    : WiSpin(xbuddy_extension().fan3_pwm().to_percent(), numeric_input_config::percent_with_off, _("Filtration Fan")) //
+    : WiSpin(0, numeric_input_config::percent_with_auto, _("Filtration Fan")) //
 {
+    setup_fan_item(*this, XBuddyExtension::Fan::filtration_fan);
 }
+
 void MI_XBE_FILTRATION_FAN::OnClick() {
-    xbuddy_extension().set_fan3_pwm(XBuddyExtension::FanPWM::from_percent(value()));
+    handle_fan_item_click(*this, XBuddyExtension::Fan::filtration_fan);
 }
 
 // MI_INFO_XBUDDY_EXTENSION_FAN1
 // =============================================
 MI_INFO_XBUDDY_EXTENSION_FAN1::MI_INFO_XBUDDY_EXTENSION_FAN1()
-    : WI_FAN_LABEL_t(_("Chamber Fan 1"),
-        [](auto) { return FanPWMAndRPM {
-                       .pwm = xbuddy_extension().fan1_fan2_pwm().value,
-                       .rpm = xbuddy_extension().fan1_rpm(),
-                   }; } //
-    ) {
+    : WI_FAN_LABEL_t(_("Chamber Fan 1"), fan_info_function<XBuddyExtension::Fan::cooling_fan_1>) {
     set_is_hidden(xbuddy_extension().status() == XBuddyExtension::Status::disabled);
 }
 
 // MI_INFO_XBUDDY_EXTENSION_FAN2
 // =============================================
 MI_INFO_XBUDDY_EXTENSION_FAN2::MI_INFO_XBUDDY_EXTENSION_FAN2()
-    : WI_FAN_LABEL_t(_("Chamber Fan 2"),
-        [](auto) { return FanPWMAndRPM {
-                       .pwm = xbuddy_extension().fan1_fan2_pwm().value,
-                       .rpm = xbuddy_extension().fan2_rpm(),
-                   }; } //
-    ) {
+    : WI_FAN_LABEL_t(_("Chamber Fan 2"), fan_info_function<XBuddyExtension::Fan::cooling_fan_2>) {
     set_is_hidden(xbuddy_extension().status() == XBuddyExtension::Status::disabled);
 }
 
 // MI_INFO_XBUDDY_EXTENSION_FAN3
 // =============================================
 MI_INFO_XBUDDY_EXTENSION_FAN3::MI_INFO_XBUDDY_EXTENSION_FAN3()
-    : WI_FAN_LABEL_t(_("Filtration Fan"),
-        [](auto) { return FanPWMAndRPM {
-                       .pwm = xbuddy_extension().fan3_pwm().value,
-                       .rpm = xbuddy_extension().fan3_rpm(),
-                   }; } //
-    ) {
+    : WI_FAN_LABEL_t(_("Filtration fan"), fan_info_function<XBuddyExtension::Fan::filtration_fan>) {
     set_is_hidden(xbuddy_extension().status() == XBuddyExtension::Status::disabled);
 }
 

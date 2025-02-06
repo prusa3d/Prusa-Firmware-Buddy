@@ -82,7 +82,7 @@ Chamber::Capabilities Chamber::capabilities_nolock(Chamber::Backend backend) con
             .temperature_reporting = true,
 
             // The chamber can effectively control temperature only if the fans are in auto mode
-                .cooling = xbuddy_extension().has_fan1_fan2_auto_control(),
+                .cooling = (xbuddy_extension().fan_target_pwm(XBuddyExtension::Fan::cooling_fan_1) == pwm_auto),
 
             // But always show temperature control menu items, even if disabled
                 .always_show_temperature_control = true,
@@ -172,7 +172,7 @@ void Chamber::reset() {
     target_temperature_ = std::nullopt;
 
 #if HAS_XBUDDY_EXTENSION()
-    xbuddy_extension().set_fan1_fan2_auto_control();
+    xbuddy_extension().set_fan_target_pwm(XBuddyExtension::Fan::cooling_fan_1, pwm_auto);
 #endif
 }
 

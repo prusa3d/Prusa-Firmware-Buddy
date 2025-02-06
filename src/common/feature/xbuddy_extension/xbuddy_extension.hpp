@@ -25,7 +25,9 @@ public: // General things, status
         ready,
     };
 
+    using Fan = xbuddy_extension_shared::Fan;
     using FilamentSensorState = xbuddy_extension_shared::FilamentSensorState;
+    using FanRPM = uint16_t;
     using FanPWM = PWM255;
     using FanPWMOrAuto = PWM255OrAuto;
 
@@ -34,34 +36,18 @@ public: // General things, status
     void step();
 
 public: // Fans
-    /// \returns measured RPM of the fan1 (chamber cooling)
-    std::optional<uint16_t> fan1_rpm() const;
+    /// \returns measured RPM of the specified fan
+    std::optional<FanRPM> fan_rpm(Fan fan) const;
 
-    /// \returns measured RPM of the fan2 (chamber cooling)
-    std::optional<uint16_t> fan2_rpm() const;
+    /// \returns shared target PWM of the specified fan
+    FanPWMOrAuto fan_target_pwm(Fan fan) const;
 
-    /// \returns shared target PWM for fan1/fan2
-    FanPWM fan1_fan2_pwm() const;
+    /// \returns actual PWM the fans are controlled to
+    FanPWM fan_actual_pwm(Fan fan) const;
 
-    /// Sets PWM for fan 1 and fan 2 (chamber cooling fans; 0-255)
-    /// The fans have a single shared PWM line, so they can only be set both at once
-    /// Disables \p has_fan1_fan2_auto_control control
-    void set_fan1_fan2_pwm(FanPWM pwm);
-
-    /// \returns whether the fan1 & fan2 are in auto control mode (or values set explicitly by set_XX_pwm)
-    bool has_fan1_fan2_auto_control() const;
-
-    /// See \p has_fan1_fan2_auto_control
-    void set_fan1_fan2_auto_control();
-
-    /// \returns measured RPM of the fan3 (in-chamber filtration)
-    std::optional<uint16_t> fan3_rpm() const;
-
-    /// \returns target PWM for fan3
-    FanPWM fan3_pwm() const;
-
-    /// Sets PRM for fan 3 (in-chamber filtration, 0-255)
-    void set_fan3_pwm(FanPWM pwm);
+    /// Sets target PWM for the given fan. The PWM can be overriden by some emergency events
+    /// * Please note than PWM control for the cooling fans is shared (so calling this with Fan::cooling_fan_1 does the same as with Fan::cooling_fan_2)
+    void set_fan_target_pwm(Fan fan, FanPWMOrAuto target);
 
     /// A convenience function returning a structure of data to be used in the Connect interface
     /// The key idea here is to avoid locking the internal mutex for every member while providing a consistent state of values.
@@ -110,9 +96,10 @@ private:
     FanCooling chamber_cooling;
 
     FanPWMOrAuto cooling_fans_target_pwm_ = pwm_auto;
-    FanPWM cooling_fans_actual_pwm_;
+    FanPWMOrAuto filtration_fan_target_pwm_ = pwm_auto;
 
-    FanPWM fan3_pwm_;
+    FanPWM cooling_fans_actual_pwm_;
+    FanPWM filtration_fan_actual_pwm_;
 
     // keeps the last timestamp of Fan PWM update
     uint32_t last_fan_update_ms;

@@ -1,8 +1,10 @@
 #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 
+#include <utility>
+
 namespace buddy {
 
-std::optional<XBuddyExtension::FanPWM> fan12pwm = std::nullopt;
+PWM255OrAuto cооling_fans_pwm = pwm_auto;
 
 XBuddyExtension::XBuddyExtension() {
 }
@@ -12,12 +14,10 @@ XBuddyExtension &xbuddy_extension() {
     return x;
 }
 
-void XBuddyExtension::set_fan1_fan2_pwm(FanPWM pwm) {
-    fan12pwm = pwm;
-}
-
-void XBuddyExtension::set_fan1_fan2_auto_control() {
-    fan12pwm.reset();
+void XBuddyExtension::set_fan_target_pwm(Fan fan, FanPWMOrAuto pwm) {
+    if (fan == Fan::cooling_fan_1) {
+        cооling_fans_pwm = pwm;
+    }
 }
 
 bool usbpower = false;

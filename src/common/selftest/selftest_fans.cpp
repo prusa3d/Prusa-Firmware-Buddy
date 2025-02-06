@@ -10,6 +10,7 @@
 LOG_COMPONENT_REF(Selftest);
 
 using namespace fan_selftest;
+using namespace buddy;
 
 void FanHandler::evaluate() {
     calculate_avg_rpm();
@@ -66,39 +67,19 @@ static_assert(buddy::puppies::XBuddyExtension::FAN_CNT == XBEFanTestResults::fan
 
 XBEFanHandler::XBEFanHandler(const FanType type, uint8_t desc_num, FanRPMRange fan_range)
     : FanHandler(type, fan_range, desc_num) {
-    if ((desc_num == 0 || desc_num == 1) && buddy::xbuddy_extension().has_fan1_fan2_auto_control()) {
-        has_auto_mode = true;
-    }
+    original_pwm = xbuddy_extension().fan_target_pwm(static_cast<XBuddyExtension::Fan>(desc_num));
 }
 
 XBEFanHandler::~XBEFanHandler() {
-    if ((desc_num == 0 || desc_num == 1) && has_auto_mode) {
-        buddy::xbuddy_extension().set_fan1_fan2_auto_control(); // They are tested separately so this will be called twice
-    }
+    xbuddy_extension().set_fan_target_pwm(static_cast<XBuddyExtension::Fan>(desc_num), original_pwm);
 }
 
 void XBEFanHandler::set_pwm(uint8_t pwm) {
-    if (desc_num == 0 || desc_num == 1) {
-        buddy::xbuddy_extension().set_fan1_fan2_pwm(buddy::XBuddyExtension::FanPWM { pwm }); // They are tested separately so this will be called twice
-    } else if (desc_num == 2) {
-        buddy::xbuddy_extension().set_fan3_pwm(buddy::XBuddyExtension::FanPWM { pwm });
-    } else {
-        assert(false);
-    }
+    xbuddy_extension().set_fan_target_pwm(static_cast<XBuddyExtension::Fan>(desc_num), XBuddyExtension::FanPWM { pwm });
 }
 
 void XBEFanHandler::record_sample() {
-    std::optional<uint16_t> rpm;
-    if (desc_num == 0) {
-        rpm = buddy::xbuddy_extension().fan1_rpm();
-    } else if (desc_num == 1) {
-        rpm = buddy::xbuddy_extension().fan2_rpm();
-    } else if (desc_num == 2) {
-        rpm = buddy::xbuddy_extension().fan3_rpm();
-    } else {
-        assert(false);
-    }
-
+    const std::optional<uint16_t> rpm = xbuddy_extension().fan_rpm(static_cast<XBuddyExtension::Fan>(desc_num));
     if (rpm.has_value()) {
         sample_count++;
         sample_sum += rpm.value();

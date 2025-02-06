@@ -8,6 +8,7 @@
 #include <enum_array.hpp>
 #include <option/xl_enclosure_support.h>
 #include <option/has_xbuddy_extension.h>
+#include <pwm_utils.hpp>
 
 namespace fan_selftest {
 
@@ -101,7 +102,7 @@ public:
     virtual void record_sample() override;
 
 private:
-    bool has_auto_mode { false };
+    PWM255OrAuto original_pwm;
 };
 #endif
 
