@@ -95,7 +95,7 @@ private:
     VentState vent_state_ = VentState::unknown;
 #endif
 
-    Capabilities capabilities_nolock(Backend backend) const;
+    Capabilities capabilities_nolock() const;
 };
 
 Chamber &chamber();

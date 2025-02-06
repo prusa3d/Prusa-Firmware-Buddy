@@ -66,8 +66,8 @@ void Chamber::step() {
     }
 }
 
-Chamber::Capabilities Chamber::capabilities_nolock(Chamber::Backend backend) const {
-    switch (backend) {
+Chamber::Capabilities Chamber::capabilities_nolock() const {
+    switch (backend()) {
 
 #if XL_ENCLOSURE_SUPPORT()
     case Backend::xl_enclosure:
@@ -102,7 +102,7 @@ Chamber::Capabilities Chamber::capabilities_nolock(Chamber::Backend backend) con
 Chamber::Capabilities Chamber::capabilities() const {
     std::lock_guard _lg(mutex_);
 
-    return capabilities_nolock(backend());
+    return capabilities_nolock();
 }
 
 Chamber::Backend Chamber::backend() const {
@@ -154,7 +154,7 @@ void Chamber::set_target_temperature(std::optional<Temperature> target) {
     std::lock_guard _lg(mutex_);
     target_temperature_ = target;
 
-    const auto max_temp = capabilities_nolock(backend()).max_temp;
+    const auto max_temp = capabilities_nolock().max_temp;
     if (max_temp.has_value() && target_temperature_.has_value()) {
         target_temperature_ = std::min(*target_temperature_, *max_temp);
     }
