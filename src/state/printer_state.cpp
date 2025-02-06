@@ -9,6 +9,7 @@
 #include <option/xl_enclosure_support.h>
 #include <option/has_uneven_bed_prompt.h>
 #include <config_store/store_instance.hpp>
+#include <printers.h>
 
 using namespace marlin_server;
 using namespace printer_state;
@@ -559,6 +560,13 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
         return ErrCode::ERR_TEMPERATURE_CHAMBER_OVERHEATING_TEMP;
     case WarningType::ChamberCriticalTemperature:
         return ErrCode::ERR_TEMPERATURE_CHAMBER_CRITICAL_TEMP;
+#endif
+
+#if PRINTER_IS_PRUSA_COREONE()
+    case WarningType::OpenChamberVents:
+        return ErrCode::CONNECT_OPEN_CHAMBER_VENTS;
+    case WarningType::CloseChamberVents:
+        return ErrCode::CONNECT_CLOSE_CHAMBER_VENTS;
 #endif
     }
 

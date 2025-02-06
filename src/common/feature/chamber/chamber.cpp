@@ -10,6 +10,11 @@
     #include <hw/xl/xl_enclosure.hpp>
 #endif
 
+#if PRINTER_IS_PRUSA_COREONE()
+    #include <marlin_server.hpp>
+    #include <config_store/store_instance.hpp>
+#endif
+
 #if HAS_XBUDDY_EXTENSION()
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
@@ -170,5 +175,23 @@ void Chamber::reset() {
     xbuddy_extension().set_fan1_fan2_auto_control();
 #endif
 }
+
+#if PRINTER_IS_PRUSA_COREONE()
+void Chamber::check_vent_state() {
+    const auto fil_target = config_store().get_filament_type(0).parameters().chamber_target_temperature;
+    constexpr uint8_t temp_limit = 45; // Limit for closed grills is chamber max temperature of PETG
+
+    // Don't show any vent dialog if filament doesn't support chamber temperature control
+    if (fil_target.has_value()) {
+        if (fil_target.value() > temp_limit && vent_state_ != Chamber::VentState::closed) {
+            marlin_server::set_warning(WarningType::CloseChamberVents);
+            vent_state_ = Chamber::VentState::closed;
+        } else if (fil_target.value() <= temp_limit && vent_state_ != Chamber::VentState::open) {
+            marlin_server::set_warning(WarningType::OpenChamberVents);
+            vent_state_ = Chamber::VentState::open;
+        }
+    }
+}
+#endif
 
 } // namespace buddy

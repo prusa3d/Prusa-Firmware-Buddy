@@ -1994,6 +1994,9 @@ static void _server_print_loop(void) {
 #if HAS_BED_PROBE || HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
         server.mbl_failed = false;
 #endif
+#if PRINTER_IS_PRUSA_COREONE()
+        buddy::chamber().check_vent_state();
+#endif
         break;
     case State::SerialPrintInit:
         server.print_is_serial = true;

@@ -52,6 +52,10 @@ enum class WarningType : uint32_t {
 #if HAS_CHAMBER_API()
     FailedToReachChamberTemperature,
 #endif
+#if PRINTER_IS_PRUSA_COREONE()
+    OpenChamberVents,
+    CloseChamberVents,
+#endif
 #if HAS_UNEVEN_BED_PROMPT()
     BedUnevenAlignmentPrompt,
 #endif
