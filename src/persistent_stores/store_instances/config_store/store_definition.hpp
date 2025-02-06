@@ -357,13 +357,15 @@ struct CurrentStore
     StoreItem<float, 0.0f, journal::hash("Homing Bump Divisor X")> homing_bump_divisor_x;
     StoreItem<float, 0.0f, journal::hash("Homing Bump Divisor Y")> homing_bump_divisor_y;
 
+#if HAS_SIDE_LEDS()
     /// 0-255; 0 = disabled. Decreases when dimming is enabled
     StoreItem<uint8_t, 255, journal::hash("XBuddy Extension Chamber LEDs PWM")> side_leds_max_brightness;
 
-    StoreItem<bool, true, journal::hash("Enable Serial Printing Screen")> serial_print_screen_enabled;
-
     /// Whether the side leds should dim down a bit when user is not interacting with the printer or stay on full power the whole time
     StoreItem<bool, true, journal::hash("Enable Side LEDs dimming")> side_leds_dimming_enabled;
+#endif
+
+    StoreItem<bool, true, journal::hash("Enable Serial Printing Screen")> serial_print_screen_enabled;
 
     StoreItem<bool, true, journal::hash("Enable Tool LEDs")> tool_leds_enabled;
 
