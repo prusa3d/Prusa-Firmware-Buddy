@@ -20,9 +20,6 @@ public:
     /// Temperature at which the normal fan control may be restored, after emergency temperature
     static constexpr Temperature recovery_temp = 60.0f;
 
-    /// Maximum PWM for user and automatic control
-    static constexpr FanPWM soft_max_pwm = 100;
-
     // Numbers pulled out of thin air
     static constexpr FanPWM max_pwm = 255;
     static constexpr FanPWM min_pwm = 40;
@@ -60,6 +57,9 @@ public:
 
     void set_auto_control(bool ac);
     constexpr bool get_auto_control() const { return auto_control; };
+
+    static void set_soft_max_pwm(FanPWM val);
+    static FanPWM get_soft_max_pwm();
 
 private:
     bool auto_control = true;

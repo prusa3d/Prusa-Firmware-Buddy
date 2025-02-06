@@ -1,7 +1,19 @@
 #include "cooling.hpp"
 
 #include <algorithm>
+#include <config_store/store_instance.hpp>
+
 namespace buddy {
+
+// Set maximum possiblem PWM to be used with automatic control
+void FanCooling::set_soft_max_pwm(FanPWM val) {
+    config_store().chamber_fan_max_control_pwm.set(val);
+}
+
+// Get maximum possiblem PWM to be used with automatic control
+FanCooling::FanPWM FanCooling::get_soft_max_pwm() {
+    return config_store().chamber_fan_max_control_pwm.get();
+}
 
 FanCooling::FanPWM FanCooling::compute_auto_regulation_step(Temperature current_temperature) {
     FanPWM desired = 0;
@@ -11,7 +23,7 @@ FanCooling::FanPWM FanCooling::compute_auto_regulation_step(Temperature current_
     // Simple P-regulation calculation
     float regulation_output = last_regulation_output + (proportional_constant * error);
 
-    regulation_output = std::clamp<float>(regulation_output, 0.0f, static_cast<float>(soft_max_pwm));
+    regulation_output = std::clamp<float>(regulation_output, 0.0f, static_cast<float>(get_soft_max_pwm()));
 
     // convert float result to integer, while keeping the range of float for next loop
     desired = static_cast<FanPWM>(regulation_output);
