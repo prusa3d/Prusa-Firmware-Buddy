@@ -81,11 +81,11 @@ void CurrentStore::perform_config_migrations() {
     if (should_migrate<1>()) {
         // We've introduced nozzle_is_high_flow in 6.2.0
         // If the user upgrades from previous FW versions, we need to guess the HF nozleness based on whether he has MK4S or not
-        // BFW-6727
-        const bool is_mk4s = (PrinterModelInfo::current().model == PrinterModel::mk4s);
 
-        // Bitset -> first and only nozzle
-        nozzle_is_high_flow.set(is_mk4s ? (1 << 0) : 0);
+        if (PrinterModelInfo::current().model == PrinterModel::mk4s) {
+            // Bitset -> first and only nozzle
+            nozzle_is_high_flow.set(1 << 0);
+        }
     }
 #endif
 
