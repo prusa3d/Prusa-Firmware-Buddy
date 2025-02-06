@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <optional>
 #include <temperature.hpp>
+#include <cmath>
 
 namespace buddy {
 
@@ -44,12 +45,12 @@ public:
     /// @note For now PWM range is 0-max_pwm. In the future, other ranges may appear if HW changes.
     /// The idea here is to have a set of conversion routines at one spot to allow future changes.
     static constexpr uint8_t pwm2pct(uint8_t pwm) {
-        return static_cast<uint8_t>(((uint16_t)pwm) * 100U / max_pwm);
+        return static_cast<uint8_t>(std::round(((pwm * 100.f) / max_pwm)));
     }
 
     /// @returns PWM value (0-max_pwm) from percentage 0-100%
     static constexpr uint8_t pct2pwm(uint8_t pct) {
-        return static_cast<uint8_t>(((uint16_t)pct) * max_pwm / 100U);
+        return static_cast<uint8_t>(std::round((pct * max_pwm) / 100.f));
     }
 
     constexpr bool get_overheating_temp_flag() { return overheating_temp_flag; };
