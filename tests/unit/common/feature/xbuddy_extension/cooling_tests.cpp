@@ -61,18 +61,18 @@ TEST_CASE("Cooling PWM") {
         // it is not possible reach soft_max_pwm in one step within operational temperatures
         // so controll loop needs to be called several times before check
         uint8_t result = cooling.compute_pwm_step(true, 60);
-        REQUIRE(result < cooling.soft_max_pwm);
+        REQUIRE(result < cooling.get_soft_max_pwm());
         REQUIRE(result > 0);
         for (uint32_t i = 0; i < 10; i++) {
             cooling.compute_pwm_step(true, 60);
         }
-        REQUIRE(cooling.compute_pwm_step(true, 60) == cooling.soft_max_pwm);
-        REQUIRE(cooling.target_pwm == cooling.soft_max_pwm);
+        REQUIRE(cooling.compute_pwm_step(true, 60) == cooling.get_soft_max_pwm());
+        REQUIRE(cooling.target_pwm == cooling.get_soft_max_pwm());
     }
 
     SECTION("Nonsense range test") {
         cooling.target_temperature = -100.0;
-        REQUIRE(cooling.compute_pwm_step(true, 61) == cooling.soft_max_pwm);
+        REQUIRE(cooling.compute_pwm_step(true, 61) == cooling.get_soft_max_pwm());
 
         // due to previous regulation cycle, the target value must be multiplied
         cooling.target_temperature = 300.0;
@@ -102,14 +102,14 @@ TEST_CASE("Cooling PWM") {
             REQUIRE(cooling.compute_pwm_step(true, cooling.recovery_temp + 1.0) == cooling.max_pwm);
 
             cooling.compute_pwm_step(true, cooling.recovery_temp - 1.0); // one more regulation cycle is needed to recover
-            REQUIRE(cooling.compute_pwm_step(true, cooling.recovery_temp - 1.0) == cooling.soft_max_pwm);
+            REQUIRE(cooling.compute_pwm_step(true, cooling.recovery_temp - 1.0) == cooling.get_soft_max_pwm());
 
             REQUIRE(cooling.compute_pwm_step(true, cooling.critical_temp) == cooling.max_pwm);
             REQUIRE(cooling.get_critical_temp_flag());
 
             REQUIRE(cooling.compute_pwm_step(true, cooling.recovery_temp + 1.0) == cooling.max_pwm);
             cooling.compute_pwm_step(true, cooling.recovery_temp - 1.0); // one regulation cycle is needed to recover
-            REQUIRE(cooling.compute_pwm_step(true, cooling.recovery_temp - 1.0) == cooling.soft_max_pwm);
+            REQUIRE(cooling.compute_pwm_step(true, cooling.recovery_temp - 1.0) == cooling.get_soft_max_pwm());
         }
     }
 }
