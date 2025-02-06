@@ -2,6 +2,7 @@
 
 #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #include <numeric_input_config_common.hpp>
+#include <feature/xbuddy_extension/cooling.hpp>
 
 using namespace buddy;
 
@@ -16,7 +17,7 @@ MI_XBUDDY_EXTENSION_COOLING_FANS::MI_XBUDDY_EXTENSION_COOLING_FANS()
     set_value(
         exb.has_fan1_fan2_auto_control()
             ? *config().special_value
-            : static_cast<int>(exb.fan1_fan2_pwm()) * 100 / buddy::FanCooling::max_pwm);
+            : static_cast<int>(FanCooling::pwm2pct(exb.fan1_fan2_pwm())));
 }
 
 void MI_XBUDDY_EXTENSION_COOLING_FANS::OnClick() {
@@ -24,21 +25,21 @@ void MI_XBUDDY_EXTENSION_COOLING_FANS::OnClick() {
     if (value() == config().special_value) {
         exb.set_fan1_fan2_auto_control();
     } else {
-        exb.set_fan1_fan2_pwm(value() * buddy::FanCooling::max_pwm / 100);
+        exb.set_fan1_fan2_pwm(FanCooling::pct2pwm(value()));
     }
 }
 
 // MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX
 // =============================================
 static constexpr NumericInputConfig chamber_fan_max_percent = {
-    .min_value = static_cast<float>(buddy::FanCooling::min_pwm * 100 / buddy::FanCooling::max_pwm),
+    .min_value = static_cast<float>(FanCooling::pwm2pct(FanCooling::min_pwm)),
     .max_value = 100.f,
     .special_value = 0.f,
     .unit = Unit::percent,
 };
 
 MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX::MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX()
-    : WiSpin(round((buddy::FanCooling::get_soft_max_pwm() * 100.f) / buddy::FanCooling::max_pwm),
+    : WiSpin(FanCooling::pwm2pct(FanCooling::get_soft_max_pwm()),
         chamber_fan_max_percent, _("Chamber Fans Limit")) {
     auto &exb = xbuddy_extension();
     set_is_hidden(exb.status() == XBuddyExtension::Status::disabled);
@@ -46,17 +47,17 @@ MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX::MI_XBUDDY_EXTENSION_COOLING_FANS_C
 
 void MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX::OnClick() {
     // need to calculate value in float and round it properly, otherwise set value (in %) and stored value (in PWM duty cycle steps) could differ
-    buddy::FanCooling::set_soft_max_pwm(static_cast<buddy::FanCooling::FanPWM>(round((value() * buddy::FanCooling::max_pwm) / 100.f)));
+    FanCooling::set_soft_max_pwm(static_cast<FanCooling::FanPWM>(FanCooling::pct2pwm(value())));
 }
 
 // MI_XBE_FILTRATION_FAN
 // =============================================
 MI_XBE_FILTRATION_FAN::MI_XBE_FILTRATION_FAN()
-    : WiSpin(xbuddy_extension().fan3_pwm() * 100 / 255, numeric_input_config::percent_with_off, _("Filtration Fan")) //
+    : WiSpin(FanCooling::pwm2pct(xbuddy_extension().fan3_pwm()), numeric_input_config::percent_with_off, _("Filtration Fan")) //
 {
 }
 void MI_XBE_FILTRATION_FAN::OnClick() {
-    xbuddy_extension().set_fan3_pwm(value() * 255 / 100);
+    xbuddy_extension().set_fan3_pwm(FanCooling::pct2pwm(value()));
 }
 
 // MI_INFO_XBUDDY_EXTENSION_FAN1
@@ -98,11 +99,11 @@ MI_INFO_XBUDDY_EXTENSION_FAN3::MI_INFO_XBUDDY_EXTENSION_FAN3()
 // MI_CAM_USB_PWR
 // =============================================
 MI_CAM_USB_PWR::MI_CAM_USB_PWR()
-    : WI_ICON_SWITCH_OFF_ON_t(buddy::xbuddy_extension().usb_power(), _("Camera")) {}
+    : WI_ICON_SWITCH_OFF_ON_t(xbuddy_extension().usb_power(), _("Camera")) {}
 
 void MI_CAM_USB_PWR::OnChange([[maybe_unused]] size_t old_index) {
     // FIXME: Don't interact with xbuddy_extension directly, but use some common interface, like we have for Chamber API
-    buddy::xbuddy_extension().set_usb_power(!old_index);
+    xbuddy_extension().set_usb_power(!old_index);
 }
 
 void MI_CAM_USB_PWR::Loop() {
