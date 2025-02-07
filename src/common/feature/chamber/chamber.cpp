@@ -160,11 +160,7 @@ void Chamber::set_target_temperature(std::optional<Temperature> target) {
     }
 
     METRIC_DEF(metric_chamber_ttemp, "chamber_ttemp", METRIC_VALUE_FLOAT, 1000, METRIC_DISABLED);
-    if (target_temperature_.has_value()) {
-        metric_record_float(&metric_chamber_ttemp, target_temperature_.value());
-    } else {
-        metric_record_float(&metric_chamber_ttemp, NAN);
-    }
+    metric_record_float(&metric_chamber_ttemp, target_temperature_.value_or(NAN));
 }
 
 void Chamber::reset() {
