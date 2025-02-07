@@ -2,7 +2,7 @@
 
 #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #include <numeric_input_config_common.hpp>
-#include <feature/xbuddy_extension/cooling.hpp>
+#include <feature/chamber/chamber.hpp>
 
 using namespace buddy;
 
