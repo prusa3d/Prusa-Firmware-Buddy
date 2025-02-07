@@ -12,6 +12,8 @@
 #include "knob_event.hpp"
 #include "img_resources.hpp"
 
+using namespace buddy;
+
 /*****************************************************************************/
 // MI_HELP_FW_UPDATE
 MI_HELP_FW_UPDATE::MI_HELP_FW_UPDATE()
@@ -23,7 +25,7 @@ void MI_HELP_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
 }
 
 ScreenMenuSettings::ScreenMenuSettings()
-    : ScreenMenuSettings__(_(label))
+    : ScreenMenuSettings__(_("SETTINGS"))
     , old_action(gui::knob::GetLongPressScreenAction()) { // backup hold action
 
     EnableLongHoldScreenAction();

@@ -27,6 +27,11 @@
     #include "screen_menu_phase_stepping.hpp"
 #endif
 
+#include <option/has_chamber_filtration_api.h>
+#if HAS_CHAMBER_FILTRATION_API()
+    #include <gui/menu_item/specific/menu_items_chamber_filtration.hpp>
+#endif
+
 class MI_HELP_FW_UPDATE : public IWindowMenuItem {
     static constexpr const char *const label = N_("FW update");
 
@@ -60,6 +65,9 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_FAN_CHECK,
     MI_GCODE_VERIFY,
     MI_DRYRUN,
+#if HAS_CHAMBER_FILTRATION_API()
+    MI_CHAMBER_FILTRATION,
+#endif
 #if ENABLED(CRASH_RECOVERY)
     MI_CRASH_DETECTION,
 #endif // ENABLED(CRASH_RECOVERY)
@@ -76,11 +84,11 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_USER_INTERFACE, MI_LANG_AND_TIME, MI_NETWORK, MI_HARDWARE, MI_HELP_FW_UPDATE,
     // MI_SYSTEM needs to be last to ensure we can safely hit factory reset even in presence of unknown languages
     MI_SYSTEM>;
+
 class ScreenMenuSettings : public ScreenMenuSettings__ {
     gui::knob::screen_action_cb old_action;
 
 public:
-    constexpr static const char *label = N_("SETTINGS");
     ScreenMenuSettings();
     ~ScreenMenuSettings();
 };

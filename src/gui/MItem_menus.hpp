@@ -10,6 +10,7 @@
 #include <option/has_sheet_profiles.h>
 #include <option/developer_mode.h>
 #include <option/has_translations.h>
+#include <option/has_chamber_filtration_api.h>
 #include <img_resources.hpp>
 #include <ScreenFactory.hpp>
 
@@ -204,3 +205,7 @@ public:
     MI_TOOLHEAD_SETTINGS();
     void click(IWindowMenu &) override;
 };
+
+#if HAS_CHAMBER_FILTRATION_API()
+using MI_CHAMBER_FILTRATION = MI_SCREEN<N_("Chamber Filtration"), class ScreenChamberFiltration>;
+#endif

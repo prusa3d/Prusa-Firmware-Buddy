@@ -61,6 +61,10 @@
     #include <screen_menu_steel_sheets.hpp>
 #endif
 
+#if HAS_CHAMBER_FILTRATION_API()
+    #include <gui/screen/screen_chamber_filtration.hpp>
+#endif
+
 #include <config_store/store_instance.hpp>
 
 MI_SCREEN_BASE::MI_SCREEN_BASE(ScreenFactory::Creator::Func screen_ctor, const char *label)
@@ -174,3 +178,7 @@ void MI_TOOLHEAD_SETTINGS::click(IWindowMenu &) {
 
     Screens::Access()->Open(screen);
 }
+
+#if HAS_CHAMBER_FILTRATION_API()
+template struct MI_SCREEN_CTOR<ScreenChamberFiltration>;
+#endif

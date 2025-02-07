@@ -15,6 +15,11 @@
     #include <MItem_mmu.hpp>
 #endif
 
+#include <option/has_chamber_filtration_api.h>
+#if HAS_CHAMBER_FILTRATION_API()
+    #include <gui/menu_item/specific/menu_items_chamber_filtration.hpp>
+#endif
+
 namespace screen_printer_setup_private {
 
 class MI_DONE : public IWindowMenuItem {
@@ -30,6 +35,11 @@ using ScreenBase
     = ScreenMenu<EFooter::Off,
         MI_EXTENDED_PRINTER_TYPE, //< Show always, for non-extended models, there is a non-changeable WiInfo
         MI_TOOLHEAD_SETTINGS,
+#if HAS_CHAMBER_FILTRATION_API()
+        // At least for C1, the filter addon is considered a hardware option, because it also affects the function of the cooling fans
+        // BFW-6719
+        MI_CHAMBER_FILTRATION_BACKEND,
+#endif
         MI_DONE>;
 
 class ScreenPrinterSetup : public ScreenBase {
