@@ -82,8 +82,10 @@ void CurrentStore::perform_config_migrations() {
     if (should_migrate<1>()) {
         // We've introduced nozzle_is_high_flow in 6.2.0
         // If the user upgrades from previous FW versions, we need to guess the HF nozleness based on whether he has MK4S or not
+        // MK4S+MMU is shipped and recommended without the HF nozzle, so exclude those
 
-        if (PrinterModelInfo::current().model == PrinterModel::mk4s) {
+        const auto model = PrinterModelInfo::current().model;
+        if ((model == PrinterModel::mk4s || model == PrinterModel::mk3_9s) && !is_mmu_rework.get()) {
             // Bitset -> first and only nozzle
             nozzle_is_high_flow.set(1 << 0);
         }
