@@ -10,6 +10,10 @@ if(HAS_CHAMBER_API)
   add_subdirectory(chamber)
 endif()
 
+if(HAS_CHAMBER_FILTRATION_API)
+  add_subdirectory(chamber_filtration)
+endif()
+
 if(HAS_EMERGENCY_STOP)
   add_subdirectory(emergency_stop)
 endif()

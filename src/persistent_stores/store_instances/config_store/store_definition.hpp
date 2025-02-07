@@ -39,8 +39,13 @@
 #include <option/has_emergency_stop.h>
 #include <option/has_side_leds.h>
 #include <option/xl_enclosure_support.h>
+#include <option/has_precise_homing_corexy.h>
+#include <option/has_precise_homing.h>
+#include <option/developer_mode.h>
+#include <option/has_chamber_filtration_api.h>
 #include <common/extended_printer_type.hpp>
 #include <common/hw_check.hpp>
+#include <pwm_utils.hpp>
 #include <feature/xbuddy_extension/xbuddy_extension_fan_results.hpp>
 
 #if HAS_SHEET_PROFILES()
@@ -49,6 +54,11 @@
 
 #if ENABLED(PRECISE_HOMING_COREXY)
     #include <Marlin/src/module/prusa/homing_corexy_config.hpp>
+#endif
+
+#include <option/has_chamber_filtration_api.h>
+#if HAS_CHAMBER_FILTRATION_API()
+    #include <feature/chamber_filtration/chamber_filtration_enums.hpp>
 #endif
 
 namespace config_store_ns {
@@ -589,6 +599,13 @@ struct CurrentStore
     /// Per-axis circular buffer that keeps \p precise_homing_axis_sample_count latest hoing samples
     StoreItemArray<uint16_t, uint16_t { 0xffff }, journal::hash("Precise homing samples"), 32, precise_homing_axis_count * precise_homing_axis_sample_count> precise_homing_sample_history;
     StoreItemArray<uint8_t, uint8_t { 0 }, journal::hash("Precise homing samples index"), 3, precise_homing_axis_count> precise_homing_sample_history_index;
+#endif
+
+#if HAS_CHAMBER_FILTRATION_API()
+    StoreItem<buddy::ChamberFiltrationBackend, buddy::ChamberFiltrationBackend::none, journal::hash("Chamber filtration backend")> chamber_filtration_backend;
+    StoreItem<uint8_t, 10, journal::hash("Chamber filtration post print duration")> chamber_post_print_filtration_duration_min;
+    StoreItem<PWM255, 10, journal::hash("Chamber mid print filtration pwm")> chamber_mid_print_filtration_pwm;
+    StoreItem<PWM255, 128, journal::hash("Chamber post print filtration pwm")> chamber_post_print_filtration_pwm;
 #endif
 
 private:

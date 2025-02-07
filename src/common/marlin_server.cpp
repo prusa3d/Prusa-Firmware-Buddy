@@ -149,6 +149,11 @@
     #include <feature/chamber/chamber.hpp>
 #endif
 
+#include <option/has_chamber_filtration_api.h>
+#if HAS_CHAMBER_FILTRATION_API()
+    #include <feature/chamber_filtration/chamber_filtration.hpp>
+#endif
+
 #if HAS_XBUDDY_EXTENSION()
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
@@ -701,6 +706,10 @@ static void cycle() {
     // Some things are somewhat time-sensitive and should be updated even in nested loops
 #if HAS_CHAMBER_API()
     buddy::chamber().step();
+#endif
+
+#if HAS_CHAMBER_FILTRATION_API()
+    buddy::chamber_filtration().step();
 #endif
 
 #if HAS_EMERGENCY_STOP()
