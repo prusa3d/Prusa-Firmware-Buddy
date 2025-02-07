@@ -61,7 +61,7 @@ static bool set_special_fan_speed(uint8_t fan, uint8_t speed, bool set_auto) {
         if (set_auto) {
             buddy::xbuddy_extension().set_fan1_fan2_auto_control();
         } else {
-            buddy::xbuddy_extension().set_fan1_fan2_pwm(speed);
+            buddy::xbuddy_extension().set_fan1_fan2_pwm(buddy::XBuddyExtension::FanPWM { speed });
         }
         return true;
     }

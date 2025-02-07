@@ -8,6 +8,7 @@
 #include <freertos/mutex.hpp>
 #include <leds/color.hpp>
 #include <temperature.hpp>
+#include <pwm_utils.hpp>
 
 #include <xbuddy_extension_shared/xbuddy_extension_shared_enums.hpp>
 
@@ -25,6 +26,8 @@ public: // General things, status
     };
 
     using FilamentSensorState = xbuddy_extension_shared::FilamentSensorState;
+    using FanPWM = PWM255;
+    using FanPWMOrAuto = PWM255OrAuto;
 
     Status status() const;
 
@@ -38,12 +41,12 @@ public: // Fans
     std::optional<uint16_t> fan2_rpm() const;
 
     /// \returns shared target PWM for fan1/fan2
-    uint8_t fan1_fan2_pwm() const;
+    FanPWM fan1_fan2_pwm() const;
 
     /// Sets PWM for fan 1 and fan 2 (chamber cooling fans; 0-255)
     /// The fans have a single shared PWM line, so they can only be set both at once
     /// Disables \p has_fan1_fan2_auto_control control
-    void set_fan1_fan2_pwm(uint8_t pwm);
+    void set_fan1_fan2_pwm(FanPWM pwm);
 
     /// \returns whether the fan1 & fan2 are in auto control mode (or values set explicitly by set_XX_pwm)
     bool has_fan1_fan2_auto_control() const;
@@ -55,17 +58,16 @@ public: // Fans
     std::optional<uint16_t> fan3_rpm() const;
 
     /// \returns target PWM for fan3
-    uint8_t fan3_pwm() const;
+    FanPWM fan3_pwm() const;
 
     /// Sets PRM for fan 3 (in-chamber filtration, 0-255)
-    void set_fan3_pwm(uint8_t pwm);
+    void set_fan3_pwm(FanPWM pwm);
 
     /// A convenience function returning a structure of data to be used in the Connect interface
     /// The key idea here is to avoid locking the internal mutex for every member while providing a consistent state of values.
     struct FanState {
         uint16_t fan1rpm, fan2rpm;
-        uint8_t fan12pct;
-        bool fan12autocontrol;
+        FanPWMOrAuto fan1_fan2_target_pwm;
     };
 
     FanState get_fan12_state() const;
@@ -107,7 +109,10 @@ private:
 
     FanCooling chamber_cooling;
 
-    uint8_t fan3_pwm_ = 0;
+    FanPWMOrAuto cooling_fans_target_pwm_ = pwm_auto;
+    FanPWM cooling_fans_actual_pwm_;
+
+    FanPWM fan3_pwm_;
 
     // keeps the last timestamp of Fan PWM update
     uint32_t last_fan_update_ms;

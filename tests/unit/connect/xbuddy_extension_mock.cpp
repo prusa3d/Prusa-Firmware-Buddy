@@ -2,7 +2,7 @@
 
 namespace buddy {
 
-std::optional<uint8_t> fan12pwm = std::nullopt;
+std::optional<XBuddyExtension::FanPWM> fan12pwm = std::nullopt;
 
 XBuddyExtension::XBuddyExtension() {
 }
@@ -12,7 +12,7 @@ XBuddyExtension &xbuddy_extension() {
     return x;
 }
 
-void XBuddyExtension::set_fan1_fan2_pwm(uint8_t pwm) {
+void XBuddyExtension::set_fan1_fan2_pwm(FanPWM pwm) {
     fan12pwm = pwm;
 }
 

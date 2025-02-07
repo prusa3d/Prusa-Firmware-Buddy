@@ -988,11 +988,11 @@ void Planner::command(const Command &command, const SetValue &params) {
         buddy::chamber().set_target_temperature(target_temp == connect_client::Printer::ChamberInfo::target_temp_unset ? nullopt : std::make_optional(target_temp));
     } break;
     case connect_client::PropertyName::ChamberFanPwmTarget: {
-        int8_t pwm = get<int8_t>(params.value);
-        if (pwm < 0) {
+        int8_t pct = get<int8_t>(params.value);
+        if (pct < 0) {
             buddy::xbuddy_extension().set_fan1_fan2_auto_control();
         } else {
-            buddy::xbuddy_extension().set_fan1_fan2_pwm(buddy::FanCooling::pct2pwm(pwm)); // convert from percentage to PWM
+            buddy::xbuddy_extension().set_fan1_fan2_pwm(buddy::XBuddyExtension::FanPWM::from_percent(pct)); // convert from percentage to PWM
         }
     } break;
     case connect_client::PropertyName::AddonPower:

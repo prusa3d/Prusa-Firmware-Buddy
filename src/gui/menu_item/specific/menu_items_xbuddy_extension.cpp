@@ -17,7 +17,7 @@ MI_XBUDDY_EXTENSION_COOLING_FANS::MI_XBUDDY_EXTENSION_COOLING_FANS()
     set_value(
         exb.has_fan1_fan2_auto_control()
             ? *config().special_value
-            : static_cast<int>(FanCooling::pwm2pct(exb.fan1_fan2_pwm())));
+            : exb.fan1_fan2_pwm().to_percent());
 }
 
 void MI_XBUDDY_EXTENSION_COOLING_FANS::OnClick() {
@@ -25,39 +25,38 @@ void MI_XBUDDY_EXTENSION_COOLING_FANS::OnClick() {
     if (value() == config().special_value) {
         exb.set_fan1_fan2_auto_control();
     } else {
-        exb.set_fan1_fan2_pwm(FanCooling::pct2pwm(value()));
+        exb.set_fan1_fan2_pwm(XBuddyExtension::FanPWM::from_percent(value()));
     }
 }
 
 // MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX
 // =============================================
 static constexpr NumericInputConfig chamber_fan_max_percent = {
-    .min_value = static_cast<float>(FanCooling::pwm2pct(FanCooling::min_pwm)),
+    .min_value = FanCooling::min_pwm.to_percent(),
     .max_value = 100.f,
     .special_value = 0.f,
     .unit = Unit::percent,
 };
 
 MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX::MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX()
-    : WiSpin(FanCooling::pwm2pct(FanCooling::get_soft_max_pwm()),
-        chamber_fan_max_percent, _("Chamber Fans Limit")) {
+    : WiSpin(FanCooling::get_soft_max_pwm().to_percent(), chamber_fan_max_percent, _("Chamber Fans Limit")) {
     auto &exb = xbuddy_extension();
     set_is_hidden(exb.status() == XBuddyExtension::Status::disabled);
 }
 
 void MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX::OnClick() {
     // need to calculate value in float and round it properly, otherwise set value (in %) and stored value (in PWM duty cycle steps) could differ
-    FanCooling::set_soft_max_pwm(static_cast<FanCooling::FanPWM>(FanCooling::pct2pwm(value())));
+    FanCooling::set_soft_max_pwm(XBuddyExtension::FanPWM::from_percent(value()));
 }
 
 // MI_XBE_FILTRATION_FAN
 // =============================================
 MI_XBE_FILTRATION_FAN::MI_XBE_FILTRATION_FAN()
-    : WiSpin(FanCooling::pwm2pct(xbuddy_extension().fan3_pwm()), numeric_input_config::percent_with_off, _("Filtration Fan")) //
+    : WiSpin(xbuddy_extension().fan3_pwm().to_percent(), numeric_input_config::percent_with_off, _("Filtration Fan")) //
 {
 }
 void MI_XBE_FILTRATION_FAN::OnClick() {
-    xbuddy_extension().set_fan3_pwm(FanCooling::pct2pwm(value()));
+    xbuddy_extension().set_fan3_pwm(XBuddyExtension::FanPWM::from_percent(value()));
 }
 
 // MI_INFO_XBUDDY_EXTENSION_FAN1
@@ -65,7 +64,7 @@ void MI_XBE_FILTRATION_FAN::OnClick() {
 MI_INFO_XBUDDY_EXTENSION_FAN1::MI_INFO_XBUDDY_EXTENSION_FAN1()
     : WI_FAN_LABEL_t(_("Chamber Fan 1"),
         [](auto) { return FanPWMAndRPM {
-                       .pwm = xbuddy_extension().fan1_fan2_pwm(),
+                       .pwm = xbuddy_extension().fan1_fan2_pwm().value,
                        .rpm = xbuddy_extension().fan1_rpm(),
                    }; } //
     ) {
@@ -77,7 +76,7 @@ MI_INFO_XBUDDY_EXTENSION_FAN1::MI_INFO_XBUDDY_EXTENSION_FAN1()
 MI_INFO_XBUDDY_EXTENSION_FAN2::MI_INFO_XBUDDY_EXTENSION_FAN2()
     : WI_FAN_LABEL_t(_("Chamber Fan 2"),
         [](auto) { return FanPWMAndRPM {
-                       .pwm = xbuddy_extension().fan1_fan2_pwm(),
+                       .pwm = xbuddy_extension().fan1_fan2_pwm().value,
                        .rpm = xbuddy_extension().fan2_rpm(),
                    }; } //
     ) {
@@ -89,7 +88,7 @@ MI_INFO_XBUDDY_EXTENSION_FAN2::MI_INFO_XBUDDY_EXTENSION_FAN2()
 MI_INFO_XBUDDY_EXTENSION_FAN3::MI_INFO_XBUDDY_EXTENSION_FAN3()
     : WI_FAN_LABEL_t(_("Filtration Fan"),
         [](auto) { return FanPWMAndRPM {
-                       .pwm = xbuddy_extension().fan3_pwm(),
+                       .pwm = xbuddy_extension().fan3_pwm().value,
                        .rpm = xbuddy_extension().fan3_rpm(),
                    }; } //
     ) {

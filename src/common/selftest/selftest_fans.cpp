@@ -79,9 +79,9 @@ XBEFanHandler::~XBEFanHandler() {
 
 void XBEFanHandler::set_pwm(uint8_t pwm) {
     if (desc_num == 0 || desc_num == 1) {
-        buddy::xbuddy_extension().set_fan1_fan2_pwm(pwm); // They are tested separately so this will be called twice
+        buddy::xbuddy_extension().set_fan1_fan2_pwm(buddy::XBuddyExtension::FanPWM { pwm }); // They are tested separately so this will be called twice
     } else if (desc_num == 2) {
-        buddy::xbuddy_extension().set_fan3_pwm(pwm);
+        buddy::xbuddy_extension().set_fan3_pwm(buddy::XBuddyExtension::FanPWM { pwm });
     } else {
         assert(false);
     }

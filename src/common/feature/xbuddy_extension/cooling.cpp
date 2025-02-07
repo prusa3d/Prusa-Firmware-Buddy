@@ -7,43 +7,44 @@ namespace buddy {
 
 // Set maximum possiblem PWM to be used with automatic control
 void FanCooling::set_soft_max_pwm(FanPWM val) {
-    config_store().chamber_fan_max_control_pwm.set(val);
+    config_store().chamber_fan_max_control_pwm.set(val.value);
 }
 
 // Get maximum possiblem PWM to be used with automatic control
 FanCooling::FanPWM FanCooling::get_soft_max_pwm() {
-    return config_store().chamber_fan_max_control_pwm.get();
+    return FanPWM { config_store().chamber_fan_max_control_pwm.get() };
 }
 
-FanCooling::FanPWM FanCooling::compute_auto_regulation_step(Temperature current_temperature) {
-    FanPWM desired = 0;
+FanCooling::FanPWM FanCooling::compute_auto_regulation_step(Temperature current_temperature, Temperature target_temperature) {
+    FanPWM::Value desired = 0;
 
-    const float error = current_temperature - *target_temperature;
+    const float error = current_temperature - target_temperature;
 
     // Simple P-regulation calculation
     float regulation_output = last_regulation_output + (proportional_constant * error);
 
-    regulation_output = std::clamp<float>(regulation_output, 0.0f, static_cast<float>(get_soft_max_pwm()));
+    regulation_output = std::clamp<float>(regulation_output, 0.0f, static_cast<float>(get_soft_max_pwm().value));
 
     // convert float result to integer, while keeping the range of float for next loop
-    desired = static_cast<FanPWM>(regulation_output);
+    desired = static_cast<FanPWM::Value>(regulation_output);
     last_regulation_output = regulation_output;
 
-    return desired;
+    return FanPWM { desired };
 }
 
-FanCooling::FanPWM FanCooling::compute_pwm_step(bool already_spinning, Temperature current_temperature) {
+FanCooling::FanPWM FanCooling::compute_pwm_step(bool already_spinning, Temperature current_temperature, std::optional<Temperature> target_temperature, FanPWMOrAuto target_pwm) {
+    // Prevent cropping off 1 during the restaling
+    FanPWM result = target_pwm.value_or(FanPWM { 0 });
+
     // Make sure the target_pwm contains the value we would _like_ to
     // run at.
-    if (auto_control && target_temperature) {
-        target_pwm = compute_auto_regulation_step(current_temperature);
-    } else if (auto_control) {
-        target_pwm = 0;
+    if (target_pwm == pwm_auto && target_temperature.has_value()) {
+        result = compute_auto_regulation_step(current_temperature, *target_temperature);
 
-    } // else -> leave as is
-
-    // Prevent cropping off 1 during the restaling
-    FanPWM result = target_pwm;
+    } else {
+        // Reset regulator if we lose the control
+        last_regulation_output = 0.0f;
+    }
 
     if (current_temperature >= critical_temp) {
         // Critical cooling - overrides any other control, goes at full power
@@ -60,7 +61,7 @@ FanCooling::FanPWM FanCooling::compute_pwm_step(bool already_spinning, Temperatu
             overheating_temp_flag = false;
             critical_temp_flag = false;
         }
-    } else if (result > 0) {
+    } else if (result.value > 0) {
         if (!already_spinning) {
             // If the fans are not spinning yet and should be, give them a bit of a
             // kick to get turning. Unfortunately, we can't do that to each of them
@@ -75,15 +76,6 @@ FanCooling::FanPWM FanCooling::compute_pwm_step(bool already_spinning, Temperatu
         }
     }
     return result;
-}
-
-void FanCooling::set_auto_control(bool ac) {
-    if (ac && !auto_control) {
-        // reset regulator only if auto_control is set true for the first time
-        target_pwm = 0;
-        last_regulation_output = 0.0f;
-    }
-    auto_control = ac;
 }
 
 } // namespace buddy

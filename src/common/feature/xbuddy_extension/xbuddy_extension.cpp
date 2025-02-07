@@ -56,10 +56,9 @@ void XBuddyExtension::step() {
 
     if (fan_update_pending && rpm0.has_value() && rpm1.has_value() && temp.has_value()) {
         last_fan_update_ms = now_ms;
-        chamber_cooling.target_temperature = target_temp;
         const bool already_spinning = *rpm0 > 5 && *rpm1 > 5;
 
-        const uint8_t pwm = chamber_cooling.compute_pwm_step(already_spinning, *temp);
+        const auto pwm = chamber_cooling.compute_pwm_step(already_spinning, *temp, target_temp, cooling_fans_target_pwm_).value;
 
         puppies::xbuddy_extension.set_fan_pwm(0, pwm);
         puppies::xbuddy_extension.set_fan_pwm(1, pwm);
@@ -105,39 +104,38 @@ std::optional<uint16_t> XBuddyExtension::fan2_rpm() const {
     return puppies::xbuddy_extension.get_fan_rpm(1);
 }
 
-uint8_t XBuddyExtension::fan1_fan2_pwm() const {
+XBuddyExtension::FanPWM XBuddyExtension::fan1_fan2_pwm() const {
     std::lock_guard _lg(mutex_);
-    return chamber_cooling.target_pwm;
+    return cooling_fans_target_pwm_.value_or(FanPWM { 0 });
 }
 
-void XBuddyExtension::set_fan1_fan2_pwm(uint8_t pwm) {
+void XBuddyExtension::set_fan1_fan2_pwm(FanPWM pwm) {
     std::lock_guard _lg(mutex_);
-    chamber_cooling.set_auto_control(false);
-    chamber_cooling.target_pwm = pwm;
+    cooling_fans_target_pwm_ = pwm;
 }
 
 bool XBuddyExtension::has_fan1_fan2_auto_control() const {
     std::lock_guard _lg(mutex_);
-    return chamber_cooling.get_auto_control();
+    return (cooling_fans_target_pwm_ == pwm_auto);
 }
 
 void XBuddyExtension::set_fan1_fan2_auto_control() {
     std::lock_guard _lg(mutex_);
-    chamber_cooling.set_auto_control(true);
+    cooling_fans_target_pwm_ = pwm_auto;
 }
 
 std::optional<uint16_t> XBuddyExtension::fan3_rpm() const {
     return puppies::xbuddy_extension.get_fan_rpm(2);
 }
 
-uint8_t XBuddyExtension::fan3_pwm() const {
+XBuddyExtension::FanPWM XBuddyExtension::fan3_pwm() const {
     std::lock_guard _lg(mutex_);
     return fan3_pwm_;
 }
 
-void XBuddyExtension::set_fan3_pwm(uint8_t pwm) {
+void XBuddyExtension::set_fan3_pwm(FanPWM pwm) {
     std::lock_guard _lg(mutex_);
-    puppies::xbuddy_extension.set_fan_pwm(2, pwm);
+    puppies::xbuddy_extension.set_fan_pwm(2, pwm.value);
     fan3_pwm_ = pwm;
 }
 
@@ -147,8 +145,7 @@ buddy::XBuddyExtension::FanState buddy::XBuddyExtension::get_fan12_state() const
     return FanState {
         .fan1rpm = fanrpms[0],
         .fan2rpm = fanrpms[1],
-        .fan12pct = buddy::FanCooling::pwm2pct(chamber_cooling.target_pwm),
-        .fan12autocontrol = chamber_cooling.get_auto_control(),
+        .fan1_fan2_target_pwm = cooling_fans_target_pwm_,
     };
 }
 

@@ -287,10 +287,7 @@ Printer::Params MarlinPrinter::params() const {
             .current_temp = buddy::chamber().current_temperature().value_or(0), /* Missing that would be rare, so we just always render something for simplicity */
             .fan_1_rpm = xbe.fan1rpm,
             .fan_2_rpm = xbe.fan2rpm,
-            .fan_pwm_target = (xbe.fan12autocontrol // check for autocontrol
-                    ? connect_client::Printer::ChamberInfo::fan_pwm_target_unset // autocontrol
-                    : (int8_t)(xbe.fan12pct) // percentage
-                ),
+            .fan_pwm_target = xbe.fan1_fan2_target_pwm.transform(buddy::XBuddyExtension::FanPWM::to_percent_static).value_or(connect_client::Printer::ChamberInfo::fan_pwm_target_unset),
             .led_intensity = static_cast<int8_t>(static_cast<uint16_t>(leds::side_strip_control.max_brightness()) * 100 / 255),
         };
         params.addon_power = buddy::xbuddy_extension().usb_power();
