@@ -34,9 +34,17 @@ public:
 
     static constexpr float proportional_constant = 1.5f * dt_s;
 
+    /// Applies spinup and emergency fan overrides
+    [[nodiscard]] FanPWM apply_pwm_overrides(bool already_spinning, FanPWM pwm) const;
+
     // Compute at what PWM the fan(s) should be driven
     // !!!!!!!! this function should be called in regular time intervals given by dt_s !!!!!!!!
-    FanPWM compute_pwm_step(bool already_spinning, Temperature current_temperature, std::optional<Temperature> target_temperature, FanPWMOrAuto target_pwm);
+    [[nodiscard]] FanPWM compute_pwm_step(Temperature current_temperature, std::optional<Temperature> target_temperature, FanPWMOrAuto target_pwm);
+
+    /// To keep unittests working, will be removed in the following commit
+    FanPWM compute_pwm_step(bool already_spinning, Temperature current_temperature, std::optional<Temperature> target_temperature, FanPWMOrAuto target_pwm) {
+        return apply_pwm_overrides(already_spinning, compute_pwm_step(current_temperature, target_temperature, target_pwm));
+    }
 
     constexpr bool get_overheating_temp_flag() { return overheating_temp_flag; };
     constexpr bool get_critical_temp_flag() { return critical_temp_flag; };

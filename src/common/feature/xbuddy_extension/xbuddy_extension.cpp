@@ -6,6 +6,7 @@
 #include <common/app_metrics.h>
 #include <puppies/xbuddy_extension.hpp>
 #include <feature/chamber/chamber.hpp>
+#include <feature/chamber_filtration/chamber_filtration.hpp>
 #include <feature/xbuddy_extension/cooling.hpp>
 #include <leds/side_strip.hpp>
 #include <marlin_server.hpp>
@@ -25,6 +26,8 @@ void XBuddyExtension::step() {
     // Chamber API is accessing XBuddyExtension in some methods as well, so we might cause a deadlock otherwise.
     // BFW-6274
     const auto target_temp = chamber().target_temperature();
+    const auto filtration_backend = chamber_filtration().backend();
+    const auto filtration_pwm = chamber_filtration().output_pwm();
     const auto chamber_leds_pwm = leds::side_strip.GetColor(0).w;
 
     std::lock_guard _lg(mutex_);
@@ -39,6 +42,7 @@ void XBuddyExtension::step() {
 
     const auto rpm0 = puppies::xbuddy_extension.get_fan_rpm(0);
     const auto rpm1 = puppies::xbuddy_extension.get_fan_rpm(1);
+    const auto rpm2 = puppies::xbuddy_extension.get_fan_rpm(2);
     const auto temp = chamber_temperature();
 
     // Trigger fatal error due to chamber temperature only if we get valid values, that are not reasonable
@@ -57,14 +61,36 @@ void XBuddyExtension::step() {
     const auto now_ms = ticks_ms();
     const bool fan_update_pending = (ticks_diff(now_ms, last_fan_update_ms) >= static_cast<int32_t>(chamber_cooling.dt_s * 1000));
 
-    if (fan_update_pending && rpm0.has_value() && rpm1.has_value() && temp.has_value()) {
+    if (fan_update_pending && temp.has_value()) {
         last_fan_update_ms = now_ms;
-        const bool already_spinning = *rpm0 > 5 && *rpm1 > 5;
 
-        const auto pwm = chamber_cooling.compute_pwm_step(already_spinning, *temp, target_temp, cooling_fans_target_pwm_).value;
+        switch (filtration_backend) {
 
-        puppies::xbuddy_extension.set_fan_pwm(0, pwm);
-        puppies::xbuddy_extension.set_fan_pwm(1, pwm);
+        case ChamberFiltrationBackend::xbe_official_filter:
+            // The filtration fan does both filtration and cooling
+            cooling_fans_actual_pwm_ = cooling_fans_target_pwm_.value_or(FanPWM { 0 });
+            filtration_fan_actual_pwm_ = std::max(chamber_cooling.compute_pwm_step(*temp, target_temp, filtration_fan_target_pwm_), filtration_pwm);
+            break;
+
+        case ChamberFiltrationBackend::xbe_filter_on_cooling_fans:
+            // The cooling fans do both filtration and cooling
+            cooling_fans_actual_pwm_ = std::max(chamber_cooling.compute_pwm_step(*temp, target_temp, cooling_fans_target_pwm_), filtration_pwm);
+            filtration_fan_actual_pwm_ = filtration_fan_target_pwm_.value_or(FanPWM { 0 });
+            break;
+
+        default:
+            cooling_fans_actual_pwm_ = chamber_cooling.compute_pwm_step(*temp, target_temp, cooling_fans_target_pwm_);
+            filtration_fan_actual_pwm_ = filtration_fan_target_pwm_.value_or(FanPWM { 0 });
+            break;
+        }
+
+        // Apply emergency & spinup fan control
+        cooling_fans_actual_pwm_ = chamber_cooling.apply_pwm_overrides(rpm0.value_or(0) > 5 && rpm1.value_or(0) > 5, cooling_fans_actual_pwm_);
+        filtration_fan_actual_pwm_ = chamber_cooling.apply_pwm_overrides(rpm2.value_or(0) > 5, filtration_fan_actual_pwm_);
+
+        puppies::xbuddy_extension.set_fan_pwm(0, cooling_fans_actual_pwm_.value);
+        puppies::xbuddy_extension.set_fan_pwm(1, cooling_fans_actual_pwm_.value);
+        puppies::xbuddy_extension.set_fan_pwm(2, filtration_fan_actual_pwm_.value);
 
         if (chamber_cooling.get_critical_temp_flag()) {
             // executed from task marlin_server, marlin_server must be called directly

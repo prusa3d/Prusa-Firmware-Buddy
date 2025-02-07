@@ -63,6 +63,10 @@ static bool set_special_fan_speed(uint8_t fan, uint8_t speed, bool set_auto) {
         buddy::xbuddy_extension().set_fan_target_pwm(XBE::Fan::cooling_fan_1, set_auto ? buddy::XBuddyExtension::FanPWMOrAuto(pwm_auto) : buddy::XBuddyExtension::FanPWM(speed));
         return true;
     }
+    if (fan == 4) {
+        buddy::xbuddy_extension().set_fan_target_pwm(XBE::Fan::filtration_fan, set_auto ? buddy::XBuddyExtension::FanPWMOrAuto(pwm_auto) : buddy::XBuddyExtension::FanPWM(speed));
+        return true;
+    }
     #endif
 
     return false;

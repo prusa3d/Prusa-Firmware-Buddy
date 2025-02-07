@@ -6,11 +6,11 @@
 
 struct ConfigStore {
     struct Value {
-        uint16_t v = 100;
+        uint8_t v = 100;
         void set(uint16_t n) {
             v = n;
         }
-        uint16_t get() const {
+        uint8_t get() const {
             return v;
         }
     };

@@ -32,7 +32,31 @@ FanCooling::FanPWM FanCooling::compute_auto_regulation_step(Temperature current_
     return FanPWM { desired };
 }
 
-FanCooling::FanPWM FanCooling::compute_pwm_step(bool already_spinning, Temperature current_temperature, std::optional<Temperature> target_temperature, FanPWMOrAuto target_pwm) {
+FanCooling::FanPWM FanCooling::apply_pwm_overrides(bool already_spinning, FanPWM pwm) const {
+    if (overheating_temp_flag || critical_temp_flag) {
+        // Max cooling after temperature overshoot
+        return max_pwm;
+    }
+
+    if (pwm.value == 0) {
+        return pwm;
+    }
+
+    // If the fans are not spinning yet and should be, give them a bit of a
+    // kick to get turning. Unfortunately, we can't do that to each of them
+    // individually, they share the PWM, even though they have separate RPM
+    // measurement.
+    if (!already_spinning) {
+        return std::max(pwm, spin_up_pwm);
+    }
+
+    // Even if the user sets it to some low %, keep them at least on the
+    // minimum (the auto thing never sets it between 0 and min, so it's
+    // only in the manual case).
+    return std::max(pwm, min_pwm);
+}
+
+FanCooling::FanPWM FanCooling::compute_pwm_step(Temperature current_temperature, std::optional<Temperature> target_temperature, FanPWMOrAuto target_pwm) {
     // Prevent cropping off 1 during the restaling
     FanPWM result = target_pwm.value_or(FanPWM { 0 });
 
@@ -49,32 +73,16 @@ FanCooling::FanPWM FanCooling::compute_pwm_step(bool already_spinning, Temperatu
     if (current_temperature >= critical_temp) {
         // Critical cooling - overrides any other control, goes at full power
         critical_temp_flag = true;
-    } else if ((current_temperature >= overheating_temp) && (!critical_temp_flag)) {
+
+    } else if (current_temperature >= overheating_temp) {
         // Emergency cooling - overrides other control, goes at full power
         overheating_temp_flag = true;
+
+    } else if (current_temperature < recovery_temp) {
+        overheating_temp_flag = false;
+        critical_temp_flag = false;
     }
 
-    if (overheating_temp_flag || critical_temp_flag) {
-        // Max cooling after temperature overshoot
-        result = max_pwm;
-        if (current_temperature < recovery_temp) {
-            overheating_temp_flag = false;
-            critical_temp_flag = false;
-        }
-    } else if (result.value > 0) {
-        if (!already_spinning) {
-            // If the fans are not spinning yet and should be, give them a bit of a
-            // kick to get turning. Unfortunately, we can't do that to each of them
-            // individually, they share the PWM, even though they have separate RPM
-            // measurement.
-            result = std::max(result, spin_up_pwm);
-        } else {
-            // Even if the user sets it to some low %, keep them at least on the
-            // minimum (the auto thing never sets it between 0 and min, so it's
-            // only in the manual case).
-            result = std::max(result, min_pwm);
-        }
-    }
     return result;
 }
 
