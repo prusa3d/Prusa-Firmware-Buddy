@@ -11,6 +11,11 @@ namespace {
 }
 
 TestReturn phaseToolOffsets([[maybe_unused]] const ToolMask tool_mask, IPartHandler *&pToolOffsets, const ToolOffsetsConfig_t &config) {
+    std::bitset<config_store_ns::max_tool_count> selected_tools = (1 << config_store_ns::max_tool_count) - 1;
+    return phaseToolOffset(tool_mask, pToolOffsets, config, selected_tools);
+}
+
+TestReturn phaseToolOffset([[maybe_unused]] const ToolMask tool_mask, IPartHandler *&pToolOffsets, const ToolOffsetsConfig_t &config, std::bitset<config_store_ns::max_tool_count> selected_tools) {
     if (!pToolOffsets) {
         pToolOffsets = selftest::Factory::CreateDynamical<CSelftestPart_ToolOffsets>(
             config,
@@ -44,18 +49,21 @@ TestReturn phaseToolOffsets([[maybe_unused]] const ToolMask tool_mask, IPartHand
     }
 
     SelftestResult eeres = config_store().selftest_result.get();
-    for (size_t i = 0; i < config_store_ns::max_tool_count; ++i) {
-        if (!prusa_toolchanger.is_tool_enabled(i)) {
-            continue; // Tool is not enabled
-        }
+    for (size_t i = 0; i < selected_tools.size(); ++i) {
+        size_t current_tool = selected_tools[i];
+        if (current_tool) {
+            if (!prusa_toolchanger.is_tool_enabled(i)) {
+                continue; // Tool is not enabled
+            }
 
-        if (eeres.tools[i].tooloffset == TestResult_Passed
-            && pToolOffsets->GetResult() == TestResult_Skipped) {
-            continue; // Test was successful and now aborted, do not regress
-        }
+            if (eeres.tools[i].tooloffset == TestResult_Passed
+                && pToolOffsets->GetResult() == TestResult_Skipped) {
+                continue; // Test was successful and now aborted, do not regress
+            }
 
-        // Store tool calibration state
-        eeres.tools[i].tooloffset = pToolOffsets->GetResult();
+            // Store tool calibration state
+            eeres.tools[i].tooloffset = pToolOffsets->GetResult();
+        }
     }
     config_store().selftest_result.set(eeres);
 

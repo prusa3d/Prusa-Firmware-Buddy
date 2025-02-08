@@ -10,6 +10,10 @@
 #include "screen_toolhead_settings_fs.hpp"
 #include "screen_toolhead_settings_dock.hpp"
 #include "screen_toolhead_settings_nozzle_offset.hpp"
+#if HAS_SELFTEST()
+    #include <selftest_types.hpp>
+    #include "selftest_tool_offsets_interface.hpp"
+#endif
 
 using namespace screen_toolhead_settings;
 
@@ -118,6 +122,30 @@ MI_DOCK::MI_DOCK(Toolhead toolhead)
 void MI_DOCK::click(IWindowMenu &) {
     Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenToolheadDetailDock>(toolhead()));
 }
+
+    #if HAS_SELFTEST()
+// * MI_CALIBRATE_TOOL
+MI_CALIBRATE_TOOL_OFFSET::MI_CALIBRATE_TOOL_OFFSET(Toolhead toolhead)
+    : MI_TOOLHEAD_SPECIFIC(toolhead, string_view_utf8()) {
+}
+
+void MI_CALIBRATE_TOOL_OFFSET::update() {
+    SetLabel((toolhead() == all_toolheads) ? _("Calibrate Tool Offsets") : _("Calibrate Tool Offset"));
+}
+
+void MI_CALIBRATE_TOOL_OFFSET::click(IWindowMenu &) {
+    const auto selected_tool = prusa_toolchanger.detect_tool_nr();
+    std::bitset<config_store_ns::max_tool_count> selected_tools = toolhead() == all_toolheads ? ((1 << config_store_ns::max_tool_count) - 1) : (1 << selected_tool);
+    static constexpr selftest::ToolOffsetsConfig_t Config_ToolOffsets = {};
+    selftest::IPartHandler *pToolOffsets;
+    ToolMask tool_mask = ToolMask::AllTools;
+    if (MsgBoxQuestion(_("Perform tool offset calibration? This discards the previous tool offset calibration."), Responses_YesNo) == Response::No) {
+        return;
+    }
+    selftest::TestReturn ret = selftest::phaseToolOffset(tool_mask, pToolOffsets, Config_ToolOffsets, selected_tools);
+    ret ? MsgBoxInfo(_("Tool offset calibration failed.")) : MsgBoxInfo(_("Tool offset calibration succeeded."));
+}
+    #endif
 
 // * MI_PICK_PARK
 MI_PICK_PARK::MI_PICK_PARK(Toolhead toolhead)
