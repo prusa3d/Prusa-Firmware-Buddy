@@ -56,7 +56,7 @@ enum class State {
 };
 
 inline bool is_printing_state(State state) {
-    return (state == State::Printing);
+    return (state == State::Printing) || (state == State::Finishing_WaitIdle) || (state == State::Pausing_WaitIdle);
 }
 
 inline bool is_abort_state(State st) {
