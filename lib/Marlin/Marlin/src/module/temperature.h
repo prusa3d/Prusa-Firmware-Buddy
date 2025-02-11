@@ -925,6 +925,13 @@ public:
      */
     static void disable_all_heaters();
     /**
+     * Like above, but disables only heaters on local CPU.
+     *
+     * The ones run by a separate CPU is left intact. Can be used in
+     * interrupts, as this avoids interprocessor communication.
+     */
+    static void disable_local_heaters();
+    /**
      * Switch off all hotends, set all hotend target temperatures to 0
      */
     static void disable_hotend();
