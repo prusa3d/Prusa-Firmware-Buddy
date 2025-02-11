@@ -24,6 +24,9 @@ MI_CHAMBER_TARGET_TEMP::MI_CHAMBER_TARGET_TEMP(const char *label)
 {
     const auto max_temp = chamber().capabilities().max_temp;
     chamber_temperature_config.max_value = max_temp.value_or(chamber_temperature_config.max_value);
+
+    const auto caps = chamber().capabilities();
+    set_is_hidden(!caps.always_show_temperature_control && !caps.temperature_control());
 }
 
 void MI_CHAMBER_TARGET_TEMP::OnClick() {
@@ -35,11 +38,9 @@ void MI_CHAMBER_TARGET_TEMP::Loop() {
         return;
     }
 
-    const auto caps = chamber().capabilities();
-    const bool temp_ctrl = caps.temperature_control();
+    const bool temp_ctrl = chamber().capabilities().temperature_control();
     const auto new_val = (temp_ctrl ? chamber().target_temperature() : std::nullopt).value_or(*config().special_value);
 
-    set_is_hidden(!caps.always_show_temperature_control && !temp_ctrl);
     set_enabled(temp_ctrl);
     set_value(new_val);
 }
