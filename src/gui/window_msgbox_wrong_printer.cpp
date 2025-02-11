@@ -35,6 +35,9 @@ MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, const string_view_utf8 &
                 (HAS_LARGE_DISPLAY() ? _("Newer firmware is required: %s") : _("Newer FW req.: %s"))
                     .formatted(wrong_fw_version_params, valid_printer_settings.latest_fw_version),
                 valid_printer_settings.wrong_firmware },
+#if HAS_MMU2()
+            { this, _("Nozzle flow rate doesn't match"), valid_printer_settings.nozzle_flow_mismatch },
+#endif
     })
     , unsupported_features(this,
           (HAS_LARGE_DISPLAY() ? _("Following features are required:") : _("Features required:")),

@@ -100,6 +100,9 @@ public:
         Feature wrong_printer_model { config_store().hw_check_model.get() }; // M862.2 or M862.3 or printer_model (from comments) disagree
         Feature wrong_gcode_level { config_store().hw_check_gcode.get() }; // M862.5 disagree
         Feature wrong_firmware { config_store().hw_check_firmware.get() }; // M862.4 Px.yy.z disagrees
+#if HAS_MMU2()
+        Feature nozzle_flow_mismatch { config_store().hw_check_nozzle.get() }; // Nozzle flow rate doesn't match flow rate in G-code and printing with MMU enabled
+#endif
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
         Feature gcode_compatibility_mode { config_store().hw_check_compatibility.get() };
 #endif

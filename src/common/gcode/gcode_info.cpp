@@ -177,6 +177,17 @@ void GCodeInfo::EvaluateToolsValid() {
         }
 #endif
 
+#if HAS_MMU2()
+        // Make sure that MMU gcode is sliced with the correct nozzle.
+        // Slicing with a non-HF nozzle while HF nozzle is installed results in unsufficient purging.
+        // Slicing for a HF nozzle without having it leads to extruder skipping.
+        if (per_extruder_info[0].requires_hardened_nozzle.has_value() && (config_store().nozzle_is_high_flow.get()[0] != per_extruder_info[0].requires_high_flow_nozzle)
+            && !is_singletool_gcode()
+            && MMU2::mmu2.Enabled()) {
+            valid_printer_settings.nozzle_flow_mismatch.fail();
+        }
+#endif
+
         auto do_nozzle_check = [&](uint8_t hotend) {
             assert(hotend < HOTENDS);
 
@@ -226,6 +237,9 @@ bool GCodeInfo::ValidPrinterSettings::is_valid(bool is_tools_mapping_possible) c
 #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
         && fan_compatibility_mode.is_valid()
 #endif
+#if HAS_MMU2()
+        && nozzle_flow_mismatch.is_valid()
+#endif
         && !unsupported_features
         && (is_tools_mapping_possible // if is_possible -> always true -> handled by tools_mapping screen
             || (wrong_tools.is_valid() && wrong_nozzle_diameter.is_valid() && nozzle_not_hardened.is_valid() && nozzle_not_high_flow.is_valid()));
@@ -238,6 +252,9 @@ bool GCodeInfo::ValidPrinterSettings::is_fatal(bool is_tools_mapping_possible) c
 #endif
 #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
         || fan_compatibility_mode.is_fatal()
+#endif
+#if HAS_MMU2()
+        || nozzle_flow_mismatch.is_fatal()
 #endif
         || (!is_tools_mapping_possible // if is_possible -> always false -> handled by tools_mapping screen
             && (wrong_tools.is_fatal() || wrong_nozzle_diameter.is_fatal() || nozzle_not_hardened.is_fatal() || nozzle_not_high_flow.is_fatal()));
