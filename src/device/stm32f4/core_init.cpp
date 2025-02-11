@@ -40,12 +40,12 @@ void system_core_init(void) {
     __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
     // Initializes the CPU, AHB and APB busses clocks
-    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+    if (HAL_RCC_OscConfig((RCC_OscInitTypeDef *)&RCC_OscInitStruct) != HAL_OK) {
         system_core_error_handler();
     }
 
     // Initializes the CPU, AHB and APB busses clocks
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK) {
+    if (HAL_RCC_ClockConfig((RCC_ClkInitTypeDef *)&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK) {
         system_core_error_handler();
     }
 
