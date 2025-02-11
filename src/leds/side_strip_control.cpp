@@ -29,7 +29,7 @@ void SideStripControl::Tick() {
         active = true;
 
     } else if (active_start_timestamp.has_value()) {
-        if (ticks_diff(ticks_ms(), active_start_timestamp.value()) > active_timeout_ms) {
+        if (ticks_diff(ticks_ms(), active_start_timestamp.value()) > (get_dimming_duration() * 1000)) {
             active_start_timestamp.reset();
         } else {
             active = true;

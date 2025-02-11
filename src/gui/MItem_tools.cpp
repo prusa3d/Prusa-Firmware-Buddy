@@ -61,6 +61,7 @@
 
 #if HAS_LEDS()
     #include <led_animations/animator.hpp>
+    #include "gui_leds.hpp"
 #endif
 
 #if HAS_SIDE_LEDS()
@@ -1007,6 +1008,37 @@ void MI_LEDS_ENABLE::OnChange(size_t old_index) {
         Animator_LCD_leds().start_animator();
     }
 }
+
+/**********************************************************************************************/
+// MI_DISPLAY_BACKLIGHT_BRIGHTNESS
+static constexpr NumericInputConfig led_display_backlight_brightness_spin_config = {
+    // Keep a min value of 2 percent to make sure the user can still see the lcd content if changed by mistake
+    .min_value = 2,
+    .max_value = 100
+};
+MI_DISPLAY_BACKLIGHT_BRIGHTNESS::MI_DISPLAY_BACKLIGHT_BRIGHTNESS()
+    : WiSpin(config_store().leds_display_backlight_brightness.get(), led_display_backlight_brightness_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+void MI_DISPLAY_BACKLIGHT_BRIGHTNESS::OnClick() {
+    leds::display_backlight_brightness(GetVal());
+    leds::store_display_backlight_brightness(GetVal());
+}
+#endif
+
+#if HAS_SIDE_LEDS()
+// MI_SIDE_LEDS_DIMMING_DURATION
+static constexpr NumericInputConfig side_led_dimming_spin_config = {
+    .max_value = 60 * 60, // 60 Minutes
+};
+
+MI_SIDE_LEDS_DIMMING_DURATION::MI_SIDE_LEDS_DIMMING_DURATION()
+    : WiSpin(config_store().side_leds_dimming_duration.get(), side_led_dimming_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_SIDE_LEDS_DIMMING_DURATION::OnClick() {
+    config_store().side_leds_dimming_duration.set(GetVal());
+    leds::side_strip_control.set_dimming_duration(GetVal());
+}
 #endif
 
 #if HAS_SIDE_LEDS()
@@ -1047,6 +1079,21 @@ void MI_TOOL_LEDS_ENABLE::OnChange(size_t old_index) {
         prusa_toolchanger.getTool(e).set_cheese_led(!old_index ? 0xff : 0x00, 0x00);
     }
     config_store().tool_leds_enabled.set(!old_index);
+}
+#endif
+
+/**********************************************************************************************/
+// MI_TOOL_LEDS_BRIGHTNESS
+static constexpr NumericInputConfig tool_leds_brightness_spin_config = {
+    .max_value = 100,
+};
+
+#if HAS_TOOLCHANGER()
+MI_TOOL_LEDS_BRIGHTNESS::MI_TOOL_LEDS_BRIGHTNESS()
+    : WiSpin(config_store().tool_leds_brightness.get(), tool_leds_brightness_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+void MI_TOOL_LEDS_BRIGHTNESS::OnClick() {
+    config_store().tool_leds_brightness.set(GetVal());
 }
 #endif
 
