@@ -501,6 +501,8 @@ struct CurrentStore
     StoreItem<bool, input_shaper::weight_adjust_enabled_default, journal::hash("Input Shaper Weight Adjust Y Enabled V2")> input_shaper_weight_adjust_y_enabled;
     StoreItem<input_shaper::WeightAdjustConfig, input_shaper::weight_adjust_y_default, journal::hash("Input Shaper Weight Adjust Y Config")> input_shaper_weight_adjust_y_config;
 
+    StoreItem<bool, false, journal::hash("Enable auto cooldown on unload")> auto_cooldown_enabled;
+
     input_shaper::Config get_input_shaper_config();
     void set_input_shaper_config(const input_shaper::Config &);
 
