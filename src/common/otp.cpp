@@ -270,7 +270,8 @@ std::array<char, 18> otp_get_mac_address_str() {
     const MAC_addr *mac = otp_get_mac_address();
     if (mac != nullptr) {
         snprintf(mac_address_str.begin(), mac_address_str.size(),
-            "%x:%x:%x:%x:%x:%x", mac->mac[0], mac->mac[1], mac->mac[2], mac->mac[3], mac->mac[4], mac->mac[5]);
+            "%02x:%02x:%02x:%02x:%02x:%02x",
+            mac->mac[0], mac->mac[1], mac->mac[2], mac->mac[3], mac->mac[4], mac->mac[5]);
     }
     return mac_address_str;
 }
