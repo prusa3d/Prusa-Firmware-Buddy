@@ -4,6 +4,7 @@
 #include <netdev.h>
 #include <dns.h>
 #include <img_resources.hpp>
+#include <sntp.h>
 
 #include <option/buddy_enable_connect.h>
 #if BUDDY_ENABLE_CONNECT()
@@ -80,6 +81,9 @@ void ScreenMenuNetworkStatus::update() {
         Item<MI_CONNECT_IP>().ChangeInformation(str.data());
     }
 #endif
+
+    const ip_addr_t *ntp_server = sntp_getserver(0);
+    Item<MI_NTP_ADDR>().ChangeInformation(ipaddr_ntoa(ntp_server));
 
     // Update stat data
     {
