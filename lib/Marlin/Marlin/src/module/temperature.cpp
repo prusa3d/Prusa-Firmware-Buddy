@@ -3840,8 +3840,10 @@ void Temperature::isr() {
     #if HAS_HEATED_BED
       SERIAL_ECHOPAIR(" B@:", getHeaterPower(H_BED));
     #endif
-    #if HAS_HEATED_CHAMBER
-      SERIAL_ECHOPAIR(" C@:", getHeaterPower(H_CHAMBER));
+    #if HAS_TEMP_CHAMBER
+      #if HAS_HEATED_CHAMBER
+        SERIAL_ECHOPAIR(" C@:", getHeaterPower(H_CHAMBER));
+      #endif
     #endif
     #if HAS_TEMP_HEATBREAK
       SERIAL_ECHOPAIR(" HBR@:", getHeaterPower((heater_ind_t)(H_HEATBREAK_E0 + target_extruder)));
