@@ -1054,15 +1054,9 @@ void panic_loop() {
 std::atomic<bool> ac_fault_enabled = false;
 
 void check_ac_fault_at_startup() {
-    // AC-fault during initialization //TODO: IXL Remove if after PP is ready
-    if constexpr (PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_MK3_5()) {
-        if (power_panic::is_ac_fault_active()) {
-#if !PRINTER_IS_PRUSA_MK3_5() // TODO fix error codes
-            fatal_error(ErrCode::ERR_ELECTRO_ACF_AT_INIT);
-#endif
-        }
+    if (power_panic::is_ac_fault_active()) {
+        fatal_error(ErrCode::ERR_ELECTRO_ACF_AT_INIT);
     }
-
     ac_fault_enabled = true;
 }
 
