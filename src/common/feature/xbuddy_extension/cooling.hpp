@@ -41,11 +41,6 @@ public:
     // !!!!!!!! this function should be called in regular time intervals given by dt_s !!!!!!!!
     [[nodiscard]] FanPWM compute_pwm_step(Temperature current_temperature, std::optional<Temperature> target_temperature, FanPWMOrAuto target_pwm);
 
-    /// To keep unittests working, will be removed in the following commit
-    FanPWM compute_pwm_step(bool already_spinning, Temperature current_temperature, std::optional<Temperature> target_temperature, FanPWMOrAuto target_pwm) {
-        return apply_pwm_overrides(already_spinning, compute_pwm_step(current_temperature, target_temperature, target_pwm));
-    }
-
     constexpr bool get_overheating_temp_flag() { return overheating_temp_flag; };
     constexpr bool get_critical_temp_flag() { return critical_temp_flag; };
 
