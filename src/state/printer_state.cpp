@@ -46,7 +46,7 @@ optional<ErrCode> crash_recovery_attention(const PhasesCrashRecovery &phase) {
 optional<ErrCode> attention_while_printpreview(const PhasesPrintPreview preview_phases) {
     switch (preview_phases) {
     case PhasesPrintPreview::unfinished_selftest:
-        return ErrCode::CONNECT_PRINT_PREVIEW_UNFINISHED_SELFTEST;
+        return ErrCode::CONNECT_UNFINISHED_SELFTEST;
     case PhasesPrintPreview::new_firmware_available:
         return ErrCode::CONNECT_PRINT_PREVIEW_NEW_FW;
     case PhasesPrintPreview::wrong_printer:
