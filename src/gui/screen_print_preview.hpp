@@ -19,7 +19,7 @@
 // do not use ScreenPrintPreviewBase
 class ScreenPrintPreview : public ScreenPrintPreviewBase {
     // Apart from FIle error they all have the same warning
-    constexpr static const char *label_unfinished_selftest = find_error(ErrCode::CONNECT_PRINT_PREVIEW_UNFINISHED_SELFTEST).err_title;
+    constexpr static const char *label_unfinished_selftest = find_error(ErrCode::CONNECT_UNFINISHED_SELFTEST).err_title;
     constexpr static const char *label_fil_not_detected = find_error(ErrCode::CONNECT_PRINT_PREVIEW_NO_FILAMENT).err_title;
 #if HAS_MMU2()
     constexpr static const char *label_fil_detected_mmu = find_error(ErrCode::CONNECT_PRINT_PREVIEW_MMU_FILAMENT_INSERTED).err_title;
@@ -28,7 +28,7 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
     constexpr static const char *label_wrong_printer = find_error(ErrCode::CONNECT_PRINT_PREVIEW_WRONG_PRINTER).err_title;
     constexpr static const char *label_wrong_filament = find_error(ErrCode::CONNECT_PRINT_PREVIEW_WRONG_FILAMENT).err_title;
 
-    static constexpr const char *txt_unfinished_selftest = find_error(ErrCode::CONNECT_PRINT_PREVIEW_UNFINISHED_SELFTEST).err_text;
+    static constexpr const char *txt_unfinished_selftest = find_error(ErrCode::CONNECT_UNFINISHED_SELFTEST).err_text;
     static constexpr const char *txt_fil_not_detected = find_error(ErrCode::CONNECT_PRINT_PREVIEW_NO_FILAMENT).err_text;
 #if HAS_MMU2()
     static constexpr const char *txt_fil_detected_mmu = find_error(ErrCode::CONNECT_PRINT_PREVIEW_MMU_FILAMENT_INSERTED).err_text;
