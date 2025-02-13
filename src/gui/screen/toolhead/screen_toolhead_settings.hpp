@@ -81,6 +81,18 @@ public:
 private:
     bool is_picked = false;
 };
+
+    #if HAS_SELFTEST()
+class MI_CALIBRATE_TOOL_OFFSET : public MI_TOOLHEAD_SPECIFIC<MI_CALIBRATE_TOOL_OFFSET, IWindowMenuItem> {
+public:
+    MI_CALIBRATE_TOOL_OFFSET(Toolhead toolhead = default_toolhead);
+    void update();
+    void click(IWindowMenu &) override;
+
+private:
+    bool is_picked = false;
+};
+    #endif // HAS_SELFTEST
 #endif
 
 class MI_FILAMENT_SENSORS : public MI_TOOLHEAD_SPECIFIC<MI_FILAMENT_SENSORS, IWindowMenuItem> {
@@ -125,6 +137,9 @@ using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
     MI_PICK_PARK,
     MI_NOZZLE_OFFSET,
     MI_DOCK,
+#endif
+#if HAS_SELFTEST()
+    MI_CALIBRATE_TOOL_OFFSET,
 #endif
 #if FILAMENT_SENSOR_IS_ADC()
     MI_CALIBRATE_FILAMENT_SENSORS,
