@@ -97,6 +97,10 @@ const img::Resource *warning_dialog_icon(WarningType warning_type) {
 #if HAS_CHAMBER_API()
             { WarningType::FailedToReachChamberTemperature, &img::warning_48x48 },
 #endif
+#if PRINTER_IS_PRUSA_COREONE()
+            { WarningType::OpenChamberVents, &img::warning_48x48 },
+            { WarningType::CloseChamberVents, &img::warning_48x48 },
+#endif
 #if HAS_UNEVEN_BED_PROMPT()
             { WarningType::BedUnevenAlignmentPrompt, &img::warning_48x48 },
 #endif
