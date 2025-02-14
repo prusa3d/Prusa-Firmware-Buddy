@@ -556,9 +556,9 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_HEATUP_BED : public MenuItemSwitch {
+class MI_FILAMENT_CHANGE_PREHEAT_ALL : public MenuItemSwitch {
 public:
-    MI_HEATUP_BED();
+    MI_FILAMENT_CHANGE_PREHEAT_ALL();
 
 protected:
     void OnChange(size_t old_index) override;

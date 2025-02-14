@@ -87,7 +87,7 @@ void filament_gcodes::preheat_to(FilamentType filament, uint8_t target_extruder,
     if (force_temp || thermalManager.degTargetHotend(target_extruder) < fil_cnf.nozzle_temperature) {
         thermalManager.setTargetHotend(fil_cnf.nozzle_temperature, target_extruder);
         marlin_server::set_temp_to_display(fil_cnf.nozzle_temperature, target_extruder);
-        if (config_store().heatup_bed.get()) {
+        if (config_store().filament_change_preheat_all.get()) {
             thermalManager.setTargetBed(fil_cnf.heatbed_temperature);
         }
     }

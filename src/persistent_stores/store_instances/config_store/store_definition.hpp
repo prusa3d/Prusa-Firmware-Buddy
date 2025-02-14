@@ -333,7 +333,8 @@ struct CurrentStore
     FilamentType get_filament_type(uint8_t index);
     void set_filament_type(uint8_t index, FilamentType value);
 
-    StoreItem<bool, false, journal::hash("Heatup Bed")> heatup_bed;
+    // Note: hash is kept for backwards compatibility
+    StoreItem<bool, false, journal::hash("Heatup Bed")> filament_change_preheat_all;
 
     StoreItem<float, defaults::nozzle_diameter, journal::hash("Nozzle Diameter 0")> nozzle_diameter_0;
 #if HOTENDS > 1 // for now only doing one ifdef for simplicity

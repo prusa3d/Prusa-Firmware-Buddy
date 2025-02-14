@@ -855,14 +855,14 @@ void MI_FOOTER_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
 
 static constexpr const char *heatup_bed_values[] = {
     N_("Nozzle"),
-    N_("Noz&Bed"),
+    N_("All"),
 };
 
-MI_HEATUP_BED::MI_HEATUP_BED()
-    : MenuItemSwitch(_("For Filament Change, Preheat"), heatup_bed_values, config_store().heatup_bed.get()) {
+MI_FILAMENT_CHANGE_PREHEAT_ALL::MI_FILAMENT_CHANGE_PREHEAT_ALL()
+    : MenuItemSwitch(_("For Filament Change, Preheat"), heatup_bed_values, config_store().filament_change_preheat_all.get()) {
 }
-void MI_HEATUP_BED::OnChange(size_t old_index) {
-    config_store().heatup_bed.set(!old_index);
+void MI_FILAMENT_CHANGE_PREHEAT_ALL::OnChange(size_t old_index) {
+    config_store().filament_change_preheat_all.set(!old_index);
 }
 
 MI_SET_READY::MI_SET_READY()
