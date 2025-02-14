@@ -521,6 +521,7 @@ void Pause::filament_push_ask_process(Response response) {
 
     if (FSensors_instance().no_filament_surely(LogicalFilamentSensor::extruder)) {
         setPhase(is_unstoppable() ? PhasesLoadUnload::MakeSureInserted_unstoppable : PhasesLoadUnload::MakeSureInserted_stoppable);
+        handle_help(response);
 
         // With extruder MMU rework, we gotta assist the user with inserting the filament
         // BFW-5134
@@ -959,8 +960,10 @@ void Pause::unload_finish_or_change_process([[maybe_unused]] Response response) 
     }
 }
 
-void Pause::filament_not_in_fs_process([[maybe_unused]] Response response) {
+void Pause::filament_not_in_fs_process(Response response) {
     setPhase(PhasesLoadUnload::FilamentNotInFS);
+    handle_help(response);
+
     if (!FSensors_instance().has_filament_surely(LogicalFilamentSensor::autoload)) {
         if constexpr (!option::has_human_interactions) {
             // In case of no human interactions, require no filament being
@@ -981,12 +984,15 @@ void Pause::filament_not_in_fs_process([[maybe_unused]] Response response) {
 }
 
 void Pause::manual_unload_process(Response response) {
-    setPhase(PhasesLoadUnload::ManualUnload, 100);
+    const bool can_continue = !FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder);
+    setPhase(can_continue ? PhasesLoadUnload::ManualUnload_continuable : PhasesLoadUnload::ManualUnload_uncontinuable, 100);
+    handle_help(response);
 
     if (response == Response::Continue
-        && !FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) { // Allow to continue when nothing remains in filament sensor
+        && can_continue) { // Allow to continue when nothing remains in filament sensor
         enable_e_steppers();
         set(LoadState::unload_finish_or_change);
+
     } else if (response == Response::Retry) { // Retry unloading
         enable_e_steppers();
         set(LoadState::ram_sequence);
@@ -1451,6 +1457,14 @@ void Pause::handle_filament_removal(LoadState state_to_set) {
         return;
     }
     return;
+}
+
+void Pause::handle_help(Response response) {
+    if (response != Response::Help) {
+        return;
+    }
+
+    // TODO
 }
 
 /*****************************************************************************/

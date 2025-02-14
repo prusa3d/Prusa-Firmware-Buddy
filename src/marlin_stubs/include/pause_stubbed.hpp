@@ -277,6 +277,10 @@ private:
     bool process_stop();
     void handle_filament_removal(LoadState state_to_set); //<checks if filament is present if not it sets a different state
 
+    /// To be called from states that are waiting for some filament sensor input (recovery strategy when FS has problems)
+    /// If Help response is displayed, shows a help dialog and provides options to resolve
+    void handle_help(Response response);
+
     void ram_filament();
     void unload_filament();
     const RammingSequence &get_ramming_sequence() const;
