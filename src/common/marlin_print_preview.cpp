@@ -255,9 +255,19 @@ IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
         // with MMU, its only possible to check that filament is properly unloaded, no check of filaments presence in each "tool"
         if (FSensors_instance().MMUReadyToPrint()) {
             return State::checks_done;
-        } else if (GCodeInfo::getInstance().is_singletool_gcode() && FSensors_instance().WhereIsFilament() == MMU2::FilamentState::AT_FSENSOR) {
-            return State::checks_done; // it makes sense to allow starting a single material print with filament loaded
+        } else if (GCodeInfo::getInstance().is_singletool_gcode()
+            && FSensors_instance().WhereIsFilament() == MMU2::FilamentState::AT_FSENSOR
+            && check_correct_filament_type_tools_mapping(0) // only allow this shortcut print start if filament type is matching
+                                                            // Note: existence of a valid gcode extruder index 0 has been verified in the is_singletool_gcode() call
+        ) {
+            // beware: State::checks_done shows the toolmapping screen.
+            // We don't want that in MMU mode printing a single material gcode with filament already loaded in the nozzle.
+            // In such a case we want to avoid toolmapping and start the print right away instead -> set State::done and not checks_done
+            return State::done;
         } else {
+            // Request removal of the inserted filament, esp. when:
+            // - starting a multi-material print
+            // - singlematerial print's material type not matching the inserted filament
             return State::mmu_filament_inserted_wait_user;
         }
     } else
