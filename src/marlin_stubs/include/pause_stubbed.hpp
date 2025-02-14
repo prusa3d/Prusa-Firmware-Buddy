@@ -30,7 +30,9 @@ protected:
         _finish = INT_MAX,
         start = 0,
         unload_start,
+#if HAS_LOADCELL()
         filament_stuck_ask,
+#endif
         ram_sequence,
         unload,
         unloaded_ask,
@@ -173,7 +175,9 @@ private:
 
     void start_process(Response response);
     void unload_start_process(Response response);
+#if HAS_LOADCELL()
     void filament_stuck_ask_process(Response response);
+#endif
     void ram_sequence_process(Response response);
     void unload_process(Response response);
     void unloaded_ask_process(Response response);
@@ -208,7 +212,9 @@ private:
     static constexpr EnumArray<LoadState, StateHandler, static_cast<int>(LoadState::_last) + 1> state_handlers {
         { LoadState::start, &Pause::start_process },
             { LoadState::unload_start, &Pause::unload_start_process },
+#if HAS_LOADCELL()
             { LoadState::filament_stuck_ask, &Pause::filament_stuck_ask_process },
+#endif
             { LoadState::ram_sequence, &Pause::ram_sequence_process },
             { LoadState::unload, &Pause::unload_process },
             { LoadState::unloaded_ask, &Pause::unloaded_ask_process },
