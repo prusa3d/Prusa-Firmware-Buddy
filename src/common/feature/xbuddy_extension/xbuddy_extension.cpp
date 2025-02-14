@@ -194,11 +194,19 @@ buddy::XBuddyExtension::FanState buddy::XBuddyExtension::get_fan12_state() const
 }
 
 PWM255 XBuddyExtension::max_cooling_pwm() const {
-    return FanPWM { config_store().chamber_fan_max_control_pwm.get() };
+    if (chamber_filtration().backend() == ChamberFiltrationBackend::xbe_filter_on_cooling_fans) {
+        return FanPWM { config_store().xbe_filtration_fan_max_auto_pwm.get() };
+    } else {
+        return FanPWM { config_store().xbe_cooling_fan_max_auto_pwm.get() };
+    }
 }
 
 void XBuddyExtension::set_max_cooling_pwm(PWM255 set) {
-    config_store().chamber_fan_max_control_pwm.set(set.value);
+    if (chamber_filtration().backend() == ChamberFiltrationBackend::xbe_filter_on_cooling_fans) {
+        config_store().xbe_filtration_fan_max_auto_pwm.set(set.value);
+    } else {
+        config_store().xbe_cooling_fan_max_auto_pwm.set(set.value);
+    }
 }
 
 leds::ColorRGBW XBuddyExtension::bed_leds_color() const {
