@@ -170,7 +170,9 @@ constexpr bool temperatures_are_within_spec(const FilamentTypeParameters &filame
 }
 static_assert(std::ranges::all_of(preset_filament_parameters, temperatures_are_within_spec));
 
-FilamentTypeParameters pending_adhoc_filament_parameters;
+FilamentTypeParameters pending_adhoc_filament_parameters {
+    .name { 'C', 'U', 'S', 'T', 'O', 'M', '\0' }
+};
 
 FilamentType FilamentType::from_name(const std::string_view &name) {
     if (name.length() >= filament_name_buffer_size) {

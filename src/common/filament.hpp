@@ -39,13 +39,13 @@ public:
     Name name { '\0' };
 
     /// Nozzle temperature for the filament, in degrees Celsius
-    uint16_t nozzle_temperature;
+    uint16_t nozzle_temperature = 215;
 
     /// Nozzle preheat temperature for the filament, in degrees Celsius
     uint16_t nozzle_preheat_temperature = 170;
 
     /// Bed temperature for the filament, in degrees Celsius
-    uint16_t heatbed_temperature;
+    uint16_t heatbed_temperature = 60;
 
 #if HAS_CHAMBER_API()
     /// Minimum temperature at which it's recommended to print this material
