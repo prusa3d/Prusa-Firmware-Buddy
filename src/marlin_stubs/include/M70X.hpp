@@ -11,6 +11,8 @@
 #include <optional>
 #include <algorithm>
 
+#include <option/has_chamber_api.h>
+
 #include "config_features.h"
 #include <fs_event_autolock.hpp>
 #include <feature/prusa/e-stall_detector.h>
@@ -71,6 +73,11 @@ struct M1700Args {
 
     /// true to also heat up bed
     bool preheat_bed;
+
+#if HAS_CHAMBER_API()
+    /// Whether to set target chamber temperature
+    bool preheat_chamber;
+#endif
 };
 
 /// Standalone preheat

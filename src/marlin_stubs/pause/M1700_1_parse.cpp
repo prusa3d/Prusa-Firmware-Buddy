@@ -36,7 +36,7 @@
  * - `S` - Set filament
  * - `E` - Enforce target temperature
  * - `B0` - Do not preheat the bed
-
+ * - `C0` - Do not set chamber temperature
  */
 void PrusaGcodeSuite::M1700() {
     const uint8_t preheat = std::min(parser.byteval('W', 3), uint8_t(RetAndCool_t::last_));
@@ -58,6 +58,9 @@ void PrusaGcodeSuite::M1700() {
         .save = parser.boolval('S'),
         .enforce_target_temp = parser.boolval('E'),
         .preheat_bed = parser.boolval('B', true),
+#if HAS_CHAMBER_API()
+        .preheat_chamber = parser.boolval('C', true),
+#endif
     });
 }
 

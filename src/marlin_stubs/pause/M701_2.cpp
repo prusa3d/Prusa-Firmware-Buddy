@@ -297,6 +297,9 @@ void filament_gcodes::M1600_no_parser(FilamentType filament_to_be_loaded, uint8_
             .save = true,
             .enforce_target_temp = true,
             .preheat_bed = config_store().filament_change_preheat_all.get(),
+#if HAS_CHAMBER_API()
+            .preheat_chamber = config_store().filament_change_preheat_all.get(),
+#endif
         });
         filament = config_store().get_filament_type(target_extruder);
         if (filament == FilamentType::none) {

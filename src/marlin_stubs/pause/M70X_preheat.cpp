@@ -19,6 +19,10 @@
 #include "filament_sensors_handler.hpp"
 #include "M70X.hpp"
 
+#if HAS_CHAMBER_API()
+    #include <feature/chamber/chamber.hpp>
+#endif
+
 static FSMResponseVariant preheatTempKnown(uint8_t target_extruder) {
     const FilamentType filament_type = config_store().get_filament_type(target_extruder);
     assert(filament_type != FilamentType::none);
@@ -91,6 +95,12 @@ void filament_gcodes::preheat_to(FilamentType filament, uint8_t target_extruder,
             thermalManager.setTargetBed(fil_cnf.heatbed_temperature);
         }
     }
+
+#if HAS_CHAMBER_API()
+    if (config_store().filament_change_preheat_all.get()) {
+        buddy::chamber().set_target_temperature(fil_cnf.chamber_target_temperature);
+    }
+#endif
 }
 
 std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::preheat_for_change_load(PreheatData data, uint8_t target_extruder) {
@@ -160,6 +170,12 @@ void filament_gcodes::M1700_no_parser(const M1700Args &args) {
     if (args.preheat_bed) {
         thermalManager.setTargetBed(fil_cnf.heatbed_temperature);
     }
+
+#if HAS_CHAMBER_API()
+    if (args.preheat_chamber) {
+        buddy::chamber().set_target_temperature(fil_cnf.chamber_target_temperature);
+    }
+#endif
 
     // cooldown pressed
     if (filament == FilamentType::none) {
