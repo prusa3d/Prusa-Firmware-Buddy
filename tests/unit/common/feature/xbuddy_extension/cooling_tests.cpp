@@ -6,9 +6,10 @@ using namespace buddy;
 
 TEST_CASE("Cooling PWM") {
     buddy::FanCooling cooling;
+    static constexpr buddy::FanCooling::FanPWM max_auto_pwm { 100 };
 
     const auto step = [&](bool already_spinning, Temperature current_temperature, std::optional<Temperature> target_temperature, PWM255OrAuto target_pwm) {
-        auto result = cooling.compute_pwm_step(current_temperature, target_temperature, target_pwm);
+        auto result = cooling.compute_pwm_step(current_temperature, target_temperature, target_pwm, max_auto_pwm);
         result = cooling.apply_pwm_overrides(already_spinning, result);
         return result;
     };
@@ -57,16 +58,16 @@ TEST_CASE("Cooling PWM") {
         // it is not possible reach soft_max_pwm in one step within operational temperatures
         // so controll loop needs to be called several times before check
         const auto result = step(true, 60, target_temperature, pwm_auto);
-        REQUIRE(result < cooling.get_soft_max_pwm());
+        REQUIRE(result < max_auto_pwm);
         REQUIRE(result > PWM255 { 0 });
         for (uint32_t i = 0; i < 10; i++) {
             step(true, 60, target_temperature, pwm_auto);
         }
-        REQUIRE(step(true, 60, target_temperature, pwm_auto) == cooling.get_soft_max_pwm());
+        REQUIRE(step(true, 60, target_temperature, pwm_auto) == max_auto_pwm);
     }
 
     SECTION("Nonsense range test") {
-        REQUIRE(step(true, 61, -100, pwm_auto) == cooling.get_soft_max_pwm());
+        REQUIRE(step(true, 61, -100, pwm_auto) == max_auto_pwm);
 
         // due to previous regulation cycle, the target value must be multiplied
         REQUIRE(step(true, 61, 300, pwm_auto) == PWM255 { 0 });
@@ -95,14 +96,14 @@ TEST_CASE("Cooling PWM") {
             REQUIRE(step(true, cooling.recovery_temp + 1.0, target_temperature, pwm_auto) == cooling.max_pwm);
 
             step(true, cooling.recovery_temp - 1.0, target_temperature, pwm_auto); // one more regulation cycle is needed to recover
-            REQUIRE(step(true, cooling.recovery_temp - 1.0, target_temperature, pwm_auto) == cooling.get_soft_max_pwm());
+            REQUIRE(step(true, cooling.recovery_temp - 1.0, target_temperature, pwm_auto) == max_auto_pwm);
 
             REQUIRE(step(true, cooling.critical_temp, target_temperature, pwm_auto) == cooling.max_pwm);
             REQUIRE(cooling.get_critical_temp_flag());
 
             REQUIRE(step(true, cooling.recovery_temp + 1.0, target_temperature, pwm_auto) == cooling.max_pwm);
             step(true, cooling.recovery_temp - 1.0, target_temperature, pwm_auto); // one regulation cycle is needed to recover
-            REQUIRE(step(true, cooling.recovery_temp - 1.0, target_temperature, pwm_auto) == cooling.get_soft_max_pwm());
+            REQUIRE(step(true, cooling.recovery_temp - 1.0, target_temperature, pwm_auto) == max_auto_pwm);
         }
     }
 }

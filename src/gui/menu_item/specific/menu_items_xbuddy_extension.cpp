@@ -54,14 +54,14 @@ static constexpr NumericInputConfig chamber_fan_max_percent = {
 };
 
 MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX::MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX()
-    : WiSpin(FanCooling::get_soft_max_pwm().to_percent(), chamber_fan_max_percent, _("Chamber Fans Limit")) {
+    : WiSpin(xbuddy_extension().max_cooling_pwm().to_percent(), chamber_fan_max_percent, _("Chamber Fans Limit")) {
     auto &exb = xbuddy_extension();
     set_is_hidden(exb.status() == XBuddyExtension::Status::disabled);
 }
 
 void MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX::OnClick() {
     // need to calculate value in float and round it properly, otherwise set value (in %) and stored value (in PWM duty cycle steps) could differ
-    FanCooling::set_soft_max_pwm(XBuddyExtension::FanPWM::from_percent(value()));
+    xbuddy_extension().set_max_cooling_pwm(XBuddyExtension::FanPWM::from_percent(value()));
 }
 
 // MI_XBE_FILTRATION_FAN

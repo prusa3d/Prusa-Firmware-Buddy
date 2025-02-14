@@ -69,22 +69,24 @@ void XBuddyExtension::step() {
     if (fan_update_pending && temp.has_value()) {
         last_fan_update_ms = now_ms;
 
+        const auto max_auto_pwm = max_cooling_pwm();
+
         switch (filtration_backend) {
 
         case ChamberFiltrationBackend::xbe_official_filter:
             // The filtration fan does both filtration and cooling
             cooling_fans_actual_pwm_ = cooling_fans_target_pwm_.value_or(FanPWM { 0 });
-            filtration_fan_actual_pwm_ = std::max(chamber_cooling.compute_pwm_step(*temp, target_temp, filtration_fan_target_pwm_), filtration_pwm);
+            filtration_fan_actual_pwm_ = std::max(chamber_cooling.compute_pwm_step(*temp, target_temp, filtration_fan_target_pwm_, max_auto_pwm), filtration_pwm);
             break;
 
         case ChamberFiltrationBackend::xbe_filter_on_cooling_fans:
             // The cooling fans do both filtration and cooling
-            cooling_fans_actual_pwm_ = std::max(chamber_cooling.compute_pwm_step(*temp, target_temp, cooling_fans_target_pwm_), filtration_pwm);
+            cooling_fans_actual_pwm_ = std::max(chamber_cooling.compute_pwm_step(*temp, target_temp, cooling_fans_target_pwm_, max_auto_pwm), filtration_pwm);
             filtration_fan_actual_pwm_ = filtration_fan_target_pwm_.value_or(FanPWM { 0 });
             break;
 
         default:
-            cooling_fans_actual_pwm_ = chamber_cooling.compute_pwm_step(*temp, target_temp, cooling_fans_target_pwm_);
+            cooling_fans_actual_pwm_ = chamber_cooling.compute_pwm_step(*temp, target_temp, cooling_fans_target_pwm_, max_auto_pwm);
             filtration_fan_actual_pwm_ = filtration_fan_target_pwm_.value_or(FanPWM { 0 });
             break;
         }
@@ -189,6 +191,14 @@ buddy::XBuddyExtension::FanState buddy::XBuddyExtension::get_fan12_state() const
         .fan2rpm = fanrpms[1],
         .fan1_fan2_target_pwm = cooling_fans_target_pwm_,
     };
+}
+
+PWM255 XBuddyExtension::max_cooling_pwm() const {
+    return FanPWM { config_store().chamber_fan_max_control_pwm.get() };
+}
+
+void XBuddyExtension::set_max_cooling_pwm(PWM255 set) {
+    config_store().chamber_fan_max_control_pwm.set(set.value);
 }
 
 leds::ColorRGBW XBuddyExtension::bed_leds_color() const {

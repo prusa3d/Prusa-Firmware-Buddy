@@ -1,21 +1,10 @@
 #include "cooling.hpp"
 
 #include <algorithm>
-#include <config_store/store_instance.hpp>
 
 namespace buddy {
 
-// Set maximum possiblem PWM to be used with automatic control
-void FanCooling::set_soft_max_pwm(FanPWM val) {
-    config_store().chamber_fan_max_control_pwm.set(val.value);
-}
-
-// Get maximum possiblem PWM to be used with automatic control
-FanCooling::FanPWM FanCooling::get_soft_max_pwm() {
-    return FanPWM { config_store().chamber_fan_max_control_pwm.get() };
-}
-
-FanCooling::FanPWM FanCooling::compute_auto_regulation_step(Temperature current_temperature, Temperature target_temperature) {
+FanCooling::FanPWM FanCooling::compute_auto_regulation_step(Temperature current_temperature, Temperature target_temperature, FanPWM max_auto_pwm) {
     FanPWM::Value desired = 0;
 
     const float error = current_temperature - target_temperature;
@@ -23,7 +12,7 @@ FanCooling::FanPWM FanCooling::compute_auto_regulation_step(Temperature current_
     // Simple P-regulation calculation
     float regulation_output = last_regulation_output + (proportional_constant * error);
 
-    regulation_output = std::clamp<float>(regulation_output, 0.0f, static_cast<float>(get_soft_max_pwm().value));
+    regulation_output = std::clamp<float>(regulation_output, 0.0f, static_cast<float>(max_auto_pwm.value));
 
     // convert float result to integer, while keeping the range of float for next loop
     desired = static_cast<FanPWM::Value>(regulation_output);
@@ -56,14 +45,14 @@ FanCooling::FanPWM FanCooling::apply_pwm_overrides(bool already_spinning, FanPWM
     return std::max(pwm, min_pwm);
 }
 
-FanCooling::FanPWM FanCooling::compute_pwm_step(Temperature current_temperature, std::optional<Temperature> target_temperature, FanPWMOrAuto target_pwm) {
+FanCooling::FanPWM FanCooling::compute_pwm_step(Temperature current_temperature, std::optional<Temperature> target_temperature, FanPWMOrAuto target_pwm, FanPWM max_auto_pwm) {
     // Prevent cropping off 1 during the restaling
     FanPWM result = target_pwm.value_or(FanPWM { 0 });
 
     // Make sure the target_pwm contains the value we would _like_ to
     // run at.
     if (target_pwm == pwm_auto && target_temperature.has_value()) {
-        result = compute_auto_regulation_step(current_temperature, *target_temperature);
+        result = compute_auto_regulation_step(current_temperature, *target_temperature, max_auto_pwm);
 
     } else {
         // Reset regulator if we lose the control

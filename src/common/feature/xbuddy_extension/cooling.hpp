@@ -39,17 +39,15 @@ public:
 
     // Compute at what PWM the fan(s) should be driven
     // !!!!!!!! this function should be called in regular time intervals given by dt_s !!!!!!!!
-    [[nodiscard]] FanPWM compute_pwm_step(Temperature current_temperature, std::optional<Temperature> target_temperature, FanPWMOrAuto target_pwm);
+    [[nodiscard]] FanPWM compute_pwm_step(Temperature current_temperature, std::optional<Temperature> target_temperature, FanPWMOrAuto target_pwm, FanPWM max_auto_pwm);
 
     constexpr bool get_overheating_temp_flag() { return overheating_temp_flag; };
     constexpr bool get_critical_temp_flag() { return critical_temp_flag; };
 
-    static void set_soft_max_pwm(FanPWM val);
-    static FanPWM get_soft_max_pwm();
-
 private:
     /// Computes a PWM ramping function
-    FanPWM compute_auto_regulation_step(Temperature current_temperature, Temperature target_temperature);
+    FanPWM compute_auto_regulation_step(Temperature current_temperature, Temperature target_temperature, FanPWM max_auto_pwm);
+
     float last_regulation_output = 0.0f;
 
     bool overheating_temp_flag = false;

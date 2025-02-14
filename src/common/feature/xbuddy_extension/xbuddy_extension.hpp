@@ -58,6 +58,11 @@ public: // Fans
 
     FanState get_fan12_state() const;
 
+    /// \returns maximum PWM that is used for cooling in non-emergency situations
+    PWM255 max_cooling_pwm() const;
+
+    void set_max_cooling_pwm(PWM255 set);
+
 public: // LEDs
     /// \returns color set for the bed LED strip
     leds::ColorRGBW bed_leds_color() const;
