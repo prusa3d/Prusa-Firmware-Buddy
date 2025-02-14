@@ -124,9 +124,9 @@ std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::p
     }
 }
 
-void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode, int8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed) {
+void filament_gcodes::M1700_no_parser(const M1700Args &args) {
     InProgress progress;
-    const FSMResponseVariant response_variant = preheatTempUnKnown(PreheatData::make(mode, target_extruder, preheat_tp), true);
+    const FSMResponseVariant response_variant = preheatTempUnKnown(PreheatData::make(args.mode, args.target_extruder, args.preheat), true);
 
     // autoload ocurred
     if (!response_variant) {
@@ -143,11 +143,11 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode,
     const FilamentTypeParameters fil_cnf = filament.parameters();
 
     const auto set_extruder_temp = [&](uint8_t extruder) {
-        thermalManager.setTargetHotend(enforce_target_temp ? fil_cnf.nozzle_temperature : fil_cnf.nozzle_preheat_temperature, extruder);
+        thermalManager.setTargetHotend(args.enforce_target_temp ? fil_cnf.nozzle_temperature : fil_cnf.nozzle_preheat_temperature, extruder);
         marlin_server::set_temp_to_display(fil_cnf.nozzle_temperature, extruder);
     };
 
-    if (response == Response::Cooldown || target_extruder < 0) {
+    if (response == Response::Cooldown || args.target_extruder < 0) {
         // Set temperature to all tools
         // Cooldown is always applied to all tools
         HOTEND_LOOP() {
@@ -161,10 +161,10 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode,
 
     } else {
         // Preheat only target tool
-        set_extruder_temp(target_extruder);
+        set_extruder_temp(args.target_extruder);
     }
 
-    if (preheat_bed) {
+    if (args.preheat_bed) {
         thermalManager.setTargetBed(fil_cnf.heatbed_temperature);
     }
 
@@ -176,13 +176,13 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode,
         unhomed_z_lift(10);
     }
 
-    if (save) {
-        if (target_extruder < 0) {
+    if (args.save) {
+        if (args.target_extruder < 0) {
             HOTEND_LOOP() {
                 config_store().set_filament_type(e, filament);
             }
         } else {
-            config_store().set_filament_type(target_extruder, filament);
+            config_store().set_filament_type(args.target_extruder, filament);
         }
     }
 

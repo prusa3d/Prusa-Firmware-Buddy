@@ -290,7 +290,14 @@ void filament_gcodes::M1600_no_parser(FilamentType filament_to_be_loaded, uint8_
 
     if (ask_filament == AskFilament_t::Always || (filament == FilamentType::none && ask_filament == AskFilament_t::IfUnknown)) {
         // need to save filament to check if operation went well, PreheatMode::Unload for user info in header
-        M1700_no_parser(preheat, PreheatMode::Unload, target_extruder, true, true, config_store().heatup_bed.get());
+        M1700_no_parser(M1700Args {
+            .preheat = preheat,
+            .mode = PreheatMode::Unload,
+            .target_extruder = static_cast<int8_t>(target_extruder),
+            .save = true,
+            .enforce_target_temp = true,
+            .preheat_bed = config_store().heatup_bed.get(),
+        });
         filament = config_store().get_filament_type(target_extruder);
         if (filament == FilamentType::none) {
             return; // no need to set PreheatStatus::Result::DoneNoFilament, M1700 did that

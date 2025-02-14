@@ -53,17 +53,28 @@ void M70X_process_user_response(PreheatStatus::Result res, uint8_t target_extrud
 
 void M1600_no_parser(FilamentType filament_to_be_loaded, uint8_t target_extruder, RetAndCool_t preheat, AskFilament_t ask_filament, std::optional<Color> color_to_be_loaded);
 
-/**
- * @brief Stand alone preheat.
- *
- * @param preheat include return and/or cooldown items in menu
- * @param mode preheat mode as part of load/unload
- * @param target_extruder preheat this extruder (indexed from 0), or -1 to preheat all
- * @param save save selected filament settings to EEPROM
- * @param enforce_target_temp true to enforce target temp, false to use preheat temp
- * @param preheat_bed true to also heat up bed
- */
-void M1700_no_parser(RetAndCool_t preheat, PreheatMode mode, int8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed);
+struct M1700Args {
+    /// include return and/or cooldown items in menu
+    RetAndCool_t preheat;
+
+    /// preheat mode as part of load/unload
+    PreheatMode mode;
+
+    /// preheat this extruder (indexed from 0), or -1 to preheat all
+    int8_t target_extruder;
+
+    /// save selected filament settings to EEPROM
+    bool save;
+
+    /// true to enforce target temp, false to use preheat temp
+    bool enforce_target_temp;
+
+    /// true to also heat up bed
+    bool preheat_bed;
+};
+
+/// Standalone preheat
+void M1700_no_parser(const M1700Args &args);
 
 void M1701_no_parser(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder);
 
