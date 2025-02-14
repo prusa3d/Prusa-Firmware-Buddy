@@ -85,7 +85,7 @@ void filament_gcodes::M701_no_parser(FilamentType filament_to_be_loaded, const s
 
             filament_to_be_loaded = preheat_ret.second;
         } else {
-            preheat_to(filament_to_be_loaded, target_extruder);
+            preheat_to(filament_to_be_loaded, target_extruder, false);
         }
     }
     filament::set_type_to_load(filament_to_be_loaded);
@@ -306,7 +306,7 @@ void filament_gcodes::M1600_no_parser(FilamentType filament_to_be_loaded, uint8_
 
     PreheatStatus::SetResult(PreheatStatus::Result::DoneHasFilament);
 
-    preheat_to(filament, target_extruder);
+    preheat_to(filament, target_extruder, false);
     xyze_pos_t current_position_tmp = current_position;
 
     pause::Settings settings;
@@ -341,7 +341,7 @@ void filament_gcodes::M1600_no_parser(FilamentType filament_to_be_loaded, uint8_
 
         filament_to_be_loaded = preheat_ret.second;
     } else {
-        preheat_to(filament_to_be_loaded, target_extruder);
+        preheat_to(filament_to_be_loaded, target_extruder, false);
     }
     filament::set_type_to_load(filament_to_be_loaded);
     filament::set_color_to_load(color_to_be_loaded);

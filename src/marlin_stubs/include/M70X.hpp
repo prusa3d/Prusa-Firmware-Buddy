@@ -89,7 +89,7 @@ void mmu_off();
 
 std::pair<std::optional<PreheatStatus::Result>, FilamentType> preheat(PreheatData preheat_data, uint8_t target_extruder);
 std::pair<std::optional<PreheatStatus::Result>, FilamentType> preheat_for_change_load(PreheatData data, uint8_t target_extruder);
-void preheat_to(FilamentType filament, uint8_t target_extruder);
+void preheat_to(FilamentType filament, uint8_t target_extruder, bool force_temp);
 } // namespace filament_gcodes
 
 namespace PreheatStatus {
