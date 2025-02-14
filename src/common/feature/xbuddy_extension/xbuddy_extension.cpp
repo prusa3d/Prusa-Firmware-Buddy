@@ -14,6 +14,11 @@
 
 namespace buddy {
 
+XBuddyExtension &xbuddy_extension() {
+    static XBuddyExtension instance;
+    return instance;
+}
+
 XBuddyExtension::XBuddyExtension() {
 }
 
@@ -210,11 +215,6 @@ void XBuddyExtension::set_usb_power(bool enabled) {
 
 bool XBuddyExtension::usb_power() const {
     return config_store().xbe_usb_power.get();
-}
-
-XBuddyExtension &xbuddy_extension() {
-    static XBuddyExtension instance;
-    return instance;
 }
 
 } // namespace buddy

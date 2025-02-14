@@ -84,7 +84,7 @@ public: // Other
     /// \returns state of the filament sensor
     std::optional<FilamentSensorState> filament_sensor();
 
-public:
+public: // USB
     void set_usb_power(bool enabled);
     bool usb_power() const;
 
