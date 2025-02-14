@@ -838,10 +838,8 @@ void Pause::unload_start_process([[maybe_unused]] Response response) {
 
     case LoadType::filament_stuck:
 #if HAS_LOADCELL()
-        setPhase(PhasesLoadUnload::FilamentStuck);
         set(LoadState::filament_stuck_ask);
 #else
-        setPhase(PhasesLoadUnload::ManualUnload, 100);
         set(LoadState::manual_unload);
 #endif
         break;
@@ -857,6 +855,8 @@ void Pause::unload_start_process([[maybe_unused]] Response response) {
 }
 
 void Pause::filament_stuck_ask_process(Response response) {
+    setPhase(PhasesLoadUnload::FilamentStuck);
+
     if (response == Response::Unload) {
         set(LoadState::ram_sequence);
     }
@@ -918,7 +918,6 @@ void Pause::unloaded_ask_process(Response response) {
         return;
     }
     if (response == Response::No) {
-        setPhase(PhasesLoadUnload::ManualUnload, 100);
         disable_e_stepper(active_extruder);
         set(LoadState::manual_unload);
     }
@@ -980,6 +979,8 @@ void Pause::filament_not_in_fs_process([[maybe_unused]] Response response) {
 }
 
 void Pause::manual_unload_process(Response response) {
+    setPhase(PhasesLoadUnload::ManualUnload, 100);
+
     if (response == Response::Continue
         && !FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder)) { // Allow to continue when nothing remains in filament sensor
         enable_e_steppers();
