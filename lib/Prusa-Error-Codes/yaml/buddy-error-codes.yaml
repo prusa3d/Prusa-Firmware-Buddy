@@ -17,6 +17,9 @@
 # e.g. MK4 covers all printers running MK4 firmware: MK4, MK4S, MK3.9
 # currently supported list: MINI, MK4, XL, iX, MK3.5
 # if no printers list exists, the error is applicable to all printers running Buddy FW.
+# Attribute gui_layout ["red_screen", "warning_dialog"]
+#   Specify what pre-defined GUI layout is used to display this error. This is used to test if translated messages fit into the layout
+#   To add more pre-defined layout tests, edit Prusa-Firmware-Buddy/tests/unit/lang/text_fit/ & Prusa-Firmware-Buddy/utils/extract_error_texts.py
 
 Errors:
   - code: "XX101"
@@ -25,6 +28,7 @@ Errors:
     text: "The filament seems to be stuck, please unload it from nextruder and load it again."
     action: [Unload]
     id: "STUCK_FILAMENT_DETECTED"
+    gui_layout: "warning_dialog"
     approved: true
 
   - code: "XX101"
@@ -39,6 +43,7 @@ Errors:
     title: "PRECISE REFINEMENT FAILED"
     text: "Consider adjusting belt tension."
     id: "PRECISE_REFINEMENT_FAILED"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX103"
@@ -46,6 +51,7 @@ Errors:
     title: "DOCK POSITION OUT OF BOUNDS"
     text: "Dock %d position differs too much from expected values."
     id: "DOCK_POSITION_OUT_OF_BOUNDS"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX104"
@@ -53,6 +59,7 @@ Errors:
     title: "TOOL OFFSET OUT OF BOUNDS"
     text: "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
     id: "TOOL_OFFSET_OUT_OF_BOUNDS"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX105"
@@ -60,6 +67,7 @@ Errors:
     title: "XY PROBE UNSTABLE"
     text: "XY probing failed due to the low measurement stability."
     id: "XY_PROBE_UNSTABLE"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX106"
@@ -67,6 +75,7 @@ Errors:
     title: "XY POSITION INVALID"
     text: "Probed XY position is %.3f mm from expected. This is more than allowed difference of %.3f mm."
     id: "XY_POSITION_INVALID"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX107"
@@ -74,6 +83,7 @@ Errors:
     title: "PIN NOT REACHED"
     text: "Calibration pin has not been reached. Please check the pin installation."
     id: "PIN_NOT_REACHED"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX108"
@@ -81,6 +91,7 @@ Errors:
     title: "STUCK FILAMENT DETECTED"
     text: "The filament seems to be stuck, please unload it from nextruder and load it again."
     action: [Unload]
+    gui_layout: "red_screen"
     id: "STUCK_FILAMENT_DETECTED"
     approved: true
 
@@ -90,6 +101,7 @@ Errors:
     text: "Steel sheet was not detected. Please put the sheet on to prevent printer damage."
     action: [Retry, Skip]
     id: "STEEL_SHEET_NOT_DETECTED"
+    gui_layout: "warning_dialog"
     approved: false
 
   - code: "XX110"
@@ -98,6 +110,7 @@ Errors:
     text: "Close the door to prevent air drafts, burns and other undesirable effects."
     action: []
     id: "DOOR_OPEN"
+    gui_layout: "warning_dialog"
     approved: false
 
   - code: "XX111"
@@ -106,6 +119,7 @@ Errors:
     text: "The bed doesn't seem to be aligned properly. Run Z alignment procedure?"
     action: []
     id: "UNEVEN_BED_ALIGN_PROMPT"
+    gui_layout: "warning_dialog"
     approved: false
 
   - code: "XX112"
@@ -114,6 +128,7 @@ Errors:
     text: "The printer queued a move that may crash the model into the ceiling."
     action: []
     id: "CEILING_CLEARANCE_VIOLATION"
+    gui_layout: "warning_dialog"
     approved: false
 
   # TEMPERATURE    xx2xx
@@ -123,6 +138,7 @@ Errors:
     title: "PREHEAT ERROR"
     text: "Check the heatbed heater & thermistor wiring for possible damage."
     id: "BED_PREHEAT_ERROR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX202"
@@ -130,6 +146,7 @@ Errors:
     title: "PREHEAT ERROR"
     text: "Check the print head heater & thermistor wiring for possible damage."
     id: "HOTEND_PREHEAT_ERROR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX202"
@@ -137,12 +154,14 @@ Errors:
     title: "EXTRUDER PREHEAT ERROR"
     text: "Check the heater and thermistor wiring for potential damage."
     id: "HOTEND_PREHEAT_ERROR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX203"
     title: "THERMAL RUNAWAY"
     text: "Check the heatbed thermistor wiring for possible damage."
     id: "BED_THERMAL_RUNAWAY"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX204"
@@ -150,6 +169,7 @@ Errors:
     title: "THERMAL RUNAWAY"
     text: "Check the print head thermistor wiring for possible damage."
     id: "HOTEND_THERMAL_RUNAWAY"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX204"
@@ -157,6 +177,7 @@ Errors:
     title: "EXTRUDER THERMAL RUNAWAY"
     text: "Check the thermistor wiring for potential damage."
     id: "HOTEND_THERMAL_RUNAWAY"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX205"
@@ -164,6 +185,7 @@ Errors:
     title: "MAXTEMP ERROR"
     text: "Check the heatbed thermistor wiring for possible damage."
     id: "BED_MAXTEMP_ERROR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX206"
@@ -171,6 +193,7 @@ Errors:
     title: "MAXTEMP ERROR"
     text: "Check the print head thermistor wiring for possible damage."
     id: "HOTEND_MAXTEMP_ERROR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX206"
@@ -178,6 +201,7 @@ Errors:
     title: "EXTRUDER MAXTEMP ERROR"
     text: "Check the thermistor wiring for potential damage."
     id: "HOTEND_MAXTEMP_ERROR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX207"
@@ -185,6 +209,7 @@ Errors:
     title: "MINTEMP ERROR"
     text: "Check the heatbed thermistor wiring for possible damage."
     id: "BED_MINTEMP_ERROR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX208"
@@ -192,6 +217,7 @@ Errors:
     title: "MINTEMP ERROR"
     text: "Check the print head thermistor wiring for possible damage."
     id: "HOTEND_MINTEMP_ERROR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX208"
@@ -199,6 +225,7 @@ Errors:
     title: "EXTRUDER MINTEMP ERROR"
     text: "Check the thermistor wiring for potential damage."
     id: "HOTEND_MINTEMP_ERROR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX209"
@@ -225,18 +252,21 @@ Errors:
     title: "HEATBREAK MINTEMP ERROR"
     text: "Check the heatbreak thermistor wiring for possible damage."
     id: "HEATBREAK_MINTEMP_ERR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX212"
     title: "HEATBREAK MAXTEMP ERROR"
     text: "Check the heatbreak thermistor wiring for possible damage."
     id: "HEATBREAK_MAXTEMP_ERR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX213"
     title: "MCU MAXTEMP ERROR"
     text: "MCU in %s is overheated."
     id: "MCU_MAXTEMP_ERR"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX250"
@@ -244,6 +274,7 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Heatbed tile no. %d:\nDamaged tile or wiring.\nFollow online guide to diagnose."
     id: "MB_HEATER_DISCONNECTED"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX251"
@@ -251,6 +282,7 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Heatbed tile no. %d:\nDamaged tile or wiring.\nFollow online guide to diagnose."
     id: "MB_HEATER_SHORT"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX252"
@@ -258,6 +290,7 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Heatbed tile no. %d: \nTemperature measurement error; thermistor may be faulty."
     id: "MB_MINTEMP_ERR"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX253"
@@ -265,6 +298,7 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Heatbed tile no. %d: \nTemperature measurement error; thermistor may be faulty."
     id: "MB_MAXTEMP_ERR"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX254"
@@ -272,6 +306,7 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Heatbed tile no. %d: \nUnexpected temperature drop detected."
     id: "MB_DROP_TEMP"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX255"
@@ -279,6 +314,7 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Heatbed tile no. %d:\n Unexpected temperature peak detected."
     id: "MB_PEAK_TEMP"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX256"
@@ -286,6 +322,7 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Heatbed tile no. %d:\nPreheat error."
     id: "MB_PREHEAT_ERR"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX257"
@@ -293,6 +330,7 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Heatbed tile no. %d:\nTest heating error."
     id: "MB_TEST_HEATING_ERR"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX258"
@@ -300,6 +338,7 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Heatbed connector no. %d:\nNothing should be connected here."
     id: "MB_HEATER_CONNECTED"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX259"
@@ -307,6 +346,7 @@ Errors:
     title: "FAILED TO REACH CHAMBER TEMPERATURE"
     text: "Failing to reach target chamber temperature. Keep waiting?"
     id: "CHAMBER_FAILED_TO_REACH_TEMP"
+    gui_layout: "warning_dialog"
     approved: false
 
   - code: "XX260"
@@ -314,12 +354,14 @@ Errors:
     title: "Chamber Overheating"
     text: "Chamber temperature above safety limit. Ensure better ventilation."
     id: "CHAMBER_OVERHEATING_TEMP"
+    gui_layout: "warning_dialog"
 
   - code: "XX261"
     printers: [COREONE, XL]
     title: "Chamber Temperature Is Critical"
     text: "Chamber temperature critical. Aborting print to prevent printer damage."
     id: "CHAMBER_CRITICAL_TEMP"
+    gui_layout: "warning_dialog"
 
   # ELECTRICAL     xx3xx
 
@@ -328,6 +370,7 @@ Errors:
     title: "HOMING ERROR Z"
     text: "SuperPINDA sensor is probably broken or disconnected, could not home Z-axis properly."
     id: "HOMING_ERROR_Z"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX301"
@@ -335,6 +378,7 @@ Errors:
     title: "HOMING ERROR Z"
     text: "Failed to home the extruder in Z-axis, make sure the loadcell is working."
     id: "HOMING_ERROR_Z"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX301"
@@ -342,6 +386,7 @@ Errors:
     title: "HOMING ERROR Z"
     text: "Failed to home the Z-axis, make sure the loadcell is working."
     id: "HOMING_ERROR_Z"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX301"
@@ -349,6 +394,7 @@ Errors:
     title: "HOMING ERROR Z"
     text: "Failed to home the extruder in Z-axis."
     id: "HOMING_ERROR_Z"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX302"
@@ -356,6 +402,7 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Overcurrent detected."
     id: "MB_OVERCURRENT"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX303"
@@ -363,6 +410,7 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Unexpected invalid current."
     id: "MB_INVALID_CURRENT"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX304"
@@ -370,6 +418,7 @@ Errors:
     title: "HOMING ERROR X"
     text: "Failed to home the extruder in X-axis, make sure there is no obstacle on X-axis."
     id: "HOMING_ERROR_X"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX304"
@@ -377,6 +426,7 @@ Errors:
     title: "HOMING ERROR X"
     text: "Failed to home the X-axis, make sure there is no obstacle on X-axis or Y-axis."
     id: "HOMING_ERROR_X"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX305"
@@ -384,6 +434,7 @@ Errors:
     title: "HOMING ERROR Y"
     text: "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
     id: "HOMING_ERROR_Y"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX305"
@@ -391,6 +442,7 @@ Errors:
     title: "HOMING ERROR Y"
     text: "Failed to home the extruder in Y-axis, make sure there is no obstacle on Y-axis."
     id: "HOMING_ERROR_Y"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX305"
@@ -398,18 +450,21 @@ Errors:
     title: "HOMING ERROR Y"
     text: "Failed to home the Y-axis, make sure there is no obstacle on X-axis or Y-axis."
     id: "HOMING_ERROR_Y"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX306"
     title: "USB PORT OVERCURRENT"
     text: "Overcurrent detected on USB port."
     id: "USB_HOST_OVERCURRENT"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX307"
     title: "USB DEVICE OVERCURRENT"
     text: "Overcurrent detected on the connected USB device, disconnect it."
     id: "USB_DEVICE_OVERCURRENT"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX308"
@@ -417,6 +472,7 @@ Errors:
     title: "NOZZLE HEATER OVERCURRENT"
     text: "Overcurrent detected on nozzle heater."
     id: "NOZZLE_OVERCURRENT"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX309"
@@ -424,6 +480,7 @@ Errors:
     title: "HEATBED PORT OVERCURRENT"
     text: "Overcurrent detected on heatbed port, disconnect the device."
     id: "INPUT_OVERCURRENT"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX309"
@@ -431,60 +488,70 @@ Errors:
     title: "HEATBED PORT OVERCURRENT"
     text: "Overcurrent detected on xBuddy heatbed port, disconnect the device."
     id: "INPUT_OVERCURRENT"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX310"
     title: "MMU OVERCURRENT"
     text: "Overcurrent detected on the MMU port, disconnect the device."
     id: "MMU_OVERCURRENT"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX311"
     title: "I2C SEND FAILED"
     text: "HAL detected an I2C error when sending data via I2C."
     id: "I2C_TX_ERROR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX312"
     title: "I2C SEND BUSY"
     text: "HAL detected an I2C busy state when sending data via I2C."
     id: "I2C_TX_BUSY"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX313"
     title: "I2C SEND TIMEOUT"
     text: "HAL detected an I2C timeout when sending data via I2C."
     id: "I2C_TX_TIMEOUT"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX314"
     title: "I2C SEND UNDEFINED"
     text: "HAL detected an I2C undefined error when sending data via I2C."
     id: "I2C_TX_UNDEFINED"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX315"
     title: "I2C RECEIVE FAILED"
     text: "HAL detected an I2C error when receiving data via I2C."
     id: "I2C_RX_ERROR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX316"
     title: "I2C RECEIVE BUSY"
     text: "HAL detected an I2C busy state when receiving data via I2C."
     id: "I2C_RX_BUSY"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX317"
     title: "I2C RECEIVE TIMEOUT"
     text: "HAL detected an I2C timeout when receiving data via I2C."
     id: "I2C_RX_TIMEOUT"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX318"
     title: "I2C RECEIVE UNDEFINED"
     text: "HAL detected an I2C undefined error when receiving data via I2C."
     id: "I2C_RX_UNDEFINED"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX319"
@@ -492,12 +559,14 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Power failure"
     id: "MB_FAULT"
+    gui_layout: "red_screen"
     
   - code: "XX320"
     printers: [iX, XL]
     title: "MODULAR BED ERROR"
     text: "Power panic"
     id: "MB_PANIC"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX321"
@@ -505,6 +574,7 @@ Errors:
     title: "POWER PANIC"
     text: "Power panic detected on startup. Check power panic cable."
     id: "ACF_AT_INIT"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX322"
@@ -512,12 +582,14 @@ Errors:
     title: "HOTEND HEATER OVERCURRENT"
     text: "%s Check hotend heater and control electronics for possible damage"
     id: "HEATER_HOTEND_OVERCURRENT"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX323"
     title: "ACCELEROMETER COMMUNICATION FAILED"
     text: "Check that the accelerometer cable is plugged in and not damaged."
     id: "ACCELEROMETER_COMMUNICATION_FAILED"
+    gui_layout: "warning_dialog"
     approved: false
 
   - code: "XX401"
@@ -532,6 +604,7 @@ Errors:
     title: "G-CODE METRICS CONFIG CHANGE"
     text: "Gcode is trying to change metrics configuration.\n\nAllow the changes?"
     id: "GCODE_METRICS_CONFIG_CHANGE"
+    gui_layout: "warning_dialog"
     approved: false
 
   - code: "XX501"
@@ -539,6 +612,7 @@ Errors:
     title: "MODULAR BED ERROR"
     text: "Heatbed tile no. %d:\nUnknown error: %d"
     id: "MB_UNKNOWN_ERR"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX502"
@@ -546,6 +620,7 @@ Errors:
     title: "DWARF ERROR"
     text: "Dwarf board encountered the following problem: \n%s"
     id: "DWARF_UNKNOWN_ERR"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX503"
@@ -588,6 +663,7 @@ Errors:
     title: "EMERGENCY STOP"
     text: "Emergency stop invoked by G-code (M112)."
     id: "EMERGENCY_STOP"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX511"
@@ -595,6 +671,7 @@ Errors:
     title: "PUPPY ERROR"
     text: "Address assignment error"
     id: "PUPPY_ADDR_ASSIGN_ERR"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX512"
@@ -602,6 +679,7 @@ Errors:
     title: "PUPPY ERROR"
     text: "Unassigned puppy found"
     id: "PUPPY_NO_ADDR"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX513"
@@ -609,6 +687,7 @@ Errors:
     title: "PUPPY ERROR"
     text: "Puppy discovery error. No puppy found"
     id: "PUPPY_DISCOVER_ERR"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX514"
@@ -616,6 +695,7 @@ Errors:
     title: "PUPPY ERROR"
     text: "Puppy %s not responding"
     id: "PUPPY_NOT_RESPONDING"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX515"
@@ -623,6 +703,7 @@ Errors:
     title: "PUPPY ERROR"
     text: "Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
     id: "PUPPY_INCOMPATIBLE_BOOTLODER"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX516"
@@ -630,6 +711,7 @@ Errors:
     title: "PUPPY ERROR"
     text: "Unknown puppy type"
     id: "PUPPY_UNKNOWN_TYPE"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX517"
@@ -637,6 +719,7 @@ Errors:
     title: "PUPPY ERROR"
     text: "Unable to start puppy application"
     id: "PUPPY_START_APP_ERR"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX518"
@@ -644,6 +727,7 @@ Errors:
     title: "PUPPY ERROR"
     text: "Puppy %s firmware not found"
     id: "PUPPY_FW_NOT_FOUND"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX519"
@@ -651,6 +735,7 @@ Errors:
     title: "PUPPY ERROR"
     text: "Puppy %s flash writing failed"
     id: "PUPPY_WRITE_FLASH_ERR"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX520"
@@ -658,6 +743,7 @@ Errors:
     title: "PUPPY ERROR"
     text: "Puppy %s firmware fingerprint mismatch"
     id: "PUPPY_FINGERPRINT_MISMATCH"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX521"
@@ -665,6 +751,7 @@ Errors:
     title: "PUPPY ERROR"
     text: "Waiting for fingerprint timed out"
     id: "PUPPY_FINGERPRINT_TIMEOUT"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX522"
@@ -672,6 +759,7 @@ Errors:
     title: "PUPPY ERROR"
     text: "Waiting for puppies to start timed out"
     id: "PUPPY_RUN_TIMEOUT"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX523"
@@ -700,6 +788,7 @@ Errors:
     title: "LOADCELL MEASURE FAILED"
     text: "Loadcell measured an inifinite or undefined load value."
     id: "LOADCELL_INFINITE_LOAD"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX527"
@@ -714,6 +803,7 @@ Errors:
     title: "LOADCELL TIMEOUT"
     text: "There was a timeout while waiting for measurement sample, please repeat the action."
     id: "LOADCELL_TIMEOUT"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX529"
@@ -721,24 +811,28 @@ Errors:
     title: "LED MEMORY ERROR"
     text: "Memory allocation failed for scheduled LED animation"
     id: "LED_ANIMATION_BAD_SPACE_MANAGEMENT"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX530"
     title: "MARLIN REQUEST TIMEOUT"
     text: "Marlin client could not send message to Marlin server and timeout was reached."
     id: "MARLIN_CLIENT_SERVER_REQUEST_TIMEOUT"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX531"
     title: "BBF ALLOCATION FAILED"
     text: "Space allocation for firmware BBF file failed. Repeat the action or try another USB drive."
     id: "BBF_ALLOCATION_FAILED"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX532"
     title: "BBF INITIALIZATION FAILED"
     text: "BBF initialization failed, repeat the action or try another USB drive."
     id: "BBF_INIT_FAILED"
+    gui_layout: "red_screen"
     approved: true
 
   - code: "XX533"
@@ -751,11 +845,13 @@ Errors:
     title: "Gcode Corruption"
     text: "Gcode on the USB drive is corrupt. Fix manually before resuming."
     id: "GCODE_CORRUPTION"
+    gui_layout: "warning_dialog"
 
   - code: "XX535"
     title: "Gcode Cropped"
     text: "G-code command was too long and did not fit in the internal buffers. As a result, it may have been executed incorrectly."
     id: "GCODE_CROPPED"
+    gui_layout: "warning_dialog"
     approved: false
 
   - code: "XX536"
@@ -763,6 +859,7 @@ Errors:
     title: "EXTRUDER ERROR"
     text: "Extruder motor is not spinning on tool %d"
     id: "DWARF_TMC"
+    gui_layout: "red_screen"
     approved: false
 
   - code: "XX601"
@@ -888,11 +985,12 @@ Errors:
     title: "Unknown file system"
     text: "Use a different USB drive or reformat this one to the supported FAT32 file system."
     id: "USB_DRIVE_UNSUPPORTED_FILE_SYSTEM"
+    gui_layout: "warning_dialog"
     
   - code: "XX801"
     title: "Warning"
     text: "Please complete Calibrations & Tests before using the printer."
-    id: "PRINT_PREVIEW_UNFINISHED_SELFTEST"
+    id: "UNFINISHED_SELFTEST"
     type: "CONNECT"
 
   - code: "XX802"
@@ -954,6 +1052,7 @@ Errors:
     text: "The heatbed cooled down during the power outage, printed object might have detached. Inspect it before continuing."
     id: "POWER_PANIC_COLD_BED"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX809"
     title: "CRASH DETECTED"
@@ -1005,6 +1104,7 @@ Errors:
     text: "Print fan not spinning. Check it for possible debris, then inspect the wiring."
     id: "PRINT_FAN_ERROR"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX817"
     printers: [iX]
@@ -1012,6 +1112,7 @@ Errors:
     text: "Heating disabled due to 10 minutes of inactivity."
     id: "HEATERS_TIMEOUT"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX817"
     printers: [MINI, MK3.5, MK4, XL, COREONE]
@@ -1019,12 +1120,14 @@ Errors:
     text: "Heating disabled due to 30 minutes of inactivity."
     id: "HEATERS_TIMEOUT"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX818"
     title: "Warning"
     text: "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
     id: "HOTEND_TEMP_DISCREPANCY"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX819"
     printers: [iX]
@@ -1032,6 +1135,7 @@ Errors:
     text: "Heating disabled due to 10 minutes of inactivity."
     id: "NOZZLE_TIMEOUT"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX819"
     printers: [MINI, MK3.5, MK4, XL, COREONE]
@@ -1039,24 +1143,28 @@ Errors:
     text: "Heating disabled due to 30 minutes of inactivity."
     id: "NOZZLE_TIMEOUT"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX820"
     title: "Warning"
     text: "Steppers disabled due to inactivity."
     id: "STEPPERS_TIMEOUT"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX821"
     title: "Warning"
     text: "USB drive or file error, the print is now paused. Reconnect the drive."
     id: "USB_FLASH_DISK_ERROR"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX822"
     title: "Warning"
     text: "Heatbreak thermistor is disconnected. Inspect the wiring."
     id: "HEATBREAK_THERMISTOR_FAIL"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX823"
     printers: [XL, MK3.5]
@@ -1064,18 +1172,21 @@ Errors:
     text: "Nozzle doesn't seem to have round cross section. Make sure it is clean and perpendicular to the bed."
     id: "NOZZLE_DOES_NOT_HAVE_ROUND_SECTION"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX824"
     title: "Warning"
     text: "G-Code transfer running too slow. Check your network for issues or use different USB drive. Press Continue to resume printing."
     id: "NOT_DOWNLOADED"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX825"
     title: "Warning"
     text: "MCU in Buddy is overheated, likely due to exceeding the printer's operating temperature. Prevent overheating for optimal performance."
     id: "BUDDY_MCU_MAX_TEMP"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX826"
     printers: [XL]
@@ -1083,6 +1194,7 @@ Errors:
     text: "MCU in Dwarf is overheated, likely due to exceeding the printer's operating temperature. Prevent overheating for optimal performance."
     id: "DWARF_MCU_MAX_TEMP"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX827"
     printers: [iX, XL]
@@ -1090,12 +1202,14 @@ Errors:
     text: "MCU in Modular Bed is overheated, likely due to exceeding the printer's operating temperature. Prevent overheating for optimal performance."
     id: "MOD_BED_MCU_MAX_TEMP"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX828"
     title: "Warning"
     text: "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
     id: "HOTEND_FAN_ERROR"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX829"
     # Unfortunately, the printer doesn't know if it is out of filament because
@@ -1113,6 +1227,7 @@ Errors:
     text: "Enclosure fan not spinning. Check it for possible debris, then inspect the wiring."
     id: "ENCLOSURE_FAN_ERROR"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX831"
     printers: [XL]
@@ -1120,6 +1235,7 @@ Errors:
     text: "The HEPA filter is nearing the end of its life span (100 hours of printing time remaining). We recommend purchasing a new one. Visit prusa.io/xl-filter for more information."
     id: "ENCLOSURE_FILTER_EXPIRATION_WARNING"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX832"
     printers: [XL]
@@ -1127,6 +1243,7 @@ Errors:
     text: "The HEPA filter has expired. Change the HEPA filter before your next print. Visit prusa.io/xl-filter for more information."
     id: "ENCLOSURE_FILTER_EXPIRATION"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX833"
     printers: [iX, MK4, COREONE, MK3.5, MINI, XL]
@@ -1134,6 +1251,7 @@ Errors:
     text: "Bed leveling failed. Try again?"
     id: "PROBING_FAILED"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX834"
     printers: [iX, MK4, COREONE, XL]
@@ -1141,6 +1259,7 @@ Errors:
     text: "Nozzle cleaning failed."
     id: "NOZZLE_CLEANING_FAILED"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
 
   - code: "XX835"
     printers: [iX, MK4, COREONE, MK3.5, MINI, XL]
@@ -1154,3 +1273,20 @@ Errors:
     text: "Filament loading timed out."
     id: "FILAMENT_LOADING_TIMEOUT"
     type: "CONNECT"
+    gui_layout: "warning_dialog"
+
+  - code: "XX837"
+    printers: [COREONE]
+    title: "Open Chamber Ventilation"
+    text: "Ensure the top ventilation grille is open for proper airflow."
+    id: "OPEN_CHAMBER_VENTS"
+    type: "CONNECT"
+    gui_layout: "warning_dialog"
+
+  - code: "XX838"
+    printers: [COREONE]
+    title: "Close Chamber Ventilation"
+    text: "Ensure the top ventilation grille is closed for optimal chamber temperature."
+    id: "CLOSE_CHAMBER_VENTS"
+    type: "CONNECT"
+    gui_layout: "warning_dialog"
