@@ -1464,7 +1464,19 @@ void Pause::handle_help(Response response) {
         return;
     }
 
-    // TODO
+    WarningType warning = WarningType::FilamentSensorStuckHelp;
+#if HAS_MMU2()
+    if (MMU2::mmu2.Enabled()) {
+        // MMU requires filament sensors to function, do not offer disabling them
+        warning = WarningType::FilamentSensorStuckHelpMMU;
+    }
+#endif
+
+    if (marlin_server::prompt_warning(warning) == Response::FS_disable) {
+        FSensors_instance().set_enabled_global(false);
+        marlin_server::set_warning(WarningType::FilamentSensorsDisabled);
+        config_store().show_fsensors_disabled_warning_after_print.set(true);
+    }
 }
 
 /*****************************************************************************/

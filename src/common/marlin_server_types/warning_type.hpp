@@ -9,6 +9,11 @@ enum class WarningType : uint32_t {
     HotendTempDiscrepancy,
     NozzleTimeout,
     FilamentLoadingTimeout,
+    FilamentSensorStuckHelp,
+#if HAS_MMU2()
+    FilamentSensorStuckHelpMMU,
+#endif
+    FilamentSensorsDisabled,
 #if _DEBUG
     SteppersTimeout,
 #endif

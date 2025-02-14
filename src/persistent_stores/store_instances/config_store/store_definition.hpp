@@ -97,6 +97,10 @@ struct CurrentStore
     /// Global filament sensor enable
     StoreItem<bool, defaults::fsensor_enabled, journal::hash("FSensor Enabled V2")> fsensor_enabled;
 
+    /// BFW-5545 When filament sensor is not responding during filament change, the user has an option to disable it.
+    /// This is a flag to remind them to turn it back on again when they finis printing
+    StoreItem<bool, false, journal::hash("Show Fsensors Disabled warning after print")> show_fsensors_disabled_warning_after_print;
+
     /// Bitfield of enabled side filament sensors
     StoreItem<uint8_t, 0xff, journal::hash("Extruder FSensors enabled")> fsensor_side_enabled_bits;
 

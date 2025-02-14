@@ -826,6 +826,11 @@ void static finalize_print(bool finished) {
     marlin_vars().print_end_time = time(nullptr);
     marlin_vars().add_job_result(job_id, finished ? marlin_vars_t::JobInfo::JobResult::finished : marlin_vars_t::JobInfo::JobResult::aborted);
 
+    if (config_store().show_fsensors_disabled_warning_after_print.get()) {
+        config_store().show_fsensors_disabled_warning_after_print.set(false);
+        set_warning(WarningType::FilamentSensorsDisabled);
+    }
+
     // Do not remove, needed for 3rd party tools such as octoprint to get status that the gcode file printing has finished
     SERIAL_ECHOLNPGM(MSG_FILE_PRINTED);
 }

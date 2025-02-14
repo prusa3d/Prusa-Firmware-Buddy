@@ -15,6 +15,14 @@ PhasesWarning warning_type_phase(WarningType warning) {
         return PhasesWarning::ProbingFailed;
 #endif
 
+    case WarningType::FilamentSensorStuckHelp:
+        return PhasesWarning::FilamentSensorStuckHelp;
+
+#if HAS_MMU2()
+    case WarningType::FilamentSensorStuckHelpMMU:
+        return PhasesWarning::FilamentSensorStuckHelpMMU;
+#endif
+
 #if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
     case WarningType::NozzleCleaningFailed:
         return PhasesWarning::NozzleCleaningFailed;
