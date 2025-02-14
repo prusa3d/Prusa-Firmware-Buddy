@@ -590,7 +590,12 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
             }
             logic.ToolChange(slot); // let the MMU pull the filament out and push a new one in
             if (manage_response(true, true)) {
-                break;
+                if (planner_draining()) {
+                    // Power panic. Give up fast.
+                    return false;
+                } else {
+                    break;
+                }
             }
             // otherwise: failed to perform the command - unload first and then let it run again
             IncrementMMUFails();
@@ -1145,6 +1150,9 @@ bool MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
         // - finished ok -> proceed with reading other commands
         marlin_idle(true, true); // calls LogicStep() and remembers its return status
                                  // also disables stepper motor unlocking
+        if (planner_draining()) {
+            return true; // power panic happening, pretend we finished OK (and hope for the best).
+        }
 
         // @@TODO Ugly hack to prevent starting the cooling timer after being stopped
         bool recoveringError = false;
