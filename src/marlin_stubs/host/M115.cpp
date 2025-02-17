@@ -21,11 +21,12 @@
  */
 
 #include "../gcode.h"
+#include "feature/chamber/chamber.hpp"
 #include <option/has_modularbed.h>
 #include <option/has_dwarf.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
-
+#include <option/has_chamber_api.h>
 #if HAS_TOOLCHANGER()
     #include "../../module/prusa/toolchanger.h"
 #endif
@@ -221,6 +222,9 @@ void GcodeSuite::M115() {
     #if HAS_HEATED_CHAMBER
                  ,
         true
+    #elif HAS_CHAMBER_API()
+                 ,
+        true ? (buddy::chamber().capabilities().temperature_reporting) : false
     #endif
     );
 
