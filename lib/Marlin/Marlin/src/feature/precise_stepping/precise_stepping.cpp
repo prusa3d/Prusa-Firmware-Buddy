@@ -305,6 +305,10 @@ bool append_move_segments_to_queue(const block_t &block) {
     return true;
 }
 
+FORCE_INLINE float calc_time_for_distance(const classic_step_generator_t &step_generator, const float distance) {
+    return std::max(calc_time_for_distance(step_generator.start_v, step_generator.accel, distance, step_generator.step_dir), 0.f);
+}
+
 float get_move_axis_r(const move_t &move, const int axis) {
 #ifdef COREXY
     if (axis == A_AXIS) {

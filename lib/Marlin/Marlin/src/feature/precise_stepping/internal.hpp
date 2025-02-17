@@ -81,10 +81,6 @@ FORCE_INLINE float calc_time_for_distance(const float start_velocity, const floa
     }
 }
 
-FORCE_INLINE float calc_time_for_distance(const move_segment_step_generator_t &step_generator, const float distance) {
-    return std::max(calc_time_for_distance(step_generator.start_v, step_generator.accel, distance, step_generator.step_dir), 0.f);
-}
-
 FORCE_INLINE double get_move_half_accel(const move_t &move, const int axis) {
     return move.half_accel * move.axes_r[axis];
 }
