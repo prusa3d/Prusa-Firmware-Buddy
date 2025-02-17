@@ -269,6 +269,22 @@ Errors:
     gui_layout: "red_screen"
     approved: false
 
+  - code: "XX214"
+    printers: [COREONE]
+    title: "CHAMBER MAXTEMP ERROR"
+    text: "Check the chamber thermistor wiring for possible damage."
+    id: "CHAMBER_MAXTEMP"
+    gui_layout: "red_screen"
+    approved: true
+
+  - code: "XX215"
+    printers: [COREONE]
+    title: "CHAMBER MINTEMP ERROR"
+    text: "Check the chamber thermistor wiring for possible damage."
+    id: "CHAMBER_MINTEMP"
+    gui_layout: "red_screen"
+    approved: true
+
   - code: "XX250"
     printers: [iX, XL]
     title: "MODULAR BED ERROR"
