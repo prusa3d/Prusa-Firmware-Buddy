@@ -520,7 +520,7 @@ void GCodeInfo::parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter) {
 
             if (!is_up_to_date(cmd.c_str())) {
                 valid_printer_settings.outdated_firmware.fail();
-                strlcpy(valid_printer_settings.latest_fw_version, cmd.c_str(), min(sizeof(valid_printer_settings.latest_fw_version), cmd.len()));
+                strlcpy(valid_printer_settings.latest_fw_version, cmd.c_str(), min(sizeof(valid_printer_settings.latest_fw_version), cmd.len() + 1 /* +1 for the null terminator */));
                 // Cut the string at the comment start
                 char *comment_start = strchr(valid_printer_settings.latest_fw_version, ';');
                 if (comment_start) {
