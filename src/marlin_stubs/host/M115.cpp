@@ -29,6 +29,9 @@
 #if HAS_TOOLCHANGER()
     #include "../../module/prusa/toolchanger.h"
 #endif
+#if HAS_CHAMBER_API()
+    #include "feature/chamber/chamber.hpp"
+#endif
 
 #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
 static void cap_line(PGM_P const name, bool ena = false) {
@@ -221,6 +224,9 @@ void GcodeSuite::M115() {
     #if HAS_HEATED_CHAMBER
                  ,
         true
+    #elif HAS_CHAMBER_API()
+                 ,
+        buddy::chamber().capabilities().temperature_reporting
     #endif
     );
 

@@ -4,7 +4,7 @@
 
 #include <option/xl_enclosure_support.h>
 #include <option/has_xbuddy_extension.h>
-#include <common/temperature.hpp>
+#include <temperature.hpp>
 #include <freertos/mutex.hpp>
 
 // TODO: Migrate XL Enclosure to use this API (& unify)
