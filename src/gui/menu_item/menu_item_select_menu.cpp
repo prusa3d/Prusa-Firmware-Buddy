@@ -142,13 +142,17 @@ void MenuItemSelectMenu::printExtension(Rect16 extension_rect, Color color_text,
 void MenuItemSelectMenu::click(IWindowMenu &menu) {
     const auto prev_focus = menu.focused_item_index();
 
-    Dialog dlg(*this);
-    Screens::Access()->gui_loop_until_dialog_closed();
+    int new_item;
+    {
+        // The dialog is quite big - keep it on stack as shortly as possible
+        Dialog dlg(*this);
+        Screens::Access()->gui_loop_until_dialog_closed();
+        new_item = dlg.result().value_or(current_item_);
+    }
 
     // Opening a dialog with a menu screws up focus for the current menu - we need to restore it
     menu.move_focus_to_index(prev_focus);
 
-    const auto new_item = dlg.result().value_or(current_item_);
     if (new_item == current_item_) {
         return;
     }
