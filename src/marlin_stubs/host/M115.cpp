@@ -21,6 +21,7 @@
  */
 
 #include "../gcode.h"
+#include "feature/chamber/chamber.hpp"
 #include <option/has_modularbed.h>
 #include <option/has_dwarf.h>
 #include <option/has_mmu2.h>
@@ -223,7 +224,7 @@ void GcodeSuite::M115() {
         true
     #elif HAS_CHAMBER_API()
                  ,
-        true
+        true ? (buddy::chamber().capabilities().temperature_reporting) : false
     #endif
     );
 

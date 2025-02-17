@@ -3845,7 +3845,8 @@ void Temperature::isr() {
     #if HAS_HEATED_CHAMBER
       SERIAL_ECHOPAIR(" C@:", getHeaterPower(H_CHAMBER));
     #elif HAS_CHAMBER_API()
-      SERIAL_ECHOPAIR(" C@:", buddy::chamber().current_temperature().value());
+      auto current_chamber_temperature = buddy::chamber().current_temperature();
+      if (buddy::chamber().capabilities().temperature_reporting && current_chamber_temperature.has_value()) SERIAL_ECHOPAIR(" C@:", current_chamber_temperature.value());
     #endif
 
     #if HAS_TEMP_HEATBREAK
