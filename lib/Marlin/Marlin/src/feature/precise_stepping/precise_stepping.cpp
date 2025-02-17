@@ -796,7 +796,7 @@ void PreciseStepping::step_isr() {
         next = compare + time_increment;
 
         const uint32_t counter = __HAL_TIM_GET_COUNTER(&TimerHandle[STEP_TIMER_NUM].handle);
-        timer_remaining_time = (next - counter) & 0xFFFF;
+        timer_remaining_time = next - counter;
 
         // Be aware that the difference between 'next' and 'counter' and the value
         // of 'timer_remaining_time' could exceed max_tick.
