@@ -189,7 +189,7 @@ static bool flip_mmu_rework([[maybe_unused]] bool flip_mmu_at_the_end) {
 
     if (fsstate != FilamentSensorState::NotCalibrated && fsstate != FilamentSensorState::Disabled
         // Do not open selftest during ScreenPrinterSetup, it would screw things up (and the screen can be opened during the selftest)
-        && Screens::Access()->IsScreenOpened<ScreenPrinterSetup>() //
+        && !Screens::Access()->IsScreenOpened<ScreenPrinterSetup>() //
     ) {
         // opens the screen in advance before the screen will be opened by the selftest
         // this prevents the user to click something before the selftest screen would open
