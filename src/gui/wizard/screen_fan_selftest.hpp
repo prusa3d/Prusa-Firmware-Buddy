@@ -8,10 +8,6 @@ public:
     ScreenFanSelftest();
     ~ScreenFanSelftest();
 
-    static constexpr Rect16 get_inner_frame_rect() {
-        return GuiDefaults::RectScreenBody - GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody).Height();
-    }
-
 protected:
     virtual void create_frame() override;
     virtual void destroy_frame() override;

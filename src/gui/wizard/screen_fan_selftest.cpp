@@ -246,11 +246,13 @@ namespace frame {
 #if PRINTER_IS_PRUSA_MK3_5()
     class ManualCheck {
         window_text_t question;
+        window_icon_t fan_icon;
         RadioButtonFSM radio;
 
     public:
         explicit ManualCheck(window_t *parent, [[maybe_unused]] PhasesFansSelftest phase)
             : question { parent, Rect16(GuiDefaults::MessageTextRect), is_multiline::yes, is_closed_on_click_t::no }
+            , fan_icon { parent, &img::fan_error_48x48, GuiDefaults::MessageIconRect.TopLeft() }
             , radio { parent, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), PhasesFansSelftest::manual_check } {
             question.SetText(_(en_text_manual_check_hotend));
             static_cast<window_frame_t *>(parent)->CaptureNormalWindow(radio);
@@ -271,7 +273,7 @@ using Frames = FrameDefinitionList<ScreenFanSelftest::FrameStorage,
 } // namespace
 
 ScreenFanSelftest::ScreenFanSelftest()
-    : ScreenFSM(en_text_header, ScreenFanSelftest::get_inner_frame_rect()) {
+    : ScreenFSM(en_text_header, GuiDefaults::RectScreenBody) {
     header.SetIcon(&img::selftest_16x16);
     CaptureNormalWindow(inner_frame);
     create_frame();
