@@ -68,18 +68,13 @@ FORCE_INLINE float calc_time_for_distance(const float start_velocity, const floa
         } else {
             return std::numeric_limits<float>::infinity();
         }
-    } else if (distance == 0.f) {
-        return 0.f;
-    } else if (const float disc_4ac = 2.f * acceleration * distance, disc = disc_4ac + SQR(start_velocity); disc >= 0.f) {
-        const float disc_sqrt = fast_sqrt(disc);
-        const float term = step_dir ? (start_velocity + disc_sqrt) : (start_velocity - disc_sqrt);
-        if (term != 0.f) {
-            return disc_4ac / (acceleration * term);
+    } else if (const float sqr = 2.f * acceleration * distance + SQR(start_velocity); sqr >= 0.f) {
+        if (step_dir) {
+            return (fast_sqrt(sqr) - start_velocity) / acceleration;
         } else {
-            // Because term == 0.f, we can exclude it from the following expression.
-            return (-2.f * start_velocity) / acceleration;
+            return (-fast_sqrt(sqr) - start_velocity) / acceleration;
         }
-    } else if (disc < 0.f && disc >= -EPSILON_FLOAT) {
+    } else if (sqr < 0.f && sqr >= -EPSILON_FLOAT) {
         return -(start_velocity / acceleration);
     } else {
         return std::numeric_limits<float>::infinity();
