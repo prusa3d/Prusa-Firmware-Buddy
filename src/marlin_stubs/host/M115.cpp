@@ -25,7 +25,7 @@
 #include <option/has_dwarf.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
-
+#include <option/has_chamber_api.h>
 #if HAS_TOOLCHANGER()
     #include "../../module/prusa/toolchanger.h"
 #endif
@@ -219,6 +219,9 @@ void GcodeSuite::M115() {
     // CHAMBER_TEMPERATURE (M141, M191)
     cap_line(PSTR("CHAMBER_TEMPERATURE")
     #if HAS_HEATED_CHAMBER
+                 ,
+        true
+    #elif HAS_CHAMBER_API()
                  ,
         true
     #endif
