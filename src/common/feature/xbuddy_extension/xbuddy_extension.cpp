@@ -38,6 +38,18 @@ void XBuddyExtension::step() {
     const auto rpm1 = puppies::xbuddy_extension.get_fan_rpm(1);
     const auto temp = chamber_temperature();
 
+    // Trigger fatal error due to chamber temperature only if we get valid values, that are not reasonable
+    if (temp.has_value()) {
+        static constexpr Temperature chamber_mintemp = 0.0f;
+        static constexpr Temperature chamber_maxtemp = 85.0f;
+
+        if (*temp <= chamber_mintemp) {
+            fatal_error(ErrCode::ERR_TEMPERATURE_CHAMBER_MINTEMP);
+        } else if (*temp > chamber_maxtemp) {
+            fatal_error(ErrCode::ERR_TEMPERATURE_CHAMBER_MAXTEMP);
+        }
+    }
+
     // execute control loop only once per defined period
     const auto now_ms = ticks_ms();
     const bool fan_update_pending = (ticks_diff(now_ms, last_fan_update_ms) >= static_cast<int32_t>(chamber_cooling.dt_s * 1000));
