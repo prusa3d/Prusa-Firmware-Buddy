@@ -50,7 +50,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .heatbed_temperature = 60,
 #if HAS_CHAMBER_API()
             .chamber_min_temperature = std::nullopt,
-            .chamber_max_temperature = 40,
+            .chamber_max_temperature = 30,
             .chamber_target_temperature = 20,
 #endif
         },
@@ -63,7 +63,7 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .heatbed_temperature = 85,
 #if HAS_CHAMBER_API()
             .chamber_min_temperature = std::nullopt,
-            .chamber_max_temperature = 45,
+            .chamber_max_temperature = 40,
             .chamber_target_temperature = 30,
 #endif
         },
@@ -75,9 +75,9 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_temperature = 260,
             .heatbed_temperature = 100,
 #if HAS_CHAMBER_API()
-            .chamber_min_temperature = 45,
+            .chamber_min_temperature = 40,
             .chamber_max_temperature = std::nullopt,
-            .chamber_target_temperature = 60,
+            .chamber_target_temperature = std::nullopt,
             .requires_filtration = true,
 #endif
         },
@@ -90,9 +90,9 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_preheat_temperature = HAS_LOADCELL() ? 170 : 275 - 25,
             .heatbed_temperature = 100,
 #if HAS_CHAMBER_API()
-            .chamber_min_temperature = 45,
+            .chamber_min_temperature = 40,
             .chamber_max_temperature = std::nullopt,
-            .chamber_target_temperature = 60,
+            .chamber_target_temperature = std::nullopt,
             .requires_filtration = true,
 #endif
         },
@@ -103,6 +103,11 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .name = FilamentTypeParameters::name_from_str("PVB"),
             .nozzle_temperature = 215,
             .heatbed_temperature = 75,
+#if HAS_CHAMBER_API()
+            .chamber_min_temperature = std::nullopt,
+            .chamber_max_temperature = 30,
+            .chamber_target_temperature = 20,
+#endif
         },
     },
     {
@@ -112,9 +117,9 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_temperature = 255,
             .heatbed_temperature = 100,
 #if HAS_CHAMBER_API()
-            .chamber_min_temperature = 45,
+            .chamber_min_temperature = 40,
             .chamber_max_temperature = std::nullopt,
-            .chamber_target_temperature = 60,
+            .chamber_target_temperature = std::nullopt,
             .requires_filtration = true,
 #endif
         },
@@ -126,6 +131,9 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_temperature = 220,
             .heatbed_temperature = 100,
 #if HAS_CHAMBER_API()
+            .chamber_min_temperature = 40,
+            .chamber_max_temperature = std::nullopt,
+            .chamber_target_temperature = std::nullopt,
             .requires_filtration = true,
 #endif
         },
@@ -137,6 +145,9 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_temperature = 240,
             .heatbed_temperature = 100,
 #if HAS_CHAMBER_API()
+            .chamber_min_temperature = 40,
+            .chamber_max_temperature = std::nullopt,
+            .chamber_target_temperature = std::nullopt,
             .requires_filtration = true,
 #endif
         },
@@ -149,6 +160,9 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_preheat_temperature = HAS_LOADCELL() ? 170 : 210,
             .heatbed_temperature = 50,
 #if HAS_CHAMBER_API()
+            .chamber_min_temperature = std::nullopt,
+            .chamber_max_temperature = 40,
+            .chamber_target_temperature = 30,
             .requires_filtration = true,
 #endif
         },
@@ -160,6 +174,11 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             // MINI has slightly lower max nozzle temperature but it is still OK for polyamid
             .nozzle_temperature = PRINTER_IS_PRUSA_MINI() ? 280 : 285,
             .heatbed_temperature = 100,
+#if HAS_CHAMBER_API()
+            .chamber_min_temperature = 40,
+            .chamber_max_temperature = std::nullopt,
+            .chamber_target_temperature = std::nullopt,
+#endif
         },
     },
 };
