@@ -63,7 +63,7 @@ void CommonFanHandler::record_sample() {
 
 #if HAS_XBUDDY_EXTENSION()
 
-static_assert(buddy::puppies::XBuddyExtension::FAN_CNT == XBEFanTestResults::fan_count, "Adjust the fan result structure in EEPROM (xbuddy_expansion_fan_result.hpp)");
+static_assert(puppies::XBuddyExtension::FAN_CNT == XBEFanTestResults::fan_count, "Adjust the fan result structure in EEPROM (xbuddy_expansion_fan_result.hpp)");
 
 XBEFanHandler::XBEFanHandler(const FanType type, uint8_t desc_num, FanRPMRange fan_range)
     : FanHandler(type, fan_range, desc_num) {

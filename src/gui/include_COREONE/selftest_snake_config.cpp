@@ -8,6 +8,8 @@
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
 #endif
+using namespace buddy;
+
 namespace SelftestSnake {
 TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
 
@@ -20,9 +22,9 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
                 return evaluate_results(sr.tools[e].evaluate_fans());
             });
 #if HAS_CHAMBER_API()
-        switch (buddy::chamber().backend()) {
+        switch (chamber().backend()) {
     #if HAS_XBUDDY_EXTENSION()
-        case buddy::Chamber::Backend::xbuddy_extension: {
+        case Chamber::Backend::xbuddy_extension: {
             const auto chamber_results = config_store().xbe_fan_test_results.get();
             res = evaluate_results(res, chamber_results.fans[0]);
             res = evaluate_results(res, chamber_results.fans[1]);
@@ -30,7 +32,7 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
             break;
         }
     #endif /* HAS_XBUDDY_EXTENSION() */
-        case buddy::Chamber::Backend::none:
+        case Chamber::Backend::none:
             break;
         }
 #endif /* HAS_CHAMBER_API() */
