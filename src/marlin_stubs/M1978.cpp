@@ -14,18 +14,26 @@
 #include <config_store/store_instance.hpp>
 #include <printers.h>
 #include <option/has_switched_fan_test.h>
-#include <option/has_toolchanger.h>
+
 #if HAS_TOOLCHANGER()
     #include <Marlin/src/module/prusa/toolchanger.h>
 #endif
+
 #include <option/xl_enclosure_support.h>
 #if XL_ENCLOSURE_SUPPORT()
     #include <xl_enclosure.hpp>
 #endif
+
 #include <option/has_chamber_api.h>
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
 #endif
+
+#include <option/has_chamber_filtration_api.h>
+#if HAS_CHAMBER_FILTRATION_API()
+    #include <feature/chamber_filtration/chamber_filtration.hpp>
+#endif
+
 #include <option/has_xbuddy_extension.h>
 #if HAS_XBUDDY_EXTENSION()
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
@@ -406,11 +414,12 @@ void M1978() {
     CommonFanHandler xl_enclosure_fan(FanType::xl_enclosure, 0, benevolent_fan_range, &Fans::enclosure());
 #endif
 #if HAS_XBUDDY_EXTENSION()
-    auto xbe_fans = [&]<size_t... ix>(std::index_sequence<ix...>) {
-        return std::array {
-            XBEFanHandler(FanType::xbe_chamber, ix, chamber_fan_range)...
-        };
-    }(std::make_index_sequence<puppies::XBuddyExtension::FAN_CNT>());
+    std::array xbe_fans {
+        XBEFanHandler(FanType::xbe_chamber, 0, chamber_fan_range),
+        XBEFanHandler(FanType::xbe_chamber, 1, chamber_fan_range),
+        XBEFanHandler(FanType::xbe_chamber, 2, filtration_fan_range),
+    };
+    static_assert(puppies::XBuddyExtension::FAN_CNT == 3);
 #endif
 
 #if HAS_CHAMBER_API()
@@ -427,7 +436,21 @@ void M1978() {
     case Chamber::Backend::xbuddy_extension:
         fan_container[container_index++] = &xbe_fans[0];
         fan_container[container_index++] = &xbe_fans[1];
-        // Third fan is not yet implemented
+        switch (chamber_filtration().backend()) {
+
+        case ChamberFiltrationBackend::xbe_official_filter:
+            xbe_fans[0].set_range(chamber_fan_range_with_filtration);
+            xbe_fans[1].set_range(chamber_fan_range_with_filtration);
+            fan_container[container_index++] = &xbe_fans[2];
+            break;
+
+        case ChamberFiltrationBackend::xbe_filter_on_cooling_fans:
+            // The user has to remove the filter from the cooling fans to pass the selftest
+            break;
+
+        case ChamberFiltrationBackend::none:
+            break;
+        }
         break;
     #endif
 

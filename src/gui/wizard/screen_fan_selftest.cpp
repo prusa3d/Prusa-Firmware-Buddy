@@ -13,13 +13,25 @@
 #include <timing.h>
 #include <config_store/store_instance.hpp>
 #include <selftest_fans.hpp>
+
 #include <option/xl_enclosure_support.h>
 #if XL_ENCLOSURE_SUPPORT()
     #include <xl_enclosure.hpp>
 #endif
+
 #include <option/has_chamber_api.h>
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
+#endif
+
+#include <option/has_chamber_filtration_api.h>
+#if HAS_CHAMBER_FILTRATION_API()
+    #include <feature/chamber_filtration/chamber_filtration.hpp>
+#endif
+
+#include <option/has_xbuddy_extension.h>
+#if HAS_XBUDDY_EXTENSION()
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
 
 using namespace fan_selftest;
@@ -138,7 +150,9 @@ namespace frame {
             case Chamber::Backend::xbuddy_extension:
                 process_fan_result(config_store().xbe_fan_test_results.get().fans[0], enclosure_icons, 0);
                 process_fan_result(config_store().xbe_fan_test_results.get().fans[1], enclosure_icons, 1);
-                // Third chamber fan is not yet implemented
+                if (xbuddy_extension().is_fan3_used()) {
+                    process_fan_result(config_store().xbe_fan_test_results.get().fans[2], enclosure_icons, 2);
+                }
                 break;
     #endif
 
@@ -201,27 +215,38 @@ namespace frame {
 #endif
 
 #if HAS_CHAMBER_API()
+            uint8_t enclosure_fan_count = 0;
+
             switch (chamber().backend()) {
 
             case Chamber::Backend::none:
-                enclosure_label.Hide();
-                enclosure_label_icon.Hide();
-                enclosure_icons.Hide();
                 break;
 
     #if XL_ENCLOSURE_SUPPORT()
             case Chamber::Backend::xl_enclosure:
-                // Set correctly by default in the initializer list (1 fan)
+                enclosure_fan_count = 1;
                 break;
     #endif /* XL_ENCLOSURE_SUPPORT() */
 
     #if HAS_XBUDDY_EXTENSION()
-            case Chamber::Backend::xbuddy_extension: {
-                enclosure_icons.SetIconCount(2); // Third chamber fan is not implemented yet
+            case Chamber::Backend::xbuddy_extension:
+                enclosure_fan_count = 2 + (xbuddy_extension().is_fan3_used() ? 1 : 0);
                 break;
-            }
     #endif
             }
+
+            if (enclosure_fan_count > 0) {
+                enclosure_icons.SetIconCount(enclosure_fan_count);
+
+            } else {
+                enclosure_label.Hide();
+                enclosure_label_icon.Hide();
+                enclosure_icons.Hide();
+            }
+
+#elif HAS_CHAMBER_FILTRATION_API()
+    #error Enclosure filtration fan selftest should be implemented
+
 #endif /* HAS_CHAMBER_API() */
 
             switch (phase) {

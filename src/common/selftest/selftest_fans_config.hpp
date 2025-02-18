@@ -34,8 +34,11 @@ constexpr FanRPMRange heatbreak_fan_range = { .rpm_min = 6800, .rpm_max = 8700 }
 #elif PRINTER_IS_PRUSA_COREONE()
 constexpr FanRPMRange print_fan_range = { .rpm_min = 5130, .rpm_max = 6799 };
 constexpr FanRPMRange heatbreak_fan_range = { .rpm_min = 6800, .rpm_max = 8700 };
-
 constexpr FanRPMRange chamber_fan_range = FanRPMRange::nominal_with_percentual_tolerance(8500, 15);
+
+// When the C1 has advanced filtration, the filtration fan is put OVER the chamber cooling fans, so we need an adjusted range
+constexpr FanRPMRange chamber_fan_range_with_filtration = FanRPMRange::nominal_with_percentual_tolerance(8500 - 700, 15);
+constexpr FanRPMRange filtration_fan_range = FanRPMRange::nominal_with_percentual_tolerance(3400, 15);
 #else
 constexpr FanRPMRange print_fan_range = benevolent_fan_range;
 constexpr FanRPMRange heatbreak_fan_range = benevolent_fan_range;

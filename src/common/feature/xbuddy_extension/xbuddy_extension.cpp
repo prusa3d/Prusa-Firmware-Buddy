@@ -217,7 +217,7 @@ void XBuddyExtension::set_fan_target_pwm(Fan fan, FanPWMOrAuto target) {
     BUDDY_UNREACHABLE();
 }
 
-buddy::XBuddyExtension::FanState buddy::XBuddyExtension::get_fan12_state() const {
+XBuddyExtension::FanState XBuddyExtension::get_fan12_state() const {
     std::lock_guard _lg(mutex_);
     auto fanrpms = puppies::xbuddy_extension.get_fans_rpm();
     return FanState {
@@ -225,6 +225,19 @@ buddy::XBuddyExtension::FanState buddy::XBuddyExtension::get_fan12_state() const
         .fan2rpm = fanrpms[1],
         .fan1_fan2_target_pwm = cooling_fans_target_pwm_,
     };
+}
+
+bool XBuddyExtension::is_fan3_used() const {
+    switch (chamber_filtration().backend()) {
+    case ChamberFiltrationBackend::xbe_official_filter:
+        return true;
+
+    case ChamberFiltrationBackend::none:
+    case ChamberFiltrationBackend::xbe_filter_on_cooling_fans:
+        return false;
+    }
+
+    return false;
 }
 
 PWM255 XBuddyExtension::max_cooling_pwm() const {

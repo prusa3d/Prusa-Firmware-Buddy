@@ -2,12 +2,18 @@
 #include <selftest_types.hpp>
 #include <screen_menu_selftest_snake_result_parsing.hpp>
 #include <config_store/store_instance.hpp>
-#include <option/has_xbuddy_extension.h>
 #include <option/has_switched_fan_test.h>
+
 #include <option/has_chamber_api.h>
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
 #endif
+
+#include <option/has_xbuddy_extension.h>
+#if HAS_XBUDDY_EXTENSION()
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+#endif
+
 using namespace buddy;
 
 namespace SelftestSnake {
@@ -28,7 +34,9 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
             const auto chamber_results = config_store().xbe_fan_test_results.get();
             res = evaluate_results(res, chamber_results.fans[0]);
             res = evaluate_results(res, chamber_results.fans[1]);
-            // TODO: Once third fan will be implemented, replace with for loop
+            if (xbuddy_extension().is_fan3_used()) {
+                res = evaluate_results(res, chamber_results.fans[2]);
+            }
             break;
         }
     #endif /* HAS_XBUDDY_EXTENSION() */
