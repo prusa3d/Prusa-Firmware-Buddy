@@ -198,6 +198,9 @@ void IncrementLoadFails();
 /// Increments EEPROM cell - number of MMU errors
 void IncrementMMUFails();
 
+// Tracks failures concerning MMU's mainplate
+void TrackMaintenance(const ErrorCode error);
+
 /// Increments EEPROM cell - number of filament changes
 void IncrementMMUChanges();
 

@@ -124,6 +124,10 @@ constexpr_workaround IOSimRec MakeQueryResponseError(const char *command, ErrorC
     return { "Q0", { "IncrementMMUFails", "ButtonAvailable", FormatReportErrorHook(command[0], pc) }, {}, std::string(command) + " E" + ToHex((uint16_t)pc), 1, w };
 }
 
+constexpr_workaround IOSimRec MakeQueryResponseErrorWithMaintenance(const char *command, ErrorCode pc, IOSimRec::WorkFunc w = nullptr) {
+    return { "Q0", { "TrackMaintenance", "IncrementMMUFails", "ButtonAvailable", FormatReportErrorHook(command[0], pc) }, {}, std::string(command) + " E" + ToHex((uint16_t)pc), 1, w };
+}
+
 constexpr_workaround IOSimRec MakeQueryResponseErrorNoIncMMUFails(const char *command, ErrorCode pc, IOSimRec::WorkFunc w = nullptr) {
     return { "Q0", { "ButtonAvailable", FormatReportErrorHook(command[0], pc) }, {}, std::string(command) + " E" + ToHex((uint16_t)pc), 1, w };
 }
@@ -313,7 +317,7 @@ TEST_CASE("Marlin::MMU2::MMU2 unload failed", "[Marlin][MMU2]") {
         MakeRegistersCommand(0, 1, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
         MakeQueryResponseProgress(cmd, ProgressCode::ERRDisengagingIdler),
         MakeRegistersCommand(0, 1, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
-        MakeQueryResponseError(cmd, ErrorCode::FINDA_DIDNT_SWITCH_OFF),
+        MakeQueryResponseErrorWithMaintenance(cmd, ErrorCode::FINDA_DIDNT_SWITCH_OFF),
         MakeRegistersCommand(0, 1, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
 
         // press middle button and resolve the error - we can fake it through MMU communication
@@ -340,6 +344,7 @@ TEST_CASE("Marlin::MMU2::MMU2 unload failed", "[Marlin][MMU2]") {
     MMU2::mmu2.unload();
     mockLog.DeduplicateLog();
     mockLog.DeduplicateExpected();
+    INFO(mockLog.InfoText());
     CHECK(mockLog.MatchesExpected());
 }
 

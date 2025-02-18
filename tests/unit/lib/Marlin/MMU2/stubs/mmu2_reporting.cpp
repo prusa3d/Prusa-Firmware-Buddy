@@ -85,6 +85,11 @@ void IncrementMMUFails() {
     mockLog_RecordFn();
 }
 
+/// Increments EEPROM cell - number of MMU errors
+void TrackMaintenance(const ErrorCode error) {
+    mockLog_RecordFn();
+}
+
 void IncrementMMUChanges() {
     mockLog_RecordFn();
 }

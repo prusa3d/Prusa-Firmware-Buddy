@@ -154,16 +154,21 @@ void IncrementLoadFails() {
     auto transaction = store.get_backend().transaction_guard();
     store.mmu2_load_fails.set(store.mmu2_load_fails.get() + 1);
     store.mmu2_total_load_fails.set(store.mmu2_total_load_fails.get() + 1);
+    FailLeakyBucket::instance.add_failure();
+}
+
+void TrackMaintenance(const ErrorCode error) {
+    // All MMU error codes that are relevant to extruder mainplate
+    if (error == ErrorCode::FSENSOR_DIDNT_SWITCH_ON || error == ErrorCode::LOAD_TO_EXTRUDER_FAILED || error == ErrorCode::FSENSOR_DIDNT_SWITCH_OFF || error == ErrorCode::FSENSOR_TOO_EARLY) {
+        FailLeakyBucket::instance.add_failure();
+    }
 }
 
 void IncrementMMUFails() {
-    {
-        auto &store = config_store();
-        auto transaction = store.get_backend().transaction_guard();
-        store.mmu2_fails.set(store.mmu2_fails.get() + 1);
-        store.mmu2_total_fails.set(store.mmu2_total_fails.get() + 1);
-    }
-    FailLeakyBucket::instance.add_failure();
+    auto &store = config_store();
+    auto transaction = store.get_backend().transaction_guard();
+    store.mmu2_fails.set(store.mmu2_fails.get() + 1);
+    store.mmu2_total_fails.set(store.mmu2_total_fails.get() + 1);
 }
 
 void IncrementMMUChanges() {
