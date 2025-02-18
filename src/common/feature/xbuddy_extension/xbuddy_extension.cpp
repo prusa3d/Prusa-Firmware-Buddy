@@ -194,7 +194,7 @@ buddy::XBuddyExtension::FanState buddy::XBuddyExtension::get_fan12_state() const
 }
 
 PWM255 XBuddyExtension::max_cooling_pwm() const {
-    if (chamber_filtration().backend() == ChamberFiltrationBackend::xbe_filter_on_cooling_fans) {
+    if (chamber_filtration().backend() == ChamberFiltrationBackend::xbe_official_filter) {
         return FanPWM { config_store().xbe_filtration_fan_max_auto_pwm.get() };
     } else {
         return FanPWM { config_store().xbe_cooling_fan_max_auto_pwm.get() };
@@ -202,7 +202,7 @@ PWM255 XBuddyExtension::max_cooling_pwm() const {
 }
 
 void XBuddyExtension::set_max_cooling_pwm(PWM255 set) {
-    if (chamber_filtration().backend() == ChamberFiltrationBackend::xbe_filter_on_cooling_fans) {
+    if (chamber_filtration().backend() == ChamberFiltrationBackend::xbe_official_filter) {
         config_store().xbe_filtration_fan_max_auto_pwm.set(set.value);
     } else {
         config_store().xbe_cooling_fan_max_auto_pwm.set(set.value);
