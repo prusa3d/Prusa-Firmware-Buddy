@@ -7,21 +7,6 @@
 
 using namespace buddy;
 
-namespace {
-constexpr NumericInputConfig power_numeric_config {
-    .max_value = 100,
-    .step = 5,
-    .special_value = 0,
-    .unit = Unit::percent,
-};
-
-constexpr NumericInputConfig duration_numeric_config {
-    .min_value = 1,
-    .max_value = 30,
-    .unit = Unit::minute,
-};
-} // namespace
-
 // MI_CHAMBER_FILTRATION_BACKEND
 // ============================================
 MI_CHAMBER_FILTRATION_BACKEND::MI_CHAMBER_FILTRATION_BACKEND()
@@ -47,27 +32,64 @@ bool MI_CHAMBER_FILTRATION_BACKEND::on_item_selected(int, int new_index) {
 
 // MI_CHAMBER_PRINT_FILTRATION_POWER
 // ============================================
+static constexpr NumericInputConfig print_power_numeric_config {
+    .max_value = 100,
+    .step = 5,
+    .special_value = 0,
+    .unit = Unit::percent,
+};
+
 MI_CHAMBER_PRINT_FILTRATION_POWER::MI_CHAMBER_PRINT_FILTRATION_POWER()
-    : WiSpin(config_store().chamber_mid_print_filtration_pwm.get().to_percent(), power_numeric_config, _("Mid-print Power")) {}
+    : WiSpin(config_store().chamber_mid_print_filtration_pwm.get().to_percent(), print_power_numeric_config, _("Minimum Power")) {}
 
 void MI_CHAMBER_PRINT_FILTRATION_POWER::OnClick() {
     config_store().chamber_mid_print_filtration_pwm.set(PWM255::from_percent(value()));
 }
 
+// MI_CHAMBER_POST_PRINT_FILTRATION
+// ============================================
+MI_CHAMBER_POST_PRINT_FILTRATION::MI_CHAMBER_POST_PRINT_FILTRATION()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().chamber_post_print_filtration_enable.get(), _("Post-print Filtration")) {}
+
+void MI_CHAMBER_POST_PRINT_FILTRATION::OnChange(size_t) {
+    config_store().chamber_post_print_filtration_enable.set(value());
+}
+
 // MI_CHAMBER_POST_PRINT_FILTRATION_POWER
 // ============================================
+static constexpr NumericInputConfig post_print_power_numeric_config {
+    .min_value = 5,
+    .max_value = 100,
+    .step = 5,
+    .unit = Unit::percent,
+};
+
 MI_CHAMBER_POST_PRINT_FILTRATION_POWER::MI_CHAMBER_POST_PRINT_FILTRATION_POWER()
-    : WiSpin(config_store().chamber_post_print_filtration_pwm.get().to_percent(), power_numeric_config, _("Post-print Power")) {}
+    : WiSpin(config_store().chamber_post_print_filtration_pwm.get().to_percent(), post_print_power_numeric_config, _("Post-print Power")) {}
 
 void MI_CHAMBER_POST_PRINT_FILTRATION_POWER::OnClick() {
     config_store().chamber_post_print_filtration_pwm.set(PWM255::from_percent(value()));
 }
 
+void MI_CHAMBER_POST_PRINT_FILTRATION_POWER::Loop() {
+    set_enabled(config_store().chamber_post_print_filtration_enable.get());
+}
+
 // MI_CHAMBER_POST_PRINT_FILTRATION_DURATION
 // ============================================
+static constexpr NumericInputConfig duration_numeric_config {
+    .min_value = 1,
+    .max_value = 30,
+    .unit = Unit::minute,
+};
+
 MI_CHAMBER_POST_PRINT_FILTRATION_DURATION::MI_CHAMBER_POST_PRINT_FILTRATION_DURATION()
     : WiSpin(config_store().chamber_post_print_filtration_duration_min.get(), duration_numeric_config, _("Post-print Duration")) {}
 
 void MI_CHAMBER_POST_PRINT_FILTRATION_DURATION::OnClick() {
     config_store().chamber_post_print_filtration_duration_min.set(value());
+}
+
+void MI_CHAMBER_POST_PRINT_FILTRATION_DURATION::Loop() {
+    set_enabled(config_store().chamber_post_print_filtration_enable.get());
 }

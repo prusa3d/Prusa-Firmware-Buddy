@@ -26,10 +26,10 @@ const char *ChamberFiltration::backend_name(Backend backend) {
 
 #if HAS_XBUDDY_EXTENSION()
     case Backend::xbe_official_filter:
-        return N_("Official");
+        return N_("Adv. filtration");
 
     case Backend::xbe_filter_on_cooling_fans:
-        return N_("Cooling fans");
+        return N_("DIY");
 #endif
     }
 
@@ -84,13 +84,12 @@ void ChamberFiltration::step() {
         output_pwm_ = config_store().chamber_mid_print_filtration_pwm.get();
         last_print_s_ = ticks_s();
 
-    } else {
+    } else if (config_store().chamber_post_print_filtration_enable.get() && ticks_diff(ticks_s(), last_print_s_) <= config_store().chamber_post_print_filtration_duration_min.get() * 60) {
         output_pwm_ = config_store().chamber_post_print_filtration_pwm.get();
 
-        // Turn off post print filtration after the specified time
-        if (ticks_diff(ticks_s(), last_print_s_) > config_store().chamber_post_print_filtration_duration_min.get() * 60) {
-            needs_filtration_ = false;
-        }
+    } else {
+        output_pwm_ = {};
+        needs_filtration_ = false;
     }
 }
 
