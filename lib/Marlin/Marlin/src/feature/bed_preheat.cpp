@@ -53,7 +53,7 @@ uint32_t BedPreheat::remaining_preheat_time() {
     const auto now = millis();
     const int32_t required = required_preheat_time();
     const int32_t elapsed = now - heating_start_time.value_or(now);
-    return std::max((required - elapsed) / 1000, int32_t(0));
+    return std::max(required - elapsed, int32_t(0));
 }
 
 void BedPreheat::wait_for_preheat() {
