@@ -20,6 +20,7 @@
 #include <option/developer_mode.h>
 #include <option/has_mmu2.h>
 #include <option/has_xbuddy_extension.h>
+#include <option/has_chamber_filtration_api.h>
 #include <device/board.h>
 
 #if XL_ENCLOSURE_SUPPORT()
@@ -56,6 +57,9 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
     MI_XBUDDY_EXTENSION_COOLING_FANS,
     MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX,
     MI_XBE_FILTRATION_FAN,
+#endif
+#if HAS_CHAMBER_FILTRATION_API()
+    MI_CHAMBER_FILTRATION,
 #endif
 #if HAS_LOADCELL()
     MI_LIVE_ADJUST_Z, // position with loadcell
