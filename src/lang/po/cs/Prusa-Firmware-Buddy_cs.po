@@ -71,11 +71,11 @@ msgstr "%d Kalibrace offsetu nástroje"
 msgid "%d XY Axis Test"
 msgstr "%d Test os XY"
 
-#: src/common/filament.cpp:182
+#: src/common/filament.cpp:220
 msgid " (Preset)"
 msgstr "(Přednastavení)"
 
-#: src/common/filament.cpp:185
+#: src/common/filament.cpp:223
 msgid " (User)"
 msgstr "(Uživatel)"
 
@@ -189,11 +189,11 @@ msgstr "OVLÁDÁNÍ"
 msgid "Calibrate Filament Sensor"
 msgstr "Kalibrovat senzor filamentu"
 
-#: src/gui/screen_phase_stepping.cpp:31
+#: src/gui/screen_phase_stepping.cpp:34
 msgid "Calibrating X motor"
 msgstr "Kalibruji motor X"
 
-#: src/gui/screen_phase_stepping.cpp:32
+#: src/gui/screen_phase_stepping.cpp:35
 msgid "Calibrating Y motor"
 msgstr "Kalibruji motor Y"
 
@@ -205,11 +205,11 @@ msgstr "Kalibruji akcelerometr..."
 msgid "Calibration data restored successfully"
 msgstr "Kalibrační data načtena"
 
-#: src/gui/screen_phase_stepping.cpp:33
+#: src/gui/screen_phase_stepping.cpp:36
 msgid "Calibration failed with error."
 msgstr "Kalibrace selhala s chybou."
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:159
+#: src/gui/screen/filament/screen_filament_detail.cpp:147
 msgid "CUSTOM PARAMETERS"
 msgstr "VLASTNÍ PARAMETRY"
 
@@ -259,7 +259,7 @@ msgstr "Ovládání"
 msgid "Cooling the nozzle"
 msgstr "Chlazení trysky"
 
-#: src/gui/screen/screen_preheat.cpp:125
+#: src/gui/screen/screen_preheat.cpp:128
 msgid "Custom"
 msgstr "Vlastní"
 
@@ -410,7 +410,7 @@ msgstr "Směr extruderu"
 msgid "Extruder steps per unit"
 msgstr "Počet kroků extruderu na jednotku"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:159
+#: src/gui/screen/filament/screen_filament_detail.cpp:147
 msgid "FILAMENT DETAIL"
 msgstr "DETAIL FILAMENTU"
 
@@ -457,7 +457,7 @@ msgstr "Budou upraveny rychlosti ventilátorů"
 msgid "Filament %u"
 msgstr "Filament %u"
 
-#: src/gui/screen/screen_preheat.cpp:32
+#: src/gui/screen/screen_preheat.cpp:35
 #, c-format
 msgid ""
 "Filament '%s' is abrasive, but you don't have a hardened nozzle installed. "
@@ -470,7 +470,7 @@ msgstr ""
 msgid "Filament Sensors Tuning"
 msgstr "Ladění senzorů filamentu"
 
-#: src/gui/MItem_menus.hpp:181
+#: src/gui/MItem_menus.hpp:178
 msgid "Filament sensors"
 msgstr "Senzory filamentu"
 
@@ -490,7 +490,7 @@ msgstr "Chyba přenosu souborů"
 msgid "Firmware Version\n"
 msgstr "Verze firmwaru\n"
 
-#: src/common/filament.cpp:281
+#: src/common/filament.cpp:373
 msgid "Filament with this name already exists"
 msgstr "Filament s tímto názvem již existuje"
 
@@ -634,7 +634,7 @@ msgstr ""
 msgid "Install pins"
 msgstr "Instalujte piny."
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:118
+#: src/gui/screen/filament/screen_filament_detail.cpp:115
 msgid "Is Abrasive"
 msgstr "Je abrazivní"
 
@@ -1185,7 +1185,7 @@ msgstr "Offset trysky"
 msgid "Nozzle Preheat Temperature"
 msgstr "Teplota předehřátí trysky"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:58
+#: src/gui/screen/filament/screen_filament_detail.cpp:69
 #: src/gui/MItem_print.cpp:51
 msgid "Nozzle Temp"
 msgstr "Tep. trysky"
@@ -1254,7 +1254,7 @@ msgstr "Zavést vše"
 msgid "Preload to MMU"
 msgstr "Zavést do MMU"
 
-#: src/gui/screen/screen_preheat.cpp:171
+#: src/gui/screen/screen_preheat.cpp:174
 msgid "Preheating"
 msgstr "Předehřívání"
 
@@ -1525,7 +1525,7 @@ msgstr "Stav senzoru"
 msgid "Set up Prusa Connect?"
 msgstr "Nastavit Prusa Connect?"
 
-#: src/gui/MItem_tools.cpp:459
+#: src/gui/MItem_tools.cpp:458
 msgid "Assist"
 msgstr "Assist"
 
@@ -1551,11 +1551,11 @@ msgstr "Testy úspěšně dokončeny!"
 msgid "Are the belts vibrating?"
 msgstr "Vibrují řemeny?"
 
-#: src/gui/numeric_input_config_common.cpp:32
+#: src/gui/numeric_input_config_common.cpp:36
 msgid "Auto"
 msgstr "Auto"
 
-#: src/gui/MItem_tools.cpp:805
+#: src/gui/MItem_tools.cpp:804
 msgid "Board Temperature"
 msgstr "Teplota desky"
 
@@ -1587,7 +1587,7 @@ msgstr ""
 "\n"
 "Chcete zkontrolovat a upravit konfiguraci tiskárny?"
 
-#: src/gui/screen/screen_preheat.cpp:109
+#: src/gui/screen/screen_preheat.cpp:112
 msgid "Show All"
 msgstr "Zobrazit vše"
 
@@ -1599,7 +1599,7 @@ msgstr "Přeskočit nastavení sítě"
 msgid "Stopping MMU"
 msgstr "Zastavuji MMU"
 
-#: src/gui/MItem_hardware.cpp:21
+#: src/gui/MItem_hardware.cpp:20
 msgid "Strict"
 msgstr "Přísný"
 
@@ -1620,11 +1620,11 @@ msgstr "T5"
 msgid "Syslog Port"
 msgstr "Port Syslogu"
 
-#: src/gui/screen_phase_stepping.cpp:219
+#: src/gui/screen_phase_stepping.cpp:222
 msgid "Calibration failed to find corrections to motor current."
 msgstr "Při kalibraci se nepodařilo najít korekce proudu motoru."
 
-#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:80
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:102
 msgid "Camera"
 msgstr "Kamera"
 
@@ -1701,7 +1701,7 @@ msgstr ""
 msgid "Chamber"
 msgstr "Komora"
 
-#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:44
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:66
 msgid "Chamber Fan 1"
 msgstr "Ventilátor komory 1"
 
@@ -1710,7 +1710,7 @@ msgstr "Ventilátor komory 1"
 msgid "Chamber temperature"
 msgstr "Teplota komory"
 
-#: src/gui/screen_menu_network_status.hpp:39 src/gui/MItem_tools.cpp:983
+#: src/gui/screen_menu_network_status.hpp:39 src/gui/MItem_tools.cpp:982
 msgid "Connect"
 msgstr "Connect"
 
@@ -1751,7 +1751,7 @@ msgstr "Ping | Ztráta"
 msgid "Cutter"
 msgstr "Stříhání"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:491
+#: src/gui/dialogs/DialogLoadUnload.cpp:490
 msgid "Cutting filament"
 msgstr "Stříhání filamentu"
 
@@ -1788,7 +1788,7 @@ msgstr "DOLU"
 msgid "DWARF ERROR"
 msgstr "CHYBA DWARF"
 
-#: src/gui/MItem_tools.cpp:461
+#: src/gui/MItem_tools.cpp:460
 msgid "Debug"
 msgstr "Debug"
 
@@ -1947,7 +1947,7 @@ msgstr "Nástroj 5 - Test Loadcell"
 msgid "Tools"
 msgstr "Nástroje"
 
-#: src/gui/MItem_hardware.hpp:67 src/gui/MItem_tools.cpp:813
+#: src/gui/MItem_hardware.hpp:67 src/gui/MItem_tools.cpp:812
 msgid "Door Sensor"
 msgstr "Senzor dveří"
 
@@ -1987,7 +1987,7 @@ msgstr ""
 "Detekován filament. Chcete jej vyjmout? Pokud zvolíte NE, bude se tisknout "
 "se zavedeným filamentem."
 
-#: src/common/filament.cpp:251
+#: src/common/filament.cpp:343
 msgid "Filament is not customizable"
 msgstr "Filament není nastavitelný"
 
@@ -2049,7 +2049,7 @@ msgstr "ERR: Asist. filamentu"
 msgid "ERR Wait for User"
 msgstr "ERR: Čekám na uživatele"
 
-#: src/gui/MItem_tools.cpp:863
+#: src/gui/MItem_tools.cpp:862
 msgid "For Filament Change, Preheat"
 msgstr "Předehřát pro výměnu fil."
 
@@ -2125,7 +2125,7 @@ msgstr "WIZARD - NOK"
 msgid "WIZARD - OK"
 msgstr "PRŮVODCE - OK"
 
-#: src/gui/MItem_hardware.cpp:20
+#: src/gui/MItem_hardware.cpp:19
 msgid "Warn"
 msgstr "Varovat"
 
@@ -2137,7 +2137,7 @@ msgstr "Brána"
 msgid "Install sheet on heatbed."
 msgstr "Umístěte tiskový plát na vyhřívanou podložku."
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:133
+#: src/gui/screen/filament/screen_filament_detail.cpp:119
 msgid "Visible"
 msgstr "Viditelné"
 
@@ -2236,18 +2236,13 @@ msgstr ""
 "tlačítka. Filament musí být správně přitlačen k podložce."
 
 #. use load caption, not a bug
-#: src/gui/screen/screen_preheat.cpp:176
+#: src/gui/screen/screen_preheat.cpp:179
 msgid "Preheating for load"
 msgstr "Předehřátí pro zavedení"
 
-#: src/gui/screen/screen_preheat.cpp:183
+#: src/gui/screen/screen_preheat.cpp:186
 msgid "Preheating for purge"
 msgstr "Probíhá zahřívání"
-
-#. use unload caption, not a bug
-#: src/gui/screen/screen_preheat.cpp:180
-msgid "Preheating for unload"
-msgstr "Předehřátí pro vysunutí"
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:96
 msgid ""
@@ -2347,7 +2342,7 @@ msgstr "Vysouvání"
 #. //MSG_PROGRESS_PARK_SELECTOR c=20
 #: src/mmu2/mmu2_progress_converter.cpp:29
 #: src/gui/dialogs/DialogLoadUnload.cpp:83
-#: src/gui/dialogs/DialogLoadUnload.cpp:493
+#: src/gui/dialogs/DialogLoadUnload.cpp:492
 msgid "Ejecting filament"
 msgstr "Vysunutí z MMU"
 
@@ -2539,7 +2534,7 @@ msgid ""
 "We need to start without the filament in the extruder. Please unload it."
 msgstr "Je nutné začít bez filamentu v extruderu. Prosím vysuňte filament."
 
-#: src/common/footer_def.cpp:21 src/gui/MItem_tools.cpp:720
+#: src/common/footer_def.cpp:21 src/gui/MItem_tools.cpp:719
 msgid "Heatbreak Fan"
 msgstr "Ventilátor heatbreaku"
 
@@ -2572,7 +2567,7 @@ msgstr "Kalibruji, nevysouvejte filament"
 msgid "Calibration data saved successfully"
 msgstr "Kalibrační data uložena"
 
-#: src/gui/MItem_menus.hpp:187
+#: src/gui/MItem_menus.hpp:184
 msgid "Calibrations & Tests"
 msgstr "Kalibrace a testy"
 
@@ -2585,7 +2580,7 @@ msgstr "Kontrola os"
 msgid "Cold Pull successfully completed"
 msgstr "Procedura Cold Pull dokončena."
 
-#: src/gui/MItem_tools.cpp:762
+#: src/gui/MItem_tools.cpp:761
 msgid "Heater Voltage"
 msgstr "Napětí topného tělesa"
 
@@ -2653,7 +2648,7 @@ msgstr "Přední strana"
 msgid "Front Side [um]"
 msgstr "Přední strana [um]"
 
-#: src/gui/MItem_tools.cpp:194
+#: src/gui/MItem_tools.cpp:193
 msgid "Auto Home"
 msgstr "Auto Home"
 
@@ -2719,7 +2714,7 @@ msgstr ""
 "Nyní vás provedu skrz\n"
 "úvodní nastavení."
 
-#: src/gui/MItem_crash.cpp:72 src/gui/MItem_tools.cpp:1088
+#: src/gui/MItem_crash.cpp:72 src/gui/MItem_tools.cpp:1087
 msgid "High"
 msgstr "Vysoký"
 
@@ -2731,11 +2726,11 @@ msgstr "Nelze provést - filament je zaveden. Nejprve jej vyjměte."
 msgid "Change Filament"
 msgstr "Vyměnit filament"
 
-#: src/guiapi/src/window_msgbox.cpp:316 src/gui/MItem_tools.cpp:81
+#: src/guiapi/src/window_msgbox.cpp:316 src/gui/MItem_tools.cpp:80
 msgid "Information"
 msgstr "Informace"
 
-#: src/gui/MItem_tools.cpp:772
+#: src/gui/MItem_tools.cpp:771
 msgid "Input Current"
 msgstr "Vstupní proud"
 
@@ -2932,7 +2927,7 @@ msgstr "Pravá strana [um]"
 msgid "SELECTOR CANNOT HOME"
 msgstr "SELEKTOR: CHYBA HOMINGU"
 
-#: src/gui/MItem_tools.cpp:833
+#: src/gui/MItem_tools.cpp:832
 msgid "MCU Temperature"
 msgstr "Teplota MCU"
 
@@ -2976,7 +2971,7 @@ msgstr "Test SELHAL!"
 msgid "MMU Error"
 msgstr "Chyba MMU"
 
-#: src/gui/MItem_tools.cpp:777
+#: src/gui/MItem_tools.cpp:776
 msgid "MMU Current"
 msgstr "MMU proud"
 
@@ -3171,15 +3166,15 @@ msgstr ""
 msgid "Pulley motor stalled. Ensure the pulley can move and check the wiring."
 msgstr "Pulley motor se zasekl. Zkontrolujte zapojení a zda jej nic neblokuje."
 
-#: src/common/filament.cpp:268
+#: src/common/filament.cpp:360
 msgid "Name must contain only 'A-Z0-9_-' characters"
 msgstr "Jméno může obsahovat pouze znaky 'A-Z0-9_-'"
 
-#: src/common/filament.cpp:261
+#: src/common/filament.cpp:353
 msgid "Name must not be '---'"
 msgstr "Jméno nesmí být  '---'"
 
-#: src/common/filament.cpp:256
+#: src/common/filament.cpp:348
 msgid "Name must not be empty"
 msgstr "Jméno nesmí být prázdné"
 
@@ -3413,7 +3408,6 @@ msgstr "Nástroj %d má offset %c: %.3f je mimo rozsah [%.3f, %.3f]."
 msgid "Pick Tool"
 msgstr "Vybrat nástroj"
 
-#: src/gui/box_unfinished_selftest.cpp:124
 #: tmp_error_headers/error_list_coreone.hpp:646
 #: tmp_error_headers/error_list_mk35.hpp:464
 #: tmp_error_headers/error_list_xl.hpp:737
@@ -3454,7 +3448,7 @@ msgstr "Vyberte \"Dokončit\" a připojení se naváže na pozadí."
 msgid "Please remove the belt dampeners."
 msgstr "Odstraňte tlumiče řemenů."
 
-#: src/gui/MItem_tools.cpp:88
+#: src/gui/MItem_tools.cpp:87
 msgid "Printer is busy. Please try repeating the action later."
 msgstr "Tiskárna je zaneprázdněná. Opakujte akci později."
 
@@ -3462,11 +3456,11 @@ msgstr "Tiskárna je zaneprázdněná. Opakujte akci později."
 msgid "Prusa"
 msgstr "Prusa"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:485
+#: src/gui/dialogs/DialogLoadUnload.cpp:484
 msgid "Reloading filament"
 msgstr "Opětovné zavedení filamentu"
 
-#: src/gui/MItem_tools.cpp:702
+#: src/gui/MItem_tools.cpp:701
 msgid "Side Filament sensor"
 msgstr "Boční senzor filamentu"
 
@@ -3531,7 +3525,7 @@ msgstr "Počet obecných selhání"
 msgid "Waiting for user input"
 msgstr "Čeká se na uživatele"
 
-#: src/marlin_stubs/feature/chamber/M141_M191.cpp:104
+#: src/marlin_stubs/feature/chamber/M141_M191.cpp:105
 msgid "Waiting for chamber temperature"
 msgstr "Komora se zahřívá"
 
@@ -3547,12 +3541,12 @@ msgstr ""
 "osa: příliš nízká frekvence.\n"
 "Napněte řemen."
 
-#: src/gui/MItem_tools.cpp:670
+#: src/gui/MItem_tools.cpp:669
 #, c-format
 msgid "disabled / %ld"
 msgstr "vypnuto / %ld"
 
-#: src/gui/MItem_tools.cpp:669
+#: src/gui/MItem_tools.cpp:668
 #, c-format
 msgid "disconnected / %ld"
 msgstr "odpojeno / %ld"
@@ -3561,25 +3555,25 @@ msgstr "odpojeno / %ld"
 msgid "please wait"
 msgstr "vyčkejte"
 
-#: src/gui/MItem_tools.cpp:666
+#: src/gui/MItem_tools.cpp:665
 #, c-format
 msgid "uncalibrated / %ld"
 msgstr "nekalibrováno / %ld"
 
-#: src/gui/MItem_tools.cpp:665
+#: src/gui/MItem_tools.cpp:664
 #, c-format
 msgid "uninitialized / %ld"
 msgstr "neinicializováno / %ld"
 
-#: src/gui/MItem_tools.cpp:823
+#: src/gui/MItem_tools.cpp:822
 msgid "closed"
 msgstr "zavřeno"
 
-#: src/gui/MItem_tools.cpp:821
+#: src/gui/MItem_tools.cpp:820
 msgid "detached"
 msgstr "odpojeno"
 
-#: src/gui/MItem_tools.cpp:822
+#: src/gui/MItem_tools.cpp:821
 msgid "open"
 msgstr "otevřeno"
 
@@ -3609,7 +3603,7 @@ msgstr ""
 "\n"
 "Při homingu je tiskárna hlučnější a může vibrovat."
 
-#: src/gui/MItem_tools.cpp:254
+#: src/gui/MItem_tools.cpp:253
 msgid ""
 "Erasing configuration,\n"
 "it will take some time..."
@@ -3775,7 +3769,7 @@ msgstr ""
 msgid "%d Bed Heater Test"
 msgstr "%d Test výhřevu podložky"
 
-#: src/gui/MItem_tools.cpp:974
+#: src/gui/MItem_tools.cpp:973
 msgid ""
 "\n"
 "Loading settings finished.\n"
@@ -3793,12 +3787,12 @@ msgstr "Nástroj 4"
 msgid "Check the heater and thermistor wiring for potential damage."
 msgstr "Zkontrolujte, zda není poškozen kabel vyhřívání nebo termistoru."
 
-#: src/common/filament.cpp:188
+#: src/common/filament.cpp:226
 msgid " (Custom)"
 msgstr "(Vlastní)"
 
 #. not calibrated would be too long
-#: src/gui/MItem_tools.cpp:667
+#: src/gui/MItem_tools.cpp:666
 #, c-format
 msgid " INS / %7ld"
 msgstr "INS / %7ld"
@@ -3866,7 +3860,7 @@ msgid "%d Z Alignment Calibration"
 msgstr "%d Kalibrace zarovnání Z"
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:365
+#: src/gui/MItem_tools.cpp:364
 msgid "A crash dump is being saved."
 msgstr "Ukládá se výpis chyby."
 
@@ -4117,7 +4111,7 @@ msgstr "Extruzní motor na nástroji %d se neotáčí."
 msgid "FIRMWARExPRINTER MISMATCH"
 msgstr "NESHODA FIRMWARExTISKÁRNA"
 
-#: src/gui/screen/screen_preheat.cpp:186 src/gui/screen_menu_connect.cpp:67
+#: src/gui/screen/screen_preheat.cpp:189 src/gui/screen_menu_connect.cpp:67
 msgid "---"
 msgstr "---"
 
@@ -4278,7 +4272,7 @@ msgstr "Tisk zastaven"
 msgid "General Fails in Print"
 msgstr "Obecná selhání v tisku"
 
-#: src/gui/screen_phase_stepping.cpp:30
+#: src/gui/screen_phase_stepping.cpp:33
 msgid ""
 "Running the phase stepping calibration to reduce vibrations. Please wait..."
 msgstr "Běží kalibrace funkce Phase Stepping pro redukci vibrací. Vyčkejte..."
@@ -4390,7 +4384,7 @@ msgstr ""
 "Povolte dva šrouby na pravé straně dokového sloupku (označeny oranžově) "
 "univerzálním klíčem."
 
-#: src/gui/MItem_tools.cpp:457
+#: src/gui/MItem_tools.cpp:456
 msgid "Loud"
 msgstr "Hlasitý"
 
@@ -4446,10 +4440,6 @@ msgstr "CHYBA MODULÁRNÍHO BEDU"
 #: tmp_error_headers/error_list_ix.hpp:191
 msgid "Overcurrent detected."
 msgstr "Detekován nadproud."
-
-#: src/gui/MItem_tools.cpp:859
-msgid "Noz&Bed"
-msgstr "Trys+Pod"
 
 #: tmp_error_headers/error_list_xl.hpp:324
 #: tmp_error_headers/error_list_ix.hpp:310
@@ -4552,7 +4542,7 @@ msgstr "Vypršela doba čekání na identifikátor"
 msgid "Waiting for puppies to start timed out"
 msgstr "Waiting for puppies to start timed out"
 
-#: src/gui/MItem_tools.cpp:794
+#: src/gui/MItem_tools.cpp:793
 msgid "XL Buddy 5V Current"
 msgstr "XL Buddy 5V proud"
 
@@ -4623,7 +4613,7 @@ msgstr "ERR: Interní"
 msgid "ERR TMC failed"
 msgstr "ERR: selhání TMC"
 
-#: src/gui/MItem_tools.cpp:254
+#: src/gui/MItem_tools.cpp:253
 msgid ""
 "Erasing everything,\n"
 "it will take some time..."
@@ -4641,7 +4631,7 @@ msgstr ""
 msgid "%d Fan Test"
 msgstr "%d Test ventilátorů"
 
-#: src/gui/MItem_tools.cpp:371
+#: src/gui/MItem_tools.cpp:370
 msgid ""
 "Error saving crash dump report to the USB drive. Please reinsert the USB "
 "drive and try again."
@@ -4661,7 +4651,7 @@ msgstr "%d Test vyhřívání trysky"
 msgid "Do you want to reset the Nextruder main-plate maintenance reminder?"
 msgstr "Chcete resetovat upozornění na termín údržby main-plate v Nextruderu?"
 
-#: src/gui/MItem_tools.cpp:800
+#: src/gui/MItem_tools.cpp:799
 msgid "Input Voltage"
 msgstr "Vstupní napětí"
 
@@ -4679,11 +4669,11 @@ msgstr "Měření napnutí řemene"
 msgid "Moving selector"
 msgstr "Posouvám selektor"
 
-#: src/gui/MItem_tools.cpp:980 src/gui/MItem_menus.hpp:118
+#: src/gui/MItem_tools.cpp:979 src/gui/MItem_menus.hpp:118
 msgid "Network"
 msgstr "Síť"
 
-#: src/gui/MItem_tools.cpp:367
+#: src/gui/MItem_tools.cpp:366
 msgid "No crash dump to save."
 msgstr "Žádný výpis k uložení."
 
@@ -4788,7 +4778,7 @@ msgstr ""
 msgid "%d Phase Stepping Calibration"
 msgstr "%d Kalibrace Phase Stepping"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:88
+#: src/gui/screen/filament/screen_filament_detail.cpp:77
 msgid "Bed Temp"
 msgstr "Tep. bedu"
 
@@ -4814,7 +4804,7 @@ msgstr "Zrušit tisk objektu"
 msgid "Change to"
 msgstr "Změnit na"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:479
+#: src/gui/dialogs/DialogLoadUnload.cpp:478
 msgid "Changing filament"
 msgstr "Výměna filamentu"
 
@@ -4839,7 +4829,7 @@ msgstr ""
 "  Osa Y %3s %3dHz\n"
 "Uložit a použít vypočítané hodnoty?"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:147
+#: src/gui/screen/filament/screen_filament_detail.cpp:134
 msgid "Confirm"
 msgstr "Potvrdit"
 
@@ -4851,7 +4841,7 @@ msgstr "Filter detekce nárazů"
 msgid "Crash Sensitivity XY"
 msgstr "Citlivost nárazů XY"
 
-#: src/gui/MItem_menus.hpp:193
+#: src/gui/MItem_menus.hpp:190
 msgid "Bed Level Correction"
 msgstr "Korekce podložky"
 
@@ -4960,7 +4950,7 @@ msgstr ""
 "Nelze načíst konfiguraci. Ujistěte se, že ini soubor stažený ze služby "
 "Connect je na USB. Opakujte akci."
 
-#: src/gui/MItem_tools.cpp:1121
+#: src/gui/MItem_tools.cpp:1120
 #, c-format
 msgid "Failed to open file '%s' for writing."
 msgstr "Nepodařilo se otevřít soubor '%s' pro zápis."
@@ -4997,7 +4987,7 @@ msgstr "Generovat heslo"
 msgid "Filament Autoloading"
 msgstr "Auto zavedení filamentu"
 
-#: src/gui/MItem_tools.hpp:57 src/gui/MItem_tools.cpp:694
+#: src/gui/MItem_tools.hpp:57 src/gui/MItem_tools.cpp:693
 msgid "Filament Sensor"
 msgstr "Filament senzor"
 
@@ -5151,7 +5141,7 @@ msgstr "Timeout pro zavedení"
 #. //MSG_PROGRESS_UNLOADING_FILAMENT c=20
 #: src/mmu2/mmu2_progress_converter.cpp:22
 #: src/gui/dialogs/DialogLoadUnload.cpp:76
-#: src/gui/dialogs/DialogLoadUnload.cpp:481
+#: src/gui/dialogs/DialogLoadUnload.cpp:480
 msgid "Loading filament"
 msgstr "Zavádím filament"
 
@@ -5183,7 +5173,7 @@ msgstr "M.I.N.D.A."
 msgid "WI-FI SETTINGS"
 msgstr "WI-FI NASTAVENÍ"
 
-#: src/gui/MItem_tools.cpp:784
+#: src/gui/MItem_tools.cpp:783
 msgid "5V Voltage"
 msgstr "5V napětí"
 
@@ -5397,7 +5387,7 @@ msgstr "Měření selhalo."
 msgid "Measuring Y resonance..."
 msgstr "Měření rezonancí v ose Y..."
 
-#: src/common/footer_def.cpp:21 src/gui/MItem_tools.cpp:720
+#: src/common/footer_def.cpp:21 src/gui/MItem_tools.cpp:719
 msgid "Hotend Fan"
 msgstr "Vent. hotendu"
 
@@ -5429,7 +5419,7 @@ msgstr "JAZYK A ČAS"
 msgid "Live Adjust Z"
 msgstr "Doladit Z"
 
-#: src/gui/MItem_crash.cpp:70 src/gui/MItem_tools.cpp:1088
+#: src/gui/MItem_crash.cpp:70 src/gui/MItem_tools.cpp:1087
 msgid "Low"
 msgstr "Nízký"
 
@@ -5450,7 +5440,7 @@ msgstr "Automatický návrat do menu"
 msgid "More detail at"
 msgstr "Více informací"
 
-#: src/gui/screen_phase_stepping.cpp:201
+#: src/gui/screen_phase_stepping.cpp:204
 #, c-format
 msgid "Motor %c vibration reduced by %2d%%"
 msgstr "Motor %c: vibrace sníženy o %2d%%"
@@ -5475,7 +5465,7 @@ msgstr "NIKDY"
 msgid "NEXT"
 msgstr "DALŠÍ"
 
-#: src/gui/MItem_tools.cpp:668
+#: src/gui/MItem_tools.cpp:667
 #, c-format
 msgid "NINS / %7ld"
 msgstr "NINS / %7ld"
@@ -5535,8 +5525,8 @@ msgstr "NYNÍ NE"
 msgid "NOW"
 msgstr "NYNÍ"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:21
-#: src/gui/MItem_tools.cpp:496
+#: src/gui/screen/filament/screen_filament_detail.cpp:33
+#: src/gui/MItem_tools.cpp:495
 msgid "Name"
 msgstr "Název"
 
@@ -5552,7 +5542,8 @@ msgstr "Další výměna za"
 msgid "No Config"
 msgstr "Žádná konfigurace"
 
-#: src/common/footer_def.cpp:9 src/gui/MItem_hardware.cpp:19
+#: src/common/footer_def.cpp:9 src/gui/MItem_hardware.cpp:18
+#: src/gui/numeric_input_config_common.cpp:56
 msgid "None"
 msgstr "Žádný"
 
@@ -5590,7 +5581,7 @@ msgstr "Vybrat Nástroj 2 (Aktuální)"
 msgid "Pick Tool 3 (Current)"
 msgstr "Vybrat Nástroj 3 (Aktuální)"
 
-#: src/common/footer_def.cpp:10 src/gui/MItem_tools.cpp:858
+#: src/common/footer_def.cpp:10 src/gui/MItem_tools.cpp:857
 #: src/gui/MItem_print.hpp:14 src/gui/MItem_print.hpp:49
 #: src/gui/wizard/selftest_result_heaters.cpp:13
 msgid "Nozzle"
@@ -5608,7 +5599,7 @@ msgstr "Tryska 2 - Teplota"
 msgid "Nozzle PWM"
 msgstr "PWM Trysky"
 
-#: src/gui/MItem_tools.cpp:456
+#: src/gui/MItem_tools.cpp:455
 msgid "Once"
 msgstr "Jednou"
 
@@ -5645,7 +5636,7 @@ msgstr "OK"
 msgid "ON "
 msgstr "ZAP "
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:58
+#: src/gui/screen/filament/screen_filament_detail.cpp:69
 #: src/gui/MItem_print.hpp:16 src/gui/MItem_print.hpp:51
 msgid "Nozzle Temperature"
 msgstr "Teplota trysky"
@@ -5689,7 +5680,7 @@ msgstr "Vyp."
 msgid "  Tool 1"
 msgstr "Nástroj 1"
 
-#: src/gui/MItem_tools.cpp:969
+#: src/gui/MItem_tools.cpp:968
 msgid "Ok"
 msgstr "Ok"
 
@@ -5759,7 +5750,7 @@ msgstr "POZASTAVENO"
 msgid "PAUSING ..."
 msgstr "POZASTAVUJI"
 
-#: src/gui/screen_phase_stepping.cpp:27
+#: src/gui/screen_phase_stepping.cpp:30
 msgid "PHASE STEPPING CALIBRATION"
 msgstr "KALIBRACE PHASE STEPPING"
 
@@ -5835,7 +5826,7 @@ msgstr ""
 msgid "Performing cut"
 msgstr "Provádím řez"
 
-#: src/gui/screen_phase_stepping.cpp:190
+#: src/gui/screen_phase_stepping.cpp:193
 msgid "Phase stepping calibration completed"
 msgstr "Kalibrace Phase Stepping dokončena."
 
@@ -5860,7 +5851,7 @@ msgstr "Vyjměte filament ze senzoru filamentu."
 msgid "Phase Stepping"
 msgstr "Phase Stepping"
 
-#: src/gui/screen_phase_stepping.cpp:229
+#: src/gui/screen_phase_stepping.cpp:232
 msgid "Phase stepping defaults have been successfully restored."
 msgstr "Úspěšně obnoveny výchozí hodnoty pro Phase Stepping."
 
@@ -5942,7 +5933,7 @@ msgstr "Chyba protokolu"
 msgid "Purging"
 msgstr "Čištění"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:487
+#: src/gui/dialogs/DialogLoadUnload.cpp:486
 msgid "Purging filament"
 msgstr "Čistím trysku"
 
@@ -6016,7 +6007,7 @@ msgstr "Registruji"
 msgid "Remove belt dampeners"
 msgstr "Odstraňte tlumiče řemenů"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:103
+#: src/gui/screen/filament/screen_filament_detail.cpp:109
 msgid "Requires Filtration"
 msgstr "Vyžaduje filtraci"
 
@@ -6042,7 +6033,7 @@ msgstr "Vysouvání od FINDy"
 
 #: src/guiapi/include/WindowMenuItems.hpp:54
 #: src/guiapi/include/window_tool_action_box.hpp:100
-#: src/gui/screen/screen_preheat.cpp:93 src/gui/screen_network_setup.cpp:33
+#: src/gui/screen/screen_preheat.cpp:96 src/gui/screen_network_setup.cpp:33
 #: src/gui/screen_network_setup.cpp:39 src/gui/screen_network_setup.cpp:143
 msgid "Return"
 msgstr "Zpět"
@@ -6219,7 +6210,7 @@ msgstr "Cíl"
 msgid "Temp. show zero"
 msgstr "Teplota zobrazuje nulu"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:489
+#: src/gui/dialogs/DialogLoadUnload.cpp:488
 msgid "Testing filament"
 msgstr "Testování filamentu"
 
@@ -6282,12 +6273,12 @@ msgstr "Posun časového pásma (hodiny)"
 msgid "Time Zone Summertime"
 msgstr "Časové pásmo - Letní čas"
 
-#: src/gui/screen_phase_stepping.cpp:28
+#: src/gui/screen_phase_stepping.cpp:31
 msgid ""
 "To learn more about the phase stepping calibration process, read the article:"
 msgstr "Více o Phase Stepping se dočtete online na:"
 
-#: src/gui/MItem_tools.cpp:1126
+#: src/gui/MItem_tools.cpp:1125
 #, c-format
 msgid ""
 "The printer will now save all logs to file until restart.\n"
@@ -6346,7 +6337,7 @@ msgstr "Vysouvání"
 #. //MSG_PROGRESS_ERR_TMC c=20
 #: src/mmu2/mmu2_progress_converter.cpp:21
 #: src/gui/dialogs/DialogLoadUnload.cpp:75
-#: src/gui/dialogs/DialogLoadUnload.cpp:483
+#: src/gui/dialogs/DialogLoadUnload.cpp:482
 msgid "Unloading filament"
 msgstr "Vysouvám filament"
 
@@ -6433,7 +6424,7 @@ msgstr ""
 "Zkontrolujte nastavení HW.\n"
 "Pokud problém přetrvává, kontaktujte podporu."
 
-#: src/gui/MItem_tools.cpp:369
+#: src/gui/MItem_tools.cpp:368
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
 msgstr "Výpis chyb (soubor dump.bin) byl zapsán na USB disk."
 
@@ -6593,8 +6584,8 @@ msgstr "Inicializace BBF selhala. Opakujte akci nebo zkuste jiný USB disk."
 msgid "Heatbed"
 msgstr "Podložka"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:88
-#: src/gui/MItem_tools.cpp:653
+#: src/gui/screen/filament/screen_filament_detail.cpp:77
+#: src/gui/MItem_tools.cpp:652
 msgid "Bed Temperature"
 msgstr "Teplota podložky"
 
@@ -6671,14 +6662,6 @@ msgstr "DETEKOVÁN NÁRAZ"
 msgid "Calibrate Dock Position"
 msgstr "Kalibrovat pozici doku"
 
-#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:56
-msgid "Chamber Fan 2"
-msgstr "Ventilátor komory 2"
-
-#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:11
-msgid "Chamber Fans"
-msgstr "Ventilátory komory"
-
 #: src/gui/MItem_tools.hpp:665
 msgid "Chamber Lights"
 msgstr "Světlo v komoře"
@@ -6742,7 +6725,7 @@ msgstr "Zkouška zavedení"
 msgid "DOOR OPEN"
 msgstr "OTEVŘENÉ DVEŘE"
 
-#: src/gui/MItem_tools.cpp:1092
+#: src/gui/MItem_tools.cpp:1091
 msgid "Display Refresh Speed"
 msgstr "Rychlost obnovy displeje"
 
@@ -6974,7 +6957,7 @@ msgstr "Tovární nastavení"
 msgid "Fail Stats"
 msgstr "Stat. chyb"
 
-#: src/gui/MItem_tools.cpp:969
+#: src/gui/MItem_tools.cpp:968
 msgid "Failed"
 msgstr "Selhalo"
 
@@ -7041,8 +7024,8 @@ msgstr ""
 "disk na FAT32 (data\n"
 "budou smazána)!"
 
-#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:34
-#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:68
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:56
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:90
 msgid "Filtration Fan"
 msgstr "Ventilátor filtrace"
 
@@ -7325,7 +7308,7 @@ msgstr "CHYBA HOMINGU Z"
 msgid "Heatbreak thermistor is disconnected. Inspect the wiring."
 msgstr "Termistor heatbreaku je odpojen. Zkontrolujte zapojení."
 
-#: src/gui/MItem_tools.cpp:767
+#: src/gui/MItem_tools.cpp:766
 msgid "Heater Current"
 msgstr "Proud topného tělesa"
 
@@ -7341,12 +7324,6 @@ msgstr "Proud topného tělesa"
 #: tmp_error_headers/error_list_mini.hpp:527
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Vyhřívání vypnuto po 30 minutách neaktivity."
-
-#. //MSG_PROGRESS_RETRACT_FINDA c=20
-#: src/mmu2/mmu2_progress_converter.cpp:31 src/gui/screen_crash_recovery.cpp:93
-#: src/gui/screen_phase_stepping.cpp:29 src/gui/dialogs/DialogLoadUnload.cpp:85
-msgid "Homing"
-msgstr "Homing"
 
 #: tmp_error_headers/error_list_coreone.hpp:807
 #: tmp_error_headers/error_list_mk35.hpp:632
@@ -7544,10 +7521,6 @@ msgstr ""
 msgid "Loadcell measured an inifinite or undefined load value."
 msgstr "Loadcell naměřil nekonečnou či nedefinovanou hodnotu."
 
-#: src/gui/MItem_tools.cpp:1107
-msgid "Logging has been turned off. You can now safely remove the USB drive."
-msgstr "Logování bylo vypnuto. Nyní můžete bezpečně odebrat USB disk."
-
 #: tmp_error_headers/error_list_coreone.hpp:800
 #: tmp_error_headers/error_list_mk35.hpp:625
 #: tmp_error_headers/error_list_xl.hpp:891
@@ -7667,7 +7640,7 @@ msgstr "PUPPY ERROR"
 msgid "Parking"
 msgstr "Parkování"
 
-#: src/gui/MItem_tools.cpp:900
+#: src/gui/MItem_tools.cpp:899
 msgid "Phase stepping not ready: perform calibration first."
 msgstr "Phase Stepping neaktivní: nejprve spusťte kalibraci."
 
@@ -7689,22 +7662,10 @@ msgstr "Prosím vyměňte filament"
 msgid "Preparing"
 msgstr "Příprava"
 
-#: src/gui/MItem_tools.cpp:712 src/gui/MItem_print.hpp:96
-msgid "Print Fan"
-msgstr "Tisk. vent."
-
 #. First line - Print Time
 #: src/gui/gcode_description.cpp:142 src/gui/MItem_tools.hpp:469
 msgid "Print Time"
 msgstr "Doba tisku"
-
-#: src/gui/MItem_hardware.hpp:60 src/gui/MItem_hardware.cpp:65
-msgid "Printer Type"
-msgstr "Typ tiskárny"
-
-#: src/gui/MItem_tools.cpp:87 src/gui/dialogs/DialogHandler.cpp:116
-msgid "Printer may vibrate and be noisier during homing."
-msgstr "Při homingu je tiskárna hlučnější a může vibrovat."
 
 #: src/gui/MItem_menus.cpp:160
 msgid "Printhead"
@@ -7763,27 +7724,11 @@ msgstr "Vyměnit filament"
 msgid "Reset"
 msgstr "Reset"
 
-#: src/gui/MItem_tools.cpp:249
-msgid "Reset complete. The system will now restart."
-msgstr "Obnovení dokončeno. Systém se restartuje."
-
 #: src/gui/screen_menu_filament_sensors.hpp:15
 #: src/gui/screen/filament/screen_filaments_reorder.cpp:162
 #: src/gui/screen_menu_phase_stepping.hpp:17 src/gui/MItem_input_shaper.hpp:53
 msgid "Restore Defaults"
 msgstr "Obnovit výchozí hodnoty"
-
-#: src/gui/MItem_tools.cpp:789
-msgid "Sandwich 5V Current"
-msgstr "Sandwich 5V proud"
-
-#: src/gui/MItem_tools.cpp:1102
-msgid "Save Logs To File"
-msgstr "Uložit log soubor"
-
-#: src/gui/MItem_menus.hpp:197
-msgid "Serial Printing Screen"
-msgstr "Obrazovka sériového tisku"
 
 #: src/gui/ScreenPrintingModel.cpp:27 src/gui/MItem_tools.hpp:570
 msgid "Set Ready"
@@ -7796,33 +7741,6 @@ msgstr "Připravit"
 msgid "Setting the tare failed. Check the loadcell wiring and connection."
 msgstr ""
 "Nastavení tárování se nezdařilo. Zkontrolujte zapojení senzoru loadcell."
-
-#. a dummy comment to break line by force
-#: src/gui/MItem_tools.cpp:273
-msgid ""
-"Shipping preparation\n"
-"\n"
-"Erasing configuration\n"
-"(but keeping Nextruder type)\n"
-"it will take some time..."
-msgstr ""
-"Příprava na odeslání\n"
-"\n"
-"Mazání konfigurace\n"
-"(zachovává se typ Nextruderu)\n"
-"Chvilku to potrvá..."
-
-#: src/gui/MItem_tools.cpp:458
-msgid "Silent"
-msgstr "Tichý"
-
-#: src/gui/MItem_tools.cpp:500
-msgid "Sort Files"
-msgstr "Řadit soubory"
-
-#: src/gui/MItem_tools.hpp:248 src/gui/MItem_tools.cpp:470
-msgid "Sound Mode"
-msgstr "Zvuk"
 
 #: tmp_error_headers/error_list_coreone.hpp:485
 #: tmp_error_headers/error_list_mk35.hpp:303
@@ -7840,10 +7758,6 @@ msgstr ""
 #: src/gui/MItem_network.hpp:41 src/gui/screen_menu_connect.hpp:24
 msgid "Status"
 msgstr "Stav"
-
-#: src/gui/MItem_menus.hpp:175 src/gui/screen_menu_steel_sheets.hpp:115
-msgid "Steel Sheets"
-msgstr "Tiskové pláty"
 
 #: tmp_error_headers/error_list_coreone.hpp:772
 #: tmp_error_headers/error_list_mk35.hpp:590
@@ -7871,10 +7785,6 @@ msgstr "TEPLOTA NEODPOVÍDÁ"
 #: src/gui/screen/toolhead/screen_toolhead_settings.cpp:272
 msgid "TOOLS SETTINGS"
 msgstr "NASTAVENÍ NÁSTROJŮ"
-
-#: src/gui/screen_menu_tune.hpp:117
-msgid "TUNE"
-msgstr "LADIT"
 
 #: src/gui/MItem_menus.hpp:73
 msgid "Temperature"
@@ -7958,65 +7868,16 @@ msgstr ""
 "v naší databázi.\n"
 "Kontaktujte podporu."
 
-#. window_menu
-#: src/gui/MItem_tools.cpp:340
-msgid ""
-"This operation cannot be undone. Current configuration will be lost!\n"
-"Do you want to perform the Factory Shipping Preparation procedure?"
-msgstr ""
-"Tuto operaci nelze vrátit zpět. Aktuální konfigurace bude ztracena!\n"
-"Chcete zahájit přípravu k odeslání tiskárny?"
-
-#. window_menu
-#: src/gui/MItem_tools.cpp:324
-#, c-format
-msgid ""
-"This operation cannot be undone. Current configuration will be lost!\n"
-"You will need a USB drive with this firmware (%s_firmware_%s.bbf file) to "
-"start the printer again.\n"
-"Do you really want to continue?"
-msgstr ""
-"Tato operace je nevratná. Aktuální konfigurace bude ztracena!\n"
-"Aby mohla tiskárna dále fungovat, bude potřeba USB klíč s tímto FW "
-"(%s_firmware_%s.bbf).\n"
-"Chcete skutečně pokračovat?"
-
 #: tmp_error_headers/error_list_coreone.hpp:44
 msgid "The printer queued a move that may crash the model into the ceiling."
 msgstr ""
 "Tiskárna by mohla provést pohyb, který by zapříčinil náraz výtisku do "
 "horního panelu."
 
-#. window_menu
-#: src/gui/MItem_tools.cpp:314
-msgid ""
-"This operation cannot be undone. Current user configuration and passwords "
-"will be lost!\n"
-"Do you want to reset the printer to factory defaults?"
-msgstr ""
-"Tuto operaci nejde vrátit. Dojde ke smazání aktuální konfigurace a hesel!\n"
-"Chcete skutečně resetovat tiskárnu?"
-
-#: src/gui/MItem_tools.cpp:495 src/gui/MItem_tools.cpp:572
-msgid "Time"
-msgstr "Čas"
-
-#: src/gui/MItem_tools.cpp:560
-msgid "Time Format"
-msgstr "Formát času"
-
-#: src/gui/MItem_tools.cpp:534
-msgid "Time Zone Minute Offset"
-msgstr "Posun časového pásma (minuty)"
-
 #: src/gui/screen/toolhead/screen_toolhead_settings.cpp:257
 #, c-format
 msgid "Tool %d"
 msgstr "Nástroj %d"
-
-#: src/gui/MItem_tools.cpp:694
-msgid "Tool Filament sensor"
-msgstr "Senzor filamentu v nástroji"
 
 #: src/gui/MItem_tools.hpp:691
 msgid "Tool Light"
@@ -8036,18 +7897,6 @@ msgstr "Nástrojová hlava"
 #: src/gui/MItem_tools.hpp:701
 msgid "Trigger Power Panic"
 msgstr "Spustit zotavení ze ztráty napájení"
-
-#: src/gui/MItem_tools.cpp:893
-msgid "Turn on Phase stepping uncalibrated?"
-msgstr "Zapnout Phase Stepping bez kalibrace?"
-
-#: src/gui/MItem_tools.cpp:1127
-msgid ""
-"Turn the logging off before disconnecting the USB drive, or you risk "
-"damaging the filesystem!"
-msgstr ""
-"Před vyjmutím USB disku vypněte logování, jinak může dojít k poškození "
-"souborového systému."
 
 #: tmp_error_headers/error_list_coreone.hpp:519
 #: tmp_error_headers/error_list_mk35.hpp:337
@@ -8333,3 +8182,190 @@ msgstr "ZRUŠIT"
 #: tmp_error_headers/error_list_xl.hpp:9
 msgid "Check all tools if they are properly parked or picked."
 msgstr "Jsou všechny nástroje správně dokovány a vybírány?"
+
+#: src/gui/MItem_tools.cpp:858
+msgid "All"
+msgstr "Vše"
+
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:78
+msgid "Chamber Fan 2"
+msgstr "Ventilátor komory 2"
+
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:12
+msgid "Chamber Fans"
+msgstr "Ventilátory komory"
+
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:43
+msgid "Chamber Fans Limit"
+msgstr "Limit vent. v komoře"
+
+#: tmp_error_headers/error_list_coreone.hpp:855
+msgid "Close Chamber Ventilation"
+msgstr "Zavřít ventilaci komory"
+
+#: tmp_error_headers/error_list_coreone.hpp:856
+msgid ""
+"Ensure the top ventilation grille is closed for optimal chamber temperature."
+msgstr ""
+"Ujistěte se, že horní ventilační mřížka je uzavřená, aby se dosáhlo "
+"optimální teploty."
+
+#: tmp_error_headers/error_list_coreone.hpp:849
+msgid "Ensure the top ventilation grille is open for proper airflow."
+msgstr ""
+"Ujistěte se, že horní mřížka je otevřená kvůli optimálnímu proudění vzduchu."
+
+#. //MSG_PROGRESS_RETRACT_FINDA c=20
+#: src/mmu2/mmu2_progress_converter.cpp:31 src/gui/screen_crash_recovery.cpp:93
+#: src/gui/screen_phase_stepping.cpp:32 src/gui/dialogs/DialogLoadUnload.cpp:85
+msgid "Homing"
+msgstr "Homing"
+
+#: src/gui/MItem_tools.cpp:1106
+msgid "Logging has been turned off. You can now safely remove the USB drive."
+msgstr "Logování bylo vypnuto. Nyní můžete bezpečně odebrat USB disk."
+
+#: src/gui/screen/filament/screen_filament_detail.cpp:95
+msgid "Maximum Chamber Temperature"
+msgstr "Maximální teplota komory"
+
+#: src/gui/screen/filament/screen_filament_detail.cpp:89
+msgid "Minimum Chamber Temperature"
+msgstr "Minimální teplota komory"
+
+#: src/gui/screen/filament/screen_filament_detail.cpp:101
+msgid "Nominal Chamber Temperature"
+msgstr "Jmenovitá teplota komory"
+
+#: tmp_error_headers/error_list_coreone.hpp:848
+msgid "Open Chamber Ventilation"
+msgstr "Otevřít ventilaci komory"
+
+#. use unload caption, not a bug
+#: src/gui/screen/screen_preheat.cpp:183
+msgid "Preheating for unload"
+msgstr "Předehřátí pro vysunutí"
+
+#: src/gui/MItem_tools.cpp:711 src/gui/MItem_print.hpp:96
+msgid "Print Fan"
+msgstr "Tisk. vent."
+
+#: src/gui/MItem_hardware.hpp:60 src/gui/MItem_hardware.cpp:64
+msgid "Printer Type"
+msgstr "Typ tiskárny"
+
+#: src/gui/MItem_tools.cpp:86 src/gui/dialogs/DialogHandler.cpp:116
+msgid "Printer may vibrate and be noisier during homing."
+msgstr "Při homingu je tiskárna hlučnější a může vibrovat."
+
+#: src/gui/MItem_tools.cpp:248
+msgid "Reset complete. The system will now restart."
+msgstr "Obnovení dokončeno. Systém se restartuje."
+
+#: src/gui/MItem_tools.cpp:788
+msgid "Sandwich 5V Current"
+msgstr "Sandwich 5V proud"
+
+#: src/gui/MItem_tools.cpp:1101
+msgid "Save Logs To File"
+msgstr "Uložit log soubor"
+
+#: src/gui/MItem_menus.hpp:194
+msgid "Serial Printing Screen"
+msgstr "Obrazovka sériového tisku"
+
+#. a dummy comment to break line by force
+#: src/gui/MItem_tools.cpp:272
+msgid ""
+"Shipping preparation\n"
+"\n"
+"Erasing configuration\n"
+"(but keeping Nextruder type)\n"
+"it will take some time..."
+msgstr ""
+"Příprava na odeslání\n"
+"\n"
+"Mazání konfigurace\n"
+"(zachovává se typ Nextruderu)\n"
+"Chvilku to potrvá..."
+
+#: src/gui/MItem_tools.cpp:457
+msgid "Silent"
+msgstr "Tichý"
+
+#: src/gui/MItem_tools.cpp:499
+msgid "Sort Files"
+msgstr "Řadit soubory"
+
+#: src/gui/MItem_tools.hpp:248 src/gui/MItem_tools.cpp:469
+msgid "Sound Mode"
+msgstr "Zvuk"
+
+#: src/gui/MItem_menus.hpp:172 src/gui/screen_menu_steel_sheets.hpp:115
+msgid "Steel Sheets"
+msgstr "Tiskové pláty"
+
+#: src/gui/screen_menu_tune.hpp:118
+msgid "TUNE"
+msgstr "LADIT"
+
+#. window_menu
+#: src/gui/MItem_tools.cpp:339
+msgid ""
+"This operation cannot be undone. Current configuration will be lost!\n"
+"Do you want to perform the Factory Shipping Preparation procedure?"
+msgstr ""
+"Tuto operaci nelze vrátit zpět. Aktuální konfigurace bude ztracena!\n"
+"Chcete zahájit přípravu k odeslání tiskárny?"
+
+#. window_menu
+#: src/gui/MItem_tools.cpp:323
+#, c-format
+msgid ""
+"This operation cannot be undone. Current configuration will be lost!\n"
+"You will need a USB drive with this firmware (%s_firmware_%s.bbf file) to "
+"start the printer again.\n"
+"Do you really want to continue?"
+msgstr ""
+"Tato operace je nevratná. Aktuální konfigurace bude ztracena!\n"
+"Aby mohla tiskárna dále fungovat, bude potřeba USB klíč s tímto FW "
+"(%s_firmware_%s.bbf).\n"
+"Chcete skutečně pokračovat?"
+
+#. window_menu
+#: src/gui/MItem_tools.cpp:313
+msgid ""
+"This operation cannot be undone. Current user configuration and passwords "
+"will be lost!\n"
+"Do you want to reset the printer to factory defaults?"
+msgstr ""
+"Tuto operaci nejde vrátit. Dojde ke smazání aktuální konfigurace a hesel!\n"
+"Chcete skutečně resetovat tiskárnu?"
+
+#: src/gui/MItem_tools.cpp:494 src/gui/MItem_tools.cpp:571
+msgid "Time"
+msgstr "Čas"
+
+#: src/gui/MItem_tools.cpp:559
+msgid "Time Format"
+msgstr "Formát času"
+
+#: src/gui/MItem_tools.cpp:533
+msgid "Time Zone Minute Offset"
+msgstr "Posun časového pásma (minuty)"
+
+#: src/gui/MItem_tools.cpp:693
+msgid "Tool Filament sensor"
+msgstr "Senzor filamentu v nástroji"
+
+#: src/gui/MItem_tools.cpp:892
+msgid "Turn on Phase stepping uncalibrated?"
+msgstr "Zapnout Phase Stepping bez kalibrace?"
+
+#: src/gui/MItem_tools.cpp:1126
+msgid ""
+"Turn the logging off before disconnecting the USB drive, or you risk "
+"damaging the filesystem!"
+msgstr ""
+"Před vyjmutím USB disku vypněte logování, jinak může dojít k poškození "
+"souborového systému."

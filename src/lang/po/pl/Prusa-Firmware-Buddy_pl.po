@@ -71,11 +71,11 @@ msgstr "%d Kalibracja przesunięcia narzędzi"
 msgid "%d XY Axis Test"
 msgstr "%d Test osi XY"
 
-#: src/common/filament.cpp:182
+#: src/common/filament.cpp:220
 msgid " (Preset)"
 msgstr "(Ustawienie)"
 
-#: src/common/filament.cpp:185
+#: src/common/filament.cpp:223
 msgid " (User)"
 msgstr "(Użytkownik)"
 
@@ -190,11 +190,11 @@ msgstr "STEROWANIE"
 msgid "Calibrate Filament Sensor"
 msgstr "Kalibruj czujnik filamentu"
 
-#: src/gui/screen_phase_stepping.cpp:31
+#: src/gui/screen_phase_stepping.cpp:34
 msgid "Calibrating X motor"
 msgstr "Kalibruję silnik X"
 
-#: src/gui/screen_phase_stepping.cpp:32
+#: src/gui/screen_phase_stepping.cpp:35
 msgid "Calibrating Y motor"
 msgstr "Kalibruję silnik Y"
 
@@ -206,11 +206,11 @@ msgstr "Kalibrowanie akcelerometru..."
 msgid "Calibration data restored successfully"
 msgstr "Dane kalibracji zostały pomyślnie przywrócone"
 
-#: src/gui/screen_phase_stepping.cpp:33
+#: src/gui/screen_phase_stepping.cpp:36
 msgid "Calibration failed with error."
 msgstr "Kalibracja nieudana, wystąpił błąd."
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:159
+#: src/gui/screen/filament/screen_filament_detail.cpp:147
 msgid "CUSTOM PARAMETERS"
 msgstr "WŁASNE PARAMETRY"
 
@@ -261,7 +261,7 @@ msgstr "Sterowanie"
 msgid "Cooling the nozzle"
 msgstr "Chłodzenie dyszy"
 
-#: src/gui/screen/screen_preheat.cpp:125
+#: src/gui/screen/screen_preheat.cpp:128
 msgid "Custom"
 msgstr "Niestandardowy"
 
@@ -414,7 +414,7 @@ msgstr "Kierunek ekstrudera"
 msgid "Extruder steps per unit"
 msgstr "Kroki ekstrudera na jednostkę"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:159
+#: src/gui/screen/filament/screen_filament_detail.cpp:147
 msgid "FILAMENT DETAIL"
 msgstr "SZCZEGÓŁY FILAMENTU"
 
@@ -461,7 +461,7 @@ msgstr "Prędkości wentylatorów zostaną dostosowane"
 msgid "Filament %u"
 msgstr "Filament %u"
 
-#: src/gui/screen/screen_preheat.cpp:32
+#: src/gui/screen/screen_preheat.cpp:35
 #, c-format
 msgid ""
 "Filament '%s' is abrasive, but you don't have a hardened nozzle installed. "
@@ -474,7 +474,7 @@ msgstr ""
 msgid "Filament Sensors Tuning"
 msgstr "Strojenie czujników filamentu"
 
-#: src/gui/MItem_menus.hpp:181
+#: src/gui/MItem_menus.hpp:178
 msgid "Filament sensors"
 msgstr "Czujniki filamentu"
 
@@ -494,7 +494,7 @@ msgstr "Błąd przesyłania pliku"
 msgid "Firmware Version\n"
 msgstr "Wersja firmware\n"
 
-#: src/common/filament.cpp:281
+#: src/common/filament.cpp:373
 msgid "Filament with this name already exists"
 msgstr "Filament o tej nazwie już istnieje"
 
@@ -639,7 +639,7 @@ msgstr ""
 msgid "Install pins"
 msgstr "Wkręć kołki"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:118
+#: src/gui/screen/filament/screen_filament_detail.cpp:115
 msgid "Is Abrasive"
 msgstr "Ścierny"
 
@@ -1193,7 +1193,7 @@ msgstr "Offset dyszy"
 msgid "Nozzle Preheat Temperature"
 msgstr "Temperatura nagrzewania dyszy"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:58
+#: src/gui/screen/filament/screen_filament_detail.cpp:69
 #: src/gui/MItem_print.cpp:51
 msgid "Nozzle Temp"
 msgstr "Temp. dyszy"
@@ -1263,7 +1263,7 @@ msgstr "Załaduj wszystkie"
 msgid "Preload to MMU"
 msgstr "Załaduj do MMU"
 
-#: src/gui/screen/screen_preheat.cpp:171
+#: src/gui/screen/screen_preheat.cpp:174
 msgid "Preheating"
 msgstr "Nagrzewanie"
 
@@ -1536,7 +1536,7 @@ msgstr "Info o czujnikach"
 msgid "Set up Prusa Connect?"
 msgstr "Skonfigurować Prusa Connect?"
 
-#: src/gui/MItem_tools.cpp:459
+#: src/gui/MItem_tools.cpp:458
 msgid "Assist"
 msgstr "Wsparcie"
 
@@ -1562,11 +1562,11 @@ msgstr "Wszystkie testy ukończono pomyślnie"
 msgid "Are the belts vibrating?"
 msgstr "Czy paski wibrują?"
 
-#: src/gui/numeric_input_config_common.cpp:32
+#: src/gui/numeric_input_config_common.cpp:36
 msgid "Auto"
 msgstr "Auto"
 
-#: src/gui/MItem_tools.cpp:805
+#: src/gui/MItem_tools.cpp:804
 msgid "Board Temperature"
 msgstr "Temperatura płyty"
 
@@ -1598,7 +1598,7 @@ msgstr ""
 "\n"
 "Czy chcesz zmienić konfigurację drukarki?"
 
-#: src/gui/screen/screen_preheat.cpp:109
+#: src/gui/screen/screen_preheat.cpp:112
 msgid "Show All"
 msgstr "Pokaż wszystko"
 
@@ -1610,7 +1610,7 @@ msgstr "Pomiń konfigurację sieci"
 msgid "Stopping MMU"
 msgstr "Zatrzymywanie MMU"
 
-#: src/gui/MItem_hardware.cpp:21
+#: src/gui/MItem_hardware.cpp:20
 msgid "Strict"
 msgstr "Restrykcyjne"
 
@@ -1631,11 +1631,11 @@ msgstr "T5"
 msgid "Syslog Port"
 msgstr "Port Syslog"
 
-#: src/gui/screen_phase_stepping.cpp:219
+#: src/gui/screen_phase_stepping.cpp:222
 msgid "Calibration failed to find corrections to motor current."
 msgstr "Kalibracja nie wykryła poprawek prądu silnika."
 
-#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:80
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:102
 msgid "Camera"
 msgstr "Kamera"
 
@@ -1711,7 +1711,7 @@ msgstr ""
 msgid "Chamber"
 msgstr "Komora"
 
-#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:44
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:66
 msgid "Chamber Fan 1"
 msgstr "Wentylator komory 1"
 
@@ -1720,7 +1720,7 @@ msgstr "Wentylator komory 1"
 msgid "Chamber temperature"
 msgstr "Temperatura komory"
 
-#: src/gui/screen_menu_network_status.hpp:39 src/gui/MItem_tools.cpp:983
+#: src/gui/screen_menu_network_status.hpp:39 src/gui/MItem_tools.cpp:982
 msgid "Connect"
 msgstr "Connect"
 
@@ -1761,7 +1761,7 @@ msgstr "Ping | Strata"
 msgid "Cutter"
 msgstr "Obcinak"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:491
+#: src/gui/dialogs/DialogLoadUnload.cpp:490
 msgid "Cutting filament"
 msgstr "Obcinanie filamentu"
 
@@ -1798,7 +1798,7 @@ msgstr "DÓŁ"
 msgid "DWARF ERROR"
 msgstr "BŁĄD DWARF"
 
-#: src/gui/MItem_tools.cpp:461
+#: src/gui/MItem_tools.cpp:460
 msgid "Debug"
 msgstr "Debugowanie"
 
@@ -1957,7 +1957,7 @@ msgstr "Test tensometru 5"
 msgid "Tools"
 msgstr "Narzędzia"
 
-#: src/gui/MItem_hardware.hpp:67 src/gui/MItem_tools.cpp:813
+#: src/gui/MItem_hardware.hpp:67 src/gui/MItem_tools.cpp:812
 msgid "Door Sensor"
 msgstr "Czujnik drzwi"
 
@@ -1997,7 +1997,7 @@ msgstr ""
 "Wykryto filament. Rozładować go? Wybierz NIE, aby rozpocząć drukowanie przy "
 "użyciu aktualnie załadowanego filamentu."
 
-#: src/common/filament.cpp:251
+#: src/common/filament.cpp:343
 msgid "Filament is not customizable"
 msgstr "Nie można dostosować filamentu"
 
@@ -2059,7 +2059,7 @@ msgstr "ERR filament wymaga pomocy"
 msgid "ERR Wait for User"
 msgstr "ERR czekam na użytkownika"
 
-#: src/gui/MItem_tools.cpp:863
+#: src/gui/MItem_tools.cpp:862
 msgid "For Filament Change, Preheat"
 msgstr "Przy wymianie filamentu, nagrzej"
 
@@ -2135,7 +2135,7 @@ msgstr "ASYSTENT - NIE OK"
 msgid "WIZARD - OK"
 msgstr "ASYSTENT - OK"
 
-#: src/gui/MItem_hardware.cpp:20
+#: src/gui/MItem_hardware.cpp:19
 msgid "Warn"
 msgstr "Ostrzegaj"
 
@@ -2147,7 +2147,7 @@ msgstr "Bramka"
 msgid "Install sheet on heatbed."
 msgstr "Połóż arkusz na stole."
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:133
+#: src/gui/screen/filament/screen_filament_detail.cpp:119
 msgid "Visible"
 msgstr "Widoczne"
 
@@ -2246,18 +2246,13 @@ msgstr ""
 "do powierzchni, aż materiał będzie dobrze przylegał."
 
 #. use load caption, not a bug
-#: src/gui/screen/screen_preheat.cpp:176
+#: src/gui/screen/screen_preheat.cpp:179
 msgid "Preheating for load"
 msgstr "Nagrzewanie do ładowania"
 
-#: src/gui/screen/screen_preheat.cpp:183
+#: src/gui/screen/screen_preheat.cpp:186
 msgid "Preheating for purge"
 msgstr "Nagrzewanie do czyszczenia"
-
-#. use unload caption, not a bug
-#: src/gui/screen/screen_preheat.cpp:180
-msgid "Preheating for unload"
-msgstr "Nagrzewanie do rozładowania"
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:96
 msgid ""
@@ -2358,7 +2353,7 @@ msgstr "Wysuwanie"
 #. //MSG_PROGRESS_PARK_SELECTOR c=20
 #: src/mmu2/mmu2_progress_converter.cpp:29
 #: src/gui/dialogs/DialogLoadUnload.cpp:83
-#: src/gui/dialogs/DialogLoadUnload.cpp:493
+#: src/gui/dialogs/DialogLoadUnload.cpp:492
 msgid "Ejecting filament"
 msgstr "Wysuwanie filamentu"
 
@@ -2556,7 +2551,7 @@ msgid ""
 "We need to start without the filament in the extruder. Please unload it."
 msgstr "Musimy zacząć bez filamentu w ekstruderze. Rozładuj filament."
 
-#: src/common/footer_def.cpp:21 src/gui/MItem_tools.cpp:720
+#: src/common/footer_def.cpp:21 src/gui/MItem_tools.cpp:719
 msgid "Heatbreak Fan"
 msgstr "Wentylator bariery cieplnej"
 
@@ -2589,7 +2584,7 @@ msgstr "Trwa kalibracja, nie wyciągaj filamentu."
 msgid "Calibration data saved successfully"
 msgstr "Dane kalibracji zostały pomyślnie zapisane"
 
-#: src/gui/MItem_menus.hpp:187
+#: src/gui/MItem_menus.hpp:184
 msgid "Calibrations & Tests"
 msgstr "Kalibracje i testy"
 
@@ -2602,7 +2597,7 @@ msgstr "Sprawdzanie osi"
 msgid "Cold Pull successfully completed"
 msgstr "Cold Pull zakończony powodzeniem"
 
-#: src/gui/MItem_tools.cpp:762
+#: src/gui/MItem_tools.cpp:761
 msgid "Heater Voltage"
 msgstr "Napięcie grzałek"
 
@@ -2672,7 +2667,7 @@ msgstr "Przód"
 msgid "Front Side [um]"
 msgstr "Przód [um]"
 
-#: src/gui/MItem_tools.cpp:194
+#: src/gui/MItem_tools.cpp:193
 msgid "Auto Home"
 msgstr "Auto bazowanie"
 
@@ -2739,7 +2734,7 @@ msgstr ""
 "Chcę przeprowadzić Cię przez \n"
 "proces konfiguracji."
 
-#: src/gui/MItem_crash.cpp:72 src/gui/MItem_tools.cpp:1088
+#: src/gui/MItem_crash.cpp:72 src/gui/MItem_tools.cpp:1087
 msgid "High"
 msgstr "Wysoka"
 
@@ -2753,11 +2748,11 @@ msgstr ""
 msgid "Change Filament"
 msgstr "Zmiana filamentu"
 
-#: src/guiapi/src/window_msgbox.cpp:316 src/gui/MItem_tools.cpp:81
+#: src/guiapi/src/window_msgbox.cpp:316 src/gui/MItem_tools.cpp:80
 msgid "Information"
 msgstr "Informacje"
 
-#: src/gui/MItem_tools.cpp:772
+#: src/gui/MItem_tools.cpp:771
 msgid "Input Current"
 msgstr "Prąd wejściowy"
 
@@ -2956,7 +2951,7 @@ msgstr "Prawa [um]"
 msgid "SELECTOR CANNOT HOME"
 msgstr "WYBIERAK NIE BAZUJE SIĘ"
 
-#: src/gui/MItem_tools.cpp:833
+#: src/gui/MItem_tools.cpp:832
 msgid "MCU Temperature"
 msgstr "Temperatura MCU"
 
@@ -3004,7 +2999,7 @@ msgstr "Test NIEUDANY!"
 msgid "MMU Error"
 msgstr "Błąd MMU"
 
-#: src/gui/MItem_tools.cpp:777
+#: src/gui/MItem_tools.cpp:776
 msgid "MMU Current"
 msgstr "Prąd MMU"
 
@@ -3205,15 +3200,15 @@ msgstr ""
 "Silnik kół radełkowanych utknął. Upewnij się, że radełko może się poruszać i "
 "sprawdź okablowanie."
 
-#: src/common/filament.cpp:268
+#: src/common/filament.cpp:360
 msgid "Name must contain only 'A-Z0-9_-' characters"
 msgstr "Może zawierać jedynie znaki A-Z 0-9 oraz \"-\" i \"_\""
 
-#: src/common/filament.cpp:261
+#: src/common/filament.cpp:353
 msgid "Name must not be '---'"
 msgstr "Nazwa nie może być '---'"
 
-#: src/common/filament.cpp:256
+#: src/common/filament.cpp:348
 msgid "Name must not be empty"
 msgstr "Nazwa nie może być pusta"
 
@@ -3448,7 +3443,6 @@ msgstr "Przesunięcie %c narzędzia %d: %.3f jest poza zakresem [%.3f, %.3f]."
 msgid "Pick Tool"
 msgstr "Wybierz narzędzie"
 
-#: src/gui/box_unfinished_selftest.cpp:124
 #: tmp_error_headers/error_list_coreone.hpp:646
 #: tmp_error_headers/error_list_mk35.hpp:464
 #: tmp_error_headers/error_list_xl.hpp:737
@@ -3489,7 +3483,7 @@ msgstr "Możesz nacisnąć \"Zakończ\", aby kontynuować łączenie w tle."
 msgid "Please remove the belt dampeners."
 msgstr "Zdemontuj tłumiki paska."
 
-#: src/gui/MItem_tools.cpp:88
+#: src/gui/MItem_tools.cpp:87
 msgid "Printer is busy. Please try repeating the action later."
 msgstr "Drukarka jest zajęta. Spróbuj powtórzyć akcję później."
 
@@ -3497,11 +3491,11 @@ msgstr "Drukarka jest zajęta. Spróbuj powtórzyć akcję później."
 msgid "Prusa"
 msgstr "Prusa"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:485
+#: src/gui/dialogs/DialogLoadUnload.cpp:484
 msgid "Reloading filament"
 msgstr "Ponowne ładowanie filamentu"
 
-#: src/gui/MItem_tools.cpp:702
+#: src/gui/MItem_tools.cpp:701
 msgid "Side Filament sensor"
 msgstr "Boczny czujnik filamentu"
 
@@ -3566,7 +3560,7 @@ msgstr "Suma błędów ogólnie"
 msgid "Waiting for user input"
 msgstr "Czekam na użytkownika"
 
-#: src/marlin_stubs/feature/chamber/M141_M191.cpp:104
+#: src/marlin_stubs/feature/chamber/M141_M191.cpp:105
 msgid "Waiting for chamber temperature"
 msgstr "Czekam na temperaturę komory"
 
@@ -3582,12 +3576,12 @@ msgstr ""
 ": częstotliwość osi jest zbyt niska.\n"
 "Naciągnij pasek."
 
-#: src/gui/MItem_tools.cpp:670
+#: src/gui/MItem_tools.cpp:669
 #, c-format
 msgid "disabled / %ld"
 msgstr "wyłączone / %d"
 
-#: src/gui/MItem_tools.cpp:669
+#: src/gui/MItem_tools.cpp:668
 #, c-format
 msgid "disconnected / %ld"
 msgstr "odłączono / %d"
@@ -3596,25 +3590,25 @@ msgstr "odłączono / %d"
 msgid "please wait"
 msgstr "Proszę czekać"
 
-#: src/gui/MItem_tools.cpp:666
+#: src/gui/MItem_tools.cpp:665
 #, c-format
 msgid "uncalibrated / %ld"
 msgstr "nie skalibrowano / %ld"
 
-#: src/gui/MItem_tools.cpp:665
+#: src/gui/MItem_tools.cpp:664
 #, c-format
 msgid "uninitialized / %ld"
 msgstr "nie zainicjalizowano / %ld"
 
-#: src/gui/MItem_tools.cpp:823
+#: src/gui/MItem_tools.cpp:822
 msgid "closed"
 msgstr "zamknięto"
 
-#: src/gui/MItem_tools.cpp:821
+#: src/gui/MItem_tools.cpp:820
 msgid "detached"
 msgstr "odłączono"
 
-#: src/gui/MItem_tools.cpp:822
+#: src/gui/MItem_tools.cpp:821
 msgid "open"
 msgstr "otwarto"
 
@@ -3645,7 +3639,7 @@ msgstr ""
 "\n"
 "Drukarka może wibrować i być głośniejsza podczas bazowania."
 
-#: src/gui/MItem_tools.cpp:254
+#: src/gui/MItem_tools.cpp:253
 msgid ""
 "Erasing configuration,\n"
 "it will take some time..."
@@ -3811,7 +3805,7 @@ msgstr ""
 msgid "%d Bed Heater Test"
 msgstr "%d Test grzałki stołu"
 
-#: src/gui/MItem_tools.cpp:974
+#: src/gui/MItem_tools.cpp:973
 msgid ""
 "\n"
 "Loading settings finished.\n"
@@ -3830,12 +3824,12 @@ msgid "Check the heater and thermistor wiring for potential damage."
 msgstr ""
 "Sprawdź okablowanie grzałki i termistora pod kątem ewentualnych uszkodzeń."
 
-#: src/common/filament.cpp:188
+#: src/common/filament.cpp:226
 msgid " (Custom)"
 msgstr "(Niestandardowy)"
 
 #. not calibrated would be too long
-#: src/gui/MItem_tools.cpp:667
+#: src/gui/MItem_tools.cpp:666
 #, c-format
 msgid " INS / %7ld"
 msgstr "INS / %7ld"
@@ -3904,7 +3898,7 @@ msgid "%d Z Alignment Calibration"
 msgstr "%d Kalibracja wyrównania Z"
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:365
+#: src/gui/MItem_tools.cpp:364
 msgid "A crash dump is being saved."
 msgstr "Zrzut pamięci jest zapisywany."
 
@@ -4157,7 +4151,7 @@ msgstr "Silnik ekstrudera nie obraca się w narzędziu %d"
 msgid "FIRMWARExPRINTER MISMATCH"
 msgstr "NIEZGODNOŚĆ FIRMWARE Z DRUKARKĄ"
 
-#: src/gui/screen/screen_preheat.cpp:186 src/gui/screen_menu_connect.cpp:67
+#: src/gui/screen/screen_preheat.cpp:189 src/gui/screen_menu_connect.cpp:67
 msgid "---"
 msgstr "---"
 
@@ -4319,7 +4313,7 @@ msgstr "Drukowanie zatrzymane"
 msgid "General Fails in Print"
 msgstr "Ogólne błędy wydruku"
 
-#: src/gui/screen_phase_stepping.cpp:30
+#: src/gui/screen_phase_stepping.cpp:33
 msgid ""
 "Running the phase stepping calibration to reduce vibrations. Please wait..."
 msgstr "Trwa kalibracja Phase Stepping, redukująca wibracje. Czekaj..."
@@ -4431,7 +4425,7 @@ msgstr ""
 "Za pomocą klucza wielofunkcyjnego poluzuj dwie śruby z boku słupka doku "
 "(zaznaczone na pomarańczowo)."
 
-#: src/gui/MItem_tools.cpp:457
+#: src/gui/MItem_tools.cpp:456
 msgid "Loud"
 msgstr "Głośno"
 
@@ -4488,10 +4482,6 @@ msgstr "BŁĄD STOŁU MODUŁOWEGO"
 #: tmp_error_headers/error_list_ix.hpp:191
 msgid "Overcurrent detected."
 msgstr "Wykryto zbyt duży prąd."
-
-#: src/gui/MItem_tools.cpp:859
-msgid "Noz&Bed"
-msgstr "Dysza+stół"
 
 #: tmp_error_headers/error_list_xl.hpp:324
 #: tmp_error_headers/error_list_ix.hpp:310
@@ -4596,7 +4586,7 @@ msgstr "Oczekiwanie na odcisk palca przekroczyło limit czasu"
 msgid "Waiting for puppies to start timed out"
 msgstr "Waiting for puppies to start timed out"
 
-#: src/gui/MItem_tools.cpp:794
+#: src/gui/MItem_tools.cpp:793
 msgid "XL Buddy 5V Current"
 msgstr "Prąd 5V XL Buddy"
 
@@ -4667,7 +4657,7 @@ msgstr "ERR wewnętrzny"
 msgid "ERR TMC failed"
 msgstr "ERR Błąd TMC"
 
-#: src/gui/MItem_tools.cpp:254
+#: src/gui/MItem_tools.cpp:253
 msgid ""
 "Erasing everything,\n"
 "it will take some time..."
@@ -4685,7 +4675,7 @@ msgstr ""
 msgid "%d Fan Test"
 msgstr "%d Test wentylatora"
 
-#: src/gui/MItem_tools.cpp:371
+#: src/gui/MItem_tools.cpp:370
 msgid ""
 "Error saving crash dump report to the USB drive. Please reinsert the USB "
 "drive and try again."
@@ -4708,7 +4698,7 @@ msgstr ""
 "Czy chcesz zresetować przypomnienie o konserwacji przekładki głównej "
 "Nextrudera?"
 
-#: src/gui/MItem_tools.cpp:800
+#: src/gui/MItem_tools.cpp:799
 msgid "Input Voltage"
 msgstr "Napięcie wejściowe"
 
@@ -4726,11 +4716,11 @@ msgstr "Pomiar naprężenia pasków"
 msgid "Moving selector"
 msgstr "Ruch wybieraka"
 
-#: src/gui/MItem_tools.cpp:980 src/gui/MItem_menus.hpp:118
+#: src/gui/MItem_tools.cpp:979 src/gui/MItem_menus.hpp:118
 msgid "Network"
 msgstr "Sieć"
 
-#: src/gui/MItem_tools.cpp:367
+#: src/gui/MItem_tools.cpp:366
 msgid "No crash dump to save."
 msgstr "Brak zrzutu pamięci do zapisania."
 
@@ -4837,7 +4827,7 @@ msgstr ""
 msgid "%d Phase Stepping Calibration"
 msgstr "%d Kalibracja Phase Stepping"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:88
+#: src/gui/screen/filament/screen_filament_detail.cpp:77
 msgid "Bed Temp"
 msgstr "Temp. stołu"
 
@@ -4865,7 +4855,7 @@ msgstr "Anuluj obiekt"
 msgid "Change to"
 msgstr "Zmień na"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:479
+#: src/gui/dialogs/DialogLoadUnload.cpp:478
 msgid "Changing filament"
 msgstr "Zmiana filamentu"
 
@@ -4890,7 +4880,7 @@ msgstr ""
 "  Oś Y %3s %3dHz\n"
 "Zapisać i użyć obliczonych wartości?"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:147
+#: src/gui/screen/filament/screen_filament_detail.cpp:134
 msgid "Confirm"
 msgstr "Potwierdź"
 
@@ -4902,7 +4892,7 @@ msgstr "Filtr wykrywania zderzeń"
 msgid "Crash Sensitivity XY"
 msgstr "Czułość wykrywania zderzeń XY"
 
-#: src/gui/MItem_menus.hpp:193
+#: src/gui/MItem_menus.hpp:190
 msgid "Bed Level Correction"
 msgstr "Korekta poziomowania stołu"
 
@@ -5011,7 +5001,7 @@ msgstr ""
 "Nie udało się załadować konfiguracji. Upewnij się, że plik .ini pobrany z "
 "Connect znajduje się w pamięci USB i spróbuj ponownie."
 
-#: src/gui/MItem_tools.cpp:1121
+#: src/gui/MItem_tools.cpp:1120
 #, c-format
 msgid "Failed to open file '%s' for writing."
 msgstr "Nie udało się otworzyć pliku '%s' do zapisu."
@@ -5048,7 +5038,7 @@ msgstr "Generuj hasło"
 msgid "Filament Autoloading"
 msgstr "Autoładowanie filamentu"
 
-#: src/gui/MItem_tools.hpp:57 src/gui/MItem_tools.cpp:694
+#: src/gui/MItem_tools.hpp:57 src/gui/MItem_tools.cpp:693
 msgid "Filament Sensor"
 msgstr "Czujnik filamentu"
 
@@ -5203,7 +5193,7 @@ msgstr "Timeout ładowania"
 #. //MSG_PROGRESS_UNLOADING_FILAMENT c=20
 #: src/mmu2/mmu2_progress_converter.cpp:22
 #: src/gui/dialogs/DialogLoadUnload.cpp:76
-#: src/gui/dialogs/DialogLoadUnload.cpp:481
+#: src/gui/dialogs/DialogLoadUnload.cpp:480
 msgid "Loading filament"
 msgstr "Ładowanie filamentu"
 
@@ -5235,7 +5225,7 @@ msgstr "M.I.N.D.A."
 msgid "WI-FI SETTINGS"
 msgstr "USTAWIENIA WI-FI"
 
-#: src/gui/MItem_tools.cpp:784
+#: src/gui/MItem_tools.cpp:783
 msgid "5V Voltage"
 msgstr "Napięcie 5V"
 
@@ -5447,7 +5437,7 @@ msgstr "Pomiar nieudany"
 msgid "Measuring Y resonance..."
 msgstr "Pomiar rezonansu Y..."
 
-#: src/common/footer_def.cpp:21 src/gui/MItem_tools.cpp:720
+#: src/common/footer_def.cpp:21 src/gui/MItem_tools.cpp:719
 msgid "Hotend Fan"
 msgstr "Wentylator hotendu"
 
@@ -5479,7 +5469,7 @@ msgstr "JĘZYK I CZAS"
 msgid "Live Adjust Z"
 msgstr "Live Adjust Z"
 
-#: src/gui/MItem_crash.cpp:70 src/gui/MItem_tools.cpp:1088
+#: src/gui/MItem_crash.cpp:70 src/gui/MItem_tools.cpp:1087
 msgid "Low"
 msgstr "Niska"
 
@@ -5500,7 +5490,7 @@ msgstr "Limit czasu menu"
 msgid "More detail at"
 msgstr "Więcej szczegółów"
 
-#: src/gui/screen_phase_stepping.cpp:201
+#: src/gui/screen_phase_stepping.cpp:204
 #, c-format
 msgid "Motor %c vibration reduced by %2d%%"
 msgstr "Wibracje silnika %c zmniejszone o %2d%%"
@@ -5525,7 +5515,7 @@ msgstr "NIGDY"
 msgid "NEXT"
 msgstr "DALEJ"
 
-#: src/gui/MItem_tools.cpp:668
+#: src/gui/MItem_tools.cpp:667
 #, c-format
 msgid "NINS / %7ld"
 msgstr "NINS / %7ld"
@@ -5585,8 +5575,8 @@ msgstr "NIE TERAZ"
 msgid "NOW"
 msgstr "TERAZ"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:21
-#: src/gui/MItem_tools.cpp:496
+#: src/gui/screen/filament/screen_filament_detail.cpp:33
+#: src/gui/MItem_tools.cpp:495
 msgid "Name"
 msgstr "Nazwa"
 
@@ -5602,7 +5592,8 @@ msgstr "Następna zmiana za"
 msgid "No Config"
 msgstr "Brak konfiguracji"
 
-#: src/common/footer_def.cpp:9 src/gui/MItem_hardware.cpp:19
+#: src/common/footer_def.cpp:9 src/gui/MItem_hardware.cpp:18
+#: src/gui/numeric_input_config_common.cpp:56
 msgid "None"
 msgstr "Brak"
 
@@ -5640,7 +5631,7 @@ msgstr "Wybierz narzędzie 2 (obecne)"
 msgid "Pick Tool 3 (Current)"
 msgstr "Wybierz narzędzie 3 (obecne)"
 
-#: src/common/footer_def.cpp:10 src/gui/MItem_tools.cpp:858
+#: src/common/footer_def.cpp:10 src/gui/MItem_tools.cpp:857
 #: src/gui/MItem_print.hpp:14 src/gui/MItem_print.hpp:49
 #: src/gui/wizard/selftest_result_heaters.cpp:13
 msgid "Nozzle"
@@ -5658,7 +5649,7 @@ msgstr "Temperatura dyszy 2"
 msgid "Nozzle PWM"
 msgstr "PWN dyszy"
 
-#: src/gui/MItem_tools.cpp:456
+#: src/gui/MItem_tools.cpp:455
 msgid "Once"
 msgstr "Pojedynczo"
 
@@ -5695,7 +5686,7 @@ msgstr "OK"
 msgid "ON "
 msgstr "WŁ "
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:58
+#: src/gui/screen/filament/screen_filament_detail.cpp:69
 #: src/gui/MItem_print.hpp:16 src/gui/MItem_print.hpp:51
 msgid "Nozzle Temperature"
 msgstr "Temperatura dyszy"
@@ -5739,7 +5730,7 @@ msgstr "Wył. "
 msgid "  Tool 1"
 msgstr "Narzędzie 1"
 
-#: src/gui/MItem_tools.cpp:969
+#: src/gui/MItem_tools.cpp:968
 msgid "Ok"
 msgstr "Ok"
 
@@ -5809,7 +5800,7 @@ msgstr "PAUZA"
 msgid "PAUSING ..."
 msgstr "PAUZOWANIE ..."
 
-#: src/gui/screen_phase_stepping.cpp:27
+#: src/gui/screen_phase_stepping.cpp:30
 msgid "PHASE STEPPING CALIBRATION"
 msgstr "KALIBRACJA PHASE STEPPING"
 
@@ -5886,7 +5877,7 @@ msgstr ""
 msgid "Performing cut"
 msgstr "Odcinanie"
 
-#: src/gui/screen_phase_stepping.cpp:190
+#: src/gui/screen_phase_stepping.cpp:193
 msgid "Phase stepping calibration completed"
 msgstr "Zakończono kalibrację Phase Stepping"
 
@@ -5911,7 +5902,7 @@ msgstr "Wyciągnij filament z czujnika filamentu."
 msgid "Phase Stepping"
 msgstr "Phase Stepping"
 
-#: src/gui/screen_phase_stepping.cpp:229
+#: src/gui/screen_phase_stepping.cpp:232
 msgid "Phase stepping defaults have been successfully restored."
 msgstr "Przywrócono domyślne ustawienia Phase Stepping."
 
@@ -5994,7 +5985,7 @@ msgstr "Błąd protokołu"
 msgid "Purging"
 msgstr "Czyszczenie"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:487
+#: src/gui/dialogs/DialogLoadUnload.cpp:486
 msgid "Purging filament"
 msgstr "Czyszczenie filamentu"
 
@@ -6068,7 +6059,7 @@ msgstr "Rejestrowanie"
 msgid "Remove belt dampeners"
 msgstr "Zdemontuj tłumiki paska"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:103
+#: src/gui/screen/filament/screen_filament_detail.cpp:109
 msgid "Requires Filtration"
 msgstr "Wymaga filtracji"
 
@@ -6094,7 +6085,7 @@ msgstr "Wycofywanie z FINDY"
 
 #: src/guiapi/include/WindowMenuItems.hpp:54
 #: src/guiapi/include/window_tool_action_box.hpp:100
-#: src/gui/screen/screen_preheat.cpp:93 src/gui/screen_network_setup.cpp:33
+#: src/gui/screen/screen_preheat.cpp:96 src/gui/screen_network_setup.cpp:33
 #: src/gui/screen_network_setup.cpp:39 src/gui/screen_network_setup.cpp:143
 msgid "Return"
 msgstr "Powrót"
@@ -6271,7 +6262,7 @@ msgstr "Cel"
 msgid "Temp. show zero"
 msgstr "Temperatura - pokazuj zero"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:489
+#: src/gui/dialogs/DialogLoadUnload.cpp:488
 msgid "Testing filament"
 msgstr "Test filamentu"
 
@@ -6334,14 +6325,14 @@ msgstr "Przes. godzinowe strefy czasowej"
 msgid "Time Zone Summertime"
 msgstr "Strefa czasowa (czas letni)"
 
-#: src/gui/screen_phase_stepping.cpp:28
+#: src/gui/screen_phase_stepping.cpp:31
 msgid ""
 "To learn more about the phase stepping calibration process, read the article:"
 msgstr ""
 "Aby dowiedzieć się więcej o procesie kalibracji sekwencji fazowej (Phase "
 "Stepping), przeczytaj ten artykuł:"
 
-#: src/gui/MItem_tools.cpp:1126
+#: src/gui/MItem_tools.cpp:1125
 #, c-format
 msgid ""
 "The printer will now save all logs to file until restart.\n"
@@ -6401,7 +6392,7 @@ msgstr "Rozładowywanie"
 #. //MSG_PROGRESS_ERR_TMC c=20
 #: src/mmu2/mmu2_progress_converter.cpp:21
 #: src/gui/dialogs/DialogLoadUnload.cpp:75
-#: src/gui/dialogs/DialogLoadUnload.cpp:483
+#: src/gui/dialogs/DialogLoadUnload.cpp:482
 msgid "Unloading filament"
 msgstr "Rozładowywanie filamentu"
 
@@ -6488,7 +6479,7 @@ msgstr ""
 "Sprawdź ustawienia sprzętowe.\n"
 "Jeśli problem nadal występuje, skontaktuj się z działem wsparcia."
 
-#: src/gui/MItem_tools.cpp:369
+#: src/gui/MItem_tools.cpp:368
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
 msgstr "Raport zrzutu pamięci (plik dump.bin) został zapisany w pamięci USB."
 
@@ -6651,8 +6642,8 @@ msgstr ""
 msgid "Heatbed"
 msgstr "Stół"
 
-#: src/gui/screen/filament/screen_filament_detail.cpp:88
-#: src/gui/MItem_tools.cpp:653
+#: src/gui/screen/filament/screen_filament_detail.cpp:77
+#: src/gui/MItem_tools.cpp:652
 msgid "Bed Temperature"
 msgstr "Temperatura stołu"
 
@@ -6729,14 +6720,6 @@ msgstr "WYKRYTO ZDERZENIE"
 msgid "Calibrate Dock Position"
 msgstr "Kalibruj pozycję doku"
 
-#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:56
-msgid "Chamber Fan 2"
-msgstr "Wentylator komory 2"
-
-#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:11
-msgid "Chamber Fans"
-msgstr "Wentylatory komory"
-
 #: src/gui/MItem_tools.hpp:665
 msgid "Chamber Lights"
 msgstr "Oświetlenie komory"
@@ -6802,7 +6785,7 @@ msgstr "Test ładowania"
 msgid "DOOR OPEN"
 msgstr "DRZWI OTWARTE"
 
-#: src/gui/MItem_tools.cpp:1092
+#: src/gui/MItem_tools.cpp:1091
 msgid "Display Refresh Speed"
 msgstr "Prędkość odświeżania wyświetlacza"
 
@@ -7036,7 +7019,7 @@ msgstr "Ustawienia fabryczne"
 msgid "Fail Stats"
 msgstr "Statystyki błędów"
 
-#: src/gui/MItem_tools.cpp:969
+#: src/gui/MItem_tools.cpp:968
 msgid "Failed"
 msgstr "Niepowodzenie"
 
@@ -7105,8 +7088,8 @@ msgstr ""
 "FAT32 (wszystkie \n"
 "dane zostaną utracone)!"
 
-#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:34
-#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:68
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:56
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:90
 msgid "Filtration Fan"
 msgstr "Wentylator filtra"
 
@@ -7393,7 +7376,7 @@ msgstr "BŁĄD BAZOWANIA Z"
 msgid "Heatbreak thermistor is disconnected. Inspect the wiring."
 msgstr "Termistor bariery cieplnej jest odłączony. Sprawdź okablowanie."
 
-#: src/gui/MItem_tools.cpp:767
+#: src/gui/MItem_tools.cpp:766
 msgid "Heater Current"
 msgstr "Prąd grzałki"
 
@@ -7409,12 +7392,6 @@ msgstr "Prąd grzałki"
 #: tmp_error_headers/error_list_mini.hpp:527
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr "Grzanie wyłączone po 30-minutowej bezczynności."
-
-#. //MSG_PROGRESS_RETRACT_FINDA c=20
-#: src/mmu2/mmu2_progress_converter.cpp:31 src/gui/screen_crash_recovery.cpp:93
-#: src/gui/screen_phase_stepping.cpp:29 src/gui/dialogs/DialogLoadUnload.cpp:85
-msgid "Homing"
-msgstr "Bazowanie"
 
 #: tmp_error_headers/error_list_coreone.hpp:807
 #: tmp_error_headers/error_list_mk35.hpp:632
@@ -7612,12 +7589,6 @@ msgstr ""
 msgid "Loadcell measured an inifinite or undefined load value."
 msgstr "Tensometr zmierzył nieskończoną lub nieokreśloną wartość obciążenia."
 
-#: src/gui/MItem_tools.cpp:1107
-msgid "Logging has been turned off. You can now safely remove the USB drive."
-msgstr ""
-"Rejestrowanie zostało wyłączone. Możesz teraz bezpiecznie odłączyć pamięć "
-"USB."
-
 #: tmp_error_headers/error_list_coreone.hpp:800
 #: tmp_error_headers/error_list_mk35.hpp:625
 #: tmp_error_headers/error_list_xl.hpp:891
@@ -7738,7 +7709,7 @@ msgstr "PUPPY ERROR"
 msgid "Parking"
 msgstr "Parkowanie"
 
-#: src/gui/MItem_tools.cpp:900
+#: src/gui/MItem_tools.cpp:899
 msgid "Phase stepping not ready: perform calibration first."
 msgstr "Phase Stepping niedostępny: przeprowadź najpierw kalibrację ."
 
@@ -7760,22 +7731,10 @@ msgstr "Proszę wymienić filament."
 msgid "Preparing"
 msgstr "Przygotowywanie"
 
-#: src/gui/MItem_tools.cpp:712 src/gui/MItem_print.hpp:96
-msgid "Print Fan"
-msgstr "Wentylator wydruku"
-
 #. First line - Print Time
 #: src/gui/gcode_description.cpp:142 src/gui/MItem_tools.hpp:469
 msgid "Print Time"
 msgstr "Czas druku"
-
-#: src/gui/MItem_hardware.hpp:60 src/gui/MItem_hardware.cpp:65
-msgid "Printer Type"
-msgstr "Rodzaj drukarki"
-
-#: src/gui/MItem_tools.cpp:87 src/gui/dialogs/DialogHandler.cpp:116
-msgid "Printer may vibrate and be noisier during homing."
-msgstr "Drukarka może wibrować i być głośniejsza podczas bazowania."
 
 #: src/gui/MItem_menus.cpp:160
 msgid "Printhead"
@@ -7834,27 +7793,11 @@ msgstr "Wymień filament"
 msgid "Reset"
 msgstr "Reset"
 
-#: src/gui/MItem_tools.cpp:249
-msgid "Reset complete. The system will now restart."
-msgstr "Resetowanie zakończone. System uruchomi się ponownie."
-
 #: src/gui/screen_menu_filament_sensors.hpp:15
 #: src/gui/screen/filament/screen_filaments_reorder.cpp:162
 #: src/gui/screen_menu_phase_stepping.hpp:17 src/gui/MItem_input_shaper.hpp:53
 msgid "Restore Defaults"
 msgstr "Przywróć domyślne"
-
-#: src/gui/MItem_tools.cpp:789
-msgid "Sandwich 5V Current"
-msgstr "Prąd 5V Sandwich"
-
-#: src/gui/MItem_tools.cpp:1102
-msgid "Save Logs To File"
-msgstr "Zapisz logi w pliku"
-
-#: src/gui/MItem_menus.hpp:197
-msgid "Serial Printing Screen"
-msgstr "Ekran druku szeregowego"
 
 #: src/gui/ScreenPrintingModel.cpp:27 src/gui/MItem_tools.hpp:570
 msgid "Set Ready"
@@ -7868,33 +7811,6 @@ msgid "Setting the tare failed. Check the loadcell wiring and connection."
 msgstr ""
 "Ustawienie tary nie powiodło się. Sprawdź okablowanie i połączenie "
 "tensometru."
-
-#. a dummy comment to break line by force
-#: src/gui/MItem_tools.cpp:273
-msgid ""
-"Shipping preparation\n"
-"\n"
-"Erasing configuration\n"
-"(but keeping Nextruder type)\n"
-"it will take some time..."
-msgstr ""
-"Przygotowanie do wysyłki\n"
-"\n"
-"Wymazywanie konfiguracji\n"
-"(ale zachowując typ Nextrudera).\n"
-"Zajmie to trochę czasu..."
-
-#: src/gui/MItem_tools.cpp:458
-msgid "Silent"
-msgstr "Cicho"
-
-#: src/gui/MItem_tools.cpp:500
-msgid "Sort Files"
-msgstr "Sortuj pliki"
-
-#: src/gui/MItem_tools.hpp:248 src/gui/MItem_tools.cpp:470
-msgid "Sound Mode"
-msgstr "Tryb dźwięku"
 
 #: tmp_error_headers/error_list_coreone.hpp:485
 #: tmp_error_headers/error_list_mk35.hpp:303
@@ -7912,10 +7828,6 @@ msgstr ""
 #: src/gui/MItem_network.hpp:41 src/gui/screen_menu_connect.hpp:24
 msgid "Status"
 msgstr "Status"
-
-#: src/gui/MItem_menus.hpp:175 src/gui/screen_menu_steel_sheets.hpp:115
-msgid "Steel Sheets"
-msgstr "Arkusze druku"
 
 #: tmp_error_headers/error_list_coreone.hpp:772
 #: tmp_error_headers/error_list_mk35.hpp:590
@@ -7943,10 +7855,6 @@ msgstr "ROZBIEŻNOŚĆ TEMPERATUR"
 #: src/gui/screen/toolhead/screen_toolhead_settings.cpp:272
 msgid "TOOLS SETTINGS"
 msgstr "USTAWIENIA NARZĘDZI"
-
-#: src/gui/screen_menu_tune.hpp:117
-msgid "TUNE"
-msgstr "PARAMETRY"
 
 #: src/gui/MItem_menus.hpp:73
 msgid "Temperature"
@@ -8034,66 +7942,16 @@ msgstr ""
 "w naszej bazie danych.\n"
 "Skontaktuj się z pomocą techniczną."
 
-#. window_menu
-#: src/gui/MItem_tools.cpp:340
-msgid ""
-"This operation cannot be undone. Current configuration will be lost!\n"
-"Do you want to perform the Factory Shipping Preparation procedure?"
-msgstr ""
-"Tej czynności nie można cofnąć. Obecna konfiguracja  zostanie utracona! \n"
-"Czy chcesz wykonać procedurę fabrycznego przygotowania do wysyłki?"
-
-#. window_menu
-#: src/gui/MItem_tools.cpp:324
-#, c-format
-msgid ""
-"This operation cannot be undone. Current configuration will be lost!\n"
-"You will need a USB drive with this firmware (%s_firmware_%s.bbf file) to "
-"start the printer again.\n"
-"Do you really want to continue?"
-msgstr ""
-"Tej operacji nie można cofnąć. Bieżąca konfiguracja zostanie utracona!\n"
-"Do ponownego uruchomienia drukarki potrzebna będzie pamięć USB z tą wersją "
-"firmware (plik %s_firmware_%s.bbf).\n"
-"Czy na pewno chcesz kontynuować?"
-
 #: tmp_error_headers/error_list_coreone.hpp:44
 msgid "The printer queued a move that may crash the model into the ceiling."
 msgstr ""
 "Drukarka ustawiła w kolejce ruch, który może spowodować uderzenie modelu w "
 "sufit."
 
-#. window_menu
-#: src/gui/MItem_tools.cpp:314
-msgid ""
-"This operation cannot be undone. Current user configuration and passwords "
-"will be lost!\n"
-"Do you want to reset the printer to factory defaults?"
-msgstr ""
-"Tej czynności nie można cofnąć. Obecna konfiguracja użytkownika i hasła "
-"zostaną utracone! \n"
-"Czy na pewno chcesz zresetować drukarkę do ustawień fabrycznych?"
-
-#: src/gui/MItem_tools.cpp:495 src/gui/MItem_tools.cpp:572
-msgid "Time"
-msgstr "Czas"
-
-#: src/gui/MItem_tools.cpp:560
-msgid "Time Format"
-msgstr "Format czasu"
-
-#: src/gui/MItem_tools.cpp:534
-msgid "Time Zone Minute Offset"
-msgstr "Przes. minutowe strefy czasowej"
-
 #: src/gui/screen/toolhead/screen_toolhead_settings.cpp:257
 #, c-format
 msgid "Tool %d"
 msgstr "Narzędzie %d"
-
-#: src/gui/MItem_tools.cpp:694
-msgid "Tool Filament sensor"
-msgstr "Czujnik filamentu narzędzia"
 
 #: src/gui/MItem_tools.hpp:691
 msgid "Tool Light"
@@ -8113,18 +7971,6 @@ msgstr "Głowica narzędziowa"
 #: src/gui/MItem_tools.hpp:701
 msgid "Trigger Power Panic"
 msgstr "Wywołaj Power Panic"
-
-#: src/gui/MItem_tools.cpp:893
-msgid "Turn on Phase stepping uncalibrated?"
-msgstr "Włączyć nieskalibrowany Phase Stepping?"
-
-#: src/gui/MItem_tools.cpp:1127
-msgid ""
-"Turn the logging off before disconnecting the USB drive, or you risk "
-"damaging the filesystem!"
-msgstr ""
-"Przed odłączeniem pamięci USB należy wyłączyć rejestrowanie, w przeciwnym "
-"razie istnieje ryzyko uszkodzenia systemu plików!"
 
 #: tmp_error_headers/error_list_coreone.hpp:519
 #: tmp_error_headers/error_list_mk35.hpp:337
@@ -8411,3 +8257,194 @@ msgstr "PRZERWIJ"
 msgid "Check all tools if they are properly parked or picked."
 msgstr ""
 "Sprawdź, czy wszystkie narzędzia są prawidłowo zaparkowane lub pobrane."
+
+#: src/gui/MItem_tools.cpp:858
+msgid "All"
+msgstr "Wszystko"
+
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:78
+msgid "Chamber Fan 2"
+msgstr "Wentylator komory 2"
+
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:12
+msgid "Chamber Fans"
+msgstr "Wentylatory komory"
+
+#: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:43
+msgid "Chamber Fans Limit"
+msgstr "Limit wentylatorów komory"
+
+#: tmp_error_headers/error_list_coreone.hpp:855
+msgid "Close Chamber Ventilation"
+msgstr "Zamknij kratkę wentylacyjną"
+
+#: tmp_error_headers/error_list_coreone.hpp:856
+msgid ""
+"Ensure the top ventilation grille is closed for optimal chamber temperature."
+msgstr ""
+"Upewnij się, że górna kratka wentylacyjna jest zamknięta, aby zapewnić "
+"optymalną temperaturę w komorze."
+
+#: tmp_error_headers/error_list_coreone.hpp:849
+msgid "Ensure the top ventilation grille is open for proper airflow."
+msgstr ""
+"Upewnij się, że górna kratka wentylacyjna jest otwarta, aby zapewnić "
+"prawidłowy przepływ powietrza."
+
+#. //MSG_PROGRESS_RETRACT_FINDA c=20
+#: src/mmu2/mmu2_progress_converter.cpp:31 src/gui/screen_crash_recovery.cpp:93
+#: src/gui/screen_phase_stepping.cpp:32 src/gui/dialogs/DialogLoadUnload.cpp:85
+msgid "Homing"
+msgstr "Bazowanie"
+
+#: src/gui/MItem_tools.cpp:1106
+msgid "Logging has been turned off. You can now safely remove the USB drive."
+msgstr ""
+"Rejestrowanie zostało wyłączone. Możesz teraz bezpiecznie odłączyć pamięć "
+"USB."
+
+#: src/gui/screen/filament/screen_filament_detail.cpp:95
+msgid "Maximum Chamber Temperature"
+msgstr "Maksymalna temperatura komory"
+
+#: src/gui/screen/filament/screen_filament_detail.cpp:89
+msgid "Minimum Chamber Temperature"
+msgstr "Minimalna temperatura komory"
+
+#: src/gui/screen/filament/screen_filament_detail.cpp:101
+msgid "Nominal Chamber Temperature"
+msgstr "Nominalna temperatura komory"
+
+#: tmp_error_headers/error_list_coreone.hpp:848
+msgid "Open Chamber Ventilation"
+msgstr "Otwórz kratkę wentylacyjną"
+
+#. use unload caption, not a bug
+#: src/gui/screen/screen_preheat.cpp:183
+msgid "Preheating for unload"
+msgstr "Nagrzewanie do rozładowania"
+
+#: src/gui/MItem_tools.cpp:711 src/gui/MItem_print.hpp:96
+msgid "Print Fan"
+msgstr "Wentylator wydruku"
+
+#: src/gui/MItem_hardware.hpp:60 src/gui/MItem_hardware.cpp:64
+msgid "Printer Type"
+msgstr "Rodzaj drukarki"
+
+#: src/gui/MItem_tools.cpp:86 src/gui/dialogs/DialogHandler.cpp:116
+msgid "Printer may vibrate and be noisier during homing."
+msgstr "Drukarka może wibrować i być głośniejsza podczas bazowania."
+
+#: src/gui/MItem_tools.cpp:248
+msgid "Reset complete. The system will now restart."
+msgstr "Resetowanie zakończone. System uruchomi się ponownie."
+
+#: src/gui/MItem_tools.cpp:788
+msgid "Sandwich 5V Current"
+msgstr "Prąd 5V Sandwich"
+
+#: src/gui/MItem_tools.cpp:1101
+msgid "Save Logs To File"
+msgstr "Zapisz logi w pliku"
+
+#: src/gui/MItem_menus.hpp:194
+msgid "Serial Printing Screen"
+msgstr "Ekran druku szeregowego"
+
+#. a dummy comment to break line by force
+#: src/gui/MItem_tools.cpp:272
+msgid ""
+"Shipping preparation\n"
+"\n"
+"Erasing configuration\n"
+"(but keeping Nextruder type)\n"
+"it will take some time..."
+msgstr ""
+"Przygotowanie do wysyłki\n"
+"\n"
+"Wymazywanie konfiguracji\n"
+"(ale zachowując typ Nextrudera).\n"
+"Zajmie to trochę czasu..."
+
+#: src/gui/MItem_tools.cpp:457
+msgid "Silent"
+msgstr "Cicho"
+
+#: src/gui/MItem_tools.cpp:499
+msgid "Sort Files"
+msgstr "Sortuj pliki"
+
+#: src/gui/MItem_tools.hpp:248 src/gui/MItem_tools.cpp:469
+msgid "Sound Mode"
+msgstr "Tryb dźwięku"
+
+#: src/gui/MItem_menus.hpp:172 src/gui/screen_menu_steel_sheets.hpp:115
+msgid "Steel Sheets"
+msgstr "Arkusze druku"
+
+#: src/gui/screen_menu_tune.hpp:118
+msgid "TUNE"
+msgstr "PARAMETRY"
+
+#. window_menu
+#: src/gui/MItem_tools.cpp:339
+msgid ""
+"This operation cannot be undone. Current configuration will be lost!\n"
+"Do you want to perform the Factory Shipping Preparation procedure?"
+msgstr ""
+"Tej czynności nie można cofnąć. Obecna konfiguracja  zostanie utracona! \n"
+"Czy chcesz wykonać procedurę fabrycznego przygotowania do wysyłki?"
+
+#. window_menu
+#: src/gui/MItem_tools.cpp:323
+#, c-format
+msgid ""
+"This operation cannot be undone. Current configuration will be lost!\n"
+"You will need a USB drive with this firmware (%s_firmware_%s.bbf file) to "
+"start the printer again.\n"
+"Do you really want to continue?"
+msgstr ""
+"Tej operacji nie można cofnąć. Bieżąca konfiguracja zostanie utracona!\n"
+"Do ponownego uruchomienia drukarki potrzebna będzie pamięć USB z tą wersją "
+"firmware (plik %s_firmware_%s.bbf).\n"
+"Czy na pewno chcesz kontynuować?"
+
+#. window_menu
+#: src/gui/MItem_tools.cpp:313
+msgid ""
+"This operation cannot be undone. Current user configuration and passwords "
+"will be lost!\n"
+"Do you want to reset the printer to factory defaults?"
+msgstr ""
+"Tej czynności nie można cofnąć. Obecna konfiguracja użytkownika i hasła "
+"zostaną utracone! \n"
+"Czy na pewno chcesz zresetować drukarkę do ustawień fabrycznych?"
+
+#: src/gui/MItem_tools.cpp:494 src/gui/MItem_tools.cpp:571
+msgid "Time"
+msgstr "Czas"
+
+#: src/gui/MItem_tools.cpp:559
+msgid "Time Format"
+msgstr "Format czasu"
+
+#: src/gui/MItem_tools.cpp:533
+msgid "Time Zone Minute Offset"
+msgstr "Przes. minutowe strefy czasowej"
+
+#: src/gui/MItem_tools.cpp:693
+msgid "Tool Filament sensor"
+msgstr "Czujnik filamentu narzędzia"
+
+#: src/gui/MItem_tools.cpp:892
+msgid "Turn on Phase stepping uncalibrated?"
+msgstr "Włączyć nieskalibrowany Phase Stepping?"
+
+#: src/gui/MItem_tools.cpp:1126
+msgid ""
+"Turn the logging off before disconnecting the USB drive, or you risk "
+"damaging the filesystem!"
+msgstr ""
+"Przed odłączeniem pamięci USB należy wyłączyć rejestrowanie, w przeciwnym "
+"razie istnieje ryzyko uszkodzenia systemu plików!"
