@@ -28,6 +28,19 @@ namespace file {
         unique_file_ptr file;
 
         BufferChunk wip_chunk;
+
+        void write_buffer() {
+            while (!buffer.isEmpty()) {
+                BufferChunk chunk = buffer.dequeue();
+                fwrite(chunk.data.data(), 1, chunk.size, file.get());
+            }
+        }
+
+        ~Data() {
+            if (file) {
+                write_buffer();
+            }
+        }
     };
 
     std::atomic_bool is_enabled = false;
@@ -50,10 +63,7 @@ static void file_log_write(AsyncJobExecutionControl &) {
 
     const bool was_overflow = data->buffer.isFull();
 
-    while (!data->buffer.isEmpty()) {
-        BufferChunk chunk = data->buffer.dequeue();
-        fwrite(chunk.data.data(), 1, chunk.size, data->file.get());
-    }
+    data->write_buffer();
 
     // If we fail writing, disable the logger
     if (ferror(data->file.get())) {
