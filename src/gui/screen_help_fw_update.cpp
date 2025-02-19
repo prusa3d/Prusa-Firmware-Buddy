@@ -79,7 +79,8 @@ ScreenHelpFWUpdate::ScreenHelpFWUpdate()
     help.SetAlignment(Align_t::LeftTop());
     {
         StringBuilder sb(help_text);
-        sb.append_string_view(_("To learn more including firmware downgrade, please visit:\n"));
+        sb.append_string_view(_("To learn more including firmware downgrade, please visit:"));
+        sb.append_char('\n'); // Prusalator bugs strings with newlines at the end of the string
         sb.append_string(qr);
         help.SetText(string_view_utf8::MakeRAM(help_text.data()));
     }
