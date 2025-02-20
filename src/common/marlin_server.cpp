@@ -372,6 +372,10 @@ namespace {
     constinit ErrorChecker xbe_filter_fan_checker;
 #endif
 
+#if XL_ENCLOSURE_SUPPORT()
+    constinit ErrorChecker enclosure_fan_checker;
+#endif
+
 #ifdef HAS_TEMP_HEATBREAK
     constinit std::array<ErrorChecker, HOTENDS> heatBreakThermistorErrorChecker;
 #endif
@@ -2632,6 +2636,13 @@ static void _server_print_loop(void) {
             xbe_filter_fan_checker.reset();
         }
 #endif /* HAS_XBUDDY_EXTENSION() */
+#if XL_ENCLOSURE_SUPPORT()
+        const bool enclosure_fan_ok = Fans::enclosure().is_fan_ok();
+        enclosure_fan_checker.checkTrue(enclosure_fan_ok, WarningType::ChamberFiltrationFanError, false);
+        if (enclosure_fan_ok) {
+            enclosure_fan_checker.reset();
+        }
+#endif
     }
 
     HOTEND_LOOP() {
