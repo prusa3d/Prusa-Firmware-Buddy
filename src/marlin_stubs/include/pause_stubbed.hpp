@@ -16,6 +16,7 @@
 #include "IPause.hpp"
 #include <array>
 #include "Marlin/src/libs/stopwatch.h"
+#include <feature/ramming/ramming_sequence.hpp>
 
 #include <option/has_human_interactions.h>
 #include <option/has_nozzle_cleaner.h>
@@ -111,8 +112,6 @@ public:
     void clr_mode() { load_unload_mode = std::nullopt; }
     std::optional<LoadUnloadMode> get_mode() const { return load_unload_mode; }
 };
-
-class RammingSequence;
 
 // used by load / unlaod /change filament
 class Pause : public PausePrivatePhase {
@@ -283,7 +282,7 @@ private:
 
     void ram_filament();
     void unload_filament();
-    const RammingSequence &get_ramming_sequence() const;
+    const buddy::RammingSequence &get_ramming_sequence() const;
 
     // create finite state machine and automatically destroy it at the end of scope
     // parks in ctor and unparks in dtor

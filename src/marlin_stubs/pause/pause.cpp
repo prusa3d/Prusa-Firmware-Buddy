@@ -85,6 +85,8 @@ GCodeLoader nozzle_cleaner_gcode_loader;
 #endif
 // clang-format on
 
+using namespace buddy;
+
 class PauseFsmNotifier : public marlin_server::FSM_notifier {
     Pause &pause;
 
@@ -126,54 +128,13 @@ void unhomed_z_lift(float amount_mm) {
     }
 }
 
-class RammingSequence {
-public:
-    struct Item {
-        int16_t e; ///< relative movement of Extruder
-        int16_t feedrate; ///< feedrate of the move
-    };
-
-    template <size_t elements>
-    constexpr RammingSequence(const Item (&sequence)[elements])
-        : m_begin(sequence)
-        , m_end(&(sequence[elements]))
-        , unload_length(calculateRamUnloadLen(sequence)) {}
-    const Item *begin() const { return m_begin; }
-    const Item *end() const { return m_end; }
-
-private:
-    const Item *const m_begin;
-    const Item *const m_end;
-
-public:
-    const decltype(Item::e) unload_length;
-
-private:
-    template <size_t elements>
-    static constexpr decltype(Item::e) calculateRamUnloadLen(const Item (&ramSeq)[elements]) {
-        decltype(Item::e) ramLen = 0;
-        size_t i = 0;
-        // skip all extrude movements
-        while (i < elements && ramSeq[i].e > 0) {
-            i++;
-        }
-        // calculate ram movement len
-        for (; i < elements; i++) {
-            ramLen += ramSeq[i].e;
-        }
-        return ramLen;
-    }
-};
-
 #ifdef FILAMENT_RUNOUT_RAMMING_SEQUENCE
-constexpr RammingSequence::Item ramRunoutSeqItems[] = FILAMENT_RUNOUT_RAMMING_SEQUENCE;
+constexpr RammingSequenceArray runoutRammingSequence(FILAMENT_RUNOUT_RAMMING_SEQUENCE);
 #else
-constexpr RammingSequence::Item ramRunoutSeqItems[] = FILAMENT_UNLOAD_RAMMING_SEQUENCE;
+constexpr RammingSequenceArray runoutRammingSequence(FILAMENT_UNLOAD_RAMMING_SEQUENCE);
 #endif
-constexpr RammingSequence runoutRammingSequence = RammingSequence(ramRunoutSeqItems);
 
-constexpr RammingSequence::Item ramUnloadSeqItems[] = FILAMENT_UNLOAD_RAMMING_SEQUENCE;
-constexpr RammingSequence unloadRammingSequence = RammingSequence(ramUnloadSeqItems);
+constexpr RammingSequenceArray unloadRammingSequence(FILAMENT_UNLOAD_RAMMING_SEQUENCE);
 
 /*****************************************************************************/
 // PausePrivatePhase
@@ -1359,8 +1320,8 @@ void Pause::ram_filament() {
 
     constexpr float mm_per_minute = 1 / 60.f;
     // ram filament
-    for (auto &elem : sequence) {
-        plan_e_move(elem.e, elem.feedrate * mm_per_minute);
+    for (auto &elem : sequence.steps()) {
+        plan_e_move(elem.e, elem.fr_mm_min * mm_per_minute);
         if (check_user_stop()) {
             return;
         }
@@ -1379,11 +1340,8 @@ void Pause::unload_filament() {
 
     // subtract the already performed extruder movement from the total unload length and ensure it is negative
 
-    float remaining_unload_length = -(std::abs(settings.unload_length) - std::abs(sequence.unload_length));
-    if (remaining_unload_length > .0f) {
-        remaining_unload_length = .0f;
-    }
-    do_e_move_notify_progress_hotextrude(remaining_unload_length, (FILAMENT_CHANGE_UNLOAD_FEEDRATE), 51, 99);
+    const float remaining_unload_length = std::max<float>(sequence.retracted_distance() - std::abs(settings.unload_length), 0);
+    do_e_move_notify_progress_hotextrude(-remaining_unload_length, (FILAMENT_CHANGE_UNLOAD_FEEDRATE), 51, 99);
 
     {
         auto s = planner.user_settings;
