@@ -32,6 +32,7 @@
 #include <option/has_toolchanger.h>
 #include <option/xl_enclosure_support.h>
 #include <option/has_chamber_api.h>
+#include <option/has_xbuddy_extension.h>
 #include <option/has_uneven_bed_prompt.h>
 #include <common/hotend_type.hpp>
 #include <device/board.h>

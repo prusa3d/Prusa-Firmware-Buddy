@@ -68,6 +68,12 @@ enum class WarningType : uint32_t {
     ChamberOverheatingTemperature,
     ChamberCriticalTemperature,
 #endif
+#if HAS_XBUDDY_EXTENSION()
+    ChamberCoolingFanError,
+#endif
+#if HAS_XBUDDY_EXTENSION() || XL_ENCLOSURE_SUPPORT()
+    ChamberFiltrationFanError,
+#endif
     AccelerometerCommunicationFailed,
     _last = AccelerometerCommunicationFailed,
 };
