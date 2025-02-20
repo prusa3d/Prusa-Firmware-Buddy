@@ -402,17 +402,21 @@ public:
         Hotend &operator=(Hotend const &) = delete;
     };
 
-    /// @brief  Reference to active extruder structure
-    Hotend &active_hotend() {
+    uint8_t active_hotend_id() {
         if constexpr (ENABLED(SINGLENOZZLE)) {
             // for MMU2 printers - hotend 0 is always active, no switching is possible
-            return hotends[0];
+            return 0;
         } else {
             // for toolchanger printers
             const uint8_t hotend = active_extruder.get();
             assert(hotend < hotends.max_size());
-            return hotends[hotend];
+            return hotend;
         }
+    }
+
+    /// @brief  Reference to active extruder structure
+    Hotend &active_hotend() {
+        return hotends[active_hotend_id()];
     }
 
     /**
