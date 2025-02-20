@@ -19,7 +19,7 @@ public:
     virtual FanState getState() const override { return state; }
     virtual uint8_t getPWM() const override { return desired_pwm; }
     virtual uint16_t getActualRPM() const override { return tachometer.get_rpm().value_or(0); }
-    virtual bool getRPMIsOk() override { return !desired_pwm || getActualRPM() > min_rpm; }
+    virtual bool getRPMIsOk() const override { return !desired_pwm || getActualRPM() > min_rpm; }
     virtual bool getRPMMeasured() const override { return tachometer.get_rpm().has_value(); }
     virtual bool setPWM(uint16_t pwm) override;
     virtual uint16_t getMinPWM() const override { return 0; }

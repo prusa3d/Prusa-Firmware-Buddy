@@ -7,6 +7,15 @@
 #include <utils/utility_extensions.hpp>
 #include <cmath>
 
+bool CFanCtlCommon::is_fan_ok() const {
+    if (selftest_mode || getPWM() == 0) {
+        return true;
+    }
+
+    const auto state = getState();
+    return getRPMIsOk() || (state != running && state != error_running && state != error_starting);
+}
+
 void record_fanctl_metrics() {
     METRIC_DEF(metric, "fan", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
     METRIC_DEF(fan_print, "print_fan_act", METRIC_VALUE_INTEGER, 1000, METRIC_DISABLED);

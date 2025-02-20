@@ -29,7 +29,7 @@ public:
     virtual FanState getState() const = 0;
     virtual uint8_t getPWM() const = 0;
     virtual uint16_t getActualRPM() const = 0;
-    virtual bool getRPMIsOk() = 0;
+    virtual bool getRPMIsOk() const = 0;
     virtual bool getRPMMeasured() const = 0;
 
     // Accepts uint16_t only because Puppies use (uint16_t)-1 as an "auto-fan" signal. PWM is still 0-255.
@@ -41,6 +41,8 @@ public:
     virtual void enterSelftestMode() = 0;
     virtual void exitSelftestMode() = 0;
     virtual bool selftestSetPWM(uint8_t pwm) = 0;
+
+    virtual bool is_fan_ok() const;
 
     virtual void tick() = 0;
 

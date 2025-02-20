@@ -278,7 +278,7 @@ void CFanCtl3Wire::safeState() {
     selftest_mode = false;
 }
 
-bool CFanCtl3Wire::getRPMIsOk() {
+bool CFanCtl3Wire::getRPMIsOk() const {
     if (m_PWMValue > min_pwm_to_measure_rpm && (getActualRPM() < min_rpm)) {
         return false;
     }

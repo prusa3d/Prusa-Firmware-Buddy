@@ -27,7 +27,7 @@ public:
 
     virtual uint16_t getActualRPM() const override;
 
-    virtual bool getRPMIsOk() override;
+    virtual bool getRPMIsOk() const override;
 
     virtual FanState getState() const override;
 

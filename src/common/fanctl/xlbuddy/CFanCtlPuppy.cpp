@@ -42,7 +42,7 @@ uint16_t CFanCtlPuppy::getActualRPM() const {
     return buddy::puppies::dwarfs[dwarf_nr].get_fan_rpm(fan_nr);
 }
 
-bool CFanCtlPuppy::getRPMIsOk() {
+bool CFanCtlPuppy::getRPMIsOk() const {
     return buddy::puppies::dwarfs[dwarf_nr].get_fan_rpm_ok(fan_nr);
 }
 

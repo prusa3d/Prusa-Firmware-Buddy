@@ -141,7 +141,7 @@ public:
     }
     CFanCtlPWM::PhaseShiftMode getPhaseShiftMode() const // get PhaseShiftMode
     { return m_pwm.get_PhaseShiftMode(); }
-    virtual bool getRPMIsOk() override;
+    virtual bool getRPMIsOk() const override;
     inline bool isAutoFan() const // get fan type
     { return is_autofan == is_autofan_t::yes; }
 
