@@ -131,6 +131,46 @@ Errors:
     gui_layout: "warning_dialog"
     approved: false
 
+  - code: "XX113"
+    printers: [MK4, MK3.5, COREONE, XL, iX]
+    title: "Fil. Sensor Troubleshooting" # Shortened because "Filament Sensor Troubleshooting" was causing a hash conflict
+    text: "If the filament sensor is unresponsive, clean it from debris. Alternatively, you can disable it."
+    id: "FILAMENT_SENSOR_STUCK_HELP"
+    gui_layout: "warning_dialog"
+    approved: false
+
+  - code: "XX113"
+    printers: [MINI]
+    title: "FS Troubleshooting"
+    text: "If the filament sensor is unresponsive, clean it from debris. Alternatively, you can disable it."
+    id: "FILAMENT_SENSOR_STUCK_HELP"
+    gui_layout: "warning_dialog"
+    approved: false
+
+  - code: "XX114"
+    printers: [MK4, MK3.5, COREONE]
+    title: "Fil. Sensor Troubleshooting" # Shortened because "Filament Sensor Troubleshooting" was causing a hash conflict
+    text: "If the filament sensor is unresponsive, clean it from debris."
+    id: "FILAMENT_SENSOR_STUCK_HELP_MMU"
+    gui_layout: "warning_dialog"
+    approved: false
+
+  - code: "XX115"
+    printers: [MK4, MK3.5, COREONE, XL, iX]
+    title: "Filament Sensors Disabled"
+    text: "Filament sensors are disabled. Enable them manually after printing."
+    id: "FILAMENT_SENSORS_DISABLED"
+    gui_layout: "warning_dialog"
+    approved: false
+
+  - code: "XX115"
+    printers: [MINI]
+    title: "FSensors Disabled"
+    text: "Filament sensors are disabled. Enable them manually after printing."
+    id: "FILAMENT_SENSORS_DISABLED"
+    gui_layout: "warning_dialog"
+    approved: false
+
   # TEMPERATURE    xx2xx
 
   - code: "XX201"
@@ -1306,3 +1346,21 @@ Errors:
     id: "CLOSE_CHAMBER_VENTS"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+
+  - code: "XX839"
+    printers: [COREONE]
+    title: "Chamber Cooling Fan Error"
+    text: "Chamber cooling fan is not spinning. Check it for possible debris, then inspect the wiring."
+    id: "CHAMBER_COOLING_FAN_ERROR"
+    type: "CONNECT"
+    gui_layout: "warning_dialog"
+    approved: false
+
+  - code: "XX840"
+    printers: [XL, COREONE]
+    title: "Chamber Filtration Fan Error"
+    text: "Chamber filtration fan is not spinning. Check it for possible debris, then inspect the wiring."
+    id: "CHAMBER_FILTRATION_FAN_ERROR"
+    type: "CONNECT"
+    gui_layout: "warning_dialog"
+    approved: false
