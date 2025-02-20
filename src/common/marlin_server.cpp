@@ -367,6 +367,11 @@ namespace {
     constinit std::array<ErrorChecker, HOTENDS> hotendFanErrorChecker;
     constinit ErrorChecker printFanErrorChecker;
 
+#if HAS_XBUDDY_EXTENSION()
+    constinit ErrorChecker xbe_cool_fan_checker; // Handles both cooling fans (we cannot differentiate anyway)
+    constinit ErrorChecker xbe_filter_fan_checker;
+#endif
+
 #ifdef HAS_TEMP_HEATBREAK
     constinit std::array<ErrorChecker, HOTENDS> heatBreakThermistorErrorChecker;
 #endif
@@ -1751,8 +1756,6 @@ bool active_extruder_fan_checks() {
         && prusa_toolchanger.is_any_tool_active() // Nothing to check
 #endif /*HAS_TOOLCHANGER()*/
     ) {
-        // Allow fan check only if fan had time to build up RPM (after CFanClt::rpm_stabilization)
-        // CFanClt error states are checked in the end of each _server_print_loop()
         auto check_fan = [](CFanCtlCommon &fan, const char *fan_name) {
             if (!fan.is_fan_ok()) {
                 log_error(MarlinServer, "%s FAN RPM is not OK - Actual: %d rpm, PWM: %d",
@@ -2615,6 +2618,20 @@ static void _server_print_loop(void) {
         }
         const auto fan_state = Fans::print(active_extruder).getState();
         printFanErrorChecker.checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting, WarningType::PrintFanError, false);
+
+#if HAS_XBUDDY_EXTENSION()
+        const bool cool_fan_ok = buddy::xbuddy_extension().is_fan_ok(buddy::XBuddyExtension::Fan::cooling_fan_1) || buddy::xbuddy_extension().is_fan_ok(buddy::XBuddyExtension::Fan::cooling_fan_2);
+        xbe_cool_fan_checker.checkTrue(cool_fan_ok, WarningType::ChamberFiltrationFanError, false);
+        if (cool_fan_ok) {
+            xbe_cool_fan_checker.reset();
+        }
+
+        const bool filter_fan_ok = buddy::xbuddy_extension().is_fan_ok(buddy::XBuddyExtension::Fan::filtration_fan);
+        xbe_filter_fan_checker.checkTrue(filter_fan_ok, WarningType::ChamberFiltrationFanError, false);
+        if (filter_fan_ok) {
+            xbe_filter_fan_checker.reset();
+        }
+#endif /* HAS_XBUDDY_EXTENSION() */
     }
 
     HOTEND_LOOP() {
@@ -2737,7 +2754,7 @@ void set_media_position(uint32_t set) {
 }
 
 void retract() {
-    // server.motion_param.save_reset();  // TODO: currently disabled (see Crash_s::save_parameters())
+// server.motion_param.save_reset();  // TODO: currently disabled (see Crash_s::save_parameters())
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
     float mm = PAUSE_PARK_RETRACT_LENGTH / planner.e_factor[active_extruder];
     #if BOTH(CRASH_RECOVERY, LIN_ADVANCE)
