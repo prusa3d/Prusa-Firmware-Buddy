@@ -11,6 +11,7 @@
 #include <leds/side_strip.hpp>
 #include <marlin_server.hpp>
 #include <buddy/unreachable.hpp>
+#include <CFanCtl3Wire.hpp> // for FANCTL_START_TIMEOUT
 
 namespace buddy {
 
@@ -99,6 +100,14 @@ void XBuddyExtension::step() {
         puppies::xbuddy_extension.set_fan_pwm(1, cooling_fans_actual_pwm_.value);
         puppies::xbuddy_extension.set_fan_pwm(2, filtration_fan_actual_pwm_.value);
 
+        if (cooling_fans_actual_pwm_.value == 0) {
+            fan_start_timestamp[ftrstd::to_underlying(xbuddy_extension_shared::Fan::cooling_fan_1)] = 0;
+            fan_start_timestamp[ftrstd::to_underlying(xbuddy_extension_shared::Fan::cooling_fan_2)] = 0;
+        }
+        if (filtration_fan_actual_pwm_.value == 0) {
+            fan_start_timestamp[ftrstd::to_underlying(xbuddy_extension_shared::Fan::filtration_fan)] = 0;
+        }
+
         if (chamber_cooling.get_critical_temp_flag()) {
             // executed from task marlin_server, marlin_server must be called directly
             if (!critical_warning_shown || marlin_server::is_printing()) {
@@ -135,6 +144,31 @@ void XBuddyExtension::step() {
 std::optional<XBuddyExtension::FanRPM> XBuddyExtension::fan_rpm(Fan fan) const {
     return puppies::xbuddy_extension.get_fan_rpm(std::to_underlying(fan));
 }
+
+bool XBuddyExtension::is_fan_ok(const Fan fan) {
+    const auto actual_pwm = fan_actual_pwm(fan);
+
+    std::lock_guard _lg(mutex_);
+
+    const auto rpm = fan_rpm(fan);
+    if (!rpm.has_value() || rpm.value() != 0) {
+        return true; // Communication error with puppy || fan IS ok
+    }
+
+    auto &start_timestamp = fan_start_timestamp[ftrstd::to_underlying(fan)];
+    // fan start delay (to avoid false-positive)
+    if (actual_pwm.value > 0 && start_timestamp == 0) {
+        start_timestamp = ticks_ms();
+    } else {
+        // Error state - fan should rotate, but it doesn't
+        // Report only if initial start period is over
+        if (ticks_diff(ticks_ms(), start_timestamp) >= FANCTL_START_TIMEOUT) {
+            return actual_pwm.value == 0;
+        }
+    }
+
+    return true;
+};
 
 XBuddyExtension::FanPWMOrAuto XBuddyExtension::fan_target_pwm(Fan fan) const {
     std::lock_guard _lg(mutex_);

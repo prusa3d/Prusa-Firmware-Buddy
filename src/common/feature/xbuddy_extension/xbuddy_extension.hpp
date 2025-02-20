@@ -63,6 +63,9 @@ public: // Fans
 
     void set_max_cooling_pwm(PWM255 set);
 
+    /// \returns False on unexpected fan behaviour (positive PWM but 0 RPM)
+    bool is_fan_ok(const Fan fan);
+
 public: // LEDs
     /// \returns color set for the bed LED strip
     leds::ColorRGBW bed_leds_color() const;
@@ -108,6 +111,9 @@ private:
 
     // keeps the last timestamp of Fan PWM update
     uint32_t last_fan_update_ms;
+
+    // keeps fan power up timestamp to measure headstart delay
+    uint32_t fan_start_timestamp[xbuddy_extension_shared::fan_count] = {};
 
     bool overheating_warning_shown = false;
     bool critical_warning_shown = false;
