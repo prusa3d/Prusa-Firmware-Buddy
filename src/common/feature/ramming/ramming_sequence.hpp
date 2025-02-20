@@ -2,6 +2,7 @@
 
 #include <span>
 #include <array>
+#include <inplace_function.hpp>
 
 namespace buddy {
 
@@ -27,6 +28,17 @@ public:
     constexpr EDistance retracted_distance() const {
         return retracted_distance_;
     }
+
+    using InterruptCallback = stdext::inplace_function<bool()>;
+
+    /// Blockingly executes the ramming sequence. Stops if \param callback returns false.
+    /// \returns true if the sequence fully finishes
+    bool execute(const InterruptCallback &callback = [] { return true; }) const;
+
+    /// Blockingly executes a simple "reverse" of the ramming sequence, getting the filament into the nozzle again.
+    /// This equates extruding back \p for retracted_distance()
+    /// \returns true if the sequence fully finishes
+    bool undo() const;
 
 protected:
     // Only intended to be used from RammingSequenceArray

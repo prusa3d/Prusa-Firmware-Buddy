@@ -1316,16 +1316,9 @@ void Pause::filament_change(const pause::Settings &settings_, bool is_filament_s
 #endif
 }
 void Pause::ram_filament() {
-    const RammingSequence &sequence = get_ramming_sequence();
-
-    constexpr float mm_per_minute = 1 / 60.f;
-    // ram filament
-    for (auto &elem : sequence.steps()) {
-        plan_e_move(elem.e, elem.fr_mm_min * mm_per_minute);
-        if (check_user_stop()) {
-            return;
-        }
-    }
+    get_ramming_sequence().execute([this] {
+        return check_user_stop();
+    });
 }
 
 void Pause::unload_filament() {
