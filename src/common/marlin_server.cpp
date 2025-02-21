@@ -644,9 +644,9 @@ void safely_unload_filament_from_nozzle_to_mmu() {
     if (MMU2::WhereIsFilament() == MMU2::FilamentState::NOT_PRESENT) {
         return; // no filament loaded, nothing to do
     }
-    const auto original_temp = thermalManager.degTargetHotend(active_extruder);
-    enqueue_gcode("M702 W2");
-    enqueue_gcode_printf("M104 S%i", original_temp);
+    const uint16_t original_temp = thermalManager.degTargetHotend(active_extruder);
+    enqueue_gcode_printf("M702 W2 T%" PRIu8, active_extruder);
+    enqueue_gcode_printf("M104 S%" PRIu16, original_temp);
 }
 #endif
 
@@ -1950,8 +1950,8 @@ static void _server_print_loop(void) {
                 // In case we don't have other filament loaded!
                 // Unfortunately we don't have the nozzle heated, an ugly workaround is to enqueue an M109 :(
 
-                const auto preheat_temp = GCodeInfo::getInstance().get_hotend_preheat_temp().value_or(215);
-                enqueue_gcode_printf("M109 S%i", preheat_temp); // speculatively, use PLA temp for MMU prints, anything else is highly unprobable at this stage
+                const uint16_t preheat_temp = GCodeInfo::getInstance().get_hotend_preheat_temp().value_or(215U);
+                enqueue_gcode_printf("M109 S%" PRIu16, preheat_temp); // speculatively, use PLA temp for MMU prints, anything else is highly unprobable at this stage
                 enqueue_gcode("T0"); // tool change T0 (can be remapped to anything)
                 enqueue_gcode("G92 E0"); // reset extruder position to 0
 

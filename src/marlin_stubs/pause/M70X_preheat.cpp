@@ -61,12 +61,12 @@ static FSMResponseVariant evaluate_preheat_conditions(PreheatData preheat_data, 
     }
 }
 
-std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::preheat(PreheatData preheat_data, uint8_t target_extruder) {
+std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::preheat(PreheatData preheat_data, uint8_t target_extruder, PreheatBehavior preheat_arg) {
     const FSMResponseVariant response = evaluate_preheat_conditions(preheat_data, target_extruder);
 
     if (response.holds_alternative<FilamentType>()) {
         const FilamentType filament = response.value<FilamentType>();
-        preheat_to(filament, target_extruder, false);
+        preheat_to(filament, target_extruder, preheat_arg);
         return { std::nullopt, filament };
     }
 
@@ -84,20 +84,32 @@ std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::p
     }
 }
 
-void filament_gcodes::preheat_to(FilamentType filament, uint8_t target_extruder, bool force_temp) {
+void filament_gcodes::preheat_to(FilamentType filament, uint8_t target_extruder, PreheatBehavior preheat_arg) {
     const FilamentTypeParameters fil_cnf = filament.parameters();
 
     // change temp only if it is lower than currently loaded filament
-    if (force_temp || thermalManager.degTargetHotend(target_extruder) < fil_cnf.nozzle_temperature) {
+    if (preheat_arg.force_temp || thermalManager.degTargetHotend(target_extruder) < fil_cnf.nozzle_temperature) {
         thermalManager.setTargetHotend(fil_cnf.nozzle_temperature, target_extruder);
-        marlin_server::set_temp_to_display(fil_cnf.nozzle_temperature, target_extruder);
-        if (config_store().filament_change_preheat_all.get()) {
+
+        const uint8_t extruder =
+#if HAS_MMU2()
+            // MMU has multiple slots (target_extruder can be >0) but only a single nozzle
+            // -> we need the correct temperature per active slot
+            // but we also need marlin_server::set_temp_to_display not to crash due to target_extruder > 0
+            0;
+
+#else
+            target_extruder;
+#endif
+
+        marlin_server::set_temp_to_display(fil_cnf.nozzle_temperature, extruder);
+        if (preheat_arg.preheat_bed && (preheat_arg.force_temp || (thermalManager.degTargetBed() < fil_cnf.heatbed_temperature))) {
             thermalManager.setTargetBed(fil_cnf.heatbed_temperature);
         }
     }
 
 #if HAS_CHAMBER_API()
-    if (config_store().filament_change_preheat_all.get()) {
+    if (preheat_arg.set_chamber_temperature) {
         buddy::chamber().set_target_temperature(fil_cnf.chamber_target_temperature);
     }
 #endif
@@ -109,7 +121,7 @@ std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::p
     if (response.holds_alternative<FilamentType>()) {
         const FilamentType filament = response.value<FilamentType>();
         // change temp every time (unlike normal preheat)
-        preheat_to(filament, target_extruder, true);
+        preheat_to(filament, target_extruder, PreheatBehavior::force_preheat_bed_and_chamber(config_store().filament_change_preheat_all.get()));
         return { std::nullopt, filament };
     }
 

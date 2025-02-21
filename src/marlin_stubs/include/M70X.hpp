@@ -21,6 +21,7 @@
 #include "filament.hpp"
 #include "pause_stubbed.hpp"
 #include <color.hpp>
+#include <option/has_chamber_api.h>
 
 namespace filament_gcodes {
 using Func = bool (Pause::*)(const pause::Settings &); // member fnc pointer
@@ -94,9 +95,48 @@ void mmu_reset(uint8_t level);
 void mmu_on();
 void mmu_off();
 
-std::pair<std::optional<PreheatStatus::Result>, FilamentType> preheat(PreheatData preheat_data, uint8_t target_extruder);
+/// This set of flags controls the behavior of preheating.
+struct PreheatBehavior {
+    bool force_temp : 1; ///< If false, the hotend and bed temperatures will not be decreased if the new target temperatures are lower than the current ones.
+    bool preheat_bed : 1; ///< true -> heat up bed as well (usual case), false -> do not preheat bed (e.g. for unloading filament)
+#if HAS_CHAMBER_API()
+    bool set_chamber_temperature : 1; ///< true -> heat up chamber as well, false otherwise
+#endif
+    static constexpr PreheatBehavior force_preheat_bed_and_chamber(bool cf) {
+        return PreheatBehavior {
+            .force_temp = true,
+            .preheat_bed = cf
+#if HAS_CHAMBER_API()
+                ,
+            .set_chamber_temperature = cf
+#endif
+        };
+    }
+    static constexpr PreheatBehavior no_force_preheat_bed_and_chamber(bool cf) {
+        return PreheatBehavior {
+            .force_temp = false,
+            .preheat_bed = cf
+#if HAS_CHAMBER_API()
+                ,
+            .set_chamber_temperature = cf
+#endif
+        };
+    }
+    static constexpr PreheatBehavior force_preheat_only_extruder() {
+        return PreheatBehavior {
+            .force_temp = true,
+            .preheat_bed = false
+#if HAS_CHAMBER_API()
+                ,
+            .set_chamber_temperature = false
+#endif
+        };
+    }
+};
+
+std::pair<std::optional<PreheatStatus::Result>, FilamentType> preheat(PreheatData preheat_data, uint8_t target_extruder, PreheatBehavior preheat_arg);
 std::pair<std::optional<PreheatStatus::Result>, FilamentType> preheat_for_change_load(PreheatData data, uint8_t target_extruder);
-void preheat_to(FilamentType filament, uint8_t target_extruder, bool force_temp);
+void preheat_to(FilamentType filament, uint8_t target_extruder, PreheatBehavior preheat_arg);
 } // namespace filament_gcodes
 
 namespace PreheatStatus {

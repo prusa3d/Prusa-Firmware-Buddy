@@ -76,7 +76,7 @@ void filament_gcodes::M701_no_parser(FilamentType filament_to_be_loaded, const s
     if (op_preheat) {
         if (filament_to_be_loaded == FilamentType::none) {
             PreheatData data = PreheatData::make(do_purge_only ? PreheatMode::Purge : PreheatMode::Load, target_extruder, *op_preheat);
-            auto preheat_ret = data.mode == PreheatMode::Load ? preheat_for_change_load(data, target_extruder) : preheat(data, target_extruder);
+            auto preheat_ret = data.mode == PreheatMode::Load ? preheat_for_change_load(data, target_extruder) : preheat(data, target_extruder, PreheatBehavior::force_preheat_bed_and_chamber(config_store().filament_change_preheat_all.get()));
             if (preheat_ret.first) {
                 // canceled
                 M70X_process_user_response(*preheat_ret.first, target_extruder);
@@ -85,7 +85,7 @@ void filament_gcodes::M701_no_parser(FilamentType filament_to_be_loaded, const s
 
             filament_to_be_loaded = preheat_ret.second;
         } else {
-            preheat_to(filament_to_be_loaded, target_extruder, false);
+            preheat_to(filament_to_be_loaded, target_extruder, PreheatBehavior::no_force_preheat_bed_and_chamber(config_store().filament_change_preheat_all.get()));
         }
     }
     filament::set_type_to_load(filament_to_be_loaded);
@@ -141,7 +141,8 @@ void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z
 
     if (op_preheat) {
         PreheatData data = PreheatData::make(PreheatMode::Unload, target_extruder, *op_preheat); // TODO do I need PreheatMode::Unload_askUnloaded
-        auto preheat_ret = preheat(data, target_extruder);
+        // avoid preheating bed in this case
+        auto preheat_ret = preheat(data, target_extruder, PreheatBehavior::force_preheat_only_extruder());
         if (preheat_ret.first) {
             // canceled
             M70X_process_user_response(*preheat_ret.first, target_extruder);
@@ -309,7 +310,7 @@ void filament_gcodes::M1600_no_parser(FilamentType filament_to_be_loaded, uint8_
 
     PreheatStatus::SetResult(PreheatStatus::Result::DoneHasFilament);
 
-    preheat_to(filament, target_extruder, false);
+    preheat_to(filament, target_extruder, PreheatBehavior::no_force_preheat_bed_and_chamber(config_store().filament_change_preheat_all.get()));
     xyze_pos_t current_position_tmp = current_position;
 
     pause::Settings settings;
@@ -344,7 +345,7 @@ void filament_gcodes::M1600_no_parser(FilamentType filament_to_be_loaded, uint8_
 
         filament_to_be_loaded = preheat_ret.second;
     } else {
-        preheat_to(filament_to_be_loaded, target_extruder, false);
+        preheat_to(filament_to_be_loaded, target_extruder, PreheatBehavior::no_force_preheat_bed_and_chamber(config_store().filament_change_preheat_all.get()));
     }
     filament::set_type_to_load(filament_to_be_loaded);
     filament::set_color_to_load(color_to_be_loaded);
