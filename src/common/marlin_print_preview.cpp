@@ -639,11 +639,18 @@ PrintPreview::Result PrintPreview::Loop() {
             ChangeState(State::inactive);
             return Result::Inactive;
 
-        case Response::Yes:
+        case Response::Yes: {
 
             ChangeState(State::mmu_filament_inserted_unload);
-            marlin_server::enqueue_gcode("M702 W0"); // unload, no return or cooldown
-            break;
+            // If filament is really loaded, MMU knows exactly the physical slot index.
+            // Silently assume, that the MMU is up and running -> therefore it's Set_Get_Selector_Slot register has already been read upon comm start
+            const uint8_t physical_slot_index = MMU2::mmu2.SelectorSlot();
+            // M702 translates given tool index through toolmapping -> need to hack around it (invert it).
+            // The tool_mapper should either return the same index in case of a freshly booted printer (or no mapping changes)
+            // or a valid mapping from the last print (which is also correct in this case).
+            const uint8_t gcode_slot_index = tool_mapper.to_gcode(physical_slot_index);
+            marlin_server::enqueue_gcode_printf("M702 W0 T%" PRIu8, gcode_slot_index); // unload, no return or cooldown
+        } break;
 
         default:
             break;

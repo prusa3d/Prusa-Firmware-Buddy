@@ -174,6 +174,12 @@ public:
     inline bool FindaPressed() const {
         return regs8[0];
     }
+    inline uint8_t SelectorSlot() const {
+        return regs8[1];
+    }
+    inline uint8_t IdlerSlot() const {
+        return regs8[2];
+    }
 
     inline uint16_t FailStatistics() const {
         return regs16[0];

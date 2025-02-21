@@ -184,6 +184,9 @@ public:
     /// @returns current state of FINDA (true=filament present, false=filament not present)
     inline bool FindaDetectsFilament() const { return logic.FindaPressed(); }
 
+    /// @returns current selector slot as reported by the MMU
+    inline bool SelectorSlot() const { return logic.SelectorSlot(); }
+
     inline uint16_t TotalFailStatistics() const { return logic.FailStatistics(); }
 
     /// @returns Current error code
