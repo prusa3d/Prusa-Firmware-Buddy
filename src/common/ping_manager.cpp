@@ -220,8 +220,6 @@ uint8_t PingManager::recv(struct pbuf *p, const ip_addr_t *addr) {
     lock_guard lock(mutex);
     auto &stat = stats[slot];
 
-    log_info(Ping, "Received %zu with seq %" PRIu16, slot, PP_NTOHS(echo.seqno));
-
     if (PP_HTONS(stat.last_seq) != echo.seqno) {
         return 0;
     }
@@ -233,7 +231,6 @@ uint8_t PingManager::recv(struct pbuf *p, const ip_addr_t *addr) {
         stat.awaiting = false;
         stat.maybe_aggregate();
         pbuf_free(p);
-        log_info(Ping, "Duration %" PRIu32, duration);
         return 1;
     }
 
@@ -278,7 +275,6 @@ void PingManager::send_ping(size_t idx) {
     ip4_addr_copy(*ip_2_ip4(&addr), stat.ip);
     auto err = raw_sendto(pcb, pkt.get(), &addr);
     if (err == ERR_OK) {
-        log_info(Ping, "Sent ping %zu / %" PRIu16 " / %zu", idx, seq, idx + id);
         stat.last_sent_time = ticks_ms();
         stat.last_seq = seq;
         stat.cnt++;
@@ -301,7 +297,6 @@ void PingManager::round() {
         sys_timeout(wait_time, PingManager::round_wrap, this);
         seq++;
         idx = 0;
-        log_info(Ping, "Next round, seq %" PRIu16 ", wait %" PRIu32, seq, wait_time);
     } else {
         // Next ping in the round, just spread them a bit so they don't leave all at once.
         sys_timeout(ping_spread, PingManager::round_wrap, this);

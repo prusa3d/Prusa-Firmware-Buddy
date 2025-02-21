@@ -3376,47 +3376,38 @@ void onPrinterKilled(PGM_P const msg, PGM_P const component) {
 }
 
 void onMediaInserted() {
-    log_info(MarlinServer, "ExtUI: onMediaInserted");
     _send_notify_event(Event::MediaInserted, 0, 0);
 }
 
 void onMediaError() {
-    log_info(MarlinServer, "ExtUI: onMediaError");
     _send_notify_event(Event::MediaError, 0, 0);
 }
 
 void onMediaRemoved() {
-    log_info(MarlinServer, "ExtUI: onMediaRemoved");
     _send_notify_event(Event::MediaRemoved, 0, 0);
 }
 
 void onPlayTone(const uint16_t frequency, const uint16_t duration) {
-    log_info(MarlinServer, "ExtUI: onPlayTone");
     _send_notify_event(Event::PlayTone, frequency, duration);
 }
 
 void onPrintTimerStarted() {
-    log_info(MarlinServer, "ExtUI: onPrintTimerStarted");
     _send_notify_event(Event::PrintTimerStarted, 0, 0);
 }
 
 void onPrintTimerPaused() {
-    log_info(MarlinServer, "ExtUI: onPrintTimerPaused");
     _send_notify_event(Event::PrintTimerPaused, 0, 0);
 }
 
 void onPrintTimerStopped() {
-    log_info(MarlinServer, "ExtUI: onPrintTimerStopped");
     _send_notify_event(Event::PrintTimerStopped, 0, 0);
 }
 
 void onFilamentRunout([[maybe_unused]] const extruder_t extruder) {
-    log_info(MarlinServer, "ExtUI: onFilamentRunout");
     _send_notify_event(Event::FilamentRunout, 0, 0);
 }
 
-void onUserConfirmRequired(const char *const msg) {
-    log_info(MarlinServer, "ExtUI: onUserConfirmRequired: %s", msg);
+void onUserConfirmRequired(const char *const) {
     _send_notify_event(Event::UserConfirmRequired, 0, 0);
 }
 
@@ -3441,7 +3432,6 @@ void onStatusChanged(const char *const msg) {
 
     static bool pending_err_msg = false;
 
-    log_info(MarlinServer, "ExtUI: onStatusChanged: %s", msg);
     _send_notify_event(Event::StatusChanged, 0, 0); // this includes MMU:P progress messages - just plain textual information
     if (msg != nullptr && strcmp(msg, "Prusa-mini Ready.") == 0) {
     } // TODO
@@ -3475,26 +3465,21 @@ void onStatusChanged(const char *const msg) {
 }
 
 void onFactoryReset() {
-    log_info(MarlinServer, "ExtUI: onFactoryReset");
     _send_notify_event(Event::FactoryReset, 0, 0);
 }
 
 void onLoadSettings(char const *) {
-    log_info(MarlinServer, "ExtUI: onLoadSettings");
     _send_notify_event(Event::LoadSettings, 0, 0);
 }
 
 void onStoreSettings(char *) {
-    log_info(MarlinServer, "ExtUI: onStoreSettings");
     _send_notify_event(Event::StoreSettings, 0, 0);
 }
 
 void onConfigurationStoreWritten([[maybe_unused]] bool success) {
-    log_info(MarlinServer, "ExtUI: onConfigurationStoreWritten");
 }
 
 void onConfigurationStoreRead([[maybe_unused]] bool success) {
-    log_info(MarlinServer, "ExtUI: onConfigurationStoreRead");
 }
 
 void onMeshUpdate([[maybe_unused]] const uint8_t xpos, [[maybe_unused]] const uint8_t ypos, [[maybe_unused]] const float zval) {
