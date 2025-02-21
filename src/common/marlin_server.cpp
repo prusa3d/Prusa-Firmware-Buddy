@@ -796,6 +796,8 @@ void static finalize_print(bool finished) {
     power_panic::reset();
 #endif
 
+    fsm_destroy(ClientFSM::Serial_printing);
+
     print_job_timer.stop();
     _server_update_vars();
     // Check if the stopwatch was NOT stopped to and add the current printime to the statistics.
@@ -2287,9 +2289,6 @@ static void _server_print_loop(void) {
 #endif // Z_ALWAYS_ON
             disable_e_steppers();
             server.print_state = State::Aborted;
-            if (server.print_is_serial) {
-                fsm_destroy(ClientFSM::Serial_printing);
-            }
             finalize_print(false);
         }
         break;
@@ -2347,9 +2346,6 @@ static void _server_print_loop(void) {
     case State::Finishing_ParkHead:
         if (!is_processing()) {
             server.print_state = State::Finished;
-            if (server.print_is_serial) {
-                fsm_destroy(ClientFSM::Serial_printing);
-            }
             finalize_print(true);
         }
         break;
