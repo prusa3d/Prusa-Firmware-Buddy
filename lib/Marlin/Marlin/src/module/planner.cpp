@@ -2168,6 +2168,10 @@ bool Planner::buffer_segment(const abce_pos_t &abce
   }
   #endif
 
+  if(hints.move.is_printing_move && abce.e > position_float.e) {
+    max_printed_z = std::max(max_printed_z, abce.z);
+  }
+
   // When changing extruders recalculate mini-steps corresponding to the E position
   #if ENABLED(DISTINCT_E_FACTORS)
     if (last_extruder != extruder && settings.axis_msteps_per_mm[E_AXIS_N(extruder)] != settings.axis_msteps_per_mm[E_AXIS_N(last_extruder)]) {
