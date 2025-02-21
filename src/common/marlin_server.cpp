@@ -791,6 +791,16 @@ static void cycle() {
     server_update_vars();
 }
 
+/// Function that is called just before finalize_print, before the steppers are possibly disabled
+static void pre_finalize_print([[maybe_unused]] bool finished) {
+#if ENABLED(PRUSA_MMU2)
+    if (MMU2::mmu2.Enabled() && (!finished || GCodeInfo::getInstance().is_singletool_gcode())) {
+        // When we are running single-filament gcode with MMU, we should unload current filament.
+        safely_unload_filament_from_nozzle_to_mmu();
+    }
+#endif // ENABLED(PRUSA_MMU2)
+}
+
 void static finalize_print(bool finished) {
 #if ENABLED(POWER_PANIC)
     power_panic::reset();
@@ -2272,14 +2282,12 @@ static void _server_print_loop(void) {
         break;
 
     case State::Aborting_UnloadFilament:
-        if (!is_processing()) {
-#if ENABLED(PRUSA_MMU2)
-            if (MMU2::mmu2.Enabled()) {
-                safely_unload_filament_from_nozzle_to_mmu();
-            }
-#endif
-            server.print_state = State::Aborting_ParkHead;
+        if (is_processing()) {
+            break;
         }
+
+        pre_finalize_print(false);
+        server.print_state = State::Aborting_ParkHead;
         break;
     case State::Aborting_ParkHead:
         if (!is_processing()) {
@@ -2333,15 +2341,12 @@ static void _server_print_loop(void) {
         }
         break;
     case State::Finishing_UnloadFilament:
-        if (!is_processing()) {
-#if ENABLED(PRUSA_MMU2)
-            if (MMU2::mmu2.Enabled() && GCodeInfo::getInstance().is_singletool_gcode()) {
-                // When we are running single-filament gcode with MMU, we should unload current filament.
-                safely_unload_filament_from_nozzle_to_mmu();
-            }
-#endif // ENABLED(PRUSA_MMU2)
-            server.print_state = State::Finishing_ParkHead;
+        if (is_processing()) {
+            break;
         }
+
+        pre_finalize_print(true);
+        server.print_state = State::Finishing_ParkHead;
         break;
     case State::Finishing_ParkHead:
         if (!is_processing()) {
