@@ -43,6 +43,10 @@
 #include "printers.h"
 #include "MarlinPin.h"
 #include "../../../../src/common/adc.hpp"
+#include <option/has_chamber_api.h>
+#if HAS_CHAMBER_API()
+#include "feature/chamber/chamber.hpp"
+#endif
 
 #define MAX6675_SEPARATE_SPI (EITHER(HEATER_0_USES_MAX6675, HEATER_1_USES_MAX6675) && PINS_EXIST(MAX6675_SCK, MAX6675_DO))
 
@@ -3842,7 +3846,11 @@ void Temperature::isr() {
     #endif
     #if HAS_HEATED_CHAMBER
       SERIAL_ECHOPAIR(" C@:", getHeaterPower(H_CHAMBER));
+    #elif HAS_CHAMBER_API()
+      auto current_chamber_temperature = buddy::chamber().current_temperature();
+      if (current_chamber_temperature.has_value()) SERIAL_ECHOPAIR(" C@:", current_chamber_temperature.value());
     #endif
+
     #if HAS_TEMP_HEATBREAK
       SERIAL_ECHOPAIR(" HBR@:", getHeaterPower((heater_ind_t)(H_HEATBREAK_E0 + target_extruder)));
     #endif

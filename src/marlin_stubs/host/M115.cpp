@@ -221,6 +221,9 @@ void GcodeSuite::M115() {
     #if HAS_HEATED_CHAMBER
                  ,
         true
+    #elif HAS_CHAMBER_API()
+                 ,
+        buddy::chamber().capabilities().temperature_reporting
     #endif
     );
 
