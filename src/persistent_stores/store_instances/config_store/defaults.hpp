@@ -22,6 +22,8 @@
 #include <option/has_sheet_support.h>
 #include <option/has_loadcell.h>
 
+#define DNS_NTP_MAX_NAME_LENGTH 61
+
 namespace config_store_ns {
 
 // Holds default constants so they can be referenced by store item. Placing these constants in another header where it's more meaningful is welcome. These defaults could be passed directly as template parameter to store items from gcc 11 onwards (and store items would accept them as value instead of as a const ref).
@@ -79,6 +81,7 @@ namespace defaults {
     inline constexpr time_tools::TimezoneOffsetSummerTime timezone_summer { time_tools::TimezoneOffsetSummerTime::no_summertime };
     inline constexpr std::array<char, wifi_max_ssid_len + 1> wifi_ap_ssid { "" };
     inline constexpr std::array<char, wifi_max_passwd_len + 1> wifi_ap_password { "" };
+    inline constexpr std::array<char, DNS_NTP_MAX_NAME_LENGTH> ntp_server { "prusa3d.pool.ntp.org" };
 
     inline constexpr eSOUND_MODE sound_mode { eSOUND_MODE::_undef };
     inline constexpr uint8_t sound_volume { 5 };

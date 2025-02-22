@@ -81,6 +81,9 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
         if (ip4addr_aton(value, &tmp_config->lan.gw_ip4)) {
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_GW_IP4);
         }
+    } else if (ini_string_match(section, "network", name, "ntp")) {
+        strlcpy(tmp_config->ntp, value, DNS_NTP_MAX_NAME_LENGTH);
+        tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_NTP_ADDRESS);
     } else if (ini_string_match(section, "network", name, "dns4")) {
 
         if (NULL != strchr(value, ';')) {
@@ -173,6 +176,9 @@ void save_net_params(netif_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
         store.hostname.set(ethconfig->hostname);
     }
+    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_NTP_ADDRESS)) {
+        config_store().ntp_addr.set(ethconfig->ntp);
+    }
 
     if (ap != NULL) {
         assert(netdev_id == NETDEV_ESP_ID);
@@ -209,7 +215,7 @@ void load_net_params(netif_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_
         ethconfig->lan.msk_ip4.addr = store.wifi_ip4_mask.get();
         ethconfig->lan.gw_ip4.addr = store.wifi_ip4_gateway.get();
     }
-
+    strlcpy(ethconfig->ntp, config_store().ntp_addr.get_c_str(), DNS_NTP_MAX_NAME_LENGTH);
     strlcpy(ethconfig->hostname, store.hostname.get_c_str(), HOSTNAME_LEN + 1);
 
     if (ap != NULL) {

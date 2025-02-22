@@ -109,6 +109,10 @@ struct CurrentStore
     StoreItem<time_tools::TimezoneOffsetMinutes, defaults::timezone_minutes, journal::hash("Timezone Minutes")> timezone_minutes; // minutes offset for hour difference from UTC
     StoreItem<time_tools::TimezoneOffsetSummerTime, defaults::timezone_summer, journal::hash("Timezone Summertime")> timezone_summer; // Summertime hour offset
 
+    // NTP settings
+    StoreItem<bool, false, journal::hash("NTP via DHCP")> ntp_via_dhcp; // use dhcp server for ntp
+    StoreItem<std::array<char, 61>, defaults::ntp_server, journal::hash("NTP Address")> ntp_addr; // X.X.X.X address encoded or string
+
     // WIFI settings
     // wifi_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1, wifi_flag & 0b1100 -> reserved, previously ap_sec_t security
     StoreItem<uint8_t, 0, journal::hash("WIFI Flag")> wifi_flag;
