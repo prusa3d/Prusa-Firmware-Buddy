@@ -29,10 +29,9 @@ public:
 };
 
 #if HAS_HOTEND_TYPE_SUPPORT()
-// TODO: This should be migrated into MI_TOOLHEAD_SPECIFIC, but the config store stores it as a single flag, so no need for now
-class MI_HOTEND_TYPE : public MenuItemSelectMenu {
+class MI_HOTEND_TYPE : public MI_TOOLHEAD_SPECIFIC<MI_HOTEND_TYPE, MenuItemSelectMenu> {
 public:
-    MI_HOTEND_TYPE();
+    MI_HOTEND_TYPE(Toolhead toolhead = default_toolhead);
 
     int item_count() const final;
     void build_item_text(int index, const std::span<char> &buffer) const final;
@@ -41,11 +40,12 @@ protected:
     bool on_item_selected(int old_index, int new_index) override;
 };
 
-// TODO: This should be migrated into MI_TOOLHEAD_SPECIFIC, but the config store stores it as a single flag, so no need for now
-class MI_NOZZLE_SOCK : public WI_ICON_SWITCH_OFF_ON_t {
+class MI_NOZZLE_SOCK : public MI_TOOLHEAD_SPECIFIC_TOGGLE<MI_NOZZLE_SOCK> {
 public:
-    MI_NOZZLE_SOCK();
-    void OnChange(size_t old_index) override;
+    MI_NOZZLE_SOCK(Toolhead toolhead = default_toolhead);
+
+    static bool read_value_impl(ToolheadIndex ix);
+    static void store_value_impl(ToolheadIndex ix, bool set);
 };
 
 using MI_HOTEND_SOCK_OR_TYPE = std::conditional_t<hotend_type_only_sock, MI_NOZZLE_SOCK, MI_HOTEND_TYPE>;

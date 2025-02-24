@@ -49,9 +49,9 @@ void MI_NOZZLE_DIAMETER_HELP::click(IWindowMenu &) {
 
 #if HAS_HOTEND_TYPE_SUPPORT()
 // * MI_HOTEND_TYPE
-MI_HOTEND_TYPE::MI_HOTEND_TYPE()
-    : MenuItemSelectMenu(_("Hotend Type")) {
-    set_current_item(stdext::index_of(hotend_type_list, config_store().hotend_type.get(0)));
+MI_HOTEND_TYPE::MI_HOTEND_TYPE(Toolhead toolhead)
+    : MI_TOOLHEAD_SPECIFIC(toolhead, _("Hotend Type")) {
+    set_current_item(stdext::index_of(hotend_type_list, config_store().hotend_type.get(toolhead.index())));
 }
 
 int MI_HOTEND_TYPE::item_count() const {
@@ -63,18 +63,23 @@ void MI_HOTEND_TYPE::build_item_text(int index, const std::span<char> &buffer) c
 }
 
 bool MI_HOTEND_TYPE::on_item_selected([[maybe_unused]] int old_index, int new_index) {
-    config_store().hotend_type.set(0, hotend_type_list[new_index]);
+    config_store().hotend_type.set(toolhead().index(), hotend_type_list[new_index]);
     return true;
 }
 
 // * MI_NOZZLE_SOCK
-MI_NOZZLE_SOCK::MI_NOZZLE_SOCK()
-    : WI_ICON_SWITCH_OFF_ON_t(config_store().hotend_type.get(0) == HotendType::stock_with_sock, _("Nextruder Silicone Sock"), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
-
-void MI_NOZZLE_SOCK::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().hotend_type.set(0, value() ? HotendType::stock_with_sock : HotendType::stock);
+MI_NOZZLE_SOCK::MI_NOZZLE_SOCK(Toolhead toolhead)
+    : MI_TOOLHEAD_SPECIFIC_TOGGLE(toolhead, false, _("Nextruder Silicone Sock")) {
 }
-#endif
+
+bool MI_NOZZLE_SOCK::read_value_impl(ToolheadIndex ix) {
+    return config_store().hotend_type.get(ix) == HotendType::stock_with_sock;
+}
+
+void MI_NOZZLE_SOCK::store_value_impl(ToolheadIndex ix, bool set) {
+    config_store().hotend_type.set(ix, set ? HotendType::stock_with_sock : HotendType::stock);
+}
+#endif /* HAS_HOTEND_TYPE_SUPPORT() */
 
 // * MI_NOZZLE_HARDENED
 MI_NOZZLE_HARDENED::MI_NOZZLE_HARDENED(Toolhead toolhead)
