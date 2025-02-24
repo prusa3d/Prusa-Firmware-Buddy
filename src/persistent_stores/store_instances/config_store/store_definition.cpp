@@ -36,7 +36,7 @@ void CurrentStore::perform_config_check() {
 #if PRINTER_IS_PRUSA_MK4()
         static_assert(extended_printer_type_model[1] == PrinterModel::mk4s);
         extended_printer_type.set(1);
-        hotend_type.set(HotendType::stock_with_sock);
+        hotend_type.set(0, HotendType::stock_with_sock);
         nozzle_is_high_flow.set(1 << 0); // Bitset -> first and only nozzle
 
 #elif PRINTER_IS_PRUSA_XL()

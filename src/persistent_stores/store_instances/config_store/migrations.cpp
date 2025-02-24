@@ -2,6 +2,7 @@
 #include <common/utils/algorithm_extensions.hpp>
 #include <footer_def.hpp>
 #include <footer_eeprom.hpp>
+#include <config_store/defaults.hpp>
 
 namespace config_store_ns {
 namespace migrations {
@@ -228,5 +229,23 @@ namespace migrations {
         }
     }
 #endif
+
+    void hotend_type(journal::Backend &backend) {
+        using NewItem = decltype(CurrentStore::hotend_type);
+        using OldItem = decltype(DeprecatedStore::hotend_type_single_hotend);
+
+        OldItem::value_type saved_hotend_type = defaults::hotend_type;
+
+        auto callback = [&](journal::Backend::ItemHeader header, std::array<uint8_t, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
+            if (header.id == decltype(DeprecatedStore::hotend_type_single_hotend)::hashed_id) {
+                memcpy(&saved_hotend_type, buffer.data(), header.len);
+            }
+        };
+        backend.read_items_for_migrations(callback);
+
+        for (uint8_t i = 0; i < HOTENDS; i++) {
+            backend.save_migration_item<NewItem::value_type>(NewItem::hashed_id_first + i, saved_hotend_type);
+        }
+    }
 } // namespace migrations
 } // namespace config_store_ns

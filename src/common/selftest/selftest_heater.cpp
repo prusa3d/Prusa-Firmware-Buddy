@@ -252,7 +252,7 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
     int16_t hw_diff = 0;
     if (m_config.type == heater_type_t::Nozzle) {
         // Bounds check, there might be invalid value in the config_store
-        const auto hotend_type = static_cast<size_t>(config_store().hotend_type.get());
+        const auto hotend_type = static_cast<size_t>(config_store().hotend_type.get(m_config.tool_nr));
         hw_diff += m_config.hotend_type_temp_offsets[hotend_type < static_cast<size_t>(HotendType::_cnt) ? hotend_type : 0];
     }
 

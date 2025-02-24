@@ -506,7 +506,7 @@ struct CurrentStore
     StoreItem<float, defaults::axis_z_max_pos_mm, journal::hash("Axis Z Max Pos MM")> axis_z_max_pos_mm;
 
     // Nozzle Sock has is here for backwards compatibility (should be binary compatible)
-    StoreItem<HotendType, defaults::hotend_type, journal::hash("Nozzle Sock")> hotend_type;
+    StoreItemArray<HotendType, defaults::hotend_type, journal::hash("Hotend Type Per Tool"), 8, HOTENDS> hotend_type;
 
     // If hotend count increases, we need to migrate hotend_type to an array
     static_assert(!HAS_HOTEND_TYPE_SUPPORT() || HOTENDS == 1);
@@ -700,6 +700,8 @@ struct DeprecatedStore
     StoreItem<uint8_t, 0, journal::hash("Nozzle Type")> nozzle_type;
 
     StoreItem<bool, true, journal::hash("Enable Side LEDs")> side_leds_enabled;
+
+    StoreItem<HotendType, defaults::hotend_type, journal::hash("Nozzle Sock")> hotend_type_single_hotend;
 };
 
 } // namespace config_store_ns
