@@ -342,7 +342,7 @@ set_feature_for_printers_master_board(HAS_CHAMBER_API "XL" "COREONE")
 set_feature_for_printers_master_board(HAS_CHAMBER_FILTRATION_API "COREONE")
 set_feature_for_printers_master_board(XL_ENCLOSURE_SUPPORT "XL")
 set_feature_for_printers(HAS_SWITCHED_FAN_TEST "MK4" "MK3.5" "COREONE")
-set_feature_for_printers(HAS_HOTEND_TYPE_SUPPORT "MK4" "MK3.5" "iX" "COREONE")
+set_feature_for_printers(HAS_HOTEND_TYPE_SUPPORT "MK4" "MK3.5" "iX" "COREONE" "XL")
 set_feature_for_printers(HAS_EMERGENCY_STOP "COREONE")
 
 # Checks for bed evenness during G29 and if it's too uneven, offers Z alignment calibration
