@@ -15,6 +15,8 @@ enum class WarningType : uint32_t {
     FilamentSensorStuckHelp,
 #if HAS_MMU2()
     FilamentSensorStuckHelpMMU,
+    MaintenanceWarningFails,
+    MaintenanceWarningChanges,
 #endif
     FilamentSensorsDisabled,
 #if _DEBUG

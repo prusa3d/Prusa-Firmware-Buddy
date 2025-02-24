@@ -339,38 +339,6 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
         show_time_information();
     }
 
-#if HAS_MMU2()
-    // FIXME: This is, technically, a wrong place to do it. The marlin server
-    // would be better, as it would also allow Connect to see the dialog. But
-    // that was problematic and it got postponed.
-    //
-    // See BFW-5221.
-    if (!mmu_maintenance_checked && (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED)) {
-        mmu_maintenance_checked = true;
-        if (auto reason = MMU2::check_maintenance(); reason.has_value()) {
-            string_view_utf8 txt;
-            switch (*reason) {
-            case MMU2::MaintenanceReason::Failures:
-    #if HAS_LOADCELL()
-                txt = _("Printer has detected multiple consecutive filament loading errors. We recommend checking Nextruder main-plate. Visit prusa.io/mmu-care");
-    #else
-                txt = _("Printer has detected multiple consecutive filament loading errors. We recommend checking the extruder. Visit prusa.io/mmu-care");
-    #endif
-                break;
-            case MMU2::MaintenanceReason::Changes:
-    #if HAS_LOADCELL()
-                txt = _("Maintenance Reminder. Filament changes have reached main-plate lifespan. Inspect the part and ensure you have a spare plate available. Visit prusa.io/mmu-care");
-    #else
-                txt = _("Maintenance Reminder. Filament changes have reached 30k. Inspect and clean the extruder. Visit prusa.io/mmu-care");
-    #endif
-                break;
-            }
-
-            MsgBoxWarning(txt, Responses_Ok);
-        }
-    }
-#endif
-
 #if HAS_LARGE_DISPLAY()
     if (shown_end_result && event == GUI_event_t::ENC_DN
         && ((buttons[0].IsEnabled() && buttons[0].IsFocused()) || (!buttons[0].IsEnabled() && buttons[1].IsFocused()))) {

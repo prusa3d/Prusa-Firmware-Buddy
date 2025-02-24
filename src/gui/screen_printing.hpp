@@ -58,7 +58,6 @@ class screen_printing_data_t : public ScreenPrintingModel {
 
     bool showing_end_result { false }; // whether currently showing end result 'state'
     bool shown_end_result { false }; // whether end result has ever been shown
-    bool mmu_maintenance_checked { false }; // Did we check for MMU maintenance
 
     window_icon_t arrow_left;
 

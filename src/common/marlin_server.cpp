@@ -35,6 +35,7 @@
 #include <tools_mapping.hpp>
 #include <RAII.hpp>
 #include <inject_queue.hpp>
+#include <buddy/unreachable.hpp>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -133,6 +134,7 @@
 
 #if HAS_MMU2()
     #include <mmu2/mmu2_fsm.hpp>
+    #include <mmu2/maintenance.hpp>
 #endif
 
 #include <config_store/store_instance.hpp>
@@ -220,6 +222,9 @@ namespace {
         bool mbl_failed;
 #endif
         bool was_print_time_saved = false;
+#if HAS_MMU2()
+        bool mmu_maintenance_checked = false;
+#endif
     };
 
     std::atomic<uint32_t> knob_click_counter = 0; // Hold user knob clicks for safety timer
@@ -823,11 +828,29 @@ void static finalize_print(bool finished) {
     print_job_timer.stop();
     _server_update_vars();
     // Check if the stopwatch was NOT stopped to and add the current printime to the statistics.
-    // finalize_print is beeing called multiple times and we don't want to add the time twice.
+    // finalize_print is being called multiple times and we don't want to add the time twice.
     if (!server.was_print_time_saved) {
         Odometer_s::instance().add_time(marlin_vars().print_duration);
         server.was_print_time_saved = true;
     }
+    // print_maintenance();
+#if HAS_MMU2()
+    if (!server.mmu_maintenance_checked) {
+        if (auto reason = MMU2::check_maintenance(); reason.has_value()) {
+            switch (reason.value()) {
+            case MMU2::MaintenanceReason::Changes:
+                set_warning(WarningType::MaintenanceWarningChanges);
+                break;
+            case MMU2::MaintenanceReason::Failures:
+                set_warning(WarningType::MaintenanceWarningFails);
+                break;
+            default:
+                BUDDY_UNREACHABLE();
+            }
+        }
+        server.mmu_maintenance_checked = true;
+    }
+#endif // HAS_MMU2()
 
 #if !PRINTER_IS_PRUSA_iX()
     // On iX, we're not cooling down the bed after the print.
@@ -2017,6 +2040,9 @@ static void _server_print_loop(void) {
         server.print_is_serial = false;
         server.was_print_time_saved = false;
         feedrate_percentage = 100;
+#if HAS_MMU2()
+        server.mmu_maintenance_checked = false;
+#endif
 
         // Reset flow factor for all extruders
         HOTEND_LOOP() {

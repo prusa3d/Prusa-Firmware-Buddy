@@ -522,6 +522,10 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
 #if HAS_MMU2()
     case WarningType::FilamentSensorStuckHelpMMU:
         return ErrCode::ERR_MECHANICAL_FILAMENT_SENSOR_STUCK_HELP_MMU;
+    case WarningType::MaintenanceWarningFails:
+        return ErrCode::ERR_MECHANICAL_MAINTENANCE_WARNING_FAILS;
+    case WarningType::MaintenanceWarningChanges:
+        return ErrCode::ERR_MECHANICAL_MAINTENANCE_WARNING_CHANGES;
 #endif
     case WarningType::FilamentSensorsDisabled:
         return ErrCode::ERR_MECHANICAL_FILAMENT_SENSORS_DISABLED;
