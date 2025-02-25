@@ -1131,6 +1131,24 @@ bool printer_paused() {
     return server.print_state == State::Paused;
 }
 
+// Printer is paused, parking for pause, resuming from pause...
+bool printer_paused_extended() {
+    switch (server.print_state) {
+    case State::Paused:
+    case State::Pausing_Begin:
+    case State::Pausing_Failed_Code:
+    case State::Pausing_WaitIdle:
+    case State::Pausing_ParkHead:
+    case State::Resuming_Begin:
+    case State::Resuming_Reheating:
+    case State::Resuming_UnparkHead_XY:
+    case State::Resuming_UnparkHead_ZE:
+        return true;
+    default:
+        return false;
+    }
+}
+
 void serial_print_start() {
     server.print_state = State::SerialPrintInit;
     print_state = {};

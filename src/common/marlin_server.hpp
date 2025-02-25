@@ -147,6 +147,9 @@ bool finishing_or_finished();
 // return true if the printer is in the paused and not moving state
 bool printer_paused();
 
+// Printer is paused, preparing for a pause or resuming from a pause.
+bool printer_paused_extended();
+
 // return the resume state during a paused print
 resume_state_t *get_resume_data();
 
