@@ -2834,7 +2834,7 @@ void park_head() {
     }
     #endif /*HAS_TOOLCHANGER()*/
 
-    xyz_pos_t park = XYZ_NOZZLE_PARK_POINT;
+    xyz_pos_t park = XYZ_NOZZLE_PARK_POINT_ON_PRINT_END;
     #ifdef XYZ_NOZZLE_PARK_POINT_M600
     const xyz_pos_t park_clean = XYZ_NOZZLE_PARK_POINT_M600;
     if (server.mbl_failed) {
