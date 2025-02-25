@@ -2869,8 +2869,8 @@ void unpark_head_ZE(void) {
     }
 
     // Move Z
-    current_position.z = server.resume.pos.z;
     destination = current_position;
+    destination.z = server.resume.pos.z;
     prepare_internal_move_to_destination(NOZZLE_PARK_Z_FEEDRATE);
 
     #if ENABLED(ADVANCED_PAUSE_FEATURE)

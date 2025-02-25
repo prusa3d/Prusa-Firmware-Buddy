@@ -379,7 +379,7 @@
      */
     #if HAS_EMERGENCY_STOP()
       // TODO: Fine-tune constants.
-      const float segments_for_z = total.z / buddy::EmergencyStop::max_segment_z_mm;
+      const float segments_for_z = abs(total.z / buddy::EmergencyStop::max_segment_z_mm);
       NOLESS(segments, LROUND(segments_for_z));
 
       const float segments_for_time = seconds / buddy::EmergencyStop::max_segment_time_s;
