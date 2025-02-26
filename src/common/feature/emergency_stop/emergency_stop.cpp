@@ -12,6 +12,8 @@
 
 LOG_COMPONENT_DEF(EmergencyStop, logging::Severity::debug);
 
+static_assert(std::to_underlying(WarningType::DoorOpen) == 0, "Door open should have the highest priority for GUI warning to show properly");
+
 namespace buddy {
 
 namespace {

@@ -3,6 +3,9 @@
 #include "client_response.hpp"
 
 enum class WarningType : uint32_t {
+#if HAS_EMERGENCY_STOP()
+    DoorOpen,
+#endif
     HotendFanError,
     PrintFanError,
     HeatersTimeout,
@@ -51,9 +54,6 @@ enum class WarningType : uint32_t {
     GcodeCorruption,
     GcodeCropped,
     MetricsConfigChangePrompt,
-#if HAS_EMERGENCY_STOP()
-    DoorOpen,
-#endif
 #if HAS_CHAMBER_API()
     FailedToReachChamberTemperature,
 #endif

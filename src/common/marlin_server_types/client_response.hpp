@@ -392,6 +392,9 @@ enum class PhasesQuickPause : PhaseUnderlyingType {
 constexpr inline ClientFSM client_fsm_from_phase(PhasesQuickPause) { return ClientFSM::QuickPause; }
 
 enum class PhasesWarning : PhaseUnderlyingType {
+#if HAS_EMERGENCY_STOP()
+    DoorOpen,
+#endif
     // Generic warning with a Continue button, just for dismissing it.
     Warning,
 
@@ -414,10 +417,6 @@ enum class PhasesWarning : PhaseUnderlyingType {
 #if ENABLED(DETECT_PRINT_SHEET)
     /// Shown on failed print sheet detection. Custom handling.
     SteelSheetNotDetected,
-#endif
-
-#if HAS_EMERGENCY_STOP()
-    DoorOpen,
 #endif
 
 #if HAS_CHAMBER_API()
@@ -853,7 +852,10 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::QuickPauseResponses) == CountPhases<PhasesQuickPause>());
 
     static constexpr EnumArray<PhasesWarning, PhaseResponses, CountPhases<PhasesWarning>()> WarningResponses {
-        { PhasesWarning::Warning, { Response::Continue } },
+#if HAS_EMERGENCY_STOP()
+        { PhasesWarning::DoorOpen, {} },
+#endif
+            { PhasesWarning::Warning, { Response::Continue } },
 #if XL_ENCLOSURE_SUPPORT()
             { PhasesWarning::EnclosureFilterExpiration, { Response::Ignore, Response::Postpone5Days, Response::Done } },
 #endif
@@ -865,9 +867,6 @@ class ClientResponses {
 #endif
 #if ENABLED(DETECT_PRINT_SHEET)
             { PhasesWarning::SteelSheetNotDetected, { Response::Retry, Response::Ignore } },
-#endif
-#if HAS_EMERGENCY_STOP()
-            { PhasesWarning::DoorOpen, {} },
 #endif
 #if HAS_CHAMBER_API()
             { PhasesWarning::FailedToReachChamberTemperature, { Response::Ok, Response::Skip } },
