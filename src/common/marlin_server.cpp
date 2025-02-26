@@ -266,13 +266,13 @@ namespace {
 
         constexpr bool isFailed() const { return m_failed; }
 
-        void checkTrue(bool condition, WarningType warning, bool disable_hotend) {
+        void checkTrue(bool condition, WarningType warning, bool disable_hotend, bool pause_print_on_error) {
             if (condition || m_failed) {
                 return;
             }
             set_warning(warning);
 
-            if (server.print_state == State::Printing) {
+            if (pause_print_on_error && server.print_state == State::Printing) {
                 pause_print(); // Must store current hotend temperatures before they are set to 0
                 server.print_state = State::Pausing_WaitIdle;
             }
@@ -306,7 +306,7 @@ namespace {
                 }
             }
 
-            ErrorChecker::checkTrue(condition, WarningType::HotendTempDiscrepancy, true);
+            ErrorChecker::checkTrue(condition, WarningType::HotendTempDiscrepancy, true, true);
 
             if (condition) {
                 reset();
@@ -360,7 +360,7 @@ namespace {
                 }
             }
 
-            this->checkTrue(!warning, warning_type, true);
+            this->checkTrue(!warning, warning_type, true, true);
         }
     };
 
@@ -2635,28 +2635,28 @@ static void _server_print_loop(void) {
         HOTEND_LOOP() {
 #if !PRINTER_IS_PRUSA_iX()
             const auto fan_state = Fans::heat_break(e).getState();
-            hotendFanErrorChecker[e].checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting, WarningType::HotendFanError, true);
+            hotendFanErrorChecker[e].checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting, WarningType::HotendFanError, true, true);
 #endif
         }
         const auto fan_state = Fans::print(active_extruder).getState();
-        printFanErrorChecker.checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting, WarningType::PrintFanError, false);
+        printFanErrorChecker.checkTrue(fan_state != CFanCtlCommon::FanState::error_running && fan_state != CFanCtlCommon::FanState::error_starting, WarningType::PrintFanError, false, true);
 
 #if HAS_XBUDDY_EXTENSION()
         const bool cool_fan_ok = buddy::xbuddy_extension().is_fan_ok(buddy::XBuddyExtension::Fan::cooling_fan_1) && buddy::xbuddy_extension().is_fan_ok(buddy::XBuddyExtension::Fan::cooling_fan_2);
-        xbe_cool_fan_checker.checkTrue(cool_fan_ok, WarningType::ChamberFiltrationFanError, false);
+        xbe_cool_fan_checker.checkTrue(cool_fan_ok, WarningType::ChamberFiltrationFanError, false, false);
         if (cool_fan_ok) {
             xbe_cool_fan_checker.reset();
         }
 
         const bool filter_fan_ok = buddy::xbuddy_extension().is_fan_ok(buddy::XBuddyExtension::Fan::filtration_fan);
-        xbe_filter_fan_checker.checkTrue(filter_fan_ok, WarningType::ChamberFiltrationFanError, false);
+        xbe_filter_fan_checker.checkTrue(filter_fan_ok, WarningType::ChamberFiltrationFanError, false, false);
         if (filter_fan_ok) {
             xbe_filter_fan_checker.reset();
         }
 #endif /* HAS_XBUDDY_EXTENSION() */
 #if XL_ENCLOSURE_SUPPORT()
         const bool enclosure_fan_ok = Fans::enclosure().is_fan_ok();
-        enclosure_fan_checker.checkTrue(enclosure_fan_ok, WarningType::ChamberFiltrationFanError, false);
+        enclosure_fan_checker.checkTrue(enclosure_fan_ok, WarningType::ChamberFiltrationFanError, false, false);
         if (enclosure_fan_ok) {
             enclosure_fan_checker.reset();
         }
@@ -2692,7 +2692,7 @@ static void _server_print_loop(void) {
         }
         // Getting 0 -> heatbreak error
         else {
-            heatBreakThermistorErrorChecker[e].checkTrue(!NEAR_ZERO(temp), WarningType::HeatBreakThermistorFail, true);
+            heatBreakThermistorErrorChecker[e].checkTrue(!NEAR_ZERO(temp), WarningType::HeatBreakThermistorFail, true, true);
         }
     }
 #endif
