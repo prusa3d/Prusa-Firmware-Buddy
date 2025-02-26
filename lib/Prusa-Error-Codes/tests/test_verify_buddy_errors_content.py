@@ -23,6 +23,7 @@ class TestVerifyPruseErrorContentsForBuddy(unittest.TestCase):
             self.verify_item_in_error(error, "id")
             self.verify_item_in_error(error, "title")
             self.verify_item_in_error(error, "text")
+            self.verify_item_in_error(error, "approved", True)
             self.verify_non_empty_array_item(error, "printers", True)
 
 
@@ -37,6 +38,7 @@ class TestVerifyPruseErrorContentsForBuddy(unittest.TestCase):
             self.verify_item_in_error(error, "title")
             self.verify_item_in_error(error, "text")
             self.verify_item_in_error(error, "type")
+            self.verify_item_in_error(error, "approved", True)
             self.verify_non_empty_array_item(error, "action")
 
 if __name__ == "__main__":

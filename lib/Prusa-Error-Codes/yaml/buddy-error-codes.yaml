@@ -40,11 +40,11 @@ Errors:
 
   - code: "XX102"
     printers: [iX, XL, COREONE]
-    title: "PRECISE REFINEMENT FAILED"
+    title: "PRECISE HOMING REFINEMENT FAILED"
     text: "Consider adjusting belt tension."
     id: "PRECISE_REFINEMENT_FAILED"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX103"
     printers: [XL]
@@ -52,7 +52,7 @@ Errors:
     text: "Dock %d position differs too much from expected values."
     id: "DOCK_POSITION_OUT_OF_BOUNDS"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX104"
     printers: [XL]
@@ -60,7 +60,7 @@ Errors:
     text: "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
     id: "TOOL_OFFSET_OUT_OF_BOUNDS"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX105"
     printers: [XL]
@@ -68,7 +68,7 @@ Errors:
     text: "XY probing failed due to the low measurement stability."
     id: "XY_PROBE_UNSTABLE"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX106"
     printers: [XL]
@@ -76,7 +76,7 @@ Errors:
     text: "Probed XY position is %.3f mm from expected. This is more than allowed difference of %.3f mm."
     id: "XY_POSITION_INVALID"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX107"
     printers: [XL]
@@ -84,7 +84,7 @@ Errors:
     text: "Calibration pin has not been reached. Please check the pin installation."
     id: "PIN_NOT_REACHED"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX108"
     printers: [XL]
@@ -102,7 +102,7 @@ Errors:
     action: [Retry, Skip]
     id: "STEEL_SHEET_NOT_DETECTED"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX110"
     printers: [COREONE]
@@ -111,7 +111,7 @@ Errors:
     action: []
     id: "DOOR_OPEN"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX111"
     printers: [COREONE]
@@ -120,16 +120,16 @@ Errors:
     action: []
     id: "UNEVEN_BED_ALIGN_PROMPT"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX112"
     printers: [COREONE]
-    title: "CEILING CLEARANCE VIOLATION"
-    text: "The printer queued a move that may crash the model into the ceiling."
+    title: "CEILING CLEARANCE WARNING"
+    text: "A movement command risks causing the model to collide with the ceiling."
     action: []
     id: "CEILING_CLEARANCE_VIOLATION"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX113"
     printers: [MK4, MK3.5, COREONE, XL, iX]
@@ -137,7 +137,7 @@ Errors:
     text: "If the filament sensor is unresponsive, clean it from debris. Alternatively, you can disable it."
     id: "FILAMENT_SENSOR_STUCK_HELP"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX113"
     printers: [MINI]
@@ -145,7 +145,7 @@ Errors:
     text: "If the filament sensor is unresponsive, clean it from debris. Alternatively, you can disable it."
     id: "FILAMENT_SENSOR_STUCK_HELP"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX114"
     printers: [MK4, MK3.5, COREONE]
@@ -153,7 +153,7 @@ Errors:
     text: "If the filament sensor is unresponsive, clean it from debris."
     id: "FILAMENT_SENSOR_STUCK_HELP_MMU"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX115"
     printers: [MK4, MK3.5, COREONE, XL, iX]
@@ -161,13 +161,53 @@ Errors:
     text: "Filament sensors are disabled. Enable them manually after printing."
     id: "FILAMENT_SENSORS_DISABLED"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX115"
     printers: [MINI]
     title: "FSensors Disabled"
     text: "Filament sensors are disabled. Enable them manually after printing."
     id: "FILAMENT_SENSORS_DISABLED"
+    gui_layout: "warning_dialog"
+    approved: true
+
+  - code: "XX116"
+    title: "MAINTENANCE WARNING FAILS"
+    printers: [COREONE, MK4]
+    text: "Printer has detected multiple consecutive filament loading errors. We recommend checking Nextruder main-plate. Visit prusa.io/mmu-care"
+    action: [Continue]
+    id: "MAINTENANCE_WARNING_FAILS"
+    type: WARNING
+    gui_layout: "warning_dialog"
+    approved: false
+
+  - code: "XX116"
+    title: "MAINTENANCE WARNING FAILS"
+    printers: [MK3.5]
+    text: "Printer has detected multiple consecutive filament loading errors. We recommend checking the extruder. Visit prusa.io/mmu-care."
+    action: [Continue]
+    id: "MAINTENANCE_WARNING_FAILS"
+    type: WARNING
+    gui_layout: "warning_dialog"
+    approved: false
+
+  - code: "XX117"
+    title: "MAINTENANCE WARNING CHANGES"
+    printers: [COREONE, MK4]
+    text: "Maintenance Reminder. Filament changes have reached main-plate lifespan. Inspect the part and ensure you have a spare plate available. Visit prusa.io/mmu-care"
+    action: [Continue]
+    id: "MAINTENANCE_WARNING_CHANGES"
+    type: WARNING
+    gui_layout: "warning_dialog"
+    approved: false
+
+  - code: "XX117"
+    title: "MAINTENANCE WARNING CHANGES"
+    printers: [MK3.5]
+    text: "Maintenance Reminder. Filament changes have reached 30k. Inspect and clean the extruder. Visit prusa.io/mmu-care"
+    action: [Continue]
+    id: "MAINTENANCE_WARNING_CHANGES"
+    type: WARNING
     gui_layout: "warning_dialog"
     approved: false
 
@@ -307,7 +347,7 @@ Errors:
     text: "MCU in %s is overheated."
     id: "MCU_MAXTEMP_ERR"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX214"
     printers: [COREONE]
@@ -331,7 +371,7 @@ Errors:
     text: "Heatbed tile no. %d:\nDamaged tile or wiring.\nFollow online guide to diagnose."
     id: "MB_HEATER_DISCONNECTED"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX251"
     printers: [iX, XL]
@@ -339,7 +379,7 @@ Errors:
     text: "Heatbed tile no. %d:\nDamaged tile or wiring.\nFollow online guide to diagnose."
     id: "MB_HEATER_SHORT"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX252"
     printers: [iX, XL]
@@ -347,7 +387,7 @@ Errors:
     text: "Heatbed tile no. %d: \nTemperature measurement error; thermistor may be faulty."
     id: "MB_MINTEMP_ERR"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX253"
     printers: [iX, XL]
@@ -355,7 +395,7 @@ Errors:
     text: "Heatbed tile no. %d: \nTemperature measurement error; thermistor may be faulty."
     id: "MB_MAXTEMP_ERR"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX254"
     printers: [iX, XL]
@@ -363,7 +403,7 @@ Errors:
     text: "Heatbed tile no. %d: \nUnexpected temperature drop detected."
     id: "MB_DROP_TEMP"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX255"
     printers: [iX, XL]
@@ -371,7 +411,7 @@ Errors:
     text: "Heatbed tile no. %d:\n Unexpected temperature peak detected."
     id: "MB_PEAK_TEMP"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX256"
     printers: [iX, XL]
@@ -379,7 +419,7 @@ Errors:
     text: "Heatbed tile no. %d:\nPreheat error."
     id: "MB_PREHEAT_ERR"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX257"
     printers: [iX, XL]
@@ -387,7 +427,7 @@ Errors:
     text: "Heatbed tile no. %d:\nTest heating error."
     id: "MB_TEST_HEATING_ERR"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX258"
     printers: [iX]
@@ -395,15 +435,15 @@ Errors:
     text: "Heatbed connector no. %d:\nNothing should be connected here."
     id: "MB_HEATER_CONNECTED"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX259"
     printers: [COREONE, XL]
-    title: "FAILED TO REACH CHAMBER TEMPERATURE"
-    text: "Failing to reach target chamber temperature. Keep waiting?"
+    title: "CHAMBER WARMING UP"
+    text: "Target temperature not yet reached. Continue waiting?"
     id: "CHAMBER_FAILED_TO_REACH_TEMP"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX260"
     printers: [COREONE, XL]
@@ -411,6 +451,7 @@ Errors:
     text: "Chamber temperature above safety limit. Ensure better ventilation."
     id: "CHAMBER_OVERHEATING_TEMP"
     gui_layout: "warning_dialog"
+    approved: false
 
   - code: "XX261"
     printers: [COREONE, XL]
@@ -418,6 +459,7 @@ Errors:
     text: "Chamber temperature critical. Aborting print to prevent printer damage."
     id: "CHAMBER_CRITICAL_TEMP"
     gui_layout: "warning_dialog"
+    approved: false
 
   # ELECTRICAL     xx3xx
 
@@ -459,7 +501,7 @@ Errors:
     text: "Overcurrent detected."
     id: "MB_OVERCURRENT"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX303"
     printers: [iX, XL]
@@ -467,7 +509,7 @@ Errors:
     text: "Unexpected invalid current."
     id: "MB_INVALID_CURRENT"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX304"
     printers: [MINI, MK4, COREONE, iX, MK3.5]
@@ -616,7 +658,8 @@ Errors:
     text: "Power failure"
     id: "MB_FAULT"
     gui_layout: "red_screen"
-    
+    approved: true
+
   - code: "XX320"
     printers: [iX, XL]
     title: "MODULAR BED ERROR"
@@ -631,7 +674,7 @@ Errors:
     text: "Power panic detected on startup. Check power panic cable."
     id: "ACF_AT_INIT"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX322"
     printers: [XL]
@@ -639,14 +682,14 @@ Errors:
     text: "%s Check hotend heater and control electronics for possible damage"
     id: "HEATER_HOTEND_OVERCURRENT"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX323"
     title: "ACCELEROMETER COMMUNICATION FAILED"
     text: "Check that the accelerometer cable is plugged in and not damaged."
     id: "ACCELEROMETER_COMMUNICATION_FAILED"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX401"
     title: "CONNECT REGISTRATION FAILED"
@@ -655,13 +698,13 @@ Errors:
     approved: true
 
   # XX4402 NEW_WIFI_CREDENTIALS deprecated
-  
+
   - code: "XX403"
     title: "G-CODE METRICS CONFIG CHANGE"
     text: "Gcode is trying to change metrics configuration.\n\nAllow the changes?"
     id: "GCODE_METRICS_CONFIG_CHANGE"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX501"
     printers: [iX, XL]
@@ -677,13 +720,14 @@ Errors:
     text: "Dwarf board encountered the following problem: \n%s"
     id: "DWARF_UNKNOWN_ERR"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX503"
     printers: [XL]
     title: "DWARF ERROR"
     text: "Dwarf board %d fault: %s"
     id: "DWARF_MARLIN_ERR"
+    approved: false
     
   - code: "XX504"
     title: "ESP ERROR"
@@ -728,7 +772,7 @@ Errors:
     text: "Address assignment error"
     id: "PUPPY_ADDR_ASSIGN_ERR"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX512"
     printers: [iX, XL, COREONE]
@@ -736,7 +780,7 @@ Errors:
     text: "Unassigned puppy found"
     id: "PUPPY_NO_ADDR"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX513"
     printers: [iX, XL, COREONE]
@@ -744,7 +788,7 @@ Errors:
     text: "Puppy discovery error. No puppy found"
     id: "PUPPY_DISCOVER_ERR"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX514"
     printers: [iX, XL, COREONE]
@@ -752,7 +796,7 @@ Errors:
     text: "Puppy %s not responding"
     id: "PUPPY_NOT_RESPONDING"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX515"
     printers: [iX, XL, COREONE]
@@ -760,7 +804,7 @@ Errors:
     text: "Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
     id: "PUPPY_INCOMPATIBLE_BOOTLODER"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX516"
     printers: [iX, XL, COREONE]
@@ -768,7 +812,7 @@ Errors:
     text: "Unknown puppy type"
     id: "PUPPY_UNKNOWN_TYPE"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX517"
     printers: [iX, XL, COREONE]
@@ -776,7 +820,7 @@ Errors:
     text: "Unable to start puppy application"
     id: "PUPPY_START_APP_ERR"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX518"
     printers: [iX, XL, COREONE]
@@ -784,7 +828,7 @@ Errors:
     text: "Puppy %s firmware not found"
     id: "PUPPY_FW_NOT_FOUND"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX519"
     printers: [iX, XL, COREONE]
@@ -792,7 +836,7 @@ Errors:
     text: "Puppy %s flash writing failed"
     id: "PUPPY_WRITE_FLASH_ERR"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX520"
     printers: [iX, XL, COREONE]
@@ -800,7 +844,7 @@ Errors:
     text: "Puppy %s firmware fingerprint mismatch"
     id: "PUPPY_FINGERPRINT_MISMATCH"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX521"
     printers: [iX, XL, COREONE]
@@ -808,7 +852,7 @@ Errors:
     text: "Waiting for fingerprint timed out"
     id: "PUPPY_FINGERPRINT_TIMEOUT"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX522"
     printers: [iX, XL, COREONE]
@@ -816,7 +860,7 @@ Errors:
     text: "Waiting for puppies to start timed out"
     id: "PUPPY_RUN_TIMEOUT"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX523"
     printers: [MK4, COREONE, iX, XL, MK3.5]
@@ -895,20 +939,21 @@ Errors:
     title: "ESP NOT CONNECTED"
     text: "ESP doesn't seem to be connected."
     id: "ESP_NOT_CONNECTED"
-    approved: false
+    approved: true
 
   - code: "XX534"
     title: "Gcode Corruption"
     text: "Gcode on the USB drive is corrupt. Fix manually before resuming."
     id: "GCODE_CORRUPTION"
     gui_layout: "warning_dialog"
+    approved: false
 
   - code: "XX535"
     title: "Gcode Cropped"
     text: "G-code command was too long and did not fit in the internal buffers. As a result, it may have been executed incorrectly."
     id: "GCODE_CROPPED"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX536"
     printers: [XL]
@@ -916,7 +961,7 @@ Errors:
     text: "Extruder motor is not spinning on tool %d"
     id: "DWARF_TMC"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX601"
     title: "UNKNOWN ERROR"
@@ -1042,12 +1087,14 @@ Errors:
     text: "Use a different USB drive or reformat this one to the supported FAT32 file system."
     id: "USB_DRIVE_UNSUPPORTED_FILE_SYSTEM"
     gui_layout: "warning_dialog"
-    
+    approved: true
+
   - code: "XX801"
     title: "Warning"
     text: "Please complete Calibrations & Tests before using the printer."
     id: "UNFINISHED_SELFTEST"
     type: "CONNECT"
+    approved: true
 
   - code: "XX802"
     printers: [MINI]
@@ -1055,6 +1102,7 @@ Errors:
     text: "New FW available"
     id: "PRINT_PREVIEW_NEW_FW"
     type: "CONNECT"
+    approved: true
 
   - code: "XX802"
     printers: [MK4, COREONE, XL, MK3.5, iX]
@@ -1062,18 +1110,21 @@ Errors:
     text: "New firmware available"
     id: "PRINT_PREVIEW_NEW_FW"
     type: "CONNECT"
+    approved: true
 
   - code: "XX803"
     title: "Warning"
     text: "The G-code isn't fully compatible"
     id: "PRINT_PREVIEW_WRONG_PRINTER"
     type: "CONNECT"
+    approved: true
 
   - code: "XX804"
     title: "Warning"
     text: "Filament not detected. Load filament now?\nSelect NO to cancel the print.\nSelect DISABLE FS to disable the filament sensor and continue print."
     id: "PRINT_PREVIEW_NO_FILAMENT"
     type: "CONNECT"
+    approved: true
 
   - code: "XX805"
     printers: [MINI]
@@ -1081,6 +1132,7 @@ Errors:
     text: "This G-code was set up for another filament type."
     id: "PRINT_PREVIEW_WRONG_FILAMENT"
     type: "CONNECT"
+    approved: true
 
   - code: "XX805"
     printers: [MK4, COREONE, XL, MK3.5, iX]
@@ -1088,20 +1140,23 @@ Errors:
     text: "A filament specified in the G-code is either not loaded or wrong type."
     id: "PRINT_PREVIEW_WRONG_FILAMENT"
     type: "CONNECT"
-    
+    approved: true
+
   - code: "XX806"
     printers: [MK4, COREONE, MK3.5]
     title: "Warning"
     text: "Filament detected. Unload filament now? Select NO to start the print with the currently loaded filament."
     id: "PRINT_PREVIEW_MMU_FILAMENT_INSERTED"
     type: "CONNECT"
-    
+    approved: true
+
   - code: "XX807"
     title: "File error"
       #TODO what about this one? It is dynamically generated.
     text: "File error"
     id: "PRINT_PREVIEW_FILE_ERROR"
     type: "CONNECT"
+    approved: true
 
   - code: "XX808"
     title: "Warning"
@@ -1109,37 +1164,43 @@ Errors:
     id: "POWER_PANIC_COLD_BED"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX809"
     title: "CRASH DETECTED"
     text: "Length of an axis is too long.\nMotor current is too low, probably.\nRetry check, pause or resume the print?"
     id: "CRASH_RECOVERY_AXIS_LONG"
     type: "CONNECT"
+    approved: true
 
   - code: "XX810"
     title: "CRASH DETECTED"
     text: "Length of an axis is too short.\nThere's an obstacle or bearing issue.\nRetry check, pause or resume the print?"
     id: "CRASH_RECOVERY_AXIS_SHORT"
     type: "CONNECT"
+    approved: true
 
   - code: "XX811"
     title: "CRASH DETECTED"
     text: "Repeated collision has been detected.\nDo you want to resume or pause the print?"
     id: "CRASH_RECOVERY_REPEATED_CRASH"
     type: "CONNECT"
+    approved: true
 
   - code: "XX812"
     title: "CRASH DETECTED"
     text: "Unable to home the printer.\nDo you want to try again?"
     id: "CRASH_RECOVERY_HOME_FAIL"
     type: "CONNECT"
-    
+    approved: true
+
   - code: "XX813"
     printers: [XL]
     title: "CRASH DETECTED"
     text: "Toolchanger problem has been detected.\nPark all tools to docks\nand leave the carriage free."
     id: "CRASH_RECOVERY_TOOL_PICKUP"
     type: "CONNECT"
+    approved: true
 
   - code: "XX814"
     printers: [MK4, COREONE, XL, MK3.5]
@@ -1147,20 +1208,23 @@ Errors:
     text: "Changes of mapping available only in the Printer UI. Select Print to start the print with defaults."
     id: "PRINT_PREVIEW_TOOLS_MAPPING"
     type: "CONNECT"
-    
+    approved: true
+
   - code: "XX815"
     printers: [MK4, COREONE, MK3.5]
     title: "MMU Error" # This is a generic error for any MMU error, so we use generic title, until we send mmu errors directly
     text: "Waiting for user input"
     id: "MMU_LOAD_UNLOAD_ERROR"
     type: "CONNECT"
-    
+    approved: true
+
   - code: "XX816"
     title: "Warning"
     text: "Print fan not spinning. Check it for possible debris, then inspect the wiring."
     id: "PRINT_FAN_ERROR"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX817"
     printers: [iX]
@@ -1169,6 +1233,7 @@ Errors:
     id: "HEATERS_TIMEOUT"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX817"
     printers: [MINI, MK3.5, MK4, XL, COREONE]
@@ -1177,6 +1242,7 @@ Errors:
     id: "HEATERS_TIMEOUT"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX818"
     title: "Warning"
@@ -1184,6 +1250,7 @@ Errors:
     id: "HOTEND_TEMP_DISCREPANCY"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX819"
     printers: [iX]
@@ -1192,6 +1259,7 @@ Errors:
     id: "NOZZLE_TIMEOUT"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX819"
     printers: [MINI, MK3.5, MK4, XL, COREONE]
@@ -1200,6 +1268,7 @@ Errors:
     id: "NOZZLE_TIMEOUT"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX820"
     title: "Warning"
@@ -1207,6 +1276,7 @@ Errors:
     id: "STEPPERS_TIMEOUT"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX821"
     title: "Warning"
@@ -1214,6 +1284,7 @@ Errors:
     id: "USB_FLASH_DISK_ERROR"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX822"
     title: "Warning"
@@ -1221,6 +1292,7 @@ Errors:
     id: "HEATBREAK_THERMISTOR_FAIL"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX823"
     printers: [XL, MK3.5]
@@ -1229,6 +1301,7 @@ Errors:
     id: "NOZZLE_DOES_NOT_HAVE_ROUND_SECTION"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX824"
     title: "Warning"
@@ -1236,6 +1309,7 @@ Errors:
     id: "NOT_DOWNLOADED"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX825"
     title: "Warning"
@@ -1243,6 +1317,7 @@ Errors:
     id: "BUDDY_MCU_MAX_TEMP"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX826"
     printers: [XL]
@@ -1251,6 +1326,7 @@ Errors:
     id: "DWARF_MCU_MAX_TEMP"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX827"
     printers: [iX, XL]
@@ -1259,6 +1335,7 @@ Errors:
     id: "MOD_BED_MCU_MAX_TEMP"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX828"
     title: "Warning"
@@ -1266,6 +1343,7 @@ Errors:
     id: "HOTEND_FAN_ERROR"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX829"
     # Unfortunately, the printer doesn't know if it is out of filament because
@@ -1276,6 +1354,7 @@ Errors:
     text: "Please replace filament."
     id: "FILAMENT_RUNOUT"
     type: "CONNECT"
+    approved: true
 
   - code: "XX830"
     printers: [XL]
@@ -1284,6 +1363,7 @@ Errors:
     id: "ENCLOSURE_FAN_ERROR"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX831"
     printers: [XL]
@@ -1292,6 +1372,7 @@ Errors:
     id: "ENCLOSURE_FILTER_EXPIRATION_WARNING"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX832"
     printers: [XL]
@@ -1300,6 +1381,7 @@ Errors:
     id: "ENCLOSURE_FILTER_EXPIRATION"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX833"
     printers: [iX, MK4, COREONE, MK3.5, MINI, XL]
@@ -1308,6 +1390,7 @@ Errors:
     id: "PROBING_FAILED"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX834"
     printers: [iX, MK4, COREONE, XL]
@@ -1316,13 +1399,15 @@ Errors:
     id: "NOZZLE_CLEANING_FAILED"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX835"
     printers: [iX, MK4, COREONE, MK3.5, MINI, XL]
     title: "Quick Pause"
-    text: "Waiting for the user. Press \"Resume\" once the printer is ready."
+    text: 'Waiting for the user. Press "Resume" once the printer is ready.'
     id: "QUICK_PAUSE"
     type: "CONNECT"
+    approved: true
 
   - code: "XX836"
     title: "Loading Timeout"
@@ -1330,6 +1415,7 @@ Errors:
     id: "FILAMENT_LOADING_TIMEOUT"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX837"
     printers: [COREONE]
@@ -1338,6 +1424,7 @@ Errors:
     id: "OPEN_CHAMBER_VENTS"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX838"
     printers: [COREONE]
@@ -1346,6 +1433,7 @@ Errors:
     id: "CLOSE_CHAMBER_VENTS"
     type: "CONNECT"
     gui_layout: "warning_dialog"
+    approved: true
 
   - code: "XX839"
     printers: [COREONE]
@@ -1354,7 +1442,7 @@ Errors:
     id: "CHAMBER_COOLING_FAN_ERROR"
     type: "CONNECT"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX840"
     printers: [XL, COREONE]
@@ -1363,4 +1451,4 @@ Errors:
     id: "CHAMBER_FILTRATION_FAN_ERROR"
     type: "CONNECT"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
