@@ -78,7 +78,8 @@ static void set_chamber_temperature(buddy::Temperature target, bool wait_for_hea
         return;
     }
 
-    chamber().set_target_temperature(target);
+    // The temperature might have gotten cropped due to chamber limitations - make sure that we're waiting for the one that is actually set
+    target = *chamber().set_target_temperature(target);
     if (!wait_for_cooling && !wait_for_heating) {
         return;
     }

@@ -150,7 +150,7 @@ std::optional<Temperature> Chamber::target_temperature() const {
     return target_temperature_;
 }
 
-void Chamber::set_target_temperature(std::optional<Temperature> target) {
+std::optional<Temperature> Chamber::set_target_temperature(std::optional<Temperature> target) {
     std::lock_guard _lg(mutex_);
     target_temperature_ = target;
 
@@ -161,6 +161,8 @@ void Chamber::set_target_temperature(std::optional<Temperature> target) {
 
     METRIC_DEF(metric_chamber_ttemp, "chamber_ttemp", METRIC_VALUE_FLOAT, 1000, METRIC_DISABLED);
     metric_record_float(&metric_chamber_ttemp, target_temperature_.value_or(NAN));
+
+    return target_temperature_;
 }
 
 void Chamber::reset() {

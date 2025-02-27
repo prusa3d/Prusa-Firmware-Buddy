@@ -2,8 +2,9 @@
 
 namespace buddy {
 
-void Chamber::set_target_temperature(std::optional<Temperature> target) {
+std::optional<Temperature> Chamber::set_target_temperature(std::optional<Temperature> target) {
     target_temperature_ = target;
+    return target;
 }
 
 std::optional<Temperature> Chamber::target_temperature() const {

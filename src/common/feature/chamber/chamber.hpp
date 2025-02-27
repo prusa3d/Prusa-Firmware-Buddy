@@ -31,6 +31,7 @@ public: // Common/utilities
         /// In that situation, the temperature control widgets will be visible, but disabled
         bool always_show_temperature_control = false;
 
+        /// Maximum temperature the chamber is allowed to reach
         std::optional<Temperature> max_temp = std::nullopt;
 
         inline bool temperature_control() const {
@@ -71,7 +72,8 @@ public: // Temperature control
     std::optional<Temperature> target_temperature() const;
 
     /// Sets the \param target temperature. Can be nullopt if we are not interested in controlling the temperature at all.
-    void set_target_temperature(std::optional<Temperature> target);
+    /// \returns the target temperature the chamber was actually set to - might differe because of capabilities().max_temp
+    std::optional<Temperature> set_target_temperature(std::optional<Temperature> target);
 
 #if PRINTER_IS_PRUSA_COREONE()
     /// Check the state of chamber grills (vents). Can be open/closed based on chamber target temperature
