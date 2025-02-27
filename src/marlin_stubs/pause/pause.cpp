@@ -57,6 +57,11 @@
 #include <option/has_mmu2.h>
 #include <option/has_wastebin.h>
 
+#include <option/has_auto_retract.h>
+#if HAS_AUTO_RETRACT()
+    #include <feature/auto_retract/auto_retract.hpp>
+#endif
+
 LOG_COMPONENT_REF(MarlinServer);
 
 #ifndef NOZZLE_UNPARK_XY_FEEDRATE
@@ -711,6 +716,15 @@ void Pause::eject_process([[maybe_unused]] Response response) {
 }
 
 void Pause::load_prime_process([[maybe_unused]] Response response) {
+#if HAS_AUTO_RETRACT()
+    if (!marlin_server::is_printing()) {
+        // Only retract from nozzle outside printing
+        auto_retract().maybe_retract_from_nozzle();
+        set(LoadState::_finish);
+        return;
+    }
+#endif
+
     if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
         // Feed a little bit of filament to stabilize pressure in nozzle
 
@@ -825,6 +839,15 @@ void Pause::filament_stuck_ask_process(Response response) {
 #endif
 
 void Pause::ram_sequence_process([[maybe_unused]] Response response) {
+#if HAS_AUTO_RETRACT()
+    if (auto_retract().is_retracted()) {
+        // The filament is already retracted from the nozzle -> no ramming needed, we don't even need to heat up the nozzle
+        ram_retracted_distance = auto_retract().retracted_distance();
+        set(LoadState::unload);
+        return;
+    }
+#endif
+
     ram_filament(50);
     set(LoadState::unload);
 }

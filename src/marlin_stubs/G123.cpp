@@ -6,6 +6,12 @@
 #include <module/planner.h>
 #include <gcode/queue.h>
 #include <scope_guard.hpp>
+#include <marlin_vars.hpp>
+
+#include <option/has_auto_retract.h>
+#if HAS_AUTO_RETRACT()
+    #include <feature/auto_retract/auto_retract.hpp>
+#endif
 
 /** \addtogroup G-Codes
  * @{
@@ -49,6 +55,13 @@ void PrusaGcodeSuite::G123() {
 
     // Reset to default parameters for the duration of this gcode
     Motion_Parameters::reset();
+
+#if HAS_AUTO_RETRACT()
+    // When the user takes manual control over the extruder, do not do any retracting/deretracting moves
+    if (target_pos.e != current_position.e) {
+        buddy::auto_retract().mark_as_retracted(marlin_vars().active_hotend_id(), false);
+    }
+#endif
 
     while (true) {
         // Check this at the end - we want to plan at least one segment

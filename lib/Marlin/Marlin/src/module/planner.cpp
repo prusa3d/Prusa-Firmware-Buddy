@@ -109,6 +109,11 @@
   #include <feature/emergency_stop/emergency_stop.hpp>
 #endif
 
+#include <option/has_auto_retract.h>
+#if HAS_AUTO_RETRACT()
+  #include <feature/auto_retract/auto_retract.hpp>
+#endif
+
 #include "configuration_store.h"
 
 constexpr const int32_t MIN_MSTEPS_PER_SEGMENT = MIN_STEPS_PER_SEGMENT * PLANNER_STEPS_MULTIPLIER;
@@ -2125,6 +2130,17 @@ bool Planner::buffer_segment(const abce_pos_t &abce
 
     // Check once more (this could have changed during the maybe_block)
     if (draining_buffer || PreciseStepping::stopping()) return false;
+  }
+#endif
+
+#if HAS_AUTO_RETRACT()
+  if(target.e > position.e) {
+    buddy::auto_retract().maybe_deretract_to_nozzle();
+    
+  } else if(buddy::auto_retract().is_retracted()) {
+    // Ignore retraction commands if we're retracted to prevent the filament getting out of the extruder
+    position.e = target.e;
+    position_float.e = abce.e;
   }
 #endif
 

@@ -162,6 +162,11 @@
     #include <feature/emergency_stop/emergency_stop.hpp>
 #endif
 
+#include <option/has_auto_retract.h>
+#if HAS_AUTO_RETRACT()
+    #include <feature/auto_retract/auto_retract.hpp>
+#endif
+
 #include <wui.h>
 
 using namespace ExtUI;
@@ -797,8 +802,15 @@ static void pre_finalize_print([[maybe_unused]] bool finished) {
     if (MMU2::mmu2.Enabled() && (!finished || GCodeInfo::getInstance().is_singletool_gcode())) {
         // When we are running single-filament gcode with MMU, we should unload current filament.
         safely_unload_filament_from_nozzle_to_mmu();
-    }
+    } else
 #endif // ENABLED(PRUSA_MMU2)
+#if HAS_AUTO_RETRACT()
+        if (true) {
+        buddy::auto_retract().maybe_retract_from_nozzle();
+    } else
+#endif
+    {
+    }
 }
 
 void static finalize_print(bool finished) {
