@@ -10,6 +10,11 @@
 #include <option/has_touch.h>
 #include <sys.h>
 
+#include <option/has_auto_retract.h>
+#if HAS_AUTO_RETRACT()
+    #include <feature/auto_retract/auto_retract.hpp>
+#endif
+
 namespace config_store_ns {
 #if not HAS_CONFIG_STORE_WO_BACKEND()
 static_assert((sizeof(CurrentStore) + aggregate_arity<CurrentStore>() * sizeof(journal::Backend::ItemHeader)) < (BANK_SIZE / 100) * 75, "EEPROM bank is almost full");
@@ -572,6 +577,13 @@ void CurrentStore::set_filament_type(uint8_t index, FilamentType value) {
         value = AdHocFilamentType { .tool = index };
         value.set_parameters(pending_adhoc_filament_parameters);
     }
+
+#if HAS_AUTO_RETRACT()
+    if (value == FilamentType::none) {
+        // On filadment removal, also mark the hotend as non-retracted (meaning does not need deretracting)
+        buddy::auto_retract().mark_as_retracted(HAS_TOOLCHANGER() ? index : 0, false);
+    }
+#endif
 
     loaded_filament_type.set(index, value);
 }

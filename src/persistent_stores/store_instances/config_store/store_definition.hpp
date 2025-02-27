@@ -43,6 +43,7 @@
 #include <option/has_precise_homing.h>
 #include <option/developer_mode.h>
 #include <option/has_chamber_filtration_api.h>
+#include <option/has_auto_retract.h>
 #include <common/extended_printer_type.hpp>
 #include <common/hw_check.hpp>
 #include <pwm_utils.hpp>
@@ -614,6 +615,13 @@ struct CurrentStore
     StoreItem<uint8_t, 10, journal::hash("Chamber filtration post print duration")> chamber_post_print_filtration_duration_min;
     StoreItem<PWM255, 10, journal::hash("Chamber mid print filtration pwm")> chamber_mid_print_filtration_pwm;
     StoreItem<PWM255, 128, journal::hash("Chamber post print filtration pwm")> chamber_post_print_filtration_pwm;
+#endif
+
+#if HAS_AUTO_RETRACT()
+    /// Bitset, one bit for each hotend
+    /// !!! Do not set directly, always use auto_retract().mark_as_retracted
+    StoreItem<uint8_t, 0, journal::hash("Filament auto-retracted")> filament_auto_retracted_bitset;
+    static_assert(HOTENDS <= 8);
 #endif
 
 private:

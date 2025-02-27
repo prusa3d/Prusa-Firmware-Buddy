@@ -1,1 +1,1 @@
-target_sources(firmware PRIVATE ramming_sequence.cpp)
+target_sources(firmware PRIVATE ramming_sequence.cpp standard_ramming_sequence.cpp)

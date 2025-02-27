@@ -18,4 +18,8 @@ if(HAS_EMERGENCY_STOP)
   add_subdirectory(emergency_stop)
 endif()
 
+if(HAS_AUTO_RETRACT)
+  add_subdirectory(auto_retract)
+endif()
+
 add_subdirectory(ramming)
