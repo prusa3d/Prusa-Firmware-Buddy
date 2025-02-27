@@ -3,6 +3,7 @@
 #include <span>
 #include <array>
 #include <inplace_function.hpp>
+#include <cstdint>
 
 namespace buddy {
 
