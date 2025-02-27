@@ -49,8 +49,8 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_temperature = 215,
             .heatbed_temperature = 60,
 #if HAS_CHAMBER_API()
-            .chamber_min_temperature = std::nullopt,
-            .chamber_max_temperature = 30,
+            .chamber_min_temperature = 15,
+            .chamber_max_temperature = 38,
             .chamber_target_temperature = 20,
 #endif
         },
@@ -62,8 +62,8 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_temperature = 230,
             .heatbed_temperature = 85,
 #if HAS_CHAMBER_API()
-            .chamber_min_temperature = std::nullopt,
-            .chamber_max_temperature = 40,
+            .chamber_min_temperature = 15,
+            .chamber_max_temperature = 45,
             .chamber_target_temperature = 30,
 #endif
         },
@@ -76,8 +76,8 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .heatbed_temperature = 100,
 #if HAS_CHAMBER_API()
             .chamber_min_temperature = 40,
-            .chamber_max_temperature = std::nullopt,
-            .chamber_target_temperature = std::nullopt,
+            .chamber_max_temperature = 75,
+            .chamber_target_temperature = 70,
             .requires_filtration = true,
 #endif
         },
@@ -91,8 +91,8 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .heatbed_temperature = 100,
 #if HAS_CHAMBER_API()
             .chamber_min_temperature = 40,
-            .chamber_max_temperature = std::nullopt,
-            .chamber_target_temperature = std::nullopt,
+            .chamber_max_temperature = 80,
+            .chamber_target_temperature = 75,
             .requires_filtration = true,
 #endif
         },
@@ -104,8 +104,8 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_temperature = 215,
             .heatbed_temperature = 75,
 #if HAS_CHAMBER_API()
-            .chamber_min_temperature = std::nullopt,
-            .chamber_max_temperature = 30,
+            .chamber_min_temperature = 15,
+            .chamber_max_temperature = 38,
             .chamber_target_temperature = 20,
 #endif
         },
@@ -118,8 +118,8 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .heatbed_temperature = 100,
 #if HAS_CHAMBER_API()
             .chamber_min_temperature = 40,
-            .chamber_max_temperature = std::nullopt,
-            .chamber_target_temperature = std::nullopt,
+            .chamber_max_temperature = 75,
+            .chamber_target_temperature = 70,
             .requires_filtration = true,
 #endif
         },
@@ -132,8 +132,8 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .heatbed_temperature = 100,
 #if HAS_CHAMBER_API()
             .chamber_min_temperature = 40,
-            .chamber_max_temperature = std::nullopt,
-            .chamber_target_temperature = std::nullopt,
+            .chamber_max_temperature = 75,
+            .chamber_target_temperature = 70,
             .requires_filtration = true,
 #endif
         },
@@ -145,9 +145,9 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_temperature = 240,
             .heatbed_temperature = 100,
 #if HAS_CHAMBER_API()
-            .chamber_min_temperature = 40,
-            .chamber_max_temperature = std::nullopt,
-            .chamber_target_temperature = std::nullopt,
+            .chamber_min_temperature = 30,
+            .chamber_max_temperature = 70,
+            .chamber_target_temperature = 60,
             .requires_filtration = true,
 #endif
         },
@@ -160,9 +160,9 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .nozzle_preheat_temperature = HAS_LOADCELL() ? 170 : 210,
             .heatbed_temperature = 50,
 #if HAS_CHAMBER_API()
-            .chamber_min_temperature = std::nullopt,
+            .chamber_min_temperature = 15,
             .chamber_max_temperature = 40,
-            .chamber_target_temperature = 30,
+            .chamber_target_temperature = 25,
             .requires_filtration = true,
 #endif
         },
@@ -176,8 +176,8 @@ constexpr EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentTy
             .heatbed_temperature = 100,
 #if HAS_CHAMBER_API()
             .chamber_min_temperature = 40,
-            .chamber_max_temperature = std::nullopt,
-            .chamber_target_temperature = std::nullopt,
+            .chamber_max_temperature = 70,
+            .chamber_target_temperature = 65,
 #endif
         },
     },
@@ -188,6 +188,21 @@ constexpr bool temperatures_are_within_spec(const FilamentTypeParameters &filame
         && (filament.heatbed_temperature <= BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN);
 }
 static_assert(std::ranges::all_of(preset_filament_parameters, temperatures_are_within_spec));
+
+#if HAS_CHAMBER_API()
+constexpr bool chamber_temperatures_are_within_spec(const FilamentTypeParameters &filament) {
+    // If one chamber parameter is specified, all should be specified
+    if (!filament.chamber_min_temperature.has_value() && !filament.chamber_max_temperature.has_value() && !filament.chamber_target_temperature.has_value()) {
+        return true;
+    }
+    if (!filament.chamber_min_temperature.has_value() || !filament.chamber_max_temperature.has_value() || !filament.chamber_target_temperature.has_value()) {
+        return false;
+    }
+
+    return (*filament.chamber_min_temperature <= *filament.chamber_target_temperature) && (*filament.chamber_target_temperature <= *filament.chamber_max_temperature);
+}
+static_assert(std::ranges::all_of(preset_filament_parameters, chamber_temperatures_are_within_spec));
+#endif
 
 FilamentTypeParameters pending_adhoc_filament_parameters {
     .name { 'C', 'U', 'S', 'T', 'O', 'M', '\0' }
