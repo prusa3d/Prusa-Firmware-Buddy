@@ -79,14 +79,20 @@ void CorrectedCurrentLut::clear() {
 }
 
 void CorrectedCurrentLut::_update_phase_shift() {
+    std::array<SpectralItemG<int>, opts::CORRECTION_HARMONICS + 1> fixed_spectrum;
+    for (size_t i = 0; i != _spectrum.size(); i++) {
+        fixed_spectrum[i].mag = mag_to_fixed(_spectrum[i].mag);
+        fixed_spectrum[i].pha = pha_to_fixed(_spectrum[i].pha);
+    }
+
     for (size_t i = 0; i != _phase_shift.size(); i++) {
-        float item_phase = i * 2 * std::numbers::pi_v<float> / MOTOR_PERIOD;
-        float phase_shift = 0;
-        for (size_t n = 0; n != _spectrum.size(); n++) {
-            const SpectralItem &s = _spectrum[n];
-            phase_shift += s.mag * std::sin(n * item_phase + s.pha);
+        int item_phase = i * SIN_FRACTION;
+        int phase_shift = 0;
+        for (size_t n = 0; n != fixed_spectrum.size(); n++) {
+            const auto &s = fixed_spectrum[n];
+            phase_shift += s.mag * sin_lut(n * item_phase + s.pha);
         }
-        _phase_shift[i] = std::round(SIN_PERIOD / (2 * std::numbers::pi_v<float>)*phase_shift);
+        _phase_shift[i] = phase_shift >> (SIN_LUT_FRACTIONAL + MAG_FRACTIONAL);
     }
 }
 
