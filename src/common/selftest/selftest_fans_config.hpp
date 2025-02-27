@@ -5,9 +5,19 @@
 
 namespace fan_selftest {
 
+using FanRPM = uint16_t;
+
 struct FanRPMRange {
-    uint16_t rpm_min;
-    uint16_t rpm_max;
+    FanRPM rpm_min;
+    FanRPM rpm_max;
+
+    static consteval FanRPMRange nominal_with_percentual_tolerance(FanRPM nominal, uint8_t tolerance_percent) {
+        const FanRPM tolerance_rpm = static_cast<FanRPM>(nominal / 100.0f * tolerance_percent);
+        return FanRPMRange {
+            .rpm_min = static_cast<FanRPM>(nominal - tolerance_rpm),
+            .rpm_max = static_cast<FanRPM>(nominal + tolerance_rpm),
+        };
+    }
 };
 
 constexpr FanRPMRange benevolent_fan_range = { .rpm_min = 10, .rpm_max = 10000 };
@@ -24,7 +34,8 @@ constexpr FanRPMRange heatbreak_fan_range = { .rpm_min = 6800, .rpm_max = 8700 }
 #elif PRINTER_IS_PRUSA_COREONE()
 constexpr FanRPMRange print_fan_range = { .rpm_min = 5130, .rpm_max = 6799 };
 constexpr FanRPMRange heatbreak_fan_range = { .rpm_min = 6800, .rpm_max = 8700 };
-constexpr FanRPMRange chamber_fan_range = { .rpm_min = uint16_t(8500 * 0.85), .rpm_max = uint16_t(8500 * 1.15) };
+
+constexpr FanRPMRange chamber_fan_range = FanRPMRange::nominal_with_percentual_tolerance(8500, 15);
 #else
 constexpr FanRPMRange print_fan_range = benevolent_fan_range;
 constexpr FanRPMRange heatbreak_fan_range = benevolent_fan_range;
