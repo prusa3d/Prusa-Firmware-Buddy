@@ -13,12 +13,20 @@ using namespace phase_stepping::opts;
 
 // Module definitions
 
-static const auto sin_lut_values = []() {
-    // Build 1/4 of sin period
+static const auto sin_lut_values = []() consteval {
+    // Build 1/4 of sin period mapping sin values to 0-FIXED_ONE range. This
+    // range is selected such that:
+    // - we have 2 bytes per value
+    // - any scaling can be done by multiplying followed by a SIN_LUT_FRACTIONAL
+    //   right shift
+
+    static_assert(SIN_LUT_FRACTIONAL < 16, "SIN_LUT_FRACTIONAL must be less than 16 to fit in uint16_t");
     static constexpr int QUARTER = SIN_PERIOD / 4;
-    std::array<uint8_t, QUARTER + 1> values;
+    static constexpr int FIXED_ONE = 1 << SIN_LUT_FRACTIONAL;
+
+    std::array<uint16_t, QUARTER + 1> values;
     for (size_t i = 0; i != values.size(); i++) {
-        values[i] = CURRENT_AMPLITUDE * sin(std::numbers::pi_v<float> / 2.f * i / QUARTER) + 0.5;
+        values[i] = std::lround(FIXED_ONE * sin(std::numbers::pi_v<float> / 2.f * i / QUARTER));
     }
 
     return values;
@@ -26,22 +34,27 @@ static const auto sin_lut_values = []() {
 
 // Function definitions
 
-int phase_stepping::sin_lut(int x) {
+int phase_stepping::sin_lut(int x, int range) {
     x = normalize_sin_phase(x);
+
+    auto rescale = [&](uint32_t x) -> int {
+        return (x * range) >> SIN_LUT_FRACTIONAL;
+    };
+
     if (x <= SIN_PERIOD / 4) {
-        return sin_lut_values[x];
+        return rescale(sin_lut_values[x]);
     }
     if (x <= SIN_PERIOD / 2) {
-        return sin_lut_values[SIN_PERIOD / 2 - x];
+        return rescale(sin_lut_values[SIN_PERIOD / 2 - x]);
     }
     if (x <= 3 * SIN_PERIOD / 4) {
-        return -sin_lut_values[x - SIN_PERIOD / 2];
+        return -rescale(sin_lut_values[x - SIN_PERIOD / 2]);
     }
-    return -sin_lut_values[SIN_PERIOD - x];
+    return -rescale(sin_lut_values[SIN_PERIOD - x]);
 };
 
-int phase_stepping::cos_lut(int x) {
-    return sin_lut(x + SIN_PERIOD / 4);
+int phase_stepping::cos_lut(int x, int range) {
+    return sin_lut(x + SIN_PERIOD / 4, range);
 }
 
 int phase_stepping::normalize_sin_phase(int phase) {
@@ -80,7 +93,7 @@ void CorrectedCurrentLut::_update_phase_shift() {
 CoilCurrents CorrectedCurrentLut::get_current(int idx) const {
     int pha = SIN_FRACTION * idx + _phase_shift[normalize_motor_phase(idx)];
     return {
-        sin_lut(pha), cos_lut(pha)
+        sin_lut(pha, CURRENT_AMPLITUDE), cos_lut(pha, CURRENT_AMPLITUDE)
     };
 }
 

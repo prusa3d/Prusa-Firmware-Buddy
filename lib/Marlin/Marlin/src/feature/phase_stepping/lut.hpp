@@ -12,10 +12,10 @@ namespace phase_stepping {
 
 /**
  * Lookup table-based implementation of sin/cos that uses MOTOR_PERIOD as its
- * period. Returns integral value that is scaled to 248 - TMC max value.
+ * period. Returns integral value scaled to given range.
  */
-int sin_lut(int x);
-int cos_lut(int x);
+int sin_lut(int x, int range = 1 << opts::SIN_LUT_FRACTIONAL);
+int cos_lut(int x, int range = 1 << opts::SIN_LUT_FRACTIONAL);
 
 /**
  * Given a phase, normalize it into range <0, MOTOR_PERIOD)
