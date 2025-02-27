@@ -51,6 +51,7 @@
 #include <filament_to_load.hpp>
 #include <common/marlin_client.hpp>
 #include <common/mapi/parking.hpp>
+#include <feature/ramming/ramming_sequence.hpp>
 
 #include <option/has_human_interactions.h>
 #include <option/has_mmu2.h>
@@ -689,10 +690,7 @@ void Pause::eject_process([[maybe_unused]] Response response) {
     }
 #endif
 
-    setPhase(is_unstoppable() ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 98);
-    ram_filament();
-
-    planner.synchronize(); // do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
+    ram_filament(98);
 
     setPhase(is_unstoppable() ? PhasesLoadUnload::Ejecting_unstoppable : PhasesLoadUnload::Ejecting_stoppable, 99);
     unload_filament();
@@ -827,13 +825,7 @@ void Pause::filament_stuck_ask_process(Response response) {
 #endif
 
 void Pause::ram_sequence_process([[maybe_unused]] Response response) {
-    if (!ensureSafeTemperatureNotifyProgress(0, 50)) {
-        settings.do_stop = true;
-        return;
-    }
-
-    setPhase(is_unstoppable() ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 50);
-    ram_filament();
+    ram_filament(50);
     set(LoadState::unload);
 }
 
@@ -1315,15 +1307,33 @@ void Pause::filament_change(const pause::Settings &settings_, bool is_filament_s
     ui.reset_status();
 #endif
 }
-void Pause::ram_filament() {
-    get_ramming_sequence().execute([this] {
+void Pause::ram_filament(uint8_t progress_percent) {
+    if (!ensureSafeTemperatureNotifyProgress(0, 50)) {
+        return;
+    }
+
+    setPhase(is_unstoppable() ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, progress_percent);
+
+    const RammingSequence *ramming_sequence = nullptr;
+
+    switch (load_type) {
+    case LoadType::filament_change:
+    case LoadType::filament_stuck:
+        ramming_sequence = &runoutRammingSequence;
+        break;
+
+    default:
+        ramming_sequence = &unloadRammingSequence;
+        break;
+    }
+
+    ram_retracted_distance = ramming_sequence->retracted_distance();
+    ramming_sequence->execute([this] {
         return !check_user_stop();
     });
 }
 
 void Pause::unload_filament() {
-    const RammingSequence &sequence = get_ramming_sequence();
-
     const float saved_acceleration = planner.user_settings.retract_acceleration;
     {
         auto s = planner.user_settings;
@@ -1331,24 +1341,16 @@ void Pause::unload_filament() {
         planner.apply_settings(s);
     }
 
-    // subtract the already performed extruder movement from the total unload length and ensure it is negative
+    // The ramming that happened before the unload already resulted in some amount of retraction -> subtract that
+    const float remaining_unload_length = std::max<float>(std::abs(settings.unload_length) - ram_retracted_distance, 0);
 
-    const float remaining_unload_length = std::max<float>(std::abs(settings.unload_length) - sequence.retracted_distance(), 0);
-    do_e_move_notify_progress_hotextrude(-remaining_unload_length, (FILAMENT_CHANGE_UNLOAD_FEEDRATE), 51, 99);
+    // At this point, we are already rammed (so the filament is out of the nozzle), so we do not need to enforce nozzle temp
+    do_e_move_notify_progress_coldextrude(-remaining_unload_length, (FILAMENT_CHANGE_UNLOAD_FEEDRATE), 51, 99);
 
     {
         auto s = planner.user_settings;
         s.retract_acceleration = saved_acceleration;
         planner.apply_settings(s);
-    }
-}
-const RammingSequence &Pause::get_ramming_sequence() const {
-    switch (load_type) {
-    case LoadType::filament_change:
-    case LoadType::filament_stuck:
-        return runoutRammingSequence;
-    default:
-        return unloadRammingSequence;
     }
 }
 

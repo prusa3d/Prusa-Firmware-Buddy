@@ -16,7 +16,6 @@
 #include "IPause.hpp"
 #include <array>
 #include "Marlin/src/libs/stopwatch.h"
-#include <feature/ramming/ramming_sequence.hpp>
 
 #include <option/has_human_interactions.h>
 #include <option/has_nozzle_cleaner.h>
@@ -120,6 +119,9 @@ class Pause : public PausePrivatePhase {
 
     uint32_t start_time_ms { 0 };
     uint32_t runout_timer_ms { 0 };
+
+    /// How much filament was retracted thanks to ramming
+    float ram_retracted_distance = 0;
 
     // singleton
     Pause() = default;
@@ -280,9 +282,8 @@ private:
     /// If Help response is displayed, shows a help dialog and provides options to resolve
     void handle_help(Response response);
 
-    void ram_filament();
+    void ram_filament(uint8_t progress_percent);
     void unload_filament();
-    const buddy::RammingSequence &get_ramming_sequence() const;
 
     // create finite state machine and automatically destroy it at the end of scope
     // parks in ctor and unparks in dtor
