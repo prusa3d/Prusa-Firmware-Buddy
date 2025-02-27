@@ -39,6 +39,9 @@ public: // Fans
     /// \returns measured RPM of the specified fan
     std::optional<FanRPM> fan_rpm(Fan fan) const;
 
+    /// \returns False on unexpected fan behaviour (positive PWM but 0 RPM)
+    bool is_fan_ok(const Fan fan);
+
     /// \returns shared target PWM of the specified fan
     FanPWMOrAuto fan_target_pwm(Fan fan) const;
 
@@ -66,8 +69,8 @@ public: // Fans
 
     void set_max_cooling_pwm(PWM255 set);
 
-    /// \returns False on unexpected fan behaviour (positive PWM but 0 RPM)
-    bool is_fan_ok(const Fan fan);
+    /// \returns whether the current configuration allows automatic chamber cooling (cooling fans are not set to a hard value)
+    bool can_auto_cool() const;
 
 public: // LEDs
     /// \returns color set for the bed LED strip
@@ -118,6 +121,7 @@ private:
     // keeps fan power up timestamp to measure headstart delay
     uint32_t fan_start_timestamp[xbuddy_extension_shared::fan_count] = {};
 
+    bool can_auto_cool_ = false;
     bool overheating_warning_shown = false;
     bool critical_warning_shown = false;
 };

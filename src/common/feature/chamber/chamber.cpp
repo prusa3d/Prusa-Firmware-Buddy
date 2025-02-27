@@ -80,11 +80,8 @@ Chamber::Capabilities Chamber::capabilities_nolock() const {
     case Backend::xbuddy_extension:
         return Capabilities {
             .temperature_reporting = true,
-
-            // The chamber can effectively control temperature only if the fans are in auto mode
-                .cooling = (xbuddy_extension().fan_target_pwm(XBuddyExtension::Fan::cooling_fan_1) == pwm_auto),
-
-            // But always show temperature control menu items, even if disabled
+            .cooling = xbuddy_extension().can_auto_cool(),
+            // Always show temperature control menu items, even if auto cooling is disabled
                 .always_show_temperature_control = true,
 
     #if PRINTER_IS_PRUSA_COREONE()

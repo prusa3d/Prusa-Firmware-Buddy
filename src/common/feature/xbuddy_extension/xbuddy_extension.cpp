@@ -78,17 +78,20 @@ void XBuddyExtension::step() {
             // The filtration fan does both filtration and cooling
             cooling_fans_actual_pwm_ = cooling_fans_target_pwm_.value_or(FanPWM { 0 });
             filtration_fan_actual_pwm_ = std::max(chamber_cooling.compute_pwm_step(*temp, target_temp, filtration_fan_target_pwm_, max_auto_pwm), filtration_pwm);
+            can_auto_cool_ = (filtration_fan_target_pwm_ == pwm_auto);
             break;
 
         case ChamberFiltrationBackend::xbe_filter_on_cooling_fans:
             // The cooling fans do both filtration and cooling
             cooling_fans_actual_pwm_ = std::max(chamber_cooling.compute_pwm_step(*temp, target_temp, cooling_fans_target_pwm_, max_auto_pwm), filtration_pwm);
             filtration_fan_actual_pwm_ = filtration_fan_target_pwm_.value_or(FanPWM { 0 });
+            can_auto_cool_ = (cooling_fans_target_pwm_ == pwm_auto);
             break;
 
         default:
             cooling_fans_actual_pwm_ = chamber_cooling.compute_pwm_step(*temp, target_temp, cooling_fans_target_pwm_, max_auto_pwm);
             filtration_fan_actual_pwm_ = filtration_fan_target_pwm_.value_or(FanPWM { 0 });
+            can_auto_cool_ = (cooling_fans_target_pwm_ == pwm_auto);
             break;
         }
 
@@ -254,6 +257,11 @@ void XBuddyExtension::set_max_cooling_pwm(PWM255 set) {
     } else {
         config_store().xbe_cooling_fan_max_auto_pwm.set(set.value);
     }
+}
+
+bool XBuddyExtension::can_auto_cool() const {
+    std::lock_guard _lg(mutex_);
+    return can_auto_cool_;
 }
 
 leds::ColorRGBW XBuddyExtension::bed_leds_color() const {
