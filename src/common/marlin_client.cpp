@@ -405,11 +405,11 @@ void try_recover_from_media_error() {
 }
 
 void notify_server_about_encoder_move() {
-    _send_request_id_to_server_and_wait(Request::Type::KnobMove);
+    marlin_server::increment_user_move_count();
 }
 
 void notify_server_about_knob_click() {
-    _send_request_id_to_server_and_wait(Request::Type::KnobClick);
+    marlin_server::increment_user_click_count();
 }
 
 void set_warning(WarningType type) {

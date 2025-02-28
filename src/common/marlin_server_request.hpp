@@ -23,8 +23,6 @@ struct Request {
         PrintResume,
         TryRecoverFromMediaError,
         PrintExit,
-        KnobMove,
-        KnobClick,
         FSM,
         PrintReady,
         GuiCantPrint,
