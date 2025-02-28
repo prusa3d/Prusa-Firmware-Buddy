@@ -1059,7 +1059,14 @@ void plan_move_by(const feedRate_t fr, const float dx, const float dy, const flo
   current_position.y += dy;
   current_position.z += dz;
   current_position.e += de;
-  line_to_current_position(fr);
+
+  // Machine position could be different to current_position thanks to MBL - adjust both positions separately
+  auto target = planner.get_machine_position_mm();
+  target.x += dx;
+  target.y += dy;
+  target.z += dz;
+  target.e += de;
+  planner.buffer_segment(target, fr);
 }
 
 /**
