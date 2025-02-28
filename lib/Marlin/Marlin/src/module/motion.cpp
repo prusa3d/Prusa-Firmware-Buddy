@@ -400,13 +400,18 @@ void do_blocking_move_to(const float rx, const float ry, const float rz, const f
   const feedRate_t z_feedrate = fr_mm_s ?: homing_feedrate(Z_AXIS),
                   xy_feedrate = fr_mm_s ?: feedRate_t(XY_PROBE_FEEDRATE_MM_S);
 
-  plan_park_move_to(rx, ry, rz, xy_feedrate, z_feedrate);
+  plan_park_move_to(rx, ry, rz, xy_feedrate, z_feedrate, /*segmented=*/false);
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("<<< do_blocking_move_to");
   planner.synchronize();
 }
 
+static void line_to_destination_position(const feedRate_t &fr_mm_s) {
+  current_position = destination;
+  line_to_current_position(fr_mm_s);
+}
+
 /// Z-Manhattan fast move
-void plan_park_move_to(const float rx, const float ry, const float rz, const feedRate_t &fr_xy, const feedRate_t &fr_z){
+void plan_park_move_to(const float rx, const float ry, const float rz, const feedRate_t &fr_xy, const feedRate_t &fr_z, bool segmented){
   #if ENABLED(DELTA)
 
     if (!position_is_reachable(rx, ry)) return;
@@ -469,19 +474,29 @@ void plan_park_move_to(const float rx, const float ry, const float rz, const fee
 
   #else
 
-    // If Z needs to raise, do it before moving XY
-    if (current_position.z < rz) {
-      current_position.z = rz;
-      line_to_current_position(fr_z);
+    void (*move)(const feedRate_t &fr_mm_s) = nullptr;
+    if (segmented) {
+        move = prepare_internal_move_to_destination;
+    } else {
+        move = line_to_destination_position;
     }
 
-    current_position.set(rx, ry);
-    line_to_current_position(fr_xy);
+    // If Z needs to raise, do it before moving XY
+    if (current_position.z < rz) {
+      destination = current_position;
+      destination.z = rz;
+      move(fr_z);
+    }
+
+    destination = current_position;
+    destination.set(rx, ry);
+    move(fr_xy);
 
     // If Z needs to lower, do it after moving XY
     if (current_position.z > rz) {
-      current_position.z = rz;
-      line_to_current_position(fr_z);
+      destination = current_position;
+      destination.z = rz;
+      move(fr_z);
     }
   #endif
 }

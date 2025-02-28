@@ -1147,7 +1147,7 @@ void Pause::park_nozzle_and_notify() {
             unhomed_z_lift(target_Z);
         } else {
             PauseFsmNotifier N(*this, current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len), marlin_vars().native_pos[MARLIN_VAR_INDEX_Z]);
-            plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
+            plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate, /*segmented=*/true);
             if (wait_for_motion_finish_or_user_stop()) {
                 return;
             }
@@ -1198,13 +1198,13 @@ void Pause::park_nozzle_and_notify() {
 
         if (x_greater_than_y) {
             PauseFsmNotifier N(*this, begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100, marlin_vars().native_pos[MARLIN_VAR_INDEX_X]); // from Z% to 100%
-            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
+            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate, /*segmented=*/true);
             if (wait_for_motion_finish_or_user_stop()) {
                 return;
             }
         } else {
             PauseFsmNotifier N(*this, begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100, marlin_vars().native_pos[MARLIN_VAR_INDEX_Y]); // from Z% to 100%
-            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
+            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate, /*segmented=*/true);
             if (wait_for_motion_finish_or_user_stop()) {
                 return;
             }

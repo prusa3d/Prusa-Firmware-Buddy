@@ -678,7 +678,7 @@ void resume_loop() {
 
         // unpark only if the position was known
         if (TEST(state_buf.crash.axis_known_position, X_AXIS) && TEST(state_buf.crash.axis_known_position, Y_AXIS)) {
-            plan_park_move_to_xyz(state_buf.crash.crash_current_position, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+            plan_park_move_to_xyz(state_buf.crash.crash_current_position, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE, /*segmented=*/true);
         }
 
         // always unretract
@@ -694,7 +694,7 @@ void resume_loop() {
 
         // return to the parking position
         plan_park_move_to_xyz(state_buf.crash.start_current_position,
-            NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+            NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE, /*segmented=*/true);
         resume_state = ResumeState::Finish;
         break;
 

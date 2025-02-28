@@ -2861,7 +2861,7 @@ void park_head() {
     }
     #endif // XYZ_NOZZLE_PARK_POINT_M600
     park.z = current_position.z;
-    plan_park_move_to_xyz(park, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+    plan_park_move_to_xyz(park, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE, /*segmented=*/true);
 #endif // NOZZLE_PARK_FEATURE
 }
 
