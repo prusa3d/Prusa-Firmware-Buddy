@@ -70,7 +70,10 @@ public:
     // xBuddy scheme says: Revisions older than 34 must use open drain only.
     bool needs_push_pull_mmu_reset_pin() const { return get_board_bom_id() >= 34; }
 
-    bool can_power_up_mmu_without_pulses() const { return get_board_bom_id() >= 37; }
+    bool has_mmu_power_up_hw() const { return get_board_bom_id() >= 37; }
+
+    // TODO: When we have a new bom this should be edited
+    bool needs_software_mmu_powerup() const { return true; }
 
     bool has_trinamic_oscillators() const { return get_board_bom_id() >= 37; }
 

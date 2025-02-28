@@ -45,9 +45,10 @@ public:
 
     static constexpr bool has_inverted_fans() { return false; }
     static constexpr bool has_inverted_mmu_reset() { return true; }
-    static constexpr bool can_power_up_mmu_without_pulses() { return true; }
+    static constexpr bool has_mmu_power_up_hw() { return true; }
     static constexpr bool needs_push_pull_mmu_reset_pin() { return true; }
     static constexpr bool has_trinamic_oscillators() { return true; }
+    static constexpr bool needs_software_mmu_powerup() { return true; }
 
     /**
      * @brief voltage reference of current measurement
