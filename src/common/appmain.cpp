@@ -194,10 +194,6 @@ void app_run(void) {
     app_setup();
     marlin_server::init();
 
-#if HAS_ADVANCED_POWER()
-    advancedpower.ResetOvercurrentFault();
-#endif
-
     if (config_store_init_result() == config_store_ns::InitResult::cold_start) {
         settings.reset();
 #if ENABLED(POWER_PANIC)

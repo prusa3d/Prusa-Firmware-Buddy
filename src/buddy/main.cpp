@@ -101,6 +101,11 @@
     #include <nfc.hpp>
 #endif
 
+#include <option/has_advanced_power.h>
+#if HAS_ADVANCED_POWER()
+    #include <advanced_power.hpp>
+#endif
+
 using namespace crash_dump;
 
 LOG_COMPONENT_REF(Buddy);
@@ -418,6 +423,10 @@ extern "C" void main_cpp(void) {
     if (!running_in_tester_mode()) {
         start_flash_esp_task();
     }
+
+#if HAS_ADVANCED_POWER()
+    advancedpower.ResetOvercurrentFault();
+#endif
 
     MX_USB_HOST_Init();
 
