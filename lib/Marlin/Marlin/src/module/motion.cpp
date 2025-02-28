@@ -1053,16 +1053,18 @@ void restore_feedrate_and_scaling() {
 #endif // DUAL_X_CARRIAGE
 
 void plan_move_by(const feedRate_t fr, const float dx, const float dy, const float dz, const float de){
-  /// save default value
-  feedRate_t dfr = feedrate_mm_s;
-  destination.x = current_position.x + dx;
-  destination.y = current_position.y + dy;
-  destination.z = current_position.z + dz;
-  destination.e = current_position.e + de;
-  feedrate_mm_s = fr;
-  prepare_move_to_destination();
-  /// restore default
-  feedrate_mm_s = dfr;
+  current_position.x += dx;
+  current_position.y += dy;
+  current_position.z += dz;
+  current_position.e += de;
+
+  // Machine position could be different to current_position thanks to MBL - adjust both positions separately
+  auto target = planner.get_machine_position_mm();
+  target.x += dx;
+  target.y += dy;
+  target.z += dz;
+  target.e += de;
+  planner.buffer_segment(target, fr);
 }
 
 /**
