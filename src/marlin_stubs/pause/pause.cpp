@@ -1257,7 +1257,7 @@ void Pause::unpark_nozzle_and_notify() {
 
         PauseFsmNotifier N(*this, current_position.z, resume_pos_adj.z, parkMoveXYPercent(Z_len, XY_len), 100, marlin_vars().native_pos[MARLIN_VAR_INDEX_Z]); // from XY% to 100%
         // FIXME: use a beter movement api when available
-        do_blocking_move_to_z(resume_pos_adj.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+        do_blocking_move_to_z(resume_pos_adj.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE), /*segmented=*/true);
         // But since the plan_park_move_to overrides the current position values (which are by default in
         // native (without MBL) coordinates and we apply MBL to them) we need to reset the z height to
         // make all the future moves correct.

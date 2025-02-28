@@ -394,13 +394,13 @@ void _internal_move_to_destination(const feedRate_t &fr_mm_s/*=0.0f*/
  * Performs a blocking fast parking move to (X, Y, Z) and sets the current_position.
  * Parking (Z-Manhattan): Moves XY and Z independently. Raises Z before or lowers Z after XY motion.
  */
-void do_blocking_move_to(const float rx, const float ry, const float rz, const feedRate_t &fr_mm_s/*=0.0*/) {
+void do_blocking_move_to(const float rx, const float ry, const float rz, const feedRate_t &fr_mm_s/*=0.0*/, bool segmented) {
   if (DEBUGGING(LEVELING)) DEBUG_XYZ(">>> do_blocking_move_to", rx, ry, rz);
 
   const feedRate_t z_feedrate = fr_mm_s ?: homing_feedrate(Z_AXIS),
                   xy_feedrate = fr_mm_s ?: feedRate_t(XY_PROBE_FEEDRATE_MM_S);
 
-  plan_park_move_to(rx, ry, rz, xy_feedrate, z_feedrate, /*segmented=*/false);
+  plan_park_move_to(rx, ry, rz, xy_feedrate, z_feedrate, segmented);
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("<<< do_blocking_move_to");
   planner.synchronize();
 }
@@ -517,8 +517,8 @@ void do_blocking_move_to_x(const float &rx, const feedRate_t &fr_mm_s/*=0.0*/) {
 void do_blocking_move_to_y(const float &ry, const feedRate_t &fr_mm_s/*=0.0*/) {
   do_blocking_move_to(current_position.x, ry, current_position.z, fr_mm_s);
 }
-void do_blocking_move_to_z(const float &rz, const feedRate_t &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to_xy_z(current_position, rz, fr_mm_s);
+void do_blocking_move_to_z(const float &rz, const feedRate_t &fr_mm_s/*=0.0*/, bool segmented) {
+  do_blocking_move_to_xy_z(current_position, rz, fr_mm_s, segmented);
 }
 
 void do_blocking_move_to_xy(const float &rx, const float &ry, const feedRate_t &fr_mm_s/*=0.0*/) {
@@ -528,8 +528,8 @@ void do_blocking_move_to_xy(const xy_pos_t &raw, const feedRate_t &fr_mm_s/*=0.0
   do_blocking_move_to_xy(raw.x, raw.y, fr_mm_s);
 }
 
-void do_blocking_move_to_xy_z(const xy_pos_t &raw, const float &z, const feedRate_t &fr_mm_s/*=0.0f*/) {
-  do_blocking_move_to(raw.x, raw.y, z, fr_mm_s);
+void do_blocking_move_to_xy_z(const xy_pos_t &raw, const float &z, const feedRate_t &fr_mm_s/*=0.0f*/, bool segmented) {
+  do_blocking_move_to(raw.x, raw.y, z, fr_mm_s, segmented);
 }
 
 void do_blocking_move_around_nozzle_cleaner_to_xy(const xy_pos_t& destination, const feedRate_t& feedrate) {
