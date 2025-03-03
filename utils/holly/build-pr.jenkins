@@ -277,6 +277,29 @@ pipeline {
                         """
                     }
                 }
+
+                stage('Pre-release checks') {
+                    agent {
+                        dockerfile {
+                            label 'docker-v2'
+                            filename 'utils/holly/Dockerfile'
+                            additionalBuildArgs '-t prusa-firmware-buddy'
+                        }
+                    }
+                    steps {
+                        sh """
+                        ln -fs /work/.dependencies
+                        ln -fs /work/.venv
+                        . .venv/bin/activate
+                        utils/generate-error-codes-report.py | tee error-codes-report.txt
+                        """
+                    }
+                    post {
+                        always {
+                            archiveArtifacts artifacts: 'error-codes-report.txt'
+                        }
+                    }
+                }
             }
         }
     }
