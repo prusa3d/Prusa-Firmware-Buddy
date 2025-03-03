@@ -1,5 +1,6 @@
 #include "FUSB302B.hpp"
 #include "bsod.h"
+#include <freertos/critical_section.hpp>
 
 namespace buddy::hw {
 
@@ -68,12 +69,13 @@ void FUSB302B::ClearVBUSIntFlag() {
 }
 
 void FUSB302B::DetectAddress() {
+    freertos::CriticalSection _;
     // FUSB302B01MPX or FUSB302BMPX is used, depending on board revision. They have different addresses, so try both and detect what chip we have.
     const uint8_t address_options[] = { 0x22 << 1, 0x23 << 1 };
     for (auto tryAddress : address_options) {
         // reset chip, if chip has this address, it will confirm the transaction
         uint8_t _sw_reset[2] = { 0x0C, 0x03 };
-        auto res = i2c::Transmit(I2C_HANDLE_FOR(usbc), tryAddress | WRITE_FLAG, _sw_reset, 2, 150);
+        auto res = i2c::Transmit(I2C_HANDLE_FOR(usbc), tryAddress | WRITE_FLAG, _sw_reset, 2, 50);
         if (res == i2c::Result::ok) {
             FUSB302B::address = tryAddress;
             return;
