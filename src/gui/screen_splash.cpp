@@ -178,22 +178,26 @@ screen_splash_data_t::screen_splash_data_t()
             model_var.set(current_base_model);
 
         } else if (model != current_base_model) {
-            StringViewUtf8Parameters<16> params;
-            MsgBoxError(
-                _("Printer type changed from %s to %s.\nFactory reset has to be performed.\n")
-                    .formatted(params, PrinterModelInfo::get(config_store().last_boot_base_printer_model.get()).id_str, PrinterModelInfo::firmware_base().id_str),
-                { Response::Continue });
+            constexpr auto callback = +[] {
+                StringViewUtf8Parameters<16> params;
+                MsgBoxError(
+                    _("Printer type changed from %s to %s.\nFactory reset has to be performed.\n")
+                        .formatted(params, PrinterModelInfo::get(config_store().last_boot_base_printer_model.get()).id_str, PrinterModelInfo::firmware_base().id_str),
+                    { Response::Continue });
 
-            auto msg = MsgBoxBase(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, _("Erasing everything,\nit will take some time..."));
-            msg.Draw(); // Non-blocking info
+                auto msg = MsgBoxBase(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, _("Erasing everything,\nit will take some time..."));
+                msg.Draw(); // Non-blocking info
 
-            static constexpr uint32_t empty = 0xffffffff;
-            for (uint16_t address = 0; address <= (8096 - 4); address += 4) {
-                st25dv64k_user_write_bytes(address, &empty, sizeof(empty));
-            }
+                static constexpr uint32_t empty = 0xffffffff;
+                for (uint16_t address = 0; address <= (8096 - 4); address += 4) {
+                    st25dv64k_user_write_bytes(address, &empty, sizeof(empty));
+                }
 
-            MsgBoxInfo(_("Reset complete. The system will now restart."), Responses_Ok);
-            sys_reset();
+                MsgBoxInfo(_("Reset complete. The system will now restart."), Responses_Ok);
+                sys_reset();
+            };
+            Screens::Access()->PushBeforeCurrent(screen_node(ScreenFactory::Screen<PseudoScreenCallback, callback>));
+            return;
         }
     }
 
