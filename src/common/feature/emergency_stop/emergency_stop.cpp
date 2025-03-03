@@ -132,6 +132,11 @@ void EmergencyStop::maybe_block() {
         // scratch the bed.
         const auto park_z = std::max(old_pos.z, min_park_z);
         AutoRestore _ar(allow_planning_movements, true);
+        // All the do-move things expect the current position to be up to date.
+        // It is _not_ (because we might have interrupted another move in the
+        // middle). This is the best estimation we have for it (might be wrong
+        // by MBL :-( ). Should we un-apply it somehow?
+        current_position = old_pos;
         do_blocking_move_to(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, park_z, feedRate_t(NOZZLE_PARK_XY_FEEDRATE));
     }
     auto unpark = [this, old_pos, old_pos_motion] {
