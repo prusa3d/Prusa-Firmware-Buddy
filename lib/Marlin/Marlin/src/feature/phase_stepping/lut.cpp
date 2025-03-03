@@ -96,6 +96,10 @@ void CorrectedCurrentLut::_update_phase_shift() {
     }
 }
 
+int CorrectedCurrentLut::_phase_shift_for_harmonic(int idx, int harmonic, int phase, int mag) {
+    return mag * sin_lut(harmonic * idx * SIN_FRACTION + phase) >> (SIN_LUT_FRACTIONAL + MAG_FRACTIONAL);
+}
+
 CoilCurrents CorrectedCurrentLut::get_current(int idx) const {
     int pha = SIN_FRACTION * idx + _phase_shift[normalize_motor_phase(idx)];
     return {
@@ -105,6 +109,18 @@ CoilCurrents CorrectedCurrentLut::get_current(int idx) const {
 
 int CorrectedCurrentLut::get_phase_shift(int idx) const {
     return _phase_shift[normalize_motor_phase(idx)] / SIN_FRACTION;
+}
+
+CoilCurrents CorrectedCurrentLut::get_current_for_calibration(int idx, int extra_harmonic, int extra_phase, int extra_mag) const {
+    int extra_shift = _phase_shift_for_harmonic(idx, extra_harmonic, extra_phase, extra_mag);
+    int pha = SIN_FRACTION * idx + _phase_shift[normalize_motor_phase(idx)] + extra_shift;
+    return {
+        sin_lut(pha, CURRENT_AMPLITUDE), cos_lut(pha, CURRENT_AMPLITUDE)
+    };
+}
+
+int CorrectedCurrentLut::get_phase_shift_for_calibration(int idx, int extra_harmonic, int extra_phase, int extra_mag) const {
+    return (_phase_shift[normalize_motor_phase(idx)] + _phase_shift_for_harmonic(idx, extra_harmonic, extra_phase, extra_mag)) / SIN_FRACTION;
 }
 
 void CorrectedCurrentLutSimple::_update_phase_shift() {

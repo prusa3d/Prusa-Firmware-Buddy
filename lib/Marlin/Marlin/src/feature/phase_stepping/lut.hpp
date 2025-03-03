@@ -44,6 +44,8 @@ public:
     std::array<int8_t, opts::MOTOR_PERIOD> _phase_shift = {};
 
     void _update_phase_shift();
+    static int _phase_shift_for_harmonic(int idx, int harmonic,
+        int phase, int mag);
 
 public:
     CorrectedCurrentLut() = default;
@@ -61,6 +63,9 @@ public:
 
     CoilCurrents get_current(int idx) const;
     int get_phase_shift(int idx) const;
+
+    CoilCurrents get_current_for_calibration(int idx, int extra_harmonic, int extra_phase, int extra_mag) const;
+    int get_phase_shift_for_calibration(int idx, int extra_harmonic, int extra_phase, int extra_mag) const;
 };
 
 /**
