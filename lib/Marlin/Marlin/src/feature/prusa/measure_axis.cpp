@@ -101,7 +101,7 @@ void Measure_axis::quick_home_start() {
     sensorless_enable(Y_AXIS);
         #endif
 
-    plan_park_move_to(mlx * axis_home_dir[X_AXIS], mly * axis_home_dir[Y_AXIS], current_position.z, fr_mm_s, homing_feedrate(Z_AXIS), /*segmented=*/false);
+    plan_park_move_to(mlx * axis_home_dir[X_AXIS], mly * axis_home_dir[Y_AXIS], current_position.z, fr_mm_s, homing_feedrate(Z_AXIS), Segmented::no);
     #endif
 }
 
@@ -258,7 +258,7 @@ void Measure_axis::state_start() {
             destination.z += raise_z; //< lift by raise_z because we don't know where the Z is
         }
         const feedRate_t fr_z = homing_feedrate(Z_AXIS);
-        plan_park_move_to_xyz(destination, fr_z, fr_z, /*segmented=*/false);
+        plan_park_move_to_xyz(destination, fr_z, fr_z, Segmented::yes);
         break;
     }
     case QUICK_HOME_XY:

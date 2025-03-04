@@ -188,7 +188,7 @@ static PhasesInputShaperCalibration parking(Context &context) {
 
     // Ensure consistent measurement
     const xyz_pos_t pos = { X_BED_SIZE / 2, Y_BED_SIZE / 2, Z_SIZE / 2 };
-    plan_park_move_to_xyz(pos, HOMING_FEEDRATE_XY, HOMING_FEEDRATE_Z, /*segmented=*/false);
+    plan_park_move_to_xyz(pos, HOMING_FEEDRATE_XY, HOMING_FEEDRATE_Z, Segmented::no);
 
 #if HAS_PHASE_STEPPING()
     // Ensure phase stepping is disabled throughout the calibration as we manipulate steps directly
