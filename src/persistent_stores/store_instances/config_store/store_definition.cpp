@@ -910,4 +910,14 @@ void CurrentStore::set_phase_stepping_enabled(AxisEnum axis, bool new_state) {
 }
 #endif
 
+float CurrentStore::get_previous_filament_temp([[maybe_unused]] uint8_t index) {
+    assert(index < EXTRUDERS);
+    return config_store().filament_prev_temp.get(index);
+}
+
+void CurrentStore::set_previous_filament_temp([[maybe_unused]] uint8_t index, float temperature) {
+    assert(index < EXTRUDERS);
+    config_store().filament_prev_temp.set(index, temperature);
+}
+
 } // namespace config_store_ns
