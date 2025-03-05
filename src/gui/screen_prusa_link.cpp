@@ -48,7 +48,14 @@ MI_PL_PASSWORD_LABEL::MI_PL_PASSWORD_LABEL()
 // MI_PL_PASSWORD_VALUE
 // ----------------------------------------------------------------
 MI_PL_PASSWORD_VALUE::MI_PL_PASSWORD_VALUE()
-    : WiInfo(_(label)) {
+    : WiInfo {
+#if HAS_MINI_DISPLAY()
+    {},
+#else
+    _("Password"),
+#endif
+}
+{
     update_explicit();
 }
 
