@@ -48,7 +48,7 @@ protected:
 
 class MI_PL_PASSWORD_VALUE : public WiInfo<config_store_ns::pl_password_size> {
 #if HAS_MINI_DISPLAY()
-    constexpr static const char *const label = N_("");
+    constexpr static const char *const label = "";
 #else
     constexpr static const char *const label = N_("Password");
 #endif
