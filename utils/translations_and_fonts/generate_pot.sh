@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Reset current Prusa-Firmware-Buddy.pot
 rm -f src/lang/po/Prusa-Firmware-Buddy.pot
 touch src/lang/po/Prusa-Firmware-Buddy.pot
