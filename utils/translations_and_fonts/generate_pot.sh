@@ -15,7 +15,7 @@ python3 lib/Prusa-Error-Codes/generate_buddy_headers.py lib/Prusa-Error-Codes/ya
 
 # Generate template for strings from firmware and error headers
 find src tmp_error_headers -regextype posix-extended -regex "^.*\.c$|^.*\.cpp$|^.*\.h$|^.*\.hpp$" > tmp_filelist
-xgettext --keyword=_ --keyword=N_ --language=C --package-name=Prusa-Firmware-Buddy  --package-version=4.1 --msgid-bugs-address=info@prusa3d.com --add-comments --sort-output -o src/lang/po/Prusa-Firmware-Buddy.pot --files-from=tmp_filelist
+xgettext --keyword=_ --keyword=N_ --language=C++ --package-name=Prusa-Firmware-Buddy  --package-version=4.1 --msgid-bugs-address=info@prusa3d.com --add-comments --sort-output -o src/lang/po/Prusa-Firmware-Buddy.pot --files-from=tmp_filelist
 
 # Remove temporary files
 rm -rf tmp_error_headers tmp_filelist
