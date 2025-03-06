@@ -41,6 +41,8 @@ public:
     uint8_t max_brightness();
 
     void set_dimming_enabled(bool set);
+    void set_dimming_duration(int duration_sec);
+    int get_dimming_duration();
 
     /**
      * @brief Quickly turn off LEDs.
@@ -154,7 +156,6 @@ private:
     freertos::Mutex mutex;
 
     // Active State
-    const int active_timeout_ms = 120 * 1000;
     std::optional<uint32_t> active_start_timestamp;
 
     // Custom Color State

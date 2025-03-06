@@ -49,7 +49,19 @@ void SetNth(ColorRGBW clr, index n);
  *
  * @param percent Brightness in range 0 - 100
  */
-void SetBrightness(unsigned percent);
+void display_backlight_brightness(unsigned percent);
+/**
+ * @brief Read the Brightness of the display backlight from ConfigStore
+ *
+ * @return percent Brightness in range 2 - 100
+ */
+uint8_t get_display_backlight_brightness();
+/**
+ * @brief Store the Brightness of the display backlight to ConfigStore
+ *
+ * @param percent Brightness in range 2 - 100
+ */
+void store_display_backlight_brightness(uint8_t percent);
 
 /**
  * @brief Forces write on next call of tick loop
