@@ -815,7 +815,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 603: M603(); break;                                  // M603: Configure Filament Change
       #endif
       
-      case 604: M604(); break;                                    // M604: Abort (serial) print 
+      case 604: M604(); break;                                    // M604: Abort (serial) print
 
       #if HAS_DUPLICATION_MODE
         case 605: M605(); break;                                  // M605: Set Dual X Carriage movement mode
@@ -925,6 +925,8 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 975: M975(); break;
         case 976: M976(); break;
         case 977: M977(); break;
+        case 978: M978(); break;
+        case 979: M979(); break;
       #endif
 
       #if ENABLED(Z_STEPPER_AUTO_ALIGN)

@@ -586,4 +586,197 @@ void GcodeSuite::M977() {
     phase_stepping::save_to_persistent_storage_without_enabling(axis);
 }
 
+static void dump_samples_annotation(const phase_stepping::SamplesAnnotation ant) {
+    SERIAL_ECHO("sampling_freq: ");
+    SERIAL_ECHOLN(ant.sampling_freq);
+    SERIAL_ECHO("movement_ok: ");
+    SERIAL_ECHOLN(ant.movement_ok ? "true" : "false");
+    SERIAL_ECHO("accel_error: ");
+    SERIAL_ECHOLN(int(ant.accel_error));
+    SERIAL_ECHO("start_marker: ");
+    SERIAL_ECHOLN(ant.start_marker);
+    SERIAL_ECHO("end_marker: ");
+    SERIAL_ECHOLN(ant.end_marker);
+    SERIAL_ECHO("signal_start: ");
+    SERIAL_ECHOLN(ant.signal_start);
+    SERIAL_ECHO("signal_end: ");
+    SERIAL_ECHOLN(ant.signal_end);
+}
+
+/**
+ * @brief G-code M978: Perform phase and magnitude correction sweep.
+ *
+ * This G-code command performs a phase and magnitude correction sweep by
+ * adjusting the phase and magnitude correction parameters over a specified
+ * range. The harmonic on which to perform the sweep is also specified.
+ *
+ * Parameters:
+ * - A<float>: Start phase correction in radians.
+ * - B<float>: End phase correction in radians.
+ * - C<float>: Start magnitude correction (must be in the range -1 to 1).
+ * - D<float>: End magnitude correction (must be in the range -1 to 1).
+ * - H<int>: Harmonic to perform the sweep on (must be in the range 1 to 16).
+ *
+ * The function will output raw accelerometer samples to the serial port in the
+ * format: `<index>: <sample>`.
+ *
+ * Metadata of the movement are returned as `<key>: <value>` pairs.
+ *
+ * Error conditions:
+ * - If the harmonic parameter is not in the range 1 to 16, an error is reported.
+ * - If the magnitude correction parameters are not in the range -1 to 1, an error is reported.
+ *
+ * If any error condition is met, the function will report the error and return
+ * without performing the sweep.
+ */
+void GcodeSuite::M978() {
+    TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
+
+    bool valid = true;
+
+    int axes_count = 0;
+    for (auto [axis, letter] : SUPPORTED_AXES) {
+        if (parser.seen(letter)) {
+            axes_count++;
+        }
+    }
+    if (axes_count != 1) {
+        print_error("Exactly one axis has to be specified");
+        valid = false;
+    }
+
+    auto axis = parser.seen('X') ? AxisEnum::X_AXIS : AxisEnum::Y_AXIS;
+
+    float pha_start = parser.seenval('A') ? parser.floatval('A') : 0;
+    float pha_end = parser.seenval('B') ? parser.floatval('B') : 0;
+    float mag_start = parser.seenval('C') ? parser.floatval('C') : 0;
+    float mag_end = parser.seenval('D') ? parser.floatval('D') : 0;
+    int harmonic = parser.seenval('H') ? parser.intval('H') : 0;
+    float revs = parser.seenval('R') ? parser.floatval('R') : 0;
+    float speed = parser.seenval('F') ? parser.floatval('F') : 0;
+
+    if (harmonic < 1 || harmonic > 16) {
+        print_error("Harmonic must be in the range 1 to 16");
+        valid = false;
+    }
+
+    if (mag_start < -1 || mag_start > 1 || mag_end < -1 || mag_end > 1) {
+        print_error("Magnitude correction must be in the range -1 to 1");
+        valid = false;
+    }
+
+    if (speed <= 0) {
+        print_error("Speed must be positive");
+        valid = false;
+    }
+
+    if (!valid) {
+        print_error("Invalid parameters, no effect");
+        return;
+    }
+
+    auto result = phase_stepping::capture_param_sweep_samples(
+        axis,
+        speed,
+        revs,
+        harmonic,
+        pha_start,
+        pha_end,
+        mag_start,
+        mag_end,
+        [n = 0](float sample) mutable {
+            char buff[64];
+            snprintf(buff, sizeof(buff), "%d, %.5f\n", n++, sample);
+            int len = strlen(buff);
+            SerialUSB.cdc_write_sync(reinterpret_cast<uint8_t *>(buff), len);
+        });
+    dump_samples_annotation(result);
+}
+
+/**
+ * @brief G-code M979: Perform motor resonance measurement during a speed sweep.
+ *
+ * This G-code command performs a motor resonance measurement by sweeping the
+ * motor speed from a specified start speed to an end speed over a given number
+ * of revolutions. The direction of movement is determined by the sign of the
+ * revolutions parameter.
+ *
+ * Parameters:
+ * - A<float>: Start speed in revolutions per second (must be non-negative).
+ * - B<float>: End speed in revolutions per second (must be non-negative).
+ * - R<float>: Number of revolutions for the sweep (must be non-zero, sign
+ *   determines direction).
+ * - X, Y: Axis to perform the sweep on (exactly one axis must be
+ *   specified).
+ *
+ * The function will output raw accelerometer samples to the serial port in the
+ * format: `<index>: <sample>`.
+ *
+ * Metadata of the movement are returned as `<key>: <value>` pairs.
+ *
+ * Error conditions:
+ * - If no axis or more than one axis is specified, an error is reported.
+ * - If both start and end speeds are zero, an error is reported.
+ * - If any speed is negative, an error is reported.
+ * - If the revolutions parameter is zero, an error is reported.
+ *
+ * If any error condition is met, the function will report the error and return
+ * without performing the sweep.
+ */
+void GcodeSuite::M979() {
+    TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
+
+    bool valid = true;
+
+    int axes_count = 0;
+    AxisEnum axis = AxisEnum::X_AXIS; // Default initialization
+    for (auto [ax, letter] : SUPPORTED_AXES) {
+        if (parser.seen(letter)) {
+            axis = ax;
+            axes_count++;
+        }
+    }
+    if (axes_count != 1) {
+        print_error("Exactly one axis has to be specified");
+        valid = false;
+    }
+
+    float start_speed = parser.seenval('A') ? parser.floatval('A') : 0;
+    float end_speed = parser.seenval('B') ? parser.floatval('B') : 0;
+    float revs = parser.seenval('R') ? parser.floatval('R') : 0;
+
+    if (start_speed < 0 || end_speed < 0) {
+        print_error("Speeds must be positive");
+        valid = false;
+    }
+
+    if (start_speed == 0 && end_speed == 0) {
+        print_error("At least one speed must be non-zero");
+        valid = false;
+    }
+
+    if (revs == 0) {
+        print_error("Revolutions (R) parameter must be non-zero");
+        valid = false;
+    }
+
+    if (!valid) {
+        print_error("Invalid parameters, no effect");
+        return;
+    }
+
+    auto result = phase_stepping::capture_speed_sweep_samples(
+        axis,
+        start_speed,
+        end_speed,
+        revs,
+        [n = 0](float sample) mutable {
+            char buff[64];
+            snprintf(buff, sizeof(buff), "%d, %.5f\n", n++, sample);
+            int len = strlen(buff);
+            SerialUSB.cdc_write_sync(reinterpret_cast<uint8_t *>(buff), len);
+        });
+    dump_samples_annotation(result);
+}
+
 /** @}*/

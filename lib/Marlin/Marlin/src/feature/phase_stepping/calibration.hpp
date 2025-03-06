@@ -15,6 +15,25 @@
 namespace phase_stepping {
 
 /**
+ * Structure representing a metadata of motor parameter estimation measurement.
+ */
+struct SamplesAnnotation {
+    float sampling_freq;
+    bool movement_ok;
+    PrusaAccelerometer::Error accel_error;
+
+    // Planned times of the features in the recorded samples
+    float start_marker;
+    float end_marker;
+    float signal_start;
+    float signal_end;
+
+    bool is_valid() const {
+        return movement_ok && accel_error == PrusaAccelerometer::Error::none && sampling_freq > 0;
+    }
+};
+
+/**
  * Assuming phase stepping is enabled, measure resonance data for given axis.
  * Returns measured accelerometer samples via a callback, the function returns
  * measured frequency.
@@ -27,6 +46,22 @@ namespace phase_stepping {
  */
 float capture_samples(AxisEnum axis, float speed, float revs,
     const std::function<void(const PrusaAccelerometer::Acceleration &)> &yield_sample);
+
+/**
+ * Assuming phase stepping is enabled, make a movement during which a parameter
+ * sweep is performed. Yield a projection of captured sample to the active axis.
+ * Returns accelerometer sampling frequency, or 0 on error.
+ */
+SamplesAnnotation capture_param_sweep_samples(AxisEnum axis, float speed, float revs,
+    int harmonic, float start_pha, float end_pha, float start_mag, float end_mag,
+    const std::function<void(float)> &yield_sample);
+
+/**
+ * Make an accelerated movement and capture samples. Return accelerometer
+ * sampling frequency, or 0 on error.
+ */
+SamplesAnnotation capture_speed_sweep_samples(AxisEnum axis, float start_speed, float end_speed,
+    float revs, const std::function<void(float)> &yield_sample);
 
 /**
  * Assuming phase stepping is enabled, measure resonance and return requested

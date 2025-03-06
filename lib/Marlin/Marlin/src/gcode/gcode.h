@@ -1054,6 +1054,8 @@ private:
   static void M975();
   static void M976();
   static void M977();
+  static void M978();
+  static void M979();
 #endif
 
   #if ENABLED(PLATFORM_M997_SUPPORT)

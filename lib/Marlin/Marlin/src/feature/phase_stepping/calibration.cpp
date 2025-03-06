@@ -285,6 +285,251 @@ static void move_to_calibration_start(AxisEnum axis, const CalibrationPhase &pha
     do_blocking_move_to_xy(target_x, target_y);
 }
 
+static float plan_no_movement_block(AxisEnum physical_axis, int direction, float duration) {
+    assert(direction == 1 || direction == -1);
+    assert(duration >= 0);
+
+    // We fake no movement synchronous with planner via arbitrarily small speed.
+    // We accelerate to this speed and then decelerate to zero.
+    static const float NO_MOVEMENT_SPEED = 0.1; // mm/s
+    float accel = 2 * NO_MOVEMENT_SPEED / duration;
+    float dist = direction * 2 * (0.5 * accel * duration * duration / 4); // Up and down
+
+    auto [d_x, d_y] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? dist : 0,
+        physical_axis == AxisEnum::Y_AXIS ? dist : 0);
+    auto [speed_x, speed_y] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? NO_MOVEMENT_SPEED : 0,
+        physical_axis == AxisEnum::Y_AXIS ? NO_MOVEMENT_SPEED : 0);
+    auto [accel_x, accel_y] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? accel : 0,
+        physical_axis == AxisEnum::Y_AXIS ? accel : 0);
+
+    float block_speed = sqrt(speed_x * speed_x + speed_y * speed_y);
+    float block_accel = sqrt(accel_x * accel_x + accel_y * accel_y);
+
+    auto target = current_position;
+    target.x += d_x;
+    target.y += d_y;
+
+    log_debug(PhaseStepping, "No movement block: dist (%f, %f), speed (%f, %f), accel (%f, %f)",
+        d_x, d_y, speed_x, speed_y, accel_x, accel_y);
+
+    Planner::buffer_raw_line(target, block_accel, block_speed, 0, 0, active_extruder);
+    current_position = target;
+
+    return duration;
+}
+
+static float plan_constant_movement_block(AxisEnum physical_axis, int direction, float speed, float revs) {
+    assert(physical_axis == AxisEnum::X_AXIS || physical_axis == AxisEnum::Y_AXIS);
+    assert(direction == 1 || direction == -1);
+    assert(speed >= 0);
+    assert(revs > 0);
+
+    static const float DUMMY_ACCEL = 1;
+
+    float duration = revs / speed;
+
+    auto [x_revs, y_revs] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? direction * revs : 0,
+        physical_axis == AxisEnum::Y_AXIS ? direction * revs : 0);
+    auto [speed_x, speed_y] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? speed : 0,
+        physical_axis == AxisEnum::Y_AXIS ? speed : 0);
+
+    float speed_x_mm = rev_to_mm(AxisEnum::X_AXIS, speed_x);
+    float speed_y_mm = rev_to_mm(AxisEnum::Y_AXIS, speed_y);
+    float block_speed = sqrt(speed_x_mm * speed_x_mm + speed_y_mm * speed_y_mm);
+
+    auto target = current_position;
+    target.x += rev_to_mm(AxisEnum::X_AXIS, x_revs);
+    target.y += rev_to_mm(AxisEnum::Y_AXIS, y_revs);
+
+    Planner::buffer_raw_line(target, DUMMY_ACCEL, block_speed, block_speed, block_speed, active_extruder);
+    current_position = target;
+
+    return duration;
+}
+
+static float plan_accel_block(AxisEnum physical_axis, int direction, float start_speed, float end_speed, float accel = 100) {
+    assert(physical_axis == AxisEnum::X_AXIS || physical_axis == AxisEnum::Y_AXIS);
+    assert(direction == 1 || direction == -1);
+    assert(start_speed >= 0 && end_speed >= 0);
+    assert(accel > 0);
+
+    if (start_speed == end_speed) {
+        return 0;
+    }
+
+    float duration = std::fabs((end_speed - start_speed)) / accel;
+    float revs = direction * 0.5f * accel * duration * duration;
+
+    auto [revs_x, revs_y] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? revs : 0,
+        physical_axis == AxisEnum::Y_AXIS ? revs : 0);
+    auto [start_speed_x, start_speed_y] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? start_speed : 0,
+        physical_axis == AxisEnum::Y_AXIS ? start_speed : 0);
+    auto [end_speed_x, end_speed_y] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? end_speed : 0,
+        physical_axis == AxisEnum::Y_AXIS ? end_speed : 0);
+    auto [accel_x, accel_y] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? accel : 0,
+        physical_axis == AxisEnum::Y_AXIS ? accel : 0);
+
+    float start_speed_x_mm = rev_to_mm(AxisEnum::X_AXIS, start_speed_x);
+    float start_speed_y_mm = rev_to_mm(AxisEnum::Y_AXIS, start_speed_y);
+    float block_start_speed = sqrt(start_speed_x_mm * start_speed_x_mm + start_speed_y_mm * start_speed_y_mm);
+
+    float end_speed_x_mm = rev_to_mm(AxisEnum::X_AXIS, end_speed_x);
+    float end_speed_y_mm = rev_to_mm(AxisEnum::Y_AXIS, end_speed_y);
+    float block_end_speed = sqrt(end_speed_x_mm * end_speed_x_mm + end_speed_y_mm * end_speed_y_mm);
+
+    float block_nominal_speed = std::max(block_start_speed, block_end_speed);
+
+    float accel_x_mm = rev_to_mm(AxisEnum::X_AXIS, accel_x);
+    float accel_y_mm = rev_to_mm(AxisEnum::Y_AXIS, accel_y);
+    float block_accel = sqrt(accel_x_mm * accel_x_mm + accel_y_mm * accel_y_mm);
+
+    auto target = current_position;
+    target.x += rev_to_mm(AxisEnum::X_AXIS, revs_x);
+    target.y += rev_to_mm(AxisEnum::Y_AXIS, revs_y);
+
+    log_debug(PhaseStepping, "A: d(%f, %f), s(%f, %f, %f), e(%f, %f, %f), a(%f, %f, %f)",
+        revs_x, revs_y, start_speed_x, start_speed_y, block_start_speed, end_speed_x, end_speed_y, block_end_speed, accel_x, accel_y, block_accel);
+
+    Planner::buffer_raw_line(target, block_accel, block_nominal_speed, block_start_speed, block_end_speed, active_extruder);
+    current_position = target;
+
+    return duration;
+}
+
+static float plan_accel_over_dist_block(AxisEnum physical_axis, int direction,
+    float start_speed, float end_speed, float revs) {
+    assert(direction == 1 || direction == -1);
+    assert(start_speed >= 0 && end_speed >= 0);
+    assert(start_speed != end_speed);
+    assert(revs > 0);
+
+    // Plan a block with limited acceleration that moves from start speed to end
+    // speed over revs revolutions. The assumption is that the printer already
+    // accelerated to the start speed and there will be extra movement planned
+    // after this block to deccelerate.
+
+    float accel_rev = std::fabs(end_speed * end_speed - start_speed * start_speed) / (2 * revs);
+
+    auto [revs_x, revs_y] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? direction * revs : 0,
+        physical_axis == AxisEnum::Y_AXIS ? direction * revs : 0);
+    auto [accel_x, accel_y] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? accel_rev : 0,
+        physical_axis == AxisEnum::Y_AXIS ? accel_rev : 0);
+    auto [start_speed_x, start_speed_y] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? start_speed : 0,
+        physical_axis == AxisEnum::Y_AXIS ? start_speed : 0);
+    auto [end_speed_x, end_speed_y] = physical_to_logical(
+        physical_axis == AxisEnum::X_AXIS ? end_speed : 0,
+        physical_axis == AxisEnum::Y_AXIS ? end_speed : 0);
+
+    float start_speed_x_mm = rev_to_mm(AxisEnum::X_AXIS, start_speed_x);
+    float start_speed_y_mm = rev_to_mm(AxisEnum::Y_AXIS, start_speed_y);
+    float block_start_speed = sqrt(start_speed_x_mm * start_speed_x_mm + start_speed_y_mm * start_speed_y_mm);
+
+    float end_speed_x_mm = rev_to_mm(AxisEnum::X_AXIS, end_speed_x);
+    float end_speed_y_mm = rev_to_mm(AxisEnum::Y_AXIS, end_speed_y);
+    float block_end_speed = sqrt(end_speed_x_mm * end_speed_x_mm + end_speed_y_mm * end_speed_y_mm);
+
+    float block_nominal_speed = std::max(block_start_speed, block_end_speed);
+
+    float accel_x_mm = rev_to_mm(AxisEnum::X_AXIS, accel_x);
+    float accel_y_mm = rev_to_mm(AxisEnum::Y_AXIS, accel_y);
+    float block_accel = sqrt(accel_x_mm * accel_x_mm + accel_y_mm * accel_y_mm);
+
+    auto target = current_position;
+    target.x += rev_to_mm(AxisEnum::X_AXIS, revs_x);
+    target.y += rev_to_mm(AxisEnum::Y_AXIS, revs_y);
+
+    log_debug(PhaseStepping, "Accel over dist block: dist (%f, %f), start (%f, %f, %f), end (%f, %f, %f), accel (%f, %f, %f)",
+        revs_x, revs_y, start_speed_x, start_speed_y, block_start_speed, end_speed_x, end_speed_y, block_end_speed, accel_x, accel_y, block_accel);
+
+    Planner::buffer_raw_line(target, block_accel, block_nominal_speed, block_start_speed, block_end_speed, active_extruder);
+    current_position = target;
+
+    return 2 * revs / (start_speed + end_speed);
+}
+
+static float plan_marker_move(AxisEnum physical_axis, int direction) {
+    static const float MARKER_SPEED = 2; // rev/s
+    static const float MAKER_ACCEL = 1000; // rev/s^2
+
+    float duration = 0;
+
+    duration += plan_accel_block(physical_axis, direction, 0, MARKER_SPEED, MAKER_ACCEL);
+    duration += plan_accel_block(physical_axis, direction, MARKER_SPEED, 0, MAKER_ACCEL);
+    duration += plan_accel_block(physical_axis, -direction, 0, MARKER_SPEED, MAKER_ACCEL);
+    duration += plan_accel_block(physical_axis, -direction, MARKER_SPEED, 0, MAKER_ACCEL);
+
+    return duration;
+}
+
+// Captures samples of movement of a given axis. The movement should be already
+// planned and executed. The function yields samples of acceleration in the
+// direction of the axis. The function returns a tuple of:
+// - sampling frequency,
+// - movement success flag,
+// - accelerometer error.
+static std::tuple<float, bool, PrusaAccelerometer::Error> capture_movement_samples(AxisEnum axis, int32_t timeout_ms,
+    const std::function<void(float)> &yield_sample) {
+
+    if (!wait_for_movement_state(phase_stepping::axis_states[axis], 300, [](phase_stepping::AxisState &s) {
+            return phase_stepping::processing();
+        })) {
+        log_error(PhaseStepping, "Movement didn't start within timeout");
+        return { 0, false, PrusaAccelerometer::Error::none };
+    }
+
+    auto start_ts = ticks_ms();
+
+    PrusaAccelerometer accelerometer;
+    if (PrusaAccelerometer::Error error = accelerometer.get_error(); error != PrusaAccelerometer::Error::none) {
+        log_error(PhaseStepping, "Cannot initialize accelerometer %u", static_cast<unsigned>(error));
+        return { 0, true, error };
+    }
+    accelerometer.clear();
+
+    while (Planner::busy() && ticks_diff(ticks_ms(), start_ts) < timeout_ms) {
+        PrusaAccelerometer::Acceleration sample;
+        using GetSampleResult = PrusaAccelerometer::GetSampleResult;
+
+        switch (accelerometer.get_sample(sample)) {
+        case GetSampleResult::ok:
+            yield_sample(project_to_axis(axis, sample));
+            break;
+
+        case GetSampleResult::buffer_empty:
+            idle(true, true);
+            break;
+
+        case GetSampleResult::error: {
+            const PrusaAccelerometer::Error error = accelerometer.get_error();
+            log_error(PhaseStepping, "Accelerometer reading failed %u", static_cast<unsigned>(error));
+            return { 0, true, error };
+        }
+        }
+    }
+
+    const PrusaAccelerometer::Error error = accelerometer.get_error();
+    float sampling_freq = accelerometer.get_sampling_rate();
+
+    if (ticks_diff(ticks_ms(), start_ts) >= timeout_ms) {
+        log_error(PhaseStepping, "Timeout while capturing samples");
+        return { sampling_freq, false, error };
+    }
+
+    return { sampling_freq, true, error };
+}
+
 void phase_stepping::reset_compensation(AxisEnum axis) {
     phase_stepping::axis_states[axis].forward_current.clear();
     phase_stepping::axis_states[axis].backward_current.clear();
@@ -383,6 +628,113 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
     }
 
     return accelerometer.get_sampling_rate();
+}
+
+SamplesAnnotation phase_stepping::capture_param_sweep_samples(AxisEnum axis, float speed, float revs, int harmonic,
+    float start_pha, float end_pha, float start_mag, float end_mag,
+    const std::function<void(float)> &yield_sample) {
+    assert(speed > 0);
+
+    static const float TIME_MARGIN = 0.3; // Time to settle vibrations from acceleration
+
+    Planner::synchronize();
+
+    phase_stepping::AxisState &axis_state = phase_stepping::axis_states[axis];
+
+    // Find move target that corresponds to given number of revs
+    int direction = revs > 0 ? 1 : -1;
+    if (axis_state.inverted) {
+        direction = -direction;
+    }
+    revs = std::fabs(revs);
+
+    axis_state.calibration_sweep = CalibrationSweep::build_for_motor(
+        axis, harmonic, TIME_MARGIN * speed, revs,
+        start_pha, end_pha, start_mag, end_mag);
+
+    float start_marker = 0;
+    start_marker = plan_no_movement_block(axis, direction, 0.1f);
+
+    float signal_start = start_marker;
+    signal_start += plan_marker_move(axis, direction);
+
+    signal_start += plan_accel_block(axis, direction, 0, speed);
+
+    float signal_end = signal_start;
+    signal_end += plan_constant_movement_block(axis, direction, speed, revs + 2 * TIME_MARGIN * speed);
+
+    float end_marker = signal_end;
+    end_marker += plan_accel_block(axis, direction, speed, 0);
+    end_marker += plan_no_movement_block(axis, direction, 0.1f);
+
+    plan_marker_move(axis, direction);
+    plan_no_movement_block(axis, direction, 0.1f);
+
+    // Adjust the signal start and end to account for extra time to settle
+    // vibrations
+    signal_start += TIME_MARGIN;
+    signal_end -= TIME_MARGIN;
+
+    int timeout_ms = 1.5 * 1000 * end_marker;
+    auto [sampling_freq, movement_ok, acc_error] = capture_movement_samples(axis, timeout_ms, yield_sample);
+
+    return {
+        .sampling_freq = sampling_freq,
+        .movement_ok = movement_ok,
+        .accel_error = acc_error,
+        .start_marker = start_marker,
+        .end_marker = end_marker,
+        .signal_start = signal_start,
+        .signal_end = signal_end
+    };
+}
+
+SamplesAnnotation phase_stepping::capture_speed_sweep_samples(AxisEnum axis,
+    float start_speed, float end_speed, float revs,
+    const std::function<void(float)> &yield_sample) {
+
+    assert(start_speed >= 0 && end_speed >= 0);
+    assert(start_speed != 0 || start_speed != end_speed);
+
+    Planner::synchronize();
+
+    int direction = revs > 0 ? 1 : -1;
+    if (axis_states[axis].inverted) {
+        direction = -direction;
+    }
+    revs = std::fabs(revs);
+
+    float start_marker = 0;
+    start_marker += plan_no_movement_block(axis, direction, 0.1f);
+
+    float signal_start = start_marker;
+
+    signal_start += plan_marker_move(axis, direction);
+    signal_start += plan_no_movement_block(axis, direction, 0.3f);
+    signal_start += plan_accel_block(axis, direction, 0, start_speed);
+
+    float signal_end = signal_start;
+    signal_end += plan_accel_over_dist_block(axis, direction, start_speed, end_speed, std::fabs(revs));
+
+    float end_marker = signal_end;
+
+    end_marker += plan_accel_block(axis, direction, end_speed, 0);
+    end_marker += plan_no_movement_block(axis, direction, 0.1f);
+    plan_marker_move(axis, direction);
+    plan_no_movement_block(axis, direction, 0.3f);
+
+    int timeout_ms = 1.5 * 1000 * end_marker;
+    auto [sampling_freq, movement_ok, acc_error] = capture_movement_samples(axis, timeout_ms, yield_sample);
+
+    return {
+        .sampling_freq = sampling_freq,
+        .movement_ok = movement_ok,
+        .accel_error = acc_error,
+        .start_marker = start_marker,
+        .end_marker = end_marker,
+        .signal_start = signal_start,
+        .signal_end = signal_end
+    };
 }
 
 std::vector<float> phase_stepping::analyze_resonance(AxisEnum axis,
