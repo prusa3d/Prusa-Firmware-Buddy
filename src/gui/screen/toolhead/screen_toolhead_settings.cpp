@@ -61,6 +61,62 @@ void MI_NOZZLE_SOCK::OnChange([[maybe_unused]] size_t old_index) {
 }
 #endif
 
+#if HAS_PRINT_FAN_TYPE()
+MI_PRINT_FAN_TYPE::MI_PRINT_FAN_TYPE(Toolhead toolhead)
+    : MI_TOOLHEAD_SPECIFIC(toolhead, _("Print Fan Type")) {
+    update();
+}
+
+PrintFanType MI_PRINT_FAN_TYPE::read_value_impl(ToolheadIndex ix) {
+    return config_store().print_fan_type.get(ix);
+}
+
+void MI_PRINT_FAN_TYPE::store_value_impl(ToolheadIndex ix, PrintFanType set) {
+    config_store().print_fan_type.set(ix, set);
+}
+
+void MI_PRINT_FAN_TYPE::build_item_text(int index, const std::span<char> &buffer) const {
+    StringBuilder sb(buffer);
+    const int effective_index = index - (has_varying_values_ ? 1 : 0);
+
+    // If has varying values, the 0th item is "-" (for different values)
+    if (effective_index == -1) {
+        sb.append_string("-");
+    } else {
+        sb.append_string_view(_(print_fan_type_names[print_fan_type_list[effective_index]]));
+    }
+}
+
+bool MI_PRINT_FAN_TYPE::on_item_selected([[maybe_unused]] int old_index, int new_index) {
+    const int effective_index = new_index - (has_varying_values_ ? 1 : 0);
+
+    if (effective_index == -1) {
+        return false;
+    }
+
+    if (!msgbox_confirm_change(this->toolhead(), this->user_already_confirmed_changes_)) {
+        return false;
+    }
+
+    this->template store_value(print_fan_type_list[effective_index]);
+    return true;
+}
+
+void MI_PRINT_FAN_TYPE::update() {
+    const auto val = this->template read_value();
+    has_varying_values_ = !val.has_value();
+
+    // If has varying values, the 0th item is "-" (for different values)
+    // Force set - we might be changing item texts here
+    force_set_current_item(has_varying_values_ ? 0 : stdext::index_of(print_fan_type_list, *val));
+}
+
+int MI_PRINT_FAN_TYPE::item_count() const {
+    // If has varying values, the 0th item is "-" (for different values)
+    return print_fan_type_list.size() + (has_varying_values_ ? 1 : 0);
+}
+#endif /* HAS_PRINT_FAN_TYPE */
+
 // * MI_NOZZLE_HARDENED
 MI_NOZZLE_HARDENED::MI_NOZZLE_HARDENED(Toolhead toolhead)
     : MI_TOOLHEAD_SPECIFIC_TOGGLE(toolhead, false, _("Nozzle Hardened")) //

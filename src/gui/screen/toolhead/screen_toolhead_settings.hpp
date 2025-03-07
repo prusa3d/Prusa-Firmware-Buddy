@@ -8,6 +8,7 @@
 #include <window_menu_enum_switch.hpp>
 #include <config_store/store_definition.hpp>
 #include <option/has_mmu2.h>
+#include <gui/menu_item/menu_item_select_menu.hpp>
 
 #if HAS_MMU2()
     #include <MItem_mmu.hpp>
@@ -98,6 +99,27 @@ public:
     void click(IWindowMenu &) override;
 };
 
+#if HAS_PRINT_FAN_TYPE()
+class MI_PRINT_FAN_TYPE : public MI_TOOLHEAD_SPECIFIC<MI_PRINT_FAN_TYPE, MenuItemSelectMenu> {
+public:
+    MI_PRINT_FAN_TYPE(Toolhead toolhead = default_toolhead);
+
+    int item_count() const final;
+    void build_item_text(int index, const std::span<char> &buffer) const final;
+
+    void update();
+
+    static PrintFanType read_value_impl(ToolheadIndex ix);
+    static void store_value_impl(ToolheadIndex ix, PrintFanType set);
+
+protected:
+    bool on_item_selected(int old_index, int new_index) override;
+
+private:
+    bool has_varying_values_;
+};
+#endif
+
 using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
     MI_RETURN,
     MI_NOZZLE_DIAMETER,
@@ -119,12 +141,15 @@ using ScreenToolheadDetail_ = ScreenMenu<EFooter::Off,
     MI_PICK_PARK,
     MI_NOZZLE_OFFSET,
     MI_DOCK,
+    #if HAS_PRINT_FAN_TYPE()
+    MI_PRINT_FAN_TYPE,
+    #endif
+
 #endif
 #if FILAMENT_SENSOR_IS_ADC()
     MI_CALIBRATE_FILAMENT_SENSORS,
 #endif
-    MI_FILAMENT_SENSORS //
-    >;
+    MI_FILAMENT_SENSORS>;
 
 class ScreenToolheadDetail : public ScreenToolheadDetail_ {
 public:
