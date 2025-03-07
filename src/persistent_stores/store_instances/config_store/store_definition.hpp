@@ -36,6 +36,7 @@
 #include <option/has_i2c_expander.h>
 #include <common/extended_printer_type.hpp>
 #include <common/hw_check.hpp>
+#include <print_fan_type.hpp>
 
 #if HAS_SHEET_PROFILES()
     #include <common/sheet.hpp>
@@ -551,6 +552,10 @@ struct CurrentStore
     /// Per-axis circular buffer that keeps \p precise_homing_axis_sample_count latest hoing samples
     StoreItemArray<uint16_t, uint16_t { 0xffff }, journal::hash("Precise homing samples"), 32, precise_homing_axis_count * precise_homing_axis_sample_count> precise_homing_sample_history;
     StoreItemArray<uint8_t, uint8_t { 0 }, journal::hash("Precise homing samples index"), 3, precise_homing_axis_count> precise_homing_sample_history_index;
+#endif
+
+#if HAS_PRINT_FAN_TYPE()
+    StoreItemArray<PrintFanType, PrintFanType::default_value, journal::hash("Print Fan Type Per Tool"), 8, HOTENDS> print_fan_type;
 #endif
 
 private:
