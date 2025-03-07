@@ -118,6 +118,19 @@ void GcodeSuite::M26() {
     }
 }
 
+uint32_t M27_handler::sd_auto_report_delay = 0;
+
+void M27_handler::print_sd_status() {
+    if (media_print_get_state() != media_print_state_NONE) {
+        SERIAL_ECHOPGM(MSG_SD_PRINTING_BYTE);
+        SERIAL_ECHO(media_print_get_position());
+        SERIAL_CHAR('/');
+        SERIAL_ECHOLN(media_print_get_size());
+    } else {
+        SERIAL_ECHOLNPGM(MSG_SD_NOT_PRINTING);
+    }
+}
+
 /**
  *### M27 - Report SD print status on serial port <a href="https://reprap.org/wiki/G-code#M27:_Report_SD_print_status">M27: Report SD print status</a>
  *
@@ -140,8 +153,10 @@ void GcodeSuite::M27() {
         SERIAL_ECHO(marlin_vars().media_position.get());
         SERIAL_CHAR('/');
         SERIAL_ECHOLN(marlin_vars().media_size_estimate.get());
+    } else if (parser.seen('S')) {
+        M27_handler::sd_auto_report_delay = parser.byteval('S');
     } else {
-        SERIAL_ECHOLNPGM(MSG_SD_NOT_PRINTING);
+        M27_handler::print_sd_status();
     }
 }
 
