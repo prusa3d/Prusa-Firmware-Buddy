@@ -89,6 +89,7 @@ typedef struct {
       bool nominal_length:1;
       bool continued:1;
       bool sync_position:1;
+      bool raw_block:1;
     };
   };
 
@@ -670,6 +671,9 @@ class Planner {
       , feedRate_t fr_mm_s, const uint8_t extruder, const PlannerHints &hints
     );
 
+    static bool buffer_raw_block(const xyze_long_t &target, const xyze_pos_t &target_float,
+        float acceleration, float nominal_speed, float entry_speed, float exit_speed, uint8_t extruder);
+
     /**
      * @brief Populate a block in preparation for insertion
      * @details Populate the fields of a new linear movement block
@@ -689,6 +693,10 @@ class Planner {
         const xyze_long_t &target, const xyze_pos_t &target_float
       , feedRate_t fr_mm_s, const uint8_t extruder, const PlannerHints &hints
     );
+
+    static bool populate_raw_block(block_t *const block, const abce_long_t &target,
+        const xyze_pos_t &target_float, float acceleration, float nominal_speed,
+        float entry_speed, float exit_speed, uint8_t extruder);
 
     /**
      * Planner::buffer_sync_block
@@ -714,6 +722,9 @@ class Planner {
       , const PlannerHints &hints=PlannerHints()
     );
 
+    static bool buffer_raw_segment(const abce_pos_t &abce, float acceleration, float nominal_speed,
+        float entry_speed, float exit_speed, uint8_t extruder);
+
   public:
 
     /**
@@ -729,6 +740,9 @@ class Planner {
       , const uint8_t extruder=active_extruder
       , const PlannerHints &hints=PlannerHints()
     );
+
+    static bool buffer_raw_line(const xyze_pos_t &cart, float acceleration, float nominal_speed,
+        float entry_speed, float exit_speed, uint8_t extruder);
 
     /**
      * Set the planner.position and individual stepper positions.
