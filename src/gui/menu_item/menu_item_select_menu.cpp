@@ -98,7 +98,13 @@ MenuItemSelectMenu::MenuItemSelectMenu(const string_view_utf8 &label)
     : IWindowMenuItem(label, 1) {}
 
 void MenuItemSelectMenu::set_current_item(int set) {
-    if (current_item_ == set) {
+    if (current_item_ != set) {
+        force_set_current_item(set);
+    }
+}
+
+void MenuItemSelectMenu::force_set_current_item(int set) {
+    if (set < 0 || set >= item_count()) {
         return;
     }
 
