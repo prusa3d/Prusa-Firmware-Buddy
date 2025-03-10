@@ -51,25 +51,59 @@ void MI_NOZZLE_DIAMETER_HELP::click(IWindowMenu &) {
 // * MI_HOTEND_TYPE
 MI_HOTEND_TYPE::MI_HOTEND_TYPE(Toolhead toolhead)
     : MI_TOOLHEAD_SPECIFIC(toolhead, _("Hotend Type")) {
-    set_current_item(stdext::index_of(hotend_type_list, config_store().hotend_type.get(toolhead.index())));
+    update();
 }
 
 int MI_HOTEND_TYPE::item_count() const {
-    return hotend_type_list.size();
+    // If has varying values, the 0th item is "-" (for differint values)
+    return hotend_type_list.size() + (has_varying_values_ ? 1 : 0);
 }
 
 void MI_HOTEND_TYPE::build_item_text(int index, const std::span<char> &buffer) const {
-    _(hotend_type_names[index]).copyToRAM(buffer);
+    StringBuilder sb(buffer);
+
+    // If has varying values, the 0th item is "-" (for differint values)
+    if (has_varying_values_ && index == 0) {
+        sb.append_string("-");
+    } else {
+        sb.append_string_view(_(hotend_type_names[index - (has_varying_values_ ? 1 : 0)]));
+    }
 }
 
 bool MI_HOTEND_TYPE::on_item_selected([[maybe_unused]] int old_index, int new_index) {
-    config_store().hotend_type.set(toolhead().index(), hotend_type_list[new_index]);
+    if (has_varying_values_ && new_index == 0) {
+        return false;
+    }
+
+    if (!msgbox_confirm_change(this->toolhead(), this->user_already_confirmed_changes_)) {
+        return false;
+    }
+
+    this->template store_value(hotend_type_list[new_index - (has_varying_values_ ? 1 : 0)]);
     return true;
+}
+
+void MI_HOTEND_TYPE::update() {
+    const auto val = this->template read_value();
+    has_varying_values_ = !val.has_value();
+
+    // If has varying values, the 0th item is "-" (for differint values)
+    // Force set - we might be changing item texts here
+    force_set_current_item(has_varying_values_ ? 0 : stdext::index_of(hotend_type_list, *val));
+}
+
+HotendType MI_HOTEND_TYPE::read_value_impl(ToolheadIndex ix) {
+    return config_store().hotend_type.get(ix);
+}
+
+void MI_HOTEND_TYPE::store_value_impl(ToolheadIndex ix, HotendType set) {
+    config_store().hotend_type.set(ix, set);
 }
 
 // * MI_NOZZLE_SOCK
 MI_NOZZLE_SOCK::MI_NOZZLE_SOCK(Toolhead toolhead)
     : MI_TOOLHEAD_SPECIFIC_TOGGLE(toolhead, false, _("Nextruder Silicone Sock")) {
+    update();
 }
 
 bool MI_NOZZLE_SOCK::read_value_impl(ToolheadIndex ix) {

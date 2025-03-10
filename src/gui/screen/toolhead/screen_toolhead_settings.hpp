@@ -36,8 +36,16 @@ public:
     int item_count() const final;
     void build_item_text(int index, const std::span<char> &buffer) const final;
 
+    void update();
+
+    static HotendType read_value_impl(ToolheadIndex ix);
+    static void store_value_impl(ToolheadIndex ix, HotendType set);
+
 protected:
     bool on_item_selected(int old_index, int new_index) override;
+
+private:
+    bool has_varying_values_;
 };
 
 class MI_NOZZLE_SOCK : public MI_TOOLHEAD_SPECIFIC_TOGGLE<MI_NOZZLE_SOCK> {
