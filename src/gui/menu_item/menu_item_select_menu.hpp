@@ -26,6 +26,9 @@ public:
     /// Changes the currently selected item to \param set
     void set_current_item(int set);
 
+    /// Changes the currently selected item to \param set. Always invalidates and rebuilds.
+    void force_set_current_item(int set);
+
     /// \returns number of items in the list
     virtual int item_count() const = 0;
 
