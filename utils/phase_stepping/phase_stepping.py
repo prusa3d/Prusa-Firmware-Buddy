@@ -1,5 +1,6 @@
 from __future__ import annotations
 import datetime
+import time
 import itertools
 from pathlib import Path
 import click
@@ -884,6 +885,731 @@ def plotStateSpaceCmd(input: str, n: int, output: Optional[str], show: bool,
         fig.show()
 
 
+@dataclass
+class SweepMeasurement:
+    samples: List[float]
+    sampling_freq: float
+    movement_ok: bool
+    accel_error: int
+
+    start_marker: float
+    end_marker: float
+    signal_start: float
+    signal_end: float
+
+    @staticmethod
+    def from_raw_command(response: List[str]):
+        samples = []
+        sampling_freq = 0.0
+        movement_ok = False
+        accel_error = 0
+        start_marker = 0.0
+        end_marker = 0.0
+        signal_start = 0.0
+        signal_end = 0.0
+
+        for line in response:
+            if line.startswith("sampling_freq:"):
+                sampling_freq = float(line.split(":")[1])
+            elif line.startswith("movement_ok:"):
+                movement_ok = line.split(":")[1].strip().lower() == "true"
+            elif line.startswith("accel_error:"):
+                accel_error = int(line.split(":")[1])
+            elif line.startswith("start_marker:"):
+                start_marker = float(line.split(":")[1])
+            elif line.startswith("end_marker:"):
+                end_marker = float(line.split(":")[1])
+            elif line.startswith("signal_start:"):
+                signal_start = float(line.split(":")[1])
+            elif line.startswith("signal_end:"):
+                signal_end = float(line.split(":")[1])
+            elif line[0].isdigit():
+                samples.append(float(line.split(",")[1]))
+
+        return SweepMeasurement(
+            samples=samples,
+            sampling_freq=sampling_freq,
+            movement_ok=movement_ok,
+            accel_error=accel_error,
+            start_marker=start_marker,
+            end_marker=end_marker,
+            signal_start=signal_start,
+            signal_end=signal_end,
+        )
+
+    def is_ok(self):
+        return self.movement_ok and self.accel_error == 0 and self.sampling_freq > 0
+
+    def get_signal(self):
+        start_marker_idx, end_marker_idx = locate_markers(self)
+        start_marker_time = start_marker_idx / self.sampling_freq
+        end_marker_time = end_marker_idx / self.sampling_freq
+
+        signal_start_idx = int(
+            (self.signal_start - self.start_marker) * self.sampling_freq)
+        signal_end_idx = int(
+            (self.signal_end - self.start_marker) * self.sampling_freq)
+
+        return self.samples[start_marker_idx +
+                            signal_start_idx:start_marker_idx + signal_end_idx]
+
+
+def compute_energy(samples: List[float], start_idx: int, end_idx: int,
+                   win: int) -> list[float]:
+    # This isn't pythonic, but it mimics the firmware implementation
+    energy = [sum(x * x for x in samples[start_idx:start_idx + win])]
+    for i in range(start_idx + 1, end_idx):
+        energy.append(energy[-1] + samples[i] * samples[i] -
+                      samples[i - win] * samples[i - win])
+    return energy
+
+
+def locate_markers(measurement: SweepMeasurement,
+                   search_win=0.1) -> Tuple[int, int]:
+    ENERGY_WIN = 0.005  # s
+    energy_win = int(ENERGY_WIN * measurement.sampling_freq)
+
+    markers_offset = int((measurement.end_marker - measurement.start_marker) *
+                         measurement.sampling_freq)
+    start1_idx = int((measurement.start_marker - search_win / 2) *
+                     measurement.sampling_freq)
+    end1_idx = int((measurement.start_marker + search_win / 2) *
+                   measurement.sampling_freq)
+
+    energy1 = compute_energy(measurement.samples, start1_idx, end1_idx,
+                             energy_win)
+    energy2 = compute_energy(measurement.samples, start1_idx + markers_offset,
+                             end1_idx + markers_offset, energy_win)
+    combined_energy = [e1 + e2 for e1, e2 in zip(energy1, energy2)]
+
+    mean = np.mean(combined_energy)
+    first_peak = np.argmax(combined_energy > mean)
+
+    if False:  # Override to quickly visualize the results as a debugging mean
+        fig = go.Figure()
+        fig.update_layout(
+            yaxis=dict(title="Energy"),
+            yaxis2=dict(title="Signal", overlaying="y", side="right"),
+        )
+
+        fig.add_trace(go.Scatter(y=combined_energy, name="Combined energy"))
+        fig.add_trace(go.Scatter(y=energy1, name="Energy 1"))
+        fig.add_trace(go.Scatter(y=energy2, name="Energy 2"))
+
+        fig.add_trace(
+            go.Scatter(y=np.diff(combined_energy),
+                       name="Diff combined energy"))
+
+        fig.add_trace(
+            go.Scatter(y=measurement.samples[start1_idx:end1_idx],
+                       name="Signal 1",
+                       yaxis="y2"))
+        fig.add_trace(
+            go.Scatter(
+                y=measurement.samples[start1_idx + markers_offset:end1_idx +
+                                      markers_offset],
+                name="Signal 2",
+                yaxis="y2"))
+
+        fig.add_vline(x=first_peak,
+                      line_dash="dash",
+                      line_color="red",
+                      annotation_text="Max peak")
+        fig.add_hline(y=mean,
+                      line_dash="dash",
+                      line_color="green",
+                      annotation_text="Mean")
+        fig.show()
+
+    return start1_idx + first_peak, start1_idx + first_peak + markers_offset
+
+
+def locate_signal(measurement: SweepMeasurement,
+                  search_win=0.1) -> Tuple[int, int]:
+    start_marker_idx, end_marker_idx = locate_markers(measurement)
+    signal_start = int((measurement.signal_start - measurement.start_marker) *
+                       measurement.sampling_freq)
+    signal_end = int((measurement.signal_end - measurement.start_marker) *
+                     measurement.sampling_freq)
+    return start_marker_idx + signal_start, start_marker_idx + signal_end
+
+
+def speed_sweep_correlation(signal,
+                            sampling_freq,
+                            start_freq,
+                            end_freq,
+                            window=0.05) -> List[float]:
+    """
+    Compute a sin-cos correlation of the signal with linearly changing frequency
+    """
+    sin_corr = []
+    cos_corr = []
+    for i, s in enumerate(signal):
+        t = i / sampling_freq
+        freq = start_freq + (end_freq - start_freq) * i / len(signal)
+        sin_corr.append(np.sin(2 * np.pi * freq * t) * s)
+        cos_corr.append(np.cos(2 * np.pi * freq * t) * s)
+
+    win_size = int(window * sampling_freq)
+    sin_corr = np.convolve(sin_corr, np.ones(win_size), mode="full")
+    cos_corr = np.convolve(cos_corr, np.ones(win_size), mode="full")
+
+    res = [x * x + y * y for x, y in zip(sin_corr, cos_corr)]
+    return res
+
+
+def compute_spectrogram(samples,
+                        start_idx,
+                        end_idx,
+                        sampling_freq,
+                        window_size_s,
+                        step_size=1):
+    """
+    Compute a spectrogram of the signal. Returns time_bins, freq_bins,
+    spectrogram.
+    """
+    win_size = int(window_size_s * sampling_freq)
+    spectrogram = []
+    for i in range(start_idx, end_idx, step_size):
+        windowed_signal = samples[i - win_size // 2:i + win_size // 2]
+        windowed_signal *= np.hanning(len(windowed_signal))
+        fft = rfft(windowed_signal)
+        spectrogram.append(np.abs(fft))
+    spectrogram.pop()
+
+    time_bins = [
+        i / sampling_freq for i in range(start_idx, end_idx, step_size)
+    ]
+    freq_bins = rfftfreq(win_size, 1 / sampling_freq)
+    return time_bins, freq_bins, np.array(spectrogram)
+
+
+def dft_n_mag(signal: np.ndarray, harmonic: int) -> float:
+    sum_sin, sum_cos = 0, 0
+    for i, s in enumerate(signal):
+        t = i / len(signal)
+        sum_sin += np.sin(2 * np.pi * harmonic * t) * s
+        sum_cos += np.cos(2 * np.pi * harmonic * t) * s
+    return np.sqrt(sum_sin * sum_sin + sum_cos * sum_cos) / len(signal)
+
+
+def dft_sweep_motor_harmonic(samples: np.ndarray, sampling_freq: int,
+                             idx_start: int, idx_end: int, speed: float,
+                             motor_steps: int, harmonic: int, window_size: int,
+                             step_size: int):
+    """
+    Compute a single bin DFT sweep at an integral multiple of motor frequency.
+    The window size and step size are given in motor periods.np.round(
+    """
+    motor_period_duration = 1 / (speed * motor_steps / 4)
+    signal_duration = (idx_end - idx_start) / sampling_freq
+    window_harmonic = window_size * harmonic
+    window_duration = window_size * motor_period_duration
+    half_window_idx = int(window_duration * sampling_freq / 2)
+
+    total_steps = int(signal_duration / motor_period_duration / step_size)
+
+    bins = []
+    res = []
+    for i in range(0, total_steps):
+        center_time = i * signal_duration / total_steps
+        center_idx = idx_start + int(center_time * sampling_freq)
+        window = samples[center_idx - half_window_idx:center_idx +
+                         half_window_idx]
+        window *= np.hanning(len(window))
+
+        bins.append(center_time)
+        res.append(dft_n_mag(window, window_harmonic))
+    return bins, np.asarray(res)
+
+
+def find_n_valleys(y, n, hysteresis=0.1, max_iter=10, stepdown=0.9):
+    """
+    Identifies the n most prominent valleys by iteratively adjusting threshold
+    until n valleys are found.
+    """
+
+    y = np.asarray(y)
+    min_y, max_y = np.min(y), np.max(y)
+    best_threshold = np.mean(y)
+    regions = []
+
+    for i in range(max_iter):
+        lower_threshold = best_threshold
+        upper_threshold = best_threshold + hysteresis * (max_y - min_y)
+
+        num_regions = 0
+        in_region = False
+        regions = []
+        start = None
+
+        for i in range(len(y)):
+            if y[i] <= lower_threshold and not in_region:
+                num_regions += 1
+                in_region = True
+                start = i
+            elif y[i] > upper_threshold and in_region:
+                in_region = False
+                regions.append((start, i))
+        if num_regions == n:
+            break
+
+        best_threshold = min_y + (best_threshold - min_y) * stepdown
+
+    valleys = []
+    for start, end in regions:
+        assert start < end
+        valleys.append(start + np.argmin(y[start:end]))
+
+    return valleys
+
+
+def speed_sweep_correlation2(signal,
+                             sampling_freq,
+                             start_freq,
+                             end_freq,
+                             window=0.05) -> List[float]:
+    """
+    Compute a sin-cos correlation of the signal with linearly changing
+    frequency.
+
+    This implementation splits moves window over the signal and computes the
+    correlation for ech window.
+    """
+    win_size = int(window * sampling_freq)
+    res = []
+    for i in range(0, len(signal) - win_size, 1):
+        windowed_signal = signal[i:i + win_size] * np.hanning(win_size)
+        t_base = i / sampling_freq
+        freq = start_freq + (end_freq - start_freq) * i / len(signal)
+
+        sin_sum = 0
+        cos_sum = 0
+        for j, s in enumerate(windowed_signal):
+            t = t_base + j / sampling_freq
+            sin_sum += np.sin(2 * np.pi * freq * t) * s
+            cos_sum += np.cos(2 * np.pi * freq * t) * s
+        res.append(sin_sum * sin_sum + cos_sum * cos_sum)
+    return res
+
+
+def plot_raw_measurement(measurement: SweepMeasurement, name=None):
+    fig = go.Figure()
+
+    if name is not None:
+        fig.update_layout(title=name)
+
+    times = [
+        i / measurement.sampling_freq for i in range(len(measurement.samples))
+    ]
+    fig.add_trace(go.Scatter(x=times, y=measurement.samples))
+
+    start_maker_idx, end_marker_idx = locate_markers(measurement)
+    start_marker_time = start_maker_idx / measurement.sampling_freq
+    end_marker_time = end_marker_idx / measurement.sampling_freq
+
+    signal_start_time = start_marker_time + measurement.signal_start - measurement.start_marker
+    signal_end_time = start_marker_time + measurement.signal_end - measurement.start_marker
+
+    fig.add_vline(x=start_marker_time,
+                  line_dash="dash",
+                  line_color="red",
+                  annotation_text="Start marker")
+    fig.add_vline(x=end_marker_time,
+                  line_dash="dash",
+                  line_color="red",
+                  annotation_text="End marker")
+    fig.add_vline(x=signal_start_time,
+                  line_dash="dash",
+                  line_color="green",
+                  annotation_text="Signal start")
+    fig.add_vline(x=signal_end_time,
+                  line_dash="dash",
+                  line_color="green",
+                  annotation_text="Signal end")
+
+    return fig
+
+
+def plot_spectrogram(spectrogram, time_bins, freq_bins, name=None):
+    fig = go.Figure(data=go.Heatmap(
+        z=spectrogram.T, x=time_bins, y=freq_bins, colorscale='Jet'))
+    fig.update_layout(title=name)
+    return fig
+
+
+def plot_resonance_characteristic(measurement: SweepMeasurement, start_speed,
+                                  end_speed, motor_steps):
+    analysis_start_freq = start_speed * motor_steps / 4
+    analysis_end_freq = end_speed * motor_steps / 4
+    signal = measurement.get_signal()
+
+    fig = go.Figure()
+    speeds = np.linspace(start_speed, end_speed, len(signal))
+    for i in range(1, 9):
+        print(f"H{i} {i*analysis_start_freq} - {i*analysis_end_freq}")
+        profile = speed_sweep_correlation2(signal, measurement.sampling_freq,
+                                           i * analysis_start_freq,
+                                           i * analysis_end_freq)
+        fig.add_trace(
+            go.Scatter(x=speeds,
+                       y=profile,
+                       name=f"Harmonic {i}",
+                       mode="lines",
+                       line_shape="linear"))
+
+    return fig
+
+
+@click.command("analyzeParamSweep")
+@click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
+@click.option("--motor-steps", type=int, default=200)
+@click.option("--axis", type=click.Choice(["X", "Y"]))
+@click.option("--speed", type=float, default=1)
+@click.option("--revs", type=float, default=2)
+@click.option("--n", type=int, default=2)
+@click.option("--mag-start", type=float, default=0)
+@click.option("--mag-end", type=float, default=0.0)
+@click.option("--pha-start", type=float, default=0)
+@click.option("--pha-end", type=float, default=0)
+@click.option("--output",
+              type=click.Path(dir_okay=True, file_okay=False),
+              default=None,
+              help="Output directory for data")
+@click.option("--show", is_flag=True)
+@click.option("--as-numpy/--as-machine",
+              default=False,
+              help="Use numpy or the direct machine implementation?")
+def analyzeParamSweep(port, motor_steps, axis, speed, revs, n, mag_start,
+                      mag_end, pha_start, pha_end, output, show, as_numpy):
+    """
+    Analyze parameter sweep
+    """
+
+    if output is None and not show:
+        print("No output specified, nothing to do. Specify --output or --show")
+        return
+
+    def present_plot(name, plot):
+        if output is not None:
+            Path(output).mkdir(parents=True, exist_ok=True)
+            plot.write_html(output / f"{name}.html")
+        if show:
+            plot.show()
+
+    with enabledMachineConnection(port=port) as machine:
+        time.sleep(0.2)
+        machine.command("G92 X0 Y0")
+        raw_output = machine.command(
+            f"M978 {axis} R{revs:.10f} F{speed:.10f} H{n} A{pha_start:.10f} B{pha_end:.10f} C{mag_start:.10f} D{mag_end:.10f}"
+        )
+        sweep_measurement_f = SweepMeasurement.from_raw_command(raw_output)
+        machine.command("G0 F10000 X0 Y0")
+        pha_start_b, pha_end_b = pha_end, pha_start
+        mag_start_b, mag_end_b = mag_end, mag_start
+        raw_output = machine.command(
+            f"M978 {axis} R{revs:.10f} F{speed:.10f} H{n} A{pha_start_b:.10f} B{pha_end_b:.10f} C{mag_start_b:.10f} D{mag_end_b:.10f}"
+        )
+        sweep_measurement_b = SweepMeasurement.from_raw_command(raw_output)
+        machine.command("G0 F10000 X0 Y0")
+
+    present_plot(
+        "raw_f",
+        plot_raw_measurement(sweep_measurement_f,
+                             name="Forward sweep raw data"))
+    present_plot(
+        "raw_b",
+        plot_raw_measurement(sweep_measurement_b,
+                             name="Backward sweep raw data"))
+
+    signal_start_f, signal_end_f = locate_signal(sweep_measurement_f)
+    signal_start_b, signal_end_b = locate_signal(sweep_measurement_b)
+
+    # Spectrogram
+    time_bins_f, freq_bins_f, spectrogram_f = compute_spectrogram(
+        sweep_measurement_f.samples, signal_start_f, signal_end_f,
+        sweep_measurement_f.sampling_freq, 0.2)
+    time_bins_b, freq_bins_b, spectrogram_b = compute_spectrogram(
+        sweep_measurement_b.samples, signal_start_b, signal_end_b,
+        sweep_measurement_b.sampling_freq, 0.2)
+
+    present_plot(
+        "spectrogram_f",
+        plot_spectrogram(spectrogram_f,
+                         time_bins_f,
+                         freq_bins_f,
+                         name="Forward sweep spectrogram"))
+    present_plot(
+        "spectrogram_b",
+        plot_spectrogram(spectrogram_b,
+                         time_bins_b,
+                         freq_bins_b,
+                         name="Backward sweep spectrogram"))
+
+    # Analysis
+    if as_numpy:
+        analysis_freq = motor_steps / 4 * n
+        analysis_f_freq_idx = np.argmin(np.abs(freq_bins_f - analysis_freq))
+        analysis_b_freq_idx = np.argmin(np.abs(freq_bins_b - analysis_freq))
+
+        f_response = [
+            spectrum[analysis_f_freq_idx] for spectrum in spectrogram_f
+        ]
+        b_response = [
+            spectrum[analysis_b_freq_idx] for spectrum in spectrogram_b
+        ]
+        b_response.reverse(
+        )  # The sweep runs from end to start, but we want to compare it to the forward sweep
+    else:
+        time_bins_f, f_response = dft_sweep_motor_harmonic(
+            sweep_measurement_f.samples, sweep_measurement_f.sampling_freq,
+            signal_start_f, signal_end_f, speed, motor_steps, n, 10, 1)
+        time_bins_b, b_response = dft_sweep_motor_harmonic(
+            sweep_measurement_b.samples, sweep_measurement_b.sampling_freq,
+            signal_start_b, signal_end_b, speed, motor_steps, n, 10, 1)
+        b_response = b_response[::-1]
+
+    mag_bins = np.linspace(mag_start, mag_end, len(time_bins_f))
+    pha_bins = np.linspace(pha_start, pha_end, len(time_bins_b))
+
+    trim_len = min(len(f_response), len(b_response))
+    f_response = f_response[:trim_len]
+    b_response = b_response[:trim_len]
+    time_bins_f = time_bins_f[:trim_len]
+    mag_bins = mag_bins[:trim_len]
+    pha_bins = pha_bins[:trim_len]
+
+    # Plot an amplitude of analysis frequency for each window
+    fig = go.Figure()
+    fig.update_layout(
+        title="Resonance analysis based on parameter sweep",
+        yaxis_title="Magnitude",
+        yaxis=dict(
+            domain=[0.1, 1
+                    ]  # Shrinks the plot area upwards to create space below
+        ),
+        xaxis=dict(
+            title="Time (s)",
+            domain=[0, 1],
+            showgrid=True,  # Show grid only for main x-axis
+            zeroline=True,
+        ),
+        xaxis2=dict(title="Mag",
+                    overlaying="x",
+                    side="bottom",
+                    anchor="free",
+                    position=0.05,
+                    tickformat=".4f",
+                    showgrid=False,
+                    nticks=20),
+        xaxis3=dict(title="Pha",
+                    overlaying="x",
+                    side="bottom",
+                    anchor="free",
+                    position=0.00,
+                    tickformat=".2f",
+                    showgrid=False,
+                    nticks=20),
+    )
+
+    for name, response in [("Forward", f_response), ("Backward", b_response)]:
+        fig.add_trace(
+            go.Scatter(x=time_bins_f,
+                       y=response,
+                       name=name + " response to time"))
+        fig.add_trace(
+            go.Scatter(x=mag_bins,
+                       y=response,
+                       name=name + " response to mag",
+                       xaxis="x2"))
+        fig.add_trace(
+            go.Scatter(x=pha_bins,
+                       y=response,
+                       name=name + " response to pha",
+                       xaxis="x3"))
+
+    if pha_start != pha_end:
+        num_valleys = (pha_end - pha_start) // (2 * np.pi)
+        to_pha_space = lambda x: (x / len(time_bins_f) *
+                                  (pha_end - pha_start) + pha_start)
+
+        f_valleys_idx = find_n_valleys(f_response, num_valleys)
+        b_valleys_idx = find_n_valleys(b_response, num_valleys)
+
+        for v_idx in f_valleys_idx:
+            fig.add_trace(
+                go.Scatter(x=[to_pha_space(v_idx)],
+                           y=[f_response[v_idx]],
+                           mode="markers",
+                           marker=dict(color="blue"),
+                           xaxis="x3",
+                           showlegend=False))
+        for v_idx in b_valleys_idx:
+            fig.add_trace(
+                go.Scatter(x=[to_pha_space(v_idx)],
+                           y=[b_response[v_idx]],
+                           mode="markers",
+                           marker=dict(color="red"),
+                           xaxis="x3",
+                           showlegend=False))
+
+        for v in [(a + b) // 2 for a, b in zip(f_valleys_idx, b_valleys_idx)]:
+            fig.add_vline(x=time_bins_f[v],
+                          line_dash="dash",
+                          line_color="green",
+                          annotation_text="Identified pha")
+
+        for v in [(to_pha_space(a) + to_pha_space(b)) / 2
+                  for a, b in zip(f_valleys_idx, b_valleys_idx)]:
+            print(f"Candidate pha: {v % (2 * np.pi)}")
+
+    present_plot("analysis", fig)
+
+
+@click.command("findOptimalMagnitude")
+@click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
+@click.option("--motor-steps", type=int, default=200)
+@click.option("--axis", type=click.Choice(["X", "Y"]))
+@click.option("--speed", type=float, default=1)
+@click.option("--revs", type=float, default=1)
+@click.option("--n", type=int, default=2)
+@click.option("--mag-start", type=float, default=0.001)
+@click.option("--mag-step", type=float, default=2)
+@click.option("--pha-start", type=float, default=-2)
+@click.option("--pha-end", type=float, default=14)
+@click.option("--output",
+              type=click.Path(dir_okay=True, file_okay=False),
+              default=None,
+              help="Output directory for data")
+@click.option("--show", is_flag=True)
+def findOptimalMagnitude(port, motor_steps, axis, speed, revs, n, mag_start,
+                         mag_step, pha_start, pha_end, output, show):
+    """
+    Perform several parameter sweeps to locate optimal magnitude
+    """
+    if output is None and not show:
+        print("No output specified, nothing to do. Specify --output or --show")
+        return
+
+    def present_plot(name, plot):
+        if output is not None:
+            Path(output).mkdir(parents=True, exist_ok=True)
+            plot.write_html(output / f"{name}.html")
+        if show:
+            plot.show()
+
+    fig = go.Figure()
+    fig.update_layout(title="Optimal magnitude sweep",
+                      yaxis_title="Magnitude",
+                      xaxis_title="Phase")
+
+    last_minimum = np.inf
+    mag = mag_start
+    gone_worse_count = 0
+    with enabledMachineConnection(port=port) as machine:
+        time.sleep(0.2)
+        machine.command("G92 X0 Y0")
+
+        for _ in range(20):
+            print(f"Testing magnitude {mag:.5f}: ", end="")
+            raw_output = machine.command(
+                f"M978 {axis} R{revs:.10f} F{speed:.10f} H{n} A{pha_start:.10f} B{pha_end:.10f} C{mag:.10f} D{mag:.10f}"
+            )
+            sweep_measurement = SweepMeasurement.from_raw_command(raw_output)
+            machine.command("G0 F10000 X0 Y0")
+
+            if not sweep_measurement.is_ok():
+                print("Movement error")
+                continue
+
+            signal_start_f, signal_end_f = locate_signal(sweep_measurement)
+            time_bins_f, f_response = dft_sweep_motor_harmonic(
+                sweep_measurement.samples, sweep_measurement.sampling_freq,
+                signal_start_f, signal_end_f, speed, motor_steps, n, 10, 1)
+
+            fig.add_trace(
+                go.Scatter(x=np.linspace(pha_start, pha_end, len(f_response)),
+                           y=f_response,
+                           name=f"Mag {mag:.5f}"))
+
+            minimum = np.min(f_response)
+            print(minimum)
+            if minimum < last_minimum:
+                gone_worse_count = 0
+                last_minimum = minimum
+            else:
+                gone_worse_count += 1
+                if gone_worse_count >= 2:
+                    break
+
+            mag *= mag_step
+
+    present_plot("optimal_mag", fig)
+
+
+@click.command("analyzeSpeedSweep")
+@click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
+@click.option("--motor-steps", type=int, default=200)
+@click.option("--axis", type=click.Choice(["X", "Y"]))
+@click.option("--revs", type=float, default=5)
+@click.option("--speed-start", type=float, default=0.5)
+@click.option("--speed-end", type=float, default=3)
+def analyzeSpeedSweep(port, motor_steps, axis, revs, speed_start, speed_end):
+    """
+    Analyze speed sweep
+    """
+    with enabledMachineConnection(port=port) as machine:
+        machine.command("M17")
+        time.sleep(0.2)
+        raw_output = machine.command(
+            f"M979 {axis} R{revs:.10f} A{speed_start:.10f} B{speed_end:.10f}")
+
+        sweep_measurement = SweepMeasurement.from_raw_command(raw_output)
+
+    print("Sample freq:", sweep_measurement.sampling_freq)
+    print("Movement ok:", sweep_measurement.movement_ok)
+    print("Accel error:", sweep_measurement.accel_error)
+    print("Start marker:", sweep_measurement.start_marker)
+    print("End marker:", sweep_measurement.end_marker)
+    print("Signal start:", sweep_measurement.signal_start)
+    print("Signal end:", sweep_measurement.signal_end)
+
+    plot_raw_measurement(sweep_measurement).show()
+    plot_resonance_characteristic(sweep_measurement, speed_start, speed_end,
+                                  motor_steps).show()
+
+    signal = sweep_measurement.get_signal()
+    # Spectrograph
+    window_size = int(0.1 * sweep_measurement.sampling_freq)  # 100ms
+    step_size = 1
+    spectrogram = []
+
+    print("Window size:", window_size)
+    print("Steps size:", step_size)
+
+    for start in range(0, len(signal) - window_size, step_size):
+        windowed_samples = signal[start:start + window_size]
+        windowed_samples = windowed_samples * np.hanning(len(windowed_samples))
+        windowed_fft = rfft(windowed_samples)
+        spectrogram.append(np.abs(windowed_fft))
+    spectrogram.pop()
+
+    spectrogramT = np.array(spectrogram).T
+
+    # Calculate time and frequency bins
+    time_bins = np.arange(0,
+                          len(signal) - window_size,
+                          step_size) / sweep_measurement.sampling_freq
+    freq_bins = rfftfreq(window_size, 1 / sweep_measurement.sampling_freq)
+
+    fig = go.Figure(data=go.Heatmap(
+        z=spectrogramT, x=time_bins, y=freq_bins, colorscale='Jet'))
+    fig.update_layout(title='Spectrogram',
+                      xaxis_title='Time (s)',
+                      yaxis_title='Frequency (Hz)')
+    fig.show()
+
+
 @click.group()
 def cli():
     """
@@ -899,6 +1625,9 @@ cli.add_command(analyzeMachineSamplesCmd)
 cli.add_command(analyzeConsistencyCmd)
 cli.add_command(captureStateSpaceCmd)
 cli.add_command(plotStateSpaceCmd)
+cli.add_command(analyzeParamSweep)
+cli.add_command(findOptimalMagnitude)
+cli.add_command(analyzeSpeedSweep)
 
 if __name__ == "__main__":
     cli()
