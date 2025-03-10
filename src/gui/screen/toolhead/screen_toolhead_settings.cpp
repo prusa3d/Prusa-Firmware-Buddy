@@ -66,7 +66,7 @@ void MI_HOTEND_TYPE::build_item_text(int index, const std::span<char> &buffer) c
     if (has_varying_values_ && index == 0) {
         sb.append_string("-");
     } else {
-        sb.append_string_view(_(hotend_type_names[index - (has_varying_values_ ? 1 : 0)]));
+        sb.append_string_view(_(hotend_type_names[hotend_type_list[index - (has_varying_values_ ? 1 : 0)]]));
     }
 }
 
