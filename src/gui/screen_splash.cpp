@@ -181,7 +181,7 @@ screen_splash_data_t::screen_splash_data_t()
             constexpr auto callback = +[] {
                 StringViewUtf8Parameters<16> params;
                 MsgBoxError(
-                    _("Printer type changed from %s to %s.\nFactory reset has to be performed.\n")
+                    _("Printer type changed from %s to %s.\nFactory reset has to be performed.")
                         .formatted(params, PrinterModelInfo::get(config_store().last_boot_base_printer_model.get()).id_str, PrinterModelInfo::firmware_base().id_str),
                     { Response::Continue });
 
