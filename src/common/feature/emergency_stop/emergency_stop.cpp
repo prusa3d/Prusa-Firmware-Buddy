@@ -128,6 +128,7 @@ void EmergencyStop::maybe_block() {
     // which positions are with or without MBL).
     const auto old_pos = planner.get_machine_position_mm();
     const auto old_pos_motion = current_position;
+    const auto old_destination = destination;
     if (do_move) {
         // Make sure to not park too low. As the do_blocking_move_to doesn't
         // consider MBL (and we may not have that part mapped anyway), we could
@@ -141,10 +142,11 @@ void EmergencyStop::maybe_block() {
         current_position = old_pos;
         do_blocking_move_to(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, park_z, feedRate_t(NOZZLE_PARK_XY_FEEDRATE));
     }
-    auto unpark = [this, old_pos, old_pos_motion] {
+    auto unpark = [this, old_pos, old_pos_motion, old_destination] {
         AutoRestore _ar(allow_planning_movements, true);
         do_blocking_move_to(old_pos.x, old_pos.y, old_pos.z, feedRate_t(NOZZLE_PARK_XY_FEEDRATE));
         current_position = old_pos_motion;
+        destination = old_destination;
     };
     ScopeGuard unpark_guard(std::move(unpark), do_move);
 
