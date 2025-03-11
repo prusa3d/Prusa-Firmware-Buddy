@@ -186,7 +186,7 @@ msgstr "キャリブレーション&テスト"
 msgid "CONTROL"
 msgstr "コントロール"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:170
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:175
 msgid "Calibrate Filament Sensor"
 msgstr "フィラメントセンサーキャリブレーション"
 
@@ -214,7 +214,7 @@ msgstr "エラーニヨル キャリブレーションシッパイ"
 msgid "CUSTOM PARAMETERS"
 msgstr "カスタムパラメータ"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:170
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:175
 msgid "Calibrate Filament Sensors"
 msgstr "フィラメントセンサーノ キャリブレーション"
 
@@ -472,7 +472,7 @@ msgstr ""
 "フィラメント'%s'ハ ケンマセイガ アリマスガ、ハードノズルガ トリツケラレテイマ"
 "セン。ツヅケマスカ?"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:156
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:161
 msgid "Filament Sensors Tuning"
 msgstr "フィラメントセンサーノ チョウセイ"
 
@@ -768,9 +768,9 @@ msgstr "メトリクス リスト"
 msgid "Move Axis"
 msgstr "ジクノ イドウ"
 
-#: tmp_error_headers/error_list_coreone.hpp:72
-#: tmp_error_headers/error_list_mk35.hpp:30
-#: tmp_error_headers/error_list_mk4.hpp:37
+#: tmp_error_headers/error_list_coreone.hpp:86
+#: tmp_error_headers/error_list_mk35.hpp:44
+#: tmp_error_headers/error_list_mk4.hpp:51
 #: tmp_error_headers/error_list_mini.hpp:23
 #: tmp_error_headers/error_list_ix.hpp:44
 msgid "Check the heatbed heater & thermistor wiring for possible damage."
@@ -778,16 +778,16 @@ msgstr ""
 "ヒートベッドヒータート サーミスタノハイセンガ ソンショウシテイル カノウセイ"
 "ガ アルタメ、カクニンシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:86
 #: tmp_error_headers/error_list_coreone.hpp:100
 #: tmp_error_headers/error_list_coreone.hpp:114
-#: tmp_error_headers/error_list_mk35.hpp:44
+#: tmp_error_headers/error_list_coreone.hpp:128
 #: tmp_error_headers/error_list_mk35.hpp:58
 #: tmp_error_headers/error_list_mk35.hpp:72
+#: tmp_error_headers/error_list_mk35.hpp:86
 #: tmp_error_headers/error_list_xl.hpp:86
-#: tmp_error_headers/error_list_mk4.hpp:51
 #: tmp_error_headers/error_list_mk4.hpp:65
 #: tmp_error_headers/error_list_mk4.hpp:79
+#: tmp_error_headers/error_list_mk4.hpp:93
 #: tmp_error_headers/error_list_mini.hpp:37
 #: tmp_error_headers/error_list_mini.hpp:51
 #: tmp_error_headers/error_list_mini.hpp:65
@@ -799,14 +799,14 @@ msgstr ""
 "サーミスタノ ハイセンニ ソンショウノ カノウセイガナイカ テンケンシテクダサ"
 "イ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:142
-#: tmp_error_headers/error_list_coreone.hpp:149
-#: tmp_error_headers/error_list_mk35.hpp:100
-#: tmp_error_headers/error_list_mk35.hpp:107
+#: tmp_error_headers/error_list_coreone.hpp:156
+#: tmp_error_headers/error_list_coreone.hpp:163
+#: tmp_error_headers/error_list_mk35.hpp:114
+#: tmp_error_headers/error_list_mk35.hpp:121
 #: tmp_error_headers/error_list_xl.hpp:128
 #: tmp_error_headers/error_list_xl.hpp:135
-#: tmp_error_headers/error_list_mk4.hpp:107
-#: tmp_error_headers/error_list_mk4.hpp:114
+#: tmp_error_headers/error_list_mk4.hpp:121
+#: tmp_error_headers/error_list_mk4.hpp:128
 #: tmp_error_headers/error_list_mini.hpp:93
 #: tmp_error_headers/error_list_mini.hpp:100
 #: tmp_error_headers/error_list_ix.hpp:114
@@ -816,9 +816,9 @@ msgstr ""
 "ヒートブレイクサーミスタノ ハイセンニ ソンショウノ カノウセイガ ナイカ テンケ"
 "ンシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:79
-#: tmp_error_headers/error_list_mk35.hpp:37
-#: tmp_error_headers/error_list_mk4.hpp:44
+#: tmp_error_headers/error_list_coreone.hpp:93
+#: tmp_error_headers/error_list_mk35.hpp:51
+#: tmp_error_headers/error_list_mk4.hpp:58
 #: tmp_error_headers/error_list_mini.hpp:30
 #: tmp_error_headers/error_list_ix.hpp:51
 msgid "Check the print head heater & thermistor wiring for possible damage."
@@ -826,15 +826,15 @@ msgstr ""
 "プリントヘッドノ ヒータート サーミスタノ ハイセンガ ソンショウシテイルカノウ"
 "セイガ アルタメ、カクニンシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:93
 #: tmp_error_headers/error_list_coreone.hpp:107
 #: tmp_error_headers/error_list_coreone.hpp:121
-#: tmp_error_headers/error_list_mk35.hpp:51
+#: tmp_error_headers/error_list_coreone.hpp:135
 #: tmp_error_headers/error_list_mk35.hpp:65
 #: tmp_error_headers/error_list_mk35.hpp:79
-#: tmp_error_headers/error_list_mk4.hpp:58
+#: tmp_error_headers/error_list_mk35.hpp:93
 #: tmp_error_headers/error_list_mk4.hpp:72
 #: tmp_error_headers/error_list_mk4.hpp:86
+#: tmp_error_headers/error_list_mk4.hpp:100
 #: tmp_error_headers/error_list_mini.hpp:44
 #: tmp_error_headers/error_list_mini.hpp:58
 #: tmp_error_headers/error_list_mini.hpp:72
@@ -846,9 +846,9 @@ msgstr ""
 "プリントヘッドサーミスタノ ハイセンニ ソンショウノカノウセイガ ナイカ テンケ"
 "ンシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:205
-#: tmp_error_headers/error_list_mk35.hpp:128
-#: tmp_error_headers/error_list_mk4.hpp:135
+#: tmp_error_headers/error_list_coreone.hpp:219
+#: tmp_error_headers/error_list_mk35.hpp:142
+#: tmp_error_headers/error_list_mk4.hpp:149
 #: tmp_error_headers/error_list_mini.hpp:121
 #: tmp_error_headers/error_list_ix.hpp:219
 msgid ""
@@ -866,8 +866,8 @@ msgstr ""
 "Yジク ニ オイテ、エクストルーダーノ ゲンテンフッキニ シッパイシマシタ。Yジク "
 "ニ ショウガイブツ ガ ナイコトヲ カクニン シテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:198
-#: tmp_error_headers/error_list_mk4.hpp:128
+#: tmp_error_headers/error_list_coreone.hpp:212
+#: tmp_error_headers/error_list_mk4.hpp:142
 #: tmp_error_headers/error_list_ix.hpp:198
 msgid ""
 "Failed to home the extruder in Z-axis, make sure the loadcell is working."
@@ -875,9 +875,9 @@ msgstr ""
 "Zジクノ エクストルーダーノ ゲンテンフッキニ シッパイシマシタ。ロードセルガ ド"
 "ウサシテイルコトヲ カクニンシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:659
-#: tmp_error_headers/error_list_mk35.hpp:463
-#: tmp_error_headers/error_list_mk4.hpp:505
+#: tmp_error_headers/error_list_coreone.hpp:673
+#: tmp_error_headers/error_list_mk35.hpp:477
+#: tmp_error_headers/error_list_mk4.hpp:519
 msgid "Firmware Update Required"
 msgstr "ファームウェア ヲ アップデート シテクダサイ"
 
@@ -897,27 +897,27 @@ msgstr ""
 "タダシイカ\n"
 "カクニンシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:239
-#: tmp_error_headers/error_list_mk35.hpp:162
-#: tmp_error_headers/error_list_mk4.hpp:169
+#: tmp_error_headers/error_list_coreone.hpp:253
+#: tmp_error_headers/error_list_mk35.hpp:176
+#: tmp_error_headers/error_list_mk4.hpp:183
 #: tmp_error_headers/error_list_mini.hpp:155
 #: tmp_error_headers/error_list_ix.hpp:253
 msgid "HEATBED PORT OVERCURRENT"
 msgstr "ヒートベッドポート カデンリュウ"
 
-#: tmp_error_headers/error_list_coreone.hpp:148
-#: tmp_error_headers/error_list_mk35.hpp:106
+#: tmp_error_headers/error_list_coreone.hpp:162
+#: tmp_error_headers/error_list_mk35.hpp:120
 #: tmp_error_headers/error_list_xl.hpp:134
-#: tmp_error_headers/error_list_mk4.hpp:113
+#: tmp_error_headers/error_list_mk4.hpp:127
 #: tmp_error_headers/error_list_mini.hpp:99
 #: tmp_error_headers/error_list_ix.hpp:120
 msgid "HEATBREAK MAXTEMP ERROR"
 msgstr "ヒートブレイクサイダイオンドエラー"
 
-#: tmp_error_headers/error_list_coreone.hpp:141
-#: tmp_error_headers/error_list_mk35.hpp:99
+#: tmp_error_headers/error_list_coreone.hpp:155
+#: tmp_error_headers/error_list_mk35.hpp:113
 #: tmp_error_headers/error_list_xl.hpp:127
-#: tmp_error_headers/error_list_mk4.hpp:106
+#: tmp_error_headers/error_list_mk4.hpp:120
 #: tmp_error_headers/error_list_mini.hpp:92
 #: tmp_error_headers/error_list_ix.hpp:113
 msgid "HEATBREAK MINTEMP ERROR"
@@ -996,8 +996,8 @@ msgstr ""
 "イマカラ セットアップ プロセスヲ\n"
 "ガイド シテイキマス。"
 
-#: tmp_error_headers/error_list_coreone.hpp:660
-#: tmp_error_headers/error_list_mk4.hpp:506
+#: tmp_error_headers/error_list_coreone.hpp:674
+#: tmp_error_headers/error_list_mk4.hpp:520
 msgid ""
 "Insert the bundled USB drive, restart the printer and click the knob once "
 "during the boot. This will install the MK3.5 firmware."
@@ -1005,7 +1005,7 @@ msgstr ""
 "フゾクノ USBドライブヲ イレテ、プリンタヲ サイキドウシマス。キドウチュウニ ノ"
 "ブヲ ワンクリックシマス。コレデ MK3.5ファームウェアガ インストールサレマス。"
 
-#: tmp_error_headers/error_list_mk35.hpp:464
+#: tmp_error_headers/error_list_mk35.hpp:478
 msgid ""
 "Insert the bundled USB drive, restart the printer and click the knob once "
 "during the boot. This will install the MK4/MK3.9 firmware."
@@ -1014,12 +1014,12 @@ msgstr ""
 "ブヲ ワンクリックシマス。コレデ MK4/MK3.9ファームウェアガ インストールサレマ"
 "ス。"
 
-#: tmp_error_headers/error_list_coreone.hpp:99
-#: tmp_error_headers/error_list_coreone.hpp:106
-#: tmp_error_headers/error_list_mk35.hpp:57
-#: tmp_error_headers/error_list_mk35.hpp:64
-#: tmp_error_headers/error_list_mk4.hpp:64
-#: tmp_error_headers/error_list_mk4.hpp:71
+#: tmp_error_headers/error_list_coreone.hpp:113
+#: tmp_error_headers/error_list_coreone.hpp:120
+#: tmp_error_headers/error_list_mk35.hpp:71
+#: tmp_error_headers/error_list_mk35.hpp:78
+#: tmp_error_headers/error_list_mk4.hpp:78
+#: tmp_error_headers/error_list_mk4.hpp:85
 #: tmp_error_headers/error_list_mini.hpp:50
 #: tmp_error_headers/error_list_mini.hpp:57
 #: tmp_error_headers/error_list_ix.hpp:71
@@ -1027,31 +1027,31 @@ msgstr ""
 msgid "MAXTEMP ERROR"
 msgstr "MAXTEMP ERROR(サイダイオンドエラー)"
 
-#: tmp_error_headers/error_list_coreone.hpp:155
-#: tmp_error_headers/error_list_mk35.hpp:113
+#: tmp_error_headers/error_list_coreone.hpp:169
+#: tmp_error_headers/error_list_mk35.hpp:127
 #: tmp_error_headers/error_list_xl.hpp:141
-#: tmp_error_headers/error_list_mk4.hpp:120
+#: tmp_error_headers/error_list_mk4.hpp:134
 #: tmp_error_headers/error_list_mini.hpp:106
 #: tmp_error_headers/error_list_ix.hpp:127
 msgid "MCU MAXTEMP ERROR"
 msgstr "MCUサイダイオンドエラー"
 
-#: tmp_error_headers/error_list_coreone.hpp:156
-#: tmp_error_headers/error_list_mk35.hpp:114
+#: tmp_error_headers/error_list_coreone.hpp:170
+#: tmp_error_headers/error_list_mk35.hpp:128
 #: tmp_error_headers/error_list_xl.hpp:142
-#: tmp_error_headers/error_list_mk4.hpp:121
+#: tmp_error_headers/error_list_mk4.hpp:135
 #: tmp_error_headers/error_list_mini.hpp:107
 #: tmp_error_headers/error_list_ix.hpp:128
 #, c-format
 msgid "MCU in %s is overheated."
 msgstr "MCU ガ %s オーバーヒート"
 
-#: tmp_error_headers/error_list_coreone.hpp:113
-#: tmp_error_headers/error_list_coreone.hpp:120
-#: tmp_error_headers/error_list_mk35.hpp:71
-#: tmp_error_headers/error_list_mk35.hpp:78
-#: tmp_error_headers/error_list_mk4.hpp:78
-#: tmp_error_headers/error_list_mk4.hpp:85
+#: tmp_error_headers/error_list_coreone.hpp:127
+#: tmp_error_headers/error_list_coreone.hpp:134
+#: tmp_error_headers/error_list_mk35.hpp:85
+#: tmp_error_headers/error_list_mk35.hpp:92
+#: tmp_error_headers/error_list_mk4.hpp:92
+#: tmp_error_headers/error_list_mk4.hpp:99
 #: tmp_error_headers/error_list_mini.hpp:64
 #: tmp_error_headers/error_list_mini.hpp:71
 #: tmp_error_headers/error_list_ix.hpp:85
@@ -1059,10 +1059,10 @@ msgstr "MCU ガ %s オーバーヒート"
 msgid "MINTEMP ERROR"
 msgstr "MINTEMP ERROR(サイショウオンドエラー)"
 
-#: tmp_error_headers/error_list_coreone.hpp:128
-#: tmp_error_headers/error_list_mk35.hpp:86
+#: tmp_error_headers/error_list_coreone.hpp:142
+#: tmp_error_headers/error_list_mk35.hpp:100
 #: tmp_error_headers/error_list_xl.hpp:114
-#: tmp_error_headers/error_list_mk4.hpp:93
+#: tmp_error_headers/error_list_mk4.hpp:107
 #: tmp_error_headers/error_list_mini.hpp:79
 #: tmp_error_headers/error_list_ix.hpp:100
 msgid ""
@@ -1073,28 +1073,28 @@ msgstr ""
 "セッショクシテイルカモシレマセン。ソンショウシテイルバアイハ コウカンシテクダ"
 "サイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:232
-#: tmp_error_headers/error_list_mk35.hpp:155
-#: tmp_error_headers/error_list_mk4.hpp:162
+#: tmp_error_headers/error_list_coreone.hpp:246
+#: tmp_error_headers/error_list_mk35.hpp:169
+#: tmp_error_headers/error_list_mk4.hpp:176
 #: tmp_error_headers/error_list_mini.hpp:148
 #: tmp_error_headers/error_list_ix.hpp:246
 msgid "NOZZLE HEATER OVERCURRENT"
 msgstr "ノズルヒーターヘノ カデンリュウ"
 
-#: tmp_error_headers/error_list_coreone.hpp:233
-#: tmp_error_headers/error_list_mk35.hpp:156
-#: tmp_error_headers/error_list_mk4.hpp:163
+#: tmp_error_headers/error_list_coreone.hpp:247
+#: tmp_error_headers/error_list_mk35.hpp:170
+#: tmp_error_headers/error_list_mk4.hpp:177
 #: tmp_error_headers/error_list_mini.hpp:149
 #: tmp_error_headers/error_list_ix.hpp:247
 msgid "Overcurrent detected on nozzle heater."
 msgstr "ノズルヒーターヘノ カデンリュウガ ケンシュツサレマシタ"
 
-#: tmp_error_headers/error_list_coreone.hpp:71
-#: tmp_error_headers/error_list_coreone.hpp:78
-#: tmp_error_headers/error_list_mk35.hpp:29
-#: tmp_error_headers/error_list_mk35.hpp:36
-#: tmp_error_headers/error_list_mk4.hpp:36
-#: tmp_error_headers/error_list_mk4.hpp:43
+#: tmp_error_headers/error_list_coreone.hpp:85
+#: tmp_error_headers/error_list_coreone.hpp:92
+#: tmp_error_headers/error_list_mk35.hpp:43
+#: tmp_error_headers/error_list_mk35.hpp:50
+#: tmp_error_headers/error_list_mk4.hpp:50
+#: tmp_error_headers/error_list_mk4.hpp:57
 #: tmp_error_headers/error_list_mini.hpp:22
 #: tmp_error_headers/error_list_mini.hpp:29
 #: tmp_error_headers/error_list_ix.hpp:43
@@ -1116,13 +1116,13 @@ msgstr ""
 "プリントシートガ ケンシュツサレマセンデシタ。プリンタノ ソンショウヲフセグタ"
 "メ、シートヲ ソウチャクシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:85
-#: tmp_error_headers/error_list_coreone.hpp:92
-#: tmp_error_headers/error_list_mk35.hpp:43
-#: tmp_error_headers/error_list_mk35.hpp:50
+#: tmp_error_headers/error_list_coreone.hpp:99
+#: tmp_error_headers/error_list_coreone.hpp:106
+#: tmp_error_headers/error_list_mk35.hpp:57
+#: tmp_error_headers/error_list_mk35.hpp:64
 #: tmp_error_headers/error_list_xl.hpp:85
-#: tmp_error_headers/error_list_mk4.hpp:50
-#: tmp_error_headers/error_list_mk4.hpp:57
+#: tmp_error_headers/error_list_mk4.hpp:64
+#: tmp_error_headers/error_list_mk4.hpp:71
 #: tmp_error_headers/error_list_mini.hpp:36
 #: tmp_error_headers/error_list_mini.hpp:43
 #: tmp_error_headers/error_list_ix.hpp:57
@@ -1147,10 +1147,10 @@ msgstr ""
 msgid "NOZZLE_OFFSET"
 msgstr "ノズル オフセット"
 
-#: tmp_error_headers/error_list_coreone.hpp:688
-#: tmp_error_headers/error_list_mk35.hpp:492
+#: tmp_error_headers/error_list_coreone.hpp:702
+#: tmp_error_headers/error_list_mk35.hpp:506
 #: tmp_error_headers/error_list_xl.hpp:758
-#: tmp_error_headers/error_list_mk4.hpp:534
+#: tmp_error_headers/error_list_mk4.hpp:548
 #: tmp_error_headers/error_list_ix.hpp:709
 msgid "New firmware available"
 msgstr "アタラシイファームウェアガ アリマス"
@@ -1172,13 +1172,6 @@ msgstr "ネクストルーダー シリコンソックス"
 msgid "No USB"
 msgstr "USBガ アリマセン"
 
-#: tmp_error_headers/error_list_coreone.hpp:863
-#: tmp_error_headers/error_list_xl.hpp:968
-#: tmp_error_headers/error_list_mk4.hpp:709
-#: tmp_error_headers/error_list_ix.hpp:870
-msgid "Nozzle cleaning failed."
-msgstr "ノズルクリーニング シッパイ"
-
 #: src/gui/window_msgbox_wrong_printer.cpp:35
 #, c-format
 msgid "Newer firmware is required: %s"
@@ -1192,17 +1185,9 @@ msgstr "ノズルチョッケイ"
 msgid "Nozzle heater check"
 msgstr "ノズルヒーター カクニン"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:81
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:86
 msgid "Nozzle Hardened"
 msgstr "ハードノズル"
-
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:98
-msgid "Nozzle High-flow"
-msgstr "ハイフローノズル"
-
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:184
-msgid "Nozzle Offset"
-msgstr "ノズルオフセット"
 
 #: src/gui/screen/filament/screen_filament_detail.cpp:73
 msgid "Nozzle Preheat Temperature"
@@ -1230,19 +1215,13 @@ msgstr "ノズルガ ハイフローデハ アリマセン"
 msgid "Offset %c"
 msgstr "オフセット %c"
 
-#: tmp_error_headers/error_list_coreone.hpp:240
-#: tmp_error_headers/error_list_mk35.hpp:163
-#: tmp_error_headers/error_list_mk4.hpp:170
+#: tmp_error_headers/error_list_coreone.hpp:254
+#: tmp_error_headers/error_list_mk35.hpp:177
+#: tmp_error_headers/error_list_mk4.hpp:184
 #: tmp_error_headers/error_list_ix.hpp:254
 msgid "Overcurrent detected on xBuddy heatbed port, disconnect the device."
 msgstr ""
 "xBuddyボードノ ヒートベッドポートデ カデンリュウガ ケンシュツサレマシタ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:15
-#: tmp_error_headers/error_list_xl.hpp:15
-#: tmp_error_headers/error_list_ix.hpp:15
-msgid "PRECISE REFINEMENT FAILED"
-msgstr "テキセツナ リファイン シッパイ"
 
 #: src/gui/resolution_480x320/screen_print_preview_base.cpp:24
 #: src/gui/screen_print_preview.cpp:149
@@ -1290,19 +1269,6 @@ msgstr "プリント"
 #: src/gui/MItem_menus.hpp:134
 msgid "Print Statistics"
 msgstr "プリントトウケイジョウホウ"
-
-#: tmp_error_headers/error_list_coreone.hpp:779
-#: tmp_error_headers/error_list_mk35.hpp:583
-#: tmp_error_headers/error_list_xl.hpp:842
-#: tmp_error_headers/error_list_mk4.hpp:625
-#: tmp_error_headers/error_list_mini.hpp:520
-#: tmp_error_headers/error_list_ix.hpp:779
-msgid ""
-"Print fan not spinning. Check it for possible debris, then inspect the "
-"wiring."
-msgstr ""
-"プリントファンガ カイテンシマセン。ゴミガナイカカクニンシ、ハイセンヲテンケン"
-"シテクダサイ。"
 
 #: src/gui/dialogs/print_progress.cpp:22
 msgid "Print finished"
@@ -1654,10 +1620,10 @@ msgstr "ウェーブテーブルXYZヘンコウ"
 msgid "Do you wish to retry the failed selftest?"
 msgstr "シッパイシタ セルフテスト ヲ リトライシマスカ?"
 
-#: tmp_error_headers/error_list_coreone.hpp:317
-#: tmp_error_headers/error_list_mk35.hpp:240
+#: tmp_error_headers/error_list_coreone.hpp:331
+#: tmp_error_headers/error_list_mk35.hpp:254
 #: tmp_error_headers/error_list_xl.hpp:366
-#: tmp_error_headers/error_list_mk4.hpp:247
+#: tmp_error_headers/error_list_mk4.hpp:261
 #: tmp_error_headers/error_list_mini.hpp:226
 #: tmp_error_headers/error_list_ix.hpp:345
 msgid "Check that the accelerometer cable is plugged in and not damaged."
@@ -1957,23 +1923,13 @@ msgstr "エクストルーダーエラー"
 msgid "Enclosure fan"
 msgstr "エンクロージャーファン"
 
-#: tmp_error_headers/error_list_coreone.hpp:176
-#: tmp_error_headers/error_list_xl.hpp:204
-msgid "FAILED TO REACH CHAMBER TEMPERATURE"
-msgstr "チャンバーセッテイオンド トウタツニ シッパイシマシタ"
-
-#: tmp_error_headers/error_list_coreone.hpp:177
-#: tmp_error_headers/error_list_xl.hpp:205
-msgid "Failing to reach target chamber temperature. Keep waiting?"
-msgstr "チャンバーモクヒョウオンドニタッシマセン。マチマスカ?"
-
 #: src/gui/wizard/screen_fan_selftest.cpp:40
 msgid "Fan RPM tests"
 msgstr "ファンRPMテスト"
 
-#: tmp_error_headers/error_list_coreone.hpp:716
-#: tmp_error_headers/error_list_mk35.hpp:520
-#: tmp_error_headers/error_list_mk4.hpp:562
+#: tmp_error_headers/error_list_coreone.hpp:730
+#: tmp_error_headers/error_list_mk35.hpp:534
+#: tmp_error_headers/error_list_mk4.hpp:576
 msgid ""
 "Filament detected. Unload filament now? Select NO to start the print with "
 "the currently loaded filament."
@@ -2002,25 +1958,6 @@ msgstr "カヨウ"
 #: src/gui/screen_move_z.hpp:17
 msgid "Turn the knob to move Heatbed"
 msgstr "ノブヲマワシテ ヒートベッドヲ ウゴカシマス"
-
-#: tmp_error_headers/error_list_coreone.hpp:569
-#: tmp_error_headers/error_list_mk35.hpp:373
-#: tmp_error_headers/error_list_xl.hpp:646
-#: tmp_error_headers/error_list_mk4.hpp:415
-#: tmp_error_headers/error_list_mini.hpp:345
-#: tmp_error_headers/error_list_ix.hpp:604
-msgid ""
-"Firmware file has\n"
-"invalid size!\n"
-"Check the file\n"
-"on the USB drive\n"
-"and try again."
-msgstr ""
-"ファームウェア\n"
-"ファイルノ\n"
-"サイズガムコウデス!\n"
-"USBドライブヲ カクニンシ\n"
-"リトライシテクダサイ。"
 
 #: src/gui/screen_menu_temperature.hpp:29 src/gui/screen_menu_move.hpp:33
 msgid "Cooldown"
@@ -2466,17 +2403,6 @@ msgstr "ベッドゼンタイカネツ"
 msgid "FIRST LAYER CALIBRATION"
 msgstr "ファーストレイヤーキャリブレーション"
 
-#: tmp_error_headers/error_list_coreone.hpp:303
-#: tmp_error_headers/error_list_mk35.hpp:226
-#: tmp_error_headers/error_list_xl.hpp:331
-#: tmp_error_headers/error_list_mk4.hpp:233
-#: tmp_error_headers/error_list_mini.hpp:219
-#: tmp_error_headers/error_list_ix.hpp:317
-msgid "HAL detected an I2C undefined error when receiving data via I2C."
-msgstr ""
-"HALハ、I2Cケイユデ データヲ ジュシンスルトキニ フメイナエラーヲ ケンシュツシ"
-"マシタ。"
-
 #: src/gui/wizard/selftest_frame_tool_offsets.cpp:76
 msgid "Moving away."
 msgstr "ムーブアウェイ"
@@ -2612,15 +2538,6 @@ msgstr "フィラメントセンサー"
 #: src/common/footer_def.cpp:48
 msgid "FSensor side"
 msgstr "サイドフィラメントセンサー"
-
-#: tmp_error_headers/error_list_coreone.hpp:212
-#: tmp_error_headers/error_list_mk35.hpp:135
-#: tmp_error_headers/error_list_mk4.hpp:142
-#: tmp_error_headers/error_list_mini.hpp:128
-msgid "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
-msgstr ""
-"Yジクノ ゲンテンフッキニ シッパイシマシタ。Yジクニ ショウガイブツガ ナイコト"
-"ヲ カクニンシテクダサイ。"
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:122
 msgid "Filament inserted, press continue."
@@ -2827,9 +2744,9 @@ msgstr "ドック %d ポジショント キタイチトノ チガイガ オオ�
 msgid "Dwarf board %d fault: %s"
 msgstr "Dwarfボード %d fault: %s"
 
-#: tmp_error_headers/error_list_coreone.hpp:491
+#: tmp_error_headers/error_list_coreone.hpp:505
 #: tmp_error_headers/error_list_xl.hpp:561
-#: tmp_error_headers/error_list_mk4.hpp:337
+#: tmp_error_headers/error_list_mk4.hpp:351
 #: tmp_error_headers/error_list_ix.hpp:526
 msgid "LOADCELL BAD CONFIGURATION"
 msgstr "ロードセル キャリブレーションフリョウ"
@@ -2979,9 +2896,9 @@ msgstr "ツール マッピング"
 msgid "Test FAILED!"
 msgstr "セルフテストシッパイ"
 
-#: tmp_error_headers/error_list_coreone.hpp:771
-#: tmp_error_headers/error_list_mk35.hpp:575
-#: tmp_error_headers/error_list_mk4.hpp:617
+#: tmp_error_headers/error_list_coreone.hpp:785
+#: tmp_error_headers/error_list_mk35.hpp:589
+#: tmp_error_headers/error_list_mk4.hpp:631
 msgid "MMU Error"
 msgstr "MMUエラー"
 
@@ -3428,14 +3345,10 @@ msgstr ""
 msgid "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
 msgstr "ツール %d オフセット %c: %.3f ハンイガイ [%.3f, %.3f]."
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:133
-msgid "Pick Tool"
-msgstr "ツール ヲ ピック"
-
-#: tmp_error_headers/error_list_coreone.hpp:681
-#: tmp_error_headers/error_list_mk35.hpp:485
+#: tmp_error_headers/error_list_coreone.hpp:695
+#: tmp_error_headers/error_list_mk35.hpp:499
 #: tmp_error_headers/error_list_xl.hpp:751
-#: tmp_error_headers/error_list_mk4.hpp:527
+#: tmp_error_headers/error_list_mk4.hpp:541
 #: tmp_error_headers/error_list_mini.hpp:443
 #: tmp_error_headers/error_list_ix.hpp:702
 msgid "Please complete Calibrations & Tests before using the printer."
@@ -3546,9 +3459,9 @@ msgstr "ツール5"
 msgid "Total General Fails"
 msgstr "シッパイノ ゴウケイ"
 
-#: tmp_error_headers/error_list_coreone.hpp:772
-#: tmp_error_headers/error_list_mk35.hpp:576
-#: tmp_error_headers/error_list_mk4.hpp:618
+#: tmp_error_headers/error_list_coreone.hpp:786
+#: tmp_error_headers/error_list_mk35.hpp:590
+#: tmp_error_headers/error_list_mk4.hpp:632
 msgid "Waiting for user input"
 msgstr "ユーザーノ ソウサヲ マッテイマス"
 
@@ -3760,20 +3673,9 @@ msgstr "MMU BL ステータス"
 msgid "Nextruder Maintenance"
 msgstr "ネクストルーダー メンテナンス"
 
-#: tmp_error_headers/error_list_mk35.hpp:121
+#: tmp_error_headers/error_list_mk35.hpp:135
 msgid "Failed to home the extruder in Z-axis."
 msgstr "Zジク ニ オイテ、ゲンテンフッキニ シッパイシマシタ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:268
-#: tmp_error_headers/error_list_mk35.hpp:191
-#: tmp_error_headers/error_list_xl.hpp:296
-#: tmp_error_headers/error_list_mk4.hpp:198
-#: tmp_error_headers/error_list_mini.hpp:184
-#: tmp_error_headers/error_list_ix.hpp:282
-msgid "HAL detected an I2C timeout when sending data via I2C."
-msgstr ""
-"HALハ、I2Cケイユデ データヲ ソウシンスルトキ、I2Cタイムアウトヲ ケンシュツシ"
-"マシタ。"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:127
 #, c-format
@@ -3878,10 +3780,6 @@ msgstr "%d Zアラインメント キャリブレーション"
 msgid "A crash dump is being saved."
 msgstr "クラッシュダンプガ ホゾンサレマシタ"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:198
-msgid "ALL TOOLS"
-msgstr "スベテノ ツール"
-
 #: src/gui/MItem_network.cpp:124
 msgid "Active Interface"
 msgstr "ユウコウ ナ インターフェース"
@@ -3889,12 +3787,6 @@ msgstr "ユウコウ ナ インターフェース"
 #: tmp_error_headers/error_list_mmu.hpp:276
 msgid "INVALID TOOL"
 msgstr "ムコウノ ツール"
-
-#: tmp_error_headers/error_list_coreone.hpp:380
-#: tmp_error_headers/error_list_xl.hpp:450
-#: tmp_error_headers/error_list_ix.hpp:415
-msgid "Address assignment error"
-msgstr "アドレス ワリアテ エラー"
 
 #: tmp_error_headers/error_list_mmu.hpp:298
 msgid "Internal runtime error. Try resetting the MMU or updating the firmware."
@@ -3978,17 +3870,17 @@ msgstr "プライムタワー %dg"
 msgid "Preload to MMU Advanced"
 msgstr "MMUプリロード アドバンス"
 
-#: tmp_error_headers/error_list_coreone.hpp:183
+#: tmp_error_headers/error_list_coreone.hpp:197
 #: tmp_error_headers/error_list_xl.hpp:211
 msgid "Chamber Overheating"
 msgstr "チャンバーノ オーバーヒート"
 
-#: tmp_error_headers/error_list_coreone.hpp:190
+#: tmp_error_headers/error_list_coreone.hpp:204
 #: tmp_error_headers/error_list_xl.hpp:218
 msgid "Chamber Temperature Is Critical"
 msgstr "チャンバーオンドニ チュウイ"
 
-#: tmp_error_headers/error_list_coreone.hpp:184
+#: tmp_error_headers/error_list_coreone.hpp:198
 #: tmp_error_headers/error_list_xl.hpp:212
 msgid "Chamber temperature above safety limit. Ensure better ventilation."
 msgstr ""
@@ -4096,7 +3988,7 @@ msgstr "XYプロービングノ ソクテイチガ フアンテイナタメ シ�
 msgid "Do you want to reset the extruder maintenance reminder?"
 msgstr "エクストルーダー メンテナンス リマインダー ヲ リセット シマスカ?"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:116
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:121
 msgid "Dock Position"
 msgstr "ドック ポジション"
 
@@ -4117,10 +4009,10 @@ msgstr ""
 msgid "Extruder motor is not spinning on tool %d"
 msgstr "エクストルーダーモータ、ツール %d カイテンシテイマセン。"
 
-#: tmp_error_headers/error_list_coreone.hpp:610
-#: tmp_error_headers/error_list_mk35.hpp:414
+#: tmp_error_headers/error_list_coreone.hpp:624
+#: tmp_error_headers/error_list_mk35.hpp:428
 #: tmp_error_headers/error_list_xl.hpp:687
-#: tmp_error_headers/error_list_mk4.hpp:456
+#: tmp_error_headers/error_list_mk4.hpp:470
 #: tmp_error_headers/error_list_mini.hpp:386
 #: tmp_error_headers/error_list_ix.hpp:645
 msgid "FIRMWARExPRINTER MISMATCH"
@@ -4208,32 +4100,23 @@ msgstr "ESPヘ カキコミ"
 msgid "INPUT SHAPER"
 msgstr "インプットシェーパー"
 
-#: tmp_error_headers/error_list_coreone.hpp:330
-#: tmp_error_headers/error_list_mk35.hpp:253
+#: tmp_error_headers/error_list_coreone.hpp:344
+#: tmp_error_headers/error_list_mk35.hpp:267
 #: tmp_error_headers/error_list_xl.hpp:379
-#: tmp_error_headers/error_list_mk4.hpp:260
+#: tmp_error_headers/error_list_mk4.hpp:274
 #: tmp_error_headers/error_list_mini.hpp:239
 #: tmp_error_headers/error_list_ix.hpp:358
 msgid "G-CODE METRICS CONFIG CHANGE"
 msgstr "Gコードメトリクスコンフィグ ヘンコウ"
 
-#: tmp_error_headers/error_list_coreone.hpp:540
-#: tmp_error_headers/error_list_mk35.hpp:344
-#: tmp_error_headers/error_list_xl.hpp:610
-#: tmp_error_headers/error_list_mk4.hpp:386
-#: tmp_error_headers/error_list_mini.hpp:316
-#: tmp_error_headers/error_list_ix.hpp:575
-msgid "Gcode Corruption"
-msgstr "Gコード ハソン"
-
 #: src/gui/screen_menu_network_status.hpp:70
 msgid "NETWORK STATUS"
 msgstr "ネットワーク ノ ジョウタイ"
 
-#: tmp_error_headers/error_list_coreone.hpp:331
-#: tmp_error_headers/error_list_mk35.hpp:254
+#: tmp_error_headers/error_list_coreone.hpp:345
+#: tmp_error_headers/error_list_mk35.hpp:268
 #: tmp_error_headers/error_list_xl.hpp:380
-#: tmp_error_headers/error_list_mk4.hpp:261
+#: tmp_error_headers/error_list_mk4.hpp:275
 #: tmp_error_headers/error_list_mini.hpp:240
 #: tmp_error_headers/error_list_ix.hpp:359
 msgid ""
@@ -4307,17 +4190,6 @@ msgstr "フィラメントハ ジドウテキニ アンロードサレマス。"
 msgid "There was an error connecting to the Wi-Fi."
 msgstr "Wi-Fi セツゾクチュウ ニ エラーガ ハッセイ"
 
-#: tmp_error_headers/error_list_coreone.hpp:289
-#: tmp_error_headers/error_list_mk35.hpp:212
-#: tmp_error_headers/error_list_xl.hpp:317
-#: tmp_error_headers/error_list_mk4.hpp:219
-#: tmp_error_headers/error_list_mini.hpp:205
-#: tmp_error_headers/error_list_ix.hpp:303
-msgid "HAL detected an I2C busy state when receiving data via I2C."
-msgstr ""
-"HALハ、I2Cケイユデ データヲ ジュシンスルトキ、I2Cビジージョウタイヲ ケンシュ"
-"ツシマシタ。"
-
 #: src/gui/screen_menu_error_test.cpp:93
 msgid "Trigger Redscreen"
 msgstr "レッドスクリーン ノ ゲンイン"
@@ -4348,16 +4220,6 @@ msgstr "カネツチュウ"
 #: src/gui/screen_menu_bed_level_correction.hpp:102
 msgid "BED LEVEL CORRECTION"
 msgstr "ベッドレベルホセイ"
-
-#: tmp_error_headers/error_list_coreone.hpp:709
-#: tmp_error_headers/error_list_mk35.hpp:513
-#: tmp_error_headers/error_list_xl.hpp:779
-#: tmp_error_headers/error_list_mk4.hpp:555
-#: tmp_error_headers/error_list_ix.hpp:730
-msgid "A filament specified in the G-code is either not loaded or wrong type."
-msgstr ""
-"Gコードデ シテイサレタフィラメントガ ロードサレテイナイカ、タイプガ チガイマ"
-"ス。"
 
 #: src/gui/screen_fatal_warning.cpp:30
 msgid "Wrong hardware"
@@ -4429,10 +4291,10 @@ msgstr ""
 "グ テンペラチャー オ コエタ コト ガ ゲンイン ト ミラレル. オプティマル パ"
 "フォーマンス オ タモツ タメ ニ オーバーヒート オ フセイデ クダサイ."
 
-#: tmp_error_headers/error_list_coreone.hpp:316
-#: tmp_error_headers/error_list_mk35.hpp:239
+#: tmp_error_headers/error_list_coreone.hpp:330
+#: tmp_error_headers/error_list_mk35.hpp:253
 #: tmp_error_headers/error_list_xl.hpp:365
-#: tmp_error_headers/error_list_mk4.hpp:246
+#: tmp_error_headers/error_list_mk4.hpp:260
 #: tmp_error_headers/error_list_mini.hpp:225
 #: tmp_error_headers/error_list_ix.hpp:344
 msgid "ACCELEROMETER COMMUNICATION FAILED"
@@ -4442,10 +4304,10 @@ msgstr "カソクドセンサーノ ツウシンシッパイ"
 msgid "All"
 msgstr "スベテ"
 
-#: tmp_error_headers/error_list_coreone.hpp:366
-#: tmp_error_headers/error_list_mk35.hpp:289
+#: tmp_error_headers/error_list_coreone.hpp:380
+#: tmp_error_headers/error_list_mk35.hpp:303
 #: tmp_error_headers/error_list_xl.hpp:436
-#: tmp_error_headers/error_list_mk4.hpp:296
+#: tmp_error_headers/error_list_mk4.hpp:310
 #: tmp_error_headers/error_list_mini.hpp:275
 #: tmp_error_headers/error_list_ix.hpp:401
 msgid "Allocation of dynamic buffer for PNG failed - out of memory."
@@ -4509,20 +4371,20 @@ msgstr "パワーパニック"
 msgid "Preheat Temp"
 msgstr "プレヒート オンド"
 
-#: tmp_error_headers/error_list_coreone.hpp:401
+#: tmp_error_headers/error_list_coreone.hpp:415
 #: tmp_error_headers/error_list_xl.hpp:471
 #: tmp_error_headers/error_list_ix.hpp:436
 #, c-format
 msgid "Puppy %s not responding"
 msgstr "Puppy %s ガ ハンノウシテイマセン"
 
-#: tmp_error_headers/error_list_coreone.hpp:394
+#: tmp_error_headers/error_list_coreone.hpp:408
 #: tmp_error_headers/error_list_xl.hpp:464
 #: tmp_error_headers/error_list_ix.hpp:429
 msgid "Puppy discovery error. No puppy found"
 msgstr "Puppyブートローダーガ ミツカラズ、エラーガ オキテイマス。"
 
-#: tmp_error_headers/error_list_coreone.hpp:408
+#: tmp_error_headers/error_list_coreone.hpp:422
 #: tmp_error_headers/error_list_xl.hpp:478
 #: tmp_error_headers/error_list_ix.hpp:443
 #, c-format
@@ -4565,13 +4427,13 @@ msgstr ""
 "スベテノツールヲ ドックニ オサメ、\n"
 "キャリッジヲ フリーニシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:422
+#: tmp_error_headers/error_list_coreone.hpp:436
 #: tmp_error_headers/error_list_xl.hpp:492
 #: tmp_error_headers/error_list_ix.hpp:457
 msgid "Unable to start puppy application"
 msgstr "Puppyアプリケーションガ キドウデキマセン"
 
-#: tmp_error_headers/error_list_coreone.hpp:387
+#: tmp_error_headers/error_list_coreone.hpp:401
 #: tmp_error_headers/error_list_xl.hpp:457
 #: tmp_error_headers/error_list_ix.hpp:422
 msgid "Unassigned puppy found"
@@ -4582,19 +4444,19 @@ msgstr "アサインサレテイナイ Puppyガ アリマス"
 msgid "Unexpected invalid current."
 msgstr "ヨキシナイ ムコウナ デンリュウガ ナガレマシタ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:415
+#: tmp_error_headers/error_list_coreone.hpp:429
 #: tmp_error_headers/error_list_xl.hpp:485
 #: tmp_error_headers/error_list_ix.hpp:450
 msgid "Unknown puppy type"
 msgstr "フメイナ Puppyタイプ"
 
-#: tmp_error_headers/error_list_coreone.hpp:450
+#: tmp_error_headers/error_list_coreone.hpp:464
 #: tmp_error_headers/error_list_xl.hpp:520
 #: tmp_error_headers/error_list_ix.hpp:485
 msgid "Waiting for fingerprint timed out"
 msgstr "ボードニンショウタイキ タイムアウト"
 
-#: tmp_error_headers/error_list_coreone.hpp:457
+#: tmp_error_headers/error_list_coreone.hpp:471
 #: tmp_error_headers/error_list_xl.hpp:527
 #: tmp_error_headers/error_list_ix.hpp:492
 msgid "Waiting for puppies to start timed out"
@@ -4656,23 +4518,9 @@ msgstr "Zジクキャリブレーション"
 msgid "Z-axis direction"
 msgstr "Zジク ノ ホウコウ"
 
-#: tmp_error_headers/error_list_coreone.hpp:519
-#: tmp_error_headers/error_list_mk35.hpp:323
-#: tmp_error_headers/error_list_xl.hpp:589
-#: tmp_error_headers/error_list_mk4.hpp:365
-#: tmp_error_headers/error_list_mini.hpp:295
-#: tmp_error_headers/error_list_ix.hpp:554
-msgid "BBF ALLOCATION FAILED"
-msgstr "BBFワリアテ シッパイ"
-
-#: tmp_error_headers/error_list_coreone.hpp:526
-#: tmp_error_headers/error_list_mk35.hpp:330
-#: tmp_error_headers/error_list_xl.hpp:596
-#: tmp_error_headers/error_list_mk4.hpp:372
-#: tmp_error_headers/error_list_mini.hpp:302
-#: tmp_error_headers/error_list_ix.hpp:561
-msgid "BBF INITIALIZATION FAILED"
-msgstr "BBFショキカ シッパイ"
+#: tmp_error_headers/error_list_coreone.hpp:176
+msgid "CHAMBER MAXTEMP ERROR"
+msgstr "チャンバーサイダイオンドエラー"
 
 #: src/gui/screen/filament/screen_filament_detail.cpp:77
 #: src/gui/MItem_tools.cpp:656
@@ -4682,44 +4530,6 @@ msgstr "ベッドオンド"
 #: src/gui/screen/screen_chamber_filtration.cpp:4
 msgid "CHAMBER FILTRATION"
 msgstr "チャンバーフィルター"
-
-#: tmp_error_headers/error_list_coreone.hpp:162
-msgid "CHAMBER MAXTEMP ERROR"
-msgstr "チャンバーサイダイオンドエラー"
-
-#. don't close on menu timeout
-#: src/gui/screen_crash_recovery.cpp:266
-#: tmp_error_headers/error_list_coreone.hpp:736
-#: tmp_error_headers/error_list_coreone.hpp:743
-#: tmp_error_headers/error_list_coreone.hpp:750
-#: tmp_error_headers/error_list_coreone.hpp:757
-#: tmp_error_headers/error_list_mk35.hpp:540
-#: tmp_error_headers/error_list_mk35.hpp:547
-#: tmp_error_headers/error_list_mk35.hpp:554
-#: tmp_error_headers/error_list_mk35.hpp:561
-#: tmp_error_headers/error_list_xl.hpp:799
-#: tmp_error_headers/error_list_xl.hpp:806
-#: tmp_error_headers/error_list_xl.hpp:813
-#: tmp_error_headers/error_list_xl.hpp:820
-#: tmp_error_headers/error_list_xl.hpp:827
-#: tmp_error_headers/error_list_mk4.hpp:582
-#: tmp_error_headers/error_list_mk4.hpp:589
-#: tmp_error_headers/error_list_mk4.hpp:596
-#: tmp_error_headers/error_list_mk4.hpp:603
-#: tmp_error_headers/error_list_mini.hpp:491
-#: tmp_error_headers/error_list_mini.hpp:498
-#: tmp_error_headers/error_list_mini.hpp:505
-#: tmp_error_headers/error_list_mini.hpp:512
-#: tmp_error_headers/error_list_ix.hpp:750
-#: tmp_error_headers/error_list_ix.hpp:757
-#: tmp_error_headers/error_list_ix.hpp:764
-#: tmp_error_headers/error_list_ix.hpp:771
-msgid "CRASH DETECTED"
-msgstr "ショウトツケンチ"
-
-#: tmp_error_headers/error_list_coreone.hpp:169
-msgid "CHAMBER MINTEMP ERROR"
-msgstr "チャンバーサイショウオンドエラー"
 
 #: src/gui/MItem_menus.hpp:185
 msgid "Calibrations & Tests"
@@ -4737,58 +4547,10 @@ msgstr "チャンバーファン"
 msgid "Chamber Fans Limit"
 msgstr "チャンバーファンノ ゲンカイ"
 
-#: tmp_error_headers/error_list_coreone.hpp:897
-msgid "Chamber Cooling Fan Error"
-msgstr "チャンバークーリングファンエラー"
-
 #: src/gui/menu_item/specific/menu_items_chamber_filtration.cpp:13
 #: src/gui/MItem_menus.hpp:210
 msgid "Chamber Filtration"
 msgstr "チャンバーフィルター"
-
-#: tmp_error_headers/error_list_coreone.hpp:904
-#: tmp_error_headers/error_list_xl.hpp:988
-msgid "Chamber Filtration Fan Error"
-msgstr "チャンバーフィルターファンエラー"
-
-#: tmp_error_headers/error_list_coreone.hpp:898
-msgid ""
-"Chamber cooling fan is not spinning. Check it for possible debris, then "
-"inspect the wiring."
-msgstr ""
-"チャンバーレイキャクファンガ カイテンシテイマセン。ゴミガツマッテイナイカ カ"
-"クニンシ、ハイセンヲ テンケンシテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:905
-#: tmp_error_headers/error_list_xl.hpp:989
-msgid ""
-"Chamber filtration fan is not spinning. Check it for possible debris, then "
-"inspect the wiring."
-msgstr ""
-"チャンバーフィルターファンガ カイテンシテイマセン。ゴミガツイテナイカ カクニ"
-"ンシ、ハイセンヲ テンケンシテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:765
-#: tmp_error_headers/error_list_mk35.hpp:569
-#: tmp_error_headers/error_list_xl.hpp:835
-#: tmp_error_headers/error_list_mk4.hpp:611
-msgid ""
-"Changes of mapping available only in the Printer UI. Select Print to start "
-"the print with defaults."
-msgstr ""
-"プリンタUIデノミ リヨウカノウナ マッピングノ ヘンコウ。デフォルトデ プリント"
-"ヲ カイシスルニハ、プリントヲ センタクシマス。"
-
-#: tmp_error_headers/error_list_coreone.hpp:890
-msgid "Close Chamber Ventilation"
-msgstr "チャンバーノ カンキマドヲ シメテクダサイ。"
-
-#: src/gui/MItem_tools.hpp:598 tmp_error_headers/error_list_coreone.hpp:666
-#: tmp_error_headers/error_list_mk35.hpp:470
-#: tmp_error_headers/error_list_xl.hpp:736
-#: tmp_error_headers/error_list_mk4.hpp:512
-msgid "Cold Pull"
-msgstr "コールドプル"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:73
 msgid "ERR Helping filament"
@@ -4872,12 +4634,6 @@ msgstr "ネットワーク"
 msgid "No crash dump to save."
 msgstr "クラッシュダンプガ ホゾンサレテイマセン。"
 
-#: tmp_error_headers/error_list_coreone.hpp:163
-#: tmp_error_headers/error_list_coreone.hpp:170
-msgid "Check the chamber thermistor wiring for possible damage."
-msgstr ""
-"チャンバーサーミスタノ ハイセンニ ソンショウガ ナイカ カクニンシテクダサイ。"
-
 #: tmp_error_headers/error_list_xl.hpp:394
 #, c-format
 msgid ""
@@ -4886,38 +4642,6 @@ msgid ""
 msgstr ""
 "Dwarfボードガ モンダイニ ソウグウシマシタ: \n"
 "%s"
-
-#: tmp_error_headers/error_list_coreone.hpp:359
-#: tmp_error_headers/error_list_mk35.hpp:282
-#: tmp_error_headers/error_list_xl.hpp:429
-#: tmp_error_headers/error_list_mk4.hpp:289
-#: tmp_error_headers/error_list_mini.hpp:268
-#: tmp_error_headers/error_list_ix.hpp:394
-msgid "Dynamic allocation failed - out of memory. Reset the printer."
-msgstr ""
-"ドウテキワリアテニ シッパイシマシタ - メモリブソクデス。プリンタヲ リセットシ"
-"テクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:337
-#: tmp_error_headers/error_list_coreone.hpp:344
-#: tmp_error_headers/error_list_coreone.hpp:351
-#: tmp_error_headers/error_list_mk35.hpp:260
-#: tmp_error_headers/error_list_mk35.hpp:267
-#: tmp_error_headers/error_list_mk35.hpp:274
-#: tmp_error_headers/error_list_xl.hpp:407
-#: tmp_error_headers/error_list_xl.hpp:414
-#: tmp_error_headers/error_list_xl.hpp:421
-#: tmp_error_headers/error_list_mk4.hpp:267
-#: tmp_error_headers/error_list_mk4.hpp:274
-#: tmp_error_headers/error_list_mk4.hpp:281
-#: tmp_error_headers/error_list_mini.hpp:246
-#: tmp_error_headers/error_list_mini.hpp:253
-#: tmp_error_headers/error_list_mini.hpp:260
-#: tmp_error_headers/error_list_ix.hpp:372
-#: tmp_error_headers/error_list_ix.hpp:379
-#: tmp_error_headers/error_list_ix.hpp:386
-msgid "ESP ERROR"
-msgstr "ESPエラー"
 
 #: src/gui/dialogs/DialogConnectReg.cpp:41
 msgid "Prusa Connect - printer setup"
@@ -4928,111 +4652,9 @@ msgid "Registration successful, continue at connect.prusa3d.com"
 msgstr ""
 "トウロクニ セイコウ シマシタ。connect.prusa3d.com デ ゾッコウ シテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:533
-#: tmp_error_headers/error_list_mk35.hpp:337
-#: tmp_error_headers/error_list_xl.hpp:603
-#: tmp_error_headers/error_list_mk4.hpp:379
-#: tmp_error_headers/error_list_mini.hpp:309
-#: tmp_error_headers/error_list_ix.hpp:568
-msgid "ESP NOT CONNECTED"
-msgstr "ESPニ セツゾクシテイマセン"
-
-#: tmp_error_headers/error_list_coreone.hpp:345
-#: tmp_error_headers/error_list_mk35.hpp:268
-#: tmp_error_headers/error_list_xl.hpp:415
-#: tmp_error_headers/error_list_mk4.hpp:275
-#: tmp_error_headers/error_list_mini.hpp:254
-#: tmp_error_headers/error_list_ix.hpp:380
-msgid "ESP detected command error."
-msgstr "ESPガ コマンドエラーヲ ケンシュツ"
-
-#: tmp_error_headers/error_list_coreone.hpp:352
-#: tmp_error_headers/error_list_mk35.hpp:275
-#: tmp_error_headers/error_list_xl.hpp:422
-#: tmp_error_headers/error_list_mk4.hpp:282
-#: tmp_error_headers/error_list_mini.hpp:261
-#: tmp_error_headers/error_list_ix.hpp:387
-msgid "ESP detected unknown error."
-msgstr "ESPガ フメイナ エラーヲ ケンシュツ"
-
 #: tmp_error_headers/error_list_xl.hpp:99
 msgid "EXTRUDER MAXTEMP ERROR"
 msgstr "エクストルーダー サイダイオンドエラー"
-
-#: tmp_error_headers/error_list_coreone.hpp:652
-#: tmp_error_headers/error_list_mk35.hpp:456
-#: tmp_error_headers/error_list_xl.hpp:729
-#: tmp_error_headers/error_list_mk4.hpp:498
-#: tmp_error_headers/error_list_mini.hpp:428
-#: tmp_error_headers/error_list_ix.hpp:687
-msgid "EXTRUDER NOT DETECTED"
-msgstr "エクストルーダー ニンシキセズ"
-
-#: tmp_error_headers/error_list_coreone.hpp:373
-#: tmp_error_headers/error_list_mk35.hpp:296
-#: tmp_error_headers/error_list_xl.hpp:443
-#: tmp_error_headers/error_list_mk4.hpp:303
-#: tmp_error_headers/error_list_mini.hpp:282
-#: tmp_error_headers/error_list_ix.hpp:408
-msgid "Emergency stop invoked by G-code (M112)."
-msgstr "Gcode(M112)ニヨル ヒジョウテイシ"
-
-#: tmp_error_headers/error_list_coreone.hpp:891
-msgid ""
-"Ensure the top ventilation grille is closed for optimal chamber temperature."
-msgstr ""
-"チャンバーノ オンドヲ サイテキニ タモツタメ、ウエノ カンキマドガ トジテイルコ"
-"トヲ カクニンシマス。"
-
-#: tmp_error_headers/error_list_coreone.hpp:884
-msgid "Ensure the top ventilation grille is open for proper airflow."
-msgstr ""
-"テキセツナ エアフローヲ カクホスルタメ、ウエノ カンキマドガ アイテイルコトヲ "
-"カクニンシテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:583
-#: tmp_error_headers/error_list_mk35.hpp:387
-#: tmp_error_headers/error_list_xl.hpp:660
-#: tmp_error_headers/error_list_mk4.hpp:429
-#: tmp_error_headers/error_list_mini.hpp:359
-#: tmp_error_headers/error_list_ix.hpp:618
-msgid ""
-"Error erasing\n"
-" flash! Restart\n"
-"the printer and\n"
-"try again."
-msgstr ""
-"イレースエラー\n"
-"プリンタヲ\n"
-"サイキドウシ\n"
-"リトライシテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:631
-#: tmp_error_headers/error_list_mk35.hpp:435
-#: tmp_error_headers/error_list_xl.hpp:708
-#: tmp_error_headers/error_list_mk4.hpp:477
-#: tmp_error_headers/error_list_mini.hpp:407
-#: tmp_error_headers/error_list_ix.hpp:666
-msgid "FIRMWARE MISSING"
-msgstr "ファームウェアガ アリマセン"
-
-#: tmp_error_headers/error_list_coreone.hpp:582
-#: tmp_error_headers/error_list_mk35.hpp:386
-#: tmp_error_headers/error_list_xl.hpp:659
-#: tmp_error_headers/error_list_mk4.hpp:428
-#: tmp_error_headers/error_list_mini.hpp:358
-#: tmp_error_headers/error_list_ix.hpp:617
-msgid "FLASH ERASE ERROR"
-msgstr "カキコミデータショウキョエラー"
-
-#: tmp_error_headers/error_list_coreone.hpp:603
-#: tmp_error_headers/error_list_mk35.hpp:407
-#: tmp_error_headers/error_list_xl.hpp:680
-#: tmp_error_headers/error_list_mk4.hpp:449
-#: tmp_error_headers/error_list_mini.hpp:379
-#: tmp_error_headers/error_list_ix.hpp:638
-msgid "FW IN INTERNAL FLASH CORRUPTED"
-msgstr "ナイゾウメモリファイルノ ハソン"
 
 #: src/gui/screen_menu_settings.hpp:36
 msgid "FW update"
@@ -5061,32 +4683,6 @@ msgstr "フィラメントセンサームコウ"
 msgid "Fil. Sensor Troubleshooting"
 msgstr "フィラメントセンサートラブルシューティング"
 
-#: tmp_error_headers/error_list_coreone.hpp:877
-#: tmp_error_headers/error_list_mk35.hpp:681
-#: tmp_error_headers/error_list_xl.hpp:982
-#: tmp_error_headers/error_list_mk4.hpp:723
-#: tmp_error_headers/error_list_mini.hpp:611
-#: tmp_error_headers/error_list_ix.hpp:884
-msgid "Filament loading timed out."
-msgstr "フィラメントノ ローディングガ タイムアウトシマシタ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:702
-#: tmp_error_headers/error_list_mk35.hpp:506
-#: tmp_error_headers/error_list_xl.hpp:772
-#: tmp_error_headers/error_list_mk4.hpp:548
-#: tmp_error_headers/error_list_mini.hpp:464
-#: tmp_error_headers/error_list_ix.hpp:723
-msgid ""
-"Filament not detected. Load filament now?\n"
-"Select NO to cancel the print.\n"
-"Select DISABLE FS to disable the filament sensor and continue print."
-msgstr ""
-"フィラメントガ ケンシュツサレマセン。イマスグ フィラメントヲ ロードシマス"
-"カ?\n"
-"イイエヲ センタクシテ プリントヲ キャンセルシマス.\n"
-"フィラメントセンサーヲ ムコウニシテ プリントヲ ゾッコウスルニハ、フィラメント"
-"センサーノムコウ ヲセンタクシマス."
-
 #: tmp_error_headers/error_list_coreone.hpp:64
 #: tmp_error_headers/error_list_mk35.hpp:22
 #: tmp_error_headers/error_list_xl.hpp:71
@@ -5106,191 +4702,9 @@ msgstr ""
 "フィラメントセンサーガ ムコウニ ナッテイマス。プリントノアト マニュアルデ ユ"
 "ウコウニシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:639
-#: tmp_error_headers/error_list_mk35.hpp:443
-#: tmp_error_headers/error_list_xl.hpp:716
-#: tmp_error_headers/error_list_mk4.hpp:485
-#: tmp_error_headers/error_list_mini.hpp:415
-#: tmp_error_headers/error_list_ix.hpp:674
-msgid ""
-"File system error!\n"
-"Try a different USB\n"
-"drive or format the\n"
-"drive with FAT32\n"
-"filesystem (all \n"
-"data will be lost)!"
-msgstr ""
-"ファイルシステムエラー!\n"
-"ベツノUSBヲ\n"
-"ファイルシステム\n"
-"FAT32デ\n"
-"フォーマットシテクダサイ。\n"
-"(データハウシナワレマス)"
-
-#: tmp_error_headers/error_list_coreone.hpp:611
-#: tmp_error_headers/error_list_mk35.hpp:415
-#: tmp_error_headers/error_list_xl.hpp:688
-#: tmp_error_headers/error_list_mk4.hpp:457
-#: tmp_error_headers/error_list_ix.hpp:646
-msgid ""
-"Firmware and hardware versions do\n"
-"not match. Make sure you have\n"
-"the right firmware file for\n"
-"your printer."
-msgstr ""
-"ファームウェアト ハードウェアノ\n"
-"バージョンガ イッチシマセン。\n"
-"プリンタニタイシ ファームウェアファイルガ\n"
-"タダシイカ カクニンシテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:576
-#: tmp_error_headers/error_list_mk35.hpp:380
-#: tmp_error_headers/error_list_xl.hpp:653
-#: tmp_error_headers/error_list_mk4.hpp:422
-#: tmp_error_headers/error_list_mini.hpp:352
-#: tmp_error_headers/error_list_ix.hpp:611
-msgid ""
-"Firmware file\n"
-"missing in the USB\n"
-"flash!"
-msgstr ""
-"ファームウェアファイルガ\n"
-"USBニ アリマセン\n"
-"Flash!"
-
-#: tmp_error_headers/error_list_coreone.hpp:597
-#: tmp_error_headers/error_list_mk35.hpp:401
-#: tmp_error_headers/error_list_xl.hpp:674
-#: tmp_error_headers/error_list_mk4.hpp:443
-#: tmp_error_headers/error_list_mini.hpp:373
-#: tmp_error_headers/error_list_ix.hpp:632
-msgid ""
-"Firmware hash\n"
-"verification failed!\n"
-"Firmware file is\n"
-"damaged. Try\n"
-"downloading and\n"
-"copying it onto the\n"
-"USB drive again."
-msgstr ""
-"ファームウェアハッシュ\n"
-"ケンショウニ シッパイシマシタ!\n"
-"ファームウェアファイルガ\n"
-"ハソンシテイマス。\n"
-"モウイチドダウンロードシ\n"
-"USBドライブニ コピーシテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:604
-#: tmp_error_headers/error_list_mk35.hpp:408
-#: tmp_error_headers/error_list_xl.hpp:681
-#: tmp_error_headers/error_list_mk4.hpp:450
-#: tmp_error_headers/error_list_mini.hpp:380
-#: tmp_error_headers/error_list_ix.hpp:639
-msgid ""
-"Firmware in the\n"
-"internal flash\n"
-"corrupted! Please\n"
-"reflash the\n"
-"firmware."
-msgstr ""
-"ナイゾウメモリノ\n"
-"ファームウェアガ ハソンシテイマス\n"
-"モウイチド ファームウェアノ\n"
-"カキコミヲ ジッコウシテクダサイ!"
-
-#: tmp_error_headers/error_list_coreone.hpp:590
-#: tmp_error_headers/error_list_mk35.hpp:394
-#: tmp_error_headers/error_list_xl.hpp:667
-#: tmp_error_headers/error_list_mk4.hpp:436
-#: tmp_error_headers/error_list_mini.hpp:366
-#: tmp_error_headers/error_list_ix.hpp:625
-msgid ""
-"Firmware signature\n"
-"verification failed!\n"
-"Only official\n"
-"signed firmware can\n"
-"be flashed."
-msgstr ""
-"ファームウェアノ\n"
-"ショメイケンシュツニ\n"
-"シッパイシマシタ!\n"
-"セイシキナ ファームウェアノミ\n"
-"カキコミスルコトガデキマス。"
-
-#: tmp_error_headers/error_list_coreone.hpp:618
-#: tmp_error_headers/error_list_mk35.hpp:422
-#: tmp_error_headers/error_list_xl.hpp:695
-#: tmp_error_headers/error_list_mk4.hpp:464
-#: tmp_error_headers/error_list_mini.hpp:394
-#: tmp_error_headers/error_list_ix.hpp:653
-msgid ""
-"Firmware/printer\n"
-"types do not match.\n"
-"Make sure you have\n"
-"the right firmware\n"
-"file for your\n"
-"printer model."
-msgstr ""
-"ファームウェアトプリンタノ\n"
-"タイプガ イッチシマセン。\n"
-"プリンタニ タイシテ\n"
-"ファームウェアノ ファイルガ\n"
-"タダシイカ\n"
-"カクニンシテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:625
-#: tmp_error_headers/error_list_mk35.hpp:429
-#: tmp_error_headers/error_list_xl.hpp:702
-#: tmp_error_headers/error_list_mk4.hpp:471
-#: tmp_error_headers/error_list_mini.hpp:401
-#: tmp_error_headers/error_list_ix.hpp:660
-msgid ""
-"Firmware/printer\n"
-"versions do not\n"
-"match! You are\n"
-"trying to flash\n"
-"FW meant for other\n"
-"revision of the\n"
-"Buddy board."
-msgstr ""
-"ファームウェア/プリンタノ\n"
-"バージョンガ イッチシマセン。\n"
-"Buddyボードノ\n"
-"ホカノ リビジョンノ\n"
-"ファームウェアヲ\n"
-"カキコミシヨウト\n"
-"シテイマス。"
-
 #: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:96
 msgid "Filtration fan"
 msgstr "フィルターファン"
-
-#: tmp_error_headers/error_list_coreone.hpp:561
-#: tmp_error_headers/error_list_mk35.hpp:365
-#: tmp_error_headers/error_list_xl.hpp:638
-#: tmp_error_headers/error_list_mk4.hpp:407
-#: tmp_error_headers/error_list_mini.hpp:337
-#: tmp_error_headers/error_list_ix.hpp:596
-msgid "USB FLASH DRIVE NOT CONNECTED"
-msgstr "USBドライブガ セツゾクサレテイマセン"
-
-#: tmp_error_headers/error_list_coreone.hpp:638
-#: tmp_error_headers/error_list_mk35.hpp:442
-#: tmp_error_headers/error_list_xl.hpp:715
-#: tmp_error_headers/error_list_mk4.hpp:484
-#: tmp_error_headers/error_list_mini.hpp:414
-#: tmp_error_headers/error_list_ix.hpp:673
-msgid "USB FLASH ERROR"
-msgstr "USBフラッシュエラー"
-
-#: tmp_error_headers/error_list_coreone.hpp:218
-#: tmp_error_headers/error_list_mk35.hpp:141
-#: tmp_error_headers/error_list_xl.hpp:260
-#: tmp_error_headers/error_list_mk4.hpp:148
-#: tmp_error_headers/error_list_mini.hpp:134
-#: tmp_error_headers/error_list_ix.hpp:232
-msgid "USB PORT OVERCURRENT"
-msgstr "USBポート カデンリュウ"
 
 #: src/common/client_response_texts.hpp:101
 msgid "YES"
@@ -5304,130 +4718,14 @@ msgstr ""
 "プリントヲ ツヅケルコトガ デキマス。モンダイガ カイケツシナイバアイハ モウイ"
 "チド コノステップヲ クリカエシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:667
-#: tmp_error_headers/error_list_mk35.hpp:471
-#: tmp_error_headers/error_list_xl.hpp:737
-#: tmp_error_headers/error_list_mk4.hpp:513
-msgid ""
-"Welcome to the Cold Pull wizard. Prepare a 30cm piece of PLA filament and "
-"follow the instructions. For more details, visit:"
-msgstr ""
-"コールドプルウィザードヘ ヨウコソ。30cmノ PLAフィラメントヲ ヨウイシ、シジニ "
-"シタガッテクダサイ。ショウサイハ コチラヲ ゴランクダサイ:"
-
-#: tmp_error_headers/error_list_coreone.hpp:828
-#: tmp_error_headers/error_list_mk35.hpp:639
-#: tmp_error_headers/error_list_xl.hpp:898
-#: tmp_error_headers/error_list_mk4.hpp:674
-#: tmp_error_headers/error_list_mini.hpp:569
-#: tmp_error_headers/error_list_ix.hpp:828
-msgid ""
-"G-Code transfer running too slow. Check your network for issues or use "
-"different USB drive. Press Continue to resume printing."
-msgstr ""
-"Gcodeノ テンソウニ ジカンガ カカリスギテイマス。ネットワークニ モンダイガナイ"
-"カ カクニンシテクダサイ。マタハ ベツノ USBドライブヲ タメシテクダサイ。ゾッコ"
-"ウヲ オシテ プリントヲ サイカイ シマス。"
-
-#: tmp_error_headers/error_list_coreone.hpp:547
-#: tmp_error_headers/error_list_mk35.hpp:351
+#: tmp_error_headers/error_list_coreone.hpp:561
+#: tmp_error_headers/error_list_mk35.hpp:365
 #: tmp_error_headers/error_list_xl.hpp:617
-#: tmp_error_headers/error_list_mk4.hpp:393
+#: tmp_error_headers/error_list_mk4.hpp:407
 #: tmp_error_headers/error_list_mini.hpp:323
 #: tmp_error_headers/error_list_ix.hpp:582
 msgid "Gcode Cropped"
 msgstr "ジーコード ハ カット サレタ"
-
-#: tmp_error_headers/error_list_coreone.hpp:541
-#: tmp_error_headers/error_list_mk35.hpp:345
-#: tmp_error_headers/error_list_xl.hpp:611
-#: tmp_error_headers/error_list_mk4.hpp:387
-#: tmp_error_headers/error_list_mini.hpp:317
-#: tmp_error_headers/error_list_ix.hpp:576
-msgid "Gcode on the USB drive is corrupt. Fix manually before resuming."
-msgstr ""
-"USBドライブノ Gコード ガ コワレテイマス。シュドウデ シュウセイシテカラ サイカ"
-"イシテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:261
-#: tmp_error_headers/error_list_mk35.hpp:184
-#: tmp_error_headers/error_list_xl.hpp:289
-#: tmp_error_headers/error_list_mk4.hpp:191
-#: tmp_error_headers/error_list_mini.hpp:177
-#: tmp_error_headers/error_list_ix.hpp:275
-msgid "HAL detected an I2C busy state when sending data via I2C."
-msgstr ""
-"HALハ、I2Cケイユデ データヲ ソウシンスルトキ、I2Cビジージョウタイヲ ケンシュ"
-"ツシマシタ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:282
-#: tmp_error_headers/error_list_mk35.hpp:205
-#: tmp_error_headers/error_list_xl.hpp:310
-#: tmp_error_headers/error_list_mk4.hpp:212
-#: tmp_error_headers/error_list_mini.hpp:198
-#: tmp_error_headers/error_list_ix.hpp:296
-msgid "HAL detected an I2C error when receiving data via I2C."
-msgstr ""
-"HALハ、I2Cケイユデ データヲ ジュシンスルトキニ I2Cエラーヲ ケンシュツシマシ"
-"タ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:254
-#: tmp_error_headers/error_list_mk35.hpp:177
-#: tmp_error_headers/error_list_xl.hpp:282
-#: tmp_error_headers/error_list_mk4.hpp:184
-#: tmp_error_headers/error_list_mini.hpp:170
-#: tmp_error_headers/error_list_ix.hpp:268
-msgid "HAL detected an I2C error when sending data via I2C."
-msgstr ""
-"HALハ、I2Cケイユデ データヲ ソウシンスルトキニ I2Cエラーヲ ケンシュツシマシ"
-"タ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:296
-#: tmp_error_headers/error_list_mk35.hpp:219
-#: tmp_error_headers/error_list_xl.hpp:324
-#: tmp_error_headers/error_list_mk4.hpp:226
-#: tmp_error_headers/error_list_mini.hpp:212
-#: tmp_error_headers/error_list_ix.hpp:310
-msgid "HAL detected an I2C timeout when receiving data via I2C."
-msgstr ""
-"HALハ、I2Cケイユデ データヲ ジュシンスルトキ、タイムアウトヲ ケンシュツシマシ"
-"タ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:596
-#: tmp_error_headers/error_list_mk35.hpp:400
-#: tmp_error_headers/error_list_xl.hpp:673
-#: tmp_error_headers/error_list_mk4.hpp:442
-#: tmp_error_headers/error_list_mini.hpp:372
-#: tmp_error_headers/error_list_ix.hpp:631
-msgid "HASH VERIFICATION FAILED"
-msgstr "ハッシュケンショウ シッパイ"
-
-#: tmp_error_headers/error_list_coreone.hpp:204
-#: tmp_error_headers/error_list_mk35.hpp:127
-#: tmp_error_headers/error_list_xl.hpp:246
-#: tmp_error_headers/error_list_mk4.hpp:134
-#: tmp_error_headers/error_list_mini.hpp:120
-#: tmp_error_headers/error_list_ix.hpp:218
-msgid "HOMING ERROR X"
-msgstr "Xホーミングエラー"
-
-#: tmp_error_headers/error_list_coreone.hpp:211
-#: tmp_error_headers/error_list_mk35.hpp:134
-#: tmp_error_headers/error_list_xl.hpp:253
-#: tmp_error_headers/error_list_mk4.hpp:141
-#: tmp_error_headers/error_list_mini.hpp:127
-#: tmp_error_headers/error_list_ix.hpp:225
-msgid "HOMING ERROR Y"
-msgstr "Yホーミングエラー"
-
-#: tmp_error_headers/error_list_coreone.hpp:197
-#: tmp_error_headers/error_list_mk35.hpp:120
-#: tmp_error_headers/error_list_xl.hpp:225
-#: tmp_error_headers/error_list_mk4.hpp:127
-#: tmp_error_headers/error_list_mini.hpp:113
-#: tmp_error_headers/error_list_ix.hpp:197
-msgid "HOMING ERROR Z"
-msgstr "Zホーミングエラー"
 
 #: tmp_error_headers/error_list_xl.hpp:358
 msgid "HOTEND HEATER OVERCURRENT"
@@ -5451,74 +4749,10 @@ msgstr ""
 msgid "Heatbreak Fan"
 msgstr "ヒートブレイクファン"
 
-#: tmp_error_headers/error_list_coreone.hpp:821
-#: tmp_error_headers/error_list_mk35.hpp:625
-#: tmp_error_headers/error_list_xl.hpp:884
-#: tmp_error_headers/error_list_mk4.hpp:667
-#: tmp_error_headers/error_list_mini.hpp:562
-#: tmp_error_headers/error_list_ix.hpp:821
-msgid "Heatbreak thermistor is disconnected. Inspect the wiring."
-msgstr ""
-"ヒートブレイクサーミスタガ セツゾクサレテイマセン、ハイセンヲ ミナオシテクダ"
-"サイ。"
-
 #: tmp_error_headers/error_list_ix.hpp:786
 #: tmp_error_headers/error_list_ix.hpp:800
 msgid "Heating disabled due to 10 minutes of inactivity."
 msgstr "10フンカンソウササレナカッタタメ、ヒーターヲ ムコウニシマス。"
-
-#: tmp_error_headers/error_list_coreone.hpp:786
-#: tmp_error_headers/error_list_coreone.hpp:800
-#: tmp_error_headers/error_list_mk35.hpp:590
-#: tmp_error_headers/error_list_mk35.hpp:604
-#: tmp_error_headers/error_list_xl.hpp:849
-#: tmp_error_headers/error_list_xl.hpp:863
-#: tmp_error_headers/error_list_mk4.hpp:632
-#: tmp_error_headers/error_list_mk4.hpp:646
-#: tmp_error_headers/error_list_mini.hpp:527
-#: tmp_error_headers/error_list_mini.hpp:541
-msgid "Heating disabled due to 30 minutes of inactivity."
-msgstr "30フン シヨウサレナカッタタメ、カネツヲ テイシシマシタ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:842
-#: tmp_error_headers/error_list_mk35.hpp:653
-#: tmp_error_headers/error_list_xl.hpp:926
-#: tmp_error_headers/error_list_mk4.hpp:688
-#: tmp_error_headers/error_list_mini.hpp:583
-#: tmp_error_headers/error_list_ix.hpp:849
-msgid ""
-"Hotend fan not spinning. Check it for possible debris, then inspect the "
-"wiring."
-msgstr ""
-"ホットエンドファンガ カイテンシマセン。ゴミガナイカカクニンシ、ハイセンヲテン"
-"ケンシテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:288
-#: tmp_error_headers/error_list_mk35.hpp:211
-#: tmp_error_headers/error_list_xl.hpp:316
-#: tmp_error_headers/error_list_mk4.hpp:218
-#: tmp_error_headers/error_list_mini.hpp:204
-#: tmp_error_headers/error_list_ix.hpp:302
-msgid "I2C RECEIVE BUSY"
-msgstr "I2Cジュシン ビジー"
-
-#: tmp_error_headers/error_list_coreone.hpp:281
-#: tmp_error_headers/error_list_mk35.hpp:204
-#: tmp_error_headers/error_list_xl.hpp:309
-#: tmp_error_headers/error_list_mk4.hpp:211
-#: tmp_error_headers/error_list_mini.hpp:197
-#: tmp_error_headers/error_list_ix.hpp:295
-msgid "I2C RECEIVE FAILED"
-msgstr "I2Cジュシン シッパイ"
-
-#: tmp_error_headers/error_list_coreone.hpp:295
-#: tmp_error_headers/error_list_mk35.hpp:218
-#: tmp_error_headers/error_list_xl.hpp:323
-#: tmp_error_headers/error_list_mk4.hpp:225
-#: tmp_error_headers/error_list_mini.hpp:211
-#: tmp_error_headers/error_list_ix.hpp:309
-msgid "I2C RECEIVE TIMEOUT"
-msgstr "I2Cジュシン タイムアウト"
 
 #: src/gui/screen_menu_filament_sensors.cpp:91
 msgid "All filament sensors enabled."
@@ -5793,23 +5027,14 @@ msgstr "シアゲドウサ"
 msgid "Firmware Version"
 msgstr "ファームウェアバージョン"
 
-#: tmp_error_headers/error_list_coreone.hpp:302
-#: tmp_error_headers/error_list_mk35.hpp:225
-#: tmp_error_headers/error_list_xl.hpp:330
-#: tmp_error_headers/error_list_mk4.hpp:232
-#: tmp_error_headers/error_list_mini.hpp:218
-#: tmp_error_headers/error_list_ix.hpp:316
-msgid "I2C RECEIVE UNDEFINED"
-msgstr "I2Cジュシン ミテイギ"
-
 #: src/gui/MItem_tools.hpp:140
 msgid "Hard Reset (USB with FW needed)"
 msgstr "ハードリセット(ファームウェアヲ イレタUSBメモリガ ヒツヨウ)"
 
-#: tmp_error_headers/error_list_coreone.hpp:548
-#: tmp_error_headers/error_list_mk35.hpp:352
+#: tmp_error_headers/error_list_coreone.hpp:562
+#: tmp_error_headers/error_list_mk35.hpp:366
 #: tmp_error_headers/error_list_xl.hpp:618
-#: tmp_error_headers/error_list_mk4.hpp:394
+#: tmp_error_headers/error_list_mk4.hpp:408
 #: tmp_error_headers/error_list_mini.hpp:324
 #: tmp_error_headers/error_list_ix.hpp:583
 msgid ""
@@ -5920,10 +5145,10 @@ msgstr "タダシク ロードサレマシタ。マモナク セツゾクガ ユ
 msgid "Loaded successfully. Enable Connect to activate."
 msgstr "タダシク ロードサレマシタ。セツゾクヲ ユウコウニ シテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:876
-#: tmp_error_headers/error_list_mk35.hpp:680
+#: tmp_error_headers/error_list_coreone.hpp:890
+#: tmp_error_headers/error_list_mk35.hpp:694
 #: tmp_error_headers/error_list_xl.hpp:981
-#: tmp_error_headers/error_list_mk4.hpp:722
+#: tmp_error_headers/error_list_mk4.hpp:736
 #: tmp_error_headers/error_list_mini.hpp:610
 #: tmp_error_headers/error_list_ix.hpp:883
 msgid "Loading Timeout"
@@ -6021,10 +5246,10 @@ msgstr "ヤケドニ チュウイ!"
 msgid "MANUAL SETTINGS"
 msgstr "マニュアルセッティング"
 
-#: tmp_error_headers/error_list_coreone.hpp:512
-#: tmp_error_headers/error_list_mk35.hpp:316
+#: tmp_error_headers/error_list_coreone.hpp:526
+#: tmp_error_headers/error_list_mk35.hpp:330
 #: tmp_error_headers/error_list_xl.hpp:582
-#: tmp_error_headers/error_list_mk4.hpp:358
+#: tmp_error_headers/error_list_mk4.hpp:372
 #: tmp_error_headers/error_list_mini.hpp:288
 #: tmp_error_headers/error_list_ix.hpp:547
 msgid "MARLIN REQUEST TIMEOUT"
@@ -6118,16 +5343,7 @@ msgstr ""
 "フィラメントセンサーガ セツゾクサレテイマセン、ハイセンヲ チェックシテクダサ"
 "イ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:506
-#: tmp_error_headers/error_list_mk35.hpp:310
-#: tmp_error_headers/error_list_xl.hpp:576
-#: tmp_error_headers/error_list_mk4.hpp:352
-#: tmp_error_headers/error_list_ix.hpp:541
-msgid "Memory allocation failed for scheduled LED animation"
-msgstr ""
-"スケジュールサレタLEDアニメーションデ メモリノ ワリアテニ シッパイシマシタ。"
-
-#: src/gui/screen_printing.cpp:364
+#: src/gui/screen_printing.cpp:364 tmp_error_headers/error_list_mk35.hpp:37
 msgid ""
 "Maintenance Reminder. Filament changes have reached 30k. Inspect and clean "
 "the extruder. Visit prusa.io/mmu-care"
@@ -6136,7 +5352,8 @@ msgstr ""
 "シタ。エクストルーダー ヲ ケンサ シ、クリーニング シテクダサイ。prusa.io/mmu-"
 "care ニ アクセス シテクダサイ"
 
-#: src/gui/screen_printing.cpp:362
+#: src/gui/screen_printing.cpp:362 tmp_error_headers/error_list_coreone.hpp:79
+#: tmp_error_headers/error_list_mk4.hpp:44
 msgid ""
 "Maintenance Reminder. Filament changes have reached main-plate lifespan. "
 "Inspect the part and ensure you have a spare plate available. Visit prusa.io/"
@@ -6155,10 +5372,10 @@ msgstr ""
 msgid "Manual Settings"
 msgstr "マニュアルセッティング"
 
-#: tmp_error_headers/error_list_coreone.hpp:513
-#: tmp_error_headers/error_list_mk35.hpp:317
+#: tmp_error_headers/error_list_coreone.hpp:527
+#: tmp_error_headers/error_list_mk35.hpp:331
 #: tmp_error_headers/error_list_xl.hpp:583
-#: tmp_error_headers/error_list_mk4.hpp:359
+#: tmp_error_headers/error_list_mk4.hpp:373
 #: tmp_error_headers/error_list_mini.hpp:289
 #: tmp_error_headers/error_list_ix.hpp:548
 msgid ""
@@ -6263,10 +5480,10 @@ msgstr "NINS / %7ld"
 msgid "NO"
 msgstr "イイエ"
 
-#: tmp_error_headers/error_list_coreone.hpp:575
-#: tmp_error_headers/error_list_mk35.hpp:379
+#: tmp_error_headers/error_list_coreone.hpp:589
+#: tmp_error_headers/error_list_mk35.hpp:393
 #: tmp_error_headers/error_list_xl.hpp:652
-#: tmp_error_headers/error_list_mk4.hpp:421
+#: tmp_error_headers/error_list_mk4.hpp:435
 #: tmp_error_headers/error_list_mini.hpp:351
 #: tmp_error_headers/error_list_ix.hpp:610
 msgid "NO FW ON USB FLASH DRIVE"
@@ -6398,7 +5615,7 @@ msgstr "イチド"
 msgid "Nozzle diameter"
 msgstr "ノズル チョッケイ"
 
-#: tmp_error_headers/error_list_mk35.hpp:632
+#: tmp_error_headers/error_list_mk35.hpp:646
 #: tmp_error_headers/error_list_xl.hpp:891
 msgid ""
 "Nozzle doesn't seem to have round cross section. Make sure it is clean and "
@@ -6487,10 +5704,10 @@ msgstr "ツール3"
 msgid "Online"
 msgstr "オンライン"
 
-#: tmp_error_headers/error_list_coreone.hpp:219
-#: tmp_error_headers/error_list_mk35.hpp:142
+#: tmp_error_headers/error_list_coreone.hpp:233
+#: tmp_error_headers/error_list_mk35.hpp:156
 #: tmp_error_headers/error_list_xl.hpp:261
-#: tmp_error_headers/error_list_mk4.hpp:149
+#: tmp_error_headers/error_list_mk4.hpp:163
 #: tmp_error_headers/error_list_mini.hpp:135
 #: tmp_error_headers/error_list_ix.hpp:233
 msgid "Overcurrent detected on USB port."
@@ -6500,10 +5717,10 @@ msgstr "USBポートノ カデンリュウガ ケンシュツサレマシタ"
 msgid "Tools Changed"
 msgstr "ツールチェンジ"
 
-#: tmp_error_headers/error_list_coreone.hpp:247
-#: tmp_error_headers/error_list_mk35.hpp:170
+#: tmp_error_headers/error_list_coreone.hpp:261
+#: tmp_error_headers/error_list_mk35.hpp:184
 #: tmp_error_headers/error_list_xl.hpp:275
-#: tmp_error_headers/error_list_mk4.hpp:177
+#: tmp_error_headers/error_list_mk4.hpp:191
 #: tmp_error_headers/error_list_mini.hpp:163
 #: tmp_error_headers/error_list_ix.hpp:261
 msgid "Overcurrent detected on the MMU port, disconnect the device."
@@ -6547,16 +5764,7 @@ msgstr "イチジテイシチュウ"
 msgid "PHASE STEPPING CALIBRATION"
 msgstr "フェーズステップキャリブレーション"
 
-#: tmp_error_headers/error_list_coreone.hpp:365
-#: tmp_error_headers/error_list_mk35.hpp:288
-#: tmp_error_headers/error_list_xl.hpp:435
-#: tmp_error_headers/error_list_mk4.hpp:295
-#: tmp_error_headers/error_list_mini.hpp:274
-#: tmp_error_headers/error_list_ix.hpp:400
-msgid "PNG BUFFER FULL"
-msgstr "PNGバッファ メモリフソク"
-
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:205
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:210
 msgid "PRINTHEAD"
 msgstr "プリントヘッド"
 
@@ -6574,7 +5782,7 @@ msgid "PURGE MORE"
 msgstr "モットパージ"
 
 #. Do not show "Pick Tool" at all for all_toolheads, only "Park Tool" that gets disabled when no tool is selected
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:133
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:138
 msgid "Park Tool"
 msgstr "ツール ヲ パーク"
 
@@ -6606,7 +5814,7 @@ msgstr "フェイズステッピング"
 msgid "Perfect!"
 msgstr "パーフェクト!"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:174
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:179
 msgid ""
 "Perform filament sensors calibration? This discards previous filament "
 "sensors calibration."
@@ -6701,7 +5909,8 @@ msgstr "プリントフィルトレーション"
 msgid "Print Progress Screen"
 msgstr "プリントシンチョクガメン"
 
-#: src/gui/screen_printing.cpp:355
+#: src/gui/screen_printing.cpp:355 tmp_error_headers/error_list_coreone.hpp:72
+#: tmp_error_headers/error_list_mk4.hpp:37
 msgid ""
 "Printer has detected multiple consecutive filament loading errors. We "
 "recommend checking Nextruder main-plate. Visit prusa.io/mmu-care"
@@ -6988,12 +6197,12 @@ msgstr "ファンノ キリカエ"
 msgid "TLS error"
 msgstr "TLSエラー"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:200
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:205
 #, c-format
 msgid "TOOL %d"
 msgstr "ツール %d"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:202
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:207
 msgid "TOOLHEAD"
 msgstr "ツールヘッド"
 
@@ -7117,15 +6326,6 @@ msgstr "アップ"
 msgid "Unauthorized"
 msgstr "ミショウニン"
 
-#: tmp_error_headers/error_list_coreone.hpp:673
-#: tmp_error_headers/error_list_mk35.hpp:477
-#: tmp_error_headers/error_list_xl.hpp:743
-#: tmp_error_headers/error_list_mk4.hpp:519
-#: tmp_error_headers/error_list_mini.hpp:435
-#: tmp_error_headers/error_list_ix.hpp:694
-msgid "Unknown file system"
-msgstr "ミチノ ファイルシステム"
-
 #: src/gui/screen_menu_filament_changeall.cpp:77
 msgid "Unload"
 msgstr "アンロード"
@@ -7173,23 +6373,14 @@ msgstr "ノズル ノ レイキャク ヲ マッテイマス"
 msgid "Waiting for temperature"
 msgstr "オンド タイキチュウ"
 
-#: tmp_error_headers/error_list_coreone.hpp:260
-#: tmp_error_headers/error_list_mk35.hpp:183
+#: tmp_error_headers/error_list_coreone.hpp:274
+#: tmp_error_headers/error_list_mk35.hpp:197
 #: tmp_error_headers/error_list_xl.hpp:288
-#: tmp_error_headers/error_list_mk4.hpp:190
+#: tmp_error_headers/error_list_mk4.hpp:204
 #: tmp_error_headers/error_list_mini.hpp:176
 #: tmp_error_headers/error_list_ix.hpp:274
 msgid "I2C SEND BUSY"
 msgstr "I2Cソウシン ビジー"
-
-#: tmp_error_headers/error_list_coreone.hpp:253
-#: tmp_error_headers/error_list_mk35.hpp:176
-#: tmp_error_headers/error_list_xl.hpp:281
-#: tmp_error_headers/error_list_mk4.hpp:183
-#: tmp_error_headers/error_list_mini.hpp:169
-#: tmp_error_headers/error_list_ix.hpp:267
-msgid "I2C SEND FAILED"
-msgstr "I2Cソウシン シッパイ"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:47
 msgid "Was filament unload successful?"
@@ -7248,41 +6439,13 @@ msgstr ""
 "ハードウェアセッテイヲ カクニンシテクダサイ。\n"
 "モンダイガ カイケツシナイ バアイハ、カスタマーサポートニ ゴレンラククダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:267
-#: tmp_error_headers/error_list_mk35.hpp:190
-#: tmp_error_headers/error_list_xl.hpp:295
-#: tmp_error_headers/error_list_mk4.hpp:197
-#: tmp_error_headers/error_list_mini.hpp:183
-#: tmp_error_headers/error_list_ix.hpp:281
-msgid "I2C SEND TIMEOUT"
-msgstr "I2Cソウシン タイムアウト"
-
-#: tmp_error_headers/error_list_coreone.hpp:274
-#: tmp_error_headers/error_list_mk35.hpp:197
-#: tmp_error_headers/error_list_xl.hpp:302
-#: tmp_error_headers/error_list_mk4.hpp:204
-#: tmp_error_headers/error_list_mini.hpp:190
-#: tmp_error_headers/error_list_ix.hpp:288
-msgid "I2C SEND UNDEFINED"
-msgstr "I2Cソウシン ミテイギ"
-
-#: tmp_error_headers/error_list_coreone.hpp:589
-#: tmp_error_headers/error_list_mk35.hpp:393
-#: tmp_error_headers/error_list_xl.hpp:666
-#: tmp_error_headers/error_list_mk4.hpp:435
-#: tmp_error_headers/error_list_mini.hpp:365
-#: tmp_error_headers/error_list_ix.hpp:624
-msgid "IMPOSTER! FAKE SIGNATURE"
-msgstr "ニセモノ ショメイデス!"
-
-#: tmp_error_headers/error_list_coreone.hpp:568
-#: tmp_error_headers/error_list_mk35.hpp:372
-#: tmp_error_headers/error_list_xl.hpp:645
-#: tmp_error_headers/error_list_mk4.hpp:414
-#: tmp_error_headers/error_list_mini.hpp:344
-#: tmp_error_headers/error_list_ix.hpp:603
-msgid "INVALID FW SIZE ON USB FLASH DRIVE"
-msgstr "USBフラッシュドライブ ファームウェアサイズ ムコウ"
+#: tmp_error_headers/error_list_coreone.hpp:519
+#: tmp_error_headers/error_list_mk35.hpp:323
+#: tmp_error_headers/error_list_xl.hpp:575
+#: tmp_error_headers/error_list_mk4.hpp:365
+#: tmp_error_headers/error_list_ix.hpp:540
+msgid "LED MEMORY ERROR"
+msgstr "LEDGEメモリーエラー"
 
 #: tmp_error_headers/error_list_coreone.hpp:58
 #: tmp_error_headers/error_list_mk35.hpp:16
@@ -7303,92 +6466,6 @@ msgstr ""
 "フィラメントセンサーガ ハンノウシナイバアイハ、ゴミヲ トリノゾキマス。マタ"
 "ハ、ムコウニスルコトモデキマス。"
 
-#: tmp_error_headers/error_list_coreone.hpp:505
-#: tmp_error_headers/error_list_mk35.hpp:309
-#: tmp_error_headers/error_list_xl.hpp:575
-#: tmp_error_headers/error_list_mk4.hpp:351
-#: tmp_error_headers/error_list_ix.hpp:540
-msgid "LED MEMORY ERROR"
-msgstr "LEDGEメモリーエラー"
-
-#: tmp_error_headers/error_list_coreone.hpp:463
-#: tmp_error_headers/error_list_mk35.hpp:302
-#: tmp_error_headers/error_list_xl.hpp:533
-#: tmp_error_headers/error_list_mk4.hpp:309
-#: tmp_error_headers/error_list_ix.hpp:498
-msgid "LOADCELL NOT CALIBRATED"
-msgstr "ロードセルガ キャリブレーションサレテイマセン"
-
-#: tmp_error_headers/error_list_coreone.hpp:470
-#: tmp_error_headers/error_list_xl.hpp:540
-#: tmp_error_headers/error_list_mk4.hpp:316
-#: tmp_error_headers/error_list_ix.hpp:505
-msgid "LOADCELL TARE ERROR"
-msgstr "ロードセル ゼロセッテイエラー"
-
-#: tmp_error_headers/error_list_coreone.hpp:477
-#: tmp_error_headers/error_list_xl.hpp:547
-#: tmp_error_headers/error_list_mk4.hpp:323
-#: tmp_error_headers/error_list_ix.hpp:512
-msgid "LOADCELL TARE FAILED"
-msgstr "ロードセル ゼロセッテイシッパイ"
-
-#: tmp_error_headers/error_list_coreone.hpp:498
-#: tmp_error_headers/error_list_xl.hpp:568
-#: tmp_error_headers/error_list_mk4.hpp:344
-#: tmp_error_headers/error_list_ix.hpp:533
-msgid "LOADCELL TIMEOUT"
-msgstr "ロードセルタイムアウト"
-
-#: tmp_error_headers/error_list_coreone.hpp:737
-#: tmp_error_headers/error_list_mk35.hpp:541
-#: tmp_error_headers/error_list_xl.hpp:800
-#: tmp_error_headers/error_list_mk4.hpp:583
-#: tmp_error_headers/error_list_mini.hpp:492
-#: tmp_error_headers/error_list_ix.hpp:751
-msgid ""
-"Length of an axis is too long.\n"
-"Motor current is too low, probably.\n"
-"Retry check, pause or resume the print?"
-msgstr ""
-"ジクガ ナガスギマス。\n"
-"モーターノ デンリュウガ ヒクスギマス。\n"
-"チェックヲ ヤリナオスカ、プリントヲ イチジテイ シマタハ サイカイシマスカ?"
-
-#: tmp_error_headers/error_list_coreone.hpp:744
-#: tmp_error_headers/error_list_mk35.hpp:548
-#: tmp_error_headers/error_list_xl.hpp:807
-#: tmp_error_headers/error_list_mk4.hpp:590
-#: tmp_error_headers/error_list_mini.hpp:499
-#: tmp_error_headers/error_list_ix.hpp:758
-msgid ""
-"Length of an axis is too short.\n"
-"There's an obstacle or bearing issue.\n"
-"Retry check, pause or resume the print?"
-msgstr ""
-"ジクガ ミジカスギマス。\n"
-"ショウガイブツカ、ベアリングニ モンダイガアリマス。\n"
-"チェックヲ ヤリナオスカ、プリントヲ イチジテイシ マタハサイカイシマスカ?"
-
-#: tmp_error_headers/error_list_coreone.hpp:464
-#: tmp_error_headers/error_list_mk35.hpp:303
-#: tmp_error_headers/error_list_xl.hpp:534
-#: tmp_error_headers/error_list_mk4.hpp:310
-#: tmp_error_headers/error_list_ix.hpp:499
-msgid ""
-"Loadcell calibration is incomplete. Restart the printer and calibrate "
-"loadcell."
-msgstr ""
-"ロードセルキャリブレーションガ フカンゼンデス。プリンタヲ サイキドウシ、ロー"
-"ドセルヲ キャリブレーションシマス。"
-
-#: tmp_error_headers/error_list_coreone.hpp:485
-#: tmp_error_headers/error_list_xl.hpp:555
-#: tmp_error_headers/error_list_mk4.hpp:331
-#: tmp_error_headers/error_list_ix.hpp:520
-msgid "Loadcell measured an inifinite or undefined load value."
-msgstr "ロードセルガ、ムゲンモシク ハミテイギノ スウチヲ ソクテイシマシタ。"
-
 #. //MSG_PROGRESS_UNLOADING_FILAMENT c=20
 #: src/mmu2/mmu2_progress_converter.cpp:22
 #: src/gui/dialogs/DialogLoadUnload.cpp:76
@@ -7402,15 +6479,6 @@ msgstr ""
 "ログガ オフニナリマシタ。コレデ USBドライブヲ アンゼンニ トリハズスコトガデキ"
 "マス。"
 
-#: tmp_error_headers/error_list_coreone.hpp:246
-#: tmp_error_headers/error_list_mk35.hpp:169
-#: tmp_error_headers/error_list_xl.hpp:274
-#: tmp_error_headers/error_list_mk4.hpp:176
-#: tmp_error_headers/error_list_mini.hpp:162
-#: tmp_error_headers/error_list_ix.hpp:260
-msgid "MMU OVERCURRENT"
-msgstr "MMUカデンリュウ"
-
 #: tmp_error_headers/error_list_xl.hpp:121
 msgid ""
 "Measured temperature is not matching expected value. Check if the thermistor "
@@ -7420,25 +6488,6 @@ msgstr ""
 "ロックニ セッショクシテイナイカ テンケンシテクダサイ。ソンショウシテイルバア"
 "イ、コウカンシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:135
-#: tmp_error_headers/error_list_coreone.hpp:793
-#: tmp_error_headers/error_list_mk35.hpp:93
-#: tmp_error_headers/error_list_mk35.hpp:597
-#: tmp_error_headers/error_list_xl.hpp:856
-#: tmp_error_headers/error_list_mk4.hpp:100
-#: tmp_error_headers/error_list_mk4.hpp:639
-#: tmp_error_headers/error_list_mini.hpp:86
-#: tmp_error_headers/error_list_mini.hpp:534
-#: tmp_error_headers/error_list_ix.hpp:107
-#: tmp_error_headers/error_list_ix.hpp:793
-msgid ""
-"Measured temperature is not matching expected value. Check the thermistor is "
-"in contact with hotend. In case of damage, replace it."
-msgstr ""
-"ソクテイサレタオンドガ キタイチト コトナリマス。サーミスタガ ホットエンドニ "
-"セッショクシテイルカモシレマセン。ソンショウシテイルバアイハ コウカンシテクダ"
-"サイ。"
-
 #: src/gui/menu_item/specific/menu_items_chamber_filtration.cpp:43
 msgid "Minimum Power"
 msgstr "サイショウデンリョク"
@@ -7446,87 +6495,6 @@ msgstr "サイショウデンリョク"
 #: tmp_error_headers/error_list_mini.hpp:450
 msgid "New FW available"
 msgstr "アタラシイ ファームウェアガ アリマス"
-
-#: tmp_error_headers/error_list_coreone.hpp:632
-#: tmp_error_headers/error_list_mk35.hpp:436
-#: tmp_error_headers/error_list_xl.hpp:709
-#: tmp_error_headers/error_list_mk4.hpp:478
-#: tmp_error_headers/error_list_mini.hpp:408
-#: tmp_error_headers/error_list_ix.hpp:667
-msgid ""
-"No firmware found\n"
-"in the internal\n"
-"flash! Please\n"
-"flash firmware\n"
-"first!"
-msgstr ""
-"ナイゾウメモリニ\n"
-"ファームウェアガ アリマセン\n"
-"サイショニ ファームウェアノ\n"
-"カキコミヲ ジッコウシテクダサイ!"
-
-#: tmp_error_headers/error_list_coreone.hpp:358
-#: tmp_error_headers/error_list_mk35.hpp:281
-#: tmp_error_headers/error_list_xl.hpp:428
-#: tmp_error_headers/error_list_mk4.hpp:288
-#: tmp_error_headers/error_list_mini.hpp:267
-#: tmp_error_headers/error_list_ix.hpp:393
-msgid "OUT OF MEMORY"
-msgstr "メモリーギレ"
-
-#: tmp_error_headers/error_list_coreone.hpp:883
-msgid "Open Chamber Ventilation"
-msgstr "チャンバーノ カンキマドヲ アケテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:226
-#: tmp_error_headers/error_list_mk35.hpp:149
-#: tmp_error_headers/error_list_xl.hpp:268
-#: tmp_error_headers/error_list_mk4.hpp:156
-#: tmp_error_headers/error_list_mini.hpp:142
-#: tmp_error_headers/error_list_ix.hpp:240
-msgid "Overcurrent detected on the connected USB device, disconnect it."
-msgstr ""
-"セツゾクサレテイル USBデバイスニ カデンリュウガ ケンシュツサレマシタ。セツゾ"
-"クヲ カイジョシテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:379
-#: tmp_error_headers/error_list_coreone.hpp:386
-#: tmp_error_headers/error_list_coreone.hpp:393
-#: tmp_error_headers/error_list_coreone.hpp:400
-#: tmp_error_headers/error_list_coreone.hpp:407
-#: tmp_error_headers/error_list_coreone.hpp:414
-#: tmp_error_headers/error_list_coreone.hpp:421
-#: tmp_error_headers/error_list_coreone.hpp:428
-#: tmp_error_headers/error_list_coreone.hpp:435
-#: tmp_error_headers/error_list_coreone.hpp:442
-#: tmp_error_headers/error_list_coreone.hpp:449
-#: tmp_error_headers/error_list_coreone.hpp:456
-#: tmp_error_headers/error_list_xl.hpp:449
-#: tmp_error_headers/error_list_xl.hpp:456
-#: tmp_error_headers/error_list_xl.hpp:463
-#: tmp_error_headers/error_list_xl.hpp:470
-#: tmp_error_headers/error_list_xl.hpp:477
-#: tmp_error_headers/error_list_xl.hpp:484
-#: tmp_error_headers/error_list_xl.hpp:491
-#: tmp_error_headers/error_list_xl.hpp:498
-#: tmp_error_headers/error_list_xl.hpp:505
-#: tmp_error_headers/error_list_xl.hpp:512
-#: tmp_error_headers/error_list_xl.hpp:519
-#: tmp_error_headers/error_list_xl.hpp:526
-#: tmp_error_headers/error_list_ix.hpp:414
-#: tmp_error_headers/error_list_ix.hpp:421
-#: tmp_error_headers/error_list_ix.hpp:428
-#: tmp_error_headers/error_list_ix.hpp:435
-#: tmp_error_headers/error_list_ix.hpp:442
-#: tmp_error_headers/error_list_ix.hpp:449
-#: tmp_error_headers/error_list_ix.hpp:456
-#: tmp_error_headers/error_list_ix.hpp:463
-#: tmp_error_headers/error_list_ix.hpp:470
-#: tmp_error_headers/error_list_ix.hpp:477
-#: tmp_error_headers/error_list_ix.hpp:484
-#: tmp_error_headers/error_list_ix.hpp:491
-msgid "PUPPY ERROR"
-msgstr "パピーエラー"
 
 #: src/gui/MItem_tools.cpp:903
 msgid "Phase stepping not ready: perform calibration first."
@@ -7538,15 +6506,6 @@ msgstr ""
 #: src/gui/MItem_tools.cpp:413
 msgid "Perform filament change now?"
 msgstr "スグニ フィラメントコウカンヲ シマスカ?"
-
-#: tmp_error_headers/error_list_coreone.hpp:849
-#: tmp_error_headers/error_list_mk35.hpp:660
-#: tmp_error_headers/error_list_xl.hpp:933
-#: tmp_error_headers/error_list_mk4.hpp:695
-#: tmp_error_headers/error_list_mini.hpp:590
-#: tmp_error_headers/error_list_ix.hpp:856
-msgid "Please replace filament."
-msgstr "フィラメントヲ コウカン シテクダサイ"
 
 #: src/gui/menu_item/specific/menu_items_chamber_filtration.cpp:87
 msgid "Post-print Duration"
@@ -7572,36 +6531,6 @@ msgstr "クラッシュレポート(file dump.bin)ガ USBドライブニ ホゾ�
 msgid "Printhead"
 msgstr "プリントヘッド"
 
-#: tmp_error_headers/error_list_coreone.hpp:443
-#: tmp_error_headers/error_list_xl.hpp:513
-#: tmp_error_headers/error_list_ix.hpp:478
-#, c-format
-msgid "Puppy %s firmware fingerprint mismatch"
-msgstr "Puppy %s ファームウェアト ミスマッチガ オキテイマス"
-
-#: tmp_error_headers/error_list_coreone.hpp:429
-#: tmp_error_headers/error_list_xl.hpp:499
-#: tmp_error_headers/error_list_ix.hpp:464
-#, c-format
-msgid "Puppy %s firmware not found"
-msgstr "Puppyブートローダ %s ファームウェアガ アリマセン"
-
-#: tmp_error_headers/error_list_coreone.hpp:436
-#: tmp_error_headers/error_list_xl.hpp:506
-#: tmp_error_headers/error_list_ix.hpp:471
-#, c-format
-msgid "Puppy %s flash writing failed"
-msgstr "Puppyブートローダー %s カキコミシッパイ"
-
-#: tmp_error_headers/error_list_coreone.hpp:869
-#: tmp_error_headers/error_list_mk35.hpp:673
-#: tmp_error_headers/error_list_xl.hpp:974
-#: tmp_error_headers/error_list_mk4.hpp:715
-#: tmp_error_headers/error_list_mini.hpp:603
-#: tmp_error_headers/error_list_ix.hpp:876
-msgid "Quick Pause"
-msgstr "クイック ポーズ"
-
 #: src/gui/screen_splash.cpp:183
 #, c-format
 msgid ""
@@ -7610,15 +6539,6 @@ msgid ""
 msgstr ""
 "プリンタノタイプガ %s カラ %s ニヘンコウサレマシタ。\n"
 "ファクトリーリセットガヒツヨウデス。\n"
-
-#: tmp_error_headers/error_list_coreone.hpp:338
-#: tmp_error_headers/error_list_mk35.hpp:261
-#: tmp_error_headers/error_list_xl.hpp:408
-#: tmp_error_headers/error_list_mk4.hpp:268
-#: tmp_error_headers/error_list_mini.hpp:247
-#: tmp_error_headers/error_list_ix.hpp:373
-msgid "Reading ESP firmware failed."
-msgstr "ESPファームウェアノ ヨミコミニ シッパイシマシタ。"
 
 #: src/gui/MItem_tools.cpp:248 src/gui/screen_splash.cpp:195
 msgid "Reset complete. The system will now restart."
@@ -7640,29 +6560,6 @@ msgstr "センサージョウホウ"
 msgid "Serial Printing Screen"
 msgstr "シリアル プリンティング スクリーン"
 
-#: tmp_error_headers/error_list_coreone.hpp:520
-#: tmp_error_headers/error_list_mk35.hpp:324
-#: tmp_error_headers/error_list_xl.hpp:590
-#: tmp_error_headers/error_list_mk4.hpp:366
-#: tmp_error_headers/error_list_mini.hpp:296
-#: tmp_error_headers/error_list_ix.hpp:555
-msgid ""
-"Space allocation for firmware BBF file failed. Repeat the action or try "
-"another USB drive."
-msgstr ""
-"ファームウェアノ BBFファイルリョウイキノ カクホニ シッパイシマシタ。リトライ"
-"スルカ、ベツノ USBドライブヲ タメシテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:807
-#: tmp_error_headers/error_list_mk35.hpp:611
-#: tmp_error_headers/error_list_xl.hpp:870
-#: tmp_error_headers/error_list_mk4.hpp:653
-#: tmp_error_headers/error_list_mini.hpp:548
-#: tmp_error_headers/error_list_ix.hpp:807
-msgid "Steppers disabled due to inactivity."
-msgstr ""
-"シバラク ソウサガ ナカッタタメ、ステッパーモーターガ ムコウニナリマシタ。"
-
 #: tmp_error_headers/error_list_mini.hpp:114
 msgid ""
 "SuperPINDA sensor is probably broken or disconnected, could not home Z-axis "
@@ -7670,20 +6567,6 @@ msgid ""
 msgstr ""
 "SuperPINDAセンサーガ コワレテイルカ ハズレテイル カノウセイガ アリ、Zジクヲ "
 "タダシク ゲンテンフッキ デキマセン。"
-
-#: tmp_error_headers/error_list_coreone.hpp:127
-#: tmp_error_headers/error_list_coreone.hpp:134
-#: tmp_error_headers/error_list_mk35.hpp:85
-#: tmp_error_headers/error_list_mk35.hpp:92
-#: tmp_error_headers/error_list_xl.hpp:113
-#: tmp_error_headers/error_list_mk4.hpp:92
-#: tmp_error_headers/error_list_mk4.hpp:99
-#: tmp_error_headers/error_list_mini.hpp:78
-#: tmp_error_headers/error_list_mini.hpp:85
-#: tmp_error_headers/error_list_ix.hpp:99
-#: tmp_error_headers/error_list_ix.hpp:106
-msgid "TEMP NOT MATCHING"
-msgstr "オンドガ セイカクデナイ"
 
 #: src/gui/screen_menu_metrics.cpp:67
 msgid "Failed to enable metrics. Check your settings."
@@ -7693,21 +6576,6 @@ msgstr ""
 #: src/gui/MItem_menus.hpp:154
 msgid "Test Errors"
 msgstr "テストノ エラー"
-
-#: tmp_error_headers/error_list_coreone.hpp:555
-#: tmp_error_headers/error_list_mk35.hpp:359
-#: tmp_error_headers/error_list_xl.hpp:632
-#: tmp_error_headers/error_list_mk4.hpp:401
-#: tmp_error_headers/error_list_mini.hpp:331
-#: tmp_error_headers/error_list_ix.hpp:590
-msgid ""
-"This error code is not found\n"
-"in our database.\n"
-"Contact the support."
-msgstr ""
-"コノエラーコードハ\n"
-"データベースニ アリマセン。\n"
-"サポートニ オトイアワセクダサイ。"
 
 #: src/gui/screen_help_fw_update.cpp:82
 msgid "To learn more including firmware downgrade, please visit:"
@@ -7735,107 +6603,24 @@ msgstr ""
 "USBドライブヲ トリハズスマエニ ログヲ オフニシテクダサイ!ファイルシステムニ "
 "ダメージヲ アタエルカノウセイガアリマス。"
 
-#: tmp_error_headers/error_list_coreone.hpp:554
-#: tmp_error_headers/error_list_mk35.hpp:358
-#: tmp_error_headers/error_list_mmu.hpp:318
-#: tmp_error_headers/error_list_xl.hpp:631
-#: tmp_error_headers/error_list_mk4.hpp:400
-#: tmp_error_headers/error_list_mini.hpp:330
-#: tmp_error_headers/error_list_ix.hpp:589
-msgid "UNKNOWN ERROR"
-msgstr "フメイナ エラー"
-
-#: tmp_error_headers/error_list_coreone.hpp:624
-#: tmp_error_headers/error_list_mk35.hpp:428
-#: tmp_error_headers/error_list_xl.hpp:701
-#: tmp_error_headers/error_list_mk4.hpp:470
-#: tmp_error_headers/error_list_mini.hpp:400
-#: tmp_error_headers/error_list_ix.hpp:659
-msgid "UNSUPPORTED BUDDY FW"
-msgstr "タイオウシテイナイ BUDYYファームウェア"
-
-#: tmp_error_headers/error_list_coreone.hpp:645
-#: tmp_error_headers/error_list_mk35.hpp:449
-#: tmp_error_headers/error_list_xl.hpp:722
-#: tmp_error_headers/error_list_mk4.hpp:491
-#: tmp_error_headers/error_list_mini.hpp:421
-#: tmp_error_headers/error_list_ix.hpp:680
-msgid "UNSUPPORTED FIRMWARE BBF FILE"
-msgstr "ミタイオウファームウェアノ BBFファイル"
-
-#: tmp_error_headers/error_list_coreone.hpp:617
-#: tmp_error_headers/error_list_mk35.hpp:421
-#: tmp_error_headers/error_list_xl.hpp:694
-#: tmp_error_headers/error_list_mk4.hpp:463
-#: tmp_error_headers/error_list_mini.hpp:393
-#: tmp_error_headers/error_list_ix.hpp:652
-msgid "UNSUPPORTED PRINTER MODEL"
-msgstr "タイオウシテイナイ プリンターモデル"
-
-#: tmp_error_headers/error_list_coreone.hpp:225
-#: tmp_error_headers/error_list_mk35.hpp:148
-#: tmp_error_headers/error_list_xl.hpp:267
-#: tmp_error_headers/error_list_mk4.hpp:155
-#: tmp_error_headers/error_list_mini.hpp:141
-#: tmp_error_headers/error_list_ix.hpp:239
-msgid "USB DEVICE OVERCURRENT"
-msgstr "USBデバイスノ カデンリュウ"
-
-#: tmp_error_headers/error_list_coreone.hpp:814
-#: tmp_error_headers/error_list_mk35.hpp:618
-#: tmp_error_headers/error_list_xl.hpp:877
-#: tmp_error_headers/error_list_mk4.hpp:660
-#: tmp_error_headers/error_list_mini.hpp:555
-#: tmp_error_headers/error_list_ix.hpp:814
-msgid "USB drive or file error, the print is now paused. Reconnect the drive."
-msgstr ""
-"USBドライブ マタハ ファイルニ エラーガ ハッセイシ、プリントガ イチジテイシ シ"
-"テイマス。ドライブヲ サイセツゾク シテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:646
-#: tmp_error_headers/error_list_mk35.hpp:450
-#: tmp_error_headers/error_list_xl.hpp:723
-#: tmp_error_headers/error_list_mk4.hpp:492
-#: tmp_error_headers/error_list_mini.hpp:422
-#: tmp_error_headers/error_list_ix.hpp:681
-msgid ""
-"USB flash drive contains\n"
-"unsupported firmware BBF file."
-msgstr ""
-"USBドライブニ\n"
-"サポートサレテイナ  BBFファイルガ アリマス。"
-
-#: tmp_error_headers/error_list_coreone.hpp:758
-#: tmp_error_headers/error_list_mk35.hpp:562
-#: tmp_error_headers/error_list_xl.hpp:821
-#: tmp_error_headers/error_list_mk4.hpp:604
-#: tmp_error_headers/error_list_mini.hpp:513
-#: tmp_error_headers/error_list_ix.hpp:772
-msgid ""
-"Unable to home the printer.\n"
-"Do you want to try again?"
-msgstr ""
-"プリンタガ ゲンテンフッキ デキマセンデシタ。\n"
-"リトライ シマスカ?"
-
 #: src/gui/screen_menu_fw_update.hpp:38 src/gui/MItem_menus.hpp:80
 msgid "FW Update"
 msgstr "ファームウェアアップデート"
 
-#: tmp_error_headers/error_list_coreone.hpp:310
-#: tmp_error_headers/error_list_mk35.hpp:233
+#: tmp_error_headers/error_list_coreone.hpp:324
+#: tmp_error_headers/error_list_mk35.hpp:247
 #: tmp_error_headers/error_list_xl.hpp:352
-#: tmp_error_headers/error_list_mk4.hpp:240
+#: tmp_error_headers/error_list_mk4.hpp:254
 #: tmp_error_headers/error_list_ix.hpp:338
 msgid "Power panic detected on startup. Check power panic cable."
 msgstr ""
 "スタートアップノトキニ パワーパニック ガ ケンシュツサレマシタ。ケーブル ヲ カ"
 "クニンシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:562
-#: tmp_error_headers/error_list_mk35.hpp:366
+#: tmp_error_headers/error_list_coreone.hpp:576
+#: tmp_error_headers/error_list_mk35.hpp:380
 #: tmp_error_headers/error_list_xl.hpp:639
-#: tmp_error_headers/error_list_mk4.hpp:408
+#: tmp_error_headers/error_list_mk4.hpp:422
 #: tmp_error_headers/error_list_mini.hpp:338
 #: tmp_error_headers/error_list_ix.hpp:597
 msgid ""
@@ -7867,46 +6652,11 @@ msgstr "ツヅケル"
 msgid "Disconnect"
 msgstr "セツダン"
 
-#: tmp_error_headers/error_list_coreone.hpp:653
-#: tmp_error_headers/error_list_mk35.hpp:457
-#: tmp_error_headers/error_list_xl.hpp:730
-#: tmp_error_headers/error_list_mk4.hpp:499
-#: tmp_error_headers/error_list_mini.hpp:429
-#: tmp_error_headers/error_list_ix.hpp:688
-msgid "Unable to verify the extruder type, check the wiring and connectors."
-msgstr ""
-"エクストルーダーノ タイプヲ カクニン デキナイバアイハ、ハイセント コネクタヲ "
-"カクニンシテクダサイ。"
-
-#: tmp_error_headers/error_list_coreone.hpp:674
-#: tmp_error_headers/error_list_mk35.hpp:478
-#: tmp_error_headers/error_list_xl.hpp:744
-#: tmp_error_headers/error_list_mk4.hpp:520
-#: tmp_error_headers/error_list_mini.hpp:436
-#: tmp_error_headers/error_list_ix.hpp:695
-msgid ""
-"Use a different USB drive or reformat this one to the supported FAT32 file "
-"system."
-msgstr ""
-"ベツノ USBドライブヲ シヨウスルカ、コノUSBドライブヲ サポートサレテイルFAT32"
-"ファイルシステムニ サイフォーマットシテクダサイ。"
-
 #: src/gui/screen_menu_fail_stat.hpp:28
 msgid "FAILURE STATISTICS"
 msgstr "シッパイノ ジョウホウ"
 
-#: tmp_error_headers/error_list_coreone.hpp:870
-#: tmp_error_headers/error_list_mk35.hpp:674
-#: tmp_error_headers/error_list_xl.hpp:975
-#: tmp_error_headers/error_list_mk4.hpp:716
-#: tmp_error_headers/error_list_mini.hpp:604
-#: tmp_error_headers/error_list_ix.hpp:877
-msgid "Waiting for the user. Press \"Resume\" once the printer is ready."
-msgstr ""
-"ユーザーソウサヲ マッテイマス。プリンターノ ジュンビガ デキタラ サイカイ ヲ "
-"オシテクダサイ。"
-
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:253
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:258
 msgid "All Tools"
 msgstr "スベテノ ツール"
 
@@ -7949,17 +6699,6 @@ msgstr "フローファクター"
 msgid "File read error"
 msgstr "ファイルリードエラー"
 
-#: tmp_error_headers/error_list_coreone.hpp:527
-#: tmp_error_headers/error_list_mk35.hpp:331
-#: tmp_error_headers/error_list_xl.hpp:597
-#: tmp_error_headers/error_list_mk4.hpp:373
-#: tmp_error_headers/error_list_mini.hpp:303
-#: tmp_error_headers/error_list_ix.hpp:562
-msgid "BBF initialization failed, repeat the action or try another USB drive."
-msgstr ""
-"BBFノ ショキカニ シッパイシマシタ。モウイチド クリカエスカ、ベツノ USBドライ"
-"ブデ タメシテクダサイ。"
-
 #: src/gui/MItem_print.hpp:83 src/gui/wizard/selftest_result_heaters.cpp:14
 msgid "Heatbed"
 msgstr "ヒートベッド"
@@ -7968,31 +6707,9 @@ msgstr "ヒートベッド"
 msgid "Heatbed Temperature"
 msgstr "ベッドオンド"
 
-#: tmp_error_headers/error_list_coreone.hpp:856
-#: tmp_error_headers/error_list_mk35.hpp:667
-#: tmp_error_headers/error_list_xl.hpp:961
-#: tmp_error_headers/error_list_mk4.hpp:702
-#: tmp_error_headers/error_list_mini.hpp:597
-#: tmp_error_headers/error_list_ix.hpp:863
-msgid "Bed leveling failed. Try again?"
-msgstr "ベッドレベリングシッパイ、モウイチドジッコウシマスカ?"
-
 #: src/gui/MItem_tools.hpp:734
 msgid "Belt Tuning"
 msgstr "ベルトチューニング"
-
-#: tmp_error_headers/error_list_coreone.hpp:43
-msgid "CEILING CLEARANCE VIOLATION"
-msgstr "オブジェクト ショウトツ ボウシ"
-
-#: tmp_error_headers/error_list_coreone.hpp:323
-#: tmp_error_headers/error_list_mk35.hpp:246
-#: tmp_error_headers/error_list_xl.hpp:372
-#: tmp_error_headers/error_list_mk4.hpp:253
-#: tmp_error_headers/error_list_mini.hpp:232
-#: tmp_error_headers/error_list_ix.hpp:351
-msgid "CONNECT REGISTRATION FAILED"
-msgstr "セツゾクニンショウ シッパイ"
 
 #: src/gui/ScreenPrintingModel.cpp:22
 msgid "Heating..."
@@ -8016,7 +6733,7 @@ msgstr "チャンバーライト"
 msgid "Chamber Temperature"
 msgstr "チャンバーオンド"
 
-#: tmp_error_headers/error_list_coreone.hpp:191
+#: tmp_error_headers/error_list_coreone.hpp:205
 #: tmp_error_headers/error_list_xl.hpp:219
 msgid "Chamber temperature critical. Aborting print to prevent printer damage."
 msgstr ""
@@ -8062,10 +6779,10 @@ msgstr "ディスプレイ リフレッシュスピード"
 msgid "Love Board"
 msgstr "ラブボード"
 
-#: tmp_error_headers/error_list_coreone.hpp:372
-#: tmp_error_headers/error_list_mk35.hpp:295
+#: tmp_error_headers/error_list_coreone.hpp:386
+#: tmp_error_headers/error_list_mk35.hpp:309
 #: tmp_error_headers/error_list_xl.hpp:442
-#: tmp_error_headers/error_list_mk4.hpp:302
+#: tmp_error_headers/error_list_mk4.hpp:316
 #: tmp_error_headers/error_list_mini.hpp:281
 #: tmp_error_headers/error_list_ix.hpp:407
 msgid "EMERGENCY STOP"
@@ -8088,10 +6805,10 @@ msgstr "イチジテイシ"
 msgid "Pausing..."
 msgstr "イチジテイシチュウ"
 
-#: tmp_error_headers/error_list_coreone.hpp:534
-#: tmp_error_headers/error_list_mk35.hpp:338
+#: tmp_error_headers/error_list_coreone.hpp:548
+#: tmp_error_headers/error_list_mk35.hpp:352
 #: tmp_error_headers/error_list_xl.hpp:604
-#: tmp_error_headers/error_list_mk4.hpp:380
+#: tmp_error_headers/error_list_mk4.hpp:394
 #: tmp_error_headers/error_list_mini.hpp:310
 #: tmp_error_headers/error_list_ix.hpp:569
 msgid "ESP doesn't seem to be connected."
@@ -8168,21 +6885,6 @@ msgstr "シッパイ"
 msgid "Filtration Fan"
 msgstr "フィルターファン"
 
-#: tmp_error_headers/error_list_coreone.hpp:722
-#: tmp_error_headers/error_list_coreone.hpp:723
-#: tmp_error_headers/error_list_mk35.hpp:526
-#: tmp_error_headers/error_list_mk35.hpp:527
-#: tmp_error_headers/error_list_xl.hpp:785
-#: tmp_error_headers/error_list_xl.hpp:786
-#: tmp_error_headers/error_list_mk4.hpp:568
-#: tmp_error_headers/error_list_mk4.hpp:569
-#: tmp_error_headers/error_list_mini.hpp:477
-#: tmp_error_headers/error_list_mini.hpp:478
-#: tmp_error_headers/error_list_ix.hpp:736
-#: tmp_error_headers/error_list_ix.hpp:737
-msgid "File error"
-msgstr "ファイルエラー"
-
 #: src/gui/MItem_print.hpp:133
 msgid "Tool 1 Flow Factor"
 msgstr "ツール1フローファクター"
@@ -8216,41 +6918,16 @@ msgstr "シヨウリョウ"
 msgid "xLCD"
 msgstr "xLCD"
 
-#: tmp_error_headers/error_list_coreone.hpp:275
-#: tmp_error_headers/error_list_mk35.hpp:198
-#: tmp_error_headers/error_list_xl.hpp:303
-#: tmp_error_headers/error_list_mk4.hpp:205
-#: tmp_error_headers/error_list_mini.hpp:191
-#: tmp_error_headers/error_list_ix.hpp:289
-msgid "HAL detected an I2C undefined error when sending data via I2C."
-msgstr ""
-"HALハ、I2Cケイユデ データヲ ソウシンスルトキニ フメイナエラーヲ ケンシュツシ"
-"マシタ。"
-
 #: src/gui/MItem_tools.cpp:770
 msgid "Heater Current"
 msgstr "ゲンザイヒーター"
 
-#: tmp_error_headers/error_list_coreone.hpp:484
+#: tmp_error_headers/error_list_coreone.hpp:498
 #: tmp_error_headers/error_list_xl.hpp:554
-#: tmp_error_headers/error_list_mk4.hpp:330
+#: tmp_error_headers/error_list_mk4.hpp:344
 #: tmp_error_headers/error_list_ix.hpp:519
 msgid "LOADCELL MEASURE FAILED"
 msgstr "ロードセル ソクテイシッパイ"
-
-#: tmp_error_headers/error_list_coreone.hpp:835
-#: tmp_error_headers/error_list_mk35.hpp:646
-#: tmp_error_headers/error_list_xl.hpp:905
-#: tmp_error_headers/error_list_mk4.hpp:681
-#: tmp_error_headers/error_list_mini.hpp:576
-#: tmp_error_headers/error_list_ix.hpp:835
-msgid ""
-"MCU in Buddy is overheated, likely due to exceeding the printer's operating "
-"temperature. Prevent overheating for optimal performance."
-msgstr ""
-"バディ ノ MCU ガ オーバーヒート シタ、 プリンター ノ オペレーティング テンペ"
-"ラチャー オ コエタ コト ガ ゲンイン ト ミラレル. オプティマル パフォーマンス "
-"オ タモツ タメ ニ オーバーヒート オ フセイデ クダサイ."
 
 #: src/gui/screen_input_shaper_calibration.cpp:101
 #: src/gui/dialogs/DialogLoadUnload.cpp:41
@@ -8279,27 +6956,19 @@ msgstr "RGBサイドストリップ"
 msgid "RGB Side Strip Dimming"
 msgstr "RGBサイドストリップ ディミング"
 
-#: tmp_error_headers/error_list_coreone.hpp:309
-#: tmp_error_headers/error_list_mk35.hpp:232
-#: tmp_error_headers/error_list_xl.hpp:351
-#: tmp_error_headers/error_list_mk4.hpp:239
-#: tmp_error_headers/error_list_ix.hpp:337
-msgid "POWER PANIC"
-msgstr "パワーパニック"
-
-#: tmp_error_headers/error_list_coreone.hpp:324
-#: tmp_error_headers/error_list_mk35.hpp:247
+#: tmp_error_headers/error_list_coreone.hpp:338
+#: tmp_error_headers/error_list_mk35.hpp:261
 #: tmp_error_headers/error_list_xl.hpp:373
-#: tmp_error_headers/error_list_mk4.hpp:254
+#: tmp_error_headers/error_list_mk4.hpp:268
 #: tmp_error_headers/error_list_mini.hpp:233
 #: tmp_error_headers/error_list_ix.hpp:352
 msgid "Registration to Prusa Connect failed due to:"
 msgstr "プルサコネクト ノ トウロクニ シッパイ シマシタ:"
 
-#: tmp_error_headers/error_list_coreone.hpp:751
-#: tmp_error_headers/error_list_mk35.hpp:555
+#: tmp_error_headers/error_list_coreone.hpp:765
+#: tmp_error_headers/error_list_mk35.hpp:569
 #: tmp_error_headers/error_list_xl.hpp:814
-#: tmp_error_headers/error_list_mk4.hpp:597
+#: tmp_error_headers/error_list_mk4.hpp:611
 #: tmp_error_headers/error_list_mini.hpp:506
 #: tmp_error_headers/error_list_ix.hpp:765
 msgid ""
@@ -8309,10 +6978,10 @@ msgstr ""
 "ショウトツガ クリカエ シケンシュツサレマシタ。\n"
 "プリントヲ サイカイ マタハ イチジテイシシマスカ?"
 
-#: tmp_error_headers/error_list_coreone.hpp:848
-#: tmp_error_headers/error_list_mk35.hpp:659
+#: tmp_error_headers/error_list_coreone.hpp:862
+#: tmp_error_headers/error_list_mk35.hpp:673
 #: tmp_error_headers/error_list_xl.hpp:932
-#: tmp_error_headers/error_list_mk4.hpp:694
+#: tmp_error_headers/error_list_mk4.hpp:708
 #: tmp_error_headers/error_list_mini.hpp:589
 #: tmp_error_headers/error_list_ix.hpp:855
 msgid "Replace filament"
@@ -8333,9 +7002,9 @@ msgstr "デフォルト ノ フッキ"
 msgid "Set Ready"
 msgstr "ジュンビ カンリョウ"
 
-#: tmp_error_headers/error_list_coreone.hpp:478
+#: tmp_error_headers/error_list_coreone.hpp:492
 #: tmp_error_headers/error_list_xl.hpp:548
-#: tmp_error_headers/error_list_mk4.hpp:324
+#: tmp_error_headers/error_list_mk4.hpp:338
 #: tmp_error_headers/error_list_ix.hpp:513
 msgid "Setting the tare failed. Check the loadcell wiring and connection."
 msgstr ""
@@ -8346,7 +7015,7 @@ msgstr ""
 msgid "Status"
 msgstr "ステータス"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:272
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:277
 msgid "TOOLS SETTINGS"
 msgstr "ツールセッティング"
 
@@ -8354,10 +7023,10 @@ msgstr "ツールセッティング"
 msgid "Temperature"
 msgstr "オンド"
 
-#: tmp_error_headers/error_list_coreone.hpp:695
-#: tmp_error_headers/error_list_mk35.hpp:499
+#: tmp_error_headers/error_list_coreone.hpp:709
+#: tmp_error_headers/error_list_mk35.hpp:513
 #: tmp_error_headers/error_list_xl.hpp:765
-#: tmp_error_headers/error_list_mk4.hpp:541
+#: tmp_error_headers/error_list_mk4.hpp:555
 #: tmp_error_headers/error_list_mini.hpp:457
 #: tmp_error_headers/error_list_ix.hpp:716
 msgid "The G-code isn't fully compatible"
@@ -8378,10 +7047,10 @@ msgstr ""
 "フィラメントガ ツマッテイルヨウデス。ネクストルーダーカラ アンロードシテ、モ"
 "ウイチド ロードシテクダサイ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:730
-#: tmp_error_headers/error_list_mk35.hpp:534
+#: tmp_error_headers/error_list_coreone.hpp:744
+#: tmp_error_headers/error_list_mk35.hpp:548
 #: tmp_error_headers/error_list_xl.hpp:793
-#: tmp_error_headers/error_list_mk4.hpp:576
+#: tmp_error_headers/error_list_mk4.hpp:590
 #: tmp_error_headers/error_list_mini.hpp:485
 #: tmp_error_headers/error_list_ix.hpp:744
 msgid ""
@@ -8391,16 +7060,16 @@ msgstr ""
 "テイデンチュウニ ヒートベッドガ クールダウンシ、プリントオブジェクトガ ハガレ"
 "タ カノウセイガアリマス。ゾッコウ スルマエニ テンケンシテクダサイ"
 
-#: tmp_error_headers/error_list_coreone.hpp:492
+#: tmp_error_headers/error_list_coreone.hpp:506
 #: tmp_error_headers/error_list_xl.hpp:562
-#: tmp_error_headers/error_list_mk4.hpp:338
+#: tmp_error_headers/error_list_mk4.hpp:352
 #: tmp_error_headers/error_list_ix.hpp:527
 msgid "The loadcell configuration is incorrect."
 msgstr "ロードセルセッテイガ マチガッテイマス"
 
-#: tmp_error_headers/error_list_coreone.hpp:499
+#: tmp_error_headers/error_list_coreone.hpp:513
 #: tmp_error_headers/error_list_xl.hpp:569
-#: tmp_error_headers/error_list_mk4.hpp:345
+#: tmp_error_headers/error_list_mk4.hpp:359
 #: tmp_error_headers/error_list_ix.hpp:534
 msgid ""
 "There was a timeout while waiting for measurement sample, please repeat the "
@@ -8408,20 +7077,14 @@ msgid ""
 msgstr ""
 "ソクテイサンプルヲ マッテイルアイダニ タイムアウトガ ハッセイシマシタ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:471
+#: tmp_error_headers/error_list_coreone.hpp:485
 #: tmp_error_headers/error_list_xl.hpp:541
-#: tmp_error_headers/error_list_mk4.hpp:317
+#: tmp_error_headers/error_list_mk4.hpp:331
 #: tmp_error_headers/error_list_ix.hpp:506
 msgid "There was an error requesting the tare for loadcell."
 msgstr "ロードセルノ ゼロセッテイヲ ヨウキュウスルエラーガ ハッセイシマシタ。"
 
-#: tmp_error_headers/error_list_coreone.hpp:44
-msgid "The printer queued a move that may crash the model into the ceiling."
-msgstr ""
-"プリンターガ オブジェクトヲ チャンバーノ テンジョウニ トウトツサセル カモシレ"
-"ナイ ウゴキヲ シヨウト シマシタ."
-
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:257
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:262
 #, c-format
 msgid "Tool %d"
 msgstr "ツール %d"
@@ -8434,10 +7097,10 @@ msgstr "ツールライト"
 msgid "Trigger Power Panic"
 msgstr "パワーパニック ジッコウ"
 
-#: tmp_error_headers/error_list_coreone.hpp:764
-#: tmp_error_headers/error_list_mk35.hpp:568
+#: tmp_error_headers/error_list_coreone.hpp:778
+#: tmp_error_headers/error_list_mk35.hpp:582
 #: tmp_error_headers/error_list_xl.hpp:834
-#: tmp_error_headers/error_list_mk4.hpp:610
+#: tmp_error_headers/error_list_mk4.hpp:624
 msgid "Tool mapping"
 msgstr "ツール マッピング"
 
@@ -8457,127 +7120,6 @@ msgstr "バージョンジョウホウ"
 #: src/gui/MItem_menus.hpp:59
 msgid "Version Info"
 msgstr "バージョンジョウホウ"
-
-#: src/guiapi/src/window_msgbox.cpp:308
-#: tmp_error_headers/error_list_coreone.hpp:680
-#: tmp_error_headers/error_list_coreone.hpp:687
-#: tmp_error_headers/error_list_coreone.hpp:694
-#: tmp_error_headers/error_list_coreone.hpp:701
-#: tmp_error_headers/error_list_coreone.hpp:708
-#: tmp_error_headers/error_list_coreone.hpp:715
-#: tmp_error_headers/error_list_coreone.hpp:729
-#: tmp_error_headers/error_list_coreone.hpp:778
-#: tmp_error_headers/error_list_coreone.hpp:785
-#: tmp_error_headers/error_list_coreone.hpp:792
-#: tmp_error_headers/error_list_coreone.hpp:799
-#: tmp_error_headers/error_list_coreone.hpp:806
-#: tmp_error_headers/error_list_coreone.hpp:813
-#: tmp_error_headers/error_list_coreone.hpp:820
-#: tmp_error_headers/error_list_coreone.hpp:827
-#: tmp_error_headers/error_list_coreone.hpp:834
-#: tmp_error_headers/error_list_coreone.hpp:841
-#: tmp_error_headers/error_list_coreone.hpp:855
-#: tmp_error_headers/error_list_coreone.hpp:862
-#: tmp_error_headers/error_list_mk35.hpp:484
-#: tmp_error_headers/error_list_mk35.hpp:491
-#: tmp_error_headers/error_list_mk35.hpp:498
-#: tmp_error_headers/error_list_mk35.hpp:505
-#: tmp_error_headers/error_list_mk35.hpp:512
-#: tmp_error_headers/error_list_mk35.hpp:519
-#: tmp_error_headers/error_list_mk35.hpp:533
-#: tmp_error_headers/error_list_mk35.hpp:582
-#: tmp_error_headers/error_list_mk35.hpp:589
-#: tmp_error_headers/error_list_mk35.hpp:596
-#: tmp_error_headers/error_list_mk35.hpp:603
-#: tmp_error_headers/error_list_mk35.hpp:610
-#: tmp_error_headers/error_list_mk35.hpp:617
-#: tmp_error_headers/error_list_mk35.hpp:624
-#: tmp_error_headers/error_list_mk35.hpp:631
-#: tmp_error_headers/error_list_mk35.hpp:638
-#: tmp_error_headers/error_list_mk35.hpp:645
-#: tmp_error_headers/error_list_mk35.hpp:652
-#: tmp_error_headers/error_list_mk35.hpp:666
-#: tmp_error_headers/error_list_xl.hpp:750
-#: tmp_error_headers/error_list_xl.hpp:757
-#: tmp_error_headers/error_list_xl.hpp:764
-#: tmp_error_headers/error_list_xl.hpp:771
-#: tmp_error_headers/error_list_xl.hpp:778
-#: tmp_error_headers/error_list_xl.hpp:792
-#: tmp_error_headers/error_list_xl.hpp:841
-#: tmp_error_headers/error_list_xl.hpp:848
-#: tmp_error_headers/error_list_xl.hpp:855
-#: tmp_error_headers/error_list_xl.hpp:862
-#: tmp_error_headers/error_list_xl.hpp:869
-#: tmp_error_headers/error_list_xl.hpp:876
-#: tmp_error_headers/error_list_xl.hpp:883
-#: tmp_error_headers/error_list_xl.hpp:890
-#: tmp_error_headers/error_list_xl.hpp:897
-#: tmp_error_headers/error_list_xl.hpp:904
-#: tmp_error_headers/error_list_xl.hpp:911
-#: tmp_error_headers/error_list_xl.hpp:918
-#: tmp_error_headers/error_list_xl.hpp:925
-#: tmp_error_headers/error_list_xl.hpp:939
-#: tmp_error_headers/error_list_xl.hpp:946
-#: tmp_error_headers/error_list_xl.hpp:953
-#: tmp_error_headers/error_list_xl.hpp:960
-#: tmp_error_headers/error_list_xl.hpp:967
-#: tmp_error_headers/error_list_mk4.hpp:526
-#: tmp_error_headers/error_list_mk4.hpp:533
-#: tmp_error_headers/error_list_mk4.hpp:540
-#: tmp_error_headers/error_list_mk4.hpp:547
-#: tmp_error_headers/error_list_mk4.hpp:554
-#: tmp_error_headers/error_list_mk4.hpp:561
-#: tmp_error_headers/error_list_mk4.hpp:575
-#: tmp_error_headers/error_list_mk4.hpp:624
-#: tmp_error_headers/error_list_mk4.hpp:631
-#: tmp_error_headers/error_list_mk4.hpp:638
-#: tmp_error_headers/error_list_mk4.hpp:645
-#: tmp_error_headers/error_list_mk4.hpp:652
-#: tmp_error_headers/error_list_mk4.hpp:659
-#: tmp_error_headers/error_list_mk4.hpp:666
-#: tmp_error_headers/error_list_mk4.hpp:673
-#: tmp_error_headers/error_list_mk4.hpp:680
-#: tmp_error_headers/error_list_mk4.hpp:687
-#: tmp_error_headers/error_list_mk4.hpp:701
-#: tmp_error_headers/error_list_mk4.hpp:708
-#: tmp_error_headers/error_list_mini.hpp:442
-#: tmp_error_headers/error_list_mini.hpp:449
-#: tmp_error_headers/error_list_mini.hpp:456
-#: tmp_error_headers/error_list_mini.hpp:463
-#: tmp_error_headers/error_list_mini.hpp:470
-#: tmp_error_headers/error_list_mini.hpp:484
-#: tmp_error_headers/error_list_mini.hpp:519
-#: tmp_error_headers/error_list_mini.hpp:526
-#: tmp_error_headers/error_list_mini.hpp:533
-#: tmp_error_headers/error_list_mini.hpp:540
-#: tmp_error_headers/error_list_mini.hpp:547
-#: tmp_error_headers/error_list_mini.hpp:554
-#: tmp_error_headers/error_list_mini.hpp:561
-#: tmp_error_headers/error_list_mini.hpp:568
-#: tmp_error_headers/error_list_mini.hpp:575
-#: tmp_error_headers/error_list_mini.hpp:582
-#: tmp_error_headers/error_list_mini.hpp:596
-#: tmp_error_headers/error_list_ix.hpp:701
-#: tmp_error_headers/error_list_ix.hpp:708
-#: tmp_error_headers/error_list_ix.hpp:715
-#: tmp_error_headers/error_list_ix.hpp:722
-#: tmp_error_headers/error_list_ix.hpp:729
-#: tmp_error_headers/error_list_ix.hpp:743
-#: tmp_error_headers/error_list_ix.hpp:778
-#: tmp_error_headers/error_list_ix.hpp:785
-#: tmp_error_headers/error_list_ix.hpp:792
-#: tmp_error_headers/error_list_ix.hpp:799
-#: tmp_error_headers/error_list_ix.hpp:806
-#: tmp_error_headers/error_list_ix.hpp:813
-#: tmp_error_headers/error_list_ix.hpp:820
-#: tmp_error_headers/error_list_ix.hpp:827
-#: tmp_error_headers/error_list_ix.hpp:834
-#: tmp_error_headers/error_list_ix.hpp:841
-#: tmp_error_headers/error_list_ix.hpp:848
-#: tmp_error_headers/error_list_ix.hpp:862
-#: tmp_error_headers/error_list_ix.hpp:869
-msgid "Warning"
-msgstr "ケイコク"
 
 #: src/common/feature/chamber_filtration/chamber_filtration.cpp:32
 msgid "DIY"
@@ -8734,3 +7276,1484 @@ msgstr "ジカンノ ケイシキ"
 #: src/gui/MItem_tools.cpp:537
 msgid "Time Zone Minute Offset"
 msgstr "タイムゾーン フン オフセット"
+
+#: tmp_error_headers/error_list_coreone.hpp:723
+#: tmp_error_headers/error_list_mk35.hpp:527
+#: tmp_error_headers/error_list_xl.hpp:779
+#: tmp_error_headers/error_list_mk4.hpp:569
+#: tmp_error_headers/error_list_ix.hpp:730
+msgid "A filament specified in the G-code is either not loaded or wrong type."
+msgstr ""
+"Gコードデ シテイサレタフィラメントガ ロードサレテイナイカ、タイプガ チガイマ"
+"ス。"
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:203
+msgid "ALL TOOLS"
+msgstr "スベテノ ツール"
+
+#: tmp_error_headers/error_list_coreone.hpp:44
+msgid "A movement command risks causing the model to collide with the ceiling."
+msgstr ""
+"コノイドウコマンドデハ、モデルガ イチバンウエニ ショウトツスル リスクガアリマ"
+"ス。"
+
+#: tmp_error_headers/error_list_coreone.hpp:394
+#: tmp_error_headers/error_list_xl.hpp:450
+#: tmp_error_headers/error_list_ix.hpp:415
+msgid "Address assignment error"
+msgstr "アドレス ワリアテ エラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:533
+#: tmp_error_headers/error_list_mk35.hpp:337
+#: tmp_error_headers/error_list_xl.hpp:589
+#: tmp_error_headers/error_list_mk4.hpp:379
+#: tmp_error_headers/error_list_mini.hpp:295
+#: tmp_error_headers/error_list_ix.hpp:554
+msgid "BBF ALLOCATION FAILED"
+msgstr "BBFワリアテ シッパイ"
+
+#: tmp_error_headers/error_list_coreone.hpp:540
+#: tmp_error_headers/error_list_mk35.hpp:344
+#: tmp_error_headers/error_list_xl.hpp:596
+#: tmp_error_headers/error_list_mk4.hpp:386
+#: tmp_error_headers/error_list_mini.hpp:302
+#: tmp_error_headers/error_list_ix.hpp:561
+msgid "BBF INITIALIZATION FAILED"
+msgstr "BBFショキカ シッパイ"
+
+#: tmp_error_headers/error_list_coreone.hpp:541
+#: tmp_error_headers/error_list_mk35.hpp:345
+#: tmp_error_headers/error_list_xl.hpp:597
+#: tmp_error_headers/error_list_mk4.hpp:387
+#: tmp_error_headers/error_list_mini.hpp:303
+#: tmp_error_headers/error_list_ix.hpp:562
+msgid "BBF initialization failed, repeat the action or try another USB drive."
+msgstr ""
+"BBFノ ショキカニ シッパイシマシタ。モウイチド クリカエスカ、ベツノ USBドライ"
+"ブデ タメシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:870
+#: tmp_error_headers/error_list_mk35.hpp:681
+#: tmp_error_headers/error_list_xl.hpp:961
+#: tmp_error_headers/error_list_mk4.hpp:716
+#: tmp_error_headers/error_list_mini.hpp:597
+#: tmp_error_headers/error_list_ix.hpp:863
+msgid "Bed leveling failed. Try again?"
+msgstr "ベッドレベリングシッパイ、モウイチドジッコウシマスカ?"
+
+#: tmp_error_headers/error_list_coreone.hpp:43
+msgid "CEILING CLEARANCE WARNING"
+msgstr "ジョウブクリアランスノ ケイコク"
+
+#: tmp_error_headers/error_list_coreone.hpp:183
+msgid "CHAMBER MINTEMP ERROR"
+msgstr "チャンバーサイショウオンドエラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:337
+#: tmp_error_headers/error_list_mk35.hpp:260
+#: tmp_error_headers/error_list_xl.hpp:372
+#: tmp_error_headers/error_list_mk4.hpp:267
+#: tmp_error_headers/error_list_mini.hpp:232
+#: tmp_error_headers/error_list_ix.hpp:351
+msgid "CONNECT REGISTRATION FAILED"
+msgstr "セツゾクニンショウ シッパイ"
+
+#: tmp_error_headers/error_list_coreone.hpp:387
+#: tmp_error_headers/error_list_mk35.hpp:310
+#: tmp_error_headers/error_list_xl.hpp:443
+#: tmp_error_headers/error_list_mk4.hpp:317
+#: tmp_error_headers/error_list_mini.hpp:282
+#: tmp_error_headers/error_list_ix.hpp:408
+msgid "Emergency stop invoked by G-code (M112)."
+msgstr "Gcode(M112)ニヨル ヒジョウテイシ"
+
+#: tmp_error_headers/error_list_coreone.hpp:905
+msgid ""
+"Ensure the top ventilation grille is closed for optimal chamber temperature."
+msgstr ""
+"チャンバーノ オンドヲ サイテキニ タモツタメ、ウエノ カンキマドガ トジテイルコ"
+"トヲ カクニンシマス。"
+
+#. don't close on menu timeout
+#: src/gui/screen_crash_recovery.cpp:266
+#: tmp_error_headers/error_list_coreone.hpp:750
+#: tmp_error_headers/error_list_coreone.hpp:757
+#: tmp_error_headers/error_list_coreone.hpp:764
+#: tmp_error_headers/error_list_coreone.hpp:771
+#: tmp_error_headers/error_list_mk35.hpp:554
+#: tmp_error_headers/error_list_mk35.hpp:561
+#: tmp_error_headers/error_list_mk35.hpp:568
+#: tmp_error_headers/error_list_mk35.hpp:575
+#: tmp_error_headers/error_list_xl.hpp:799
+#: tmp_error_headers/error_list_xl.hpp:806
+#: tmp_error_headers/error_list_xl.hpp:813
+#: tmp_error_headers/error_list_xl.hpp:820
+#: tmp_error_headers/error_list_xl.hpp:827
+#: tmp_error_headers/error_list_mk4.hpp:596
+#: tmp_error_headers/error_list_mk4.hpp:603
+#: tmp_error_headers/error_list_mk4.hpp:610
+#: tmp_error_headers/error_list_mk4.hpp:617
+#: tmp_error_headers/error_list_mini.hpp:491
+#: tmp_error_headers/error_list_mini.hpp:498
+#: tmp_error_headers/error_list_mini.hpp:505
+#: tmp_error_headers/error_list_mini.hpp:512
+#: tmp_error_headers/error_list_ix.hpp:750
+#: tmp_error_headers/error_list_ix.hpp:757
+#: tmp_error_headers/error_list_ix.hpp:764
+#: tmp_error_headers/error_list_ix.hpp:771
+msgid "CRASH DETECTED"
+msgstr "ショウトツケンチ"
+
+#: tmp_error_headers/error_list_coreone.hpp:190
+#: tmp_error_headers/error_list_xl.hpp:204
+msgid "CHAMBER WARMING UP"
+msgstr "チャンバーウォーミングアップ"
+
+#: tmp_error_headers/error_list_coreone.hpp:911
+msgid "Chamber Cooling Fan Error"
+msgstr "チャンバークーリングファンエラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:918
+#: tmp_error_headers/error_list_xl.hpp:988
+msgid "Chamber Filtration Fan Error"
+msgstr "チャンバーフィルターファンエラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:912
+msgid ""
+"Chamber cooling fan is not spinning. Check it for possible debris, then "
+"inspect the wiring."
+msgstr ""
+"チャンバーレイキャクファンガ カイテンシテイマセン。ゴミガツマッテイナイカ カ"
+"クニンシ、ハイセンヲ テンケンシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:919
+#: tmp_error_headers/error_list_xl.hpp:989
+msgid ""
+"Chamber filtration fan is not spinning. Check it for possible debris, then "
+"inspect the wiring."
+msgstr ""
+"チャンバーフィルターファンガ カイテンシテイマセン。ゴミガツイテナイカ カクニ"
+"ンシ、ハイセンヲ テンケンシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:779
+#: tmp_error_headers/error_list_mk35.hpp:583
+#: tmp_error_headers/error_list_xl.hpp:835
+#: tmp_error_headers/error_list_mk4.hpp:625
+msgid ""
+"Changes of mapping available only in the Printer UI. Select Print to start "
+"the print with defaults."
+msgstr ""
+"プリンタUIデノミ リヨウカノウナ マッピングノ ヘンコウ。デフォルトデ プリント"
+"ヲ カイシスルニハ、プリントヲ センタクシマス。"
+
+#: tmp_error_headers/error_list_coreone.hpp:177
+#: tmp_error_headers/error_list_coreone.hpp:184
+msgid "Check the chamber thermistor wiring for possible damage."
+msgstr ""
+"チャンバーサーミスタノ ハイセンニ ソンショウガ ナイカ カクニンシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:904
+msgid "Close Chamber Ventilation"
+msgstr "チャンバーノ カンキマドヲ シメテクダサイ。"
+
+#: src/gui/MItem_tools.hpp:598 tmp_error_headers/error_list_coreone.hpp:680
+#: tmp_error_headers/error_list_mk35.hpp:484
+#: tmp_error_headers/error_list_xl.hpp:736
+#: tmp_error_headers/error_list_mk4.hpp:526
+msgid "Cold Pull"
+msgstr "コールドプル"
+
+#: tmp_error_headers/error_list_coreone.hpp:373
+#: tmp_error_headers/error_list_mk35.hpp:296
+#: tmp_error_headers/error_list_xl.hpp:429
+#: tmp_error_headers/error_list_mk4.hpp:303
+#: tmp_error_headers/error_list_mini.hpp:268
+#: tmp_error_headers/error_list_ix.hpp:394
+msgid "Dynamic allocation failed - out of memory. Reset the printer."
+msgstr ""
+"ドウテキワリアテニ シッパイシマシタ - メモリブソクデス。プリンタヲ リセットシ"
+"テクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:351
+#: tmp_error_headers/error_list_coreone.hpp:358
+#: tmp_error_headers/error_list_coreone.hpp:365
+#: tmp_error_headers/error_list_mk35.hpp:274
+#: tmp_error_headers/error_list_mk35.hpp:281
+#: tmp_error_headers/error_list_mk35.hpp:288
+#: tmp_error_headers/error_list_xl.hpp:407
+#: tmp_error_headers/error_list_xl.hpp:414
+#: tmp_error_headers/error_list_xl.hpp:421
+#: tmp_error_headers/error_list_mk4.hpp:281
+#: tmp_error_headers/error_list_mk4.hpp:288
+#: tmp_error_headers/error_list_mk4.hpp:295
+#: tmp_error_headers/error_list_mini.hpp:246
+#: tmp_error_headers/error_list_mini.hpp:253
+#: tmp_error_headers/error_list_mini.hpp:260
+#: tmp_error_headers/error_list_ix.hpp:372
+#: tmp_error_headers/error_list_ix.hpp:379
+#: tmp_error_headers/error_list_ix.hpp:386
+msgid "ESP ERROR"
+msgstr "ESPエラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:547
+#: tmp_error_headers/error_list_mk35.hpp:351
+#: tmp_error_headers/error_list_xl.hpp:603
+#: tmp_error_headers/error_list_mk4.hpp:393
+#: tmp_error_headers/error_list_mini.hpp:309
+#: tmp_error_headers/error_list_ix.hpp:568
+msgid "ESP NOT CONNECTED"
+msgstr "ESPニ セツゾクシテイマセン"
+
+#: tmp_error_headers/error_list_coreone.hpp:359
+#: tmp_error_headers/error_list_mk35.hpp:282
+#: tmp_error_headers/error_list_xl.hpp:415
+#: tmp_error_headers/error_list_mk4.hpp:289
+#: tmp_error_headers/error_list_mini.hpp:254
+#: tmp_error_headers/error_list_ix.hpp:380
+msgid "ESP detected command error."
+msgstr "ESPガ コマンドエラーヲ ケンシュツ"
+
+#: tmp_error_headers/error_list_coreone.hpp:366
+#: tmp_error_headers/error_list_mk35.hpp:289
+#: tmp_error_headers/error_list_xl.hpp:422
+#: tmp_error_headers/error_list_mk4.hpp:296
+#: tmp_error_headers/error_list_mini.hpp:261
+#: tmp_error_headers/error_list_ix.hpp:387
+msgid "ESP detected unknown error."
+msgstr "ESPガ フメイナ エラーヲ ケンシュツ"
+
+#: tmp_error_headers/error_list_coreone.hpp:666
+#: tmp_error_headers/error_list_mk35.hpp:470
+#: tmp_error_headers/error_list_xl.hpp:729
+#: tmp_error_headers/error_list_mk4.hpp:512
+#: tmp_error_headers/error_list_mini.hpp:428
+#: tmp_error_headers/error_list_ix.hpp:687
+msgid "EXTRUDER NOT DETECTED"
+msgstr "エクストルーダー ニンシキセズ"
+
+#: tmp_error_headers/error_list_coreone.hpp:898
+msgid "Ensure the top ventilation grille is open for proper airflow."
+msgstr ""
+"テキセツナ エアフローヲ カクホスルタメ、ウエノ カンキマドガ アイテイルコトヲ "
+"カクニンシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:597
+#: tmp_error_headers/error_list_mk35.hpp:401
+#: tmp_error_headers/error_list_xl.hpp:660
+#: tmp_error_headers/error_list_mk4.hpp:443
+#: tmp_error_headers/error_list_mini.hpp:359
+#: tmp_error_headers/error_list_ix.hpp:618
+msgid ""
+"Error erasing\n"
+" flash! Restart\n"
+"the printer and\n"
+"try again."
+msgstr ""
+"イレースエラー\n"
+"プリンタヲ\n"
+"サイキドウシ\n"
+"リトライシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:645
+#: tmp_error_headers/error_list_mk35.hpp:449
+#: tmp_error_headers/error_list_xl.hpp:708
+#: tmp_error_headers/error_list_mk4.hpp:491
+#: tmp_error_headers/error_list_mini.hpp:407
+#: tmp_error_headers/error_list_ix.hpp:666
+msgid "FIRMWARE MISSING"
+msgstr "ファームウェアガ アリマセン"
+
+#: tmp_error_headers/error_list_coreone.hpp:596
+#: tmp_error_headers/error_list_mk35.hpp:400
+#: tmp_error_headers/error_list_xl.hpp:659
+#: tmp_error_headers/error_list_mk4.hpp:442
+#: tmp_error_headers/error_list_mini.hpp:358
+#: tmp_error_headers/error_list_ix.hpp:617
+msgid "FLASH ERASE ERROR"
+msgstr "カキコミデータショウキョエラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:617
+#: tmp_error_headers/error_list_mk35.hpp:421
+#: tmp_error_headers/error_list_xl.hpp:680
+#: tmp_error_headers/error_list_mk4.hpp:463
+#: tmp_error_headers/error_list_mini.hpp:379
+#: tmp_error_headers/error_list_ix.hpp:638
+msgid "FW IN INTERNAL FLASH CORRUPTED"
+msgstr "ナイゾウメモリファイルノ ハソン"
+
+#: tmp_error_headers/error_list_coreone.hpp:226
+#: tmp_error_headers/error_list_mk35.hpp:149
+#: tmp_error_headers/error_list_mk4.hpp:156
+#: tmp_error_headers/error_list_mini.hpp:128
+msgid "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
+msgstr ""
+"Yジクノ ゲンテンフッキニ シッパイシマシタ。Yジクニ ショウガイブツガ ナイコト"
+"ヲ カクニンシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:891
+#: tmp_error_headers/error_list_mk35.hpp:695
+#: tmp_error_headers/error_list_xl.hpp:982
+#: tmp_error_headers/error_list_mk4.hpp:737
+#: tmp_error_headers/error_list_mini.hpp:611
+#: tmp_error_headers/error_list_ix.hpp:884
+msgid "Filament loading timed out."
+msgstr "フィラメントノ ローディングガ タイムアウトシマシタ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:716
+#: tmp_error_headers/error_list_mk35.hpp:520
+#: tmp_error_headers/error_list_xl.hpp:772
+#: tmp_error_headers/error_list_mk4.hpp:562
+#: tmp_error_headers/error_list_mini.hpp:464
+#: tmp_error_headers/error_list_ix.hpp:723
+msgid ""
+"Filament not detected. Load filament now?\n"
+"Select NO to cancel the print.\n"
+"Select DISABLE FS to disable the filament sensor and continue print."
+msgstr ""
+"フィラメントガ ケンシュツサレマセン。イマスグ フィラメントヲ ロードシマス"
+"カ?\n"
+"イイエヲ センタクシテ プリントヲ キャンセルシマス.\n"
+"フィラメントセンサーヲ ムコウニシテ プリントヲ ゾッコウスルニハ、フィラメント"
+"センサーノムコウ ヲセンタクシマス."
+
+#: tmp_error_headers/error_list_coreone.hpp:736
+#: tmp_error_headers/error_list_coreone.hpp:737
+#: tmp_error_headers/error_list_mk35.hpp:540
+#: tmp_error_headers/error_list_mk35.hpp:541
+#: tmp_error_headers/error_list_xl.hpp:785
+#: tmp_error_headers/error_list_xl.hpp:786
+#: tmp_error_headers/error_list_mk4.hpp:582
+#: tmp_error_headers/error_list_mk4.hpp:583
+#: tmp_error_headers/error_list_mini.hpp:477
+#: tmp_error_headers/error_list_mini.hpp:478
+#: tmp_error_headers/error_list_ix.hpp:736
+#: tmp_error_headers/error_list_ix.hpp:737
+msgid "File error"
+msgstr "ファイルエラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:653
+#: tmp_error_headers/error_list_mk35.hpp:457
+#: tmp_error_headers/error_list_xl.hpp:716
+#: tmp_error_headers/error_list_mk4.hpp:499
+#: tmp_error_headers/error_list_mini.hpp:415
+#: tmp_error_headers/error_list_ix.hpp:674
+msgid ""
+"File system error!\n"
+"Try a different USB\n"
+"drive or format the\n"
+"drive with FAT32\n"
+"filesystem (all \n"
+"data will be lost)!"
+msgstr ""
+"ファイルシステムエラー!\n"
+"ベツノUSBヲ\n"
+"ファイルシステム\n"
+"FAT32デ\n"
+"フォーマットシテクダサイ。\n"
+"(データハウシナワレマス)"
+
+#: tmp_error_headers/error_list_coreone.hpp:625
+#: tmp_error_headers/error_list_mk35.hpp:429
+#: tmp_error_headers/error_list_xl.hpp:688
+#: tmp_error_headers/error_list_mk4.hpp:471
+#: tmp_error_headers/error_list_ix.hpp:646
+msgid ""
+"Firmware and hardware versions do\n"
+"not match. Make sure you have\n"
+"the right firmware file for\n"
+"your printer."
+msgstr ""
+"ファームウェアト ハードウェアノ\n"
+"バージョンガ イッチシマセン。\n"
+"プリンタニタイシ ファームウェアファイルガ\n"
+"タダシイカ カクニンシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:590
+#: tmp_error_headers/error_list_mk35.hpp:394
+#: tmp_error_headers/error_list_xl.hpp:653
+#: tmp_error_headers/error_list_mk4.hpp:436
+#: tmp_error_headers/error_list_mini.hpp:352
+#: tmp_error_headers/error_list_ix.hpp:611
+msgid ""
+"Firmware file\n"
+"missing in the USB\n"
+"flash!"
+msgstr ""
+"ファームウェアファイルガ\n"
+"USBニ アリマセン\n"
+"Flash!"
+
+#: tmp_error_headers/error_list_coreone.hpp:583
+#: tmp_error_headers/error_list_mk35.hpp:387
+#: tmp_error_headers/error_list_xl.hpp:646
+#: tmp_error_headers/error_list_mk4.hpp:429
+#: tmp_error_headers/error_list_mini.hpp:345
+#: tmp_error_headers/error_list_ix.hpp:604
+msgid ""
+"Firmware file has\n"
+"invalid size!\n"
+"Check the file\n"
+"on the USB drive\n"
+"and try again."
+msgstr ""
+"ファームウェア\n"
+"ファイルノ\n"
+"サイズガムコウデス!\n"
+"USBドライブヲ カクニンシ\n"
+"リトライシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:611
+#: tmp_error_headers/error_list_mk35.hpp:415
+#: tmp_error_headers/error_list_xl.hpp:674
+#: tmp_error_headers/error_list_mk4.hpp:457
+#: tmp_error_headers/error_list_mini.hpp:373
+#: tmp_error_headers/error_list_ix.hpp:632
+msgid ""
+"Firmware hash\n"
+"verification failed!\n"
+"Firmware file is\n"
+"damaged. Try\n"
+"downloading and\n"
+"copying it onto the\n"
+"USB drive again."
+msgstr ""
+"ファームウェアハッシュ\n"
+"ケンショウニ シッパイシマシタ!\n"
+"ファームウェアファイルガ\n"
+"ハソンシテイマス。\n"
+"モウイチドダウンロードシ\n"
+"USBドライブニ コピーシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:618
+#: tmp_error_headers/error_list_mk35.hpp:422
+#: tmp_error_headers/error_list_xl.hpp:681
+#: tmp_error_headers/error_list_mk4.hpp:464
+#: tmp_error_headers/error_list_mini.hpp:380
+#: tmp_error_headers/error_list_ix.hpp:639
+msgid ""
+"Firmware in the\n"
+"internal flash\n"
+"corrupted! Please\n"
+"reflash the\n"
+"firmware."
+msgstr ""
+"ナイゾウメモリノ\n"
+"ファームウェアガ ハソンシテイマス\n"
+"モウイチド ファームウェアノ\n"
+"カキコミヲ ジッコウシテクダサイ!"
+
+#: tmp_error_headers/error_list_coreone.hpp:897
+msgid "Open Chamber Ventilation"
+msgstr "チャンバーノ カンキマドヲ アケテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:604
+#: tmp_error_headers/error_list_mk35.hpp:408
+#: tmp_error_headers/error_list_xl.hpp:667
+#: tmp_error_headers/error_list_mk4.hpp:450
+#: tmp_error_headers/error_list_mini.hpp:366
+#: tmp_error_headers/error_list_ix.hpp:625
+msgid ""
+"Firmware signature\n"
+"verification failed!\n"
+"Only official\n"
+"signed firmware can\n"
+"be flashed."
+msgstr ""
+"ファームウェアノ\n"
+"ショメイケンシュツニ\n"
+"シッパイシマシタ!\n"
+"セイシキナ ファームウェアノミ\n"
+"カキコミスルコトガデキマス。"
+
+#: tmp_error_headers/error_list_coreone.hpp:632
+#: tmp_error_headers/error_list_mk35.hpp:436
+#: tmp_error_headers/error_list_xl.hpp:695
+#: tmp_error_headers/error_list_mk4.hpp:478
+#: tmp_error_headers/error_list_mini.hpp:394
+#: tmp_error_headers/error_list_ix.hpp:653
+msgid ""
+"Firmware/printer\n"
+"types do not match.\n"
+"Make sure you have\n"
+"the right firmware\n"
+"file for your\n"
+"printer model."
+msgstr ""
+"ファームウェアトプリンタノ\n"
+"タイプガ イッチシマセン。\n"
+"プリンタニ タイシテ\n"
+"ファームウェアノ ファイルガ\n"
+"タダシイカ\n"
+"カクニンシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:639
+#: tmp_error_headers/error_list_mk35.hpp:443
+#: tmp_error_headers/error_list_xl.hpp:702
+#: tmp_error_headers/error_list_mk4.hpp:485
+#: tmp_error_headers/error_list_mini.hpp:401
+#: tmp_error_headers/error_list_ix.hpp:660
+msgid ""
+"Firmware/printer\n"
+"versions do not\n"
+"match! You are\n"
+"trying to flash\n"
+"FW meant for other\n"
+"revision of the\n"
+"Buddy board."
+msgstr ""
+"ファームウェア/プリンタノ\n"
+"バージョンガ イッチシマセン。\n"
+"Buddyボードノ\n"
+"ホカノ リビジョンノ\n"
+"ファームウェアヲ\n"
+"カキコミシヨウト\n"
+"シテイマス。"
+
+#: tmp_error_headers/error_list_coreone.hpp:842
+#: tmp_error_headers/error_list_mk35.hpp:653
+#: tmp_error_headers/error_list_xl.hpp:898
+#: tmp_error_headers/error_list_mk4.hpp:688
+#: tmp_error_headers/error_list_mini.hpp:569
+#: tmp_error_headers/error_list_ix.hpp:828
+msgid ""
+"G-Code transfer running too slow. Check your network for issues or use "
+"different USB drive. Press Continue to resume printing."
+msgstr ""
+"Gcodeノ テンソウニ ジカンガ カカリスギテイマス。ネットワークニ モンダイガナイ"
+"カ カクニンシテクダサイ。マタハ ベツノ USBドライブヲ タメシテクダサイ。ゾッコ"
+"ウヲ オシテ プリントヲ サイカイ シマス。"
+
+#: tmp_error_headers/error_list_coreone.hpp:554
+#: tmp_error_headers/error_list_mk35.hpp:358
+#: tmp_error_headers/error_list_xl.hpp:610
+#: tmp_error_headers/error_list_mk4.hpp:400
+#: tmp_error_headers/error_list_mini.hpp:316
+#: tmp_error_headers/error_list_ix.hpp:575
+msgid "Gcode Corruption"
+msgstr "Gコード ハソン"
+
+#: tmp_error_headers/error_list_coreone.hpp:555
+#: tmp_error_headers/error_list_mk35.hpp:359
+#: tmp_error_headers/error_list_xl.hpp:611
+#: tmp_error_headers/error_list_mk4.hpp:401
+#: tmp_error_headers/error_list_mini.hpp:317
+#: tmp_error_headers/error_list_ix.hpp:576
+msgid "Gcode on the USB drive is corrupt. Fix manually before resuming."
+msgstr ""
+"USBドライブノ Gコード ガ コワレテイマス。シュドウデ シュウセイシテカラ サイカ"
+"イシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:303
+#: tmp_error_headers/error_list_mk35.hpp:226
+#: tmp_error_headers/error_list_xl.hpp:317
+#: tmp_error_headers/error_list_mk4.hpp:233
+#: tmp_error_headers/error_list_mini.hpp:205
+#: tmp_error_headers/error_list_ix.hpp:303
+msgid "HAL detected an I2C busy state when receiving data via I2C."
+msgstr ""
+"HALハ、I2Cケイユデ データヲ ジュシンスルトキ、I2Cビジージョウタイヲ ケンシュ"
+"ツシマシタ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:275
+#: tmp_error_headers/error_list_mk35.hpp:198
+#: tmp_error_headers/error_list_xl.hpp:289
+#: tmp_error_headers/error_list_mk4.hpp:205
+#: tmp_error_headers/error_list_mini.hpp:177
+#: tmp_error_headers/error_list_ix.hpp:275
+msgid "HAL detected an I2C busy state when sending data via I2C."
+msgstr ""
+"HALハ、I2Cケイユデ データヲ ソウシンスルトキ、I2Cビジージョウタイヲ ケンシュ"
+"ツシマシタ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:296
+#: tmp_error_headers/error_list_mk35.hpp:219
+#: tmp_error_headers/error_list_xl.hpp:310
+#: tmp_error_headers/error_list_mk4.hpp:226
+#: tmp_error_headers/error_list_mini.hpp:198
+#: tmp_error_headers/error_list_ix.hpp:296
+msgid "HAL detected an I2C error when receiving data via I2C."
+msgstr ""
+"HALハ、I2Cケイユデ データヲ ジュシンスルトキニ I2Cエラーヲ ケンシュツシマシ"
+"タ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:268
+#: tmp_error_headers/error_list_mk35.hpp:191
+#: tmp_error_headers/error_list_xl.hpp:282
+#: tmp_error_headers/error_list_mk4.hpp:198
+#: tmp_error_headers/error_list_mini.hpp:170
+#: tmp_error_headers/error_list_ix.hpp:268
+msgid "HAL detected an I2C error when sending data via I2C."
+msgstr ""
+"HALハ、I2Cケイユデ データヲ ソウシンスルトキニ I2Cエラーヲ ケンシュツシマシ"
+"タ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:310
+#: tmp_error_headers/error_list_mk35.hpp:233
+#: tmp_error_headers/error_list_xl.hpp:324
+#: tmp_error_headers/error_list_mk4.hpp:240
+#: tmp_error_headers/error_list_mini.hpp:212
+#: tmp_error_headers/error_list_ix.hpp:310
+msgid "HAL detected an I2C timeout when receiving data via I2C."
+msgstr ""
+"HALハ、I2Cケイユデ データヲ ジュシンスルトキ、タイムアウトヲ ケンシュツシマシ"
+"タ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:282
+#: tmp_error_headers/error_list_mk35.hpp:205
+#: tmp_error_headers/error_list_xl.hpp:296
+#: tmp_error_headers/error_list_mk4.hpp:212
+#: tmp_error_headers/error_list_mini.hpp:184
+#: tmp_error_headers/error_list_ix.hpp:282
+msgid "HAL detected an I2C timeout when sending data via I2C."
+msgstr ""
+"HALハ、I2Cケイユデ データヲ ソウシンスルトキ、I2Cタイムアウトヲ ケンシュツシ"
+"マシタ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:317
+#: tmp_error_headers/error_list_mk35.hpp:240
+#: tmp_error_headers/error_list_xl.hpp:331
+#: tmp_error_headers/error_list_mk4.hpp:247
+#: tmp_error_headers/error_list_mini.hpp:219
+#: tmp_error_headers/error_list_ix.hpp:317
+msgid "HAL detected an I2C undefined error when receiving data via I2C."
+msgstr ""
+"HALハ、I2Cケイユデ データヲ ジュシンスルトキニ フメイナエラーヲ ケンシュツシ"
+"マシタ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:289
+#: tmp_error_headers/error_list_mk35.hpp:212
+#: tmp_error_headers/error_list_xl.hpp:303
+#: tmp_error_headers/error_list_mk4.hpp:219
+#: tmp_error_headers/error_list_mini.hpp:191
+#: tmp_error_headers/error_list_ix.hpp:289
+msgid "HAL detected an I2C undefined error when sending data via I2C."
+msgstr ""
+"HALハ、I2Cケイユデ データヲ ソウシンスルトキニ フメイナエラーヲ ケンシュツシ"
+"マシタ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:610
+#: tmp_error_headers/error_list_mk35.hpp:414
+#: tmp_error_headers/error_list_xl.hpp:673
+#: tmp_error_headers/error_list_mk4.hpp:456
+#: tmp_error_headers/error_list_mini.hpp:372
+#: tmp_error_headers/error_list_ix.hpp:631
+msgid "HASH VERIFICATION FAILED"
+msgstr "ハッシュケンショウ シッパイ"
+
+#: tmp_error_headers/error_list_coreone.hpp:218
+#: tmp_error_headers/error_list_mk35.hpp:141
+#: tmp_error_headers/error_list_xl.hpp:246
+#: tmp_error_headers/error_list_mk4.hpp:148
+#: tmp_error_headers/error_list_mini.hpp:120
+#: tmp_error_headers/error_list_ix.hpp:218
+msgid "HOMING ERROR X"
+msgstr "Xホーミングエラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:225
+#: tmp_error_headers/error_list_mk35.hpp:148
+#: tmp_error_headers/error_list_xl.hpp:253
+#: tmp_error_headers/error_list_mk4.hpp:155
+#: tmp_error_headers/error_list_mini.hpp:127
+#: tmp_error_headers/error_list_ix.hpp:225
+msgid "HOMING ERROR Y"
+msgstr "Yホーミングエラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:211
+#: tmp_error_headers/error_list_mk35.hpp:134
+#: tmp_error_headers/error_list_xl.hpp:225
+#: tmp_error_headers/error_list_mk4.hpp:141
+#: tmp_error_headers/error_list_mini.hpp:113
+#: tmp_error_headers/error_list_ix.hpp:197
+msgid "HOMING ERROR Z"
+msgstr "Zホーミングエラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:835
+#: tmp_error_headers/error_list_mk35.hpp:639
+#: tmp_error_headers/error_list_xl.hpp:884
+#: tmp_error_headers/error_list_mk4.hpp:681
+#: tmp_error_headers/error_list_mini.hpp:562
+#: tmp_error_headers/error_list_ix.hpp:821
+msgid "Heatbreak thermistor is disconnected. Inspect the wiring."
+msgstr ""
+"ヒートブレイクサーミスタガ セツゾクサレテイマセン、ハイセンヲ ミナオシテクダ"
+"サイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:800
+#: tmp_error_headers/error_list_coreone.hpp:814
+#: tmp_error_headers/error_list_mk35.hpp:604
+#: tmp_error_headers/error_list_mk35.hpp:618
+#: tmp_error_headers/error_list_xl.hpp:849
+#: tmp_error_headers/error_list_xl.hpp:863
+#: tmp_error_headers/error_list_mk4.hpp:646
+#: tmp_error_headers/error_list_mk4.hpp:660
+#: tmp_error_headers/error_list_mini.hpp:527
+#: tmp_error_headers/error_list_mini.hpp:541
+msgid "Heating disabled due to 30 minutes of inactivity."
+msgstr "30フン シヨウサレナカッタタメ、カネツヲ テイシシマシタ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:856
+#: tmp_error_headers/error_list_mk35.hpp:667
+#: tmp_error_headers/error_list_xl.hpp:926
+#: tmp_error_headers/error_list_mk4.hpp:702
+#: tmp_error_headers/error_list_mini.hpp:583
+#: tmp_error_headers/error_list_ix.hpp:849
+msgid ""
+"Hotend fan not spinning. Check it for possible debris, then inspect the "
+"wiring."
+msgstr ""
+"ホットエンドファンガ カイテンシマセン。ゴミガナイカカクニンシ、ハイセンヲテン"
+"ケンシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:302
+#: tmp_error_headers/error_list_mk35.hpp:225
+#: tmp_error_headers/error_list_xl.hpp:316
+#: tmp_error_headers/error_list_mk4.hpp:232
+#: tmp_error_headers/error_list_mini.hpp:204
+#: tmp_error_headers/error_list_ix.hpp:302
+msgid "I2C RECEIVE BUSY"
+msgstr "I2Cジュシン ビジー"
+
+#: tmp_error_headers/error_list_coreone.hpp:295
+#: tmp_error_headers/error_list_mk35.hpp:218
+#: tmp_error_headers/error_list_xl.hpp:309
+#: tmp_error_headers/error_list_mk4.hpp:225
+#: tmp_error_headers/error_list_mini.hpp:197
+#: tmp_error_headers/error_list_ix.hpp:295
+msgid "I2C RECEIVE FAILED"
+msgstr "I2Cジュシン シッパイ"
+
+#: tmp_error_headers/error_list_coreone.hpp:309
+#: tmp_error_headers/error_list_mk35.hpp:232
+#: tmp_error_headers/error_list_xl.hpp:323
+#: tmp_error_headers/error_list_mk4.hpp:239
+#: tmp_error_headers/error_list_mini.hpp:211
+#: tmp_error_headers/error_list_ix.hpp:309
+msgid "I2C RECEIVE TIMEOUT"
+msgstr "I2Cジュシン タイムアウト"
+
+#: tmp_error_headers/error_list_coreone.hpp:316
+#: tmp_error_headers/error_list_mk35.hpp:239
+#: tmp_error_headers/error_list_xl.hpp:330
+#: tmp_error_headers/error_list_mk4.hpp:246
+#: tmp_error_headers/error_list_mini.hpp:218
+#: tmp_error_headers/error_list_ix.hpp:316
+msgid "I2C RECEIVE UNDEFINED"
+msgstr "I2Cジュシン ミテイギ"
+
+#: tmp_error_headers/error_list_coreone.hpp:267
+#: tmp_error_headers/error_list_mk35.hpp:190
+#: tmp_error_headers/error_list_xl.hpp:281
+#: tmp_error_headers/error_list_mk4.hpp:197
+#: tmp_error_headers/error_list_mini.hpp:169
+#: tmp_error_headers/error_list_ix.hpp:267
+msgid "I2C SEND FAILED"
+msgstr "I2Cソウシン シッパイ"
+
+#: tmp_error_headers/error_list_coreone.hpp:281
+#: tmp_error_headers/error_list_mk35.hpp:204
+#: tmp_error_headers/error_list_xl.hpp:295
+#: tmp_error_headers/error_list_mk4.hpp:211
+#: tmp_error_headers/error_list_mini.hpp:183
+#: tmp_error_headers/error_list_ix.hpp:281
+msgid "I2C SEND TIMEOUT"
+msgstr "I2Cソウシン タイムアウト"
+
+#: tmp_error_headers/error_list_coreone.hpp:288
+#: tmp_error_headers/error_list_mk35.hpp:211
+#: tmp_error_headers/error_list_xl.hpp:302
+#: tmp_error_headers/error_list_mk4.hpp:218
+#: tmp_error_headers/error_list_mini.hpp:190
+#: tmp_error_headers/error_list_ix.hpp:288
+msgid "I2C SEND UNDEFINED"
+msgstr "I2Cソウシン ミテイギ"
+
+#: tmp_error_headers/error_list_coreone.hpp:603
+#: tmp_error_headers/error_list_mk35.hpp:407
+#: tmp_error_headers/error_list_xl.hpp:666
+#: tmp_error_headers/error_list_mk4.hpp:449
+#: tmp_error_headers/error_list_mini.hpp:365
+#: tmp_error_headers/error_list_ix.hpp:624
+msgid "IMPOSTER! FAKE SIGNATURE"
+msgstr "ニセモノ ショメイデス!"
+
+#: tmp_error_headers/error_list_coreone.hpp:582
+#: tmp_error_headers/error_list_mk35.hpp:386
+#: tmp_error_headers/error_list_xl.hpp:645
+#: tmp_error_headers/error_list_mk4.hpp:428
+#: tmp_error_headers/error_list_mini.hpp:344
+#: tmp_error_headers/error_list_ix.hpp:603
+msgid "INVALID FW SIZE ON USB FLASH DRIVE"
+msgstr "USBフラッシュドライブ ファームウェアサイズ ムコウ"
+
+#: tmp_error_headers/error_list_coreone.hpp:477
+#: tmp_error_headers/error_list_mk35.hpp:316
+#: tmp_error_headers/error_list_xl.hpp:533
+#: tmp_error_headers/error_list_mk4.hpp:323
+#: tmp_error_headers/error_list_ix.hpp:498
+msgid "LOADCELL NOT CALIBRATED"
+msgstr "ロードセルガ キャリブレーションサレテイマセン"
+
+#: tmp_error_headers/error_list_coreone.hpp:484
+#: tmp_error_headers/error_list_xl.hpp:540
+#: tmp_error_headers/error_list_mk4.hpp:330
+#: tmp_error_headers/error_list_ix.hpp:505
+msgid "LOADCELL TARE ERROR"
+msgstr "ロードセル ゼロセッテイエラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:491
+#: tmp_error_headers/error_list_xl.hpp:547
+#: tmp_error_headers/error_list_mk4.hpp:337
+#: tmp_error_headers/error_list_ix.hpp:512
+msgid "LOADCELL TARE FAILED"
+msgstr "ロードセル ゼロセッテイシッパイ"
+
+#: tmp_error_headers/error_list_coreone.hpp:512
+#: tmp_error_headers/error_list_xl.hpp:568
+#: tmp_error_headers/error_list_mk4.hpp:358
+#: tmp_error_headers/error_list_ix.hpp:533
+msgid "LOADCELL TIMEOUT"
+msgstr "ロードセルタイムアウト"
+
+#: tmp_error_headers/error_list_coreone.hpp:751
+#: tmp_error_headers/error_list_mk35.hpp:555
+#: tmp_error_headers/error_list_xl.hpp:800
+#: tmp_error_headers/error_list_mk4.hpp:597
+#: tmp_error_headers/error_list_mini.hpp:492
+#: tmp_error_headers/error_list_ix.hpp:751
+msgid ""
+"Length of an axis is too long.\n"
+"Motor current is too low, probably.\n"
+"Retry check, pause or resume the print?"
+msgstr ""
+"ジクガ ナガスギマス。\n"
+"モーターノ デンリュウガ ヒクスギマス。\n"
+"チェックヲ ヤリナオスカ、プリントヲ イチジテイ シマタハ サイカイシマスカ?"
+
+#: tmp_error_headers/error_list_coreone.hpp:758
+#: tmp_error_headers/error_list_mk35.hpp:562
+#: tmp_error_headers/error_list_xl.hpp:807
+#: tmp_error_headers/error_list_mk4.hpp:604
+#: tmp_error_headers/error_list_mini.hpp:499
+#: tmp_error_headers/error_list_ix.hpp:758
+msgid ""
+"Length of an axis is too short.\n"
+"There's an obstacle or bearing issue.\n"
+"Retry check, pause or resume the print?"
+msgstr ""
+"ジクガ ミジカスギマス。\n"
+"ショウガイブツカ、ベアリングニ モンダイガアリマス。\n"
+"チェックヲ ヤリナオスカ、プリントヲ イチジテイシ マタハサイカイシマスカ?"
+
+#: tmp_error_headers/error_list_coreone.hpp:478
+#: tmp_error_headers/error_list_mk35.hpp:317
+#: tmp_error_headers/error_list_xl.hpp:534
+#: tmp_error_headers/error_list_mk4.hpp:324
+#: tmp_error_headers/error_list_ix.hpp:499
+msgid ""
+"Loadcell calibration is incomplete. Restart the printer and calibrate "
+"loadcell."
+msgstr ""
+"ロードセルキャリブレーションガ フカンゼンデス。プリンタヲ サイキドウシ、ロー"
+"ドセルヲ キャリブレーションシマス。"
+
+#: tmp_error_headers/error_list_coreone.hpp:499
+#: tmp_error_headers/error_list_xl.hpp:555
+#: tmp_error_headers/error_list_mk4.hpp:345
+#: tmp_error_headers/error_list_ix.hpp:520
+msgid "Loadcell measured an inifinite or undefined load value."
+msgstr "ロードセルガ、ムゲンモシク ハミテイギノ スウチヲ ソクテイシマシタ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:849
+#: tmp_error_headers/error_list_mk35.hpp:660
+#: tmp_error_headers/error_list_xl.hpp:905
+#: tmp_error_headers/error_list_mk4.hpp:695
+#: tmp_error_headers/error_list_mini.hpp:576
+#: tmp_error_headers/error_list_ix.hpp:835
+msgid ""
+"MCU in Buddy is overheated, likely due to exceeding the printer's operating "
+"temperature. Prevent overheating for optimal performance."
+msgstr ""
+"バディ ノ MCU ガ オーバーヒート シタ、 プリンター ノ オペレーティング テンペ"
+"ラチャー オ コエタ コト ガ ゲンイン ト ミラレル. オプティマル パフォーマンス "
+"オ タモツ タメ ニ オーバーヒート オ フセイデ クダサイ."
+
+#: tmp_error_headers/error_list_coreone.hpp:78
+#: tmp_error_headers/error_list_mk35.hpp:36
+#: tmp_error_headers/error_list_mk4.hpp:43
+msgid "MAINTENANCE WARNING CHANGES"
+msgstr "メンテナンスケイコクノ ヘンコウ"
+
+#: tmp_error_headers/error_list_coreone.hpp:71
+#: tmp_error_headers/error_list_mk35.hpp:29
+#: tmp_error_headers/error_list_mk4.hpp:36
+msgid "MAINTENANCE WARNING FAILS"
+msgstr "メンテナンスケイコクノ シッパイ"
+
+#: tmp_error_headers/error_list_coreone.hpp:260
+#: tmp_error_headers/error_list_mk35.hpp:183
+#: tmp_error_headers/error_list_xl.hpp:274
+#: tmp_error_headers/error_list_mk4.hpp:190
+#: tmp_error_headers/error_list_mini.hpp:162
+#: tmp_error_headers/error_list_ix.hpp:260
+msgid "MMU OVERCURRENT"
+msgstr "MMUカデンリュウ"
+
+#: tmp_error_headers/error_list_coreone.hpp:149
+#: tmp_error_headers/error_list_coreone.hpp:807
+#: tmp_error_headers/error_list_mk35.hpp:107
+#: tmp_error_headers/error_list_mk35.hpp:611
+#: tmp_error_headers/error_list_xl.hpp:856
+#: tmp_error_headers/error_list_mk4.hpp:114
+#: tmp_error_headers/error_list_mk4.hpp:653
+#: tmp_error_headers/error_list_mini.hpp:86
+#: tmp_error_headers/error_list_mini.hpp:534
+#: tmp_error_headers/error_list_ix.hpp:107
+#: tmp_error_headers/error_list_ix.hpp:793
+msgid ""
+"Measured temperature is not matching expected value. Check the thermistor is "
+"in contact with hotend. In case of damage, replace it."
+msgstr ""
+"ソクテイサレタオンドガ キタイチト コトナリマス。サーミスタガ ホットエンドニ "
+"セッショクシテイルカモシレマセン。ソンショウシテイルバアイハ コウカンシテクダ"
+"サイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:520
+#: tmp_error_headers/error_list_mk35.hpp:324
+#: tmp_error_headers/error_list_xl.hpp:576
+#: tmp_error_headers/error_list_mk4.hpp:366
+#: tmp_error_headers/error_list_ix.hpp:541
+msgid "Memory allocation failed for scheduled LED animation"
+msgstr ""
+"スケジュールサレタLEDアニメーションデ メモリノ ワリアテニ シッパイシマシタ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:646
+#: tmp_error_headers/error_list_mk35.hpp:450
+#: tmp_error_headers/error_list_xl.hpp:709
+#: tmp_error_headers/error_list_mk4.hpp:492
+#: tmp_error_headers/error_list_mini.hpp:408
+#: tmp_error_headers/error_list_ix.hpp:667
+msgid ""
+"No firmware found\n"
+"in the internal\n"
+"flash! Please\n"
+"flash firmware\n"
+"first!"
+msgstr ""
+"ナイゾウメモリニ\n"
+"ファームウェアガ アリマセン\n"
+"サイショニ ファームウェアノ\n"
+"カキコミヲ ジッコウシテクダサイ!"
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:103
+msgid "Nozzle High-flow"
+msgstr "ハイフローノズル"
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:189
+msgid "Nozzle Offset"
+msgstr "ノズルオフセット"
+
+#: tmp_error_headers/error_list_coreone.hpp:877
+#: tmp_error_headers/error_list_xl.hpp:968
+#: tmp_error_headers/error_list_mk4.hpp:723
+#: tmp_error_headers/error_list_ix.hpp:870
+msgid "Nozzle cleaning failed."
+msgstr "ノズルクリーニング シッパイ"
+
+#: tmp_error_headers/error_list_coreone.hpp:372
+#: tmp_error_headers/error_list_mk35.hpp:295
+#: tmp_error_headers/error_list_xl.hpp:428
+#: tmp_error_headers/error_list_mk4.hpp:302
+#: tmp_error_headers/error_list_mini.hpp:267
+#: tmp_error_headers/error_list_ix.hpp:393
+msgid "OUT OF MEMORY"
+msgstr "メモリーギレ"
+
+#: tmp_error_headers/error_list_coreone.hpp:240
+#: tmp_error_headers/error_list_mk35.hpp:163
+#: tmp_error_headers/error_list_xl.hpp:268
+#: tmp_error_headers/error_list_mk4.hpp:170
+#: tmp_error_headers/error_list_mini.hpp:142
+#: tmp_error_headers/error_list_ix.hpp:240
+msgid "Overcurrent detected on the connected USB device, disconnect it."
+msgstr ""
+"セツゾクサレテイル USBデバイスニ カデンリュウガ ケンシュツサレマシタ。セツゾ"
+"クヲ カイジョシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:379
+#: tmp_error_headers/error_list_mk35.hpp:302
+#: tmp_error_headers/error_list_xl.hpp:435
+#: tmp_error_headers/error_list_mk4.hpp:309
+#: tmp_error_headers/error_list_mini.hpp:274
+#: tmp_error_headers/error_list_ix.hpp:400
+msgid "PNG BUFFER FULL"
+msgstr "PNGバッファ メモリフソク"
+
+#: tmp_error_headers/error_list_coreone.hpp:323
+#: tmp_error_headers/error_list_mk35.hpp:246
+#: tmp_error_headers/error_list_xl.hpp:351
+#: tmp_error_headers/error_list_mk4.hpp:253
+#: tmp_error_headers/error_list_ix.hpp:337
+msgid "POWER PANIC"
+msgstr "パワーパニック"
+
+#: tmp_error_headers/error_list_coreone.hpp:393
+#: tmp_error_headers/error_list_coreone.hpp:400
+#: tmp_error_headers/error_list_coreone.hpp:407
+#: tmp_error_headers/error_list_coreone.hpp:414
+#: tmp_error_headers/error_list_coreone.hpp:421
+#: tmp_error_headers/error_list_coreone.hpp:428
+#: tmp_error_headers/error_list_coreone.hpp:435
+#: tmp_error_headers/error_list_coreone.hpp:442
+#: tmp_error_headers/error_list_coreone.hpp:449
+#: tmp_error_headers/error_list_coreone.hpp:456
+#: tmp_error_headers/error_list_coreone.hpp:463
+#: tmp_error_headers/error_list_coreone.hpp:470
+#: tmp_error_headers/error_list_xl.hpp:449
+#: tmp_error_headers/error_list_xl.hpp:456
+#: tmp_error_headers/error_list_xl.hpp:463
+#: tmp_error_headers/error_list_xl.hpp:470
+#: tmp_error_headers/error_list_xl.hpp:477
+#: tmp_error_headers/error_list_xl.hpp:484
+#: tmp_error_headers/error_list_xl.hpp:491
+#: tmp_error_headers/error_list_xl.hpp:498
+#: tmp_error_headers/error_list_xl.hpp:505
+#: tmp_error_headers/error_list_xl.hpp:512
+#: tmp_error_headers/error_list_xl.hpp:519
+#: tmp_error_headers/error_list_xl.hpp:526
+#: tmp_error_headers/error_list_ix.hpp:414
+#: tmp_error_headers/error_list_ix.hpp:421
+#: tmp_error_headers/error_list_ix.hpp:428
+#: tmp_error_headers/error_list_ix.hpp:435
+#: tmp_error_headers/error_list_ix.hpp:442
+#: tmp_error_headers/error_list_ix.hpp:449
+#: tmp_error_headers/error_list_ix.hpp:456
+#: tmp_error_headers/error_list_ix.hpp:463
+#: tmp_error_headers/error_list_ix.hpp:470
+#: tmp_error_headers/error_list_ix.hpp:477
+#: tmp_error_headers/error_list_ix.hpp:484
+#: tmp_error_headers/error_list_ix.hpp:491
+msgid "PUPPY ERROR"
+msgstr "パピーエラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:15
+#: tmp_error_headers/error_list_xl.hpp:15
+#: tmp_error_headers/error_list_ix.hpp:15
+msgid "PRECISE HOMING REFINEMENT FAILED"
+msgstr "セイカクナホーミングカイゼンニ シッパイ"
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:138
+msgid "Pick Tool"
+msgstr "ツール ヲ ピック"
+
+#: tmp_error_headers/error_list_coreone.hpp:863
+#: tmp_error_headers/error_list_mk35.hpp:674
+#: tmp_error_headers/error_list_xl.hpp:933
+#: tmp_error_headers/error_list_mk4.hpp:709
+#: tmp_error_headers/error_list_mini.hpp:590
+#: tmp_error_headers/error_list_ix.hpp:856
+msgid "Please replace filament."
+msgstr "フィラメントヲ コウカン シテクダサイ"
+
+#: tmp_error_headers/error_list_coreone.hpp:793
+#: tmp_error_headers/error_list_mk35.hpp:597
+#: tmp_error_headers/error_list_xl.hpp:842
+#: tmp_error_headers/error_list_mk4.hpp:639
+#: tmp_error_headers/error_list_mini.hpp:520
+#: tmp_error_headers/error_list_ix.hpp:779
+msgid ""
+"Print fan not spinning. Check it for possible debris, then inspect the "
+"wiring."
+msgstr ""
+"プリントファンガ カイテンシマセン。ゴミガナイカカクニンシ、ハイセンヲテンケン"
+"シテクダサイ。"
+
+#: tmp_error_headers/error_list_mk35.hpp:30
+msgid ""
+"Printer has detected multiple consecutive filament loading errors. We "
+"recommend checking the extruder. Visit prusa.io/mmu-care."
+msgstr ""
+"プリンタガ フクスウノ レンゾクシタ フィラメントローディングエラーヲ ケンシュ"
+"ツシマシタ。エクストルーダーヲ チェックスルコトヲ オススメシマス。prusa.io/"
+"mmu-careヲ ゴランクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:457
+#: tmp_error_headers/error_list_xl.hpp:513
+#: tmp_error_headers/error_list_ix.hpp:478
+#, c-format
+msgid "Puppy %s firmware fingerprint mismatch"
+msgstr "Puppy %s ファームウェアト ミスマッチガ オキテイマス"
+
+#: tmp_error_headers/error_list_coreone.hpp:443
+#: tmp_error_headers/error_list_xl.hpp:499
+#: tmp_error_headers/error_list_ix.hpp:464
+#, c-format
+msgid "Puppy %s firmware not found"
+msgstr "Puppyブートローダ %s ファームウェアガ アリマセン"
+
+#: tmp_error_headers/error_list_coreone.hpp:450
+#: tmp_error_headers/error_list_xl.hpp:506
+#: tmp_error_headers/error_list_ix.hpp:471
+#, c-format
+msgid "Puppy %s flash writing failed"
+msgstr "Puppyブートローダー %s カキコミシッパイ"
+
+#: tmp_error_headers/error_list_coreone.hpp:883
+#: tmp_error_headers/error_list_mk35.hpp:687
+#: tmp_error_headers/error_list_xl.hpp:974
+#: tmp_error_headers/error_list_mk4.hpp:729
+#: tmp_error_headers/error_list_mini.hpp:603
+#: tmp_error_headers/error_list_ix.hpp:876
+msgid "Quick Pause"
+msgstr "クイック ポーズ"
+
+#: tmp_error_headers/error_list_coreone.hpp:352
+#: tmp_error_headers/error_list_mk35.hpp:275
+#: tmp_error_headers/error_list_xl.hpp:408
+#: tmp_error_headers/error_list_mk4.hpp:282
+#: tmp_error_headers/error_list_mini.hpp:247
+#: tmp_error_headers/error_list_ix.hpp:373
+msgid "Reading ESP firmware failed."
+msgstr "ESPファームウェアノ ヨミコミニ シッパイシマシタ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:534
+#: tmp_error_headers/error_list_mk35.hpp:338
+#: tmp_error_headers/error_list_xl.hpp:590
+#: tmp_error_headers/error_list_mk4.hpp:380
+#: tmp_error_headers/error_list_mini.hpp:296
+#: tmp_error_headers/error_list_ix.hpp:555
+msgid ""
+"Space allocation for firmware BBF file failed. Repeat the action or try "
+"another USB drive."
+msgstr ""
+"ファームウェアノ BBFファイルリョウイキノ カクホニ シッパイシマシタ。リトライ"
+"スルカ、ベツノ USBドライブヲ タメシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:821
+#: tmp_error_headers/error_list_mk35.hpp:625
+#: tmp_error_headers/error_list_xl.hpp:870
+#: tmp_error_headers/error_list_mk4.hpp:667
+#: tmp_error_headers/error_list_mini.hpp:548
+#: tmp_error_headers/error_list_ix.hpp:807
+msgid "Steppers disabled due to inactivity."
+msgstr ""
+"シバラク ソウサガ ナカッタタメ、ステッパーモーターガ ムコウニナリマシタ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:141
+#: tmp_error_headers/error_list_coreone.hpp:148
+#: tmp_error_headers/error_list_mk35.hpp:99
+#: tmp_error_headers/error_list_mk35.hpp:106
+#: tmp_error_headers/error_list_xl.hpp:113
+#: tmp_error_headers/error_list_mk4.hpp:106
+#: tmp_error_headers/error_list_mk4.hpp:113
+#: tmp_error_headers/error_list_mini.hpp:78
+#: tmp_error_headers/error_list_mini.hpp:85
+#: tmp_error_headers/error_list_ix.hpp:99
+#: tmp_error_headers/error_list_ix.hpp:106
+msgid "TEMP NOT MATCHING"
+msgstr "オンドガ セイカクデナイ"
+
+#: tmp_error_headers/error_list_coreone.hpp:191
+#: tmp_error_headers/error_list_xl.hpp:205
+msgid "Target temperature not yet reached. Continue waiting?"
+msgstr "モクヒョウオンドニ トウタツシテイマセン。マチマスカ?"
+
+#: tmp_error_headers/error_list_coreone.hpp:569
+#: tmp_error_headers/error_list_mk35.hpp:373
+#: tmp_error_headers/error_list_xl.hpp:632
+#: tmp_error_headers/error_list_mk4.hpp:415
+#: tmp_error_headers/error_list_mini.hpp:331
+#: tmp_error_headers/error_list_ix.hpp:590
+msgid ""
+"This error code is not found\n"
+"in our database.\n"
+"Contact the support."
+msgstr ""
+"コノエラーコードハ\n"
+"データベースニ アリマセン。\n"
+"サポートニ オトイアワセクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:568
+#: tmp_error_headers/error_list_mk35.hpp:372
+#: tmp_error_headers/error_list_mmu.hpp:318
+#: tmp_error_headers/error_list_xl.hpp:631
+#: tmp_error_headers/error_list_mk4.hpp:414
+#: tmp_error_headers/error_list_mini.hpp:330
+#: tmp_error_headers/error_list_ix.hpp:589
+msgid "UNKNOWN ERROR"
+msgstr "フメイナ エラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:638
+#: tmp_error_headers/error_list_mk35.hpp:442
+#: tmp_error_headers/error_list_xl.hpp:701
+#: tmp_error_headers/error_list_mk4.hpp:484
+#: tmp_error_headers/error_list_mini.hpp:400
+#: tmp_error_headers/error_list_ix.hpp:659
+msgid "UNSUPPORTED BUDDY FW"
+msgstr "タイオウシテイナイ BUDYYファームウェア"
+
+#: tmp_error_headers/error_list_coreone.hpp:659
+#: tmp_error_headers/error_list_mk35.hpp:463
+#: tmp_error_headers/error_list_xl.hpp:722
+#: tmp_error_headers/error_list_mk4.hpp:505
+#: tmp_error_headers/error_list_mini.hpp:421
+#: tmp_error_headers/error_list_ix.hpp:680
+msgid "UNSUPPORTED FIRMWARE BBF FILE"
+msgstr "ミタイオウファームウェアノ BBFファイル"
+
+#: tmp_error_headers/error_list_coreone.hpp:631
+#: tmp_error_headers/error_list_mk35.hpp:435
+#: tmp_error_headers/error_list_xl.hpp:694
+#: tmp_error_headers/error_list_mk4.hpp:477
+#: tmp_error_headers/error_list_mini.hpp:393
+#: tmp_error_headers/error_list_ix.hpp:652
+msgid "UNSUPPORTED PRINTER MODEL"
+msgstr "タイオウシテイナイ プリンターモデル"
+
+#: tmp_error_headers/error_list_coreone.hpp:239
+#: tmp_error_headers/error_list_mk35.hpp:162
+#: tmp_error_headers/error_list_xl.hpp:267
+#: tmp_error_headers/error_list_mk4.hpp:169
+#: tmp_error_headers/error_list_mini.hpp:141
+#: tmp_error_headers/error_list_ix.hpp:239
+msgid "USB DEVICE OVERCURRENT"
+msgstr "USBデバイスノ カデンリュウ"
+
+#: tmp_error_headers/error_list_coreone.hpp:575
+#: tmp_error_headers/error_list_mk35.hpp:379
+#: tmp_error_headers/error_list_xl.hpp:638
+#: tmp_error_headers/error_list_mk4.hpp:421
+#: tmp_error_headers/error_list_mini.hpp:337
+#: tmp_error_headers/error_list_ix.hpp:596
+msgid "USB FLASH DRIVE NOT CONNECTED"
+msgstr "USBドライブガ セツゾクサレテイマセン"
+
+#: tmp_error_headers/error_list_coreone.hpp:652
+#: tmp_error_headers/error_list_mk35.hpp:456
+#: tmp_error_headers/error_list_xl.hpp:715
+#: tmp_error_headers/error_list_mk4.hpp:498
+#: tmp_error_headers/error_list_mini.hpp:414
+#: tmp_error_headers/error_list_ix.hpp:673
+msgid "USB FLASH ERROR"
+msgstr "USBフラッシュエラー"
+
+#: tmp_error_headers/error_list_coreone.hpp:232
+#: tmp_error_headers/error_list_mk35.hpp:155
+#: tmp_error_headers/error_list_xl.hpp:260
+#: tmp_error_headers/error_list_mk4.hpp:162
+#: tmp_error_headers/error_list_mini.hpp:134
+#: tmp_error_headers/error_list_ix.hpp:232
+msgid "USB PORT OVERCURRENT"
+msgstr "USBポート カデンリュウ"
+
+#: tmp_error_headers/error_list_coreone.hpp:828
+#: tmp_error_headers/error_list_mk35.hpp:632
+#: tmp_error_headers/error_list_xl.hpp:877
+#: tmp_error_headers/error_list_mk4.hpp:674
+#: tmp_error_headers/error_list_mini.hpp:555
+#: tmp_error_headers/error_list_ix.hpp:814
+msgid "USB drive or file error, the print is now paused. Reconnect the drive."
+msgstr ""
+"USBドライブ マタハ ファイルニ エラーガ ハッセイシ、プリントガ イチジテイシ シ"
+"テイマス。ドライブヲ サイセツゾク シテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:660
+#: tmp_error_headers/error_list_mk35.hpp:464
+#: tmp_error_headers/error_list_xl.hpp:723
+#: tmp_error_headers/error_list_mk4.hpp:506
+#: tmp_error_headers/error_list_mini.hpp:422
+#: tmp_error_headers/error_list_ix.hpp:681
+msgid ""
+"USB flash drive contains\n"
+"unsupported firmware BBF file."
+msgstr ""
+"USBドライブニ\n"
+"サポートサレテイナ  BBFファイルガ アリマス。"
+
+#: tmp_error_headers/error_list_coreone.hpp:772
+#: tmp_error_headers/error_list_mk35.hpp:576
+#: tmp_error_headers/error_list_xl.hpp:821
+#: tmp_error_headers/error_list_mk4.hpp:618
+#: tmp_error_headers/error_list_mini.hpp:513
+#: tmp_error_headers/error_list_ix.hpp:772
+msgid ""
+"Unable to home the printer.\n"
+"Do you want to try again?"
+msgstr ""
+"プリンタガ ゲンテンフッキ デキマセンデシタ。\n"
+"リトライ シマスカ?"
+
+#: tmp_error_headers/error_list_coreone.hpp:667
+#: tmp_error_headers/error_list_mk35.hpp:471
+#: tmp_error_headers/error_list_xl.hpp:730
+#: tmp_error_headers/error_list_mk4.hpp:513
+#: tmp_error_headers/error_list_mini.hpp:429
+#: tmp_error_headers/error_list_ix.hpp:688
+msgid "Unable to verify the extruder type, check the wiring and connectors."
+msgstr ""
+"エクストルーダーノ タイプヲ カクニン デキナイバアイハ、ハイセント コネクタヲ "
+"カクニンシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:687
+#: tmp_error_headers/error_list_mk35.hpp:491
+#: tmp_error_headers/error_list_xl.hpp:743
+#: tmp_error_headers/error_list_mk4.hpp:533
+#: tmp_error_headers/error_list_mini.hpp:435
+#: tmp_error_headers/error_list_ix.hpp:694
+msgid "Unknown file system"
+msgstr "ミチノ ファイルシステム"
+
+#: tmp_error_headers/error_list_coreone.hpp:688
+#: tmp_error_headers/error_list_mk35.hpp:492
+#: tmp_error_headers/error_list_xl.hpp:744
+#: tmp_error_headers/error_list_mk4.hpp:534
+#: tmp_error_headers/error_list_mini.hpp:436
+#: tmp_error_headers/error_list_ix.hpp:695
+msgid ""
+"Use a different USB drive or reformat this one to the supported FAT32 file "
+"system."
+msgstr ""
+"ベツノ USBドライブヲ シヨウスルカ、コノUSBドライブヲ サポートサレテイルFAT32"
+"ファイルシステムニ サイフォーマットシテクダサイ。"
+
+#: tmp_error_headers/error_list_coreone.hpp:884
+#: tmp_error_headers/error_list_mk35.hpp:688
+#: tmp_error_headers/error_list_xl.hpp:975
+#: tmp_error_headers/error_list_mk4.hpp:730
+#: tmp_error_headers/error_list_mini.hpp:604
+#: tmp_error_headers/error_list_ix.hpp:877
+msgid "Waiting for the user. Press \"Resume\" once the printer is ready."
+msgstr ""
+"ユーザーソウサヲ マッテイマス。プリンターノ ジュンビガ デキタラ サイカイ ヲ "
+"オシテクダサイ。"
+
+#: src/guiapi/src/window_msgbox.cpp:308
+#: tmp_error_headers/error_list_coreone.hpp:694
+#: tmp_error_headers/error_list_coreone.hpp:701
+#: tmp_error_headers/error_list_coreone.hpp:708
+#: tmp_error_headers/error_list_coreone.hpp:715
+#: tmp_error_headers/error_list_coreone.hpp:722
+#: tmp_error_headers/error_list_coreone.hpp:729
+#: tmp_error_headers/error_list_coreone.hpp:743
+#: tmp_error_headers/error_list_coreone.hpp:792
+#: tmp_error_headers/error_list_coreone.hpp:799
+#: tmp_error_headers/error_list_coreone.hpp:806
+#: tmp_error_headers/error_list_coreone.hpp:813
+#: tmp_error_headers/error_list_coreone.hpp:820
+#: tmp_error_headers/error_list_coreone.hpp:827
+#: tmp_error_headers/error_list_coreone.hpp:834
+#: tmp_error_headers/error_list_coreone.hpp:841
+#: tmp_error_headers/error_list_coreone.hpp:848
+#: tmp_error_headers/error_list_coreone.hpp:855
+#: tmp_error_headers/error_list_coreone.hpp:869
+#: tmp_error_headers/error_list_coreone.hpp:876
+#: tmp_error_headers/error_list_mk35.hpp:498
+#: tmp_error_headers/error_list_mk35.hpp:505
+#: tmp_error_headers/error_list_mk35.hpp:512
+#: tmp_error_headers/error_list_mk35.hpp:519
+#: tmp_error_headers/error_list_mk35.hpp:526
+#: tmp_error_headers/error_list_mk35.hpp:533
+#: tmp_error_headers/error_list_mk35.hpp:547
+#: tmp_error_headers/error_list_mk35.hpp:596
+#: tmp_error_headers/error_list_mk35.hpp:603
+#: tmp_error_headers/error_list_mk35.hpp:610
+#: tmp_error_headers/error_list_mk35.hpp:617
+#: tmp_error_headers/error_list_mk35.hpp:624
+#: tmp_error_headers/error_list_mk35.hpp:631
+#: tmp_error_headers/error_list_mk35.hpp:638
+#: tmp_error_headers/error_list_mk35.hpp:645
+#: tmp_error_headers/error_list_mk35.hpp:652
+#: tmp_error_headers/error_list_mk35.hpp:659
+#: tmp_error_headers/error_list_mk35.hpp:666
+#: tmp_error_headers/error_list_mk35.hpp:680
+#: tmp_error_headers/error_list_xl.hpp:750
+#: tmp_error_headers/error_list_xl.hpp:757
+#: tmp_error_headers/error_list_xl.hpp:764
+#: tmp_error_headers/error_list_xl.hpp:771
+#: tmp_error_headers/error_list_xl.hpp:778
+#: tmp_error_headers/error_list_xl.hpp:792
+#: tmp_error_headers/error_list_xl.hpp:841
+#: tmp_error_headers/error_list_xl.hpp:848
+#: tmp_error_headers/error_list_xl.hpp:855
+#: tmp_error_headers/error_list_xl.hpp:862
+#: tmp_error_headers/error_list_xl.hpp:869
+#: tmp_error_headers/error_list_xl.hpp:876
+#: tmp_error_headers/error_list_xl.hpp:883
+#: tmp_error_headers/error_list_xl.hpp:890
+#: tmp_error_headers/error_list_xl.hpp:897
+#: tmp_error_headers/error_list_xl.hpp:904
+#: tmp_error_headers/error_list_xl.hpp:911
+#: tmp_error_headers/error_list_xl.hpp:918
+#: tmp_error_headers/error_list_xl.hpp:925
+#: tmp_error_headers/error_list_xl.hpp:939
+#: tmp_error_headers/error_list_xl.hpp:946
+#: tmp_error_headers/error_list_xl.hpp:953
+#: tmp_error_headers/error_list_xl.hpp:960
+#: tmp_error_headers/error_list_xl.hpp:967
+#: tmp_error_headers/error_list_mk4.hpp:540
+#: tmp_error_headers/error_list_mk4.hpp:547
+#: tmp_error_headers/error_list_mk4.hpp:554
+#: tmp_error_headers/error_list_mk4.hpp:561
+#: tmp_error_headers/error_list_mk4.hpp:568
+#: tmp_error_headers/error_list_mk4.hpp:575
+#: tmp_error_headers/error_list_mk4.hpp:589
+#: tmp_error_headers/error_list_mk4.hpp:638
+#: tmp_error_headers/error_list_mk4.hpp:645
+#: tmp_error_headers/error_list_mk4.hpp:652
+#: tmp_error_headers/error_list_mk4.hpp:659
+#: tmp_error_headers/error_list_mk4.hpp:666
+#: tmp_error_headers/error_list_mk4.hpp:673
+#: tmp_error_headers/error_list_mk4.hpp:680
+#: tmp_error_headers/error_list_mk4.hpp:687
+#: tmp_error_headers/error_list_mk4.hpp:694
+#: tmp_error_headers/error_list_mk4.hpp:701
+#: tmp_error_headers/error_list_mk4.hpp:715
+#: tmp_error_headers/error_list_mk4.hpp:722
+#: tmp_error_headers/error_list_mini.hpp:442
+#: tmp_error_headers/error_list_mini.hpp:449
+#: tmp_error_headers/error_list_mini.hpp:456
+#: tmp_error_headers/error_list_mini.hpp:463
+#: tmp_error_headers/error_list_mini.hpp:470
+#: tmp_error_headers/error_list_mini.hpp:484
+#: tmp_error_headers/error_list_mini.hpp:519
+#: tmp_error_headers/error_list_mini.hpp:526
+#: tmp_error_headers/error_list_mini.hpp:533
+#: tmp_error_headers/error_list_mini.hpp:540
+#: tmp_error_headers/error_list_mini.hpp:547
+#: tmp_error_headers/error_list_mini.hpp:554
+#: tmp_error_headers/error_list_mini.hpp:561
+#: tmp_error_headers/error_list_mini.hpp:568
+#: tmp_error_headers/error_list_mini.hpp:575
+#: tmp_error_headers/error_list_mini.hpp:582
+#: tmp_error_headers/error_list_mini.hpp:596
+#: tmp_error_headers/error_list_ix.hpp:701
+#: tmp_error_headers/error_list_ix.hpp:708
+#: tmp_error_headers/error_list_ix.hpp:715
+#: tmp_error_headers/error_list_ix.hpp:722
+#: tmp_error_headers/error_list_ix.hpp:729
+#: tmp_error_headers/error_list_ix.hpp:743
+#: tmp_error_headers/error_list_ix.hpp:778
+#: tmp_error_headers/error_list_ix.hpp:785
+#: tmp_error_headers/error_list_ix.hpp:792
+#: tmp_error_headers/error_list_ix.hpp:799
+#: tmp_error_headers/error_list_ix.hpp:806
+#: tmp_error_headers/error_list_ix.hpp:813
+#: tmp_error_headers/error_list_ix.hpp:820
+#: tmp_error_headers/error_list_ix.hpp:827
+#: tmp_error_headers/error_list_ix.hpp:834
+#: tmp_error_headers/error_list_ix.hpp:841
+#: tmp_error_headers/error_list_ix.hpp:848
+#: tmp_error_headers/error_list_ix.hpp:862
+#: tmp_error_headers/error_list_ix.hpp:869
+msgid "Warning"
+msgstr "ケイコク"
+
+#: tmp_error_headers/error_list_coreone.hpp:681
+#: tmp_error_headers/error_list_mk35.hpp:485
+#: tmp_error_headers/error_list_xl.hpp:737
+#: tmp_error_headers/error_list_mk4.hpp:527
+msgid ""
+"Welcome to the Cold Pull wizard. Prepare a 30cm piece of PLA filament and "
+"follow the instructions. For more details, visit:"
+msgstr ""
+"コールドプルウィザードヘ ヨウコソ。30cmノ PLAフィラメントヲ ヨウイシ、シジニ "
+"シタガッテクダサイ。ショウサイハ コチラヲ ゴランクダサイ:"
