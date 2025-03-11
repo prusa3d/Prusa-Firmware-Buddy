@@ -186,7 +186,7 @@ msgstr "CALIBRACIONES Y TESTS"
 msgid "CONTROL"
 msgstr "CONTROL"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:170
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:175
 msgid "Calibrate Filament Sensor"
 msgstr "Calibrar Sensor Filamento"
 
@@ -214,7 +214,7 @@ msgstr "Calibración fallida con error."
 msgid "CUSTOM PARAMETERS"
 msgstr "PARÁMETROS PERSONALIZADOS"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:170
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:175
 msgid "Calibrate Filament Sensors"
 msgstr "Calibrar Sensores Filamento"
 
@@ -472,7 +472,7 @@ msgstr ""
 "El filamento '%s' es abrasivo, pero no tienes instalada una boquilla "
 "endurecida. ¿Realmente deseas continuar?"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:156
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:161
 msgid "Filament Sensors Tuning"
 msgstr "Calibración Sensores de Filamento"
 
@@ -768,9 +768,9 @@ msgstr "Lista Métricas"
 msgid "Move Axis"
 msgstr "Mover Ejes"
 
-#: tmp_error_headers/error_list_coreone.hpp:72
-#: tmp_error_headers/error_list_mk35.hpp:30
-#: tmp_error_headers/error_list_mk4.hpp:37
+#: tmp_error_headers/error_list_coreone.hpp:86
+#: tmp_error_headers/error_list_mk35.hpp:44
+#: tmp_error_headers/error_list_mk4.hpp:51
 #: tmp_error_headers/error_list_mini.hpp:23
 #: tmp_error_headers/error_list_ix.hpp:44
 msgid "Check the heatbed heater & thermistor wiring for possible damage."
@@ -778,16 +778,16 @@ msgstr ""
 "Comprueba si el cableado del calentador y termistor de la base calefactable "
 "están dañados."
 
-#: tmp_error_headers/error_list_coreone.hpp:86
 #: tmp_error_headers/error_list_coreone.hpp:100
 #: tmp_error_headers/error_list_coreone.hpp:114
-#: tmp_error_headers/error_list_mk35.hpp:44
+#: tmp_error_headers/error_list_coreone.hpp:128
 #: tmp_error_headers/error_list_mk35.hpp:58
 #: tmp_error_headers/error_list_mk35.hpp:72
+#: tmp_error_headers/error_list_mk35.hpp:86
 #: tmp_error_headers/error_list_xl.hpp:86
-#: tmp_error_headers/error_list_mk4.hpp:51
 #: tmp_error_headers/error_list_mk4.hpp:65
 #: tmp_error_headers/error_list_mk4.hpp:79
+#: tmp_error_headers/error_list_mk4.hpp:93
 #: tmp_error_headers/error_list_mini.hpp:37
 #: tmp_error_headers/error_list_mini.hpp:51
 #: tmp_error_headers/error_list_mini.hpp:65
@@ -798,14 +798,14 @@ msgid "Check the heatbed thermistor wiring for possible damage."
 msgstr ""
 "Comprueba si el cableado del termistor de la base calefactable está dañado"
 
-#: tmp_error_headers/error_list_coreone.hpp:142
-#: tmp_error_headers/error_list_coreone.hpp:149
-#: tmp_error_headers/error_list_mk35.hpp:100
-#: tmp_error_headers/error_list_mk35.hpp:107
+#: tmp_error_headers/error_list_coreone.hpp:156
+#: tmp_error_headers/error_list_coreone.hpp:163
+#: tmp_error_headers/error_list_mk35.hpp:114
+#: tmp_error_headers/error_list_mk35.hpp:121
 #: tmp_error_headers/error_list_xl.hpp:128
 #: tmp_error_headers/error_list_xl.hpp:135
-#: tmp_error_headers/error_list_mk4.hpp:107
-#: tmp_error_headers/error_list_mk4.hpp:114
+#: tmp_error_headers/error_list_mk4.hpp:121
+#: tmp_error_headers/error_list_mk4.hpp:128
 #: tmp_error_headers/error_list_mini.hpp:93
 #: tmp_error_headers/error_list_mini.hpp:100
 #: tmp_error_headers/error_list_ix.hpp:114
@@ -813,9 +813,9 @@ msgstr ""
 msgid "Check the heatbreak thermistor wiring for possible damage."
 msgstr "Comprueba si el cableado del termistor del heatbreak está dañado."
 
-#: tmp_error_headers/error_list_coreone.hpp:79
-#: tmp_error_headers/error_list_mk35.hpp:37
-#: tmp_error_headers/error_list_mk4.hpp:44
+#: tmp_error_headers/error_list_coreone.hpp:93
+#: tmp_error_headers/error_list_mk35.hpp:51
+#: tmp_error_headers/error_list_mk4.hpp:58
 #: tmp_error_headers/error_list_mini.hpp:30
 #: tmp_error_headers/error_list_ix.hpp:51
 msgid "Check the print head heater & thermistor wiring for possible damage."
@@ -823,15 +823,15 @@ msgstr ""
 "Revisa el cableado del termistor y del calentador del fusor para ver si hay "
 "daños."
 
-#: tmp_error_headers/error_list_coreone.hpp:93
 #: tmp_error_headers/error_list_coreone.hpp:107
 #: tmp_error_headers/error_list_coreone.hpp:121
-#: tmp_error_headers/error_list_mk35.hpp:51
+#: tmp_error_headers/error_list_coreone.hpp:135
 #: tmp_error_headers/error_list_mk35.hpp:65
 #: tmp_error_headers/error_list_mk35.hpp:79
-#: tmp_error_headers/error_list_mk4.hpp:58
+#: tmp_error_headers/error_list_mk35.hpp:93
 #: tmp_error_headers/error_list_mk4.hpp:72
 #: tmp_error_headers/error_list_mk4.hpp:86
+#: tmp_error_headers/error_list_mk4.hpp:100
 #: tmp_error_headers/error_list_mini.hpp:44
 #: tmp_error_headers/error_list_mini.hpp:58
 #: tmp_error_headers/error_list_mini.hpp:72
@@ -842,9 +842,9 @@ msgid "Check the print head thermistor wiring for possible damage."
 msgstr ""
 "Comprueba si el cableado del termistor del cabezal de impresión está dañado."
 
-#: tmp_error_headers/error_list_coreone.hpp:205
-#: tmp_error_headers/error_list_mk35.hpp:128
-#: tmp_error_headers/error_list_mk4.hpp:135
+#: tmp_error_headers/error_list_coreone.hpp:219
+#: tmp_error_headers/error_list_mk35.hpp:142
+#: tmp_error_headers/error_list_mk4.hpp:149
 #: tmp_error_headers/error_list_mini.hpp:121
 #: tmp_error_headers/error_list_ix.hpp:219
 msgid ""
@@ -862,8 +862,8 @@ msgstr ""
 "No se ha podido hacer home al extrusor en el eje Y, asegúrate de que no hay "
 "ningún obstáculo en el eje Y."
 
-#: tmp_error_headers/error_list_coreone.hpp:198
-#: tmp_error_headers/error_list_mk4.hpp:128
+#: tmp_error_headers/error_list_coreone.hpp:212
+#: tmp_error_headers/error_list_mk4.hpp:142
 #: tmp_error_headers/error_list_ix.hpp:198
 msgid ""
 "Failed to home the extruder in Z-axis, make sure the loadcell is working."
@@ -871,9 +871,9 @@ msgstr ""
 "No se ha podido hacer home al extrusor en el eje Z, asegúrate de que la "
 "célula de carga funciona."
 
-#: tmp_error_headers/error_list_coreone.hpp:659
-#: tmp_error_headers/error_list_mk35.hpp:463
-#: tmp_error_headers/error_list_mk4.hpp:505
+#: tmp_error_headers/error_list_coreone.hpp:673
+#: tmp_error_headers/error_list_mk35.hpp:477
+#: tmp_error_headers/error_list_mk4.hpp:519
 msgid "Firmware Update Required"
 msgstr "Actualización de Firmware Necesaria"
 
@@ -893,27 +893,27 @@ msgstr ""
 "de firmware\n"
 "tu impresora."
 
-#: tmp_error_headers/error_list_coreone.hpp:239
-#: tmp_error_headers/error_list_mk35.hpp:162
-#: tmp_error_headers/error_list_mk4.hpp:169
+#: tmp_error_headers/error_list_coreone.hpp:253
+#: tmp_error_headers/error_list_mk35.hpp:176
+#: tmp_error_headers/error_list_mk4.hpp:183
 #: tmp_error_headers/error_list_mini.hpp:155
 #: tmp_error_headers/error_list_ix.hpp:253
 msgid "HEATBED PORT OVERCURRENT"
 msgstr "SOBRECORRIENTE PUERTO BASE CALEFACTABLE"
 
-#: tmp_error_headers/error_list_coreone.hpp:148
-#: tmp_error_headers/error_list_mk35.hpp:106
+#: tmp_error_headers/error_list_coreone.hpp:162
+#: tmp_error_headers/error_list_mk35.hpp:120
 #: tmp_error_headers/error_list_xl.hpp:134
-#: tmp_error_headers/error_list_mk4.hpp:113
+#: tmp_error_headers/error_list_mk4.hpp:127
 #: tmp_error_headers/error_list_mini.hpp:99
 #: tmp_error_headers/error_list_ix.hpp:120
 msgid "HEATBREAK MAXTEMP ERROR"
 msgstr "ERROR MAXTEMP HEATBREAK"
 
-#: tmp_error_headers/error_list_coreone.hpp:141
-#: tmp_error_headers/error_list_mk35.hpp:99
+#: tmp_error_headers/error_list_coreone.hpp:155
+#: tmp_error_headers/error_list_mk35.hpp:113
 #: tmp_error_headers/error_list_xl.hpp:127
-#: tmp_error_headers/error_list_mk4.hpp:106
+#: tmp_error_headers/error_list_mk4.hpp:120
 #: tmp_error_headers/error_list_mini.hpp:92
 #: tmp_error_headers/error_list_ix.hpp:113
 msgid "HEATBREAK MINTEMP ERROR"
@@ -992,8 +992,8 @@ msgstr ""
 "Me gustaría guiarte\n"
 "a traves de la configuración."
 
-#: tmp_error_headers/error_list_coreone.hpp:660
-#: tmp_error_headers/error_list_mk4.hpp:506
+#: tmp_error_headers/error_list_coreone.hpp:674
+#: tmp_error_headers/error_list_mk4.hpp:520
 msgid ""
 "Insert the bundled USB drive, restart the printer and click the knob once "
 "during the boot. This will install the MK3.5 firmware."
@@ -1001,7 +1001,7 @@ msgstr ""
 "Inserta la unidad USB incluida, reinicia la impresora y haz clic en el dial "
 "una vez durante el arranque. Esto instalará el firmware de MK3.5."
 
-#: tmp_error_headers/error_list_mk35.hpp:464
+#: tmp_error_headers/error_list_mk35.hpp:478
 msgid ""
 "Insert the bundled USB drive, restart the printer and click the knob once "
 "during the boot. This will install the MK4/MK3.9 firmware."
@@ -1009,12 +1009,12 @@ msgstr ""
 "Inserta la unidad USB incluida, reinicia la impresora y haz clic en el dial "
 "una vez durante el arranque. Esto instalará el firmware de MK4/MK3.9."
 
-#: tmp_error_headers/error_list_coreone.hpp:99
-#: tmp_error_headers/error_list_coreone.hpp:106
-#: tmp_error_headers/error_list_mk35.hpp:57
-#: tmp_error_headers/error_list_mk35.hpp:64
-#: tmp_error_headers/error_list_mk4.hpp:64
-#: tmp_error_headers/error_list_mk4.hpp:71
+#: tmp_error_headers/error_list_coreone.hpp:113
+#: tmp_error_headers/error_list_coreone.hpp:120
+#: tmp_error_headers/error_list_mk35.hpp:71
+#: tmp_error_headers/error_list_mk35.hpp:78
+#: tmp_error_headers/error_list_mk4.hpp:78
+#: tmp_error_headers/error_list_mk4.hpp:85
 #: tmp_error_headers/error_list_mini.hpp:50
 #: tmp_error_headers/error_list_mini.hpp:57
 #: tmp_error_headers/error_list_ix.hpp:71
@@ -1022,31 +1022,31 @@ msgstr ""
 msgid "MAXTEMP ERROR"
 msgstr "ERROR MAXTEMP"
 
-#: tmp_error_headers/error_list_coreone.hpp:155
-#: tmp_error_headers/error_list_mk35.hpp:113
+#: tmp_error_headers/error_list_coreone.hpp:169
+#: tmp_error_headers/error_list_mk35.hpp:127
 #: tmp_error_headers/error_list_xl.hpp:141
-#: tmp_error_headers/error_list_mk4.hpp:120
+#: tmp_error_headers/error_list_mk4.hpp:134
 #: tmp_error_headers/error_list_mini.hpp:106
 #: tmp_error_headers/error_list_ix.hpp:127
 msgid "MCU MAXTEMP ERROR"
 msgstr "ERROR MAXTEMP MCU"
 
-#: tmp_error_headers/error_list_coreone.hpp:156
-#: tmp_error_headers/error_list_mk35.hpp:114
+#: tmp_error_headers/error_list_coreone.hpp:170
+#: tmp_error_headers/error_list_mk35.hpp:128
 #: tmp_error_headers/error_list_xl.hpp:142
-#: tmp_error_headers/error_list_mk4.hpp:121
+#: tmp_error_headers/error_list_mk4.hpp:135
 #: tmp_error_headers/error_list_mini.hpp:107
 #: tmp_error_headers/error_list_ix.hpp:128
 #, c-format
 msgid "MCU in %s is overheated."
 msgstr "La MCU en %s está sobrecalentada."
 
-#: tmp_error_headers/error_list_coreone.hpp:113
-#: tmp_error_headers/error_list_coreone.hpp:120
-#: tmp_error_headers/error_list_mk35.hpp:71
-#: tmp_error_headers/error_list_mk35.hpp:78
-#: tmp_error_headers/error_list_mk4.hpp:78
-#: tmp_error_headers/error_list_mk4.hpp:85
+#: tmp_error_headers/error_list_coreone.hpp:127
+#: tmp_error_headers/error_list_coreone.hpp:134
+#: tmp_error_headers/error_list_mk35.hpp:85
+#: tmp_error_headers/error_list_mk35.hpp:92
+#: tmp_error_headers/error_list_mk4.hpp:92
+#: tmp_error_headers/error_list_mk4.hpp:99
 #: tmp_error_headers/error_list_mini.hpp:64
 #: tmp_error_headers/error_list_mini.hpp:71
 #: tmp_error_headers/error_list_ix.hpp:85
@@ -1054,10 +1054,10 @@ msgstr "La MCU en %s está sobrecalentada."
 msgid "MINTEMP ERROR"
 msgstr "ERROR MINTEMP"
 
-#: tmp_error_headers/error_list_coreone.hpp:128
-#: tmp_error_headers/error_list_mk35.hpp:86
+#: tmp_error_headers/error_list_coreone.hpp:142
+#: tmp_error_headers/error_list_mk35.hpp:100
 #: tmp_error_headers/error_list_xl.hpp:114
-#: tmp_error_headers/error_list_mk4.hpp:93
+#: tmp_error_headers/error_list_mk4.hpp:107
 #: tmp_error_headers/error_list_mini.hpp:79
 #: tmp_error_headers/error_list_ix.hpp:100
 msgid ""
@@ -1068,28 +1068,28 @@ msgstr ""
 "termistor está en contacto con la base calefactable. En caso de que esté "
 "dañado, sustitúyelo."
 
-#: tmp_error_headers/error_list_coreone.hpp:232
-#: tmp_error_headers/error_list_mk35.hpp:155
-#: tmp_error_headers/error_list_mk4.hpp:162
+#: tmp_error_headers/error_list_coreone.hpp:246
+#: tmp_error_headers/error_list_mk35.hpp:169
+#: tmp_error_headers/error_list_mk4.hpp:176
 #: tmp_error_headers/error_list_mini.hpp:148
 #: tmp_error_headers/error_list_ix.hpp:246
 msgid "NOZZLE HEATER OVERCURRENT"
 msgstr "SOBRECORRIENTE CALENTADOR BOQUILLA"
 
-#: tmp_error_headers/error_list_coreone.hpp:233
-#: tmp_error_headers/error_list_mk35.hpp:156
-#: tmp_error_headers/error_list_mk4.hpp:163
+#: tmp_error_headers/error_list_coreone.hpp:247
+#: tmp_error_headers/error_list_mk35.hpp:170
+#: tmp_error_headers/error_list_mk4.hpp:177
 #: tmp_error_headers/error_list_mini.hpp:149
 #: tmp_error_headers/error_list_ix.hpp:247
 msgid "Overcurrent detected on nozzle heater."
 msgstr "Sobrecorriente detectada en el calentador de la boquilla."
 
-#: tmp_error_headers/error_list_coreone.hpp:71
-#: tmp_error_headers/error_list_coreone.hpp:78
-#: tmp_error_headers/error_list_mk35.hpp:29
-#: tmp_error_headers/error_list_mk35.hpp:36
-#: tmp_error_headers/error_list_mk4.hpp:36
-#: tmp_error_headers/error_list_mk4.hpp:43
+#: tmp_error_headers/error_list_coreone.hpp:85
+#: tmp_error_headers/error_list_coreone.hpp:92
+#: tmp_error_headers/error_list_mk35.hpp:43
+#: tmp_error_headers/error_list_mk35.hpp:50
+#: tmp_error_headers/error_list_mk4.hpp:50
+#: tmp_error_headers/error_list_mk4.hpp:57
 #: tmp_error_headers/error_list_mini.hpp:22
 #: tmp_error_headers/error_list_mini.hpp:29
 #: tmp_error_headers/error_list_ix.hpp:43
@@ -1111,13 +1111,13 @@ msgstr ""
 "Lámina flexible no detectada. Por favor, coloca la lámina para evitar daños "
 "en la impresora."
 
-#: tmp_error_headers/error_list_coreone.hpp:85
-#: tmp_error_headers/error_list_coreone.hpp:92
-#: tmp_error_headers/error_list_mk35.hpp:43
-#: tmp_error_headers/error_list_mk35.hpp:50
+#: tmp_error_headers/error_list_coreone.hpp:99
+#: tmp_error_headers/error_list_coreone.hpp:106
+#: tmp_error_headers/error_list_mk35.hpp:57
+#: tmp_error_headers/error_list_mk35.hpp:64
 #: tmp_error_headers/error_list_xl.hpp:85
-#: tmp_error_headers/error_list_mk4.hpp:50
-#: tmp_error_headers/error_list_mk4.hpp:57
+#: tmp_error_headers/error_list_mk4.hpp:64
+#: tmp_error_headers/error_list_mk4.hpp:71
 #: tmp_error_headers/error_list_mini.hpp:36
 #: tmp_error_headers/error_list_mini.hpp:43
 #: tmp_error_headers/error_list_ix.hpp:57
@@ -1143,10 +1143,10 @@ msgstr ""
 msgid "NOZZLE_OFFSET"
 msgstr "OFFSET_BOQUILLA"
 
-#: tmp_error_headers/error_list_coreone.hpp:688
-#: tmp_error_headers/error_list_mk35.hpp:492
+#: tmp_error_headers/error_list_coreone.hpp:702
+#: tmp_error_headers/error_list_mk35.hpp:506
 #: tmp_error_headers/error_list_xl.hpp:758
-#: tmp_error_headers/error_list_mk4.hpp:534
+#: tmp_error_headers/error_list_mk4.hpp:548
 #: tmp_error_headers/error_list_ix.hpp:709
 msgid "New firmware available"
 msgstr "Nuevo firmware disponible"
@@ -1168,13 +1168,6 @@ msgstr "Calcetín Silicona Nextruder"
 msgid "No USB"
 msgstr "No hay USB"
 
-#: tmp_error_headers/error_list_coreone.hpp:863
-#: tmp_error_headers/error_list_xl.hpp:968
-#: tmp_error_headers/error_list_mk4.hpp:709
-#: tmp_error_headers/error_list_ix.hpp:870
-msgid "Nozzle cleaning failed."
-msgstr "Limpieza de la boquilla fallida."
-
 #: src/gui/window_msgbox_wrong_printer.cpp:35
 #, c-format
 msgid "Newer firmware is required: %s"
@@ -1188,17 +1181,9 @@ msgstr "Diámetro Boquilla"
 msgid "Nozzle heater check"
 msgstr "Comp. calor boquilla"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:81
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:86
 msgid "Nozzle Hardened"
 msgstr "Boquilla Endurecida"
-
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:98
-msgid "Nozzle High-flow"
-msgstr "Boquilla Alto flujo"
-
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:184
-msgid "Nozzle Offset"
-msgstr "Offset Boquilla"
 
 #: src/gui/screen/filament/screen_filament_detail.cpp:73
 msgid "Nozzle Preheat Temperature"
@@ -1226,20 +1211,14 @@ msgstr "La boquilla no es de alto flujo"
 msgid "Offset %c"
 msgstr "Offset %c"
 
-#: tmp_error_headers/error_list_coreone.hpp:240
-#: tmp_error_headers/error_list_mk35.hpp:163
-#: tmp_error_headers/error_list_mk4.hpp:170
+#: tmp_error_headers/error_list_coreone.hpp:254
+#: tmp_error_headers/error_list_mk35.hpp:177
+#: tmp_error_headers/error_list_mk4.hpp:184
 #: tmp_error_headers/error_list_ix.hpp:254
 msgid "Overcurrent detected on xBuddy heatbed port, disconnect the device."
 msgstr ""
 "Sobrecorriente detectada en el puerto de la base calefactable de la xBuddy, "
 "desconecta el dispositivo."
-
-#: tmp_error_headers/error_list_coreone.hpp:15
-#: tmp_error_headers/error_list_xl.hpp:15
-#: tmp_error_headers/error_list_ix.hpp:15
-msgid "PRECISE REFINEMENT FAILED"
-msgstr "FALLO REFINAMIENTO PRECISO"
 
 #: src/gui/resolution_480x320/screen_print_preview_base.cpp:24
 #: src/gui/screen_print_preview.cpp:149
@@ -1287,19 +1266,6 @@ msgstr "Imprimir"
 #: src/gui/MItem_menus.hpp:134
 msgid "Print Statistics"
 msgstr "Estadísticas de impresión"
-
-#: tmp_error_headers/error_list_coreone.hpp:779
-#: tmp_error_headers/error_list_mk35.hpp:583
-#: tmp_error_headers/error_list_xl.hpp:842
-#: tmp_error_headers/error_list_mk4.hpp:625
-#: tmp_error_headers/error_list_mini.hpp:520
-#: tmp_error_headers/error_list_ix.hpp:779
-msgid ""
-"Print fan not spinning. Check it for possible debris, then inspect the "
-"wiring."
-msgstr ""
-"El ventilador de impresión no gira. Comprueba que no hay residuos, luego "
-"inspecciona el cableado."
 
 #: src/gui/dialogs/print_progress.cpp:22
 msgid "Print finished"
@@ -1649,10 +1615,10 @@ msgstr "Cambiar Tabla de Ondas XYZ"
 msgid "Do you wish to retry the failed selftest?"
 msgstr "¿Deseas reintentar el seltest fallido?"
 
-#: tmp_error_headers/error_list_coreone.hpp:317
-#: tmp_error_headers/error_list_mk35.hpp:240
+#: tmp_error_headers/error_list_coreone.hpp:331
+#: tmp_error_headers/error_list_mk35.hpp:254
 #: tmp_error_headers/error_list_xl.hpp:366
-#: tmp_error_headers/error_list_mk4.hpp:247
+#: tmp_error_headers/error_list_mk4.hpp:261
 #: tmp_error_headers/error_list_mini.hpp:226
 #: tmp_error_headers/error_list_ix.hpp:345
 msgid "Check that the accelerometer cable is plugged in and not damaged."
@@ -1946,23 +1912,13 @@ msgstr "ERROR EXTRUSOR"
 msgid "Enclosure fan"
 msgstr "Ventilador cerramiento"
 
-#: tmp_error_headers/error_list_coreone.hpp:176
-#: tmp_error_headers/error_list_xl.hpp:204
-msgid "FAILED TO REACH CHAMBER TEMPERATURE"
-msgstr "FALLO AL ALCANZAR LA TEMPERATURA DE LA CÁMARA"
-
-#: tmp_error_headers/error_list_coreone.hpp:177
-#: tmp_error_headers/error_list_xl.hpp:205
-msgid "Failing to reach target chamber temperature. Keep waiting?"
-msgstr "No se alcanza la temperatura objetivo de la cámara. ¿Seguir esperando?"
-
 #: src/gui/wizard/screen_fan_selftest.cpp:40
 msgid "Fan RPM tests"
 msgstr "Tests RPM Ventilador"
 
-#: tmp_error_headers/error_list_coreone.hpp:716
-#: tmp_error_headers/error_list_mk35.hpp:520
-#: tmp_error_headers/error_list_mk4.hpp:562
+#: tmp_error_headers/error_list_coreone.hpp:730
+#: tmp_error_headers/error_list_mk35.hpp:534
+#: tmp_error_headers/error_list_mk4.hpp:576
 msgid ""
 "Filament detected. Unload filament now? Select NO to start the print with "
 "the currently loaded filament."
@@ -1990,25 +1946,6 @@ msgstr "Mar"
 #: src/gui/screen_move_z.hpp:17
 msgid "Turn the knob to move Heatbed"
 msgstr "Gira el dial para mover la Base"
-
-#: tmp_error_headers/error_list_coreone.hpp:569
-#: tmp_error_headers/error_list_mk35.hpp:373
-#: tmp_error_headers/error_list_xl.hpp:646
-#: tmp_error_headers/error_list_mk4.hpp:415
-#: tmp_error_headers/error_list_mini.hpp:345
-#: tmp_error_headers/error_list_ix.hpp:604
-msgid ""
-"Firmware file has\n"
-"invalid size!\n"
-"Check the file\n"
-"on the USB drive\n"
-"and try again."
-msgstr ""
-"¡El archivo de FW tiene \n"
-"tamaño no válido! \n"
-"Verifica el archivo en la \n"
-"unidad USB e intenta \n"
-"nuevamente."
 
 #: src/gui/screen_menu_temperature.hpp:29 src/gui/screen_menu_move.hpp:33
 msgid "Cooldown"
@@ -2454,15 +2391,6 @@ msgstr "Calentar Base Entera"
 msgid "FIRST LAYER CALIBRATION"
 msgstr "CALIBRACIÓN PRIMERA CAPA"
 
-#: tmp_error_headers/error_list_coreone.hpp:303
-#: tmp_error_headers/error_list_mk35.hpp:226
-#: tmp_error_headers/error_list_xl.hpp:331
-#: tmp_error_headers/error_list_mk4.hpp:233
-#: tmp_error_headers/error_list_mini.hpp:219
-#: tmp_error_headers/error_list_ix.hpp:317
-msgid "HAL detected an I2C undefined error when receiving data via I2C."
-msgstr "HAL detectó un error indefinido I2C al recibir datos vía I2C"
-
 #: src/gui/wizard/selftest_frame_tool_offsets.cpp:76
 msgid "Moving away."
 msgstr "Alejando."
@@ -2596,15 +2524,6 @@ msgstr "Sensor Fil."
 #: src/common/footer_def.cpp:48
 msgid "FSensor side"
 msgstr "Sensor de Fil. Lateral"
-
-#: tmp_error_headers/error_list_coreone.hpp:212
-#: tmp_error_headers/error_list_mk35.hpp:135
-#: tmp_error_headers/error_list_mk4.hpp:142
-#: tmp_error_headers/error_list_mini.hpp:128
-msgid "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
-msgstr ""
-"Fallo al hacer home en el eje Y, asegúrate de que no hay ningún obstáculo en "
-"el eje Y."
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:122
 msgid "Filament inserted, press continue."
@@ -2805,9 +2724,9 @@ msgstr "La posición del Dock %d difiere demasiado de los valores esperados."
 msgid "Dwarf board %d fault: %s"
 msgstr "Fallo en la placa Dwarf %d: %s"
 
-#: tmp_error_headers/error_list_coreone.hpp:491
+#: tmp_error_headers/error_list_coreone.hpp:505
 #: tmp_error_headers/error_list_xl.hpp:561
-#: tmp_error_headers/error_list_mk4.hpp:337
+#: tmp_error_headers/error_list_mk4.hpp:351
 #: tmp_error_headers/error_list_ix.hpp:526
 msgid "LOADCELL BAD CONFIGURATION"
 msgstr "MALA CONFIGURACIÓN CÉLULA DE CARGA"
@@ -2957,9 +2876,9 @@ msgstr "MAPEADO CABEZAL"
 msgid "Test FAILED!"
 msgstr "¡Test FALLIDO!"
 
-#: tmp_error_headers/error_list_coreone.hpp:771
-#: tmp_error_headers/error_list_mk35.hpp:575
-#: tmp_error_headers/error_list_mk4.hpp:617
+#: tmp_error_headers/error_list_coreone.hpp:785
+#: tmp_error_headers/error_list_mk35.hpp:589
+#: tmp_error_headers/error_list_mk4.hpp:631
 msgid "MMU Error"
 msgstr "Error MCU"
 
@@ -3400,14 +3319,10 @@ msgstr ""
 msgid "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
 msgstr "El offset %c del cabezal %d: %.3f está fuera de límites [%.3f, %.3f]."
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:133
-msgid "Pick Tool"
-msgstr "Coger Cabezal"
-
-#: tmp_error_headers/error_list_coreone.hpp:681
-#: tmp_error_headers/error_list_mk35.hpp:485
+#: tmp_error_headers/error_list_coreone.hpp:695
+#: tmp_error_headers/error_list_mk35.hpp:499
 #: tmp_error_headers/error_list_xl.hpp:751
-#: tmp_error_headers/error_list_mk4.hpp:527
+#: tmp_error_headers/error_list_mk4.hpp:541
 #: tmp_error_headers/error_list_mini.hpp:443
 #: tmp_error_headers/error_list_ix.hpp:702
 msgid "Please complete Calibrations & Tests before using the printer."
@@ -3520,9 +3435,9 @@ msgstr "Cabezal 5"
 msgid "Total General Fails"
 msgstr "Fallos Generales Totales"
 
-#: tmp_error_headers/error_list_coreone.hpp:772
-#: tmp_error_headers/error_list_mk35.hpp:576
-#: tmp_error_headers/error_list_mk4.hpp:618
+#: tmp_error_headers/error_list_coreone.hpp:786
+#: tmp_error_headers/error_list_mk35.hpp:590
+#: tmp_error_headers/error_list_mk4.hpp:632
 msgid "Waiting for user input"
 msgstr "Esperando la entrada del usuario"
 
@@ -3732,18 +3647,9 @@ msgstr "Estado MMU BL"
 msgid "Nextruder Maintenance"
 msgstr "Mantenimiento Nextruder"
 
-#: tmp_error_headers/error_list_mk35.hpp:121
+#: tmp_error_headers/error_list_mk35.hpp:135
 msgid "Failed to home the extruder in Z-axis."
 msgstr "Fallo al hacer home al extrusor en el eje Z"
-
-#: tmp_error_headers/error_list_coreone.hpp:268
-#: tmp_error_headers/error_list_mk35.hpp:191
-#: tmp_error_headers/error_list_xl.hpp:296
-#: tmp_error_headers/error_list_mk4.hpp:198
-#: tmp_error_headers/error_list_mini.hpp:184
-#: tmp_error_headers/error_list_ix.hpp:282
-msgid "HAL detected an I2C timeout when sending data via I2C."
-msgstr "HAL detectó un timeout de I2C al enviar datos vía I2C."
 
 #: src/gui/include_XL/selftest_snake_config.hpp:127
 #, c-format
@@ -3846,10 +3752,6 @@ msgstr "%d Calibración Alineación Z"
 msgid "A crash dump is being saved."
 msgstr "Se está guardando un volcado de fallos."
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:198
-msgid "ALL TOOLS"
-msgstr "TODOS LOS CABEZALES"
-
 #: src/gui/MItem_network.cpp:124
 msgid "Active Interface"
 msgstr "Activar Interfaz"
@@ -3857,12 +3759,6 @@ msgstr "Activar Interfaz"
 #: tmp_error_headers/error_list_mmu.hpp:276
 msgid "INVALID TOOL"
 msgstr "HERR. INVALIDA"
-
-#: tmp_error_headers/error_list_coreone.hpp:380
-#: tmp_error_headers/error_list_xl.hpp:450
-#: tmp_error_headers/error_list_ix.hpp:415
-msgid "Address assignment error"
-msgstr "Error de asignación de dirección"
 
 #: tmp_error_headers/error_list_mmu.hpp:298
 msgid "Internal runtime error. Try resetting the MMU or updating the firmware."
@@ -3945,17 +3841,17 @@ msgstr "Torre de purga %dg"
 msgid "Preload to MMU Advanced"
 msgstr "Precargar a MMU Avanzado"
 
-#: tmp_error_headers/error_list_coreone.hpp:183
+#: tmp_error_headers/error_list_coreone.hpp:197
 #: tmp_error_headers/error_list_xl.hpp:211
 msgid "Chamber Overheating"
 msgstr "Sobrecalentamiento Cámara"
 
-#: tmp_error_headers/error_list_coreone.hpp:190
+#: tmp_error_headers/error_list_coreone.hpp:204
 #: tmp_error_headers/error_list_xl.hpp:218
 msgid "Chamber Temperature Is Critical"
 msgstr "La Temperatura de la Cámara Es Crítica"
 
-#: tmp_error_headers/error_list_coreone.hpp:184
+#: tmp_error_headers/error_list_coreone.hpp:198
 #: tmp_error_headers/error_list_xl.hpp:212
 msgid "Chamber temperature above safety limit. Ensure better ventilation."
 msgstr ""
@@ -4062,7 +3958,7 @@ msgstr "El sondeo XY falló debido a la baja estabilidad de la medición."
 msgid "Do you want to reset the extruder maintenance reminder?"
 msgstr "¿Deseas restablecer el recordatorio de mantenimiento de extrusor?"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:116
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:121
 msgid "Dock Position"
 msgstr "Posición Dock"
 
@@ -4083,10 +3979,10 @@ msgstr ""
 msgid "Extruder motor is not spinning on tool %d"
 msgstr "El motor del extrusor no gira en el cabezal %d"
 
-#: tmp_error_headers/error_list_coreone.hpp:610
-#: tmp_error_headers/error_list_mk35.hpp:414
+#: tmp_error_headers/error_list_coreone.hpp:624
+#: tmp_error_headers/error_list_mk35.hpp:428
 #: tmp_error_headers/error_list_xl.hpp:687
-#: tmp_error_headers/error_list_mk4.hpp:456
+#: tmp_error_headers/error_list_mk4.hpp:470
 #: tmp_error_headers/error_list_mini.hpp:386
 #: tmp_error_headers/error_list_ix.hpp:645
 msgid "FIRMWARExPRINTER MISMATCH"
@@ -4173,32 +4069,23 @@ msgstr "Flashear ESP"
 msgid "INPUT SHAPER"
 msgstr "INPUT SHAPER"
 
-#: tmp_error_headers/error_list_coreone.hpp:330
-#: tmp_error_headers/error_list_mk35.hpp:253
+#: tmp_error_headers/error_list_coreone.hpp:344
+#: tmp_error_headers/error_list_mk35.hpp:267
 #: tmp_error_headers/error_list_xl.hpp:379
-#: tmp_error_headers/error_list_mk4.hpp:260
+#: tmp_error_headers/error_list_mk4.hpp:274
 #: tmp_error_headers/error_list_mini.hpp:239
 #: tmp_error_headers/error_list_ix.hpp:358
 msgid "G-CODE METRICS CONFIG CHANGE"
 msgstr "CAMBIAR CONFIGURACIÓN MÉTRICAS CÓDIGO G"
 
-#: tmp_error_headers/error_list_coreone.hpp:540
-#: tmp_error_headers/error_list_mk35.hpp:344
-#: tmp_error_headers/error_list_xl.hpp:610
-#: tmp_error_headers/error_list_mk4.hpp:386
-#: tmp_error_headers/error_list_mini.hpp:316
-#: tmp_error_headers/error_list_ix.hpp:575
-msgid "Gcode Corruption"
-msgstr "Corrupción del código G"
-
 #: src/gui/screen_menu_network_status.hpp:70
 msgid "NETWORK STATUS"
 msgstr "ESTADO DE LA RED"
 
-#: tmp_error_headers/error_list_coreone.hpp:331
-#: tmp_error_headers/error_list_mk35.hpp:254
+#: tmp_error_headers/error_list_coreone.hpp:345
+#: tmp_error_headers/error_list_mk35.hpp:268
 #: tmp_error_headers/error_list_xl.hpp:380
-#: tmp_error_headers/error_list_mk4.hpp:261
+#: tmp_error_headers/error_list_mk4.hpp:275
 #: tmp_error_headers/error_list_mini.hpp:240
 #: tmp_error_headers/error_list_ix.hpp:359
 msgid ""
@@ -4272,15 +4159,6 @@ msgstr "El filamento se descargará automáticamente."
 msgid "There was an error connecting to the Wi-Fi."
 msgstr "Hubo un error al conectarse al Wi-Fi."
 
-#: tmp_error_headers/error_list_coreone.hpp:289
-#: tmp_error_headers/error_list_mk35.hpp:212
-#: tmp_error_headers/error_list_xl.hpp:317
-#: tmp_error_headers/error_list_mk4.hpp:219
-#: tmp_error_headers/error_list_mini.hpp:205
-#: tmp_error_headers/error_list_ix.hpp:303
-msgid "HAL detected an I2C busy state when receiving data via I2C."
-msgstr "HAL detectó un estado ocupado I2C al recibir datos vía I2C."
-
 #: src/gui/screen_menu_error_test.cpp:93
 msgid "Trigger Redscreen"
 msgstr "Activar Pantalla roja"
@@ -4311,16 +4189,6 @@ msgstr "Calentando"
 #: src/gui/screen_menu_bed_level_correction.hpp:102
 msgid "BED LEVEL CORRECTION"
 msgstr "CORRECCIÓN NIVELACIÓN BASE"
-
-#: tmp_error_headers/error_list_coreone.hpp:709
-#: tmp_error_headers/error_list_mk35.hpp:513
-#: tmp_error_headers/error_list_xl.hpp:779
-#: tmp_error_headers/error_list_mk4.hpp:555
-#: tmp_error_headers/error_list_ix.hpp:730
-msgid "A filament specified in the G-code is either not loaded or wrong type."
-msgstr ""
-"Un filamento especificado en el código G no está cargado o es el tipo "
-"incorrecto."
 
 #: src/gui/screen_fatal_warning.cpp:30
 msgid "Wrong hardware"
@@ -4392,10 +4260,10 @@ msgstr ""
 "se ha superado la temperatura de funcionamiento de la impresora. Evita el "
 "sobrecalentamiento para obtener un rendimiento óptimo."
 
-#: tmp_error_headers/error_list_coreone.hpp:316
-#: tmp_error_headers/error_list_mk35.hpp:239
+#: tmp_error_headers/error_list_coreone.hpp:330
+#: tmp_error_headers/error_list_mk35.hpp:253
 #: tmp_error_headers/error_list_xl.hpp:365
-#: tmp_error_headers/error_list_mk4.hpp:246
+#: tmp_error_headers/error_list_mk4.hpp:260
 #: tmp_error_headers/error_list_mini.hpp:225
 #: tmp_error_headers/error_list_ix.hpp:344
 msgid "ACCELEROMETER COMMUNICATION FAILED"
@@ -4405,10 +4273,10 @@ msgstr "FALLO COMUNICACIÓN DEL ACELERÓMETRO"
 msgid "All"
 msgstr "Todo"
 
-#: tmp_error_headers/error_list_coreone.hpp:366
-#: tmp_error_headers/error_list_mk35.hpp:289
+#: tmp_error_headers/error_list_coreone.hpp:380
+#: tmp_error_headers/error_list_mk35.hpp:303
 #: tmp_error_headers/error_list_xl.hpp:436
-#: tmp_error_headers/error_list_mk4.hpp:296
+#: tmp_error_headers/error_list_mk4.hpp:310
 #: tmp_error_headers/error_list_mini.hpp:275
 #: tmp_error_headers/error_list_ix.hpp:401
 msgid "Allocation of dynamic buffer for PNG failed - out of memory."
@@ -4471,20 +4339,20 @@ msgstr "Modo pánico"
 msgid "Preheat Temp"
 msgstr "Temp precalentamiento"
 
-#: tmp_error_headers/error_list_coreone.hpp:401
+#: tmp_error_headers/error_list_coreone.hpp:415
 #: tmp_error_headers/error_list_xl.hpp:471
 #: tmp_error_headers/error_list_ix.hpp:436
 #, c-format
 msgid "Puppy %s not responding"
 msgstr "Puppy %s no responde"
 
-#: tmp_error_headers/error_list_coreone.hpp:394
+#: tmp_error_headers/error_list_coreone.hpp:408
 #: tmp_error_headers/error_list_xl.hpp:464
 #: tmp_error_headers/error_list_ix.hpp:429
 msgid "Puppy discovery error. No puppy found"
 msgstr "Error de descubrimiento de puppy. No se ha encontrado ninguna puppy"
 
-#: tmp_error_headers/error_list_coreone.hpp:408
+#: tmp_error_headers/error_list_coreone.hpp:422
 #: tmp_error_headers/error_list_xl.hpp:478
 #: tmp_error_headers/error_list_ix.hpp:443
 #, c-format
@@ -4526,13 +4394,13 @@ msgstr ""
 "Aparca todas los cabezales en los docks\n"
 "y deja el carro libre."
 
-#: tmp_error_headers/error_list_coreone.hpp:422
+#: tmp_error_headers/error_list_coreone.hpp:436
 #: tmp_error_headers/error_list_xl.hpp:492
 #: tmp_error_headers/error_list_ix.hpp:457
 msgid "Unable to start puppy application"
 msgstr "No se puede iniciar la aplicación puppy"
 
-#: tmp_error_headers/error_list_coreone.hpp:387
+#: tmp_error_headers/error_list_coreone.hpp:401
 #: tmp_error_headers/error_list_xl.hpp:457
 #: tmp_error_headers/error_list_ix.hpp:422
 msgid "Unassigned puppy found"
@@ -4543,19 +4411,19 @@ msgstr "Puppy no asignado encontrado"
 msgid "Unexpected invalid current."
 msgstr "Corriente inválida inesperada."
 
-#: tmp_error_headers/error_list_coreone.hpp:415
+#: tmp_error_headers/error_list_coreone.hpp:429
 #: tmp_error_headers/error_list_xl.hpp:485
 #: tmp_error_headers/error_list_ix.hpp:450
 msgid "Unknown puppy type"
 msgstr "Error puppy desconocido"
 
-#: tmp_error_headers/error_list_coreone.hpp:450
+#: tmp_error_headers/error_list_coreone.hpp:464
 #: tmp_error_headers/error_list_xl.hpp:520
 #: tmp_error_headers/error_list_ix.hpp:485
 msgid "Waiting for fingerprint timed out"
 msgstr "Se ha agotado el tiempo de espera de la huella dactilar"
 
-#: tmp_error_headers/error_list_coreone.hpp:457
+#: tmp_error_headers/error_list_coreone.hpp:471
 #: tmp_error_headers/error_list_xl.hpp:527
 #: tmp_error_headers/error_list_ix.hpp:492
 msgid "Waiting for puppies to start timed out"
@@ -4617,23 +4485,9 @@ msgstr "Calibración eje Z"
 msgid "Z-axis direction"
 msgstr "Dirección eje Z"
 
-#: tmp_error_headers/error_list_coreone.hpp:519
-#: tmp_error_headers/error_list_mk35.hpp:323
-#: tmp_error_headers/error_list_xl.hpp:589
-#: tmp_error_headers/error_list_mk4.hpp:365
-#: tmp_error_headers/error_list_mini.hpp:295
-#: tmp_error_headers/error_list_ix.hpp:554
-msgid "BBF ALLOCATION FAILED"
-msgstr "ASIGNACIÓN BBF FALLIDA"
-
-#: tmp_error_headers/error_list_coreone.hpp:526
-#: tmp_error_headers/error_list_mk35.hpp:330
-#: tmp_error_headers/error_list_xl.hpp:596
-#: tmp_error_headers/error_list_mk4.hpp:372
-#: tmp_error_headers/error_list_mini.hpp:302
-#: tmp_error_headers/error_list_ix.hpp:561
-msgid "BBF INITIALIZATION FAILED"
-msgstr "INICIALIZACIÓN BBF FALLIDA"
+#: tmp_error_headers/error_list_coreone.hpp:176
+msgid "CHAMBER MAXTEMP ERROR"
+msgstr "ERROR MAXTEMP CÁMARA"
 
 #: src/gui/screen/filament/screen_filament_detail.cpp:77
 #: src/gui/MItem_tools.cpp:656
@@ -4643,44 +4497,6 @@ msgstr "Temperatura Base"
 #: src/gui/screen/screen_chamber_filtration.cpp:4
 msgid "CHAMBER FILTRATION"
 msgstr "FILTRACIÓN CÁMARA"
-
-#: tmp_error_headers/error_list_coreone.hpp:162
-msgid "CHAMBER MAXTEMP ERROR"
-msgstr "ERROR MAXTEMP CÁMARA"
-
-#. don't close on menu timeout
-#: src/gui/screen_crash_recovery.cpp:266
-#: tmp_error_headers/error_list_coreone.hpp:736
-#: tmp_error_headers/error_list_coreone.hpp:743
-#: tmp_error_headers/error_list_coreone.hpp:750
-#: tmp_error_headers/error_list_coreone.hpp:757
-#: tmp_error_headers/error_list_mk35.hpp:540
-#: tmp_error_headers/error_list_mk35.hpp:547
-#: tmp_error_headers/error_list_mk35.hpp:554
-#: tmp_error_headers/error_list_mk35.hpp:561
-#: tmp_error_headers/error_list_xl.hpp:799
-#: tmp_error_headers/error_list_xl.hpp:806
-#: tmp_error_headers/error_list_xl.hpp:813
-#: tmp_error_headers/error_list_xl.hpp:820
-#: tmp_error_headers/error_list_xl.hpp:827
-#: tmp_error_headers/error_list_mk4.hpp:582
-#: tmp_error_headers/error_list_mk4.hpp:589
-#: tmp_error_headers/error_list_mk4.hpp:596
-#: tmp_error_headers/error_list_mk4.hpp:603
-#: tmp_error_headers/error_list_mini.hpp:491
-#: tmp_error_headers/error_list_mini.hpp:498
-#: tmp_error_headers/error_list_mini.hpp:505
-#: tmp_error_headers/error_list_mini.hpp:512
-#: tmp_error_headers/error_list_ix.hpp:750
-#: tmp_error_headers/error_list_ix.hpp:757
-#: tmp_error_headers/error_list_ix.hpp:764
-#: tmp_error_headers/error_list_ix.hpp:771
-msgid "CRASH DETECTED"
-msgstr "CHOQUE DETECTADO"
-
-#: tmp_error_headers/error_list_coreone.hpp:169
-msgid "CHAMBER MINTEMP ERROR"
-msgstr "ERROR MINTEMP CÁMARA"
 
 #: src/gui/MItem_menus.hpp:185
 msgid "Calibrations & Tests"
@@ -4698,58 +4514,10 @@ msgstr "Ventiladores de la Cámara"
 msgid "Chamber Fans Limit"
 msgstr "Límite Ventiladores Cámara"
 
-#: tmp_error_headers/error_list_coreone.hpp:897
-msgid "Chamber Cooling Fan Error"
-msgstr "Error Ventilador Refrigeración Cámara"
-
 #: src/gui/menu_item/specific/menu_items_chamber_filtration.cpp:13
 #: src/gui/MItem_menus.hpp:210
 msgid "Chamber Filtration"
 msgstr "Filtración Cámara"
-
-#: tmp_error_headers/error_list_coreone.hpp:904
-#: tmp_error_headers/error_list_xl.hpp:988
-msgid "Chamber Filtration Fan Error"
-msgstr "Error Ventilador Filtración Cámara"
-
-#: tmp_error_headers/error_list_coreone.hpp:898
-msgid ""
-"Chamber cooling fan is not spinning. Check it for possible debris, then "
-"inspect the wiring."
-msgstr ""
-"El ventilador de refrigeración de la cámara no gira. Comprueba que no hay "
-"residuos, luego inspecciona el cableado."
-
-#: tmp_error_headers/error_list_coreone.hpp:905
-#: tmp_error_headers/error_list_xl.hpp:989
-msgid ""
-"Chamber filtration fan is not spinning. Check it for possible debris, then "
-"inspect the wiring."
-msgstr ""
-"El ventilador de filtración de la cámara no gira. Comprueba que no hay "
-"residuos, luego inspecciona el cableado."
-
-#: tmp_error_headers/error_list_coreone.hpp:765
-#: tmp_error_headers/error_list_mk35.hpp:569
-#: tmp_error_headers/error_list_xl.hpp:835
-#: tmp_error_headers/error_list_mk4.hpp:611
-msgid ""
-"Changes of mapping available only in the Printer UI. Select Print to start "
-"the print with defaults."
-msgstr ""
-"Cambios de mapeado solo disponibles en la IU de la impresora. Selecciona "
-"Imprimir para iniciar la impresión con los valores predeterminados."
-
-#: tmp_error_headers/error_list_coreone.hpp:890
-msgid "Close Chamber Ventilation"
-msgstr "Cerrar Ventilación Cámara"
-
-#: src/gui/MItem_tools.hpp:598 tmp_error_headers/error_list_coreone.hpp:666
-#: tmp_error_headers/error_list_mk35.hpp:470
-#: tmp_error_headers/error_list_xl.hpp:736
-#: tmp_error_headers/error_list_mk4.hpp:512
-msgid "Cold Pull"
-msgstr "Tirón en Frío"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:73
 msgid "ERR Helping filament"
@@ -4834,11 +4602,6 @@ msgstr "Red"
 msgid "No crash dump to save."
 msgstr "No hay arch. de errores para guardar."
 
-#: tmp_error_headers/error_list_coreone.hpp:163
-#: tmp_error_headers/error_list_coreone.hpp:170
-msgid "Check the chamber thermistor wiring for possible damage."
-msgstr "Comprueba si el cableado del termistor de la cámara está dañado."
-
 #: tmp_error_headers/error_list_xl.hpp:394
 #, c-format
 msgid ""
@@ -4848,36 +4611,6 @@ msgstr ""
 "La placa dwarf ha encontrado el siguiente problema: \n"
 "%s"
 
-#: tmp_error_headers/error_list_coreone.hpp:359
-#: tmp_error_headers/error_list_mk35.hpp:282
-#: tmp_error_headers/error_list_xl.hpp:429
-#: tmp_error_headers/error_list_mk4.hpp:289
-#: tmp_error_headers/error_list_mini.hpp:268
-#: tmp_error_headers/error_list_ix.hpp:394
-msgid "Dynamic allocation failed - out of memory. Reset the printer."
-msgstr "Asignación dinámica fallida - sin memoria. Reinicia la impresora."
-
-#: tmp_error_headers/error_list_coreone.hpp:337
-#: tmp_error_headers/error_list_coreone.hpp:344
-#: tmp_error_headers/error_list_coreone.hpp:351
-#: tmp_error_headers/error_list_mk35.hpp:260
-#: tmp_error_headers/error_list_mk35.hpp:267
-#: tmp_error_headers/error_list_mk35.hpp:274
-#: tmp_error_headers/error_list_xl.hpp:407
-#: tmp_error_headers/error_list_xl.hpp:414
-#: tmp_error_headers/error_list_xl.hpp:421
-#: tmp_error_headers/error_list_mk4.hpp:267
-#: tmp_error_headers/error_list_mk4.hpp:274
-#: tmp_error_headers/error_list_mk4.hpp:281
-#: tmp_error_headers/error_list_mini.hpp:246
-#: tmp_error_headers/error_list_mini.hpp:253
-#: tmp_error_headers/error_list_mini.hpp:260
-#: tmp_error_headers/error_list_ix.hpp:372
-#: tmp_error_headers/error_list_ix.hpp:379
-#: tmp_error_headers/error_list_ix.hpp:386
-msgid "ESP ERROR"
-msgstr "ERROR ESP"
-
 #: src/gui/dialogs/DialogConnectReg.cpp:41
 msgid "Prusa Connect - printer setup"
 msgstr "Prusa Connect - configuración de la impresora"
@@ -4886,111 +4619,9 @@ msgstr "Prusa Connect - configuración de la impresora"
 msgid "Registration successful, continue at connect.prusa3d.com"
 msgstr "Registro realizado correctamente, continua en connect.prusa3d.com"
 
-#: tmp_error_headers/error_list_coreone.hpp:533
-#: tmp_error_headers/error_list_mk35.hpp:337
-#: tmp_error_headers/error_list_xl.hpp:603
-#: tmp_error_headers/error_list_mk4.hpp:379
-#: tmp_error_headers/error_list_mini.hpp:309
-#: tmp_error_headers/error_list_ix.hpp:568
-msgid "ESP NOT CONNECTED"
-msgstr "ESP NO CONECTADO"
-
-#: tmp_error_headers/error_list_coreone.hpp:345
-#: tmp_error_headers/error_list_mk35.hpp:268
-#: tmp_error_headers/error_list_xl.hpp:415
-#: tmp_error_headers/error_list_mk4.hpp:275
-#: tmp_error_headers/error_list_mini.hpp:254
-#: tmp_error_headers/error_list_ix.hpp:380
-msgid "ESP detected command error."
-msgstr "ESP detectó un error de comando."
-
-#: tmp_error_headers/error_list_coreone.hpp:352
-#: tmp_error_headers/error_list_mk35.hpp:275
-#: tmp_error_headers/error_list_xl.hpp:422
-#: tmp_error_headers/error_list_mk4.hpp:282
-#: tmp_error_headers/error_list_mini.hpp:261
-#: tmp_error_headers/error_list_ix.hpp:387
-msgid "ESP detected unknown error."
-msgstr "ESP detectó un error de desconocido."
-
 #: tmp_error_headers/error_list_xl.hpp:99
 msgid "EXTRUDER MAXTEMP ERROR"
 msgstr "ERROR MAXTEMP EXTRUSOR"
-
-#: tmp_error_headers/error_list_coreone.hpp:652
-#: tmp_error_headers/error_list_mk35.hpp:456
-#: tmp_error_headers/error_list_xl.hpp:729
-#: tmp_error_headers/error_list_mk4.hpp:498
-#: tmp_error_headers/error_list_mini.hpp:428
-#: tmp_error_headers/error_list_ix.hpp:687
-msgid "EXTRUDER NOT DETECTED"
-msgstr "EXTRUSOR NO DETECTADO"
-
-#: tmp_error_headers/error_list_coreone.hpp:373
-#: tmp_error_headers/error_list_mk35.hpp:296
-#: tmp_error_headers/error_list_xl.hpp:443
-#: tmp_error_headers/error_list_mk4.hpp:303
-#: tmp_error_headers/error_list_mini.hpp:282
-#: tmp_error_headers/error_list_ix.hpp:408
-msgid "Emergency stop invoked by G-code (M112)."
-msgstr "Parada de emergencia invocada por código G (M112)."
-
-#: tmp_error_headers/error_list_coreone.hpp:891
-msgid ""
-"Ensure the top ventilation grille is closed for optimal chamber temperature."
-msgstr ""
-"Asegúrate de que la rejilla de ventilación superior está cerrada para "
-"obtener una temperatura óptima de la cámara."
-
-#: tmp_error_headers/error_list_coreone.hpp:884
-msgid "Ensure the top ventilation grille is open for proper airflow."
-msgstr ""
-"Asegúrate de que la rejilla de ventilación superior está abierta para que el "
-"aire circule correctamente."
-
-#: tmp_error_headers/error_list_coreone.hpp:583
-#: tmp_error_headers/error_list_mk35.hpp:387
-#: tmp_error_headers/error_list_xl.hpp:660
-#: tmp_error_headers/error_list_mk4.hpp:429
-#: tmp_error_headers/error_list_mini.hpp:359
-#: tmp_error_headers/error_list_ix.hpp:618
-msgid ""
-"Error erasing\n"
-" flash! Restart\n"
-"the printer and\n"
-"try again."
-msgstr ""
-"¡Error al borrar \n"
-"memoria flash! \n"
-"Reinicia impresora \n"
-"y reinténtalo."
-
-#: tmp_error_headers/error_list_coreone.hpp:631
-#: tmp_error_headers/error_list_mk35.hpp:435
-#: tmp_error_headers/error_list_xl.hpp:708
-#: tmp_error_headers/error_list_mk4.hpp:477
-#: tmp_error_headers/error_list_mini.hpp:407
-#: tmp_error_headers/error_list_ix.hpp:666
-msgid "FIRMWARE MISSING"
-msgstr "FALTA FIRMWARE"
-
-#: tmp_error_headers/error_list_coreone.hpp:582
-#: tmp_error_headers/error_list_mk35.hpp:386
-#: tmp_error_headers/error_list_xl.hpp:659
-#: tmp_error_headers/error_list_mk4.hpp:428
-#: tmp_error_headers/error_list_mini.hpp:358
-#: tmp_error_headers/error_list_ix.hpp:617
-msgid "FLASH ERASE ERROR"
-msgstr "ERROR BORRADO FLASH"
-
-#: tmp_error_headers/error_list_coreone.hpp:603
-#: tmp_error_headers/error_list_mk35.hpp:407
-#: tmp_error_headers/error_list_xl.hpp:680
-#: tmp_error_headers/error_list_mk4.hpp:449
-#: tmp_error_headers/error_list_mini.hpp:379
-#: tmp_error_headers/error_list_ix.hpp:638
-msgid "FW IN INTERNAL FLASH CORRUPTED"
-msgstr "FW EN FLASH INTERNO DAÑADO"
 
 #: src/gui/screen_menu_settings.hpp:36
 msgid "FW update"
@@ -5019,30 +4650,6 @@ msgstr "Sensor Fil. Desactivado"
 msgid "Fil. Sensor Troubleshooting"
 msgstr "Resolución de Problemas Sensor Fil."
 
-#: tmp_error_headers/error_list_coreone.hpp:877
-#: tmp_error_headers/error_list_mk35.hpp:681
-#: tmp_error_headers/error_list_xl.hpp:982
-#: tmp_error_headers/error_list_mk4.hpp:723
-#: tmp_error_headers/error_list_mini.hpp:611
-#: tmp_error_headers/error_list_ix.hpp:884
-msgid "Filament loading timed out."
-msgstr "Tiempo de carga de filamento agotado."
-
-#: tmp_error_headers/error_list_coreone.hpp:702
-#: tmp_error_headers/error_list_mk35.hpp:506
-#: tmp_error_headers/error_list_xl.hpp:772
-#: tmp_error_headers/error_list_mk4.hpp:548
-#: tmp_error_headers/error_list_mini.hpp:464
-#: tmp_error_headers/error_list_ix.hpp:723
-msgid ""
-"Filament not detected. Load filament now?\n"
-"Select NO to cancel the print.\n"
-"Select DISABLE FS to disable the filament sensor and continue print."
-msgstr ""
-"No se ha detectado filamento. ¿Cargar filamento ahora? \n"
-"Selecciona NO para cancelar la impresión.\n"
-"Selecciona DESACTIVAR FS para desactivar el sensor de filamento y continuar."
-
 #: tmp_error_headers/error_list_coreone.hpp:64
 #: tmp_error_headers/error_list_mk35.hpp:22
 #: tmp_error_headers/error_list_xl.hpp:71
@@ -5062,188 +4669,9 @@ msgstr ""
 "Los sensores de filamento están desactivados. Actívalos manualmente después "
 "de imprimir."
 
-#: tmp_error_headers/error_list_coreone.hpp:639
-#: tmp_error_headers/error_list_mk35.hpp:443
-#: tmp_error_headers/error_list_xl.hpp:716
-#: tmp_error_headers/error_list_mk4.hpp:485
-#: tmp_error_headers/error_list_mini.hpp:415
-#: tmp_error_headers/error_list_ix.hpp:674
-msgid ""
-"File system error!\n"
-"Try a different USB\n"
-"drive or format the\n"
-"drive with FAT32\n"
-"filesystem (all \n"
-"data will be lost)!"
-msgstr ""
-"¡Error sistema archivos! \n"
-"¡Prueba otra unidad USB \n"
-"o formatea la unidad \n"
-"al sistema de archivos FAT32 \n"
-"(se perderán todos los datos)!"
-
-#: tmp_error_headers/error_list_coreone.hpp:611
-#: tmp_error_headers/error_list_mk35.hpp:415
-#: tmp_error_headers/error_list_xl.hpp:688
-#: tmp_error_headers/error_list_mk4.hpp:457
-#: tmp_error_headers/error_list_ix.hpp:646
-msgid ""
-"Firmware and hardware versions do\n"
-"not match. Make sure you have\n"
-"the right firmware file for\n"
-"your printer."
-msgstr ""
-"Versiones de firmware y hardware \n"
-"no coinciden. Asegúrate que\n"
-"tienes el archivo de firmware\n"
-"tu impresora."
-
-#: tmp_error_headers/error_list_coreone.hpp:576
-#: tmp_error_headers/error_list_mk35.hpp:380
-#: tmp_error_headers/error_list_xl.hpp:653
-#: tmp_error_headers/error_list_mk4.hpp:422
-#: tmp_error_headers/error_list_mini.hpp:352
-#: tmp_error_headers/error_list_ix.hpp:611
-msgid ""
-"Firmware file\n"
-"missing in the USB\n"
-"flash!"
-msgstr ""
-"¡Falta un archivo \n"
-"de firmware en \n"
-"la memoria USB!"
-
-#: tmp_error_headers/error_list_coreone.hpp:597
-#: tmp_error_headers/error_list_mk35.hpp:401
-#: tmp_error_headers/error_list_xl.hpp:674
-#: tmp_error_headers/error_list_mk4.hpp:443
-#: tmp_error_headers/error_list_mini.hpp:373
-#: tmp_error_headers/error_list_ix.hpp:632
-msgid ""
-"Firmware hash\n"
-"verification failed!\n"
-"Firmware file is\n"
-"damaged. Try\n"
-"downloading and\n"
-"copying it onto the\n"
-"USB drive again."
-msgstr ""
-"¡Error verificación \n"
-"hash firmware! \n"
-"Archivo FW \n"
-"dañado. Intenta \n"
-"descargarlo y copiarlo \n"
-"de nuevo a \n"
-"la unidad USB."
-
-#: tmp_error_headers/error_list_coreone.hpp:604
-#: tmp_error_headers/error_list_mk35.hpp:408
-#: tmp_error_headers/error_list_xl.hpp:681
-#: tmp_error_headers/error_list_mk4.hpp:450
-#: tmp_error_headers/error_list_mini.hpp:380
-#: tmp_error_headers/error_list_ix.hpp:639
-msgid ""
-"Firmware in the\n"
-"internal flash\n"
-"corrupted! Please\n"
-"reflash the\n"
-"firmware."
-msgstr ""
-"¡FW de flash \n"
-"interno dañado! \n"
-"Por favor, reflashea\n"
-"el firmware."
-
-#: tmp_error_headers/error_list_coreone.hpp:590
-#: tmp_error_headers/error_list_mk35.hpp:394
-#: tmp_error_headers/error_list_xl.hpp:667
-#: tmp_error_headers/error_list_mk4.hpp:436
-#: tmp_error_headers/error_list_mini.hpp:366
-#: tmp_error_headers/error_list_ix.hpp:625
-msgid ""
-"Firmware signature\n"
-"verification failed!\n"
-"Only official\n"
-"signed firmware can\n"
-"be flashed."
-msgstr ""
-"¡Fallo verificación \n"
-"de firma del FW! \n"
-"Sólo se puede \n"
-"instalar FW oficial."
-
-#: tmp_error_headers/error_list_coreone.hpp:618
-#: tmp_error_headers/error_list_mk35.hpp:422
-#: tmp_error_headers/error_list_xl.hpp:695
-#: tmp_error_headers/error_list_mk4.hpp:464
-#: tmp_error_headers/error_list_mini.hpp:394
-#: tmp_error_headers/error_list_ix.hpp:653
-msgid ""
-"Firmware/printer\n"
-"types do not match.\n"
-"Make sure you have\n"
-"the right firmware\n"
-"file for your\n"
-"printer model."
-msgstr ""
-"Firmware/impresora \n"
-"no coincide. Asegúrate \n"
-"de que tienes el archivo \n"
-"de FW correcto para \n"
-"tu modelo de impresora."
-
-#: tmp_error_headers/error_list_coreone.hpp:625
-#: tmp_error_headers/error_list_mk35.hpp:429
-#: tmp_error_headers/error_list_xl.hpp:702
-#: tmp_error_headers/error_list_mk4.hpp:471
-#: tmp_error_headers/error_list_mini.hpp:401
-#: tmp_error_headers/error_list_ix.hpp:660
-msgid ""
-"Firmware/printer\n"
-"versions do not\n"
-"match! You are\n"
-"trying to flash\n"
-"FW meant for other\n"
-"revision of the\n"
-"Buddy board."
-msgstr ""
-"¡Firmware/impresora \n"
-"no coincide! Tratas \n"
-"de flashear el FW \n"
-"destinado a \n"
-"otra revisión de \n"
-"placa Buddy."
-
 #: src/gui/menu_item/specific/menu_items_xbuddy_extension.cpp:96
 msgid "Filtration fan"
 msgstr "Ventilador de filtrado"
-
-#: tmp_error_headers/error_list_coreone.hpp:561
-#: tmp_error_headers/error_list_mk35.hpp:365
-#: tmp_error_headers/error_list_xl.hpp:638
-#: tmp_error_headers/error_list_mk4.hpp:407
-#: tmp_error_headers/error_list_mini.hpp:337
-#: tmp_error_headers/error_list_ix.hpp:596
-msgid "USB FLASH DRIVE NOT CONNECTED"
-msgstr "UNIDAD USB NO CONECTADA"
-
-#: tmp_error_headers/error_list_coreone.hpp:638
-#: tmp_error_headers/error_list_mk35.hpp:442
-#: tmp_error_headers/error_list_xl.hpp:715
-#: tmp_error_headers/error_list_mk4.hpp:484
-#: tmp_error_headers/error_list_mini.hpp:414
-#: tmp_error_headers/error_list_ix.hpp:673
-msgid "USB FLASH ERROR"
-msgstr "ERROR UNIDAD USB"
-
-#: tmp_error_headers/error_list_coreone.hpp:218
-#: tmp_error_headers/error_list_mk35.hpp:141
-#: tmp_error_headers/error_list_xl.hpp:260
-#: tmp_error_headers/error_list_mk4.hpp:148
-#: tmp_error_headers/error_list_mini.hpp:134
-#: tmp_error_headers/error_list_ix.hpp:232
-msgid "USB PORT OVERCURRENT"
-msgstr "SOBRECONSUMO PUERTO USB"
 
 #: src/common/client_response_texts.hpp:101
 msgid "YES"
@@ -5257,122 +4685,14 @@ msgstr ""
 "Puedes continuar imprimiendo. Si el problema persiste,\n"
 "repite este procedimiento de nuevo."
 
-#: tmp_error_headers/error_list_coreone.hpp:667
-#: tmp_error_headers/error_list_mk35.hpp:471
-#: tmp_error_headers/error_list_xl.hpp:737
-#: tmp_error_headers/error_list_mk4.hpp:513
-msgid ""
-"Welcome to the Cold Pull wizard. Prepare a 30cm piece of PLA filament and "
-"follow the instructions. For more details, visit:"
-msgstr ""
-"Bienvenido al asistente de Tirón en Frío. Prepara un trozo de filamento PLA "
-"de 30cm y sigue las instrucciones. Para más detalles, visita:"
-
-#: tmp_error_headers/error_list_coreone.hpp:828
-#: tmp_error_headers/error_list_mk35.hpp:639
-#: tmp_error_headers/error_list_xl.hpp:898
-#: tmp_error_headers/error_list_mk4.hpp:674
-#: tmp_error_headers/error_list_mini.hpp:569
-#: tmp_error_headers/error_list_ix.hpp:828
-msgid ""
-"G-Code transfer running too slow. Check your network for issues or use "
-"different USB drive. Press Continue to resume printing."
-msgstr ""
-"La transferencia del Código G es demasiado lenta. Comprueba si hay problemas "
-"en la red o utiliza una unidad USB diferente. Pulsa Continuar para reanudar "
-"la impresión."
-
-#: tmp_error_headers/error_list_coreone.hpp:547
-#: tmp_error_headers/error_list_mk35.hpp:351
+#: tmp_error_headers/error_list_coreone.hpp:561
+#: tmp_error_headers/error_list_mk35.hpp:365
 #: tmp_error_headers/error_list_xl.hpp:617
-#: tmp_error_headers/error_list_mk4.hpp:393
+#: tmp_error_headers/error_list_mk4.hpp:407
 #: tmp_error_headers/error_list_mini.hpp:323
 #: tmp_error_headers/error_list_ix.hpp:582
 msgid "Gcode Cropped"
 msgstr "Código G Recortado"
-
-#: tmp_error_headers/error_list_coreone.hpp:541
-#: tmp_error_headers/error_list_mk35.hpp:345
-#: tmp_error_headers/error_list_xl.hpp:611
-#: tmp_error_headers/error_list_mk4.hpp:387
-#: tmp_error_headers/error_list_mini.hpp:317
-#: tmp_error_headers/error_list_ix.hpp:576
-msgid "Gcode on the USB drive is corrupt. Fix manually before resuming."
-msgstr ""
-"El código G de la unidad USB está dañado. Corrígelo manualmente antes de "
-"reanudar."
-
-#: tmp_error_headers/error_list_coreone.hpp:261
-#: tmp_error_headers/error_list_mk35.hpp:184
-#: tmp_error_headers/error_list_xl.hpp:289
-#: tmp_error_headers/error_list_mk4.hpp:191
-#: tmp_error_headers/error_list_mini.hpp:177
-#: tmp_error_headers/error_list_ix.hpp:275
-msgid "HAL detected an I2C busy state when sending data via I2C."
-msgstr "HAL detectó un estado ocupado I2C al recibir datos vía I2C."
-
-#: tmp_error_headers/error_list_coreone.hpp:282
-#: tmp_error_headers/error_list_mk35.hpp:205
-#: tmp_error_headers/error_list_xl.hpp:310
-#: tmp_error_headers/error_list_mk4.hpp:212
-#: tmp_error_headers/error_list_mini.hpp:198
-#: tmp_error_headers/error_list_ix.hpp:296
-msgid "HAL detected an I2C error when receiving data via I2C."
-msgstr "HAL detectó un error de I2C al recibir datos vía I2C."
-
-#: tmp_error_headers/error_list_coreone.hpp:254
-#: tmp_error_headers/error_list_mk35.hpp:177
-#: tmp_error_headers/error_list_xl.hpp:282
-#: tmp_error_headers/error_list_mk4.hpp:184
-#: tmp_error_headers/error_list_mini.hpp:170
-#: tmp_error_headers/error_list_ix.hpp:268
-msgid "HAL detected an I2C error when sending data via I2C."
-msgstr "HAL detectó un error de I2C al enviar datos vía I2C."
-
-#: tmp_error_headers/error_list_coreone.hpp:296
-#: tmp_error_headers/error_list_mk35.hpp:219
-#: tmp_error_headers/error_list_xl.hpp:324
-#: tmp_error_headers/error_list_mk4.hpp:226
-#: tmp_error_headers/error_list_mini.hpp:212
-#: tmp_error_headers/error_list_ix.hpp:310
-msgid "HAL detected an I2C timeout when receiving data via I2C."
-msgstr "HAL detectó un timeout de I2C al recibir datos vía I2C"
-
-#: tmp_error_headers/error_list_coreone.hpp:596
-#: tmp_error_headers/error_list_mk35.hpp:400
-#: tmp_error_headers/error_list_xl.hpp:673
-#: tmp_error_headers/error_list_mk4.hpp:442
-#: tmp_error_headers/error_list_mini.hpp:372
-#: tmp_error_headers/error_list_ix.hpp:631
-msgid "HASH VERIFICATION FAILED"
-msgstr "FALLO VERIFICACIÓN HASH"
-
-#: tmp_error_headers/error_list_coreone.hpp:204
-#: tmp_error_headers/error_list_mk35.hpp:127
-#: tmp_error_headers/error_list_xl.hpp:246
-#: tmp_error_headers/error_list_mk4.hpp:134
-#: tmp_error_headers/error_list_mini.hpp:120
-#: tmp_error_headers/error_list_ix.hpp:218
-msgid "HOMING ERROR X"
-msgstr "ERROR DE HOMING X"
-
-#: tmp_error_headers/error_list_coreone.hpp:211
-#: tmp_error_headers/error_list_mk35.hpp:134
-#: tmp_error_headers/error_list_xl.hpp:253
-#: tmp_error_headers/error_list_mk4.hpp:141
-#: tmp_error_headers/error_list_mini.hpp:127
-#: tmp_error_headers/error_list_ix.hpp:225
-msgid "HOMING ERROR Y"
-msgstr "ERROR DE HOMING Y"
-
-#: tmp_error_headers/error_list_coreone.hpp:197
-#: tmp_error_headers/error_list_mk35.hpp:120
-#: tmp_error_headers/error_list_xl.hpp:225
-#: tmp_error_headers/error_list_mk4.hpp:127
-#: tmp_error_headers/error_list_mini.hpp:113
-#: tmp_error_headers/error_list_ix.hpp:197
-msgid "HOMING ERROR Z"
-msgstr "ERROR DE HOMING Z"
 
 #: tmp_error_headers/error_list_xl.hpp:358
 msgid "HOTEND HEATER OVERCURRENT"
@@ -5396,72 +4716,10 @@ msgstr ""
 msgid "Heatbreak Fan"
 msgstr "Ventilador Heatbreak"
 
-#: tmp_error_headers/error_list_coreone.hpp:821
-#: tmp_error_headers/error_list_mk35.hpp:625
-#: tmp_error_headers/error_list_xl.hpp:884
-#: tmp_error_headers/error_list_mk4.hpp:667
-#: tmp_error_headers/error_list_mini.hpp:562
-#: tmp_error_headers/error_list_ix.hpp:821
-msgid "Heatbreak thermistor is disconnected. Inspect the wiring."
-msgstr "El termistor está desconectado. Inspecciona el cableado."
-
 #: tmp_error_headers/error_list_ix.hpp:786
 #: tmp_error_headers/error_list_ix.hpp:800
 msgid "Heating disabled due to 10 minutes of inactivity."
 msgstr "Calefacción desactivada tras 10 minutos de inactividad."
-
-#: tmp_error_headers/error_list_coreone.hpp:786
-#: tmp_error_headers/error_list_coreone.hpp:800
-#: tmp_error_headers/error_list_mk35.hpp:590
-#: tmp_error_headers/error_list_mk35.hpp:604
-#: tmp_error_headers/error_list_xl.hpp:849
-#: tmp_error_headers/error_list_xl.hpp:863
-#: tmp_error_headers/error_list_mk4.hpp:632
-#: tmp_error_headers/error_list_mk4.hpp:646
-#: tmp_error_headers/error_list_mini.hpp:527
-#: tmp_error_headers/error_list_mini.hpp:541
-msgid "Heating disabled due to 30 minutes of inactivity."
-msgstr "Calentamiento deshabilitado debido a 30 minutos de inactividad."
-
-#: tmp_error_headers/error_list_coreone.hpp:842
-#: tmp_error_headers/error_list_mk35.hpp:653
-#: tmp_error_headers/error_list_xl.hpp:926
-#: tmp_error_headers/error_list_mk4.hpp:688
-#: tmp_error_headers/error_list_mini.hpp:583
-#: tmp_error_headers/error_list_ix.hpp:849
-msgid ""
-"Hotend fan not spinning. Check it for possible debris, then inspect the "
-"wiring."
-msgstr ""
-"El ventilador del fusor no gira. Comprueba que no hay residuos, luego "
-"inspecciona el cableado."
-
-#: tmp_error_headers/error_list_coreone.hpp:288
-#: tmp_error_headers/error_list_mk35.hpp:211
-#: tmp_error_headers/error_list_xl.hpp:316
-#: tmp_error_headers/error_list_mk4.hpp:218
-#: tmp_error_headers/error_list_mini.hpp:204
-#: tmp_error_headers/error_list_ix.hpp:302
-msgid "I2C RECEIVE BUSY"
-msgstr "I2C RECEIVE BUSY"
-
-#: tmp_error_headers/error_list_coreone.hpp:281
-#: tmp_error_headers/error_list_mk35.hpp:204
-#: tmp_error_headers/error_list_xl.hpp:309
-#: tmp_error_headers/error_list_mk4.hpp:211
-#: tmp_error_headers/error_list_mini.hpp:197
-#: tmp_error_headers/error_list_ix.hpp:295
-msgid "I2C RECEIVE FAILED"
-msgstr "I2C RECEIVE FAILED"
-
-#: tmp_error_headers/error_list_coreone.hpp:295
-#: tmp_error_headers/error_list_mk35.hpp:218
-#: tmp_error_headers/error_list_xl.hpp:323
-#: tmp_error_headers/error_list_mk4.hpp:225
-#: tmp_error_headers/error_list_mini.hpp:211
-#: tmp_error_headers/error_list_ix.hpp:309
-msgid "I2C RECEIVE TIMEOUT"
-msgstr "I2C RECEIVE TIMEOUT"
 
 #: src/gui/screen_menu_filament_sensors.cpp:91
 msgid "All filament sensors enabled."
@@ -5733,23 +4991,14 @@ msgstr "Term. movimientos"
 msgid "Firmware Version"
 msgstr "Versión del firmware"
 
-#: tmp_error_headers/error_list_coreone.hpp:302
-#: tmp_error_headers/error_list_mk35.hpp:225
-#: tmp_error_headers/error_list_xl.hpp:330
-#: tmp_error_headers/error_list_mk4.hpp:232
-#: tmp_error_headers/error_list_mini.hpp:218
-#: tmp_error_headers/error_list_ix.hpp:316
-msgid "I2C RECEIVE UNDEFINED"
-msgstr "I2C RECEIVE UNDEFINED"
-
 #: src/gui/MItem_tools.hpp:140
 msgid "Hard Reset (USB with FW needed)"
 msgstr "Reset completo (necesario USB con FW)"
 
-#: tmp_error_headers/error_list_coreone.hpp:548
-#: tmp_error_headers/error_list_mk35.hpp:352
+#: tmp_error_headers/error_list_coreone.hpp:562
+#: tmp_error_headers/error_list_mk35.hpp:366
 #: tmp_error_headers/error_list_xl.hpp:618
-#: tmp_error_headers/error_list_mk4.hpp:394
+#: tmp_error_headers/error_list_mk4.hpp:408
 #: tmp_error_headers/error_list_mini.hpp:324
 #: tmp_error_headers/error_list_ix.hpp:583
 msgid ""
@@ -5860,10 +5109,10 @@ msgstr "Cargado con éxito. Connect se activará en breves."
 msgid "Loaded successfully. Enable Connect to activate."
 msgstr "Cargado con éxito. Habilita Conectar para activar."
 
-#: tmp_error_headers/error_list_coreone.hpp:876
-#: tmp_error_headers/error_list_mk35.hpp:680
+#: tmp_error_headers/error_list_coreone.hpp:890
+#: tmp_error_headers/error_list_mk35.hpp:694
 #: tmp_error_headers/error_list_xl.hpp:981
-#: tmp_error_headers/error_list_mk4.hpp:722
+#: tmp_error_headers/error_list_mk4.hpp:736
 #: tmp_error_headers/error_list_mini.hpp:610
 #: tmp_error_headers/error_list_ix.hpp:883
 msgid "Loading Timeout"
@@ -5961,10 +5210,10 @@ msgstr "¡¡ Cuidado, los cabezales están calientes !!"
 msgid "MANUAL SETTINGS"
 msgstr "AJUSTES MANUALES"
 
-#: tmp_error_headers/error_list_coreone.hpp:512
-#: tmp_error_headers/error_list_mk35.hpp:316
+#: tmp_error_headers/error_list_coreone.hpp:526
+#: tmp_error_headers/error_list_mk35.hpp:330
 #: tmp_error_headers/error_list_xl.hpp:582
-#: tmp_error_headers/error_list_mk4.hpp:358
+#: tmp_error_headers/error_list_mk4.hpp:372
 #: tmp_error_headers/error_list_mini.hpp:288
 #: tmp_error_headers/error_list_ix.hpp:547
 msgid "MARLIN REQUEST TIMEOUT"
@@ -6056,15 +5305,7 @@ msgstr "Cargas filamento MMU"
 msgid "Filament sensor not connected, check wiring."
 msgstr "Sensor de filamento no conectado, comprueba el cableado."
 
-#: tmp_error_headers/error_list_coreone.hpp:506
-#: tmp_error_headers/error_list_mk35.hpp:310
-#: tmp_error_headers/error_list_xl.hpp:576
-#: tmp_error_headers/error_list_mk4.hpp:352
-#: tmp_error_headers/error_list_ix.hpp:541
-msgid "Memory allocation failed for scheduled LED animation"
-msgstr "Fallo en la asignación de memoria para la animación LED programada"
-
-#: src/gui/screen_printing.cpp:364
+#: src/gui/screen_printing.cpp:364 tmp_error_headers/error_list_mk35.hpp:37
 msgid ""
 "Maintenance Reminder. Filament changes have reached 30k. Inspect and clean "
 "the extruder. Visit prusa.io/mmu-care"
@@ -6072,7 +5313,8 @@ msgstr ""
 "Recordatorio de Mantenimiento. Se han alcanzado 30k cambios de filamento. "
 "Inspecciona y limpia el extrusor. Visita prusa.io/mmu-care"
 
-#: src/gui/screen_printing.cpp:362
+#: src/gui/screen_printing.cpp:362 tmp_error_headers/error_list_coreone.hpp:79
+#: tmp_error_headers/error_list_mk4.hpp:44
 msgid ""
 "Maintenance Reminder. Filament changes have reached main-plate lifespan. "
 "Inspect the part and ensure you have a spare plate available. Visit prusa.io/"
@@ -6090,10 +5332,10 @@ msgstr "Asegúrate que filamento está insertado a través del sensor."
 msgid "Manual Settings"
 msgstr "Ajustes Manuales"
 
-#: tmp_error_headers/error_list_coreone.hpp:513
-#: tmp_error_headers/error_list_mk35.hpp:317
+#: tmp_error_headers/error_list_coreone.hpp:527
+#: tmp_error_headers/error_list_mk35.hpp:331
 #: tmp_error_headers/error_list_xl.hpp:583
-#: tmp_error_headers/error_list_mk4.hpp:359
+#: tmp_error_headers/error_list_mk4.hpp:373
 #: tmp_error_headers/error_list_mini.hpp:289
 #: tmp_error_headers/error_list_ix.hpp:548
 msgid ""
@@ -6198,10 +5440,10 @@ msgstr "NINS / %7ld"
 msgid "NO"
 msgstr "NO"
 
-#: tmp_error_headers/error_list_coreone.hpp:575
-#: tmp_error_headers/error_list_mk35.hpp:379
+#: tmp_error_headers/error_list_coreone.hpp:589
+#: tmp_error_headers/error_list_mk35.hpp:393
 #: tmp_error_headers/error_list_xl.hpp:652
-#: tmp_error_headers/error_list_mk4.hpp:421
+#: tmp_error_headers/error_list_mk4.hpp:435
 #: tmp_error_headers/error_list_mini.hpp:351
 #: tmp_error_headers/error_list_ix.hpp:610
 msgid "NO FW ON USB FLASH DRIVE"
@@ -6334,7 +5576,7 @@ msgstr "Una vez"
 msgid "Nozzle diameter"
 msgstr "Diámetro de la boquilla"
 
-#: tmp_error_headers/error_list_mk35.hpp:632
+#: tmp_error_headers/error_list_mk35.hpp:646
 #: tmp_error_headers/error_list_xl.hpp:891
 msgid ""
 "Nozzle doesn't seem to have round cross section. Make sure it is clean and "
@@ -6423,10 +5665,10 @@ msgstr "Cabezal 3"
 msgid "Online"
 msgstr "Online"
 
-#: tmp_error_headers/error_list_coreone.hpp:219
-#: tmp_error_headers/error_list_mk35.hpp:142
+#: tmp_error_headers/error_list_coreone.hpp:233
+#: tmp_error_headers/error_list_mk35.hpp:156
 #: tmp_error_headers/error_list_xl.hpp:261
-#: tmp_error_headers/error_list_mk4.hpp:149
+#: tmp_error_headers/error_list_mk4.hpp:163
 #: tmp_error_headers/error_list_mini.hpp:135
 #: tmp_error_headers/error_list_ix.hpp:233
 msgid "Overcurrent detected on USB port."
@@ -6436,10 +5678,10 @@ msgstr "Sobrecorriente detectada en el puerto USB."
 msgid "Tools Changed"
 msgstr "Cambios de Cabezal"
 
-#: tmp_error_headers/error_list_coreone.hpp:247
-#: tmp_error_headers/error_list_mk35.hpp:170
+#: tmp_error_headers/error_list_coreone.hpp:261
+#: tmp_error_headers/error_list_mk35.hpp:184
 #: tmp_error_headers/error_list_xl.hpp:275
-#: tmp_error_headers/error_list_mk4.hpp:177
+#: tmp_error_headers/error_list_mk4.hpp:191
 #: tmp_error_headers/error_list_mini.hpp:163
 #: tmp_error_headers/error_list_ix.hpp:261
 msgid "Overcurrent detected on the MMU port, disconnect the device."
@@ -6481,16 +5723,7 @@ msgstr "PAUSANDO ..."
 msgid "PHASE STEPPING CALIBRATION"
 msgstr "CALIBRACIÓN PHASE STEPPING"
 
-#: tmp_error_headers/error_list_coreone.hpp:365
-#: tmp_error_headers/error_list_mk35.hpp:288
-#: tmp_error_headers/error_list_xl.hpp:435
-#: tmp_error_headers/error_list_mk4.hpp:295
-#: tmp_error_headers/error_list_mini.hpp:274
-#: tmp_error_headers/error_list_ix.hpp:400
-msgid "PNG BUFFER FULL"
-msgstr "BUFFER PNG LLENO"
-
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:205
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:210
 msgid "PRINTHEAD"
 msgstr "CABEZAL"
 
@@ -6508,7 +5741,7 @@ msgid "PURGE MORE"
 msgstr "PURGAR MÁS"
 
 #. Do not show "Pick Tool" at all for all_toolheads, only "Park Tool" that gets disabled when no tool is selected
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:133
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:138
 msgid "Park Tool"
 msgstr "Aparca Cabezal"
 
@@ -6540,7 +5773,7 @@ msgstr "PHASE STEPPING"
 msgid "Perfect!"
 msgstr "¡Perfecto!"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:174
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:179
 msgid ""
 "Perform filament sensors calibration? This discards previous filament "
 "sensors calibration."
@@ -6635,7 +5868,8 @@ msgstr "Filtración de Impresión"
 msgid "Print Progress Screen"
 msgstr "Pantalla del Progreso de Impresión"
 
-#: src/gui/screen_printing.cpp:355
+#: src/gui/screen_printing.cpp:355 tmp_error_headers/error_list_coreone.hpp:72
+#: tmp_error_headers/error_list_mk4.hpp:37
 msgid ""
 "Printer has detected multiple consecutive filament loading errors. We "
 "recommend checking Nextruder main-plate. Visit prusa.io/mmu-care"
@@ -6919,12 +6153,12 @@ msgstr "Ventiladores conmutados"
 msgid "TLS error"
 msgstr "Error TLS"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:200
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:205
 #, c-format
 msgid "TOOL %d"
 msgstr "CABEZAL %d"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:202
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:207
 msgid "TOOLHEAD"
 msgstr "CABEZAL"
 
@@ -7053,15 +6287,6 @@ msgstr "ARRIBA"
 msgid "Unauthorized"
 msgstr "No autorizado"
 
-#: tmp_error_headers/error_list_coreone.hpp:673
-#: tmp_error_headers/error_list_mk35.hpp:477
-#: tmp_error_headers/error_list_xl.hpp:743
-#: tmp_error_headers/error_list_mk4.hpp:519
-#: tmp_error_headers/error_list_mini.hpp:435
-#: tmp_error_headers/error_list_ix.hpp:694
-msgid "Unknown file system"
-msgstr "Sistema de archivos desconocido"
-
 #: src/gui/screen_menu_filament_changeall.cpp:77
 msgid "Unload"
 msgstr "Descargar"
@@ -7109,23 +6334,14 @@ msgstr "Esperando a que se enfríe la boquilla"
 msgid "Waiting for temperature"
 msgstr "Esperando temp."
 
-#: tmp_error_headers/error_list_coreone.hpp:260
-#: tmp_error_headers/error_list_mk35.hpp:183
+#: tmp_error_headers/error_list_coreone.hpp:274
+#: tmp_error_headers/error_list_mk35.hpp:197
 #: tmp_error_headers/error_list_xl.hpp:288
-#: tmp_error_headers/error_list_mk4.hpp:190
+#: tmp_error_headers/error_list_mk4.hpp:204
 #: tmp_error_headers/error_list_mini.hpp:176
 #: tmp_error_headers/error_list_ix.hpp:274
 msgid "I2C SEND BUSY"
 msgstr "I2C SEND BUSY"
-
-#: tmp_error_headers/error_list_coreone.hpp:253
-#: tmp_error_headers/error_list_mk35.hpp:176
-#: tmp_error_headers/error_list_xl.hpp:281
-#: tmp_error_headers/error_list_mk4.hpp:183
-#: tmp_error_headers/error_list_mini.hpp:169
-#: tmp_error_headers/error_list_ix.hpp:267
-msgid "I2C SEND FAILED"
-msgstr "I2C SEND FAILED"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:47
 msgid "Was filament unload successful?"
@@ -7182,41 +6398,13 @@ msgstr ""
 "Comprueba la configuración de tu HW.\n"
 "Si el problema persiste, contacta con atención al cliente."
 
-#: tmp_error_headers/error_list_coreone.hpp:267
-#: tmp_error_headers/error_list_mk35.hpp:190
-#: tmp_error_headers/error_list_xl.hpp:295
-#: tmp_error_headers/error_list_mk4.hpp:197
-#: tmp_error_headers/error_list_mini.hpp:183
-#: tmp_error_headers/error_list_ix.hpp:281
-msgid "I2C SEND TIMEOUT"
-msgstr "I2C SEND TIMEOUT"
-
-#: tmp_error_headers/error_list_coreone.hpp:274
-#: tmp_error_headers/error_list_mk35.hpp:197
-#: tmp_error_headers/error_list_xl.hpp:302
-#: tmp_error_headers/error_list_mk4.hpp:204
-#: tmp_error_headers/error_list_mini.hpp:190
-#: tmp_error_headers/error_list_ix.hpp:288
-msgid "I2C SEND UNDEFINED"
-msgstr "I2C SEND UNDEFINED"
-
-#: tmp_error_headers/error_list_coreone.hpp:589
-#: tmp_error_headers/error_list_mk35.hpp:393
-#: tmp_error_headers/error_list_xl.hpp:666
-#: tmp_error_headers/error_list_mk4.hpp:435
-#: tmp_error_headers/error_list_mini.hpp:365
-#: tmp_error_headers/error_list_ix.hpp:624
-msgid "IMPOSTER! FAKE SIGNATURE"
-msgstr "¡IMPOSTOR! FIRMA FALSA"
-
-#: tmp_error_headers/error_list_coreone.hpp:568
-#: tmp_error_headers/error_list_mk35.hpp:372
-#: tmp_error_headers/error_list_xl.hpp:645
-#: tmp_error_headers/error_list_mk4.hpp:414
-#: tmp_error_headers/error_list_mini.hpp:344
-#: tmp_error_headers/error_list_ix.hpp:603
-msgid "INVALID FW SIZE ON USB FLASH DRIVE"
-msgstr "TAMAÑO FW NO VÁLIDO EN USB"
+#: tmp_error_headers/error_list_coreone.hpp:519
+#: tmp_error_headers/error_list_mk35.hpp:323
+#: tmp_error_headers/error_list_xl.hpp:575
+#: tmp_error_headers/error_list_mk4.hpp:365
+#: tmp_error_headers/error_list_ix.hpp:540
+msgid "LED MEMORY ERROR"
+msgstr "ERROR DE MEMORIA LED"
 
 #: tmp_error_headers/error_list_coreone.hpp:58
 #: tmp_error_headers/error_list_mk35.hpp:16
@@ -7237,92 +6425,6 @@ msgstr ""
 "Si el sensor de filamento no responde, límpialo de residuos. "
 "Alternativamente, puedes desactivarlo."
 
-#: tmp_error_headers/error_list_coreone.hpp:505
-#: tmp_error_headers/error_list_mk35.hpp:309
-#: tmp_error_headers/error_list_xl.hpp:575
-#: tmp_error_headers/error_list_mk4.hpp:351
-#: tmp_error_headers/error_list_ix.hpp:540
-msgid "LED MEMORY ERROR"
-msgstr "ERROR DE MEMORIA LED"
-
-#: tmp_error_headers/error_list_coreone.hpp:463
-#: tmp_error_headers/error_list_mk35.hpp:302
-#: tmp_error_headers/error_list_xl.hpp:533
-#: tmp_error_headers/error_list_mk4.hpp:309
-#: tmp_error_headers/error_list_ix.hpp:498
-msgid "LOADCELL NOT CALIBRATED"
-msgstr "CÉLULA DE CARGA NO CALIBRADA"
-
-#: tmp_error_headers/error_list_coreone.hpp:470
-#: tmp_error_headers/error_list_xl.hpp:540
-#: tmp_error_headers/error_list_mk4.hpp:316
-#: tmp_error_headers/error_list_ix.hpp:505
-msgid "LOADCELL TARE ERROR"
-msgstr "ERROR TARA CÉLULA DE CARGA"
-
-#: tmp_error_headers/error_list_coreone.hpp:477
-#: tmp_error_headers/error_list_xl.hpp:547
-#: tmp_error_headers/error_list_mk4.hpp:323
-#: tmp_error_headers/error_list_ix.hpp:512
-msgid "LOADCELL TARE FAILED"
-msgstr "FALLO TARA CÉLULA DE CARGA"
-
-#: tmp_error_headers/error_list_coreone.hpp:498
-#: tmp_error_headers/error_list_xl.hpp:568
-#: tmp_error_headers/error_list_mk4.hpp:344
-#: tmp_error_headers/error_list_ix.hpp:533
-msgid "LOADCELL TIMEOUT"
-msgstr "TIMEOUT CÉLULA DE CARGA"
-
-#: tmp_error_headers/error_list_coreone.hpp:737
-#: tmp_error_headers/error_list_mk35.hpp:541
-#: tmp_error_headers/error_list_xl.hpp:800
-#: tmp_error_headers/error_list_mk4.hpp:583
-#: tmp_error_headers/error_list_mini.hpp:492
-#: tmp_error_headers/error_list_ix.hpp:751
-msgid ""
-"Length of an axis is too long.\n"
-"Motor current is too low, probably.\n"
-"Retry check, pause or resume the print?"
-msgstr ""
-"La longitud de un eje es demasiado larga.\n"
-"Potencia del motor muy baja, probablemente.\n"
-"¿Reintentar la comprobación, pausar o reanudar la impresión?"
-
-#: tmp_error_headers/error_list_coreone.hpp:744
-#: tmp_error_headers/error_list_mk35.hpp:548
-#: tmp_error_headers/error_list_xl.hpp:807
-#: tmp_error_headers/error_list_mk4.hpp:590
-#: tmp_error_headers/error_list_mini.hpp:499
-#: tmp_error_headers/error_list_ix.hpp:758
-msgid ""
-"Length of an axis is too short.\n"
-"There's an obstacle or bearing issue.\n"
-"Retry check, pause or resume the print?"
-msgstr ""
-"La longitud de un eje es demasiado corta.\n"
-"Hay un obstáculo o un problema de rodamientos.\n"
-"¿Reintentar la comprobación, pausar o reanudar la impresión?"
-
-#: tmp_error_headers/error_list_coreone.hpp:464
-#: tmp_error_headers/error_list_mk35.hpp:303
-#: tmp_error_headers/error_list_xl.hpp:534
-#: tmp_error_headers/error_list_mk4.hpp:310
-#: tmp_error_headers/error_list_ix.hpp:499
-msgid ""
-"Loadcell calibration is incomplete. Restart the printer and calibrate "
-"loadcell."
-msgstr ""
-"La calibración de la célula de carga está incompleta. Reinicia la impresora "
-"y calibra la Célula de carga."
-
-#: tmp_error_headers/error_list_coreone.hpp:485
-#: tmp_error_headers/error_list_xl.hpp:555
-#: tmp_error_headers/error_list_mk4.hpp:331
-#: tmp_error_headers/error_list_ix.hpp:520
-msgid "Loadcell measured an inifinite or undefined load value."
-msgstr "La célula de carga ha medido un valor de carga infinito o indefinido."
-
 #. //MSG_PROGRESS_UNLOADING_FILAMENT c=20
 #: src/mmu2/mmu2_progress_converter.cpp:22
 #: src/gui/dialogs/DialogLoadUnload.cpp:76
@@ -7336,15 +6438,6 @@ msgstr ""
 "El registro se ha desactivado. Ahora puedes retirar la unidad USB de forma "
 "segura."
 
-#: tmp_error_headers/error_list_coreone.hpp:246
-#: tmp_error_headers/error_list_mk35.hpp:169
-#: tmp_error_headers/error_list_xl.hpp:274
-#: tmp_error_headers/error_list_mk4.hpp:176
-#: tmp_error_headers/error_list_mini.hpp:162
-#: tmp_error_headers/error_list_ix.hpp:260
-msgid "MMU OVERCURRENT"
-msgstr "SOBRECORRIENTE MMU"
-
 #: tmp_error_headers/error_list_xl.hpp:121
 msgid ""
 "Measured temperature is not matching expected value. Check if the thermistor "
@@ -7354,25 +6447,6 @@ msgstr ""
 "termistor está en contacto con el bloque calefactor. En caso de que esté "
 "dañado, sustitúyelo."
 
-#: tmp_error_headers/error_list_coreone.hpp:135
-#: tmp_error_headers/error_list_coreone.hpp:793
-#: tmp_error_headers/error_list_mk35.hpp:93
-#: tmp_error_headers/error_list_mk35.hpp:597
-#: tmp_error_headers/error_list_xl.hpp:856
-#: tmp_error_headers/error_list_mk4.hpp:100
-#: tmp_error_headers/error_list_mk4.hpp:639
-#: tmp_error_headers/error_list_mini.hpp:86
-#: tmp_error_headers/error_list_mini.hpp:534
-#: tmp_error_headers/error_list_ix.hpp:107
-#: tmp_error_headers/error_list_ix.hpp:793
-msgid ""
-"Measured temperature is not matching expected value. Check the thermistor is "
-"in contact with hotend. In case of damage, replace it."
-msgstr ""
-"La temperatura medida no coincide con el valor esperado. Comprueba que el "
-"termistor está en contacto con el hotend. En caso de que esté dañado, "
-"sustitúyelo."
-
 #: src/gui/menu_item/specific/menu_items_chamber_filtration.cpp:43
 msgid "Minimum Power"
 msgstr "Potencia Mínima"
@@ -7380,86 +6454,6 @@ msgstr "Potencia Mínima"
 #: tmp_error_headers/error_list_mini.hpp:450
 msgid "New FW available"
 msgstr "Nuevo FW disponible"
-
-#: tmp_error_headers/error_list_coreone.hpp:632
-#: tmp_error_headers/error_list_mk35.hpp:436
-#: tmp_error_headers/error_list_xl.hpp:709
-#: tmp_error_headers/error_list_mk4.hpp:478
-#: tmp_error_headers/error_list_mini.hpp:408
-#: tmp_error_headers/error_list_ix.hpp:667
-msgid ""
-"No firmware found\n"
-"in the internal\n"
-"flash! Please\n"
-"flash firmware\n"
-"first!"
-msgstr ""
-"No hay FW \n"
-"en la flash interna. \n"
-"¡Por favor, flashea \n"
-"el FW primero!"
-
-#: tmp_error_headers/error_list_coreone.hpp:358
-#: tmp_error_headers/error_list_mk35.hpp:281
-#: tmp_error_headers/error_list_xl.hpp:428
-#: tmp_error_headers/error_list_mk4.hpp:288
-#: tmp_error_headers/error_list_mini.hpp:267
-#: tmp_error_headers/error_list_ix.hpp:393
-msgid "OUT OF MEMORY"
-msgstr "SIN MEMORIA"
-
-#: tmp_error_headers/error_list_coreone.hpp:883
-msgid "Open Chamber Ventilation"
-msgstr "Abrir Ventilación Cámara"
-
-#: tmp_error_headers/error_list_coreone.hpp:226
-#: tmp_error_headers/error_list_mk35.hpp:149
-#: tmp_error_headers/error_list_xl.hpp:268
-#: tmp_error_headers/error_list_mk4.hpp:156
-#: tmp_error_headers/error_list_mini.hpp:142
-#: tmp_error_headers/error_list_ix.hpp:240
-msgid "Overcurrent detected on the connected USB device, disconnect it."
-msgstr ""
-"Sobrecorriente detectada en el dispositivo USB conectado, desconéctalo."
-
-#: tmp_error_headers/error_list_coreone.hpp:379
-#: tmp_error_headers/error_list_coreone.hpp:386
-#: tmp_error_headers/error_list_coreone.hpp:393
-#: tmp_error_headers/error_list_coreone.hpp:400
-#: tmp_error_headers/error_list_coreone.hpp:407
-#: tmp_error_headers/error_list_coreone.hpp:414
-#: tmp_error_headers/error_list_coreone.hpp:421
-#: tmp_error_headers/error_list_coreone.hpp:428
-#: tmp_error_headers/error_list_coreone.hpp:435
-#: tmp_error_headers/error_list_coreone.hpp:442
-#: tmp_error_headers/error_list_coreone.hpp:449
-#: tmp_error_headers/error_list_coreone.hpp:456
-#: tmp_error_headers/error_list_xl.hpp:449
-#: tmp_error_headers/error_list_xl.hpp:456
-#: tmp_error_headers/error_list_xl.hpp:463
-#: tmp_error_headers/error_list_xl.hpp:470
-#: tmp_error_headers/error_list_xl.hpp:477
-#: tmp_error_headers/error_list_xl.hpp:484
-#: tmp_error_headers/error_list_xl.hpp:491
-#: tmp_error_headers/error_list_xl.hpp:498
-#: tmp_error_headers/error_list_xl.hpp:505
-#: tmp_error_headers/error_list_xl.hpp:512
-#: tmp_error_headers/error_list_xl.hpp:519
-#: tmp_error_headers/error_list_xl.hpp:526
-#: tmp_error_headers/error_list_ix.hpp:414
-#: tmp_error_headers/error_list_ix.hpp:421
-#: tmp_error_headers/error_list_ix.hpp:428
-#: tmp_error_headers/error_list_ix.hpp:435
-#: tmp_error_headers/error_list_ix.hpp:442
-#: tmp_error_headers/error_list_ix.hpp:449
-#: tmp_error_headers/error_list_ix.hpp:456
-#: tmp_error_headers/error_list_ix.hpp:463
-#: tmp_error_headers/error_list_ix.hpp:470
-#: tmp_error_headers/error_list_ix.hpp:477
-#: tmp_error_headers/error_list_ix.hpp:484
-#: tmp_error_headers/error_list_ix.hpp:491
-msgid "PUPPY ERROR"
-msgstr "ERROR PUPPY"
 
 #: src/gui/MItem_tools.cpp:903
 msgid "Phase stepping not ready: perform calibration first."
@@ -7469,15 +6463,6 @@ msgstr "Phase stepping no está lista: realiza primero la calibración."
 #: src/gui/MItem_tools.cpp:413
 msgid "Perform filament change now?"
 msgstr "¿Realizar ahora el cambio de filamento?"
-
-#: tmp_error_headers/error_list_coreone.hpp:849
-#: tmp_error_headers/error_list_mk35.hpp:660
-#: tmp_error_headers/error_list_xl.hpp:933
-#: tmp_error_headers/error_list_mk4.hpp:695
-#: tmp_error_headers/error_list_mini.hpp:590
-#: tmp_error_headers/error_list_ix.hpp:856
-msgid "Please replace filament."
-msgstr "Por favor reemplace el filamento."
 
 #: src/gui/menu_item/specific/menu_items_chamber_filtration.cpp:87
 msgid "Post-print Duration"
@@ -7504,36 +6489,6 @@ msgstr ""
 msgid "Printhead"
 msgstr "Cabezal"
 
-#: tmp_error_headers/error_list_coreone.hpp:443
-#: tmp_error_headers/error_list_xl.hpp:513
-#: tmp_error_headers/error_list_ix.hpp:478
-#, c-format
-msgid "Puppy %s firmware fingerprint mismatch"
-msgstr "Desajuste huella firmware puppy %s"
-
-#: tmp_error_headers/error_list_coreone.hpp:429
-#: tmp_error_headers/error_list_xl.hpp:499
-#: tmp_error_headers/error_list_ix.hpp:464
-#, c-format
-msgid "Puppy %s firmware not found"
-msgstr "Firmware puppy %s no encontrado"
-
-#: tmp_error_headers/error_list_coreone.hpp:436
-#: tmp_error_headers/error_list_xl.hpp:506
-#: tmp_error_headers/error_list_ix.hpp:471
-#, c-format
-msgid "Puppy %s flash writing failed"
-msgstr "Fallo escritura flash de puppy %s"
-
-#: tmp_error_headers/error_list_coreone.hpp:869
-#: tmp_error_headers/error_list_mk35.hpp:673
-#: tmp_error_headers/error_list_xl.hpp:974
-#: tmp_error_headers/error_list_mk4.hpp:715
-#: tmp_error_headers/error_list_mini.hpp:603
-#: tmp_error_headers/error_list_ix.hpp:876
-msgid "Quick Pause"
-msgstr "Pausa Rápida"
-
 #: src/gui/screen_splash.cpp:183
 #, c-format
 msgid ""
@@ -7542,15 +6497,6 @@ msgid ""
 msgstr ""
 "Tipo de impresora cambiado de %s a %s.\n"
 "Se debe realizar un restablecimiento de fábrica.\n"
-
-#: tmp_error_headers/error_list_coreone.hpp:338
-#: tmp_error_headers/error_list_mk35.hpp:261
-#: tmp_error_headers/error_list_xl.hpp:408
-#: tmp_error_headers/error_list_mk4.hpp:268
-#: tmp_error_headers/error_list_mini.hpp:247
-#: tmp_error_headers/error_list_ix.hpp:373
-msgid "Reading ESP firmware failed."
-msgstr "Error en la lectura del firmware ESP."
 
 #: src/gui/MItem_tools.cpp:248 src/gui/screen_splash.cpp:195
 msgid "Reset complete. The system will now restart."
@@ -7572,28 +6518,6 @@ msgstr "Info Sensor"
 msgid "Serial Printing Screen"
 msgstr "Pantalla de Impresión en Serie"
 
-#: tmp_error_headers/error_list_coreone.hpp:520
-#: tmp_error_headers/error_list_mk35.hpp:324
-#: tmp_error_headers/error_list_xl.hpp:590
-#: tmp_error_headers/error_list_mk4.hpp:366
-#: tmp_error_headers/error_list_mini.hpp:296
-#: tmp_error_headers/error_list_ix.hpp:555
-msgid ""
-"Space allocation for firmware BBF file failed. Repeat the action or try "
-"another USB drive."
-msgstr ""
-"Ha fallado la asignación de espacio para el archivo BBF del firmware. Repite "
-"la acción o prueba con otra unidad USB."
-
-#: tmp_error_headers/error_list_coreone.hpp:807
-#: tmp_error_headers/error_list_mk35.hpp:611
-#: tmp_error_headers/error_list_xl.hpp:870
-#: tmp_error_headers/error_list_mk4.hpp:653
-#: tmp_error_headers/error_list_mini.hpp:548
-#: tmp_error_headers/error_list_ix.hpp:807
-msgid "Steppers disabled due to inactivity."
-msgstr "Motores desactivados por inactividad."
-
 #: tmp_error_headers/error_list_mini.hpp:114
 msgid ""
 "SuperPINDA sensor is probably broken or disconnected, could not home Z-axis "
@@ -7602,20 +6526,6 @@ msgstr ""
 "El sensor SuperPINDA está probablemente roto o desconectado, no se ha podido "
 "hacer home el eje Z correctamente."
 
-#: tmp_error_headers/error_list_coreone.hpp:127
-#: tmp_error_headers/error_list_coreone.hpp:134
-#: tmp_error_headers/error_list_mk35.hpp:85
-#: tmp_error_headers/error_list_mk35.hpp:92
-#: tmp_error_headers/error_list_xl.hpp:113
-#: tmp_error_headers/error_list_mk4.hpp:92
-#: tmp_error_headers/error_list_mk4.hpp:99
-#: tmp_error_headers/error_list_mini.hpp:78
-#: tmp_error_headers/error_list_mini.hpp:85
-#: tmp_error_headers/error_list_ix.hpp:99
-#: tmp_error_headers/error_list_ix.hpp:106
-msgid "TEMP NOT MATCHING"
-msgstr "TEMP NO CUADRA"
-
 #: src/gui/screen_menu_metrics.cpp:67
 msgid "Failed to enable metrics. Check your settings."
 msgstr "Error al activar las métricas. Comprueba tus ajustes."
@@ -7623,21 +6533,6 @@ msgstr "Error al activar las métricas. Comprueba tus ajustes."
 #: src/gui/MItem_menus.hpp:154
 msgid "Test Errors"
 msgstr "Errores test"
-
-#: tmp_error_headers/error_list_coreone.hpp:555
-#: tmp_error_headers/error_list_mk35.hpp:359
-#: tmp_error_headers/error_list_xl.hpp:632
-#: tmp_error_headers/error_list_mk4.hpp:401
-#: tmp_error_headers/error_list_mini.hpp:331
-#: tmp_error_headers/error_list_ix.hpp:590
-msgid ""
-"This error code is not found\n"
-"in our database.\n"
-"Contact the support."
-msgstr ""
-"Este código de error no se encuentra \n"
-"en nuestra base de datos.\n"
-"Contacta con el serv. técnico."
 
 #: src/gui/screen_help_fw_update.cpp:82
 msgid "To learn more including firmware downgrade, please visit:"
@@ -7664,107 +6559,24 @@ msgstr ""
 "Apaga el registro antes de desconectar la unidad USB, ¡o corres el riesgo de "
 "dañar el sistema de archivos!"
 
-#: tmp_error_headers/error_list_coreone.hpp:554
-#: tmp_error_headers/error_list_mk35.hpp:358
-#: tmp_error_headers/error_list_mmu.hpp:318
-#: tmp_error_headers/error_list_xl.hpp:631
-#: tmp_error_headers/error_list_mk4.hpp:400
-#: tmp_error_headers/error_list_mini.hpp:330
-#: tmp_error_headers/error_list_ix.hpp:589
-msgid "UNKNOWN ERROR"
-msgstr "ERROR DESCONOCIDO"
-
-#: tmp_error_headers/error_list_coreone.hpp:624
-#: tmp_error_headers/error_list_mk35.hpp:428
-#: tmp_error_headers/error_list_xl.hpp:701
-#: tmp_error_headers/error_list_mk4.hpp:470
-#: tmp_error_headers/error_list_mini.hpp:400
-#: tmp_error_headers/error_list_ix.hpp:659
-msgid "UNSUPPORTED BUDDY FW"
-msgstr "FW BUDDY INCOMPATIBLE"
-
-#: tmp_error_headers/error_list_coreone.hpp:645
-#: tmp_error_headers/error_list_mk35.hpp:449
-#: tmp_error_headers/error_list_xl.hpp:722
-#: tmp_error_headers/error_list_mk4.hpp:491
-#: tmp_error_headers/error_list_mini.hpp:421
-#: tmp_error_headers/error_list_ix.hpp:680
-msgid "UNSUPPORTED FIRMWARE BBF FILE"
-msgstr "ARCHIVO BBF FW INCOMPATIBLE"
-
-#: tmp_error_headers/error_list_coreone.hpp:617
-#: tmp_error_headers/error_list_mk35.hpp:421
-#: tmp_error_headers/error_list_xl.hpp:694
-#: tmp_error_headers/error_list_mk4.hpp:463
-#: tmp_error_headers/error_list_mini.hpp:393
-#: tmp_error_headers/error_list_ix.hpp:652
-msgid "UNSUPPORTED PRINTER MODEL"
-msgstr "MODELO IMPRESORA INCOMPATIBLE"
-
-#: tmp_error_headers/error_list_coreone.hpp:225
-#: tmp_error_headers/error_list_mk35.hpp:148
-#: tmp_error_headers/error_list_xl.hpp:267
-#: tmp_error_headers/error_list_mk4.hpp:155
-#: tmp_error_headers/error_list_mini.hpp:141
-#: tmp_error_headers/error_list_ix.hpp:239
-msgid "USB DEVICE OVERCURRENT"
-msgstr "SOBRECORRIENTE DISPOSITIVO USB"
-
-#: tmp_error_headers/error_list_coreone.hpp:814
-#: tmp_error_headers/error_list_mk35.hpp:618
-#: tmp_error_headers/error_list_xl.hpp:877
-#: tmp_error_headers/error_list_mk4.hpp:660
-#: tmp_error_headers/error_list_mini.hpp:555
-#: tmp_error_headers/error_list_ix.hpp:814
-msgid "USB drive or file error, the print is now paused. Reconnect the drive."
-msgstr ""
-"Error de la unidad USB o del archivo, la impresión ahora está en pausa. "
-"Vuelve a conectar la unidad."
-
-#: tmp_error_headers/error_list_coreone.hpp:646
-#: tmp_error_headers/error_list_mk35.hpp:450
-#: tmp_error_headers/error_list_xl.hpp:723
-#: tmp_error_headers/error_list_mk4.hpp:492
-#: tmp_error_headers/error_list_mini.hpp:422
-#: tmp_error_headers/error_list_ix.hpp:681
-msgid ""
-"USB flash drive contains\n"
-"unsupported firmware BBF file."
-msgstr ""
-"Unidad flash USB contiene \n"
-"archivo BBF de FW incompatible."
-
-#: tmp_error_headers/error_list_coreone.hpp:758
-#: tmp_error_headers/error_list_mk35.hpp:562
-#: tmp_error_headers/error_list_xl.hpp:821
-#: tmp_error_headers/error_list_mk4.hpp:604
-#: tmp_error_headers/error_list_mini.hpp:513
-#: tmp_error_headers/error_list_ix.hpp:772
-msgid ""
-"Unable to home the printer.\n"
-"Do you want to try again?"
-msgstr ""
-"Está fallando el home.\n"
-"¿Quieres probar de nuevo?"
-
 #: src/gui/screen_menu_fw_update.hpp:38 src/gui/MItem_menus.hpp:80
 msgid "FW Update"
 msgstr "Actualizar FW"
 
-#: tmp_error_headers/error_list_coreone.hpp:310
-#: tmp_error_headers/error_list_mk35.hpp:233
+#: tmp_error_headers/error_list_coreone.hpp:324
+#: tmp_error_headers/error_list_mk35.hpp:247
 #: tmp_error_headers/error_list_xl.hpp:352
-#: tmp_error_headers/error_list_mk4.hpp:240
+#: tmp_error_headers/error_list_mk4.hpp:254
 #: tmp_error_headers/error_list_ix.hpp:338
 msgid "Power panic detected on startup. Check power panic cable."
 msgstr ""
 "Se ha detectado el modo pánico al arrancar. Comprueba el cable del modo "
 "pánico."
 
-#: tmp_error_headers/error_list_coreone.hpp:562
-#: tmp_error_headers/error_list_mk35.hpp:366
+#: tmp_error_headers/error_list_coreone.hpp:576
+#: tmp_error_headers/error_list_mk35.hpp:380
 #: tmp_error_headers/error_list_xl.hpp:639
-#: tmp_error_headers/error_list_mk4.hpp:408
+#: tmp_error_headers/error_list_mk4.hpp:422
 #: tmp_error_headers/error_list_mini.hpp:338
 #: tmp_error_headers/error_list_ix.hpp:597
 msgid ""
@@ -7795,45 +6607,11 @@ msgstr "Continuar"
 msgid "Disconnect"
 msgstr "Desconectar"
 
-#: tmp_error_headers/error_list_coreone.hpp:653
-#: tmp_error_headers/error_list_mk35.hpp:457
-#: tmp_error_headers/error_list_xl.hpp:730
-#: tmp_error_headers/error_list_mk4.hpp:499
-#: tmp_error_headers/error_list_mini.hpp:429
-#: tmp_error_headers/error_list_ix.hpp:688
-msgid "Unable to verify the extruder type, check the wiring and connectors."
-msgstr ""
-"Al no poder verificar el tipo de extrusor, comprueba el cableado y los "
-"conectores."
-
-#: tmp_error_headers/error_list_coreone.hpp:674
-#: tmp_error_headers/error_list_mk35.hpp:478
-#: tmp_error_headers/error_list_xl.hpp:744
-#: tmp_error_headers/error_list_mk4.hpp:520
-#: tmp_error_headers/error_list_mini.hpp:436
-#: tmp_error_headers/error_list_ix.hpp:695
-msgid ""
-"Use a different USB drive or reformat this one to the supported FAT32 file "
-"system."
-msgstr ""
-"Utiliza una unidad USB diferente o reformatea ésta al sistema de archivos "
-"FAT32 compatible."
-
 #: src/gui/screen_menu_fail_stat.hpp:28
 msgid "FAILURE STATISTICS"
 msgstr "ESTADÍSTICAS DE FALLOS"
 
-#: tmp_error_headers/error_list_coreone.hpp:870
-#: tmp_error_headers/error_list_mk35.hpp:674
-#: tmp_error_headers/error_list_xl.hpp:975
-#: tmp_error_headers/error_list_mk4.hpp:716
-#: tmp_error_headers/error_list_mini.hpp:604
-#: tmp_error_headers/error_list_ix.hpp:877
-msgid "Waiting for the user. Press \"Resume\" once the printer is ready."
-msgstr ""
-"Esperando al usuario. Pulsa \"Reanudar\" una vez que la impresora esté lista."
-
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:253
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:258
 msgid "All Tools"
 msgstr "Todos los Cabezales"
 
@@ -7876,17 +6654,6 @@ msgstr "Factor de flujo"
 msgid "File read error"
 msgstr "Error lectura de archivo"
 
-#: tmp_error_headers/error_list_coreone.hpp:527
-#: tmp_error_headers/error_list_mk35.hpp:331
-#: tmp_error_headers/error_list_xl.hpp:597
-#: tmp_error_headers/error_list_mk4.hpp:373
-#: tmp_error_headers/error_list_mini.hpp:303
-#: tmp_error_headers/error_list_ix.hpp:562
-msgid "BBF initialization failed, repeat the action or try another USB drive."
-msgstr ""
-"Ha fallado la inicialización del BBF, repite la acción o prueba con otra "
-"unidad USB."
-
 #: src/gui/MItem_print.hpp:83 src/gui/wizard/selftest_result_heaters.cpp:14
 msgid "Heatbed"
 msgstr "Base Calefactora"
@@ -7895,31 +6662,9 @@ msgstr "Base Calefactora"
 msgid "Heatbed Temperature"
 msgstr "Temperatura de la Base"
 
-#: tmp_error_headers/error_list_coreone.hpp:856
-#: tmp_error_headers/error_list_mk35.hpp:667
-#: tmp_error_headers/error_list_xl.hpp:961
-#: tmp_error_headers/error_list_mk4.hpp:702
-#: tmp_error_headers/error_list_mini.hpp:597
-#: tmp_error_headers/error_list_ix.hpp:863
-msgid "Bed leveling failed. Try again?"
-msgstr "Falló la nivelación. ¿Reintentar?"
-
 #: src/gui/MItem_tools.hpp:734
 msgid "Belt Tuning"
 msgstr "Ajuste Correas"
-
-#: tmp_error_headers/error_list_coreone.hpp:43
-msgid "CEILING CLEARANCE VIOLATION"
-msgstr "VIOLACIÓN DISTANCIA AL TECHO"
-
-#: tmp_error_headers/error_list_coreone.hpp:323
-#: tmp_error_headers/error_list_mk35.hpp:246
-#: tmp_error_headers/error_list_xl.hpp:372
-#: tmp_error_headers/error_list_mk4.hpp:253
-#: tmp_error_headers/error_list_mini.hpp:232
-#: tmp_error_headers/error_list_ix.hpp:351
-msgid "CONNECT REGISTRATION FAILED"
-msgstr "FALLO EN EL REGISTRO DE CONNECT"
 
 #: src/gui/ScreenPrintingModel.cpp:22
 msgid "Heating..."
@@ -7943,7 +6688,7 @@ msgstr "Luces de la Cámra"
 msgid "Chamber Temperature"
 msgstr "Temperatura de la Cámara"
 
-#: tmp_error_headers/error_list_coreone.hpp:191
+#: tmp_error_headers/error_list_coreone.hpp:205
 #: tmp_error_headers/error_list_xl.hpp:219
 msgid "Chamber temperature critical. Aborting print to prevent printer damage."
 msgstr ""
@@ -7989,10 +6734,10 @@ msgstr "Velocidad Refresco Pantalla"
 msgid "Love Board"
 msgstr "Placa Love"
 
-#: tmp_error_headers/error_list_coreone.hpp:372
-#: tmp_error_headers/error_list_mk35.hpp:295
+#: tmp_error_headers/error_list_coreone.hpp:386
+#: tmp_error_headers/error_list_mk35.hpp:309
 #: tmp_error_headers/error_list_xl.hpp:442
-#: tmp_error_headers/error_list_mk4.hpp:302
+#: tmp_error_headers/error_list_mk4.hpp:316
 #: tmp_error_headers/error_list_mini.hpp:281
 #: tmp_error_headers/error_list_ix.hpp:407
 msgid "EMERGENCY STOP"
@@ -8015,10 +6760,10 @@ msgstr "Pausa"
 msgid "Pausing..."
 msgstr "Pausando..."
 
-#: tmp_error_headers/error_list_coreone.hpp:534
-#: tmp_error_headers/error_list_mk35.hpp:338
+#: tmp_error_headers/error_list_coreone.hpp:548
+#: tmp_error_headers/error_list_mk35.hpp:352
 #: tmp_error_headers/error_list_xl.hpp:604
-#: tmp_error_headers/error_list_mk4.hpp:380
+#: tmp_error_headers/error_list_mk4.hpp:394
 #: tmp_error_headers/error_list_mini.hpp:310
 #: tmp_error_headers/error_list_ix.hpp:569
 msgid "ESP doesn't seem to be connected."
@@ -8095,21 +6840,6 @@ msgstr "Ha fallado"
 msgid "Filtration Fan"
 msgstr "Ventilador de Filtrado"
 
-#: tmp_error_headers/error_list_coreone.hpp:722
-#: tmp_error_headers/error_list_coreone.hpp:723
-#: tmp_error_headers/error_list_mk35.hpp:526
-#: tmp_error_headers/error_list_mk35.hpp:527
-#: tmp_error_headers/error_list_xl.hpp:785
-#: tmp_error_headers/error_list_xl.hpp:786
-#: tmp_error_headers/error_list_mk4.hpp:568
-#: tmp_error_headers/error_list_mk4.hpp:569
-#: tmp_error_headers/error_list_mini.hpp:477
-#: tmp_error_headers/error_list_mini.hpp:478
-#: tmp_error_headers/error_list_ix.hpp:736
-#: tmp_error_headers/error_list_ix.hpp:737
-msgid "File error"
-msgstr "Error de archivo"
-
 #: src/gui/MItem_print.hpp:133
 msgid "Tool 1 Flow Factor"
 msgstr "Factor de Flujo Cabezal 1"
@@ -8143,39 +6873,16 @@ msgstr "Cantidad Usada"
 msgid "xLCD"
 msgstr "xLCD"
 
-#: tmp_error_headers/error_list_coreone.hpp:275
-#: tmp_error_headers/error_list_mk35.hpp:198
-#: tmp_error_headers/error_list_xl.hpp:303
-#: tmp_error_headers/error_list_mk4.hpp:205
-#: tmp_error_headers/error_list_mini.hpp:191
-#: tmp_error_headers/error_list_ix.hpp:289
-msgid "HAL detected an I2C undefined error when sending data via I2C."
-msgstr "HAL detectó un error indefinido I2C al enviar datos vía I2C."
-
 #: src/gui/MItem_tools.cpp:770
 msgid "Heater Current"
 msgstr "Corriente Calentador"
 
-#: tmp_error_headers/error_list_coreone.hpp:484
+#: tmp_error_headers/error_list_coreone.hpp:498
 #: tmp_error_headers/error_list_xl.hpp:554
-#: tmp_error_headers/error_list_mk4.hpp:330
+#: tmp_error_headers/error_list_mk4.hpp:344
 #: tmp_error_headers/error_list_ix.hpp:519
 msgid "LOADCELL MEASURE FAILED"
 msgstr "FALLO MEDICIÓN CÉLULA DE CARGA"
-
-#: tmp_error_headers/error_list_coreone.hpp:835
-#: tmp_error_headers/error_list_mk35.hpp:646
-#: tmp_error_headers/error_list_xl.hpp:905
-#: tmp_error_headers/error_list_mk4.hpp:681
-#: tmp_error_headers/error_list_mini.hpp:576
-#: tmp_error_headers/error_list_ix.hpp:835
-msgid ""
-"MCU in Buddy is overheated, likely due to exceeding the printer's operating "
-"temperature. Prevent overheating for optimal performance."
-msgstr ""
-"La MCU del Buddy está sobrecalentada, probablemente debido a que se ha "
-"superado la temperatura de funcionamiento de la impresora. Evita el "
-"sobrecalentamiento para obtener un rendimiento óptimo."
 
 #: src/gui/screen_input_shaper_calibration.cpp:101
 #: src/gui/dialogs/DialogLoadUnload.cpp:41
@@ -8204,27 +6911,19 @@ msgstr "Tira Lateral RGB"
 msgid "RGB Side Strip Dimming"
 msgstr "Regulación Tira Lateral RGB"
 
-#: tmp_error_headers/error_list_coreone.hpp:309
-#: tmp_error_headers/error_list_mk35.hpp:232
-#: tmp_error_headers/error_list_xl.hpp:351
-#: tmp_error_headers/error_list_mk4.hpp:239
-#: tmp_error_headers/error_list_ix.hpp:337
-msgid "POWER PANIC"
-msgstr "MODO PÁNICO"
-
-#: tmp_error_headers/error_list_coreone.hpp:324
-#: tmp_error_headers/error_list_mk35.hpp:247
+#: tmp_error_headers/error_list_coreone.hpp:338
+#: tmp_error_headers/error_list_mk35.hpp:261
 #: tmp_error_headers/error_list_xl.hpp:373
-#: tmp_error_headers/error_list_mk4.hpp:254
+#: tmp_error_headers/error_list_mk4.hpp:268
 #: tmp_error_headers/error_list_mini.hpp:233
 #: tmp_error_headers/error_list_ix.hpp:352
 msgid "Registration to Prusa Connect failed due to:"
 msgstr "El registro en Prusa Connect ha fallado debido a:"
 
-#: tmp_error_headers/error_list_coreone.hpp:751
-#: tmp_error_headers/error_list_mk35.hpp:555
+#: tmp_error_headers/error_list_coreone.hpp:765
+#: tmp_error_headers/error_list_mk35.hpp:569
 #: tmp_error_headers/error_list_xl.hpp:814
-#: tmp_error_headers/error_list_mk4.hpp:597
+#: tmp_error_headers/error_list_mk4.hpp:611
 #: tmp_error_headers/error_list_mini.hpp:506
 #: tmp_error_headers/error_list_ix.hpp:765
 msgid ""
@@ -8234,10 +6933,10 @@ msgstr ""
 "Se ha detectado una colisión repetida.\n"
 "¿Deseas reanudar o pausar la impresión?"
 
-#: tmp_error_headers/error_list_coreone.hpp:848
-#: tmp_error_headers/error_list_mk35.hpp:659
+#: tmp_error_headers/error_list_coreone.hpp:862
+#: tmp_error_headers/error_list_mk35.hpp:673
 #: tmp_error_headers/error_list_xl.hpp:932
-#: tmp_error_headers/error_list_mk4.hpp:694
+#: tmp_error_headers/error_list_mk4.hpp:708
 #: tmp_error_headers/error_list_mini.hpp:589
 #: tmp_error_headers/error_list_ix.hpp:855
 msgid "Replace filament"
@@ -8258,9 +6957,9 @@ msgstr "Restaurar Predeterminado"
 msgid "Set Ready"
 msgstr "Configurar como Lista"
 
-#: tmp_error_headers/error_list_coreone.hpp:478
+#: tmp_error_headers/error_list_coreone.hpp:492
 #: tmp_error_headers/error_list_xl.hpp:548
-#: tmp_error_headers/error_list_mk4.hpp:324
+#: tmp_error_headers/error_list_mk4.hpp:338
 #: tmp_error_headers/error_list_ix.hpp:513
 msgid "Setting the tare failed. Check the loadcell wiring and connection."
 msgstr ""
@@ -8271,7 +6970,7 @@ msgstr ""
 msgid "Status"
 msgstr "Estado"
 
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:272
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:277
 msgid "TOOLS SETTINGS"
 msgstr "AJUSTES CABEZAL"
 
@@ -8279,10 +6978,10 @@ msgstr "AJUSTES CABEZAL"
 msgid "Temperature"
 msgstr "Temperatura"
 
-#: tmp_error_headers/error_list_coreone.hpp:695
-#: tmp_error_headers/error_list_mk35.hpp:499
+#: tmp_error_headers/error_list_coreone.hpp:709
+#: tmp_error_headers/error_list_mk35.hpp:513
 #: tmp_error_headers/error_list_xl.hpp:765
-#: tmp_error_headers/error_list_mk4.hpp:541
+#: tmp_error_headers/error_list_mk4.hpp:555
 #: tmp_error_headers/error_list_mini.hpp:457
 #: tmp_error_headers/error_list_ix.hpp:716
 msgid "The G-code isn't fully compatible"
@@ -8304,10 +7003,10 @@ msgstr ""
 "El filamento parece estar atascado, por favor, descárgalo del nextruder y "
 "vuelve a cargarlo."
 
-#: tmp_error_headers/error_list_coreone.hpp:730
-#: tmp_error_headers/error_list_mk35.hpp:534
+#: tmp_error_headers/error_list_coreone.hpp:744
+#: tmp_error_headers/error_list_mk35.hpp:548
 #: tmp_error_headers/error_list_xl.hpp:793
-#: tmp_error_headers/error_list_mk4.hpp:576
+#: tmp_error_headers/error_list_mk4.hpp:590
 #: tmp_error_headers/error_list_mini.hpp:485
 #: tmp_error_headers/error_list_ix.hpp:744
 msgid ""
@@ -8318,16 +7017,16 @@ msgstr ""
 "posible que se haya desprendido un objeto impreso. Inspecciónalo antes de "
 "continuar."
 
-#: tmp_error_headers/error_list_coreone.hpp:492
+#: tmp_error_headers/error_list_coreone.hpp:506
 #: tmp_error_headers/error_list_xl.hpp:562
-#: tmp_error_headers/error_list_mk4.hpp:338
+#: tmp_error_headers/error_list_mk4.hpp:352
 #: tmp_error_headers/error_list_ix.hpp:527
 msgid "The loadcell configuration is incorrect."
 msgstr "La configuración de la célula de carga es incorrecta."
 
-#: tmp_error_headers/error_list_coreone.hpp:499
+#: tmp_error_headers/error_list_coreone.hpp:513
 #: tmp_error_headers/error_list_xl.hpp:569
-#: tmp_error_headers/error_list_mk4.hpp:345
+#: tmp_error_headers/error_list_mk4.hpp:359
 #: tmp_error_headers/error_list_ix.hpp:534
 msgid ""
 "There was a timeout while waiting for measurement sample, please repeat the "
@@ -8336,20 +7035,14 @@ msgstr ""
 "Se ha producido un tiempo de espera mientras se esperaba la muestra de "
 "medición, por favor, repita la acción."
 
-#: tmp_error_headers/error_list_coreone.hpp:471
+#: tmp_error_headers/error_list_coreone.hpp:485
 #: tmp_error_headers/error_list_xl.hpp:541
-#: tmp_error_headers/error_list_mk4.hpp:317
+#: tmp_error_headers/error_list_mk4.hpp:331
 #: tmp_error_headers/error_list_ix.hpp:506
 msgid "There was an error requesting the tare for loadcell."
 msgstr "Se ha producido un error al solicitar la tara para la célula de carga."
 
-#: tmp_error_headers/error_list_coreone.hpp:44
-msgid "The printer queued a move that may crash the model into the ceiling."
-msgstr ""
-"La impresora puso en cola un movimiento que puede estrellar el modelo contra "
-"el techo."
-
-#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:257
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:262
 #, c-format
 msgid "Tool %d"
 msgstr "Cabezal %d"
@@ -8362,10 +7055,10 @@ msgstr "Luz Cabezal"
 msgid "Trigger Power Panic"
 msgstr "Activar Modo Pánico"
 
-#: tmp_error_headers/error_list_coreone.hpp:764
-#: tmp_error_headers/error_list_mk35.hpp:568
+#: tmp_error_headers/error_list_coreone.hpp:778
+#: tmp_error_headers/error_list_mk35.hpp:582
 #: tmp_error_headers/error_list_xl.hpp:834
-#: tmp_error_headers/error_list_mk4.hpp:610
+#: tmp_error_headers/error_list_mk4.hpp:624
 msgid "Tool mapping"
 msgstr "Mapeado cabezal"
 
@@ -8385,127 +7078,6 @@ msgstr "INFO VERSION"
 #: src/gui/MItem_menus.hpp:59
 msgid "Version Info"
 msgstr "Info versión"
-
-#: src/guiapi/src/window_msgbox.cpp:308
-#: tmp_error_headers/error_list_coreone.hpp:680
-#: tmp_error_headers/error_list_coreone.hpp:687
-#: tmp_error_headers/error_list_coreone.hpp:694
-#: tmp_error_headers/error_list_coreone.hpp:701
-#: tmp_error_headers/error_list_coreone.hpp:708
-#: tmp_error_headers/error_list_coreone.hpp:715
-#: tmp_error_headers/error_list_coreone.hpp:729
-#: tmp_error_headers/error_list_coreone.hpp:778
-#: tmp_error_headers/error_list_coreone.hpp:785
-#: tmp_error_headers/error_list_coreone.hpp:792
-#: tmp_error_headers/error_list_coreone.hpp:799
-#: tmp_error_headers/error_list_coreone.hpp:806
-#: tmp_error_headers/error_list_coreone.hpp:813
-#: tmp_error_headers/error_list_coreone.hpp:820
-#: tmp_error_headers/error_list_coreone.hpp:827
-#: tmp_error_headers/error_list_coreone.hpp:834
-#: tmp_error_headers/error_list_coreone.hpp:841
-#: tmp_error_headers/error_list_coreone.hpp:855
-#: tmp_error_headers/error_list_coreone.hpp:862
-#: tmp_error_headers/error_list_mk35.hpp:484
-#: tmp_error_headers/error_list_mk35.hpp:491
-#: tmp_error_headers/error_list_mk35.hpp:498
-#: tmp_error_headers/error_list_mk35.hpp:505
-#: tmp_error_headers/error_list_mk35.hpp:512
-#: tmp_error_headers/error_list_mk35.hpp:519
-#: tmp_error_headers/error_list_mk35.hpp:533
-#: tmp_error_headers/error_list_mk35.hpp:582
-#: tmp_error_headers/error_list_mk35.hpp:589
-#: tmp_error_headers/error_list_mk35.hpp:596
-#: tmp_error_headers/error_list_mk35.hpp:603
-#: tmp_error_headers/error_list_mk35.hpp:610
-#: tmp_error_headers/error_list_mk35.hpp:617
-#: tmp_error_headers/error_list_mk35.hpp:624
-#: tmp_error_headers/error_list_mk35.hpp:631
-#: tmp_error_headers/error_list_mk35.hpp:638
-#: tmp_error_headers/error_list_mk35.hpp:645
-#: tmp_error_headers/error_list_mk35.hpp:652
-#: tmp_error_headers/error_list_mk35.hpp:666
-#: tmp_error_headers/error_list_xl.hpp:750
-#: tmp_error_headers/error_list_xl.hpp:757
-#: tmp_error_headers/error_list_xl.hpp:764
-#: tmp_error_headers/error_list_xl.hpp:771
-#: tmp_error_headers/error_list_xl.hpp:778
-#: tmp_error_headers/error_list_xl.hpp:792
-#: tmp_error_headers/error_list_xl.hpp:841
-#: tmp_error_headers/error_list_xl.hpp:848
-#: tmp_error_headers/error_list_xl.hpp:855
-#: tmp_error_headers/error_list_xl.hpp:862
-#: tmp_error_headers/error_list_xl.hpp:869
-#: tmp_error_headers/error_list_xl.hpp:876
-#: tmp_error_headers/error_list_xl.hpp:883
-#: tmp_error_headers/error_list_xl.hpp:890
-#: tmp_error_headers/error_list_xl.hpp:897
-#: tmp_error_headers/error_list_xl.hpp:904
-#: tmp_error_headers/error_list_xl.hpp:911
-#: tmp_error_headers/error_list_xl.hpp:918
-#: tmp_error_headers/error_list_xl.hpp:925
-#: tmp_error_headers/error_list_xl.hpp:939
-#: tmp_error_headers/error_list_xl.hpp:946
-#: tmp_error_headers/error_list_xl.hpp:953
-#: tmp_error_headers/error_list_xl.hpp:960
-#: tmp_error_headers/error_list_xl.hpp:967
-#: tmp_error_headers/error_list_mk4.hpp:526
-#: tmp_error_headers/error_list_mk4.hpp:533
-#: tmp_error_headers/error_list_mk4.hpp:540
-#: tmp_error_headers/error_list_mk4.hpp:547
-#: tmp_error_headers/error_list_mk4.hpp:554
-#: tmp_error_headers/error_list_mk4.hpp:561
-#: tmp_error_headers/error_list_mk4.hpp:575
-#: tmp_error_headers/error_list_mk4.hpp:624
-#: tmp_error_headers/error_list_mk4.hpp:631
-#: tmp_error_headers/error_list_mk4.hpp:638
-#: tmp_error_headers/error_list_mk4.hpp:645
-#: tmp_error_headers/error_list_mk4.hpp:652
-#: tmp_error_headers/error_list_mk4.hpp:659
-#: tmp_error_headers/error_list_mk4.hpp:666
-#: tmp_error_headers/error_list_mk4.hpp:673
-#: tmp_error_headers/error_list_mk4.hpp:680
-#: tmp_error_headers/error_list_mk4.hpp:687
-#: tmp_error_headers/error_list_mk4.hpp:701
-#: tmp_error_headers/error_list_mk4.hpp:708
-#: tmp_error_headers/error_list_mini.hpp:442
-#: tmp_error_headers/error_list_mini.hpp:449
-#: tmp_error_headers/error_list_mini.hpp:456
-#: tmp_error_headers/error_list_mini.hpp:463
-#: tmp_error_headers/error_list_mini.hpp:470
-#: tmp_error_headers/error_list_mini.hpp:484
-#: tmp_error_headers/error_list_mini.hpp:519
-#: tmp_error_headers/error_list_mini.hpp:526
-#: tmp_error_headers/error_list_mini.hpp:533
-#: tmp_error_headers/error_list_mini.hpp:540
-#: tmp_error_headers/error_list_mini.hpp:547
-#: tmp_error_headers/error_list_mini.hpp:554
-#: tmp_error_headers/error_list_mini.hpp:561
-#: tmp_error_headers/error_list_mini.hpp:568
-#: tmp_error_headers/error_list_mini.hpp:575
-#: tmp_error_headers/error_list_mini.hpp:582
-#: tmp_error_headers/error_list_mini.hpp:596
-#: tmp_error_headers/error_list_ix.hpp:701
-#: tmp_error_headers/error_list_ix.hpp:708
-#: tmp_error_headers/error_list_ix.hpp:715
-#: tmp_error_headers/error_list_ix.hpp:722
-#: tmp_error_headers/error_list_ix.hpp:729
-#: tmp_error_headers/error_list_ix.hpp:743
-#: tmp_error_headers/error_list_ix.hpp:778
-#: tmp_error_headers/error_list_ix.hpp:785
-#: tmp_error_headers/error_list_ix.hpp:792
-#: tmp_error_headers/error_list_ix.hpp:799
-#: tmp_error_headers/error_list_ix.hpp:806
-#: tmp_error_headers/error_list_ix.hpp:813
-#: tmp_error_headers/error_list_ix.hpp:820
-#: tmp_error_headers/error_list_ix.hpp:827
-#: tmp_error_headers/error_list_ix.hpp:834
-#: tmp_error_headers/error_list_ix.hpp:841
-#: tmp_error_headers/error_list_ix.hpp:848
-#: tmp_error_headers/error_list_ix.hpp:862
-#: tmp_error_headers/error_list_ix.hpp:869
-msgid "Warning"
-msgstr "Cuidado"
 
 #: src/common/feature/chamber_filtration/chamber_filtration.cpp:32
 msgid "DIY"
@@ -8662,3 +7234,1452 @@ msgstr "Formato Horario"
 #: src/gui/MItem_tools.cpp:537
 msgid "Time Zone Minute Offset"
 msgstr "Desfase Minutos Huso Horario"
+
+#: tmp_error_headers/error_list_coreone.hpp:723
+#: tmp_error_headers/error_list_mk35.hpp:527
+#: tmp_error_headers/error_list_xl.hpp:779
+#: tmp_error_headers/error_list_mk4.hpp:569
+#: tmp_error_headers/error_list_ix.hpp:730
+msgid "A filament specified in the G-code is either not loaded or wrong type."
+msgstr ""
+"Un filamento especificado en el código G no está cargado o es el tipo "
+"incorrecto."
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:203
+msgid "ALL TOOLS"
+msgstr "TODOS LOS CABEZALES"
+
+#: tmp_error_headers/error_list_coreone.hpp:44
+msgid "A movement command risks causing the model to collide with the ceiling."
+msgstr ""
+"Una orden de movimiento puede hacer que el modelo colisione con el techo."
+
+#: tmp_error_headers/error_list_coreone.hpp:394
+#: tmp_error_headers/error_list_xl.hpp:450
+#: tmp_error_headers/error_list_ix.hpp:415
+msgid "Address assignment error"
+msgstr "Error de asignación de dirección"
+
+#: tmp_error_headers/error_list_coreone.hpp:533
+#: tmp_error_headers/error_list_mk35.hpp:337
+#: tmp_error_headers/error_list_xl.hpp:589
+#: tmp_error_headers/error_list_mk4.hpp:379
+#: tmp_error_headers/error_list_mini.hpp:295
+#: tmp_error_headers/error_list_ix.hpp:554
+msgid "BBF ALLOCATION FAILED"
+msgstr "ASIGNACIÓN BBF FALLIDA"
+
+#: tmp_error_headers/error_list_coreone.hpp:540
+#: tmp_error_headers/error_list_mk35.hpp:344
+#: tmp_error_headers/error_list_xl.hpp:596
+#: tmp_error_headers/error_list_mk4.hpp:386
+#: tmp_error_headers/error_list_mini.hpp:302
+#: tmp_error_headers/error_list_ix.hpp:561
+msgid "BBF INITIALIZATION FAILED"
+msgstr "INICIALIZACIÓN BBF FALLIDA"
+
+#: tmp_error_headers/error_list_coreone.hpp:541
+#: tmp_error_headers/error_list_mk35.hpp:345
+#: tmp_error_headers/error_list_xl.hpp:597
+#: tmp_error_headers/error_list_mk4.hpp:387
+#: tmp_error_headers/error_list_mini.hpp:303
+#: tmp_error_headers/error_list_ix.hpp:562
+msgid "BBF initialization failed, repeat the action or try another USB drive."
+msgstr ""
+"Ha fallado la inicialización del BBF, repite la acción o prueba con otra "
+"unidad USB."
+
+#: tmp_error_headers/error_list_coreone.hpp:870
+#: tmp_error_headers/error_list_mk35.hpp:681
+#: tmp_error_headers/error_list_xl.hpp:961
+#: tmp_error_headers/error_list_mk4.hpp:716
+#: tmp_error_headers/error_list_mini.hpp:597
+#: tmp_error_headers/error_list_ix.hpp:863
+msgid "Bed leveling failed. Try again?"
+msgstr "Falló la nivelación. ¿Reintentar?"
+
+#: tmp_error_headers/error_list_coreone.hpp:43
+msgid "CEILING CLEARANCE WARNING"
+msgstr "AVISO DISTANCIA AL TECHO"
+
+#: tmp_error_headers/error_list_coreone.hpp:183
+msgid "CHAMBER MINTEMP ERROR"
+msgstr "ERROR MINTEMP CÁMARA"
+
+#: tmp_error_headers/error_list_coreone.hpp:337
+#: tmp_error_headers/error_list_mk35.hpp:260
+#: tmp_error_headers/error_list_xl.hpp:372
+#: tmp_error_headers/error_list_mk4.hpp:267
+#: tmp_error_headers/error_list_mini.hpp:232
+#: tmp_error_headers/error_list_ix.hpp:351
+msgid "CONNECT REGISTRATION FAILED"
+msgstr "FALLO EN EL REGISTRO DE CONNECT"
+
+#: tmp_error_headers/error_list_coreone.hpp:387
+#: tmp_error_headers/error_list_mk35.hpp:310
+#: tmp_error_headers/error_list_xl.hpp:443
+#: tmp_error_headers/error_list_mk4.hpp:317
+#: tmp_error_headers/error_list_mini.hpp:282
+#: tmp_error_headers/error_list_ix.hpp:408
+msgid "Emergency stop invoked by G-code (M112)."
+msgstr "Parada de emergencia invocada por código G (M112)."
+
+#: tmp_error_headers/error_list_coreone.hpp:905
+msgid ""
+"Ensure the top ventilation grille is closed for optimal chamber temperature."
+msgstr ""
+"Asegúrate de que la rejilla de ventilación superior está cerrada para "
+"obtener una temperatura óptima de la cámara."
+
+#. don't close on menu timeout
+#: src/gui/screen_crash_recovery.cpp:266
+#: tmp_error_headers/error_list_coreone.hpp:750
+#: tmp_error_headers/error_list_coreone.hpp:757
+#: tmp_error_headers/error_list_coreone.hpp:764
+#: tmp_error_headers/error_list_coreone.hpp:771
+#: tmp_error_headers/error_list_mk35.hpp:554
+#: tmp_error_headers/error_list_mk35.hpp:561
+#: tmp_error_headers/error_list_mk35.hpp:568
+#: tmp_error_headers/error_list_mk35.hpp:575
+#: tmp_error_headers/error_list_xl.hpp:799
+#: tmp_error_headers/error_list_xl.hpp:806
+#: tmp_error_headers/error_list_xl.hpp:813
+#: tmp_error_headers/error_list_xl.hpp:820
+#: tmp_error_headers/error_list_xl.hpp:827
+#: tmp_error_headers/error_list_mk4.hpp:596
+#: tmp_error_headers/error_list_mk4.hpp:603
+#: tmp_error_headers/error_list_mk4.hpp:610
+#: tmp_error_headers/error_list_mk4.hpp:617
+#: tmp_error_headers/error_list_mini.hpp:491
+#: tmp_error_headers/error_list_mini.hpp:498
+#: tmp_error_headers/error_list_mini.hpp:505
+#: tmp_error_headers/error_list_mini.hpp:512
+#: tmp_error_headers/error_list_ix.hpp:750
+#: tmp_error_headers/error_list_ix.hpp:757
+#: tmp_error_headers/error_list_ix.hpp:764
+#: tmp_error_headers/error_list_ix.hpp:771
+msgid "CRASH DETECTED"
+msgstr "CHOQUE DETECTADO"
+
+#: tmp_error_headers/error_list_coreone.hpp:190
+#: tmp_error_headers/error_list_xl.hpp:204
+msgid "CHAMBER WARMING UP"
+msgstr "CALENTANDO LA CÁMARA"
+
+#: tmp_error_headers/error_list_coreone.hpp:911
+msgid "Chamber Cooling Fan Error"
+msgstr "Error Ventilador Refrigeración Cámara"
+
+#: tmp_error_headers/error_list_coreone.hpp:918
+#: tmp_error_headers/error_list_xl.hpp:988
+msgid "Chamber Filtration Fan Error"
+msgstr "Error Ventilador Filtración Cámara"
+
+#: tmp_error_headers/error_list_coreone.hpp:912
+msgid ""
+"Chamber cooling fan is not spinning. Check it for possible debris, then "
+"inspect the wiring."
+msgstr ""
+"El ventilador de refrigeración de la cámara no gira. Comprueba que no hay "
+"residuos, luego inspecciona el cableado."
+
+#: tmp_error_headers/error_list_coreone.hpp:919
+#: tmp_error_headers/error_list_xl.hpp:989
+msgid ""
+"Chamber filtration fan is not spinning. Check it for possible debris, then "
+"inspect the wiring."
+msgstr ""
+"El ventilador de filtración de la cámara no gira. Comprueba que no hay "
+"residuos, luego inspecciona el cableado."
+
+#: tmp_error_headers/error_list_coreone.hpp:779
+#: tmp_error_headers/error_list_mk35.hpp:583
+#: tmp_error_headers/error_list_xl.hpp:835
+#: tmp_error_headers/error_list_mk4.hpp:625
+msgid ""
+"Changes of mapping available only in the Printer UI. Select Print to start "
+"the print with defaults."
+msgstr ""
+"Cambios de mapeado solo disponibles en la IU de la impresora. Selecciona "
+"Imprimir para iniciar la impresión con los valores predeterminados."
+
+#: tmp_error_headers/error_list_coreone.hpp:177
+#: tmp_error_headers/error_list_coreone.hpp:184
+msgid "Check the chamber thermistor wiring for possible damage."
+msgstr "Comprueba si el cableado del termistor de la cámara está dañado."
+
+#: tmp_error_headers/error_list_coreone.hpp:904
+msgid "Close Chamber Ventilation"
+msgstr "Cerrar Ventilación Cámara"
+
+#: src/gui/MItem_tools.hpp:598 tmp_error_headers/error_list_coreone.hpp:680
+#: tmp_error_headers/error_list_mk35.hpp:484
+#: tmp_error_headers/error_list_xl.hpp:736
+#: tmp_error_headers/error_list_mk4.hpp:526
+msgid "Cold Pull"
+msgstr "Tirón en Frío"
+
+#: tmp_error_headers/error_list_coreone.hpp:373
+#: tmp_error_headers/error_list_mk35.hpp:296
+#: tmp_error_headers/error_list_xl.hpp:429
+#: tmp_error_headers/error_list_mk4.hpp:303
+#: tmp_error_headers/error_list_mini.hpp:268
+#: tmp_error_headers/error_list_ix.hpp:394
+msgid "Dynamic allocation failed - out of memory. Reset the printer."
+msgstr "Asignación dinámica fallida - sin memoria. Reinicia la impresora."
+
+#: tmp_error_headers/error_list_coreone.hpp:351
+#: tmp_error_headers/error_list_coreone.hpp:358
+#: tmp_error_headers/error_list_coreone.hpp:365
+#: tmp_error_headers/error_list_mk35.hpp:274
+#: tmp_error_headers/error_list_mk35.hpp:281
+#: tmp_error_headers/error_list_mk35.hpp:288
+#: tmp_error_headers/error_list_xl.hpp:407
+#: tmp_error_headers/error_list_xl.hpp:414
+#: tmp_error_headers/error_list_xl.hpp:421
+#: tmp_error_headers/error_list_mk4.hpp:281
+#: tmp_error_headers/error_list_mk4.hpp:288
+#: tmp_error_headers/error_list_mk4.hpp:295
+#: tmp_error_headers/error_list_mini.hpp:246
+#: tmp_error_headers/error_list_mini.hpp:253
+#: tmp_error_headers/error_list_mini.hpp:260
+#: tmp_error_headers/error_list_ix.hpp:372
+#: tmp_error_headers/error_list_ix.hpp:379
+#: tmp_error_headers/error_list_ix.hpp:386
+msgid "ESP ERROR"
+msgstr "ERROR ESP"
+
+#: tmp_error_headers/error_list_coreone.hpp:547
+#: tmp_error_headers/error_list_mk35.hpp:351
+#: tmp_error_headers/error_list_xl.hpp:603
+#: tmp_error_headers/error_list_mk4.hpp:393
+#: tmp_error_headers/error_list_mini.hpp:309
+#: tmp_error_headers/error_list_ix.hpp:568
+msgid "ESP NOT CONNECTED"
+msgstr "ESP NO CONECTADO"
+
+#: tmp_error_headers/error_list_coreone.hpp:359
+#: tmp_error_headers/error_list_mk35.hpp:282
+#: tmp_error_headers/error_list_xl.hpp:415
+#: tmp_error_headers/error_list_mk4.hpp:289
+#: tmp_error_headers/error_list_mini.hpp:254
+#: tmp_error_headers/error_list_ix.hpp:380
+msgid "ESP detected command error."
+msgstr "ESP detectó un error de comando."
+
+#: tmp_error_headers/error_list_coreone.hpp:366
+#: tmp_error_headers/error_list_mk35.hpp:289
+#: tmp_error_headers/error_list_xl.hpp:422
+#: tmp_error_headers/error_list_mk4.hpp:296
+#: tmp_error_headers/error_list_mini.hpp:261
+#: tmp_error_headers/error_list_ix.hpp:387
+msgid "ESP detected unknown error."
+msgstr "ESP detectó un error de desconocido."
+
+#: tmp_error_headers/error_list_coreone.hpp:666
+#: tmp_error_headers/error_list_mk35.hpp:470
+#: tmp_error_headers/error_list_xl.hpp:729
+#: tmp_error_headers/error_list_mk4.hpp:512
+#: tmp_error_headers/error_list_mini.hpp:428
+#: tmp_error_headers/error_list_ix.hpp:687
+msgid "EXTRUDER NOT DETECTED"
+msgstr "EXTRUSOR NO DETECTADO"
+
+#: tmp_error_headers/error_list_coreone.hpp:898
+msgid "Ensure the top ventilation grille is open for proper airflow."
+msgstr ""
+"Asegúrate de que la rejilla de ventilación superior está abierta para que el "
+"aire circule correctamente."
+
+#: tmp_error_headers/error_list_coreone.hpp:597
+#: tmp_error_headers/error_list_mk35.hpp:401
+#: tmp_error_headers/error_list_xl.hpp:660
+#: tmp_error_headers/error_list_mk4.hpp:443
+#: tmp_error_headers/error_list_mini.hpp:359
+#: tmp_error_headers/error_list_ix.hpp:618
+msgid ""
+"Error erasing\n"
+" flash! Restart\n"
+"the printer and\n"
+"try again."
+msgstr ""
+"¡Error al borrar \n"
+"memoria flash! \n"
+"Reinicia impresora \n"
+"y reinténtalo."
+
+#: tmp_error_headers/error_list_coreone.hpp:645
+#: tmp_error_headers/error_list_mk35.hpp:449
+#: tmp_error_headers/error_list_xl.hpp:708
+#: tmp_error_headers/error_list_mk4.hpp:491
+#: tmp_error_headers/error_list_mini.hpp:407
+#: tmp_error_headers/error_list_ix.hpp:666
+msgid "FIRMWARE MISSING"
+msgstr "FALTA FIRMWARE"
+
+#: tmp_error_headers/error_list_coreone.hpp:596
+#: tmp_error_headers/error_list_mk35.hpp:400
+#: tmp_error_headers/error_list_xl.hpp:659
+#: tmp_error_headers/error_list_mk4.hpp:442
+#: tmp_error_headers/error_list_mini.hpp:358
+#: tmp_error_headers/error_list_ix.hpp:617
+msgid "FLASH ERASE ERROR"
+msgstr "ERROR BORRADO FLASH"
+
+#: tmp_error_headers/error_list_coreone.hpp:617
+#: tmp_error_headers/error_list_mk35.hpp:421
+#: tmp_error_headers/error_list_xl.hpp:680
+#: tmp_error_headers/error_list_mk4.hpp:463
+#: tmp_error_headers/error_list_mini.hpp:379
+#: tmp_error_headers/error_list_ix.hpp:638
+msgid "FW IN INTERNAL FLASH CORRUPTED"
+msgstr "FW EN FLASH INTERNO DAÑADO"
+
+#: tmp_error_headers/error_list_coreone.hpp:226
+#: tmp_error_headers/error_list_mk35.hpp:149
+#: tmp_error_headers/error_list_mk4.hpp:156
+#: tmp_error_headers/error_list_mini.hpp:128
+msgid "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
+msgstr ""
+"Fallo al hacer home en el eje Y, asegúrate de que no hay ningún obstáculo en "
+"el eje Y."
+
+#: tmp_error_headers/error_list_coreone.hpp:891
+#: tmp_error_headers/error_list_mk35.hpp:695
+#: tmp_error_headers/error_list_xl.hpp:982
+#: tmp_error_headers/error_list_mk4.hpp:737
+#: tmp_error_headers/error_list_mini.hpp:611
+#: tmp_error_headers/error_list_ix.hpp:884
+msgid "Filament loading timed out."
+msgstr "Tiempo de carga de filamento agotado."
+
+#: tmp_error_headers/error_list_coreone.hpp:716
+#: tmp_error_headers/error_list_mk35.hpp:520
+#: tmp_error_headers/error_list_xl.hpp:772
+#: tmp_error_headers/error_list_mk4.hpp:562
+#: tmp_error_headers/error_list_mini.hpp:464
+#: tmp_error_headers/error_list_ix.hpp:723
+msgid ""
+"Filament not detected. Load filament now?\n"
+"Select NO to cancel the print.\n"
+"Select DISABLE FS to disable the filament sensor and continue print."
+msgstr ""
+"No se ha detectado filamento. ¿Cargar filamento ahora? \n"
+"Selecciona NO para cancelar la impresión.\n"
+"Selecciona DESACTIVAR FS para desactivar el sensor de filamento y continuar."
+
+#: tmp_error_headers/error_list_coreone.hpp:736
+#: tmp_error_headers/error_list_coreone.hpp:737
+#: tmp_error_headers/error_list_mk35.hpp:540
+#: tmp_error_headers/error_list_mk35.hpp:541
+#: tmp_error_headers/error_list_xl.hpp:785
+#: tmp_error_headers/error_list_xl.hpp:786
+#: tmp_error_headers/error_list_mk4.hpp:582
+#: tmp_error_headers/error_list_mk4.hpp:583
+#: tmp_error_headers/error_list_mini.hpp:477
+#: tmp_error_headers/error_list_mini.hpp:478
+#: tmp_error_headers/error_list_ix.hpp:736
+#: tmp_error_headers/error_list_ix.hpp:737
+msgid "File error"
+msgstr "Error de archivo"
+
+#: tmp_error_headers/error_list_coreone.hpp:653
+#: tmp_error_headers/error_list_mk35.hpp:457
+#: tmp_error_headers/error_list_xl.hpp:716
+#: tmp_error_headers/error_list_mk4.hpp:499
+#: tmp_error_headers/error_list_mini.hpp:415
+#: tmp_error_headers/error_list_ix.hpp:674
+msgid ""
+"File system error!\n"
+"Try a different USB\n"
+"drive or format the\n"
+"drive with FAT32\n"
+"filesystem (all \n"
+"data will be lost)!"
+msgstr ""
+"¡Error sistema archivos! \n"
+"¡Prueba otra unidad USB \n"
+"o formatea la unidad \n"
+"al sistema de archivos FAT32 \n"
+"(se perderán todos los datos)!"
+
+#: tmp_error_headers/error_list_coreone.hpp:625
+#: tmp_error_headers/error_list_mk35.hpp:429
+#: tmp_error_headers/error_list_xl.hpp:688
+#: tmp_error_headers/error_list_mk4.hpp:471
+#: tmp_error_headers/error_list_ix.hpp:646
+msgid ""
+"Firmware and hardware versions do\n"
+"not match. Make sure you have\n"
+"the right firmware file for\n"
+"your printer."
+msgstr ""
+"Versiones de firmware y hardware \n"
+"no coinciden. Asegúrate que\n"
+"tienes el archivo de firmware\n"
+"tu impresora."
+
+#: tmp_error_headers/error_list_coreone.hpp:590
+#: tmp_error_headers/error_list_mk35.hpp:394
+#: tmp_error_headers/error_list_xl.hpp:653
+#: tmp_error_headers/error_list_mk4.hpp:436
+#: tmp_error_headers/error_list_mini.hpp:352
+#: tmp_error_headers/error_list_ix.hpp:611
+msgid ""
+"Firmware file\n"
+"missing in the USB\n"
+"flash!"
+msgstr ""
+"¡Falta un archivo \n"
+"de firmware en \n"
+"la memoria USB!"
+
+#: tmp_error_headers/error_list_coreone.hpp:583
+#: tmp_error_headers/error_list_mk35.hpp:387
+#: tmp_error_headers/error_list_xl.hpp:646
+#: tmp_error_headers/error_list_mk4.hpp:429
+#: tmp_error_headers/error_list_mini.hpp:345
+#: tmp_error_headers/error_list_ix.hpp:604
+msgid ""
+"Firmware file has\n"
+"invalid size!\n"
+"Check the file\n"
+"on the USB drive\n"
+"and try again."
+msgstr ""
+"¡El archivo de FW tiene \n"
+"tamaño no válido! \n"
+"Verifica el archivo en la \n"
+"unidad USB e intenta \n"
+"nuevamente."
+
+#: tmp_error_headers/error_list_coreone.hpp:611
+#: tmp_error_headers/error_list_mk35.hpp:415
+#: tmp_error_headers/error_list_xl.hpp:674
+#: tmp_error_headers/error_list_mk4.hpp:457
+#: tmp_error_headers/error_list_mini.hpp:373
+#: tmp_error_headers/error_list_ix.hpp:632
+msgid ""
+"Firmware hash\n"
+"verification failed!\n"
+"Firmware file is\n"
+"damaged. Try\n"
+"downloading and\n"
+"copying it onto the\n"
+"USB drive again."
+msgstr ""
+"¡Error verificación \n"
+"hash firmware! \n"
+"Archivo FW \n"
+"dañado. Intenta \n"
+"descargarlo y copiarlo \n"
+"de nuevo a \n"
+"la unidad USB."
+
+#: tmp_error_headers/error_list_coreone.hpp:618
+#: tmp_error_headers/error_list_mk35.hpp:422
+#: tmp_error_headers/error_list_xl.hpp:681
+#: tmp_error_headers/error_list_mk4.hpp:464
+#: tmp_error_headers/error_list_mini.hpp:380
+#: tmp_error_headers/error_list_ix.hpp:639
+msgid ""
+"Firmware in the\n"
+"internal flash\n"
+"corrupted! Please\n"
+"reflash the\n"
+"firmware."
+msgstr ""
+"¡FW de flash \n"
+"interno dañado! \n"
+"Por favor, reflashea\n"
+"el firmware."
+
+#: tmp_error_headers/error_list_coreone.hpp:897
+msgid "Open Chamber Ventilation"
+msgstr "Abrir Ventilación Cámara"
+
+#: tmp_error_headers/error_list_coreone.hpp:604
+#: tmp_error_headers/error_list_mk35.hpp:408
+#: tmp_error_headers/error_list_xl.hpp:667
+#: tmp_error_headers/error_list_mk4.hpp:450
+#: tmp_error_headers/error_list_mini.hpp:366
+#: tmp_error_headers/error_list_ix.hpp:625
+msgid ""
+"Firmware signature\n"
+"verification failed!\n"
+"Only official\n"
+"signed firmware can\n"
+"be flashed."
+msgstr ""
+"¡Fallo verificación \n"
+"de firma del FW! \n"
+"Sólo se puede \n"
+"instalar FW oficial."
+
+#: tmp_error_headers/error_list_coreone.hpp:632
+#: tmp_error_headers/error_list_mk35.hpp:436
+#: tmp_error_headers/error_list_xl.hpp:695
+#: tmp_error_headers/error_list_mk4.hpp:478
+#: tmp_error_headers/error_list_mini.hpp:394
+#: tmp_error_headers/error_list_ix.hpp:653
+msgid ""
+"Firmware/printer\n"
+"types do not match.\n"
+"Make sure you have\n"
+"the right firmware\n"
+"file for your\n"
+"printer model."
+msgstr ""
+"Firmware/impresora \n"
+"no coincide. Asegúrate \n"
+"de que tienes el archivo \n"
+"de FW correcto para \n"
+"tu modelo de impresora."
+
+#: tmp_error_headers/error_list_coreone.hpp:639
+#: tmp_error_headers/error_list_mk35.hpp:443
+#: tmp_error_headers/error_list_xl.hpp:702
+#: tmp_error_headers/error_list_mk4.hpp:485
+#: tmp_error_headers/error_list_mini.hpp:401
+#: tmp_error_headers/error_list_ix.hpp:660
+msgid ""
+"Firmware/printer\n"
+"versions do not\n"
+"match! You are\n"
+"trying to flash\n"
+"FW meant for other\n"
+"revision of the\n"
+"Buddy board."
+msgstr ""
+"¡Firmware/impresora \n"
+"no coincide! Tratas \n"
+"de flashear el FW \n"
+"destinado a \n"
+"otra revisión de \n"
+"placa Buddy."
+
+#: tmp_error_headers/error_list_coreone.hpp:842
+#: tmp_error_headers/error_list_mk35.hpp:653
+#: tmp_error_headers/error_list_xl.hpp:898
+#: tmp_error_headers/error_list_mk4.hpp:688
+#: tmp_error_headers/error_list_mini.hpp:569
+#: tmp_error_headers/error_list_ix.hpp:828
+msgid ""
+"G-Code transfer running too slow. Check your network for issues or use "
+"different USB drive. Press Continue to resume printing."
+msgstr ""
+"La transferencia del Código G es demasiado lenta. Comprueba si hay problemas "
+"en la red o utiliza una unidad USB diferente. Pulsa Continuar para reanudar "
+"la impresión."
+
+#: tmp_error_headers/error_list_coreone.hpp:554
+#: tmp_error_headers/error_list_mk35.hpp:358
+#: tmp_error_headers/error_list_xl.hpp:610
+#: tmp_error_headers/error_list_mk4.hpp:400
+#: tmp_error_headers/error_list_mini.hpp:316
+#: tmp_error_headers/error_list_ix.hpp:575
+msgid "Gcode Corruption"
+msgstr "Corrupción del código G"
+
+#: tmp_error_headers/error_list_coreone.hpp:555
+#: tmp_error_headers/error_list_mk35.hpp:359
+#: tmp_error_headers/error_list_xl.hpp:611
+#: tmp_error_headers/error_list_mk4.hpp:401
+#: tmp_error_headers/error_list_mini.hpp:317
+#: tmp_error_headers/error_list_ix.hpp:576
+msgid "Gcode on the USB drive is corrupt. Fix manually before resuming."
+msgstr ""
+"El código G de la unidad USB está dañado. Corrígelo manualmente antes de "
+"reanudar."
+
+#: tmp_error_headers/error_list_coreone.hpp:303
+#: tmp_error_headers/error_list_mk35.hpp:226
+#: tmp_error_headers/error_list_xl.hpp:317
+#: tmp_error_headers/error_list_mk4.hpp:233
+#: tmp_error_headers/error_list_mini.hpp:205
+#: tmp_error_headers/error_list_ix.hpp:303
+msgid "HAL detected an I2C busy state when receiving data via I2C."
+msgstr "HAL detectó un estado ocupado I2C al recibir datos vía I2C."
+
+#: tmp_error_headers/error_list_coreone.hpp:275
+#: tmp_error_headers/error_list_mk35.hpp:198
+#: tmp_error_headers/error_list_xl.hpp:289
+#: tmp_error_headers/error_list_mk4.hpp:205
+#: tmp_error_headers/error_list_mini.hpp:177
+#: tmp_error_headers/error_list_ix.hpp:275
+msgid "HAL detected an I2C busy state when sending data via I2C."
+msgstr "HAL detectó un estado ocupado I2C al recibir datos vía I2C."
+
+#: tmp_error_headers/error_list_coreone.hpp:296
+#: tmp_error_headers/error_list_mk35.hpp:219
+#: tmp_error_headers/error_list_xl.hpp:310
+#: tmp_error_headers/error_list_mk4.hpp:226
+#: tmp_error_headers/error_list_mini.hpp:198
+#: tmp_error_headers/error_list_ix.hpp:296
+msgid "HAL detected an I2C error when receiving data via I2C."
+msgstr "HAL detectó un error de I2C al recibir datos vía I2C."
+
+#: tmp_error_headers/error_list_coreone.hpp:268
+#: tmp_error_headers/error_list_mk35.hpp:191
+#: tmp_error_headers/error_list_xl.hpp:282
+#: tmp_error_headers/error_list_mk4.hpp:198
+#: tmp_error_headers/error_list_mini.hpp:170
+#: tmp_error_headers/error_list_ix.hpp:268
+msgid "HAL detected an I2C error when sending data via I2C."
+msgstr "HAL detectó un error de I2C al enviar datos vía I2C."
+
+#: tmp_error_headers/error_list_coreone.hpp:310
+#: tmp_error_headers/error_list_mk35.hpp:233
+#: tmp_error_headers/error_list_xl.hpp:324
+#: tmp_error_headers/error_list_mk4.hpp:240
+#: tmp_error_headers/error_list_mini.hpp:212
+#: tmp_error_headers/error_list_ix.hpp:310
+msgid "HAL detected an I2C timeout when receiving data via I2C."
+msgstr "HAL detectó un timeout de I2C al recibir datos vía I2C"
+
+#: tmp_error_headers/error_list_coreone.hpp:282
+#: tmp_error_headers/error_list_mk35.hpp:205
+#: tmp_error_headers/error_list_xl.hpp:296
+#: tmp_error_headers/error_list_mk4.hpp:212
+#: tmp_error_headers/error_list_mini.hpp:184
+#: tmp_error_headers/error_list_ix.hpp:282
+msgid "HAL detected an I2C timeout when sending data via I2C."
+msgstr "HAL detectó un timeout de I2C al enviar datos vía I2C."
+
+#: tmp_error_headers/error_list_coreone.hpp:317
+#: tmp_error_headers/error_list_mk35.hpp:240
+#: tmp_error_headers/error_list_xl.hpp:331
+#: tmp_error_headers/error_list_mk4.hpp:247
+#: tmp_error_headers/error_list_mini.hpp:219
+#: tmp_error_headers/error_list_ix.hpp:317
+msgid "HAL detected an I2C undefined error when receiving data via I2C."
+msgstr "HAL detectó un error indefinido I2C al recibir datos vía I2C"
+
+#: tmp_error_headers/error_list_coreone.hpp:289
+#: tmp_error_headers/error_list_mk35.hpp:212
+#: tmp_error_headers/error_list_xl.hpp:303
+#: tmp_error_headers/error_list_mk4.hpp:219
+#: tmp_error_headers/error_list_mini.hpp:191
+#: tmp_error_headers/error_list_ix.hpp:289
+msgid "HAL detected an I2C undefined error when sending data via I2C."
+msgstr "HAL detectó un error indefinido I2C al enviar datos vía I2C."
+
+#: tmp_error_headers/error_list_coreone.hpp:610
+#: tmp_error_headers/error_list_mk35.hpp:414
+#: tmp_error_headers/error_list_xl.hpp:673
+#: tmp_error_headers/error_list_mk4.hpp:456
+#: tmp_error_headers/error_list_mini.hpp:372
+#: tmp_error_headers/error_list_ix.hpp:631
+msgid "HASH VERIFICATION FAILED"
+msgstr "FALLO VERIFICACIÓN HASH"
+
+#: tmp_error_headers/error_list_coreone.hpp:218
+#: tmp_error_headers/error_list_mk35.hpp:141
+#: tmp_error_headers/error_list_xl.hpp:246
+#: tmp_error_headers/error_list_mk4.hpp:148
+#: tmp_error_headers/error_list_mini.hpp:120
+#: tmp_error_headers/error_list_ix.hpp:218
+msgid "HOMING ERROR X"
+msgstr "ERROR DE HOMING X"
+
+#: tmp_error_headers/error_list_coreone.hpp:225
+#: tmp_error_headers/error_list_mk35.hpp:148
+#: tmp_error_headers/error_list_xl.hpp:253
+#: tmp_error_headers/error_list_mk4.hpp:155
+#: tmp_error_headers/error_list_mini.hpp:127
+#: tmp_error_headers/error_list_ix.hpp:225
+msgid "HOMING ERROR Y"
+msgstr "ERROR DE HOMING Y"
+
+#: tmp_error_headers/error_list_coreone.hpp:211
+#: tmp_error_headers/error_list_mk35.hpp:134
+#: tmp_error_headers/error_list_xl.hpp:225
+#: tmp_error_headers/error_list_mk4.hpp:141
+#: tmp_error_headers/error_list_mini.hpp:113
+#: tmp_error_headers/error_list_ix.hpp:197
+msgid "HOMING ERROR Z"
+msgstr "ERROR DE HOMING Z"
+
+#: tmp_error_headers/error_list_coreone.hpp:835
+#: tmp_error_headers/error_list_mk35.hpp:639
+#: tmp_error_headers/error_list_xl.hpp:884
+#: tmp_error_headers/error_list_mk4.hpp:681
+#: tmp_error_headers/error_list_mini.hpp:562
+#: tmp_error_headers/error_list_ix.hpp:821
+msgid "Heatbreak thermistor is disconnected. Inspect the wiring."
+msgstr "El termistor está desconectado. Inspecciona el cableado."
+
+#: tmp_error_headers/error_list_coreone.hpp:800
+#: tmp_error_headers/error_list_coreone.hpp:814
+#: tmp_error_headers/error_list_mk35.hpp:604
+#: tmp_error_headers/error_list_mk35.hpp:618
+#: tmp_error_headers/error_list_xl.hpp:849
+#: tmp_error_headers/error_list_xl.hpp:863
+#: tmp_error_headers/error_list_mk4.hpp:646
+#: tmp_error_headers/error_list_mk4.hpp:660
+#: tmp_error_headers/error_list_mini.hpp:527
+#: tmp_error_headers/error_list_mini.hpp:541
+msgid "Heating disabled due to 30 minutes of inactivity."
+msgstr "Calentamiento deshabilitado debido a 30 minutos de inactividad."
+
+#: tmp_error_headers/error_list_coreone.hpp:856
+#: tmp_error_headers/error_list_mk35.hpp:667
+#: tmp_error_headers/error_list_xl.hpp:926
+#: tmp_error_headers/error_list_mk4.hpp:702
+#: tmp_error_headers/error_list_mini.hpp:583
+#: tmp_error_headers/error_list_ix.hpp:849
+msgid ""
+"Hotend fan not spinning. Check it for possible debris, then inspect the "
+"wiring."
+msgstr ""
+"El ventilador del fusor no gira. Comprueba que no hay residuos, luego "
+"inspecciona el cableado."
+
+#: tmp_error_headers/error_list_coreone.hpp:302
+#: tmp_error_headers/error_list_mk35.hpp:225
+#: tmp_error_headers/error_list_xl.hpp:316
+#: tmp_error_headers/error_list_mk4.hpp:232
+#: tmp_error_headers/error_list_mini.hpp:204
+#: tmp_error_headers/error_list_ix.hpp:302
+msgid "I2C RECEIVE BUSY"
+msgstr "I2C RECEIVE BUSY"
+
+#: tmp_error_headers/error_list_coreone.hpp:295
+#: tmp_error_headers/error_list_mk35.hpp:218
+#: tmp_error_headers/error_list_xl.hpp:309
+#: tmp_error_headers/error_list_mk4.hpp:225
+#: tmp_error_headers/error_list_mini.hpp:197
+#: tmp_error_headers/error_list_ix.hpp:295
+msgid "I2C RECEIVE FAILED"
+msgstr "I2C RECEIVE FAILED"
+
+#: tmp_error_headers/error_list_coreone.hpp:309
+#: tmp_error_headers/error_list_mk35.hpp:232
+#: tmp_error_headers/error_list_xl.hpp:323
+#: tmp_error_headers/error_list_mk4.hpp:239
+#: tmp_error_headers/error_list_mini.hpp:211
+#: tmp_error_headers/error_list_ix.hpp:309
+msgid "I2C RECEIVE TIMEOUT"
+msgstr "I2C RECEIVE TIMEOUT"
+
+#: tmp_error_headers/error_list_coreone.hpp:316
+#: tmp_error_headers/error_list_mk35.hpp:239
+#: tmp_error_headers/error_list_xl.hpp:330
+#: tmp_error_headers/error_list_mk4.hpp:246
+#: tmp_error_headers/error_list_mini.hpp:218
+#: tmp_error_headers/error_list_ix.hpp:316
+msgid "I2C RECEIVE UNDEFINED"
+msgstr "I2C RECEIVE UNDEFINED"
+
+#: tmp_error_headers/error_list_coreone.hpp:267
+#: tmp_error_headers/error_list_mk35.hpp:190
+#: tmp_error_headers/error_list_xl.hpp:281
+#: tmp_error_headers/error_list_mk4.hpp:197
+#: tmp_error_headers/error_list_mini.hpp:169
+#: tmp_error_headers/error_list_ix.hpp:267
+msgid "I2C SEND FAILED"
+msgstr "I2C SEND FAILED"
+
+#: tmp_error_headers/error_list_coreone.hpp:281
+#: tmp_error_headers/error_list_mk35.hpp:204
+#: tmp_error_headers/error_list_xl.hpp:295
+#: tmp_error_headers/error_list_mk4.hpp:211
+#: tmp_error_headers/error_list_mini.hpp:183
+#: tmp_error_headers/error_list_ix.hpp:281
+msgid "I2C SEND TIMEOUT"
+msgstr "I2C SEND TIMEOUT"
+
+#: tmp_error_headers/error_list_coreone.hpp:288
+#: tmp_error_headers/error_list_mk35.hpp:211
+#: tmp_error_headers/error_list_xl.hpp:302
+#: tmp_error_headers/error_list_mk4.hpp:218
+#: tmp_error_headers/error_list_mini.hpp:190
+#: tmp_error_headers/error_list_ix.hpp:288
+msgid "I2C SEND UNDEFINED"
+msgstr "I2C SEND UNDEFINED"
+
+#: tmp_error_headers/error_list_coreone.hpp:603
+#: tmp_error_headers/error_list_mk35.hpp:407
+#: tmp_error_headers/error_list_xl.hpp:666
+#: tmp_error_headers/error_list_mk4.hpp:449
+#: tmp_error_headers/error_list_mini.hpp:365
+#: tmp_error_headers/error_list_ix.hpp:624
+msgid "IMPOSTER! FAKE SIGNATURE"
+msgstr "¡IMPOSTOR! FIRMA FALSA"
+
+#: tmp_error_headers/error_list_coreone.hpp:582
+#: tmp_error_headers/error_list_mk35.hpp:386
+#: tmp_error_headers/error_list_xl.hpp:645
+#: tmp_error_headers/error_list_mk4.hpp:428
+#: tmp_error_headers/error_list_mini.hpp:344
+#: tmp_error_headers/error_list_ix.hpp:603
+msgid "INVALID FW SIZE ON USB FLASH DRIVE"
+msgstr "TAMAÑO FW NO VÁLIDO EN USB"
+
+#: tmp_error_headers/error_list_coreone.hpp:477
+#: tmp_error_headers/error_list_mk35.hpp:316
+#: tmp_error_headers/error_list_xl.hpp:533
+#: tmp_error_headers/error_list_mk4.hpp:323
+#: tmp_error_headers/error_list_ix.hpp:498
+msgid "LOADCELL NOT CALIBRATED"
+msgstr "CÉLULA DE CARGA NO CALIBRADA"
+
+#: tmp_error_headers/error_list_coreone.hpp:484
+#: tmp_error_headers/error_list_xl.hpp:540
+#: tmp_error_headers/error_list_mk4.hpp:330
+#: tmp_error_headers/error_list_ix.hpp:505
+msgid "LOADCELL TARE ERROR"
+msgstr "ERROR TARA CÉLULA DE CARGA"
+
+#: tmp_error_headers/error_list_coreone.hpp:491
+#: tmp_error_headers/error_list_xl.hpp:547
+#: tmp_error_headers/error_list_mk4.hpp:337
+#: tmp_error_headers/error_list_ix.hpp:512
+msgid "LOADCELL TARE FAILED"
+msgstr "FALLO TARA CÉLULA DE CARGA"
+
+#: tmp_error_headers/error_list_coreone.hpp:512
+#: tmp_error_headers/error_list_xl.hpp:568
+#: tmp_error_headers/error_list_mk4.hpp:358
+#: tmp_error_headers/error_list_ix.hpp:533
+msgid "LOADCELL TIMEOUT"
+msgstr "TIMEOUT CÉLULA DE CARGA"
+
+#: tmp_error_headers/error_list_coreone.hpp:751
+#: tmp_error_headers/error_list_mk35.hpp:555
+#: tmp_error_headers/error_list_xl.hpp:800
+#: tmp_error_headers/error_list_mk4.hpp:597
+#: tmp_error_headers/error_list_mini.hpp:492
+#: tmp_error_headers/error_list_ix.hpp:751
+msgid ""
+"Length of an axis is too long.\n"
+"Motor current is too low, probably.\n"
+"Retry check, pause or resume the print?"
+msgstr ""
+"La longitud de un eje es demasiado larga.\n"
+"Potencia del motor muy baja, probablemente.\n"
+"¿Reintentar la comprobación, pausar o reanudar la impresión?"
+
+#: tmp_error_headers/error_list_coreone.hpp:758
+#: tmp_error_headers/error_list_mk35.hpp:562
+#: tmp_error_headers/error_list_xl.hpp:807
+#: tmp_error_headers/error_list_mk4.hpp:604
+#: tmp_error_headers/error_list_mini.hpp:499
+#: tmp_error_headers/error_list_ix.hpp:758
+msgid ""
+"Length of an axis is too short.\n"
+"There's an obstacle or bearing issue.\n"
+"Retry check, pause or resume the print?"
+msgstr ""
+"La longitud de un eje es demasiado corta.\n"
+"Hay un obstáculo o un problema de rodamientos.\n"
+"¿Reintentar la comprobación, pausar o reanudar la impresión?"
+
+#: tmp_error_headers/error_list_coreone.hpp:478
+#: tmp_error_headers/error_list_mk35.hpp:317
+#: tmp_error_headers/error_list_xl.hpp:534
+#: tmp_error_headers/error_list_mk4.hpp:324
+#: tmp_error_headers/error_list_ix.hpp:499
+msgid ""
+"Loadcell calibration is incomplete. Restart the printer and calibrate "
+"loadcell."
+msgstr ""
+"La calibración de la célula de carga está incompleta. Reinicia la impresora "
+"y calibra la Célula de carga."
+
+#: tmp_error_headers/error_list_coreone.hpp:499
+#: tmp_error_headers/error_list_xl.hpp:555
+#: tmp_error_headers/error_list_mk4.hpp:345
+#: tmp_error_headers/error_list_ix.hpp:520
+msgid "Loadcell measured an inifinite or undefined load value."
+msgstr "La célula de carga ha medido un valor de carga infinito o indefinido."
+
+#: tmp_error_headers/error_list_coreone.hpp:849
+#: tmp_error_headers/error_list_mk35.hpp:660
+#: tmp_error_headers/error_list_xl.hpp:905
+#: tmp_error_headers/error_list_mk4.hpp:695
+#: tmp_error_headers/error_list_mini.hpp:576
+#: tmp_error_headers/error_list_ix.hpp:835
+msgid ""
+"MCU in Buddy is overheated, likely due to exceeding the printer's operating "
+"temperature. Prevent overheating for optimal performance."
+msgstr ""
+"La MCU del Buddy está sobrecalentada, probablemente debido a que se ha "
+"superado la temperatura de funcionamiento de la impresora. Evita el "
+"sobrecalentamiento para obtener un rendimiento óptimo."
+
+#: tmp_error_headers/error_list_coreone.hpp:78
+#: tmp_error_headers/error_list_mk35.hpp:36
+#: tmp_error_headers/error_list_mk4.hpp:43
+msgid "MAINTENANCE WARNING CHANGES"
+msgstr "CAMBIOS DE AVISO DEL MANTENIMIENTO"
+
+#: tmp_error_headers/error_list_coreone.hpp:71
+#: tmp_error_headers/error_list_mk35.hpp:29
+#: tmp_error_headers/error_list_mk4.hpp:36
+msgid "MAINTENANCE WARNING FAILS"
+msgstr "FALLOS DE AVISO DEL MANTENIMIENTO"
+
+#: tmp_error_headers/error_list_coreone.hpp:260
+#: tmp_error_headers/error_list_mk35.hpp:183
+#: tmp_error_headers/error_list_xl.hpp:274
+#: tmp_error_headers/error_list_mk4.hpp:190
+#: tmp_error_headers/error_list_mini.hpp:162
+#: tmp_error_headers/error_list_ix.hpp:260
+msgid "MMU OVERCURRENT"
+msgstr "SOBRECORRIENTE MMU"
+
+#: tmp_error_headers/error_list_coreone.hpp:149
+#: tmp_error_headers/error_list_coreone.hpp:807
+#: tmp_error_headers/error_list_mk35.hpp:107
+#: tmp_error_headers/error_list_mk35.hpp:611
+#: tmp_error_headers/error_list_xl.hpp:856
+#: tmp_error_headers/error_list_mk4.hpp:114
+#: tmp_error_headers/error_list_mk4.hpp:653
+#: tmp_error_headers/error_list_mini.hpp:86
+#: tmp_error_headers/error_list_mini.hpp:534
+#: tmp_error_headers/error_list_ix.hpp:107
+#: tmp_error_headers/error_list_ix.hpp:793
+msgid ""
+"Measured temperature is not matching expected value. Check the thermistor is "
+"in contact with hotend. In case of damage, replace it."
+msgstr ""
+"La temperatura medida no coincide con el valor esperado. Comprueba que el "
+"termistor está en contacto con el hotend. En caso de que esté dañado, "
+"sustitúyelo."
+
+#: tmp_error_headers/error_list_coreone.hpp:520
+#: tmp_error_headers/error_list_mk35.hpp:324
+#: tmp_error_headers/error_list_xl.hpp:576
+#: tmp_error_headers/error_list_mk4.hpp:366
+#: tmp_error_headers/error_list_ix.hpp:541
+msgid "Memory allocation failed for scheduled LED animation"
+msgstr "Fallo en la asignación de memoria para la animación LED programada"
+
+#: tmp_error_headers/error_list_coreone.hpp:646
+#: tmp_error_headers/error_list_mk35.hpp:450
+#: tmp_error_headers/error_list_xl.hpp:709
+#: tmp_error_headers/error_list_mk4.hpp:492
+#: tmp_error_headers/error_list_mini.hpp:408
+#: tmp_error_headers/error_list_ix.hpp:667
+msgid ""
+"No firmware found\n"
+"in the internal\n"
+"flash! Please\n"
+"flash firmware\n"
+"first!"
+msgstr ""
+"No hay FW \n"
+"en la flash interna. \n"
+"¡Por favor, flashea \n"
+"el FW primero!"
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:103
+msgid "Nozzle High-flow"
+msgstr "Boquilla Alto flujo"
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:189
+msgid "Nozzle Offset"
+msgstr "Offset Boquilla"
+
+#: tmp_error_headers/error_list_coreone.hpp:877
+#: tmp_error_headers/error_list_xl.hpp:968
+#: tmp_error_headers/error_list_mk4.hpp:723
+#: tmp_error_headers/error_list_ix.hpp:870
+msgid "Nozzle cleaning failed."
+msgstr "Limpieza de la boquilla fallida."
+
+#: tmp_error_headers/error_list_coreone.hpp:372
+#: tmp_error_headers/error_list_mk35.hpp:295
+#: tmp_error_headers/error_list_xl.hpp:428
+#: tmp_error_headers/error_list_mk4.hpp:302
+#: tmp_error_headers/error_list_mini.hpp:267
+#: tmp_error_headers/error_list_ix.hpp:393
+msgid "OUT OF MEMORY"
+msgstr "SIN MEMORIA"
+
+#: tmp_error_headers/error_list_coreone.hpp:240
+#: tmp_error_headers/error_list_mk35.hpp:163
+#: tmp_error_headers/error_list_xl.hpp:268
+#: tmp_error_headers/error_list_mk4.hpp:170
+#: tmp_error_headers/error_list_mini.hpp:142
+#: tmp_error_headers/error_list_ix.hpp:240
+msgid "Overcurrent detected on the connected USB device, disconnect it."
+msgstr ""
+"Sobrecorriente detectada en el dispositivo USB conectado, desconéctalo."
+
+#: tmp_error_headers/error_list_coreone.hpp:379
+#: tmp_error_headers/error_list_mk35.hpp:302
+#: tmp_error_headers/error_list_xl.hpp:435
+#: tmp_error_headers/error_list_mk4.hpp:309
+#: tmp_error_headers/error_list_mini.hpp:274
+#: tmp_error_headers/error_list_ix.hpp:400
+msgid "PNG BUFFER FULL"
+msgstr "BUFFER PNG LLENO"
+
+#: tmp_error_headers/error_list_coreone.hpp:323
+#: tmp_error_headers/error_list_mk35.hpp:246
+#: tmp_error_headers/error_list_xl.hpp:351
+#: tmp_error_headers/error_list_mk4.hpp:253
+#: tmp_error_headers/error_list_ix.hpp:337
+msgid "POWER PANIC"
+msgstr "MODO PÁNICO"
+
+#: tmp_error_headers/error_list_coreone.hpp:393
+#: tmp_error_headers/error_list_coreone.hpp:400
+#: tmp_error_headers/error_list_coreone.hpp:407
+#: tmp_error_headers/error_list_coreone.hpp:414
+#: tmp_error_headers/error_list_coreone.hpp:421
+#: tmp_error_headers/error_list_coreone.hpp:428
+#: tmp_error_headers/error_list_coreone.hpp:435
+#: tmp_error_headers/error_list_coreone.hpp:442
+#: tmp_error_headers/error_list_coreone.hpp:449
+#: tmp_error_headers/error_list_coreone.hpp:456
+#: tmp_error_headers/error_list_coreone.hpp:463
+#: tmp_error_headers/error_list_coreone.hpp:470
+#: tmp_error_headers/error_list_xl.hpp:449
+#: tmp_error_headers/error_list_xl.hpp:456
+#: tmp_error_headers/error_list_xl.hpp:463
+#: tmp_error_headers/error_list_xl.hpp:470
+#: tmp_error_headers/error_list_xl.hpp:477
+#: tmp_error_headers/error_list_xl.hpp:484
+#: tmp_error_headers/error_list_xl.hpp:491
+#: tmp_error_headers/error_list_xl.hpp:498
+#: tmp_error_headers/error_list_xl.hpp:505
+#: tmp_error_headers/error_list_xl.hpp:512
+#: tmp_error_headers/error_list_xl.hpp:519
+#: tmp_error_headers/error_list_xl.hpp:526
+#: tmp_error_headers/error_list_ix.hpp:414
+#: tmp_error_headers/error_list_ix.hpp:421
+#: tmp_error_headers/error_list_ix.hpp:428
+#: tmp_error_headers/error_list_ix.hpp:435
+#: tmp_error_headers/error_list_ix.hpp:442
+#: tmp_error_headers/error_list_ix.hpp:449
+#: tmp_error_headers/error_list_ix.hpp:456
+#: tmp_error_headers/error_list_ix.hpp:463
+#: tmp_error_headers/error_list_ix.hpp:470
+#: tmp_error_headers/error_list_ix.hpp:477
+#: tmp_error_headers/error_list_ix.hpp:484
+#: tmp_error_headers/error_list_ix.hpp:491
+msgid "PUPPY ERROR"
+msgstr "ERROR PUPPY"
+
+#: tmp_error_headers/error_list_coreone.hpp:15
+#: tmp_error_headers/error_list_xl.hpp:15
+#: tmp_error_headers/error_list_ix.hpp:15
+msgid "PRECISE HOMING REFINEMENT FAILED"
+msgstr "FALLO REFINAMIENTO PRECISO HOMING"
+
+#: src/gui/screen/toolhead/screen_toolhead_settings.cpp:138
+msgid "Pick Tool"
+msgstr "Coger Cabezal"
+
+#: tmp_error_headers/error_list_coreone.hpp:863
+#: tmp_error_headers/error_list_mk35.hpp:674
+#: tmp_error_headers/error_list_xl.hpp:933
+#: tmp_error_headers/error_list_mk4.hpp:709
+#: tmp_error_headers/error_list_mini.hpp:590
+#: tmp_error_headers/error_list_ix.hpp:856
+msgid "Please replace filament."
+msgstr "Por favor reemplace el filamento."
+
+#: tmp_error_headers/error_list_coreone.hpp:793
+#: tmp_error_headers/error_list_mk35.hpp:597
+#: tmp_error_headers/error_list_xl.hpp:842
+#: tmp_error_headers/error_list_mk4.hpp:639
+#: tmp_error_headers/error_list_mini.hpp:520
+#: tmp_error_headers/error_list_ix.hpp:779
+msgid ""
+"Print fan not spinning. Check it for possible debris, then inspect the "
+"wiring."
+msgstr ""
+"El ventilador de impresión no gira. Comprueba que no hay residuos, luego "
+"inspecciona el cableado."
+
+#: tmp_error_headers/error_list_mk35.hpp:30
+msgid ""
+"Printer has detected multiple consecutive filament loading errors. We "
+"recommend checking the extruder. Visit prusa.io/mmu-care."
+msgstr ""
+"La impresora ha detectado varios errores consecutivos de carga de filamento. "
+"Recomendamos comprobar extrusor. Visita prusa.io/mmu-care."
+
+#: tmp_error_headers/error_list_coreone.hpp:457
+#: tmp_error_headers/error_list_xl.hpp:513
+#: tmp_error_headers/error_list_ix.hpp:478
+#, c-format
+msgid "Puppy %s firmware fingerprint mismatch"
+msgstr "Desajuste huella firmware puppy %s"
+
+#: tmp_error_headers/error_list_coreone.hpp:443
+#: tmp_error_headers/error_list_xl.hpp:499
+#: tmp_error_headers/error_list_ix.hpp:464
+#, c-format
+msgid "Puppy %s firmware not found"
+msgstr "Firmware puppy %s no encontrado"
+
+#: tmp_error_headers/error_list_coreone.hpp:450
+#: tmp_error_headers/error_list_xl.hpp:506
+#: tmp_error_headers/error_list_ix.hpp:471
+#, c-format
+msgid "Puppy %s flash writing failed"
+msgstr "Fallo escritura flash de puppy %s"
+
+#: tmp_error_headers/error_list_coreone.hpp:883
+#: tmp_error_headers/error_list_mk35.hpp:687
+#: tmp_error_headers/error_list_xl.hpp:974
+#: tmp_error_headers/error_list_mk4.hpp:729
+#: tmp_error_headers/error_list_mini.hpp:603
+#: tmp_error_headers/error_list_ix.hpp:876
+msgid "Quick Pause"
+msgstr "Pausa Rápida"
+
+#: tmp_error_headers/error_list_coreone.hpp:352
+#: tmp_error_headers/error_list_mk35.hpp:275
+#: tmp_error_headers/error_list_xl.hpp:408
+#: tmp_error_headers/error_list_mk4.hpp:282
+#: tmp_error_headers/error_list_mini.hpp:247
+#: tmp_error_headers/error_list_ix.hpp:373
+msgid "Reading ESP firmware failed."
+msgstr "Error en la lectura del firmware ESP."
+
+#: tmp_error_headers/error_list_coreone.hpp:534
+#: tmp_error_headers/error_list_mk35.hpp:338
+#: tmp_error_headers/error_list_xl.hpp:590
+#: tmp_error_headers/error_list_mk4.hpp:380
+#: tmp_error_headers/error_list_mini.hpp:296
+#: tmp_error_headers/error_list_ix.hpp:555
+msgid ""
+"Space allocation for firmware BBF file failed. Repeat the action or try "
+"another USB drive."
+msgstr ""
+"Ha fallado la asignación de espacio para el archivo BBF del firmware. Repite "
+"la acción o prueba con otra unidad USB."
+
+#: tmp_error_headers/error_list_coreone.hpp:821
+#: tmp_error_headers/error_list_mk35.hpp:625
+#: tmp_error_headers/error_list_xl.hpp:870
+#: tmp_error_headers/error_list_mk4.hpp:667
+#: tmp_error_headers/error_list_mini.hpp:548
+#: tmp_error_headers/error_list_ix.hpp:807
+msgid "Steppers disabled due to inactivity."
+msgstr "Motores desactivados por inactividad."
+
+#: tmp_error_headers/error_list_coreone.hpp:141
+#: tmp_error_headers/error_list_coreone.hpp:148
+#: tmp_error_headers/error_list_mk35.hpp:99
+#: tmp_error_headers/error_list_mk35.hpp:106
+#: tmp_error_headers/error_list_xl.hpp:113
+#: tmp_error_headers/error_list_mk4.hpp:106
+#: tmp_error_headers/error_list_mk4.hpp:113
+#: tmp_error_headers/error_list_mini.hpp:78
+#: tmp_error_headers/error_list_mini.hpp:85
+#: tmp_error_headers/error_list_ix.hpp:99
+#: tmp_error_headers/error_list_ix.hpp:106
+msgid "TEMP NOT MATCHING"
+msgstr "TEMP NO CUADRA"
+
+#: tmp_error_headers/error_list_coreone.hpp:191
+#: tmp_error_headers/error_list_xl.hpp:205
+msgid "Target temperature not yet reached. Continue waiting?"
+msgstr "Aún no se ha alcanzado la temperatura objetivo. ¿Seguir esperando?"
+
+#: tmp_error_headers/error_list_coreone.hpp:569
+#: tmp_error_headers/error_list_mk35.hpp:373
+#: tmp_error_headers/error_list_xl.hpp:632
+#: tmp_error_headers/error_list_mk4.hpp:415
+#: tmp_error_headers/error_list_mini.hpp:331
+#: tmp_error_headers/error_list_ix.hpp:590
+msgid ""
+"This error code is not found\n"
+"in our database.\n"
+"Contact the support."
+msgstr ""
+"Este código de error no se encuentra \n"
+"en nuestra base de datos.\n"
+"Contacta con el serv. técnico."
+
+#: tmp_error_headers/error_list_coreone.hpp:568
+#: tmp_error_headers/error_list_mk35.hpp:372
+#: tmp_error_headers/error_list_mmu.hpp:318
+#: tmp_error_headers/error_list_xl.hpp:631
+#: tmp_error_headers/error_list_mk4.hpp:414
+#: tmp_error_headers/error_list_mini.hpp:330
+#: tmp_error_headers/error_list_ix.hpp:589
+msgid "UNKNOWN ERROR"
+msgstr "ERROR DESCONOCIDO"
+
+#: tmp_error_headers/error_list_coreone.hpp:638
+#: tmp_error_headers/error_list_mk35.hpp:442
+#: tmp_error_headers/error_list_xl.hpp:701
+#: tmp_error_headers/error_list_mk4.hpp:484
+#: tmp_error_headers/error_list_mini.hpp:400
+#: tmp_error_headers/error_list_ix.hpp:659
+msgid "UNSUPPORTED BUDDY FW"
+msgstr "FW BUDDY INCOMPATIBLE"
+
+#: tmp_error_headers/error_list_coreone.hpp:659
+#: tmp_error_headers/error_list_mk35.hpp:463
+#: tmp_error_headers/error_list_xl.hpp:722
+#: tmp_error_headers/error_list_mk4.hpp:505
+#: tmp_error_headers/error_list_mini.hpp:421
+#: tmp_error_headers/error_list_ix.hpp:680
+msgid "UNSUPPORTED FIRMWARE BBF FILE"
+msgstr "ARCHIVO BBF FW INCOMPATIBLE"
+
+#: tmp_error_headers/error_list_coreone.hpp:631
+#: tmp_error_headers/error_list_mk35.hpp:435
+#: tmp_error_headers/error_list_xl.hpp:694
+#: tmp_error_headers/error_list_mk4.hpp:477
+#: tmp_error_headers/error_list_mini.hpp:393
+#: tmp_error_headers/error_list_ix.hpp:652
+msgid "UNSUPPORTED PRINTER MODEL"
+msgstr "MODELO IMPRESORA INCOMPATIBLE"
+
+#: tmp_error_headers/error_list_coreone.hpp:239
+#: tmp_error_headers/error_list_mk35.hpp:162
+#: tmp_error_headers/error_list_xl.hpp:267
+#: tmp_error_headers/error_list_mk4.hpp:169
+#: tmp_error_headers/error_list_mini.hpp:141
+#: tmp_error_headers/error_list_ix.hpp:239
+msgid "USB DEVICE OVERCURRENT"
+msgstr "SOBRECORRIENTE DISPOSITIVO USB"
+
+#: tmp_error_headers/error_list_coreone.hpp:575
+#: tmp_error_headers/error_list_mk35.hpp:379
+#: tmp_error_headers/error_list_xl.hpp:638
+#: tmp_error_headers/error_list_mk4.hpp:421
+#: tmp_error_headers/error_list_mini.hpp:337
+#: tmp_error_headers/error_list_ix.hpp:596
+msgid "USB FLASH DRIVE NOT CONNECTED"
+msgstr "UNIDAD USB NO CONECTADA"
+
+#: tmp_error_headers/error_list_coreone.hpp:652
+#: tmp_error_headers/error_list_mk35.hpp:456
+#: tmp_error_headers/error_list_xl.hpp:715
+#: tmp_error_headers/error_list_mk4.hpp:498
+#: tmp_error_headers/error_list_mini.hpp:414
+#: tmp_error_headers/error_list_ix.hpp:673
+msgid "USB FLASH ERROR"
+msgstr "ERROR UNIDAD USB"
+
+#: tmp_error_headers/error_list_coreone.hpp:232
+#: tmp_error_headers/error_list_mk35.hpp:155
+#: tmp_error_headers/error_list_xl.hpp:260
+#: tmp_error_headers/error_list_mk4.hpp:162
+#: tmp_error_headers/error_list_mini.hpp:134
+#: tmp_error_headers/error_list_ix.hpp:232
+msgid "USB PORT OVERCURRENT"
+msgstr "SOBRECONSUMO PUERTO USB"
+
+#: tmp_error_headers/error_list_coreone.hpp:828
+#: tmp_error_headers/error_list_mk35.hpp:632
+#: tmp_error_headers/error_list_xl.hpp:877
+#: tmp_error_headers/error_list_mk4.hpp:674
+#: tmp_error_headers/error_list_mini.hpp:555
+#: tmp_error_headers/error_list_ix.hpp:814
+msgid "USB drive or file error, the print is now paused. Reconnect the drive."
+msgstr ""
+"Error de la unidad USB o del archivo, la impresión ahora está en pausa. "
+"Vuelve a conectar la unidad."
+
+#: tmp_error_headers/error_list_coreone.hpp:660
+#: tmp_error_headers/error_list_mk35.hpp:464
+#: tmp_error_headers/error_list_xl.hpp:723
+#: tmp_error_headers/error_list_mk4.hpp:506
+#: tmp_error_headers/error_list_mini.hpp:422
+#: tmp_error_headers/error_list_ix.hpp:681
+msgid ""
+"USB flash drive contains\n"
+"unsupported firmware BBF file."
+msgstr ""
+"Unidad flash USB contiene \n"
+"archivo BBF de FW incompatible."
+
+#: tmp_error_headers/error_list_coreone.hpp:772
+#: tmp_error_headers/error_list_mk35.hpp:576
+#: tmp_error_headers/error_list_xl.hpp:821
+#: tmp_error_headers/error_list_mk4.hpp:618
+#: tmp_error_headers/error_list_mini.hpp:513
+#: tmp_error_headers/error_list_ix.hpp:772
+msgid ""
+"Unable to home the printer.\n"
+"Do you want to try again?"
+msgstr ""
+"Está fallando el home.\n"
+"¿Quieres probar de nuevo?"
+
+#: tmp_error_headers/error_list_coreone.hpp:667
+#: tmp_error_headers/error_list_mk35.hpp:471
+#: tmp_error_headers/error_list_xl.hpp:730
+#: tmp_error_headers/error_list_mk4.hpp:513
+#: tmp_error_headers/error_list_mini.hpp:429
+#: tmp_error_headers/error_list_ix.hpp:688
+msgid "Unable to verify the extruder type, check the wiring and connectors."
+msgstr ""
+"Al no poder verificar el tipo de extrusor, comprueba el cableado y los "
+"conectores."
+
+#: tmp_error_headers/error_list_coreone.hpp:687
+#: tmp_error_headers/error_list_mk35.hpp:491
+#: tmp_error_headers/error_list_xl.hpp:743
+#: tmp_error_headers/error_list_mk4.hpp:533
+#: tmp_error_headers/error_list_mini.hpp:435
+#: tmp_error_headers/error_list_ix.hpp:694
+msgid "Unknown file system"
+msgstr "Sistema de archivos desconocido"
+
+#: tmp_error_headers/error_list_coreone.hpp:688
+#: tmp_error_headers/error_list_mk35.hpp:492
+#: tmp_error_headers/error_list_xl.hpp:744
+#: tmp_error_headers/error_list_mk4.hpp:534
+#: tmp_error_headers/error_list_mini.hpp:436
+#: tmp_error_headers/error_list_ix.hpp:695
+msgid ""
+"Use a different USB drive or reformat this one to the supported FAT32 file "
+"system."
+msgstr ""
+"Utiliza una unidad USB diferente o reformatea ésta al sistema de archivos "
+"FAT32 compatible."
+
+#: tmp_error_headers/error_list_coreone.hpp:884
+#: tmp_error_headers/error_list_mk35.hpp:688
+#: tmp_error_headers/error_list_xl.hpp:975
+#: tmp_error_headers/error_list_mk4.hpp:730
+#: tmp_error_headers/error_list_mini.hpp:604
+#: tmp_error_headers/error_list_ix.hpp:877
+msgid "Waiting for the user. Press \"Resume\" once the printer is ready."
+msgstr ""
+"Esperando al usuario. Pulsa \"Reanudar\" una vez que la impresora esté lista."
+
+#: src/guiapi/src/window_msgbox.cpp:308
+#: tmp_error_headers/error_list_coreone.hpp:694
+#: tmp_error_headers/error_list_coreone.hpp:701
+#: tmp_error_headers/error_list_coreone.hpp:708
+#: tmp_error_headers/error_list_coreone.hpp:715
+#: tmp_error_headers/error_list_coreone.hpp:722
+#: tmp_error_headers/error_list_coreone.hpp:729
+#: tmp_error_headers/error_list_coreone.hpp:743
+#: tmp_error_headers/error_list_coreone.hpp:792
+#: tmp_error_headers/error_list_coreone.hpp:799
+#: tmp_error_headers/error_list_coreone.hpp:806
+#: tmp_error_headers/error_list_coreone.hpp:813
+#: tmp_error_headers/error_list_coreone.hpp:820
+#: tmp_error_headers/error_list_coreone.hpp:827
+#: tmp_error_headers/error_list_coreone.hpp:834
+#: tmp_error_headers/error_list_coreone.hpp:841
+#: tmp_error_headers/error_list_coreone.hpp:848
+#: tmp_error_headers/error_list_coreone.hpp:855
+#: tmp_error_headers/error_list_coreone.hpp:869
+#: tmp_error_headers/error_list_coreone.hpp:876
+#: tmp_error_headers/error_list_mk35.hpp:498
+#: tmp_error_headers/error_list_mk35.hpp:505
+#: tmp_error_headers/error_list_mk35.hpp:512
+#: tmp_error_headers/error_list_mk35.hpp:519
+#: tmp_error_headers/error_list_mk35.hpp:526
+#: tmp_error_headers/error_list_mk35.hpp:533
+#: tmp_error_headers/error_list_mk35.hpp:547
+#: tmp_error_headers/error_list_mk35.hpp:596
+#: tmp_error_headers/error_list_mk35.hpp:603
+#: tmp_error_headers/error_list_mk35.hpp:610
+#: tmp_error_headers/error_list_mk35.hpp:617
+#: tmp_error_headers/error_list_mk35.hpp:624
+#: tmp_error_headers/error_list_mk35.hpp:631
+#: tmp_error_headers/error_list_mk35.hpp:638
+#: tmp_error_headers/error_list_mk35.hpp:645
+#: tmp_error_headers/error_list_mk35.hpp:652
+#: tmp_error_headers/error_list_mk35.hpp:659
+#: tmp_error_headers/error_list_mk35.hpp:666
+#: tmp_error_headers/error_list_mk35.hpp:680
+#: tmp_error_headers/error_list_xl.hpp:750
+#: tmp_error_headers/error_list_xl.hpp:757
+#: tmp_error_headers/error_list_xl.hpp:764
+#: tmp_error_headers/error_list_xl.hpp:771
+#: tmp_error_headers/error_list_xl.hpp:778
+#: tmp_error_headers/error_list_xl.hpp:792
+#: tmp_error_headers/error_list_xl.hpp:841
+#: tmp_error_headers/error_list_xl.hpp:848
+#: tmp_error_headers/error_list_xl.hpp:855
+#: tmp_error_headers/error_list_xl.hpp:862
+#: tmp_error_headers/error_list_xl.hpp:869
+#: tmp_error_headers/error_list_xl.hpp:876
+#: tmp_error_headers/error_list_xl.hpp:883
+#: tmp_error_headers/error_list_xl.hpp:890
+#: tmp_error_headers/error_list_xl.hpp:897
+#: tmp_error_headers/error_list_xl.hpp:904
+#: tmp_error_headers/error_list_xl.hpp:911
+#: tmp_error_headers/error_list_xl.hpp:918
+#: tmp_error_headers/error_list_xl.hpp:925
+#: tmp_error_headers/error_list_xl.hpp:939
+#: tmp_error_headers/error_list_xl.hpp:946
+#: tmp_error_headers/error_list_xl.hpp:953
+#: tmp_error_headers/error_list_xl.hpp:960
+#: tmp_error_headers/error_list_xl.hpp:967
+#: tmp_error_headers/error_list_mk4.hpp:540
+#: tmp_error_headers/error_list_mk4.hpp:547
+#: tmp_error_headers/error_list_mk4.hpp:554
+#: tmp_error_headers/error_list_mk4.hpp:561
+#: tmp_error_headers/error_list_mk4.hpp:568
+#: tmp_error_headers/error_list_mk4.hpp:575
+#: tmp_error_headers/error_list_mk4.hpp:589
+#: tmp_error_headers/error_list_mk4.hpp:638
+#: tmp_error_headers/error_list_mk4.hpp:645
+#: tmp_error_headers/error_list_mk4.hpp:652
+#: tmp_error_headers/error_list_mk4.hpp:659
+#: tmp_error_headers/error_list_mk4.hpp:666
+#: tmp_error_headers/error_list_mk4.hpp:673
+#: tmp_error_headers/error_list_mk4.hpp:680
+#: tmp_error_headers/error_list_mk4.hpp:687
+#: tmp_error_headers/error_list_mk4.hpp:694
+#: tmp_error_headers/error_list_mk4.hpp:701
+#: tmp_error_headers/error_list_mk4.hpp:715
+#: tmp_error_headers/error_list_mk4.hpp:722
+#: tmp_error_headers/error_list_mini.hpp:442
+#: tmp_error_headers/error_list_mini.hpp:449
+#: tmp_error_headers/error_list_mini.hpp:456
+#: tmp_error_headers/error_list_mini.hpp:463
+#: tmp_error_headers/error_list_mini.hpp:470
+#: tmp_error_headers/error_list_mini.hpp:484
+#: tmp_error_headers/error_list_mini.hpp:519
+#: tmp_error_headers/error_list_mini.hpp:526
+#: tmp_error_headers/error_list_mini.hpp:533
+#: tmp_error_headers/error_list_mini.hpp:540
+#: tmp_error_headers/error_list_mini.hpp:547
+#: tmp_error_headers/error_list_mini.hpp:554
+#: tmp_error_headers/error_list_mini.hpp:561
+#: tmp_error_headers/error_list_mini.hpp:568
+#: tmp_error_headers/error_list_mini.hpp:575
+#: tmp_error_headers/error_list_mini.hpp:582
+#: tmp_error_headers/error_list_mini.hpp:596
+#: tmp_error_headers/error_list_ix.hpp:701
+#: tmp_error_headers/error_list_ix.hpp:708
+#: tmp_error_headers/error_list_ix.hpp:715
+#: tmp_error_headers/error_list_ix.hpp:722
+#: tmp_error_headers/error_list_ix.hpp:729
+#: tmp_error_headers/error_list_ix.hpp:743
+#: tmp_error_headers/error_list_ix.hpp:778
+#: tmp_error_headers/error_list_ix.hpp:785
+#: tmp_error_headers/error_list_ix.hpp:792
+#: tmp_error_headers/error_list_ix.hpp:799
+#: tmp_error_headers/error_list_ix.hpp:806
+#: tmp_error_headers/error_list_ix.hpp:813
+#: tmp_error_headers/error_list_ix.hpp:820
+#: tmp_error_headers/error_list_ix.hpp:827
+#: tmp_error_headers/error_list_ix.hpp:834
+#: tmp_error_headers/error_list_ix.hpp:841
+#: tmp_error_headers/error_list_ix.hpp:848
+#: tmp_error_headers/error_list_ix.hpp:862
+#: tmp_error_headers/error_list_ix.hpp:869
+msgid "Warning"
+msgstr "Cuidado"
+
+#: tmp_error_headers/error_list_coreone.hpp:681
+#: tmp_error_headers/error_list_mk35.hpp:485
+#: tmp_error_headers/error_list_xl.hpp:737
+#: tmp_error_headers/error_list_mk4.hpp:527
+msgid ""
+"Welcome to the Cold Pull wizard. Prepare a 30cm piece of PLA filament and "
+"follow the instructions. For more details, visit:"
+msgstr ""
+"Bienvenido al asistente de Tirón en Frío. Prepara un trozo de filamento PLA "
+"de 30cm y sigue las instrucciones. Para más detalles, visita:"
