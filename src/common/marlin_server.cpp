@@ -2644,7 +2644,7 @@ static void _server_print_loop(void) {
 
 #if HAS_XBUDDY_EXTENSION()
         const bool cool_fan_ok = buddy::xbuddy_extension().is_fan_ok(buddy::XBuddyExtension::Fan::cooling_fan_1) && buddy::xbuddy_extension().is_fan_ok(buddy::XBuddyExtension::Fan::cooling_fan_2);
-        xbe_cool_fan_checker.checkTrue(cool_fan_ok, WarningType::ChamberFiltrationFanError, false, false);
+        xbe_cool_fan_checker.checkTrue(cool_fan_ok, WarningType::ChamberCoolingFanError, false, false);
         if (cool_fan_ok) {
             xbe_cool_fan_checker.reset();
         }
