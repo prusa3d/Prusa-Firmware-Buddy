@@ -19,7 +19,7 @@ public:
     MenuItemSelectMenu(const string_view_utf8 &label);
 
     /// \returns currently selected item
-    size_t current_item() const {
+    int current_item() const {
         return current_item_;
     }
 
