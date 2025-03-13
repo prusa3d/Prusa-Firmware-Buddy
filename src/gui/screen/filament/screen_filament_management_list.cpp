@@ -36,15 +36,7 @@ MI_FILAMENT::MI_FILAMENT(FilamentType filament_type)
 }
 
 void MI_FILAMENT::click(IWindowMenu &) {
-    static constexpr std::array screen_factory = [] {
-        std::array<ScreenFactory::Creator, total_filament_type_count> r;
-        stdext::visit_sequence<total_filament_type_count>([&]<size_t i>() {
-            // FilamentType is not "structural", so we cannot pass it as a template parameter -> pass EncodedFilamentType instead
-            r[i] = ScreenFactory::Screen<ScreenFilamentDetail, EncodedFilamentType(all_filament_types[i])>;
-        });
-        return r;
-    }();
-    Screens::Access()->Open(screen_factory[stdext::index_of(all_filament_types, filament_type)]);
+    Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenFilamentDetail, EncodedFilamentType>(filament_type));
 }
 
 // * WindowMenuFilamentManagementList
