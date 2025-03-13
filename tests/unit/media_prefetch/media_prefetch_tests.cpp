@@ -23,7 +23,7 @@ using R = GCodeReaderResult;
 
 std::string read_gcode(MediaPrefetchManager &mp, bool cropped = false) {
     MediaPrefetchManager::ReadResult c;
-    return (mp.read_command(c) == S::ok && c.cropped == cropped) ? std::string(c.gcode.data()) : std::string {};
+    return (mp.read_command(c).status == S::ok && c.cropped == cropped) ? std::string(c.gcode.data()) : std::string {};
 }
 
 TEST_CASE("media_prefetch::basic_test") {
@@ -31,8 +31,8 @@ TEST_CASE("media_prefetch::basic_test") {
 
     SECTION("Empty media prefetch should return end of file") {
         MediaPrefetchManager mp;
-        CHECK(mp.read_command(c) == S::end_of_file);
-        CHECK(mp.read_command(c) == S::end_of_file);
+        CHECK(mp.read_command(c).status == S::end_of_file);
+        CHECK(mp.read_command(c).status == S::end_of_file);
     }
 
     SECTION("Basic reading checks") {
@@ -47,10 +47,10 @@ TEST_CASE("media_prefetch::basic_test") {
 
         REQUIRE(read_gcode(mp) == "G0");
         REQUIRE(read_gcode(mp) == "G1");
-        REQUIRE(mp.read_command(c) == S::end_of_buffer);
+        REQUIRE(mp.read_command(c).status == S::end_of_buffer);
 
         // We have not issued a fetch, so we should still see end of buffer now
-        REQUIRE(mp.read_command(c) == S::end_of_buffer);
+        REQUIRE(mp.read_command(c).status == S::end_of_buffer);
 
         SECTION("Fetch after end of buffer -> end of file") {
             mp.issue_fetch();
@@ -62,7 +62,7 @@ TEST_CASE("media_prefetch::basic_test") {
             REQUIRE(read_gcode(mp) == "G2");
         }
 
-        REQUIRE(mp.read_command(c) == S::end_of_file);
+        REQUIRE(mp.read_command(c).status == S::end_of_file);
         REQUIRE(p.has_read_all());
     }
 }
@@ -210,21 +210,21 @@ TEST_CASE("media_prefetch::file_handle_tests") {
         mp.start(p.filename(), {});
         mp.issue_fetch();
         REQUIRE(read_gcode(mp) == "G0");
-        REQUIRE(mp.read_command(c) == S::end_of_file);
+        REQUIRE(mp.read_command(c).status == S::end_of_file);
         CHECK(!mp.worker_state.gcode_reader.is_open());
 
         // Stays closed even if more issue_fetches are called
         mp.issue_fetch();
 
         CHECK(!mp.worker_state.gcode_reader.is_open());
-        REQUIRE(mp.read_command(c) == S::end_of_file);
+        REQUIRE(mp.read_command(c).status == S::end_of_file);
 
         mp.issue_fetch();
 
         // It stays closed even if the reader _would_ return an error.
         p.add_breakpoint(R::RESULT_ERROR);
         CHECK(!mp.worker_state.gcode_reader.is_open());
-        REQUIRE(mp.read_command(c) == S::end_of_file);
+        REQUIRE(mp.read_command(c).status == S::end_of_file);
     }
 
     SECTION("File gets closed after an error") {
@@ -238,12 +238,12 @@ TEST_CASE("media_prefetch::file_handle_tests") {
         mp.issue_fetch();
 
         REQUIRE(read_gcode(mp) == "G0");
-        REQUIRE(mp.read_command(c) == S::usb_error);
+        REQUIRE(mp.read_command(c).status == S::usb_error);
         REQUIRE(!mp.worker_state.gcode_reader.is_open());
 
         mp.issue_fetch();
         REQUIRE(read_gcode(mp) == "G1");
-        REQUIRE(mp.read_command(c) == S::end_of_file);
+        REQUIRE(mp.read_command(c).status == S::end_of_file);
         REQUIRE(!mp.worker_state.gcode_reader.is_open());
     }
 
@@ -255,7 +255,7 @@ TEST_CASE("media_prefetch::file_handle_tests") {
         mp.start(p.filename(), {});
         mp.issue_fetch();
 
-        REQUIRE(mp.read_command(c) == S::end_of_buffer);
+        REQUIRE(mp.read_command(c).status == S::end_of_buffer);
         REQUIRE(mp.worker_state.gcode_reader.is_open());
 
         mp.stop();
@@ -301,7 +301,7 @@ TEST_CASE("media_prefetch::feed_test") {
     S status;
 
     const auto read_single_command = [&] {
-        status = mp.read_command(r);
+        status = mp.read_command(r).status;
         if (status != S::ok) {
             return false;
         }
@@ -544,7 +544,7 @@ TEST_CASE("media_prefetch::command_buffer_overflow_text") {
     REQUIRE(read_gcode(mp) == short_gcode);
 
     RR r;
-    CHECK(mp.read_command(r) == S::end_of_file);
+    CHECK(mp.read_command(r).status == S::end_of_file);
 }
 
 TEST_CASE("media_prefetch::compacting") {

@@ -60,8 +60,17 @@ public:
         bool cropped;
     };
 
+    struct StatusAndActive {
+        // Status of the command.
+        Status status;
+        // Is some fetch running?
+        //
+        // If true, an error status might still "go away" on its own by this particular fetch.
+        bool fetch_active;
+    };
+
     /// Attempts to read one gcode command from the buffer.
-    Status read_command(ReadResult &result);
+    StatusAndActive read_command(ReadResult &result);
 
     /// Restarts the manager & starts reading gcode from the specified position
     void start(const char *filepath, const GCodeReaderPosition &position);
