@@ -7,6 +7,7 @@
 #include "otp.hpp"
 #include "timing_precise.hpp"
 #include <option/bootloader.h>
+#include <common/adc.hpp>
 
 namespace buddy::hw {
 
@@ -30,6 +31,12 @@ float Configuration::curr_measurement_voltage_to_current(float voltage) const {
 
 bool Configuration::is_fw_incompatible_with_hw() {
 #if PRINTER_IS_PRUSA_MK4()
+    // If door sensor sensor is detected, this is CORE ONE HW
+    static constexpr uint16_t door_sensor_disconnected_threshold = 0xcff;
+    if (AdcGet::door_sensor() >= door_sensor_disconnected_threshold) {
+        return true;
+    }
+
     if (get_loveboard_status().data_valid) {
         return false; // valid data, fw compatible
     }
@@ -54,11 +61,11 @@ bool Configuration::is_fw_incompatible_with_hw() {
         }
     }
 
-    return mk35_extruder_detected;
-
-#else
-    return false; // There is no need for this compatibility check on other build configurations
+    if (mk35_extruder_detected) {
+        return true;
+    }
 #endif
+    return false;
 }
 
 } // namespace buddy::hw
