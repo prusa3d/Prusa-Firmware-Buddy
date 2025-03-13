@@ -30,7 +30,7 @@ if(BOARD_IS_MASTER_BOARD)
      OR (PRINTER STREQUAL "iX")
      OR (PRINTER STREQUAL "COREONE")
      )
-    add_subdirectory(mk4_ix)
+    add_subdirectory(mk4_ix_coreone)
   endif()
 
   if(PRINTER STREQUAL "MK3.5")

@@ -321,7 +321,7 @@ set(PRINTERS_WITH_PUPPIES_BOOTLOADER "XL" "iX" "XL_DEV_KIT" "COREONE")
 set(PRINTERS_WITH_DWARF "XL" "XL_DEV_KIT")
 set_feature_for_printers_master_board(HAS_MODULARBED "iX" "XL" "XL_DEV_KIT")
 set_feature_for_printers_master_board(HAS_XBUDDY_EXTENSION "COREONE")
-set_feature_for_printers_master_board(HAS_DOOR_SENSOR "COREONE")
+set_feature_for_printers_master_board(HAS_DOOR_SENSOR "COREONE" "MK4") # MK4: check valid FW-HW
 set_feature_for_printers(HAS_TOOLCHANGER "XL" "XL_DEV_KIT")
 set_feature_for_printers(HAS_SIDE_FSENSOR "iX" "XL" "COREONE")
 set_feature_for_printers(HAS_ADC_SIDE_FSENSOR "XL")

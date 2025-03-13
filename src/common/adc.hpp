@@ -126,7 +126,7 @@ enum AD3 { // ADC3 channels
     board_I,
     #if PRINTER_IS_PRUSA_iX()
     case_T,
-    #elif PRINTER_IS_PRUSA_COREONE()
+    #elif PRINTER_IS_PRUSA_COREONE() || PRINTER_IS_PRUSA_MK4()
     door_sensor,
     #endif
     ADC3_CH_CNT
@@ -479,7 +479,7 @@ inline uint16_t inputVoltage() {
     #if PRINTER_IS_PRUSA_iX()
 inline uint16_t psu_temp() { return adcDma1.get_and_shift_channel(AdcChannel::heatbed_T); }
 inline uint16_t ambient_temp() { return adcDma3.get_and_shift_channel(AdcChannel::case_T); }
-    #elif PRINTER_IS_PRUSA_COREONE()
+    #elif PRINTER_IS_PRUSA_COREONE() || PRINTER_IS_PRUSA_MK4()
 inline uint16_t door_sensor() { return adcDma3.get_channel(AdcChannel::door_sensor); }
     #endif
 
