@@ -99,17 +99,18 @@ void XBuddyExtension::step() {
         cooling_fans_actual_pwm_ = chamber_cooling.apply_pwm_overrides(rpm0.value_or(0) > 5 && rpm1.value_or(0) > 5, cooling_fans_actual_pwm_);
         filtration_fan_actual_pwm_ = chamber_cooling.apply_pwm_overrides(rpm2.value_or(0) > 5, filtration_fan_actual_pwm_);
 
-        puppies::xbuddy_extension.set_fan_pwm(0, cooling_fans_actual_pwm_.value);
-        puppies::xbuddy_extension.set_fan_pwm(1, cooling_fans_actual_pwm_.value);
-        puppies::xbuddy_extension.set_fan_pwm(2, filtration_fan_actual_pwm_.value);
+        const auto set_fan_pwm = [this](Fan fan, PWM255 pwm) {
+            puppies::xbuddy_extension.set_fan_pwm(std::to_underlying(fan), pwm.value);
 
-        if (cooling_fans_actual_pwm_.value == 0) {
-            fan_start_timestamp[ftrstd::to_underlying(xbuddy_extension_shared::Fan::cooling_fan_1)] = 0;
-            fan_start_timestamp[ftrstd::to_underlying(xbuddy_extension_shared::Fan::cooling_fan_2)] = 0;
-        }
-        if (filtration_fan_actual_pwm_.value == 0) {
-            fan_start_timestamp[ftrstd::to_underlying(xbuddy_extension_shared::Fan::filtration_fan)] = 0;
-        }
+            // Keep resetting start_timestamp while the fan is not spinning.
+            if (pwm.value == 0) {
+                fan_start_timestamp[fan] = ticks_ms();
+            }
+        };
+
+        set_fan_pwm(Fan::cooling_fan_1, cooling_fans_actual_pwm_);
+        set_fan_pwm(Fan::cooling_fan_2, cooling_fans_actual_pwm_);
+        set_fan_pwm(Fan::filtration_fan, filtration_fan_actual_pwm_);
 
         if (chamber_cooling.get_critical_temp_flag()) {
             // executed from task marlin_server, marlin_server must be called directly
@@ -148,26 +149,21 @@ std::optional<XBuddyExtension::FanRPM> XBuddyExtension::fan_rpm(Fan fan) const {
     return puppies::xbuddy_extension.get_fan_rpm(std::to_underlying(fan));
 }
 
-bool XBuddyExtension::is_fan_ok(const Fan fan) {
+bool XBuddyExtension::is_fan_ok(const Fan fan) const {
     const auto actual_pwm = fan_actual_pwm(fan);
 
     std::lock_guard _lg(mutex_);
 
-    const auto rpm = fan_rpm(fan);
-    if (!rpm.has_value() || rpm.value() != 0) {
-        return true; // Communication error with puppy || fan IS ok
-    }
+    if (actual_pwm.value == 0) {
+        // Fan is not supposed to spin - all is well
 
-    auto &start_timestamp = fan_start_timestamp[ftrstd::to_underlying(fan)];
-    // fan start delay (to avoid false-positive)
-    if (actual_pwm.value > 0 && start_timestamp == 0) {
-        start_timestamp = ticks_ms();
-    } else {
-        // Error state - fan should rotate, but it doesn't
-        // Report only if initial start period is over
-        if (ticks_diff(ticks_ms(), start_timestamp) >= FANCTL_START_TIMEOUT) {
-            return actual_pwm.value == 0;
-        }
+    } else if (fan_rpm(fan).value_or(0) > 0) {
+        // Fan is spinning - all is well
+        // Or we don't know the RPM, at which point we will not report the problem until we are sure
+
+    } else if (ticks_diff(ticks_ms(), fan_start_timestamp[fan]) >= FANCTL_START_TIMEOUT) {
+        // Fan should be spinning for some time now, but it isn't -> report a problem
+        return false;
     }
 
     return true;

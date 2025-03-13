@@ -3,8 +3,8 @@
 #include "cooling.hpp"
 
 #include <optional>
-#include <span>
 
+#include <enum_array.hpp>
 #include <freertos/mutex.hpp>
 #include <leds/color.hpp>
 #include <temperature.hpp>
@@ -40,7 +40,7 @@ public: // Fans
     std::optional<FanRPM> fan_rpm(Fan fan) const;
 
     /// \returns False on unexpected fan behaviour (positive PWM but 0 RPM)
-    bool is_fan_ok(const Fan fan);
+    bool is_fan_ok(const Fan fan) const;
 
     /// \returns shared target PWM of the specified fan
     FanPWMOrAuto fan_target_pwm(Fan fan) const;
@@ -119,7 +119,7 @@ private:
     uint32_t last_fan_update_ms;
 
     // keeps fan power up timestamp to measure headstart delay
-    uint32_t fan_start_timestamp[xbuddy_extension_shared::fan_count] = {};
+    EnumArray<Fan, uint32_t, xbuddy_extension_shared::fan_count> fan_start_timestamp = {};
 
     bool can_auto_cool_ = false;
     bool overheating_warning_shown = false;
