@@ -211,10 +211,10 @@ void hw_dma_init() {
 
 #if (BOARD_IS_XBUDDY())
     // Accelerometer DMA
-    HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, ISR_PRIORITY_DEFAULT, 0);
+    HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, ISR_PRIORITY_ACCELEROMETER, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
 
-    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, ISR_PRIORITY_DEFAULT, 0);
+    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, ISR_PRIORITY_ACCELEROMETER, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
 #endif
 

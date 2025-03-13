@@ -32,6 +32,7 @@ static_assert(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY == 5);
     #define ISR_PRIORITY_POWER_PANIC   5
     #define ISR_PRIORITY_PUPPIES_USART 5
     #define ISR_PRIORITY_HX717_SOFT    5
+    #define ISR_PRIORITY_ACCELEROMETER 5 // Accelerometer has to be able to preempt the move timer
     #define ISR_PRIORITY_MOVE_TIMER    6
     #define ISR_PRIORITY_DEFAULT       7 // default ISR priority, used by ISRs that don't need specific ISR priority
     #define ISR_PRIORITY_PENDSV        15
