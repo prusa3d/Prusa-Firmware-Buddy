@@ -71,15 +71,17 @@ MediaPrefetchManager::~MediaPrefetchManager() {
 #endif
 }
 
-MediaPrefetchManager::Status MediaPrefetchManager::read_command(ReadResult &result) {
+MediaPrefetchManager::StatusAndActive MediaPrefetchManager::read_command(ReadResult &result) {
     std::lock_guard mutex_guard(mutex);
 
     auto &s = shared_state;
 
+    const bool fetch_active = worker_job.is_active() || s.fetch_requested;
+
     // If we're at the buffer end, return the appropriate error
     if (s.read_head.buffer_pos == s.read_tail.buffer_pos) {
         assert(s.read_tail.status != Status::ok);
-        return s.read_tail.status;
+        return { s.read_tail.status, fetch_active };
     }
 
     auto &resume_pos = manager_state.read_head.gcode_pos;
@@ -151,7 +153,7 @@ MediaPrefetchManager::Status MediaPrefetchManager::read_command(ReadResult &resu
     // Let the worker know that we've read stuff and it can reuse the memory
     assert(s.commands_in_buffer > 0);
     s.commands_in_buffer--;
-    return Status::ok;
+    return { Status::ok, fetch_active };
 }
 
 void MediaPrefetchManager::start(const char *filepath, const GCodeReaderPosition &position) {

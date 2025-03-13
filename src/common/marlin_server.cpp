@@ -1451,12 +1451,12 @@ void media_print_loop() {
     while (queue.length < MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET) {
         MediaPrefetchManager::ReadResult data;
         using Status = MediaPrefetchManager::Status;
-        const Status status = media_prefetch.read_command(data);
+        const auto status = media_prefetch.read_command(data);
         const auto metrics = media_prefetch.get_metrics();
 
         /// Status of the last media_prefetch.read_command. 0 = ok, 1 = end of file, other = error (means that we're stalling)
         METRIC_DEF(metric_fetch_status, "ftch_status", METRIC_VALUE_INTEGER, 100, METRIC_ENABLED);
-        metric_record_integer(&metric_fetch_status, static_cast<int>(status));
+        metric_record_integer(&metric_fetch_status, static_cast<int>(status.status));
 
         /// Status at the end of the buffer - for early error indication
         METRIC_DEF(metric_fetch_tail_status, "ftch_tstatus", METRIC_VALUE_INTEGER, 100, METRIC_ENABLED);
@@ -1471,7 +1471,13 @@ void media_print_loop() {
         metric_record_integer(&metric_prefetch_buffer_commands, metrics.commands_in_buffer);
 
         // To-do: automatic unpause when paused if the condition fixes itself?
-        const auto media_error = [](WarningType warning_type) {
+        const auto media_error = [status](WarningType warning_type) {
+            // There's still a fetch running, this isn't completely final ‒ the
+            // fetch itself can recover from the error (and sometimes it does,
+            // but the actual recovery takes time). Wait for the final verdict.
+            if (status.fetch_active) {
+                return;
+            }
             set_warning(warning_type);
             print_state.paused_due_to_media_error = true;
             print_pause();
@@ -1496,7 +1502,7 @@ void media_print_loop() {
             SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, marlin_vars().media_SFN_path.get_ptr(), " Size:", metrics.stream_size_estimate);
         }
 
-        switch (status) {
+        switch (status.status) {
 
         case Status::ok:
             if (print_state.skip_gcode) {
