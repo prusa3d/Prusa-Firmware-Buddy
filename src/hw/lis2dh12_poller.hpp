@@ -20,13 +20,6 @@
  *
  * This class substitutes the internal accelerometer FIFO which seems to be
  * unreliable.
- *
- * Note that since we don't use the accelerometer interrupt pin and we run
- * asynchronously to the accelerometer, there is an inherent race condition when
- * we read the accelerometer status, but before reading the data the
- * accelerometer already has new data. This occurs based on the sampling rate of
- * the accelerometer and the polling rate of the LIS2DH12Poller. In practice,
- * this is much much rarer compared to the observed FIFO issues.
  */
 class LIS2DH12Poller {
     using Record = std::tuple<int16_t, int16_t, int16_t>;
