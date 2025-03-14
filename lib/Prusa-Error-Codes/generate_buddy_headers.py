@@ -111,6 +111,9 @@ def generate_header_file(yaml_file_name, header_file_name, printer_id, printer_c
         err_dict = {}
 
         for err in parsed_file["Errors"]:
+            if ("deprecated" in err) and err["deprecated"] == True:
+                continue
+
             if ("printers" in err) and (printer_id not in err["printers"]):
                 continue
 
