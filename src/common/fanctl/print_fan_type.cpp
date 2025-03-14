@@ -17,7 +17,10 @@ uint16_t print_fan_remap_pwm(PrintFanType pft, uint16_t original_pwm) {
     case PrintFanType::DELTA_BFB0505HHA_CWCD:
         return original_pwm;
     case PrintFanType::GOM_VD_2620:
-        return std::clamp<uint16_t>(original_pwm * 1.43f, 0, 255);
+        if (original_pwm == 0) {
+            return 0;
+        }
+        return std::clamp<uint16_t>(original_pwm * 1.43f, 1.43f * 0.2f * 255, 255);
     case PrintFanType::_cnt:
         std::unreachable();
     }
