@@ -30,7 +30,16 @@ bool CFanCtlPuppy::selftestSetPWM(uint8_t pwm) {
         return false;
     }
 
-    buddy::puppies::dwarfs[dwarf_nr].set_fan(fan_nr, pwm);
+    uint16_t remapped_pwm = pwm;
+
+#if HAS_PRINT_FAN_TYPE()
+    if (fan_nr == 0) {
+        PrintFanType pft = get_print_fan_type(dwarf_nr);
+        remapped_pwm = print_fan_remap_pwm(pft, pwm);
+    }
+#endif
+
+    buddy::puppies::dwarfs[dwarf_nr].set_fan(fan_nr, remapped_pwm);
     return true;
 }
 
