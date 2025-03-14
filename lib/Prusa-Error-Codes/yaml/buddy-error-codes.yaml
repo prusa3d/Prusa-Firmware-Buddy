@@ -313,6 +313,7 @@ Errors:
     text: "Measured temperature is not matching expected value. Check the thermistor is in contact with heatbed. In case of damage, replace it."
     id: "BED_TEMP_NOT_MATCHING"
     approved: true
+    deprecated: true
 
   - code: "XX210"
     printers: [MINI, MK4, COREONE, iX, MK3.5]
@@ -320,6 +321,7 @@ Errors:
     text: "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
     id: "HOTEND_TEMP_NOT_MATCHING"
     approved: true
+    deprecated: true
 
   - code: "XX210"
     printers: [XL]
@@ -327,6 +329,7 @@ Errors:
     text: "Measured temperature is not matching expected value. Check if the thermistor is in contact with the heaterblock. In case of damage, replace it."
     id: "HOTEND_TEMP_NOT_MATCHING"
     approved: true
+    deprecated: true
 
   - code: "XX211"
     title: "HEATBREAK MINTEMP ERROR"
@@ -697,8 +700,13 @@ Errors:
     id: "CONNECT_REGISTRATION_FAILED"
     approved: true
 
-  # XX4402 NEW_WIFI_CREDENTIALS deprecated
-
+  - code: "XX402"
+    title: "..."
+    text: "..."
+    id: "NEW_WIFI_CREDENTIALS"
+    approved: false
+    deprecated: true
+  
   - code: "XX403"
     title: "G-CODE METRICS CONFIG CHANGE"
     text: "Gcode is trying to change metrics configuration.\n\nAllow the changes?"
@@ -728,36 +736,42 @@ Errors:
     text: "Dwarf board %d fault: %s"
     id: "DWARF_MARLIN_ERR"
     approved: false
+    deprecated: true
     
   - code: "XX504"
     title: "ESP ERROR"
     text: "Reading ESP firmware failed."
     id: "ESP_FW_READ"
     approved: true
+    deprecated: true
 
   - code: "XX505"
     title: "ESP ERROR"
     text: "ESP detected command error."
     id: "ESP_COMMAND_ERR"
     approved: true
+    deprecated: true
 
   - code: "XX506"
     title: "ESP ERROR"
     text: "ESP detected unknown error."
     id: "ESP_UNKNOWN_ERR"
     approved: true
+    deprecated: true
 
   - code: "XX507"
     title: "OUT OF MEMORY"
     text: "Dynamic allocation failed - out of memory. Reset the printer."
     id: "MALLOC_ERROR"
     approved: true
+    deprecated: true
 
   - code: "XX508"
     title: "PNG BUFFER FULL"
     text: "Allocation of dynamic buffer for PNG failed - out of memory."
     id: "PNG_MALLOC_ERROR"
     approved: true
+    deprecated: true
 
   - code: "XX510"
     title: "EMERGENCY STOP"
@@ -868,6 +882,7 @@ Errors:
     text: "Loadcell calibration is incomplete. Restart the printer and calibrate loadcell."
     id: "LOADCELL_INCOMPLETE_CONFIGURATION_ERROR"
     approved: true
+    deprecated: true
 
   - code: "XX524"
     printers: [MK4, COREONE, iX, XL]
@@ -875,6 +890,7 @@ Errors:
     text: "There was an error requesting the tare for loadcell."
     id: "LOADCELL_TARE_ALREADY_REQUESTED"
     approved: true
+    deprecated: true
 
   - code: "XX525"
     printers: [MK4, COREONE, iX, XL]
@@ -882,6 +898,7 @@ Errors:
     text: "Setting the tare failed. Check the loadcell wiring and connection."
     id: "LOADCELL_TARE_FAILED"
     approved: true
+    deprecated: true
 
   - code: "XX526"
     printers: [MK4, COREONE, iX, XL]
@@ -897,6 +914,7 @@ Errors:
     text: "The loadcell configuration is incorrect."
     id: "LOADCELL_BAD_CONFIGURATION"
     approved: true
+    deprecated: true
 
   - code: "XX528"
     printers: [MK4, COREONE, iX, XL]
@@ -940,6 +958,7 @@ Errors:
     text: "ESP doesn't seem to be connected."
     id: "ESP_NOT_CONNECTED"
     approved: true
+    deprecated: true
 
   - code: "XX534"
     title: "Gcode Corruption"
@@ -1062,11 +1081,18 @@ Errors:
     approved: true
 
   - code: "XX701"
-    printers: [MK4, COREONE]
+    printers: [COREONE]
     title: "Firmware Update Required"
-    text: "Insert the bundled USB drive, restart the printer and click the knob once during the boot. This will install the MK3.5 firmware."
+    text: "Insert the bundled USB drive, restart the printer and click the knob once during the boot. This will install the MK4 firmware."
     id: "DIFFERENT_FW_REQUIRED"
-    approved: true
+    approved: false
+
+  - code: "XX701"
+    printers: [MK4]
+    title: "Firmware Update Required"
+    text: "Insert the bundled USB drive, restart the printer and click the knob once during the boot. This will install the correct firmware for your hardware."
+    id: "DIFFERENT_FW_REQUIRED"
+    approved: false
 
   - code: "XX701"
     printers: [MK3.5]
@@ -1374,6 +1400,15 @@ Errors:
     gui_layout: "warning_dialog"
     approved: true
 
+  - code: "XX831"
+    printers: [COREONE]
+    title: "HEPA Filter Expiring"
+    text: "The HEPA filter is nearing the end of its life span. We recommend purchasing a new one."
+    id: "ENCLOSURE_FILTER_EXPIRATION_WARNING"
+    type: "CONNECT"
+    gui_layout: "warning_dialog"
+    approved: false
+
   - code: "XX832"
     printers: [XL]
     title: "Warning"
@@ -1382,6 +1417,15 @@ Errors:
     type: "CONNECT"
     gui_layout: "warning_dialog"
     approved: true
+
+  - code: "XX832"
+    printers: [COREONE]
+    title: "HEPA Filter Expired"
+    text: "The HEPA filter has expired. Change the HEPA filter before your next print."
+    id: "ENCLOSURE_FILTER_EXPIRATION"
+    type: "CONNECT"
+    gui_layout: "warning_dialog"
+    approved: false
 
   - code: "XX833"
     printers: [iX, MK4, COREONE, MK3.5, MINI, XL]
