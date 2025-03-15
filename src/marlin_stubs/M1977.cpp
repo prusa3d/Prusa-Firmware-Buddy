@@ -17,12 +17,11 @@ enum class State {
     aborted,
 };
 
-static constexpr const size_t calibration_phase_count = phase_stepping::printer_calibration_config.phases.size();
 struct CalibrationPhaseResult {
     float forward;
     float backward;
 };
-using CalibrationResult = std::array<CalibrationPhaseResult, calibration_phase_count>;
+using CalibrationResult = std::vector<CalibrationPhaseResult>;
 
 struct Context {
     CalibrationResult calibration_result_x;
@@ -46,11 +45,17 @@ public:
     explicit CalibrateAxisHooks(PhasesPhaseStepping phase)
         : phase { phase } {
         data[0] = 0;
-        data[1] = calibration_phase_count;
+        data[1] = 0;
         data[2] = 0;
     }
 
-    void set_calibration_phases_count(int) override {
+    void on_motor_characterization_start() override {
+        // Nothing to do
+    }
+
+    void on_motor_characterization_result(int calibration_phase_count) override {
+        data[1] = calibration_phase_count;
+        calibration_result.resize(calibration_phase_count);
     }
 
     void on_enter_calibration_phase(int calibration_phase) override {
@@ -58,14 +63,6 @@ public:
         data[2] = 0;
         marlin_server::fsm_change(phase, data);
         current_calibration_phase = calibration_phase;
-    }
-
-    void on_initial_movement() override {
-    }
-
-    void on_calibration_phase_progress(int progress) override {
-        data[2] = progress;
-        marlin_server::fsm_change(phase, data);
     }
 
     void on_calibration_phase_result(float forward_score, float backward_score) override {
@@ -124,14 +121,9 @@ std::optional<uint8_t> evaluate_calibration_result(const CalibrationResult &cali
     for (const auto &res : calibration_result) {
         log_info(Marlin, "res %f %f", (double)res.backward, (double)res.forward);
     }
-    constexpr const size_t halfsize = calibration_phase_count / 2;
-    float reduction = 0.0f;
-    for (size_t i = 0; i < halfsize; ++i) {
-        const auto [coarse_forward, coarse_backward] = calibration_result[i];
-        const auto [fine_forward, fine_backward] = calibration_result[i + halfsize];
-        const float forward = coarse_forward * fine_forward;
-        const float backward = coarse_backward * fine_backward;
 
+    float reduction = 0.0f;
+    for (const auto [forward, backward] : calibration_result) {
         if (forward >= 1.f || backward >= 1.f) {
             return std::nullopt;
         }
@@ -140,7 +132,7 @@ std::optional<uint8_t> evaluate_calibration_result(const CalibrationResult &cali
         reduction += 1.f - std::max(forward, backward);
     }
     // average + scale to percent
-    return 100 * reduction / halfsize;
+    return 100 * reduction / calibration_result.size();
 }
 
 PhasesPhaseStepping evaluate_result(Context &context) {

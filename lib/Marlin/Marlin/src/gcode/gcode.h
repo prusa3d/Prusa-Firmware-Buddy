@@ -1050,9 +1050,7 @@ private:
   static void M970();
   static void M972();
   static void M973();
-  static void M974();
   static void M975();
-  static void M976();
   static void M977();
   static void M978();
   static void M979();

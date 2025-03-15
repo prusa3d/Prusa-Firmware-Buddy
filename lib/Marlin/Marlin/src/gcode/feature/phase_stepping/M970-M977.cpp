@@ -238,85 +238,6 @@ void GcodeSuite::M973() {
 }
 
 /**
- *### M974: Measure print head resonance <a href="https://reprap.org/wiki/G-code#M974:_Measure_Print_Head_Resonance">M974: Measure Print Head Resonance</a>
- *
- * Only XL and iX
- *
- *#### Usage
- *
- *    M974 [ X | Y | F | R ]
- *
- *#### Parameters
- *
- * - `X` - X motor
- * - `Y` - Y motor
- * - `F` - motion speed in rev/sec
- * - `R` - number of revolutions
- *
- * Outputs raw accelerometer sample <seq>, <X>, <Y>, <Z> per line and real
- * sampling frequency of the accelerometer as "sample freq: <freq>".
- **/
-void GcodeSuite::M974() {
-    TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
-
-    bool valid = true;
-
-    for (char required : "FR"sv) {
-        if (parser.seenval(required)) {
-            continue;
-        }
-        valid = false;
-        print_error("Missing ", required, "-parameter");
-    }
-
-    int axes_count = 0;
-    for (auto [axis, letter] : SUPPORTED_AXES) {
-        if (parser.seen(letter)) {
-            axes_count++;
-        }
-    }
-    if (axes_count != 1) {
-        print_error("Exactly one axis has to be specified");
-        valid = false;
-    }
-
-    auto axis = parser.seen('X') ? AxisEnum::X_AXIS : AxisEnum::Y_AXIS;
-
-    auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis;
-    if (!(PreciseStepping::physical_axis_step_generator_types & enable_mask)) {
-        print_error("Phase stepping is not enabled");
-        valid = false;
-    }
-
-    if (parser.floatval('F') <= 0) {
-        print_error("Speed has to be positive");
-        valid = false;
-    }
-
-    if (!valid) {
-        print_error("Invalid parameters, no effect");
-        return;
-    }
-
-    double frequency = phase_stepping::capture_samples(
-        axis,
-        parser.floatval('F'),
-        parser.floatval('R'),
-        [sampleNum = 0](const PrusaAccelerometer::Acceleration &sample) mutable {
-            char buff[64];
-            snprintf(buff, sizeof(buff), "%d, %.5f, %.5f, %.5f\n", sampleNum, sample.val[0], sample.val[1], sample.val[2]);
-            int len = strlen(buff);
-            // We use cdc_write_sync intentionally to bypass the pipe into the
-            // logging infrastructure which is not fast enough and useless for
-            // us.
-            SerialUSB.cdc_write_sync(reinterpret_cast<uint8_t *>(buff), len);
-            sampleNum++;
-        });
-    SERIAL_ECHO("sample freq: ");
-    SERIAL_ECHOLN(frequency);
-}
-
-/**
  *### M975: Measure dwarf accelerometer sampling frequency <a href="https://reprap.org/wiki/G-code#M975:_Measure_Dwarf_Accelerometer_Sampling_Frequency">M975: Measure Dwarf Accelerometer Sampling Frequency</a>
  *
  * Only XL and iX
@@ -451,34 +372,29 @@ void GcodeSuite::M976() {
 
 class CalibrateAxisHooks final : public phase_stepping::CalibrateAxisHooks {
     std::vector<std::tuple<float, float>> _calibration_results;
-    int _calibration_phases_count = -1;
-    int _current_calibration_phase = 0;
+    std::size_t _current_calibration_phase = 0;
 
 public:
-    void set_calibration_phases_count(int phases) override {
-        _calibration_phases_count = phases;
+    void on_motor_characterization_start() override {
+        SERIAL_ECHO("Characterizing motor... ");
+    }
+
+    virtual void on_motor_characterization_result(int phases) override {
+        SERIAL_ECHO(" done. ");
+        SERIAL_ECHO(phases);
+        SERIAL_ECHOLN(" phases to follow");
         _calibration_results.resize(phases);
     }
 
-    void on_initial_movement() override {
-        SERIAL_ECHOLN("Moving to calibration position");
-    }
-
-    virtual void on_enter_calibration_phase(int phase) override {
-        _current_calibration_phase = phase;
-    }
-
-    void on_calibration_phase_progress(int progress) override {
-        SERIAL_ECHO("Phase ");
-        SERIAL_ECHO(_current_calibration_phase + 1);
-        SERIAL_ECHO("/");
-        SERIAL_ECHO(_calibration_phases_count);
-        SERIAL_ECHO(": ");
-        SERIAL_ECHO(progress);
-        SERIAL_ECHOLN("%");
+    void on_enter_calibration_phase(int calibration_phase) override {
+        _current_calibration_phase = calibration_phase;
+        SERIAL_ECHO("Entering phase ");
+        SERIAL_ECHOLN(calibration_phase + 1);
     }
 
     void on_calibration_phase_result(float forward_score, float backward_score) override {
+        assert(_current_calibration_phase < _calibration_results.size());
+
         _calibration_results[_current_calibration_phase] = { forward_score, backward_score };
         SERIAL_ECHO("Phase ");
         SERIAL_ECHO(_current_calibration_phase + 1);
@@ -491,24 +407,6 @@ public:
 
     void on_termination() override {
         SERIAL_ECHOLN("Calibration done");
-
-#if PRINTER_IS_PRUSA_XL()
-        SERIAL_ECHO("Overall score parameter 1: ");
-        auto [p1_f, p1_b] = _calibration_results[0];
-        auto [p3_f, p3_b] = _calibration_results[2];
-        SERIAL_ECHO(100.f * (1.f - p1_f * p3_f));
-        SERIAL_ECHO("%, ");
-        SERIAL_ECHO(100.f * (1.f - p1_b * p3_b));
-        SERIAL_ECHO("%\n");
-
-        SERIAL_ECHO("Overall score parameter 2: ");
-        auto [p2_f, p2_b] = _calibration_results[1];
-        auto [p4_f, p4_b] = _calibration_results[3];
-        SERIAL_ECHO(100.f * (1.f - p2_f * p4_f));
-        SERIAL_ECHO("%, ");
-        SERIAL_ECHO(100.f * (1.f - p2_b * p4_b));
-        SERIAL_ECHO("%\n");
-#endif
     }
 
     ContinueOrAbort on_idle() override {
@@ -565,6 +463,7 @@ void GcodeSuite::M977() {
     auto result = phase_stepping::calibrate_axis(axis, hooks);
 
     if (!result.has_value()) {
+        SERIAL_ECHO(result.error());
         print_error("Calibration failed");
         return;
     }
@@ -647,10 +546,12 @@ void GcodeSuite::M978() {
 
     auto axis = parser.seen('X') ? AxisEnum::X_AXIS : AxisEnum::Y_AXIS;
 
-    float pha_start = parser.seenval('A') ? parser.floatval('A') : 0;
-    float pha_end = parser.seenval('B') ? parser.floatval('B') : 0;
-    float mag_start = parser.seenval('C') ? parser.floatval('C') : 0;
-    float mag_end = parser.seenval('D') ? parser.floatval('D') : 0;
+    phase_stepping::SweepParams params;
+    params.pha_start = parser.seenval('A') ? parser.floatval('A') : 0;
+    params.pha_end = parser.seenval('B') ? parser.floatval('B') : 0;
+    params.mag_start = parser.seenval('C') ? parser.floatval('C') : 0;
+    params.mag_end = parser.seenval('D') ? parser.floatval('D') : 0;
+
     int harmonic = parser.seenval('H') ? parser.intval('H') : 0;
     float revs = parser.seenval('R') ? parser.floatval('R') : 0;
     float speed = parser.seenval('F') ? parser.floatval('F') : 0;
@@ -660,7 +561,7 @@ void GcodeSuite::M978() {
         valid = false;
     }
 
-    if (mag_start < -1 || mag_start > 1 || mag_end < -1 || mag_end > 1) {
+    if (params.mag_start < -1 || params.mag_start > 1 || params.mag_end < -1 || params.mag_end > 1) {
         print_error("Magnitude correction must be in the range -1 to 1");
         valid = false;
     }
@@ -680,10 +581,7 @@ void GcodeSuite::M978() {
         speed,
         revs,
         harmonic,
-        pha_start,
-        pha_end,
-        mag_start,
-        mag_end,
+        params,
         [n = 0](float sample) mutable {
             char buff[64];
             snprintf(buff, sizeof(buff), "%d, %.5f\n", n++, sample);

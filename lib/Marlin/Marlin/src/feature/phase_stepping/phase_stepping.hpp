@@ -399,6 +399,28 @@ using EnsureSuitableForHoming = std::conditional_t<
     EnsureNoChange, EnsureDisabled>;
     #endif
 
+class WithCorrectionDisabled {
+    AxisEnum axis;
+    int harmonic;
+    SpectralItem original;
+
+public:
+    WithCorrectionDisabled(AxisEnum axis, int harmonic)
+        : axis(axis)
+        , harmonic(harmonic) {
+        original = axis_states[axis].forward_current.get_correction()[harmonic];
+        axis_states[axis].forward_current.modify_correction([&](auto &table) {
+            table[harmonic] = { 0, 0 };
+        });
+    }
+
+    ~WithCorrectionDisabled() {
+        axis_states[axis].forward_current.modify_correction([&](auto &table) {
+            table[harmonic] = original;
+        });
+    }
+};
+
 enum class CorrectionType {
     forward,
     backward,
