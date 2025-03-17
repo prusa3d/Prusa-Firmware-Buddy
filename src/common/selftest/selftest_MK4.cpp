@@ -73,6 +73,7 @@ static constexpr SelftestFansConfig fans_configs[] = {
             .rpm_min = 5130,
             .rpm_max = 6799,
         },
+        .print_fan_40pct = benevolent_fan_config,
         .heatbreak_fan = {
             .rpm_min = 6800,
             .rpm_max = 8700,

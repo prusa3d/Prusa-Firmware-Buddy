@@ -188,7 +188,7 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_100_percent() {
     }
 
     // Create config specifically for alt fans presence of which cannot be done compile-time.
-    SelftestFansConfig alt_config { .print_fan = { .rpm_min = 3000, .rpm_max = 4500 }, .heatbreak_fan = { .rpm_min = 7000, .rpm_max = 10000 } };
+    SelftestFansConfig alt_config { .print_fan = { .rpm_min = 3000, .rpm_max = 4500 }, .print_fan_40pct = benevolent_fan_config, .heatbreak_fan = { .rpm_min = 7000, .rpm_max = 10000 } };
 
     if (config_store().has_alt_fans.get()) {
         print_fan.evaluate(alt_config.print_fan, print_fan_rpm);
@@ -310,7 +310,7 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_40_percent() {
     }
 
     const uint16_t print_fan_rpm = print_fan.calculate_avg_rpm();
-    print_fan.evaluate(benevolent_fan_config, print_fan_rpm);
+    print_fan.evaluate(config.print_fan_40pct, print_fan_rpm);
     if (print_fan.is_failed()) {
         result.print_fan_state = SelftestSubtestState_t::not_good;
     }

@@ -61,6 +61,7 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr SelftestFansConfig fans_configs[] = {
     {
         .print_fan = benevolent_fan_config,
+        .print_fan_40pct = benevolent_fan_config,
         .heatbreak_fan = benevolent_fan_config,
     },
 };

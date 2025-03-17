@@ -65,6 +65,7 @@ static const uint16_t Fan1max_rpm_table[] = { 3750, 5850, 7050, 8050, 8950 };
 static constexpr SelftestFansConfig fans_configs[] = {
     {
         .print_fan = benevolent_fan_config,
+        .print_fan_40pct = benevolent_fan_config,
         .heatbreak_fan = benevolent_fan_config,
     },
 };

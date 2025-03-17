@@ -26,6 +26,7 @@ struct SelftestFansConfig {
     uint8_t tool_nr { 0 };
 
     FanConfig print_fan;
+    FanConfig print_fan_40pct;
     FanConfig heatbreak_fan;
 };
 

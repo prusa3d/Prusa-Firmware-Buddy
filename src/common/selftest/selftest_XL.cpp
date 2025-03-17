@@ -67,6 +67,13 @@ static consteval SelftestFansConfig make_fan_config(uint8_t index) {
             .rpm_min = 5300,
             .rpm_max = 7000,
         },
+        ///@note In order to distinguish between Black and Silver fan types,
+        // the limit is a bit strict at high range to distinguish Black fan with wrong setting.
+        // In the low range the Silver should not pass selftest with wrong setting, this limit should be safe.
+        .print_fan_40pct = {
+            .rpm_min = 2300,
+            .rpm_max = 5000,
+        },
         .heatbreak_fan = {
             .rpm_min = 6500,
             .rpm_max = 8700,
