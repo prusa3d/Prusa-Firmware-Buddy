@@ -344,22 +344,15 @@ uint32_t analogRead(uint32_t ulPin) {
 void analogWrite(uint32_t ulPin, uint32_t ulValue) {
     if (HAL_PWM_Initialized) {
         switch (ulPin) {
-        case MARLIN_PIN(FAN): {
-            // print fan
-            // possible PWM value remmaping in case of different type of ventilator
-            PrintFanType pft = get_print_fan_type(active_extruder);
-            uint16_t remapped_pwm = print_fan_remap_pwm(pft, ulValue);
-            Fans::print(active_extruder).setPWM(remapped_pwm);
-            buddy::puppies::modular_bed.set_print_fan_active(remapped_pwm > 0);
+        case MARLIN_PIN(FAN): // print fan
+            Fans::print(active_extruder).setPWM(ulValue);
+            buddy::puppies::modular_bed.set_print_fan_active(ulValue > 0);
             return;
-        }
-        case MARLIN_PIN(FAN1): {
+        case MARLIN_PIN(FAN1):
             // heatbreak fan, any writes to it are ignored, its controlled by dwarf
             return;
-        }
-        default: {
+        default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_WR, ulPin); // error: undefined pin analog write
-        }
         }
     } else {
         hwio_arduino_error(HWIO_ERR_UNINI_ANA_WR, ulPin); // error: uninitialized analog write
