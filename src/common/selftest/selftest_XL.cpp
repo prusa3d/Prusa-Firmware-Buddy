@@ -30,6 +30,7 @@
 #include "selftest_heater_config.hpp"
 #include "selftest_loadcell_config.hpp"
 #include "selftest_fsensor_config.hpp"
+#include "selftest_revise_printer_setup.hpp"
 #include "calibration_z.hpp"
 #include "fanctl.hpp"
 #include "timing.h"
@@ -376,6 +377,37 @@ void CSelftest::Loop() {
             return;
         }
         break;
+    case stsReviseSetupAfterFans: {
+        m_result = config_store().selftest_result.get();
+        bool fans_test_failed = false;
+
+        for (auto tool : m_result.tools) {
+            if (tool.printFan == TestResult_Failed) {
+                fans_test_failed = true;
+            }
+        }
+
+        if (fans_test_failed) {
+            switch (phase_revise_printer_setup()) {
+
+            case RevisePrinterSetupResult::running:
+                return;
+
+            case RevisePrinterSetupResult::do_not_retry:
+                break;
+
+            case RevisePrinterSetupResult::retry:
+                for (auto tool : m_result.tools) {
+                    tool.reset_fan_tests();
+                }
+                config_store().selftest_result.set(m_result);
+
+                m_State = stsFans;
+                return;
+            }
+        }
+        break;
+    }
     case stsLoadcell:
         if ((ret = selftest::phaseLoadcell(tool_mask, m_pLoadcell, Config_Loadcell))) {
             return;
