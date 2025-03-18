@@ -76,7 +76,7 @@ MediaPrefetchManager::StatusAndActive MediaPrefetchManager::read_command(ReadRes
 
     auto &s = shared_state;
 
-    const bool fetch_active = worker_job.is_active() || s.fetch_requested;
+    const bool fetch_active = worker_job.is_active();
 
     // If we're at the buffer end, return the appropriate error
     if (s.read_head.buffer_pos == s.read_tail.buffer_pos) {
