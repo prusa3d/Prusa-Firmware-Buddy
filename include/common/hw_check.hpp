@@ -35,7 +35,7 @@ static constexpr EnumArray<HWCheckType, const char *, hw_check_type_count> hw_ch
         { HWCheckType::model, N_("Printer Model") },
         { HWCheckType::firmware, N_("Firmware Version") },
 #if ENABLED(FAN_COMPATIBILITY_MK4_MK3)
-        { HWCheckType::fan_compatibility, N_("Fan Compabibility") },
+        { HWCheckType::fan_compatibility, N_("Fan Compatibility") },
 #endif
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
         { HWCheckType::mk3_compatibility, N_("MK3 Compatibility") },
