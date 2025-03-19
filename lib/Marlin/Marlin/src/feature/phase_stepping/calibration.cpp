@@ -5,6 +5,7 @@
 #include <logging/log.hpp>
 #include <module/planner.h>
 #include <module/motion.h>
+#include <sfl/segmented_vector.hpp>
 #include <gcode/gcode.h>
 
 #include <algorithm>

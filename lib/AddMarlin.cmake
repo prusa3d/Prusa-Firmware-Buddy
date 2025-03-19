@@ -264,6 +264,7 @@ if(BOARD_IS_MASTER_BOARD)
               Marlin/Marlin/src/feature/phase_stepping/phase_stepping.cpp
               Marlin/Marlin/src/gcode/feature/phase_stepping/M970-M977.cpp
       )
+    target_link_libraries(Marlin PRIVATE sfl-library)
   endif()
 endif()
 
