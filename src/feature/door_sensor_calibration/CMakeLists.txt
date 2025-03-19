@@ -1,0 +1,1 @@
+target_sources(firmware PRIVATE door_sensor_calibration.cpp screen_door_sensor_calibration.cpp)

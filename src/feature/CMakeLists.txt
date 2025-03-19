@@ -1,3 +1,6 @@
 if(HAS_NOZZLE_CLEANER)
   add_subdirectory(nozzle_cleaner)
 endif()
+if(HAS_DOOR_SENSOR_CALIBRATION)
+  add_subdirectory(door_sensor_calibration)
+endif()
