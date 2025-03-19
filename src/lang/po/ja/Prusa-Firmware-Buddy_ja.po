@@ -69,11 +69,11 @@ msgstr "%d ツールオフセット キャリブレーション"
 msgid "%d XY Axis Test"
 msgstr "%d XYジク テスト"
 
-#: src/common/filament.cpp:239
+#: src/common/filament.cpp:254
 msgid " (Preset)"
 msgstr "(プリセット)"
 
-#: src/common/filament.cpp:242
+#: src/common/filament.cpp:257
 msgid " (User)"
 msgstr "(ユーザー)"
 
@@ -496,7 +496,7 @@ msgstr "ファイルイドウエラー"
 msgid "Firmware Version\n"
 msgstr "ファームウェアバージョン\n"
 
-#: src/common/filament.cpp:392
+#: src/common/filament.cpp:407
 msgid "Filament with this name already exists"
 msgstr "コノ ナマエノ フィラメントハ スデニ ソンザイシマス"
 
@@ -1416,7 +1416,7 @@ msgstr "テストガ ユーザーニ ヨッテスキップサレマシタ"
 msgid "CPU load"
 msgstr "CPUシヨウリツ"
 
-#: src/gui/ScreenSelftest.hpp:40 src/gui/wizard/screen_fan_selftest.cpp:39
+#: src/gui/ScreenSelftest.hpp:40 src/gui/wizard/screen_fan_selftest.cpp:52
 msgid "SELFTEST"
 msgstr "セルフテスト"
 
@@ -1505,7 +1505,7 @@ msgstr "NFC セットアップ"
 msgid "Avoiding grind"
 msgstr "グラインドノカイヒ"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:59
+#: src/gui/wizard/screen_fan_selftest.cpp:72
 msgid "All tests passed successfully."
 msgstr "スベテノテストガ セイジョウニ シュウリョウシマシタ。"
 
@@ -1659,9 +1659,9 @@ msgid ""
 "Proceeding means you accept full responsibility. We are not liable for any "
 "harm or damages."
 msgstr ""
-"チュウイ!ドアセンサーヲ ムコウニスルト、ケガヤ プリンタノ ソンショウニ ツナガ"
-"ルカノウセイガ アリマス。コノソウサハ、ユーザーガ ソノセキニンヲ オウコトニナ"
-"リマス。ヘイシャハ イカナルソンガイニタイシテモ セキニンヲオイカネマス。"
+"チュウイ!ドアセンサーヲ ムコウニスルト、ケガヤ プリンタノ ソンショウニ ツナ"
+"ガルカノウセイガ アリマス。コノソウサハ、ユーザーガ ソノセキニンヲ オウコトニ"
+"ナリマス。ヘイシャハ イカナルソンガイニタイシテモ セキニンヲオイカネマス。"
 
 #: src/common/selftest/selftest_fans.hpp:34
 #: src/gui/screen_menu_temperature.hpp:26
@@ -1713,6 +1713,10 @@ msgstr "ネットワーク ノ ジョウタイ"
 #: src/gui/screen_menu_network_status.hpp:15
 msgid "Ping | Loss"
 msgstr "ピング | ロス"
+
+#: include/common/hw_check.hpp:35
+msgid "Printer Model"
+msgstr "プリンターモデル"
 
 #: src/gui/MItem_mmu.hpp:221
 msgid "Cutter"
@@ -1919,11 +1923,11 @@ msgstr "エラー ハードウェアテスト シッパイ"
 msgid "EXTRUDER ERROR"
 msgstr "エクストルーダーエラー"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:50
+#: src/gui/wizard/screen_fan_selftest.cpp:63
 msgid "Enclosure fan"
 msgstr "エンクロージャーファン"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:40
+#: src/gui/wizard/screen_fan_selftest.cpp:53
 msgid "Fan RPM tests"
 msgstr "ファンRPMテスト"
 
@@ -1938,7 +1942,7 @@ msgstr ""
 "カ?イマロードサレテイル フィラメントデ プリントヲ スルニハ、NO ヲ センタクシ"
 "マス。"
 
-#: src/common/filament.cpp:362
+#: src/common/filament.cpp:377
 msgid "Filament is not customizable"
 msgstr "フィラメントハ カスタマイズデキマセン"
 
@@ -2482,7 +2486,7 @@ msgstr "%d ドックポジション キャリブレーション"
 msgid "Assigned tool(s) without filament"
 msgstr "フィラメントナシデ アサインサレテイル ツールデス"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:62
+#: src/gui/wizard/screen_fan_selftest.cpp:75
 msgid ""
 "Based on the test it looks like the fans connectors are switched. Double "
 "check your wiring and repeat the test."
@@ -2595,7 +2599,7 @@ msgstr ""
 "シテクダサイ。"
 
 #. for iX with turbine, heatbreak fan eval always succeeds
-#: src/gui/wizard/screen_fan_selftest.cpp:43
+#: src/gui/wizard/screen_fan_selftest.cpp:56
 msgid "Hotend fan (test disabled)"
 msgstr "ホットエンドファン(テストムコウ)"
 
@@ -2695,7 +2699,7 @@ msgstr ""
 "ツールフィラメントセンサーガ フィラメントヲ ケンシュツスルマデ、フィラメント"
 "ヲ サイドフィラメントセンサーカラ エクストルーダーニ ロードシマス。"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:54
+#: src/gui/wizard/screen_fan_selftest.cpp:67
 msgid "Is Hotend fan (left) spinning?"
 msgstr "ホットエンドファン ガ カイテンシテイマスカ?"
 
@@ -2793,7 +2797,7 @@ msgid "Printing time"
 msgstr "プリントジカン"
 
 #: src/common/footer_def.cpp:20 src/gui/wizard/selftest_result_fans.cpp:15
-#: src/gui/wizard/screen_fan_selftest.cpp:47
+#: src/gui/wizard/screen_fan_selftest.cpp:60
 msgid "Print fan"
 msgstr "プリントファン"
 
@@ -2959,6 +2963,10 @@ msgstr "ジク"
 msgid "XY POSITION INVALID"
 msgstr "XYポジション ガ ムコウ"
 
+#: include/common/hw_check.hpp:43
+msgid "G-Code Level"
+msgstr "G-コード レベル"
+
 #: src/gui/screen_menu_temperature.cpp:19
 msgid "TEMPERATURE"
 msgstr "オンド"
@@ -3099,15 +3107,15 @@ msgstr ""
 "プーリーモーターガ テイシシテイマス。プーリーガ ドウサスルコトヲ カクニンシ、"
 "ハイセンヲ チェックシテクダサイ。"
 
-#: src/common/filament.cpp:379
+#: src/common/filament.cpp:394
 msgid "Name must contain only 'A-Z0-9_-' characters"
 msgstr "ナマエニハ、'A-Z0-9_-'モジダケヲ シヨウスルコト。"
 
-#: src/common/filament.cpp:372
+#: src/common/filament.cpp:387
 msgid "Name must not be '---'"
 msgstr "ナマエハ '---' デハイケマセン"
 
-#: src/common/filament.cpp:367
+#: src/common/filament.cpp:382
 msgid "Name must not be empty"
 msgstr "ナマエヲ カラニスルコトハ デキマセン。"
 
@@ -3408,7 +3416,7 @@ msgstr "サイドフィラメントセンサー"
 msgid "Stuck Filament Detection"
 msgstr "フィラメントスタックノ ケンシュツ"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:60
+#: src/gui/wizard/screen_fan_selftest.cpp:73
 msgid ""
 "The RPM test has failed, check both fans are free to spin and connected "
 "correctly."
@@ -3416,12 +3424,12 @@ msgstr ""
 "RPMテストニ シッパイシタバアイ、リョウホウノ ファンガ ジユウニ カイテンデキル"
 "コトヲ カクニンシ、タダシク セツゾクサレテイルコトヲ カクニンシマス。"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:57
+#: src/gui/wizard/screen_fan_selftest.cpp:70
 #, c-format
 msgid "Testing fan rotation on 100% power, please wait."
 msgstr "100%ノ デンリョクデ ファンノカイテンヲ テストシテイマス。"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:58
+#: src/gui/wizard/screen_fan_selftest.cpp:71
 #, c-format
 msgid "Testing fan rotation on 40% power, please wait."
 msgstr "40%ノ デンリョクデ ファンノカイテンヲ テストシテイマス。"
@@ -3465,7 +3473,7 @@ msgstr "シッパイノ ゴウケイ"
 msgid "Waiting for user input"
 msgstr "ユーザーノ ソウサヲ マッテイマス"
 
-#: src/marlin_stubs/feature/chamber/M141_M191.cpp:105
+#: src/marlin_stubs/feature/chamber/M141_M191.cpp:106
 msgid "Waiting for chamber temperature"
 msgstr "チャンバーオンドノ タイキチュウ"
 
@@ -3702,7 +3710,7 @@ msgstr ""
 "サーミスタノ ハイセンニ ソンショウノ カノウセイガ ナイカ テンケンシテクダサ"
 "イ。"
 
-#: src/common/filament.cpp:245
+#: src/common/filament.cpp:260
 msgid " (Custom)"
 msgstr "(カスタム)"
 
@@ -4568,7 +4576,7 @@ msgstr "ナイブエラー"
 msgid "ERR TMC failed"
 msgstr "TMCエラーノ シッパイ"
 
-#: src/gui/MItem_tools.cpp:253 src/gui/screen_splash.cpp:187
+#: src/gui/MItem_tools.cpp:253 src/gui/screen_splash.cpp:188
 msgid ""
 "Erasing everything,\n"
 "it will take some time..."
@@ -5023,7 +5031,7 @@ msgstr "ファイルガ イドウサレタカ ソンザイシマセン"
 msgid "Finishing moves"
 msgstr "シアゲドウサ"
 
-#: src/gui/MItem_tools.hpp:322
+#: src/gui/MItem_tools.hpp:322 include/common/hw_check.hpp:36
 msgid "Firmware Version"
 msgstr "ファームウェアバージョン"
 
@@ -5093,7 +5101,7 @@ msgstr ""
 "- ハイフンカラ ハジマッテイナイ"
 
 #: src/gui/wizard/selftest_result_fans.cpp:14
-#: src/gui/wizard/screen_fan_selftest.cpp:45
+#: src/gui/wizard/screen_fan_selftest.cpp:58
 msgid "Hotend fan"
 msgstr "ホットエンドファン"
 
@@ -5591,7 +5599,7 @@ msgstr "ツール3ヲ ピックシマス(ゲンザイ)"
 
 #: src/common/footer_def.cpp:10 src/gui/MItem_tools.cpp:861
 #: src/gui/MItem_print.hpp:14 src/gui/MItem_print.hpp:49
-#: src/gui/wizard/selftest_result_heaters.cpp:13
+#: src/gui/wizard/selftest_result_heaters.cpp:13 include/common/hw_check.hpp:34
 msgid "Nozzle"
 msgstr "ノズル"
 
@@ -5819,8 +5827,8 @@ msgid ""
 "Perform filament sensors calibration? This discards previous filament "
 "sensors calibration."
 msgstr ""
-"フィラメントセンサーキャリブレーションヲ ジッコウシマスカ?ゼンカイノ フィラメ"
-"ントセンサー キャリブレーションケッカヲ ハキシマス。"
+"フィラメントセンサーキャリブレーションヲ ジッコウシマスカ?ゼンカイノ フィラ"
+"メントセンサー キャリブレーションケッカヲ ハキシマス。"
 
 #. //MSG_PROGRESS_PUSH_FILAMENT c=20
 #: src/mmu2/mmu2_progress_converter.cpp:26
@@ -6185,11 +6193,11 @@ msgstr "トウケイジョウホウ"
 msgid "Stealth Mode"
 msgstr "ステルスモード"
 
-#: src/gui/MItem_mmu.cpp:280
+#: src/gui/MItem_mmu.cpp:280 include/common/hotend_type.hpp:26
 msgid "Stock"
 msgstr "ストック"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:48
+#: src/gui/wizard/screen_fan_selftest.cpp:61
 msgid "Switched fans"
 msgstr "ファンノ キリカエ"
 
@@ -6531,16 +6539,7 @@ msgstr "クラッシュレポート(file dump.bin)ガ USBドライブニ ホゾ�
 msgid "Printhead"
 msgstr "プリントヘッド"
 
-#: src/gui/screen_splash.cpp:183
-#, c-format
-msgid ""
-"Printer type changed from %s to %s.\n"
-"Factory reset has to be performed.\n"
-msgstr ""
-"プリンタノタイプガ %s カラ %s ニヘンコウサレマシタ。\n"
-"ファクトリーリセットガヒツヨウデス。\n"
-
-#: src/gui/MItem_tools.cpp:248 src/gui/screen_splash.cpp:195
+#: src/gui/MItem_tools.cpp:248 src/gui/screen_splash.cpp:196
 msgid "Reset complete. The system will now restart."
 msgstr "リセットガ カンリョウシマシタ。システムガ サイキドウシマス。"
 
@@ -8757,3 +8756,28 @@ msgid ""
 msgstr ""
 "コールドプルウィザードヘ ヨウコソ。30cmノ PLAフィラメントヲ ヨウイシ、シジニ "
 "シタガッテクダサイ。ショウサイハ コチラヲ ゴランクダサイ:"
+
+#: include/common/hotend_type.hpp:28
+msgid "E3D Revo"
+msgstr "E3D Revo"
+
+#: include/common/hw_check.hpp:38
+msgid "Fan Compabibility"
+msgstr "ファン ゴカンセイ"
+
+#: include/common/hw_check.hpp:41
+msgid "MK3 Compatibility"
+msgstr "MK3トノ ゴカンセイ"
+
+#: src/gui/screen_splash.cpp:184
+#, c-format
+msgid ""
+"Printer type changed from %s to %s.\n"
+"Factory reset has to be performed."
+msgstr ""
+"プリンタノタイプガ %s カラ %s ニヘンコウサレマシタ。\n"
+"ファクトリーリセットガヒツヨウデス。"
+
+#: include/common/hotend_type.hpp:27
+msgid "With sock"
+msgstr "ソックス アリ"

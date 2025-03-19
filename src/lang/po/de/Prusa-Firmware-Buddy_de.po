@@ -71,11 +71,11 @@ msgstr "%d Werkzeug Offset Kalibrierung"
 msgid "%d XY Axis Test"
 msgstr "%d XY-Achsen Test"
 
-#: src/common/filament.cpp:239
+#: src/common/filament.cpp:254
 msgid " (Preset)"
 msgstr "(Voreinstellung)"
 
-#: src/common/filament.cpp:242
+#: src/common/filament.cpp:257
 msgid " (User)"
 msgstr "(Benutzer)"
 
@@ -498,7 +498,7 @@ msgstr "Datei-Transfer Fehler"
 msgid "Firmware Version\n"
 msgstr "Firmware Version\n"
 
-#: src/common/filament.cpp:392
+#: src/common/filament.cpp:407
 msgid "Filament with this name already exists"
 msgstr "Filament mit diesem Namen existiert bereits"
 
@@ -1415,7 +1415,7 @@ msgstr "Test übersprungen User."
 msgid "CPU load"
 msgstr "CPU Auslastung"
 
-#: src/gui/ScreenSelftest.hpp:40 src/gui/wizard/screen_fan_selftest.cpp:39
+#: src/gui/ScreenSelftest.hpp:40 src/gui/wizard/screen_fan_selftest.cpp:52
 msgid "SELFTEST"
 msgstr "SELBSTTEST"
 
@@ -1504,7 +1504,7 @@ msgstr "Einrichten über NFC"
 msgid "Avoiding grind"
 msgstr "Schleifen vermeiden"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:59
+#: src/gui/wizard/screen_fan_selftest.cpp:72
 msgid "All tests passed successfully."
 msgstr "Alle Tests erfolgreich abgeschlossen."
 
@@ -1711,6 +1711,10 @@ msgstr "Netzwerk Status"
 msgid "Ping | Loss"
 msgstr "Ping | Verloren"
 
+#: include/common/hw_check.hpp:35
+msgid "Printer Model"
+msgstr "Druckermodell"
+
 #: src/gui/MItem_mmu.hpp:221
 msgid "Cutter"
 msgstr "Messer"
@@ -1916,11 +1920,11 @@ msgstr "TEST Fehlgeschlagen!"
 msgid "EXTRUDER ERROR"
 msgstr "EXTRUDER FEHLER"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:50
+#: src/gui/wizard/screen_fan_selftest.cpp:63
 msgid "Enclosure fan"
 msgstr "Enclosure Lüfter"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:40
+#: src/gui/wizard/screen_fan_selftest.cpp:53
 msgid "Fan RPM tests"
 msgstr "Lüfter Drehzahltests"
 
@@ -1934,7 +1938,7 @@ msgstr ""
 "Filament entdeckt. Filament jetzt entladen? Wählen Sie NEIN, um den Druck "
 "mit dem aktuell geladenen Filament zu starten."
 
-#: src/common/filament.cpp:362
+#: src/common/filament.cpp:377
 msgid "Filament is not customizable"
 msgstr "Filament kann nicht angepasst werden"
 
@@ -2474,7 +2478,7 @@ msgstr "%d Kalibrierung der Dockposition"
 msgid "Assigned tool(s) without filament"
 msgstr "Zugeordnete(s) Werkzeug(e) ohne Filament"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:62
+#: src/gui/wizard/screen_fan_selftest.cpp:75
 msgid ""
 "Based on the test it looks like the fans connectors are switched. Double "
 "check your wiring and repeat the test."
@@ -2587,7 +2591,7 @@ msgstr ""
 "Installation des Stifts."
 
 #. for iX with turbine, heatbreak fan eval always succeeds
-#: src/gui/wizard/screen_fan_selftest.cpp:43
+#: src/gui/wizard/screen_fan_selftest.cpp:56
 msgid "Hotend fan (test disabled)"
 msgstr "Hotend Lüfter (Test deaktiviert)"
 
@@ -2686,7 +2690,7 @@ msgstr ""
 "Führen Sie das Filament durch den seitlichen Filamentsensor in den Extruder "
 "ein, bis der Werkzeug-Filamentsensor das Filament erkennt."
 
-#: src/gui/wizard/screen_fan_selftest.cpp:54
+#: src/gui/wizard/screen_fan_selftest.cpp:67
 msgid "Is Hotend fan (left) spinning?"
 msgstr "Dreht sich der Hotend-Lüfter (links)?"
 
@@ -2783,7 +2787,7 @@ msgid "Printing time"
 msgstr "Druckzeit"
 
 #: src/common/footer_def.cpp:20 src/gui/wizard/selftest_result_fans.cpp:15
-#: src/gui/wizard/screen_fan_selftest.cpp:47
+#: src/gui/wizard/screen_fan_selftest.cpp:60
 msgid "Print fan"
 msgstr "Drucklüfter"
 
@@ -2949,6 +2953,10 @@ msgstr "Achse"
 msgid "XY POSITION INVALID"
 msgstr "XY POSITION UNGÜLTIG"
 
+#: include/common/hw_check.hpp:43
+msgid "G-Code Level"
+msgstr "G-Code Level"
+
 #: src/gui/screen_menu_temperature.cpp:19
 msgid "TEMPERATURE"
 msgstr "TEMPERATUR"
@@ -3087,15 +3095,15 @@ msgstr ""
 "Der Riemenscheiben-Motor ist blockiert. Sicherstellen, dass er sich bewegen "
 "kann und die Verkabelung überprüfen."
 
-#: src/common/filament.cpp:379
+#: src/common/filament.cpp:394
 msgid "Name must contain only 'A-Z0-9_-' characters"
 msgstr "Der Name darf nur die Zeichen 'A-Z0-9_-' enthalten."
 
-#: src/common/filament.cpp:372
+#: src/common/filament.cpp:387
 msgid "Name must not be '---'"
 msgstr "Der Name darf nicht '---' lauten"
 
-#: src/common/filament.cpp:367
+#: src/common/filament.cpp:382
 msgid "Name must not be empty"
 msgstr "Name darf nicht leer sein"
 
@@ -3405,7 +3413,7 @@ msgstr "Seiten-Filamentsensor"
 msgid "Stuck Filament Detection"
 msgstr "Erkennung festsitzendes Filament"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:60
+#: src/gui/wizard/screen_fan_selftest.cpp:73
 msgid ""
 "The RPM test has failed, check both fans are free to spin and connected "
 "correctly."
@@ -3413,12 +3421,12 @@ msgstr ""
 "Der Drehzahltest ist fehlgeschlagen. Prüfen Sie, ob sich beide Lüfter frei "
 "drehen können und korrekt angeschlossen sind."
 
-#: src/gui/wizard/screen_fan_selftest.cpp:57
+#: src/gui/wizard/screen_fan_selftest.cpp:70
 #, c-format
 msgid "Testing fan rotation on 100% power, please wait."
 msgstr "Test der Lüfterrotation bei 100 % Leistung, bitte warten."
 
-#: src/gui/wizard/screen_fan_selftest.cpp:58
+#: src/gui/wizard/screen_fan_selftest.cpp:71
 #, c-format
 msgid "Testing fan rotation on 40% power, please wait."
 msgstr "Test der Lüfterrotation bei 40 % Leistung, bitte warten."
@@ -3462,7 +3470,7 @@ msgstr "Gesamte Generelle Fehler"
 msgid "Waiting for user input"
 msgstr "Warte auf Benutzer"
 
-#: src/marlin_stubs/feature/chamber/M141_M191.cpp:105
+#: src/marlin_stubs/feature/chamber/M141_M191.cpp:106
 msgid "Waiting for chamber temperature"
 msgstr "Warten auf Kammertemperatur"
 
@@ -3698,7 +3706,7 @@ msgstr ""
 "Überprüfen Sie die Verkabelung der Heizung und des Thermistors auf mögliche "
 "Schäden."
 
-#: src/common/filament.cpp:245
+#: src/common/filament.cpp:260
 msgid " (Custom)"
 msgstr "(Benutzerdefiniert)"
 
@@ -4563,7 +4571,7 @@ msgstr "FEHLER Intern"
 msgid "ERR TMC failed"
 msgstr "FEHLER TMC"
 
-#: src/gui/MItem_tools.cpp:253 src/gui/screen_splash.cpp:187
+#: src/gui/MItem_tools.cpp:253 src/gui/screen_splash.cpp:188
 msgid ""
 "Erasing everything,\n"
 "it will take some time..."
@@ -5021,7 +5029,7 @@ msgstr "Datei entfernt oder Übertragung abgebrochen"
 msgid "Finishing moves"
 msgstr "Bewegungen beenden"
 
-#: src/gui/MItem_tools.hpp:322
+#: src/gui/MItem_tools.hpp:322 include/common/hw_check.hpp:36
 msgid "Firmware Version"
 msgstr "Firmware Version"
 
@@ -5091,7 +5099,7 @@ msgstr ""
 "- Beginnt nicht mit '-'"
 
 #: src/gui/wizard/selftest_result_fans.cpp:14
-#: src/gui/wizard/screen_fan_selftest.cpp:45
+#: src/gui/wizard/screen_fan_selftest.cpp:58
 msgid "Hotend fan"
 msgstr "Hotend-Lüfter"
 
@@ -5586,7 +5594,7 @@ msgstr "Werkzeug 3 aufnehmen (Akt)"
 
 #: src/common/footer_def.cpp:10 src/gui/MItem_tools.cpp:861
 #: src/gui/MItem_print.hpp:14 src/gui/MItem_print.hpp:49
-#: src/gui/wizard/selftest_result_heaters.cpp:13
+#: src/gui/wizard/selftest_result_heaters.cpp:13 include/common/hw_check.hpp:34
 msgid "Nozzle"
 msgstr "Düse"
 
@@ -6182,11 +6190,11 @@ msgstr "Statistiken"
 msgid "Stealth Mode"
 msgstr "Stealth Modus"
 
-#: src/gui/MItem_mmu.cpp:280
+#: src/gui/MItem_mmu.cpp:280 include/common/hotend_type.hpp:26
 msgid "Stock"
 msgstr "Standard"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:48
+#: src/gui/wizard/screen_fan_selftest.cpp:61
 msgid "Switched fans"
 msgstr "Vertauschte Lüfter"
 
@@ -6533,16 +6541,7 @@ msgstr ""
 msgid "Printhead"
 msgstr "Druckkopf"
 
-#: src/gui/screen_splash.cpp:183
-#, c-format
-msgid ""
-"Printer type changed from %s to %s.\n"
-"Factory reset has to be performed.\n"
-msgstr ""
-"Der Druckertyp wurde von %s auf %s geändert.\n"
-"Es muss ein Werksreset durchgeführt werden.\n"
-
-#: src/gui/MItem_tools.cpp:248 src/gui/screen_splash.cpp:195
+#: src/gui/MItem_tools.cpp:248 src/gui/screen_splash.cpp:196
 msgid "Reset complete. The system will now restart."
 msgstr "Zurücksetzen abgeschlossen. Das System wird nun neu gestartet."
 
@@ -8753,3 +8752,28 @@ msgstr ""
 "Willkommen beim Kaltzug-Assistenten. Bereiten Sie ein 30 cm langes Stück PLA "
 "Filament vor und folgen Sie den Anweisungen. Für weitere Details besuchen "
 "Sie bitte:"
+
+#: include/common/hotend_type.hpp:28
+msgid "E3D Revo"
+msgstr "E3D Revo"
+
+#: include/common/hw_check.hpp:38
+msgid "Fan Compabibility"
+msgstr "Lüfter-Kompatibilität"
+
+#: include/common/hw_check.hpp:41
+msgid "MK3 Compatibility"
+msgstr "MK3-Kompatibilität"
+
+#: src/gui/screen_splash.cpp:184
+#, c-format
+msgid ""
+"Printer type changed from %s to %s.\n"
+"Factory reset has to be performed."
+msgstr ""
+"Druckertyp von %s auf %s geändert.\n"
+"Werksreset muss durchgeführt werden."
+
+#: include/common/hotend_type.hpp:27
+msgid "With sock"
+msgstr "Mit Socke"

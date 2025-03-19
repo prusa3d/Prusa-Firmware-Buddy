@@ -3,12 +3,13 @@
 # This file is distributed under the same license as the Prusa-Firmware-Buddy package.
 # Prusa Research <info@prusa3d.com>, 2025
 #
+#: src/gui/screen_prusa_link.hpp:51
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2025-02-26 12:23+0100\n"
+"POT-Creation-Date: 2025-03-11 08:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -56,15 +57,15 @@ msgstr ""
 msgid "  Tool 5"
 msgstr ""
 
-#: src/common/filament.cpp:245
+#: src/common/filament.cpp:260
 msgid " (Custom)"
 msgstr ""
 
-#: src/common/filament.cpp:239
+#: src/common/filament.cpp:254
 msgid " (Preset)"
 msgstr ""
 
-#: src/common/filament.cpp:242
+#: src/common/filament.cpp:257
 msgid " (User)"
 msgstr ""
 
@@ -413,7 +414,7 @@ msgstr ""
 msgid "All nozzles"
 msgstr ""
 
-#: src/gui/wizard/screen_fan_selftest.cpp:59
+#: src/gui/wizard/screen_fan_selftest.cpp:72
 msgid "All tests passed successfully."
 msgstr ""
 
@@ -553,7 +554,7 @@ msgstr ""
 msgid "Backup Calibration to USB"
 msgstr ""
 
-#: src/gui/wizard/screen_fan_selftest.cpp:62
+#: src/gui/wizard/screen_fan_selftest.cpp:75
 msgid ""
 "Based on the test it looks like the fans connectors are switched. Double "
 "check your wiring and repeat the test."
@@ -1594,6 +1595,10 @@ msgstr ""
 msgid "Dynamic allocation failed - out of memory. Reset the printer."
 msgstr ""
 
+#: include/common/hotend_type.hpp:28
+msgid "E3D Revo"
+msgstr ""
+
 #: src/gui/MItem_menus.hpp:101
 msgid "EEPROM"
 msgstr ""
@@ -1811,7 +1816,7 @@ msgstr ""
 msgid "Enclosure Settings"
 msgstr ""
 
-#: src/gui/wizard/screen_fan_selftest.cpp:50
+#: src/gui/wizard/screen_fan_selftest.cpp:63
 msgid "Enclosure fan"
 msgstr ""
 
@@ -1855,7 +1860,7 @@ msgid ""
 "it will take some time..."
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:253 src/gui/screen_splash.cpp:187
+#: src/gui/MItem_tools.cpp:253 src/gui/screen_splash.cpp:188
 msgid ""
 "Erasing everything,\n"
 "it will take some time..."
@@ -2230,7 +2235,11 @@ msgstr ""
 msgid "Fan Check"
 msgstr ""
 
-#: src/gui/wizard/screen_fan_selftest.cpp:40
+#: include/common/hw_check.hpp:38
+msgid "Fan Compabibility"
+msgstr ""
+
+#: src/gui/wizard/screen_fan_selftest.cpp:53
 msgid "Fan RPM tests"
 msgstr ""
 
@@ -2362,7 +2371,7 @@ msgstr ""
 msgid "Filament inserted, press continue."
 msgstr ""
 
-#: src/common/filament.cpp:362
+#: src/common/filament.cpp:377
 msgid "Filament is not customizable"
 msgstr ""
 
@@ -2450,7 +2459,7 @@ msgstr ""
 msgid "Filament sensors calibration"
 msgstr ""
 
-#: src/common/filament.cpp:392
+#: src/common/filament.cpp:407
 msgid "Filament with this name already exists"
 msgstr ""
 
@@ -2545,7 +2554,7 @@ msgstr ""
 msgid "Firmware Update Required"
 msgstr ""
 
-#: src/gui/MItem_tools.hpp:322
+#: src/gui/MItem_tools.hpp:322 include/common/hw_check.hpp:36
 msgid "Firmware Version"
 msgstr ""
 
@@ -2738,6 +2747,10 @@ msgstr ""
 
 #: src/gui/MItem_hardware.hpp:23
 msgid "G-Code Checks"
+msgstr ""
+
+#: include/common/hw_check.hpp:43
+msgid "G-Code Level"
 msgstr ""
 
 #: src/gui/screen_tools_mapping.cpp:316
@@ -3285,12 +3298,12 @@ msgid "Hotend Type"
 msgstr ""
 
 #: src/gui/wizard/selftest_result_fans.cpp:14
-#: src/gui/wizard/screen_fan_selftest.cpp:45
+#: src/gui/wizard/screen_fan_selftest.cpp:58
 msgid "Hotend fan"
 msgstr ""
 
 #. for iX with turbine, heatbreak fan eval always succeeds
-#: src/gui/wizard/screen_fan_selftest.cpp:43
+#: src/gui/wizard/screen_fan_selftest.cpp:56
 msgid "Hotend fan (test disabled)"
 msgstr ""
 
@@ -3577,7 +3590,7 @@ msgstr ""
 msgid "Is Abrasive"
 msgstr ""
 
-#: src/gui/wizard/screen_fan_selftest.cpp:54
+#: src/gui/wizard/screen_fan_selftest.cpp:67
 msgid "Is Hotend fan (left) spinning?"
 msgstr ""
 
@@ -4049,6 +4062,10 @@ msgstr ""
 msgid "MINTEMP ERROR"
 msgstr ""
 
+#: include/common/hw_check.hpp:41
+msgid "MK3 Compatibility"
+msgstr ""
+
 #: src/gui/window_msgbox_wrong_printer.cpp:29
 msgid "MK3 compatibility mode"
 msgstr ""
@@ -4497,15 +4514,15 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: src/common/filament.cpp:379
+#: src/common/filament.cpp:394
 msgid "Name must contain only 'A-Z0-9_-' characters"
 msgstr ""
 
-#: src/common/filament.cpp:372
+#: src/common/filament.cpp:387
 msgid "Name must not be '---'"
 msgstr ""
 
-#: src/common/filament.cpp:367
+#: src/common/filament.cpp:382
 msgid "Name must not be empty"
 msgstr ""
 
@@ -4637,7 +4654,7 @@ msgstr ""
 
 #: src/common/footer_def.cpp:10 src/gui/MItem_tools.cpp:861
 #: src/gui/MItem_print.hpp:14 src/gui/MItem_print.hpp:49
-#: src/gui/wizard/selftest_result_heaters.cpp:13
+#: src/gui/wizard/selftest_result_heaters.cpp:13 include/common/hw_check.hpp:34
 msgid "Nozzle"
 msgstr ""
 
@@ -5392,7 +5409,7 @@ msgid "Print ended"
 msgstr ""
 
 #: src/common/footer_def.cpp:20 src/gui/wizard/selftest_result_fans.cpp:15
-#: src/gui/wizard/screen_fan_selftest.cpp:47
+#: src/gui/wizard/screen_fan_selftest.cpp:60
 msgid "Print fan"
 msgstr ""
 
@@ -5425,6 +5442,10 @@ msgstr ""
 
 #: src/gui/screen_sysinf.cpp:74
 msgid "PrintFan RPM"
+msgstr ""
+
+#: include/common/hw_check.hpp:35
+msgid "Printer Model"
 msgstr ""
 
 #: src/gui/MItem_menus.hpp:149
@@ -5474,11 +5495,11 @@ msgstr ""
 msgid "Printer tools"
 msgstr ""
 
-#: src/gui/screen_splash.cpp:183
+#: src/gui/screen_splash.cpp:184
 #, c-format
 msgid ""
 "Printer type changed from %s to %s.\n"
-"Factory reset has to be performed.\n"
+"Factory reset has to be performed."
 msgstr ""
 
 #: src/gui/MItem_menus.cpp:164
@@ -5817,7 +5838,7 @@ msgstr ""
 msgid "Reset Z-length"
 msgstr ""
 
-#: src/gui/MItem_tools.cpp:248 src/gui/screen_splash.cpp:195
+#: src/gui/MItem_tools.cpp:248 src/gui/screen_splash.cpp:196
 msgid "Reset complete. The system will now restart."
 msgstr ""
 
@@ -5912,7 +5933,7 @@ msgstr ""
 msgid "SELECTOR CANNOT MOVE"
 msgstr ""
 
-#: src/gui/ScreenSelftest.hpp:40 src/gui/wizard/screen_fan_selftest.cpp:39
+#: src/gui/ScreenSelftest.hpp:40 src/gui/wizard/screen_fan_selftest.cpp:52
 msgid "SELFTEST"
 msgstr ""
 
@@ -6265,7 +6286,7 @@ msgstr ""
 msgid "Steppers disabled due to inactivity."
 msgstr ""
 
-#: src/gui/MItem_mmu.cpp:280
+#: src/gui/MItem_mmu.cpp:280 include/common/hotend_type.hpp:26
 msgid "Stock"
 msgstr ""
 
@@ -6304,7 +6325,7 @@ msgstr ""
 msgid "Switch to Wi-Fi"
 msgstr ""
 
-#: src/gui/wizard/screen_fan_selftest.cpp:48
+#: src/gui/wizard/screen_fan_selftest.cpp:61
 msgid "Switched fans"
 msgstr ""
 
@@ -6576,12 +6597,12 @@ msgstr ""
 msgid "Testing enclosure fan"
 msgstr ""
 
-#: src/gui/wizard/screen_fan_selftest.cpp:57
+#: src/gui/wizard/screen_fan_selftest.cpp:70
 #, c-format
 msgid "Testing fan rotation on 100% power, please wait."
 msgstr ""
 
-#: src/gui/wizard/screen_fan_selftest.cpp:58
+#: src/gui/wizard/screen_fan_selftest.cpp:71
 #, c-format
 msgid "Testing fan rotation on 40% power, please wait."
 msgstr ""
@@ -6629,7 +6650,7 @@ msgid ""
 "compatible version."
 msgstr ""
 
-#: src/gui/wizard/screen_fan_selftest.cpp:60
+#: src/gui/wizard/screen_fan_selftest.cpp:73
 msgid ""
 "The RPM test has failed, check both fans are free to spin and connected "
 "correctly."
@@ -7485,7 +7506,7 @@ msgstr ""
 msgid "WIZARD - OK"
 msgstr ""
 
-#: src/marlin_stubs/feature/chamber/M141_M191.cpp:105
+#: src/marlin_stubs/feature/chamber/M141_M191.cpp:106
 msgid "Waiting for chamber temperature"
 msgstr ""
 
@@ -7745,6 +7766,10 @@ msgstr ""
 #: src/gui/screen_printing_end_result.cpp:17
 #, c-format
 msgid "Wipe tower %dg"
+msgstr ""
+
+#: include/common/hotend_type.hpp:27
+msgid "With sock"
 msgstr ""
 
 #: src/gui/screen_menu_selftest_snake.hpp:106

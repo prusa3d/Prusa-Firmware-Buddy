@@ -71,11 +71,11 @@ msgstr "%d Kalibrace offsetu nástroje"
 msgid "%d XY Axis Test"
 msgstr "%d Test os XY"
 
-#: src/common/filament.cpp:239
+#: src/common/filament.cpp:254
 msgid " (Preset)"
 msgstr "(Přednastavení)"
 
-#: src/common/filament.cpp:242
+#: src/common/filament.cpp:257
 msgid " (User)"
 msgstr "(Uživatel)"
 
@@ -490,7 +490,7 @@ msgstr "Chyba přenosu souborů"
 msgid "Firmware Version\n"
 msgstr "Verze firmwaru\n"
 
-#: src/common/filament.cpp:392
+#: src/common/filament.cpp:407
 msgid "Filament with this name already exists"
 msgstr "Filament s tímto názvem již existuje"
 
@@ -1390,7 +1390,7 @@ msgstr "Test přeskočen uživatelem."
 msgid "CPU load"
 msgstr "CPU vyt."
 
-#: src/gui/ScreenSelftest.hpp:40 src/gui/wizard/screen_fan_selftest.cpp:39
+#: src/gui/ScreenSelftest.hpp:40 src/gui/wizard/screen_fan_selftest.cpp:52
 msgid "SELFTEST"
 msgstr "SELFTEST"
 
@@ -1478,7 +1478,7 @@ msgstr "Nastavení přes NFC"
 msgid "Avoiding grind"
 msgstr "Prevence obroušení"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:59
+#: src/gui/wizard/screen_fan_selftest.cpp:72
 msgid "All tests passed successfully."
 msgstr "Testy úspěšně dokončeny!"
 
@@ -1682,6 +1682,10 @@ msgstr "Stav sítě"
 msgid "Ping | Loss"
 msgstr "Ping | Ztráta"
 
+#: include/common/hw_check.hpp:35
+msgid "Printer Model"
+msgstr "Model tiskárny"
+
 #: src/gui/MItem_mmu.hpp:221
 msgid "Cutter"
 msgstr "Stříhání"
@@ -1881,11 +1885,11 @@ msgstr "ERR: HW test selhal"
 msgid "EXTRUDER ERROR"
 msgstr "CHYBA EXTRUDERU"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:50
+#: src/gui/wizard/screen_fan_selftest.cpp:63
 msgid "Enclosure fan"
 msgstr "Ventilátor boxu"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:40
+#: src/gui/wizard/screen_fan_selftest.cpp:53
 msgid "Fan RPM tests"
 msgstr "Testy RPM ventilátorů"
 
@@ -1899,7 +1903,7 @@ msgstr ""
 "Detekován filament. Chcete jej vyjmout? Pokud zvolíte NE, bude se tisknout "
 "se zavedeným filamentem."
 
-#: src/common/filament.cpp:362
+#: src/common/filament.cpp:377
 msgid "Filament is not customizable"
 msgstr "Filament není nastavitelný"
 
@@ -2427,7 +2431,7 @@ msgstr "%d Kalibrace pozice doku"
 msgid "Assigned tool(s) without filament"
 msgstr "Přiřazené nástroje bez filamentu."
 
-#: src/gui/wizard/screen_fan_selftest.cpp:62
+#: src/gui/wizard/screen_fan_selftest.cpp:75
 msgid ""
 "Based on the test it looks like the fans connectors are switched. Double "
 "check your wiring and repeat the test."
@@ -2538,7 +2542,7 @@ msgid ""
 msgstr "Kalibrační pin nenalezen. Zkontrolujte jeho instalaci."
 
 #. for iX with turbine, heatbreak fan eval always succeeds
-#: src/gui/wizard/screen_fan_selftest.cpp:43
+#: src/gui/wizard/screen_fan_selftest.cpp:56
 msgid "Hotend fan (test disabled)"
 msgstr "Ventilátor hotendu (test zakázán)"
 
@@ -2634,7 +2638,7 @@ msgstr ""
 "Vložte filament skrz boční senzor filamentu a posouvejte jej tak dlouho, "
 "dokud jej nerozpozná senzor filamentu v extruderu."
 
-#: src/gui/wizard/screen_fan_selftest.cpp:54
+#: src/gui/wizard/screen_fan_selftest.cpp:67
 msgid "Is Hotend fan (left) spinning?"
 msgstr "Točí se tiskový ventilátor? (vlevo)"
 
@@ -2730,7 +2734,7 @@ msgid "Printing time"
 msgstr "Čas tisku"
 
 #: src/common/footer_def.cpp:20 src/gui/wizard/selftest_result_fans.cpp:15
-#: src/gui/wizard/screen_fan_selftest.cpp:47
+#: src/gui/wizard/screen_fan_selftest.cpp:60
 msgid "Print fan"
 msgstr "Tiskový ventilátor"
 
@@ -2892,6 +2896,10 @@ msgstr "osa"
 msgid "XY POSITION INVALID"
 msgstr "NEPLATNA POZICE XY"
 
+#: include/common/hw_check.hpp:43
+msgid "G-Code Level"
+msgstr "G-Code úroveň"
+
 #: src/gui/screen_menu_temperature.cpp:19
 msgid "TEMPERATURE"
 msgstr "TEPLOTA"
@@ -3018,15 +3026,15 @@ msgstr ""
 msgid "Pulley motor stalled. Ensure the pulley can move and check the wiring."
 msgstr "Pulley motor se zasekl. Zkontrolujte zapojení a zda jej nic neblokuje."
 
-#: src/common/filament.cpp:379
+#: src/common/filament.cpp:394
 msgid "Name must contain only 'A-Z0-9_-' characters"
 msgstr "Jméno může obsahovat pouze znaky 'A-Z0-9_-'"
 
-#: src/common/filament.cpp:372
+#: src/common/filament.cpp:387
 msgid "Name must not be '---'"
 msgstr "Jméno nesmí být  '---'"
 
-#: src/common/filament.cpp:367
+#: src/common/filament.cpp:382
 msgid "Name must not be empty"
 msgstr "Jméno nesmí být prázdné"
 
@@ -3316,7 +3324,7 @@ msgstr "Boční senzor filamentu"
 msgid "Stuck Filament Detection"
 msgstr "Detekce zaseklého filamentu"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:60
+#: src/gui/wizard/screen_fan_selftest.cpp:73
 msgid ""
 "The RPM test has failed, check both fans are free to spin and connected "
 "correctly."
@@ -3324,12 +3332,12 @@ msgstr ""
 "Test otáček ventilátorů selhal. Zkontrolujte oba ventilátory a jejich "
 "zapojení. Mohou se volně otáčet?"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:57
+#: src/gui/wizard/screen_fan_selftest.cpp:70
 #, c-format
 msgid "Testing fan rotation on 100% power, please wait."
 msgstr "Testuji otáčky ventilátorů na 100 % výkonu, vyčkejte."
 
-#: src/gui/wizard/screen_fan_selftest.cpp:58
+#: src/gui/wizard/screen_fan_selftest.cpp:71
 #, c-format
 msgid "Testing fan rotation on 40% power, please wait."
 msgstr "Testuji otáčky ventilátorů na 40 % výkonu, vyčkejte."
@@ -3373,7 +3381,7 @@ msgstr "Počet obecných selhání"
 msgid "Waiting for user input"
 msgstr "Čeká se na uživatele"
 
-#: src/marlin_stubs/feature/chamber/M141_M191.cpp:105
+#: src/marlin_stubs/feature/chamber/M141_M191.cpp:106
 msgid "Waiting for chamber temperature"
 msgstr "Komora se zahřívá"
 
@@ -3603,7 +3611,7 @@ msgstr "Nástroj 4"
 msgid "Check the heater and thermistor wiring for potential damage."
 msgstr "Zkontrolujte, zda není poškozen kabel vyhřívání nebo termistoru."
 
-#: src/common/filament.cpp:245
+#: src/common/filament.cpp:260
 msgid " (Custom)"
 msgstr "(Vlastní)"
 
@@ -4449,7 +4457,7 @@ msgstr "ERR: Interní"
 msgid "ERR TMC failed"
 msgstr "ERR: selhání TMC"
 
-#: src/gui/MItem_tools.cpp:253 src/gui/screen_splash.cpp:187
+#: src/gui/MItem_tools.cpp:253 src/gui/screen_splash.cpp:188
 msgid ""
 "Erasing everything,\n"
 "it will take some time..."
@@ -4893,7 +4901,7 @@ msgstr "Soubor odstraněn nebo přenos zrušen"
 msgid "Finishing moves"
 msgstr "Dokončování pohybů"
 
-#: src/gui/MItem_tools.hpp:322
+#: src/gui/MItem_tools.hpp:322 include/common/hw_check.hpp:36
 msgid "Firmware Version"
 msgstr "Verze firmwaru"
 
@@ -4963,7 +4971,7 @@ msgstr ""
 "- Nezačíná znakem \"-\""
 
 #: src/gui/wizard/selftest_result_fans.cpp:14
-#: src/gui/wizard/screen_fan_selftest.cpp:45
+#: src/gui/wizard/screen_fan_selftest.cpp:58
 msgid "Hotend fan"
 msgstr "Ventilátor hotendu"
 
@@ -5456,7 +5464,7 @@ msgstr "Vybrat Nástroj 3 (Aktuální)"
 
 #: src/common/footer_def.cpp:10 src/gui/MItem_tools.cpp:861
 #: src/gui/MItem_print.hpp:14 src/gui/MItem_print.hpp:49
-#: src/gui/wizard/selftest_result_heaters.cpp:13
+#: src/gui/wizard/selftest_result_heaters.cpp:13 include/common/hw_check.hpp:34
 msgid "Nozzle"
 msgstr "Tryska"
 
@@ -6038,11 +6046,11 @@ msgstr "Statistiky"
 msgid "Stealth Mode"
 msgstr "Tichý režim"
 
-#: src/gui/MItem_mmu.cpp:280
+#: src/gui/MItem_mmu.cpp:280 include/common/hotend_type.hpp:26
 msgid "Stock"
 msgstr "Původní"
 
-#: src/gui/wizard/screen_fan_selftest.cpp:48
+#: src/gui/wizard/screen_fan_selftest.cpp:61
 msgid "Switched fans"
 msgstr "Prohozené ventilátory"
 
@@ -6375,16 +6383,7 @@ msgstr "Výpis chyb (soubor dump.bin) byl zapsán na USB disk."
 msgid "Printhead"
 msgstr "Tisková hlava"
 
-#: src/gui/screen_splash.cpp:183
-#, c-format
-msgid ""
-"Printer type changed from %s to %s.\n"
-"Factory reset has to be performed.\n"
-msgstr ""
-"Typ tiskárny změněn z %s na %s.\n"
-"Je nutné provést tovární reset.\n"
-
-#: src/gui/MItem_tools.cpp:248 src/gui/screen_splash.cpp:195
+#: src/gui/MItem_tools.cpp:248 src/gui/screen_splash.cpp:196
 msgid "Reset complete. The system will now restart."
 msgstr "Obnovení dokončeno. Systém se restartuje."
 
@@ -8535,3 +8534,28 @@ msgid ""
 msgstr ""
 "Toto je průvodce procedurou Cold Pull. Připravte si 30cm kus PLA filamentu a "
 "následuje instrukce. Detailní postup je na:"
+
+#: include/common/hotend_type.hpp:28
+msgid "E3D Revo"
+msgstr "E3D Revo"
+
+#: include/common/hw_check.hpp:38
+msgid "Fan Compabibility"
+msgstr "Kompatibilita ventilátorů"
+
+#: include/common/hw_check.hpp:41
+msgid "MK3 Compatibility"
+msgstr "MK3 kompatibilita"
+
+#: src/gui/screen_splash.cpp:184
+#, c-format
+msgid ""
+"Printer type changed from %s to %s.\n"
+"Factory reset has to be performed."
+msgstr ""
+"Typ tiskárny změněn z %s na %s.\n"
+"Je nutný reset do továrního nastavení."
+
+#: include/common/hotend_type.hpp:27
+msgid "With sock"
+msgstr "S návlekem"
