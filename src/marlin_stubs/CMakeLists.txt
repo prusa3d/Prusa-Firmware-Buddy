@@ -78,3 +78,7 @@ endif()
 if(CONNECT)
   target_sources(firmware PRIVATE M1200.cpp)
 endif()
+
+if(HAS_DOOR_SENSOR_CALIBRATION)
+  target_sources(firmware PRIVATE M1980.cpp)
+endif()

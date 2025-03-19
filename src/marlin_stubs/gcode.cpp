@@ -18,6 +18,7 @@
 #include <option/has_phase_stepping.h>
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_belt_tuning.h>
+#include <option/has_door_sensor_calibration.h>
 
 #if HAS_LOADCELL()
     #include "loadcell.hpp"
@@ -263,6 +264,11 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 1978:
             PrusaGcodeSuite::M1978();
             break;
+#if HAS_DOOR_SENSOR_CALIBRATION()
+        case 1980:
+            PrusaGcodeSuite::M1980();
+            break;
+#endif
         case 9140:
             PrusaGcodeSuite::M9140();
             break;

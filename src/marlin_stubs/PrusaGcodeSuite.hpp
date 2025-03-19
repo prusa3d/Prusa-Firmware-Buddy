@@ -12,6 +12,7 @@
 #include <option/has_nozzle_cleaner.h>
 #include <option/has_emergency_stop.h>
 #include <option/buddy_enable_connect.h>
+#include <option/has_door_sensor_calibration.h>
 
 #include <gcode/gcode_parser.hpp>
 
@@ -133,6 +134,9 @@ void M1702(); //< Coldpull. Prusa platform specific
 void M1703(); //< Wi-fi setup. Prusa platform specific
 
 void M1978(); //< Fan Selftest
+#if HAS_DOOR_SENSOR_CALIBRATION()
+void M1980(); //< Door sensor calibration
+#endif
 
 void M9140(); //< Set normal (non-stealth) mode
 void M9150(); //< Set stealth mode
