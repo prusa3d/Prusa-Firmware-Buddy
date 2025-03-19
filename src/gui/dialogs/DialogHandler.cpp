@@ -14,6 +14,7 @@
 #include <option/has_phase_stepping.h>
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_coldpull.h>
+#include <option/has_door_sensor_calibration.h>
 #include <gui/screen/screen_preheat.hpp>
 
 #if HAS_COLDPULL()
@@ -51,6 +52,10 @@ using SerialPrint = ScreenDialogDoesNotExist;
 
 #if HAS_BELT_TUNING()
     #include <gui/wizard/screen_belt_tuning_wizard.hpp>
+#endif
+
+#if HAS_DOOR_SENSOR_CALIBRATION()
+    #include <feature/door_sensor_calibration/screen_door_sensor_calibration.hpp>
 #endif
 
 alignas(std::max_align_t) static std::array<uint8_t, 2560> mem_space;
@@ -202,6 +207,9 @@ using FSMDisplayConfig = FSMDisplayConfigDef<
 #endif
 #if HAS_BELT_TUNING()
     FSMScreenDef<ClientFSM::BeltTuning, ScreenBeltTuningWizard>,
+#endif
+#if HAS_DOOR_SENSOR_CALIBRATION()
+    FSMScreenDef<ClientFSM::DoorSensorCalibration, ScreenDoorSensorCalibration>,
 #endif
 
     // This is here so that we can worry-free write commas at the end of each argument

@@ -23,6 +23,7 @@ enum class Action {
     ZCheck,
     Heaters,
     Gears,
+    DoorSensor,
     FilamentSensorCalibration,
     _count,
     _last = _count - 1,
@@ -85,6 +86,7 @@ inline constexpr MenuItemText blank_item_texts[] {
     { Action::ZCheck, N_("%d Z Axis Test") },
     { Action::Heaters, N_("%d Heater Test") },
     { Action::Gears, N_("%d Gears Calibration") },
+    { Action::DoorSensor, N_("%d Door Sensor") },
     { Action::FilamentSensorCalibration, N_("%d Filament Sensor Calibration") },
 };
 

@@ -69,6 +69,8 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
         }));
     case Action::Gears:
         return evaluate_results(sr.gears);
+    case Action::DoorSensor:
+        return evaluate_results(config_store().selftest_result_door_sensor.get());
     case Action::FilamentSensorCalibration:
         if (tool == Tool::_all_tools) {
             return merge_hotends_evaluations(
@@ -91,6 +93,7 @@ ToolMask get_tool_mask([[maybe_unused]] Tool tool) {
 uint64_t get_test_mask(Action action) {
     switch (action) {
     case Action::Fans:
+    case Action::DoorSensor:
         bsod("This should be gcode");
     case Action::YCheck:
         return stmYAxis;
