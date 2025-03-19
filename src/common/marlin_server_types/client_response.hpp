@@ -34,6 +34,7 @@
 #include <option/has_chamber_api.h>
 #include <option/has_xbuddy_extension.h>
 #include <option/has_uneven_bed_prompt.h>
+#include <option/has_door_sensor_calibration.h>
 #include <common/hotend_type.hpp>
 #include <device/board.h>
 
@@ -566,6 +567,24 @@ enum class PhaseBeltTuning : PhaseUnderlyingType {
 constexpr inline ClientFSM client_fsm_from_phase(PhaseBeltTuning) { return ClientFSM::BeltTuning; }
 #endif
 
+#if HAS_DOOR_SENSOR_CALIBRATION()
+enum class PhaseDoorSensorCalibration : PhaseUnderlyingType {
+    confirm_abort,
+    repeat,
+    skip_ask,
+    confirm_closed,
+    tighten_screw_half,
+    confirm_open,
+    loosen_screw_half,
+    finger_test,
+    tighten_screw_quarter,
+    done,
+    finish,
+    _last = finish,
+};
+constexpr inline ClientFSM client_fsm_from_phase(PhaseDoorSensorCalibration) { return ClientFSM::DoorSensorCalibration; }
+#endif
+
 // static class for work with fsm responses (like button click)
 // encode responses - get them from marlin client, to marlin server and decode them again
 class ClientResponses {
@@ -971,6 +990,22 @@ class ClientResponses {
     };
 #endif
 
+#if HAS_DOOR_SENSOR_CALIBRATION()
+    static constexpr EnumArray<PhaseDoorSensorCalibration, PhaseResponses, CountPhases<PhaseDoorSensorCalibration>()> door_sensor_calibration_responses {
+        { PhaseDoorSensorCalibration::confirm_abort, { Response::Back, Response::Skip } },
+        { PhaseDoorSensorCalibration::repeat, { Response::Ok } },
+        { PhaseDoorSensorCalibration::skip_ask, { Response::Calibrate, Response::Skip } },
+        { PhaseDoorSensorCalibration::confirm_closed, { Response::Continue, Response::Abort } },
+        { PhaseDoorSensorCalibration::tighten_screw_half, { Response::Continue, Response::Abort } },
+        { PhaseDoorSensorCalibration::confirm_open, { Response::Continue, Response::Abort } },
+        { PhaseDoorSensorCalibration::loosen_screw_half, { Response::Continue, Response::Abort } },
+        { PhaseDoorSensorCalibration::finger_test, { Response::Continue, Response::Abort } },
+        { PhaseDoorSensorCalibration::tighten_screw_quarter, { Response::Continue, Response::Abort } },
+        { PhaseDoorSensorCalibration::done, { Response::Continue } },
+        { PhaseDoorSensorCalibration::finish, {} },
+    };
+#endif
+
     static constexpr EnumArray<ClientFSM, std::span<const PhaseResponses>, ClientFSM::_count> fsm_phase_responses {
         { ClientFSM::Serial_printing, {} },
             { ClientFSM::Load_unload, LoadUnloadResponses },
@@ -998,6 +1033,9 @@ class ClientResponses {
 #endif
 #if HAS_BELT_TUNING()
             { ClientFSM::BeltTuning, belt_tuning_responses },
+#endif
+#if HAS_DOOR_SENSOR_CALIBRATION()
+            { ClientFSM::DoorSensorCalibration, door_sensor_calibration_responses },
 #endif
             { ClientFSM::Wait, {} },
     };

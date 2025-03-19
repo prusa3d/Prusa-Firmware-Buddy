@@ -2,6 +2,7 @@
 
 #include <option/has_phase_stepping.h>
 #include <option/has_input_shaper_calibration.h>
+#include <option/has_door_sensor_calibration.h>
 #include <logging/log.hpp>
 
 LOG_COMPONENT_DEF(Fsm, logging::Severity::debug);
@@ -20,6 +21,9 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
     case ClientFSM::Printing:
     case ClientFSM::Selftest:
     case ClientFSM::FansSelftest:
+#if HAS_DOOR_SENSOR_CALIBRATION()
+    case ClientFSM::DoorSensorCalibration:
+#endif
         return 1;
 
     case ClientFSM::Load_unload:

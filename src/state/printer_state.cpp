@@ -10,6 +10,7 @@
 #include <option/has_uneven_bed_prompt.h>
 #include <config_store/store_instance.hpp>
 #include <option/has_chamber_filtration_api.h>
+#include <option/has_door_sensor_calibration.h>
 #include <printers.h>
 
 using namespace marlin_server;
@@ -204,6 +205,9 @@ DeviceState get_state(bool ready) {
 #if HAS_BELT_TUNING()
     case ClientFSM::BeltTuning:
 #endif
+#if HAS_DOOR_SENSOR_CALIBRATION()
+    case ClientFSM::DoorSensorCalibration:
+#endif
     case ClientFSM::Serial_printing:
         // FIXME: BFW-3893 Sadly there is no way (without saving state in this function)
         //  to distinguish between preheat from main screen,
@@ -391,6 +395,9 @@ StateWithDialog get_state_with_dialog(bool ready) {
 #endif
 #if HAS_BELT_TUNING()
     case ClientFSM::BeltTuning:
+#endif
+#if HAS_DOOR_SENSOR_CALIBRATION()
+    case ClientFSM::DoorSensorCalibration:
 #endif
     case ClientFSM::Preheat:
         // TODO: On some future sunny day, we want to cover all the selftests
