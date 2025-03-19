@@ -19,7 +19,7 @@ inline int mag_to_fixed(float mag) {
 }
 
 inline float mag_to_float(int mag) {
-    return float(mag) / (opts::SIN_PERIOD * (1 << opts::MAG_FRACTIONAL));
+    return 2 * std::numbers::pi_v<float> * float(mag) / (opts::SIN_PERIOD * (1 << opts::MAG_FRACTIONAL));
 }
 
 inline int pha_to_fixed(float pha) {
