@@ -1,0 +1,53 @@
+#
+# This is GNU makefile for Windows OS and Visual C++ compiler
+#
+
+# Default shell used by GNU Make on Windows
+SHELL = cmd
+
+# C++ compiler
+CXX = cl /std:c++14
+
+# C++ compiler flags
+CXXFLAGS = /nologo /EHsc /W4 /WX /Zc:__cplusplus /I ..\include /Od /Zi /bigobj
+
+# Command for removing all files and directories
+RM_RF = del /f /s /q
+
+# Set to 1 to execute (run) tests silently
+SILENT = 0
+
+ifeq ($(SILENT),0)
+	TO_NULL_IF_SILENT =
+else
+	TO_NULL_IF_SILENT = > nul 2>&1
+endif
+
+# List of all source files that must be compiled and tested
+SRCS := $(wildcard *.cpp)
+
+# First rule
+.PHONY: check
+check:
+
+# This function generates "check" rule for given source file.
+# Usage: $(call generate_rules,source_file)
+define generate_rules
+
+.PHONY: check_$(basename $(1))
+check:  check_$(basename $(1))
+check_$(basename $(1)):
+	$(CXX) $(CXXFLAGS) $(1)
+	.\$(basename $(1)).exe $(TO_NULL_IF_SILENT)
+
+endef
+
+# Generate rules for all source files
+$(foreach file,$(SRCS),$(eval $(call generate_rules,$(file))))
+
+.PHONY: clean
+clean:
+	$(RM_RF) *.exe
+	$(RM_RF) *.ilk
+	$(RM_RF) *.obj
+	$(RM_RF) *.pdb

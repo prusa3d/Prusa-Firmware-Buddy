@@ -1,0 +1,1897 @@
+//
+// g++ -std=c++11 -g -O0 -Wall -Wextra -Wpedantic -Werror -Wfatal-errors -I ../include static_map.cpp
+// valgrind --leak-check=full ./a.out
+//
+
+#undef NDEBUG // This is very important. Must be in the first line.
+
+#include "sfl/static_map.hpp"
+
+#include "check.hpp"
+#include "istream_view.hpp"
+#include "nth.hpp"
+#include "pair_io.hpp"
+#include "print.hpp"
+
+#include "xint.hpp"
+#include "xobj.hpp"
+
+#include <sstream>
+#include <vector>
+
+void test_static_map()
+{
+    using sfl::test::xint;
+    using sfl::test::xobj;
+
+    PRINT("Test static_capacity");
+    {
+        CHECK((sfl::static_map<xint, xint, 32, std::less<xint>>::static_capacity == 32));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    PRINT("Test container()");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.empty() == true);
+        CHECK(map.full() == false);
+        CHECK(map.size() == 0);
+        CHECK(map.max_size() == 32);
+        CHECK(map.capacity() == 32);
+        CHECK(map.available() == 32);
+    }
+
+    PRINT("Test container(const Compare&)");
+    {
+        std::less<xint> comp;
+
+        sfl::static_map<xint, xint, 32, std::less<xint>> map(comp);
+
+        CHECK(map.empty() == true);
+        CHECK(map.full() == false);
+        CHECK(map.size() == 0);
+        CHECK(map.max_size() == 32);
+        CHECK(map.capacity() == 32);
+        CHECK(map.available() == 32);
+    }
+
+    PRINT("Test container(InputIt, InputIt)");
+    {
+        std::vector<std::pair<int, int>> data
+        (
+            {
+                {10, 1},
+                {20, 1},
+                {30, 1},
+                {20, 2},
+                {20, 3}
+            }
+        );
+
+        sfl::static_map<xint, xint, 32, std::less<xint>> map(data.begin(), data.end());
+
+        CHECK(map.empty() == false);
+        CHECK(map.full() == false);
+        CHECK(map.size() == 3);
+        CHECK(map.max_size() == 32);
+        CHECK(map.capacity() == 32);
+        CHECK(map.available() == 29);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+    }
+
+    PRINT("Test container(InputIt, InputIt, const Compare&)");
+    {
+        std::vector<std::pair<int, int>> data
+        (
+            {
+                {10, 1},
+                {20, 1},
+                {30, 1},
+                {20, 2},
+                {20, 3}
+            }
+        );
+
+        std::less<xint> comp;
+
+        sfl::static_map<xint, xint, 32, std::less<xint>> map(data.begin(), data.end(), comp);
+
+        CHECK(map.empty() == false);
+        CHECK(map.full() == false);
+        CHECK(map.size() == 3);
+        CHECK(map.max_size() == 32);
+        CHECK(map.capacity() == 32);
+        CHECK(map.available() == 29);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+    }
+
+    PRINT("Test container(std::initializer_list)");
+    {
+        std::initializer_list<std::pair<const xint, xint>> ilist
+        {
+            {10, 1},
+            {20, 1},
+            {30, 1},
+            {20, 2},
+            {20, 3}
+        };
+
+        sfl::static_map<xint, xint, 32, std::less<xint>> map(ilist);
+
+        CHECK(map.empty() == false);
+        CHECK(map.full() == false);
+        CHECK(map.size() == 3);
+        CHECK(map.max_size() == 32);
+        CHECK(map.capacity() == 32);
+        CHECK(map.available() == 29);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+    }
+
+    PRINT("Test container(std::initializer_list, const Compare&)");
+    {
+        std::initializer_list<std::pair<const xint, xint>> ilist
+        {
+            {10, 1},
+            {20, 1},
+            {30, 1},
+            {20, 2},
+            {20, 3}
+        };
+
+        std::less<xint> comp;
+
+        sfl::static_map<xint, xint, 32, std::less<xint>> map(ilist, comp);
+
+        CHECK(map.empty() == false);
+        CHECK(map.full() == false);
+        CHECK(map.size() == 3);
+        CHECK(map.max_size() == 32);
+        CHECK(map.capacity() == 32);
+        CHECK(map.available() == 29);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+    }
+
+    PRINT("Test container(const container&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map1;
+
+        map1.emplace(10, 1);
+        map1.emplace(20, 1);
+        map1.emplace(30, 1);
+
+        CHECK(map1.size() == 3);
+        CHECK(NTH(map1, 0)->first == 10); CHECK(NTH(map1, 0)->second == 1);
+        CHECK(NTH(map1, 1)->first == 20); CHECK(NTH(map1, 1)->second == 1);
+        CHECK(NTH(map1, 2)->first == 30); CHECK(NTH(map1, 2)->second == 1);
+
+        ///////////////////////////////////////////////////////////////////////
+
+        sfl::static_map<xint, xint, 32, std::less<xint>> map2(map1);
+
+        CHECK(map2.size() == 3);
+        CHECK(NTH(map2, 0)->first == 10); CHECK(NTH(map2, 0)->second == 1);
+        CHECK(NTH(map2, 1)->first == 20); CHECK(NTH(map2, 1)->second == 1);
+        CHECK(NTH(map2, 2)->first == 30); CHECK(NTH(map2, 2)->second == 1);
+
+        CHECK(map2.max_size() == 32);
+        CHECK(map2.capacity() == 32);
+        CHECK(map2.available() == 29);
+    }
+
+    PRINT("Test container(container&&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map1;
+
+        map1.emplace(10, 1);
+        map1.emplace(20, 1);
+        map1.emplace(30, 1);
+
+        CHECK(map1.size() == 3);
+        CHECK(NTH(map1, 0)->first == 10); CHECK(NTH(map1, 0)->second == 1);
+        CHECK(NTH(map1, 1)->first == 20); CHECK(NTH(map1, 1)->second == 1);
+        CHECK(NTH(map1, 2)->first == 30); CHECK(NTH(map1, 2)->second == 1);
+
+        ///////////////////////////////////////////////////////////////////////
+
+        sfl::static_map<xint, xint, 32, std::less<xint>> map2(std::move(map1));
+
+        CHECK(map1.size() == 3);
+        CHECK(NTH(map1, 0)->first == +10); CHECK(NTH(map1, 0)->second == -1);
+        CHECK(NTH(map1, 1)->first == +20); CHECK(NTH(map1, 1)->second == -1);
+        CHECK(NTH(map1, 2)->first == +30); CHECK(NTH(map1, 2)->second == -1);
+
+        CHECK(map2.size() == 3);
+        CHECK(NTH(map2, 0)->first == 10); CHECK(NTH(map2, 0)->second == 1);
+        CHECK(NTH(map2, 1)->first == 20); CHECK(NTH(map2, 1)->second == 1);
+        CHECK(NTH(map2, 2)->first == 30); CHECK(NTH(map2, 2)->second == 1);
+
+        CHECK(map2.max_size() == 32);
+        CHECK(map2.capacity() == 32);
+        CHECK(map2.available() == 29);
+    }
+
+    PRINT("Test container(sfl::from_range_t, Range&&)");
+    {
+        // Input iterator (exactly)
+        {
+            std::istringstream iss("10 1 20 1 30 1 20 2 20 3");
+
+            #if SFL_CPP_VERSION >= SFL_CPP_20
+            sfl::static_map<xint, xint, 32, std::less<xint>> map
+            (
+                (sfl::from_range_t()),
+                (std::views::istream<std::pair<int, int>>(iss))
+            );
+            #else
+            sfl::static_map<xint, xint, 32, std::less<xint>> map
+            (
+                (sfl::from_range_t()),
+                (sfl::test::istream_view<std::pair<int, int>>(iss))
+            );
+            #endif
+
+            CHECK(map.empty() == false);
+            CHECK(map.size() == 3);
+            CHECK(map.max_size() > 0);
+            CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+            CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+            CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+        }
+
+        // Forward iterator
+        {
+            std::vector<std::pair<xint, xint>> data
+            (
+                {
+                    {10, 1},
+                    {20, 1},
+                    {30, 1},
+                    {20, 2},
+                    {20, 3}
+                }
+            );
+
+            #if SFL_CPP_VERSION >= SFL_CPP_20
+            sfl::static_map<xint, xint, 32, std::less<xint>> map
+            (
+                sfl::from_range_t(),
+                std::views::all(data)
+            );
+            #else
+            sfl::static_map<xint, xint, 32, std::less<xint>> map
+            (
+                sfl::from_range_t(),
+                data
+            );
+            #endif
+
+            CHECK(map.empty() == false);
+            CHECK(map.size() == 3);
+            CHECK(map.max_size() > 0);
+            CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+            CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+            CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+        }
+    }
+
+    PRINT("Test container(sfl::from_range_t, Range&&, const Compare&)");
+    {
+        // Input iterator (exactly)
+        {
+            std::istringstream iss("10 1 20 1 30 1 20 2 20 3");
+
+            std::less<xint> comp;
+
+            #if SFL_CPP_VERSION >= SFL_CPP_20
+            sfl::static_map<xint, xint, 32, std::less<xint>> map
+            (
+                (sfl::from_range_t()),
+                (std::views::istream<std::pair<int, int>>(iss)),
+                comp
+            );
+            #else
+            sfl::static_map<xint, xint, 32, std::less<xint>> map
+            (
+                (sfl::from_range_t()),
+                (sfl::test::istream_view<std::pair<int, int>>(iss)),
+                comp
+            );
+            #endif
+
+            CHECK(map.empty() == false);
+            CHECK(map.size() == 3);
+            CHECK(map.max_size() > 0);
+            CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+            CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+            CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+        }
+
+        // Forward iterator
+        {
+            std::vector<std::pair<xint, xint>> data
+            (
+                {
+                    {10, 1},
+                    {20, 1},
+                    {30, 1},
+                    {20, 2},
+                    {20, 3}
+                }
+            );
+
+            std::less<xint> comp;
+
+            #if SFL_CPP_VERSION >= SFL_CPP_20
+            sfl::static_map<xint, xint, 32, std::less<xint>> map
+            (
+                sfl::from_range_t(),
+                std::views::all(data),
+                comp
+            );
+            #else
+            sfl::static_map<xint, xint, 32, std::less<xint>> map
+            (
+                sfl::from_range_t(),
+                data,
+                comp
+            );
+            #endif
+
+            CHECK(map.empty() == false);
+            CHECK(map.size() == 3);
+            CHECK(map.max_size() > 0);
+            CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+            CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+            CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    PRINT("Test operator=(const container&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map1, map2;
+
+        map1.emplace(10, 1);
+        map1.emplace(20, 1);
+        map1.emplace(30, 1);
+
+        CHECK(map1.size() == 3);
+        CHECK(NTH(map1, 0)->first == 10); CHECK(NTH(map1, 0)->second == 1);
+        CHECK(NTH(map1, 1)->first == 20); CHECK(NTH(map1, 1)->second == 1);
+        CHECK(NTH(map1, 2)->first == 30); CHECK(NTH(map1, 2)->second == 1);
+
+        map2.emplace(40, 2);
+        map2.emplace(50, 2);
+        map2.emplace(60, 2);
+
+        CHECK(map2.size() == 3);
+        CHECK(NTH(map2, 0)->first == 40); CHECK(NTH(map2, 0)->second == 2);
+        CHECK(NTH(map2, 1)->first == 50); CHECK(NTH(map2, 1)->second == 2);
+        CHECK(NTH(map2, 2)->first == 60); CHECK(NTH(map2, 2)->second == 2);
+
+        ///////////////////////////////////////////////////////////////////////
+
+        map2 = map1;
+
+        CHECK(map1.size() == 3);
+        CHECK(NTH(map1, 0)->first == 10); CHECK(NTH(map1, 0)->second == 1);
+        CHECK(NTH(map1, 1)->first == 20); CHECK(NTH(map1, 1)->second == 1);
+        CHECK(NTH(map1, 2)->first == 30); CHECK(NTH(map1, 2)->second == 1);
+
+        CHECK(map2.size() == 3);
+        CHECK(NTH(map2, 0)->first == 10); CHECK(NTH(map2, 0)->second == 1);
+        CHECK(NTH(map2, 1)->first == 20); CHECK(NTH(map2, 1)->second == 1);
+        CHECK(NTH(map2, 2)->first == 30); CHECK(NTH(map2, 2)->second == 1);
+    }
+
+    PRINT("Test operator=(container&&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map1, map2;
+
+        map1.emplace(10, 1);
+        map1.emplace(20, 1);
+        map1.emplace(30, 1);
+
+        CHECK(map1.size() == 3);
+        CHECK(NTH(map1, 0)->first == 10); CHECK(NTH(map1, 0)->second == 1);
+        CHECK(NTH(map1, 1)->first == 20); CHECK(NTH(map1, 1)->second == 1);
+        CHECK(NTH(map1, 2)->first == 30); CHECK(NTH(map1, 2)->second == 1);
+
+        map2.emplace(40, 2);
+        map2.emplace(50, 2);
+        map2.emplace(60, 2);
+
+        CHECK(map2.size() == 3);
+        CHECK(NTH(map2, 0)->first == 40); CHECK(NTH(map2, 0)->second == 2);
+        CHECK(NTH(map2, 1)->first == 50); CHECK(NTH(map2, 1)->second == 2);
+        CHECK(NTH(map2, 2)->first == 60); CHECK(NTH(map2, 2)->second == 2);
+
+        ///////////////////////////////////////////////////////////////////////
+
+        map2 = std::move(map1);
+
+        CHECK(map1.size() == 3);
+        CHECK(NTH(map1, 0)->first == +10); CHECK(NTH(map1, 0)->second == -1);
+        CHECK(NTH(map1, 1)->first == +20); CHECK(NTH(map1, 1)->second == -1);
+        CHECK(NTH(map1, 2)->first == +30); CHECK(NTH(map1, 2)->second == -1);
+
+        CHECK(map2.size() == 3);
+        CHECK(NTH(map2, 0)->first == 10); CHECK(NTH(map2, 0)->second == 1);
+        CHECK(NTH(map2, 1)->first == 20); CHECK(NTH(map2, 1)->second == 1);
+        CHECK(NTH(map2, 2)->first == 30); CHECK(NTH(map2, 2)->second == 1);
+    }
+
+    PRINT("Test operator=(std::initializer_list)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        map.emplace(10, 1);
+        map.emplace(20, 1);
+        map.emplace(30, 1);
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+
+        ///////////////////////////////////////////////////////////////////////
+
+        std::initializer_list<std::pair<const xint, xint>> ilist
+        {
+            {40, 2},
+            {50, 2},
+            {60, 2},
+            {50, 3},
+            {50, 4}
+        };
+
+        map = ilist;
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first == 40); CHECK(NTH(map, 0)->second == 2);
+        CHECK(NTH(map, 1)->first == 50); CHECK(NTH(map, 1)->second == 2);
+        CHECK(NTH(map, 2)->first == 60); CHECK(NTH(map, 2)->second == 2);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PRINT("Test key_comp()");
+    {
+        {
+            sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+            auto key_comp = map.key_comp();
+
+            CHECK(key_comp(10, 10) == false);
+            CHECK(key_comp(10, 20) == true);
+            CHECK(key_comp(20, 10) == false);
+            CHECK(key_comp(20, 20) == false);
+        }
+
+        {
+            sfl::static_map<xobj, xint, 32, xobj::less> map;
+
+            auto key_comp = map.key_comp();
+
+            CHECK(key_comp(xobj(10), 10) == false);
+            CHECK(key_comp(xobj(10), 20) == true);
+            CHECK(key_comp(xobj(20), 10) == false);
+            CHECK(key_comp(xobj(20), 20) == false);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PRINT("Test value_comp()");
+    {
+        {
+            sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+            auto value_comp = map.value_comp();
+
+            CHECK(value_comp({10, 1}, {10, 2}) == false);
+            CHECK(value_comp({10, 1}, {20, 2}) == true);
+            CHECK(value_comp({20, 1}, {10, 2}) == false);
+            CHECK(value_comp({20, 1}, {20, 2}) == false);
+        }
+
+        {
+            sfl::static_map<xobj, xint, 32, xobj::less> map;
+
+            auto value_comp = map.value_comp();
+
+            CHECK(value_comp({xobj(10), 1}, {xobj(10), 2}) == false);
+            CHECK(value_comp({xobj(10), 1}, {xobj(20), 2}) == true);
+            CHECK(value_comp({xobj(20), 1}, {xobj(10), 2}) == false);
+            CHECK(value_comp({xobj(20), 1}, {xobj(20), 2}) == false);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PRINT("Test begin, end, cbegin, cend, rbegin, rend, crbegin, crend");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        map.emplace(20, 1);
+        map.emplace(40, 1);
+        map.emplace(60, 1);
+
+        ///////////////////////////////////////////////////////////////////////
+
+        auto it = map.begin();
+        CHECK(it->first == 20); CHECK(it->second == 1); ++it;
+        CHECK(it->first == 40); CHECK(it->second == 1); ++it;
+        CHECK(it->first == 60); CHECK(it->second == 1); ++it;
+        CHECK(it == map.end());
+
+        ///////////////////////////////////////////////////////////////////////
+
+        auto cit = map.cbegin();
+        CHECK(cit->first == 20); CHECK(cit->second == 1); ++cit;
+        CHECK(cit->first == 40); CHECK(cit->second == 1); ++cit;
+        CHECK(cit->first == 60); CHECK(cit->second == 1); ++cit;
+        CHECK(cit == map.cend());
+
+        ///////////////////////////////////////////////////////////////////////
+
+        auto rit = map.rbegin();
+        CHECK(rit->first == 60); CHECK(rit->second == 1); ++rit;
+        CHECK(rit->first == 40); CHECK(rit->second == 1); ++rit;
+        CHECK(rit->first == 20); CHECK(rit->second == 1); ++rit;
+        CHECK(rit == map.rend());
+
+        ///////////////////////////////////////////////////////////////////////
+
+        auto crit = map.crbegin();
+        CHECK(crit->first == 60); CHECK(crit->second == 1); ++crit;
+        CHECK(crit->first == 40); CHECK(crit->second == 1); ++crit;
+        CHECK(crit->first == 20); CHECK(crit->second == 1); ++crit;
+        CHECK(crit == map.crend());
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PRINT("Test lower_bound, upper_bound, equal_range, find, count, contains");
+    {
+        // xint, xint
+        {
+            sfl::static_map<xint, xint, 32, std::less<xint> > map;
+
+            map.emplace(20, 1);
+            map.emplace(40, 1);
+            map.emplace(60, 1);
+
+            ///////////////////////////////////////////////////////////////////////
+
+            CHECK(map.lower_bound(10) == NTH(map, 0));
+            CHECK(map.lower_bound(20) == NTH(map, 0));
+            CHECK(map.lower_bound(30) == NTH(map, 1));
+            CHECK(map.lower_bound(40) == NTH(map, 1));
+            CHECK(map.lower_bound(50) == NTH(map, 2));
+            CHECK(map.lower_bound(60) == NTH(map, 2));
+            CHECK(map.lower_bound(70) == NTH(map, 3));
+
+            ///////////////////////////////////////////////////////////////////////
+
+            CHECK(map.upper_bound(10) == NTH(map, 0));
+            CHECK(map.upper_bound(20) == NTH(map, 1));
+            CHECK(map.upper_bound(30) == NTH(map, 1));
+            CHECK(map.upper_bound(40) == NTH(map, 2));
+            CHECK(map.upper_bound(50) == NTH(map, 2));
+            CHECK(map.upper_bound(60) == NTH(map, 3));
+            CHECK(map.upper_bound(70) == NTH(map, 3));
+
+            ///////////////////////////////////////////////////////////////////////
+
+            CHECK(map.equal_range(10) == std::make_pair(NTH(map, 0), NTH(map, 0)));
+            CHECK(map.equal_range(20) == std::make_pair(NTH(map, 0), NTH(map, 1)));
+            CHECK(map.equal_range(30) == std::make_pair(NTH(map, 1), NTH(map, 1)));
+            CHECK(map.equal_range(40) == std::make_pair(NTH(map, 1), NTH(map, 2)));
+            CHECK(map.equal_range(50) == std::make_pair(NTH(map, 2), NTH(map, 2)));
+            CHECK(map.equal_range(60) == std::make_pair(NTH(map, 2), NTH(map, 3)));
+            CHECK(map.equal_range(70) == std::make_pair(NTH(map, 3), NTH(map, 3)));
+
+            ///////////////////////////////////////////////////////////////////////
+
+            CHECK(map.find(10) == map.end());
+            CHECK(map.find(20) == NTH(map, 0));
+            CHECK(map.find(30) == map.end());
+            CHECK(map.find(40) == NTH(map, 1));
+            CHECK(map.find(50) == map.end());
+            CHECK(map.find(60) == NTH(map, 2));
+            CHECK(map.find(70) == map.end());
+
+            ///////////////////////////////////////////////////////////////////////
+
+            CHECK(map.count(10) == 0);
+            CHECK(map.count(20) == 1);
+            CHECK(map.count(30) == 0);
+            CHECK(map.count(40) == 1);
+            CHECK(map.count(50) == 0);
+            CHECK(map.count(60) == 1);
+            CHECK(map.count(70) == 0);
+
+            ///////////////////////////////////////////////////////////////////////
+
+            CHECK(map.contains(10) == false);
+            CHECK(map.contains(20) == true);
+            CHECK(map.contains(30) == false);
+            CHECK(map.contains(40) == true);
+            CHECK(map.contains(50) == false);
+            CHECK(map.contains(60) == true);
+            CHECK(map.contains(70) == false);
+        }
+
+        // xobj, xint
+        {
+            sfl::static_map<xobj, xint, 32, xobj::less > map;
+
+            map.emplace(std::piecewise_construct, std::forward_as_tuple(20), std::forward_as_tuple(1));
+            map.emplace(std::piecewise_construct, std::forward_as_tuple(40), std::forward_as_tuple(1));
+            map.emplace(std::piecewise_construct, std::forward_as_tuple(60), std::forward_as_tuple(1));
+
+            ///////////////////////////////////////////////////////////////////////
+
+            CHECK(map.lower_bound(10) == NTH(map, 0));
+            CHECK(map.lower_bound(20) == NTH(map, 0));
+            CHECK(map.lower_bound(30) == NTH(map, 1));
+            CHECK(map.lower_bound(40) == NTH(map, 1));
+            CHECK(map.lower_bound(50) == NTH(map, 2));
+            CHECK(map.lower_bound(60) == NTH(map, 2));
+            CHECK(map.lower_bound(70) == NTH(map, 3));
+
+            ///////////////////////////////////////////////////////////////////////
+
+            CHECK(map.upper_bound(10) == NTH(map, 0));
+            CHECK(map.upper_bound(20) == NTH(map, 1));
+            CHECK(map.upper_bound(30) == NTH(map, 1));
+            CHECK(map.upper_bound(40) == NTH(map, 2));
+            CHECK(map.upper_bound(50) == NTH(map, 2));
+            CHECK(map.upper_bound(60) == NTH(map, 3));
+            CHECK(map.upper_bound(70) == NTH(map, 3));
+
+            ///////////////////////////////////////////////////////////////////////
+
+            CHECK(map.equal_range(10) == std::make_pair(NTH(map, 0), NTH(map, 0)));
+            CHECK(map.equal_range(20) == std::make_pair(NTH(map, 0), NTH(map, 1)));
+            CHECK(map.equal_range(30) == std::make_pair(NTH(map, 1), NTH(map, 1)));
+            CHECK(map.equal_range(40) == std::make_pair(NTH(map, 1), NTH(map, 2)));
+            CHECK(map.equal_range(50) == std::make_pair(NTH(map, 2), NTH(map, 2)));
+            CHECK(map.equal_range(60) == std::make_pair(NTH(map, 2), NTH(map, 3)));
+            CHECK(map.equal_range(70) == std::make_pair(NTH(map, 3), NTH(map, 3)));
+
+            ///////////////////////////////////////////////////////////////////////
+
+            CHECK(map.find(10) == map.end());
+            CHECK(map.find(20) == NTH(map, 0));
+            CHECK(map.find(30) == map.end());
+            CHECK(map.find(40) == NTH(map, 1));
+            CHECK(map.find(50) == map.end());
+            CHECK(map.find(60) == NTH(map, 2));
+            CHECK(map.find(70) == map.end());
+
+            ///////////////////////////////////////////////////////////////////////
+
+            CHECK(map.count(10) == 0);
+            CHECK(map.count(20) == 1);
+            CHECK(map.count(30) == 0);
+            CHECK(map.count(40) == 1);
+            CHECK(map.count(50) == 0);
+            CHECK(map.count(60) == 1);
+            CHECK(map.count(70) == 0);
+
+            ///////////////////////////////////////////////////////////////////////
+
+            CHECK(map.contains(10) == false);
+            CHECK(map.contains(20) == true);
+            CHECK(map.contains(30) == false);
+            CHECK(map.contains(40) == true);
+            CHECK(map.contains(50) == false);
+            CHECK(map.contains(60) == true);
+            CHECK(map.contains(70) == false);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PRINT("Test emplace(Args&&...)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            const auto res = map.emplace(10, 1);
+
+            CHECK(res.second == true);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            const auto res = map.emplace(10, 2);
+
+            CHECK(res.second == false);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test emplace_hint(const_iterator, Args&&...)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            const auto res = map.emplace_hint(map.begin(), 10, 1);
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            const auto res = map.emplace_hint(map.begin(), 10, 2);
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test insert(const value_type&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        using value_type = std::pair<const xint, xint>;
+
+        {
+            const value_type value_10_1(10, 1);
+
+            const auto res = map.insert(value_10_1);
+
+            CHECK(res.second == true);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            const value_type value_10_2(10, 2);
+
+            const auto res = map.insert(value_10_2);
+
+            CHECK(res.second == false);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test insert(value_type&&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        using value_type = std::pair<const xint, xint>;
+
+        {
+            value_type value_10_1(10, 1);
+
+            const auto res = map.insert(std::move(value_10_1));
+
+            CHECK(res.second == true);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+
+            CHECK(value_10_1.first  == +10);
+            CHECK(value_10_1.second == -1);
+        }
+
+        {
+            value_type value_10_2(10, 2);
+
+            const auto res = map.insert(std::move(value_10_2));
+
+            CHECK(res.second == false);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+
+            CHECK(value_10_2.first  == +10);
+            CHECK(value_10_2.second == +2);
+        }
+    }
+
+    PRINT("Test insert(P&&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        using value_type = std::pair<long, long>;
+
+        {
+            value_type value_10_1(10, 1);
+
+            const auto res = map.insert(value_10_1);
+
+            CHECK(res.second == true);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            value_type value_10_2(10, 2);
+
+            const auto res = map.insert(value_10_2);
+
+            CHECK(res.second == false);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test insert(const_iterator, const value_type&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        using value_type = std::pair<const xint, xint>;
+
+        {
+            const value_type value_10_1(10, 1);
+
+            const auto res = map.insert(map.begin(), value_10_1);
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            const value_type value_10_2(10, 2);
+
+            const auto res = map.insert(map.begin(), value_10_2);
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test insert(const_iterator, value_type&&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        using value_type = std::pair<const xint, xint>;
+
+        {
+            value_type value_10_1(10, 1);
+
+            const auto res = map.insert(map.begin(), std::move(value_10_1));
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+
+            CHECK(value_10_1.first  == +10);
+            CHECK(value_10_1.second == -1);
+        }
+
+        {
+            value_type value_10_2(10, 2);
+
+            const auto res = map.insert(map.begin(), std::move(value_10_2));
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+
+            CHECK(value_10_2.first  == +10);
+            CHECK(value_10_2.second == +2);
+        }
+    }
+
+    PRINT("Test insert(const_iterator, P&&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        using value_type = std::pair<long, long>;
+
+        {
+            value_type value_10_1(10, 1);
+
+            const auto res = map.insert(map.begin(), value_10_1);
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            value_type value_10_2(10, 2);
+
+            const auto res = map.insert(map.begin(), value_10_2);
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test insert(InputIt, InputIt");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        std::vector<std::pair<const xint, xint>> data
+        (
+            {
+                {10, 1},
+                {20, 1},
+                {30, 1},
+                {20, 2},
+                {20, 3}
+            }
+        );
+
+        map.insert(data.begin(), data.end());
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+    }
+
+    PRINT("Test insert(std::initializer_list");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        std::initializer_list<std::pair<const xint, xint>> ilist
+        {
+            {10, 1},
+            {20, 1},
+            {30, 1},
+            {20, 2},
+            {20, 3}
+        };
+
+        map.insert(ilist);
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+    }
+
+    PRINT("Test insert_range(Range&&");
+    {
+        // Input iterator (exactly)
+        {
+            std::istringstream iss("10 1 20 1 30 1 20 2 20 3");
+
+            sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+            #if SFL_CPP_VERSION >= SFL_CPP_20
+            map.insert_range(std::views::istream<std::pair<int, int>>(iss));
+            #else
+            map.insert_range(sfl::test::istream_view<std::pair<int, int>>(iss));
+            #endif
+
+            CHECK(map.size() == 3);
+            CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+            CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+            CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+        }
+
+        // Forward iterator
+        {
+            std::vector<std::pair<xint, xint>> data
+            (
+                {
+                    {10, 1},
+                    {20, 1},
+                    {30, 1},
+                    {20, 2},
+                    {20, 3}
+                }
+            );
+
+            sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+            #if SFL_CPP_VERSION >= SFL_CPP_20
+            map.insert_range(std::views::all(data));
+            #else
+            map.insert_range(data);
+            #endif
+
+            CHECK(map.size() == 3);
+            CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+            CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+            CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+        }
+    }
+
+    PRINT("Test insert_or_assign(const Key&, M&&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            const xint key_10(10);
+
+            const auto res = map.insert_or_assign(key_10, 1);
+
+            CHECK(res.second == true);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            const xint key_10(10);
+
+            const auto res = map.insert_or_assign(key_10, 2);
+
+            CHECK(res.second == false);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 2);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test insert_or_assign(Key&&, M&&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            xint key_10(10);
+
+            const auto res = map.insert_or_assign(std::move(key_10), 1);
+
+            CHECK(res.second == true);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+
+            CHECK(key_10 == -10);
+        }
+
+        {
+            xint key_10(10);
+
+            const auto res = map.insert_or_assign(std::move(key_10), 2);
+
+            CHECK(res.second == false);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 2);
+
+            CHECK(map.size() == 1);
+
+            CHECK(key_10 == +10);
+        }
+    }
+
+    PRINT("Test insert_or_assign(K&&, M&&)");
+    {
+        sfl::static_map<xobj, xint, 32, xobj::less> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            const auto res = map.insert_or_assign(10, 1);
+
+            CHECK(res.second == true);
+            CHECK(res.first->first.value() == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            const auto res = map.insert_or_assign(10, 2);
+
+            CHECK(res.second == false);
+            CHECK(res.first->first.value() == 10); CHECK(res.first->second == 2);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test insert_or_assign(const_iterator, const Key&, M&&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            const xint key_10(10);
+
+            const auto res = map.insert_or_assign(map.begin(), key_10, 1);
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            const xint key_10(10);
+
+            const auto res = map.insert_or_assign(map.begin(), key_10, 2);
+
+            CHECK(res->first == 10); CHECK(res->second == 2);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test insert_or_assign(const_iterator, Key&&, M&&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            xint key_10(10);
+
+            const auto res = map.insert_or_assign(map.begin(), std::move(key_10), 1);
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+
+            CHECK(key_10 == -10);
+        }
+
+        {
+            xint key_10(10);
+
+            const auto res = map.insert_or_assign(map.begin(), std::move(key_10), 2);
+
+            CHECK(res->first == 10); CHECK(res->second == 2);
+
+            CHECK(map.size() == 1);
+
+            CHECK(key_10 == +10);
+        }
+    }
+
+    PRINT("Test insert_or_assign(const_iterator, K&&, M&&)");
+    {
+        sfl::static_map<xobj, xint, 32, xobj::less> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            const auto res = map.insert_or_assign(map.begin(), 10, 1);
+
+            CHECK(res->first.value() == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            const auto res = map.insert_or_assign(map.begin(), 10, 2);
+
+            CHECK(res->first.value() == 10); CHECK(res->second == 2);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test try_emplace(const Key&, Args&&...)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            const xint key_10(10);
+
+            const auto res = map.try_emplace(key_10, 1);
+
+            CHECK(res.second == true);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            const xint key_10(10);
+
+            const auto res = map.try_emplace(key_10, 2);
+
+            CHECK(res.second == false);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test try_emplace(Key&&, Args&&...)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            xint key_10(10);
+
+            const auto res = map.try_emplace(std::move(key_10), 1);
+
+            CHECK(res.second == true);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+
+            CHECK(key_10 == -10);
+        }
+
+        {
+            xint key_10(10);
+
+            const auto res = map.try_emplace(std::move(key_10), 2);
+
+            CHECK(res.second == false);
+            CHECK(res.first->first == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+
+            CHECK(key_10 == +10);
+        }
+    }
+
+    PRINT("Test try_emplace(K&&, Args&&...)");
+    {
+        sfl::static_map<xobj, xint, 32, xobj::less> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            const auto res = map.try_emplace(10, 1);
+
+            CHECK(res.second == true);
+            CHECK(res.first->first.value() == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            const auto res = map.try_emplace(10, 2);
+
+            CHECK(res.second == false);
+            CHECK(res.first->first.value() == 10); CHECK(res.first->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test try_emplace(const_iterator, const Key&, Args&&...)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            const xint key_10(10);
+
+            const auto res = map.try_emplace(map.begin(), key_10, 1);
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            const xint key_10(10);
+
+            const auto res = map.try_emplace(map.begin(), key_10, 2);
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test try_emplace(const_iterator, Key&&, Args&&...)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            xint key_10(10);
+
+            const auto res = map.try_emplace(map.begin(), std::move(key_10), 1);
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+
+            CHECK(key_10 == -10);
+        }
+
+        {
+            xint key_10(10);
+
+            const auto res = map.try_emplace(map.begin(), std::move(key_10), 2);
+
+            CHECK(res->first == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+
+            CHECK(key_10 == +10);
+        }
+    }
+
+    PRINT("Test try_emplace(const_iterator, K&&, Args&&...)");
+    {
+        sfl::static_map<xobj, xint, 32, xobj::less> map;
+
+        CHECK(map.size() == 0);
+
+        {
+            const auto res = map.try_emplace(map.begin(), 10, 1);
+
+            CHECK(res->first.value() == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+
+        {
+            const auto res = map.try_emplace(map.begin(), 10, 2);
+
+            CHECK(res->first.value() == 10); CHECK(res->second == 1);
+
+            CHECK(map.size() == 1);
+        }
+    }
+
+    PRINT("Test erase(const_iterator)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        map.emplace(10, 1);
+        map.emplace(20, 1);
+        map.emplace(30, 1);
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+
+        {
+            const auto res = map.erase(map.begin());
+
+            CHECK(res == map.begin());
+            CHECK(map.size() == 2);
+            CHECK(NTH(map, 0)->first == 20); CHECK(NTH(map, 0)->second == 1);
+            CHECK(NTH(map, 1)->first == 30); CHECK(NTH(map, 1)->second == 1);
+        }
+
+        {
+            const auto res = map.erase(map.begin());
+
+            CHECK(res == map.begin());
+            CHECK(map.size() == 1);
+            CHECK(NTH(map, 0)->first == 30); CHECK(NTH(map, 0)->second == 1);
+        }
+
+        {
+            const auto res = map.erase(map.begin());
+
+            CHECK(res == map.end());
+            CHECK(map.size() == 0);
+        }
+    }
+
+    PRINT("Test erase(const_iterator, const_iterator)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        map.emplace(10, 1);
+        map.emplace(20, 1);
+        map.emplace(30, 1);
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+
+        const auto res = map.erase(NTH(map, 1), NTH(map, 2));
+
+        CHECK(res == NTH(map, 1));
+        CHECK(map.size() == 2);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 30); CHECK(NTH(map, 0)->second == 1);
+    }
+
+    PRINT("Test erase(const Key&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        map.emplace(10, 1);
+        map.emplace(20, 1);
+        map.emplace(30, 1);
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+
+        CHECK(map.erase(30) == 1);
+        CHECK(map.erase(30) == 0);
+        CHECK(map.size() == 2);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+
+        CHECK(map.erase(20) == 1);
+        CHECK(map.erase(20) == 0);
+        CHECK(map.size() == 1);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+
+        CHECK(map.erase(10) == 1);
+        CHECK(map.erase(10) == 0);
+        CHECK(map.size() == 0);
+    }
+
+    PRINT("Test erase(K&&)");
+    {
+        sfl::static_map<xobj, xint, 32, xobj::less> map;
+
+        map.emplace(std::piecewise_construct, std::forward_as_tuple(10), std::forward_as_tuple(1));
+        map.emplace(std::piecewise_construct, std::forward_as_tuple(20), std::forward_as_tuple(1));
+        map.emplace(std::piecewise_construct, std::forward_as_tuple(30), std::forward_as_tuple(1));
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first.value() == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first.value() == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first.value() == 30); CHECK(NTH(map, 2)->second == 1);
+
+        CHECK(map.erase(30) == 1);
+        CHECK(map.erase(30) == 0);
+        CHECK(map.size() == 2);
+        CHECK(NTH(map, 0)->first.value() == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first.value() == 20); CHECK(NTH(map, 1)->second == 1);
+
+        CHECK(map.erase(20) == 1);
+        CHECK(map.erase(20) == 0);
+        CHECK(map.size() == 1);
+        CHECK(NTH(map, 0)->first.value() == 10); CHECK(NTH(map, 0)->second == 1);
+
+        CHECK(map.erase(10) == 1);
+        CHECK(map.erase(10) == 0);
+        CHECK(map.size() == 0);
+    }
+
+    PRINT("Test swap(container&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map1, map2;
+
+        map1.emplace(10, 1);
+        map1.emplace(20, 1);
+        map1.emplace(30, 1);
+
+        map2.emplace(40, 2);
+        map2.emplace(50, 2);
+        map2.emplace(60, 2);
+        map2.emplace(70, 2);
+
+        CHECK(map1.size() == 3);
+        CHECK(NTH(map1, 0)->first == 10); CHECK(NTH(map1, 0)->second == 1);
+        CHECK(NTH(map1, 1)->first == 20); CHECK(NTH(map1, 1)->second == 1);
+        CHECK(NTH(map1, 2)->first == 30); CHECK(NTH(map1, 2)->second == 1);
+
+        CHECK(map2.size() == 4);
+        CHECK(NTH(map2, 0)->first == 40); CHECK(NTH(map2, 0)->second == 2);
+        CHECK(NTH(map2, 1)->first == 50); CHECK(NTH(map2, 1)->second == 2);
+        CHECK(NTH(map2, 2)->first == 60); CHECK(NTH(map2, 2)->second == 2);
+        CHECK(NTH(map2, 3)->first == 70); CHECK(NTH(map2, 3)->second == 2);
+
+        ///////////////////////////////////////////////////////////////////////
+
+        map1.swap(map2);
+
+        CHECK(map1.size() == 4);
+        CHECK(NTH(map1, 0)->first == 40); CHECK(NTH(map1, 0)->second == 2);
+        CHECK(NTH(map1, 1)->first == 50); CHECK(NTH(map1, 1)->second == 2);
+        CHECK(NTH(map1, 2)->first == 60); CHECK(NTH(map1, 2)->second == 2);
+        CHECK(NTH(map1, 3)->first == 70); CHECK(NTH(map1, 3)->second == 2);
+
+        CHECK(map2.size() == 3);
+        CHECK(NTH(map2, 0)->first == 10); CHECK(NTH(map2, 0)->second == 1);
+        CHECK(NTH(map2, 1)->first == 20); CHECK(NTH(map2, 1)->second == 1);
+        CHECK(NTH(map2, 2)->first == 30); CHECK(NTH(map2, 2)->second == 1);
+
+        ///////////////////////////////////////////////////////////////////////
+
+        map1.swap(map2);
+
+        CHECK(map1.size() == 3);
+        CHECK(NTH(map1, 0)->first == 10); CHECK(NTH(map1, 0)->second == 1);
+        CHECK(NTH(map1, 1)->first == 20); CHECK(NTH(map1, 1)->second == 1);
+        CHECK(NTH(map1, 2)->first == 30); CHECK(NTH(map1, 2)->second == 1);
+
+        CHECK(map2.size() == 4);
+        CHECK(NTH(map2, 0)->first == 40); CHECK(NTH(map2, 0)->second == 2);
+        CHECK(NTH(map2, 1)->first == 50); CHECK(NTH(map2, 1)->second == 2);
+        CHECK(NTH(map2, 2)->first == 60); CHECK(NTH(map2, 2)->second == 2);
+        CHECK(NTH(map2, 3)->first == 70); CHECK(NTH(map2, 3)->second == 2);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PRINT("Test at(const Key&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        map.emplace(10, 1);
+        map.emplace(20, 1);
+        map.emplace(30, 1);
+
+        CHECK(map.at(10) == 1);
+        CHECK(map.at(20) == 1);
+        CHECK(map.at(30) == 1);
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+
+        map.at(10) = 2;
+        map.at(20) = 2;
+        map.at(30) = 2;
+
+        CHECK(map.at(10) == 2);
+        CHECK(map.at(20) == 2);
+        CHECK(map.at(30) == 2);
+
+        #if !defined(SFL_NO_EXCEPTIONS)
+        bool caught_exception = false;
+
+        try
+        {
+            map.at(40) = 1;
+        }
+        catch (...)
+        {
+            caught_exception = true;
+        }
+
+        CHECK(caught_exception == true);
+        #endif
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 2);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 2);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 2);
+    }
+
+    PRINT("Test at(const K&)");
+    {
+        sfl::static_map<xobj, xint, 32, xobj::less> map;
+
+        map.emplace(std::piecewise_construct, std::forward_as_tuple(10), std::forward_as_tuple(1));
+        map.emplace(std::piecewise_construct, std::forward_as_tuple(20), std::forward_as_tuple(1));
+        map.emplace(std::piecewise_construct, std::forward_as_tuple(30), std::forward_as_tuple(1));
+
+        CHECK(map.at(10) == 1);
+        CHECK(map.at(20) == 1);
+        CHECK(map.at(30) == 1);
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first.value() == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first.value() == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first.value() == 30); CHECK(NTH(map, 2)->second == 1);
+
+        map.at(10) = 2;
+        map.at(20) = 2;
+        map.at(30) = 2;
+
+        CHECK(map.at(10) == 2);
+        CHECK(map.at(20) == 2);
+        CHECK(map.at(30) == 2);
+
+        #if !defined(SFL_NO_EXCEPTIONS)
+        bool caught_exception = false;
+
+        try
+        {
+            map.at(40) = 1;
+        }
+        catch (...)
+        {
+            caught_exception = true;
+        }
+
+        CHECK(caught_exception == true);
+        #endif
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first.value() == 10); CHECK(NTH(map, 0)->second == 2);
+        CHECK(NTH(map, 1)->first.value() == 20); CHECK(NTH(map, 1)->second == 2);
+        CHECK(NTH(map, 2)->first.value() == 30); CHECK(NTH(map, 2)->second == 2);
+    }
+
+    PRINT("Test operator[](const Key&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        map.emplace(10, 1);
+        map.emplace(20, 1);
+        map.emplace(30, 1);
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+
+        ///////////////////////////////////////////////////////////////////////////
+
+        xint key_10 = 10;
+        xint key_20 = 20;
+        xint key_30 = 30;
+        xint key_40 = 40;
+        xint key_50 = 50;
+        xint key_60 = 60;
+
+        map[key_10] = 2;
+        map[key_20] = 2;
+        map[key_30] = 2;
+        map[key_40] = 2;
+        map[key_50] = 2;
+        map[key_60] = 2;
+
+        CHECK(map.size() == 6);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 2);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 2);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 2);
+        CHECK(NTH(map, 3)->first == 40); CHECK(NTH(map, 3)->second == 2);
+        CHECK(NTH(map, 4)->first == 50); CHECK(NTH(map, 4)->second == 2);
+        CHECK(NTH(map, 5)->first == 60); CHECK(NTH(map, 5)->second == 2);
+
+        CHECK(key_10 == 10);
+        CHECK(key_20 == 20);
+        CHECK(key_30 == 30);
+        CHECK(key_40 == 40);
+        CHECK(key_50 == 50);
+        CHECK(key_60 == 60);
+    }
+
+    PRINT("Test operator[](Key&&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map;
+
+        map.emplace(10, 1);
+        map.emplace(20, 1);
+        map.emplace(30, 1);
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+
+        ///////////////////////////////////////////////////////////////////////////
+
+        xint key_10 = 10;
+        xint key_20 = 20;
+        xint key_30 = 30;
+        xint key_40 = 40;
+        xint key_50 = 50;
+        xint key_60 = 60;
+
+        map[std::move(key_10)] = 2;
+        map[std::move(key_20)] = 2;
+        map[std::move(key_30)] = 2;
+        map[std::move(key_40)] = 2;
+        map[std::move(key_50)] = 2;
+        map[std::move(key_60)] = 2;
+
+        CHECK(map.size() == 6);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 2);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 2);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 2);
+        CHECK(NTH(map, 3)->first == 40); CHECK(NTH(map, 3)->second == 2);
+        CHECK(NTH(map, 4)->first == 50); CHECK(NTH(map, 4)->second == 2);
+        CHECK(NTH(map, 5)->first == 60); CHECK(NTH(map, 5)->second == 2);
+
+        CHECK(key_10 == +10);
+        CHECK(key_20 == +20);
+        CHECK(key_30 == +30);
+        CHECK(key_40 == -40);
+        CHECK(key_50 == -50);
+        CHECK(key_60 == -60);
+    }
+
+    PRINT("Test operator[](K&&)");
+    {
+        sfl::static_map<xobj, xint, 32, xobj::less> map;
+
+        map.emplace(std::piecewise_construct, std::forward_as_tuple(10), std::forward_as_tuple(1));
+        map.emplace(std::piecewise_construct, std::forward_as_tuple(20), std::forward_as_tuple(1));
+        map.emplace(std::piecewise_construct, std::forward_as_tuple(30), std::forward_as_tuple(1));
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first.value() == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first.value() == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first.value() == 30); CHECK(NTH(map, 2)->second == 1);
+
+        ///////////////////////////////////////////////////////////////////////////
+
+        map[10] = 2;
+        map[20] = 2;
+        map[30] = 2;
+        map[40] = 2;
+        map[50] = 2;
+        map[60] = 2;
+
+        CHECK(map.size() == 6);
+        CHECK(NTH(map, 0)->first.value() == 10); CHECK(NTH(map, 0)->second == 2);
+        CHECK(NTH(map, 1)->first.value() == 20); CHECK(NTH(map, 1)->second == 2);
+        CHECK(NTH(map, 2)->first.value() == 30); CHECK(NTH(map, 2)->second == 2);
+        CHECK(NTH(map, 3)->first.value() == 40); CHECK(NTH(map, 3)->second == 2);
+        CHECK(NTH(map, 4)->first.value() == 50); CHECK(NTH(map, 4)->second == 2);
+        CHECK(NTH(map, 5)->first.value() == 60); CHECK(NTH(map, 5)->second == 2);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PRINT("Test NON-MEMBER comparison operators");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map1, map2;
+
+        map1.emplace(10, 1);
+        map1.emplace(20, 1);
+        map1.emplace(30, 1);
+
+        map2.emplace(10, 1);
+        map2.emplace(20, 1);
+        map2.emplace(30, 1);
+        map2.emplace(40, 1);
+        map2.emplace(50, 1);
+
+        CHECK((map1 == map1) == true);
+        CHECK((map1 == map2) == false);
+        CHECK((map2 == map1) == false);
+        CHECK((map2 == map2) == true);
+
+        CHECK((map1 != map1) == false);
+        CHECK((map1 != map2) == true);
+        CHECK((map2 != map1) == true);
+        CHECK((map2 != map2) == false);
+
+        CHECK((map1 < map1) == false);
+        CHECK((map1 < map2) == true);
+        CHECK((map2 < map1) == false);
+        CHECK((map2 < map2) == false);
+
+        CHECK((map1 > map1) == false);
+        CHECK((map1 > map2) == false);
+        CHECK((map2 > map1) == true);
+        CHECK((map2 > map2) == false);
+
+        CHECK((map1 <= map1) == true);
+        CHECK((map1 <= map2) == true);
+        CHECK((map2 <= map1) == false);
+        CHECK((map2 <= map2) == true);
+
+        CHECK((map1 >= map1) == true);
+        CHECK((map1 >= map2) == false);
+        CHECK((map2 >= map1) == true);
+        CHECK((map2 >= map2) == true);
+    }
+
+    PRINT("Test NON-MEMBER swap(container&)");
+    {
+        sfl::static_map<xint, xint, 32, std::less<xint>> map1, map2;
+
+        map1.emplace(10, 1);
+        map1.emplace(20, 1);
+        map1.emplace(30, 1);
+
+        map2.emplace(40, 2);
+        map2.emplace(50, 2);
+        map2.emplace(60, 2);
+        map2.emplace(70, 2);
+        map2.emplace(80, 2);
+
+        CHECK(map1.size() == 3);
+        CHECK(NTH(map1, 0)->first == 10); CHECK(NTH(map1, 0)->second == 1);
+        CHECK(NTH(map1, 1)->first == 20); CHECK(NTH(map1, 1)->second == 1);
+        CHECK(NTH(map1, 2)->first == 30); CHECK(NTH(map1, 2)->second == 1);
+
+        CHECK(map2.size() == 5);
+        CHECK(NTH(map2, 0)->first == 40); CHECK(NTH(map2, 0)->second == 2);
+        CHECK(NTH(map2, 1)->first == 50); CHECK(NTH(map2, 1)->second == 2);
+        CHECK(NTH(map2, 2)->first == 60); CHECK(NTH(map2, 2)->second == 2);
+        CHECK(NTH(map2, 3)->first == 70); CHECK(NTH(map2, 3)->second == 2);
+        CHECK(NTH(map2, 4)->first == 80); CHECK(NTH(map2, 4)->second == 2);
+
+        ///////////////////////////////////////////////////////////////////////////
+
+        swap(map1, map2);
+
+        CHECK(map1.size() == 5);
+        CHECK(NTH(map1, 0)->first == 40); CHECK(NTH(map1, 0)->second == 2);
+        CHECK(NTH(map1, 1)->first == 50); CHECK(NTH(map1, 1)->second == 2);
+        CHECK(NTH(map1, 2)->first == 60); CHECK(NTH(map1, 2)->second == 2);
+        CHECK(NTH(map1, 3)->first == 70); CHECK(NTH(map1, 3)->second == 2);
+        CHECK(NTH(map1, 4)->first == 80); CHECK(NTH(map1, 4)->second == 2);
+
+        CHECK(map2.size() == 3);
+        CHECK(NTH(map2, 0)->first == 10); CHECK(NTH(map2, 0)->second == 1);
+        CHECK(NTH(map2, 1)->first == 20); CHECK(NTH(map2, 1)->second == 1);
+        CHECK(NTH(map2, 2)->first == 30); CHECK(NTH(map2, 2)->second == 1);
+    }
+
+    PRINT("Test NON-MEMBER erase_if(container&, Predicate)");
+    {
+        using container_type =
+            sfl::static_map<xint, xint, 32, std::less<xint>>;
+
+        using const_reference = typename container_type::const_reference;
+
+        ///////////////////////////////////////////////////////////////////////////
+
+        container_type map;
+
+        map.emplace(10, 1);
+        map.emplace(20, 1);
+        map.emplace(30, 1);
+
+        CHECK(map.size() == 3);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 20); CHECK(NTH(map, 1)->second == 1);
+        CHECK(NTH(map, 2)->first == 30); CHECK(NTH(map, 2)->second == 1);
+
+        ///////////////////////////////////////////////////////////////////////////
+
+        CHECK(erase_if(map, [](const_reference& value){ return value.first == 20; }) == 1);
+        CHECK(map.size() == 2);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 30); CHECK(NTH(map, 1)->second == 1);
+
+        ///////////////////////////////////////////////////////////////////////////
+
+        CHECK(erase_if(map, [](const_reference& value){ return value.first == 20; }) == 0);
+        CHECK(map.size() == 2);
+        CHECK(NTH(map, 0)->first == 10); CHECK(NTH(map, 0)->second == 1);
+        CHECK(NTH(map, 1)->first == 30); CHECK(NTH(map, 1)->second == 1);
+    }
+}
+
+int main()
+{
+    test_static_map();
+}

@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:slavenf/sfl-library.git
+	branch = 1.9.1
+	commit = ec5d0b27e011c58a8501f31475013c3f586d523c
+	parent = df4798c0eb1731fdc29c2924f8eb8da5d2df53c3
+	method = merge
+	cmdver = 0.4.9

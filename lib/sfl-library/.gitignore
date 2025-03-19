@@ -1,0 +1,17 @@
+.vscode/*
+
+benchmark/*.out
+
+benchmark/*.exe
+benchmark/*.ilk
+benchmark/*.obj
+benchmark/*.pdb
+
+test/*.out
+
+test/*.exe
+test/*.ilk
+test/*.obj
+test/*.pdb
+
+workspace.code-workspace

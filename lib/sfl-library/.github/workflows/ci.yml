@@ -1,0 +1,51 @@
+name: CI
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  ubuntu:
+    strategy:
+      matrix:
+        CXX: [g++ -std=c++11,
+              g++ -std=c++14,
+              g++ -std=c++17,
+              g++ -std=c++20,
+              g++ -std=c++23,
+              clang++ -std=c++11,
+              clang++ -std=c++14,
+              clang++ -std=c++17,
+              clang++ -std=c++20,
+              clang++ -std=c++23]
+    name: ${{ matrix.CXX }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Valgrind
+        run: sudo apt update && sudo apt install -y valgrind
+
+      - name: Run tests
+        working-directory: ./test
+        run: make SILENT=1 CXX="${{ matrix.CXX }}" -j$(nproc)
+
+  windows:
+    strategy:
+      matrix:
+        CXX: ["cl /std:c++14",
+              "cl /std:c++17",
+              "cl /std:c++20",
+              "cl /std:c++latest"]
+    name: MSVC [${{ matrix.CXX }}]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install GNU Make
+        run: choco install make
+
+      - name: Run tests
+        shell: cmd
+        working-directory: .\test
+        run: make SILENT=1 CXX="${{ matrix.CXX }}" -f makefile.msvc
