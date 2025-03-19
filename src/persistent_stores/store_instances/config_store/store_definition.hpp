@@ -44,6 +44,7 @@
 #include <option/developer_mode.h>
 #include <option/has_chamber_filtration_api.h>
 #include <option/has_auto_retract.h>
+#include <option/has_door_sensor_calibration.h>
 #include <common/extended_printer_type.hpp>
 #include <common/hw_check.hpp>
 #include <pwm_utils.hpp>
@@ -584,6 +585,10 @@ struct CurrentStore
     StoreItem<bool, true, journal::hash("XBE USB Host power")> xbe_usb_power;
     StoreItem<uint8_t, 102, journal::hash("XBuddy Extension Chamber Fan Max Control Limit")> xbe_cooling_fan_max_auto_pwm;
     StoreItem<uint8_t, 255, journal::hash("XBE Filtration Fan Max Auto PWM")> xbe_filtration_fan_max_auto_pwm;
+#endif
+
+#if HAS_DOOR_SENSOR_CALIBRATION()
+    StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Selftest Result - Door Sensor")> selftest_result_door_sensor;
 #endif
 
 #if HAS_EMERGENCY_STOP()
