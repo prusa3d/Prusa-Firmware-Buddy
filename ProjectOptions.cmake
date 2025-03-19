@@ -349,6 +349,8 @@ set_feature_for_printers(HAS_AUTO_RETRACT "COREONE")
 # Checks for bed evenness during G29 and if it's too uneven, offers Z alignment calibration
 set_feature_for_printers(HAS_UNEVEN_BED_PROMPT "COREONE")
 
+set_feature_for_printers(HAS_DOOR_SENSOR_CALIBRATION "COREONE")
+
 # Set GUI settings
 set(PRINTERS_WITH_GUI "COREONE" "MINI" "MK4" "MK3.5" "XL" "iX")
 set(PRINTERS_WITH_GUI_W480H320 "COREONE" "MK4" "MK3.5" "XL" "iX")
