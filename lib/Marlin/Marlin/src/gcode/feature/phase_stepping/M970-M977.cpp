@@ -457,6 +457,7 @@ void GcodeSuite::M977() {
     SERIAL_ECHOLN(axis);
 
     G28_no_parser(true, true, false, { .only_if_needed = true, .z_raise = 3 });
+    do_blocking_move_to_z(50);
     Planner::synchronize();
 
     CalibrateAxisHooks hooks;
