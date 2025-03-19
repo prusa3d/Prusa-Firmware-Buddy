@@ -89,6 +89,7 @@ exclude: |
     ^lib/liblightmodbus/|
     ^lib/libsysbase/|
     ^lib/printf|
+    ^lib/sfl-library/|
     ^lib/tinyusb/|
     ^lib/magic_enum/|
     ^lib/SG14/|
