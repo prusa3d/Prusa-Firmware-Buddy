@@ -117,6 +117,11 @@ public:
     MI_FILAMENT_IS_ABRASIVE();
 };
 
+class MI_FILAMENT_IS_FLEXIBLE final : public MI_TOGGLE {
+public:
+    MI_FILAMENT_IS_FLEXIBLE();
+};
+
 class MI_FILAMENT_VISIBLE final : public WI_ICON_SWITCH_OFF_ON_t {
 public:
     MI_FILAMENT_VISIBLE();
@@ -150,6 +155,7 @@ using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
     MI_FILAMENT_MAX_CHAMBER_TEMPERATURE,
 #endif
     MI_FILAMENT_IS_ABRASIVE,
+    MI_FILAMENT_IS_FLEXIBLE,
 #if HAS_CHAMBER_API()
     MI_FILAMENT_REQUIRES_FILTRATION,
 #endif

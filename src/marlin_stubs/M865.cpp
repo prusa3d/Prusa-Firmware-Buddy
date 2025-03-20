@@ -23,6 +23,7 @@
  * - `P` - Nozzle preheat temperature
  * - `B` - Bed temperature
  * - `A` - Is abrasive
+ * - `G` - Is flexible
  *
  * - `C` - Target chamber temperature
  * - `D` - Minimum chamber temperature
@@ -81,6 +82,9 @@ void PrusaGcodeSuite::M865() {
 
     if (const auto opt = p.option<bool>('A')) {
         params.is_abrasive = *opt;
+    }
+    if (const auto opt = p.option<bool>('G')) {
+        params.is_flexible = *opt;
     }
 
 #if HAS_CHAMBER_API()
