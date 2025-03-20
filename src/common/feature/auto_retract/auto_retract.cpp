@@ -60,6 +60,11 @@ void AutoRetract::maybe_retract_from_nozzle() {
         return;
     }
 
+    // Do not auto retract flexible filaments, they might get tangled in the extruder (BFW-6953)
+    if (config_store().get_filament_type(hotend).parameters().is_flexible) {
+        return;
+    }
+
     const auto orig_e_position = planner.get_position_msteps().e;
 
     standard_ramming_sequence(StandardRammingSequence::auto_retract, hotend).execute();
