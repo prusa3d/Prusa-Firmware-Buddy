@@ -292,11 +292,12 @@ pipeline {
                         ln -fs /work/.venv
                         . .venv/bin/activate
                         utils/generate-error-codes-report.py | tee error-codes-report.txt
+                        utils/translations_and_fonts/generate-translations-report.sh | tee translations-report.txt
                         """
                     }
                     post {
                         always {
-                            archiveArtifacts artifacts: 'error-codes-report.txt'
+                            archiveArtifacts artifacts: 'error-codes-report.txt, translations-report.txt'
                         }
                     }
                 }
