@@ -11,10 +11,6 @@
 
 extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
 
-// path cannot be longer than 16 characters
-FILETranslationProvider fileProviderInternal("/internal/ts.mo");
-FILETranslationProvider fileProviderUSB("/usb/lang/ts.mo");
-
 FILETranslationProvider::FILETranslationProvider(const char *path) {
     strlcpy(m_Path, path, sizeof(m_Path));
 }

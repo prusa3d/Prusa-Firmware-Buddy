@@ -25,6 +25,3 @@ public:
     /// \return true if successfully opened and checked, false if anything fails
     bool EnsureFile() const;
 };
-
-extern FILETranslationProvider fileProviderUSB;
-extern FILETranslationProvider fileProviderInternal;
