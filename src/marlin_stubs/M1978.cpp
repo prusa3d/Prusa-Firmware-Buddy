@@ -433,21 +433,13 @@ void M1978() {
     #endif /* XL_ENCLOSURE_SUPPORT() */
 
     #if HAS_XBUDDY_EXTENSION()
+        static_assert(HAS_CHAMBER_FILTRATION_API());
     case Chamber::Backend::xbuddy_extension:
-        fan_container[container_index++] = &xbe_fans[0];
-        fan_container[container_index++] = &xbe_fans[1];
-        switch (chamber_filtration().backend()) {
-
-        case ChamberFiltrationBackend::xbe_official_filter:
+        if (xbuddy_extension().is_fan3_used()) {
             fan_container[container_index++] = &xbe_fans[2];
-            break;
-
-        case ChamberFiltrationBackend::xbe_filter_on_cooling_fans:
-            // The user has to remove the filter from the cooling fans to pass the selftest
-            break;
-
-        case ChamberFiltrationBackend::none:
-            break;
+        } else {
+            fan_container[container_index++] = &xbe_fans[0];
+            fan_container[container_index++] = &xbe_fans[1];
         }
         break;
     #endif
