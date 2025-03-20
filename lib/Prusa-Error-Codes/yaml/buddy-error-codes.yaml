@@ -172,44 +172,44 @@ Errors:
     approved: true
 
   - code: "XX116"
-    title: "MAINTENANCE WARNING FAILS"
+    title: "MAINTENANCE FAILURE WARNING"
     printers: [COREONE, MK4]
     text: "Printer has detected multiple consecutive filament loading errors. We recommend checking Nextruder main-plate. Visit prusa.io/mmu-care"
     action: [Continue]
     id: "MAINTENANCE_WARNING_FAILS"
     type: WARNING
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX116"
-    title: "MAINTENANCE WARNING FAILS"
+    title: "MAINTENANCE FAILURE WARNING"
     printers: [MK3.5]
     text: "Printer has detected multiple consecutive filament loading errors. We recommend checking the extruder. Visit prusa.io/mmu-care."
     action: [Continue]
     id: "MAINTENANCE_WARNING_FAILS"
     type: WARNING
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX117"
-    title: "MAINTENANCE WARNING CHANGES"
+    title: "MAINTENANCE WARNING"
     printers: [COREONE, MK4]
     text: "Maintenance Reminder. Filament changes have reached main-plate lifespan. Inspect the part and ensure you have a spare plate available. Visit prusa.io/mmu-care"
     action: [Continue]
     id: "MAINTENANCE_WARNING_CHANGES"
     type: WARNING
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX117"
-    title: "MAINTENANCE WARNING CHANGES"
+    title: "MAINTENANCE WARNING"
     printers: [MK3.5]
     text: "Maintenance Reminder. Filament changes have reached 30k. Inspect and clean the extruder. Visit prusa.io/mmu-care"
     action: [Continue]
     id: "MAINTENANCE_WARNING_CHANGES"
     type: WARNING
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   # TEMPERATURE    xx2xx
 
@@ -454,7 +454,7 @@ Errors:
     text: "Chamber temperature above safety limit. Ensure better ventilation."
     id: "CHAMBER_OVERHEATING_TEMP"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX261"
     printers: [COREONE, XL]
@@ -462,7 +462,7 @@ Errors:
     text: "Chamber temperature critical. Aborting print to prevent printer damage."
     id: "CHAMBER_CRITICAL_TEMP"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   # ELECTRICAL     xx3xx
 
@@ -704,7 +704,7 @@ Errors:
     title: "..."
     text: "..."
     id: "NEW_WIFI_CREDENTIALS"
-    approved: false
+    approved: true
     deprecated: true
   
   - code: "XX403"
@@ -735,7 +735,7 @@ Errors:
     title: "DWARF ERROR"
     text: "Dwarf board %d fault: %s"
     id: "DWARF_MARLIN_ERR"
-    approved: false
+    approved: true
     deprecated: true
     
   - code: "XX504"
@@ -965,7 +965,7 @@ Errors:
     text: "Gcode on the USB drive is corrupt. Fix manually before resuming."
     id: "GCODE_CORRUPTION"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX535"
     title: "Gcode Cropped"
