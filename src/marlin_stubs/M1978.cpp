@@ -439,8 +439,6 @@ void M1978() {
         switch (chamber_filtration().backend()) {
 
         case ChamberFiltrationBackend::xbe_official_filter:
-            xbe_fans[0].set_range(chamber_fan_range_with_filtration);
-            xbe_fans[1].set_range(chamber_fan_range_with_filtration);
             fan_container[container_index++] = &xbe_fans[2];
             break;
 
