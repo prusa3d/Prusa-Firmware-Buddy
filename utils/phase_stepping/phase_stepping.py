@@ -422,33 +422,31 @@ def valuesInRange(start: float, end: float, count: int) -> List[float]:
 
 
 def readLut(machine: Machine, axis: str, direction: str) -> PhaseCorrection:
-    rawResponse = machine.command(f"M972 {axis} {direction}")
+    prefix = f"M971 {axis} {direction}"
+    rawResponse = machine.command(prefix)
 
     correction = PhaseCorrection()
     for line in rawResponse:
-        if not line.startswith(axis):
+        if not line.startswith(prefix):
             continue
-        values = line.split(",")
-        dir = values[1].strip()
-        if dir != direction:
-            continue
-        n = int(values[2])
-        mag = float(values[3])
-        pha = float(values[4])
+        line = line.removeprefix(prefix).strip()
+        idx, mag, pha = line.split(" ")
+        idx = int(idx.removeprefix('I'))
+        mag = float(mag.removeprefix('M'))
+        pha = float(pha.removeprefix('P'))
 
-        correction.spectrum[n] = (mag, pha)
+        correction.spectrum[idx] = (mag, pha)
     return correction
 
 
 def writeLut(machine: Machine, axis: str, direction: str,
              correction: PhaseCorrection) -> None:
-    tableStr = " ".join(
-        [f"{mag:.7g},{pha:.7g}" for mag, pha in correction.spectrum[:17]])
-    command = f"M973 {axis}{direction} {tableStr}"
-    if len(command) > 256:
-        raise RuntimeError("Too long LUT command")
-    machine.command(command)
-    return
+    machine.command(f"M970 {axis}0")
+    idx = 0
+    for mag, pha in correction.spectrum[:17]:
+        machine.command(f"M971 {axis}{direction} I{idx} M{mag:.7g} P{pha:.7g}")
+        idx += 1
+    machine.command(f"M970 {axis}1")
 
 
 def captureAccSamples(
@@ -498,9 +496,11 @@ def captureCorrection(machine: Machine, axis: str, direction: str,
 
 @click.command("readLut")
 @click.option("--axis",
+              required=True,
               type=click.Choice(["X", "Y"]),
               help="Axis for reading LUT")
 @click.option("--dir",
+              required=True,
               type=click.Choice(["F", "B"]),
               help="Table for which direction")
 @click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
@@ -513,11 +513,14 @@ def readLutCmd(axis: str, dir: str, port: str) -> None:
 
 @click.command("writeLut")
 @click.argument("filepath",
+                required=True,
                 type=click.Path(file_okay=True, exists=True, dir_okay=False))
 @click.option("--axis",
+              required=True,
               type=click.Choice(["X", "Y"]),
               help="Axis for reading LUT")
 @click.option("--dir",
+              required=True,
               type=click.Choice(["F", "B"]),
               help="Table for which direction")
 @click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
