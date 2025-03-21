@@ -33,43 +33,46 @@ static constexpr float VIBRATION_SETTLE_TIME = 0.2f;
 // signal. Unlike std::span, it allows accessing elements out of the bounds.
 // This is useful for performing windowed sweeps. If there is no sample in the
 // underlying signal when performing out-of-bounds access, zero is returned.
-template <typename T>
-class SignalView {
-    const std::vector<T> &_signal;
+// Non-owning view on part of an infinite 1D signal.
+// Allows accessing elements out of bounds, returning zero for out-of-bounds access.
+// Works with any container that supports indexing via operator[].
+template <typename Container>
+class SignalViewT {
+    const Container &_signal;
     std::ptrdiff_t _start, _end;
 
 public:
-    using value_type = T;
+    using value_type = typename Container::value_type;
     using size_type = std::ptrdiff_t;
     using difference_type = std::ptrdiff_t;
-    using reference = const T &;
-    using pointer = const T *;
+    using reference = const typename Container::value_type &;
+    using pointer = const typename Container::value_type *;
 
-    SignalView(const std::vector<T> &signal, std::ptrdiff_t start, std::ptrdiff_t end)
+    SignalViewT(const Container &signal, std::ptrdiff_t start, std::ptrdiff_t end)
         : _signal(signal)
         , _start(start)
         , _end(end) {}
 
     class const_iterator {
-        const SignalView *_view;
+        const SignalViewT *_view;
         int _index;
 
     public:
         using iterator_category = std::random_access_iterator_tag;
-        using value_type = T;
+        using value_type = typename Container::value_type;
         using difference_type = std::ptrdiff_t;
-        using pointer = const T *;
-        using reference = const T &;
+        using pointer = const typename Container::value_type *;
+        using reference = const typename Container::value_type &;
 
         const_iterator()
             : _view(nullptr)
             , _index(0) {}
-        const_iterator(const SignalView &view, int index)
+        const_iterator(const SignalViewT &view, int index)
             : _view(&view)
             , _index(index) {}
 
-        T operator*() const { return (*_view)[_index]; }
-        T operator[](difference_type n) const { return (*_view)[_index + n]; }
+        value_type operator*() const { return (*_view)[_index]; }
+        value_type operator[](difference_type n) const { return (*_view)[_index + n]; }
 
         const_iterator &operator++() {
             ++_index;
@@ -113,10 +116,10 @@ public:
         bool operator>=(const const_iterator &other) const { return _index >= other._index; }
     };
 
-    T operator[](std::ptrdiff_t i) const {
+    typename Container::value_type operator[](std::ptrdiff_t i) const {
         std::ptrdiff_t idx = _start + i;
         if (idx < 0 || std::size_t(idx) >= _signal.size()) {
-            return 0;
+            return typename Container::value_type(); // Return default-constructed value for out of bounds
         }
         return _signal[idx];
     }
@@ -125,19 +128,19 @@ public:
         return _end - _start;
     }
 
-    const_iterator begin() const { return const_iterator(*this, _start); }
-    const_iterator end() const { return const_iterator(*this, _end); }
+    const_iterator begin() const { return const_iterator(*this, 0); }
+    const_iterator end() const { return const_iterator(*this, size()); }
 
-    SignalView<T> subsignal(std::ptrdiff_t start, std::ptrdiff_t end) const {
-        return SignalView(_signal, _start + start, _start + end);
+    SignalViewT<Container> subsignal(std::ptrdiff_t start, std::ptrdiff_t end) const {
+        return SignalViewT(_signal, _start + start, _start + end);
     }
 
-    SignalView<T> offset(std::ptrdiff_t offset) const {
-        return SignalView(_signal, _start + offset, _end + offset);
+    SignalViewT<Container> offset(std::ptrdiff_t offset) const {
+        return SignalViewT(_signal, _start + offset, _end + offset);
     }
 
-    SignalView<float> expand(std::ptrdiff_t window) const {
-        return SignalView(_signal, _start - window, _end + window);
+    SignalViewT<Container> expand(std::ptrdiff_t window) const {
+        return SignalViewT(_signal, _start - window, _end + window);
     }
 
     std::tuple<int, int> bounds() const {
@@ -145,8 +148,11 @@ public:
     }
 };
 
+using SignalContainer = sfl::segmented_vector<float, 256>;
+using SignalView = SignalViewT<SignalContainer>;
+
 struct DftSweepResult {
-    std::vector<float> samples; // Magnitudes of the sweep result
+    SignalContainer samples; // Magnitudes of the sweep result
     float start_x, end_x; // Start and end of the sweep control variable
 
     float x_for_index(int idx) const {
@@ -264,8 +270,8 @@ static float project_to_axis(AxisEnum axis, const PrusaAccelerometer::Accelerati
 
 // Given a signal, compute signal energy for each sample. The energy is deduced
 // from the surrounding symmetrical window of size window_size.
-static std::vector<float> signal_local_energy(SignalView<float> signal, int window_size) {
-    std::vector<float> result;
+static SignalContainer signal_local_energy(SignalView signal, int window_size) {
+    SignalContainer result;
     result.reserve(signal.size());
 
     int half_window = window_size / 2;
@@ -285,7 +291,7 @@ static std::vector<float> signal_local_energy(SignalView<float> signal, int wind
 // Given a an annotation of signal, precisely locate markers in the signal.
 // Returns tuple of indices for start and end marker.
 static std::tuple<int, int> locate_signal_markers(const SamplesAnnotation &annot,
-    const std::vector<float> &signal, float search_window = 0.1) {
+    const SignalContainer &signal, float search_window = 0.1) {
     static const float ENERGY_WIN_S = 0.005f;
     int energy_win = annot.sampling_freq * ENERGY_WIN_S;
 
@@ -293,7 +299,7 @@ static std::tuple<int, int> locate_signal_markers(const SamplesAnnotation &annot
     int first_maker_start_idx = (annot.start_marker - search_window / 2) * annot.sampling_freq;
     int first_maker_end_idx = (annot.start_marker + search_window / 2) * annot.sampling_freq;
 
-    auto start_marker_search_window = SignalView<float>(signal,
+    auto start_marker_search_window = SignalView(signal,
         first_maker_start_idx, first_maker_end_idx);
     auto end_marker_search_window = start_marker_search_window.offset(markers_idx_offset);
 
@@ -313,13 +319,13 @@ static std::tuple<int, int> locate_signal_markers(const SamplesAnnotation &annot
 
 // Given a raw captured samples, locate signal markers and return a view of the
 // signal specified by the annotation
-static SignalView<float> locate_signal(const SamplesAnnotation &annot, const std::vector<float> &signal) {
+static SignalView locate_signal(const SamplesAnnotation &annot, const SignalContainer &signal) {
     auto [start_marker_idx, _] = locate_signal_markers(annot, signal);
 
     int signal_start = (annot.signal_start - annot.start_marker) * annot.sampling_freq;
     int signal_end = (annot.signal_end - annot.start_marker) * annot.sampling_freq;
 
-    return SignalView<float>(signal, start_marker_idx + signal_start, start_marker_idx + signal_end);
+    return SignalView(signal, start_marker_idx + signal_start, start_marker_idx + signal_end);
 }
 
 // A rolling-over window for computing windowed DFT of a signal. Hides the
@@ -382,7 +388,7 @@ public:
 // window size and step_sizes are given in motor_periods. Returns a
 // DFTSweepResults, where x is time.
 static DftSweepResult motor_harmonic_dft_sweep(
-    SignalView<float> signal, float sampling_freq, float motor_speed,
+    SignalView signal, float sampling_freq, float motor_speed,
     int motor_steps, int harmonic, int window_size, int step_size) {
     const float motor_period_duration = 1.f / (motor_speed * motor_steps / 4);
 
@@ -430,7 +436,7 @@ static DftSweepResult motor_harmonic_dft_sweep(
 // seconds. Returns a 2-element array of DFTSweepResults for acceleration and
 // deceleration phase. The x of the sweep is the motor speed. The both results are
 // sorted form start to top speed and they have the same length.
-static std::array<DftSweepResult, 2> motor_speed_dft_sweep(SignalView<float> signal,
+static std::array<DftSweepResult, 2> motor_speed_dft_sweep(SignalView signal,
     float sampling_freq, float start_speed, float top_speed, int motor_steps,
     int harmonic, float window_size, float step_size) {
     // The operation is performed by correlating the signal with an accelerated
@@ -594,7 +600,7 @@ std::tuple<float, float> harmonic_peaks_fit(std::span<const HarmonicPeak> peaks)
 // the best estimated peak positions for each harmonic.
 template <typename PosConverter>
 std::tuple<std::vector<HarmonicPeak>, std::vector<HarmonicPeak>> find_harmonic_peaks(
-    std::span<const HarmonicT<std::vector<float>>> sweeps, PosConverter idx_to_pos,
+    std::span<const HarmonicT<SignalContainer>> sweeps, PosConverter idx_to_pos,
     float min_prominence = 0.1, int n_closest = 2) {
     std::vector<HarmonicT<std::vector<SignalPeak>>> peaks;
     peaks.reserve(sweeps.size());
@@ -806,12 +812,13 @@ void moving_average(It begin, It end, int half_window, Yield yield) {
 
 // The same as above, but returns the result as a vector instead of yielding it
 // via a callback.
-template <typename It>
-std::vector<typename std::iterator_traits<It>::value_type> moving_average(It begin, It end, int half_window) {
-    using T = typename std::iterator_traits<It>::value_type;
-    std::vector<T> result;
-    result.reserve(std::distance(begin, end));
-    moving_average(begin, end, half_window, [&](T x) { result.push_back(x); });
+template <typename Container>
+Container moving_average(const Container &in, int half_window) {
+    Container result;
+    result.reserve(in.size());
+    moving_average(in.begin(), in.end(), half_window, [&](typename Container::value_type x) {
+        result.push_back(x);
+    });
     return result;
 }
 
@@ -1212,8 +1219,8 @@ static void serial_printf(const char *fmt, ...) {
     SerialUSB.cdc_write_sync(reinterpret_cast<uint8_t *>(buf), strlen(buf));
 }
 
-static void debug_dump_raw_measurement(const char *name, const std::vector<float> &signal,
-    const SamplesAnnotation &annotation, const SignalView<float> &signal_view) {
+static void debug_dump_raw_measurement(const char *name, const SignalContainer &signal,
+    const SamplesAnnotation &annotation, const SignalView &signal_view) {
 #ifdef SERIAL_DEBUG
     serial_printf("# raw_signal {");
     serial_printf("\"name\": \"%s\", ", name);
@@ -1260,7 +1267,7 @@ static void debug_dump_dft_sweep_result(const char *name, int harmonic, int dir,
 #endif
 }
 
-static void debug_dump_smoothed_speed_sweep(int harmonic, const std::vector<float> &smoothed_signal) {
+static void debug_dump_smoothed_speed_sweep(int harmonic, const SignalContainer &smoothed_signal) {
 #ifdef SERIAL_DEBUG
     serial_printf("# smoothed_speed_sweep {");
     serial_printf("\"harmonic\": %d, ", harmonic);
@@ -1297,7 +1304,7 @@ static void debug_dump_harmonic_peaks(const char *name,
 #endif
 }
 
-static void debug_dump_magnitude_search(int harmonic, float magnitude, const std::vector<float> &response) {
+static void debug_dump_magnitude_search(int harmonic, float magnitude, const SignalContainer &response) {
 #ifdef SERIAL_DEBUG
     serial_printf("# magnitude_search {");
     serial_printf("\"harmonic\": %d, ", harmonic);
@@ -1313,7 +1320,7 @@ static void debug_dump_magnitude_search(int harmonic, float magnitude, const std
 #endif
 }
 
-static void debug_dump_param_search(int harmonic, const SweepParams &params, int move_dir, const std::vector<float> &response) {
+static void debug_dump_param_search(int harmonic, const SweepParams &params, int move_dir, const SignalContainer &response) {
 #ifdef SERIAL_DEBUG
     serial_printf("# param_search {");
     serial_printf("\"harmonic\": %d, ", harmonic);
@@ -1349,7 +1356,7 @@ measure_calibration_speeds(AxisEnum axis, const AxisCalibrationConfig &calibrati
     move_to_measurement_start(axis, move_characteristics);
 
     // First, capture the speed sweep there and back
-    std::vector<float> forward_samples;
+    SignalContainer forward_samples;
     forward_samples.reserve(MAX_ACC_SAMPLING_RATE * SAMPLE_BUFFER_MARGIN * move_characteristics.duration);
     auto forward_annotation = capture_speed_sweep_samples(axis,
         start_speed, end_speed, calibration_config.max_movement_revs,
@@ -1367,7 +1374,7 @@ measure_calibration_speeds(AxisEnum axis, const AxisCalibrationConfig &calibrati
     debug_dump_raw_measurement("forward", forward_samples, forward_annotation, forward_signal);
     ABORT_CHECK();
 
-    std::vector<float> backward_samples;
+    SignalContainer backward_samples;
     backward_samples.reserve(MAX_ACC_SAMPLING_RATE * SAMPLE_BUFFER_MARGIN * move_characteristics.duration);
     auto backward_annotation = capture_speed_sweep_samples(axis,
         start_speed, end_speed, -calibration_config.max_movement_revs,
@@ -1386,13 +1393,13 @@ measure_calibration_speeds(AxisEnum axis, const AxisCalibrationConfig &calibrati
     ABORT_CHECK();
 
     // Then construct a combined signal for each harmonic from all measurements
-    std::vector<HarmonicT<std::vector<float>>> harmonic_signals;
+    std::vector<HarmonicT<SignalContainer>> harmonic_signals;
     for (int harmonic = 1; harmonic <= opts::CORRECTION_HARMONICS; harmonic++) {
         if (!calibration_config.enabled_harmonics[harmonic - 1]) {
             continue;
         }
 
-        std::vector<float> combined;
+        SignalContainer combined;
         const float window_size = calibration_config.analysis_window_size_seconds;
         const int ramp_samples = forward_signal.size() / 2;
         const float time_step = ramp_samples / forward_annotation.sampling_freq / calibration_config.speed_sweep_bins;
@@ -1472,7 +1479,7 @@ static std::expected<float, const char *> find_approx_mag(AxisEnum axis,
     int gone_worse_count = 0;
     int dir = 1;
 
-    std::vector<float> samples;
+    SignalContainer samples;
     samples.reserve(MAX_ACC_SAMPLING_RATE * SAMPLE_BUFFER_MARGIN * move_characteristics.duration);
 
     while (magnitude < calib_config.max_magnitude) {
@@ -1511,7 +1518,7 @@ static std::expected<float, const char *> find_approx_mag(AxisEnum axis,
 
         ABORT_CHECK();
 
-        auto smoothed = moving_average(analysis.samples.begin(), analysis.samples.end(), analysis.samples.size() / 40);
+        auto smoothed = moving_average(analysis.samples, analysis.samples.size() / 40);
         debug_dump_magnitude_search(harmonic, magnitude, smoothed);
 
         int margin = analysis.samples.size() / 10;
@@ -1561,7 +1568,7 @@ static std::expected<float, const char *> find_approx_mag(AxisEnum axis,
     static const float PHA_START = 0.f;
     static const float PHA_END = PHA_CYCLES * 2 * std::numbers::pi_v<float> + 1.f;
 
-    std::vector<float> samples;
+    SignalContainer samples;
     samples.reserve(MAX_ACC_SAMPLING_RATE * SAMPLE_BUFFER_MARGIN * duration);
 
     SweepParams params {
@@ -1605,7 +1612,7 @@ collect_param_sweep_response(AxisEnum axis, const AxisCalibrationConfig &calib_c
 
     std::array<std::vector<float>, 2> responses;
 
-    std::vector<float> samples;
+    SignalContainer samples;
     samples.reserve(MAX_ACC_SAMPLING_RATE * SAMPLE_BUFFER_MARGIN * move_characteristics.duration);
 
     const float revs = calib_config.fine_movement_duration * speed;
@@ -1692,7 +1699,7 @@ std::expected<std::array<float, 2>, const char *> find_best_pha(AxisEnum axis,
     std::array<float, 2> sweep_phases;
     for (std::size_t i = 0; i != sweep_response->size(); i++) {
         auto &response = (*sweep_response)[i];
-        auto smoothed_response = moving_average(response.begin(), response.end(), response.size() / 60);
+        auto smoothed_response = moving_average(response, response.size() / 60);
         float mean = std::accumulate(smoothed_response.begin(), smoothed_response.end(), 0.f) / smoothed_response.size();
         // Trim values below the mean to avoid not trigger high peaks
         for (auto &val : smoothed_response) {
