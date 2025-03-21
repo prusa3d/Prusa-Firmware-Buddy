@@ -66,12 +66,14 @@ void AutoRetract::maybe_retract_from_nozzle() {
     }
 
     const auto orig_e_position = planner.get_position_msteps().e;
+    const auto orig_current_e_position = current_position.e;
 
     standard_ramming_sequence(StandardRammingSequence::auto_retract, hotend).execute();
 
     // "Fake" original extruder position - we are interrupting various movements by this function,
     // firmware gets very confused if the current position changes while it is planning a move
     planner.set_e_position_mm(orig_e_position);
+    current_position.e = orig_current_e_position;
 
     mark_as_retracted(hotend, true);
 }
@@ -96,12 +98,14 @@ void AutoRetract::maybe_deretract_to_nozzle() {
     }
 
     const auto orig_e_position = planner.get_position_msteps().e;
+    const auto orig_current_e_position = current_position.e;
 
     standard_ramming_sequence(StandardRammingSequence::auto_retract, hotend).undo();
 
     // "Fake" original extruder position - we are interrupting various movements by this function,
     // firmware gets very confused if the current position changes while it is planning a move
     planner.set_e_position_mm(orig_e_position);
+    current_position.e = orig_current_e_position;
 
     mark_as_retracted(hotend, false);
 }
