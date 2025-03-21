@@ -1,4 +1,5 @@
 #include <gcode/gcode.h>
+#include <gcode/gcode_parser.hpp>
 #include <module/planner.h>
 #include <module/prusa/accelerometer.h>
 
@@ -91,6 +92,192 @@ void GcodeSuite::M970() {
         config_store().set_phase_stepping_enabled(axis, enabled);
     }
     report_state();
+}
+
+struct OptionsM971 {
+    const bool axis_x : 1;
+    const bool axis_y : 1;
+    const bool forward : 1;
+    const bool backward : 1;
+    const bool reset : 1;
+    const std::optional<int> index;
+    const std::optional<float> magnitude;
+    const std::optional<float> phase;
+};
+
+static void M971_error_enabled() {
+    SERIAL_ERROR_MSG("Phase-stepping must be disabled to modify its parameters.");
+}
+static void M971_error_syntax() {
+    SERIAL_ERROR_MSG("Syntax.");
+}
+
+static void M971_reset_axis(const OptionsM971 &options, AxisEnum axis) {
+    assert(!phase_stepping::is_enabled(axis));
+    if (options.forward) {
+        phase_stepping::remove_from_persistent_storage(axis, phase_stepping::CorrectionType::forward);
+    }
+    if (options.backward) {
+        phase_stepping::remove_from_persistent_storage(axis, phase_stepping::CorrectionType::backward);
+    }
+}
+
+static void M971_reset(const OptionsM971 &options) {
+    // First, check if operation can be carried away.
+    if (options.axis_x && phase_stepping::is_enabled(X_AXIS)) {
+        return M971_error_enabled();
+    }
+    if (options.axis_y && phase_stepping::is_enabled(Y_AXIS)) {
+        return M971_error_enabled();
+    }
+
+    // This can't fail now.
+    if (options.axis_x) {
+        M971_reset_axis(options, X_AXIS);
+    }
+    if (options.axis_y) {
+        M971_reset_axis(options, Y_AXIS);
+    }
+}
+
+static void M971_read_axis_direction(const phase_stepping::CorrectedCurrentLut &lut, char axis_letter, char direction_letter) {
+    const auto &table = lut.get_correction();
+    for (size_t index = 0; index != table.size(); index++) {
+        const float magnitude = table[index].mag;
+        const float phase = table[index].pha;
+
+        SERIAL_ECHO("M971 ");
+        SERIAL_ECHO(axis_letter);
+        SERIAL_ECHO(" ");
+        SERIAL_ECHO(direction_letter);
+        SERIAL_ECHO(" I");
+        SERIAL_ECHO(index);
+        SERIAL_ECHO(" M");
+        SERIAL_PRINT(magnitude, SERIAL_DECIMALS);
+        SERIAL_ECHO(" P");
+        SERIAL_PRINTLN(phase, SERIAL_DECIMALS);
+    }
+}
+
+static void M971_read_axis(const OptionsM971 &options, const phase_stepping::AxisState &axis_state, char axis) {
+    if (options.forward) {
+        M971_read_axis_direction(axis_state.forward_current, axis, 'F');
+    }
+    if (options.backward) {
+        M971_read_axis_direction(axis_state.backward_current, axis, 'B');
+    }
+}
+
+static void M971_read(const OptionsM971 &options) {
+    if (options.axis_x) {
+        M971_read_axis(options, phase_stepping::axis_states[X_AXIS], 'X');
+    }
+    if (options.axis_y) {
+        M971_read_axis(options, phase_stepping::axis_states[Y_AXIS], 'Y');
+    }
+}
+
+static void M971_write_axis_direction(const OptionsM971 &options, phase_stepping::CorrectedCurrentLut &lut, const char *path) {
+    // All three options are required
+    if (!options.index || !options.magnitude || !options.phase) {
+        return M971_error_syntax();
+    }
+    const auto index = *options.index;
+    const auto magnitude = *options.magnitude;
+    const auto phase = *options.phase;
+
+    lut.modify_correction([&](phase_stepping::MotorPhaseCorrection &table) {
+        if (0 <= index && index < (int)table.size()) {
+            table[index] = phase_stepping::SpectralItem { .mag = magnitude, .pha = phase };
+        } else {
+            return M971_error_syntax();
+        }
+    });
+
+    phase_stepping::save_correction_to_file(lut, path);
+}
+
+static void M971_write_axis(const OptionsM971 &options, AxisEnum axis) {
+    // writing while phase-stepping is enabled is not supported
+    if (phase_stepping::is_enabled(axis)) {
+        return M971_error_enabled();
+    }
+    // directions are mutually exclusive when writing
+    if (options.forward && options.backward) {
+        return M971_error_syntax();
+    } else if (options.forward) {
+        M971_write_axis_direction(
+            options,
+            phase_stepping::axis_states[axis].forward_current,
+            phase_stepping::get_correction_file_path(axis, phase_stepping::CorrectionType::forward));
+    } else if (options.backward) {
+        M971_write_axis_direction(
+            options,
+            phase_stepping::axis_states[axis].backward_current,
+            phase_stepping::get_correction_file_path(axis, phase_stepping::CorrectionType::backward));
+    } else {
+        return M971_error_syntax();
+    }
+}
+
+static void M971_write(const OptionsM971 &options) {
+    // axes are mutually exclusive when writing
+    if (options.axis_x && options.axis_y) {
+        return M971_error_syntax();
+    } else if (options.axis_x) {
+        return M971_write_axis(options, X_AXIS);
+    } else if (options.axis_y) {
+        return M971_write_axis(options, Y_AXIS);
+    } else {
+        return M971_error_syntax();
+    }
+}
+
+/**
+ *### M971: Read/reset/write phase-stepping motor current correction
+ *
+ * Only XL/iX/COREONE
+ *
+ *#### Usage
+ *
+ *    M971 [X] [Y] [F] [B]
+ *    M971 [X] [Y] [F] [B] R
+ *    M971 X|Y F|B I<index> M<magnitude> P<phase>
+ *
+ *#### Parameters
+ *
+ * - `X` - X axis
+ * - `Y` - Y axis
+ * -
+ * - `F` - Forward direction
+ * - `B` - Backward direction
+ * - `R` - Reset corrections
+ * - `I` - Index in the table, starting at 0
+ * - `M` - Magnitude of the motor correction
+ * - `P` - Phase of the motor correction
+ **/
+void GcodeSuite::M971() {
+    GCodeParser2 parser2;
+    if (!parser2.parse_marlin_command()) {
+        return M971_error_syntax();
+    }
+    const OptionsM971 options {
+        .axis_x = parser2.option<bool>('X').value_or(false),
+        .axis_y = parser2.option<bool>('Y').value_or(false),
+        .forward = parser2.option<bool>('F').value_or(false),
+        .backward = parser2.option<bool>('B').value_or(false),
+        .reset = parser2.option<bool>('R').value_or(false),
+        .index = parser2.option<int>('I'),
+        .magnitude = parser2.option<float>('M'),
+        .phase = parser2.option<float>('P'),
+    };
+    if (options.reset) {
+        return M971_reset(options);
+    } else if (parser.seen('I') && parser.seen('M') && parser.seen('P')) {
+        return M971_write(options);
+    } else {
+        return M971_read(options);
+    }
 }
 
 /**
