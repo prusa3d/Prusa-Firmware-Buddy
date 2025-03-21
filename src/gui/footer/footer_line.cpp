@@ -44,9 +44,11 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
 
     auto &item = items[index];
 
-    const bool result = [&]<typename... Rec>(TypeList<Rec...>) -> bool {
+    bool result = [&]<typename... Rec>(TypeList<Rec...>) -> bool {
         return (((item_id == Rec::item && !std::holds_alternative<typename Rec::T>(item)) ? item.emplace<typename Rec::T>(this), true : false) || ...);
     }(footer::FooterItemMappings());
+
+    result |= (item_id == footer::Item::none && !std::holds_alternative<std::monostate>(item) ? item.emplace<std::monostate>(), true : false);
 
     if (result) {
         positionWindows();
