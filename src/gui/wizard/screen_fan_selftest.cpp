@@ -25,9 +25,6 @@
 #endif
 
 #include <option/has_chamber_filtration_api.h>
-#if HAS_CHAMBER_FILTRATION_API()
-    #include <feature/chamber_filtration/chamber_filtration.hpp>
-#endif
 
 #include <option/has_xbuddy_extension.h>
 #if HAS_XBUDDY_EXTENSION()
@@ -148,10 +145,12 @@ namespace frame {
 
     #if HAS_XBUDDY_EXTENSION()
             case Chamber::Backend::xbuddy_extension:
-                process_fan_result(config_store().xbe_fan_test_results.get().fans[0], enclosure_icons, 0);
-                process_fan_result(config_store().xbe_fan_test_results.get().fans[1], enclosure_icons, 1);
+                static_assert(HAS_CHAMBER_FILTRATION_API());
                 if (xbuddy_extension().is_fan3_used()) {
-                    process_fan_result(config_store().xbe_fan_test_results.get().fans[2], enclosure_icons, 2);
+                    process_fan_result(config_store().xbe_fan_test_results.get().fans[2], enclosure_icons, 0 /* icon_index */);
+                } else {
+                    process_fan_result(config_store().xbe_fan_test_results.get().fans[0], enclosure_icons, 0 /* icon_index */);
+                    process_fan_result(config_store().xbe_fan_test_results.get().fans[1], enclosure_icons, 1);
                 }
                 break;
     #endif
@@ -230,14 +229,18 @@ namespace frame {
 
     #if HAS_XBUDDY_EXTENSION()
             case Chamber::Backend::xbuddy_extension:
-                enclosure_fan_count = 2 + (xbuddy_extension().is_fan3_used() ? 1 : 0);
+                static_assert(HAS_CHAMBER_FILTRATION_API());
+                if (xbuddy_extension().is_fan3_used()) {
+                    enclosure_fan_count = 1;
+                } else {
+                    enclosure_fan_count = 2;
+                }
                 break;
     #endif
             }
 
             if (enclosure_fan_count > 0) {
                 enclosure_icons.SetIconCount(enclosure_fan_count);
-
             } else {
                 enclosure_label.Hide();
                 enclosure_label_icon.Hide();
