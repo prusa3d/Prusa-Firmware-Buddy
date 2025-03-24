@@ -20,7 +20,7 @@ using namespace phase_stepping::opts;
 LOG_COMPONENT_REF(PhaseStepping);
 
 // Temporary debugging to Marlin serial for convenience
-#define SERIAL_DEBUG
+// #define SERIAL_DEBUG
 #define ABORT_CHECK()                   \
     if (should_abort && should_abort()) \
         return std::unexpected("Aborted");
@@ -1208,6 +1208,7 @@ SamplesAnnotation phase_stepping::capture_speed_sweep_samples(AxisEnum axis,
     };
 }
 
+#ifdef SERIAL_DEBUG
 static void serial_printf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 static void serial_printf(const char *fmt, ...) {
@@ -1218,6 +1219,7 @@ static void serial_printf(const char *fmt, ...) {
     va_end(args);
     SerialUSB.cdc_write_sync(reinterpret_cast<uint8_t *>(buf), strlen(buf));
 }
+#endif
 
 static void debug_dump_raw_measurement(const char *name, const SignalContainer &signal,
     const SamplesAnnotation &annotation, const SignalView &signal_view) {
