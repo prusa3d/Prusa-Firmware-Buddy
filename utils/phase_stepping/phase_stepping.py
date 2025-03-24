@@ -118,13 +118,6 @@ class Machine:
                         return response
                 response.append(line)
 
-    def measureAccSampligFreq(self) -> None:
-        response = self.command("M975")
-        self.accFreq = [
-            float(x.split(":")[1]) for x in response
-            if x.startswith("sample freq:")
-        ][-1]
-
 
 def getPrusaPort() -> Optional[str]:
     """

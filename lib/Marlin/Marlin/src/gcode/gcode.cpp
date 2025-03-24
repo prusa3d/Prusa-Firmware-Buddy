@@ -920,7 +920,6 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #if HAS_PHASE_STEPPING()
         case 970: M970(); break;
         case 971: M971(); break;
-        case 975: M975(); break;
         case 977: M977(); break;
         case 978: M978(); break;
         case 979: M979(); break;
