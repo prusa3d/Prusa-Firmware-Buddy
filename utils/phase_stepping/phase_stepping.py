@@ -1319,7 +1319,7 @@ def debugCalibration(port, axis, show, output):
         param_search_traces[harmonic].append(obj)
 
     with enabledMachineConnection(port=port) as machine:
-        raw_output = machine.command(f"M977 {axis}", timeout=60)
+        raw_output = machine.command(f"M972 {axis}", timeout=60)
 
     for line in raw_output:
         if line.startswith("# raw_signal"):

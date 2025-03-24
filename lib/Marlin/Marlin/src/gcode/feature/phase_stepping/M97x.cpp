@@ -325,13 +325,13 @@ public:
 };
 
 /**
- *### M977: Calibrate motor <a href="https://reprap.org/wiki/G-code#M977:_Calibrate_Motor">M977: Calibrate Motor</a>
+ *### M972: Calibrate motor
  *
  * Only XL and iX
  *
  *#### Usage
  *
- *    M977 [ X | Y ]
+ *    M972 [ X | Y ]
  *
  *#### Parameters
  *
@@ -340,7 +340,7 @@ public:
  *
  * Calibrates given motor and sets the newly found compensation.
  **/
-void GcodeSuite::M977() {
+void GcodeSuite::M972() {
     TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 
     bool valid = true;
