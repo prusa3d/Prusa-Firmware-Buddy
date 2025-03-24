@@ -239,45 +239,6 @@ def writeLutCmd(axis: str, dir: str, port: str, filepath: str) -> None:
         writeLut(machine, axis, dir, PhaseCorrection(correction))
 
 
-@click.command("analyzeMachineSamples")
-@click.option("--axis",
-              type=click.Choice(["X", "Y"]),
-              help="Axis for reading LUT")
-@click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
-@click.option("--speed", type=float, default=1)
-@click.option("--revs", type=float, default=0.2)
-@click.option("--output",
-              type=click.Path(dir_okay=False, file_okay=True),
-              help="Output file for data")
-@click.option("--show", is_flag=True, help="Show plots immediately")
-def analyzeMachineSamplesCmd(axis: str, port: str, speed: float, revs: float,
-                             output: str, show: bool):
-    """
-    Plot sample analysis performed by the machine
-    """
-    with enabledMachineConnection(port) as machine:
-        machine.multiCommand(["M400", "G92 X0 Y0"])
-        rawResponse = machine.command(f"M976 {axis} R{revs} F{speed}",
-                                      timeout=30)
-        machine.command("G0 F10000 X0 Y0")
-
-    dataPoints = [float(x.split(":")[1]) for x in rawResponse]
-
-    fig = go.Figure()
-    fig.update_layout(
-        yaxis={
-            "title": "Amplitude",
-        },
-        xaxis={"title": "Frequency"},
-    )
-    fig.add_trace(go.Bar(x=list(range(len(dataPoints)))[1:], y=dataPoints[1:]))
-
-    if output is not None:
-        fig.write_html(output)
-    if show:
-        fig.show()
-
-
 def store_or_show_plot(show, output, name, plot):
     if output is not None:
         Path(output).mkdir(parents=True, exist_ok=True)
@@ -1490,7 +1451,6 @@ def cli():
 
 cli.add_command(readLutCmd)
 cli.add_command(writeLutCmd)
-cli.add_command(analyzeMachineSamplesCmd)
 cli.add_command(analyzeParamSweep)
 cli.add_command(findOptimalMagnitude)
 cli.add_command(analyzeSpeedSweep)

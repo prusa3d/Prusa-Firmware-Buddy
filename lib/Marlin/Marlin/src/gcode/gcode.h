@@ -277,7 +277,6 @@
  * M959 - Tune input shaper
  * M970 - Set/enable phase stepping
  * M971 - Read/reset/write phase-stepping motor current correction
- * M976 - Measure print head resonances and return analyzed data
  * M977 - Calibrate motor for phase stepping
  * M997 - Perform in-application firmware update
  * M999 - Restart after being stopped by error
