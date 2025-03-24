@@ -146,7 +146,7 @@ namespace frame {
     #if HAS_XBUDDY_EXTENSION()
             case Chamber::Backend::xbuddy_extension:
                 static_assert(HAS_CHAMBER_FILTRATION_API());
-                if (xbuddy_extension().is_fan3_used()) {
+                if (xbuddy_extension().using_filtration_fan_instead_of_cooling_fans()) {
                     process_fan_result(config_store().xbe_fan_test_results.get().fans[2], enclosure_icons, 0 /* icon_index */);
                 } else {
                     process_fan_result(config_store().xbe_fan_test_results.get().fans[0], enclosure_icons, 0 /* icon_index */);
@@ -230,7 +230,7 @@ namespace frame {
     #if HAS_XBUDDY_EXTENSION()
             case Chamber::Backend::xbuddy_extension:
                 static_assert(HAS_CHAMBER_FILTRATION_API());
-                if (xbuddy_extension().is_fan3_used()) {
+                if (xbuddy_extension().using_filtration_fan_instead_of_cooling_fans()) {
                     enclosure_fan_count = 1;
                 } else {
                     enclosure_fan_count = 2;

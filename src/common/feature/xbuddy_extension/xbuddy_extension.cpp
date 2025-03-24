@@ -226,7 +226,7 @@ XBuddyExtension::FanState XBuddyExtension::get_fan12_state() const {
     };
 }
 
-bool XBuddyExtension::is_fan3_used() const {
+bool XBuddyExtension::using_filtration_fan_instead_of_cooling_fans() const {
     switch (chamber_filtration().backend()) {
     case ChamberFiltrationBackend::xbe_official_filter:
         return true;

@@ -62,7 +62,7 @@ public: // Fans
     FanState get_fan12_state() const;
 
     /// \returns whether the fan 3 is connected/used and thus whether we should consider it in sensor info, selftest results and such
-    bool is_fan3_used() const;
+    bool using_filtration_fan_instead_of_cooling_fans() const;
 
     /// \returns maximum PWM that is used for cooling in non-emergency situations
     PWM255 max_cooling_pwm() const;

@@ -35,7 +35,7 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
         case Chamber::Backend::xbuddy_extension: {
             const auto chamber_results = config_store().xbe_fan_test_results.get();
             static_assert(HAS_CHAMBER_FILTRATION_API());
-            if (buddy::xbuddy_extension().is_fan3_used()) {
+            if (buddy::xbuddy_extension().using_filtration_fan_instead_of_cooling_fans()) {
                 res = evaluate_results(res, chamber_results.fans[2]);
             } else {
                 res = evaluate_results(res, chamber_results.fans[0]);

@@ -94,7 +94,7 @@ MI_INFO_XBUDDY_EXTENSION_FAN2::MI_INFO_XBUDDY_EXTENSION_FAN2()
 // =============================================
 MI_INFO_XBUDDY_EXTENSION_FAN3::MI_INFO_XBUDDY_EXTENSION_FAN3()
     : WI_FAN_LABEL_t(_("Filtration fan"), fan_info_function<XBuddyExtension::Fan::filtration_fan>) {
-    set_is_hidden(!xbuddy_extension().is_fan3_used());
+    set_is_hidden(!xbuddy_extension().using_filtration_fan_instead_of_cooling_fans());
 }
 
 // MI_CAM_USB_PWR

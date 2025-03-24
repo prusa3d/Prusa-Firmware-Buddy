@@ -435,7 +435,7 @@ void M1978() {
     #if HAS_XBUDDY_EXTENSION()
         static_assert(HAS_CHAMBER_FILTRATION_API());
     case Chamber::Backend::xbuddy_extension:
-        if (xbuddy_extension().is_fan3_used()) {
+        if (xbuddy_extension().using_filtration_fan_instead_of_cooling_fans()) {
             fan_container[container_index++] = &xbe_fans[2];
         } else {
             fan_container[container_index++] = &xbe_fans[0];
