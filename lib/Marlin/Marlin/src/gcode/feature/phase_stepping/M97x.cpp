@@ -506,7 +506,10 @@ void GcodeSuite::M973() {
 }
 
 /**
- * @brief G-code M979: Perform motor resonance measurement during a speed sweep.
+ * @brief G-code M974: Perform motor resonance measurement during a speed sweep.
+ *
+ * This G-code is considered internal and should not be used under normal
+ * circumstances. We may change or remove it in next version of the firmware.
  *
  * This G-code command performs a motor resonance measurement by sweeping the
  * motor speed from a specified start speed to an end speed over a given number
@@ -535,7 +538,7 @@ void GcodeSuite::M973() {
  * If any error condition is met, the function will report the error and return
  * without performing the sweep.
  */
-void GcodeSuite::M979() {
+void GcodeSuite::M974() {
     TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 
     bool valid = true;

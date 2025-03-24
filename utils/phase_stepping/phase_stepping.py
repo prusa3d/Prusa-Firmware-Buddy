@@ -1111,11 +1111,11 @@ def analyzeSpeedSweep(port, motor_steps, axis, revs, speed_start, speed_end,
         time.sleep(0.2)
         machine.command("G92 X0 Y0")
         raw_output = machine.command(
-            f"M979 {axis} R{revs:.10f} A{speed_start:.10f} B{speed_end:.10f}")
+            f"M974 {axis} R{revs:.10f} A{speed_start:.10f} B{speed_end:.10f}")
         sweep_measurement_f = SweepMeasurement.from_raw_command(raw_output)
 
         raw_output = machine.command(
-            f"M979 {axis} R{-revs:.10f} A{speed_start:.10f} B{speed_end:.10f}")
+            f"M974 {axis} R{-revs:.10f} A{speed_start:.10f} B{speed_end:.10f}")
         machine.command("G0 F10000 X0 Y0")
         sweep_measurement_b = SweepMeasurement.from_raw_command(raw_output)
 

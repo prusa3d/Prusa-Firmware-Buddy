@@ -922,7 +922,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 971: M971(); break;
         case 972: M972(); break;
         case 973: M973(); break;
-        case 979: M979(); break;
+        case 974: M974(); break;
       #endif
 
       #if ENABLED(Z_STEPPER_AUTO_ALIGN)
