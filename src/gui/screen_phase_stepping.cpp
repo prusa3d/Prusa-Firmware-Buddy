@@ -108,12 +108,17 @@ namespace frame {
         void update(const fsm::PhaseData &data) {
             const uint8_t current_calibration_phase = data[0];
             const uint8_t calibration_phases_count = data[1];
-            const uint8_t progress = data[2];
-
-            snprintf(phase_x_of_y_buffer.data(), phase_x_of_y_buffer.size(), "%d / %d", current_calibration_phase + 1, calibration_phases_count);
-            phase_x_of_y.SetText(string_view_utf8::MakeRAM(phase_x_of_y_buffer.data()));
-            phase_x_of_y.Invalidate();
-            progress_bar.SetProgressPercent(progress);
+            if (calibration_phases_count) {
+                const uint8_t progress = 100 * (2 * current_calibration_phase + 1) / (2 * calibration_phases_count);
+                snprintf(phase_x_of_y_buffer.data(), phase_x_of_y_buffer.size(), "%d / %d", current_calibration_phase + 1, calibration_phases_count);
+                phase_x_of_y.SetText(string_view_utf8::MakeRAM(phase_x_of_y_buffer.data()));
+                phase_x_of_y.Invalidate();
+                progress_bar.SetProgressPercent(progress);
+            } else {
+                phase_x_of_y.SetText(string_view_utf8::MakeNULLSTR());
+                phase_x_of_y.Invalidate();
+                progress_bar.SetProgressPercent(0);
+            }
         }
     };
 

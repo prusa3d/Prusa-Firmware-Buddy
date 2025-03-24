@@ -46,11 +46,10 @@ public:
         : phase { phase } {
         data[0] = 0;
         data[1] = 0;
-        data[2] = 0;
     }
 
     void on_motor_characterization_start() override {
-        // Nothing to do
+        marlin_server::fsm_change(phase, data);
     }
 
     void on_motor_characterization_result(int calibration_phase_count) override {
@@ -60,7 +59,6 @@ public:
 
     void on_enter_calibration_phase(int calibration_phase) override {
         data[0] = calibration_phase;
-        data[2] = 0;
         marlin_server::fsm_change(phase, data);
         current_calibration_phase = calibration_phase;
     }
