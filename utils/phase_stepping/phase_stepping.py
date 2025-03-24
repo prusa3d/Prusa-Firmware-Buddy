@@ -826,7 +826,7 @@ def analyzeParamSweep(port, motor_steps, axis, speed, revs, n, mag_start,
         machine.command("G92 X0 Y0")
         while True:
             raw_output = machine.command(
-                f"M978 {axis} R{revs:.10f} F{speed:.10f} H{n} A{pha_start:.10f} B{pha_end:.10f} C{mag_start:.10f} D{mag_end:.10f}"
+                f"M973 {axis} R{revs:.10f} F{speed:.10f} H{n} A{pha_start:.10f} B{pha_end:.10f} C{mag_start:.10f} D{mag_end:.10f}"
             )
             sweep_measurement_f = SweepMeasurement.from_raw_command(raw_output)
             machine.command("G0 F10000 X0 Y0")
@@ -839,7 +839,7 @@ def analyzeParamSweep(port, motor_steps, axis, speed, revs, n, mag_start,
 
         while True:
             raw_output = machine.command(
-                f"M978 {axis} R{revs:.10f} F{speed:.10f} H{n} A{pha_start_b:.10f} B{pha_end_b:.10f} C{mag_start_b:.10f} D{mag_end_b:.10f}"
+                f"M973 {axis} R{revs:.10f} F{speed:.10f} H{n} A{pha_start_b:.10f} B{pha_end_b:.10f} C{mag_start_b:.10f} D{mag_end_b:.10f}"
             )
             sweep_measurement_b = SweepMeasurement.from_raw_command(raw_output)
             machine.command("G0 F10000 X0 Y0")
@@ -1045,7 +1045,7 @@ def findOptimalMagnitude(port, motor_steps, axis, speed, revs, n, mag_start,
         for _ in range(20):
             print(f"Testing magnitude {mag:.5f}: ", end="")
             raw_output = machine.command(
-                f"M978 {axis} R{revs:.10f} F{speed:.10f} H{n} A{pha_start:.10f} B{pha_end:.10f} C{mag:.10f} D{mag:.10f}"
+                f"M973 {axis} R{revs:.10f} F{speed:.10f} H{n} A{pha_start:.10f} B{pha_end:.10f} C{mag:.10f} D{mag:.10f}"
             )
             sweep_measurement = SweepMeasurement.from_raw_command(raw_output)
             machine.command("G0 F10000 X0 Y0")

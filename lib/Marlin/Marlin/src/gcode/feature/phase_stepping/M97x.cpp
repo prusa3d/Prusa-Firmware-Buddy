@@ -414,7 +414,10 @@ static void dump_samples_annotation(const phase_stepping::SamplesAnnotation ant)
 }
 
 /**
- * @brief G-code M978: Perform phase and magnitude correction sweep.
+ * @brief G-code M973: Perform phase and magnitude correction sweep.
+ *
+ * This G-code is considered internal and should not be used under normal
+ * circumstances. We may change or remove it in next version of the firmware.
  *
  * This G-code command performs a phase and magnitude correction sweep by
  * adjusting the phase and magnitude correction parameters over a specified
@@ -439,7 +442,7 @@ static void dump_samples_annotation(const phase_stepping::SamplesAnnotation ant)
  * If any error condition is met, the function will report the error and return
  * without performing the sweep.
  */
-void GcodeSuite::M978() {
+void GcodeSuite::M973() {
     TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 
     bool valid = true;
