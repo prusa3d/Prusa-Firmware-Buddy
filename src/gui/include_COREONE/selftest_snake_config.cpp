@@ -4,6 +4,8 @@
 #include <config_store/store_instance.hpp>
 #include <option/has_switched_fan_test.h>
 
+#include <option/has_chamber_filtration_api.h>
+
 #include <option/has_chamber_api.h>
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
@@ -32,10 +34,12 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
     #if HAS_XBUDDY_EXTENSION()
         case Chamber::Backend::xbuddy_extension: {
             const auto chamber_results = config_store().xbe_fan_test_results.get();
-            res = evaluate_results(res, chamber_results.fans[0]);
-            res = evaluate_results(res, chamber_results.fans[1]);
-            if (xbuddy_extension().is_fan3_used()) {
+            static_assert(HAS_CHAMBER_FILTRATION_API());
+            if (buddy::xbuddy_extension().is_fan3_used()) {
                 res = evaluate_results(res, chamber_results.fans[2]);
+            } else {
+                res = evaluate_results(res, chamber_results.fans[0]);
+                res = evaluate_results(res, chamber_results.fans[1]);
             }
             break;
         }
