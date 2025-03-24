@@ -6,6 +6,7 @@
 #include <config_store/store_instance.hpp>
 #include <option/has_switched_fan_test.h>
 #include <option/has_toolchanger.h>
+#include <find_error.hpp>
 
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -106,6 +107,7 @@ bool selftest_warning_selftest_finished() {
 
 void warn_unfinished_selftest_msgbox() {
     if (!selftest_warning_selftest_finished()) {
-        MsgBoxWarning(_("Please complete Calibrations & Tests before using the printer."), Responses_Ok);
+        const auto &error = find_error(ErrCode::CONNECT_UNFINISHED_SELFTEST);
+        MsgBoxWarning(_(error.err_text), Responses_Ok);
     }
 }

@@ -61,6 +61,7 @@ Errors:
   text: "Measured resin volume %(volume_ml)d ml is lower than required for this print. Refill the tank and restart the print."
   id: "RESIN_TOO_LOW"
   approved: true
+  action: ['Cancel print']
 
 - code: "XX109"
   printers: [SL1, M1]
@@ -68,6 +69,7 @@ Errors:
   text: "Measured resin volume %(volume_ml)d ml is higher than required for this print. Make sure that the resin level does not exceed the 100% mark and restart the print."
   id: "RESIN_TOO_HIGH"
   approved: true
+  action: ['Cancel print']
 
 - code: "XX113"
   printers: [SL1, M1]
@@ -887,6 +889,7 @@ Errors:
   text: "The amount of resin in the tank is not enough for the current project. Adding more resin will be required during the print."
   id: "RESIN_NOT_ENOUGH_WARNING"
   approved: true
+  action: ['Resin filled', 'Cancel print']
 
 - code: "XX707"
   printers: [SL1, M1]

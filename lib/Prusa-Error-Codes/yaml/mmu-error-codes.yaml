@@ -29,6 +29,7 @@ Errors:
   id: "FINDA_DIDNT_TRIGGER"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 - code: "04102"
   title: "FINDA FILAM. STUCK"
@@ -37,6 +38,7 @@ Errors:
   id: "FINDA_FILAMENT_STUCK"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 - code: "04103"
   title: "FSENSOR DIDNT TRIGG."
@@ -45,6 +47,7 @@ Errors:
   id: "FSENSOR_DIDNT_TRIGGER"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 - code: "04104"
   title: "FSENSOR FIL. STUCK"
@@ -53,6 +56,7 @@ Errors:
   id: "FSENSOR_FILAMENT_STUCK"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 - code: "04105"
   title: "PULLEY CANNOT MOVE"
@@ -61,6 +65,7 @@ Errors:
   id: "PULLEY_CANNOT_MOVE"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 - code: "04106"
   title: "FSENSOR TOO EARLY"
@@ -69,6 +74,7 @@ Errors:
   id: "FSENSOR_TOO_EARLY"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 - code: "04107"
   title: "INSPECT FINDA"
@@ -77,6 +83,7 @@ Errors:
   id: "INSPECT_FINDA"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 - code: "04108"
   title: "LOAD TO EXTR. FAILED"
@@ -85,6 +92,7 @@ Errors:
   id: "LOAD_TO_EXTRUDER_FAILED"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 - code: "04115"
   title: "SELECTOR CANNOT HOME"
@@ -93,6 +101,7 @@ Errors:
   id: "SELECTOR_CANNOT_HOME"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 - code: "04116"
   title: "SELECTOR CANNOT MOVE"
@@ -101,6 +110,7 @@ Errors:
   id: "SELECTOR_CANNOT_MOVE"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 - code: "04125"
   title: "IDLER CANNOT HOME"
@@ -109,6 +119,7 @@ Errors:
   id: "IDLER_CANNOT_HOME"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 - code: "04126"
   title: "IDLER CANNOT MOVE"
@@ -117,6 +128,7 @@ Errors:
   id: "IDLER_CANNOT_MOVE"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 # TEMPERATURE    xx2xx   # Temperature measurement
 - code: "04201"
@@ -127,6 +139,7 @@ Errors:
   id: "WARNING_TMC_PULLEY_TOO_HOT"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04211"
   title: "WARNING TMC TOO HOT"
@@ -136,6 +149,7 @@ Errors:
   id: "WARNING_TMC_SELECTOR_TOO_HOT"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04221"
   title: "WARNING TMC TOO HOT"
@@ -145,6 +159,7 @@ Errors:
   id: "WARNING_TMC_IDLER_TOO_HOT"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04202"
   title: "TMC OVERHEAT ERROR"
@@ -154,6 +169,7 @@ Errors:
   id: "TMC_PULLEY_OVERHEAT_ERROR"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04212"
   title: "TMC OVERHEAT ERROR"
@@ -163,6 +179,7 @@ Errors:
   id: "TMC_SELECTOR_OVERHEAT_ERROR"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04222"
   title: "TMC OVERHEAT ERROR"
@@ -172,6 +189,7 @@ Errors:
   id: "TMC_IDLER_OVERHEAT_ERROR"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 # ELECTRICAL     xx3xx
 - code: "04301"
@@ -182,6 +200,7 @@ Errors:
   id: "TMC_PULLEY_DRIVER_ERROR"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04311"
   title: "TMC DRIVER ERROR"
@@ -191,6 +210,7 @@ Errors:
   id: "TMC_SELECTOR_DRIVER_ERROR"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04321"
   title: "TMC DRIVER ERROR"
@@ -200,6 +220,7 @@ Errors:
   id: "TMC_IDLER_DRIVER_ERROR"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04302"
   title: "TMC DRIVER RESET"
@@ -209,6 +230,7 @@ Errors:
   id: "TMC_PULLEY_DRIVER_RESET"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04312"
   title: "TMC DRIVER RESET"
@@ -218,6 +240,7 @@ Errors:
   id: "TMC_SELECTOR_DRIVER_RESET"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04322"
   title: "TMC DRIVER RESET"
@@ -227,6 +250,7 @@ Errors:
   id: "TMC_IDLER_DRIVER_RESET"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04303"
   title: "TMC UNDERVOLTAGE ERR"
@@ -236,6 +260,7 @@ Errors:
   id: "TMC_PULLEY_UNDERVOLTAGE_ERROR"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04313"
   title: "TMC UNDERVOLTAGE ERR"
@@ -245,6 +270,7 @@ Errors:
   id: "TMC_SELECTOR_UNDERVOLTAGE_ERROR"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04323"
   title: "TMC UNDERVOLTAGE ERR"
@@ -254,6 +280,7 @@ Errors:
   id: "TMC_IDLER_UNDERVOLTAGE_ERROR"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04304"
   title: "TMC DRIVER SHORTED"
@@ -263,6 +290,7 @@ Errors:
   id: "TMC_PULLEY_DRIVER_SHORTED"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04314"
   title: "TMC DRIVER SHORTED"
@@ -272,6 +300,7 @@ Errors:
   id: "TMC_SELECTOR_DRIVER_SHORTED"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04324"
   title: "TMC DRIVER SHORTED"
@@ -281,6 +310,7 @@ Errors:
   id: "TMC_IDLER_DRIVER_SHORTED"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04305"
   title: "MMU SELFTEST FAILED"
@@ -290,6 +320,7 @@ Errors:
   id: "MMU_PULLEY_SELFTEST_FAILED"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04315"
   title: "MMU SELFTEST FAILED"
@@ -299,6 +330,7 @@ Errors:
   id: "MMU_SELECTOR_SELFTEST_FAILED"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04325"
   title: "MMU SELFTEST FAILED"
@@ -308,6 +340,7 @@ Errors:
   id: "MMU_IDLER_SELFTEST_FAILED"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04306"
   title: "MMU MCU ERROR"
@@ -317,6 +350,7 @@ Errors:
   id: "MCU_POWER_ERROR"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04307"
   title: "MMU MCU UNDERPOWER"
@@ -326,6 +360,7 @@ Errors:
   id: "MCU_UNDERVOLTAGE_VCC"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 # CONNECTIVITY
 - code: "04401"
@@ -335,6 +370,7 @@ Errors:
   id: "MMU_NOT_RESPONDING"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04402"
   title: "COMMUNICATION ERROR"
@@ -343,6 +379,7 @@ Errors:
   id: "COMMUNICATION_ERROR"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 # SYSTEM
 - code: "04501"
@@ -352,6 +389,7 @@ Errors:
   id: "FILAMENT_ALREADY_LOADED"
   approved: true
   type: WARNING
+  gui_layout: "mmu_dialog"
 
 - code: "04502"
   title: "INVALID TOOL"
@@ -360,6 +398,7 @@ Errors:
   id: "INVALID_TOOL"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04503"
   title: "QUEUE FULL"
@@ -368,6 +407,7 @@ Errors:
   id: "QUEUE_FULL"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04504"
   title: "MMU FW UPDATE NEEDED"
@@ -377,6 +417,7 @@ Errors:
   id: "FW_UPDATE_NEEDED"
   approved: true
   type: USER_ACTION
+  gui_layout: "mmu_dialog"
 
 - code: "04505"
   title: "FW RUNTIME ERROR"
@@ -385,6 +426,7 @@ Errors:
   id: "FW_RUNTIME_ERROR"
   approved: true
   type: ERROR
+  gui_layout: "mmu_dialog"
 
 - code: "04506"
   title: "UNLOAD MANUALLY"
@@ -393,6 +435,7 @@ Errors:
   id: "UNLOAD_MANUALLY"
   approved: true
   type: USER_ACTION
+  gui_layout: "mmu_dialog"
 
 - code: "04507"
   title: "FILAMENT EJECTED"
@@ -402,6 +445,7 @@ Errors:
   id: "FILAMENT_EJECTED"
   approved: true
   type: USER_ACTION
+  gui_layout: "mmu_dialog"
 
 - code: "04900"
   title: "UNKNOWN ERROR"
@@ -410,3 +454,4 @@ Errors:
   id: "UNKNOWN_ERROR"
   approved: false
   type: ERROR
+  gui_layout: "mmu_dialog"
