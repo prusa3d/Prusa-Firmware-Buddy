@@ -27,15 +27,6 @@ static auto print_error = [](auto... args) {
     SERIAL_CHAR('\n');
 };
 
-static bool is_one_of(char c, std::string_view sv) {
-    for (char x : sv) {
-        if (c == x) {
-            return true;
-        }
-    }
-    return false;
-}
-
 void M970_report(bool eeprom = false) {
     SERIAL_ECHO("M970");
     for (auto [axis, letter] : SUPPORTED_AXES) {

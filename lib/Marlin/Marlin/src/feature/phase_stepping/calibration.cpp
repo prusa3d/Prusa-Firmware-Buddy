@@ -1267,21 +1267,6 @@ static void debug_dump_dft_sweep_result(const char *name, int harmonic, int dir,
 #endif
 }
 
-static void debug_dump_smoothed_speed_sweep(int harmonic, const SignalContainer &smoothed_signal) {
-#ifdef SERIAL_DEBUG
-    serial_printf("# smoothed_speed_sweep {");
-    serial_printf("\"harmonic\": %d, ", harmonic);
-    serial_printf("\"signal\": [");
-    for (size_t i = 0; i < smoothed_signal.size(); i++) {
-        serial_printf("%f", smoothed_signal[i]);
-        if (i + 1 < smoothed_signal.size()) {
-            serial_printf(", ");
-        }
-    }
-    serial_printf("]}\n");
-#endif
-}
-
 static void debug_dump_harmonic_peaks(const char *name,
     const std::vector<HarmonicPeak> &peaks, const std::vector<HarmonicPeak> &estimated_peaks) {
 #ifdef SERIAL_DEBUG

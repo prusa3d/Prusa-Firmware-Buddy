@@ -1290,12 +1290,6 @@ def debugCalibration(port, axis, show, output):
             harmonic_data[harmonic] = {}
         harmonic_data[harmonic][name] = obj
 
-    smoothed_harmonic_data = {}
-
-    def handle_smoothed_harmonic(obj):
-        nonlocal smoothed_harmonic_data
-        smoothed_harmonic_data[obj["harmonic"]] = obj
-
     detected_peaks = None
 
     def handle_detected_peaks(obj):
@@ -1327,9 +1321,6 @@ def debugCalibration(port, axis, show, output):
         if line.startswith("# dft_speed_sweep_result"):
             handle_dft_speed_sweep_result(
                 json.loads(line.split(" ", maxsplit=2)[2]))
-        if line.startswith("# smoothed_speed_sweep"):
-            handle_smoothed_harmonic(json.loads(
-                line.split(" ", maxsplit=2)[2]))
         if line.startswith("# harmonic_peaks"):
             handle_detected_peaks(json.loads(line.split(" ", maxsplit=2)[2]))
         if line.startswith("# magnitude_search"):
