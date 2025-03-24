@@ -277,7 +277,6 @@
  * M959 - Tune input shaper
  * M970 - Set/enable phase stepping
  * M971 - Read/reset/write phase-stepping motor current correction
- * M974 - Measure print head resonances and return raw data
  * M975 - Measure accelerometer sampling rate
  * M976 - Measure print head resonances and return analyzed data
  * M977 - Calibrate motor for phase stepping
