@@ -59,3 +59,4 @@ The `.yaml` format structure is as follows:
       * `id` [string]: Error identifier used for referencing the error in the code
          * For example `BED_MINTEMP_ERROR`
       * `approved` [bool]: Not really good for anything
+      * `deprecated` (optional) [bool]: Errors that are no longer used in main development branches are marked deprecated

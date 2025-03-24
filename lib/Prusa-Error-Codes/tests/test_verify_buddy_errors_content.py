@@ -20,9 +20,12 @@ class TestVerifyPruseErrorContentsForBuddy(unittest.TestCase):
         for error in errors:
             assert "code" in error, f"Missing error code code in definition: {error}"
             assert error["code"].startswith("XX"), f"Code {error['code']} is missing XX prefix"
+            if "deprecated" in error and error["deprecated"]:
+                continue
             self.verify_item_in_error(error, "id")
             self.verify_item_in_error(error, "title")
             self.verify_item_in_error(error, "text")
+            self.verify_item_in_error(error, "approved", True)
             self.verify_non_empty_array_item(error, "printers", True)
 
 
@@ -33,10 +36,13 @@ class TestVerifyPruseErrorContentsForBuddy(unittest.TestCase):
         for error in errors:
             assert "code" in error, f"Missing error code code in definition: {error}"
             assert error["code"].startswith("04"), f"Code {error['code']} is missing 04 prefix"
+            if "deprecated" in error and error["deprecated"]:
+                continue
             self.verify_item_in_error(error, "id")
             self.verify_item_in_error(error, "title")
             self.verify_item_in_error(error, "text")
             self.verify_item_in_error(error, "type")
+            self.verify_item_in_error(error, "approved", True)
             self.verify_non_empty_array_item(error, "action")
 
 if __name__ == "__main__":
