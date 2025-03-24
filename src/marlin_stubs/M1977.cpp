@@ -4,10 +4,13 @@
 #include <client_response.hpp>
 #include <common/fsm_base_types.hpp>
 #include <common/marlin_server.hpp>
+#include <common/otp.hpp>
 #include <Marlin/src/feature/phase_stepping/calibration_config.hpp>
 #include <Marlin/src/feature/phase_stepping/calibration.hpp>
 #include <Marlin/src/gcode/gcode.h>
+#include <sys/fcntl.h>
 #include <sys/unistd.h>
+#include <version/version.hpp>
 
 namespace {
 
@@ -115,6 +118,47 @@ static PhasesPhaseStepping intro_helper() {
 #endif
 }
 
+__attribute__((format(printf, 2, 3))) static void fdprintf(int fd, const char *fmt, ...) {
+    std::array<char, 64> buffer;
+
+    va_list args;
+    va_start(args, fmt);
+    size_t n = vsnprintf(buffer.data(), buffer.size(), fmt, args);
+    va_end(args);
+
+    write(fd, buffer.data(), n);
+}
+
+static void dump_calibration_result(const Context &context) {
+    int fd = open("/usb/phstep.txt", O_CREAT | O_APPEND | O_WRONLY);
+    if (fd == -1) {
+        log_error(Marlin, "open() failed %d", errno);
+        return;
+    }
+    // We are not concerened with excessive error handling here.
+    // If we fail to write something here, we just lose it, no big deal.
+    if (serial_nr_t serial_nr; otp_get_serial_nr(serial_nr) != 0) {
+        fdprintf(fd, "SN\t%s\n", serial_nr.data());
+    }
+    fdprintf(fd, "CH\t%s\n", version::project_build_identification.commit_hash);
+    {
+        std::array<char, 1 + strlen("YYYYmmddHHMMSS")> strftime_buffer;
+        const time_t curr_sec = time(nullptr);
+        struct tm now;
+        localtime_r(&curr_sec, &now);
+        (void)strftime(strftime_buffer.data(), strftime_buffer.size(), "%Y%m%d%H%M%S", &now);
+        fdprintf(fd, "D\t%s\n", strftime_buffer.data());
+    }
+    for (const auto [forward, backward] : context.calibration_result_x) {
+        fdprintf(fd, "X\t%f\t%f\n", (double)forward, (double)backward);
+    }
+    for (const auto [forward, backward] : context.calibration_result_y) {
+        fdprintf(fd, "Y\t%f\t%f\n", (double)forward, (double)backward);
+    }
+    fdprintf(fd, "---\n");
+    close(fd);
+}
+
 std::optional<uint8_t> evaluate_calibration_result(const CalibrationResult &calibration_result) {
     for (const auto &res : calibration_result) {
         log_info(Marlin, "res %f %f", (double)res.backward, (double)res.forward);
@@ -134,6 +178,7 @@ std::optional<uint8_t> evaluate_calibration_result(const CalibrationResult &cali
 }
 
 PhasesPhaseStepping evaluate_result(Context &context) {
+    dump_calibration_result(context);
     const auto reduction_x = evaluate_calibration_result(context.calibration_result_x);
     const auto reduction_y = evaluate_calibration_result(context.calibration_result_y);
     if (reduction_x && reduction_y) {
