@@ -2498,8 +2498,9 @@ bool Planner::buffer_segment(const abce_pos_t &abce
   if(target.e > position.e) {
     buddy::auto_retract().maybe_deretract_to_nozzle();
     
-  } else if(buddy::auto_retract().is_retracted()) {
+  } else if(hints.move.is_printing_move && buddy::auto_retract().is_retracted()) {
     // Ignore retraction commands if we're retracted to prevent the filament getting out of the extruder
+    // Only limit to printing moves - otherwise we screw up things like unload
     position.e = target.e;
     position_float.e = abce.e;
   }
