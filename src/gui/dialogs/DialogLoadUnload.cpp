@@ -145,6 +145,9 @@ static constexpr EnumArray<PhasesLoadUnload, State, CountPhases<PhasesLoadUnload
 #if HAS_LOADCELL()
     { PhasesLoadUnload::FilamentStuck, { txt_filament_stuck, DialogLoadUnload::phaseAlertSound } },
 #endif
+#if HAS_AUTO_RETRACT()
+    { PhasesLoadUnload::AutoRetracting, { N_("Auto-retracting filament") } },
+#endif
 #if HAS_MMU2()
     { PhasesLoadUnload::LoadFilamentIntoMMU, { txt_mmu_insert_filament } }, // TODO how the button is Continue
     { PhasesLoadUnload::MMU_EngagingIdler, { txt_mmu_engag_idler } },

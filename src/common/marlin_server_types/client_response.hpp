@@ -36,6 +36,7 @@
 #include <option/has_uneven_bed_prompt.h>
 #include <option/has_door_sensor_calibration.h>
 #include <common/hotend_type.hpp>
+#include <option/has_auto_retract.h>
 #include <device/board.h>
 
 /// number of bits used to encode response
@@ -145,6 +146,10 @@ enum class PhasesLoadUnload : PhaseUnderlyingType {
 
 #if HAS_LOADCELL()
     FilamentStuck,
+#endif
+
+#if HAS_AUTO_RETRACT()
+    AutoRetracting,
 #endif
 
 #if HAS_MMU2()
@@ -628,6 +633,9 @@ class ClientResponses {
             { PhasesLoadUnload::Unparking, {} },
 #if HAS_LOADCELL()
             { PhasesLoadUnload::FilamentStuck, { Response::Unload } },
+#endif
+#if HAS_AUTO_RETRACT()
+            { PhasesLoadUnload::AutoRetracting, {} },
 #endif
 #if HAS_MMU2()
             { PhasesLoadUnload::LoadFilamentIntoMMU, { Response::Continue } },

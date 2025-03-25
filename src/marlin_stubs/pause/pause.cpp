@@ -719,6 +719,7 @@ void Pause::load_prime_process([[maybe_unused]] Response response) {
 #if HAS_AUTO_RETRACT()
     if (!marlin_server::is_printing()) {
         // Only retract from nozzle outside printing
+        setPhase(PhasesLoadUnload::AutoRetracting, 99);
         auto_retract().maybe_retract_from_nozzle();
         set(LoadState::_finish);
         return;
