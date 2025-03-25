@@ -115,13 +115,6 @@ AutoRetract::AutoRetract() {
 }
 
 bool AutoRetract::can_perform_action() const {
-#if HAS_MMU2()
-    // No auto retracting if MMU is enabled
-    if (MMU2::mmu2.Enabled()) {
-        return false;
-    }
-#endif
-
     if (thermalManager.tooColdToExtrude(active_extruder)) {
         return false;
     }

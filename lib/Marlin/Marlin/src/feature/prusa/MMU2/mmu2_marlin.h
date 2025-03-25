@@ -69,6 +69,7 @@ void marlin_idle(bool waiting, bool ignore_stepper_queue = false);
 void marlin_refresh_print_state_in_ram();
 void marlin_clear_print_state_in_ram();
 void marlin_stop_and_save_print_to_ram();
+void marlin_finalize_unload();
 
 int16_t thermal_degTargetHotend();
 int16_t thermal_degHotend();

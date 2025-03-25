@@ -14,6 +14,11 @@
 #include "../../Marlin.h"
 #include "marlin_server.hpp"
 
+#include <option/has_auto_retract.h>
+#if HAS_AUTO_RETRACT()
+    #include <feature/auto_retract/auto_retract.hpp>
+#endif
+
 namespace MMU2 {
 
 #if PRINTER_IS_PRUSA_MK3_5()
@@ -148,6 +153,15 @@ void marlin_clear_print_state_in_ram() {
 
 void marlin_stop_and_save_print_to_ram() {
     // @@TODO
+}
+
+void marlin_finalize_unload() {
+#if HAS_AUTO_RETRACT()
+    static_assert(HOTENDS == 1);
+
+    // The filament is completely out of the nozzle - so not auto-retracted
+    buddy::auto_retract().mark_as_retracted(0, false);
+#endif
 }
 
 int16_t thermal_degTargetHotend() {

@@ -101,6 +101,9 @@ void marlin_stop_and_save_print_to_ram() {
     // @@TODO
 }
 
+void marlin_finalize_unload() {
+}
+
 int16_t thermal_degTargetHotend() {
     return hotendTargetTemp;
 }

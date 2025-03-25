@@ -835,6 +835,7 @@ bool MMU2::unload() {
     }
 
     ScreenUpdateEnable();
+    marlin_finalize_unload();
     return true;
 }
 
