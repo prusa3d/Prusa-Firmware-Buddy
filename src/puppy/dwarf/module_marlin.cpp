@@ -193,6 +193,7 @@ void kill(PGM_P const lcd_error /*=nullptr*/, PGM_P const lcd_component /*=nullp
 
 #define TMC_WRITE 0x80;
 
+#define writeCSN_H  HAL_GPIO_WritePin(STEPPER_CSN_GPIO_Port, STEPPER_CSN_Pin, GPIO_PIN_SET)
 #define writeSCK_L  HAL_GPIO_WritePin(STEPPER_SCK_GPIO_Port, STEPPER_SCK_Pin, GPIO_PIN_RESET)
 #define writeSCK_H  HAL_GPIO_WritePin(STEPPER_SCK_GPIO_Port, STEPPER_SCK_Pin, GPIO_PIN_SET)
 #define writeMOSI_L HAL_GPIO_WritePin(STEPPER_MOSI_GPIO_Port, STEPPER_MOSI_Pin, GPIO_PIN_RESET)
@@ -224,7 +225,9 @@ SPIClass::SPIClass() {
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(STEPPER_SCK_GPIO_Port, &GPIO_InitStruct);
+    writeCSN_H;
+    writeSCK_H;
 }
 void SPIClass::begin([[maybe_unused]] uint8_t _pin) {}
 void SPIClass::end(void) {}
