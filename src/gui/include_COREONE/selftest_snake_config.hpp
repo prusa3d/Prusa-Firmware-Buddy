@@ -16,6 +16,7 @@ enum class Tool {
 // Order matters, snake and will be run in the same order, as well as menu items (with indices) will be
 enum class Action {
     Fans,
+    DoorSensor,
     YCheck,
     XCheck,
     ZAlign, // also known as z_calib
@@ -23,7 +24,6 @@ enum class Action {
     ZCheck,
     Heaters,
     Gears,
-    DoorSensor,
     FilamentSensorCalibration,
     _count,
     _last = _count - 1,
@@ -79,6 +79,7 @@ struct MenuItemText {
 // could have been done with an array of texts directly, but there would be an order dependancy
 inline constexpr MenuItemText blank_item_texts[] {
     { Action::Fans, N_("%d Fan Test") },
+    { Action::DoorSensor, N_("%d Door Sensor") },
     { Action::ZAlign, N_("%d Z Alignment Calibration") },
     { Action::YCheck, N_("%d Y Axis Test") },
     { Action::XCheck, N_("%d X Axis Test") },
@@ -86,7 +87,6 @@ inline constexpr MenuItemText blank_item_texts[] {
     { Action::ZCheck, N_("%d Z Axis Test") },
     { Action::Heaters, N_("%d Heater Test") },
     { Action::Gears, N_("%d Gears Calibration") },
-    { Action::DoorSensor, N_("%d Door Sensor") },
     { Action::FilamentSensorCalibration, N_("%d Filament Sensor Calibration") },
 };
 
