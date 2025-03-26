@@ -276,12 +276,14 @@ LoadUnloadMode Pause::get_load_unload_mode() {
 
 bool Pause::should_park() {
     switch (load_type) {
-    case Pause::LoadType::autoload:
-        return false;
     case Pause::LoadType::load_purge:
         return true;
     case Pause::LoadType::load_to_gears:
         return !FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder);
+    case Pause::LoadType::autoload:
+        // TODO: Change autoload trigger sensor on printers with side_fs
+        // and adjust phases to handle properly loading to gears, mmu_rework and parking
+        // autoload on printers with side_fs, should behave similary to iX autoload
     case Pause::LoadType::load:
         return option::has_human_interactions || !FSensors_instance().has_filament_surely(LogicalFilamentSensor::extruder);
     default:
