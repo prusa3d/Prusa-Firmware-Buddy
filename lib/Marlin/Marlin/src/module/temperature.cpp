@@ -916,6 +916,8 @@ void Temperature::max_temp_error(const heater_ind_t heater) {
 }
 
 void Temperature::min_temp_error(const heater_ind_t heater) {
+// let's not and say we did
+/*
   #if HAS_HEATED_BED
     if (H_BED == heater) {
       _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP_BED));
@@ -935,6 +937,7 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
     }
   #endif
   _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP));
+  */
 }
 
 #if HOTENDS
