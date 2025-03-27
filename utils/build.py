@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import sys
+import logging
 import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from collections import namedtuple
@@ -621,10 +622,19 @@ def cmake_cache_entry(arg):
     return (match.group(1), match.group(2), match.group(3))
 
 
+def configure_logging(level=logging.INFO):
+    """Configure logging format and level."""
+    logging.basicConfig(
+        level=level,
+        format='%(asctime)s - %(levelname)s - %(module)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
+
+
 def main():
     bootstrap.switch_to_venv_if_nedded()
 
     all_presets = load_presets()
+
     parser = argparse.ArgumentParser()
     # yapf: disable
     parser.add_argument(
@@ -729,21 +739,33 @@ def main():
         action='append', type=cmake_cache_entry,
         help='Custom CMake cache entries (e.g. -DCUSTOM_COMPILE_OPTIONS:STRING=-Werror)'
     )
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='Enable verbose output with debug logging information'
+    )
     args = parser.parse_args(sys.argv[1:])
     # yapf: enable
+
+    configure_logging(logging.DEBUG if args.verbose else logging.INFO)
 
     build_dir_root = args.build_dir or Path(
         __file__).resolve().parent.parent / 'build'
     products_dir_root = args.products_dir or (build_dir_root / 'products')
 
+    logging.debug(f"Build directory: {build_dir_root}")
+    logging.debug(f"Products directory: {products_dir_root}")
+
     if args.final:
         args.version_suffix = ''
         args.version_suffix_short = ''
+        logging.info("Using final version (no suffix)")
 
     if args.generate_cproject or args.generate_cmake_presets:
         args.build_type = list(BuildType)
         args.host_tools = True
         args.no_build = True
+        logging.info("Generating project files only, build disabled")
 
     # parse what presets are selected by the user
     selected_preset_names = [
@@ -753,7 +775,10 @@ def main():
         preset for preset in all_presets
         if preset.name.lower() in selected_preset_names
     ]
+    logging.info(f"Selected {len(selected_presets)} presets to build")
+
     build_layout = BuildLayout.DEVELOPMENT if args.generate_cproject or args.generate_cmake_presets else BuildLayout.COMMON_BUILD_DIR
+    logging.debug(f"Using build layout: {build_layout}")
 
     # prepare configurations
     configurations: List[BuildConfiguration] = [
@@ -779,54 +804,74 @@ def main():
             for tool in HostTool for build_type in args.build_type
         ])
 
+    logging.info(f"Created {len(configurations)} build configurations")
+
     # generate .cproject if requested
     if args.generate_cproject:
+        logging.info("Generating Eclipse project files")
         CProjectGenerator.generate(configurations)
+        logging.info("Eclipse project files generated successfully")
         sys.exit(0)
 
     # generate CMakePresets.json if requestes
     if args.generate_cmake_presets:
+        logging.info("Generating CMake presets")
         CMakePresetsGenerator.generate(configurations)
+        logging.info("CMake presets generated successfully")
         sys.exit(0)
 
     if not args.skip_bootstrap:
         # check all dependencis are installed
+        logging.info("Running bootstrap to install dependencies")
         bootstrap.bootstrap()
+    else:
+        logging.info("Skipping bootstrap as requested")
 
     # build everything
     results: Dict[BuildConfiguration, BuildResult] = dict()
     for configuration in configurations:
         build_dir = build_dir_root / configuration.name.lower()
-        print('Building ' + configuration.name.lower())
+        logging.info(f"Building {configuration.name.lower()}")
         result = build(configuration,
                        build_dir=build_dir,
                        configure_only=args.no_build,
                        output_to_file=args.store_output
                        if args.store_output is not None else False)
+        logging.debug(f"Build result: {result}")
         store_products(result.products, configuration, products_dir_root)
+        logging.debug(f"Stored {len(result.products)} build products")
         results[configuration] = result
 
     # print results
-    print()
-    print('Building finished: {} success, {} failure(s).'.format(
-        sum(1 for result in results.values() if not result.is_failure),
-        sum(1 for result in results.values() if result.is_failure)))
+    success_count = sum(1 for result in results.values()
+                        if not result.is_failure)
+    failure_count = sum(1 for result in results.values() if result.is_failure)
+    logging.info(
+        f"Building finished: {success_count} success, {failure_count} failure(s)"
+    )
+
     failure = False
     max_configname_len = max(len(config.name) for config in results)
     for config, result in results.items():
         if result.configuration_failed:
             status = 'project configuration FAILED'
             failure = True
+            logging.error(f"Configuration failed for {config.name}")
         elif result.build_failed:
             status = 'build FAILED'
             failure = True
+            logging.error(f"Build failed for {config.name}")
         else:
             status = 'SUCCESS'
+            logging.info(f"Successfully built {config.name}")
 
         print(' {} {}'.format(
             config.name.lower().ljust(max_configname_len, ' '), status))
     if failure:
+        logging.error("Build process completed with failures")
         sys.exit(1)
+    else:
+        logging.info("Build process completed successfully")
 
 
 if __name__ == "__main__":
