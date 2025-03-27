@@ -494,6 +494,7 @@ void GCodeQueue::get_serial_commands() {
       else if (serial_count[i] >= MAX_CMD_SIZE - 1) {
         // Keep fetching, but ignore normal characters beyond the max length
         // The command will be injected when EOL is reached
+        gcode_line_error(PSTR(MSG_ERR_LINE_LENGTH), i);
       }
       else if (serial_char == '\\') {  // Handle escapes
         // if we have one more character, copy it over

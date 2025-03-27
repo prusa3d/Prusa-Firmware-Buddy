@@ -159,6 +159,7 @@
 #define MSG_STATS                           "Stats: "
 #define MSG_FILE_SAVED                      "Done saving file."
 #define MSG_ERR_LINE_NO                     "Line Number is not Last Line Number+1, Last Line: "
+#define MSG_ERR_LINE_LENGTH                 "Line exceeds max buffer length. Last Line: "
 #define MSG_ERR_CHECKSUM_MISMATCH           "checksum mismatch, Last Line: "
 #define MSG_ERR_NO_CHECKSUM                 "No Checksum with line number, Last Line: "
 #define MSG_FILE_PRINTED                    "Done printing file"
