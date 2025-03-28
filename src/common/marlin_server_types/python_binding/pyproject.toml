@@ -21,6 +21,7 @@ Homepage = "https://github.com/prusa3d/Prusa-Firmware-Buddy"
 
 [tool.scikit-build]
 cmake.version = ">=3.27"
+wheel.py-api="cp312"
 # Compile output for xl_release_boot, but, but override compiler settings.
 # Normally printer would be compiled with ARM compiler, but we need native system compiler for python libraries
 cmake.args = ["--preset=xl_release_boot", "-DCMAKE_TOOLCHAIN_FILE=", "-DUNITTESTS_ENABLE=OFF"]
