@@ -584,7 +584,7 @@ struct CurrentStore
     StoreItem<XBEFanTestResults, XBEFanTestResults {}, journal::hash("XBE Chamber fan selftest results")> xbe_fan_test_results;
     StoreItem<bool, true, journal::hash("XBE USB Host power")> xbe_usb_power;
     StoreItem<uint8_t, 102, journal::hash("XBuddy Extension Chamber Fan Max Control Limit")> xbe_cooling_fan_max_auto_pwm;
-    StoreItem<uint8_t, 255, journal::hash("XBE Filtration Fan Max Auto PWM")> xbe_filtration_fan_max_auto_pwm;
+    StoreItem<uint8_t, PWM255::from_percent(70).value, journal::hash("XBE Filtration Fan Max Auto PWM")> xbe_filtration_fan_max_auto_pwm;
 #endif
 
 #if HAS_DOOR_SENSOR_CALIBRATION()
@@ -618,8 +618,8 @@ struct CurrentStore
     StoreItem<buddy::ChamberFiltrationBackend, buddy::ChamberFiltrationBackend::none, journal::hash("Chamber filtration backend")> chamber_filtration_backend;
     StoreItem<bool, true, journal::hash("Chamber filtration post print enable")> chamber_post_print_filtration_enable;
     StoreItem<uint8_t, 10, journal::hash("Chamber filtration post print duration")> chamber_post_print_filtration_duration_min;
-    StoreItem<PWM255, 10, journal::hash("Chamber mid print filtration pwm")> chamber_mid_print_filtration_pwm;
-    StoreItem<PWM255, 128, journal::hash("Chamber post print filtration pwm")> chamber_post_print_filtration_pwm;
+    StoreItem<PWM255, PWM255::from_percent(40).value, journal::hash("Chamber mid print filtration pwm")> chamber_mid_print_filtration_pwm;
+    StoreItem<PWM255, PWM255::from_percent(40).value, journal::hash("Chamber post print filtration pwm")> chamber_post_print_filtration_pwm;
 #endif
 
 #if HAS_AUTO_RETRACT()
