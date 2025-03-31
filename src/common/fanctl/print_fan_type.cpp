@@ -18,15 +18,15 @@ uint16_t print_fan_remap_pwm(PrintFanType pft, uint16_t original_pwm) {
     case PrintFanType::DELTA_BFB0505HHA_CWCD: {
         return original_pwm;
     }
-    case PrintFanType::GOM_VD_2620: {
+    case PrintFanType::GOM_VD_3706: {
         if (original_pwm == 0) {
             return 0;
         }
         // Interpolate PWM values
-        // Delta fan has at 20% PWM the same RPM as GOM at 47% PWM
-        // Delta fan has at 70% PWM the same airflow as GOM at 100% PWM
-        // Clamping applied outside of 20% - 70% of the original value
-        auto remapped_pwm = scale<uint32_t>(original_pwm, 20 * 255 / 100, 70 * 255 / 100, 47 * 255 / 100, 100 * 255 / 100);
+        // Delta fan has at 20% PWM the same airflow as GOM at 40% PWM
+        // Delta fan has at 100% PWM lower airflow as GOM at 100% PWM, we keep full power for GOM with higher airflow
+        // Clamping applied outside of 20% - 100% of the original value
+        auto remapped_pwm = scale<uint32_t>(original_pwm, 20 * 255 / 100, 100 * 255 / 100, 40 * 255 / 100, 100 * 255 / 100);
 
         return remapped_pwm;
     }

@@ -11,7 +11,7 @@
 /// !!! Never change order, never remove items - this is used in config store
 enum class PrintFanType : uint8_t {
     DELTA_BFB0505HHA_CWCD = 0,
-    GOM_VD_2620 = 1,
+    GOM_VD_3706 = 1,
     _cnt,
     #if PRINTER_IS_PRUSA_XL()
     default_value = DELTA_BFB0505HHA_CWCD,
@@ -21,7 +21,7 @@ enum class PrintFanType : uint8_t {
 static constexpr EnumArray<PrintFanType, const char *, PrintFanType::_cnt> print_fan_type_names {
     #if PRINTER_IS_PRUSA_XL()
     { PrintFanType::DELTA_BFB0505HHA_CWCD, N_("Black") },
-        { PrintFanType::GOM_VD_2620, N_("Silver") },
+        { PrintFanType::GOM_VD_3706, N_("Silver") },
     #endif // PRINTER_IS_PRUSA_XL()
 };
 
@@ -29,7 +29,7 @@ static constexpr EnumArray<PrintFanType, const char *, PrintFanType::_cnt> print
 static constexpr std::array print_fan_type_list {
     #if PRINTER_IS_PRUSA_XL()
     PrintFanType::DELTA_BFB0505HHA_CWCD,
-        PrintFanType::GOM_VD_2620,
+        PrintFanType::GOM_VD_3706,
     #endif // PRINTER_IS_PRUSA_XL()
 };
 
