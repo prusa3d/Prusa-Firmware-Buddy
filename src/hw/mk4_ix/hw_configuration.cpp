@@ -33,7 +33,7 @@ bool Configuration::is_fw_incompatible_with_hw() {
 #if PRINTER_IS_PRUSA_MK4()
     // If door sensor sensor is detected, this is CORE ONE HW
     static constexpr uint16_t door_sensor_disconnected_threshold = 0xcff;
-    if (AdcGet::door_sensor() >= door_sensor_disconnected_threshold) {
+    if (AdcGet::door_sensor() < door_sensor_disconnected_threshold) {
         return true;
     }
 
