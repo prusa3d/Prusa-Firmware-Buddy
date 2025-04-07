@@ -294,8 +294,8 @@ void ToolsMappingBody::windowEvent([[maybe_unused]] window_t *sender, GUI_event_
     float get_heatbreak_temp();
     uint16_t get_heatbreak_fan_pwr();
 
-    inline uint8_t get_dwarf_nr() const {
-        return dwarf_nr;
+    inline uint8_t dwarf_index() const {
+        return dwarf_nr - 1;
     }
 
     uint16_t get_fan_pwm(uint8_t fan_nr) const;

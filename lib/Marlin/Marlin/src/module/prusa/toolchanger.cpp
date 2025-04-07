@@ -269,7 +269,7 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_
     // calculate the new tool offset difference before updating hotend_currently_applied_offset
     xyz_pos_t new_hotend_offset;
     if (new_dwarf != nullptr) {
-        new_hotend_offset = hotend_offset[new_dwarf->get_dwarf_nr() - 1];
+        new_hotend_offset = hotend_offset[new_dwarf->dwarf_index()];
     } else {
         new_hotend_offset.reset();
     }
@@ -332,14 +332,14 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_
     // Disable print fan on old dwarf, fan on new dwarf will be enabled by marlin
     // todo: remove this when multiple fans are implemented properly
     if (old_dwarf != nullptr) {
-        Fans::print(old_dwarf->get_dwarf_nr() - 1).setPWM(0);
+        Fans::print(old_dwarf->dwarf_index()).setPWM(0);
     }
 
     if (new_dwarf != old_dwarf) {
         if (new_dwarf != nullptr) {
             // Before we try to pick up new tool, check that its parked properly
             if (!new_dwarf->is_parked()) {
-                log_error(PrusaToolChanger, "Trying to pick missing Dwarf %u, triggering toolchanger recovery", new_dwarf->get_dwarf_nr());
+                log_error(PrusaToolChanger, "Trying to pick missing Dwarf #%u, triggering toolchanger recovery", new_dwarf->dwarf_index());
                 toolcrash();
                 return false;
             }
@@ -470,9 +470,9 @@ void PrusaToolChanger::toolfall() {
 }
 
 bool PrusaToolChanger::purge_tool(Dwarf &dwarf) {
-    const size_t tool_nr = dwarf.get_dwarf_nr() - 1;
+    const size_t tool_nr = dwarf.dwarf_index();
 
-    if (thermalManager.tooColdToExtrude(dwarf.get_dwarf_nr() - 1)) {
+    if (thermalManager.tooColdToExtrude(dwarf.dwarf_index())) {
         // hotend is cold, skip purge because it can't do anything
         return true;
     }
@@ -673,14 +673,14 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
 
     // Wait until dwarf is registering as parked
     if (!wait(dwarf_parked, WAIT_TIME_TOOL_PARKED_PICKED)) {
-        log_warning(PrusaToolChanger, "Dwarf %u not parked, trying to wiggle it in", dwarf.get_dwarf_nr());
+        log_warning(PrusaToolChanger, "Dwarf #%u not parked, trying to wiggle it in", dwarf.dwarf_index());
 
         move(info.dock_x - DOCK_WIGGLE_OFFSET, info.dock_y, SLOW_MOVE_MM_S); // wiggle left
         move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S); // wiggle back
         planner.synchronize();
 
         if (!wait(dwarf_parked, WAIT_TIME_TOOL_PARKED_PICKED)) {
-            log_error(PrusaToolChanger, "Dwarf %u not parked, triggering toolchanger recovery", dwarf.get_dwarf_nr());
+            log_error(PrusaToolChanger, "Dwarf #%u not parked, triggering toolchanger recovery", dwarf.dwarf_index());
             toolcrash();
             return false;
         }
@@ -690,18 +690,18 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
 
     // Wait until dwarf is registering as not picked
     if (!wait(dwarf_not_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
-        log_warning(PrusaToolChanger, "Dwarf %u still picked after parking, waiting for pull to finish", dwarf.get_dwarf_nr());
+        log_warning(PrusaToolChanger, "Dwarf #%u still picked after parking, waiting for pull to finish", dwarf.dwarf_index());
 
         // Can happen if parking in really low speed and acceleration
         planner.synchronize(); // Just wait for the pull move to finish and check again
 
         if (!wait(dwarf_not_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
-            log_error(PrusaToolChanger, "Dwarf %u still picked after parking, triggering toolchanger recovery", dwarf.get_dwarf_nr());
+            log_error(PrusaToolChanger, "Dwarf #%u still picked after parking, triggering toolchanger recovery", dwarf.dwarf_index());
             toolcrash();
             return false;
         }
     }
-    log_info(PrusaToolChanger, "Dwarf %u parked successfully", dwarf.get_dwarf_nr());
+    log_info(PrusaToolChanger, "Dwarf #%u parked successfully", dwarf.dwarf_index());
     return true;
 }
 
@@ -788,14 +788,14 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
 
     // Wait until dwarf is registering as picked
     if (!wait(dwarf_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
-        log_warning(PrusaToolChanger, "Dwarf %u not picked, trying to wiggle it in", dwarf.get_dwarf_nr());
+        log_warning(PrusaToolChanger, "Dwarf #%u not picked, trying to wiggle it in", dwarf.dwarf_index());
 
         move(info.dock_x, info.dock_y + DOCK_WIGGLE_OFFSET, SLOW_MOVE_MM_S); // wiggle pull
         move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S); // wiggle back
         planner.synchronize();
 
         if (!wait(dwarf_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
-            log_error(PrusaToolChanger, "Dwarf %u not picked, triggering toolchanger recovery", dwarf.get_dwarf_nr());
+            log_error(PrusaToolChanger, "Dwarf #%u not picked, triggering toolchanger recovery", dwarf.dwarf_index());
             toolcrash();
             return false;
         }
@@ -825,15 +825,15 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
 
     // Wait until dwarf is registering as not parked
     if (!wait(dwarf_not_parked, WAIT_TIME_TOOL_PARKED_PICKED)) {
-        log_error(PrusaToolChanger, "Dwarf %u still parked after picking, triggering toolchanger recovery", dwarf.get_dwarf_nr());
+        log_error(PrusaToolChanger, "Dwarf #%u still parked after picking, triggering toolchanger recovery", dwarf.dwarf_index());
         toolcrash();
         return false;
     }
 
     move(info.dock_x + PICK_X_OFFSET_3, SAFE_Y_WITH_TOOL, limited_feedrate); // tool extracted
 
-    log_info(PrusaToolChanger, "Dwarf %u picked successfully", dwarf.get_dwarf_nr());
-    Odometer_s::instance().add_toolpick(dwarf.get_dwarf_nr() - 1); // Count picks
+    log_info(PrusaToolChanger, "Dwarf #%u picked successfully", dwarf.dwarf_index());
+    Odometer_s::instance().add_toolpick(dwarf.dwarf_index()); // Count picks
     return true;
 }
 
