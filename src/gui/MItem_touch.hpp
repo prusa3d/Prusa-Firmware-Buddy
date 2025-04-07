@@ -6,8 +6,6 @@
 #include "WindowMenuItems.hpp"
 
 class MI_TOUCH_PLAYGROUND : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Touch Playground");
-
 public:
     MI_TOUCH_PLAYGROUND();
 

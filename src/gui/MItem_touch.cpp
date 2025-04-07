@@ -12,7 +12,12 @@
 /*****************************************************************************/
 
 MI_TOUCH_PLAYGROUND::MI_TOUCH_PLAYGROUND()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem {
+        string_view_utf8::MakeCPUFLASH("Touch Playground"), // dev item, intentionally not translated
+        nullptr,
+        is_enabled_t::yes,
+        is_hidden_t::dev,
+    } {
 }
 
 void MI_TOUCH_PLAYGROUND::click(IWindowMenu & /*window_menu*/) {
