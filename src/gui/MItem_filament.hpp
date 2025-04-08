@@ -3,6 +3,7 @@
  * @brief menu items for filament menu
  */
 #pragma once
+#include "WindowMenuItems.hpp"
 
 #include <i_window_menu_item.hpp>
 #include <i18n.h>
@@ -58,4 +59,26 @@ public:
     virtual void click(IWindowMenu &) override;
 
     void UpdateEnableState();
+};
+
+class MI_COOLDOWN : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Cooldown");
+
+public:
+    MI_COOLDOWN();
+
+protected:
+    virtual void click(IWindowMenu & /*window_menu*/) override;
+};
+
+class MI_AUTO_COOLDOWN : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Cooldown after unload");
+    bool init_index() const;
+
+public:
+    MI_AUTO_COOLDOWN()
+        : WI_ICON_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+protected:
+    virtual void OnChange(size_t old_index) override;
 };

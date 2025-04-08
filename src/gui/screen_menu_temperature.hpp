@@ -41,6 +41,7 @@ using ScreenBase = ScreenMenu<
 #if HAS_XBUDDY_EXTENSION()
     MI_XBUDDY_EXTENSION_COOLING_FANS,
 #endif
+    MI_AUTO_COOLDOWN,
     MI_COOLDOWN>;
 
 } // namespace screen_menu_temperature
