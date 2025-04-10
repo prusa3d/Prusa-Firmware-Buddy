@@ -29,10 +29,12 @@ constexpr FanRPMRange benevolent_fan_range = { .rpm_min = 10, .rpm_max = 10000 }
 constexpr FanRPMRange print_fan_range = { .rpm_min = 5300, .rpm_max = 7000 };
 constexpr FanRPMRange heatbreak_fan_range = { .rpm_min = 6500, .rpm_max = 8700 };
 #elif PRINTER_IS_PRUSA_MK4()
-constexpr FanRPMRange print_fan_range = { .rpm_min = 5130, .rpm_max = 6799 }; // MK4S (5700+-10%) & MK4 (5900+-10%) - union limits
+// Datasheet values for MK4S (5700+-10%) & MK4 (5900+-10%)
+// range needs to be relaxed due to difference in atmospheric pressure and altitude during selftest
+constexpr FanRPMRange print_fan_range = { .rpm_min = 4800, .rpm_max = 6799 };
 constexpr FanRPMRange heatbreak_fan_range = { .rpm_min = 6800, .rpm_max = 8700 };
 #elif PRINTER_IS_PRUSA_COREONE()
-constexpr FanRPMRange print_fan_range = { .rpm_min = 5130, .rpm_max = 6799 };
+constexpr FanRPMRange print_fan_range = { .rpm_min = 4800, .rpm_max = 6799 };
 constexpr FanRPMRange heatbreak_fan_range = { .rpm_min = 6800, .rpm_max = 8700 };
 constexpr FanRPMRange chamber_fan_range = FanRPMRange::nominal_with_percentual_tolerance(8500, 15);
 constexpr FanRPMRange filtration_fan_range = FanRPMRange::nominal_with_percentual_tolerance(3400, 15);
