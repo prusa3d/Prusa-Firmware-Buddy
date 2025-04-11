@@ -151,7 +151,7 @@
   * @{
   */
 #define ETH_TIMEOUT_SWRESET               500U
-#define ETH_TIMEOUT_LINKED_STATE          500U //decreased to prevent watchdog reset
+#define ETH_TIMEOUT_LINKED_STATE          5000U
 #define ETH_TIMEOUT_AUTONEGO_COMPLETED    5000U
 
 /**

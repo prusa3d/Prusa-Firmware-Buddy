@@ -157,6 +157,8 @@ static void low_level_init(struct netif *netif) {
 
     heth.Instance = ETH;
     heth.Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
+    heth.Init.Speed = ETH_SPEED_100M;
+    heth.Init.DuplexMode = ETH_MODE_FULLDUPLEX;
     heth.Init.PhyAddress = LAN8742A_PHY_ADDRESS;
     // set  mac address from OTP memory
     heth.Init.MACAddr = ethernetif_get_mac();
@@ -167,7 +169,17 @@ static void low_level_init(struct netif *netif) {
     heth.Init.ChecksumMode = ETH_CHECKSUM_BY_SOFTWARE;
     heth.Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;
 
-    HAL_ETH_Init(&heth);
+    /* configure ethernet peripheral (GPIOs, clocks, MAC, DMA) */
+    if (HAL_ETH_Init(&heth) == HAL_OK) {
+        /* Set netif link flag */
+        netif->flags |= NETIF_FLAG_LINK_UP;
+    }
+
+    /* Enable both the transmission and the read buffer underflow interrupts. */
+    if (heth.Init.RxMode == ETH_RXINTERRUPT_MODE) {
+        /* Enable the Ethernet Rx Interrupt */
+        __HAL_ETH_DMA_ENABLE_IT(&heth, ETH_DMA_IT_NIS | ETH_DMA_IT_R);
+    }
 
     /* Initialize Tx Descriptors list: Chain Mode */
     HAL_ETH_DMATxDescListInit(&heth, DMATxDscrTab, &Tx_Buff[0][0], ETH_TXBUFNB);
@@ -489,6 +501,115 @@ u32_t sys_now(void) {
 }
 
 #if LWIP_NETIF_LINK_CALLBACK
+
+/*  LAN8742_StartAutoNego() and LAN8742_SetSpeedAndMode() are based on
+    https://github.com/STMicroelectronics/stm32-lan8742 repository code. */
+
+    #define LAN8742_BCR                   ((uint16_t)0x0000U)
+    #define LAN8742_BSR                   ((uint16_t)0x0001U)
+    #define LAN8742_BCR_AUTONEGO_EN       ((uint16_t)0x1000U)
+    #define LAN8742_BSR_AUTONEGO_CPLT     ((uint16_t)0x0020U)
+    #define LAN8742_PHYSCSR               ((uint16_t)0x001FU)
+    #define LAN8742_BCR_SPEED_SELECT      ((uint16_t)0x2000U)
+    #define LAN8742_BCR_DUPLEX_MODE       ((uint16_t)0x0100U)
+    #define LAN8742_PHYSCSR_AUTONEGO_DONE ((uint16_t)0x1000U)
+    #define LAN8742_PHYSCSR_HCDSPEEDMASK  ((uint16_t)0x001CU)
+    #define LAN8742_PHYSCSR_10BT_HD       ((uint16_t)0x0004U)
+    #define LAN8742_PHYSCSR_10BT_FD       ((uint16_t)0x0014U)
+    #define LAN8742_PHYSCSR_100BTX_HD     ((uint16_t)0x0008U)
+    #define LAN8742_PHYSCSR_100BTX_FD     ((uint16_t)0x0018U)
+
+void LAN8742_StartAutoNego() {
+    uint32_t regvalue = 0;
+    if (HAL_ETH_ReadPHYRegister(&heth, LAN8742_BCR, &regvalue) >= 0) {
+        regvalue |= LAN8742_BCR_AUTONEGO_EN;
+        HAL_ETH_WritePHYRegister(&heth, LAN8742_BCR, LAN8742_BCR_AUTONEGO_EN);
+    }
+}
+
+void LAN8742_SetLinkState() {
+    uint32_t bcrvalue = 0;
+    if (HAL_ETH_ReadPHYRegister(&heth, LAN8742_BCR, &bcrvalue) >= 0) {
+        bcrvalue &= ~(LAN8742_BCR_AUTONEGO_EN | LAN8742_BCR_SPEED_SELECT | LAN8742_BCR_DUPLEX_MODE);
+        if (heth.Init.DuplexMode == ETH_MODE_FULLDUPLEX) {
+            bcrvalue |= LAN8742_BCR_DUPLEX_MODE;
+        }
+        if (heth.Init.Speed == ETH_SPEED_100M) {
+            bcrvalue |= LAN8742_BCR_SPEED_SELECT;
+        }
+    }
+    HAL_ETH_WritePHYRegister(&heth, LAN8742_BCR, bcrvalue);
+}
+
+void LAN8742_SetSpeedAndMode() {
+    __IO uint32_t tickstart = 0;
+    uint32_t regvalue = 0;
+
+    /* Get tick */
+    tickstart = HAL_GetTick();
+
+    /* Wait until the auto-negotiation will be completed */
+    do {
+        HAL_ETH_ReadPHYRegister(&heth, LAN8742_BSR, &regvalue);
+
+        /* Check for the Timeout ( 1s ) */
+        if ((HAL_GetTick() - tickstart) > 1000) {
+            /* In case of timeout */
+            goto error;
+        }
+    } while (((regvalue & LAN8742_BSR_AUTONEGO_CPLT) != LAN8742_BSR_AUTONEGO_CPLT));
+
+    /* Read the result of the auto-negotiation */
+    HAL_ETH_ReadPHYRegister(&heth, LAN8742_BCR, &regvalue);
+    if ((regvalue & LAN8742_BCR_AUTONEGO_EN) != LAN8742_BCR_AUTONEGO_EN) {
+        /* Auto-negotiation isn't enabled */
+        if (((regvalue & LAN8742_BCR_SPEED_SELECT) == LAN8742_BCR_SPEED_SELECT) && ((regvalue & LAN8742_BCR_DUPLEX_MODE) == LAN8742_BCR_DUPLEX_MODE)) {
+            heth.Init.DuplexMode = ETH_MODE_FULLDUPLEX;
+            heth.Init.Speed = ETH_SPEED_100M;
+        } else if ((regvalue & LAN8742_BCR_SPEED_SELECT) == LAN8742_BCR_SPEED_SELECT) {
+            heth.Init.DuplexMode = ETH_MODE_HALFDUPLEX;
+            heth.Init.Speed = ETH_SPEED_100M;
+        } else if ((regvalue & LAN8742_BCR_DUPLEX_MODE) == LAN8742_BCR_DUPLEX_MODE) {
+            heth.Init.DuplexMode = ETH_MODE_FULLDUPLEX;
+            heth.Init.Speed = ETH_SPEED_10M;
+        } else {
+            heth.Init.DuplexMode = ETH_MODE_HALFDUPLEX;
+            heth.Init.Speed = ETH_SPEED_10M;
+        }
+    } else /* Auto Nego is enabled */
+    {
+        if (HAL_ETH_ReadPHYRegister(&heth, LAN8742_PHYSCSR, &regvalue) < 0) {
+            goto error;
+        }
+
+        /* Check if auto nego not done */
+        if ((regvalue & LAN8742_PHYSCSR_AUTONEGO_DONE) == 0) {
+            goto error;
+        }
+
+        if ((regvalue & LAN8742_PHYSCSR_HCDSPEEDMASK) == LAN8742_PHYSCSR_100BTX_FD) {
+            heth.Init.DuplexMode = ETH_MODE_FULLDUPLEX;
+            heth.Init.Speed = ETH_SPEED_100M;
+        } else if ((regvalue & LAN8742_PHYSCSR_HCDSPEEDMASK) == LAN8742_PHYSCSR_100BTX_HD) {
+            heth.Init.DuplexMode = ETH_MODE_HALFDUPLEX;
+            heth.Init.Speed = ETH_SPEED_100M;
+        } else if ((regvalue & LAN8742_PHYSCSR_HCDSPEEDMASK) == LAN8742_PHYSCSR_10BT_FD) {
+            heth.Init.DuplexMode = ETH_MODE_FULLDUPLEX;
+            heth.Init.Speed = ETH_SPEED_10M;
+        } else {
+            heth.Init.DuplexMode = ETH_MODE_HALFDUPLEX;
+            heth.Init.Speed = ETH_SPEED_10M;
+        }
+    }
+error:
+    /* Check parameters */
+    assert_param(IS_ETH_SPEED(heth.Init.Speed));
+    assert_param(IS_ETH_DUPLEX_MODE(heth.Init.DuplexMode));
+
+    /* Set MAC Speed and Duplex Mode to PHY */
+    LAN8742_SetLinkState();
+}
+
 /**
  * @brief  Link callback function, this function is called on change of link status
  *         to update low level driver configuration.
@@ -496,57 +617,14 @@ u32_t sys_now(void) {
  * @retval None
  */
 void ethernetif_update_config(struct netif *netif) {
-    __IO uint32_t tickstart = 0;
-    uint32_t regvalue = 0;
-
     if (netif_is_link_up(netif)) {
         /* Restart the auto-negotiation */
         if (heth.Init.AutoNegotiation != ETH_AUTONEGOTIATION_DISABLE) {
-            /* Enable Auto-Negotiation */
-            HAL_ETH_WritePHYRegister(&heth, PHY_BCR, PHY_AUTONEGOTIATION);
+            /* Try to enable Auto-Negotiation */
+            LAN8742_StartAutoNego();
 
-            /* Get tick */
-            tickstart = HAL_GetTick();
-
-            /* Wait until the auto-negotiation will be completed */
-            do {
-                HAL_ETH_ReadPHYRegister(&heth, PHY_BSR, &regvalue);
-
-                /* Check for the Timeout ( 1s ) */
-                if ((HAL_GetTick() - tickstart) > 1000) {
-                    /* In case of timeout */
-                    goto error;
-                }
-            } while (((regvalue & PHY_AUTONEGO_COMPLETE) != PHY_AUTONEGO_COMPLETE));
-
-            /* Read the result of the auto-negotiation */
-            HAL_ETH_ReadPHYRegister(&heth, PHY_SR, &regvalue);
-
-            /* Configure the MAC with the Duplex Mode fixed by the auto-negotiation process */
-            if ((regvalue & PHY_DUPLEX_STATUS) != (uint32_t)RESET) {
-                /* Set Ethernet duplex mode to Full-duplex following the auto-negotiation */
-                heth.Init.DuplexMode = ETH_MODE_FULLDUPLEX;
-            } else {
-                /* Set Ethernet duplex mode to Half-duplex following the auto-negotiation */
-                heth.Init.DuplexMode = ETH_MODE_HALFDUPLEX;
-            }
-            /* Configure the MAC with the speed fixed by the auto-negotiation process */
-            if (regvalue & PHY_SPEED_STATUS) {
-                /* Set Ethernet speed to 10M following the auto-negotiation */
-                heth.Init.Speed = ETH_SPEED_10M;
-            } else {
-                /* Set Ethernet speed to 100M following the auto-negotiation */
-                heth.Init.Speed = ETH_SPEED_100M;
-            }
-        } else /* AutoNegotiation Disable */
-        {
-        error:
-            /* Check parameters */
-            assert_param(IS_ETH_SPEED(heth.Init.Speed));
-            assert_param(IS_ETH_DUPLEX_MODE(heth.Init.DuplexMode));
-
-            /* Set MAC Speed and Duplex Mode to PHY */
-            HAL_ETH_WritePHYRegister(&heth, PHY_BCR, ((uint16_t)(heth.Init.DuplexMode >> 3) | (uint16_t)(heth.Init.Speed >> 1)));
+            /* Set the speed and mode based on the result of the auto-negotiation */
+            LAN8742_SetSpeedAndMode();
         }
 
         /* ETHERNET MAC Re-Configuration */

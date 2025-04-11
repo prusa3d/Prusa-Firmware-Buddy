@@ -372,6 +372,16 @@ __STATIC_INLINE void LL_LPM_DisableEventOnPend(void)
 }
 
 /**
+  * @brief  Clear pending events.
+  * @retval None
+  */
+__STATIC_INLINE void LL_LPM_ClearEvent(void)
+{
+  __SEV();
+  __WFE();
+}
+
+/**
   * @}
   */
 
@@ -586,7 +596,7 @@ __STATIC_INLINE void LL_MPU_ConfigRegion(uint32_t Region, uint32_t SubRegionDisa
   /* Set base address */
   WRITE_REG(MPU->RBAR, (Address & 0xFFFFFFE0U));
   /* Configure MPU */
-  WRITE_REG(MPU->RASR, (MPU_RASR_ENABLE_Msk | Attributes | SubRegionDisable << MPU_RASR_SRD_Pos));
+  WRITE_REG(MPU->RASR, (MPU_RASR_ENABLE_Msk | Attributes | (SubRegionDisable << MPU_RASR_SRD_Pos)));
 }
 
 /**

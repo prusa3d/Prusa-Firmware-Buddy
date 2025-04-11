@@ -45,6 +45,7 @@
 #define HAL_DMA_MODULE_ENABLED
 #define HAL_DMA2D_MODULE_ENABLED
 #define HAL_ETH_MODULE_ENABLED
+/* #define HAL_ETH_LEGACY_MODULE_ENABLED */
 #define HAL_FLASH_MODULE_ENABLED
 #define HAL_NAND_MODULE_ENABLED
 #define HAL_NOR_MODULE_ENABLED
@@ -209,8 +210,8 @@
 #define MAC_ADDR5   0U
 
 /* Definition of the Ethernet driver buffers size and count */   
-#define ETH_RX_BUF_SIZE                ETH_MAX_PACKET_SIZE /* buffer size for receive               */
-#define ETH_TX_BUF_SIZE                ETH_MAX_PACKET_SIZE /* buffer size for transmit              */
+#define ETH_RX_BUF_SIZE                1528U               /* ETH Max buffer size for receive       */
+#define ETH_TX_BUF_SIZE                1528U               /* ETH Max buffer size for transmit      */
 #define ETH_RXBUFNB                    4U                  /* 4 Rx buffers of size ETH_RX_BUF_SIZE  */
 #define ETH_TXBUFNB                    4U                  /* 4 Tx buffers of size ETH_TX_BUF_SIZE  */
 
@@ -331,6 +332,10 @@
 #ifdef HAL_ETH_MODULE_ENABLED
   #include "stm32f4xx_hal_eth.h"
 #endif /* HAL_ETH_MODULE_ENABLED */
+
+#ifdef HAL_ETH_LEGACY_MODULE_ENABLED
+  #include "stm32f4xx_hal_eth_legacy.h"
+#endif /* HAL_ETH_LEGACY_MODULE_ENABLED */
 
 #ifdef HAL_FLASH_MODULE_ENABLED
   #include "stm32f4xx_hal_flash.h"
