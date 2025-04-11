@@ -655,6 +655,14 @@ public:
     MI_LEDS_ENABLE();
     virtual void OnChange(size_t old_index) override;
 };
+
+class MI_DISPLAY_BACKLIGHT_BRIGHTNESS : public WiSpin {
+    static constexpr const char *const label = N_("Display Backlight Brightness");
+
+public:
+    MI_DISPLAY_BACKLIGHT_BRIGHTNESS();
+    virtual void OnClick() override;
+};
 #endif
 
 #if HAS_SIDE_LEDS()
@@ -684,6 +692,15 @@ public:
     MI_SIDE_LEDS_DIMMING();
     virtual void OnChange(size_t old_index) override;
 };
+
+class MI_SIDE_LEDS_DIMMING_DURATION : public WiSpin {
+    static constexpr const char *const label = N_("RGB Side Strip Dimming Duration");
+
+public:
+    MI_SIDE_LEDS_DIMMING_DURATION();
+    virtual void OnClick() override;
+};
+
 #endif
 
 #if HAS_TOOLCHANGER()
@@ -693,6 +710,16 @@ class MI_TOOL_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
 public:
     MI_TOOL_LEDS_ENABLE();
     virtual void OnChange(size_t old_index) override;
+};
+#endif /*HAS_TOOLCHANGER()*/
+
+#if HAS_TOOLCHANGER()
+class MI_TOOL_LEDS_BRIGHTNESS : public WiSpin {
+    static constexpr const char *const label = N_("Tool Light Brightness");
+
+public:
+    MI_TOOL_LEDS_BRIGHTNESS();
+    virtual void OnClick() override;
 };
 #endif /*HAS_TOOLCHANGER()*/
 
