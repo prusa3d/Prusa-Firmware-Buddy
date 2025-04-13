@@ -975,6 +975,11 @@ void Pause::filament_not_in_fs_process([[maybe_unused]] Response response) {
     } else {
         if constexpr (!option::has_human_interactions) {
             runout_timer_ms = ticks_ms();
+        } else {
+            // We do have human interaction but filament sensor
+            // still detects filament after user confirmed unloading filament
+            // As we do not want to enter an endless loop, ask again for confirmation
+            set(LoadState::unloaded_ask);
         }
     }
 }
