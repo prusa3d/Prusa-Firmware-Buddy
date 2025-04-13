@@ -132,7 +132,7 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
                 state.first = false;
             }
             JSON_OBJ_START;
-                JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
+                JSON_FIELD_STR("name", state.ent->lfn) JSON_COMMA;
                 JSON_FIELD_BOOL("ro", state.read_only) JSON_COMMA;
                 JSON_FIELD_STR("type", file_type(state.ent)) JSON_COMMA;
 #ifdef UNITTESTS
