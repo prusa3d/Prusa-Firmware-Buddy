@@ -10,7 +10,7 @@
  *### M865: Configure filament parameters
  *
  *#### Parameters
- * - `I<ix>` - Configure parameters of a Custom filament currently loaded to the specified tool (indexed from 0)
+ * - `I<ix>` - Configure parameters of a filament currently loaded to the specified tool (indexed from 0)
  * - `U<ix>` - Configure parameters of a User filament (indexed from 0)
  * - `X` - Configure parameters of a Custom filament type that will be loaded using `M600 F"##"` (or similar filament change gcode)
  * - `F"<preset>"` - Configure parameters of User filament with this name  (or select Preset filament for `L`)
@@ -37,11 +37,8 @@ void PrusaGcodeSuite::M865() {
 
     FilamentType filament_type;
 
-    if (const auto slot = p.option<uint8_t>('I', static_cast<uint8_t>(0), static_cast<uint8_t>(adhoc_filament_type_count - 1))) {
-        filament_type = AdHocFilamentType { .tool = *slot };
-        if (config_store().get_filament_type(*slot) != filament_type) {
-            SERIAL_ERROR_MSG("The selected tool does not have the ad-hoc filament loaded. Changes will have no effect.");
-        }
+    if (const auto slot = p.option<uint8_t>('I', static_cast<uint8_t>(0), static_cast<uint8_t>(EXTRUDERS - 1))) {
+        filament_type = config_store().get_filament_type(*slot);
 
     } else if (p.option<bool>('X').value_or(false)) {
         filament_type = PendingAdHocFilamentType {};
