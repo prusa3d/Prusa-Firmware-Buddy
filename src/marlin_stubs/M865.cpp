@@ -13,8 +13,7 @@
  * - `I<ix>` - Configure parameters of a filament currently loaded to the specified tool (indexed from 0)
  * - `U<ix>` - Configure parameters of a User filament (indexed from 0)
  * - `X` - Configure parameters of a Custom filament type that will be loaded using `M600 F"##"` (or similar filament change gcode)
- * - `F"<preset>"` - Configure parameters of User filament with this name  (or select Preset filament for `L`)
- *
+ * - `S"<preset>"` - Configure parameters of filament with this name  (or select Preset filament for `L`)
  * - `L<ix>` - Set currently loaded filament for the given tool to the selected filament
  *
  * - `R` - Reset parameters not specified in this gcode to defaults
@@ -23,12 +22,13 @@
  * - `P` - Nozzle preheat temperature
  * - `B` - Bed temperature
  * - `A` - Is abrasive
- * - `F` - Requries filtration
+ * - `F` - Requires filtration
  * - `N"<string>"` - New filament name
  *
  * Ad-hoc/custom filaments can the be referenced in other gcodes using adhoc_filament_gcode_prefix.
  * For example `M600 S"#0"` will load ad-hoc filament previously set with `M865 I0`.
- * The current filament settings of the specified tool (indexed from 0) are printed to the serial console
+ * The filament_type settings are printed to the serial console. For option I, the current filament_type
+ * setting of the specified tool (indexed from 0) is displayed instead.
  */
 void PrusaGcodeSuite::M865() {
     GCodeParser2 p;
@@ -47,7 +47,7 @@ void PrusaGcodeSuite::M865() {
     } else if (const auto slot = p.option<uint8_t>('U', static_cast<uint8_t>(0), static_cast<uint8_t>(user_filament_type_count - 1))) {
         filament_type = UserFilamentType { .index = *slot };
 
-    } else if (const auto ft = p.option<FilamentType>('F')) {
+    } else if (const auto ft = p.option<FilamentType>('S')) {
         filament_type = *ft;
 
     } else {
