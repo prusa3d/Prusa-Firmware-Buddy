@@ -95,7 +95,7 @@ void PrusaGcodeSuite::M865() {
         filament_type.set_parameters(params);
     }
 
-    if (auto load = p.option<uint8_t>('L', static_cast<uint8_t>(0), static_cast<uint8_t>(EXTRUDERS))) {
+    if (auto load = p.option<uint8_t>('L', static_cast<uint8_t>(0), static_cast<uint8_t>(EXTRUDERS - 1))) {
         config_store().set_filament_type(*load, filament_type);
     }
 
