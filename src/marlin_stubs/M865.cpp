@@ -28,6 +28,7 @@
  *
  * Ad-hoc/custom filaments can the be referenced in other gcodes using adhoc_filament_gcode_prefix.
  * For example `M600 S"#0"` will load ad-hoc filament previously set with `M865 I0`.
+ * The current filament settings of the specified tool (indexed from 0) are printed to the serial console
  */
 void PrusaGcodeSuite::M865() {
     GCodeParser2 p;
@@ -96,6 +97,18 @@ void PrusaGcodeSuite::M865() {
 
     if (auto load = p.option<uint8_t>('L', static_cast<uint8_t>(0), static_cast<uint8_t>(EXTRUDERS))) {
         config_store().set_filament_type(*load, filament_type);
+    }
+
+    if (filament_type != FilamentType::none) {
+        ArrayStringBuilder<filament_name_buffer_size + 82> filament_info;
+        filament_info.append_printf("name:%s\n", params.name);
+        filament_info.append_printf("nozzle_temperature:%d\n", params.nozzle_temperature);
+        filament_info.append_printf("heatbed_temperature:%d\n", params.heatbed_temperature);
+        filament_info.append_printf("is_abrasive:%d\n", params.is_abrasive);
+#if HAS_CHAMBER_API()
+        filament_info.append_printf("requires_filtration:%d\n", params.requires_filtration);
+#endif
+        SERIAL_ECHOLN(filament_info.str());
     }
 }
 
