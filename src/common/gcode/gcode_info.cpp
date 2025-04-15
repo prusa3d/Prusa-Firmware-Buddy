@@ -497,6 +497,13 @@ void GCodeInfo::parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter) {
     if (cmd.front() == ';' || cmd.is_empty()) {
         return;
     }
+
+    // Make sure we don't parse inline comments
+    const auto comment = std::find(cmd.begin, cmd.end, ';');
+    if (comment != cmd.end) { // only if comments are found
+        cmd = GcodeBuffer::String(cmd.begin, comment);
+    }
+
     gcode_counter++;
 
     // skip line number if present
