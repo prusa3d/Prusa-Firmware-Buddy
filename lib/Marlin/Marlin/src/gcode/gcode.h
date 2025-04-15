@@ -326,6 +326,13 @@ struct G28Flags {
   #endif
 };
 
+#if ENABLED(SDSUPPORT) || ENABLED(SDCARD_GCODES)
+namespace M27_handler {
+  extern uint32_t sd_auto_report_delay;
+  void print_sd_status();
+} // namespace M27_handler
+#endif
+
 class GcodeSuite {
 public:
 
