@@ -15,9 +15,10 @@
 #define TURN_FLAG_ON(flg)          (flg &= ~LAN_FLAG_ONOFF_POS) // flip lan switch flg to ON
 #define TURN_FLAG_OFF(flg)         (flg |= LAN_FLAG_ONOFF_POS) // flip lan switch flg to OFF
 
-#define HOSTNAME_LEN 20 // ethernet hostname MAX length
-#define SSID_MAX_LEN 32 // https://en.wikipedia.org/wiki/Service_set_(802.11_network)#SSID
-#define WIFI_PSK_MAX 64
+#define HOSTNAME_LEN            20 // ethernet hostname MAX length
+#define SSID_MAX_LEN            32 // https://en.wikipedia.org/wiki/Service_set_(802.11_network)#SSID
+#define WIFI_PSK_MAX            64
+#define DNS_NTP_MAX_NAME_LENGTH 61
 
 typedef struct {
     uint8_t flag; // lan flags: pos0 = switch(ON=0, OFF=1), pos1 = type(DHCP=0, STATIC=1)
@@ -33,6 +34,7 @@ typedef struct {
     ip_addr_t dns2_ip4; // user defined DNS #2
     lan_t lan; // user defined LAN configurations
     uint32_t var_mask; // mask for setting ethvars
+    char ntp[DNS_NTP_MAX_NAME_LENGTH]; // user defined NTP hostname
 } netif_config_t;
 
 // those bits were previously assigned to distinguish WPA/WEP/none

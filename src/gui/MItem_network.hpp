@@ -170,3 +170,18 @@ public:
 public:
     const NetDeviceID device_id;
 };
+
+class MI_NTP_ADDR : public WiInfo<DNS_MAX_NAME_LENGTH - 68> {
+    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("NTP Address") : N_("NTP");
+
+public:
+    MI_NTP_ADDR();
+};
+
+class MI_NTP_VIA_DHCP : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("NTP via DHCP");
+
+public:
+    MI_NTP_VIA_DHCP();
+    virtual void OnChange(size_t old_index) override;
+};
