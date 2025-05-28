@@ -80,6 +80,7 @@ void PrusaGcodeSuite::M141_no_parser(const M141Args &args) {
 
     if (!chamber().capabilities().temperature_control()) {
         SERIAL_ERROR_MSG("Chamber does not allow temperature control");
+        return;
     }
 
     auto target = args.target_temp;
