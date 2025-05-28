@@ -1010,6 +1010,18 @@ void Temperature::isr() {
       print_heater_state(degBed(), degTargetBed(), H_BED);
     #endif
 
+    #if HAS_CHAMBER_API()
+      if (const auto caps = buddy::chamber().capabilities(); caps.temperature_reporting) {
+        SERIAL_ECHOPAIR(" C:", buddy::chamber().current_temperature().value_or(0.0f));
+
+        // Gated on generally, not at_this_moment - hosts latch the last target they saw,
+        // so the field must not come and go at runtime
+        if (caps.temperature_control_generally()) {
+          SERIAL_ECHOPAIR("/", buddy::chamber().effective_target_temperature().value_or(0.0f));
+        }
+      }
+    #endif
+
     #if HAS_TEMP_HEATBREAK
       print_heater_state(degHeatbreak(target_extruder)
           , degTargetHeatbreak(target_extruder)
@@ -1032,10 +1044,6 @@ void Temperature::isr() {
     SERIAL_ECHOPAIR(" @:", getHeaterPower((heater_ind_t)target_extruder));
     #if HAS_HEATED_BED
       SERIAL_ECHOPAIR(" B@:", getHeaterPower(H_BED));
-    #endif
-    #if HAS_CHAMBER_API()
-      auto current_chamber_temperature = buddy::chamber().current_temperature();
-      if (current_chamber_temperature.has_value()) SERIAL_ECHOPAIR(" C@:", current_chamber_temperature.value());
     #endif
 
     #if HAS_TEMP_HEATBREAK
