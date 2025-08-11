@@ -8092,8 +8092,8 @@ msgstr "Der G-Code ist nicht vollständig kompatibel"
 #: tmp_error_headers/error_list_coreone.hpp:37
 msgid "The bed doesn't seem to be aligned properly. Run Z alignment procedure?"
 msgstr ""
-"Das Bett scheint nicht richtig ausgerichtet zu sein. Haben Sie die Z-"
-"Ausrichtung durchgeführt?"
+"Das Bett scheint nicht richtig ausgerichtet zu sein. Möchten Sie die Z-"
+"Ausrichtung jetzt durchführen?"
 
 #: tmp_error_headers/error_list_coreone.hpp:9
 #: tmp_error_headers/error_list_xl.hpp:58
