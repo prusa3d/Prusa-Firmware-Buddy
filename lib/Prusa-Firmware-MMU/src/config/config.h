@@ -94,7 +94,7 @@ static constexpr U_mm couplerToBowden = 3.5_mm; /// FINDA Coupler screw to bowde
 // Min, max and default bowden length setup
 static constexpr U_mm defaultBowdenLength = 360.0_mm; /// ~360.0_mm - Default Bowden length.
 static constexpr U_mm minimumBowdenLength = 341.0_mm; /// ~341.0_mm - Minimum bowden length.
-static constexpr U_mm maximumBowdenLength = 1000.0_mm; /// ~1000.0_mm - Maximum bowden length.
+static constexpr U_mm maximumBowdenLength = 5000.0_mm; /// ~1000.0_mm - Maximum bowden length.
 static_assert(minimumBowdenLength.v <= defaultBowdenLength.v);
 static_assert(maximumBowdenLength.v > defaultBowdenLength.v);
 
@@ -120,7 +120,7 @@ static constexpr AxisConfig pulley = {
 
 /// Pulley motion limits
 static constexpr PulleyLimits pulleyLimits = {
-    .lenght = 1000.0_mm, // TODO
+    .lenght = 5000.0_mm, // TODO
     .jerk = 4.0_mm_s,
     .accel = 800.0_mm_s2,
 };
