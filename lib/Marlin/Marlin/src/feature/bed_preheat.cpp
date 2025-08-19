@@ -38,11 +38,8 @@ void BedPreheat::update() {
 }
 
 uint32_t BedPreheat::required_preheat_time() {
-    if (thermalManager.degTargetBed() < minimal_preheat_temp) {
-        return 0;
-    }
-
-    return std::max((180 + (thermalManager.degTargetBed() - 60) * (12 * 60 / 50)) * 1000, 0);
+    auto degTargetBed = thermalManager.degTargetBed();
+    return degTargetBed < minimal_preheat_temp ? 0 : std::max((180 + ((int)degTargetBed - 60) * (12 * 60 / 50)) * 1000, 0);
 }
 
 uint32_t BedPreheat::remaining_preheat_time() {
@@ -51,9 +48,9 @@ uint32_t BedPreheat::remaining_preheat_time() {
     }
 
     const auto now = millis();
-    const int32_t required = required_preheat_time();
-    const int32_t elapsed = now - heating_start_time.value_or(now);
-    return std::max(required - elapsed, int32_t(0));
+    const auto required = required_preheat_time();
+    const auto elapsed = now - heating_start_time.value_or(now);
+    return std::max(required - elapsed, uint32_t(0));
 }
 
 void BedPreheat::wait_for_preheat() {
@@ -72,7 +69,7 @@ void BedPreheat::wait_for_preheat() {
             const uint32_t remaining_s = remaining_preheat_time() / 1000;
             const uint32_t minutes = remaining_s / 60;
             const uint32_t seconds = remaining_s % 60;
-            MarlinUI::status_printf_P(0, "Absorbing heat (%i:%02i)", minutes, seconds);
+            MarlinUI::status_printf_P(0, "Absorbing heat (%d:%02d)", minutes, seconds);
             last_message_timestamp = millis();
         }
     }
