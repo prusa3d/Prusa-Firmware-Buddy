@@ -36,7 +36,6 @@
 #include "../core/language.h"
 #include "../HAL/shared/Delay.h"
 #include "bsod.h"
-#include "logging/log.hpp"
 #include "metric.h"
 #include "../../../../src/common/hwio.h"
 #include <stdint.h>
@@ -44,7 +43,6 @@
 #include "printers.h"
 #include "MarlinPin.h"
 #include "../../../../src/common/adc.hpp"
-#include "../marlin_stubs/skippable_gcode.hpp"
 #include <option/has_chamber_api.h>
 #if HAS_CHAMBER_API()
 #include "feature/chamber/chamber.hpp"
@@ -92,11 +90,6 @@
 #if USE_BEEPER
   #include "../libs/buzzer.h"
 #endif
-
-#include <option/has_dwarf.h>
-#include <option/has_modularbed.h>
-
-LOG_COMPONENT_REF(MarlinServer);
 
 #if HOTEND_USES_THERMISTOR
   #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
@@ -272,9 +265,6 @@ Temperature thermalManager;
 
 #if HAS_HEATED_BED
   bed_info_t Temperature::temp_bed; // = { 0 }
-  float Temperature::bed_frame_est_celsius = TempInfo::celsius_uninitialized;
-  uint32_t Temperature::bed_frame_millis = 0;
-
   // Init min and max temp with extreme values to prevent false errors during startup
   #ifdef BED_MINTEMP
     int16_t Temperature::mintemp_raw_BED = HEATER_BED_RAW_LO_TEMP;
@@ -878,10 +868,7 @@ void Temperature::_temp_error(const heater_ind_t heater, PGM_P const serial_msg,
     SERIAL_EOL();
   }
 
-  // Disable only the local heaters. We are in ISR, so we can't afford any kind
-  // of interprocessor communication and it would not finish anyway before we
-  // kill it.
-  disable_local_heaters(); // always disable (even for bogus temp)
+  disable_all_heaters(); // always disable (even for bogus temp)
 
   #if BOGUS_TEMPERATURE_GRACE_PERIOD
     const millis_t ms = millis();
@@ -2225,26 +2212,7 @@ void Temperature::updateTemperaturesFromRawValues() {
     #else
       temp_bed.celsius = analog_to_celsius_bed(temp_bed.raw);
     #endif
-
-    uint32_t now_millis = millis();
-    if (temp_bed.celsius > 0.0f) {
-      if (bed_frame_est_celsius < 0.0f) {
-        init_bed_frame_est_celsius();
-      } else {
-        float dt = (now_millis - bed_frame_millis) / 1000.0f;
-
-        // A linear function that reaches estimated bed frame temperature after
-        // about 150s for 60C and about 10 minutes for 100C if starting with a
-        // cold bed. With a bed already partially warmed, the time is
-        // proportionally shorter.
-        float step = (0.06f + (100.0f - temp_bed.celsius) * 0.0015f) * dt;
-        bed_frame_est_celsius += std::clamp(temp_bed.celsius - bed_frame_est_celsius, -step, step);
-      }
-    }
-
-    bed_frame_millis = now_millis;
   #endif
-
   #if HAS_TEMP_CHAMBER
     temp_chamber.celsius = analog_to_celsius_chamber(temp_chamber.raw);
   #endif
@@ -2795,18 +2763,6 @@ void Temperature::disable_all_heaters() {
 void Temperature::disable_hotend() {
     disable_heaters(disable_bed_t::no);
 
-}
-
-void Temperature::disable_local_heaters() {
-#if HAS_DWARF() && HAS_MODULARBED()
-    // No local heater present
-#elif !HAS_DWARF() && HAS_MODULARBED()
-    disable_hotend();
-#elif !HAS_DWARF() && !HAS_MODULARBED()
-    disable_all_heaters();
-#else
-#error "Don't know how to disable the bed but not dwarf"
-#endif
 }
 
 void Temperature::disable_heaters(Temperature::disable_bed_t disable_bed) {
@@ -4196,52 +4152,6 @@ void Temperature::isr() {
       if (wait_for_heatup) ui.reset_status();
 
       return wait_for_heatup;
-    }
-
-    void Temperature::init_bed_frame_est_celsius() {
-        static constexpr float room_temperature = 25.0f;
-
-        if (temp_bed.celsius < room_temperature) {
-          // If around room temperature, init directly to bed temperature
-          bed_frame_est_celsius = temp_bed.celsius;
-        } else {
-          // If over room temp, init with a fraction of the current temp that's
-          // over room temperature, as a crude estimation of how the bed frame
-          // has been heated up
-          bed_frame_est_celsius = room_temperature + (temp_bed.celsius - room_temperature) * 0.7f;
-        }
-    }
-
-    void Temperature::wait_for_frame_heatup() {
-        if (abs(temp_bed.target - bed_frame_est_celsius) < 0.5f) {
-            log_info(MarlinServer, "Absorbing heat: already stable, continuing");
-            return;
-        }
-
-        SkippableGCode::Guard skippable_operation;
-
-        static constexpr uint32_t message_interval = 1000;
-        uint32_t last_message_timestamp = millis() - message_interval;
-
-        const float start_diff = temp_bed.target - bed_frame_est_celsius;
-        while (abs(temp_bed.target - bed_frame_est_celsius) > 0.5f && !skippable_operation.is_skip_requested()) {
-            // Check if we're aborting
-            if (planner.draining()) {
-                break;
-            }
-
-            idle(true);
-
-            // make sure we don't turn off the motors
-            gcode.reset_stepper_timeout();
-
-            if (millis() - last_message_timestamp > message_interval) {
-                MarlinUI::status_printf_P(0, "Absorbing heat\n%u%%", 100 - static_cast<uint8_t>((temp_bed.target - bed_frame_est_celsius) / start_diff * 100));
-                last_message_timestamp = millis();
-            }
-        }
-
-        MarlinUI::reset_status();
     }
 
   #endif // HAS_HEATED_BED
