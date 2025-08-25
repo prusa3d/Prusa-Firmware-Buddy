@@ -73,6 +73,7 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
     nozzle_diameter = 22,
     nozzle_pwm = 23,
     chamber_temp = 24,
+    current_layer = 25,
     _count,
 };
 
@@ -122,6 +123,7 @@ inline constexpr std::array item_list {
         Item::axis_y,
         Item::axis_z,
         Item::z_height,
+        Item::current_layer,
 #if defined(FOOTER_HAS_LIVE_Z)
         Item::live_z,
 #endif

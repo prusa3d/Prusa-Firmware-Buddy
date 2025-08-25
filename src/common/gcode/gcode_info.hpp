@@ -26,6 +26,8 @@ inline constexpr const char *filament_type = "filament_type";
 inline constexpr const char *extruder_colour = "extruder_colour";
 inline constexpr const char *filament_mm = "filament used [mm]";
 inline constexpr const char *filament_g = "filament used [g]";
+inline constexpr const char *layer_height = "layer_height";
+inline constexpr const char *first_layer_height = "first_layer_height";
 #if EXTRUDERS > 1
 inline constexpr const char *filament_wipe_tower_g = "total filament used for wipe tower [g]";
 #endif
@@ -65,6 +67,8 @@ public:
         std::optional<Color> extruder_colour; /**< stores colour of extruder*/
         std::optional<bool> requires_hardened_nozzle;
         std::optional<bool> requires_high_flow_nozzle;
+        std::optional<float> layer_height; /**< layer height taken from gcode info */
+        std::optional<float> first_layer_height; /**< first layer height taken from gcode info */
 
         inline bool used() const {
             /// At least this much filament [g] to be considered used (just purge is about 0.06 g on both XL and MK3)

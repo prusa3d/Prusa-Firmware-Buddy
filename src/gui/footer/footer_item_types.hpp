@@ -14,6 +14,7 @@
 #include "footer_item_fsvalue.hpp"
 #include "footer_item_input_shaper.hpp"
 #include "footer_item_chamber_temp.hpp"
+#include "footer_item_layer.hpp"
 #include <option/has_mmu2.h>
 #include <option/has_sheet_profiles.h>
 #include <option/has_chamber_api.h>
@@ -73,7 +74,8 @@ using FooterItemMappings = TypeList< //
 #if HAS_CHAMBER_API()
     FooterItemMappingRec<FooterItemChamberTemperature, Item::chamber_temp>,
 #endif
-    FooterItemMappingRec<FooterItemNozzle, Item::nozzle>
+    FooterItemMappingRec<FooterItemNozzle, Item::nozzle>,
+    FooterItemMappingRec<FooterItemCurrentLayer, Item::current_layer>
     //
     >;
 

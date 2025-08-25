@@ -54,6 +54,7 @@ const char *footer::to_string(Item item) {
                 HAS_CHAMBER_API() ? (const char *)N_("Chamber temperature")
                                   : nullptr //
         },
+        { Item::current_layer, N_("Current Layer") },
     };
 
     return texts.get_fallback(item, Item::none);

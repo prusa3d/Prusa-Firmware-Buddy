@@ -563,8 +563,10 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
         const bool is_filament_used_mm = (name == gcode_info::filament_mm);
         const bool is_filament_used_g = (name == gcode_info::filament_g);
         const bool is_extruder_colour = (name == gcode_info::extruder_colour);
+        const bool is_layer_height = (name == gcode_info::layer_height);
+        const bool is_first_layer_height = (name == gcode_info::first_layer_height);
 
-        if (is_filament_type || is_filament_used_g || is_filament_used_mm || is_extruder_colour) {
+        if (is_filament_type || is_filament_used_g || is_filament_used_mm || is_extruder_colour || is_layer_height) {
             std::span<char> value(val.c_str(), val.len());
             size_t extruder = 0;
             while (const auto item = iterate_items(value, is_filament_type || is_extruder_colour ? ';' : ',')) {
@@ -589,6 +591,14 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
 
                 } else if (is_extruder_colour) {
                     per_extruder_info[extruder].extruder_colour = Color::from_string(*item);
+                } else if (is_layer_height) {
+                    float layer_height;
+                    sscanf(item->data(), "%f", &layer_height);
+                    per_extruder_info[extruder].layer_height = layer_height;
+                } else if (is_first_layer_height) {
+                    float first_layer_height;
+                    sscanf(item->data(), "%f", &first_layer_height);
+                    per_extruder_info[extruder].first_layer_height = first_layer_height;
                 }
                 extruder++;
             }
