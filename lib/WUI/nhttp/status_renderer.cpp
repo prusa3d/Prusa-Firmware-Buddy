@@ -66,10 +66,10 @@ json::JsonResult StatusRenderer::renderState(size_t resume_point, json::JsonOutp
             JSON_FIELD_FFIXED("temp_nozzle", marlin_vars().active_hotend().temp_nozzle, 1) JSON_COMMA;
             JSON_FIELD_FFIXED("target_nozzle", marlin_vars().active_hotend().target_nozzle, 1) JSON_COMMA;
             // XYZE, mm
-            JSON_FIELD_FFIXED("axis_z", marlin_vars().logical_curr_pos[2], 1) JSON_COMMA;
+            JSON_FIELD_FFIXED("axis_z", marlin_vars().logical_curr_pos[2], 3) JSON_COMMA;
             if (!marlin_client::is_printing()) {
-                JSON_FIELD_FFIXED("axis_x", marlin_vars().logical_curr_pos[0], 1) JSON_COMMA;
-                JSON_FIELD_FFIXED("axis_y", marlin_vars().logical_curr_pos[1], 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("axis_x", marlin_vars().logical_curr_pos[0], 3) JSON_COMMA;
+                JSON_FIELD_FFIXED("axis_y", marlin_vars().logical_curr_pos[1], 3) JSON_COMMA;
             }
             JSON_FIELD_INT("flow", marlin_vars().active_hotend().flow_factor) JSON_COMMA;
             JSON_FIELD_INT("speed", marlin_vars().print_speed) JSON_COMMA;
