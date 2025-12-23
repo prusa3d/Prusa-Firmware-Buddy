@@ -48,6 +48,8 @@ static constexpr size_t side_led_driver_count = 2;
 static constexpr size_t side_led_driver_count = 18;
     #elif PRINTER_IS_PRUSA_COREONE()
         #define HAS_SIDE_LED_DRIVER() 0
+    #elif PRINTER_IS_PRUSA_MK4()
+        #define HAS_SIDE_LED_DRIVER() 0
     #else
         #error "Not defined for this printer."
     #endif

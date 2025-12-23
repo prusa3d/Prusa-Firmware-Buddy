@@ -64,6 +64,10 @@ set(SIGNING_KEY
     ""
     CACHE FILEPATH "Path to a PEM EC private key to be used to sign the firmware."
     )
+set(ENABLE_XBUDDY_EXTENSION_MK4
+    "NO"
+    CACHE BOOL "Enable xBuddy Extension support on MK4/MK3.9 (build + puppy flashing)."
+    )
 set(PROJECT_VERSION_SUFFIX
     "<auto>"
     CACHE
@@ -317,6 +321,9 @@ set_feature_for_printers_master_board(HAS_FILAMENT_HEATBREAK_PARAM "iX")
 set(PRINTERS_WITH_RESOURCES "MINI" "MK4" "MK3.5" "XL" "iX" "COREONE")
 set_feature_for_printers(HAS_BOWDEN "MINI")
 set(PRINTERS_WITH_PUPPIES_BOOTLOADER "XL" "iX" "XL_DEV_KIT" "COREONE")
+if(ENABLE_XBUDDY_EXTENSION_MK4)
+  list(APPEND PRINTERS_WITH_PUPPIES_BOOTLOADER "MK4")
+endif()
 set(PRINTERS_WITH_DWARF "XL" "XL_DEV_KIT")
 
 # MODULAR_BED is a bed consisting of several bedlets
@@ -328,21 +335,35 @@ set_feature_for_printers_master_board(HAS_LOCAL_BED "COREONE" "MINI" "MK4" "MK3.
 # PUPPY_MODULARBED is remote modular bed implemented as a puppy, i.e. communicating over modbus
 set_feature_for_printers_master_board(HAS_PUPPY_MODULARBED "iX" "XL" "XL_DEV_KIT")
 
-set_feature_for_printers_master_board(HAS_XBUDDY_EXTENSION "COREONE")
-set_feature_for_printers_master_board(XBUDDY_EXTENSION_VARIANT_STANDARD "COREONE")
+set(XBUDDY_EXTENSION_PRINTERS "COREONE")
+if(ENABLE_XBUDDY_EXTENSION_MK4)
+  list(APPEND XBUDDY_EXTENSION_PRINTERS "MK4")
+endif()
+set_feature_for_printers_master_board(HAS_XBUDDY_EXTENSION ${XBUDDY_EXTENSION_PRINTERS})
+set_feature_for_printers_master_board(XBUDDY_EXTENSION_VARIANT_STANDARD ${XBUDDY_EXTENSION_PRINTERS})
 
-# MK4 technically doesn't have door sensor but needs to check valid FW-HW
 set_feature_for_printers_master_board(HAS_DOOR_SENSOR "COREONE" "MK4")
 set_feature_for_printers(HAS_TOOLCHANGER "XL" "XL_DEV_KIT")
-set_feature_for_printers(HAS_SIDE_FSENSOR "iX" "XL" "COREONE")
+set(SIDE_FSENSOR_PRINTERS "iX" "XL" "COREONE")
+if(ENABLE_XBUDDY_EXTENSION_MK4)
+  list(APPEND SIDE_FSENSOR_PRINTERS "MK4")
+endif()
+set_feature_for_printers(HAS_SIDE_FSENSOR ${SIDE_FSENSOR_PRINTERS})
 set_feature_for_printers(HAS_ADC_SIDE_FSENSOR "XL")
-set_feature_for_printers(HAS_FILAMENT_SENSORS_MENU "XL" "COREONE")
+set(FILAMENT_SENSORS_MENU_PRINTERS "XL" "COREONE")
+if(ENABLE_XBUDDY_EXTENSION_MK4)
+  list(APPEND FILAMENT_SENSORS_MENU_PRINTERS "MK4")
+endif()
+set_feature_for_printers(HAS_FILAMENT_SENSORS_MENU ${FILAMENT_SENSORS_MENU_PRINTERS})
 
 # iX does not need ESP flashing
 set_feature_for_printers(HAS_ESP_FLASH_TASK "MK4" "MK3.5" "XL" "MINI" "COREONE")
 
 set_feature_for_printers(HAS_EMBEDDED_ESP32 "XL")
 set(PRINTERS_WITH_SIDE_LEDS "XL" "iX" "COREONE")
+if(ENABLE_XBUDDY_EXTENSION_MK4)
+  list(APPEND PRINTERS_WITH_SIDE_LEDS "MK4")
+endif()
 set(PRINTERS_WITH_TRANSLATIONS "COREONE" "MK4" "MK3.5" "XL" "MINI")
 set(PRINTERS_WITH_EXTFLASH_TRANSLATIONS "MINI")
 set_feature_for_printers(HAS_LOVE_BOARD "MK4" "iX" "COREONE")
@@ -350,13 +371,25 @@ set_feature_for_printers(HAS_TMC_UART "MINI")
 set_feature_for_printers(HAS_XLCD "MK4" "MK3.5" "iX" "XL" "COREONE")
 set_feature_for_printers(HAS_MMU2 "MK4" "MK3.5" "COREONE")
 set_feature_for_printers(HAS_CONFIG_STORE_WO_BACKEND "XL_DEV_KIT")
-set_feature_for_printers_master_board(HAS_CHAMBER_API "XL" "COREONE")
-set_feature_for_printers_master_board(HAS_CHAMBER_FILTRATION_API "COREONE" "XL")
+set(CHAMBER_API_PRINTERS "XL" "COREONE")
+set(CHAMBER_FILTRATION_API_PRINTERS "COREONE" "XL")
+if(ENABLE_XBUDDY_EXTENSION_MK4)
+  list(APPEND CHAMBER_API_PRINTERS "MK4")
+  list(APPEND CHAMBER_FILTRATION_API_PRINTERS "MK4")
+endif()
+set_feature_for_printers_master_board(HAS_CHAMBER_API ${CHAMBER_API_PRINTERS})
+set_feature_for_printers_master_board(HAS_CHAMBER_FILTRATION_API ${CHAMBER_FILTRATION_API_PRINTERS})
 set_feature_for_printers_master_board(XL_ENCLOSURE_SUPPORT "XL")
 set_feature_for_printers(HAS_SWITCHED_FAN_TEST "MK4" "MK3.5" "COREONE")
 set_feature_for_printers_master_board(HAS_HOTEND_TYPE_SUPPORT "MK4" "MK3.5" "iX" "COREONE" "XL")
-set_feature_for_printers(HAS_EMERGENCY_STOP "COREONE")
-set_feature_for_printers(HAS_CEILING_CLEARANCE "COREONE")
+set(EMERGENCY_STOP_PRINTERS "COREONE")
+set(CEILING_CLEARANCE_PRINTERS "COREONE")
+if(ENABLE_XBUDDY_EXTENSION_MK4)
+  list(APPEND EMERGENCY_STOP_PRINTERS "MK4")
+  list(APPEND CEILING_CLEARANCE_PRINTERS "MK4")
+endif()
+set_feature_for_printers(HAS_EMERGENCY_STOP ${EMERGENCY_STOP_PRINTERS})
+set_feature_for_printers(HAS_CEILING_CLEARANCE ${CEILING_CLEARANCE_PRINTERS})
 set_feature_for_printers(
   HAS_CANCEL_OBJECT
   "MK4"
@@ -375,7 +408,11 @@ set_feature_for_printers(HAS_GCODE_COMPATIBILITY "MK3.5" "MK4" "COREONE")
 # Requires SELFTEST to work
 set_feature_for_printers(HAS_UNEVEN_BED_PROMPT "COREONE")
 
-set_feature_for_printers(HAS_DOOR_SENSOR_CALIBRATION "COREONE")
+set(DOOR_SENSOR_CALIBRATION_PRINTERS "COREONE")
+if(ENABLE_XBUDDY_EXTENSION_MK4)
+  list(APPEND DOOR_SENSOR_CALIBRATION_PRINTERS "MK4")
+endif()
+set_feature_for_printers(HAS_DOOR_SENSOR_CALIBRATION ${DOOR_SENSOR_CALIBRATION_PRINTERS})
 
 # Set GUI settings
 set(PRINTERS_WITH_GUI "COREONE" "MINI" "MK4" "MK3.5" "XL" "iX")

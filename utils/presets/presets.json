@@ -102,11 +102,38 @@
             }
         },
         {
+            "name": "mk4-extension",
+            "description": "Original Prusa MK4 with xBuddy Extension enabled",
+            "cacheVariables": {
+                "PRINTER": "MK4",
+                "BOARD": "XBUDDY",
+                "ENABLE_XBUDDY_EXTENSION_MK4":true,
+                "XBUDDY_EXTENSION_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-xbuddy-extension"
+                }
+            }
+        },
+        {
             "name": "mk4-burst",
             "description": "Original Prusa MK4 with xBuddy 0.2.7c or newer fw compatible, 400-step motors and planetary gearbox",
             "cacheVariables": {
                 "PRINTER": "MK4",
                 "BOARD": "XBUDDY",
+                "ENABLE_BURST":true
+            }
+        },
+        {
+            "name": "mk4-extension-burst",
+            "description": "Original Prusa MK4 with xBuddy Extension enabled (Burst stepping)",
+            "cacheVariables": {
+                "PRINTER": "MK4",
+                "BOARD": "XBUDDY",
+                "ENABLE_XBUDDY_EXTENSION_MK4":true,
+                "XBUDDY_EXTENSION_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-xbuddy-extension"
+                },
                 "ENABLE_BURST":true
             }
         },
@@ -224,6 +251,14 @@
             "description": "Original Prusa CORE One Extension Board",
             "cacheVariables": {
                 "PRINTER": "COREONE",
+                "BOARD": "XBUDDY_EXTENSION"
+            }
+        },
+        {
+            "name": "mk4-xbuddy-extension",
+            "description": "Original Prusa MK4 Extension Board",
+            "cacheVariables": {
+                "PRINTER": "MK4",
                 "BOARD": "XBUDDY_EXTENSION"
             }
         }

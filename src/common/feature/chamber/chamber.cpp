@@ -22,7 +22,7 @@
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
 
-#if PRINTER_IS_PRUSA_COREONE()
+#if PRINTER_IS_PRUSA_COREONE() || (PRINTER_IS_PRUSA_MK4() && HAS_XBUDDY_EXTENSION())
     #define HAS_CHAMBER_TEMPERATURE_THERMISTOR_POSITION_OFFSET() 1
 #elif PRINTER_IS_PRUSA_XL()
     #define HAS_CHAMBER_TEMPERATURE_THERMISTOR_POSITION_OFFSET() 0
@@ -34,7 +34,7 @@
     #include <Configuration.h>
 #endif
 
-#if PRINTER_IS_PRUSA_COREONE()
+#if PRINTER_IS_PRUSA_COREONE() || (PRINTER_IS_PRUSA_MK4() && HAS_XBUDDY_EXTENSION())
 namespace {
 constexpr buddy::Temperature chamber_maxtemp = 60;
 constexpr buddy::Temperature chamber_maxtemp_safety_margin = 5;
@@ -87,7 +87,7 @@ Chamber::Capabilities Chamber::capabilities_nolock() const {
             // Always show temperature control menu items, even if auto cooling is disabled
                 .always_show_temperature_control = true,
 
-    #if PRINTER_IS_PRUSA_COREONE()
+    #if PRINTER_IS_PRUSA_COREONE() || (PRINTER_IS_PRUSA_MK4() && HAS_XBUDDY_EXTENSION())
             .max_temp = { chamber_maxtemp - chamber_maxtemp_safety_margin },
     #endif
         };
@@ -124,7 +124,7 @@ Chamber::Backend Chamber::backend() const {
 std::optional<Temperature> Chamber::current_temperature() const {
     const auto chamber_tempearture = thermistor_temperature();
 #if HAS_CHAMBER_TEMPERATURE_THERMISTOR_POSITION_OFFSET()
-    #if PRINTER_IS_PRUSA_COREONE()
+    #if PRINTER_IS_PRUSA_COREONE() || (PRINTER_IS_PRUSA_MK4() && HAS_XBUDDY_EXTENSION())
     const auto bed_temperature = thermalManager.degBed();
     static constexpr Temperature min_temp = 20.f;
     if (chamber_tempearture.has_value() && bed_temperature > *chamber_tempearture && *chamber_tempearture > min_temp) {

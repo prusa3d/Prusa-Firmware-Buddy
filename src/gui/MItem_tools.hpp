@@ -18,6 +18,7 @@
 #include <option/has_leds.h>
 #include <option/has_phase_stepping_toggle.h>
 #include <option/has_side_leds.h>
+#include <option/xbuddy_extension_variant_standard.h>
 #include <option/buddy_enable_connect.h>
 #include <option/has_belt_tuning.h>
 #include <option/has_auto_retract.h>
@@ -547,7 +548,7 @@ public:
 class MI_SIDE_LEDS_MAX_BRIGTHNESS : public WiSpin {
 
     static constexpr const char *const label =
-    #if PRINTER_IS_PRUSA_COREONE()
+    #if XBUDDY_EXTENSION_VARIANT_STANDARD()
         N_("Chamber Lights");
     #else
         N_("RGB Side Strip");
@@ -561,7 +562,7 @@ public:
 class MI_SIDE_LEDS_DIMMED_BRIGTHNESS : public WiSpin {
 
     static constexpr const char *const label =
-    #if PRINTER_IS_PRUSA_COREONE()
+    #if XBUDDY_EXTENSION_VARIANT_STANDARD()
         N_("Chamber Lights Dimmed");
     #else
         N_("RGB Side Strip Dimmed");
@@ -575,7 +576,7 @@ public:
 
 class MI_SIDE_LEDS_DIMMING_ENABLE : public MenuItemSwitch {
     static constexpr const char *const label =
-    #if PRINTER_IS_PRUSA_COREONE()
+    #if XBUDDY_EXTENSION_VARIANT_STANDARD()
         N_("Chamber Dimming");
     #else
         N_("RGB Side Strip Dimming");

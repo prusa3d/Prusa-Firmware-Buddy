@@ -55,7 +55,7 @@ set(EXTENSION_IX 2)
 
 if(${PRINTER} STREQUAL "iX")
   set(EXTENSION_VARIANT ${EXTENSION_IX})
-elseif(${PRINTER} STREQUAL "COREONE")
+elseif(${PRINTER} STREQUAL "COREONE" OR ${PRINTER} STREQUAL "MK4")
   set(EXTENSION_VARIANT ${EXTENSION_STANDARD})
 else()
   message(FATAL_ERROR "Building xBuddyExtension for an incompatible printer")
