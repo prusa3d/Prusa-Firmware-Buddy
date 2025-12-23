@@ -43,7 +43,7 @@ static void setup_gcode_compatibility(const PrinterModelInfo *gcode_printer) {
         }
 
         if (const auto &t = params.chamber_min_temperature; t.has_value() && chamber().current_temperature() < *t) {
-        #if PRINTER_IS_PRUSA_COREONE()
+        #if PRINTER_IS_PRUSA_COREONE() || (PRINTER_IS_PRUSA_MK4() && HAS_CHAMBER_API())
             ScopeGuard restore_bed_temp = [temp = thermalManager.degTargetBed()] {
                 thermalManager.setTargetBed(temp);
             };

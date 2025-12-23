@@ -35,6 +35,11 @@ constexpr FanRPMRange heatbreak_fan_range = { .rpm_min = 6500, .rpm_max = 8700 }
 constexpr FanRPMRange print_fan_range = { .rpm_min = 4800, .rpm_max = 6799 };
 constexpr FanRPMRange print_low_fan_range = benevolent_fan_range;
 constexpr FanRPMRange heatbreak_fan_range = { .rpm_min = 6800, .rpm_max = 8700 };
+#if HAS_XBUDDY_EXTENSION()
+// Use the same nominal ranges as COREONE for the XBuddy Extension fans.
+constexpr FanRPMRange chamber_fan_range = FanRPMRange::nominal_with_percentual_tolerance(8500, 15);
+constexpr FanRPMRange filtration_fan_range = FanRPMRange::nominal_with_percentual_tolerance(3400, 15);
+#endif
 #elif PRINTER_IS_PRUSA_COREONE()
 constexpr FanRPMRange print_fan_range = { .rpm_min = 4800, .rpm_max = 6799 };
 constexpr FanRPMRange print_low_fan_range = benevolent_fan_range;

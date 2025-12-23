@@ -46,8 +46,14 @@ if(PRINTER STREQUAL "XL_DEV_KIT")
   set(PRINTER "XL")
 endif()
 
+set(ERROR_CODES_PRINTER "${PRINTER}")
+if(PRINTER STREQUAL "MK4" AND ENABLE_XBUDDY_EXTENSION_MK4)
+  # keep MK4 error list unchanged unless xBuddy Extension is explicitly enabled
+  set(ERROR_CODES_PRINTER "MK4_XBUDDY")
+endif()
+
 add_generated_error_codes_header(
-  "${error_codes_dir}/yaml/buddy-error-codes.yaml" ${PRINTER_CODE} ${PRINTER} FALSE
+  "${error_codes_dir}/yaml/buddy-error-codes.yaml" ${PRINTER_CODE} ${ERROR_CODES_PRINTER} FALSE
   )
 
 # TODO temporarily build the mmu header, not easy to separate the mmu code, needs refactor

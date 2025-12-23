@@ -2,6 +2,7 @@
 #include "i18n.h"
 #include <utility_extensions.hpp>
 #include <printer_selftest.hpp>
+#include <option/has_door_sensor_calibration.h>
 #include <selftest_types.hpp>
 
 namespace SelftestSnake {
@@ -22,6 +23,9 @@ enum class Action {
     ZCheck,
     Heaters,
     Gears,
+#if HAS_DOOR_SENSOR_CALIBRATION()
+    DoorSensor,
+#endif
     FilamentSensorCalibration,
     _count,
     _last = _count - 1,
@@ -83,6 +87,9 @@ inline constexpr MenuItemText blank_item_texts[] {
     { Action::ZCheck, N_("%d Z Axis Test") },
     { Action::Heaters, N_("%d Heater Test") },
     { Action::Gears, N_("%d Gearbox Alignment") },
+#if HAS_DOOR_SENSOR_CALIBRATION()
+    { Action::DoorSensor, N_("%d Door Sensor") },
+#endif
     { Action::FilamentSensorCalibration, N_("%d Filament Sensor Calibration") },
 };
 

@@ -12,6 +12,8 @@
 #include <buddy/unreachable.hpp>
 #include <CFanCtl3Wire.hpp> // for FANCTL_START_TIMEOUT
 #include <utils/timing/rate_limiter.hpp>
+#include <option/has_chamber_api.h>
+#include <option/has_side_leds.h>
 
 namespace {
 
@@ -47,7 +49,10 @@ void XBuddyExtension::step() {
 
     std::lock_guard _lg(mutex_);
 
-    const auto chamber_leds_pwm = strobe_freq_.has_value() ? strobe_pwm : leds::SideStripHandler::instance().color().w;
+    uint8_t chamber_leds_pwm = strobe_freq_.has_value() ? strobe_pwm : 0;
+#if HAS_SIDE_LEDS()
+    chamber_leds_pwm = strobe_freq_.has_value() ? strobe_pwm : leds::SideStripHandler::instance().color().w;
+#endif
 
     if (status() != Status::ready) {
         return;
@@ -64,6 +69,7 @@ void XBuddyExtension::step() {
     const auto temp = chamber_temperature();
 
     // Trigger fatal error due to chamber temperature only if we get valid values, that are not reasonable
+#if HAS_CHAMBER_API()
     if (temp.has_value()) {
         static constexpr Temperature chamber_mintemp = 0.0f;
         static constexpr Temperature chamber_maxtemp = 85.0f;
@@ -74,6 +80,7 @@ void XBuddyExtension::step() {
             fatal_error(ErrCode::ERR_TEMPERATURE_CHAMBER_MAXTEMP);
         }
     }
+#endif
 
     // execute control loop only once per defined period
     const auto now_ms = ticks_ms();
@@ -129,15 +136,21 @@ void XBuddyExtension::step() {
             if (!critical_warning_shown || marlin_server::is_printing()) {
                 marlin_server::print_abort();
                 thermalManager.disable_all_heaters();
+#if HAS_CHAMBER_API()
                 marlin_server::set_warning(WarningType::ChamberCriticalTemperature);
+#endif
                 critical_warning_shown = true;
             }
         } else if (chamber_cooling.get_overheating_temp_flag()) {
             // executed from task marlin_server, marlin_server must be called directly
+#if HAS_CHAMBER_API()
             if (!marlin_server::is_warning_active(WarningType::ChamberOverheatingTemperature) && !overheating_warning_shown) {
                 marlin_server::set_warning(WarningType::ChamberOverheatingTemperature);
                 overheating_warning_shown = true;
             }
+#else
+            overheating_warning_shown = true;
+#endif
         } else {
             overheating_warning_shown = false;
             critical_warning_shown = false;

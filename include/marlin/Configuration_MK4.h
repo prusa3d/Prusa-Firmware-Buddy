@@ -25,6 +25,7 @@
 
 #include "hw_configuration.hpp"
 #include <Marlin/src/core/macros.h>
+#include <option/has_ceiling_clearance.h>
 #include <option/has_loadcell.h>
 #include <option/has_mmu2.h>
 #include <option/has_precise_homing_corexy.h>
@@ -1085,7 +1086,9 @@
 /// If defined, the printer will check max_printed_z and if a move would result in the model getting above this clearance,
 /// it will prompt the user
 /// Requires HAS_CEILING_CLEARANCE()
-// #define Z_CEILING_CLEARANCE 100
+#if HAS_CEILING_CLEARANCE()
+  #define Z_CEILING_CLEARANCE 100
+#endif
 
 /// Distance between start of the axis to the position where ordinary movement is allowed
 #define X_HOME_GAP 0.5f

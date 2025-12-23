@@ -31,6 +31,10 @@ TestResult get_test_result(Action action, Tool tool) {
         return evaluate_results(sr.bed, merge_hotends_evaluations([&](int8_t e) {
             return evaluate_results(sr.tools[e].nozzle);
         }));
+#if HAS_DOOR_SENSOR_CALIBRATION()
+    case Action::DoorSensor:
+        return evaluate_results(config_store().selftest_result_door_sensor.get());
+#endif
     case Action::FilamentSensorCalibration:
         return merge_hotends(tool, [&](const int8_t e) {
             return evaluate_results(sr.tools[e].fsensor);
@@ -63,6 +67,9 @@ uint64_t get_test_mask(Action action) {
         return stmLoadcell;
     case Action::ZAlign:
         return stmZcalib;
+#if HAS_DOOR_SENSOR_CALIBRATION()
+    case Action::DoorSensor:
+#endif
     case Action::Fans:
     case Action::Gears:
         bsod("get_test_mask");
