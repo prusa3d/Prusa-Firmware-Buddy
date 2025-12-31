@@ -245,6 +245,7 @@ void MarlinSettings::reset_motion(const bool no_limits) {
     #endif
 
     planner.apply_settings(s, no_limits);
+    planner.refresh_positioning();
   #endif /* HAS_PLANNER() */
 }
 

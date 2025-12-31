@@ -175,29 +175,6 @@ typedef struct {
  feedRate_t min_feedrate_mm_s,                  // (mm/s) M205 S - Minimum linear feedrate
             min_travel_feedrate_mm_s;           // (mm/s) M205 T - Minimum travel feedrate
 
-  #if HAS_CLASSIC_JERK
-    #if HAS_LINEAR_E_JERK
-      xyz_pos_t max_jerk;              // (mm/s^2) M205 XYZ - The largest speed change requiring no acceleration.
-    #else
-      xyze_pos_t max_jerk;             // (mm/s^2) M205 XYZE - The largest speed change requiring no acceleration.
-    #endif
-  #endif
-} planner_settings_t;
-
-/// Subclass to enforce that people are using user settings when applying settings
-struct user_planner_settings_t : public planner_settings_t {};
-
-// Structure for saving/loading movement parameters
-typedef struct {
-   uint32_t max_acceleration_mm_per_s2[XYZE_N], // (mm/s^2) M201 XYZE
-            min_segment_time_us;                // (µs) M205 B
- feedRate_t max_feedrate_mm_s[XYZE_N];          // (mm/s) M203 XYZE - Max speeds
-      float acceleration,                       // (mm/s^2) M204 S - Normal acceleration. DEFAULT ACCELERATION for all printing moves.
-            retract_acceleration,               // (mm/s^2) M204 R - Retract acceleration. Filament pull-back and push-forward while standing still in the other axes
-            travel_acceleration;                // (mm/s^2) M204 T - Travel acceleration. DEFAULT ACCELERATION for all NON printing moves.
- feedRate_t min_feedrate_mm_s,                  // (mm/s) M205 S - Minimum linear feedrate
-            min_travel_feedrate_mm_s;           // (mm/s) M205 T - Minimum travel feedrate
-
   #if DISABLED(CLASSIC_JERK)
     float junction_deviation_mm;                // (mm) M205 J
   #endif
@@ -208,7 +185,10 @@ typedef struct {
       xyze_pos_t max_jerk;                      // (mm/s^2) M205 XYZE - The largest speed change requiring no acceleration.
     #endif
   #endif
-} motion_parameters_t;
+} planner_settings_t;
+
+/// Subclass to enforce that people are using user settings when applying settings
+struct user_planner_settings_t : public planner_settings_t {};
 
 #if DISABLED(SKEW_CORRECTION)
   #define XY_SKEW_FACTOR 0
@@ -1045,7 +1025,7 @@ class Motion_Parameters {
     void load() const;
 
   private:
-    motion_parameters_t mp;
+    user_planner_settings_t mp;
 };
 
 /**

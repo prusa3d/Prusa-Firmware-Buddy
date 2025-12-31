@@ -12,11 +12,11 @@
 #define STR(x)      QUOTE_ME(x)
 
 // axis length [mm]
-static constexpr int axis_steps_per_unit[] = DEFAULT_AXIS_STEPS_PER_UNIT;
+static constexpr float axis_steps_per_unit[] = DEFAULT_AXIS_STEPS_PER_UNIT;
 
 static constexpr float nozzle_to_probe[3] = NOZZLE_TO_PROBE_OFFSET;
 
-static constexpr float z_offset_step = 1.0F / float(axis_steps_per_unit[2]);
+static constexpr float z_offset_step = 1.0F / axis_steps_per_unit[2];
 static constexpr float z_offset_min = Z_OFFSET_MIN;
 static constexpr float z_offset_max = Z_OFFSET_MAX;
 

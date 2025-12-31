@@ -2716,6 +2716,10 @@ void Planner::refresh_positioning() {
   }
   set_position_mm(current_position);
   refresh_acceleration_rates();
+
+  #if HAS_PHASE_STEPPING()
+    phase_stepping::update_axis_motor_params();
+  #endif
 }
 
 #if ENABLED(DISTINCT_E_FACTORS)
@@ -2814,50 +2818,12 @@ void Motion_Parameters::save_reset(const bool no_limits) {
 
 void Motion_Parameters::save() {
   const auto &src = planner.user_settings;
-
-  for (int i = 0; i < XYZE_N; ++i) {
-    mp.max_acceleration_mm_per_s2[i] = src.max_acceleration_mm_per_s2[i];
-    mp.max_feedrate_mm_s[i] = src.max_feedrate_mm_s[i];
-  }
-
-  mp.min_segment_time_us = src.min_segment_time_us;
-  mp.acceleration = src.acceleration;
-  mp.retract_acceleration = src.retract_acceleration;
-  mp.travel_acceleration = src.travel_acceleration;
-  mp.min_feedrate_mm_s = src.min_feedrate_mm_s;
-  mp.min_travel_feedrate_mm_s = src.min_travel_feedrate_mm_s;
-
-  #if DISABLED(CLASSIC_JERK)
-    mp.junction_deviation_mm = planner.junction_deviation_mm;
-  #endif
-  #if HAS_CLASSIC_JERK
-    mp.max_jerk = src.max_jerk;
-  #endif
+  mp = src;
 }
 
 void Motion_Parameters::load() const {
-  auto s = planner.user_settings;
-
-  for (int i = 0; i < XYZE_N; ++i) {
-    s.max_acceleration_mm_per_s2[i] = mp.max_acceleration_mm_per_s2[i];
-    s.max_feedrate_mm_s[i] = mp.max_feedrate_mm_s[i];
-  }
-
-  s.min_segment_time_us = mp.min_segment_time_us;
-  s.acceleration = mp.acceleration;
-  s.retract_acceleration = mp.retract_acceleration;
-  s.travel_acceleration = mp.travel_acceleration;
-  s.min_feedrate_mm_s = mp.min_feedrate_mm_s;
-  s.min_travel_feedrate_mm_s = mp.min_travel_feedrate_mm_s;
-
-  #if DISABLED(CLASSIC_JERK)
-    planner.junction_deviation_mm = mp.junction_deviation_mm;
-  #endif
-  #if HAS_CLASSIC_JERK
-    s.max_jerk = mp.max_jerk;
-  #endif
-
-  planner.apply_settings(s);
+  planner.apply_settings(mp);
+  planner.refresh_positioning();
 }
 
 void Motion_Parameters::reset(const bool no_limits) {

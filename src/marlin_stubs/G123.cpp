@@ -50,11 +50,8 @@ void PrusaGcodeSuite::G123() {
     // but also short enough so that we have snappy reaction time
     static constexpr float max_segment_duration_s = 0.02f;
 
-    const auto prev_settings = planner.user_settings;
-    ScopeGuard _sg = [&] { planner.apply_settings(prev_settings); };
-
     // Reset to default parameters for the duration of this gcode
-    Motion_Parameters::reset();
+    Temporary_Reset_Motion_Parameters mp_guard;
 
 #if HAS_AUTO_RETRACT()
     // When the user takes manual control over the extruder, do not do any retracting/deretracting moves
