@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Parsing of M170X g-codes
+ * @brief Parsing of M170X G-codes
  */
 
 #include "config_features.h"

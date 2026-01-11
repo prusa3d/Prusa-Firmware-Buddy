@@ -271,21 +271,21 @@ BGCODE_CORE_EXPORT std::string_view translate_result(EResult result)
     case EResult::InvalidBlockType:            { return "Invalid block type"sv; }
     case EResult::InvalidCompressionType:      { return "Invalid compression type"sv; }
     case EResult::InvalidMetadataEncodingType: { return "Invalid metadata encoding type"sv; }
-    case EResult::InvalidGCodeEncodingType:    { return "Invalid gcode encoding type"sv; }
+    case EResult::InvalidGCodeEncodingType:    { return "Invalid G-code encoding type"sv; }
     case EResult::DataCompressionError:        { return "Data compression error"sv; }
     case EResult::DataUncompressionError:      { return "Data uncompression error"sv; }
     case EResult::MetadataEncodingError:       { return "Metadata encoding error"sv; }
     case EResult::MetadataDecodingError:       { return "Metadata decoding error"sv; }
-    case EResult::GCodeEncodingError:          { return "GCode encoding error"sv; }
-    case EResult::GCodeDecodingError:          { return "GCode decoding error"sv; }
+    case EResult::GCodeEncodingError:          { return "G-code encoding error"sv; }
+    case EResult::GCodeDecodingError:          { return "G-code decoding error"sv; }
     case EResult::BlockNotFound:               { return "Block not found"sv; }
     case EResult::InvalidChecksum:             { return "Invalid checksum"sv; }
     case EResult::InvalidThumbnailFormat:      { return "Invalid thumbnail format"sv; }
     case EResult::InvalidThumbnailWidth:       { return "Invalid thumbnail width"sv; }
     case EResult::InvalidThumbnailHeight:      { return "Invalid thumbnail height"sv; }
     case EResult::InvalidThumbnailDataSize:    { return "Invalid thumbnail data size"sv; }
-    case EResult::InvalidBinaryGCodeFile:      { return "Invalid binary GCode file"sv; }
-    case EResult::InvalidAsciiGCodeFile:       { return "Invalid ascii GCode file"sv; }
+    case EResult::InvalidBinaryGCodeFile:      { return "Invalid binary G-code file"sv; }
+    case EResult::InvalidAsciiGCodeFile:       { return "Invalid ascii G-code file"sv; }
     case EResult::InvalidSequenceOfBlocks:     { return "Invalid sequence of blocks"sv; }
     case EResult::InvalidBuffer:               { return "Invalid buffer"sv; }
     case EResult::AlreadyBinarized:            { return "Already binarized"sv; }

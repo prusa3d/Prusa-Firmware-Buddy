@@ -18,14 +18,14 @@ void GCodeLoader::load_gcode_callback(AsyncJobExecutionControl &control) {
     // Error conditions
     if (!reader.is_open()) {
         if (gcode_fallback != nullptr) {
-            log_info(MarlinServer, "G-Code Loader: file not found: %s (using fallback)", gcode_buffer);
+            log_info(MarlinServer, "G-code Loader: file not found: %s (using fallback)", gcode_buffer);
             StringBuilder str_builder(gcode_buffer);
             str_builder.append_string(gcode_fallback);
             state = BufferState::ready;
             return;
         }
         state = BufferState::error;
-        log_error(MarlinServer, "G-Code Loader: failed to open file: %s", gcode_buffer);
+        log_error(MarlinServer, "G-code Loader: failed to open file: %s", gcode_buffer);
         return;
     }
 
@@ -37,7 +37,7 @@ void GCodeLoader::load_gcode_callback(AsyncJobExecutionControl &control) {
             break;
         } else if (result != IGcodeReader::Result_t::RESULT_TIMEOUT) {
             state = BufferState::error;
-            log_error(MarlinServer, "G-Code Loader: failed to start reading");
+            log_error(MarlinServer, "G-code Loader: failed to start reading");
             osDelay(1);
             return;
         }
@@ -59,7 +59,7 @@ void GCodeLoader::load_gcode_callback(AsyncJobExecutionControl &control) {
             continue;
         } else if (result != IGcodeReader::Result_t::RESULT_OK) {
             state = BufferState::error;
-            log_error(MarlinServer, "G-Code Loader: failed to read from file");
+            log_error(MarlinServer, "G-code Loader: failed to read from file");
             return;
         }
 
@@ -71,18 +71,18 @@ void GCodeLoader::load_gcode_callback(AsyncJobExecutionControl &control) {
         if (str_builder.byte_count() + line_length > gcode_stream_buffer_size) {
             // File is too large to buffer
             state = BufferState::error;
-            log_error(MarlinServer, "G-Code Loader: buffered file is too large");
+            log_error(MarlinServer, "G-code Loader: buffered file is too large");
             return;
         }
 
         if (!first_line) {
-            // G-Code stream is terminated by '\0' and has '\n' separating individual G-Codes
+            // G-code stream is terminated by '\0' and has '\n' separating individual G-codes
             str_builder.append_char('\n');
         }
         str_builder.append_string(line_buff.buffer.data());
         if (!str_builder.is_ok()) {
             state = BufferState::error;
-            log_error(MarlinServer, "G-Code Loader: failed to build gcode stream in the buffer");
+            log_error(MarlinServer, "G-code Loader: failed to build gcode stream in the buffer");
             return;
         }
         first_line = false;

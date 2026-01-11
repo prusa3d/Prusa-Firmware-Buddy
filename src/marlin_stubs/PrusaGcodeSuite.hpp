@@ -18,17 +18,17 @@
 
 #include <gcode/gcode_parser.hpp>
 
-/// the version of the g-code that the printer supports
+/// the version of the G-code that the printer supports
 #define GCODE_LEVEL 2
 
 /**
- * @brief Prusa specific gcode suite
+ * @brief Prusa specific G-code suite
  */
 namespace PrusaGcodeSuite {
 
 int8_t get_target_extruder_from_command(const GCodeParser2 &p);
 int8_t get_target_extruder_from_command_p(const GCodeParser2 &p);
-/** \defgroup G-Codes G-Code Commands
+/** \defgroup G-Codes G-code Commands
  * @{
  */
 

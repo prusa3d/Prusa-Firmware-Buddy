@@ -14,7 +14,7 @@ namespace {
     BackgroundResult step(BackgroundGcode &gcode, Printer &printer) {
         if (auto content = get_if<BackgroundGcodeContent>(&gcode); content != nullptr) {
             if (buddy::cork::tracker.clear_cnt() != content->start_tracker_clears) {
-                log_debug(connect, "Queue got cleared while submitting a gcode command");
+                log_debug(connect, "Queue got cleared while submitting a G-code command");
                 return BackgroundResult::Failure;
             }
 
@@ -71,15 +71,15 @@ namespace {
             if (strlen(g_start)) {
                 switch (printer.submit_gcode(g_start)) {
                 case Printer::GcodeResult::Submitted:
-                    log_debug(connect, "Gcode submitted to marlin: %s", g_start);
+                    log_debug(connect, "G-code submitted to marlin: %s", g_start);
                     break;
                 case Printer::GcodeResult::Later:
-                    log_debug(connect, "Gcode doesn't fit into queue yet: %s", g_start);
-                    // In case this gcode doesn't fit, retry again without moving
+                    log_debug(connect, "G-code doesn't fit into queue yet: %s", g_start);
+                    // In case this G-code doesn't fit, retry again without moving
                     // the position - we'll reparse it next time.
                     return BackgroundResult::More;
                 case Printer::GcodeResult::Failed:
-                    log_warning(connect, "Gcode refused: %s", g_start);
+                    log_warning(connect, "G-code refused: %s", g_start);
                     return BackgroundResult::Failure;
                 }
             }
@@ -89,7 +89,7 @@ namespace {
             return BackgroundResult::More;
         } else if (auto wait = get_if<BackgroundGcodeWait>(&gcode); wait != nullptr) {
             if (buddy::cork::tracker.clear_cnt() != wait->start_tracker_clears) {
-                log_debug(connect, "Queue got cleared while corking a gcode command");
+                log_debug(connect, "Queue got cleared while corking a G-code command");
                 return BackgroundResult::Failure;
             }
             if (wait->submitted) {
@@ -109,7 +109,7 @@ namespace {
                     return BackgroundResult::More;
 
                 case Printer::GcodeResult::Later:
-                    // No place for the "cork" gcode. Give up now, try again later (do *not* mark as submitted).
+                    // No place for the "cork" G-code. Give up now, try again later (do *not* mark as submitted).
                     log_debug(connect, "Cork doesn't fit yet");
                     return BackgroundResult::Later;
 

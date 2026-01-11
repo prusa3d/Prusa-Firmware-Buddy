@@ -9,7 +9,7 @@
 /*
  * @brief M0
  *
- * Use M0 for Quick pause during printing - it pauses queue processing when g-code is read
+ * Use M0 for Quick pause during printing - it pauses queue processing when G-code is read
  * Resume with knob click in Quick Pause dialog
  * Parameters are not supported (original M0 has S<seconds> and P<miliseconds>)
  * Add parameter logic from "M0_M1.cpp" if you need it

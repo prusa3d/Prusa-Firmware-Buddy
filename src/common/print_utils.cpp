@@ -39,7 +39,7 @@ void run_once_after_boot() {
         bool reset_pp = !((HAL_RCC_CSR & (RCC_CSR_SFTRSTF | RCC_CSR_BORRSTF)));
         if (!reset_pp && transfers::is_valid_file_or_transfer(power_panic::stored_media_path()) && usb_host::is_media_inserted_since_startup()) {
             // load the panic data and setup print progress early
-            // resume and bypass g-code autostart
+            // resume and bypass G-code autostart
             power_panic::resume_print();
             return;
         }
@@ -49,7 +49,7 @@ void run_once_after_boot() {
     }
 #endif
 
-    // g-code autostart
+    // G-code autostart
     static constexpr const char *autostart_filename = "/usb/AUTO.GCO";
     if (access(autostart_filename, F_OK) == 0) {
         // call directly marlin server start print. This function is not safe

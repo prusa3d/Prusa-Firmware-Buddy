@@ -154,7 +154,7 @@ void PrusaGcodeSuite::M264() {
  *    M265 [ P ]
  *
  *
- * This G-Code doesn't check if selected pin is configured as Output pin.
+ * This G-code doesn't check if selected pin is configured as Output pin.
  *
  *#### Parameters
  *

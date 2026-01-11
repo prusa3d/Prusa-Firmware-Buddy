@@ -68,7 +68,7 @@ private:
 
     /// Handles when user presses the encoder
     void handle_item_click();
-    /// Gets cnt of items in the current state (ie num of physical tools in right state, num of gcode tools otherwise)
+    /// Gets cnt of items in the current state (ie num of physical tools in right state, num of G-code tools otherwise)
     [[nodiscard]] uint8_t get_cnt_current_items();
 
     const bool drawing_nozzles { true };
@@ -86,28 +86,28 @@ private:
 
     /**
      * @brief There's 3 major ways of 'indexing' items:
-     * REAL -> The number of tools in Gcode / The dwarf number (given in addr assignment)
-     * IDX -> 0 .. Number of left/right items -> ie number of tools mentioned in gcode / number of dwarves found
+     * REAL -> The number of tools in G-code / The dwarf number (given in addr assignment)
+     * IDX -> 0 .. Number of left/right items -> i.e. number of tools mentioned in G-code / number of dwarves found
      * POS -> 0 .. max_item_rows -> Position of the drawn rectangle on the screen (from the top)
      *
      * Theoretically IDX could always be synthesized from POS, but it's much easier to reason about the code if the two arrays are separate (it might be impossible to do it reliable altogether, but readability is enough of an argument to keep it separate)
 
-     * left == gcode (shown on screen as filaments)
+     * left == G-code (shown on screen as filaments)
      * right == physical (shown on screen as tools)
      */
 
-    std::array<window_text_t, max_item_rows> left_gcode_texts; // "real" gcode tool text windows
+    std::array<window_text_t, max_item_rows> left_gcode_texts; // "real" G-code tool text windows
     std::array<window_text_t, max_item_rows> right_phys_texts; // "real" physical tool text windows
 
-    // "real" gcode colors (right currently unsupported) -> hacky way of doing colors, no text and coloured background
+    // "real" G-code colors (right currently unsupported) -> hacky way of doing colors, no text and coloured background
     std::array<window_colored_rect, max_item_rows> left_gcode_colors;
-    std::array<window_icon_t, max_item_rows> left_gcode_icons; // "real" gcode icons for pre-print checks
+    std::array<window_icon_t, max_item_rows> left_gcode_icons; // "real" G-code icons for pre-print checks
     std::array<window_icon_t, max_item_rows> right_phys_icons; // "real" physical icons for pre-print checks
 
-    std::array<uint8_t, max_item_rows> left_gcode_idx_to_real; // array mapping left column indices to the real gcode tool
+    std::array<uint8_t, max_item_rows> left_G-code_idx_to_real; // array mapping left column indices to the real G-code tool
     std::array<uint8_t, max_item_rows> right_phys_idx_to_real; // array mapping right column indices to the real physical tool
 
-    std::array<uint8_t, max_item_rows> left_gcode_pos_to_real; // array mapping left gcodes to their rect position
+    std::array<uint8_t, max_item_rows> left_gcode_pos_to_real; // array mapping left G-codes to their rect position
     std::array<uint8_t, max_item_rows> right_phys_pos_to_real; // array mapping right physicals to their rect position
 
     std::array<std::array<char, max_item_text_width>, max_item_rows> left_gcode_label_buffers;
@@ -116,7 +116,7 @@ private:
     window_text_t bottom_guide; // Currently supports up to two lines of text on our ILI. Shows some text to the user guiding them on what to do/fix
     window_icon_t bottom_icon; // Shows most important icon on the left of the bottom guide
 
-    uint8_t num_unassigned_gcodes { 0 }; // holds the number of currently drawn unassigned gcodes
+    uint8_t num_unassigned_gcodes { 0 }; // holds the number of currently drawn unassigned G-codes
     uint8_t num_mismatched_filaments { 0 }; // holds the number of physical tools with mismatched filament
     uint8_t num_mismatched_nozzles { 0 }; // holds the number of physical tools with mismatched nozzles
     uint8_t num_unloaded_tools { 0 }; // holds the number of physical tools that are assigned but aren't loaded
@@ -134,7 +134,7 @@ private:
     State state { State::left };
     GCodeInfo &gcode;
 
-    /// returns TRUE if all gcode tools are reasonably mapped to some physical tool
+    /// returns TRUE if all G-code tools are reasonably mapped to some physical tool
     [[nodiscard]] bool are_all_gcode_tools_mapped() const;
 
     // When assigning to a right that's already mapped/joined to something, we risk that the previous tool would lose it's mapping.
@@ -152,7 +152,7 @@ private:
     // refreshes lables within window texts to match current state of loaded filaments
     void refresh_physical_tool_filament_labels();
 
-    // builds default selection config for change all dialog so that physical tools try to load based on what the gcodes want to print with (that they're mapped to)
+    // builds default selection config for change all dialog so that physical tools try to load based on what the G-codes want to print with (that they're mapped to)
     MultiFilamentChangeConfig build_changeall_config();
 
     SpoolJoin joiner;

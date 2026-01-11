@@ -7,7 +7,7 @@
 #include <array>
 
 //
-// Adaptation of MeatPack G-Code Compression taken from:
+// Adaptation of MeatPack G-code compression taken from:
 // https://github.com/scottmudge/OctoPrint-MeatPack/blob/master/OctoPrint_MeatPack/meatpack.py
 // https://github.com/bubnikv/OctoPrint-MeatPack/blob/master/OctoPrint_MeatPack/meatpack.py
 // https://github.com/scottmudge/Prusa-Firmware-MeatPack/blob/MK3_sm_MeatPack/Firmware/meatpack.h

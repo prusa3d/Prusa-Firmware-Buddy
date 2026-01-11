@@ -159,10 +159,10 @@ static std::string thumbnail_format_as_string(EThumbnailFormat type)
      } while (true);
  }
 
- TEST_CASE("Search for GCode blocks", "[Core]")
+ TEST_CASE("Search for G-code blocks", "[Core]")
  {
      const std::string filename = std::string(TEST_DATA_DIR) + "/mini_cube_binary.gcode";
-     std::cout << "\nTEST: Search for GCode blocks\n";
+     std::cout << "\nTEST: Search for G-code blocks\n";
      std::cout << "File:" << filename << "\n";
 
      const size_t MAX_CHECKSUM_CACHE_SIZE = 2048;

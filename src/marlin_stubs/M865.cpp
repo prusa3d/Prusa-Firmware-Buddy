@@ -13,7 +13,7 @@
 /**
  *### M865: Manage filament parameters
  *
- * Utility G-Code that allows managing filament types and their parameters.
+ * Utility G-code that allows managing filament types and their parameters.
  * Allows changing filament parameters and force-setting the currently loaded filament.
  * Also print selected filament parameters to the serial.
  *

@@ -21,7 +21,7 @@
  */
 
 /**
- * parser.cpp - Parser for a GCode line, providing a parameter interface.
+ * parser.cpp - Parser for a G-code line, providing a parameter interface.
  */
 
 #include "parser.h"
@@ -70,7 +70,7 @@ int GCodeParser::codenum;
   char *GCodeParser::command_args; // start of parameters
 #endif
 
-// Create a global instance of the GCode parser singleton
+// Create a global instance of the G-code parser singleton
 GCodeParser parser;
 
 /**
@@ -92,7 +92,7 @@ void GCodeParser::reset() {
   #endif
 }
 
-// Populate all fields by parsing a single line of GCode
+// Populate all fields by parsing a single line of G-code
 // 58 bytes of SRAM are used to speed up seen/value
 void GCodeParser::parse(char *p) {
 
@@ -259,7 +259,7 @@ void GCodeParser::parse(char *p) {
       return;
     }
 
-    // Arguments MUST be uppercase for fast GCode parsing
+    // Arguments MUST be uppercase for fast G-code parsing
     #if ENABLED(FASTER_GCODE_PARSER)
       #define PARAM_TEST WITHIN(code, 'A', 'Z')
     #else

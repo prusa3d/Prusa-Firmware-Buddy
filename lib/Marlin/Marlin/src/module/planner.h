@@ -808,17 +808,17 @@ class Planner {
      * nearest synchronize() call.
      *
      * Once movement can resume draining() will keep returning true until the
-     * entire g-code instruction has finished processing. This requires an
+     * entire G-code instruction has finished processing. This requires an
      * entire Marlin loop() iteration to complete and any scheduled motion in
      * this stage is just silently accepted and discarded. idle() is not
      * forbidden but will not advance from this state, which is only cleared by
      * the server implementation. Errors should never be reported and/or kill
      * the print when draining() since the move can be re-scheduled.
      *
-     * synchronize(): use within the implementation of a compound g-code
+     * synchronize(): use within the implementation of a compound G-code
      *   sequence in Marlin itself. It waits for motion to complete and ensures
      *   that position/current_position is synchronized with the head movement
-     *   when it finally returns. When a g-code sequence has been canceled,
+     *   when it finally returns. When a G-code sequence has been canceled,
      *   draining() is true and synchronized() returns early so that the command
      *   can continue passively without stopping or special handling.
      *   synchronize() also works as a cancellation barrier: when motion is
@@ -832,7 +832,7 @@ class Planner {
      *   true as long as pending motion hasn't completed or canceled. When a
      *   command has been canceled busy() is never true so that the command can
      *   continue passively without special handling (as the case for most
-     *   g-code instructions). When checking for the planner position or state,
+     *   G-code instructions). When checking for the planner position or state,
      *   draining() should be checked to determine if the command has been
      *   explicitly canceled.
      *

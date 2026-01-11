@@ -13,7 +13,7 @@
  */
 
 /**
- *### M862.5: Check gcode level <a href="https://reprap.org/wiki/G-code#M862.5:_Gcode_level">M862.5: Gcode level</a>
+ *### M862.5: Check gcode level <a href="https://reprap.org/wiki/G-code#M862.5:_Gcode_level">M862.5: G-code level</a>
  *
  *#### Usage
  *
@@ -25,7 +25,7 @@
  * ## Parameters
  *
  * - `Q` - Print current gcode level
- * - `P` - Gcode level
+ * - `P` - G-code level
  */
 void PrusaGcodeSuite::M862_5() {
     // Handle only Q

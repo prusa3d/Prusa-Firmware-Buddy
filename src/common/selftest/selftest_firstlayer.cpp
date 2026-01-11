@@ -158,7 +158,7 @@ LoopResult CSelftestPart_FirstLayer::stateFilamentLoadEnqueueGcode() {
     //       entering calibration. When not using MMU, P is ignored.
     // FIXME It would be nice to present option to let user choose slot.
     //       That would be much easier to implement after we transition
-    //       to new g-code style selftests, which we want to do at some point.
+    //       to new G-code style selftests, which we want to do at some point.
     return enqueueGcode("M701 W0 P0") ? LoopResult::RunNext : LoopResult::RunCurrent;
 }
 

@@ -314,7 +314,7 @@ bool all_nozzles_same(GCodeInfo &gcode_info) {
 ToolsMappingBody::ToolsMappingBody(window_t *parent, GCodeInfo &gcode_info)
     : window_t(parent, GuiDefaults::RectScreenNoHeader)
     , drawing_nozzles(!all_nozzles_same(gcode_info))
-    , left_header(parent, left_header_rect, is_multiline::no, is_closed_on_click_t::no, _("G-Code filaments"))
+    , left_header(parent, left_header_rect, is_multiline::no, is_closed_on_click_t::no, _("G-code filaments"))
     , right_header(parent, right_header_rect, is_multiline::no, is_closed_on_click_t::no,
 #if not HAS_MMU2()
           _("Printer tools")
@@ -674,7 +674,7 @@ void ToolsMappingBody::update_bottom_guide() {
     static constexpr const char *right_pre_translated = N_("Ready to print");
     static constexpr const char *done_pre_translated = N_("Please assign a tool to the filament");
 
-    static constexpr const char *unassigned_gcodes_pre_translated = N_("Unassigned G-Code filament(s)");
+    static constexpr const char *unassigned_gcodes_pre_translated = N_("Unassigned G-code filament(s)");
     static constexpr const char *unloaded_tools_pre_translated = N_("Assigned tool(s) without filament");
     static constexpr const char *mismatched_nozzles_pre_translated = N_("Mismatching nozzle diameters");
 #if not HAS_MMU2()

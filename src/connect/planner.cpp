@@ -367,7 +367,7 @@ Sleep Planner::sleep(Duration amount, http::Connection *wake_on_readable, bool c
     // is generated after the fact anyway. No reason to block downloading for
     // that.
     Transfer *down = transfer.has_value() ? &transfer.value() : nullptr;
-    // we don't want to allow moving the gcode file whenever there is a chance
+    // we don't want to allow moving the G-code file whenever there is a chance
     // something is touching it (though it would fail anyway) and while we need
     // the performance for other things (especially the USB performance).
     //
@@ -680,7 +680,7 @@ void Planner::command(const Command &command, const BrokenCommand &c) {
 }
 
 void Planner::command(const Command &command, const GcodeTooLarge &) {
-    planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "GCode too large" };
+    planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "G-code too large" };
 }
 
 void Planner::command(const Command &command, const ProcessingOtherCommand &) {

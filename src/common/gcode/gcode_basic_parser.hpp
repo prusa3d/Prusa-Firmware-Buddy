@@ -27,7 +27,7 @@ struct GCodeCommand {
 
 class GCodeParserHelper;
 
-/// Basic GCode parser - only decodes the codenum and splits the body
+/// Basic G-code parser - only decodes the codenum and splits the body
 class GCodeBasicParser {
     friend class GCodeParserHelper;
 
@@ -57,7 +57,7 @@ public:
 
 #ifndef UNITTESTS
     /// Parses the current command marlin server is processing.
-    /// !!! To be called only from within the gcode functions.
+    /// !!! To be called only from within the G-code functions.
     [[nodiscard]] bool parse_marlin_command();
 #endif
 
@@ -68,7 +68,7 @@ public:
         error_callback_ = set;
     }
 
-    /// \returns the whole gcode
+    /// \returns the whole G-code
     inline const std::string_view &gcode() const {
         return data_.gcode;
     }
@@ -77,14 +77,14 @@ public:
         return data_.command;
     }
 
-    /// \returns body of the gcode (the parameters/string), stripped of the gcodecode
+    /// \returns body of the G-code (the parameters/string), stripped of the gcodecode
     /// For example "G123.1 X5 Y5" -> "X5 Y5"
-    /// This is useful for gcodes like M117 "Set Message", where the whole body is an argument.
+    /// This is useful for G-codes like M117 "Set Message", where the whole body is an argument.
     inline const std::string_view &body() const {
         return data_.body;
     }
 
-    /// \returns line number of the gcode (specified by "Nxxx" at the beginning of the line), if present
+    /// \returns line number of the G-code (specified by "Nxxx" at the beginning of the line), if present
     inline std::optional<LineNumber> line_number() const {
         return data_.line_number;
     }
@@ -95,7 +95,7 @@ protected:
     struct {
         std::string_view gcode;
 
-        /// Nxx before the Gcode denotes line number - used for checking of continuity on serial protocols
+        /// Nxx before the G-code denotes line number - used for checking of continuity on serial protocols
         std::optional<LineNumber> line_number;
 
         GCodeCommand command;

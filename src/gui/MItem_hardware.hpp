@@ -21,7 +21,7 @@ private:
 };
 
 class MI_HARDWARE_G_CODE_CHECKS : public IWindowMenuItem {
-    static constexpr const char *const label = N_("G-Code Checks");
+    static constexpr const char *const label = N_("G-code Checks");
 
 public:
     MI_HARDWARE_G_CODE_CHECKS();

@@ -76,7 +76,7 @@ public:
         uint32_t sdpos; /// Media location of the G-code
     } move_start;
 
-    /// Logical g-code state
+    /// Logical G-code state
     struct {
         uint32_t sdpos; /// Current media location of the G-code
         uint16_t segment_idx; /// Current segment index
@@ -175,10 +175,10 @@ public:
     void disable() { enable(false); }
     bool is_enabled() { return enabled; }
 
-    /// Activates crash detection during G-Code processing.
+    /// Activates crash detection during G-code processing.
     void activate() { active = true; }
 
-    /// Deactivates crash detection during G-Code processing.
+    /// Deactivates crash detection during G-code processing.
     void deactivate() { active = false; }
 
     /// Return true if crash is currently active

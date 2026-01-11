@@ -26,9 +26,9 @@
  * Algorithm & Implementation: Scott Mudge - mail@scottmudge.com
  * Date: Dec. 2020
  *
- * Specifically optimized for 3D printing G-Code, this is a zero-cost data compression method
+ * Specifically optimized for 3D printing G-code, this is a zero-cost data compression method
  * which packs ~180-190% more data into the same amount of bytes going to the CNC controller.
- * As a majority of G-Code can be represented by a restricted alphabet, I performed histogram
+ * As a majority of G-code can be represented by a restricted alphabet, I performed histogram
  * analysis on a wide variety of 3D printing G-code samples, and found ~93% of all G-code could
  * be represented by the same 15-character alphabet.
  *

@@ -761,7 +761,7 @@ Errors:
   
   - code: "XX403"
     title: "G-CODE METRICS CONFIG CHANGE"
-    text: "Gcode is trying to change metrics configuration.\n\nAllow the changes?"
+    text: "G-code is trying to change metrics configuration.\n\nAllow the changes?"
     id: "GCODE_METRICS_CONFIG_CHANGE"
     gui_layout: "warning_dialog"
     approved: true
@@ -1013,14 +1013,14 @@ Errors:
     deprecated: true
 
   - code: "XX534"
-    title: "Gcode Corruption"
-    text: "Gcode on the USB drive is corrupt. Fix manually before resuming."
+    title: "G-code Corruption"
+    text: "G-code on the USB drive is corrupt. Fix manually before resuming."
     id: "GCODE_CORRUPTION"
     gui_layout: "warning_dialog"
     approved: true
 
   - code: "XX535"
-    title: "Gcode Cropped"
+    title: "G-code Cropped"
     text: "G-code command was too long and did not fit in the internal buffers. As a result, it may have been executed incorrectly."
     id: "GCODE_CROPPED"
     gui_layout: "warning_dialog"
@@ -1397,7 +1397,7 @@ Errors:
 
   - code: "XX824"
     title: "Warning"
-    text: "G-Code transfer running too slow. Check your network for issues or use different USB drive. Press Continue to resume printing."
+    text: "G-code transfer running too slow. Check your network for issues or use different USB drive. Press Continue to resume printing."
     id: "NOT_DOWNLOADED"
     type: "CONNECT"
     gui_layout: "warning_dialog"

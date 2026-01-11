@@ -1008,7 +1008,7 @@ class TMC2208Stepper : public TMCStepper {
 		float Rsense = 0.11;
 		bool CRCerror = false;
 
-		//Need for read/write TMC reg via g-code in public section
+		//Need for read/write TMC reg via G-code in public section
 		void write(uint8_t, uint32_t);
 		uint32_t read(uint8_t);
 

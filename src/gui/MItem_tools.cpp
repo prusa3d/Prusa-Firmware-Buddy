@@ -110,7 +110,7 @@ bool gui_try_gcode_with_msg(const char *gcode) {
         return false;
 
     case marlin_client::GcodeTryResult::GcodeTooLong:
-        bsod("Gcode too long");
+        bsod("G-code too long");
     }
 
     return false;

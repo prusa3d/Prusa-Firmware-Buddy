@@ -33,7 +33,7 @@
 class GCodeQueue {
 public:
   /**
-   * GCode line number handling. Hosts may include line numbers when sending
+   * G-code line number handling. Hosts may include line numbers when sending
    * commands to Marlin, and lines will be checked for sequentiality.
    * M110 N<int> sets the current line number.
    */
@@ -42,7 +42,7 @@ public:
   static inline void stop() { stopped_N = last_N; }
 
   /**
-   * GCode Command Queue
+   * G-code Command Queue
    * A simple ring buffer of BUFSIZE command strings.
    *
    * Commands are copied into this buffer by the command injectors
@@ -58,7 +58,7 @@ public:
   static constexpr uint32_t SDPOS_INVALID = std::numeric_limits<uint32_t>::max(); // When sdpos doesn't have valid value
 
   static uint32_t sdpos;                 // Position in file for the latest instruction (behind the end of the queue)
-  static uint32_t last_executed_sdpos;      // (replay) Position of the last executed gcode
+  static uint32_t last_executed_sdpos;      // (replay) Position of the last executed G-code
   static uint32_t executed_commmand_count; ///< Increased every time a command is executed
   static uint32_t sdpos_buffer[BUFSIZE]; // Ring buffer of (replay) positions (synced with command_buffer)
 
@@ -66,7 +66,7 @@ public:
   static bool pause_serial_commands;
 
   /// Return the file position of the _current_ instruction
-  /// Red note: right after executing the gcode, the queue is advanced to the next one, so this actually returns the next gcode
+  /// Red note: right after executing the G-code, the queue is advanced to the next one, so this actually returns the next G-code
   static uint32_t get_current_sdpos() {
     return length ? sdpos_buffer[index_r] : sdpos;
   }

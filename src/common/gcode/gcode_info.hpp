@@ -52,7 +52,7 @@ public:
 
     static constexpr auto supported_features = std::to_array({ "Input shaper" });
 
-    // search this many g-code at the beginning of the file for the various g-codes (M862.x nozzle size, bed heating, nozzle heating)
+    // search this many G-code at the beginning of the file for the various G-codes (M862.x nozzle size, bed heating, nozzle heating)
     static constexpr size_t search_first_x_gcodes = 200;
 
     using time_buff = std::array<char, 16>;

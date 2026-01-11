@@ -238,7 +238,7 @@ return READ(endstop_pin) != inverting;
 
 /**
  * Run homing rutine.
- * This function takes parameters from G-Code parser
+ * This function takes parameters from G-code parser
  */ 
 void homeaxis() {
   

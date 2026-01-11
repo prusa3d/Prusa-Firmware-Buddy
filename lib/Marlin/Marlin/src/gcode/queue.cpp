@@ -38,14 +38,14 @@ GCodeQueue queue;
 #include <feature/cork/tracker.hpp>
 
 /**
- * GCode line number handling. Hosts may opt to include line numbers when
+ * G-code line number handling. Hosts may opt to include line numbers when
  * sending commands to Marlin, and lines will be checked for sequentiality.
  * M110 N<int> sets the current line number.
  */
 long gcode_N, GCodeQueue::last_N, GCodeQueue::stopped_N = 0;
 
 /**
- * GCode Command Queue
+ * G-code Command Queue
  * A simple ring buffer of BUFSIZE command strings.
  *
  * Commands are copied into this buffer by the command injectors
@@ -178,14 +178,14 @@ bool GCodeQueue::process_injected_command() {
   if (injected_commands_P == nullptr) {
     const auto inject_gcode = inject_queue.get_gcode();
     if (inject_gcode.has_value()) {
-      // successfully received G-Code stream [const char *]
+      // successfully received G-code stream [const char *]
       injected_commands_P = *inject_gcode;
     } else if (inject_gcode.error() == InjectQueue::GetGCodeError::empty) {
-      // Empty inject_queue -> continue parsing standard G-Code queue
+      // Empty inject_queue -> continue parsing standard G-code queue
       return false;
     } else {
-      // Inject G-Code is not ready yet (buffering from file)
-      // or loading error occurred, in both cases skip standard G-Code queue
+      // Inject G-code is not ready yet (buffering from file)
+      // or loading error occurred, in both cases skip standard G-code queue
       return true;
     }
   }
@@ -212,7 +212,7 @@ bool GCodeQueue::process_injected_command() {
 /**
  * Enqueue one or many commands to inject_queue, to run from program memory.
  * Do not inject a comment or use leading spaces!
- * G-Codes are enqueued only if inject_queue is not already full
+ * G-codes are enqueued only if inject_queue is not already full
  * Note: process_injected_command() will be called to drain any commands afterwards
  */
 void GCodeQueue::inject_P(ConstexprString pgcode) { inject(GCodeLiteral(pgcode)); }

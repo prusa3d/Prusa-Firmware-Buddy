@@ -33,7 +33,7 @@
  */
 
 /**
- *### M42: Change pin status via GCode <a href="https://reprap.org/wiki/G-code#M42:_Switch_I.2FO_pin">M42: Switch I/O pin</a>
+ *### M42: Change pin status via G-code <a href="https://reprap.org/wiki/G-code#M42:_Switch_I.2FO_pin">M42: Switch I/O pin</a>
  *
  *#### Usage
  *

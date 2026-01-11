@@ -240,7 +240,7 @@ class TMCMarlin<TMC2209Stepper> : public TMCMarlinBase<TMC2209Stepper> {
       }
     #endif
 
-    //Need for read/write TMC reg via g-code
+    //Need for read/write TMC reg via G-code
     inline void write_reg(uint8_t reg, uint32_t val){
       TMC2208Stepper::write(reg, val);
     }

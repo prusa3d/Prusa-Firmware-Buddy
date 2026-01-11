@@ -1469,7 +1469,7 @@
 // The duration and frequency for the UI feedback sound.
 // Set these to 0 to disable audio feedback in the LCD menus.
 //
-// Note: Test audio output with the G-Code:
+// Note: Test audio output with the G-code:
 //  M300 S<frequency Hz> P<duration ms>
 //
 //#define LCD_FEEDBACK_FREQUENCY_DURATION_MS 2
@@ -1759,7 +1759,7 @@
 // duty cycle is attained.
 //#define SOFT_PWM_DITHER
 
-// SkeinForge sends the wrong arc g-codes when using Arc Point as fillet procedure
+// SkeinForge sends the wrong arc G-codes when using Arc Point as fillet procedure
 //#define SF_ARC_FIX
 
 // Support for the BariCUDA Paste Extruder

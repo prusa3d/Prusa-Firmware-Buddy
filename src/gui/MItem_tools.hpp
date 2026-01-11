@@ -24,11 +24,11 @@
 #include <meta_utils.hpp>
 #include <gui/menu_item/menu_item_gcode_action.hpp>
 
-/// Checks if there is space in the gcode queue for inserting further commands.
+/// Checks if there is space in the G-code queue for inserting further commands.
 /// If there's not, \returns false and shows a message box
 bool gui_check_space_in_gcode_queue_with_msg();
 
-/// Attempts to execute the gcode.
+/// Attempts to execute the G-code.
 /// \returns false on failure (when the queue is full) and shows a message box saying the printer is busy
 bool gui_try_gcode_with_msg(const char *gcode);
 
@@ -501,7 +501,7 @@ protected:
 #endif
 
 class MI_GCODE_VERIFY : public WI_ICON_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Verify GCode");
+    constexpr static const char *const label = N_("Verify G-code");
 
 public:
     MI_GCODE_VERIFY();

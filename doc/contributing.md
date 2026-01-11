@@ -68,7 +68,7 @@ This does not apply to 3rd party code in our repository.
 
 ## Documentation
 
-### G-Code command documentation
+### G-code command documentation
  - Use following format and syntax
 ```
 /**
@@ -91,7 +91,7 @@ This does not apply to 3rd party code in our repository.
 */
 ```
 
- - Example G-Code documentation
+ - Example G-code documentation
 
 ```
 /**
