@@ -714,7 +714,7 @@ void Pause::mmu_load_start_process([[maybe_unused]] Response response) {
 
         setPhase(PhasesLoadUnload::IsColor);
         set(LoadState::color_correct_ask);
-    } else if (load_type == LoadType::filament_change) {
+    } else if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
         if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
             set(LoadState::load_prime);
             return;
@@ -750,7 +750,7 @@ void Pause::mmu_unload_start_process([[maybe_unused]] Response response) {
     if (load_type == LoadType::unload) {
         MMU2::mmu2.unload();
         set(LoadState::_finished);
-    } else if (load_type == LoadType::filament_change) {
+    } else if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
         settings.mmu_filament_to_load = MMU2::mmu2.get_current_tool();
 
         // No filament loaded in MMU, we can't continue, as we don't know what slot to load
