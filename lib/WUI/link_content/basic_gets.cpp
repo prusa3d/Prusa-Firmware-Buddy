@@ -362,6 +362,9 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
                 if (vars.time_to_end != TIME_TO_END_INVALID) {
                     JSON_FIELD_INT("printTimeLeft", vars.time_to_end) JSON_COMMA;
                 }
+                if (vars.time_to_pause != TIME_TO_END_INVALID) {
+                    JSON_FIELD_INT("filament_change_in", time_to_pause) JSON_COMMA;
+                }
                 JSON_FIELD_FFIXED("completion", ((float)vars.sd_percent_done / 100.0f), 2) JSON_COMMA;
                 JSON_FIELD_INT("printTime", vars.print_duration);
             JSON_OBJ_END;
@@ -375,6 +378,7 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
 
 json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output) {
     uint32_t time_to_end = marlin_vars().time_to_end;
+    uint32_t time_to_pause = marlin_vars().time_to_pause;
     const char *state = "ERROR";
     auto link_state = printer_state::get_state(false);
     switch (link_state) {
@@ -422,6 +426,9 @@ json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output) {
         JSON_FIELD_FFIXED("progress", ((float)marlin_vars().sd_percent_done), 2) JSON_COMMA;
         if (time_to_end != TIME_TO_END_INVALID) {
             JSON_FIELD_INT("time_remaining", time_to_end) JSON_COMMA;
+        }
+        if (time_to_pause != TIME_TO_END_INVALID) {
+            JSON_FIELD_INT("filament_change_in", time_to_pause) JSON_COMMA;
         }
         JSON_FIELD_INT("time_printing", marlin_vars().print_duration) JSON_COMMA;
         JSON_FIELD_OBJ("file");
