@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <common/bsod.h>
 #include <common/circular_buffer.hpp>
-#include <atomic>
 #include <cassert>
 #include <lis2dh12_reg.h>
 #include <device/peripherals.h>
@@ -18,17 +17,17 @@ namespace {
 static constexpr size_t ACCELEROMETER_BUFFER_RECORDS_NUM = 128;
 
 CircularBuffer<AccelerometerRecord, ACCELEROMETER_BUFFER_RECORDS_NUM> sample_buffer;
-uint32_t first_sample_timestamp = 0;
-uint32_t last_sample_timestamp = 0;
-size_t samples_extracted = 0;
-size_t overflown_count = 0;
+volatile uint32_t first_sample_timestamp = 0;
+volatile uint32_t last_sample_timestamp = 0;
+volatile size_t samples_extracted = 0;
+volatile size_t overflown_count = 0;
 
 enum class State : uint8_t {
     uninitialized = 0,
     disabled,
     enabled,
 };
-State state = State::uninitialized;
+volatile State state = State::uninitialized;
 
 void clear() {
     freertos::CriticalSection critical_section;
@@ -187,7 +186,7 @@ void dwarf::accelerometer::irq() {
     lis2dh12_acceleration_raw_get(&dev_ctx, record.raw);
     // No need for locking, we are the only interrupt touching the sample buffer
     if (!sample_buffer.try_put(record)) {
-        overflown_count++;
+        ++overflown_count;
     }
 }
 
@@ -205,9 +204,19 @@ size_t dwarf::accelerometer::get_num_samples() {
 }
 
 float dwarf::accelerometer::measured_sampling_rate() {
-    uint32_t duration = ticks_diff(last_sample_timestamp, first_sample_timestamp);
-    if (duration == 0 || samples_extracted == 0) {
+    uint32_t last;
+    uint32_t first;
+    size_t extracted;
+    {
+        freertos::CriticalSection critical_section;
+        last = last_sample_timestamp;
+        first = first_sample_timestamp;
+        extracted = samples_extracted;
+    }
+
+    uint32_t duration = ticks_diff(last, first);
+    if (duration == 0 || extracted == 0) {
         return 0;
     }
-    return (samples_extracted - 1) * 1000000.f / duration;
+    return (extracted - 1) * 1000000.f / duration;
 }

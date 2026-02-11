@@ -6,7 +6,7 @@
 namespace dwarf::tool_filament_sensor {
 
 static MedianFilter filter;
-static uint16_t fs_filtered_value = AdcGet::undefined_value; // current filtered value set from interrupt
+static volatile uint16_t fs_filtered_value = AdcGet::undefined_value; // current filtered value set from interrupt
 static uint16_t raw_value = AdcGet::undefined_value;
 
 static uint8_t cnt_tool_filament_sensor_update = 0;

@@ -24,7 +24,7 @@ static constexpr size_t MAX_SKIPPED { 3 };
 CircularBuffer<LoadcellRecord, LOADCELL_BUFFER_RECORDS_NUM> sample_buffer;
 
 // indicator that sample_buffer was full
-uint32_t buffer_overflown = 0;
+volatile uint32_t buffer_overflown = 0;
 
 // Running average sample value
 LoadcellSample_t running_average = 0;
@@ -32,7 +32,7 @@ LoadcellSample_t running_average = 0;
 // Length of current skipped run
 size_t skipped_samples = 0;
 
-static bool loadcell_is_enabled = false;
+static volatile bool loadcell_is_enabled = false;
 
 void loadcell_init() {
     hx717.init(hx717.CHANNEL_A_GAIN_128);
@@ -40,10 +40,17 @@ void loadcell_init() {
 
 void loadcell_loop() {
     static uint32_t buffer_over_reported_time = 0;
-    if (buffer_overflown && (buffer_over_reported_time + 5000U) < ticks_ms()) {
-        log_critical(Dwarf, "loadcell overflowed, %" PRIu32 " samples didn't fit ", buffer_overflown);
-        buffer_over_reported_time = ticks_ms();
-        buffer_overflown = 0;
+    if ((buffer_over_reported_time + 5000U) < ticks_ms()) {
+        uint32_t overflown = 0;
+        {
+            freertos::CriticalSection critical_section;
+            overflown = buffer_overflown;
+            buffer_overflown = 0;
+        }
+        if (overflown) {
+            log_critical(Dwarf, "loadcell overflowed, %" PRIu32 " samples didn't fit ", overflown);
+            buffer_over_reported_time = ticks_ms();
+        }
     }
 }
 
@@ -73,7 +80,7 @@ void loadcell_irq() {
     // No need for locking, we are the only interrupt touching the sample buffer
     const bool write_buffer_success = sample_buffer.try_put(record);
     if (!write_buffer_success) {
-        buffer_overflown++;
+        ++buffer_overflown;
     }
 }
 

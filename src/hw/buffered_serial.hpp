@@ -4,6 +4,7 @@
 #include "FreeRTOS.h"
 #include <inttypes.h>
 #include <stdbool.h>
+#include <atomic>
 #include <device/hal.h>
 #include "cmsis_os.h"
 
@@ -103,7 +104,7 @@ namespace hw {
         CommunicationMode txMode;
         HalfDuplexSwitchCallback_t halfDuplexSwitchCallback;
         EventGroupHandle_t eventGroup;
-        bool pendingWrite;
+        std::atomic<bool> pendingWrite;
 
         uint8_t *rxBufPool;
         size_t rxBufPoolSize;

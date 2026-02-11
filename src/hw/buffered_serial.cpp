@@ -226,7 +226,7 @@ size_t BufferedSerial::Write(const char *buf, size_t len) {
         halfDuplexSwitchCallback(true);
     }
     // initiate the transfer
-    pendingWrite = true;
+    pendingWrite.store(true, std::memory_order_release);
 
     HAL_StatusTypeDef transmissionReturnStatus = HAL_ERROR;
     if (txMode == CommunicationMode::DMA) {
@@ -237,7 +237,7 @@ size_t BufferedSerial::Write(const char *buf, size_t len) {
     }
 
     if (transmissionReturnStatus != HAL_OK) {
-        pendingWrite = false;
+        pendingWrite.store(false, std::memory_order_release);
         if (halfDuplexSwitchCallback) {
             halfDuplexSwitchCallback(false);
         }
@@ -249,7 +249,7 @@ size_t BufferedSerial::Write(const char *buf, size_t len) {
         /*xClearOnExit=*/pdTRUE,
         /*xWaitForAllBits=*/pdTRUE,
         /*xTicksToWait=*/timeout);
-    pendingWrite = false;
+    pendingWrite.store(false, std::memory_order_release);
 
     if (caughtEvents & static_cast<EventBits_t>(Event::WriteFinished)) {
         return len;
@@ -266,7 +266,7 @@ void BufferedSerial::WriteFinishedISR() {
     // NOTE: This flag might not be necessary. I have seen some occasions when the TC ISR
     //  triggered before FreeRTOS was up (which would be a problem). Something we might
     //  investigate, but should not be an issue.
-    if (!pendingWrite) {
+    if (!pendingWrite.load(std::memory_order_acquire)) {
         return;
     }
 
