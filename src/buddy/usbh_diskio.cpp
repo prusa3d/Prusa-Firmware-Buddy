@@ -42,7 +42,7 @@ const Diskio_drvTypeDef USBH_Driver = {
 #endif /* FF_FS_READONLY == 0 */
 };
 
-osThreadId USBH_MSC_WorkerTaskHandle;
+osThreadId volatile USBH_MSC_WorkerTaskHandle;
 
 static constexpr size_t queue_length = 5;
 

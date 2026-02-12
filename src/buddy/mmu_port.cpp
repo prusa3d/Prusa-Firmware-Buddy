@@ -77,7 +77,7 @@ void power_on() {
             static constexpr uint32_t START_WAIT_TIME = 500; // wait time for log0 in us
             static constexpr int32_t MAX_CHARGE_TIME_BEFORE_SPEEDUP = 100'000; // total max wait time in us
             freertos::BinarySemaphore early_oc;
-            uint32_t trigger_time = 0;
+            volatile uint32_t trigger_time = 0;
             auto awdg = awdg::get_single_channel_watchdog(
                 &hadc3, ADC_CHANNEL_4, [&trigger_time, &early_oc](awdg::ADCWatchdog &wdg) {
                 wdg.adjust_range(0, MAX_THR);

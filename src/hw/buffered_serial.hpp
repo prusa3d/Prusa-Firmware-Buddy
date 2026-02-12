@@ -86,7 +86,7 @@ namespace hw {
             int buffer_pos;
 
             /// position in buffer where idle occured (UINT32_MAX when no idle occured)
-            uint32_t idle_at_NDTR;
+            volatile uint32_t idle_at_NDTR;
         };
 
         /// Low-level function to enable receive, you shouldn't normally need this.

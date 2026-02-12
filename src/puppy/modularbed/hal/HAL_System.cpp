@@ -7,7 +7,7 @@
 extern "C" {
 
 extern TIM_HandleTypeDef htim1;
-static uint32_t s_SystemMicroseconds = 0;
+static volatile uint32_t s_SystemMicroseconds = 0;
 
 // interrupt from ARM-CORE timer
 void SysTick_Handler() {

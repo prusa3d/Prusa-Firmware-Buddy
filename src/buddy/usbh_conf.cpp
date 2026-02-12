@@ -95,9 +95,10 @@ void HAL_HCD_HC_NotifyURBChange_Callback(HCD_HandleTypeDef *hhcd, [[maybe_unused
 #if (USBH_USE_OS == 1)
     USBH_LL_NotifyURBChange(static_cast<USBH_HandleTypeDef *>(hhcd->pData));
 #endif
-    if (USBH_MSC_WorkerTaskHandle) {
+    osThreadId worker_task = USBH_MSC_WorkerTaskHandle;
+    if (worker_task) {
         BaseType_t pxHigherPriorityTaskWoken;
-        vTaskNotifyGiveFromISR(USBH_MSC_WorkerTaskHandle, &pxHigherPriorityTaskWoken);
+        vTaskNotifyGiveFromISR(worker_task, &pxHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
     }
 }

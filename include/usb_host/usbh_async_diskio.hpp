@@ -11,7 +11,7 @@
 #endif
 
 // Task handle of the process for executing the r/w MSC operations
-extern osThreadId USBH_MSC_WorkerTaskHandle;
+extern osThreadId volatile USBH_MSC_WorkerTaskHandle;
 
 using UsbhMscRequestCallback = void (*)(USBH_StatusTypeDef result, void *param1, void *param2);
 

@@ -85,10 +85,10 @@ namespace hal::PWMDriver {
 
 static TIM_HandleTypeDef s_htim;
 
-static uint32_t s_PWMPulseCounter = 0;
+static volatile uint32_t s_PWMPulseCounter = 0;
 static uint32_t s_EdgeMaskList_A[PWM_PERIOD_LENGTH];
 static uint32_t s_EdgeMaskList_B[PWM_PERIOD_LENGTH];
-static uint32_t *s_pActualEdgeMaskList = s_EdgeMaskList_A;
+static uint32_t *volatile s_pActualEdgeMaskList = s_EdgeMaskList_A;
 
 static uint16_t s_PulseMaskList[PWM_PERIOD_LENGTH];
 // uint32_t s_PulseCounts[PWM_PERIOD_LENGTH];

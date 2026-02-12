@@ -29,7 +29,7 @@ namespace hal::RS485Driver {
 static uint8_t s_modbusAddress;
 static UART_HandleTypeDef s_huart;
 
-static OnReceiveCallback s_pOnReceive = nullptr;
+static OnReceiveCallback volatile s_pOnReceive = nullptr;
 
 static uint8_t s_RX_buffer_1[RS485_BUFFER_SIZE];
 static uint8_t s_RX_buffer_2[RS485_BUFFER_SIZE];
@@ -314,8 +314,9 @@ void USART_IRQHandler() {
         SET_BIT(USART->CR3, USART_CR3_DMAR);
 
         // process received data
-        if (buffer[0] == s_modbusAddress && dataSize > 0 && s_pOnReceive != nullptr) {
-            s_pOnReceive(buffer, dataSize);
+        OnReceiveCallback on_receive = s_pOnReceive;
+        if (buffer[0] == s_modbusAddress && dataSize > 0 && on_receive != nullptr) {
+            on_receive(buffer, dataSize);
         }
     }
 

@@ -24,7 +24,7 @@ extern "C" void Error_Handler(void);
 volatile unsigned int wdt_iwdg_counter = 0;
 volatile unsigned char wdt_wwdg_counter = 0;
 
-wdt_iwdg_warning_cb_t *wdt_iwdg_warning_cb = 0;
+wdt_iwdg_warning_cb_t *volatile wdt_iwdg_warning_cb = 0;
 
 void wdt_iwdg_init(void) {
 #ifdef WDT_IWDG_ENABLED
@@ -72,8 +72,9 @@ void wdt_tick_1ms(void) {
         if (wdt_iwdg_counter++ < WDT_IWDG_WARNING_DELAY) {
             return;
         }
-        if (wdt_iwdg_warning_cb) {
-            wdt_iwdg_warning_cb();
+        wdt_iwdg_warning_cb_t *cb = wdt_iwdg_warning_cb;
+        if (cb) {
+            cb();
         }
     }
 #endif // WDT_IWDG_ENABLED
