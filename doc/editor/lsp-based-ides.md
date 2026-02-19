@@ -1,19 +1,25 @@
 ### Development with LSP-based IDEs (Visual Studio [Code], Vim, Sublime Text, etc.)
 
-1. Run `python utils/bootstrap.py` to download required dependencies.
-2. Create a build directory and enter it (`mkdir build`, `cd build`).
-3. Invoke CMake directly with your configuration, for example:
+1. Build the firmware for the printer(s) you are working on using `build.py`:
 
-    ```bash
-    cmake .. --preset mini \
-             -G Ninja \
-             -DCMAKE_EXPORT_COMPILE_COMMANDS=YES \
-             -DBOOTLOADER=YES \
-             -DCMAKE_BUILD_TYPE=Debug
-    ```
+   ```bash
+   python utils/build.py --preset coreone --build-type debug --bootloader yes
+   ```
 
-    See the header of `./CMakeLists.txt` for more command-line options (most of them are one-to-one mapped with `build.py`'s options).
-4. And invoke `ninja`. It will generate a `compile_commands.json` file, that an LSP server can pick up and use to provide autocompletion to your editor (we recommend using `clangd`).
-5. Install some spell checker (optional but recommended).
+   This handles bootstrapping dependencies, configuring, and building. Build output (including `compile_commands.json`) is placed under `build/<preset>_<build-type>_<bootloader>/` (e.g. `build/coreone_debug_boot/`).
 
-> This assumes you have sufficient version of cmake and ninja available in your PATH.
+2. Link the generated `compile_commands.json` file to the project root so your editor's language server can find it:
+
+   ```bash
+   ln -s build/coreone_debug_boot/compile_commands.json compile_commands.json
+   ```
+
+3. If you have multiple build configurations, you can merge them using `jq`:
+
+   ```bash
+   jq -s add build/*/compile_commands.json > compile_commands.json
+   ```
+
+   Re-run this after rebuilding if the compile commands change.
+
+4. Install some spell checker (optional but recommended).

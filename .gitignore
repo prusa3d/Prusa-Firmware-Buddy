@@ -10,6 +10,7 @@ CMakeUserPresets.json
 .ccls-cache
 .cache/clangd
 .idea
+.zed
 compile_commands.json
 /.vscode/*.peripherals.state.json
 /.vscode/*.registers.state.json
