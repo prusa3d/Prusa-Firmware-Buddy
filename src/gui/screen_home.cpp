@@ -269,18 +269,12 @@ screen_home_data_t::screen_home_data_t()
 #if BUDDY_ENABLE_CONNECT()
     if (config_store().home_screen_set_ready_mode.get()) {
         w_labels[0].SetText(_("Set Ready"));
-        // Set Ready button is always active regardless of USB state
-        w_buttons[0].Unshadow();
-        w_buttons[0].Enable();
-        w_buttons[0].Invalidate();
-    } else
+    }
 #endif
-    {
-        if (!usbInserted) {
-            printBtnDis();
-        } else {
-            usbWasAlreadyInserted = true;
-        }
+    if (!usbInserted) {
+        printBtnDis();
+    } else {
+        usbWasAlreadyInserted = true;
     }
     ever_been_opened = true;
 }
@@ -548,23 +542,19 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
 }
 
 void screen_home_data_t::printBtnEna() {
-#if BUDDY_ENABLE_CONNECT()
-    if (config_store().home_screen_set_ready_mode.get()) {
-        return; // Set Ready mode: button state is not USB-dependent
-    }
-#endif
     w_buttons[0].Unshadow();
     w_buttons[0].Enable(); // can be focused
     w_buttons[0].Invalidate();
+#if BUDDY_ENABLE_CONNECT()
+    if (config_store().home_screen_set_ready_mode.get()) {
+        w_labels[0].SetText(_("Set Ready"));
+        return;
+    }
+#endif
     w_labels[0].SetText(_(labels[labelPrintId]));
 }
 
 void screen_home_data_t::printBtnDis() {
-#if BUDDY_ENABLE_CONNECT()
-    if (config_store().home_screen_set_ready_mode.get()) {
-        return; // Set Ready mode: button state is not USB-dependent
-    }
-#endif
     // move to preheat when Print is focused
     if (w_buttons[0].IsFocused()) {
         w_buttons[1].SetFocus();
