@@ -42,6 +42,11 @@
 #include <device/peripherals.h>
 #include <option/has_mmu2.h>
 #include <option/has_human_interactions.h>
+#include <option/buddy_enable_connect.h>
+#include <config_store/store_instance.hpp>
+#if BUDDY_ENABLE_CONNECT()
+    #include "connect/marlin_printer.hpp"
+#endif
 
 #include "screen_menu_settings.hpp"
 #include "screen_menu_filament.hpp"
@@ -197,7 +202,15 @@ screen_home_data_t::screen_home_data_t()
     , logo(this, logoRect, &img::prusa_mini_logo_153x40)
 #endif
     , w_buttons {
-        { this, Rect16(), nullptr, [](window_t&) { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
+        { this, Rect16(), nullptr, [](window_t&) {
+#if BUDDY_ENABLE_CONNECT()
+            if (config_store().home_screen_set_ready_mode.get()) {
+                connect_client::MarlinPrinter::set_printer_ready(true);
+                return;
+            }
+#endif
+            Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>);
+        } },
         { this, Rect16(), nullptr, [](window_t&) { marlin_client::gcode_printf("M1700 T-1"); } },
         { this, Rect16(), nullptr, FilamentBtn_cb },
         { this, Rect16(), nullptr, [](window_t&) { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuControl>); } },
@@ -253,6 +266,11 @@ screen_home_data_t::screen_home_data_t()
 
     filamentBtnSetState();
 
+#if BUDDY_ENABLE_CONNECT()
+    if (config_store().home_screen_set_ready_mode.get()) {
+        w_labels[0].SetText(_("Set Ready"));
+    }
+#endif
     if (!usbInserted) {
         printBtnDis();
     } else {
@@ -527,6 +545,12 @@ void screen_home_data_t::printBtnEna() {
     w_buttons[0].Unshadow();
     w_buttons[0].Enable(); // can be focused
     w_buttons[0].Invalidate();
+#if BUDDY_ENABLE_CONNECT()
+    if (config_store().home_screen_set_ready_mode.get()) {
+        w_labels[0].SetText(_("Set Ready"));
+        return;
+    }
+#endif
     w_labels[0].SetText(_(labels[labelPrintId]));
 }
 

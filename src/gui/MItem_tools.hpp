@@ -145,6 +145,16 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
+#if BUDDY_ENABLE_CONNECT()
+class MI_HOME_SCREEN_SET_READY_MODE : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Switch Print to Set Ready");
+
+public:
+    MI_HOME_SCREEN_SET_READY_MODE();
+    virtual void OnChange(size_t old_index) override;
+};
+#endif
+
 #ifdef _DEBUG
 inline constexpr size_t MI_SOUND_MODE_COUNT = 5;
 #else
