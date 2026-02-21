@@ -212,6 +212,7 @@ struct CurrentStore
     StoreItem<uint8_t, 0, ItemFlag::user_interface, journal::hash("File Sort")> file_sort; // filebrowser file sort options
     StoreItem<bool, true, ItemFlag::user_interface, journal::hash("Menu Timeout")> menu_timeout; // on / off menu timeout flag
     StoreItem<bool, true, ItemFlag::user_interface, journal::hash("Devhash in QR")> devhash_in_qr; // on / off sending UID in QR
+    StoreItem<bool, false, ItemFlag::user_interface, journal::hash("Home Screen Set Ready Mode")> home_screen_set_ready_mode; // replace Print button with Set Ready on home screen
 
     StoreItem<footer::Item, defaults::footer_setting_0, ItemFlag::user_interface, journal::hash("Footer Setting 0 v3")> footer_setting_0;
 #if FOOTER_ITEMS_PER_LINE__ > 1

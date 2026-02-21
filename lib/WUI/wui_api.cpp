@@ -267,6 +267,13 @@ void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp) {
 
 StartPrintResult wui_start_print(char *filename, bool autostart_if_able) {
 
+    // When "Switch Print to Set Ready" mode is active, uploading files does not
+    // trigger the print dialog or auto-print — the user sets the printer ready via
+    // the home screen button instead.
+    if (config_store().home_screen_set_ready_mode.get()) {
+        return autostart_if_able ? StartPrintResult::Failed : StartPrintResult::Uploaded;
+    }
+
     const bool printer_can_print = printer_state::remote_print_ready(!autostart_if_able);
 
     // Turn it into the short name, to improve buffer length, avoid strange

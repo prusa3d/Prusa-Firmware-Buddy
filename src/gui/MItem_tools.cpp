@@ -307,6 +307,16 @@ void MI_TIMEOUT::OnChange(size_t old_index) {
 }
 
 /*****************************************************************************/
+// MI_HOME_SCREEN_SET_READY_MODE
+#if BUDDY_ENABLE_CONNECT()
+MI_HOME_SCREEN_SET_READY_MODE::MI_HOME_SCREEN_SET_READY_MODE()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().home_screen_set_ready_mode.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+void MI_HOME_SCREEN_SET_READY_MODE::OnChange(size_t) {
+    config_store().home_screen_set_ready_mode.set(value());
+}
+#endif
+
+/*****************************************************************************/
 // MI_SOUND_MODE
 static constexpr EnumArray<eSOUND_MODE, const char *, eSOUND_MODE::_count> sound_mode_values {
     { eSOUND_MODE::ONCE, N_("Once") },

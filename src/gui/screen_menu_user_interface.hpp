@@ -15,6 +15,7 @@
 #include <option/has_touch.h>
 #include <option/xbuddy_extension_variant_standard.h>
 #include <option/has_leds_menu.h>
+#include <option/buddy_enable_connect.h>
 
 #if HAS_TOUCH()
     #include "MItem_touch.hpp"
@@ -30,6 +31,9 @@ using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_PRINT_PROGRESS_TIME,
 #endif
     MI_TIMEOUT, MI_SOUND_MODE, MI_FILAMENT_CHANGE_PREHEAT_ALL,
+#if BUDDY_ENABLE_CONNECT()
+    MI_HOME_SCREEN_SET_READY_MODE,
+#endif
 #if HAS_ST7789_DISPLAY()
     // We could potentionally have MINI display without buzzer.
     // So we only allow sound control for ST7789
