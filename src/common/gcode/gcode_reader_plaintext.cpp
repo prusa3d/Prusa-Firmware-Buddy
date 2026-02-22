@@ -25,7 +25,7 @@ IGcodeReader::Result_t PlainGcodeReader::stream_gcode_start(uint32_t offset) {
 }
 AbstractByteReader *PlainGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint16_t expected_height, ImgType expected_type, bool allow_larger) {
     // search for begining of thumbnail in file
-    static const size_t MAX_SEARCH_LINES = 2048;
+    static const size_t MAX_SEARCH_LINES = 10;
     // We want to do simple scan through beginning of file, so we use gcode stream for that, it doesn't skip towards end of file like metadata stream
     if (stream_gcode_start() != IGcodeReader::Result_t::RESULT_OK) {
         return nullptr;
@@ -41,6 +41,17 @@ AbstractByteReader *PlainGcodeReader::stream_thumbnail_start(uint16_t expected_w
             thumbnail_reader.thumbnail_size = num_bytes;
             thumbnail_reader.base64_decoder.Reset();
             return &thumbnail_reader;
+        } else if (num_bytes > 0) {
+            lines_searched = 0;
+            auto pos = ftell(file.get());
+            // To calculate the number of lines of text image data we have 78
+            // bytes per line of image data plus semi colon, space, and then a
+            // newline at the end of the line = 81 bytes/line
+            long unsigned int text_bytes = (num_bytes / 78) * 81 + (num_bytes % 78) + 3;
+            // Jump over this thumbnails data since it isn't what we want
+            if (stream_gcode_start(pos+text_bytes) != IGcodeReader::Result_t::RESULT_OK) {
+                return nullptr;
+            }
         }
     }
 
@@ -186,30 +197,30 @@ bool PlainGcodeReader::IsBeginThumbnail(GcodeBuffer &buffer, uint16_t expected_w
 
     const char *thumbnailBegin = nullptr;
     size_t thumbnailBeginSizeof = 0;
-    switch (expected_type) {
-    case ImgType::PNG:
-        thumbnailBegin = thumbnailBegin_png;
-        thumbnailBeginSizeof = sizeof(thumbnailBegin_png);
-        break;
-    case ImgType::QOI:
-        thumbnailBegin = thumbnailBegin_qoi;
-        thumbnailBeginSizeof = sizeof(thumbnailBegin_qoi);
-        break;
-    default:
-        return false;
-    }
+    bool is_expected_type = false;
+
     // pokud zacina radka na ; thumbnail, lze se tim zacit zabyvat
     // nemuzu pouzivat zadne pokrocile algoritmy, musim vystacit se strcmp
     const char *lc = buffer.line.begin; // jen quli debuggeru, abych do toho videl...
     // ta -1 na size ma svuj vyznam - chci, aby strncmp NEporovnavalo ten null
     // znak na konci, cili abych se nemusel srat s tim, ze vstupni string je
     // delsi, cili aby to emulovalo chovani boost::starts_with()
-    if (!strncmp(lc, thumbnailBegin, thumbnailBeginSizeof - 1)) {
+    if (!strncmp(lc, thumbnailBegin_png, sizeof(thumbnailBegin_png) - 1)) {
+        thumbnailBegin = thumbnailBegin_png;
+        thumbnailBeginSizeof = sizeof(thumbnailBegin_png);
+        is_expected_type = expected_type == ImgType::PNG;
+    } else if (!strncmp(lc, thumbnailBegin_qoi, sizeof(thumbnailBegin_qoi) - 1)) {
+        thumbnailBegin = thumbnailBegin_qoi;
+        thumbnailBeginSizeof = sizeof(thumbnailBegin_qoi);
+        is_expected_type = expected_type == ImgType::QOI;
+    }
+
+    if (thumbnailBegin) {
         // zacatek thumbnailu
         unsigned int x, y;
         lc = lc + thumbnailBeginSizeof - 1;
         int ss = sscanf(lc, "%ux%u %lu", &x, &y, &num_bytes);
-        if (ss == 3) { // 3 uspesne prectene itemy - rozliseni
+        if (ss == 3 && is_expected_type) { // 3 uspesne prectene itemy - rozliseni
             // je to platny zacatek thumbnailu, je to ten muj?
             if ((x == expected_width && y == expected_height) || (allow_larder && x >= expected_width && y >= expected_height)) {
                 // je to ten muj, ktery chci
