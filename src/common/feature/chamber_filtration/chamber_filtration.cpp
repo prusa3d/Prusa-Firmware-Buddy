@@ -95,7 +95,7 @@ void ChamberFiltration::step() {
     if (!is_enabled()) {
         output_pwm_ = {};
         is_printing_prev_ = false;
-        needs_filtration_ = false;
+        needs_filtration_ = std::nullopt; // Force re-evaluation when backend is re-enabled mid-print
         return;
     }
 
