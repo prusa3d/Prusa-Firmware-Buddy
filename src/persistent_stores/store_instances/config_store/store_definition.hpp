@@ -424,11 +424,12 @@ struct CurrentStore
     StoreItem<float, 0.0f, ItemFlag::calibrations, journal::hash("Homing Bump Divisor Y")> homing_bump_divisor_y;
 
 #if HAS_SIDE_LEDS()
-    /// 0-255; 0 = disabled.
+    /// 0-255; 0 = disabled. Brightness when user interacts (door open, knob, touch).
     StoreItem<uint8_t, 255, ItemFlag::user_interface, journal::hash("XBuddy Extension Chamber LEDs PWM")> side_leds_max_brightness;
+    /// 0-255; 0 = disabled. Brightness when idle (not printing, after activity timeout).
     StoreItem<uint8_t, PWM255::from_percent(40).value, ItemFlag::user_interface, journal::hash("XBuddy Extension Chamber LEDs dimmed PWM")> side_leds_dimmed_brightness;
-    /// Whether the side leds should dim down a bit when user is not interacting with the printer or stay on full power the whole time
-    StoreItem<leds::DimmingEnabled, leds::DimmingEnabled::not_printing, ItemFlag::user_interface, journal::hash("Enable Side LEDs dimming")> side_leds_dimming_enabled;
+    /// 0-255; Brightness during active printing (after activity timeout). Default 100%.
+    StoreItem<uint8_t, 255, ItemFlag::user_interface, journal::hash("Chamber LEDs Print Brightness")> side_leds_print_brightness;
 #endif
 
     StoreItem<bool, true, ItemFlag::user_interface, journal::hash("Enable Serial Printing Screen")> serial_print_screen_enabled;
@@ -834,6 +835,7 @@ struct DeprecatedStore
 
 #if HAS_SIDE_LEDS()
     StoreItem<leds::DimmingEnabled, leds::DimmingEnabled::not_printing, journal::hash("Side LEDs dimming with camera")> side_leds_dimming_enabled_with_camera;
+    StoreItem<leds::DimmingEnabled, leds::DimmingEnabled::not_printing, journal::hash("Enable Side LEDs dimming")> side_leds_dimming_enabled;
     #if HAS_XBUDDY_EXTENSION()
     StoreItem<uint8_t, 255, journal::hash("Chamber LEDs PWM with Camera")> side_leds_max_brightness_with_camera;
     #endif

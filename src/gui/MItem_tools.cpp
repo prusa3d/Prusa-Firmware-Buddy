@@ -862,6 +862,21 @@ void MI_SIDE_LEDS_MAX_BRIGTHNESS::OnClick() {
 
 #if HAS_SIDE_LEDS()
 /**********************************************************************************************/
+// MI_SIDE_LEDS_PRINT_BRIGTHNESS
+MI_SIDE_LEDS_PRINT_BRIGTHNESS::MI_SIDE_LEDS_PRINT_BRIGTHNESS()
+    : WiSpin(
+        static_cast<float>(leds::SideStripHandler::instance().get_print_brightness()) * 100 / 255,
+        numeric_input_config::percent_with_off,
+        _(label)) {
+}
+
+void MI_SIDE_LEDS_PRINT_BRIGTHNESS::OnClick() {
+    leds::SideStripHandler::instance().set_print_brightness(static_cast<uint8_t>(value()) * 255 / 100);
+}
+#endif
+
+#if HAS_SIDE_LEDS()
+/**********************************************************************************************/
 // MI_SIDE_LEDS_DIMMED_BRIGTHNESS
 
 MI_SIDE_LEDS_DIMMED_BRIGTHNESS::MI_SIDE_LEDS_DIMMED_BRIGTHNESS()
@@ -876,24 +891,12 @@ void MI_SIDE_LEDS_DIMMED_BRIGTHNESS::OnClick() {
 }
 
 void MI_SIDE_LEDS_DIMMED_BRIGTHNESS::Loop() {
-    set_enabled(leds::SideStripHandler::instance().get_dimming_enabled() != leds::DimmingEnabled::never);
-}
-#endif
-
-#if HAS_SIDE_LEDS()
-/**********************************************************************************************/
-// MI_SIDE_LEDS_DIMMING_ENABLE
-static constexpr EnumArray<leds::DimmingEnabled, const char *, leds::DimmingEnabled::_cnt> dimming_enabled_values {
-    { leds::DimmingEnabled::never, N_("Never") },
-    { leds::DimmingEnabled::always, N_("Always") },
-    { leds::DimmingEnabled::not_printing, N_("On Idle") },
-};
-
-MI_SIDE_LEDS_DIMMING_ENABLE::MI_SIDE_LEDS_DIMMING_ENABLE()
-    : MenuItemSwitch(_(label), dimming_enabled_values, std::to_underlying(leds::SideStripHandler::instance().get_dimming_enabled())) {
-}
-void MI_SIDE_LEDS_DIMMING_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
-    leds::SideStripHandler::instance().set_dimming_enabled(static_cast<leds::DimmingEnabled>(get_index()));
+    // Clamp idle brightness so it cannot exceed chamber brightness
+    const float max_percent = static_cast<float>(leds::SideStripHandler::instance().get_max_brightness()) * 100 / 255;
+    if (value() > max_percent) {
+        set_value(max_percent);
+        OnClick();
+    }
 }
 #endif
 

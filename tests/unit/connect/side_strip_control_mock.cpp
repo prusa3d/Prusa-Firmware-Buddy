@@ -17,4 +17,9 @@ void SideStripHandler::set_max_brightness(uint8_t set) {
     side_max_brightness = set;
 }
 
+uint8_t side_print_brightness = 0;
+void SideStripHandler::set_print_brightness(uint8_t set) {
+    side_print_brightness = set;
+}
+
 } // namespace leds

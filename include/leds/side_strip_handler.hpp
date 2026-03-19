@@ -2,7 +2,6 @@
 
 #include "color.hpp"
 #include "printers.h"
-#include "dimming_enabled.hpp"
 
 #include <freertos/mutex.hpp>
 #include <optional>
@@ -12,8 +11,9 @@ namespace leds {
 
 enum class SideStripState {
     off,
-    dimmed,
-    active,
+    dimmed, // idle brightness (not printing, after activity timeout)
+    active, // interaction brightness (door open, knob, touch)
+    printing, // print brightness (printing, after activity timeout)
     custom_color,
     _last = custom_color,
 };
@@ -48,17 +48,17 @@ public:
 
     void load_config();
 
-    /// Set maximum brightness of the side leds white channel. The W brightness is limited to this value.
-    /// 0 = disable side leds completely (even RGB status blinking), 255 = full
+    /// Brightness on user interaction (door open, knob, touch). 0 = off, 255 = full.
     uint8_t get_max_brightness() const;
     void set_max_brightness(uint8_t value);
-    /// Set brightness of the side leds while the leds are dimmed down.
-    // /// 0 = disable dimmed side leds, 255 = full brightness
+
+    /// Brightness when idle and not printing (after activity timeout). 0 = off, 255 = full.
     uint8_t get_dimmed_brightness() const;
     void set_dimmed_brightness(uint8_t value);
 
-    DimmingEnabled get_dimming_enabled() const;
-    void set_dimming_enabled(DimmingEnabled value);
+    /// Brightness during active printing (after activity timeout). 0 = off, 255 = full.
+    uint8_t get_print_brightness() const;
+    void set_print_brightness(uint8_t value);
 
     leds::ColorRGBW color() const;
 
@@ -79,9 +79,9 @@ private:
     mutable freertos::Mutex mutex;
 
     // Values are initialized from config store by load_config() in constructor
-    DimmingEnabled dimming_enabled;
     uint8_t max_brightness;
     uint8_t dimmed_brightness;
+    uint8_t print_brightness;
 
     SideStripState state = SideStripState::off;
     uint32_t active_timestamp_ms = 0; // Timestamp of the last activity for idle dimming

@@ -39,13 +39,20 @@ void SideStripHandler::update() {
         change_state(SideStripState::custom_color);
     } else {
         custom_color.reset();
-        const bool dont_dim = dimming_enabled == DimmingEnabled::never || (dimming_enabled == DimmingEnabled::not_printing && marlin_server::is_printing());
-        if (dont_dim || (active_timestamp_ms != 0 && time_ms - active_timestamp_ms < active_timeout_ms)) {
+        const bool is_printing_now = marlin_server::is_printing();
+        const uint8_t baseline = is_printing_now ? print_brightness : dimmed_brightness;
+        const bool user_active = (active_timestamp_ms != 0 && time_ms - active_timestamp_ms < active_timeout_ms);
+
+        if (user_active && max_brightness > baseline) {
             change_state(SideStripState::active);
         } else {
             // Clear to prevent overflow bugs
             active_timestamp_ms = 0;
-            change_state(SideStripState::dimmed);
+            if (is_printing_now) {
+                change_state(SideStripState::printing);
+            } else {
+                change_state(SideStripState::dimmed);
+            }
         }
     }
 
@@ -56,7 +63,7 @@ void SideStripHandler::load_config() {
     std::lock_guard lock(mutex);
     dimmed_brightness = config_store().side_leds_dimmed_brightness.get();
     max_brightness = config_store().side_leds_max_brightness.get();
-    dimming_enabled = config_store().side_leds_dimming_enabled.get();
+    print_brightness = config_store().side_leds_print_brightness.get();
     // Set state to off to force a change of state that will transition to the new brightness
     state = SideStripState::off;
 }
@@ -95,15 +102,21 @@ void SideStripHandler::set_dimmed_brightness(uint8_t value) {
     state = SideStripState::off;
 }
 
-DimmingEnabled SideStripHandler::get_dimming_enabled() const {
+uint8_t SideStripHandler::get_print_brightness() const {
     std::lock_guard lock(mutex);
-    return dimming_enabled;
+    return print_brightness;
 }
 
-void SideStripHandler::set_dimming_enabled(DimmingEnabled value) {
-    config_store().side_leds_dimming_enabled.set(value);
+void SideStripHandler::set_print_brightness(uint8_t value) {
+    config_store().side_leds_print_brightness.set(value);
     std::lock_guard lock(mutex);
-    dimming_enabled = value;
+    if (print_brightness == value) {
+        return;
+    }
+
+    print_brightness = value;
+    // Set state to off to force a change of state that will transition to the new brightness
+    state = SideStripState::off;
 }
 
 leds::ColorRGBW SideStripHandler::color() const {
@@ -137,6 +150,8 @@ ColorRGBW SideStripHandler::get_color_for_state(SideStripState state) {
         return base_color.clamp(dimmed_brightness);
     case SideStripState::active:
         return base_color.clamp(max_brightness);
+    case SideStripState::printing:
+        return base_color.clamp(print_brightness);
     case SideStripState::custom_color:
         return ColorRGBW(custom_color->color);
     }
