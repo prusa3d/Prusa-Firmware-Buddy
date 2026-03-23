@@ -245,6 +245,13 @@ void MarlinSettings::reset_motion(const bool no_limits) {
     #endif
 
     planner.apply_settings(s, no_limits);
+
+    // Recalculate mm_per_step & co.
+    // XXX: it is very bad that this has to be called separately. apply_settings should
+    // probably invoke it automatically. Otherwise it's very easy to end up in a state
+    // where axis_steps_per_mm and mm_per_step don't match, causing different parts of
+    // the code to have conflicting opinions on how many steps are in one mm of distance.
+    planner.refresh_positioning();
   #endif /* HAS_PLANNER() */
 }
 
