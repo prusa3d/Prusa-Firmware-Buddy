@@ -160,7 +160,7 @@ private:
 
     std::array<Iface, NETDEV_COUNT> ifaces;
 #if HAS_ESP()
-    ap_entry_t ap = { "", "" };
+    ap_entry_t ap = { "", "", WIFI_EAP_NONE, "", "" };
     uint32_t last_esp_ok;
 #endif
 
@@ -463,7 +463,12 @@ private:
                 if (iface_mode(ifaces[NETDEV_ESP_ID]) != Mode::Off && espif_need_ap() && !(events & Reconfigure)) {
                     {
                         unique_lock lock(mutex);
-                        espif_join_ap(ap.ssid, ap.pass);
+                        if (ap.eap_method != WIFI_EAP_NONE) {
+                            const char *anon_identity = ap.enterprise_anon_identity[0] != '\0' ? ap.enterprise_anon_identity : nullptr;
+                            espif_join_ap_enterprise(ap.ssid, static_cast<uint8_t>(ap.eap_method), ap.enterprise_identity, anon_identity, ap.pass);
+                        } else {
+                            espif_join_ap(ap.ssid, ap.pass);
+                        }
                     }
                     set_up(ifaces[NETDEV_ESP_ID].dev);
                 }

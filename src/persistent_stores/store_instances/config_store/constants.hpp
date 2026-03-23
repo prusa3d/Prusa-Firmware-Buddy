@@ -23,6 +23,7 @@ inline constexpr size_t connect_token_size { 20 };
 inline constexpr size_t pl_password_size { 16 };
 inline constexpr size_t wifi_max_ssid_len { 32 };
 inline constexpr size_t wifi_max_passwd_len { 64 };
+inline constexpr size_t wifi_enterprise_identity_max_len { 64 }; ///< Max length of WPA2-Enterprise identity or anonymous identity
 
 inline constexpr size_t metrics_host_size { connect_host_size }; ///< Size of metrics host string
 inline constexpr int16_t stallguard_sensitivity_unset { std::numeric_limits<int16_t>::max() };

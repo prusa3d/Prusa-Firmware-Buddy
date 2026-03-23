@@ -20,10 +20,19 @@ void espif_tx_callback();
 err_t espif_init(struct netif *netif);
 
 ////////////////////////////////////////////////////////////////////////////
-/// @brief Join AP
+/// @brief Join AP using WPA2-Personal (PSK)
 /// @param [in] ssid AP SSID
-/// @param [in] pass AP password
+/// @param [in] pass AP password (NULL or empty string for open networks)
 err_t espif_join_ap(const char *ssid, const char *passwd);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Join AP using WPA2-Enterprise (802.1X / EAP)
+/// @param [in] ssid         AP SSID
+/// @param [in] eap_method   1 = PEAP/MSCHAPv2, 2 = EAP-TTLS/PAP
+/// @param [in] identity     Outer EAP identity (e.g. user@domain.com)
+/// @param [in] anon_identity Anonymous outer identity, may be NULL or empty
+/// @param [in] password     User password
+err_t espif_join_ap_enterprise(const char *ssid, uint8_t eap_method, const char *identity, const char *anon_identity, const char *password);
 
 ////////////////////////////////////////////////////////////////////////////
 /// C wrapper for espif::scan::start
