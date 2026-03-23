@@ -102,9 +102,10 @@ enum MessageType {
     MSG_SCAN_STOP = 9,
     MSG_SCAN_AP_CNT = 10,
     MSG_SCAN_AP_GET = 11,
+    MSG_CLIENTCONFIG_ENTERPRISE = 12, ///< WPA2-Enterprise (802.1X/EAP) AP join request
 };
 
-static constexpr uint8_t SUPPORTED_FW_VERSION = 13;
+static constexpr uint8_t SUPPORTED_FW_VERSION = 14;
 
 // NIC state
 static std::atomic<uint8_t> fw_version;
@@ -368,6 +369,73 @@ static err_t espif_tx_buffer(const uint8_t *data, size_t len) {
         log_info(ESPIF, "Client config complete, have new intron");
     } else {
         log_error(ESPIF, "Client config failed: %d", static_cast<int>(err));
+    }
+
+    return err;
+}
+
+[[nodiscard]] static err_t espif_tx_msg_clientconfig_enterprise(const char *ssid, uint8_t eap_method, const char *identity, const char *anon_identity, const char *password) {
+    if (scan.is_running) {
+        log_error(ESPIF, "Client config enterprise while running scan");
+        return ERR_IF;
+    }
+
+    std::array<uint8_t, sizeof(tx_message.intron)> new_intron {};
+
+    for (uint i = 0; i < 2; i++) {
+        new_intron[i] = tx_message.intron[i];
+    }
+
+    for (uint i = 2; i < new_intron.size(); i++) {
+        new_intron[i] = rand_u();
+    }
+
+    const uint8_t ssid_len = strlen(ssid);
+    const uint8_t identity_len = identity ? strlen(identity) : 0;
+    const uint8_t anon_identity_len = anon_identity ? strlen(anon_identity) : 0;
+    const uint8_t pass_len = password ? strlen(password) : 0;
+    const uint16_t length = sizeof(new_intron)
+        + sizeof(ssid_len) + ssid_len
+        + sizeof(eap_method)
+        + sizeof(identity_len) + identity_len
+        + sizeof(anon_identity_len) + anon_identity_len
+        + sizeof(pass_len) + pass_len;
+
+    auto pbuf = pbuf_smart { pbuf_alloc(PBUF_RAW, length, PBUF_RAM) };
+    if (!pbuf) {
+        log_error(ESPIF, "Low mem for enterprise client config");
+        return ERR_MEM;
+    }
+
+    {
+        assert(pbuf->tot_len == length);
+        uint8_t *buffer = (uint8_t *)pbuf->payload;
+        buffer = buffer_append_unsafe(buffer, new_intron.data(), sizeof(new_intron));
+        buffer = buffer_append_unsafe(buffer, &ssid_len, sizeof(ssid_len));
+        buffer = buffer_append_unsafe(buffer, (uint8_t *)ssid, ssid_len);
+        buffer = buffer_append_unsafe(buffer, &eap_method, sizeof(eap_method));
+        buffer = buffer_append_unsafe(buffer, &identity_len, sizeof(identity_len));
+        if (identity_len) {
+            buffer = buffer_append_unsafe(buffer, (uint8_t *)identity, identity_len);
+        }
+        buffer = buffer_append_unsafe(buffer, &anon_identity_len, sizeof(anon_identity_len));
+        if (anon_identity_len) {
+            buffer = buffer_append_unsafe(buffer, (uint8_t *)anon_identity, anon_identity_len);
+        }
+        buffer = buffer_append_unsafe(buffer, &pass_len, sizeof(pass_len));
+        if (pass_len) {
+            buffer = buffer_append_unsafe(buffer, (uint8_t *)password, pass_len);
+        }
+        assert(buffer == (uint8_t *)pbuf->payload + length);
+    }
+
+    err_t err = espif_tx_raw(MSG_CLIENTCONFIG_ENTERPRISE, 0, pbuf_variant { std::move(pbuf) });
+    if (err == ERR_OK) {
+        std::lock_guard lock { uart_write_mutex };
+        std::copy_n(new_intron.begin(), sizeof(tx_message.intron), tx_message.intron);
+        log_info(ESPIF, "Enterprise client config complete, have new intron");
+    } else {
+        log_error(ESPIF, "Enterprise client config failed: %d", static_cast<int>(err));
     }
 
     return err;
@@ -902,6 +970,28 @@ err_t espif_join_ap(const char *ssid, const char *pass) {
     case ERR_MEM:
         // Wait in error state for another reset, done by the wui.cpp on too
         // long inactivity. Once it resets us, we'll try again from the start.
+        esp_operating_mode = ESPIF_ERROR;
+        break;
+    default:
+        break;
+    }
+
+    return err;
+}
+
+err_t espif_join_ap_enterprise(const char *ssid, uint8_t eap_method, const char *identity, const char *anon_identity, const char *password) {
+    if (!is_running(esp_operating_mode)) {
+        return ERR_IF;
+    }
+    log_info(ESPIF, "Joining enterprise AP %s (eap=%u)", ssid, eap_method);
+
+    err_t err = espif_tx_msg_clientconfig_enterprise(ssid, eap_method, identity, anon_identity, password);
+
+    switch (err) {
+    case ERR_OK:
+        esp_operating_mode = ESPIF_CONNECTING_AP;
+        break;
+    case ERR_MEM:
         esp_operating_mode = ESPIF_ERROR;
         break;
     default:

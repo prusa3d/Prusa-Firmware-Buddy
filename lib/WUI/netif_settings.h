@@ -15,9 +15,10 @@
 #define TURN_FLAG_ON(flg)          (flg &= ~LAN_FLAG_ONOFF_POS) // flip lan switch flg to ON
 #define TURN_FLAG_OFF(flg)         (flg |= LAN_FLAG_ONOFF_POS) // flip lan switch flg to OFF
 
-#define HOSTNAME_LEN 20 // ethernet hostname MAX length
-#define SSID_MAX_LEN 32 // https://en.wikipedia.org/wiki/Service_set_(802.11_network)#SSID
-#define WIFI_PSK_MAX 64
+#define HOSTNAME_LEN           20 // ethernet hostname MAX length
+#define SSID_MAX_LEN           32 // https://en.wikipedia.org/wiki/Service_set_(802.11_network)#SSID
+#define WIFI_PSK_MAX           64
+#define WIFI_ENTERPRISE_ID_MAX 64 // max length of WPA2-Enterprise identity / anonymous identity
 
 typedef struct {
     uint8_t flag; // lan flags: pos0 = switch(ON=0, OFF=1), pos1 = type(DHCP=0, STATIC=1)
@@ -40,9 +41,20 @@ typedef struct {
 // eeproms may contain them
 #define RESERVED_MASK 0b1100
 
+/// EAP method for WPA2-Enterprise authentication.
+/// WifiEapMethod::none means standard WPA2-Personal (PSK).
+typedef enum {
+    WIFI_EAP_NONE = 0, ///< WPA2-Personal (PSK), no enterprise auth
+    WIFI_EAP_PEAP = 1, ///< PEAP/MSCHAPv2 - most common in corporate Windows environments
+    WIFI_EAP_TTLS = 2, ///< EAP-TTLS/PAP  - common in university/Linux environments
+} WifiEapMethod;
+
 typedef struct {
     char ssid[SSID_MAX_LEN + 1];
     char pass[WIFI_PSK_MAX + 1];
+    WifiEapMethod eap_method; ///< EAP method; WIFI_EAP_NONE = WPA2-Personal
+    char enterprise_identity[WIFI_ENTERPRISE_ID_MAX + 1]; ///< Outer EAP identity (username@domain)
+    char enterprise_anon_identity[WIFI_ENTERPRISE_ID_MAX + 1]; ///< Anonymous outer identity (optional)
 } ap_entry_t;
 
 #ifdef __cplusplus

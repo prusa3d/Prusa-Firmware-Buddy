@@ -202,6 +202,9 @@ struct CurrentStore
     StoreItem<uint32_t, 0, ItemFlag::network, journal::hash("WIFI IP4 DNS2")> wifi_ip4_dns2; // X.X.X.X address encoded
     StoreItem<std::array<char, wifi_max_ssid_len + 1>, defaults::wifi_ap_ssid, ItemFlag::network, journal::hash("WIFI AP SSID")> wifi_ap_ssid;
     StoreItem<std::array<char, wifi_max_passwd_len + 1>, defaults::wifi_ap_password, ItemFlag::network, journal::hash("WIFI AP Password")> wifi_ap_password;
+    StoreItem<uint8_t, defaults::wifi_eap_method, ItemFlag::network, journal::hash("WIFI EAP Method")> wifi_eap_method; ///< WifiEapMethod: 0=Personal, 1=PEAP, 2=TTLS
+    StoreItem<std::array<char, wifi_enterprise_identity_max_len + 1>, defaults::wifi_enterprise_identity, ItemFlag::network, journal::hash("WIFI Enterprise Identity")> wifi_enterprise_identity;
+    StoreItem<std::array<char, wifi_enterprise_identity_max_len + 1>, defaults::wifi_enterprise_anon_identity, ItemFlag::network, journal::hash("WIFI Enterprise Anon Identity")> wifi_enterprise_anon_identity;
 
     // General network settings
     StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, ItemFlag::network, journal::hash("Hostname")> hostname;

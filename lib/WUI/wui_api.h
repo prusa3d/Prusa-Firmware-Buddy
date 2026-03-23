@@ -32,7 +32,7 @@
     (ETHVAR_STATIC_LAN_ADDRS | ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(ETHVAR_HOSTNAME) | ETHVAR_MSK(ETHVAR_DNS1_IP4) | ETHVAR_MSK(ETHVAR_DNS2_IP4))
 
 #define APVAR_EEPROM_CONFIG \
-    (ETHVAR_MSK(APVAR_SSID) | ETHVAR_MSK(APVAR_PASS) | ETHVAR_MSK(APVAR_SECURITY))
+    (ETHVAR_MSK(APVAR_SSID) | ETHVAR_MSK(APVAR_PASS) | ETHVAR_MSK(APVAR_EAP_METHOD) | ETHVAR_MSK(APVAR_ENTERPRISE_IDENTITY) | ETHVAR_MSK(APVAR_ENTERPRISE_ANON_IDENTITY))
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,6 +51,9 @@ typedef enum {
 
     APVAR_SSID, // char[32 + 1], ap_entry_t::ssid
     APVAR_PASS, // char[64 + 1], ap_entry_t::pass
+    APVAR_EAP_METHOD, // uint8_t, ap_entry_t::eap_method (0=Personal, 1=PEAP, 2=TTLS)
+    APVAR_ENTERPRISE_IDENTITY, // char[64 + 1], ap_entry_t::enterprise_identity
+    APVAR_ENTERPRISE_ANON_IDENTITY, // char[64 + 1], ap_entry_t::enterprise_anon_identity
 } ETHVAR_t;
 
 typedef char mac_address_t[MAC_ADDR_STR_LEN];

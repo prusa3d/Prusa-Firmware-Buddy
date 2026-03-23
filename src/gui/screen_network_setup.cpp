@@ -18,6 +18,7 @@
 #include <DialogConnectReg.hpp>
 #include <gui/standard_frame/frame_prompt.hpp>
 #include <gui/standard_frame/frame_qr_prompt.hpp>
+#include <window_msgbox.hpp>
 
 #if HAS_NFC()
     #include <nfc.hpp>
@@ -99,6 +100,49 @@ protected:
 
         config_store().wifi_ap_ssid.set(ssid);
         config_store().wifi_ap_password.set(password);
+        config_store().wifi_eap_method.set(static_cast<uint8_t>(WIFI_EAP_NONE));
+        marlin_client::FSM_response_variant(Phase::action_select, FSMResponseVariant::make(NetworkSetupResponse::connect));
+    }
+};
+
+/// Prompt user for enterprise WiFi credentials (identity + password) for the given SSID
+/// and store them in config_store.
+/// Returns true if the user completed the flow, false if they cancelled.
+static bool prompt_and_store_enterprise_credentials(const std::array<char, config_store_ns::wifi_max_ssid_len + 1> &ssid) {
+    std::array<char, config_store_ns::wifi_enterprise_identity_max_len + 1> identity = { 0 };
+    if (!DialogTextInput::exec(_("Identity (user@domain)"), identity)) {
+        return false;
+    }
+
+    std::array<char, config_store_ns::wifi_max_passwd_len + 1> password = { 0 };
+    if (!DialogTextInput::exec(_(text_password), password)) {
+        return false;
+    }
+
+    config_store().wifi_ap_ssid.set(ssid);
+    config_store().wifi_ap_password.set(password);
+    config_store().wifi_eap_method.set(static_cast<uint8_t>(WIFI_EAP_PEAP));
+    config_store().wifi_enterprise_identity.set(identity);
+    // Clear anonymous identity — user can configure via ini file if needed
+    config_store().wifi_enterprise_anon_identity.set(std::array<char, config_store_ns::wifi_enterprise_identity_max_len + 1> { "" });
+    return true;
+}
+
+class MI_ACTION_ENTERPRISE : public IWindowMenuItem {
+
+public:
+    MI_ACTION_ENTERPRISE()
+        : IWindowMenuItem(_("Enterprise WiFi (802.1X)"), &img::wifi_16x16) {}
+
+protected:
+    virtual void click(IWindowMenu &) {
+        std::array<char, config_store_ns::wifi_max_ssid_len + 1> ssid = config_store().wifi_ap_ssid.get();
+        if (!DialogTextInput::exec(_("SSID"), ssid)) {
+            return;
+        }
+        if (!prompt_and_store_enterprise_credentials(ssid)) {
+            return;
+        }
         marlin_client::FSM_response_variant(Phase::action_select, FSMResponseVariant::make(NetworkSetupResponse::connect));
     }
 };
@@ -123,6 +167,7 @@ private:
         MI_ACTION_RETURN,
         MI_ACTION_SCAN,
         MI_ACTION_MANUAL,
+        MI_ACTION_ENTERPRISE,
 #if HAS_NFC()
         MI_ACTION_LOAD_NFC,
 #endif
@@ -160,14 +205,26 @@ public:
 
 protected:
     virtual void click(IWindowMenu &) {
-        std::array<char, config_store_ns::wifi_max_passwd_len + 1> password = { 0 };
+        if (needs_password_) {
+            // Ask whether this is a WPA2-Enterprise (802.1X/EAP) network
+            if (MsgBoxQuestion(_("Enterprise (802.1X/EAP) authentication?"), Responses_YesNo) == Response::Yes) {
+                if (!prompt_and_store_enterprise_credentials(ssid_)) {
+                    return;
+                }
+                marlin_client::FSM_response(Phase::wifi_scan, Response::Continue);
+                return;
+            }
+        }
 
+        // WPA2-Personal (PSK) path
+        std::array<char, config_store_ns::wifi_max_passwd_len + 1> password = { 0 };
         if (needs_password_ && !DialogTextInput::exec(_(text_password), password)) {
             return;
         }
 
         config_store().wifi_ap_ssid.set(ssid_);
         config_store().wifi_ap_password.set(password);
+        config_store().wifi_eap_method.set(static_cast<uint8_t>(WIFI_EAP_NONE));
         marlin_client::FSM_response(Phase::wifi_scan, Response::Continue);
     }
 

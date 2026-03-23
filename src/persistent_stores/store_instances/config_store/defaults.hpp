@@ -83,6 +83,9 @@ namespace defaults {
     inline constexpr time_tools::TimezoneOffsetSummerTime timezone_summer { time_tools::TimezoneOffsetSummerTime::no_summertime };
     inline constexpr std::array<char, wifi_max_ssid_len + 1> wifi_ap_ssid { "" };
     inline constexpr std::array<char, wifi_max_passwd_len + 1> wifi_ap_password { "" };
+    inline constexpr uint8_t wifi_eap_method { 0 }; ///< 0 = WPA2-Personal, 1 = PEAP, 2 = TTLS
+    inline constexpr std::array<char, wifi_enterprise_identity_max_len + 1> wifi_enterprise_identity { "" };
+    inline constexpr std::array<char, wifi_enterprise_identity_max_len + 1> wifi_enterprise_anon_identity { "" };
 
     inline constexpr eSOUND_MODE sound_mode { eSOUND_MODE::_undef };
     inline constexpr uint8_t sound_volume { 5 };

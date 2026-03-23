@@ -119,6 +119,22 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
         } else if (ini_string_match(section, "wifi", name, "psk")) {
             strlcpy(def->ap->pass, value, WIFI_PSK_MAX + 1);
             tmp_config->var_mask |= ETHVAR_MSK(APVAR_PASS);
+        } else if (ini_string_match(section, "wifi", name, "eap_method")) {
+            // "peap" or "ttls" (lowercase); anything else falls back to WPA2-Personal
+            if (strcmp(value, "peap") == 0) {
+                def->ap->eap_method = WIFI_EAP_PEAP;
+            } else if (strcmp(value, "ttls") == 0) {
+                def->ap->eap_method = WIFI_EAP_TTLS;
+            } else {
+                def->ap->eap_method = WIFI_EAP_NONE;
+            }
+            tmp_config->var_mask |= ETHVAR_MSK(APVAR_EAP_METHOD);
+        } else if (ini_string_match(section, "wifi", name, "identity")) {
+            strlcpy(def->ap->enterprise_identity, value, WIFI_ENTERPRISE_ID_MAX + 1);
+            tmp_config->var_mask |= ETHVAR_MSK(APVAR_ENTERPRISE_IDENTITY);
+        } else if (ini_string_match(section, "wifi", name, "anon_identity")) {
+            strlcpy(def->ap->enterprise_anon_identity, value, WIFI_ENTERPRISE_ID_MAX + 1);
+            tmp_config->var_mask |= ETHVAR_MSK(APVAR_ENTERPRISE_ANON_IDENTITY);
         }
     }
 
@@ -178,12 +194,22 @@ void save_net_params(netif_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_
         assert(netdev_id == NETDEV_ESP_ID);
         static_assert(SSID_MAX_LEN == config_store_ns::wifi_max_ssid_len);
         static_assert(WIFI_PSK_MAX == config_store_ns::wifi_max_passwd_len);
+        static_assert(WIFI_ENTERPRISE_ID_MAX == config_store_ns::wifi_enterprise_identity_max_len);
 
         if (ethconfig->var_mask & ETHVAR_MSK(APVAR_SSID)) {
             store.wifi_ap_ssid.set(ap->ssid);
         }
         if (ethconfig->var_mask & ETHVAR_MSK(APVAR_PASS)) {
             store.wifi_ap_password.set(ap->pass);
+        }
+        if (ethconfig->var_mask & ETHVAR_MSK(APVAR_EAP_METHOD)) {
+            store.wifi_eap_method.set(static_cast<uint8_t>(ap->eap_method));
+        }
+        if (ethconfig->var_mask & ETHVAR_MSK(APVAR_ENTERPRISE_IDENTITY)) {
+            store.wifi_enterprise_identity.set(ap->enterprise_identity);
+        }
+        if (ethconfig->var_mask & ETHVAR_MSK(APVAR_ENTERPRISE_ANON_IDENTITY)) {
+            store.wifi_enterprise_anon_identity.set(ap->enterprise_anon_identity);
         }
     }
 }
@@ -217,6 +243,9 @@ void load_net_params(netif_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_
 
         strlcpy(ap->ssid, store.wifi_ap_ssid.get_c_str(), SSID_MAX_LEN + 1);
         strlcpy(ap->pass, store.wifi_ap_password.get_c_str(), WIFI_PSK_MAX + 1);
+        ap->eap_method = static_cast<WifiEapMethod>(store.wifi_eap_method.get());
+        strlcpy(ap->enterprise_identity, store.wifi_enterprise_identity.get_c_str(), WIFI_ENTERPRISE_ID_MAX + 1);
+        strlcpy(ap->enterprise_anon_identity, store.wifi_enterprise_anon_identity.get_c_str(), WIFI_ENTERPRISE_ID_MAX + 1);
     }
 }
 

@@ -43,12 +43,13 @@
 
 #include "esp_private/wifi.h"
 #include "esp_wpa.h"
+#include "esp_wpa2.h"
 #include <arpa/inet.h>
 
 // Externals with no header
 esp_err_t mac_init(void);
 
-#define FW_VERSION 13
+#define FW_VERSION 14
 
 #define SCAN_MAX_STORED_SSIDS 64
 #define SSID_LEN              32
@@ -67,13 +68,18 @@ static const uint16_t INACTIVE_BEACON_SECONDS = 3600 * 18;
 // pings to the AP?
 static const uint32_t INACTIVE_PACKET_SECONDS = 5;
 
-#define MSG_DEVINFO_V2      0
-#define MSG_CLIENTCONFIG_V2 6
-#define MSG_PACKET_V2       7
-#define MSG_SCAN_START      8
-#define MSG_SCAN_STOP       9
-#define MSG_SCAN_AP_CNT     10
-#define MSG_SCAN_AP_GET     11
+#define MSG_DEVINFO_V2              0
+#define MSG_CLIENTCONFIG_V2         6
+#define MSG_PACKET_V2               7
+#define MSG_SCAN_START              8
+#define MSG_SCAN_STOP               9
+#define MSG_SCAN_AP_CNT             10
+#define MSG_SCAN_AP_GET             11
+#define MSG_CLIENTCONFIG_ENTERPRISE 12 // WPA2-Enterprise (802.1X/EAP) AP join request
+
+// EAP method values matching WifiEapMethod enum on the STM32 side
+#define WIFI_EAP_PEAP 1
+#define WIFI_EAP_TTLS 2
 
 struct __attribute__((packed)) header {
     uint8_t type;
@@ -611,6 +617,93 @@ static void read_wifi_client_message() {
     send_device_info();
 }
 
+static void read_wifi_enterprise_client_message() {
+    read_uart((uint8_t *)intron, sizeof(intron));
+
+    uint8_t ssid[SSID_LEN + 1];
+    memset(ssid, 0, sizeof(ssid));
+
+    uint8_t ssid_len = 0;
+    read_uart(&ssid_len, 1);
+    ESP_LOGI(TAG, "Enterprise: reading SSID len: %d", ssid_len);
+    if (ssid_len > SSID_LEN) {
+        ssid_len = SSID_LEN;
+    }
+    read_uart(ssid, ssid_len);
+
+    uint8_t eap_method = 0;
+    read_uart(&eap_method, 1);
+    ESP_LOGI(TAG, "Enterprise: EAP method: %d", eap_method);
+
+    uint8_t identity[65];
+    memset(identity, 0, sizeof(identity));
+    uint8_t identity_len = 0;
+    read_uart(&identity_len, 1);
+    if (identity_len > 64) {
+        identity_len = 64;
+    }
+    if (identity_len) {
+        read_uart(identity, identity_len);
+    }
+
+    uint8_t anon_identity[65];
+    memset(anon_identity, 0, sizeof(anon_identity));
+    uint8_t anon_identity_len = 0;
+    read_uart(&anon_identity_len, 1);
+    if (anon_identity_len > 64) {
+        anon_identity_len = 64;
+    }
+    if (anon_identity_len) {
+        read_uart(anon_identity, anon_identity_len);
+    }
+
+    uint8_t password[65];
+    memset(password, 0, sizeof(password));
+    uint8_t pass_len = 0;
+    read_uart(&pass_len, 1);
+    if (pass_len > 64) {
+        pass_len = 64;
+    }
+    if (pass_len) {
+        read_uart(password, pass_len);
+    }
+
+    ESP_LOGI(TAG, "Enterprise: reconfiguring WiFi for SSID: %s", ssid);
+
+    // Stop any in-progress scan
+    if (scan.in_progress) {
+        scan.should_reconnect = false;
+        force_stop_wifi_scan();
+    }
+
+    wifi_config_t wifi_config;
+    memset(&wifi_config, 0, sizeof(wifi_config_t));
+    memcpy(wifi_config.sta.ssid, ssid, ssid_len);
+    wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_ENTERPRISE;
+    wifi_config.sta.pmf_cfg.capable = 1;
+
+    wifi_running = false;
+    esp_wifi_stop();
+
+    // Configure WPA2-Enterprise credentials
+    esp_wifi_sta_wpa2_ent_set_identity(identity, identity_len);
+    // For PEAP and TTLS the identity is also used as the username for the inner auth
+    esp_wifi_sta_wpa2_ent_set_username(identity, identity_len);
+    if (anon_identity_len) {
+        // Use anonymous identity as the outer EAP identity for privacy
+        esp_wifi_sta_wpa2_ent_set_identity(anon_identity, anon_identity_len);
+    }
+    esp_wifi_sta_wpa2_ent_set_password(password, pass_len);
+    // Skip server certificate time check; user can later configure a CA cert
+    esp_wifi_sta_wpa2_ent_set_disable_time_check(true);
+    esp_wifi_sta_wpa2_ent_enable();
+
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_start());
+    wifi_running = true;
+    send_device_info();
+}
+
 static int8_t get_link_status() {
     static wifi_ap_record_t ap_info = {};
     esp_err_t ret = esp_wifi_sta_get_ap_info(&ap_info);
@@ -741,6 +834,9 @@ static void IRAM_ATTR read_message() {
     } break;
     case MSG_CLIENTCONFIG_V2:
         read_wifi_client_message();
+        break;
+    case MSG_CLIENTCONFIG_ENTERPRISE:
+        read_wifi_enterprise_client_message();
         break;
     case MSG_SCAN_START:
         handle_rx_msg_scan_start();

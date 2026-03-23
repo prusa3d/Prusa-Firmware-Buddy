@@ -154,7 +154,7 @@ private:
     static const constexpr uint32_t RESET_FAULTY_AFTER = 60 * 1000;
 
     std::array<Iface, NETDEV_COUNT> ifaces;
-    ap_entry_t ap = { "", "" };
+    ap_entry_t ap = { "", "", WIFI_EAP_NONE, "", "" };
     uint32_t last_esp_ok;
 
     TaskHandle_t network_task;
@@ -323,8 +323,13 @@ private:
 
     void join_ap() {
         unique_lock lock(mutex);
-        const char *passwd = ap.pass[0] == '\0' ? NULL : ap.pass;
-        espif_join_ap(ap.ssid, passwd);
+        if (ap.eap_method != WIFI_EAP_NONE) {
+            const char *anon_identity = ap.enterprise_anon_identity[0] != '\0' ? ap.enterprise_anon_identity : nullptr;
+            espif_join_ap_enterprise(ap.ssid, static_cast<uint8_t>(ap.eap_method), ap.enterprise_identity, anon_identity, ap.pass);
+        } else {
+            const char *passwd = ap.pass[0] == '\0' ? nullptr : ap.pass;
+            espif_join_ap(ap.ssid, passwd);
+        }
     }
 
     void reconfigure() {
