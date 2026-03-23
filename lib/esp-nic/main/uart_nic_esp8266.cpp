@@ -39,6 +39,7 @@
 #include "uart0_driver.hpp"
 
 #include "esp_private/wifi.h"
+#include "esp_supplicant/esp_wpa2.h"
 
 #include "common.hpp"
 
@@ -265,6 +266,110 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t *data, [[maybe_unuse
     send_device_info();
 }
 
+static void IRAM_ATTR handle_rx_msg_clientconfig_enterprise(uint8_t *data, [[maybe_unused]] Header header) {
+    // Update intron for outgoing messages
+    {
+        taskENTER_CRITICAL();
+        memcpy(tx_message.intron, data, sizeof(tx_message.intron));
+        taskEXIT_CRITICAL();
+        data += sizeof(tx_message.intron);
+    }
+
+    uint8_t ssid[SSID_MAX_LEN + 1];
+    memset(ssid, 0, sizeof(ssid));
+    uint8_t ssid_len = 0;
+    {
+        memcpy(&ssid_len, data, sizeof(ssid_len));
+        data += sizeof(ssid_len);
+        size_t copy_len = ssid_len < SSID_MAX_LEN ? ssid_len : SSID_MAX_LEN;
+        memcpy(ssid, data, copy_len);
+        data += ssid_len;
+    }
+
+    uint8_t eap_method = 0;
+    memcpy(&eap_method, data, sizeof(eap_method));
+    data += sizeof(eap_method);
+    ESP_LOGI(TAG, "Enterprise: EAP method: %d", eap_method);
+
+    uint8_t identity[65];
+    memset(identity, 0, sizeof(identity));
+    uint8_t identity_len = 0;
+    {
+        memcpy(&identity_len, data, sizeof(identity_len));
+        data += sizeof(identity_len);
+        if (identity_len > 64) {
+            identity_len = 64;
+        }
+        if (identity_len) {
+            memcpy(identity, data, identity_len);
+        }
+        data += identity_len;
+    }
+
+    uint8_t anon_identity[65];
+    memset(anon_identity, 0, sizeof(anon_identity));
+    uint8_t anon_identity_len = 0;
+    {
+        memcpy(&anon_identity_len, data, sizeof(anon_identity_len));
+        data += sizeof(anon_identity_len);
+        if (anon_identity_len > 64) {
+            anon_identity_len = 64;
+        }
+        if (anon_identity_len) {
+            memcpy(anon_identity, data, anon_identity_len);
+        }
+        data += anon_identity_len;
+    }
+
+    uint8_t password[65];
+    memset(password, 0, sizeof(password));
+    uint8_t pass_len = 0;
+    {
+        memcpy(&pass_len, data, sizeof(pass_len));
+        data += sizeof(pass_len);
+        if (pass_len > 64) {
+            pass_len = 64;
+        }
+        if (pass_len) {
+            memcpy(password, data, pass_len);
+        }
+    }
+
+    ESP_LOGI(TAG, "Enterprise: reconfiguring WiFi for SSID: %s", ssid);
+
+    // Stop any in-progress scan
+    if (scan.in_progress) {
+        scan.should_reconnect = false;
+        force_stop_wifi_scan();
+    }
+
+    wifi_config_t wifi_config;
+    memset(&wifi_config, 0, sizeof(wifi_config_t));
+    size_t ssid_copy_len = ssid_len < sizeof(wifi_config.sta.ssid) ? ssid_len : sizeof(wifi_config.sta.ssid);
+    memcpy(wifi_config.sta.ssid, ssid, ssid_copy_len);
+    wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_ENTERPRISE;
+
+    wifi_running = false;
+    esp_wifi_stop();
+
+    // Configure WPA2-Enterprise credentials
+    esp_wifi_sta_wpa2_ent_set_identity(identity, identity_len);
+    // For PEAP and TTLS the identity is also used as the username for inner auth
+    esp_wifi_sta_wpa2_ent_set_username(identity, identity_len);
+    if (anon_identity_len) {
+        // Use anonymous identity as the outer EAP identity for privacy
+        esp_wifi_sta_wpa2_ent_set_identity(anon_identity, anon_identity_len);
+    }
+    esp_wifi_sta_wpa2_ent_set_password(password, pass_len);
+
+    esp_wifi_sta_wpa2_ent_enable();
+
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_start());
+    wifi_running = true;
+    send_device_info();
+}
+
 static void IRAM_ATTR handle_rx_msg_unknown(uint8_t *data, [[maybe_unused]] Header header) {
     if (data) {
         free(data);
@@ -303,6 +408,9 @@ static void IRAM_ATTR read_message() {
         break;
     case static_cast<uint8_t>(MsgType::client_config):
         queue_item.callback = handle_rx_msg_clientconfig_v2;
+        break;
+    case static_cast<uint8_t>(MsgType::client_config_enterprise):
+        queue_item.callback = handle_rx_msg_clientconfig_enterprise;
         break;
     case static_cast<uint8_t>(MsgType::scan_start):
         queue_item.callback = handle_rx_msg_scan_start;
@@ -402,6 +510,7 @@ static void IRAM_ATTR uart0_tx_task([[maybe_unused]] void *arg) {
                 uart0_tx_bytes(mac, sizeof(mac));
                 break;
             case MsgType::client_config:
+            case MsgType::client_config_enterprise:
                 ESP_LOGE(TAG, "MsgType::client_config is only received, never transmitted");
                 break;
             case MsgType::scan_start:
