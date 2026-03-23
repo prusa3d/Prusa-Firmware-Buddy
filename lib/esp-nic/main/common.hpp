@@ -5,7 +5,7 @@
 #include <cstdint>
 #include "esp_wifi_types.h"
 
-inline constexpr uint8_t FW_VERSION = 13;
+inline constexpr uint8_t FW_VERSION = 14;
 
 inline constexpr uint8_t SCAN_MAX_STORED_SSIDS = 64;
 inline constexpr size_t SSID_MAX_LEN = 32;
