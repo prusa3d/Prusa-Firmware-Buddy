@@ -59,13 +59,17 @@ static_assert(configLIBRARY_LOWEST_INTERRUPT_PRIORITY == 15);
     #define TASK_PRIORITY_MEASUREMENT_TASK    osPriorityNormal
     #define TASK_PRIORITY_ESP_UPDATE          osPriorityNormal
     #define TASK_PRIORITY_LOG_TASK            osPriorityNormal
-    #define TASK_PRIORITY_TCPIP_THREAD        osPriorityBelowNormal
+    #define TASK_PRIORITY_TCPIP_THREAD        osPriorityNormal
     #define TASK_PRIORITY_WUI                 osPriorityBelowNormal
-    #define TASK_PRIORITY_CONNECT             osPriorityBelowNormal
+    #define TASK_PRIORITY_CONNECT             osPriorityNormal
     #define TASK_PRIORITY_ASYNC_JOB_EXECUTOR  osPriorityBelowNormal
 
-    // Media prefetch runs on async executor, but raises the priority temporarily when reading
-    // To win the figths with connect USB writing and such
+    // Media prefetch runs on async executor, but raises the priority temporarily when reading.
+    // TASK_PRIORITY_CONNECT and TASK_PRIORITY_TCPIP_THREAD must be >= this value so that:
+    // - The TCPIP stack can process incoming TCP segments and send ACKs while prefetch is running.
+    // - The Connect task can write incoming transfer chunks to the download file while prefetch is
+    //   reading it; starving Connect below prefetch causes a priority inversion where prefetch hits
+    //   RESULT_OUT_OF_RANGE on data that Connect cannot deliver ("G-Code transfer running too slow").
     #define TASK_PRIORITY_MEDIA_PREFETCH osPriorityNormal
 
 static_assert(configTIMER_TASK_PRIORITY == 5); // 5 is more than osPriorityRealtime
