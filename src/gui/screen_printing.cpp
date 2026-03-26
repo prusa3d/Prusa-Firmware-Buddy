@@ -242,6 +242,17 @@ screen_printing_data_t::screen_printing_data_t()
 #endif // USE_<display>
 
     strlcpy(text_filename.data(), GCodeInfo::getInstance().GetGcodeFilename(), text_filename.size());
+
+#if not PRINTER_IS_PRUSA_MINI()
+    // strip file extension
+    if (!config_store().show_file_extensions.get()) {
+        char *dot = strrchr(text_filename.data(), '.');
+        if (dot && dot != text_filename.data()) {
+            *dot = '\0';
+        }
+    }
+#endif
+
     w_filename.set_font(Font::big);
     w_filename.SetPadding({ 0, 0, 0, 0 });
     w_filename.SetText(string_view_utf8::MakeRAM(text_filename.data()));

@@ -8,6 +8,7 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
 #include "MItem_menus.hpp"
+#include "MItem_file_extensions.hpp"
 #include "printers.h"
 #include <option/has_side_leds.h>
 #include <option/has_toolchanger.h>
@@ -27,7 +28,7 @@
 using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_FOOTER_SETTINGS, MI_SORT_FILES,
 #if not PRINTER_IS_PRUSA_MINI()
-    MI_PRINT_PROGRESS_TIME,
+    MI_SHOW_FILE_EXTENSIONS, MI_PRINT_PROGRESS_TIME,
 #endif
     MI_TIMEOUT, MI_SOUND_MODE, MI_FILAMENT_CHANGE_PREHEAT_ALL,
 #if HAS_ST7789_DISPLAY()

@@ -155,15 +155,31 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rc)
 void window_file_list_t::setup_item(ItemVariant &variant, int index) {
     assert(index_to_slot(index));
 
-    const auto &entry = ldv.LongFileNameAt(*index_to_slot(index));
+    const int slot = *index_to_slot(index);
+
+    const auto &entry = ldv.LongFileNameAt(slot);
 
     if (index == 0 && IsPathRoot(sfn_path) && strcmp(entry.first, "..") == 0) {
         variant.emplace<MI_RETURN>();
-
-    } else {
-        // This is ok - file list keeps the address of the item same & valid while the item is in the window
-        const auto label = string_view_utf8::MakeRAM(entry.first);
-        const auto icon = (entry.second == LDV::EntryType::DIR) ? &img::folder_full_16x16 : nullptr;
-        variant.emplace<WindowMenuItem>(label, icon);
+        return;
     }
+
+#if PRINTER_IS_PRUSA_MINI()
+    const auto label = string_view_utf8::MakeRAM(entry.first);
+#else
+    strlcpy(display_names[slot], entry.first, FILE_PATH_BUFFER_LEN);
+
+    // strip file extension
+    if (!config_store().show_file_extensions.get() && entry.second == LDV::EntryType::FILE) {
+        char *dot = strrchr(display_names[slot], '.');
+        if (dot && dot != display_names[slot]) {
+            *dot = '\0';
+        }
+    }
+
+    const auto label = string_view_utf8::MakeRAM(display_names[slot]);
+#endif
+
+    const auto icon = (entry.second == LDV::EntryType::DIR) ? &img::folder_full_16x16 : nullptr;
+    variant.emplace<WindowMenuItem>(label, icon);
 }

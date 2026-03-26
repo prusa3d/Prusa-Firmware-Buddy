@@ -174,6 +174,10 @@ if(PRINTER STREQUAL "MINI")
   target_sources(firmware PRIVATE MItem_MINI.cpp)
 endif()
 
+if(NOT PRINTER STREQUAL "MINI")
+  target_sources(firmware PRIVATE MItem_file_extensions.cpp)
+endif()
+
 if(PRINTER STREQUAL "MK3.5")
   target_sources(firmware PRIVATE MItem_MK3.5.cpp)
 endif()

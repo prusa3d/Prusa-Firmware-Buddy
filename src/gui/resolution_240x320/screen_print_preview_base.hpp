@@ -10,6 +10,9 @@
 class ScreenPrintPreviewBase : public screen_t {
 protected:
     window_roll_text_t title_text;
+#if not PRINTER_IS_PRUSA_MINI()
+    char title_text_text[FILE_PATH_BUFFER_LEN];
+#endif
     RadioButtonPreview radio; // shows 2 mutually exclusive buttons Print and Back
 
 public:

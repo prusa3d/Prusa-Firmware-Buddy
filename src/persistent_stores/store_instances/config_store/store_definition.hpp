@@ -210,6 +210,9 @@ struct CurrentStore
     StoreItem<uint8_t, defaults::sound_volume, ItemFlag::user_interface, journal::hash("Sound Volume")> sound_volume;
     StoreItem<uint16_t, defaults::language, ItemFlag::user_interface, journal::hash("Language")> language;
     StoreItem<uint8_t, 0, ItemFlag::user_interface, journal::hash("File Sort")> file_sort; // filebrowser file sort options
+#if not PRINTER_IS_PRUSA_MINI()
+    StoreItem<bool, true, ItemFlag::user_interface, journal::hash("Show File Extensions")> show_file_extensions; // file extension visibility
+#endif
     StoreItem<bool, true, ItemFlag::user_interface, journal::hash("Menu Timeout")> menu_timeout; // on / off menu timeout flag
     StoreItem<bool, true, ItemFlag::user_interface, journal::hash("Devhash in QR")> devhash_in_qr; // on / off sending UID in QR
 

@@ -78,4 +78,7 @@ protected:
 
 protected:
     LDV ldv;
+#if not PRINTER_IS_PRUSA_MINI()
+    char display_names[max_max_items_on_screen][FILE_PATH_BUFFER_LEN];
+#endif
 };

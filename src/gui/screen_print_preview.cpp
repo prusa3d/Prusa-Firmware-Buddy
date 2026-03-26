@@ -30,8 +30,23 @@ ScreenPrintPreview::ScreenPrintPreview()
 
     ClrMenuTimeoutClose();
 
+#if PRINTER_IS_PRUSA_MINI()
     //  this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
     title_text.SetText(string_view_utf8::MakeRAM(gcode.GetGcodeFilename()));
+#else
+    // copy file name
+    strlcpy(title_text_text, gcode.GetGcodeFilename(), FILE_PATH_BUFFER_LEN);
+
+    // strip file extension
+    if (!config_store().show_file_extensions.get()) {
+        char *dot = strrchr(title_text_text, '.');
+        if (dot && dot != title_text_text) {
+            *dot = '\0';
+        }
+    }
+
+    title_text.SetText(string_view_utf8::MakeRAM(title_text_text));
+#endif
 
     CaptureNormalWindow(radio);
 }
