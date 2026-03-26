@@ -124,25 +124,29 @@ STEPPING_INLINE bool get_move_step_dir(const move_t &move, const int axis) {
     return !(move.flags & (MOVE_FLAG_X_DIR << axis));
 }
 
-// Update the step event index after updating the first entry (oldest) to keep it sorted.
+// Re-insert step_event_index[0] into the remaining sorted positions [1..3].
+// Unrolled for PS_AXIS_COUNT=4: eliminates lower_bound/lambda dispatch and
+// the separate shift loop (which previously needed asm volatile to prevent
+// a memmove call for 3 elements).
 STEPPING_INLINE void step_generator_state_update_nearest_idx(step_generator_state_t &step_generator_state) {
-    // index and time of the new event
-    auto first_index = step_generator_state.step_event_index[0];
+    const step_index_t first_index = step_generator_state.step_event_index[0];
     const auto new_time = step_generator_state.step_events[first_index].time;
+    step_index_t *idx = step_generator_state.step_event_index.data();
 
-    // find insertion position
-    auto lb = std::lower_bound(step_generator_state.step_event_index.begin() + 1, step_generator_state.step_event_index.end(),
-        new_time, [&](auto a, auto b) { return step_generator_state.step_events[a].time < b; });
-    step_index_t insert_pos = lb - step_generator_state.step_event_index.begin() - 1;
-
-    // move previous positions
-    for (step_index_t n = 0; n != insert_pos; ++n) {
-        asm volatile(""); // prevent call to memmove
-        step_generator_state.step_event_index[n] = step_generator_state.step_event_index[n + 1];
+    step_index_t pos = 0;
+    if (step_generator_state.step_events[idx[1]].time < new_time) {
+        idx[0] = idx[1];
+        pos = 1;
+        if (step_generator_state.step_events[idx[2]].time < new_time) {
+            idx[1] = idx[2];
+            pos = 2;
+            if (step_generator_state.step_events[idx[3]].time < new_time) {
+                idx[2] = idx[3];
+                pos = 3;
+            }
+        }
     }
-
-    // update
-    step_generator_state.step_event_index[insert_pos] = first_index;
+    idx[pos] = first_index;
 }
 
 STEPPING_INLINE constexpr bool is_active_x_axis(const move_t &move) {

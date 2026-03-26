@@ -251,7 +251,6 @@ struct step_generator_state_t {
     // Step events
     step_event_info_t step_events[PS_AXIS_COUNT]; // Per-axis next step events
     std::array<step_index_t, PS_AXIS_COUNT> step_event_index; // Time-sorted indexes into step_events
-    double previous_step_time;
     uint64_t previous_step_time_ticks;
 
     uint64_t initial_time; // initialization timestamp (us)

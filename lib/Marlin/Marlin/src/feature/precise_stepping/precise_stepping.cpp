@@ -462,11 +462,10 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
             --step_state.left_insert_start_of_move_segment;
         }
 
-        if (step_state.previous_step_time == 0.) {
+        if (step_state.previous_step_time_ticks == 0) {
             step_event.flags |= STEP_EVENT_FLAG_FIRST_STEP_EVENT;
         }
 
-        step_state.previous_step_time = step_time_absolute;
         step_state.previous_step_time_ticks = step_time_absolute_ticks;
     } else {
         // Reset flags to indicate no step has been produced
@@ -475,6 +474,15 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
 
     // Now we have to compute next step event instead of the one that we putted into step event queue.
     const step_event_info_t new_nearest_step_event = step_generator_next_step_event(step_state, (uint8_t)old_nearest_step_event_idx);
+
+    // Incrementally maintain current_flags: only the axis that just ran its generator
+    // can have changed step_flags. Clear its two bits and repopulate from the updated value.
+    {
+        const uint16_t axis_mask = (STEP_EVENT_FLAG_X_DIR | STEP_EVENT_FLAG_X_ACTIVE) << old_nearest_step_event_idx;
+        step_state.current_flags = (step_state.current_flags & ~axis_mask)
+            | step_state.step_generator[old_nearest_step_event_idx]->step_flags;
+    }
+
     step_state.step_events[old_nearest_step_event_idx] = new_nearest_step_event;
 
     // Update nearest step event index.
@@ -610,17 +618,6 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
     PreciseStepping::step_generator_state_clear();
     PreciseStepping::total_print_time = 0.;
     PreciseStepping::flags = 0;
-}
-
-// Update the merged axis activity/direction flags from all generators
-void update_step_generator_state_current_flags() {
-    PreciseStepping::step_generator_state.current_flags = 0;
-    for (uint8_t i = 0; i != PS_AXIS_COUNT; ++i) {
-        const auto axis_flags = PreciseStepping::step_generator_state.step_generator[i]->step_flags;
-        // ensure each generator is setting only per-axis direction/active flags
-        assert(!(axis_flags & ~((STEP_EVENT_FLAG_X_DIR | STEP_EVENT_FLAG_X_ACTIVE) << i)));
-        PreciseStepping::step_generator_state.current_flags |= axis_flags;
-    }
 }
 
 uint16_t PreciseStepping::process_one_step_event_from_queue() {
@@ -902,7 +899,6 @@ STEPPING_INLINE bool append_move_discarding_step_event(step_generator_state_t &s
         step_event->flags = step_state.current_flags | STEP_EVENT_FLAG_BEGINNING_OF_MOVE_SEGMENT | extra_step_flags;
 
         PreciseStepping::step_event_queue.head = next_step_event_queue_head;
-        step_state.previous_step_time = 0.;
         step_state.previous_step_time_ticks = 0;
         return true;
     }
@@ -1285,8 +1281,7 @@ StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
                 check_step_time(new_step_event);
 #endif
 
-                // Update the current axis flags and merge them into the new step
-                update_step_generator_state_current_flags();
+                // current_flags is already up-to-date from generate_next_step_event
                 new_step_event.flags |= step_generator_state.current_flags;
 
                 if (!step_generator_state.buffered_step.flags) {
@@ -1408,7 +1403,6 @@ void PreciseStepping::step_generator_state_init(const move_t &move) {
     }
 
     current_move_flags = 0;
-    step_generator_state.previous_step_time = 0.;
     step_generator_state.previous_step_time_ticks = 0;
     step_generator_state.buffered_step.flags = 0;
     step_generator_state.current_distance = stepper.count_position_from_startup;
