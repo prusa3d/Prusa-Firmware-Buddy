@@ -289,7 +289,7 @@ static void read_wifi_client_message() {
     send_device_info();
 }
 
-static int8_t get_link_status() {
+int8_t get_link_status() {
     static wifi_ap_record_t ap_info = {};
     esp_err_t ret = esp_wifi_sta_get_ap_info(&ap_info);
     // ap_info is not important, just not receiven ESP_ERR_WIFI_NOT_CONNECT means we are associated

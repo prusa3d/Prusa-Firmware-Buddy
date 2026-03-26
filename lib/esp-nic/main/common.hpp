@@ -114,6 +114,7 @@ void start_wifi_connect_task();
 void probe_handler(wifi_ap_record_t *aps, int ap_count);
 void probe_run();
 void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
+int8_t get_link_status();
 void check_online_status();
 void clear_stored_ssids();
 void handle_rx_msg_scan_start(uint8_t *data, Header header);

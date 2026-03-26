@@ -116,8 +116,6 @@ void IRAM_ATTR handle_disconnect_and_try_reconnect() {
     }
 }
 
-static int8_t get_link_status();
-
 static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
 
     // Seeing some traffic - we have signal :-)
@@ -188,7 +186,7 @@ static void IRAM_ATTR wait_for_intron() {
     }
 }
 
-static int8_t IRAM_ATTR get_link_status() {
+int8_t IRAM_ATTR get_link_status() {
     static wifi_ap_record_t ap_info = {};
     esp_err_t ret = esp_wifi_sta_get_ap_info(&ap_info);
     const bool online = ret == ESP_OK;
