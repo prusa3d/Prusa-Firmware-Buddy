@@ -28,7 +28,6 @@
  * - `P` - Gcode level
  */
 void PrusaGcodeSuite::M862_5() {
-    // Handle only Q
     // P is ignored when printing (it is handled before printing by GCodeInfo.*)
     if (parser.boolval('Q')) {
         SERIAL_ECHO_START();
@@ -36,6 +35,15 @@ void PrusaGcodeSuite::M862_5() {
         snprintf(temp_buf, sizeof(temp_buf), PSTR("  M862.5 P%lu"), GCodeInfo::gcode_level);
         SERIAL_ECHO(temp_buf);
         SERIAL_EOL();
+    }
+    if (parser.seenval('P')) {
+        SERIAL_ECHO("Gcode level ");
+        if (parser.ulongval('P') == GCodeInfo::gcode_level) {
+            SERIAL_ECHO("matches");
+        } else {
+            SERIAL_ECHO("mismatches");
+        }
+        SERIAL_ECHOLN(".");
     }
 }
 

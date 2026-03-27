@@ -11,6 +11,7 @@
 #include <option/has_gcode_compatibility.h>
 
 #include <option/has_chamber_api.h>
+#include <cctype>
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
     #include <marlin_stubs/feature/chamber/M141_M191.hpp>
@@ -20,13 +21,14 @@
 
 using namespace buddy;
 
-static void setup_gcode_compatibility(const PrinterModelInfo *gcode_printer) {
+static PrinterGCodeCompatibilityReport setup_gcode_compatibility(const PrinterModelInfo *gcode_printer) {
     // Failed to identify the printer -> do nothing
     if (!gcode_printer) {
-        return;
+        return {};
     }
 
-    gcode.compatibility = PrinterModelInfo::current().gcode_compatibility_report(*gcode_printer);
+    const auto compatibility = PrinterModelInfo::current().gcode_compatibility_report(*gcode_printer);
+    gcode.compatibility = compatibility;
 
     #if HAS_CHAMBER_API() && HAS_GCODE_COMPATIBILITY()
     if (gcode.compatibility.chamber_compatibility_mode) {
@@ -70,6 +72,7 @@ static void setup_gcode_compatibility(const PrinterModelInfo *gcode_printer) {
         chamber().set_target_temperature(params.chamber_target_temperature);
     }
     #endif
+    return compatibility;
 }
 
 /** \addtogroup G-Codes
@@ -103,6 +106,27 @@ static void setup_gcode_compatibility(const PrinterModelInfo *gcode_printer) {
  *   - `170` - XL
  *   - `160` - iX
  */
+
+static void print_compatibility(PrinterGCodeCompatibilityReport compatibility) {
+    SERIAL_ECHO("Printer is ");
+    if (!compatibility.is_compatible) {
+        SERIAL_ECHO("in");
+    }
+    SERIAL_ECHOLN("compatible.");
+    if (compatibility.is_compatible) {
+        SERIAL_ECHO("Compatibility mode: ");
+        if (compatibility.mk3_compatibility_mode) {
+            SERIAL_ECHOLN("MK3");
+        }
+        if (compatibility.mk4_compatibility_mode) {
+            SERIAL_ECHOLN("MK4");
+        }
+        if (compatibility.chamber_compatibility_mode) {
+            SERIAL_ECHOLN("CHAMBER");
+        }
+    }
+}
+
 void PrusaGcodeSuite::M862_2() {
     // Handle only Q
     // P is ignored when printing (it is handled before printing by GCodeInfo.*)
@@ -114,8 +138,8 @@ void PrusaGcodeSuite::M862_2() {
         SERIAL_EOL();
     }
 
-    if (parser.boolval('P')) {
-        setup_gcode_compatibility(PrinterModelInfo::from_gcode_check_code(parser.value_int()));
+    if (parser.seenval('P')) {
+        print_compatibility(setup_gcode_compatibility(PrinterModelInfo::from_gcode_check_code(parser.value_int())));
     }
 }
 
@@ -157,18 +181,18 @@ void PrusaGcodeSuite::M862_3() {
         SERIAL_EOL();
     }
 
-    if (parser.boolval('P')) {
+    if (parser.seenval('P')) {
         const char *arg = parser.string_arg;
         while (*arg == ' ' || *arg == '\"') {
             arg++;
         }
 
         const char *arg_end = arg;
-        while (isalnum(*arg_end) || *arg_end == '.') {
+        while (std::isalnum(static_cast<unsigned char>(*arg_end)) || *arg_end == '.') {
             arg_end++;
         }
 
-        setup_gcode_compatibility(PrinterModelInfo::from_id_str(std::string_view(arg, arg_end)));
+        print_compatibility(setup_gcode_compatibility(PrinterModelInfo::from_id_str(std::string_view(arg, arg_end - arg))));
     }
 }
 

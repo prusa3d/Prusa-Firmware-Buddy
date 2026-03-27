@@ -25,16 +25,23 @@
  * - `P "<string>"` - Check current firmware version
  */
 void PrusaGcodeSuite::M862_4() {
-    // Handle only Q
     // P is ignored when printing (it is handled before printing by GCodeInfo.*)
+    char version_buffer[8] {};
+    version::fill_project_version_no_dots(version_buffer, sizeof(version_buffer));
     if (parser.boolval('Q')) {
-        SERIAL_ECHO_START();
         char temp_buf[sizeof("  M862.4 P0123456789")];
-        char version_buffer[8] {};
-        version::fill_project_version_no_dots(version_buffer, sizeof(version_buffer));
         snprintf(temp_buf, sizeof(temp_buf), PSTR("  M862.4 P%s"), version_buffer);
-        SERIAL_ECHO(temp_buf);
-        SERIAL_EOL();
+        SERIAL_ECHOLN(temp_buf);
+    }
+    if (parser.seenval('P')) {
+        auto req_version = parser.value_int();
+        SERIAL_ECHO("Firmware version ");
+        if (atoi(version_buffer) == req_version) {
+            SERIAL_ECHO("matches");
+        } else {
+            SERIAL_ECHO("mismatch");
+        }
+        SERIAL_ECHOLN(".");
     }
 }
 
