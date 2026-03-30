@@ -15,7 +15,7 @@ using ScreenMenuLeds__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #endif
 #if HAS_SIDE_LEDS()
     MI_SIDE_LEDS_MAX_BRIGTHNESS,
-    MI_SIDE_LEDS_DIMMING_ENABLE,
+    MI_SIDE_LEDS_PRINT_BRIGTHNESS,
     MI_SIDE_LEDS_DIMMED_BRIGTHNESS,
 #endif
     MI_ALWAYS_HIDDEN>;
