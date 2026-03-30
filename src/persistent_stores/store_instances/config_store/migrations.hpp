@@ -62,6 +62,9 @@ namespace deprecated_ids {
     inline constexpr uint16_t side_leds_enable[] {
         decltype(DeprecatedStore::side_leds_enabled)::hashed_id,
     };
+    inline constexpr uint16_t side_leds_dimming[] {
+        decltype(DeprecatedStore::side_leds_dimming_enabled)::hashed_id,
+    };
 #endif
 #if HAS_HOTEND_TYPE_SUPPORT()
     inline constexpr uint16_t hotend_type_single_hotend[] {
@@ -117,6 +120,7 @@ namespace migrations {
 
 #if HAS_SIDE_LEDS()
     void side_leds_enable(journal::Backend &backend);
+    void side_leds_dimming(journal::Backend &backend);
 #endif
     void hotend_type(journal::Backend &backend);
 
@@ -161,6 +165,7 @@ inline constexpr journal::Backend::MigrationFunction migration_functions[] {
         { migrations::loaded_filament_type, deprecated_ids::loaded_filament_type },
 #if HAS_SIDE_LEDS()
         { migrations::side_leds_enable, deprecated_ids::side_leds_enable },
+        { migrations::side_leds_dimming, deprecated_ids::side_leds_dimming },
 #endif
 #if HAS_HOTEND_TYPE_SUPPORT()
         { migrations::hotend_type, deprecated_ids::hotend_type_single_hotend },

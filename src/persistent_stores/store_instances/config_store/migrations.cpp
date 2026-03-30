@@ -216,6 +216,31 @@ namespace migrations {
     }
 
 #if HAS_SIDE_LEDS()
+    void side_leds_dimming(journal::Backend &backend) {
+        // The old side_leds_dimming_enabled=always mode dimmed LEDs even during printing.
+        // The new model uses a fixed side_leds_print_brightness (default 255 = full).
+        // Preserve intent: if the user had 'always' dimming, copy dimmed_brightness into
+        // print_brightness so prints are not unexpectedly at full brightness after upgrade.
+        using OldDimming = decltype(DeprecatedStore::side_leds_dimming_enabled);
+        using DimmedBrightness = decltype(CurrentStore::side_leds_dimmed_brightness);
+        using PrintBrightness = decltype(CurrentStore::side_leds_print_brightness);
+
+        OldDimming::value_type dimming_mode { OldDimming::default_val };
+        DimmedBrightness::value_type dimmed_brightness { DimmedBrightness::default_val };
+
+        backend.read_items_for_migrations([&](journal::Backend::ItemHeader header, std::array<uint8_t, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
+            if (header.id == OldDimming::hashed_id) {
+                memcpy(&dimming_mode, buffer.data(), header.len);
+            } else if (header.id == DimmedBrightness::hashed_id) {
+                memcpy(&dimmed_brightness, buffer.data(), header.len);
+            }
+        });
+
+        if (dimming_mode == leds::DimmingEnabled::always) {
+            backend.save_migration_item<PrintBrightness::value_type>(PrintBrightness::hashed_id, dimmed_brightness);
+        }
+    }
+
     void side_leds_enable(journal::Backend &backend) {
         using NewItem = decltype(CurrentStore::side_leds_max_brightness);
         std::optional<NewItem::value_type> val;

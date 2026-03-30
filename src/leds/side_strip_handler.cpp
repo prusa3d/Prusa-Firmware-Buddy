@@ -64,6 +64,12 @@ void SideStripHandler::load_config() {
     dimmed_brightness = config_store().side_leds_dimmed_brightness.get();
     max_brightness = config_store().side_leds_max_brightness.get();
     print_brightness = config_store().side_leds_print_brightness.get();
+    // Enforce invariant: idle brightness must not exceed chamber brightness.
+    // Persisted configs or connect-driven changes may violate this, so clamp here.
+    if (dimmed_brightness > max_brightness) {
+        dimmed_brightness = max_brightness;
+        config_store().side_leds_dimmed_brightness.set(dimmed_brightness);
+    }
     // Set state to off to force a change of state that will transition to the new brightness
     state = SideStripState::off;
 }
@@ -81,6 +87,11 @@ void SideStripHandler::set_max_brightness(uint8_t value) {
     }
 
     max_brightness = value;
+    // Clamp idle brightness down if it now exceeds the new max
+    if (dimmed_brightness > max_brightness) {
+        dimmed_brightness = max_brightness;
+        config_store().side_leds_dimmed_brightness.set(dimmed_brightness);
+    }
     // Set state to off to force a change of state that will transition to the new brightness
     state = SideStripState::off;
 }
@@ -91,8 +102,12 @@ uint8_t SideStripHandler::get_dimmed_brightness() const {
 }
 
 void SideStripHandler::set_dimmed_brightness(uint8_t value) {
-    config_store().side_leds_dimmed_brightness.set(value);
     std::lock_guard lock(mutex);
+    // Enforce invariant: idle brightness must not exceed chamber brightness
+    if (value > max_brightness) {
+        value = max_brightness;
+    }
+    config_store().side_leds_dimmed_brightness.set(value);
     if (dimmed_brightness == value) {
         return;
     }
