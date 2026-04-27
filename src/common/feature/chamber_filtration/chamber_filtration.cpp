@@ -138,8 +138,22 @@ void ChamberFiltration::step() {
         unaccounted_filter_time_used_start_s_ = now_s;
     };
 
-    // If output_pwm > 0, track filter usage
-    if (output_pwm_.value == 0) {
+    // Track wear by the actual fan PWM rather than the filtration request - on Core One the same fan also serves chamber cooling, so air can pass through the filter even when filtration itself didn't ask for it.
+    const bool filter_active = [&] {
+#if HAS_XBUDDY_EXTENSION()
+        switch (backend()) {
+        case Backend::xbe_official_filter:
+            return xbuddy_extension().fan_actual_pwm(XBuddyExtension::Fan::filtration_fan).value > 0;
+        case Backend::xbe_filter_on_cooling_fans:
+            return xbuddy_extension().fan_actual_pwm(XBuddyExtension::Fan::cooling_fan_1).value > 0;
+        default:
+            break;
+        }
+#endif
+        return output_pwm_.value > 0;
+    }();
+
+    if (!filter_active) {
         if (unaccounted_filter_time_used_start_s_) {
             // Commit any remaining unaccounted time
             commit_unaccounted_filter_usage();
