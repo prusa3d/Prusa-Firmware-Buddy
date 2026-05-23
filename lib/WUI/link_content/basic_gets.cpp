@@ -424,6 +424,12 @@ json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output) {
             JSON_FIELD_INT("time_remaining", time_to_end) JSON_COMMA;
         }
         JSON_FIELD_INT("time_printing", marlin_vars().print_duration) JSON_COMMA;
+        // Position in the media (arbitrary IGcodeReader units). Lock-free
+        // atomics maintained by media_prefetch. Byte-exact for plain-text
+        // .gcode; on .bgcode they can drift a few bytes per G0/G1 due to
+        // whitespace compaction (see #5249) but remain useful as progress.
+        JSON_FIELD_INT("byte_position", marlin_vars().media_position) JSON_COMMA;
+        JSON_FIELD_INT("byte_size_estimate", marlin_vars().media_size_estimate) JSON_COMMA;
         JSON_FIELD_OBJ("file");
             JSON_FIELD_OBJ("refs");
                 JSON_CUSTOM("\"icon\":\"/thumb/s%s\",", sfn_path_escaped);
