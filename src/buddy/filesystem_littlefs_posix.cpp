@@ -8,7 +8,10 @@
 #include <sys/syslimits.h>
 #include <buddy/filesystem.h>
 #include <buddy/filesystem_littlefs_posix.hpp>
+#include <logging/log.hpp>
 #include "lfs.h"
+
+LOG_COMPONENT_REF(FileSystem);
 
 #define RESULT result < 0 ? -1 : 0;
 
@@ -501,4 +504,28 @@ int filesystem_littlefs_utimes_r([[maybe_unused]] filesystem_littlefs_ctx_t *ctx
 
     // Timestamps not implemented for littlefs r->_errno = ENOTSUP;
     return -1;
+}
+
+int filesystem_littlefs_mount(filesystem_littlefs_ctx_t *ctx, const devoptab_t *devoptab, lfs_t *lfs) {
+    if (device > 0) {
+        // Already mounted.
+        return device;
+    }
+    ctx->devoptab = devoptab;
+    ctx->lfs = lfs;
+    device = AddDevice(devoptab);
+    if (device == -1) {
+        log_error(FileSystem, "Failed to mount littlefs device \"%s\"", devoptab->name);
+    } else {
+        log_info(FileSystem, "Mounted littlefs device \"%s\" (device %i)", devoptab->name, device);
+    }
+    return device;
+}
+
+void filesystem_littlefs_unmount(filesystem_littlefs_ctx_t *ctx) {
+    if (device > 0) {
+        RemoveDeviceByIndex(device);
+        device = 0;
+        ctx->lfs = nullptr;
+    }
 }

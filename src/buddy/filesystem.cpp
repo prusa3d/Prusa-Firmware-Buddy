@@ -2,7 +2,7 @@
 
 #include <buddy/filesystem.h>
 #include <buddy/filesystem_fatfs.h>
-#include <buddy/filesystem_littlefs_internal.h>
+#include "filesystem_littlefs.hpp"
 #include <buddy/filesystem_root.h>
 #include <buddy/filesystem_semihosting.h>
 #include <buddy/libsysbase_syscalls.h>
@@ -18,7 +18,7 @@ void filesystem_init() {
 #endif
 
     filesystem_fatfs_init();
-    filesystem_littlefs_internal_init();
+    filesystem_littlefs_init();
 
     // if debugger is attached, prepare semihosting fs
     if (sys_debugger_attached()) {
@@ -37,7 +37,7 @@ void init_only_littlefs() {
     libsysbase_syscalls_init();
 #endif
 
-    filesystem_littlefs_internal_init();
+    filesystem_littlefs_init();
     int device = filesystem_root_init();
     if (device != -1) {
         setDefaultDevice(device);

@@ -14,6 +14,14 @@ struct FIL_EX {
     uint8_t flags;
 };
 
+/// Register the device with libsysbase and record it (plus the lfs handle) in
+/// ctx. No-op returning the existing index if already mounted. Returns the
+/// device index, or -1 on failure.
+int filesystem_littlefs_mount(filesystem_littlefs_ctx_t *ctx, const devoptab_t *devoptab, lfs_t *lfs);
+
+/// Unregister a device previously mounted with filesystem_littlefs_mount().
+void filesystem_littlefs_unmount(filesystem_littlefs_ctx_t *ctx);
+
 int filesystem_littlefs_open_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, void *fileStruct, const char *path, int flags, int mode);
 int filesystem_littlefs_close_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, void *fileStruct);
 int filesystem_littlefs_fsync_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, void *fileStruct);
