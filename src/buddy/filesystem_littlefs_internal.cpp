@@ -1,7 +1,11 @@
 #include <logging/log.hpp>
 #include <buddy/filesystem_littlefs.h>
 #include <sys/iosupport.h>
-#include <buddy/littlefs_internal.h>
+#include <common/w25x.hpp>
+#include "littlefs_flash_device.hpp"
+
+static LittlefsFlashDevice<W25xFlash> lfs_device(
+    W25xFlash::instance(), W25xFlash::fs_start_address);
 
 static filesystem_littlefs_ctx_t internal_ctx;
 
@@ -139,7 +143,7 @@ extern "C" int filesystem_littlefs_internal_init() {
         return internal_ctx.device;
     }
 
-    lfs_t *lfs = littlefs_internal_init();
+    lfs_t *lfs = lfs_device.init();
     if (lfs == NULL) {
         return -1;
     }

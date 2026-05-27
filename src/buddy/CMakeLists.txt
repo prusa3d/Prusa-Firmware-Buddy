@@ -11,7 +11,6 @@ target_sources(
           filesystem_root.cpp
           filesystem_semihosting.cpp
           libsysbase_syscalls.cpp
-          littlefs_internal.cpp
           logging.cpp
           lwip.cpp
           main.cpp

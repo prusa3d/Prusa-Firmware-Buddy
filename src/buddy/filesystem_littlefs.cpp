@@ -8,7 +8,7 @@
 #include <sys/syslimits.h>
 #include <buddy/filesystem.h>
 #include <buddy/filesystem_littlefs.h>
-#include <buddy/littlefs_internal.h>
+#include "lfs.h"
 
 #define RESULT result < 0 ? -1 : 0;
 
