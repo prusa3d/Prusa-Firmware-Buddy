@@ -1,7 +1,12 @@
 #include "factory_reset.hpp"
 
 #include <common/w25x.hpp>
+#include <option/has_internal_storage_flash.h>
+#if HAS_INTERNAL_STORAGE_FLASH()
+    #include <common/mt29f_flash.hpp>
+#endif
 #include <common/st25dv64k.h>
+#include <buddy/filesystem_littlefs.hpp>
 #include <common/sys.hpp>
 #include <crash_dump/dump.hpp>
 #include <bootloader/bootloader.hpp>
@@ -159,12 +164,20 @@ static FactoryReset::ItemBitset decode_items_to_keep(uint16_t encoded_params) {
         wipe_specific_xflash_files,
         wipe_eeprom,
         wipe_xflash,
+#if HAS_INTERNAL_STORAGE_FLASH()
+        wipe_internal_storage,
+#endif
         finalize,
     };
 
     constexpr bool wipe_eeprom = true;
     const bool wipe_xflash = hard_reset;
     const bool wipe_specific_xflash_files = !hard_reset;
+#if HAS_INTERNAL_STORAGE_FLASH()
+    // Never erase an unidentified chip
+    const bool wipe_internal_storage = (hard_reset || !items_to_keep.test(std::to_underlying(Item::internal_storage)))
+        && Mt29fFlash::instance().is_initialized();
+#endif
 
     // Scales are relative phase durations (in seconds) measured on HW.
     using Scale = ProgressMapperWorkflowStep<FactoryResetStep>::Scale;
@@ -172,9 +185,12 @@ static FactoryReset::ItemBitset decode_items_to_keep(uint16_t encoded_params) {
         ProgressMapperWorkflow<FactoryResetStep>::Runtime {},
         std::to_array<ProgressMapperWorkflowStep<FactoryResetStep>>({
             { FactoryResetStep::wipe_specific_xflash_files, 1 },
-            { FactoryResetStep::wipe_eeprom, 25 },
-            { FactoryResetStep::wipe_xflash, wipe_xflash ? Scale(30) : Scale(0) },
-            { FactoryResetStep::finalize, 1 },
+                { FactoryResetStep::wipe_eeprom, 25 },
+                { FactoryResetStep::wipe_xflash, wipe_xflash ? Scale(30) : Scale(0) },
+#if HAS_INTERNAL_STORAGE_FLASH()
+                { FactoryResetStep::wipe_internal_storage, wipe_internal_storage ? Scale(300) : Scale(0) },
+#endif
+                { FactoryResetStep::finalize, 1 },
         }),
     };
     ProgressMapper<FactoryResetStep> progress_mapper(factory_reset_workflow);
@@ -227,6 +243,20 @@ static FactoryReset::ItemBitset decode_items_to_keep(uint16_t encoded_params) {
         }
     }
     indicate_progress(FactoryResetStep::wipe_xflash, 1.f);
+
+#if HAS_INTERNAL_STORAGE_FLASH()
+    if (wipe_internal_storage) {
+        internal_storage_unmount();
+        // Failed mount reformats the erased chip on next boot
+        auto &nand = Mt29fFlash::instance();
+        const uint32_t nand_blocks = nand.block_count();
+        for (uint32_t block = 0; block < nand_blocks; block++) {
+            nand.erase_block(block * Mt29fFlash::block_size);
+            indicate_progress(FactoryResetStep::wipe_internal_storage, float(block) / nand_blocks);
+        }
+    }
+    indicate_progress(FactoryResetStep::wipe_internal_storage, 1.f);
+#endif
 
     if (hard_reset) {
 #if BOOTLOADER()

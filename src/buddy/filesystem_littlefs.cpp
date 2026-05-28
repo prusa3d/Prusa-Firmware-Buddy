@@ -48,3 +48,9 @@ void filesystem_littlefs_init() {
     }
 #endif
 }
+
+#if HAS_INTERNAL_STORAGE_FLASH()
+void internal_storage_unmount() {
+    internal_ns::unmount();
+}
+#endif

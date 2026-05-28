@@ -4,6 +4,7 @@
 
 #include <utils/enum_array.hpp>
 #include <option/has_e2ee_support.h>
+#include <option/has_internal_storage_flash.h>
 
 class FactoryReset {
 
@@ -23,6 +24,10 @@ public:
         user_profiles,
 #if HAS_E2EE_SUPPORT()
         security,
+#endif
+#if HAS_INTERNAL_STORAGE_FLASH()
+        /// User files on the internal storage (not in the config store)
+        internal_storage,
 #endif
 
         _cnt
@@ -53,6 +58,9 @@ public:
             { Item::user_profiles, { N_("User Presets"), ItemFlag::user_presets } },
 #if HAS_E2EE_SUPPORT()
             { Item::security, { N_("Security"), ItemFlag::security } },
+#endif
+#if HAS_INTERNAL_STORAGE_FLASH()
+            { Item::internal_storage, { N_("Internal Storage"), {} } },
 #endif
     };
 
@@ -117,5 +125,8 @@ inline constexpr FactoryReset::ItemBitset FactoryReset::printer_type_change = it
         Item::user_profiles,
 #if HAS_E2EE_SUPPORT()
         Item::security,
+#endif
+#if HAS_INTERNAL_STORAGE_FLASH()
+        Item::internal_storage,
 #endif
 });
