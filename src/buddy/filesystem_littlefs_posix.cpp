@@ -432,6 +432,13 @@ int filesystem_littlefs_dirnext_r(filesystem_littlefs_ctx_t *ctx, struct _reent 
 
     strlcpy(filename, info.name, NAME_MAX);
 
+    // Ensure the byte after the name is null. In readdir's shared buffer a long
+    // name may follow the short one (SFN\0LFN\0). A null here means "no long name".
+    size_t len = strnlen(filename, NAME_MAX - 1);
+    if (len + 1 < NAME_MAX) {
+        filename[len + 1] = '\0';
+    }
+
     return 0;
 }
 
