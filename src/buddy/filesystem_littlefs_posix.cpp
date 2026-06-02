@@ -459,12 +459,16 @@ int filesystem_littlefs_statvfs_r(filesystem_littlefs_ctx_t *ctx, struct _reent 
 
     memset(buf, 0, sizeof(struct statvfs));
 
+    // littlefs has no sector/cluster split, so both the block size and fragment size are the erase block size.
+    buf->f_bsize = ctx->lfs->cfg->block_size;
     buf->f_frsize = ctx->lfs->cfg->block_size;
-    buf->f_bfree = ctx->lfs->free.size;
-    buf->f_bavail = buf->f_bfree;
-    buf->f_files = 0; // TODO: Count all inodes
-    buf->f_ffree = ctx->lfs->cfg->name_max - buf->f_files;
-    buf->f_favail = buf->f_ffree;
+    buf->f_blocks = ctx->lfs->cfg->block_count;
+    // Free space not reported here, it needs a full FS block traversal.
+    buf->f_bfree = 0;
+    buf->f_bavail = 0;
+    buf->f_files = 0;
+    buf->f_ffree = 0;
+    buf->f_favail = 0;
     buf->f_fsid = (device & 0xFFFF) | crc32to16(ctx->lfs->seed); // 16b for filesystems, 16b for driver per filesystem
     buf->f_flag = ST_NOSUID;
     buf->f_namemax = ctx->lfs->cfg->name_max;
