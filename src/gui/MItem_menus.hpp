@@ -13,6 +13,7 @@
 #include <option/has_chamber_filtration_api.h>
 #include <option/has_mmu2.h>
 #include <option/has_e2ee_support.h>
+#include <option/has_internal_storage_flash.h>
 #include <option/has_wastebin_fill_tracking.h>
 #include <option/has_lights_menu.h>
 #include <img_resources.hpp>
@@ -139,6 +140,11 @@ using MI_WASTEBIN
 
 using MI_SYSTEM
     = MI_SCREEN<N_("System"), class ScreenMenuSystem>;
+
+#if HAS_INTERNAL_STORAGE_FLASH()
+using MI_INTERNAL_STORAGE
+    = MI_SCREEN<N_("Internal Storage"), class ScreenMenuInternalStorage>;
+#endif
 
 using MI_INFO
     = MI_SCREEN<N_("Info"), class ScreenMenuInfo>;

@@ -19,6 +19,10 @@ if(HAS_ANFC)
   add_subdirectory(openprinttag)
 endif()
 
+if(HAS_INTERNAL_STORAGE_FLASH)
+  target_sources(firmware PRIVATE screen_menu_internal_storage.cpp)
+endif()
+
 if(HAS_LOADCELL)
   target_sources(firmware PRIVATE screen_nozzle_cleaning_failed.cpp)
 endif()

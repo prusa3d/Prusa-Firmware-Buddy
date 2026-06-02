@@ -29,6 +29,9 @@
     #include "screen_menu_wastebin.hpp"
 #endif
 #include "screen_menu_system.hpp"
+#if HAS_INTERNAL_STORAGE_FLASH()
+    #include "screen/screen_menu_internal_storage.hpp"
+#endif
 #include "screen_menu_input_shaper.hpp"
 #include <screen_menu_languages.hpp>
 #include <screen_menu_info.hpp>
@@ -159,6 +162,9 @@ template struct MI_SCREEN_CTOR<ScreenHelpFWUpdate>;
 template struct MI_SCREEN_CTOR<ScreenMenuWastebin>;
 #endif
 template struct MI_SCREEN_CTOR<ScreenMenuSystem>;
+#if HAS_INTERNAL_STORAGE_FLASH()
+template struct MI_SCREEN_CTOR<ScreenMenuInternalStorage>;
+#endif
 template struct MI_SCREEN_CTOR<ScreenMenuInfo>;
 template struct MI_SCREEN_CTOR<ScreenFactoryReset>;
 template struct MI_SCREEN_CTOR<ScreenMenuInputShaper>;
