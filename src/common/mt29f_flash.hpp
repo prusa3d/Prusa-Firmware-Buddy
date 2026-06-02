@@ -29,6 +29,9 @@ public:
     /// Initialize the device. Returns true on success.
     [[nodiscard]] bool init();
 
+    /// True after a successful init()
+    [[nodiscard]] bool is_initialized() const { return initialized; }
+
     void read(uint32_t addr, uint8_t *data, uint32_t len);
     void program(uint32_t addr, const uint8_t *data, uint32_t len);
     void erase_block(uint32_t addr);
@@ -47,6 +50,7 @@ private:
 
     uint8_t current_die = 0;
     int current_error = 0;
+    bool initialized = false;
 
     struct Address {
         uint8_t die;

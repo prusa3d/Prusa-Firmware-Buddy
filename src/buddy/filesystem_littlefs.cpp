@@ -21,9 +21,30 @@ void filesystem_littlefs_init() {
     }
 
 #if HAS_INTERNAL_STORAGE_FLASH()
+    if (!Mt29fFlash::instance().is_initialized()) {
+        // Don't mount or erase an unresponsive or misidentified chip
+        return;
+    }
     static LittlefsFlashDevice<Mt29fFlash> internal_device(Mt29fFlash::instance());
-    if (lfs_t *lfs = internal_device.init()) {
+    // Retry mounting to rule out a transient IO error: the recovery below is
+    // destructive and must not trigger on a bus hiccup
+    lfs_t *lfs = nullptr;
+    for (int attempt = 0; attempt < 3 && !lfs; attempt++) {
+        lfs = internal_device.init();
+    }
+    if (lfs) {
         internal_ns::mount(lfs);
+    } else {
+        // First boot (factory pages have invalid ECC) or corrupted beyond
+        // mounting, chip erase to get a valid ECC state
+        Mt29fFlash::instance().chip_erase();
+        if (int err = Mt29fFlash::instance().fetch_error()) {
+            log_error(FileSystem, "MT29F chip erase failed: %d", err);
+            return;
+        }
+        if (lfs_t *lfs2 = internal_device.init()) {
+            internal_ns::mount(lfs2);
+        }
     }
 #endif
 }

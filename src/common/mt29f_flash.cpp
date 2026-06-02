@@ -120,6 +120,7 @@ bool Mt29fFlash::init() {
 
     select_die(0);
     unlock_bus();
+    initialized = true;
     return true;
 }
 
