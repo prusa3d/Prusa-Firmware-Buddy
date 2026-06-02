@@ -17,6 +17,7 @@ public:
     /// but we use "block" to match littlefs and NAND conventions.
     static constexpr uint32_t block_size = 4096;
     static constexpr uint32_t block64_size = 0x10000;
+    static constexpr uint32_t prog_size = 1; ///< NOR is byte-programmable
 
     // Address layout constants
     static constexpr uint32_t dump_start_address = 0;

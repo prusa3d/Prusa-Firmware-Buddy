@@ -16,6 +16,9 @@ class OutputPin;
 class Mt29fFlash {
 public:
     static constexpr uint32_t page_size = 4096;
+    /// A page must be written in a single program op: PROGRAM LOAD resets the chip
+    /// cache to all-FF, so a second program of the same page corrupts its ECC
+    static constexpr uint32_t prog_size = page_size;
     static constexpr uint32_t pages_per_block = 64;
     static constexpr uint32_t blocks_per_die = 2048;
     static constexpr uint32_t num_dies = 2;

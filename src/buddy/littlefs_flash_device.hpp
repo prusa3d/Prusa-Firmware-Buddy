@@ -2,6 +2,7 @@
 /// Generic littlefs block device backed by a flash storage driver.
 ///
 /// The Storage type must provide:
+///   static constexpr uint32_t prog_size
 ///   void read(uint32_t addr, uint8_t *data, uint32_t len)
 ///   void program(uint32_t addr, const uint8_t *data, uint32_t len)
 ///   void erase_block(uint32_t addr)
@@ -11,6 +12,7 @@
 #pragma once
 
 #include "lfs.h"
+#include <algorithm>
 #include <cstdint>
 #include <cstddef>
 #include <logging/log.hpp>
@@ -37,7 +39,7 @@ public:
             .sync = sync_cb,
 
             .read_size = 1,
-            .prog_size = 1,
+            .prog_size = Storage::prog_size,
             .block_size = storage.erase_block_size(),
             .block_count = storage.block_count() - (addr_offset / storage.erase_block_size()),
             .block_cycles = 500,
@@ -92,8 +94,11 @@ private:
     static constexpr lfs_size_t cache_buf_size = 128;
 #else
     // PNG draws about 4% faster compared to cache_size 128
-    static constexpr lfs_size_t cache_buf_size = 512;
+    // for NAND (/internal) the cache must hold whole program pages
+    static constexpr lfs_size_t cache_buf_size = std::max<lfs_size_t>(Storage::prog_size, 512);
 #endif
+    // littlefs requires this, but its own check is compiled out by LFS_NO_ASSERT
+    static_assert(cache_buf_size % Storage::prog_size == 0, "cache_size must be a multiple of prog_size");
     std::byte read_buffer[cache_buf_size];
     std::byte prog_buffer[cache_buf_size];
     std::byte lookahead_buffer[lookahead_size];
