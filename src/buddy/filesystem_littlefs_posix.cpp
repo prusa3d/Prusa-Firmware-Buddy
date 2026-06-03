@@ -425,6 +425,11 @@ int filesystem_littlefs_dirnext_r(filesystem_littlefs_ctx_t *ctx, struct _reent 
         return filesystem_littlefs_dirnext_r(ctx, r, dirState, filename, filestat);
     }
 
+    if (filestat) {
+        filestat->st_size = info.size;
+        filestat->st_mtime = 0;
+    }
+
     strlcpy(filename, info.name, NAME_MAX);
 
     return 0;
