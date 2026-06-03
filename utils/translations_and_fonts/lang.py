@@ -27,7 +27,10 @@ def load_translations(directory: Path):
         ...
     """
     translations = dict()
-    for subdir in directory.iterdir():
+    # Sort for reproducible builds: iterdir() yields filesystem-dependent order,
+    # and translations are later emitted in this dict's insertion order, so an
+    # unsorted walk makes the generated translation/font data host-dependent.
+    for subdir in sorted(directory.iterdir(), key=lambda p: p.name):
         if not subdir.is_dir():
             continue
         if len(subdir.name) != 2:  # not a lang code, skipping
