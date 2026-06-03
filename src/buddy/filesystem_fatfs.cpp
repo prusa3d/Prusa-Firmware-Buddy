@@ -821,7 +821,6 @@ FIL *filesystem_fastfs_get_underlying_struct(FILE *file) {
     auto handle = __get_handle(fno);
 
     if ((int)handle->device != device) {
-        log_error(FileSystem, "File %i is not backed by FatFS", fno);
         return nullptr;
     }
 

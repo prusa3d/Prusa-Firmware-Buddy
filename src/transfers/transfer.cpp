@@ -191,7 +191,7 @@ bool Transfer::restart_download() {
     // make sure we don't hold the file actually open so the next open can
     // succeed.
     partial_file->release_file();
-    if (auto open_result = PartialFile::open(path.as_partial(), old_state, true); holds_alternative<PartialFile::Ptr>(open_result)) {
+    if (auto open_result = PartialFile::open(path.as_partial(), old_state); holds_alternative<PartialFile::Ptr>(open_result)) {
         auto new_file = move(get<PartialFile::Ptr>(open_result));
         if (new_file->final_size() != check_size) {
             return false;
@@ -229,7 +229,8 @@ void Transfer::init_download_order_if_needed() {
     }
     bool is_plain_gcode = filename_is_plain_gcode(slot.destination());
     bool has_sufficient_size = partial_file->final_size() >= PlainGcodeDownloadOrder::MinimalFileSize;
-    if (is_plain_gcode && has_sufficient_size) {
+    bool can_random_write = partial_file->supports_random_write();
+    if (is_plain_gcode && has_sufficient_size && can_random_write) {
         order = DownloadOrder(PlainGcodeDownloadOrder(*partial_file));
     } else {
         order = DownloadOrder(GenericFileDownloadOrder());
@@ -260,7 +261,9 @@ void Transfer::update_backup(bool force) {
     last_backup_update_ms = ticks_ms();
     last_backup_update_bytes = size;
 
-    if (is_printable && !already_notified) {
+    if (is_printable && !already_notified && partial_file->supports_random_write()) {
+        // Early notification for print-while-downloading — only for USB/FAT
+        // where the file is preallocated and concurrent read+write works.
         notify_created();
     }
 }
@@ -302,7 +305,7 @@ Transfer::RecoverResult Transfer::recover(const char *destination_path) {
     // reopen the partial file
     PartialFile::Ptr partial_file = nullptr;
     {
-        auto partial_file_result = PartialFile::open(path.as_partial(), partial_file_state, true);
+        auto partial_file_result = PartialFile::open(path.as_partial(), partial_file_state);
         if (auto *err = get_if<const char *>(&partial_file_result); err != nullptr) {
             log_error(transfers, "Failed to open partial file: %s", *err);
             return Storage { *err };

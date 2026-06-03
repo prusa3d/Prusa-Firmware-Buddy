@@ -6,7 +6,7 @@ std::variant<const char *, PartialFile::Ptr> PartialFile::create(const char *pat
     return "not implemented";
 }
 
-std::variant<const char *, PartialFile::Ptr> PartialFile::open(const char *path, PartialFile::State state, bool ignore_opened) {
+std::variant<const char *, PartialFile::Ptr> PartialFile::open(const char *path, PartialFile::State state) {
     return "not implemented";
 }
 

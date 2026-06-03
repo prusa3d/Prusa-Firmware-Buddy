@@ -1,53 +1,41 @@
+/// @file
 #pragma once
-#include "cmsis_os.h"
+
 #include <memory>
-#include <atomic>
 #include <variant>
 #include <optional>
-#include <array>
-#include <stdint.h>
-#include "usbh_async_diskio.hpp"
-#include <printers.h>
-#include <common/unique_file_ptr.hpp>
+#include <cstdint>
+#include <cstddef>
+
 #include <freertos/mutex.hpp>
-#include <freertos/counting_semaphore.hpp>
 
 namespace transfers {
 
-/// Partial File manages a FatFS file that can be read & written at the same time.
+/// A partial file tracks which parts of a file have been written, supporting
+/// resumable downloads. While being written, it can be read by standard means
+/// (fread etc.); get_valid_head()/get_valid_tail() tell which parts are valid
+/// for reading.
 ///
-/// - The file is always contiguous on the drive.
-///     - This makes a lot of things easier, but we won't be able to use all the space on the drive if it's fragmented.
-/// - The file, once created, can be read by standard means (fread etc)
-///     - To observe which parts of the file are valid for reading, use the `get_valid_head` and `get_valid_tail` methods.
-/// - To write to the file, use the `write`, `seek` and `flush` methods.
-///     - The file remembers which parts of the file are valid. But there are limitations in order to keep the implementation simple.
-///     - It remembers up to 2 valid independent parts. No more.
-///     - One of them is called the "head", which is a part starting at offset 0.
-///     - Second one is called the "tail" and it's a part starting somewhere in the middle of the
-///         file (gradually growing to the end of the file).
-///     - Creating a third valid part (by writing somewhere in between the head and the tail, for example) is not allowed.
-///     - Therefore, every write should either extend the head or the tail.
-///     - At some point, when the head and the tail meet, they are merged (tail is extended to the start of the file
-///         and head is extended to the end of the file).
-///     - Writing uses low-level USB functions and has basic buffering implemented by this class. Some requirements:
-///         - seek() is allowed only to the start of a sector
-///         - consecutive writes gradually fill the sector
-///         - when a sector is fully written to, it's flushed to the drive
-///         - seek()  to a different sector while the current one hasn't been fully written to will discard the currently buffered data
+/// To keep the implementation simple, at most 2 valid parts are tracked:
+/// - the "head", starting at offset 0,
+/// - the "tail", starting somewhere in the middle of the file and gradually
+///   growing to its end.
 ///
-/// Thread safety:
-/// - Getting the state (and related methods) are thread safe - it can happen concurrently to writes from other thread.
+/// Every write must extend the head or the tail; creating a third valid part
+/// is not allowed. When the head and the tail meet, they are merged into one.
+///
+/// Concrete implementations handle the actual I/O — either direct USB sector
+/// writes (UsbPartialFile) or standard POSIX fwrite (PosixPartialFile).
+///
+/// Thread safety: getting the state (and related methods) is thread safe and
+/// can happen concurrently to writes from another thread.
 class PartialFile {
 public:
-    static const size_t SECTOR_SIZE = 512;
-#if PRINTER_IS_PRUSA_MINI()
-    static const size_t SECTORS_PER_WRITE = 1; // Low on RAM on mini
-#else
-    static const size_t SECTORS_PER_WRITE = 8;
-#endif
-    // The size of one buffer (possibly multiple sectors)
-    static const size_t BUFFER_SIZE = SECTOR_SIZE * SECTORS_PER_WRITE;
+    /// USB writes are sector-aligned; download offsets are rounded to this
+    /// boundary so resumed downloads land on sector starts. POSIX/littlefs
+    /// writes have no alignment requirement, but use the same constant to keep
+    /// callers (transfer.cpp) impl-agnostic.
+    static constexpr size_t SECTOR_SIZE = 512;
 
     struct ValidPart {
         size_t start;
@@ -71,9 +59,9 @@ public:
     };
 
     struct State {
-        std::optional<ValidPart> valid_head;
-        std::optional<ValidPart> valid_tail;
-        size_t total_size;
+        std::optional<ValidPart> valid_head {};
+        std::optional<ValidPart> valid_tail {};
+        size_t total_size = 0;
 
         size_t get_valid_size() const {
             size_t bytes_head = valid_head.has_value() ? valid_head->end - valid_head->start : 0;
@@ -90,7 +78,7 @@ public:
         }
 
         size_t get_percent_valid() const {
-            // Needs to be calculated in float because (100 * size) overflows size_t
+            // float on purpose: size * 100 can overflow size_t
             return total_size ? static_cast<size_t>(static_cast<float>(get_valid_size()) * 100.0f / total_size) : 0;
         }
 
@@ -103,217 +91,123 @@ public:
         }
     };
 
-private:
-    static void usb_msc_write_finished_callback(USBH_StatusTypeDef result, void *param1, void *param2);
-
-    /// Pre-allocated request pool for usbh_msc_submit_request operation with dynamically
-    /// allocated memory for sectors (needs DMA so not on stack that can be put into CCMRAM)
-    struct SectorPool {
-        /// sync operations require a minimum of 2 slots and 32 is the maximum due to slot_mask
-        static constexpr uint32_t size = 2;
-        static_assert(size >= 2 && size <= 32);
-
-        SectorPool(UsbhMscRequest::LunNbr lun, UsbhMscRequestCallback callback, void *callback_param1);
-        ~SectorPool();
-
-        /// Get a free slot, if none is available, it waits until it becomes free (returns nullptr in case of timeout)
-        ///
-        /// Returns the slot and its index (can be paired with the number given to the callback)
-        UsbhMscRequest *acquire(bool block_waiting);
-
-        /// Release a previously acquired slot
-        void release(uint32_t slot);
-
-        /// Blocks until all slots (except skipped ones) are relesed
-        /// If force is true, it waits potentially forever for the operations to complete
-        /// (to be used in destructor, so under no circumstances a reference-after-free may happen)
-        bool sync(uint32_t avoid, bool force);
-
-    private:
-        bool is_available_slot() const { return slot_mask != ~0u; }
-
-        uint32_t get_available_slot() const;
-
-        // Protects the slots acquisition / mask
-        freertos::Mutex mutex;
-        // Represents the number of free slots (update of mask must be protected by this)
-        freertos::CountingSemaphore semaphore;
-
-        // Mask of acquired/free slots one bit per slot from least significant (1-acquired/unused, 0-free)
-        uint32_t slot_mask;
-
-        UsbhMscRequest pool[size];
-    };
-
-    // Pre-allocated request pool of sectors
-    SectorPool sector_pool;
-
-    // Extend the valid parts by these once the relevant sectors are written
-    // (indexed by the sector number)
-    std::array<ValidPart, SectorPool::size> future_extend;
-
-    // Asynchronous write operation completed callback
-    void usbh_msc_finished(USBH_StatusTypeDef result, uint32_t slot);
-
-    /// Flag whether an error occurred during writing (set asynchronously from the callback)
-    std::atomic<bool> write_error;
-
-    /// USB sector number where the first data of the file are located
-    UsbhMscRequest::SectorNbr first_sector_nbr;
-
-    /// Write buffer for the active sector the user is writing to
-    UsbhMscRequest *current_sector;
-
-    /// Offset ("ftell") within the file where the user will write next
-    size_t current_offset;
-
-    /// Valid parts of the file
-    State state;
-
-    mutable freertos::Mutex state_mutex;
-
-    /// Last reported progress over logs
-    int last_progress_percent;
-
-    /// Translate file offset to sector number
-    UsbhMscRequest::SectorNbr get_sector_nbr(size_t offset);
-
-    /// Translate sector number to file offset
-    size_t get_offset(UsbhMscRequest::SectorNbr sector_nbr);
-
-    /// Write current sector over USB to the FatFS drive
-    bool write_current_sector();
-
-    /// Discard current sector - it is necessary to release it from the sector_pool
-    void discard_current_sector();
-
-    /// Extend the valid_head and/or valid_tail to include the new_part
-    void extend_valid_part(ValidPart new_part);
-
-    /// Keeping a read-only open file.
-    ///
-    /// This is to lock the file in place so somebody doesn't accidentally
-    /// delete it or mess with it in a different way.
-    ///
-    /// (Using fd instead of FILE * here because it's more lightweight and we
-    /// don't actually _use_ it for anything).
-    int file_lock;
-
-    typedef void WrittenCallback(void *);
-    WrittenCallback *written_callback = nullptr;
-    void *written_callback_arg;
-
-    /// How large (in bytes) write are we going to do now?
-    ///
-    /// Depends on if the current sector is "aligned" to the write size or not.
-    ///
-    /// Current buffer must be allocated at this point.
-    size_t allowed_write_size() const;
-
-    /// How many sectors can we write (either aligned completely or to round up
-    /// to alignment for next write).
-    size_t allowed_sectors() const;
-
-public:
-    PartialFile(UsbhMscRequest::LunNbr drive, UsbhMscRequest::SectorNbr first_sector, State state, int file_lock);
-    ~PartialFile();
     using Ptr = std::shared_ptr<PartialFile>;
-    using Result = std::variant<const char *, PartialFile::Ptr>;
+    using Result = std::variant<const char *, Ptr>;
 
-    /// Try to create a new partial file of preallocated size
-    static Result create(const char *path, size_t size);
-
-    /// Open existing partial file
-    ///
-    /// state.total_size is updated according to what is found on the disk and overwritten.
-    ///
-    /// * ignore_opened: If set to true, it'll open the file (for writing) even
-    ///   if there's a reader somewhere else.
-    static Result open(const char *path, State state, bool ignore_opened);
-
-    /// Convert an open FILE * into this.
-    ///
-    /// state.total_size is updated according to what is found on the disk and overwritten.
-    static Result convert(const char *path, unique_file_ptr file, State state);
-
-    /// Seek to a given offset within the file
-    bool seek(size_t offset);
-
-    /// Position in the file
-    size_t tell() {
-        return current_offset;
-    }
-
+    /// USB sector buffers passed through `get_current_buffer` come as
+    /// `BufferAndSizes`. POSIX returns the same shape (over a small RAM
+    /// staging buffer) so callers don't have to special-case.
     struct WouldBlock {};
     struct WriteError {};
     struct OutOfRange {};
-
     struct BufferAndSizes {
         uint8_t *buffer;
-        // Already written into the buffer this far
+        /// Already written into the buffer this far; new data goes to buffer + offset.
         size_t offset;
-        // Usable size of the buffer.
-        //
-        // Note: may be different each time (sometimes we allow "big" writes,
-        // sometimes small ones).
-        //
-        // This does not account for "end of file", that's still up to the
-        // caller.
+        /// Usable size of the buffer; may differ from call to call. Does not
+        /// account for the end of file, that's up to the caller.
         size_t size;
     };
     using BufferPeek = std::variant<BufferAndSizes, WouldBlock, WriteError, OutOfRange>;
 
-    /// Provides a data pointer and offset (to the place where already written) to the current write buffer.
+    using WrittenCallback = void(void *);
+
+    virtual ~PartialFile() = default;
+
+    /// Create a new partial file at path with the given size.
+    /// Selects the implementation based on the path's storage type.
+    static Result create(const char *path, size_t size);
+
+    /// Open an existing partial file. `state` is the resume state from a
+    /// previous transfer; USB overwrites `state.total_size` from the on-disk
+    /// file, POSIX preserves it (no preallocation).
     ///
-    /// The caller is responsible to offset the place where it writes.
-    ///
-    /// Will allocate a new one as needed. If blocking_wait is set to true and
-    /// no buffer is available for allocation, it waits for one to become
-    /// available.
-    ///
-    /// The total buffer is always SECTOR_SIZE large.
-    BufferPeek get_current_buffer(bool blocking_wait);
+    /// Always allows another reader to hold the file (the download screen or an
+    /// active print): on FAT the pin handle is opened read-only so it coexists
+    /// with that reader (FF_FS_LOCK makes a write-open exclusive, BFW-4542),
+    /// which is fine because USB writes via raw sectors. littlefs writes
+    /// through the handle, so it opens read-write (it has no exclusive-write
+    /// lock).
+    static Result open(const char *path, State state);
 
-    /// Advance the write position, submit the current buffer to USB if completely full.
-    bool advance_written(size_t by);
+    /// Whether the implementation supports efficient random writes (seek+write).
+    /// USB/FAT does (preallocated contiguous file). POSIX/littlefs doesn't
+    /// (no sparse files, copy-on-write blocks). Used to select download order.
+    virtual bool supports_random_write() const = 0;
 
-    /// Write data to the file at current offset
-    bool write(const uint8_t *data, size_t size);
+    /// Seek is only allowed to a write-buffer (USB: sector) boundary. A
+    /// partially filled buffer is not carried over: USB discards it, POSIX
+    /// flushes it first.
+    virtual bool seek(size_t offset) = 0;
+    virtual size_t tell() = 0;
 
-    /// Flush the current sector to the USB drive
-    bool sync();
+    /// Write data at the current offset.
+    virtual bool write(const uint8_t *data, size_t size) = 0;
 
-    /// "Close" the file while still preserving the state and size.
-    ///
-    /// No further writes will succeed or be made and the file lock is released.
-    void release_file();
+    /// Commit everything written so far to the medium and extend the valid
+    /// parts over it. Used to complete the tail of a download.
+    virtual bool sync() = 0;
 
-    /// Get the final size of the file
-    size_t final_size() const { return get_state().total_size; }
+    /// "Close" the file while still preserving the state and size. No further
+    /// writes will succeed and the lock on the file is released.
+    virtual void release_file() = 0;
 
-    /// Get the valid part of the file starting at offset 0
-    std::optional<ValidPart> get_valid_head() const { return get_state().valid_head; }
+    /// Expose the current write buffer, allocating a new one as needed; the
+    /// caller writes at buffer + offset. Consecutive writes fill the buffer
+    /// gradually and it is flushed to the medium when full (see
+    /// advance_written()). With blocking_wait, waits for a buffer to become
+    /// available instead of returning WouldBlock.
+    virtual BufferPeek get_current_buffer(bool blocking_wait) = 0;
 
-    /// Get the valid part of the file starting passed the head
-    std::optional<ValidPart> get_valid_tail() const { return get_state().valid_tail; }
-
-    /// Check if the file has valid data at [0, bytes) range
-    bool has_valid_head(size_t bytes) const;
-
-    /// Check if the file has valid data at [file_size - bytes, file_size) range
-    bool has_valid_tail(size_t bytes) const;
+    /// Advance the write position; flushes the buffer to the medium once
+    /// fully written.
+    virtual bool advance_written(size_t by) = 0;
 
     State get_state() const;
+    size_t final_size() const { return get_state().total_size; }
+    std::optional<ValidPart> get_valid_head() const { return get_state().valid_head; }
+    std::optional<ValidPart> get_valid_tail() const { return get_state().valid_tail; }
+    /// Check if the file has valid data in the [0, bytes) range.
+    bool has_valid_head(size_t bytes) const;
+    /// Check if the file has valid data in the [total_size - bytes, total_size) range.
+    bool has_valid_tail(size_t bytes) const;
 
-    void print_progress();
-
-    // Callback to be called whenever a block is written/failed to be written.
-    //
-    // Can be set to null.
-    void set_written_callback(WrittenCallback *cback, void *arg) {
-        written_callback = cback;
+    /// Set a callback invoked whenever a block is written or fails to be
+    /// written. Can be set to null.
+    void set_written_callback(WrittenCallback *cb, void *arg) {
+        written_callback = cb;
         written_callback_arg = arg;
     }
+
+protected:
+    explicit PartialFile(State initial)
+        : state(initial) {}
+
+    /// Log the overall progress when the percentage changes.
+    ///
+    /// Call from the task performing the writes. Deliberately not part of
+    /// extend_valid_part(): that can run in the USB MSC completion callback
+    /// on the realtime worker task, where blocking on the log task would
+    /// stall all USB I/O.
+    void log_progress();
+
+    mutable freertos::Mutex state_mutex;
+    State state;
+    int last_progress_percent = -1;
+
+    WrittenCallback *written_callback = nullptr;
+    void *written_callback_arg = nullptr;
+
+    /// Extend head/tail to include `new_part`. Locks state_mutex. May run in
+    /// the USB MSC completion context - keep it free of blocking calls.
+    ///
+    /// Invariant: callers only extend over data already durable on the medium
+    /// (USB: from the write-completion callback, POSIX: after fsync), so
+    /// persisting the state (transfer backup) is always safe.
+    void extend_valid_part(ValidPart new_part);
+
+    /// Invoke the registered write callback, if any.
+    void notify_written();
 };
 
 } // namespace transfers

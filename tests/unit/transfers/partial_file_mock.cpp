@@ -2,6 +2,6 @@
 
 using namespace transfers;
 
-std::variant<const char *, PartialFile::Ptr> PartialFile::open(const char *, PartialFile::State, bool ignore_opened) {
+std::variant<const char *, PartialFile::Ptr> PartialFile::open(const char *, PartialFile::State) {
     return "not implemented";
 }

@@ -146,6 +146,10 @@ public:
         auto &request = get<Request>(phase_payload);
         strlcpy(request.hostname, hostname, sizeof request.hostname);
         strlcpy(request.path, path, sizeof request.path);
+        if (!this->destination->seek(start_range)) {
+            last_status = DownloadStep::FailedStorage;
+            phase = Phase::Done;
+        }
     }
     Async(const Async &other) = delete;
     Async(Async &&oter) = delete;
@@ -383,6 +387,10 @@ public:
 
     // Start it inside the tcpip thread.
     void start() {
+        if (phase == Phase::Done) {
+            // Failed at construction (destination seek)
+            return;
+        }
         request_started = ticks_ms();
         debug_assert(holds_alternative<Request>(phase_payload));
         auto &request = get<Request>(phase_payload);
@@ -470,14 +478,13 @@ Download::Download(const Request &request, PartialFile::Ptr destination, uint32_
         auto decryptor = make_unique<Decryptor>(encrypted->encryption->key, encrypted->encryption->nonce, start_range, file_size - start_range);
         debug_assert(destination);
 
-        destination->seek(start_range);
         AsyncPtr async(new Async(encrypted->host, encrypted->port, encrypted->url_path, move(destination), move(decryptor), start_range, end_range));
         Async *async_raw = async.get();
         engine = std::move(async);
         tcpip_callback_nofail(Async::start_wrapped, async_raw);
     } else {
         const auto &in = get<Request::Inline>(request.data);
-        destination->seek(start_range);
+        const bool seek_ok = destination->seek(start_range);
         InlinePtr in_ptr(new Inline {
             in.team_id,
             // This is just a safety feature - making sure we don't mix chunks
@@ -492,6 +499,9 @@ Download::Download(const Request &request, PartialFile::Ptr destination, uint32_
             destination,
         });
         strlcpy(in_ptr->hash, in.hash, sizeof in_ptr->hash);
+        if (!seek_ok) {
+            in_ptr->status = DownloadStep::FailedStorage;
+        }
         engine = std::move(in_ptr);
         // We do _nothing_ in here, in this case, the Download is kind of "passive"
     }
