@@ -175,7 +175,7 @@ bool screen_home_data_t::need_check_wifi_credentials = true;
         return false;
     }
 
-    sb.append_string(entry.sfn);
+    sb.append_string(entry.name.canonical());
     return sb.is_ok();
 }
 

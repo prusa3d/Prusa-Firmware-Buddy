@@ -3,35 +3,26 @@
 
 void FileSort::Entry::Clear() {
     type = EntryType::INVALID;
-    lfn[0] = 0;
-    sfn[0] = 0;
+    name = {};
     time = 0;
 }
 
 void FileSort::Entry::CopyFrom(const EntryRef &er) {
-    if (er.sfn) {
-        strlcpy(sfn, er.sfn, sizeof(sfn));
-    }
-
-    if (er.lfn.s) {
-        strlcpy(lfn, er.lfn.s, sizeof(lfn));
-    }
-
+    name.assign(er.sfn, er.lfn.s);
     type = er.type;
     time = er.time;
 }
 
 void FileSort::Entry::SetDirUp() {
-    lfn[0] = lfn[1] = sfn[0] = sfn[1] = '.';
-    lfn[2] = sfn[2] = 0;
+    name.assign("..");
     type = EntryType::DIR;
     time = UINT_LEAST64_MAX;
 }
 
 FileSort::EntryRef::EntryRef(const Entry &e)
     : time(e.time)
-    , lfn(e.lfn)
-    , sfn(e.sfn)
+    , lfn(e.name.display())
+    , sfn(e.name.canonical())
     , type(e.type) {
 }
 FileSort::EntryRef::EntryRef(const dirent &de, const char *sfnPath)

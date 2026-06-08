@@ -16,7 +16,7 @@ LOG_COMPONENT_REF(GUI);
 /// To save first/top visible item in the file browser
 /// This is something else than the selected file for print
 /// This is used to restore the content of the browser into previous state including the layout
-static char firstVisibleSFN[FileSort::MAX_SFN];
+static char firstVisibleSFN[filename_defs::filename_buffer_size];
 
 static constexpr char dirUp[] = "..";
 static constexpr char slash = '/';

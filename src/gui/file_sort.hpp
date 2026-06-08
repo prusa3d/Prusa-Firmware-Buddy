@@ -13,6 +13,7 @@
 #include <array>
 #include <stdio.h>
 #include <dirent.h>
+#include <common/filename.hpp>
 #include <common/filename_type.hpp>
 #include <common/directory.hpp>
 #include <strings.h>
@@ -52,9 +53,6 @@ public:
         }
     };
 
-    // This has to be larger than standard SFN's 11, because SFN in this form gets pseudo-encoded into UTF-8, so the size can bloat.
-    // As a result, filenames with diacritics wouldn't fit
-    static constexpr size_t MAX_SFN = 24;
     struct EntryRef;
     struct Entry {
 
@@ -71,8 +69,7 @@ public:
     public:
         uint64_t time = 0;
         EntryType type = EntryType::INVALID;
-        char lfn[filename_defs::max_filename_length] = { 0 };
-        char sfn[FileSort::MAX_SFN] = { 0 }; // cache the short filenames too, since they will be used in communication with Marlin
+        Filename name;
     };
 
     struct EntryRef {

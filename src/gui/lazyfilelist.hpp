@@ -16,14 +16,14 @@ public:
     /// @return pointer to a filename (or nullptr, if there is nothing at that index) and the type of the entry (FILE / DIR)
     std::pair<const char *, EntryType> LongFileNameAt(size_t windowIndex) const {
         const auto &rec = files_data[indices_data[windowIndex]];
-        return std::make_pair(rec.lfn, rec.type);
+        return std::make_pair(rec.name.display(), rec.type);
     }
 
     /// @param windowIndex index within the window (i.e. [0 - window_size-1])
     /// @return pointer to a filename (or nullptr, if there is nothing at that index) and the type of the entry (FILE / DIR)
     std::pair<const char *, EntryType> ShortFileNameAt(size_t windowIndex) const {
         const auto &rec = files_data[indices_data[windowIndex]];
-        return std::make_pair(rec.sfn, rec.type);
+        return std::make_pair(rec.name.canonical(), rec.type);
     }
 
     /// @return total number of files/entries in a directory
@@ -72,7 +72,6 @@ public:
 protected:
     int window_size;
 
-    /// roughly BUFFER_SIZE * 100B, can be placed in CCMRAM if needed. For MINI it is only 9 entries -> only 900B
     Entry *files_data;
 
     /// files_data are not accessed directly, but through indices
