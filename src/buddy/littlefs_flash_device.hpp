@@ -51,7 +51,8 @@ public:
             .name_max = 0,
             .file_max = 0,
             .attr_max = 0,
-            .metadata_max = 0,
+            // Bound metadata compaction time on large erase blocks
+            .metadata_max = std::min(storage.erase_block_size(), 32768lu),
         };
 
         int err = lfs_mount(&lfs, &config);
