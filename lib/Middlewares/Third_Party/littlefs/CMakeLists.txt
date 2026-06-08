@@ -6,6 +6,7 @@ target_compile_definitions(littlefs PUBLIC
             LFS_NO_WARN=1
             LFS_NO_ERROR=1
             LFS_NO_ASSERT=1
+            LFS_THREADSAFE=1
   )
 
 target_include_directories(littlefs PUBLIC .)

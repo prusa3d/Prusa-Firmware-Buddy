@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstddef>
+#include <freertos/mutex.hpp>
 #include <logging/log.hpp>
 #include <printers.h>
 
@@ -37,6 +38,8 @@ public:
             .prog = prog_cb,
             .erase = erase_cb,
             .sync = sync_cb,
+            .lock = lock_cb,
+            .unlock = unlock_cb,
 
             .read_size = 1,
             .prog_size = Storage::prog_size,
@@ -87,6 +90,7 @@ private:
 
     lfs_t lfs;
     lfs_config config;
+    freertos::Mutex lfs_mutex;
 
     static constexpr lfs_size_t lookahead_size = 16;
 #if PRINTER_IS_PRUSA_MINI()
@@ -157,6 +161,16 @@ private:
     }
 
     static int sync_cb([[maybe_unused]] const lfs_config *c) {
+        return 0;
+    }
+
+    static int lock_cb(const lfs_config *c) {
+        self(c).lfs_mutex.lock();
+        return 0;
+    }
+
+    static int unlock_cb(const lfs_config *c) {
+        self(c).lfs_mutex.unlock();
         return 0;
     }
 };
