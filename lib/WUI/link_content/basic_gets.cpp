@@ -1,7 +1,6 @@
 #include "basic_gets.h"
 #include "filament.hpp"
 #include "marlin_client.hpp"
-#include "lwip/init.h"
 #include "netdev.h"
 #include <config_store/store_instance.hpp>
 
@@ -12,6 +11,7 @@
 #include <filepath_operation.h>
 #include <filename_type.hpp>
 #include <state/printer_state.hpp>
+#include <version/version.hpp>
 
 #include <dirent.h>
 #include <cstring>
@@ -200,10 +200,11 @@ JsonResult get_version(size_t resume_point, JsonOutput &output) {
     JSON_START;
     JSON_OBJ_START;
         JSON_FIELD_STR("api", PL_VERSION_STRING) JSON_COMMA;
-        // FIXME: The server version is probably bogus. But it's unclear what
-        // the version is supposed to mean anyway. Waiting for the new
-        // PrusaLink API to replace this?
-        JSON_FIELD_STR("server", LWIP_VERSION_STRING) JSON_COMMA;
+        // We don't have a separate PrusaLink running alongside the firmware
+        // (unlike the Raspberry Pi version), so the firmware version doubles as
+        // both the "firmware" and the "server" (PrusaLink) version.
+        JSON_FIELD_STR("server", version::project_version_full) JSON_COMMA;
+        JSON_FIELD_STR("firmware", version::project_version_full) JSON_COMMA;
         JSON_FIELD_FFIXED("nozzle_diameter", nozzle_diameter, 2) JSON_COMMA;
         JSON_FIELD_STR("text", "PrusaLink") JSON_COMMA;
         JSON_FIELD_STR("hostname", hostname) JSON_COMMA;
