@@ -608,6 +608,8 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
   #endif
 
   #if ENABLED(XY_HOMING_STEALTCHCHOP)
+    bool stealthChop_x = stepperX.stored.stealthChop_enabled;
+    bool stealthChop_y = stepperY.stored.stealthChop_enabled;
     // Enable stealtchop on X and Y before homing
     stepperX.stored.stealthChop_enabled = true;
     stepperX.refresh_stepping_mode();
@@ -766,6 +768,15 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
       }
     }
   #endif
+
+  // Restore XY stealthChop / spreadCycle mode
+  #if ENABLED(XY_HOMING_STEALTCHCHOP)
+    // Enable stealtchop on X and Y before homing
+    stepperX.stored.stealthChop_enabled = stealthChop_x;
+    stepperX.refresh_stepping_mode();
+    stepperY.stored.stealthChop_enabled = stealthChop_y;
+    stepperY.refresh_stepping_mode();
+  #endif /*ENABLED(XY_HOMING_STEALTCHCHOP)*/
 
   // Home Z last if homing towards the bed
   #if HAS_Z_AXIS && DISABLED(HOME_Z_FIRST)
