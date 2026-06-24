@@ -1,5 +1,5 @@
 #include <logging/log.hpp>
-#include <buddy/filesystem_littlefs.h>
+#include <buddy/filesystem_littlefs_posix.hpp>
 #include <sys/iosupport.h>
 #include <common/w25x.hpp>
 #include "littlefs_flash_device.hpp"

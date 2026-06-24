@@ -1,22 +1,18 @@
 #pragma once
 
-#if defined(__cplusplus)
-extern "C" {
-#endif // defined(__cplusplus)
-
 #include "lfs.h"
 #include "sys/iosupport.h"
 
-typedef struct {
+struct filesystem_littlefs_ctx_t {
     int device;
     const devoptab_t *devoptab;
     lfs_t *lfs;
-} filesystem_littlefs_ctx_t;
+};
 
-typedef struct {
+struct FIL_EX {
     lfs_file_t fil;
     uint8_t flags;
-} FIL_EX;
+};
 
 int filesystem_littlefs_open_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, void *fileStruct, const char *path, int flags, int mode);
 int filesystem_littlefs_close_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, void *fileStruct);
@@ -42,7 +38,3 @@ int filesystem_littlefs_ftruncate_r(filesystem_littlefs_ctx_t *ctx, struct _reen
 int filesystem_littlefs_rmdir_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, const char *path);
 int filesystem_littlefs_lstat_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, const char *file, struct stat *st);
 int filesystem_littlefs_utimes_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r, const char *filename, const struct timeval times[2]);
-
-#if defined(__cplusplus)
-} // extern "C"
-#endif // defined(__cplusplus)

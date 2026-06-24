@@ -6,8 +6,8 @@ target_sources(
           fatfs.cpp
           filesystem.cpp
           filesystem_fatfs.cpp
-          filesystem_littlefs.cpp
           filesystem_littlefs_internal.cpp
+          filesystem_littlefs_posix.cpp
           filesystem_root.cpp
           filesystem_semihosting.cpp
           libsysbase_syscalls.cpp
