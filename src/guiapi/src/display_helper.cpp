@@ -173,6 +173,10 @@ void render_line(StringReaderUtf8 &reader, uint8_t chars_to_print, Rect16 rc, co
     }
 }
 
+void render_char_part(point_ui16_t pt, unichar c, const font_t *pf, Color clr_bg, Color clr_fg, uint16_t start_x, uint16_t end_x) {
+    display::draw_char_part(pt, c, pf, clr_bg, clr_fg, start_x, end_x);
+}
+
 void render_text_align(Rect16 rc, const string_view_utf8 &text, const Font f, Color clr_bg, Color clr_fg, padding_ui8_t padding, text_flags flags, bool fill_rect) {
     StringReaderUtf8 reader(text);
     render_text_align(rc, reader, f, clr_bg, clr_fg, padding, flags, fill_rect);
@@ -195,7 +199,9 @@ void render_text_align(Rect16 rc, StringReaderUtf8 &reader, const Font f, Color 
         return;
     }
 
-    Rect16 rc_txt = Rect16(0, 0, layout.get_width_in_chars() * font->w, layout.get_height_in_chars() * font->h);
+    // in single line mode, line can be longer due to partially visible character
+    const uint16_t max_width = (flags.multiline == is_multiline::no) ? layout.get_width_in_chars() * font->w : rc_pad.Width().w;
+    Rect16 rc_txt = Rect16(0, 0, max_width, layout.get_height_in_chars() * font->h);
     rc_txt.Align(rc_pad, flags.align);
     rc_pad = rc_txt.Intersection(rc_pad); ///  set padding rect to new value, crop the rectangle if the text is too long
 
@@ -210,17 +216,30 @@ void render_text_align(Rect16 rc, StringReaderUtf8 &reader, const Font f, Color 
         if (front.Width()) {
             display::fill_rect(front, clr_bg);
         }
-        // behind line
-        const Rect16 behind = rect_to_align.RightSubrect(line_rect);
-        if (behind.Width()) {
-            display::fill_rect(behind, clr_bg);
-        }
 
         render_line(reader, line_char_cnt, line_rect, font, clr_bg, clr_fg);
 
-        // skip character, that splits the lines (usually '\n' || ' ')
         if (layout.get_skip_char_on_line(i)) {
+            // skip character, that splits the lines (usually '\n' || ' ')
             reader.skip(1);
+        } else if (flags.multiline == is_multiline::no) {
+            // render the partially visible character
+            const unichar c = reader.getUtf8Char();
+            if (c != '\n' && c != '\0') {
+                const uint16_t start_x = line_rect.Left() + line_char_cnt * font->w;
+                const int16_t width = rc.Right() - padding.right - start_x;
+                if (width > 0) {
+                    const point_ui16_t next_char_pos = point_ui16_t(start_x, line_rect.Top().y);
+                    render_char_part(next_char_pos, c, font, clr_bg, clr_fg, 0, width - 1);
+                    line_rect = Rect16(line_rect.Left(), line_rect.Top(), line_rect.Width() + width, line_rect.Height());
+                }
+            }
+        }
+
+        // behind line
+        Rect16 behind = rect_to_align.RightSubrect(line_rect);
+        if (behind.Width()) {
+            display::fill_rect(behind, clr_bg);
         }
     }
 

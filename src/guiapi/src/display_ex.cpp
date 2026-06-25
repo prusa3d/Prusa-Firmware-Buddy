@@ -222,6 +222,11 @@ void draw_char(point_ui16_t pt, unichar c, const font_t *pf, Color clr_bg, Color
     draw_from_buffer(pt, pf->w, pf->h);
 }
 
+void draw_char_part(point_ui16_t pt, unichar c, const font_t *pf, Color clr_bg, Color clr_fg, uint16_t start_x, uint16_t end_x) {
+    uint16_t width = store_char_part_in_buffer(c, pf, clr_bg, clr_fg, start_x, end_x);
+    draw_from_buffer(pt, width, pf->h);
+}
+
 void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, const font_t *pf, Color clr_bg, Color clr_fg) {
     uint32_t chr = get_char_position_in_font(c, pf);
 
@@ -256,6 +261,57 @@ void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, 
             crd <<= bpp;
         }
     }
+}
+
+uint16_t store_char_part_in_buffer(unichar c, const font_t *pf, Color clr_bg, Color clr_fg, uint16_t start_x, uint16_t end_x) {
+    const uint16_t char_w = pf->w; // char width
+    end_x = std::min(end_x, uint16_t(char_w - 1));
+    if (start_x > end_x) {
+        return 0; //< nothing  to store
+    }
+    int count_x = end_x - start_x + 1;
+
+    uint32_t chr = get_char_position_in_font(c, pf);
+
+    const uint16_t char_h = pf->h; // char height
+    const uint8_t bpr = pf->bpr; // bytes per row
+    const uint16_t bpc = bpr * char_h; // bytes per char
+    const uint8_t bpp = 8 * bpr / char_w; // bits per pixel
+    const uint8_t ppb = 8 / bpp; // pixels per byte
+    const uint8_t pms = std::min(size_t((1 << bpp) - 1), BuffAlphaLen - 1); // pixel mask, cannot be bigger than array to store alpha channel combinations
+
+    uint8_t *pch; // character data pointer
+    uint8_t crd = 0; // current row byte data
+    uint8_t *pc; // character data row pointer
+
+    DispBuffer buff(pms, clr_bg, clr_fg);
+
+    uint32_t buffer_offset = 0; // buffer byte offset
+
+    pch = (uint8_t *)(pf->pcs) + ((chr /*- pf->asc_min*/) * bpc);
+
+    uint8_t pixel_size = STORE_FN_PIXEL_SIZE;
+    uint16_t i;
+
+    for (uint16_t j = 0; j < char_h; j++) {
+        pc = pch + j * bpr;
+        for (i = 0; i < start_x; i++) {
+            if ((i % ppb) == 0) {
+                crd = *(pc++);
+            }
+            crd <<= bpp;
+        }
+
+        for (i = start_x; i <= end_x; i++) {
+            if ((i % ppb) == 0) {
+                crd = *(pc++);
+            }
+            buff.OffsetInsert(crd >> (8 - bpp), buffer_offset);
+            buffer_offset += pixel_size;
+            crd <<= bpp;
+        }
+    }
+    return count_x;
 }
 
 /// Draws a rectangle boundary of defined color

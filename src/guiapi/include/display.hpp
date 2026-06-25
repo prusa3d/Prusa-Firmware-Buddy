@@ -14,6 +14,7 @@ void enable_resource_file();
 
 void clear(Color clr);
 void draw_char(point_ui16_t pt, unichar c, const font_t *pf, Color clr_bg, Color clr_fg);
+void draw_char_part(point_ui16_t pt, unichar c, const font_t *pf, Color clr_bg, Color clr_fg, uint16_t start_x, uint16_t end_x);
 void draw_img(point_ui16_t pt, const img::Resource &img, Color back_color, ropfn rop);
 void draw_img(point_ui16_t pt, AbstractByteReader &);
 void draw_line(point_ui16_t pt0, point_ui16_t pt1, Color clr);
@@ -47,6 +48,11 @@ struct BorrowBuffer {
 
 uint32_t buffer_pixel_size();
 void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, const font_t *pf, Color clr_bg, Color clr_fg);
+// Stores horizontal part of the character. Can be used for horizontal scrolling.
+// \param end_x is the last pixel copied.
+// \returns width of the character drawn. Use it for drawing.
+uint16_t store_char_part_in_buffer(unichar c, const font_t *pf, Color clr_bg, Color clr_fg, uint16_t start_x, uint16_t end_x);
 void draw_from_buffer(point_ui16_t pt, uint16_t w, uint16_t h);
+void draw_from_buffer_part(point_ui16_t pt, uint16_t h, uint16_t start_x, uint16_t end_x);
 
 } // namespace display

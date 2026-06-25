@@ -46,6 +46,9 @@ void render_text_align(Rect16 rc, StringReaderUtf8 &text, const Font font, Color
  * @param flags             Text flags consist of alignment and multiline
  * @param fill_rect         Redraw text surrounding rectangles
  */
+
+void render_char_part(point_ui16_t pt, unichar c, const font_t *pf, Color clr_bg, Color clr_fg, uint16_t start_x, uint16_t end_x);
+
 void render_text_align(Rect16 rc, const string_view_utf8 &text, const Font font, Color clr_bg, Color clr_fg, padding_ui8_t padding = padding_ui8_t(), text_flags flags = text_flags(Align_t::Left()), bool fill_rect = true);
 
 void render_icon_align(Rect16 rc, const img::Resource *res, Color clr_back, icon_flags flags);

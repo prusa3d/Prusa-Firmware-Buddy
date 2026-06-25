@@ -81,9 +81,21 @@ void txtroll_t::Init(const Rect16 &rect, const string_view_utf8 &text, Font font
 }
 
 void txtroll_t::render_text(const Rect16 &rect, const string_view_utf8 &text, Font font, Color clr_back, Color clr_text, padding_ui8_t padding, Align_t alignment) const {
-    const Rect16 text_rect = Rect16(rect.Left() + px_cd, rect.Top(), rect.Width() - px_cd, rect.Height());
-    render_text_align(text_rect, StringReaderUtf8(text).skip(draw_progress), font, clr_back, clr_text, padding, text_flags(alignment, is_multiline::no, check_overflow::no), true);
-    display::fill_rect(Rect16(rect.Left(), rect.Top(), px_cd, rect.Height()), clr_back);
+    // render part of the 1st character
+    font_t *font_pointer = resource_font(font);
+    StringReaderUtf8 reader(text);
+    if (px_cd != 0 && draw_progress > 0) {
+        reader.skip(draw_progress - 1);
+        unichar c = reader.getUtf8Char();
+        point_ui16_t char_pos { (uint16_t)rect.Left() + padding.left, (uint16_t)rect.Top() + padding.top };
+        render_char_part(char_pos, c, font_pointer, clr_back, clr_text, font_w - px_cd, font_w - 1);
+    } else {
+        reader.skip(draw_progress);
+    }
+
+    // render rest of the line
+    Rect16 text_rect = Rect16(rect.Left() + padding.left + px_cd, rect.Top() + padding.top, rect.Width() - px_cd - padding.right, rect.Height() - padding.top - padding.bottom);
+    render_text_align(text_rect, reader, font, clr_back, clr_text, padding_ui8_t(), text_flags(alignment, is_multiline::no, check_overflow::no), true);
 }
 
 uint16_t txtroll_t::meas(Rect16 rc, const string_view_utf8 &text, Font font, padding_ui8_t padding) {

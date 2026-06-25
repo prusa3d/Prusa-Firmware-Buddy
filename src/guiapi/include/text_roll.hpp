@@ -21,12 +21,12 @@ class txtroll_t {
         paused,
     };
 
-    uint16_t phase_progress;
-    uint16_t draw_progress;
+    uint16_t phase_progress; //< phase countdown; used for waiting before and after roll
+    uint16_t draw_progress; //< number of characters skipped due to roll
     uint16_t hidden_char_cnt;
-    uint16_t count;
+    uint16_t count; //< countdown of number of characters to be hidden during rolling
     phase_t phase;
-    uint8_t px_cd;
+    uint8_t px_cd; //< pixel countdown; when it reaches 0, one character is removed and countdown is reset
     uint8_t font_w;
 
     static size_t instance_counter;
