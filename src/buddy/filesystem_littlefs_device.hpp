@@ -129,5 +129,7 @@ void unmount() {                                                                
     filesystem_littlefs_unmount(&ctx);                                                                                  \
 }                                                                                                                       \
                                                                                                                         \
+lfs_t *get_lfs() { return ctx.lfs; }                                                                                    \
+                                                                                                                        \
 }
 // clang-format on

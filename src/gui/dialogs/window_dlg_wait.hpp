@@ -26,6 +26,18 @@ public:
     /// Displays a waiting dialog and blocks until @p until_f returns true
     static void wait_until(const string_view_utf8 &second_string, const stdext::inplace_function<bool()> &until_f);
 
+    /// Like wait_until() but passes the dialog to the predicate so it can update
+    /// the displayed text via set_text() between iterations.
+    static void wait_until(const string_view_utf8 &initial_text, const stdext::inplace_function<bool(window_dlg_wait_t &)> &until_f);
+
+    /// Update the displayed text and force a redraw.
+    void set_text(const string_view_utf8 &text) {
+        // window_text_t skips invalidation when handed the same buffer pointer
+        // again, even if its contents changed — reset first to force a redraw.
+        frame.set_text({});
+        frame.set_text(text);
+    }
+
     virtual void Change(fsm::BaseData) override;
 
 protected:
