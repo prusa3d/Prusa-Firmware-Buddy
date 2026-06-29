@@ -212,10 +212,12 @@ void GCodeInfo::EvaluateToolsValid() {
 void GCodeInfo::ValidPrinterSettings::add_unsupported_feature(const char *feature, size_t length) {
     unsupported_features = true;
     size_t occupied = strlen(unsupported_features_text);
-    size_t free = sizeof(unsupported_features_text) - occupied;
+    size_t available = sizeof(unsupported_features_text) - occupied - 1;
     if (occupied == 0) {
-        strncpy(unsupported_features_text, feature, min(length, free));
-    } else if (free > length + 2) {
+        size_t copy_len = min(length, available);
+        strncpy(unsupported_features_text, feature, copy_len);
+        unsupported_features_text[copy_len] = '\0';
+    } else if (available >= length + 2) {
         strcat(unsupported_features_text, ", ");
         strncat(unsupported_features_text, feature, length);
     } else {
