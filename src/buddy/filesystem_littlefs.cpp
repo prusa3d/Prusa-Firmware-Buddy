@@ -2,6 +2,7 @@
 #include "filesystem_littlefs_device.hpp"
 #include "littlefs_flash_device.hpp"
 
+#include <logging/log.hpp>
 #include <common/w25x.hpp>
 #if HAS_INTERNAL_STORAGE_FLASH()
     #include <common/mt29f_flash.hpp>

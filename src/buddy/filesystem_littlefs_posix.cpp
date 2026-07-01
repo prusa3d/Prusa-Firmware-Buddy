@@ -143,6 +143,9 @@ int filesystem_littlefs_close_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r
     PREPARE_FIL_EX(f, static_cast<FIL_EX *>(fileStruct));
     int result;
     result = lfs_file_close(ctx->lfs, &(f->fil));
+    if (result < 0) {
+        log_error(FileSystem, "lfs close: %d", result);
+    }
     r->_errno = get_errno(result);
 
     return RESULT;
@@ -361,6 +364,9 @@ int filesystem_littlefs_mkdir_r(filesystem_littlefs_ctx_t *ctx, struct _reent *r
     path = process_path(path, devoptab_littlefs.name);
 
     result = lfs_mkdir(ctx->lfs, path);
+    if (result < 0 && result != LFS_ERR_EXIST) {
+        log_error(FileSystem, "lfs mkdir %s: %d", path, result);
+    }
     r->_errno = get_errno(result);
 
     return RESULT;

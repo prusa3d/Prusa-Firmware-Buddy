@@ -136,7 +136,11 @@ private:
         auto &dev = self(c);
         uint32_t addr = dev.get_address(block, off);
         dev.storage.read(addr, static_cast<uint8_t *>(buffer), size);
-        return dev.storage.fetch_error() ? LFS_ERR_IO : 0;
+        if (int err = dev.storage.fetch_error()) {
+            log_error(FileSystem, "lfs read blk %lu: %d", (unsigned long)block, err);
+            return LFS_ERR_IO;
+        }
+        return 0;
     }
 
     static int prog_cb(const lfs_config *c, lfs_block_t block,
@@ -147,7 +151,11 @@ private:
         auto &dev = self(c);
         uint32_t addr = dev.get_address(block, off);
         dev.storage.program(addr, static_cast<const uint8_t *>(buffer), size);
-        return dev.storage.fetch_error() ? LFS_ERR_IO : 0;
+        if (int err = dev.storage.fetch_error()) {
+            log_error(FileSystem, "lfs prog blk %lu: %d", (unsigned long)block, err);
+            return LFS_ERR_IO;
+        }
+        return 0;
     }
 
     static int erase_cb(const lfs_config *c, lfs_block_t block) {
@@ -157,7 +165,11 @@ private:
         auto &dev = self(c);
         uint32_t addr = dev.get_address(block, 0);
         dev.storage.erase_block(addr);
-        return dev.storage.fetch_error() ? LFS_ERR_IO : 0;
+        if (int err = dev.storage.fetch_error()) {
+            log_error(FileSystem, "lfs erase blk %lu: %d", (unsigned long)block, err);
+            return LFS_ERR_IO;
+        }
+        return 0;
     }
 
     static int sync_cb([[maybe_unused]] const lfs_config *c) {

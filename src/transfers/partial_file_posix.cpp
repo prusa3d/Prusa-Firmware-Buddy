@@ -18,7 +18,9 @@ PosixPartialFile::~PosixPartialFile() {
     // the file size to the directory entry before closing.
     // A failed flush resets `file`; fflush(NULL) would flush all open streams.
     if (file && flush_write_buf()) {
-        fflush(file.get());
+        if (fflush(file.get()) != 0) {
+            log_error(transfers, "fflush: errno %d", errno);
+        }
     }
 
     file.reset();
@@ -103,6 +105,7 @@ bool PosixPartialFile::flush_write_buf() {
     debug_assert(ftell(file.get()) == static_cast<long>(current_offset - write_buf_offset));
     size_t written = fwrite(write_buf, 1, write_buf_offset, file.get());
     if (written != write_buf_offset) {
+        log_error(transfers, "fwrite %u/%u: errno %d", (unsigned)written, (unsigned)write_buf_offset, errno);
         file.reset();
         return false;
     }
@@ -151,6 +154,7 @@ PartialFile::BufferPeek PosixPartialFile::get_current_buffer(bool /*blocking_wai
         return WriteError {};
     }
     if (current_offset >= state.total_size) {
+        log_error(transfers, "Out of range: %u/%u", (unsigned)current_offset, (unsigned)state.total_size);
         return OutOfRange {};
     }
     return BufferAndSizes {

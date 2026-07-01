@@ -16,9 +16,10 @@ static void gcode_info_scan_callback(AsyncJobExecutionControl &control) {
 
     gcode_info.reset_info();
 
-    AnyGcodeFormatReader file_reader(gcode_info.GetGcodeFilepath());
+    const char *filepath = gcode_info.GetGcodeFilepath();
+    AnyGcodeFormatReader file_reader(filepath);
     if (!file_reader.is_open()) {
-        log_error(MarlinServer, "GCodeInfo: fail to open");
+        log_error(MarlinServer, "GCodeInfo: fail to open \"%s\"", filepath);
         gcode_info.set_error(N_("Failed to open file"));
         control.with_synchronized([] {
             scan_start_result_ = gcode_info_scan::ScanStartResult::failed;

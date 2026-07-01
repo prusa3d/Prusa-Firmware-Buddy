@@ -1,5 +1,8 @@
 #include "download.hpp"
 #include "files.hpp"
+#include <logging/log.hpp>
+
+LOG_COMPONENT_REF(transfers);
 
 #include <freertos/binary_semaphore.hpp>
 #include <common/http/resp_parser.h>
@@ -123,7 +126,12 @@ public:
             bool success = (transfer_rest == 0);
             if (success) {
                 success = owner->destination->sync();
-            } // else - we potentially have an incomplete segment and we don't want to store that one.
+                if (!success) {
+                    log_error(transfers, "sync fail");
+                }
+            } else {
+                log_error(transfers, "splice incomplete, %zu left", transfer_rest);
+            }
             owner->done(success ? DownloadStep::Finished : DownloadStep::FailedNetwork);
             // Not generating response, we are the client here.
             return nullopt;
@@ -241,6 +249,7 @@ public:
         auto status = static_cast<Status>(resp.status_code);
 
         if (status != Status::Ok && status != Status::PartialContent) {
+            log_error(transfers, "HTTP %d", resp.status_code);
             done(DownloadStep::FailedNetwork);
             return ERR_ABRT;
         }
@@ -280,6 +289,7 @@ public:
         if (data_raw == nullptr) {
             // Close by the other end (unexpected one, we still don't have all
             // the headers).
+            log_error(transfers, "remote close, phase %d", (int)phase);
             done(DownloadStep::FailedNetwork);
             return ERR_ABRT;
         }
@@ -334,6 +344,7 @@ public:
 
     void err() {
         // The connection is already closed for us, so remove it from here so done doesn't get rid of it.
+        log_error(transfers, "TCP err, phase %d", (int)phase);
         conn = nullptr;
         done(DownloadStep::FailedNetwork);
     }

@@ -125,7 +125,7 @@ Transfer::BeginResult Transfer::begin(const char *destination_path, Download::Re
 
     // make a directory there
     if (mkdir(destination_path, 0777) != 0) {
-        log_error(transfers, "Failed to create directory %s", destination_path);
+        log_error(transfers, "Failed to create directory %s: errno %d", destination_path, errno);
         return Storage { "Failed to create directory" };
     }
 

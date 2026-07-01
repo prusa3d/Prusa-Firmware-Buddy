@@ -4,6 +4,9 @@
 #include <transfers/files.hpp>
 #include <transfers/partial_file.hpp>
 #include <bsod/bsod.h>
+#include <logging/log.hpp>
+
+LOG_COMPONENT_REF(transfers);
 
 using std::get;
 using std::holds_alternative;
@@ -39,6 +42,7 @@ tuple<size_t, Result> Transfer::write(const uint8_t *in, size_t in_size) {
     debug_assert(out_used <= out_size);
 
     if (!f->advance_written(out_used)) {
+        log_error(transfers, "advance_written fail");
         result = Result::CantWrite;
         return make_tuple(0, Result::CantWrite);
     }

@@ -323,6 +323,8 @@ void Mt29fFlash::read_page(const Address &a, uint8_t *data, uint16_t len) {
     bus.lock();
     if (!check_ecc()) {
         unlock_bus();
+        log_error(MT29F, "ECC uncorrectable, block %lu page %lu",
+            static_cast<unsigned long>(a.block), static_cast<unsigned long>(a.page));
         return;
     }
     uint8_t cmd_cache[4];
