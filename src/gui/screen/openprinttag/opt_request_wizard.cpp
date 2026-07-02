@@ -17,6 +17,11 @@ bool multirequest_with_troubleshooting(buddy::openprinttag::MultiRequestBase &mu
             return multirequest.finished();
         });
 
+        if (!multirequest.finished()) {
+            // Something closed our wait dlg -> interrupted -> fail
+            return false;
+        }
+
         bool aux_region_corrupt = false;
 
         auto tag_corrupt_error = [] {
@@ -42,6 +47,7 @@ bool multirequest_with_troubleshooting(buddy::openprinttag::MultiRequestBase &mu
                 switch (r) {
 
                 case Response::Abort:
+                case Response::_none: // Can happen by closing the dialog through close_dialog() without response
                     return false;
 
                 case Response::Retry:
