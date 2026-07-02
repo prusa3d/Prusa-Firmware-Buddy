@@ -3,6 +3,7 @@
 #include "littlefs_flash_device.hpp"
 
 #include <logging/log.hpp>
+#include <buddy/filename_defs.hpp>
 #include <common/w25x.hpp>
 #if HAS_INTERNAL_STORAGE_FLASH()
     #include <common/mt29f_flash.hpp>
@@ -14,7 +15,10 @@ DEFINE_LITTLEFS_DEVICE(system)
 DEFINE_LITTLEFS_DEVICE(internal)
 
 static LittlefsFlashDevice<Mt29fFlash> &internal_storage_device_instance() {
-    static LittlefsFlashDevice<Mt29fFlash> instance(Mt29fFlash::instance());
+    // Cap filenames on the MT29F filesystem. Not applied to the W25x /system
+    // filesystem below, which was formatted with the littlefs default name_max;
+    // lowering it would fail the mount and trigger a reformat.
+    static LittlefsFlashDevice<Mt29fFlash> instance(Mt29fFlash::instance(), 0, filename_defs::max_filename_length);
     return instance;
 }
 

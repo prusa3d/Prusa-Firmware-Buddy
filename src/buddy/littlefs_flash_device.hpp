@@ -26,9 +26,13 @@ class LittlefsFlashDevice {
 public:
     /// @param storage  Reference to the flash driver instance
     /// @param addr_offset  Byte offset into the flash where the filesystem starts (default 0)
-    LittlefsFlashDevice(Storage &storage, uint32_t addr_offset = 0)
+    /// @param name_max  Max filename length (0 = littlefs default). Stored in the
+    ///   superblock on format; on mount it acts as an upper bound - a filesystem
+    ///   formatted with a larger value fails to mount (and init() reformats it).
+    LittlefsFlashDevice(Storage &storage, uint32_t addr_offset = 0, uint32_t name_max = 0)
         : storage(storage)
-        , addr_offset(addr_offset) {}
+        , addr_offset(addr_offset)
+        , name_max(name_max) {}
 
     /// Mount the filesystem (formats on first boot). Returns lfs handle or nullptr on failure.
     lfs_t *init() {
@@ -51,7 +55,7 @@ public:
             .read_buffer = read_buffer,
             .prog_buffer = prog_buffer,
             .lookahead_buffer = lookahead_buffer,
-            .name_max = 0,
+            .name_max = name_max,
             .file_max = 0,
             .attr_max = 0,
             // Bound metadata compaction time on large erase blocks
@@ -87,6 +91,7 @@ public:
 private:
     Storage &storage;
     uint32_t addr_offset;
+    uint32_t name_max;
 
     lfs_t lfs;
     lfs_config config;
