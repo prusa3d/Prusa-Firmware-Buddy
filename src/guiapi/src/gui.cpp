@@ -16,13 +16,18 @@
 #include <utils/timing/rate_limiter.hpp>
 #include <logging/log.hpp>
 #include "display_hw_checks.hpp"
+
+#include <option/has_anfc.h>
+#if HAS_ANFC()
+    #include <screen/openprinttag/opt_gui_manager.hpp>
+#endif
+
 #include <option/has_leds.h>
 #if HAS_LEDS()
     #include <leds/led_manager.hpp>
 #endif
 
 #include <option/has_touch.h>
-
 #if HAS_TOUCH()
     #include <hw/touchscreen/touchscreen.hpp>
 #endif
@@ -213,10 +218,16 @@ void gui_loop(void) {
     gui_redraw();
     marlin_client::loop();
     GuiMediaEventsHandler::Tick();
+
 #if HAS_SELFTEST()
     if (marlin_client::event_clr(marlin_server::Event::RequestCalibrationsScreen)) {
         Screens::Access()->Open<ScreenMenuSTSCalibrations>();
     }
 #endif
+
+#if HAS_ANFC()
+    buddy::openprinttag::gui_loop_opt();
+#endif
+
     --guiloop_nesting;
 }
