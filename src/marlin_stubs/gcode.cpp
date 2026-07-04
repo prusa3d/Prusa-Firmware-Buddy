@@ -136,11 +136,17 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 265:
             PrusaGcodeSuite::M265();
             break;
+        case 266:
+            PrusaGcodeSuite::M266();
+            break;
         case 267:
             PrusaGcodeSuite::M267();
             break;
         case 268:
             PrusaGcodeSuite::M268();
+            break;
+        case 269:
+            PrusaGcodeSuite::M269();
             break;
 #endif // HAS_I2C_EXPANDER()
         case 300:

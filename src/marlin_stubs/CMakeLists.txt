@@ -37,7 +37,7 @@ if(HAS_CANCEL_OBJECT)
 endif()
 
 if(HAS_I2C_EXPANDER)
-  target_sources(firmware PRIVATE M262-M268.cpp)
+  target_sources(firmware PRIVATE M262-M269.cpp)
 endif()
 
 add_subdirectory(pause)

@@ -76,8 +76,10 @@ void M262(); //< IO Expander: Configure pin
 void M263(); //< IO Expander: Read selected pin
 void M264(); //< IO Expander: Set up selected pin
 void M265(); //< IO Expander: Toggle selected output pin
+void M266(); //< IO Expander: Write output without EEPROM persistence
 void M267(); //< IO Expander: Set register
 void M268(); //< IO Expander: Read register
+void M269(); //< IO Expander: Wait for pin state
 #endif // HAS_I2C_EXPANDER()
 
 void M300(); //< Beep
