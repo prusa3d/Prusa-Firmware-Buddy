@@ -93,11 +93,14 @@ struct BlockHeader {
 
 impl BlockHeader {
     fn read<R: Read>(r: &mut R) -> Result<Option<Self>, Error> {
-        let block_type = match r.read_u16::<NativeEndian>() {
-            Ok(t) => t,
+        let mut block_type = [0; 2];
+        match r.read_exact(&mut block_type[..1]) {
+            Ok(()) => {}
             Err(e) if e.kind() == ErrorKind::UnexpectedEof => return Ok(None),
             Err(e) => Err(e).context("Block type")?,
-        };
+        }
+        r.read_exact(&mut block_type[1..]).context("Block type")?;
+        let block_type = u16::from_ne_bytes(block_type);
         let block_type = BlockType::try_from(block_type).context("Invalid block type")?;
         let compression = r.read_u16::<NativeEndian>().context("Compression")?;
         let compression = Compression::try_from(compression).context("Invalid compression")?;
@@ -233,6 +236,7 @@ fn main() -> Result<(), Error> {
             .take(size as u64)
             .read_to_end(&mut block)
             .context("Reading block content")?;
+        ensure!(block.len() == size, "Short file");
         let l = block.len();
         let crc = &mut block[l - checksum_size..];
         let pos = output.stream_position().unwrap_or_default();
@@ -246,7 +250,6 @@ fn main() -> Result<(), Error> {
                 *b += 1;
             }
         }
-        ensure!(block.len() == size, "Short file");
 
         header.write(&mut output).context("Writing block header")?;
         output.write_all(&block).context("Writing block")?;
