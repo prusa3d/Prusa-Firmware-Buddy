@@ -8,6 +8,7 @@
 #include <common/hwio_pindef.h>
 #include <option/bootloader.h>
 #include <option/has_door_sensor.h>
+#include <option/has_indx_head.h>
 #if HAS_DOOR_SENSOR()
     #include <buddy/door_sensor.hpp>
 #endif
@@ -212,6 +213,24 @@ void Configuration::deactivate_ext_reset() const {
 bool Configuration::has_inverted_mmu_reset() const {
     return !PRINTER_IS_PRUSA_iX() && get_board_bom_id() >= 37;
 }
+
+#if HAS_INDX_HEAD()
+bool Configuration::has_inverted_indx_head_reset() const {
+    // The INDX head reset is driven through the former FAN1 output stage on PE9,
+    // whose polarity differs between board revisions the same way as the fans
+    // (see has_inverted_fans()). The indx_head_reset pin definition matches
+    // BOM ID 37 and newer; older revisions need the opposite polarity.
+    return get_board_bom_id() < 37;
+}
+
+void Configuration::activate_indx_head_reset() const {
+    indx_head_reset.write(has_inverted_indx_head_reset() ? Pin::State::low : Pin::State::high);
+}
+
+void Configuration::deactivate_indx_head_reset() const {
+    indx_head_reset.write(has_inverted_indx_head_reset() ? Pin::State::high : Pin::State::low);
+}
+#endif
 
 bool Configuration::needs_push_pull_mmu_reset_pin() const {
     // xBuddy schematics says: Revisions older than 34 must use open drain only.

@@ -3,6 +3,7 @@
 
 #include "hw_configuration_common.hpp"
 #include <device/board.h>
+#include <option/has_indx_head.h>
 
 static_assert(BOARD_IS_XBUDDY());
 
@@ -41,9 +42,20 @@ public:
     /// Deactivates ext_reset pin correctly based on the revision
     void deactivate_ext_reset() const;
 
+#if HAS_INDX_HEAD()
+    /// Activates the indx_head_reset pin correctly based on the revision
+    void activate_indx_head_reset() const;
+
+    /// Deactivates the indx_head_reset pin correctly based on the revision
+    void deactivate_indx_head_reset() const;
+#endif
+
 private:
     bool has_inverted_mmu_reset() const;
     bool needs_push_pull_mmu_reset_pin() const;
+#if HAS_INDX_HEAD()
+    bool has_inverted_indx_head_reset() const;
+#endif
 };
 
 } // namespace buddy::hw

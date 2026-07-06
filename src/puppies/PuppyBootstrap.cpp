@@ -22,6 +22,7 @@
 #include <random/random.h>
 
 #if HAS_INDX_HEAD()
+    #include <hw_configuration.hpp>
     #include <puppies/INDX.hpp>
 #endif
 
@@ -345,7 +346,12 @@ inline void write_dock_reset_pin(Dock dock, buddy::hw::Pin::State state) {
 #endif
 #if HAS_INDX_HEAD()
     case Dock::INDX_HEAD:
-        indx_head_reset.write(state);
+        // Reset polarity differs between board revisions, Configuration handles that
+        if (state == Pin::State::high) {
+            Configuration::Instance().activate_indx_head_reset();
+        } else {
+            Configuration::Instance().deactivate_indx_head_reset();
+        }
         break;
 #endif
     default:
