@@ -117,6 +117,12 @@ target_include_directories(
 add_executable(exponential_backoff_tests ${CMAKE_CURRENT_SOURCE_DIR}/exponential_backoff_tests.cpp)
 target_include_directories(exponential_backoff_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 
+add_executable(filename_tests ${CMAKE_CURRENT_SOURCE_DIR}/filename_test.cpp)
+target_include_directories(
+  filename_tests PUBLIC ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include
+  )
+add_catch_test(filename_tests)
+
 add_executable(hotend_detect_tests ${CMAKE_CURRENT_SOURCE_DIR}/hotend_detect_tests.cpp)
 target_include_directories(hotend_detect_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 add_catch_test(hotend_detect_tests)

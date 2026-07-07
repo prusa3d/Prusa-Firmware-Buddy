@@ -23,6 +23,11 @@ namespace filename_defs {
 inline constexpr size_t max_filename_length = MAX_FILENAME_LENGTH;
 inline constexpr size_t filename_buffer_size = max_filename_length + 1;
 
+/// Longest short (SFN) basename. FAT's 8.3 name can bloat when pseudo-encoded
+/// to UTF-8; single-name filesystems have no separate short name.
+inline constexpr size_t max_short_filename_length = 24;
+inline constexpr size_t short_filename_buffer_size = max_short_filename_length + 1;
+
 /// Longest canonical path on FAT, built from short (SFN) components - long
 /// display names don't grow it.
 inline constexpr size_t max_sfn_path_length = 103;
