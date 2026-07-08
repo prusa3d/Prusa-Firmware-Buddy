@@ -1156,6 +1156,8 @@ void Pause::filament_stuck_ask_process(Response response) {
 
     if (response == Response::Unload) {
         set(LoadState::unload_wait_temp);
+    } else if (response == Response::Stop) {
+        settings.do_stop = true;
     }
 }
 #endif

@@ -26,7 +26,7 @@ Errors:
     printers: [MK4, COREONE, COREONEL, iX]
     title: "STUCK FILAMENT DETECTED"
     text: "The filament seems to be stuck, please unload it from nextruder and load it again."
-    action: [Unload]
+    action: [Unload, StopPrint]
     id: "STUCK_FILAMENT_DETECTED"
     gui_layout: "warning_dialog"
     approved: true
@@ -98,7 +98,7 @@ Errors:
     printers: [XL]
     title: "STUCK FILAMENT DETECTED"
     text: "The filament seems to be stuck, please unload it from nextruder and load it again."
-    action: [Unload]
+    action: [Unload, StopPrint]
     gui_layout: "red_screen"
     id: "STUCK_FILAMENT_DETECTED"
     approved: true
