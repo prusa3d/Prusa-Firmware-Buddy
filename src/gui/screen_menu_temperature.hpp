@@ -53,6 +53,7 @@ using ScreenBase = ScreenMenu<
     MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX,
     MI_XBE_FILTRATION_FAN,
 #endif
+    MI_AUTO_COOLDOWN,
     MI_COOLDOWN>;
 
 } // namespace screen_menu_temperature

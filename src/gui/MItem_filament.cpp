@@ -174,3 +174,18 @@ void MI_PURGE::click(IWindowMenu &) {
 void MI_PURGE::Loop() {
     set_enabled(any_tool_has_filament());
 }
+
+/*****************************************************************************/
+// MI_AUTO_COOLDOWN
+/*****************************************************************************/
+bool MI_AUTO_COOLDOWN::init_index() const {
+    return config_store().auto_cooldown_enabled.get();
+}
+
+void MI_AUTO_COOLDOWN::OnChange(size_t old_index) {
+    if (old_index) {
+        config_store().auto_cooldown_enabled.set(false);
+    } else {
+        config_store().auto_cooldown_enabled.set(true);
+    }
+}
