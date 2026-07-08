@@ -18,6 +18,11 @@
 #include <lfn.h>
 #include <state/printer_state.hpp>
 
+#include <option/buddy_enable_connect.h>
+#if BUDDY_ENABLE_CONNECT()
+    #include <connect/marlin_printer.hpp>
+#endif
+
 #include <cassert>
 #include <ctime>
 #include <cstring>
@@ -325,4 +330,21 @@ bool wui_is_file_being_printed(const char *filename) {
 
 bool wui_media_inserted() {
     return marlin_vars().media_inserted;
+}
+
+bool wui_is_printer_ready() {
+#if BUDDY_ENABLE_CONNECT()
+    return connect_client::MarlinPrinter::is_printer_ready();
+#else
+    return false;
+#endif
+}
+
+bool wui_set_printer_ready(bool ready) {
+#if BUDDY_ENABLE_CONNECT()
+    return connect_client::MarlinPrinter::set_printer_ready(ready);
+#else
+    (void)ready;
+    return false;
+#endif
 }

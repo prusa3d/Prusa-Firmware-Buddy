@@ -30,5 +30,6 @@ json::JsonResult get_job_octoprint(size_t resume_point, json::JsonOutput &output
 json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output);
 json::JsonResult get_storage(size_t resume_point, json::JsonOutput &output);
 json::JsonResult get_info(size_t resume_point, json::JsonOutput &output);
+json::JsonResult get_ready(size_t resume_point, json::JsonOutput &output);
 
 } // namespace nhttp::link_content

@@ -176,6 +176,20 @@ bool wui_is_file_being_printed(const char *filename);
 
 bool wui_media_inserted();
 
+////////////////////////////////////////////////////////////////////////////
+/// @brief Check if the printer is marked as ready for remote printing
+///
+/// @return true if the printer is ready, false otherwise
+bool wui_is_printer_ready();
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Set or unset the printer ready state for remote printing
+///
+/// @param[in] ready true to set ready, false to unset
+/// @return true if the operation succeeded, false if it was not possible
+///         (e.g., trying to set ready while printing)
+bool wui_set_printer_ready(bool ready);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

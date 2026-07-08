@@ -173,6 +173,32 @@ Selector::Accepted PrusaLinkApiV1::accept(const RequestParser &parser, handler::
             out.next = StatusPage(Status::NoContent, parser);
             return Accepted::Accepted;
         }
+    } else if (suffix == "ready") {
+        switch (parser.method) {
+        case Method::Get: {
+            // Return the current ready state
+            get_only(SendJson(EmptyRenderer(get_ready), parser.can_keep_alive()), parser, out);
+            return Accepted::Accepted;
+        }
+        case Method::Put: {
+            // Set the printer as ready
+            if (wui_set_printer_ready(true)) {
+                out.next = StatusPage(Status::NoContent, parser);
+            } else {
+                out.next = StatusPage(Status::Conflict, parser);
+            }
+            return Accepted::Accepted;
+        }
+        case Method::Delete: {
+            // Unset the printer ready state
+            wui_set_printer_ready(false);
+            out.next = StatusPage(Status::NoContent, parser);
+            return Accepted::Accepted;
+        }
+        default:
+            out.next = StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+            return Accepted::Accepted;
+        }
     } else if (remove_prefix(suffix, "files").has_value()) {
         static const auto prefix = "/api/v1/files";
         static const size_t prefix_len = strlen(prefix);

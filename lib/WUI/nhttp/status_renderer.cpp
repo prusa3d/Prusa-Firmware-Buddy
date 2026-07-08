@@ -5,11 +5,7 @@
 #include <state/printer_state.hpp>
 #include <transfers/monitor.hpp>
 #include <segmented_json_macros.h>
-
-#include <option/buddy_enable_connect.h>
-#if BUDDY_ENABLE_CONNECT()
-    #include <connect/connect.hpp>
-#endif
+#include <wui_api.h>
 
 using namespace marlin_server;
 using transfers::Monitor;
@@ -27,7 +23,7 @@ json::JsonResult StatusRenderer::renderState(size_t resume_point, json::JsonOutp
 
     uint32_t time_to_end = marlin_vars().time_to_end;
     uint32_t time_to_pause = marlin_vars().time_to_pause;
-    auto link_state = printer_state::get_state(false);
+    auto link_state = printer_state::get_state(wui_is_printer_ready());
 
     // Keep the indentation of the JSON in here!
     // clang-format off

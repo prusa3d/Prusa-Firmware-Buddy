@@ -3,6 +3,7 @@
 #include "marlin_client.hpp"
 #include "lwip/init.h"
 #include "netdev.h"
+#include "wui_api.h"
 #include <config_store/store_instance.hpp>
 #include <option/has_tool_mapping.h>
 
@@ -484,6 +485,18 @@ JsonResult get_storage(size_t resume_point, JsonOutput &output) {
                 JSON_OBJ_END;
             JSON_ARR_END;
         JSON_OBJ_END;
+    JSON_END;
+    // clang-format on
+}
+
+JsonResult get_ready(size_t resume_point, JsonOutput &output) {
+    bool ready = wui_is_printer_ready();
+    // Keep the indentation of the JSON in here!
+    // clang-format off
+    JSON_START;
+    JSON_OBJ_START;
+        JSON_FIELD_BOOL("ready", ready);
+    JSON_OBJ_END;
     JSON_END;
     // clang-format on
 }
