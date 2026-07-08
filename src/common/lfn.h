@@ -33,6 +33,18 @@ void get_LFN(char *lfn, size_t lfn_size, char *path);
 void get_SFN_path(char *path);
 
 /**
+ * \brief Convert the last path component to SFN and fetch the matching LFN.
+ *
+ * This combines \p get_SFN_path and \p get_LFN into a single directory scan.
+ * On success, the last component of \p path is rewritten to SFN and \p lfn is
+ * filled with the long file name. If \p lfn is stored immediately behind the
+ * current \p path terminator (for example in SharedPath), the helper also
+ * relocates it to stay behind the shortened SFN path. On failure, \p path is
+ * left intact and \p lfn falls back to the current basename.
+ */
+void get_SFN_path_and_LFN(char *path, char *lfn, size_t lfn_size);
+
+/**
  * \brief Get SFN path copied to provided buffer.
  *
  * Same as get_SFN_path above, only difference is it is not in place, but rather

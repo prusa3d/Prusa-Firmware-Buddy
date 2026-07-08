@@ -91,6 +91,10 @@ void get_SFN_path(char *path) {
     // Stays intact
 }
 
+void get_SFN_path_and_LFN(char *path, char *lfn, size_t lfn_size) {
+    strlcpy(lfn, basename_b(path), lfn_size);
+}
+
 void get_SFN_path_copy(const char *lfn, char *sfn_out, size_t size) {
     strlcpy(sfn_out, lfn, size);
 }

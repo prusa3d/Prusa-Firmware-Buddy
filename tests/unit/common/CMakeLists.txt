@@ -38,6 +38,24 @@ target_include_directories(
   )
 add_catch_test(string_builder_tests)
 
+add_executable(
+  lfn_tests
+  ${CMAKE_CURRENT_SOURCE_DIR}/lfn_tests.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/lfn.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/utils/string_builder.cpp
+  ${CMAKE_SOURCE_DIR}/src/lang/string_view_utf8.cpp
+  ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
+  ${CMAKE_SOURCE_DIR}/tests/unit/gui/lazyfilelist/ourPosix.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp
+  )
+target_include_directories(
+  lfn_tests
+  PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/lang
+         ${CMAKE_SOURCE_DIR}/src/gui ${CMAKE_SOURCE_DIR}/tests/stubs
+         ${CMAKE_SOURCE_DIR}/tests/unit/gui/lazyfilelist
+  )
+add_catch_test(lfn_tests)
+
 add_executable(timing_tests timing_tests.cpp)
 target_compile_definitions(timing_tests PRIVATE MCU=STM32F407VG)
 target_include_directories(
