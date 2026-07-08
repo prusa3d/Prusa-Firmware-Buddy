@@ -1,4 +1,5 @@
 #include <dirent.h>
+#include <string.h>
 
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../src/common/print_utils.hpp"
@@ -198,14 +199,53 @@ void GcodeSuite::M29() {
  *    M30 [filename]
  */
 void GcodeSuite::M30() {
-    ArrayStringBuilder<FF_MAX_LFN> filepath;
-    filepath.append_printf("/usb/%s", parser.string_arg);
-    DeleteResult result = DeleteResult::GeneralError;
-    if (filepath.is_ok()) {
-        result = remove_file(filepath.str());
+    const char *filename = parser.string_arg;
+
+    if (!filename) {
+        SERIAL_ECHOLNPGM("Deletion failed: No filename provided");
+        return;
     }
+
+    // Skip leading whitespace
+    while (*filename == ' ') {
+        filename++;
+    }
+
+    // Truncate at first space: the gcode serial protocol has no escape mechanism for
+    // spaces, so filenames with spaces cannot be expressed. Hosts like Simplify3D also
+    // append the file size after a space (e.g. "M30 filename.gcode 12345"), matching M23.
+    for (char *fn = const_cast<char *>(filename); *fn; ++fn) {
+        if (*fn == ' ') {
+            *fn = '\0';
+            break;
+        }
+    }
+
+    if (!*filename) {
+        SERIAL_ECHOLNPGM("Deletion failed: No filename provided");
+        return;
+    }
+
+    ArrayStringBuilder<FF_MAX_LFN> filepath;
+
+    // Marlin-compatible hosts may send absolute paths with either /usb/ or /sd/.
+    // Normalize the latter to the actual filesystem mount used by Buddy.
+    if (strncmp(filename, "/usb/", 5) == 0) {
+        filepath.append_string(filename);
+    } else if (strncmp(filename, "/sd/", 4) == 0) {
+        filepath.append_printf("/usb/%s", filename + 4);
+    } else {
+        filepath.append_printf("/usb/%s", filename);
+    }
+
+    if (!filepath.is_ok()) {
+        SERIAL_ECHOLNPGM("Deletion failed: Path too long");
+        return;
+    }
+
+    DeleteResult result = remove_file(filepath.str());
     SERIAL_ECHOPGM(result == DeleteResult::Success ? "File deleted:" : "Deletion failed:");
-    SERIAL_ECHO(parser.string_arg);
+    SERIAL_ECHO(filename);
     SERIAL_ECHOLN(".");
 }
 
