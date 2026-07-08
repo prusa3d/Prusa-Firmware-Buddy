@@ -599,7 +599,12 @@ void Dwarf::set_cheese_led(uint8_t pwr_selected, uint8_t pwr_not_selected) {
 }
 
 void Dwarf::set_cheese_led() {
-    set_cheese_led(config_store().tool_leds_enabled.get() ? 0xff : 0x00, 0x00);
+    if (config_store().tool_leds_enabled.get()) {
+        const uint8_t brightness = static_cast<uint8_t>(config_store().tool_leds_brightness.get()) * 255 / 100;
+        set_cheese_led(brightness, 0x00);
+    } else {
+        set_cheese_led(0x00, 0x00);
+    }
 }
 
 void Dwarf::set_status_led(dwarf_shared::StatusLed::Mode mode, uint8_t r, uint8_t g, uint8_t b) {

@@ -68,6 +68,7 @@
 
 #if HAS_LEDS()
     #include <leds/status_leds_handler.hpp>
+    #include <leds/led_manager.hpp>
 #endif
 
 #if HAS_SIDE_LEDS()
@@ -881,6 +882,28 @@ void MI_LEDS_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
         leds::StatusLedsHandler::instance().set_active(true);
     }
 }
+
+/**********************************************************************************************/
+// MI_DISPLAY_BACKLIGHT_BRIGHTNESS
+static constexpr NumericInputConfig display_backlight_brightness_config = {
+    .min_value = 2,
+    .max_value = 100,
+    .step = 1,
+    .unit = Unit::percent,
+};
+
+MI_DISPLAY_BACKLIGHT_BRIGHTNESS::MI_DISPLAY_BACKLIGHT_BRIGHTNESS()
+    : WiSpin(
+        static_cast<float>(config_store().leds_display_backlight_brightness.get()),
+        display_backlight_brightness_config,
+        _(label)) {
+}
+
+void MI_DISPLAY_BACKLIGHT_BRIGHTNESS::OnClick() {
+    const auto val = static_cast<uint8_t>(value());
+    config_store().leds_display_backlight_brightness.set(val);
+    leds::LEDManager::instance().set_lcd_brightness(val);
+}
 #endif
 
 #if HAS_SIDE_LEDS()
@@ -933,6 +956,30 @@ MI_SIDE_LEDS_DIMMING_ENABLE::MI_SIDE_LEDS_DIMMING_ENABLE()
 void MI_SIDE_LEDS_DIMMING_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
     leds::SideStripHandler::instance().set_dimming_enabled(static_cast<leds::DimmingEnabled>(get_index()));
 }
+
+/**********************************************************************************************/
+// MI_SIDE_LEDS_DIMMING_DURATION
+static constexpr NumericInputConfig side_leds_dimming_duration_config = {
+    .min_value = 0,
+    .max_value = 3600,
+    .step = 1,
+    .unit = Unit::second,
+};
+
+MI_SIDE_LEDS_DIMMING_DURATION::MI_SIDE_LEDS_DIMMING_DURATION()
+    : WiSpin(
+        static_cast<float>(config_store().side_leds_dimming_duration.get()),
+        side_leds_dimming_duration_config,
+        _(label)) {
+}
+
+void MI_SIDE_LEDS_DIMMING_DURATION::OnClick() {
+    leds::SideStripHandler::instance().set_dimming_timeout(static_cast<int>(value()));
+}
+
+void MI_SIDE_LEDS_DIMMING_DURATION::Loop() {
+    set_enabled(leds::SideStripHandler::instance().get_dimming_enabled() != leds::DimmingEnabled::never);
+}
 #endif
 
 #if HAS_TOOLCHANGER()
@@ -954,6 +1001,33 @@ void MI_TOOL_LEDS_ENABLE::OnChange(size_t old_index) {
     }
     #endif
     config_store().tool_leds_enabled.set(!old_index);
+}
+
+/**********************************************************************************************/
+// MI_TOOL_LEDS_BRIGHTNESS
+static constexpr NumericInputConfig tool_leds_brightness_config = {
+    .min_value = 0,
+    .max_value = 100,
+    .step = 1,
+    .unit = Unit::percent,
+};
+
+MI_TOOL_LEDS_BRIGHTNESS::MI_TOOL_LEDS_BRIGHTNESS()
+    : WiSpin(
+        static_cast<float>(config_store().tool_leds_brightness.get()),
+        tool_leds_brightness_config,
+        _(label), nullptr, is_enabled_t::yes,
+        prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+}
+
+void MI_TOOL_LEDS_BRIGHTNESS::OnClick() {
+    const auto val = static_cast<uint8_t>(value());
+    config_store().tool_leds_brightness.set(val);
+    if (config_store().tool_leds_enabled.get()) {
+        HOTEND_LOOP() {
+            prusa_toolchanger.getTool(e).set_cheese_led();
+        }
+    }
 }
 #endif
 

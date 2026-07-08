@@ -534,6 +534,14 @@ public:
     MI_LEDS_ENABLE();
     virtual void OnChange(size_t old_index) override;
 };
+
+class MI_DISPLAY_BACKLIGHT_BRIGHTNESS : public WiSpin {
+    static constexpr const char *const label = N_("Display Brightness");
+
+public:
+    MI_DISPLAY_BACKLIGHT_BRIGHTNESS();
+    virtual void OnClick() override;
+};
 #endif
 
 #if HAS_SIDE_LEDS()
@@ -578,6 +586,15 @@ public:
     MI_SIDE_LEDS_DIMMING_ENABLE();
     virtual void OnChange(size_t old_index) override;
 };
+
+class MI_SIDE_LEDS_DIMMING_DURATION : public WiSpin {
+    static constexpr const char *const label = N_("Dimming After (s)");
+
+public:
+    MI_SIDE_LEDS_DIMMING_DURATION();
+    virtual void OnClick() override;
+    virtual void Loop() override;
+};
 #endif
 
 #if HAS_TOOLCHANGER()
@@ -588,7 +605,15 @@ public:
     MI_TOOL_LEDS_ENABLE();
     virtual void OnChange(size_t old_index) override;
 };
-#endif
+
+class MI_TOOL_LEDS_BRIGHTNESS : public WiSpin {
+    static constexpr const char *const label = N_("Tool Light Brightness");
+
+public:
+    MI_TOOL_LEDS_BRIGHTNESS();
+    virtual void OnClick() override;
+};
+#endif /*HAS_TOOLCHANGER()*/
 
 #if ENABLED(POWER_PANIC)
 class MI_TRIGGER_POWER_PANIC : public IWindowMenuItem {

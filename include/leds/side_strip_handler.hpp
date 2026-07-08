@@ -60,11 +60,12 @@ public:
     DimmingEnabled get_dimming_enabled() const;
     void set_dimming_enabled(DimmingEnabled value);
 
+    uint32_t get_dimming_timeout_ms() const;
+    void set_dimming_timeout(int seconds);
+
     leds::ColorRGBW color() const;
 
 private:
-    static constexpr uint32_t active_timeout_ms = 120 * 1000;
-
     void change_state(SideStripState state);
 
     ColorRGBW get_color_for_state(SideStripState state);
@@ -84,6 +85,7 @@ private:
     uint8_t dimmed_brightness;
 
     SideStripState state = SideStripState::off;
+    uint32_t active_timeout_ms = 120 * 1000;
     uint32_t active_timestamp_ms = 0; // Timestamp of the last activity for idle dimming
     std::optional<CustomColorState> custom_color;
 };

@@ -57,6 +57,7 @@ void SideStripHandler::load_config() {
     dimmed_brightness = config_store().side_leds_dimmed_brightness.get();
     max_brightness = config_store().side_leds_max_brightness.get();
     dimming_enabled = config_store().side_leds_dimming_enabled.get();
+    active_timeout_ms = static_cast<uint32_t>(config_store().side_leds_dimming_duration.get()) * 1000;
     // Set state to off to force a change of state that will transition to the new brightness
     state = SideStripState::off;
 }
@@ -104,6 +105,17 @@ void SideStripHandler::set_dimming_enabled(DimmingEnabled value) {
     config_store().side_leds_dimming_enabled.set(value);
     std::lock_guard lock(mutex);
     dimming_enabled = value;
+}
+
+uint32_t SideStripHandler::get_dimming_timeout_ms() const {
+    std::lock_guard lock(mutex);
+    return active_timeout_ms;
+}
+
+void SideStripHandler::set_dimming_timeout(int seconds) {
+    config_store().side_leds_dimming_duration.set(seconds);
+    std::lock_guard lock(mutex);
+    active_timeout_ms = static_cast<uint32_t>(seconds) * 1000;
 }
 
 leds::ColorRGBW SideStripHandler::color() const {

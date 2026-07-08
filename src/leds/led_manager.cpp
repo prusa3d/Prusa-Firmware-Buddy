@@ -83,8 +83,8 @@ LEDManager &LEDManager::instance() {
 
 void LEDManager::init() {
     // update the LEDs in init to turn them off (in case they were set to a color before a reset)
-    // except the LCD backlight, set that to 100% brightness
-    set_lcd_brightness(100);
+    // except the LCD backlight, restore persisted brightness (minimum 2% to keep display visible)
+    set_lcd_brightness(std::max<uint8_t>(2, config_store().leds_display_backlight_brightness.get()));
     get_status_leds().update();
 #if HAS_SIDE_LED_DRIVER()
     get_side_leds().update();
