@@ -3,8 +3,12 @@
 #include "metric.h"
 #include "pbuf_rx.h"
 #include "wui.h"
+#include "lwip/def.h"
 #include "lwip/opt.h"
 #include "lwip/timeouts.h"
+#include "lwip/prot/ethernet.h"
+#include "lwip/prot/ip.h"
+#include "lwip/prot/ip4.h"
 #include "netif/ethernet.h"
 #include "netif/etharp.h"
 #include "lwip/ethip6.h"
@@ -313,6 +317,8 @@ error:
     return errval;
 }
 
+static bool should_drop_before_lwip(const uint8_t *frame, uint16_t len);
+
 /**
  * Should allocate a pbuf and transfer the bytes of the incoming
  * packet from the interface into the pbuf.
@@ -322,6 +328,7 @@ error:
  *         NULL on memory error
  */
 static struct pbuf *low_level_input(struct netif *netif) {
+    (void)netif;
     struct pbuf *p = NULL;
     struct pbuf *q = NULL;
     uint16_t len = 0;
@@ -332,74 +339,112 @@ static struct pbuf *low_level_input(struct netif *netif) {
     uint32_t byteslefttocopy = 0;
     uint32_t i = 0;
 
-    /* get received frame */
-    if (HAL_ETH_GetReceivedFrame_IT(&heth) != HAL_OK) {
-        return NULL;
-    }
-
-    /* Obtain the size of the packet and put it into the "len" variable. */
-    len = heth.RxFrameInfos.length;
-    buffer = (uint8_t *)heth.RxFrameInfos.buffer;
-
-    // record metrics
-    static uint32_t bytes_received_count = 0;
-    bytes_received_count += len;
-    metric_record_custom(&metric_eth_in, " recv=%" PRIu32 "i", bytes_received_count);
-
-    if (len > 0) {
-        /* We allocate a pbuf chain of pbufs from the Lwip buffer pool */
-        p = pbuf_alloc_rx(len);
-        if (p == NULL) {
-            log_dropped_packet_rx(len);
+    while (true) {
+        /* get received frame */
+        if (HAL_ETH_GetReceivedFrame_IT(&heth) != HAL_OK) {
+            return NULL;
         }
-    }
 
-    if (p != NULL) {
-        dmarxdesc = heth.RxFrameInfos.FSRxDesc;
-        bufferoffset = 0;
-        for (q = p; q != NULL; q = q->next) {
-            byteslefttocopy = q->len;
-            payloadoffset = 0;
+        /* Obtain the size of the packet and put it into the "len" variable. */
+        len = heth.RxFrameInfos.length;
+        buffer = (uint8_t *)heth.RxFrameInfos.buffer;
 
-            /* Check if the length of bytes to copy in current pbuf is bigger than Rx buffer size*/
-            while ((byteslefttocopy + bufferoffset) > ETH_RX_BUF_SIZE) {
-                /* Copy data to pbuf */
-                memcpy((uint8_t *)((uint8_t *)q->payload + payloadoffset), (uint8_t *)((uint8_t *)buffer + bufferoffset), (ETH_RX_BUF_SIZE - bufferoffset));
+        // record metrics
+        static uint32_t bytes_received_count = 0;
+        bytes_received_count += len;
+        metric_record_custom(&metric_eth_in, " recv=%" PRIu32 "i", bytes_received_count);
 
-                /* Point to next descriptor */
-                dmarxdesc = (ETH_DMADescTypeDef *)(dmarxdesc->Buffer2NextDescAddr);
-                buffer = (uint8_t *)(dmarxdesc->Buffer1Addr);
-
-                byteslefttocopy = byteslefttocopy - (ETH_RX_BUF_SIZE - bufferoffset);
-                payloadoffset = payloadoffset + (ETH_RX_BUF_SIZE - bufferoffset);
-                bufferoffset = 0;
+        const bool drop_before_lwip = should_drop_before_lwip(buffer, len);
+        p = NULL;
+        if (!drop_before_lwip && len > 0) {
+            /* We allocate a pbuf chain of pbufs from the Lwip buffer pool */
+            p = pbuf_alloc_rx(len);
+            if (p == NULL) {
+                log_dropped_packet_rx(len);
             }
-            /* Copy remaining data in pbuf */
-            memcpy((uint8_t *)((uint8_t *)q->payload + payloadoffset), (uint8_t *)((uint8_t *)buffer + bufferoffset), byteslefttocopy);
-            bufferoffset = bufferoffset + byteslefttocopy;
+        }
+
+        if (p != NULL) {
+            dmarxdesc = heth.RxFrameInfos.FSRxDesc;
+            bufferoffset = 0;
+            for (q = p; q != NULL; q = q->next) {
+                byteslefttocopy = q->len;
+                payloadoffset = 0;
+
+                /* Check if the length of bytes to copy in current pbuf is bigger than Rx buffer size*/
+                while ((byteslefttocopy + bufferoffset) > ETH_RX_BUF_SIZE) {
+                    /* Copy data to pbuf */
+                    memcpy((uint8_t *)((uint8_t *)q->payload + payloadoffset), (uint8_t *)((uint8_t *)buffer + bufferoffset), (ETH_RX_BUF_SIZE - bufferoffset));
+
+                    /* Point to next descriptor */
+                    dmarxdesc = (ETH_DMADescTypeDef *)(dmarxdesc->Buffer2NextDescAddr);
+                    buffer = (uint8_t *)(dmarxdesc->Buffer1Addr);
+
+                    byteslefttocopy = byteslefttocopy - (ETH_RX_BUF_SIZE - bufferoffset);
+                    payloadoffset = payloadoffset + (ETH_RX_BUF_SIZE - bufferoffset);
+                    bufferoffset = 0;
+                }
+                /* Copy remaining data in pbuf */
+                memcpy((uint8_t *)((uint8_t *)q->payload + payloadoffset), (uint8_t *)((uint8_t *)buffer + bufferoffset), byteslefttocopy);
+                bufferoffset = bufferoffset + byteslefttocopy;
+            }
+        }
+
+        /* Release descriptors to DMA */
+        /* Point to first descriptor */
+        dmarxdesc = heth.RxFrameInfos.FSRxDesc;
+        /* Set Own bit in Rx descriptors: gives the buffers back to DMA */
+        for (i = 0; i < heth.RxFrameInfos.SegCount; i++) {
+            dmarxdesc->Status |= ETH_DMARXDESC_OWN;
+            dmarxdesc = (ETH_DMADescTypeDef *)(dmarxdesc->Buffer2NextDescAddr);
+        }
+
+        /* Clear Segment_Count */
+        heth.RxFrameInfos.SegCount = 0;
+
+        /* When Rx Buffer unavailable flag is set: clear it and resume reception */
+        if ((heth.Instance->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET) {
+            /* Clear RBUS ETHERNET DMA flag */
+            heth.Instance->DMASR = ETH_DMASR_RBUS;
+            /* Resume DMA reception */
+            heth.Instance->DMARPDR = 0;
+        }
+
+        if (p != NULL || !drop_before_lwip) {
+            return p;
         }
     }
+}
 
-    /* Release descriptors to DMA */
-    /* Point to first descriptor */
-    dmarxdesc = heth.RxFrameInfos.FSRxDesc;
-    /* Set Own bit in Rx descriptors: gives the buffers back to DMA */
-    for (i = 0; i < heth.RxFrameInfos.SegCount; i++) {
-        dmarxdesc->Status |= ETH_DMARXDESC_OWN;
-        dmarxdesc = (ETH_DMADescTypeDef *)(dmarxdesc->Buffer2NextDescAddr);
+static bool should_drop_before_lwip(const uint8_t *frame, uint16_t len) {
+    if (len < (SIZEOF_ETH_HDR + IP_HLEN)) {
+        return false;
     }
 
-    /* Clear Segment_Count */
-    heth.RxFrameInfos.SegCount = 0;
+    const struct eth_hdr *ethhdr = (const struct eth_hdr *)frame;
 
-    /* When Rx Buffer unavailable flag is set: clear it and resume reception */
-    if ((heth.Instance->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET) {
-        /* Clear RBUS ETHERNET DMA flag */
-        heth.Instance->DMASR = ETH_DMASR_RBUS;
-        /* Resume DMA reception */
-        heth.Instance->DMARPDR = 0;
+    // Only filter link-layer broadcast/multicast traffic. Unicast traffic for
+    // the printer should keep the normal lwIP behaviour.
+    if ((ethhdr->dest.addr[0] & 0x01U) == 0) {
+        return false;
     }
-    return p;
+
+    if (PP_NTOHS(ethhdr->type) != ETHTYPE_IP) {
+        return false;
+    }
+
+    const struct ip_hdr *iphdr = (const struct ip_hdr *)(frame + SIZEOF_ETH_HDR);
+    const uint8_t ip_header_len = IPH_HL_BYTES(iphdr);
+    if (IPH_V(iphdr) != 4 || ip_header_len < IP_HLEN || len < (SIZEOF_ETH_HDR + ip_header_len)) {
+        return false;
+    }
+
+    if (IPH_PROTO(iphdr) != IP_PROTO_UDP) {
+        return false;
+    }
+
+    const uint16_t fragment_offset = lwip_ntohs(IPH_OFFSET(iphdr));
+    return (fragment_offset & (IP_MF | IP_OFFMASK)) != 0;
 }
 
 void ethernetif_input_once(struct netif *netif) {

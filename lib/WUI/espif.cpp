@@ -38,6 +38,9 @@
 #include <lwip/def.h>
 #include <lwip/ethip6.h>
 #include <lwip/etharp.h>
+#include <lwip/prot/ethernet.h>
+#include <lwip/prot/ip.h>
+#include <lwip/prot/ip4.h>
 #include <lwip/sys.h>
 
 #include <logging/log.hpp>
@@ -46,6 +49,37 @@ LOG_COMPONENT_DEF(ESPIF, logging::Severity::info);
 
 static_assert(std::endian::native == std::endian::little, "STM<->ESP protocol assumes all involved CPUs are little endian.");
 static_assert(ETHARP_HWADDR_LEN == 6);
+
+static bool should_drop_before_lwip(const uint8_t *frame, uint16_t len) {
+    if (len < (SIZEOF_ETH_HDR + IP_HLEN)) {
+        return false;
+    }
+
+    const auto *ethhdr = reinterpret_cast<const struct eth_hdr *>(frame);
+
+    // Only filter link-layer broadcast/multicast traffic. Unicast traffic for
+    // the printer should keep the normal lwIP behaviour.
+    if ((ethhdr->dest.addr[0] & 0x01U) == 0) {
+        return false;
+    }
+
+    if (PP_NTOHS(ethhdr->type) != ETHTYPE_IP) {
+        return false;
+    }
+
+    const auto *iphdr = reinterpret_cast<const struct ip_hdr *>(frame + SIZEOF_ETH_HDR);
+    const uint8_t ip_header_len = IPH_HL_BYTES(iphdr);
+    if (IPH_V(iphdr) != 4 || ip_header_len < IP_HLEN || len < (SIZEOF_ETH_HDR + ip_header_len)) {
+        return false;
+    }
+
+    if (IPH_PROTO(iphdr) != IP_PROTO_UDP) {
+        return false;
+    }
+
+    const uint16_t fragment_offset = lwip_ntohs(IPH_OFFSET(iphdr));
+    return (fragment_offset & (IP_MF | IP_OFFMASK)) != 0;
+}
 
 /*
  * UART and other pin configuration for ESP01 module
@@ -789,6 +823,12 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
 
             // Filled all pbufs in a packet (current set to next = NULL)
             if (!rx_buff_cur) {
+                if (should_drop_before_lwip(reinterpret_cast<const uint8_t *>(rx_buff->payload), rx_buff->tot_len)) {
+                    pbuf_free(rx_buff);
+                    rx_buff = nullptr;
+                    state = Intron;
+                    break;
+                }
                 if (netif->input(rx_buff, netif) != ERR_OK) {
                     log_warning(ESPIF, "tcpip_input() failed, dropping packet");
                     pbuf_free(rx_buff);
