@@ -1,12 +1,100 @@
 #include <dirent.h>
 
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../lib/Marlin/Marlin/src/gcode/lcd/M73_PE.h"
 #include "../src/common/print_utils.hpp"
 #include "marlin_server.hpp"
 #include <usb_host.h>
 #include "marlin_vars.hpp"
 #include <common/directory.hpp>
 #include <utils/string_builder.hpp>
+#include "gcode_reader_restore_info.hpp"
+
+struct ListControl {
+    bool print_lfn : 1;
+    bool print_time : 1;
+    uint8_t recursion_count;
+    time_t tz_offset_seconds;
+};
+
+// Forward reference (for recursion)
+static void list_files(const char *const dir_path, struct ListControl *lc);
+// Depends on stack size/RAM, etc
+// Set to 0 to disallow recursion, Marlin MAX is 6
+#define MAX_RECURSION_DEPTH 4
+// Device root name for FatFS
+#define ROOT_PREFIX "/usb"
+
+// Routine to output single dirent info in Marlin M20 format
+// Note: Use of 'alloca' prohibits inline
+static void __attribute__((noinline)) list_single_entry(const char *dir_path, struct dirent *entry, struct ListControl *lc) {
+    // Construct path to sub-dir.
+    int len = strlen(dir_path) + strlen(entry->d_name) + 2;
+    char *path = reinterpret_cast<char *>(alloca(len));
+    strcpy(path, dir_path);
+    strcat(path, "/");
+    strcat(path, entry->d_name);
+
+    if (entry->d_type != DT_DIR) {
+        struct stat fstats;
+
+        // Hide ROOT_PREFIX
+        SERIAL_ECHO(&path[sizeof(ROOT_PREFIX) - 1]);
+        int rc = stat(path, &fstats);
+        if (rc == 0) {
+            SERIAL_ECHOPAIR(PSTR(" "), fstats.st_size);
+            if (lc->print_time) {
+                struct tm lt;
+                time_t t = fstats.st_mtim.tv_sec + lc->tz_offset_seconds;
+                localtime_r(&t, &lt);
+                // M20 Date in high-word
+                t = ((lt.tm_year + 1900 - 1980) << 9 | (lt.tm_mon + 1) << 5 | lt.tm_mday) << 16;
+                // M20 Time in low-word
+                t |= lt.tm_hour << 11 | lt.tm_min << 5 | int((lt.tm_sec - (lt.tm_sec % 2)) / 2);
+                SERIAL_ECHOPGM(" 0x");
+                SERIAL_PRINT((unsigned int)t, HEX);
+            }
+            if (lc->print_lfn) {
+                SERIAL_ECHOPAIR(PSTR(" \""), entry->lfn, PSTR("\""));
+            }
+        }
+        SERIAL_EOL();
+    } else {
+        // Check recursion depth
+        if (lc->recursion_count == 0) {
+            return;
+        }
+
+        if (lc->print_lfn) {
+            SERIAL_ECHOPAIR(PSTR("DIR_ENTER: "), &path[sizeof(ROOT_PREFIX) - 1], PSTR("/ \""), entry->lfn, PSTR("\""));
+            SERIAL_EOL();
+        }
+        // List sub-directory calling 'list_files' recursively
+        lc->recursion_count--;
+        list_files(path, lc);
+        lc->recursion_count++;
+        if (lc->print_lfn) {
+            SERIAL_ECHOLNPGM("DIR_EXIT");
+        }
+    }
+    return;
+}
+
+// List all files in a single directory
+// Note that this function is called recursively
+static void list_files(const char *const dir_path, struct ListControl *lc) {
+    DIR *dir;
+    dir = opendir(dir_path);
+    if (dir != NULL) {
+        struct dirent *entry;
+        while ((entry = readdir(dir)) != NULL && entry->d_name[0]) {
+            // Output single directory entry or perform recursion into sub-dir
+            list_single_entry(dir_path, entry, lc);
+        }
+        closedir(dir);
+    }
+    return;
+}
 
 /** \addtogroup G-Codes
  * @{
@@ -21,14 +109,18 @@
  *
  */
 void GcodeSuite::M20() {
-    SERIAL_ECHOLNPGM(MSG_BEGIN_FILE_LIST);
-    Directory dir { "/usb/" };
-    if (dir) {
-        struct dirent *entry;
-        while ((entry = dir.read()) != NULL && entry->d_name[0]) {
-            SERIAL_ECHOLN(entry->d_name);
-        }
+    ListControl lc;
+    if (parser.seen('L')) {
+        lc.print_lfn = 1;
     }
+    if (parser.seen('T')) {
+        lc.print_time = 1;
+    }
+    // Get timezone offset to report local filetime
+    lc.tz_offset_seconds = time_tools::calculate_total_timezone_offset_minutes() * 60;
+    lc.recursion_count = MAX_RECURSION_DEPTH;
+    SERIAL_ECHOLNPGM(MSG_BEGIN_FILE_LIST);
+    list_files(ROOT_PREFIX, &lc);
     SERIAL_ECHOLNPGM(MSG_END_FILE_LIST);
 }
 
@@ -70,15 +162,31 @@ void GcodeSuite::M22() {
  *
  */
 void GcodeSuite::M23() {
-    // Simplify3D includes the size, so zero out all spaces (#7227)
-    for (char *fn = parser.string_arg; *fn; ++fn) {
-        if (*fn == ' ') {
-            *fn = '\0';
-        }
+    char namebuf[FILE_PATH_BUFFER_LEN];
+    // Simplify3D includes the size, terminate name at first space
+    char *idx = strchr(parser.string_arg, ' ');
+    if (idx) {
+        *idx = '\0';
     }
-    marlin_vars().media_SFN_path.set(parser.string_arg);
+    // Need to prepend root device name
+    strcpy(namebuf, PSTR(ROOT_PREFIX));
+    strncpy(&namebuf[sizeof(ROOT_PREFIX) - 1], parser.string_arg, sizeof(namebuf) - sizeof(ROOT_PREFIX));
+
     // Do not remove. Used by third party tools to detect that a file has been selected
-    SERIAL_ECHOLNPGM(MSG_SD_FILE_SELECTED);
+    SERIAL_ECHO_START();
+    SERIAL_ECHOPAIR(PSTR("Now doing file: "), parser.string_arg);
+    SERIAL_EOL();
+
+    struct stat fstats;
+    int rc = stat(namebuf, &fstats);
+    if (rc == 0) {
+        marlin_vars().media_SFN_path.set(namebuf);
+        // Do not remove, needed for 3rd party tools such as octoprint to get notification about the gcode file being opened
+        SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, parser.string_arg, MSG_SD_SIZE, fstats.st_size);
+        SERIAL_ECHOLNPGM(MSG_SD_FILE_SELECTED);
+    } else {
+        SERIAL_ECHOLNPAIR(MSG_SD_OPEN_FILE_FAIL, parser.string_arg);
+    }
 }
 
 /**
@@ -90,7 +198,16 @@ void GcodeSuite::M23() {
  *
  */
 void GcodeSuite::M24() {
-    marlin_server::print_resume();
+    // Do nothing if busy
+    if (marlin_server::printer_idle()) {
+        if (marlin_vars().print_state.get() == marlin_server::State::Paused) {
+            marlin_server::print_resume();
+        } else {
+            SERIAL_ECHOLNPGM("**M24 print_start called");
+            oProgressData.mInit();
+            marlin_server::print_start(marlin_vars().media_SFN_path.get_ptr(), GCodeReaderPosition(), marlin_server::PreviewSkipIfAble::all);
+        }
+    }
 }
 
 /**
@@ -136,18 +253,27 @@ void GcodeSuite::M26() {
  *  - `C` - Report current file's short file name instead
  *
  */
+uint32_t M27_handler::sd_auto_report_delay = 0;
+
+void M27_handler::print_sd_status() {
+    if (marlin_vars().print_state.get() != marlin_server::State::Printing) {
+        SERIAL_ECHOPGM(MSG_SD_PRINTING_BYTE);
+        SERIAL_ECHO(marlin_vars().media_position);
+        SERIAL_CHAR('/');
+        SERIAL_ECHOLN(marlin_vars().media_size_estimate);
+    } else {
+        SERIAL_ECHOLNPGM(MSG_SD_NOT_PRINTING);
+    }
+}
+
 void GcodeSuite::M27() {
     if (parser.seen('C')) {
         SERIAL_ECHOPGM("Current file: ");
         SERIAL_ECHOLN(marlin_vars().media_SFN_path.get_ptr());
-
-    } else if (marlin_server::is_printing_state(marlin_vars().print_state.get())) {
-        SERIAL_ECHOPGM(MSG_SD_PRINTING_BYTE);
-        SERIAL_ECHO(marlin_vars().media_position.get());
-        SERIAL_CHAR('/');
-        SERIAL_ECHOLN(marlin_vars().media_size_estimate.get());
+    } else if (parser.seen('S')) {
+        M27_handler::sd_auto_report_delay = parser.byteval('S');
     } else {
-        SERIAL_ECHOLNPGM(MSG_SD_NOT_PRINTING);
+        M27_handler::print_sd_status();
     }
 }
 
