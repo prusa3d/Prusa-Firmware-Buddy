@@ -77,7 +77,7 @@ public:
     public:
         EntryRef() = default;
         EntryRef(const Entry &e);
-        EntryRef(const dirent &de, const char *sfnPath);
+        EntryRef(const dirent &de, const char *canonical_path);
 
     public:
         inline bool is_valid() const {
@@ -86,8 +86,8 @@ public:
 
     public:
         uint64_t time = 0;
-        StringViewLight lfn = nullptr;
-        const char *sfn = nullptr;
+        StringViewLight display = nullptr;
+        const char *canonical = nullptr;
         EntryType type = EntryType::INVALID;
     };
 
@@ -101,7 +101,7 @@ public:
         debug_assert(a.is_valid() && b.is_valid());
 
         // Using std::tie to avoid errors in comparison of a heterogenous sequence of components
-        return std::tie(a.type, a.lfn) < std::tie(b.type, b.lfn);
+        return std::tie(a.type, a.display) < std::tie(b.type, b.display);
     }
 
     // This may look confusing - from the sorting perspective, the higher time stamp (the more recent one)
@@ -114,7 +114,7 @@ public:
         debug_assert(a.is_valid() && b.is_valid());
 
         // Using std::tie to avoid errors in comparison of a heterogenous sequence of components
-        return std::tie(a.type, b.time, b.lfn) < std::tie(b.type, a.time, a.lfn);
+        return std::tie(a.type, b.time, b.display) < std::tie(b.type, a.time, a.display);
     }
 
     static inline constexpr LessFunc sort_policy_less[std::to_underlying(SortPolicy::_COUNT)] = {
