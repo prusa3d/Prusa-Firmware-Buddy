@@ -118,7 +118,7 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .target_temp = 290,
 #if HAS_INDX()
         .heat_min_temp = 185,
-        .heat_max_temp = 255,
+        .heat_max_temp = 275,
 #else
         .heat_min_temp = 195,
         .heat_max_temp = 245,
