@@ -19,7 +19,7 @@ namespace {
 }
 
 Selector::Accepted StaticFile::accept(const RequestParser &parser, handler::Step &out) const {
-    static constexpr const char prefix[] { "/internal/res/web" };
+    static constexpr const char prefix[] { "/system/res/web" };
     static constexpr size_t prefix_len { std::char_traits<char>::length(prefix) };
     char fname_buffer[filename_defs::path_buffer_size + prefix_len];
     const char *fname = fname_buffer;
@@ -32,7 +32,7 @@ Selector::Accepted StaticFile::accept(const RequestParser &parser, handler::Step
     bool cache_enabled = true;
 
     if (fname[prefix_len] == '\0' || fname[prefix_len + 1] == '\0') {
-        fname = "/internal/res/web/index.html";
+        fname = "/system/res/web/index.html";
     }
 
     // Note: The index.html might change if we reflash something. Then the old

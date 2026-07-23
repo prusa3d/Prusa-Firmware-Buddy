@@ -8,7 +8,7 @@
 
 namespace buddy::puppies {
 
-/// Open a pubby firmware blob (an embedded resource under /internal/res/puppies)
+/// Open a pubby firmware blob (an embedded resource under /system/res/puppies)
 /// for reading. Returns the file descriptor, or -1 on failure (logged).
 [[nodiscard]] int open_firmware_file(xbuddy_extension::FileId file_id);
 

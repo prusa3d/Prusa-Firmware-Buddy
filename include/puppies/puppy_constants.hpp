@@ -186,7 +186,7 @@ inline constexpr PuppyInfo get_puppy_info(PuppyType puppy) {
     case DWARF:
         return {
             "dwarf",
-            "/internal/res/puppies/fw-dwarf.bin",
+            "/system/res/puppies/fw-dwarf.bin",
             42,
         };
 #endif
@@ -194,7 +194,7 @@ inline constexpr PuppyInfo get_puppy_info(PuppyType puppy) {
     case MODULARBED:
         return {
             "modularbed",
-            "/internal/res/puppies/fw-modularbed.bin",
+            "/system/res/puppies/fw-modularbed.bin",
             43,
         };
 #endif
@@ -202,7 +202,7 @@ inline constexpr PuppyInfo get_puppy_info(PuppyType puppy) {
     case INDX_HEAD:
         return {
             "indx_head",
-            "/internal/res/puppies/fw-indx_head.bin",
+            "/system/res/puppies/fw-indx_head.bin",
             45,
         };
 #endif
@@ -217,21 +217,21 @@ inline constexpr std::optional<const char *> get_crash_dump_path(Dock dock) {
     switch (dock) {
 #if HAS_PUPPY_MODULARBED()
     case Dock::MODULAR_BED:
-        return "/internal/dump_modularbed.dmp";
+        return "/system/dump_modularbed.dmp";
 #endif
 #if HAS_DWARF()
     case Dock::DWARF_1:
-        return "/internal/dump_dwarf1.dmp";
+        return "/system/dump_dwarf1.dmp";
     case Dock::DWARF_2:
-        return "/internal/dump_dwarf2.dmp";
+        return "/system/dump_dwarf2.dmp";
     case Dock::DWARF_3:
-        return "/internal/dump_dwarf3.dmp";
+        return "/system/dump_dwarf3.dmp";
     case Dock::DWARF_4:
-        return "/internal/dump_dwarf4.dmp";
+        return "/system/dump_dwarf4.dmp";
     case Dock::DWARF_5:
-        return "/internal/dump_dwarf5.dmp";
+        return "/system/dump_dwarf5.dmp";
     case Dock::DWARF_6:
-        return "/internal/dump_dwarf6.dmp";
+        return "/system/dump_dwarf6.dmp";
 #endif
 #if HAS_INDX_HEAD()
     case Dock::INDX_HEAD:

@@ -317,10 +317,10 @@ static bool do_bootstrap(const buddy::resources::Revision &revision) {
     }
 
     // clear installed resources
-    Path target_path("/internal/res");
+    Path target_path("/system/res");
     buddy::resources::InstalledRevision::clear();
     if (remove_recursive_if_exists(target_path) == false) {
-        log_error(Resources, "Failed to remove the /internal/res directory");
+        log_error(Resources, "Failed to remove the /system/res directory");
         return false;
     }
 

@@ -32,10 +32,10 @@ constexpr size_t PUBLIC_KEY_BUFFER_SIZE = 400;
 #ifdef UNITTESTS
 constexpr const char *const private_key_path = "printer_private_key.der";
 #else
-constexpr const char *const private_key_path = "/internal/e2ee/printer/pk.der";
+constexpr const char *const private_key_path = "/system/e2ee/printer/pk.der";
 #endif
-constexpr const char *const identities_folder = "/internal/e2ee/identities/";
-constexpr const char *const identities_tmp_folder = "/internal/e2ee/tmp_identities/";
+constexpr const char *const identities_folder = "/system/e2ee/identities/";
+constexpr const char *const identities_tmp_folder = "/system/e2ee/tmp_identities/";
 constexpr size_t IDENTITY_PATH_LEN = strlen(identities_folder) + e2ee::HASH_SIZE * 2 + 1;
 constexpr size_t IDENTITY_TMP_PATH_LEN = strlen(identities_tmp_folder) + e2ee::HASH_SIZE * 2 + 1;
 constexpr size_t IDENTITY_PATH_MAX_LEN = std::max(IDENTITY_PATH_LEN, IDENTITY_TMP_PATH_LEN);

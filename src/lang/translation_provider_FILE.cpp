@@ -60,42 +60,42 @@ bool FILETranslationProvider::EnsureFile() const {
 namespace {
 
     #if ENABLE_TRANSLATION_CS()
-static const FILETranslationProvider cs("/internal/res/lang/cs.mo");
+static const FILETranslationProvider cs("/system/res/lang/cs.mo");
 ProviderRegistrator csReg("cs", &cs);
     #endif
 
     #if ENABLE_TRANSLATION_DE()
-static const FILETranslationProvider de("/internal/res/lang/de.mo");
+static const FILETranslationProvider de("/system/res/lang/de.mo");
 ProviderRegistrator deReg("de", &de);
     #endif
 
     #if ENABLE_TRANSLATION_ES()
-static const FILETranslationProvider es("/internal/res/lang/es.mo");
+static const FILETranslationProvider es("/system/res/lang/es.mo");
 ProviderRegistrator esReg("es", &es);
     #endif
 
     #if ENABLE_TRANSLATION_FR()
-static const FILETranslationProvider fr("/internal/res/lang/fr.mo");
+static const FILETranslationProvider fr("/system/res/lang/fr.mo");
 ProviderRegistrator frReg("fr", &fr);
     #endif
 
     #if ENABLE_TRANSLATION_IT()
-static const FILETranslationProvider it("/internal/res/lang/it.mo");
+static const FILETranslationProvider it("/system/res/lang/it.mo");
 ProviderRegistrator itReg("it", &it);
     #endif
 
     #if ENABLE_TRANSLATION_PL()
-static const FILETranslationProvider pl("/internal/res/lang/pl.mo");
+static const FILETranslationProvider pl("/system/res/lang/pl.mo");
 ProviderRegistrator plReg("pl", &pl);
     #endif
 
     #if ENABLE_TRANSLATION_JA()
-static const FILETranslationProvider ja("/internal/res/lang/ja.mo");
+static const FILETranslationProvider ja("/system/res/lang/ja.mo");
 ProviderRegistrator jaReg("ja", &ja);
     #endif
 
     #if ENABLE_TRANSLATION_UK()
-static const FILETranslationProvider uk("/internal/res/lang/uk.mo");
+static const FILETranslationProvider uk("/system/res/lang/uk.mo");
 ProviderRegistrator ukReg("uk", &uk);
     #endif
 

@@ -123,7 +123,7 @@ std::optional<Error> tls::connection(const char *connection_host, uint16_t conne
         // code size).
         //
         // TODO: Unify the path somewhere
-        unique_file_ptr cert(fopen("/internal/connect/connect.der", "rb"));
+        unique_file_ptr cert(fopen("/system/connect/connect.der", "rb"));
         if (!cert) {
             // Missing cert
             return Error::Tls;

@@ -36,8 +36,7 @@ def write_part(out: io.IOBase, basedir: str, spec: Spec, chunk_size: int):
             md5_str = '{' + ', '.join([f'0x{p:02x}' for p in md5]) + '}'
 
             out.write('{\n')
-            out.write(
-                f'    .filename = "/internal/res/esp/{spec.basename}",\n')
+            out.write(f'    .filename = "/system/res/esp/{spec.basename}",\n')
             out.write(
                 f'    .address = 0x{spec.address + bytes_processed:x},\n')
             out.write(f'    .size = 0x{read_size:x},\n')

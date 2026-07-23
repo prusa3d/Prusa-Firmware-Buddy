@@ -519,17 +519,17 @@ constexpr const char *get_correction_file_path(AxisEnum axis, CorrectionType lut
     case AxisEnum::X_AXIS:
         switch (lut_type) {
         case CorrectionType::forward:
-            return "/internal/phase_step_x_fwd";
+            return "/system/phase_step_x_fwd";
         case CorrectionType::backward:
-            return "/internal/phase_step_x_bck";
+            return "/system/phase_step_x_bck";
         }
         break;
     case AxisEnum::Y_AXIS:
         switch (lut_type) {
         case CorrectionType::forward:
-            return "/internal/phase_step_y_fwd";
+            return "/system/phase_step_y_fwd";
         case CorrectionType::backward:
-            return "/internal/phase_step_y_bck";
+            return "/system/phase_step_y_bck";
         }
         break;
     default:

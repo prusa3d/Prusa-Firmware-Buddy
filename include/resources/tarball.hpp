@@ -14,7 +14,7 @@ inline constexpr size_t block_size = 512;
 /// and exactly once.
 using ExtractDataHook = stdext::inplace_function<void(std::span<const uint8_t>)>;
 
-/// Extract the ustar payload into /internal/res.
+/// Extract the ustar payload into /system/res.
 /// File descriptor must be positioned at the payload.
 /// Caller provides a scratch buffer; its size must be a non-zero
 /// multiple of block_size.

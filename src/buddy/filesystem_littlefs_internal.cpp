@@ -104,7 +104,7 @@ static int utimes_r(struct _reent *r, const char *filename, const struct timeval
 }
 
 static const devoptab_t internal_devoptab = {
-    .name = "internal",
+    .name = "system",
     .structSize = sizeof(FIL_EX),
     .open_r = open_r,
     .close_r = close_r,

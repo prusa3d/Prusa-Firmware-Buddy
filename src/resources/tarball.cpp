@@ -128,7 +128,7 @@ struct TarballExtractor {
     uint32_t out_remaining = 0; //< remaining bytes to be written to out_fd
     std::span<uint8_t> input_buffer; //< not-yet-consumed tail of the current batch in scratch_buffer
 
-    static constexpr char root[] = "/internal/res";
+    static constexpr char root[] = "/system/res";
 
     TarballExtractor(int fd, uint32_t length, std::span<uint8_t> scratch_buffer, const ExtractDataHook &on_data)
         : fd(fd)

@@ -20,7 +20,7 @@ inline bool operator!=(const Revision &lhs, const Revision &rhs) {
 
 struct InstalledRevision {
     /// File path at which we store a file with hash of the currently installed resources
-    constexpr static const char *file_path = "/internal/resources_revision";
+    constexpr static const char *file_path = "/system/resources_revision";
 
     /// Fetch revision of the currently installed resources
     static bool fetch(Revision &revision);

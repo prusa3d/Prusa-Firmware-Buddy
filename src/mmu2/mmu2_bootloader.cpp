@@ -176,7 +176,7 @@ MMU2BootloaderManager::Task<void> MMU2BootloaderManager::main_coroutine() {
         // If we get after this point and return early, it's a firmware update error
         result_ = MMU2BootloaderResult::flashing_error;
 
-        auto file = fopen("/internal/res/mmu/fw.bin", "rb");
+        auto file = fopen("/system/res/mmu/fw.bin", "rb");
         if (!file) {
             log_critical(MMU2, "Failed to open fw.bin");
             goto exit;

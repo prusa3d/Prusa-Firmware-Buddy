@@ -258,7 +258,7 @@ void buddy::bootloader::update() {
         buddy::resources::bootstrap(buddy::resources::revision::bootloader);
     }
 
-    unique_file_ptr bootloader_bin(fopen("/internal/res/bootloader.bin", "rb"));
+    unique_file_ptr bootloader_bin(fopen("/system/res/bootloader.bin", "rb"));
     if (bootloader_bin.get() == nullptr) {
         log_critical(Bootloader, "bootloader.bin failed to fopen() after its bootstrap");
         bsod("bootloader.bin failed to open");

@@ -380,8 +380,8 @@ bool MarlinPrinter::load_cfg_from_ini() {
     if (ok && config.custom_cert) {
         // OK to fail (for example if the dir already exists). In any case, we
         // care about the below successes.
-        mkdir("/internal/connect", 0777);
-        if (!copy("/usb/connect.der", "/internal/connect/connect.der")) {
+        mkdir("/system/connect", 0777);
+        if (!copy("/usb/connect.der", "/system/connect/connect.der")) {
             ok = false;
         }
     }

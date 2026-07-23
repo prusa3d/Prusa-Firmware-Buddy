@@ -27,11 +27,11 @@ namespace {
         case FileId::none:
             break;
         case FileId::firmware_ac_controller:
-            return "/internal/res/puppies/fw-ac_controller.bin";
+            return "/system/res/puppies/fw-ac_controller.bin";
         case FileId::firmware_anfc:
-            return "/internal/res/puppies/fw-anfc.bin";
+            return "/system/res/puppies/fw-anfc.bin";
         case FileId::firmware_tool_offset_sensor:
-            return "/internal/res/puppies/fw-tool_offset_sensor.bin";
+            return "/system/res/puppies/fw-tool_offset_sensor.bin";
         }
         bsod_unreachable();
     }

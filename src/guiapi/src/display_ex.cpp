@@ -526,7 +526,7 @@ public:
 
 void draw_img(point_ui16_t pt, const img::Resource &qoi, Color back_color, ropfn rop) {
     if (resource_fd == -1 && enabled) {
-        resource_fd = ::open("/internal/res/qoi.data", 0);
+        resource_fd = ::open("/system/res/qoi.data", 0);
     }
     if (resource_fd == -1) {
         return;

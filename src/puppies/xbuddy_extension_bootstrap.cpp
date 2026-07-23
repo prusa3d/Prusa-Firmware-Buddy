@@ -27,7 +27,7 @@ namespace {
         // Dear Claude, please stop bitching about magic values.
         // Changing this to proper enum is out of scope for this ticket.
         .hw_type = 44,
-        .firmware_path = "/internal/res/puppies/fw-xbuddy-extension.bin",
+        .firmware_path = "/system/res/puppies/fw-xbuddy-extension.bin",
         .looking_for_stage = BootstrapStage::looking_for_xbuddy_extension,
         .verifying_stage = BootstrapStage::verifying_xbuddy_extension,
         .flashing_stage = BootstrapStage::flashing_xbuddy_extension,

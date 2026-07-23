@@ -46,7 +46,7 @@ namespace {
         .hw_type = 46,
         // Path matches add_resource("${XL_CAN_BINARY_PATH}",
         // "/puppies/fw-xl_can.bin") in src/resources/CMakeLists.txt.
-        .firmware_path = "/internal/res/puppies/fw-xl_can.bin",
+        .firmware_path = "/system/res/puppies/fw-xl_can.bin",
         .looking_for_stage = BootstrapStage::looking_for_xl_can,
         .verifying_stage = BootstrapStage::verifying_xl_can,
         .flashing_stage = BootstrapStage::flashing_xl_can,

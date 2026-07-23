@@ -14,7 +14,7 @@ namespace {
 
 using Block = std::array<uint8_t, block_size>;
 
-constexpr char root[] = "/internal/res";
+constexpr char root[] = "/system/res";
 
 // Fluent builder for a 512-byte ustar header block. Only the fields that are set get
 // written; everything else stays zero. with_checksum() sums over the current contents, so
@@ -132,19 +132,19 @@ TEST_CASE("padded_to_block", "[tarball]") {
 TEST_CASE("build_path - valid names", "[tarball][security]") {
     SECTION("regular file") {
         Block block = BlockBuilder {}.with_name("/a/b.txt").build();
-        REQUIRE(build_path(block, root, /*is_dir=*/false) == "/internal/res/a/b.txt"sv);
+        REQUIRE(build_path(block, root, /*is_dir=*/false) == "/system/res/a/b.txt"sv);
     }
 
     SECTION("directory drops the trailing slash") {
         Block block = BlockBuilder {}.with_name("/a/").build();
-        REQUIRE(build_path(block, root, /*is_dir=*/true) == "/internal/res/a"sv);
+        REQUIRE(build_path(block, root, /*is_dir=*/true) == "/system/res/a"sv);
     }
 
     SECTION("name filling the full 100-byte field") {
         std::string name = "/" + std::string(99, 'a'); // exactly 100 bytes, no in-field NUL
         REQUIRE(name.size() == field_length_name);
         Block block = BlockBuilder {}.with_name(name.c_str()).build();
-        REQUIRE(build_path(block, root, /*is_dir=*/false) == "/internal/res" + name);
+        REQUIRE(build_path(block, root, /*is_dir=*/false) == "/system/res" + name);
     }
 }
 
@@ -166,12 +166,12 @@ TEST_CASE("build_path - rejects unsafe names", "[tarball][security]") {
 
     SECTION("`..` as a substring of a component is allowed") {
         Block block = BlockBuilder {}.with_name("/a..b/c").build();
-        REQUIRE(build_path(block, root, /*is_dir=*/false) == "/internal/res/a..b/c"sv);
+        REQUIRE(build_path(block, root, /*is_dir=*/false) == "/system/res/a..b/c"sv);
     }
 
     SECTION("a component merely starting with `..` is allowed") {
         Block block = BlockBuilder {}.with_name("/..a/b").build();
-        REQUIRE(build_path(block, root, /*is_dir=*/false) == "/internal/res/..a/b"sv);
+        REQUIRE(build_path(block, root, /*is_dir=*/false) == "/system/res/..a/b"sv);
     }
 
     SECTION("non-rooted name is rejected") {
