@@ -101,17 +101,20 @@ int FindDevice(const char* name) {
 }
 
 //---------------------------------------------------------------------------------
-int RemoveDevice( const char* name) {
+int RemoveDeviceByIndex(int dev) {
 //---------------------------------------------------------------------------------
-	int dev = FindDevice(name);
-
-	if ( -1 != dev ) {
+	if (dev >= 0 && dev < STD_MAX) {
 		devoptab_list[dev] = &dotab_stdnull;
 		return 0;
 	}
 
 	return -1;
+}
 
+//---------------------------------------------------------------------------------
+int RemoveDevice( const char* name) {
+//---------------------------------------------------------------------------------
+	return RemoveDeviceByIndex(FindDevice(name));
 }
 
 //---------------------------------------------------------------------------------

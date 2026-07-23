@@ -94,6 +94,7 @@ extern __syscalls_t __syscalls;
 int AddDevice( const devoptab_t* device);
 int FindDevice(const char* name);
 int RemoveDevice(const char* name);
+int RemoveDeviceByIndex(int dev);
 void setDefaultDevice( int device );
 const devoptab_t* GetDeviceOpTab (const char *name);
 
