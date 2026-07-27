@@ -342,8 +342,8 @@ namespace {
 } // namespace
 
 UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
-    if (!filename_is_printable(filename)) {
-        return make_tuple(Status::UnsupportedMediaType, "Not a GCODE");
+    if (!filename_is_transferrable(filename)) {
+        return make_tuple(Status::UnsupportedMediaType, "Not a GCODE nor a firmware file");
     }
 
     // Note: If the directory we want to upload to doesn't exist,
