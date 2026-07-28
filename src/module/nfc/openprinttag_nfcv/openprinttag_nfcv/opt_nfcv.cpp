@@ -94,7 +94,6 @@ OPTBackend_NFCV::FieldGuard::~FieldGuard() {
 OPTBackend_NFCV::OPTBackend_NFCV(nfcv::ReaderWriterInterface &reader, const Config &initial_config)
     : reader(reader)
     , discoveries_limiter(initial_config.discovery_interval_ms) {
-    debug_assert(reader.antenna_count() <= MAX_ANTENNA_COUNT);
     set_config(initial_config);
     reset_state();
 }
@@ -552,6 +551,8 @@ bool OPTBackend_NFCV::is_valid(TagID tag_id) {
 }
 
 void OPTBackend_NFCV::run_next_discovery() {
+    debug_assert(reader.antenna_count() <= MAX_ANTENNA_COUNT);
+
     if (config_.enforced_antenna != OPTBackend::no_antenna_enforce) {
         discovery_antenna = config_.enforced_antenna;
     }
