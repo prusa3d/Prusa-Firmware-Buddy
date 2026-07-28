@@ -82,3 +82,11 @@ public:
         return BaseArray::at(index);
     }
 };
+
+namespace std {
+
+// std::tuple_size is only specialized for std::array itself, not for classes derived from it.
+template <typename Item, size_t capacity, typename Index, auto index_f, ::strong_index_array::AllowWeakIndexing weak_indexing>
+struct tuple_size<::StrongIndexArray<Item, capacity, Index, index_f, weak_indexing>> : integral_constant<size_t, capacity> {};
+
+} // namespace std

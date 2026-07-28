@@ -61,16 +61,17 @@ constexpr auto array_concat(const std::array<T, N1> &a1, const std::array<T, N2>
 }
 
 /// Constructs and returns an Array where each item is filler_item
-template <typename Item, std::size_t size>
+template <typename Item, std::size_t size, typename Array = std::array<Item, size>>
 constexpr auto make_filled_array(Item filler_item) {
+    static_assert(std::tuple_size_v<Array> == size);
     return [&]<size_t... i>(std::index_sequence<i...>) {
-        return std::array<Item, size> { ((void)i, filler_item)... };
+        return Array { ((void)i, filler_item)... };
     }(std::make_index_sequence<size>());
 }
 
 template <typename Array>
 constexpr auto make_filled_array(typename Array::value_type filler_item) {
-    return make_filled_array<typename Array::value_type, std::tuple_size_v<Array>>(filler_item);
+    return make_filled_array<typename Array::value_type, std::tuple_size_v<Array>, Array>(filler_item);
 }
 
 } // namespace stdext
