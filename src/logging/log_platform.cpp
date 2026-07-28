@@ -13,8 +13,14 @@ Timestamp log_platform_timestamp_get() {
 }
 
 TaskId log_platform_task_id_get() {
+#if configUSE_TRACE_FACILITY
     TaskHandle_t task_handle = xTaskGetCurrentTaskHandle();
     return uxTaskGetTaskNumber(task_handle);
+#else
+    // uxTaskGetTaskNumber() needs the trace facility, which costs RAM in every statically
+    // allocated task, queue and semaphore. Boards too tight for that just report "unknown".
+    return -1;
+#endif
 }
 
 } // namespace logging
