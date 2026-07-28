@@ -31,7 +31,7 @@ void set_test_directory() {
 StringList walk_focus(window_file_list_t &fl, int direction) {
     StringList r;
     while (fl.move_focus_by(direction)) {
-        r.push_back(fl.CurrentLFN());
+        r.push_back(fl.current_display());
     }
     return r;
 }
@@ -44,7 +44,7 @@ TEST_CASE("window_file_list: empty directory", "[window_file_list]") {
 
     CHECK(fl.item_count() == 1); // just ".."
     REQUIRE(fl.focused_item_index() == 0);
-    CHECK(fl.CurrentLFN() == std::string(".."));
+    CHECK(fl.current_display() == std::string(".."));
 
     // ".." in the root is presented as a return item
     CHECK(dynamic_cast<MI_RETURN *>(fl.item_at(0)) != nullptr);
@@ -65,15 +65,15 @@ TEST_CASE("window_file_list: listing and knob navigation", "[window_file_list]")
 
     // Load focuses the first entry after ".."
     REQUIRE(fl.focused_item_index() == 1);
-    CHECK(fl.CurrentLFN() == std::string("boxes"));
+    CHECK(fl.current_display() == std::string("boxes"));
     CHECK(fl.scroll_offset() == 0);
-    CHECK(fl.TopItemSFN() == std::string(".."));
+    CHECK(fl.top_item_canonical() == std::string(".."));
 
     // Walk the knob to the very end: directories first, then files by name
     CHECK(walk_focus(fl, 1) == StringList { "fw", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g", "11.g", "12.g" });
     CHECK(fl.focused_item_index() == fl.item_count() - 1);
     CHECK(fl.scroll_offset() == fl.max_scroll_offset());
-    CHECK(fl.TopItemSFN() == std::string("03.g"));
+    CHECK(fl.top_item_canonical() == std::string("03.g"));
 
     // And back to the top
     CHECK(walk_focus(fl, -1) == StringList { "11.g", "10.g", "09.g", "08.g", "07.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g", "fw", "boxes", ".." });
@@ -88,21 +88,21 @@ TEST_CASE("window_file_list: Load focuses the given file", "[window_file_list]")
 
     SECTION("cursor file within the first screen does not scroll") {
         fl.Load(WF_SORT_BY_NAME, "04.g", nullptr);
-        CHECK(fl.CurrentSFN() == std::string("04.g"));
+        CHECK(fl.current_canonical() == std::string("04.g"));
         CHECK(fl.scroll_offset() == 0);
     }
 
     SECTION("cursor file deep in the list scrolls it into view") {
         fl.Load(WF_SORT_BY_NAME, "12.g", nullptr);
-        CHECK(fl.CurrentSFN() == std::string("12.g"));
+        CHECK(fl.current_canonical() == std::string("12.g"));
         CHECK(fl.scroll_offset() == fl.max_scroll_offset());
-        CHECK(fl.TopItemSFN() == std::string("03.g"));
+        CHECK(fl.top_item_canonical() == std::string("03.g"));
     }
 
     SECTION("given top file restores the view") {
         fl.Load(WF_SORT_BY_NAME, "05.g", "02.g");
-        CHECK(fl.TopItemSFN() == std::string("02.g"));
-        CHECK(fl.CurrentSFN() == std::string("05.g"));
+        CHECK(fl.top_item_canonical() == std::string("02.g"));
+        CHECK(fl.current_canonical() == std::string("05.g"));
     }
 }
 
@@ -117,7 +117,7 @@ TEST_CASE("window_file_list: sort by time", "[window_file_list]") {
     fl.Load(WF_SORT_BY_TIME, nullptr, nullptr);
 
     REQUIRE(fl.focused_item_index() == 1);
-    CHECK(fl.CurrentLFN() == std::string("newest.g"));
+    CHECK(fl.current_display() == std::string("newest.g"));
     CHECK(walk_focus(fl, 1) == StringList { "newer.g", "old.g" });
 }
 
@@ -134,9 +134,9 @@ TEST_CASE("window_file_list: screen smaller than the item buffer", "[window_file
 
     walk_focus(fl, 1);
     CHECK(fl.focused_item_index() == fl.item_count() - 1);
-    CHECK(fl.CurrentLFN() == std::string("12.g"));
+    CHECK(fl.current_display() == std::string("12.g"));
     CHECK(fl.scroll_offset() == fl.max_scroll_offset());
-    CHECK(fl.TopItemSFN() == std::string("04.g"));
+    CHECK(fl.top_item_canonical() == std::string("04.g"));
 
     // And back to the top
     walk_focus(fl, -1);

@@ -56,14 +56,14 @@ void screen_filebrowser_data_t::windowEvent([[maybe_unused]] window_t *sender, G
 
 void screen_filebrowser_data_t::checkMissingMedia(MediaState_t media_state) {
     if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
-        browser().clear_first_visible_sfn();
+        browser().clear_first_visible_canonical();
         close_screen();
     }
 }
 
 void screen_filebrowser_data_t::printTheFile() {
     // save the top browser item
-    browser().SaveTopSFN();
+    browser().save_top_canonical();
 
     std::array<char, filename_defs::path_buffer_size> path;
     const auto written = browser().WriteNameToPrint(path.data(), path.size());
@@ -75,6 +75,6 @@ void screen_filebrowser_data_t::printTheFile() {
 }
 
 void screen_filebrowser_data_t::goHome() {
-    browser().clear_first_visible_sfn();
+    browser().clear_first_visible_canonical();
     close_screen();
 }

@@ -6,10 +6,10 @@
 
 class WindowFileBrowser : public window_file_list_t {
 public:
-    WindowFileBrowser(window_t *parent, Rect16 rect, const char *media_SFN_path);
+    WindowFileBrowser(window_t *parent, Rect16 rect, const char *media_path);
 
-    void SaveTopSFN();
-    void clear_first_visible_sfn();
+    void save_top_canonical();
+    void clear_first_visible_canonical();
 
     int WriteNameToPrint(char *buff, size_t sz);
 

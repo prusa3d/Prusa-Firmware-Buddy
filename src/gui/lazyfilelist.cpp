@@ -54,7 +54,7 @@ void LazyDirViewBase::ChangeDirectory(const char *p, SortPolicy sp, const char *
     Clear();
 
     sortPolicy = sp;
-    strlcpy(sfnPath, p, sizeof(sfnPath));
+    strlcpy(canonical_path, p, sizeof(canonical_path));
 
     // Try to find the first dir entry
     const bool has_first_dir_entry = [&] {
@@ -64,7 +64,7 @@ void LazyDirViewBase::ChangeDirectory(const char *p, SortPolicy sp, const char *
 
         // the filename was not found, discard the firstDirEntry and start from the beginning
         // of the directory like if firstDirEntry was nullptr
-        Directory dp { sfnPath };
+        Directory dp { canonical_path };
         if (!dp) {
             return false;
         }
@@ -74,7 +74,7 @@ void LazyDirViewBase::ChangeDirectory(const char *p, SortPolicy sp, const char *
             }
 
             // Check if the entry isn't a link or something we don't support
-            const auto eref = EntryRef(*fno, sfnPath);
+            const auto eref = EntryRef(*fno, canonical_path);
             if (!eref.is_valid()) {
                 return false;
             }
@@ -105,9 +105,9 @@ void LazyDirViewBase::ChangeDirectory(const char *p, SortPolicy sp, const char *
 
     auto filled_region_end = indices_begin + 1;
 
-    Directory dir { sfnPath };
+    Directory dir { canonical_path };
     while (dirent *entry = FileSort::find_next(dir)) {
-        const EntryRef curr(*entry, sfnPath);
+        const EntryRef curr(*entry, canonical_path);
 
         // Check if the entry isn't a link or something we don't support
         if (!curr.is_valid()) {
@@ -202,9 +202,9 @@ bool LazyDirViewBase::MoveUp(int amount) {
     {
         const EntryRef anchor_item = files_data[*full_insert_range_end];
 
-        Directory dir { sfnPath };
+        Directory dir { canonical_path };
         while (dirent *entry = FileSort::find_next(dir)) {
-            const EntryRef curr(*entry, sfnPath);
+            const EntryRef curr(*entry, canonical_path);
 
             // Check if the entry isn't a link or something we don't support
             if (!curr.is_valid()) {
@@ -285,9 +285,9 @@ bool LazyDirViewBase::MoveDown(int amount) {
     {
         const EntryRef anchor_item = files_data[*(insert_range_begin - 1)];
 
-        Directory dir { sfnPath };
+        Directory dir { canonical_path };
         while (dirent *entry = FileSort::find_next(dir)) {
-            const EntryRef curr(*entry, sfnPath);
+            const EntryRef curr(*entry, canonical_path);
 
             // Check if the entry isn't a link or something we don't support
             if (!curr.is_valid()) {

@@ -63,11 +63,11 @@ bool window_file_list_t::IsPathRoot(const char *path) {
     return (path[0] == 0 || (strcmp(path, root) == 0));
 }
 
-void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN) {
+void window_file_list_t::Load(WF_Sort_t sort, const char *canonical_at_cursor, const char *top_canonical) {
     ldv.ChangeDirectory(
-        sfn_path,
+        canonical_path,
         (sort == WF_SORT_BY_NAME) ? LDV::SortPolicy::BY_NAME : LDV::SortPolicy::BY_CRMOD_DATETIME,
-        topSFN ?: sfnAtCursor);
+        top_canonical ?: canonical_at_cursor);
 
     // Now, ldv has adjusted its window offset and we need to synchronize scroll_offset with it properly.
     {
@@ -76,10 +76,10 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
 
         int target_scroll_offset = std::min(anchor_index, max_scroll_offset());
 
-        // If !topSFN -> we're trying to just focus sfnAtCursor.
+        // If !top_canonical -> we're trying to just focus canonical_at_cursor.
         // In this case, it doesn't necessarily have to be on the top and we can be a bit smarter.
         // If the item is within the first visible window, we won't scroll on it, keep the scroll offset on 0
-        if (!topSFN && anchor_index < max_items_on_screen_count()) {
+        if (!top_canonical && anchor_index < max_items_on_screen_count()) {
             target_scroll_offset = 0;
         }
 
@@ -96,10 +96,10 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
     {
         std::optional<int> target_focused_index;
 
-        // If we've been given sfnAtCursor, try looking it up in the ldv window
-        if (sfnAtCursor && sfnAtCursor[0]) {
+        // If we've been given canonical_at_cursor, try looking it up in the ldv window
+        if (canonical_at_cursor && canonical_at_cursor[0]) {
             for (int i = 0, e = ldv.WindowSize(); i < e; i++) {
-                if (!strcmp(sfnAtCursor, ldv.ShortFileNameAt(i).first)) {
+                if (!strcmp(canonical_at_cursor, ldv.canonical_name_at(i).first)) {
                     target_focused_index = scroll_offset() + i;
                     break;
                 }
@@ -115,11 +115,11 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
     }
 }
 
-const char *window_file_list_t::CurrentLFN(bool *isFile) const {
+const char *window_file_list_t::current_display(bool *isFile) const {
     const auto focused_slot = this->focused_slot();
     debug_assert(focused_slot);
 
-    auto i = ldv.LongFileNameAt(*focused_slot);
+    auto i = ldv.display_name_at(*focused_slot);
     if (isFile) {
         *isFile = (i.second == LDV::EntryType::FILE);
     }
@@ -127,12 +127,12 @@ const char *window_file_list_t::CurrentLFN(bool *isFile) const {
     return i.first;
 }
 
-const char *window_file_list_t::CurrentSFN(bool *isFile) const {
+const char *window_file_list_t::current_canonical(bool *isFile) const {
     const char *result = nullptr;
     bool is_file = false;
 
     if (const auto focused_slot = this->focused_slot()) {
-        auto i = ldv.ShortFileNameAt(*focused_slot);
+        auto i = ldv.canonical_name_at(*focused_slot);
         is_file = (i.second == LDV::EntryType::FILE);
         result = i.first;
     }
@@ -144,8 +144,8 @@ const char *window_file_list_t::CurrentSFN(bool *isFile) const {
     return result;
 }
 
-const char *window_file_list_t::TopItemSFN() {
-    return ldv.ShortFileNameAt(0).first;
+const char *window_file_list_t::top_item_canonical() {
+    return ldv.canonical_name_at(0).first;
 }
 
 window_file_list_t::window_file_list_t(window_t *parent, Rect16 rc)
@@ -156,15 +156,15 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rc)
 
     DisableLongHoldScreenAction();
     Enable();
-    strlcpy(sfn_path, root, filename_defs::path_buffer_size);
+    strlcpy(canonical_path, root, filename_defs::path_buffer_size);
 }
 
 void window_file_list_t::setup_item(ItemVariant &variant, int index) {
     debug_assert(index_to_slot(index));
 
-    const auto &entry = ldv.LongFileNameAt(*index_to_slot(index));
+    const auto &entry = ldv.display_name_at(*index_to_slot(index));
 
-    if (index == 0 && IsPathRoot(sfn_path) && strcmp(entry.first, "..") == 0) {
+    if (index == 0 && IsPathRoot(canonical_path) && strcmp(entry.first, "..") == 0) {
         variant.emplace<MI_RETURN>();
 
     } else {

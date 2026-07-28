@@ -35,7 +35,7 @@ StringList ldv_files(const LDV &ldv) {
     StringList r;
     r.reserve(ldv.VisibleFilesCount());
     for (int i = 0, e = ldv.VisibleFilesCount(); i < e; i++) {
-        r.push_back(ldv.LongFileNameAt(i).first);
+        r.push_back(ldv.display_name_at(i).first);
     }
     return r;
 }

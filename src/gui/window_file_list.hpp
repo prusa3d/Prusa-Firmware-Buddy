@@ -61,15 +61,15 @@ public:
 
 public:
     // TODO private
-    char sfn_path[filename_defs::path_buffer_size]; // this is a Short-File-Name path where we start the file dialog
+    char canonical_path[filename_defs::path_buffer_size]; // canonical path where we start the file dialog
 
 public:
     window_file_list_t(window_t *parent, Rect16 rc); // height is calculated from LazyDirViewSize
-    void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
+    void Load(WF_Sort_t sort, const char *canonical_at_cursor, const char *top_canonical);
 
-    const char *TopItemSFN();
-    const char *CurrentLFN(bool *isFile = nullptr) const;
-    const char *CurrentSFN(bool *isFile = nullptr) const;
+    const char *top_item_canonical();
+    const char *current_display(bool *isFile = nullptr) const;
+    const char *current_canonical(bool *isFile = nullptr) const;
 
     /// @return true if path is either empty or equal to the root path
     static bool IsPathRoot(const char *path);

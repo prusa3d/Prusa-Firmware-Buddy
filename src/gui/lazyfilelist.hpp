@@ -14,14 +14,14 @@ public:
 
     /// @param windowIndex index within the window (i.e. [0 - window_size-1])
     /// @return pointer to a filename (or nullptr, if there is nothing at that index) and the type of the entry (FILE / DIR)
-    std::pair<const char *, EntryType> LongFileNameAt(size_t windowIndex) const {
+    std::pair<const char *, EntryType> display_name_at(size_t windowIndex) const {
         const auto &rec = files_data[indices_data[windowIndex]];
         return std::make_pair(rec.name.display(), rec.type);
     }
 
     /// @param windowIndex index within the window (i.e. [0 - window_size-1])
     /// @return pointer to a filename (or nullptr, if there is nothing at that index) and the type of the entry (FILE / DIR)
-    std::pair<const char *, EntryType> ShortFileNameAt(size_t windowIndex) const {
+    std::pair<const char *, EntryType> canonical_name_at(size_t windowIndex) const {
         const auto &rec = files_data[indices_data[windowIndex]];
         return std::make_pair(rec.name.canonical(), rec.type);
     }
@@ -80,7 +80,7 @@ protected:
     int totalFiles = 0; ///< total number of entries in the directory
     int windowStartingFrom = 0; ///< from which entry index the window starts (e.g. from the 3rd file in dir).
                                 ///< intentionally int, because -1 means ".."
-    char sfnPath[filename_defs::path_buffer_size]; ///< current directory path - @@TODO this may not be enough - needs checking
+    char canonical_path[filename_defs::path_buffer_size]; ///< current directory path (canonical)
 
     SortPolicy sortPolicy; ///< sort policy set in ChangeDirectory
 
