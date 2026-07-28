@@ -679,14 +679,17 @@ SCENARIO("happy case") {
 
                             AND_WHEN("parent system sends file hash to application") {
                                 std::byte digest[32] = {};
-                                (void)app.receive_digest(cyphal::FirmwareFile::firmware_ac_controller, app.request().hash_salt, xbuddy_extension::DigestStatus::ok, digest);
+                                const auto answered_salt = app.request().hash_salt;
+                                (void)app.receive_digest(cyphal::FirmwareFile::firmware_ac_controller, answered_salt, xbuddy_extension::DigestStatus::ok, digest);
                                 app.receive_node_heartbeat(node_id, make_timepoint(1000), healthy_firmware);
                                 app.receive_node_heartbeat(node_id, make_timepoint(2000), healthy_firmware);
                                 const auto mock_before = run(app, mock, make_timepoint(2500));
 
                                 THEN("application requests hash from node") {
                                     REQUIRE(mock.node_execute_command_request.size() == mock_before.node_execute_command_request.size() + 1);
-                                    CHECK(mock.node_execute_command_request.back() == make_salted_hash_request(node_id, app.request().hash_salt));
+                                    // The node is asked only after the parent answered, so a salt
+                                    // drawn in between would make the two digests incomparable.
+                                    CHECK(mock.node_execute_command_request.back() == make_salted_hash_request(node_id, answered_salt));
 
                                     AND_WHEN("node responds with the matching hash") {
                                         app.receive_node_execute_command_response(node_id, 0, digest);
@@ -935,6 +938,134 @@ SCENARIO("NFC node allocation") {
 
             THEN("the same event can be consumed on the virtual device") {
                 CHECK(as_bytes(event) == as_bytes(event_data));
+            }
+        }
+    }
+}
+
+SCENARIO("two nodes verifying at once") {
+    const auto node_id1 = NodeId { 1 };
+    const auto node_id2 = NodeId { 2 };
+    const auto healthy_firmware = Heartbeat { Health::nominal, Mode::operational, 0 };
+
+    // Nodes are stepped in the order of their ids, so node 1 gets a chance to
+    // grab the digest exchange before node 2 can read an answer addressed to it.
+    GIVEN("an NFC node holding the digest exchange and an AC controller queueing behind it") {
+        MockPresentation mock;
+        Application app;
+        uint32_t time = 0;
+
+        app.receive_pnp_allocation(make_unique_id(0x11111111));
+        run(app, mock, make_timepoint(time++));
+        app.receive_pnp_allocation(make_unique_id(0x22222222));
+        run(app, mock, make_timepoint(time++));
+
+        app.receive_node_heartbeat(node_id1, make_timepoint(time), healthy_firmware);
+        app.receive_node_heartbeat(node_id2, make_timepoint(time), healthy_firmware);
+        run(app, mock, make_timepoint(time++));
+
+        // The NFC node identifies itself first, so it is the one asking.
+        app.receive_node_get_info_response(node_id2, nfc_node_name);
+        run(app, mock, make_timepoint(time++));
+        REQUIRE(app.request().hash_request == cyphal::FirmwareFile::firmware_anfc);
+        const auto nfc_salt = app.request().hash_salt;
+
+        // The AC controller reaches Verify as well and has to wait its turn.
+        // Only the exchange with the parent system is taken though, so it can
+        // ask its own node right away.
+        app.receive_node_get_info_response(node_id1, known_node_name);
+        run(app, mock, make_timepoint(time++));
+        REQUIRE(app.request().hash_request == cyphal::FirmwareFile::firmware_anfc);
+        const auto ac_hash_request = mock.node_execute_command_request.back();
+        REQUIRE(ac_hash_request.node_id == node_id1);
+        REQUIRE(ac_hash_request.command == Command::get_app_salted_hash);
+
+        WHEN("the parent system answers the NFC node") {
+            const auto digest = generate_random_digest();
+            REQUIRE(app.receive_digest(cyphal::FirmwareFile::firmware_anfc, nfc_salt, xbuddy_extension::DigestStatus::ok, digest));
+            run(app, mock, make_timepoint(time++));
+
+            THEN("the AC controller only gets the exchange after the answer was read") {
+                CHECK(app.request().hash_request == cyphal::FirmwareFile::firmware_ac_controller);
+                CHECK(app.request().hash_salt != nfc_salt);
+                CHECK(ac_hash_request == make_salted_hash_request(node_id1, app.request().hash_salt));
+
+                AND_WHEN("the NFC node answers with the same digest") {
+                    app.receive_node_execute_command_response(node_id2, 0, digest);
+                    run(app, mock, make_timepoint(time++));
+
+                    THEN("the NFC node is verified") {
+                        CHECK(app.get_node_state(cyphal::NodeName::cz_prusa3d_honeybee_nfc) == xbuddy_extension::NodeState::ready);
+                    }
+                }
+            }
+        }
+
+        WHEN("the NFC node is sent for reflashing before it reads the answer") {
+            const auto digest = generate_random_digest();
+            REQUIRE(app.receive_digest(cyphal::FirmwareFile::firmware_anfc, nfc_salt, xbuddy_extension::DigestStatus::ok, digest));
+            // Not authorized - there is no application to hash. The node leaves
+            // Verify holding the exchange, with nobody left to read the answer.
+            app.receive_node_execute_command_response(node_id2, 2, {});
+            run(app, mock, make_timepoint(time++));
+
+            THEN("the AC controller takes the abandoned exchange over") {
+                CHECK(app.request().hash_request == cyphal::FirmwareFile::firmware_ac_controller);
+                CHECK(app.request().hash_salt != nfc_salt);
+                CHECK(ac_hash_request == make_salted_hash_request(node_id1, app.request().hash_salt));
+            }
+        }
+
+        WHEN("the NFC node fails the hash command and then disappears") {
+            const auto digest = generate_random_digest();
+            REQUIRE(app.receive_digest(cyphal::FirmwareFile::firmware_anfc, nfc_salt, xbuddy_extension::DigestStatus::ok, digest));
+            // A generic failure only invalidates the heartbeat, so the node
+            // stops being stepped while still sitting in Verify, holding the
+            // exchange with the answer unread.
+            app.receive_node_execute_command_response(node_id2, 1, {});
+            run(app, mock, make_timepoint(time++));
+
+            // The node is unplugged - no heartbeat ever comes from it again.
+            time += 60000;
+            app.receive_node_heartbeat(node_id1, make_timepoint(time), healthy_firmware);
+            run(app, mock, make_timepoint(time++));
+
+            THEN("the AC controller takes the abandoned exchange over") {
+                CHECK(app.request().hash_request == cyphal::FirmwareFile::firmware_ac_controller);
+                CHECK(app.request().hash_salt != nfc_salt);
+                CHECK(ac_hash_request == make_salted_hash_request(node_id1, app.request().hash_salt));
+            }
+        }
+
+        WHEN("the NFC node fails the hash command and then recovers") {
+            const auto nfc_digest = generate_random_digest();
+            REQUIRE(app.receive_digest(cyphal::FirmwareFile::firmware_anfc, nfc_salt, xbuddy_extension::DigestStatus::ok, nfc_digest));
+            // A generic failure only invalidates the heartbeat. The node loses
+            // the exchange, and with it the answer it never got to read.
+            app.receive_node_execute_command_response(node_id2, 1, {});
+            run(app, mock, make_timepoint(time++));
+            REQUIRE(app.request().hash_request == cyphal::FirmwareFile::firmware_ac_controller);
+            const auto ac_salt = app.request().hash_salt;
+
+            // The node is alive after all and starts heartbeating again.
+            app.receive_node_heartbeat(node_id2, make_timepoint(time), healthy_firmware);
+            run(app, mock, make_timepoint(time++));
+
+            AND_WHEN("the AC controller is done with the exchange") {
+                const auto ac_digest = generate_random_digest();
+                REQUIRE(app.receive_digest(cyphal::FirmwareFile::firmware_ac_controller, ac_salt, xbuddy_extension::DigestStatus::ok, ac_digest));
+                app.receive_node_execute_command_response(node_id1, 0, ac_digest);
+                for (int i = 0; i < 10; ++i) {
+                    app.receive_node_heartbeat(node_id1, make_timepoint(time), healthy_firmware);
+                    app.receive_node_heartbeat(node_id2, make_timepoint(time), healthy_firmware);
+                    run(app, mock, make_timepoint(time++));
+                }
+
+                THEN("the NFC node asks for its hash again") {
+                    CHECK(app.request().hash_request == cyphal::FirmwareFile::firmware_anfc);
+                    CHECK(app.request().hash_salt != nfc_salt);
+                    CHECK(mock.node_execute_command_request.back() == make_salted_hash_request(node_id2, app.request().hash_salt));
+                }
             }
         }
     }

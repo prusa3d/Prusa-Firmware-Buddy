@@ -112,11 +112,60 @@ private:
         // The request on modbus.
         ModbusRequest modbus_request;
 
+        std::optional<NodeId> hash_node;
         FirmwareFile hash_request = FirmwareFile::none;
         FirmwareFile hash_response = FirmwareFile::none;
         uint32_t hash_salt = 0;
         std::array<std::byte, 32> hash_digest;
         xbuddy_extension::DigestStatus hash_status = xbuddy_extension::DigestStatus::unavailable;
+
+        [[nodiscard]] bool request_hash(NodeId node_id, FirmwareFile file, uint32_t salt) {
+            if (file == FirmwareFile::none) {
+                // Nothing to ask for; claiming would only hold up the others.
+                return false;
+            }
+
+            if (hash_request != FirmwareFile::none) {
+                // The parent has to answer before the exchange reopens.
+                return false;
+            }
+
+            if (hash_node && *hash_node != node_id) {
+                // Somebody else has not read their answer yet.
+                return false;
+            }
+
+            hash_response = FirmwareFile::none;
+            hash_node = node_id;
+            hash_request = file;
+            hash_salt = salt;
+            return true;
+        }
+
+        void release_hash_slot() {
+            hash_node = std::nullopt;
+            hash_request = FirmwareFile::none;
+            hash_response = FirmwareFile::none;
+            hash_salt = {};
+            hash_digest = {};
+            hash_status = xbuddy_extension::DigestStatus::unavailable;
+        }
+
+        [[nodiscard]] bool holds_hash_slot(NodeId node_id) const {
+            return hash_node == node_id;
+        }
+
+        [[nodiscard]] bool release_hash_slot_if_held_by(NodeId node_id) {
+            const bool do_release = holds_hash_slot(node_id);
+            if (do_release) {
+                release_hash_slot();
+            }
+            return do_release;
+        }
+
+        void request_hash_again() {
+            std::swap(hash_request, hash_response);
+        }
 
         void update_modbus_request() {
             modbus_request.hash_request = hash_request;
@@ -208,7 +257,9 @@ private:
         };
         struct Verify {
             uint32_t salt;
-            bool request_sent : 1 = false;
+            bool salt_valid : 1 = false;
+            bool requested_from_source : 1 = false;
+            bool requested_from_device : 1 = false;
             bool received_from_device : 1 = false;
             bool received_from_source : 1 = false;
             bool matches : 1 = false;
@@ -383,6 +434,15 @@ private:
                 return true;
             }
 
+            if (!heartbeat_valid || !std::holds_alternative<Verify>(state)) {
+                // The digest exchange is ours only for as long as we are able
+                // to verify. Anything else - a lost heartbeat, moving on to
+                // another state - hands it back to whoever is waiting.
+                if (application->filesystem.release_hash_slot_if_held_by(node_id)) {
+                    return true;
+                }
+            }
+
             if (!heartbeat_valid) {
                 // We may have lost the heartbeat, or we may have invalidated it (as
                 // part of restart or start_app commands).
@@ -459,29 +519,41 @@ private:
             case Mode::initialization:
             case Mode::maintenance:
             case Mode::operational: {
-                if (!verify.request_sent) {
-                    // We haven't sent our requests yet.
-                    if (filesystem.hash_request == FirmwareFile::none) {
-                        // Slot is open, let's request hash from the parent system
-                        const auto salt = get_random_salt();
-                        verify.salt = salt;
-                        // Request the hash from the parent system
-                        filesystem.hash_request = get_firmware_file_for_node_name(info.name);
-                        filesystem.hash_salt = salt;
+                const bool waiting_for_source = verify.requested_from_source && !verify.received_from_source;
+                if (waiting_for_source && !filesystem.holds_hash_slot(node_id)) {
+                    // The exchange was handed over to somebody else, taking
+                    // our answer with it. Ask both sides again, from scratch.
+                    verify = Verify {};
+                    return true;
+                }
+
+                if (!verify.salt_valid) {
+                    verify.salt = get_random_salt();
+                    verify.salt_valid = true;
+                    return true;
+                }
+
+                if (!verify.requested_from_source && verify.salt_valid) {
+                    if (filesystem.request_hash(node_id, get_firmware_file_for_node_name(info.name), verify.salt)) {
                         presentation.transmit_diagnostic_record(Severity::notice, "hash requested");
-                        // And also request it from the device at the same time.
-                        const bool sent = execute_command(presentation, now, node_id, Command::get_app_salted_hash, trivial_as_bytes(salt));
-                        if (sent) {
-                            verify.request_sent = true;
-                        }
-                        return sent;
-                    } else {
-                        // Wait for slot to open.
-                        return false;
+                        verify.requested_from_source = true;
+                        return true;
                     }
                 }
 
-                if (!verify.received_from_source) {
+                if (!verify.requested_from_device && verify.salt_valid) {
+                    if (execute_command(presentation, now, node_id, Command::get_app_salted_hash, trivial_as_bytes(verify.salt))) {
+                        verify.requested_from_device = true;
+                        return true;
+                    }
+                }
+
+                if (!verify.requested_from_source || !verify.requested_from_device) {
+                    // Do not continue until both requests have been sent.
+                    return false;
+                }
+
+                if (!verify.received_from_source && verify.salt_valid) {
                     // We are waiting for the digest from the board.
                     if (filesystem.hash_response == get_firmware_file_for_node_name(info.name) && filesystem.hash_salt == verify.salt) {
                         switch (filesystem.hash_status) {
@@ -490,15 +562,15 @@ private:
                             verify.received(filesystem.hash_digest);
                             state = try_activate(application, verify);
                             presentation.transmit_diagnostic_record(Severity::notice, "hash received: ok");
-                            filesystem.hash_request = filesystem.hash_response = FirmwareFile::none;
+                            filesystem.release_hash_slot();
                             break;
                         case xbuddy_extension::DigestStatus::unavailable:
                             state = Inert {};
                             presentation.transmit_diagnostic_record(Severity::warning, "hash received: unavailable");
-                            filesystem.hash_request = filesystem.hash_response = FirmwareFile::none;
+                            filesystem.release_hash_slot();
                             break;
                         case xbuddy_extension::DigestStatus::retry:
-                            std::swap(filesystem.hash_request, filesystem.hash_response);
+                            filesystem.request_hash_again();
                             break;
                         }
                         return true;
