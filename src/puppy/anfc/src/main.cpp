@@ -18,6 +18,7 @@
 #include <o1heap/o1heap.hpp>
 #include <openprinttag_nfcv/opt_nfcv.hpp>
 #include <option/nfc_st25r3919b_enabled_antennas.h>
+#include <random_sw/random_sw.h>
 #include <bsod/bsod.h>
 
 // This magical incantation is required for fw_descriptor integration in cmake to work.
@@ -111,6 +112,16 @@ NFCTask nfc_task(
 
 extern "C" int main() {
     hal::init();
+
+    // De-phase this board from its neighbours: the reader's collision-avoidance backoff and the
+    // discovery cadence would otherwise be identical on every board in the printer.
+    {
+        uint32_t seed = 0;
+        for (const uint8_t byte : get_uid()) {
+            seed = seed * 31 + byte;
+        }
+        rand_seed_sw(seed);
+    }
 
     // Safe before the node is up - Record discards events until its instance exists
     anfc::logging_init();

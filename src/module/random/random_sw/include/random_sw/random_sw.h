@@ -17,3 +17,10 @@
 /// This function is ISR-safe.
 /// !!! Not cryptographically safe.
 RAND_SW_DECL uint32_t rand_u_sw();
+
+/// Seeds the SW RNG.
+///
+/// Every board otherwise starts from the same compiled-in state, which is a problem for anything
+/// that exists to de-phase boards from each other. Seed from something board-specific, such as the
+/// MCU unique ID. Any seed value works.
+RAND_SW_DECL void rand_seed_sw(uint32_t seed);

@@ -8,3 +8,9 @@ uint32_t rand_u_sw() {
     rng_ctx = (rng_ctx * 1103515245 + 12345); // glibc LCG constants, much bad, don't use for anything important
     return rng_ctx;
 }
+
+void rand_seed_sw(uint32_t seed) {
+    // Full period for any seed - the multiplier and the increment satisfy Hull-Dobell, so there is
+    // no degenerate state to guard against
+    rng_ctx = seed;
+}

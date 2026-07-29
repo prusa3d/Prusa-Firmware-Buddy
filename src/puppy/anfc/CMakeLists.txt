@@ -66,6 +66,7 @@ target_link_libraries(
           raii
           crc
           mbedTLS
+          random_sw
           cortex-m0-atomic
   )
 
