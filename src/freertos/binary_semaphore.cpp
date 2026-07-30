@@ -2,6 +2,8 @@
 
 #include <cstdlib>
 
+#include <bsod/bsod.h>
+
 // FreeRTOS.h must be included before semphr.h
 #include <FreeRTOS.h>
 #include <semphr.h>
@@ -28,12 +30,16 @@ void BinarySemaphore::release() {
 }
 
 void BinarySemaphore::release_from_isr() {
+    // A permit already waiting means someone released without a matching acquire
+    release_assert(try_release_from_isr());
+}
+
+bool BinarySemaphore::try_release_from_isr() {
     BaseType_t higher_priority_task_woken = pdFALSE;
-    if (xSemaphoreGiveFromISR(SemaphoreHandle_t(handle), &higher_priority_task_woken) != pdTRUE) {
-        // Since the semaphore was obtained correctly, this should never happen.
-        std::abort();
-    }
+    // errQUEUE_FULL is the only other outcome, and it means the wakeup is already pending
+    const bool released = xSemaphoreGiveFromISR(SemaphoreHandle_t(handle), &higher_priority_task_woken) == pdTRUE;
     portYIELD_FROM_ISR(higher_priority_task_woken);
+    return released;
 }
 
 void BinarySemaphore::release_blocking() {
@@ -54,7 +60,7 @@ void BinarySemaphore::acquire() {
 }
 
 bool BinarySemaphore::try_acquire_for(uint32_t ms) {
-    return xSemaphoreTake(SemaphoreHandle_t(handle), ms * portTICK_PERIOD_MS) == pdTRUE;
+    return xSemaphoreTake(SemaphoreHandle_t(handle), pdMS_TO_TICKS(ms)) == pdTRUE;
 }
 
 } // namespace freertos

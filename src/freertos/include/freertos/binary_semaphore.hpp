@@ -37,6 +37,11 @@ public:
     /// Just like release, but can be called from an interrupt.
     void release_from_isr();
 
+    /// Just like release_from_isr, but a permit that is already there is not an error.
+    ///
+    /// Returns true if this call placed the permit, false if one was already there.
+    [[nodiscard]] bool try_release_from_isr();
+
     /// Same as \p release, but instead of raising a bsod when there's already
     /// a permit, it blocks for an acquire to consume it first before
     /// returning (and setting another permit there).
