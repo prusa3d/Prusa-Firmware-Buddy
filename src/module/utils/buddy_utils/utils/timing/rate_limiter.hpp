@@ -34,6 +34,13 @@ public:
         last_event_ = 0;
     }
 
+    /// Marks \p now as the last event, without asking whether one was due.
+    /// For an action whose cooldown should count from the moment it finished rather than from the
+    /// check() that let it start.
+    void mark_event(T now) {
+        last_event_ = now;
+    }
+
     /// \returns true if we can perform an action (and also marks the current time as the last event)
     [[nodiscard]] bool check(T now) {
         // We need to work in unsigned to be able to cover overflows

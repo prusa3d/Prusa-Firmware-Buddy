@@ -46,6 +46,18 @@ TEST_CASE("RateLimiter::uint8_t", "[ratelimiter]") {
     CHECK(2 * 2 == 4);
 }
 
+TEST_CASE("RateLimiter::mark_event moves the origin of the cooldown", "[ratelimiter]") {
+    RateLimiter<uint32_t> limiter(50);
+
+    CHECK(limiter.check(10));
+
+    // The action took 20 ticks - the cooldown counts from where it ended
+    limiter.mark_event(30);
+    CHECK(limiter.last_event() == 30);
+    CHECK(!limiter.check(79));
+    CHECK(limiter.check(80));
+}
+
 TEST_CASE("RateLimiter edge cases", "[ratelimiter]") {
     SECTION("With overflowed signed int value") {
         RateLimiter<int8_t> limiter(50);
