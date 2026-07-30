@@ -42,6 +42,9 @@ OPTReader::Error OPTReader::to_reader_error(OPTBackend::IOError error) {
 
     case OPTBackend::IOError::radio_disabled:
         return Error::radio_disabled;
+
+    case OPTBackend::IOError::field_collision:
+        return Error::field_collision;
     }
 
     // Unreachable
@@ -125,10 +128,10 @@ OPTReader::IOResult<const OPTReader::TagMetadata *> OPTReader::read_metadata(Tag
             return tag_invalid_error;
 
         case Error::radio_disabled:
-            return std::unexpected(Error::radio_disabled);
-
+        case Error::field_collision:
         case Error::other:
-            // We failed reading something. Invalidate the metadata, so that it is re-read later if requested.
+            // Reading failed for a reason that may not hold next time. The cache entry defaults to
+            // invalid, so returning without invalidating would mark this tag permanently broken.
             metadata_cache_.invalidate(tag);
             return std::unexpected(err);
 

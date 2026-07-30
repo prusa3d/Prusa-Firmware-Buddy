@@ -67,7 +67,9 @@ namespace {
         }
 
         void trigger_interrupt() final {
-            irq_triggered.release_from_isr();
+            // The chip asserts its line more often than the driver waits, so a wakeup that is
+            // already pending is normal.
+            [[maybe_unused]] const auto res = irq_triggered.try_release_from_isr();
         }
 
     protected:
@@ -78,20 +80,31 @@ namespace {
         static const auto chip_select_port = GPIOA;
         static constexpr auto chip_select_pin = GPIO_PIN_4;
 
-        HWImpl hw_impl(&hal::peripherals::hspi1, chip_select_port, chip_select_pin);
-        SysImpl sys_impl {};
+        HWImpl &hw_impl() {
+            static HWImpl instance { &hal::peripherals::hspi1, chip_select_port, chip_select_pin };
+            return instance;
+        }
+
+        SysImpl &sys_impl() {
+            static SysImpl instance;
+            return instance;
+        }
     } // namespace nfcr1
 } // namespace
-st25r39xxb::ST25R39XXB reader_1 { nfcr1::hw_impl, nfcr1::sys_impl };
+st25r39xxb::ST25R39XXB &reader_1() {
+    // Calling the accessors here is what builds the interfaces before the reader binds them.
+    static st25r39xxb::ST25R39XXB instance { nfcr1::hw_impl(), nfcr1::sys_impl() };
+    return instance;
+}
 } // namespace nfc
 
 static void configure_readers(const st25r39xxb::ModulationConfiguration &mod_conf) {
-    auto init_res = nfc::reader_1.init();
+    auto init_res = nfc::reader_1().init();
     if (!init_res.has_value()) {
         hal::panic();
     }
 
-    init_res = nfc::reader_1.init_nfcv_poller(mod_conf);
+    init_res = nfc::reader_1().init_nfcv_poller(mod_conf);
     if (!init_res.has_value()) {
         hal::panic();
     }
@@ -178,5 +191,7 @@ void nfc::reconfigure_readers(const prusa3d_nfc_request_config_ModulationConfig_
 }
 
 void nfc::irq() {
-    nfcr1::sys_impl.trigger_interrupt();
+    // Only ever reached with the object already built: hal::init() arms this EXTI, and the reader
+    // is constructed before main() runs.
+    nfcr1::sys_impl().trigger_interrupt();
 }

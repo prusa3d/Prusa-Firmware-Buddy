@@ -1,5 +1,5 @@
 add_executable(nfcv_encode_decode_tests nfcv_test.cpp)
 
-target_link_libraries(nfcv_encode_decode_tests SG14 iso13239 nfcv)
+target_link_libraries(nfcv_encode_decode_tests SG14 iso13239 nfcv logging_stub)
 
 add_catch_test(nfcv_encode_decode_tests)

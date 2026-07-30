@@ -213,6 +213,7 @@ FilamentUsageTracker::AsyncJobFinishCallback FilamentUsageTracker::tool_init_asy
             break;
 
         case Error::other:
+        case Error::field_collision:
             // Something kinda failed, retrying might help
             return retry_finish_cb;
 
@@ -270,6 +271,7 @@ FilamentUsageTracker::AsyncJobFinishCallback FilamentUsageTracker::write_consump
                 break;
 
             case Error::other:
+            case Error::field_collision:
                 // Something kinda failed, retrying might help
                 return retry_finish_cb;
 
@@ -310,6 +312,7 @@ FilamentUsageTracker::AsyncJobFinishCallback FilamentUsageTracker::write_consump
             switch (req.error()) {
 
             case Error::other:
+            case Error::field_collision:
                 // Something kinda failed, retrying might help
                 return retry_finish_cb;
 

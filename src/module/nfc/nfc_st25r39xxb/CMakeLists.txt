@@ -4,6 +4,6 @@ target_include_directories(st25r39xxb PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 
 target_link_libraries(
   st25r39xxb
-  PRIVATE raii SG14 buddy_utils log_interface
-  PUBLIC nfcv bsod
+  PRIVATE raii log_interface
+  PUBLIC nfcv SG14 buddy_utils bsod
   )

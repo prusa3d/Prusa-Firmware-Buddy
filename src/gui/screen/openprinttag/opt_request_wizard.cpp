@@ -42,7 +42,8 @@ bool multirequest_with_troubleshooting(buddy::openprinttag::MultiRequestBase &mu
                 // Standard errors that will be handled further down the line, can't do much about them
                 break;
 
-            case Error::other: {
+            case Error::other:
+            case Error::field_collision: {
                 const auto r = MsgBoxError(_("Failed to read data from the tag."), { Response::Abort, Response::Retry });
                 switch (r) {
 

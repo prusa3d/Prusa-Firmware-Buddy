@@ -105,7 +105,23 @@ static constexpr openprinttag::OPTBackend::Config ll_config {
 // !!! Buddy implementation cannot correctly track multiple tags per antenna, the implementation will need to be adjusted if this value changes
 static_assert(ll_config.max_known_tags_per_antenna == 1);
 
-static openprinttag::OPTBackend_NFCV ll_reader { nfc::reader_1, ll_config };
+// Adapters for the reader's platform hooks: freertos' size_t-based signatures are a different
+// type from uint32_t on the target even though both are 32 bits wide.
+static uint32_t millis_u32() {
+    return freertos::millis();
+}
+
+static void delay_u32(uint32_t delay_ms) {
+    freertos::delay(delay_ms);
+}
+
+static constexpr openprinttag::OPTBackend_NFCV::System ll_system {
+    .now_ms = millis_u32,
+    .delay_ms = delay_u32,
+    .random_u32 = rand_u_sw,
+};
+
+static openprinttag::OPTBackend_NFCV ll_reader { nfc::reader_1(), ll_system, ll_config };
 
 NFCTask nfc_task(
     ll_reader, [](prusa3d_nfc_event_Event_1_0 &event) { can_node.enqueue_event(event); }, nfc::reconfigure_readers);

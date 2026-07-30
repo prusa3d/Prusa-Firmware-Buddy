@@ -59,7 +59,7 @@ This file is generated automatically so don't edit it directly
 - Resources: logging::Severity::debug, src/resources/bootstrap.cpp
 - RingAllocator: logging::Severity::info, src/common/ring_allocator.cpp
 - Selftest: logging::Severity::debug, src/common/selftest/i_selftest.cpp
-- St25r: logging::Severity::warning, src/module/nfc/nfc_st25r39xxb/ST25R39XXB.cpp
+- St25r: logging::Severity::info, src/module/nfc/nfc_st25r39xxb/ST25R39XXB.cpp
 - ToolOffsetCalib: logging::Severity::info, src/feature/tool_offset_calibration/tool_offset_calibration.cpp
 - ToolOffsetWizard: logging::Severity::info, src/feature/tool_offset_wizard/tool_offset_wizard.cpp
 - Touch: logging::Severity::info, src/hw/touchscreen/touchscreen_common.cpp

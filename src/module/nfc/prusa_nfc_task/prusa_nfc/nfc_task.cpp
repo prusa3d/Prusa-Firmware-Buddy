@@ -185,6 +185,9 @@ bool NFCTask::enqueue_serialized_request(const std::span<const uint8_t> &data) {
 
 void NFCTask::task() {
     while (true) {
+        // Both branches below continue the loop, so this is the one place every iteration passes
+        reader_.backend().tick();
+
         // Process a reader event
         if (OPTReader::Event e; reader_.get_event(e, freertos::millis())) {
             handle_event(e);

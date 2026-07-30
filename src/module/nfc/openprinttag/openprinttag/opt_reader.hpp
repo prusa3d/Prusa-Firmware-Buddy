@@ -67,6 +67,10 @@ public:
         /// The radio is disabled - cannot do physical IO operation
         radio_disabled = 8,
 
+        /// RF collision avoidance could not get the field up - a foreign field kept radiating.
+        /// Diagnostic only: the firmware already retried past any legitimate neighbour hold.
+        field_collision = 9,
+
         _cnt,
     };
 

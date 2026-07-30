@@ -6,12 +6,62 @@
 #include <test_utils/formatters.hpp>
 
 #include <algorithm>
+#include <optional>
+#include <span>
 #include <vector>
 #include <variant>
 #include <unordered_set>
 #include <map>
 
 using namespace openprinttag;
+
+/// Stand-in for the platform RNG. A constant is enough here: how wide the arbitration backoff
+/// window is belongs to nfcv::FieldManager's own tests, and all that matters at this level is
+/// that a lost round costs time.
+uint32_t no_random() {
+    return 0;
+}
+
+/// The backend's FieldManager reads this whenever it needs the time. Tests move it with \ref at,
+/// so that the field's bookkeeping and the timestamps handed to get_event() agree.
+uint32_t test_now_ms = 0;
+
+uint32_t test_clock() {
+    return test_now_ms;
+}
+
+/// Never really sleeps: an arbitration backoff just moves the clock forward
+void test_delay(uint32_t delay_ms) {
+    test_now_ms += delay_ms;
+}
+
+/// Platform hooks for the backend under test
+constexpr OPTBackend_NFCV::System test_system {
+    .now_ms = test_clock,
+    .delay_ms = test_delay,
+    .random_u32 = no_random,
+};
+
+/// Moves the fake clock, for the operations that are not driven through \ref poll
+void at(uint32_t now_ms) {
+    test_now_ms = now_ms;
+}
+
+/// One NFC task loop iteration: the housekeeping tick first, then a poll for an event.
+/// The task loop is what drives tick() on hardware, so the tests drive it the same way.
+bool poll(OPTBackend_NFCV &backend, OPTBackend::Event &e, uint32_t now_ms) {
+    at(now_ms);
+    backend.tick();
+    return backend.get_event(e, now_ms);
+}
+
+/// One task loop iteration at whatever the fake clock currently says.
+/// For the tests where a pass moves the clock itself: on hardware the clock keeps running through
+/// the arbitration, and the next iteration reads it as it is rather than rewinding it.
+bool poll_now(OPTBackend_NFCV &backend, OPTBackend::Event &e) {
+    backend.tick();
+    return backend.get_event(e, test_now_ms);
+}
 
 struct TagData {
     nfcv::TagInfo info;
@@ -77,6 +127,13 @@ struct FieldUp {
     bool operator==(const FieldUp &other) const = default;
 };
 
+struct FieldUpFailed {
+    nfcv::ReaderWriterInterface::AntennaID antenna;
+    nfcv::Error error;
+
+    bool operator==(const FieldUpFailed &other) const = default;
+};
+
 struct FieldDown {
     bool operator==(const FieldDown &other) const = default;
 };
@@ -103,7 +160,7 @@ struct WriteSingleBlock {
 };
 
 using Event = std::variant<
-    FieldUp, FieldDown,
+    FieldUp, FieldUpFailed, FieldDown,
     Inventory, StayQuiet, SystemInfo,
     ReadSingleBlock, WriteSingleBlock,
     SetEAS, ResetEAS,
@@ -125,7 +182,19 @@ std::ostream &operator<<(std::ostream &os, const OPTBackend::TagLostEvent &e) {
 } // namespace std
 
 struct EventLogger : public nfcv::ReaderWriterInterface {
+    /// Fails every bring-up, for the cases where a caller has to lose its whole arbitration window
+    std::optional<nfcv::Error> always_fail_field_up;
+
+    /// Every try_field_up, the contended retries included
+    unsigned field_up_attempts = 0;
+
     nfcv::Result<void> try_field_up(AntennaID antenna) final {
+        field_up_attempts++;
+
+        if (const auto error = always_fail_field_up) {
+            events.push_back(FieldUpFailed { .antenna = antenna, .error = *error });
+            return std::unexpected(*error);
+        }
         antenna_index = antenna;
         events.push_back(FieldUp { .antenna = antenna });
         return {};
@@ -389,7 +458,7 @@ constexpr nfcv::TagInfo tag_info1 { .dsfid = std::nullopt, .afi = std::nullopt, 
 TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprinttag]") {
     EventLogger logger {};
 
-    OPTBackend_NFCV reader(logger,
+    OPTBackend_NFCV reader(logger, test_system,
         OPTBackend::Config {
             // We're not testing tag limiting here
             .max_known_tags_per_antenna = 4,
@@ -416,7 +485,7 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
         reader.set_config(config);
 
         uint32_t time = 1;
-        auto res = reader.get_event(event, time);
+        auto res = poll(reader, event, time);
         REQUIRE(res == true);
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         CHECK(std::get<OPTBackend::TagDetectedEvent>(event).tag == 0);
@@ -427,11 +496,12 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
                                                     StayQuiet { .uid = data::uid1 },
                                                     SystemInfo { .uid = data::uid1 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
         logger.events.clear();
 
         time += discovery_interval / 2;
-        res = reader.get_event(event, time);
+        res = poll(reader, event, time);
         REQUIRE(res == false);
         CHECK(logger.events.empty());
 
@@ -441,12 +511,13 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
 
         for (int i = 0;; i++) {
             time += discovery_interval;
-            res = reader.get_event(event, time);
+            res = poll(reader, event, time);
             REQUIRE(res == false);
             CHECK(std::ranges::equal(logger.events, std::vector<Event> {
                                                         FieldDown {},
                                                         FieldUp { .antenna = 1 },
                                                         Inventory {},
+                                                        FieldDown {},
                                                     }));
             logger.events.clear();
 
@@ -455,19 +526,20 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
             }
 
             time += discovery_interval;
-            res = reader.get_event(event, discovery_interval);
+            res = poll(reader, event, discovery_interval);
             REQUIRE(res == false);
             CHECK(std::ranges::equal(logger.events, std::vector<Event> {
                                                         FieldDown {},
                                                         FieldUp { .antenna = 0 },
                                                         Inventory {},
+                                                        FieldDown {},
                                                     }));
 
             logger.events.clear();
         }
 
         time += discovery_interval;
-        res = reader.get_event(event, discovery_interval);
+        res = poll(reader, event, discovery_interval);
         REQUIRE(res == true);
         REQUIRE(std::holds_alternative<OPTBackend::TagLostEvent>(event));
         REQUIRE(std::get<OPTBackend::TagLostEvent>(event).tag == 0);
@@ -475,6 +547,7 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
                                                     FieldDown {},
                                                     FieldUp { .antenna = 0 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
     }
 
@@ -489,7 +562,7 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
             .antennas = { 0 },
         };
 
-        auto res = reader.get_event(event, 1);
+        auto res = poll(reader, event, 1);
         REQUIRE(res == true);
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         CHECK(std::get<OPTBackend::TagDetectedEvent>(event).tag == 0);
@@ -503,16 +576,17 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
                                                     StayQuiet { .uid = data::uid2 },
                                                     SystemInfo { .uid = data::uid2 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
         logger.events.clear();
-        res = reader.get_event(event, 10);
+        res = poll(reader, event, 10);
         REQUIRE(res == true);
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         CHECK(std::get<OPTBackend::TagDetectedEvent>(event).tag == 1);
         CHECK(logger.events.empty());
 
         logger.events.clear();
-        res = reader.get_event(event, 20);
+        res = poll(reader, event, 20);
         REQUIRE(res == false);
         CHECK(logger.events.empty());
     }
@@ -532,7 +606,7 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
             .antennas = { 1 },
         };
 
-        auto res = reader.get_event(event, 1);
+        auto res = poll(reader, event, 1);
         REQUIRE(res == true);
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         CHECK(std::get<OPTBackend::TagDetectedEvent>(event).tag == 0);
@@ -546,21 +620,22 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
                                                     StayQuiet { .uid = data::uid2 },
                                                     SystemInfo { .uid = data::uid2 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
         logger.events.clear();
-        res = reader.get_event(event, 10);
+        res = poll(reader, event, 10);
         REQUIRE(res == true);
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         CHECK(std::get<OPTBackend::TagDetectedEvent>(event).tag == 1);
         CHECK(logger.events.empty());
 
         logger.events.clear();
-        res = reader.get_event(event, 20);
+        res = poll(reader, event, 20);
         REQUIRE(res == false);
         CHECK(logger.events.empty());
 
         logger.events.clear();
-        res = reader.get_event(event, 251);
+        res = poll(reader, event, 251);
         REQUIRE(res == true);
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         CHECK(std::get<OPTBackend::TagDetectedEvent>(event).tag == 2);
@@ -571,6 +646,7 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
                                                     StayQuiet { .uid = data::uid3 },
                                                     SystemInfo { .uid = data::uid3 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
     }
 
@@ -585,7 +661,7 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
             .antennas = { 0 },
         };
 
-        auto res = reader.get_event(event, 1);
+        auto res = poll(reader, event, 1);
         REQUIRE(res == true);
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         CHECK(std::get<OPTBackend::TagDetectedEvent>(event).tag == 0);
@@ -599,28 +675,30 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
                                                     StayQuiet { .uid = data::uid2 },
                                                     SystemInfo { .uid = data::uid2 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
         logger.events.clear();
-        res = reader.get_event(event, 10);
+        res = poll(reader, event, 10);
         REQUIRE(res == true);
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         CHECK(std::get<OPTBackend::TagDetectedEvent>(event).tag == 1);
         CHECK(logger.events.empty());
 
         logger.events.clear();
-        res = reader.get_event(event, 251);
+        res = poll(reader, event, 251);
         REQUIRE(res == false);
         CHECK(std::ranges::equal(logger.events, std::vector<Event> {
                                                     FieldDown {},
                                                     FieldUp { .antenna = 1 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
 
         logger.tags[data::uid1].antennas = { 0 };
         logger.tags[data::uid2].antennas = { 1 };
 
         logger.events.clear();
-        res = reader.get_event(event, 501);
+        res = poll(reader, event, 501);
         REQUIRE(res == true);
         REQUIRE(std::holds_alternative<OPTBackend::TagLostEvent>(event));
         CHECK(std::get<OPTBackend::TagLostEvent>(event).tag == 1);
@@ -630,10 +708,11 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
                                                     Inventory {},
                                                     StayQuiet { .uid = data::uid1 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
 
         logger.events.clear();
-        res = reader.get_event(event, 751);
+        res = poll(reader, event, 751);
         REQUIRE(res == false);
         CHECK(std::ranges::equal(logger.events, std::vector<Event> {
                                                     FieldDown {},
@@ -641,10 +720,11 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
                                                     Inventory {},
                                                     StayQuiet { .uid = data::uid2 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
 
         logger.events.clear();
-        res = reader.get_event(event, 1001);
+        res = poll(reader, event, 1001);
         REQUIRE(res == false);
         CHECK(std::ranges::equal(logger.events, std::vector<Event> {
                                                     FieldDown {},
@@ -652,10 +732,11 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
                                                     Inventory {},
                                                     StayQuiet { .uid = data::uid1 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
 
         logger.events.clear();
-        res = reader.get_event(event, 1251);
+        res = poll(reader, event, 1251);
         REQUIRE(res == false);
         CHECK(std::ranges::equal(logger.events, std::vector<Event> {
                                                     FieldDown {},
@@ -663,12 +744,13 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
                                                     Inventory {},
                                                     StayQuiet { .uid = data::uid2 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
 
         reader.forget_tag(1);
 
         logger.events.clear();
-        res = reader.get_event(event, 1501);
+        res = poll(reader, event, 1501);
         REQUIRE(res == false);
         CHECK(std::ranges::equal(logger.events, std::vector<Event> {
                                                     FieldDown {},
@@ -676,10 +758,11 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
                                                     Inventory {},
                                                     StayQuiet { .uid = data::uid1 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
 
         logger.events.clear();
-        res = reader.get_event(event, 1751);
+        res = poll(reader, event, 1751);
         REQUIRE(res == true);
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         CHECK(std::get<OPTBackend::TagDetectedEvent>(event).tag == 1);
@@ -690,6 +773,7 @@ TEST_CASE("Test NFC-V tag discovery and tag lost detection", "[nfcv][openprintta
                                                     StayQuiet { .uid = data::uid2 },
                                                     SystemInfo { .uid = data::uid2 },
                                                     Inventory {},
+                                                    FieldDown {},
                                                 }));
     }
 }
@@ -706,10 +790,10 @@ TEST_CASE("Test NFC-V tag read ops", "[nfcv][openprinttag]") {
         .antennas = { 0 },
     };
 
-    OPTBackend_NFCV reader { logger, OPTBackend::Config { .enable_radio = true } };
+    OPTBackend_NFCV reader { logger, test_system, OPTBackend::Config { .enable_radio = true } };
 
     OPTBackend::Event event;
-    auto res = reader.get_event(event, 0);
+    auto res = poll(reader, event, 0);
     REQUIRE(res == true);
     REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
     CHECK(std::get<OPTBackend::TagDetectedEvent>(event).tag == 0);
@@ -824,10 +908,10 @@ TEST_CASE("Test NFC-V tags write ops", "[nfcv][openprinttag]") {
         .antennas = { 0 },
     };
 
-    OPTBackend_NFCV reader { logger, OPTBackend::Config { .enable_radio = true } };
+    OPTBackend_NFCV reader { logger, test_system, OPTBackend::Config { .enable_radio = true } };
 
     OPTBackend::Event event;
-    auto res = reader.get_event(event, 0);
+    auto res = poll(reader, event, 0);
     REQUIRE(res == true);
     REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
     CHECK(std::get<OPTBackend::TagDetectedEvent>(event).tag == 0);
@@ -1064,7 +1148,7 @@ TEST_CASE("Test NFC-V tag initialization", "[nfcv][openprinttag]") {
         .antennas = { 0 },
     };
 
-    OPTBackend_NFCV reader { logger, OPTBackend::Config { .enable_radio = true } };
+    OPTBackend_NFCV reader { logger, test_system, OPTBackend::Config { .enable_radio = true } };
     OPTBackend::Event event;
 
     auto &tag = logger.tags[tag_uid];
@@ -1076,7 +1160,7 @@ TEST_CASE("Test NFC-V tag initialization", "[nfcv][openprinttag]") {
     // Process tag detection
     {
         OPTBackend::Event event;
-        auto res = reader.get_event(event, 0);
+        auto res = poll(reader, event, 0);
         REQUIRE(res == true);
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         const auto &ev = std::get<OPTBackend::TagDetectedEvent>(event);
@@ -1212,25 +1296,25 @@ TEST_CASE("Test NFC debug mode", "[nfcv][openprinttag]") {
         .tag_max_missed_discoveries = 0,
         .enable_radio = true,
     };
-    OPTBackend_NFCV reader { logger, config };
+    OPTBackend_NFCV reader { logger, test_system, config };
     const auto discovery_interval = reader.config().discovery_interval_ms;
 
     OPTBackend::Event event;
 
     SECTION("No debug") {
         uint32_t time = 0;
-        CHECK(reader.get_event(event, time));
+        CHECK(poll(reader, event, time));
         CHECK(event == OPTBackend::Event { OPTBackend::TagDetectedEvent { .tag = 0, .antenna = 0 } });
         time += discovery_interval;
 
-        CHECK(reader.get_event(event, time));
+        CHECK(poll(reader, event, time));
         CHECK(event == OPTBackend::Event { OPTBackend::TagDetectedEvent { .tag = 1, .antenna = 1 } });
         time += discovery_interval;
 
         // Remove first tag from the reader
         logger.tags[data::uid1].antennas = {};
 
-        CHECK(reader.get_event(event, time));
+        CHECK(poll(reader, event, time));
         CHECK(event == OPTBackend::Event { OPTBackend::TagLostEvent { .tag = 0 } });
         time += discovery_interval;
 
@@ -1238,10 +1322,10 @@ TEST_CASE("Test NFC debug mode", "[nfcv][openprinttag]") {
         logger.tags[data::uid1].antennas = { 0 };
 
         // No event should happen - the tag was not forgotten and thus should not be redetected
-        CHECK(!reader.get_event(event, time));
+        CHECK(!poll(reader, event, time));
         time += discovery_interval;
 
-        CHECK(!reader.get_event(event, time));
+        CHECK(!poll(reader, event, time));
         time += discovery_interval;
     }
 
@@ -1250,36 +1334,36 @@ TEST_CASE("Test NFC debug mode", "[nfcv][openprinttag]") {
         reader.set_config(config);
 
         uint32_t time = 0;
-        CHECK(reader.get_event(event, time));
+        CHECK(poll(reader, event, time));
         CHECK(event == OPTBackend::Event { OPTBackend::TagDetectedEvent { .tag = 0, .antenna = 0 } });
         time += discovery_interval;
 
-        CHECK(reader.get_event(event, time));
+        CHECK(poll(reader, event, time));
         CHECK(event == OPTBackend::Event { OPTBackend::TagDetectedEvent { .tag = 1, .antenna = 1 } });
         time += discovery_interval;
 
         // Remove first tag from the reader
         logger.tags[data::uid1].antennas = {};
 
-        CHECK(reader.get_event(event, time));
+        CHECK(poll(reader, event, time));
         CHECK(event == OPTBackend::Event { OPTBackend::TagLostEvent { .tag = 0 } });
         time += discovery_interval;
 
-        CHECK(!reader.get_event(event, time));
+        CHECK(!poll(reader, event, time));
         time += discovery_interval;
 
-        CHECK(!reader.get_event(event, time));
+        CHECK(!poll(reader, event, time));
         time += discovery_interval;
 
         // Put the tag back
         logger.tags[data::uid1].antennas = { 0 };
 
         // The reader is alternating antennas, there should be no changes on antenna 1
-        CHECK(!reader.get_event(event, time));
+        CHECK(!poll(reader, event, time));
         time += discovery_interval;
 
         // The tag should be reported again and the ID reused
-        CHECK(reader.get_event(event, time));
+        CHECK(poll(reader, event, time));
         CHECK(event == OPTBackend::Event { OPTBackend::TagDetectedEvent { .tag = 0, .antenna = 0 } });
         time += discovery_interval;
     }
@@ -1289,20 +1373,20 @@ TEST_CASE("Test NFC debug mode", "[nfcv][openprinttag]") {
         reader.set_config(config);
 
         uint32_t time = 0;
-        CHECK(reader.get_event(event, time));
+        CHECK(poll(reader, event, time));
         CHECK(event == OPTBackend::Event { OPTBackend::TagDetectedEvent { .tag = 0, .antenna = 1 } });
         time += discovery_interval;
 
         // Remove first tag from the reader - should do nothing
         logger.tags[data::uid1].antennas = {};
 
-        CHECK(!reader.get_event(event, time));
+        CHECK(!poll(reader, event, time));
         time += discovery_interval;
 
         // Remove second tag from the reader - should result in tag lost event
         logger.tags[data::uid2].antennas = {};
 
-        CHECK(reader.get_event(event, time));
+        CHECK(poll(reader, event, time));
         CHECK(event == OPTBackend::Event { OPTBackend::TagLostEvent { .tag = 0 } });
         time += discovery_interval;
     }
@@ -1316,10 +1400,10 @@ TEST_CASE("Test NFC get_tag_uid", "[nfcv][openprinttag]") {
         .antennas = { 0 },
     };
 
-    OPTBackend_NFCV reader { logger, OPTBackend::Config { .enable_radio = true } };
+    OPTBackend_NFCV reader { logger, test_system, OPTBackend::Config { .enable_radio = true } };
     OPTBackend::Event event;
 
-    CHECK(reader.get_event(event, 0));
+    CHECK(poll(reader, event, 0));
     CHECK(event == OPTBackend::Event { OPTBackend::TagDetectedEvent { .tag = 0, .antenna = 0 } });
 
     nfcv::UID uid;
@@ -1341,7 +1425,7 @@ TEST_CASE("NFCV::max_known_tags_per_antenna", "[nfcv][openprinttag]") {
         .tag_max_missed_discoveries = 0,
         .enable_radio = true,
     };
-    OPTBackend_NFCV reader { logger, config };
+    OPTBackend_NFCV reader { logger, test_system, config };
     OPTBackend::Event event;
 
     REQUIRE(config.max_known_tags_per_antenna <= OPTBackend_NFCV::MAX_KNOWN_TAGS / 2);
@@ -1361,7 +1445,7 @@ TEST_CASE("NFCV::max_known_tags_per_antenna", "[nfcv][openprinttag]") {
 
     // Check that we've detected all the expected tags in one go
     for (int i = 0; i < config.max_known_tags_per_antenna; i++) {
-        REQUIRE(reader.get_event(event, time));
+        REQUIRE(poll(reader, event, time));
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         const auto tag_id = std::get<OPTBackend::TagDetectedEvent>(event).tag;
         REQUIRE(reader.get_tag_uid(tag_id, uid));
@@ -1370,49 +1454,361 @@ TEST_CASE("NFCV::max_known_tags_per_antenna", "[nfcv][openprinttag]") {
     }
 
     // Tag limit reached
-    REQUIRE(!reader.get_event(event, time));
+    REQUIRE(!poll(reader, event, time));
 
     // Move tag 0 to antenna 1
     logger.tags[data::make_uid(0)].antennas = { 1 };
 
     // Next discovery should be for antenna 1, but the tag was not lost on antenna 0 yet
     time += config.discovery_interval_ms;
-    REQUIRE(!reader.get_event(event, time));
+    REQUIRE(!poll(reader, event, time));
 
     // Antenna 0 discovery - should lose tag 0
     {
         time += config.discovery_interval_ms;
-        REQUIRE(reader.get_event(event, time));
+        REQUIRE(poll(reader, event, time));
         REQUIRE(std::holds_alternative<OPTBackend::TagLostEvent>(event));
         const auto tag_id = std::get<OPTBackend::TagLostEvent>(event).tag;
         REQUIRE(tag_uids[tag_id] == data::make_uid(0));
         reader.forget_tag(tag_id);
 
-        REQUIRE(!reader.get_event(event, time));
+        REQUIRE(!poll(reader, event, time));
     }
 
     // Antenna 1 discovery - detect tag 0
     {
         time += config.discovery_interval_ms;
-        REQUIRE(reader.get_event(event, time));
+        REQUIRE(poll(reader, event, time));
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         const auto tag_id = std::get<OPTBackend::TagDetectedEvent>(event).tag;
         REQUIRE(std::get<OPTBackend::TagDetectedEvent>(event).antenna == 1);
         REQUIRE(reader.get_tag_uid(tag_id, uid));
         REQUIRE(uid == data::make_uid(0));
 
-        REQUIRE(!reader.get_event(event, time));
+        REQUIRE(!poll(reader, event, time));
     }
 
     // Antenna 0 discovery - get tag 2
     {
         time += config.discovery_interval_ms;
-        REQUIRE(reader.get_event(event, time));
+        REQUIRE(poll(reader, event, time));
         REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
         const auto tag_id = std::get<OPTBackend::TagDetectedEvent>(event).tag;
         REQUIRE(reader.get_tag_uid(tag_id, uid));
         REQUIRE(uid == data::make_uid(2));
 
-        REQUIRE(!reader.get_event(event, time));
+        REQUIRE(!poll(reader, event, time));
+    }
+}
+
+namespace {
+
+/// Config for the field tests: radio on.
+///
+/// The default discovery interval is deliberately enormous, for the tests that must not have a
+/// pass interleave with what they measure. Note that RateLimiter treats a last_event_ of 0 as
+/// "never ran", so the initial detection pass has to be triggered at t=1 rather than t=0 for
+/// the limiter to start counting at all.
+OPTBackend::Config lifetime_config(uint32_t discovery_interval_ms = 100000) {
+    return OPTBackend::Config {
+        .tag_max_missed_discoveries = 0,
+        .discovery_interval_ms = discovery_interval_ms,
+        .enable_radio = true,
+    };
+}
+
+size_t count_field_ups(const std::vector<Event> &events) {
+    return std::ranges::count_if(events, [](const Event &e) { return std::holds_alternative<FieldUp>(e); });
+}
+
+size_t count_field_downs(const std::vector<Event> &events) {
+    return std::ranges::count_if(events, [](const Event &e) { return std::holds_alternative<FieldDown>(e); });
+}
+
+constexpr uint32_t linger_ms = nfcv::FieldManager::linger_ms;
+
+} // namespace
+
+TEST_CASE("NFC-V discovery yields the field between passes", "[nfcv][openprinttag][field]") {
+    EventLogger logger;
+    logger.tags[data::uid1] = TagData {
+        .info = data::tag_info1,
+        .antennas = { 0 },
+    };
+
+    OPTBackend_NFCV reader { logger, test_system, lifetime_config(250) };
+    const auto config = reader.config();
+
+    OPTBackend::Event event;
+
+    SECTION("a pass ends with the field down") {
+        REQUIRE(poll(reader, event, 1));
+        REQUIRE(!logger.events.empty());
+        CHECK(std::holds_alternative<FieldDown>(logger.events.back()));
+    }
+
+    SECTION("a contended pass is skipped without counting a missed discovery") {
+        REQUIRE(poll(reader, event, 1));
+        REQUIRE(std::holds_alternative<OPTBackend::TagDetectedEvent>(event));
+
+        // With the tag gone and tag_max_missed_discoveries at 0, any pass that actually ran
+        // would report it lost on its very first miss
+        logger.tags[data::uid1].antennas = {};
+        logger.always_fail_field_up = nfcv::Error::field_collision;
+        logger.events.clear();
+
+        for (int i = 0; i < 4; i++) {
+            // Off the fake clock: a pass that arbitrated its whole window moved the clock forward,
+            // and the interval counts from where that pass left off
+            at(test_now_ms + config.discovery_interval_ms);
+            logger.field_up_attempts = 0;
+            CHECK(!poll_now(reader, event));
+
+            // Every pass really did try, and re-arbitrated within its window rather than
+            // giving up on the first collision
+            CHECK(logger.field_up_attempts > 1);
+        }
+
+        CHECK(count_field_ups(logger.events) == 0);
+    }
+
+    SECTION("a skipped pass does not advance the antenna") {
+        logger.always_fail_field_up = nfcv::Error::field_collision;
+
+        CHECK(!poll(reader, event, 1));
+        CHECK(std::ranges::find(logger.events, Event { FieldUpFailed { .antenna = 0, .error = nfcv::Error::field_collision } }) != logger.events.end());
+
+        logger.always_fail_field_up.reset();
+        logger.events.clear();
+        at(test_now_ms + config.discovery_interval_ms);
+        std::ignore = poll_now(reader, event);
+        CHECK(std::ranges::find(logger.events, Event { FieldUp { .antenna = 0 } }) != logger.events.end());
+    }
+}
+
+namespace {
+
+/// Drives the task loop off the fake clock and \returns, for each of the first \p passes discovery
+/// passes, when it started and when it was over. Both timestamps come from the fake clock, so a
+/// pass that had to arbitrate a contended field really does show up as a long one - which is the
+/// whole point of what these tests measure.
+std::vector<std::pair<uint32_t, uint32_t>> pass_windows(OPTBackend_NFCV &reader, EventLogger &logger, size_t passes) {
+    std::vector<std::pair<uint32_t, uint32_t>> windows;
+    OPTBackend::Event event;
+
+    // Starts at 1 so that the very first pass clears RateLimiter's zero sentinel
+    at(1);
+    while (windows.size() < passes) {
+        const uint32_t start = test_now_ms;
+        logger.field_up_attempts = 0;
+        std::ignore = poll_now(reader, event);
+        if (logger.field_up_attempts > 0) {
+            windows.emplace_back(start, test_now_ms);
+        }
+
+        // The loop runs far more often than the discovery cadence on hardware too
+        at(test_now_ms + 1);
+    }
+    return windows;
+}
+
+} // namespace
+
+TEST_CASE("NFC-V discovery counts its interval from the end of a pass", "[nfcv][openprinttag][field]") {
+    constexpr uint32_t interval = 250;
+
+    EventLogger logger;
+    logger.tags[data::uid1] = TagData {
+        .info = data::tag_info1,
+        .antennas = { 0 },
+    };
+
+    OPTBackend_NFCV reader { logger, test_system, lifetime_config(interval) };
+
+    SECTION("an instant pass keeps an exact cadence") {
+        const auto windows = pass_windows(reader, logger, 4);
+
+        for (size_t i = 0; i < windows.size(); i++) {
+            CAPTURE(i, windows[i]);
+            CHECK(windows[i].first == windows[i].second);
+            if (i > 0) {
+                CHECK(windows[i].first - windows[i - 1].first == interval);
+            }
+        }
+    }
+
+    SECTION("a pass that arbitrated pushes the next one back by what it spent") {
+        // A neighbour holds the field for good, so every pass burns its whole arbitration window
+        logger.always_fail_field_up = nfcv::Error::field_collision;
+
+        const auto windows = pass_windows(reader, logger, 4);
+
+        for (size_t i = 0; i < windows.size(); i++) {
+            const auto [start, end] = windows[i];
+            CAPTURE(i, start, end);
+
+            // Without an arbitration that costs time there is nothing to drift by
+            CHECK(end > start);
+
+            if (i > 0) {
+                CHECK(start == windows[i - 1].second + interval);
+                CHECK(start - windows[i - 1].first > interval);
+            }
+        }
+    }
+}
+
+TEST_CASE("NFC-V field lingers after an io op", "[nfcv][openprinttag][field]") {
+    std::vector<std::byte> tag1(data::tag_info1.mem_size->block_size * data::tag_info1.mem_size->block_count);
+
+    EventLogger logger;
+    logger.tags[data::uid1] = TagData {
+        .info = data::tag_info1,
+        .data = &tag1,
+        .antennas = { 0 },
+    };
+
+    OPTBackend_NFCV reader { logger, test_system, lifetime_config() };
+
+    OPTBackend::Event event;
+    REQUIRE(poll(reader, event, 1));
+    logger.events.clear();
+
+    std::array<std::byte, 2> buffer {};
+
+    SECTION("the field survives the linger window and drops after it") {
+        at(1000);
+        REQUIRE(reader.read(0, 0, buffer));
+        logger.events.clear();
+
+        // The release armed the linger; a tick inside the window must not drop the field
+        std::ignore = poll(reader, event, 1000 + linger_ms - 1);
+        CHECK(count_field_downs(logger.events) == 0);
+
+        std::ignore = poll(reader, event, 1000 + linger_ms);
+        CHECK(count_field_downs(logger.events) == 1);
+    }
+
+    SECTION("a second op inside the window does not re-arbitrate") {
+        at(1000);
+        REQUIRE(reader.read(0, 0, buffer));
+        logger.events.clear();
+
+        at(1100);
+        REQUIRE(reader.read(0, 0, buffer));
+        // The driver's same-antenna early-out is what makes the second op cheap, but only if
+        // the backend has not torn the field down in between
+        CHECK(count_field_downs(logger.events) == 0);
+    }
+
+    SECTION("discovery is deferred while the linger is armed, and does not burn the limiter") {
+        EventLogger paced_logger;
+        paced_logger.tags[data::uid1] = TagData {
+            .info = data::tag_info1,
+            .data = &tag1,
+            .antennas = { 0 },
+        };
+
+        OPTBackend_NFCV paced { paced_logger, test_system, lifetime_config(250) };
+
+        REQUIRE(poll(paced, event, 1));
+
+        // Arms the linger
+        at(10);
+        REQUIRE(paced.read(0, 0, buffer));
+
+        paced_logger.events.clear();
+        // Well past the discovery interval, but inside the linger window
+        std::ignore = poll(paced, event, 10 + linger_ms - 1);
+        CHECK(paced_logger.events.empty());
+
+        // The linger expires and, because the limiter was never consumed while deferred,
+        // the pass runs on the very same tick rather than waiting another full interval
+        paced_logger.events.clear();
+        std::ignore = poll(paced, event, 10 + linger_ms);
+        CHECK(count_field_ups(paced_logger.events) == 1);
+    }
+}
+
+TEST_CASE("NFC-V deliberate field drops clear the linger bookkeeping", "[nfcv][openprinttag][field]") {
+    constexpr auto tag_uid = data::uid1_slix2;
+
+    std::vector<std::byte> tag_data(4 * 64);
+
+    EventLogger logger;
+    logger.tags[tag_uid] = TagData {
+        .info = { .mem_size = nfcv::TagInfo::MemorySize { .block_size = 4, .block_count = 64 } },
+        .data = &tag_data,
+        .antennas = { 0 },
+    };
+
+    OPTBackend_NFCV reader { logger, test_system, lifetime_config() };
+    const auto config = reader.config();
+
+    OPTBackend::Event event;
+    REQUIRE(poll(reader, event, 1));
+    logger.events.clear();
+
+    /// A phantom linger armed over an already-dead field would be stamped by the first tick
+    /// and fire a redundant drop on the second. No discovery can run at this cadence, so a
+    /// clean bookkeeping state means no events at all.
+    const auto check_no_phantom_linger = [&] {
+        logger.events.clear();
+        std::ignore = poll(reader, event, 1000);
+        std::ignore = poll(reader, event, 1000 + linger_ms);
+        CHECK(logger.events.empty());
+    };
+
+    SECTION("initialize_tag ends with the field down and no linger armed") {
+        REQUIRE(reader.initialize_tag(0, OPTBackend::InitializeTagParams {}));
+        REQUIRE(!logger.events.empty());
+        CHECK(std::holds_alternative<FieldDown>(logger.events.back()));
+
+        check_no_phantom_linger();
+    }
+
+    SECTION("unlock_tag ends with the field down and no linger armed") {
+        REQUIRE(reader.unlock_tag(0, 0));
+        REQUIRE(!logger.events.empty());
+        CHECK(std::holds_alternative<FieldDown>(logger.events.back()));
+
+        check_no_phantom_linger();
+    }
+
+    SECTION("the mid-op power cycle is a real down-then-up") {
+        // Lock the tag first, so that a best-effort re-init hits the wrong-password path
+        OPTBackend::InitializeTagParams params {
+            .password = 0xdeadbeef,
+            .protect_first_num_bytes = 32,
+            .protection_policy = OPTBackend::InitializeTagParams::ProtectionPolicy::write_password,
+        };
+        REQUIRE(reader.initialize_tag(0, params));
+
+        logger.events.clear();
+        params.best_effort = true;
+        REQUIRE(reader.initialize_tag(0, params));
+
+        // A FieldDown immediately followed by a FieldUp - the tag power cycle must not be elided
+        const auto down = std::ranges::find_if(logger.events, [](const Event &e) { return std::holds_alternative<FieldDown>(e); });
+        REQUIRE(down != logger.events.end());
+        REQUIRE(std::next(down) != logger.events.end());
+        CHECK(std::holds_alternative<FieldUp>(*std::next(down)));
+    }
+
+    SECTION("disabling the radio clears the linger") {
+        std::array<std::byte, 2> buffer {};
+        at(1000);
+        REQUIRE(reader.read(0, 0, buffer));
+
+        logger.events.clear();
+        auto disabled = config;
+        disabled.enable_radio = false;
+        reader.set_config(disabled);
+        CHECK(count_field_downs(logger.events) == 1);
+
+        logger.events.clear();
+        std::ignore = poll(reader, event, 1000 + linger_ms);
+        // The linger is gone, so no second drop over a dead field
+        CHECK(count_field_downs(logger.events) == 0);
     }
 }

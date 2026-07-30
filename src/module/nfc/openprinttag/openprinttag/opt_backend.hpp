@@ -88,6 +88,11 @@ public:
 
         /// The operation is not implemented (possibly because of the prameter combination)
         not_implemented,
+
+        /// RF collision avoidance could not get the field up - a foreign field kept radiating.
+        /// Diagnostic only: the firmware already retried past any legitimate neighbour hold,
+        /// so an immediate retry would not help.
+        field_collision,
     };
 
     template <typename T>
@@ -120,6 +125,11 @@ public:
     virtual void forget_tag(TagID tag) = 0;
 
     virtual void reset_state() = 0;
+
+    /// Advances time-based housekeeping, such as dropping an RF field nobody needs any more.
+    /// Driven from the owning task's loop - get_event() deliberately does not do it, so the
+    /// field's lifetime does not depend on anyone polling for events.
+    virtual void tick() {}
 
     const Config &config() const {
         return config_;

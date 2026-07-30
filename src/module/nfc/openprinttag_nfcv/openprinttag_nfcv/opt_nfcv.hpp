@@ -7,6 +7,7 @@
 #include <openprinttag/opt_backend.hpp>
 #include <nfcv/types.hpp>
 #include <nfcv/rw_interface.hpp>
+#include <nfcv/field_manager.hpp>
 #include <inplace_vector.hpp>
 #include <inplace_function.hpp>
 #include <utils/byte_utils.hpp>
@@ -18,7 +19,15 @@ public:
     static constexpr size_t MAX_ANTENNA_COUNT = 2;
     static constexpr size_t MAX_KNOWN_TAGS = 8;
 
-    OPTBackend_NFCV(nfcv::ReaderWriterInterface &reader, const Config &initial_config = {});
+    /// How long a field bring-up may re-arbitrate a contended field before giving up.
+    /// An IO operation is host-requested and worth waiting out a neighbour's whole hold for.
+    static constexpr uint32_t field_up_retry_timeout_ms = 3000;
+
+    /// Platform hooks, shared with the field manager. Its now_ms is also what stamps the end of a
+    /// discovery pass, so it has to be the same clock the caller of \ref get_event reads.
+    using System = nfcv::FieldManager::System;
+
+    OPTBackend_NFCV(nfcv::ReaderWriterInterface &reader, const System &system, const Config &initial_config = {});
 
     [[nodiscard]] IOResult<void> read(TagID tag, PayloadPos start, const WritableBytes &buffer) final;
 
@@ -33,6 +42,8 @@ public:
     void forget_tag(TagID tag) final;
 
     void reset_state() final;
+
+    void tick() final;
 
     [[nodiscard]] virtual IOResult<void> initialize_tag(TagID tag, const InitializeTagParams &params) override;
 
@@ -63,23 +74,6 @@ private:
         TagType tag_type : 2;
     };
 
-    class FieldGuard : public Uncopyable {
-
-    public:
-        FieldGuard(OPTBackend_NFCV &backend, ReaderAntenna antenna);
-        ~FieldGuard();
-
-        explicit operator bool() const {
-            return result.has_value();
-        }
-
-        auto error() const {
-            return result.error();
-        }
-
-        const IOResult<void> result;
-    };
-
     nfcv::ReaderWriterInterface &reader;
     std::array<TagData, MAX_KNOWN_TAGS> tags {};
 
@@ -89,10 +83,19 @@ private:
     RateLimiter<uint32_t> discoveries_limiter;
     nfcv::ReaderWriterInterface::AntennaID discovery_antenna = 0;
 
+    const nfcv::FieldManager::ClockSource now_ms;
+
+    nfcv::FieldManager field_manager_;
+
     AtomicCircularQueue<Event, uint8_t, 4> events;
 
     /// Runs a next discovery procedure, where we try to find new tags, or detect tags that are gone.
     void run_next_discovery();
+
+    /// Raises the field for a host-requested operation: applies the radio gate and the io
+    /// arbitration window. The single entry point for bringing the field up outside of
+    /// discovery - raw field_manager_.acquire() calls in this class are a review error.
+    [[nodiscard]] IOResult<nfcv::FieldManager::Guard> acquire_field(ReaderAntenna antenna);
 
     /// Validates if tag_id is referencing existing NFC tag (eather known or lost) - but the index references valid data
     [[nodiscard]] bool is_valid(TagID tag_id);

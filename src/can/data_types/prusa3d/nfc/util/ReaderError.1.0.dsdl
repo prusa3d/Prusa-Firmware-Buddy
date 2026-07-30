@@ -30,6 +30,10 @@ uint8 NOT_IMPLEMENTED = 7
 # The radio is disabled
 uint8 RADIO_DISABLED = 8
 
+# RF collision avoidance could not bring the field up - a foreign field kept radiating.
+# Diagnostic only; the firmware already retried past any legitimate neighbour hold.
+uint8 FIELD_COLLISION = 9
+
 # No error, actually
 uint8 NO_ERROR = 255
 
