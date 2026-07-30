@@ -1,5 +1,5 @@
 # Modules are nice, so we can include them everywhere
-add_subdirectory(module)
+add_subdirectory(module EXCLUDE_FROM_ALL)
 
 if(BOARD IN_LIST BUDDY_BOARDS)
   target_include_directories(firmware PRIVATE .)
