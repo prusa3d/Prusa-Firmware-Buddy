@@ -371,9 +371,10 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::nfcv_command(const nfcv::Command &com
 }
 
 uint16_t st25r39xxb::ST25R39XXB::get_fifo_len() {
+    // Count spans two different registers - 1Eh and 1Fh - one continuous read takes both (DS13541 Tables 66, 67).
     std::array<std::byte, 2> fifo_status {};
     hw_int.read_registers_continuous(st25r39xxb::RegisterA::fifo_status_1, fifo_status);
-    return (std::to_integer<uint16_t>(fifo_status.at(0)) | ((std::to_integer<uint16_t>(fifo_status.at(1)) & 0xB0) << 2));
+    return (std::to_integer<uint16_t>(fifo_status.at(0)) | ((std::to_integer<uint16_t>(fifo_status.at(1)) & 0xC0) << 2));
 }
 
 void st25r39xxb::ST25R39XXB::set_output_impedance(st25r39xxb::Impedance target_impedance) {
