@@ -23,6 +23,42 @@ bool is_expected_silence(const nfcv::Command &command, nfcv::Error error) {
     return error == nfcv::Error::no_response && std::holds_alternative<nfcv::command::Inventory>(command);
 }
 
+/// Whether asking the tag again could plausibly get a different answer.
+bool is_worth_retrying(nfcv::Error error) {
+    // No default case: a new Error value should be classified deliberately
+    switch (error) {
+    // Our own bug or a fixed fact - the next attempt builds the same request against the same
+    // chip and gets the same answer
+    case nfcv::Error::invalid_chip:
+    case nfcv::Error::response_is_error:
+    case nfcv::Error::bad_request:
+    case nfcv::Error::not_implemented:
+        return false;
+
+    // The answer never arrived or arrived damaged, which is what a neighbouring reader's field
+    // does to one
+    case nfcv::Error::timeout:
+    case nfcv::Error::bad_oscilator:
+    case nfcv::Error::invalid_crc:
+    // Overloaded: a decode runs out of received bytes with this, which is transient, and an
+    // encode reports our own buffer being too small with it, which is not
+    case nfcv::Error::buffer_overflow:
+    case nfcv::Error::device_hard_framing_error:
+    case nfcv::Error::device_soft_framing_error:
+    case nfcv::Error::device_parity_error:
+    case nfcv::Error::device_crc_error:
+    case nfcv::Error::no_response:
+    case nfcv::Error::response_invalid_size:
+    case nfcv::Error::response_format_invalid:
+    case nfcv::Error::field_collision:
+    case nfcv::Error::other:
+    case nfcv::Error::unknown:
+        return true;
+    }
+
+    bsod_unreachable();
+}
+
 unsigned log_cmd_id(const nfcv::Command &command) {
     return std::to_integer<unsigned>(nfcv::command_id(command));
 }
@@ -217,17 +253,6 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::turn_on_oscilator() {
 nfcv::Result<void> st25r39xxb::ST25R39XXB::nfcv_command(const nfcv::Command &command) {
     const auto cmd_id = log_cmd_id(command);
 
-    // Prepare message
-    buffer.clear();
-    {
-        const auto construct_res = nfcv::construct_command(buffer, command);
-        if (!construct_res.has_value()) {
-            // Not a communication fault - we failed to build the request in the first place
-            log_error(St25r, "cmd 0x%02x encode failed: %s", cmd_id, nfcv::to_str(construct_res.error()));
-            return construct_res;
-        }
-    }
-
     set_interrupt_mask(~(IRQType::tx_end | IRQType::rx_start | IRQType::rx_end | IRQType::no_response_timer_expire | IRQType::general_purpose_timer_expire | IRQType::errors));
 
     // For write commands we need to wait longer for responses - according to iso from 10 to 20 ms.
@@ -240,7 +265,7 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::nfcv_command(const nfcv::Command &com
         hw_int.write_register(RegisterA::no_response_timer_2, std::byte { 0x52 });
     }
 
-    // Retry sending the message a few times if we failed
+    // Retry the whole exchange a few times if it failed
     for (uint8_t attempt = 0;; attempt++) {
 
         // stop all previous operations, also clear FIFO
@@ -256,62 +281,39 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::nfcv_command(const nfcv::Command &com
         // bits, but our own latch is ours to drop.
         discard_interrupts();
 
-        const auto result = nfcv_command_inner(command);
+        // The response shares this one buffer with the request, so the request has to be built
+        // again for every attempt rather than reused
+        buffer.clear();
+        if (const auto res = nfcv::construct_command(buffer, command); !res.has_value()) {
+            // Not a communication fault - we failed to build the request in the first place
+            log_error(St25r, "cmd 0x%02x encode failed: %s", cmd_id, nfcv::to_str(res.error()));
+            return res;
+        }
+
+        const auto result = nfcv_command_inner(command).and_then([&] {
+            return read_nfcv_response(command, cmd_id);
+        });
         if (result.has_value()) {
             break;
         }
 
-        const bool last_attempt = attempt >= nfcv_command_max_attempts - 1;
+        const bool give_up = attempt >= nfcv_command_max_attempts - 1 || !is_worth_retrying(result.error());
 
         if (!is_expected_silence(command, result.error())) {
-            log_event(last_attempt ? logging::Severity::error : logging::Severity::warning, St25r,
+            log_event(give_up ? logging::Severity::error : logging::Severity::warning, St25r,
                 "cmd 0x%02x attempt %u/%u failed: %s",
                 cmd_id, static_cast<unsigned>(attempt) + 1u, static_cast<unsigned>(nfcv_command_max_attempts),
                 nfcv::to_str(result.error()));
         }
 
-        if (last_attempt) {
-            // Failed too many times - return the last failure
+        if (give_up) {
             return result;
         }
 
         sys_int.delay(retry_delay_ms);
     }
 
-    if (nfcv::is_response_expected(command)) {
-        // Read received data
-        buffer.clear();
-        buffer.resize(get_fifo_len());
-        if (!buffer.empty()) {
-            hw_int.read_fifo(buffer);
-        }
-
-        WritableBytes decoded_data;
-        {
-            const auto res = nfcv::decode(buffer, buffer);
-            if (!res.has_value()) {
-                // The tag answered, but we could not make sense of the bits
-                log_warning(St25r, "cmd 0x%02x response decode failed: %s", cmd_id, nfcv::to_str(res.error()));
-                return std::unexpected(res.error());
-            }
-
-            decoded_data = *res;
-            if (decoded_data.size() < 3) {
-                log_warning(St25r, "cmd 0x%02x response too short: %u B", cmd_id, static_cast<unsigned>(decoded_data.size()));
-                return std::unexpected(nfcv::Error::response_invalid_size);
-            }
-        }
-
-        // Parse response to message
-        {
-            const auto res = nfcv::parse_response(decoded_data, command);
-            if (!res.has_value()) {
-                log_warning(St25r, "cmd 0x%02x response parse failed: %s", cmd_id, nfcv::to_str(res.error()));
-                return std::unexpected(res.error());
-            }
-        }
-
-    } else {
+    if (!nfcv::is_response_expected(command)) {
         // We trigger GPT on RX end, but since the command doesn't
         // send a response, then we need to start it manually via command
         hw_int.direct_command(Command::start_general_purpose_timer);
@@ -323,6 +325,37 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::nfcv_command(const nfcv::Command &com
             log_warning(St25r, "cmd 0x%02x inter-command wait failed: %s", cmd_id, nfcv::to_str(res.error()));
             return res;
         }
+    }
+
+    return {};
+}
+
+[[nodiscard]] nfcv::Result<void> st25r39xxb::ST25R39XXB::read_nfcv_response(const nfcv::Command &command, unsigned cmd_id) {
+    if (!nfcv::is_response_expected(command)) {
+        return {};
+    }
+
+    buffer.clear();
+    buffer.resize(get_fifo_len());
+    if (!buffer.empty()) {
+        hw_int.read_fifo(buffer);
+    }
+
+    const auto decoded = nfcv::decode(buffer, buffer);
+    if (!decoded.has_value()) {
+        // The tag answered, but we could not make sense of the bits
+        log_warning(St25r, "cmd 0x%02x response decode failed: %s", cmd_id, nfcv::to_str(decoded.error()));
+        return std::unexpected(decoded.error());
+    }
+    if (decoded->size() < 3) {
+        log_warning(St25r, "cmd 0x%02x response too short: %u B", cmd_id, static_cast<unsigned>(decoded->size()));
+        return std::unexpected(nfcv::Error::response_invalid_size);
+    }
+
+    const auto parsed = nfcv::parse_response(*decoded, command);
+    if (!parsed.has_value()) {
+        log_warning(St25r, "cmd 0x%02x response parse failed: %s", cmd_id, nfcv::to_str(parsed.error()));
+        return std::unexpected(parsed.error());
     }
 
     return {};

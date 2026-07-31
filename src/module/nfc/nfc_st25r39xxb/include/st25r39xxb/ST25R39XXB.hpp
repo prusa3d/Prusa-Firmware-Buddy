@@ -70,6 +70,13 @@ private:
 
     [[nodiscard]] nfcv::Result<void> nfcv_command_inner(const nfcv::Command &command);
 
+    /// Reads what the tag answered out of the FIFO and decodes it into \p command's output.
+    ///
+    /// Part of one attempt rather than of the command as a whole: an answer damaged in flight is
+    /// worth asking for again, and a neighbouring reader's field is exactly what damages one.
+    /// A no-op for the commands the ISO leaves unanswered.
+    [[nodiscard]] nfcv::Result<void> read_nfcv_response(const nfcv::Command &command, unsigned cmd_id);
+
     [[nodiscard]] uint16_t get_fifo_len();
     /**
      * @brief Masks which interupt should ST25R39XXb send

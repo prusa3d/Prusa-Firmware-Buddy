@@ -9,3 +9,7 @@ add_catch_test(test_st25r39xxb_field_up)
 add_executable(test_st25r39xxb_interrupts test_interrupts.cpp)
 target_link_libraries(test_st25r39xxb_interrupts st25r39xxb logging_stub)
 add_catch_test(test_st25r39xxb_interrupts)
+
+add_executable(test_st25r39xxb_response_retry test_response_retry.cpp)
+target_link_libraries(test_st25r39xxb_response_retry st25r39xxb logging_stub)
+add_catch_test(test_st25r39xxb_response_retry)
