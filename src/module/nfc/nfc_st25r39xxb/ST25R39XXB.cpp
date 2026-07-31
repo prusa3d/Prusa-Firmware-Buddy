@@ -166,17 +166,30 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::init() {
     // Also ST25R3919B doesn't support pasive target anything
     hw_int.write_register(RegisterA::passive_target_modulation, std::byte { 0x2F });
 
+    return adjust_regulators();
+}
+
+nfcv::Result<void> st25r39xxb::ST25R39XXB::adjust_regulators() {
+    // DS13541 §4.4.10: reg_s must be toggled 1 -> 0 before the Adjust regulators command. It resets the
+    // adjustment logic and hands the definition of the regulated voltages back to the command.
+    // Read-modify-write so the mpsv bits sharing this register are preserved.
+    static constexpr std::byte REG_S { 0b1000'0000 };
+    hw_int.register_set_bits(RegisterA::regulator_voltage_control, REG_S);
+    hw_int.register_clear_bits(RegisterA::regulator_voltage_control, REG_S);
+
     set_interrupt_mask(~IRQType::direct_command_finished);
     hw_int.direct_command(Command::adjust_regulators);
 
-    if (auto res = await_interrupt(IRQType::direct_command_finished, 500); !res.has_value()) {
-        log_error(St25r, "regulator adjustment failed: %s", nfcv::to_str(res.error()));
-        return res;
-    }
+    /// The Adjust regulators command takes 5 ms max (DS13541 §4.4.10), the rest is slack.
+    static constexpr uint32_t adjust_regulators_timeout_ms = 50;
 
+    auto res = await_interrupt(IRQType::direct_command_finished, adjust_regulators_timeout_ms);
     set_interrupt_mask(IRQType::all);
 
-    return {};
+    if (!res.has_value()) {
+        log_error(St25r, "regulator adjustment failed: %s", nfcv::to_str(res.error()));
+    }
+    return res;
 }
 
 nfcv::Result<void> st25r39xxb::ST25R39XXB::turn_on_oscilator() {

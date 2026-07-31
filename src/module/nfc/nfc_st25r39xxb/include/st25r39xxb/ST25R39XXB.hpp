@@ -120,6 +120,10 @@ private:
     [[nodiscard]] nfcv::Result<void> await_interrupt(st25r39xxb::IRQType irqs_to_wait_for, uint32_t timeout_ms, st25r39xxb::IRQType inner_timer_irq = st25r39xxb::IRQType::none, nfcv::Error inner_timer_error = nfcv::Error::timeout);
 
     [[nodiscard]] nfcv::Result<void> turn_on_oscilator();
+
+    /// Lets the chip pick the regulated voltages itself, 250 mV below the current supply level.
+    [[nodiscard]] nfcv::Result<void> adjust_regulators();
+
     void set_output_impedance(st25r39xxb::Impedance target_impedance);
     void set_output_amplitude(st25r39xxb::Amplitude target_amplitude);
 
