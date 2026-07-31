@@ -242,12 +242,18 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::nfcv_command(const nfcv::Command &com
 
     // Retry sending the message a few times if we failed
     for (uint8_t attempt = 0;; attempt++) {
-        // Clear fifos before each retry
-        hw_int.direct_command(Command::clear_fifo);
+
+        // stop all previous operations, also clear FIFO
+        hw_int.direct_command(Command::stop_all_1);
+
+        // Datasheet (DS13541 §4.2.13) calls for reset rx gain on every transceive - if tag was moved between
+        // transmissions, this calibrates the sensitivity and is cheap enough to do every time.
+        hw_int.direct_command(Command::reset_rx_gain);
 
         // Every attempt re-runs the whole transmit-receive sequence, so anything still pending
         // belongs to the previous one. Left alone, a leftover rx_end would satisfy this attempt's
-        // await before the tag has said anything.
+        // await before the tag has said anything. Stop all activities clears the chip's status
+        // bits, but our own latch is ours to drop.
         discard_interrupts();
 
         const auto result = nfcv_command_inner(command);
