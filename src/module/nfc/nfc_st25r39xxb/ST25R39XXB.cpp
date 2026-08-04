@@ -8,6 +8,26 @@
 #include <nfcv/decode.hpp>
 #include <utils/overloaded_visitor.hpp>
 #include <utils/byte_utils.hpp>
+#include <logging/log.hpp>
+
+LOG_COMPONENT_DEF(St25r, logging::Severity::warning);
+
+namespace {
+
+/// Whether a failed command is the expected "nothing answered" outcome rather than a fault.
+///
+/// Discovery terminates its inventory loop by getting no answer, so an unanswered Inventory is
+/// the steady state of an idle antenna and must not produce any log traffic. Every other command
+/// is addressed to a tag we already know is there, so silence means something went wrong.
+bool is_expected_silence(const nfcv::Command &command, nfcv::Error error) {
+    return error == nfcv::Error::no_response && std::holds_alternative<nfcv::command::Inventory>(command);
+}
+
+unsigned log_cmd_id(const nfcv::Command &command) {
+    return std::to_integer<unsigned>(nfcv::command_id(command));
+}
+
+} // namespace
 
 static constexpr nfcv::Error convert_error(st25r39xxb::IRQType error_irqs) {
     using namespace st25r39xxb;
@@ -63,6 +83,7 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::init() {
     static constexpr std::byte TYPE_CODE_MASK { 0b1111'1000 };
     static constexpr std::byte ST25R39XXB_ID { 0b0011'0000 };
     if ((version & TYPE_CODE_MASK) != ST25R39XXB_ID) {
+        log_error(St25r, "unexpected chip id 0x%02x", std::to_integer<unsigned>(version));
         return std::unexpected(nfcv::Error::invalid_chip);
     }
 
@@ -107,6 +128,7 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::init() {
     hw_int.direct_command(Command::adjust_regulators);
 
     if (auto res = await_interrupt(IRQType::direct_command_finished, 500); !res.has_value()) {
+        log_error(St25r, "regulator adjustment failed: %s", nfcv::to_str(res.error()));
         return res;
     }
 
@@ -122,6 +144,7 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::turn_on_oscilator() {
         hw_int.change_register(RegisterA::operation_control, OSCILATOR_ENABLE, OSCILATOR_ENABLE);
         auto res = await_interrupt(IRQType::oscilator_freq_stable, 10);
         if (!res.has_value()) {
+            log_error(St25r, "oscillator did not stabilize: %s", nfcv::to_str(res.error()));
             return std::unexpected(res.error());
         }
     }
@@ -129,6 +152,7 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::turn_on_oscilator() {
     set_interrupt_mask(IRQType::all);
     static constexpr std::byte OSCILATOR_OK { 0b0001'0000 };
     if ((hw_int.read_register(RegisterA::auxilary_display) & OSCILATOR_OK) != OSCILATOR_OK) {
+        log_error(St25r, "oscillator reports not ok");
         return std::unexpected(nfcv::Error::bad_oscilator);
     }
 
@@ -136,11 +160,15 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::turn_on_oscilator() {
 }
 
 nfcv::Result<void> st25r39xxb::ST25R39XXB::nfcv_command(const nfcv::Command &command) {
+    const auto cmd_id = log_cmd_id(command);
+
     // Prepare message
     buffer.clear();
     {
         const auto construct_res = nfcv::construct_command(buffer, command);
         if (!construct_res.has_value()) {
+            // Not a communication fault - we failed to build the request in the first place
+            log_error(St25r, "cmd 0x%02x encode failed: %s", cmd_id, nfcv::to_str(construct_res.error()));
             return construct_res;
         }
     }
@@ -167,7 +195,16 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::nfcv_command(const nfcv::Command &com
             break;
         }
 
-        if (attempt >= nfcv_command_max_attempts - 1) {
+        const bool last_attempt = attempt >= nfcv_command_max_attempts - 1;
+
+        if (!is_expected_silence(command, result.error())) {
+            log_event(last_attempt ? logging::Severity::error : logging::Severity::warning, St25r,
+                "cmd 0x%02x attempt %u/%u failed: %s",
+                cmd_id, static_cast<unsigned>(attempt) + 1u, static_cast<unsigned>(nfcv_command_max_attempts),
+                nfcv::to_str(result.error()));
+        }
+
+        if (last_attempt) {
             // Failed too many times - return the last failure
             return result;
         }
@@ -187,11 +224,14 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::nfcv_command(const nfcv::Command &com
         {
             const auto res = nfcv::decode(buffer, buffer);
             if (!res.has_value()) {
+                // The tag answered, but we could not make sense of the bits
+                log_warning(St25r, "cmd 0x%02x response decode failed: %s", cmd_id, nfcv::to_str(res.error()));
                 return std::unexpected(res.error());
             }
 
             decoded_data = *res;
             if (decoded_data.size() < 3) {
+                log_warning(St25r, "cmd 0x%02x response too short: %u B", cmd_id, static_cast<unsigned>(decoded_data.size()));
                 return std::unexpected(nfcv::Error::response_invalid_size);
             }
         }
@@ -200,6 +240,7 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::nfcv_command(const nfcv::Command &com
         {
             const auto res = nfcv::parse_response(decoded_data, command);
             if (!res.has_value()) {
+                log_warning(St25r, "cmd 0x%02x response parse failed: %s", cmd_id, nfcv::to_str(res.error()));
                 return std::unexpected(res.error());
             }
         }
@@ -213,6 +254,7 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::nfcv_command(const nfcv::Command &com
     {
         const auto res = await_interrupt(IRQType::general_purpose_timer_expire, 2);
         if (!res.has_value() && res != std::unexpected(nfcv::Error::timeout)) {
+            log_warning(St25r, "cmd 0x%02x inter-command wait failed: %s", cmd_id, nfcv::to_str(res.error()));
             return res;
         }
     }
@@ -403,6 +445,8 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::init_nfcv_poller(const st25r39xxb::Mo
     hw_int.direct_command(Command::nfc_init_field_on);
 
     if (const auto res = await_interrupt(IRQType::pwp_field_active, 100, IRQType::collision_detected); !res.has_value()) {
+        // Either the field never came up or collision avoidance found a foreign field radiating
+        log_error(St25r, "field on failed: %s", nfcv::to_str(res.error()));
         return res;
     }
 

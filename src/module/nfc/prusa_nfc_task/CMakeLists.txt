@@ -10,4 +10,5 @@ target_link_libraries(
           buddy_utils
           dsdl_uavcan
           dsdl_prusa3d
+          log_interface
   )

@@ -17,4 +17,8 @@ bool is_write_like_command(const Command &command) {
         command);
 }
 
+std::byte command_id(const Command &command) {
+    return std::visit([]<typename T>(const T &) { return T::cmd_id; }, command);
+}
+
 } // namespace nfcv

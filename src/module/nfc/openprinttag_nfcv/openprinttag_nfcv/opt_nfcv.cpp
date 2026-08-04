@@ -4,10 +4,36 @@
 #include <raii/scope_guard.hpp>
 #include <bsod/bsod.h>
 #include <utils/byte_utils.hpp>
+#include <logging/log.hpp>
 
 using namespace openprinttag;
 
+LOG_COMPONENT_DEF(Opt, logging::Severity::warning);
+
 namespace {
+
+/// Name of the error, for log messages
+/// Deliberately has no default case - a new IOError value should not silently become "?"
+const char *to_str(OPTBackend::IOError error) {
+    using E = OPTBackend::IOError;
+    switch (error) {
+    case E::outside_of_bounds:
+        return "outside_of_bounds";
+    case E::invalid_id:
+        return "invalid_id";
+    case E::tag_invalid:
+        return "tag_invalid";
+    case E::other:
+        return "other";
+    case E::data_too_big:
+        return "data_too_big";
+    case E::radio_disabled:
+        return "radio_disabled";
+    case E::not_implemented:
+        return "not_implemented";
+    }
+    return "?";
+}
 
 OPTBackend::IOError to_backend_error(nfcv::Error error) {
     using E = nfcv::Error;
@@ -38,6 +64,14 @@ OPTBackend::IOError to_backend_error(nfcv::Error error) {
     }
 
     std::unreachable();
+}
+
+/// Reports a failed field bring-up.
+/// radio_disabled is skipped - the radio being off is a state the host asked for, not a fault.
+void log_field_up_failure(const char *context, ReaderAntenna antenna, OPTBackend::IOError error) {
+    if (error != OPTBackend::IOError::radio_disabled) {
+        log_error(Opt, "%s: field up on antenna %u failed: %s", context, static_cast<unsigned>(antenna), to_str(error));
+    }
 }
 
 } // namespace
@@ -77,19 +111,25 @@ void openprinttag::OPTBackend_NFCV::set_config(const Config &config) {
 
 OPTBackend::IOResult<void> OPTBackend_NFCV::io_op(TagID tag, PayloadPos start, size_t buffer_size, const stdext::inplace_function<IOOpFunc> &impl) {
     if (!is_valid(tag)) {
+        log_warning(Opt, "io on invalid tag %u", static_cast<unsigned>(tag));
         return std::unexpected(IOError::invalid_id);
     }
     auto &tag_data = tags.at(tag);
 
     if (const auto end = start + buffer_size; end > tag_data.block_count * tag_data.block_size) {
+        log_warning(Opt, "io on tag %u out of bounds: %u+%u B, tag holds %u B",
+            static_cast<unsigned>(tag), static_cast<unsigned>(start), static_cast<unsigned>(buffer_size),
+            static_cast<unsigned>(tag_data.block_count * tag_data.block_size));
         return std::unexpected(IOError::outside_of_bounds);
     }
 
     FieldGuard field_guard { *this, tag_data.antenna };
     if (!field_guard) {
+        log_field_up_failure("io", tag_data.antenna, field_guard.error());
         return std::unexpected(field_guard.error());
     }
 
+    // The failure itself is reported by read_impl/write_impl, which know the failing block
     if (const auto r = impl(tag_data); !r.has_value()) {
         return std::unexpected(to_backend_error(r.error()));
     }
@@ -118,6 +158,7 @@ nfcv::Result<void> OPTBackend_NFCV::read_impl(const TagData &tag_data, PayloadPo
     std::array<std::byte, nfcv::MAX_BLOCK_SIZE_IN_BYTES> tmp_buf {};
     for (; it != buffer.end(); ++block_index) {
         if (const auto res = reader.read_single_block(tag_data.uid, block_index, std::span { tmp_buf.data(), tag_data.block_size }); !res.has_value()) {
+            log_warning(Opt, "read of block %u failed: %s", static_cast<unsigned>(block_index), nfcv::to_str(res.error()));
             return res;
         }
 
@@ -151,6 +192,7 @@ nfcv::Result<void> OPTBackend_NFCV::write_impl(const TagData &tag_data, PayloadP
     // if we are not block alligned we need to read the first block - write some data at the end of it and then write this edited block
     if (in_block_byte_offset != 0) {
         if (const auto res = reader.read_single_block(tag_data.uid, block_index, tmp_buf_block_span); !res.has_value()) {
+            log_warning(Opt, "read-back of head block %u failed: %s", static_cast<unsigned>(block_index), nfcv::to_str(res.error()));
             return res;
         }
 
@@ -159,6 +201,7 @@ nfcv::Result<void> OPTBackend_NFCV::write_impl(const TagData &tag_data, PayloadP
         std::advance(source_it, to_copy);
 
         if (const auto res = reader.write_single_block(tag_data.uid, block_index, tmp_buf_block_span); !res.has_value()) {
+            log_warning(Opt, "write of head block %u failed: %s", static_cast<unsigned>(block_index), nfcv::to_str(res.error()));
             return res;
         }
         ++block_index;
@@ -170,6 +213,7 @@ nfcv::Result<void> OPTBackend_NFCV::write_impl(const TagData &tag_data, PayloadP
         auto block_write = buffer.subspan(std::distance(buffer.begin(), source_it), tag_data.block_size);
 
         if (const auto res = reader.write_single_block(tag_data.uid, block_index, block_write); !res.has_value()) {
+            log_warning(Opt, "write of block %u failed: %s", static_cast<unsigned>(block_index), nfcv::to_str(res.error()));
             return res;
         }
     }
@@ -177,12 +221,14 @@ nfcv::Result<void> OPTBackend_NFCV::write_impl(const TagData &tag_data, PayloadP
     // again if the data are not block aligned at the end we need to read the block, rewrite the start of it and then write the whole block
     if (source_it != buffer.end()) {
         if (const auto res = reader.read_single_block(tag_data.uid, block_index, tmp_buf_block_span); !res.has_value()) {
+            log_warning(Opt, "read-back of tail block %u failed: %s", static_cast<unsigned>(block_index), nfcv::to_str(res.error()));
             return res;
         }
 
         std::copy(source_it, buffer.end(), tmp_buf_block_span.begin());
 
         if (const auto res = reader.write_single_block(tag_data.uid, block_index, tmp_buf_block_span); !res.has_value()) {
+            log_warning(Opt, "write of tail block %u failed: %s", static_cast<unsigned>(block_index), nfcv::to_str(res.error()));
             return res;
         }
     }
@@ -227,16 +273,20 @@ OPTBackend::IOResult<size_t> OPTBackend_NFCV::get_tag_uid(TagID tag, const Writa
 
 OPTBackend::IOResult<void> OPTBackend_NFCV::read_tag_info(TagID tag, TagInfo &target) {
     if (!is_valid(tag)) {
+        log_warning(Opt, "read_tag_info on invalid tag %u", static_cast<unsigned>(tag));
         return std::unexpected(IOError::invalid_id);
     }
 
     // TODO: Add support for CC8
     nfcv::CapabilityContainer4 cc;
+    // The read failure itself is already reported by read_impl
     if (auto r = read(tag, 0, std::as_writable_bytes(std::span { &cc, 1 })); !r) {
         return std::unexpected(r.error());
     }
 
     if (cc.magic_number != cc.expected_magic_number) {
+        log_warning(Opt, "tag %u has capability container magic 0x%02x, expected 0x%02x",
+            static_cast<unsigned>(tag), static_cast<unsigned>(cc.magic_number), static_cast<unsigned>(cc.expected_magic_number));
         return std::unexpected(IOError::tag_invalid);
     }
 
@@ -272,12 +322,14 @@ void OPTBackend_NFCV::reset_state() {
 
 OPTBackend::IOResult<void> OPTBackend_NFCV::initialize_tag(TagID tag, const InitializeTagParams &params) {
     if (!is_valid(tag)) {
+        log_warning(Opt, "initialize_tag on invalid tag %u", static_cast<unsigned>(tag));
         return std::unexpected(IOError::invalid_id);
     }
     const TagData &tag_data = tags.at(tag);
 
     // This procedure is only implemented for our ICODE SLIX 2 tags
     if (tag_data.tag_type != TagType::slix2) {
+        log_warning(Opt, "initialize_tag on tag %u which is not a SLIX2", static_cast<unsigned>(tag));
         return std::unexpected(IOError::not_implemented);
     }
 
@@ -290,6 +342,7 @@ OPTBackend::IOResult<void> OPTBackend_NFCV::initialize_tag(TagID tag, const Init
             reader.field_down();
 
             if (auto r = reader.field_up(tag_data.antenna); !r) {
+                log_error(Opt, "field up after tag power cycle failed: %s", nfcv::to_str(r.error()));
                 return std::unexpected(to_backend_error(r.error()));
             }
 
@@ -300,6 +353,8 @@ OPTBackend::IOResult<void> OPTBackend_NFCV::initialize_tag(TagID tag, const Init
             return {};
 
         } else {
+            // Which command failed is named by the driver's log line right before this one
+            log_warning(Opt, "initialize_tag step failed: %s", nfcv::to_str(r.error()));
             return std::unexpected(to_backend_error(r.error()));
         }
     };
@@ -312,6 +367,7 @@ OPTBackend::IOResult<void> OPTBackend_NFCV::initialize_tag(TagID tag, const Init
 
     FieldGuard field_guard { *this, tag_data.antenna };
     if (!field_guard) {
+        log_field_up_failure("initialize_tag", tag_data.antenna, field_guard.error());
         return std::unexpected(field_guard.error());
     }
 
@@ -345,10 +401,12 @@ OPTBackend::IOResult<void> OPTBackend_NFCV::initialize_tag(TagID tag, const Init
     case Policy::write_password: {
         const auto tag_info = reader.get_system_info(tag_data.uid);
         if (!tag_info) {
+            log_warning(Opt, "initialize_tag could not read system info: %s", nfcv::to_str(tag_info.error()));
             return std::unexpected(to_backend_error(tag_info.error()));
         }
         const auto block_size = tag_info->mem_size.value_or(nfcv::TagInfo::MemorySize {}).block_size;
         if (block_size == 0) {
+            log_warning(Opt, "initialize_tag got a tag reporting no block size");
             return std::unexpected(to_backend_error(nfcv::Error::bad_request));
         }
 
@@ -436,12 +494,14 @@ OPTBackend::IOResult<void> OPTBackend_NFCV::initialize_tag(TagID tag, const Init
 
 OPTBackend::IOResult<void> OPTBackend_NFCV::unlock_tag(TagID tag, uint32_t password) {
     if (!is_valid(tag)) {
+        log_warning(Opt, "unlock_tag on invalid tag %u", static_cast<unsigned>(tag));
         return std::unexpected(IOError::invalid_id);
     }
     const TagData &tag_data = tags.at(tag);
 
     // This procedure is only implemented for our ICODE SLIX 2 tags
     if (tag_data.tag_type != TagType::slix2) {
+        log_warning(Opt, "unlock_tag on tag %u which is not a SLIX2", static_cast<unsigned>(tag));
         return std::unexpected(IOError::not_implemented);
     }
 
@@ -453,11 +513,14 @@ OPTBackend::IOResult<void> OPTBackend_NFCV::unlock_tag(TagID tag, uint32_t passw
 
     FieldGuard field_guard { *this, tag_data.antenna };
     if (!field_guard) {
+        log_field_up_failure("unlock_tag", tag_data.antenna, field_guard.error());
         return std::unexpected(field_guard.error());
     }
 
     for (const auto reg : { nfcv::ReaderWriterInterface::Register::read_password, nfcv::ReaderWriterInterface::Register::write_password }) {
         if (auto r = reader.set_password(tag_data.uid, reg, password); !r) {
+            log_warning(Opt, "unlock_tag could not set password register %u: %s",
+                static_cast<unsigned>(std::to_underlying(reg)), nfcv::to_str(r.error()));
             return std::unexpected(to_backend_error(r.error()));
         }
     }
@@ -471,6 +534,7 @@ OPTBackend::IOResult<void> OPTBackend_NFCV::unlock_tag(TagID tag, uint32_t passw
             .h_page_protection = nfcv::SLIX2PageProtection::none,
         } };
         if (auto r = reader.nfcv_command(cmd); !r) {
+            log_warning(Opt, "unlock_tag could not unprotect memory: %s", nfcv::to_str(r.error()));
             return std::unexpected(to_backend_error(r.error()));
         }
     }
@@ -497,6 +561,7 @@ void OPTBackend_NFCV::run_next_discovery() {
 
     FieldGuard field_guard { *this, discovery_antenna };
     if (!field_guard) {
+        log_field_up_failure("discovery", discovery_antenna, field_guard.error());
         return;
     }
 
@@ -509,7 +574,10 @@ void OPTBackend_NFCV::run_next_discovery() {
         debug_assert(uid[nfcv::UID_MSB_INDEX] == nfcv::UID_MSB);
 
         // Prevent the tag to repeatedly answering to inventory (it will still answer to addressed commands (the rest of them))
-        if (!reader.stay_quiet(uid).has_value()) {
+        if (const auto res = reader.stay_quiet(uid); !res.has_value()) {
+            // The tag answered Inventory a moment ago, so failing here means it moved out of
+            // range mid-discovery or the link is unreliable
+            log_warning(Opt, "stay_quiet failed for a just-inventoried tag: %s", nfcv::to_str(res.error()));
             // The tag is probably gone - just skip it for now
             continue;
         }
@@ -536,6 +604,7 @@ void OPTBackend_NFCV::run_next_discovery() {
         // We found unknown tag, lets ask for more information about it
         const auto tag_info = reader.get_system_info(uid);
         if (!tag_info.has_value()) {
+            log_warning(Opt, "get_system_info failed for a newly discovered tag: %s", nfcv::to_str(tag_info.error()));
             // Again the tag is probably gone - just skip it for now
             continue;
         }
@@ -543,6 +612,7 @@ void OPTBackend_NFCV::run_next_discovery() {
         // Lets find a free space for the tag info to live
         tag_data = std::ranges::find_if(tags, [&](const auto &tag) { return tag.state == TagData::State::free; });
         if (tag_data == tags.end()) {
+            log_warning(Opt, "no free tag slot, not reporting a tag detected on antenna %u", static_cast<unsigned>(discovery_antenna));
             // If we can't fit a new tag into the storage we should skip reporting it for a time.
             // Probably we are waiting for forget tag command - until then we can't report new tags since we need free
             // valid tag_id
@@ -552,6 +622,7 @@ void OPTBackend_NFCV::run_next_discovery() {
 
         // enqueue event to send
         if (!events.enqueue(OPTBackend::TagDetectedEvent { .tag = tag_id, .antenna = discovery_antenna })) {
+            log_error(Opt, "event queue full, dropping detection of tag %u", static_cast<unsigned>(tag_id));
             // we have too many events - this should never happend but lets be sure
             // we can't report the tag => so we don't want to store it
             // if this ultimately happens increase the events queue by little bit
@@ -629,6 +700,7 @@ void OPTBackend_NFCV::try_report_tag_lost(TagID tag_id) {
 
     // Detected lost tag - lets mark it and enqueue an event
     if (!events.enqueue(OPTBackend::TagLostEvent { .tag = tag_id })) {
+        log_error(Opt, "event queue full, cannot report tag %u as lost", static_cast<unsigned>(tag_id));
         // we have too many events - this should never happend but lets be sure
         // we can't report the lost tag => so we don't want to mark it as lost
         // if this ultimately happens increase the events queue by little bit

@@ -1,3 +1,3 @@
 add_executable(test_st25r39xxb_spi_interface test_spi_st25r39xxb.cpp)
-target_link_libraries(test_st25r39xxb_spi_interface st25r39xxb)
+target_link_libraries(test_st25r39xxb_spi_interface st25r39xxb logging_stub)
 add_catch_test(test_st25r39xxb_spi_interface)

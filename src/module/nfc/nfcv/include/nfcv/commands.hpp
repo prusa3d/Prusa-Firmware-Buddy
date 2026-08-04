@@ -230,4 +230,6 @@ using Command = command::Command;
 bool is_response_expected(const Command &command);
 /// Utility function that checks if current command is "write-like" command
 bool is_write_like_command(const Command &command);
+/// ISO 15693 command code of the command, for identifying it in log messages
+std::byte command_id(const Command &command);
 } // namespace nfcv
