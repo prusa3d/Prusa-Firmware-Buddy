@@ -1,5 +1,6 @@
 #include "main.hpp"
 #include "hal.hpp"
+#include "logging.hpp"
 #include "nfc.hpp"
 
 #include <FreeRTOS.h>
@@ -25,17 +26,17 @@
 // Lowering CANARD_NODE_ID_MAX reduces RAM requirements. It is a change in the canard.h library -> make sure we don't accidentally remove it when we update
 static_assert(CANARD_NODE_ID_MAX == 15);
 
-LOG_COMPONENT_DEF(nfc);
+LOG_COMPONENT_DEF(nfc, logging::Severity::info);
 
 namespace {
 
 // CAN node app task, processes requests from the CAN. Implemented in can_node
-constexpr const size_t node_task_stack_size = 1024 / sizeof(StackType_t);
+constexpr const size_t node_task_stack_size = 1536 / sizeof(StackType_t);
 alignas(32) StackType_t node_task_stack[node_task_stack_size];
 StaticTask_t node_task_control_block;
 
 // High-priority task that is woken up when we need to receive/send over CAN and handles the request
-constexpr const size_t can_task_stack_size = 1024 / sizeof(StackType_t);
+constexpr const size_t can_task_stack_size = 1536 / sizeof(StackType_t);
 alignas(32) StackType_t can_task_stack[can_task_stack_size];
 StaticTask_t can_task_control_block;
 
@@ -111,8 +112,12 @@ NFCTask nfc_task(
 extern "C" int main() {
     hal::init();
 
+    // Safe before the node is up - Record discards events until its instance exists
+    anfc::logging_init();
+
     // Set up Cyphal node and communication basics
     can_node.init();
+    log_info(nfc, "NFC firmware starting");
 
     [[maybe_unused]] TaskHandle_t can_task_handle = xTaskCreateStatic(
         can::cyphal::Task::task,

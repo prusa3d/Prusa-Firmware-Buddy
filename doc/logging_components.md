@@ -68,5 +68,6 @@ This file is generated automatically so don't edit it directly
 - can: logging::Severity::debug, src/can/cyphal_task.cpp
 - connect: logging::Severity::debug, src/connect/connect.cpp
 - httpc: logging::Severity::debug, src/common/http/httpc.cpp
+- nfc: logging::Severity::info, src/puppy/anfc/src/main.cpp
 - socket: logging::Severity::info, src/common/http/socket.cpp
 - transfers: logging::Severity::info, src/transfers/logging.cpp

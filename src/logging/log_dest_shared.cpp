@@ -33,4 +33,14 @@ void log_format_simple(FormattedEvent *event, void (*out_fn)(char character, voi
         event->message);
 }
 
+void log_format_honeybee_node(FormattedEvent *event, void (*out_fn)(char character, void *arg), void *arg) {
+    // Format:
+    // [GUI:4] log message
+    // we don't include severity & time as those are part of the diagnostic message already
+    fctprintf(out_fn, arg, "[%s:%i] %s",
+        event->component->name,
+        event->task_id,
+        event->message);
+}
+
 } // namespace logging

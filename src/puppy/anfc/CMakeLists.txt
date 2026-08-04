@@ -30,6 +30,7 @@ target_sources(
           src/cyphal_anfc_node.cpp
           src/enum_mapping_check.cpp
           src/hal.cpp
+          src/logging.cpp
           src/main.cpp
           src/nfc.cpp
           src/otp.cpp
@@ -65,7 +66,6 @@ target_link_libraries(
           raii
           crc
           mbedTLS
-          log_dev_null
           cortex-m0-atomic
   )
 

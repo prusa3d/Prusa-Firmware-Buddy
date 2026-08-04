@@ -25,3 +25,14 @@ inline uint32_t ticks_ms() {
 inline uint64_t get_timestamp_us() {
     return precise_timer.get_timestamp_us();
 }
+
+/// Mirrors src/common/timing.h, which this header stands in for. Declared here rather than included
+/// from there so that reaching it does not require the whole src/ tree on the include path.
+typedef struct {
+    uint32_t sec; ///< Seconds since the start of the system
+    uint32_t us; ///< Microseconds consistent with sec
+} timestamp_t;
+
+/// Needed by src/logging/log_platform.cpp for log timestamps. It is compiled as part of the shared
+/// `logging` target, so it sees src/common/timing.h and picks this up at link time - hence C linkage.
+extern "C" timestamp_t get_timestamp();

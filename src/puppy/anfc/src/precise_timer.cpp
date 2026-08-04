@@ -1,4 +1,4 @@
-#include "precise_timer.hpp"
+#include "timing.h"
 
 #include <stm32c0xx_hal.h>
 
@@ -57,6 +57,14 @@ void Timer::increment_seconds() {
 } // namespace precise_timing
 
 precise_timing::Timer precise_timer {};
+
+extern "C" timestamp_t get_timestamp() {
+    const uint64_t us = precise_timer.get_timestamp_us();
+    return {
+        .sec = static_cast<uint32_t>(us / 1'000'000),
+        .us = static_cast<uint32_t>(us % 1'000'000),
+    };
+}
 
 extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim == &hal::peripherals::htim2) {
