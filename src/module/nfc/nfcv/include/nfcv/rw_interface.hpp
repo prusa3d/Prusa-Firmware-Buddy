@@ -16,7 +16,15 @@ class ReaderWriterInterface {
 public:
     using AntennaID = uint8_t;
 
-    virtual Result<void> field_up(AntennaID antenna) = 0;
+    /// Raises the RF field on \p antenna in a single RF collision avoidance attempt.
+    /// Re-arbitrating a contended field is the caller's business - see nfcv::FieldManager.
+    ///
+    /// Raising the antenna that already radiates must keep that field up and succeed without
+    /// power-cycling it, so that a burst of operations can share one field.
+    ///
+    /// \returns Error::field_collision if a foreign field is already radiating
+    virtual Result<void> try_field_up(AntennaID antenna) = 0;
+
     virtual void field_down() = 0;
     virtual AntennaID antenna_count() const = 0;
 

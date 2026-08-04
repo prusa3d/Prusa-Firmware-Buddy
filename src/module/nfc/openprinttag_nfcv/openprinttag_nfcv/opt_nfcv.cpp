@@ -77,7 +77,7 @@ void log_field_up_failure(const char *context, ReaderAntenna antenna, OPTBackend
 } // namespace
 
 OPTBackend_NFCV::FieldGuard::FieldGuard(OPTBackend_NFCV &backend, ReaderAntenna antenna)
-    : result(backend.config_.enable_radio ? backend.reader.field_up(antenna).transform_error(to_backend_error) : std::unexpected(IOError::radio_disabled)) {
+    : result(backend.config_.enable_radio ? backend.reader.try_field_up(antenna).transform_error(to_backend_error) : std::unexpected(IOError::radio_disabled)) {
 }
 
 OPTBackend_NFCV::FieldGuard::~FieldGuard() {
@@ -340,7 +340,7 @@ OPTBackend::IOResult<void> OPTBackend_NFCV::initialize_tag(TagID tag, const Init
             // The chip will stop responding if we try to do a command with wrong password, we need to power cycle
             reader.field_down();
 
-            if (auto r = reader.field_up(tag_data.antenna); !r) {
+            if (auto r = reader.try_field_up(tag_data.antenna); !r) {
                 log_error(Opt, "field up after tag power cycle failed: %s", nfcv::to_str(r.error()));
                 return std::unexpected(to_backend_error(r.error()));
             }

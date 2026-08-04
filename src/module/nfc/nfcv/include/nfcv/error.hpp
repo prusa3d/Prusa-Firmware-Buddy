@@ -24,6 +24,10 @@ enum class Error : uint8_t {
     response_is_error,
     bad_request,
     not_implemented,
+
+    /// RF collision avoidance found a foreign field already radiating
+    field_collision,
+
     other,
     unknown,
 };
@@ -65,6 +69,8 @@ constexpr const char *to_str(Error error) {
         return "bad_request";
     case Error::not_implemented:
         return "not_implemented";
+    case Error::field_collision:
+        return "field_collision";
     case Error::other:
         return "other";
     case Error::unknown:

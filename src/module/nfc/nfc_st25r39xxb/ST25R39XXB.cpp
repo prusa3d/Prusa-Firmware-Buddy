@@ -455,7 +455,7 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::init_nfcv_poller(const st25r39xxb::Mo
     return {};
 }
 
-nfcv::Result<void> st25r39xxb::ST25R39XXB::field_up(AntennaID antenna) {
+nfcv::Result<void> st25r39xxb::ST25R39XXB::try_field_up(AntennaID antenna) {
     if (active_antenna == antenna) {
         return {};
     }

@@ -30,7 +30,7 @@ public:
     /// Init NFC-V poller values. Should be called after @ref init
     [[nodiscard]] nfcv::Result<void> init_nfcv_poller(const ModulationConfiguration &settings);
 
-    nfcv::Result<void> field_up(AntennaID antenna) final;
+    nfcv::Result<void> try_field_up(AntennaID antenna) final;
     void field_down() final;
 
     AntennaID antenna_count() const final {

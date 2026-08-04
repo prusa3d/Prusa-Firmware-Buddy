@@ -125,7 +125,7 @@ std::ostream &operator<<(std::ostream &os, const OPTBackend::TagLostEvent &e) {
 } // namespace std
 
 struct EventLogger : public nfcv::ReaderWriterInterface {
-    nfcv::Result<void> field_up(AntennaID antenna) final {
+    nfcv::Result<void> try_field_up(AntennaID antenna) final {
         antenna_index = antenna;
         events.push_back(FieldUp { .antenna = antenna });
         return {};
@@ -1111,7 +1111,7 @@ TEST_CASE("Test NFC-V tag initialization", "[nfcv][openprinttag]") {
             using Register = nfcv::ReaderWriterInterface::Register;
             const nfcv::Result<void> expected_ll_write_result = registers_locked ? std::unexpected(nfcv::Error::response_is_error) : nfcv::Result<void> {};
 
-            logger.field_up(0);
+            logger.try_field_up(0);
 
             CHECK(logger.write_register(tag_uid, Register::afi, 135) == expected_ll_write_result);
             CHECK(logger.write_register(tag_uid, Register::dsfid, 231) == expected_ll_write_result);

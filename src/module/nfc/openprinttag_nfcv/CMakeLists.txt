@@ -6,5 +6,11 @@ target_include_directories(openprinttag_nfcv PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(
   openprinttag_nfcv
   PRIVATE log_interface
-  PUBLIC openprinttag nfcv SG14 buddy_utils raii bsod
+  PUBLIC openprinttag
+         nfcv
+         nfcv_field_manager
+         SG14
+         buddy_utils
+         raii
+         bsod
   )
