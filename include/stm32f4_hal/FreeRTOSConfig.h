@@ -130,16 +130,6 @@ extern uint32_t SystemCoreClock;
 #define configUSE_MALLOC_FAILED_HOOK     1
 #define configUSE_NEWLIB_REENTRANT       1
 
-// Thread usage stats
-#define configGENERATE_RUN_TIME_STATS 1
-#if defined(configGENERATE_RUN_TIME_STATS) && configGENERATE_RUN_TIME_STATS
-    #include "stm32f4xx_hal.h"
-    #include "timer_defaults.h"
-    // TICK_TIMER runs at SystemCoreClock and overflows once a second
-    #define portGET_RUN_TIME_COUNTER_VALUE() (TICK_TIMER->CNT)
-    #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()
-#endif
-
 // #define configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES 1
 
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS 0

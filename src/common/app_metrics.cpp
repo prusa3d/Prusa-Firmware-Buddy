@@ -76,35 +76,14 @@ void RecordRuntimeStats() {
     metric_record_string(&metric_current_filament, "%s", FilamentType::for_tool(VirtualToolIndex::currently_selected()).parameters().name.data());
 
     METRIC_DEF(stack, "stack", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED); // Thread stack usage
-    METRIC_DEF(runtime, "runtime", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED); // Thread runtime usage
-    constexpr const uint32_t STACK_RUNTIME_RECORD_INTERVAL_MS = 3000; // Sample stack and runtime this often
+    constexpr const uint32_t STACK_RUNTIME_RECORD_INTERVAL_MS = 3000;
     static auto should_record_stack_runtime = RateLimiter<uint32_t>(STACK_RUNTIME_RECORD_INTERVAL_MS);
     if (should_record_stack_runtime.check(ticks_ms())) {
         static TaskStatus_t task_statuses[17] = {};
 
-#if configGENERATE_RUN_TIME_STATS
-        // Runtime since last record
-        static uint32_t last_totaltime = 0;
-        uint32_t totaltime = ticks_ms();
-        uint32_t delta_totaltime = totaltime - last_totaltime;
-        last_totaltime = totaltime;
-        // t / 100 for percentage calculations
-        // Compensate t * 1000 * TIM_BASE_CLK_MHZ to get from ms to portGET_RUN_TIME_COUNTER_VALUE() that uses TICK_TIMER
-        delta_totaltime = 10UL * TIM_BASE_CLK_MHZ * delta_totaltime;
-
-        // Last runtime of all threads to get delta later
-        uint32_t last_runtime[21] = {};
-        for (size_t idx = 0; idx < std::size(task_statuses); idx++) {
-            if ((task_statuses[idx].xTaskNumber > 0) && (task_statuses[idx].xTaskNumber <= std::size(last_runtime))) {
-                last_runtime[task_statuses[idx].xTaskNumber - 1] = task_statuses[idx].ulRunTimeCounter;
-            }
-        }
-#endif /*configGENERATE_RUN_TIME_STATS*/
-
-        // Get stack and runtime stats
         int count = uxTaskGetSystemState(task_statuses, std::size(task_statuses), NULL);
         if (count == 0) {
-            log_error(Metrics, "Failed to record stack & runtime metrics. The task_statuses array might be too small.");
+            log_error(Metrics, "Failed to record stack metrics. The task_statuses array might be too small.");
         } else {
             for (int idx = 0; idx < count; idx++) {
                 const char *task_name = task_statuses[idx].pcTaskName;
@@ -117,16 +96,6 @@ void RecordRuntimeStats() {
                     s = malloc_usable_size((void *)stack_base);
                 }
                 metric_record_custom(&stack, ",n=%.7s t=%i,m=%hu", task_name, s, task_statuses[idx].usStackHighWaterMark);
-
-#if configGENERATE_RUN_TIME_STATS
-                // Report runtime usage, runtime can overflow and the difference still be valid
-                if (task_statuses[idx].xTaskNumber <= std::size(last_runtime)) {
-                    const uint32_t runtime_percent = (task_statuses[idx].ulRunTimeCounter - last_runtime[task_statuses[idx].xTaskNumber - 1]) / delta_totaltime;
-                    metric_record_custom(&runtime, ",n=%.7s u=%" PRIu32, task_name, runtime_percent);
-                } else {
-                    log_error(Metrics, "Failed to record runtime metric. The last_runtime array might be too small.");
-                }
-#endif /*configGENERATE_RUN_TIME_STATS*/
             }
         }
     }
