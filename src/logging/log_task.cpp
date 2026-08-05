@@ -2,6 +2,7 @@
 
 #include <array>
 #include <buddy/priorities_config.h>
+#include <cmsis_compiler.h>
 #include <cmsis_os.h>
 #include <cstdio>
 #include <cstdlib>
