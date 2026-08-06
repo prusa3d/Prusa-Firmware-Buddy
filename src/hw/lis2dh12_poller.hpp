@@ -166,8 +166,18 @@ public:
     LIS2DH12Poller &operator=(LIS2DH12Poller &&other) = delete;
 
     bool setup_accelerometer() {
+        // The bus may still be wedged by a transfer that never completed. An
+        // overrun leaves the RX DMA armed for bytes that will never arrive and
+        // raises no error callback, so nothing has cleaned up after it and
+        // everything below would talk over that transfer. Clear the chain only
+        // once the bus is down, so that a poll which slipped through cannot
+        // leave it latched.
+        PollingSuspendGuard suspend { *this };
+        hw_good_flag = false;
+        reset_bus();
+        finalize_async_request_chain();
+
         if (!is_chip_alive()) {
-            hw_good_flag = false;
             return false;
         }
 
