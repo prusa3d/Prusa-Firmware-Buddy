@@ -48,6 +48,7 @@ class LIS2DH12Poller {
     std::atomic<bool> hw_good_flag = false;
     std::atomic<bool> overflow_flag = false;
     std::atomic<uint32_t> total_sample_count = 0;
+    std::atomic<uint32_t> spi_error_count = 0;
 
     AtomicCircularQueue<accelerometer::RawAcceleration, unsigned, 32> sample_queue;
 
@@ -353,6 +354,15 @@ public:
         reset_bus();
         finalize_async_request_chain();
         hw_good_flag = false;
+        ++spi_error_count;
+    }
+
+    // Number of SPI errors observed since boot. Sampling is silently lossy
+    // otherwise - HAL_SPI_Abort() in spi_finish_routine() resets the HAL error
+    // code on every successful transfer, so nothing else records that an error
+    // ever happened.
+    uint32_t error_count() const {
+        return spi_error_count;
     }
 
     // This routine should be called from the SPI TXRX ISR
