@@ -72,25 +72,29 @@ class LIS2DH12Poller {
         return reg_stat == HAL_OK && data_stat == HAL_OK ? 0 : -1;
     }
 
-    void async_read_reg_start(uint8_t reg, uint16_t len) {
+    [[nodiscard]] bool async_read_reg_start(uint8_t reg, uint16_t len) {
         chip_select.write(buddy::hw::Pin::State::high); // Be sure to end any pending transaction
         reg |= 0b11000000; // Set RW and MS bit to force read command and multiple command
         dma_buffer[0] = reg;
         chip_select.write(buddy::hw::Pin::State::low);
-        auto res = HAL_SPI_TransmitReceive_DMA(spi, dma_buffer, dma_buffer, len + 1);
-        if (res != HAL_OK) {
+        if (HAL_SPI_TransmitReceive_DMA(spi, dma_buffer, dma_buffer, len + 1) != HAL_OK) {
+            chip_select.write(buddy::hw::Pin::State::high);
             hw_good_flag = false;
+            return false;
         }
+        return true;
     }
 
+    // A request must only be recorded once the transfer is actually running.
+    // Recording one that never started leaves the chain latched forever: no
+    // completion interrupt will arrive to clear it, and polling_routine() only
+    // issues a new request when the chain is idle.
     void request_status_async() {
-        async_read_reg_start(LIS2DH12_STATUS_REG, 1);
-        pending_request = Request::status;
+        pending_request = async_read_reg_start(LIS2DH12_STATUS_REG, 1) ? Request::status : Request::none;
     }
 
     void request_sample_async() {
-        async_read_reg_start(LIS2DH12_OUT_X_L, 6);
-        pending_request = Request::sample;
+        pending_request = async_read_reg_start(LIS2DH12_OUT_X_L, 6) ? Request::sample : Request::none;
     }
 
     void finalize_async_request_chain() {
