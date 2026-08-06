@@ -193,10 +193,14 @@ void hw_dma_init() {
 
 #if (BOARD_IS_XBUDDY())
     // Accelerometer DMA
-    HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, ISR_PRIORITY_ACCELEROMETER, 0);
+    HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, ISR_PRIORITY_ACCELEROMETER_RX, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
 
-    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, ISR_PRIORITY_ACCELEROMETER, 0);
+    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, ISR_PRIORITY_ACCELEROMETER_TX, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+#else
+    // DMA1_Stream4_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
 #endif
 
@@ -241,9 +245,6 @@ void hw_dma_init() {
     HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 #endif
 
-    // DMA1_Stream4_IRQn interrupt configuration
-    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, ISR_PRIORITY_DEFAULT, 0);
-    HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
     // DMA1_Stream5_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
@@ -308,7 +309,7 @@ void hw_adc1_init() {
     // Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
     config_adc(&hadc1, ADC1, AdcChannel::ADC1_CH_CNT);
 
-    // Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+// Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
 #if (BOARD_IS_BUDDY())
     config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);

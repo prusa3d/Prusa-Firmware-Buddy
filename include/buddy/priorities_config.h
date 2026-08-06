@@ -32,12 +32,18 @@ extern "C" {
 // priority level defined by configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY - interrupts with lower priority below may use FreeRTOS calls
     #define ISR_PRIORITY_PUPPIES_USART 5 // needs to have priority higher than SEGGER_RTT_MAX_INTERRUPT_PRIORITY - which allows interruption of RTT lock
 // priority level defined by SEGGER_RTT_MAX_INTERRUPT_PRIORITY - interrupts with lower priority may use RTT and SysView logging
-    #define ISR_PRIORITY_POWER_PANIC   6
-    #define ISR_PRIORITY_HX717_SOFT    6
-    #define ISR_PRIORITY_ACCELEROMETER 6 // Accelerometer has to be able to preempt the move timer
-    #define ISR_PRIORITY_MOVE_TIMER    7
-    #define ISR_PRIORITY_DEFAULT       8 // default ISR priority, used by ISRs that don't need specific ISR priority
-    #define ISR_PRIORITY_PENDSV        15
+    #define ISR_PRIORITY_POWER_PANIC 6
+    #define ISR_PRIORITY_HX717_SOFT  6
+    // In order to receive data over SPI, it is always sending a byte to generate clock signal for RX.
+    // It is important, that RX has higher priority than TX, otherwise if new TX is handled
+    // prior incoming RX (maybe shortly delayed), there is a risk of RX buffer overflow and data loss
+    // due to other higher priority interrupt (WARNING: this does not guarantee it will work,
+    // but it is better than having TX higher priority than RX)
+    #define ISR_PRIORITY_ACCELEROMETER_RX 6 // Accelerometer DMA RX has to be able to preempt the TX
+    #define ISR_PRIORITY_ACCELEROMETER_TX 7 // Accelerometer DMA TX has to be able to preempt the move timer
+    #define ISR_PRIORITY_MOVE_TIMER       8
+    #define ISR_PRIORITY_DEFAULT          9 // default ISR priority, used by ISRs that don't need specific ISR priority
+    #define ISR_PRIORITY_PENDSV           15
 
 static_assert(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY == 5);
 static_assert(ISR_PRIORITY_PUPPIES_USART < SEGGER_RTT_MAX_INTERRUPT_PRIORITY);

@@ -306,9 +306,9 @@ public:
         }
 
         // There is a slight problem with STM32 HAL SPI driver. This callback is
-        // invoked from the DMA TX ISR. However, as DMA TX and RX share
-        // priority, it is possible that te DMA RX ISR is invoked before the TX
-        // ISR. Hence the handle of TX ISR is in busy state preventing further
+        // invoked from the DMA RX ISR. However, as DMA TX and RX share the same
+        // priority, it is possible that the DMA RX ISR is invoked before the TX
+        // ISR. Hence the handle of TX DMA is in busy state preventing further
         // DMA transactions. We know that all bits are shifted out, hence, it is
         // safe to clean it up manually:
         HAL_SPI_Abort(spi);
