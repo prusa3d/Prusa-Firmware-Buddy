@@ -101,6 +101,30 @@ class LIS2DH12Poller {
         pending_request = Request::none;
     }
 
+    // Suspends the polling ISR for its lifetime so that the owner can talk to
+    // the chip synchronously. Restoring on every exit path matters: leaving
+    // is_running false keeps the poller stopped even once the hardware is
+    // healthy again. The previous state is restored rather than forced on,
+    // because setup also runs before hw_start() first enables polling.
+    class PollingSuspendGuard {
+        LIS2DH12Poller &poller;
+        const bool was_running;
+
+    public:
+        explicit PollingSuspendGuard(LIS2DH12Poller &poller)
+            : poller { poller }
+            , was_running { poller.is_running } {
+            poller.is_running = false;
+        }
+
+        ~PollingSuspendGuard() {
+            poller.is_running = was_running;
+        }
+
+        PollingSuspendGuard(const PollingSuspendGuard &) = delete;
+        PollingSuspendGuard &operator=(const PollingSuspendGuard &) = delete;
+    };
+
     bool is_chip_alive() {
         uint8_t who_am_i;
         lis2dh12_device_id_get(&stlib_context, &who_am_i);
@@ -168,7 +192,7 @@ public:
         auto timed_out = [&]() { return ticks_diff(ticks_us(), timeout_base) > TIMEOUT_US; };
 
         // Ensure synchronous comm
-        is_running = false;
+        PollingSuspendGuard suspend { *this };
         while (pending_request != Request::none) {
             if (timed_out()) {
                 hw_good_flag = false;
@@ -196,7 +220,6 @@ public:
         }
 
         clear();
-        is_running = true;
     }
 
     void stop() {
@@ -237,7 +260,7 @@ public:
         // In order to increase precision of the frequency measurement (as we
         // are limited by the frequency of the polling timer), we busy-poll for
         // two samples to get the precise end time.
-        is_running = false;
+        PollingSuspendGuard suspend { *this };
         timeout_base = ticks_us();
         while (pending_request != Request::none) {
             if (!handle_timeout()) {
@@ -264,8 +287,6 @@ public:
                 overflow_flag = true;
             }
         }
-
-        is_running = true;
 
         return total_sample_count / ((end_time - start_time) / 1'000'000.0f);
     }
