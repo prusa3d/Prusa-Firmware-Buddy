@@ -642,6 +642,11 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
     if (hspi == spi_handle_flash) {
         SpiFlashBus::instance().on_error();
     }
+#if HAS_LOCAL_ACCELEROMETER()
+    if (hspi == spi_handle_accelerometer) {
+        prusa_accelerometer_handle_spi_error();
+    }
+#endif
 }
 
 void HAL_SPI_TxRxCpltCallback([[maybe_unused]] SPI_HandleTypeDef *hspi) {

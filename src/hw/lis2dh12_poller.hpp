@@ -73,7 +73,6 @@ class LIS2DH12Poller {
     }
 
     [[nodiscard]] bool async_read_reg_start(uint8_t reg, uint16_t len) {
-        chip_select.write(buddy::hw::Pin::State::high); // Be sure to end any pending transaction
         reg |= 0b11000000; // Set RW and MS bit to force read command and multiple command
         dma_buffer[0] = reg;
         chip_select.write(buddy::hw::Pin::State::low);
@@ -124,6 +123,20 @@ class LIS2DH12Poller {
         PollingSuspendGuard(const PollingSuspendGuard &) = delete;
         PollingSuspendGuard &operator=(const PollingSuspendGuard &) = delete;
     };
+
+    // Force the SPI peripheral and both DMA streams back to a usable state.
+    void reset_bus() {
+        // HAL_DMA_Abort() cannot be used here: it rejects any handle that is not
+        // exactly BUSY and returns without touching its state, so it cannot rescue
+        // a stream left stranded by a transfer that never completed. Its own
+        // timeout path parks the handle in HAL_DMA_STATE_TIMEOUT, which neither
+        // Abort nor Start_IT will ever accept again. HAL_DMA_Init() ignores the
+        // entry state and unconditionally ends in READY.
+        chip_select.write(buddy::hw::Pin::State::high);
+        HAL_SPI_Abort(spi);
+        HAL_DMA_Init(spi->hdmarx);
+        HAL_DMA_Init(spi->hdmatx);
+    }
 
     bool is_chip_alive() {
         uint8_t who_am_i;
@@ -316,17 +329,27 @@ public:
         }
     }
 
+    // This routine should be called from the SPI error ISR.
+    //
+    // It completes the failed transfer synchronously. There is nothing to wait
+    // for: HAL has already cleared TXDMAEN/RXDMAEN by the time it calls us, so
+    // an asynchronous HAL_SPI_Abort_IT() would find nothing to abort and invoke
+    // its completion callback inline anyway.
+    //
+    // The chip is left marked as bad so that ensure_setup() reconfigures it
+    // before the next measurement session. Recovering the bus without that
+    // would only latch the chain again on the very next poll.
+    void spi_error_routine() {
+        reset_bus();
+        finalize_async_request_chain();
+        hw_good_flag = false;
+    }
+
     // This routine should be called from the SPI TXRX ISR
     void spi_finish_routine() {
         chip_select.write(buddy::hw::Pin::State::high);
 
         if (pending_request == Request::none) {
-            return;
-        }
-
-        if (HAL_SPI_GetState(spi) == HAL_SPI_STATE_ERROR) {
-            hw_good_flag = false;
-            finalize_async_request_chain();
             return;
         }
 
@@ -336,9 +359,18 @@ public:
         // ISR. Hence the handle of TX DMA is in busy state preventing further
         // DMA transactions. We know that all bits are shifted out, hence, it is
         // safe to clean it up manually:
+        //
+        // Only a busy stream may be aborted. Aborting an idle one leaves
+        // HAL_DMA_ERROR_NO_XFER in its handle, and HAL_DMA_IRQHandler() reports
+        // any leftover error code through the transfer error callback once
+        // this callback returns - a spurious SPI error that kills the session.
         HAL_SPI_Abort(spi);
-        HAL_DMA_Abort(spi->hdmarx);
-        HAL_DMA_Abort(spi->hdmatx);
+        if (spi->hdmarx->State == HAL_DMA_STATE_BUSY) {
+            HAL_DMA_Abort(spi->hdmarx);
+        }
+        if (spi->hdmatx->State == HAL_DMA_STATE_BUSY) {
+            HAL_DMA_Abort(spi->hdmatx);
+        }
 
         if (HAL_SPI_GetState(spi) != HAL_SPI_STATE_READY) {
             bsod("Accelerometer SPI not ready");

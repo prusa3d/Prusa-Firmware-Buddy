@@ -131,3 +131,7 @@ void prusa_accelerometer_handle_polling() {
 void prusa_accelerometer_handle_spi_finish() {
     poller().spi_finish_routine();
 }
+
+void prusa_accelerometer_handle_spi_error() {
+    poller().spi_error_routine();
+}
