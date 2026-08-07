@@ -13,7 +13,7 @@
 
 class CFanCtlPuppy final : public CFanCtlCommon {
 public:
-    CFanCtlPuppy([[maybe_unused]] uint8_t dwarf_nr, uint8_t fan_nr, bool is_autofan, uint16_t max_rpm)
+    CFanCtlPuppy([[maybe_unused]] PhysicalToolIndex dwarf_nr, uint8_t fan_nr, bool is_autofan, uint16_t max_rpm)
         : CFanCtlCommon(0, max_rpm)
 #if HAS_DWARF()
         , tool(buddy::puppies::dwarfs[dwarf_nr])

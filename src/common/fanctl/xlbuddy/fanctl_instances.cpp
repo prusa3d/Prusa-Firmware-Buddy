@@ -1,7 +1,8 @@
 #include "fanctl.hpp"
 #include "bsod.h"
 #include "Marlin/src/inc/MarlinConfig.h" // HOTENDS
-#include <array>
+#include <utility>
+#include <utils/storage/strong_index_array.hpp>
 #include "CFanCtlEnclosure.hpp"
 #include "CFanCtlPuppy.hpp"
 #include "hwio_pindef.h"
@@ -12,24 +13,25 @@
 #endif
 
 CFanCtlCommon &Fans::print(PhysicalToolIndex tool) {
-    static std::array<CFanCtlPuppy, PhysicalToolIndex::count> instances = {
-        CFanCtlPuppy(0, 0, false, FANCTLPRINT_RPM_MAX),
-        CFanCtlPuppy(1, 0, false, FANCTLPRINT_RPM_MAX),
-        CFanCtlPuppy(2, 0, false, FANCTLPRINT_RPM_MAX),
-        CFanCtlPuppy(3, 0, false, FANCTLPRINT_RPM_MAX),
-        CFanCtlPuppy(4, 0, false, FANCTLPRINT_RPM_MAX),
+    static StrongIndexArray<CFanCtlPuppy, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> instances = {
+        CFanCtlPuppy(PhysicalToolIndex::from_raw(0), 0, false, FANCTLPRINT_RPM_MAX),
+        CFanCtlPuppy(PhysicalToolIndex::from_raw(1), 0, false, FANCTLPRINT_RPM_MAX),
+        CFanCtlPuppy(PhysicalToolIndex::from_raw(2), 0, false, FANCTLPRINT_RPM_MAX),
+        CFanCtlPuppy(PhysicalToolIndex::from_raw(3), 0, false, FANCTLPRINT_RPM_MAX),
+        CFanCtlPuppy(PhysicalToolIndex::from_raw(4), 0, false, FANCTLPRINT_RPM_MAX),
     };
-    return instances[tool.to_raw()];
+    return instances[tool];
 }
+
 CFanCtlCommon &Fans::heat_break(PhysicalToolIndex tool) {
-    static std::array<CFanCtlPuppy, PhysicalToolIndex::count> instances = {
-        CFanCtlPuppy(0, 1, true, FANCTLHEATBREAK_RPM_MAX),
-        CFanCtlPuppy(1, 1, true, FANCTLHEATBREAK_RPM_MAX),
-        CFanCtlPuppy(2, 1, true, FANCTLHEATBREAK_RPM_MAX),
-        CFanCtlPuppy(3, 1, true, FANCTLHEATBREAK_RPM_MAX),
-        CFanCtlPuppy(4, 1, true, FANCTLHEATBREAK_RPM_MAX),
+    static StrongIndexArray<CFanCtlPuppy, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> instances = {
+        CFanCtlPuppy(PhysicalToolIndex::from_raw(0), 1, true, FANCTLHEATBREAK_RPM_MAX),
+        CFanCtlPuppy(PhysicalToolIndex::from_raw(1), 1, true, FANCTLHEATBREAK_RPM_MAX),
+        CFanCtlPuppy(PhysicalToolIndex::from_raw(2), 1, true, FANCTLHEATBREAK_RPM_MAX),
+        CFanCtlPuppy(PhysicalToolIndex::from_raw(3), 1, true, FANCTLHEATBREAK_RPM_MAX),
+        CFanCtlPuppy(PhysicalToolIndex::from_raw(4), 1, true, FANCTLHEATBREAK_RPM_MAX),
     };
-    return instances[tool.to_raw()];
+    return instances[tool];
 }
 
 CFanCtlCommon &Fans::enclosure() {

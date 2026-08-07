@@ -20,7 +20,7 @@
 
 CFanCtlCommon &Fans::print(PhysicalToolIndex) {
 #if HAS_INDX()
-    static auto instance = CFanCtlPuppy(0, 0, false, FANCTLPRINT_RPM_MAX);
+    static auto instance = CFanCtlPuppy(PhysicalToolIndex::from_raw(0), 0, false, FANCTLPRINT_RPM_MAX);
 
     // All physical tools share the same fan
     // static_assert(PhysicalToolIndex::count == 1);
@@ -53,7 +53,7 @@ static auto read_heat_tacho = []() {
 
 CFanCtlCommon &Fans::heat_break(PhysicalToolIndex) {
 #if HAS_INDX()
-    static auto instance = CFanCtlPuppy(0, 1, true, FANCTLHEATBREAK_RPM_MAX);
+    static auto instance = CFanCtlPuppy(PhysicalToolIndex::from_raw(0), 1, true, FANCTLHEATBREAK_RPM_MAX);
 
     // All physical tools share the same fan
     // static_assert(PhysicalToolIndex::count == 1);
