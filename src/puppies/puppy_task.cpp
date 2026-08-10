@@ -264,7 +264,7 @@ static void puppy_task_loop(PuppyModbus &bus) {
             }
 
             if (slow_stage / 2 < std::size(dwarfs)) { // Two actions per dwarf
-                auto &dwarf = dwarfs[slow_stage / 2];
+                auto &dwarf = dwarfs[PhysicalToolIndex::from_raw(slow_stage / 2)];
                 if (!dwarf.is_enabled()) {
                     continue; // skip if this dwarf is not enabled
                 }
@@ -690,8 +690,6 @@ void run() {
             auto dwarf_index = to_dwarf_index(dwarf_dock);
             if (dwarf_index < PhysicalToolIndex::count) {
                 dwarfs[PhysicalToolIndex::from_raw(dwarf_index)].set_enabled(bootstrap_result.is_dock_occupied(dwarf_dock));
-            } else {
-                dwarfs[dwarf_index].set_enabled(false);
             }
         }
     #endif

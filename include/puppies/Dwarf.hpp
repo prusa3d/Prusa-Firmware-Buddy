@@ -545,6 +545,6 @@ protected:
 };
 
 // we keep old array size instead of PhysicalToolIndex::count because of weak indexing (see definition of PhysicalToolIndex::count)
-extern StrongIndexArray<Dwarf, DWARF_MAX_COUNT, PhysicalToolIndex, PhysicalToolIndex::to_raw_static, strong_index_array::AllowWeakIndexing::yes> dwarfs;
+extern StrongIndexArray<Dwarf, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> dwarfs;
 
 } // namespace buddy::puppies

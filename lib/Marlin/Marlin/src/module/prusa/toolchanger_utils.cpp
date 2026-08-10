@@ -27,8 +27,6 @@ LOG_COMPONENT_DEF(PrusaToolChanger, logging::Severity::debug);
 
 using namespace buddy::puppies;
 
-static_assert(EXTRUDERS == dwarfs.size());
-
 bool PrusaToolChangerUtils::is_pos_in_toolchange_area(const xy_pos_t &pos) {
     return pos.y > SAFE_Y_WITH_TOOL;
 }

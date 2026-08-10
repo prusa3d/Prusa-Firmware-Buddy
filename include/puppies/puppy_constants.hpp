@@ -16,7 +16,6 @@ namespace buddy::puppies {
 
 static_assert(HAS_PUPPIES(), "Why do you include this file if you don't use any puppies");
 
-inline constexpr int DWARF_MAX_COUNT = 6;
 inline constexpr int max_bootstrap_perc { 90 };
 
 enum PuppyType : size_t {
