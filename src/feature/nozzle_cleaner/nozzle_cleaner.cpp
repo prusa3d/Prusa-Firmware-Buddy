@@ -159,44 +159,44 @@ static constexpr EnumArray<Sequence, GCodeFile, static_cast<int>(Sequence::_cnt)
                            .directory = directory,
                            .default_gcode = "M106 S80\n" // fan on
                                             "G4 S2\n" // Wait for 2 seconds
-                                            "G1 X267.4 Y284.75 F3000\n"
-                                            "G1 X253.4 Y284.75 F3000\n"
-                                            "G1 X267.4 Y284.75 F3000\n"
-                                            "G1 X253.4 Y284.75 F3000\n"
-                                            "G1 X253.4 Y305.0 F3000\n"
+                                            "G750 X267.4 Y284.75 F50 A\n"
+                                            "G750 X253.4 Y284.75 F50 A\n"
+                                            "G750 X267.4 Y284.75 F50 A\n"
+                                            "G750 X253.4 Y284.75 F50 A\n"
+                                            "G750 X253.4 Y305.0 F50\n"
                                             "M106 S0\n" // fan off
-                                            "G1 X254 Y285 F5000\n"
-                                            "G1 X248 Y299 F5000\n"
-                                            "G1 X235 Y285 F5000\n"
-                                            "G1 X243 Y304 F5000\n"
-                                            "G1 X230 Y291 F5000\n"
-                                            "G1 X235 Y306 F5000\n"
-                                            "G1 X224 Y296 F5000\n"
-                                            "G1 X226 Y306 F3000\n"
-                                            "G1 X248 Y288 F3000\n"
-                                            "G1 X247 Y284 F3000\n"
-                                            "G1 X229 Y306 F3000\n"
-                                            "G1 X254 Y285 F5000\n"
-                                            "G1 X248 Y299 F5000\n"
-                                            "G1 X235 Y285 F5000\n"
-                                            "G1 X243 Y304 F5000\n"
-                                            "G1 X230 Y291 F5000\n"
-                                            "G1 X235 Y306 F5000\n"
-                                            "G1 X224 Y296 F5000\n"
-                                            "G1 X226 Y306 F3000\n"
-                                            "G1 X248 Y288 F3000\n"
-                                            "G1 X247 Y284 F3000\n"
-                                            "G1 X229 Y306 F3000",
+                                            "G750 X254 Y285 F83 A\n"
+                                            "G750 X248 Y299 F83 A\n"
+                                            "G750 X235 Y285 F83 A\n"
+                                            "G750 X243 Y304 F83 A\n"
+                                            "G750 X230 Y291 F83 A\n"
+                                            "G750 X235 Y306 F83 A\n"
+                                            "G750 X224 Y296 F83 A\n"
+                                            "G750 X226 Y306 F50 A\n"
+                                            "G750 X248 Y288 F50 A\n"
+                                            "G750 X247 Y284 F50 A\n"
+                                            "G750 X229 Y306 F50 A\n"
+                                            "G750 X254 Y285 F83 A\n"
+                                            "G750 X248 Y299 F83 A\n"
+                                            "G750 X235 Y285 F83 A\n"
+                                            "G750 X243 Y304 F83 A\n"
+                                            "G750 X230 Y291 F83 A\n"
+                                            "G750 X235 Y306 F83 A\n"
+                                            "G750 X224 Y296 F83 A\n"
+                                            "G750 X226 Y306 F50 A\n"
+                                            "G750 X248 Y288 F50 A\n"
+                                            "G750 X247 Y284 F50 A\n"
+                                            "G750 X229 Y306 F50 A",
                        } },
         { Sequence::purge_clean, {
                                      .filename = "purge_clean", .directory = directory,
                                      .default_gcode = "M106 S200\n" // fan on
                                                       "G4 S4\n" // Wait for 4 seconds
-                                                      "G1 X267.4 Y284.75 F3000\n"
-                                                      "G1 X253.4 Y284.75 F3000\n"
-                                                      "G1 X267.4 Y284.75 F3000\n"
-                                                      "G1 X253.4 Y284.75 F3000\n"
-                                                      "G1 X253.4 Y305.0 F3000\n"
+                                                      "G750 X267.4 Y284.75 F50 A\n"
+                                                      "G750 X253.4 Y284.75 F50 A\n"
+                                                      "G750 X267.4 Y284.75 F50 A\n"
+                                                      "G750 X253.4 Y284.75 F50 A\n"
+                                                      "G750 X253.4 Y305.0 F50\n"
                                                       "M106 S0\n", // fan off
                                  } },
 #endif
