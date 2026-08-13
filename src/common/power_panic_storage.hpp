@@ -1,68 +1,47 @@
+#pragma once
 
 #include <option/has_modular_bed.h>
-#include <option/has_puppies.h>
 #include <option/has_toolchanger.h>
 #include <option/has_chamber_api.h>
 #include <option/has_motor_current_profiles.h>
 #include <option/has_indx.h>
 #include <option/has_tool_crash_recovery.h>
+#include <option/has_cancel_object.h>
+#include <option/has_tool_mapping.h>
+#include <option/has_spool_join.h>
 
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif
-
-#include "marlin_server.hpp"
-
-#include "../lib/Marlin/Marlin/src/feature/prusa/crash_recovery.hpp"
-
-#include "../lib/Marlin/Marlin/src/feature/bedlevel/bedlevel.h"
-#if ENABLED(AUTO_BED_LEVELING_UBL)
-    #include "../lib/Marlin/Marlin/src/feature/bedlevel/ubl/ubl.h"
-#else
-    #error "powerpanic currently supports only UBL"
-#endif
-
-#include <option/has_cancel_object.h>
 #if HAS_CANCEL_OBJECT()
     #include <feature/cancel_object/cancel_object.hpp>
 #endif
-
 #if HAS_TOOL_MAPPING()
-    #include "module/prusa/tool_mapper.hpp"
+    #include <module/prusa/tool_mapper.hpp>
 #endif
-
-#include <option/has_spool_join.h>
 #if HAS_SPOOL_JOIN()
     #include <module/prusa/spool_join.hpp>
 #endif
 
-#if HAS_CHAMBER_API()
-    #include <feature/chamber/chamber.hpp>
+#include <Marlin/src/core/types.h>
+#include <Marlin/src/module/planner.h>
+#include <Marlin/src/module/motion.h>
+#include <Marlin/src/feature/prusa/crash_recovery.hpp>
+#include <Marlin/src/feature/bedlevel/bedlevel.h>
+#include <Marlin/src/feature/bedlevel/ubl/ubl.h>
+#include <Marlin/src/feature/print_area.h>
+#include <Marlin/src/feature/input_shaper/input_shaper_config.hpp>
+#include <Marlin/src/feature/pressure_advance/pressure_advance_config.hpp>
+
+#if DISABLED(AUTO_BED_LEVELING_UBL)
+    #error "powerpanic currently supports only UBL"
 #endif
 
-#include "../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
-#include "../lib/Marlin/Marlin/src/feature/pressure_advance/pressure_advance_config.hpp"
-
-#include <logging/log.hpp>
-
-#include <common/sys.hpp>
+#include <common/printer_model.hpp>
 #include <buddy/filename_defs.hpp>
-
-#include <option/has_gui.h>
-
-#include <option/has_leds.h>
-#if HAS_LEDS()
-    #include <leds/led_manager.hpp>
-#endif
-
-#include <option/has_side_leds.h>
-
-#include <usb_host/usbh_async_diskio.hpp>
 #include <gcode/gcode_reader_restore_info.hpp>
 #include <tool_index.hpp>
 #include <utils/storage/strong_index_array.hpp>
-
-#include "feature/print_area.h"
 
 // WARNING: mind the alignment, the following structures are not automatically packed
 // as they're shared also for the on-memory copy. The on-memory copy can be avoided

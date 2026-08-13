@@ -1,7 +1,7 @@
 /***
 @brief This is power panic storage implemented with external w25x flash memory.
 */
-#include "power_panic_storage.hpp"
+#include <common/power_panic_storage.hpp>
 #include <common/w25x.hpp>
 #include <logging/log.hpp>
 #include <bsod/bsod.h>
