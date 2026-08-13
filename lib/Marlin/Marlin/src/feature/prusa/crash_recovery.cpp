@@ -255,7 +255,11 @@ void Crash_s::set_state(state_t new_state) {
         }
         homefail_z = false;
         reset_repeated_crash();
-        if (state != REPLAY) {
+        if (state == REPLAY) {
+            // manipulate the current state in order
+            // to resume the execution from the crashing position
+            planner.set_machine_position_mm(crash_machine_position);
+        } else {
             activate();
         }
         break;

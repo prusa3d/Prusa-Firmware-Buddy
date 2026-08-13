@@ -2708,6 +2708,12 @@ static void _server_print_loop(void) {
         if (crash_s.get_state() == Crash_s::RECOVERY) {
             endstops.enable_globally(true);
             crash_s.set_state(Crash_s::REPLAY);
+
+            if (crash_s.segments_finished == 0) {
+                // No segments to skip -> normal operation
+                crash_s.set_state(Crash_s::PRINTING);
+            }
+
         } else if (crash_s.get_state() == Crash_s::REPEAT_WAIT) {
             endstops.enable_globally(true);
             crash_s.set_state(Crash_s::PRINTING); // Coming from toolcrash or homing fail, no replay

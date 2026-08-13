@@ -2225,10 +2225,6 @@ bool Planner::buffer_segment(const MachinePosXYZE &xyze, const feedRate_t fr_mm_
         return true;
       }
 
-      // first real segment after recovering, manipulate the current state in order
-      // to resume the segment from the crashing position
-      set_machine_position_mm(crash_s.crash_machine_position);
-
       // continue normally
       crash_s.set_state(Crash_s::PRINTING);
     }
@@ -2337,10 +2333,6 @@ bool Planner::buffer_raw_segment(const MachinePosXYZE &xyze, const float acceler
                 --crash_s.segments_finished;
                 return true;
             }
-
-            // first real segment after recovering, manipulate the current state in order
-            // to resume the segment from the crashing position
-            set_machine_position_mm(crash_s.crash_machine_position);
 
             // continue normally
             crash_s.set_state(Crash_s::PRINTING);
