@@ -604,7 +604,7 @@ bool is_power_panic_resuming() {
 }
 
 /// fully reset PP state for a new print
-void reset() {
+void reset_state() {
     // reset all internal state
     atomic_reset();
 

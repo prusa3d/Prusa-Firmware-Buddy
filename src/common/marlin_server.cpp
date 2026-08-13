@@ -1166,7 +1166,7 @@ static void cleanup_print(ResetToolMapping reset_tool_mapping = ResetToolMapping
 /// Executes all the print finishing touches
 void static finalize_print(bool finished) {
 #if HAS_POWER_PANIC()
-    power_panic::reset();
+    power_panic::reset_state();
 #endif
 
     print_job_timer.stop();

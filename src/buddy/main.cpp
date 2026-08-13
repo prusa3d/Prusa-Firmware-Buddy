@@ -525,7 +525,7 @@ extern "C" void main_cpp(void) {
         // XFLASH dump and power-panic data, since it is not relevant anymore
         dump_reset();
 #if HAS_POWER_PANIC()
-        power_panic::reset();
+        power_panic::reset_state();
 #endif
     }
 

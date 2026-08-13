@@ -18,7 +18,7 @@ bool state_stored();
 const char *stored_media_path();
 
 // Clear existing stored state, reset internal state
-void reset();
+void reset_state();
 
 // Prepare the fixed data section in the flash, including MBL and filename data.
 // Call once after MBL during the printing process (usually after a successful G29)

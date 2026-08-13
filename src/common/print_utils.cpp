@@ -49,7 +49,7 @@ void run_once_after_boot() {
             return;
         }
         if (reset_pp) {
-            power_panic::reset();
+            power_panic::reset_state();
         }
     }
 #endif
