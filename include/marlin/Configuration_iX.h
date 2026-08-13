@@ -1008,6 +1008,12 @@
     #define Y_V_BLADE_POINT 284.75f
     #define Y_WASTEBIN_SAFE_POINT 270.0f
 
+    // No construction-defined nozzle cleaner origin, defining one in the
+    // firmware would complicate adopting mechanical changes. Keep the origin
+    // at 0, 0 and use absolute nozzle cleaner coordinates.
+    #define X_NOZZLE_CLEANER_ORIGIN 0.0f
+    #define Y_NOZZLE_CLEANER_ORIGIN 0.0f
+
     #define X_NOZZLE_PARK_POINT 208.75f
     #define Y_NOZZLE_PARK_POINT 305.0f
     #define Z_NOZZLE_PARK_POINT 10.0f

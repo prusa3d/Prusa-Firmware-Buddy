@@ -102,7 +102,7 @@ void G427(); ///< Tool offset calibration (Z-probe + XY tool offset board calib)
 void M1985(); //< INDX tool offsets calibration
 #endif
 
-#if HAS_INDX()
+#if HAS_NOZZLE_CLEANER()
 void G750(); ///< Move to absolute X,Y position with nozzle cleaner origin offset
 #endif
 

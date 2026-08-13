@@ -20,6 +20,7 @@
 #include <option/has_chamber_vents.h>
 #include <option/has_spool_join.h>
 #include <option/has_indx.h>
+#include <option/has_nozzle_cleaner.h>
 #include <option/has_heaters_selftest_gcode.h>
 #include <option/has_wastebin_fill_tracking.h>
 
@@ -419,7 +420,7 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             PrusaGcodeSuite::G427();
             break;
 #endif
-#if HAS_INDX()
+#if HAS_NOZZLE_CLEANER()
         case 750:
             PrusaGcodeSuite::G750();
             break;

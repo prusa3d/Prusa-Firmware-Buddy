@@ -130,7 +130,7 @@ if(HAS_CHAMBER_VENTS)
   target_sources(firmware PRIVATE M870.cpp)
 endif()
 
-if(HAS_INDX)
+if(HAS_NOZZLE_CLEANER)
   target_sources(firmware PRIVATE G750.cpp)
 endif()
 
