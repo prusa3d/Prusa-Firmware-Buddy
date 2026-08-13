@@ -5,6 +5,11 @@
 #include <common/w25x.hpp>
 #include <logging/log.hpp>
 #include <bsod/bsod.h>
+#include <version/version.hpp>
+
+#include <cstddef>
+#include <cstring>
+#include <type_traits>
 
 namespace power_panic {
 
@@ -19,12 +24,28 @@ static Storage &storage_instance() {
 static constexpr uint32_t flash_offset = Storage::pp_start_address;
 static constexpr uint32_t flash_size = Storage::pp_size;
 
+// Random magic number
+// distinct from the magic numbers used in this project - BKPSRAM, Crash Dump, Crash Message
+static constexpr uint32_t HEADER_MAGIC = 0xD4F9A2B7;
+
 struct flash_data_t {
+    /// Identifies the build that wrote the region. The payload layout changes
+    /// between builds, so data from any other build must be ignored.
+    struct header_t {
+        uint32_t magic;
+        version::BuildIdentification build_id;
+    };
+    header_t header;
+
     fixed_t fixed;
     state_t state;
 
     uint8_t invalid; // boolean-like variable indicating if data is invalid
 };
+
+static_assert(offsetof(flash_data_t, header) == 0, "header must stay ahead of the layout-dependent payload");
+static_assert(sizeof(flash_data_t::header_t) == sizeof(uint32_t) + sizeof(version::BuildIdentification),
+    "no padding: the header is written and compared as raw bytes");
 
 // in-ram copy of the flash state
 state_t state_buf_data;
@@ -97,6 +118,11 @@ void erase() {
 }
 
 void fixed_t::save() {
+    // Stamp the region in task context, so the panic-time save path
+    // stays free of header writes.
+    flash_data_t::header_t stamp { HEADER_MAGIC, version::project_build_identification };
+    FLASH_SAVE(header, stamp);
+
     // print area
     PrintArea::rect_t rect = print_area.get_bounding_rect();
     FLASH_SAVE(fixed.bounding_rect_a, rect.a);
@@ -137,6 +163,19 @@ void fixed_t::load() {
 }
 
 bool state_stored() {
+    // The invalid flag can only be trusted once the header proves the region
+    // was written by this very build.
+    const flash_data_t::header_t stored = FLASH_LOAD_EXPR(header);
+    if (storage_instance().fetch_error()) {
+        log_error(PowerPanic, "Failed to get stored.");
+        return false;
+    }
+
+    const flash_data_t::header_t expected { HEADER_MAGIC, version::project_build_identification };
+    if (memcmp(&stored, &expected, sizeof(stored)) != 0) {
+        return false;
+    }
+
     bool retval = !FLASH_LOAD_EXPR(invalid);
     if (storage_instance().fetch_error()) {
         log_error(PowerPanic, "Failed to get stored.");
