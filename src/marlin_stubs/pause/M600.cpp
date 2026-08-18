@@ -126,7 +126,10 @@ void GcodeSuite::M600() {
 
 #if HAS_SPOOL_JOIN()
     if (is_auto_m600) {
-        auto virtual_tool = stdext::get_optional<VirtualToolIndex>(VirtualToolIndex::currently_selected());
+        // Get virtual tool index from G-code
+        // If not present, use current tool
+        auto virtual_tool = stdext::get_optional<VirtualToolIndex>(PrusaGcodeSuite::get_target_virtual_from_command_p(p));
+
         if (!virtual_tool.has_value()) {
             bsod("Spool join to notool");
         }

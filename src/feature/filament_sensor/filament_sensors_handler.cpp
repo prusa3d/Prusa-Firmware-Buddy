@@ -229,9 +229,15 @@ void FilamentSensors::process_events() {
 
         m600_sent = true;
 
-        marlin_server::gcode_interrupt(GCodeLiteral { .gcode = "M600 A" }); // change filament
+        const auto tool = VirtualToolIndex::currently_selected_opt();
 
-        log_info(FSensor, "Injected runout");
+        if (tool.has_value()) {
+            marlin_server::gcode_interrupt(GCodeLiteral { .gcode = "M600 A P T%.0f", .parameter = static_cast<float>(tool->to_raw()) });
+            log_info(FSensor, "Injected runout for T: %u", tool->to_raw());
+        } else {
+            return false;
+        }
+
         return true;
     };
 
