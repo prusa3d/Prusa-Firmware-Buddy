@@ -334,7 +334,7 @@ static void dump_failed() {
     sys_reset();
 }
 
-static constexpr CrashCatcherMemoryRegion regions[] = {
+static const CrashCatcherMemoryRegion regions[] = {
     { crash_dump::SCB_ADDR, crash_dump::SCB_ADDR + crash_dump::SCB_SIZE, CRASH_CATCHER_WORD },
     { crash_dump::RAM_ADDR, crash_dump::RAM_ADDR + crash_dump::RAM_SIZE, CRASH_CATCHER_BYTE },
     { crash_dump::CCMRAM_ADDR, crash_dump::CCMRAM_ADDR + crash_dump::CCMRAM_SIZE, CRASH_CATCHER_BYTE },
