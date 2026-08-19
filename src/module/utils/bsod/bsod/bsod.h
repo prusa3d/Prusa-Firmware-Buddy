@@ -52,7 +52,7 @@ _bsod(const char *fmt, const char *file_name, int line_number, ...);
 // contract_assert is a language keyword
 #else
     #define contract_assert(expr)                                 \
-        if (!(expr)) {                                            \
+        if (!(expr)) [[unlikely]] {                               \
             _bsod("CONTRACT %s", __FILE_NAME__, __LINE__, #expr); \
         }                                                         \
         __attribute__((assume(expr)))
