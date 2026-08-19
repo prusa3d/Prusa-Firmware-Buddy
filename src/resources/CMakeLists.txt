@@ -182,8 +182,7 @@ if(HAS_MMU2)
 
   add_custom_command(
     OUTPUT "${mmu_fw_bin_file}"
-    COMMAND "${RECOMMENDED_TOOLCHAIN_BINUTILS}/arm-none-eabi-objcopy" -I ihex -O binary
-            "${mmu_fw_adj_hex_file}" "${mmu_fw_bin_file}"
+    COMMAND "${CMAKE_OBJCOPY}" -I ihex -O binary "${mmu_fw_adj_hex_file}" "${mmu_fw_bin_file}"
     DEPENDS "${mmu_fw_adj_hex_file}"
     )
 
