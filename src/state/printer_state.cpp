@@ -715,11 +715,8 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
         return ErrCode::CONNECT_ENCLOSURE_FILTER_EXPIRATION;
 #endif
 #if HAS_WASTEBIN_FILL_TRACKING()
-    case WarningType::NozzleCleanerFull:
     case WarningType::NozzleCleanerFullInfo:
         return ErrCode::CONNECT_NOZZLE_CLEANER_FULL;
-    case WarningType::NozzleCleanerManualEmpty:
-        return ErrCode::CONNECT_NOZZLE_CLEANER_EMPTY;
 #endif
 
 #if HAS_PRINT_SHEET_DETECTION()

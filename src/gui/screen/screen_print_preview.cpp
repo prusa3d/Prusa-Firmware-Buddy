@@ -45,10 +45,6 @@ namespace {
 const auto text_loading = N_("Loading...");
 const auto text_downloading = N_("Downloading...");
 const auto text_header_print = N_("PRINT");
-#if HAS_WASTEBIN_FILL_TRACKING()
-const auto text_parking = N_("Parking");
-const auto text_raising_bed = N_("Raising the bed");
-#endif
 
 #if HAS_LARGE_DISPLAY()
 static constexpr Rect16 title_rect {
@@ -159,8 +155,6 @@ using Frames = FrameDefinitionList<ScreenPrintPreview::FrameStorage,
 #endif
 #if HAS_WASTEBIN_FILL_TRACKING()
     FrameDefinition<Phase::wastebin_overfill_warning, frames::FrameWastebinOverfill>,
-    FrameDefinition<Phase::wastebin_emptying, FrameWait, text_parking>,
-    FrameDefinition<Phase::wastebin_emptied_returning, FrameWait, text_raising_bed>,
 #endif
     FrameDefinition<Phase::file_error, FramePrompt, Phase::file_error, map_print_preview_phase_to_error_code>>;
 

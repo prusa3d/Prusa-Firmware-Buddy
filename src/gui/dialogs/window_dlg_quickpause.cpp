@@ -23,7 +23,7 @@ DialogQuickPause::DialogQuickPause(fsm::BaseData data)
     const char *msg = nullptr;
     memcpy(&msg, (uint32_t *)data.GetData().data(), sizeof(uint32_t));
     if (msg) {
-        // Custom message (e.g. the "Empty Wastebin" prompt). Show it instead of the default
+        // Custom message (M0 with a message argument). Show it instead of the default
         // quick-pause text and hide the gcode-name field - that one belongs to the M0 quick-pause
         // presentation and would render confusingly over a custom dialog.
         // Run it through gettext: a translatable (N_-marked) string gets localized; raw strings

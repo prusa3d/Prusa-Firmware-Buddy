@@ -135,12 +135,8 @@ enum class WarningType : uint32_t {
 #endif
 
 #if HAS_WASTEBIN_FILL_TRACKING()
-    /// The INDX nozzle-cleaner wastebin is full; the print is paused so the user can empty it (Ignore / Done).
-    NozzleCleanerFull,
     /// The wastebin is full but auto-pause is off: informational only, the print keeps running (single dismiss).
     NozzleCleanerFullInfo,
-    /// Manual "Empty Wastebin" (M1986): the print is parked, prompting the user to empty the bin and confirm.
-    NozzleCleanerManualEmpty,
 #endif
 
 #if PRINTER_IS_PRUSA_XL()

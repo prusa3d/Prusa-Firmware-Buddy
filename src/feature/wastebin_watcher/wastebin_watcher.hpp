@@ -24,18 +24,13 @@ public:
     /// [Thread-safe] Singleton accessor.
     static WastebinWatcher &instance();
 
-    /// [Marlin thread only] G12: account for one ejected blob (== one pellet). Bumps the counters
-    /// and, mid-print, raises the "wastebin full" warning (and optionally auto-pauses, via
-    /// pause_to_empty()) the moment the bin fills.
+    /// [Marlin thread only] G12: account for one ejected blob (== one pellet). The moment the bin
+    /// fills mid-print, either pauses to have it emptied or just warns, per the auto-pause setting.
     void account_ejected_pellet();
 
-    /// [Marlin thread only] Park the head clear of the bin (retracted + lifted above the print),
-    /// raise the wastebin warning and block the gcode stream until the user answers it, then return
-    /// and de-retract. Does motion, so it must run on the marlin thread.
-    /// \p full true: mid-print "bin full" flow - raises NozzleCleanerFull (Ignore / Done).
-    ///         false: manual "Empty Wastebin" flow (M1986) - raises NozzleCleanerManualEmpty (Done).
-    /// The warning dispatch handles the response (reset the counter / ignore for this print). Shared
-    /// by account_ejected_pellet() (auto-pause) and the M1986 gcode (manual).
+    /// [Marlin thread only] Park clear of the cleaner, block the gcode stream until the user
+    /// confirms the bin is empty, then (mid-print) reheat over the cleaner and return.
+    /// \p full also offers Ignore on the prompt (stop checking the bin for the rest of this print).
     void pause_to_empty(bool full);
 
     /// [Thread-safe] True if this print is likely to overfill the bin (current fill + this print's

@@ -43,8 +43,7 @@ public:
 
 #if HAS_WASTEBIN_FILL_TRACKING()
         wastebin_overfill_wait_user, ///< bin projected to overfill
-        wastebin_emptying, ///< M1986 is parking and dropping the bed, before the empty-the-bin prompt
-        wastebin_emptied_returning, ///< the bin has been emptied, M1986 is on its way back
+        wastebin_emptying, ///< waiting for M1986, which brings its own screens
 #endif
 
         filament_not_inserted_wait_user,

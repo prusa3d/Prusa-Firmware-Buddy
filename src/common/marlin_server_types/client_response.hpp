@@ -388,13 +388,6 @@ enum class PhasesWarning : PhaseUnderlyingType {
     HotendOffsetUnsafeSensorXY,
 #endif
 
-#if HAS_WASTEBIN_FILL_TRACKING()
-    /// Mid-print, auto-pause on: the nozzle-cleaner wastebin is full. Ignore (disable check this print) / Done (reset counter).
-    NozzleCleanerFull,
-    /// Manual "Empty Wastebin": print parked, prompting the user to empty the bin and confirm (Done -> reset counter).
-    NozzleCleanerManualEmpty,
-#endif
-
     /// Shown when the M334 is attempting to change metrics configuration, prompting the user to confirm the change (security reasons)
     MetricsConfigChangePrompt,
 
@@ -771,10 +764,6 @@ inline constexpr EnumArray<PhasesWarning, PhaseResponses, CountPhases<PhasesWarn
         { PhasesWarning::HotendOffsetUnsafeZDeviation, { Response::Retry, Response::Abort } },
         { PhasesWarning::HotendOffsetUnsafeXyDeviation, { Response::Retry, Response::Abort } },
         { PhasesWarning::HotendOffsetUnsafeSensorXY, { Response::Retry, Response::Abort } },
-#endif
-#if HAS_WASTEBIN_FILL_TRACKING()
-        { PhasesWarning::NozzleCleanerFull, { Response::Ignore, Response::Done } },
-        { PhasesWarning::NozzleCleanerManualEmpty, { Response::Done } },
 #endif
         { PhasesWarning::MetricsConfigChangePrompt, { Response::Yes, Response::No } },
 };

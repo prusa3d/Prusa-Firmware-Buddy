@@ -9,9 +9,6 @@ static_assert(sizeof(fsm::PhaseData) == sizeof(WarningType), "If this does not h
 class DialogWarning : public IDialogMarlin {
     std::optional<FrameIconQRPrompt> frame_;
 
-    /// Shared parameter buffer for warnings that format values into their text.
-    StringViewUtf8Parameters<8> info_params;
-
 public:
     DialogWarning(fsm::BaseData);
 

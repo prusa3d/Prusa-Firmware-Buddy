@@ -109,15 +109,6 @@ constexpr PhasesWarning warning_type_phase_constexpr(WarningType warning) {
         return PhasesWarning::HotendOffsetUnsafeSensorXY;
 #endif
 
-#if HAS_WASTEBIN_FILL_TRACKING()
-    case WarningType::NozzleCleanerFull:
-        return PhasesWarning::NozzleCleanerFull;
-    case WarningType::NozzleCleanerManualEmpty:
-        return PhasesWarning::NozzleCleanerManualEmpty;
-        // NozzleCleanerFullInfo intentionally has no dedicated phase - it falls back to the generic
-        // PhasesWarning::Warning (single Ok), see the default below.
-#endif
-
         //
     }
 }

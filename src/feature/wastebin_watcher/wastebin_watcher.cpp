@@ -9,6 +9,7 @@
 #include <marlin_server.hpp>
 #include <warning_type.hpp>
 #include <client_response.hpp>
+#include <fsm/wastebin_emptying_phases.hpp>
 #include <inc/MarlinConfig.h>
 #include <mapi/parking.hpp>
 #include <mapi/motion.hpp>
@@ -36,7 +37,7 @@ void WastebinWatcher::account_ejected_pellet() {
 
     if (config_store().nozzle_cleaner_autopause_on_full.get()) {
         // Auto-pause: park + hold the print right here (we're on the marlin thread, directly after
-        // the eject) until the user answers the warning. No asynchronous gcode injection.
+        // the eject) until the user answers the prompt. No asynchronous gcode injection.
         pause_to_empty(/*full=*/true);
     } else {
         // Auto-pause off: informational only (the print keeps running; the user cannot safely empty
@@ -46,9 +47,6 @@ void WastebinWatcher::account_ejected_pellet() {
 }
 
 void WastebinWatcher::pause_to_empty(bool full) {
-    // full=true: mid-print "bin full" (NozzleCleanerFull, Ignore/Done). false: manual "Empty
-    // Wastebin" (NozzleCleanerManualEmpty, Done).
-    const WarningType warning = full ? WarningType::NozzleCleanerFull : WarningType::NozzleCleanerManualEmpty;
     const bool printing = marlin_server::is_printing();
     const xyz_pos_t resume_pos = current_position.xyz();
     const float resume_e = current_position.e;
@@ -58,6 +56,9 @@ void WastebinWatcher::pause_to_empty(bool full) {
     const int16_t resume_temp = Hotend::for_tool(PhysicalToolIndex::currently_selected()).nozzle_target_temp();
 
     const auto filament = FilamentType::for_current_tool_heuristic();
+
+    // Scores over Printing and PrintPreview - all the entry points get the same screens.
+    marlin_server::FSM_Holder fsm { PhaseWastebinEmptying::parking };
 
     if (printing) {
         // Drop the nozzle target so it doesn't cook/ooze during the (possibly long) wait; restored
@@ -76,8 +77,11 @@ void WastebinWatcher::pause_to_empty(bool full) {
         mapi::home_if_needed_and_park(mapi::get_parking_position(mapi::ParkPosition::empty_wastebin));
     }
 
-    // Show the warning, block until the user answers, then close it.
-    switch (marlin_server::prompt_warning(warning)) {
+    // full=true: the bin hit capacity, so Ignore is offered to stop checking it for this print.
+    const auto prompt = full ? PhaseWastebinEmptying::prompt_full : PhaseWastebinEmptying::prompt_empty;
+    fsm.change(prompt);
+
+    switch (marlin_server::wait_for_response(prompt)) {
     case Response::Done:
         mark_emptied(); // bin emptied -> reset the counter
         break;
@@ -92,6 +96,7 @@ void WastebinWatcher::pause_to_empty(bool full) {
         return; // idle: nothing to return to
     }
 
+    fsm.change(PhaseWastebinEmptying::raising_bed);
     // Park over in the nozzle cleaner so that reheating blob lands in the wastebin
     mapi::park(mapi::get_parking_position(mapi::ParkPosition::purge));
     // Move the most of the Z travel over the wastebin
@@ -99,12 +104,17 @@ void WastebinWatcher::pause_to_empty(bool full) {
     MachinePosXYZE over_bin = current_machine_position();
     over_bin.z = std::max(resume_machine_z, planner.max_printed_z + return_clearance);
     line_to_machine_pos(over_bin, NOZZLE_PARK_Z_FEEDRATE, { .ignore_e_factor = true });
+    // Let the bed finish rising before announcing the heat-up, so the screen matches what moves.
+    planner.synchronize();
+
+    fsm.change(PhaseWastebinEmptying::heating);
     // Reheat over the cleaner so heat-up ooze drips into the bin, not onto the print.
     Hotend::for_tool(PhysicalToolIndex::currently_selected()).set_nozzle_target_temp(resume_temp);
     if (const auto tool = PhysicalToolIndex::currently_selected_opt()) {
         thermalManager.wait_for_hotend(*tool, { .no_wait_for_cooling = false });
     }
-    planner.synchronize();
+
+    fsm.change(PhaseWastebinEmptying::returning);
     // Traverse XY back (park routes around the cleaner) at that clearance height so we never drag
     // over the print, then drop to the saved machine Z and restore E.
     mapi::park(mapi::ParkingPosition { .x = resume_pos.x, .y = resume_pos.y });
