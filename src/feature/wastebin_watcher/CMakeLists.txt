@@ -1,1 +1,1 @@
-target_sources(firmware PRIVATE wastebin_watcher.cpp)
+target_sources(firmware PRIVATE screen_wastebin_emptying.cpp wastebin_watcher.cpp)

@@ -9,6 +9,7 @@
 #include <option/has_manual_belt_tuning.h>
 #include <option/has_indx.h>
 #include <option/has_heaters_selftest_gcode.h>
+#include <option/has_wastebin_fill_tracking.h>
 #include <logging/log.hpp>
 
 LOG_COMPONENT_DEF(Fsm, logging::Severity::debug);
@@ -78,6 +79,10 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
         return 2;
 #if HAS_INDX()
     case ClientFSM::NozzleMismatch:
+    #if HAS_WASTEBIN_FILL_TRACKING()
+    case ClientFSM::WastebinEmptying:
+    #endif
+        // Show over Printing and PrintPreview - these interrupt both
         return 3;
 #endif
 

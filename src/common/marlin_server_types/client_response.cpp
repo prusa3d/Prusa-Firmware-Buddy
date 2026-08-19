@@ -3,6 +3,7 @@
 #include <option/has_serial_print.h>
 #include <option/has_manual_belt_tuning.h>
 #include <option/has_tool_offset_sensor.h>
+#include <option/has_wastebin_fill_tracking.h>
 #include <fsm/safety_timer_phases.hpp>
 #include <fsm/print_preview_phases.hpp>
 
@@ -16,6 +17,10 @@
 
 #if HAS_INDX()
     #include <fsm/nozzle_mismatch_phases.hpp>
+#endif
+
+#if HAS_WASTEBIN_FILL_TRACKING()
+    #include <fsm/wastebin_emptying_phases.hpp>
 #endif
 
 #if HAS_SELFTEST()
@@ -81,6 +86,9 @@ constinit const EnumArray<ClientFSM, std::span<const PhaseResponses>, ClientFSM:
         { ClientFSM::NozzleMismatch, nozzle_mismatch_responses },
         { ClientFSM::DockCalibration, dock_calibration_responses },
         { ClientFSM::NozzleCleanerCalibration, nozzle_cleaner_calibration_responses },
+#endif
+#if HAS_WASTEBIN_FILL_TRACKING()
+        { ClientFSM::WastebinEmptying, wastebin_emptying_responses },
 #endif
 #if HAS_TOOL_OFFSET_SENSOR()
         { ClientFSM::ToolOffsetsCalibration, tool_offsets_calibration_responses },

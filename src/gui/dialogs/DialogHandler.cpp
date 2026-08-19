@@ -20,6 +20,7 @@
 #include <option/has_indx.h>
 #include <option/has_heaters_selftest_gcode.h>
 #include <option/has_tool_offset_sensor.h>
+#include <option/has_wastebin_fill_tracking.h>
 #include <gui/screen/screen_preheat.hpp>
 #include <gui/screen/dialog_safety_timer.hpp>
 
@@ -31,6 +32,10 @@
     #include <gui/screen/screen_nozzle_mismatch.hpp>
     #include <feature/indx_dock_calibration/screen_dock_calibration.hpp>
     #include <feature/indx_nozzle_cleaner_calibration/screen_nozzle_cleaner_calibration.hpp>
+#endif
+
+#if HAS_WASTEBIN_FILL_TRACKING()
+    #include <feature/wastebin_watcher/screen_wastebin_emptying.hpp>
 #endif
 
 #if HAS_TOOL_OFFSET_SENSOR()
@@ -320,6 +325,9 @@ using FSMDisplayConfig = FSMDisplayConfigDef<
     FSMScreenDef<ClientFSM::NozzleMismatch, ScreenNozzleMismatch>,
     FSMScreenDef<ClientFSM::DockCalibration, ScreenDockCalibration>,
     FSMScreenDef<ClientFSM::NozzleCleanerCalibration, ScreenNozzleCleanerCalibration>,
+#endif
+#if HAS_WASTEBIN_FILL_TRACKING()
+    FSMScreenDef<ClientFSM::WastebinEmptying, ScreenWastebinEmptying>,
 #endif
 #if HAS_TOOL_OFFSET_SENSOR()
     FSMScreenDef<ClientFSM::ToolOffsetsCalibration, ScreenToolOffsetWizard>,
