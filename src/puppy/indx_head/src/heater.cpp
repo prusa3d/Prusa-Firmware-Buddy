@@ -1,6 +1,7 @@
 /// @file
 #include "heater.hpp"
 
+#include <algorithm>
 #include <stm32c0xx_hal.h>
 #include "hal.hpp"
 #include <app.hpp>
