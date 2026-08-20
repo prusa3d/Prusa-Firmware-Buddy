@@ -13,7 +13,7 @@ inline constexpr xy_pos_t default_sensor_position =
 #if PRINTER_IS_PRUSA_COREONE()
     { 257.f, Y_MAX_PRINT_POS - 197.5f };
 #elif PRINTER_IS_PRUSA_COREONEL()
-    { 307.f, 5.f };
+    { 307.f, 10.f };
 #elif PRINTER_IS_PRUSA_XL()
     // Dual-coil takes its positions from the coils themselves, so this only
     // survives as the config-store default, which XL never reads back.

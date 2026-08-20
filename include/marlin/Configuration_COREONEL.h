@@ -825,7 +825,7 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
 // The size of the print bed
 #if HAS_INDX()
 #define X_BED_SIZE 301
-#define Y_BED_SIZE 270
+#define Y_BED_SIZE 275
 #else
 #define X_BED_SIZE 300
 #define Y_BED_SIZE 300
@@ -835,13 +835,13 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
 #if HAS_INDX()
 // Travel limits (mm) after homing, corresponding to endstop positions. default x -2.5 y -7.3
 #define X_MIN_POS (0 - X_MAX_OFFSET)
-#define Y_MIN_POS (-40 - Y_MAX_OFFSET)
+#define Y_MIN_POS (-35 - Y_MAX_OFFSET)
 #define Z_MIN_POS (0 - Z_MAX_OFFSET)
 #define X_MAX_POS (X_BED_SIZE - X_MIN_OFFSET + 10)
 #define X_MIN_PRINT_POS X_MIN_POS
 #define X_MAX_PRINT_POS X_WASTEBIN_SAFE_POINT // maximal print area X position (excluding nozzle cleaner area); X_WASTEBIN_SAFE_POINT is defined in nozzle_cleaner.hpp
-#define Y_MAX_PRINT_POS (Y_BED_SIZE - Y_MIN_OFFSET) // maximal print area Y position (excluding toolchanger area)
-#define Y_MAX_POS (Y_MAX_PRINT_POS) // extra distance in Y to reach toolchanger
+#define Y_MAX_PRINT_POS Y_BED_SIZE // maximal print area Y position (excluding toolchanger area)
+#define Y_MAX_POS (Y_BED_SIZE - Y_MIN_OFFSET) // extra travel so a tool with negative Y offset reaches the print area edge
 #define PROBE_MAX_Y Y_BED_SIZE // limit maximal Y probe position (so that tool doesn't hit toolchanger with high tool offsets)
 #define Y_DOCK_SAFE_OFFSET 28.6f // distance from the side, which could be occupied by INDX (linked to DOCK_SAFE_Y_OFFSET in toolchangers_utils.h)
 #define Y_DOCK_PARKING_MIN_SAFE_POS (Y_MIN_POS + Y_DOCK_SAFE_OFFSET + 5.f) // position for save index head (bellow this position the motion on X could damage the nozzles or hit ventilation lever)
@@ -1031,7 +1031,7 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
 #if HAS_INDX()
     // homing point is close to print sheet detection point to minimize Z differences
     #define Z_SAFE_HOMING_X_POINT (25) // X point for Z homing when homing all axes (G28).
-    #define Z_SAFE_HOMING_Y_POINT (15) // Y point for Z homing when homing all axes (G28).
+    #define Z_SAFE_HOMING_Y_POINT (20) // Y point for Z homing when homing all axes (G28).
 #else
     #define Z_SAFE_HOMING_X_POINT (270) // X point for Z homing when homing all axes (G28).
     #define Z_SAFE_HOMING_Y_POINT (10) // Y point for Z homing when homing all axes (G28).
@@ -1040,7 +1040,7 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
         #if HAS_INDX()
             // Lower Y would crash into dock.
             #define DETECT_PRINT_SHEET_X_POINT (25)
-            #define DETECT_PRINT_SHEET_Y_POINT (-27)
+            #define DETECT_PRINT_SHEET_Y_POINT (-22)
         #else
             #define DETECT_PRINT_SHEET_X_POINT (220)
             #define DETECT_PRINT_SHEET_Y_POINT (-7)
@@ -1113,7 +1113,7 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
     // Specify a park position as { X, Y, Z }
 #if HAS_INDX()
     #define X_NOZZLE_CLEANER_ORIGIN 312.16f
-    #define Y_NOZZLE_CLEANER_ORIGIN 81.4f // master Y reference
+    #define Y_NOZZLE_CLEANER_ORIGIN 86.4f // master Y reference
 
     // Cleaner geometry (wastebin, purge tray, wall, calibration points) is in nozzle_cleaner.hpp,
     // anchored to the origins above. The park point must stay here: Marlin's SanityCheck.h expands
