@@ -26,12 +26,12 @@ constexpr xyz_pos_t z_probe_position { { { -6.f, -5.f, expected_surface_z } } };
 constexpr tool_offset::CoilAxis coil_x {
     .position = { { { 5.f, -7.f, expected_surface_z } } },
     .channel = tool_offset::SensorChannel::ch1,
-    .sensing_distance = 12.f,
+    .sensing_distance = 16.f,
 };
 constexpr tool_offset::CoilAxis coil_y {
     .position = { { { -6.f, 6.f, expected_surface_z } } },
     .channel = tool_offset::SensorChannel::ch0,
-    .sensing_distance = 12.f,
+    .sensing_distance = 16.f,
 };
 constexpr float cross_hunt_range = 5.f; // TODO tune on bench
 constexpr float cross_hunt_step = 1.f; // TODO tune on bench
