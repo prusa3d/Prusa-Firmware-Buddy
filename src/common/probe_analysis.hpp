@@ -42,10 +42,6 @@ public:
 
         /// Value of the failed parameter
         float arg = 0;
-
-        /// Best-effort bed coordinate despite the rejection.
-        /// NAN when the measurement was too broken to compute one.
-        float z_coordinate = std::numeric_limits<float>::quiet_NaN();
     };
 
     using Result = std::expected<AnalysisResult, AnalysisError>;

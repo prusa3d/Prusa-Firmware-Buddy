@@ -164,7 +164,7 @@ ProbeAnalysisBase::Result ProbeAnalysisBase::Analyse(bool check_angle_after) {
         const char *feature = "feature-out-of-range";
         float value;
         if (HasOutOfRangeFeature(features, &feature, &value, check_angle_after)) {
-            return std::unexpected(AnalysisError { .description = feature, .arg = value, .z_coordinate = InterpolateFinalZCoordinate(features) });
+            return std::unexpected(AnalysisError { .description = feature, .arg = value });
         }
     }
 
@@ -176,7 +176,7 @@ ProbeAnalysisBase::Result ProbeAnalysisBase::Analyse(bool check_angle_after) {
         return AnalysisResult { .z_coordinate = zCoordinate };
     } else {
         log_features_metrics(features, std::nullopt);
-        return std::unexpected(AnalysisError { .description = "low-precision", .z_coordinate = zCoordinate });
+        return std::unexpected(AnalysisError { .description = "low-precision" });
     }
 }
 
