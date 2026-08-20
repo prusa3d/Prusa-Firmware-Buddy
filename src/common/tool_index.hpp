@@ -89,6 +89,10 @@ using GcodeToolIndex = ToolIndex<tool_index_private::virtual_tool_index_count, G
 /// from_raw()/to_raw() only bridge to/from serialized data (gcode, EEPROM, ...)
 /// and must stay within a single index type.
 
+/// Thread safety
+/// =============
+/// All functions and operations in this module have to be thread-safe unless documented otherwise.
+
 /// Strong type for representing no tool using `std::variant<SomeToolIndex, NoTool>`
 /// This type means a VALID situation where the toolchanger has no tool picked
 struct NoTool {

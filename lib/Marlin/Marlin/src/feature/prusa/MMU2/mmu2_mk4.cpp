@@ -775,7 +775,8 @@ void MMU2::get_statistics() {
 }
 
 uint8_t __attribute__((noinline)) MMU2::get_current_tool() const {
-    return extruder == MMU2_NO_TOOL ? (uint8_t)FILAMENT_UNKNOWN : extruder;
+    const uint8_t e = extruder.load();
+    return e == MMU2_NO_TOOL ? (uint8_t)FILAMENT_UNKNOWN : e;
 }
 
 uint8_t MMU2::get_tool_change_tool() const {

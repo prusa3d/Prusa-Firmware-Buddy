@@ -403,7 +403,11 @@ private:
 #endif
     std::atomic<MMU2BootloaderResult> bootloader_result_ = MMU2BootloaderResult::not_detected;
 
-    uint8_t extruder; ///< currently active slot in the MMU ... somewhat... not sure where to get it from yet
+    /// Currently active slot in the MMU ... somewhat... not sure where to get it from yet
+    /// Atomic because get_current_tool() backs VirtualToolIndex::currently_selected(),
+    /// which is read from the GUI, httpd and metrics tasks.
+    std::atomic<uint8_t> extruder;
+
     uint8_t tool_change_extruder; ///< only used for UI purposes
 
     pos3d resume_position;
