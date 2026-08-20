@@ -18,15 +18,6 @@
     #include <module/prusa/spool_join.hpp>
 #endif
 #include <tool/hotend/hotend.hpp>
-#if 0
-    // Commented out (not deleted): tool_offset::wait_for_loadcell_alive() no
-    // longer exists upstream - HAS_TOOL_OFFSET_SENSOR dropped plain XL, keeping
-    // it for COREONE_INDX/COREONEL_INDX only, so this header isn't even linked
-    // for XL anymore. run_z_probe() (probe.cpp, BFW-8854) now waits for fresh
-    // loadcell samples before every probe on every printer, making this XL-only
-    // guard redundant. Reverse only if XL regains its own tool-offset sensor.
-    #include <Marlin/src/feature/contactless_offset/contactless_offset.hpp>
-#endif
 #include <Marlin/src/feature/pressure_advance/pressure_advance_config.hpp>
 #include "loadcell.hpp"
 #include <feature/print_status_message/print_status_message_guard.hpp>
@@ -42,6 +33,7 @@
 #include <bitset>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 
 LOG_COMPONENT_DEF(NozzleCleanerLite, logging::Severity::info);
 
@@ -133,16 +125,7 @@ namespace {
     // Z targets expressed relative to the freshly probed touchpoint surface, so
     // they stay correct even if the Z home offset or touchpoint height drifts.
     constexpr float safe_above_surface_mm = 1.0f;
-    // Where the nozzle waits for the cleaning temperature, relative to the
-    // expected surface (the true surface is only probed after the wait).
-    constexpr float wait_above_surface_mm = 2.0f;
-    // Rough expected touchpoint surface height in machine Z; the surface sits
-    // slightly below the homed bed level. Only needs to be near-right:
-    // run_z_probe approaches from above and searches down to
-    // expected + Z_PROBE_LOW_POINT, so the true surface is found each run.
-    constexpr float expected_touchpoint_surface_z = 0.0f;
-    constexpr uint8_t touchpoint_probe_attempts = 3;
-    constexpr float touch_point_z_pressure = -0.1f; // Z target for the nozzle to press on the touchpoint after cleaning
+    constexpr float touch_point_z_pressure = -0.1f;
     constexpr float dive_below_surface_mm = -0.3f;
     constexpr float travel_clearance_mm = 10.0f;
 
@@ -173,21 +156,6 @@ namespace {
         return filament ? filament.parameters().nozzle_preheat_temperature : no_filament_cleaning_temperature;
     }
 
-    float probe_touchpoint_z() {
-        // XL-only staleness guard removed; see the commented-out
-        // contactless_offset.hpp include above for why and when to reverse.
-#if 0
-        if (!tool_offset::wait_for_loadcell_alive()) {
-            log_error(NozzleCleanerLite, "Loadcell did not produce fresh samples before touchpoint probe");
-            return std::numeric_limits<float>::quiet_NaN();
-        }
-#endif
-
-        pressure_advance::PressureAdvanceDisabler pa_disabler;
-        Loadcell::HighPrecisionEnabler loadcell_high_precision_enabler(loadcell);
-        return probe_here(expected_touchpoint_surface_z, touchpoint_probe_attempts, TolerateNozzleDirt::yes);
-    }
-
     // Move in raw machine coordinates (line_to_machine_pos), bypassing MBL.
     void move_to_machine_pos_xy(float x, float y, feedRate_t fr_mm_s) {
         auto target = current_machine_position();
@@ -202,6 +170,19 @@ namespace {
         target.z = z;
         line_to_machine_pos(target, fr_mm_s);
         planner.synchronize();
+    }
+
+    /// machine Z where the nozzle touched the touchpoint, nan if it never did.
+    float find_touchpoint_z() {
+        pressure_advance::PressureAdvanceDisabler pa_disabler;
+        Loadcell::HighPrecisionEnabler loadcell_high_precision_enabler(loadcell);
+
+        if (!do_homing_move(Z_AXIS, Z_PROBE_LOW_POINT - current_machine_position().z)) {
+            log_error(NozzleCleanerLite, "touchpoint not found above Z %.1fmm", static_cast<double>(Z_PROBE_LOW_POINT));
+            return std::numeric_limits<float>::quiet_NaN();
+        }
+
+        return current_machine_position().z;
     }
 
     // Queue a move given in pad coordinates.
@@ -259,28 +240,22 @@ bool clean(CleanType clean_type) {
         Hotend::for_tool(*tool).set_nozzle_target_temp(saved_nozzle_target);
     });
 
-    // Home XY (and Z) only if needed, with clearance so we don't drag over the bed.
-    if (!GcodeSuite::G28_no_parser(true, true, true, G28Flags { .only_if_needed = true, .z_raise = travel_clearance_mm })) {
+    if (!GcodeSuite::G28_no_parser(true, true, true, G28Flags { .only_if_needed = true })) {
         log_error(NozzleCleanerLite, "homing failed");
         return false;
     }
 
+    move_to_machine_pos_z(current_machine_position().z + travel_clearance_mm, leave_feedrate);
     move_to_machine_pos_xy(touchpoint_xy.x, touchpoint_xy.y, dive_feedrate);
-    move_to_machine_pos_z(expected_touchpoint_surface_z + wait_above_surface_mm, dive_feedrate);
 
-    // Reach the cleaning temperature before probing: solidified ooze on a
-    // cold tip triggers the probe high and shifts the whole brush Z reference
-    // up; at temperature the ooze is soft and squishes aside.
+    // reach the cleaning temperature before touching down
     if (!thermalManager.wait_for_hotend(*tool, { .no_wait_for_cooling = false })) {
         log_error(NozzleCleanerLite, "temperature wait failed");
         return false;
     }
 
-    // The exact surface height is not known yet: run_z_probe approaches from
-    // above and finds it (it stops on contact even during the fast approach).
-    const float probed_z = probe_touchpoint_z();
+    const float probed_z = find_touchpoint_z();
     if (std::isnan(probed_z)) {
-        log_error(NozzleCleanerLite, "Touchpoint probe failed");
         return false;
     }
     log_info(NozzleCleanerLite, "Touchpoint surface at Z=%.3f", static_cast<double>(probed_z));
