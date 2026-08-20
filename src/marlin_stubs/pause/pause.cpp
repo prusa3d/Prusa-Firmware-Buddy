@@ -1716,15 +1716,26 @@ void Pause::filament_change(const pause::Settings &settings_, bool is_filament_s
     load_type = is_filament_stuck ? LoadType::filament_stuck : LoadType::filament_change;
 
     if (did_pause_print) {
+        log_info(MarlinServer, "filament_change() aborted: already paused.");
         return; // already paused
     }
 
     // Restore target temperatures, otherwise targetTooColdToExtrude would return true
     buddy::safety_timer().reset_restore_nonblocking();
 
-    if (!DEBUGGING(DRYRUN) && settings.unload_length && thermalManager.targetTooColdToExtrude(settings.virtual_tool().to_physical())) {
-        SERIAL_ECHO_MSG(MSG_ERR_HOTEND_TOO_COLD);
-        return; // unable to reach safe temperature
+    if (!DEBUGGING(DRYRUN) && settings.unload_length && thermalManager.targetTooColdToExtrude(settings.physical_tool())) {
+        // try to set target temp based on current filament
+        const FilamentType loaded = FilamentType::for_tool_heuristic(settings.virtual_tool());
+        if (loaded) {
+            const auto temp = loaded.parameters().nozzle_temperature;
+            thermalManager.setTargetHotend(temp, settings.physical_tool());
+        }
+        // recheck temp, in case .nozzle_temperature is still too cold
+        if (thermalManager.targetTooColdToExtrude(settings.physical_tool())) {
+            log_info(MarlinServer, "filament_change() aborted: Temp too low and unable to get filament");
+            SERIAL_ECHO_MSG(MSG_ERR_HOTEND_TOO_COLD);
+            return; // unable to reach safe temperature
+        }
     }
 
     // Lock filament sensor, so it does not enqueue new M600, beacuse of filament run out
