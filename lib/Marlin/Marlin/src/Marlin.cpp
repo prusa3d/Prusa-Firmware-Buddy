@@ -360,7 +360,12 @@ void idle(bool waiting) {
     if( EMotorStallDetector::Instance().Evaluate(stepper.axis_is_moving(E_AXIS), ! stepper.motor_direction(E_AXIS))){
         // E-motor stall has been detected, issue a modified M600
         SERIAL_ECHOLNPGM("E-motor stall detected");
-        marlin_server::gcode_interrupt({"M1601"});
+
+        const auto virtual_tool = VirtualToolIndex::currently_selected_opt();
+        if (!virtual_tool.has_value()) {
+            bsod("EStall without a tool");
+        }
+        marlin_server::gcode_interrupt(GCodeLiteral{"M1601 V%.0f", (float) virtual_tool->to_raw()});
     }
   #endif
 

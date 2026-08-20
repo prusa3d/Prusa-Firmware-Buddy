@@ -317,18 +317,14 @@ void M600_execute(mapi::ParkingPosition park_position, VirtualToolIndex target_t
  * Only MK3.9/S, MK4/S and XL
  *#### Usage
  *
- *    M1601
+ *    M1601 V<virtual tool>
  *
  */
 #if HAS_LOADCELL()
 void PrusaGcodeSuite::M1601() {
-    auto active_tool = stdext::get_optional<VirtualToolIndex>(VirtualToolIndex::currently_selected());
-    if (!active_tool.has_value()) {
-        bsod_unreachable();
-    }
     M600_execute(
         mapi::get_parking_position(mapi::ParkPosition::filament_change),
-        *active_tool,
+        VirtualToolIndex::from_raw(parser.intval('V', -1)),
         current_position,
         std::nullopt, std::nullopt, std::nullopt,
         std::nullopt, std::nullopt,
