@@ -251,16 +251,6 @@ bool clean(CleanType clean_type) {
 
     move_to_machine_pos_z(probed_z + safe_above_surface_mm, approach_feedrate);
 
-    // Start the cool-down already: the nozzle then cools while it brushes,
-    // shortening the touchpoint wait. The part fan makes the drop fast enough
-    // to matter.
-    Hotend::for_tool(*tool).set_nozzle_target_temp(cleaning_temperature - cooldown_temp_diff);
-    const uint8_t saved_fan_speed = thermalManager.get_print_fan_speed();
-    thermalManager.set_print_fan_speed(255);
-    ScopeGuard restore_fan_speed([&] {
-        thermalManager.set_print_fan_speed(saved_fan_speed);
-    });
-
     // Start the zigzag somewhere new each run so consecutive cleans do not retrace the same track.
     ZigZag zigzag { cleaner_pad, crossings_per_stroke,
         static_cast<float>(ticks_ms() % 1000) / 2000.0f };
@@ -293,13 +283,19 @@ bool clean(CleanType clean_type) {
         planner.apply_settings(s);
     }
 
-    // Retreat back over the touchpoint
+    // Retreat back over the touchpoint, cooling down on the way
+    Hotend::for_tool(*tool).set_nozzle_target_temp(cleaning_temperature - cooldown_temp_diff);
+    const uint8_t saved_fan_speed = thermalManager.get_print_fan_speed();
+    thermalManager.set_print_fan_speed(255);
+    ScopeGuard restore_fan_speed([&] {
+        thermalManager.set_print_fan_speed(saved_fan_speed);
+    });
+
     move_to_machine_pos_z(probed_z + travel_clearance_mm, leave_feedrate);
     move_to_machine_pos_xy(touchpoint_xy.x, touchpoint_xy.y, leave_feedrate);
 
     move_to_machine_pos_z(probed_z + touch_point_z_pressure, dive_feedrate);
-    // Declared after the temperature guard so it runs before it: the nozzle must
-    // come off the touchpoint before anything re-heats it.
+
     ScopeGuard leave_touchpoint([&] {
         move_to_machine_pos_z(probed_z + travel_clearance_mm, leave_feedrate);
     });
