@@ -243,8 +243,8 @@ int FooterItemNozzle::static_readValue() {
 
 float FooterItemNozzleDiameter::static_readValue() {
     return match(
-        VirtualToolIndex::currently_selected(),
-        [](VirtualToolIndex virtual_tool) -> float { return config_store().get_nozzle_diameter(virtual_tool.to_raw()); },
+        PhysicalToolIndex::currently_selected(),
+        [](PhysicalToolIndex tool) -> float { return config_store().get_nozzle_diameter(tool); },
         [](NoTool) { return 0.0f; });
 }
 
