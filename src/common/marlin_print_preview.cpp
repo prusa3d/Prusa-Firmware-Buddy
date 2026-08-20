@@ -598,7 +598,12 @@ PrintPreview::Result PrintPreview::Loop() {
         switch (response) {
 
         case Response::Print:
+            // Resume the check chain right after the printer check that sent us here.
+#if HAS_WASTEBIN_FILL_TRACKING()
+            ChangeState(stateFromWastebinCheck());
+#else
             ChangeState(stateFromFilamentPresence());
+#endif
             break;
 
         case Response::Abort:
