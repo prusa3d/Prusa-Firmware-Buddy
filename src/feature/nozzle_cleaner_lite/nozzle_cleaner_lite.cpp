@@ -46,17 +46,13 @@ namespace {
     };
 
 #if PRINTER_IS_PRUSA_XL()
-    // Touchpoint: fixed reference point next to the cleaner, used to home Z
-    // locally instead of relying on G28's (possibly distant) safe-homing XY.
+    // Touchpoint: fixed reference point on the cleaner
     constexpr xy_pos_t touchpoint_xy = { { { -6.45f, 70.0f } } };
 
     constexpr CleanerAxis cleaner_axis = CleanerAxis::y;
     constexpr float cleaner_distance = 10.0f;
     constexpr float cleaner_length = 30.0f;
 
-    // Where the used band starts within the pad's width, relative to the
-    // touchpoint. Shifted off centre: a centred band would reach within 0.05mm
-    // of the X endstop.
     constexpr float across_offset = -1.0f;
 #elif PRINTER_IS_PRUSA_COREONE()
     constexpr xy_pos_t touchpoint_xy = { { { 206.5f, -15.0f } } };
@@ -73,8 +69,6 @@ namespace {
     constexpr float cleaner_distance = -10.0f;
     constexpr float cleaner_length = -30.0f;
 
-    // Only 0.5mm of Y travel is left below the touchpoint, so use the band above
-    // it only.
     constexpr float across_offset = 0.0f;
 #else
     #error "nozzle_cleaner_lite sequence not defined for this printer variant"
@@ -109,21 +103,16 @@ namespace {
     // of every stroke retracing one. At 1.5 a stroke holds two or three diagonal
     // segments and the pattern comes back around every fourth stroke.
     constexpr float crossings_per_stroke = 1.5f;
-    // A non-positive value would make the drift walk away from the stroke end
-    // instead of towards it, without ever terminating.
+    // A non-positive value would make the zigzag drift walk away from the stroke end without ever terminating.
     static_assert(crossings_per_stroke > 0.0f);
 
-    // line_to_machine_pos does not clamp, so an out-of-range target is driven into
-    // the hard stop. Prove the whole pad stays inside the travel. XL and COREONEL
-    // only clear it by 0.15mm and 0.10mm respectively.
     constexpr float travel_limit_margin = 0.4f;
     static_assert(std::min(cleaner_pad.along_near, cleaner_pad.along_far) - travel_limit_margin >= along_travel_min);
     static_assert(std::max(cleaner_pad.along_near, cleaner_pad.along_far) + travel_limit_margin <= along_travel_max);
     static_assert(cleaner_pad.across_min - travel_limit_margin >= across_travel_min);
     static_assert(cleaner_pad.across_max + travel_limit_margin <= across_travel_max);
 
-    // Z targets expressed relative to the freshly probed touchpoint surface, so
-    // they stay correct even if the Z home offset or touchpoint height drifts.
+    // Z targets relative to the probed touchpoint surface
     constexpr float safe_above_surface_mm = 1.0f;
     constexpr float touch_point_z_pressure = -0.1f;
     constexpr float dive_below_surface_mm = -0.3f;
@@ -272,15 +261,11 @@ bool clean(CleanType clean_type) {
         thermalManager.set_print_fan_speed(saved_fan_speed);
     });
 
-    // Start the zigzag somewhere new each run so consecutive cleans do not retrace
-    // the same track. Kept within the first half of the pattern, so the first
-    // crossing always heads towards across_max.
+    // Start the zigzag somewhere new each run so consecutive cleans do not retrace the same track.
     ZigZag zigzag { cleaner_pad, crossings_per_stroke,
         static_cast<float>(ticks_ms() % 1000) / 2000.0f };
 
-    // Safely move from the touchpoint onto the pad, at the zigzag's own starting
-    // point rather than the pad centre, so no stroke has to drag the nozzle
-    // sideways onto the pattern.
+    // Safely move from the touchpoint onto the pad, at the zigzag's own starting point rather than the pad centre
     const auto zigzag_start = zigzag.start();
     move_to_pad(zigzag_start.along, zigzag_start.across, approach_feedrate);
     move_to_machine_pos_z(probed_z + dive_below_surface_mm, dive_feedrate);
@@ -292,8 +277,7 @@ bool clean(CleanType clean_type) {
         planner.apply_settings(s);
     }
 
-    // Rub: a few fast cycles, then a couple of slower ones to finish cleanly.
-    // The zigzag carries on across all of them.
+    // few fast cycles, then a couple of slower ones to finish cleanly.
     for (uint8_t i = 0; i < rub_cycles_fast; ++i) {
         rub_stroke(zigzag, cleaner_pad.along_far, rub_feedrate_fast);
         rub_stroke(zigzag, cleaner_pad.along_near, rub_feedrate_fast);

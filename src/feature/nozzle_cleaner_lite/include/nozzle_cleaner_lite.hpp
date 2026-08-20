@@ -41,8 +41,7 @@ enum class CleanType : uint8_t {
 };
 
 /// Home if needed, probe the cleaner's touchpoint reference point, run the
-/// clean cycle and, unless the tool only parks afterwards, rest on the
-/// touchpoint until the nozzle cools down.
+/// clean cycle and rest on the touchpoint until the nozzle cools down.
 /// Caller must check is_available() first.
 /// \returns true if the whole sequence completed
 bool clean(CleanType clean_type);
