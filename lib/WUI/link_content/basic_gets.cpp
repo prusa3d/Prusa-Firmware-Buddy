@@ -37,7 +37,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     // finish a print and base what we include on previous version, we may
     // outdated values, but they are still there.
     marlin_vars_t &vars = marlin_vars();
-    const FilamentType filament = FilamentType::for_tool(vars.active_extruder.get());
+    const FilamentType filament = FilamentType::for_tool(VirtualToolIndex::currently_selected());
     const FilamentTypeParameters filament_material = filament.parameters();
 
     bool operational = true;

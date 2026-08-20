@@ -231,7 +231,7 @@ int FooterItemNozzle::static_readValue() {
     const uint target = static_cast<uint>(marlin_vars().active_hotend().target_nozzle);
     const uint display = static_cast<uint>(round(marlin_vars().active_hotend().display_nozzle));
 #if HAS_TOOLCHANGER()
-    const bool no_tool = std::holds_alternative<NoTool>(marlin_vars().active_extruder.get());
+    const bool no_tool = std::holds_alternative<NoTool>(VirtualToolIndex::currently_selected());
 #else
     constexpr bool no_tool = false;
 #endif
@@ -243,7 +243,7 @@ int FooterItemNozzle::static_readValue() {
 
 float FooterItemNozzleDiameter::static_readValue() {
     return match(
-        marlin_vars().active_extruder.get(),
+        VirtualToolIndex::currently_selected(),
         [](VirtualToolIndex virtual_tool) -> float { return config_store().get_nozzle_diameter(virtual_tool.to_raw()); },
         [](NoTool) { return 0.0f; });
 }

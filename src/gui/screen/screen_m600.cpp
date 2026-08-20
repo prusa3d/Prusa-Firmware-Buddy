@@ -58,7 +58,7 @@ void MI_M600::click([[maybe_unused]] IWindowMenu &window_menu) {
     }
 #endif
     match(
-        marlin_vars().active_extruder.get(),
+        VirtualToolIndex::currently_selected(),
         [](VirtualToolIndex virtual_tool) { inject(virtual_tool); },
         [](NoTool) { debug_assert(false); /* theoretically reachable edge case - do nothing */ });
 }

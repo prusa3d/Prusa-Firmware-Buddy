@@ -364,10 +364,8 @@ namespace {
             return PhasesColdPull::cool_down;
         }
 
-        auto filament_type = match(
-            marlin_vars().active_extruder.get(),
-            [](VirtualToolIndex virtual_tool) -> FilamentType { return FilamentType::for_tool_heuristic(virtual_tool); },
-            [](NoTool) { return FilamentType::none; });
+        const auto filament_type = FilamentType::for_current_tool_heuristic();
+
         // If loaded filament is unknown FilamentType::none has nozzle temperature 215 -> Correct default value since PLA is recommended in the dialog
         const auto hotend_detraction_temp = filament_type.parameters().nozzle_temperature;
         if (!heat_up(hotend_detraction_temp, PhasesColdPull::deretract)) {

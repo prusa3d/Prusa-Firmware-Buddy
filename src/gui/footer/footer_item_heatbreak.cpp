@@ -25,7 +25,7 @@ FooterItemHeatBreak::FooterItemHeatBreak(window_t *parent)
  */
 int FooterItemHeatBreak::static_readValue() {
     #if HAS_TOOLCHANGER()
-    if (std::holds_alternative<NoTool>(marlin_vars().active_extruder.get())) {
+    if (std::holds_alternative<NoTool>(VirtualToolIndex::currently_selected())) {
         return no_tool_value;
     }
     #endif

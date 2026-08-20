@@ -3748,8 +3748,6 @@ static void _server_update_vars() {
 
     marlin_vars().mmu2_finda = mmu2FindaPressed;
 
-    marlin_vars().active_extruder = VirtualToolIndex::from_raw_notool(active_extruder);
-
 #if ENABLED(PREVENT_COLD_EXTRUSION)
     marlin_vars().extrude_min_temp = thermalManager.extrude_min_temp;
     marlin_vars().allow_cold_extrude = thermalManager.allow_cold_extrude;

@@ -222,7 +222,7 @@ void M600_execute(mapi::ParkingPosition park_position, VirtualToolIndex target_t
         tool_change_data = ToolChangeData {
             .original_resume_point = logical_resume,
             .target_extruder_original_temperature = Temperature::degTargetHotend(physical_target_tool),
-            .original_extruder = marlin_vars().active_extruder,
+            .original_extruder = VirtualToolIndex::currently_selected(),
         };
 
         tool_change(target_tool, tool_return_t::no_return, tool_change_lift_t::mbl_only_lift, true);

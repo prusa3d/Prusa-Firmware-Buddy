@@ -53,7 +53,7 @@ expands_t multi_tool_expands() {
     // tool we asked for. Notify the user, bail out so the caller doesn't
     // proceed with the load/unload — and skip the Validate() below so the
     // parent menu gets redrawn instead of staying stale.
-    if (!stdext::holds_value(marlin_vars().active_extruder.get(), *tool)) {
+    if (!stdext::holds_value(VirtualToolIndex::currently_selected(), *tool)) {
         MsgBoxWarning(_("Failed to pick up the selected tool."), Responses_Ok);
         return false;
     }
@@ -80,10 +80,7 @@ void MI_LOAD::click(IWindowMenu &) {
     }
 #endif
 
-    const FilamentType current_filament = match(
-        marlin_vars().active_extruder.get(),
-        [](VirtualToolIndex virtual_tool) -> FilamentType { return config_store().get_filament_type(virtual_tool); },
-        [](NoTool) { return FilamentType::none; });
+    const FilamentType current_filament = FilamentType::for_tool(VirtualToolIndex::currently_selected());
     if ((current_filament == FilamentType::none) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
         marlin_client::gcode("M701 W2"); // load with return option
     }

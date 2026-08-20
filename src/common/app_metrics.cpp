@@ -73,11 +73,7 @@ void RecordRuntimeStats() {
 
     METRIC_DEF(metric_current_filament, "filament", METRIC_VALUE_STRING, 10 * 1007, METRIC_ENABLED);
 
-    const FilamentType current_filament = match(
-        marlin_vars().active_extruder.get(),
-        [](VirtualToolIndex virtual_tool) -> FilamentType { return config_store().get_filament_type(virtual_tool); },
-        [](NoTool) { return FilamentType::none; });
-    metric_record_string(&metric_current_filament, "%s", current_filament.parameters().name.data());
+    metric_record_string(&metric_current_filament, "%s", FilamentType::for_tool(VirtualToolIndex::currently_selected()).parameters().name.data());
 
     METRIC_DEF(stack, "stack", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED); // Thread stack usage
     METRIC_DEF(runtime, "runtime", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED); // Thread runtime usage
