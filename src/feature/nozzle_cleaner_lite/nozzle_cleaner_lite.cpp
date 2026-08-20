@@ -113,9 +113,8 @@ namespace {
     static_assert(cleaner_pad.across_max + travel_limit_margin <= across_travel_max);
 
     // Z targets relative to the probed touchpoint surface
-    constexpr float safe_above_surface_mm = 1.0f;
-    constexpr float touch_point_z_pressure = -0.1f;
-    constexpr float dive_below_surface_mm = -0.3f;
+    constexpr float safe_above_surface_mm = 2.0f;
+    constexpr float wipe_above_surface_mm = 0.2f;
     constexpr float travel_clearance_mm = 10.0f;
     constexpr float final_clearance_mm = 20.0f;
 
@@ -259,7 +258,7 @@ bool clean(CleanType clean_type) {
     // Safely move from the touchpoint onto the pad, at the zigzag's own starting point rather than the pad centre
     const auto zigzag_start = zigzag.start();
     move_to_pad(zigzag_start.along, zigzag_start.across, approach_feedrate);
-    move_to_machine_pos_z(probed_z + dive_below_surface_mm, dive_feedrate);
+    move_to_machine_pos_z(probed_z + wipe_above_surface_mm, dive_feedrate);
 
     const float saved_travel_acceleration = planner.user_settings.travel_acceleration;
     {
@@ -295,7 +294,7 @@ bool clean(CleanType clean_type) {
     move_to_machine_pos_z(probed_z + travel_clearance_mm, leave_feedrate);
     move_to_machine_pos_xy(touchpoint_xy.x, touchpoint_xy.y, leave_feedrate);
 
-    move_to_machine_pos_z(probed_z + touch_point_z_pressure, dive_feedrate);
+    move_to_machine_pos_z(probed_z, dive_feedrate);
 
     ScopeGuard leave_touchpoint([&] {
         move_to_machine_pos_z(probed_z + final_clearance_mm, leave_feedrate);
