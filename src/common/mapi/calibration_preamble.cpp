@@ -24,6 +24,16 @@ bool CalibrationPreamble::run() const {
         }
     }
 
+    // Home XY before a possible toolchange. A toolchange requires precise homing
+    const auto ensure_xy_homed = [&](AxisHomeLevel level) -> bool {
+        if (axes_home_level.is_homed({ X_AXIS, Y_AXIS }, level)) {
+            return true;
+        }
+        on_step(Step::homing);
+        // z_raise=0: Z is already safely at the bottom from the move above
+        return GcodeSuite::G28_no_parser(true, true, false, { .z_raise = 0, .precise = level == AxisHomeLevel::full });
+    };
+
 #if HAS_TOOLCHANGER()
     const auto current_tool = PhysicalToolIndex::currently_selected_opt();
 
@@ -38,6 +48,10 @@ bool CalibrationPreamble::run() const {
             break;
         }
 
+        if (!ensure_xy_homed(AxisHomeLevel::full)) {
+            return false;
+        }
+
         on_step(Step::picking_tool);
         // Z is already safe at the bottom: skip the Z lift and don't return Z anywhere
         if (!prusa_toolchanger.pick_any_tool(tool_return_t::no_return, {}, tool_change_lift_t::no_lift, false)) {
@@ -50,6 +64,10 @@ bool CalibrationPreamble::run() const {
         if (!current_tool.has_value()) {
             // Already parked
             break;
+        }
+
+        if (!ensure_xy_homed(AxisHomeLevel::full)) {
+            return false;
         }
 
         on_step(Step::parking_tool);
@@ -78,16 +96,7 @@ bool CalibrationPreamble::run() const {
     }
 #endif
 
-    // Potentially home
-    if (!axes_home_level.is_homed({ X_AXIS, Y_AXIS }, AxisHomeLevel::imprecise)) {
-        on_step(Step::homing);
-        // z_raise=0: Z is already safely at the bottom from the homing move above
-        if (!GcodeSuite::G28_no_parser(true, true, false, { .z_raise = 0, .precise = false })) {
-            return false;
-        }
-    }
-
-    return true;
+    return ensure_xy_homed(AxisHomeLevel::imprecise);
 }
 
 } // namespace mapi
