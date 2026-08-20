@@ -466,7 +466,6 @@ static ProbeRetry handle_probe_safety_trip() {
  *  - true endstop was triggered earlier than expected_trigger_z was reached
  *  - false endstop was not reached
  * @param params.is_nozzle_clean If true, skip any nozzle cleaning routines before probing.
- * @param params.accept_nok_measurements Count analysis-rejected measurements as successes
  *  when the analysis could still compute a Z for them.
  *
  * @return The Z position of the bed at the current XY or NAN on error.
@@ -689,14 +688,6 @@ float run_z_probe(const RunZProbeParams& params) {
           SERIAL_ECHOPAIR("Probe classified as NOK (", err.description);
           SERIAL_ECHOPAIR(", ", err.arg);
           SERIAL_ECHOLN(")");
-
-          if (params.accept_nok_measurements && !std::isnan(err.z_coordinate)) {
-            z_sum += err.z_coordinate;
-            success_count++;
-            SERIAL_ECHOLNPAIR("Probe ", success_count, "/", params.required_successes, " accepted despite NOK, Z: ", err.z_coordinate);
-            if (success_count >= params.required_successes)
-              break;
-          }
         }
       #elif TOTAL_PROBING > 2
         // #error dead code found by automatic analyses (see BFW-5461)
@@ -875,15 +866,12 @@ bool cleanup_probe(const xy_pos_t &rect_min, const xy_pos_t &rect_max) {
 #endif
 
 
-float probe_here(float expected_trigger_z, uint8_t max_attempts, TolerateNozzleDirt tolerate_dirt)
+float probe_here(float expected_trigger_z, uint8_t max_attempts)
 {
   float res = NAN;
   DEPLOY_PROBE();
   for(uint8_t i = 0; i < max_attempts; i++){
-    // With a dirty nozzle, retry for a clean read and accept a rejected (NOK)
-    // measurement only on the last attempt.
-    const bool accept_nok = (tolerate_dirt == TolerateNozzleDirt::yes) && (i + 1 == max_attempts);
-    res = run_z_probe({ .expected_trigger_z = expected_trigger_z, .single_only = true, .accept_nok_measurements = accept_nok }) + probe_offset.z + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z);
+    res = run_z_probe({ .expected_trigger_z = expected_trigger_z, .single_only = true }) + probe_offset.z + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z);
     if (!std::isnan(res))
       break;
 
