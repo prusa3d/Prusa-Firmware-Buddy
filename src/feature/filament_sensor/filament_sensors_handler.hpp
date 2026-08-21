@@ -43,7 +43,7 @@ public:
     bool gui_wait_for_init_with_msg();
 
     /// Calls \p f on all filament sensors
-    void for_all_sensors(const stdext::inplace_function<void(IFSensor &sensor, uint8_t index, bool is_side)> &f);
+    void for_all_sensors(const stdext::inplace_function<void(IFSensor &sensor, PhysicalToolIndex tool, bool is_side)> &f);
 
     // mmu enabled, might or might not be initialized
     inline bool HasMMU() const {

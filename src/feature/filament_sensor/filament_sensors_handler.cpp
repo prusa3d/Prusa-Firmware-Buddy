@@ -70,7 +70,7 @@ bool FilamentSensors::gui_wait_for_init_with_msg() {
     const auto any_fsensor_in_state
         = [&](FilamentSensorState state) {
               uint8_t result = 0;
-              for_all_sensors([&](IFSensor &s, [[maybe_unused]] uint8_t index, bool is_side) {
+              for_all_sensors([&](IFSensor &s, [[maybe_unused]] PhysicalToolIndex tool, bool is_side) {
                   if (s.get_state() == state) {
                       result |= is_side ? f_side : f_extruder;
                   }
@@ -104,13 +104,13 @@ bool FilamentSensors::gui_wait_for_init_with_msg() {
 }
 #endif
 
-void FilamentSensors::for_all_sensors(const stdext::inplace_function<void(IFSensor &sensor, uint8_t index, bool is_side)> &f) {
-    for (int8_t e = 0; e < HOTENDS; e++) {
-        if (IFSensor *s = GetExtruderFSensor(e)) {
-            f(*s, e, false);
+void FilamentSensors::for_all_sensors(const stdext::inplace_function<void(IFSensor &sensor, PhysicalToolIndex tool, bool is_side)> &f) {
+    for (auto tool : PhysicalToolIndex::all()) {
+        if (IFSensor *s = GetExtruderFSensor(tool)) {
+            f(*s, tool, false);
         }
-        if (IFSensor *s = GetSideFSensor(e)) {
-            f(*s, e, true);
+        if (IFSensor *s = GetSideFSensor(tool)) {
+            f(*s, tool, true);
         }
     }
 }
@@ -138,7 +138,7 @@ void FilamentSensors::step() {
     }
 
     // Run cycle to evaluate state of all sensors (even those not active)
-    for_all_sensors([](IFSensor &s, uint8_t, bool) {
+    for_all_sensors([](IFSensor &s, PhysicalToolIndex, bool) {
         if (s.is_enabled()) {
             s.cycle();
         }
