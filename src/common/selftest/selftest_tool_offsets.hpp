@@ -3,12 +3,13 @@
 #include "i_selftest_part.hpp"
 #include "selftest_tool_offsets_config.hpp"
 
+#include <all_tools_quick_cooling_manager.hpp>
+
 namespace selftest {
 
 class CSelftestPart_ToolOffsets {
 public:
     CSelftestPart_ToolOffsets(IPartHandler &state_machine, const ToolOffsetsConfig_t &config, SelftestToolOffsets_t &result);
-    ~CSelftestPart_ToolOffsets();
 
     LoopResult state_ask_user_confirm_start();
     LoopResult state_clean_nozzle_start();
@@ -29,6 +30,7 @@ private:
     IPartHandler &state_machine;
     SelftestToolOffsets_t &result;
     const ToolOffsetsConfig_t &config;
+    AllToolsQuickCoolingManager quick_cooling { SelftestToolOffsets_t::TOOL_CALIBRATION_TEMPERATURE };
 };
 
 }; // namespace selftest

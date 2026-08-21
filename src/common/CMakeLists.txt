@@ -10,6 +10,7 @@ if(BOARD IN_LIST BUDDY_BOARDS)
   target_sources(
     firmware
     PRIVATE adc.cpp
+            all_tools_quick_cooling_manager.cpp
             app_metrics.cpp
             appmain.cpp
             awdg.cpp
