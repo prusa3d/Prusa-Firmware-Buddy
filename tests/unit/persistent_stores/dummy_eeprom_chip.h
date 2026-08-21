@@ -26,3 +26,7 @@ public:
     void flush() override {}
 };
 extern DummyEepromChip eeprom_chip;
+
+inline configuration_store::Storage &get_eeprom_chip() {
+    return eeprom_chip;
+}

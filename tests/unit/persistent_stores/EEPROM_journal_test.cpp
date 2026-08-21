@@ -3,7 +3,6 @@
 #include "dummy_eeprom_chip.h"
 #include <journal/backend.hpp>
 #include <journal/store.hpp>
-#include <storage_drivers/eeprom_storage.hpp>
 
 static constexpr const char *key = "data";
 static constexpr size_t header_size = 6;
@@ -16,10 +15,10 @@ constexpr size_t chip_journal_size = 8096 - chip_journal_start_address;
 using namespace journal;
 
 inline journal::Backend &Test_EEPROM_journal() {
-    return journal::backend_instance<chip_journal_start_address, chip_journal_size, EEPROMInstance>();
+    return journal::backend_instance<chip_journal_start_address, chip_journal_size, get_eeprom_chip>();
 }
 void reinit_journal() {
-    new (&Test_EEPROM_journal()) Backend(chip_journal_start_address, chip_journal_size, EEPROMInstance());
+    new (&Test_EEPROM_journal()) Backend(chip_journal_start_address, chip_journal_size, get_eeprom_chip());
 }
 CATCH_REGISTER_ENUM(Backend::BankState, Backend::BankState::Valid, Backend::BankState::MissingEndItem, Backend::BankState::Corrupted)
 size_t create_transaction(size_t num_of_items, std::span<uint8_t> data, uint16_t start_id = 0) {
@@ -181,7 +180,7 @@ TEST_CASE("journal::EEPROM::Test item loading") {
 
 TEST_CASE("journal::EEPROM::Test Bank choosing") {
     eeprom_chip.clear();
-    Backend config_store(0, 8096, EEPROMInstance());
+    Backend config_store(0, 8096, get_eeprom_chip());
 
     constexpr static uint16_t second_bank_address = 8096 / 2;
     SECTION("Cold start") {
@@ -556,7 +555,7 @@ TEST_CASE("journal::EEPROM::Config store - error states") {
 constexpr std::array<int32_t, 64> default_array = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 inline journal::Backend &Small_Test_EEPROM_journal() {
-    return journal::backend_instance<100, 768, EEPROMInstance>();
+    return journal::backend_instance<100, 768, get_eeprom_chip>();
 }
 struct TestEEPROMJournalConfigBigItem : public CurrentStoreConfig<Backend, Small_Test_EEPROM_journal> {
     StoreItem<std::array<int32_t, 64>, default_array, ItemFlags {}, 1> random_data;
@@ -564,7 +563,7 @@ struct TestEEPROMJournalConfigBigItem : public CurrentStoreConfig<Backend, Small
 
 TEST_CASE("journal::EEPROM::Bank migration during transaction") {
     eeprom_chip.clear();
-    new (&Small_Test_EEPROM_journal()) Backend(100, 768, EEPROMInstance());
+    new (&Small_Test_EEPROM_journal()) Backend(100, 768, get_eeprom_chip());
 
     auto local_store = std::make_unique<Store<TestEEPROMJournalConfigBigItem, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
     auto data = default_array;
@@ -582,7 +581,7 @@ TEST_CASE("journal::EEPROM::Bank migration during transaction") {
     Small_Test_EEPROM_journal().transaction_end();
     REQUIRE(Small_Test_EEPROM_journal().current_address == 757);
 
-    new (&Small_Test_EEPROM_journal()) Backend(100, 768, EEPROMInstance());
+    new (&Small_Test_EEPROM_journal()) Backend(100, 768, get_eeprom_chip());
     local_store = std::make_unique<Store<TestEEPROMJournalConfigBigItem, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
     local_store->init();
     local_store->load_all();

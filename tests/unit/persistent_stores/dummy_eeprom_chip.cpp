@@ -1,8 +1,8 @@
-#include <common/st25dv64k.h>
-
 #include "dummy_eeprom_chip.h"
+
 #include <cstring>
 #include <catch2/catch_test_macros.hpp>
+
 DummyEepromChip eeprom_chip;
 
 void DummyEepromChip::get(uint16_t address, uint8_t *pdata, uint16_t len) {
@@ -60,20 +60,4 @@ size_t DummyEepromChip::read_bytes(size_t address, WritableBytes buffer) {
 size_t DummyEepromChip::write_bytes(size_t address, Bytes data) {
     set(address, reinterpret_cast<const uint8_t *>(data.data()), data.size());
     return data.size();
-}
-
-void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint16_t size) {
-    eeprom_chip.get(address, static_cast<uint8_t *>(pdata), size);
-}
-
-void st25dv64k_user_write_bytes(uint16_t address, void const *pdata, uint16_t size) {
-    st25dv64k_user_write_bytes_buffered(address, pdata, size);
-    st25dv64k_user_write_bytes_flush();
-}
-
-void st25dv64k_user_write_bytes_buffered(uint16_t address, void const *pdata, uint16_t size) {
-    eeprom_chip.set(address, static_cast<const uint8_t *>(pdata), size);
-}
-
-void st25dv64k_user_write_bytes_flush() {
 }

@@ -4,7 +4,6 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/dummy_eeprom_chip.cpp
   ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp
   ${CMAKE_SOURCE_DIR}/src/persistent_stores/journal/backend.cpp
-  ${CMAKE_SOURCE_DIR}/src/persistent_stores/storage_drivers/eeprom_storage.cpp
   ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
   ../mock/timing_dummy.cpp
   ../mock/crc32_sw.cpp
