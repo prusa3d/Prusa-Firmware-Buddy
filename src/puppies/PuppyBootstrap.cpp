@@ -281,7 +281,10 @@ PuppyBootstrap::AddressAssignmentResult PuppyBootstrap::run_address_assignment()
             }
 
             // Wait for puppy to boot up
-            osDelay(5);
+            // 2ms is typical start of HSE, but it may be longer so 10x to be safe
+            // other puppy startup delays like PLL start, peripherals init and memory init
+            // compared to this one are negligible
+            osDelay(20);
 
             if (is_dynamicly_addressable(puppy_type)) {
                 // assign address to all of them
