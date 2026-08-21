@@ -520,6 +520,12 @@ bool run(uint8_t r_param, uint8_t probe_count, Context context, const ProgressCa
         prusa_toolchanger.save_tool_offsets();
     });
 
+    // Get the nozzle clear of the bed/sensor on any failure exit
+    // Noop while unwinding and appending 5mm lift when print is being aborted
+    ScopeGuard raise_z_on_failure([&] {
+        mapi::park({ .z = mapi::ParkingPosition::Relative { FAILURE_Z_RAISE } });
+    });
+
     if (!GcodeSuite::G28_no_parser(true, true, true, G28Flags { .only_if_needed = true })) {
         log_error(ToolOffsetCalib, "Homing failed");
         return false;
@@ -892,6 +898,7 @@ bool run(uint8_t r_param, uint8_t probe_count, Context context, const ProgressCa
         }
 
         log_info(ToolOffsetCalib, "Tool offset calibration done");
+        raise_z_on_failure.disarm();
         return true;
     }
 }

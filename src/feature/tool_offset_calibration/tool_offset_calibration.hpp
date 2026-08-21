@@ -10,6 +10,9 @@
 
 namespace tool_offset_calibration {
 
+/// Relative Z raise to get the nozzle clear of the bed/sensor after a failure or abort
+inline constexpr float FAILURE_Z_RAISE = 5.0f;
+
 /// Context in which the calibration is being run.
 /// In `Calibration` mode (e.g. selftest / cleaner-calibration wizard) the caller has prompted the
 /// user to clean nozzles manually and there is no active print to abort on failure.

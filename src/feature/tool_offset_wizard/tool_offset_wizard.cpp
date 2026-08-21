@@ -8,6 +8,7 @@
 #include <feature/gcode_exception/gcode_exception.hpp>
 #include <feature/tool_offset_calibration/tool_offset_calibration.hpp>
 #include <logging/log.hpp>
+#include <mapi/parking.hpp>
 #include <marlin_server.hpp>
 #include <module/motion.h>
 #include <Marlin/src/Marlin.h>
@@ -190,7 +191,14 @@ namespace {
             // draining check. The handler marks axes unhomed on exit, as the quick-stop may have
             // skipped steps. Scoping the handler here resumes queuing automatically once it unwinds.
             fsm_change(PhaseToolOffsetsCalibration::calibrating);
-            GCodeExceptionHandler abort_handler { GCEHandlerExtent::any_move, [] { set_all_unhomed(); } };
+            GCodeExceptionHandler abort_handler {
+                GCEHandlerExtent::any_move,
+                [] {
+                    set_all_unhomed();
+                    // The quick-stop may have left the nozzle right at the bed or the sensor
+                    mapi::park({ .z = mapi::ParkingPosition::Relative { tool_offset_calibration::FAILURE_Z_RAISE } });
+                },
+            };
             Subscriber abort_watcher { marlin_server::idle_publisher, [&abort_handler] {
                                           if (marlin_server::get_response_from_phase(PhaseToolOffsetsCalibration::calibrating) == Response::Abort) {
                                               gcode_exceptions().throw_at(&abort_handler);
