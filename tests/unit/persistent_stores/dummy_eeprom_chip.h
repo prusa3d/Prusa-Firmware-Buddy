@@ -14,6 +14,7 @@ public:
     }
     void set(uint16_t address, const uint8_t *pdata, uint16_t len);
     void set(uint16_t address, const uint8_t pdata);
+    uint16_t set(uint16_t address, Bytes data);
     void get(uint16_t address, uint8_t *pdata, uint16_t len);
     uint8_t get(uint16_t address);
     std::span<uint8_t> get(uint16_t address, std::size_t size);

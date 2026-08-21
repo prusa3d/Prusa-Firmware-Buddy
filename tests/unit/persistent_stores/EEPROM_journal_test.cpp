@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
-#include "crc32.h"
 #include "dummy_eeprom_chip.h"
+#include <crc32.h>
+#include <crc32.hpp>
 #include <journal/backend.hpp>
 #include <journal/store.hpp>
 
@@ -20,31 +21,27 @@ inline journal::Backend &Test_EEPROM_journal() {
 void reinit_journal() {
     new (&Test_EEPROM_journal()) Backend(chip_journal_start_address, chip_journal_size, get_eeprom_chip());
 }
-CATCH_REGISTER_ENUM(Backend::BankState, Backend::BankState::Valid, Backend::BankState::MissingEndItem, Backend::BankState::Corrupted)
-size_t create_transaction(size_t num_of_items, std::span<uint8_t> data, uint16_t start_id = 0) {
+CATCH_REGISTER_ENUM(Backend::BankState, Backend::BankState::Valid, Backend::BankState::MissingEndItem, Backend::BankState::Corrupted);
+
+std::vector<std::byte> create_transaction(size_t num_of_items, uint16_t start_id = 0) {
+    std::vector<std::byte> transaction {};
     if (num_of_items == 0) {
-        return 0;
+        return transaction;
     }
-    num_of_items += start_id;
-
-    Backend::ItemHeader header = { false, 1, 10 };
-    size_t pos = 0;
-
-    for (; start_id < num_of_items - 1; ++start_id) {
-        header.id = start_id;
-        memcpy(data.data() + pos, reinterpret_cast<uint8_t *>(&header), sizeof(header));
-        pos += sizeof(header) + header.len;
+    const auto append = [&transaction](auto obj) {
+        const auto obj_bytes = trivial_as_bytes(obj);
+        transaction.insert(transaction.end(), obj_bytes.begin(), obj_bytes.end());
+    };
+    for (size_t i = 0; i < num_of_items; i++) {
+        const bool last_item = i + 1 == num_of_items;
+        constexpr uint16_t data_len = 10;
+        append(Backend::ItemHeader { last_item, start_id + i, data_len });
+        std::array<std::byte, data_len> data;
+        data.fill(std::byte { 0xAB });
+        append(data);
     }
-
-    header.last_item = true;
-    header.id = start_id;
-    memcpy(data.data() + pos, reinterpret_cast<uint8_t *>(&header), sizeof(header));
-    pos += sizeof(header) + header.len;
-
-    uint32_t crc = crc32_calc_ex(0, data.data(), pos);
-    memcpy(data.data() + pos, reinterpret_cast<uint8_t *>(&crc), sizeof(crc));
-    pos += sizeof(crc);
-    return pos;
+    append(crc32(0, transaction));
+    return transaction;
 }
 
 size_t create_last_item(std::span<uint8_t> data) {
@@ -56,18 +53,18 @@ size_t create_last_item(std::span<uint8_t> data) {
 
 TEST_CASE("journal::EEPROM::Test transaction validation") {
     DummyEepromChip storage;
-    size_t pos = create_transaction(3, storage.get(0, 1024));
+    const uint16_t next_free = storage.set(0, create_transaction(3));
     Backend journal(0, 1024, storage);
 
     SECTION("Correct data") {
         auto pos_read = journal.get_next_transaction(0, 1024);
         REQUIRE(pos_read.has_value());
         auto [address, read_pos, num_of_items_loc] = pos_read.value();
-        REQUIRE(read_pos == pos);
+        REQUIRE(read_pos == next_free);
         REQUIRE(num_of_items_loc == 3);
     }
     SECTION("Short buffer") {
-        auto pos_read = journal.get_next_transaction(0, pos - 10);
+        auto pos_read = journal.get_next_transaction(0, next_free - 10);
         REQUIRE_FALSE(pos_read.has_value());
     }
     SECTION("Corrupetd data") {
@@ -77,8 +74,8 @@ TEST_CASE("journal::EEPROM::Test transaction validation") {
         REQUIRE_FALSE(pos_read.has_value());
     }
     SECTION("Missing last item") {
-        Backend::ItemHeader header = { false, 1, 10 };
-        storage.set(pos - 4 - 10 - 3, reinterpret_cast<uint8_t *>(&header), sizeof(header));
+        Backend::ItemHeader header { false, 1, 10 };
+        storage.set(next_free - 4 - 10 - 3, trivial_as_bytes(header));
         auto pos_read = journal.get_next_transaction(0, 1024);
         REQUIRE_FALSE(pos_read.has_value());
     }
@@ -86,14 +83,13 @@ TEST_CASE("journal::EEPROM::Test transaction validation") {
 
 TEST_CASE("journal::EEPROM::Test multiple transactions validation") {
     DummyEepromChip storage;
-    size_t pos = 0;
     Backend journal(0, 1024, storage);
 
     SECTION("Just valid header") {
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::Corrupted);
-        REQUIRE(last_transaction == pos);
+        REQUIRE(last_transaction == 0);
         REQUIRE(num_of_transactions == 0);
     }
 
@@ -102,59 +98,60 @@ TEST_CASE("journal::EEPROM::Test multiple transactions validation") {
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::Valid);
-        REQUIRE(last_transaction == pos);
+        REQUIRE(last_transaction == 0);
         REQUIRE(num_of_transactions == 0);
     }
 
     SECTION("Transaction without end item") {
-        pos += create_transaction(3, storage.get(0, 1024));
+        const uint16_t next_free = storage.set(0, create_transaction(3));
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::MissingEndItem);
-        REQUIRE(last_transaction == pos);
+        REQUIRE(last_transaction == next_free);
         REQUIRE(num_of_transactions == 1);
     }
 
     SECTION("Transaction with end item") {
-        pos += create_transaction(3, storage.get(0, 1024));
-        create_last_item(storage.get(pos, 1024 - pos));
+        const uint16_t next_free = storage.set(0, create_transaction(3));
+        create_last_item(storage.get(next_free, 1024 - next_free));
 
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::Valid);
-        REQUIRE(last_transaction == pos);
+        REQUIRE(last_transaction == next_free);
         REQUIRE(num_of_transactions == 1);
     }
 
     SECTION("Multiple transactions") {
-        pos += create_transaction(3, storage.get(0 + pos, 1024 - pos));
-        pos += create_transaction(5, storage.get(0 + pos, 1024 - pos));
-        pos += create_transaction(8, storage.get(0 + pos, 1024 - pos));
-        create_last_item(storage.get(0 + pos, 1024 - pos));
+        uint16_t next_free = 0;
+        next_free = storage.set(next_free, create_transaction(3));
+        next_free = storage.set(next_free, create_transaction(5));
+        next_free = storage.set(next_free, create_transaction(8));
+        create_last_item(storage.get(0 + next_free, 1024 - next_free));
 
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::Valid);
-        REQUIRE(last_transaction == pos);
+        REQUIRE(last_transaction == next_free);
         REQUIRE(num_of_transactions == 3);
     }
 
     SECTION("Multiple transactions without ending item") {
-        pos += create_transaction(3, storage.get(0 + pos, 1024 - pos));
-        pos += create_transaction(5, storage.get(0 + pos, 1024 - pos));
-        pos += create_transaction(8, storage.get(0 + pos, 1024 - pos));
+        uint16_t next_free = 0;
+        next_free = storage.set(next_free, create_transaction(3));
+        next_free = storage.set(next_free, create_transaction(5));
+        next_free = storage.set(next_free, create_transaction(8));
 
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::MissingEndItem);
-        REQUIRE(last_transaction == pos);
+        REQUIRE(last_transaction == next_free);
         REQUIRE(num_of_transactions == 3);
     }
 }
 
 TEST_CASE("journal::EEPROM::Test item loading") {
     DummyEepromChip storage;
-    size_t pos = 0;
     Backend journal(0, 1024, storage);
 
     size_t num_of_items = 0;
@@ -166,14 +163,15 @@ TEST_CASE("journal::EEPROM::Test item loading") {
     };
 
     SECTION("Single transaction") {
-        pos += create_transaction(3, storage.get(0 + pos, 1024 - pos));
-        journal.load_items(0, pos, load_fnc);
+        const uint16_t next_free = storage.set(0, create_transaction(3));
+        journal.load_items(0, next_free, load_fnc);
         REQUIRE(num_of_items == 3);
     }
     SECTION("Multiple transactions") {
-        pos += create_transaction(3, storage.get(pos, 1024 - pos));
-        pos += create_transaction(3, storage.get(pos, 1024 - pos), 3);
-        journal.load_items(0, pos, load_fnc);
+        uint16_t next_free = 0;
+        next_free = storage.set(next_free, create_transaction(3));
+        next_free = storage.set(next_free, create_transaction(3, 3));
+        journal.load_items(0, next_free, load_fnc);
         REQUIRE(num_of_items == 6);
     }
 }

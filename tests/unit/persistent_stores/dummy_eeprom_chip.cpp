@@ -26,6 +26,11 @@ void DummyEepromChip::set(uint16_t address, const uint8_t byte) {
     REQUIRE(address < data.size());
     data[address] = byte;
 }
+uint16_t DummyEepromChip::set(uint16_t address, Bytes bytes) {
+    REQUIRE(address + bytes.size() <= data.size());
+    std::memcpy(data.data() + address, bytes.data(), bytes.size());
+    return address + bytes.size();
+}
 uint8_t DummyEepromChip::get(uint16_t address) {
     REQUIRE(address < data.size());
     return data[address];
