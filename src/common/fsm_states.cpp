@@ -116,7 +116,7 @@ std::optional<States::Top> States::get_top() const {
 }
 
 void States::log() const {
-#if _DEBUG
+#if _DEBUG && 0
     log_debug(Fsm, "New generation %" PRIu32, state_id.to_uint32_t());
     for (size_t i = 0; i < states.size(); i++) {
         if (states[i].has_value()) {
