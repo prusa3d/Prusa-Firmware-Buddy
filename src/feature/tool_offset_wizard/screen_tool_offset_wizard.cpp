@@ -13,11 +13,17 @@
 #include <standard_frame/frame_wait.hpp>
 #include <string_view_utf8.hpp>
 
+#include "has_tool_offset_nozzle_cleaning_wizard.hpp"
+
 namespace {
 
 constexpr auto txt_title = N_("Tool Offsets Calibration");
 constexpr auto txt_intro = N_("The printer will calibrate the XY/Z offsets of all tools using the tool offset sensor. This may take several minutes.");
+#if HAS_TOOL_OFFSET_NOZZLE_CLEANING_WIZARD()
+constexpr auto txt_clean_nozzles = N_("Nozzles have to be perfectly clean for good calibration results.\nManually pick each tool and clean its nozzle. Press Continue when done.");
+#else
 constexpr auto txt_ensure_nozzles_clean = N_("Make sure all the nozzles are clean, then press Continue.");
+#endif
 constexpr auto txt_moving_away = N_("Lowering bed for clearance");
 constexpr auto txt_picking_tool = N_("Picking up tool");
 constexpr auto txt_homing = N_("Homing");
@@ -54,12 +60,23 @@ private:
     StringViewUtf8Parameters<20> params_;
 };
 
+#if HAS_TOOL_OFFSET_NOZZLE_CLEANING_WIZARD()
+/// Cleaning prompt with all nozzle temperatures in the footer, so the user can
+/// track the heat-up/cool-down they control with the Heatup/Cooldown buttons.
+using FrameCleanNozzles = WithFooter<FramePrompt, { footer::Item::all_nozzles }>;
+#endif
+
 using Frames = FrameDefinitionList<ScreenToolOffsetWizard::FrameStorage,
     FrameDefinition<PhaseToolOffsetsCalibration::intro, FramePrompt, PhaseToolOffsetsCalibration::intro, txt_title, txt_intro>,
+#if HAS_TOOL_OFFSET_NOZZLE_CLEANING_WIZARD()
+    FrameDefinition<PhaseToolOffsetsCalibration::clean_nozzles_cold, FrameCleanNozzles, PhaseToolOffsetsCalibration::clean_nozzles_cold, txt_title, txt_clean_nozzles>,
+    FrameDefinition<PhaseToolOffsetsCalibration::clean_nozzles_hot, FrameCleanNozzles, PhaseToolOffsetsCalibration::clean_nozzles_hot, txt_title, txt_clean_nozzles>,
+#else
     FrameDefinition<PhaseToolOffsetsCalibration::ensure_nozzles_clean, FramePrompt, PhaseToolOffsetsCalibration::ensure_nozzles_clean, txt_title, txt_ensure_nozzles_clean>,
+#endif
     FrameDefinition<PhaseToolOffsetsCalibration::moving_away, FrameWait, txt_moving_away>,
-    FrameDefinition<PhaseToolOffsetsCalibration::picking_tool, FrameWait, txt_picking_tool>,
     FrameDefinition<PhaseToolOffsetsCalibration::homing, FrameWait, txt_homing>,
+    FrameDefinition<PhaseToolOffsetsCalibration::picking_tool, FrameWait, txt_picking_tool>,
     FrameDefinition<PhaseToolOffsetsCalibration::calibrating, FrameCalibratingProgress, PhaseToolOffsetsCalibration::calibrating, txt_title, txt_calibrating_progress>,
     FrameDefinition<PhaseToolOffsetsCalibration::calibration_success, FrameTextPrompt, PhaseToolOffsetsCalibration::calibration_success, txt_success>,
     FrameDefinition<PhaseToolOffsetsCalibration::calibration_failed, FrameTextPrompt, PhaseToolOffsetsCalibration::calibration_failed, txt_failed>>;

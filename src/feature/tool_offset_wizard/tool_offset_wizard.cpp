@@ -14,6 +14,15 @@
 #include <test_result.hpp>
 #include <bsod/bsod.h>
 
+#include "has_tool_offset_nozzle_cleaning_wizard.hpp"
+#if HAS_TOOL_OFFSET_NOZZLE_CLEANING_WIZARD()
+    #include <Marlin/src/Marlin.h>
+    #include <Marlin/src/module/temperature.h>
+    #include <fanctl.hpp>
+    #include <mapi/parking.hpp>
+    #include <tool_index.hpp>
+#endif
+
 LOG_COMPONENT_DEF(ToolOffsetWizard, logging::Severity::info);
 
 using marlin_server::wait_for_response;
@@ -21,6 +30,68 @@ using marlin_server::wait_for_response;
 namespace tool_offset_wizard {
 
 namespace {
+
+#if HAS_TOOL_OFFSET_NOZZLE_CLEANING_WIZARD()
+    /// Nozzle temperature for manual cleaning [degC]
+    constexpr int16_t cleaning_temp = 200;
+
+    /// Nozzles are considered safe to touch below this temperature [degC]
+    constexpr float safe_to_touch_temp = 50;
+
+    /// Runs print & heatbreak fans at full power to speed up nozzle cooling,
+    /// until the nozzles are safe to touch or heating is requested again.
+    class FanCooling {
+    public:
+        ~FanCooling() {
+            stop();
+        }
+
+        /// Spin up the fans if any nozzle is too hot to touch
+        void request() {
+            if (active || all_safe_to_touch()) {
+                return;
+            }
+            active = true;
+            for (auto tool : PhysicalToolIndex::all().skip_all_disabled()) {
+                Fans::print(tool).enter_selftest_mode();
+                Fans::heat_break(tool).enter_selftest_mode();
+                Fans::print(tool).selftest_set_pwm(255);
+                Fans::heat_break(tool).selftest_set_pwm(255);
+            }
+        }
+
+        /// Return the fans to normal control
+        void stop() {
+            if (!active) {
+                return;
+            }
+            active = false;
+            for (auto tool : PhysicalToolIndex::all().skip_all_disabled()) {
+                Fans::print(tool).exit_selftest_mode();
+                Fans::heat_break(tool).exit_selftest_mode();
+            }
+        }
+
+        /// To be called periodically: stops the fans once all nozzles are safe to touch
+        void manage() {
+            if (active && all_safe_to_touch()) {
+                stop();
+            }
+        }
+
+    private:
+        static bool all_safe_to_touch() {
+            for (auto tool : PhysicalToolIndex::all().skip_all_disabled()) {
+                if (thermalManager.degHotend(tool) > safe_to_touch_temp) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        bool active = false;
+    };
+#endif
 
     class Wizard {
     public:
@@ -68,6 +139,63 @@ namespace {
             marlin_server::fsm_change(phase, data);
         }
 
+#if HAS_TOOL_OFFSET_NOZZLE_CLEANING_WIZARD()
+        /// Interactive nozzle cleaning taken over from the pin-based XL calibration: the user
+        /// can heat the nozzles up to remove baked-on filament and cool them back down (with
+        /// fan assist) for safe handling.
+        /// @return false when the user aborted
+        bool clean_nozzles() {
+            // Make some space between the nozzles and the bed
+            fsm_change(PhaseToolOffsetsCalibration::moving_away);
+            if (!mapi::park(mapi::ParkingPosition { .z = mapi::ParkingPosition::AtLeast { .absolute = 100 } })) {
+                return false;
+            }
+            // release the motors, so the user can move the carriage freely while cleaning.
+            disable_all_steppers();
+
+            FanCooling fan_cooling;
+            const Subscriber fan_manager { marlin_server::idle_publisher, [&fan_cooling] { fan_cooling.manage(); } };
+
+            const auto heat_all = [](bool heat) {
+                for (auto tool : PhysicalToolIndex::all().skip_all_disabled()) {
+                    thermalManager.setTargetHotend(heat ? cleaning_temp : 0, tool);
+                }
+            };
+
+            heat_all(false);
+            fan_cooling.request();
+
+            auto phase = PhaseToolOffsetsCalibration::clean_nozzles_cold;
+            while (true) {
+                fsm_change(phase);
+                const Response response = wait_for_response(phase);
+                switch (response) {
+
+                case Response::Heatup:
+                    fan_cooling.stop();
+                    heat_all(true);
+                    phase = PhaseToolOffsetsCalibration::clean_nozzles_hot;
+                    break;
+
+                case Response::Cooldown:
+                    heat_all(false);
+                    fan_cooling.request();
+                    phase = PhaseToolOffsetsCalibration::clean_nozzles_cold;
+                    break;
+
+                case Response::Continue:
+                case Response::Abort:
+                    // The calibration heats each tool as needed, don't leave the targets set
+                    heat_all(false);
+                    return response == Response::Continue;
+
+                default:
+                    break;
+                }
+            }
+        }
+#endif
+
         Result run_inner() {
             // Intro
             fsm_change(PhaseToolOffsetsCalibration::intro);
@@ -75,12 +203,18 @@ namespace {
                 return Result::aborted_before_calib;
             }
 
+#if HAS_TOOL_OFFSET_NOZZLE_CLEANING_WIZARD()
+            if (!clean_nozzles()) {
+                return Result::aborted_before_calib;
+            }
+#else
             // The nozzle cleaner is not calibrated yet at this stage of the selftest, so we can't
             // auto-purge/clean. Ask the user to ensure nozzles are clean before we heat & probe.
             fsm_change(PhaseToolOffsetsCalibration::ensure_nozzles_clean);
             if (wait_for_response(PhaseToolOffsetsCalibration::ensure_nozzles_clean) == Response::Abort) {
                 return Result::aborted_before_calib;
             }
+#endif
 
             const mapi::CalibrationPreamble preamble {
                 .tool_policy = mapi::CalibrationPreamble::ToolPolicy::ensure_picked,

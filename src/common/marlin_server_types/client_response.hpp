@@ -58,6 +58,7 @@
 #include <option/has_e2ee_support.h>
 #include <option/has_indx.h>
 #include <option/has_serial_print.h>
+#include <feature/tool_offset_wizard/has_tool_offset_nozzle_cleaning_wizard.hpp>
 #include <bsod/bsod.h>
 
 /// Maximum number of responses available during a FSM phase
@@ -555,10 +556,15 @@ constexpr inline ClientFSM client_fsm_from_phase(PhaseNozzleCleanerCalibration) 
 #if HAS_TOOL_OFFSET_SENSOR()
 enum class PhaseToolOffsetsCalibration : PhaseUnderlyingType {
     intro,
+    #if HAS_TOOL_OFFSET_NOZZLE_CLEANING_WIZARD()
+    clean_nozzles_cold,
+    clean_nozzles_hot,
+    #else
     ensure_nozzles_clean,
+    #endif
     moving_away,
-    picking_tool,
     homing,
+    picking_tool,
     calibrating,
     calibration_success,
     calibration_failed,
@@ -904,13 +910,18 @@ inline constexpr EnumArray<PhaseNozzleCleanerCalibration, PhaseResponses, CountP
 #if HAS_TOOL_OFFSET_SENSOR()
 inline constexpr EnumArray<PhaseToolOffsetsCalibration, PhaseResponses, CountPhases<PhaseToolOffsetsCalibration>()> tool_offsets_calibration_responses {
     { PhaseToolOffsetsCalibration::intro, { Response::Continue, Response::Abort } },
-    { PhaseToolOffsetsCalibration::ensure_nozzles_clean, { Response::Continue, Response::Abort } },
-    { PhaseToolOffsetsCalibration::moving_away, {} },
-    { PhaseToolOffsetsCalibration::picking_tool, {} },
-    { PhaseToolOffsetsCalibration::homing, {} },
-    { PhaseToolOffsetsCalibration::calibrating, { Response::Abort } },
-    { PhaseToolOffsetsCalibration::calibration_success, { Response::Continue } },
-    { PhaseToolOffsetsCalibration::calibration_failed, { Response::Continue } },
+    #if HAS_TOOL_OFFSET_NOZZLE_CLEANING_WIZARD()
+        { PhaseToolOffsetsCalibration::clean_nozzles_cold, { Response::Heatup, Response::Continue, Response::Abort } },
+        { PhaseToolOffsetsCalibration::clean_nozzles_hot, { Response::Cooldown, Response::Continue, Response::Abort } },
+    #else
+        { PhaseToolOffsetsCalibration::ensure_nozzles_clean, { Response::Continue, Response::Abort } },
+    #endif
+        { PhaseToolOffsetsCalibration::moving_away, {} },
+        { PhaseToolOffsetsCalibration::homing, {} },
+        { PhaseToolOffsetsCalibration::picking_tool, {} },
+        { PhaseToolOffsetsCalibration::calibrating, { Response::Abort } },
+        { PhaseToolOffsetsCalibration::calibration_success, { Response::Continue } },
+        { PhaseToolOffsetsCalibration::calibration_failed, { Response::Continue } },
 };
 #endif
 
