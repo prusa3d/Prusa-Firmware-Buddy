@@ -329,7 +329,7 @@ Errors:
     text: "An unexpected obstruction was detected in the dock area."
     id: "UNEXPECTED_TOOL"
     gui_layout: "red_screen"
-    approved: false
+    approved: true
 
   - code: "XX133"
     printers: [COREONE_INDX, COREONEL_INDX, XL]
