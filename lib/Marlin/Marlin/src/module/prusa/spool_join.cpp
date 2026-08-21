@@ -349,11 +349,7 @@ bool SpoolJoin::do_join(VirtualToolIndex current_virtual_tool) {
     }
 
     // Match the retracted distance of the original tool
-    const float current_retracted_distance = buddy::filament_tracker().get_retracted_distance(new_physical_tool).value_or(0);
-
-    const auto extruder_feedrate = buddy::standard_feedrates::current_extruder(buddy::standard_feedrates::Extruder::advanced_pause_purge);
-
-    mapi::extruder_move(-(target_retracted_distance - current_retracted_distance), extruder_feedrate);
+    mapi::restore_retracted_distance(target_retracted_distance, buddy::standard_feedrates::current_extruder(buddy::standard_feedrates::Extruder::retract));
 
     // Make the spool join seamless in terms of E stepper position
     sync_e_position_to(orig_e_pos);
