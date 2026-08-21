@@ -2,10 +2,10 @@
 
 #include <screen_fsm.hpp>
 
-class ScreenToolOffsetsCalibration final : public ScreenFSM {
+class ScreenToolOffsetWizard final : public ScreenFSM {
 public:
-    ScreenToolOffsetsCalibration();
-    ~ScreenToolOffsetsCalibration();
+    ScreenToolOffsetWizard();
+    ~ScreenToolOffsetWizard();
 
     inline PhaseToolOffsetsCalibration get_phase() const {
         return GetEnumFromPhaseIndex<PhaseToolOffsetsCalibration>(fsm_base_data.GetPhase());

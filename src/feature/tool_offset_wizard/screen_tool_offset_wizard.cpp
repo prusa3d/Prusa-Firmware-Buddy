@@ -1,6 +1,6 @@
-#include "screen_indx_tool_offsets_calibration.hpp"
+#include "screen_tool_offset_wizard.hpp"
 
-#include "indx_tool_offsets_calibration.hpp"
+#include "tool_offset_wizard.hpp"
 #include <common/fsm_base_types.hpp>
 #include <guiconfig/GuiDefaults.hpp>
 #include <guiconfig/wizard_config.hpp>
@@ -35,7 +35,7 @@ public:
         , fmt_(t_info_fmt) {}
 
     void update(fsm::PhaseData data) {
-        const auto progress = fsm::deserialize_data<indx_tool_offsets_calibration::ProgressData>(data);
+        const auto progress = fsm::deserialize_data<tool_offset_wizard::ProgressData>(data);
         if (progress.total_steps == 0) {
             progress_bar.set_progress_percent(0);
             return;
@@ -54,7 +54,7 @@ private:
     StringViewUtf8Parameters<20> params_;
 };
 
-using Frames = FrameDefinitionList<ScreenToolOffsetsCalibration::FrameStorage,
+using Frames = FrameDefinitionList<ScreenToolOffsetWizard::FrameStorage,
     FrameDefinition<PhaseToolOffsetsCalibration::intro, FramePrompt, PhaseToolOffsetsCalibration::intro, txt_title, txt_intro>,
     FrameDefinition<PhaseToolOffsetsCalibration::ensure_nozzles_clean, FramePrompt, PhaseToolOffsetsCalibration::ensure_nozzles_clean, txt_title, txt_ensure_nozzles_clean>,
     FrameDefinition<PhaseToolOffsetsCalibration::moving_away, FrameWait, txt_moving_away>,
@@ -66,25 +66,25 @@ using Frames = FrameDefinitionList<ScreenToolOffsetsCalibration::FrameStorage,
 
 } // namespace
 
-ScreenToolOffsetsCalibration::ScreenToolOffsetsCalibration()
+ScreenToolOffsetWizard::ScreenToolOffsetWizard()
     : ScreenFSM { N_("TOOL OFFSETS CALIBRATION"), GuiDefaults::RectScreenNoHeader } {
     header.SetIcon(&img::selftest_16x16);
     CaptureNormalWindow(inner_frame);
     create_frame();
 }
 
-ScreenToolOffsetsCalibration::~ScreenToolOffsetsCalibration() {
+ScreenToolOffsetWizard::~ScreenToolOffsetWizard() {
     destroy_frame();
 }
 
-void ScreenToolOffsetsCalibration::create_frame() {
+void ScreenToolOffsetWizard::create_frame() {
     Frames::create_frame(frame_storage, get_phase(), &inner_frame);
 }
 
-void ScreenToolOffsetsCalibration::destroy_frame() {
+void ScreenToolOffsetWizard::destroy_frame() {
     Frames::destroy_frame(frame_storage, get_phase());
 }
 
-void ScreenToolOffsetsCalibration::update_frame() {
+void ScreenToolOffsetWizard::update_frame() {
     Frames::update_frame(frame_storage, get_phase(), fsm_base_data.GetData());
 }

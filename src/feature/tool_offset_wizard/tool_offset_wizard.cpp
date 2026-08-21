@@ -1,4 +1,4 @@
-#include "indx_tool_offsets_calibration.hpp"
+#include "tool_offset_wizard.hpp"
 
 #include <client_response.hpp>
 #include <common/fsm_base_types.hpp>
@@ -14,11 +14,11 @@
 #include <test_result.hpp>
 #include <bsod/bsod.h>
 
-LOG_COMPONENT_DEF(ToolOffsetsCalibration, logging::Severity::info);
+LOG_COMPONENT_DEF(ToolOffsetWizard, logging::Severity::info);
 
 using marlin_server::wait_for_response;
 
-namespace indx_tool_offsets_calibration {
+namespace tool_offset_wizard {
 
 namespace {
 
@@ -138,4 +138,4 @@ void run() {
     wizard.run();
 }
 
-} // namespace indx_tool_offsets_calibration
+} // namespace tool_offset_wizard

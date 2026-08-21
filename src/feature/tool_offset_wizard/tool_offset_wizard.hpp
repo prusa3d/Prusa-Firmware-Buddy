@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace indx_tool_offsets_calibration {
+namespace tool_offset_wizard {
 
 void run();
 
@@ -18,4 +18,4 @@ struct ProgressData {
 };
 static_assert(sizeof(ProgressData) <= 4);
 
-} // namespace indx_tool_offsets_calibration
+} // namespace tool_offset_wizard

@@ -34,7 +34,7 @@
 #endif
 
 #if HAS_TOOL_OFFSET_SENSOR()
-    #include <feature/indx_tool_offsets_calibration/screen_indx_tool_offsets_calibration.hpp>
+    #include <feature/tool_offset_wizard/screen_tool_offset_wizard.hpp>
 #endif
 
 #if HAS_MANUAL_BELT_TUNING()
@@ -322,7 +322,7 @@ using FSMDisplayConfig = FSMDisplayConfigDef<
     FSMScreenDef<ClientFSM::NozzleCleanerCalibration, ScreenNozzleCleanerCalibration>,
 #endif
 #if HAS_TOOL_OFFSET_SENSOR()
-    FSMScreenDef<ClientFSM::ToolOffsetsCalibration, ScreenToolOffsetsCalibration>,
+    FSMScreenDef<ClientFSM::ToolOffsetsCalibration, ScreenToolOffsetWizard>,
 #endif
     // This is here so that we can worry-free write commas at the end of each argument
     FSMEndDef>;

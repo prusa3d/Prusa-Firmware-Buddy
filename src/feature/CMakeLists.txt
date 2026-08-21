@@ -22,7 +22,7 @@ if(HAS_TOOL_OFFSET_SENSOR)
   target_sources(firmware PRIVATE contactless_offset/can_remote_sensor_glue.cpp)
   target_link_libraries(firmware PUBLIC contactless_offset)
   add_subdirectory(tool_offset_calibration)
-  add_subdirectory(indx_tool_offsets_calibration)
+  add_subdirectory(tool_offset_wizard)
 endif()
 
 if(HAS_INDX)
