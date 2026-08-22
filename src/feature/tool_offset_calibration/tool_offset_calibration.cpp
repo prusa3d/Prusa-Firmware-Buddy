@@ -237,19 +237,15 @@ bool prepare_tool(PhysicalToolIndex tool, [[maybe_unused]] tool_offset_calibrati
         set_temp_and_wait_reached(tool, temps.xy_probing);
     }
 #elif HAS_NOZZLE_CLEANER_LITE()
-    // The lite cleaner self-locates (homes and probes its own Z reference) and handles
-    // nozzle heating internally, so it can run in both contexts. As probing_tool it
-    // rests on the touchpoint until the cool-down temperature and keeps that target
-    // for the Z probing that follows.
+    // The lite cleaner self-locates and heats internally, so unlike the full
+    // cleaner it needs no separate Calibration-context handling.
     if (nozzle_cleaner_lite::is_available()) {
-        if (!nozzle_cleaner_lite::clean(nozzle_cleaner_lite::CleanType::probing_tool)) {
+        if (!nozzle_cleaner_lite::clean({ .cleaning_temp = temps.cleaning, .probe_temp = temps.z_probing, .cooldown = true, .keep_target = true })) {
             return false;
         }
+    } else {
+        set_temp_and_wait_reached(tool, temps.z_probing);
     }
-
-    // Already reached after a successful clean; establishes the Z-probing
-    // temperature when the cleaner is not installed.
-    set_temp_and_wait_reached(tool, temps.z_probing);
 #else
     #error "Not defined behavior for this printer configuration"
 #endif

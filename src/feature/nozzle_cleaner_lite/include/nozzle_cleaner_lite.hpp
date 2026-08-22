@@ -23,27 +23,19 @@ bool is_available();
 /// thermal expansion stays close to printing conditions. The probing tool
 /// keeps it for the probing that follows.
 constexpr int16_t cooldown_temp_diff = 20;
-
-/// What the clean is part of, which decides where the cleaning temperature
-/// comes from and what happens to the nozzle temperature target afterwards
-enum class CleanType : uint8_t {
-    /// A clean of its own (G12): cleans at the loaded filament's preheat
-    /// temperature, which is warm enough to soften ooze without making it
-    /// flow, and the target from before cleaning is restored.
-    standalone,
-
-    /// A clean before MBL, on the tool that probes afterwards: cleans at the
-    /// temperature the preceding gcode set for probing (falling back to the
-    /// preheat temperature if it set none), and the touchpoint cool-down
-    /// target is kept, so probing runs as hot as possible without oozing
-    /// (nozzle thermal expansion).
-    probing_tool,
+struct CleanArgs {
+    // cleaning_temp below EXTRUDE_MINTEMP fails the clean.
+    int16_t cleaning_temp;
+    // target to cool down to, defaulting to
+    // cleaning_temp - cooldown_temp_diff. Must be <= cleaning_temp.
+    std::optional<int16_t> probe_temp;
+    bool cooldown;
+    bool keep_target;
 };
 
 /// Home if needed, probe the cleaner's touchpoint reference point, run the
 /// clean cycle and rest on the touchpoint until the nozzle cools down.
 /// Caller must check is_available() first.
-/// \returns true if the whole sequence completed
-bool clean(CleanType clean_type);
+bool clean(CleanArgs args);
 
 } // namespace nozzle_cleaner_lite

@@ -4,7 +4,11 @@
 #include <logging/log.hpp>
 
 #include <algorithm>
+#include <optional>
 #include <utility>
+
+#include <module/temperature.h>
+#include <module/motion.h>
 
 #include <option/has_auto_retract.h>
 #if HAS_AUTO_RETRACT()
@@ -71,7 +75,8 @@ void PrusaGcodeSuite::G12() {
         // Unlike G29, G12 doesn't already have a print_status_message FSM open,
         // so open one here to show the heating wait screen during cleaning.
         marlin_server::FSM_Holder fsm_holder(PhaseWait::print_status_message);
-        if (!nozzle_cleaner_lite::clean(nozzle_cleaner_lite::CleanType::standalone)) {
+        if (!nozzle_cleaner_lite::clean(thermalManager.degTargetHotend(active_extruder), std::nullopt,
+                nozzle_cleaner_lite::Finish::cooldown_restore_target)) {
             SERIAL_ERROR_MSG("G12: nozzle cleaning failed");
         }
     }

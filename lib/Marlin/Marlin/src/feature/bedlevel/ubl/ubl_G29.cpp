@@ -587,7 +587,10 @@
               // doesn't need the X/Y/W/H rectangle the loadcell tap-based
               // cleaning below scans.
               if (nozzle_cleaner_lite::is_available()) {
-                ubl.g29_nozzle_cleaning_failed |= !nozzle_cleaner_lite::clean(nozzle_cleaner_lite::CleanType::probing_tool);
+                // The start gcode set the probing temperature; clean at it and
+                // keep the cooled-down default target for the probing that follows.
+                ubl.g29_nozzle_cleaning_failed |= !nozzle_cleaner_lite::clean(
+                  { .cleaning_temp = thermalManager.degTargetHotend(active_extruder), .cooldown = true, .keep_target = true });
                 break;
               }
             #endif

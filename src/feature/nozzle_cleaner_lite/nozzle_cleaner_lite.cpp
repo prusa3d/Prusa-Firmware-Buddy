@@ -25,7 +25,6 @@
 #include <raii/scope_guard.hpp>
 #include <config_store/store_definition.hpp>
 #include <bsod/bsod.h>
-#include <filament.hpp>
 #include <timing.h>
 
 #include <algorithm>
@@ -128,23 +127,6 @@ namespace {
     constexpr uint8_t rub_cycles_slow = 2;
     constexpr float rub_acceleration = 5000.0f;
 
-    constexpr int16_t no_filament_cleaning_temperature = 170;
-
-    int16_t cleaning_temperature_for(PhysicalToolIndex tool, CleanType clean_type) {
-        // Both MBL clean types inherit the temperature the preceding gcode set
-        // for probing; a standalone clean must not inherit a printing one.
-        if (clean_type != CleanType::standalone) {
-            const int16_t gcode_target = Hotend::for_tool(tool).nozzle_target_temp();
-            // Too low a target means the gcode never set a probing temperature
-            if (gcode_target >= EXTRUDE_MINTEMP) {
-                return gcode_target;
-            }
-        }
-
-        const FilamentType filament = FilamentType::for_tool_heuristic(tool.currently_selected_virtual_tool());
-        return filament ? filament.parameters().nozzle_preheat_temperature : no_filament_cleaning_temperature;
-    }
-
     // Move in raw machine coordinates (line_to_machine_pos), bypassing MBL.
     void move_to_machine_pos_xy(float x, float y, feedRate_t fr_mm_s) {
         auto target = current_machine_position();
@@ -208,8 +190,16 @@ bool is_available() {
     return config_store().nozzle_cleaner_lite_installed.get();
 }
 
-bool clean(CleanType clean_type) {
+bool clean(CleanArgs args) {
     release_assert(is_available());
+
+    if (args.cleaning_temp < EXTRUDE_MINTEMP) {
+        log_error(NozzleCleanerLite, "no cleaning temperature set");
+        return false;
+    }
+
+    const int16_t rest_temp = args.probe_temp.value_or(args.cleaning_temp - cooldown_temp_diff);
+    release_assert(!args.cooldown || rest_temp <= args.cleaning_temp);
 
     PrintStatusMessageGuard status_message;
     status_message.update<PrintStatusMessage::nozzle_cleaner_lite>({});
@@ -220,11 +210,9 @@ bool clean(CleanType clean_type) {
         return false;
     }
 
-    const int16_t cleaning_temperature = cleaning_temperature_for(*tool, clean_type);
-
     // Start heating used tool and restore target temp on exit
     const int16_t saved_nozzle_target = Hotend::for_tool(*tool).nozzle_target_temp();
-    Hotend::for_tool(*tool).set_nozzle_target_temp(cleaning_temperature);
+    Hotend::for_tool(*tool).set_nozzle_target_temp(args.cleaning_temp);
     ScopeGuard restore_nozzle_target([&] {
         Hotend::for_tool(*tool).set_nozzle_target_temp(saved_nozzle_target);
     });
@@ -283,16 +271,23 @@ bool clean(CleanType clean_type) {
         planner.apply_settings(s);
     }
 
-    // Retreat back over the touchpoint, cooling down on the way
-    Hotend::for_tool(*tool).set_nozzle_target_temp(cleaning_temperature - cooldown_temp_diff);
     const uint8_t saved_fan_speed = thermalManager.get_print_fan_speed();
-    thermalManager.set_print_fan_speed(255);
     ScopeGuard restore_fan_speed([&] {
         thermalManager.set_print_fan_speed(saved_fan_speed);
     });
+    if (args.cooldown) {
+        // Start cooling down already on the way back to the touchpoint
+        Hotend::for_tool(*tool).set_nozzle_target_temp(rest_temp);
+        thermalManager.set_print_fan_speed(255);
+    }
 
+    // Retreat back over the touchpoint
     move_to_machine_pos_z(probed_z + travel_clearance_mm, leave_feedrate);
     move_to_machine_pos_xy(touchpoint_xy.x, touchpoint_xy.y, leave_feedrate);
+
+    if (!args.cooldown) {
+        return true;
+    }
 
     move_to_machine_pos_z(probed_z, dive_feedrate);
 
@@ -305,7 +300,7 @@ bool clean(CleanType clean_type) {
         return false;
     }
 
-    if (clean_type == CleanType::probing_tool) {
+    if (args.keep_target) {
         restore_nozzle_target.disarm();
     }
     return true;
