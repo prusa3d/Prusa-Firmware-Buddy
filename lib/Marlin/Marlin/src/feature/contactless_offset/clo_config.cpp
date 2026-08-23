@@ -24,12 +24,12 @@ constexpr float expected_surface_z = 0.4f;
 // take repeated loadcell probing. Common to both coils.
 constexpr xyz_pos_t z_probe_position { { { -6.f, -5.f, expected_surface_z } } };
 constexpr tool_offset::CoilAxis coil_x {
-    .position = { { { 5.f, -7.f, expected_surface_z } } },
+    .position = { { { 5.f, -6.f, expected_surface_z } } },
     .channel = tool_offset::SensorChannel::ch1,
     .sensing_distance = 16.f,
 };
 constexpr tool_offset::CoilAxis coil_y {
-    .position = { { { -6.f, 6.f, expected_surface_z } } },
+    .position = { { { -6.f, 5.f, expected_surface_z } } },
     .channel = tool_offset::SensorChannel::ch0,
     .sensing_distance = 16.f,
 };
