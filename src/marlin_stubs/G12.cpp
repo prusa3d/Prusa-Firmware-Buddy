@@ -26,6 +26,7 @@
     #include <nozzle_cleaner.hpp>
 #elif HAS_NOZZLE_CLEANER_LITE()
     #include <nozzle_cleaner_lite.hpp>
+    #include <tool/hotend/hotend.hpp>
 #else
     #error "G12 requires a nozzle cleaner"
 #endif
@@ -44,14 +45,17 @@ LOG_COMPONENT_REF(PRUSA_GCODE);
  *
  * #### Usage
  *
- *     G12 [ R ] [ S ]
+ *     G12 [ R ] [ S ] [ C ]
  *
  * #### Parameters
  *
  * - `R` - Ensure filament is (auto-)retracted before cleaning
- * - `S` - (INDX only) Cleaning sequence number (default: 0 = clean)
+ * - `S` - Nozzle cleaner lite: cleaning temperature (default: current nozzle
+ *         target). INDX: cleaning sequence number (default: 0 = clean)
  *         0 = clean, 1 = quick_clean, 2 = deep_clean, 20 = purge_clean,
  *         21 = power_panic_purge, 30 = eject_blob, 90 = enter_cleaner, 91 = exit_cleaner
+ * - `C` - (nozzle cleaner lite only) Cool down on the touchpoint after cleaning
+ *         (default: 1). `C0` leaves as soon as the rub is done.
  *
  */
 
@@ -72,11 +76,19 @@ void PrusaGcodeSuite::G12() {
 
 #if HAS_NOZZLE_CLEANER_LITE()
     if (nozzle_cleaner_lite::is_available()) {
+        const auto &hotend_cfg = Hotend::for_tool(active_extruder).config();
+        const nozzle_cleaner_lite::CleanArgs args {
+            .cleaning_temp = parser.option<int16_t>('S', hotend_cfg.min_nozzle_temp, hotend_cfg.max_nozzle_temp)
+                                 .value_or(thermalManager.degTargetHotend(active_extruder)),
+            .probe_temp = std::nullopt,
+            .cooldown = parser.option<bool>('C').value_or(true),
+            .keep_target = false,
+        };
+
         // Unlike G29, G12 doesn't already have a print_status_message FSM open,
         // so open one here to show the heating wait screen during cleaning.
         marlin_server::FSM_Holder fsm_holder(PhaseWait::print_status_message);
-        if (!nozzle_cleaner_lite::clean(thermalManager.degTargetHotend(active_extruder), std::nullopt,
-                nozzle_cleaner_lite::Finish::cooldown_restore_target)) {
+        if (!nozzle_cleaner_lite::clean(args)) {
             SERIAL_ERROR_MSG("G12: nozzle cleaning failed");
         }
     }
