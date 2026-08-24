@@ -38,9 +38,9 @@ if(HAS_PLANNER)
     )
 endif()
 
-target_compile_options(
-  Marlin PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-psabi> $<$<COMPILE_LANGUAGE:CXX>:-Werror=switch>
-  )
+target_compile_options(Marlin PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Werror=switch>)
+
+target_compile_options(Marlin PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-psabi>)
 
 if(BOARD_IS_MASTER_BOARD)
   # Full Marlin configuration for printing (*BUDDY boards)
