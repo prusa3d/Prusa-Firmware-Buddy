@@ -473,7 +473,7 @@ void resume_loop() {
     case ResumeState::WaitForHeaters: {
         buddy::safety_timer().reset_restore_nonblocking();
 
-        if (!Temperature::are_all_temperatures_reached()) {
+        if (!Temperature::are_all_temperatures_reached(Temperature::RequireCooling::current_tool_only)) {
             break;
         }
 

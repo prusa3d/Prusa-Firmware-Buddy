@@ -2253,7 +2253,7 @@ static void resuming_reheating() {
         }
     }
 
-    if (!Temperature::are_all_temperatures_reached()) {
+    if (!Temperature::are_all_temperatures_reached(Temperature::RequireCooling::current_tool_only)) {
         return;
     }
 

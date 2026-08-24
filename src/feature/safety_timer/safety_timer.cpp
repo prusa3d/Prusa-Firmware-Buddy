@@ -238,7 +238,7 @@ void SafetyTimer::step() {
         trigger();
     }
 
-    if (state_ == State::restoring && Temperature::are_hotend_temperatures_reached()) {
+    if (state_ == State::restoring && Temperature::are_hotend_temperatures_reached(Temperature::RequireCooling::all_tools)) {
         state_ = State::idle;
     }
 }

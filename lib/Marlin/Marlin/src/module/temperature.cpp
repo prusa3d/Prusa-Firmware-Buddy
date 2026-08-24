@@ -510,11 +510,12 @@ bool Temperature::temperatures_ready() {
   return temperatures_ready_state;
 }
 
-bool Temperature::are_all_temperatures_reached() {
+bool Temperature::are_all_temperatures_reached(Temperature::RequireCooling require_cooling) {
   #if HAS_TEMP_HOTEND
-    if(!are_hotend_temperatures_reached()) {
+    if(!are_hotend_temperatures_reached(require_cooling)) {
       return false;
     }
+
   #endif
 
   #if HAS_HEATED_BED
@@ -1094,11 +1095,23 @@ void Temperature::isr() {
       #define MIN_COOLING_SLOPE_TIME 60
     #endif
 
-    bool Temperature::are_hotend_temperatures_reached() {
+    bool Temperature::are_hotend_temperatures_reached(RequireCooling require_cooling) {
       for (auto tool : PhysicalToolIndex::all()) {
-        if (!Hotend::for_tool(tool).is_nozzle_temp_reached()) {
-            return false;
+        const Hotend &hotend = Hotend::for_tool(tool);
+        if (hotend.is_nozzle_temp_reached()) {
+            continue;
         }
+
+        // Always require cooling for selected tool
+        const auto current_tool = PhysicalToolIndex::currently_selected_opt();
+        if (!(current_tool.has_value() && current_tool.value() == tool)) {
+          // Check if cooling is not required for other tools
+          if (require_cooling == RequireCooling::current_tool_only && hotend.nozzle_temp().value_or(0) > hotend.nozzle_target_temp()) {
+              continue;
+          }
+        }
+
+        return false;
       }
 
       return true;
@@ -1108,7 +1121,7 @@ void Temperature::isr() {
       Hotend::for_tool(tool).set_nozzle_target_temp(celsius);
     }
 
-    bool Temperature::wait_for_hotend(const uint8_t target_extruder, WaitForHotendParams params) {      
+    bool Temperature::wait_for_hotend(const uint8_t target_extruder, WaitForHotendParams params) {
       const auto target_tool = PhysicalToolIndex::from_raw_notool(target_extruder);
 #if HAS_INDX()
       // The INDX is unable to read temperature of a tool that isn't picked.
