@@ -12,18 +12,11 @@
 #endif
 
 static float max_nozzle_target_temp(std::variant<PhysicalToolIndex, AllTools> tool) {
-    const Hotend::TargetTemperature max_nozzle_temp = match(
-        tool,
-        [](PhysicalToolIndex t) { return Hotend::for_tool(t).max_nozzle_temp(); },
-        [](AllTools) {
-            // A filament preset is not tied to a tool, so offer the range of the hottest installed hotend.
-            Hotend::TargetTemperature m = 0;
-            for (PhysicalToolIndex t : PhysicalToolIndex::all().skip_all_disabled()) {
-                m = std::max(m, Hotend::for_tool(t).max_nozzle_temp());
-            }
-            return m;
-        });
-    return max_nozzle_temp - HEATER_MAXTEMP_SAFETY_MARGIN;
+    Hotend::TargetTemperature m = 0;
+    for (PhysicalToolIndex t : tool_index_iterator(tool).skip_all_disabled()) {
+        m = std::max(m, Hotend::for_tool(t).config().max_nozzle_temp);
+    }
+    return m - HEATER_MAXTEMP_SAFETY_MARGIN;
 }
 
 NumericInputConfig numeric_input_config::nozzle_temperature(std::variant<PhysicalToolIndex, AllTools> tool) {

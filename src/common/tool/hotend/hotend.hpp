@@ -69,10 +69,6 @@ public:
     /// !!! MUST BE THREAD-SAFE, CAN BE CALLED FROM ANY THREAD
     virtual void filament_compatibility_report(FilamentCompatibilityReport &report, const FilamentCompatibilityReportGenerateArgs &args) const = 0;
 
-    /// Maximum nozzle temperature (from the hotend config).
-    /// DummyHotend (NoTool) is constructed with a zero config, so this returns 0.
-    TargetTemperature max_nozzle_temp() const { return base_config_.max_nozzle_temp; }
-
     /// The static per-hotend config (temperature limits, print-fan PWM mapping, ...).
     /// !!! THREAD SAFE
     const Config &config() const { return base_config_; }
