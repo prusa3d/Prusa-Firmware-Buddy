@@ -201,6 +201,10 @@ void M9202(); //< Clear precise homing calibration
 
 void M9933(); //< Cork for tracking when gcode finished executing
 
+#if HAS_CRASH_DETECTION()
+void M9944(); ///< Execute G-Code interrupt
+#endif
+
 #if EXTRUDERS > 1
 void M9934(); ///< Multi filament change
 #endif

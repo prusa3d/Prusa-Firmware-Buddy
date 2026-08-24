@@ -137,3 +137,7 @@ endif()
 if(HAS_TOOLCHANGER OR HAS_MMU2)
   target_sources(firmware PRIVATE M9934.cpp)
 endif()
+
+if(HAS_CRASH_DETECTION)
+  target_sources(firmware PRIVATE M9944.cpp)
+endif()

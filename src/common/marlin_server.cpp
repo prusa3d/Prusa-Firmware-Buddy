@@ -2262,7 +2262,7 @@ static void resuming_reheating() {
     // Crash recovery goes through recovering -> pause -> resuming phase
     // So this is the right moment to enqueue and execute the interrupt gcode.
     if (!print_state.gcode_interrupt_command.is_empty()) {
-        enqueue_gcode_printf(print_state.gcode_interrupt_command.gcode, (double)print_state.gcode_interrupt_command.parameter);
+        enqueue_gcode("M9944");
     }
 #endif
 
@@ -2661,9 +2661,7 @@ static void _server_print_loop(void) {
             break;
         }
 
-        // Clear the interrupt command AFTER it was successfully processed
-        // If there would be a nested crash during the execution, the interrupting gcode will be repeated
-        print_state.gcode_interrupt_command = {};
+        release_assert(print_state.gcode_interrupt_command.is_empty());
 
 #if HAS_CRASH_DETECTION()
         if (crash_s.get_state() == Crash_s::REPEAT_WAIT) {
@@ -4034,6 +4032,40 @@ FSMResponseVariant wait_for_response_variant(FSMAndPhase fsm_and_phase, uint32_t
 
 bool is_marlin_server_thread() {
     return osThreadGetId() == defaultTaskHandle;
+}
+
+// Secret function called from M9944
+void execute_gcode_interrupt() {
+    // Someone might get a dumb idea to call this internal g-code explicitly...
+    release_assert(!print_state.gcode_interrupt_command.is_empty());
+
+    const auto orig_offset = native_logical_offset();
+
+    ArrayStringBuilder<MAX_CMD_SIZE> sb;
+    print_state.gcode_interrupt_command.to_string(sb);
+    gcode.process_subcommands_now(const_cast<char *>(sb.str()));
+
+    // Clear the interrupt command AFTER it was successfully processed
+    // If there would be a nested crash during the execution, the interrupting gcode will be repeated
+    print_state.gcode_interrupt_command = {};
+
+    if (!planner.draining()) {
+        // Okay, so why we need this ugly thing:
+        // The gcode_interrupt could have executed a toolchange (for example bcs of spool join)
+        // at which point all of the resume positions need to be adjusted,
+        // because the new tool has a different tool offset
+        //
+        // It's very important that we do this with the correct target temperature,
+        // because tool offset also changes with that if HAS_NOZZLE_THERMAL_COMPENSATION
+        //
+        // BFW-9250
+
+        const XYZval<float, NativePosTag> delta = orig_offset - native_logical_offset();
+        server.resume.pos += delta;
+        crash_s.start_current_position += delta;
+        crash_s.crash_native_position += delta;
+        crash_s.crash_machine_position = to_machine_pos(to_native_pos(crash_s.crash_machine_position) + delta);
+    }
 }
 
 } // namespace marlin_server

@@ -383,6 +383,12 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             PrusaGcodeSuite::M9933();
             break;
 
+#if HAS_CRASH_DETECTION()
+        case 9944:
+            PrusaGcodeSuite::M9944();
+            break;
+#endif
+
 #if EXTRUDERS > 1
         case 9934:
             PrusaGcodeSuite::M9934();
