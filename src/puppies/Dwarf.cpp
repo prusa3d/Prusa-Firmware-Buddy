@@ -58,7 +58,7 @@ Dwarf::Dwarf(const uint8_t dwarf_number, uint8_t modbus_address)
     , loadcell_samplerate {} {
 
     // Atomic mirrors initial values — must not trigger min-temp faults.
-    hotend_temp.store(HEATER_0_MINTEMP + 1);
+    hotend_temp.store(Hotend::for_tool(tool_index()).config().min_nozzle_temp + 1);
     heatbreak_temp.store(HEATBREAK_MINTEMP + 1);
     heatbreak_target_temp_desired.store(DEFAULT_HEATBREAK_TEMPERATURE);
 

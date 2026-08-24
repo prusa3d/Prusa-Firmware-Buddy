@@ -163,13 +163,15 @@ void FooterItemAllNozzles::unconditionalDraw() {
 
     // Individual nozzles
     for (auto tool : PhysicalToolIndex::all().skip_all_disabled()) {
+        const auto &hotend_config = Hotend::for_tool(tool).config();
+
         // Rectangle as high as temperature (can overwrite the white mark)
-        const uint gray_column_max = (static_cast<uint>(COLD) * icon.Height() + (HEATER_XL_HOTEND_MAXTEMP / 2)) / HEATER_XL_HOTEND_MAXTEMP;
+        const uint gray_column_max = (static_cast<uint>(COLD) * icon.Height() + (hotend_config.max_nozzle_temp / 2)) / hotend_config.max_nozzle_temp;
         // Guard against the uninitialized sentinel.
         const float temp = marlin_vars().hotend(tool).temp_nozzle;
         uint column_height = 0;
         if (temp != TempInfo::celsius_uninitialized) {
-            column_height = (static_cast<uint>(round(temp)) * icon.Height() + (HEATER_XL_HOTEND_MAXTEMP / 2)) / HEATER_XL_HOTEND_MAXTEMP;
+            column_height = (static_cast<uint>(round(temp)) * icon.Height() + (hotend_config.max_nozzle_temp / 2)) / hotend_config.max_nozzle_temp;
             column_height = std::clamp<uint>(column_height, 0, icon.Height());
         }
         uint gray_column_height = std::clamp<uint>(column_height, 0, gray_column_max);

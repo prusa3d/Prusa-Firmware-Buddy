@@ -54,7 +54,7 @@ public:
 
 public:
     /// @returns Hotend of the tool
-    /// !!! To be accessed only from the marlin task
+    /// !!! To be accessed only from the marlin task (exceptions apply)
     static Hotend &for_tool(PhysicalToolIndex tool);
 
     static Hotend &for_tool(std::variant<PhysicalToolIndex, NoTool> tool);
@@ -74,6 +74,7 @@ public:
     TargetTemperature max_nozzle_temp() const { return base_config_.max_nozzle_temp; }
 
     /// The static per-hotend config (temperature limits, print-fan PWM mapping, ...).
+    /// !!! THREAD SAFE
     const Config &config() const { return base_config_; }
 
     /// Nozzle temperature above which a burn risk warning is shown when the door opens.

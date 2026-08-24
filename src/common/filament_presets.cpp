@@ -258,7 +258,7 @@ constexpr bool temperatures_are_within_spec(const FilamentTypeParameters &filame
 // A HAS_HT_HOTEND build can still boot a standard hotend, so only PPS/PPA get the higher ceiling.
 constexpr bool preset_temperatures_are_within_spec() {
     for (size_t i = 0; i < static_cast<size_t>(PresetFilamentType::_count); i++) {
-        int16_t max_nozzle = HEATER_0_MAXTEMP;
+        int16_t max_nozzle = 305;
     #if HAS_HT_HOTEND()
         const auto type = static_cast<PresetFilamentType>(i);
         if (type == PresetFilamentType::PPS || type == PresetFilamentType::PPA) {

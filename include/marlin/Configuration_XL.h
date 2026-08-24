@@ -167,8 +167,6 @@
 
 // Below this temperature the heater will be switched off
 // because it probably indicates a broken thermistor wire.
-#define HEATER_XL_HOTEND_MINTEMP 5
-#define HEATER_0_MINTEMP HEATER_XL_HOTEND_MINTEMP
 #define BED_MINTEMP 5
 #define HEATBREAK_MINTEMP 5
 #define BOARD_MINTEMP 5
@@ -176,8 +174,6 @@
 // Above this temperature the heater will be switched off.
 // This can protect components from overheating, but NOT from shorts and failures.
 // (Use MINTEMP for thermistor short/failure protection.)
-#define HEATER_XL_HOTEND_MAXTEMP 305
-#define HEATER_0_MAXTEMP HEATER_XL_HOTEND_MAXTEMP
 #define HEATER_MAXTEMP_SAFETY_MARGIN 15
 #define BED_MAXTEMP 120
 #define BED_MAXTEMP_SAFETY_MARGIN 5

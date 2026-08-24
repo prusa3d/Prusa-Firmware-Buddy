@@ -31,12 +31,12 @@ public:
         return type_;
     }
 
-    /// !!! NOT THREAD SAFE. USE FROM MARLIN THREAD ONLY
+    /// !!! NOT THREAD SAFE. USE FROM MARLIN THREAD ONLY (exceptions apply)
     Hotend &hotend() {
         return hotend_ref_;
     }
 
-    /// !!! NOT THREAD SAFE. USE FROM MARLIN THREAD ONLY
+    /// !!! NOT THREAD SAFE. USE FROM MARLIN THREAD ONLY (exceptions apply)
     const Hotend &hotend() const {
         return hotend_ref_;
     }

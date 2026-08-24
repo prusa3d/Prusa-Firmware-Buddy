@@ -7,9 +7,8 @@ using INDXTool = StandardFFFPhysicalTool<IndxHotend>;
 
 INDXTool &IndxHotend::indx_tool(PhysicalToolIndex tool) {
     static const IndxHotend::Config hotend_config {
-        // TODO: Get rid of the macros, put the values directly into this file
-        .min_nozzle_temp = HEATER_0_MINTEMP,
-        .max_nozzle_temp = HEATER_0_MAXTEMP,
+        .min_nozzle_temp = 5,
+        .max_nozzle_temp = 305,
     };
     static StrongIndexArray<INDXTool, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> tools {
         INDXTool(PhysicalToolIndex::from_raw(0), &hotend_config),

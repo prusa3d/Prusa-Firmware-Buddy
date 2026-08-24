@@ -6,9 +6,8 @@
 
 PhysicalTool &PhysicalTool::for_index(PhysicalToolIndex index) {
     static constexpr DwarfHotend::Config hotend_config {
-        // TODO: Get rid of the macros, put the values directly into this file
-        .min_nozzle_temp = HEATER_XL_HOTEND_MINTEMP,
-        .max_nozzle_temp = HEATER_XL_HOTEND_MAXTEMP,
+        .min_nozzle_temp = 5,
+        .max_nozzle_temp = 305,
     };
     using Tool = StandardFFFPhysicalTool<DwarfHotend>;
     static StrongIndexArray<Tool, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> tools {

@@ -8,9 +8,8 @@
 PhysicalTool &PhysicalTool::for_index(PhysicalToolIndex) {
     static constexpr LocalHotend::Config hotend_config {
         .base_config {
-            // TODO: Get rid of the macros, put the values directly into this file
-            .min_nozzle_temp = HEATER_0_MINTEMP,
-            .max_nozzle_temp = HEATER_0_MAXTEMP,
+            .min_nozzle_temp = 5,
+            .max_nozzle_temp = 305,
         },
         .nozzle_temp_table = TT_NAME(THERMISTOR_HEATER_0),
         .heatbreak_temp_table = TT_NAME(TEMP_SENSOR_HEATBREAK),

@@ -75,8 +75,8 @@ PhysicalTool &PhysicalTool::for_index(PhysicalToolIndex) {
     // Standard hotend config (NTC thermistor) — same limits as the non-HT xbuddy build.
     static const LocalHotend::Config ntc_config {
         .base_config {
-            .min_nozzle_temp = HEATER_0_MINTEMP,
-            .max_nozzle_temp = HEATER_0_MAXTEMP,
+            .min_nozzle_temp = 5,
+            .max_nozzle_temp = 305,
         },
         .nozzle_temp_table = TT_NAME(2005),
         .heatbreak_temp_table = heatbreak_temptable(),
@@ -87,7 +87,7 @@ PhysicalTool &PhysicalTool::for_index(PhysicalToolIndex) {
     // HT hotend config (PT1000)
     static const LocalHotend::Config pt1000_config {
         .base_config {
-            .min_nozzle_temp = HEATER_0_MINTEMP,
+            .min_nozzle_temp = 5,
             .max_nozzle_temp = ht_hotend_max_nozzle_temp,
             // Protect the print fan at high nozzle temperatures: above 300 °C, cap it at
             // ~30 %. nozzle_temp() is OptionalTemperature; treat "unknown" as cold
@@ -120,9 +120,8 @@ PhysicalTool &PhysicalTool::for_index(PhysicalToolIndex) {
 #else
     static const LocalHotend::Config hotend_config {
         .base_config {
-            // TODO: Get rid of the macros, put the values directly into this file
-            .min_nozzle_temp = HEATER_0_MINTEMP,
-            .max_nozzle_temp = HEATER_0_MAXTEMP,
+            .min_nozzle_temp = 5,
+            .max_nozzle_temp = 305,
         },
             .nozzle_temp_table = TT_NAME(THERMISTOR_HEATER_0),
     #if !PRINTER_IS_PRUSA_MK3_5()
