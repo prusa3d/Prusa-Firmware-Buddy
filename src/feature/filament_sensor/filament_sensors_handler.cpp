@@ -309,14 +309,9 @@ void FilamentSensors::process_enable_state_update() {
     enable_state_update_processing = true;
     enable_state_update_pending = false;
 
-    for (auto tool : PhysicalToolIndex::all()) {
-        if (IFSensor *s = GetExtruderFSensor(tool)) {
-            s->set_enabled(should_enable(s->id()));
-        }
-        if (IFSensor *s = GetSideFSensor(tool)) {
-            s->set_enabled(should_enable(s->id()));
-        }
-    }
+    for_all_sensors([](IFSensor &s, PhysicalToolIndex, bool) {
+        s.set_enabled(should_enable(s.id()));
+    });
 
 #if HAS_MMU2()
     if (config_store().mmu2_enabled.get() && !config_store().fsensor_enabled.get()) {
