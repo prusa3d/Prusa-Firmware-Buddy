@@ -85,7 +85,7 @@ private:
     }
 
     void filament_check() {
-        if (IFSensor *sensor = GetExtruderFSensor(tool.to_raw())) {
+        if (IFSensor *sensor = GetExtruderFSensor(tool)) {
             switch (sensor->get_state()) {
             case FilamentSensorState::HasFilament:
                 fsm_change(PhaseGearboxAlignment::filament_loaded_ask_unload);

@@ -26,8 +26,8 @@ void SelftestResult_Log(const SelftestResult &results) {
         log_info(Selftest, "Fans switched %u result is %s", tool.to_raw(), ToString(results.get_fans_switched(tool)));
 #endif /* HAS_SWITCHED_FAN_TEST() */
         log_info(Selftest, "Nozzle heater %u result is %s", tool.to_raw(), ToString(results.get_nozzle_heater(tool)));
-        log_info(Selftest, "Filament sensor %u result is %s", tool.to_raw(), ToString(SelftestSnake::map_fsensor_calibration_result(GetExtruderFSensor(tool.to_raw()))));
-        log_info(Selftest, "Side filament sensor %u result is %s", tool.to_raw(), ToString(SelftestSnake::map_fsensor_calibration_result(GetSideFSensor(tool.to_raw()))));
+        log_info(Selftest, "Filament sensor %u result is %s", tool.to_raw(), ToString(SelftestSnake::map_fsensor_calibration_result(GetExtruderFSensor(tool))));
+        log_info(Selftest, "Side filament sensor %u result is %s", tool.to_raw(), ToString(SelftestSnake::map_fsensor_calibration_result(GetSideFSensor(tool))));
 #if HAS_LOADCELL()
         log_info(Selftest, "Loadcell result %u is %s", tool.to_raw(), ToString(results.get_loadcell(tool)));
 #endif /*HAS_LOADCELL()*/

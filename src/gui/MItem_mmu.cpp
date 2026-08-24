@@ -189,7 +189,7 @@ static bool set_mmu_rework(bool set) {
 #if HAS_SELFTEST() && !PRINTER_IS_PRUSA_MK3_5()
     // Invalidate the extruder fsensor calibration
     FilamentSensorCalibrator::Storage storage;
-    GetExtruderFSensor(0)->create_calibrator(storage)->finish();
+    GetExtruderFSensor(PhysicalToolIndex::from_raw(0))->create_calibrator(storage)->finish();
 
     // And start the calibration right away
     marlin_client::gcode("M1981");

@@ -72,16 +72,16 @@ uint32_t ask_to_remap() {
         set_mapping(new_mapping);
 
         uint32_t remapped = 0; ///< Mask of remapped tools
-        for (uint8_t e = 0; e < std::size(current_mapping); ++e) {
-            if (current_mapping[e] != new_mapping[e]) {
+        for (auto tool : PhysicalToolIndex::all()) {
+            if (current_mapping[tool.to_raw()] != new_mapping[tool.to_raw()]) {
 #if HAS_SELFTEST()
-                if (auto side = GetSideFSensor(e); side) {
+                if (auto side = GetSideFSensor(tool); side) {
                     // Invalidate the sensor calibration
                     FilamentSensorCalibrator::Storage storage;
                     side->create_calibrator(storage)->finish();
                 }
 #endif
-                remapped |= 1 << e;
+                remapped |= 1 << tool.to_raw();
             }
         }
 

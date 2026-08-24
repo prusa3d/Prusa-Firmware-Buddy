@@ -278,8 +278,8 @@ static void init_isr_statics() {
     Fans::cpu();
 #endif
     sensor_data();
-    GetExtruderFSensor(0);
-    GetSideFSensor(0);
+    GetExtruderFSensor(PhysicalToolIndex::from_raw(0));
+    GetSideFSensor(PhysicalToolIndex::from_raw(0));
     Sound::getInstance();
 }
 
