@@ -44,11 +44,15 @@ std::vector<std::byte> create_transaction(size_t num_of_items, uint16_t start_id
     return transaction;
 }
 
-size_t create_last_item(std::span<uint8_t> data) {
-    memcpy(data.data(), &Backend::LAST_ITEM_STOP, sizeof(Backend::LAST_ITEM_STOP));
-    uint32_t crc = crc32_calc_ex(0, data.data(), sizeof(Backend::LAST_ITEM_STOP));
-    memcpy(data.data() + sizeof(Backend::LAST_ITEM_STOP), reinterpret_cast<uint8_t *>(&crc), sizeof(crc));
-    return sizeof(Backend::LAST_ITEM_STOP) + sizeof(crc);
+std::vector<std::byte> create_last_item() {
+    std::vector<std::byte> last_item {};
+    const auto append = [&last_item](auto obj) {
+        const auto obj_bytes = trivial_as_bytes(obj);
+        last_item.insert(last_item.end(), obj_bytes.begin(), obj_bytes.end());
+    };
+    append(Backend::LAST_ITEM_STOP);
+    append(crc32(0, last_item));
+    return last_item;
 }
 
 TEST_CASE("journal::EEPROM::Test transaction validation") {
@@ -94,7 +98,7 @@ TEST_CASE("journal::EEPROM::Test multiple transactions validation") {
     }
 
     SECTION("Empty bank") {
-        create_last_item(storage.get(0, 1024));
+        storage.set(0, create_last_item());
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::Valid);
@@ -113,7 +117,7 @@ TEST_CASE("journal::EEPROM::Test multiple transactions validation") {
 
     SECTION("Transaction with end item") {
         const uint16_t next_free = storage.set(0, create_transaction(3));
-        create_last_item(storage.get(next_free, 1024 - next_free));
+        storage.set(next_free, create_last_item());
 
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
@@ -127,7 +131,7 @@ TEST_CASE("journal::EEPROM::Test multiple transactions validation") {
         next_free = storage.set(next_free, create_transaction(3));
         next_free = storage.set(next_free, create_transaction(5));
         next_free = storage.set(next_free, create_transaction(8));
-        create_last_item(storage.get(0 + next_free, 1024 - next_free));
+        storage.set(next_free, create_last_item());
 
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
