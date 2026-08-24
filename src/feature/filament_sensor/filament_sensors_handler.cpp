@@ -381,16 +381,6 @@ FilamentSensors &FSensors_instance() {
     return ret;
 }
 
-bool hasActiveFilamentSensor(uint8_t index) {
-    const auto side_sensor = GetSideFSensor(index);
-    const auto ext_sensor = GetExtruderFSensor(index);
-
-    const auto side_ok = is_fsensor_working_state(side_sensor);
-    const auto ext_ok = is_fsensor_working_state(ext_sensor);
-
-    return side_ok || ext_ok;
-}
-
 bool should_enable(FilamentSensorID id) {
 #if HAS_MMU2()
     /// MMU override: when MMU is active, both extruder and side sensors

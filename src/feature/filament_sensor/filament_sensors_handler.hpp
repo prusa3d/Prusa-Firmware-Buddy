@@ -152,8 +152,6 @@ inline IFSensor *GetSideFSensor(PhysicalToolIndex tool) {
     return GetSideFSensor(tool.to_raw());
 }
 
-bool hasActiveFilamentSensor(uint8_t index);
-
 /// Whether a sensor should be enabled based on config store settings.
 ///
 /// Safe to call at any time including boot.
