@@ -413,7 +413,7 @@ void Temperature::manage_heater() {
 
   millis_t ms = millis();
 
-  // non-managed hotends are skipped here, so BaseHotend::manage() and the protections it runs don't each re-check it. 
+  // non-managed hotends are skipped here, so BaseHotend::manage() and the protections it runs don't each re-check it.
   // On non-INDX printers is_thermally_managed() is always true, so this is the full loop.
   for (auto tool : PhysicalToolIndex::all()) {
     auto &hotend = Hotend::for_tool(tool);
@@ -876,7 +876,7 @@ void Temperature::isr() {
 
   {
     static uint8_t pwm_count = 1;
-    
+
     // avoid multiple loads of pwm_count
     uint8_t pwm_count_tmp = pwm_count;
 
@@ -1272,7 +1272,7 @@ void Temperature::isr() {
 
     bool Temperature::wait_for_bed(const bool no_wait_for_cooling/*=true*/) {
       // TODO: Employ is_bed_temperature_reached once it considers residency
-      
+
       // Keep all heaters on while we're waiting for temperatures
       buddy::SafetyTimerBlocker safety_timer_blocker;
 

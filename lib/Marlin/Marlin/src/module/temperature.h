@@ -256,7 +256,7 @@ class Temperature {
      * Call periodically to manage heaters
      */
     static void manage_heater() __O2; // __O2 added to work around a compiler error
-    
+
     static void manage_fans();
 
     // Return true if the temperatures have been sampled at least once
@@ -408,13 +408,13 @@ class Temperature {
      * The software PWM power for a heater
      */
     static int16_t getHeaterPower(const heater_ind_t heater);
-    
+
 public:
     /**
      * Switch off all heaters, set all target temperatures to 0
      */
     static void disable_all_heaters();
-    
+
     /**
      * Switch off all hotends, set all hotend target temperatures to 0
      */
@@ -438,7 +438,7 @@ public:
         }
       #endif
     #endif
-    
+
     static void _temp_error(const heater_ind_t e, PGM_P const serial_msg, PGM_P const lcd_msg);
     static void min_temp_error(const heater_ind_t e);
     static void max_temp_error(const heater_ind_t e);
