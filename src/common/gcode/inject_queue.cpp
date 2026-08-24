@@ -38,13 +38,9 @@ std::expected<const char *, InjectQueue::GetGCodeError> InjectQueue::get_gcode()
 
     // The item is a literal -> just return the literal
     if (const auto *val = std::get_if<GCodeLiteral>(&item)) {
-        // gcode is not parametrized
-        if (std::isnan(val->parameter)) {
-            return val->gcode;
-        }
-        std::span<char> buf = loader.share_buffer();
-        snprintf(buf.data(), buf.size(), val->gcode, static_cast<double>(val->parameter));
-        return buf.data();
+        StringBuilder sb(loader.share_buffer());
+        val->to_string(sb);
+        return sb.str();
     }
 
     if (const auto button = std::get_if<GCodeMacroButton>(&item)) {

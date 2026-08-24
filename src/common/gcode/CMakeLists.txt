@@ -14,5 +14,6 @@ target_sources(
          gcode_reader_interface.cpp
          gcode_reader_plaintext.cpp
          inject_queue.cpp
+         inject_queue_actions.cpp
          meatpack.cpp
   )

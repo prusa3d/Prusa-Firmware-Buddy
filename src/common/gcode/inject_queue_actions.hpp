@@ -4,6 +4,8 @@
 #include <limits>
 #include <str_utils.hpp>
 
+class StringBuilder;
+
 struct GCodeFile {
     const char *filename { nullptr };
     ConstexprString directory { nullptr }; // An optional subdirectory under /usb/macros/
@@ -28,6 +30,9 @@ struct GCodeLiteral {
     inline bool is_empty() const {
         return gcode == nullptr;
     }
+
+    /// Transforms the literal into a null-terminated string
+    void to_string(StringBuilder &sb) const;
 };
 
 struct GCodeMacroButton {
