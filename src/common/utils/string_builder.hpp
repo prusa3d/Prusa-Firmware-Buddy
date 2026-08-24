@@ -36,32 +36,32 @@ public:
 
 public:
     /// Returns false if there is no space left to write further text or if any of the called functions failed
-    inline bool is_ok() const {
+    constexpr inline bool is_ok() const {
         return is_ok_;
     }
 
     /// See is_ok
-    inline bool is_problem() const {
+    constexpr inline bool is_problem() const {
         return !is_ok_;
     }
 
     /// Returns number of characters in the buffer (NOT counting the terminating \0 which is always there)
-    inline size_t char_count() const {
+    constexpr inline size_t char_count() const {
         return current_pos_ - buffer_start_;
     }
 
     /// Returns number of bytes used of the buffer (COUNTING the terminating \0 which is always there)
-    inline size_t byte_count() const {
+    constexpr inline size_t byte_count() const {
         return char_count() + 1;
     }
 
     /// Returns pointer to the first character in the builder buffer
-    inline const char *begin() const {
+    constexpr inline const char *begin() const {
         return buffer_start_;
     }
 
     /// Returns pointer behind the last character in the builder buffer (should always point to \0)
-    inline const char *end() const {
+    constexpr inline const char *end() const {
         return current_pos_;
     }
 
@@ -71,11 +71,11 @@ public:
 
     const char *str() const;
 
-    inline const char *str_nocheck() const {
+    constexpr inline const char *str_nocheck() const {
         return buffer_start_;
     }
 
-    inline const uint8_t *str_bytes() const {
+    constexpr inline const uint8_t *str_bytes() const {
         debug_assert(is_ok());
         return reinterpret_cast<const uint8_t *>(buffer_start_);
     }
