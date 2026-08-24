@@ -1,6 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
 #include "dummy_eeprom_chip.h"
-#include <crc32.h>
 #include <crc32.hpp>
 #include <journal/backend.hpp>
 #include <journal/store.hpp>
@@ -72,8 +71,8 @@ TEST_CASE("journal::EEPROM::Test transaction validation") {
         REQUIRE_FALSE(pos_read.has_value());
     }
     SECTION("Corrupetd data") {
-        storage.set(4, 0xcf);
-        storage.set(5, 0xcf);
+        storage.set(4, std::byte { 0xcf });
+        storage.set(5, std::byte { 0xcf });
         auto pos_read = journal.get_next_transaction(0, 1024);
         REQUIRE_FALSE(pos_read.has_value());
     }
@@ -451,11 +450,16 @@ TEST_CASE("journal::EEPROM::Config store - error states") {
     local_store->init();
     local_store->load_all();
 
+    const auto break_end_item = []() {
+        const uint16_t address = Test_EEPROM_journal().current_address + 1;
+        const auto broken_value = std::byte { static_cast<uint8_t>(eeprom_chip.get(address)) + 2 };
+        eeprom_chip.set(address, broken_value);
+    };
+
     SECTION("Single valid bank") {
 
         SECTION("Missing end item in empty bank") {
-            // break end item
-            eeprom_chip.set(Test_EEPROM_journal().current_address + 1, eeprom_chip.get(Test_EEPROM_journal().current_address + 1) + 2);
+            break_end_item();
 
             reinit_journal();
             local_store = std::make_unique<Store<TestEEPROMJournalConfigV0, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
@@ -476,7 +480,7 @@ TEST_CASE("journal::EEPROM::Config store - error states") {
 
         SECTION("Missing end item with data in bank") {
             local_store->int_item.set(10);
-            eeprom_chip.set(Test_EEPROM_journal().current_address + 1, eeprom_chip.get(Test_EEPROM_journal().current_address + 1) + 2);
+            break_end_item();
 
             reinit_journal();
             local_store = std::make_unique<Store<TestEEPROMJournalConfigV0, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
@@ -500,7 +504,7 @@ TEST_CASE("journal::EEPROM::Config store - error states") {
         REQUIRE(Test_EEPROM_journal().current_address == Test_EEPROM_journal().get_current_bank_start_address() + 21);
 
         SECTION("Missing end item, one transaction in bank") {
-            eeprom_chip.set(Test_EEPROM_journal().current_address + 1, eeprom_chip.get(Test_EEPROM_journal().current_address + 1) + 2);
+            break_end_item();
 
             reinit_journal();
             local_store = std::make_unique<Store<TestEEPROMJournalConfigV0, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
@@ -527,7 +531,7 @@ TEST_CASE("journal::EEPROM::Config store - error states") {
         }
         SECTION("Missing end item multiple transactions in bank") {
             local_store->int_item.set(12);
-            eeprom_chip.set(Test_EEPROM_journal().current_address + 1, eeprom_chip.get(Test_EEPROM_journal().current_address + 1) + 2);
+            break_end_item();
 
             reinit_journal();
             local_store = std::make_unique<Store<TestEEPROMJournalConfigV0, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
