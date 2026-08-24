@@ -113,7 +113,7 @@ namespace {
 
     // Z targets relative to the probed touchpoint surface
     constexpr float safe_above_surface_mm = 2.0f;
-    constexpr float wipe_above_surface_mm = 0.2f;
+    constexpr float wipe_z_offset_mm = -0.5f + 0.2f; // touchpoint is 0.2mm below the wiper top, we need to dive 0.5mm into wiper
     constexpr float travel_clearance_mm = 10.0f;
     constexpr float final_clearance_mm = 20.0f;
 
@@ -246,7 +246,7 @@ bool clean(CleanArgs args) {
     // Safely move from the touchpoint onto the pad, at the zigzag's own starting point rather than the pad centre
     const auto zigzag_start = zigzag.start();
     move_to_pad(zigzag_start.along, zigzag_start.across, approach_feedrate);
-    move_to_machine_pos_z(probed_z + wipe_above_surface_mm, dive_feedrate);
+    move_to_machine_pos_z(probed_z + wipe_z_offset_mm, dive_feedrate);
 
     const float saved_travel_acceleration = planner.user_settings.travel_acceleration;
     {
