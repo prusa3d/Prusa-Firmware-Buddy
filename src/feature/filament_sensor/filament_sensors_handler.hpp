@@ -130,9 +130,6 @@ private:
     std::atomic<bool> autoload_sent = false;
     std::atomic<bool> has_mmu = false; // affect only MMU, named correctly .. it is not "has_side_sensor"
     std::atomic<bool> extruder_fs_independent = false; /// Whether the extruder FS can trigger without extruder turning
-
-    friend IFSensor *GetExtruderFSensor(PhysicalToolIndex index);
-    friend IFSensor *GetSideFSensor(PhysicalToolIndex index);
 };
 
 // singleton
