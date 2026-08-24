@@ -15,7 +15,7 @@
 #include <bsod/bsod.h>
 
 // Meyer's singleton
-FSensorADC *getExtruderFSensor(uint8_t index) {
+FSensorADC *getExtruderFSensor(PhysicalToolIndex index) {
     static StrongIndexArray<FSensorADC, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> printer_sensors = { {
         FSensorADC { FilamentSensorID { .position = FilamentSensorID::Position::extruder, .index = 0 } },
         FSensorADC { FilamentSensorID { .position = FilamentSensorID::Position::extruder, .index = 1 } },
@@ -24,15 +24,14 @@ FSensorADC *getExtruderFSensor(uint8_t index) {
         FSensorADC { FilamentSensorID { .position = FilamentSensorID::Position::extruder, .index = 4 } },
     } };
 
-    const auto tool = stdext::get_optional<PhysicalToolIndex>(PhysicalToolIndex::from_raw_notool(index));
-    if (tool.has_value() && tool->is_enabled()) {
-        return &printer_sensors[*tool];
+    if (index.is_enabled()) {
+        return &printer_sensors[index];
     }
     return nullptr;
 }
 
 // Meyer's singleton
-FSensorADC *getSideFSensor(uint8_t index) {
+FSensorADC *getSideFSensor(PhysicalToolIndex index) {
     static StrongIndexArray<FSensorADC, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> side_sensors = { {
         FSensorADC { FilamentSensorID { .position = FilamentSensorID::Position::side, .index = 0 } },
         FSensorADC { FilamentSensorID { .position = FilamentSensorID::Position::side, .index = 1 } },
@@ -41,25 +40,24 @@ FSensorADC *getSideFSensor(uint8_t index) {
         FSensorADC { FilamentSensorID { .position = FilamentSensorID::Position::side, .index = 4 } },
     } };
 
-    const auto tool = stdext::get_optional<PhysicalToolIndex>(PhysicalToolIndex::from_raw_notool(index));
-    if (tool.has_value() && tool->is_enabled()) {
-        return &side_sensors[*tool];
+    if (index.is_enabled()) {
+        return &side_sensors[index];
     }
     return nullptr;
 }
 
 // function returning abstract sensor - used in higher level api
-IFSensor *GetExtruderFSensor(uint8_t index) {
+IFSensor *GetExtruderFSensor(PhysicalToolIndex index) {
     return getExtruderFSensor(index);
 }
 
 // function returning abstract sensor - used in higher level api
-IFSensor *GetSideFSensor(uint8_t index) {
+IFSensor *GetSideFSensor(PhysicalToolIndex index) {
     return getSideFSensor(index);
 }
 
 // IRQ - called from interruption
-void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
+void fs_process_sample(int32_t fs_raw_value, PhysicalToolIndex tool_index) {
     FSensorADC *sensor = getExtruderFSensor(tool_index);
     debug_assert(sensor);
 
@@ -67,8 +65,8 @@ void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
     sensor->set_filtered_value_from_IRQ(fs_raw_value);
 }
 
-void side_fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
-    static MedianFilter filters[HOTENDS];
+void side_fs_process_sample(int32_t fs_raw_value, PhysicalToolIndex tool_index) {
+    static StrongIndexArray<MedianFilter, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> filters;
 
     FSensorADC *sensor = getSideFSensor(tool_index);
     debug_assert(sensor);

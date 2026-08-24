@@ -131,27 +131,15 @@ private:
     std::atomic<bool> has_mmu = false; // affect only MMU, named correctly .. it is not "has_side_sensor"
     std::atomic<bool> extruder_fs_independent = false; /// Whether the extruder FS can trigger without extruder turning
 
-    friend IFSensor *GetExtruderFSensor(uint8_t index);
-    friend IFSensor *GetSideFSensor(uint8_t index);
+    friend IFSensor *GetExtruderFSensor(PhysicalToolIndex index);
+    friend IFSensor *GetSideFSensor(PhysicalToolIndex index);
 };
 
 // singleton
 FilamentSensors &FSensors_instance();
 
-[[deprecated("Use the ToolIndex overload")]]
-IFSensor *GetExtruderFSensor(uint8_t index);
-
-inline IFSensor *GetExtruderFSensor(PhysicalToolIndex tool) {
-    return GetExtruderFSensor(tool.to_raw());
-}
-
-[[deprecated("Use the ToolIndex overload")]]
-IFSensor *GetSideFSensor(uint8_t index);
-
-inline IFSensor *GetSideFSensor(PhysicalToolIndex tool) {
-    return GetSideFSensor(tool.to_raw());
-}
-
+IFSensor *GetExtruderFSensor(PhysicalToolIndex tool);
+IFSensor *GetSideFSensor(PhysicalToolIndex tool);
 /// Whether a sensor should be enabled based on config store settings.
 ///
 /// Safe to call at any time including boot.
@@ -165,7 +153,7 @@ bool should_enable(FilamentSensorID id);
  *
  * @param fs_raw_value sample value
  */
-void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index);
+void fs_process_sample(int32_t fs_raw_value, PhysicalToolIndex tool_index);
 
 /**
  * @brief called from IRQ
@@ -175,4 +163,4 @@ void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index);
  *
  * @param fs_raw_value sample value
  */
-void side_fs_process_sample(int32_t fs_raw_value, uint8_t tool_index);
+void side_fs_process_sample(int32_t fs_raw_value, PhysicalToolIndex tool_index);

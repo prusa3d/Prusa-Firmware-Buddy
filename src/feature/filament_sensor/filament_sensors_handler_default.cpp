@@ -30,7 +30,7 @@
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
 
-static auto *extruder_filament_sensor(uint8_t index) {
+static auto *extruder_filament_sensor(PhysicalToolIndex) {
 #if FILAMENT_SENSOR_IS_ADC()
     static FSensorADC extruder_filament_sensor(FilamentSensorID { .position = FilamentSensorID::Position::extruder, .index = 0 });
 #elif FILAMENT_SENSOR_IS_BINARY()
@@ -39,24 +39,27 @@ static auto *extruder_filament_sensor(uint8_t index) {
     #error
 #endif
 
-    return index == 0 ? &extruder_filament_sensor : nullptr;
+    static_assert(PhysicalToolIndex::count == 1);
+    return &extruder_filament_sensor;
 }
 
 // function returning abstract sensor - used in higher level api
-IFSensor *GetExtruderFSensor(uint8_t index) {
+IFSensor *GetExtruderFSensor(PhysicalToolIndex index) {
     return extruder_filament_sensor(index);
 }
 
-IFSensor *GetSideFSensor([[maybe_unused]] uint8_t index) {
+IFSensor *GetSideFSensor(PhysicalToolIndex) {
+    static_assert(PhysicalToolIndex::count == 1);
+
 #if HAS_MMU2()
-    if (index == 0 && config_store().mmu2_enabled.get()) {
+    if (config_store().mmu2_enabled.get()) {
         static FSensorMMU mmu_filament_sensor(FilamentSensorID { .position = FilamentSensorID::Position::side, .index = 0 });
         return &mmu_filament_sensor;
     }
 #endif
 
 #if HAS_XBUDDY_EXTENSION()
-    if (index == 0 && buddy::xbuddy_extension().status() != buddy::XBuddyExtension::Status::disabled) {
+    if (buddy::xbuddy_extension().status() != buddy::XBuddyExtension::Status::disabled) {
         static FSensorXBuddyExtension xbe_filament_sensor(FilamentSensorID { .position = FilamentSensorID::Position::side, .index = 0 }, FSensorXBuddyExtension::Source::gpio);
         return &xbe_filament_sensor;
     }
@@ -67,7 +70,7 @@ IFSensor *GetSideFSensor([[maybe_unused]] uint8_t index) {
 
 #if FILAMENT_SENSOR_IS_ADC()
 // IRQ - called from interruption
-void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
+void fs_process_sample(int32_t fs_raw_value, PhysicalToolIndex tool_index) {
     static MedianFilter filter;
 
     FSensorADC *sensor = extruder_filament_sensor(tool_index);

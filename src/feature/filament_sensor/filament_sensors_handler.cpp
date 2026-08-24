@@ -309,11 +309,11 @@ void FilamentSensors::process_enable_state_update() {
     enable_state_update_processing = true;
     enable_state_update_pending = false;
 
-    for (int8_t e = 0; e < HOTENDS; e++) {
-        if (IFSensor *s = GetExtruderFSensor(e)) {
+    for (auto tool : PhysicalToolIndex::all()) {
+        if (IFSensor *s = GetExtruderFSensor(tool)) {
             s->set_enabled(should_enable(s->id()));
         }
-        if (IFSensor *s = GetSideFSensor(e)) {
+        if (IFSensor *s = GetSideFSensor(tool)) {
             s->set_enabled(should_enable(s->id()));
         }
     }

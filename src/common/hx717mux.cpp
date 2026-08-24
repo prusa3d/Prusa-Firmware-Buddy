@@ -94,7 +94,7 @@ void HX717Mux::handler() {
         }
         loadcell.ProcessSample(raw_value, sample_timestamp, 0); // HX717 is local; generation is always 0
     } else {
-        fs_process_sample(raw_value, 0);
+        fs_process_sample(raw_value, PhysicalToolIndex::from_raw(0));
     }
 }
 
