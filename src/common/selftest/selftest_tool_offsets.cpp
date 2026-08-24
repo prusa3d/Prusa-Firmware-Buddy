@@ -4,6 +4,9 @@
 #include "marlin_server.hpp"
 #include "selftest_tool_helper.hpp"
 #include "Marlin/src/module/temperature.h"
+#include "fanctl.hpp"
+#include <mapi/parking.hpp>
+
 #include <option/has_tool_offset_pin_calibration.h>
 #if HAS_TOOL_OFFSET_PIN_CALIBRATION()
     #include <marlin_stubs/G425.hpp>
@@ -109,17 +112,15 @@ LoopResult CSelftestPart_ToolOffsets::state_wait_user() {
 LoopResult CSelftestPart_ToolOffsets::state_home_park() {
     IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_pin_install_prepare);
 
-    // Ensure tool will not hit calibration pin once installed
-    marlin_server::enqueue_gcode("G1 G91");
-    marlin_server::enqueue_gcode("G1 Z30");
-    marlin_server::enqueue_gcode("G1 G90");
-
-    // Ensure tool 0 is picked (no risky toolchange is needed with calibration pin installed)
-    marlin_server::enqueue_gcode("T0 S1 L0 D0");
-    marlin_server::enqueue_gcode("G28 O");
+    // We need to be Z homed, so that we can find the pin
+    marlin_server::enqueue_gcode("G28 Z O");
 
     // Park the nozzle for easier sheet removal
     marlin_server::enqueue_gcode_printf("T%d L0 D0", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+
+    // Ensure tool will not hit calibration pin once installed
+    marlin_server::enqueue_gcode("G1 Z30");
+
     return LoopResult::RunNext;
 }
 
