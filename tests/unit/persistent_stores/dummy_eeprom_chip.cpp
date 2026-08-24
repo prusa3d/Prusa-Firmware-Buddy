@@ -31,12 +31,21 @@ void DummyEepromChip::clear() {
     memory.fill(std::byte { 0xff });
 }
 
+void DummyEepromChip::set_write_limit(std::optional<std::size_t> limit) {
+    write_limit = limit;
+}
+
 size_t DummyEepromChip::read_bytes(size_t address, WritableBytes buffer) {
     const auto bytes = get(address, buffer.size());
     std::memcpy(buffer.data(), bytes.data(), bytes.size());
     return buffer.size();
 }
 size_t DummyEepromChip::write_bytes(size_t address, Bytes bytes) {
-    set(address, bytes);
-    return bytes.size();
+    auto allowed = bytes.size();
+    if (write_limit.has_value()) {
+        allowed = std::min(allowed, write_limit.value());
+        write_limit = write_limit.value() - allowed;
+    }
+    set(address, bytes.first(allowed));
+    return allowed;
 }

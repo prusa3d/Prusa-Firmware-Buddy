@@ -1,4 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
+#include <catch2/generators/catch_generators_range.hpp>
 #include "dummy_eeprom_chip.h"
 #include <crc32.hpp>
 #include <journal/backend.hpp>
@@ -823,4 +825,48 @@ TEST_CASE("journal::EEPROM::Regression BFW-3553") {
     // Check that we still have data
     REQUIRE(store->int_item.get() == i);
     REQUIRE(backend.journal_state == Backend::JournalState::MissingEndItem);
+}
+
+struct StoreConfig_PowerLoss : public CurrentStoreConfig<Backend, Test_EEPROM_journal> {
+    StoreItem<int32_t, default_int32_t, ItemFlags {}, 1> int_item;
+};
+
+TEST_CASE("journal::EEPROM::Power loss during bank migration") {
+    eeprom_chip.clear();
+
+    const auto boot = []() -> auto {
+        reinit_journal();
+        auto store = std::make_unique<Store<StoreConfig_PowerLoss, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
+        store->init();
+        store->load_all();
+        return store;
+    };
+
+    int32_t last_safely_stored_value = 0;
+    {
+        auto store = boot();
+        auto &backend = Test_EEPROM_journal();
+
+        // prepare full bank
+        const auto next_bank_before_migration = backend.get_next_bank();
+        constexpr auto single_write_size = Backend::ITEM_HEADER_SIZE + sizeof(int32_t);
+        for (int32_t int_value = 0; backend.fits_in_current_bank(single_write_size + Backend::CRC_SIZE + Backend::END_ITEM_SIZE_WITH_CRC); int_value++) {
+            store->int_item.set(int_value);
+            last_safely_stored_value = int_value;
+        }
+        REQUIRE(backend.get_next_bank() == next_bank_before_migration);
+
+        // trigger migration, then power panic after init_bank
+        // NOTE: PP is simulated by ignoring writes to EEPROM
+        const auto write_limit = GENERATE(range(0, 50));
+        eeprom_chip.set_write_limit(write_limit);
+        store->int_item.set(99);
+        eeprom_chip.set_write_limit(std::nullopt);
+        REQUIRE(backend.get_next_bank() != next_bank_before_migration);
+    }
+
+    {
+        auto store = boot();
+        REQUIRE((store->int_item.get() == last_safely_stored_value || store->int_item.get() == 99));
+    }
 }

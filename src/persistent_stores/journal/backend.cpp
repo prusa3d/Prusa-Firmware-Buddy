@@ -383,20 +383,31 @@ std::optional<Backend::BankHeader> Backend::validate_bank_header(const Bytes &da
     return header;
 }
 
-void Backend::init_bank(const Backend::BankSelector selector, Backend::BankSequenceId id, bool is_next_bank) {
-    Address address = get_bank_start_address(selector);
-    BankHeader header { .sequence_id = id, .version = CURRENT_VERSION };
-    CRCType crc = crc32(0, trivial_as_bytes(header));
-    storage.write_bytes(address + BANK_HEADER_SIZE, trivial_as_bytes(crc));
-    storage.write_bytes(address, trivial_as_bytes(header));
-    write_end_item(address + BANK_HEADER_SIZE_WITH_CRC);
+void Backend::prepare_bank(const Backend::BankSelector selector, Backend::BankSequenceId id, bool is_next_bank) {
+    const Address address = get_bank_start_address(selector);
 
     if (is_next_bank) {
         current_next_address = address + BANK_HEADER_SIZE_WITH_CRC;
     } else {
         current_address = address + BANK_HEADER_SIZE_WITH_CRC;
-        current_bank_id = header.sequence_id;
+        current_bank_id = id;
     }
+
+    write_end_item(address + BANK_HEADER_SIZE_WITH_CRC);
+}
+
+void Backend::write_bank_header(const Backend::BankSelector selector, Backend::BankSequenceId id) {
+    const Address address = get_bank_start_address(selector);
+    const BankHeader header { .sequence_id = id, .version = CURRENT_VERSION };
+    const CRCType crc = crc32(0, trivial_as_bytes(header));
+    storage.write_bytes(address + BANK_HEADER_SIZE, trivial_as_bytes(crc));
+    storage.write_bytes(address, trivial_as_bytes(header));
+    storage.flush();
+}
+
+void Backend::init_bank(const Backend::BankSelector selector, Backend::BankSequenceId id, bool is_next_bank) {
+    prepare_bank(selector, id, is_next_bank);
+    write_bank_header(selector, id);
 }
 
 auto Backend::get_journal_state() const -> JournalState {
@@ -462,12 +473,17 @@ void Backend::migrate_bank() {
 
     current_bank_id++;
     bank_migration_count_.fetch_add(1, std::memory_order_relaxed);
-    init_bank(get_next_bank(), current_bank_id);
+
+    const BankSelector target = get_next_bank();
+    prepare_bank(target, current_bank_id);
 
     {
         auto guard = bank_migration_guard();
         dump_callback();
     }
+
+    // bank is not valid until this point
+    write_bank_header(target, current_bank_id);
 
 #ifndef UNITTESTS
     metric_record_integer(&metric_store_migration, storage.bytes_written() - start_bytes_written);

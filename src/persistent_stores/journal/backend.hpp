@@ -311,6 +311,8 @@ public:
     static std::optional<CRCType> get_crc(Bytes data);
     static CRCType calculate_crc(const Backend::ItemHeader &, const Bytes &data, CRCType crc = 0);
 
+    void prepare_bank(const BankSelector bank, uint32_t id, bool is_next_bank = false);
+    void write_bank_header(const BankSelector bank, uint32_t id);
     void init_bank(const BankSelector bank, uint32_t id, bool is_next_bank = false);
     std::optional<Backend::BanksState> choose_bank() const;
     void migrate_bank();
