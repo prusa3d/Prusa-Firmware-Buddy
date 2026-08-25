@@ -1,5 +1,7 @@
 #include "SteelSheets.hpp"
 #include "cmath_ext.h"
+#include "marlin_server.hpp"
+#include "../Marlin/src/module/probe.h"
 #include <float.h>
 #include <string.h>
 #include <cmath>
@@ -37,7 +39,7 @@ bool SteelSheets::SelectSheet(uint32_t index) {
     // update marlin vars
     auto sheet = getSheet(index);
     // don't need to check validity of sheet, we have checked the sheet index
-    marlin_client::set_z_offset(sheet.z_offset);
+    updateMarlin(sheet.z_offset);
     return true;
 }
 
@@ -102,6 +104,16 @@ void SteelSheets::setSheet(uint32_t index, Sheet sheet) {
     return config_store().set_sheet(index, sheet);
 }
 
+void SteelSheets::updateMarlin(float offset) {
+    offset = std::clamp(offset, zOffsetMin, zOffsetMax);
+    if (marlin_server::is_marlin_server_thread()) {
+        // The server has no marlin client, set the probe offset directly
+        probe_offset.z = offset;
+    } else {
+        marlin_client::set_z_offset(offset);
+    }
+}
+
 void SteelSheets::SetZOffset(float offset) {
     if (!std::isfinite(offset)) {
         offset = 0.F;
@@ -109,7 +121,7 @@ void SteelSheets::SetZOffset(float offset) {
     offset = std::clamp(offset, zOffsetMin, zOffsetMax);
 
     uint8_t index = GetActiveSheetIndex();
-    marlin_client::set_z_offset(offset);
+    updateMarlin(offset);
     setSheetOffset(index, offset);
 }
 

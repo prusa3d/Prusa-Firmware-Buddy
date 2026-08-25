@@ -135,6 +135,7 @@ private:
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Updates probe Z offset variable in marlin
     ///
+    /// Works from any thread, including the marlin server thread.
     /// @param[in] Z offset of the sheet
     static void updateMarlin(float offset);
 };
