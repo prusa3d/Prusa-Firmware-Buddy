@@ -315,6 +315,12 @@ struct CurrentStore
     StoreItem<uint16_t, 0, ItemFlag::stats, journal::hash("Crash Count Y")> crash_count_y; // number of crashes of Y axis in total
     StoreItem<uint16_t, 0, ItemFlag::stats, journal::hash("Power Panics Count")> power_panics_count; // number of power losses in total
 
+#if HAS_CRASH_DETECTION()
+    /// Whether g-code interrupts are enabled (instant runout/...)
+    /// If disabled, the interrupts go through the inject route
+    StoreItem<bool, true, ItemFlag::features, journal::hash("GCode Interrupts")> gcode_interrupts_enabled;
+#endif
+
     StoreItem<time_tools::TimeFormat, defaults::time_format, ItemFlag::user_interface, journal::hash("Time Format")> time_format;
 
     // filament sensor values:

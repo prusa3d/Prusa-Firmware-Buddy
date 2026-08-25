@@ -78,6 +78,7 @@ using ScreenMenuSettingsBase = BasicScreenMenu<
 #endif
 #if HAS_CRASH_DETECTION()
     MI_CRASH_DETECTION,
+    MI_GCODE_INTERRUPTS,
 #endif
     MI_LANG_AND_TIME,
     MI_HARDWARE,

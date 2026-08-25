@@ -2,6 +2,7 @@
 #include <gui/menu_vars.h>
 #include <option/has_crash_detection.h>
 #include <option/has_power_panic.h>
+#include <window_msgbox.hpp>
 
 // TODO do it in cmake
 #if HAS_CRASH_DETECTION()
@@ -151,4 +152,32 @@ void MI_CRASH_FILTERING::OnChange([[maybe_unused]] size_t old_index) {
     crash_s.set_filter(value());
 }
     #endif
+#endif
+
+#if HAS_CRASH_DETECTION()
+static constexpr std::array<const char *, 2> gcode_interrupt_items {
+    N_("Delayed"),
+    N_("Instant"),
+};
+
+MI_GCODE_INTERRUPTS::MI_GCODE_INTERRUPTS()
+    : MenuItemSwitch(
+        // Yes, this covers all GCode interupts, but try to explain what GCode interrupts mean to the user
+        _("Runout Reaction"),
+        gcode_interrupt_items, (size_t)config_store().gcode_interrupts_enabled.get()) {}
+
+void MI_GCODE_INTERRUPTS::click(IWindowMenu &menu) {
+    const auto r = MsgBoxInfo(
+        _("Sets how quickly the printer reacts to runouts and similar events.\n\nDelayed: Finishes queued moves first.\nInstant: Abruptly stops and rehomes (to fix skipped steps)."),
+        { Response::Ok, Response::Back });
+    if (r != Response::Ok) {
+        return;
+    }
+
+    MenuItemSwitch::click(menu);
+}
+
+void MI_GCODE_INTERRUPTS::OnChange(size_t) {
+    config_store().gcode_interrupts_enabled.set((bool)current_item());
+}
 #endif

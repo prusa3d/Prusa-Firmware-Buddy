@@ -1353,8 +1353,11 @@ void gcode_interrupt(GCodeLiteral gcode) {
 #else
     // In some situations we just inject the gcode
     if (
+        // If g-code interrupts are disabled
+        !config_store().gcode_interrupts_enabled.get()
+
         // When we're not printing (or we're printing serial)
-        !crash_s.is_active() || crash_s.get_state() != Crash_s::PRINTING
+        || !crash_s.is_active() || crash_s.get_state() != Crash_s::PRINTING
         || server.print_is_serial
         || (server.print_state != State::Printing && server.print_state != State::Finishing_WaitIdle)
 

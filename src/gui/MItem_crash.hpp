@@ -113,3 +113,12 @@ public:
 };
     #endif
 #endif
+
+#if HAS_CRASH_DETECTION()
+class MI_GCODE_INTERRUPTS : public MenuItemSwitch {
+public:
+    MI_GCODE_INTERRUPTS();
+    virtual void OnChange(size_t) override;
+    virtual void click(IWindowMenu &) override;
+};
+#endif
