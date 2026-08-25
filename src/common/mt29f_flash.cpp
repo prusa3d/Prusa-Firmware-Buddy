@@ -185,13 +185,23 @@ void Mt29fFlash::erase_block(uint32_t addr) {
 }
 
 void Mt29fFlash::chip_erase() {
+    // The MT29F ships with factory-marked bad blocks and develops more
+    // over its life, so erase failures on individual blocks are expected:
+    // skip them (littlefs maps around bad blocks) and only report
+    // whole-chip failure.
+    uint32_t failed = 0;
     for (uint8_t die = 0; die < num_dies; die++) {
         for (uint32_t block = 0; block < blocks_per_die; block++) {
             erase_block((die * blocks_per_die + block) * block_size);
-            if (current_error) {
-                return;
+            if (fetch_error()) {
+                failed++;
             }
         }
+    }
+    if (failed >= num_dies * blocks_per_die) {
+        set_error(HAL_ERROR);
+    } else if (failed > 0) {
+        log_warning(MT29F, "Chip erase: skipped %lu bad blocks", (unsigned long)failed);
     }
 }
 
