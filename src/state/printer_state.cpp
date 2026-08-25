@@ -81,8 +81,8 @@ namespace {
 // harm in having it in both places? Maybe couple more bytes of flash will
 // be used, so should we just remove it and let the get_print_state handle
 // this one, or is this better, because it's more robust?
-optional<ErrCode> crash_recovery_attention(const PhasesCrashRecovery &phase) {
-    switch (phase) {
+optional<ErrCode> crash_recovery_attention(const FSMAndPhase crash_recovery_phase) {
+    switch (static_cast<PhasesCrashRecovery>(crash_recovery_phase.phase)) {
     case PhasesCrashRecovery::axis_long:
         return ErrCode::CONNECT_CRASH_RECOVERY_AXIS_LONG;
     case PhasesCrashRecovery::axis_short:
@@ -449,6 +449,18 @@ StateWithDialog get_state_with_dialog(bool ready) {
     }
 
     const auto &data = top->data;
+
+    // A phase with an attention error code becomes a dialog carrying the phase's responses; other
+    // phases produce no dialog.
+    const auto attention_phase_dialog = [&](optional<ErrCode> (*mapper)(FSMAndPhase)) -> optional<StateWithDialog> {
+        const FSMAndPhase fsm_phase(top->fsm_type, data.GetPhase());
+        const auto attention_code = mapper(fsm_phase);
+        if (!attention_code.has_value()) {
+            return nullopt;
+        }
+        return StateWithDialog(state, attention_code, fsm_gen, ClientResponses::get_available_responses(fsm_phase).data());
+    };
+
     switch (top->fsm_type) {
     case ClientFSM::Load_unload:
         if (is_printing) {
@@ -465,9 +477,8 @@ StateWithDialog get_state_with_dialog(bool ready) {
     }
 #if HAS_CRASH_DETECTION()
     case ClientFSM::CrashRecovery:
-        if (auto attention_code = crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(data.GetPhase())); attention_code.has_value()) {
-            const Response *available_responses = ClientResponses::get_available_responses(GetEnumFromPhaseIndex<PhasesCrashRecovery>(data.GetPhase())).data();
-            return { state, attention_code, fsm_gen, available_responses };
+        if (auto dialog = attention_phase_dialog(crash_recovery_attention)) {
+            return *dialog;
         }
         break;
 #endif
@@ -475,43 +486,31 @@ StateWithDialog get_state_with_dialog(bool ready) {
         auto [code, response] = warning_dialog(data);
         return { state, code, fsm_gen, response };
     }
-    case ClientFSM::PrintPreview: {
-        auto phase = GetEnumFromPhaseIndex<PhasesPrintPreview>(data.GetPhase());
-        if (auto attention_code = attention_while_printpreview(phase); attention_code.has_value()) {
-            const Response *available_responses = ClientResponses::get_available_responses(phase).data();
-            return { state, attention_code, fsm_gen, available_responses };
+    case ClientFSM::PrintPreview:
+        if (auto dialog = attention_phase_dialog(map_print_preview_phase_to_error_code)) {
+            return *dialog;
         }
         break;
-    }
 #if HAS_LOADCELL()
-    case ClientFSM::NozzleCleaningFailed: {
-        auto phase = GetEnumFromPhaseIndex<PhaseNozzleCleaningFailed>(data.GetPhase());
-        if (auto attention_code = nozzle_cleaning_failed_phase_error_code_mapper(phase); attention_code.has_value()) {
-            const Response *available_responses = ClientResponses::get_available_responses(phase).data();
-            return { state, attention_code, fsm_gen, available_responses };
+    case ClientFSM::NozzleCleaningFailed:
+        if (auto dialog = attention_phase_dialog(nozzle_cleaning_failed_phase_error_code_mapper)) {
+            return *dialog;
         }
         break;
-    }
 #endif
 #if HAS_INDX()
-    case ClientFSM::NozzleMismatch: {
-        auto phase = GetEnumFromPhaseIndex<PhaseNozzleMismatch>(data.GetPhase());
-        if (auto attention_code = nozzle_mismatch_phase_error_code_mapper(phase); attention_code.has_value()) {
-            const Response *available_responses = ClientResponses::get_available_responses(phase).data();
-            return { state, attention_code, fsm_gen, available_responses };
+    case ClientFSM::NozzleMismatch:
+        if (auto dialog = attention_phase_dialog(nozzle_mismatch_phase_error_code_mapper)) {
+            return *dialog;
         }
         break;
-    }
 #endif
 #if HAS_WASTEBIN_FILL_TRACKING()
-    case ClientFSM::WastebinEmptying: {
-        auto phase = GetEnumFromPhaseIndex<PhaseWastebinEmptying>(data.GetPhase());
-        if (auto attention_code = wastebin_emptying_phase_error_code_mapper(phase); attention_code.has_value()) {
-            const Response *available_responses = ClientResponses::get_available_responses(phase).data();
-            return { state, attention_code, fsm_gen, available_responses };
+    case ClientFSM::WastebinEmptying:
+        if (auto dialog = attention_phase_dialog(wastebin_emptying_phase_error_code_mapper)) {
+            return *dialog;
         }
         break;
-    }
 #endif
 
     // These have no buttons or phase
