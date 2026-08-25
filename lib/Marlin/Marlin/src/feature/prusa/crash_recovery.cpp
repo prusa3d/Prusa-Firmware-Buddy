@@ -467,4 +467,32 @@ void Crash_s::set_filter(bool on) {
     update_machine();
 }
     #endif /*HAS_DRIVER(TMC2130)*/
+
+[[nodiscard]] bool Crash_s::register_planner_segment() {
+    if (gcode_state.sdpos == move_start.sdpos) {
+        ++gcode_state.segment_idx;
+
+    } else {
+        // we are processing the beginning of a new logical move: update the constant
+        // values which are repeated in all subsequent segments
+        move_start.start_current_position = current_position;
+
+        // reset segment state
+        move_start.sdpos = gcode_state.sdpos;
+        gcode_state.segment_idx = 0;
+    }
+
+    if (get_state() == Crash_s::REPLAY) {
+        // replay mode: drop initial segments
+        if (segments_finished > 0) {
+            --segments_finished;
+            return false;
+        }
+
+        // continue normally
+        set_state(Crash_s::PRINTING);
+    }
+
+    return true;
+}
 #endif

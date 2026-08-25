@@ -260,6 +260,11 @@ public:
      */
     void not_for_replay();
 
+    /// Registers that a planner is trying to issue a segment
+    /// Updates the segment tracking info within the crash subsystem
+    /// @returns false if we're in replay and we should ignore the segment
+    [[nodiscard]] bool register_planner_segment();
+
 private:
     void update_machine();
     void stop_and_save(); ///< Stop the planner and update the crash state

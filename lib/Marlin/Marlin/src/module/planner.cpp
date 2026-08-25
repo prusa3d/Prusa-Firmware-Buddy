@@ -2203,32 +2203,9 @@ bool Planner::buffer_segment(const MachinePosXYZE &xyze, const feedRate_t fr_mm_
 #endif
 
   #if HAS_CRASH_DETECTION()
-  {
-    auto &move_start = crash_s.move_start;
-    auto &gcode_state = crash_s.gcode_state;
-    if (gcode_state.sdpos == move_start.sdpos) {
-      ++gcode_state.segment_idx;
-    } else {
-      // we are processing the beginning of a new logical move: update the constant
-      // values which are repeated in all subsequent segments
-      move_start.start_current_position = current_position;
-
-      // reset segment state
-      move_start.sdpos = gcode_state.sdpos;
-      gcode_state.segment_idx = 0;
+    if(!crash_s.register_planner_segment()) {
+      return true;
     }
-
-    if (crash_s.get_state() == Crash_s::REPLAY) {
-      // replay mode: drop initial segments
-      if (crash_s.segments_finished > 0) {
-        --crash_s.segments_finished;
-        return true;
-      }
-
-      // continue normally
-      crash_s.set_state(Crash_s::PRINTING);
-    }
-  }
   #endif
 
   if (hints.move.is_printing_move
@@ -2311,34 +2288,11 @@ bool Planner::buffer_raw_segment(const MachinePosXYZE &xyze, const float acceler
         return false;
     }
 
-    #if HAS_CRASH_DETECTION()
-    {
-        auto &move_start = crash_s.move_start;
-        auto &gcode_state = crash_s.gcode_state;
-        if (gcode_state.sdpos == move_start.sdpos) {
-            ++gcode_state.segment_idx;
-        } else {
-            // we are processing the beginning of a new logical move: update the constant
-            // values which are repeated in all subsequent segments
-            move_start.start_current_position = current_position;
-
-            // reset segment state
-            move_start.sdpos = gcode_state.sdpos;
-            gcode_state.segment_idx = 0;
-        }
-
-        if (crash_s.get_state() == Crash_s::REPLAY) {
-            // replay mode: drop initial segments
-            if (crash_s.segments_finished > 0) {
-                --crash_s.segments_finished;
-                return true;
-            }
-
-            // continue normally
-            crash_s.set_state(Crash_s::PRINTING);
-        }
+  #if HAS_CRASH_DETECTION()
+    if(!crash_s.register_planner_segment()) {
+      return true;
     }
-    #endif
+  #endif
 
     // The target position of the tool in absolute mini-steps
     // Calculate target position in absolute mini-steps
