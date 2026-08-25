@@ -3,6 +3,7 @@
 
 #include <config_store/store_instance.hpp>
 
+#include <option/allow_missing_otp.h>
 #include <support_utils.h>
 #include <version/version.hpp>
 #include <bsod/bsod.h>
@@ -29,7 +30,11 @@ void init_info(Printer::PrinterInfo &info) {
     info.firmware_version = version::project_version_full;
     info.appendix = appendix_exist();
     if (otp_get_serial_nr(info.serial_number) == 0) {
+#if ALLOW_MISSING_OTP()
+        info.serial_number = {};
+#else
         bsod("otp_get_serial_nr");
+#endif
     }
     printerHash(info.fingerprint, sizeof(info.fingerprint) - 1, false);
     info.fingerprint[sizeof(info.fingerprint) - 1] = '\0';

@@ -1223,6 +1223,12 @@ set(DEVELOPER_MODE
     )
 define_boolean_option(DEVELOPER_MODE ${DEVELOPER_MODE})
 
+set(ALLOW_MISSING_OTP
+    "OFF"
+    CACHE BOOL "Run on boards with blank OTP (no serial number) instead of failing with a BSOD."
+    )
+define_boolean_option(ALLOW_MISSING_OTP ${ALLOW_MISSING_OTP})
+
 set(CYPHAL_CAN_STATS
     "OFF"
     CACHE BOOL "Enable mechanisms to measure CAN bus performance (needs DEVELOPER_MODE to be ON)"

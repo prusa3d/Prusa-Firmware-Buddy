@@ -141,6 +141,17 @@
             }
         },
         {
+            "name": "mini_big_flash",
+            "description": "Special board with a 2MB-flash MCU (STM32F429/F439) and possibly blank OTP for debugging purposes",
+            "cacheVariables": {
+                "PRINTER": "MINI",
+                "SIGNATURE_OAK": "OFF",
+                "BOARD": "BUDDY",
+                "MCU": "STM32F429VI",
+                "ALLOW_MISSING_OTP": true
+            }
+        },
+        {
             "name": "mk4",
             "description": "Original Prusa MK4 with xBuddy 0.2.7c or newer fw compatible, 400-step motors and planetary gearbox",
             "cacheVariables": {
