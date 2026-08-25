@@ -7,6 +7,7 @@
 #include <config_store/store_instance.hpp>
 #include <gcode/gcode_info.hpp>
 #include <marlin_server.hpp>
+#include <marlin_vars.hpp>
 #include <warning_type.hpp>
 #include <client_response.hpp>
 #include <fsm/wastebin_emptying_phases.hpp>
@@ -47,7 +48,9 @@ void WastebinWatcher::account_ejected_pellet() {
 }
 
 void WastebinWatcher::pause_to_empty(bool full) {
-    const bool printing = marlin_server::is_printing();
+    // Deliberately narrower than is_printing(): the print preview (overfill prompt) also runs
+    // M1986, and there is nothing to return to there.
+    const bool printing = marlin_server::is_printing_state(marlin_vars().print_state);
     const xyz_pos_t resume_pos = current_position.xyz();
     const float resume_e = current_position.e;
     // Cleaner is outside the MBL mesh; save/restore Z in the machine frame (like G750), not native.
@@ -72,8 +75,8 @@ void WastebinWatcher::pause_to_empty(bool full) {
         mapi::retract_to(STANDARD_RETRACT_LENGTH, buddy::standard_feedrates::extruder(buddy::standard_feedrates::Extruder::retract, filament));
         mapi::park(mapi::get_parking_position(mapi::ParkPosition::empty_wastebin));
     } else {
-        // Idle: axes may be unhomed, so home as needed before parking. No retract (cold nozzle) and
-        // no return afterwards (homing invalidates resume_pos).
+        // Nothing to come back to, so the axes may be unhomed - home as needed before parking. No
+        // retract either, the nozzle is not necessarily hot.
         mapi::home_if_needed_and_park(mapi::get_parking_position(mapi::ParkPosition::empty_wastebin));
     }
 
@@ -93,7 +96,7 @@ void WastebinWatcher::pause_to_empty(bool full) {
     }
 
     if (!printing) {
-        return; // idle: nothing to return to
+        return; // stay parked
     }
 
     fsm.change(PhaseWastebinEmptying::raising_bed);

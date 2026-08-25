@@ -626,6 +626,7 @@ PrintPreview::Result PrintPreview::Loop() {
             break;
 
         case Response::Empty:
+            // Outside a print M1986 leaves the head parked; the start gcode homes anyway.
             marlin_server::enqueue_gcode("M1986");
             ChangeState(State::wastebin_emptying);
             break;
