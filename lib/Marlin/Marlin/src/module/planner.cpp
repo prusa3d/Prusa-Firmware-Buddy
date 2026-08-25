@@ -2202,12 +2202,6 @@ bool Planner::buffer_segment(const MachinePosXYZE &xyze, const feedRate_t fr_mm_
   }
 #endif
 
-  #if HAS_CRASH_DETECTION()
-    if(!crash_s.register_planner_segment()) {
-      return true;
-    }
-  #endif
-
   if (hints.move.is_printing_move
       && xyze.e > position_float.e
       && is_xy_in_print_region(xyze.xy())) {
@@ -2254,6 +2248,12 @@ bool Planner::buffer_segment(const MachinePosXYZE &xyze, const feedRate_t fr_mm_
     }
   #endif // PREVENT_COLD_EXTRUSION || PREVENT_LENGTHY_EXTRUDE
 
+  #if HAS_CRASH_DETECTION()
+    if(!crash_s.register_planner_segment()) {
+      return true;
+    }
+  #endif
+
   /* <-- add a slash to enable
     SERIAL_ECHOPAIR("  buffer_segment FR:", fr_mm_s);
     SERIAL_ECHOPAIR(" X:", a);
@@ -2288,12 +2288,6 @@ bool Planner::buffer_raw_segment(const MachinePosXYZE &xyze, const float acceler
         return false;
     }
 
-  #if HAS_CRASH_DETECTION()
-    if(!crash_s.register_planner_segment()) {
-      return true;
-    }
-  #endif
-
     // The target position of the tool in absolute mini-steps
     // Calculate target position in absolute mini-steps
     const xyze_msteps_t target = {
@@ -2308,6 +2302,12 @@ bool Planner::buffer_raw_segment(const MachinePosXYZE &xyze, const float acceler
         position.e = target.e;
         position_float.e = xyze.e;
     }
+
+    #if HAS_CRASH_DETECTION()
+      if(!crash_s.register_planner_segment()) {
+        return true;
+      }
+    #endif
 
     // Queue the movement. Return 'false' if the move was not queued.
     if (!buffer_raw_block(target, xyze, acceleration, nominal_speed, entry_speed, exit_speed, tools)) {
