@@ -6,6 +6,7 @@ constinit const EnumArray<PhaseWastebinEmptying, PhaseResponses, PhaseWastebinEm
     { PhaseWastebinEmptying::prompt_empty, { Response::Done } },
     { PhaseWastebinEmptying::raising_bed, {} },
     { PhaseWastebinEmptying::heating, {} },
+    { PhaseWastebinEmptying::purging, {} },
     { PhaseWastebinEmptying::returning, {} },
 };
 
@@ -15,5 +16,6 @@ constinit const EnumBitset<PhaseWastebinEmptying, PhaseWastebinEmptying::_cnt> w
     { PhaseWastebinEmptying::prompt_empty, true },
     { PhaseWastebinEmptying::raising_bed, false },
     { PhaseWastebinEmptying::heating, false },
+    { PhaseWastebinEmptying::purging, false },
     { PhaseWastebinEmptying::returning, false },
 };

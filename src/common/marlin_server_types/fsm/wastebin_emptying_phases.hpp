@@ -12,6 +12,7 @@ enum class PhaseWastebinEmptying : PhaseUnderlyingType {
     prompt_empty,
     raising_bed,
     heating,
+    purging,
     returning,
 
     _cnt,

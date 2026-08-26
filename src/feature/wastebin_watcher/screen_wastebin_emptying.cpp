@@ -33,6 +33,7 @@ using Frames = FrameDefinitionList<ScreenWastebinEmptying::FrameStorage,
     FrameDefinition<Phase::prompt_empty, FrameQRPrompt, Phase::prompt_empty, wastebin_emptying_phase_error_code_mapper>,
     FrameDefinition<Phase::raising_bed, FrameWait, N_("Raising the bed")>,
     FrameDefinition<Phase::heating, FrameWait, N_("Heating up the nozzle")>,
+    FrameDefinition<Phase::purging, FrameWait, N_("Purging the nozzle")>,
     FrameDefinition<Phase::returning, FrameWait, N_("Returning to the print")>>;
 
 } // namespace

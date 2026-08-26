@@ -15,6 +15,7 @@
 #include <mapi/parking.hpp>
 #include <mapi/motion.hpp>
 #include <mapi/feedrates/standard_feedrates.hpp>
+#include <nozzle_cleaner.hpp>
 #include <Marlin/src/module/motion.h>
 #include <Marlin/src/module/temperature.h>
 #include <module/planner.h>
@@ -48,6 +49,7 @@ void WastebinWatcher::account_ejected_pellet() {
 }
 
 void WastebinWatcher::pause_to_empty(bool full) {
+    const std::optional<PhysicalToolIndex> tool = PhysicalToolIndex::currently_selected_opt();
     // Deliberately narrower than is_printing(): the print preview (overfill prompt) also runs
     // M1986, and there is nothing to return to there.
     const bool printing = marlin_server::is_printing_state(marlin_vars().print_state);
@@ -56,29 +58,25 @@ void WastebinWatcher::pause_to_empty(bool full) {
     // Cleaner is outside the MBL mesh; save/restore Z in the machine frame (like G750), not native.
     const float resume_machine_z = to_machine_pos(current_position).z;
 
-    const int16_t resume_temp = Hotend::for_tool(PhysicalToolIndex::currently_selected()).nozzle_target_temp();
+    const int16_t resume_temp = tool ? Hotend::for_tool(*tool).nozzle_target_temp() : 0;
 
     const auto filament = FilamentType::for_current_tool_heuristic();
 
     // Scores over Printing and PrintPreview - all the entry points get the same screens.
     marlin_server::FSM_Holder fsm { PhaseWastebinEmptying::parking };
 
-    if (printing) {
+    if (printing && tool.has_value()) {
         // Drop the nozzle target so it doesn't cook/ooze during the (possibly long) wait; restored
         // and reheated over the cleaner before returning to the print.
-        Hotend::for_tool(PhysicalToolIndex::currently_selected()).set_nozzle_target_temp(0);
+        Hotend::for_tool(*tool).set_nozzle_target_temp(0);
         // Retract to the standard pre-park distance so the nozzle does not ooze while parked, then
         // park clear of the cleaner. retract_to() only moves the delta to the target, so it won't
         // over-retract (pull the filament out of the gears) if the print already had it retracted.
         // We block the gcode stream here (= effective pause); print_pause() + wait would deadlock
         // this gcode processor (BFW-8821).
         mapi::retract_to(STANDARD_RETRACT_LENGTH, buddy::standard_feedrates::extruder(buddy::standard_feedrates::Extruder::retract, filament));
-        mapi::park(mapi::get_parking_position(mapi::ParkPosition::empty_wastebin));
-    } else {
-        // Nothing to come back to, so the axes may be unhomed - home as needed before parking. No
-        // retract either, the nozzle is not necessarily hot.
-        mapi::home_if_needed_and_park(mapi::get_parking_position(mapi::ParkPosition::empty_wastebin));
     }
+    mapi::home_if_needed_and_park(mapi::get_parking_position(mapi::ParkPosition::empty_wastebin));
 
     // full=true: the bin hit capacity, so Ignore is offered to stop checking it for this print.
     const auto prompt = full ? PhaseWastebinEmptying::prompt_full : PhaseWastebinEmptying::prompt_empty;
@@ -106,15 +104,24 @@ void WastebinWatcher::pause_to_empty(bool full) {
     constexpr float return_clearance = 5;
     MachinePosXYZE over_bin = current_machine_position();
     over_bin.z = std::max(resume_machine_z, planner.max_printed_z + return_clearance);
-    line_to_machine_pos(over_bin, NOZZLE_PARK_Z_FEEDRATE, { .ignore_e_factor = true });
+    line_to_machine_pos(over_bin, NOZZLE_PARK_Z_FEEDRATE, { .ignore_e_factor = false });
     // Let the bed finish rising before announcing the heat-up, so the screen matches what moves.
     planner.synchronize();
 
-    fsm.change(PhaseWastebinEmptying::heating);
-    // Reheat over the cleaner so heat-up ooze drips into the bin, not onto the print.
-    Hotend::for_tool(PhysicalToolIndex::currently_selected()).set_nozzle_target_temp(resume_temp);
-    if (const auto tool = PhysicalToolIndex::currently_selected_opt()) {
+    if (tool.has_value()) {
+        fsm.change(PhaseWastebinEmptying::heating);
+        // Reheat over the cleaner so heat-up ooze drips into the bin, not onto the print.
+        Hotend::for_tool(*tool).set_nozzle_target_temp(resume_temp);
         thermalManager.wait_for_hotend(*tool, { .no_wait_for_cooling = false });
+
+        fsm.change(PhaseWastebinEmptying::purging);
+        // The nozzle stays picked and residual heating is oozing the filament, the nozzle needs to be primed to return to printing
+        // It ends autoretracted, so on success declare E restored and let the deretract below no-op
+        // On failure E is untouched and the deretract restores the pre-park retract as before
+        if (!thermalManager.tooColdToExtrude(*tool)
+            && nozzle_cleaner::load_and_execute(nozzle_cleaner::Sequence::purge_clean)) {
+            sync_e_position_to(resume_e);
+        }
     }
 
     fsm.change(PhaseWastebinEmptying::returning);
@@ -123,7 +130,7 @@ void WastebinWatcher::pause_to_empty(bool full) {
     mapi::park(mapi::ParkingPosition { .x = resume_pos.x, .y = resume_pos.y });
     MachinePosXYZE resume_target = current_machine_position();
     resume_target.z = resume_machine_z;
-    line_to_machine_pos(resume_target, NOZZLE_PARK_Z_FEEDRATE, { .ignore_e_factor = true });
+    line_to_machine_pos(resume_target, NOZZLE_PARK_Z_FEEDRATE, { .ignore_e_factor = false });
     planner.synchronize();
     mapi::extruder_move(resume_e - current_position.e, buddy::standard_feedrates::extruder(buddy::standard_feedrates::Extruder::deretract, filament));
 }
