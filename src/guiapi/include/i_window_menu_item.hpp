@@ -53,7 +53,7 @@ struct IWindowMenuItemColorScheme {
 
     struct ROpPair {
         ropfn focused {
-            .invert = is_inverted::yes,
+            .swap_bw = has_swapped_bw::yes,
         };
         ropfn unfocused = {};
     };
@@ -66,10 +66,7 @@ struct IWindowMenuItemColorScheme {
         .focused = GuiDefaults::MenuColorFocusedBack,
         .unfocused = GuiDefaults::MenuColorBack,
     };
-    ROpPair rop {
-        .focused { .swap_bw = has_swapped_bw::yes },
-        .unfocused {},
-    };
+    ROpPair rop {};
 };
 
 /*****************************************************************************/
