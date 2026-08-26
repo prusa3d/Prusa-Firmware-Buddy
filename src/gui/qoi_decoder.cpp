@@ -116,7 +116,7 @@ Pixel Decoder::pull_pixel() {
     return px;
 }
 
-namespace transform {
+namespace {
 
     Pixel invert(Pixel pixel) {
         pixel.r = 255 - pixel.r;
@@ -158,6 +158,10 @@ namespace transform {
         }
         return pixel;
     }
+
+} // namespace
+
+namespace transform {
 
     Pixel apply_rop(Pixel pixel, ropfn rop) {
         if (rop.invert == is_inverted::yes) {

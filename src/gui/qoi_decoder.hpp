@@ -99,14 +99,6 @@ private:
 };
 
 namespace transform {
-
-    // Pixel operations
-    Pixel invert(Pixel pixel);
-    bool tolerance(Pixel pixel);
-    Pixel swapbw(Pixel pixel);
-    Pixel desaturate(Pixel pixel);
-    Pixel shadow(Pixel pixel);
-
     /// Apply all rops
     Pixel apply_rop(Pixel pixel, ropfn rop);
 } // namespace transform
