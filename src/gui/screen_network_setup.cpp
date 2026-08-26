@@ -389,8 +389,7 @@ public:
     FrameWaitForNFC(window_frame_t *parent)
         : FramePrompt(parent, Phase::wait_for_nfc,
             _("Credentials via NFC"),
-            _("1. Open Prusa app on your mobile device.\n\n2. Go to in-app Menu and select \"Set up Printer Wi-Fi.\"\n\n3. Follow on-screen instructions."),
-            Align_t::LeftTop(), Align_t::LeftBottom()) {
+            _("1. Open Prusa app on your mobile device.\n\n2. Go to in-app Menu and select \"Set up Printer Wi-Fi.\"\n\n3. Follow on-screen instructions.")) {
     }
 };
 
