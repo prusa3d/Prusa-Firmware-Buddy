@@ -141,7 +141,7 @@ void CurrentStore::perform_config_migrations() {
         // [[ BFW-5785 ]]
 
         auto sr = selftest_result.get();
-        sr.set_gearbox(0, sr.get_deprecated_gears());
+        sr.set_gearbox(PhysicalToolIndex::from_raw(0), sr.get_deprecated_gears());
         selftest_result.set(sr);
     }
 #endif

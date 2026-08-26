@@ -59,88 +59,56 @@ struct SelftestResultImpl {
 
     bool operator==(const SelftestResultImpl &) const = default;
 
-    [[deprecated("Use the ToolIndex overload")]]
-    inline TestResult get_print_fan(uint8_t tool) const { return _tools[tool]._print_fan; }
     inline TestResult get_print_fan(PhysicalToolIndex tool) const { return _tools[tool]._print_fan; }
 
     [[deprecated("Use the ToolIndex overload")]]
     inline void set_print_fan(uint8_t tool, TestResult result) { _tools[tool]._print_fan = result; }
     inline void set_print_fan(PhysicalToolIndex tool, TestResult result) { _tools[tool]._print_fan = result; }
 
-    [[deprecated("Use the ToolIndex overload")]]
-    inline TestResult get_heatbreak_fan(uint8_t tool) const { return _tools[tool]._heatbreak_fan; }
     inline TestResult get_heatbreak_fan(PhysicalToolIndex tool) const { return _tools[tool]._heatbreak_fan; }
 
     [[deprecated("Use the ToolIndex overload")]]
     inline void set_heatbreak_fan(uint8_t tool, TestResult result) { _tools[tool]._heatbreak_fan = result; }
     inline void set_heatbreak_fan(PhysicalToolIndex tool, TestResult result) { _tools[tool]._heatbreak_fan = result; }
 
-    [[deprecated("Use the ToolIndex overload")]]
-    inline TestResult get_fans_switched(uint8_t tool) const { return _tools[tool]._fans_switched; }
     inline TestResult get_fans_switched(PhysicalToolIndex tool) const { return _tools[tool]._fans_switched; }
 
     [[deprecated("Use the ToolIndex overload")]]
     inline void set_fans_switched(uint8_t tool, TestResult result) { _tools[tool]._fans_switched = result; }
     inline void set_fans_switched(PhysicalToolIndex tool, TestResult result) { _tools[tool]._fans_switched = result; }
 
-    [[deprecated("Use the ToolIndex overload")]]
-    inline bool has_heatbreak_fan_passed(uint8_t tool) const {
+    inline bool has_heatbreak_fan_passed(PhysicalToolIndex tool) const {
 #if HAS_SWITCHED_FAN_TEST()
         return _tools[tool]._heatbreak_fan == TestResult::passed && _tools[tool]._fans_switched == TestResult::passed;
 #else
         return _tools[tool]._heatbreak_fan == TestResult::passed;
 #endif
     }
-    inline bool has_heatbreak_fan_passed(PhysicalToolIndex tool) const { return has_heatbreak_fan_passed(tool.to_raw()); }
 
-    [[deprecated("Use the ToolIndex overload")]]
-    inline TestResult evaluate_fans(uint8_t tool) const {
+    inline TestResult evaluate_fans(PhysicalToolIndex tool) const {
 #if HAS_SWITCHED_FAN_TEST()
         return test_result::evaluate_results(_tools[tool]._print_fan, _tools[tool]._heatbreak_fan, _tools[tool]._fans_switched);
 #else
         return test_result::evaluate_results(_tools[tool]._print_fan, _tools[tool]._heatbreak_fan);
 #endif
     }
-    inline TestResult evaluate_fans(PhysicalToolIndex tool) const { return evaluate_fans(tool.to_raw()); }
 
-    [[deprecated("Use the ToolIndex overload")]]
-    inline TestResult get_nozzle_heater(uint8_t tool) const { return _tools[tool]._nozzle; }
     inline TestResult get_nozzle_heater(PhysicalToolIndex tool) const { return _tools[tool]._nozzle; }
 
     [[deprecated("Use the ToolIndex overload")]]
     inline void set_nozzle_heater(uint8_t tool, TestResult result) { _tools[tool]._nozzle = result; }
     inline void set_nozzle_heater(PhysicalToolIndex tool, TestResult result) { _tools[tool]._nozzle = result; }
 
-    [[deprecated("Use the ToolIndex overload")]]
-    inline TestResult get_loadcell(uint8_t tool) const { return _tools[tool]._loadcell; }
     inline TestResult get_loadcell(PhysicalToolIndex tool) const { return _tools[tool]._loadcell; }
-
-    [[deprecated("Use the ToolIndex overload")]]
-    inline void set_loadcell(uint8_t tool, TestResult result) { _tools[tool]._loadcell = result; }
     inline void set_loadcell(PhysicalToolIndex tool, TestResult result) { _tools[tool]._loadcell = result; }
 
-    [[deprecated("Use the ToolIndex overload")]]
-    inline TestResult get_dock_offset(uint8_t tool) const { return _tools[tool]._dockoffset; }
     inline TestResult get_dock_offset(PhysicalToolIndex tool) const { return _tools[tool]._dockoffset; }
-
-    [[deprecated("Use the ToolIndex overload")]]
-    inline void set_dock_offset(uint8_t tool, TestResult result) { _tools[tool]._dockoffset = result; }
     inline void set_dock_offset(PhysicalToolIndex tool, TestResult result) { _tools[tool]._dockoffset = result; }
 
-    [[deprecated("Use the ToolIndex overload")]]
-    inline TestResult get_tool_offset(uint8_t tool) const { return _tools[tool]._tooloffset; }
     inline TestResult get_tool_offset(PhysicalToolIndex tool) const { return _tools[tool]._tooloffset; }
-
-    [[deprecated("Use the ToolIndex overload")]]
-    inline void set_tool_offset(uint8_t tool, TestResult result) { _tools[tool]._tooloffset = result; }
     inline void set_tool_offset(PhysicalToolIndex tool, TestResult result) { _tools[tool]._tooloffset = result; }
 
-    [[deprecated("Use the ToolIndex overload")]]
-    inline TestResult get_gearbox(uint8_t tool) const { return _tools[tool]._gears; }
     inline TestResult get_gearbox(PhysicalToolIndex tool) const { return _tools[tool]._gears; }
-
-    [[deprecated("Use the ToolIndex overload")]]
-    inline void set_gearbox(uint8_t tool, TestResult result) { _tools[tool]._gears = result; }
     inline void set_gearbox(PhysicalToolIndex tool, TestResult result) { _tools[tool]._gears = result; }
 
     inline TestResult get_xaxis() const { return _xaxis; }

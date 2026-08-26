@@ -366,7 +366,7 @@ void CSelftest::next() {
         break;      // current state cannot be run
 #endif
     case stsZAxis: { // loadcell and both X and Y must be OK to test Z
-        bool loadcell_passed = m_result.get_loadcell(0) == TestResult::passed;
+        bool loadcell_passed = m_result.get_loadcell(PhysicalToolIndex::from_raw(0)) == TestResult::passed;
         bool xy_axis_passed = m_result.get_xaxis() == TestResult::passed && m_result.get_yaxis() == TestResult::passed;
         if (loadcell_passed && xy_axis_passed) {
             return; // current state can be run

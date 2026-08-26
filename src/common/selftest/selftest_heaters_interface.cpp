@@ -125,7 +125,7 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
         // running in parallel would just make a mess.
         auto sr = config_store().selftest_result.get();
         // hotfix: see stateCheckHbrPassed in selftest_heater.cpp, skip only on explicit fail.
-        if (sr.get_heatbreak_fan(0) == TestResult::failed) {
+        if (sr.get_heatbreak_fan(PhysicalToolIndex::from_raw(0)) == TestResult::failed) {
             return;
         }
     }
