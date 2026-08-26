@@ -91,20 +91,14 @@ class MeatPack {
     uint8_t cmd_count, // Counter of command bytes received (need 2)
         full_char_count, // Counter for full-width characters to be received
         char_out_count; // Stores number of characters to be read out.
-    uint8_t char_out_buf[2]; // Output buffer for caching up to 2 characters
+    // handle_rx_char can call handle_rx_char_inner twice, each emitting up to two characters.
+    static constexpr uint8_t kCharOutBufSize = 4;
+    uint8_t char_out_buf[kCharOutBufSize]; // Output buffer for caching pending characters
 
 public:
     // Pass in a character rx'd by SD card or serial. Automatically parses command/ctrl sequences,
     // and will control state internally.
     void handle_rx_char(const uint8_t c);
-
-    /**
-     * After passing in rx'd char using above method, call this to get characters out.
-     * Can return from 0 to 2 characters at once.
-     * @param out [in] Output pointer for unpacked/processed data.
-     * @return Number of characters returned. Range from 0 to 2.
-     */
-    uint8_t get_result_chars(char *const __restrict out);
 
     bool has_result_char() { return char_out_count; }
     char get_result_char();

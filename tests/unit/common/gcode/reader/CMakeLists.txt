@@ -59,6 +59,10 @@ add_executable(
 target_link_libraries(gcode_reader_test gcode_reader_test_base)
 add_catch_test(gcode_reader_test)
 
+add_executable(meatpack_test ${CMAKE_SOURCE_DIR}/src/common/gcode/meatpack.cpp meatpack_test.cpp)
+target_include_directories(meatpack_test PRIVATE ${CMAKE_SOURCE_DIR}/src/common/gcode)
+add_catch_test(meatpack_test)
+
 add_executable(
   gcode_info_test
   ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_info.cpp

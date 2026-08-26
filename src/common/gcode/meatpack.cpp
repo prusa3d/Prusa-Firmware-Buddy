@@ -39,6 +39,9 @@
 
 #include "meatpack.h"
 
+#include <algorithm>
+#include <bsod/bsod.h>
+
 #define MeatPack_ProtocolVersion "PV01"
 
 // The 15 most-common characters used in G-code, ~90-95% of all G-code uses these characters
@@ -127,6 +130,8 @@ void MeatPack::handle_rx_char_inner(const uint8_t c) {
  * GCodeQueue::get_serial_commands via calls to get_result_char
  */
 void MeatPack::handle_output_char(const uint8_t c) {
+    // Exceeding the buffer would corrupt the decoded gcode, so check even in release builds.
+    release_assert(char_out_count < kCharOutBufSize);
     char_out_buf[char_out_count++] = c;
 }
 
@@ -189,24 +194,12 @@ void MeatPack::handle_rx_char(const uint8_t c) {
     handle_rx_char_inner(c); // Other characters are passed on for MeatPack decoding
 }
 
-uint8_t MeatPack::get_result_chars(char *const __restrict out) {
-    uint8_t res = 0;
-    if (char_out_count) {
-        res = char_out_count;
-        char_out_count = 0;
-        for (uint8_t i = 0; i < res; ++i) {
-            out[i] = (char)char_out_buf[i];
-        }
-    }
-    return res;
-}
-
 char MeatPack::get_result_char() {
     if (char_out_count == 0) {
         return 0;
     }
     --char_out_count;
-    auto res = char_out_buf[0];
-    char_out_buf[0] = char_out_buf[1];
+    const uint8_t res = char_out_buf[0];
+    std::copy(char_out_buf + 1, char_out_buf + char_out_count + 1, char_out_buf);
     return res;
 }
