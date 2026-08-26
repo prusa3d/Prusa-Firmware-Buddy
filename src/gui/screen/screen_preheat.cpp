@@ -315,12 +315,15 @@ static_assert(common_frames::is_update_callable<FrameFilamentSelection>);
 // Note: we need the window_t so that we can hook to the loop event
 class FrameAskLoadOpenPrintTag : public buddy::openprinttag::FrameOPTPrompt {
 
+    static constexpr auto phase = PhasesPreheat::ask_load_openprinttag;
+    static constexpr auto &responses = ClientResponses::preheat_responses[phase];
+
 public:
     FrameAskLoadOpenPrintTag(window_frame_t *parent)
         : FrameOPTPrompt(parent, _("Load from OpenPrintTag?")) {
 
-        setup_radio(ClientResponses::get_available_responses(PhasesPreheat::ask_load_openprinttag), [](Response r) {
-            marlin_client::FSM_response(PhasesPreheat::ask_load_openprinttag, r);
+        setup_radio(responses, [](Response r) {
+            marlin_client::FSM_response(phase, r);
         });
     }
 
@@ -329,11 +332,18 @@ public:
 
         const auto tool = stdext::get_optional<VirtualToolIndex>(d.tool);
         if (!tool) {
+            on_error();
             return;
         }
 
         const auto tag = buddy::openprinttag::ToolTag::for_tool_ephemeral(*tool);
-        setup_tag(tag, [] {});
+        setup_tag(tag, [this] { on_error(); });
+    }
+
+    void on_error() {
+        static constexpr Response error_response = Response::No;
+        static_assert(std::ranges::contains(responses, error_response));
+        marlin_client::FSM_response(phase, error_response);
     }
 };
 static_assert(common_frames::is_update_callable<FrameAskLoadOpenPrintTag>);
