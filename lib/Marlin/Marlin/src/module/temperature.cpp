@@ -1157,8 +1157,6 @@ void Temperature::isr() {
         buddy::SafetyTimerBlocker safety_timer_blocker;
       #endif
 
-      // Loop until the temperature has stabilized
-
       #if DISABLED(BUSY_WHILE_HEATING) && ENABLED(HOST_KEEPALIVE_FEATURE)
         // #error dead code found by automatic analyses (see BFW-5461)
         KEEPALIVE_STATE(NOT_BUSY);
@@ -1169,7 +1167,6 @@ void Temperature::isr() {
       wait_for_heatup = true;
       millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
 
-      /// !!! PRINT FAN IS ALWAYS FAN 0
       const uint8_t fan_speed_at_start = get_print_fan_speed();
       ScopeGuard fan_restore_guard = [&] {
         thermalManager.set_print_fan_speed(fan_speed_at_start);
@@ -1177,6 +1174,7 @@ void Temperature::isr() {
 
       PrintStatusMessageGuard statusGuard;
 
+      // Loop until the temperature has stabilized
       do {
         #if HAS_PLANNER()
           // Check if we're aborting
@@ -1184,18 +1182,21 @@ void Temperature::isr() {
         #endif
 
         // Target temperature might be changed during the loop
-        if (target_temp != degTargetHotend(target_extruder)) {
-          if (const auto current = hotend.nozzle_temp(); current.has_value()) {
-            wants_to_cool = hotend.nozzle_target_temp() < current.value();
-            target_temp = degTargetHotend(target_extruder);
+        const auto current_target_temp = hotend.nozzle_target_temp();
+        if (target_temp != current_target_temp) {
+          const auto current_temp = hotend.nozzle_temp();
+          if (current_temp.has_value()) {
+            wants_to_cool = current_target_temp < current_temp.value();
+            target_temp = current_target_temp;
 
             // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
             if (params.no_wait_for_cooling && wants_to_cool) break;
 
             // If fan_cooling is enabled, assist the cooling/heating with the print fan
-            // !!! ONLY WORKS FOR ACTIVE EXTRUDER - PRINT FAN IS ALWAYS FAN 0
-            if (params.fan_cooling && active_extruder == target_extruder)
+            // !!! ONLY WORKS FOR ACTIVE TOOL
+            if (params.fan_cooling && stdext::holds_value(PhysicalToolIndex::currently_selected(), target_tool)) {
               thermalManager.set_print_fan_speed(wants_to_cool ? 255 : 0);
+            }
           }
           // If current reading is missing, leave target_temp stale so the
           // next iteration re-enters this branch and retries with fresh data.
@@ -1214,15 +1215,24 @@ void Temperature::isr() {
 
         idle(true);
 
-        const float temp = degHotend(target_extruder);
-        statusGuard.update<PrintStatusMessage::waiting_for_hotend_temp>({.progress{ .current = temp, .target = params.early_return_temperature.value_or(target_temp) }, .tool=target_extruder});
+        if (!hotend.nozzle_temp().has_value()) {
+          continue;
+        }
+        const auto temp = hotend.nozzle_temp().value();
+
+        const auto status_target = params.early_return_temperature.value_or(target_temp);
+        statusGuard.update<PrintStatusMessage::waiting_for_hotend_temp>({
+          .progress = { .current = temp, .target = status_target }, .tool = target_extruder
+        });
 
         // Prevent a wait-forever situation if R is misused i.e. M109 R0
         if (wants_to_cool) {
           // break after MIN_COOLING_SLOPE_TIME seconds
           // if the temperature did not drop at least MIN_COOLING_SLOPE_DEG
           if (!next_cool_check_ms || ELAPSED(now, next_cool_check_ms)) {
-            if (old_temp - temp < float(MIN_COOLING_SLOPE_DEG)) break;
+            if (old_temp - temp < float(MIN_COOLING_SLOPE_DEG)) {
+              break;
+            }
             next_cool_check_ms = now + 1000UL * MIN_COOLING_SLOPE_TIME;
             old_temp = temp;
           }
