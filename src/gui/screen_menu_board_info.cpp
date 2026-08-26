@@ -118,6 +118,9 @@ MI_OTP_XL_CAN::MI_OTP_XL_CAN()
 #endif
 }
 {
+#if HAS_XL_CAN()
+    set_is_hidden(!buddy::puppies::xl_can.is_enabled());
+#endif
 }
 
 ScreenMenuBoardInfo::ScreenMenuBoardInfo()
