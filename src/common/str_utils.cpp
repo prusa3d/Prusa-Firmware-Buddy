@@ -3,8 +3,8 @@
 #include <string.h>
 #include <stdarg.h>
 #include <math.h>
-#include <cinttypes>
 #include <string_view_utf8.hpp>
+#include <bsod/bsod.h>
 
 RectTextLayout::RectTextLayout(StringReaderUtf8 &reader, uint16_t max_cols, uint16_t max_rows, is_multiline multiline) {
     if (max_cols == 0 || max_rows == 0) {
@@ -202,4 +202,11 @@ from_chars_light_result from_chars_light(const char *first, const char *last, fl
         return { first, std::errc::invalid_argument };
     }
     return { out_end, std::errc {} };
+}
+
+uint16_t RectTextLayout::compute_line_count(const string_view_utf8 &text, uint16_t max_cols) {
+    StringReaderUtf8 reader { text };
+    const RectTextLayout layout { reader, max_cols, MaxLines, is_multiline::yes };
+    debug_assert(!layout.has_text_overflown());
+    return layout.get_line_count();
 }

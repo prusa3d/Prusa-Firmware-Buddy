@@ -74,6 +74,12 @@ constexpr TemplateString<chars...> operator""_tstr() { return {}; }
 ///
 /// numbers of characters in lines
 class RectTextLayout {
+
+public:
+    /// Given the column width of @p max_cols characters,
+    /// computes how many lines the provided text wraps into
+    static uint16_t compute_line_count(const string_view_utf8 &text, uint16_t max_cols);
+
 public:
     RectTextLayout(StringReaderUtf8 &reader, uint16_t max_cols, uint16_t max_rows, is_multiline multiline);
 
