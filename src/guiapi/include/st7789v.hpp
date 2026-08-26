@@ -31,7 +31,7 @@ extern void st7789v_fill_rect_colorFormat565(uint16_t rect_x, uint16_t rect_y, u
  * @param pt coordinate of the top left corner of the image
  * @param reader A reader for reading QOI bytestream
  * @param back_color background color, (back_color >> 16) & 0xff is blue, (back_color >> 8) & 0xff is green, back_color & 0xff is red
- * @param rop raster operations as defined in display_math_helper.h and qoi_decoder.h
+ * @param rop raster operations as defined in qoi_decoder.h
  */
 void st7789v_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back_color, uint8_t rop);
 

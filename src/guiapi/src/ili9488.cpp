@@ -17,7 +17,6 @@
 #include "raster_opfn_c.h"
 #include "hwio_pindef.h"
 #include "cmsis_os.h"
-#include "display_math_helper.h"
 
 #include "hw_configuration.hpp"
 

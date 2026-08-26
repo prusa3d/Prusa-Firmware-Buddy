@@ -100,7 +100,7 @@ private:
 /// Transform pixel values according raster operations in "raster_opfn_c.h"
 namespace transform {
 
-    // Pixel operations taken from "display_math_helper.h" and modified for Pixel format
+    // Pixel operations
     Pixel invert(Pixel pixel);
     bool tolerance(Pixel pixel);
     Pixel swapbw(Pixel pixel);
