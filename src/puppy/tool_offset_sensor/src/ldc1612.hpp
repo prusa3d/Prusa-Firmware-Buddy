@@ -4,6 +4,7 @@
 #include <i2c_manager.hpp>
 #include <utils/uncopyable.hpp>
 #include <optional>
+#include <utility>
 
 class LDC1612 : Uncopyable {
 public:
@@ -35,6 +36,17 @@ public:
         MANUFACTURER_ID = 0x7E,
         DEVICE_ID = 0x7F
     };
+
+    enum class Register_DATA_MSB : uint16_t {
+        ERR_UR = 1 << 15,
+        ERR_OR = 1 << 14,
+        ERR_WD = 1 << 13,
+        ERR_AE = 1 << 12,
+    };
+
+    friend constexpr Register_DATA_MSB operator|(Register_DATA_MSB lhs, Register_DATA_MSB rhs) {
+        return static_cast<Register_DATA_MSB>(std::to_underlying(lhs) | std::to_underlying(rhs));
+    }
 
     struct ChannelConfig {
         uint16_t rcount;
@@ -78,6 +90,7 @@ public:
         bool sleep_mode;
         bool use_external_clock;
         bool rp_override_en;
+        bool low_power_activation;
         bool auto_amp_dis;
         MuxConfig mux_config;
         ErrorConfig error_config;

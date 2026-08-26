@@ -163,6 +163,7 @@ bool LDC1612::initialize(const DeviceConfig &config) {
 
     uint16_t config_value = (static_cast<uint16_t>(config.sleep_mode) << 13)
         | (static_cast<uint16_t>(config.rp_override_en) << 12)
+        | (static_cast<uint16_t>(config.low_power_activation) << 11)
         | (static_cast<uint16_t>(config.auto_amp_dis) << 10)
         | (static_cast<uint16_t>(config.use_external_clock) << 9);
 
@@ -327,8 +328,14 @@ std::optional<uint32_t> LDC1612::read_channel_data(Channel ch) {
         return std::nullopt;
     }
 
-    if (msb & 0xF000) {
-        log_error(LDC1612, "Per-sample error flags in DATA_MSB: 0x%04X", msb & 0xF000);
+    // Under-range, over-range and watchdog errors invalidate the sample. An
+    // amplitude error alone (ERR_AE) means the oscillation is outside the
+    // optimum 1.2-1.8 Vp window; the conversion is still valid, only noisier,
+    // which is the normal state of a low-Rp coil driven at high current.
+    // Therefore, we ignore ERR_AE in DATAx_MSB, but report the other error flags.
+    if (constexpr uint16_t mask = std::to_underlying(Register_DATA_MSB::ERR_UR | Register_DATA_MSB::ERR_OR | Register_DATA_MSB::ERR_WD);
+        (msb & mask) != 0) {
+        log_error(LDC1612, "Per-sample error flags in DATA_MSB: 0x%04X", msb & mask);
         return std::nullopt;
     }
 

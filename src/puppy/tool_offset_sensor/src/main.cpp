@@ -28,33 +28,50 @@ extern tool_offset_sensor::cyphal::ToolOffsetSensorNode can_node;
 namespace {
 
 constexpr LDC1612::ChannelConfig default_ch_config {
-    .rcount = 8192,
+    // Conversion time = rcount * 16 / fREF = 3.28 ms (~305 SPS single channel,
+    // ~150 SPS per channel in dual-channel mode)
+    .rcount = 4096,
+    // Settle time = settlecount * 16 / fREF = 51.2 us; satisfies
+    // SETTLECOUNT >= Q * fREF / (16 * fSENSOR) for sensor Q up to ~350
+    // at fSENSOR ~= 6.9 MHz
     .settlecount = 64,
-    .fin_divider = 1,
-    .fref_divider = 1,
-    .drive_current = 30,
+    // fREF = 40 MHz CLKIN / 2 = 20 MHz: single-channel operation requires
+    // fREF <= 35 MHz. fIN = fSENSOR / 2 ~= 3.45 MHz keeps the fIN < fREF / 4
+    // requirement
+    .fin_divider = 2,
+    .fref_divider = 2,
+    // Drive current, chosen from IDRIVE sweeps over ten sensor boards
+    // noise is lowest at 25
+    .drive_current = 25,
     .offset = 0
 };
 
 constexpr LDC1612::DeviceConfig device_config {
     .sleep_mode = false,
     .use_external_clock = true,
-    .rp_override_en = false,
-    .auto_amp_dis = false,
+    // Drive current with amplitude correction disabled is the
+    // datasheet-recommended configuration for precision measurement
+    .rp_override_en = true,
+    .low_power_activation = false,
+    .auto_amp_dis = true,
     .mux_config = {
         .deglitch = LDC1612::DeglitchFilter::MHz_10 },
     .error_config = {
         .report_underrange = true,
         .report_overrange = true,
         .report_watchdog = true,
-        .report_amplitude_high = false,
-        .report_amplitude_low = false,
+        .report_amplitude_high = true,
+        // ERR_AE in DATAx_MSB is ignored, the AEL bit is set and expected, the sensor is operational anyway
+        .report_amplitude_low = true,
         .int_on_underrange = false,
         .int_on_overrange = false,
         .int_on_watchdog = false,
         .int_on_amplitude_high = false,
         .int_on_amplitude_low = false,
-        .int_on_zero_count = false,
+        // Zero count set = a conversion counted no sensor cycles, i.e. the
+        // oscillation stopped, it has no DATAx_MSB reporting bit, so STATUS is
+        // the only way to observe it.
+        .int_on_zero_count = true,
         .int_on_data_ready = true,
     },
     .ch0 = default_ch_config,
