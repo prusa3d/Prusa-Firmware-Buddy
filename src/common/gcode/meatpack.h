@@ -84,6 +84,8 @@ class MeatPack {
     static const uint8_t kSpaceCharIdx = 11;
     static const char kSpaceCharReplace = 'E';
 
+    uint8_t decode_char(const uint8_t idx) const;
+
     bool cmd_is_next; // A command is pending
     bool active; // MeatPack encoding active
     bool no_spaces; // No spaces mode active

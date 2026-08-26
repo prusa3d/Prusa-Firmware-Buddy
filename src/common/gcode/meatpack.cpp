@@ -44,13 +44,20 @@
 
 #define MeatPack_ProtocolVersion "PV01"
 
-// The 15 most-common characters used in G-code, ~90-95% of all G-code uses these characters
-// Stored in SRAM for performance.
-uint8_t meatPackLookupTable[16] = {
+// The 15 most-common characters used in G-code, ~90-95% of all G-code uses these characters.
+static constexpr uint8_t meatPackLookupTable[16] = {
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
     '.', ' ', '\n', 'G', 'X',
     '\0' // Unused. 0b1111 indicates a literal character
 };
+
+/**
+ * Look up the character for a 4-bit index, substituting the no-spaces
+ * marker for a space when that mode is active.
+ */
+uint8_t MeatPack::decode_char(const uint8_t idx) const {
+    return (no_spaces && idx == kSpaceCharIdx) ? kSpaceCharReplace : meatPackLookupTable[idx];
+}
 
 void MeatPack::reset_state() {
     active = false;
@@ -72,7 +79,7 @@ uint8_t MeatPack::unpack_chars(const uint8_t pk, uint8_t *__restrict const chars
         out = kFirstCharIsLiteral;
     } else {
         const uint8_t chr = pk & 0x0F;
-        chars_out[0] = meatPackLookupTable[chr]; // Set the first char
+        chars_out[0] = decode_char(chr); // Set the first char
     }
 
     // Check if upper nybble is 1111... if so, we don't need the second char.
@@ -80,7 +87,7 @@ uint8_t MeatPack::unpack_chars(const uint8_t pk, uint8_t *__restrict const chars
         out |= kSecondCharIsLiteral;
     } else {
         const uint8_t chr = (pk >> 4) & 0x0F;
-        chars_out[1] = meatPackLookupTable[chr]; // Set the second char
+        chars_out[1] = decode_char(chr); // Set the second char
     }
 
     return out;
@@ -154,11 +161,9 @@ void MeatPack::handle_command(const MeatPack_Command c) {
         break;
     case MPCommand_EnableNoSpaces:
         no_spaces = true;
-        meatPackLookupTable[kSpaceCharIdx] = kSpaceCharReplace;
         break;
     case MPCommand_DisableNoSpaces:
         no_spaces = false;
-        meatPackLookupTable[kSpaceCharIdx] = ' ';
         break;
     default:
         break;

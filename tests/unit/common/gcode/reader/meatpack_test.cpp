@@ -38,3 +38,30 @@ TEST_CASE("MeatPack decode overflow-prone payload", "[MeatPack]") {
     const std::string decoded = decode({ 0xFF, 0xFF, 0xFB, 0x1F, 0xFF, 0x21 });
     CHECK(decoded == std::string { (char)0xFF, '1', '1', '2' });
 }
+
+TEST_CASE("MeatPack no-spaces mode replaces space with E", "[MeatPack]") {
+    // FF FF FB enables packing, FF FF F7 enables no-spaces mode, and 0xBB
+    // packs index 11 (the space slot) in both nybbles.
+    CHECK(decode({ 0xFF, 0xFF, 0xFB, 0xFF, 0xFF, 0xF7, 0xBB }) == "EE");
+}
+
+TEST_CASE("MeatPack no-spaces mode can be turned back off", "[MeatPack]") {
+    // FF FF F6 disables no-spaces again, so the same instance goes back to
+    // decoding index 11 as a space.
+    CHECK(decode({ 0xFF, 0xFF, 0xFB, 0xFF, 0xFF, 0xF7, 0xBB, 0xFF, 0xFF, 0xF6, 0xBB }) == "EE  ");
+}
+
+TEST_CASE("MeatPack reset clears no-spaces mode", "[MeatPack]") {
+    // FF FF F9 resets everything, including packing, so packing is enabled
+    // again afterwards.
+    CHECK(decode({ 0xFF, 0xFF, 0xFB, 0xFF, 0xFF, 0xF7, 0xFF, 0xFF, 0xF9, 0xFF, 0xFF, 0xFB, 0xBB }) == "  ");
+}
+
+TEST_CASE("MeatPack no-spaces mode does not leak into a fresh instance", "[MeatPack]") {
+    // Run one instance with no-spaces mode enabled, exactly as above.
+    decode({ 0xFF, 0xFF, 0xFB, 0xFF, 0xFF, 0xF7, 0xBB });
+
+    // A brand-new instance, with packing enabled but no-spaces left disabled,
+    // must still decode index 11 as a plain space.
+    CHECK(decode({ 0xFF, 0xFF, 0xFB, 0xBB }) == "  ");
+}
