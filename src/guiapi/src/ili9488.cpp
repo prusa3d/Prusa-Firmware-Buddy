@@ -14,7 +14,6 @@
 #include <stdint.h>
 #include "printers.h"
 #include <common/spi_baud_rate_prescaler_guard.hpp>
-#include "raster_opfn_c.h"
 #include "hwio_pindef.h"
 #include "cmsis_os.h"
 
@@ -590,7 +589,7 @@ void ili9488_draw_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
     ili9488_set_cs();
 }
 
-void ili9488_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back_color, uint8_t rop) {
+void ili9488_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back_color, ropfn rop) {
     debug_assert(!ili9488_buff_borrowed && "Buffer lent to someone");
 
     // BFW-6328 Some displays possibly problematic with higher baudrate, reduce 40 -> 20 MHz

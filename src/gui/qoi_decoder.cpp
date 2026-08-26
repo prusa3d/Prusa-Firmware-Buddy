@@ -1,5 +1,4 @@
 #include "qoi_decoder.hpp"
-#include <raster_opfn_c.h>
 #include <cstring>
 #include <bsod/bsod.h>
 
@@ -160,20 +159,20 @@ namespace transform {
         return pixel;
     }
 
-    Pixel apply_rop(Pixel pixel, uint8_t rop) {
-        if (rop & ROPFN_INVERT) {
+    Pixel apply_rop(Pixel pixel, ropfn rop) {
+        if (rop.invert == is_inverted::yes) {
             pixel = invert(pixel);
         }
 
-        if (rop & ROPFN_SWAPBW) {
+        if (rop.swap_bw == has_swapped_bw::yes) {
             pixel = swapbw(pixel);
         }
 
-        if (rop & ROPFN_DESATURATE) {
+        if (rop.desatur == is_desaturated::yes) {
             pixel = desaturate(pixel);
         }
 
-        if (rop & ROPFN_SHADOW) {
+        if (rop.shadow == is_shadowed::yes) {
             pixel = shadow(pixel);
         }
 

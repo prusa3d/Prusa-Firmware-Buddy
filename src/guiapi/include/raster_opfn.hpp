@@ -1,16 +1,5 @@
-/**
- * @file raster_opfn.hpp
- * @author Radek Vana
- * @brief raster operation function constants for C
- * @date 2021-02-02
- */
+/// @file
 #pragma once
-
-#include <stdint.h>
-
-namespace {
-#include "raster_opfn_c.h"
-};
 
 enum class is_inverted : bool {
     no,
@@ -37,22 +26,4 @@ struct ropfn {
     has_swapped_bw swap_bw : 1 = has_swapped_bw::no;
     is_shadowed shadow : 1 = is_shadowed::no;
     is_desaturated desatur : 1 = is_desaturated::no;
-
-    constexpr uint8_t ConvertToC() const {
-        uint8_t ret = 0;
-        if (invert == is_inverted::yes) {
-            ret |= ROPFN_INVERT;
-        }
-        if (swap_bw == has_swapped_bw::yes) {
-            ret |= ROPFN_SWAPBW;
-        }
-        if (shadow == is_shadowed::yes) {
-            ret |= ROPFN_SHADOW;
-        }
-        if (desatur == is_desaturated::yes) {
-            ret |= ROPFN_DESATURATE;
-        }
-
-        return ret;
-    }
 };

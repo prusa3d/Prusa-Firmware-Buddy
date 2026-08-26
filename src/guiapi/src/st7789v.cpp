@@ -7,7 +7,6 @@
 #include <device/peripherals.hpp>
 #include <hwio_pindef.h>
 #include "qoi_decoder.hpp"
-#include "raster_opfn_c.h"
 #include <buddy/ccm_thread.hpp>
 #include <device/hal.h>
 #include <span>
@@ -608,7 +607,7 @@ void st7789v_ctrl_set(uint8_t ctrl) {
     st7789v_cmd(CMD_WRCTRLD, &st7789v_config.control, sizeof(st7789v_config.control));
 }
 
-void st7789v_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back_color, uint8_t rop) {
+void st7789v_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back_color, ropfn rop) {
     debug_assert(!st7789v_buff_borrowed && "Buffer lent to someone");
 
     // Current pixel position starts top-left where the image is placed

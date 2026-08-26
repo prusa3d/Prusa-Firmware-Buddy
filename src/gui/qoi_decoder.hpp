@@ -1,5 +1,6 @@
 #pragma once
 
+#include "raster_opfn.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <guitypes.hpp>
@@ -97,7 +98,6 @@ private:
     }
 };
 
-/// Transform pixel values according raster operations in "raster_opfn_c.h"
 namespace transform {
 
     // Pixel operations
@@ -108,7 +108,7 @@ namespace transform {
     Pixel shadow(Pixel pixel);
 
     /// Apply all rops
-    Pixel apply_rop(Pixel pixel, uint8_t rop);
+    Pixel apply_rop(Pixel pixel, ropfn rop);
 } // namespace transform
 
 } // namespace qoi

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "Rect16.h"
+#include "raster_opfn.hpp"
 
 #define ILI9488_COLS      480 //
 #define ILI9488_ROWS      320 //
@@ -27,9 +28,8 @@ extern void ili9488_fill_rect_colorFormat666(uint16_t rect_x, uint16_t rect_y, u
  * @param pt coordinate of the top left corner of the image
  * @param reader A reader for reading QOI bytestream
  * @param back_color background color, (back_color >> 16) & 0xff is blue, (back_color >> 8) & 0xff is green, back_color & 0xff is red
- * @param rop raster operations as defined in qoi_decoder.h
  */
-void ili9488_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back_color, uint8_t rop);
+void ili9488_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back_color, ropfn rop);
 
 extern void ili9488_inversion_on(void);
 extern void ili9488_inversion_off(void);
