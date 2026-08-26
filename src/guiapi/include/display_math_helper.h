@@ -34,8 +34,6 @@ __attribute__((used)) inline uint32_t color_alpha(const uint32_t clr0, const uin
     return color_rgb(r, g, b);
 }
 
-static const uint8_t SWAPBW_TOLERANCE = 64;
-
 #ifdef __cplusplus
 }
 #endif //__cplusplus

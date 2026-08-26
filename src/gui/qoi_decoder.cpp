@@ -1,6 +1,5 @@
 #include "qoi_decoder.hpp"
 #include <raster_opfn_c.h>
-#include <display_math_helper.h>
 #include <cstring>
 #include <bsod/bsod.h>
 
@@ -128,6 +127,8 @@ namespace transform {
     }
 
     bool tolerance(Pixel pixel) {
+        constexpr uint8_t SWAPBW_TOLERANCE = 64;
+
         const uint8_t l = (pixel.r + pixel.g + pixel.b) / 3;
         const uint8_t l0 = (l >= SWAPBW_TOLERANCE) ? (l - SWAPBW_TOLERANCE) : 0;
         const uint8_t l1 = (l <= (255 - SWAPBW_TOLERANCE)) ? (l + SWAPBW_TOLERANCE) : 255;
