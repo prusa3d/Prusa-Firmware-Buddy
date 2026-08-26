@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include <cstdint>
+
 namespace {
 #include "align_c.h"
 };
