@@ -123,16 +123,20 @@ static FactoryReset::ItemBitset decode_items_to_keep(uint16_t encoded_params) {
             constexpr Font font = Font::small;
             constexpr int line_h = resource_font_size(font).h;
             constexpr int char_w = resource_font_size(font).w;
-            constexpr int sep = char_w * 8;
+
+            const auto keep_text = _("Keep");
+            const auto reset_text = _("Reset");
+
+            const auto state_column_width = std::max(keep_text.computeNumUtf8Chars(), reset_text.computeNumUtf8Chars()) * char_w;
 
             for (int i = 0; i < std::to_underlying(Item::_cnt); i++) {
                 const auto title = _(items_config[i].title);
-                auto title_rect = Rect16::fromLTRB(sep + 8, y, r, y);
+                auto title_rect = Rect16::fromLTRB(l + state_column_width + 8, y, r, y);
                 title_rect = Rect16::Height_t(RectTextLayout::compute_line_count(title, title_rect.Width() / char_w) * line_h);
 
                 b += title_rect.Height();
                 const bool keep = items_to_keep.test(i);
-                render_text_align(Rect16::fromLTRB(l, y, sep, b), _(keep ? N_("Keep") : N_("Reset")), font, COLOR_BLACK, keep ? COLOR_GREEN : COLOR_RED);
+                render_text_align(Rect16::fromLTRB(l, y, l + state_column_width, b), keep ? keep_text : reset_text, font, COLOR_BLACK, keep ? COLOR_GREEN : COLOR_RED);
                 render_text_align(title_rect, title, font, COLOR_BLACK, COLOR_WHITE, {}, text_flags { Align_t::LeftTop(), is_multiline::yes });
 
                 b += 4; // A bit of extra spacing betwen items
