@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
 ;
 [subrepo]
-	remote = git@github.com:prusa3d/libbgcode.git
+	remote = git@github.com:Prusa-Development/libbgcode.git
 	branch = main
-	commit = ea4d74383a3648afb9209a0768607d0b512d8bec
-	parent = a4d078e52bb82c89e6662a6eba67aecef4a9db15
+	commit = 6744dbe827c03cf3a99b7783de43c9d945e38b97
+	parent = 647c11e260a5f343f636825ad1602e1b2f6ea043
 	method = merge
-	cmdver = 0.4.6
+	cmdver = 0.4.3

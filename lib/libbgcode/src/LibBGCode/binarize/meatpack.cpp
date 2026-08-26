@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 
 namespace MeatPack {
 
@@ -43,6 +44,26 @@ static const std::unordered_map<char, uint8_t> ReverseLookupTbl = {
     { '\0', 0b00001111 } // never used, 0b1111 is used to indicate the next 8-bits is a full character
 };
 
+static std::string_view trim(const std::string_view& str)
+{
+    if (str.empty())
+        return std::string_view();
+    size_t start = 0;
+    while (start < str.size() - 1 && (str[start] == ' ' || str[start] == '\t')) { ++start; }
+    size_t end = str.size() - 1;
+    while (end > 0 && (str[end] == ' ' || str[end] == '\t')) { --end; }
+    if ((start == end && (str[end] == ' ' || str[end] == '\t')) || (start > end))
+        return std::string_view();
+    else
+        return std::string_view(&str[start], end - start + 1);
+}
+
+static std::string_view ltrim(const std::string_view& str)
+{
+    const size_t start = str.find_first_not_of(" \t");
+    return start == std::string_view::npos ? std::string_view() : str.substr(start);
+}
+
 MPBinarizer::LookupTables MPBinarizer::s_lookup_tables = { { 0 }, { 0 }, false, 0 };
 
 MPBinarizer::MPBinarizer(uint8_t flags) : m_flags(flags) {}
@@ -65,7 +86,7 @@ void MPBinarizer::finalize(std::vector<uint8_t>& dst)
     }
 }
 
-void MPBinarizer::binarize_line(const std::string& line, std::vector<uint8_t>& dst)
+bool MPBinarizer::binarize_line(const std::string& line, std::vector<uint8_t>& dst)
 {
     auto unified_method = [this](const std::string& line) {
         const std::string::size_type g_idx = line.find('G');
@@ -117,40 +138,40 @@ void MPBinarizer::binarize_line(const std::string& line, std::vector<uint8_t>& d
     };
 
     if (!line.empty()) {
+        const std::string_view trimmed_line = ltrim(line);
+
         if ((m_flags & Flag_RemoveComments) == 0) {
-            if (line[0] == ';') {
+            if (!trimmed_line.empty() && trimmed_line[0] == ';') {
+                // Kept verbatim; a 0xFF here would collide with the decoder's signal byte.
+                if (line.find('\xff') != std::string::npos)
+                    return false;
+
                 if (m_binarizing) {
                     append_command(Command_DisablePacking, dst);
                     m_binarizing = false;
                 }
 
                 dst.insert(dst.end(), line.begin(), line.end());
-                return;
+                return true;
             }
         }
 
-        if (line[0] == ';' ||
-            line[0] == '\n' ||
-            line[0] == '\r' ||
+        if (trimmed_line.empty() ||
+            trimmed_line[0] == ';' ||
+            trimmed_line[0] == '\n' ||
+            trimmed_line[0] == '\r' ||
             line.size() < 2)
-            return;
+            return true;
 
-        std::string modifiedLine = line.substr(0, line.find(';'));
+        std::string modifiedLine = std::string(trim(std::string_view(line.substr(0, line.find(';')))));
         if (modifiedLine.empty())
-            return;
-        auto trim_right = [](const std::string& str) {
-            if (str.back() != ' ')
-                return str;
-            auto bit = str.rbegin();
-            while (bit != str.rend() && *bit == ' ') {
-                ++bit;
-            }
-            return str.substr(0, std::distance(str.begin(), bit.base()));
-        };
-        modifiedLine = trim_right(modifiedLine);
+            return true;
         modifiedLine = unified_method(modifiedLine);
         if (modifiedLine.back() != '\n')
             modifiedLine.push_back('\n');
+        // 0xFF is the decoder's signal byte; it cannot be represented in the packed output.
+        if (modifiedLine.find('\xff') != std::string::npos)
+            return false;
         const size_t line_len = modifiedLine.size();
         std::vector<uint8_t> temp_buffer;
         temp_buffer.reserve(line_len);
@@ -190,6 +211,8 @@ void MPBinarizer::binarize_line(const std::string& line, std::vector<uint8_t>& d
 
         dst.insert(dst.end(), temp_buffer.begin(), temp_buffer.end());
     }
+
+    return true;
 }
 
 void MPBinarizer::append_command(unsigned char cmd, std::vector<uint8_t>& dst) {
@@ -207,6 +230,11 @@ void MPBinarizer::initialize_lookup_tables() {
         s_lookup_tables.packable[index] = 1;
         s_lookup_tables.value[index] = value;
     }
+
+    // The '\0' entry only supplies the escape nibble (value 0b1111) used above; a
+    // real 0x00 data byte must stay non-packable so it takes the verbatim-escape
+    // path instead of being packed as that escape nibble.
+    s_lookup_tables.packable[static_cast<uint8_t>('\0')] = 0;
 
     if ((m_flags & Flag_OmitWhitespaces) != 0) {
         s_lookup_tables.value[static_cast<uint8_t>(SpaceReplacedCharacter)] = ReverseLookupTbl.at(' ');
@@ -231,7 +259,9 @@ void unbinarize(const std::vector<uint8_t>& src, std::string& dst)
     uint8_t char_buf = 0;                // Buffers a character if dealing with out-of-sequence pairs
     size_t cmd_count = 0;                // Counts how many command bytes are received (need 2)
     size_t full_char_queue = 0;          // Counts how many full-width characters are to be received
-    std::array<uint8_t, 2> char_out_buf; // Output buffer for caching up to 2 characters
+    // One loop iteration can call handle_rx_char twice, each emitting up to 2 characters.
+    constexpr size_t max_chars_per_iteration = 4;
+    std::array<uint8_t, max_chars_per_iteration> char_out_buf;
     size_t char_out_count = 0;           // Stores number of characters to be read out
 
     auto handle_command = [&](uint8_t c) {
@@ -248,6 +278,8 @@ void unbinarize(const std::vector<uint8_t>& src, std::string& dst)
     };
 
     auto handle_output_char = [&](uint8_t c) {
+        if (char_out_count >= char_out_buf.size())
+            std::abort(); // char_out_buf is sized for the worst case; getting here means that invariant broke
         char_out_buf[char_out_count++] = c;
     };
 
@@ -327,7 +359,7 @@ void unbinarize(const std::vector<uint8_t>& src, std::string& dst)
             handle_output_char(c);
     };
 
-    auto get_result_char = [&](std::array<char, 2>& chars_out) {
+    auto get_result_char = [&](std::array<char, max_chars_per_iteration>& chars_out) {
         if (char_out_count > 0) {
             const size_t res = char_out_count;
             for (uint8_t i = 0; i < char_out_count; ++i) {
@@ -379,32 +411,47 @@ void unbinarize(const std::vector<uint8_t>& src, std::string& dst)
                 'X', 'Y', 'Z', 'E', 'F',
                 // G2, G3
                 'I', 'J', 'R',
+                // G4
+                'S',
                 // G29
-                'P', 'W', 'H', 'C', 'A'
+                'G', 'P', 'W', 'H', 'C', 'A'
             };
             return std::find(parameters.begin(), parameters.end(), c) != parameters.end();
         };
 
-        std::array<char, 2> c_unbin{ 0, 0 };
+        std::array<char, max_chars_per_iteration> c_unbin{ 0, 0, 0, 0 };
         const size_t char_count = get_result_char(c_unbin);
         for (size_t i = 0; i < char_count; ++i) {
             // GCodeReader::parse_line_internal() is unable to parse a G line where the data are not separated by spaces
             // so we add them where needed
             const size_t curr_unbin_buffer_length = std::distance(unbin_buffer.begin(), it_unbin_end);
-            if (c_unbin[i] == 'G' && (curr_unbin_buffer_length == 0 || *std::prev(it_unbin_end, 1) == '\n'))
+            bool new_line = false;
+            if (c_unbin[i] == 'G' && (curr_unbin_buffer_length == 0 || *std::prev(it_unbin_end, 1) == '\n')) {
                 add_space = true;
+                new_line = true;
+            }
             else if (c_unbin[i] == '\n')
                 add_space = false;
 
-            if (add_space && (curr_unbin_buffer_length == 0 || *std::prev(it_unbin_end, 1) != ' ') &&
+            if (!new_line && add_space && (curr_unbin_buffer_length == 0 || *std::prev(it_unbin_end, 1) != ' ') &&
                 is_gline_parameter(c_unbin[i])) {
                 *it_unbin_end = ' ';
                 ++it_unbin_end;
+                if (it_unbin_end == unbin_buffer.end()) {
+                    // the buffer is not big enough, resize it
+                    unbin_buffer.resize(2 * unbin_buffer.size(), 0);
+                    it_unbin_end = unbin_buffer.begin() + curr_unbin_buffer_length + 1;
+                }
             }
 
             if (c_unbin[i] != '\n' || std::distance(unbin_buffer.begin(), it_unbin_end) == 0 || *std::prev(it_unbin_end, 1) != '\n') {
                 *it_unbin_end = c_unbin[i];
                 ++it_unbin_end;
+                if (it_unbin_end == unbin_buffer.end()) {
+                    // the buffer is not big enough, resize it
+                    unbin_buffer.resize(2 * unbin_buffer.size(), 0);
+                    it_unbin_end = unbin_buffer.begin() + curr_unbin_buffer_length + 1;
+                }
             }
         }
 

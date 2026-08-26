@@ -1,8 +1,10 @@
-#include <catch_main.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include "core/core.hpp"
 
 #include <boost/nowide/cstdio.hpp>
+
+#include <iostream>
 
 using namespace bgcode::core;
 
@@ -56,6 +58,7 @@ static std::string metadata_encoding_as_string(EMetadataEncodingType type)
     switch (type)
     {
     case EMetadataEncodingType::INI: { return "INI"; }
+    case EMetadataEncodingType::JSON: { return "JSON"; }
     }
     return "";
 };
@@ -84,12 +87,12 @@ static std::string thumbnail_format_as_string(EThumbnailFormat type)
 
  TEST_CASE("File transversal", "[Core]")
  {
-     const std::string filename = std::string(TEST_DATA_DIR) + "/mini_cube_binary.gcode";
+     const std::string filename = std::string(TEST_DATA_DIR) + "/mini_cube_b.bgcode";
      std::cout << "\nTEST: File transversal\n";
      std::cout << "File:" << filename << "\n";
 
      const size_t MAX_CHECKSUM_CACHE_SIZE = 2048;
-     uint8_t checksum_verify_buffer[MAX_CHECKSUM_CACHE_SIZE];
+     std::byte checksum_verify_buffer[MAX_CHECKSUM_CACHE_SIZE];
 
      FILE* file = boost::nowide::fopen(filename.c_str(), "rb");
      REQUIRE(file != nullptr);
@@ -161,12 +164,12 @@ static std::string thumbnail_format_as_string(EThumbnailFormat type)
 
  TEST_CASE("Search for GCode blocks", "[Core]")
  {
-     const std::string filename = std::string(TEST_DATA_DIR) + "/mini_cube_binary.gcode";
+     const std::string filename = std::string(TEST_DATA_DIR) + "/mini_cube_b.bgcode";
      std::cout << "\nTEST: Search for GCode blocks\n";
      std::cout << "File:" << filename << "\n";
 
      const size_t MAX_CHECKSUM_CACHE_SIZE = 2048;
-     uint8_t checksum_verify_buffer[MAX_CHECKSUM_CACHE_SIZE];
+     std::byte checksum_verify_buffer[MAX_CHECKSUM_CACHE_SIZE];
 
      FILE* file = boost::nowide::fopen(filename.c_str(), "rb");
      REQUIRE(file != nullptr);

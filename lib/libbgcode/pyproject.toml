@@ -1,0 +1,42 @@
+[project]
+name = "pybgcode"
+version = "0.3.0"
+description = "Prusa Block & Binary G-code reader / writer / converter"
+authors = [
+  { name = "Enrico Turri" }, { name = "Tomas Meszaros" }
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "LICENSE :: OSI APPROVED :: GNU AFFERO GENERAL PUBLIC LICENSE V3 OR LATER (AGPLV3+)",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.7"
+
+[project.urls]
+"Homepage" = "https://github.com/prusa3d/libbgcode"
+"Bug Tracker" = "https://github.com/prusa3d/libbgcode/issues"
+
+[build-system]
+requires = ["py-build-cmake~=0.1.8", "pytest"]
+build-backend = "py_build_cmake.build"
+
+[tool.py-build-cmake.module] # Where to find the Python module to package
+directory = "pybgcode/"
+
+[tool.py-build-cmake.sdist] # What to include in source distributions
+include = [ "pybgcode/*", "src/*" , "deps/*", "deps/build.cmake", "cmake/*", "CMakeLists.txt", "CMakePresets.json"]
+exclude = [".gitignore", ".git/", ".github/", "deps/build*", "build*", "CMakeLists.txt.user", "*.bak"]
+
+[tool.py-build-cmake.cmake] # How to build the CMake project
+source_path = "./pybgcode"
+build_type = "Release"
+config = ["Release"]
+# generator = "Ninja"
+options = { "PyBGCode_LINK_SYSTEM_LIBBGCODE" = "off" }
+install_components = ["python_modules"]
+build_args = ["--target", "build_and_test"]
+# preset = "python-module"
+# build_presets = ["python-module"]
+# build_path = "build"

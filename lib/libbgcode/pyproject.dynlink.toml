@@ -1,0 +1,2 @@
+[cmake]
+options = { "PyBGCode_LINK_SYSTEM_LIBBGCODE" = "on" }

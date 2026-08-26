@@ -27,7 +27,7 @@ public:
     void initialize(std::vector<uint8_t>& dst);
     void finalize(std::vector<uint8_t>& dst);
 
-    void binarize_line(const std::string& line, std::vector<uint8_t>& dst);
+    [[nodiscard]] bool binarize_line(const std::string& line, std::vector<uint8_t>& dst);
 
 private:
     unsigned char m_flags{ 0 };

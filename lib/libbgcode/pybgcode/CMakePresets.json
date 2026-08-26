@@ -1,0 +1,16 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Default",
+            "description": "Default build for any desktop OS",
+            "binaryDir": "${sourceDir}/build-default",
+            "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "Release",
+              "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+              "PyBGCode_LINK_SYSTEM_LIBBGCODE": false
+            }
+        }
+    ]
+}

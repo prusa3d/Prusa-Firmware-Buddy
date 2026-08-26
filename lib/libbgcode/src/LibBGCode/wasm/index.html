@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Processing</title>
+</head>
+<body>
+    <h1>File Processing</h1>
+
+    <!-- File Upload Form -->
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="file-input" name="file" accept=".gcode,.bgcode">
+        <button type="button" id="process-button">Process File</button>
+    </form>
+
+    <!-- Processing Status -->
+    <div id="processing-status" style="display: none;">
+        <p>Processing the file...</p>
+    </div>
+
+    <!-- Download Button -->
+    <a id="download-link" style="display: none;" download="processed.bgcode">
+        <button type="button" id="download-button">Download Processed File</button>
+    </a>
+
+    <!--Include the web assembly for gcode conversion-->
+    <script src="bgcode.js"></script>
+
+    <script>
+        function getFileExtension(file) {
+            const parts = file.name.split(".");
+            var ret = "";
+            if (parts.length > 1) {
+                ret = parts[parts.length - 1].toLowerCase();
+            }
+
+            return ret;
+        }
+
+        function getFileName(file) {
+            const parts = file.name.split(".");
+            var ret = "";
+            if (parts.length > 1) {
+                ret = parts[0].toLowerCase();
+            }
+
+            return ret;
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const uploadForm = document.getElementById("upload-form");
+            const fileInput = document.getElementById("file-input");
+            const processButton = document.getElementById("process-button");
+            const processingStatus = document.getElementById("processing-status");
+            const downloadLink = document.getElementById("download-link");
+            const downloadButton = document.getElementById("download-button");
+
+            var binaryGcode = null;
+            var asciiGcode  = null;
+            var jsfile = null;
+
+            processButton.addEventListener("click", function () {
+                // Simulate processing by adding a timeout (replace with your actual processing logic)
+                processingStatus.style.display = "block";
+
+                binaryGcode = null;
+                asciiGcode  = null;
+
+                if (fileInput.files.length > 0) {
+                    jsfile = fileInput.files.item(0);
+
+                    let processAscii = function (data) {
+                        let config = Module.get_config();
+                        config.compression.file_metadata = Module.BGCode_CompressionType.Heatshrink_11_4;
+                        let outbuf = Module.ascii2bgcode_cfg(data, config);
+                        binaryGcode = new Uint8Array(outbuf);
+                    }
+
+                    let processBinary = function (data) {
+                        asciiGcode = Module.bgcode2ascii_and_verify(data);
+                    }
+
+                    let processFn = getFileExtension(jsfile) === "bgcode" ?
+                                        processBinary :
+                                        processAscii;
+
+                    jsfile.arrayBuffer().then((data) => {
+                        processFn(data);
+
+                        processingStatus.style.display = "none";
+                        downloadLink.style.display = "block";
+                    });
+                }
+            });
+
+            downloadButton.addEventListener("click", function () {
+                var url = null;
+                if (binaryGcode) {
+                    const blob = new Blob([binaryGcode], { type: "application/octet-stream" });
+                    url = window.URL.createObjectURL(blob);
+
+                    downloadLink.download = getFileName(jsfile) + ".bgcode";
+                } else if (asciiGcode) {
+                    const blob = new Blob([asciiGcode], { type: "text/plain" });
+                    url = window.URL.createObjectURL(blob);
+
+                    downloadLink.download = getFileName(jsfile) + ".gcode";
+                }
+
+                // Set the href and click the link to trigger the download
+                downloadLink.href = url;
+            });
+        });
+    </script>
+</body>
+</html>

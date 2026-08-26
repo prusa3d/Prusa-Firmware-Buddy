@@ -1,23 +1,18 @@
-#ifndef _BGCODE_CORE_HPP_
-#define _BGCODE_CORE_HPP_
+#ifndef BGCODE_CORE_HPP
+#define BGCODE_CORE_HPP
 
 #include "core/export.h"
 
 #include <cstdio>
 #include <cstdint>
+#include <cstddef>
+#include <climits>
 #include <array>
 #include <vector>
 #include <string>
 #include <string_view>
 
 namespace bgcode { namespace core {
-
-static constexpr const std::array<uint8_t, 4> MAGIC{ 'G', 'C', 'D', 'E' };
-// Library version
-static constexpr const uint32_t VERSION = 1;
-// Max size of checksum buffer data, in bytes
-// Increase this value if you implement a checksum algorithm needing a bigger buffer
-#define MAX_CHECKSUM_SIZE 4
 
 enum class EResult : uint16_t
 {
@@ -47,7 +42,11 @@ enum class EResult : uint16_t
     InvalidAsciiGCodeFile,
     InvalidSequenceOfBlocks,
     InvalidBuffer,
-    AlreadyBinarized
+    AlreadyBinarized,
+    MissingPrinterMetadata,
+    MissingPrintMetadata,
+    MissingSlicerMetadata,
+    BlockTooLarge,
 };
 
 enum class EChecksumType : uint16_t
@@ -63,31 +62,7 @@ enum class EBlockType : uint16_t
     SlicerMetadata,
     PrinterMetadata,
     PrintMetadata,
-    Thumbnail,
-    IdentityBlock,
-    KeyBlock,
-    EncryptedBlock
-};
-
-enum class EIdentityBlockSignCypher : uint16_t
-{
-    RSA
-};
-
-enum class EIdentityFlags : uint8_t
-{
-    ONE_TIME_IDENTITY = 1 << 0,
-};
-
-enum class EKeyBlockEncryption : uint16_t
-{
-    None,
-    RSA_ENC_SHA256_SIGN
-};
-
-enum class EEncryptedBlockEncryption : uint16_t
-{
-    AES128_CBC_SHA256_HMAC
+    Thumbnail
 };
 
 enum class ECompressionType : uint16_t
@@ -100,7 +75,8 @@ enum class ECompressionType : uint16_t
 
 enum class EMetadataEncodingType : uint16_t
 {
-    INI
+    INI,
+    JSON
 };
 
 enum class EGCodeEncodingType : uint16_t
@@ -117,47 +93,20 @@ enum class EThumbnailFormat : uint16_t
     QOI
 };
 
-class Checksum
+struct BGCODE_CORE_EXPORT FileHeader
 {
-public:
-    // Constructs a checksum of the given type.
-    // The checksum data are sized accordingly.
-    explicit Checksum(EChecksumType type);
+    uint32_t magic;
+    uint32_t version;
+    uint16_t checksum_type;
 
-    EChecksumType get_type() const;
-
-    // Append vector of data to checksum
-    void append(const std::vector<uint8_t>& data);
-    // Append data to the checksum
-    void append(const uint8_t* data, size_t size);
-    // Append any aritmetic data to the checksum (shorthand for aritmetic types)
-    template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
-    void append(T& data) { append(reinterpret_cast<const uint8_t*>(&data), sizeof(data)); }
-
-    // Returns true if the given checksum is equal to this one
-    bool matches(Checksum& other);
-
-    EResult write(FILE& file);
-    EResult read(FILE& file);
-
-private:
-    EChecksumType m_type;
-    // actual size of checksum buffer, type dependent
-    size_t m_size;
-    std::array<uint8_t, MAX_CHECKSUM_SIZE> m_checksum;
-};
-
-struct FileHeader
-{
-    uint32_t magic{ *(uint32_t*)(MAGIC.data()) };
-    uint32_t version{ VERSION };
-    uint16_t checksum_type{ (uint16_t)EChecksumType::None };
+    FileHeader();
+    FileHeader(uint32_t mg, uint32_t ver, uint16_t chk_type);
 
     EResult write(FILE& file) const;
     EResult read(FILE& file, const uint32_t* const max_version);
 };
 
-struct BlockHeader
+struct BGCODE_CORE_EXPORT BlockHeader
 {
     uint16_t type{ 0 };
     uint16_t compression{ 0 };
@@ -167,24 +116,21 @@ struct BlockHeader
     BlockHeader() = default;
     BlockHeader(uint16_t type, uint16_t compression, uint32_t uncompressed_size, uint32_t compressed_size = 0);
 
-    // Updates the given checksum with the data of this BlockHeader
-    void update_checksum(Checksum& checksum) const;
-
     // Returns the position of this block in the file.
     // Position is set by calling write() and read() methods.
     long get_position() const;
 
-    EResult write(FILE& file) const;
+    EResult write(FILE& file);
     EResult read(FILE& file);
 
     // Returs the size of this BlockHeader, in bytes
     size_t get_size() const;
 
 private:
-    mutable long m_position{ 0 };
+    long m_position{ 0 };
 };
 
-struct ThumbnailParams
+struct BGCODE_CORE_EXPORT ThumbnailParams
 {
     uint16_t format;
     uint16_t width;
@@ -201,7 +147,7 @@ extern BGCODE_CORE_EXPORT std::string_view translate_result(EResult result);
 // If check_contents is set to true, the order of the blocks is checked
 // Does not modify the file position
 // Caller is responsible for providing buffer for checksum calculation, if needed.
-extern BGCODE_CORE_EXPORT EResult is_valid_binary_gcode(FILE& file, bool check_contents = false, uint8_t* cs_buffer = nullptr,
+extern BGCODE_CORE_EXPORT EResult is_valid_binary_gcode(FILE& file, bool check_contents = false, std::byte* cs_buffer = nullptr,
     size_t cs_buffer_size = 0);
 
 // Reads the file header.
@@ -218,7 +164,7 @@ extern BGCODE_CORE_EXPORT EResult read_header(FILE& file, FileHeader& header, co
 // - file position will be set at the start of the block parameters data.
 // Caller is responsible for providing buffer for checksum calculation, if needed.
 extern BGCODE_CORE_EXPORT EResult read_next_block_header(FILE& file, const FileHeader& file_header, BlockHeader& block_header,
-    uint8_t* cs_buffer = nullptr, size_t cs_buffer_size = 0);
+    std::byte* cs_buffer = nullptr, size_t cs_buffer_size = 0);
 
 // Searches and reads next block header with the given type from the current file position.
 // File position must be at the start of a block header.
@@ -229,13 +175,13 @@ extern BGCODE_CORE_EXPORT EResult read_next_block_header(FILE& file, const FileH
 // - file position will keep the current value.
 // Caller is responsible for providing buffer for checksum calculation, if needed.
 extern BGCODE_CORE_EXPORT EResult read_next_block_header(FILE& file, const FileHeader& file_header, BlockHeader& block_header, EBlockType type,
-    uint8_t* cs_buffer = nullptr, size_t cs_buffer_size = 0);
+    std::byte* cs_buffer = nullptr, size_t cs_buffer_size = 0);
 
 // Calculates block checksum and verify it against checksum stored in file.
 // Caller is responsible for providing buffer for checksum calculation, bigger buffer means faster calculation and vice versa.
 // If return == EResult::Success:
 // - file position will be set at the start of the next block header.
-extern BGCODE_CORE_EXPORT EResult verify_block_checksum(FILE& file, const FileHeader& file_header, const BlockHeader& block_header, uint8_t* buffer,
+extern BGCODE_CORE_EXPORT EResult verify_block_checksum(FILE& file, const FileHeader& file_header, const BlockHeader& block_header, std::byte* buffer,
     size_t buffer_size);
 
 // Skips the content (parameters + data + checksum) of the block with the given block header.
@@ -262,6 +208,12 @@ extern BGCODE_CORE_EXPORT size_t checksum_size(EChecksumType type);
 // Returns the size of the content (parameters + data + checksum) of the block with the given header, in bytes.
 extern BGCODE_CORE_EXPORT size_t block_content_size(const FileHeader& file_header, const BlockHeader& block_header);
 
+// Highest version of the binary format supported by this library instance
+extern BGCODE_CORE_EXPORT uint32_t bgcode_version() noexcept;
+
+// Version of the library
+extern BGCODE_CORE_EXPORT const char* version() noexcept;
+
 }} // bgcode::core
 
-#endif // _BGCODE_CORE_HPP_
+#endif // BGCODE_CORE_HPP

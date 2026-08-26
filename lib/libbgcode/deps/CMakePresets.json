@@ -1,0 +1,59 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+          "name": "default",
+          "displayName": "Default Config",
+          "description": "Default build for any desktop OS",
+          "binaryDir": "${sourceDir}/build-default",
+          "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Release",
+            "DEP_DOWNLOAD_DIR": {
+                "type": "PATH",
+                "value": "${sourceDir}/.pkg_cache"
+            }
+          }
+        },
+        {
+          "name": "python-module",
+          "inherits": "default",
+          "displayName": "Python module dependencies",
+          "description": "Python module dependencies",
+          "binaryDir": "${sourceDir}/build-python-module",
+          "cacheVariables": {
+              "LibBGCode_Deps_BUILD_pybind11": true
+          }
+        },
+        {
+            "name": "wasm",
+            "inherits": "default",
+            "binaryDir": "${sourceDir}/build-wasm",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "MinSizeRel",
+                "LibBGCode_Deps_BUILD_ZLIB": {
+                    "type": "BOOL",
+                    "value": "ON"
+                }
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "jobs": 1,
+            "configurePreset": "default",
+            "configuration": "Release"
+        },
+        {
+            "name": "wasm",
+            "configuration": "MinSizeRel",
+            "inherits": "default",
+            "configurePreset": "wasm"
+        },
+        {
+          "name": "python-module",
+          "inherits": "default",
+          "configurePreset": "python-module"
+        }
+    ]
+}

@@ -1,7 +1,9 @@
 include(ExternalProject)
+include(ProcessorCount)
 
-set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
-set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "Path for downloaded source packages.")
+set(${PROJECT_NAME}_DEP_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/destdir/usr/local" CACHE PATH "Destination directory")
+set(${PROJECT_NAME}_DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/downloads CACHE PATH "Path for downloaded source packages.")
+option(${PROJECT_NAME}_DEP_BUILD_VERBOSE "Use verbose output for each dependency build" OFF)
 
 get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
@@ -10,36 +12,68 @@ if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "Forcing CMAKE_BUILD_TYPE to Release as it was not specified.")
 endif ()
 
-if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.24)
-    cmake_policy(SET CMP0135 NEW)
-endif ()
-
+# The value of CMAKE_BUILD_TYPE will be used for building each dependency even if the 
+# generator is multi-config. Use this var to specify build type regardless of the generator. 
 function(add_cmake_project projectname)
     cmake_parse_arguments(P_ARGS "" "INSTALL_DIR;BUILD_COMMAND;INSTALL_COMMAND" "CMAKE_ARGS" ${ARGN})
 
+    set(_pcount ${DEP_${projectname}_MAX_THREADS})
+
+    if (NOT _pcount)
+        set(_pcount ${DEP_MAX_THREADS})
+    endif ()
+
+    if (NOT _pcount)
+        ProcessorCount(_pcount)
+    endif ()
+
+    if (_pcount EQUAL 0)
+        set(_pcount 1)
+    endif ()
+
+    set(_build_j "-j${_pcount}")
+    if (CMAKE_GENERATOR MATCHES "Visual Studio")
+        set(_build_j "-m:${_pcount}")
+    endif ()
+
+    string(TOUPPER "${CMAKE_BUILD_TYPE}" _build_type_upper)
     set(_configs_line -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE})
     if (_is_multi)
         set(_configs_line "")
     endif ()
 
+    set(_verbose_switch "")
+    if (${PROJECT_NAME}_DEP_BUILD_VERBOSE)
+        if (CMAKE_GENERATOR MATCHES "Ninja")
+            set(_verbose_switch "--verbose")
+        elseif (CMAKE_GENERATOR MATCHES "Visual Studio")
+            set(_verbose_switch "-v:d")
+        endif ()
+    endif ()
+
     ExternalProject_Add(
         dep_${projectname}
-        INSTALL_DIR         ${DESTDIR}/usr/local
-        DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
+        INSTALL_DIR         ${${PROJECT_NAME}_DEP_INSTALL_PREFIX}
+        DOWNLOAD_DIR        ${${PROJECT_NAME}_DEP_DOWNLOAD_DIR}/${projectname}
         CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
-            -DCMAKE_MODULE_PATH:STRING=${PROJECT_SOURCE_DIR}/../cmake/modules
-            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}/usr/local
-            -DCMAKE_DEBUG_POSTFIX:STRING=d
+            -DCMAKE_INSTALL_PREFIX:STRING=${${PROJECT_NAME}_DEP_INSTALL_PREFIX}
+            -DCMAKE_MODULE_PATH:STRING=${CMAKE_MODULE_PATH}
+            -DCMAKE_PREFIX_PATH:STRING=${${PROJECT_NAME}_DEP_INSTALL_PREFIX}
+            -DCMAKE_DEBUG_POSTFIX:STRING=${CMAKE_DEBUG_POSTFIX}
             -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
             -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
+            -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
+            -DCMAKE_CXX_FLAGS_${_build_type_upper}:STRING=${CMAKE_CXX_FLAGS_${_build_type_upper}}
+            -DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
+            -DCMAKE_C_FLAGS_${_build_type_upper}:STRING=${CMAKE_C_FLAGS_${_build_type_upper}}
             -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
-            -DBUILD_SHARED_LIBS:BOOL=OFF
+            -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
+            -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
             "${_configs_line}"
             ${DEP_CMAKE_OPTS}
             ${P_ARGS_CMAKE_ARGS}
        ${P_ARGS_UNPARSED_ARGUMENTS}
-       BUILD_COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}
+       BUILD_COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE} -- ${_build_j} ${_verbose_switch}
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config ${CMAKE_BUILD_TYPE}
     )
 

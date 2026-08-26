@@ -1,8 +1,9 @@
-#include <catch_main.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include "convert/convert.hpp"
 
 #include <fstream>
+#include <iostream>
 
 #include <boost/nowide/cstdio.hpp>
 
@@ -108,9 +109,9 @@ TEST_CASE("Convert from binary to ascii", "[Convert]")
 {
     std::cout << "\nTEST: Convert from binary to ascii\n";
 
-    const std::string src_filename = std::string(TEST_DATA_DIR) + "/mini_cube_binary.gcode";
-    const std::string dst_filename = std::string(TEST_DATA_DIR) + "/mini_cube_binary_converted.gcode";
-    const std::string check_filename = std::string(TEST_DATA_DIR) + "/mini_cube_binary_ascii.gcode";
+    const std::string src_filename = std::string(TEST_DATA_DIR) + "/mini_cube_b.bgcode";
+    const std::string dst_filename = std::string(TEST_DATA_DIR) + "/mini_cube_b.gcode";
+    const std::string check_filename = std::string(TEST_DATA_DIR) + "/mini_cube_b_ref.gcode";
 
     // convert from binary to ascii
     binary_to_ascii(src_filename, dst_filename);
@@ -123,8 +124,8 @@ TEST_CASE("Convert from ascii to binary", "[Convert]")
     std::cout << "\nTEST: Convert from ascii to binary\n";
 
     // convert from ascii to binary
-    const std::string ab_src_filename = std::string(TEST_DATA_DIR) + "/mini_cube_ascii.gcode";
-    const std::string ab_dst_filename = std::string(TEST_DATA_DIR) + "/mini_cube_ascii_converted.gcode";
+    const std::string ab_src_filename = std::string(TEST_DATA_DIR) + "/mini_cube_a.gcode";
+    const std::string ab_dst_filename = std::string(TEST_DATA_DIR) + "/mini_cube_a.bgcode";
     BinarizerConfig config;
     config.checksum = EChecksumType::CRC32;
     config.compression.file_metadata = ECompressionType::None;
@@ -138,9 +139,50 @@ TEST_CASE("Convert from ascii to binary", "[Convert]")
 
     // convert back from binary to ascii 
     const std::string ba_src_filename = ab_dst_filename;
-    const std::string ba_dst_filename = std::string(TEST_DATA_DIR) + "/mini_cube_ascii_converted_converted.gcode";
+    const std::string ba_dst_filename = std::string(TEST_DATA_DIR) + "/mini_cube_a_final.gcode";
     binary_to_ascii(ba_src_filename, ba_dst_filename);
 
     // compare results
     compare_text_files(ba_dst_filename, ab_src_filename);
+}
+
+TEST_CASE("Convert from binary to ascii PS 2.8.1", "[Convert]")
+{
+  std::cout << "\nTEST: Convert from binary to ascii in PS 2.8.1 format\n";
+
+  const std::string src_filename = std::string(TEST_DATA_DIR) + "/mini_cube_ps2.8.1.bgcode";
+  const std::string dst_filename = std::string(TEST_DATA_DIR) + "/mini_cube_ps2.8.1_out_a.gcode";
+  const std::string check_filename = std::string(TEST_DATA_DIR) + "/mini_cube_ps2.8.1_ref.gcode";
+
+  // convert from binary to ascii
+  binary_to_ascii(src_filename, dst_filename);
+  // compare results
+  compare_text_files(dst_filename, check_filename);
+}
+
+TEST_CASE("Convert from ascii to binary PS 2.8.1", "[Convert]")
+{
+  std::cout << "\nTEST: Convert from ascii to binary in PS 2.8.1 format\n";
+
+  // convert from ascii to binary
+  const std::string ab_src_filename = std::string(TEST_DATA_DIR) + "/mini_cube_ps2.8.1.gcode";
+  const std::string ab_dst_filename = std::string(TEST_DATA_DIR) + "/mini_cube_ps2.8.1_out_b.bgcode";
+  BinarizerConfig config;
+  config.checksum = EChecksumType::CRC32;
+  config.compression.file_metadata = ECompressionType::None;
+  config.compression.print_metadata = ECompressionType::None;
+  config.compression.printer_metadata = ECompressionType::None;
+  config.compression.slicer_metadata = ECompressionType::Deflate;
+  config.compression.gcode = ECompressionType::Heatshrink_12_4;
+  config.gcode_encoding = EGCodeEncodingType::MeatPackComments;
+  config.metadata_encoding = EMetadataEncodingType::INI;
+  ascii_to_binary(ab_src_filename, ab_dst_filename, config);
+
+  // convert back from binary to ascii
+  const std::string ba_src_filename = ab_dst_filename;
+  const std::string ba_dst_filename = std::string(TEST_DATA_DIR) + "/mini_cube_ps2.8.1_final.gcode";
+  binary_to_ascii(ba_src_filename, ba_dst_filename);
+
+  // compare results
+  compare_text_files(ba_dst_filename, ab_src_filename);
 }

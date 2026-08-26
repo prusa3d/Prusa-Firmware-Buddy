@@ -1,0 +1,65 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+          "name": "core",
+          "displayName": "Core",
+          "description": "Core build for embedded systems",
+          "binaryDir": "${sourceDir}/build-core",
+          "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "MinSizeRel",
+            "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+            "LibBGCode_BUILD_COMPONENT_Binarize": false,
+            "LibBGCode_BUILD_COMPONENT_Binarize_Convert": false
+          }
+        },
+        {
+          "name": "default",
+          "displayName": "Default",
+          "description": "Default build for any desktop OS",
+          "binaryDir": "${sourceDir}/build-default",
+          "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Release",
+            "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+            "LibBGCode_DEPS_PRESET": "default",
+            "CMAKE_PREFIX_PATH": {
+                "type": "PATH",
+                "value": "${sourceDir}/deps/build-default/destdir/usr/local"
+            }
+          }
+        },
+        {
+            "name": "wasm",
+            "displayName": "WebAssembly module",
+            "description": "WebAssembly build which only works with emscripten compiler",
+            "binaryDir": "${sourceDir}/build-wasm",
+            "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "MinSizeRel",
+              "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/dist",
+              "LibBGCode_BUILD_CMD_TOOL": false,
+              "LibBGCode_DEPS_PRESET": "wasm",
+              "CMAKE_FIND_ROOT_PATH": {
+                  "type": "PATH",
+                  "value": "${sourceDir}/deps/build-wasm/destdir/usr/local"
+              }
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "core",
+            "configurePreset": "core",
+            "configuration": "MinSizeRel"
+        },
+        {
+            "name": "default",
+            "configurePreset": "default",
+            "configuration": "Release"
+        },
+        {
+            "name": "wasm",
+            "configurePreset": "wasm",
+            "configuration": "MinSizeRel"
+        }
+    ]
+}

@@ -2,7 +2,7 @@
 
 include(CMakeFindDependencyMacro)
 
-set(_@PROJECT_NAME@_supported_components Core Binarize Convert)
+set(_@PROJECT_NAME@_supported_components @_selected_components@)
 
 set(Core_deps "@Core_DOWNSTREAM_DEPS@")
 set(Binarize_deps "@Binarize_DOWNSTREAM_DEPS@")

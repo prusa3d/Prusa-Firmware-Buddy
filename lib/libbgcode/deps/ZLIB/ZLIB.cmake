@@ -1,7 +1,7 @@
 
 set(_exclude_from_all OFF)
 
-if (UNIX AND NOT ${PROJECT_NAME}_SELECT_ZLIB)
+if (UNIX AND NOT ${PROJECT_NAME}_BUILD_ZLIB AND NOT EMSCRIPTEN AND NOT ${PROJECT_NAME}_BUILD_ALL)
   set(_exclude_from_all ON)
 endif ()
 
