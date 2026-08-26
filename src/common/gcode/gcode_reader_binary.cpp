@@ -693,7 +693,7 @@ WritableBytes PrusaPackGcodeReader::ThumbnailReader::read(WritableBytes buffer) 
 }
 
 std::optional<PrusaPackGcodeReader::ThumbnailDetails> PrusaPackGcodeReader::thumbnail_details(const BlockHeader &block_header) {
-    if ((ECompressionType)block_header.compressed_size != bgcode::core::ECompressionType::None) {
+    if ((ECompressionType)block_header.compression != bgcode::core::ECompressionType::None) {
         // no compression supported on images, they are already compressed enough
         return std::nullopt;
     }
@@ -712,7 +712,7 @@ std::optional<PrusaPackGcodeReader::ThumbnailDetails> PrusaPackGcodeReader::thum
 }
 
 bool PrusaPackGcodeReader::is_readable_metadata(const BlockHeader &header) {
-    if ((ECompressionType)header.compressed_size != bgcode::core::ECompressionType::None) {
+    if ((ECompressionType)header.compression != bgcode::core::ECompressionType::None) {
         // We don't support compressed metadata (at least not now). Ignore this
         // particular metadata block.
         return false;
