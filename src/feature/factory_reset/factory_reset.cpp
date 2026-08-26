@@ -86,21 +86,27 @@ static FactoryReset::ItemBitset decode_items_to_keep(uint16_t encoded_params) {
         // Draw the message
         {
 
-            constexpr Font font = Font::normal;
-            constexpr int line_h = resource_font_size(font).h;
+            constexpr Font font = HAS_MINI_DISPLAY() ? Font::small : Font::normal;
 
-            b += line_h * (HAS_MINI_DISPLAY() ? 5 : 4);
+            auto rect = Rect16::fromLTRB(l, y, r, y);
             const auto text = _("Performing factory reset.\nDo not turn off the printer.");
-            render_text_align(Rect16::fromLTRB(l, y, r, b), text, font, COLOR_BLACK, COLOR_WHITE, {}, text_flags { Align_t::Center(), is_multiline::yes });
+
+            rect = Rect16::Height_t(RectTextLayout::compute_line_count(text, rect.Width() / resource_font_size(font).w) * resource_font_size(font).h);
+            b += rect.Height();
+
+            render_text_align(rect, text, font, COLOR_BLACK, COLOR_WHITE, {}, text_flags { Align_t::Center(), is_multiline::yes });
+
+            b += 4; // Spacing between the title and the progress bar
             y = b;
         }
 
         {
-            b += 12;
+            b += 12; // Height of the progress bar
+
             progress_rect = Rect16::fromLTRB(l, y, r, b);
             render_rect(progress_rect, COLOR_GRAY);
 
-            b += 12;
+            b += 12; // Spacing below the progress bar
             y = b;
         }
 
@@ -116,13 +122,20 @@ static FactoryReset::ItemBitset decode_items_to_keep(uint16_t encoded_params) {
         } else {
             constexpr Font font = Font::small;
             constexpr int line_h = resource_font_size(font).h;
-            constexpr int sep = resource_font_size(font).w * 8;
+            constexpr int char_w = resource_font_size(font).w;
+            constexpr int sep = char_w * 8;
 
             for (int i = 0; i < std::to_underlying(Item::_cnt); i++) {
-                b += line_h;
+                const auto title = _(items_config[i].title);
+                auto title_rect = Rect16::fromLTRB(sep + 8, y, r, y);
+                title_rect = Rect16::Height_t(RectTextLayout::compute_line_count(title, title_rect.Width() / char_w) * line_h);
+
+                b += title_rect.Height();
                 const bool keep = items_to_keep.test(i);
                 render_text_align(Rect16::fromLTRB(l, y, sep, b), _(keep ? N_("Keep") : N_("Reset")), font, COLOR_BLACK, keep ? COLOR_GREEN : COLOR_RED);
-                render_text_align(Rect16::fromLTRB(sep + 8, y, r, b), _(items_config[i].title), font, COLOR_BLACK, COLOR_WHITE);
+                render_text_align(title_rect, title, font, COLOR_BLACK, COLOR_WHITE, {}, text_flags { Align_t::LeftTop(), is_multiline::yes });
+
+                b += 4; // A bit of extra spacing betwen items
                 y = b;
             }
         }
