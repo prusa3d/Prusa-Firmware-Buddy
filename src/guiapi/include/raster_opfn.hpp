@@ -16,14 +16,8 @@ enum class is_shadowed : bool {
     yes
 };
 
-enum class is_desaturated : bool {
-    no,
-    yes
-};
-
 struct ropfn {
     is_inverted invert : 1 = is_inverted::no;
     has_swapped_bw swap_bw : 1 = has_swapped_bw::no;
     is_shadowed shadow : 1 = is_shadowed::no;
-    is_desaturated desatur : 1 = is_desaturated::no;
 };

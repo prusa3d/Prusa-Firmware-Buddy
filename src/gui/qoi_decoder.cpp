@@ -142,14 +142,6 @@ namespace {
         return pixel;
     }
 
-    Pixel desaturate(Pixel pixel) {
-        uint8_t avg = (pixel.r + pixel.g + pixel.b) / 3;
-        pixel.r = avg;
-        pixel.g = avg;
-        pixel.b = avg;
-        return pixel;
-    }
-
     Pixel shadow(Pixel pixel) {
         if (tolerance(pixel)) {
             pixel.r /= 2;
@@ -170,10 +162,6 @@ namespace transform {
 
         if (rop.swap_bw == has_swapped_bw::yes) {
             pixel = swapbw(pixel);
-        }
-
-        if (rop.desatur == is_desaturated::yes) {
-            pixel = desaturate(pixel);
         }
 
         if (rop.shadow == is_shadowed::yes) {
