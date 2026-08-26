@@ -311,8 +311,9 @@ constexpr IWindowMenuItem::ColorScheme not_yet_ready_scheme {
     .text { .focused = GuiDefaults::MenuColorBack, .unfocused = GuiDefaults::MenuColorDisabled },
     .back { .focused = GuiDefaults::MenuColorDisabled, .unfocused = GuiDefaults::MenuColorBack },
     .rop {
-        .focused { is_inverted::no, has_swapped_bw::no, is_shadowed::no, is_desaturated::no },
-        .unfocused { is_inverted::no, has_swapped_bw::no, is_shadowed::no, is_desaturated::no } }
+        .focused = ropfn {},
+        .unfocused = ropfn {},
+    },
 };
 
 } // namespace
