@@ -17,19 +17,30 @@ Decryptor::Decryptor() {
 Decryptor::~Decryptor() {
 }
 
-void Decryptor::setup_block(uint64_t offset, uint32_t block_size) {
+bool Decryptor::setup_block(uint64_t offset, uint32_t block_size) {
     memset(cache.data(), 0, cache.size());
     cache_curr_pos = cache.end();
     cache_end = cache.end();
     memset(iv.data(), 0, iv.size());
     memcpy(iv.data(), reinterpret_cast<const uint8_t *>(&offset), sizeof offset);
-    remaining_encrypted_data_size = block_size - num_of_hmacs * e2ee::HMAC_SIZE;
-    debug_assert(remaining_encrypted_data_size % BlockSize == 0);
+
+    const uint32_t hmacs_size = num_of_hmacs * e2ee::HMAC_SIZE;
+    if (block_size < hmacs_size || (block_size - hmacs_size) % BlockSize != 0) {
+        // Malformed header; make sure any subsequent decrypt() fails too.
+        remaining_encrypted_data_size = 0;
+        return false;
+    }
+    remaining_encrypted_data_size = block_size - hmacs_size;
+    return true;
 }
 
 namespace {
     std::optional<size_t> pkcs7_padding_data_len(Decryptor::Block &block) {
         uint8_t padding_len = block.back();
+        if (padding_len < 1 || padding_len > Decryptor::BlockSize) {
+            // Malformed PKCS#7 padding
+            return std::nullopt;
+        }
         for (size_t i = block.size() - 1; i > block.size() - 1 - padding_len; i--) {
             if (block[i] != padding_len) {
                 // Invalid padding
