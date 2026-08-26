@@ -260,16 +260,13 @@ MachinePosXY closest_point_on_circle(const MachinePosXY &point, const MachinePos
 }
 
 void go_to_safe_height() {
-    auto target = current_machine_position();
-    target.z = true_top_center.z + PROBE_Z_UNCERTAIN_DIST_MM;
-    line_to_machine_pos(target, INTERPROBE_FEEDRATE_MMS);
+    line_to_machine_pos(current_machine_position().with_z(true_top_center.z + PROBE_Z_UNCERTAIN_DIST_MM), INTERPROBE_FEEDRATE_MMS);
     planner.synchronize();
 }
 
 void go_to_safety_circle(const MachinePosXY &center, const float radius) {
-    auto target = current_machine_position();
-    target.set(closest_point_on_circle(target.xy(), center, radius));
-    line_to_machine_pos(target, INTERPROBE_FEEDRATE_MMS);
+    const auto current = current_machine_position();
+    line_to_machine_pos(current.with_xy(closest_point_on_circle(current.xy(), center, radius)), INTERPROBE_FEEDRATE_MMS);
     planner.synchronize();
 }
 
@@ -282,8 +279,7 @@ MachinePosXYZ initial_position(const MachinePosXYZ &center, const float angle, c
 }
 
 void go_to_initial(const MachinePosXYZ &center, const float angle, const float radius) {
-    MachinePosXYZE initial = current_machine_position();
-    initial.set(initial_position(center, angle, radius));
+    const MachinePosXYZE initial = current_machine_position().with_xyz(initial_position(center, angle, radius));
 
     const MachinePosXY current = current_machine_position().xy();
 
@@ -293,9 +289,7 @@ void go_to_initial(const MachinePosXYZ &center, const float angle, const float r
     }
     planner.synchronize();
 
-    auto target = current_machine_position();
-    target.z = initial.z;
-    line_to_machine_pos(target, INTERPROBE_FEEDRATE_MMS);
+    line_to_machine_pos(current_machine_position().with_z(initial.z), INTERPROBE_FEEDRATE_MMS);
     planner.synchronize();
 }
 
@@ -458,9 +452,7 @@ float probe_z(const MachinePosXYZ &position, float uncertainty, const int num_me
     float top_expected_position = position.z;
 
     {
-        auto target = current_machine_position();
-        target.z = top_expected_position + uncertainty;
-        line_to_machine_pos(target, MMM_TO_MMS(CALIBRATION_FEEDRATE_TRAVEL));
+        line_to_machine_pos(current_machine_position().with_z(top_expected_position + uncertainty), MMM_TO_MMS(CALIBRATION_FEEDRATE_TRAVEL));
         planner.synchronize();
     }
 
@@ -473,9 +465,7 @@ float probe_z(const MachinePosXYZ &position, float uncertainty, const int num_me
 
         // Move to the position where we probe
         {
-            auto target = current_machine_position();
-            target.set(position.xy() + offset);
-            target.z = top_expected_position + uncertainty;
+            const auto target = current_machine_position().with_xy(position.xy() + offset).with_z(top_expected_position + uncertainty);
             line_to_machine_pos(target, MMM_TO_MMS(CALIBRATION_FEEDRATE_TRAVEL));
             planner.synchronize();
         }
@@ -560,8 +550,7 @@ const std::optional<MachinePosXYZ> get_single_xyz_center(const MachinePosXYZ &in
     for (uint hit_no = 0; MachinePosXY & hit : hits) {
         hit = probe_xy_verify(start, 2 * std::numbers::pi_v<float> / hits.size() * hit_no++, PROBE_XY_UNCERTAIN_DIST_MM, tool, phase);
     }
-    MachinePosXYZ center = MachinePosXYZ(approximate_center(hits));
-    center.z = start.z;
+    const MachinePosXYZ center = MachinePosXYZ(approximate_center(hits)).with_z(start.z);
 
     if (phase == Phase::final) {
         if (!check_deviation(center.xy(), hits)) {

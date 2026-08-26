@@ -231,9 +231,7 @@ void sync_plan_position_e(std::optional<uint8_t> e_axis_index) {
 }
 
 void sync_e_position_to(float e) {
-  xyze_pos_t target = current_position;
-  target.e = e;
-  set_current_position(target);
+  set_current_position(current_position.with_e(e));
   
   sync_plan_position_e();
 }
@@ -314,19 +312,16 @@ void do_blocking_move_to(const float rx, const float ry, const float rz, const f
 void plan_park_move_to(const float rx, const float ry, const float rz, const feedRate_t &fr_xy, const feedRate_t &fr_z, Segmented segmented) {
   // If Z needs to raise, do it before moving XY
   if (current_position.z < rz) {
-    destination = current_position;
-    destination.z = rz;
+    destination = current_position.with_z(rz);
     prepare_internal_move_to_destination(fr_z, { .do_segment = segmented == Segmented::yes });
   }
 
-  destination = current_position;
-  destination.set(rx, ry);
+  destination = current_position.with_xy(rx, ry);
   prepare_internal_move_to_destination(fr_xy, { .do_segment = segmented == Segmented::yes });
 
   // If Z needs to lower, do it after moving XY
   if (current_position.z > rz) {
-    destination = current_position;
-    destination.z = rz;
+    destination = current_position.with_z(rz);
     prepare_internal_move_to_destination(fr_z, { .do_segment = segmented == Segmented::yes });
   }
 }

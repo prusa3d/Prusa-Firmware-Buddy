@@ -309,8 +309,7 @@ static bool do_probe_move(const float z, const feedRate_t fr_mm_s) {
   #endif
 
   // Move down until the probe is triggered
-  auto target = planner.get_machine_position_mm();
-  target.z = z;
+  const auto target = planner.get_machine_position_mm().with_z(z);
   planner.buffer_segment(target, fr_mm_s, PhysicalToolIndex::currently_selected());
   planner.synchronize();
   // Note: current_position is updated lower in this function

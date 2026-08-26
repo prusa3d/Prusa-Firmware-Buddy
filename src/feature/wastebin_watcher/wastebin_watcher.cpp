@@ -102,8 +102,7 @@ void WastebinWatcher::pause_to_empty(bool full) {
     mapi::park(mapi::get_parking_position(mapi::ParkPosition::purge));
     // Move the most of the Z travel over the wastebin
     constexpr float return_clearance = 5;
-    MachinePosXYZE over_bin = current_machine_position();
-    over_bin.z = std::max(resume_machine_z, planner.max_printed_z + return_clearance);
+    const MachinePosXYZE over_bin = current_machine_position().with_z(std::max(resume_machine_z, planner.max_printed_z + return_clearance));
     line_to_machine_pos(over_bin, NOZZLE_PARK_Z_FEEDRATE, { .ignore_e_factor = false });
     // Let the bed finish rising before announcing the heat-up, so the screen matches what moves.
     planner.synchronize();
@@ -128,9 +127,7 @@ void WastebinWatcher::pause_to_empty(bool full) {
     // Traverse XY back (park routes around the cleaner) at that clearance height so we never drag
     // over the print, then drop to the saved machine Z and restore E.
     mapi::park(mapi::ParkingPosition { .x = resume_pos.x, .y = resume_pos.y });
-    MachinePosXYZE resume_target = current_machine_position();
-    resume_target.z = resume_machine_z;
-    line_to_machine_pos(resume_target, NOZZLE_PARK_Z_FEEDRATE, { .ignore_e_factor = false });
+    line_to_machine_pos(current_machine_position().with_z(resume_machine_z), NOZZLE_PARK_Z_FEEDRATE, { .ignore_e_factor = false });
     planner.synchronize();
     mapi::extruder_move(resume_e - current_position.e, buddy::standard_feedrates::extruder(buddy::standard_feedrates::Extruder::deretract, filament));
 }

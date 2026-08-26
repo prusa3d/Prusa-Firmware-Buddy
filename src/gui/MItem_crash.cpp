@@ -57,18 +57,14 @@ MI_CRASH_SENSITIVITY_X::MI_CRASH_SENSITIVITY_X()
 }
 void MI_CRASH_SENSITIVITY_X::OnClick() {
 
-    xy_long_t se = crash_s.get_sensitivity();
-    se.x = static_cast<int>(value());
-    crash_s.set_sensitivity(se);
+    crash_s.set_sensitivity(crash_s.get_sensitivity().with_x(static_cast<int>(value())));
 }
 
 MI_CRASH_SENSITIVITY_Y::MI_CRASH_SENSITIVITY_Y()
     : WiSpin(crash_s.get_sensitivity().y, crash_sensitivity_spin_config, _(label), nullptr, is_enabled_t::yes, PRINTER_IS_PRUSA_XL() ? is_hidden_t::no : is_hidden_t::dev) {
 }
 void MI_CRASH_SENSITIVITY_Y::OnClick() {
-    xy_long_t se = crash_s.get_sensitivity();
-    se.y = static_cast<int>(value());
-    crash_s.set_sensitivity(se);
+    crash_s.set_sensitivity(crash_s.get_sensitivity().with_y(static_cast<int>(value())));
 }
 
 MI_CRASH_SENSITIVITY_XY::MI_CRASH_SENSITIVITY_XY()
@@ -82,18 +78,14 @@ MI_CRASH_MAX_PERIOD_X::MI_CRASH_MAX_PERIOD_X()
     : WiSpin(crash_s.get_max_period().x, crash_max_period_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_MAX_PERIOD_X::OnClick() {
-    xy_long_t mp = crash_s.get_max_period();
-    mp.x = static_cast<int>(value());
-    crash_s.set_max_period(mp);
+    crash_s.set_max_period(crash_s.get_max_period().with_x(static_cast<int>(value())));
 }
 
 MI_CRASH_MAX_PERIOD_Y::MI_CRASH_MAX_PERIOD_Y()
     : WiSpin(crash_s.get_max_period().y, crash_max_period_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_MAX_PERIOD_Y::OnClick() {
-    xy_long_t mp = crash_s.get_max_period();
-    mp.y = static_cast<int>(value());
-    crash_s.set_max_period(mp);
+    crash_s.set_max_period(crash_s.get_max_period().with_y(static_cast<int>(value())));
 }
 
 #endif

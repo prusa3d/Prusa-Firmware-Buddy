@@ -356,9 +356,7 @@ namespace {
 
         /// Can apply retraction as well, depending on the PrintArgs
         void move_z(float target) {
-            auto target_pos = current_position.xyz();
-            target_pos.z = target;
-            move(target_pos, fr_z);
+            move(current_position.xyz().with_z(target), fr_z);
         }
 
         /// Retracts the remaining distance, in case the retraction was not fully done during the standard moves

@@ -881,8 +881,7 @@ void PrusaToolChanger::final_tool_change_moves(const FinalToolChangeMoves &args)
     if (args.z_return) {
         set_bed_leveling_enabled(args.levelling_active); // Reenable MBL for this move
         if (current_position.z != return_position.z) {
-            destination = current_position;
-            destination.z = return_position.z;
+            destination = current_position.with_z(return_position.z);
             prepare_move_to(destination, Z_HOP_FEEDRATE_MM_S, {});
         }
     }

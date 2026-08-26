@@ -809,9 +809,7 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
                 // Move the bed to the bottom to give space for the user to insert the sheet
                 // Do this asynchronously so that we can process the response while moving
                 {
-                  MachinePosXYZE target = current_machine_position();
-                  target.z = DETECT_PRINT_SHEET_Z_AFTER_FAILURE;
-                  line_to_machine_pos(target, homing_feedrate(Z_AXIS));
+                  line_to_machine_pos(current_machine_position().with_z(DETECT_PRINT_SHEET_Z_AFTER_FAILURE), homing_feedrate(Z_AXIS));
                 }
 
                 // Continue after the user puts the print sheet on

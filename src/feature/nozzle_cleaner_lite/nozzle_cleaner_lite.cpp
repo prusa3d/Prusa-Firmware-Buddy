@@ -129,17 +129,12 @@ namespace {
 
     // Move in raw machine coordinates (line_to_machine_pos), bypassing MBL.
     void move_to_machine_pos_xy(float x, float y, feedRate_t fr_mm_s) {
-        auto target = current_machine_position();
-        target.x = x;
-        target.y = y;
-        line_to_machine_pos(target, fr_mm_s);
+        line_to_machine_pos(current_machine_position().with_xy(x, y), fr_mm_s);
         planner.synchronize();
     }
 
     void move_to_machine_pos_z(float z, feedRate_t fr_mm_s) {
-        auto target = current_machine_position();
-        target.z = z;
-        line_to_machine_pos(target, fr_mm_s);
+        line_to_machine_pos(current_machine_position().with_z(z), fr_mm_s);
         planner.synchronize();
     }
 
@@ -158,14 +153,9 @@ namespace {
 
     // Queue a move given in pad coordinates.
     void line_to_pad(float along, float across, feedRate_t fr_mm_s) {
-        auto target = current_machine_position();
-        if constexpr (pad_length_runs_along_x) {
-            target.x = along;
-            target.y = across;
-        } else {
-            target.x = across;
-            target.y = along;
-        }
+        const auto target = pad_length_runs_along_x
+            ? current_machine_position().with_xy(along, across)
+            : current_machine_position().with_xy(across, along);
         line_to_machine_pos(target, fr_mm_s);
     }
 

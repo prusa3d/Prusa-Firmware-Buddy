@@ -770,9 +770,7 @@
 
       // make initial move manually (has a different speed)
       if (is_initial_probe) {
-        xyz_pos_t start_pos = xyz_pos_t(pos);
-        start_pos -= probe_offset;
-        start_pos.z = Z_CLEARANCE_BEFORE_PROBING;
+        xyz_pos_t start_pos = (xyz_pos_t(pos) - probe_offset).with_z(Z_CLEARANCE_BEFORE_PROBING);
         #if HAS_HOTEND_OFFSET
         start_pos -= hotend_currently_applied_offset;
         #endif

@@ -62,26 +62,19 @@ namespace {
     /// @param x The target X-axis position.
     /// @param feedrate The speed of the move in mm/s.
     void plan_to_x(float x, feedRate_t feedrate = feedRate_t(XY_PROBE_FEEDRATE_MM_S)) {
-        xyze_pos_t xyz = current_position;
-        xyz.x = x;
-        prepare_move_to(xyz, feedrate, {});
+        prepare_move_to(current_position.with_x(x), feedrate, {});
     }
 
     /// @brief Plans a move to a new Y-axis coordinate.
     /// @param y The target Y-axis position.
     /// @param feedrate The speed of the move in mm/s.
     void plan_to_y(float y, feedRate_t feedrate = feedRate_t(XY_PROBE_FEEDRATE_MM_S)) {
-        xyze_pos_t xyz = current_position;
-        xyz.y = y;
-        prepare_move_to(xyz, feedrate, {});
+        prepare_move_to(current_position.with_y(y), feedrate, {});
     }
 
     /// @brief Plans a move to a new XY coordinate.
     [[maybe_unused]] void plan_to_xy(float x, float y, feedRate_t feedrate = feedRate_t(XY_PROBE_FEEDRATE_MM_S)) {
-        xyze_pos_t xyz = current_position;
-        xyz.x = x;
-        xyz.y = y;
-        prepare_move_to(xyz, feedrate, {});
+        prepare_move_to(current_position.with_xy(x, y), feedrate, {});
     }
 
 #if HAS_INDX()
