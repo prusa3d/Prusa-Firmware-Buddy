@@ -131,14 +131,14 @@ void render_text_align(Rect16 rc, StringReaderUtf8 &reader, const Font f, Color 
     }
 }
 
-void render_icon_align(Rect16 rc, const img::Resource *res, Color clr_back, icon_flags flags) {
+void render_icon_align(Rect16 rc, const img::Resource *res, Color clr_back, Align_t align, ropfn raster_flags) {
 
     if (res) {
         point_ui16_t wh_ico = { res->w, res->h };
         Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
-        rc_ico.Align(rc, flags.align);
+        rc_ico.Align(rc, align);
         rc_ico = rc_ico.Intersection(rc);
-        display::draw_img(point_ui16(rc_ico.Left(), rc_ico.Top()), *res, clr_back, flags.raster_flags);
+        display::draw_img(point_ui16(rc_ico.Left(), rc_ico.Top()), *res, clr_back, raster_flags);
     } else {
         display::fill_rect(rc, clr_back);
     }

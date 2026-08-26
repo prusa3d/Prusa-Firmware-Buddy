@@ -77,7 +77,7 @@ void WindowIconOkNgArray::unconditionalDraw() {
 
         // Icons are aligned to the right
         const Rect16 icon_rect(GetRect().Right() - visible_left * icon_space_width, GetRect().Top(), id_res->w, id_res->h);
-        render_icon_align(icon_rect, id_res, GetBackColor(), icon_flags(Align_t::Center()));
+        render_icon_align(icon_rect, id_res, GetBackColor(), Align_t::Center());
         visible_left--;
     }
 }

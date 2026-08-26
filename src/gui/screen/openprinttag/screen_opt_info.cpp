@@ -110,7 +110,7 @@ void MI_OPT_TAG_STATUS::printExtension(Rect16 extension_rect, [[maybe_unused]] C
     render_text_align(Rect16::fromLTRB(extension_rect.Left(), extension_rect.Top(), arrow_left - 8, extension_rect.Bottom()), _(status.short_text), Font::small, color_back, status.color, {}, Align_t::RightCenter());
 
     // Render extension arrow - indicate that clicking shows a dialog
-    render_icon_align(Rect16::fromLTRB(arrow_left, extension_rect.Top(), extension_rect.Right(), extension_rect.Bottom()), &img::arrow_right_10x16, color_back, icon_flags(Align_t::Center(), raster_op));
+    render_icon_align(Rect16::fromLTRB(arrow_left, extension_rect.Top(), extension_rect.Right(), extension_rect.Bottom()), &img::arrow_right_10x16, color_back, Align_t::Center(), raster_op);
 }
 
 void MI_OPT_TAG_STATUS::click(IWindowMenu &) {

@@ -32,5 +32,5 @@ void MenuItemToggleSwitch::printExtension(Rect16 extension_rect, [[maybe_unused]
         { Tristate::yes, &img::switch_on_36x18 },
         { Tristate::other, &img::switch_mid_36x18 },
     };
-    render_icon_align(extension_rect, icon[value_.value], color_back, { Align_t::Center(), raster_op });
+    render_icon_align(extension_rect, icon[value_.value], color_back, Align_t::Center(), raster_op);
 }

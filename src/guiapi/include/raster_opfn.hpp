@@ -6,7 +6,6 @@
  */
 #pragma once
 
-#include "align.hpp"
 #include <stdint.h>
 
 namespace {
@@ -56,17 +55,4 @@ struct ropfn {
 
         return ret;
     }
-};
-
-struct icon_flags {
-    Align_t align;
-    ropfn raster_flags;
-    constexpr icon_flags(Align_t align, ropfn rop = ropfn())
-        : align(align)
-        , raster_flags(rop) {}
-
-    constexpr bool IsInverted() { return raster_flags.invert == is_inverted::yes; }
-    constexpr bool HasSwappedBW() { return raster_flags.swap_bw == has_swapped_bw::yes; }
-    constexpr bool IsShadowed() { return raster_flags.shadow == is_shadowed::yes; }
-    constexpr bool IsDesaturated() { return raster_flags.desatur == is_desaturated::yes; }
 };

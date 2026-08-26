@@ -21,7 +21,7 @@ void MI_LangBase::click(IWindowMenu & /*window_menu*/) {
 
 void MI_LangBase::printIcon(Rect16 icon_rect, ropfn raster_op, Color color_back) const {
     raster_op.swap_bw = has_swapped_bw::no;
-    render_icon_align(icon_rect, id_icon, color_back, icon_flags(Align_t::Center(), raster_op));
+    render_icon_align(icon_rect, id_icon, color_back, Align_t::Center(), raster_op);
 }
 
 ScreenMenuLanguages::ScreenMenuLanguages(Context context)
