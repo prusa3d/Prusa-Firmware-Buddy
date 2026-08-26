@@ -5,6 +5,7 @@
 #pragma once
 
 #include "handler.h"
+#include "headers.h"
 
 #include <automata/core.h>
 #include <common/pbuf_deleter.hpp>
@@ -154,6 +155,10 @@ private:
     // TODO: Tune the values.
     static const size_t ACTIVE_CONNS = 3;
     static const size_t BUFF_SIZE = TCP_MSS;
+    // The header block of a response has to fit a single buffer - it gets
+    // truncated, not split. A truncated last header ends up terminated by the
+    // empty line behind it, so the client goes on parsing the body as headers.
+    static_assert(BUFF_SIZE >= MAX_HEADERS_SIZE);
     static const size_t BUFF_CNT = 2;
     // half-seconds... weird units of LwIP
     static const uint8_t POLL_TIME = 1;

@@ -41,17 +41,8 @@ Selector::Accepted UsbFiles::accept(const RequestParser &parser, handler::Step &
              * protected by the API key and it's the user's files, so
              * that's probably fine.
              */
-            static const char *const hdrs[] = {
-                "Content-Disposition: attachment\r\n",
-                nullptr,
-            };
-            out.next = SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.accepts_json, parser.if_none_match, hdrs);
-            /*
-             * Some browsers reportedly mishandle combination of attachment +
-             * etags/caching. We give up caching in this particular case, as it
-             * is not super useful anyway.
-             */
-            get<SendFile>(get<ConnectionState>(out.next)).disable_caching();
+            out.next = SendFile(f, fname, guess_content_by_ext(fname), parser.can_keep_alive(), parser.accepts_json, parser.if_none_match);
+            get<SendFile>(get<ConnectionState>(out.next)).set_attachment(fname);
         } else {
             out.next = StatusPage(Status::NotFound, parser);
         }

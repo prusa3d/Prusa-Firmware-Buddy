@@ -3,6 +3,7 @@
 #include "headers.h"
 
 #include <http/chunked.h>
+#include <lfn.h>
 
 #include <sys/stat.h>
 
@@ -35,6 +36,13 @@ SendFile::SendFile(FILE *file, const char *path, ContentType content_type, bool 
     }
 }
 
+void SendFile::set_attachment(char *path) {
+    get_LFN(attachment_filename, sizeof attachment_filename, path);
+    // Caching a download is not very useful anyway and some browsers
+    // reportedly mishandle the combination with Content-Disposition.
+    disable_caching();
+}
+
 void SendFile::disable_caching() {
     etag_matches = false;
     etag = nullopt;
@@ -54,7 +62,8 @@ void SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size,
     size_t written = 0;
 
     if (!headers_sent) {
-        written = write_headers(buffer, buffer_size, Status::Ok, content_type, connection_handling, content_length, etag, extra_hdrs);
+        const char *attachment = attachment_filename[0] ? attachment_filename : nullptr;
+        written = write_headers(buffer, buffer_size, Status::Ok, content_type, connection_handling, content_length, etag, extra_hdrs, attachment);
         headers_sent = true;
 
         if (written + MIN_CHUNK_SIZE >= buffer_size) {

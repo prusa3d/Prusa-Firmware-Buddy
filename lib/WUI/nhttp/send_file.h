@@ -6,6 +6,7 @@
 #include "unique_file_ptr.hpp"
 #include "step.h"
 #include <http/types.h>
+#include <buddy/filename_defs.hpp>
 
 #include <string_view>
 #include <cstdio>
@@ -33,17 +34,24 @@ private:
     std::optional<size_t> content_length;
     std::optional<uint32_t> etag;
     const char *const *extra_hdrs;
+    char attachment_filename[filename_defs::filename_buffer_size] = "";
 
 public:
     SendFile(FILE *file, const char *path, http::ContentType content_type, bool can_keep_alive, bool json_errors, uint32_t if_none_match, const char *const *extra_hdrs = nullptr);
     void step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size, Step &out);
     bool want_write() const { return bool(file); }
     bool want_read() const { return false; }
-    /*
-     * Disables etags & if_none_match handling.
-     *
-     * This is due to some browsers reportedly malhandling Content-Disposition: attachement + etags.
-     */
+    /// Offers the file for download instead of letting the client display it.
+    ///
+    /// The name offered for "Save as" is the LFN of the path, which may differ
+    /// from the one in the request URL (that one has to be the SFN, long names
+    /// might not fit the URL length limits). The path is temporarily modified
+    /// in place, see get_LFN.
+    ///
+    /// Implies disable_caching, some browsers reportedly malhandle
+    /// Content-Disposition + etags.
+    void set_attachment(char *path);
+    /// Disables etags & if_none_match handling.
     void disable_caching();
 };
 

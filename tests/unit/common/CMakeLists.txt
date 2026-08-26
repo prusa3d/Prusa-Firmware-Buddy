@@ -76,6 +76,12 @@ target_include_directories(otp_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 target_link_libraries(otp_tests otp)
 
 add_executable(
+  percent_encode_tests ${CMAKE_SOURCE_DIR}/src/common/http/percent_encode.cpp
+                       ${CMAKE_CURRENT_SOURCE_DIR}/percent_encode_tests.cpp
+  )
+target_include_directories(percent_encode_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
+
+add_executable(
   url_decode_tests
   ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/url_decode_tests.cpp
@@ -123,6 +129,7 @@ add_catch_test(weighted_modus_tests)
 add_catch_test(algorithm_scale_tests)
 add_catch_test(median_tests)
 add_catch_test(otp_tests)
+add_catch_test(percent_encode_tests)
 add_catch_test(url_decode_tests)
 add_catch_test(json_tests)
 add_catch_test(path_utils_tests)

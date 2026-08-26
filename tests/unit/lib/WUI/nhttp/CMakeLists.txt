@@ -10,6 +10,7 @@ add_executable(
   # Some handlers are stubbed out.
   ${CMAKE_CURRENT_SOURCE_DIR}/server_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/req_parser_tests.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/headers_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/job_command_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/file_command_tests.cpp
   # ${CMAKE_CURRENT_SOURCE_DIR}/segmented_json_rendering.cpp
@@ -45,6 +46,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/percent_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_any.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_binary.cpp

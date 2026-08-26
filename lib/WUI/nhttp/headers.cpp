@@ -6,11 +6,13 @@
 
 #include <sys/stat.h>
 #include <inttypes.h> // PRIu* macros (not available in <cinttypes>)
+#include <http/percent_encode.h>
 #include <mbedtls/sha256.h>
 #include <bsod/bsod.h>
 
 using http::ConnectionHandling;
 using http::ContentType;
+using http::percent_encode;
 using http::Status;
 
 namespace nhttp {
@@ -61,7 +63,7 @@ const StatusText &StatusText::find(Status status) {
     return *texts;
 }
 
-size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length, std::optional<uint32_t> etag, const char *const *extra_hdrs) {
+size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length, std::optional<uint32_t> etag, const char *const *extra_hdrs, const char *attachment_filename) {
     // Always leave space for the body-newline separator
     debug_assert(buffer_len > 2);
     buffer_len -= 2;
@@ -93,6 +95,18 @@ size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentT
     for (; extra_hdrs && *extra_hdrs; extra_hdrs++) {
         size_t copy = std::min(buffer_len - pos, strlen(*extra_hdrs));
         memcpy(buf + pos, *extra_hdrs, copy);
+        pos += copy;
+    }
+
+    if (attachment_filename && pos < buffer_len) {
+        pos += snprintf(buf + pos, buffer_len - pos, "Content-Disposition: attachment; filename*=UTF-8''");
+        pos = std::min(buffer_len, pos);
+        // attr-char of RFC 5987, anything else has to be escaped.
+        pos += percent_encode(attachment_filename, "!#$&+-.^_`|~", buf + pos, buffer_len - pos);
+        // Deliberately not snprintf - that one wants an extra byte for its NUL
+        // and would silently drop the LF if the buffer ended right here.
+        const size_t copy = std::min<size_t>(buffer_len - pos, 2);
+        memcpy(buf + pos, "\r\n", copy);
         pos += copy;
     }
 

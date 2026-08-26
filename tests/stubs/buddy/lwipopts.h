@@ -16,7 +16,9 @@ extern "C" {
 #define LWIP_ETHERNET        0
 #define LWIP_DNS_SECURE      7
 
-#define TCP_MSS                536
+// Shadows include/buddy/lwipopts.h in test builds. TCP_MSS has to match the one
+// there, the server sizes its send buffers by it.
+#define TCP_MSS                1024
 #define TCP_WND                (2 * TCP_MSS)
 #define TCPIP_THREAD_STACKSIZE 2048
 
