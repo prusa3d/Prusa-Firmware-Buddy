@@ -259,8 +259,8 @@ static void filament_sensor_irq() {
 
             // Side filament sensor
             auto mapping = side_fsensor_remap::get_mapping();
-            debug_assert(static_cast<size_t>(dwarf.dwarf_index()) < std::size(mapping));
-            const uint8_t remapped = mapping[dwarf.dwarf_index()];
+            debug_assert(static_cast<size_t>(dwarf.tool_index().to_raw()) < std::size(mapping));
+            const uint8_t remapped = mapping[dwarf.tool_index().to_raw()];
             debug_assert(remapped < HOTENDS);
 
             /**

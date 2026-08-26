@@ -163,7 +163,7 @@ bool PrusaToolChangerUtils::update(PuppyModbus &bus) {
                 if (old_tool->set_selected(bus, false) == CommunicationStatus::ERROR) {
                     return false;
                 }
-                log_info(PrusaToolChanger, "Deactivated Dwarf #%u", old_tool->dwarf_index());
+                log_info(PrusaToolChanger, "Deactivated Dwarf #%u", old_tool->tool_index().to_raw());
 
                 active_dwarf = nullptr; // No dwarf is selected right now
                 loadcell.Clear(); // No loadcell is available now, make sure that it is not stuck in active mode
@@ -172,7 +172,7 @@ bool PrusaToolChangerUtils::update(PuppyModbus &bus) {
                 if (new_tool->set_selected(bus, true) == CommunicationStatus::ERROR) {
                     return false;
                 }
-                log_info(PrusaToolChanger, "Activated Dwarf #%u", new_tool->dwarf_index());
+                log_info(PrusaToolChanger, "Activated Dwarf #%u", new_tool->tool_index().to_raw());
 
                 active_dwarf = new_tool; // New tool is necessary for stepperE0.push()
                 stepperE0.push(); // Write current stepper settings
@@ -204,7 +204,7 @@ void PrusaToolChangerUtils::force_marlin_picked_tool(Dwarf *dwarf) {
     if (dwarf == nullptr) {
         active_extruder = MARLIN_NO_TOOL_PICKED;
     } else {
-        active_extruder = dwarf->dwarf_index();
+        active_extruder = dwarf->tool_index().to_raw();
     }
 }
 
@@ -226,7 +226,7 @@ float PrusaToolChangerUtils::get_mbl_z_lift_height() const {
 uint16_t PrusaToolChangerUtils::detect_tool_nr() {
     Dwarf *dwarf = picked_dwarf.load();
     if (dwarf) {
-        return dwarf->dwarf_index();
+        return dwarf->tool_index().to_raw();
     } else {
         return MARLIN_NO_TOOL_PICKED;
     }
