@@ -156,10 +156,6 @@ namespace {
 namespace transform {
 
     Pixel apply_rop(Pixel pixel, ropfn rop) {
-        if (rop.invert == is_inverted::yes) {
-            pixel = invert(pixel);
-        }
-
         if (rop.swap_bw == has_swapped_bw::yes) {
             pixel = swapbw(pixel);
         }
