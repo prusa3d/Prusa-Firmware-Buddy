@@ -368,7 +368,7 @@ void FirstLayer::run() {
 
     // nozzle temperature print
     thermalManager.setTargetHotend(temp_nozzle, 0);
-    thermalManager.wait_for_hotend(0, { .no_wait_for_cooling = false });
+    thermalManager.wait_for_hotend(PhysicalToolIndex::from_raw(0), { .no_wait_for_cooling = false });
 
     print_shape_2();
 

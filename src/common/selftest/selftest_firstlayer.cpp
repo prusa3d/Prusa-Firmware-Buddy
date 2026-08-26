@@ -299,7 +299,9 @@ LoopResult CSelftestPart_FirstLayer::statePrintInit() {
 }
 
 LoopResult CSelftestPart_FirstLayer::stateWaitNozzle() {
-    (void)thermalManager.wait_for_hotend(active_extruder, { .no_wait_for_cooling = true, .fan_cooling = false });
+    const auto tool = PhysicalToolIndex::currently_selected_opt();
+    contract_assert(tool.has_value());
+    (void)thermalManager.wait_for_hotend(tool.value(), { .no_wait_for_cooling = true, .fan_cooling = false });
     return LoopResult::RunNext;
 }
 

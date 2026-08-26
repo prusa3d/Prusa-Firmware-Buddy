@@ -314,12 +314,7 @@ class Temperature {
 
       static bool are_hotend_temperatures_reached(RequireCooling require_cooling);
 
-      static bool wait_for_hotend(PhysicalToolIndex target_extruder, WaitForHotendParams params = {}) {
-        return wait_for_hotend(target_extruder.to_raw(), params);
-      }
-
-      [[deprecated]]
-      static bool wait_for_hotend(const uint8_t target_extruder, WaitForHotendParams params = {});
+      static bool wait_for_hotend(PhysicalToolIndex target_tool, WaitForHotendParams params = {});
     #endif
 
     #if HAS_HEATED_BED
