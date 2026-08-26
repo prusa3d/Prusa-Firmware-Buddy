@@ -10,11 +10,6 @@
 extern "C" {
 #endif //__cplusplus
 
-__attribute__((used)) inline uint16_t swap_ui16(uint16_t val) {
-    return __builtin_bswap16(val);
-    // return (val >> 8) | ((val & 0xff) << 8);
-}
-
 __attribute__((used)) inline uint32_t color_rgb(const uint8_t r, const uint8_t g, const uint8_t b) {
     // saved in bgr format, because ARM is little endian and when it is saved to memory it will be in rgb order
     return r | ((uint32_t)g << 8) | ((uint32_t)b << 16);

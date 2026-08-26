@@ -1,6 +1,5 @@
 #pragma once
 
-#include "display_math_helper.h"
 #include "Rect16.h"
 #include <utils/abstract_byte_reader.hpp>
 #include <inttypes.h>
@@ -18,7 +17,7 @@ inline uint16_t color_to_565(Color clr) {
     static constexpr uint8_t r_shift = (8 - 5);
     static constexpr uint8_t g_shift = (8 - 6) + r_shift;
     static constexpr uint8_t b_shift = (8 - 5) + g_shift;
-    return swap_ui16(((clr.raw >> r_shift) & 0x001f) | ((clr.raw >> g_shift) & 0x07e0) | ((clr.raw >> b_shift) & 0xf800));
+    return __builtin_bswap16(((clr.raw >> r_shift) & 0x001f) | ((clr.raw >> g_shift) & 0x07e0) | ((clr.raw >> b_shift) & 0xf800));
 }
 
 extern void st7789v_init(void);
