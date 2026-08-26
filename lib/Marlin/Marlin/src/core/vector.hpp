@@ -177,6 +177,77 @@ public:
 
 public:
     // ===========================
+    // With functions
+    // ===========================
+
+    /// @returns a copy of the vector, with the dims components replaced with the matching argument value
+    template <size_t... components, std::convertible_to<T>... Args>
+    [[nodiscard]] [[gnu::always_inline]] constexpr Vector with_components(Args... args) const {
+        static_assert(sizeof...(components) == sizeof...(Args), "Count of runtime and template arguments must match");
+
+        auto result = *this;
+        ((result.template at<components>() = args), ...);
+        return result;
+    }
+
+    /// @returns a copy of the vector, with the X component replaced
+    [[nodiscard]] constexpr Vector with_x(T x) const
+        requires(size() > 1) // For 1D vectors, just use =
+    {
+        return with_components<0>(x);
+    }
+
+    /// @returns a copy of the vector, with the Y component replaced
+    [[nodiscard]] constexpr Vector with_y(T y) const
+        requires(size() > 1)
+    {
+        return with_components<1>(y);
+    }
+
+    /// @returns a copy of the vector, with the Z component replaced
+    [[nodiscard]] constexpr Vector with_z(T z) const
+        requires(size() > 2)
+    {
+        return with_components<2>(z);
+    }
+
+    /// @returns a copy of the vector, with the E component replaced
+    [[nodiscard]] constexpr Vector with_e(T e) const
+        requires(size() > 3)
+    {
+        return with_components<3>(e);
+    }
+
+    /// @returns a copy of the vector, with the X and Y components replaced
+    [[nodiscard]] constexpr Vector with_xy(T x, T y) const
+        requires(size() > 2) // For 2D vectors, just use = or set
+    {
+        return with_components<0, 1>(x, y);
+    }
+
+    /// @returns a copy of the vector, with the X and Y components replaced
+    [[nodiscard]] constexpr Vector with_xy(const Vector<T, Tag, 2> &xy) const
+        requires(size() > 2) // For 2D vectors, just use =
+    {
+        return with_components<0, 1>(xy.x, xy.y);
+    }
+
+    /// @returns a copy of the vector, with the X, Y and Z components replaced
+    [[nodiscard]] constexpr Vector with_xyz(T x, T y, T z) const
+        requires(size() > 3)
+    {
+        return with_components<0, 1, 2>(x, y, z);
+    }
+
+    /// @returns a copy of the vector, with the X, Y and Z components replaced
+    [[nodiscard]] constexpr Vector with_xyz(const Vector<T, Tag, 3> &xyz) const
+        requires(size() > 3)
+    {
+        return with_components<0, 1, 2>(xyz.x, xyz.y, xyz.z);
+    }
+
+public:
+    // ===========================
     // Upcasts/downcasts/casts
     // ===========================
 

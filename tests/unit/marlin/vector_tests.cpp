@@ -103,6 +103,29 @@ TEST_CASE("Vector set", "[vector]") {
     CHECK(v == Vec4 { 7, 8, 9, 4 });
 }
 
+TEST_CASE("Vector with", "[vector]") {
+    const Vec4 v { 1, 2, 3, 4 };
+
+    // Only the named components change, the rest is carried over
+    CHECK(v.with_x(9) == Vec4 { 9, 2, 3, 4 });
+    CHECK(v.with_y(9) == Vec4 { 1, 9, 3, 4 });
+    CHECK(v.with_z(9) == Vec4 { 1, 2, 9, 4 });
+    CHECK(v.with_e(9) == Vec4 { 1, 2, 3, 9 });
+    CHECK(v.with_xy(8, 9) == Vec4 { 8, 9, 3, 4 });
+    CHECK(v.with_xyz(7, 8, 9) == Vec4 { 7, 8, 9, 4 });
+
+    // Component vector overloads
+    CHECK(v.with_xy(Vec2 { 8, 9 }) == Vec4 { 8, 9, 3, 4 });
+    CHECK(v.with_xyz(Vec3 { 7, 8, 9 }) == Vec4 { 7, 8, 9, 4 });
+
+    CHECK(v.with_x(8).with_e(9) == Vec4 { 8, 2, 3, 9 }); // chaining
+    CHECK(v == Vec4 { 1, 2, 3, 4 }); // the original is left untouched
+
+    // Shorter vectors
+    CHECK(Vec2 { 1, 2 }.with_y(9) == Vec2 { 1, 9 });
+    CHECK(Vec3 { 1, 2, 3 }.with_xy(Vec2 { 8, 9 }) == Vec3 { 8, 9, 3 });
+}
+
 TEST_CASE("Vector casts", "[vector]") {
     // Upcast fills the new components with 0
     CHECK(static_cast<Vec3>(Vec2 { 1, 2 }) == Vec3 { 1, 2, 0 });
