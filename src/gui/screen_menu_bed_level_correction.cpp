@@ -14,11 +14,11 @@ I_MI_CORRECT::I_MI_CORRECT(CorrectionIndex index)
 }
 
 void I_MI_CORRECT::Reset() {
-    SetVal(0);
+    set_value(0);
 }
 
 void I_MI_CORRECT::OnClick() {
-    set_correction_value(index, static_cast<int8_t>(GetVal()));
+    set_correction_value(index, static_cast<int8_t>(value()));
 }
 
 MI_RESET::MI_RESET()

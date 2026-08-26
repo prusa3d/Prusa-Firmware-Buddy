@@ -40,13 +40,13 @@ void ScreenMenuInputShaper::update_gui() {
     if (x_enabled) {
         const auto axis_config = config_store().input_shaper_axis_x_config.get();
         Item<MI_IS_X_TYPE>().update();
-        Item<MI_IS_X_FREQUENCY>().SetVal(static_cast<int>(axis_config.frequency));
+        Item<MI_IS_X_FREQUENCY>().set_value(static_cast<int>(axis_config.frequency));
     }
 
     if (y_enabled) {
         const auto axis_config = config_store().input_shaper_axis_y_config.get();
         Item<MI_IS_Y_TYPE>().update();
-        Item<MI_IS_Y_FREQUENCY>().SetVal(static_cast<int>(axis_config.frequency));
+        Item<MI_IS_Y_FREQUENCY>().set_value(static_cast<int>(axis_config.frequency));
     }
 }
 

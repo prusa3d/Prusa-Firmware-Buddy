@@ -40,16 +40,6 @@ public:
     /// Sets either value or special_value if \param val std::nullopt
     void set_value(std::optional<float> val);
 
-    [[deprecated("Use value()")]]
-    inline float GetVal() const {
-        return value();
-    }
-
-    [[deprecated("Use set_value()")]]
-    inline void SetVal(float val) {
-        set_value(val);
-    }
-
     inline const NumericInputConfig &config() const {
         return config_;
     }

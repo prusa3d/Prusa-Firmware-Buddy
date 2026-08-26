@@ -256,7 +256,7 @@ MI_NOZZLE_CLEANER_CAPACITY::MI_NOZZLE_CLEANER_CAPACITY()
     : MenuItemSwitch(_(label), nozzle_cleaner_capacity_items, static_cast<size_t>(config_store().nozzle_cleaner_extended_capacity.get())) {}
 
 void MI_NOZZLE_CLEANER_CAPACITY::OnChange(size_t /*old_index*/) {
-    config_store().nozzle_cleaner_extended_capacity.set(get_index() == 1);
+    config_store().nozzle_cleaner_extended_capacity.set(current_item() == 1);
 }
 
 MI_NOZZLE_CLEANER_FILL::MI_NOZZLE_CLEANER_FILL()
@@ -384,7 +384,7 @@ MI_SOUND_MODE::MI_SOUND_MODE()
 }
 
 void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
-    sound::set_mode(static_cast<SoundMode>(get_index()));
+    sound::set_mode(static_cast<SoundMode>(current_item()));
 }
 
 /*****************************************************************************/
@@ -398,7 +398,7 @@ MI_SOUND_VOLUME::MI_SOUND_VOLUME()
     : WiSpin(static_cast<uint8_t>(sound::get_volume()), sound_volume_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_SOUND_VOLUME::OnClick() {
-    sound::set_volume(static_cast<int>(GetVal()));
+    sound::set_volume(static_cast<int>(value()));
 }
 
 /*****************************************************************************/
@@ -431,7 +431,7 @@ static constexpr NumericInputConfig timezone_spin_config = {
 MI_TIMEZONE::MI_TIMEZONE()
     : WiSpin(config_store().timezone.get(), timezone_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
-    int8_t timezone = static_cast<int8_t>(GetVal());
+    int8_t timezone = static_cast<int8_t>(value());
     config_store().timezone.set(timezone);
 }
 
@@ -450,7 +450,7 @@ MI_TIMEZONE_MIN::MI_TIMEZONE_MIN()
 }
 
 void MI_TIMEZONE_MIN::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().timezone_minutes.set(static_cast<time_tools::TimezoneOffsetMinutes>(get_index()));
+    config_store().timezone_minutes.set(static_cast<time_tools::TimezoneOffsetMinutes>(current_item()));
 }
 
 /*****************************************************************************/
@@ -476,7 +476,7 @@ MI_TIME_FORMAT::MI_TIME_FORMAT()
 }
 
 void MI_TIME_FORMAT::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().time_format.set(static_cast<time_tools::TimeFormat>(get_index()));
+    config_store().time_format.set(static_cast<time_tools::TimeFormat>(current_item()));
 }
 
 /*****************************************************************************/
@@ -532,7 +532,7 @@ MI_PRINT_PROGRESS_TIME::MI_PRINT_PROGRESS_TIME()
         config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_PRINT_PROGRESS_TIME::OnClick() {
-    config_store().print_progress_time.set(static_cast<uint16_t>(GetVal()));
+    config_store().print_progress_time.set(static_cast<uint16_t>(value()));
 }
 
 /*****************************************************************************/
@@ -882,7 +882,7 @@ MI_SIDE_LEDS_DIMMING_ENABLE::MI_SIDE_LEDS_DIMMING_ENABLE()
     : MenuItemSwitch(_(label), dimming_enabled_values, std::to_underlying(leds::SideStripHandler::instance().get_dimming_enabled())) {
 }
 void MI_SIDE_LEDS_DIMMING_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
-    leds::SideStripHandler::instance().set_dimming_enabled(static_cast<leds::DimmingEnabled>(get_index()));
+    leds::SideStripHandler::instance().set_dimming_enabled(static_cast<leds::DimmingEnabled>(current_item()));
 }
 #endif
 
@@ -952,7 +952,7 @@ MI_DISPLAY_BAUDRATE::MI_DISPLAY_BAUDRATE()
 }
 
 void MI_DISPLAY_BAUDRATE::OnChange(size_t) {
-    config_store().reduce_display_baudrate.set(get_index());
+    config_store().reduce_display_baudrate.set(current_item());
 }
 #endif
 

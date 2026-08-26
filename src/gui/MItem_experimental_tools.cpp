@@ -33,7 +33,7 @@ MI_Z_AXIS_LEN::MI_Z_AXIS_LEN()
     : WiSpin(get_z_max_pos_mm_rounded(), z_axis_len_spin_config, _("Z-axis length")) {}
 
 void MI_Z_AXIS_LEN::Store() {
-    set_z_max_pos_mm(GetVal());
+    set_z_max_pos_mm(value());
 }
 
 /*****************************************************************************/
@@ -116,7 +116,7 @@ MI_STEPS_PER_UNIT_Z::MI_STEPS_PER_UNIT_Z()
     : WiSpin(get_steps_per_unit_z(), steps_per_unit_spin_config, _("Z-axis steps per unit")) {}
 
 void MI_STEPS_PER_UNIT_Z::Store() {
-    set_steps_per_unit_z(GetVal());
+    set_steps_per_unit_z(value());
 }
 #endif
 
@@ -126,7 +126,7 @@ MI_STEPS_PER_UNIT_E::MI_STEPS_PER_UNIT_E()
     : WiSpin(get_steps_per_unit_e(), steps_per_unit_spin_config, _("Extruder steps per unit")) {}
 
 void MI_STEPS_PER_UNIT_E::Store() {
-    set_steps_per_unit_e(GetVal());
+    set_steps_per_unit_e(value());
 }
 
 /*****************************************************************************/
@@ -165,7 +165,7 @@ MI_DIRECTION_Z::MI_DIRECTION_Z()
     : WiSwitchDirection(has_wrong_z(), _("Z-axis direction")) {}
 
 void MI_DIRECTION_Z::Store() {
-    get_index() == 1 ? set_wrong_direction_z() : set_PRUSA_direction_z();
+    current_item() == 1 ? set_wrong_direction_z() : set_PRUSA_direction_z();
 }
 #endif
 
@@ -175,7 +175,7 @@ MI_DIRECTION_E::MI_DIRECTION_E()
     : WiSwitchDirection(has_wrong_e(), _("Extruder direction")) {}
 
 void MI_DIRECTION_E::Store() {
-    get_index() == 1 ? set_wrong_direction_e() : set_PRUSA_direction_e();
+    current_item() == 1 ? set_wrong_direction_e() : set_PRUSA_direction_e();
 }
 
 /*****************************************************************************/
@@ -202,7 +202,7 @@ MI_CURRENT_X::MI_CURRENT_X()
     : WiSpin(config_store().axis_rms_current_ma_X_.get(), rms_current_spin_config, _("X current")) {}
 
 void MI_CURRENT_X::Store() {
-    set_rms_current_ma_x(static_cast<uint16_t>(GetVal()));
+    set_rms_current_ma_x(static_cast<uint16_t>(value()));
 }
 
 /*****************************************************************************/
@@ -211,7 +211,7 @@ MI_CURRENT_Y::MI_CURRENT_Y()
     : WiSpin(config_store().axis_rms_current_ma_Y_.get(), rms_current_spin_config, _("Y current")) {}
 
 void MI_CURRENT_Y::Store() {
-    set_rms_current_ma_y(static_cast<uint16_t>(GetVal()));
+    set_rms_current_ma_y(static_cast<uint16_t>(value()));
 }
 
 /*****************************************************************************/
@@ -220,7 +220,7 @@ MI_CURRENT_Z::MI_CURRENT_Z()
     : WiSpin(config_store().axis_rms_current_ma_Z_.get(), rms_current_spin_config, _("Z current")) {}
 
 void MI_CURRENT_Z::Store() {
-    set_rms_current_ma_z(static_cast<uint16_t>(GetVal()));
+    set_rms_current_ma_z(static_cast<uint16_t>(value()));
 }
 
 /*****************************************************************************/
@@ -229,7 +229,7 @@ MI_CURRENT_E::MI_CURRENT_E()
     : WiSpin(config_store().axis_rms_current_ma_E0_.get(), rms_current_spin_config, _("Extruder current")) {}
 
 void MI_CURRENT_E::Store() {
-    set_rms_current_ma_e(static_cast<uint16_t>(GetVal()));
+    set_rms_current_ma_e(static_cast<uint16_t>(value()));
 }
 #endif
 

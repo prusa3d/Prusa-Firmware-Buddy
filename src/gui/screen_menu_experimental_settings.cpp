@@ -62,7 +62,7 @@ void ScreenMenuExperimentalSettings::windowEvent(window_t *sender, GUI_event_t e
         break;
 
     case ClickCommand::Reset_Z:
-        Item<MI_Z_AXIS_LEN>().SetVal(DEFAULT_Z_MAX_POS);
+        Item<MI_Z_AXIS_LEN>().set_value(DEFAULT_Z_MAX_POS);
         Invalidate();
         break;
 
@@ -72,10 +72,10 @@ void ScreenMenuExperimentalSettings::windowEvent(window_t *sender, GUI_event_t e
         Item<MI_DIRECTION_X>().set_current_item(0);
         Item<MI_STEPS_PER_UNIT_Y>().set_value(std::nullopt);
         Item<MI_DIRECTION_Y>().set_current_item(0);
-        Item<MI_STEPS_PER_UNIT_Z>().SetVal(std::abs(config_store().axis_steps_per_unit_z.default_val));
+        Item<MI_STEPS_PER_UNIT_Z>().set_value(std::abs(config_store().axis_steps_per_unit_z.default_val));
         Item<MI_DIRECTION_Z>().set_current_item(0);
 #endif
-        Item<MI_STEPS_PER_UNIT_E>().SetVal(std::abs(config_store().axis_steps_per_unit_e0.default_val));
+        Item<MI_STEPS_PER_UNIT_E>().set_value(std::abs(config_store().axis_steps_per_unit_e0.default_val));
         Item<MI_DIRECTION_E>().set_current_item(0);
         Invalidate();
         break;
@@ -94,10 +94,10 @@ void ScreenMenuExperimentalSettings::windowEvent(window_t *sender, GUI_event_t e
 #if HAS_EXTRA_EXPERIMENTAL_SETTINGS()
     case ClickCommand::Reset_currents:
         // 0 is valid for X and Y axis, means to use default values
-        Item<MI_CURRENT_X>().SetVal(config_store().axis_rms_current_ma_X_.default_val);
-        Item<MI_CURRENT_Y>().SetVal(config_store().axis_rms_current_ma_Y_.default_val);
-        Item<MI_CURRENT_Z>().SetVal(config_store().axis_rms_current_ma_Z_.default_val);
-        Item<MI_CURRENT_E>().SetVal(config_store().axis_rms_current_ma_E0_.default_val);
+        Item<MI_CURRENT_X>().set_value(config_store().axis_rms_current_ma_X_.default_val);
+        Item<MI_CURRENT_Y>().set_value(config_store().axis_rms_current_ma_Y_.default_val);
+        Item<MI_CURRENT_Z>().set_value(config_store().axis_rms_current_ma_Z_.default_val);
+        Item<MI_CURRENT_E>().set_value(config_store().axis_rms_current_ma_E0_.default_val);
         Invalidate();
         break;
 #endif

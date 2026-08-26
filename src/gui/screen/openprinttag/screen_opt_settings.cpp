@@ -20,7 +20,7 @@ public:
 
 protected:
     virtual void OnChange(size_t) override {
-        config_store().opt_auto_read_on_load.set(static_cast<Tristate::Value>(get_index()));
+        config_store().opt_auto_read_on_load.set(static_cast<Tristate::Value>(current_item()));
     }
 };
 

@@ -148,7 +148,7 @@ MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
 }
 
 void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
-    netdev_set_active_id(this->get_index());
+    netdev_set_active_id(this->current_item());
 }
 #endif
 
@@ -213,7 +213,7 @@ MI_NET_IP::MI_NET_IP(NetDeviceID device_id)
 
 void MI_NET_IP::OnChange([[maybe_unused]] size_t old_index) {
     const auto dev_id = device_id();
-    if (this->get_index() == NETDEV_STATIC) {
+    if (this->current_item() == NETDEV_STATIC) {
         netdev_set_static(dev_id);
     } else {
         netdev_set_dhcp(dev_id);

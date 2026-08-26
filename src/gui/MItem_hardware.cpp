@@ -34,7 +34,7 @@ MI_HARDWARE_CHECK::MI_HARDWARE_CHECK(HWCheckType check_type)
 {}
 
 void MI_HARDWARE_CHECK::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().visit_hw_check(check_type, [set = static_cast<HWCheckSeverity>(this->get_index())](auto &item) { item.set(set); });
+    config_store().visit_hw_check(check_type, [set = static_cast<HWCheckSeverity>(this->current_item())](auto &item) { item.set(set); });
 }
 
 #if HAS_SIDE_FSENSOR_REMAP()
@@ -178,7 +178,7 @@ MI_SWITCH_VENT_MECHANISM::MI_SWITCH_VENT_MECHANISM()
     : MenuItemSwitch(_("Chamber Vent Control"), chamber_vent_control_items, 0) {}
 
 void MI_SWITCH_VENT_MECHANISM::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().set_vent_control(VentControl(get_index()));
+    config_store().set_vent_control(VentControl(current_item()));
 }
 
 void MI_SWITCH_VENT_MECHANISM::Loop() {
@@ -198,7 +198,7 @@ MI_AUTO_PRECISE_HOMING_CALIBRATION::MI_AUTO_PRECISE_HOMING_CALIBRATION()
 }
 
 void MI_AUTO_PRECISE_HOMING_CALIBRATION::OnChange(size_t) {
-    config_store().auto_recalibrate_precise_homing.set(static_cast<Tristate::Value>(get_index()));
+    config_store().auto_recalibrate_precise_homing.set(static_cast<Tristate::Value>(current_item()));
 }
 #endif
 #if HAS_EXPANSION_JOINTS_GEN_2()

@@ -66,7 +66,7 @@ public:
 
 private:
     virtual void OnChange(size_t) final {
-        bitset_->set(std::to_underlying(item_), get_index());
+        bitset_->set(std::to_underlying(item_), current_item());
     }
 
     Color resolved_value_text_color(Color) const override {

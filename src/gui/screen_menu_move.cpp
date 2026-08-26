@@ -177,7 +177,7 @@ void ScreenMenuMove::loop() {
     // If we finished editing E pos, reset it to zero
     if (auto &mi = Item<MI_AXIS_E>(); !mi.is_edited()) {
         e_axis_offset += mi.value();
-        mi.SetVal(0);
+        mi.set_value(0);
     }
 
     plan_moves();

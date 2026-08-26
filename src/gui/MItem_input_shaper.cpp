@@ -77,7 +77,7 @@ MI_IS_X_FREQUENCY::MI_IS_X_FREQUENCY()
 
 void MI_IS_X_FREQUENCY::OnClick() {
     auto axis_x = config_store().input_shaper_axis_x_config.get();
-    axis_x.frequency = static_cast<float>(GetVal());
+    axis_x.frequency = static_cast<float>(value());
     config_store().input_shaper_axis_x_config.set(axis_x);
 
     // Make the input shaper reload config from config_store
@@ -96,7 +96,7 @@ MI_IS_Y_FREQUENCY::MI_IS_Y_FREQUENCY()
 
 void MI_IS_Y_FREQUENCY::OnClick() {
     auto axis_y = config_store().input_shaper_axis_y_config.get();
-    axis_y.frequency = static_cast<float>(GetVal());
+    axis_y.frequency = static_cast<float>(value());
     config_store().input_shaper_axis_y_config.set(axis_y);
 
     // Make the input shaper reload config from config_store

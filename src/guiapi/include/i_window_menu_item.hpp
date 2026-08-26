@@ -207,11 +207,6 @@ public:
     /// Sets whether the item should show the extension (value) when disabled
     void set_show_disabled_extension(bool set);
 
-    [[deprecated("Use set_show_disabled_extension()")]]
-    inline void ShowDisabledExtension() {
-        set_show_disabled_extension(true);
-    }
-
     void set_is_hidden(bool set = true);
 
     inline void set_is_hidden(is_hidden_t set) {
