@@ -55,12 +55,18 @@ public:
     MI_OTP_INDX_HEAD();
 };
 
+class MI_OTP_XL_CAN final : public WindowMenuInfoOtp {
+public:
+    MI_OTP_XL_CAN();
+};
+
 using ScreenMenuBoardInfo__ = BasicScreenMenu<
     MI_OTP_MOTHERBOARD,
     MI_OTP_LOVEBOARD,
     MI_OTP_XLCD,
     MI_OTP_XBUDDY_EXTENSION,
-    MI_OTP_INDX_HEAD>;
+    MI_OTP_INDX_HEAD,
+    MI_OTP_XL_CAN>;
 
 class ScreenMenuBoardInfo final : public ScreenMenuBoardInfo__ {
 public:
