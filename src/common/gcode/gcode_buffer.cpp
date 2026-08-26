@@ -82,7 +82,7 @@ GcodeBuffer::String::parsed_metadata_t GcodeBuffer::String::parse_metadata(bool 
     parsed_metadata_t result = { GcodeBuffer::String(nullptr, nullptr), GcodeBuffer::String(nullptr, nullptr) };
 
     skip_ws();
-    if (*begin == ';') {
+    if (begin != end && *begin == ';') {
         begin++; // metadata are in format "; name = value", or just "name = value", dependign in if it comes from plaintext gcode or bgcode
     }
     skip_ws();
