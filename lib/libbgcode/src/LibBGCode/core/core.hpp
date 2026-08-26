@@ -62,7 +62,31 @@ enum class EBlockType : uint16_t
     SlicerMetadata,
     PrinterMetadata,
     PrintMetadata,
-    Thumbnail
+    Thumbnail,
+    IdentityBlock,
+    KeyBlock,
+    EncryptedBlock
+};
+
+enum class EIdentityBlockSignCypher : uint16_t
+{
+    RSA
+};
+
+enum class EIdentityFlags : uint8_t
+{
+    ONE_TIME_IDENTITY = 1 << 0,
+};
+
+enum class EKeyBlockEncryption : uint16_t
+{
+    None,
+    RSA_ENC_SHA256_SIGN
+};
+
+enum class EEncryptedBlockEncryption : uint16_t
+{
+    AES128_CBC_SHA256_HMAC
 };
 
 enum class ECompressionType : uint16_t

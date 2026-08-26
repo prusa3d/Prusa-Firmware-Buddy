@@ -171,7 +171,7 @@ void Checksum::append(const BufT *data, size_t size)
 static constexpr auto MAGICi32 = load_integer<uint32_t>(std::begin(MAGIC), std::end(MAGIC));
 
 constexpr auto checksum_types_count() noexcept { auto v = to_underlying(EChecksumType::CRC32); ++v; return v;}
-constexpr auto block_types_count() noexcept { auto v = to_underlying(EBlockType::Thumbnail); ++v; return v; }
+constexpr auto block_types_count() noexcept { auto v = to_underlying(EBlockType::EncryptedBlock); ++v; return v; }
 constexpr auto compression_types_count() noexcept { auto v = to_underlying(ECompressionType::Heatshrink_12_4); ++v; return v; }
 
 } // namespace core
