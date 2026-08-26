@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <ranges>
 #include <optional>
+#include <cstddef>
 #include <bsod.h>
 #include <type_traits>
 #include <config_store/store_instance.hpp>
@@ -73,7 +74,7 @@ IGcodeReader::Result_t PrusaPackGcodeReader::read_block_header(BlockHeader &bloc
     // How large can we afford? Bigger is better, but we need to fit to the current stack
     // (and no, we don't want to have a static buffer allocated all the time).
     constexpr size_t crc_buffer_size = 128;
-    uint8_t crc_buffer[crc_buffer_size];
+    std::byte crc_buffer[crc_buffer_size];
     auto res = read_next_block_header(*file, file_header, block_header, check_crc ? crc_buffer : nullptr, check_crc ? crc_buffer_size : 0);
     if (res == bgcode::core::EResult::ReadError && feof(file)) {
         // END of file reached, end

@@ -52,7 +52,7 @@ target_link_libraries(
          base64
   )
 
-add_executable(gcode_reader_test gcode_reader.cpp)
+add_executable(gcode_reader_test gcode_reader.cpp is_valid_binary_gcode_test.cpp)
 target_link_libraries(gcode_reader_test gcode_reader_test_base)
 add_catch_test(gcode_reader_test)
 

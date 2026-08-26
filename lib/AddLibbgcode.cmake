@@ -1,7 +1,3 @@
-set(LibBGCode_BUILD_COMPONENT_Base
-    "OFF"
-    CACHE BOOL "Compile bgcode_base component of libbgcode"
-    )
 set(LibBGCode_BUILD_TESTS
     "OFF"
     CACHE BOOL "Compile tests component of libbgcode"

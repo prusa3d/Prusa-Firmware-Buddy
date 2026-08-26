@@ -2,7 +2,7 @@
 
 #include <type_traits>
 #include <errno.h>
-#include "core/core.hpp"
+#include "core/core_impl.hpp"
 #include "transfers/transfer.hpp"
 #include "lang/i18n.h"
 #include <bsod/bsod.h>
