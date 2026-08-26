@@ -962,12 +962,6 @@ struct CurrentStore
     std::optional<float> get_filament_retracted_distance(PhysicalToolIndex tool);
 #endif
 
-#if HAS_ANFC()
-    /// Whether we should automatically read data from the OpenPrintTag during load procedure
-    /// Tristate::other = ask the user
-    StoreItem<Tristate, Tristate::other, ItemFlag::features, journal::hash("OpenPrintTag auto use loadunload")> opt_auto_read_on_load;
-#endif
-
 #if HAS_CHAMBER_VENTS()
     StoreItem<bool, true, ItemFlag::features, journal::hash("Check chamber ventilation state")> check_chamber_vent_state;
     StoreItem<bool, true, ItemFlag::hw_config, journal::hash("Auto chamber vent enabled")> auto_chamber_vent_enabled;
@@ -1151,6 +1145,8 @@ struct DeprecatedStore
         StoreItem<uint32_t, defaults::side_fs_value_span, ItemFlag::calibrations | ItemFlag::dev_items, journal::hash("Side FS Value Span 5")> side_fs_value_span_5;
 
         StoreItem<bool, true, ItemFlag::calibrations, journal::hash("Run Selftest")> run_selftest;
+
+        StoreItem<Tristate, Tristate::other, ItemFlag::features, journal::hash("OpenPrintTag auto use loadunload")> opt_auto_read_on_load;
         */
 
     // Old filament order stored as variant-based FilamentType array (2 bytes each, 128 bytes total).

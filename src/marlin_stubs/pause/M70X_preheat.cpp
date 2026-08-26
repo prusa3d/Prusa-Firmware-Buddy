@@ -122,34 +122,19 @@ static FSMResponseVariant determine_filament_for_operation(const filament_gcodes
     if (can_use_openprinttag(preheat_data.mode) && tag.has_value()) {
         namespace opt = buddy::openprinttag;
 
-        Tristate load_tag = config_store().opt_auto_read_on_load.get();
+        bool load_tag = (preheat_data.openprinttag_uid_hash == tag->uid_hash());
 
-        if (preheat_data.openprinttag_uid_hash == tag->uid_hash()) {
-            load_tag = Tristate::yes;
-        }
-
-        if (load_tag == Tristate::other) {
+        if (!load_tag) {
             // Ask the user if they want to load the data
             fsm.change(PhasesPreheat::ask_load_openprinttag, serialized_data);
             while (true) {
                 switch (marlin_server::get_response_from_phase(PhasesPreheat::ask_load_openprinttag)) {
 
                 case Response::Yes:
-                    load_tag = Tristate::yes;
+                    load_tag = true;
                     goto break_ask_load_opt_loop;
 
                 case Response::No:
-                    load_tag = Tristate::no;
-                    goto break_ask_load_opt_loop;
-
-                case Response::Always:
-                    load_tag = Tristate::yes;
-                    config_store().opt_auto_read_on_load.set(true);
-                    goto break_ask_load_opt_loop;
-
-                case Response::Never:
-                    load_tag = Tristate::no;
-                    config_store().opt_auto_read_on_load.set(false);
                     goto break_ask_load_opt_loop;
 
                 case Response::_none:
@@ -168,7 +153,7 @@ static FSMResponseVariant determine_filament_for_operation(const filament_gcodes
         break_ask_load_opt_loop:
         }
 
-        if (load_tag == Tristate::yes) {
+        if (load_tag) {
             opt::MultiReadFieldRequest<opt::FilamentParametersInfo::Requirements {}> req { *tag };
             req.issue();
 

@@ -31,7 +31,7 @@ inline constexpr EnumArray<PhasesPreheat, PhaseResponses, PhasesPreheat::_cnt> p
     { PhasesPreheat::user_temp_selection, { Response::Abort, Response::Cooldown } },
 
 #if HAS_ANFC()
-        { PhasesPreheat::ask_load_openprinttag, { Response::Yes, Response::No, Response::Always, Response::Never } },
+        { PhasesPreheat::ask_load_openprinttag, { Response::Yes, Response::No } },
         { PhasesPreheat::openprinttag_parameters, {} },
 #endif
 };
