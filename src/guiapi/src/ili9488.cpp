@@ -617,7 +617,11 @@ void ili9488_draw_qoi_ex(Rect16 subrect, AbstractByteReader &reader, Color back_
     } image_timing;
 #endif /*0*/
 
-    subrect.Intersection(Rect16(0, 0, ILI9488_COLS, ILI9488_ROWS)); // Clip drawn subrect to display size
+    const int16_t image_right = subrect.Right(); // Decoder emits full image rows regardless of clipping
+    subrect = subrect.Intersection(Rect16(0, 0, ILI9488_COLS, ILI9488_ROWS)); // Clip drawn subrect to display size
+    if (subrect.IsEmpty()) {
+        return; // Image is completely off-screen
+    }
 
     // Prepare output
     // Set write rectangle
@@ -647,7 +651,7 @@ void ili9488_draw_qoi_ex(Rect16 subrect, AbstractByteReader &reader, Color back_
                 // Keep track of pixel position
                 auto orig_pos = pos;
                 pos.x++;
-                if (pos.x > subrect.Right()) {
+                if (pos.x > image_right) {
                     pos.x = subrect.Left();
                     pos.y++;
                 }
