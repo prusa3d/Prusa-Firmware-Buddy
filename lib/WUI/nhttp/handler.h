@@ -47,7 +47,8 @@
 #include <string_view>
 #include <variant>
 
-#if NETWORKING_BENCHMARK_ENABLED
+#include <option/networking_benchmark_enabled.h>
+#if NETWORKING_BENCHMARK_ENABLED()
     #include "networking_benchmark.h"
 #endif
 
@@ -153,7 +154,7 @@ namespace handler {
         printer::JobCommand,
         printer::FileInfo,
         printer::FileCommand,
-#if NETWORKING_BENCHMARK_ENABLED
+#if NETWORKING_BENCHMARK_ENABLED()
         NetworkingBenchmark,
 #endif
         // TODO: Some other generators/consumers

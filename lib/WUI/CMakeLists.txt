@@ -48,7 +48,6 @@ if(NETWORKING_BENCHMARK_ENABLED)
   target_sources(
     WUI INTERFACE nhttp/networking_benchmark.cpp nhttp/networking_benchmark_selector.cpp
     )
-  target_compile_definitions(WUI INTERFACE NETWORKING_BENCHMARK_ENABLED)
 endif()
 
 if(HAS_ESP)

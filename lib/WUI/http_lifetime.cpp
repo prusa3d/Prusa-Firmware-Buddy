@@ -7,7 +7,8 @@
 #include "link_content/previews.h"
 #include "wui.h"
 #include "wui_api.h"
-#if NETWORKING_BENCHMARK_ENABLED
+#include <option/networking_benchmark_enabled.h>
+#if NETWORKING_BENCHMARK_ENABLED()
     #include "nhttp/networking_benchmark_selector.h"
 #endif
 
@@ -33,7 +34,7 @@ private:
         &usb_files,
         &previews,
         &static_file, // This touches the filesystem unconditionally, so we put it at the bottom.
-#if NETWORKING_BENCHMARK_ENABLED
+#if NETWORKING_BENCHMARK_ENABLED()
         &networking_benchmark_selector,
 #endif
         &unknown_request,
