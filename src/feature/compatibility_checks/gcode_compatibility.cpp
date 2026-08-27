@@ -115,7 +115,9 @@ constinit const ChecksTraits<GeneralCheck>::Metadata ChecksTraits<GeneralCheck>:
         {
             GeneralCheck::not_enough_tools,
             CheckMetadata {
-                .severity = HWCheckSeverity::Abort,
+                // Needs to be overridable - some people use multiextruder sliced GCode with M600 for singlenozzle prints
+                // BFW-9260
+                .severity = HWCheckSeverity::Warning,
                 .title = N_("Not enough tools"),
                 .description = N_("G-Code requires more tools than are currently enabled."),
             },
