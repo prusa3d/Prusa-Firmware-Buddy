@@ -98,15 +98,6 @@ public:
         }
     }
 
-    [[deprecated("Use the ToolIndex overload")]]
-    inline bool set_unassigned(uint8_t gcode_tool) {
-        if (gcode_tool >= GcodeToolIndex::count) {
-            return false;
-        }
-        set_unassigned(GcodeToolIndex::from_raw(gcode_tool));
-        return true;
-    }
-
     inline void set_unassigned(GcodeToolIndex gcode_tool) {
         std::unique_lock lock(mutex);
         set_unassigned_unlocked(gcode_tool);
