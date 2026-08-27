@@ -90,6 +90,7 @@
 #define STR_Z_MOVE_COMP                     "Z_move_comp"
 #define MSG_RESEND                          "Resend: "
 #define MSG_UNKNOWN_COMMAND                 "Unknown command: \""
+#define MSG_LINE_TOO_LONG                   "Line exceeds max buffer length"
 #define MSG_ACTIVE_EXTRUDER                 "Active Extruder: "
 #define MSG_X_MIN                           "x_min"
 #define MSG_X_MAX                           "x_max"

@@ -39,6 +39,7 @@ GCodeQueue queue;
 #endif
 #include <gcode/inject_queue.hpp>
 #include <feature/cork/tracker.hpp>
+#include <marlin_server.hpp>
 
 /**
  * GCode line number handling. Hosts may opt to include line numbers when
@@ -349,13 +350,17 @@ FORCE_INLINE bool is_M29(const char * const cmd) {  // matches "M29" & "M29 ", b
  * left on the serial port.
  */
 void GCodeQueue::get_serial_commands() {
+  // Mutually exclusive: a comment is consumed before the overflow check, so a line
+  // can never be both.
+  enum class LineState : uint8_t { ok, too_long, comment };
+  static_assert(LineState {} == LineState::ok, "zero-initialised state must mean ok");
+
   static char serial_line_buffer[NUM_SERIAL][MAX_CMD_SIZE];
-  static bool serial_comment_mode[NUM_SERIAL] = { false }
-              #if ENABLED(PAREN_COMMENTS)
-                // #error dead code found by automatic analyses (see BFW-5461)
-                , serial_comment_paren_mode[NUM_SERIAL] = { false }
-              #endif
-            ;
+  static LineState serial_line_state[NUM_SERIAL] = {};
+  #if ENABLED(PAREN_COMMENTS)
+    // #error dead code found by automatic analyses (see BFW-5461)
+    static bool serial_comment_paren_mode[NUM_SERIAL] = { false };
+  #endif
 
   // If the command buffer is empty for too long,
   // send "wait" to indicate Marlin is still waiting.
@@ -383,9 +388,10 @@ void GCodeQueue::get_serial_commands() {
        * If the character ends the line
        */
       if (serial_char == '\n' || serial_char == '\r') {
+        const bool line_too_long = (serial_line_state[i] == LineState::too_long);
 
-        // Start with comment mode off
-        serial_comment_mode[i] = false;
+        // Start the next line with a clean state
+        serial_line_state[i] = LineState::ok;
         #if ENABLED(PAREN_COMMENTS)
           // #error dead code found by automatic analyses (see BFW-5461)
           serial_comment_paren_mode[i] = false;
@@ -448,6 +454,16 @@ void GCodeQueue::get_serial_commands() {
         SerialPrinting::serial_command_hook(command);
 #endif
 
+        if (line_too_long) {
+          // Reported only once the cropped command is certain to run - a dialog raised
+          // for a line rejected above could not be dismissed while the host resends it.
+          // Echo rather than error: hosts match error text against a list of recoverable
+          // conditions and abort the print on anything else.
+          PORT_REDIRECT(i);
+          SERIAL_ECHO_MSG(MSG_LINE_TOO_LONG);
+          marlin_server::set_warning(WarningType::GcodeCropped);
+        }
+
         // Add the command to the queue
         _enqueue(serial_line_buffer[i], true
           #if NUM_SERIAL > 1
@@ -456,13 +472,20 @@ void GCodeQueue::get_serial_commands() {
           #endif
         );
       }
+      else if (serial_line_state[i] == LineState::comment) {
+        // Drop the rest of the line, however long it grows
+      }
+      else if (serial_char == ';') {
+        serial_line_state[i] = LineState::comment;
+      }
       else if (serial_count[i] >= MAX_CMD_SIZE - 1) {
         // Keep fetching, but ignore normal characters beyond the max length
-        // The command will be injected when EOL is reached
+        // The cropped command will be injected when EOL is reached
+        serial_line_state[i] = LineState::too_long;
       }
       else if (serial_char == '\\') {  // Handle escapes
         // if we have one more character, copy it over
-        if ((c = read_serial(i)) >= 0 && !serial_comment_mode[i]
+        if ((c = read_serial(i)) >= 0
           #if ENABLED(PAREN_COMMENTS)
             // #error dead code found by automatic analyses (see BFW-5461)
             && !serial_comment_paren_mode[i]
@@ -470,19 +493,16 @@ void GCodeQueue::get_serial_commands() {
         )
           serial_line_buffer[i][serial_count[i]++] = (char)c;
       }
-      else { // it's not a newline, carriage return or escape char
-        if (serial_char == ';') serial_comment_mode[i] = true;
+      else { // it's not a newline, carriage return, comment or escape char
         #if ENABLED(PAREN_COMMENTS)
           // #error dead code found by automatic analyses (see BFW-5461)
-          else if (serial_char == '(') serial_comment_paren_mode[i] = true;
+          if (serial_char == '(') serial_comment_paren_mode[i] = true;
           else if (serial_char == ')') serial_comment_paren_mode[i] = false;
+          else if (!serial_comment_paren_mode[i])
+            serial_line_buffer[i][serial_count[i]++] = serial_char;
+        #else
+          serial_line_buffer[i][serial_count[i]++] = serial_char;
         #endif
-        else if (!serial_comment_mode[i]
-          #if ENABLED(PAREN_COMMENTS)
-            // #error dead code found by automatic analyses (see BFW-5461)
-            && ! serial_comment_paren_mode[i]
-          #endif
-        ) serial_line_buffer[i][serial_count[i]++] = serial_char;
       }
     } // for NUM_SERIAL
   } // queue has space, serial has data
