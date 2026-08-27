@@ -408,6 +408,7 @@ FrameToolMapping::FrameToolMapping(window_frame_t *parent)
     bottom_status_.SetAlignment(Align_t::Center());
 
     bottom_buttons_.Change(PhaseResponses { Response::Abort, Response::Filament, Response::Remap, Response::Print });
+    bottom_buttons_.set_callback([this](Response r) { on_button_click(r); });
     bottom_buttons_.SetFocus();
     bottom_buttons_.SetBtnIndex(3); // Pre-select the print button
 
@@ -897,58 +898,50 @@ void FrameToolMapping::windowEvent(window_t *sender, GUI_event_t event, void *co
         update_mapping();
     }
 
-    switch (event) {
+    window_frame_t::windowEvent(sender, event, param);
+}
 
-    case GUI_event_t::CHILD_CLICK: {
-        const auto response = event_conversion_union { .pvoid = param }.response;
-        switch (response) {
+void FrameToolMapping::on_button_click(Response response) {
+    switch (response) {
 
-        case Response::Print:
-            if (!compat_report_.gui_confirm_all_incompatibilities(Response::Cancel, buddy::compatibility_checks::CompatibilityLevel::fully_compatible, buddy::gcode_compatibility::CompatibilityReport::AggregateTools::yes)) {
-                return;
-            }
-
-            // Don't redraw tools mapping screen since we're leaving
-            Screens::Access()->Get()->Validate();
-
-            marlin_client::FSM_response(PhasesPrintPreview::tools_mapping, response);
-            return;
-
-        case Response::Abort:
-            if (MsgBoxQuestion(_("Do you really want to abort print?"), { Response::Abort, Response::No }) != Response::Abort) {
-                return;
-            }
-
-            // Don't redraw tools mapping screen since we're leaving
-            Screens::Access()->Get()->Validate();
-
-            marlin_client::FSM_response(PhasesPrintPreview::tools_mapping, response);
-            return;
-
-        case Response::Remap:
-            // Just a helper button to help people realize that they can change the mapping on this screen
-            // We've seen some github/social media posts where people thought the tool mapping is just for display and you cannot change it
-            focus_suggested_tool(ToolType::gcode_tool);
-            update_status_text(ShowGuide::yes);
-            return;
-
-        case Response::Filament: {
-            // The ChangeAll screen will pop out, this screen will get re-initialized afterwards
-            Screens::Access()->Open<ScreenChangeAllFilaments, ScreenChangeAllFilaments::SetupForPrint {}>();
+    case Response::Print:
+        if (!compat_report_.gui_confirm_all_incompatibilities(Response::Cancel, buddy::compatibility_checks::CompatibilityLevel::fully_compatible, buddy::gcode_compatibility::CompatibilityReport::AggregateTools::yes)) {
             return;
         }
 
-        default:
-            bsod_unreachable();
+        // Don't redraw tools mapping screen since we're leaving
+        Screens::Access()->Get()->Validate();
+
+        marlin_client::FSM_response(PhasesPrintPreview::tools_mapping, response);
+        return;
+
+    case Response::Abort:
+        if (MsgBoxQuestion(_("Do you really want to abort print?"), { Response::Abort, Response::No }) != Response::Abort) {
+            return;
         }
-        break;
+
+        // Don't redraw tools mapping screen since we're leaving
+        Screens::Access()->Get()->Validate();
+
+        marlin_client::FSM_response(PhasesPrintPreview::tools_mapping, response);
+        return;
+
+    case Response::Remap:
+        // Just a helper button to help people realize that they can change the mapping on this screen
+        // We've seen some github/social media posts where people thought the tool mapping is just for display and you cannot change it
+        focus_suggested_tool(ToolType::gcode_tool);
+        update_status_text(ShowGuide::yes);
+        return;
+
+    case Response::Filament: {
+        // The ChangeAll screen will pop out, this screen will get re-initialized afterwards
+        Screens::Access()->Open<ScreenChangeAllFilaments, ScreenChangeAllFilaments::SetupForPrint {}>();
+        return;
     }
 
     default:
-        break;
+        bsod_unreachable();
     }
-
-    window_frame_t::windowEvent(sender, event, param);
 }
 
 } // namespace screen_tool_mapping

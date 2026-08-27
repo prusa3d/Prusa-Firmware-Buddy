@@ -235,6 +235,9 @@ private:
     /// Necessary to call after each remapping
     void update_mapping();
 
+    /// Called when a button in the bottom row is clicked
+    void on_button_click(Response response);
+
 protected:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *const param) override;
 
