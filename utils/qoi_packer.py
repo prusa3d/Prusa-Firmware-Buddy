@@ -48,15 +48,16 @@ def main():
                 name = png_file.name.split('.')[0]
                 width = png.width
                 height = png.height
-                data = qoi.encode(numpy.array(png))
-                size = len(data)
+                qoi_data = qoi.encode(numpy.array(png))
+                pixel_data = qoi_data[14:-8]  ## without header and padding
+                pixel_data_size = len(pixel_data)
 
                 if name + ".png" in filtered_pngs:
                     resources_file.write(
                         f'inline constexpr Resource {name}({offset}, {width}, {height});\n'
                     )
-                    data_file.write(data)
-                    offset = offset + size
+                    data_file.write(pixel_data)
+                    offset = offset + pixel_data_size
                 else:
                     resources_file.write(f'extern Resource {name};\n')
 

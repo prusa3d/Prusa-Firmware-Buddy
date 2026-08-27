@@ -542,7 +542,7 @@ void draw_img(point_ui16_t pt, const img::Resource &qoi, Color back_color, ropfn
     }
 
     // Seek to the QOI bytestream positioned after header and draw
-    ::lseek(resource_fd, qoi.offset + qoi::Decoder::HEADER_SIZE, SEEK_SET);
+    ::lseek(resource_fd, qoi.offset, SEEK_SET);
     ResourceFileReader reader;
     const auto rect = Rect16::fromLTWH(pt.x, pt.y, qoi.w, qoi.h);
     draw_qoi_ex_C(rect, reader, back_color, rop);
