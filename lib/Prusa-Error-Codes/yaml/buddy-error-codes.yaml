@@ -399,7 +399,7 @@ Errors:
   - code: "XX141"
     printers: [XL]
     title: "Printer Type Set to XL+"
-    text: "XL-CAN bridge detected. Printer type has been set to Original Prusa XL+. Settings have been updated."
+    text: "XL-CAN bridge detected. Printer type has been set to Prusa XL+. Settings have been updated."
     id: "PRINTER_DETECTED_AS_XLS"
     type: WARNING
     gui_layout: "warning_dialog"
