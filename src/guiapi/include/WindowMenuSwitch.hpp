@@ -21,7 +21,7 @@ protected:
 
     bool on_item_selected(const OnItemSelectedArgs &args) override;
 
-    string_view_utf8 build_item_text(int index, ItemTextParams &params) const final;
+    string_view_utf8 build_item_text(int index, StringViewUtf8ParamBase &params) const final;
 
 private:
     std::span<const char *const> items_;

@@ -78,7 +78,7 @@ int MI_ActionSelect::item_count() const {
     return index_mapping.total_item_count();
 }
 
-string_view_utf8 MI_ActionSelect::build_item_text(int index, MenuItemSelectMenu::ItemTextParams &params) const {
+string_view_utf8 MI_ActionSelect::build_item_text(int index, StringViewUtf8ParamBase &params) const {
     const auto mapping = index_mapping.from_index(index);
     switch (mapping.item) {
 

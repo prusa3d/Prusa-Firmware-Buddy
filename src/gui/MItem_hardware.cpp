@@ -72,7 +72,7 @@ int MI_EXTENDED_PRINTER_TYPE::item_count() const {
     return static_cast<int>(extended_printer_type_model.size());
 }
 
-string_view_utf8 MI_EXTENDED_PRINTER_TYPE::build_item_text(int index, [[maybe_unused]] MenuItemSelectMenu::ItemTextParams &params) const {
+string_view_utf8 MI_EXTENDED_PRINTER_TYPE::build_item_text(int index, [[maybe_unused]] StringViewUtf8ParamBase &params) const {
     return string_view_utf8::MakeCPUFLASH(PrinterModelInfo::get(extended_printer_type_model[index]).display_str());
 }
 
@@ -104,7 +104,7 @@ int MI_PRINTER_VARIANT::item_count() const {
     return index_mapping.total_item_count();
 }
 
-string_view_utf8 MI_PRINTER_VARIANT::build_item_text(int index, [[maybe_unused]] MenuItemSelectMenu::ItemTextParams &params) const {
+string_view_utf8 MI_PRINTER_VARIANT::build_item_text(int index, [[maybe_unused]] StringViewUtf8ParamBase &params) const {
     const auto mapping = index_mapping.from_index(index);
     switch (mapping.item) {
 

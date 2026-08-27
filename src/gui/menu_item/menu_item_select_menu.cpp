@@ -16,7 +16,7 @@ public:
 
 private:
     const int index_;
-    MenuItemSelectMenu::ItemTextParams params_;
+    StringViewUtf8Parameters<16> params_;
 };
 
 // Size-sensitive

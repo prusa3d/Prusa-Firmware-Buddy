@@ -270,7 +270,7 @@ public:
     MI_MMU_NEXTRUDER_REWORK();
 
     int item_count() const override;
-    string_view_utf8 build_item_text(int index, ItemTextParams &params) const override;
+    string_view_utf8 build_item_text(int index, StringViewUtf8ParamBase &params) const override;
 
 protected:
     bool on_item_selected(const OnItemSelectedArgs &args) override;

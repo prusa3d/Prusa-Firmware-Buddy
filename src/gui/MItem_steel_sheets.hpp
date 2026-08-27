@@ -7,7 +7,7 @@ public:
     MI_CURRENT_SHEET_PROFILE();
 
     int item_count() const final;
-    string_view_utf8 build_item_text(int index, ItemTextParams &params) const final;
+    string_view_utf8 build_item_text(int index, StringViewUtf8ParamBase &params) const final;
 
 protected:
     bool on_item_selected(const OnItemSelectedArgs &args) override;

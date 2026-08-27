@@ -27,8 +27,6 @@ public:
 
     static constexpr Font value_font = GuiDefaults::FontMenuItems;
 
-    using ItemTextParams = StringViewUtf8Parameters<16>;
-
     MenuItemSelectMenu(const string_view_utf8 &label);
 
     void set_behavior(Behavior set);
@@ -48,7 +46,7 @@ public:
     virtual int item_count() const = 0;
 
     /// Builds text for item @p index and returns it. Can use @param params to store supplementary data.
-    virtual string_view_utf8 build_item_text(int index, ItemTextParams &params) const = 0;
+    virtual string_view_utf8 build_item_text(int index, StringViewUtf8ParamBase &params) const = 0;
 
 protected:
     struct OnItemSelectedArgs {
@@ -75,6 +73,6 @@ protected:
 private:
     int current_item_ = -1;
     string_view_utf8 value_;
-    ItemTextParams value_params_;
+    StringViewUtf8Parameters<16> value_params_;
     Behavior behavior_ = Behavior::submenu;
 };

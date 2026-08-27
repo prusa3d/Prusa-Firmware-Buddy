@@ -19,7 +19,7 @@ int I_MI_FOOTER::item_count() const {
     return footer::item_list.size();
 }
 
-string_view_utf8 I_MI_FOOTER::build_item_text(int index, [[maybe_unused]] MenuItemSelectMenu::ItemTextParams &params) const {
+string_view_utf8 I_MI_FOOTER::build_item_text(int index, [[maybe_unused]] StringViewUtf8ParamBase &params) const {
     return _(footer::to_string(footer::item_list[index]));
 }
 

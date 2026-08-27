@@ -24,7 +24,7 @@ int MI_CURRENT_SHEET_PROFILE::item_count() const {
     return item_count_;
 }
 
-string_view_utf8 MI_CURRENT_SHEET_PROFILE::build_item_text(int index, MenuItemSelectMenu::ItemTextParams &params) const {
+string_view_utf8 MI_CURRENT_SHEET_PROFILE::build_item_text(int index, StringViewUtf8ParamBase &params) const {
     // Note: This is a bit of a misuse, but hey, it works...
     SteelSheets::SheetName(items_[index], params.buffer);
     return string_view_utf8::MakeRAM(params.buffer.data());

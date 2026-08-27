@@ -32,7 +32,7 @@ public:
     void set_config(const ConfigItem &set);
 
     int item_count() const final;
-    string_view_utf8 build_item_text(int index, ItemTextParams &params) const final;
+    string_view_utf8 build_item_text(int index, StringViewUtf8ParamBase &params) const final;
 
 private:
     static constexpr auto items = std::to_array<DynamicIndexMappingRecord<Action>>({

@@ -25,7 +25,7 @@ MI_CHAMBER_FILTRATION_BACKEND::MI_CHAMBER_FILTRATION_BACKEND()
     set_current_item(ix);
 }
 
-string_view_utf8 MI_CHAMBER_FILTRATION_BACKEND::build_item_text(int index, [[maybe_unused]] ItemTextParams &params) const {
+string_view_utf8 MI_CHAMBER_FILTRATION_BACKEND::build_item_text(int index, [[maybe_unused]] StringViewUtf8ParamBase &params) const {
     return _(ChamberFiltration::backend_name(items_[index]));
 }
 

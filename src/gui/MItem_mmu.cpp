@@ -279,7 +279,7 @@ int MI_MMU_NEXTRUDER_REWORK::item_count() const {
     return mmu_rework_items.size();
 }
 
-string_view_utf8 MI_MMU_NEXTRUDER_REWORK::build_item_text(int index, [[maybe_unused]] MenuItemSelectMenu::ItemTextParams &params) const {
+string_view_utf8 MI_MMU_NEXTRUDER_REWORK::build_item_text(int index, [[maybe_unused]] StringViewUtf8ParamBase &params) const {
     return _(mmu_rework_items[index]);
 }
 

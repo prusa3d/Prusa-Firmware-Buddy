@@ -15,7 +15,7 @@ bool MenuItemSwitch::on_item_selected(const OnItemSelectedArgs &args) {
     return true;
 }
 
-string_view_utf8 MenuItemSwitch::build_item_text(int index, [[maybe_unused]] MenuItemSelectMenu::ItemTextParams &params) const {
+string_view_utf8 MenuItemSwitch::build_item_text(int index, [[maybe_unused]] StringViewUtf8ParamBase &params) const {
     const char *str = items_[index];
     if (translate_items_) {
         return _(str);

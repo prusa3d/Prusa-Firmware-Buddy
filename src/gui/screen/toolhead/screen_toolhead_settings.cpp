@@ -65,7 +65,7 @@ int MI_HOTEND_TYPE::item_count() const {
     return hotend_type_list.size() + (has_varying_values_ ? 1 : 0);
 }
 
-string_view_utf8 MI_HOTEND_TYPE::build_item_text(int index, [[maybe_unused]] MenuItemSelectMenu::ItemTextParams &params) const {
+string_view_utf8 MI_HOTEND_TYPE::build_item_text(int index, [[maybe_unused]] StringViewUtf8ParamBase &params) const {
     const int effective_index = index - (has_varying_values_ ? 1 : 0);
 
     // If has varying values, the 0th item is "-" (for different values)
@@ -137,7 +137,7 @@ void MI_PRINT_FAN_TYPE::store_value_impl(PhysicalToolIndex ix, PrintFanType set)
     set_print_fan_type(ix, set);
 }
 
-string_view_utf8 MI_PRINT_FAN_TYPE::build_item_text(int index, [[maybe_unused]] MenuItemSelectMenu::ItemTextParams &params) const {
+string_view_utf8 MI_PRINT_FAN_TYPE::build_item_text(int index, [[maybe_unused]] StringViewUtf8ParamBase &params) const {
     const int effective_index = index - (has_varying_values_ ? 1 : 0);
 
     // If has varying values, the 0th item is "-" (for different values)

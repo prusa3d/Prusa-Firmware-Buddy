@@ -83,7 +83,7 @@ int MI_FILAMENT_BASE_PRESET::item_count() const {
     return static_cast<int>(PresetFilamentType::_count) + 1; // + "None"
 }
 
-string_view_utf8 MI_FILAMENT_BASE_PRESET::build_item_text(int index, ItemTextParams &) const {
+string_view_utf8 MI_FILAMENT_BASE_PRESET::build_item_text(int index, StringViewUtf8ParamBase &) const {
     if (index == 0) {
         return _("None");
     } else {

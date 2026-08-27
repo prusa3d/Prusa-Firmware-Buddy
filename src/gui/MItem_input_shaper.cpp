@@ -44,7 +44,7 @@ int MI_IS_TYPE::item_count() const {
     return input_shaper::filter_list.size();
 }
 
-string_view_utf8 MI_IS_TYPE::build_item_text(int index, [[maybe_unused]] MenuItemSelectMenu::ItemTextParams &params) const {
+string_view_utf8 MI_IS_TYPE::build_item_text(int index, [[maybe_unused]] StringViewUtf8ParamBase &params) const {
     return _(input_shaper::filter_names[input_shaper::filter_list[index]]);
 }
 
