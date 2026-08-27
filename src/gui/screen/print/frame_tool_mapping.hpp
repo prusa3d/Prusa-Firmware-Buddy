@@ -238,6 +238,8 @@ private:
     /// Called when a button in the bottom row is clicked
     void on_button_click(Response response);
 
+    void show_details_menu();
+
 protected:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *const param) override;
 

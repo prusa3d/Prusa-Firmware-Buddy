@@ -19,6 +19,7 @@
 #include <screen_menu_filament_changeall.hpp>
 #include <option/has_mmu2.h>
 #include <bsod/bsod.h>
+#include <gui/dialogs/dialog_menu_virtual.hpp>
 
 namespace screen_tool_mapping {
 
@@ -407,7 +408,7 @@ FrameToolMapping::FrameToolMapping(window_frame_t *parent)
     bottom_status_.set_font(Font::normal);
     bottom_status_.SetAlignment(Align_t::Center());
 
-    bottom_buttons_.Change(PhaseResponses { Response::Abort, Response::Filament, Response::Remap, Response::Print });
+    bottom_buttons_.Change(PhaseResponses { Response::Abort, Response::Details, Response::Remap, Response::Print });
     bottom_buttons_.set_callback([this](Response r) { on_button_click(r); });
     bottom_buttons_.SetFocus();
     bottom_buttons_.SetBtnIndex(3); // Pre-select the print button
@@ -559,6 +560,7 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
 
             // Increase item score based on how many checks it has failed
             speculative_report.visit_failed_checks([virtual_tool = *item.virtual_tool, &item_penalty](const auto &failed_check) {
+                // Only consider checks specific to the virtual tool
                 if (stdext::holds_value(failed_check.tool, virtual_tool)) {
                     using CompatibilityLevel = buddy::gcode_compatibility::CompatibilityLevel;
 
@@ -933,13 +935,113 @@ void FrameToolMapping::on_button_click(Response response) {
         update_status_text(ShowGuide::yes);
         return;
 
-    case Response::Filament: {
-        // The ChangeAll screen will pop out, this screen will get re-initialized afterwards
-        Screens::Access()->Open<ScreenChangeAllFilaments, ScreenChangeAllFilaments::SetupForPrint {}>();
+    case Response::Details: {
+        show_details_menu();
         return;
     }
 
     default:
+        bsod_unreachable();
+    }
+}
+
+void FrameToolMapping::show_details_menu() {
+    enum class Item : uint8_t {
+        return_,
+        change_filaments,
+        auto_mapping,
+        default_mapping,
+        clear_mapping,
+        _cnt
+    };
+
+    const dialog_menu_virtual::Config config {
+        .title = _("TOOL MAPPING"),
+        .item_count = std::to_underlying(Item::_cnt),
+        .setup_f = [](int index, dialog_menu_virtual::MenuItem &item) {
+            switch (static_cast<Item>(index)) {
+
+            case Item::return_:
+                item.set_up_as_return();
+                break;
+
+            case Item::change_filaments:
+                item.SetIconId(&img::spool_16x16);
+                item.SetLabel(_("Change Filaments"));
+                break;
+
+            case Item::default_mapping:
+                item.SetLabel(_("Naive Mapping"));
+                break;
+
+            case Item::clear_mapping:
+                item.SetLabel(_("Clear Mapping"));
+                break;
+
+            case Item::auto_mapping:
+                item.SetLabel(_("Auto Mapping"));
+                break;
+
+            case Item::_cnt:
+                bsod_unreachable();
+            }
+        }
+    };
+
+    const auto result = dialog_menu_virtual::execute(config);
+
+    // Fix broken focus
+    bottom_buttons_.SetFocus();
+    bottom_buttons_.SetBtn(Response::Details);
+
+    if (!result.has_value()) {
+        return;
+    }
+
+    switch (static_cast<Item>(*result)) {
+
+    case Item::return_:
+        break;
+
+    case Item::change_filaments:
+        // The ChangeAll screen will pop out, this screen will get re-initialized afterwards
+        Screens::Access()->Open<ScreenChangeAllFilaments, ScreenChangeAllFilaments::SetupForPrint {}>();
+        break;
+
+    case Item::default_mapping:
+        spool_join.reset();
+        tool_mapper = ToolMapper::default_mapping;
+        mapping_update_scheduled_ = true;
+        break;
+
+    case Item::clear_mapping:
+        spool_join.reset();
+        tool_mapper = ToolMapper::empty_mapping;
+        mapping_update_scheduled_ = true;
+        break;
+
+    case Item::auto_mapping:
+        spool_join.reset();
+        tool_mapper = ToolMapper::empty_mapping;
+
+        // We need to update mapping every step, the suggest_virtual_tool_to_focus is counting for it to be up to date
+        update_mapping();
+        for (const auto gcode_tool : GcodeToolIndex::all()) {
+            if (!GCodeInfo::getInstance().get_extruder_info(gcode_tool).used()) {
+                continue;
+            }
+
+            selected_tool_for_connecting_ = gcode_tool;
+            if (auto virtual_tool = suggest_virtual_tool_to_focus(ToolFocusMode::compatible_only)) {
+                tool_mapper.set_mapping(gcode_tool, *virtual_tool);
+                update_mapping();
+            }
+        }
+
+        select_tool_for_connecting(NoTool {});
+        break;
+
+    case Item::_cnt:
         bsod_unreachable();
     }
 }

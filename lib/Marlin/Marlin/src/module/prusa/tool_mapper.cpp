@@ -13,6 +13,13 @@
 
 ToolMapper tool_mapper;
 
+ToolMapper &ToolMapper::operator=(const GcodeToVirtualArray &mapping) {
+    std::scoped_lock lock(mutex);
+    this->enabled = true;
+    this->gcode_to_virtual = mapping;
+    return *this;
+}
+
 ToolMapper &ToolMapper::operator=(const ToolMapper &other) {
     std::scoped_lock lock(mutex, other.mutex);
     this->enabled = other.enabled;
