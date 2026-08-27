@@ -1,6 +1,6 @@
 #include <gcode_reader_binary.hpp>
 #include <e2ee/decryptor.hpp>
-#include <fcntl.h>
+#include <unique_file_ptr.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 constexpr uint8_t encryption_key[] = {
@@ -10,10 +10,12 @@ constexpr uint8_t encryption_key[] = {
 constexpr uint64_t iv = 1234567890;
 
 uint32_t get_file_size(FILE *file) {
-    auto saved_pos = ftell(file);
-    fseek(file, 0, SEEK_END);
-    uint32_t size = ftell(file);
-    fseek(file, saved_pos, SEEK_SET);
+    const long saved_pos = ftell(file);
+    REQUIRE(saved_pos >= 0);
+    REQUIRE(fseek(file, 0, SEEK_END) == 0);
+    const long size = ftell(file);
+    REQUIRE(size >= 0);
+    REQUIRE(fseek(file, saved_pos, SEEK_SET) == 0);
     return size;
 }
 
@@ -29,31 +31,32 @@ TEST_CASE("16 bytes encrypted") {
     };
 
     uint8_t buffer[16];
-    FILE *file = fopen("./encrypted_text", "rb");
-    auto data_size = get_file_size(file);
+    unique_file_ptr file(fopen("./encrypted_text", "rb"));
+    REQUIRE(file.get() != nullptr);
+    auto data_size = get_file_size(file.get());
     decryptor.setup_block(iv, data_size);
 
     SECTION("Read one block - one go") {
-        decryptor.decrypt(file, buffer, sizeof(buffer));
+        REQUIRE(decryptor.decrypt(file.get(), buffer, sizeof(buffer)));
     }
 
     SECTION("Read by char") {
         memset(buffer, 0, sizeof(buffer));
         for (size_t i = 0; i < sizeof(buffer); i++) {
-            decryptor.decrypt(file, buffer + i, 1);
+            REQUIRE(decryptor.decrypt(file.get(), buffer + i, 1));
             REQUIRE(memcmp(buffer, original, i) == 0);
         }
     }
 
     SECTION("Read by more sizes") {
         memset(buffer, 0, sizeof(buffer));
-        decryptor.decrypt(file, buffer, 8);
+        REQUIRE(decryptor.decrypt(file.get(), buffer, 8));
         REQUIRE(memcmp(buffer, original, 8) == 0);
-        decryptor.decrypt(file, buffer + 8, 2);
+        REQUIRE(decryptor.decrypt(file.get(), buffer + 8, 2));
         REQUIRE(memcmp(buffer, original, 10) == 0);
-        decryptor.decrypt(file, buffer + 10, 4);
+        REQUIRE(decryptor.decrypt(file.get(), buffer + 10, 4));
         REQUIRE(memcmp(buffer, original, 14) == 0);
-        decryptor.decrypt(file, buffer + 14, 2);
+        REQUIRE(decryptor.decrypt(file.get(), buffer + 14, 2));
     }
 
     REQUIRE(memcmp(buffer, original, sizeof(original)) == 0);
@@ -89,59 +92,60 @@ TEST_CASE("20 bytes encrypted") {
     };
 
     uint8_t buffer[20];
-    FILE *file = fopen("./20_bytes_encrypted_text", "rb");
-    auto data_size = get_file_size(file);
+    unique_file_ptr file(fopen("./20_bytes_encrypted_text", "rb"));
+    REQUIRE(file.get() != nullptr);
+    auto data_size = get_file_size(file.get());
     decryptor.setup_block(iv, data_size);
 
     SECTION("Read one block - one go") {
-        decryptor.decrypt(file, buffer, sizeof(buffer));
+        REQUIRE(decryptor.decrypt(file.get(), buffer, sizeof(buffer)));
     }
 
     SECTION("Read by char") {
         memset(buffer, 0, sizeof(buffer));
         for (size_t i = 0; i < sizeof(buffer); i++) {
-            decryptor.decrypt(file, buffer + i, 1);
+            REQUIRE(decryptor.decrypt(file.get(), buffer + i, 1));
             REQUIRE(memcmp(buffer, original, i + 1) == 0);
         }
     }
 
     SECTION("Read by more sizes 2 goes") {
         memset(buffer, 0, sizeof(buffer));
-        decryptor.decrypt(file, buffer, 18);
+        REQUIRE(decryptor.decrypt(file.get(), buffer, 18));
         REQUIRE(memcmp(buffer, original, 18) == 0);
-        decryptor.decrypt(file, buffer + 18, 2);
+        REQUIRE(decryptor.decrypt(file.get(), buffer + 18, 2));
     }
 
     // Note: The move has to be either on the edge of the block or read enough after
     // so that we don't just take it from cache and really call the decryption
     SECTION("Test move constructor of decryptor") {
         memset(buffer, 0, sizeof(buffer));
-        decryptor.decrypt(file, buffer, 16);
+        REQUIRE(decryptor.decrypt(file.get(), buffer, 16));
         REQUIRE(memcmp(buffer, original, 16) == 0);
         e2ee::Decryptor another_decryptor(std::move(decryptor));
-        another_decryptor.decrypt(file, buffer + 16, 4);
+        REQUIRE(another_decryptor.decrypt(file.get(), buffer + 16, 4));
     }
 
     SECTION("Test move operator of decryptor") {
         memset(buffer, 0, sizeof(buffer));
-        decryptor.decrypt(file, buffer, 16);
+        REQUIRE(decryptor.decrypt(file.get(), buffer, 16));
         REQUIRE(memcmp(buffer, original, 16) == 0);
         e2ee::Decryptor another_decryptor;
         another_decryptor = std::move(decryptor);
-        another_decryptor.decrypt(file, buffer + 16, 4);
+        REQUIRE(another_decryptor.decrypt(file.get(), buffer + 16, 4));
     }
 
     SECTION("Read by more sizes") {
         memset(buffer, 0, sizeof(buffer));
-        decryptor.decrypt(file, buffer, 8);
+        REQUIRE(decryptor.decrypt(file.get(), buffer, 8));
         REQUIRE(memcmp(buffer, original, 8) == 0);
-        decryptor.decrypt(file, buffer + 8, 2);
+        REQUIRE(decryptor.decrypt(file.get(), buffer + 8, 2));
         REQUIRE(memcmp(buffer, original, 10) == 0);
-        decryptor.decrypt(file, buffer + 10, 4);
+        REQUIRE(decryptor.decrypt(file.get(), buffer + 10, 4));
         REQUIRE(memcmp(buffer, original, 14) == 0);
-        decryptor.decrypt(file, buffer + 14, 2);
+        REQUIRE(decryptor.decrypt(file.get(), buffer + 14, 2));
         REQUIRE(memcmp(buffer, original, 16) == 0);
-        decryptor.decrypt(file, buffer + 16, 4);
+        REQUIRE(decryptor.decrypt(file.get(), buffer + 16, 4));
     }
 
     REQUIRE(memcmp(buffer, original, sizeof(original)) == 0);
