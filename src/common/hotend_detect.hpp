@@ -10,13 +10,14 @@ inline constexpr int16_t ht_hotend_max_nozzle_temp = 415;
 
 /// Boot-time hotend detection may request a user confirmation dialog.
 ///
-/// Thread sync: written from the main thread by PhysicalTool::for_index() during early
-/// boot (before the FreeRTOS scheduler starts) and read from the GUI task by ScreenSplash
-/// afterwards. The scheduler-start barrier already orders the write before the read;
-/// std::atomic makes the cross-thread contract visible at the declaration per the project's
-/// 'shared variables are visibly atomic or guarded' rule.
+/// Thread sync: written by PhysicalTool::for_index() during early boot and read from the
+/// GUI task by ScreenSplash. std::atomic makes the cross-thread contract visible at the
+/// declaration per the project's 'shared variables are visibly atomic or guarded' rule.
 /// Only used on printers with HT hotend support (COREONE, COREONEL).
 inline std::atomic<bool> hotend_detect_dialog_pending { false };
+
+/// Log the boot-time classification, kept until a log destination can take it.
+void log_hotend_detect_boot_result();
 
 namespace hotend_detect {
 

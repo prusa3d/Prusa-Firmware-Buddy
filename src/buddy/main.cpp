@@ -68,6 +68,9 @@
 #include <option/has_local_accelerometer.h>
 #include <option/has_cpu_fan.h>
 #include <option/has_ht_hotend.h>
+#if HAS_HT_HOTEND()
+    #include <hotend_detect.hpp>
+#endif
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -563,6 +566,10 @@ extern "C" void main_cpp(void) {
 #endif
 
     create_task("usb_device", usb_device_task_run, TASK_PRIORITY_USB_DEVICE, task_stack.usb_device, task_control_block.usb_device);
+
+#if HAS_HT_HOTEND()
+    log_hotend_detect_boot_result();
+#endif
 
 #if ENABLED(RESOURCES())
     resources_update();

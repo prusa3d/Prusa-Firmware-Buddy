@@ -12,13 +12,44 @@
 #include <logging/log.hpp>
 
 #if HAS_HT_HOTEND()
+    #include <bsod/bsod.h>
+
 LOG_COMPONENT_DEF(HotendDetect, logging::Severity::info);
 
-/// Production wrapper: read the ADC, derive the PT1000 thresholds from the temptable, and
-/// delegate to the pure hotend_detect::detect_impl (which lives in hotend_detect.hpp so unit
-/// tests can reach it without ADC / config_store dependencies). Mapping the result onto the
-/// stored HotendType and its side effects live at the call site.
-static hotend_detect::Outputs detect_hotend(bool stored_is_high_temp) {
+namespace {
+
+/// What the boot-time reading looked like, for the log.
+enum class EarlyReading : uint8_t {
+    clear_ntc,
+    ambiguous,
+};
+
+/// The boot-time classification. Kept until it can be logged: USB CDC logging only opens once a
+/// host has attached, which is later than the detection runs.
+struct EarlyClassification {
+    hotend_detect::Outputs result;
+    uint16_t adc_10bit;
+    EarlyReading reading;
+    bool stored_is_high_temp;
+};
+
+/// Written and read on the startup task.
+EarlyClassification early {};
+
+const char *to_string(EarlyReading reading) {
+    switch (reading) {
+    case EarlyReading::clear_ntc:
+        return "NTC";
+    case EarlyReading::ambiguous:
+        return "ambiguous";
+    }
+    bsod_unreachable();
+}
+
+} // namespace
+
+/// Read the ADC, derive the thresholds from the temptables and classify via detect_impl.
+static EarlyClassification detect_hotend(bool stored_is_high_temp) {
     static_assert(PhysicalToolIndex::count == 1, "Hotend detection assumes a single physical tool");
     const uint16_t adc = AdcGet::nozzle(); // 10-bit, shifted from 12-bit by get_and_shift_channel()
 
@@ -30,11 +61,22 @@ static hotend_detect::Outputs detect_hotend(bool stored_is_high_temp) {
         .clear_ntc_lower = static_cast<uint16_t>(pt1000_range.raw_min / OVERSAMPLENR - detection_margin),
     };
 
-    const auto result = hotend_detect::detect_impl({ adc, stored_is_high_temp }, thresholds);
-    log_info(HotendDetect, "ADC %u, stored_ht %u -> ht %u, dialog %u",
-        adc, static_cast<unsigned>(stored_is_high_temp),
-        static_cast<unsigned>(result.is_high_temp), static_cast<unsigned>(result.dialog_pending));
-    return result;
+    const bool in_band = adc >= thresholds.clear_ntc_lower && adc <= thresholds.clear_ntc_upper;
+    return {
+        .result = hotend_detect::detect_impl({ adc, stored_is_high_temp }, thresholds),
+        .adc_10bit = adc,
+        .reading = in_band ? EarlyReading::ambiguous : EarlyReading::clear_ntc,
+        .stored_is_high_temp = stored_is_high_temp,
+    };
+}
+
+void log_hotend_detect_boot_result() {
+    log_info(HotendDetect, "early: adc %u %s, stored %s -> %s%s",
+        early.adc_10bit,
+        to_string(early.reading),
+        early.stored_is_high_temp ? "HT" : "std",
+        early.result.is_high_temp ? "HT" : "std",
+        early.result.dialog_pending ? ", ask" : "");
 }
 #endif
 
@@ -56,7 +98,8 @@ PhysicalTool &PhysicalTool::for_index(PhysicalToolIndex) {
         const auto tool = PhysicalToolIndex::from_raw(0);
         const bool stored_is_ht = (config_store().hotend_type.get(0) == HotendType::high_temp);
 
-        const auto result = detect_hotend(stored_is_ht);
+        early = detect_hotend(stored_is_ht);
+        const auto result = early.result;
 
         // ScreenSplash reads this on the GUI task after the scheduler starts.
         hotend_detect_dialog_pending = result.dialog_pending;
