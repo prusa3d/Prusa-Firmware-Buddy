@@ -462,7 +462,7 @@ void CompatibilityReport::generate_toolmapping_only_noclear([[maybe_unused]] con
                 }
             }
 
-            if (auto dia = extruder_info.nozzle_diameter; dia.has_value() && std::abs(*dia - config_store().get_nozzle_diameter(physical_tool.to_raw())) > 0.001f) {
+            if (auto dia = extruder_info.nozzle_diameter; dia.has_value() && std::abs(*dia - config_store().get_nozzle_diameter(physical_tool)) > 0.001f) {
                 virtual_tool_fails.set(VirtualToolCheck::nozzle_diameter);
             }
             if (extruder_info.requires_hardened_nozzle == Tristate::yes && !config_store().get_nozzle_is_hardened(physical_tool)

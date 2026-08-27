@@ -281,35 +281,35 @@ void CurrentStore::clear_previous_filament_type(uint8_t index) {
     }
 }
 
-float CurrentStore::get_nozzle_diameter([[maybe_unused]] uint8_t index) {
-    return nozzle_diameters.get(index);
+float CurrentStore::get_nozzle_diameter(PhysicalToolIndex tool) {
+    return nozzle_diameters.get(tool.to_raw());
 }
 
-void CurrentStore::set_nozzle_diameter([[maybe_unused]] uint8_t index, float value) {
-    nozzle_diameters.set(index, value);
-    clear_previous_filament_type(index);
+void CurrentStore::set_nozzle_diameter(PhysicalToolIndex tool, float value) {
+    nozzle_diameters.set(tool.to_raw(), value);
+    clear_previous_filament_type(tool.to_raw());
 }
 
-bool CurrentStore::get_nozzle_is_hardened([[maybe_unused]] uint8_t index) {
-    return nozzle_is_hardened.get()[index];
+bool CurrentStore::get_nozzle_is_hardened(PhysicalToolIndex tool) {
+    return nozzle_is_hardened.get()[tool.to_raw()];
 }
 
-void CurrentStore::set_nozzle_is_hardened([[maybe_unused]] uint8_t index, bool value) {
+void CurrentStore::set_nozzle_is_hardened(PhysicalToolIndex tool, bool value) {
     nozzle_is_hardened.apply([&](auto &item) {
-        item.set(index, value);
+        item.set(tool.to_raw(), value);
     });
-    clear_previous_filament_type(index);
+    clear_previous_filament_type(tool.to_raw());
 }
 
 bool CurrentStore::get_nozzle_is_high_flow([[maybe_unused]] uint8_t index) {
     return nozzle_is_high_flow.get()[index];
 }
 
-void CurrentStore::set_nozzle_is_high_flow([[maybe_unused]] uint8_t index, bool value) {
+void CurrentStore::set_nozzle_is_high_flow(PhysicalToolIndex tool, bool value) {
     nozzle_is_high_flow.apply([&](auto &item) {
-        item.set(index, value);
+        item.set(tool.to_raw(), value);
     });
-    clear_previous_filament_type(index);
+    clear_previous_filament_type(tool.to_raw());
 }
 
 float CurrentStore::get_odometer_axis(uint8_t index) {

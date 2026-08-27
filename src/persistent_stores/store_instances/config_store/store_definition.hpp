@@ -564,19 +564,9 @@ struct CurrentStore
     }));
     StoreItemLegacyArray<float, defaults::nozzle_diameter, ItemFlag::hw_config, nozzle_diameter_hashes> nozzle_diameters;
 
-    [[deprecated("Use the ToolIndex overload")]]
-    float get_nozzle_diameter(uint8_t index);
+    float get_nozzle_diameter(PhysicalToolIndex tool);
 
-    inline float get_nozzle_diameter(PhysicalToolIndex index) {
-        return get_nozzle_diameter(index.to_raw());
-    }
-
-    [[deprecated("Use the ToolIndex overload")]]
-    void set_nozzle_diameter(uint8_t index, float value);
-
-    inline void set_nozzle_diameter(PhysicalToolIndex tool, float value) {
-        set_nozzle_diameter(tool.to_raw(), value);
-    }
+    void set_nozzle_diameter(PhysicalToolIndex tool, float value);
 
     static_assert(sizeof(EncodedBitset<8>) == 4);
     static_assert(sizeof(EncodedBitset<8>) == sizeof(EncodedBitset<16>));
@@ -584,19 +574,9 @@ struct CurrentStore
     /// Stores whether a nozzle is hardened (resistant to abrasive filament) or not. One bit per each hotend
     StoreItem<EncodedBitset<16>, defaults::nozzle_is_hardened, ItemFlag::hw_config, journal::hash("Nozzle is Hardened")> nozzle_is_hardened;
 
-    [[deprecated("Use the ToolIndex overload")]]
-    bool get_nozzle_is_hardened(uint8_t index);
+    bool get_nozzle_is_hardened(PhysicalToolIndex tool);
 
-    inline bool get_nozzle_is_hardened(PhysicalToolIndex tool) {
-        return get_nozzle_is_hardened(tool.to_raw());
-    }
-
-    [[deprecated("Use the ToolIndex overload")]]
-    void set_nozzle_is_hardened(uint8_t index, bool value);
-
-    inline void set_nozzle_is_hardened(PhysicalToolIndex tool, bool value) {
-        set_nozzle_is_hardened(tool.to_raw(), value);
-    }
+    void set_nozzle_is_hardened(PhysicalToolIndex tool, bool value);
 
     /// Stores whether a nozzle is high-flow (supports high-flow print profile) or not. One bit per each hotend
     StoreItem<EncodedBitset<16>, defaults::nozzle_is_high_flow, ItemFlag::hw_config, journal::hash("Nozzle is High-Flow")> nozzle_is_high_flow;
@@ -608,12 +588,7 @@ struct CurrentStore
         return get_nozzle_is_high_flow(tool.to_raw());
     }
 
-    [[deprecated("Use the ToolIndex overload")]]
-    void set_nozzle_is_high_flow(uint8_t index, bool value);
-
-    inline void set_nozzle_is_high_flow(PhysicalToolIndex tool, bool value) {
-        set_nozzle_is_high_flow(tool.to_raw(), value);
-    }
+    void set_nozzle_is_high_flow(PhysicalToolIndex tool, bool value);
 
     StoreItem<float, 0.0f, ItemFlag::calibrations, journal::hash("Homing Bump Divisor X")> homing_bump_divisor_x;
     StoreItem<float, 0.0f, ItemFlag::calibrations, journal::hash("Homing Bump Divisor Y")> homing_bump_divisor_y;

@@ -47,9 +47,10 @@ void PrusaGcodeSuite::M862_1() {
 
     // Fetch diameter from EEPROM
     if (tool < PhysicalToolIndex::count) {
+        const auto physical_tool = PhysicalToolIndex::from_raw(tool);
         SERIAL_ECHO_START();
         ArrayStringBuilder<64> sb;
-        sb.append_printf("  M862.1 T%u P%.2f A%i F%i", tool, static_cast<double>(config_store().get_nozzle_diameter(tool)), config_store().get_nozzle_is_hardened(tool), config_store().get_nozzle_is_high_flow(tool));
+        sb.append_printf("  M862.1 T%u P%.2f A%i F%i", tool, static_cast<double>(config_store().get_nozzle_diameter(physical_tool)), config_store().get_nozzle_is_hardened(physical_tool), config_store().get_nozzle_is_high_flow(tool));
         SERIAL_ECHO(sb.str());
         SERIAL_EOL();
     }

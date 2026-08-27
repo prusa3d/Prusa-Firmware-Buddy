@@ -200,7 +200,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
 JsonResult get_version(size_t resume_point, JsonOutput &output) {
     char hostname[HOSTNAME_LEN + 1];
     netdev_get_hostname(netdev_get_active_id(), hostname, sizeof hostname);
-    float nozzle_diameter = config_store().get_nozzle_diameter(0);
+    float nozzle_diameter = config_store().get_nozzle_diameter(PhysicalToolIndex::from_raw(0));
     const auto &printer_model_info = PrinterModelInfo::current();
 
     // Keep the indentation of the JSON in here!
@@ -228,7 +228,7 @@ JsonResult get_version(size_t resume_point, JsonOutput &output) {
 JsonResult get_info(size_t resume_point, JsonOutput &output) {
     char hostname[HOSTNAME_LEN + 1];
     netdev_get_hostname(netdev_get_active_id(), hostname, sizeof hostname);
-    float nozzle_diameter = config_store().get_nozzle_diameter(0);
+    float nozzle_diameter = config_store().get_nozzle_diameter(PhysicalToolIndex::from_raw(0));
     auto mmu2_enabled =
 #if HAS_MMU2()
         config_store().mmu2_enabled.get();

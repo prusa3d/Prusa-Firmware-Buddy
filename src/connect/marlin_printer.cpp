@@ -255,7 +255,7 @@ namespace {
             slot.print_fan_rpm = hotend.print_fan_rpm;
             slot.heatbreak_fan_rpm = hotend.heatbreak_fan_rpm;
             slot.nozzle_diameter = config_store().get_nozzle_diameter(pt);
-            slot.hardened = config_store().get_nozzle_is_hardened(pt.to_raw());
+            slot.hardened = config_store().get_nozzle_is_hardened(pt);
             slot.high_flow = config_store().get_nozzle_is_high_flow(pt.to_raw());
         }
     }

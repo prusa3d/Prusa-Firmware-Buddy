@@ -256,7 +256,7 @@ static void build_physical_details(StringBuilder &sb, const PhysicalToolIndex &s
         });
     sb.append_string(" mm");
 
-    if (config_store().get_nozzle_is_hardened(self.to_raw())) {
+    if (config_store().get_nozzle_is_hardened(self)) {
         sb.append_string(" H");
     }
     if (config_store().get_nozzle_is_high_flow(self.to_raw())) {

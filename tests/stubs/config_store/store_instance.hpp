@@ -77,7 +77,7 @@ struct ConfigStore {
     HwCheck hw_check_nozzle;
     HwCheck hw_check_model;
 
-    float get_nozzle_diameter(uint8_t) const {
+    float get_nozzle_diameter(auto) const {
         return 0.4f;
     }
 
