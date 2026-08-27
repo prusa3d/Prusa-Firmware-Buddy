@@ -234,7 +234,7 @@ void gui_run(void) {
 #endif
     // Show bootstrap screen untill firmware initializes
     TaskDeps::provide(TaskDeps::Dependency::gui_display_ready);
-    while (!TaskDeps::check(TaskDeps::Tasks::bootstrap_done)) {
+    while (!TaskDeps::check(TaskDeps::Tasks::bootstrap_screen_done)) {
         gui_bare_loop();
     }
 
