@@ -589,11 +589,12 @@ void PrusaToolChanger::loop(bool printing, bool paused) {
     if (picked_update.load()) {
         const Dwarf *picked = picked_dwarf.load();
         const Dwarf *active = get_marlin_picked_tool();
+        const Dwarf *selected = active_dwarf.load();
         picked_update = false;
 
         // Automatically change tool
         if (force_toolchange_gcode.load() // Force toolchange after reset to force all marlin tool variables
-            || ((picked != active) // When user parked or picked manually
+            || ((picked != active || picked != selected) // When user parked or picked manually
                 && (printing == false) && (paused == false) // Only if not printing and not in pause
                 && (queue.has_commands_queued() == false) && (planner.processing() == false))) { // And nothing is in queue
             force_toolchange_gcode = false;
