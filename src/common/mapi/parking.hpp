@@ -124,9 +124,6 @@ struct ParkingPosition {
     [[deprecated("Construct the ParkingPosition properly")]]
     static ParkingPosition from_xyz_pos(const xyz_pos_t &pos);
 
-    [[deprecated("Construct the ParkingPosition properly")]]
-    static ParkingPosition from_xy_relative_z_pos(const xyz_pos_t &pos);
-
     /// @returns a modified parking position with Z not moving at all
     [[deprecated("Construct the ParkingPosition properly")]]
     ParkingPosition without_z_move() const {

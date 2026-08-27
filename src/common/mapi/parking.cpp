@@ -230,14 +230,6 @@ ParkingPosition ParkingPosition::from_xyz_pos(const xyz_pos_t &pos) {
     };
 }
 
-ParkingPosition ParkingPosition::from_xy_relative_z_pos(const xyz_pos_t &pos) {
-    return ParkingPosition {
-        std::isnan(pos.x) ? (X)unchanged : pos.x,
-        std::isnan(pos.y) ? (Y)unchanged : pos.y,
-        std::isnan(pos.z) ? (Z)unchanged : Relative { pos.z },
-    };
-}
-
 #if HAS_INDX()
 /// Applies nozzle cleaner origin offsets (from calibration) to the given parking position's X and Y.
 ParkingPosition apply_nozzle_cleaner_offset(const ParkingPosition &position) {
