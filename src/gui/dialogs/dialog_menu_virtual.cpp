@@ -1,0 +1,86 @@
+/// @file
+#include "dialog_menu_virtual.hpp"
+
+#include <ScreenHandler.hpp>
+#include <IDialog.hpp>
+#include <window_header.hpp>
+#include <window_menu_adv.hpp>
+#include <WindowMenuItems.hpp>
+#include <img_resources.hpp>
+
+namespace dialog_menu_virtual {
+
+// Size-sensitive
+static_assert(sizeof(MenuItem) == 60);
+
+// This dialog gets allocated on the stack, so we want to have the WindowMenuVirtual as small as possible
+// This means ditching the default alloc buffer size for the extact MenuItem sizeof, at the cost of extra flash usage
+class Menu final : public WindowMenuVirtualSized<WindowMenuVirtualBase::default_item_buffer_size, sizeof(MenuItem)> {
+
+public:
+    Menu(window_t *parent, Rect16 rect, const Config &config)
+        : WindowMenuVirtualSized(parent, rect, CloseScreenReturnBehavior::yes)
+        , config(config) {
+        setup_items();
+
+        if (config.focused_item >= 0) {
+            move_focus_to_index(config.focused_item);
+        }
+    }
+
+    int item_count() const final {
+        return config.item_count;
+    }
+
+    void handle_item_click(IWindowMenuItem &item) {
+        result = *item_index(&item);
+        Screens::Access()->close_dialog();
+    }
+
+protected:
+    void setup_item(ItemVariant &variant, int index) final {
+        auto &item = variant.emplace<MenuItem>();
+        config.setup_f(index, item);
+    }
+
+public:
+    const Config &config;
+    std::optional<int> result;
+};
+
+class Dialog final : public IDialog {
+
+public:
+    Dialog(const Config &config)
+        : IDialog(GuiDefaults::RectScreen)
+        , header_(this, config.title)
+        , menu_(this, GuiDefaults::RectScreenNoHeader, config) //
+    {
+        CaptureNormalWindow(menu_);
+    }
+
+    std::optional<int> result() const {
+        return menu_.menu.result;
+    }
+
+private:
+    window_header_t header_;
+    WindowExtendedMenu<Menu> menu_;
+};
+
+void MenuItem::set_up_as_return() {
+    SetLabel(_(MI_RETURN::label));
+    SetIconId(&img::folder_up_16x16);
+}
+
+void MenuItem::click(IWindowMenu &menu) {
+    static_cast<Menu &>(menu).handle_item_click(*this);
+}
+
+std::optional<int> execute(const Config &config) {
+    Dialog dlg(config);
+    Screens::Access()->gui_loop_until_dialog_closed();
+    return dlg.result();
+}
+
+} // namespace dialog_menu_virtual

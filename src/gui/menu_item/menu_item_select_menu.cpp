@@ -1,104 +1,6 @@
 #include "menu_item_select_menu.hpp"
 
-#include <gui/ScreenHandler.hpp>
-#include <window_menu_adv.hpp>
-#include <window_menu_virtual.hpp>
-#include <window_header.hpp>
-#include <WindowMenuItems.hpp>
-
-namespace {
-class DialogItem final : public IWindowMenuItem {
-
-public:
-    DialogItem(MenuItemSelectMenu &menu, int index);
-
-    void click(IWindowMenu &menu) override;
-
-private:
-    const int index_;
-    StringViewUtf8Parameters<16> params_;
-};
-
-// Size-sensitive
-static_assert(sizeof(DialogItem) == 64);
-
-// This dialog gets allocated on the stack, so we want to have the WindowMenuVirtual as small as possible
-// This means ditching the default alloc buffer size for the extact DialogItem sizeof, at the cost of extra flash usage
-class DialogMenu final : public WindowMenuVirtualSized<WindowMenuVirtualBase::default_item_buffer_size, sizeof(DialogItem)> {
-
-public:
-    DialogMenu(window_t *parent, Rect16 rect, MenuItemSelectMenu &menu);
-
-    int item_count() const final;
-
-protected:
-    void setup_item(ItemVariant &variant, int index) final;
-
-public:
-    MenuItemSelectMenu &menu;
-    std::optional<int> result;
-};
-
-class Dialog final : public IDialog {
-
-public:
-    Dialog(MenuItemSelectMenu &menu);
-
-    std::optional<int> result() const {
-        return menu_.menu.result;
-    }
-
-private:
-    window_header_t header_;
-    WindowExtendedMenu<DialogMenu> menu_;
-};
-
-// DialogItem
-// =============================================================
-DialogItem::DialogItem(MenuItemSelectMenu &menu, int index)
-    : index_(index) //
-{
-    SetLabel(menu.build_item_text(index, params_));
-}
-
-void DialogItem::click(IWindowMenu &menu) {
-    static_cast<DialogMenu &>(menu).result = index_;
-    Screens::Access()->close_dialog();
-}
-
-// DialogMenu
-// =============================================================
-DialogMenu::DialogMenu(window_t *parent, Rect16 rect, MenuItemSelectMenu &menu)
-    : WindowMenuVirtualSized(parent, rect, CloseScreenReturnBehavior::yes)
-    , menu(menu) //
-{
-    setup_items();
-}
-
-int DialogMenu::item_count() const {
-    return menu.item_count() + 1;
-}
-
-void DialogMenu::setup_item(ItemVariant &variant, int index) {
-    if (index == 0) {
-        variant.emplace<MI_RETURN>();
-    } else {
-        variant.emplace<DialogItem>(menu, index - 1);
-    }
-}
-
-// Dialog
-// =============================================================
-Dialog::Dialog(MenuItemSelectMenu &menu)
-    : IDialog(GuiDefaults::RectScreen)
-    , header_(this, menu.GetLabel())
-    , menu_(this, GuiDefaults::RectScreenNoHeader, menu) //
-{
-    CaptureNormalWindow(menu_);
-    menu_.menu.move_focus_to_index(menu.current_item() + 1);
-}
-
-} // namespace
+#include <gui/dialogs/dialog_menu_virtual.hpp>
 
 MenuItemSelectMenu::MenuItemSelectMenu(const string_view_utf8 &label)
     : IWindowMenuItem(label, 1) {}
@@ -203,12 +105,23 @@ void MenuItemSelectMenu::click(IWindowMenu &menu) {
 
     case Behavior::select_only:
     case Behavior::submenu: {
+        const dialog_menu_virtual::Config cfg {
+            .title = GetLabel(),
+            .item_count = item_count() + 1, // + return
+            .focused_item = current_item_ + 1, // + return
+            .setup_f = [this](int index, dialog_menu_virtual::MenuItem &item) {
+                if (index == 0) {
+                    item.set_up_as_return();
+                } else {
+                    item.SetLabel(build_item_text(index - 1, item.params));
+                }
+            },
+        };
+        new_item = current_item_;
 
-        {
-            // The dialog is quite big - keep it on stack as shortly as possible
-            Dialog dlg(*this);
-            Screens::Access()->gui_loop_until_dialog_closed();
-            new_item = dlg.result().value_or(current_item_);
+        const auto result = dialog_menu_virtual::execute(cfg);
+        if (result.has_value() && result > 0) {
+            new_item = *result - 1; // - return
         }
 
         // Opening a dialog with a menu screws up focus for the current menu - we need to restore it
