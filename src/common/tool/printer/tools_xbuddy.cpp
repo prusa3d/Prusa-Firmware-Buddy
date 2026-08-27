@@ -14,7 +14,20 @@
 #include <bsod/bsod.h>
 
 #if HAS_HT_HOTEND()
+    #include <atomic>
     #include <bsod/bsod.h>
+    #include <buddy/bootstrap_state.hpp>
+    #include <fanctl.hpp>
+    #include <freertos/timing.hpp>
+    #include <hotend_type.hpp>
+    #include <hwio.h>
+    #include <option/has_power_panic.h>
+    #include <power_panic.hpp>
+    #include <timing.h>
+    #include <wdt.hpp>
+
+// resolve() must recognise a power-panic resume to stay out of its way.
+static_assert(HAS_POWER_PANIC());
 
 LOG_COMPONENT_DEF(HotendDetect, logging::Severity::info);
 
@@ -140,6 +153,15 @@ void hotend_detect::init_skipped() {
 void hotend_detect::resolve() {
     // Logged here, not at the early reading: USB CDC logging only opens once a host has attached.
     log_early_classification();
+
+    // Mid-print with a hot nozzle and no hardware swap: probing would only delay the resume.
+    if (power_panic::state_stored()) {
+        settle({ .is_high_temp = (config_store().hotend_type.get(0) == HotendType::high_temp),
+                   .dialog_pending = false },
+            DetectState::skipped);
+        hotend_detect_dialog_pending = false;
+        return;
+    }
 
     settle(early.result, DetectState::resolved);
 }
