@@ -607,11 +607,11 @@ void st7789v_ctrl_set(uint8_t ctrl) {
     st7789v_cmd(CMD_WRCTRLD, &st7789v_config.control, sizeof(st7789v_config.control));
 }
 
-void st7789v_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back_color, ropfn rop) {
+void st7789v_draw_qoi_ex(Rect16 subrect, AbstractByteReader &reader, Color back_color, ropfn rop) {
     debug_assert(!st7789v_buff_borrowed && "Buffer lent to someone");
 
     // Current pixel position starts top-left where the image is placed
-    point_i16_t pos = { static_cast<int16_t>(pt.x), static_cast<int16_t>(pt.y) };
+    point_i16_t pos = subrect.TopLeft();
 
     // Prepare input buffer
     WritableBytes i_buf { reinterpret_cast<std::byte *>(st7789v_buff), 512 }; ///< Input file buffer
@@ -632,12 +632,6 @@ void st7789v_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back
     } image_timing;
 #endif /*0*/
 
-    // Read header and image size to tweak drawn subrect
-    auto header = reader.read(i_buf.subspan(0, qoi::Decoder::HEADER_SIZE));
-    if (header.size() != qoi::Decoder::HEADER_SIZE) {
-        return; // Header couldn't be read
-    }
-    Rect16 subrect = Rect16(pos, qoi::Decoder::get_image_size(std::span<const std::byte, qoi::Decoder::HEADER_SIZE>(header)));
     subrect.Intersection(Rect16(0, 0, ST7789V_COLS, ST7789V_ROWS)); // Clip drawn subrect to display size
 
     // Prepare output

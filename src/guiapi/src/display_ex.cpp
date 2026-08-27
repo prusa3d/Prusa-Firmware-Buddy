@@ -1,5 +1,6 @@
 #include "display_helper.h"
 #include "display.hpp"
+#include <array>
 #include <cmath>
 #include <font_data/font_data.hpp>
 #include <guiconfig/guiconfig.h>
@@ -9,6 +10,7 @@
 #include <sys/unistd.h>
 #include <logging/log.hpp>
 #include <utils/byte_utils.hpp>
+#include <gui/qoi_decoder.hpp>
 
 #if HAS_ST7789_DISPLAY()
     #include "st7789v.hpp"
@@ -41,8 +43,8 @@ void clear(const Color clr) {
 
 } // namespace display
 
-static inline void draw_qoi_ex_C(point_ui16_t pt, AbstractByteReader &reader, Color back_color, ropfn rop) {
-    st7789v_draw_qoi_ex(pt, reader, back_color, rop);
+static inline void draw_qoi_ex_C(Rect16 rect, AbstractByteReader &reader, Color back_color, ropfn rop) {
+    st7789v_draw_qoi_ex(rect, reader, back_color, rop);
 }
 
 static inline void set_pixel_colorFormatNative(uint16_t point_x, uint16_t point_y, uint32_t nativeclr) {
@@ -86,8 +88,8 @@ void clear(const Color clr) {
 
 } // namespace display
 
-static inline void draw_qoi_ex_C(point_ui16_t pt, AbstractByteReader &reader, Color back_color, ropfn rop) {
-    ili9488_draw_qoi_ex(pt, reader, back_color, rop);
+static inline void draw_qoi_ex_C(Rect16 rect, AbstractByteReader &reader, Color back_color, ropfn rop) {
+    ili9488_draw_qoi_ex(rect, reader, back_color, rop);
 }
 
 static inline void set_pixel_colorFormatNative(uint16_t point_x, uint16_t point_y, uint32_t nativeclr) {
@@ -142,7 +144,7 @@ void clear(const Color clr) {
 
 } // namespace display
 
-static inline void draw_qoi_ex_C(point_ui16_t pt, AbstractByteReader &reader, Color back_color, ropfn rop) {
+static inline void draw_qoi_ex_C(Rect16 rect, AbstractByteReader &reader, Color back_color, ropfn rop) {
     // todo
 }
 
@@ -539,14 +541,23 @@ void draw_img(point_ui16_t pt, const img::Resource &qoi, Color back_color, ropfn
          */
     }
 
-    // Seek to the beginning of the image and draw
-    ::lseek(resource_fd, qoi.offset, SEEK_SET);
+    // Seek to the QOI bytestream positioned after header and draw
+    ::lseek(resource_fd, qoi.offset + qoi::Decoder::HEADER_SIZE, SEEK_SET);
     ResourceFileReader reader;
-    draw_qoi_ex_C(pt, reader, back_color, rop);
+    const auto rect = Rect16::fromLTWH(pt.x, pt.y, qoi.w, qoi.h);
+    draw_qoi_ex_C(rect, reader, back_color, rop);
 }
 
 void draw_img(point_ui16_t pt, AbstractByteReader &reader) {
-    draw_qoi_ex_C(pt, reader, COLOR_BLACK, ropfn());
+    std::array<std::byte, qoi::Decoder::HEADER_SIZE> buffer;
+    const auto header = reader.read(buffer);
+    if (header.size() == buffer.size()) {
+        const auto size = qoi::Decoder::get_image_size(buffer);
+        const auto rect = Rect16::fromLTWH(pt.x, pt.y, size.w, size.h);
+        draw_qoi_ex_C(rect, reader, COLOR_BLACK, ropfn());
+    } else {
+        // Silently refuse to draw invalid QOI
+    }
 }
 
 void draw_text(Rect16 rc, const string_view_utf8 &str, const Font font, Color clr_bg, Color clr_fg) {

@@ -589,14 +589,14 @@ void ili9488_draw_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
     ili9488_set_cs();
 }
 
-void ili9488_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back_color, ropfn rop) {
+void ili9488_draw_qoi_ex(Rect16 subrect, AbstractByteReader &reader, Color back_color, ropfn rop) {
     debug_assert(!ili9488_buff_borrowed && "Buffer lent to someone");
 
     // BFW-6328 Some displays possibly problematic with higher baudrate, reduce 40 -> 20 MHz
     SPIBaudRatePrescalerGuard _g(spi_handle_lcd, SPI_BAUDRATEPRESCALER_4, reduce_display_baudrate);
 
     // Current pixel position starts top-left where the image is placed
-    point_i16_t pos = { static_cast<int16_t>(pt.x), static_cast<int16_t>(pt.y) };
+    point_i16_t pos = subrect.TopLeft();
 
     // Prepare input buffer
     WritableBytes i_buf { reinterpret_cast<std::byte *>(ili9488_buff), 512 }; ///< Input file buffer
@@ -617,12 +617,6 @@ void ili9488_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back
     } image_timing;
 #endif /*0*/
 
-    // Read header and image size to tweak drawn subrect
-    auto header = reader.read(i_buf.subspan(0, qoi::Decoder::HEADER_SIZE));
-    if (header.size() != qoi::Decoder::HEADER_SIZE) {
-        return; // Header couldn't be read
-    }
-    Rect16 subrect = Rect16(pos, qoi::Decoder::get_image_size(std::span<const std::byte, qoi::Decoder::HEADER_SIZE>(header)));
     subrect.Intersection(Rect16(0, 0, ILI9488_COLS, ILI9488_ROWS)); // Clip drawn subrect to display size
 
     // Prepare output

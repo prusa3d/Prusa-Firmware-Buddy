@@ -25,11 +25,11 @@ extern void ili9488_fill_rect_colorFormat666(uint16_t rect_x, uint16_t rect_y, u
 
 /**
  * @brief Draw QOI.
- * @param pt coordinate of the top left corner of the image
- * @param reader A reader for reading QOI bytestream
+ * @param rect A rectangle with QOI size and desired position
+ * @param reader A reader for reading QOI bytestream positioned after header
  * @param back_color background color, (back_color >> 16) & 0xff is blue, (back_color >> 8) & 0xff is green, back_color & 0xff is red
  */
-void ili9488_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back_color, ropfn rop);
+void ili9488_draw_qoi_ex(Rect16 rect, AbstractByteReader &reader, Color back_color, ropfn rop);
 
 extern void ili9488_inversion_on(void);
 extern void ili9488_inversion_off(void);
