@@ -28,7 +28,7 @@ if(HEAD_CONTENTS MATCHES "ref")
   endif()
 else()
   # detached HEAD
-  configure_file("@GIT_COMMON_DIR@/HEAD" "@GIT_DATA@/head-ref" COPYONLY)
+  configure_file("@GIT_DIR@/HEAD" "@GIT_DATA@/head-ref" COPYONLY)
 endif()
 
 if(NOT HEAD_HASH)
