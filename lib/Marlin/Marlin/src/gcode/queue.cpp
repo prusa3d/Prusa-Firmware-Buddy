@@ -357,10 +357,6 @@ void GCodeQueue::get_serial_commands() {
 
   static char serial_line_buffer[NUM_SERIAL][MAX_CMD_SIZE];
   static LineState serial_line_state[NUM_SERIAL] = {};
-  #if ENABLED(PAREN_COMMENTS)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    static bool serial_comment_paren_mode[NUM_SERIAL] = { false };
-  #endif
 
   // If the command buffer is empty for too long,
   // send "wait" to indicate Marlin is still waiting.
@@ -392,10 +388,6 @@ void GCodeQueue::get_serial_commands() {
 
         // Start the next line with a clean state
         serial_line_state[i] = LineState::ok;
-        #if ENABLED(PAREN_COMMENTS)
-          // #error dead code found by automatic analyses (see BFW-5461)
-          serial_comment_paren_mode[i] = false;
-        #endif
 
         // Skip empty lines and comments
         if (!serial_count[i]) { thermalManager.manage_heater(); continue; }
@@ -485,24 +477,12 @@ void GCodeQueue::get_serial_commands() {
       }
       else if (serial_char == '\\') {  // Handle escapes
         // if we have one more character, copy it over
-        if ((c = read_serial(i)) >= 0
-          #if ENABLED(PAREN_COMMENTS)
-            // #error dead code found by automatic analyses (see BFW-5461)
-            && !serial_comment_paren_mode[i]
-          #endif
-        )
+        if ((c = read_serial(i)) >= 0) {
           serial_line_buffer[i][serial_count[i]++] = (char)c;
+        }
       }
       else { // it's not a newline, carriage return, comment or escape char
-        #if ENABLED(PAREN_COMMENTS)
-          // #error dead code found by automatic analyses (see BFW-5461)
-          if (serial_char == '(') serial_comment_paren_mode[i] = true;
-          else if (serial_char == ')') serial_comment_paren_mode[i] = false;
-          else if (!serial_comment_paren_mode[i])
-            serial_line_buffer[i][serial_count[i]++] = serial_char;
-        #else
-          serial_line_buffer[i][serial_count[i]++] = serial_char;
-        #endif
+        serial_line_buffer[i][serial_count[i]++] = serial_char;
       }
     } // for NUM_SERIAL
   } // queue has space, serial has data

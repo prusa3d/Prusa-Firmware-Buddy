@@ -1195,10 +1195,6 @@ static_assert(DEFAULT_XJERK == DEFAULT_YJERK,
   #error "SHOW_REMAINING_TIME currently requires a Graphical LCD."
 #endif
 
-#if HAS_GCODE_COMPATIBILITY() && ENABLED(GCODE_MOTION_MODES)
-    #error "HAS_GCODE_COMPATIBILITY() and GCODE_MOTION_MODES can't be enabled at the same time"
-#endif
-
 #if (NUM_SERVOS > 0) || ENABLED(EDITABLE_SERVO_ANGLES) || ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE) || defined(SERVO_DELAY) || HAS_Z_SERVO_PROBE || defined(HAS_Z_SERVO_PROBE) || defined(Z_PROBE_SERVO_NR)
     #error "servos are not supported"
 #endif

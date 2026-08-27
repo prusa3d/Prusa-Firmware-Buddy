@@ -74,16 +74,6 @@ public:
     static uint8_t subcode;               // .1
   #endif
 
-  #if ENABLED(GCODE_MOTION_MODES)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    static int16_t motion_mode_codenum;
-    #if USE_GCODE_SUBCODES
-      // #error dead code found by automatic analyses (see BFW-5461)
-      static uint8_t motion_mode_subcode;
-    #endif
-    FORCE_INLINE static void cancel_motion_mode() { motion_mode_codenum = -1; }
-  #endif
-
   #if ENABLED(DEBUG_GCODE_PARSER)
     // #error dead code found by automatic analyses (see BFW-5461)
     static void debug();

@@ -49,15 +49,6 @@ int GCodeParser::codenum;
   uint8_t GCodeParser::subcode;
 #endif
 
-#if ENABLED(GCODE_MOTION_MODES)
-  // #error dead code found by automatic analyses (see BFW-5461)
-  int16_t GCodeParser::motion_mode_codenum = -1;
-  #if USE_GCODE_SUBCODES
-    // #error dead code found by automatic analyses (see BFW-5461)
-    uint8_t GCodeParser::motion_mode_subcode;
-  #endif
-#endif
-
 #if ENABLED(FASTER_GCODE_PARSER)
   // Optimized Parameters
   uint32_t GCodeParser::codebits;  // found bits
@@ -121,17 +112,6 @@ void GCodeParser::parse(char *p) {
     starpos[1] = '\0';
   }
 
-  #if ENABLED(GCODE_MOTION_MODES)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    #if ENABLED(ARC_SUPPORT)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #define GTOP 3
-    #else
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #define GTOP 1
-    #endif
-  #endif
-
   // Bail if the letter is not G, M, T or P
   // (or a valid parameter for the current motion mode)
   switch (letter) {
@@ -175,45 +155,7 @@ void GCodeParser::parse(char *p) {
       // Skip all spaces to get to the first argument, or nul
       while (*p == ' ') p++;
 
-      #if ENABLED(GCODE_MOTION_MODES)
-        // #error dead code found by automatic analyses (see BFW-5461)
-        if (letter == 'G' && (codenum <= GTOP || codenum == 5
-                                #if ENABLED(G38_PROBE_TARGET)
-                                  // #error dead code found by automatic analyses (see BFW-5461)
-                                  || codenum == 38
-                                #endif
-                             )
-        ) {
-          motion_mode_codenum = codenum;
-          #if USE_GCODE_SUBCODES
-            // #error dead code found by automatic analyses (see BFW-5461)
-            motion_mode_subcode = subcode;
-          #endif
-        }
-      #endif
-
       break;
-
-    #if ENABLED(GCODE_MOTION_MODES)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #if ENABLED(ARC_SUPPORT)
-        // #error dead code found by automatic analyses (see BFW-5461)
-        case 'I': case 'J': case 'R':
-          if (motion_mode_codenum != 2 && motion_mode_codenum != 3) return;
-      #endif
-      case 'P': case 'Q':
-        if (motion_mode_codenum != 5) return;
-      case 'X': case 'Y': case 'Z': case 'E': case 'F':
-        if (motion_mode_codenum < 0) return;
-        command_letter = 'G';
-        codenum = motion_mode_codenum;
-        #if USE_GCODE_SUBCODES
-          // #error dead code found by automatic analyses (see BFW-5461)
-          subcode = motion_mode_subcode;
-        #endif
-        p--; // Back up one character to use the current parameter
-      break;
-    #endif // GCODE_MOTION_MODES
 
     default: return;
   }

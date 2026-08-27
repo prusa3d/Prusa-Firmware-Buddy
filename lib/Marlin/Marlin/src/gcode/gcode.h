@@ -62,7 +62,7 @@
  * G34  - Z Stepper automatic alignment using probe: I<iterations> T<accuracy> A<amplification> (Requires Z_STEPPER_AUTO_ALIGN)
  * G38  - Probe in any direction using the Z_MIN_PROBE (Requires G38_PROBE_TARGET)
  * G42  - Coordinated move to a mesh point (Requires AUTO_BED_LEVELING_BLINEAR or AUTO_BED_LEVELING_UBL)
- * G80  - Cancel current motion mode (Requires GCODE_MOTION_MODES)
+ * G80  - Mesh Bed Leveling (Requires HAS_GCODE_COMPATIBILITY)
  * G90  - Use Absolute Coordinates
  * G91  - Use Relative Coordinates
  * G92  - Set current position to coordinates given
@@ -444,7 +444,7 @@ private:
     static void G42();
   #endif
 
-  #if ENABLED(GCODE_MOTION_MODES) || HAS_GCODE_COMPATIBILITY()
+  #if HAS_GCODE_COMPATIBILITY()
     static void G80();
   #endif
 
