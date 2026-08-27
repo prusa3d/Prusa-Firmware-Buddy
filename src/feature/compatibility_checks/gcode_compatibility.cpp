@@ -377,8 +377,6 @@ void CompatibilityReport::generate_toolmapping_only(const ToolMappingArgs &args)
 }
 
 void CompatibilityReport::generate_toolmapping_only_noclear([[maybe_unused]] const ToolMappingArgs &args) {
-    const auto &gcode_info = GCodeInfo::getInstance();
-
 #if HAS_MMU2()
     const bool mmu_enabled = MMU2::mmu2.Enabled();
 #else
@@ -389,7 +387,7 @@ void CompatibilityReport::generate_toolmapping_only_noclear([[maybe_unused]] con
     for (GcodeToolIndex gcode_tool : GcodeToolIndex::all()) {
         auto &gcode_tool_fails = failed_gcode_tool_checks[gcode_tool];
 
-        const auto &extruder_info = gcode_info.get_extruder_info(gcode_tool);
+        const auto &extruder_info = args.gcode_info.get_extruder_info(gcode_tool);
         if (!extruder_info.used()) {
             continue;
         }
@@ -413,7 +411,7 @@ void CompatibilityReport::generate_toolmapping_only_noclear([[maybe_unused]] con
         // Note: Always checking first bit in the config store, since nozzle_is_high_flow is set per toolhead and MMU always uses first one.
         if (extruder_info.requires_high_flow_nozzle == Tristate::yes
             && !config_store().get_nozzle_is_high_flow(0)
-            && !gcode_info.is_singletool_gcode()
+            && !args.gcode_info.is_singletool_gcode()
             && mmu_enabled) {
             failed_virtual_tool_checks[base_virtual_tool].set(VirtualToolCheck::nozzle_not_high_flow);
         }
