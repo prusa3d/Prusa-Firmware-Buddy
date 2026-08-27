@@ -23,8 +23,6 @@ static constexpr EnumArray<Response, const char *, Response::_count> response_st
     R(Details),
     R(Disable),
     R(Done),
-    R(Filament),
-    R(Filament_removed),
     R(Finish),
     R(FS_disable),
     R(Ignore),

@@ -40,10 +40,6 @@ inline constexpr const char *get_response_text(Response response) {
         return N_("DONE");
     case Response::Empty:
         return N_("EMPTY");
-    case Response::Filament:
-        return N_("FILAMENT");
-    case Response::Filament_removed:
-        return N_("FILAMENT REMOVED");
     case Response::Finish:
         return N_("FINISH");
     case Response::FS_disable:

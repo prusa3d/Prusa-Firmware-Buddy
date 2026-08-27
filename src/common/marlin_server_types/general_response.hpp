@@ -27,8 +27,6 @@ enum class Response : uint8_t {
     Details,
     Disable,
     Done,
-    Filament,
-    Filament_removed,
     Finish,
     FS_disable,
     Ignore,
