@@ -198,7 +198,7 @@ public:
     /// @brief Calculate offset to be able to create same rectangle in given direction
     ///
     /// @param[in] direction Direction where the created rectangle will be heading to
-    uint16_t CalculateShift(ShiftDir_t) const;
+    [[nodiscard]] uint16_t CalculateShift(ShiftDir_t) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Create rectangle on specific top-left corner and size
@@ -369,7 +369,7 @@ public:
     /// @param[in] point Point given to check
     /// @return Return true if the point is in, false otherwise.
     template <class T>
-    constexpr bool Contain(point_t<T> point) const {
+    [[nodiscard]] constexpr bool Contain(point_t<T> point) const {
         return point.x >= top_left_.x
             && point.x < (top_left_.x + width_)
             && point.y >= top_left_.y
@@ -383,7 +383,7 @@ public:
     /// @param[in] rect Given rectangle to check for intersection
     /// @return Return a rectangle that represents the intersection of current
     /// and given.
-    Rect16 Intersection(Rect16 const &) const;
+    [[nodiscard]] Rect16 Intersection(Rect16 const &) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Determines the rectangle structure that represents the union of
@@ -392,21 +392,21 @@ public:
     /// @param[in] rect Given rectangle to united
     /// @return Return a rectangle that represents the union of current
     /// and given.
-    inline Rect16 Union(Rect16 const &rc) const { return *this + rc; }
+    [[nodiscard]] inline Rect16 Union(Rect16 const &rc) const { return *this + rc; }
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Determines if the given rectangle has intersection with the current
     /// one
     /// @param[in] rect Rectangle given to check
     /// @return Return true if the rectangles has intersection, false otherwise.
-    bool HasIntersection(Rect16 const &) const;
+    [[nodiscard]] bool HasIntersection(Rect16 const &) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Determines if the given rectangle is fully overlayed by the
     /// current on
     /// @param[in] rect Rectangle given to check
     /// @return Return true if the rectangles is subrectangle, false otherwise.
-    bool Contain(Rect16 const &) const;
+    [[nodiscard]] bool Contain(Rect16 const &) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Align current rect with given one
@@ -441,7 +441,7 @@ public:
     /// @brief Check whether rectangle is empty
     ///
     /// @return Return true if the rectangle is empty
-    constexpr bool IsEmpty() const { return !(width_ && height_); }
+    [[nodiscard]] constexpr bool IsEmpty() const { return !(width_ && height_); }
 
     // experimental features, not tested
     // TODO define meaningfull operations like X_t-X_t = W_t, X_t+W_t = X_t, X_t-W_t = X_t ...
@@ -655,7 +655,7 @@ public:
     /// @param[in] width Width of the sub-rectangles
     /// @return Number of sub-rectangles
     template <size_t SZ>
-    size_t HorizontalSplit(std::array<Rect16, SZ> &cuts, uint16_t width = 0) const {
+    [[nodiscard]] size_t HorizontalSplit(std::array<Rect16, SZ> &cuts, uint16_t width = 0) const {
         size_t i = 0;
         cuts.fill({ 0, 0, 0, 0 });
         width = (width == 0) ? Height() / SZ : width;
@@ -686,7 +686,7 @@ public:
     /// @param[in] widths[] widths of wanted splits (optional = nullptr)
     /// @param[in] count number of splits
     /// @return Number of valid splits usually == count, but can be anything between 0 and count
-    size_t HorizontalSplit(Rect16 splits[], Width_t widths[], size_t count) const;
+    [[nodiscard]] size_t HorizontalSplit(Rect16 splits[], Width_t widths[], size_t count) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Split the current rectangle by given height and return such a
@@ -702,7 +702,7 @@ public:
     /// @param[in] height Height of the sub-rectangles
     /// @return Number of sub-rectangles
     template <size_t SZ>
-    size_t VerticalSplit(std::array<Rect16, SZ> &cuts, uint16_t height = 0) const {
+    [[nodiscard]] size_t VerticalSplit(std::array<Rect16, SZ> &cuts, uint16_t height = 0) const {
         size_t i = 0;
         cuts.fill({ 0, 0, 0, 0 });
         height = (height == 0) ? Width() / SZ : height;
