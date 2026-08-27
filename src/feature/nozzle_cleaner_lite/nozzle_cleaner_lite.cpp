@@ -193,11 +193,6 @@ bool is_available() {
 bool clean(CleanArgs args) {
     release_assert(is_available());
 
-    if (args.cleaning_temp < EXTRUDE_MINTEMP) {
-        log_error(NozzleCleanerLite, "no cleaning temperature set");
-        return false;
-    }
-
     const int16_t rest_temp = args.probe_temp.value_or(args.cleaning_temp - cooldown_temp_diff);
     release_assert(!args.cooldown || rest_temp <= args.cleaning_temp);
 

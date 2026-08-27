@@ -24,7 +24,6 @@ bool is_available();
 /// keeps it for the probing that follows.
 constexpr int16_t cooldown_temp_diff = 20;
 struct CleanArgs {
-    // cleaning_temp below EXTRUDE_MINTEMP fails the clean.
     int16_t cleaning_temp;
     // target to cool down to, defaulting to
     // cleaning_temp - cooldown_temp_diff. Must be <= cleaning_temp.
