@@ -157,20 +157,22 @@ class Temperature {
     #if ENABLED(PREVENT_COLD_EXTRUSION)
       static bool allow_cold_extrude;
       static int16_t extrude_min_temp;
-      FORCE_INLINE static bool tooCold(const int16_t temp) { return allow_cold_extrude ? false : temp < extrude_min_temp; }
-
-      [[deprecated("Use the ToolIndex overload")]]
-      FORCE_INLINE static bool tooColdToExtrude(const uint8_t E_NAME) {
-        return tooCold(static_cast<int16_t>(degHotend(HOTEND_INDEX)));
+      FORCE_INLINE static bool tooCold(const int16_t temp) {
+        return allow_cold_extrude ? false : temp < extrude_min_temp;
       }
-    #else
-      // #error dead code found by automatic analyses (see BFW-5461)
-      [[deprecated("Use the ToolIndex overload")]]
-      FORCE_INLINE static bool tooColdToExtrude(const uint8_t) { return false; }
     #endif
 
     inline static bool tooColdToExtrude(PhysicalToolIndex physical_tool) {
-      return tooColdToExtrude(physical_tool.to_raw());
+      #if ENABLED(PREVENT_COLD_EXTRUSION)
+        const auto temp = Hotend::for_tool(physical_tool).nozzle_temp();
+        if (temp.has_value()) {
+          return tooCold(static_cast<int16_t>(temp.value()));
+        }
+        return !allow_cold_extrude;
+      #else
+        // #error dead code found by automatic analyses (see BFW-5461)
+        return false;
+      #endif
     }
 
     #if ENABLED(PID_EXTRUSION_SCALING)

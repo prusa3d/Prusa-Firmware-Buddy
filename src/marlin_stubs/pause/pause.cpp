@@ -1576,7 +1576,8 @@ void Pause::park_nozzle_and_notify() {
     const float target_Z = park.resolve_z(current_position.z);
 
     // Initial retract before move to filament change position
-    if (!thermalManager.tooColdToExtrude(active_extruder)) {
+    const auto tool = PhysicalToolIndex::currently_selected_opt();
+    if (tool.has_value() && !thermalManager.tooColdToExtrude(tool.value())) {
         mapi::retract_to(-settings.retract, standard_feedrates::extruder(standard_feedrates::Extruder::retract, FilamentType::for_current_tool_heuristic()));
     }
 

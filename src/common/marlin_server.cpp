@@ -3434,11 +3434,12 @@ static void park_head([[maybe_unused]] bool is_pause) {
 
 #if HAS_NOZZLE_CLEANER()
 void unpark_prime() {
-    if (std::holds_alternative<NoTool>(PhysicalToolIndex::currently_selected())) {
+    const auto tool = PhysicalToolIndex::currently_selected_opt();
+    if (!tool.has_value()) {
         return;
     }
 
-    if (!all_axes_homed() || thermalManager.tooColdToExtrude(active_extruder)) {
+    if (!all_axes_homed() || thermalManager.tooColdToExtrude(tool.value())) {
         return;
     }
 
