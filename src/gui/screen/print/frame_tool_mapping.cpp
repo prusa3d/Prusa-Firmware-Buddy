@@ -466,20 +466,28 @@ void FrameToolMapping::focus_tool(ToolVariant tool) {
 }
 
 void FrameToolMapping::focus_suggested_tool(ToolType tool_type) {
+    ToolVariant tool_to_focus = NoTool {};
+
     switch (tool_type) {
 
     case ToolType::virtual_tool:
-        focus_tool(suggest_virtual_tool_to_focus());
+        if (auto tool = suggest_virtual_tool_to_focus(ToolFocusMode::best_effort)) {
+            tool_to_focus = *tool;
+        }
         break;
 
     case ToolType::gcode_tool:
-        focus_tool(suggest_gcode_tool_to_focus());
+        if (auto tool = suggest_gcode_tool_to_focus()) {
+            tool_to_focus = *tool;
+        }
         break;
     }
+
+    focus_tool(tool_to_focus);
 }
 
-ToolVariant FrameToolMapping::suggest_gcode_tool_to_focus() const {
-    ToolVariant result;
+std::optional<GcodeToolIndex> FrameToolMapping::suggest_gcode_tool_to_focus() const {
+    std::optional<GcodeToolIndex> result;
 
     for (const auto &item : items_) {
         if (!item.gcode_tool.has_value()) {
@@ -503,7 +511,7 @@ ToolVariant FrameToolMapping::suggest_gcode_tool_to_focus() const {
     return result;
 }
 
-ToolVariant FrameToolMapping::suggest_virtual_tool_to_focus() const {
+std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(ToolFocusMode focus_mode) const {
     // The lower the better
     using Penalty = uint16_t;
 
@@ -512,7 +520,7 @@ ToolVariant FrameToolMapping::suggest_virtual_tool_to_focus() const {
     // Cannot print - no point in offering at all
     constexpr Penalty penalty_fatal_incompatibility = 1024;
 
-    ToolVariant result;
+    std::optional<VirtualToolIndex> result;
     Penalty result_penalty = std::numeric_limits<Penalty>::max();
 
     for (const auto &item : items_) {
@@ -580,7 +588,16 @@ ToolVariant FrameToolMapping::suggest_virtual_tool_to_focus() const {
         }
     }
 
-    return result;
+    switch (focus_mode) {
+
+    case ToolFocusMode::best_effort:
+        return result;
+
+    case ToolFocusMode::compatible_only:
+        return result_penalty < std::min(penalty_already_mapped, penalty_fatal_incompatibility) ? result : std::nullopt;
+    }
+
+    bsod_unreachable();
 }
 
 FrameToolMapping::ToolItemPosition FrameToolMapping::tool_item_position(ToolVariant tool) {
