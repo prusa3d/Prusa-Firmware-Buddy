@@ -118,8 +118,8 @@ void ColumnItem::click(IWindowMenu &) {
         // The tool is of the same type as the current one -> change the selection to this tool
         frame_.select_tool_for_connecting(this_tool);
 
-        // Move focus to the first unconnected item on the other menu to streamline routing
-        frame_.focus_first_unconnected_tool(other_tool_type);
+        // Move focus to an item on the other menu to streamline routing
+        frame_.focus_suggested_tool(other_tool_type);
 
         // Guide the user to continue connecting
         frame_.update_status_text(ShowGuide::yes);
@@ -137,7 +137,7 @@ void ColumnItem::click(IWindowMenu &) {
             frame_.select_tool_for_connecting(NoTool {});
 
             // Move focus to the first unconnected item on the gcode side to streamline routing
-            frame_.focus_first_unconnected_tool(ToolType::gcode_tool);
+            frame_.focus_suggested_tool(ToolType::gcode_tool);
 
             // Hide the guide, show possible errors
             frame_.update_status_text(ShowGuide::no);
@@ -465,7 +465,7 @@ void FrameToolMapping::focus_tool(ToolVariant tool) {
     }
 }
 
-void FrameToolMapping::focus_first_unconnected_tool(ToolType tool_type) {
+void FrameToolMapping::focus_suggested_tool(ToolType tool_type) {
     switch (tool_type) {
 
     case ToolType::virtual_tool:
@@ -504,24 +504,79 @@ ToolVariant FrameToolMapping::suggest_gcode_tool_to_focus() const {
 }
 
 ToolVariant FrameToolMapping::suggest_virtual_tool_to_focus() const {
+    // The lower the better
+    using Penalty = uint16_t;
+
+    constexpr Penalty penalty_overridable_incompatibility = 1;
+    constexpr Penalty penalty_already_mapped = 256;
+    // Cannot print - no point in offering at all
+    constexpr Penalty penalty_fatal_incompatibility = 1024;
+
     ToolVariant result;
+    Penalty result_penalty = std::numeric_limits<Penalty>::max();
 
     for (const auto &item : items_) {
         if (!item.virtual_tool.has_value()) {
             continue;
         }
 
-        result = *item.virtual_tool;
+        Penalty item_penalty = 0;
 
-        // Return first unconnected. Otherwise continue so that we have at least something to select
         switch (item.connection) {
 
         case MappingDisplayItem::Connection::none:
-            return result;
+            break;
 
         case MappingDisplayItem::Connection::spool_join:
         case MappingDisplayItem::Connection::main_tool:
+            item_penalty += penalty_already_mapped;
             break;
+        }
+
+        if (const auto *gcode_tool = std::get_if<GcodeToolIndex>(&selected_tool_for_connecting_)) {
+            // See how many GCode incompatibilities would the tool generate
+            ToolMapper speculative_mapper;
+            speculative_mapper = tool_mapper;
+            speculative_mapper.set_mapping(*gcode_tool, *item.virtual_tool);
+
+            // Empty spool join, we don't care about it
+            SpoolJoin speculative_spool_join;
+
+            buddy::gcode_compatibility::CompatibilityReport speculative_report;
+            speculative_report.generate_toolmapping_only({
+                .tool_mapper = speculative_mapper,
+                .spool_join = speculative_spool_join,
+            });
+
+            // Increase item score based on how many checks it has failed
+            speculative_report.visit_failed_checks([virtual_tool = *item.virtual_tool, &item_penalty](const auto &failed_check) {
+                if (stdext::holds_value(failed_check.tool, virtual_tool)) {
+                    using CompatibilityLevel = buddy::gcode_compatibility::CompatibilityLevel;
+
+                    switch (failed_check.meta->evaluate_compatibility()) {
+
+                    case CompatibilityLevel::fully_compatible:
+                    case CompatibilityLevel::compatible_with_reminder:
+                        // No score increase
+                        break;
+
+                    case CompatibilityLevel::needs_user_approval:
+                        item_penalty += penalty_overridable_incompatibility;
+                        break;
+
+                    case CompatibilityLevel::fatal_incompatibility:
+                        item_penalty += penalty_fatal_incompatibility;
+                        break;
+                    }
+                }
+                return true;
+            },
+                buddy::gcode_compatibility::CompatibilityReport::AggregateTools::no);
+        }
+
+        if (item_penalty < result_penalty) {
+            result_penalty = item_penalty;
+            result = *item.virtual_tool;
         }
     }
 
@@ -856,7 +911,7 @@ void FrameToolMapping::windowEvent(window_t *sender, GUI_event_t event, void *co
         case Response::Remap:
             // Just a helper button to help people realize that they can change the mapping on this screen
             // We've seen some github/social media posts where people thought the tool mapping is just for display and you cannot change it
-            focus_first_unconnected_tool(ToolType::gcode_tool);
+            focus_suggested_tool(ToolType::gcode_tool);
             update_status_text(ShowGuide::yes);
             return;
 
