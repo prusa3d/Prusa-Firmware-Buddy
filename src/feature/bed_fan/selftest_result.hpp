@@ -2,7 +2,7 @@
 #pragma once
 
 #include <array>
-#include <selftest_result.hpp>
+#include <test_result.hpp>
 
 namespace bed_fan {
 

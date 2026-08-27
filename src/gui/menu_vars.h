@@ -2,6 +2,7 @@
 #pragma once
 
 #include "i18n.h"
+#include <inc/MarlinConfig.h>
 
 // TODO: Move Z_OFFSET_MIN/MAX somewhere better
 #include <common/sheet.hpp>
@@ -19,7 +20,6 @@ static constexpr float z_offset_max = Z_OFFSET_MAX;
 
 #define z_offset_def nozzle_to_probe[2]
 
-#include <array>
 #include <cstdint>
 using std::size_t;
 struct MenuVars {

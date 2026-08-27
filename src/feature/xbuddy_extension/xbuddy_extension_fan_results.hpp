@@ -1,5 +1,5 @@
 #pragma once
-#include <selftest_result.hpp>
+#include <test_result.hpp>
 #include <array>
 
 struct XBEFanTestResults {

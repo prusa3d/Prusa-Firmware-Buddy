@@ -1,7 +1,7 @@
 #pragma once
 #include <test_result.hpp>
 #include <selftest_snake_config.hpp>
-#include <inc/Conditionals_LCD.h>
+#include <inc/MarlinConfigPre.h>
 #include <printers.h>
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
 

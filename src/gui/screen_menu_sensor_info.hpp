@@ -10,7 +10,7 @@
 #include <option/has_extruder_fsensor.h>
 #include <option/has_side_fsensor.h>
 
-#include <Configuration_adv.h>
+#include <inc/MarlinConfigPre.h>
 #include <fs_autoload_autolock.hpp>
 #include <gui/menu_item/menu_item_virtual_submenu.hpp>
 

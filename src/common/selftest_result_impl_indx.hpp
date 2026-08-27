@@ -5,7 +5,6 @@
 #include <utils/storage/strong_index_array.hpp>
 #include <option/has_switched_fan_test.h>
 #include <option/has_indx.h>
-#include <config_store/store_instance.hpp>
 
 static_assert(HAS_INDX());
 
