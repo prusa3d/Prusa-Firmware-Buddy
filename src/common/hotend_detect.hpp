@@ -27,6 +27,10 @@ namespace hotend_detect {
 struct Thresholds {
     uint16_t clear_ntc_upper; ///< ADC reading above this is unambiguously NTC (cold)
     uint16_t clear_ntc_lower; ///< ADC reading below this is unambiguously NTC (hot)
+
+    /// Beyond the NTC temptable's span: a sensor fault, not a hotend class.
+    uint16_t shorted_max; ///< ADC reading at or below this means a shorted probe
+    uint16_t open_min; ///< ADC reading at or above this means an open probe
 };
 
 struct Inputs {
@@ -44,7 +48,13 @@ struct Outputs {
 /// NTC and a cold-to-hot PT1000 read alike) trusts the persisted hotend and asks only when it
 /// isn't yet HT. The clear-NTC branch must NOT raise the dialog even against a stored HT, or boot
 /// loops: the caller overwrites the stored hotend, the dialog flips it back, the next boot re-asks.
+/// An open or shorted probe keeps the stored type without a dialog; MINTEMP/MAXTEMP report it.
 constexpr Outputs detect_impl(Inputs in, Thresholds t) {
+    // Must not fall through to clear-NTC: that would silently put an HT hotend on the NTC table.
+    if (in.adc_10bit <= t.shorted_max || in.adc_10bit >= t.open_min) {
+        return { .is_high_temp = in.stored_is_high_temp, .dialog_pending = false };
+    }
+
     const bool clear_ntc = (in.adc_10bit > t.clear_ntc_upper) || (in.adc_10bit < t.clear_ntc_lower);
     if (clear_ntc) {
         return { false, false };

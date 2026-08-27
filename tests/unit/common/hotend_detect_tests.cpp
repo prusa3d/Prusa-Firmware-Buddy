@@ -12,6 +12,9 @@ namespace {
 constexpr Thresholds thresholds = {
     .clear_ntc_upper = 741,
     .clear_ntc_lower = 500,
+    // From temptable_2005's own extremes: OV(60) = 320 degC, OV(1023) = -30 degC.
+    .shorted_max = 60,
+    .open_min = 1023,
 };
 } // namespace
 
@@ -45,4 +48,39 @@ TEST_CASE("ambiguous, stored high_temp: stay high_temp, no dialog") {
     const auto out = detect_impl({ 660, true }, thresholds);
     CHECK(out.is_high_temp);
     CHECK_FALSE(out.dialog_pending);
+}
+
+// An open or shorted probe is a sensor fault, not evidence about the hotend class.
+
+TEST_CASE("shorted probe, stored high_temp: keep high_temp, no dialog") {
+    const auto out = detect_impl({ 0, true }, thresholds);
+    CHECK(out.is_high_temp);
+    CHECK_FALSE(out.dialog_pending);
+}
+
+TEST_CASE("open probe, stored high_temp: keep high_temp, no dialog") {
+    const auto out = detect_impl({ 1023, true }, thresholds);
+    CHECK(out.is_high_temp);
+    CHECK_FALSE(out.dialog_pending);
+}
+
+TEST_CASE("open/shorted probe, stored standard: keep standard, no dialog") {
+    // No dialog either way: the user cannot resolve a broken sensor by answering a question,
+    // and MINTEMP/MAXTEMP is the mechanism that reports it.
+    CHECK_FALSE(detect_impl({ 0, false }, thresholds).is_high_temp);
+    CHECK_FALSE(detect_impl({ 0, false }, thresholds).dialog_pending);
+    CHECK_FALSE(detect_impl({ 1023, false }, thresholds).is_high_temp);
+    CHECK_FALSE(detect_impl({ 1023, false }, thresholds).dialog_pending);
+}
+
+TEST_CASE("open/short thresholds are inclusive") {
+    CHECK(detect_impl({ 60, true }, thresholds).is_high_temp);
+    CHECK(detect_impl({ 1023, true }, thresholds).is_high_temp);
+}
+
+TEST_CASE("just inside the open/short limits still classifies normally") {
+    // 61 is a legitimate very-hot NTC; 1022 a legitimate very-cold one. Neither is a fault,
+    // so both must reach the clear-NTC branch and demote a stored HT as before.
+    CHECK_FALSE(detect_impl({ 61, true }, thresholds).is_high_temp);
+    CHECK_FALSE(detect_impl({ 1022, true }, thresholds).is_high_temp);
 }

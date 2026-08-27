@@ -22,6 +22,7 @@ namespace {
 enum class EarlyReading : uint8_t {
     clear_ntc,
     ambiguous,
+    open_or_shorted,
 };
 
 /// The boot-time classification. Kept until it can be logged: USB CDC logging only opens once a
@@ -42,6 +43,8 @@ const char *to_string(EarlyReading reading) {
         return "NTC";
     case EarlyReading::ambiguous:
         return "ambiguous";
+    case EarlyReading::open_or_shorted:
+        return "open/short";
     }
     bsod_unreachable();
 }
@@ -56,16 +59,28 @@ static EarlyClassification detect_hotend(bool stored_is_high_temp) {
     // Derive the PT1000 ADC range from the actual temptable (auto-adapts if the table changes)
     constexpr uint16_t detection_margin = 12; // 10-bit ADC counts
     const auto pt1000_range = MarlinTemptableRawMinMax::compute(TT_NAME(1010), 0, 400);
+
+    // Open/short limits are the NTC table's full span, unpadded: its cold end is only a few
+    // counts past the coldest supported ambient. Note the NTC inversion: raw_min is the cold end.
+    constexpr int16_t ntc_table_coldest_c = -30;
+    constexpr int16_t ntc_table_hottest_c = 320;
+    const auto ntc_range = MarlinTemptableRawMinMax::compute(TT_NAME(2005), ntc_table_coldest_c, ntc_table_hottest_c);
+
     const hotend_detect::Thresholds thresholds {
         .clear_ntc_upper = static_cast<uint16_t>(pt1000_range.raw_max / OVERSAMPLENR + detection_margin),
         .clear_ntc_lower = static_cast<uint16_t>(pt1000_range.raw_min / OVERSAMPLENR - detection_margin),
+        .shorted_max = static_cast<uint16_t>(ntc_range.raw_max / OVERSAMPLENR),
+        .open_min = static_cast<uint16_t>(ntc_range.raw_min / OVERSAMPLENR),
     };
 
+    const bool open_or_shorted = adc <= thresholds.shorted_max || adc >= thresholds.open_min;
     const bool in_band = adc >= thresholds.clear_ntc_lower && adc <= thresholds.clear_ntc_upper;
     return {
         .result = hotend_detect::detect_impl({ adc, stored_is_high_temp }, thresholds),
         .adc_10bit = adc,
-        .reading = in_band ? EarlyReading::ambiguous : EarlyReading::clear_ntc,
+        .reading = open_or_shorted ? EarlyReading::open_or_shorted
+            : in_band              ? EarlyReading::ambiguous
+                                   : EarlyReading::clear_ntc,
         .stored_is_high_temp = stored_is_high_temp,
     };
 }
