@@ -162,10 +162,17 @@ public:
     ~FrameToolMapping();
 
 public:
-    ToolVariant focused_tool();
+    ToolVariant focused_tool() const;
     void focus_tool(ToolVariant tool);
 
+    /// Calls either suggest_gcode_tool_to_focus or suggest_virtual_tool_to_focus
     void focus_first_unconnected_tool(ToolType tool_type);
+
+    /// @returns preferably unassigned gcode tool
+    ToolVariant suggest_gcode_tool_to_focus() const;
+
+    /// @returns preferably unassigned virtual tool
+    ToolVariant suggest_virtual_tool_to_focus() const;
 
     static constexpr int invalid_tool_position = -1;
     struct ToolItemPosition {

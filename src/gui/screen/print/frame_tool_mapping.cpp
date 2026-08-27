@@ -439,7 +439,7 @@ FrameToolMapping::FrameToolMapping(window_frame_t *parent)
 FrameToolMapping::~FrameToolMapping() {
 }
 
-ToolVariant FrameToolMapping::focused_tool() {
+ToolVariant FrameToolMapping::focused_tool() const {
     if (auto index = gcode_tools_menu_.focused_item_index()) {
         if (auto tool = items_[*index].gcode_tool) {
             return *tool;
@@ -466,53 +466,66 @@ void FrameToolMapping::focus_tool(ToolVariant tool) {
 }
 
 void FrameToolMapping::focus_first_unconnected_tool(ToolType tool_type) {
-    ToolVariant tool_to_focus;
     switch (tool_type) {
 
-    case ToolType::virtual_tool: {
-        for (const auto &item : items_) {
-            if (auto tool = item.virtual_tool) {
-                tool_to_focus = *tool;
+    case ToolType::virtual_tool:
+        focus_tool(suggest_virtual_tool_to_focus());
+        break;
 
-                // Break on first unconnected. Otherwise continue so that we have at least something to select
-                switch (item.connection) {
-
-                case MappingDisplayItem::Connection::none:
-                    goto break_loop_virtual;
-
-                case MappingDisplayItem::Connection::spool_join:
-                case MappingDisplayItem::Connection::main_tool:
-                    break;
-                }
-            }
-        }
-    break_loop_virtual:
+    case ToolType::gcode_tool:
+        focus_tool(suggest_gcode_tool_to_focus());
         break;
     }
+}
 
-    case ToolType::gcode_tool: {
-        for (const auto &item : items_) {
-            if (auto tool = item.gcode_tool) {
-                tool_to_focus = *tool;
+ToolVariant FrameToolMapping::suggest_gcode_tool_to_focus() const {
+    ToolVariant result;
 
-                // Break on first unconnected. Otherwise continue so that we have at least something to select
-                switch (item.connection) {
-
-                case MappingDisplayItem::Connection::none:
-                case MappingDisplayItem::Connection::spool_join: // gcode_tool is not connected in the spool_join connection
-                    goto break_loop_gcode;
-
-                case MappingDisplayItem::Connection::main_tool:
-                    break;
-                }
-            }
+    for (const auto &item : items_) {
+        if (!item.gcode_tool.has_value()) {
+            continue;
         }
-    break_loop_gcode:
-        break;
-    }
+
+        result = *item.gcode_tool;
+
+        // Return first unconnected. Otherwise continue so that we have at least something to select
+        switch (item.connection) {
+
+        case MappingDisplayItem::Connection::none:
+        case MappingDisplayItem::Connection::spool_join:
+            return result;
+
+        case MappingDisplayItem::Connection::main_tool:
+            break;
+        }
     }
 
-    focus_tool(tool_to_focus);
+    return result;
+}
+
+ToolVariant FrameToolMapping::suggest_virtual_tool_to_focus() const {
+    ToolVariant result;
+
+    for (const auto &item : items_) {
+        if (!item.virtual_tool.has_value()) {
+            continue;
+        }
+
+        result = *item.virtual_tool;
+
+        // Return first unconnected. Otherwise continue so that we have at least something to select
+        switch (item.connection) {
+
+        case MappingDisplayItem::Connection::none:
+            return result;
+
+        case MappingDisplayItem::Connection::spool_join:
+        case MappingDisplayItem::Connection::main_tool:
+            break;
+        }
+    }
+
+    return result;
 }
 
 FrameToolMapping::ToolItemPosition FrameToolMapping::tool_item_position(ToolVariant tool) {
