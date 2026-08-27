@@ -552,8 +552,9 @@ void draw_img(point_ui16_t pt, AbstractByteReader &reader) {
     std::array<std::byte, qoi::Decoder::HEADER_SIZE> buffer;
     const auto header = reader.read(buffer);
     if (header.size() == buffer.size()) {
-        const auto size = qoi::Decoder::get_image_size(buffer);
-        const auto rect = Rect16::fromLTWH(pt.x, pt.y, size.w, size.h);
+        const auto width = qoi::Decoder::get_image_width(buffer);
+        const auto height = qoi::Decoder::get_image_height(buffer);
+        const auto rect = Rect16::fromLTWH(pt.x, pt.y, width, height);
         draw_qoi_ex_C(rect, reader, COLOR_BLACK, ropfn());
     } else {
         // Silently refuse to draw invalid QOI

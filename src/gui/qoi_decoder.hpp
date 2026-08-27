@@ -3,7 +3,6 @@
 #include "raster_opfn.hpp"
 #include <cstddef>
 #include <cstdint>
-#include <guitypes.hpp>
 #include <span>
 
 namespace qoi {
@@ -37,6 +36,13 @@ private:
     uint8_t run; ///< Number of remaining pixels in current run
     Pixel index[64]; ///< Decompression color index
 
+    [[nodiscard]] static constexpr uint32_t read_be32(std::span<const std::byte, 4> bytes) {
+        return std::to_integer<uint32_t>(bytes[0]) << 24
+            | std::to_integer<uint32_t>(bytes[1]) << 16
+            | std::to_integer<uint32_t>(bytes[2]) << 8
+            | std::to_integer<uint32_t>(bytes[3]);
+    }
+
 public:
     Decoder()
         : state(State::initial)
@@ -47,24 +53,14 @@ public:
 
     static constexpr size_t HEADER_SIZE = 14; ///< QOI header has fixed size [bytes]
 
-    /**
-     * @brief Get size of QOI image from header.
-     * @param header QOI header
-     * @return size of QOI image
-     */
-    static constexpr size_ui16_t get_image_size(std::span<const std::byte, HEADER_SIZE> header) {
-        return {
-            static_cast<uint16_t>(
-                static_cast<uint16_t>(header[4]) << 24
-                | static_cast<uint16_t>(header[5]) << 16
-                | static_cast<uint16_t>(header[6]) << 8
-                | static_cast<uint16_t>(header[7])),
-            static_cast<uint16_t>(
-                static_cast<uint16_t>(header[8]) << 24
-                | static_cast<uint16_t>(header[9]) << 16
-                | static_cast<uint16_t>(header[10]) << 8
-                | static_cast<uint16_t>(header[11]))
-        };
+    /// Extract image width from QOI header.
+    [[nodiscard]] static constexpr uint32_t get_image_width(std::span<const std::byte, HEADER_SIZE> header) {
+        return read_be32(header.subspan<4, 4>());
+    }
+
+    /// Extract image height from QOI header.
+    [[nodiscard]] static constexpr uint32_t get_image_height(std::span<const std::byte, HEADER_SIZE> header) {
+        return read_be32(header.subspan<8, 4>());
     }
 
     /**
