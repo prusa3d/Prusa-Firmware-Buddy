@@ -34,12 +34,21 @@
  *
  * Save all configurable settings to EEPROM.
  *
+ * On Buddy firmware the legacy Marlin EEPROM layer is disabled
+ * (`Cap:EEPROM:0` in M115) and persistence is handled by `config_store`
+ * via specific M-codes (e.g. M301/M304 PID, M92 steps, M203 max feedrate).
+ * If `settings.save()` reports the underlying call did nothing, we tell
+ * the user explicitly so a "save attempt" doesn't silently fail.
+ *
  *#### Usage
  *
  *    M500
  */
 void GcodeSuite::M500() {
-  (void)settings.save();
+  if (!settings.save()) {
+    SERIAL_ECHO_MSG("Persistent EEPROM disabled; settings are runtime-only.");
+    SERIAL_ECHO_MSG("Use specific M-codes (M301/M304/M92/M203/etc.) — they persist via config_store.");
+  }
 }
 
 /**
