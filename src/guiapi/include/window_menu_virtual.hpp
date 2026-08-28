@@ -13,7 +13,7 @@ public:
         /// No - The window will handle the SWIPE_LEFT/RIGHT differently
         no,
 
-        /// Yes - call Screens.Close() on SWIPE_LEFT/RIGHT
+        /// Yes - call Screens::close_screen_or_dialog() on SWIPE_LEFT/RIGHT
         yes,
     };
 

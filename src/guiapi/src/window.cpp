@@ -441,7 +441,7 @@ void window_t::screenEvent(window_t *sender, GUI_event_t event, void *const para
 void window_t::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, void *const param) {
     if (event == GUI_event_t::CLICK && parent) {
         if (flags.close_on_click == is_closed_on_click_t::yes) {
-            Screens::Access()->Close();
+            Screens::Access()->close_screen_or_dialog();
         } else {
             parent->WindowEvent(this, event, param);
         }

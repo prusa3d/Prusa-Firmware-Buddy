@@ -135,7 +135,7 @@ void WindowMenuVirtualBase::screenEvent(window_t *sender, GUI_event_t event, voi
     case GUI_event_t::TOUCH_SWIPE_RIGHT:
         if (bool(close_screen_return_behavior_)) {
             sound::play(SoundType::button_echo);
-            Screens::Access()->Close();
+            Screens::Access()->close_screen_or_dialog();
             return;
         }
 
