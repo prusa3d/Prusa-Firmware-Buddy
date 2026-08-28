@@ -64,11 +64,6 @@ public:
 
     void PushBeforeCurrent(screen_node screen_creator);
 
-    [[deprecated]]
-    void Close() {
-        close_screen_or_dialog();
-    }
-
     /// Closes the currently open screen on the stack.
     /// The screen is not destroyed immediately - it happens on the next \p Loop.
     /// Consequently, if a blocking dialog is open on top of the screen, the close only takes

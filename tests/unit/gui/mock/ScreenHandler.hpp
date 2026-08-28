@@ -14,11 +14,6 @@ public:
         return &ret;
     }
 
-    [[deprecated]]
-    void Close() {
-        close_screen_or_dialog();
-    }
-
     void close_screen() {}
 
     void close_dialog() {}
