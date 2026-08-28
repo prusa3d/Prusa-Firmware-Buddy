@@ -23,7 +23,6 @@ public:
     static float GetDefaultFastLoadLength();
     static float GetDefaultSlowLoadLength();
     static float GetDefaultUnloadLength();
-    static float GetDefaultPurgeLength(uint8_t extruder);
     static float GetDefaultRetractLength();
 
     void SetUnloadLength(const std::optional<float> &len);
@@ -35,15 +34,10 @@ public:
     void SetResumePoint(const xyze_pos_t &resume_point);
     void SetMmuFilamentToLoad(uint8_t index);
     void SetResumeNozzleTemperature(int16_t temperature);
-
-    [[deprecated("Use the ToolIndex overload")]]
-    void SetExtruder(uint8_t target) { target_extruder = target; }
-    inline void SetExtruder(VirtualToolIndex target) { target_extruder = target.to_raw(); }
-
-    uint8_t GetExtruder() const { return target_extruder; }
+    inline void SetExtruder(VirtualToolIndex target) { virtual_tool_ = target; }
 
     inline VirtualToolIndex virtual_tool() const {
-        return VirtualToolIndex::from_raw(target_extruder);
+        return virtual_tool_;
     }
 
     inline PhysicalToolIndex physical_tool() const {
@@ -66,7 +60,7 @@ private:
     xyze_pos_t resume_pos;
 
     uint8_t mmu_filament_to_load = 0;
-    uint8_t target_extruder;
+    VirtualToolIndex virtual_tool_ = VirtualToolIndex::from_raw(0);
 
     // Target to restore after loading drops it to the new filament's default; empty = leave as-is.
     std::optional<int16_t> resume_nozzle_temperature;

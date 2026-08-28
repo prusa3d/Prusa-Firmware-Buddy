@@ -41,10 +41,10 @@ using namespace filament_gcodes;
  */
 static bool load_unload(Pause::LoadType load_type, pause::Settings &rSettings) {
     float disp_temp = marlin_vars().active_hotend().display_nozzle;
-    float targ_temp = Temperature::degTargetHotend(rSettings.GetExtruder());
+    float targ_temp = Temperature::degTargetHotend(rSettings.physical_tool());
 
     if (disp_temp > targ_temp) {
-        thermalManager.setTargetHotend(static_cast<int16_t>(disp_temp), rSettings.GetExtruder());
+        thermalManager.setTargetHotend(static_cast<int16_t>(disp_temp), rSettings.physical_tool());
     }
 
     // Load/Unload filament
@@ -280,7 +280,7 @@ void filament_gcodes::M1600_change_filament(FilamentType filament_to_be_loaded, 
 
     pause::Settings settings;
     settings.SetParkPoint(mapi::get_parking_position(mapi::ParkPosition::unload));
-    settings.SetExtruder(virtual_tool.to_raw());
+    settings.SetExtruder(virtual_tool);
     settings.SetRetractLength(0.f);
 
     // Pick the right tool

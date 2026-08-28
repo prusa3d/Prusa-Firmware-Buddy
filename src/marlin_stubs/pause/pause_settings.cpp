@@ -19,7 +19,6 @@ Settings::Settings()
     , fast_load_length(GetDefaultFastLoadLength())
     , retract(GetDefaultRetractLength())
     , resume_pos { NAN, NAN, NAN, NAN }
-    , target_extruder(0)
 //
 {
 }
@@ -38,11 +37,6 @@ float Settings::GetDefaultUnloadLength() {
     const VirtualToolIndex tool = VirtualToolIndex::currently_selected_opt()
                                       .value_or(VirtualToolIndex::from_raw(0));
     return fc_settings[tool].unload_length;
-}
-
-float Settings::GetDefaultPurgeLength(uint8_t extruder) {
-    // Double the purge length for HF nozzles
-    return ADVANCED_PAUSE_PURGE_LENGTH * (config_store().get_nozzle_is_high_flow(ENABLED(SINGLENOZZLE) ? 0 : extruder) ? 2 : 1);
 }
 
 float Settings::GetDefaultRetractLength() {
@@ -86,5 +80,15 @@ void Settings::SetResumeNozzleTemperature(int16_t temperature) {
 }
 
 float pause::Settings::purge_length() const {
-    return std::max<float>(std::abs(purge_length_.value_or(GetDefaultPurgeLength(ENABLED(SINGLENOZZLE) ? 0 : target_extruder))), minimal_purge);
+    float r;
+
+    if (purge_length_.has_value()) {
+        r = *purge_length_;
+
+    } else {
+        // Double the purge length for HF nozzles
+        r = ADVANCED_PAUSE_PURGE_LENGTH * (config_store().get_nozzle_is_high_flow(physical_tool()) ? 2 : 1);
+    }
+
+    return std::max<float>(std::abs(r), minimal_purge);
 }
