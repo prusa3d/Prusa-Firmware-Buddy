@@ -123,7 +123,7 @@ void ScreenPrusaLinkQRCode::windowEvent(window_t *, GUI_event_t event, void *) {
     case GUI_event_t::CLICK:
     case GUI_event_t::TOUCH_SWIPE_LEFT:
     case GUI_event_t::TOUCH_SWIPE_RIGHT:
-        Screens::Access()->Close();
+        close_screen();
         break;
     default:
         break;

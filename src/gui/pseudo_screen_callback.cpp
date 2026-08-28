@@ -15,5 +15,5 @@ void PseudoScreenCallback::windowEvent([[maybe_unused]] window_t *sender, [[mayb
 
     callback_called = true;
     callback();
-    Screens::Access()->Close();
+    close_screen();
 }

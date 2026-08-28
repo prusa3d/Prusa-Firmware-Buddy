@@ -26,7 +26,7 @@ screen_t::~screen_t() {
 }
 
 void screen_t::close_screen() {
-    Screens::Access()->Close();
+    Screens::Access()->close_screen();
 }
 
 bool screen_t::registerSubWin(window_t &win) {

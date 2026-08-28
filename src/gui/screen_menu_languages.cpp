@@ -16,7 +16,7 @@ MI_LangBase::MI_LangBase(const char *label, const char *lang_code, const img::Re
 
 void MI_LangBase::click(IWindowMenu & /*window_menu*/) {
     LangEEPROM::getInstance().setLanguage(lang_code);
-    Screens::Access()->Close();
+    Screens::Access()->close_screen();
 }
 
 void MI_LangBase::printIcon(Rect16 icon_rect, ropfn raster_op, Color color_back) const {

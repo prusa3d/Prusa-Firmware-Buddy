@@ -39,7 +39,7 @@ void ScreenMenuExperimentalSettings::clicked_return() {
 
         sys_reset();
     case Response::No:
-        Screens::Access()->Close();
+        close_screen();
         return;
     default:
         return; // do nothing

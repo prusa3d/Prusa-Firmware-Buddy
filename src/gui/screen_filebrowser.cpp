@@ -57,7 +57,7 @@ void screen_filebrowser_data_t::windowEvent([[maybe_unused]] window_t *sender, G
 void screen_filebrowser_data_t::checkMissingMedia(MediaState_t media_state) {
     if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
         browser().clear_first_visible_sfn();
-        Screens::Access()->Close();
+        close_screen();
     }
 }
 
@@ -76,5 +76,5 @@ void screen_filebrowser_data_t::printTheFile() {
 
 void screen_filebrowser_data_t::goHome() {
     browser().clear_first_visible_sfn();
-    Screens::Access()->Close();
+    close_screen();
 }

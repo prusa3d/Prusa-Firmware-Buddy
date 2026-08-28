@@ -298,7 +298,7 @@ void screen_filament_detail::ScreenFilamentDetail::setup_preheat_mode_confirm(Pr
         save_changes();
 
         if (ScreenPreheat::handle_filament_selection(PendingAdHocFilamentType {}, params.tool, params.mode)) {
-            Screens::Access()->Close();
+            close_screen();
         }
     };
 }

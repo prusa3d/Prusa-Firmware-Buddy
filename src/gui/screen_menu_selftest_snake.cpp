@@ -429,7 +429,7 @@ void do_menu_event(window_t *receiver, [[maybe_unused]] window_t *sender, GUI_ev
 
     if (is_submenu) {
         if (snake_config.last_action == action && snake_config.last_tool == get_last_enabled_tool()) { // finished testing this submenu
-            Screens::Access()->Close();
+            Screens::Access()->close_screen();
         }
     }
 }
@@ -489,7 +489,7 @@ void ScreenMenuSTSWizard::windowEvent(window_t *sender, GUI_event_t event, void 
         ever_shown_wizard_box = true;
 
         if (MsgBoxPepaCentered(_("Run selftests and calibrations now?"), { Response::Yes, Response::No }) != Response::Yes) {
-            Screens::Access()->Close();
+            close_screen();
             return;
         }
 
@@ -514,6 +514,6 @@ void ScreenMenuSTSWizard::windowEvent(window_t *sender, GUI_event_t event, void 
 #else
     if (is_completed(get_test_result(get_last_action(), AllTools {})) && are_previous_completed(get_last_action())) {
 #endif
-        Screens::Access()->Close();
+        close_screen();
     }
 }

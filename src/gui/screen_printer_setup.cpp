@@ -35,7 +35,7 @@ void MI_DONE::click(IWindowMenu &) {
     #endif
 #endif
 
-    Screens::Access()->Close();
+    Screens::Access()->close_screen();
 }
 
 // ------------------------------------------------

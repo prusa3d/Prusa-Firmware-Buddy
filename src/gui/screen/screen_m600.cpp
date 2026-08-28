@@ -52,7 +52,7 @@ void MI_M600::click([[maybe_unused]] IWindowMenu &window_menu) {
             .allow_return = true,
         });
         if (tool.has_value() && inject(*tool)) {
-            Screens::Access()->Close();
+            Screens::Access()->close_screen();
         }
         return;
     }

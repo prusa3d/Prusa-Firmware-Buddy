@@ -44,7 +44,7 @@ void MI_FILAMENT::click(IWindowMenu &) {
         gui_loop();
     }
 
-    Screens::Access()->Close();
+    Screens::Access()->close_screen();
 }
 
 WindowMenuMMUPreloadAll::WindowMenuMMUPreloadAll(window_t *parent, Rect16 rect)

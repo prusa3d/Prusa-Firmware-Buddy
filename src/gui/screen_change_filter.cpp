@@ -49,7 +49,7 @@ ScreenChangeFilter::ScreenChangeFilter()
     help.SetAlignment(Align_t::LeftTop());
     help.SetText(_(txt_help));
 
-    radio.set_callback([](Response r) {
+    radio.set_callback([this](Response r) {
         switch (r) {
 
         case Response::Done:
@@ -60,6 +60,6 @@ ScreenChangeFilter::ScreenChangeFilter()
         default:
             break;
         }
-        Screens::Access()->Close();
+        close_screen();
     });
 }

@@ -65,7 +65,7 @@ void ScreenMoveZ::windowEvent(window_t *sender, GUI_event_t event, void *param) 
     switch (event) {
 
     case GUI_event_t::CLICK:
-        Screens::Access()->Close();
+        close_screen();
         break;
 
     case GUI_event_t::KNOB: {
@@ -102,7 +102,7 @@ void ScreenMoveZ::windowEvent(window_t *sender, GUI_event_t event, void *param) 
     case GUI_event_t::TOUCH_SWIPE_LEFT:
     case GUI_event_t::TOUCH_SWIPE_RIGHT:
         sound::play(SoundType::button_echo);
-        Screens::Access()->Close();
+        close_screen();
         break;
 
     default:

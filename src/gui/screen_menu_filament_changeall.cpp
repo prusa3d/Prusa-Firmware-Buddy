@@ -172,7 +172,7 @@ void MenuMultiFilamentChange::windowEvent(window_t *sender, GUI_event_t event, v
             const auto config = configuration();
             if (std::ranges::all_of(config, [](const ConfigItem &item) { return item.action == Action::keep; })) {
                 // Cancelled or "Don't change" picked - nothing to apply, return to the parent menu
-                Screens::Access()->Close();
+                Screens::Access()->close_screen();
                 return;
             }
 
@@ -184,7 +184,7 @@ void MenuMultiFilamentChange::windowEvent(window_t *sender, GUI_event_t event, v
 
     case GUI_event_t::CHILD_CLICK: {
         if (carry_out_changes()) {
-            Screens::Access()->Close();
+            Screens::Access()->close_screen();
         }
         return;
     }
@@ -194,7 +194,7 @@ void MenuMultiFilamentChange::windowEvent(window_t *sender, GUI_event_t event, v
         if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
             // USB was removed
             if (close_screen_on_media_disconnect_) {
-                Screens::Access()->Close();
+                Screens::Access()->close_screen();
                 return;
             }
         }

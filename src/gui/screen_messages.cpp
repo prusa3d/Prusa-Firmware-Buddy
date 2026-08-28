@@ -24,7 +24,7 @@ void screen_messages_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
     case GUI_event_t::TOUCH_SWIPE_LEFT:
     case GUI_event_t::TOUCH_SWIPE_RIGHT:
         sound::play(SoundType::button_echo);
-        Screens::Access()->Close();
+        close_screen();
         return;
 
     case GUI_event_t::LOOP:

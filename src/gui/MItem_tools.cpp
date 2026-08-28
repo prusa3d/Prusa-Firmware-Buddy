@@ -737,7 +737,7 @@ void MI_FOOTER_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::encode_item_for_event(footer::Item::none));
 
     // close this menu, because it is no longer valid and needs to be redrawn
-    Screens::Access()->Close();
+    Screens::Access()->close_screen();
 }
 
 static constexpr const char *heatup_bed_values[] = {

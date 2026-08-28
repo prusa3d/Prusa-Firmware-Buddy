@@ -43,7 +43,7 @@ void ScreenTouchPlayground::windowEvent(window_t *sender, GUI_event_t event, voi
     }
 
     else if (event == GUI_event_t::CLICK) {
-        Screens::Access()->Close();
+        close_screen();
         return;
     }
 
