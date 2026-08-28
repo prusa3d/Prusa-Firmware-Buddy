@@ -59,3 +59,45 @@ TEST_CASE("Json structural traversal") {
     REQUIRE(success);
     REQUIRE(pos == event_cnt);
 }
+
+TEST_CASE("Json key and value string_views are null-terminated") {
+    // Mix of strings (with and without escapes) and primitives (int, bool,
+    // null, float). Every key/value emitted should have a '\0' at
+    // view.data() + view.size() so callers can pass .data() to C-string
+    // APIs or std::string_view(const char*) safely.
+    static char input[] = "{\"k1\":\"v1\",\"k2\":\"with\\\"esc\",\"num\":42,\"flag\":true,\"none\":null,\"f\":3.14}";
+
+    jsmn_parser parser;
+    jsmntok_t tokens[MAX_TOKENS];
+    jsmn_init(&parser);
+
+    const auto parse_result = jsmn_parse(&parser, input, strlen(input), tokens, sizeof tokens / sizeof *tokens);
+    REQUIRE(parse_result > 0);
+
+    size_t emitted = 0;
+    const bool success = json::search(input, tokens, parse_result, [&](const Event &event) {
+        // Skip structural events (Object/Array/Pop) — they have no value
+        // and we don't terminate them either.
+        if (event.type == Type::Pop || event.type == Type::Object || event.type == Type::Array) {
+            return;
+        }
+
+        if (event.key.has_value()) {
+            const auto &k = *event.key;
+            INFO("key '" << string(k) << "' size " << k.size());
+            CHECK(k.data()[k.size()] == '\0');
+            // Also verify std::string_view(const char *) sees the same text.
+            CHECK(std::string_view(k.data()) == k);
+        }
+        if (event.value.has_value()) {
+            const auto &v = *event.value;
+            INFO("value '" << string(v) << "' size " << v.size());
+            CHECK(v.data()[v.size()] == '\0');
+            CHECK(std::string_view(v.data()) == v);
+        }
+        ++emitted;
+    });
+
+    REQUIRE(success);
+    REQUIRE(emitted == 6);  // 6 key/value pairs at depth 1
+}
