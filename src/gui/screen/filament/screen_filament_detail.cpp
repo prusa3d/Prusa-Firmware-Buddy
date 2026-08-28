@@ -221,8 +221,7 @@ void ScreenFilamentDetail::setup(FilamentType filament_type, const FilamentTypeP
     const bool is_customizable = filament_type.is_customizable();
 
 #if HAS_CHAMBER_API()
-    const auto chamber_caps = chamber().capabilities();
-    const bool hide_chamber_items = !chamber_caps.temperature_control() && !chamber_caps.always_show_temperature_control;
+    const bool hide_chamber_items = !chamber().capabilities().temperature_control_generally();
 #endif
 
     Item<MI_FILAMENT_NAME>().set_filament_type(filament_type);

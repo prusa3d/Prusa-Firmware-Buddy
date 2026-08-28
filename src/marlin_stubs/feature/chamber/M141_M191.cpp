@@ -78,7 +78,7 @@ void PrusaGcodeSuite::M141_no_parser(const M141Args &args) {
     // Keep everything heated up while we're waiting
     buddy::SafetyTimerBlocker safety_timer_blocker;
 
-    if (!chamber().capabilities().temperature_control()) {
+    if (!chamber().capabilities().temperature_control_at_this_moment()) {
         SERIAL_ERROR_MSG("Chamber does not allow temperature control");
         return;
     }
