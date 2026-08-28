@@ -334,7 +334,13 @@ endif()
 
 # split and gc sections
 add_compile_options(-ffunction-sections -fdata-sections)
-add_link_options(-Wl,--gc-sections)
+if(NOT APPLE)
+  add_link_options(-Wl,--gc-sections)
+else()
+  # ld64 spells it differently; only reachable for the host unit tests, since
+  # the firmware itself is always cross-compiled with the arm-none-eabi gcc.
+  add_link_options(-Wl,-dead_strip)
+endif()
 
 # support _DEBUG macro (some code uses to recognize debug builds)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
