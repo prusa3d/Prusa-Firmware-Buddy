@@ -6,6 +6,7 @@
 #include "../nhttp/gcode_upload.h"
 #include "../nhttp/job_command.h"
 #include "../nhttp/send_json.h"
+#include "../nhttp/static_mem.h"
 #include "../nhttp/status_renderer.h"
 #include "../wui_api.h"
 #include "prusa_api_helpers.hpp"
@@ -118,6 +119,12 @@ Selector::Accepted PrusaLinkApiV1::accept(const RequestParser &parser, handler::
         return Accepted::Accepted;
     } else if (suffix == "info") {
         get_only(SendJson(EmptyRenderer(get_info), parser.can_keep_alive()), parser, out);
+        return Accepted::Accepted;
+    } else if (suffix == "log") {
+        // Plain-text response. Avoids any JSON-escape stack allocation;
+        // SendStaticMemory just streams the bytes directly.
+        const std::string_view snapshot = snapshot_serial_log_into_static();
+        out.next = SendStaticMemory(snapshot, http::ContentType::TextPlain, parser.can_keep_alive());
         return Accepted::Accepted;
     } else if (auto job_suffix_opt = remove_prefix(suffix, "job/"); job_suffix_opt.has_value()) {
         auto job_suffix = *job_suffix_opt;

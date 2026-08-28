@@ -3,6 +3,7 @@
 #include "marlin_client.hpp"
 #include <lwip/init.h>
 #include "netdev.h"
+#include "../serial_log.h"
 #include <config_store/store_instance.hpp>
 #include <option/has_tool_mapping.h>
 
@@ -250,6 +251,19 @@ JsonResult get_info(size_t resume_point, JsonOutput &output) {
     JSON_OBJ_END;
     JSON_END;
     // clang-format on
+}
+
+// log endpoint moved out of the JSON renderer set — it returns plain text
+// via SendStaticMemory instead (see prusa_link_api_v1.cpp). The whole
+// JSON-escape-on-tiny-stack path is avoided.
+
+std::string_view snapshot_serial_log_into_static() {
+    // Static so the buffer outlives this function call (SendStaticMemory
+    // borrows the string_view's data). Single-threaded by the HTTP server,
+    // so no synchronization beyond the snapshot's own mutex is needed.
+    static char buf[nhttp::printer::SerialLog::BUFFER_SIZE + 1];
+    const size_t n = nhttp::printer::serial_log.snapshot_into(buf, sizeof(buf));
+    return std::string_view(buf, n);
 }
 
 JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {

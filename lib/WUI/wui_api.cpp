@@ -14,6 +14,7 @@
 #include "stm32f4xx_hal.h"
 #include "print_utils.hpp"
 #include "marlin_client.hpp"
+#include "serial_log.h"
 
 #include <lfn.h>
 #include <buddy/filename_defs.hpp>
@@ -39,6 +40,8 @@ void wui_marlin_client_init(void) {
     marlin_client::init(); // init the client
     // force update variables when starts
     marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF);
+    // Capture USB CDC serial output into a ring buffer for /api/v1/log
+    nhttp::printer::serial_log_install_hook();
 }
 
 struct ini_load_def {

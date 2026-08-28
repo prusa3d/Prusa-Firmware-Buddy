@@ -2,6 +2,8 @@
 
 #include <segmented_json.h>
 
+#include <string_view>
+
 #define PL_VERSION_MAJOR    2
 #define PL_VERSION_MINOR    0
 #define PL_VERSION_REVISION 0
@@ -30,5 +32,6 @@ json::JsonResult get_job_octoprint(size_t resume_point, json::JsonOutput &output
 json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output);
 json::JsonResult get_storage(size_t resume_point, json::JsonOutput &output);
 json::JsonResult get_info(size_t resume_point, json::JsonOutput &output);
+std::string_view snapshot_serial_log_into_static();
 
 } // namespace nhttp::link_content

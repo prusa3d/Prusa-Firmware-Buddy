@@ -34,6 +34,7 @@ target_sources(
             nhttp/status_renderer.cpp
             nhttp/transfer_renderer.cpp
             pbuf_rx.cpp
+            serial_log.cpp
             sntp/sntp.c
             sntp/sntp_client.c
             wui.cpp
