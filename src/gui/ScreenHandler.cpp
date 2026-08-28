@@ -95,6 +95,13 @@ void Screens::close_screen_or_dialog() {
     }
 }
 
+void Screens::close_screen_and_dialog() {
+    if (is_dialog_open) {
+        close_dialog();
+    }
+    close_screen();
+}
+
 bool Screens::close_screen(const ScreenFactory::Creator &creator) {
     bool found = false;
 

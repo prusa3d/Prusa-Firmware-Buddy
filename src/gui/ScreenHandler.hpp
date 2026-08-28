@@ -91,6 +91,9 @@ public:
     /// known and the explicit \p close_screen / \p close_dialog should be used instead.
     void close_screen_or_dialog();
 
+    /// Closes the current screen, together with any dialogs on top of it (if they allow it)
+    void close_screen_and_dialog();
+
     void CloseAll();
 
     void ClosePrinting();
