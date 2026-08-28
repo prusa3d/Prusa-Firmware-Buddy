@@ -182,7 +182,19 @@ namespace {
             }
         }
 
-        return !ferror(s.get()) && !ferror(d.get());
+        if (ferror(s.get()) || ferror(d.get())) {
+            return false;
+        }
+
+        // Close the destination explicitly. Whatever is still buffered when we
+        // return is written by fclose, whose result FileDeleter discards - and
+        // a certificate small enough to sit entirely in the stdio buffer never
+        // reaches the filesystem before then. Letting RAII close it would mean
+        // reporting success without knowing anything.
+        //
+        // The source is read-only, so how it closes cannot change what landed
+        // in dst; RAII is right for that one.
+        return fclose_checked(move(d));
     }
 } // namespace
 
