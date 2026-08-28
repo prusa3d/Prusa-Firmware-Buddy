@@ -8,7 +8,7 @@
 
 using namespace buddy::puppies;
 
-static constexpr auto REQUEST_DURATION_US = 2000;
+static constexpr auto RESPONSE_DURATION_US = 2000;
 static constexpr auto ITERATIONS = 1000;
 static constexpr auto STEP_US = 1000;
 
@@ -27,8 +27,8 @@ void run_simulation(TimeSync &time_sync, std::function<Times(uint32_t)> calc_tim
     for (unsigned int i = 0; i < ITERATIONS; ++i) {
         const Times times = calc_times(i);
         RequestTiming timing = {
-            .begin_us = times.buddy_time_us - REQUEST_DURATION_US / 2,
-            .end_us = times.buddy_time_us + REQUEST_DURATION_US / 2,
+            .request_end_us = times.buddy_time_us,
+            .response_end_us = times.buddy_time_us + RESPONSE_DURATION_US,
         };
         current_ticks_us = times.buddy_time_us;
         time_sync.sync(times.puppy_time_us, timing);

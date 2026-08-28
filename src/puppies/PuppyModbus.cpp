@@ -139,13 +139,13 @@ PuppyModbus::SingleRequestResult PuppyModbus::make_single_request(RequestTiming 
 
     PuppyBus::EnsurePause(PuppyBus::Pause::Short);
 
-    if (timing) {
-        timing->begin_us = ticks_us();
-    }
     PuppyBus::Write(modbusMasterGetRequest(&master), modbusMasterGetRequestLength(&master));
+    if (timing) {
+        timing->request_end_us = ticks_us();
+    }
     size_t read = PuppyBus::Read(response_buffer.data(), response_buffer.size(), MODBUS_READ_TIMEOUT_MS);
     if (timing) {
-        timing->end_us = ticks_us();
+        timing->response_end_us = ticks_us();
     }
 
     log_debug(Modbus, "Response length: %d", read);

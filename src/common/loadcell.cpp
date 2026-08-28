@@ -405,7 +405,7 @@ void Loadcell::HomingSafetyCheck() {
     if (!probe_safety_armed.load()) {
         return;
     }
-    // Signed: the last sample can be slightly in the future due to time sync with the dwarves.
+    // Signed: tolerate any small time-sync offset of the last sample.
     int32_t since_last = ticks_diff(ticks_us(), last_sample_time_us.load());
     if (since_last > MAX_LOADCELL_DATA_AGE_US) {
         probe_safety_stop();

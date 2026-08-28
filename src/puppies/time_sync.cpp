@@ -14,7 +14,7 @@ using namespace buddy::puppies;
 // #error dead code found by automatic analyses (see BFW-5461)
 METRIC_DEF(metric_buddy_time_us, "buddy_t", METRIC_VALUE_INTEGER, 0, METRIC_ENABLED);
 METRIC_DEF(metric_puppy_time_us, "puppy_t", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
-METRIC_DEF(metric_sync_roundtrip_us, "sync_rt", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
+METRIC_DEF(metric_sync_response_us, "sync_resp", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
 METRIC_DEF(metric_puppy_offset_us, "puppy_off", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
 METRIC_DEF(metric_puppy_drift_ppb, "puppy_drift", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
 METRIC_DEF(metric_puppy_average_offset_us, "puppy_aoff", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
@@ -34,24 +34,29 @@ void TimeSync::init() {
     last_offset_us = std::numeric_limits<int32_t>::max();
     average_drift_ppb = std::numeric_limits<int32_t>::max();
     average_puppy_offset_us = std::numeric_limits<int32_t>::max();
-    average_roundtrip_us = std::numeric_limits<uint32_t>::max();
+    average_response_us = std::numeric_limits<uint32_t>::max();
 }
 
 void TimeSync::sync(const uint32_t puppy_time_us, const RequestTiming timing) {
-    // Discard sync that take unusually long time as it is inaccurate
-    const uint32_t roundtrip_us = timing.end_us - timing.begin_us;
-    if (average_roundtrip_us == std::numeric_limits<uint32_t>::max()) {
-        average_roundtrip_us = roundtrip_us;
+    const uint32_t response_us = timing.response_end_us - timing.request_end_us;
+    if (average_response_us == std::numeric_limits<uint32_t>::max()) {
+        average_response_us = response_us;
     } else {
-        average_roundtrip_us = ((ROUNDTRIP_DURATION_SAMPLES - 1) * average_roundtrip_us + roundtrip_us) / ROUNDTRIP_DURATION_SAMPLES;
+        average_response_us = ((RESPONSE_DURATION_EMA_WINDOW - 1) * average_response_us + response_us) / RESPONSE_DURATION_EMA_WINDOW;
     }
-    if (roundtrip_us > average_roundtrip_us * LONG_ROUNDTRIP_THRESHOLD) {
-        // Skip sync, this sample is bad
+    if (response_us > average_response_us * RESPONSE_JITTER_THRESHOLD
+        || response_us * RESPONSE_JITTER_THRESHOLD < average_response_us) {
+        // Puppy processing and response frame duration are constant per request type,
+        // so a scheduling delay shows up as a deviation of the response duration.
+        // Discard such syncs as inaccurate.
         return;
     }
 
-    // This assumes response_send_time == request_receive_time and puppy processing time == 0
-    const uint32_t buddy_time_us = timing.begin_us + static_cast<uint32_t>(timing.end_us - timing.begin_us) / 2;
+    // The puppy samples its clock right after receiving the request, so the end
+    // of the request frame is the closest wire event the buddy can timestamp.
+    // The residual error (puppy-side frame detection and parsing) biases
+    // converted timestamps slightly to the past.
+    const uint32_t buddy_time_us = timing.request_end_us;
 
     // Compute raw offset info
     const int32_t puppy_offset_us = puppy_time_us - buddy_time_us;
@@ -65,7 +70,7 @@ void TimeSync::sync(const uint32_t puppy_time_us, const RequestTiming timing) {
 
 #ifdef TIME_SYNC_DEBUG
         // #error dead code found by automatic analyses (see BFW-5461)
-        metric_record_custom(&metric_sync_roundtrip_us, ",n=%d v=%d", id, roundtrip_us);
+        metric_record_custom(&metric_sync_response_us, ",n=%d v=%d", id, response_us);
         metric_record_custom(&metric_puppy_time_us, ",n=%d v=%d", id, puppy_time_us);
         metric_record_integer(&metric_buddy_time_us, buddy_time_us);
         metric_record_custom(&metric_puppy_offset_us, ",n=%d v=%d", id, puppy_offset_us);

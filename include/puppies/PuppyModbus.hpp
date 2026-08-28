@@ -84,8 +84,8 @@ struct ModbusValueReference {
 };
 
 struct RequestTiming {
-    uint32_t begin_us;
-    uint32_t end_us;
+    uint32_t request_end_us; ///< Last byte of the request frame on the wire
+    uint32_t response_end_us; ///< Response received (frame end + ~1 character of idle detection)
 };
 
 enum class CommunicationStatus {
