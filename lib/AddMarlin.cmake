@@ -195,7 +195,7 @@ if(BOARD_IS_MASTER_BOARD)
         )
     else()
       target_sources(
-        Marlin PRIVATE Marlin/Marlin/src/module/prusa/toolchanger_utils.cpp
+        Marlin PRIVATE Marlin/Marlin/src/module/prusa/toolchanger_utils_xl.cpp
                        Marlin/Marlin/src/module/prusa/toolchanger_xl.cpp
         )
     endif()
