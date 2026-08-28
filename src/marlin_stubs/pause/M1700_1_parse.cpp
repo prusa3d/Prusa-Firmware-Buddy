@@ -85,21 +85,18 @@ void PrusaGcodeSuite::M1700() {
  *
  *#### Usage
  *
- *    M1701 [ T | Z | L ]
+ *    M1701 [ T ]
  *
  *#### Parameters
  *
  * - `T` - Extruder number. Required for mixing extruder.
  *        For non-mixing, current extruder if omitted.
- * - `Z` - Minimum Z park position
- * - `L` - Extrude distance for insertion (positive value) (manual reload)
  *
  * Default values are used for omitted arguments.
  */
 void PrusaGcodeSuite::M1701() {
-    const bool isL = parser.seen('L');
-    const std::optional<float> fast_load_length = std::abs(isL ? parser.value_axis_units(E_AXIS) : FILAMENT_CHANGE_FAST_LOAD_LENGTH);
-    const float z_min_pos = parser.linearval('Z', Z_AXIS_LOAD_POS);
+    constexpr auto fast_load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
+    constexpr auto z_min_pos = Z_AXIS_LOAD_POS;
 
     // FIXME:
     // It's a bit unclear if the target_extruder here shall be virtual or physical.

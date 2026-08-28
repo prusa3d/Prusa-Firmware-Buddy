@@ -271,8 +271,7 @@ void FilamentSensors::process_events() {
 
         autoload_sent = true;
 
-        // autoload with return option and minimal Z value of 40mm
-        marlin_server::inject(GCodeLiteral { .gcode = "M1701 Z%.2f", .parameter = Z_AXIS_LOAD_POS });
+        marlin_server::inject(GCodeLiteral { .gcode = "M1701" });
 
         log_info(FSensor, "Injected autoload");
 
