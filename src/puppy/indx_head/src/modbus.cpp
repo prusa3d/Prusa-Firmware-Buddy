@@ -39,6 +39,12 @@ namespace {
         // Lets update all the status data here.
         // WARNING: be aware that this will block the modbus communication (also with other puppies), so prefere reading from cached values
 
+        // Sample the clock before anything else: xBuddy time sync anchors the
+        // snapshot to the end of the request frame.
+        const uint32_t time_us = static_cast<uint32_t>(timing::get_timestamp_us());
+        state.status_regs.time_sync_lo = time_us & 0xffff;
+        state.status_regs.time_sync_hi = time_us >> 16;
+
         state.status_regs.fault_status = hal::get_fault_status();
 
         // !!! MUST be before reading the temperatures themselves to avoid race condition
@@ -76,10 +82,6 @@ namespace {
         state.status_regs.heatbreak_fan_state = (heatbreak_pwm > 0) ? 3 : 0; // 3=running, 0=idle
         state.status_regs.heatbreak_fan_rpm = heatbreak_rpm;
         state.status_regs.heatbreak_fan_is_rpm_ok = app::is_heatbreak_fan_rpm_ok();
-
-        uint32_t time_us = static_cast<uint32_t>(timing::get_timestamp_us());
-        state.status_regs.time_sync_lo = time_us & 0xffff;
-        state.status_regs.time_sync_hi = time_us >> 16;
 
         state.status_regs.nozzle_present = std::to_underlying(app::get_nozzle_present());
         state.status_regs.nozzle_invalidation_ack = app::get_nozzle_invalidation_ack();
