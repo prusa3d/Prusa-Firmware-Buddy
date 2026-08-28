@@ -37,3 +37,7 @@ IDialog::IDialog(window_t *parent, Rect16 rc)
 IDialog::~IDialog() {
     set_underlying_screen_state(underlying_screen_state);
 }
+
+void IDialog::close_dialog() {
+    Screens::Access()->close_dialog();
+}

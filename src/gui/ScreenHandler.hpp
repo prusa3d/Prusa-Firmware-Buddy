@@ -39,7 +39,7 @@ class Screens {
 
     bool is_dialog_open = false;
 
-    bool close_dialog = false;
+    bool close_dialog_requested = false;
     bool close = false;
     bool close_all = false;
     bool close_printing = false;
@@ -64,19 +64,37 @@ public:
 
     void PushBeforeCurrent(screen_node screen_creator);
 
-    /// Closes currently open screen on the stack (or dialog, if we're waiting on one)
-    void Close();
+    [[deprecated]]
+    void Close() {
+        close_screen_or_dialog();
+    }
+
+    /// Closes the currently open screen on the stack.
+    /// The screen is not destroyed immediately - it happens on the next \p Loop.
+    /// Consequently, if a blocking dialog is open on top of the screen, the close only takes
+    /// effect after that dialog's loop finishes - use \p close_dialog to close the dialog itself.
+    void close_screen();
 
     /// Closes the specific screen anywhere on the stack
     /// \returns if any screen was closed
     template <typename Screen>
-    inline bool Close() {
-        return Close(ScreenFactory::Screen<Screen>);
+    inline bool close_screen() {
+        return close_screen(ScreenFactory::Screen<Screen>);
     };
 
     /// Closes the specific screen anywhere on the stack
     /// \returns if any screen was closed
-    bool Close(const ScreenFactory::Creator &creator);
+    bool close_screen(const ScreenFactory::Creator &creator);
+
+    /// Closes the blocking dialog we're currently waiting on in \p gui_loop_until_dialog_closed.
+    /// Must not be called when no such dialog is open.
+    void close_dialog();
+
+    /// Closes the blocking dialog if we're waiting on one, the current screen otherwise.
+    /// Only for generic widgets that can be placed both directly on a screen and inside a dialog
+    /// (MI_RETURN, close-on-click windows, swipe-back menus) - everywhere else, the context is
+    /// known and the explicit \p close_screen / \p close_dialog should be used instead.
+    void close_screen_or_dialog();
 
     void CloseAll();
 

@@ -15,4 +15,8 @@ public:
     IDialog(Rect16 rc = GuiDefaults::DialogFrameRect);
     IDialog(window_t *parent, Rect16 rc = GuiDefaults::DialogFrameRect);
     ~IDialog();
+
+    /// Closes the dialog
+    /// Only valid for dialogs being waited on in \p Screens::gui_loop_until_dialog_closed
+    void close_dialog();
 };

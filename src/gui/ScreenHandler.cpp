@@ -71,22 +71,31 @@ void Screens::Open(screen_node screen_creator) {
     creator_node = screen_creator;
 }
 
-void Screens::Close() {
-    // If we're blockingly waiting on a dilog, close the dialog, not the screen
-    if (is_dialog_open) {
-        close_dialog = true;
-        return;
-    }
-
+void Screens::close_screen() {
     close = true;
     creator_node.MakeEmpty();
 
     // Don't redraw the screen since we're closing it
     // This prevents extra redraws if for example there has been a dialog open just before closing the screen
-    gui_validate();
+    if (!is_dialog_open) {
+        gui_validate();
+    }
 }
 
-bool Screens::Close(const ScreenFactory::Creator &creator) {
+void Screens::close_dialog() {
+    debug_assert(is_dialog_open);
+    close_dialog_requested = true;
+}
+
+void Screens::close_screen_or_dialog() {
+    if (is_dialog_open) {
+        close_dialog();
+    } else {
+        close_screen();
+    }
+}
+
+bool Screens::close_screen(const ScreenFactory::Creator &creator) {
     bool found = false;
 
     // Check screen that is to be opened
@@ -125,7 +134,7 @@ bool Screens::Close(const ScreenFactory::Creator &creator) {
  */
 void Screens::CloseAll() {
     close_all = true;
-    close_dialog = true;
+    close_dialog_requested = true;
     creator_node.MakeEmpty();
 }
 
@@ -311,9 +320,9 @@ void Screens::InnerLoop() {
 void Screens::gui_loop_until_dialog_closed(stdext::inplace_function<void()> callback) {
     // !!! Both AutoRestores are important, we might be in dialogception, in which case we don't want to alter the statte for the upper dialog
     AutoRestore dialog_open_guard(is_dialog_open, true);
-    AutoRestore close_dialog_guard(close_dialog, false);
+    AutoRestore close_dialog_guard(close_dialog_requested, false);
 
-    while (!close_dialog) {
+    while (!close_dialog_requested) {
         gui::TickLoop();
         gui_loop();
         if (callback) {

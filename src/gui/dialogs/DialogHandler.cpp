@@ -131,7 +131,7 @@ struct FSMScreenDef : public FSMScreenDefBase {
 
     static void close() {
         debug_assert(Screens::Access()->IsScreenOnStack<Screen>());
-        Screens::Access()->Close<Screen>();
+        Screens::Access()->close_screen<Screen>();
     }
 
     [[nodiscard]] static bool change(fsm::BaseData data) {
