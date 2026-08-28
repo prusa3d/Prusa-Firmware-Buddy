@@ -200,7 +200,7 @@ void GcodeSuite::M115() {
     cap_line(PSTR("CHAMBER_TEMPERATURE")
 #if HAS_CHAMBER_API()
                  ,
-        buddy::chamber().capabilities().temperature_reporting
+        buddy::chamber().capabilities().temperature_control_generally()
 #endif
     );
 }
