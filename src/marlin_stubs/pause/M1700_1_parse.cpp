@@ -1,13 +1,20 @@
-/**
- * @file
- * @brief Parsing of M170X g-codes
- */
-
+/// @file
 #include "config_features.h"
 #include "../PrusaGcodeSuite.hpp"
 #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "M70X.hpp"
 #include <utils/variant_utils.hpp>
+#include <raii/scope_guard.hpp>
+#include <filament_to_load.hpp>
+#include <option/has_bowden.h>
+#include <option/has_indx.h>
+
+#include <option/has_toolchanger.h>
+#if HAS_TOOLCHANGER()
+    #include <module/prusa/toolchanger.h>
+#endif
+
+using namespace filament_gcodes;
 
 /** \addtogroup G-Codes
  * @{
@@ -92,14 +99,133 @@ void PrusaGcodeSuite::M1700() {
 void PrusaGcodeSuite::M1701() {
     const bool isL = parser.seen('L');
     const std::optional<float> fast_load_length = std::abs(isL ? parser.value_axis_units(E_AXIS) : FILAMENT_CHANGE_FAST_LOAD_LENGTH);
-    const float min_Z_pos = parser.linearval('Z', Z_AXIS_LOAD_POS);
+    const float z_min_pos = parser.linearval('Z', Z_AXIS_LOAD_POS);
 
+    // FIXME:
+    // It's a bit unclear if the target_extruder here shall be virtual or physical.
+    //
+    // * It is triggered by a filament sensor on a physical head (that is, in case
+    //   of MMU printer, there's single filament sensor, but 5 slots), which would
+    //   suggest physical.
+    // * We do _not_ set the T parameter on trigger, and trigger it only in case we
+    //   have the specific head selected (on XL), ignoring for others.
+    // * We use the parameter for things like filament properties, which filament
+    //   to load, etc, which suggest virtual.
+    // * We take a physical tool to load into by independently using
+    //   PhysicalToolIndex::currently_selected, which seems completely wrong in
+    //   principle.
     const std::optional<VirtualToolIndex> virtual_tool = stdext::get_optional<VirtualToolIndex>(GcodeSuite::get_target_virtual_from_command());
     if (!virtual_tool.has_value()) {
         return;
     }
 
-    filament_gcodes::M1701_autoload(fast_load_length, min_Z_pos, virtual_tool->to_raw());
+    filament::set_type_to_load(FilamentType::none);
+    filament::set_color_to_load(std::nullopt);
+
+    InProgress progress;
+    ScopeGuard autoload_clr = [&] {
+        FSensors_instance().ClrAutoloadSent();
+    };
+
+    if constexpr (option::has_bowden) {
+        config_store().set_filament_type(*virtual_tool, FilamentType::none);
+        M701_load(M701LoadArgs {
+            .fast_load_length = fast_load_length,
+            .z_min_pos = z_min_pos,
+            .op_preheat = RetAndCool_t::Return,
+            .virtual_tool = *virtual_tool,
+            .mmu_slot = 0,
+        });
+        return;
+    }
+
+#if HAS_INDX()
+    // Park the tool back to its dock after autoload (covers all early-return paths)
+    ScopeGuard park_after_autoload = [&] {
+        tool_change(NoTool {}, tool_return_t::dock_backoff);
+    };
+#endif
+
+    pause::Settings settings;
+    settings.SetExtruder(*virtual_tool);
+    settings.SetFastLoadLength(fast_load_length);
+    settings.SetRetractLength(0.f);
+    float e_pos_to_restore = current_position.e;
+    mapi::ParkingPosition pos = mapi::get_parking_position(mapi::ParkPosition::load);
+    pos.z = mapi::ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_RISE, .absolute = z_min_pos };
+    settings.SetParkPoint(pos);
+
+    auto active_tool = stdext::get_optional<PhysicalToolIndex>(PhysicalToolIndex::currently_selected());
+    if (!active_tool.has_value()) {
+        bsod("Autoload to notool");
+    }
+
+    const uint16_t orig_temp = Temperature::degTargetHotend(*active_tool);
+
+    ScopeGuard fail_guard = [&] {
+        thermalManager.setTargetHotend(orig_temp, *active_tool);
+        PreheatStatus::SetResult(PreheatStatus::Result::DoneNoFilament);
+    };
+
+    auto unload_filament = [&](Pause::LoadType unload_type) {
+        Pause::Instance().perform(unload_type, settings);
+    };
+
+    if (orig_temp < EXTRUDE_MINTEMP) {
+        thermalManager.setTargetHotend(EXTRUDE_MINTEMP, *active_tool);
+    }
+
+    const auto no_filament_in_extruder = [&]() {
+        return FSensors_instance().no_filament_surely(LogicalFilamentSensor::extruder)
+            || (!FSensors_instance().sensor(LogicalFilamentSensor::extruder) && FSensors_instance().no_filament_surely(LogicalFilamentSensor::side));
+    };
+
+    // catch filament in gear and then ask for temp
+    if (!Pause::Instance().perform(Pause::LoadType::load_to_gears, settings) && !no_filament_in_extruder()) {
+        // Unload when user said stop and filament was already loaded
+        unload_filament(Pause::LoadType::unload_from_gears);
+        return;
+    }
+    // check if filament is in gears before continuing to preheat
+    if (no_filament_in_extruder()) {
+        return;
+    }
+
+    if constexpr (option::has_human_interactions) {
+        const FilamentSelectionArgs data {
+            .mode = PreheatMode::autoload,
+            .tool = *virtual_tool,
+            .ret_cool = RetAndCool_t::Return,
+        };
+        auto preheat_ret = preheat(data, PreheatBehavior::for_filament_load());
+
+        if (preheat_ret.first) {
+            // canceled
+            unload_filament(Pause::LoadType::unload_from_gears);
+            return;
+        }
+
+        const FilamentType filament = preheat_ret.second;
+        filament::set_type_to_load(filament);
+        filament::set_color_to_load(std::nullopt);
+
+        mapi::ParkingPosition park_position = { .z = mapi::ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_RISE, .absolute = z_min_pos } };
+        // Returning to previous position is unwanted outside of printing (M1701 should be used only outside of printing)
+        settings.SetParkPoint(park_position);
+
+        if (!Pause::Instance().perform(Pause::LoadType::autoload, settings)) {
+            // This is a bit problematic, since we dont know how far the autoload has gotten (if only waiting for preheat or already loading to nozzle) -> therefore we have to always do the full unload even if it was stoped during wait_temp (where only unload from gears would suffice)
+            // This could possibly be solved if we move preheating and the whole autoload process into pause (so that is wouldn't be seperated to two operations (load_to_gears and autoload)) and then we could tell apart when the autoload was stopped
+            unload_filament(Pause::LoadType::unload);
+            return;
+        }
+    }
+    sync_e_position_to(e_pos_to_restore);
+    destination.e = e_pos_to_restore;
+
+    // at this point autoload is considered successful so fail guard is not to be triggered and we report DoneHasFilament as status
+    fail_guard.disarm();
+    PreheatStatus::SetResult(PreheatStatus::Result::DoneHasFilament);
 }
 
 /**

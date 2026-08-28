@@ -122,21 +122,6 @@ struct M1700Args {
 /// Standalone preheat
 void M1700_preheat(const M1700Args &args);
 
-// FIXME:
-// It's a bit unclear if the target_extruder here shall be virtual or physical.
-//
-// * It is triggered by a filament sensor on a physical head (that is, in case
-//   of MMU printer, there's single filament sensor, but 5 slots), which would
-//   suggest physical.
-// * We do _not_ set the T parameter on trigger, and trigger it only in case we
-//   have the specific head selected (on XL), ignoring for others.
-// * We use the parameter for things like filament properties, which filament
-//   to load, etc, which suggest virtual.
-// * We take a physical tool to load into by independently using
-//   PhysicalToolIndex::currently_selected, which seems completely wrong in
-//   principle.
-void M1701_autoload(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder);
-
 void mmu_load(uint8_t data);
 void mmu_load_test(VirtualToolIndex slot);
 void mmu_eject(uint8_t data);
