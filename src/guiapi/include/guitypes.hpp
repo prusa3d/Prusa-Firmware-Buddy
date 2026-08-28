@@ -3,10 +3,19 @@
 
 #include "marlin_server_types/general_response.hpp"
 
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 
 #include <utils/color.hpp>
+
+/// Good alignment for an aggregate of `count` objects of type `T`.
+template <typename T, size_t count>
+inline constexpr size_t word_access_alignment
+    = std::max(alignof(T), // never below natural alignment
+        std::min(alignof(unsigned), // never above a word
+            count * sizeof(T)));
 
 // Menu item corners - background rounded corners
 enum {
@@ -35,7 +44,7 @@ enum class EFooter { Off,
     On };
 
 template <class T>
-struct point_t {
+struct alignas(word_access_alignment<T, 2>) point_t {
     T x;
     T y;
 
@@ -78,7 +87,7 @@ union event_conversion_union {
 
 static_assert(sizeof(event_conversion_union::point) <= sizeof(event_conversion_union::pvoid), "event_conversion_union is broken");
 
-struct size_ui16_t {
+struct alignas(word_access_alignment<uint16_t, 2>) size_ui16_t {
     uint16_t w = 0;
     uint16_t h = 0;
 
@@ -89,7 +98,7 @@ struct size_ui16_t {
 };
 
 template <class T>
-struct padding_t {
+struct alignas(word_access_alignment<T, 4>) padding_t {
     T left = 0;
     T top = 0;
     T right = 0;

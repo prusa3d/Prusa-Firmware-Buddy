@@ -748,6 +748,8 @@ private:
     /// @param[in] count number of splits
     static void horizontalSplit(Rect16 *splits, Width_t *widths, size_t count, Width_t width_sum, Rect16 rect);
 };
+static_assert(alignof(Rect16) == 4);
+static_assert(sizeof(Rect16) == 8);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Comparison operator of the rectangle class
