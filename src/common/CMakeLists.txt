@@ -6,6 +6,10 @@ target_link_libraries(firmware PRIVATE buddy_utils bsod random random_sw fanctl)
 # enters this directory), as the hooks dispatch into it.
 target_sources(firmware PRIVATE application_hooks.cpp)
 
+# Banned symbols produce link time error.
+target_sources(firmware PRIVATE banned_symbols.cpp)
+target_link_options(firmware PRIVATE -Wl,--fatal-warnings)
+
 if(BOARD IN_LIST BUDDY_BOARDS)
   target_sources(
     firmware
