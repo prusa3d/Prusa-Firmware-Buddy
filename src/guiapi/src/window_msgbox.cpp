@@ -156,6 +156,8 @@ MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def
         icon -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);
         icon += Rect16::Left_t((Width() / 2) - (icon.Width() / 2)); // center icon
     }
+
+    text.auto_select_font(text.get_font());
 }
 
 MsgBoxIconned::MsgBoxIconned(Rect16 rect, const point_ui16_t icon_point, const PhaseResponses &resp, size_t def_btn,
@@ -181,6 +183,8 @@ MsgBoxIconned::MsgBoxIconned(Rect16 rect, const point_ui16_t icon_point, const P
         }
     }
     text.SetRect(text_rect);
+
+    text.auto_select_font(text.get_font());
 }
 
 Rect16 MsgBoxIconned::getIconRect() {
