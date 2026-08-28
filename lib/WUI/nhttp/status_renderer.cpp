@@ -74,7 +74,16 @@ json::JsonResult StatusRenderer::renderState(size_t resume_point, json::JsonOutp
             JSON_FIELD_INT("flow", VirtualToolIndex::currently_selected_opt().transform([] (auto tool) { return marlin_vars().virtual_tools[tool].flow_factor.get(); }).value_or(0)) JSON_COMMA;
             JSON_FIELD_INT("speed", marlin_vars().print_speed) JSON_COMMA;
             JSON_FIELD_INT("fan_hotend", marlin_vars().active_hotend().heatbreak_fan_rpm) JSON_COMMA;
-            JSON_FIELD_INT("fan_print", marlin_vars().active_hotend().print_fan_rpm);
+            JSON_FIELD_INT("fan_print", marlin_vars().active_hotend().print_fan_rpm) JSON_COMMA;
+            JSON_FIELD_FFIXED("temp_heatbreak", marlin_vars().active_hotend().temp_heatbreak, 1) JSON_COMMA;
+            JSON_FIELD_FFIXED("target_heatbreak", marlin_vars().active_hotend().target_heatbreak, 1) JSON_COMMA;
+            JSON_FIELD_INT("print_fan_speed", marlin_vars().print_fan_speed) JSON_COMMA;
+            JSON_FIELD_INT("job_id", marlin_vars().job_id) JSON_COMMA;
+            JSON_FIELD_INT("print_duration", marlin_vars().print_duration) JSON_COMMA;
+            if (time_to_end != TIME_TO_END_INVALID) {
+                JSON_FIELD_INT("time_to_end", time_to_end) JSON_COMMA;
+            }
+            JSON_FIELD_INT("progress", marlin_vars().sd_percent_done);
         JSON_OBJ_END;
     JSON_OBJ_END;
     JSON_END;
