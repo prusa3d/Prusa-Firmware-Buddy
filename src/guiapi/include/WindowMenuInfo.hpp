@@ -10,6 +10,7 @@
 #include <ranges>
 
 #include "i_window_menu_item.hpp"
+#include <common/utils/string_builder.hpp>
 #include <guiconfig/GuiDefaults.hpp>
 
 /*****************************************************************************/
@@ -98,9 +99,9 @@ public:
 
     WiInfo(uint32_t num_to_print, const string_view_utf8 &label, is_hidden_t hidden = is_hidden_t::no, const img::Resource *id_icon = nullptr)
         : WiInfo(label, id_icon, is_enabled_t::yes, hidden) {
-        decltype(value_array_) buf;
-        itoa(num_to_print, buf.data(), 10);
-        ChangeInformation(buf.data());
+        ArrayStringBuilder<GetInfoLen()> sb;
+        sb.append_printf("%" PRIu32, num_to_print).check();
+        ChangeInformation(sb.str());
     }
 
     using WiInfoArray::ChangeInformation;
