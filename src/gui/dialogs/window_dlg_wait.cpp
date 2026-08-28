@@ -54,7 +54,7 @@ void window_dlg_wait_t::wait_until(const string_view_utf8 &second_string, const 
     window_dlg_wait_t dlg(second_string);
     Screens::Access()->gui_loop_until_dialog_closed([&] {
         if (until_f()) {
-            Screens::Access()->Close();
+            dlg.close_dialog();
         }
     });
 }

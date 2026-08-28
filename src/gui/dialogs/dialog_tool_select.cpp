@@ -110,7 +110,7 @@ private:
 
 void MI_TOOL::click(IWindowMenu &) {
     menu_.result = tool_;
-    Screens::Access()->Close();
+    Screens::Access()->close_dialog();
 }
 
 class SelectToolDialog final : public IDialog {

@@ -35,7 +35,7 @@ MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, 
         result = r;
 
         if (flags.close_on_click == is_closed_on_click_t::yes) {
-            Screens::Access()->Close();
+            close_dialog();
         } else if (GetParent()) {
             GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, event_conversion_union { .response = r }.pvoid);
         }
@@ -66,7 +66,7 @@ void MsgBoxBase::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     case GUI_event_t::TOUCH_SWIPE_LEFT:
     case GUI_event_t::TOUCH_SWIPE_RIGHT:
         if (flags.close_on_click == is_closed_on_click_t::yes && radio_.GetBtnCount() == 0) {
-            Screens::Access()->Close();
+            close_dialog();
             return;
         }
         break;

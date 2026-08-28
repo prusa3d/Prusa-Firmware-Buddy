@@ -98,7 +98,7 @@ void DialogTextInput::screenEvent([[maybe_unused]] window_t *sender, GUI_event_t
 
         sound::play(SoundType::button_echo);
         cancelled_ = true;
-        Screens::Access()->Close();
+        close_dialog();
         return;
 
     case GUI_event_t::LOOP:
@@ -244,12 +244,12 @@ void dialog_text_input::DialogTextInput::button_callback(window_t &button) {
     case SpecialButton::ok:
         flush_edit_char();
         cancelled_ = false;
-        Screens::Access()->Close();
+        close_dialog();
         return;
 
     case SpecialButton::cancel:
         cancelled_ = true;
-        Screens::Access()->Close();
+        close_dialog();
         return;
 
     case SpecialButton::clear:

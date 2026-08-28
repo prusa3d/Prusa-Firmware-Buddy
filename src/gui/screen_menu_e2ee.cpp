@@ -26,7 +26,7 @@ MI_KEYGEN::MI_KEYGEN()
 void MI_KEYGEN::click(IWindowMenu &) {
     const auto closing_callback = [this] {
         if (!key_generation.is_active()) {
-            Screens::Access()->Close();
+            Screens::Access()->close_dialog();
         }
         osDelay(1);
     };

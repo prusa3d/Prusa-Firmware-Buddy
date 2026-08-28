@@ -81,7 +81,7 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
         }
 
         if (close) {
-            Screens::Access()->Close();
+            close_dialog();
         }
     } break;
     case GUI_event_t::LOOP: {

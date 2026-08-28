@@ -63,7 +63,7 @@ DialogItem::DialogItem(MenuItemSelectMenu &menu, int index)
 
 void DialogItem::click(IWindowMenu &menu) {
     static_cast<DialogMenu &>(menu).result = index_;
-    Screens::Access()->Close();
+    Screens::Access()->close_dialog();
 }
 
 // DialogMenu

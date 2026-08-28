@@ -384,7 +384,7 @@ void DialogNumericInput::update() {
 
 void DialogNumericInput::close(bool success) {
     cancelled_ = !success;
-    Screens::Access()->Close();
+    close_dialog();
 }
 
 void DialogNumericInput::number_button_callback(window_t &button) {

@@ -184,7 +184,7 @@ void MI_CONTINUE::click(IWindowMenu &) {
         }
     }
     menu_.result = sel;
-    Screens::Access()->Close();
+    Screens::Access()->close_dialog();
 }
 
 class SelectDocksDialog final : public IDialog {
