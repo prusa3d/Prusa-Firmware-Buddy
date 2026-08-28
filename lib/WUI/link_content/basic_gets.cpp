@@ -252,6 +252,131 @@ JsonResult get_info(size_t resume_point, JsonOutput &output) {
     // clang-format on
 }
 
+JsonResult get_settings(size_t resume_point, JsonOutput &output) {
+    auto &cs = config_store();
+    auto &vars = marlin_vars();
+
+    // PID
+    const float hot_p = cs.pid_nozzle_p.get();
+    const float hot_i = cs.pid_nozzle_i.get();
+    const float hot_d = cs.pid_nozzle_d.get();
+    const float bed_p = cs.pid_bed_p.get();
+    const float bed_i = cs.pid_bed_i.get();
+    const float bed_d = cs.pid_bed_d.get();
+
+    // Steppers (steps per mm)
+    const float spm_x = cs.axis_steps_per_unit_x.get();
+    const float spm_y = cs.axis_steps_per_unit_y.get();
+    const float spm_z = cs.axis_steps_per_unit_z.get();
+    const float spm_e = cs.axis_steps_per_unit_e0.get();
+
+    // Microsteps (0 = default)
+    const uint16_t ms_x = cs.axis_microsteps_X_.get();
+    const uint16_t ms_y = cs.axis_microsteps_Y_.get();
+    const uint16_t ms_z = cs.axis_microsteps_Z_.get();
+    const uint16_t ms_e = cs.axis_microsteps_E0_.get();
+
+    // RMS current (mA, 0 = default)
+    const uint16_t rms_x = cs.axis_rms_current_ma_X_.get();
+    const uint16_t rms_y = cs.axis_rms_current_ma_Y_.get();
+    const uint16_t rms_z = cs.axis_rms_current_ma_Z_.get();
+    const uint16_t rms_e = cs.axis_rms_current_ma_E0_.get();
+
+    // Homing
+    const int16_t hsens_x = cs.homing_sens_x.get();
+    const int16_t hsens_y = cs.homing_sens_y.get();
+
+    // Hardware
+    const float nozzle_diameter = cs.get_nozzle_diameter(0);
+    const float z_offset = vars.z_offset;
+    const float travel_accel = vars.travel_acceleration;
+    const uint16_t extrude_min_temp = vars.extrude_min_temp;
+
+    // Filament sensor (Core One always has one)
+    const bool fsensor_enabled = cs.fsensor_enabled.get();
+
+    // Input shaper (Core One has it; struct has frequency, damping_ratio, type, vibration_reduction)
+    const bool is_x_en = cs.input_shaper_axis_x_enabled.get();
+    const bool is_y_en = cs.input_shaper_axis_y_enabled.get();
+    const auto is_x_cfg = cs.input_shaper_axis_x_config.get();
+    const auto is_y_cfg = cs.input_shaper_axis_y_config.get();
+
+    // Keep the indentation of the JSON in here!
+    // clang-format off
+    JSON_START;
+    JSON_OBJ_START;
+        JSON_FIELD_OBJ("hardware");
+            JSON_FIELD_FFIXED("nozzle_diameter", static_cast<double>(nozzle_diameter), 2) JSON_COMMA;
+            JSON_FIELD_FFIXED("z_offset", static_cast<double>(z_offset), 3) JSON_COMMA;
+            JSON_FIELD_INT("extrude_min_temp", extrude_min_temp);
+        JSON_OBJ_END JSON_COMMA;
+
+        JSON_FIELD_OBJ("pid");
+            JSON_FIELD_OBJ("hotend");
+                JSON_FIELD_FFIXED("p", static_cast<double>(hot_p), 3) JSON_COMMA;
+                JSON_FIELD_FFIXED("i", static_cast<double>(hot_i), 3) JSON_COMMA;
+                JSON_FIELD_FFIXED("d", static_cast<double>(hot_d), 3);
+            JSON_OBJ_END JSON_COMMA;
+            JSON_FIELD_OBJ("bed");
+                JSON_FIELD_FFIXED("p", static_cast<double>(bed_p), 3) JSON_COMMA;
+                JSON_FIELD_FFIXED("i", static_cast<double>(bed_i), 3) JSON_COMMA;
+                JSON_FIELD_FFIXED("d", static_cast<double>(bed_d), 3);
+            JSON_OBJ_END;
+        JSON_OBJ_END JSON_COMMA;
+
+        JSON_FIELD_OBJ("steppers");
+            JSON_FIELD_OBJ("steps_per_mm");
+                JSON_FIELD_FFIXED("x", static_cast<double>(spm_x), 3) JSON_COMMA;
+                JSON_FIELD_FFIXED("y", static_cast<double>(spm_y), 3) JSON_COMMA;
+                JSON_FIELD_FFIXED("z", static_cast<double>(spm_z), 3) JSON_COMMA;
+                JSON_FIELD_FFIXED("e", static_cast<double>(spm_e), 3);
+            JSON_OBJ_END JSON_COMMA;
+            JSON_FIELD_OBJ("microsteps");
+                JSON_FIELD_INT("x", ms_x) JSON_COMMA;
+                JSON_FIELD_INT("y", ms_y) JSON_COMMA;
+                JSON_FIELD_INT("z", ms_z) JSON_COMMA;
+                JSON_FIELD_INT("e", ms_e);
+            JSON_OBJ_END JSON_COMMA;
+            JSON_FIELD_OBJ("rms_current_ma");
+                JSON_FIELD_INT("x", rms_x) JSON_COMMA;
+                JSON_FIELD_INT("y", rms_y) JSON_COMMA;
+                JSON_FIELD_INT("z", rms_z) JSON_COMMA;
+                JSON_FIELD_INT("e", rms_e);
+            JSON_OBJ_END;
+        JSON_OBJ_END JSON_COMMA;
+
+        JSON_FIELD_OBJ("motion");
+            JSON_FIELD_FFIXED("travel_acceleration", static_cast<double>(travel_accel), 1);
+        JSON_OBJ_END JSON_COMMA;
+
+        JSON_FIELD_OBJ("homing");
+            JSON_FIELD_INT("sensitivity_x", hsens_x) JSON_COMMA;
+            JSON_FIELD_INT("sensitivity_y", hsens_y);
+        JSON_OBJ_END JSON_COMMA;
+
+        JSON_FIELD_OBJ("input_shaper");
+            JSON_FIELD_OBJ("x");
+                JSON_FIELD_BOOL("enabled", is_x_en) JSON_COMMA;
+                JSON_FIELD_FFIXED("frequency", static_cast<double>(is_x_cfg.frequency), 2) JSON_COMMA;
+                JSON_FIELD_FFIXED("damping_ratio", static_cast<double>(is_x_cfg.damping_ratio), 3) JSON_COMMA;
+                JSON_FIELD_INT("type", static_cast<int>(is_x_cfg.type));
+            JSON_OBJ_END JSON_COMMA;
+            JSON_FIELD_OBJ("y");
+                JSON_FIELD_BOOL("enabled", is_y_en) JSON_COMMA;
+                JSON_FIELD_FFIXED("frequency", static_cast<double>(is_y_cfg.frequency), 2) JSON_COMMA;
+                JSON_FIELD_FFIXED("damping_ratio", static_cast<double>(is_y_cfg.damping_ratio), 3) JSON_COMMA;
+                JSON_FIELD_INT("type", static_cast<int>(is_y_cfg.type));
+            JSON_OBJ_END;
+        JSON_OBJ_END JSON_COMMA;
+
+        JSON_FIELD_OBJ("filament_sensor");
+            JSON_FIELD_BOOL("enabled", fsensor_enabled);
+        JSON_OBJ_END;
+    JSON_OBJ_END;
+    JSON_END;
+    // clang-format on
+}
+
 JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
     // Note about the marlin vars: It's true that on resumption we may get
     // different values. But they would still be reasonably "sane". If we eg.

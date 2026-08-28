@@ -119,6 +119,9 @@ Selector::Accepted PrusaLinkApiV1::accept(const RequestParser &parser, handler::
     } else if (suffix == "info") {
         get_only(SendJson(EmptyRenderer(get_info), parser.can_keep_alive()), parser, out);
         return Accepted::Accepted;
+    } else if (suffix == "settings") {
+        get_only(SendJson(EmptyRenderer(get_settings), parser.can_keep_alive()), parser, out);
+        return Accepted::Accepted;
     } else if (auto job_suffix_opt = remove_prefix(suffix, "job/"); job_suffix_opt.has_value()) {
         auto job_suffix = *job_suffix_opt;
         auto id = get_job_id(job_suffix);
