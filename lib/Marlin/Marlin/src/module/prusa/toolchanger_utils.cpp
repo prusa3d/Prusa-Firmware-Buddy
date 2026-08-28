@@ -186,7 +186,6 @@ bool PrusaToolChangerUtils::update(PuppyModbus &bus) {
 
     // Update physically picked tool
     autodetect_active_tool(bus);
-    force_marlin_picked_tool(picked_dwarf);
     return true;
 }
 
