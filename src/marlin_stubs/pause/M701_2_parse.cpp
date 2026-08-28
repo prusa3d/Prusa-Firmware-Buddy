@@ -34,7 +34,7 @@ using namespace filament_gcodes;
  *   - `0` - PURGE
  *
  * - `S"Filament"` - save filament by name, for example S"PLA". RepRap compatible.
- * - `G` - Use filament data from an OpenPrintTag with the specific UID hash
+ * - `G` - Use filament data from an OpenPrintTag with the specific UID hash (internal parameter)
  *
  * - `P<mmu>` - MMU index of slot (zero based)
  * - `W<value>` - Preheat

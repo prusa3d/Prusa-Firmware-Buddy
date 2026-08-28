@@ -13,6 +13,7 @@ class ScreenOPTDetected : public ScreenOPTPrompt {
 
 public:
     ScreenOPTDetected(ToolTag tag);
+    ~ScreenOPTDetected();
 
 private:
     FrameOPTPrompt frame_;

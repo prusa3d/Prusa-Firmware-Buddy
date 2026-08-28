@@ -18,6 +18,8 @@ ScreenOPTDetected::ScreenOPTDetected(ToolTag tag)
     , frame_ { this, _("OpenPrintTag detected") }
     , tag_(tag) {
 
+    autoload_auto_assign_tool_tag_hash = tag.uid_hash();
+
     frame_.setup_tag(tag, [] {
         // If tag reading fails, just close the screen
         // This is also called on tag lost - in which case we close the screen and any dialog on top of it
@@ -54,6 +56,10 @@ ScreenOPTDetected::ScreenOPTDetected(ToolTag tag)
             bsod_unreachable();
         }
     });
+}
+
+ScreenOPTDetected::~ScreenOPTDetected() {
+    autoload_auto_assign_tool_tag_hash = ToolTag::no_tag_hash;
 }
 
 } // namespace buddy::openprinttag

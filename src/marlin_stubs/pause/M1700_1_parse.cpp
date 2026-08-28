@@ -91,6 +91,7 @@ void PrusaGcodeSuite::M1700() {
  *
  * - `T` - Extruder number. Required for mixing extruder.
  *        For non-mixing, current extruder if omitted.
+ * - `G` - Use filament data from an OpenPrintTag with the specific UID hash (internal parameter)
  *
  * Default values are used for omitted arguments.
  */
@@ -116,6 +117,15 @@ void PrusaGcodeSuite::M1701() {
         return;
     }
 
+#if HAS_ANFC()
+    buddy::openprinttag::ToolTag::UIDHashOptional tool_tag_hash;
+    const auto ephemeral_tag = buddy::openprinttag::ToolTag::for_tool_ephemeral(*virtual_tool);
+    if (ephemeral_tag.has_value() && parser.seenval('G') && parser.value_ushort() == ephemeral_tag->uid_hash()) {
+        static_assert(sizeof(buddy::openprinttag::ToolTag::UIDHash) == 2, "value_ushort");
+        tool_tag_hash = ephemeral_tag->uid_hash();
+    }
+#endif
+
     filament::set_type_to_load(FilamentType::none);
     filament::set_color_to_load(std::nullopt);
 
@@ -132,6 +142,9 @@ void PrusaGcodeSuite::M1701() {
             .op_preheat = RetAndCool_t::Return,
             .virtual_tool = *virtual_tool,
             .mmu_slot = 0,
+#if HAS_ANFC()
+            .openprinttag_uid_hash = tool_tag_hash,
+#endif
         });
         return;
     }
@@ -193,6 +206,9 @@ void PrusaGcodeSuite::M1701() {
             .mode = PreheatMode::autoload,
             .tool = *virtual_tool,
             .ret_cool = RetAndCool_t::Return,
+#if HAS_ANFC()
+            .openprinttag_uid_hash = tool_tag_hash,
+#endif
         };
         auto preheat_ret = preheat(data, PreheatBehavior::for_filament_load());
 

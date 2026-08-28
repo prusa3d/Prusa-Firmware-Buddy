@@ -9,31 +9,32 @@
 #include <tasks.hpp>
 #include <logging/log.hpp>
 #include <marlin_server.hpp>
-#include <option/has_crash_detection.h>
+#include <bsod/bsod.h>
 #include <option/has_selftest.h>
-#include <option/has_mmu2.h>
 
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <Marlin/src/module/prusa/toolchanger.h>
 #endif
 
-#include <stdio.h>
-
-#include "str_utils.hpp"
-
 #include <option/has_gui.h>
-#include <bsod/bsod.h>
 #if HAS_GUI()
     #include <window_msgbox.hpp>
 #endif
 
+#include <option/has_mmu2.h>
 #if HAS_MMU2()
     #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #endif
 
+#include <option/has_crash_detection.h>
 #if HAS_CRASH_DETECTION()
     #include <feature/prusa/crash_recovery.hpp>
+#endif
+
+#include <option/has_anfc.h>
+#if HAS_ANFC()
+    #include <feature/openprinttag/tool_tag.hpp>
 #endif
 
 LOG_COMPONENT_DEF(FSensor, logging::Severity::info);
@@ -271,7 +272,18 @@ void FilamentSensors::process_events() {
 
         autoload_sent = true;
 
-        marlin_server::inject(GCodeLiteral { .gcode = "M1701" });
+#if HAS_ANFC()
+        const auto opt_uid_hash = buddy::openprinttag::autoload_auto_assign_tool_tag_hash.load();
+        const auto opt_tag = VirtualToolIndex::currently_selected_opt().and_then(buddy::openprinttag::ToolTag::for_tool_ephemeral);
+        if (opt_tag.has_value() && opt_tag->uid_hash() == opt_uid_hash) {
+            // Make sure we don't lose any data when casting to float
+            static_assert(std::numeric_limits<float>::digits >= std::numeric_limits<decltype(opt_uid_hash)>::digits);
+            marlin_server::inject(GCodeLiteral { .gcode = "M1701 G%.0f", .parameter = (float)opt_uid_hash });
+        } else
+#endif
+        {
+            marlin_server::inject(GCodeLiteral { .gcode = "M1701" });
+        }
 
         log_info(FSensor, "Injected autoload");
 

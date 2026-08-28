@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <atomic>
 
 #include <tool_index.hpp>
 #include <bsod/bsod.h>
@@ -99,5 +100,10 @@ constexpr inline ToolTagField ToolTag::field(F field) const {
         .field = static_cast<Field>(field),
     };
 }
+
+/// UID hash of a tool tag that is ready to be auto-assigned on autoload
+/// Basically when the OPTTagDetected screen is displayed, inserting the filament should automatically link it to the tag
+/// Yes, this is a hack, bridging GUI thread and Marlin thread
+inline std::atomic<ToolTag::UIDHash> autoload_auto_assign_tool_tag_hash = ToolTag::no_tag_hash;
 
 }; // namespace buddy::openprinttag
