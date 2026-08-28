@@ -23,6 +23,8 @@
 #include <version/version.hpp>
 #include <common/printer_model.hpp>
 #include <option/has_tool_crash_recovery.h>
+#include "puppies/modular_bed.hpp"
+#include <common/adc.hpp>
 
 using namespace json;
 using namespace marlin_server;
@@ -145,6 +147,10 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
         busy = printing = error = true;
     }
 
+#if BOARD_IS_XLBUDDY()
+    buddy::puppies::Dwarf &dwarf = prusa_toolchanger.getActiveToolOrFirst();
+#endif
+
     // Keep the indentation of the JSON in here!
     // clang-format off
     JSON_START;
@@ -167,9 +173,46 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
                 JSON_FIELD_FFIXED("display", vars.hotend(PhysicalToolIndex::from_raw(0)).display_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_INT("offset", 0);
             JSON_OBJ_END JSON_COMMA;
+            #if HAS_TEMP_BOARD
+            JSON_FIELD_OBJ("board");
+                JSON_FIELD_FFIXED("actual", static_cast<double>(thermalManager.degBoard()), 1);
+            JSON_OBJ_END JSON_COMMA;
+            #endif
+            #if HAS_TEMP_CHAMBER
+            JSON_FIELD_OBJ("chamber");
+                JSON_FIELD_FFIXED("actual", static_cast<double>(thermalManager.degChamber()), 1);
+            JSON_OBJ_END JSON_COMMA;
+            #endif
+            #if BOARD_IS_XLBUDDY()
+            JSON_FIELD_OBJ("sandwich");
+                JSON_FIELD_INT("actual", AdcGet::sandwichTemp());
+            JSON_OBJ_END JSON_COMMA;
+            JSON_FIELD_OBJ("splitter");
+                JSON_FIELD_INT("actual", AdcGet::splitterTemp());
+            JSON_OBJ_END JSON_COMMA;
+            JSON_FIELD_OBJ("dwarf_mcu");
+                JSON_FIELD_FFIXED("actual", dwarf.get_mcu_temperature(), 1);
+            JSON_OBJ_END JSON_COMMA;
+            JSON_FIELD_OBJ("dwarf_board");
+                JSON_FIELD_FFIXED("actual", dwarf.get_board_temperature(), 1);
+            JSON_OBJ_END JSON_COMMA;
+            #endif
+            #if XL_ENCLOSURE_SUPPORT()
+            JSON_FIELD_OBJ("mcu_modular_bed");
+                JSON_FIELD_INT("actual", buddy::puppies::modular_bed.get_mcu_temperature());
+            JSON_OBJ_END JSON_COMMA;
+            #endif
+            #if PRINTER_IS_PRUSA_iX()
+            JSON_FIELD_OBJ("psu");
+                JSON_FIELD_FFIXED("actual", static_cast<double>(thermalManager.deg_psu()), 1);
+            JSON_OBJ_END JSON_COMMA;
+            JSON_FIELD_OBJ("ambient");
+                JSON_FIELD_FFIXED("actual", static_cast<double>(thermalManager.deg_ambient()), 1);
+            JSON_OBJ_END JSON_COMMA;
+            #endif
             JSON_FIELD_OBJ("bed");
-                JSON_FIELD_FFIXED("actual", vars.temp_bed, 1) JSON_COMMA;
-                JSON_FIELD_FFIXED("target", vars.target_bed, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("actual", static_cast<double>(vars.temp_bed), 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("target", static_cast<double>(vars.target_bed), 1) JSON_COMMA;
                 JSON_FIELD_INT("offset", 0);
             JSON_OBJ_END;
         JSON_OBJ_END JSON_COMMA;
