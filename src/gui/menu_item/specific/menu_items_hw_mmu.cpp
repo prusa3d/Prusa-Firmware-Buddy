@@ -1,10 +1,13 @@
+/// @file
 #include "menu_items_hw_mmu.hpp"
 
-#include <img_resources.hpp>
-#include <marlin/Configuration.h>
-#include <feature/prusa/MMU2/mmu2_mk4.h>
+#include <MItem_tools.hpp>
+#include <array>
+#include <common/marlin_vars.hpp>
+#include <numeric_input_config.hpp>
+#include <option/has_mmu2.h>
 
-using namespace buddy;
+static_assert(HAS_MMU2());
 
 static constexpr NumericInputConfig mmu_bowden_limits {
     .min_value = 341,
@@ -13,10 +16,17 @@ static constexpr NumericInputConfig mmu_bowden_limits {
 };
 
 MI_MMU_FRONT_PTFE_LENGTH::MI_MMU_FRONT_PTFE_LENGTH()
-    : WiSpin(MMU2::mmu2.BowdenLength(), mmu_bowden_limits, _("Front PTFE Length")) //
-{
+    : WiSpin {
+        static_cast<float>(marlin_vars().mmu2_bowden_length.get()),
+        mmu_bowden_limits,
+        _("Front PTFE Length"),
+    } {
 }
 
 void MI_MMU_FRONT_PTFE_LENGTH::OnClick() {
-    MMU2::mmu2.WriteRegister(std::to_underlying(MMU2::Register::Bowden_Length), static_cast<uint16_t>(value()));
+    const auto new_mmu_bowden_length = static_cast<uint16_t>(value());
+
+    std::array<char, 32> gcode;
+    snprintf(gcode.data(), gcode.size(), "M708 A0x22 X%u", new_mmu_bowden_length);
+    gui_try_gcode_with_msg(gcode.data());
 }

@@ -3755,6 +3755,10 @@ static void _server_update_vars() {
 
     marlin_vars().mmu2_finda = mmu2FindaPressed;
 
+#if HAS_MMU2()
+    marlin_vars().mmu2_bowden_length = MMU2::mmu2.BowdenLength();
+#endif
+
 #if ENABLED(PREVENT_COLD_EXTRUSION)
     marlin_vars().extrude_min_temp = thermalManager.extrude_min_temp;
     marlin_vars().allow_cold_extrude = thermalManager.allow_cold_extrude;

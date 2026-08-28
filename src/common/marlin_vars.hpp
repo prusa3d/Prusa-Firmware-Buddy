@@ -19,6 +19,7 @@
 #include <utils/uncopyable.hpp>
 
 #include <option/has_cancel_object.h>
+#include <option/has_mmu2.h>
 
 #if BOARD_IS_DWARF()
     #error "You're trying to add marlin_vars to Dwarf. Don't!"
@@ -355,6 +356,9 @@ public:
     MarlinVariable<uint16_t> job_id; // print job id incremented at every print start(for connect)
     MarlinVariable<uint16_t> enabled_bedlet_mask; // enabled bedlet mask 1 - enabled, 0 disabled
     MarlinVariable<uint16_t> extrude_min_temp; // See marlin's cold extrusion temperature set via M302
+#if HAS_MMU2()
+    MarlinVariable<uint16_t> mmu2_bowden_length; // MMU's Bowden_Length register, set via M708 [mm]
+#endif
 
     // 1B base types
     MarlinVariable<uint8_t> gqueue; // number of commands in gcode queue
