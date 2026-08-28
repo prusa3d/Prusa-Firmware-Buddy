@@ -33,6 +33,7 @@
 #include "gcode_upload.h"
 #include "gcode_preview.h"
 #include "job_command.h"
+#include "control_command.h"
 #include "req_parser.h"
 #include "send_file.h"
 #include "send_json.h"
@@ -151,6 +152,7 @@ namespace handler {
         printer::GcodeUpload,
         printer::GCodePreview,
         printer::JobCommand,
+        printer::ControlCommand,
         printer::FileInfo,
         printer::FileCommand,
 #if NETWORKING_BENCHMARK_ENABLED

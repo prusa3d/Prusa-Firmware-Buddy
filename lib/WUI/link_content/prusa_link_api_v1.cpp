@@ -5,6 +5,7 @@
 #include "../nhttp/headers.h"
 #include "../nhttp/gcode_upload.h"
 #include "../nhttp/job_command.h"
+#include "../nhttp/control_command.h"
 #include "../nhttp/send_json.h"
 #include "../nhttp/status_renderer.h"
 #include "../wui_api.h"
@@ -115,6 +116,17 @@ Selector::Accepted PrusaLinkApiV1::accept(const RequestParser &parser, handler::
 
     if (suffix == "storage") {
         get_only(SendJson(EmptyRenderer(get_storage), parser.can_keep_alive()), parser, out);
+        return Accepted::Accepted;
+    } else if (suffix == "control") {
+        if (parser.method == Method::Post) {
+            if (parser.content_length.has_value()) {
+                out.next = nhttp::printer::ControlCommand(*parser.content_length, parser.can_keep_alive(), parser.accepts_json);
+            } else {
+                out.next = StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+            }
+        } else {
+            out.next = StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+        }
         return Accepted::Accepted;
     } else if (suffix == "info") {
         get_only(SendJson(EmptyRenderer(get_info), parser.can_keep_alive()), parser, out);
