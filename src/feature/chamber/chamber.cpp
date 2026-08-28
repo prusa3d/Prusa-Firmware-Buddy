@@ -163,6 +163,11 @@ std::optional<Temperature> Chamber::target_temperature() const {
     return target_temperature_;
 }
 
+std::optional<Temperature> Chamber::effective_target_temperature() const {
+    std::lock_guard _lg(mutex_);
+    return capabilities_nolock().temperature_control_at_this_moment() ? target_temperature_ : std::nullopt;
+}
+
 std::optional<Temperature> Chamber::set_target_temperature(std::optional<Temperature> target) {
     debug_assert(marlin_server::is_marlin_server_thread());
 

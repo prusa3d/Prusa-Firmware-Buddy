@@ -80,6 +80,10 @@ public: // Temperature control
 
     std::optional<Temperature> target_temperature() const;
 
+    /// \returns target_temperature(), or nullopt if nothing is acting on it - the target
+    /// outlives temperature_control_at_this_moment() (eg. chamber fans switched to manual)
+    std::optional<Temperature> effective_target_temperature() const;
+
     /// Sets the \param target temperature. Can be nullopt if we are not interested in controlling the temperature at all.
     /// \returns the target temperature the chamber was actually set to - might differe because of capabilities().max_temp
     /// !!! MARLIN THREAD ONLY - we don't want to change it under g-code and thermal model hands

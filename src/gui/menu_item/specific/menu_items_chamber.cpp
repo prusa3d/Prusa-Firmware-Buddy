@@ -28,7 +28,7 @@ void MI_CHAMBER_TARGET_TEMP::Loop() {
     }
 
     const bool temp_ctrl = chamber().capabilities().temperature_control_at_this_moment();
-    const auto new_val = (temp_ctrl ? chamber().target_temperature() : std::nullopt);
+    const auto new_val = chamber().effective_target_temperature();
 
     loop_gcode_inject_menu_item(*this,
         {

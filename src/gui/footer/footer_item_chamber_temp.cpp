@@ -12,7 +12,7 @@ FooterItemChamberTemperature::FooterItemChamberTemperature(window_t *parent)
 int FooterItemChamberTemperature::static_readValue() {
     const auto current = chamber().current_temperature();
     const auto caps = chamber().capabilities();
-    const auto target = caps.temperature_control_at_this_moment() ? chamber().target_temperature() : std::nullopt;
+    const auto target = chamber().effective_target_temperature();
 
     const HeatState state = [&] {
         static constexpr auto tolerance = 2;
