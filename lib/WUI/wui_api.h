@@ -47,6 +47,7 @@ typedef enum {
     ETHVAR_TIMEZONE, // int8_t, timezone
     ETHVAR_DNS1_IP4, // ip_addr_t, dns1_ip4
     ETHVAR_DNS2_IP4, // ip_addr_t, dns2_ip4
+    ETHVAR_NTP_SERVER, // char[30 + 1], ntp_server
     ETHVAR_MAC_ADDRESS, // is not included in ethconfig (used in stringifying for screen)
 
     APVAR_SSID, // char[32 + 1], ap_entry_t::ssid
@@ -113,6 +114,13 @@ void get_MAC_address(mac_address_t *dest, uint32_t netdev_id);
  * \param [in] sec - number of seconds from 1.1.1900
  ************************************************************************************************************/
 void sntp_set_system_time(uint32_t sec);
+
+/*!**********************************************************************************************************
+ * \brief Gets the user-configured NTP server, if any
+ *
+ * \return NTP server hostname or IP, or NULL when none is configured
+ ************************************************************************************************************/
+const char *wui_get_ntp_server(void);
 
 /*!********************************************************************************
  * \brief Adds time in seconds to given timestamp

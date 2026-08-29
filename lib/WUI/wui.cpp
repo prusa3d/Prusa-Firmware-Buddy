@@ -391,6 +391,10 @@ private:
             netifapi_netif_set_default(&ifaces[active_local].dev);
         }
 
+        // Unlike mdns_initialized above, SNTP needs no explicit kick here:
+        // sntp_client_step() reconciles the configured server on every pass of
+        // this loop, so it picks up the reload by itself.
+
         lock.unlock();
 
         if (allow_full && config_store().prusalink_enabled.get() == 1) {

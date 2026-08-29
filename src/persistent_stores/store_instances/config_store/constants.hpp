@@ -17,6 +17,7 @@ inline constexpr size_t sheets_num { 8 };
 inline constexpr float z_offset_uncalibrated { std::numeric_limits<float>::max() };
 
 inline constexpr size_t lan_hostname_max_len { 20 };
+inline constexpr size_t ntp_server_size { 30 };
 inline constexpr size_t connect_host_size { 20 };
 inline constexpr size_t connect_proxy_size { 30 };
 inline constexpr size_t connect_token_size { 20 };

@@ -251,6 +251,8 @@ struct CurrentStore
 
     // General network settings
     StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, ItemFlag::network, journal::hash("Hostname")> hostname;
+    // NTP server hostname or IP; when empty, the compiled-in default is used
+    StoreItem<std::array<char, ntp_server_size + 1>, defaults::ntp_server, ItemFlag::network, journal::hash("NTP Server")> ntp_server;
 
     StoreItem<SoundMode, defaults::sound_mode, ItemFlag::user_interface, journal::hash("Sound Mode")> sound_mode;
     StoreItem<uint8_t, defaults::sound_volume, ItemFlag::user_interface, journal::hash("Sound Volume")> sound_volume;

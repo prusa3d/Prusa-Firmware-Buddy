@@ -52,6 +52,7 @@ namespace defaults {
     inline constexpr TestResult test_result_unknown { TestResult::unknown };
 
     inline constexpr std::array<char, lan_hostname_max_len + 1> net_hostname { LAN_HOSTNAME_DEF };
+    inline constexpr std::array<char, ntp_server_size + 1> ntp_server { "" };
     inline constexpr int8_t lan_timezone { 1 };
     inline constexpr time_tools::TimezoneOffsetMinutes timezone_minutes { time_tools::TimezoneOffsetMinutes::no_offset };
     inline constexpr time_tools::TimezoneOffsetSummerTime timezone_summer { time_tools::TimezoneOffsetSummerTime::no_summertime };

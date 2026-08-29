@@ -82,6 +82,9 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
         if (ip4addr_aton(value, &tmp_config->lan.gw_ip4)) {
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_GW_IP4);
         }
+    } else if (ini_string_match(section, "network", name, "ntp")) {
+        strlcpy(tmp_config->ntp_server, value, NTP_SERVER_LEN + 1);
+        tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_NTP_SERVER);
     } else if (ini_string_match(section, "network", name, "dns4")) {
 
         if (NULL != strchr(value, ';')) {
@@ -178,6 +181,10 @@ void save_net_params(netif_config_t *ethconfig, [[maybe_unused]] ap_entry_t *ap,
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
         store.hostname.set(ethconfig->hostname);
     }
+    if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_NTP_SERVER)) {
+        static_assert(NTP_SERVER_LEN == config_store_ns::ntp_server_size);
+        store.ntp_server.set(ethconfig->ntp_server);
+    }
 
 #if HAS_ESP()
     if (ap != NULL) {
@@ -222,6 +229,7 @@ void load_net_params(netif_config_t *ethconfig, [[maybe_unused]] ap_entry_t *ap,
     }
 
     strlcpy(ethconfig->hostname, store.hostname.get_c_str(), HOSTNAME_LEN + 1);
+    strlcpy(ethconfig->ntp_server, store.ntp_server.get_c_str(), NTP_SERVER_LEN + 1);
 
 #if HAS_ESP()
     if (ap != NULL) {
@@ -241,6 +249,11 @@ void get_MAC_address(mac_address_t *dest, uint32_t netdev_id) {
     } else {
         **dest = '\0';
     }
+}
+
+const char *wui_get_ntp_server(void) {
+    const char *server = config_store().ntp_server.get_c_str();
+    return (server[0] != '\0') ? server : NULL;
 }
 
 void sntp_set_system_time(uint32_t sec) {
