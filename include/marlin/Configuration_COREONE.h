@@ -162,7 +162,7 @@
 //===========================================================================
 
 #if !HAS_INDX() // TEMP sensor is on INDX_HEAD
-    #define TEMP_SENSOR_0 2005
+    #define TEMP_SENSOR_0 1010
 #endif
 #define TEMP_SENSOR_BED 2004
 #if HAS_INDX()
@@ -194,7 +194,7 @@
 // Above this temperature the heater will be switched off.
 // This can protect components from overheating, but NOT from shorts and failures.
 // (Use MINTEMP for thermistor short/failure protection.)
-#define HEATER_0_MAXTEMP 305
+#define HEATER_0_MAXTEMP 415
 #define HEATER_MAXTEMP_SAFETY_MARGIN 15
 #define BED_MAXTEMP 125
 #define BED_MAXTEMP_SAFETY_MARGIN 5
