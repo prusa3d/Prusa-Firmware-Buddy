@@ -145,6 +145,18 @@ TEST_CASE("Start inline download") {
     REQUIRE(cmd.orig_size == 1024);
 }
 
+TEST_CASE("Start inline download - \\u escape in the path") {
+    // The transfer that could not be sent: System.Text.Json escapes '+' as
+    // \u002B, and the decoder used to leave the backslash in place. FatFs reads a
+    // backslash as a path separator, so the mkdir was aimed at a parent directory
+    // that did not exist, and the transfer was refused with "Failed to create
+    // directory" - naming a directory nobody had asked for.
+    auto cmd = command_test<StartInlineDownload>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/a\\u002Bb.bgcode\", \"team_id\": 42, \"hash\": \"abcdef\", \"orig_size\":1024}}");
+    REQUIRE(strcmp(cmd.path.path(), "/usb/a+b.bgcode") == 0);
+    // The property rather than the case: nothing downstream may see a backslash.
+    REQUIRE(strchr(cmd.path.path(), '\\') == nullptr);
+}
+
 TEST_CASE("Start inline download - missing params") {
     command_test<BrokenCommand>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {}}");
     command_test<BrokenCommand>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"hash\": \"abcdef\"}}");
