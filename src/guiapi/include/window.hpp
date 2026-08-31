@@ -8,10 +8,11 @@
 #include "align.hpp"
 #include "color_scheme.hpp"
 #include "compact_pointer.hpp"
+#include <utils/uncopyable.hpp>
 
 #include <gui/event/focus_event.hpp>
 
-class window_t {
+class window_t : Uncopyable {
     Rect16 rect; // (8 bytes) display rectangle
     CompactRAMPointer<window_t> parent;
     CompactRAMPointer<window_t> next;
