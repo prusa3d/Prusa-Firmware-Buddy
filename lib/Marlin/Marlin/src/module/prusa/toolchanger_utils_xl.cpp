@@ -1,6 +1,4 @@
 #include "toolchanger_utils.h"
-#include "tool_offset.hpp"
-#include "dock_position.hpp"
 #include "utils/variant_utils.hpp"
 #include <feature/gcode_exception/gcode_exception.hpp>
 #include <option/has_crash_detection.h>
@@ -10,7 +8,6 @@
 
 #if HAS_TOOLCHANGER()
     #include "Marlin/src/module/stepper.h"
-    #include "Marlin/src/feature/bedlevel/bedlevel.h"
     #include "Marlin.h"
     #include <logging/log.hpp>
     #include "timing.h"
@@ -21,30 +18,12 @@
         #include "../../feature/prusa/crash_recovery.hpp"
     #endif
 
-    #include <config_store/store_instance.hpp>
-
-LOG_COMPONENT_DEF(PrusaToolChanger, logging::Severity::debug);
+LOG_COMPONENT_REF(PrusaToolChanger);
 
 using namespace buddy::puppies;
 
 bool PrusaToolChangerUtils::is_pos_in_toolchange_area(const xy_pos_t &pos) {
     return pos.y > SAFE_Y_WITH_TOOL;
-}
-
-float PrusaToolChangerUtils::limit_stealth_feedrate(float feedrate) {
-    // If the HWLIMIT_STEALTH_MAX_FEEDRATE changes, this function needs to be revisited
-    static_assert(std::to_array(HWLIMIT_STEALTH_MAX_FEEDRATE) == std::to_array({ 140, 140, 12, 100 }));
-
-    // In stealth mode, various travel speeds get reduced to HWLIMIT_STEALTH_MAX_FEEDRATE, which is 140 mm/s.
-    // Unfortunately, the printer has some ugly resonancies when moving at this speed.
-    // Changing the stealth feedrate was not allowed.
-    // So instead, we're further lowering the travel feedrates in stealth mode.
-    // BFW-5496
-    return config_store().stealth_mode.get() ? std::min<float>(feedrate, 80) : feedrate;
-}
-
-PrusaToolChangerUtils::PrusaToolChangerUtils() {
-    tool_info.fill({ 0, 0 });
 }
 
 bool PrusaToolChangerUtils::init(PuppyModbus &bus, bool first_run) {
@@ -208,21 +187,6 @@ void PrusaToolChangerUtils::force_marlin_picked_tool(Dwarf *dwarf) {
     }
 }
 
-float PrusaToolChangerUtils::get_mbl_z_lift_height() const {
-    // Get maximal Z of MBL
-    float mbl_max_z_height = std::numeric_limits<float>::lowest();
-    float mbl_min_z_height = std::numeric_limits<float>::max();
-    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
-        for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
-            if (const float z = Z_VALUES(x, y); !isnan(z)) {
-                mbl_min_z_height = std::min(mbl_min_z_height, z);
-                mbl_max_z_height = std::max(mbl_max_z_height, z);
-            }
-        }
-    }
-    return mbl_max_z_height - mbl_min_z_height;
-}
-
 uint16_t PrusaToolChangerUtils::detect_tool_nr() {
     Dwarf *dwarf = picked_dwarf.load();
     if (dwarf) {
@@ -265,38 +229,6 @@ buddy::puppies::Dwarf &PrusaToolChangerUtils::getTool(PhysicalToolIndex tool_ind
     return buddy::puppies::dwarfs[tool_index];
 }
 
-void PrusaToolChangerUtils::load_tool_info() {
-    for (auto tool : PhysicalToolIndex::all()) {
-        DockPosition position = config_store().get_dock_position(tool);
-        tool_info[tool].dock_x = position.x;
-        tool_info[tool].dock_y = position.y;
-    }
-}
-
-void PrusaToolChangerUtils::save_tool_info() {
-    for (auto tool : PhysicalToolIndex::all()) {
-        config_store().set_dock_position(tool, { .x = tool_info[tool].dock_x, .y = tool_info[tool].dock_y });
-    }
-}
-
-void PrusaToolChangerUtils::save_tool_offset(PhysicalToolIndex tool) {
-    const auto &offset = hotend_offset[tool];
-    config_store().set_tool_offset(tool, { .x = offset.x, .y = offset.y, .z = offset.z });
-}
-
-void PrusaToolChangerUtils::save_tool_offsets() {
-    for (auto tool : PhysicalToolIndex::all()) {
-        save_tool_offset(tool);
-    }
-}
-
-void PrusaToolChangerUtils::load_tool_offsets() {
-    for (auto tool : PhysicalToolIndex::all()) {
-        const auto offset = config_store().get_tool_offset(tool);
-        hotend_offset[tool] = xyz_pos_t { .x = offset.x, .y = offset.y, .z = offset.z };
-    }
-}
-
 const PrusaToolInfo &PrusaToolChangerUtils::get_tool_info(PhysicalToolIndex tool, bool check_calibrated) const {
     const PrusaToolInfo &info = tool_info[tool.to_raw()];
 
@@ -312,14 +244,6 @@ bool PrusaToolChangerUtils::is_tool_info_valid(PhysicalToolIndex tool, const Pru
     const auto dx = info.dock_x - synthetic.dock_x;
     const auto dy = info.dock_y - synthetic.dock_y;
     return sqrt(pow(dx, 2) + pow(dy, 2)) < DOCK_INVALID_OFFSET_MM;
-}
-
-void PrusaToolChangerUtils::set_tool_info(PhysicalToolIndex tool, const PrusaToolInfo &info) {
-    tool_info[tool.to_raw()] = info;
-}
-
-void PrusaToolChangerUtils::toolchanger_error(const char *message) const {
-    fatal_error(message, "PrusaToolChanger");
 }
 
 PrusaToolChangerUtils::StepperConfigGuard::StepperConfigGuard() {

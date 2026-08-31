@@ -53,8 +53,6 @@ static_assert(!HAS_NOZZLE_THERMAL_COMPENSATION(), "no nozzle thermal compensatio
 
 LOG_COMPONENT_REF(PrusaToolChanger);
 
-PrusaToolChanger prusa_toolchanger;
-
 // internal helpers for arc planning
 void plan_arc(const xyze_pos_t &cart, const xy_float_t &offset, const bool clockwise, const uint8_t circles);
 
@@ -68,11 +66,6 @@ constexpr bool arc_backtravel_allow = true;
 constexpr float arc_backtravel_max = 2.f; // 1/ratio
 
 } // namespace arc_move
-
-bool PrusaToolChanger::can_move_safely(AxisHomeLevel required_level) {
-    // Toolchange requires precise homing, otherwise we might not hit the docks right
-    return !axis_unhomed_error(_BV(X_AXIS) | _BV(Y_AXIS), required_level);
-}
 
 bool PrusaToolChanger::ensure_safe_move() {
     if (!can_move_safely()) {
@@ -372,12 +365,6 @@ void PrusaToolChanger::loop(bool printing, bool paused) {
             [](PhysicalToolIndex tool) -> xyz_pos_t { return hotend_offset[tool]; },
             [](NoTool) -> xyz_pos_t { return { 0, 0, 0 }; });
     }
-}
-
-void PrusaToolChanger::move(const float x, const float y, const feedRate_t feedrate) {
-    current_position.x = x;
-    current_position.y = y;
-    line_to_current_position(feedrate);
 }
 
 const xy_float_t PrusaToolChanger::get_tool_dock_position(PhysicalToolIndex tool, bool check_calibrated) {

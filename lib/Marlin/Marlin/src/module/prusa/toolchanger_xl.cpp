@@ -44,8 +44,6 @@
 
 LOG_COMPONENT_REF(PrusaToolChanger);
 
-PrusaToolChanger prusa_toolchanger;
-
 using namespace buddy::puppies;
 
 namespace arc_move {
@@ -162,11 +160,6 @@ static void plan_dock2pos(const float arc_r, const xy_pos_t pos, const xy_pos_t 
 }
 
 } // namespace arc_move
-
-bool PrusaToolChanger::can_move_safely(AxisHomeLevel required_level) {
-    // Toolchange requires precise homing, otherwise we might not hit the docks right
-    return !axis_unhomed_error(_BV(X_AXIS) | _BV(Y_AXIS), required_level);
-}
 
 bool PrusaToolChanger::ensure_safe_move() {
     if (!can_move_safely()) {
@@ -637,12 +630,6 @@ void PrusaToolChanger::loop(bool printing, bool paused) {
             hotend_currently_applied_offset = hotend_offset[*physical_tool];
         }
     }
-}
-
-void PrusaToolChanger::move(const float x, const float y, const feedRate_t feedrate) {
-    current_position.x = x;
-    current_position.y = y;
-    line_to_current_position(feedrate);
 }
 
 const xy_float_t PrusaToolChanger::get_tool_dock_position(PhysicalToolIndex tool, bool check_calibrated) {
