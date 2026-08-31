@@ -143,7 +143,7 @@ public:
     template <typename F>
     bool any_screen_on_stack(F &&f) const {
         // Note: stack_iterator point to the currently opened screen
-        return std::any_of(std::make_const_iterator(stack.begin()), ScreenArray::const_iterator(stack_iterator + 1), f);
+        return f(creator_node) || std::any_of(std::make_const_iterator(stack.begin()), ScreenArray::const_iterator(stack_iterator + 1), f);
     }
 
     /**
