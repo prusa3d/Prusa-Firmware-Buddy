@@ -538,7 +538,7 @@ Printer::StartPrintResult MarlinPrinter::start_print(const char *path, [[maybe_u
 #endif
     }
 
-    marlin_client::print_start(path, marlin_server::PreviewSkipIfAble::all);
+    marlin_client::print_start(path, marlin_server::PreviewSkipIfAble::all, tools_mapping.has_value() ? ResetToolMapping::no : ResetToolMapping::yes);
     if (!marlin_client::is_print_started()) {
         return std::unexpected("Can't print now");
     }
