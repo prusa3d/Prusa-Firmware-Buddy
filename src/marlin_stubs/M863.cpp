@@ -5,8 +5,6 @@
 #include "PrusaGcodeSuite.hpp"
 #include "module/prusa/tool_mapper.hpp"
 
-#if HAS_TOOL_MAPPING()
-
 /** \addtogroup G-Codes
  * @{
  */
@@ -75,5 +73,3 @@ void PrusaGcodeSuite::M863() {
 }
 
 /** @}*/
-
-#endif

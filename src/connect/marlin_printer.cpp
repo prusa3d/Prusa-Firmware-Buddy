@@ -1,7 +1,14 @@
 #include "marlin_printer.hpp"
-#include <module/prusa/tool_mapper.hpp>
 #include "printer_common.hpp"
 #include "hostname.hpp"
+
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <cctype>
+#include <sys/stat.h>
+#include <sys/statvfs.h>
+#include <crc32.h>
 
 #include <ini.h>
 #include <otp.hpp>
@@ -19,6 +26,10 @@
 #include <common/sys.hpp>
 #include <common/unique_file_ptr.hpp>
 #include <raii/scope_guard.hpp>
+#include <config_store/store_instance.hpp>
+#include <bsod/bsod.h>
+#include <client_response.hpp>
+#include <option/has_esp.h>
 
 #include <option/has_cancel_object.h>
 #if HAS_CANCEL_OBJECT()
@@ -35,8 +46,7 @@
     #include <module/prusa/spool_join.hpp>
 #endif
 
-#include <option/has_esp.h>
-
+#include <option/xl_enclosure_support.h>
 #if XL_ENCLOSURE_SUPPORT()
     #include <xl_enclosure.hpp>
     #include <fanctl.hpp>
@@ -50,23 +60,16 @@ static_assert(HAS_CHAMBER_FILTRATION_API());
     #include <feature/chamber/chamber.hpp>
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
-#include <client_response.hpp>
-
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include <cctype>
-#include <sys/stat.h>
-#include <sys/statvfs.h>
-#include <crc32.h>
-
-#include <config_store/store_instance.hpp>
 
 #include <option/has_mmu2.h>
-#include <bsod/bsod.h>
 #if HAS_MMU2()
     #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
     #include <mmu2/mmu2_fsm.hpp>
+#endif
+
+#include <option/has_tool_mapping.h>
+#if HAS_TOOL_MAPPING()
+    #include <module/prusa/tool_mapper.hpp>
 #endif
 
 using marlin_client::GcodeTryResult;

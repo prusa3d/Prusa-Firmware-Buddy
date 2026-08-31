@@ -16,8 +16,8 @@
 #include <option/developer_mode.h>
 #include "printers.h"
 #include <Marlin/src/module/motion.h>
-#include <option/has_mmu2.h>
 #include <option/has_gui.h>
+
 #include <option/has_wastebin_fill_tracking.h>
 #if HAS_WASTEBIN_FILL_TRACKING()
     #include <feature/wastebin_watcher/wastebin_watcher.hpp>
@@ -25,6 +25,8 @@
 #if HAS_GUI()
     #include "screen_menu_filament_changeall.hpp"
 #endif
+
+#include <option/has_e2ee_support.h>
 #if HAS_E2EE_SUPPORT()
     #include <e2ee/key.hpp>
 #endif
@@ -39,16 +41,24 @@
     #include <module/prusa/toolchanger.h>
 #endif
 
+#include <option/has_mmu2.h>
+#if HAS_MMU2()
+    #include <feature/prusa/MMU2/mmu2_mk4.h>
+#endif
+
 #include <option/has_selftest.h>
 #if HAS_SELFTEST()
     #include <selftest_result_evaluation.hpp>
 #endif
 
-#include <config_store/store_instance.hpp>
+#include <option/has_tool_mapping.h>
+#if HAS_TOOL_MAPPING()
+    #include <module/prusa/tool_mapper.hpp>
+#endif
+
 #include "tools_mapping.hpp"
+#include <config_store/store_instance.hpp>
 #include <bsod/bsod.h>
-#include <module/prusa/tool_mapper.hpp>
-#include <mmu2_toolchanger_common.hpp>
 #include <common/gcode/gcode_info_scan.hpp>
 #include <utils/variant_utils.hpp>
 #include <feature/compatibility_checks/filament_compatibility.hpp>

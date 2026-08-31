@@ -4,11 +4,11 @@
 #include <utils/overloaded_visitor.hpp>
 #include <limits>
 #include <mutex>
-#include <option/has_tool_mapping.h>
 #include <tool_index.hpp>
 #include <utils/array_extensions.hpp>
 
-#if HAS_TOOL_MAPPING()
+#include <option/has_tool_mapping.h>
+static_assert(HAS_TOOL_MAPPING());
 
 /**
  * @brief Tool mapper allows user to assign tools in GUI/GCODE to virtual tools, depending on where he has filament he wants to use
@@ -145,5 +145,3 @@ private:
 };
 
 extern ToolMapper tool_mapper;
-
-#endif

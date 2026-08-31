@@ -22,7 +22,6 @@
 #include "marlin_print_preview.hpp"
 #include "utils/exponential_backoff.hpp"
 #include <bsod.h>
-#include "module/prusa/tool_mapper.hpp"
 #include "print_utils.hpp"
 #include <random/random.h>
 #include "timing.h"
@@ -107,7 +106,6 @@
 #include <option/has_gui.h>
 #include <option/has_toolchanger.h>
 #include <option/has_tool_crash_recovery.h>
-#include <option/has_tool_mapping.h>
 #include <option/has_selftest.h>
 #include <option/has_dwarf.h>
 #include <option/has_remote_bed.h>
@@ -267,6 +265,11 @@
 
 #if HAS_INDX()
     #include <fsm/nozzle_mismatch_phases.hpp>
+#endif
+
+#include <option/has_tool_mapping.h>
+#if HAS_TOOL_MAPPING()
+    #include <module/prusa/tool_mapper.hpp>
 #endif
 
 void record_fanctl_metrics();

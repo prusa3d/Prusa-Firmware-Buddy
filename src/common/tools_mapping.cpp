@@ -1,16 +1,21 @@
 #include "tools_mapping.hpp"
-#include <printers.h>
 #include <gcode_info.hpp>
-#include <module/prusa/tool_mapper.hpp>
-#include <mmu2_toolchanger_common.hpp>
 #include <print_utils.hpp>
-#include <option/has_mmu2.h>
+#include <bsod/bsod.h>
+
 #include <option/has_tool_mapping.h>
+#if HAS_TOOL_MAPPING()
+    #include <module/prusa/tool_mapper.hpp>
+#endif
 
 #include <option/has_spool_join.h>
-#include <bsod/bsod.h>
 #if HAS_SPOOL_JOIN()
     #include <module/prusa/spool_join.hpp>
+#endif
+
+#include <option/has_mmu2.h>
+#if HAS_MMU2()
+    #include <feature/prusa/MMU2/mmu2_mk4.h>
 #endif
 
 /**
@@ -57,7 +62,7 @@ uint8_t to_gcode_tool(uint8_t physical_tool) {
 #endif
 }
 
-#if HAS_SPOOL_JOIN() && HAS_TOOL_MAPPING()
+#if HAS_SPOOL_JOIN()
 uint8_t to_gcode_tool_custom(const ToolMapper &mapper, const SpoolJoin &joiner, uint8_t physical_tool) {
     if (auto gcode_tool = mapper.to_gcode(physical_tool); gcode_tool != ToolMapper::NO_TOOL_MAPPED) {
         return gcode_tool;

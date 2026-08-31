@@ -12,7 +12,6 @@ target_sources(
           M591.cpp
           M862_1.cpp
           M862_4.cpp
-          M863.cpp
           M865.cpp
           M876.cpp
           M9140_M9150.cpp
@@ -68,6 +67,10 @@ endif()
 
 if(HAS_TOOLCHANGER)
   target_sources(firmware PRIVATE P.cpp)
+endif()
+
+if(HAS_TOOL_MAPPING)
+  target_sources(firmware PRIVATE M863.cpp)
 endif()
 
 if(HAS_TOOL_OFFSET_PIN_CALIBRATION)

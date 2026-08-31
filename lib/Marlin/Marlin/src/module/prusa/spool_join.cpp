@@ -1,22 +1,17 @@
 #include "spool_join.hpp"
-#include "printers.h"
-#if PRINTER_IS_PRUSA_XL()
-    #include "Configuration_XL.h"
-#endif
+
 #include <logging/log.hpp>
 #include "module/motion.h"
+#include <bsod/bsod.h>
 #include "module/prusa/tool_mapper.hpp"
 #include <cmath>
 #include <limits>
 #include <optional>
-#include <option/has_crash_detection.h>
-#include <option/has_mmu2.h>
 #include <option/has_dwarf.h>
 #include "module/temperature.h"
 #include "module/planner.h" // for get_axis_position_mm
 #include "module/tool_change.h"
 #include <config_store/store_instance.hpp>
-#include "mmu2_toolchanger_common.hpp"
 #include <feature/print_status_message/print_status_message_mgr.hpp>
 #include <feature/print_status_message/print_status_message_guard.hpp>
 #include <tool_index.hpp>
@@ -38,13 +33,18 @@
 #endif
 
 #include <option/has_filament_tracker.h>
-#include <bsod/bsod.h>
 #if HAS_FILAMENT_TRACKER()
     #include <feature/filament_tracker/filament_tracker.hpp>
 #endif
 
+#include <option/has_crash_detection.h>
 #if HAS_CRASH_DETECTION()
     #include <feature/prusa/crash_recovery.hpp>
+#endif
+
+#include <option/has_mmu2.h>
+#if HAS_MMU2()
+    #include <feature/prusa/MMU2/mmu2_mk4.h>
 #endif
 
 SpoolJoin spool_join;

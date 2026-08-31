@@ -1,16 +1,14 @@
-/**
- * @file marlin_print_preview.hpp
- * @brief state machine for print preview
- */
+/// @file
 #pragma once
+
 #include "client_response.hpp"
-#include <module/prusa/tool_mapper.hpp>
 #include <marlin_events.h>
 #include <bitset>
 #include "gcode_info.hpp"
 #include <option/has_mmu2.h>
 #include <option/has_tool_mapping.h>
 #include <option/has_wastebin_fill_tracking.h>
+#include <option/has_e2ee_support.h>
 #include <async_job/async_job.hpp>
 #include <inplace_function.hpp>
 #include <fsm/print_preview_phases.hpp>

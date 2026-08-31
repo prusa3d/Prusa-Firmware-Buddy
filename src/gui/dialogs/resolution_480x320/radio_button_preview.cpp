@@ -54,12 +54,14 @@ void RadioButtonPreview::unconditionalDraw() {
         window_icon_t icon(nullptr, getVerticalIconRect(i), icons[res_offset + i]);
         window_text_t label(nullptr, getVerticalLabelRect(i), is_multiline::no, is_closed_on_click_t::no, _(label_texts[i]));
 
+#if HAS_TOOL_MAPPING()
         if (ClientResponses::get_available_response(PhasesPrintPreview::main_dialog, i) == Response::Continue) {
             if (tools_mapping::is_tool_mapping_possible()) {
                 label.SetText(_("Continue")); // replace print with continue if tools mapping will show
                 icon.SetRes(res_offset ? &img::mapping_80x80_focused : &img::mapping_80x80); // replace icon with tools mapping one
             }
         }
+#endif
 
         label.set_font(Font::small);
         label.SetAlignment(Align_t::Center());

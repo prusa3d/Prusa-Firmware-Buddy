@@ -4,12 +4,15 @@
 #include <json_encode.h>
 
 #include <general_response.hpp>
-#include <module/prusa/tool_mapper.hpp>
 #include <option/has_toolchanger.h>
 #include <netif_settings.h>
 #include <str_utils.hpp>
-
 #include <logging/log.hpp>
+
+#include <option/has_tool_mapping.h>
+#if HAS_TOOL_MAPPING()
+    #include <module/prusa/tool_mapper.hpp>
+#endif
 
 #include <cstdlib>
 #include <charconv>

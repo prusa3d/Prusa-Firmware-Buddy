@@ -3,7 +3,11 @@
 #include <inplace_function.hpp>
 #include <limits>
 #include <stdint.h>
-#include <module/prusa/tool_mapper.hpp>
+
+#include <option/has_tool_mapping.h>
+#if HAS_TOOL_MAPPING()
+    #include <module/prusa/tool_mapper.hpp>
+#endif
 
 #include <option/has_spool_join.h>
 #if HAS_SPOOL_JOIN()
