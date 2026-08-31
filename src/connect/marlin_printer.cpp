@@ -491,6 +491,9 @@ namespace {
         // not merge and create some kind of weird hydra-mapping.
         tool_mapper.set_all_unassigned();
         tool_mapper.set_enable(true);
+    #if HAS_SPOOL_JOIN()
+        spool_join.reset();
+    #endif
         for (size_t i = 0; i < tool_mapping.size(); i++) {
             auto &curr_tool = tool_mapping[i][0];
             if (curr_tool == ToolMapper::NO_TOOL_MAPPED) {
