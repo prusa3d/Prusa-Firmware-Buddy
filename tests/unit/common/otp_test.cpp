@@ -6,6 +6,7 @@
 
 #include "otp.hpp"
 #include <cstring>
+#include <string_view>
 
 // This particular size of OTP on STM32F4 broke size check while parsing datamatrix
 #define OTP_SIZE 527
@@ -36,7 +37,7 @@ TEST_CASE("OTP test v4, DataMatrixID v5, date with offset", "[otp_v4]") {
     REQUIRE(datamatrix);
     REQUIRE(datamatrix->product_id == 14558);
     REQUIRE(datamatrix->revision == 2);
-    REQUIRE(datamatrix->supplier_id == 19);
+    REQUIRE(std::string_view(datamatrix->supplier_id) == "000019");
     REQUIRE(datamatrix->production_year == 2025);
     REQUIRE(datamatrix->production_month == 5); // Thursday in 22th week of 2025
     REQUIRE(datamatrix->production_day == 29);
@@ -90,7 +91,7 @@ TEST_CASE("OTP test v4, DataMatrixID v5", "[otp_v4]") {
     REQUIRE(datamatrix);
     REQUIRE(datamatrix->product_id == 14558);
     REQUIRE(datamatrix->revision == 2);
-    REQUIRE(datamatrix->supplier_id == 19);
+    REQUIRE(std::string_view(datamatrix->supplier_id) == "000019");
     REQUIRE(datamatrix->production_year == 2020);
     REQUIRE(datamatrix->production_month == 5); // Thursday in 22th week of 2020
     REQUIRE(datamatrix->production_day == 28);
@@ -116,6 +117,41 @@ TEST_CASE("OTP test v4, DataMatrixID v5", "[otp_v4]") {
     auto bomid = otp_parse_bom_id(otp, OTP_SIZE);
     REQUIRE(bomid);
     REQUIRE(*bomid == 15);
+}
+
+TEST_CASE("OTP test v4, DataMatrixID v5, supplier ID with letters", "[otp_v4]") {
+
+    // Supplier IDs ran out of plain numbers, so they may contain letters as well
+    uint8_t otp[OTP_SIZE] = {
+        4, // Data structure version (1 bytes)
+        38, 0, // Data structure size (uint16_t little endian)
+        15, // BOM ID (1 bytes)
+        0x43, 0x11, 0xb5, 0x63, // UNIX Timestamp from 1970 (uint32_t little endian)
+        '1', '4', '5', '5', '8', // factorify ID
+        '-', // -
+        '0', '2', // revision
+        '0', '0', 'A', 'B', '1', '9', // supplier ID
+        '0', '2', '2', // calendar week of production (YWW)
+        '9', '9', '9', '9', '9', // daily serial number
+        0, 0, // \--> DataMatrix ID 1 (24 bytes)
+        0x01, 0x23, 0x45, 0x67, 0x89, 0xab, // MAC address (6 bytes)
+    };
+
+    auto datamatrix = otp_parse_datamatrix(otp, OTP_SIZE);
+    REQUIRE(datamatrix);
+    REQUIRE(std::string_view(datamatrix->supplier_id) == "00AB19");
+
+    // the letters must not shift the fields that follow
+    REQUIRE(datamatrix->product_id == 14558);
+    REQUIRE(datamatrix->revision == 2);
+    REQUIRE(datamatrix->production_year == 2020);
+    REQUIRE(datamatrix->production_month == 5);
+    REQUIRE(datamatrix->production_day == 28);
+    REQUIRE(datamatrix->date_serial_number == 99999);
+
+    serial_nr_t sn;
+    REQUIRE(otp_parse_serial_nr(sn, otp, OTP_SIZE) == 25);
+    REQUIRE(strncmp(sn.begin(), "14558-0200AB1902299999", sn.size()) == 0);
 }
 
 TEST_CASE("OTP test v4", "[otp_v4]") {
@@ -144,7 +180,7 @@ TEST_CASE("OTP test v4", "[otp_v4]") {
     REQUIRE(datamatrix);
     REQUIRE(datamatrix->product_id == 4558);
     REQUIRE(datamatrix->revision == 2);
-    REQUIRE(datamatrix->supplier_id == 19);
+    REQUIRE(std::string_view(datamatrix->supplier_id) == "000019");
     REQUIRE(datamatrix->production_year == 2020);
     REQUIRE(datamatrix->production_month == 5);
     REQUIRE(datamatrix->production_day == 25);
@@ -200,7 +236,7 @@ TEST_CASE("OTP test v3", "[otp_v3]") {
     REQUIRE(datamatrix);
     REQUIRE(datamatrix->product_id == 4914);
     REQUIRE(datamatrix->revision == 27);
-    REQUIRE(datamatrix->supplier_id == 145608);
+    REQUIRE(std::string_view(datamatrix->supplier_id) == "145608");
     REQUIRE(datamatrix->production_year == 2021);
     REQUIRE(datamatrix->production_month == 10);
     REQUIRE(datamatrix->production_day == 21);

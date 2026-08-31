@@ -1,4 +1,5 @@
 #include "otp.hpp"
+#include <algorithm>
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -139,8 +140,8 @@ static std::optional<datamatrix_t> decode_datamatrix(const uint8_t *src, size_t 
     dm.revision = scan_digit_group(src, 2);
     src += 2;
 
-    // supplier ID (6 digits)
-    dm.supplier_id = scan_digit_group(src, 6);
+    // supplier ID (6 digits or letters)
+    std::copy_n(src, 6, dm.supplier_id.begin());
     src += 6;
 
     // year

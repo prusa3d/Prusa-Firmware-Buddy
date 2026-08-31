@@ -1,5 +1,6 @@
 add_subdirectory(utils)
 add_subdirectory(nfc)
+add_subdirectory(otp)
 add_subdirectory(iso13239)
 add_subdirectory(coding)
 add_subdirectory(i2c)

@@ -1,0 +1,3 @@
+add_executable(otp_module_tests iso_week_tests.cpp utils_tests.cpp)
+target_link_libraries(otp_module_tests otp)
+add_catch_test(otp_module_tests)
