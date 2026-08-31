@@ -18,6 +18,7 @@
 #include <transfers/transfer_file_check.hpp>
 #include <common/sys.hpp>
 #include <common/unique_file_ptr.hpp>
+#include <raii/scope_guard.hpp>
 
 #include <option/has_cancel_object.h>
 #if HAS_CANCEL_OBJECT()
@@ -480,13 +481,6 @@ namespace {
         }
     #endif
 
-        auto cleanup = []() {
-            tool_mapper.reset();
-    #if HAS_SPOOL_JOIN()
-            spool_join.reset();
-    #endif
-            tool_mapper.set_enable(false);
-        };
         // Wipe defaults (eg mapping 1-1, 2-2, ...) - we want to replace it,
         // not merge and create some kind of weird hydra-mapping.
         tool_mapper.set_all_unassigned();
@@ -501,7 +495,6 @@ namespace {
             }
 
             if (!tool_mapper.set_mapping(i, curr_tool)) {
-                cleanup();
                 return "Invalid tools mapping";
             }
             for (size_t j = 1; j < tool_mapping[i].size(); j++) {
@@ -511,7 +504,6 @@ namespace {
 
     #if HAS_SPOOL_JOIN()
                 if (!spool_join.add_join(curr_tool, tool_mapping[i][j])) {
-                    cleanup();
                     return "Invalid spool join setting";
                 }
     #endif
@@ -531,20 +523,37 @@ Printer::StartPrintResult MarlinPrinter::start_print(const char *path, [[maybe_u
         return std::unexpected("Can't print now");
     }
 
-    if (tools_mapping.has_value()) {
 #if HAS_TOOL_MAPPING()
+    ScopeGuard tool_mapping_cleanup_guard = []() {
+        tool_mapper.reset();
+    #if HAS_SPOOL_JOIN()
+        spool_join.reset();
+    #endif
+        tool_mapper.set_enable(false);
+    };
+
+    if (tools_mapping.has_value()) {
         if (const char *error = handle_tool_mapping(tools_mapping.value()); error != nullptr) {
             return std::unexpected(error);
         }
-#else
-        return std::unexpected("Tools mapping not enabled");
-#endif
+    } else {
+        tool_mapping_cleanup_guard.disarm();
     }
+#else
+    if (tools_mapping.has_value()) {
+        return std::unexpected("Tools mapping not enabled");
+    }
+#endif
 
     marlin_client::print_start(path, marlin_server::PreviewSkipIfAble::all, tools_mapping.has_value() ? ResetToolMapping::no : ResetToolMapping::yes);
     if (!marlin_client::is_print_started()) {
         return std::unexpected("Can't print now");
     }
+
+#if HAS_TOOL_MAPPING()
+    tool_mapping_cleanup_guard.disarm();
+#endif
+
     // job_id already updated internally in MarkStarted phase
     return static_cast<uint16_t>(marlin_vars().job_id);
 }
