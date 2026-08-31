@@ -156,7 +156,23 @@ TEST_CASE("Puppy overflow") {
         };
     });
 
-    REQUIRE(time_sync.buddy_time_us(abs((static_cast<int>(ticks_us()) + (ITERATIONS / 2 * STEP_US))) - static_cast<int>(ticks_us())) < 10);
+    const uint32_t puppy_time_us = ticks_us() + (ITERATIONS / 2 * STEP_US);
+    REQUIRE(abs(ticks_diff(time_sync.buddy_time_us(puppy_time_us), ticks_us())) < 10);
+}
+
+TEST_CASE("Future timestamp clamped") {
+    TimeSync time_sync(0);
+
+    run_simulation(time_sync, [](uint32_t i) {
+        const uint32_t buddy_time_us = 10000 + STEP_US * i;
+        return Times {
+            .buddy_time_us = buddy_time_us,
+            .puppy_time_us = buddy_time_us,
+        };
+    });
+
+    // Conversion must never produce a time after "now"
+    REQUIRE(time_sync.buddy_time_us(ticks_us() + 1000) == ticks_us());
 }
 
 TEST_CASE("Offset overflow") {

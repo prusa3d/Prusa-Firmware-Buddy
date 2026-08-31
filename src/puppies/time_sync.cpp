@@ -99,5 +99,8 @@ bool TimeSync::is_time_sync_valid() const {
 
 uint32_t TimeSync::buddy_time_us(const uint32_t puppy_time_us) const {
     debug_assert(is_time_sync_valid());
-    return puppy_time_us - correct_offset(average_puppy_offset_us, ticks_us());
+    const uint32_t now_us = ticks_us();
+    const uint32_t converted_us = puppy_time_us - correct_offset(average_puppy_offset_us, now_us);
+    // The converted event has already happened, so a time ahead of now is residual error
+    return ticks_diff(converted_us, now_us) > 0 ? now_us : converted_us;
 }
