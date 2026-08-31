@@ -14,6 +14,7 @@
 #include <bsod/bsod.h>
 #include <client_response_texts.hpp>
 #include <feature/compatibility_checks/filament_compatibility.hpp>
+#include <gui/standard_frame/frame_wait.hpp>
 
 #if HAS_ANFC()
     #include <feature/openprinttag/tool_tag.hpp>
@@ -370,6 +371,7 @@ static_assert(common_frames::is_update_callable<FrameOPTParameters>);
 using Frames
     = FrameDefinitionList<ScreenPreheat::FrameStorage,
 #if HAS_ANFC()
+        FrameDefinition<Phase::loading_openprinttag, FrameWait, N_("Loading OpenPrintTag...")>,
         FrameDefinition<Phase::ask_load_openprinttag, FrameAskLoadOpenPrintTag>,
         FrameDefinition<Phase::openprinttag_parameters, FrameOPTParameters>,
 #endif

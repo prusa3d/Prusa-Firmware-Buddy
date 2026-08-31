@@ -154,6 +154,8 @@ static FSMResponseVariant determine_filament_for_operation(const filament_gcodes
         }
 
         if (load_tag) {
+            fsm.change(PhasesPreheat::loading_openprinttag, serialized_data);
+
             opt::MultiReadFieldRequest<opt::FilamentParametersInfo::Requirements {}> req { *tag };
             req.issue();
 
