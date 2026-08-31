@@ -385,6 +385,7 @@ namespace {
     void process_pausing_begin_state(Pause_Type type = Pause_Type::Pause);
 
     fsm::States fsm_states;
+    bool fsm_states_dirty = false;
 
     class ErrorChecker {
     public:
@@ -682,9 +683,14 @@ Response prompt_warning(WarningType type, uint32_t timeout_ms) {
 // FSM Manipulation
 
 static void commit_fsm_states() {
+    if (!fsm_states_dirty) {
+        return;
+    }
+
     fsm_states.increment_state_id();
     marlin_vars().set_fsm_states(fsm_states);
     fsm_states.log();
+    fsm_states_dirty = false;
 }
 
 void fsm_create(FSMAndPhase fsm_and_phase, fsm::PhaseData data) {
@@ -694,7 +700,7 @@ void fsm_create(FSMAndPhase fsm_and_phase, fsm::PhaseData data) {
 void fsm_destroy(ClientFSM type) {
     if (fsm_states[type].has_value()) {
         fsm_states[type] = std::nullopt;
-        commit_fsm_states();
+        fsm_states_dirty = true;
     }
 }
 
@@ -714,14 +720,8 @@ void fsm_change(FSMAndPhase fsm_and_phase, fsm::PhaseData data) {
 
     if (fsm_state != base_data) {
         fsm_state = base_data;
-        commit_fsm_states();
+        fsm_states_dirty = true;
     }
-}
-
-static void fsm_destroy_and_create(ClientFSM old_type, ClientFSM new_type, fsm::BaseData data) {
-    fsm_states[old_type] = std::nullopt;
-    fsm_states[new_type] = data;
-    commit_fsm_states();
 }
 
 //-----------------------------------------------------------------------------
@@ -984,6 +984,9 @@ static void cycle() {
 
     idle_publisher.call_all();
 
+    // Various notifiers and trackers can be linked to idle_publisher - commit right after that
+    commit_fsm_states();
+
     if (is_cycle_running) {
         return;
     }
@@ -1022,7 +1025,8 @@ static void cycle() {
     // #error dead code found by automatic analyses (see BFW-5461)
     {
 #endif
-        _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
+        // we need call print loop here because it must be processed while blocking commands (M109)
+        _server_print_loop();
     }
 
     // Clear temporary print status messages that have timed out -
@@ -1052,6 +1056,7 @@ static void cycle() {
     // update variables
     send_notifications_to_clients();
     server_update_vars();
+    commit_fsm_states();
 }
 
 /// Function that is called just before finalize_print, before the steppers are possibly disabled
@@ -1817,9 +1822,8 @@ static void crash_recovery_tool_pickup() {
     // wait for the user to return dropped nozzle to its dock
     if (marlin_server::get_response_from_phase(PhaseNozzleMismatch::tool_lost) == Response::Continue) {
         // tool is re-picked by crash recovery fsm
-        Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
-        fsm_destroy_and_create(ClientFSM::NozzleMismatch, ClientFSM::CrashRecovery,
-            fsm::BaseData(std::to_underlying(PhasesCrashRecovery::home), cr_fsm.Serialize()));
+        fsm_destroy(ClientFSM::NozzleMismatch);
+        fsm_change(PhasesCrashRecovery::home, Crash_recovery_fsm { .x = SelftestSubtestState_t::running, .y = SelftestSubtestState_t::undef }.Serialize());
         server.print_state = State::CrashRecovery_XY_HOME;
     }
         #else
@@ -2462,9 +2466,7 @@ static void _server_print_loop(void) {
 #endif
         {
 
-            if (fsm_states.is_active(ClientFSM::PrintPreview)) {
-                fsm_destroy_and_create(ClientFSM::PrintPreview, ClientFSM::Printing, fsm::BaseData());
-            }
+            fsm_destroy(ClientFSM::PrintPreview);
             if (!fsm_states.is_active(ClientFSM::Printing)) {
                 // FIXME make this atomic change. It would require improvements in PrintScreen so that it can re-initialize upon phase change.
                 // FYI the DESTROY invoke is in print_start()
