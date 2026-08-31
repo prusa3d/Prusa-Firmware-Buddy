@@ -11,6 +11,7 @@
 #include <buddy/usb_device.hpp>
 #include <bsod/bsod.h>
 #include <common/st25dv64k.h>
+#include <common/otp.hpp>
 #include "usb_host.h"
 #include "buffered_serial.hpp"
 #include "bsod_gui.hpp"
@@ -270,6 +271,7 @@ static void resources_update() {
 // Note: Hotend/Tool initialization is NOT done here — it is deferred to after ADC init
 // to allow hotend model detection from ADC readings.
 static void init_isr_statics() {
+    (void)otp_get_bom_id(); // Parses the OTP into a static
     EMotorStallDetector::Instance();
     Fans::print(PhysicalToolIndex::from_raw(0));
     Fans::heat_break(PhysicalToolIndex::from_raw(0));

@@ -13,6 +13,11 @@ struct __attribute__((packed)) MAC_addr {
     uint8_t mac[6] = { 0 };
 };
 
+/// MAC address string representation
+///
+/// Format: "xx:xx:xx:xx:xx:xx" (17 characters + null terminator)
+using MAC_str = std::array<char, sizeof(MAC_addr::mac) * 3>;
+
 using DatamatrixRaw = std::array<uint8_t, 24>;
 using DatamatrixRawView = std::span<const uint8_t, std::tuple_size_v<DatamatrixRaw>>;
 
@@ -23,7 +28,7 @@ struct __attribute__((packed)) OTP_v0 {
     uint8_t board_revision[3] = { 0 }; // Board revision as MAJOR.MINOR.PATCH (all in uin8_t)
     uint8_t reserve = 0; // Reserved for 4byte write only access when writing.
     uint32_t timestamp = 0; // UNIX Timestamp from 1970 (uint32_t little endian)
-    uint8_t serialnumber[18] = { 0 }; // Serial number (18 bytes)
+    std::array<uint8_t, 18> serialnumber = { 0 }; // Serial number (18 bytes)
     MAC_addr mac_address; // MAC address (6 bytes)
     static constexpr uint8_t version_number = 0;
 };
@@ -40,7 +45,7 @@ struct __attribute__((packed)) OTP_v2 {
     uint16_t size = 0; // Data structure size (uint16_t little endian)
     uint8_t bomID = 0; // BOM ID (1 bytes)
     uint32_t timestamp = 0; // UNIX Timestamp from 1970 (uint32_t little endian)
-    uint8_t datamatrix[24] = { 0 }; // DataMatrix ID 1 (24 bytes)
+    DatamatrixRaw datamatrix; // DataMatrix ID 1 (24 bytes)
     static constexpr uint8_t version_number = 2;
 };
 // OTP_v2 is stored in RAM exchange area, it is better if its size is N*4
@@ -51,9 +56,9 @@ struct __attribute__((packed)) OTP_v3 {
     uint16_t size = 0; // Data structure size (uint16_t little endian)
     uint8_t bomID = 0; // BOM ID (1 bytes)
     uint32_t timestamp = 0; // UNIX Timestamp from 1970 (uint32_t little endian)
-    uint8_t datamatrix[24] = { 0 }; // DataMatrix ID 1 (24 bytes)
-    uint8_t datamatrix1[24] = { 0 }; // DataMatrix ID 2 (24 bytes)
-    uint8_t serialnumber[14] = { 0 }; // unknown item
+    DatamatrixRaw datamatrix; // DataMatrix ID 1 (24 bytes)
+    DatamatrixRaw datamatrix1; // DataMatrix ID 2 (24 bytes)
+    std::array<uint8_t, 14> serialnumber = { 0 }; // unknown item
     MAC_addr mac_address; // MAC address (6 bytes)
     static constexpr uint8_t version_number = 3;
 };
@@ -63,7 +68,7 @@ struct __attribute__((packed)) OTP_v4 {
     uint16_t size = 0; // Data structure size (uint16_t little endian)
     uint8_t bomID = 0; // BOM ID (1 bytes)
     uint32_t timestamp = 0; // UNIX Timestamp from 1970 (uint32_t little endian)
-    uint8_t datamatrix[24] = { 0 }; // DataMatrix ID 1 (24 bytes)
+    DatamatrixRaw datamatrix; // DataMatrix ID 1 (24 bytes)
     MAC_addr mac_address; // MAC address (6 bytes)
     static constexpr uint8_t version_number = 4;
 };
@@ -90,7 +95,7 @@ struct datamatrix_t {
     uint8_t revision;
 };
 
-typedef uint16_t board_revision_t;
+using board_revision_t = uint16_t;
 
 struct __attribute__((packed)) OtpStatus {
     uint16_t single_read_error_counter = 0;

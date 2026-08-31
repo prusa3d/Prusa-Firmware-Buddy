@@ -489,7 +489,7 @@ PuppyBootstrap::DiscoverResult PuppyBootstrap::discover_once(PuppyType type, Boo
             log_info(Puppies, "discover_once: read_otp -> no/garbled answer after protocol_version");
             return DiscoverResult::contested;
         }
-        auto puppy_datamatrix = otp_parse_datamatrix(otp, sizeof(otp));
+        auto puppy_datamatrix = otp_parse_datamatrix(trivial_as_bytes(otp));
         if (puppy_datamatrix) {
             log_info(Puppies, "Puppy's hardware ID is %d with revision %d", puppy_datamatrix->product_id, puppy_datamatrix->revision);
         } else {

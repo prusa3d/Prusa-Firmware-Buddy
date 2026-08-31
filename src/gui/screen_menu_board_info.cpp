@@ -26,7 +26,7 @@
 
 WindowMenuInfoOtpBase::WindowMenuInfoOtpBase(const OTP_v2 &otp) {
     StringBuilder { buffer }
-        .append_printf("%.*s/%u", sizeof(otp.datamatrix), otp.datamatrix, otp.bomID)
+        .append_printf("%.*s/%u", otp.datamatrix.size(), otp.datamatrix.data(), otp.bomID)
         .check();
 }
 
