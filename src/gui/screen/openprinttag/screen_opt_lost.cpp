@@ -12,7 +12,14 @@ ScreenOPTLost::ScreenOPTLost(VirtualToolIndex tool)
     , prompt_ { &frame_ }
     , tool_(tool) {
 
-    prompt_.set_texts(_("OpenPrintTag removed"), _("Unload filament?"));
+    {
+        const auto filament_name = FilamentType::for_tool(tool).parameters().name;
+
+        prompt_.set_texts(_("OpenPrintTag removed"),
+            _("Unload filament \"%.*s\" from tool %i?")
+                .formatted(text_params_, std::string_view(filament_name), tool.display_index()));
+    }
+
     prompt_.radio.Change(PhaseResponses { Response::Unload, Response::Ignore });
     prompt_.radio.set_callback([this](Response response) {
         switch (response) {

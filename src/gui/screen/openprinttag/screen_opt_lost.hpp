@@ -23,6 +23,7 @@ private:
 
 private:
     const VirtualToolIndex tool_;
+    StringViewUtf8Parameters<16> text_params_;
 };
 
 } // namespace buddy::openprinttag
