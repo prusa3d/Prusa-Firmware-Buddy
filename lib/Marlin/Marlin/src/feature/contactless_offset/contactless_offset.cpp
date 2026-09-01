@@ -2075,11 +2075,10 @@ static TwoSpeedAnalysisResult estimate_position_from_peaks(
 }
 
 // Main entry point for two-speed sweep analysis
-static std::expected<TwoSpeedAnalysisResult, const char *> analyze_twospeed_sweep(
+static std::expected<FourPassPeaks, const char *> analyze_twospeed_sweep(
     const RawSamples &raw_samples,
     float sensor_sampling_freq_hz,
     const SweepSpeedProfile &profile,
-    sp::SamplingFreq motion_sampling_freq,
     uint32_t motion_profile_start_us,
     float symmetry_trim_fraction,
     const char *label) {
@@ -2094,23 +2093,14 @@ static std::expected<TwoSpeedAnalysisResult, const char *> analyze_twospeed_swee
 
     float dt = 1.0f / sensor_sampling_freq_hz;
 
-    uint32_t analysis_start_us = ticks_us();
-
     uint32_t peaks_start_us = ticks_us();
     FourPassPeaks peaks = detect_four_peaks(raw_samples, dt, profile, motion_profile_start_us, symmetry_trim_fraction, label);
     uint32_t peaks_us = ticks_us() - peaks_start_us;
-
-    uint32_t final_result_start_us = ticks_us();
-    TwoSpeedAnalysisResult result = estimate_position_from_peaks(peaks, profile, motion_sampling_freq);
-    uint32_t final_result_us = ticks_us() - final_result_start_us;
-
-    log_info(ContactlessOffset, "analyze_twospeed: total %uus (detect_peaks=%uus compute_result=%uus) samples=%u",
-        static_cast<unsigned>(ticks_us() - analysis_start_us),
+    log_info(ContactlessOffset, "detect_four_peaks takes %uus (%u samples)",
         static_cast<unsigned>(peaks_us),
-        static_cast<unsigned>(final_result_us),
         static_cast<unsigned>(raw_samples.size()));
 
-    return result;
+    return peaks;
 }
 
 static std::expected<TwoSpeedAnalysisResult, const char *> execute_and_analyze_sweep(
@@ -2161,27 +2151,31 @@ static std::expected<TwoSpeedAnalysisResult, const char *> execute_and_analyze_s
     debug_report_motion_profile(profile, motion_sampling_freq, label);
     debug_report_motion_timing(label, result);
     uint32_t serial_output_us = ticks_us() - serial_output_start_us;
+    log_info(ContactlessOffset, "debug reporting takes %uus", static_cast<unsigned>(serial_output_us));
 
     uint32_t analysis_start_us = ticks_us();
-    auto analysis_result = analyze_twospeed_sweep(
+    auto peaks_result = analyze_twospeed_sweep(
         result.raw_samples,
         result.sensor_sampling_freq_hz,
         profile,
-        motion_sampling_freq,
         result.motion_profile_start_us,
         config.symmetry_trim_fraction,
         label);
     uint32_t analysis_us = ticks_us() - analysis_start_us;
+    log_info(ContactlessOffset, "analyze_twospeed_sweep takes %uus", static_cast<unsigned>(analysis_us));
 
-    log_info(ContactlessOffset, "execute_and_analyze_sweep: serial_output=%uus analysis=%uus",
-        static_cast<unsigned>(serial_output_us), static_cast<unsigned>(analysis_us));
-
-    if (!analysis_result.has_value()) {
-        debug_report_analysis_error(label, analysis_result.error());
-        return std::unexpected(analysis_result.error());
+    if (!peaks_result.has_value()) {
+        debug_report_analysis_error(label, peaks_result.error());
+        return std::unexpected(peaks_result.error());
     }
+    auto &peaks = *peaks_result;
 
-    debug_report_twospeed_analysis(analysis_result.value(), profile, label);
+    uint32_t final_result_start_us = ticks_us();
+    TwoSpeedAnalysisResult analysis = estimate_position_from_peaks(peaks, profile, motion_sampling_freq);
+    uint32_t final_result_us = ticks_us() - final_result_start_us;
+    log_info(ContactlessOffset, "estimate_position_from_peaks takes %uus", static_cast<unsigned>(final_result_us));
 
-    return analysis_result.value();
+    debug_report_twospeed_analysis(analysis, profile, label);
+
+    return analysis;
 }
