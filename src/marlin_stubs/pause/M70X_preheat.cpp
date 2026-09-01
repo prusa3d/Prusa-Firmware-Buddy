@@ -16,6 +16,7 @@
 #include <fsm/preheat_phases.hpp>
 #include <utils/variant_utils.hpp>
 #include <feature/gcode_exception/gcode_exception.hpp>
+#include <feature/compatibility_checks/filament_compatibility.hpp>
 
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
@@ -169,16 +170,25 @@ static FSMResponseVariant determine_filament_for_operation(const filament_gcodes
 
             opt::FilamentParametersInfo params { req };
 
-            if (params.data_safe_to_use) {
+            const auto compatibility_level = [&] {
+                buddy::filament_compatibility::CompatibilityReport compat_report;
+                compat_report.generate_noclear({
+                    .filament = params.parameters,
+                    .tools = *tool,
+                    .assume_filament_already_inserted = preheat_mode_assume_filament_already_inserted(preheat_data.mode),
+                });
+                return compat_report.compatibility_level();
+            };
+
+            if (params.data_safe_to_use && compatibility_level() == buddy::compatibility_checks::CompatibilityLevel::fully_compatible) {
                 // Everything derived perfectly from the tag -> apply the parameters and be happy
                 const FilamentType ft = PendingAdHocFilamentType {};
                 ft.set_parameters(params.parameters);
                 return FSMResponseVariant::make(ft);
 
             } else {
-                // The printer was not able to derive all the necessary fields
-                // -> pop up ScreenOPTFilamentDetail and let the user tweak the settings
-                // unknown fields will be highlighted
+                // Pop up ScreenOPTFilamentDetail and let the user tweak the settings
+                // unknown fields will be highlighted (if there are any)
                 // (the screen loads the OPT data again on the GUI thread)
 
                 fsm.change(PhasesPreheat::openprinttag_parameters, serialized_data);
