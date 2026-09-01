@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------*/
-/* Low level disk I/O module skeleton for FatFs     (C)ChaN, 2017        */
+/* Low level disk I/O module skeleton for FatFs     (C)ChaN, 2023        */
 /*                                                                       */
 /*   Portions COPYRIGHT 2017 STMicroelectronics                          */
 /*   Portions Copyright (C) 2017, ChaN, all right reserved               */
@@ -97,8 +97,11 @@ DSTATUS disk_initialize (
 
   if(disk.is_initialized[pdrv] == 0)
   {
-    disk.is_initialized[pdrv] = 1;
     stat = disk.drv[pdrv]->disk_initialize(disk.lun[pdrv]);
+    if(stat == RES_OK)
+    {
+      disk.is_initialized[pdrv] = 1;
+    }
   }
   return stat;
 }
@@ -114,9 +117,10 @@ DSTATUS disk_initialize (
 DRESULT disk_read (
 	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
 	BYTE *buff,		/* Data buffer to store read data */
-	DWORD sector,	        /* Sector address in LBA */
+	LBA_t sector,   	/* Sector address in LBA */
 	UINT count		/* Number of sectors to read */
 )
+
 {
   DRESULT res;
 
@@ -136,7 +140,7 @@ DRESULT disk_read (
 DRESULT disk_write (
 	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
 	const BYTE *buff,	/* Data to be written */
-	DWORD sector,		/* Sector address in LBA */
+	LBA_t sector,		/* Sector address in LBA */
 	UINT count        	/* Number of sectors to write */
 )
 {
