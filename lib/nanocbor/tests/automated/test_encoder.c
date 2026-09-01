@@ -89,6 +89,31 @@ static void test_encode_double_to_float(void)
     print_bytestr(buf, nanocbor_encoded_len(&enc));
 }
 
+static void test_encode_simple(void)
+{
+    uint8_t buf[512];
+    nanocbor_encoder_t enc;
+    nanocbor_encoder_init(&enc, buf, sizeof(buf));
+    uint16_t simple = 0;
+
+    /* non-reserved 1-byte simple values 0-19 */
+    for (; simple<=19; simple++) {
+        CU_ASSERT_EQUAL(nanocbor_fmt_simple(&enc, simple), 1);
+    }
+
+    /* reserved simple values 20-31 */
+    for (; simple<=31; simple++) {
+        CU_ASSERT_EQUAL(nanocbor_fmt_simple(&enc, simple), NANOCBOR_ERR_INVALID_TYPE);
+    }
+
+    /* non-reserved 2-byte simple values 32-255 */
+    for (; simple<=255; simple++) {
+        CU_ASSERT_EQUAL(nanocbor_fmt_simple(&enc, simple), 2);
+    }
+
+    print_bytestr(buf, nanocbor_encoded_len(&enc));
+}
+
 const test_t tests_encoder[] = {
     {
         .f = test_encode_float_specials,
@@ -101,6 +126,10 @@ const test_t tests_encoder[] = {
     {
         .f = test_encode_double_to_float,
         .n = "Double reduction encoder test",
+    },
+    {
+        .f = test_encode_simple,
+        .n = "Simple value encoder test",
     },
     {
         .f = NULL,

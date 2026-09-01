@@ -137,6 +137,13 @@ typedef enum {
      * @brief Decoder could not find the requested entry
      */
     NANOCBOR_NOT_FOUND = -5,
+
+    /**
+     * @brief Decoder detected wrong usage, e.g., leaving a container
+     *        before reaching its end. This is a programming mistake
+     *        and can be asserted upon by the caller.
+     */
+    NANOCOBR_PANIC_INVALID_OPERATION = -6,
 } nanocbor_error_t;
 
 /**
@@ -482,8 +489,11 @@ int nanocbor_enter_map(const nanocbor_value_t *it, nanocbor_value_t *map);
  *
  * @param[in]   it          parent CBOR structure
  * @param[in]   container   exhausted CBOR container
+ *
+ * @return                  NANOCBOR_OK on success
+ * @return                  NANOCBOR_PANIC_INVALID_OPERATION on detection of wrong usage
  */
-void nanocbor_leave_container(nanocbor_value_t *it,
+int nanocbor_leave_container(nanocbor_value_t *it,
                               nanocbor_value_t *container);
 
 /**
@@ -596,7 +606,8 @@ int nanocbor_get_double(nanocbor_value_t *cvalue, double *value);
  * @brief Skip to the next value in the CBOR stream
  *
  * This function is able to skip over nested structures in the CBOR stream
- * such as (nested) arrays and maps. It uses limited recursion to do so.
+ * such as (nested) arrays and maps. For indefinite length containers,
+ * it resorts to limited recursion to do so.
  *
  * Recursion is limited with @ref NANOCBOR_RECURSION_MAX
  *
@@ -611,7 +622,7 @@ int nanocbor_skip(nanocbor_value_t *it);
  * @brief Skip a single simple value in the CBOR stream
  *
  * This is a cheaper version of @ref nanocbor_skip, the downside is that this
- * function is unable to skip nested structures.
+ * function is unable to skip nested structures, i.e., tags, maps and arrays.
  *
  * @param[in]   it  CBOR value to skip
  *
@@ -800,6 +811,20 @@ int nanocbor_fmt_tag(nanocbor_encoder_t *enc, uint64_t num);
 int nanocbor_fmt_int(nanocbor_encoder_t *enc, int64_t num);
 
 /**
+ * @brief Write a CBOR simple value into the encoder buffer
+ *
+ * Disallows assigned and reserved simple values between 20 and 31.
+ * Please use the respective functions for emitting true, false, undefined, and null.
+ *
+ * @param[in]   enc     Encoder context
+ * @param[in]   value   Simple value to write
+ *
+ * @return              Number of bytes written
+ * @return              Negative on error
+ */
+int nanocbor_fmt_simple(nanocbor_encoder_t *enc, uint8_t value);
+
+/**
  * @brief Write a byte string indicator for a byte string with specific length
  * into the encoder buffer
  *
@@ -933,6 +958,16 @@ int nanocbor_fmt_end_indefinite(nanocbor_encoder_t *enc);
  * @return              Negative on error
  */
 int nanocbor_fmt_null(nanocbor_encoder_t *enc);
+
+/**
+ * @brief Write an Undefined value into the encoder buffer
+ *
+ * @param[in]   enc     Encoder context
+ *
+ * @return              NANOCBOR_OK
+ * @return              Negative on error
+ */
+int nanocbor_fmt_undefined(nanocbor_encoder_t *enc);
 
 /**
  * @brief Write a float value into the encoder buffer

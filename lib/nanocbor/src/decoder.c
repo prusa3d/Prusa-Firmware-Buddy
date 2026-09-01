@@ -304,18 +304,34 @@ static int _get_str(nanocbor_value_t *cvalue, const uint8_t **buf, size_t *len,
 {
     uint64_t tmp = 0;
     int res = _get_uint64(cvalue, &tmp, NANOCBOR_SIZE_SIZET, type);
-    *len = tmp;
 
-    if (cvalue->end - cvalue->cur < 0
-        || (size_t)(cvalue->end - cvalue->cur) < *len) {
+    if (res < 0) {
+        return res;
+    }
+
+    /* `_advance()` has `unsigned` as argument. On 8-bit and 16-bit systems
+     * overflowing `unsigned int` is practical, so we use directly the target
+     * type for length in advance to catch an overflow here. */
+    unsigned advance_len;
+    if (__builtin_add_overflow(res, tmp, &advance_len)) {
         return NANOCBOR_ERR_END;
     }
-    if (res >= 0) {
-        *buf = (cvalue->cur) + res;
-        _advance(cvalue, (unsigned int)((size_t)res + *len));
-        res = NANOCBOR_OK;
+    /* if cvalue->cur is close to the end of the address space, adding
+     * advance_len may cause the addition to wrap around. Let's test again for
+     * overflows to be sure */
+    uintptr_t new_end;
+    if (__builtin_add_overflow((uintptr_t)cvalue->cur, advance_len, &new_end)) {
+        return NANOCBOR_ERR_END;
     }
-    return res;
+    /* now with all the footguns defused, the actual overflow check is simple */
+    if (new_end > (uintptr_t)cvalue->end) {
+        return NANOCBOR_ERR_END;
+    }
+
+    *buf = (cvalue->cur) + res;
+    _advance(cvalue, advance_len);
+    *len = tmp;
+    return NANOCBOR_OK;
 }
 
 int nanocbor_get_bstr(nanocbor_value_t *cvalue, const uint8_t **buf,
@@ -365,7 +381,7 @@ int nanocbor_get_simple(nanocbor_value_t *cvalue, uint8_t *value)
     if (res == NANOCBOR_ERR_OVERFLOW) {
         res = NANOCBOR_ERR_INVALID_TYPE;
     }
-    return res;
+    return res > 0 ? NANOCBOR_OK : res;
 }
 
 /* float bit mask related defines */
@@ -476,24 +492,50 @@ int nanocbor_get_double(nanocbor_value_t *cvalue, double *value)
     return _decode_double(cvalue, value);
 }
 
+/**
+ * @brief Used internally to signal indefinite container length.
+ *
+ * Should not be passed out of user-facing API.
+ */
+#define NANOCBOR_ERR_INDEFINITE -42
+
+/**
+ * @brief Check the upcoming CBOR item to be a container and return its raw length.
+ *
+ * @param[in]   it      CBOR value to decode from
+ * @param[out]  len     raw length of container (aka number of array elements or map entries)
+ *
+ * @return              NANOCBOR_OK on success
+ * @return              NANOCBOR_ERR_INDEFINITE if the upcoming CBOR item is an indefinite container
+ * @return              other negative on error
+ */
+static int _check_upcoming_container_length(const nanocbor_value_t *it,
+                                       uint64_t *len, uint8_t type)
+{
+    uint8_t value_match = (uint8_t)(((unsigned)type << NANOCBOR_TYPE_OFFSET)
+                                    | NANOCBOR_SIZE_INDEFINITE);
+
+    /* Not using _value_match_exact here to keep *it const */
+    if (!_over_end(it) && *it->cur == value_match) {
+        return NANOCBOR_ERR_INDEFINITE;
+    }
+
+    return _get_uint64(it, len, NANOCBOR_SIZE_LONG, type);
+}
+
 static int _enter_container(const nanocbor_value_t *it,
                             nanocbor_value_t *container, uint8_t type)
 {
     container->end = it->end;
     container->remaining = 0;
 
-    uint8_t value_match = (uint8_t)(((unsigned)type << NANOCBOR_TYPE_OFFSET)
-                                    | NANOCBOR_SIZE_INDEFINITE);
-
-    /* Not using _value_match_exact here to keep *it const */
-    if (!_over_end(it) && *it->cur == value_match) {
+    int res = _check_upcoming_container_length(it, &container->remaining, type);
+    if (res == NANOCBOR_ERR_INDEFINITE) {
         container->flags = NANOCBOR_DECODER_FLAG_INDEFINITE
             | NANOCBOR_DECODER_FLAG_CONTAINER;
         container->cur = it->cur + 1;
         return NANOCBOR_OK;
     }
-
-    int res = _get_uint64(it, &container->remaining, NANOCBOR_SIZE_LONG, type);
     if (res < 0) {
         return res;
     }
@@ -518,8 +560,15 @@ int nanocbor_enter_map(const nanocbor_value_t *it, nanocbor_value_t *map)
     return res;
 }
 
-void nanocbor_leave_container(nanocbor_value_t *it, nanocbor_value_t *container)
+int nanocbor_leave_container(nanocbor_value_t *it, nanocbor_value_t *container)
 {
+    /* check `container` to be a valid, fully consumed container that is plausible to have been entered from `it` */
+    if (!nanocbor_in_container(container) ||
+        !nanocbor_at_end(container) ||
+        container->cur <= it->cur ||
+        container->cur > it->end) {
+        return NANOCOBR_PANIC_INVALID_OPERATION;
+    }
     if (it->remaining) {
         it->remaining--;
     }
@@ -529,6 +578,7 @@ void nanocbor_leave_container(nanocbor_value_t *it, nanocbor_value_t *container)
     else {
         it->cur = container->cur;
     }
+    return NANOCBOR_OK;
 }
 
 static int _skip_simple(nanocbor_value_t *it)
@@ -565,28 +615,75 @@ static int _skip_limited(nanocbor_value_t *it, uint8_t limit)
     if (limit == 0) {
         return NANOCBOR_ERR_RECURSION;
     }
-    int type = nanocbor_get_type(it);
-    int res = type;
 
-    /* map or array */
-    if (type == NANOCBOR_TYPE_ARR || type == NANOCBOR_TYPE_MAP) {
-        nanocbor_value_t recurse;
-        res = (type == NANOCBOR_TYPE_MAP ? nanocbor_enter_map(it, &recurse)
-                                         : nanocbor_enter_array(it, &recurse));
-        if (res == NANOCBOR_OK) {
-            while (!nanocbor_at_end(&recurse)) {
-                res = _skip_limited(&recurse, limit - 1);
-                if (res < 0) {
-                    break;
-                }
-            }
-            nanocbor_leave_container(it, &recurse);
+    int res = NANOCBOR_OK;
+    uint64_t skip = 1;
+
+    while (skip > 0) {
+        int type = nanocbor_get_type(it);
+        if (type < 0) {
+            return type;
         }
-    }
-    else if (type >= 0) {
+
+        /* map or array */
+        if (type == NANOCBOR_TYPE_ARR || type == NANOCBOR_TYPE_MAP) {
+            uint64_t len = 0;
+            res = _check_upcoming_container_length(it, &len, type);
+            if (res == NANOCBOR_ERR_INDEFINITE) {
+                /* cannot handle indefinite-length containers linearily,
+                 * use stack (recursion) instead */
+                nanocbor_value_t recurse;
+                res = _enter_container(it, &recurse, type);
+                if (res < 0) {
+                    return res;
+                }
+                while (!nanocbor_at_end(&recurse)) {
+                    res = _skip_limited(&recurse, limit - 1);
+                    if (res < 0) {
+                        return res;
+                    }
+                }
+                nanocbor_leave_container(it, &recurse);
+                skip--;
+                continue;
+            }
+            if (res < 0) {
+                /* propagate (other) errors up */
+                return res;
+            }
+            _advance(it, res);
+
+            if (type == NANOCBOR_TYPE_MAP) {
+                if (len > UINT64_MAX / 2) {
+                    return NANOCBOR_ERR_OVERFLOW;
+                }
+                len *= 2;
+            }
+            if (len > UINT64_MAX - skip) {
+                return NANOCBOR_ERR_OVERFLOW;
+            }
+            skip += len - 1;
+            continue;
+        }
+        else if (type == NANOCBOR_TYPE_TAG) {
+            uint64_t tmp = 0;
+            int res = _get_uint64(it, &tmp, NANOCBOR_SIZE_WORD, type);
+            if (res < 0) {
+                return res;
+            }
+            _advance(it, res);
+            /* do not decrement skip as tag content still needs to be skipped, too */
+            continue;
+        }
+
         res = _skip_simple(it);
+        if (res < 0) {
+            return res;
+        }
+        skip--;
     }
-    return res < 0 ? res : NANOCBOR_OK;
+
+    return NANOCBOR_OK;
 }
 
 int nanocbor_skip(nanocbor_value_t *it)
@@ -619,6 +716,7 @@ int nanocbor_get_key_tstr(nanocbor_value_t *start, const char *key,
         if (res < 0) {
             break;
         }
+        res = NANOCBOR_NOT_FOUND;
     }
 
     return res;

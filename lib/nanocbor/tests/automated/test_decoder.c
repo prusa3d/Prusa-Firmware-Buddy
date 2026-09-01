@@ -52,7 +52,7 @@ static void test_decode_map(void)
     nanocbor_decoder_init(&val, map_empty, sizeof(map_empty));
     CU_ASSERT_EQUAL(nanocbor_enter_map(&val, &cont), NANOCBOR_OK);
     CU_ASSERT_EQUAL(nanocbor_at_end(&cont), true);
-    nanocbor_leave_container(&val, &cont);
+    CU_ASSERT_EQUAL(nanocbor_leave_container(&val, &cont), NANOCBOR_OK);
     CU_ASSERT_EQUAL(nanocbor_at_end(&val), true);
 
     /* Init the decoder and verify the decoding of the map elements */
@@ -63,7 +63,7 @@ static void test_decode_map(void)
     CU_ASSERT(nanocbor_get_uint32(&cont, &tmp) > 0);
     CU_ASSERT_EQUAL(tmp, 2);
     CU_ASSERT_EQUAL(nanocbor_at_end(&cont), true);
-    nanocbor_leave_container(&val, &cont);
+    CU_ASSERT_EQUAL(nanocbor_leave_container(&val, &cont), NANOCBOR_OK);
     CU_ASSERT_EQUAL(nanocbor_at_end(&val), true);
 
     /* Init the decoder and skip over the empty map */
@@ -89,21 +89,21 @@ static void test_decode_map(void)
     CU_ASSERT_EQUAL(tmp, 3);
     CU_ASSERT_EQUAL(nanocbor_enter_array(&cont, &array), NANOCBOR_OK);
     CU_ASSERT_EQUAL(nanocbor_at_end(&array), true);
-    nanocbor_leave_container(&cont, &array);
+    CU_ASSERT_EQUAL(nanocbor_leave_container(&cont, &array), NANOCBOR_OK);
     CU_ASSERT_EQUAL(nanocbor_at_end(&cont), false);
 
     CU_ASSERT(nanocbor_get_uint32(&cont, &tmp) > 0);
     CU_ASSERT_EQUAL(tmp, 4);
     CU_ASSERT_EQUAL(nanocbor_enter_array(&cont, &array), NANOCBOR_OK);
     CU_ASSERT_EQUAL(nanocbor_at_end(&array), true);
-    nanocbor_leave_container(&cont, &array);
+    CU_ASSERT_EQUAL(nanocbor_leave_container(&cont, &array), NANOCBOR_OK);
     CU_ASSERT_EQUAL(nanocbor_at_end(&cont), false);
 
     CU_ASSERT(nanocbor_get_uint32(&cont, &tmp) > 0);
     CU_ASSERT_EQUAL(tmp, 5);
     CU_ASSERT_EQUAL(nanocbor_enter_array(&cont, &array), NANOCBOR_OK);
     CU_ASSERT_EQUAL(nanocbor_at_end(&array), true);
-    nanocbor_leave_container(&cont, &array);
+    CU_ASSERT_EQUAL(nanocbor_leave_container(&cont, &array), NANOCBOR_OK);
     CU_ASSERT_EQUAL(nanocbor_at_end(&cont), false);
 
     CU_ASSERT(nanocbor_get_uint32(&cont, &tmp) > 0);
@@ -218,34 +218,122 @@ static void test_decode_basic(void)
     CU_ASSERT_EQUAL(mantissa, 27315);
 }
 
-static void _decode_skip_simple(const uint8_t *test_case, size_t test_case_len)
+static void _decode_skip(const uint8_t *test_case, size_t test_case_len, bool simple)
 {
     nanocbor_value_t decoder;
+
     nanocbor_decoder_init(&decoder, test_case, test_case_len);
     CU_ASSERT_EQUAL(nanocbor_at_end(&decoder), false);
-    int res = nanocbor_skip_simple(&decoder);
-    printf("skip result = %d", res);
+    int res = nanocbor_skip(&decoder);
     CU_ASSERT_EQUAL(res, NANOCBOR_OK);
     CU_ASSERT_EQUAL(nanocbor_at_end(&decoder), true);
+
+    if (simple) {
+        nanocbor_decoder_init(&decoder, test_case, test_case_len);
+        CU_ASSERT_EQUAL(nanocbor_at_end(&decoder), false);
+        int res = nanocbor_skip_simple(&decoder);
+        CU_ASSERT_EQUAL(res, NANOCBOR_OK);
+        CU_ASSERT_EQUAL(nanocbor_at_end(&decoder), true);
+    }
 }
 
 static void test_decode_skip(void)
 {
     static const uint8_t test_uint[] = { 0x00 };
-    _decode_skip_simple(test_uint, sizeof(test_uint));
+    _decode_skip(test_uint, sizeof(test_uint), true);
     static const uint8_t test_nint[] = { 0x20 };
-    _decode_skip_simple(test_nint, sizeof(test_nint));
+    _decode_skip(test_nint, sizeof(test_nint), true);
     static const uint8_t test_bstr_empty[] = { 0x40 };
-    _decode_skip_simple(test_bstr_empty, sizeof(test_bstr_empty));
+    _decode_skip(test_bstr_empty, sizeof(test_bstr_empty), true);
     static const uint8_t test_bstr[] = { 0x42, 0xAA, 0xBB };
-    _decode_skip_simple(test_bstr, sizeof(test_bstr));
+    _decode_skip(test_bstr, sizeof(test_bstr), true);
     static const uint8_t test_tstr[] = { 0x65, 0x68, 0x65, 0x6C, 0x6C, 0x6F };
-    _decode_skip_simple(test_tstr, sizeof(test_tstr));
+    _decode_skip(test_tstr, sizeof(test_tstr), true);
 
     static const uint8_t test_float[] = { 0xF9, 0x42, 0x00 };
-    _decode_skip_simple(test_float, sizeof(test_float));
+    _decode_skip(test_float, sizeof(test_float), true);
     static const uint8_t test_simple[] = { 0xF4 };
-    _decode_skip_simple(test_simple, sizeof(test_simple));
+    _decode_skip(test_simple, sizeof(test_simple), true);
+
+    static const uint8_t test_tag[] = { 0xD8, 0x29, 0x82, 0xF5, 0xF4 };
+    _decode_skip(test_tag, sizeof(test_tag), false);
+    static const uint8_t test_tag_within_array[] = { 0x81, 0xD8, 0x29, 0x80 };
+    _decode_skip(test_tag_within_array, sizeof(test_tag_within_array), false);
+    static const uint8_t test_array_within_tag[] = { 0x81, 0xC4, 0x82, 0x21, 0x19, 0x6A, 0xB3 };
+    _decode_skip(test_array_within_tag, sizeof(test_array_within_tag), false);
+
+    static const uint8_t test_array_empty[] = { 0x80 };
+    _decode_skip(test_array_empty, sizeof(test_array_empty), false);
+    static const uint8_t test_array[] = { 0x81, 0xF6 };
+    _decode_skip(test_array, sizeof(test_array), false);
+    static const uint8_t test_array_nested[] = { 0x83, 0xF4, 0x81, 0xF5, 0xF6 };
+    _decode_skip(test_array_nested, sizeof(test_array_nested), false);
+
+    static const uint8_t test_map_empty[] = { 0xA0 };
+    _decode_skip(test_map_empty, sizeof(test_map_empty), false);
+    static const uint8_t test_map[] = { 0xA1, 0x61, 0x61, 0xF6 };
+    _decode_skip(test_map, sizeof(test_map), false);
+    static const uint8_t test_map_nested[] = { 0xA3, 0x00, 0xF4, 0x01, 0xA1, 0x00, 0xF5, 0x02, 0xF6 };
+    _decode_skip(test_map_nested, sizeof(test_map_nested), false);
+
+    static const uint8_t test_array_indefinite_empty[] = { 0x9F, 0xFF };
+    _decode_skip(test_array_indefinite_empty, sizeof(test_array_indefinite_empty), false);
+    static const uint8_t test_array_indefinite_flat[] = { 0x9F, 0xF5, 0xFF };
+    _decode_skip(test_array_indefinite_flat, sizeof(test_array_indefinite_flat), false);
+    static const uint8_t test_array_indefinite_nested[] = { 0x9F, 0xF4, 0x81, 0xF5, 0xF6, 0xFF };
+    _decode_skip(test_array_indefinite_nested, sizeof(test_array_indefinite_nested), false);
+    static const uint8_t test_array_indefinite_nested2[] = { 0x9F, 0xF4, 0x9F, 0xF5, 0xFF, 0xF6, 0xFF };
+    _decode_skip(test_array_indefinite_nested2, sizeof(test_array_indefinite_nested2), false);
+
+    static const uint8_t test_map_indefinite_empty[] = { 0xBF, 0xFF };
+    _decode_skip(test_map_indefinite_empty, sizeof(test_map_indefinite_empty), false);
+    static const uint8_t test_map_indefinite_flat[] = { 0xBF, 0x01, 0xF5, 0xFF };
+    _decode_skip(test_map_indefinite_flat, sizeof(test_map_indefinite_flat), false);
+    static const uint8_t test_map_indefinite_nested[] = { 0xBF, 0x00, 0xF4, 0x01, 0x81, 0xF5, 0x02, 0xF6, 0xFF };
+    _decode_skip(test_map_indefinite_nested, sizeof(test_map_indefinite_nested), false);
+    static const uint8_t test_map_indefinite_nested2[] = { 0xBF, 0x00, 0xF4, 0x01, 0xBF, 0x00, 0xF5, 0xFF, 0x02, 0xF6, 0xFF };
+    _decode_skip(test_map_indefinite_nested2, sizeof(test_map_indefinite_nested2), false);
+}
+
+static void test_issue_56(void)
+{
+    static const uint8_t input[] = {
+        0xa2,
+        0x64, 'k', 'e', 'y', '1',
+        0x66, 'v', 'a', 'l', 'u', 'e', '1',
+        0x64, 'k', 'e', 'y', '2',
+        0x66, 'v', 'a', 'l', 'u', 'e', '2',
+    };
+
+    nanocbor_value_t val;
+    nanocbor_value_t map;
+    nanocbor_value_t value;
+
+    nanocbor_decoder_init(&val, input, sizeof(input));
+
+    CU_ASSERT_EQUAL(nanocbor_enter_map(&val, &map), NANOCBOR_OK);
+    CU_ASSERT_NOT_EQUAL(
+        nanocbor_get_key_tstr(&map, "key3", &value),
+        NANOCBOR_OK
+    );
+}
+
+static void test_issue_101(void)
+{
+    static const uint8_t input[] =  {
+        0x5b,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09,
+        0xaa,
+    };
+
+    nanocbor_value_t val;
+
+    nanocbor_decoder_init(&val, input, sizeof(input));
+
+    const uint8_t *ptr = NULL;
+    size_t len = 0;
+    int res = nanocbor_get_bstr(&val, &ptr, &len);
+    CU_ASSERT_EQUAL(res, NANOCBOR_ERR_END);
 }
 
 const test_t tests_decoder[] = {
@@ -275,7 +363,15 @@ const test_t tests_decoder[] = {
     },
     {
         .f = test_decode_skip,
-        .n = "CBOR simple skip test",
+        .n = "CBOR skip test",
+    },
+    {
+        .f = test_issue_56,
+        .n = "Regression test for GitHub issue 56",
+    },
+    {
+        .f = test_issue_101,
+        .n = "Regression test for GitHub issue #101",
     },
     {
         .f = NULL,

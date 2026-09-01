@@ -94,9 +94,14 @@ while (!nanocbor_at_end(&map)) {
 
 ### Dependencies:
 
-Only dependency are two functions to provide endian conversion.
+NanoCBOR depends on endian conversion functions.
 These are not provided by the library and have to be configured in the header file.
 On a bare metal ARM platform, `__builtin_bswap64` and `__builtin_bswap32` can be used for this conversion.
+
+NanoCBOR is mainly written in standard compliant C99 code, with one exception:
+For maintainable and robust overflow checks, compiler builtins are used.
+Both GCC and clang support this, MS Visual C Compiler seems to currently lack those.
+Maintainable and memory safe code is prioritized over portability to exotic toolchains.
 
 ### Contributing
 
