@@ -90,20 +90,14 @@ void lwip_platform_log_info(const char *fmt, ...);
 
 #define LWIP_PLATFORM_DIAG(x) lwip_platform_log_info(DEPAREN(x))
 
-#ifdef _DEBUG
-#define LWIP_PLATFORM_ASSERT(x)                                             \
-    do {                                                                    \
-        extern void lwip_platform_assert(const char*, const char*, int);    \
-        lwip_platform_assert(x, __FILE__, __LINE__);                        \
+#define LWIP_PLATFORM_ASSERT(x)                 \
+    do {                                        \
+        extern void lwip_platform_assert(void); \
+        lwip_platform_assert();                 \
+        /* To preserve return address, */       \
+        /* prevent tail-call optimization. */   \
+        asm volatile("");                       \
     } while (0)
-#else
-#define LWIP_PLATFORM_ASSERT(x)                                             \
-    do {                                                                    \
-        extern void lwip_platform_assert(const char*, const char*, int);    \
-        lwip_platform_assert(x, "<unknown>", 0);                            \
-    } while (0)
-#endif
-
 
 #define LWIP_ERROR(message, expression, handler) \
     do {                                         \

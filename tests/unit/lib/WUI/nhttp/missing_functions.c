@@ -105,7 +105,7 @@ void sys_mutex_lock(sys_mutex_t *mutex) {
 void sys_mutex_unlock(sys_mutex_t *mutex) {
 }
 
-void lwip_platform_assert(const char *message, const char *file, int line) {
+void lwip_platform_assert(void) {
 }
 
 void wui_lwip_assert_core_locked() {
