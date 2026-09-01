@@ -227,10 +227,10 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
     bool is_flexible = false;
 
     // Do not auto retract flexible materials
-    if (auto val = req.result<MainField::shore_hardness_a>(); val.has_value() && *val < 95) {
+    if (auto val = req.result<MainField::hardness_shore_a>(); val.has_value() && *val < 95) {
         is_flexible = true;
 
-    } else if (auto val = req.result<MainField::shore_hardness_d>(); val.has_value() && *val < 50) {
+    } else if (auto val = req.result<MainField::hardness_shore_d>(); val.has_value() && *val < 50) {
         is_flexible = true;
     }
 

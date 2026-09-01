@@ -191,7 +191,7 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
 
         stub_data = StubData {
             stub_field<MainField::material_type>(MaterialType::TPU),
-            stub_field<MainField::shore_hardness_a>(uint8_t { 85 }),
+            stub_field<MainField::hardness_shore_a>(uint8_t { 85 }),
         };
 
         MultiReadFieldRequest<FilamentParametersInfo::Requirements {}> req { tool_tag };

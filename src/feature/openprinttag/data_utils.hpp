@@ -83,8 +83,8 @@ struct FilamentParametersInfo {
         MainField::max_chamber_temperature,
         MainField::chamber_temperature,
 #endif
-        MainField::shore_hardness_a,
-        MainField::shore_hardness_d,
+        MainField::hardness_shore_a,
+        MainField::hardness_shore_d,
         MainField::tags,
         MainField::material_type>;
 
