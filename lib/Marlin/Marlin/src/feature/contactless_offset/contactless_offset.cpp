@@ -90,9 +90,23 @@ struct RawRecordedSample {
     float sensor_value;
 };
 
-using RawSamples = sfl::segmented_vector<RawRecordedSample, 512>;
-using PositionTable = sfl::segmented_vector<float, 512>;
+using RawSamples = sfl::segmented_vector<RawRecordedSample, 128>;
+using PositionTable = sfl::segmented_vector<float, 256>;
 using SignalBuffer = sfl::segmented_vector<float, 256>;
+
+namespace {
+
+template <typename T>
+consteval std::size_t size_of_segment() {
+    return T::segment_capacity * sizeof(typename T::value_type);
+}
+
+// segments should be rather small so the fragmented heap is used more efficiently
+static_assert(size_of_segment<RawSamples>() <= 1024);
+static_assert(size_of_segment<PositionTable>() <= 1024);
+static_assert(size_of_segment<SignalBuffer>() <= 1024);
+
+} // namespace
 
 struct EnergyRegion {
     size_t start;
