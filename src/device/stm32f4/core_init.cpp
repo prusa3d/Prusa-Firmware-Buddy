@@ -2,7 +2,7 @@
 #include <device/cmsis.h>
 #include <bsod/bsod.h>
 
-inline constexpr RCC_OscInitTypeDef RCC_OscInitStruct = [] {
+static RCC_OscInitTypeDef RCC_OscInitStruct = [] {
     RCC_OscInitTypeDef rcc_OscInit {};
 #if (BOARD_IS_BUDDY())
     rcc_OscInit.OscillatorType = RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_HSE;
@@ -26,7 +26,7 @@ inline constexpr RCC_OscInitTypeDef RCC_OscInitStruct = [] {
     return rcc_OscInit;
 }();
 
-inline constexpr RCC_ClkInitTypeDef RCC_ClkInitStruct = {
+static RCC_ClkInitTypeDef RCC_ClkInitStruct = {
     .ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
         | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2,
     .SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK,
