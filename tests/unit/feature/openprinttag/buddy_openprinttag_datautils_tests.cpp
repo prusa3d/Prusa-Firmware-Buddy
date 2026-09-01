@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <vector>
 
@@ -62,7 +63,7 @@ FilamentTypeParameters FilamentType::parameters() const {
 
 TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
     // If the requirements change, we probably want to update the tests
-    static_assert(AmountsInfo::Requirements::size == 5);
+    static_assert(AmountsInfo::Requirements::size == 7);
 
     SECTION("Nominal only (fresh spool)") {
         stub_data = StubData {
@@ -122,6 +123,152 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
         // Length alone is known, but without the weight ratio the remaining length cannot be derived
         CHECK(info.full_length_mm == 330000.0f);
         CHECK(!info.remaining_length_mm.has_value());
+    }
+
+    SECTION("Length derived from density and filament diameter when full length is absent") {
+        stub_data = StubData {
+            stub_field<MainField::nominal_netto_full_weight>(1000.0f),
+            stub_field<AuxField::consumed_weight>(200.0f),
+            stub_field<MainField::density>(1.24f), // g/cm³
+            stub_field<MainField::filament_diameter_v2>(1750), // µm
+            // No full length present -> fall back to density/diameter
+        };
+
+        MultiReadFieldRequest<AmountsInfo::Requirements {}> req { tool_tag };
+        req.issue();
+
+        AmountsInfo info { req };
+
+        CHECK(info.full_weight_g == 1000.0f);
+        CHECK(info.remaining_weight_g == 800.0f); // 1000 - 200
+
+        // length = weight / (density * π * r²); expressed here in independent units
+        // (kg, m) to avoid tracking the implementation's exact float rounding.
+        const float r_m = (1750e-6f) / 2.0f; // µm -> m, radius
+        const float density_kg_per_m3 = 1.24f * 1000.0f; // g/cm³ -> kg/m³
+        const float lin_density_kg_per_m = density_kg_per_m3 * std::numbers::pi_v<float> * r_m * r_m;
+        const float full_length_m = (1000.0f / 1000.0f) / lin_density_kg_per_m; // 1 kg
+        const float remaining_length_m = (800.0f / 1000.0f) / lin_density_kg_per_m;
+
+        REQUIRE(info.full_length_mm.has_value());
+        REQUIRE(info.remaining_length_mm.has_value());
+        CHECK_THAT(*info.full_length_mm, Catch::Matchers::WithinRel(full_length_m * 1000.0f, 1e-4f));
+        CHECK_THAT(*info.remaining_length_mm, Catch::Matchers::WithinRel(remaining_length_m * 1000.0f, 1e-4f));
+    }
+
+    SECTION("Density fallback agrees with the length-ratio path for a physically consistent spool") {
+        // A real spool's stored length and its density/geometry describe the same filament,
+        // so the two independent derivations must yield the same remaining length (up to float rounding).
+        constexpr float full_weight = 1000.0f;
+        constexpr float consumed = 200.0f;
+        constexpr float density = 1.24f; // g/cm³
+        constexpr int diameter_um = 1750; // µm
+
+        // The length such a spool physically has, matching density+geometry.
+        const float density_mm = density / 1000;
+        const float r_mm = diameter_um * 0.001 * 0.5;
+        const float lin_density = density_mm * std::numbers::pi_v<float> * r_mm * r_mm;
+        const float consistent_full_length = full_weight / lin_density;
+
+        // Path A: length-ratio (full_length present)
+        stub_data = StubData {
+            stub_field<MainField::nominal_netto_full_weight>(full_weight),
+            stub_field<AuxField::consumed_weight>(consumed),
+            stub_field<MainField::nominal_full_length>(consistent_full_length),
+            stub_field<MainField::density>(density),
+            stub_field<MainField::filament_diameter_v2>(diameter_um),
+        };
+        MultiReadFieldRequest<AmountsInfo::Requirements {}> req_ratio { tool_tag };
+        req_ratio.issue();
+        const AmountsInfo info_ratio { req_ratio };
+
+        // Path B: density fallback (no full_length)
+        stub_data = StubData {
+            stub_field<MainField::nominal_netto_full_weight>(full_weight),
+            stub_field<AuxField::consumed_weight>(consumed),
+            stub_field<MainField::density>(density),
+            stub_field<MainField::filament_diameter_v2>(diameter_um),
+        };
+        MultiReadFieldRequest<AmountsInfo::Requirements {}> req_density { tool_tag };
+        req_density.issue();
+        const AmountsInfo info_density { req_density };
+
+        REQUIRE(info_ratio.remaining_length_mm.has_value());
+        REQUIRE(info_density.remaining_length_mm.has_value());
+
+        // Same physical answer, only float-rounding apart.
+        CHECK_THAT(*info_density.remaining_length_mm,
+            Catch::Matchers::WithinRel(*info_ratio.remaining_length_mm, 1e-4f));
+    }
+
+    SECTION("Malicious data does not break the density fallback") {
+        // Zero / negative density or diameter must not produce inf/NaN or a division by zero.
+        const auto build = [](float density, int diameter_um) {
+            stub_data = StubData {
+                stub_field<MainField::nominal_netto_full_weight>(1000.0f),
+                stub_field<AuxField::consumed_weight>(100.0f),
+                stub_field<MainField::density>(density),
+                stub_field<MainField::filament_diameter_v2>(diameter_um),
+            };
+            MultiReadFieldRequest<AmountsInfo::Requirements {}> req { tool_tag };
+            req.issue();
+            return AmountsInfo { req };
+        };
+
+        // Weight is still valid, so those are populated; length must simply be absent.
+        for (const auto &info : {
+                 build(0.0f, 1750), // zero density
+                 build(1.24f, 0), // zero diameter
+                 build(-1.24f, 1750), // negative density
+                 build(1.24f, -1750), // negative diameter
+             }) {
+            CHECK(info.full_weight_g == 1000.0f);
+            CHECK(info.remaining_weight_g == 900.0f);
+            CHECK(!info.full_length_mm.has_value());
+            CHECK(!info.remaining_length_mm.has_value());
+        }
+    }
+
+    SECTION("Full length takes precedence over the density fallback") {
+        // When both are available, the stored-length ratio path must win.
+        stub_data = StubData {
+            stub_field<MainField::nominal_netto_full_weight>(1000.0f),
+            stub_field<AuxField::consumed_weight>(200.0f),
+            stub_field<MainField::nominal_full_length>(330000.0f),
+            stub_field<MainField::density>(1.24f),
+            stub_field<MainField::filament_diameter_v2>(1750),
+        };
+        MultiReadFieldRequest<AmountsInfo::Requirements {}> req { tool_tag };
+        req.issue();
+        const AmountsInfo info { req };
+
+        CHECK(info.full_length_mm == 330000.0f);
+        CHECK(info.remaining_length_mm == 330000.0f / 1000.0f * 800.0f);
+    }
+
+    SECTION("Density fallback needs both density and diameter") {
+        const auto length_derivable = [](bool with_density, bool with_diameter) {
+            StubData data {
+                stub_field<MainField::nominal_netto_full_weight>(1000.0f),
+                stub_field<AuxField::consumed_weight>(100.0f),
+            };
+            if (with_density) {
+                data.insert(stub_field<MainField::density>(1.24f));
+            }
+            if (with_diameter) {
+                data.insert(stub_field<MainField::filament_diameter_v2>(1750));
+            }
+            stub_data = data;
+
+            MultiReadFieldRequest<AmountsInfo::Requirements {}> req { tool_tag };
+            req.issue();
+            return AmountsInfo { req }.remaining_length_mm.has_value();
+        };
+
+        CHECK_FALSE(length_derivable(false, false));
+        CHECK_FALSE(length_derivable(true, false)); // density only
+        CHECK_FALSE(length_derivable(false, true)); // diameter only
+        CHECK(length_derivable(true, true)); // both
     }
 }
 

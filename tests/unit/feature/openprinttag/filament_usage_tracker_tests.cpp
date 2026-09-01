@@ -81,9 +81,11 @@ void Request::issue() {
 }
 
 void ReadFloatFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
+void ReadInt32FieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 void WriteFloatFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 
 void ReadFloatFieldRequest::complete(Bytes) {}
+void ReadInt32FieldRequest::complete(Bytes) {}
 void WriteFloatFieldRequest::complete(Bytes) {}
 
 Request::SerializeResult TagRequest::serialize(ManagerNoLockBadge badge, RequestID request_id, anfc::modbus::Request &request) {
