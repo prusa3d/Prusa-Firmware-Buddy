@@ -20,6 +20,7 @@ enum class FieldType {
     timestamp,
     uuid,
     color_rgba,
+    color_lab,
 };
 
 // MetaField defined in opt_defines
