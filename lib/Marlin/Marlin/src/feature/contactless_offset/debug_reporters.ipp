@@ -302,7 +302,7 @@ static void debug_report_pass_raw_chunk(
     int pass_num,
     size_t chunk_start,
     size_t chunk_size,
-    const sfl::segmented_vector<RawRecordedSample, 512> &raw_samples) {
+    const RawSamples &raw_samples) {
     serial_printf("# pass_raw_chunk {\"label\": \"%s\", \"pass\": %d, "
                   "\"chunk_start\": %u, \"chunk_size\": %u, \"samples\": [",
         label, pass_num,
@@ -475,7 +475,7 @@ static void debug_report_pass_trim_refine(
 
 static void debug_report_pass_raw_chunk(
     const char *, int, size_t, size_t,
-    const sfl::segmented_vector<RawRecordedSample, 512> &) {}
+    const RawSamples &) {}
 
 static void debug_report_motion_profile(
     const SweepSpeedProfile &, sp::SamplingFreq, const char *) {}

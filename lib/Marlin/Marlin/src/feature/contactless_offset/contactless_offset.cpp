@@ -85,6 +85,15 @@ static constexpr uint8_t max_retries = 3;
 static constexpr float peak_width_mm = 0.6f;
 static constexpr float high_confidence_threshold = 0.9f;
 
+struct RawRecordedSample {
+    uint32_t timestamp_us;
+    float sensor_value;
+};
+
+using RawSamples = sfl::segmented_vector<RawRecordedSample, 512>;
+using PositionTable = sfl::segmented_vector<float, 512>;
+using SignalBuffer = sfl::segmented_vector<float, 256>;
+
 struct EnergyRegion {
     size_t start;
     size_t end;
@@ -218,13 +227,8 @@ struct SweepSpeedProfile {
     }
 };
 
-struct RawRecordedSample {
-    uint32_t timestamp_us;
-    float sensor_value;
-};
-
 struct MotionExecutionResult {
-    sfl::segmented_vector<RawRecordedSample, 512> raw_samples;
+    RawSamples raw_samples;
     abce_pos_t moved_by;
     float sensor_sampling_freq_hz;
     uint32_t motion_profile_start_us;
@@ -1218,11 +1222,11 @@ std::expected<tool_offset::ToolOffset, const char *> tool_offset::measure_curren
 // Signal preprocessing: median filter + normalize + zero-phase lowpass + detrend
 // Returns false if signal has no variance (flat).
 static bool preprocess_signal(
-    const sfl::segmented_vector<RawRecordedSample, 512> &raw_samples,
+    const RawSamples &raw_samples,
     size_t chunk_start_idx,
     size_t chunk_size,
     float dt,
-    sfl::segmented_vector<float, 256> &signal_value) {
+    SignalBuffer &signal_value) {
 
     // Extend the processing range by a margin on each side to avoid
     // edge artifacts from the median and lowpass filters. The margin
@@ -1242,7 +1246,7 @@ static bool preprocess_signal(
         signal_value.push_back(median_filter.filter(raw_samples[ext_start + i].sensor_value));
     }
 
-    sfl::segmented_vector<float, 256> bwd;
+    SignalBuffer bwd;
     bwd.reserve(ext_size);
     bwd.resize(ext_size);
     median_filter.reset();
@@ -1261,7 +1265,7 @@ static bool preprocess_signal(
 
     constexpr float signal_lowpass_cutoff_hz = 50.0f;
     auto lowpass_coeffs = sp::butterworth_lowpass_biquad_2nd(signal_lowpass_cutoff_hz, 1.0f / dt);
-    sp::zero_phase_biquad_padded<sfl::segmented_vector<float, 256>>(
+    sp::zero_phase_biquad_padded<SignalBuffer>(
         signal_value, lowpass_coeffs, 1.0f / dt, signal_lowpass_cutoff_hz);
 
     sp::linear_detrend(signal_value);
@@ -1278,8 +1282,8 @@ static bool preprocess_signal(
 
 // Compute finite differences and normalize to unit variance
 static void compute_signal_derivative(
-    const sfl::segmented_vector<float, 256> &signal_value,
-    sfl::segmented_vector<float, 256> &signal_deriv) {
+    const SignalBuffer &signal_value,
+    SignalBuffer &signal_deriv) {
 
     size_t n = signal_value.size();
     if (n < 2) {
@@ -1296,8 +1300,8 @@ static void compute_signal_derivative(
 
 // Evaluate normalized combined (value + derivative) correlation score at a lag.
 static float combined_correlation_score(
-    const sfl::segmented_vector<float, 256> &signal_value,
-    const sfl::segmented_vector<float, 256> &signal_deriv,
+    const SignalBuffer &signal_value,
+    const SignalBuffer &signal_deriv,
     int lag,
     float inv_val,
     float inv_der) {
@@ -1338,8 +1342,8 @@ static void find_best_correlation_lag(
 // Coarse-to-fine symmetry correlation search.
 // Returns the best lag (in samples) and combined correlation score.
 static int find_approx_symmetry_lag(
-    const sfl::segmented_vector<float, 256> &signal_value,
-    const sfl::segmented_vector<float, 256> &signal_deriv,
+    const SignalBuffer &signal_value,
+    const SignalBuffer &signal_deriv,
     size_t max_lag,
     float &out_best_combined,
     int &out_fine_min,
@@ -1354,7 +1358,7 @@ static int find_approx_symmetry_lag(
     constexpr size_t decimate_factor = 8;
 
     // Downsample with averaging for coarse search
-    sfl::segmented_vector<float, 256> val_ds, der_ds;
+    SignalBuffer val_ds, der_ds;
     sp::decimate_average(signal_value, val_ds, decimate_factor);
     sp::decimate_average(signal_deriv, der_ds, decimate_factor);
 
@@ -1386,8 +1390,8 @@ static int find_approx_symmetry_lag(
 
 // Sub-sample refinement of the symmetry lag via parabolic interpolation
 static float refine_lag_parabolic(
-    const sfl::segmented_vector<float, 256> &signal_value,
-    const sfl::segmented_vector<float, 256> &signal_deriv,
+    const SignalBuffer &signal_value,
+    const SignalBuffer &signal_deriv,
     int best_lag, size_t max_lag) {
 
     int lag_m1 = best_lag - 1;
@@ -1417,12 +1421,12 @@ static float refine_lag_parabolic(
 // into the original buffer where the trimmed region begins). Output buffers
 // are populated with trim_start..trim_start+n_kept-1 from the inputs.
 static size_t trim_around_symmetry_axis(
-    const sfl::segmented_vector<float, 256> &signal_value,
-    const sfl::segmented_vector<float, 256> &signal_deriv,
+    const SignalBuffer &signal_value,
+    const SignalBuffer &signal_deriv,
     int pass1_lag,
     float trim_fraction,
-    sfl::segmented_vector<float, 256> &out_value,
-    sfl::segmented_vector<float, 256> &out_deriv) {
+    SignalBuffer &out_value,
+    SignalBuffer &out_deriv) {
 
     const size_t n = signal_value.size();
     // Symmetry axis (sample index) under pass-1 lag
@@ -1473,8 +1477,8 @@ struct Pass2Result {
 // over a small window. Returns nullopt when trim_fraction is outside (0, 1) or
 // the trimmed window is too small to correlate.
 static std::optional<Pass2Result> refine_with_trimmed_window(
-    const sfl::segmented_vector<float, 256> &signal_value,
-    const sfl::segmented_vector<float, 256> &signal_deriv,
+    const SignalBuffer &signal_value,
+    const SignalBuffer &signal_deriv,
     int pass1_lag,
     float dt,
     float trim_fraction) {
@@ -1483,8 +1487,8 @@ static std::optional<Pass2Result> refine_with_trimmed_window(
         return std::nullopt;
     }
 
-    sfl::segmented_vector<float, 256> trimmed_value;
-    sfl::segmented_vector<float, 256> trimmed_deriv;
+    SignalBuffer trimmed_value;
+    SignalBuffer trimmed_deriv;
     const size_t trim_start = trim_around_symmetry_axis(
         signal_value, signal_deriv, pass1_lag,
         trim_fraction, trimmed_value, trimmed_deriv);
@@ -1529,7 +1533,7 @@ static std::optional<Pass2Result> refine_with_trimmed_window(
 
 // Detect symmetry peak using value + derivative correlations.
 static SymmetryPeakResult detect_symmetry_peak(
-    const sfl::segmented_vector<RawRecordedSample, 512> &raw_samples,
+    const RawSamples &raw_samples,
     size_t chunk_start_idx,
     size_t chunk_size,
     float chunk_start_time_s,
@@ -1542,7 +1546,7 @@ static SymmetryPeakResult detect_symmetry_peak(
         return { chunk_start_time_s + (chunk_size / 2) * dt, 0.0f, 0.0f, 0.0f };
     }
 
-    sfl::segmented_vector<float, 256> signal_value;
+    SignalBuffer signal_value;
     if (!preprocess_signal(raw_samples, chunk_start_idx, chunk_size, dt, signal_value)) {
         return { chunk_start_time_s + (chunk_size / 2) * dt, 0.0f, 0.0f, 0.0f };
     }
@@ -1550,7 +1554,7 @@ static SymmetryPeakResult detect_symmetry_peak(
     debug_report_pass_raw_chunk(label, pass_num, chunk_start_idx, chunk_size, raw_samples);
     debug_report_pass_preprocessed(label, pass_num, chunk_start_idx, chunk_size, dt, signal_value);
 
-    sfl::segmented_vector<float, 256> signal_deriv;
+    SignalBuffer signal_deriv;
     compute_signal_derivative(signal_value, signal_deriv);
 
     debug_report_pass_derivative(label, pass_num, signal_deriv);
@@ -1599,7 +1603,7 @@ static constexpr int seconds_to_samples(float seconds, float dt) {
 // Find the time shift τ that maximises the sum of energy at the four
 // expected pass times — a 1-D matched filter against the motion profile.
 static std::optional<int> find_rough_time_alignment(
-    const sfl::segmented_vector<RawRecordedSample, 512> &raw_samples,
+    const RawSamples &raw_samples,
     float dt,
     const SweepSpeedProfile &profile,
     const char *label) {
@@ -1617,7 +1621,7 @@ static std::optional<int> find_rough_time_alignment(
     const float dt_dec = dt * decimation;
     const size_t n_dec = n / decimation;
 
-    sfl::segmented_vector<float, 256> energy;
+    SignalBuffer energy;
     {
         sp::MedianFilter<float, 5> med;
         size_t dec_count = 0;
@@ -1658,7 +1662,7 @@ static std::optional<int> find_rough_time_alignment(
     // Sweep over candidate shifts, compute integrated energy in the four
     // pass windows for each shift, find the best.
     const int k_search = seconds_to_samples(max_shift_s, dt_dec);
-    sfl::segmented_vector<float, 256> score_curve;
+    SignalBuffer score_curve;
     score_curve.reserve(static_cast<size_t>(2 * k_search + 1));
     int k_best = 0;
     float s_best = -std::numeric_limits<float>::infinity();
@@ -1726,7 +1730,7 @@ static std::optional<int> find_rough_time_alignment(
 
 // Detect peaks in 4 passes of two-speed sweep motion
 static FourPassPeaks detect_four_peaks(
-    const sfl::segmented_vector<RawRecordedSample, 512> &raw_samples,
+    const RawSamples &raw_samples,
     float dt,
     const SweepSpeedProfile &profile,
     uint32_t motion_profile_start_us,
@@ -1871,7 +1875,7 @@ static PositionEstimate estimate_position_iterative(
     const float *peak_times,
     const float *weights,
     size_t n_peaks,
-    const sfl::segmented_vector<float, 512> &position_table,
+    const PositionTable &position_table,
     sp::SamplingFreq motion_sampling_freq,
     float total_time,
     float max_delay_s) {
@@ -1993,7 +1997,7 @@ static TwoSpeedAnalysisResult estimate_position_from_peaks(
 
     const float dt = 1.0f / motion_sampling_freq;
     auto speed_source = profile.make_source(motion_sampling_freq);
-    sfl::segmented_vector<float, 512> position_table;
+    PositionTable position_table;
     position_table.reserve(profile.total_samples(motion_sampling_freq));
     {
         float pos = 0;
@@ -2058,7 +2062,7 @@ static TwoSpeedAnalysisResult estimate_position_from_peaks(
 
 // Main entry point for two-speed sweep analysis
 static std::expected<TwoSpeedAnalysisResult, const char *> analyze_twospeed_sweep(
-    const sfl::segmented_vector<RawRecordedSample, 512> &raw_samples,
+    const RawSamples &raw_samples,
     float sensor_sampling_freq_hz,
     const SweepSpeedProfile &profile,
     sp::SamplingFreq motion_sampling_freq,
