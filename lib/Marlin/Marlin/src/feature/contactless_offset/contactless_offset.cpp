@@ -2140,29 +2140,33 @@ static std::expected<TwoSpeedAnalysisResult, const char *> execute_and_analyze_s
     // Execute motion and record samples with extended wait for full profile duration
     uint32_t expected_duration_us = static_cast<uint32_t>(profile.total_time() * 1e6f);
 
-    auto result_exp = execute_motion_with_recording(std::move(motion_signal), sensor, label, expected_duration_us);
-    if (!result_exp.has_value()) {
-        debug_report_analysis_error(label, result_exp.error());
-        return std::unexpected(result_exp.error());
-    }
-    auto &result = *result_exp;
+    // scope ensures the vector of samples (returned from execute_motion_with_recording) is freed
+    // before calling estimate_position_from_peaks (which allocates PositionTable) thus minimizing max heap usage
+    const auto peaks_result = [&]() -> std::expected<FourPassPeaks, const char *> {
+        auto result_exp = execute_motion_with_recording(std::move(motion_signal), sensor, label, expected_duration_us);
+        if (!result_exp.has_value()) {
+            return std::unexpected(result_exp.error());
+        }
+        auto &result = *result_exp;
 
-    uint32_t serial_output_start_us = ticks_us();
-    debug_report_motion_profile(profile, motion_sampling_freq, label);
-    debug_report_motion_timing(label, result);
-    uint32_t serial_output_us = ticks_us() - serial_output_start_us;
-    log_info(ContactlessOffset, "debug reporting takes %uus", static_cast<unsigned>(serial_output_us));
+        uint32_t serial_output_start_us = ticks_us();
+        debug_report_motion_profile(profile, motion_sampling_freq, label);
+        debug_report_motion_timing(label, result);
+        uint32_t serial_output_us = ticks_us() - serial_output_start_us;
+        log_info(ContactlessOffset, "debug reporting takes %uus", static_cast<unsigned>(serial_output_us));
 
-    uint32_t analysis_start_us = ticks_us();
-    auto peaks_result = analyze_twospeed_sweep(
-        result.raw_samples,
-        result.sensor_sampling_freq_hz,
-        profile,
-        result.motion_profile_start_us,
-        config.symmetry_trim_fraction,
-        label);
-    uint32_t analysis_us = ticks_us() - analysis_start_us;
-    log_info(ContactlessOffset, "analyze_twospeed_sweep takes %uus", static_cast<unsigned>(analysis_us));
+        uint32_t analysis_start_us = ticks_us();
+        auto peaks_result = analyze_twospeed_sweep(
+            result.raw_samples,
+            result.sensor_sampling_freq_hz,
+            profile,
+            result.motion_profile_start_us,
+            config.symmetry_trim_fraction,
+            label);
+        uint32_t analysis_us = ticks_us() - analysis_start_us;
+        log_info(ContactlessOffset, "analyze_twospeed_sweep takes %uus", static_cast<unsigned>(analysis_us));
+        return peaks_result;
+    }();
 
     if (!peaks_result.has_value()) {
         debug_report_analysis_error(label, peaks_result.error());
