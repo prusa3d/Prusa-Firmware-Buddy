@@ -11,6 +11,17 @@
     #include <connect/connect.hpp>
 #endif
 
+#include <option/has_xbuddy_extension.h>
+#include <option/xl_enclosure_support.h>
+#if HAS_XBUDDY_EXTENSION()
+    #include <feature/chamber/chamber.hpp>
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+#elif XL_ENCLOSURE_SUPPORT()
+    #include <feature/chamber/chamber.hpp>
+    #include <xl_enclosure.hpp>
+    #include <fanctl.hpp>
+#endif
+
 using namespace marlin_server;
 using transfers::Monitor;
 
@@ -28,6 +39,13 @@ json::JsonResult StatusRenderer::renderState(size_t resume_point, json::JsonOutp
     uint32_t time_to_end = marlin_vars().time_to_end;
     uint32_t time_to_pause = marlin_vars().time_to_pause;
     auto link_state = printer_state::get_state(false);
+
+#if HAS_XBUDDY_EXTENSION()
+    const auto chamber_caps = buddy::chamber().capabilities();
+    const auto xbe_fan_state = buddy::xbuddy_extension().get_fan12_state();
+#elif XL_ENCLOSURE_SUPPORT()
+    const auto chamber_caps = buddy::chamber().capabilities();
+#endif
 
     // Keep the indentation of the JSON in here!
     // clang-format off
@@ -74,7 +92,28 @@ json::JsonResult StatusRenderer::renderState(size_t resume_point, json::JsonOutp
             JSON_FIELD_INT("flow", VirtualToolIndex::currently_selected_opt().transform([] (auto tool) { return marlin_vars().virtual_tools[tool].flow_factor.get(); }).value_or(0)) JSON_COMMA;
             JSON_FIELD_INT("speed", marlin_vars().print_speed) JSON_COMMA;
             JSON_FIELD_INT("fan_hotend", marlin_vars().active_hotend().heatbreak_fan_rpm) JSON_COMMA;
-            JSON_FIELD_INT("fan_print", marlin_vars().active_hotend().print_fan_rpm);
+            JSON_FIELD_INT("fan_print", marlin_vars().active_hotend().print_fan_rpm)
+#if HAS_XBUDDY_EXTENSION()
+            ;
+            if (chamber_caps.temperature_reporting) {
+                JSON_COMMA;
+                JSON_FIELD_OBJ("chamber");
+                    JSON_FIELD_FFIXED("temp", buddy::chamber().current_temperature().value_or(0), 1) JSON_COMMA;
+                    JSON_FIELD_INT("target_temp", (int)buddy::chamber().target_temperature().value_or(0)) JSON_COMMA;
+                    JSON_FIELD_INT("fan_1_rpm", xbe_fan_state.fan1rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_2_rpm", xbe_fan_state.fan2rpm);
+                JSON_OBJ_END;
+            }
+#elif XL_ENCLOSURE_SUPPORT()
+            ;
+            if (chamber_caps.temperature_reporting) {
+                JSON_COMMA;
+                JSON_FIELD_OBJ("chamber");
+                    JSON_FIELD_FFIXED("temp", buddy::chamber().current_temperature().value_or(0), 1) JSON_COMMA;
+                    JSON_FIELD_INT("fan_rpm", Fans::enclosure().get_actual_rpm());
+                JSON_OBJ_END;
+            }
+#endif
         JSON_OBJ_END;
     JSON_OBJ_END;
     JSON_END;
