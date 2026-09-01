@@ -168,10 +168,7 @@ write_sample = nfc_update(write_sample,
                           }})
 write_sample_data("write_sample_2", write_sample)
 
-write_sample = nfc_update(write_sample,
-                          {"main": {
-                              "min_nozzle_diameter": 12.5
-                          }})
+write_sample = nfc_update(write_sample, {"main": {"density": 1.25}})
 write_sample_data("write_sample_3", write_sample)
 
 write_sample = nfc_update(write_sample, {"aux": {"consumed_weight": 969.12}})

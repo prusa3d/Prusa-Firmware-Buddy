@@ -1,6 +1,7 @@
 cbor2~=5.7.1
 ecdsa~=0.18
 gcovr~=7.2
+jsonschema~=4.25.1
 ndeflib~=0.3.3
 numpy==1.26.4
 nunavut~=2.3
@@ -11,6 +12,7 @@ prek~=0.4.5
 pytest~=7.3.2
 pyyaml~=6.0
 qoi~=0.5
+referencing~=0.37.0
 requests==2.32.3
 setuptools~=70.1.0
 simple_parsing~=0.1.7

@@ -367,12 +367,12 @@ TEST_CASE("OPTReader::writing") {
 
     // Try writing a field that already wasn't there
     {
-        CHECK(reader.read_field_float(field(MainField::min_nozzle_diameter)) == std::unexpected(OPTReader::Error::field_not_present));
-        CHECK(reader.write_field_float(field(MainField::min_nozzle_diameter), 12.5f) == OPTReader::WriteReport { .field_existed = false, .changed = true });
+        CHECK(reader.read_field_float(field(MainField::density)) == std::unexpected(OPTReader::Error::field_not_present));
+        CHECK(reader.write_field_float(field(MainField::density), 1.25f) == OPTReader::WriteReport { .field_existed = false, .changed = true });
         CHECK(mock.tag_data[0] == tag_data::write_sample_3::data);
         // save_tag_data("write_sample_3.bin", mock.tag_data[0]);
 
-        CHECK(reader.read_field_float(field(MainField::min_nozzle_diameter)) == 12.5f);
+        CHECK(reader.read_field_float(field(MainField::density)) == 1.25f);
 
         CHECK(mock.log.writes.size() == 1);
         CHECK(mock.log.reads.size() == 0);
