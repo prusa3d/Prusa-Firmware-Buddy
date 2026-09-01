@@ -1078,6 +1078,13 @@ void Pause::load_finalize_process(Response) {
     }
 #endif
 
+#if HAS_ANFC()
+    buddy::openprinttag::filament_usage_tracker().flush({
+        .tools = settings.virtual_tool(),
+        .warn_on_failure = false,
+    });
+#endif
+
     set(LoadState::_finished);
 }
 
