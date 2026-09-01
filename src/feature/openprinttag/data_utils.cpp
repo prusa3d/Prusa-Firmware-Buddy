@@ -1,5 +1,7 @@
 #include "data_utils.hpp"
 
+#include <numbers>
+
 #include <option/has_chamber_filtration_api.h>
 
 namespace buddy::openprinttag {
@@ -39,8 +41,24 @@ AmountsInfo::AmountsInfo(const RequestRef &req) {
 
         remaining_weight_g = std::max<float>(*full_weight_g - consumed_weight.value_or(0), 0);
 
+        const auto filament_diameter_um = req.result<MainField::filament_diameter_v2>();
+        const auto density_g_cm3 = req.result<MainField::density>();
+
         if (full_length_mm.has_value()) {
             remaining_length_mm = *full_length_mm / *full_weight_g * *remaining_weight_g;
+        } else if (density_g_cm3.has_value() && *density_g_cm3 > 0.f
+            && filament_diameter_um.has_value() && *filament_diameter_um > 0) {
+            // fallback when full_length is not available
+
+            // 10^-3 (g/cm3 to g/mm3) * (0.001 * 0.5)^2 (um to radius mm) * pi
+            constexpr float k_factor = 2.5e-10f * std::numbers::pi_v<float>;
+            const float diameter = *filament_diameter_um;
+            const float lin_density = *density_g_cm3 * diameter * diameter * k_factor;
+
+            if (lin_density > 0) {
+                full_length_mm = *full_weight_g / lin_density;
+                remaining_length_mm = *remaining_weight_g / lin_density;
+            }
         }
     }
 }
