@@ -51,6 +51,8 @@ typedef enum {
 
     APVAR_SSID, // char[32 + 1], ap_entry_t::ssid
     APVAR_PASS, // char[64 + 1], ap_entry_t::pass
+
+    ETHVAR_NTP_ADDRESS, // char[60+1], hostname or ip
 } ETHVAR_t;
 
 typedef char mac_address_t[MAC_ADDR_STR_LEN];
