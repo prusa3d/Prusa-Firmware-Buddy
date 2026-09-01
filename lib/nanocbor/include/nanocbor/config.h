@@ -43,7 +43,7 @@ extern "C" {
  * must take a uint64_t big endian and return it in host endianess
  */
 #ifndef NANOCBOR_BE64TOH_FUNC
-#define NANOCBOR_BE64TOH_FUNC(be) (be64toh(be))
+#define NANOCBOR_BE64TOH_FUNC(be) (nanocbor_be64toh(be))
 #endif
 
 /**
@@ -52,7 +52,7 @@ extern "C" {
  * must take a uint64_t in host endianess and return the big endian value
  */
 #ifndef NANOCBOR_HTOBE64_FUNC
-#define NANOCBOR_HTOBE64_FUNC(he) htobe64(he)
+#define NANOCBOR_HTOBE64_FUNC(he) nanocbor_htobe64(he)
 #endif
 
 /**
@@ -61,7 +61,7 @@ extern "C" {
  * must take a uint32_t in host endianess and return the big endian value
  */
 #ifndef NANOCBOR_HTOBE32_FUNC
-#define NANOCBOR_HTOBE32_FUNC(he) htobe32(he)
+#define NANOCBOR_HTOBE32_FUNC(he) nanocbor_htobe32(he)
 #endif
 
 /**
