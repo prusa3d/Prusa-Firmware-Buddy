@@ -309,6 +309,7 @@ esp_loader_error_t esp_loader_change_transmission_rate(uint32_t transmission_rat
   */
 #if MD5_ENABLED
 esp_loader_error_t esp_loader_flash_verify(void);
+#endif
 
 /**
   * @brief Let ESP compute MD5 checksum of flash region
@@ -324,7 +325,6 @@ esp_loader_error_t esp_loader_flash_verify(void);
   *     - ESP_LOADER_ERROR_UNSUPPORTED_FUNC Unsupported on the target
   */
 esp_loader_error_t esp_loader_md5_region(const uintptr_t address, const uint32_t size, uint8_t checksum_string[32]);
-#endif
 /**
   * @brief Toggles reset pin.
   */

@@ -44,9 +44,10 @@ typedef enum {
 static const target_registers_t *s_reg = NULL;
 static target_chip_t s_target = ESP_UNKNOWN_CHIP;
 
+static const uint32_t MD5_TIMEOUT_PER_MB = 8000;
+
 #if MD5_ENABLED
 
-static const uint32_t MD5_TIMEOUT_PER_MB = 8000;
 static struct MD5Context s_md5_context;
 static uint32_t s_start_address;
 static uint32_t s_image_size;
@@ -458,13 +459,13 @@ esp_loader_error_t esp_loader_flash_verify(void)
     return ESP_LOADER_SUCCESS;
 }
 
+#endif
+
 esp_loader_error_t esp_loader_md5_region(const uintptr_t address, const uint32_t size, uint8_t checksum_string[32]) {
     loader_port_start_timer(timeout_per_mb(size, MD5_TIMEOUT_PER_MB));
     RETURN_ON_ERROR(loader_md5_cmd(address, size, (uint8_t*)checksum_string));
     return ESP_LOADER_SUCCESS;
 }
-
-#endif
 
 void esp_loader_reset_target(void)
 {
