@@ -30,34 +30,34 @@ add_tar_image(resources-tarball)
 if(HAS_ESP)
   set(ESP_PARTS ${CMAKE_CURRENT_BINARY_DIR}/include/esp_parts.gen)
   if(HAS_EMBEDDED_ESP32)
-    add_resource("esp32/uart_wifi.bin" "/esp/uart_wifi.bin")
-    add_resource("esp32/bootloader.bin" "/esp/bootloader.bin")
-    add_resource("esp32/partition-table.bin" "/esp/partition-table.bin")
+    add_resource("${ESP_FW_BINARY_DIR}/uart_wifi.bin" "/esp/uart_wifi.bin")
+    add_resource("${ESP_FW_BINARY_DIR}/bootloader.bin" "/esp/bootloader.bin")
+    add_resource("${ESP_FW_BINARY_DIR}/partition-table.bin" "/esp/partition-table.bin")
     add_custom_command(
       OUTPUT ${ESP_PARTS}
       COMMAND
         "${Python3_EXECUTABLE}" ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py ARGS --output
-        ${ESP_PARTS} --basedir ${CMAKE_CURRENT_SOURCE_DIR}/esp32/ --flash
-        partition-table.bin:0x08000 --flash bootloader.bin:0x01000 --flash uart_wifi.bin:0x10000
-      DEPENDS esp32/uart_wifi.bin esp32/bootloader.bin esp32/partition-table.bin
-              ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py
+        ${ESP_PARTS} --basedir ${ESP_FW_BINARY_DIR}/ --flash partition-table.bin:0x08000 --flash
+        bootloader.bin:0x01000 --flash uart_wifi.bin:0x10000
+      DEPENDS ${ESP_FW_BINARY_DIR}/uart_wifi.bin ${ESP_FW_BINARY_DIR}/bootloader.bin
+              ${ESP_FW_BINARY_DIR}/partition-table.bin ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py
       )
   else()
-    add_resource("esp8266/uart_wifi.bin" "/esp/uart_wifi.bin")
-    add_resource("esp8266/bootloader.bin" "/esp/bootloader.bin")
-    add_resource("esp8266/partition-table.bin" "/esp/partition-table.bin")
-    add_resource("esp8266/stub_text.bin" "/esp/stub_text.bin")
-    add_resource("esp8266/stub_data.bin" "/esp/stub_data.bin")
+    add_resource("${ESP_FW_BINARY_DIR}/uart_wifi.bin" "/esp/uart_wifi.bin")
+    add_resource("${ESP_FW_BINARY_DIR}/bootloader.bin" "/esp/bootloader.bin")
+    add_resource("${ESP_FW_BINARY_DIR}/partition-table.bin" "/esp/partition-table.bin")
+    add_resource("${ESP_FW_BINARY_DIR}/stub_text.bin" "/esp/stub_text.bin")
+    add_resource("${ESP_FW_BINARY_DIR}/stub_data.bin" "/esp/stub_data.bin")
     add_custom_command(
       OUTPUT ${ESP_PARTS}
       COMMAND
         "${Python3_EXECUTABLE}" ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py ARGS --output
-        ${ESP_PARTS} --basedir ${CMAKE_CURRENT_SOURCE_DIR}/esp8266/ --flash
-        partition-table.bin:0x08000 --flash bootloader.bin:0x00000 --flash uart_wifi.bin:0x10000
-        --memory stub_text.bin:0x4010d000 --memory stub_data.bin:0x3fff01b4
-      DEPENDS esp8266/uart_wifi.bin esp8266/bootloader.bin esp8266/partition-table.bin
-              esp8266/stub_text.bin esp8266/stub_data.bin
-              ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py
+        ${ESP_PARTS} --basedir ${ESP_FW_BINARY_DIR}/ --flash partition-table.bin:0x08000 --flash
+        bootloader.bin:0x00000 --flash uart_wifi.bin:0x10000 --memory stub_text.bin:0x4010d000
+        --memory stub_data.bin:0x3fff01b4
+      DEPENDS ${ESP_FW_BINARY_DIR}/uart_wifi.bin ${ESP_FW_BINARY_DIR}/bootloader.bin
+              ${ESP_FW_BINARY_DIR}/partition-table.bin ${ESP_FW_BINARY_DIR}/stub_text.bin
+              ${ESP_FW_BINARY_DIR}/stub_data.bin ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py
       )
   endif()
   add_custom_target(esp-parts DEPENDS ${ESP_PARTS})

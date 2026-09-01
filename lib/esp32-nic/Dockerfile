@@ -1,6 +1,7 @@
 FROM ubuntu:22.04
 
-RUN apt-get update && apt-get -y install \
+RUN apt-get update \
+    && apt-get -y install \
         bash \
         git \
         cmake \
@@ -22,5 +23,13 @@ RUN apt-get update && apt-get -y install \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git clone -b v5.0.3 --recursive https://github.com/espressif/esp-idf.git
-RUN cd /esp-idf && ./install.sh
-RUN echo "source /esp-idf/export.sh" >> ~/.bashrc
+
+# Install tools into a world-accessible path so the container can be run as
+# an arbitrary non-root user (--user flag) without losing access to the tools.
+# Pin setuptools<82: pkg_resources was removed in setuptools v82, ESP-IDF v5.0 still needs it.
+# Set git safe.directory so export.sh works for non-root users (git >= 2.35.2).
+ENV IDF_TOOLS_PATH=/opt/espressif
+RUN cd /esp-idf && ./install.sh \
+    && /opt/espressif/python_env/idf5.0_py3.10_env/bin/pip install "setuptools<82" \
+    && chmod -R a+rX /opt/espressif \
+    && git config --system --add safe.directory /esp-idf

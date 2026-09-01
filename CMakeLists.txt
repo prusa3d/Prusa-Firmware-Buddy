@@ -396,6 +396,8 @@ if(BOARD IN_LIST BUDDY_BOARDS AND HAS_PUPPIES_BOOTLOADER)
   endif()
 endif()
 
+include(lib/AddEspNicFw.cmake)
+
 # Unittests
 if(UNITTESTS_ENABLE)
   enable_testing()
