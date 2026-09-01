@@ -1,12 +1,12 @@
-import os
-import ndef
-import yaml
-import cbor2
 import io
+import os
 import types
 import typing
 
-from fields import Fields, EncodeConfig
+import cbor2
+import ndef
+import yaml
+from fields import EncodeConfig, Fields
 
 
 class Region:
@@ -63,12 +63,18 @@ class Region:
     def write(self, data: dict[str, any]):
         return self.update(data, clear=True)
 
-    def update(self, update_fields: dict[str, any], remove_fields: list[str] = [], clear: bool = False):
+    def update(self, update_fields: dict[str, any], update_unknown_fields: dict[str, str] = {}, remove_fields: list[str] = [], clear: bool = False):
         if len(update_fields) == 0 and len(remove_fields) == 0 and not clear:
             # Nothing to do
             return
 
-        encoded = self.fields.update(original_data=io.BytesIO(self.memory) if not clear else None, update_fields=update_fields, remove_fields=remove_fields, config=self.record.encode_config)
+        encoded = self.fields.update(
+            original_data=io.BytesIO(self.memory) if not clear else None,
+            update_fields=update_fields,
+            remove_fields=remove_fields,
+            update_unknown_fields=update_unknown_fields,
+            config=self.record.encode_config,
+        )
         encoded_len = len(encoded)
 
         assert encoded_len <= len(self.memory), f"Data of size {encoded_len} does not fit into region of size {len(self.memory)}"
@@ -93,6 +99,9 @@ class Record:
 
     regions: dict[str, Region] = None
 
+    # Debug information about the record - to be shown in the CLI if the user demands it
+    root_info: dict[str, typing.Any]
+
     encode_config: EncodeConfig
 
     def __init__(self, config_file: str, data: memoryview):
@@ -100,6 +109,7 @@ class Record:
 
         self.data = data
         self.encode_config = EncodeConfig()
+        self.root_info = dict()
 
         self.config_dir = os.path.dirname(config_file)
         with open(config_file, "r", encoding="utf-8") as f:
@@ -117,6 +127,8 @@ class Record:
 
                 # TODO: Support 8-byte CC (with a different magic)
                 assert cc[0] == 0xE1, "Capability container magic number does not match"
+
+                self.root_info["cc_capacity"] = cc[2] * 8
 
                 # Find the NDEF TLV
                 while True:
@@ -137,7 +149,10 @@ class Record:
 
                     # 0x03 = NDEF TLV
                     if tag == 0x03:
-                        # Found it -
+                        # Found it
+
+                        self.root_info["ndef_tlv_payload_start"] = data_io.tell()
+                        self.root_info["ndef_tlv_payload_size"] = tlv_len
                         break
                     else:
                         # Skip the TLV block
@@ -163,6 +178,34 @@ class Record:
 
         assert type(self.payload) is memoryview
         self._setup_regions()
+
+    # Validates the region and reports possible errors
+    def validate(self):
+        warnings = list()
+        errors = list()
+
+        # Check we have all required & recommended fields
+        for region_name, region in self.regions.items():
+            unknown_fields = {}
+            region_data = region.read(out_unknown_fields=unknown_fields)
+
+            if len(unknown_fields) > 0:
+                warnings.append(f"Region '{region_name}' contains unknown fields")
+
+            for field in region.fields.fields_by_name.values():
+                if field.name in region_data:
+                    pass  # Has the field, no problem
+
+                elif field.required == "recommended":
+                    warnings.append(f"Missing recommended field '{field.name}'")
+
+                elif field.required:
+                    errors.append(f"Missing required field '{field.name}'")
+
+        return {
+            "warnings": warnings,
+            "errors": errors,
+        }
 
     def _setup_regions(self):
         if "meta_fields" not in self.config.__dict__:

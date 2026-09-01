@@ -67,30 +67,34 @@
    1. **Auxiliary section** (optional, CBOR map)
       1. Positioned at the beginning of the auxiliary region.
       1. Intended for dynamic information, intended to be updated by the printers.
+      1. SHALL have at least 16 B allocated if present. 32 B is recommended.
+      1. The root map of the section SHOULD be encoded as an indefinite-length container.
+
 1. Unused space in the sections (outside of the region CBOR) SHALL NOT contain any meaningful working data. It SHOULD be filled with zeroes on tag initialization, but there are no requirements on upkeeping that afterwards. Users CAN update the regions with smaller data, leaving remnants of the original data behind.
 
 ## 3. Specification common to all sections
 
 ### 3.1 CBOR data representation
 1. Data of all sections in the specification are represented as a CBOR map.
-   - Keys of the map are integers. Semantics of the keys are specific to each section.
-   - All data sections MUST be at most 512 bytes long.
-   - All fields MUST follow this specification. Using custom or vendor-specific keys is not permitted (with the exception described in the Aux Region section).
-   - New keys can be added to the specification at any time, implementations MUST be able to skip unknown keys, of any type. Unknown fields MUST NOT be removed when updating a known field (or in any update proces in general) unless explicitly intended.
-   - Keys can be deprecated at any time. Deprecated keys will never be reused.
-   - The keys MAY be arbitrarily ordered within the CBOR map. Implementations MUST support unsorted (non-canonical) CBOR maps.
-1. CBOR maps and arrays SHOULD be encoded as indefinite containers.
+   1. Keys of the map are integers. Semantics of the keys are specific to each section.
+   1. All data sections SHALL be at most 512 bytes long.
+   1. All fields MUST follow this specification. Using custom or vendor-specific keys is not permitted (with the exception described in the Aux Region section).
+   1. New keys can be added to the specification at any time, implementations SHALL be able to skip unknown keys, of any type. Unknown fields SHALL NOT be removed when updating a known field (or in any update proces in general) unless explicitly intended.
+      1. This applies to unknown items of `enum` and `enum_array` as well, provided that they are represented as integer values in the range of <0, 65535>.
+   1. Keys can be deprecated at any time. Deprecated keys will never be reused.
+   1. The keys MAY be arbitrarily ordered within the CBOR map. Implementations SHALL support unsorted (non-canonical) CBOR maps.
 1. `enum` fields are encoded as an integer, according to the enum field mapping
 1. `enum_array` fields are encoded as CBOR arrays of integers, according to the field mapping
 1. `timestamp` fields are encoded as UNIX timestamp integers
-1. `bytes` and `uuid` types are encoded as CBOR byte string (type 2)
-1. `color_rgba` fields are encoded as a CBOR byte string (type 2) with 3 to 4 bytes representing `[R, G, B]` or `[R, G, B, A]` values
 1. `number` types can be encoded as either unsigned integers (type 0), signed integers (type 1), half floats or floats
+1. `bytes` and `uuid` types are encoded as CBOR byte string (type 2)
 1. `string` types are encoded as CBOR text string (type 3, UTF-8 is enforced by the CBOR specification)
 1. The `X` in the `string:X` or `bytes:X` notation defines maximum permissible length of the data in bytes.
+1. `color_rgba` fields are encoded as a CBOR byte string (type 2) with 3 to 4 bytes representing `[R, G, B]` or `[R, G, B, A]` values
+1. `color_lab` fields are encoded as a CBOR array of 3 `number` type elements
 
 ### 3.2 UUIDs
-Some entities referenced in the data (see [Terminology](terminology.md)) can be identified by a [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier). The UUID MAY be explicitly specified through a `XX_uuid` field, however that might not be desirable due to space constraints. As an alternative, the following algorithm defines a way to derive UUIDs from other fields.
+Some entities referenced in the data can be identified by a [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier). The UUID MAY be explicitly specified through a `XX_uuid` field, however that might not be desirable due to space constraints. As an alternative, the following algorithm defines a way to derive UUIDs from other fields.
 
 #### 3.2.0.1 When reading a UUID
 1. First, the program MUST check if an appropriate `XX_uuid` field is present in the data. If so, the program MUST use that UUID.
@@ -104,9 +108,9 @@ Some entities referenced in the data (see [Terminology](terminology.md)) can be 
 
 #### 3.2.0.3 Example: Brand renaming
 If a brand decides to change name but wants to keep the original `brand_uuid` that was auto-derived from its name, it needs to start adding `brand_uuid` field with the original UUID:
-1. `brand_name = Prusament` (present in the data), `brand_uuid = ae5ff34e-298e-50c9-8f77-92a97fb30b0` (not present, can be automatically derived)
+1. `brand_name = Prusament` (present in the data), `brand_uuid = ae5ff34e-298e-50c9-8f77-92a97fb30b09` (not present, can be automatically derived)
 1. Brand gets renamed to `Pepament`
-1. `brand_name = Pepament` (present in the data), `brand_uuid = ae5ff34e-298e-50c9-8f77-92a97fb30b0` (present in the data)
+1. `brand_name = Pepament` (present in the data), `brand_uuid = ae5ff34e-298e-50c9-8f77-92a97fb30b09` (present in the data)
 
 
 ### 3.2.1 UUID derivation algorithm
@@ -118,7 +122,7 @@ UUIDs are derived from the brand-specific IDs using UUIDv5 with the `SHA1` hash,
 1. NFC tag UID is represented as a bytestream with the MSB being the first byte in the bytestream.
    * **Important:** Various apps/readers report these UIDs in various byte orders, and sometimes as hex strings instead of bytestreams. For NFCV, the UID MUST be a 8 bytes long bytestream with `0xE0` as the **first** byte (SLIX2 then follows with `0x04, 0x01`).
 
-| UID | Derviation formula | Namespace (`N`) |
+| UUID | Derviation formula | Namespace (`N`) |
 | --- | --- | --- |
 | `brand_uuid` | `N + brand_name` | `5269dfb7-1559-440a-85be-aba5f3eff2d2` |
 | `material_uuid` | `N + brand_uuid + material_name` | `616fc86d-7d99-4953-96c7-46d2836b9be9` |
@@ -143,15 +147,15 @@ material_name = "PLA Prusa Galaxy Black"
 material_uuid = generate_uuid(material_namespace, brand_uuid.bytes, material_name.encode("utf-8"))
 print(f"material_uuid = {material_uuid}")
 
-material_package_namespace = "6f7d485e-db8d-4979-904e-a231cd6602b2"
+package_namespace = "6f7d485e-db8d-4979-904e-a231cd6602b2"
 gtin = "1234"
-material_package_uuid = generate_uuid(material_package_namespace, brand_uuid.bytes, gtin.encode("utf-8"))
-print(f"material_package_uuid = {material_package_uuid}")
+package_uuid = generate_uuid(package_namespace, brand_uuid.bytes, gtin.encode("utf-8"))
+print(f"package_uuid = {package_uuid}")
 
-material_package_instance_namespace = "31062f81-b5bd-4f86-a5f8-46367e841508"
+instance_namespace = "31062f81-b5bd-4f86-a5f8-46367e841508"
 nfc_tag_uid = b"\xE0\x04\x01\x08\x66\x2F\x6F\xBC"
-material_package_instance_uuid = generate_uuid(material_package_instance_namespace, nfc_tag_uid)
-print(f"material_package_instance_uuid = {material_package_instance_uuid}")
+instance_uuid = generate_uuid(instance_namespace, nfc_tag_uid)
+print(f"instance_uuid = {instance_uuid}")
 {% endpython %}
 
 ## 4. Meta section
@@ -173,6 +177,13 @@ The main section contains material information that does not change during the p
 #### 5.1.1 Field list (FFF-specific)
 {{ fields_table("main_fields", "fff") }}
 
+##### 5.1.1.1 Removed fields (FFF-specific)
+
+|Name|Key|Removal reason|
+|:--|:--|:--|
+|`filament_diameter`|30|Unit change (`mm` → `µm`) to align with the OpenPrintTag Architecture.<br>Replaced with `filament_diameter_v2`.|
+|`min_nozzle_diameter`|33|Unit change (`mm` → `µm`) to align with the OpenPrintTag Architecture.<br>Replaced with `min_nozzle_diameter_v2`.|
+
 #### 5.1.2 Field list (SLA-specific)
 {{ fields_table("main_fields", "sla") }}
 
@@ -180,7 +191,7 @@ The main section contains material information that does not change during the p
 {{ enum_table("material_class_enum") }}
 
 #### 5.1.4 `material_type`
-See [Material types](/material_types)
+See [FFF material types](/fff_material_types)
 
 #### 5.1.5 `tags`
 See [Material tags](/material_tags)
@@ -196,6 +207,9 @@ The auxiliary section is intended for dynamic data - typically usage tracking.
 
 #### 6.1.1 Field list (SLA-specific)
 {{ fields_table("aux_fields", "sla") }}
+
+#### 6.1.1 Field list (user data)
+{{ fields_table("aux_fields", "user_data") }}
 
 ### 6.2 Vendor-specific fields
 Vendor-specific fields not specified in this document are permitted for keys specified by the following table. Vendors may contact the specification authority to be assigned a key range for them to use.

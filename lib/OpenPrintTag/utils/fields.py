@@ -7,6 +7,7 @@ import typing
 import cbor2
 import io
 import dataclasses
+import re
 
 
 @dataclasses.dataclass
@@ -31,20 +32,42 @@ class CompactFloat:
         if num.is_integer():
             self.value = int(num)
 
-        elif abs(num - numpy.float16(num)) < CompactFloat.required_precision:
+        elif abs(num - float(numpy.float16(num))) < CompactFloat.required_precision:
             self.value = float(numpy.float16(num))
 
-        elif abs(num - numpy.float32(num)) < CompactFloat.required_precision:
+        elif abs(num - float(numpy.float32(num))) < CompactFloat.required_precision:
             self.value = float(numpy.float32(num))
 
         else:
             self.value = num
+
+    @staticmethod
+    def decode(data):
+        num = float(data)
+        return int(num) if num.is_integer() else round(num, CompactFloat.decimal_precision)
+
+    def encode_cbor(self, encoder: cbor2.CBOREncoder):
+        # Always encode floats canonically
+        # Noncanonically, floats would always be encoded in 8 B, which is a lot of wasted space
+        cbor2.CBOREncoder(encoder.fp, canonical=True).encode(self.value)
+
+
+# Represent a raw CBOR data that are to be encoded verbatim
+class RawCBORData:
+    data: bytes
+
+    def __init__(self, data: bytes):
+        self.data = data
+
+    def encode_cbor(self, encoder: cbor2.CBOREncoder):
+        encoder.fp.write(self.data)
 
 
 class Field:
     key: int
     name: str
     required: bool
+    type_name: str
 
     def __init__(self, config, config_dir):
         self.type_name = config["type"]
@@ -71,8 +94,7 @@ class IntField(Field):
 
 class NumberField(Field):
     def decode(self, data):
-        num = float(data)
-        return int(num) if num.is_integer() else round(num, CompactFloat.decimal_precision)
+        return CompactFloat.decode(data)
 
     def encode(self, data):
         return CompactFloat(data)
@@ -119,16 +141,27 @@ class EnumFieldBase(Field):
             self.items_by_key[key] = name
             self.items_by_name[name] = key
 
+    def decode(self, data):
+        if not isinstance(data, int):
+            raise ValueError("Enum item not integer")
+
+        return self.items_by_key.get(data, data)
+
+    def encode(self, data):
+        if isinstance(data, str):
+            return self.items_by_name[data]
+
+        elif isinstance(data, int):
+            # Pass unkown items verbatim
+            return data
+
+        else:
+            raise ValueError("Enum values must be either")
+
 
 class EnumField(EnumFieldBase):
     def __init__(self, config, config_dir):
         super().__init__(config, config_dir)
-
-    def decode(self, data):
-        return self.items_by_key[data]
-
-    def encode(self, data):
-        return self.items_by_name[data]
 
 
 class EnumArrayField(EnumFieldBase):
@@ -141,65 +174,50 @@ class EnumArrayField(EnumFieldBase):
     def decode(self, data):
         assert type(data) is list
 
-        result = []
-        for item in data:
-            result.append(self.items_by_key[item])
-
-        return result
+        return [EnumFieldBase.decode(self, item) for item in data]
 
     def encode(self, data):
         assert type(data) is list
 
-        result = []
-        for item in data:
-            result.append(self.items_by_name[item])
+        result = [EnumFieldBase.encode(self, item) for item in data]
 
         assert len(result) <= self.max_len
         return result
 
 
-class BytesField(Field):
-    max_len: int | None
-
-    def __init__(self, config, config_dir):
-        super().__init__(config, config_dir)
-        assert "max_length" in config, f"max_length not specified for '{config['name']}'"
-        self.max_len = config["max_length"]
-
+class ColorRGBAField(Field):
     def decode(self, data):
         assert isinstance(data, bytes)
-        return {"hex": data.hex()}
+        return f"#{data.hex()}"
 
     def encode(self, data):
-        if isinstance(data, bytes):
-            result = data
-
-        elif isinstance(data, str):
-            result = data.encode("utf-8")
-
-        elif isinstance(data, int):
-            return data.to_bytes(64, "little").rstrip(b"\x00")
-
-        elif isinstance(data, list):
-            result = bytearray(data)
-
-        elif isinstance(data, dict):
-            result = bytearray.fromhex(data["hex"])
-
-        else:
-            assert False, f"Cannot encode type {type(data)} to bytes"
-
-        assert self.max_len is None or len(result) <= self.max_len
-        return result
+        assert isinstance(data, str)
+        m = re.match(r"^#([0-9a-f]{6}([0-9a-f]{2})?)$", data)
+        assert m
+        return bytes.fromhex(m.group(1))
 
 
-class ColorRGBAField(BytesField):
-    def __init__(self, config, config_dir):
-        if "max_length" not in config:
-            # default to RGBA, but
-            # leave the door open for RGB or other formats in the future
-            config["max_length"] = 4
-        super().__init__(config, config_dir)
+class LABCborData:
+    data: list
+
+    def __init__(self, data: list):
+        self.data = data
+
+    def encode_cbor(self, encoder: cbor2.CBOREncoder):
+        # Encode with definite container, it's smaller and the record is fixed size
+        cbor2.CBOREncoder(encoder.fp, canonical=True, indefinite_containers=False, default=encoder.default).encode(self.data)
+
+
+class ColorLABField(Field):
+    def decode(self, data):
+        assert type(data) is list
+        assert len(data) == 3
+        return [CompactFloat.decode(x) for x in data]
+
+    def encode(self, data):
+        assert type(data) is list
+        assert len(data) == 3
+        return LABCborData([CompactFloat(x) for x in data])
 
 
 class UUIDField(Field):
@@ -218,8 +236,8 @@ field_types = {
     "enum": EnumField,
     "enum_array": EnumArrayField,
     "timestamp": IntField,
-    "bytes": BytesField,
     "color_rgba": ColorRGBAField,
+    "color_lab": ColorLABField,
     "uuid": UUIDField,
 }
 
@@ -259,14 +277,15 @@ class Fields:
 
     # Decodes the fields and values from the CBOR binary data
     # If out_unknown_fields is provided, unknown fields are written into it instead of asserting
-    def decode(self, binary_data: typing.IO[bytes], out_unknown_fields: dict[any, any] = None):
+    def decode(self, binary_data: typing.IO[bytes], out_unknown_fields: dict[str, str] = None):
         data = cbor2.load(binary_data)
         result = dict()
         for key, value in data.items():
             field = self.fields_by_key.get(key)
 
             if field is None and out_unknown_fields is not None:
-                out_unknown_fields[key] = value
+                # TODO: These would ideally be passed verbatim, avoiding the deserialize-serialize loop
+                out_unknown_fields[cbor2.dumps(key).hex()] = cbor2.dumps(value).hex()
                 continue
 
             assert field, f"Unknown CBOR key '{key}'"
@@ -283,7 +302,14 @@ class Fields:
     def encode(self, data: dict[str, any], config: EncodeConfig = EncodeConfig()) -> bytes:
         return self.update(update_fields=data, config=config)
 
-    def update(self, original_data: typing.IO[bytes] = None, update_fields: dict[str, any] = {}, remove_fields: list[str] = [], config: EncodeConfig = EncodeConfig()) -> bytes:
+    def update(
+        self,
+        original_data: typing.IO[bytes] = None,
+        update_fields: dict[str, any] = {},
+        update_unknown_fields: dict[str, str] = {},
+        remove_fields: list[str] = [],
+        config: EncodeConfig = EncodeConfig(),
+    ) -> bytes:
         if original_data:
             result = cbor2.load(original_data)
         else:
@@ -310,39 +336,17 @@ class Fields:
             if isinstance(value, float):
                 result[field_name] = CompactFloat(value)
 
-        def default_enc(enc: cbor2.CBOREncoder, data: typing.Any):
-            if isinstance(data, CompactFloat):
-                # Always encode floats canonically
-                # Noncanonically, floats would always be encoded in 8 B, which is a lot of wasted space
-                cbor2.CBOREncoder(enc.fp, canonical=True).encode(data.value)
-            else:
-                raise RuntimeError(f"Unsupported type {type(data)} to encode")
+        # Unknown fields pass verbatim
+        for key, value in update_unknown_fields.items():
+            result[RawCBORData(bytes.fromhex(key))] = RawCBORData(bytes.fromhex(value))
 
         data_io = io.BytesIO()
         encoder = cbor2.CBOREncoder(
             data_io,
             canonical=config.canonical,
             indefinite_containers=config.indefinite_containers,
-            default=default_enc,
+            default=lambda enc, data: data.encode_cbor(enc),
         )
 
         encoder.encode(result)
         return data_io.getvalue()
-
-    def validate(self, decoded_data):
-        for field_name, field in self.fields_by_name.items():
-            if field_name in decoded_data:
-                continue
-
-            match field.required:
-                case False:
-                    pass
-
-                case True:
-                    assert False, f"Missing required field '{field.name}'"
-
-                case "recommended":
-                    print(f"Missing recommended field '{field.name}'", file=sys.stderr)
-
-                case _:
-                    assert False, f"Invalid field '{field.name}' 'required' value '{field.required}'"

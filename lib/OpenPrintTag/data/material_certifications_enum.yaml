@@ -10,3 +10,8 @@
   description:
     - Standard for Safety of Flammability of Plastic Materials for Parts in Devices and Appliances testing.
     - Indicates a flame-retardant material.
+
+- key: 2
+  name: ul_2904
+  display_name: UL 2904
+  description: Certifies that a 3D printing filament produces VOC and ultrafine particle emissions below safe thresholds when printed, making it safer for indoor use.

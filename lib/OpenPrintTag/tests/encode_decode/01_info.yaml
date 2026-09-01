@@ -4,22 +4,57 @@ regions:
     absolute_offset: 66
     size: 4
     used_size: 4
+    field_used_size:
+      aux_region_offset: 3
   main:
     payload_offset: 4
     absolute_offset: 70
     size: 206
-    used_size: 148
+    used_size: 176
+    field_used_size:
+      gtin: 10
+      brand_specific_instance_id: 12
+      material_class: 2
+      material_type: 2
+      material_name: 24
+      brand_name: 11
+      manufactured_date: 6
+      nominal_netto_full_weight: 4
+      actual_netto_full_weight: 4
+      empty_container_weight: 4
+      primary_color: 6
+      tags: 5
+      density: 5
+      min_print_temperature: 4
+      max_print_temperature: 4
+      preheat_temperature: 4
+      min_bed_temperature: 4
+      max_bed_temperature: 4
+      min_chamber_temperature: 3
+      max_chamber_temperature: 4
+      chamber_temperature: 3
+      container_width: 4
+      container_outer_diameter: 4
+      container_inner_diameter: 4
+      container_hole_diameter: 4
+      certifications: 6
+      primary_color_lab: 15
+      primary_color_ral: 12
   aux:
     payload_offset: 210
     absolute_offset: 276
     size: 35
     used_size: 1
+    field_used_size: {}
 root:
+  cc_capacity: 312
+  ndef_tlv_payload_start: 8
+  ndef_tlv_payload_size: 303
   data_size: 312
   payload_size: 245
   overhead: 67
-  payload_used_size: 153
-  total_used_size: 220
+  payload_used_size: 181
+  total_used_size: 248
 data:
   meta:
     aux_region_offset: 210
@@ -34,8 +69,7 @@ data:
     nominal_netto_full_weight: 1000
     actual_netto_full_weight: 1012
     empty_container_weight: 280
-    primary_color:
-      hex: 3d3e3d
+    primary_color: '#3d3e3dff'
     tags:
     - glitter
     density: 1.24
@@ -54,12 +88,22 @@ data:
     certifications:
     - ul_2818
     - ul_94_v0
+    primary_color_lab:
+    - 50
+    - 11.3
+    - 129.3
+    primary_color_ral: 270 30 20
   aux: {}
 raw_data:
   meta: a10218d2
-  main: bf041b000007d0fcab45f9056a33333463353466303838080009000a76504c412050727573612047616c61787920426c61636b0b6950727573616d656e740e1a68d3c7d7101903e8111903f41219011813433d3e3d181c9f17ff181df93cf6182218cd182318e1182418aa182518281826183c18271218281828182914182a1840182b18c8182c1864182d183418389f0001ffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  main: bf041b000007d0fcab45f9056a33333463353466303838080009000a76504c412050727573612047616c61787920426c61636b0b6950727573616d656e740e1a68d3c7d7101903e8111903f41219011813443d3e3dff181c9f17ff181df93cf6182218cd182318e1182418aa182518281826183c18271218281828182914182a1840182b18c8182c1864182d183418389f0001ff183b831832fa4134cccdfa43014ccd183c69323730203330203230ff000000000000000000000000000000000000000000000000000000000000
   aux: a000000000000000000000000000000000000000000000000000000000000000000000
 uri: https://3dtag.org/s/334c54f088
+validate:
+  warnings:
+  - Missing recommended field 'nominal_full_length'
+  - Missing recommended field 'actual_full_length'
+  errors: []
 opt_check:
   warnings: []
   errors: []

@@ -16,7 +16,9 @@ def opt_check(rec: Record, tag_uid: bytes = None):
     notes = list()
     uuids = dict()
 
-    main_data = rec.main_region.read()
+    # Pass empty dict to out_unknown_fields so that the script does not crash if the tag has unkown fields
+    # Unknown fields should by reported by rec_info --validate
+    main_data = rec.main_region.read(out_unknown_fields={})
 
     # Aux region checks
     if rec.aux_region is None:
@@ -24,15 +26,6 @@ def opt_check(rec: Record, tag_uid: bytes = None):
     else:
         if len(rec.aux_region.memory) < 16:
             warnings.append("Aux region is smaller than 16 bytes")
-
-    # Check we have all required & recommended fields
-    for field in rec.main_region.fields.fields_by_name.values():
-        if field.name in main_data:
-            pass  # Has the field, no problem
-        elif field.required == "recommended":
-            warnings.append(f"Missing recommended field '{field.name}'")
-        elif field.required:
-            errors.append(f"Missing required field '{field.name}'")
 
     # Check tag transitivities
     data_tags = main_data.get("tags", [])
@@ -47,7 +40,8 @@ def opt_check(rec: Record, tag_uid: bytes = None):
 
         for implication in tag_data.get("implies", []):
             if implication not in data_tags:
-                errors.append(f"Tag '{tag_name}' present but implied tag '{implication}' not")
+                # Not an error, just a warning - if the data is older, the implied tag might not have existed
+                warnings.append(f"Tag '{tag_name}' present but implied tag '{implication}' not")
 
         for hint in tag_data.get("hints", []):
             if hint not in data_tags:
@@ -99,7 +93,7 @@ def opt_check(rec: Record, tag_uid: bytes = None):
 
         else:
             if report_deduce_fail:
-                errors.append(f"Failed to deduce {field}")
+                warnings.append(f"Failed to deduce {field}")
 
             result = None
 

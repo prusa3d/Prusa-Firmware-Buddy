@@ -1,13 +1,13 @@
 test_config:
   extra_required_fields: null
+  expect_success: false
 data:
   main:
     # Material information
     material_class: FFF
     material_type: PETG
     material_name: PETG Jet Black
-    primary_color:
-      hex: 24292A
+    primary_color: "#24292a"
     tags: []
     density: 1.27
 
@@ -36,3 +36,7 @@ data:
     container_inner_diameter: 100
     container_hole_diameter: 210
     container_width: 64
+
+  aux:
+    consumed_weight: 444
+    workgroup: myhome

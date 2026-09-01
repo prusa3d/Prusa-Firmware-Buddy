@@ -1,239 +1,318 @@
 - key: 0
   abbreviation: PLA
   name: Polylactic Acid
-  category: FFF
   description: Easy-to-print, biodegradable material. Ideal for beginners, prototypes, and models.
+  default_properties:
+    density: 1.24
+    min_print_temperature: 180
+    max_print_temperature: 220
+    preheat_temperature: 160
+    max_bed_temperature: 60
+    heatbreak_temperature: 45
+    chamber_temperature: 25
+    min_chamber_temperature: 15
+    max_chamber_temperature: 35
+    drying_temperature: 45
+    drying_time: 240
 
 - key: 1
   abbreviation: PETG
   name: Polyethylene Terephthalate Glycol
-  category: FFF
   description: Durable, strong, and temperature-resistant. Great for mechanical parts and functional prints.
+  default_properties:
+    density: 1.27
+    min_print_temperature: 220
+    max_print_temperature: 250
+    preheat_temperature: 170
+    min_bed_temperature: 60
+    max_bed_temperature: 80
+    heatbreak_temperature: 60
+    chamber_temperature: 30
+    min_chamber_temperature: 15
+    max_chamber_temperature: 50
+    drying_temperature: 65
+    drying_time: 360
 
 - key: 2
   abbreviation: TPU
   name: Thermoplastic Polyurethane
-  category: FFF
   description: A flexible, rubber-like material. Used for phone cases, vibration dampeners, and other soft parts.
+  default_properties:
+    density: 1.21
+    min_print_temperature: 210
+    max_print_temperature: 240
+    preheat_temperature: 160
+    min_bed_temperature: 20
+    max_bed_temperature: 60
+    heatbreak_temperature: 40
+    chamber_temperature: 25
+    min_chamber_temperature: 15
+    max_chamber_temperature: 40
+    drying_temperature: 60
+    drying_time: 360
+    min_nozzle_diameter: 400
 
 - key: 3
   abbreviation: ABS
   name: Acrylonitrile Butadiene Styrene
-  category: FFF
   description: Strong, durable, and heat-resistant plastic. Used for functional parts like car interiors and LEGOs. Requires a heated bed and enclosure.
+  default_properties:
+    density: 1.04
+    min_print_temperature: 230
+    max_print_temperature: 260
+    preheat_temperature: 180
+    min_bed_temperature: 90
+    max_bed_temperature: 110
+    heatbreak_temperature: 70
+    chamber_temperature: 50
+    min_chamber_temperature: 40
+    max_chamber_temperature: 80
+    drying_temperature: 80
+    drying_time: 240
 
 - key: 4
   abbreviation: ASA
   name: Acrylonitrile Styrene Acrylate
-  category: FFF
   description: Similar to ABS but with high UV and weather resistance, making it perfect for outdoor applications.
+  default_properties:
+    density: 1.07
+    min_print_temperature: 230
+    max_print_temperature: 260
+    preheat_temperature: 180
+    min_bed_temperature: 90
+    max_bed_temperature: 110
+    heatbreak_temperature: 70
+    chamber_temperature: 50
+    min_chamber_temperature: 40
+    max_chamber_temperature: 80
+    drying_temperature: 80
+    drying_time: 240
 
 - key: 5
   abbreviation: PC
   name: Polycarbonate
-  category: FFF
   description: Extremely strong, impact-resistant, and heat-resistant. Used for demanding engineering applications.
+  default_properties:
+    density: 1.20
+    min_print_temperature: 270
+    max_print_temperature: 310
+    preheat_temperature: 200
+    min_bed_temperature: 110
+    max_bed_temperature: 130
+    heatbreak_temperature: 100
+    chamber_temperature: 80
+    min_chamber_temperature: 60
+    max_chamber_temperature: 100
+    drying_temperature: 120
+    drying_time: 480
 
 - key: 6
   abbreviation: PCTG
   name: Polycyclohexylenedimethylene Terephthalate Glycol
-  category: FFF
   description: A tougher alternative to PETG with higher impact and chemical resistance.
 
 - key: 7
   abbreviation: PP
   name: Polypropylene
-  category: FFF
   description: Lightweight, chemically resistant, and flexible. Used for creating living hinges and durable containers.
 
 - key: 8
   abbreviation: PA6
   name: Polyamide 6
-  category: FFF
   description: A type of Nylon that is tough and wear-resistant but absorbs more moisture than other nylons.
 
 - key: 9
   abbreviation: PA11
   name: Polyamide 11
-  category: FFF
   description: A flexible, bio-based Nylon with low moisture absorption and good chemical resistance.
 
 - key: 10
   abbreviation: PA12
   name: Polyamide 12
-  category: FFF
   description: The most common Nylon for 3D printing. Strong, tough, with low moisture absorption. Great for functional parts.
+
+- key: 42
+  abbreviation: PA612
+  name: Polyamide 612
+  description: A semi-flexible Nylon with properties between PA6 and PA12. Offers good toughness and lower moisture absorption than PA6.
 
 - key: 11
   abbreviation: PA66
   name: Polyamide 66
-  category: FFF
   description: A stiffer and more heat-resistant Nylon compared to PA6, used for durable mechanical parts.
 
 - key: 12
   abbreviation: CPE
   name: Copolyester
-  category: FFF
   description: A family of strong and dimensionally stable materials (including PETG) known for chemical resistance.
 
 - key: 13
   abbreviation: TPE
   name: Thermoplastic Elastomer
-  category: FFF
   description: A general class of soft, rubbery materials. Softer and more flexible than TPU.
 
 - key: 14
   abbreviation: HIPS
   name: High Impact Polystyrene
-  category: FFF
   description: A lightweight material often used as a dissolvable support material for ABS prints (dissolves in Limonene).
 
 - key: 15
   abbreviation: PHA
   name: Polyhydroxyalkanoate
-  category: FFF
   description: A biodegradable material similar to PLA but with better toughness and flexibility.
 
 - key: 16
   abbreviation: PET
   name: Polyethylene Terephthalate
-  category: FFF
   description: The same plastic used in water bottles. Strong and food-safe, but less common for printing than PETG.
+  default_properties:
+    density: 1.38
+    min_print_temperature: 255
+    max_print_temperature: 280
+    preheat_temperature: 190
+    min_bed_temperature: 70
+    max_bed_temperature: 90
+    heatbreak_temperature: 60
+    chamber_temperature: 40
+    min_chamber_temperature: 20
+    max_chamber_temperature: 60
+    drying_temperature: 65
+    drying_time: 360
 
 - key: 17
   abbreviation: PEI
   name: Polyetherimide
-  category: FFF
   description: A high-performance material (also known as Ultem) with excellent thermal and mechanical properties.
 
 - key: 18
   abbreviation: PBT
   name: Polybutylene Terephthalate
-  category: FFF
   description: An engineering polymer with good heat resistance and electrical insulation properties.
 
 - key: 19
   abbreviation: PVB
   name: Polyvinyl Butyral
-  category: FFF
   description: Easy to print and can be chemically smoothed with isopropyl alcohol for a glossy finish.
+  default_properties:
+    density: 1.10
+    min_print_temperature: 200
+    max_print_temperature: 225
+    preheat_temperature: 160
+    min_bed_temperature: 60
+    max_bed_temperature: 75
+    heatbreak_temperature: 50
+    chamber_temperature: 25
+    min_chamber_temperature: 15
+    max_chamber_temperature: 45
+    drying_temperature: 55
+    drying_time: 360
 
 - key: 20
   abbreviation: PVA
   name: Polyvinyl Alcohol
-  category: FFF
   description: A water-soluble filament used exclusively as a support material for complex prints.
 
 - key: 21
   abbreviation: PEKK
   name: Polyetherketoneketone
-  category: FFF
   description: An ultra-high-performance polymer with exceptional heat, chemical, and mechanical properties for industrial use.
 
 - key: 22
   abbreviation: PEEK
   name: Polyether Ether Ketone
-  category: FFF
   description: An ultra-high-performance polymer with exceptional mechanical, thermal, and chemical resistance. Used in demanding aerospace, medical, and industrial applications.
 
 - key: 23
   abbreviation: BVOH
   name: Butenediol Vinyl Alcohol Copolymer
-  category: FFF
   description: A water-soluble support material that often dissolves faster and is easier to print than PVA.
 
 - key: 24
   abbreviation: TPC
   name: Thermoplastic Copolyester
-  category: FFF
   description: A flexible, TPE-like material with good thermal and chemical resistance.
 
 - key: 25
   abbreviation: PPS
   name: Polyphenylene Sulfide
-  category: FFF
   description: A high-performance polymer known for its thermal stability and chemical resistance, often used in automotive and electronics.
 
 - key: 26
   abbreviation: PPSU
   name: Polyphenylsulfone
-  category: FFF
   description: A high-performance material with excellent heat and chemical resistance, often used in medical applications.
 
 - key: 27
   abbreviation: PVC
   name: Polyvinyl Chloride
-  category: FFF
   description: Strong and durable but rarely used in 3D printing due to the release of toxic fumes.
 
 - key: 28
   abbreviation: PEBA
   name: Polyether Block Amide
-  category: FFF
   description: A flexible and lightweight TPE known for its excellent energy return, used in sports equipment.
 
 - key: 29
   abbreviation: PVDF
   name: Polyvinylidene Fluoride
-  category: FFF
   description: High-performance polymer with excellent resistance to chemicals and UV light.
 
 - key: 30
   abbreviation: PPA
   name: Polyphthalamide
-  category: FFF
   description: A high-performance Nylon with superior strength, stiffness, and heat resistance compared to standard Nylons.
 
 - key: 31
   abbreviation: PCL
   name: Polycaprolactone
-  category: FFF
   description: A biodegradable polyester with a very low melting point (~60 °C), allowing it to be reshaped by hand in hot water.
 
 - key: 32
   abbreviation: PES
   name: Polyethersulfone
-  category: FFF
   description: A high-temperature, amorphous polymer with good chemical and hydrolytic stability.
 
 - key: 33
   abbreviation: PMMA
   name: Polymethyl Methacrylate
-  category: FFF
   description: A rigid, transparent material also known as acrylic. Offers good optical clarity.
 
 - key: 34
   abbreviation: POM
   name: Polyoxymethylene
-  category: FFF
   description: A low-friction, rigid material also known as Delrin. Excellent for gears, bearings, and moving parts.
 
 - key: 35
   abbreviation: PPE
   name: Polyphenylene Ether
-  category: FFF
   description: An engineering thermoplastic with good temperature resistance and dimensional stability, often used in blends.
 
 - key: 36
   abbreviation: PS
   name: Polystyrene
-  category: FFF
   description: A lightweight and brittle material. Not commonly used in its pure form for 3D printing.
 
 - key: 37
   abbreviation: PSU
   name: Polysulfone
-  category: FFF
   description: A high-temperature material with good thermal stability and chemical resistance.
 
 - key: 38
   abbreviation: TPI
   name: Thermoplastic Polyimide
-  category: FFF
   description: An ultra-high-performance polymer with one of the highest glass transition temperatures and excellent thermal stability.
 
 - key: 39
   abbreviation: SBS
   name: Styrene-Butadiene-Styrene
-  category: FFF
   description: A flexible, rubber-like material (a type of TPE) known for good durability. It is relatively easy to print for a flexible filament.
+
+- key: 40
+  abbreviation: OBC
+  name: Olefin Block Copolymer
+  description: A lightweight flexible material that has good dimensional stability and is weather, UV, and chemical resistant.
+
+- key: 41
+  abbreviation: EVA
+  name: Ethylene Vinyl Acetate
+  description: A flexible, soft material with rubber-like properties, known for its toughness and resistance to UV radiation and stress cracking.

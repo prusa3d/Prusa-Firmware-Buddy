@@ -31,3 +31,38 @@
   description:
     - Timestamp when the resin was last stirred.
     - Resins that have not been used for some time should be stirred before printing.
+
+- key: 4
+  name: storage_location
+  type: string
+  example: Shelf B3
+  max_length: 8
+  description:
+    - Free-form identifier for the physical storage location of the container.
+    - Intended for inventory management workflows (e.g. "Shelf B3", "DB2/S4").
+
+- key: 5
+  name: purchase_time
+  type: timestamp
+  category: user_data
+  description:
+    - Timestamp when the material package was purchased by the customer.
+    - Not filled by the manufacturer, for customer private tracking only.
+
+- key: 6
+  name: purchase_price
+  type: number
+  category: user_data
+  description:
+    - Amount (of `purchase_currency`) the user paid for the material package.
+    - Not filled by the manufacturer, for customer private tracking only.
+
+- key: 7
+  name: purchase_currency
+  type: string
+  max_length: 3
+  category: user_data
+  description:
+    - Currency of `purchase_price`.
+    - Alphabetic code according to [ISO 4271](https://en.wikipedia.org/wiki/ISO_4217).
+    - Not filled by the manufacturer, for customer private tracking only.

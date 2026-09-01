@@ -6,7 +6,7 @@ data:
     material_name: PLA Galaxy Black
     brand_specific_material_id: 1
     tags: [glitter]
-    primary_color: [0x3D, 0x3E, 0x3D]
+    primary_color: "#3d3e3d"
     manufactured_date: 1739371290
     nominal_netto_full_weight: 1000
     actual_netto_full_weight: 1012

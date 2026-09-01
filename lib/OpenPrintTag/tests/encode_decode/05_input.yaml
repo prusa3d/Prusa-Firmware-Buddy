@@ -1,0 +1,18 @@
+test_config:
+  extra_required_fields: null
+data:
+  main:
+    material_class: FFF
+
+    # Test unknown enum items
+    tags:
+      - glitter
+      - 9429
+
+unknown_fields:
+  main:
+    # 27 (= transmission distance): 5.1
+    "181b": "fb4014666666666666"
+
+    # 65535 (invalid value): "test"
+    "19ffff": "6474657374"

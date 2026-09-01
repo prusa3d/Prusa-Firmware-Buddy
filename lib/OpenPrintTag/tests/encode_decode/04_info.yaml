@@ -4,17 +4,49 @@ regions:
     absolute_offset: 56
     size: 4
     used_size: 4
+    field_used_size:
+      aux_region_offset: 3
   main:
     payload_offset: 4
     absolute_offset: 60
     size: 216
     used_size: 148
+    field_used_size:
+      material_class: 2
+      material_type: 2
+      material_name: 28
+      brand_name: 9
+      manufactured_date: 6
+      nominal_netto_full_weight: 4
+      actual_netto_full_weight: 4
+      empty_container_weight: 4
+      primary_color: 5
+      tags: 9
+      density: 5
+      min_print_temperature: 5
+      max_print_temperature: 5
+      min_bed_temperature: 4
+      max_bed_temperature: 4
+      min_chamber_temperature: 4
+      max_chamber_temperature: 4
+      chamber_temperature: 4
+      container_width: 4
+      container_outer_diameter: 4
+      container_inner_diameter: 4
+      container_hole_diameter: 4
+      material_abbreviation: 10
+      actual_full_length: 7
+      min_nozzle_diameter_v2: 5
   aux:
     payload_offset: 220
     absolute_offset: 276
     size: 35
     used_size: 1
+    field_used_size: {}
 root:
+  cc_capacity: 312
+  ndef_tlv_payload_start: 8
+  ndef_tlv_payload_size: 303
   data_size: 312
   payload_size: 255
   overhead: 57
@@ -32,14 +64,12 @@ data:
     nominal_netto_full_weight: 750
     actual_netto_full_weight: 756
     empty_container_weight: 310
-    primary_color:
-      hex: '303030'
+    primary_color: '#303030'
     tags:
     - abrasive
     - contains_carbon_fiber
     - contains_carbon
     density: 1.39
-    min_nozzle_diameter: 0.4
     min_print_temperature: 360
     max_print_temperature: 390
     min_bed_temperature: 120
@@ -53,18 +83,23 @@ data:
     container_hole_diameter: 53
     material_abbreviation: PEKK-CF
     actual_full_length: 226000
+    min_nozzle_diameter_v2: 400
   aux: {}
 raw_data:
   meta: a10218dc
-  main: bf080009150a7819436172626f6e582050454b4b2d412b4346313520426c61636b0b67334458546563680e1a690c5d9b101902ee111902f4121901361343303030181c9f04181f181eff181df93d8f1821f9366618221901681823190186182518781826188c1827183c1828188c1829185a182a183d182b18c6182c1864182d183518346750454b4b2d434618361a000372d0ff0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  main: bf080009150a7819436172626f6e582050454b4b2d412b4346313520426c61636b0b67334458546563680e1a690c5d9b101902ee111902f4121901361343303030181c9f04181f181eff181df93d8f18221901681823190186182518781826188c1827183c1828188c1829185a182a183d182b18c6182c1864182d183518346750454b4b2d434618361a000372d0183e190190ff0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   aux: a000000000000000000000000000000000000000000000000000000000000000000000
 uri: https://www.3dxtech.com/
-opt_check:
+validate:
   warnings:
   - Missing recommended field 'gtin'
+  - Missing recommended field 'nominal_full_length'
   - Missing recommended field 'preheat_temperature'
-  errors:
+  errors: []
+opt_check:
+  warnings:
   - Failed to deduce package_uuid
+  errors: []
   notes: []
   uuids:
     brand_uuid: 0d616a90-9d18-567b-92f9-ce471171f898

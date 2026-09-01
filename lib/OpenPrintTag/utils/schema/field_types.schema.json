@@ -1,0 +1,70 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "description": "JSON representations of the OpenPrintTag field types",
+    "definitions": {
+        "int": {
+            "type": "integer"
+        },
+        "number": {
+            "type": "number"
+        },
+        "string": {
+            "type": "string"
+        },
+        "enum": {
+            "anyOf": [
+                {
+                    "description": "Known enumeration value",
+                    "type": "string"
+                },
+                {
+                    "description": "Unknown enumeration value",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            ]
+        },
+        "enum_array": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/enum"
+            }
+        },
+        "uuid": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "timestamp": {
+            "description": "UNIX timestamp",
+            "type": "integer"
+        },
+        "color_rgba": {
+            "type": "string",
+            "description": "RGB(A) color in a standard hex notation '#RRGGBB(AA)'",
+            "pattern": "^#[0-9a-f]{6}([0-9a-f]{2})?$"
+        },
+        "color_lab": {
+            "type": "array",
+            "prefixItems": [
+                {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                },
+                {
+                    "type": "number",
+                    "minimum": -150,
+                    "maximum": 150
+                },
+                {
+                    "type": "number",
+                    "minimum": -150,
+                    "maximum": 150
+                }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+        }
+    }
+}

@@ -95,7 +95,15 @@
     - The material softens at higher temperatures than what is common for the material type, while keeping similar printing temperatures.
     - Can be used for HTPLA filament while keeping the PLA material type.
     - This does NOT indicate increase resistance to flame/burning.
-    - "**Note:** If the material type would be 'HTPLA', adding this tag would mean 'high-temperature variant of a high-temperature PLA'"
+    - "Note: If the material type would be 'HTPLA', adding this tag would mean 'high-temperature variant of a high-temperature PLA'."
+
+- key: 71
+  name: high_speed
+  category: physical
+  display_name: High speed
+  description:
+    - The material has been modified to allow higher printing speeds (than material type baseline).
+    - High speed materials have typically increased [Melt Flow Index](https://en.wikipedia.org/wiki/Melt_flow_index).
 
 # Electrical properties
 # ========================================
@@ -170,26 +178,30 @@
   category: visual
   display_name: Matte
   description:
-    - Produces matte, non-shiny surface (very low specular reflection coefficient).
+    - Contains additives that increase the mattness of the material.
+    - Matte materials produce non-shiny surface (very low specular reflection coefficient).
+    - This is relative to the material type baseline – for example PETG with the `matte` tag will possibly have similar mattness as a standard PLA.
 
 - key: 17
   name: silk
   category: visual
   display_name: Silk
   description:
-    - Produces smooth, shiny/glossy surface (higher specular reflection coefficient).
+    - Contains additives that increase the glossiness of the material.
+    - Silk materials produce smooth, shiny/glossy surface (higher specular reflection coefficient).
+    - This is relative to the material type baseline – for example PLA with the `silk` tag will possibly have similar gloss as a standard PETG.
 
 - key: 18
   deprecated: true
-
 
 - key: 19
   name: translucent
   category: visual
   display_name: Translucent
   description:
-   - Not fully opaque – [HueForge TD](https://shop.thehueforge.com/blogs/news/what-is-hueforge) >= `X` (exact `X` will be determined later).
-   - The material with this tag can possibly disperse light, meaning that while the light goes through it, the image is "blurred" and one does not see clearly what's on the other side. See the `transparent` tag.
+    - Not fully opaque – [HueForge TD](https://shop.thehueforge.com/blogs/news/what-is-hueforge) > 1.
+    - "Note: TD threshold based on a common wall thickness of prints of 1 mm."
+    - The material with this tag can possibly disperse light, meaning that while the light goes through it, the image is "blurred" and one does not see clearly what's on the other side. See the `transparent` tag.
 
 - key: 20
   name: transparent
@@ -310,6 +322,15 @@
   implies: [contains_carbon]
   description:
     - Contains carbon nano tubes.
+    - "Note: The name 'nano tubes' describes the diameter, but the tubes are typically several micrometers long, so this tag actually implies 'particles_micro'."
+
+- key: 72
+  name: contains_graphene
+  category: additives_other
+  display_name: Contains graphene
+  implies: [contains_carbon]
+  description:
+    - Contains graphene.
 
 - key: 33
   name: contains_glass

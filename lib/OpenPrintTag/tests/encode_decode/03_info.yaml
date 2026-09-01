@@ -13,13 +13,13 @@ regions:
     payload_offset: 234
     absolute_offset: 276
     size: 35
-    used_size: 1
+    used_size: 14
 root:
   data_size: 312
   payload_size: 269
   overhead: 43
-  payload_used_size: 130
-  total_used_size: 173
+  payload_used_size: 143
+  total_used_size: 186
 data:
   meta:
     aux_region_offset: 234
@@ -33,8 +33,7 @@ data:
     nominal_netto_full_weight: 1000
     actual_netto_full_weight: 1050
     empty_container_weight: 280
-    primary_color:
-      hex: 24292a
+    primary_color: '#24292a'
     tags: []
     density: 1.27
     min_print_temperature: 240
@@ -49,15 +48,20 @@ data:
     container_outer_diameter: 200
     container_inner_diameter: 100
     container_hole_diameter: 210
-  aux: {}
+  aux:
+    consumed_weight: 444
+    workgroup: myhome
 raw_data:
   meta: a10218ea
   main: bf041b000007d0fcab465c056a37616232616362353039080009010a6e50455447204a657420426c61636b0e1a68c01ae7101903e81119041a12190118134324292a181c9fff181df93d14182218f0182318d2182419012c182518461826185a1827185a1828183c18291823182a1840182b18c8182c1864182d18d2ff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-  aux: a000000000000000000000000000000000000000000000000000000000000000000000
+  aux: bf001901bc01666d79686f6d65ff000000000000000000000000000000000000000000
 uri: null
 opt_check:
   warnings:
   - Missing recommended field 'brand_name'
+  - Failed to deduce brand_uuid
+  - Failed to deduce material_uuid
+  - Failed to deduce package_uuid
   errors:
   - 'Fields preheat_temperature (300), min_print_temperature (240): a <= b'
   - 'Fields preheat_temperature (300), max_print_temperature (210): a <= b'
@@ -66,9 +70,6 @@ opt_check:
   - 'Fields min_chamber_temperature (90), max_chamber_temperature (60): a <= b'
   - 'Fields container_hole_diameter (210), container_inner_diameter (100): a <= b'
   - 'Fields container_hole_diameter (210), container_outer_diameter (200): a <= b'
-  - Failed to deduce brand_uuid
-  - Failed to deduce material_uuid
-  - Failed to deduce package_uuid
   notes: []
   uuids:
     brand_uuid: null

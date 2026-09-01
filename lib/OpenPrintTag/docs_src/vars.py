@@ -1,6 +1,8 @@
 import os
 
-repo = "https://github.com/prusa3d/OpenPrintTag"
+arch = "https://arch.openprinttag.org"
+
+repo = "https://github.com/OpenPrintTag/openprinttag-specification"
 dir = os.path.dirname(__file__)
 root_dir = f"{dir}/.."
 out_dir = f"{root_dir}/docs"

@@ -4,17 +4,49 @@ regions:
     absolute_offset: 66
     size: 4
     used_size: 4
+    field_used_size:
+      aux_region_offset: 3
   main:
     payload_offset: 4
     absolute_offset: 70
     size: 206
     used_size: 135
+    field_used_size:
+      gtin: 10
+      brand_specific_instance_id: 12
+      material_class: 2
+      material_type: 2
+      material_name: 16
+      brand_name: 11
+      manufactured_date: 6
+      nominal_netto_full_weight: 4
+      actual_netto_full_weight: 4
+      empty_container_weight: 4
+      primary_color: 5
+      tags: 4
+      density: 5
+      min_print_temperature: 4
+      max_print_temperature: 5
+      preheat_temperature: 4
+      min_bed_temperature: 4
+      max_bed_temperature: 4
+      min_chamber_temperature: 3
+      max_chamber_temperature: 4
+      chamber_temperature: 4
+      container_width: 4
+      container_outer_diameter: 4
+      container_inner_diameter: 4
+      container_hole_diameter: 4
   aux:
     payload_offset: 210
     absolute_offset: 276
     size: 35
     used_size: 1
+    field_used_size: {}
 root:
+  cc_capacity: 312
+  ndef_tlv_payload_start: 8
+  ndef_tlv_payload_size: 303
   data_size: 312
   payload_size: 245
   overhead: 67
@@ -34,8 +66,7 @@ data:
     nominal_netto_full_weight: 1000
     actual_netto_full_weight: 1050
     empty_container_weight: 280
-    primary_color:
-      hex: 24292a
+    primary_color: '#24292a'
     tags: []
     density: 1.27
     min_print_temperature: 240
@@ -56,6 +87,11 @@ raw_data:
   main: bf041b000007d0fcab465c056a37616232616362353039080009010a6e50455447204a657420426c61636b0b6950727573616d656e740e1a68c01ae7101903e81119041a12190118134324292a181c9fff181df93d14182218f01823190104182418aa182518461826185a1827121828183c18291823182a1840182b18c8182c1864182d1834ff0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   aux: a000000000000000000000000000000000000000000000000000000000000000000000
 uri: https://3dtag.org/s/7ab2acb509
+validate:
+  warnings:
+  - Missing recommended field 'nominal_full_length'
+  - Missing recommended field 'actual_full_length'
+  errors: []
 opt_check:
   warnings: []
   errors: []

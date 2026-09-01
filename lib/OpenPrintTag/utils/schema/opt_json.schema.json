@@ -1,0 +1,41 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "OpenPrintTag JSON representation",
+    "description": "Decoded JSON/YAML representation of the binary data stored on an OpenPrintTag",
+    "type": "object",
+    "properties": {
+        "data": {
+            "description": "Decoded data on regions of the tag",
+            "$ref": "fields.schema.json",
+            "unevaluatedProperties": false
+        },
+        "unknown_fields": {
+            "description": "Fields that are not in the specification - specification mandates to preserve them. Kept as a key-value binary hex strings.",
+            "properties": {
+                "meta": {
+                    "$ref": "#/definitions/unknown_fields_region"
+                },
+                "main": {
+                    "$ref": "#/definitions/unknown_fields_region"
+                },
+                "aux": {
+                    "$ref": "#/definitions/unknown_fields_region"
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "definitions": {
+        "unknown_fields_region": {
+            "type": "object",
+            "patternProperties": {
+                "^([0-9a-f]{2})+$": {
+                    "description": "Both key and value are raw CBOR data (of the respective CBOR map key and value) encoded as a hex string.",
+                    "type": "string",
+                    "pattern": "^([0-9a-f]{2})+$"
+                }
+            },
+            "unevaluatedProperties": false
+        }
+    }
+}

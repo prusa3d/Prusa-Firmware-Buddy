@@ -10,8 +10,7 @@ data:
     brand_name: 3DXTech
     material_name: CarbonX PEKK-A+CF15 Black
     material_abbreviation: PEKK-CF
-    primary_color:
-      hex: "303030"
+    primary_color: "#303030"
     tags: [abrasive, contains_carbon_fiber, contains_carbon]
     density: 1.39
 
@@ -26,7 +25,7 @@ data:
     # country_of_origin: US
 
     # Printing parameters
-    min_nozzle_diameter: 0.4
+    min_nozzle_diameter_v2: 400
     min_print_temperature: 360
     max_print_temperature: 390
     min_bed_temperature: 120

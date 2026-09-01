@@ -1,8 +1,60 @@
 # Physical specification
-This document describes the requirements imposed by the OpenPrintTag standard on the physical tag itself, its mechanical and electrical properties. Currently, the **OpenPrintTag standard supports only the reference `OpenPrintTag MK1` tag**. A more generic specification, allowing deviations from the exact reference design and including NFC reader parameters, **will be released later**.
+This document describes the requirements imposed by the OpenPrintTag standard on the physical tag itself, its mechanical and electrical properties. Currently, the **OpenPrintTag standard supports only the reference `OpenPrintTag MK1` tag**. A more generic specification, allowing deviations from the exact reference design, **will be released later**.
+
+## Reader specification
+To comply with the OpenPrintTag standard, a NFC reader SHALL meet the following parameters. Meeting the parameters is necessary to ensure readability for various tag attachment positions and spool sizes supported by the standard.
+<table>
+<tr>
+<th>Parameter</th>
+<th>Min</th>
+<th>Typical</th>
+<th>Max</th>
+<th>Unit</th>
+</tr>
+<tr>
+<tr>
+<td>Communication protocol</td>
+<td colspan="4">ISO/IEC 15693-3 (NFC-V)</td>
+</tr>
+<tr>
+<td>Antenna shape</td>
+<td colspan="4">Circular</td>
+</tr>
+<tr>
+<td>Antenna diameter (Ø)</td>
+<td align="right">72</td>
+<td align="right">75</td>
+<td align="right">80</td>
+<td>mm</td>
+</tr>
+<tr>
+<td>RF output power</td>
+<td align="right"></td>
+<td align="right">1</td>
+<td align="right">1.6</td>
+<td>W</td>
+</tr>
+<tr>
+<td>Resonant frequency</td>
+<td align="right">13.553</td>
+<td align="right">13.56</td>
+<td align="right">13.567</td>
+<td>MHz</td>
+</tr>
+</table>
+
+1. The reader antenna SHALL be installed to be parallel with the side of the mounted spool.
+1. The reader antenna SHALL be installed to be concentric with the mounted spool with maximum 5 cm of allowed eccentricity.
+    1. _Note: If the spools are mounted using a pole going through the spool center hole, there will be eccentricity introduced by the difference of the rod and the spool hole diameters._
+    1. _Note: If the spools are laid on rollers, there will be eccentricity introduced by different outer diameters of the spools._
+1. The reader antenna SHOULD be installed to be as close to the filament spool as possible.
+1. The reader antenna SHOULD be installed in a sufficient distance from components (such as large metal parts or NFC tags not intended to be read by the reader) that can drain energy from the magnetic field.
+    1. _Note: This needs to be experimentally verified for every installation scenario._
+
+<img src="media/antenna_placement.svg" style="max-width: 512px;">
 
 ## Reference `OpenPrintTag MK1` tag
-`OpenPrintTag MK1` is a passive paper-label NFC tag with an embedded coil and NFC integrated circuit, compliant with the ISO/IEC 15693 vicinity-RFID standard (13.56 MHz).
+`OpenPrintTag MK1` is a passive paper-label NFC tag with an embedded antenna and NFC integrated circuit, compliant with the ISO/IEC 15693 vicinity-RFID standard (13.56 MHz).
 
 <a href="media/tag_mk1.pdf">Technical drawing</a>
 
@@ -48,14 +100,14 @@ This document describes the requirements imposed by the OpenPrintTag standard on
 <td>mm</td>
 </tr>
 <tr>
-<td>Coil outer diameter (Ø)</td>
+<td>Antenna outer diameter (Ø)</td>
 <td align="right">78.6</td>
 <td align="right">79.1</td>
 <td align="right">79.6</td>
 <td>mm</td>
 </tr>
 <tr>
-<td>Coil loop inner diameter (Ø)</td>
+<td>Antenna inner diameter (Ø)</td>
 <td align="right">73.5</td>
 <td align="right">74</td>
 <td align="right">74.5</td>
@@ -180,7 +232,7 @@ This document describes the requirements imposed by the OpenPrintTag standard on
 <td>MHz</td>
 </tr>
 <tr>
-<td>Coil type</td>
+<td>Antenna type</td>
 <td colspan="4">Printed coil</td>
 </tr>
 <tr>
@@ -191,21 +243,21 @@ This document describes the requirements imposed by the OpenPrintTag standard on
 <td></td>
 </tr>
 <tr>
-<td>Coil inductance at 13.56 MHz</td>
+<td>Antenna inductance at 13.56 MHz</td>
 <td align="right">TBD</td>
 <td align="right">6.91</td>
 <td align="right">TBD</td>
 <td>μH</td>
 </tr>
 <tr>
-<td>Coil DC resistance</td>
+<td>Antenna DC resistance</td>
 <td align="right">TBD</td>
 <td align="right">4.565</td>
 <td align="right">TBD</td>
 <td>Ohm</td>
 </tr>
 <tr>
-<td>Minimum operating voltage on unloaded coil</td>
+<td>Minimum operating voltage on unloaded antenna</td>
 <td align="right">1</td>
 <td align="right">1.1</td>
 <td align="right">1.3</td>

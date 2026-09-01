@@ -85,7 +85,7 @@
 - key: 10
   name: material_name
   type: string
-  max_length: 31
+  max_length: 63
   example: PC Blend Carbon Fiber Black
   required: recommended
   description:
@@ -154,10 +154,11 @@
   description:
     - Actual weight of the full package of the material of this specific package instance, excluding the weight of the container.
     - Can slightly differ from `nominal_netto_full_weight`.
-    - If not present, it is assumed to match `nominal_netto_full_weight`.
+    - If not present, `nominal_netto_full_weight` SHALL be used as a fallback.
 
 - key: 53
   name: nominal_full_length
+  required: recommended
   category: fff
   type: number
   unit: mm
@@ -168,13 +169,15 @@
 
 - key: 54
   name: actual_full_length
+  required: recommended
   category: fff
   type: number
   unit: mm
   example: 351000
   description:
     - Actual filament length of the full spool.
-    - Can slightly differ from `netto_full_length`.
+    - Can slightly differ from `nominal_full_length`.
+    - If not present, `nominal_full_length` SHALL be used as a fallback.
 
 - key: 18
   name: empty_container_weight
@@ -192,6 +195,28 @@
     - Primary color of the material in the RGB(A) format, intended for UI purposes.
     - The alpha channel can be left out, in which case the data should have 3 bytes instead of 4 and the color will be considered fully opaque.
     - If a material doesn't have a single primary color (for example rainbow or coextruded filaments), this field can be null.
+
+- key: 59
+  name: primary_color_lab
+  type: color_lab
+  unit: '[L*, a*, b*]'
+  example: '[53.24, 111.12, -27.3]'
+  description:
+    - "Color of a material in the device-independent CIE L*a*b* (CIELAB 1976) color space with reference white D65/2\xB0."
+    - If present, the value MUST be obtained by physical spectrometry measurement; it MUST NOT be approximated (for example from RGB).
+    - "`L*` is bound to [0, 100], `a*` and `b*` values are dimensionless and are typically between \xB1127, but can theoretically get in the \xB1150 range."
+
+- key: 60
+  name: primary_color_ral
+  type: string
+  unit: RAL code
+  max_length: 16
+  example: 270 30 20
+  description:
+    - RAL color identifier, without the "RAL" prefix.
+    - The value MUST correspond exactly to an official identifier (see https://www.ral-farben.de/en/all-ral-colours).
+    - If present, the physical material MUST match the referenced RAL swatch; it MUST NOT be approximated (for example from RGB/LAB).
+    - 'Examples of valid values: `3020`, `9005`, `1023`, `7016`, `270 30 20`, `190 50 35`, `530-1`, `850-M`, `P1 3020`.'
 
 - key: 20
   name: secondary_color_0
@@ -261,47 +286,53 @@
   required: recommended
   description: Density of the material.
 
-- key: 30
-  name: filament_diameter
-  type: number
-  unit: mm
-  example: 2.75
+# Removed 30 - filament_diameter, which expressed the diameter in mm.
+# Replaced by filament_diameter_v2 (key 61) using µm, to match the architecture
+
+- key: 61
+  name: filament_diameter_v2
+  type: int
+  unit: µm
+  example: 2850
   category: fff
   description:
-    - Diameter of the filament, in mm.
-    - If not present, 1.75 mm is assumed.
+    - Diameter of the filament, in µm.
+    - If not present, 1750 µm is assumed.
+    - "**Note:** Replaces the removed key 30 (`filament_diameter`), which was in mm."
 
 # Removed 18
 
 # Removed 19
 
 - key: 31
-  name: shore_hardness_a
+  name: hardness_shore_a
   type: int
   example: 95
-  category: fff
   description:
     - Hardness of the material on the Shore A hardness scale (suitable for softer materials).
     - "**Note:** There is no 1:1 mapping between A and D scales, different materials can have different values on one scale even though they are the same on the other."
 
 - key: 32
-  name: shore_hardness_d
+  name: hardness_shore_d
   type: int
   example: 30
-  category: fff
   description:
     - Hardness of the material on the Shore D hardness scale (suitable for harder materials).
     - "**Note:** There is no 1:1 mapping between A and D scales, different materials can have different values on one scale even though they are the same on the other."
 
-- key: 33
-  name: min_nozzle_diameter
-  type: number
-  example: 0.4
-  unit: mm
+# Removed 33 - min_nozzle_diameter, which expressed the diameter in mm.
+# Replaced by min_nozzle_diameter_v2 (key 62) using µm, to match the architecture
+
+- key: 62
+  name: min_nozzle_diameter_v2
+  type: int
+  unit: µm
+  example: 400
   category: fff
   description:
     - Filaments can contain particles that would clog smaller nozzles.
-    - This field specifies minimum nozzle diameter recommended for printing this material.
+    - This field specifies minimum nozzle diameter recommended for printing this material, in µm.
+    - "**Note:** Replaces the removed key 33 (`min_nozzle_diameter`), which was in mm."
 
 - key: 34
   name: min_print_temperature
@@ -464,3 +495,23 @@
   category: sla
   description:
     - Wavelength of the light the material has been designed to be cured with.
+
+- key: 57
+  name: drying_temperature
+  type: int
+  unit: °C
+  example: 45
+  category: fff
+  description:
+    - Recommended ambient temperature for drying.
+
+- key: 58
+  name: drying_time
+  type: int
+  unit: min
+  example: 480
+  category: fff
+  description:
+    - Recommended drying time (at `drying_temperature`).
+
+# First unused key: 63

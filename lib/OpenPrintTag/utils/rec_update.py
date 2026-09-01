@@ -23,6 +23,7 @@ for region_name, region in record.regions.items():
     region.update(
         update_fields=update_data.get("data", dict()).get(region_name, dict()),
         remove_fields=update_data.get("remove", dict()).get(region_name, dict()),
+        update_unknown_fields=update_data.get("unknown_fields", dict()).get(region_name, dict()),
         clear=args.clear,
     )
 

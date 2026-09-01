@@ -121,6 +121,7 @@ env.globals["show_file"] = show_file
 
 # Other variables
 env.globals["repo"] = repo
+env.globals["arch"] = arch
 
 
 # Generate documentation files

@@ -2,7 +2,7 @@
 The OpenPrintTag specification comes with [a set of utilities written in Python]({{repo}}/tree/main/utils) that serve as a baseline/reference implementation.
 
 ## Reading a tag
-The `rec_info` utility can be used to parse data on the NFC tag into a YAML file that is readable by both humans and computers.
+The `rec_info` utility can be used to parse data on the NFC tag into a YAML file that is readable by both humans and computers. This format is intended to be standardized across all OpenPrintTag libraries and is defined in [opt_json.schema.json]({{repo}}/tree/main/utils/schema/opt_json.schema.json).
 {{ show_example("cat sample_data/sample_tag.bin | >rec_info.py --show-data --opt-check") }}
 
 ## Updating a tag
