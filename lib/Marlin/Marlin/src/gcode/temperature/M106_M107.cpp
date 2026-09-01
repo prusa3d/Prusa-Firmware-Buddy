@@ -22,6 +22,8 @@
 
 #include "../../inc/MarlinConfig.h"
 
+#include <cmath>
+
 #include <option/has_dwarf.h>
 #include <option/has_indx.h>
 #include <option/has_toolchanger.h>
@@ -60,17 +62,40 @@
 #endif
 
 /**
- * @brief Set fans that are not controlled by Marlin
+ * @brief Set the speed of a fan selected by the M106/M107 P index
  * @param fan Fan index (0-based)
  * @param tool tool number (0-based)
  * @param speed Fan speed (0-255)
  * @param set_auto true to set auto control
- * @return false to let Marlin process this fan as well, true to eat this G-code
  */
-static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> tool, uint8_t speed, bool set_auto) {
+static void set_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> tool, uint8_t speed, bool set_auto) {
     [[maybe_unused]] const auto pwm_or_auto = set_auto ? PWM255OrAuto(pwm_auto) : PWM255OrAuto(speed);
 
     switch (fan) {
+    case 0: {
+        // Print fan has no automatic control
+        if (set_auto) {
+            return;
+        }
+        uint16_t scaled_speed = speed;
+#if HAS_GCODE_COMPATIBILITY()
+        if (gcode.compatibility.mk4_compatibility_mode) {
+            scaled_speed = (scaled_speed * 7) / 10; // Converts speed to 70% of its value
+        }
+        if (gcode.compatibility.xl_compatibility_mode && scaled_speed != 0) {
+            // Interpolate PWM values in case XL gcode is executed on XLS printer
+            // 0 means off, so keep it off - no remapping
+            // Remapping explained in BFW-8540
+            // XLS fan has at 33% PWM the same airflow as GOM at 40% PWM
+            // XLS fan has at 60% PWM the same airflow as Delta at 100% PWM (Delta has a bit higher airflow than GOM)
+            // Clamping applied outside of 20% - 100% of the original value
+            scaled_speed = scale<uint32_t>(scaled_speed, 20 * 255 / 100, 100 * 255 / 100, 33 * 255 / 100, 60 * 255 / 100);
+        }
+#endif
+        thermalManager.set_print_fan_speed(scaled_speed);
+        return;
+    }
+
 #if HAS_TOOLCHANGER()
     case 1:
     #if HAS_DWARF()
@@ -85,13 +110,17 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
             }
         }
     #endif
-        return true; // Eat this G-code, heatbreak fan is not controlled by Marlin
+        return;
 #endif
 
 #if XL_ENCLOSURE_SUPPORT()
     case 3:
+        // Enclosure fan has no automatic control through M106
+        if (set_auto) {
+            return;
+        }
         Fans::enclosure().set_pwm(speed);
-        return true;
+        return;
 #endif
 
 #if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
@@ -99,11 +128,11 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
 
     case 3:
         buddy::xbuddy_extension().set_fan_target_pwm(XBE::Fan::cooling_fan_1, pwm_or_auto);
-        return true;
+        return;
 
     case 4:
         buddy::xbuddy_extension().set_fan_target_pwm(XBE::Fan::filtration_fan, pwm_or_auto);
-        return true;
+        return;
 #endif // XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
 
 #if HAS_BED_FAN()
@@ -120,15 +149,18 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
                 .pwm = speed,
             });
         }
-        return true;
+        return;
 #endif
 
 #if HAS_INDX()
     case 6:
         // Dock fan on the xBuddy NEXTRUDER print-fan pin (same controller as
-        // the C1 print fan).
+        // the C1 print fan). No automatic control.
+        if (set_auto) {
+            return;
+        }
         Fans::dock_fan().set_pwm(speed);
-        return true;
+        return;
 #endif
 
 #if HAS_CPU_FAN()
@@ -136,7 +168,7 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
         // CPU fan on the XLS sandwich board; on plain XL the pin is
         // unconnected, so the override is harmless there.
         cpu_fan_controller::set_target_pwm(pwm_or_auto);
-        return true;
+        return;
 #endif
 
 #if HAS_XL_CAN()
@@ -144,14 +176,12 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
         // Modular Bed cooling fan on the XL-CAN bridge (XLS only); applied by
         // the marlin_server loop, which no-ops when the bridge is absent.
         buddy::ModularBedFanControl::instance().set_pwm_override(pwm_or_auto);
-        return true;
+        return;
 #endif
 
     default:
         break;
     }
-
-    return false;
 }
 
 /** \addtogroup G-Codes
@@ -168,7 +198,7 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
  *
  *#### Parameters
  *
- * - `S` - Speed between 0-255
+ * - `S` - Speed between 0-255. Decimal values are accepted and rounded to the nearest integer
  * - `P` - Fan index, if more than one fan
  *     - `0` - Print fan
  *     - `1` - Heatbreak fan
@@ -179,10 +209,11 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
  *     - `6` - Dock fan (INDX only)
  *     - `7` - CPU fan (XLS only)
  *     - `8` - Modular Bed cooling fan (XLS only)
- * - `R` - Set the to auto control (if supported by the fan)
+ * - `R` - Set the fan to automatic control; takes precedence over `S` (fans without automatic control ignore the command)
  * - `T` - Select which tool if the same fan is on multiple tools, active_extruder if not specified
  * - `N` - Ramp function breakpoint PWM for chamber fan regulator (0-255, P3/P4 only). See description below.
  * - `G` - Proportional gain (ramp_slope) for chamber fan regulator (float, P3/P4 only). See description below.
+ * - `A` - Keep the current fan speed (M106 without an `S` value and without `R` leaves the fan unchanged)
  * - `A` - Maximum PWM for automatic bed fan control (0-255, P5 only)
  * - `B` - Bed temperature threshold for automatic control (°C, P5 only)
  * - `C` - Chamber temperature threshold for automatic control (°C, P5 only)
@@ -230,34 +261,12 @@ void GcodeSuite::M106() {
     const uint8_t p = parser.byteval('P', 0);
 
     const bool auto_control = parser.seen('R');
-    if (parser.seen('S') || parser.seen('A') || auto_control) {
-        const uint8_t speed = parser.byteval('S', 255);
+    // Without an S value or R there is nothing to change (A means "keep the current speed")
+    if (parser.seenval('S') || auto_control) {
+        const uint8_t speed = static_cast<uint8_t>(std::clamp(std::round(parser.floatval('S', 255.0f)), 0.0f, 255.0f));
 
         const std::optional<PhysicalToolIndex> tool = stdext::get_optional<PhysicalToolIndex>(get_target_physical_from_command());
-        if (set_special_fan_speed(p, tool, speed, auto_control)) {
-            // Done in the function
-
-        } else if (p == 0 /* print fan */) {
-            uint16_t d = parser.seen('A') ? thermalManager.print_fan_speed : 255;
-            uint16_t s = parser.ushortval('S', d);
-            NOMORE(s, 255U);
-#if HAS_GCODE_COMPATIBILITY()
-            if (gcode.compatibility.mk4_compatibility_mode) {
-                s = (s * 7) / 10; // Converts speed to 70% of its values
-            }
-            if (gcode.compatibility.xl_compatibility_mode && s != 0) {
-                // Interpolate PWM values in case XL gcode is executed on XLS printer
-                // 0 means off, so keep it off - no remapping
-                // Remapping explained in BFW-8540
-                // XLS fan has at 33% PWM the same airflow as GOM at 40% PWM
-                // XLS fan has at 60% PWM the same airflow as Delta at 100% PWM (Delta has a bit higher airflow than GOM)
-                // Clamping applied outside of 20% - 100% of the original value
-                s = scale<uint32_t>(s, 20 * 255 / 100, 100 * 255 / 100, 33 * 255 / 100, 60 * 255 / 100);
-            }
-#endif
-
-            thermalManager.set_print_fan_speed(s);
-        }
+        set_fan_speed(p, tool, speed, auto_control);
     }
 
     switch (p) {
@@ -301,13 +310,7 @@ void GcodeSuite::M107() {
     const uint8_t p = parser.byteval('P', 0);
 
     const std::optional<PhysicalToolIndex> tool = stdext::get_optional<PhysicalToolIndex>(get_target_physical_from_command());
-    if (set_special_fan_speed(p, tool, 0, false)) {
-        return;
-    }
-
-    if (p == 0 /* print fan */) {
-        thermalManager.set_print_fan_speed(0);
-    }
+    set_fan_speed(p, tool, 0, false);
 }
 
 /** @}*/
