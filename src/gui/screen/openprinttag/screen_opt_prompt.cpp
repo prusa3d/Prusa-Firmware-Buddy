@@ -6,8 +6,12 @@
 namespace buddy::openprinttag {
 
 [[nodiscard]] bool ScreenOPTPrompt::can_popup() {
-    // Don't bother the user while printing
-    return marlin_client::is_idle();
+
+    return
+        // Don't bother the user while printing
+        marlin_client::is_idle()
+        // Or when processing any gcode (especially during loads/unloads!)
+        && !marlin_vars().is_processing;
 }
 
 ScreenOPTPrompt::ScreenOPTPrompt(const char *title)

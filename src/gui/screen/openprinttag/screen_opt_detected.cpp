@@ -20,6 +20,16 @@ ScreenOPTDetected::ScreenOPTDetected(ToolTag tag)
 
     autoload_auto_assign_tool_tag_hash = tag.uid_hash();
 
+    if (
+        // Close straight away if the tag is no longer preset
+        ToolTag::for_tool_ephemeral(tag.tool()) != tag
+        // or if the tag has already been assigned
+        || ToolTag::for_tool_assigned(tag.tool()) == tag //
+    ) {
+        close_screen();
+        return;
+    }
+
     frame_.setup_tag(tag, [] {
         // If tag reading fails, just close the screen
         // This is also called on tag lost - in which case we close the screen and any dialog on top of it
