@@ -21,8 +21,10 @@ public:
 private:
     static constexpr auto RESPONSE_DURATION_EMA_WINDOW = 10;
 
-    // Threshold for considering a sync response duration anomalous - inaccurate
-    static constexpr auto RESPONSE_JITTER_THRESHOLD = 1.05f;
+    // Tolerated deviation of the sync response duration from its average.
+    // Bounds the scheduling jitter of the wire timestamps, which is absolute (RTOS wakeup latency)
+    // Relative are not appropriate: too tight on short windows, too loose on long ones.
+    static constexpr uint32_t RESPONSE_JITTER_TOLERANCE_US = 150;
 
     const uint8_t id;
 

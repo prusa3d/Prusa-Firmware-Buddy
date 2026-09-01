@@ -44,8 +44,8 @@ void TimeSync::sync(const uint32_t puppy_time_us, const RequestTiming timing) {
     } else {
         average_response_us = ((RESPONSE_DURATION_EMA_WINDOW - 1) * average_response_us + response_us) / RESPONSE_DURATION_EMA_WINDOW;
     }
-    if (response_us > average_response_us * RESPONSE_JITTER_THRESHOLD
-        || response_us * RESPONSE_JITTER_THRESHOLD < average_response_us) {
+    if (response_us > average_response_us + RESPONSE_JITTER_TOLERANCE_US
+        || response_us + RESPONSE_JITTER_TOLERANCE_US < average_response_us) {
         // Puppy processing and response frame duration are constant per request type,
         // so a scheduling delay shows up as a deviation of the response duration.
         // Discard such syncs as inaccurate.
