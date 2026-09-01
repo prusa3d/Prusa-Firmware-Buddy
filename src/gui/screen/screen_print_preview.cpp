@@ -83,12 +83,13 @@ public:
         radio.SetBtnCount(2);
         line.SetBackColor(COLOR_DARK_GRAY);
         parent->CaptureNormalWindow(radio);
-        //  this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
-        title.SetText(string_view_utf8::MakeRAM(GCodeInfo::getInstance().GetGcodeFilename()));
+        strlcpy(title_text.data(), GCodeInfo::getInstance().GetGcodeFilename(), title_text.size());
+        title.SetText(string_view_utf8::MakeRAM(title_text.data()));
         gcode_description.update(GCodeInfo::getInstance());
     }
 
 private:
+    std::array<char, filename_defs::filename_buffer_size> title_text;
     window_roll_text_t title;
     BasicWindow line;
     WindowPreviewThumbnail thumbnail; // draws preview image
