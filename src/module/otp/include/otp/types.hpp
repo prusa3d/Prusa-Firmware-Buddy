@@ -24,7 +24,7 @@ struct __attribute__((packed)) OTP_v0 {
 };
 
 // OTP_v1 is same as OTP_v0 read OTP_v0 description
-using OTP_v1 = OTP_v0;
+struct OTP_v1 : public OTP_v0 {};
 
 // v2 is used in loveboard
 // it is the same as v5
@@ -59,7 +59,7 @@ struct __attribute__((packed)) OTP_v4 {
 };
 
 // v5 is used in puppies, it is the same as v2
-using OTP_v5 = OTP_v2;
+struct OTP_v5 : public OTP_v2 {};
 
 using LoveBoardEeprom = OTP_v2;
 
