@@ -44,4 +44,25 @@ TEST_CASE("url decode", "[url]") {
         REQUIRE(url_decode(url, decoded_url, sizeof(decoded_url)));
         REQUIRE(strcmp(decoded_url, "") == 0);
     }
+
+    SECTION("bare percent at end of url") {
+        std::string url = "/a/v/f/file50%";
+        char decoded_url[url.size() + 1];
+        REQUIRE(url_decode(url, decoded_url, sizeof(decoded_url)));
+        REQUIRE(strcmp(decoded_url, "/a/v/f/file50%") == 0);
+    }
+
+    SECTION("bare percent followed by non-hex chars") {
+        std::string url = "/a/v/f/file50%.gcode";
+        char decoded_url[url.size() + 1];
+        REQUIRE(url_decode(url, decoded_url, sizeof(decoded_url)));
+        REQUIRE(strcmp(decoded_url, "/a/v/f/file50%.gcode") == 0);
+    }
+
+    SECTION("encoded percent decodes correctly") {
+        std::string url = "/a/v/f/file50%25.gcode";
+        char decoded_url[url.size() + 1];
+        REQUIRE(url_decode(url, decoded_url, sizeof(decoded_url)));
+        REQUIRE(strcmp(decoded_url, "/a/v/f/file50%.gcode") == 0);
+    }
 }
