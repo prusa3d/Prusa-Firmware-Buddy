@@ -393,6 +393,10 @@ void espif_input_once(struct netif *netif) {
         //        to be fixed later...
         log_warning(ESPIF, "Recovering from UART error");
 
+        // The abort below would kill an in-flight TX of another thread and
+        // its completion interrupt would never come, blocking it forever.
+        std::lock_guard write_lock { uart_write_mutex };
+
         __HAL_UART_DISABLE_IT(&uart_handle_for_esp, UART_IT_IDLE);
         auto enable_idle_iterrupt = ScopeGuard { [&] { __HAL_UART_ENABLE_IT(&uart_handle_for_esp, UART_IT_IDLE); } };
 
