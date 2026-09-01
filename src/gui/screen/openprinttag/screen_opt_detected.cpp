@@ -36,40 +36,44 @@ ScreenOPTDetected::ScreenOPTDetected(ToolTag tag)
         Screens::Access()->close_screen_and_dialog();
     });
 
-    frame_.setup_radio({ Response::Ok, Response::Load, Response::Details }, [this](Response r) {
-        switch (r) {
-
-        case Response::Ok:
-            close_screen();
-            break;
-
-        case Response::Load: {
-            if (FilamentType::for_tool(tag_.tool()) != FilamentType::none) {
-                StringViewUtf8Parameters<4> params;
-                if (MsgBoxWarning(_("Filament is already loaded to tool %i. Unload first?").formatted(params, tag_.tool().display_index()), { Response::Unload, Response::Cancel }) != Response::Unload) {
-                    return;
-                }
-
-                marlin_client::gcode_printf("M702 T%i", tag_.tool().to_raw());
-            }
-
-            marlin_client::gcode_printf("M701 W2 T%i G%i", tag_.tool().to_raw(), tag_.uid_hash());
-            close_screen();
-            break;
-        }
-
-        case Response::Details:
-            Screens::Access()->Open(screen_opt_info_ephemeral_creator(tag_.tool()));
-            break;
-
-        default:
-            bsod_unreachable();
-        }
-    });
+    frame_.radio().Change(PhaseResponses { Response::Ok, Response::Load, Response::Details });
+    frame_.radio().SetBtn(Response::Load);
+    frame_.radio().set_callback([this](Response r) { radio_callback(r); });
 }
 
 ScreenOPTDetected::~ScreenOPTDetected() {
     autoload_auto_assign_tool_tag_hash = ToolTag::no_tag_hash;
+}
+
+void ScreenOPTDetected::radio_callback(Response r) {
+    switch (r) {
+
+    case Response::Ok:
+        close_screen();
+        break;
+
+    case Response::Load: {
+        if (FilamentType::for_tool(tag_.tool()) != FilamentType::none) {
+            StringViewUtf8Parameters<4> params;
+            if (MsgBoxWarning(_("Filament is already loaded to tool %i. Unload first?").formatted(params, tag_.tool().display_index()), { Response::Unload, Response::Cancel }) != Response::Unload) {
+                return;
+            }
+
+            marlin_client::gcode_printf("M702 T%i", tag_.tool().to_raw());
+        }
+
+        marlin_client::gcode_printf("M701 W2 T%i G%i", tag_.tool().to_raw(), tag_.uid_hash());
+        close_screen();
+        break;
+    }
+
+    case Response::Details:
+        Screens::Access()->Open(screen_opt_info_ephemeral_creator(tag_.tool()));
+        break;
+
+    default:
+        bsod_unreachable();
+    }
 }
 
 } // namespace buddy::openprinttag

@@ -38,7 +38,10 @@ public:
 public:
     FrameOPTPrompt(window_frame_t *parent, const string_view_utf8 &title);
 
-    void setup_radio(PhaseResponses responses, const RadioCallback &callback);
+    inline auto &radio() {
+        return radio_;
+    }
+
     void setup_tag(std::optional<ToolTag> tag, const ErrorCallback &error_callback);
 
 protected:

@@ -110,12 +110,6 @@ FrameOPTPrompt::FrameOPTPrompt(window_frame_t *parent, const string_view_utf8 &t
     }
 }
 
-void FrameOPTPrompt::setup_radio(PhaseResponses responses, const RadioCallback &callback) {
-    radio_.Change(responses);
-    radio_.SetBtnIndex(0);
-    radio_.set_callback(callback);
-}
-
 void FrameOPTPrompt::setup_tag(std::optional<ToolTag> tag, const ErrorCallback &error_callback) {
     tag_ = tag;
     error_callback_ = error_callback;

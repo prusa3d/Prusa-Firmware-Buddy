@@ -323,9 +323,7 @@ public:
     FrameAskLoadOpenPrintTag(window_frame_t *parent)
         : FrameOPTPrompt(parent, _("Load from OpenPrintTag?")) {
 
-        setup_radio(responses, [](Response r) {
-            marlin_client::FSM_response(phase, r);
-        });
+        radio().set_fsm_and_phase(phase);
     }
 
     void update(const fsm::PhaseData &data) {

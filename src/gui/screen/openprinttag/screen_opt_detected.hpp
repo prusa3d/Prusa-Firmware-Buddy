@@ -16,6 +16,9 @@ public:
     ~ScreenOPTDetected();
 
 private:
+    void radio_callback(Response r);
+
+private:
     FrameOPTPrompt frame_;
 
 private:
