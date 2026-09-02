@@ -43,6 +43,7 @@
  * - `J"<preset>"` - Set base preset (empty "" = no base preset)
  *
  * - `N"<name>"` - Set name
+ * - `O"#<hex>"` - Set color
  *
  */
 void PrusaGcodeSuite::M865() {
@@ -74,6 +75,10 @@ void PrusaGcodeSuite::M865() {
 
     if (p.option<bool>('R').value_or(false)) {
         params = {};
+    }
+
+    if (auto c = p.option<Color>('O')) {
+        params.color = *c;
     }
 
     p.store_option_if_present('T', params.nozzle_temperature);
@@ -115,7 +120,7 @@ void PrusaGcodeSuite::M865() {
 
     static_assert(
         aggregate_arity<FilamentTypeParameters>()
-            == 7 // TODO COLOR
+            == 7
                 + HAS_FILAMENT_HEATBREAK_PARAM() * 1
                 + HAS_CHAMBER_API() * 3
                 + HAS_CHAMBER_FILTRATION_API() * 1
