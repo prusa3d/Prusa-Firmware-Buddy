@@ -1112,8 +1112,8 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
  */
     // Specify a park position as { X, Y, Z }
 #if HAS_INDX()
-    #define X_NOZZLE_CLEANER_ORIGIN 312.16f
-    #define Y_NOZZLE_CLEANER_ORIGIN 86.4f // master Y reference
+    #define X_NOZZLE_CLEANER_ORIGIN 310.325f // reference value from CAD
+    #define Y_NOZZLE_CLEANER_ORIGIN (Y_MAX_POS - 189.441f) // reference value from CAD
 
     // Cleaner geometry (wastebin, purge tray, wall, calibration points) is in nozzle_cleaner.hpp,
     // anchored to the origins above. The park point must stay here: Marlin's SanityCheck.h expands
