@@ -1029,9 +1029,9 @@
     #define Y_NOZZLE_PARK_POINT (Y_MAX_POS - 110.0f)
     #define Z_NOZZLE_PARK_POINT (20.0f)
 
-    /// Always park the bed at least this low, so the user can reach the print
-    /// and the purge left after auto_retract
-    #define Z_NOZZLE_PARK_POINT_MIN (Z_MAX_POS - 50.0f)
+    /// Always raise the nozzle by this amount when parking on print end
+    /// Give the user some space to remove the purge after auto_retract
+    #define Z_NOZZLE_PARK_POINT_MIN 40.0f
 
     #define Z_NOZZLE_PARK_RISE 20.0f // Relative Z rise
 
