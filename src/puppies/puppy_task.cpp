@@ -390,10 +390,15 @@ static void puppy_task_loop(PuppyModbus &bus) {
             }
 #endif
 #if HAS_ANFC()
-            if (AnfcModbusClient client { bus }; buddy::openprinttag::manager().step(client)) {
-                worked = true;
-            } else {
-                return;
+            {
+                AnfcModbusClient client { bus };
+                const CommunicationStatus status = buddy::openprinttag::manager().step(client);
+                if (status == CommunicationStatus::ERROR) {
+                    // ANFC communication failure is not an issue on this level
+                    // Retries are handled inside the manager
+                }
+
+                worked |= status == CommunicationStatus::OK;
             }
 #endif
 

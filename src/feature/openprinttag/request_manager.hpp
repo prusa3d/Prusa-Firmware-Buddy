@@ -1,6 +1,7 @@
 /// @file
 #pragma once
 
+#include <puppies/PuppyModbus.hpp>
 #include <anfc/modbus.hpp>
 #include <anfc/types.hpp>
 #include <array>
@@ -34,7 +35,7 @@ public:
     /// Step internal state machine.
     /// This may attempt communication on modbus, using provided client.
     /// Returns false on error.
-    [[nodiscard]] bool step(anfc::modbus::Client &);
+    [[nodiscard]] puppies::CommunicationStatus step(anfc::modbus::Client &);
 
     /// Register Request with the manager.
     /// You must call remove_request() before Request's destruction.
@@ -108,9 +109,9 @@ private:
         /// !!! Called while the mutex is not locked
         /// Intended for async work that doesn't need to have the mutex locked, such as reading from modbus
         /// However, the function can lock internally if it needs it
-        [[nodiscard]] bool poll_events_unlocked(anfc::modbus::Client &);
+        [[nodiscard]] puppies::CommunicationStatus poll_events_unlocked(anfc::modbus::Client &);
 
-        [[nodiscard]] bool step(anfc::modbus::Client &);
+        [[nodiscard]] puppies::CommunicationStatus step(anfc::modbus::Client &);
 
         /// @returns event id to accept
         [[nodiscard]] std::optional<uint16_t> handle_event(const anfc::modbus::Event &);
@@ -119,7 +120,7 @@ private:
         void on_tag_detected(TagID, TagUID);
         void on_tag_lost(TagID);
 
-        void forget_lost_tag(anfc::modbus::Client &);
+        [[nodiscard]] puppies::CommunicationStatus forget_lost_tag(anfc::modbus::Client &);
     };
     StrongIndexArray<DeviceState, VirtualToolIndex::count, VirtualToolIndex, VirtualToolIndex::to_raw_static> devices;
 
@@ -164,7 +165,7 @@ private:
     std::array<ActiveRequestEntry, max_active_requests> active_requests;
 
     void on_request_done(RequestID, Bytes);
-    void handle_pending_request(anfc::modbus::Client &);
+    [[nodiscard]] puppies::CommunicationStatus handle_pending_request(anfc::modbus::Client &);
     void check_timeouts();
     RequestID make_request_id();
     void add_request_nolock(Request &);
