@@ -80,6 +80,11 @@ public:
         return reinterpret_cast<const uint8_t *>(buffer_start_);
     }
 
+    constexpr inline std::string_view string_view() const {
+        debug_assert(is_ok());
+        return std::string_view { buffer_start_, char_count() };
+    }
+
 private:
     StringBuilder &finalize_append();
 
