@@ -7,6 +7,7 @@
 #include <feature/openprinttag/tool_tag.hpp>
 #include <modbus/traits.hpp>
 #include <mutex>
+#include <shared_mutex>
 #include <prusa3d/nfc/command/AcceptEvent_1_0.h>
 #include <prusa3d/nfc/command/Request_1_0.h>
 #include <prusa3d/nfc/event/Event_1_0.h>
@@ -375,8 +376,8 @@ void Manager::check_timeouts() {
     }
 }
 
-std::optional<Manager::TagUID> Manager::get_tag_uid_for_tool(VirtualToolIndex tool) {
-    std::lock_guard lock { mutex };
+std::optional<Manager::TagUID> Manager::get_tag_uid_for_tool(VirtualToolIndex tool) const {
+    std::shared_lock lock { mutex };
 
     const auto &device = devices[tool];
     if (auto *d = std::get_if<TagDetected>(&device.tag)) {
@@ -385,12 +386,12 @@ std::optional<Manager::TagUID> Manager::get_tag_uid_for_tool(VirtualToolIndex to
     return std::nullopt;
 }
 
-std::optional<Manager::TagDeviceInfo> Manager::get_tag_device_info(ToolTag tool_tag) {
-    std::lock_guard lock { mutex };
+std::optional<Manager::TagDeviceInfo> Manager::get_tag_device_info(ToolTag tool_tag) const {
+    std::shared_lock lock { mutex };
     return get_tag_device_info_nolock({}, tool_tag);
 }
 
-std::optional<Manager::TagDeviceInfo> Manager::get_tag_device_info_nolock(ManagerNoLockBadge, ToolTag tool_tag) {
+std::optional<Manager::TagDeviceInfo> Manager::get_tag_device_info_nolock(ManagerNoLockBadge, ToolTag tool_tag) const {
     const DeviceState &device = devices[tool_tag.tool()];
     auto *d = std::get_if<TagDetected>(&device.tag);
     if (d && d->tag_uid.hash() == tool_tag.uid_hash() && device.device) {

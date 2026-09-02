@@ -8,7 +8,7 @@
 #include <feature/openprinttag/detail/requests_base.hpp>
 #include <feature/openprinttag/detail/requests_util.hpp>
 #include <feature/openprinttag/tool_tag.hpp>
-#include <freertos/mutex.hpp>
+#include <common/freertos_shared_mutex.hpp>
 #include <openprinttag/opt_reader.hpp>
 #include <optional>
 #include <tool_index.hpp>
@@ -53,7 +53,7 @@ public:
     };
 
     /// Return TagUID detected on given tool, if any.
-    std::optional<TagUID> get_tag_uid_for_tool(VirtualToolIndex);
+    std::optional<TagUID> get_tag_uid_for_tool(VirtualToolIndex) const;
 
     struct TagDeviceInfo {
         anfc::Device device;
@@ -61,16 +61,17 @@ public:
     };
 
     /// @returns Device-specific TagID for the given tag, if the device is currently tracking the tag
-    std::optional<TagDeviceInfo> get_tag_device_info(ToolTag tool_tag);
+    std::optional<TagDeviceInfo> get_tag_device_info(ToolTag tool_tag) const;
 
-    std::optional<TagDeviceInfo> get_tag_device_info_nolock(ManagerNoLockBadge, ToolTag tool_tag);
+    std::optional<TagDeviceInfo> get_tag_device_info_nolock(ManagerNoLockBadge, ToolTag tool_tag) const;
 
 private:
     /// Mutex guarding all the member variables of this Manager.
     /// Every public method of the Manager is required to obtain the lock or pass the ManagerNoLockBadge.
     /// No other method is allowed to obtain the lock.
     /// No method of Manager is allowed to call public method.
-    freertos::Mutex mutex;
+    /// Expected readers: marlin & gui
+    mutable freertos::SharedMutex mutex { 2 };
 
     /// Tag is not being tracked
     struct TagUnused {};
