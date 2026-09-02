@@ -491,10 +491,17 @@
  *   M204 P    Acceleration
  *   M204 R    Retract Acceleration
  *   M204 T    Travel Acceleration
+ *   M204 F    Max filament acceleration
  */
 #define DEFAULT_ACCELERATION 1800 // X, Y, Z and E acceleration for printing moves
 #define DEFAULT_RETRACT_ACCELERATION 1200 // E acceleration for retracts
 #define DEFAULT_TRAVEL_ACCELERATION 5000 // X, Y, Z acceleration for travel (non printing) moves
+// Max filament acceleration on print moves (mm/s^2 of filament), M204 F.
+// 0 disables the limit.
+// Pressure advance turns filament acceleration into a jump in extruder speed.
+// Found experimentally as the largest jump this printer's extruder motor
+// follows, rounded to a round number. Re-measure it for a different extruder.
+#define DEFAULT_MAX_FILAMENT_ACCELERATION 120
 
 //
 // Use Junction Deviation instead of traditional Jerk Limiting

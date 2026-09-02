@@ -231,6 +231,7 @@ void Planner::set_stealth_mode(bool set) {
 }
 
 uint32_t Planner::max_acceleration_msteps_per_s2[XYZE_N]; // (mini-steps/s^2) Derived from mm_per_s2
+float Planner::max_filament_acceleration_msteps_per_s2;       // (mini-steps/s^2) Derived from settings.max_filament_acceleration_mm_per_s2, 0 = disabled
 
 float Planner::mm_per_step[XYZE_N];           // (mm) Millimeters per step
 float Planner::mm_per_half_step[XYZE_N];      // (mm) Millimeters per half step
@@ -1538,6 +1539,11 @@ bool Planner::_populate_block(block_t * const block,
       block->nominal_speed *= speed_factor;
     }
 
+    // A print move: E advancing forward together with XY, which is where pressure
+    // advance is active and thus where the filament acceleration limit applies.
+    // de > 0 excludes retracts, wipe-while-retract included.
+    const bool is_print_e_move = e_msteps && de > 0 && (block->msteps.a || block->msteps.b);
+
     // Compute and limit the acceleration rate for the trapezoid generator.
     const float msteps_per_mm = block->mstep_event_count * inverse_millimeters;
     float accel;
@@ -1582,6 +1588,15 @@ bool Planner::_populate_block(block_t * const block,
         LIMIT_ACCEL_FLOAT(B_AXIS, 0);
         LIMIT_ACCEL_FLOAT(C_AXIS, 0);
         LIMIT_ACCEL_FLOAT(E_AXIS, ACCEL_IDX);
+      }
+
+      // Bounds the filament acceleration dq/dt, which is what keeps the pressure
+      // advance lead pulses executable while XY dynamics stay high.
+      if (is_print_e_move && max_filament_acceleration_msteps_per_s2 > 0.0f) {
+        const float comp = max_filament_acceleration_msteps_per_s2 * block->mstep_event_count;
+        if (accel * block->msteps.e > comp) {
+          accel = comp / static_cast<float>(block->msteps.e);
+        }
       }
     }
     #if ENABLED(S_CURVE_ACCELERATION)
@@ -1628,6 +1643,7 @@ bool Planner::_populate_block(block_t * const block,
 
       // Unit vector of previous path line segment
       static MachinePosXYZE prev_unit_vec;
+      static bool prev_is_print_e_move;
       MachinePosXYZE unit_vec = target_float - position_float;
 
       /**
@@ -1664,7 +1680,14 @@ bool Planner::_populate_block(block_t * const block,
           MachinePosXYZE junction_unit_vec = unit_vec - prev_unit_vec;
           normalize_junction_vector(junction_unit_vec);
 
-          const float junction_acceleration = limit_value_by_axis_maximum(block->acceleration, junction_unit_vec),
+          // Cap the E term of the cornering acceleration as well. A junction belongs
+          // to both blocks, so extrusion on either side of it bounds dq/dt here -
+          // notably a print move ending into a travel or a retract, where the flow
+          // drops to zero and pressure advance has to dump the accumulated pressure.
+          // In mm/s^2, since the junction math works in mm-domain unit vectors.
+          const float e_filament_accel_limit =
+              (is_print_e_move || prev_is_print_e_move) ? settings.max_filament_acceleration_mm_per_s2 : 0.0f;
+          const float junction_acceleration = limit_value_by_axis_maximum(block->acceleration, junction_unit_vec, e_filament_accel_limit),
                       sin_theta_d2 = SQRT(0.5f * (1.0f - junction_cos_theta)); // Trig half angle identity. Always positive.
 
           vmax_junction_sqr = (junction_acceleration * junction_deviation_mm * sin_theta_d2) / (1.0f - sin_theta_d2);
@@ -1704,6 +1727,7 @@ bool Planner::_populate_block(block_t * const block,
         vmax_junction_sqr = 0;
 
       prev_unit_vec = unit_vec;
+      prev_is_print_e_move = is_print_e_move;
 
     #endif
 
@@ -2426,6 +2450,10 @@ void Planner::refresh_acceleration_rates() {
     if (AXIS_CONDITION) NOLESS(highest_rate, static_cast<uint32_t>(max_acceleration_msteps_per_s2[i]));
   }
   cutoff_long = std::numeric_limits<uint32_t>::max() / highest_rate;
+  // In mini-steps/s^2 (0 stays 0 = disabled). Deliberately left out of the
+  // cutoff_long/highest_rate computation, since it is applied in float once per
+  // block.
+  max_filament_acceleration_msteps_per_s2 = settings.max_filament_acceleration_mm_per_s2 * settings.axis_msteps_per_mm[E_AXIS];
   #if HAS_LINEAR_E_JERK
     // #error dead code found by automatic analyses (see BFW-5461)
     recalculate_max_e_jerk();
@@ -2550,6 +2578,7 @@ void Motion_Parameters::save() {
   mp.acceleration = src.acceleration;
   mp.retract_acceleration = src.retract_acceleration;
   mp.travel_acceleration = src.travel_acceleration;
+  mp.max_filament_acceleration_mm_per_s2 = src.max_filament_acceleration_mm_per_s2;
   mp.min_feedrate_mm_s = src.min_feedrate_mm_s;
   mp.min_travel_feedrate_mm_s = src.min_travel_feedrate_mm_s;
 
@@ -2573,6 +2602,7 @@ void Motion_Parameters::load() const {
   s.acceleration = mp.acceleration;
   s.retract_acceleration = mp.retract_acceleration;
   s.travel_acceleration = mp.travel_acceleration;
+  s.max_filament_acceleration_mm_per_s2 = mp.max_filament_acceleration_mm_per_s2;
   s.min_feedrate_mm_s = mp.min_feedrate_mm_s;
   s.min_travel_feedrate_mm_s = mp.min_travel_feedrate_mm_s;
 

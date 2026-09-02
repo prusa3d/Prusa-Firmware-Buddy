@@ -166,7 +166,8 @@ typedef struct {
  feedRate_t max_feedrate_mm_s[XYZE_N];          // (mm/s) M203 XYZE - Max speeds
       float acceleration,                       // (mm/s^2) M204 S - Normal acceleration. DEFAULT ACCELERATION for all printing moves.
             retract_acceleration,               // (mm/s^2) M204 R - Retract acceleration. Filament pull-back and push-forward while standing still in the other axes
-            travel_acceleration;                // (mm/s^2) M204 T - Travel acceleration. DEFAULT ACCELERATION for all NON printing moves.
+            travel_acceleration,                // (mm/s^2) M204 T - Travel acceleration. DEFAULT ACCELERATION for all NON printing moves.
+            max_filament_acceleration_mm_per_s2;    // (mm/s^2) M204 F - Max filament acceleration for printing moves (E synchronous with XY). 0 = disabled.
  feedRate_t min_feedrate_mm_s,                  // (mm/s) M205 S - Minimum linear feedrate
             min_travel_feedrate_mm_s;           // (mm/s) M205 T - Minimum travel feedrate
 
@@ -190,7 +191,8 @@ typedef struct {
  feedRate_t max_feedrate_mm_s[XYZE_N];          // (mm/s) M203 XYZE - Max speeds
       float acceleration,                       // (mm/s^2) M204 S - Normal acceleration. DEFAULT ACCELERATION for all printing moves.
             retract_acceleration,               // (mm/s^2) M204 R - Retract acceleration. Filament pull-back and push-forward while standing still in the other axes
-            travel_acceleration;                // (mm/s^2) M204 T - Travel acceleration. DEFAULT ACCELERATION for all NON printing moves.
+            travel_acceleration,                // (mm/s^2) M204 T - Travel acceleration. DEFAULT ACCELERATION for all NON printing moves.
+            max_filament_acceleration_mm_per_s2;    // (mm/s^2) M204 F - Max filament acceleration for printing moves (E synchronous with XY). 0 = disabled.
  feedRate_t min_feedrate_mm_s,                  // (mm/s) M205 S - Minimum linear feedrate
             min_travel_feedrate_mm_s;           // (mm/s) M205 T - Minimum travel feedrate
 
@@ -280,6 +282,7 @@ class Planner {
     static void set_stealth_mode(bool set);
 
     static uint32_t max_acceleration_msteps_per_s2[XYZE_N]; // (mini-steps/s^2) Derived from mm_per_s2
+    static float max_filament_acceleration_msteps_per_s2;       // (mini-steps/s^2) Derived from settings.max_filament_acceleration_mm_per_s2, 0 = disabled
     static float mm_per_step[XYZE_N];                       // Millimeters per step
     static float mm_per_half_step[XYZE_N];                  // Millimeters per half step
     static float mm_per_mstep[XYZE_N];                      // Millimeters per mini-step
@@ -890,10 +893,17 @@ class Planner {
         vector *= RSQRT(magnitude_sq);
       }
 
-      FORCE_INLINE static float limit_value_by_axis_maximum(const float max_value, MachinePosXYZE &unit_vec) {
+      /// Largest acceleration along unit_vec that keeps every axis within its
+      /// per-axis maximum, capped at max_value.
+      /// e_axis_max_accel additionally caps the E axis; 0 means no extra cap.
+      FORCE_INLINE static float limit_value_by_axis_maximum(const float max_value, MachinePosXYZE &unit_vec, const float e_axis_max_accel = 0.0f) {
         float limit_value = max_value;
-        LOOP_XYZE(idx) if (unit_vec[idx]) // Avoid divide by zero
-          NOMORE(limit_value, ABS(settings.max_acceleration_mm_per_s2[idx] / unit_vec[idx]));
+        LOOP_XYZE(idx) if (unit_vec[idx]) { // Avoid divide by zero
+          float axis_max = static_cast<float>(settings.max_acceleration_mm_per_s2[idx]);
+          if (idx == E_AXIS && e_axis_max_accel > 0.0f)
+            axis_max = _MIN(axis_max, e_axis_max_accel);
+          NOMORE(limit_value, ABS(axis_max / unit_vec[idx]));
+        }
         return limit_value;
       }
 

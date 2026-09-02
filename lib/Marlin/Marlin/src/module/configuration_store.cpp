@@ -190,6 +190,7 @@ void MarlinSettings::reset_motion(const bool no_limits) {
     s.acceleration = DEFAULT_ACCELERATION;
     s.retract_acceleration = DEFAULT_RETRACT_ACCELERATION;
     s.travel_acceleration = DEFAULT_TRAVEL_ACCELERATION;
+    s.max_filament_acceleration_mm_per_s2 = DEFAULT_MAX_FILAMENT_ACCELERATION;
     s.min_feedrate_mm_s = feedRate_t(DEFAULT_MINIMUMFEEDRATE);
     s.min_travel_feedrate_mm_s = feedRate_t(DEFAULT_MINTRAVELFEEDRATE);
 
@@ -496,12 +497,13 @@ void MarlinSettings::reset() {
           );
       #endif
 
-      CONFIG_ECHO_HEADING("Acceleration (units/s2): P<print_accel> R<retract_accel> T<travel_accel>");
+      CONFIG_ECHO_HEADING("Acceleration (units/s2): P<print_accel> R<retract_accel> T<travel_accel> F<max_filament_accel>");
       CONFIG_ECHO_START();
       SERIAL_ECHOLNPAIR(
           "  M204 P", LINEAR_UNIT(planner.settings.acceleration)
         , " R", LINEAR_UNIT(planner.settings.retract_acceleration)
         , " T", LINEAR_UNIT(planner.settings.travel_acceleration)
+        , " F", LINEAR_UNIT(planner.settings.max_filament_acceleration_mm_per_s2)
       );
 
       if (!forReplay) {

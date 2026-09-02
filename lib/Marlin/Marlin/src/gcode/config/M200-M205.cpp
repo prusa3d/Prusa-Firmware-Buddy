@@ -178,7 +178,7 @@ void GcodeSuite::M203() {
  *
  *#### Usage
  *
- *    M204 [ S | P | R | T ]
+ *    M204 [ S | P | R | T | F ]
  *
  *#### Parameters
  *
@@ -186,14 +186,16 @@ void GcodeSuite::M203() {
  * - `P` - Printing moves
  * - `R` - Retract only (no X, Y, Z) moves
  * - `T` - Travel (non printing) moves
+ * - `F` - Max filament acceleration (mm/s^2 of filament) for printing moves (E synchronous with XY). 0 = disabled.
  *
  * Without parameters prints the current Accelerations
  */
 void GcodeSuite::M204() {
-  if (!parser.seen("PRST")) {
+  if (!parser.seen("PRSTF")) {
     SERIAL_ECHOPAIR("Acceleration: P", planner.settings.acceleration);
     SERIAL_ECHOPAIR(" R", planner.settings.retract_acceleration);
-    SERIAL_ECHOLNPAIR(" T", planner.settings.travel_acceleration);
+    SERIAL_ECHOPAIR(" T", planner.settings.travel_acceleration);
+    SERIAL_ECHOLNPAIR(" F", planner.settings.max_filament_acceleration_mm_per_s2);
   }
   else {
     auto s = planner.user_settings;
@@ -203,6 +205,11 @@ void GcodeSuite::M204() {
     if (parser.seenval('P')) s.acceleration = parser.value_linear_units();
     if (parser.seenval('R')) s.retract_acceleration = parser.value_linear_units();
     if (parser.seenval('T')) s.travel_acceleration = parser.value_linear_units();
+    if (parser.seenval('F')) {
+      // Clamp negatives to 0 (disabled); the limit is a non-negative filament acceleration.
+      const float f = parser.value_linear_units();
+      s.max_filament_acceleration_mm_per_s2 = f > 0.0f ? f : 0.0f;
+    }
 
     planner.apply_settings(s);
   }

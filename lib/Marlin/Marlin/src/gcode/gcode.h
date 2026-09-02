@@ -134,7 +134,7 @@
  * M201 - Set max acceleration in units/s^2 for print moves: "M201 X<accel> Y<accel> Z<accel> E<accel>"
  * M202 - Set max acceleration in units/s^2 for travel moves: "M202 X<accel> Y<accel> Z<accel> E<accel>" ** UNUSED IN MARLIN! **
  * M203 - Set maximum feedrate: "M203 X<fr> Y<fr> Z<fr> E<fr>" in units/sec.
- * M204 - Set default acceleration in units/sec^2: P<printing> R<extruder_only> T<travel>
+ * M204 - Set default acceleration in units/sec^2: S<acceleration> P<printing> R<extruder_only> T<travel> F<max_filament_acceleration>
  * M205 - Set advanced settings. Current units apply:
             S<print> T<travel> minimum speeds
             B<minimum segment time>

@@ -940,3 +940,9 @@
 #ifndef Z_STEPPER_ALIGN_AMP
   #define Z_STEPPER_ALIGN_AMP 1.0
 #endif
+
+// Printing configurations set this per extruder; the fallback leaves the
+// limit off for board variants that do not print (dwarf, dev kit).
+#ifndef DEFAULT_MAX_FILAMENT_ACCELERATION
+  #define DEFAULT_MAX_FILAMENT_ACCELERATION 0
+#endif
