@@ -58,6 +58,24 @@
 /// If translation not available, returns the same text.
 #define _(String) gettext(String)
 
+/// Class that is guaranteed to hold a constexpr string that is marked as translatable
+class TranslatableString {
+
+public:
+    inline operator string_view_utf8() const {
+        return _(str_);
+    }
+
+private:
+    const char *str_;
+
+    template <char... chars>
+    friend struct TranslatableStringT;
+
+    constexpr explicit TranslatableString(const char *str)
+        : str_ { str } {}
+};
+
 template <char... chars>
 struct TranslatableStringT {
     static constexpr inline const char str[] = { chars..., '\0' };
@@ -68,6 +86,10 @@ struct TranslatableStringT {
 
     inline operator string_view_utf8() const {
         return _(str);
+    }
+
+    constexpr inline operator TranslatableString() const {
+        return TranslatableString { str };
     }
 };
 
