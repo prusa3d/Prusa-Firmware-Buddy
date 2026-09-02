@@ -4,6 +4,8 @@
 #include <optional>
 #include <cmath>
 #include <cstring>
+#include <functional>
+#include <type_traits>
 
 #include <bsod/bsod.h>
 
@@ -75,6 +77,31 @@ public:
 
     constexpr T value_or(const T &fallback) const {
         return has_value() ? value_ : fallback;
+    }
+
+    /// std::optional::transform equivalent - returns the result of @p f applied on the value, or nullopt.
+    /// @tparam Result optional type to be returned. Defaults to std::optional.
+    template <typename Result = void, typename F>
+    constexpr auto transform(F &&f) const {
+        using R = std::conditional_t<
+            !std::is_void_v<Result>,
+            Result,
+            std::optional<std::remove_cv_t<std::invoke_result_t<F, const T &>>>>;
+
+        if (!has_value()) {
+            return R { std::nullopt };
+        }
+        return R(std::invoke(std::forward<F>(f), value_));
+    }
+
+    /// std::optional::and_then equivalent - returns the result of @p f applied on the value, or nullopt.
+    /// Unlike transform, @p f is expected to return an optional itself.
+    template <typename F>
+    constexpr auto and_then(F &&f) const -> std::remove_cvref_t<std::invoke_result_t<F, const T &>> {
+        if (!has_value()) {
+            return std::nullopt;
+        }
+        return std::invoke(std::forward<F>(f), value_);
     }
 
     constexpr const T &operator*() const {
