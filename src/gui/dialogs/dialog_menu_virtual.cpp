@@ -68,13 +68,17 @@ private:
 };
 
 void MenuItem::click(IWindowMenu &menu) {
-    static_cast<Menu &>(menu).handle_item_click(*this);
+    handle_click(*this, menu);
 }
 
 std::optional<int> execute(const Config &config) {
     Dialog dlg(config);
     Screens::Access()->gui_loop_until_dialog_closed();
     return dlg.result();
+}
+
+void MenuItem::handle_click(IWindowMenuItem &item, IWindowMenu &menu) {
+    static_cast<Menu &>(menu).handle_item_click(item);
 }
 
 } // namespace dialog_menu_virtual

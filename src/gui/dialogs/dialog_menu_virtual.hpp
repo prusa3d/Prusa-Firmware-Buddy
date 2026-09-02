@@ -12,6 +12,11 @@ public:
     /// General purpose params - typically used for the label
     StringViewUtf8Parameters<16> params;
 
+    /// Process selecting an item in the DialogMenuVirtual:
+    /// - Propagate the clicked item index to the execute() return value
+    /// - Close the menu
+    static void handle_click(IWindowMenuItem &item, IWindowMenu &menu);
+
 protected:
     void click(IWindowMenu &menu) override;
 };
