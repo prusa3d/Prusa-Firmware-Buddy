@@ -44,7 +44,6 @@
 #include <module/signal2step.hpp>
 #include <feature/pressure_advance/pressure_advance_config.hpp>
 #include <feature/phase_stepping/phase_stepping.hpp>
-#include <feature/precise_stepping/manual.hpp>
 #include <signal_processing/analysis.hpp>
 #include <signal_processing/generators.hpp>
 #include <signal_processing/pipeline.hpp>
@@ -243,14 +242,15 @@ struct SweepSpeedProfile {
 
 struct MotionExecutionResult {
     RawSamples raw_samples;
-    abce_pos_t moved_by;
     float sensor_sampling_freq_hz;
     uint32_t motion_profile_start_us;
 
+#if TOOL_OFFSET_DEBUG()
     uint32_t convert_time_ms;
     uint32_t steps_time_ms;
     uint32_t expected_time_ms;
     uint32_t actual_time_ms;
+#endif
 };
 
 // We place the debug reporters into a separate file so we do not clutter
@@ -302,19 +302,6 @@ std::expected<MotionExecutionResult, const char *> execute_motion_with_recording
 
     MotionExecutionResult result = {};
 
-    // Get mm per step from planner
-    for (int ax = 0; ax < XYZE; ++ax) {
-        if (planner.settings.axis_steps_per_mm[ax] <= 0) {
-            result.raw_samples.clear();
-            return std::unexpected<const char *>("Invalid axis steps per mm");
-        }
-    }
-    abce_pos_t mm_per_step;
-    mm_per_step[0] = 1.0f / planner.settings.axis_steps_per_mm[X_AXIS];
-    mm_per_step[1] = 1.0f / planner.settings.axis_steps_per_mm[Y_AXIS];
-    mm_per_step[2] = 1.0f / planner.settings.axis_steps_per_mm[Z_AXIS];
-    mm_per_step[3] = 1.0f / planner.settings.axis_steps_per_mm[E_AXIS];
-
     LineSamplesDebugReporter samples_reporter(label);
     samples_reporter.start();
 
@@ -324,8 +311,6 @@ std::expected<MotionExecutionResult, const char *> execute_motion_with_recording
         return std::unexpected<const char *>("Failed to get first sensor sample");
     }
 
-    enable_all_steppers();
-
     auto receive_samples = [&]() {
         while (auto sample = sensor.get_sample()) {
             uint32_t now = ticks_us();
@@ -334,50 +319,29 @@ std::expected<MotionExecutionResult, const char *> execute_motion_with_recording
         }
     };
 
-    auto enqueue_step = [&, prev_ts = uint32_t { 0 }](uint32_t timestamp_us, AxisEnum axis, bool direction) mutable {
-        // Always drain sensor queue to prevent overflow — idle() can be slow during a print
+    auto on_event = [&](signal2step::Event event, uint32_t motion_start_us) {
+        if (event == signal2step::Event::motion_start) {
+            result.motion_profile_start_us = motion_start_us;
+        }
         receive_samples();
-
-        // Enqueue to precise stepping, polling sensor while waiting
-        while (precise_stepping::manual::is_full()) {
-            receive_samples();
-            idle(true);
-        }
-
-        // Calculate relative timestamp
-        uint32_t relative_ts = timestamp_us - prev_ts;
-        while (relative_ts > STEP_TIMER_MAX_TICKS_LIMIT) {
-            precise_stepping::manual::enqueue_step(STEP_TIMER_MAX_TICKS_LIMIT, false,
-                StepEventFlag::STEP_EVENT_FLAG_KEEP_ALIVE);
-            relative_ts -= STEP_TIMER_MAX_TICKS_LIMIT;
-        }
-
-        StepEventFlag_t flags = StepEventFlag::STEP_EVENT_FLAG_STEP_X << int(axis)
-            | StepEventFlag::STEP_EVENT_FLAG_X_ACTIVE << int(axis);
-        precise_stepping::manual::enqueue_step(relative_ts, !direction, flags);
-        prev_ts = timestamp_us;
+        idle(true);
     };
 
+#if TOOL_OFFSET_DEBUG()
     result.expected_time_ms = expected_duration_us / 1000;
+#endif
 
     {
         phase_stepping::EnsureDisabled _;
 
-        uint32_t motion_start_time_us = ticks_us();
+        signal2step::run_speed_profile(std::forward<MotionSignal>(motion_signal), on_event);
 
-        result.moved_by = signal2step::convert(std::forward<MotionSignal>(motion_signal), mm_per_step, enqueue_step);
+        const uint32_t motion_start_time_us = result.motion_profile_start_us;
 
-        result.motion_profile_start_us = motion_start_time_us;
-
+#if TOOL_OFFSET_DEBUG()
         result.convert_time_ms = (ticks_us() - motion_start_time_us) / 1000;
-
-        // Wait for all steps to complete while continuing to poll sensor
-        while (precise_stepping::manual::has_steps()) {
-            receive_samples();
-            idle(true);
-        }
-
         result.steps_time_ms = (ticks_us() - motion_start_time_us) / 1000;
+#endif
 
         // Continue polling sensor until expected motion duration has elapsed
         if (expected_duration_us > 0) {
@@ -387,14 +351,13 @@ std::expected<MotionExecutionResult, const char *> execute_motion_with_recording
             }
         }
 
+#if TOOL_OFFSET_DEBUG()
         result.actual_time_ms = (ticks_us() - motion_start_time_us) / 1000;
+#endif
 
-        // Update current position
-        xyze_pos_t new_pos = current_position + signal2step::from_machine_to_cartesian(result.moved_by);
-        current_position = new_pos;
-        destination = new_pos;
-        sync_plan_position();
-        PreciseStepping::reset_from_halt(false);
+        // The position has been taken back from the steppers, which also drops
+        // any fractional step left by the commanded trajectory.
+        destination = current_position;
     }
 
     // Get sampling frequency before stopping the sensor
@@ -417,7 +380,7 @@ std::expected<MotionExecutionResult, const char *> execute_motion_with_recording
     return std::expected<MotionExecutionResult, const char *>(result);
 }
 
-// Project speed sources along (dir_x, dir_y) into XYZE motion signal
+// Project speed sources along (dir_x, dir_y) into an XYZE speed signal
 template <typename SpeedSourceX, typename SpeedSourceY>
 static auto create_motion_signal(
     SpeedSourceX &speed_source_x,
@@ -428,11 +391,10 @@ static auto create_motion_signal(
     sp::SamplingFreq sampling_freq) {
 
     return signal2step::fuse_xyze(
-               sp::pipe::ref(speed_source_x) | sp::pipe::integrate(0.0f) | sp::pipe::transform([dir_x](float pos) { return pos * dir_x; }),
-               sp::pipe::ref(speed_source_y) | sp::pipe::integrate(0.0f) | sp::pipe::transform([dir_y](float pos) { return pos * dir_y; }),
-               sp::pipe::make_constant(0.0f, sampling_freq) | sp::pipe::take_samples(static_cast<int>(num_samples)),
-               sp::pipe::make_constant(0.0f, sampling_freq) | sp::pipe::take_samples(static_cast<int>(num_samples)))
-        | signal2step::cartesian_to_printer_kinematics();
+        sp::pipe::ref(speed_source_x) | sp::pipe::transform([dir_x](float speed) { return speed * dir_x; }),
+        sp::pipe::ref(speed_source_y) | sp::pipe::transform([dir_y](float speed) { return speed * dir_y; }),
+        sp::pipe::make_constant(0.0f, sampling_freq) | sp::pipe::take_samples(static_cast<int>(num_samples)),
+        sp::pipe::make_constant(0.0f, sampling_freq) | sp::pipe::take_samples(static_cast<int>(num_samples)));
 }
 
 namespace {

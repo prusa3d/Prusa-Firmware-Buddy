@@ -156,16 +156,23 @@ int main() {
     };
     std::vector<StepEvent> steps;
 
-    abce_pos_t mm_per_step { MM_PER_STEP, MM_PER_STEP, MM_PER_STEP, MM_PER_STEP };
+    struct Collector {
+        std::vector<StepEvent> &steps;
 
-    signal2step::convert(
-        sp::pipe::make_source(positions, SAMPLING_FREQ)
-            | signal2step::cartesian_to_printer_kinematics(),
-        mm_per_step,
-        [&](uint32_t timestamp_us, AxisEnum axis, bool direction) {
+        void step(uint32_t timestamp_us, AxisEnum axis, bool direction) {
             std::size_t sample = static_cast<std::size_t>(timestamp_us / 1000.0f * SAMPLING_FREQ / 1000.0f);
             steps.push_back({ sample, timestamp_us, axis, direction });
-        });
+        }
+        void sample_end(uint32_t) {}
+        void wait_for_samples() {}
+        bool aborted() const { return false; }
+    } collector { steps };
+
+    signal2step::detail::generate_steps(
+        sp::pipe::make_source(positions, SAMPLING_FREQ)
+            | sp::pipe::transform([](const xyze_float_t &pos) { return signal2step::detail::machine_to_motor(pos); }),
+        { MM_PER_STEP, MM_PER_STEP, MM_PER_STEP, MM_PER_STEP },
+        collector);
 
     // Output positions CSV
     std::cout << "\n# POSITIONS\n";

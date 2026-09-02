@@ -92,3 +92,6 @@ struct xyze_float_t {
 };
 
 using xyze_pos_t = xyze_float_t;
+
+// Machine and native positions are the same type in the firmware for now too.
+using MachinePosXYZE = xyze_float_t;
