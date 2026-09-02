@@ -91,8 +91,15 @@ void filament_gcodes::M701_load(const M701LoadArgs &args) {
             preheat_to(filament_to_be_loaded, virtual_tool.to_physical(), PreheatBehavior::for_filament_load(false));
         }
     }
+
+    if (args.color_to_be_loaded.has_value()) {
+        // to_pending_adhoc -> the color change should only apply for this load
+        // we don't want to change user preset (or fail when trying to change a system preset)
+        filament_to_be_loaded = filament_to_be_loaded.to_pending_adhoc(virtual_tool);
+        filament_to_be_loaded.modify_parameters([&](auto &params) { params.color = *args.color_to_be_loaded; });
+    }
+
     filament::set_type_to_load(filament_to_be_loaded);
-    filament::set_color_to_load(args.color_to_be_loaded);
 
     pause::Settings settings;
     settings.SetExtruder(virtual_tool);
@@ -315,8 +322,15 @@ void filament_gcodes::M1600_change_filament(FilamentType filament_to_be_loaded, 
     } else {
         preheat_to(filament_to_be_loaded, virtual_tool.to_physical(), PreheatBehavior::for_filament_load(false));
     }
+
+    if (color_to_be_loaded.has_value()) {
+        // to_pending_adhoc -> the color change should only apply for this load
+        // we don't want to change user preset (or fail when trying to change a system preset)
+        filament_to_be_loaded = filament_to_be_loaded.to_pending_adhoc(virtual_tool);
+        filament_to_be_loaded.modify_parameters([&](auto &params) { params.color = *color_to_be_loaded; });
+    }
+
     filament::set_type_to_load(filament_to_be_loaded);
-    filament::set_color_to_load(color_to_be_loaded);
 
     // Update park position for load phase (move to front/load position instead of staying at unload/waste bin position)
     settings.SetParkPoint(mapi::get_parking_position(mapi::ParkPosition::load));

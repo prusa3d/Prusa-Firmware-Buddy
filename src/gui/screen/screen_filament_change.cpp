@@ -274,21 +274,21 @@ private:
     void first_update(FSMLoadUnloadData fsm_data) {
         const FilamentType filament_to_load = (fsm_data.mode == LoadUnloadMode::Load) ? filament::get_type_to_load() : FilamentType::none;
         const bool has_filament_to_load = (filament_to_load != FilamentType::none);
-        const bool has_color_to_load = has_filament_to_load && filament::get_color_to_load().has_value();
-        filament_type_text.set_visible(has_filament_to_load);
-        filament_color_icon.set_visible(has_color_to_load);
 
+        filament_type_text.set_visible(has_filament_to_load);
         if (has_filament_to_load) {
             filament_type_parameters = filament_to_load.parameters();
             filament_type_text.SetText(string_view_utf8::MakeRAM(filament_type_parameters.name.data()));
         }
 
+        const bool has_color_to_load = filament_type_parameters.color.has_value();
+        filament_color_icon.set_visible(has_color_to_load);
+
         if (has_color_to_load) {
             const int16_t left_pos = (GuiDefaults::ScreenWidth - (width(Font::normal) + 1) * (filament_type_parameters.name.size() + 1 + 1) - color_size) / 2; // make the pos to be on the left of the text (+ one added space to the left of the text, + additional one for some reason makes it work )
             const auto rect = filament_color_icon_rect + Rect16::X_t { static_cast<int16_t>(left_pos) };
 
-            const auto col = filament::get_color_to_load().value();
-            filament_color_icon.SetBackColor(col);
+            filament_color_icon.SetBackColor(*filament_type_parameters.color);
             filament_color_icon.SetRect(rect);
         }
     }

@@ -127,7 +127,6 @@ void PrusaGcodeSuite::M1701() {
 #endif
 
     filament::set_type_to_load(FilamentType::none);
-    filament::set_color_to_load(std::nullopt);
 
     InProgress progress;
     ScopeGuard autoload_clr = [&] {
@@ -220,7 +219,6 @@ void PrusaGcodeSuite::M1701() {
 
         const FilamentType filament = preheat_ret.second;
         filament::set_type_to_load(filament);
-        filament::set_color_to_load(std::nullopt);
 
         mapi::ParkingPosition park_position = { .z = mapi::ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_RISE, .absolute = z_min_pos } };
         // Returning to previous position is unwanted outside of printing (M1701 should be used only outside of printing)
