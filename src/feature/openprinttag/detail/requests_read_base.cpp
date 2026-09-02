@@ -174,4 +174,37 @@ void ReadStringRequestBase::complete(Bytes event_data) {
     set_finished({});
 }
 
+void ReadColorFieldRequest::serialize(RequestID request_id, TagID tag_id, anfc::modbus::Request &request) {
+    serialize_read_field(
+        request_id,
+        tag_id,
+        tag_field(),
+        prusa3d_nfc_util_ValueType_1_0_BYTES,
+        request);
+}
+
+void ReadColorFieldRequest::complete(Bytes event_data) {
+    prusa3d_nfc_event_Event_1_0 event;
+    const auto value_or_error = deserialize_read_field_value(event_data, event, prusa3d_nfc_util_Value_1_0_is_bytes_);
+    if (!value_or_error) {
+        return set_finished(std::unexpected(value_or_error.error()));
+    }
+    const auto &bytes = value_or_error.value()->bytes;
+
+    if (bytes.count != 3 && bytes.count != 4) {
+        return set_finished(std::unexpected(Error::wrong_field_type));
+    }
+
+    static_assert((requires { Color()._unused; }), "Color got alpha -> gotta use it");
+
+    if (bytes.count == 4 && bytes.elements[3] < 16) {
+        // We don't support transparency, so mark too transparent colors as no colors
+        set_finished(std::unexpected(Error::field_not_present));
+        return;
+    }
+
+    result_ = Color::from_rgb(bytes.elements[0], bytes.elements[1], bytes.elements[2]);
+    set_finished({});
+}
+
 } // namespace buddy::openprinttag

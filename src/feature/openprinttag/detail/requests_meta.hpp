@@ -42,4 +42,10 @@ struct FieldTypeTraits<FieldType::enum_array> {
     template <auto field>
     using ReadFieldRequest = ReadEnumArrayFieldRequest<typename FieldTraits<field>::Enum, FieldTraits<field>::max_length>;
 };
+
+template <>
+struct FieldTypeTraits<FieldType::color_rgba> {
+    template <auto field>
+    using ReadFieldRequest = ReadColorFieldRequest;
+};
 }; // namespace buddy::openprinttag

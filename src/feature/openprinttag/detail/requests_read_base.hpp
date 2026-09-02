@@ -9,6 +9,7 @@
 #include <openprinttag/opt_fields.hpp>
 #include <bsod/bsod.h>
 #include <utils/byte_utils.hpp>
+#include <utils/color.hpp>
 
 namespace buddy::openprinttag {
 
@@ -179,6 +180,18 @@ public:
 
 private:
     std::array<char, array_size> array_;
+};
+
+class ReadColorFieldRequest : public ReadRequestMixin<Color> {
+    // Note: can report field_missing for overly transparent colors as Color does not support transparency
+    static_assert((requires { Color()._unused; }), "Color got alpha -> remove the comment");
+
+public:
+    // Inherit constructor
+    using ReadRequestMixin<Color>::ReadRequestMixin;
+
+    void serialize(RequestID, TagID, anfc::modbus::Request &) final;
+    void complete(Bytes event_data) final;
 };
 
 } // namespace buddy::openprinttag
