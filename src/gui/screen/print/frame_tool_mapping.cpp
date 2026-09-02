@@ -241,12 +241,13 @@ void ColumnItem::printExtension(Rect16 extension_rect, Color color_text, Color c
 
         const auto physical_tool = virtual_tool->to_physical();
         tool_name = virtual_tool->compact_display_name();
+        const auto filament_params = config_store().get_filament_type(*virtual_tool).parameters();
 
         data = Data {
             .tool_name = string_view_utf8::MakeRAM(tool_name),
             .nozzle_diameter = CompactOptional<float, NAN> { config_store().get_nozzle_diameter(physical_tool) },
-            .filament_name = config_store().get_filament_type(*virtual_tool).parameters().name,
-            .color = std::nullopt, // TODO: Support loaded filament colors
+            .filament_name = filament_params.name,
+            .color = filament_params.color,
         };
         break;
     }
