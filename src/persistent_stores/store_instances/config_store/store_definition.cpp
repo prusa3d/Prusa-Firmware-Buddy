@@ -237,7 +237,7 @@ FilamentType CurrentStore::get_filament_type([[maybe_unused]] uint8_t index) {
 
 void CurrentStore::set_filament_type(VirtualToolIndex virtual_tool, FilamentType value) {
     if (value == PendingAdHocFilamentType {}) {
-        const FilamentType new_value = AdHocFilamentType { .tool = virtual_tool.to_raw() };
+        const FilamentType new_value = AdHocFilamentType { virtual_tool };
         new_value.set_parameters(value.parameters());
 
 #if HAS_ANFC()

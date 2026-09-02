@@ -196,19 +196,21 @@ FilamentTypeParameters FilamentType::parameters() const {
                 std::monostate());
 
         } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
+            const auto i = v.tool.to_raw();
+
             return build_eeprom(
-                config_store().adhoc_filament_parameters.get(v.tool),
+                config_store().adhoc_filament_parameters.get(i),
 #if HAS_CHAMBER_API()
-                config_store().adhoc_filament_parameters_2.get(v.tool),
+                config_store().adhoc_filament_parameters_2.get(i),
 #endif
 #if HAS_FILAMENT_HEATBREAK_PARAM()
-                config_store().adhoc_filament_parameters_3.get(v.tool),
+                config_store().adhoc_filament_parameters_3.get(i),
 #endif
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
-                config_store().adhoc_filament_parameters_4.get(v.tool),
+                config_store().adhoc_filament_parameters_4.get(i),
 #endif
 #if HAS_ANFC()
-                config_store().adhoc_filament_assigned_openprinttag.get(v.tool),
+                config_store().adhoc_filament_assigned_openprinttag.get(i),
 #endif
                 std::monostate());
 
@@ -296,18 +298,20 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
 #endif
 
         } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
-            config_store().adhoc_filament_parameters.set(v.tool, e1);
+            const auto i = v.tool.to_raw();
+
+            config_store().adhoc_filament_parameters.set(i, e1);
 #if HAS_CHAMBER_API()
-            config_store().adhoc_filament_parameters_2.set(v.tool, e2);
+            config_store().adhoc_filament_parameters_2.set(i, e2);
 #endif
 #if HAS_FILAMENT_HEATBREAK_PARAM()
-            config_store().adhoc_filament_parameters_3.set(v.tool, e3);
+            config_store().adhoc_filament_parameters_3.set(i, e3);
 #endif
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
-            config_store().adhoc_filament_parameters_4.set(v.tool, e4);
+            config_store().adhoc_filament_parameters_4.set(i, e4);
 #endif
 #if HAS_ANFC()
-            config_store().adhoc_filament_assigned_openprinttag.set(v.tool, set.openprinttag_uid_hash);
+            config_store().adhoc_filament_assigned_openprinttag.set(i, set.openprinttag_uid_hash);
 #endif
 
         } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {

@@ -32,10 +32,10 @@ TEST_CASE("from_variant_bytes: UserFilamentType (discriminant 2)", "[encoded_fil
 
 TEST_CASE("from_variant_bytes: AdHocFilamentType (discriminant 3)", "[encoded_filament]") {
     auto result = filament_type_from_variant_bytes(3, 0);
-    REQUIRE(result == FilamentType(AdHocFilamentType { 0 }));
+    REQUIRE(result == FilamentType(AdHocFilamentType { VirtualToolIndex::from_raw(0) }));
 
     result = filament_type_from_variant_bytes(3, 2);
-    REQUIRE(result == FilamentType(AdHocFilamentType { 2 }));
+    REQUIRE(result == FilamentType(AdHocFilamentType { VirtualToolIndex::from_raw(2) }));
 }
 
 TEST_CASE("from_variant_bytes: PendingAdHocFilamentType (discriminant 4)", "[encoded_filament]") {

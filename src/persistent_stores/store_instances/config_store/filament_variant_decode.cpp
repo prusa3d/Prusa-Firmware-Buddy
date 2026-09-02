@@ -11,7 +11,10 @@ FilamentType filament_type_from_variant_bytes(uint8_t discriminant, uint8_t valu
     case 2: // UserFilamentType
         return UserFilamentType { value };
     case 3: // AdHocFilamentType
-        return AdHocFilamentType { value };
+        if (value >= VirtualToolIndex::count) {
+            return NoFilamentType {};
+        }
+        return AdHocFilamentType { VirtualToolIndex::from_raw(value) };
     default: // PendingAdHocFilamentType or unknown
         return NoFilamentType {};
     }

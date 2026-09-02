@@ -154,7 +154,7 @@ struct UserFilamentType {
 /// Not listed in all_filament_types.
 /// The parameters can be entered directly during preheat by selecting a special option in the preheat menu.
 struct AdHocFilamentType {
-    uint8_t tool = 0;
+    VirtualToolIndex tool;
 
     inline constexpr bool operator==(const AdHocFilamentType &) const = default;
     inline constexpr bool operator!=(const AdHocFilamentType &) const = default;

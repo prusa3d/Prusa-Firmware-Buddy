@@ -33,7 +33,7 @@ public:
                 return v.index + user_filaments_offset;
 
             } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
-                return v.tool + adhoc_filaments_offset;
+                return v.tool.to_raw() + adhoc_filaments_offset;
 
             } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
                 return pending_adhoc_filament_value;
@@ -61,7 +61,8 @@ public:
             return UserFilamentType { static_cast<uint8_t>(data - user_filaments_offset) };
 
         } else if (data >= adhoc_filaments_offset && data < adhoc_filaments_offset + adhoc_filament_type_count) {
-            return AdHocFilamentType { static_cast<uint8_t>(data - adhoc_filaments_offset) };
+            // Note: bounds checked by adhoc_filament_type_count
+            return AdHocFilamentType { VirtualToolIndex::from_raw(static_cast<uint8_t>(data - adhoc_filaments_offset)) };
 
         } else if (data == pending_adhoc_filament_value) {
             return PendingAdHocFilamentType {};

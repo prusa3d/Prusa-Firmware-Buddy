@@ -19,7 +19,7 @@ std::optional<ToolTag> ToolTag::for_tool_assigned(VirtualToolIndex tool) {
     // Note: Using FilamentTypeParameters::openprinttag_uid_hash would be more correct,
     // but that would require computing the whole parameters. This is functionally equivalent and way more sleek
 
-    if (FilamentType::for_tool(tool) != AdHocFilamentType { .tool = tool.to_raw() }) {
+    if (FilamentType::for_tool(tool) != AdHocFilamentType { tool }) {
         // adhoc_filament_assigned_openprinttag is available only if the appropriate ad-hoc filament type is used
         return std::nullopt;
     }
