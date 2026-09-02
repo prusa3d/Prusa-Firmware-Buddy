@@ -2,6 +2,8 @@
 #include "gui_utils.hpp"
 
 #include <str_utils.hpp>
+#include <display.hpp>
+#include <guiconfig/GuiDefaults.hpp>
 
 std::optional<Font> auto_select_font(const AutoSelectFontArgs &args) {
     static constexpr std::array font_list {
@@ -41,5 +43,28 @@ std::optional<Font> auto_select_font(const AutoSelectFontArgs &args) {
         if (fnt == font_list.end()) {
             return std::nullopt;
         }
+    }
+}
+
+void draw_color_swatch(Rect16 rect, Align_t align, OptionalColor color, Color color_back) {
+    constexpr auto padding = 1;
+
+    const Color border_color = color_back.to_grayscale() < 128 ? COLOR_WHITE : COLOR_BLACK;
+
+    const auto outer_size = std::min<int16_t>(rect.Height(), rect.Width());
+    Rect16 outer_rect = Rect16::fromLTWH(0, 0, outer_size, outer_size);
+    outer_rect.Align(rect, align);
+    display::draw_rounded_rect(outer_rect, color_back, border_color, GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS);
+
+    debug_assert(outer_size > padding * 2);
+    const auto inner_size = outer_size - padding * 2;
+    const Rect16 inner_rect = Rect16::fromLTWH(outer_rect.Left() + padding, outer_rect.Top() + padding, inner_size, inner_size);
+
+    // No color -> draw black background for the red cross
+    display::draw_rounded_rect(inner_rect, border_color, color.value_or(COLOR_BLACK), GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS);
+
+    if (!color.has_value()) {
+        display::draw_line(point_ui16_t::from_point(inner_rect.TopLeft()), point_ui16_t::from_point(inner_rect.BottomRight()), COLOR_RED);
+        display::draw_line(point_ui16_t::from_point(inner_rect.TopRight()), point_ui16_t::from_point(inner_rect.BottomLeft()), COLOR_RED);
     }
 }

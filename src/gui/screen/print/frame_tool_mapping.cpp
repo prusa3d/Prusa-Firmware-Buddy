@@ -20,6 +20,7 @@
 #include <option/has_mmu2.h>
 #include <bsod/bsod.h>
 #include <gui/dialogs/dialog_menu_virtual.hpp>
+#include <gui_utils.hpp>
 
 namespace screen_tool_mapping {
 
@@ -277,15 +278,10 @@ void ColumnItem::printExtension(Rect16 extension_rect, Color color_text, Color c
     // Draw filament color
     if (data.color.has_value()) {
         constexpr auto margin = 6;
-        constexpr auto padding = 1;
-
-        const auto outer_size = extension_rect.Height() - margin * 2;
-        const Rect16 outer_rect = Rect16::fromLTWH(extension_rect.Right() - outer_size, extension_rect.Top() + margin, outer_size, outer_size);
-        display::draw_rounded_rect(outer_rect, color_back, COLOR_WHITE, GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS);
-
-        const auto inner_size = outer_size - padding * 2;
-        const Rect16 inner_rect = Rect16::fromLTWH(outer_rect.Left() + padding, outer_rect.Top() + padding, inner_size, inner_size);
-        display::draw_rounded_rect(inner_rect, COLOR_WHITE, *data.color, GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS);
+        draw_color_swatch(
+            Rect16::CutPadding(extension_rect, padding_ui8_t { .top = margin, .bottom = margin }),
+            Align_t::RightCenter(),
+            *data.color, color_back);
     }
 }
 

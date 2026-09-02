@@ -18,3 +18,6 @@ struct AutoSelectFontArgs {
 
 /// @returns the largest font that can fit @p text into @p rect
 std::optional<Font> auto_select_font(const AutoSelectFontArgs &args);
+
+/// A standard method of indicating a color
+void draw_color_swatch(Rect16 rect, Align_t align, OptionalColor color, Color color_back);
